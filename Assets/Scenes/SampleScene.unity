@@ -734,14 +734,6 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6055861653884896251, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
-      propertyPath: allyPrefab
-      value: 
-      objectReference: {fileID: 5144142430907504354, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
-    - target: {fileID: 6055861653884896251, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
-      propertyPath: playerLayer.m_Bits
-      value: 256
-      objectReference: {fileID: 0}
-    - target: {fileID: 6055861653884896251, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
       propertyPath: 'allys.Array.data[0]'
       value: 
       objectReference: {fileID: 1855842007}
