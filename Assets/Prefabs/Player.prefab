@@ -341,8 +341,8 @@ MonoBehaviour:
   isBattle: 0
   playerLayer:
     serializedVersion: 2
-    m_Bits: 0
-  allyPrefab: {fileID: 0}
+    m_Bits: 256
+  allyPrefab: {fileID: 5144142430907504354, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
 --- !u!70 &5795974627384478445
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
