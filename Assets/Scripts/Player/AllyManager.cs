@@ -11,6 +11,7 @@ public class AllyManager : MonoBehaviour
     [Header("아군 유닛 프리팹")]
     [SerializeField] GameObject allyPrefab;
 
+    // 아군 유닛 소환 함수
     public void SpawnAlly(Vector2 _position)
     {
         // 리스트 정리
@@ -18,7 +19,12 @@ public class AllyManager : MonoBehaviour
 
         GameObject obj = Instantiate(allyPrefab);
         obj.transform.position = _position;
-        allys.Add(obj.GetComponent<AllyController>());
+        AllyController _ally = obj.GetComponent<AllyController>();
+        allys.Add(_ally);
+        // Init으로 지정하든 해야 할듯
+        _ally.player = this.gameObject.transform;
+        _ally.SetBattleState(isBattle);
+
         Debug.Log("Ally 스폰");
     }
 

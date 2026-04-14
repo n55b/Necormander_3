@@ -267,6 +267,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: f8a0b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c
     m_ActionName: 'Player/Throw[/Mouse/leftButton]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7972545975472383977}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: RightClick
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: a1ac0817-f9d7-416f-a844-6365fcc7db01
+    m_ActionName: 'Player/Spawn[/Mouse/rightButton]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player

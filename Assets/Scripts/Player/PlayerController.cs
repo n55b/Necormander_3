@@ -52,6 +52,18 @@ public class PlayerController : MonoBehaviour
         return;
     }
 
+    // 아군 유닛 소환 함수
+    public void RightClick(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+
+        Vector3 mousePos = Input.mousePosition;
+        mousePos.z = 10f; 
+
+        Vector3 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
+        allyManager.SpawnAlly(worldPos);
+    }
+
     // 플레이어 전투 or 평소 상태 변경 함수
     public void ChangeState(PlayerStates _state)
     {
