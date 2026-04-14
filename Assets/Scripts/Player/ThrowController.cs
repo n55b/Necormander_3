@@ -24,18 +24,26 @@ namespace Necromancer.Player
 
         private void Update()
         {
-            // 테스트를 위해 직접 마우스 입력 체크 추가
-            if (Mouse.current.leftButton.wasPressedThisFrame) OnClickStart();
-            if (Mouse.current.leftButton.wasReleasedThisFrame) OnClickEnd();
-
             if (_isCharging)
             {
                 _chargeTimer = Mathf.Min(_chargeTimer + Time.deltaTime, chargeTime);
             }
         }
 
-        // 마우스 좌클릭 시 호출 (Unity Input System 이벤트 또는 직접 입력 체크)
-        public void OnClickStart()
+        // Input System의 'Attack' 액션 등에 연결 (started/performed/canceled)
+        public void OnThrow(InputAction.CallbackContext context)
+        {
+            if (context.started)
+            {
+                OnThrowStarted();
+            }
+            else if (context.canceled)
+            {
+                OnThrowCanceled();
+            }
+        }
+
+        private void OnThrowStarted()
         {
             // 1. 만약 들고 있는 게 없다면 주변에서 줍기
             if (_currentHeldObject == null)
@@ -50,7 +58,7 @@ namespace Necromancer.Player
             }
         }
 
-        public void OnClickEnd()
+        private void OnThrowCanceled()
         {
             if (_isCharging && _currentHeldObject != null)
             {
@@ -94,8 +102,9 @@ namespace Necromancer.Player
         {
             float chargeRatio = _chargeTimer / chargeTime;
 
-            // 마우스 월드 좌표 계산
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+            // Input System의 Pointer 위치 사용 (마우스/터치 공용)
+            Vector2 screenPos = Pointer.current.position.ReadValue();
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
             mousePos.z = 0f;
             Vector2 targetPos = (Vector2)mousePos;
 
