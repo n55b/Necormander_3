@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using UnityEngine;
 
-public class CharacterState:MonoBehaviour
+public class CharacterStat:MonoBehaviour
 {
     [Header("캐릭터 기본 스탯")]
     [SerializeField] float MaxHP;
@@ -11,6 +11,7 @@ public class CharacterState:MonoBehaviour
     [SerializeField] float AtkRange;
     [SerializeField] float Def;
     [SerializeField] float MoveSpeed;
+    [SerializeField] bool isDead = false;
 
     public float MAXHP {get {return MaxHP;}}
     public float CURHP {get {return curHP;}}
@@ -19,4 +20,11 @@ public class CharacterState:MonoBehaviour
     public float ATKRANGE{get {return AtkRange;}}
     public float DEF {get {return Def;}}
     public float MOVESPEED {get {return MoveSpeed;}}
+
+    public void GetDamage(float value)
+    {
+        value -= curHP;
+
+        if(curHP <= 0.0f) isDead = true;
+    }
 }

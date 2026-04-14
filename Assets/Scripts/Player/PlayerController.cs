@@ -13,8 +13,9 @@ public enum PlayerStates
 public class PlayerController : MonoBehaviour
 {
     [Header("플레이어 스탯")]
-    [SerializeField] CharacterState stat;
+    [SerializeField] CharacterStat stat;
     [SerializeField] GameObject TrackingCollider;
+    [SerializeField] AllyManager allyManager;
 
     [Header("플레이어 상태")]
     [SerializeField] PlayerStates P_State = PlayerStates.Idle;
@@ -22,10 +23,6 @@ public class PlayerController : MonoBehaviour
     [Header("이동 변수")]
     [SerializeField] Vector3 MoveDirection = Vector3.zero;
     [SerializeField] Vector2 moveInput = Vector2.zero;
-    
-
-    [Header("소환수 목록")]
-    [SerializeField] private List<AllyController> allys;
 
     private void Update()
     {
@@ -38,20 +35,9 @@ public class PlayerController : MonoBehaviour
 
         if(P_State == PlayerStates.Battle)
         {
-            bool yet = false;
-            foreach(var ally in allys)
-            {
-                if(ally.IsBattle)
-                {
-                    yet = true;
-                    break;
-                }
-            }
-
-            if(!yet)
-            {
+            bool check = allyManager.CheckAllyState();
+            if(!check)
                 ChangeState(PlayerStates.Idle);
-            }
         }
     }
 
@@ -76,10 +62,7 @@ public class PlayerController : MonoBehaviour
         if(P_State == PlayerStates.Battle)
         {
             TrackingCollider.gameObject.SetActive(false);
-            foreach(var ally in allys)
-            {
-                ally.SetBattleState(true);
-            }
+            allyManager.SetBattleState(true);
         }
         else if(P_State == PlayerStates.Idle)
         {

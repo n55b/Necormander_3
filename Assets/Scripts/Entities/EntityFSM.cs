@@ -6,11 +6,11 @@ public class EntityFSM : MonoBehaviour
     public FSMStateSO currentState; // 현재 상태 (에셋 드래그 앤 드롭)
     public Transform target;        // 현재 대상 (플레이어 혹은 적)
 
-    [HideInInspector] public CharacterState stats; // 캐싱용
+    [HideInInspector] public CharacterStat stats; // 캐싱용
 
     void Awake()
     {
-        stats = GetComponent<CharacterState>();
+        stats = GetComponent<CharacterStat>();
     }
 
     void Start()

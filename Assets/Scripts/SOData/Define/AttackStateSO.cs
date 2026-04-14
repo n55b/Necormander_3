@@ -4,6 +4,7 @@ using UnityEngine;
 public class AttackStateSO : FSMStateSO
 {
     private float _lastAttackTime;
+    private CharacterStat enemy;
 
     public override void Enter(EntityFSM fsm)
     {
@@ -35,6 +36,7 @@ public class AttackStateSO : FSMStateSO
 
     private void Attack(EntityFSM fsm)
     {
+        enemy.GetDamage(fsm.stats.ATK);
         Debug.Log($"{fsm.name}이(가) {fsm.target.name}을 공격합니다! 데미지: {fsm.stats.ATK}");
         // 여기에 실제 데미지를 입히는 로직이나 애니메이션 실행을 넣습니다.
     }
