@@ -1,30 +1,50 @@
-using System.ComponentModel;
 using UnityEngine;
 
-public class CharacterStat:MonoBehaviour
+public class CharacterStat : MonoBehaviour
 {
     [Header("캐릭터 기본 스탯")]
-    [SerializeField] float MaxHP;
+    [SerializeField] float MaxHP = 100f;
     [SerializeField] float curHP;
-    [SerializeField] float Atk;
-    [SerializeField] float AtkSpd;
-    [SerializeField] float AtkRange;
-    [SerializeField] float Def;
-    [SerializeField] float MoveSpeed;
+    [SerializeField] float Atk = 10f;
+    [SerializeField] float AtkSpd = 1f;
+    [SerializeField] float AtkRange = 2f;
+    [SerializeField] float Def = 0f;
+    [SerializeField] float MoveSpeed = 5f;
     [SerializeField] bool isDead = false;
 
-    public float MAXHP {get {return MaxHP;}}
-    public float CURHP {get {return curHP;}}
-    public float ATK {get {return Atk;}}
-    public float ATKSPD{get {return AtkSpd;}}
-    public float ATKRANGE{get {return AtkRange;}}
-    public float DEF {get {return Def;}}
-    public float MOVESPEED {get {return MoveSpeed;}}
+    public float MAXHP => MaxHP;
+    public float CURHP => curHP;
+    public float ATK => Atk;
+    public float ATKSPD => AtkSpd;
+    public float ATKRANGE => AtkRange;
+    public float DEF => Def;
+    public float MOVESPEED => MoveSpeed;
+    public bool IsDead => isDead;
 
-    public void GetDamage(float value)
+    void Awake()
     {
-        value -= curHP;
+        curHP = MaxHP;
+    }
 
-        if(curHP <= 0.0f) isDead = true;
+    public void GetDamage(DamageInfo info)
+    {
+        if (isDead) return;
+
+        float finalDamage = Mathf.Max(info.amount - Def, 1f);
+        curHP -= finalDamage;
+
+        Debug.Log($"{gameObject.name}이(가) {finalDamage}의 {info.type} 데미지를 입었습니다. (남은 HP: {curHP})");
+
+        if (curHP <= 0.0f)
+        {
+            curHP = 0;
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        isDead = true;
+        Debug.Log($"<color=red><b>[DEATH]</b></color> {gameObject.name} 사망!");
     }
 }
