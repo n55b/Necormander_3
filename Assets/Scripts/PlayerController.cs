@@ -19,19 +19,22 @@ public class PlayerController : MonoBehaviour
     [Header("플레이어 상태")]
     [SerializeField] PlayerStates P_State = PlayerStates.Idle;
 
-    [Header("이동 오브젝트")]
-    [SerializeField] private GameObject _targetPosition;
-    [SerializeField, ReadOnly] private bool Move = false;
+    [Header("이동 변수")]
+    [SerializeField] Vector3 MoveDirection = Vector3.zero;
+    [SerializeField] Vector2 moveInput = Vector2.zero;
+    
 
     [Header("소환수 목록")]
     [SerializeField] private List<AllyController> allys;
 
+    private void Update()
+    {
+        MoveDirection = moveInput;
+    }
+
     private void FixedUpdate()
     {
-        if(Move)
-        {
-            OnMove();
-        }
+        transform.position += MoveDirection * stat.MOVESPEED * Time.deltaTime;
 
         if(P_State == PlayerStates.Battle)
         {
@@ -52,46 +55,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        // 입력 관련 처리 if문
-        if(collision.gameObject == _targetPosition.gameObject)
-        {
-            Move = false;
-        }
-    }
-
     // 플레이어 움직임 관리 함수
-    private void OnMove()
+    public void OnMove(InputAction.CallbackContext context)
     {
-        float speed = stat.MOVESPEED;
-        float dist = Vector3.Distance(transform.position, _targetPosition.transform.position);
-        
-        if((Vector2)this.transform.position != (Vector2)_targetPosition.transform.position)
+        if(context.performed || context.canceled)
         {
-            transform.position = Vector3.MoveTowards(
-                transform.position,
-                (Vector3)_targetPosition.transform.position,
-                stat.MOVESPEED * Time.deltaTime
-            );
+            moveInput = context.ReadValue<Vector2>();
         }
 
         return;
-    }
-
-    // 플레이어 움직임 입력 받는 함수
-    public void OnRightClick(InputAction.CallbackContext context)
-    {
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-        Vector3 screenPosWithDepth = new Vector3(
-            mousePos.x, 
-            mousePos.y, 
-            Math.Abs(Camera.main.transform.position.z));
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenPosWithDepth);
-
-        _targetPosition.transform.position = worldPos;
-
-        Move = true;
     }
 
     // 플레이어 전투 or 평소 상태 변경 함수
