@@ -8,7 +8,6 @@ public class AllyController : MonoBehaviour, IThrowable
     private Rigidbody2D _rb;
     private ArcMovement _arcMovement;
     private Collider2D _collider;
-    private CharacterStat _stats; // 캐싱된 스탯
 
     public Transform player;
     public float detectRange = 10f;
@@ -18,7 +17,7 @@ public class AllyController : MonoBehaviour, IThrowable
     public FSMStateSO idleState;
     public FSMStateSO followState;
     public FSMStateSO attackState;
-    public FSMStateSO thrownState; 
+    public FSMStateSO thrownState;
 
     [Header("Throw Attack Settings")]
     [SerializeField] private BaseThrowImpactSO impactEffect; // 인스펙터에서 Single/Splash 할당
@@ -29,7 +28,10 @@ public class AllyController : MonoBehaviour, IThrowable
     [SerializeField] private float minSpeed = 5f;
     [SerializeField] private float maxSpeed = 20f;
     [SerializeField] private float fullChargeSpeed = 30f;
-    
+
+    [Header(" NearestTargetFinder")]
+    [SerializeField] NearestTargetFinder _nearestFinder;
+
     private LayerMask _hitLayers;
     private float _throwStartTime;
     private float _originalDamping;
@@ -39,7 +41,6 @@ public class AllyController : MonoBehaviour, IThrowable
 
     public bool IsBattle => isBattle;
     public EntityFSM FSM => _fsm;
-    public CharacterStat stats => _stats;
 
     void Awake()
     {
@@ -47,7 +48,7 @@ public class AllyController : MonoBehaviour, IThrowable
         _rb = GetComponent<Rigidbody2D>();
         _arcMovement = GetComponent<ArcMovement>();
         _collider = GetComponent<Collider2D>();
-        _stats = GetComponent<CharacterStat>();
+        _nearestFinder = GetComponent<NearestTargetFinder>();
 
         if (_rb != null)
         {
@@ -68,13 +69,33 @@ public class AllyController : MonoBehaviour, IThrowable
         // 던져진 상태이거나 비활성화 상태면 원래 로직 중단
         if (_fsm.currentState == thrownState || !enabled) return;
 
+        // 공격 중일 때 다른 명령 x
+        if(_fsm.currentState == attackState && _fsm.target != null)
+            return;
+
+        Transform trs = _nearestFinder.FindNearest(detectRange);
+        // null일떄는 주변에 없는 것
+
+        if (trs != null)
+        {
+            float dist = Vector3.Distance(transform.position, trs.position);
+            if (dist <= _fsm.stats.ATKRANGE)
+            {
+                if (_fsm.target == null || _fsm.target != trs)
+                    _fsm.target = trs;
+
+                _fsm.ChangeState(attackState);
+                return;
+            }
+        }
+
         if (isBattle)
         {
-            // 주변에 적이 있는지 체크
-            Collider2D[] targets = Physics2D.OverlapCircleAll(transform.position, detectRange, enemyLayer);
-            if (targets.Length > 0)
+            if (trs != null)
             {
-                _fsm.target = targets[0].transform;
+                if (_fsm.target == null || _fsm.target != trs)
+                    _fsm.target = trs;
+
                 _fsm.ChangeState(followState);
             }
             else
@@ -93,7 +114,7 @@ public class AllyController : MonoBehaviour, IThrowable
     public void OnPickedUp()
     {
         _fsm.ChangeState(thrownState);
-        
+
         if (_rb != null) _rb.simulated = false;
         if (_collider != null) _collider.enabled = false;
     }
@@ -109,7 +130,7 @@ public class AllyController : MonoBehaviour, IThrowable
             _rb.simulated = true;
             _rb.linearDamping = 0f;
         }
-        
+
         if (_collider != null)
         {
             _collider.enabled = true;
@@ -128,7 +149,7 @@ public class AllyController : MonoBehaviour, IThrowable
         if (chargeRatio >= 1.0f)
         {
             speed = fullChargeSpeed;
-            duration = 2.0f; 
+            duration = 2.0f;
             maxHeight = straightHeight;
         }
         else
@@ -137,7 +158,7 @@ public class AllyController : MonoBehaviour, IThrowable
             duration = distance / speed;
 
             float targetHeight = Mathf.Lerp(jumpHeight, straightHeight, chargeRatio);
-            maxHeight = Mathf.Min(targetHeight, distance * 0.5f); 
+            maxHeight = Mathf.Min(targetHeight, distance * 0.5f);
         }
 
         if (_rb != null) _rb.linearVelocity = direction * speed;
@@ -173,11 +194,11 @@ public class AllyController : MonoBehaviour, IThrowable
         }
 
         if (_collider != null) _collider.isTrigger = false;
-        
+
         // 착지 후 즉시 플레이어를 따라가도록 상태 복구
         _fsm.target = player;
         _fsm.ChangeState(followState);
-        
+
         Debug.Log($"{gameObject.name} landed and returning to player!");
     }
 

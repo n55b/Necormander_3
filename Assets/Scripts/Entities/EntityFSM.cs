@@ -8,6 +8,8 @@ public class EntityFSM : MonoBehaviour
 
     [HideInInspector] public CharacterStat stats; // 캐싱용
 
+    public float atkTimer; // 임시 공격 타이머
+
     void Awake()
     {
         stats = GetComponent<CharacterStat>();

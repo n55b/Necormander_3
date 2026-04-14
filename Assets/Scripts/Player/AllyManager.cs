@@ -35,7 +35,7 @@ public class AllyManager : MonoBehaviour
 
         RemoveNullinAllys(); // 리스트 정리
 
-        foreach(var ally in allys)
+        foreach (var ally in allys)
         {
             ally.SetBattleState(isBattle);
         }
@@ -44,9 +44,18 @@ public class AllyManager : MonoBehaviour
     // 아군 유닛들이 전투 중인지 확인하는 함수
     public bool CheckAllyState()
     {
-        foreach(var ally in allys)
+        RemoveNullinAllys();
+
+        foreach (var ally in allys)
         {
-            if(ally.FSM.target.gameObject.layer != playerLayer)
+            // 1. ally 자체가 null일 경우 대비 (위에서 지웠지만 안전하게)
+            if (ally == null || ally.FSM == null) continue;
+
+            // 2. target이 null이면 검사할 레이어가 없으므로 pass
+            if (ally.FSM.target == null) continue;
+
+            // 3. target.gameObject가 null이 아닐 때만 레이어 체크
+            if (ally.FSM.target.gameObject.layer != playerLayer)
             {
                 return true;
             }
@@ -58,6 +67,6 @@ public class AllyManager : MonoBehaviour
     // 아군 리스트 null이 된 개체들 삭제
     private void RemoveNullinAllys()
     {
-        allys.RemoveAll(item => item == null);
+        allys.RemoveAll(item => !item);
     }
 }

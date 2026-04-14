@@ -45,6 +45,7 @@ public class CharacterStat : MonoBehaviour
     private void Die()
     {
         isDead = true;
+        Destroy(this.gameObject);
         Debug.Log($"<color=red><b>[DEATH]</b></color> {gameObject.name} 사망!");
     }
 }

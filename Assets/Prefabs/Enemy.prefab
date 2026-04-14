@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4983175393738982816}
   - component: {fileID: 6342894155674723763}
   - component: {fileID: 2262207286068843843}
+  - component: {fileID: 8809371560834086903}
   - component: {fileID: 1578376785222923104}
   - component: {fileID: 7818082784768736543}
   - component: {fileID: 4852760606132103031}
@@ -107,9 +108,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MaxHP: 100
   curHP: 100
-  Atk: 1
+  Atk: 10
   AtkSpd: 1
-  AtkRange: 1
+  AtkRange: 2
   Def: 1
   MoveSpeed: 2
   isDead: 0
@@ -140,13 +141,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bda2e3b28fd28014ab425928d120e2cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _fsm: {fileID: 6342894155674723763}
   detectRange: 15
   targetLayer:
     serializedVersion: 2
     m_Bits: 384
+  stats: {fileID: 4983175393738982816}
   idleState: {fileID: 11400000, guid: 6bbf76f271c955f4b9dabc8f6a48f729, type: 2}
   followState: {fileID: 11400000, guid: 32f0914b7547d944e9a75f7451190bc6, type: 2}
   attackState: {fileID: 11400000, guid: 6ff2427ce5767574986286a0259a3c79, type: 2}
+  _nearestFinder: {fileID: 8809371560834086903}
+--- !u!114 &8809371560834086903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1841339908024047631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d80088aaa405a9a45b1b5cb87e825d00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  detectionRadius: 10
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 384
+  scanInterval: 0.2
+  nearestTarget: {fileID: 0}
 --- !u!195 &1578376785222923104
 NavMeshAgent:
   m_ObjectHideFlags: 0
