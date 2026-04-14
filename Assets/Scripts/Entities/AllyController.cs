@@ -47,6 +47,7 @@ public class AllyController : MonoBehaviour, IThrowable
             _originalDamping = _rb.linearDamping;
         }
 
+        // 충돌 필터링 설정
         _hitLayers = LayerMask.GetMask("Enemy", "Wall", "Obstacle");
         if (_hitLayers == 0)
         {
@@ -59,26 +60,26 @@ public class AllyController : MonoBehaviour, IThrowable
         // 던져진 상태이거나 비활성화 상태면 원래 로직 중단
         if (_fsm.currentState == thrownState || !enabled) return;
 
-        // --- 원래의 상태 감지 및 전환 방식 복구 ---
+        // --- 완전한 초기 상태의 적 감지 및 전환 로직 복구 ---
         if (isBattle)
         {
-            // 주변에 적이 있는지 체크
+            // 주변에 적이 있는지 체크 (OverlapSphere 등 활용)
             Collider2D[] targets = Physics2D.OverlapCircleAll(transform.position, detectRange, enemyLayer);
             if (targets.Length > 0)
             {
-                // 적이 있으면 타겟을 적으로 바꾸고 추적 상태로 전환
+                // 1. 적이 있으면 타겟을 적으로 바꾸고 추격 상태로 전환
                 _fsm.target = targets[0].transform;
                 _fsm.ChangeState(followState);
             }
             else
             {
-                // 적이 없으면 타겟을 다시 플레이어로
+                // 2. 적이 없으면 타겟을 다시 플레이어로
                 _fsm.target = player;
             }
         }
         else
         {
-            // isBattle이 false일 때는 원래 아무 로직도 수행하지 않았음
+            _fsm.target = player;
         }
     }
 
@@ -158,8 +159,11 @@ public class AllyController : MonoBehaviour, IThrowable
 
         if (_collider != null) _collider.isTrigger = false;
         
-        Debug.Log($"{gameObject.name} landed!");
-        _fsm.ChangeState(idleState);
+        // 착지 후 즉시 플레이어를 따라가도록 상태 복구
+        _fsm.target = player;
+        _fsm.ChangeState(followState);
+        
+        Debug.Log($"{gameObject.name} landed and returning to player!");
     }
 
     #endregion

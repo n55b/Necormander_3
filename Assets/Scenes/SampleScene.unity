@@ -1355,7 +1355,7 @@ MonoBehaviour:
   detectRange: 10
   enemyLayer:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 64
   idleState: {fileID: 11400000, guid: 6bbf76f271c955f4b9dabc8f6a48f729, type: 2}
   followState: {fileID: 11400000, guid: 32f0914b7547d944e9a75f7451190bc6, type: 2}
   attackState: {fileID: 11400000, guid: 6ff2427ce5767574986286a0259a3c79, type: 2}
