@@ -14,8 +14,14 @@ public class PlayerController : MonoBehaviour
 {
     [Header("플레이어 스탯")]
     [SerializeField] CharacterStat stat;
+    [Header("감지 영역")]
     [SerializeField] GameObject TrackingCollider;
+    [Header("아군 유닛 관련 매니저")]
     [SerializeField] AllyManager allyManager;
+    [Header("소환 컨트롤러")]
+    [SerializeField] SummonController sumController;
+    [SerializeField] private int summonNum;
+    [SerializeField] private float summonRange;
 
     [Header("플레이어 상태")]
     [SerializeField] PlayerStates P_State = PlayerStates.Idle;
@@ -56,12 +62,27 @@ public class PlayerController : MonoBehaviour
     public void RightClick(InputAction.CallbackContext context)
     {
         if (!context.performed) return;
+        GameObject obj = GameManager.Instance.dataManager.SummonAlly(sumController.COMMNADS);
 
-        Vector3 mousePos = Input.mousePosition;
-        mousePos.z = 10f; 
+        // obj가 null 이면 소환 실패
+        if(ReferenceEquals(obj, null))
+        {
+            sumController.ResetCommands();
+            return;
+        }
 
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
-        allyManager.SpawnAlly(worldPos);
+        List<Vector2> pos = sumController.GetSummonPositions2D(summonNum, summonRange);
+
+        // SpawnAlly에서 포지션도 지정해줌
+        for(int i = 0; i < summonNum; i++)
+        {
+            if(pos[i] != null)
+                allyManager.SpawnAlly(obj, pos[i]);
+            else
+                allyManager.SpawnAlly(obj, pos[pos.Count]);
+        }
+
+        sumController.ResetCommands();
     }
 
     // 플레이어 전투 or 평소 상태 변경 함수

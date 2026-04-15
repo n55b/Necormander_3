@@ -8,16 +8,13 @@ public class AllyManager : MonoBehaviour
     [SerializeField] bool isBattle = false;
     [SerializeField] LayerMask playerLayer;
 
-    [Header("아군 유닛 프리팹")]
-    [SerializeField] GameObject allyPrefab;
-
     // 아군 유닛 소환 함수
-    public void SpawnAlly(Vector2 _position)
+    public void SpawnAlly(GameObject gameObject, Vector3 _position)
     {
         // 리스트 정리
         RemoveNullinAllys();
 
-        GameObject obj = Instantiate(allyPrefab);
+        GameObject obj = Instantiate(gameObject);
         obj.transform.position = _position;
         AllyController _ally = obj.GetComponent<AllyController>();
         allys.Add(_ally);

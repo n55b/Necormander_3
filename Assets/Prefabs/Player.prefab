@@ -128,9 +128,10 @@ GameObject:
   - component: {fileID: 544081507106253165}
   - component: {fileID: 3486934513712333501}
   - component: {fileID: 6055861653884896251}
+  - component: {fileID: 3671673066107762978}
+  - component: {fileID: 2140691029848297597}
   - component: {fileID: 5795974627384478445}
   - component: {fileID: 1807700438375551738}
-  - component: {fileID: 3671673066107762978}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -196,9 +197,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingLayerID: -455078907
+  m_SortingLayer: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: -9095717837082945937, guid: 207ee8102dd4143d288186ef0be518ee, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -283,6 +284,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: a1ac0817-f9d7-416f-a844-6365fcc7db01
     m_ActionName: 'Player/Spawn[/Mouse/rightButton]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 80df8f4c-e0fc-45f2-ac0e-0fe291921066
+    m_ActionName: 'Player/SummonButton1[/Keyboard/1]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 28b41909-b601-4064-8c96-5c25b80f87eb
+    m_ActionName: 'Player/SummonButton2[/Keyboard/2]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 5f032689-968c-44fc-af31-2f96bac13494
+    m_ActionName: 'Player/SummonButton3[/Keyboard/3]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: ce72f643-6360-4e39-abab-6f4374f335f8
+    m_ActionName: 'Player/SummonButton4[/Keyboard/4]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -303,6 +320,9 @@ MonoBehaviour:
   stat: {fileID: 544081507106253165}
   TrackingCollider: {fileID: 7812045167050644549}
   allyManager: {fileID: 6055861653884896251}
+  sumController: {fileID: 2140691029848297597}
+  summonNum: 0
+  summonRange: 0
   P_State: 0
   MoveDirection: {x: 0, y: 0, z: 0}
   moveInput: {x: 0, y: 0}
@@ -358,7 +378,36 @@ MonoBehaviour:
   playerLayer:
     serializedVersion: 2
     m_Bits: 256
-  allyPrefab: {fileID: 5144142430907504354, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+--- !u!114 &3671673066107762978
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8389716956321753658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85c02b699436ce145b6b0a6d28b1825d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visualTransform: {fileID: 1334913734161187280}
+--- !u!114 &2140691029848297597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8389716956321753658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17d247d914776e54283770f1e5b08297, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  isCommand: 0
+  COMMNADS: 
 --- !u!70 &5795974627384478445
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -423,19 +472,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &3671673066107762978
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8389716956321753658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85c02b699436ce145b6b0a6d28b1825d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  visualTransform: {fileID: 1334913734161187280}
 --- !u!1 &9147274299791283214
 GameObject:
   m_ObjectHideFlags: 0

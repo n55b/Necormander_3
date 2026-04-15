@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3877437135718828404}
   - component: {fileID: 3038419152311975761}
+  - component: {fileID: 4164083970323456029}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -45,3 +46,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerController: {fileID: 0}
+  dataManager: {fileID: 4164083970323456029}
+--- !u!114 &4164083970323456029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3878380797755390178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1219aa06886ae94fa3f3968b648d40b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  summons1com:
+  - {fileID: 11400000, guid: 7c58789cb58e641478a0bc367baed8f1, type: 2}
+  - {fileID: 11400000, guid: 3def6802c9032174a8fa7d71618f75de, type: 2}
+  - {fileID: 11400000, guid: 17a4ed50087e65540b96e510f3c89026, type: 2}
+  - {fileID: 11400000, guid: 77c407cd363bd4d4a9a84aba503d7627, type: 2}
+  summons2com: []
