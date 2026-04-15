@@ -107,6 +107,7 @@ public class AllyController : MonoBehaviour, IThrowable
         {
             _fsm.target = player;
         }
+        _fsm.ChangeState(followState);
     }
 
     #region IThrowable 구현

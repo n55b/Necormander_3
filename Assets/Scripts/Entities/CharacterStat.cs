@@ -33,8 +33,6 @@ public class CharacterStat : MonoBehaviour
         float finalDamage = Mathf.Max(info.amount - Def, 1f);
         curHP -= finalDamage;
 
-        Debug.Log($"{gameObject.name}이(가) {finalDamage}의 {info.type} 데미지를 입었습니다. (남은 HP: {curHP})");
-
         if (curHP <= 0.0f)
         {
             curHP = 0;
@@ -46,6 +44,5 @@ public class CharacterStat : MonoBehaviour
     {
         isDead = true;
         Destroy(this.gameObject);
-        Debug.Log($"<color=red><b>[DEATH]</b></color> {gameObject.name} 사망!");
     }
 }

@@ -129,6 +129,7 @@ MonoBehaviour:
   currentState: {fileID: 11400000, guid: 6bbf76f271c955f4b9dabc8f6a48f729, type: 2}
   target: {fileID: 0}
   stats: {fileID: 0}
+  atkTimer: 0
 --- !u!114 &2262207286068843843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -142,11 +143,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _fsm: {fileID: 6342894155674723763}
-  detectRange: 15
+  detectRange: 10
   targetLayer:
     serializedVersion: 2
     m_Bits: 384
-  stats: {fileID: 4983175393738982816}
   idleState: {fileID: 11400000, guid: 6bbf76f271c955f4b9dabc8f6a48f729, type: 2}
   followState: {fileID: 11400000, guid: 32f0914b7547d944e9a75f7451190bc6, type: 2}
   attackState: {fileID: 11400000, guid: 6ff2427ce5767574986286a0259a3c79, type: 2}
