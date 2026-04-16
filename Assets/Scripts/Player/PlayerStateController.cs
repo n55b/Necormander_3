@@ -10,7 +10,6 @@ public class PlayerStateController : MonoBehaviour
         if ((layer.value & (1 << collision.gameObject.layer)) != 0)
         {
             playerCtr.ChangeState(PlayerStates.Battle); // 플레이어의 상태 Battle로 변경
-            Debug.Log("공격 대상 발견!");
         }
     }
 }

@@ -369,6 +369,7 @@ MonoBehaviour:
   TrackingCollider: {fileID: 7812045167050644549}
   allyManager: {fileID: 6055861653884896251}
   sumController: {fileID: 2140691029848297597}
+  throwController: {fileID: 3486934513712333501}
   summonNum: 3
   summonRange: 5
   P_State: 0
@@ -394,6 +395,7 @@ MonoBehaviour:
   Def: 5
   MoveSpeed: 10
   isDead: 0
+  invincible: 0
 --- !u!114 &3486934513712333501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -407,6 +409,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chargeTime: 1
+  maxHoldCount: 5
   holdPoint: {fileID: 1334913734161187280}
 --- !u!114 &6055861653884896251
 MonoBehaviour:

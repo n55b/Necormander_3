@@ -50,8 +50,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5144142430907504354, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
       propertyPath: m_Name
-      value: AllyBase
+      value: SkeletonSpearman
       objectReference: {fileID: 0}
+    - target: {fileID: 6690404922454239926, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: impactEffect
+      value: 
+      objectReference: {fileID: 11400000, guid: 8dd68a2dd501264429ba99a4e9719238, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
