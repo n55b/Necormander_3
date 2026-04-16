@@ -285,19 +285,67 @@ MonoBehaviour:
     m_ActionId: a1ac0817-f9d7-416f-a844-6365fcc7db01
     m_ActionName: 'Player/Spawn[/Mouse/rightButton]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2140691029848297597}
+        m_TargetAssemblyTypeName: SummonController, Assembly-CSharp
+        m_MethodName: PushCommand
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 80df8f4c-e0fc-45f2-ac0e-0fe291921066
     m_ActionName: 'Player/SummonButton1[/Keyboard/1]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2140691029848297597}
+        m_TargetAssemblyTypeName: SummonController, Assembly-CSharp
+        m_MethodName: PushCommand
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 28b41909-b601-4064-8c96-5c25b80f87eb
     m_ActionName: 'Player/SummonButton2[/Keyboard/2]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2140691029848297597}
+        m_TargetAssemblyTypeName: SummonController, Assembly-CSharp
+        m_MethodName: PushCommand
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 5f032689-968c-44fc-af31-2f96bac13494
     m_ActionName: 'Player/SummonButton3[/Keyboard/3]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2140691029848297597}
+        m_TargetAssemblyTypeName: SummonController, Assembly-CSharp
+        m_MethodName: PushCommand
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: ce72f643-6360-4e39-abab-6f4374f335f8
     m_ActionName: 'Player/SummonButton4[/Keyboard/4]'
   m_NeverAutoSwitchControlSchemes: 0
@@ -321,8 +369,8 @@ MonoBehaviour:
   TrackingCollider: {fileID: 7812045167050644549}
   allyManager: {fileID: 6055861653884896251}
   sumController: {fileID: 2140691029848297597}
-  summonNum: 0
-  summonRange: 0
+  summonNum: 3
+  summonRange: 5
   P_State: 0
   MoveDirection: {x: 0, y: 0, z: 0}
   moveInput: {x: 0, y: 0}
@@ -403,11 +451,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17d247d914776e54283770f1e5b08297, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  commands: 
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 0
   isCommand: 0
-  COMMNADS: 
 --- !u!70 &5795974627384478445
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

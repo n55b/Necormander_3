@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a21b8bff1b541843a11a8e8eb0c5d17, type: 3}
-  m_Name: 3_ShieldbearerSummonSO
+  m_Name: 3_MagicianSummonSO
   m_EditorClassIdentifier: 
-  summonAlly: {fileID: 5978108325549925549, guid: d0ae37130e5f054409b3a87a321bedd1, type: 3}
-  note: "1. \uC804\uC0AC || 2. \uC544\uCC98 || 3. \uBC29\uD328\uBCD1 || 4. \uC0AC\uC81C"
+  summonAlly: {fileID: 1959536258159339203, guid: a35288eb4aeed4542a3824e8843ce750, type: 3}
+  note: "[2\uD2F0\uC5B4 \uC18C\uD658\uC218]\n1. \uD3ED\uD0C4\uBCD1 || 2. \uCC3D\uBCD1
+    || 3. \uB9C8\uBC95\uC0AC || 4. \uB3C4\uC801"
   summonCommand: 2
