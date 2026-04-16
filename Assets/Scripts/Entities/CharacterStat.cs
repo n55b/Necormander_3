@@ -11,6 +11,9 @@ public class CharacterStat : MonoBehaviour
     [SerializeField] float Def = 0f;
     [SerializeField] float MoveSpeed = 5f;
     [SerializeField] bool isDead = false;
+    [SerializeField] bool invincible = false;
+
+    public event System.Action OnDamageTaken;
 
     public float MAXHP => MaxHP;
     public float CURHP => curHP;
@@ -20,6 +23,7 @@ public class CharacterStat : MonoBehaviour
     public float DEF => Def;
     public float MOVESPEED => MoveSpeed;
     public bool IsDead => isDead;
+    public bool Invincible { get { return invincible; } set { invincible = value; } }
 
     void Awake()
     {
@@ -28,10 +32,12 @@ public class CharacterStat : MonoBehaviour
 
     public void GetDamage(DamageInfo info)
     {
-        if (isDead) return;
+        if (isDead || invincible) return;
 
         float finalDamage = Mathf.Max(info.amount - Def, 1f);
         curHP -= finalDamage;
+
+        OnDamageTaken?.Invoke();
 
         if (curHP <= 0.0f)
         {

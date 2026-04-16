@@ -110,10 +110,11 @@ MonoBehaviour:
   curHP: 100
   Atk: 10
   AtkSpd: 1
-  AtkRange: 2
+  AtkRange: 1
   Def: 1
   MoveSpeed: 2
   isDead: 0
+  invincible: 0
 --- !u!114 &6342894155674723763
 MonoBehaviour:
   m_ObjectHideFlags: 0

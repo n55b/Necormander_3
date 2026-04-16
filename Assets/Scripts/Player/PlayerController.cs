@@ -20,6 +20,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] AllyManager allyManager;
     [Header("소환 컨트롤러")]
     [SerializeField] SummonController sumController;
+    [Header("던지기 컨트롤러")]
+    [SerializeField] Necromancer.Player.ThrowController throwController;
     [SerializeField] private int summonNum;
     [SerializeField] private float summonRange;
 
@@ -29,6 +31,15 @@ public class PlayerController : MonoBehaviour
     [Header("이동 변수")]
     [SerializeField] Vector3 MoveDirection = Vector3.zero;
     [SerializeField] Vector2 moveInput = Vector2.zero;
+
+    private void Awake()
+    {
+        // 동일 오브젝트에서 ThrowController를 자동으로 찾아 할당
+        if (throwController == null)
+        {
+            throwController = GetComponent<Necromancer.Player.ThrowController>();
+        }
+    }
 
     private void Update()
     {
@@ -58,31 +69,56 @@ public class PlayerController : MonoBehaviour
         return;
     }
 
-    // 아군 유닛 소환 함수
+    // 아군 유닛 소환 혹은 줍기 관리 함수 (우클릭)
     public void RightClick(InputAction.CallbackContext context)
     {
-        if (!context.performed) return;
-        GameObject obj = GameManager.Instance.dataManager.SummonAlly(sumController.COMMNADS);
-
-        // obj가 null 이면 소환 실패
-        if(ReferenceEquals(obj, null))
+        // 1. 소환 커맨드가 입력된 상태라면 소환 수행
+        if (sumController.isCommand)
         {
+            if (!context.performed) return;
+
+            GameObject obj = GameManager.Instance.dataManager.SummonAlly(sumController.COMMNADS);
+
+            // obj가 null 이면 소환 실패
+            if(ReferenceEquals(obj, null))
+            {
+                sumController.ResetCommands();
+                return;
+            }
+
+            List<Vector2> pos = sumController.GetSummonPositions2D(summonNum, summonRange);
+
+            // SpawnAlly에서 포지션도 지정해줌
+            for(int i = 0; i < summonNum; i++)
+            {
+                if(pos[i] != null)
+                    allyManager.SpawnAlly(obj, pos[i]);
+                else
+                    allyManager.SpawnAlly(obj, pos[pos.Count]);
+            }
+
             sumController.ResetCommands();
-            return;
         }
-
-        List<Vector2> pos = sumController.GetSummonPositions2D(summonNum, summonRange);
-
-        // SpawnAlly에서 포지션도 지정해줌
-        for(int i = 0; i < summonNum; i++)
+        else
         {
-            if(pos[i] != null)
-                allyManager.SpawnAlly(obj, pos[i]);
-            else
-                allyManager.SpawnAlly(obj, pos[pos.Count]);
+            // 2. 소환 커맨드가 없다면 주변 미니언 줍기
+            if (context.started)
+            {
+                if (throwController != null)
+                {
+                    throwController.TryPickUpMultiple();
+                }
+            }
         }
+    }
 
-        sumController.ResetCommands();
+    // 아군 유닛 던지기 관리 함수 (좌클릭)
+    public void LeftClick(InputAction.CallbackContext context)
+    {
+        if (throwController != null)
+        {
+            throwController.OnThrow(context);
+        }
     }
 
     // 플레이어 전투 or 평소 상태 변경 함수
