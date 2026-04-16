@@ -16,8 +16,8 @@ public class DataManager : MonoBehaviour
         {
             foreach(var summon in summons1com)
             {
-                GameObject obj = summon.Summon(_datas);
-                if(obj != null)
+                GameObject obj = summon.Summon(_datas[0]);
+                if(!ReferenceEquals(obj, null))
                 {
                     return obj;
                 }
@@ -27,8 +27,8 @@ public class DataManager : MonoBehaviour
         {
             foreach(var summon in summons2com)
             {
-                GameObject obj = summon.Summon(_datas);
-                if(obj != null)
+                GameObject obj = summon.Summon(_datas[1]);
+                if(!ReferenceEquals(obj, null))
                 {
                     return obj;
                 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,15 +6,17 @@ using UnityEngine;
 public class SummonSO : ScriptableObject
 {
     [SerializeField] private GameObject summonAlly;
-    [TextArea(1,1)]
-    public string note = "1. 전사 || 2. 아처 || 3. 방패병 || 4. 사제";
-    [SerializeField] private List<CommandData> summonCommand;
+    [TextArea(1, 1)]
+    public string note = "[1티어 소환수]\n1. 전사 || 2. 아처 || 3. 방패병 || 4. 사제";
+    [SerializeField] private CommandData summonCommand;
 
-    public GameObject Summon(List<CommandData> _list)
+
+
+    public GameObject Summon(CommandData _com)
     {
-        bool canSummon = CheckCommand(_list);
+        bool canSummon = CheckCommand(_com);
 
-        if(canSummon)
+        if (canSummon)
         {
             return summonAlly;
         }
@@ -21,13 +24,13 @@ public class SummonSO : ScriptableObject
         return null;
     }
 
-    private bool CheckCommand(List<CommandData> _list)
-    {
-        for(int i = 0; i < _list.Count; i++)
-        {
-            if(summonCommand[i] != _list[i]) return false;
-        }
 
-        return true;
+    // 체크 알고리즘
+    private bool CheckCommand(CommandData _com)
+    {
+        if(_com == summonCommand)
+            return true;
+
+        return false;
     }
 }
