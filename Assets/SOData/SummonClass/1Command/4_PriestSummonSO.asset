@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   summonAlly: {fileID: 5978108325549925549, guid: 3953804dc3182c24d82354950adce858, type: 3}
   note: "1. \uC804\uC0AC || 2. \uC544\uCC98 || 3. \uBC29\uD328\uBCD1 || 4. \uC0AC\uC81C"
-  summonCommand: 03000000
+  summonCommand: 3
