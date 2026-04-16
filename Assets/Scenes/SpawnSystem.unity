@@ -1533,7 +1533,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7972545975472383977, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
       propertyPath: summonNum
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8389716956321753658, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
       propertyPath: m_Name
