@@ -13,6 +13,10 @@ public class AllyController : MonoBehaviour, IThrowable
     public float detectRange = 10f;
     public LayerMask enemyLayer;
 
+    [Header("Minion Info")]
+    [SerializeField] private CommandData minionType;
+    public CommandData MinionType => minionType;
+
     [Header("State Assets")]
     public FSMStateSO idleState;
     public FSMStateSO followState;
@@ -69,9 +73,31 @@ public class AllyController : MonoBehaviour, IThrowable
         // 던져진 상태이거나 비활성화 상태면 원래 로직 중단
         if (_fsm.currentState == thrownState || !enabled) return;
 
-        // 공격 중일 때 다른 명령 x
-        if(_fsm.currentState == attackState && _fsm.target != null)
+        // 공격 중일 때 타겟 상태 체크
+        if (_fsm.currentState == attackState && _fsm.target != null)
+        {
+            // 타겟이 죽었거나 플레이어에게 들렸는지(Invincible) 체크
+            if (_fsm.target.TryGetComponent<CharacterStat>(out var targetStat))
+            {
+                if (targetStat.IsDead || targetStat.Invincible)
+                {
+                    _fsm.target = null; // 타겟 해제
+                    _fsm.ChangeState(followState); // 추격/플레이어 귀환 상태로 전환
+                    return;
+                }
+            }
+
+            float dist = Vector3.Distance(transform.position, _fsm.target.position);
+            // 사거리 밖으로 벗어나면 (약간의 여유치 0.5f 추가) 다시 추적
+            if (dist > _fsm.stats.ATKRANGE + 0.5f)
+            {
+                _fsm.ChangeState(followState);
+                return;
+            }
+
+            // 사거리 내에 있고 유효하다면 공격 상태 유지
             return;
+        }
 
         Transform trs = _nearestFinder.FindNearest(detectRange);
         // null일떄는 주변에 없는 것
@@ -188,6 +214,8 @@ public class AllyController : MonoBehaviour, IThrowable
 
     public virtual void OnLanded()
     {
+        _fsm.stats.Invincible = false; // 무적 끔
+
         if (_rb != null)
         {
             _rb.linearVelocity = Vector2.zero;
@@ -196,11 +224,26 @@ public class AllyController : MonoBehaviour, IThrowable
 
         if (_collider != null) _collider.isTrigger = false;
 
-        // 착지 후 즉시 플레이어를 따라가도록 상태 복구
-        _fsm.target = player;
-        _fsm.ChangeState(followState);
-
-        Debug.Log($"{gameObject.name} landed and returning to player!");
+        // 착지 후 즉시 주변 적 탐색
+        Transform trs = _nearestFinder.FindNearest(detectRange);
+        if (trs != null)
+        {
+            _fsm.target = trs;
+            float dist = Vector3.Distance(transform.position, trs.position);
+            if (dist <= _fsm.stats.ATKRANGE)
+                _fsm.ChangeState(attackState);
+            else
+                _fsm.ChangeState(followState);
+            
+            Debug.Log($"{gameObject.name} landed and found new target: {trs.name}!");
+        }
+        else
+        {
+            // 주변에 적이 없으면 플레이어 추적
+            _fsm.target = player;
+            _fsm.ChangeState(followState);
+            Debug.Log($"{gameObject.name} landed and returning to player!");
+        }
     }
 
     #endregion
