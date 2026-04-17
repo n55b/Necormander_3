@@ -25,7 +25,13 @@ public class AttackStateSO : FSMStateSO
 
     private void Attack(EntityFSM fsm)
     {
-        if (fsm.target.gameObject.TryGetComponent<CharacterStat>(out var targetStat))
+        // 1. AllyController가 있는지 확인 (아군인 경우)
+        if (fsm.TryGetComponent<AllyController>(out var ally))
+        {
+            ally.ExecuteAttack(fsm.target);
+        }
+        // 2. 적군인 경우 (기본 공격 수행)
+        else if (fsm.target.gameObject.TryGetComponent<CharacterStat>(out var targetStat))
         {
             DamageInfo info = new DamageInfo(fsm.stats.ATK, DamageType.Physical, fsm.gameObject);
             targetStat.GetDamage(info);

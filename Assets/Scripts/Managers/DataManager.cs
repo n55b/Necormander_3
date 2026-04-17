@@ -3,38 +3,22 @@ using UnityEngine;
 
 public class DataManager : MonoBehaviour
 {
-    [SerializeField] List<SummonSO> summons1com;
-    [SerializeField] List<SummonSO> summons2com;
+    [SerializeField] List<MinionDataSO> allMinionData;
 
-    public List<SummonSO> SUMMONS1 {get{return summons1com;}}
-    public List<SummonSO> SUMMONS2 {get{return summons2com;}}
+    public List<MinionDataSO> ALL_MINION_DATA => allMinionData;
 
-    // 플레이어 입력을 바탕으로 소환 할 오브젝트를 찾아주는 함수
-    public GameObject SummonAlly(List<CommandData> _datas)
+    // CommandData를 바탕으로 데이터(SO)를 찾아주는 함수
+    public MinionDataSO GetMinionData(CommandData type)
     {
-        if(_datas.Count == 1)
+        foreach (var data in allMinionData)
         {
-            foreach(var summon in summons1com)
+            if (data.minionType == type)
             {
-                GameObject obj = summon.Summon(_datas[0]);
-                if(!ReferenceEquals(obj, null))
-                {
-                    return obj;
-                }
+                return data;
             }
         }
-        else if(_datas.Count == 2)
-        {
-            foreach(var summon in summons2com)
-            {
-                GameObject obj = summon.Summon(_datas[1]);
-                if(!ReferenceEquals(obj, null))
-                {
-                    return obj;
-                }
-            }
-        }
-
+        
+        Debug.LogWarning($"DataManager: {type}에 해당하는 MinionDataSO를 찾을 수 없습니다!");
         return null;
     }
 }

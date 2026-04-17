@@ -120,7 +120,6 @@ namespace Necromancer.Player
 
         private void ThrowAll()
         {
-            // 리스트에서 이미 파괴된 객체 제거
             _heldObjects.RemoveAll(item => item == null || (item is MonoBehaviour mb && mb == null));
 
             if (_heldObjects.Count == 0)
@@ -136,10 +135,12 @@ namespace Necromancer.Player
             mousePos.z = 0f;
             Vector2 targetPos = (Vector2)mousePos;
 
-            // --- 구성 분석 ---
-            AnalyzeAndHandleEffects(targetPos, chargeRatio);
+            // --- 1. 시너지 분석 ---
+            // (첫 두 마리를 기준으로 시너지 여부 판단)
+            // 현재는 간단히 로그만 찍고, 나중에 SynergyDataSO와 연동합니다.
+            AnalyzeSynergy(targetPos, chargeRatio);
 
-            // 모든 객체 던지기
+            // --- 2. 모든 객체 던지기 ---
             foreach (var throwable in _heldObjects)
             {
                 if (throwable == null) continue;
@@ -154,56 +155,86 @@ namespace Necromancer.Player
             _heldObjects.Clear();
         }
 
-        private void AnalyzeAndHandleEffects(Vector2 targetPos, float chargeRatio)
+        private void AnalyzeSynergy(Vector2 targetPos, float chargeRatio)
         {
-            // 리스트에서 이미 파괴된 객체 제거
-            _heldObjects.RemoveAll(item => item == null || (item is MonoBehaviour mb && mb == null));
-            
-            if (_heldObjects.Count == 0) return;
+            if (_heldObjects.Count < 2) return;
 
-            // AllyController 리스트 추출
-            List<AllyController> allies = new List<AllyController>();
-            foreach (var item in _heldObjects)
+            // IThrowable을 AllyController로 캐스팅 시도
+            AllyController first = _heldObjects[0] as AllyController;
+            AllyController second = _heldObjects[1] as AllyController;
+
+            if (first == null || second == null) return;
+
+            Debug.Log($"<color=cyan>[Synergy Check]</color> Core Pair: {first.MinionType} + {second.MinionType}");
+
+            // 나머지 3마리는 Supporter 리스트로 구성
+            List<AllyController> supporters = new List<AllyController>();
+            for (int i = 2; i < _heldObjects.Count; i++)
             {
-                if (item is AllyController ally && ally != null) allies.Add(ally);
-            }
-
-            if (allies.Count == 0) return;
-
-            // 1. 모든 타입이 같은지 확인
-            CommandData firstType = allies[0].MinionType;
-            bool isAllSameType = true;
-            foreach (var ally in allies)
-            {
-                if (ally.MinionType != firstType)
+                if (_heldObjects[i] is AllyController supporter)
                 {
-                    isAllSameType = false;
-                    break;
+                    supporters.Add(supporter);
                 }
             }
 
-            if (isAllSameType)
+            if (supporters.Count > 0)
             {
-                HandleSameTypeEffect(firstType, allies.Count, targetPos, chargeRatio);
-            }
-            else
-            {
-                HandleMixedTypeEffect(allies, targetPos, chargeRatio);
+                Debug.Log($"<color=yellow>[Supporters]</color> {supporters.Count} units will enhance the synergy.");
             }
         }
 
         // 동일 종류 여러 명을 던졌을 때의 효과 (기본 효과 강화 등)
         private void HandleSameTypeEffect(CommandData type, int count, Vector2 targetPos, float chargeRatio)
         {
-            Debug.Log($"Same Type Throw: {type} x{count}");
-            // TODO: 타입별 강화 효과 로직 (현재 비워둠)
+            Debug.Log($"<color=cyan>[Synergy]</color> Same Type Throw: <b>{type} x{count}</b> (Charge: {chargeRatio:F2})");
+            
+            // 타입별 고유 시너지 효과 로직 (여기에 구체적인 버프나 범위 공격 로직 추가)
+            switch (type)
+            {
+                case CommandData.SkeletonWarrior:
+                    Debug.Log("Warrior Synergy: 충격파 범위 및 공격력 증가");
+                    break;
+                case CommandData.SkeletonShieldbearer:
+                    Debug.Log("Shieldbearer Synergy: 착지 지점에 방어 구역 생성");
+                    break;
+                case CommandData.SkeletonArcher:
+                    Debug.Log("Archer Synergy: 추가 화살 세례 발사");
+                    break;
+                case CommandData.SkeletonPriest:
+                    Debug.Log("Priest Synergy: 주변 아군 광역 치유");
+                    break;
+                case CommandData.SkeletonBomber:
+                    Debug.Log("Bomber Synergy: 연쇄 폭발 범위 및 위력 강화");
+                    break;
+                case CommandData.SkeletonSpearman:
+                    Debug.Log("Spearman Synergy: 직선상 모든 적 관통 및 넉백");
+                    break;
+                case CommandData.SkeletonMagician:
+                    Debug.Log("Magician Synergy: 마법 폭발 및 속성 상태이상 부여");
+                    break;
+                case CommandData.SkeletonThief:
+                    Debug.Log("Thief Synergy: 착지 후 즉시 은신 및 치명타 공격");
+                    break;
+            }
         }
 
         // 서로 다른 종류가 섞였을 때의 효과 (새로운 조합 효과 등)
         private void HandleMixedTypeEffect(List<AllyController> allies, Vector2 targetPos, float chargeRatio)
         {
-            Debug.Log("Mixed Type Throw: " + allies.Count + " units");
-            // TODO: 조합 효과 로직 (현재 비워둠)
+            Debug.Log($"<color=orange>[Synergy]</color> Mixed Type Throw: <b>{allies.Count} units</b> (Charge: {chargeRatio:F2})");
+            
+            // 조합 분석 로직 (예: Warrior + Priest = 팔라딘 효과 등)
+            // 현재는 간단하게 구성 유닛 종류만 출력
+            Dictionary<CommandData, int> counts = new Dictionary<CommandData, int>();
+            foreach (var ally in allies)
+            {
+                if (!counts.ContainsKey(ally.MinionType)) counts[ally.MinionType] = 0;
+                counts[ally.MinionType]++;
+            }
+
+            string composition = "";
+            foreach (var pair in counts) composition += $"{pair.Key} x{pair.Value}, ";
+            Debug.Log($"Composition: {composition.TrimEnd(',', ' ')}");
         }
 
         // 플레이어가 맞았을 때 모든 미니언을 강제로 떨어뜨림

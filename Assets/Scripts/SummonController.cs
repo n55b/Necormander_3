@@ -4,43 +4,67 @@ using UnityEngine.InputSystem;
 
 public class SummonController : MonoBehaviour
 {
-    [SerializeField] private List<CommandData> commands = new List<CommandData>();
     public LayerMask obstacleLayer; // 벽이나 장애물 레이어 설정
-    public bool isCommand = false;
+    
+    // 현재 눌려 있는 소환 키와 조합 키 상태
+    private bool _isTabPressed = false;
+    private int _pressedNumKey = -1; // -1: 안 눌림, 1-4: 숫자 키
 
-    public List<CommandData> COMMNADS { get {return commands;} }
+    public bool IsSummoningMode => _pressedNumKey != -1;
 
-    public void ResetCommands()
+    public void OnTab(InputAction.CallbackContext context)
     {
-        commands.Clear();
-        isCommand = false;
+        if (context.performed) _isTabPressed = true;
+        else if (context.canceled) _isTabPressed = false;
     }
 
-    // 커맨드 입력 받는 함수
-    public void PushCommand(InputAction.CallbackContext context)
+    public void OnNumKey(int num, InputAction.CallbackContext context)
     {
-        if(!context.performed) return;
-
-        switch(context.action.name)
+        if (context.performed)
         {
-            case "SummonButton1":   // 버튼 1 클릭
-            commands.Add(CommandData.SkeletonWarrior);
-            break;
-
-            case "SummonButton2":   // 버튼 2 클릭
-            commands.Add(CommandData.SkeletonArcher);
-            break;
-
-            case "SummonButton3":   // 버튼 3 클릭
-            commands.Add(CommandData.SkeletonShieldbearer);
-            break;
-
-            case "SummonButton4":   // 버튼 4 클릭
-            commands.Add(CommandData.SkeletonPriest);
-            break;
+            _pressedNumKey = num;
+            Debug.Log($"<color=cyan>[SummonController]</color> 소환 모드 활성화: {num}번 키 누름");
         }
+        else if (context.canceled)
+        {
+            if (_pressedNumKey == num)
+            {
+                _pressedNumKey = -1;
+                Debug.Log($"<color=yellow>[SummonController]</color> 소환 모드 해제");
+            }
+        }
+    }
 
-        isCommand = true;
+    // 현재 선택된 미니언 타입 반환
+    public CommandData GetCurrentSelectedType()
+    {
+        // 소환 모드가 아니면 기본적으로 Warrior 반환 (실제로는 IsSummoningMode 체크 후 사용됨)
+        if (_pressedNumKey == -1) return CommandData.SkeletonWarrior;
+
+        if (!_isTabPressed)
+        {
+            // Tab 안 눌렸을 때 (1-4)
+            return _pressedNumKey switch
+            {
+                1 => CommandData.SkeletonWarrior,
+                2 => CommandData.SkeletonShieldbearer,
+                3 => CommandData.SkeletonArcher,
+                4 => CommandData.SkeletonPriest,
+                _ => CommandData.SkeletonWarrior
+            };
+        }
+        else
+        {
+            // Tab 눌렸을 때 (Tab + 1-4)
+            return _pressedNumKey switch
+            {
+                1 => CommandData.SkeletonBomber,
+                2 => CommandData.SkeletonSpearman,
+                3 => CommandData.SkeletonMagician,
+                4 => CommandData.SkeletonThief,
+                _ => CommandData.SkeletonBomber
+            };
+        }
     }
 
     // 소환 위치 찾기 함수
@@ -54,16 +78,11 @@ public class SummonController : MonoBehaviour
         {
             attempts++;
 
-            // 1. 2D 원형 랜덤 좌표 (Vector2라 바로 사용 가능)
             Vector2 randomPos = (Vector2)transform.position + (Random.insideUnitCircle * radius);
-
-            // 2. 해당 위치에 벽(장애물)이 있는지 확인
-            // 0.2f는 소환될 아군의 최소 반지름 정도라고 생각하시면 됩니다.
             Collider2D hit = Physics2D.OverlapCircle(randomPos, 0.2f, obstacleLayer);
 
-            if (hit == null) // 장애물이 없을 때만 추가
+            if (hit == null)
             {
-                // 3. 아군끼리 겹치지 않게 거리 체크
                 if (!IsTooClose(randomPos, resultPositions, 0.5f))
                 {
                     resultPositions.Add(randomPos);

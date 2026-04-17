@@ -59,13 +59,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1219aa06886ae94fa3f3968b648d40b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  summons1com:
-  - {fileID: 11400000, guid: 7c58789cb58e641478a0bc367baed8f1, type: 2}
-  - {fileID: 11400000, guid: 3def6802c9032174a8fa7d71618f75de, type: 2}
-  - {fileID: 11400000, guid: 17a4ed50087e65540b96e510f3c89026, type: 2}
-  - {fileID: 11400000, guid: 77c407cd363bd4d4a9a84aba503d7627, type: 2}
-  summons2com:
-  - {fileID: 11400000, guid: 5e7c49923e9c71c448e85d1968328e35, type: 2}
-  - {fileID: 11400000, guid: a9bbb3ce4d8001845bfc5d394aeaecfb, type: 2}
-  - {fileID: 11400000, guid: 1557dffc320fc014f97e8271b3a4a4ab, type: 2}
-  - {fileID: 11400000, guid: 6b439cffed24a034492e2e7bb0e1ce55, type: 2}
+  allMinionData:
+  - {fileID: 11400000, guid: cb0cbfe654c65244c9e4647136f954b9, type: 2}
+  - {fileID: 11400000, guid: a4a75e2982d8e3144a26c48600f21685, type: 2}
+  - {fileID: 11400000, guid: 02b328c2889b4af408a588ed6baae425, type: 2}
+  - {fileID: 11400000, guid: f67166d43b3c4a646b53721afbc5498b, type: 2}

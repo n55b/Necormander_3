@@ -1,6 +1,7 @@
 using UnityEngine;
 using Necromancer.Interfaces;
 using Necromancer.Physics;
+using System.Collections.Generic;
 
 public class AllyController : MonoBehaviour, IThrowable
 {
@@ -10,12 +11,14 @@ public class AllyController : MonoBehaviour, IThrowable
     private Collider2D _collider;
 
     public Transform player;
-    public float detectRange = 10f;
     public LayerMask enemyLayer;
 
-    [Header("Minion Info")]
-    [SerializeField] private CommandData minionType;
-    public CommandData MinionType => minionType;
+    [Header("Minion Data (Master SO)")]
+    [SerializeField] protected MinionDataSO minionData;
+    public MinionDataSO MinionData => minionData;
+
+    // 시너지 판정 등에 사용되는 식별자 (마스터 데이터가 있으면 거기서 가져옴)
+    public CommandData MinionType => minionData != null ? minionData.minionType : CommandData.SkeletonWarrior;
 
     [Header("State Assets")]
     public FSMStateSO idleState;
@@ -23,28 +26,37 @@ public class AllyController : MonoBehaviour, IThrowable
     public FSMStateSO attackState;
     public FSMStateSO thrownState;
 
-    [Header("Throw Attack Settings")]
-    [SerializeField] private BaseThrowImpactSO impactEffect; // 인스펙터에서 Single/Splash 할당
-
-    [Header("Throw Physics Settings (Ported)")]
+    [Header("Throw Physics Settings")]
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float straightHeight = 0.1f;
     [SerializeField] private float minSpeed = 5f;
     [SerializeField] private float maxSpeed = 20f;
     [SerializeField] private float fullChargeSpeed = 30f;
 
-    [Header(" NearestTargetFinder")]
-    [SerializeField] NearestTargetFinder _nearestFinder;
+    [Header("References")]
+    [SerializeField] private NearestTargetFinder _nearestFinder;
+    [SerializeField] private BaseThrowImpactSO impactEffect; 
 
+    private float _detectRange = 10f; // Awake에서 MinionData로부터 초기화됨
     private LayerMask _hitLayers;
     private float _throwStartTime;
     private float _originalDamping;
-    private float _lastChargeRatio; // 충돌 시 데미지 계산용
+    private float _lastChargeRatio; 
 
     [SerializeField] bool isBattle = false;
 
     public bool IsBattle => isBattle;
     public EntityFSM FSM => _fsm;
+
+    // --- 공격 관련 확장 ---
+    public virtual void ExecuteAttack(Transform target)
+    {
+        if (target != null && target.TryGetComponent<CharacterStat>(out var targetStat))
+        {
+            DamageInfo info = new DamageInfo(_fsm.stats.ATK, DamageType.Physical, this.gameObject);
+            targetStat.GetDamage(info);
+        }
+    }
 
     void Awake()
     {
@@ -60,47 +72,55 @@ public class AllyController : MonoBehaviour, IThrowable
             _originalDamping = _rb.linearDamping;
         }
 
-        // 충돌 필터링 설정 (기본적으로 Enemy와 벽 등을 포함)
         _hitLayers = LayerMask.GetMask("Enemy", "Wall", "Obstacle");
-        if (_hitLayers == 0)
+    }
+
+    /// <summary>
+    /// 소환 시 호출되어 미니언 데이터를 주입하고 초기화합니다.
+    /// </summary>
+    public void Initialize(MinionDataSO data)
+    {
+        minionData = data;
+        
+        if (minionData != null)
         {
-            _hitLayers = ~(LayerMask.GetMask("Player") | (1 << 2)); // Player와 Ignore Raycast 레이어 제외
+            if (minionData.throwImpact != null) impactEffect = minionData.throwImpact;
+            _detectRange = minionData.detectRange;
+        }
+
+        // CharacterStat 초기화 강제 실행
+        if (TryGetComponent<CharacterStat>(out var stat))
+        {
+            stat.InitializeStats(minionData);
         }
     }
 
     void Update()
     {
-        // 던져진 상태이거나 비활성화 상태면 원래 로직 중단
         if (_fsm.currentState == thrownState || !enabled) return;
 
-        // 공격 중일 때 타겟 상태 체크
         if (_fsm.currentState == attackState && _fsm.target != null)
         {
-            // 타겟이 죽었거나 플레이어에게 들렸는지(Invincible) 체크
             if (_fsm.target.TryGetComponent<CharacterStat>(out var targetStat))
             {
                 if (targetStat.IsDead || targetStat.Invincible)
                 {
-                    _fsm.target = null; // 타겟 해제
-                    _fsm.ChangeState(followState); // 추격/플레이어 귀환 상태로 전환
+                    _fsm.target = null;
+                    _fsm.ChangeState(followState);
                     return;
                 }
             }
 
             float dist = Vector3.Distance(transform.position, _fsm.target.position);
-            // 사거리 밖으로 벗어나면 (약간의 여유치 0.5f 추가) 다시 추적
             if (dist > _fsm.stats.ATKRANGE + 0.5f)
             {
                 _fsm.ChangeState(followState);
                 return;
             }
-
-            // 사거리 내에 있고 유효하다면 공격 상태 유지
             return;
         }
 
-        Transform trs = _nearestFinder.FindNearest(detectRange);
-        // null일떄는 주변에 없는 것
+        Transform trs = _nearestFinder.FindNearest(_detectRange);
 
         if (trs != null)
         {
@@ -141,7 +161,6 @@ public class AllyController : MonoBehaviour, IThrowable
     public void OnPickedUp()
     {
         _fsm.ChangeState(thrownState);
-
         if (_rb != null) _rb.simulated = false;
         if (_collider != null) _collider.enabled = false;
     }
@@ -149,7 +168,7 @@ public class AllyController : MonoBehaviour, IThrowable
     public void OnThrown(Vector2 targetPosition, float chargeRatio)
     {
         _throwStartTime = Time.time;
-        _lastChargeRatio = chargeRatio; // 차징 비율 저장
+        _lastChargeRatio = chargeRatio;
         transform.rotation = Quaternion.identity;
 
         if (_rb != null)
@@ -169,63 +188,64 @@ public class AllyController : MonoBehaviour, IThrowable
         float distance = diff.magnitude;
         Vector2 direction = diff.normalized;
 
-        float speed;
-        float duration;
-        float maxHeight;
-
+        ThrowParams p = new ThrowParams();
+        
         if (chargeRatio >= 1.0f)
         {
-            speed = fullChargeSpeed;
-            duration = 2.0f;
-            maxHeight = straightHeight;
+            p.speed = fullChargeSpeed;
+            p.duration = 2.0f;
+            p.maxHeight = straightHeight;
         }
         else
         {
-            speed = Mathf.Lerp(minSpeed, maxSpeed, chargeRatio);
-            duration = distance / speed;
-
+            p.speed = Mathf.Lerp(minSpeed, maxSpeed, chargeRatio);
+            p.duration = distance / p.speed;
             float targetHeight = Mathf.Lerp(jumpHeight, straightHeight, chargeRatio);
-            maxHeight = Mathf.Min(targetHeight, distance * 0.5f);
+            p.maxHeight = Mathf.Min(targetHeight, distance * 0.5f);
         }
 
-        if (_rb != null) _rb.linearVelocity = direction * speed;
-        if (_arcMovement != null) _arcMovement.StartArc(duration, maxHeight);
+        if (impactEffect != null)
+        {
+            impactEffect.OnPreThrow(p, chargeRatio);
+        }
+
+        if (_rb != null) _rb.linearVelocity = direction * p.speed;
+        if (_arcMovement != null) _arcMovement.StartArc(p.duration, p.maxHeight);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // 던진 직후의 레이캐스트/트리거 무시
         if (Time.time - _throwStartTime < 0.05f) return;
 
-        // 적 레이어와의 충돌 감지
         if (_arcMovement != null && _arcMovement.IsFlying && (_hitLayers.value & (1 << other.gameObject.layer)) != 0)
         {
-            Debug.Log($"<color=red>[Throw Hit]</color> {gameObject.name} hit <b>{other.name}</b>");
-
-            // --- 데미지 처리 ---
             if (impactEffect != null)
             {
-                impactEffect.Apply(this.gameObject, other.gameObject, _lastChargeRatio);
+                ImpactContext context = new ImpactContext
+                {
+                    attacker = this.gameObject,
+                    target = other.gameObject,
+                    impactPosition = transform.position,
+                    chargeRatio = _lastChargeRatio,
+                    supporters = null
+                };
+                impactEffect.Apply(context);
             }
-
             _arcMovement.StopArc();
         }
     }
 
     public virtual void OnLanded()
     {
-        _fsm.stats.Invincible = false; // 무적 끔
-
+        _fsm.stats.Invincible = false;
         if (_rb != null)
         {
             _rb.linearVelocity = Vector2.zero;
             _rb.linearDamping = _originalDamping;
         }
-
         if (_collider != null) _collider.isTrigger = false;
 
-        // 착지 후 즉시 주변 적 탐색
-        Transform trs = _nearestFinder.FindNearest(detectRange);
+        Transform trs = _nearestFinder.FindNearest(_detectRange);
         if (trs != null)
         {
             _fsm.target = trs;
@@ -234,15 +254,11 @@ public class AllyController : MonoBehaviour, IThrowable
                 _fsm.ChangeState(attackState);
             else
                 _fsm.ChangeState(followState);
-            
-            Debug.Log($"{gameObject.name} landed and found new target: {trs.name}!");
         }
         else
         {
-            // 주변에 적이 없으면 플레이어 추적
             _fsm.target = player;
             _fsm.ChangeState(followState);
-            Debug.Log($"{gameObject.name} landed and returning to player!");
         }
     }
 

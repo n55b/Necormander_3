@@ -70,40 +70,32 @@ public class PlayerController : MonoBehaviour
     }
 
     // 아군 유닛 소환 혹은 줍기 관리 함수 (우클릭)
-    public void RightClick(InputAction.CallbackContext context)
+    public void OnRightClick(InputAction.CallbackContext context)
     {
-        // 1. 소환 커맨드가 입력된 상태라면 소환 수행
-        if (sumController.isCommand)
+        if (context.performed)
         {
-            if (!context.performed) return;
-
-            GameObject obj = GameManager.Instance.dataManager.SummonAlly(sumController.COMMNADS);
-
-            // obj가 null 이면 소환 실패
-            if(ReferenceEquals(obj, null))
+            Debug.Log($"<color=white>[PlayerController]</color> 우클릭 입력됨! 소환 모드 상태: {sumController.IsSummoningMode}");
+            
+            // 1. 소환 모드(숫자 키가 눌려 있음)라면 소환 수행
+            if (sumController.IsSummoningMode)
             {
-                sumController.ResetCommands();
-                return;
+                CommandData selectedType = sumController.GetCurrentSelectedType();
+                MinionDataSO data = GameManager.Instance.dataManager.GetMinionData(selectedType);
+
+                if (ReferenceEquals(data, null)) return;
+
+                List<Vector2> pos = sumController.GetSummonPositions2D(summonNum, summonRange);
+
+                for (int i = 0; i < summonNum; i++)
+                {
+                    Vector2 spawnPos = (i < pos.Count) ? pos[i] : (Vector2)transform.position;
+                    allyManager.SpawnAlly(data, spawnPos);
+                }
             }
-
-            List<Vector2> pos = sumController.GetSummonPositions2D(summonNum, summonRange);
-
-            // SpawnAlly에서 포지션도 지정해줌
-            for(int i = 0; i < summonNum; i++)
+            // 2. 소환 모드가 아니라면 주변 미니언 줍기
+            else
             {
-                if(pos[i] != null)
-                    allyManager.SpawnAlly(obj, pos[i]);
-                else
-                    allyManager.SpawnAlly(obj, pos[pos.Count]);
-            }
-
-            sumController.ResetCommands();
-        }
-        else
-        {
-            // 2. 소환 커맨드가 없다면 주변 미니언 줍기
-            if (context.started)
-            {
+                Debug.Log("<color=white>[PlayerController]</color> 줍기 모드 실행");
                 if (throwController != null)
                 {
                     throwController.TryPickUpMultiple();
@@ -113,13 +105,20 @@ public class PlayerController : MonoBehaviour
     }
 
     // 아군 유닛 던지기 관리 함수 (좌클릭)
-    public void LeftClick(InputAction.CallbackContext context)
+    public void OnThrow(InputAction.CallbackContext context)
     {
         if (throwController != null)
         {
             throwController.OnThrow(context);
         }
     }
+
+    // --- Input System 전용 메서드들 (Inspector에서 연결 필요) ---
+    public void OnTab(InputAction.CallbackContext context) => sumController.OnTab(context);
+    public void OnNum1(InputAction.CallbackContext context) => sumController.OnNumKey(1, context);
+    public void OnNum2(InputAction.CallbackContext context) => sumController.OnNumKey(2, context);
+    public void OnNum3(InputAction.CallbackContext context) => sumController.OnNumKey(3, context);
+    public void OnNum4(InputAction.CallbackContext context) => sumController.OnNumKey(4, context);
 
     // 플레이어 전투 or 평소 상태 변경 함수
     public void ChangeState(PlayerStates _state)
