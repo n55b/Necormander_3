@@ -7,12 +7,14 @@ public class EntityFSM : MonoBehaviour
     public Transform target;        // 현재 대상 (플레이어 혹은 적)
 
     [HideInInspector] public CharacterStat stats; // 캐싱용
+    [HideInInspector] public Rigidbody2D rb;      // 물리 이동용
 
     public float atkTimer; // 임시 공격 타이머
 
     void Awake()
     {
         stats = GetComponent<CharacterStat>();
+        rb = GetComponent<Rigidbody2D>();
     }
 
     void Start()

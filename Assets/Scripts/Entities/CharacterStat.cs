@@ -25,9 +25,17 @@ public class CharacterStat : MonoBehaviour
     public bool IsDead => isDead;
     public bool Invincible { get { return invincible; } set { invincible = value; } }
 
+    // [DEBUG] Damage Flash 관련 변수
+    private SpriteRenderer _spriteRenderer;
+    private Color _originalColor;
+    private Coroutine _flashCoroutine;
+
     void Awake()
     {
         curHP = MaxHP;
+        // [DEBUG] 자식 오브젝트를 포함하여 SpriteRenderer를 찾습니다.
+        _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        if (_spriteRenderer != null) _originalColor = _spriteRenderer.color;
     }
 
     public void GetDamage(DamageInfo info)
@@ -39,11 +47,27 @@ public class CharacterStat : MonoBehaviour
 
         OnDamageTaken?.Invoke();
 
+        // [DEBUG] 피해 시각 피드백 (검은색 깜빡임)
+        if (_spriteRenderer != null)
+        {
+            if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
+            _flashCoroutine = StartCoroutine(Debug_FlashBlack());
+        }
+
         if (curHP <= 0.0f)
         {
             curHP = 0;
             Die();
         }
+    }
+
+    // [DEBUG] 피해 발생 시 잠깐 검은색으로 변하게 하는 코루틴
+    private System.Collections.IEnumerator Debug_FlashBlack()
+    {
+        _spriteRenderer.color = Color.black;
+        yield return new UnityEngine.WaitForSeconds(0.1f);
+        _spriteRenderer.color = _originalColor;
+        _flashCoroutine = null;
     }
 
     private void Die()
