@@ -15,6 +15,15 @@ public class EntityFSM : MonoBehaviour
     {
         stats = GetComponent<CharacterStat>();
         rb = GetComponent<Rigidbody2D>();
+
+        if (rb != null)
+        {
+            rb.gravityScale = 0f;
+            rb.freezeRotation = true;
+            // 같은 레이어끼리는 물리적으로 '벽'처럼 막지 않도록 설정 (소프트 밀기 전제조건)
+            // 프로젝트 세팅을 건드리지 않고 코드로 제어합니다.
+            Physics2D.IgnoreLayerCollision(gameObject.layer, gameObject.layer, true);
+        }
     }
 
     void Start()
