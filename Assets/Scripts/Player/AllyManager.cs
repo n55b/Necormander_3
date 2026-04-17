@@ -9,20 +9,26 @@ public class AllyManager : MonoBehaviour
     [SerializeField] LayerMask playerLayer;
 
     // 아군 유닛 소환 함수
-    public void SpawnAlly(GameObject gameObject, Vector3 _position)
+    public void SpawnAlly(MinionDataSO data, Vector3 _position)
     {
         // 리스트 정리
         RemoveNullinAllys();
 
-        GameObject obj = Instantiate(gameObject);
-        obj.transform.position = _position;
-        AllyController _ally = obj.GetComponent<AllyController>();
-        allys.Add(_ally);
-        // Init으로 지정하든 해야 할듯
-        _ally.player = this.gameObject.transform;
-        _ally.SetBattleState(isBattle);
+        if (data == null || data.minionPrefab == null) return;
 
-        Debug.Log("Ally 스폰");
+        GameObject obj = Instantiate(data.minionPrefab);
+        obj.transform.position = _position;
+        
+        AllyController _ally = obj.GetComponent<AllyController>();
+        if (_ally != null)
+        {
+            _ally.Initialize(data); // 데이터 주입
+            _ally.player = this.gameObject.transform;
+            _ally.SetBattleState(isBattle);
+            allys.Add(_ally);
+        }
+
+        Debug.Log($"{data.minionName} 스폰 완료");
     }
 
     // 아군 전투 중인지 상태 받아서 유닛들에게 뿌려주는 함수

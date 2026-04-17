@@ -3,7 +3,11 @@ using UnityEngine;
 public enum CommandData
 {
     SkeletonWarrior,
-    SkeletonArcher,
     SkeletonShieldbearer,
-    SkeletonPriest
+    SkeletonArcher,
+    SkeletonPriest,
+    SkeletonBomber,
+    SkeletonSpearman,
+    SkeletonMagician,
+    SkeletonThief
 }

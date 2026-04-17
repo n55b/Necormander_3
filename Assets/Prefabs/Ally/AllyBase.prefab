@@ -176,22 +176,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
-  detectRange: 10
   enemyLayer:
     serializedVersion: 2
     m_Bits: 64
-  minionType: 0
+  minionData: {fileID: 0}
   idleState: {fileID: 11400000, guid: 6bbf76f271c955f4b9dabc8f6a48f729, type: 2}
   followState: {fileID: 11400000, guid: 32f0914b7547d944e9a75f7451190bc6, type: 2}
   attackState: {fileID: 11400000, guid: 6ff2427ce5767574986286a0259a3c79, type: 2}
   thrownState: {fileID: 11400000, guid: f23cee3c7b6bbe84a856ce1f653c24cd, type: 2}
-  impactEffect: {fileID: 0}
   jumpHeight: 1.5
   straightHeight: 0.1
   minSpeed: 5
   maxSpeed: 20
   fullChargeSpeed: 30
   _nearestFinder: {fileID: -2522998909360401651}
+  impactEffect: {fileID: 0}
   isBattle: 0
 --- !u!114 &1872334000514628288
 MonoBehaviour:
@@ -299,7 +298,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0, g: 1, b: 0.103946924, a: 1}
   m_FlipX: 0
