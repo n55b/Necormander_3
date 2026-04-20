@@ -82,7 +82,11 @@ public class PlayerController : MonoBehaviour
                 CommandData selectedType = sumController.GetCurrentSelectedType();
                 MinionDataSO data = GameManager.Instance.dataManager.GetMinionData(selectedType);
 
-                if (ReferenceEquals(data, null)) return;
+                if (ReferenceEquals(data, null)) 
+                {
+                    sumController.ResetSummonMode();
+                    return;
+                }
 
                 List<Vector2> pos = sumController.GetSummonPositions2D(summonNum, summonRange);
 
@@ -91,6 +95,9 @@ public class PlayerController : MonoBehaviour
                     Vector2 spawnPos = (i < pos.Count) ? pos[i] : (Vector2)transform.position;
                     allyManager.SpawnAlly(data, spawnPos);
                 }
+
+                // 소환 완료 후 모드 리셋
+                sumController.ResetSummonMode();
             }
             // 2. 소환 모드가 아니라면 주변 미니언 줍기
             else
