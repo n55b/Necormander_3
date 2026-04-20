@@ -56,5 +56,8 @@ TagManager:
   - name: Unit
     uniqueID: 3839888389
     locked: 0
+  - name: FlyingObject
+    uniqueID: 1659204433
+    locked: 0
   m_RenderingLayers:
   - Default
