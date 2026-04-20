@@ -7,14 +7,7 @@ public class BomberThrowEffect : MonoBehaviour
 {
     public void Init(float damage, float radius, LayerMask enemyLayer, GameObject attacker)
     {
-        // 1. 시각적 레이어 설정 (유닛들 위로 보이도록)
-        if (TryGetComponent<SpriteRenderer>(out var sr))
-        {
-            sr.sortingLayerName = "Unit";
-            sr.sortingOrder = 1;
-        }
-
-        // 2. 시각적 범위를 나타내기 위해 크기 조정 (반지름 * 2 = 지름)
+        // 1. 시각적 범위를 나타내기 위해 크기 조정 (반지름 * 2 = 지름)
         transform.localScale = Vector3.one * radius * 2f;
 
         // 3. 즉발성 강력 광역 공격 수행

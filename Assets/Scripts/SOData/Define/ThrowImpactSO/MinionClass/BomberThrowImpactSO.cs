@@ -17,9 +17,8 @@ public class BomberThrowImpactSO : BaseThrowImpactSO
             return;
         }
 
-        // Z축 0 고정하여 생성
-        Vector3 spawnPos = new Vector3(context.impactPosition.x, context.impactPosition.y, 0f);
-        GameObject obj = Instantiate(explosionPrefab, spawnPos, Quaternion.identity);
+        // 효과 소환 (Z축을 강제로 고정하지 않고 context의 위치를 그대로 사용)
+        GameObject obj = Instantiate(explosionPrefab, context.impactPosition, Quaternion.identity);
 
         if (obj.TryGetComponent<BomberThrowEffect>(out var effect))
         {
