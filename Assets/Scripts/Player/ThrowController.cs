@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Necromancer.Interfaces;
+using Necromancer.Player;
 
 namespace Necromancer.Player
 {
@@ -17,9 +18,27 @@ namespace Necromancer.Player
         [Header("References")]
         [SerializeField] private Transform holdPoint; // 집어들었을 때 유닛이 위치할 곳
 
+        [SerializeField] private TrajectoryPredictor trajectoryPredictor; // 드래그 앤 드롭으로 할당
+
+        // --- 가이드용 프로퍼티 추가 ---
+        public Transform HoldPoint => holdPoint;
+        public float CurrentChargeRatio => Mathf.Min(_chargeTimer / chargeTime, 1.0f);
+
         private List<IThrowable> _heldObjects = new List<IThrowable>();
         private float _chargeTimer;
         private bool _isCharging;
+
+        // 현재 마우스 월드 좌표를 매 프레임 계산하여 제공
+        public Vector2 CurrentMouseWorldPos
+        {
+            get
+            {
+                Vector2 screenPos = Pointer.current.position.ReadValue();
+                Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
+                mousePos.z = 0f;
+                return (Vector2)mousePos;
+            }
+        }
 
         private void Update()
         {
@@ -49,10 +68,22 @@ namespace Necromancer.Player
             // 들고 있다면 차징 시작
             _isCharging = true;
             _chargeTimer = 0f;
+
+            // 가이드 보이기
+            if(trajectoryPredictor != null)
+            {
+                trajectoryPredictor.ShowGuide();
+            }
         }
 
         private void OnThrowCanceled()
         {
+            // --- 가이드 숨기기 ----
+            if (trajectoryPredictor != null)
+            {
+                trajectoryPredictor.HideGuide();
+            }
+
             if (_isCharging && _heldObjects.Count > 0)
             {
                 ThrowAll();
