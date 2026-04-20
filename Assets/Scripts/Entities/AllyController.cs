@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI; // NavMeshAgent 사용을 위해 추가
 using Necromancer.Interfaces;
 using Necromancer.Physics;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ public class AllyController : MonoBehaviour, IThrowable
     private Rigidbody2D _rb;
     private ArcMovement _arcMovement;
     private Collider2D _collider;
+    private NavMeshAgent _agent; // 네비게이션 에이전트 선언
 
     public Transform player;
     public LayerMask enemyLayer;
@@ -42,6 +44,11 @@ public class AllyController : MonoBehaviour, IThrowable
     private float _throwStartTime;
     private float _originalDamping;
     private float _lastChargeRatio; 
+    private int _originalLayer; // 원래 물리 레이어 저장용
+    private string _originalSortingLayerName; // 원래 Sorting Layer 저장용
+    private SpriteRenderer _sr; // 유닛의 비주얼 컴포넌트
+    private bool _hasImpacted = false; // 효과 중복 발동 방지용
+    private bool _isDirectThrow = false; // 직구 여부 플래그
 
     [SerializeField] bool isBattle = false;
 
@@ -64,7 +71,9 @@ public class AllyController : MonoBehaviour, IThrowable
         _rb = GetComponent<Rigidbody2D>();
         _arcMovement = GetComponent<ArcMovement>();
         _collider = GetComponent<Collider2D>();
+        _agent = GetComponent<NavMeshAgent>(); // 에이전트 캐싱
         _nearestFinder = GetComponent<NearestTargetFinder>();
+        _sr = GetComponentInChildren<SpriteRenderer>(); // 비주얼 컴포넌트 캐싱
 
         if (_rb != null)
         {
@@ -97,7 +106,8 @@ public class AllyController : MonoBehaviour, IThrowable
 
     void Update()
     {
-        if (_fsm.currentState == thrownState || !enabled) return;
+        // 비행 중이거나 상태가 thrownState일 때는 AI 로직 완전 차단
+        if ((_arcMovement != null && _arcMovement.IsFlying) || _fsm.currentState == thrownState || !enabled) return;
 
         if (_fsm.currentState == attackState && _fsm.target != null)
         {
@@ -163,12 +173,32 @@ public class AllyController : MonoBehaviour, IThrowable
         _fsm.ChangeState(thrownState);
         if (_rb != null) _rb.simulated = false;
         if (_collider != null) _collider.enabled = false;
+        
+        // 집어들었을 때도 네비게이션 정지
+        if (_agent != null) _agent.enabled = false;
     }
 
     public void OnThrown(Vector2 targetPosition, float chargeRatio)
     {
         _throwStartTime = Time.time;
         _lastChargeRatio = chargeRatio;
+        _hasImpacted = false;
+        _isDirectThrow = (chargeRatio >= 1.0f); // 1.0 이상이면 직구
+
+        // --- 레이어 및 Sorting Layer 저장 및 변경 ---
+        _originalLayer = gameObject.layer;
+        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+        if (flyingLayer != -1)
+        {
+            gameObject.layer = flyingLayer;
+        }
+
+        if (_sr != null)
+        {
+            _originalSortingLayerName = _sr.sortingLayerName;
+            _sr.sortingLayerName = "FlyingObject";
+        }
+
         transform.rotation = Quaternion.identity;
 
         if (_rb != null)
@@ -183,6 +213,18 @@ public class AllyController : MonoBehaviour, IThrowable
             _collider.isTrigger = true;
         }
 
+        // --- 네비게이션 에이전트 확실히 비활성화 ---
+        if (_agent != null)
+        {
+            _agent.enabled = false;
+        }
+
+        // --- 포물선 던지기일 때 목표 지점 분산(Spread) 적용 ---
+        if (!_isDirectThrow)
+        {
+            targetPosition += Random.insideUnitCircle * 0.8f; 
+        }
+
         Vector2 startPos = (Vector2)transform.position;
         Vector2 diff = targetPosition - startPos;
         float distance = diff.magnitude;
@@ -190,10 +232,10 @@ public class AllyController : MonoBehaviour, IThrowable
 
         ThrowParams p = new ThrowParams();
         
-        if (chargeRatio >= 1.0f)
+        if (_isDirectThrow)
         {
             p.speed = fullChargeSpeed;
-            p.duration = 2.0f;
+            p.duration = 1.5f; 
             p.maxHeight = straightHeight;
         }
         else
@@ -216,27 +258,57 @@ public class AllyController : MonoBehaviour, IThrowable
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (Time.time - _throwStartTime < 0.05f) return;
+        if (_hasImpacted) return;
 
-        if (_arcMovement != null && _arcMovement.IsFlying && (_hitLayers.value & (1 << other.gameObject.layer)) != 0)
+        if (_isDirectThrow)
         {
-            if (impactEffect != null)
+            if (_arcMovement != null && _arcMovement.IsFlying && (_hitLayers.value & (1 << other.gameObject.layer)) != 0)
             {
-                ImpactContext context = new ImpactContext
-                {
-                    attacker = this.gameObject,
-                    target = other.gameObject,
-                    impactPosition = transform.position,
-                    chargeRatio = _lastChargeRatio,
-                    supporters = null
-                };
-                impactEffect.Apply(context);
+                TriggerImpact(other.gameObject);
+                _arcMovement.StopArc();
             }
-            _arcMovement.StopArc();
+        }
+    }
+
+    private void TriggerImpact(GameObject targetObj)
+    {
+        if (_hasImpacted) return;
+        _hasImpacted = true;
+
+        if (impactEffect != null)
+        {
+            ImpactContext context = new ImpactContext
+            {
+                attacker = this.gameObject,
+                target = targetObj,
+                impactPosition = transform.position,
+                chargeRatio = _lastChargeRatio,
+                supporters = null
+            };
+            impactEffect.Apply(context);
         }
     }
 
     public virtual void OnLanded()
     {
+        if (!_hasImpacted)
+        {
+            TriggerImpact(null);
+        }
+
+        // 레이어 및 Sorting Layer 복구
+        gameObject.layer = _originalLayer;
+        if (_sr != null && !string.IsNullOrEmpty(_originalSortingLayerName))
+        {
+            _sr.sortingLayerName = _originalSortingLayerName;
+        }
+
+        // 네비게이션 에이전트 복구
+        if (_agent != null)
+        {
+            _agent.enabled = true;
+        }
+
         _fsm.stats.Invincible = false;
         if (_rb != null)
         {

@@ -47,6 +47,12 @@ public class FollowStateSO : FSMStateSO
 
     private Vector2 ComputeSoftPush(EntityFSM fsm)
     {
+        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+
+        // 0. 내가 비행 중이거나, 레이어를 찾을 수 없으면 밀어내기 계산 안 함
+        if (fsm.gameObject.layer == flyingLayer || flyingLayer == -1) 
+            return Vector2.zero;
+
         Vector2 pushDir = Vector2.zero;
         // 주변 아군들 탐색
         Collider2D[] neighbors = Physics2D.OverlapCircleAll(fsm.transform.position, pushRadius);
@@ -56,7 +62,10 @@ public class FollowStateSO : FSMStateSO
         {
             if (col.gameObject == fsm.gameObject) continue;
 
-            // 같은 소환수나 적군 레이어인 경우에만 소프트 밀기 적용
+            // 1. 상대방이 비행 중이면 무시
+            if (col.gameObject.layer == flyingLayer) continue;
+
+            // 2. 같은 소환수나 적군 레이어인 경우에만 소프트 밀기 적용
             if (col.gameObject.layer == fsm.gameObject.layer)
             {
                 Vector2 diff = (Vector2)fsm.transform.position - (Vector2)col.transform.position;
