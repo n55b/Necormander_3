@@ -166,10 +166,8 @@ namespace Necromancer.Player
             mousePos.z = 0f;
             Vector2 targetPos = (Vector2)mousePos;
 
-            // --- 1. 시너지 분석 ---
-            // (첫 두 마리를 기준으로 시너지 여부 판단)
-            // 현재는 간단히 로그만 찍고, 나중에 SynergyDataSO와 연동합니다.
-            AnalyzeSynergy(targetPos, chargeRatio);
+            // --- 1. 조합(Combination) 분석 ---
+            AnalyzeCombination(targetPos, chargeRatio);
 
             // --- 2. 모든 객체 던지기 ---
             foreach (var throwable in _heldObjects)
@@ -186,7 +184,7 @@ namespace Necromancer.Player
             _heldObjects.Clear();
         }
 
-        private void AnalyzeSynergy(Vector2 targetPos, float chargeRatio)
+        private void AnalyzeCombination(Vector2 targetPos, float chargeRatio)
         {
             if (_heldObjects.Count < 2) return;
 
@@ -196,21 +194,38 @@ namespace Necromancer.Player
 
             if (first == null || second == null) return;
 
-            Debug.Log($"<color=cyan>[Synergy Check]</color> Core Pair: {first.MinionType} + {second.MinionType}");
+            // 1. DataManager를 통해 핵심 조합이 있는지 확인
+            var dataManager = GameManager.Instance.dataManager;
+            ThrowCombinationSO combo = dataManager.GetCombination(first.MinionType, second.MinionType);
 
-            // 나머지 3마리는 Supporter 리스트로 구성
-            List<AllyController> supporters = new List<AllyController>();
-            for (int i = 2; i < _heldObjects.Count; i++)
+            if (combo != null)
             {
-                if (_heldObjects[i] is AllyController supporter)
+                Debug.Log($"<color=orange>[Combination Found]</color> {combo.combinationName}!");
+
+                // 2. 서포터 분석 (3번째 유닛부터)
+                List<AllyController> supporters = new List<AllyController>();
+                for (int i = 2; i < _heldObjects.Count; i++)
                 {
-                    supporters.Add(supporter);
+                    if (_heldObjects[i] is AllyController supporter)
+                    {
+                        if (combo.IsValidSupporter(supporter.MinionType))
+                        {
+                            supporters.Add(supporter);
+                            // 서포터는 자신의 효과를 억제함
+                            supporter.SetCombination(combo, false, null);
+                        }
+                    }
                 }
-            }
 
-            if (supporters.Count > 0)
+                // 3. 핵심 유닛들 설정
+                // 0번 유닛이 효과를 직접 터뜨리는 'Lead'가 됨
+                first.SetCombination(combo, true, supporters);
+                // 1번 유닛은 조합원이므로 자신의 효과를 억제함
+                second.SetCombination(combo, false, null);
+            }
+            else
             {
-                Debug.Log($"<color=yellow>[Supporters]</color> {supporters.Count} units will enhance the synergy.");
+                Debug.Log("<color=white>[Combination]</color> No valid combination found for this pair.");
             }
         }
 

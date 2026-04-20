@@ -1,14 +1,26 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Necromancer.Player;
 
 public class DataManager : MonoBehaviour
 {
     [SerializeField] List<MinionDataSO> allMinionData;
+    [SerializeField] List<ThrowCombinationSO> allCombinations;
     [SerializeField] int bonePoint;
 
     public int BONEPOINT {get {return bonePoint;}}
     public List<MinionDataSO> ALL_MINION_DATA => allMinionData;
+
+    // 두 유닛 타입에 맞는 조합 데이터를 찾아주는 함수
+    public ThrowCombinationSO GetCombination(CommandData type1, CommandData type2)
+    {
+        foreach (var combo in allCombinations)
+        {
+            if (combo.IsMatch(type1, type2)) return combo;
+        }
+        return null;
+    }
 
     // 재화 얻었을 때 실행될 함수
     public void AddBonePoint(int _addNum)

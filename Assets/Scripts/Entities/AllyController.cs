@@ -3,6 +3,7 @@ using UnityEngine.AI; // NavMeshAgent 사용을 위해 추가
 using Necromancer.Interfaces;
 using Necromancer.Physics;
 using System.Collections.Generic;
+using Necromancer.Player; // ThrowCombinationSO 사용을 위해 추가
 
 public class AllyController : MonoBehaviour, IThrowable
 {
@@ -49,6 +50,11 @@ public class AllyController : MonoBehaviour, IThrowable
     private SpriteRenderer _sr; // 유닛의 비주얼 컴포넌트
     private bool _hasImpacted = false; // 효과 중복 발동 방지용
     private bool _isDirectThrow = false; // 직구 여부 플래그
+
+    // --- 조합(Combination) 관련 변수 ---
+    private ThrowCombinationSO _activeCombination; // 현재 참여 중인 조합 데이터
+    private bool _isCombinationLead = false;       // 조합 효과를 직접 터뜨릴 주체인지 여부
+    private List<AllyController> _combinationSupporters; // 조합에 기여하는 서포터 리스트
 
     [SerializeField] bool isBattle = false;
 
@@ -178,6 +184,16 @@ public class AllyController : MonoBehaviour, IThrowable
         if (_agent != null) _agent.enabled = false;
     }
 
+    /// <summary>
+    /// 투척 전 조합 정보를 주입합니다.
+    /// </summary>
+    public void SetCombination(ThrowCombinationSO combo, bool isLead, List<AllyController> supporters)
+    {
+        _activeCombination = combo;
+        _isCombinationLead = isLead;
+        _combinationSupporters = supporters;
+    }
+
     public void OnThrown(Vector2 targetPosition, float chargeRatio)
     {
         _throwStartTime = Time.time;
@@ -275,6 +291,27 @@ public class AllyController : MonoBehaviour, IThrowable
         if (_hasImpacted) return;
         _hasImpacted = true;
 
+        // 1. 조합(Combination) 효과 처리
+        if (_activeCombination != null)
+        {
+            // 리더 유닛인 경우에만 조합 효과 실행
+            if (_isCombinationLead && _activeCombination.combinationEffect != null)
+            {
+                CombinationContext context = new CombinationContext
+                {
+                    leadAttacker = this.gameObject,
+                    impactPosition = transform.position,
+                    chargeRatio = _lastChargeRatio,
+                    supporters = _combinationSupporters
+                };
+                _activeCombination.combinationEffect.Execute(context);
+                Debug.Log($"<color=orange>[Combination]</color> {_activeCombination.combinationName} 발동!");
+            }
+            // 조합원(리더/서포터 모두 포함)은 자신의 개별 효과를 실행하지 않음
+            return;
+        }
+
+        // 2. 개별(Individual) 효과 처리
         if (impactEffect != null)
         {
             ImpactContext context = new ImpactContext
@@ -308,6 +345,11 @@ public class AllyController : MonoBehaviour, IThrowable
         {
             _agent.enabled = true;
         }
+
+        // 조합 데이터 초기화 (다음 투척을 위해)
+        _activeCombination = null;
+        _isCombinationLead = false;
+        _combinationSupporters = null;
 
         _fsm.stats.Invincible = false;
         if (_rb != null)
