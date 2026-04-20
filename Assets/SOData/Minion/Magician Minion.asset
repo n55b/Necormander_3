@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
+  m_Name: Magician Minion
+  m_EditorClassIdentifier: 
+  minionType: 6
+  minionName: 
+  maxHP: 100
+  attack: 10
+  attackSpeed: 1
+  attackRange: 2
+  detectRange: 10
+  defense: 0
+  moveSpeed: 5
+  throwImpact: {fileID: 11400000, guid: e0fd91333c3057d409b2e2739b576a07, type: 2}
+  minionPrefab: {fileID: 1959536258159339203, guid: a35288eb4aeed4542a3824e8843ce750, type: 3}

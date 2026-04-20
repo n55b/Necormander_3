@@ -111,6 +111,18 @@ public class CharacterStat : MonoBehaviour
         curHP = MaxHP;
     }
 
+    /// <summary>
+    /// 도적 전용 분신 기능: 체력과 공격력을 절반으로 낮춥니다.
+    /// </summary>
+    public void ApplySplitStats()
+    {
+        MaxHP *= 0.5f;
+        curHP *= 0.5f;
+        Atk *= 0.5f;
+        
+        Debug.Log($"<color=orange>[CharacterStat]</color> 분신화 적용: MaxHP={MaxHP}, HP={curHP}, ATK={Atk}");
+    }
+
     private void InitializeStats()
     {
         // 1. 이미 인스펙터에 할당되어 있는 경우 (예비용)

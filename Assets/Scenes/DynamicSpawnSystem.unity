@@ -708,6 +708,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager
       objectReference: {fileID: 0}
+    - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: allMinionData.Array.size
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'allMinionData.Array.data[5]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 90f4914332c90434ca11e7a7182b201f, type: 2}
+    - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'allMinionData.Array.data[6]'
+      value: 
+      objectReference: {fileID: 11400000, guid: c7a5309733eb19d49935c67f2cab5ca1, type: 2}
+    - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'allMinionData.Array.data[7]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 36c1d0d8a1556234ea58cb8fad958371, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
