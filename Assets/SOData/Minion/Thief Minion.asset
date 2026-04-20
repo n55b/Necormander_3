@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Thief Minion
   m_EditorClassIdentifier: 
   minionType: 7
-  minionName: 
+  minionName: Skeleton Thief
   maxHP: 100
   attack: 10
   attackSpeed: 1
@@ -21,5 +21,6 @@ MonoBehaviour:
   detectRange: 10
   defense: 0
   moveSpeed: 5
+  cost: 1
   throwImpact: {fileID: 11400000, guid: 369e6486df641fc48b2754b8931a2be5, type: 2}
   minionPrefab: {fileID: 1959536258159339203, guid: d98b18e1e42396745b319cee5b250253, type: 3}

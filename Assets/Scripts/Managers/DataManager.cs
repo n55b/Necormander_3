@@ -1,11 +1,35 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class DataManager : MonoBehaviour
 {
     [SerializeField] List<MinionDataSO> allMinionData;
+    [SerializeField] int bonePoint;
 
+    public int BONEPOINT {get {return bonePoint;}}
     public List<MinionDataSO> ALL_MINION_DATA => allMinionData;
+
+    // 재화 얻었을 때 실행될 함수
+    public void AddBonePoint(int _addNum)
+    {
+        bonePoint += _addNum;
+    }
+
+    // 소환시 필요 재화 계산식
+    public int CalculateBonepoint(int summonNum, int cost)
+    {
+        int affordableCount = bonePoint / cost;
+        
+        // 재화 부족시 소환 x
+        if(affordableCount == 0)
+            return 0;
+
+        int finalSummonCount = Math.Min(summonNum, affordableCount);
+        bonePoint -= cost * finalSummonCount;
+
+        return finalSummonCount;
+    }
 
     // CommandData를 바탕으로 데이터(SO)를 찾아주는 함수
     public MinionDataSO GetMinionData(CommandData type)

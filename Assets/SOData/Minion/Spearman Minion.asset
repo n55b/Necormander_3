@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Spearman Minion
   m_EditorClassIdentifier: 
   minionType: 5
-  minionName: 
+  minionName: Skeleton Spearman
   maxHP: 100
   attack: 10
   attackSpeed: 1
@@ -21,5 +21,6 @@ MonoBehaviour:
   detectRange: 10
   defense: 0
   moveSpeed: 5
+  cost: 1
   throwImpact: {fileID: 11400000, guid: 2ed2d40293eb6e3418d323c93c129d4c, type: 2}
   minionPrefab: {fileID: 1959536258159339203, guid: e8f78bb08a310e540851f7d4c7556c37, type: 3}

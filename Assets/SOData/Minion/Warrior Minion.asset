@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Warrior Minion
   m_EditorClassIdentifier: 
   minionType: 0
-  minionName: 
+  minionName: Skeleton Warrior
   maxHP: 100
   attack: 10
   attackSpeed: 1
@@ -21,5 +21,6 @@ MonoBehaviour:
   detectRange: 10
   defense: 0
   moveSpeed: 5
+  cost: 1
   throwImpact: {fileID: 11400000, guid: 7e70952aa8ded974fa86ed1b51e26a53, type: 2}
   minionPrefab: {fileID: 5978108325549925549, guid: eb9b5e3fbf6cf27428ac034e0fc6e8a5, type: 3}

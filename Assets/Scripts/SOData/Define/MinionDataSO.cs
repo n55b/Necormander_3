@@ -17,6 +17,7 @@ public class MinionDataSO : ScriptableObject
     public float detectRange = 10f;
     public float defense = 0f;
     public float moveSpeed = 5f;
+    public int cost;
 
     [Header("투척 효과")]
     public BaseThrowImpactSO throwImpact;

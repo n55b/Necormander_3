@@ -88,9 +88,17 @@ public class PlayerController : MonoBehaviour
                     return;
                 }
 
-                List<Vector2> pos = sumController.GetSummonPositions2D(summonNum, summonRange);
+                // 소환시 필요 재화 계산
+                if (data.cost == 0)
+                {
+                    Debug.Log("cost가 0이므로 오류가 생김");
+                    return;
+                }
+                int finalSummonCount = GameManager.Instance.dataManager.CalculateBonepoint(summonNum, data.cost);
 
-                for (int i = 0; i < summonNum; i++)
+                List<Vector2> pos = sumController.GetSummonPositions2D(finalSummonCount, summonRange);
+
+                for (int i = 0; i < finalSummonCount; i++)
                 {
                     Vector2 spawnPos = (i < pos.Count) ? pos[i] : (Vector2)transform.position;
                     allyManager.SpawnAlly(data, spawnPos);

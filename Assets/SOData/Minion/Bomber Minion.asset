@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Bomber Minion
   m_EditorClassIdentifier: 
   minionType: 4
-  minionName: 
+  minionName: Skeleton Bomber
   maxHP: 100
   attack: 10
   attackSpeed: 1
@@ -21,5 +21,6 @@ MonoBehaviour:
   detectRange: 10
   defense: 0
   moveSpeed: 5
+  cost: 1
   throwImpact: {fileID: 11400000, guid: e4b179112b753ad4295c54460856b65b, type: 2}
   minionPrefab: {fileID: 1959536258159339203, guid: d7c2e6a03bc731e48b7fc2cbc7ca8a89, type: 3}

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ShieldBearer Minion
   m_EditorClassIdentifier: 
   minionType: 1
-  minionName: 
+  minionName: Skeleton ShieldBearer
   maxHP: 100
   attack: 10
   attackSpeed: 1
@@ -21,5 +21,6 @@ MonoBehaviour:
   detectRange: 10
   defense: 0
   moveSpeed: 5
+  cost: 1
   throwImpact: {fileID: 11400000, guid: 203b1e49fe0e2384ba34863d80dc9505, type: 2}
   minionPrefab: {fileID: 5978108325549925549, guid: d0ae37130e5f054409b3a87a321bedd1, type: 3}

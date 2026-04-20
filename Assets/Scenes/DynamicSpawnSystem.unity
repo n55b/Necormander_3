@@ -1001,6 +1001,10 @@ PrefabInstance:
       value: GameManager
       objectReference: {fileID: 0}
     - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: bonePoint
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: allMinionData.Array.size
       value: 8
       objectReference: {fileID: 0}
