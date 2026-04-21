@@ -15,7 +15,7 @@ public class MouseManager : MonoBehaviour
     [SerializeField] CursorType currentType = CursorType.Default;
 
     [Header(" [ Under The Mouse ] ")]
-    [SerializeField] GameObject hoverObject;
+    [SerializeField] GameObject hoverObject = null;
 
     public GameObject HoverObject => hoverObject;
 

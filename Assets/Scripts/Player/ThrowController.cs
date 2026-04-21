@@ -19,6 +19,7 @@ namespace Necromancer.Player
         [SerializeField] private Transform holdPoint; // 집어들었을 때 유닛이 위치할 곳
 
         [SerializeField] private TrajectoryPredictor trajectoryPredictor; // 드래그 앤 드롭으로 할당
+        public TrajectoryPredictor TrajectoryPredictor { get { return trajectoryPredictor; }}
 
         // --- 가이드용 프로퍼티 추가 ---
         public Transform HoldPoint => holdPoint;
@@ -68,12 +69,6 @@ namespace Necromancer.Player
             // 들고 있다면 차징 시작
             _isCharging = true;
             _chargeTimer = 0f;
-
-            // 가이드 보이기
-            if (trajectoryPredictor != null)
-            {
-                trajectoryPredictor.ShowGuide();
-            }
         }
 
         private void OnThrowCanceled()
@@ -107,7 +102,7 @@ namespace Necromancer.Player
             // 2. MouseManager의 HoverObject 확인
             GameObject hovered = GameManager.Instance.mouseManager.HoverObject;
 
-            if (!ReferenceEquals(hovered, null))
+            if (hovered != null)
             {
                 // 마우스 아래 객체가 IThrowable인지 확인
                 if (hovered.TryGetComponent(out IThrowable throwable))
@@ -128,6 +123,8 @@ namespace Necromancer.Player
             if (targetThrowable != null && !_heldObjects.Contains(targetThrowable))
             {
                 PerformPickUp(targetThrowable, targetObj);
+                // 가이드 활성화
+                trajectoryPredictor.ShowGuide();
             }
         }
 
