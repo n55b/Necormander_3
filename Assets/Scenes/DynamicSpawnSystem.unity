@@ -479,6 +479,7 @@ GameObject:
   - component: {fileID: 901670751}
   - component: {fileID: 901670753}
   - component: {fileID: 901670752}
+  - component: {fileID: 901670754}
   m_Layer: 3
   m_Name: Wall
   m_TagString: Untagged
@@ -591,6 +592,22 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!114 &901670754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 901670750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9809bf1345abc5648af68b3a82653f08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_IgnoreFromBuild: 0
+  m_AffectedAgents: ffffffff
 --- !u!1 &1547487938
 GameObject:
   m_ObjectHideFlags: 0
@@ -778,7 +795,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1755609611
   m_SortingLayer: 1
-  m_SortingOrder: -10
+  m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
   m_FlipX: 0
@@ -832,6 +849,7 @@ GameObject:
   - component: {fileID: 2095322838}
   - component: {fileID: 2095322840}
   - component: {fileID: 2095322839}
+  - component: {fileID: 2095322841}
   m_Layer: 9
   m_Name: Ground
   m_TagString: Untagged
@@ -944,6 +962,22 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!114 &2095322841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2095322837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9809bf1345abc5648af68b3a82653f08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 0
+  m_IgnoreFromBuild: 0
+  m_AffectedAgents: ffffffff
 --- !u!1001 &133339602935479672
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1000,26 +1034,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager
       objectReference: {fileID: 0}
-    - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: bonePoint
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: allMinionData.Array.size
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'allMinionData.Array.data[5]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 90f4914332c90434ca11e7a7182b201f, type: 2}
-    - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'allMinionData.Array.data[6]'
-      value: 
-      objectReference: {fileID: 11400000, guid: c7a5309733eb19d49935c67f2cab5ca1, type: 2}
-    - target: {fileID: 4164083970323456029, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'allMinionData.Array.data[7]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 36c1d0d8a1556234ea58cb8fad958371, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1036,14 +1050,6 @@ PrefabInstance:
     - target: {fileID: 2513279776471938881, guid: 15e21c4698054ed45a4ad159d640c571, type: 3}
       propertyPath: m_Name
       value: DynamicEnemySpawner
-      objectReference: {fileID: 0}
-    - target: {fileID: 6706715044398964560, guid: 15e21c4698054ed45a4ad159d640c571, type: 3}
-      propertyPath: groupsCount
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6706715044398964560, guid: 15e21c4698054ed45a4ad159d640c571, type: 3}
-      propertyPath: maxActiveEnemies
-      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 7208296595465672114, guid: 15e21c4698054ed45a4ad159d640c571, type: 3}
       propertyPath: m_LocalPosition.x

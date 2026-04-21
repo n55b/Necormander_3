@@ -6,16 +6,13 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private PlayerController playerController;
     [SerializeField] public DataManager dataManager;
+    [SerializeField] public MouseManager mouseManager;
 
     public PlayerController PLAYERCONTROLLER {get {return playerController;}}
 
     private void Awake()
     {
         Instance = this;
-    }
-
-    private void Start()
-    {
         playerController = GameObject.FindWithTag("Player").GetComponent<PlayerController>();
     }
 }
