@@ -70,7 +70,7 @@ namespace Necromancer.Player
             _chargeTimer = 0f;
 
             // 가이드 보이기
-            if(trajectoryPredictor != null)
+            if (trajectoryPredictor != null)
             {
                 trajectoryPredictor.ShowGuide();
             }
@@ -90,63 +90,62 @@ namespace Necromancer.Player
             }
             _isCharging = false;
         }
-        // 외부(PlayerController)에서 호출할 줍기 함수 (가장 가까운 한 마리만)
-        public void TryPickUpMultiple()
+
+        // 외부(PlayerController)에서 호출할 줍기 함수
+        public void TryPickUpWithMouse()
         {
-            // 이미 최대치면 더 줍지 않음
+            // 1. 최대치 체크
             if (_heldObjects.Count >= maxHoldCount)
             {
                 Debug.LogWarning("Already holding max units!");
                 return;
             }
 
-            // 주변의 Throwable 객체 탐색
-            float pickUpRadius = 3.0f;
-            Collider2D[] colliders = UnityEngine.Physics2D.OverlapCircleAll(transform.position, pickUpRadius);
+            IThrowable targetThrowable = null;
+            GameObject targetObj = null;
 
-            IThrowable nearestThrowable = null;
-            float minDistance = float.MaxValue;
-            GameObject nearestObj = null;
+            // 2. MouseManager의 HoverObject 확인
+            GameObject hovered = GameManager.Instance.mouseManager.HoverObject;
 
-            foreach (var col in colliders)
+            if (!ReferenceEquals(hovered, null))
             {
-                if (col.gameObject == gameObject) continue;
-
-                IThrowable throwable = col.GetComponent<IThrowable>();
-                
-                // 이미 들고 있는 유닛이 아니고, IThrowable을 구현하고 있다면
-                if (throwable != null && !_heldObjects.Contains(throwable))
+                // 마우스 아래 객체가 IThrowable인지 확인
+                if (hovered.TryGetComponent(out IThrowable throwable))
                 {
-                    float distance = Vector2.Distance(transform.position, col.transform.position);
-                    if (distance < minDistance)
+                    // 거리 체크
+                    float dist = Vector2.Distance(transform.position, hovered.transform.position);
+                    float pickUpRadius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
+
+                    if (dist <= pickUpRadius)
                     {
-                        minDistance = distance;
-                        nearestThrowable = throwable;
-                        nearestObj = col.gameObject;
+                        targetThrowable = throwable;
+                        targetObj = hovered;
                     }
                 }
             }
 
-            // 가장 가까운 한 마리만 집기
-            if (nearestThrowable != null)
+            // 4. 최종 픽업 처리
+            if (targetThrowable != null && !_heldObjects.Contains(targetThrowable))
             {
-                _heldObjects.Add(nearestThrowable);
-                nearestThrowable.OnPickedUp();
-
-                Debug.Log($"Picked up nearest unit: {nearestObj.name}. Total: {_heldObjects.Count}");
-
-                if (nearestThrowable is MonoBehaviour mb)
-                {
-                    mb.transform.SetParent(holdPoint);
-                    // 쌓기 효과 유지
-                    mb.transform.localPosition = new Vector3(0, (_heldObjects.Count - 1) * 0.5f, 0);
-                    mb.transform.localRotation = Quaternion.identity;
-                }
+                PerformPickUp(targetThrowable, targetObj);
             }
-            else
+        }
+
+        // 헬퍼 메서드: 실제 집는 동작 (코드 중복 방지)
+        private void PerformPickUp(IThrowable throwable, GameObject obj)
+        {
+            _heldObjects.Add(throwable);
+            throwable.OnPickedUp();
+
+            if (throwable is MonoBehaviour mb)
             {
-                Debug.LogWarning("No units with IThrowable found nearby.");
+                mb.transform.SetParent(holdPoint);
+                // 쌓기 위치 계산: (Count - 1)을 사용해 0부터 차곡차곡 쌓임
+                mb.transform.localPosition = new Vector3(0, (_heldObjects.Count - 1) * 0.5f, 0);
+                mb.transform.localRotation = Quaternion.identity;
             }
+
+            Debug.Log($"Picked up: {obj.name}. Total: {_heldObjects.Count}");
         }
 
         private void ThrowAll()
@@ -218,7 +217,7 @@ namespace Necromancer.Player
         private void HandleSameTypeEffect(CommandData type, int count, Vector2 targetPos, float chargeRatio)
         {
             Debug.Log($"<color=cyan>[Synergy]</color> Same Type Throw: <b>{type} x{count}</b> (Charge: {chargeRatio:F2})");
-            
+
             // 타입별 고유 시너지 효과 로직 (여기에 구체적인 버프나 범위 공격 로직 추가)
             switch (type)
             {
@@ -253,7 +252,7 @@ namespace Necromancer.Player
         private void HandleMixedTypeEffect(List<AllyController> allies, Vector2 targetPos, float chargeRatio)
         {
             Debug.Log($"<color=orange>[Synergy]</color> Mixed Type Throw: <b>{allies.Count} units</b> (Charge: {chargeRatio:F2})");
-            
+
             // 조합 분석 로직 (예: Warrior + Priest = 팔라딘 효과 등)
             // 현재는 간단하게 구성 유닛 종류만 출력
             Dictionary<CommandData, int> counts = new Dictionary<CommandData, int>();
@@ -283,7 +282,7 @@ namespace Necromancer.Player
                 {
                     mb.transform.SetParent(null);
                 }
-                
+
                 // OnLanded를 호출하여 상태를 복구시킴
                 throwable.OnLanded();
             }

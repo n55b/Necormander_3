@@ -14,12 +14,15 @@ public class PlayerController : MonoBehaviour
 {
     [Header("플레이어 스탯")]
     [SerializeField] CharacterStat stat;
+    [SerializeField] float throwRange;
+    public float THROWRANGE {get { return throwRange; }}
     [Header("감지 영역")]
     [SerializeField] GameObject TrackingCollider;
     [Header("아군 유닛 관련 매니저")]
     [SerializeField] AllyManager allyManager;
     [Header("소환 컨트롤러")]
     [SerializeField] SummonController sumController;
+    public SummonController SUMCONTROLLER {get{ return sumController;}}
     [Header("던지기 컨트롤러")]
     [SerializeField] Necromancer.Player.ThrowController throwController;
     [SerializeField] private int summonNum;
@@ -113,7 +116,7 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("<color=white>[PlayerController]</color> 줍기 모드 실행");
                 if (throwController != null)
                 {
-                    throwController.TryPickUpMultiple();
+                    throwController.TryPickUpWithMouse();
                 }
             }
         }

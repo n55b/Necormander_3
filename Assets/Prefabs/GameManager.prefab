@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 3877437135718828404}
   - component: {fileID: 3038419152311975761}
   - component: {fileID: 4164083970323456029}
+  - component: {fileID: 1828105012159631490}
+  - component: {fileID: 5175401921997970616}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -47,6 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerController: {fileID: 0}
   dataManager: {fileID: 4164083970323456029}
+  mouseManager: {fileID: 5175401921997970616}
 --- !u!114 &4164083970323456029
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -65,3 +68,41 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 02b328c2889b4af408a588ed6baae425, type: 2}
   - {fileID: 11400000, guid: f67166d43b3c4a646b53721afbc5498b, type: 2}
   - {fileID: 11400000, guid: e0c8a4c0c377e46469947ae9f9b6227f, type: 2}
+  - {fileID: 11400000, guid: 90f4914332c90434ca11e7a7182b201f, type: 2}
+  - {fileID: 11400000, guid: c7a5309733eb19d49935c67f2cab5ca1, type: 2}
+  - {fileID: 11400000, guid: 36c1d0d8a1556234ea58cb8fad958371, type: 2}
+  bonePoint: 10
+--- !u!114 &1828105012159631490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3878380797755390178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96cf2c7dda9411448b8a669893dcfb97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultCursorSO: {fileID: 11400000, guid: 48323580c6b127a489c12138667c3894, type: 2}
+  TargetCursorSO: {fileID: 11400000, guid: 711db87a09f5853488d77e0a4f93d9b6, type: 2}
+  ThrowCursorSO: {fileID: 11400000, guid: 2343e2fe8fa04f043a0a52267ebd49fb, type: 2}
+  currentCursorSO: {fileID: 0}
+--- !u!114 &5175401921997970616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3878380797755390178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4e215f413e2d464cb827f25916b419a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allyLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  raycastDistance: 100
+  currentType: 0
+  hoverObject: {fileID: 0}

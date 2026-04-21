@@ -541,6 +541,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stat: {fileID: 544081507106253165}
+  throwRange: 5
   TrackingCollider: {fileID: 7812045167050644549}
   allyManager: {fileID: 6055861653884896251}
   sumController: {fileID: 2140691029848297597}
