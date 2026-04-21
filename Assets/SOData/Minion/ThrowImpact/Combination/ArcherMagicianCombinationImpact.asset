@@ -15,7 +15,7 @@ MonoBehaviour:
   railgunPrefab: {fileID: 3756685443209192954, guid: ce5aa2afdcffe3a408eca5c25e49d0f3, type: 3}
   enemyLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   baseDamage: 25
   baseShieldBreak: 1
   beamWidth: 0.5
