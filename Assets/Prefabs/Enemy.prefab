@@ -82,7 +82,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -455078907
-  m_SortingLayer: 2
+  m_SortingLayer: 5
   m_SortingOrder: 2
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 1, g: 0, b: 0, a: 1}
@@ -116,6 +116,7 @@ MonoBehaviour:
   MoveSpeed: 2
   isDead: 0
   invincible: 0
+  shieldCount: 0
 --- !u!114 &6342894155674723763
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -145,15 +146,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bda2e3b28fd28014ab425928d120e2cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _fsm: {fileID: 6342894155674723763}
-  detectRange: 10
-  targetLayer:
+  team: 1
+  myTeamLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  opponentLayer:
     serializedVersion: 2
     m_Bits: 384
   idleState: {fileID: 11400000, guid: 6bbf76f271c955f4b9dabc8f6a48f729, type: 2}
   followState: {fileID: 11400000, guid: 32f0914b7547d944e9a75f7451190bc6, type: 2}
   attackState: {fileID: 11400000, guid: 6ff2427ce5767574986286a0259a3c79, type: 2}
-  _nearestFinder: {fileID: 8809371560834086903}
+  detectRange: 10
 --- !u!114 &8809371560834086903
 MonoBehaviour:
   m_ObjectHideFlags: 0

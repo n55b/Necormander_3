@@ -1,35 +1,24 @@
 using UnityEngine;
-using UnityEngine.AI; // NavMeshAgent 사용을 위해 추가
 using Necromancer.Interfaces;
 using Necromancer.Physics;
 using System.Collections.Generic;
-using Necromancer.Player; // ThrowCombinationSO 사용을 위해 추가
+using Necromancer.Player;
 
-public class AllyController : MonoBehaviour, IThrowable
+/// <summary>
+/// 아군 유닛 전용 컨트롤러입니다. 
+/// BaseEntity를 상속받으며, 던지기(IThrowable)와 조합 시너지 기능을 포함합니다.
+/// </summary>
+public class AllyController : BaseEntity, IThrowable
 {
-    private EntityFSM _fsm;
-    private Rigidbody2D _rb;
-    private ArcMovement _arcMovement;
-    private Collider2D _collider;
-    private NavMeshAgent _agent; // 네비게이션 에이전트 선언
-
+    [Header("Ally 전용 설정")]
     public Transform player;
-    public LayerMask enemyLayer;
+    [SerializeField] bool isBattle = false;
 
-    [Header("Minion Data (Master SO)")]
-    [SerializeField] protected MinionDataSO minionData;
     public MinionDataSO MinionData => minionData;
-
-    // 시너지 판정 등에 사용되는 식별자 (마스터 데이터가 있으면 거기서 가져옴)
     public CommandData MinionType => minionData != null ? minionData.minionType : CommandData.SkeletonWarrior;
 
-    [Header("State Assets")]
-    public FSMStateSO idleState;
-    public FSMStateSO followState;
-    public FSMStateSO attackState;
+    [Header("Throw States & Physics")]
     public FSMStateSO thrownState;
-
-    [Header("Throw Physics Settings")]
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float straightHeight = 0.1f;
     [SerializeField] private float minSpeed = 5f;
@@ -37,156 +26,70 @@ public class AllyController : MonoBehaviour, IThrowable
     [SerializeField] private float fullChargeSpeed = 30f;
 
     [Header("References")]
-    [SerializeField] private NearestTargetFinder _nearestFinder;
-    [SerializeField] private BaseThrowImpactSO impactEffect; 
+    private ArcMovement _arcMovement;
+    private BaseThrowImpactSO impactEffect; 
 
-    private float _detectRange = 10f; // Awake에서 MinionData로부터 초기화됨
-    private LayerMask _hitLayers;
+    // 투척 물리 변수
     private float _throwStartTime;
     private float _originalDamping;
     private float _lastChargeRatio; 
-    private int _originalLayer; // 원래 물리 레이어 저장용
-    private string _originalSortingLayerName; // 원래 Sorting Layer 저장용
-    private SpriteRenderer _sr; // 유닛의 비주얼 컴포넌트
-    private bool _hasImpacted = false; // 효과 중복 발동 방지용
-    private bool _isDirectThrow = false; // 직구 여부 플래그
+    private int _originalLayer;
+    private string _originalSortingLayerName;
+    private bool _hasImpacted = false;
+    private bool _isDirectThrow = false;
 
-    // --- 조합(Combination) 관련 변수 ---
-    private ThrowCombinationSO _activeCombination; // 현재 참여 중인 조합 데이터
-    private bool _isCombinationLead = false;       // 조합 효과를 직접 터뜨릴 주체인지 여부
-    private List<AllyController> _combinationSupporters; // 조합에 기여하는 서포터 리스트
+    // 조합 시너지 데이터
+    private ThrowCombinationSO _activeCombination;
+    private bool _isCombinationLead = false;
+    private List<AllyController> _combinationSupporters;
 
-    [SerializeField] bool isBattle = false;
-
-    public bool IsBattle => isBattle;
-    public EntityFSM FSM => _fsm;
-
-    // --- 공격 관련 확장 ---
-    public virtual void ExecuteAttack(Transform target)
+    protected override void Awake()
     {
-        if (target != null && target.TryGetComponent<CharacterStat>(out var targetStat))
-        {
-            DamageInfo info = new DamageInfo(_fsm.stats.ATK, DamageType.Physical, this.gameObject);
-            targetStat.GetDamage(info);
-        }
-    }
-
-    void Awake()
-    {
-        _fsm = GetComponent<EntityFSM>();
-        _rb = GetComponent<Rigidbody2D>();
+        base.Awake();
         _arcMovement = GetComponent<ArcMovement>();
-        _collider = GetComponent<Collider2D>();
-        _agent = GetComponent<NavMeshAgent>(); // 에이전트 캐싱
-        _nearestFinder = GetComponent<NearestTargetFinder>();
-        _sr = GetComponentInChildren<SpriteRenderer>(); // 비주얼 컴포넌트 캐싱
+        player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
-        if (_rb != null)
-        {
-            _rb.freezeRotation = true;
-            _originalDamping = _rb.linearDamping;
-        }
-
-        _hitLayers = LayerMask.GetMask("Enemy", "Wall", "Obstacle");
+        if (_rb != null) _originalDamping = _rb.linearDamping;
+        
+        team = Team.Ally;
     }
 
-    /// <summary>
-    /// 소환 시 호출되어 미니언 데이터를 주입하고 초기화합니다.
-    /// </summary>
-    public void Initialize(MinionDataSO data)
+    public override void Initialize(MinionDataSO data)
     {
-        minionData = data;
-        
+        base.Initialize(data); // 부모의 공통 초기화 호출
+
         if (minionData != null)
         {
             if (minionData.throwImpact != null) impactEffect = minionData.throwImpact;
-            _detectRange = minionData.detectRange;
-        }
-
-        // CharacterStat 초기화 강제 실행
-        if (TryGetComponent<CharacterStat>(out var stat))
-        {
-            stat.InitializeStats(minionData);
         }
     }
 
-    void Update()
+    protected override bool CanExecuteAI()
     {
-        // 비행 중이거나 상태가 thrownState일 때는 AI 로직 완전 차단
-        if ((_arcMovement != null && _arcMovement.IsFlying) || _fsm.currentState == thrownState || !enabled) return;
+        // 비행 중이거나 thrownState일 때는 AI 차단
+        if ((_arcMovement != null && _arcMovement.IsFlying) || _fsm.currentState == thrownState) 
+            return false;
+        
+        return base.CanExecuteAI();
+    }
 
-        if (_fsm.currentState == attackState && _fsm.target != null)
-        {
-            if (_fsm.target.TryGetComponent<CharacterStat>(out var targetStat))
-            {
-                if (targetStat.IsDead || targetStat.Invincible)
-                {
-                    _fsm.target = null;
-                    _fsm.ChangeState(followState);
-                    return;
-                }
-            }
-
-            float dist = Vector3.Distance(transform.position, _fsm.target.position);
-            if (dist > _fsm.stats.ATKRANGE + 0.5f)
-            {
-                _fsm.ChangeState(followState);
-                return;
-            }
-            return;
-        }
-
-        Transform trs = _nearestFinder.FindNearest(_detectRange);
-
-        if (trs != null)
-        {
-            float dist = Vector3.Distance(transform.position, trs.position);
-            if (dist <= _fsm.stats.ATKRANGE)
-            {
-                if (_fsm.target == null || _fsm.target != trs)
-                    _fsm.target = trs;
-
-                _fsm.ChangeState(attackState);
-                return;
-            }
-        }
-
-        if (isBattle)
-        {
-            if (trs != null)
-            {
-                if (_fsm.target == null || _fsm.target != trs)
-                    _fsm.target = trs;
-
-                _fsm.ChangeState(followState);
-            }
-            else
-            {
-                _fsm.target = player;
-            }
-        }
-        else
-        {
-            _fsm.target = player;
-        }
+    protected override void HandleNoTarget()
+    {
+        // 아군은 타겟이 없으면 플레이어를 따라갑니다.
+        _fsm.target = player;
         _fsm.ChangeState(followState);
     }
 
-    #region IThrowable 구현
+    #region IThrowable 구현 (아군 전용)
 
     public void OnPickedUp()
     {
         _fsm.ChangeState(thrownState);
         if (_rb != null) _rb.simulated = false;
         if (_collider != null) _collider.enabled = false;
-        
-        // 집어들었을 때도 네비게이션 정지
         if (_agent != null) _agent.enabled = false;
     }
 
-    /// <summary>
-    /// 투척 전 조합 정보를 주입합니다.
-    /// </summary>
     public void SetCombination(ThrowCombinationSO combo, bool isLead, List<AllyController> supporters)
     {
         _activeCombination = combo;
@@ -199,23 +102,17 @@ public class AllyController : MonoBehaviour, IThrowable
         _throwStartTime = Time.time;
         _lastChargeRatio = chargeRatio;
         _hasImpacted = false;
-        _isDirectThrow = (chargeRatio >= 1.0f); // 1.0 이상이면 직구
+        _isDirectThrow = (chargeRatio >= 1.0f);
 
-        // --- 레이어 및 Sorting Layer 저장 및 변경 ---
         _originalLayer = gameObject.layer;
         int flyingLayer = LayerMask.NameToLayer("FlyingObject");
-        if (flyingLayer != -1)
-        {
-            gameObject.layer = flyingLayer;
-        }
+        if (flyingLayer != -1) gameObject.layer = flyingLayer;
 
         if (_sr != null)
         {
             _originalSortingLayerName = _sr.sortingLayerName;
             _sr.sortingLayerName = "FlyingObject";
         }
-
-        transform.rotation = Quaternion.identity;
 
         if (_rb != null)
         {
@@ -229,17 +126,9 @@ public class AllyController : MonoBehaviour, IThrowable
             _collider.isTrigger = true;
         }
 
-        // --- 네비게이션 에이전트 확실히 비활성화 ---
-        if (_agent != null)
-        {
-            _agent.enabled = false;
-        }
+        if (_agent != null) _agent.enabled = false;
 
-        // --- 포물선 던지기일 때 목표 지점 분산(Spread) 적용 ---
-        if (!_isDirectThrow)
-        {
-            targetPosition += Random.insideUnitCircle * 0.8f; 
-        }
+        if (!_isDirectThrow) targetPosition += Random.insideUnitCircle * 0.8f;
 
         Vector2 startPos = (Vector2)transform.position;
         Vector2 diff = targetPosition - startPos;
@@ -247,7 +136,6 @@ public class AllyController : MonoBehaviour, IThrowable
         Vector2 direction = diff.normalized;
 
         ThrowParams p = new ThrowParams();
-        
         if (_isDirectThrow)
         {
             p.speed = fullChargeSpeed;
@@ -262,10 +150,7 @@ public class AllyController : MonoBehaviour, IThrowable
             p.maxHeight = Mathf.Min(targetHeight, distance * 0.5f);
         }
 
-        if (impactEffect != null)
-        {
-            impactEffect.OnPreThrow(p, chargeRatio);
-        }
+        if (impactEffect != null) impactEffect.OnPreThrow(p, chargeRatio);
 
         if (_rb != null) _rb.linearVelocity = direction * p.speed;
         if (_arcMovement != null) _arcMovement.StartArc(p.duration, p.maxHeight);
@@ -278,7 +163,8 @@ public class AllyController : MonoBehaviour, IThrowable
 
         if (_isDirectThrow)
         {
-            if (_arcMovement != null && _arcMovement.IsFlying && (_hitLayers.value & (1 << other.gameObject.layer)) != 0)
+            // opponentLayer에 속한 적이나 벽에 부딪히면 임팩트 실행
+            if (_arcMovement != null && _arcMovement.IsFlying && ((opponentLayer.value | LayerMask.GetMask("Wall", "Obstacle")) & (1 << other.gameObject.layer)) != 0)
             {
                 TriggerImpact(other.gameObject);
                 _arcMovement.StopArc();
@@ -291,10 +177,8 @@ public class AllyController : MonoBehaviour, IThrowable
         if (_hasImpacted) return;
         _hasImpacted = true;
 
-        // 1. 조합(Combination) 효과 처리
         if (_activeCombination != null)
         {
-            // 리더 유닛인 경우에만 조합 효과 실행
             if (_isCombinationLead && _activeCombination.combinationEffect != null)
             {
                 CombinationContext context = new CombinationContext
@@ -305,13 +189,10 @@ public class AllyController : MonoBehaviour, IThrowable
                     supporters = _combinationSupporters
                 };
                 _activeCombination.combinationEffect.Execute(context);
-                Debug.Log($"<color=orange>[Combination]</color> {_activeCombination.combinationName} 발동!");
             }
-            // 조합원(리더/서포터 모두 포함)은 자신의 개별 효과를 실행하지 않음
             return;
         }
 
-        // 2. 개별(Individual) 효과 처리
         if (impactEffect != null)
         {
             ImpactContext context = new ImpactContext
@@ -319,8 +200,7 @@ public class AllyController : MonoBehaviour, IThrowable
                 attacker = this.gameObject,
                 target = targetObj,
                 impactPosition = transform.position,
-                chargeRatio = _lastChargeRatio,
-                supporters = null
+                chargeRatio = _lastChargeRatio
             };
             impactEffect.Apply(context);
         }
@@ -328,30 +208,18 @@ public class AllyController : MonoBehaviour, IThrowable
 
     public virtual void OnLanded()
     {
-        if (!_hasImpacted)
-        {
-            TriggerImpact(null);
-        }
+        if (!_hasImpacted) TriggerImpact(null);
 
-        // 레이어 및 Sorting Layer 복구
         gameObject.layer = _originalLayer;
         if (_sr != null && !string.IsNullOrEmpty(_originalSortingLayerName))
-        {
             _sr.sortingLayerName = _originalSortingLayerName;
-        }
 
-        // 네비게이션 에이전트 복구
-        if (_agent != null)
-        {
-            _agent.enabled = true;
-        }
+        if (_agent != null) _agent.enabled = true;
 
-        // 조합 데이터 초기화 (다음 투척을 위해)
         _activeCombination = null;
         _isCombinationLead = false;
         _combinationSupporters = null;
 
-        _fsm.stats.Invincible = false;
         if (_rb != null)
         {
             _rb.linearVelocity = Vector2.zero;
@@ -359,21 +227,7 @@ public class AllyController : MonoBehaviour, IThrowable
         }
         if (_collider != null) _collider.isTrigger = false;
 
-        Transform trs = _nearestFinder.FindNearest(_detectRange);
-        if (trs != null)
-        {
-            _fsm.target = trs;
-            float dist = Vector3.Distance(transform.position, trs.position);
-            if (dist <= _fsm.stats.ATKRANGE)
-                _fsm.ChangeState(attackState);
-            else
-                _fsm.ChangeState(followState);
-        }
-        else
-        {
-            _fsm.target = player;
-            _fsm.ChangeState(followState);
-        }
+        // 착지 후 타겟 재탐색 로직은 BaseEntity의 HandleAIUpdate에 의해 수행됨
     }
 
     #endregion

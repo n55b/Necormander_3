@@ -147,6 +147,7 @@ MonoBehaviour:
   MoveSpeed: 10
   isDead: 0
   invincible: 0
+  shieldCount: 0
 --- !u!114 &6941146495543674885
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -176,23 +177,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be0b12e6c817e734ebea6293504f83a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 0}
-  enemyLayer:
+  team: 0
+  myTeamLayer:
+    serializedVersion: 2
+    m_Bits: 384
+  opponentLayer:
     serializedVersion: 2
     m_Bits: 64
-  minionData: {fileID: 0}
   idleState: {fileID: 11400000, guid: 6bbf76f271c955f4b9dabc8f6a48f729, type: 2}
   followState: {fileID: 11400000, guid: 32f0914b7547d944e9a75f7451190bc6, type: 2}
   attackState: {fileID: 11400000, guid: 6ff2427ce5767574986286a0259a3c79, type: 2}
+  detectRange: 10
+  player: {fileID: 0}
+  isBattle: 0
+  minionData: {fileID: 0}
   thrownState: {fileID: 11400000, guid: f23cee3c7b6bbe84a856ce1f653c24cd, type: 2}
   jumpHeight: 1.5
   straightHeight: 0.1
   minSpeed: 5
   maxSpeed: 20
   fullChargeSpeed: 30
-  _nearestFinder: {fileID: -2522998909360401651}
-  impactEffect: {fileID: 0}
-  isBattle: 0
 --- !u!114 &1872334000514628288
 MonoBehaviour:
   m_ObjectHideFlags: 0

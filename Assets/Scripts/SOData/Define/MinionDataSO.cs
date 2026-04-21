@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 특정 미니언 타입의 모든 데이터(스탯, 투척 효과 등)를 관리하는 마스터 SO입니다.
+/// 미니언(아군/적군 공용)의 마스터 데이터입니다. 
+/// 스탯과 고유 공격 패턴(Attack State)을 정의합니다.
 /// </summary>
 [CreateAssetMenu(fileName = "NewMinionData", menuName = "Necromancer/Data/MinionData")]
 public class MinionDataSO : ScriptableObject
@@ -19,9 +20,12 @@ public class MinionDataSO : ScriptableObject
     public float moveSpeed = 5f;
     public int cost;
 
-    [Header("투척 효과")]
+    [Header("고유 행동 패턴")]
+    public FSMStateSO attackState; // 이 유닛만의 특수한 공격/행동 패턴 (예: 힐, 자폭 등)
+
+    [Header("투척 효과 (아군 전용)")]
     public BaseThrowImpactSO throwImpact;
 
-    [Header("소환 설정")]
+    [Header("프리팹 설정")]
     public GameObject minionPrefab;
 }

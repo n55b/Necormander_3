@@ -136,11 +136,47 @@ public class CharacterStat : MonoBehaviour
         }
     }
 
+    [SerializeField] int shieldCount = 0; // 보호막 스택 개수
+
+    public int SHIELDCOUNT => shieldCount;
+
+    // 보호막을 특정 개수만큼 깎는 함수
+    public void BreakShield(int amount)
+    {
+        if (isDead) return;
+        shieldCount = Mathf.Max(0, shieldCount - amount);
+        
+        // 보호막 파괴 시각 피드백 (파란색 깜빡임)
+        if (_spriteRenderer != null)
+        {
+            if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
+            _flashCoroutine = StartCoroutine(Debug_FlashBlue());
+        }
+        
+        Debug.Log($"<color=cyan>[Shield]</color> {gameObject.name}의 보호막 {amount}개 파괴! 남은 개수: {shieldCount}");
+    }
+
+    private System.Collections.IEnumerator Debug_FlashBlue()
+    {
+        _spriteRenderer.color = Color.cyan;
+        yield return new UnityEngine.WaitForSeconds(0.1f);
+        _spriteRenderer.color = _originalColor;
+        _flashCoroutine = null;
+    }
+
     public void GetDamage(DamageInfo info)
     {
         if (isDead || invincible) return;
 
-        float finalDamage = Mathf.Max(info.amount - Def, 1f);
+        // 보호막이 남아있다면 데미지를 1로 고정 (또는 무시 가능)
+        float damageToDeal = info.amount;
+        if (shieldCount > 0)
+        {
+            damageToDeal = 1f; // 보호막이 있으면 데미지를 최소화
+            Debug.Log($"<color=cyan>[Shield]</color> 보호막이 데미지를 흡수합니다!");
+        }
+
+        float finalDamage = Mathf.Max(damageToDeal - Def, 1f);
         curHP -= finalDamage;
 
         OnDamageTaken?.Invoke();
