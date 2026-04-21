@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 특정 미니언 타입의 모든 데이터(스탯, 투척 효과 등)를 관리하는 마스터 SO입니다.
 /// </summary>
-[CreateAssetMenu(fileName = "MinionData", menuName = "Necromancer/MinionData")]
+[CreateAssetMenu(fileName = "NewMinionData", menuName = "Necromancer/Data/MinionData")]
 public class MinionDataSO : ScriptableObject
 {
     public CommandData minionType;

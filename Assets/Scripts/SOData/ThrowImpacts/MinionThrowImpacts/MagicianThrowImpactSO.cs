@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "MagicianThrowImpact", menuName = "ThrowImpact/Magician")]
+[CreateAssetMenu(fileName = "MagicianThrowImpact", menuName = "Necromancer/Throw/Basic Impact/Magician")]
 public class MagicianThrowImpactSO : BaseThrowImpactSO
 {
     [Header("마법 공격 설정")]

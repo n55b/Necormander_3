@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "ThiefThrowImpact", menuName = "ThrowImpact/Thief")]
+[CreateAssetMenu(fileName = "ThiefThrowImpact", menuName = "Necromancer/Throw/Basic Impact/Thief")]
 public class ThiefThrowImpactSO : BaseThrowImpactSO
 {
     public override void Apply(ImpactContext context)

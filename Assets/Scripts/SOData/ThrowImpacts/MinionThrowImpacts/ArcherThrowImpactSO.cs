@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "ArcherThrowImpact", menuName = "ThrowImpact/Archer")]
+[CreateAssetMenu(fileName = "ArcherThrowImpact", menuName = "Necromancer/Throw/Basic Impact/Archer")]
 public class ArcherThrowImpactSO : BaseThrowImpactSO
 {
     [Header("화살 포화 설정")]
