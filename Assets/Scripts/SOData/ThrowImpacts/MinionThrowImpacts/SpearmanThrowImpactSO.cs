@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "SpearmanThrowImpact", menuName = "ThrowImpact/Spearman")]
+[CreateAssetMenu(fileName = "SpearmanThrowImpact", menuName = "Necromancer/Throw/Basic Impact/Spearman")]
 public class SpearmanThrowImpactSO : BaseThrowImpactSO
 {
     [Header("가속 설정")]

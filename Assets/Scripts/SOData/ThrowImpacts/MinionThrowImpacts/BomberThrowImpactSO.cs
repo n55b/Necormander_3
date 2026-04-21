@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "BomberThrowImpact", menuName = "ThrowImpact/Bomber")]
+[CreateAssetMenu(fileName = "BomberThrowImpact", menuName = "Necromancer/Throw/Basic Impact/Bomber")]
 public class BomberThrowImpactSO : BaseThrowImpactSO
 {
     [Header("폭발 설정")]

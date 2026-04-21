@@ -6,7 +6,7 @@ namespace Necromancer.Player
     /// <summary>
     /// 두 미니언의 조합식과 결과 효과를 정의하는 SO입니다.
     /// </summary>
-    [CreateAssetMenu(fileName = "NewCombination", menuName = "Necromancer/Throw/CombinationData")]
+    [CreateAssetMenu(fileName = "NewCombinationData", menuName = "Necromancer/Data/CombinationData")]
     public class ThrowCombinationSO : ScriptableObject
     {
         public string combinationName;

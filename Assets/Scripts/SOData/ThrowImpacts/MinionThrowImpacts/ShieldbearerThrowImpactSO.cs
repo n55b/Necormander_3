@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "ShieldbearerThrowImpact", menuName = "ThrowImpact/Shieldbearer")]
+[CreateAssetMenu(fileName = "ShieldbearerThrowImpact", menuName = "Necromancer/Throw/Basic Impact/Shieldbearer")]
 public class ShieldbearerThrowImpactSO : BaseThrowImpactSO
 {
     [Header("여진 설정")]

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d27e4d9816aa7044ae0db320d15a436, type: 3}
+  m_Name: WarriorMagicianCombinationImpact
+  m_EditorClassIdentifier: 
+  gravityFieldPrefab: {fileID: 8653863585387672988, guid: 87f3d11997fac6143a363ebe76801699, type: 3}
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  baseRadius: 3.5
+  baseDuration: 3
+  pullStrength: 10
+  radiusPerShieldbearer: 1.5
+  durationPerMagician: 1

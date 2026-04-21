@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "WarriorThrowImpact", menuName = "ThrowImpact/Warrior")]
+[CreateAssetMenu(fileName = "WarriorThrowImpact", menuName = "Necromancer/Throw/Basic Impact/Warrior")]
 public class WarriorThrowImpactSO : BaseThrowImpactSO
 {
     [SerializeField] private float damage = 20f;

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "PriestThrowImpact", menuName = "ThrowImpact/Priest")]
+[CreateAssetMenu(fileName = "PriestThrowImpact", menuName = "Necromancer/Throw/Basic Impact/Priest")]
 public class PriestThrowImpactSO : BaseThrowImpactSO
 {
     [Header("회복 설정")]
