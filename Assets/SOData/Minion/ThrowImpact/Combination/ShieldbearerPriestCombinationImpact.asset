@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48e541551f9bc4b4c8e4c54d92ca63d2, type: 3}
   m_Name: ShieldbearerPriestCombinationImpact
   m_EditorClassIdentifier: 
-  sanctuaryPrefab: {fileID: 0}
+  sanctuaryPrefab: {fileID: 8653863585387672988, guid: e083c4257381fc84aba24434b6e4f725, type: 3}
   allyLayer:
     serializedVersion: 2
     m_Bits: 384
