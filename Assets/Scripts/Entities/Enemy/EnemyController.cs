@@ -1,73 +1,27 @@
 using UnityEngine;
 
-public class EnemyController : MonoBehaviour
+/// <summary>
+/// 적군 유닛 전용 컨트롤러입니다. 
+/// BaseEntity를 상속받으며, 적군만의 특수한 로직(보상, 스폰 관리 등)을 가집니다.
+/// </summary>
+public class EnemyController : BaseEntity
 {
-    [SerializeField] private EntityFSM _fsm;
-    public float detectRange = 15f;
-    public LayerMask targetLayer;
-
-    [Header("State Assets")]
-    public FSMStateSO idleState;
-    public FSMStateSO followState;
-    public FSMStateSO attackState;
-
-    [Header(" NearestTargetFinder")]
-    [SerializeField] NearestTargetFinder _nearestFinder;
-
-    void Awake()
+    protected override void Awake()
     {
-        _fsm = GetComponent<EntityFSM>();
+        base.Awake();
+        team = Team.Enemy;
     }
 
-    void Update()
+    protected override void HandleNoTarget()
     {
-        // 공격 중일 때 타겟 상태 체크
-        if (_fsm.currentState == attackState && _fsm.target != null)
-        {
-            if (_fsm.target.TryGetComponent<CharacterStat>(out var targetStat))
-            {
-                // 타겟이 죽었거나 플레이어에게 들렸는지(Invincible) 체크
-                if (targetStat.IsDead || targetStat.Invincible)
-                {
-                    _fsm.target = null;
-                    _fsm.ChangeState(idleState); // 일단 대기 상태로 전환 후 다음 프레임에 타겟 재탐색
-                    return;
-                }
-            }
+        // 적군은 타겟이 없으면 제자리 대기(Idle) 상태를 유지합니다.
+        _fsm.target = null;
+        _fsm.ChangeState(idleState);
+    }
 
-            float dist = Vector3.Distance(transform.position, _fsm.target.position);
-            // 사거리 밖으로 벗어나면 다시 추적
-            if (dist > _fsm.stats.ATKRANGE + 0.5f)
-            {
-                _fsm.ChangeState(followState);
-                return;
-            }
-
-            return;
-        }
-
-        Transform trs = _nearestFinder.FindNearest(detectRange);
-
-        if (trs != null)
-        {
-            float dist = Vector3.Distance(transform.position, trs.position);
-            if (_fsm.target == null || _fsm.target != trs)
-                _fsm.target = trs;
-
-            if (dist <= _fsm.stats.ATKRANGE)
-            {
-                _fsm.ChangeState(attackState);
-                return;
-            }
-            else
-            {
-                _fsm.ChangeState(followState); // 추격 상태로 전환
-            }
-        }
-        else
-        {
-            _fsm.target = null;
-            _fsm.ChangeState(idleState);   // 대기 상태로 전환
-        }
+    // 적군 사망 시 보상 지급 등의 추가 로직을 여기에 작성할 수 있습니다.
+    private void OnDestroy()
+    {
+        // 예: GameManager.Instance.dataManager.AddBonePoint(10);
     }
 }
