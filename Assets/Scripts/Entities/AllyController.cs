@@ -25,6 +25,13 @@ public class AllyController : BaseEntity, IThrowable
     [SerializeField] private float maxSpeed = 20f;
     [SerializeField] private float fullChargeSpeed = 30f;
 
+    // TrajectoryPredictor용 프로퍼티
+    public float JumpHeight => jumpHeight;
+    public float StraightHeight => straightHeight;
+    public float MinSpeed => minSpeed;
+    public float MaxSpeed => maxSpeed;
+    public float FullChargeSpeed => fullChargeSpeed;
+
     [Header("References")]
     private ArcMovement _arcMovement;
     private BaseThrowImpactSO impactEffect; 
@@ -99,11 +106,13 @@ public class AllyController : BaseEntity, IThrowable
 
     public void OnThrown(Vector2 targetPosition, float chargeRatio)
     {
+        // --- 1. 투척 상태 데이터 초기화 ---
         _throwStartTime = Time.time;
         _lastChargeRatio = chargeRatio;
         _hasImpacted = false;
-        _isDirectThrow = (chargeRatio >= 1.0f);
+        _isDirectThrow = (chargeRatio >= 1.0f); 
 
+        // --- 2. 레이어 및 렌더링 설정 ---
         _originalLayer = gameObject.layer;
         int flyingLayer = LayerMask.NameToLayer("FlyingObject");
         if (flyingLayer != -1) gameObject.layer = flyingLayer;
@@ -114,22 +123,25 @@ public class AllyController : BaseEntity, IThrowable
             _sr.sortingLayerName = "FlyingObject";
         }
 
+        // --- 3. 물리 엔진 설정 ---
         if (_rb != null)
         {
             _rb.simulated = true;
             _rb.linearDamping = 0f;
+            // [최적화된 터널링 방지] 엔진 내부의 고도로 최적화된 연속 충돌 감지 기능을 사용합니다.
+            // 비행 중에만 활성화되므로 성능 부하를 최소화하면서 벽 뚫기 현상을 방지합니다.
+            _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         }
 
         if (_collider != null)
         {
             _collider.enabled = true;
-            _collider.isTrigger = true;
+            _collider.isTrigger = true; 
         }
 
         if (_agent != null) _agent.enabled = false;
 
-        if (!_isDirectThrow) targetPosition += Random.insideUnitCircle * 0.8f;
-
+        // --- 4. 투척 물리 파라미터 계산 ---
         Vector2 startPos = (Vector2)transform.position;
         Vector2 diff = targetPosition - startPos;
         float distance = diff.magnitude;
@@ -146,10 +158,12 @@ public class AllyController : BaseEntity, IThrowable
         {
             p.speed = Mathf.Lerp(minSpeed, maxSpeed, chargeRatio);
             p.duration = distance / p.speed;
+            
             float targetHeight = Mathf.Lerp(jumpHeight, straightHeight, chargeRatio);
             p.maxHeight = Mathf.Min(targetHeight, distance * 0.5f);
         }
 
+        // --- 5. 투척 실행 ---
         if (impactEffect != null) impactEffect.OnPreThrow(p, chargeRatio);
 
         if (_rb != null) _rb.linearVelocity = direction * p.speed;
@@ -158,13 +172,33 @@ public class AllyController : BaseEntity, IThrowable
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (Time.time - _throwStartTime < 0.05f) return;
+        // 이미 충돌이 발생했다면 중복 처리를 방지합니다.
         if (_hasImpacted) return;
 
+        // --- 1. 공통 충돌 체크 (벽 및 장애물) ---
+        // 벽이나 장애물은 높이에 상관없이 무조건 투척 유닛을 멈추게 합니다.
+        int wallMask = LayerMask.GetMask("Wall", "Obstacle");
+        bool isWall = (wallMask & (1 << other.gameObject.layer)) != 0;
+
+        if (isWall)
+        {
+            if (_arcMovement != null && _arcMovement.IsFlying)
+            {
+                TriggerImpact(other.gameObject);
+                _arcMovement.StopArc();
+            }
+            return; 
+        }
+
+        // --- 2. 직사 투척(Direct Throw) 전용 충돌 체크 ---
+        // 직구는 낮게 날아가므로 적군(opponentLayer)과 일반 오브젝트(Object) 모두에 부딪힙니다.
         if (_isDirectThrow)
         {
-            // opponentLayer에 속한 적이나 벽에 부딪히면 임팩트 실행
-            if (_arcMovement != null && _arcMovement.IsFlying && ((opponentLayer.value | LayerMask.GetMask("Wall", "Obstacle")) & (1 << other.gameObject.layer)) != 0)
+            int objectMask = LayerMask.GetMask("Object");
+            // 적군 레이어 또는 Object 레이어인지 확인
+            bool isHitTarget = ((opponentLayer.value | objectMask) & (1 << other.gameObject.layer)) != 0;
+
+            if (isHitTarget && _arcMovement != null && _arcMovement.IsFlying)
             {
                 TriggerImpact(other.gameObject);
                 _arcMovement.StopArc();
@@ -210,12 +244,14 @@ public class AllyController : BaseEntity, IThrowable
     {
         if (!_hasImpacted) TriggerImpact(null);
 
+        // --- 1. 물리 및 레이어 복구 ---
         gameObject.layer = _originalLayer;
         if (_sr != null && !string.IsNullOrEmpty(_originalSortingLayerName))
             _sr.sortingLayerName = _originalSortingLayerName;
 
         if (_agent != null) _agent.enabled = true;
 
+        // --- 2. 조합 데이터 초기화 ---
         _activeCombination = null;
         _isCombinationLead = false;
         _combinationSupporters = null;
@@ -224,10 +260,18 @@ public class AllyController : BaseEntity, IThrowable
         {
             _rb.linearVelocity = Vector2.zero;
             _rb.linearDamping = _originalDamping;
+            // [복구] 착지 후에는 다시 일반 감지 모드로 전환
+            _rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
         }
         if (_collider != null) _collider.isTrigger = false;
 
-        // 착지 후 타겟 재탐색 로직은 BaseEntity의 HandleAIUpdate에 의해 수행됨
+        // --- 3. 상태 복구 ---
+        if (idleState != null)
+        {
+            _fsm.ChangeState(idleState);
+        }
+        
+        Debug.Log($"<color=green>[AllyController]</color> {gameObject.name} 착지 완료 및 AI 복구");
     }
 
     #endregion

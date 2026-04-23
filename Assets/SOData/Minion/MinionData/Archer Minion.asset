@@ -17,10 +17,11 @@ MonoBehaviour:
   maxHP: 100
   attack: 10
   attackSpeed: 1
-  attackRange: 2
+  attackRange: 8
   detectRange: 10
   defense: 0
   moveSpeed: 5
   cost: 1
+  attackState: {fileID: 11400000, guid: 1faa3f8cf9eb04a4fbd64151872186da, type: 2}
   throwImpact: {fileID: 11400000, guid: b272b76077b040b4593da151a0d65d16, type: 2}
   minionPrefab: {fileID: 2865939037112072981, guid: 2e28171d731181f499e4ee8629806884, type: 3}

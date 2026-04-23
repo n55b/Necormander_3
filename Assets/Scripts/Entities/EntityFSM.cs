@@ -8,6 +8,7 @@ public class EntityFSM : MonoBehaviour
 
     [HideInInspector] public CharacterStat stats; // 캐싱용
     [HideInInspector] public Rigidbody2D rb;      // 물리 이동용
+    [HideInInspector] public UnityEngine.AI.NavMeshAgent agent; // 이동 제어용 (추가)
 
     public float atkTimer; // 임시 공격 타이머
 
@@ -15,6 +16,7 @@ public class EntityFSM : MonoBehaviour
     {
         stats = GetComponent<CharacterStat>();
         rb = GetComponent<Rigidbody2D>();
+        agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
 
         if (rb != null)
         {
