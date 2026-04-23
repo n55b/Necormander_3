@@ -41,6 +41,22 @@ namespace Necromancer.Player
             }
         }
 
+        // --- 벽 감지 및 목표 지점 보정 공용 메서드 ---
+        public Vector2 GetClampedTargetPos(Vector2 origin, Vector2 targetPos)
+        {
+            int wallLayer = LayerMask.GetMask("Wall", "Obstacle");
+            Vector2 direction = targetPos - origin;
+            float distance = direction.magnitude;
+
+            RaycastHit2D hit = Physics2D.Raycast(origin, direction.normalized, distance, wallLayer);
+            if (hit.collider != null)
+            {
+                // 벽에 부딪혔다면, 벽보다 약간 앞 지점을 목표로 설정
+                return hit.point - (direction.normalized * 0.1f);
+            }
+            return targetPos;
+        }
+
         private void Update()
         {
             if (_isCharging)
@@ -157,10 +173,7 @@ namespace Necromancer.Player
 
             float chargeRatio = _chargeTimer / chargeTime;
 
-            Vector2 screenPos = Pointer.current.position.ReadValue();
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
-            mousePos.z = 0f;
-            Vector2 targetPos = (Vector2)mousePos;
+            Vector2 targetPos = GetClampedTargetPos((Vector2)transform.position, CurrentMouseWorldPos);
 
             // --- 1. 조합(Combination) 분석 ---
             AnalyzeCombination(targetPos, chargeRatio);

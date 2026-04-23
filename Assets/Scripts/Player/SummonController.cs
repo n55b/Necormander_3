@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.AI;
 
 public class SummonController : MonoBehaviour
 {
@@ -98,23 +99,54 @@ public class SummonController : MonoBehaviour
     {
         List<Vector2> resultPositions = new List<Vector2>();
         int attempts = 0;
-        int maxAttempts = count * 10;
+        int maxAttempts = count * 20; // NavMesh 체크를 위해 시도 횟수를 조금 더 늘림
+
+        Vector2 playerPos = (Vector2)transform.position;
+        NavMeshPath path = new NavMeshPath();
 
         while (resultPositions.Count < count && attempts < maxAttempts)
         {
             attempts++;
 
-            Vector2 randomPos = (Vector2)transform.position + (Random.insideUnitCircle * radius);
-            Collider2D hit = Physics2D.OverlapCircle(randomPos, 0.2f, obstacleLayer);
-
-            if (hit == null)
+            // 1. 플레이어 주변 반지름 내의 임의의 지점 선정
+            Vector2 randomPos = playerPos + (Random.insideUnitCircle * radius);
+            
+            // 2. NavMesh 상의 유효한 지점인지 확인 (SamplePosition)
+            // 인접한 NavMesh 지점을 찾습니다. (최대 1.0f 거리 내)
+            if (NavMesh.SamplePosition(randomPos, out NavMeshHit navHit, 1.0f, NavMesh.AllAreas))
             {
-                if (!IsTooClose(randomPos, resultPositions, 0.5f))
+                Vector2 sampledPos = navHit.position;
+
+                // 3. 플레이어 위치와 샘플링된 지점 사이의 직선 경로(Linecast) 체크 (벽 뚫기 1차 방어)
+                RaycastHit2D wallHit = Physics2D.Linecast(playerPos, sampledPos, obstacleLayer);
+                
+                if (wallHit.collider == null)
                 {
-                    resultPositions.Add(randomPos);
+                    // [핵심 로직] 4. 플레이어와 소환 지점 사이의 NavMesh 경로가 유효한지 체크 (벽 뚫기 2차 방어)
+                    // 만약 벽 너머 다른 방이라면 NavMesh 경로가 '직선'이 아닐 것이고,
+                    // 경로의 상태가 Complete이 아니거나 거리가 너무 멀어질 것입니다.
+                    if (NavMesh.CalculatePath(playerPos, sampledPos, NavMesh.AllAreas, path))
+                    {
+                        // 경로가 완성되었고(Complete), 너무 멀리 돌아가는 경로가 아니라면 승인
+                        if (path.status == NavMeshPathStatus.PathComplete)
+                        {
+                            // 5. 소환수들끼리 너무 겹치지 않게 거리 체크
+                            if (!IsTooClose(sampledPos, resultPositions, 0.5f))
+                            {
+                                resultPositions.Add(sampledPos);
+                            }
+                        }
+                    }
                 }
             }
         }
+        
+        // 만약 자리가 너무 없다면, 최소한 플레이어 위치라도 반환
+        if (resultPositions.Count == 0)
+        {
+            resultPositions.Add(playerPos);
+        }
+        
         return resultPositions;
     }
 
