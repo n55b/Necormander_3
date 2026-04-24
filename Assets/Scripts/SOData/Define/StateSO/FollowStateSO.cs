@@ -1,48 +1,83 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 [CreateAssetMenu(menuName = "FSM/State/Follow")]
 public class FollowStateSO : FSMStateSO
 {
-    public override void Enter(EntityFSM fsm) { }
-
     [Header("Soft Collision Settings")]
     [SerializeField] private float pushRadius = 0.8f;   // 밀어내기 반경 (유닛 크기와 비슷하게)
     [SerializeField] private float pushStrength = 2.0f; // 밀어내는 힘 (클수록 더 빨리 제자리를 찾음)
+
+    public override void Enter(EntityFSM fsm) 
+    {
+        // NavMeshAgent 설정 동기화 및 이동 재개
+        if (fsm.agent != null && fsm.agent.isActiveAndEnabled)
+        {
+            fsm.agent.isStopped = false;
+            fsm.agent.speed = fsm.stats.MOVESPEED;
+        }
+    }
 
     public override void Execute(EntityFSM fsm)
     {
         if (fsm.target == null)
         {
-            if (fsm.rb != null) fsm.rb.linearVelocity = Vector2.zero;
+            // 타겟이 없으면 모든 이동 정지
+            StopAllMovement(fsm);
             return;
         }
 
         float speed = fsm.stats.MOVESPEED;
-        float distToCenter = Vector3.Distance(fsm.transform.position, fsm.target.position);
+        float distToTarget = Vector2.Distance(fsm.transform.position, fsm.target.position);
         float atkRange = fsm.stats.ATKRANGE;
 
         // 1. 공격 범위 안에 있으면 기본적으로 멈춤
-        if (distToCenter <= atkRange)
+        if (distToTarget <= atkRange)
         {
+            // NavMesh 이동은 멈추고 제자리 유지
+            if (fsm.agent != null && fsm.agent.isActiveAndEnabled)
+            {
+                fsm.agent.isStopped = true;
+                fsm.agent.velocity = Vector2.zero;
+            }
+
             // 공격 중이라도 다른 아군과 겹쳤다면 살짝 밀려나서 자리를 잡도록 함 (소프트 밀기)
             Vector2 softPush = ComputeSoftPush(fsm);
             if (fsm.rb != null) fsm.rb.linearVelocity = softPush * pushStrength;
             return;
         }
 
-        // 2. 이동 방향 (적 중심 방향)
-        Vector2 moveDir = ((Vector2)fsm.target.position - (Vector2)fsm.transform.position).normalized;
-
-        // 3. 소프트 밀기 힘 계산
-        Vector2 softPushForce = ComputeSoftPush(fsm);
-
-        // 4. 최종 속도 적용 (이동 방향 + 밀어내기)
-        if (fsm.rb != null)
+        // 2. 공격 범위 밖이면 NavMesh를 이용해 영리하게 추적
+        if (fsm.agent != null && fsm.agent.isActiveAndEnabled)
         {
-            // 최종 벡터가 너무 강해지지 않게 제한
-            Vector2 finalVelocity = (moveDir + softPushForce * pushStrength).normalized * speed;
-            fsm.rb.linearVelocity = finalVelocity;
+            fsm.agent.isStopped = false;
+            fsm.agent.SetDestination(fsm.target.position);
+
+            // NavMeshAgent가 이동을 주도할 때는 Rigidbody 속도가 방해되지 않게 초기화
+            if (fsm.rb != null) fsm.rb.linearVelocity = Vector2.zero;
         }
+        else
+        {
+            // [폴백 로직] 에이전트가 비활성화된 경우(예: 던져진 직후 등) 기존의 직선 이동 방식 사용
+            Vector2 moveDir = ((Vector2)fsm.target.position - (Vector2)fsm.transform.position).normalized;
+            Vector2 softPushForce = ComputeSoftPush(fsm);
+
+            if (fsm.rb != null)
+            {
+                Vector2 finalVelocity = (moveDir + softPushForce * pushStrength).normalized * speed;
+                fsm.rb.linearVelocity = finalVelocity;
+            }
+        }
+    }
+
+    private void StopAllMovement(EntityFSM fsm)
+    {
+        if (fsm.agent != null && fsm.agent.isActiveAndEnabled)
+        {
+            fsm.agent.isStopped = true;
+            fsm.agent.velocity = Vector2.zero;
+        }
+        if (fsm.rb != null) fsm.rb.linearVelocity = Vector2.zero;
     }
 
     private Vector2 ComputeSoftPush(EntityFSM fsm)
@@ -84,5 +119,12 @@ public class FollowStateSO : FSMStateSO
         return count > 0 ? pushDir : Vector2.zero;
     }
 
-    public override void Exit(EntityFSM fsm) { }
+    public override void Exit(EntityFSM fsm) 
+    {
+        // 상태를 탈출할 때 이동 정지
+        if (fsm.agent != null && fsm.agent.isActiveAndEnabled)
+        {
+            fsm.agent.isStopped = true;
+        }
+    }
 }

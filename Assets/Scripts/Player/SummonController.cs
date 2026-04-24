@@ -94,54 +94,63 @@ public class SummonController : MonoBehaviour
         }
     }
 
-    // 소환 위치 찾기 함수
+    // 소환 위치 찾기 함수 (플레이어 주변부터 점진적으로 빈 공간 탐색)
     public List<Vector2> GetSummonPositions2D(int count, float radius)
     {
         List<Vector2> resultPositions = new List<Vector2>();
-        int attempts = 0;
-        int maxAttempts = count * 20; // NavMesh 체크를 위해 시도 횟수를 조금 더 늘림
-
         Vector2 playerPos = (Vector2)transform.position;
-        NavMeshPath path = new NavMeshPath();
 
-        while (resultPositions.Count < count && attempts < maxAttempts)
+        // 1. 점진적 거리 확장 (가까운 곳부터 탐색)
+        // 0.5m 간격으로 거리를 늘려가며 빈 자리를 찾습니다.
+        float distanceStep = 0.5f;
+        int angleStep = 30; // 30도 간격으로 주변 탐사
+
+        for (float currentDist = 0.5f; currentDist <= radius; currentDist += distanceStep)
         {
-            attempts++;
-
-            // 1. 플레이어 주변 반지름 내의 임의의 지점 선정
-            Vector2 randomPos = playerPos + (Random.insideUnitCircle * radius);
-            
-            // 2. NavMesh 상의 유효한 지점인지 확인 (SamplePosition)
-            // 인접한 NavMesh 지점을 찾습니다. (최대 1.0f 거리 내)
-            if (NavMesh.SamplePosition(randomPos, out NavMeshHit navHit, 1.0f, NavMesh.AllAreas))
+            // 각 거리에 대해 360도 방향을 확인
+            for (int angle = 0; angle < 360; angle += angleStep)
             {
-                Vector2 sampledPos = navHit.position;
+                if (resultPositions.Count >= count) break;
 
-                // 3. 플레이어 위치와 샘플링된 지점 사이의 직선 경로(Linecast) 체크 (벽 뚫기 1차 방어)
-                RaycastHit2D wallHit = Physics2D.Linecast(playerPos, sampledPos, obstacleLayer);
-                
-                if (wallHit.collider == null)
+                // 해당 각도와 거리의 목표 지점 계산
+                float rad = angle * Mathf.Deg2Rad;
+                Vector2 targetPos = playerPos + new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * currentDist;
+
+                // 2. NavMesh 상에서 플레이어로부터 해당 지점까지 벽이 없는지 체크 (가장 중요)
+                // NavMesh.Raycast는 벽에 부딪히면 true를 반환하며 hit.position에 충돌 지점을 담습니다.
+                if (!NavMesh.Raycast(playerPos, targetPos, out NavMeshHit hit, NavMesh.AllAreas))
                 {
-                    // [핵심 로직] 4. 플레이어와 소환 지점 사이의 NavMesh 경로가 유효한지 체크 (벽 뚫기 2차 방어)
-                    // 만약 벽 너머 다른 방이라면 NavMesh 경로가 '직선'이 아닐 것이고,
-                    // 경로의 상태가 Complete이 아니거나 거리가 너무 멀어질 것입니다.
-                    if (NavMesh.CalculatePath(playerPos, sampledPos, NavMesh.AllAreas, path))
+                    // 벽에 걸리지 않았다면, 해당 지점이 실제로 서 있을 수 있는 곳인지 확인
+                    if (NavMesh.SamplePosition(targetPos, out NavMeshHit navHit, 0.5f, NavMesh.AllAreas))
                     {
-                        // 경로가 완성되었고(Complete), 너무 멀리 돌아가는 경로가 아니라면 승인
-                        if (path.status == NavMeshPathStatus.PathComplete)
+                        Vector2 sampledPos = navHit.position;
+
+                        // 3. 소환수들끼리 너무 겹치지 않게 거리 체크
+                        if (!IsTooClose(sampledPos, resultPositions, 0.4f))
                         {
-                            // 5. 소환수들끼리 너무 겹치지 않게 거리 체크
-                            if (!IsTooClose(sampledPos, resultPositions, 0.5f))
-                            {
-                                resultPositions.Add(sampledPos);
-                            }
+                            resultPositions.Add(sampledPos);
                         }
                     }
                 }
             }
+
+            if (resultPositions.Count >= count) break;
+        }
+
+        // 4. 만약 점진적 탐색으로도 자리를 다 채우지 못했다면 (좁은 공간 등), 
+        // 남은 마릿수만큼 플레이어 위치 주변에 강제로라도 배치 시도 (최후의 수단)
+        int attempts = 0;
+        while (resultPositions.Count < count && attempts < 20)
+        {
+            attempts++;
+            Vector2 randomPos = playerPos + (Random.insideUnitCircle * 0.5f);
+            if (NavMesh.SamplePosition(randomPos, out NavMeshHit navHit, 1.0f, NavMesh.AllAreas))
+            {
+                resultPositions.Add(navHit.position);
+            }
         }
         
-        // 만약 자리가 너무 없다면, 최소한 플레이어 위치라도 반환
+        // 만약 정말 자리가 없다면, 최소한 플레이어 위치라도 반환
         if (resultPositions.Count == 0)
         {
             resultPositions.Add(playerPos);
