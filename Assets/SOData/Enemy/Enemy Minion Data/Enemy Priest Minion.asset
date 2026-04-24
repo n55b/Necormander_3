@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
+  m_Name: Enemy Priest Minion
+  m_EditorClassIdentifier: 
+  minionType: 3
+  minionName: Skeleton Priest
+  maxHP: 100
+  attack: 10
+  attackSpeed: 1
+  attackRange: 8
+  detectRange: 10
+  defense: 0
+  moveSpeed: 5
+  cost: 1
+  attackState: {fileID: 11400000, guid: d8a179bfb664bb844b7844ea9990bdb7, type: 2}
+  throwImpact: {fileID: 11400000, guid: 63d367257ba17df4ea8400d88e7ff778, type: 2}
+  minionPrefab: {fileID: 5978108325549925549, guid: 3953804dc3182c24d82354950adce858, type: 3}

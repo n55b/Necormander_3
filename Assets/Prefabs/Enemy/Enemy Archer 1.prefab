@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1841339908024047631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Name
-      value: Enemy Archer
+      value: Enemy Archer 1
       objectReference: {fileID: 0}
     - target: {fileID: 2262207286068843843, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: minionData
       value: 
-      objectReference: {fileID: 11400000, guid: 363e1cee013c2214ba9b05f2f13aa7d4, type: 2}
+      objectReference: {fileID: 11400000, guid: b5d2210a512f9a942896bbbefcb1f881, type: 2}
     - target: {fileID: 2842974361319273631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Color.b
-      value: 0.2784314
+      value: 0.55099344
       objectReference: {fileID: 0}
     - target: {fileID: 6529688652472716852, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_LocalPosition.x
