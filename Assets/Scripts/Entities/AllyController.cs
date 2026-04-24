@@ -83,6 +83,9 @@ public class AllyController : BaseEntity, IThrowable
         // [중요] 구형 FSM 대신 브레인 상태를 Thrown으로 변경
         if (_runtimeBrain != null) _runtimeBrain.SetState(AIState.Thrown);
 
+        // [추가] 피격 연출 등으로 색상이 변해있을 경우를 대비해 기본색으로 강제 복구
+        if (_sr != null) _sr.color = Color.white;
+
         if (_rb != null) _rb.simulated = false;
         if (_collider != null) _collider.enabled = false;
         if (_agent != null) _agent.enabled = false;

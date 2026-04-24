@@ -7,9 +7,14 @@ using UnityEngine;
 public class TrajectoryPredictor : MonoBehaviour
 {
     [Header("Visual Settings")]
-    [SerializeField, Range(10, 100)] private int numPoints = 50; // 궤도를 구성할 점의 개수
-    [SerializeField] private Color normalColor = Color.white;    // 기본 궤도 색상
-    [SerializeField] private Color fullChargeColor = Color.green; // 최대 차징 시 색상
+    [SerializeField, Range(10, 100)] private int numPoints = 50; 
+    [SerializeField] private Color normalColor = Color.white;    
+    [SerializeField] private Color fullChargeColor = Color.green; 
+
+    [Header("PickUp Range Settings")]
+    [SerializeField] private LineRenderer rangeLineRenderer; // 줍기 범위를 그릴 두 번째 라인 렌더러
+    [SerializeField] private Color rangeColor = new Color(0.5f, 0.8f, 1f, 0.5f); // 연한 하늘색
+    [SerializeField, Range(10, 100)] private int rangeCirclePoints = 60;
 
     [Header("Throwable Settings (Match with ThrowableUnit)")]
     // ThrowableUnit의 필드값들과 동일하게 맞춥니다.
@@ -44,23 +49,46 @@ public class TrajectoryPredictor : MonoBehaviour
         _lineRenderer.enabled = false;
     }
 
-    // 매 프레임 마우스 위치와 차징 비율에 따라 궤도를 업데이트
     private void Update()
     {
-        if (!_lineRenderer.enabled || _throwController == null) return;
+        if (_throwController == null) return;
 
-        // 1. 필요한 데이터 가져오기 (ThrowController와 동일한 데이터 사용)
-        Vector2 startPos = _throwController.HoldPoint.position; // 시작점: 플레이어가 유닛을 들고 있는 위치
-        
-        // --- 벽 감지 및 목표 지점 보정 ---
-        // 마우스 월드 좌표를 가져와서 벽에 막히는지 체크하고 최종 착지 지점을 계산합니다.
-        Vector2 mouseWorldPos = _throwController.CurrentMouseWorldPos;
-        Vector2 targetPos = _throwController.GetClampedTargetPos(startPos, mouseWorldPos);
-        
-        // 현재 플레이어의 던지기 차징 진행도 (0.0 ~ 1.0)
-        float chargeRatio = _throwController.CurrentChargeRatio;
+        // 1. 줍기 범위 상시 표시
+        UpdateRangeCircle();
 
-        DrawTrajectory(startPos, targetPos, chargeRatio);
+        // 2. 던지기 가이드 표시 (활성화 상태일 때만)
+        if (_lineRenderer.enabled)
+        {
+            Vector2 startPos = _throwController.HoldPoint.position;
+            Vector2 mouseWorldPos = _throwController.CurrentMouseWorldPos;
+            Vector2 targetPos = _throwController.GetClampedTargetPos(startPos, mouseWorldPos);
+            float chargeRatio = _throwController.CurrentChargeRatio;
+
+            DrawTrajectory(startPos, targetPos, chargeRatio);
+        }
+    }
+
+    private void UpdateRangeCircle()
+    {
+        if (rangeLineRenderer == null) return;
+
+        float range = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
+        Vector3 center = transform.position; // 플레이어 위치
+
+        rangeLineRenderer.positionCount = rangeCirclePoints + 1;
+        rangeLineRenderer.loop = true;
+        rangeLineRenderer.startColor = rangeColor;
+        rangeLineRenderer.endColor = rangeColor;
+        rangeLineRenderer.startWidth = 0.05f;
+        rangeLineRenderer.endWidth = 0.05f;
+
+        Vector3[] points = new Vector3[rangeCirclePoints + 1];
+        for (int i = 0; i <= rangeCirclePoints; i++)
+        {
+            float angle = (i / (float)rangeCirclePoints) * Mathf.PI * 2f;
+            points[i] = center + new Vector3(Mathf.Cos(angle) * range, Mathf.Sin(angle) * range, 0f);
+        }
+        rangeLineRenderer.SetPositions(points);
     }
 
     private void DrawTrajectory(Vector2 startPos, Vector2 targetPos, float chargeRatio)

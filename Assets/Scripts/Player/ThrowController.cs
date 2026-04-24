@@ -80,7 +80,7 @@ public class ThrowController : MonoBehaviour
     {
         // 들고 있다면 차징 시작
         _isCharging = true;
-        _chargeTimer = 0f;
+        _chargeTimer = 0f; // 차징 시작 시 타이머 초기화
     }
 
     private void OnThrowCanceled()
@@ -187,6 +187,7 @@ public class ThrowController : MonoBehaviour
         }
 
         _heldObjects.Clear();
+        _chargeTimer = 0f; // [수정] 던지기가 끝난 후 타이머를 확실히 리셋
     }
 
     private void AnalyzeCombination(Vector2 targetPos, float chargeRatio)
