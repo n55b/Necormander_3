@@ -11,7 +11,6 @@ public class MouseManager : MonoBehaviour
     [SerializeField] LayerMask allyLayer;
 
     [Header(" [ Settings ] ")]
-    [SerializeField] float raycastDistance = 100f;
     [SerializeField] CursorType currentType = CursorType.Default;
 
     [Header(" [ Under The Mouse ] ")]

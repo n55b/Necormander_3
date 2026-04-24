@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 081fe001a61ac0c4db24699c7ffed0db, type: 3}
-  m_Name: ShieldPriest Throw Combination
+  m_Name: ShieldPriest Throw Combination Data
   m_EditorClassIdentifier: 
   combinationName: ShieldPriest_Santuary
   minionTypeA: 1

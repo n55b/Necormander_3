@@ -1,8 +1,5 @@
 using UnityEngine;
-using Necromancer.Interfaces;
-using Necromancer.Physics;
 using System.Collections.Generic;
-using Necromancer.Player;
 
 /// <summary>
 /// 아군 유닛 전용 컨트롤러입니다. 

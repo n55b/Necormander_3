@@ -65,7 +65,7 @@ public class EnemyHunterStateSO : AttackStateSO
 
     private void FindBestHunterTarget(EntityFSM fsm, BaseEntity entity)
     {
-        // [1순위] 플레이어 탐색
+        // [1순위] 플레이어 탐색 및 현실적인 도달 가능성 체크
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null)
         {
@@ -76,21 +76,35 @@ public class EnemyHunterStateSO : AttackStateSO
             {
                 if (fsm.agent != null && fsm.agent.isActiveAndEnabled)
                 {
-                    // NavMesh 상으로 완전히 도달 가능한지(길이 뚫려 있는지) 체크
+                    // 플레이어 위치로의 경로 계산
                     fsm.agent.CalculatePath(player.transform.position, _testPath);
                     
-                    // PathComplete일 때만 플레이어를 타겟으로 삼음
+                    // A. 경로가 완벽하게 뚫려있음
                     if (_testPath.status == NavMeshPathStatus.PathComplete)
                     {
                         fsm.target = player.transform;
                         return;
                     }
+                    // B. 경로가 부분적임 (유닛 등에 가로막힘)
+                    else if (_testPath.status == NavMeshPathStatus.PathPartial)
+                    {
+                        // 갈 수 있는 마지막 지점이 플레이어와 충분히 가깝다면 (공격 사거리 내) 
+                        // 플레이어를 목표로 삼고 최대한 접근합니다.
+                        Vector3 lastPoint = _testPath.corners[_testPath.corners.Length - 1];
+                        float distFromPathEndToPlayer = Vector2.Distance(lastPoint, player.transform.position);
+
+                        if (distFromPathEndToPlayer <= fsm.stats.ATKRANGE)
+                        {
+                            fsm.target = player.transform;
+                            return;
+                        }
+                    }
                 }
             }
         }
 
-        // [2순위] 플레이어가 없거나 길이 막힌 경우: 가장 가까운 아군(미니언) 탐색
-        // BaseEntity의 NearestTargetFinder를 그대로 활용
+        // [2순위] 플레이어가 없거나, 물리적으로 플레이어 사거리 내에 진입할 수 없는 경우:
+        // 주변의 아군 미니언 중 가장 가까운 대상을 선택
         Transform nearestAlly = entity.TargetFinder.FindNearest(entity.detectRange);
         fsm.target = nearestAlly;
     }

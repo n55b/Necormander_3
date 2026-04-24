@@ -17,7 +17,7 @@ MonoBehaviour:
   maxHP: 100
   attack: 10
   attackSpeed: 1
-  attackRange: 8
+  attackRange: 2
   detectRange: 30
   defense: 0
   moveSpeed: 5

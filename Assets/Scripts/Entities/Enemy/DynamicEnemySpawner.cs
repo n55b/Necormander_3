@@ -16,7 +16,6 @@ public class DynamicEnemySpawner : MonoBehaviour
 {
     [Header("General Settings")]
     [SerializeField] private SpawnType spawnType = SpawnType.Encounter;
-    [SerializeField] private List<GameObject> enemyPrefabs = new List<GameObject>();
     [SerializeField] private float activationRange = 10.0f;
 
     [Header("Encounter Settings (Gungeon Style)")]
@@ -67,7 +66,6 @@ public class DynamicEnemySpawner : MonoBehaviour
     private void Update()
     {
         if (_playerTransform == null || _enemyDataList == null || _enemyDataList.Count == 0) return;
-        if (spawnType == SpawnType.Encounter && _isTriggered) return;
 
         float distanceToPlayer = Vector2.Distance(transform.position, _playerTransform.position);
 
@@ -75,11 +73,22 @@ public class DynamicEnemySpawner : MonoBehaviour
         {
             if (spawnType == SpawnType.Encounter)
             {
-                TriggerEncounter();
+                // 아직 발동되지 않았을 때만 실행
+                if (!_isTriggered) TriggerEncounter();
             }
             else
             {
                 UpdatePeriodicSpawn();
+            }
+        }
+        else
+        {
+            // [추가] 플레이어가 감지 범위를 벗어났을 때
+            // triggerOnlyOnce가 꺼져있다면 다음에 다시 들어왔을 때 재발동 가능하도록 리셋
+            if (spawnType == SpawnType.Encounter && _isTriggered && !triggerOnlyOnce)
+            {
+                _isTriggered = false;
+                Debug.Log($"<color=yellow>[Spawner]</color> {gameObject.name} 리셋됨 (재발동 가능)");
             }
         }
     }
@@ -115,13 +124,11 @@ public class DynamicEnemySpawner : MonoBehaviour
             {
                 spawnPos = hit.position;
                 MinionDataSO data = GetRandomEnemyData();
-                if (data != null && data.minionPrefab != null)
+                
+                // [수정] 조립은 DataManager에게 맡김
+                GameObject enemyObj = GameManager.Instance.dataManager.CreateUnit(data, spawnPos);
+                if (enemyObj != null)
                 {
-                    GameObject enemyObj = Instantiate(data.minionPrefab, spawnPos, Quaternion.identity);
-                    if (enemyObj.TryGetComponent<BaseEntity>(out var entity))
-                    {
-                        entity.Initialize(data); // 데이터(스탯, 공격상태) 주입
-                    }
                     _activeEnemies.Add(enemyObj);
                 }
             }
@@ -143,13 +150,11 @@ public class DynamicEnemySpawner : MonoBehaviour
             {
                 spawnPos = hit.position;
                 MinionDataSO data = GetRandomEnemyData();
-                if (data != null && data.minionPrefab != null)
+                
+                // [수정] 조립은 DataManager에게 맡김
+                GameObject enemyObj = GameManager.Instance.dataManager.CreateUnit(data, spawnPos);
+                if (enemyObj != null)
                 {
-                    GameObject enemyObj = Instantiate(data.minionPrefab, spawnPos, Quaternion.identity);
-                    if (enemyObj.TryGetComponent<BaseEntity>(out var entity))
-                    {
-                        entity.Initialize(data); // 데이터 주입
-                    }
                     _activeEnemies.Add(enemyObj);
                 }
                 _spawnTimer = 0f;

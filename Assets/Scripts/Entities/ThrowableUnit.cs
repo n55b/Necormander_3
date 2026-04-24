@@ -1,6 +1,4 @@
 using UnityEngine;
-using Necromancer.Interfaces;
-using Necromancer.Physics;
 
 /// <summary>
 /// 던져질 수 있는 유닛의 기본 구현입니다.

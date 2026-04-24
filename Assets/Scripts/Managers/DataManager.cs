@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Necromancer.Player;
 
 public class DataManager : MonoBehaviour
 {
@@ -72,5 +71,28 @@ public class DataManager : MonoBehaviour
         
         Debug.LogWarning($"DataManager: {type}에 해당하는 MinionDataSO를 찾을 수 없습니다!");
         return null;
+    }
+
+    /// <summary>
+    /// [핵심 조립 함수] 데이터를 기반으로 유닛 프리팹을 생성하고 스탯/AI를 주입하여 반환합니다.
+    /// </summary>
+    public GameObject CreateUnit(MinionDataSO data, Vector3 position)
+    {
+        if (data == null || data.minionPrefab == null)
+        {
+            Debug.LogError($"[DataManager] '{data?.minionName}' 조립 실패: 데이터나 프리팹이 없습니다.");
+            return null;
+        }
+
+        // 1. 외형(Prefab) 생성
+        GameObject unitObj = Instantiate(data.minionPrefab, position, Quaternion.identity);
+        
+        // 2. 내부 로직(Data) 주입 및 조립
+        if (unitObj.TryGetComponent<BaseEntity>(out var entity))
+        {
+            entity.Initialize(data);
+        }
+
+        return unitObj;
     }
 }
