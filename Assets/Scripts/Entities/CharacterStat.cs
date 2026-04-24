@@ -229,6 +229,24 @@ public class CharacterStat : MonoBehaviour
     private void Die()
     {
         isDead = true;
+
+        // Bonepoint 재충전 로직 (아군 미니언 사망 시 +1, 적군 사망 시 +1)
+        if (GameManager.Instance != null && GameManager.Instance.dataManager != null)
+        {
+            if (TryGetComponent<BaseEntity>(out var entity))
+            {
+                // 플레이어가 아닌 아군(미니언)이거나, 적군인 경우에만 Bonepoint 지급
+                bool isMinion = entity.team == Team.Ally && GetComponent<PlayerController>() == null;
+                bool isEnemy = entity.team == Team.Enemy;
+
+                if (isMinion || isEnemy)
+                {
+                    GameManager.Instance.dataManager.AddBonePoint(1);
+                    Debug.Log($"<color=white>[Bonepoint]</color> {gameObject.name} 사망으로 인해 Bonepoint 1 충전! (현재: {GameManager.Instance.dataManager.BONEPOINT})");
+                }
+            }
+        }
+
         Destroy(this.gameObject);
     }
 }

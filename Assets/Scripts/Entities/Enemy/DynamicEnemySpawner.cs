@@ -16,7 +16,7 @@ public class DynamicEnemySpawner : MonoBehaviour
 {
     [Header("General Settings")]
     [SerializeField] private SpawnType spawnType = SpawnType.Encounter;
-    [SerializeField] private GameObject enemyPrefab;
+    [SerializeField] private List<GameObject> enemyPrefabs = new List<GameObject>();
     [SerializeField] private float activationRange = 10.0f;
 
     [Header("Encounter Settings (Gungeon Style)")]
@@ -41,6 +41,11 @@ public class DynamicEnemySpawner : MonoBehaviour
 
     private void Start()
     {
+        if (enemyPrefabs == null || enemyPrefabs.Count == 0)
+        {
+            Debug.LogError($"<color=red>[DynamicEnemySpawner]</color> {gameObject.name}에 등록된 Enemy Prefab이 없습니다!");
+        }
+
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             _playerTransform = GameManager.Instance.PLAYERCONTROLLER.transform;
@@ -54,7 +59,7 @@ public class DynamicEnemySpawner : MonoBehaviour
 
     private void Update()
     {
-        if (_playerTransform == null) return;
+        if (_playerTransform == null || enemyPrefabs.Count == 0) return;
         if (spawnType == SpawnType.Encounter && _isTriggered) return;
 
         float distanceToPlayer = Vector2.Distance(transform.position, _playerTransform.position);
@@ -70,6 +75,12 @@ public class DynamicEnemySpawner : MonoBehaviour
                 UpdatePeriodicSpawn();
             }
         }
+    }
+
+    private GameObject GetRandomEnemyPrefab()
+    {
+        if (enemyPrefabs == null || enemyPrefabs.Count == 0) return null;
+        return enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
     }
 
     private void TriggerEncounter()
@@ -94,13 +105,21 @@ public class DynamicEnemySpawner : MonoBehaviour
             Vector2 offset = Random.insideUnitCircle * groupSpread;
             Vector3 spawnPos = center + new Vector3(offset.x, offset.y, 0f);
 
+            // NavMesh 체크 강화: 유효한 지점을 찾지 못하면 스폰하지 않음
             if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
             {
                 spawnPos = hit.position;
+                GameObject prefab = GetRandomEnemyPrefab();
+                if (prefab != null)
+                {
+                    GameObject enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
+                    _activeEnemies.Add(enemy);
+                }
             }
-
-            GameObject enemy = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
-            _activeEnemies.Add(enemy);
+            else
+            {
+                Debug.LogWarning($"<color=yellow>[Spawner]</color> NavMesh를 찾지 못해 그룹 스폰을 건너뜁니다: {spawnPos}");
+            }
         }
     }
 
@@ -115,14 +134,23 @@ public class DynamicEnemySpawner : MonoBehaviour
             Vector2 randomCircle = Random.insideUnitCircle * spawnRadius;
             Vector3 spawnPos = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
 
+            // NavMesh 체크 강화
             if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
             {
                 spawnPos = hit.position;
+                GameObject prefab = GetRandomEnemyPrefab();
+                if (prefab != null)
+                {
+                    GameObject enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
+                    _activeEnemies.Add(enemy);
+                }
+                _spawnTimer = 0f;
             }
-
-            GameObject enemy = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
-            _activeEnemies.Add(enemy);
-            _spawnTimer = 0f;
+            else
+            {
+                // 이번 프레임에 실패했으면 다음 프레임에 다시 시도하도록 타이머를 조금만 늦춤
+                _spawnTimer = spawnInterval * 0.8f; 
+            }
         }
     }
 
