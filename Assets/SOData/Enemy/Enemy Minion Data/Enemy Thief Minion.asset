@@ -22,6 +22,6 @@ MonoBehaviour:
   defense: 0
   moveSpeed: 5
   cost: 1
-  attackState: {fileID: 11400000, guid: aaf6e48bcc505c145b4363fb0589010c, type: 2}
+  aiPattern: {fileID: 11400000, guid: 74df40033aa1da64486b803064027121, type: 2}
   throwImpact: {fileID: 0}
   minionPrefab: {fileID: 5658053484416891064, guid: ef245dea473a8474482f9c57af041535, type: 3}

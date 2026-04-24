@@ -7,11 +7,13 @@ public class DataManager : MonoBehaviour
     [Header("Data Registries")]
     [SerializeField] private MinionRegistrySO minionRegistry;
     [SerializeField] private CombinationRegistrySO combinationRegistry;
+    [SerializeField] private AIPatternSO defaultAIPattern; // 데이터가 없을 때 사용할 기본 AI (예: 전사 패턴)
 
     [Header("Economy")]
     [SerializeField] int bonePoint;
 
     public int BONEPOINT => bonePoint;
+    public AIPatternSO DEFAULT_AI_PATTERN => defaultAIPattern;
 
     // 아군 미니언 리스트 반환 (소환 UI 등에서 사용)
     public List<MinionDataSO> ALL_MINION_DATA => minionRegistry != null ? minionRegistry.allyMinionData : null;

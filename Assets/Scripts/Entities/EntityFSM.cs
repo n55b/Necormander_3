@@ -1,51 +1,34 @@
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 
+/// <summary>
+/// [사용 권장되지 않음] 과거 FSM 시스템의 유산입니다.
+/// 현재는 애니메이션 상태 참조용 데이터 보관함 역할만 수행합니다.
+/// 향후 새로운 애니메이션 시스템으로 완전히 대체될 예정입니다.
+/// </summary>
 public class EntityFSM : MonoBehaviour
 {
-    public FSMStateSO currentState; // 현재 상태 (에셋 드래그 앤 드롭)
-    public Transform target;        // 현재 대상 (플레이어 혹은 적)
+    // 애니메이터가 현재 상태를 파악하기 위해 참조할 수 있는 필드들
+    public FSMStateSO currentState; 
+    public Transform target;        
 
-    [HideInInspector] public CharacterStat stats; // 캐싱용
-    [HideInInspector] public Rigidbody2D rb;      // 물리 이동용
-    [HideInInspector] public UnityEngine.AI.NavMeshAgent agent; // 이동 제어용 (추가)
+    [HideInInspector] public CharacterStat stats;
+    [HideInInspector] public Rigidbody2D rb;      
+    [HideInInspector] public UnityEngine.AI.NavMeshAgent agent; 
 
-    public float atkTimer; // 임시 공격 타이머
+    public float atkTimer; 
 
-    void Awake()
+    private void Awake()
     {
-        stats = GetComponent<CharacterStat>();
-        rb = GetComponent<Rigidbody2D>();
-        agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-
-        if (rb != null)
-        {
-            rb.gravityScale = 0f;
-            rb.freezeRotation = true;
-            // 같은 레이어끼리는 물리적으로 '벽'처럼 막지 않도록 설정 (소프트 밀기 전제조건)
-            // 프로젝트 세팅을 건드리지 않고 코드로 제어합니다.
-            Physics2D.IgnoreLayerCollision(gameObject.layer, gameObject.layer, true);
-        }
+        // 로직 없음 (데이터 보관용)
     }
 
-    void Start()
+    private void Update()
     {
-        if (currentState != null)
-            currentState.Enter(this);
-    }
-
-    void Update()
-    {
-        if (currentState != null)
-            currentState.Execute(this);
+        // 로직 없음 (브레인이 전담)
     }
 
     public void ChangeState(FSMStateSO newState)
     {
-        if (newState ==  null || newState == currentState) return;
-        
-        currentState.Exit(this);
-        currentState = newState;
-        currentState.Enter(this);
+        // 로직 없음 (동작하지 않음)
     }
 }

@@ -9,7 +9,7 @@ public enum Team
 
 /// <summary>
 /// 모든 아군과 적군 유닛의 공통 기반 클래스입니다.
-/// FSM, 스탯, 타겟 탐색 등 공통 로직을 관리합니다.
+/// 통합 AI 패턴(AIPatternSO)을 통해 유닛의 행동을 제어합니다.
 /// </summary>
 [RequireComponent(typeof(EntityFSM), typeof(CharacterStat), typeof(NearestTargetFinder))]
 public abstract class BaseEntity : MonoBehaviour
@@ -19,16 +19,14 @@ public abstract class BaseEntity : MonoBehaviour
     public LayerMask myTeamLayer;
     public LayerMask opponentLayer;
 
-    [Header("상태 에셋")]
-    public FSMStateSO idleState;
-    public FSMStateSO followState;
-    public FSMStateSO attackState;
-
     [Header("탐색 설정")]
     public float detectRange = 10f;
 
     [Header("데이터 참조")]
     [SerializeField] protected MinionDataSO minionData;
+
+    // 새로운 통합 AI 브레인 (인스턴스)
+    protected AIPatternSO _runtimeBrain;
 
     // 공통 컴포넌트 캐싱 및 노출
     protected EntityFSM _fsm;
@@ -42,6 +40,7 @@ public abstract class BaseEntity : MonoBehaviour
     public EntityFSM FSM => _fsm;
     public CharacterStat Stats => _stats;
     public NearestTargetFinder TargetFinder => _nearestFinder;
+    public AIPatternSO Brain => _runtimeBrain;
 
     protected virtual void Awake()
     {
@@ -53,30 +52,42 @@ public abstract class BaseEntity : MonoBehaviour
         _collider = GetComponent<Collider2D>();
         _sr = GetComponentInChildren<SpriteRenderer>();
 
-        // 팀에 따른 레이어 자동 설정 (인스펙터 설정을 잊었을 때를 대비한 안전장치)
+        // [2D 환경 최적화] NavMeshAgent가 스프라이트를 3D 방향으로 돌려버리는 것을 방지
+        if (_agent != null)
+        {
+            _agent.updateRotation = false;
+            _agent.updateUpAxis = false;
+        }
+
+        // 팀에 따른 레이어 자동 설정
         SetupLayers();
     }
 
     protected virtual void Start()
     {
+        // 데이터가 이미 할당되어 있다면 초기화
+        if (minionData != null)
+        {
+            Initialize(minionData);
+        }
+
         // 타겟 파인더의 대상 레이어를 상대 팀 레이어로 설정
         if (_nearestFinder != null)
         {
             _nearestFinder.targetLayer = opponentLayer;
         }
-
-        if (idleState != null)
-        {
-            _fsm.ChangeState(idleState);
-        }
     }
 
     protected virtual void Update()
     {
-        // 비행 중이거나 특수 상태일 때는 AI 로직 차단 (자식에서 확장 가능)
+        // 비행 중이거나 특수 상태일 때는 AI 로직 차단
         if (!CanExecuteAI()) return;
 
-        HandleAIUpdate();
+        // 통합 AI 브레인 실행
+        if (_runtimeBrain != null)
+        {
+            _runtimeBrain.Execute(this);
+        }
     }
 
     protected virtual void SetupLayers()
@@ -95,12 +106,11 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual bool CanExecuteAI()
     {
-        // 기본적으로는 항상 AI 실행 가능
         return enabled;
     }
 
     /// <summary>
-    /// 데이터(SO)로부터 스탯과 특수 공격 상태를 주입받아 초기화합니다.
+    /// 데이터(SO)로부터 스탯과 통합 AI 패턴을 주입받아 초기화합니다.
     /// </summary>
     public virtual void Initialize(MinionDataSO data)
     {
@@ -110,74 +120,43 @@ public abstract class BaseEntity : MonoBehaviour
         if (_stats != null) _stats.InitializeStats(data);
         detectRange = data.detectRange;
 
-        // 2. 고유 공격 패턴 주입 (데이터에 설정되어 있다면 프리팹 설정을 무시하고 덮어씀)
-        if (data.attackState != null)
+        // 2. 통합 AI 브레인 생성 및 초기화
+        AIPatternSO patternToUse = data.aiPattern;
+
+        // [안전장치] 만약 데이터에 패턴이 명시되어 있지 않다면 DataManager의 기본 패턴 사용
+        if (patternToUse == null && GameManager.Instance != null && GameManager.Instance.dataManager != null)
         {
-            attackState = data.attackState;
+            patternToUse = GameManager.Instance.dataManager.DEFAULT_AI_PATTERN;
+        }
+
+        if (patternToUse != null)
+        {
+            _runtimeBrain = Instantiate(patternToUse);
+            _runtimeBrain.Init(this);
+        }
+        else
+        {
+            Debug.LogWarning($"[BaseEntity] {gameObject.name}: 사용 가능한 AI 패턴이 없습니다!");
         }
 
         // 3. 타겟 레이어 설정
         if (_nearestFinder != null) _nearestFinder.targetLayer = opponentLayer;
     }
 
-    /// <summary>
-    /// 공통 AI 탐색 및 상태 전환 로직
-    /// </summary>
-    protected virtual void HandleAIUpdate()
-    {
-        // 공격 중일 때 타겟 유효성 체크
-        if (_fsm.currentState == attackState && _fsm.target != null)
-        {
-            if (IsTargetInvalid(_fsm.target))
-            {
-                _fsm.target = null;
-                _fsm.ChangeState(followState);
-                return;
-            }
-
-            float dist = Vector3.Distance(transform.position, _fsm.target.position);
-            if (dist > _stats.ATKRANGE + 0.5f)
-            {
-                _fsm.ChangeState(followState);
-            }
-            return;
-        }
-
-        // 주변 타겟 탐색
-        Transform nearest = _nearestFinder.FindNearest(detectRange);
-
-        if (nearest != null)
-        {
-            _fsm.target = nearest;
-            float dist = Vector3.Distance(transform.position, nearest.position);
-
-            if (dist <= _stats.ATKRANGE)
-                _fsm.ChangeState(attackState);
-            else
-                _fsm.ChangeState(followState);
-        }
-        else
-        {
-            HandleNoTarget();
-        }
-    }
+    protected virtual void HandleAIUpdate() { }
 
     protected bool IsTargetInvalid(Transform target)
     {
         if (target == null) return true;
-        if (target.TryGetComponent<CharacterStat>(out var targetStat))
+        if (target.TryGetComponent<CharacterStat>(out var stat))
         {
-            return targetStat.IsDead || targetStat.Invincible;
+            return stat.IsDead || stat.Invincible;
         }
         return false;
     }
 
-    /// <summary>
-    /// 타겟이 없을 때의 행동 (아군은 플레이어 추적, 적군은 제자리 대기 등)
-    /// </summary>
     protected abstract void HandleNoTarget();
 
-    // 공격 실행 시 호출 (각 유닛의 특수 공격 로직은 여기서 구현)
     public virtual void ExecuteAttack(Transform target)
     {
         if (target != null && target.TryGetComponent<CharacterStat>(out var targetStat))

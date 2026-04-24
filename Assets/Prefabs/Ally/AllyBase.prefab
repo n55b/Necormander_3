@@ -17,7 +17,6 @@ GameObject:
   - component: {fileID: 6690404922454239926}
   - component: {fileID: 1872334000514628288}
   - component: {fileID: -2522998909360401651}
-  - component: {fileID: 6234335552940830754}
   m_Layer: 7
   m_Name: AllyBase
   m_TagString: Untagged
@@ -185,9 +184,6 @@ MonoBehaviour:
   opponentLayer:
     serializedVersion: 2
     m_Bits: 64
-  idleState: {fileID: 11400000, guid: 6bbf76f271c955f4b9dabc8f6a48f729, type: 2}
-  followState: {fileID: 11400000, guid: 32f0914b7547d944e9a75f7451190bc6, type: 2}
-  attackState: {fileID: 11400000, guid: 6ff2427ce5767574986286a0259a3c79, type: 2}
   detectRange: 10
   minionData: {fileID: 0}
   player: {fileID: 0}
@@ -229,18 +225,6 @@ MonoBehaviour:
     m_Bits: 64
   scanInterval: 0.2
   nearestTarget: {fileID: 0}
---- !u!114 &6234335552940830754
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5144142430907504354}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0bc626a4335d2f438cf2e77414a6514, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7925391492038840257
 GameObject:
   m_ObjectHideFlags: 0
