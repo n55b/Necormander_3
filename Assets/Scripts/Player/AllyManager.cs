@@ -14,21 +14,22 @@ public class AllyManager : MonoBehaviour
         // 리스트 정리
         RemoveNullinAllys();
 
-        if (data == null || data.minionPrefab == null) return null;
+        if (data == null) return null;
 
-        GameObject obj = Instantiate(data.minionPrefab);
-        obj.transform.position = _position;
+        // [중요] 조립은 중앙 공장(DataManager)에 맡깁니다.
+        GameObject obj = GameManager.Instance.dataManager.CreateUnit(data, _position);
+        if (obj == null) return null;
         
         AllyController _ally = obj.GetComponent<AllyController>();
         if (_ally != null)
         {
-            _ally.Initialize(data); // 데이터 주입
+            // 아군으로서의 추가 설정만 수행
             _ally.player = this.gameObject.transform;
             _ally.SetBattleState(isBattle);
             allys.Add(_ally);
         }
 
-        Debug.Log($"{data.minionName} 스폰 완료");
+        Debug.Log($"<color=cyan>[AllyManager]</color> {data.minionName} 소환 및 리스트 등록 완료");
         return _ally;
     }
 
@@ -52,14 +53,14 @@ public class AllyManager : MonoBehaviour
 
         foreach (var ally in allys)
         {
-            // 1. ally 자체가 null일 경우 대비 (위에서 지웠지만 안전하게)
-            if (ally == null || ally.FSM == null) continue;
+            // 1. ally 및 브레인 유효성 체크
+            if (ally == null || ally.Brain == null) continue;
 
-            // 2. target이 null이면 검사할 레이어가 없으므로 pass
-            if (ally.FSM.target == null) continue;
+            // 2. 현재 타겟이 없으면 전투 중이 아닌 것으로 간주 (Pass)
+            if (ally.Brain.Target == null) continue;
 
-            // 3. target.gameObject가 null이 아닐 때만 레이어 체크
-            if (ally.FSM.target.gameObject.layer != playerLayer)
+            // 3. 타겟이 플레이어가 아니라면 (즉, 적군을 조준 중이라면) 전투 중으로 판단
+            if (ally.Brain.Target.gameObject.layer != playerLayer)
             {
                 return true;
             }

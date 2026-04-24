@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081fe001a61ac0c4db24699c7ffed0db, type: 3}
+  m_Name: ArcherMagician Throw Combination Data
+  m_EditorClassIdentifier: 
+  combinationName: ArcherMagician_Railgun
+  minionTypeA: 2
+  minionTypeB: 6
+  combinationEffect: {fileID: 11400000, guid: ba387d6d958fe9a4ba544ee83e433808, type: 2}
+  validSupporters: 0200000006000000

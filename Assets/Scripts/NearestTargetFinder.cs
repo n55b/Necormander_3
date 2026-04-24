@@ -12,8 +12,15 @@ public class NearestTargetFinder : MonoBehaviour
 
     // 성능을 위해 미리 할당 (최대 20개까지 주변 유닛 감지)
     private Collider2D[] results = new Collider2D[10];
+    private ContactFilter2D filter; // 최신 비할당 API를 위한 필터
     private float lastScanTime;
     private bool canScan = false;
+
+    void Awake()
+    {
+        // 필터 초기화
+        filter.useLayerMask = true;
+    }
 
     void Update()
     {
@@ -31,9 +38,10 @@ public class NearestTargetFinder : MonoBehaviour
             return null;
 
         detectionRadius = distance;
+        filter.SetLayerMask(targetLayer); // 현재 레이어 마스크 적용
 
-        // 1. 범위 내 특정 레이어만 추출 (공간 분할 활용)
-        int count = Physics2D.OverlapCircleNonAlloc(transform.position, detectionRadius, results, targetLayer);
+        // 1. 범위 내 특정 레이어만 추출 (최신 비할당 API 사용)
+        int count = Physics2D.OverlapCircle(transform.position, detectionRadius, filter, results);
 
         if (count == 0)
         {

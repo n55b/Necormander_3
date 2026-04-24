@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
+  m_Name: Enemy Thief Minion
+  m_EditorClassIdentifier: 
+  minionType: 7
+  minionName: Enemy Skeleton Thief
+  maxHP: 100
+  attack: 10
+  attackSpeed: 1
+  attackRange: 2
+  detectRange: 30
+  defense: 0
+  moveSpeed: 5
+  cost: 1
+  aiPattern: {fileID: 11400000, guid: 74df40033aa1da64486b803064027121, type: 2}
+  throwImpact: {fileID: 0}
+  minionPrefab: {fileID: 5658053484416891064, guid: ef245dea473a8474482f9c57af041535, type: 3}

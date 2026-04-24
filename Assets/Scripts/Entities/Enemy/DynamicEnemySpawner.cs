@@ -16,7 +16,6 @@ public class DynamicEnemySpawner : MonoBehaviour
 {
     [Header("General Settings")]
     [SerializeField] private SpawnType spawnType = SpawnType.Encounter;
-    [SerializeField] private List<GameObject> enemyPrefabs = new List<GameObject>();
     [SerializeField] private float activationRange = 10.0f;
 
     [Header("Encounter Settings (Gungeon Style)")]
@@ -34,6 +33,7 @@ public class DynamicEnemySpawner : MonoBehaviour
     [Header("Visual Debug")]
     [SerializeField] private bool showGizmos = true;
 
+    private List<MinionDataSO> _enemyDataList = new List<MinionDataSO>();
     private List<GameObject> _activeEnemies = new List<GameObject>();
     private float _spawnTimer;
     private Transform _playerTransform;
@@ -41,9 +41,15 @@ public class DynamicEnemySpawner : MonoBehaviour
 
     private void Start()
     {
-        if (enemyPrefabs == null || enemyPrefabs.Count == 0)
+        // DataManager로부터 이번 맵에서 소환할 수 있는 적군 데이터 목록을 가져옵니다.
+        if (GameManager.Instance != null && GameManager.Instance.dataManager != null)
         {
-            Debug.LogError($"<color=red>[DynamicEnemySpawner]</color> {gameObject.name}에 등록된 Enemy Prefab이 없습니다!");
+            _enemyDataList = GameManager.Instance.dataManager.ENEMY_MINION_DATA;
+        }
+
+        if (_enemyDataList == null || _enemyDataList.Count == 0)
+        {
+            Debug.LogError($"<color=red>[DynamicEnemySpawner]</color> {gameObject.name}: DataManager에서 적군 미니언 데이터를 찾을 수 없습니다! Registry 설정을 확인하세요.");
         }
 
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -59,8 +65,7 @@ public class DynamicEnemySpawner : MonoBehaviour
 
     private void Update()
     {
-        if (_playerTransform == null || enemyPrefabs.Count == 0) return;
-        if (spawnType == SpawnType.Encounter && _isTriggered) return;
+        if (_playerTransform == null || _enemyDataList == null || _enemyDataList.Count == 0) return;
 
         float distanceToPlayer = Vector2.Distance(transform.position, _playerTransform.position);
 
@@ -68,19 +73,30 @@ public class DynamicEnemySpawner : MonoBehaviour
         {
             if (spawnType == SpawnType.Encounter)
             {
-                TriggerEncounter();
+                // 아직 발동되지 않았을 때만 실행
+                if (!_isTriggered) TriggerEncounter();
             }
             else
             {
                 UpdatePeriodicSpawn();
             }
         }
+        else
+        {
+            // [추가] 플레이어가 감지 범위를 벗어났을 때
+            // triggerOnlyOnce가 꺼져있다면 다음에 다시 들어왔을 때 재발동 가능하도록 리셋
+            if (spawnType == SpawnType.Encounter && _isTriggered && !triggerOnlyOnce)
+            {
+                _isTriggered = false;
+                Debug.Log($"<color=yellow>[Spawner]</color> {gameObject.name} 리셋됨 (재발동 가능)");
+            }
+        }
     }
 
-    private GameObject GetRandomEnemyPrefab()
+    private MinionDataSO GetRandomEnemyData()
     {
-        if (enemyPrefabs == null || enemyPrefabs.Count == 0) return null;
-        return enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
+        if (_enemyDataList == null || _enemyDataList.Count == 0) return null;
+        return _enemyDataList[Random.Range(0, _enemyDataList.Count)];
     }
 
     private void TriggerEncounter()
@@ -90,7 +106,6 @@ public class DynamicEnemySpawner : MonoBehaviour
 
         for (int i = 0; i < groupsCount; i++)
         {
-            // [변경점] 고정 각도 대신 원 내의 랜덤한 지점을 부대의 중심점으로 선택
             Vector2 randomPosInsideCircle = Random.insideUnitCircle * spawnDistanceFromCenter;
             Vector3 groupCenter = transform.position + new Vector3(randomPosInsideCircle.x, randomPosInsideCircle.y, 0f);
 
@@ -105,20 +120,17 @@ public class DynamicEnemySpawner : MonoBehaviour
             Vector2 offset = Random.insideUnitCircle * groupSpread;
             Vector3 spawnPos = center + new Vector3(offset.x, offset.y, 0f);
 
-            // NavMesh 체크 강화: 유효한 지점을 찾지 못하면 스폰하지 않음
             if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
             {
                 spawnPos = hit.position;
-                GameObject prefab = GetRandomEnemyPrefab();
-                if (prefab != null)
+                MinionDataSO data = GetRandomEnemyData();
+                
+                // [수정] 조립은 DataManager에게 맡김
+                GameObject enemyObj = GameManager.Instance.dataManager.CreateUnit(data, spawnPos);
+                if (enemyObj != null)
                 {
-                    GameObject enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
-                    _activeEnemies.Add(enemy);
+                    _activeEnemies.Add(enemyObj);
                 }
-            }
-            else
-            {
-                Debug.LogWarning($"<color=yellow>[Spawner]</color> NavMesh를 찾지 못해 그룹 스폰을 건너뜁니다: {spawnPos}");
             }
         }
     }
@@ -134,21 +146,21 @@ public class DynamicEnemySpawner : MonoBehaviour
             Vector2 randomCircle = Random.insideUnitCircle * spawnRadius;
             Vector3 spawnPos = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
 
-            // NavMesh 체크 강화
             if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
             {
                 spawnPos = hit.position;
-                GameObject prefab = GetRandomEnemyPrefab();
-                if (prefab != null)
+                MinionDataSO data = GetRandomEnemyData();
+                
+                // [수정] 조립은 DataManager에게 맡김
+                GameObject enemyObj = GameManager.Instance.dataManager.CreateUnit(data, spawnPos);
+                if (enemyObj != null)
                 {
-                    GameObject enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
-                    _activeEnemies.Add(enemy);
+                    _activeEnemies.Add(enemyObj);
                 }
                 _spawnTimer = 0f;
             }
             else
             {
-                // 이번 프레임에 실패했으면 다음 프레임에 다시 시도하도록 타이머를 조금만 늦춤
                 _spawnTimer = spawnInterval * 0.8f; 
             }
         }

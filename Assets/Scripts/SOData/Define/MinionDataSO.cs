@@ -20,8 +20,8 @@ public class MinionDataSO : ScriptableObject
     public float moveSpeed = 5f;
     public int cost;
 
-    [Header("고유 행동 패턴")]
-    public FSMStateSO attackState; // 이 유닛만의 특수한 공격/행동 패턴 (예: 힐, 자폭 등)
+    [Header("AI 행동 패턴")]
+    public AIPatternSO aiPattern; // 이 유닛의 전체적인 AI 행동 (대기/추격/공격 통합)
 
     [Header("투척 효과 (아군 전용)")]
     public BaseThrowImpactSO throwImpact;

@@ -62,19 +62,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1219aa06886ae94fa3f3968b648d40b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allMinionData:
-  - {fileID: 11400000, guid: cb0cbfe654c65244c9e4647136f954b9, type: 2}
-  - {fileID: 11400000, guid: a4a75e2982d8e3144a26c48600f21685, type: 2}
-  - {fileID: 11400000, guid: 02b328c2889b4af408a588ed6baae425, type: 2}
-  - {fileID: 11400000, guid: f67166d43b3c4a646b53721afbc5498b, type: 2}
-  - {fileID: 11400000, guid: e0c8a4c0c377e46469947ae9f9b6227f, type: 2}
-  - {fileID: 11400000, guid: 90f4914332c90434ca11e7a7182b201f, type: 2}
-  - {fileID: 11400000, guid: c7a5309733eb19d49935c67f2cab5ca1, type: 2}
-  - {fileID: 11400000, guid: 36c1d0d8a1556234ea58cb8fad958371, type: 2}
-  allCombinations:
-  - {fileID: 11400000, guid: a6f5a376d4b4afd429324d61ccf53703, type: 2}
-  - {fileID: 11400000, guid: 0c6e24e9d964a23448d555e239a6a63a, type: 2}
-  - {fileID: 11400000, guid: 5eebefe36aed33e448f290ea30a2fae1, type: 2}
+  minionRegistry: {fileID: 11400000, guid: 752586a47e053ee4a9db401ff13044fc, type: 2}
+  combinationRegistry: {fileID: 11400000, guid: a71bfa6a8039f4f4eab3237085dfae29, type: 2}
+  defaultAIPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   bonePoint: 10
 --- !u!114 &8439383967079703593
 MonoBehaviour:
@@ -91,7 +81,6 @@ MonoBehaviour:
   allyLayer:
     serializedVersion: 2
     m_Bits: 128
-  raycastDistance: 100
   currentType: 0
   hoverObject: {fileID: 0}
 --- !u!114 &1885075289679871234

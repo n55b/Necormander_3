@@ -1,13 +1,13 @@
 using UnityEngine;
 
-public enum DamageType 
-{ 
-    Physical, 
-    Ice, 
-    Fire, 
-    Shadow 
+public enum DamageType
+{
+    Physical,
+    Ice,
+    Fire,
+    Shadow,
+    Magical
 }
-
 [System.Serializable]
 public struct DamageInfo 
 {

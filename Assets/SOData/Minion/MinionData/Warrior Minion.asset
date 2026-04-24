@@ -22,5 +22,6 @@ MonoBehaviour:
   defense: 0
   moveSpeed: 5
   cost: 1
+  aiPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   throwImpact: {fileID: 11400000, guid: 7e70952aa8ded974fa86ed1b51e26a53, type: 2}
   minionPrefab: {fileID: 5978108325549925549, guid: eb9b5e3fbf6cf27428ac034e0fc6e8a5, type: 3}

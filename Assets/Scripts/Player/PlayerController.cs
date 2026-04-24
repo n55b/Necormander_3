@@ -24,7 +24,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] SummonController sumController;
     public SummonController SUMCONTROLLER {get{ return sumController;}}
     [Header("던지기 컨트롤러")]
-    [SerializeField] Necromancer.Player.ThrowController throwController;
+    [SerializeField] private ThrowController throwController;
     [SerializeField] private int summonNum;
     [SerializeField] private float summonRange;
 
@@ -40,7 +40,7 @@ public class PlayerController : MonoBehaviour
         // 동일 오브젝트에서 ThrowController를 자동으로 찾아 할당
         if (throwController == null)
         {
-            throwController = GetComponent<Necromancer.Player.ThrowController>();
+            throwController = GetComponent<ThrowController>();
         }
     }
 

@@ -1,21 +1,32 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Necromancer.Player;
 
 public class DataManager : MonoBehaviour
 {
-    [SerializeField] List<MinionDataSO> allMinionData;
-    [SerializeField] List<ThrowCombinationSO> allCombinations;
+    [Header("Data Registries")]
+    [SerializeField] private MinionRegistrySO minionRegistry;
+    [SerializeField] private CombinationRegistrySO combinationRegistry;
+    [SerializeField] private AIPatternSO defaultAIPattern; // 데이터가 없을 때 사용할 기본 AI (예: 전사 패턴)
+
+    [Header("Economy")]
     [SerializeField] int bonePoint;
 
-    public int BONEPOINT {get {return bonePoint;}}
-    public List<MinionDataSO> ALL_MINION_DATA => allMinionData;
+    public int BONEPOINT => bonePoint;
+    public AIPatternSO DEFAULT_AI_PATTERN => defaultAIPattern;
+
+    // 아군 미니언 리스트 반환 (소환 UI 등에서 사용)
+    public List<MinionDataSO> ALL_MINION_DATA => minionRegistry != null ? minionRegistry.allyMinionData : null;
+
+    // 적군 미니언 리스트 반환 (스포너에서 사용)
+    public List<MinionDataSO> ENEMY_MINION_DATA => minionRegistry != null ? minionRegistry.enemyMinionData : null;
 
     // 두 유닛 타입에 맞는 조합 데이터를 찾아주는 함수
     public ThrowCombinationSO GetCombination(CommandData type1, CommandData type2)
     {
-        foreach (var combo in allCombinations)
+        if (combinationRegistry == null) return null;
+
+        foreach (var combo in combinationRegistry.allCombinations)
         {
             if (combo.IsMatch(type1, type2)) return combo;
         }
@@ -43,18 +54,47 @@ public class DataManager : MonoBehaviour
         return finalSummonCount;
     }
 
-    // CommandData를 바탕으로 데이터(SO)를 찾아주는 함수
+    // CommandData를 바탕으로 데이터(SO)를 찾아주는 함수 (아군/적군 모두 검색)
     public MinionDataSO GetMinionData(CommandData type)
     {
-        foreach (var data in allMinionData)
+        if (minionRegistry == null) return null;
+
+        // 아군 리스트 먼저 검색
+        foreach (var data in minionRegistry.allyMinionData)
         {
-            if (data.minionType == type)
-            {
-                return data;
-            }
+            if (data.minionType == type) return data;
+        }
+        
+        // 적군 리스트 검색
+        foreach (var data in minionRegistry.enemyMinionData)
+        {
+            if (data.minionType == type) return data;
         }
         
         Debug.LogWarning($"DataManager: {type}에 해당하는 MinionDataSO를 찾을 수 없습니다!");
         return null;
+    }
+
+    /// <summary>
+    /// [핵심 조립 함수] 데이터를 기반으로 유닛 프리팹을 생성하고 스탯/AI를 주입하여 반환합니다.
+    /// </summary>
+    public GameObject CreateUnit(MinionDataSO data, Vector3 position)
+    {
+        if (data == null || data.minionPrefab == null)
+        {
+            Debug.LogError($"[DataManager] '{data?.minionName}' 조립 실패: 데이터나 프리팹이 없습니다.");
+            return null;
+        }
+
+        // 1. 외형(Prefab) 생성
+        GameObject unitObj = Instantiate(data.minionPrefab, position, Quaternion.identity);
+        
+        // 2. 내부 로직(Data) 주입 및 조립
+        if (unitObj.TryGetComponent<BaseEntity>(out var entity))
+        {
+            entity.Initialize(data);
+        }
+
+        return unitObj;
     }
 }
