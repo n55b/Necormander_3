@@ -45,7 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnType: 1
-  enemyPrefab: {fileID: 1841339908024047631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+  enemyPrefabs:
+  - {fileID: 1841339908024047631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+  - {fileID: 5658053484416891064, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+  - {fileID: 5658053484416891064, guid: 712853cff4e43d84cbc7ee5512484108, type: 3}
   activationRange: 5
   groupsCount: 2
   enemiesPerGroup: 5
