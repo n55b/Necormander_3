@@ -53,14 +53,14 @@ public class AllyManager : MonoBehaviour
 
         foreach (var ally in allys)
         {
-            // 1. ally 자체가 null일 경우 대비 (위에서 지웠지만 안전하게)
-            if (ally == null || ally.FSM == null) continue;
+            // 1. ally 및 브레인 유효성 체크
+            if (ally == null || ally.Brain == null) continue;
 
-            // 2. target이 null이면 검사할 레이어가 없으므로 pass
-            if (ally.FSM.target == null) continue;
+            // 2. 현재 타겟이 없으면 전투 중이 아닌 것으로 간주 (Pass)
+            if (ally.Brain.Target == null) continue;
 
-            // 3. target.gameObject가 null이 아닐 때만 레이어 체크
-            if (ally.FSM.target.gameObject.layer != playerLayer)
+            // 3. 타겟이 플레이어가 아니라면 (즉, 적군을 조준 중이라면) 전투 중으로 판단
+            if (ally.Brain.Target.gameObject.layer != playerLayer)
             {
                 return true;
             }

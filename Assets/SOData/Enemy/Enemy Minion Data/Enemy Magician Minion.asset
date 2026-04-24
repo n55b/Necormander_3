@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
+  m_Name: Enemy Magician Minion
+  m_EditorClassIdentifier: 
+  minionType: 6
+  minionName: Enemy Skeleton Magician
+  maxHP: 100
+  attack: 10
+  attackSpeed: 1
+  attackRange: 10000
+  detectRange: 10000
+  defense: 0
+  moveSpeed: 5
+  cost: 1
+  aiPattern: {fileID: 11400000, guid: f4292111f50266441823d06f0499f0f1, type: 2}
+  throwImpact: {fileID: 0}
+  minionPrefab: {fileID: 5658053484416891064, guid: 321acf2406d3af4439b140f834f67313, type: 3}

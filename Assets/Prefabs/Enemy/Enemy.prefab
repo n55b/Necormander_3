@@ -11,13 +11,11 @@ GameObject:
   - component: {fileID: 6529688652472716852}
   - component: {fileID: 2842974361319273631}
   - component: {fileID: 4983175393738982816}
-  - component: {fileID: 6342894155674723763}
   - component: {fileID: 2262207286068843843}
   - component: {fileID: 8809371560834086903}
   - component: {fileID: 1578376785222923104}
   - component: {fileID: 7818082784768736543}
   - component: {fileID: 4852760606132103031}
-  - component: {fileID: 595693390201992519}
   m_Layer: 6
   m_Name: Enemy
   m_TagString: Untagged
@@ -82,7 +80,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -455078907
-  m_SortingLayer: 5
+  m_SortingLayer: 6
   m_SortingOrder: 2
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 1, g: 0, b: 0, a: 1}
@@ -117,23 +115,6 @@ MonoBehaviour:
   isDead: 0
   invincible: 0
   shieldCount: 0
---- !u!114 &6342894155674723763
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1841339908024047631}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3bb8779e0e1cfc6489d736173ebf9eaa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  currentState: {fileID: 11400000, guid: 6bbf76f271c955f4b9dabc8f6a48f729, type: 2}
-  target: {fileID: 0}
-  stats: {fileID: 0}
-  rb: {fileID: 0}
-  atkTimer: 0
 --- !u!114 &2262207286068843843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -153,10 +134,8 @@ MonoBehaviour:
   opponentLayer:
     serializedVersion: 2
     m_Bits: 384
-  idleState: {fileID: 11400000, guid: 6bbf76f271c955f4b9dabc8f6a48f729, type: 2}
-  followState: {fileID: 11400000, guid: 32f0914b7547d944e9a75f7451190bc6, type: 2}
-  attackState: {fileID: 11400000, guid: 6ff2427ce5767574986286a0259a3c79, type: 2}
   detectRange: 10
+  minionData: {fileID: 0}
 --- !u!114 &8809371560834086903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -260,15 +239,3 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &595693390201992519
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1841339908024047631}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0bc626a4335d2f438cf2e77414a6514, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

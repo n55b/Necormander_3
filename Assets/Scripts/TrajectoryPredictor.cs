@@ -6,9 +6,11 @@ using UnityEngine;
 [RequireComponent(typeof(LineRenderer))]
 public class TrajectoryPredictor : MonoBehaviour
 {
-    [Header("Settings")]
-    [SerializeField, Range(10, 100)] private int numPoints = 50; // 궤도를 구성할 점의 개수 (많을수록 부드러움)
-    
+    [Header("Visual Settings")]
+    [SerializeField, Range(10, 100)] private int numPoints = 50; // 궤도를 구성할 점의 개수
+    [SerializeField] private Color normalColor = Color.white;    // 기본 궤도 색상
+    [SerializeField] private Color fullChargeColor = Color.green; // 최대 차징 시 색상
+
     [Header("Throwable Settings (Match with ThrowableUnit)")]
     // ThrowableUnit의 필드값들과 동일하게 맞춥니다.
     [SerializeField] private float jumpHeight = 1.5f;
@@ -83,14 +85,11 @@ public class TrajectoryPredictor : MonoBehaviour
         float h_straight = straightHeight;
 
         // [핵심 로직] 현재 들고 있는 유닛이 있다면 해당 유닛의 고유 데이터를 우선적으로 사용합니다.
-        // ThrowController의 HoldPoint 자식 중 첫 번째 유닛을 확인합니다.
         if (_throwController.HoldPoint.childCount > 0)
         {
             var firstChild = _throwController.HoldPoint.GetChild(0);
             if (firstChild.TryGetComponent<AllyController>(out var ally))
             {
-                // AllyController에 정의된 public 프로퍼티를 통해 유닛별 고유 물리 수치를 가져옵니다.
-                // 이를 통해 실제 던졌을 때와 예측 궤도가 완벽하게 일치하게 됩니다.
                 s_min = ally.MinSpeed;
                 s_max = ally.MaxSpeed;
                 s_full = ally.FullChargeSpeed;
@@ -100,44 +99,44 @@ public class TrajectoryPredictor : MonoBehaviour
         }
 
         float maxHeight;
-
-        // 3. 차징 비율에 따른 실시간 물리 수치 계산 (AllyController.OnThrown 로직과 동기화)
-        if (chargeRatio >= 1.0f)
+        bool isFullCharge = chargeRatio >= 0.98f;
+        
+        // 3. 차징 비율에 따른 실시간 물리 수치 계산 및 시각화
+        if (isFullCharge)
         {
-            // 풀 차징 상태: 직사 투척 (낮은 높이, 최대 속도)
-            maxHeight = h_straight;
+            // 풀 차징 상태: 완벽한 직선을 위해 점을 2개만 사용
+            _lineRenderer.positionCount = 2;
+            _lineRenderer.SetPosition(0, (Vector3)startPos);
+            _lineRenderer.SetPosition(1, (Vector3)targetPos);
+            maxHeight = h_straight; 
         }
         else
         {
-            // 일반 차징 상태: 포물선 투척 (차징 정도에 따라 높이와 속도 보간)
+            // 일반 차징 상태: 기존 포물선 계산 로직 유지
             float targetHeight = Mathf.Lerp(h_jump, h_straight, chargeRatio);
-            
-            // 거리가 너무 가까울 때 높이가 비정상적으로 솟구치는 것을 방지하기 위해 거리의 절반으로 제한합니다.
             maxHeight = Mathf.Min(targetHeight, distance * 0.5f);
+
+            _lineRenderer.positionCount = numPoints;
+            Vector3[] points = new Vector3[numPoints];
+
+            for (int i = 0; i < numPoints; i++)
+            {
+                float t = i / (float)(numPoints - 1);
+                Vector2 currentPos = Vector2.Lerp(startPos, targetPos, t);
+                float height = 4f * maxHeight * t * (1f - t);
+                points[i] = new Vector3(currentPos.x, currentPos.y + height, 0f);
+            }
+            _lineRenderer.SetPositions(points);
         }
 
-        // 4. LineRenderer 점 위치 계산 (ArcMovement.cs의 포물선 공식과 동일한 공식 사용)
-        _lineRenderer.positionCount = numPoints;
-        Vector3[] points = new Vector3[numPoints];
+        // 4. 차징 상태에 따른 색상 업데이트
+        Color targetColor = isFullCharge ? fullChargeColor : normalColor;
 
-        for (int i = 0; i < numPoints; i++)
-        {
-            // 전체 궤도에서의 진행 비율 t (0.0 ~ 1.0)
-            float t = i / (float)(numPoints - 1);
-            
-            // 수평 평면상에서의 위치 (시작점에서 목표점까지 선형 보간)
-            Vector2 currentPos = Vector2.Lerp(startPos, targetPos, t);
-
-            // 수직 높이(포물선) 계산 
-            // [공식] h = 4 * H * t * (1 - t)
-            // 이 공식은 ArcMovement.cs에서 실시간 위치 계산에 사용하는 것과 동일합니다.
-            float height = 4f * maxHeight * t * (1f - t);
-
-            // 최종 좌표 결정 (2D 게임이므로 Y축에 높이 오프셋을 더함)
-            points[i] = new Vector3(currentPos.x, currentPos.y + height, 0f);
-        }
-
-        // 5. LineRenderer에 최종 계산된 점들을 할당하여 시각화
-        _lineRenderer.SetPositions(points);
+        Gradient gradient = new Gradient();
+        gradient.SetKeys(
+            new GradientColorKey[] { new GradientColorKey(targetColor, 0.0f), new GradientColorKey(targetColor, 1.0f) },
+            new GradientAlphaKey[] { new GradientAlphaKey(targetColor.a, 0.0f), new GradientAlphaKey(targetColor.a, 1.0f) }
+        );
+        _lineRenderer.colorGradient = gradient;
     }
 }

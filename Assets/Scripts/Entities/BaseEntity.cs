@@ -11,7 +11,7 @@ public enum Team
 /// 모든 아군과 적군 유닛의 공통 기반 클래스입니다.
 /// 통합 AI 패턴(AIPatternSO)을 통해 유닛의 행동을 제어합니다.
 /// </summary>
-[RequireComponent(typeof(EntityFSM), typeof(CharacterStat), typeof(NearestTargetFinder))]
+[RequireComponent(typeof(CharacterStat), typeof(NearestTargetFinder))]
 public abstract class BaseEntity : MonoBehaviour
 {
     [Header("팀 설정")]
@@ -29,7 +29,6 @@ public abstract class BaseEntity : MonoBehaviour
     protected AIPatternSO _runtimeBrain;
 
     // 공통 컴포넌트 캐싱 및 노출
-    protected EntityFSM _fsm;
     protected CharacterStat _stats;
     protected NearestTargetFinder _nearestFinder;
     protected Rigidbody2D _rb;
@@ -37,14 +36,12 @@ public abstract class BaseEntity : MonoBehaviour
     protected Collider2D _collider;
     protected SpriteRenderer _sr;
 
-    public EntityFSM FSM => _fsm;
     public CharacterStat Stats => _stats;
     public NearestTargetFinder TargetFinder => _nearestFinder;
     public AIPatternSO Brain => _runtimeBrain;
 
     protected virtual void Awake()
     {
-        _fsm = GetComponent<EntityFSM>();
         _stats = GetComponent<CharacterStat>();
         _nearestFinder = GetComponent<NearestTargetFinder>();
         _rb = GetComponent<Rigidbody2D>();
@@ -83,7 +80,7 @@ public abstract class BaseEntity : MonoBehaviour
         // 비행 중이거나 특수 상태일 때는 AI 로직 차단
         if (!CanExecuteAI()) return;
 
-        // 통합 AI 브레인 실행
+        // 통합 AI 브레인 실행 (타겟팅, 상태전환, 행동 모두 포함)
         if (_runtimeBrain != null)
         {
             _runtimeBrain.Execute(this);
@@ -106,6 +103,7 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual bool CanExecuteAI()
     {
+        // 기본적으로는 항상 AI 실행 가능 (enabled 여부 체크)
         return enabled;
     }
 
@@ -143,6 +141,7 @@ public abstract class BaseEntity : MonoBehaviour
         if (_nearestFinder != null) _nearestFinder.targetLayer = opponentLayer;
     }
 
+    // 기존 HandleAIUpdate를 브레인 체제에 맞게 비워둠
     protected virtual void HandleAIUpdate() { }
 
     protected bool IsTargetInvalid(Transform target)
@@ -157,6 +156,7 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected abstract void HandleNoTarget();
 
+    // 공격 실행 시 호출 (각 유닛의 특수 공격 로직은 여기서 구현)
     public virtual void ExecuteAttack(Transform target)
     {
         if (target != null && target.TryGetComponent<CharacterStat>(out var targetStat))
