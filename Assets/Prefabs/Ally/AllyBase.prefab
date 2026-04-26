@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 7983487525704611893}
   - component: {fileID: 7675627589926563005}
   - component: {fileID: 280329618997857556}
-  - component: {fileID: 6941146495543674885}
   - component: {fileID: 6690404922454239926}
   - component: {fileID: 1872334000514628288}
   - component: {fileID: -2522998909360401651}
@@ -124,7 +123,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 0
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 6
 --- !u!114 &280329618997857556
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -147,24 +146,6 @@ MonoBehaviour:
   isDead: 0
   invincible: 0
   shieldCount: 0
---- !u!114 &6941146495543674885
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5144142430907504354}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3bb8779e0e1cfc6489d736173ebf9eaa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  currentState: {fileID: 11400000, guid: 32f0914b7547d944e9a75f7451190bc6, type: 2}
-  target: {fileID: 0}
-  stats: {fileID: 0}
-  rb: {fileID: 0}
-  agent: {fileID: 0}
-  atkTimer: 0
 --- !u!114 &6690404922454239926
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -188,7 +169,6 @@ MonoBehaviour:
   minionData: {fileID: 0}
   player: {fileID: 0}
   isBattle: 0
-  thrownState: {fileID: 11400000, guid: f23cee3c7b6bbe84a856ce1f653c24cd, type: 2}
   jumpHeight: 1.5
   straightHeight: 0.1
   minSpeed: 5
