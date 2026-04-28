@@ -58,26 +58,26 @@ public class SummonController : MonoBehaviour
 
         if (_selectionStep == 1)
         {
-            // 1단계 (1-4)
+            // 1단계 (기본 유닛)
             return _selectedNum switch
             {
                 1 => CommandData.SkeletonWarrior,
-                2 => CommandData.SkeletonShieldbearer,
-                3 => CommandData.SkeletonArcher,
+                2 => CommandData.SkeletonArcher,
+                3 => CommandData.SkeletonShieldbearer,
                 4 => CommandData.SkeletonPriest,
                 _ => CommandData.SkeletonWarrior
             };
         }
         else
         {
-            // 2단계 (Combo: 1-4)
+            // 2단계 (확장 유닛)
             return _selectedNum switch
             {
-                1 => CommandData.SkeletonBomber,
+                1 => CommandData.SkeletonMagician,
                 2 => CommandData.SkeletonSpearman,
-                3 => CommandData.SkeletonMagician,
+                3 => CommandData.SkeletonBomber,
                 4 => CommandData.SkeletonThief,
-                _ => CommandData.SkeletonBomber
+                _ => CommandData.SkeletonMagician
             };
         }
     }
@@ -86,11 +86,11 @@ public class SummonController : MonoBehaviour
     {
         if (step == 1)
         {
-            return num switch { 1 => "전사", 2 => "방패병", 3 => "궁수", 4 => "사제", _ => "" };
+            return num switch { 1 => "전사", 2 => "궁수", 3 => "방패병", 4 => "사제", _ => "" };
         }
         else
         {
-            return num switch { 1 => "폭탄병", 2 => "창병", 3 => "마법사", 4 => "도적", _ => "" };
+            return num switch { 1 => "마법사", 2 => "창병", 3 => "폭탄병", 4 => "도적", _ => "" };
         }
     }
 

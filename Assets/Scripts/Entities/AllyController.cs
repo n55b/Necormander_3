@@ -29,7 +29,6 @@ public class AllyController : BaseEntity, IThrowable
 
     [Header("References")]
     private ArcMovement _arcMovement;
-    private BaseThrowImpactSO impactEffect; 
 
     private float _throwStartTime;
     private float _originalDamping;
@@ -64,8 +63,6 @@ public class AllyController : BaseEntity, IThrowable
     public override void Initialize(MinionDataSO data)
     {
         base.Initialize(data);
-        if (minionData != null && minionData.throwImpact != null) 
-            impactEffect = minionData.throwImpact;
     }
 
     protected override bool CanExecuteAI()
@@ -168,8 +165,6 @@ public class AllyController : BaseEntity, IThrowable
             float targetHeight = Mathf.Lerp(jumpHeight, straightHeight, chargeRatio);
             p.maxHeight = Mathf.Min(targetHeight, distance * 0.5f);
         }
-
-        if (impactEffect != null) impactEffect.OnPreThrow(p, chargeRatio);
 
         if (_rb != null) _rb.linearVelocity = direction * p.speed;
         if (_arcMovement != null) _arcMovement.StartArc(p.duration, p.maxHeight);

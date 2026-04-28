@@ -147,6 +147,13 @@ public class ThrowCluster : MonoBehaviour
 
     private bool _isLanded = false;
 
+    private ThrowRecipe _activeRecipe;
+
+    public void SetRecipe(ThrowRecipe recipe)
+    {
+        _activeRecipe = recipe;
+    }
+
     private void OnLanded()
     {
         if (_isLanded) return;
@@ -162,8 +169,6 @@ public class ThrowCluster : MonoBehaviour
         {
             if (unit == null) continue;
             unit.transform.SetParent(null);
-            
-            // [수정] 유닛의 OnLanded에서는 시각적 효과와 AI 복구만 담당하게 함
             unit.OnLanded(); 
         }
 
@@ -173,80 +178,241 @@ public class ThrowCluster : MonoBehaviour
 
     private void ProcessClusterImpact()
     {
-        int opponentMask = LayerMask.GetMask("Enemy");
-        float impactRadius = _collider.radius + 1.0f;
-        Collider2D[] hitTargets = Physics2D.OverlapCircleAll(transform.position, impactRadius, opponentMask);
+        if (_activeRecipe == null) return;
 
-        HashSet<AllyController> processedUnits = new HashSet<AllyController>();
+        int totalExecutions = _activeRecipe.GetTotalExecutionCount();
+        Debug.Log($"<color=cyan>[ThrowCluster]</color> Executing Effects: {totalExecutions} times (Mode: {_activeRecipe.targetingMode})");
 
-        // 1. 조합 효과 체크 및 실행
-        foreach (var unit in _units)
+        for (int i = 0; i < totalExecutions; i++)
         {
-            if (unit == null) continue;
-
-            if (unit.IsCombinationLead && unit.ActiveCombination != null && unit.ActiveCombination.combinationEffect != null)
+            switch (_activeRecipe.targetingMode)
             {
-                Debug.Log($"<color=orange>[ThrowCluster]</color> Executing Combination: {unit.ActiveCombination.combinationName}");
-                
-                CombinationContext context = new CombinationContext
-                {
-                    leadAttacker = unit.gameObject,
-                    impactPosition = transform.position,
-                    chargeRatio = _chargeRatio,
-                    supporters = unit.CombinationSupporters
-                };
+                case TargetingMode.Target:
+                    ExecuteTargetImpact();
+                    break;
+                case TargetingMode.Area:
+                    ExecuteAreaImpact();
+                    break;
+                case TargetingMode.Self:
+                    ExecuteSelfImpact();
+                    break;
+            }
+        }
+    }
 
-                unit.ActiveCombination.combinationEffect.Execute(context);
+    private void ExecuteTargetImpact()
+    {
+        if (_activeRecipe.finalTarget == null) return;
+        GameObject target = _activeRecipe.finalTarget;
 
-                // 조합에 참여한 유닛들은 일반 효과를 발동하지 않도록 처리
-                processedUnits.Add(unit);
-                
-                // 조합 파트너(보통 첫 번째와 두 번째 유닛)와 서포터들 모두 처리 목록에 추가
-                if (_units.Count > 1 && _units[1] != null) processedUnits.Add(_units[1]);
-                if (unit.CombinationSupporters != null)
+        ApplyDamage(target); // 데미지 적용
+        if (_activeRecipe.hasCC) ApplyCC(target);
+        if (_activeRecipe.hasShield) ApplyShield(target);
+        if (_activeRecipe.hasFormation) ApplyFormation(target);
+    }
+
+    private void ExecuteAreaImpact()
+    {
+        float radius = _activeRecipe.GetScaledRadius();
+        
+        // 1. 적군 대상 효과 (데미지, CC, 진형파괴)
+        if (_activeRecipe.impactDamage > 0 || _activeRecipe.hasCC || _activeRecipe.hasFormation)
+        {
+            Collider2D[] enemies = Physics2D.OverlapCircleAll(transform.position, radius, LayerMask.GetMask("Enemy"));
+            foreach (var enemy in enemies)
+            {
+                ApplyDamage(enemy.gameObject); // 데미지 적용
+                if (_activeRecipe.hasCC) ApplyCC(enemy.gameObject);
+                if (_activeRecipe.hasFormation) ApplyFormation(enemy.gameObject);
+            }
+
+            // [특수] 광역 진형파괴는 플레이어도 밀림
+            if (_activeRecipe.hasFormation)
+            {
+                GameObject player = GameManager.Instance.PLAYERCONTROLLER.gameObject;
+                if (Vector2.Distance(transform.position, player.transform.position) <= radius)
                 {
-                    foreach (var supporter in unit.CombinationSupporters)
-                    {
-                        if (supporter != null) processedUnits.Add(supporter);
-                    }
+                    ApplyFormation(player);
                 }
-
-                // 하나의 클러스터에서는 하나의 조합 효과만 발동한다고 가정
-                break; 
             }
         }
 
-        // 2. 조합에 참여하지 않은 유닛들의 기본 효과 실행
-        foreach (var unit in _units)
+        // 2. 아군 대상 효과 (Shield)
+        if (_activeRecipe.hasShield)
         {
-            if (unit == null || processedUnits.Contains(unit)) continue;
-            if (unit.MinionData == null || unit.MinionData.throwImpact == null) continue;
-            
-            if (hitTargets.Length == 0)
+            Collider2D[] allies = Physics2D.OverlapCircleAll(transform.position, radius, LayerMask.GetMask("Army"));
+            foreach (var ally in allies)
             {
-                ImpactContext context = new ImpactContext
+                ApplyShield(ally.gameObject);
+            }
+        }
+    }
+
+    private void ExecuteSelfImpact()
+    {
+        GameObject player = GameManager.Instance.PLAYERCONTROLLER.gameObject;
+
+        // Self 모드에서도 필요하다면 데미지(자폭 데미지 등)를 줄 수 있지만, 
+        // 현재는 아군에게 이로운 효과만 주도록 되어 있으므로 데미지는 제외합니다.
+        
+        if (_activeRecipe.hasCC)
+        {
+            ApplyCC(player);
+        }
+        
+        if (_activeRecipe.hasShield)
+        {
+            ApplyShield(player);
+        }
+
+        if (_activeRecipe.hasFormation)
+        {
+            // 플레이어 돌진 (진형파괴의 Self 버전)
+            Debug.Log("Self Formation: 플레이어 돌진!");
+            Vector2 moveDir = GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerMovement>().MoveInput;
+            if (moveDir == Vector2.zero) moveDir = (Vector2)GameManager.Instance.PLAYERCONTROLLER.transform.up;
+            
+            Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
+            if (playerRb != null)
+            {
+                float dashForce = _activeRecipe.GetScaledValue(10f);
+                playerRb.AddForce(moveDir * dashForce, ForceMode2D.Impulse);
+            }
+
+            // 진형 파괴 시각 효과도 플레이어 위치에 생성
+            ApplyFormation(player);
+        }
+    }
+
+    // --- 개별 효과 적용 헬퍼 메서드들 ---
+
+    private void ApplyDamage(GameObject target)
+    {
+        if (_activeRecipe.impactDamage <= 0) return;
+
+        if (target.TryGetComponent<BaseEntity>(out var entity))
+        {
+            // [중요] 타겟이 적군일 때만 데미지 적용
+            if (entity.team == Team.Enemy)
+            {
+                if (entity.TryGetComponent<CharacterStat>(out var stat))
                 {
-                    attacker = unit.gameObject,
-                    target = null,
-                    impactPosition = transform.position,
-                    chargeRatio = _chargeRatio
-                };
-                unit.MinionData.throwImpact.Apply(context);
+                    DamageInfo info = new DamageInfo(_activeRecipe.impactDamage, DamageType.Physical, gameObject);
+                    stat.GetDamage(info);
+                    Debug.Log($"Apply Impact Damage to enemy {target.name}: {_activeRecipe.impactDamage}");
+                }
             }
             else
             {
-                foreach (var targetCol in hitTargets)
-                {
-                    ImpactContext context = new ImpactContext
-                    {
-                        attacker = unit.gameObject,
-                        target = targetCol.gameObject,
-                        impactPosition = transform.position,
-                        chargeRatio = _chargeRatio
-                    };
-                    unit.MinionData.throwImpact.Apply(context);
-                }
+                Debug.Log($"Damage skipped for ally {target.name}");
             }
+        }
+        else if (target.CompareTag("Player") && _activeRecipe.targetTeam == Team.Enemy)
+        {
+            // 플레이어도 적군 입장에선 공격 대상이지만, 
+            // 현재는 투척 레시피가 적군 타겟일 때만 데미지를 주므로 플레이어는 안전함.
+        }
+    }
+
+    private void ApplyCC(GameObject target)
+    {
+        ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
+        float duration = 3.0f; 
+
+        // 시각 효과 소환
+        if (_activeRecipe.targetingMode == TargetingMode.Area)
+        {
+            if (registry != null && registry.ccAreaPrefab != null)
+            {
+                GameObject vfx = Instantiate(registry.ccAreaPrefab, transform.position, Quaternion.identity);
+                float radius = _activeRecipe.GetScaledRadius();
+                vfx.transform.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
+                Destroy(vfx, duration);
+            }
+        }
+        else // Target 또는 Self
+        {
+            if (registry != null && registry.ccAttachVFX != null)
+            {
+                // 대상에게 부착하여 따라다니게 함
+                GameObject vfx = Instantiate(registry.ccAttachVFX, target.transform.position, Quaternion.identity, target.transform);
+                Destroy(vfx, duration);
+            }
+        }
+
+        // 로직 적용
+        if (target.TryGetComponent<CharacterStat>(out var stat))
+        {
+            float slowAmount = _activeRecipe.GetScaledValue(_activeRecipe.ccBaseValue);
+            // CharacterStat의 슬로우 시스템 활용 (지속시간 5초 가정)
+            stat.ApplySlow("ThrowCC", slowAmount, 5.0f);
+            Debug.Log($"Apply CC to {target.name}: Slow {slowAmount}");
+        }
+    }
+
+    private void ApplyShield(GameObject target)
+    {
+        ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
+        float duration = 3.0f; 
+
+        // 시각 효과 소환
+        if (_activeRecipe.targetingMode == TargetingMode.Area)
+        {
+            if (registry != null && registry.shieldAreaPrefab != null)
+            {
+                GameObject vfx = Instantiate(registry.shieldAreaPrefab, transform.position, Quaternion.identity);
+                float radius = _activeRecipe.GetScaledRadius();
+                vfx.transform.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
+                Destroy(vfx, duration);
+            }
+        }
+        else // Target 또는 Self
+        {
+            if (registry != null && registry.shieldAttachVFX != null)
+            {
+                // 대상에게 부착하여 따라다니게 함
+                GameObject vfx = Instantiate(registry.shieldAttachVFX, target.transform.position, Quaternion.identity, target.transform);
+                Destroy(vfx, duration);
+            }
+        }
+
+        // 로직 적용
+        if (target.TryGetComponent<CharacterStat>(out var stat))
+        {
+            float shieldAmount = _activeRecipe.GetScaledValue(_activeRecipe.shieldBaseValue); 
+            // 3초 지속되는 보호막(임시 체력) 추가
+            stat.AddShield(shieldAmount, 3.0f);
+            Debug.Log($"Apply Shield to {target.name}: {shieldAmount} points for 3s");
+        }
+    }
+
+    private void ApplyFormation(GameObject target)
+    {
+        ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
+        float duration = 0.5f; 
+
+        // [수정] 진형 파괴는 어떤 모드든 '지점'을 강조하는 장판형 VFX 사용
+        if (registry != null && registry.formationAreaVFX != null)
+        {
+            // Target/Self일 때는 해당 유닛의 위치에, Area일 때는 클러스터 착지 지점에 생성
+            Vector3 spawnPos = (_activeRecipe.targetingMode == TargetingMode.Area) ? transform.position : target.transform.position;
+            GameObject vfx = Instantiate(registry.formationAreaVFX, spawnPos, Quaternion.identity);
+            
+            // 크기 조절: Area일 때는 설정된 반경으로, 단일 타겟일 때는 작게(예: 1.0f)
+            float radius = (_activeRecipe.targetingMode == TargetingMode.Area) ? _activeRecipe.GetScaledRadius() : 1.0f;
+            vfx.transform.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
+            Destroy(vfx, duration);
+        }
+
+        // 로직 적용
+        if (target.TryGetComponent<Rigidbody2D>(out var rb))
+        {
+            float knockbackForce = _activeRecipe.GetScaledValue(_activeRecipe.formationBaseValue);
+            Vector2 dir = (target.transform.position - transform.position).normalized;
+            if (dir == Vector2.zero) dir = Random.insideUnitCircle.normalized;
+
+            rb.AddForce(dir * knockbackForce, ForceMode2D.Impulse);
+            Debug.Log($"Apply Formation to {target.name}: Knockback {knockbackForce}");
         }
     }
 

@@ -136,24 +136,39 @@ public class CharacterStat : MonoBehaviour
         }
     }
 
-    [SerializeField] int shieldCount = 0; // 보호막 스택 개수
+    [SerializeField] float shieldAmount = 0f; // 보호막 잔량 (임시 체력)
 
-    public int SHIELDCOUNT => shieldCount;
+    public float SHIELDAMOUNT => shieldAmount;
 
-    // 보호막을 특정 개수만큼 깎는 함수
-    public void BreakShield(int amount)
+    /// <summary>
+    /// 일정 시간 동안 유지되는 보호막(임시 체력)을 추가합니다.
+    /// </summary>
+    public void AddShield(float amount, float duration)
     {
         if (isDead) return;
-        shieldCount = Mathf.Max(0, shieldCount - amount);
+
+        shieldAmount += amount;
+        Debug.Log($"<color=cyan>[Shield]</color> {gameObject.name} 보호막 {amount} 추가! (현재 총량: {shieldAmount})");
+
+        // 지정된 시간 뒤에 추가된 만큼의 보호막을 제거하는 코루틴 시작
+        StartCoroutine(RemoveShieldAfterTime(amount, duration));
+    }
+
+    private System.Collections.IEnumerator RemoveShieldAfterTime(float amount, float duration)
+    {
+        yield return new UnityEngine.WaitForSeconds(duration);
         
-        // 보호막 파괴 시각 피드백 (파란색 깜빡임)
-        if (_spriteRenderer != null)
+        if (!isDead && shieldAmount > 0)
         {
-            if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
-            _flashCoroutine = StartCoroutine(Debug_FlashBlue());
+            float before = shieldAmount;
+            // 추가했던 양만큼 제거하되, 이미 데미지를 입어 깎였다면 남은 양만 제거
+            shieldAmount = Mathf.Max(0, shieldAmount - amount);
+            
+            if (before != shieldAmount)
+            {
+                Debug.Log($"<color=gray>[Shield]</color> {gameObject.name} 보호막 {amount} 만료. (남은 총량: {shieldAmount})");
+            }
         }
-        
-        Debug.Log($"<color=cyan>[Shield]</color> {gameObject.name}의 보호막 {amount}개 파괴! 남은 개수: {shieldCount}");
     }
 
     private System.Collections.IEnumerator Debug_FlashBlue()
@@ -164,33 +179,74 @@ public class CharacterStat : MonoBehaviour
         _flashCoroutine = null;
     }
 
+    /// <summary>
+    /// 외부에서 보호막을 강제로 제거할 때 호출합니다. (임시 체력 차감)
+    /// </summary>
+    public void BreakShield(float amount)
+    {
+        if (isDead) return;
+        shieldAmount = Mathf.Max(0, shieldAmount - amount);
+        
+        // 시각 피드백
+        if (_spriteRenderer != null)
+        {
+            if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
+            _flashCoroutine = StartCoroutine(Debug_FlashBlue());
+        }
+        
+        Debug.Log($"<color=cyan>[Shield]</color> {gameObject.name}의 보호막 {amount} 차감! 남은 총량: {shieldAmount}");
+    }
+
     public void GetDamage(DamageInfo info)
     {
         if (isDead || invincible) return;
 
-        // 보호막이 남아있다면 데미지를 1로 고정 (또는 무시 가능)
-        float damageToDeal = info.amount;
-        if (shieldCount > 0 && info.type != DamageType.Fixed)
+        float remainingDamage = info.amount;
+
+        // 1. 보호막(방어도) 처리: 체력보다 먼저 차감
+        if (shieldAmount > 0 && info.type != DamageType.Fixed)
         {
-            damageToDeal = 1f; // 보호막이 있으면 데미지를 최소화
-            Debug.Log($"<color=cyan>[Shield]</color> 보호막이 데미지를 흡수합니다!");
+            if (shieldAmount >= remainingDamage)
+            {
+                // 보호막이 데미지를 모두 흡수
+                shieldAmount -= remainingDamage;
+                remainingDamage = 0;
+                Debug.Log($"<color=cyan>[Shield]</color> 보호막이 모든 데미지를 흡수! (남은 보호막: {shieldAmount})");
+            }
+            else
+            {
+                // 보호막이 일부 흡수하고 파괴됨
+                remainingDamage -= shieldAmount;
+                shieldAmount = 0;
+                Debug.Log($"<color=cyan>[Shield]</color> 보호막 파괴! 남은 데미지 {remainingDamage}가 체력에 적용됩니다.");
+            }
+
+            // 보호막 작동 시각 피드백 (파란색 깜빡임)
+            if (_spriteRenderer != null)
+            {
+                if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
+                _flashCoroutine = StartCoroutine(Debug_FlashBlue());
+            }
         }
 
-        float finalDamage = info.amount;
-        if (info.type != DamageType.Fixed)
+        // 2. 남은 데미지가 있다면 체력 차감
+        if (remainingDamage > 0)
         {
-            finalDamage = Mathf.Max(damageToDeal - Def, 1f);
-        }
-        
-        curHP -= finalDamage;
+            float finalDamage = remainingDamage;
+            if (info.type != DamageType.Fixed)
+            {
+                finalDamage = Mathf.Max(remainingDamage - Def, 1f);
+            }
+            
+            curHP -= finalDamage;
+            OnDamageTaken?.Invoke();
 
-        OnDamageTaken?.Invoke();
-
-        // [DEBUG] 피해 시각 피드백 (검은색 깜빡임)
-        if (_spriteRenderer != null)
-        {
-            if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
-            _flashCoroutine = StartCoroutine(Debug_FlashBlack());
+            // 피해 시각 피드백 (검은색 깜빡임)
+            if (_spriteRenderer != null)
+            {
+                if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
+                _flashCoroutine = StartCoroutine(Debug_FlashBlack());
+            }
         }
 
         if (curHP <= 0.0f)

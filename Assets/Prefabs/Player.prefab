@@ -802,7 +802,11 @@ MonoBehaviour:
   chargeTime: 1
   maxHoldCount: 5
   holdPoint: {fileID: 1334913734161187280}
+  clusterPrefab: {fileID: 7916150823758314427, guid: fb3f0d472a552d64fa46efc25c8355c3, type: 3}
   trajectoryPredictor: {fileID: 1950478616291504012}
+  selectionWheel: {fileID: 0}
+  dragThreshold: 50
+  directionMapping: 000000000100000002000000030000000600000005000000
 --- !u!114 &6055861653884896251
 MonoBehaviour:
   m_ObjectHideFlags: 0

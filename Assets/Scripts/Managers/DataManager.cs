@@ -7,13 +7,15 @@ public class DataManager : MonoBehaviour
     [Header("Data Registries")]
     [SerializeField] private MinionRegistrySO minionRegistry;
     [SerializeField] private CombinationRegistrySO combinationRegistry;
-    [SerializeField] private AIPatternSO defaultAIPattern; // 데이터가 없을 때 사용할 기본 AI (예: 전사 패턴)
+    [SerializeField] private ThrowEffectRegistrySO throwEffectRegistry;
+    [SerializeField] private AIPatternSO defaultAIPattern; 
+
+    public ThrowEffectRegistrySO THROW_EFFECT_REGISTRY => throwEffectRegistry;
+    public AIPatternSO DEFAULT_AI_PATTERN => defaultAIPattern;
 
     [Header("Economy")]
     [SerializeField] int bonePoint;
-
     public int BONEPOINT => bonePoint;
-    public AIPatternSO DEFAULT_AI_PATTERN => defaultAIPattern;
 
     // 아군 미니언 리스트 반환 (소환 UI 등에서 사용)
     public List<MinionDataSO> ALL_MINION_DATA => minionRegistry != null ? minionRegistry.allyMinionData : null;
@@ -75,9 +77,6 @@ public class DataManager : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// [핵심 조립 함수] 데이터를 기반으로 유닛 프리팹을 생성하고 스탯/AI를 주입하여 반환합니다.
-    /// </summary>
     public GameObject CreateUnit(MinionDataSO data, Vector3 position)
     {
         if (data == null || data.minionPrefab == null)
@@ -86,10 +85,8 @@ public class DataManager : MonoBehaviour
             return null;
         }
 
-        // 1. 외형(Prefab) 생성
         GameObject unitObj = Instantiate(data.minionPrefab, position, Quaternion.identity);
         
-        // 2. 내부 로직(Data) 주입 및 조립
         if (unitObj.TryGetComponent<BaseEntity>(out var entity))
         {
             entity.Initialize(data);
