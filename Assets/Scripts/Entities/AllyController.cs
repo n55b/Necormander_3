@@ -52,6 +52,8 @@ public class AllyController : BaseEntity, IThrowable
         if (_rb != null) _originalDamping = _rb.linearDamping;
         if (_sr != null) _originalSortingLayerName = _sr.sortingLayerName;
         
+        // [수정] 원래 레이어를 미리 안전하게 저장
+        _originalLayer = gameObject.layer;
         team = Team.Ally;
     }
 
@@ -83,6 +85,9 @@ public class AllyController : BaseEntity, IThrowable
         // [중요] 구형 FSM 대신 브레인 상태를 Thrown으로 변경
         if (_runtimeBrain != null) _runtimeBrain.SetState(AIState.Thrown);
 
+        // [추가] 다음 투척을 위해 충돌 여부 리셋
+        _hasImpacted = false;
+
         // [추가] 피격 연출 등으로 색상이 변해있을 경우를 대비해 기본색으로 강제 복구
         if (_sr != null) _sr.color = Color.white;
 
@@ -98,6 +103,19 @@ public class AllyController : BaseEntity, IThrowable
         _combinationSupporters = supporters;
     }
 
+    /// <summary>
+    /// [추가] 클러스터에 담겨 던져질 때 필요한 데이터를 설정합니다.
+    /// </summary>
+    public void PrepareForClusterThrow(float chargeRatio, bool isDirect)
+    {
+        _lastChargeRatio = chargeRatio;
+        _isDirectThrow = isDirect;
+        _hasImpacted = false;
+        
+        // 시각적 레이어 설정
+        if (_sr != null) _sr.sortingLayerName = "FlyingObject";
+    }
+
     public void OnThrown(Vector2 targetPosition, float chargeRatio)
     {
         _throwStartTime = Time.time;
@@ -105,7 +123,8 @@ public class AllyController : BaseEntity, IThrowable
         _hasImpacted = false;
         _isDirectThrow = (chargeRatio >= 1.0f); 
 
-        _originalLayer = gameObject.layer;
+        // _originalLayer는 이미 Awake에서 저장됨
+
         int flyingLayer = LayerMask.NameToLayer("FlyingObject");
         if (flyingLayer != -1) gameObject.layer = flyingLayer;
 
@@ -152,79 +171,15 @@ public class AllyController : BaseEntity, IThrowable
         if (_arcMovement != null) _arcMovement.StartArc(p.duration, p.maxHeight);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    public virtual void OnLanded()
     {
-        if (_hasImpacted) return;
-
-        int wallMask = LayerMask.GetMask("Wall", "Obstacle");
-        bool isWall = (wallMask & (1 << other.gameObject.layer)) != 0;
-
-        if (isWall)
-        {
-            if (_arcMovement != null && _arcMovement.IsFlying)
-            {
-                TriggerImpact(other.gameObject);
-                _arcMovement.StopArc();
-            }
-            return; 
-        }
-
-        if (_isDirectThrow)
-        {
-            int objectMask = LayerMask.GetMask("Object");
-            bool isHitTarget = ((opponentLayer.value | objectMask) & (1 << other.gameObject.layer)) != 0;
-            if (isHitTarget && _arcMovement != null && _arcMovement.IsFlying)
-            {
-                TriggerImpact(other.gameObject);
-                _arcMovement.StopArc();
-            }
-        }
-    }
-
-    private void TriggerImpact(GameObject targetObj)
-    {
-        if (_hasImpacted) return;
-        _hasImpacted = true;
-
-        if (_activeCombination != null)
-        {
-            if (_isCombinationLead && _activeCombination.combinationEffect != null)
-            {
-                CombinationContext context = new CombinationContext
-                {
-                    leadAttacker = this.gameObject,
-                    impactPosition = transform.position,
-                    chargeRatio = _lastChargeRatio,
-                    supporters = _combinationSupporters
-                };
-                _activeCombination.combinationEffect.Execute(context);
-            }
-        }
-        else if (impactEffect != null)
-        {
-            ImpactContext context = new ImpactContext
-            {
-                attacker = this.gameObject,
-                target = targetObj,
-                impactPosition = transform.position,
-                chargeRatio = _lastChargeRatio
-            };
-            impactEffect.Apply(context);
-        }
-
-        // [리스크 부여] 충돌/착지 시점에 최대 체력의 1/3만큼 고정 데미지 입힘
-        // 공격 효과를 먼저 처리한 후 데미지를 입히므로, 죽기 전 마지막 타격이 가능함
+        // [리스크 부여] 착지 시점에 최대 체력의 1/3만큼 고정 데미지 입힘
         if (_stats != null)
         {
             float fixedDamage = _stats.MAXHP / 3f;
             DamageInfo riskInfo = new DamageInfo(fixedDamage, DamageType.Fixed, gameObject);
             _stats.GetDamage(riskInfo);
         }
-    }
-
-    public virtual void OnLanded()
-    {
-        if (!_hasImpacted) TriggerImpact(null);
 
         gameObject.layer = _originalLayer;
         if (_sr != null && !string.IsNullOrEmpty(_originalSortingLayerName))
@@ -243,16 +198,21 @@ public class AllyController : BaseEntity, IThrowable
 
         if (_rb != null)
         {
+            _rb.simulated = true; 
             _rb.linearVelocity = Vector2.zero;
             _rb.linearDamping = _originalDamping;
             _rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
         }
-        if (_collider != null) _collider.isTrigger = false;
 
-        // [중요] 착지 즉시 브레인 재가동
+        if (_collider != null)
+        {
+            _collider.enabled = true; 
+            _collider.isTrigger = false;
+        }
+
         if (_runtimeBrain != null) _runtimeBrain.Init(this);
         
-        Debug.Log($"<color=green>[AllyController]</color> {gameObject.name} 착지 및 AI 재가동 완료");
+        Debug.Log($"<color=green>[AllyController]</color> {gameObject.name} 착지 완료");
     }
 
     #endregion

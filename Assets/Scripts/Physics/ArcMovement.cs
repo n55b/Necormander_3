@@ -11,8 +11,10 @@ public class ArcMovement : MonoBehaviour
     private float _totalDuration;
     private float _maxHeight;
     private bool _isFlying;
+    private float _currentHeight;
 
     public bool IsFlying => _isFlying;
+    public float CurrentHeight => _currentHeight;
 
     private void Update()
     {
@@ -28,12 +30,11 @@ public class ArcMovement : MonoBehaviour
         }
 
         // [수학 공식] 포물선 공식: h = 4 * H * t * (1 - t)
-        // 가장 부드러운 아치형 곡선을 만듭니다.
-        float heightOffset = 4f * _maxHeight * progress * (1f - progress);
+        _currentHeight = 4f * _maxHeight * progress * (1f - progress);
         
         if (visualTransform != null)
         {
-            visualTransform.localPosition = new Vector3(0, heightOffset, 0);
+            visualTransform.localPosition = new Vector3(0, _currentHeight, 0);
         }
     }
 
@@ -56,6 +57,8 @@ public class ArcMovement : MonoBehaviour
     private void Land()
     {
         _isFlying = false;
+        _currentHeight = 0f;
+
         if (visualTransform != null)
         {
             visualTransform.localPosition = Vector3.zero;

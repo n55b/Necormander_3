@@ -13,6 +13,8 @@ public class ThrowController : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Transform holdPoint; // 집어들었을 때 유닛이 위치할 곳
+    [SerializeField] private ThrowCluster clusterPrefab; // [추가] 인스펙터에서 할당하거나 동적으로 생성
+    private ThrowCluster _activeCluster;
 
     [SerializeField] private TrajectoryPredictor trajectoryPredictor; // 드래그 앤 드롭으로 할당
     public TrajectoryPredictor TrajectoryPredictor { get { return trajectoryPredictor; }}
@@ -20,6 +22,7 @@ public class ThrowController : MonoBehaviour
     // --- 가이드용 프로퍼티 추가 ---
     public Transform HoldPoint => holdPoint;
     public float CurrentChargeRatio => Mathf.Min(_chargeTimer / chargeTime, 1.0f);
+    public ThrowCluster ActiveCluster => _activeCluster;
 
     private List<IThrowable> _heldObjects = new List<IThrowable>();
     private float _chargeTimer;
@@ -57,6 +60,37 @@ public class ThrowController : MonoBehaviour
         }
     }
 
+    private void Awake()
+    {
+        // 동일 오브젝트에서 ThrowController를 자동으로 찾아 할당
+        if (trajectoryPredictor == null)
+        {
+            trajectoryPredictor = GetComponentInChildren<TrajectoryPredictor>();
+        }
+    }
+
+    /// <summary>
+    /// 현재 손에 든 클러스터를 반환하거나, 없으면 새로 생성합니다.
+    /// </summary>
+    private ThrowCluster GetActiveClusterOrCreate()
+    {
+        if (_activeCluster == null)
+        {
+            if (clusterPrefab != null)
+            {
+                _activeCluster = Instantiate(clusterPrefab, holdPoint.position, Quaternion.identity, holdPoint);
+            }
+            else
+            {
+                GameObject clusterObj = new GameObject("ThrowCluster_Instance");
+                _activeCluster = clusterObj.AddComponent<ThrowCluster>();
+                _activeCluster.transform.SetParent(holdPoint);
+            }
+            _activeCluster.transform.localPosition = Vector3.zero;
+        }
+        return _activeCluster;
+    }
+
     // --- 벽 감지 및 목표 지점 보정 공용 메서드 ---
     public Vector2 GetClampedTargetPos(Vector2 origin, Vector2 targetPos)
     {
@@ -64,11 +98,16 @@ public class ThrowController : MonoBehaviour
         Vector2 direction = targetPos - origin;
         float distance = direction.magnitude;
 
-        RaycastHit2D hit = Physics2D.Raycast(origin, direction.normalized, distance, wallLayer);
+        if (distance < 0.01f) return targetPos;
+
+        // [개선] 클러스터의 반지름을 고려하여 CircleCast 수행
+        float radius = (_activeCluster != null) ? _activeCluster.GetCurrentRadius() : 0.35f;
+        RaycastHit2D hit = Physics2D.CircleCast(origin, radius, direction.normalized, distance, wallLayer);
+        
         if (hit.collider != null)
         {
-            // 벽에 부딪혔다면, 벽보다 약간 앞 지점을 목표로 설정
-            return hit.point - (direction.normalized * 0.1f);
+            // 원의 중심이 있어야 할 정확한 위치를 반환
+            return hit.centroid;
         }
         return targetPos;
     }
@@ -83,6 +122,12 @@ public class ThrowController : MonoBehaviour
         if (_isWheelActive && selectionWheel != null)
         {
             selectionWheel.UpdateHighlight(CurrentMouseScreenPos);
+        }
+
+        // [수정] 클러스터가 손에 있을 때만 위치 동기화
+        if (_activeCluster != null && _activeCluster.transform.parent == holdPoint)
+        {
+            _activeCluster.transform.localPosition = Vector3.zero;
         }
     }
 
@@ -241,15 +286,19 @@ public class ThrowController : MonoBehaviour
         _heldObjects.Add(throwable);
         throwable.OnPickedUp();
 
+        ThrowCluster cluster = GetActiveClusterOrCreate();
+
         if (throwable is MonoBehaviour mb)
         {
-            mb.transform.SetParent(holdPoint);
-            // 쌓기 위치 계산: (Count - 1)을 사용해 0부터 차곡차곡 쌓임
-            mb.transform.localPosition = new Vector3(0, (_heldObjects.Count - 1) * 0.5f, 0);
-            mb.transform.localRotation = Quaternion.identity;
+            mb.transform.SetParent(cluster.transform);
         }
 
         Debug.Log($"Picked up: {obj.name}. Total: {_heldObjects.Count}");
+
+        // 유닛 목록 갱신 및 클러스터 설정 업데이트
+        List<AllyController> allyList = new List<AllyController>();
+        foreach(var item in _heldObjects) if(item is AllyController ally) allyList.Add(ally);
+        cluster.Setup(allyList);
     }
 
     private void ThrowAll()
@@ -263,26 +312,37 @@ public class ThrowController : MonoBehaviour
         }
 
         float chargeRatio = _chargeTimer / chargeTime;
+        Vector2 startPos = (Vector2)holdPoint.position;
+        Vector2 targetPos = GetClampedTargetPos(startPos, CurrentMouseWorldPos);
 
-        Vector2 targetPos = GetClampedTargetPos((Vector2)transform.position, CurrentMouseWorldPos);
-
-        // --- 1. 조합(Combination) 분석 ---
         AnalyzeCombination(targetPos, chargeRatio);
 
-        // --- 2. 모든 객체 던지기 ---
-        foreach (var throwable in _heldObjects)
+        if (_activeCluster != null)
         {
-            if (throwable == null) continue;
+            List<AllyController> allyList = new List<AllyController>();
+            foreach (var item in _heldObjects) if (item is AllyController ally) allyList.Add(ally);
 
-            if (throwable is MonoBehaviour mb)
+            if (allyList.Count > 0)
             {
-                mb.transform.SetParent(null);
+                _activeCluster.Setup(allyList);
+                
+                AllyController first = allyList[0];
+                float speed = (chargeRatio >= 0.98f) ? first.FullChargeSpeed : Mathf.Lerp(first.MinSpeed, first.MaxSpeed, chargeRatio);
+                
+                float distance = Vector2.Distance(startPos, targetPos);
+                float duration = distance / speed;
+                float maxHeight = Mathf.Min(Mathf.Lerp(first.JumpHeight, first.StraightHeight, chargeRatio), distance * 0.5f);
+
+                bool isDirect = chargeRatio >= 0.98f;
+                _activeCluster.Launch(startPos, targetPos, duration, maxHeight, isDirect, chargeRatio);
+                
+                // 던진 후 참조를 끊어 다음 번에 새로 생성되게 함
+                _activeCluster = null;
             }
-            throwable.OnThrown(targetPos, chargeRatio);
         }
 
         _heldObjects.Clear();
-        _chargeTimer = 0f; // [수정] 던지기가 끝난 후 타이머를 확실히 리셋
+        _chargeTimer = 0f; 
     }
 
     private void AnalyzeCombination(Vector2 targetPos, float chargeRatio)
