@@ -75,13 +75,12 @@ public class PlayerController : MonoBehaviour
     // 아군 유닛 소환 혹은 줍기 관리 함수 (우클릭)
     public void OnRightClick(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        // 1. 소환 모드(숫자 키가 눌려 있음)라면 소환 수행
+        if (sumController.IsSummoningMode)
         {
-            Debug.Log($"<color=white>[PlayerController]</color> 우클릭 입력됨! 소환 모드 상태: {sumController.IsSummoningMode}");
-            
-            // 1. 소환 모드(숫자 키가 눌려 있음)라면 소환 수행
-            if (sumController.IsSummoningMode)
+            if (context.performed)
             {
+                Debug.Log($"<color=white>[PlayerController]</color> 우클릭 입력됨! 소환 수행");
                 CommandData selectedType = sumController.GetCurrentSelectedType();
                 MinionDataSO data = GameManager.Instance.dataManager.GetMinionData(selectedType);
 
@@ -110,13 +109,19 @@ public class PlayerController : MonoBehaviour
                 // 소환 완료 후 모드 리셋
                 sumController.ResetSummonMode();
             }
-            // 2. 소환 모드가 아니라면 주변 미니언 줍기
-            else
+        }
+        // 2. 소환 모드가 아니라면 Radial Menu(핑 시스템) 또는 일반 줍기
+        else
+        {
+            if (throwController != null)
             {
-                Debug.Log("<color=white>[PlayerController]</color> 줍기 모드 실행");
-                if (throwController != null)
+                if (context.started)
                 {
-                    throwController.TryPickUpWithMouse();
+                    throwController.OnRightClickStarted();
+                }
+                else if (context.canceled)
+                {
+                    throwController.OnRightClickCanceled();
                 }
             }
         }

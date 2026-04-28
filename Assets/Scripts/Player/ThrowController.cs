@@ -25,13 +25,33 @@ public class ThrowController : MonoBehaviour
     private float _chargeTimer;
     private bool _isCharging;
 
+    [Header("Radial Menu (Ping System)")]
+    [SerializeField] private SelectionWheelUI selectionWheel;
+    [SerializeField] private float dragThreshold = 50f;
+    [SerializeField] private List<CommandData> directionMapping = new List<CommandData>
+    {
+        CommandData.SkeletonWarrior,      // 12시
+        CommandData.SkeletonShieldbearer, // 1시 30분
+        CommandData.SkeletonArcher,       // 3시
+        CommandData.SkeletonPriest,       // 4시 30분
+        CommandData.SkeletonBomber,       // 6시
+        CommandData.SkeletonSpearman,     // 7시 30분
+        CommandData.SkeletonMagician,     // 9시
+        CommandData.SkeletonThief         // 10시 30분
+    };
+
+    private Vector2 _rightClickStartPos;
+    private bool _isWheelActive;
+
+    // 현재 마우스 스크린 좌표
+    private Vector2 CurrentMouseScreenPos => Pointer.current.position.ReadValue();
+
     // 현재 마우스 월드 좌표를 매 프레임 계산하여 제공
     public Vector2 CurrentMouseWorldPos
     {
         get
         {
-            Vector2 screenPos = Pointer.current.position.ReadValue();
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(CurrentMouseScreenPos.x, CurrentMouseScreenPos.y, 0f));
             mousePos.z = 0f;
             return (Vector2)mousePos;
         }
@@ -58,6 +78,81 @@ public class ThrowController : MonoBehaviour
         if (_isCharging)
         {
             _chargeTimer = Mathf.Min(_chargeTimer + Time.deltaTime, chargeTime);
+        }
+
+        if (_isWheelActive && selectionWheel != null)
+        {
+            selectionWheel.UpdateHighlight(CurrentMouseScreenPos);
+        }
+    }
+
+    public void OnRightClickStarted()
+    {
+        _rightClickStartPos = CurrentMouseScreenPos;
+        _isWheelActive = true;
+        
+        if (selectionWheel != null)
+        {
+            selectionWheel.Show(_rightClickStartPos, directionMapping);
+        }
+    }
+
+    public void OnRightClickCanceled()
+    {
+        if (!_isWheelActive) return;
+        _isWheelActive = false;
+
+        float dragDist = Vector2.Distance(_rightClickStartPos, CurrentMouseScreenPos);
+        
+        if (selectionWheel != null)
+        {
+            int selectedIndex = selectionWheel.GetSelectedIndex();
+            selectionWheel.Hide();
+
+            // 1. 드래그가 충분하고 선택된 직업이 있다면 해당 타입 잡기
+            if (dragDist >= dragThreshold && selectedIndex != -1)
+            {
+                CommandData targetType = directionMapping[selectedIndex];
+                TryPickUpByType(targetType);
+                return;
+            }
+        }
+
+        // 2. 짧은 클릭이거나 선택된 방향이 없다면 기존 마우스 줍기 실행
+        TryPickUpWithMouse();
+    }
+
+    private void TryPickUpByType(CommandData targetType)
+    {
+        if (_heldObjects.Count >= maxHoldCount) return;
+
+        float pickUpRadius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
+        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, pickUpRadius);
+
+        AllyController bestTarget = null;
+        float minTargetDist = float.MaxValue;
+
+        foreach (var col in colls)
+        {
+            if (col.TryGetComponent<AllyController>(out var ally))
+            {
+                // 이미 들고 있는 유닛 제외 및 타입 일치 확인
+                if (ally.MinionType == targetType && !_heldObjects.Contains(ally))
+                {
+                    float dist = Vector2.Distance(transform.position, ally.transform.position);
+                    if (dist < minTargetDist)
+                    {
+                        minTargetDist = dist;
+                        bestTarget = ally;
+                    }
+                }
+            }
+        }
+
+        if (bestTarget != null)
+        {
+            PerformPickUp(bestTarget, bestTarget.gameObject);
+            if (trajectoryPredictor != null) trajectoryPredictor.ShowGuide();
         }
     }
 

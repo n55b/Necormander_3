@@ -199,10 +199,8 @@ public class AllyController : BaseEntity, IThrowable
                 };
                 _activeCombination.combinationEffect.Execute(context);
             }
-            return;
         }
-
-        if (impactEffect != null)
+        else if (impactEffect != null)
         {
             ImpactContext context = new ImpactContext
             {
@@ -212,6 +210,15 @@ public class AllyController : BaseEntity, IThrowable
                 chargeRatio = _lastChargeRatio
             };
             impactEffect.Apply(context);
+        }
+
+        // [리스크 부여] 충돌/착지 시점에 최대 체력의 1/3만큼 고정 데미지 입힘
+        // 공격 효과를 먼저 처리한 후 데미지를 입히므로, 죽기 전 마지막 타격이 가능함
+        if (_stats != null)
+        {
+            float fixedDamage = _stats.MAXHP / 3f;
+            DamageInfo riskInfo = new DamageInfo(fixedDamage, DamageType.Fixed, gameObject);
+            _stats.GetDamage(riskInfo);
         }
     }
 
