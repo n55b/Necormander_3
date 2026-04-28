@@ -17,6 +17,7 @@ public class ThrowCluster : MonoBehaviour
     private Rigidbody2D _rb;
     private List<AllyController> _units = new List<AllyController>();
     private bool _isDirectThrow = false;
+    private float _chargeRatio = 0f;
     
     private void Awake()
     {
@@ -81,6 +82,7 @@ public class ThrowCluster : MonoBehaviour
     public void Launch(Vector2 startPos, Vector2 targetPos, float duration, float maxHeight, bool isDirect, float chargeRatio)
     {
         _isDirectThrow = isDirect;
+        _chargeRatio = chargeRatio;
 
         // [추가] 모든 유닛에게 투척 데이터 전달 (효과 발동을 위해 필수)
         foreach (var unit in _units)
@@ -171,33 +173,81 @@ public class ThrowCluster : MonoBehaviour
 
     private void ProcessClusterImpact()
     {
-        // 1. 주변 대상 스캔 (딱 한 번만 수행)
-        // 아군끼리 데미지를 주지 않도록 opponentMask(Enemy)만 체크
         int opponentMask = LayerMask.GetMask("Enemy");
-        float impactRadius = _collider.radius + 1.0f; // 클러스터 크기보다 조금 더 넓게 판정
+        float impactRadius = _collider.radius + 1.0f;
         Collider2D[] hitTargets = Physics2D.OverlapCircleAll(transform.position, impactRadius, opponentMask);
 
-        // 2. 모든 유닛의 효과를 수집하여 적용
+        HashSet<AllyController> processedUnits = new HashSet<AllyController>();
+
+        // 1. 조합 효과 체크 및 실행
         foreach (var unit in _units)
         {
-            if (unit == null || unit.MinionData == null || unit.MinionData.throwImpact == null) continue;
+            if (unit == null) continue;
 
-            // 직접 맞은 대상이 있다면 (OnTriggerEnter2D에서 저장 가능) 전달, 없으면 주변 모두에게 적용
-            // 여기서는 일단 모든 주변 타겟에게 효과 적용 (전사의 경우 광역으로 변경되는 효과)
-            foreach (var targetCol in hitTargets)
+            if (unit.IsCombinationLead && unit.ActiveCombination != null && unit.ActiveCombination.combinationEffect != null)
+            {
+                Debug.Log($"<color=orange>[ThrowCluster]</color> Executing Combination: {unit.ActiveCombination.combinationName}");
+                
+                CombinationContext context = new CombinationContext
+                {
+                    leadAttacker = unit.gameObject,
+                    impactPosition = transform.position,
+                    chargeRatio = _chargeRatio,
+                    supporters = unit.CombinationSupporters
+                };
+
+                unit.ActiveCombination.combinationEffect.Execute(context);
+
+                // 조합에 참여한 유닛들은 일반 효과를 발동하지 않도록 처리
+                processedUnits.Add(unit);
+                
+                // 조합 파트너(보통 첫 번째와 두 번째 유닛)와 서포터들 모두 처리 목록에 추가
+                if (_units.Count > 1 && _units[1] != null) processedUnits.Add(_units[1]);
+                if (unit.CombinationSupporters != null)
+                {
+                    foreach (var supporter in unit.CombinationSupporters)
+                    {
+                        if (supporter != null) processedUnits.Add(supporter);
+                    }
+                }
+
+                // 하나의 클러스터에서는 하나의 조합 효과만 발동한다고 가정
+                break; 
+            }
+        }
+
+        // 2. 조합에 참여하지 않은 유닛들의 기본 효과 실행
+        foreach (var unit in _units)
+        {
+            if (unit == null || processedUnits.Contains(unit)) continue;
+            if (unit.MinionData == null || unit.MinionData.throwImpact == null) continue;
+            
+            if (hitTargets.Length == 0)
             {
                 ImpactContext context = new ImpactContext
                 {
                     attacker = unit.gameObject,
-                    target = targetCol.gameObject,
+                    target = null,
                     impactPosition = transform.position,
-                    chargeRatio = 1.0f // 클러스터 발사 시 저장된 값 사용 가능
+                    chargeRatio = _chargeRatio
                 };
                 unit.MinionData.throwImpact.Apply(context);
             }
+            else
+            {
+                foreach (var targetCol in hitTargets)
+                {
+                    ImpactContext context = new ImpactContext
+                    {
+                        attacker = unit.gameObject,
+                        target = targetCol.gameObject,
+                        impactPosition = transform.position,
+                        chargeRatio = _chargeRatio
+                    };
+                    unit.MinionData.throwImpact.Apply(context);
+                }
+            }
         }
-        
-        Debug.Log($"<color=orange>[Cluster Impact]</color> {hitTargets.Length} targets hit by {_units.Count} units.");
     }
 
     public float GetCurrentRadius() => _collider != null ? _collider.radius : baseRadius;

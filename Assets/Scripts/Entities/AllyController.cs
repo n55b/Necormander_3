@@ -43,6 +43,10 @@ public class AllyController : BaseEntity, IThrowable
     private bool _isCombinationLead = false;
     private List<AllyController> _combinationSupporters;
 
+    public ThrowCombinationSO ActiveCombination => _activeCombination;
+    public bool IsCombinationLead => _isCombinationLead;
+    public List<AllyController> CombinationSupporters => _combinationSupporters;
+
     protected override void Awake()
     {
         base.Awake();
