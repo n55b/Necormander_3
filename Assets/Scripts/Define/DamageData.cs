@@ -6,7 +6,8 @@ public enum DamageType
     Ice,
     Fire,
     Shadow,
-    Magical
+    Magical,
+    Fixed
 }
 [System.Serializable]
 public struct DamageInfo 

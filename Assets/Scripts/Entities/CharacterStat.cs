@@ -170,13 +170,18 @@ public class CharacterStat : MonoBehaviour
 
         // 보호막이 남아있다면 데미지를 1로 고정 (또는 무시 가능)
         float damageToDeal = info.amount;
-        if (shieldCount > 0)
+        if (shieldCount > 0 && info.type != DamageType.Fixed)
         {
             damageToDeal = 1f; // 보호막이 있으면 데미지를 최소화
             Debug.Log($"<color=cyan>[Shield]</color> 보호막이 데미지를 흡수합니다!");
         }
 
-        float finalDamage = Mathf.Max(damageToDeal - Def, 1f);
+        float finalDamage = info.amount;
+        if (info.type != DamageType.Fixed)
+        {
+            finalDamage = Mathf.Max(damageToDeal - Def, 1f);
+        }
+        
         curHP -= finalDamage;
 
         OnDamageTaken?.Invoke();
