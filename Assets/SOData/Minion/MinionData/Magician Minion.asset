@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 6
   minionName: Skeleton Magician
+  throwEffectCategory: 6
+  baseEffectValue: 1
+  effectMultiplier: 0
+  baseAreaRadius: 0
   maxHP: 100
   attack: 10
   attackSpeed: 1
@@ -22,5 +26,5 @@ MonoBehaviour:
   defense: 0
   moveSpeed: 5
   cost: 1
-  throwImpact: {fileID: 11400000, guid: e0fd91333c3057d409b2e2739b576a07, type: 2}
+  aiPattern: {fileID: 0}
   minionPrefab: {fileID: 1959536258159339203, guid: a35288eb4aeed4542a3824e8843ce750, type: 3}

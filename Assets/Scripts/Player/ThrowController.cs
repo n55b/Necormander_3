@@ -13,6 +13,8 @@ public class ThrowController : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Transform holdPoint; // 집어들었을 때 유닛이 위치할 곳
+    [SerializeField] private ThrowCluster clusterPrefab; // [추가] 인스펙터에서 할당하거나 동적으로 생성
+    private ThrowCluster _activeCluster;
 
     [SerializeField] private TrajectoryPredictor trajectoryPredictor; // 드래그 앤 드롭으로 할당
     public TrajectoryPredictor TrajectoryPredictor { get { return trajectoryPredictor; }}
@@ -20,6 +22,7 @@ public class ThrowController : MonoBehaviour
     // --- 가이드용 프로퍼티 추가 ---
     public Transform HoldPoint => holdPoint;
     public float CurrentChargeRatio => Mathf.Min(_chargeTimer / chargeTime, 1.0f);
+    public ThrowCluster ActiveCluster => _activeCluster;
 
     private List<IThrowable> _heldObjects = new List<IThrowable>();
     private float _chargeTimer;
@@ -57,6 +60,37 @@ public class ThrowController : MonoBehaviour
         }
     }
 
+    private void Awake()
+    {
+        // 동일 오브젝트에서 ThrowController를 자동으로 찾아 할당
+        if (trajectoryPredictor == null)
+        {
+            trajectoryPredictor = GetComponentInChildren<TrajectoryPredictor>();
+        }
+    }
+
+    /// <summary>
+    /// 현재 손에 든 클러스터를 반환하거나, 없으면 새로 생성합니다.
+    /// </summary>
+    private ThrowCluster GetActiveClusterOrCreate()
+    {
+        if (_activeCluster == null)
+        {
+            if (clusterPrefab != null)
+            {
+                _activeCluster = Instantiate(clusterPrefab, holdPoint.position, Quaternion.identity, holdPoint);
+            }
+            else
+            {
+                GameObject clusterObj = new GameObject("ThrowCluster_Instance");
+                _activeCluster = clusterObj.AddComponent<ThrowCluster>();
+                _activeCluster.transform.SetParent(holdPoint);
+            }
+            _activeCluster.transform.localPosition = Vector3.zero;
+        }
+        return _activeCluster;
+    }
+
     // --- 벽 감지 및 목표 지점 보정 공용 메서드 ---
     public Vector2 GetClampedTargetPos(Vector2 origin, Vector2 targetPos)
     {
@@ -64,11 +98,16 @@ public class ThrowController : MonoBehaviour
         Vector2 direction = targetPos - origin;
         float distance = direction.magnitude;
 
-        RaycastHit2D hit = Physics2D.Raycast(origin, direction.normalized, distance, wallLayer);
+        if (distance < 0.01f) return targetPos;
+
+        // [개선] 클러스터의 반지름을 고려하여 CircleCast 수행
+        float radius = (_activeCluster != null) ? _activeCluster.GetCurrentRadius() : 0.35f;
+        RaycastHit2D hit = Physics2D.CircleCast(origin, radius, direction.normalized, distance, wallLayer);
+        
         if (hit.collider != null)
         {
-            // 벽에 부딪혔다면, 벽보다 약간 앞 지점을 목표로 설정
-            return hit.point - (direction.normalized * 0.1f);
+            // 원의 중심이 있어야 할 정확한 위치를 반환
+            return hit.centroid;
         }
         return targetPos;
     }
@@ -83,6 +122,12 @@ public class ThrowController : MonoBehaviour
         if (_isWheelActive && selectionWheel != null)
         {
             selectionWheel.UpdateHighlight(CurrentMouseScreenPos);
+        }
+
+        // [수정] 클러스터가 손에 있을 때만 위치 동기화
+        if (_activeCluster != null && _activeCluster.transform.parent == holdPoint)
+        {
+            _activeCluster.transform.localPosition = Vector3.zero;
         }
     }
 
@@ -125,6 +170,16 @@ public class ThrowController : MonoBehaviour
     private void TryPickUpByType(CommandData targetType)
     {
         if (_heldObjects.Count >= maxHoldCount) return;
+
+        // [추가] 중복 타입 체크: 이미 같은 타입을 들고 있다면 줍기 불가
+        foreach (var held in _heldObjects)
+        {
+            if (held is AllyController heldAlly && heldAlly.MinionType == targetType)
+            {
+                Debug.LogWarning($"Already holding {targetType}!");
+                return;
+            }
+        }
 
         float pickUpRadius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, pickUpRadius);
@@ -214,6 +269,19 @@ public class ThrowController : MonoBehaviour
             // 마우스 아래 객체가 IThrowable인지 확인
             if (hovered.TryGetComponent(out IThrowable throwable))
             {
+                // [추가] 중복 타입 체크
+                if (throwable is AllyController ally)
+                {
+                    foreach (var held in _heldObjects)
+                    {
+                        if (held is AllyController heldAlly && heldAlly.MinionType == ally.MinionType)
+                        {
+                            Debug.LogWarning($"Already holding {ally.MinionType}!");
+                            return;
+                        }
+                    }
+                }
+
                 // 거리 체크
                 float dist = Vector2.Distance(transform.position, hovered.transform.position);
                 float pickUpRadius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
@@ -241,15 +309,185 @@ public class ThrowController : MonoBehaviour
         _heldObjects.Add(throwable);
         throwable.OnPickedUp();
 
+        ThrowCluster cluster = GetActiveClusterOrCreate();
+
         if (throwable is MonoBehaviour mb)
         {
-            mb.transform.SetParent(holdPoint);
-            // 쌓기 위치 계산: (Count - 1)을 사용해 0부터 차곡차곡 쌓임
-            mb.transform.localPosition = new Vector3(0, (_heldObjects.Count - 1) * 0.5f, 0);
-            mb.transform.localRotation = Quaternion.identity;
+            mb.transform.SetParent(cluster.transform);
         }
 
         Debug.Log($"Picked up: {obj.name}. Total: {_heldObjects.Count}");
+
+        // 유닛 목록 갱신 및 클러스터 설정 업데이트
+        List<AllyController> allyList = new List<AllyController>();
+        foreach(var item in _heldObjects) if(item is AllyController ally) allyList.Add(ally);
+        cluster.Setup(allyList);
+    }
+
+    public TargetingMode GetCurrentTargetingMode()
+    {
+        if (_heldObjects.Count == 0) return TargetingMode.Self;
+
+        // 우선순위 1: 궁수 (Area)
+        foreach (var obj in _heldObjects)
+        {
+            if (obj is AllyController ally && ally.MinionType == CommandData.SkeletonArcher)
+                return TargetingMode.Area;
+        }
+
+        // 우선순위 2: 전사 (Target)
+        foreach (var obj in _heldObjects)
+        {
+            if (obj is AllyController ally && ally.MinionType == CommandData.SkeletonWarrior)
+                return TargetingMode.Target;
+        }
+
+        return TargetingMode.Self;
+    }
+
+    public Team GetExpectedTargetTeam()
+    {
+        if (_heldObjects.Count == 0) return Team.Enemy;
+
+        bool hasWarrior = false;
+        bool hasShield = false;
+        bool hasMagician = false;
+        bool hasOthers = false;
+
+        foreach (var obj in _heldObjects)
+        {
+            if (obj is AllyController ally)
+            {
+                CommandData type = ally.MinionType;
+                
+                if (type == CommandData.SkeletonWarrior) hasWarrior = true;
+                else if (type == CommandData.SkeletonShieldbearer) hasShield = true;
+                else if (type == CommandData.SkeletonMagician) hasMagician = true;
+                else hasOthers = true; // 궁수, 사제, 창병 등 다른 유닛
+            }
+        }
+
+        // [확장된 조건] 
+        // 1. [전사 + 방패병]만 있을 때
+        // 2. [전사 + 방패병 + 법사]만 있을 때
+        // 이 두 경우에만 아군 타겟
+        bool isSupportCombo = hasWarrior && hasShield && !hasOthers;
+        
+        if (isSupportCombo)
+        {
+            return Team.Ally;
+        }
+
+        // 그 외 모든 상황은 적군 타겟
+        return Team.Enemy;
+    }
+
+    private ThrowRecipe CreateRecipe(Vector2 targetPos, float chargeRatio)
+    {
+        ThrowRecipe recipe = new ThrowRecipe();
+        recipe.impactPoint = targetPos;
+        recipe.chargeRatio = chargeRatio;
+
+        // [수정] DataManager의 Min/Max 범위를 사용하여 차징 비율에 따른 선형 배율 계산
+        float minMult = GameManager.Instance.dataManager.MIN_THROW_CHARGE_MULTIPLIER;
+        float maxMult = GameManager.Instance.dataManager.MAX_THROW_CHARGE_MULTIPLIER;
+        recipe.chargeMultiplier = Mathf.Lerp(minMult, maxMult, chargeRatio);
+
+        if (_heldObjects.Count == 0) return recipe;
+
+        // 0. 타겟팅 모드 결정
+        recipe.targetingMode = GetCurrentTargetingMode();
+        recipe.targetTeam = GetExpectedTargetTeam();
+
+        // 1. 주력 유닛(전사/궁수)의 배율을 모드 배율로 설정
+        AllyController leadUnit = null;
+        if (recipe.targetingMode == TargetingMode.Area)
+        {
+            foreach(var obj in _heldObjects) if(obj is AllyController a && a.MinionType == CommandData.SkeletonArcher) { leadUnit = a; break; }
+        }
+        else if (recipe.targetingMode == TargetingMode.Target)
+        {
+            foreach(var obj in _heldObjects) if(obj is AllyController a && a.MinionType == CommandData.SkeletonWarrior) { leadUnit = a; break; }
+        }
+
+        // 주력 유닛이 있으면 그 배율을 사용, 없으면(Self) 1.0 사용
+        recipe.modeMultiplier = (leadUnit != null) ? leadUnit.MinionData.effectMultiplier : 1.0f;
+
+        // 2. 성질 분석 및 순수 기본값 합산
+        for (int i = 0; i < _heldObjects.Count; i++)
+        {
+            if (_heldObjects[i] is AllyController ally)
+            {
+                CommandData type = ally.MinionType;
+                float baseVal = ally.MinionData.baseEffectValue;
+
+                switch (type)
+                {
+                    case CommandData.SkeletonWarrior:
+                        // 데미지는 전사가 있을 때, 그리고 광역 모드가 아닐 때만 합산
+                        if (recipe.targetingMode != TargetingMode.Area)
+                            recipe.impactDamage += baseVal;
+                        break;
+                    case CommandData.SkeletonArcher: 
+                        recipe.baseAreaRadius = ally.MinionData.baseAreaRadius;
+                        // 데미지는 궁수가 있을 때, 그리고 광역 모드일 때만 합산
+                        if (recipe.targetingMode == TargetingMode.Area)
+                            recipe.impactDamage += baseVal;
+                        break;
+                    case CommandData.SkeletonPriest: 
+                        recipe.hasCC = true; 
+                        recipe.ccBaseValue += baseVal;
+                        break;
+                    case CommandData.SkeletonShieldbearer: 
+                        recipe.hasShield = true; 
+                        recipe.shieldBaseValue += baseVal;
+                        break;
+                    case CommandData.SkeletonSpearman: 
+                        recipe.hasFormation = true; 
+                        recipe.formationBaseValue += baseVal;
+                        break;
+                    case CommandData.SkeletonMagician: 
+                        recipe.magicianCount += Mathf.FloorToInt(baseVal); 
+                        break;
+                }
+            }
+        }
+
+        // 3. 지능적 타겟팅 (Target 모드일 때만, 풀차지가 아닐 때만 수행)
+        if (recipe.targetingMode == TargetingMode.Target && chargeRatio < 0.98f)
+        {
+            recipe.finalTarget = FindSmartTarget(targetPos, recipe.targetTeam);
+            if (recipe.finalTarget != null)
+            {
+                recipe.impactPoint = recipe.finalTarget.transform.position;
+            }
+        }
+
+        return recipe;
+    }
+
+    public GameObject FindSmartTarget(Vector2 searchPos, Team targetTeam)
+    {
+        float searchRadius = 5.0f; // 마우스 주변 우선 탐색 범위
+        LayerMask mask = (targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
+        
+        // 오직 마우스 주변에서만 탐색 수행
+        Collider2D[] colls = Physics2D.OverlapCircleAll(searchPos, searchRadius, mask);
+        GameObject bestTarget = null;
+        float minTargetDist = float.MaxValue;
+
+        foreach (var col in colls)
+        {
+            float dist = Vector2.Distance(searchPos, col.transform.position);
+            if (dist < minTargetDist)
+            {
+                minTargetDist = dist;
+                bestTarget = col.gameObject;
+            }
+        }
+
+        // 전역 탐색(2단계) 제거: 마우스 근처에 없으면 null 반환 -> 스냅 없음 -> 추격 없음
+        return bestTarget;
     }
 
     private void ThrowAll()
@@ -263,72 +501,51 @@ public class ThrowController : MonoBehaviour
         }
 
         float chargeRatio = _chargeTimer / chargeTime;
+        Vector2 startPos = (Vector2)holdPoint.position;
+        Vector2 mouseWorldPos = CurrentMouseWorldPos;
 
-        Vector2 targetPos = GetClampedTargetPos((Vector2)transform.position, CurrentMouseWorldPos);
+        // 새로운 레시피 기반 시스템 적용
+        ThrowRecipe recipe = CreateRecipe(mouseWorldPos, chargeRatio);
 
-        // --- 1. 조합(Combination) 분석 ---
-        AnalyzeCombination(targetPos, chargeRatio);
-
-        // --- 2. 모든 객체 던지기 ---
-        foreach (var throwable in _heldObjects)
+        if (_activeCluster != null)
         {
-            if (throwable == null) continue;
+            List<AllyController> allyList = new List<AllyController>();
+            foreach (var item in _heldObjects) if (item is AllyController ally) allyList.Add(ally);
 
-            if (throwable is MonoBehaviour mb)
+            if (allyList.Count > 0)
             {
-                mb.transform.SetParent(null);
+                _activeCluster.Setup(allyList);
+                _activeCluster.SetRecipe(recipe); // 클러스터에 레시피 전달
+                
+                // [리팩토링] 'Self' 모드인 경우 던지는 즉시 플레이어에게 효과 적용
+                if (recipe.targetingMode == TargetingMode.Self)
+                {
+                    Vector2 selfTravelDir = (mouseWorldPos - startPos).normalized;
+                    GameManager.Instance.dataManager.ProcessThrowImpact(recipe, startPos, selfTravelDir);
+                    recipe.isImmediateApplied = true;
+                }
+
+                AllyController first = allyList[0];
+                float speed = (chargeRatio >= 0.98f) ? first.FullChargeSpeed : Mathf.Lerp(first.MinSpeed, first.MaxSpeed, chargeRatio);
+                
+                // 타겟 모드일 때 최종 목표 지점 사용
+                Vector2 finalTargetPos = GetClampedTargetPos(startPos, recipe.impactPoint);
+                float distance = Vector2.Distance(startPos, finalTargetPos);
+                float duration = distance / speed;
+                float maxHeight = Mathf.Min(Mathf.Lerp(first.JumpHeight, first.StraightHeight, chargeRatio), distance * 0.5f);
+
+                bool isDirect = chargeRatio >= 0.98f;
+                _activeCluster.Launch(startPos, finalTargetPos, duration, maxHeight, isDirect, chargeRatio);
+                
+                _activeCluster = null;
             }
-            throwable.OnThrown(targetPos, chargeRatio);
         }
 
         _heldObjects.Clear();
-        _chargeTimer = 0f; // [수정] 던지기가 끝난 후 타이머를 확실히 리셋
+        _chargeTimer = 0f; 
     }
 
-    private void AnalyzeCombination(Vector2 targetPos, float chargeRatio)
-    {
-        if (_heldObjects.Count < 2) return;
-
-        // IThrowable을 AllyController로 캐스팅 시도
-        AllyController first = _heldObjects[0] as AllyController;
-        AllyController second = _heldObjects[1] as AllyController;
-
-        if (first == null || second == null) return;
-
-        // 1. DataManager를 통해 핵심 조합이 있는지 확인
-        var dataManager = GameManager.Instance.dataManager;
-        ThrowCombinationSO combo = dataManager.GetCombination(first.MinionType, second.MinionType);
-
-        if (combo != null)
-        {
-            Debug.Log($"<color=orange>[Combination Found]</color> {combo.combinationName}!");
-
-            // 2. 서포터 분석 (3번째 유닛부터)
-            List<AllyController> supporters = new List<AllyController>();
-            for (int i = 2; i < _heldObjects.Count; i++)
-            {
-                if (_heldObjects[i] is AllyController supporter)
-                {
-                    if (combo.IsValidSupporter(supporter.MinionType))
-                    {
-                        supporters.Add(supporter);
-                        // 서포터는 자신의 효과를 억제함
-                        supporter.SetCombination(combo, false, null);
-                    }
-                }
-            }
-
-            // 3. 핵심 유닛들 설정
-            // 0번 유닛이 효과를 직접 터뜨리는 'Lead'가 됨
-            first.SetCombination(combo, true, supporters);
-            // 1번 유닛은 조합원이므로 자신의 효과를 억제함
-            second.SetCombination(combo, false, null);
-        }
-        else
-        {
-            Debug.Log("<color=white>[Combination]</color> No valid combination found for this pair.");
-        }
-    }
+    // PlayerDashRoutine 코루틴 제거됨 (CharacterStat.ApplyKnockback으로 통합)
 
     // 동일 종류 여러 명을 던졌을 때의 효과 (기본 효과 강화 등)
     private void HandleSameTypeEffect(CommandData type, int count, Vector2 targetPos, float chargeRatio)

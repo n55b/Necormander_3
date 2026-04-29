@@ -7,13 +7,29 @@ public class DataManager : MonoBehaviour
     [Header("Data Registries")]
     [SerializeField] private MinionRegistrySO minionRegistry;
     [SerializeField] private CombinationRegistrySO combinationRegistry;
-    [SerializeField] private AIPatternSO defaultAIPattern; // 데이터가 없을 때 사용할 기본 AI (예: 전사 패턴)
+    [SerializeField] private ThrowEffectRegistrySO throwEffectRegistry;
+    [SerializeField] private AIPatternSO defaultAIPattern; 
+
+    public ThrowEffectRegistrySO THROW_EFFECT_REGISTRY => throwEffectRegistry;
+    public AIPatternSO DEFAULT_AI_PATTERN => defaultAIPattern;
+
+    [Header("Throw Settings")]
+    [SerializeField] private float minThrowChargeMultiplier = 1.0f;
+    [SerializeField] private float maxThrowChargeMultiplier = 2.0f;
+    
+    public float MIN_THROW_CHARGE_MULTIPLIER => minThrowChargeMultiplier;
+    public float MAX_THROW_CHARGE_MULTIPLIER => maxThrowChargeMultiplier;
+
+    // [성장 요소 반영 예시] 외부에서 최대 배율을 영구적으로 늘릴 때 사용
+    public void IncreaseMaxChargeMultiplier(float amount)
+    {
+        maxThrowChargeMultiplier += amount;
+        Debug.Log($"<color=yellow>[Growth]</color> 최대 투척 배율 증가! 현재: {maxThrowChargeMultiplier}");
+    }
 
     [Header("Economy")]
     [SerializeField] int bonePoint;
-
     public int BONEPOINT => bonePoint;
-    public AIPatternSO DEFAULT_AI_PATTERN => defaultAIPattern;
 
     // 아군 미니언 리스트 반환 (소환 UI 등에서 사용)
     public List<MinionDataSO> ALL_MINION_DATA => minionRegistry != null ? minionRegistry.allyMinionData : null;
@@ -75,9 +91,6 @@ public class DataManager : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// [핵심 조립 함수] 데이터를 기반으로 유닛 프리팹을 생성하고 스탯/AI를 주입하여 반환합니다.
-    /// </summary>
     public GameObject CreateUnit(MinionDataSO data, Vector3 position)
     {
         if (data == null || data.minionPrefab == null)
@@ -86,15 +99,41 @@ public class DataManager : MonoBehaviour
             return null;
         }
 
-        // 1. 외형(Prefab) 생성
         GameObject unitObj = Instantiate(data.minionPrefab, position, Quaternion.identity);
         
-        // 2. 내부 로직(Data) 주입 및 조립
         if (unitObj.TryGetComponent<BaseEntity>(out var entity))
         {
             entity.Initialize(data);
         }
 
         return unitObj;
+    }
+
+    /// <summary>
+    /// [리팩토링] 투척 충격 효과 시퀀스를 시작합니다.
+    /// </summary>
+    public void ProcessThrowImpact(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir)
+    {
+        StartCoroutine(ExecuteImpactRoutine(recipe, impactPos, travelDir));
+    }
+
+    private System.Collections.IEnumerator ExecuteImpactRoutine(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir)
+    {
+        int totalExecutions = recipe.GetTotalExecutionCount();
+        
+        // Area 모드의 경우 첫 프레임에 대상 캐싱 (매 루프마다 연산 방지)
+        List<GameObject> targets = null;
+        if (recipe.targetingMode == TargetingMode.Area)
+        {
+            targets = recipe.ScanAreaTargets(impactPos);
+        }
+
+        for (int i = 0; i < totalExecutions; i++)
+        {
+            recipe.Execute(i, impactPos, travelDir, targets);
+            
+            if (i < totalExecutions - 1)
+                yield return new UnityEngine.WaitForSeconds(0.1f);
+        }
     }
 }

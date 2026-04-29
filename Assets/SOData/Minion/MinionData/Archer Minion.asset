@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 2
   minionName: Skeleton Archer
+  throwEffectCategory: 2
+  baseEffectValue: 10
+  throwDamageMultiplier: 1
+  baseAreaRadius: 5
   maxHP: 100
   attack: 10
   attackSpeed: 1
@@ -23,5 +27,4 @@ MonoBehaviour:
   moveSpeed: 5
   cost: 1
   aiPattern: {fileID: 11400000, guid: d714e9ff20833ad43952e96569b7dd59, type: 2}
-  throwImpact: {fileID: 11400000, guid: b272b76077b040b4593da151a0d65d16, type: 2}
   minionPrefab: {fileID: 2865939037112072981, guid: 2e28171d731181f499e4ee8629806884, type: 3}

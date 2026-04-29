@@ -34,6 +34,7 @@ public class PlayerController : MonoBehaviour
     [Header("이동 변수")]
     [SerializeField] Vector3 MoveDirection = Vector3.zero;
     [SerializeField] Vector2 moveInput = Vector2.zero;
+    public Vector2 MoveInput => moveInput;
 
     private void Awake()
     {

@@ -61,8 +61,25 @@ public class TrajectoryPredictor : MonoBehaviour
         {
             Vector2 startPos = _throwController.HoldPoint.position;
             Vector2 mouseWorldPos = _throwController.CurrentMouseWorldPos;
-            Vector2 targetPos = _throwController.GetClampedTargetPos(startPos, mouseWorldPos);
+            Vector2 targetPos = mouseWorldPos;
+
+            // [추가] 타겟팅 모드에 따른 궤적 스냅 로직 (풀차지가 아닐 때만 수행)
+            TargetingMode mode = _throwController.GetCurrentTargetingMode();
             float chargeRatio = _throwController.CurrentChargeRatio;
+            bool isFullCharge = chargeRatio >= 0.98f;
+
+            if (mode == TargetingMode.Target && !isFullCharge)
+            {
+                Team targetTeam = _throwController.GetExpectedTargetTeam();
+                GameObject smartTarget = _throwController.FindSmartTarget(mouseWorldPos, targetTeam);
+                if (smartTarget != null)
+                {
+                    targetPos = smartTarget.transform.position;
+                }
+            }
+            
+            // [개선] 클러스터의 반지름을 고려한 타겟 지점 계산
+            targetPos = _throwController.GetClampedTargetPos(startPos, targetPos);
 
             DrawTrajectory(startPos, targetPos, chargeRatio);
         }
@@ -132,10 +149,19 @@ public class TrajectoryPredictor : MonoBehaviour
         // 3. 차징 비율에 따른 실시간 물리 수치 계산 및 시각화
         if (isFullCharge)
         {
-            // 풀 차징 상태: 완벽한 직선을 위해 점을 2개만 사용
+            // [개선] 풀차징 상태: 직선 경로상에 적이나 오브젝트가 있는지 추가 체크
+            Vector2 direction = (targetPos - startPos).normalized;
+            float distanceToTarget = Vector2.Distance(startPos, targetPos);
+            
+            int hitMask = LayerMask.GetMask("Enemy", "Object", "Wall", "Obstacle");
+            float radius = (_throwController.ActiveCluster != null) ? _throwController.ActiveCluster.GetCurrentRadius() : 0.35f;
+
+            RaycastHit2D hit = Physics2D.CircleCast(startPos, radius, direction, distanceToTarget, hitMask);
+            Vector2 finalPoint = (hit.collider != null) ? hit.centroid : targetPos;
+
             _lineRenderer.positionCount = 2;
             _lineRenderer.SetPosition(0, (Vector3)startPos);
-            _lineRenderer.SetPosition(1, (Vector3)targetPos);
+            _lineRenderer.SetPosition(1, (Vector3)finalPoint);
             maxHeight = h_straight; 
         }
         else
