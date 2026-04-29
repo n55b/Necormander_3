@@ -786,7 +786,7 @@ MonoBehaviour:
   MoveSpeed: 7
   isDead: 0
   invincible: 0
-  shieldCount: 0
+  shieldAmount: 0
 --- !u!114 &3486934513712333501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -806,7 +806,7 @@ MonoBehaviour:
   trajectoryPredictor: {fileID: 1950478616291504012}
   selectionWheel: {fileID: 0}
   dragThreshold: 50
-  directionMapping: 000000000100000002000000030000000600000005000000
+  directionMapping: 000000000200000001000000030000000600000005000000
 --- !u!114 &6055861653884896251
 MonoBehaviour:
   m_ObjectHideFlags: 0

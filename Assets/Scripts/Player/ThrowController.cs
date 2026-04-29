@@ -324,103 +324,139 @@ public class ThrowController : MonoBehaviour
         cluster.Setup(allyList);
     }
 
+    public TargetingMode GetCurrentTargetingMode()
+    {
+        if (_heldObjects.Count == 0) return TargetingMode.Self;
+
+        // 우선순위 1: 궁수 (Area)
+        foreach (var obj in _heldObjects)
+        {
+            if (obj is AllyController ally && ally.MinionType == CommandData.SkeletonArcher)
+                return TargetingMode.Area;
+        }
+
+        // 우선순위 2: 전사 (Target)
+        foreach (var obj in _heldObjects)
+        {
+            if (obj is AllyController ally && ally.MinionType == CommandData.SkeletonWarrior)
+                return TargetingMode.Target;
+        }
+
+        return TargetingMode.Self;
+    }
+
+    public Team GetExpectedTargetTeam()
+    {
+        if (_heldObjects.Count == 0) return Team.Enemy;
+
+        bool hasWarrior = false;
+        bool hasShield = false;
+        bool hasMagician = false;
+        bool hasOthers = false;
+
+        foreach (var obj in _heldObjects)
+        {
+            if (obj is AllyController ally)
+            {
+                CommandData type = ally.MinionType;
+                
+                if (type == CommandData.SkeletonWarrior) hasWarrior = true;
+                else if (type == CommandData.SkeletonShieldbearer) hasShield = true;
+                else if (type == CommandData.SkeletonMagician) hasMagician = true;
+                else hasOthers = true; // 궁수, 사제, 창병 등 다른 유닛
+            }
+        }
+
+        // [확장된 조건] 
+        // 1. [전사 + 방패병]만 있을 때
+        // 2. [전사 + 방패병 + 법사]만 있을 때
+        // 이 두 경우에만 아군 타겟
+        bool isSupportCombo = hasWarrior && hasShield && !hasOthers;
+        
+        if (isSupportCombo)
+        {
+            return Team.Ally;
+        }
+
+        // 그 외 모든 상황은 적군 타겟
+        return Team.Enemy;
+    }
+
     private ThrowRecipe CreateRecipe(Vector2 targetPos, float chargeRatio)
     {
         ThrowRecipe recipe = new ThrowRecipe();
         recipe.impactPoint = targetPos;
         recipe.chargeRatio = chargeRatio;
 
+        // [수정] DataManager의 Min/Max 범위를 사용하여 차징 비율에 따른 선형 배율 계산
+        float minMult = GameManager.Instance.dataManager.MIN_THROW_CHARGE_MULTIPLIER;
+        float maxMult = GameManager.Instance.dataManager.MAX_THROW_CHARGE_MULTIPLIER;
+        recipe.chargeMultiplier = Mathf.Lerp(minMult, maxMult, chargeRatio);
+
         if (_heldObjects.Count == 0) return recipe;
 
-        // 0. 타겟팅 모드 및 마스터 배율 사전 결정 (줍는 순서 무관)
+        // 0. 타겟팅 모드 결정
+        recipe.targetingMode = GetCurrentTargetingMode();
+        recipe.targetTeam = GetExpectedTargetTeam();
+
+        // 1. 주력 유닛(전사/궁수)의 배율을 모드 배율로 설정
         AllyController leadUnit = null;
-        
-        // 우선순위 1: 궁수 (Area)
-        foreach (var obj in _heldObjects)
+        if (recipe.targetingMode == TargetingMode.Area)
         {
-            if (obj is AllyController ally && ally.MinionType == CommandData.SkeletonArcher)
-            {
-                leadUnit = ally;
-                recipe.targetingMode = TargetingMode.Area;
-                break;
-            }
+            foreach(var obj in _heldObjects) if(obj is AllyController a && a.MinionType == CommandData.SkeletonArcher) { leadUnit = a; break; }
+        }
+        else if (recipe.targetingMode == TargetingMode.Target)
+        {
+            foreach(var obj in _heldObjects) if(obj is AllyController a && a.MinionType == CommandData.SkeletonWarrior) { leadUnit = a; break; }
         }
 
-        // 우선순위 2: 전사 (Target) - 궁수가 없을 때만
-        if (leadUnit == null)
-        {
-            foreach (var obj in _heldObjects)
-            {
-                if (obj is AllyController ally && ally.MinionType == CommandData.SkeletonWarrior)
-                {
-                    leadUnit = ally;
-                    recipe.targetingMode = TargetingMode.Target;
-                    break;
-                }
-            }
-        }
+        // 주력 유닛이 있으면 그 배율을 사용, 없으면(Self) 1.0 사용
+        recipe.modeMultiplier = (leadUnit != null) ? leadUnit.MinionData.effectMultiplier : 1.0f;
 
-        // 우선순위 3: 전사/궁수가 모두 없으면 첫 번째 유닛 기준 Self 모드
-        if (leadUnit == null)
-        {
-            leadUnit = _heldObjects[0] as AllyController;
-            recipe.targetingMode = TargetingMode.Self;
-        }
-
-        // 마스터 배율 설정
-        if (leadUnit != null) recipe.masterMultiplier = leadUnit.MinionData.effectMultiplier;
-
-        // 1. 성질 분석 (Job to Effect Mapping)
+        // 2. 성질 분석 및 순수 기본값 합산
         for (int i = 0; i < _heldObjects.Count; i++)
         {
             if (_heldObjects[i] is AllyController ally)
             {
                 CommandData type = ally.MinionType;
+                float baseVal = ally.MinionData.baseEffectValue;
 
-                // 효과 합산 및 기본 수치 수집
                 switch (type)
                 {
                     case CommandData.SkeletonWarrior:
+                        // 데미지는 전사가 있을 때, 그리고 광역 모드가 아닐 때만 합산
                         if (recipe.targetingMode != TargetingMode.Area)
-                        {
-                            recipe.impactDamage += ally.MinionData.baseEffectValue * ally.MinionData.effectMultiplier;
-                        }
+                            recipe.impactDamage += baseVal;
                         break;
                     case CommandData.SkeletonArcher: 
                         recipe.baseAreaRadius = ally.MinionData.baseAreaRadius;
+                        // 데미지는 궁수가 있을 때, 그리고 광역 모드일 때만 합산
                         if (recipe.targetingMode == TargetingMode.Area)
-                        {
-                            recipe.impactDamage += ally.MinionData.baseEffectValue * ally.MinionData.effectMultiplier;
-                        }
+                            recipe.impactDamage += baseVal;
                         break;
                     case CommandData.SkeletonPriest: 
                         recipe.hasCC = true; 
-                        recipe.ccBaseValue += ally.MinionData.baseEffectValue;
+                        recipe.ccBaseValue += baseVal;
                         break;
                     case CommandData.SkeletonShieldbearer: 
                         recipe.hasShield = true; 
-                        recipe.shieldBaseValue += ally.MinionData.baseEffectValue;
+                        recipe.shieldBaseValue += baseVal;
                         break;
                     case CommandData.SkeletonSpearman: 
                         recipe.hasFormation = true; 
-                        recipe.formationBaseValue += ally.MinionData.baseEffectValue;
+                        recipe.formationBaseValue += baseVal;
                         break;
                     case CommandData.SkeletonMagician: 
-                        recipe.magicianCount += Mathf.FloorToInt(ally.MinionData.baseEffectValue); 
+                        recipe.magicianCount += Mathf.FloorToInt(baseVal); 
                         break;
                 }
             }
         }
 
-        // 2. 타겟 팀 결정: 방패병이 섞여 있으면 무조건 아군, 아니면 적군
-        recipe.targetTeam = recipe.hasShield ? Team.Ally : Team.Enemy;
-
-        // 3. 지능적 타겟팅 (Target 모드일 때)
-        if (recipe.targetingMode == TargetingMode.Target)
+        // 3. 지능적 타겟팅 (Target 모드일 때만, 풀차지가 아닐 때만 수행)
+        if (recipe.targetingMode == TargetingMode.Target && chargeRatio < 0.98f)
         {
             recipe.finalTarget = FindSmartTarget(targetPos, recipe.targetTeam);
-            
-            // [강제 타겟팅] 타겟 모드인데 대상이 없다면 바닥에 던지지 않고 타겟 위치로 강제 고정
             if (recipe.finalTarget != null)
             {
                 recipe.impactPoint = recipe.finalTarget.transform.position;
@@ -430,12 +466,12 @@ public class ThrowController : MonoBehaviour
         return recipe;
     }
 
-    private GameObject FindSmartTarget(Vector2 searchPos, Team targetTeam)
+    public GameObject FindSmartTarget(Vector2 searchPos, Team targetTeam)
     {
         float searchRadius = 5.0f; // 마우스 주변 우선 탐색 범위
         LayerMask mask = (targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
         
-        // 1. 먼저 마우스 주변에서 탐색
+        // 오직 마우스 주변에서만 탐색 수행
         Collider2D[] colls = Physics2D.OverlapCircleAll(searchPos, searchRadius, mask);
         GameObject bestTarget = null;
         float minTargetDist = float.MaxValue;
@@ -450,25 +486,7 @@ public class ThrowController : MonoBehaviour
             }
         }
 
-        // 2. 마우스 주변에 없다면, 맵 전체에서 플레이어와 가장 가까운 타겟 탐색 (강제 추적)
-        if (bestTarget == null)
-        {
-            GameObject[] allPotentialTargets = (targetTeam == Team.Enemy) 
-                ? GameObject.FindGameObjectsWithTag("Enemy") 
-                : GameObject.FindGameObjectsWithTag("Army"); // Player 태그는 별도로 처리 필요할 수 있음
-
-            float minGlobalDist = float.MaxValue;
-            foreach (var target in allPotentialTargets)
-            {
-                float dist = Vector2.Distance(transform.position, target.transform.position);
-                if (dist < minGlobalDist)
-                {
-                    minGlobalDist = dist;
-                    bestTarget = target;
-                }
-            }
-        }
-
+        // 전역 탐색(2단계) 제거: 마우스 근처에 없으면 null 반환 -> 스냅 없음 -> 추격 없음
         return bestTarget;
     }
 
@@ -499,6 +517,14 @@ public class ThrowController : MonoBehaviour
                 _activeCluster.Setup(allyList);
                 _activeCluster.SetRecipe(recipe); // 클러스터에 레시피 전달
                 
+                // [리팩토링] 'Self' 모드인 경우 던지는 즉시 플레이어에게 효과 적용
+                if (recipe.targetingMode == TargetingMode.Self)
+                {
+                    Vector2 selfTravelDir = (mouseWorldPos - startPos).normalized;
+                    GameManager.Instance.dataManager.ProcessThrowImpact(recipe, startPos, selfTravelDir);
+                    recipe.isImmediateApplied = true;
+                }
+
                 AllyController first = allyList[0];
                 float speed = (chargeRatio >= 0.98f) ? first.FullChargeSpeed : Mathf.Lerp(first.MinSpeed, first.MaxSpeed, chargeRatio);
                 
@@ -518,6 +544,8 @@ public class ThrowController : MonoBehaviour
         _heldObjects.Clear();
         _chargeTimer = 0f; 
     }
+
+    // PlayerDashRoutine 코루틴 제거됨 (CharacterStat.ApplyKnockback으로 통합)
 
     // 동일 종류 여러 명을 던졌을 때의 효과 (기본 효과 강화 등)
     private void HandleSameTypeEffect(CommandData type, int count, Vector2 targetPos, float chargeRatio)

@@ -64,7 +64,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionRegistry: {fileID: 11400000, guid: 752586a47e053ee4a9db401ff13044fc, type: 2}
   combinationRegistry: {fileID: 11400000, guid: a71bfa6a8039f4f4eab3237085dfae29, type: 2}
+  throwEffectRegistry: {fileID: 11400000, guid: 3814eaa3076ff6d468ed15dbf6620499, type: 2}
   defaultAIPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
+  minThrowChargeMultiplier: 1
+  maxThrowChargeMultiplier: 2
   bonePoint: 10
 --- !u!114 &8439383967079703593
 MonoBehaviour:

@@ -61,11 +61,25 @@ public class TrajectoryPredictor : MonoBehaviour
         {
             Vector2 startPos = _throwController.HoldPoint.position;
             Vector2 mouseWorldPos = _throwController.CurrentMouseWorldPos;
+            Vector2 targetPos = mouseWorldPos;
+
+            // [추가] 타겟팅 모드에 따른 궤적 스냅 로직 (풀차지가 아닐 때만 수행)
+            TargetingMode mode = _throwController.GetCurrentTargetingMode();
+            float chargeRatio = _throwController.CurrentChargeRatio;
+            bool isFullCharge = chargeRatio >= 0.98f;
+
+            if (mode == TargetingMode.Target && !isFullCharge)
+            {
+                Team targetTeam = _throwController.GetExpectedTargetTeam();
+                GameObject smartTarget = _throwController.FindSmartTarget(mouseWorldPos, targetTeam);
+                if (smartTarget != null)
+                {
+                    targetPos = smartTarget.transform.position;
+                }
+            }
             
             // [개선] 클러스터의 반지름을 고려한 타겟 지점 계산
-            Vector2 targetPos = _throwController.GetClampedTargetPos(startPos, mouseWorldPos);
-            
-            float chargeRatio = _throwController.CurrentChargeRatio;
+            targetPos = _throwController.GetClampedTargetPos(startPos, targetPos);
 
             DrawTrajectory(startPos, targetPos, chargeRatio);
         }

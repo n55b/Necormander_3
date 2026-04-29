@@ -16,4 +16,7 @@ public class ThrowEffectRegistrySO : ScriptableObject
 
     [Header("Formation (창병/넉백)")]
     public GameObject formationAreaVFX;  // 충격 지점 (Area/Target/Self 모두 장판형으로 사용)
+
+    [Header("Basic Impact (기본 데미지 장판)")]
+    public GameObject basicAreaVFX;      // 아무 효과 없이 데미지만 주는 장판 (궁수 등)
 }

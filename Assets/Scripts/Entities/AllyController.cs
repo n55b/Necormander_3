@@ -170,14 +170,20 @@ public class AllyController : BaseEntity, IThrowable
         if (_arcMovement != null) _arcMovement.StartArc(p.duration, p.maxHeight);
     }
 
+    public void SetImpacted(bool value)
+    {
+        _hasImpacted = value;
+    }
+
     public virtual void OnLanded()
     {
-        // [리스크 부여] 착지 시점에 최대 체력의 1/3만큼 고정 데미지 입힘
-        if (_stats != null)
+        // [복구] 효과 발동에 성공한 경우에만 리스크(체력 차감) 적용
+        if (_hasImpacted && _stats != null)
         {
             float fixedDamage = _stats.MAXHP / 3f;
             DamageInfo riskInfo = new DamageInfo(fixedDamage, DamageType.Fixed, gameObject);
             _stats.GetDamage(riskInfo);
+            Debug.Log($"<color=red>[Risk]</color> {gameObject.name} 투척 성공으로 인한 체력 차감: {fixedDamage:F1}");
         }
 
         gameObject.layer = _originalLayer;
@@ -210,8 +216,6 @@ public class AllyController : BaseEntity, IThrowable
         }
 
         if (_runtimeBrain != null) _runtimeBrain.Init(this);
-        
-        Debug.Log($"<color=green>[AllyController]</color> {gameObject.name} 착지 완료");
     }
 
     #endregion
