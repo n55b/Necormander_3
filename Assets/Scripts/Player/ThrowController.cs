@@ -27,6 +27,7 @@ public class ThrowController : MonoBehaviour
     private List<IThrowable> _heldObjects = new List<IThrowable>();
     private float _chargeTimer;
     private bool _isCharging;
+    private Vector3 _defaultHoldLocalPos;
 
     [Header("Radial Menu (Ping System)")]
     [SerializeField] private SelectionWheelUI selectionWheel;
@@ -67,6 +68,47 @@ public class ThrowController : MonoBehaviour
         {
             trajectoryPredictor = GetComponentInChildren<TrajectoryPredictor>();
         }
+
+        if (holdPoint != null)
+        {
+            _defaultHoldLocalPos = holdPoint.localPosition;
+        }
+    }
+
+    /// <summary>
+    /// 특정 타입의 유닛을 현재 집을 수 있는지 확인합니다.
+    /// </summary>
+    public bool CanPickUpType(CommandData targetType)
+    {
+        // 1. 최대치 체크
+        if (_heldObjects.Count >= maxHoldCount) return false;
+
+        // 2. 마법사(Magician) 제한: 첫 번째 유닛으로 집을 수 없음
+        if (targetType == CommandData.SkeletonMagician && _heldObjects.Count == 0)
+        {
+            return false;
+        }
+
+        // 3. 궁수(Archer) vs 전사(Warrior) 혼합 제한
+        bool hasWarrior = false;
+        bool hasArcher = false;
+
+        foreach (var held in _heldObjects)
+        {
+            if (held is AllyController ally)
+            {
+                if (ally.MinionType == CommandData.SkeletonWarrior) hasWarrior = true;
+                else if (ally.MinionType == CommandData.SkeletonArcher) hasArcher = true;
+                
+                // 중복 타입 체크 (이미 로직에 있으나 안전을 위해 포함)
+                if (ally.MinionType == targetType) return false;
+            }
+        }
+
+        if (targetType == CommandData.SkeletonWarrior && hasArcher) return false;
+        if (targetType == CommandData.SkeletonArcher && hasWarrior) return false;
+
+        return true;
     }
 
     /// <summary>
@@ -124,11 +166,77 @@ public class ThrowController : MonoBehaviour
             selectionWheel.UpdateHighlight(CurrentMouseScreenPos);
         }
 
-        // [수정] 클러스터가 손에 있을 때만 위치 동기화
-        if (_activeCluster != null && _activeCluster.transform.parent == holdPoint)
+        // [수정] 클러스터 위치를 벽으로부터 보호하며 동기화
+        UpdateHoldPosition();
+    }
+
+    /// <summary>
+    /// [최종 보정] 클러스터가 금지 구역(Wall, BackGround + 1.0 범위)에 절대 진입할 수 없도록 강제 보정합니다.
+    /// 주변의 모든 벽을 감지하고 반복 보정을 통해 '가장 가까운 공터'를 완벽히 찾아냅니다.
+    /// </summary>
+    private void UpdateHoldPosition()
+    {
+        if (_activeCluster == null || _activeCluster.transform.parent != holdPoint) return;
+
+        // 1. 기준 좌표 및 레이어 설정
+        Vector2 playerPos = (Vector2)transform.position;
+        Vector2 idealWorldPos = (Vector2)holdPoint.position;
+        int forbiddenLayers = LayerMask.GetMask("Wall", "Obstacle", "BackGround");
+        
+        float safetyDistance = 0.75f; // [수정] 벽 표면에서 유지할 최소 안전 거리 (0.5 -> 0.75)
+        float clusterRadius = _activeCluster.GetCurrentRadius();
+        float totalThreshold = clusterRadius + safetyDistance;
+
+        Vector2 currentSafePos = idealWorldPos;
+
+        // 2. Recursive Multi-Wall Solver: 최대 10회 반복하여 모든 겹침을 순차적으로 해결
+        for (int i = 0; i < 10; i++)
         {
-            _activeCluster.transform.localPosition = Vector3.zero;
+            // 현재 위치에서 겹치는 '모든' 금지 구역 콜라이더를 가져옴
+            Collider2D[] hits = Physics2D.OverlapCircleAll(currentSafePos, totalThreshold, forbiddenLayers);
+            if (hits.Length == 0) break; // 더 이상 겹치는 곳이 없으면 탈출 성공
+
+            Vector2 combinedEscape = Vector2.zero;
+
+            foreach (var hit in hits)
+            {
+                Vector2 closest = hit.ClosestPoint(currentSafePos);
+                bool isInside = hit.OverlapPoint(currentSafePos);
+                
+                Vector2 dir;
+                float depth;
+
+                if (isInside)
+                {
+                    // 벽 내부 침범 시: '벽 중심'이 아닌 '플레이어 방향'으로 탈출 (점프 방지 및 안전 보장)
+                    dir = (playerPos - currentSafePos).normalized;
+                    if (dir == Vector2.zero) dir = Vector2.up;
+                    depth = totalThreshold; // 내부일 때는 임계치만큼 크게 밀어냄
+                }
+                else
+                {
+                    // 벽 외부 근접 시: 벽 표면에서 바깥쪽 최단 거리 방향으로 밀어냄
+                    dir = (currentSafePos - closest).normalized;
+                    // 방향을 못 잡으면 플레이어 쪽으로 당김
+                    if (dir.sqrMagnitude < 0.001f) dir = (playerPos - currentSafePos).normalized;
+                    if (dir == Vector2.zero) dir = Vector2.up;
+                    
+                    depth = totalThreshold - Vector2.Distance(currentSafePos, closest);
+                }
+
+                if (depth > 0) combinedEscape += dir * depth;
+            }
+
+            // 계산된 모든 탈출 벡터의 합을 적용하여 위치 보정
+            if (combinedEscape.sqrMagnitude > 0.0001f)
+            {
+                currentSafePos += combinedEscape;
+            }
+            else break;
         }
+
+        // 3. 적용: 확정된 안전 지대로 즉각적이고 부드럽게 이동
+        _activeCluster.transform.position = Vector3.Lerp(_activeCluster.transform.position, (Vector3)currentSafePos, Time.deltaTime * 100f);
     }
 
     public void OnRightClickStarted()
@@ -138,7 +246,14 @@ public class ThrowController : MonoBehaviour
         
         if (selectionWheel != null)
         {
-            selectionWheel.Show(_rightClickStartPos, directionMapping);
+            // 각 타입별 집기 가능 여부 리스트 생성
+            List<bool> availability = new List<bool>();
+            foreach (var type in directionMapping)
+            {
+                availability.Add(CanPickUpType(type));
+            }
+
+            selectionWheel.Show(_rightClickStartPos, directionMapping, availability);
         }
     }
 
@@ -158,7 +273,15 @@ public class ThrowController : MonoBehaviour
             if (dragDist >= dragThreshold && selectedIndex != -1)
             {
                 CommandData targetType = directionMapping[selectedIndex];
-                TryPickUpByType(targetType);
+                // [수정] 집기 가능 여부 최종 확인
+                if (CanPickUpType(targetType))
+                {
+                    TryPickUpByType(targetType);
+                }
+                else
+                {
+                    Debug.LogWarning($"Cannot pick up {targetType} due to restrictions.");
+                }
                 return;
             }
         }
@@ -169,17 +292,9 @@ public class ThrowController : MonoBehaviour
 
     private void TryPickUpByType(CommandData targetType)
     {
-        if (_heldObjects.Count >= maxHoldCount) return;
-
-        // [추가] 중복 타입 체크: 이미 같은 타입을 들고 있다면 줍기 불가
-        foreach (var held in _heldObjects)
-        {
-            if (held is AllyController heldAlly && heldAlly.MinionType == targetType)
-            {
-                Debug.LogWarning($"Already holding {targetType}!");
-                return;
-            }
-        }
+        // [수정] CanPickUpType은 이미 OnRightClickCanceled에서 체크했지만, 
+        // 메서드 자체의 안전성을 위해 내부에서도 한 번 더 체크 (최대치 등)
+        if (!CanPickUpType(targetType)) return;
 
         float pickUpRadius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, pickUpRadius);
@@ -251,13 +366,6 @@ public class ThrowController : MonoBehaviour
     // 외부(PlayerController)에서 호출할 줍기 함수
     public void TryPickUpWithMouse()
     {
-        // 1. 최대치 체크
-        if (_heldObjects.Count >= maxHoldCount)
-        {
-            Debug.LogWarning("Already holding max units!");
-            return;
-        }
-
         IThrowable targetThrowable = null;
         GameObject targetObj = null;
 
@@ -269,16 +377,13 @@ public class ThrowController : MonoBehaviour
             // 마우스 아래 객체가 IThrowable인지 확인
             if (hovered.TryGetComponent(out IThrowable throwable))
             {
-                // [추가] 중복 타입 체크
+                // [수정] CanPickUpType을 사용하여 모든 제한 사항 일괄 체크
                 if (throwable is AllyController ally)
                 {
-                    foreach (var held in _heldObjects)
+                    if (!CanPickUpType(ally.MinionType))
                     {
-                        if (held is AllyController heldAlly && heldAlly.MinionType == ally.MinionType)
-                        {
-                            Debug.LogWarning($"Already holding {ally.MinionType}!");
-                            return;
-                        }
+                        Debug.LogWarning($"Cannot pick up {ally.MinionType} with mouse due to restrictions.");
+                        return;
                     }
                 }
 
@@ -501,7 +606,8 @@ public class ThrowController : MonoBehaviour
         }
 
         float chargeRatio = _chargeTimer / chargeTime;
-        Vector2 startPos = (Vector2)holdPoint.position;
+        // [수정] 보정된 클러스터 위치를 투척 시작점으로 정확히 사용
+        Vector2 startPos = (_activeCluster != null) ? (Vector2)_activeCluster.transform.position : (Vector2)holdPoint.position;
         Vector2 mouseWorldPos = CurrentMouseWorldPos;
 
         // 새로운 레시피 기반 시스템 적용

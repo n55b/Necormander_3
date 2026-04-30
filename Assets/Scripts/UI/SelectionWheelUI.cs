@@ -15,18 +15,22 @@ public class SelectionWheelUI : MonoBehaviour
     [SerializeField] private RectTransform container;
     [SerializeField] private Sprite circleSprite; // 여기에 위에서 만든 Circle 스프라이트를 넣으세요!
     
+    [SerializeField] private Color disabledColor = new Color(0, 0, 0, 0.2f);
+    
     private List<Image> _segments = new List<Image>();
     private List<TextMeshProUGUI> _labelTexts = new List<TextMeshProUGUI>();
+    private List<bool> _availability = new List<bool>();
     private Vector2 _centerPos;
     private int _currentIndex = -1;
     private List<CommandData> _currentTypes;
 
-    public void Show(Vector2 screenPos, List<CommandData> types)
+    public void Show(Vector2 screenPos, List<CommandData> types, List<bool> availability)
     {
         gameObject.SetActive(true);
         container.position = screenPos;
         _centerPos = screenPos;
         _currentTypes = types;
+        _availability = availability;
 
         SetupSegments(types);
         UpdateHighlight(screenPos);
@@ -81,13 +85,15 @@ public class SelectionWheelUI : MonoBehaviour
                 _segments[i].fillAmount = fillAmount;
                 
                 // 조각 회전: 12시 방향이 조각의 정중앙이 되도록 보정
-                // fillOrigin이 Top(12시)이므로, 첫 조각을 시계 반대방향으로 1/2 조각만큼 미리 회전시켜둠
                 float offsetRotation = anglePerSegment / 2f;
                 _segments[i].rectTransform.localRotation = Quaternion.Euler(0, 0, offsetRotation - (i * anglePerSegment));
                 _segments[i].rectTransform.sizeDelta = new Vector2(radius * 2, radius * 2);
                 
-                _segments[i].color = normalColor;
+                // [수정] 집기 가능 여부에 따른 초기 색상 설정
+                bool isAvailable = i < _availability.Count ? _availability[i] : true;
+                _segments[i].color = isAvailable ? normalColor : disabledColor;
                 _labelTexts[i].text = GetShortName(types[i]);
+                _labelTexts[i].color = isAvailable ? new Color(1, 1, 1, 0.5f) : new Color(1, 1, 1, 0.15f);
                 
                 // 텍스트 위치: 각 조각의 중앙 각도 계산
                 float labelAngle = (i * anglePerSegment) * Mathf.Deg2Rad;
@@ -122,6 +128,7 @@ public class SelectionWheelUI : MonoBehaviour
         // 인덱스 계산 (반올림을 통해 각도 범위 매칭)
         int index = Mathf.RoundToInt(angle / anglePerSegment) % count;
 
+        // [수정] 집기 불가능한 항목은 선택(인덱스 유지)은 하되, 시각적 강조는 다르게 처리하거나 아예 하지 않음
         if (_currentIndex != index)
         {
             _currentIndex = index;
@@ -129,9 +136,22 @@ public class SelectionWheelUI : MonoBehaviour
             {
                 if (i < count)
                 {
-                    _segments[i].color = (i == _currentIndex) ? highlightColor : normalColor;
-                    _labelTexts[i].color = (i == _currentIndex) ? Color.white : new Color(1,1,1,0.5f);
-                    _labelTexts[i].rectTransform.localScale = (i == _currentIndex) ? Vector3.one * 1.2f : Vector3.one;
+                    bool isAvailable = i < _availability.Count ? _availability[i] : true;
+                    bool isSelected = (i == _currentIndex);
+
+                    if (isAvailable)
+                    {
+                        _segments[i].color = isSelected ? highlightColor : normalColor;
+                        _labelTexts[i].color = isSelected ? Color.white : new Color(1, 1, 1, 0.5f);
+                        _labelTexts[i].rectTransform.localScale = isSelected ? Vector3.one * 1.2f : Vector3.one;
+                    }
+                    else
+                    {
+                        // 비활성화된 항목은 선택되어도 색상 변화 최소화
+                        _segments[i].color = isSelected ? new Color(0, 0, 0, 0.3f) : disabledColor;
+                        _labelTexts[i].color = new Color(1, 1, 1, 0.15f);
+                        _labelTexts[i].rectTransform.localScale = Vector3.one;
+                    }
                 }
             }
         }
@@ -141,10 +161,11 @@ public class SelectionWheelUI : MonoBehaviour
     {
         for (int i = 0; i < _segments.Count; i++)
         {
-            _segments[i].color = normalColor;
-            if (i < _labelTexts.Count)
+            if (i < _currentTypes.Count)
             {
-                _labelTexts[i].color = new Color(1,1,1,0.5f);
+                bool isAvailable = i < _availability.Count ? _availability[i] : true;
+                _segments[i].color = isAvailable ? normalColor : disabledColor;
+                _labelTexts[i].color = isAvailable ? new Color(1, 1, 1, 0.5f) : new Color(1, 1, 1, 0.15f);
                 _labelTexts[i].rectTransform.localScale = Vector3.one;
             }
         }

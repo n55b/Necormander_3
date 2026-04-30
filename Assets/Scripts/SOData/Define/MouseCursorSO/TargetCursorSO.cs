@@ -23,12 +23,19 @@ public class TargetCursorSO : MouseCursorSO
             {
                 // 1. 원래 상태 저장 (머티리얼과 색상 모두)
                 _originalMaterial = _currentSpr.material;
-                _originalColor = _currentSpr.color;
+                
+                // [수정] 현재 색상이 아닌, CharacterStat이 들고 있는 진짜 원본 색상을 가져옴
+                if (obj.TryGetComponent<CharacterStat>(out var stat))
+                {
+                    _originalColor = stat.OriginalColor;
+                }
+                else
+                {
+                    _originalColor = _currentSpr.color;
+                }
 
                 // 2. 하이라이트 적용
                 _currentSpr.material = _material;
-                
-                // [핵심] 알파값은 1로 고정하여 투명해지는 것을 막고, RGB 값만 높여서 밝게 만듭니다.
                 _currentSpr.color = _highlightColor;
             }
         }

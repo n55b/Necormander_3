@@ -104,19 +104,43 @@ public class ThrowCluster : MonoBehaviour
         }
 
         Vector2 diff = targetPos - startPos;
-        _launchSpeed = diff.magnitude / duration;
+        float dist = diff.magnitude;
+        
+        // [수정] 거리가 너무 가깝거나 시간이 0이면 발사 속도를 0으로 처리하여 NaN 방지
+        _launchSpeed = (duration > 0.001f && dist > 0.001f) ? dist / duration : 0f;
         
         // 타겟이 있고 직구가 아니라면 추적 모드로 발사
-        if (_targetTransform != null && !isDirect)
+        if (_targetTransform != null && !isDirect && _launchSpeed > 0f)
         {
-            _rb.linearVelocity = (targetPos - startPos).normalized * _launchSpeed;
-            _arcMovement.StartTrackingArc(_targetTransform, maxHeight);
+            Vector2 dir = (targetPos - startPos).normalized;
+            if (dir != Vector2.zero)
+            {
+                _rb.linearVelocity = dir * _launchSpeed;
+                _arcMovement.StartTrackingArc(_targetTransform, maxHeight);
+            }
+            else { HandleZeroDistanceLaunch(); }
+        }
+        else if (_launchSpeed > 0f)
+        {
+            Vector2 dir = diff.normalized;
+            if (dir != Vector2.zero)
+            {
+                _rb.linearVelocity = dir * _launchSpeed;
+                _arcMovement.StartArc(duration, maxHeight);
+            }
+            else { HandleZeroDistanceLaunch(); }
         }
         else
         {
-            _rb.linearVelocity = diff.normalized * _launchSpeed;
-            _arcMovement.StartArc(duration, maxHeight);
+            HandleZeroDistanceLaunch();
         }
+    }
+
+    private void HandleZeroDistanceLaunch()
+    {
+        // 사실상 제자리 낙하 처리
+        _rb.linearVelocity = Vector2.zero;
+        OnLanded();
     }
 
     private void Update()
@@ -134,8 +158,16 @@ public class ThrowCluster : MonoBehaviour
             {
                 Vector2 currentPos = transform.position;
                 Vector2 targetPos = _targetTransform.position;
-                Vector2 dir = (targetPos - currentPos).normalized;
-                _rb.linearVelocity = dir * _launchSpeed;
+                Vector2 diff = targetPos - currentPos;
+                if (diff.sqrMagnitude > 0.0001f)
+                {
+                    Vector2 dir = diff.normalized;
+                    Vector2 newVel = dir * _launchSpeed;
+                    if (!float.IsNaN(newVel.x) && !float.IsNaN(newVel.y))
+                    {
+                        _rb.linearVelocity = newVel;
+                    }
+                }
             }
 
             // 비행 중 높이 애니메이션 적용
