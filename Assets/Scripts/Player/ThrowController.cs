@@ -183,7 +183,7 @@ public class ThrowController : MonoBehaviour
         Vector2 idealWorldPos = (Vector2)holdPoint.position;
         int forbiddenLayers = LayerMask.GetMask("Wall", "Obstacle", "BackGround");
         
-        float safetyDistance = 1.0f; // 벽 표면에서 유지할 최소 안전 거리
+        float safetyDistance = 0.75f; // [수정] 벽 표면에서 유지할 최소 안전 거리 (0.5 -> 0.75)
         float clusterRadius = _activeCluster.GetCurrentRadius();
         float totalThreshold = clusterRadius + safetyDistance;
 
