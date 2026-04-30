@@ -27,6 +27,7 @@ public class ThrowController : MonoBehaviour
     private List<IThrowable> _heldObjects = new List<IThrowable>();
     private float _chargeTimer;
     private bool _isCharging;
+    private Vector3 _defaultHoldLocalPos;
 
     [Header("Radial Menu (Ping System)")]
     [SerializeField] private SelectionWheelUI selectionWheel;
@@ -66,6 +67,11 @@ public class ThrowController : MonoBehaviour
         if (trajectoryPredictor == null)
         {
             trajectoryPredictor = GetComponentInChildren<TrajectoryPredictor>();
+        }
+
+        if (holdPoint != null)
+        {
+            _defaultHoldLocalPos = holdPoint.localPosition;
         }
     }
 
@@ -160,11 +166,77 @@ public class ThrowController : MonoBehaviour
             selectionWheel.UpdateHighlight(CurrentMouseScreenPos);
         }
 
-        // [수정] 클러스터가 손에 있을 때만 위치 동기화
-        if (_activeCluster != null && _activeCluster.transform.parent == holdPoint)
+        // [수정] 클러스터 위치를 벽으로부터 보호하며 동기화
+        UpdateHoldPosition();
+    }
+
+    /// <summary>
+    /// [최종 보정] 클러스터가 금지 구역(Wall, BackGround + 1.0 범위)에 절대 진입할 수 없도록 강제 보정합니다.
+    /// 주변의 모든 벽을 감지하고 반복 보정을 통해 '가장 가까운 공터'를 완벽히 찾아냅니다.
+    /// </summary>
+    private void UpdateHoldPosition()
+    {
+        if (_activeCluster == null || _activeCluster.transform.parent != holdPoint) return;
+
+        // 1. 기준 좌표 및 레이어 설정
+        Vector2 playerPos = (Vector2)transform.position;
+        Vector2 idealWorldPos = (Vector2)holdPoint.position;
+        int forbiddenLayers = LayerMask.GetMask("Wall", "Obstacle", "BackGround");
+        
+        float safetyDistance = 1.0f; // 벽 표면에서 유지할 최소 안전 거리
+        float clusterRadius = _activeCluster.GetCurrentRadius();
+        float totalThreshold = clusterRadius + safetyDistance;
+
+        Vector2 currentSafePos = idealWorldPos;
+
+        // 2. Recursive Multi-Wall Solver: 최대 10회 반복하여 모든 겹침을 순차적으로 해결
+        for (int i = 0; i < 10; i++)
         {
-            _activeCluster.transform.localPosition = Vector3.zero;
+            // 현재 위치에서 겹치는 '모든' 금지 구역 콜라이더를 가져옴
+            Collider2D[] hits = Physics2D.OverlapCircleAll(currentSafePos, totalThreshold, forbiddenLayers);
+            if (hits.Length == 0) break; // 더 이상 겹치는 곳이 없으면 탈출 성공
+
+            Vector2 combinedEscape = Vector2.zero;
+
+            foreach (var hit in hits)
+            {
+                Vector2 closest = hit.ClosestPoint(currentSafePos);
+                bool isInside = hit.OverlapPoint(currentSafePos);
+                
+                Vector2 dir;
+                float depth;
+
+                if (isInside)
+                {
+                    // 벽 내부 침범 시: '벽 중심'이 아닌 '플레이어 방향'으로 탈출 (점프 방지 및 안전 보장)
+                    dir = (playerPos - currentSafePos).normalized;
+                    if (dir == Vector2.zero) dir = Vector2.up;
+                    depth = totalThreshold; // 내부일 때는 임계치만큼 크게 밀어냄
+                }
+                else
+                {
+                    // 벽 외부 근접 시: 벽 표면에서 바깥쪽 최단 거리 방향으로 밀어냄
+                    dir = (currentSafePos - closest).normalized;
+                    // 방향을 못 잡으면 플레이어 쪽으로 당김
+                    if (dir.sqrMagnitude < 0.001f) dir = (playerPos - currentSafePos).normalized;
+                    if (dir == Vector2.zero) dir = Vector2.up;
+                    
+                    depth = totalThreshold - Vector2.Distance(currentSafePos, closest);
+                }
+
+                if (depth > 0) combinedEscape += dir * depth;
+            }
+
+            // 계산된 모든 탈출 벡터의 합을 적용하여 위치 보정
+            if (combinedEscape.sqrMagnitude > 0.0001f)
+            {
+                currentSafePos += combinedEscape;
+            }
+            else break;
         }
+
+        // 3. 적용: 확정된 안전 지대로 즉각적이고 부드럽게 이동
+        _activeCluster.transform.position = Vector3.Lerp(_activeCluster.transform.position, (Vector3)currentSafePos, Time.deltaTime * 100f);
     }
 
     public void OnRightClickStarted()
@@ -534,7 +606,8 @@ public class ThrowController : MonoBehaviour
         }
 
         float chargeRatio = _chargeTimer / chargeTime;
-        Vector2 startPos = (Vector2)holdPoint.position;
+        // [수정] 보정된 클러스터 위치를 투척 시작점으로 정확히 사용
+        Vector2 startPos = (_activeCluster != null) ? (Vector2)_activeCluster.transform.position : (Vector2)holdPoint.position;
         Vector2 mouseWorldPos = CurrentMouseWorldPos;
 
         // 새로운 레시피 기반 시스템 적용

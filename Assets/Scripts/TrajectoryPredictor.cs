@@ -59,7 +59,11 @@ public class TrajectoryPredictor : MonoBehaviour
         // 2. 던지기 가이드 표시 (활성화 상태일 때만)
         if (_lineRenderer.enabled)
         {
-            Vector2 startPos = _throwController.HoldPoint.position;
+            // [수정] 궤적 시작점을 보정된 클러스터 위치와 동기화
+            Vector2 startPos = (_throwController.ActiveCluster != null) 
+                ? (Vector2)_throwController.ActiveCluster.transform.position 
+                : (Vector2)_throwController.HoldPoint.position;
+                
             Vector2 mouseWorldPos = _throwController.CurrentMouseWorldPos;
             Vector2 targetPos = mouseWorldPos;
 
