@@ -89,8 +89,8 @@ public class AllyController : BaseEntity, IThrowable
         // [추가] 다음 투척을 위해 충돌 여부 리셋
         _hasImpacted = false;
 
-        // [추가] 피격 연출 등으로 색상이 변해있을 경우를 대비해 기본색으로 강제 복구
-        if (_sr != null) _sr.color = Color.white;
+        // [수정] 피격 연출 코루틴이 실행 중일 경우를 대비해 강제 리셋
+        if (_stats != null) _stats.ResetVisualFeedback();
 
         if (_rb != null) _rb.simulated = false;
         if (_collider != null) _collider.enabled = false;

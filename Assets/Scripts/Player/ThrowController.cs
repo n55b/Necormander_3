@@ -70,6 +70,42 @@ public class ThrowController : MonoBehaviour
     }
 
     /// <summary>
+    /// 특정 타입의 유닛을 현재 집을 수 있는지 확인합니다.
+    /// </summary>
+    public bool CanPickUpType(CommandData targetType)
+    {
+        // 1. 최대치 체크
+        if (_heldObjects.Count >= maxHoldCount) return false;
+
+        // 2. 마법사(Magician) 제한: 첫 번째 유닛으로 집을 수 없음
+        if (targetType == CommandData.SkeletonMagician && _heldObjects.Count == 0)
+        {
+            return false;
+        }
+
+        // 3. 궁수(Archer) vs 전사(Warrior) 혼합 제한
+        bool hasWarrior = false;
+        bool hasArcher = false;
+
+        foreach (var held in _heldObjects)
+        {
+            if (held is AllyController ally)
+            {
+                if (ally.MinionType == CommandData.SkeletonWarrior) hasWarrior = true;
+                else if (ally.MinionType == CommandData.SkeletonArcher) hasArcher = true;
+                
+                // 중복 타입 체크 (이미 로직에 있으나 안전을 위해 포함)
+                if (ally.MinionType == targetType) return false;
+            }
+        }
+
+        if (targetType == CommandData.SkeletonWarrior && hasArcher) return false;
+        if (targetType == CommandData.SkeletonArcher && hasWarrior) return false;
+
+        return true;
+    }
+
+    /// <summary>
     /// 현재 손에 든 클러스터를 반환하거나, 없으면 새로 생성합니다.
     /// </summary>
     private ThrowCluster GetActiveClusterOrCreate()
@@ -138,7 +174,14 @@ public class ThrowController : MonoBehaviour
         
         if (selectionWheel != null)
         {
-            selectionWheel.Show(_rightClickStartPos, directionMapping);
+            // 각 타입별 집기 가능 여부 리스트 생성
+            List<bool> availability = new List<bool>();
+            foreach (var type in directionMapping)
+            {
+                availability.Add(CanPickUpType(type));
+            }
+
+            selectionWheel.Show(_rightClickStartPos, directionMapping, availability);
         }
     }
 
@@ -158,7 +201,15 @@ public class ThrowController : MonoBehaviour
             if (dragDist >= dragThreshold && selectedIndex != -1)
             {
                 CommandData targetType = directionMapping[selectedIndex];
-                TryPickUpByType(targetType);
+                // [수정] 집기 가능 여부 최종 확인
+                if (CanPickUpType(targetType))
+                {
+                    TryPickUpByType(targetType);
+                }
+                else
+                {
+                    Debug.LogWarning($"Cannot pick up {targetType} due to restrictions.");
+                }
                 return;
             }
         }
@@ -169,17 +220,9 @@ public class ThrowController : MonoBehaviour
 
     private void TryPickUpByType(CommandData targetType)
     {
-        if (_heldObjects.Count >= maxHoldCount) return;
-
-        // [추가] 중복 타입 체크: 이미 같은 타입을 들고 있다면 줍기 불가
-        foreach (var held in _heldObjects)
-        {
-            if (held is AllyController heldAlly && heldAlly.MinionType == targetType)
-            {
-                Debug.LogWarning($"Already holding {targetType}!");
-                return;
-            }
-        }
+        // [수정] CanPickUpType은 이미 OnRightClickCanceled에서 체크했지만, 
+        // 메서드 자체의 안전성을 위해 내부에서도 한 번 더 체크 (최대치 등)
+        if (!CanPickUpType(targetType)) return;
 
         float pickUpRadius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, pickUpRadius);
@@ -251,13 +294,6 @@ public class ThrowController : MonoBehaviour
     // 외부(PlayerController)에서 호출할 줍기 함수
     public void TryPickUpWithMouse()
     {
-        // 1. 최대치 체크
-        if (_heldObjects.Count >= maxHoldCount)
-        {
-            Debug.LogWarning("Already holding max units!");
-            return;
-        }
-
         IThrowable targetThrowable = null;
         GameObject targetObj = null;
 
@@ -269,16 +305,13 @@ public class ThrowController : MonoBehaviour
             // 마우스 아래 객체가 IThrowable인지 확인
             if (hovered.TryGetComponent(out IThrowable throwable))
             {
-                // [추가] 중복 타입 체크
+                // [수정] CanPickUpType을 사용하여 모든 제한 사항 일괄 체크
                 if (throwable is AllyController ally)
                 {
-                    foreach (var held in _heldObjects)
+                    if (!CanPickUpType(ally.MinionType))
                     {
-                        if (held is AllyController heldAlly && heldAlly.MinionType == ally.MinionType)
-                        {
-                            Debug.LogWarning($"Already holding {ally.MinionType}!");
-                            return;
-                        }
+                        Debug.LogWarning($"Cannot pick up {ally.MinionType} with mouse due to restrictions.");
+                        return;
                     }
                 }
 
