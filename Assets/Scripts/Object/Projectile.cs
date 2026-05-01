@@ -44,7 +44,10 @@ public class Projectile : MonoBehaviour
         // 2. 타겟 레이어(적군)와 충돌 체크
         if ((_targetLayer.value & (1 << other.gameObject.layer)) != 0)
         {
-            if (other.TryGetComponent<CharacterStat>(out var targetStat))
+            // [수정] 자식 오브젝트에 배치된 Stat을 찾을 수 있도록 GetComponentInChildren 사용
+            CharacterStat targetStat = other.GetComponentInChildren<CharacterStat>();
+            
+            if (targetStat != null)
             {
                 DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter);
                 targetStat.GetDamage(info);

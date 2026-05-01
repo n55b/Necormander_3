@@ -11,7 +11,7 @@ public enum Team
 /// 모든 아군과 적군 유닛의 공통 기반 클래스입니다.
 /// 통합 AI 패턴(AIPatternSO)을 통해 유닛의 행동을 제어합니다.
 /// </summary>
-[RequireComponent(typeof(CharacterStat), typeof(NearestTargetFinder))]
+[RequireComponent(typeof(NearestTargetFinder))]
 public abstract class BaseEntity : MonoBehaviour
 {
     [Header("팀 설정")]
@@ -43,7 +43,9 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual void Awake()
     {
-        _stats = GetComponent<CharacterStat>();
+        _stats = GetComponentInChildren<CharacterStat>();
+        if (_stats != null) _stats.Setup(); // [추가] 중앙집중식 초기화 강제 호출
+
         _nearestFinder = GetComponent<NearestTargetFinder>();
         _rb = GetComponent<Rigidbody2D>();
         _agent = GetComponent<NavMeshAgent>();
@@ -148,7 +150,10 @@ public abstract class BaseEntity : MonoBehaviour
     protected bool IsTargetInvalid(Transform target)
     {
         if (target == null) return true;
-        if (target.TryGetComponent<CharacterStat>(out var stat))
+        
+        // [수정] 자식 오브젝트에서 Stat 탐색
+        CharacterStat stat = target.GetComponentInChildren<CharacterStat>();
+        if (stat != null)
         {
             return stat.IsDead || stat.Invincible;
         }
@@ -160,10 +165,15 @@ public abstract class BaseEntity : MonoBehaviour
     // 공격 실행 시 호출 (각 유닛의 특수 공격 로직은 여기서 구현)
     public virtual void ExecuteAttack(Transform target)
     {
-        if (target != null && target.TryGetComponent<CharacterStat>(out var targetStat))
+        if (target != null)
         {
-            DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject);
-            targetStat.GetDamage(info);
+            // [수정] 자식 오브젝트에서 Stat 탐색
+            CharacterStat targetStat = target.GetComponentInChildren<CharacterStat>();
+            if (targetStat != null)
+            {
+                DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject);
+                targetStat.GetDamage(info);
+            }
         }
     }
 }
