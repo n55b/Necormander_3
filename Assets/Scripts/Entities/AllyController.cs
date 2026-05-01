@@ -37,14 +37,6 @@ public class AllyController : BaseEntity, IThrowable
     private bool _hasImpacted = false;
     private bool _isDirectThrow = false;
 
-    private ThrowCombinationSO _activeCombination;
-    private bool _isCombinationLead = false;
-    private List<AllyController> _combinationSupporters;
-
-    public ThrowCombinationSO ActiveCombination => _activeCombination;
-    public bool IsCombinationLead => _isCombinationLead;
-    public List<AllyController> CombinationSupporters => _combinationSupporters;
-
     protected override void Awake()
     {
         base.Awake();
@@ -94,13 +86,6 @@ public class AllyController : BaseEntity, IThrowable
         if (_rb != null) _rb.simulated = false;
         if (_collider != null) _collider.enabled = false;
         if (_agent != null) _agent.enabled = false;
-    }
-
-    public void SetCombination(ThrowCombinationSO combo, bool isLead, List<AllyController> supporters)
-    {
-        _activeCombination = combo;
-        _isCombinationLead = isLead;
-        _combinationSupporters = supporters;
     }
 
     /// <summary>
@@ -197,10 +182,6 @@ public class AllyController : BaseEntity, IThrowable
             if (UnityEngine.AI.NavMesh.SamplePosition(transform.position, out UnityEngine.AI.NavMeshHit hit, 1.0f, UnityEngine.AI.NavMesh.AllAreas))
                 _agent.Warp(hit.position);
         }
-
-        _activeCombination = null;
-        _isCombinationLead = false;
-        _combinationSupporters = null;
 
         if (_rb != null)
         {

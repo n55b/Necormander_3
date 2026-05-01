@@ -9,7 +9,6 @@ public class DataManager : MonoBehaviour
 {
     [Header("Data Registries")]
     [SerializeField] private MinionRegistrySO minionRegistry;
-    [SerializeField] private CombinationRegistrySO combinationRegistry;
     [SerializeField] private ThrowEffectRegistrySO throwEffectRegistry;
     [SerializeField] private AIPatternSO defaultAIPattern; 
 
@@ -26,16 +25,6 @@ public class DataManager : MonoBehaviour
     public void Initialize()
     {
         Debug.Log("<color=green>[DataManager]</color> Initialized.");
-    }
-
-    public ThrowCombinationSO GetCombination(CommandData type1, CommandData type2)
-    {
-        if (combinationRegistry == null) return null;
-        foreach (var combo in combinationRegistry.allCombinations)
-        {
-            if (combo.IsMatch(type1, type2)) return combo;
-        }
-        return null;
     }
 
     public MinionDataSO GetMinionData(CommandData type)
