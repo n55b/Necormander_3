@@ -38,10 +38,10 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        // 동일 오브젝트에서 ThrowController를 자동으로 찾아 할당
+        // 동일 오브젝트 또는 자식 오브젝트에서 ThrowController를 찾아 할당
         if (throwController == null)
         {
-            throwController = GetComponent<ThrowController>();
+            throwController = GetComponentInChildren<ThrowController>();
         }
     }
 

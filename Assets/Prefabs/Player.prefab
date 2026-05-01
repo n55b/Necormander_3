@@ -1,5 +1,100 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &368778737109813864
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4138099453950660536}
+  - component: {fileID: 5596731991387463907}
+  - component: {fileID: 2533774752874665119}
+  - component: {fileID: 2025324686124334797}
+  - component: {fileID: 5733279268673390682}
+  m_Layer: 8
+  m_Name: ThrowSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4138099453950660536
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368778737109813864}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1604435047591240911}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5596731991387463907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368778737109813864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d09b400460089d443a1381eb66863ec5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHoldCount: 5
+  holdPoint: {fileID: 1334913734161187280}
+  clusterPrefab: {fileID: 7916150823758314427, guid: fb3f0d472a552d64fa46efc25c8355c3, type: 3}
+  trajectoryPredictor: {fileID: 1950478616291504012}
+  selectionWheel: {fileID: 4792522433115944391, guid: b66dc36b7002c0d42b59b1b6dd0abdbf, type: 3}
+  chargeTime: 1
+  dragThreshold: 50
+  directionMapping: 000000000200000001000000030000000600000005000000
+  _input: {fileID: 2533774752874665119}
+  _physics: {fileID: 2025324686124334797}
+  _strategy: {fileID: 5733279268673390682}
+--- !u!114 &2533774752874665119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368778737109813864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 280a5d9b1af4b1f4da107f120ab0f6fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2025324686124334797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368778737109813864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9654d4cff5f3bfe4fb71c5beb96b31eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  safetyDistance: 0.75
+--- !u!114 &5733279268673390682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368778737109813864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50468331b767d5342adf78b78f3fe3a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1851974782102612275
 GameObject:
   m_ObjectHideFlags: 0
@@ -527,6 +622,7 @@ Transform:
   - {fileID: 1334913734161187280}
   - {fileID: 8779702235576999204}
   - {fileID: 1960345371147670449}
+  - {fileID: 4138099453950660536}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5957193516619015013
@@ -799,14 +895,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d09b400460089d443a1381eb66863ec5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chargeTime: 1
   maxHoldCount: 5
   holdPoint: {fileID: 1334913734161187280}
   clusterPrefab: {fileID: 7916150823758314427, guid: fb3f0d472a552d64fa46efc25c8355c3, type: 3}
   trajectoryPredictor: {fileID: 1950478616291504012}
   selectionWheel: {fileID: 0}
+  chargeTime: 1
   dragThreshold: 50
   directionMapping: 000000000200000001000000030000000600000005000000
+  _input: {fileID: 0}
+  _physics: {fileID: 0}
+  _strategy: {fileID: 0}
 --- !u!114 &6055861653884896251
 MonoBehaviour:
   m_ObjectHideFlags: 0
