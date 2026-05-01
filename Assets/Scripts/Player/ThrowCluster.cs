@@ -240,34 +240,36 @@ public class ThrowCluster : MonoBehaviour
 
         if (_activeRecipe != null)
         {
-            // 1. Self 모드: 던지는 즉시 발동되었으므로 무조건 성공
-            if (_activeRecipe.targetingMode == TargetingMode.Self)
+            // [개선] 벽 레이어 체크 (착지 지점에 벽이 있다면 실패 처리)
+            int wallMask = LayerMask.GetMask("Wall", "Obstacle");
+            bool hitWall = Physics2D.OverlapCircle(transform.position, GetCurrentRadius() * 0.8f, wallMask);
+
+            if (!hitWall)
             {
-                isImpactSuccess = true;
+                // 1. Self 모드: 던지는 즉시 발동되었으므로 무조건 성공
+                if (_activeRecipe.targetingMode == TargetingMode.Self)
+                {
+                    isImpactSuccess = true;
+                }
+                // 2. Area 모드: 지면에 닿으면 무조건 발동
+                else if (_activeRecipe.targetingMode == TargetingMode.Area)
+                {
+                    isImpactSuccess = true;
+                }
+                // 3. Target 모드: 최종 타겟이 지정되어 있어야 성공
+                else if (_activeRecipe.targetingMode == TargetingMode.Target && _activeRecipe.finalTarget != null)
+                {
+                    isImpactSuccess = true;
+                }
             }
-            // 2. Area 모드: 지면에 닿으면 무조건 발동 (벽 충돌 제외는 아래 logic에서 처리)
-            else if (_activeRecipe.targetingMode == TargetingMode.Area)
+            else
             {
-                isImpactSuccess = true;
-            }
-            // 3. Target 모드: 최종 타겟이 지정되어 있어야 성공
-            else if (_activeRecipe.targetingMode == TargetingMode.Target && _activeRecipe.finalTarget != null)
-            {
-                isImpactSuccess = true;
+                Debug.Log("<color=orange>[ThrowCluster]</color> Hit Wall! Impact Failed.");
             }
         }
 
-        // [추가] 만약 벽에 부딪혀서 멈춘 것이라면 무조건 실패 처리 (벽 레이어 체크)
-        // (StopArc가 호출되어 여기 왔을 때, 주변에 벽이 있는지 확인)
-        int wallMask = LayerMask.GetMask("Wall", "Obstacle");
-        if (Physics2D.OverlapCircle(transform.position, GetCurrentRadius(), wallMask))
-        {
-            isImpactSuccess = false;
-            Debug.Log("<color=orange>[ThrowCluster]</color> Hit Wall! Impact Failed.");
-        }
-
-        // 효과 처리를 DataManager에 위임 (성공했을 때만, 그리고 즉시발동이 아닐 때만)
-        if (isImpactSuccess && _activeRecipe != null && !_activeRecipe.isImmediateApplied)
+        // [수정] 효과 처리는 ThrowImpactManager가 담당합니다.
+        if (isImpactSuccess && _activeRecipe != null && !_activeRecipe.isImmediateApplied && GameManager.Instance != null && GameManager.Instance.throwImpactManager != null)
         {
             GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, transform.position, _lastTravelDir);
         }

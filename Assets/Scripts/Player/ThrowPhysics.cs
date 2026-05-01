@@ -27,7 +27,7 @@ public class ThrowPhysics : MonoBehaviour
 
     public void UpdateHoldPosition(ThrowCluster activeCluster, Vector2 playerPos)
     {
-        if (activeCluster == null || _controller.HoldPoint == null || activeCluster.transform.parent != _controller.HoldPoint) return;
+        if (activeCluster == null || _controller.HoldPoint == null) return;
 
         Vector2 idealWorldPos = (Vector2)_controller.HoldPoint.position;
         int forbiddenLayers = LayerMask.GetMask("Wall", "Obstacle", "BackGround");

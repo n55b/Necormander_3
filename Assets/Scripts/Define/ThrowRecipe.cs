@@ -185,6 +185,9 @@ public class ThrowRecipe
 
     private void ApplyLogicToTarget(GameObject target, Vector2 impactPos, Vector2 travelDir)
     {
+        if (target == null) return;
+        if (GameManager.Instance == null || GameManager.Instance.dataManager == null) return;
+
         ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
         
         if (target.TryGetComponent<BaseEntity>(out var entity))

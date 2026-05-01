@@ -82,9 +82,12 @@ public class ThrowController : MonoBehaviour
         if (trajectoryPredictor != null) trajectoryPredictor.Init(this);
     }
 
-    private void Update()
+    private void LateUpdate()
     {
-        if (_activeCluster != null) _physics.UpdateHoldPosition(_activeCluster, (Vector2)transform.position);
+        if (_activeCluster != null && _activeCluster.transform.parent == holdPoint)
+        {
+            _physics.UpdateHoldPosition(_activeCluster, (Vector2)transform.position);
+        }
     }
 
     public void OnRightClickStarted() => _input.OnRightClickStarted();
