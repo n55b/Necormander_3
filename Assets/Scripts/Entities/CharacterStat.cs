@@ -353,7 +353,7 @@ public class CharacterStat : MonoBehaviour
     private void Die()
     {
         isDead = true;
-        if (GameManager.Instance != null && GameManager.Instance.dataManager != null)
+        if (GameManager.Instance != null && GameManager.Instance.economyManager != null)
         {
             if (TryGetComponent<BaseEntity>(out var entity))
             {
@@ -361,7 +361,7 @@ public class CharacterStat : MonoBehaviour
                 bool isEnemy = entity.team == Team.Enemy;
                 if (isMinion || isEnemy)
                 {
-                    GameManager.Instance.dataManager.AddBonePoint(1);
+                    GameManager.Instance.economyManager.AddBonePoint(1);
                 }
             }
         }

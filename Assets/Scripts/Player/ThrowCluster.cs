@@ -269,7 +269,7 @@ public class ThrowCluster : MonoBehaviour
         // 효과 처리를 DataManager에 위임 (성공했을 때만, 그리고 즉시발동이 아닐 때만)
         if (isImpactSuccess && _activeRecipe != null && !_activeRecipe.isImmediateApplied)
         {
-            GameManager.Instance.dataManager.ProcessThrowImpact(_activeRecipe, transform.position, _lastTravelDir);
+            GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, transform.position, _lastTravelDir);
         }
 
         // 유닛들에게 결과 알림 및 지상 복구

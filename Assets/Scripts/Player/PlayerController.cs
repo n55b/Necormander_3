@@ -31,6 +31,22 @@ public class PlayerController : MonoBehaviour
     [Header("플레이어 상태")]
     [SerializeField] PlayerStates P_State = PlayerStates.Idle;
 
+    [Header("던지기 배율 설정")]
+    [SerializeField] private float minThrowChargeMultiplier = 1.0f;
+    [SerializeField] private float maxThrowChargeMultiplier = 2.0f;
+
+    public float GetThrowChargeMultiplier(float ratio)
+    {
+        return Mathf.Lerp(minThrowChargeMultiplier, maxThrowChargeMultiplier, ratio);
+    }
+
+    // 최대 배율 증가 (업그레이드 등에서 사용)
+    public void IncreaseMaxChargeMultiplier(float amount)
+    {
+        maxThrowChargeMultiplier += amount;
+        Debug.Log($"<color=yellow>[Growth]</color> 최대 투척 배율 증가! 현재: {maxThrowChargeMultiplier}");
+    }
+
     [Header("이동 변수")]
     [SerializeField] Vector3 MoveDirection = Vector3.zero;
     [SerializeField] Vector2 moveInput = Vector2.zero;
@@ -94,10 +110,18 @@ public class PlayerController : MonoBehaviour
                 // 소환시 필요 재화 계산
                 if (data.cost == 0)
                 {
-                    Debug.Log("cost가 0이므로 오류가 생김");
+                    Debug.LogError($"<color=red>[PlayerController]</color> {data.minionName}의 소환 비용(Cost)이 0으로 설정되어 있습니다!");
+                }
+                
+                int finalSummonCount = GameManager.Instance.economyManager.CalculateAffordableSummonCount(summonNum, data.cost);
+                Debug.Log($"<color=white>[Summon Request]</color> Type: {selectedType}, Requested: {summonNum}, Affordable: {finalSummonCount}");
+
+                if (finalSummonCount <= 0)
+                {
+                    Debug.LogWarning("<color=orange>[Summon Failed]</color> 자원이 부족하거나 소환할 수 없는 상태입니다.");
+                    sumController.ResetSummonMode();
                     return;
                 }
-                int finalSummonCount = GameManager.Instance.dataManager.CalculateBonepoint(summonNum, data.cost);
 
                 List<Vector2> pos = sumController.GetSummonPositions2D(finalSummonCount, summonRange);
 

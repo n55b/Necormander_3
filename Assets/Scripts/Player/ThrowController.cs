@@ -79,6 +79,7 @@ public class ThrowController : MonoBehaviour
         _strategy.Init(this);
 
         if (trajectoryPredictor == null) trajectoryPredictor = GetComponentInChildren<TrajectoryPredictor>();
+        if (trajectoryPredictor != null) trajectoryPredictor.Init(this);
     }
 
     private void Update()
@@ -168,7 +169,7 @@ public class ThrowController : MonoBehaviour
                 _activeCluster.SetRecipe(recipe);
                 if (recipe.targetingMode == TargetingMode.Self)
                 {
-                    GameManager.Instance.dataManager.ProcessThrowImpact(recipe, startPos, (mousePos - startPos).normalized);
+                    GameManager.Instance.throwImpactManager.ProcessThrowImpact(recipe, startPos, (mousePos - startPos).normalized);
                     recipe.isImmediateApplied = true;
                 }
                 AllyController first = allyList[0];

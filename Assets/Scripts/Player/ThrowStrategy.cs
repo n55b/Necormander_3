@@ -78,9 +78,8 @@ public class ThrowStrategy : MonoBehaviour
         recipe.impactPoint = targetPos;
         recipe.chargeRatio = chargeRatio;
 
-        float minMult = GameManager.Instance.dataManager.MIN_THROW_CHARGE_MULTIPLIER;
-        float maxMult = GameManager.Instance.dataManager.MAX_THROW_CHARGE_MULTIPLIER;
-        recipe.chargeMultiplier = Mathf.Lerp(minMult, maxMult, chargeRatio);
+        // 플레이어 컨트롤러로부터 계산된 배율을 가져옴
+        recipe.chargeMultiplier = GameManager.Instance.PLAYERCONTROLLER.GetThrowChargeMultiplier(chargeRatio);
 
         if (heldObjects.Count == 0) return recipe;
 

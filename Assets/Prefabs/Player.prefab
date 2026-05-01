@@ -592,7 +592,7 @@ GameObject:
   - component: {fileID: 7993269466842838964}
   - component: {fileID: 7972545975472383977}
   - component: {fileID: 544081507106253165}
-  - component: {fileID: 3486934513712333501}
+  - component: {fileID: 5091594321170766565}
   - component: {fileID: 6055861653884896251}
   - component: {fileID: 3671673066107762978}
   - component: {fileID: 2140691029848297597}
@@ -855,10 +855,12 @@ MonoBehaviour:
   TrackingCollider: {fileID: 7812045167050644549}
   allyManager: {fileID: 6055861653884896251}
   sumController: {fileID: 2140691029848297597}
-  throwController: {fileID: 3486934513712333501}
+  throwController: {fileID: 5596731991387463907}
   summonNum: 3
   summonRange: 5
   P_State: 0
+  minThrowChargeMultiplier: 1
+  maxThrowChargeMultiplier: 2
   MoveDirection: {x: 0, y: 0, z: 0}
   moveInput: {x: 0, y: 0}
 --- !u!114 &544081507106253165
@@ -882,8 +884,7 @@ MonoBehaviour:
   MoveSpeed: 7
   isDead: 0
   invincible: 0
-  totalShieldAmount: 0
---- !u!114 &3486934513712333501
+--- !u!114 &5091594321170766565
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -892,20 +893,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 8389716956321753658}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d09b400460089d443a1381eb66863ec5, type: 3}
+  m_Script: {fileID: 11500000, guid: e3b26b0faad760349b42279379ed08e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHoldCount: 5
-  holdPoint: {fileID: 1334913734161187280}
-  clusterPrefab: {fileID: 7916150823758314427, guid: fb3f0d472a552d64fa46efc25c8355c3, type: 3}
-  trajectoryPredictor: {fileID: 1950478616291504012}
-  selectionWheel: {fileID: 0}
-  chargeTime: 1
-  dragThreshold: 50
-  directionMapping: 000000000200000001000000030000000600000005000000
-  _input: {fileID: 0}
-  _physics: {fileID: 0}
-  _strategy: {fileID: 0}
+  damageColor: {r: 0, g: 0, b: 0, a: 1}
+  healColor: {r: 0, g: 1, b: 0, a: 1}
+  shieldColor: {r: 0, g: 1, b: 1, a: 1}
+  flashDuration: 0.2
 --- !u!114 &6055861653884896251
 MonoBehaviour:
   m_ObjectHideFlags: 0
