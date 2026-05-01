@@ -3,33 +3,115 @@ using UnityEngine;
 
 public class AllyManager : MonoBehaviour
 {
+    [System.Serializable]
+    public class MinionInfo
+    {
+        public int InstanceId;
+        public MinionDataSO Data;
+        public float RespawnTimer;
+        public bool IsDead;
+
+        public MinionInfo(int id, MinionDataSO data)
+        {
+            InstanceId = id;
+            Data = data;
+            IsDead = false;
+        }
+    }
+
     [Header("아군 유닛들")]
-    [SerializeField] List<AllyController> allys;
+    [SerializeField] List<AllyController> allys = new List<AllyController>();
+    [SerializeField] List<MinionInfo> activeMinionInfos = new List<MinionInfo>();
+    
     [SerializeField] bool isBattle = false;
     [SerializeField] LayerMask playerLayer;
+    [SerializeField] float defaultRespawnTime = 3f;
+
+    private void Update()
+    {
+        HandleRespawns();
+    }
+
+    private void HandleRespawns()
+    {
+        foreach (var info in activeMinionInfos)
+        {
+            if (info.IsDead)
+            {
+                info.RespawnTimer -= Time.deltaTime;
+                if (info.RespawnTimer <= 0)
+                {
+                    RespawnMinion(info);
+                }
+            }
+        }
+    }
+
+    private void RespawnMinion(MinionInfo info)
+    {
+        info.IsDead = false;
+        
+        // 플레이어 주변 위치 계산
+        Vector3 spawnPos = transform.position;
+        var sumController = GetComponent<SummonController>();
+        if (sumController != null)
+        {
+            var positions = sumController.GetSummonPositions2D(1, 2f);
+            if (positions.Count > 0) spawnPos = positions[0];
+        }
+
+        // 실제 소환 (기존 SpawnAlly 로직 활용하되 Info는 업데이트)
+        AllyController newAlly = InternalSpawn(info.Data, spawnPos);
+        if (newAlly != null)
+        {
+            info.InstanceId = newAlly.gameObject.GetInstanceID();
+            Debug.Log($"<color=green>[AllyManager]</color> {info.Data.minionName} 재소환 완료 (ID: {info.InstanceId})");
+        }
+    }
+
+    // 사망 보고 (CharacterStat에서 호출)
+    public void ReportDeath(int instanceId)
+    {
+        var info = activeMinionInfos.Find(i => i.InstanceId == instanceId);
+        if (info != null)
+        {
+            info.IsDead = true;
+            info.RespawnTimer = defaultRespawnTime;
+            Debug.Log($"<color=red>[AllyManager]</color> {info.Data.minionName} (ID: {instanceId}) 사망 확인. {defaultRespawnTime}초 후 부활합니다.");
+        }
+        else
+        {
+            Debug.LogWarning($"<color=orange>[AllyManager]</color> ID {instanceId}에 해당하는 유닛 정보를 찾을 수 없어 부활시키지 못했습니다. (관리 리스트에 없음)");
+        }
+    }
 
     // 아군 유닛 소환 함수
     public AllyController SpawnAlly(MinionDataSO data, Vector3 _position)
     {
-        // 리스트 정리
-        RemoveNullinAllys();
+        AllyController ally = InternalSpawn(data, _position);
+        if (ally != null)
+        {
+            // 새로운 관리 정보 추가
+            activeMinionInfos.Add(new MinionInfo(ally.gameObject.GetInstanceID(), data));
+        }
+        return ally;
+    }
 
+    private AllyController InternalSpawn(MinionDataSO data, Vector3 _position)
+    {
+        RemoveNullinAllys();
         if (data == null) return null;
 
-        // [중요] 조립은 중앙 공장(DataManager)에 맡깁니다.
         GameObject obj = GameManager.Instance.dataManager.CreateUnit(data, _position);
         if (obj == null) return null;
         
         AllyController _ally = obj.GetComponent<AllyController>();
         if (_ally != null)
         {
-            // 아군으로서의 추가 설정만 수행
             _ally.player = this.gameObject.transform;
             _ally.SetBattleState(isBattle);
             allys.Add(_ally);
         }
-
-        Debug.Log($"<color=cyan>[AllyManager]</color> {data.minionName} 소환 및 리스트 등록 완료");
         return _ally;
     }
 

@@ -11,7 +11,6 @@ public class AllyController : BaseEntity, IThrowable
     public Transform player;
     [SerializeField] bool isBattle = false;
 
-    public MinionDataSO MinionData => minionData;
     public CommandData MinionType => minionData != null ? minionData.minionType : CommandData.SkeletonWarrior;
 
     [Header("Throw Physics")]
@@ -177,7 +176,8 @@ public class AllyController : BaseEntity, IThrowable
 
     public virtual void OnLanded()
     {
-        // [복구] 효과 발동에 성공한 경우에만 리스크(체력 차감) 적용
+        // [수정] 투척 성공 시 리스크(체력 차감) 로직 제거
+        /*
         if (_hasImpacted && _stats != null)
         {
             float fixedDamage = _stats.MAXHP / 3f;
@@ -185,6 +185,7 @@ public class AllyController : BaseEntity, IThrowable
             _stats.GetDamage(riskInfo);
             Debug.Log($"<color=red>[Risk]</color> {gameObject.name} 투척 성공으로 인한 체력 차감: {fixedDamage:F1}");
         }
+        */
 
         gameObject.layer = _originalLayer;
         if (_sr != null && !string.IsNullOrEmpty(_originalSortingLayerName))

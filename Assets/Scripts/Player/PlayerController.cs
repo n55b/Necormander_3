@@ -113,15 +113,9 @@ public class PlayerController : MonoBehaviour
                     Debug.LogError($"<color=red>[PlayerController]</color> {data.minionName}의 소환 비용(Cost)이 0으로 설정되어 있습니다!");
                 }
                 
-                int finalSummonCount = GameManager.Instance.economyManager.CalculateAffordableSummonCount(summonNum, data.cost);
-                Debug.Log($"<color=white>[Summon Request]</color> Type: {selectedType}, Requested: {summonNum}, Affordable: {finalSummonCount}");
-
-                if (finalSummonCount <= 0)
-                {
-                    Debug.LogWarning("<color=orange>[Summon Failed]</color> 자원이 부족하거나 소환할 수 없는 상태입니다.");
-                    sumController.ResetSummonMode();
-                    return;
-                }
+                // [수정] 자원 체크 없이 즉시 소환 (EconomyManager 로직 제거)
+                int finalSummonCount = 1; 
+                Debug.Log($"<color=white>[Summon Request]</color> Type: {selectedType}, Count: {finalSummonCount} (Resource check disabled)");
 
                 List<Vector2> pos = sumController.GetSummonPositions2D(finalSummonCount, summonRange);
 

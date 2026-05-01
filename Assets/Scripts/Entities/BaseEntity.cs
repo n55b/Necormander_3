@@ -24,6 +24,7 @@ public abstract class BaseEntity : MonoBehaviour
 
     [Header("데이터 참조")]
     [SerializeField] protected MinionDataSO minionData;
+    public MinionDataSO MinionData => minionData;
 
     // 새로운 통합 AI 브레인 (인스턴스)
     protected AIPatternSO _runtimeBrain;

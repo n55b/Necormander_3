@@ -353,18 +353,32 @@ public class CharacterStat : MonoBehaviour
     private void Die()
     {
         isDead = true;
-        if (GameManager.Instance != null && GameManager.Instance.economyManager != null)
+
+        // 아군 미니언인 경우 AllyManager에 사망 보고
+        if (TryGetComponent<BaseEntity>(out var entity))
         {
-            if (TryGetComponent<BaseEntity>(out var entity))
+            if (entity.team == Team.Ally && !CompareTag("Player"))
             {
-                bool isMinion = entity.team == Team.Ally && GetComponent<PlayerController>() == null;
-                bool isEnemy = entity.team == Team.Enemy;
-                if (isMinion || isEnemy)
+                var pc = GameManager.Instance.PLAYERCONTROLLER;
+                if (pc != null)
                 {
-                    GameManager.Instance.economyManager.AddBonePoint(1);
+                    // AllyManager를 찾아 사망 보고 (ID 전달)
+                    var allyManager = pc.GetComponentInChildren<AllyManager>();
+                    if (allyManager == null) allyManager = Object.FindFirstObjectByType<AllyManager>();
+                    
+                    if (allyManager != null)
+                    {
+                        allyManager.ReportDeath(gameObject.GetInstanceID());
+                    }
                 }
             }
+            else if (entity.team == Team.Enemy)
+            {
+                // 적군 사망 처리 (필요 시 연출 등 추가)
+            }
         }
+
+        Debug.Log($"<color=red>[Death]</color> {gameObject.name} 사망 및 오브젝트 파괴.");
         Destroy(this.gameObject);
     }
 }

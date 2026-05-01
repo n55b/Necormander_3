@@ -57,4 +57,39 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("<b>[GameManager]</b> Initialization Sequence Completed.");
     }
+
+    private void Start()
+    {
+        // 게임 시작 시 기본 미니언 한 마리 소환 (전사)
+        SpawnStartingMinion();
+    }
+
+    private void SpawnStartingMinion()
+    {
+        if (dataManager == null || playerController == null) return;
+
+        // 기본 미니언(전사) 데이터 가져오기
+        MinionDataSO startingData = dataManager.GetMinionData(CommandData.SkeletonWarrior);
+        if (startingData != null)
+        {
+            // 플레이어 근처 위치 계산 (SummonController 활용)
+            var sumController = playerController.SUMCONTROLLER;
+            Vector3 spawnPos = playerController.transform.position + Vector3.right; // 기본값
+
+            if (sumController != null)
+            {
+                var positions = sumController.GetSummonPositions2D(1, 2f);
+                if (positions.Count > 0) spawnPos = positions[0];
+            }
+
+            // 소환 수행
+            var allyManager = Object.FindFirstObjectByType<AllyManager>();
+            if (allyManager != null)
+            {
+                // [수정] 직접 CreateUnit 하지 않고 AllyManager를 통해 소환하여 리스트에 등록
+                allyManager.SpawnAlly(startingData, spawnPos);
+                Debug.Log("<color=green>[GameManager]</color> Starting Minion (Warrior) Registered and Spawned via AllyManager.");
+            }
+        }
+    }
 }
