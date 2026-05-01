@@ -27,7 +27,6 @@ public class ThrowController : MonoBehaviour
     private List<IThrowable> _heldObjects = new List<IThrowable>();
     private float _chargeTimer;
     private bool _isCharging;
-    private Vector3 _defaultHoldLocalPos;
 
     [Header("Radial Menu (Ping System)")]
     [SerializeField] private SelectionWheelUI selectionWheel;
@@ -67,11 +66,6 @@ public class ThrowController : MonoBehaviour
         if (trajectoryPredictor == null)
         {
             trajectoryPredictor = GetComponentInChildren<TrajectoryPredictor>();
-        }
-
-        if (holdPoint != null)
-        {
-            _defaultHoldLocalPos = holdPoint.localPosition;
         }
     }
 
@@ -652,60 +646,6 @@ public class ThrowController : MonoBehaviour
     }
 
     // PlayerDashRoutine 코루틴 제거됨 (CharacterStat.ApplyKnockback으로 통합)
-
-    // 동일 종류 여러 명을 던졌을 때의 효과 (기본 효과 강화 등)
-    private void HandleSameTypeEffect(CommandData type, int count, Vector2 targetPos, float chargeRatio)
-    {
-        Debug.Log($"<color=cyan>[Synergy]</color> Same Type Throw: <b>{type} x{count}</b> (Charge: {chargeRatio:F2})");
-
-        // 타입별 고유 시너지 효과 로직 (여기에 구체적인 버프나 범위 공격 로직 추가)
-        switch (type)
-        {
-            case CommandData.SkeletonWarrior:
-                Debug.Log("Warrior Synergy: 충격파 범위 및 공격력 증가");
-                break;
-            case CommandData.SkeletonShieldbearer:
-                Debug.Log("Shieldbearer Synergy: 착지 지점에 방어 구역 생성");
-                break;
-            case CommandData.SkeletonArcher:
-                Debug.Log("Archer Synergy: 추가 화살 세례 발사");
-                break;
-            case CommandData.SkeletonPriest:
-                Debug.Log("Priest Synergy: 주변 아군 광역 치유");
-                break;
-            case CommandData.SkeletonBomber:
-                Debug.Log("Bomber Synergy: 연쇄 폭발 범위 및 위력 강화");
-                break;
-            case CommandData.SkeletonSpearman:
-                Debug.Log("Spearman Synergy: 직선상 모든 적 관통 및 넉백");
-                break;
-            case CommandData.SkeletonMagician:
-                Debug.Log("Magician Synergy: 마법 폭발 및 속성 상태이상 부여");
-                break;
-            case CommandData.SkeletonThief:
-                Debug.Log("Thief Synergy: 착지 후 즉시 은신 및 치명타 공격");
-                break;
-        }
-    }
-
-    // 서로 다른 종류가 섞였을 때의 효과 (새로운 조합 효과 등)
-    private void HandleMixedTypeEffect(List<AllyController> allies, Vector2 targetPos, float chargeRatio)
-    {
-        Debug.Log($"<color=orange>[Synergy]</color> Mixed Type Throw: <b>{allies.Count} units</b> (Charge: {chargeRatio:F2})");
-
-        // 조합 분석 로직 (예: Warrior + Priest = 팔라딘 효과 등)
-        // 현재는 간단하게 구성 유닛 종류만 출력
-        Dictionary<CommandData, int> counts = new Dictionary<CommandData, int>();
-        foreach (var ally in allies)
-        {
-            if (!counts.ContainsKey(ally.MinionType)) counts[ally.MinionType] = 0;
-            counts[ally.MinionType]++;
-        }
-
-        string composition = "";
-        foreach (var pair in counts) composition += $"{pair.Key} x{pair.Value}, ";
-        Debug.Log($"Composition: {composition.TrimEnd(',', ' ')}");
-    }
 
     // 플레이어가 맞았을 때 모든 미니언을 강제로 떨어뜨림
     public void DropAll()
