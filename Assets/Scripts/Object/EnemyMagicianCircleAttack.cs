@@ -65,7 +65,11 @@ public class EnemyMagicianCircleAttack : MonoBehaviour
 
         foreach (var col in hits)
         {
-            if (col.TryGetComponent<CharacterStat>(out var stat))
+            // [수정] 콜라이더가 붙은 오브젝트뿐만 아니라 부모/자식에서도 Stat 탐색 (더 유연하게)
+            CharacterStat stat = col.GetComponentInChildren<CharacterStat>();
+            if (stat == null) stat = col.GetComponentInParent<CharacterStat>();
+
+            if (stat != null)
             {
                 DamageInfo info = new DamageInfo(_damage, DamageType.Magical, _attacker);
                 stat.GetDamage(info);

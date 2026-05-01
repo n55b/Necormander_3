@@ -61,6 +61,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        // 플레이어 스탯 컴포넌트 강제 초기화 (체력 설정 등)
+        if (stat != null)
+        {
+            stat.Setup();
+        }
+    }
+
     private void Update()
     {
         MoveDirection = moveInput;

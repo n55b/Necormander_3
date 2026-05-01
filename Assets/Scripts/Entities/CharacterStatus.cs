@@ -54,11 +54,12 @@ public class CharacterStatus : MonoBehaviour
         }
         _cachedMoveSpeedMultiplier = Mathf.Max(0.1f, multiplier);
 
-        // 2. 보호막 만료 체크 및 캐싱
+        // 2. 보호막 만료 및 수치 고갈 체크
         float sum = 0;
         for (int i = _shieldInstances.Count - 1; i >= 0; i--)
         {
-            if (Time.time > _shieldInstances[i].EndTime)
+            // 시간 만료 혹은 수치가 0 이하인 경우 제거
+            if (Time.time > _shieldInstances[i].EndTime || _shieldInstances[i].RemainingAmount <= 0)
             {
                 _shieldInstances.RemoveAt(i);
                 continue;
@@ -85,6 +86,7 @@ public class CharacterStatus : MonoBehaviour
     public void AddShield(float amount, float duration)
     {
         _shieldInstances.Add(new ShieldInstance(amount, duration));
+        UpdateInstances(); // [추가] 즉시 수치 갱신하여 시각 효과와의 타이밍 이슈 방지
     }
 
     public float ConsumeShield(float amount)
@@ -97,6 +99,8 @@ public class CharacterStatus : MonoBehaviour
             remainingToConsume -= canTake;
             if (remainingToConsume <= 0) break;
         }
+        
+        UpdateInstances(); // [추가] 즉시 수치 갱신
         return amount - remainingToConsume;
     }
 

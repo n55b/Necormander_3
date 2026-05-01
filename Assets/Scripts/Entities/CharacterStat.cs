@@ -22,7 +22,14 @@ public class CharacterStat : MonoBehaviour
 
     // 외부 참조용 프로퍼티 (기존 코드와 호환 유지)
     public float MAXHP => baseMaxHP;
-    public float CURHP => (_health != null) ? _health.CurHP : baseMaxHP;
+    public float CURHP 
+    { 
+        get 
+        {
+            if (_health == null) Setup(); // [추가] 초기화 보장
+            return (_health != null) ? _health.CurHP : baseMaxHP;
+        }
+    }
     public float ATK => baseAtk;
     public float ATKSPD => baseAtkSpd;
     public float ATKRANGE => baseAtkRange;
@@ -75,15 +82,51 @@ public class CharacterStat : MonoBehaviour
     }
 
     // --- 통로(Facade) 메서드들 ---
-    public void GetDamage(DamageInfo info) => _health.GetDamage(info);
-    public void Heal(float amount) => _health.Heal(amount);
-    public void AddShield(float amount, float duration) => _status.AddShield(amount, duration);
-    public void ApplySlow(string id, float reduction, float duration) => _status.ApplySlow(id, reduction, duration);
-    public void ApplyKnockback(Vector2 dir, float force, float duration = 0.15f) => _status.ApplyKnockback(dir, force, duration);
-    public void BreakShield(float amount) => _status.ConsumeShield(amount);
-    public void SetShieldVFX(GameObject vfx) => _visual.SetShieldVFX(vfx);
-    public void SetCCVFX(GameObject vfx) => _visual.SetCCVFX(vfx);
-    public void ResetVisualFeedback() => _visual.ResetVisuals();
+    public void GetDamage(DamageInfo info) 
+    {
+        if (_health == null) Setup(); // [추가] 초기화 보장
+        if (_health != null) _health.GetDamage(info);
+    }
+    public void Heal(float amount) 
+    {
+        if (_health == null) Setup();
+        _health.Heal(amount);
+    }
+    public void AddShield(float amount, float duration) 
+    {
+        if (_status == null) Setup();
+        _status.AddShield(amount, duration);
+    }
+    public void ApplySlow(string id, float reduction, float duration) 
+    {
+        if (_status == null) Setup();
+        _status.ApplySlow(id, reduction, duration);
+    }
+    public void ApplyKnockback(Vector2 dir, float force, float duration = 0.15f) 
+    {
+        if (_status == null) Setup();
+        _status.ApplyKnockback(dir, force, duration);
+    }
+    public void BreakShield(float amount) 
+    {
+        if (_status == null) Setup();
+        _status.ConsumeShield(amount);
+    }
+    public void SetShieldVFX(GameObject vfx) 
+    {
+        if (_visual == null) Setup();
+        _visual.SetShieldVFX(vfx);
+    }
+    public void SetCCVFX(GameObject vfx) 
+    {
+        if (_visual == null) Setup();
+        _visual.SetCCVFX(vfx);
+    }
+    public void ResetVisualFeedback() 
+    {
+        if (_visual == null) Setup();
+        _visual.ResetVisuals();
+    }
 
     public void ApplySplitStats()
     {

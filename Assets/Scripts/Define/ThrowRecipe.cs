@@ -119,22 +119,33 @@ public class ThrowRecipe
     public List<GameObject> ScanAreaTargets(Vector2 pos)
     {
         float radius = GetScaledRadius();
-        Collider2D[] hitColls = Physics2D.OverlapCircleAll(pos, radius);
+        
+        // [수정] 레이어를 명시적으로 지정하여 플레이어(Player)와 미니언(Army/Enemy)을 모두 포함
+        int targetMask = LayerMask.GetMask("Player", "Army", "Enemy");
+        Collider2D[] hitColls = Physics2D.OverlapCircleAll(pos, radius, targetMask);
+        
         List<GameObject> targets = new List<GameObject>();
         HashSet<GameObject> processed = new HashSet<GameObject>();
 
         foreach (var coll in hitColls)
         {
             GameObject obj = coll.gameObject;
-            if (processed.Contains(obj)) continue;
+            
+            // 본체(Root)를 찾아서 중복 방지 및 정확한 대상 확보
+            Transform root = obj.transform.root;
+            GameObject rootObj = root.gameObject;
+
+            if (processed.Contains(rootObj)) continue;
             
             // 유효한 대상(엔티티 또는 플레이어)인지 확인
-            if (obj.GetComponent<BaseEntity>() != null || obj.CompareTag("Player"))
+            if (rootObj.GetComponentInChildren<BaseEntity>() != null || rootObj.CompareTag("Player"))
             {
-                targets.Add(obj);
-                processed.Add(obj);
+                targets.Add(rootObj);
+                processed.Add(rootObj);
             }
         }
+
+        Debug.Log($"<color=gray>[Area Scan]</color> {pos} 주변 {radius} 범위에서 {targets.Count}명의 대상 발견");
         return targets;
     }
 
@@ -217,26 +228,31 @@ public class ThrowRecipe
 
                 if (hasFormation) ApplyKnockback(target, impactPos, travelDir);
             }
-            else // 아군
+            else // 아군 미니언
             {
                 bool allowShield = (targetingMode == TargetingMode.Area) || (targetTeam == Team.Ally);
                 if (hasShield && allowShield)
                 {
                     float shieldAmount = GetScaledValue(shieldBaseValue);
                     float duration = 3.0f;
+
+                    Debug.Log($"<color=cyan>[Throw Impact]</color> 미니언({target.name}) 보호막 시도: 수치={shieldAmount}");
+
                     entity.Stats.AddShield(shieldAmount, duration);
 
                     if (registry != null && registry.shieldAttachVFX != null)
                     {
                         GameObject vfx = Object.Instantiate(registry.shieldAttachVFX, target.transform.position, Quaternion.identity, target.transform);
-                        Object.Destroy(vfx, duration);
+                        entity.Stats.SetShieldVFX(vfx);
+                        Debug.Log($"<color=cyan>[Throw Impact]</color> 미니언({target.name})에게 보호막 VFX 생성됨");
                     }
                 }
             }
         }
         else if (target.CompareTag("Player"))
         {
-            CharacterStat pStat = target.GetComponent<CharacterStat>();
+            // [수정] 플레이어도 자식 오브젝트(CharacterStatStuff 등)에 Stat이 있을 수 있으므로 InChildren으로 탐색
+            CharacterStat pStat = target.GetComponentInChildren<CharacterStat>();
 
             // 1. 보호막 적용 (Self 모드거나 Area 모드일 때)
             bool allowShield = (targetingMode == TargetingMode.Self) || (targetingMode == TargetingMode.Area) || (targetTeam == Team.Ally);
@@ -244,13 +260,26 @@ public class ThrowRecipe
             {
                 float shieldAmount = GetScaledValue(shieldBaseValue);
                 float duration = 3.0f;
+
+                Debug.Log($"<color=cyan>[Throw Impact]</color> Player 보호막 시도: 수치={shieldAmount} (기본={shieldBaseValue}, 모드배율={modeMultiplier}, 차징배율={chargeMultiplier})");
+
                 pStat.AddShield(shieldAmount, duration);
 
                 if (registry != null && registry.shieldAttachVFX != null)
                 {
                     GameObject vfx = Object.Instantiate(registry.shieldAttachVFX, target.transform.position, Quaternion.identity, target.transform);
                     pStat.SetShieldVFX(vfx);
+                    
+                    Debug.Log($"<color=cyan>[Throw Impact]</color> Player에게 보호막 VFX 생성됨 (시스템 판단에 맡김)");
                 }
+            }
+            else if (hasShield && allowShield && pStat == null)
+            {
+                Debug.LogWarning($"<color=red>[Throw Impact]</color> Player에게 보호막을 주려 했으나 CharacterStat을 찾지 못함!");
+            }
+            else if (hasShield && allowShield && pStat == null)
+            {
+                Debug.LogWarning($"<color=red>[Throw Impact]</color> Player에게 보호막을 주려 했으나 CharacterStat을 찾지 못함!");
             }
 
             // 2. 사제(CC) 효과: 플레이어에게는 정화 VFX만
@@ -259,7 +288,11 @@ public class ThrowRecipe
                 if (registry != null && registry.ccAttachVFX != null)
                 {
                     GameObject vfx = Object.Instantiate(registry.ccAttachVFX, target.transform.position, Quaternion.identity, target.transform);
-                    if (pStat != null) pStat.SetCCVFX(vfx);
+                    if (pStat != null) 
+                    {
+                        pStat.SetCCVFX(vfx);
+                        Debug.Log($"<color=cyan>[Throw Impact]</color> Player에게 CC 정화 VFX 생성됨");
+                    }
                     Object.Destroy(vfx, 1.0f);
                 }
             }
