@@ -44,8 +44,11 @@ public class ThrowStrategy : MonoBehaviour
     public TargetingMode GetCurrentTargetingMode(List<IThrowable> heldObjects)
     {
         if (heldObjects.Count == 0) return TargetingMode.Self;
+
+        // 우선순위: Archer(Area) > Warrior(Target) > 기타(Spearman 포함 - Self)
         foreach (var obj in heldObjects) if (obj is AllyController ally && ally.MinionType == CommandData.SkeletonArcher) return TargetingMode.Area;
         foreach (var obj in heldObjects) if (obj is AllyController ally && ally.MinionType == CommandData.SkeletonWarrior) return TargetingMode.Target;
+
         return TargetingMode.Self;
     }
 
@@ -80,12 +83,14 @@ public class ThrowStrategy : MonoBehaviour
 
         // 플레이어 컨트롤러로부터 계산된 배율을 가져옴
         recipe.chargeMultiplier = GameManager.Instance.PLAYERCONTROLLER.GetThrowChargeMultiplier(chargeRatio);
+        recipe.treasurePowerMultiplier = 1.0f; // 기본값 (추후 보물 시스템에서 가산 가능)
 
         if (heldObjects.Count == 0) return recipe;
 
         recipe.targetingMode = GetCurrentTargetingMode(heldObjects);
         recipe.targetTeam = GetExpectedTargetTeam(heldObjects);
 
+        // [복구] 하드코딩된 배율을 지우고, 데이터(SO)에 설정된 주력 유닛의 배율을 사용합니다.
         AllyController leadUnit = null;
         if (recipe.targetingMode == TargetingMode.Area)
         {
@@ -95,6 +100,9 @@ public class ThrowStrategy : MonoBehaviour
         {
             foreach(var obj in heldObjects) if(obj is AllyController a && a.MinionType == CommandData.SkeletonWarrior) { leadUnit = a; break; }
         }
+
+        // 주력 유닛(전사/궁수)이 없거나 Self 모드인 경우, 섞인 유닛 중 가장 첫 번째 유닛의 배율을 기저 배율로 사용
+        if (leadUnit == null && heldObjects.Count > 0 && heldObjects[0] is AllyController first) leadUnit = first;
 
         recipe.modeMultiplier = (leadUnit != null) ? leadUnit.MinionData.effectMultiplier : 1.0f;
 
@@ -108,16 +116,30 @@ public class ThrowStrategy : MonoBehaviour
                 switch (type)
                 {
                     case CommandData.SkeletonWarrior:
-                        if (recipe.targetingMode != TargetingMode.Area) recipe.impactDamage += baseVal;
+                        // [조건 유지] 전사는 타겟/셀프 모드일 때만 데미지 기여
+                        if (recipe.targetingMode != TargetingMode.Area) recipe.AddAction(ImpactActionType.Damage, baseVal);
                         break;
                     case CommandData.SkeletonArcher: 
-                        recipe.baseAreaRadius = ally.MinionData.baseAreaRadius;
-                        if (recipe.targetingMode == TargetingMode.Area) recipe.impactDamage += baseVal;
+                        // [조건 유지] 궁수는 범위(Area) 모드일 때 반지름 설정 및 데미지 기여
+                        recipe.AddAction(ImpactActionType.Area, ally.MinionData.baseAreaRadius);
+                        if (recipe.targetingMode == TargetingMode.Area) recipe.AddAction(ImpactActionType.Damage, baseVal);
                         break;
-                    case CommandData.SkeletonPriest: recipe.hasCC = true; recipe.ccBaseValue += baseVal; break;
-                    case CommandData.SkeletonShieldbearer: recipe.hasShield = true; recipe.shieldBaseValue += baseVal; break;
-                    case CommandData.SkeletonSpearman: recipe.hasFormation = true; recipe.formationBaseValue += baseVal; break;
-                    case CommandData.SkeletonMagician: recipe.magicianCount += Mathf.FloorToInt(baseVal); break;
+                    case CommandData.SkeletonPriest: 
+                        // 사제는 CC(슬로우) 부여
+                        recipe.AddAction(ImpactActionType.CC, baseVal); 
+                        break;
+                    case CommandData.SkeletonShieldbearer: 
+                        // 방패병은 보호막 부여
+                        recipe.AddAction(ImpactActionType.Shield, baseVal); 
+                        break;
+                    case CommandData.SkeletonSpearman: 
+                        // 창병은 넉백/진형파괴 부여
+                        recipe.AddAction(ImpactActionType.Knockback, baseVal); 
+                        break;
+                    case CommandData.SkeletonMagician: 
+                        // 마법사는 반복 횟수 추가
+                        recipe.AddAction(ImpactActionType.Repeat, baseVal); 
+                        break;
                 }
             }
         }

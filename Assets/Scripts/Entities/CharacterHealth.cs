@@ -33,14 +33,19 @@ public class CharacterHealth : MonoBehaviour
     {
         if (isDead || invincible) return;
 
+        float startHP = curHP;
         float remainingDamage = info.amount;
+        float totalAbsorbed = 0f;
 
         // 1. 보호막 흡수 로직
         if (info.type != DamageType.Fixed && _status != null && _status.TotalShield > 0)
         {
-            float absorbed = _status.ConsumeShield(remainingDamage);
-            remainingDamage -= absorbed;
-            OnDamageTaken?.Invoke(); // 보호막 피격 시에도 이벤트 발생
+            totalAbsorbed = _status.ConsumeShield(remainingDamage);
+            remainingDamage -= totalAbsorbed;
+            OnDamageTaken?.Invoke(); 
+            
+            if (totalAbsorbed > 0)
+                Debug.Log($"<color=cyan>[Damage-Shield]</color> {gameObject.name}: 보호막이 {totalAbsorbed:F1} 데미지 흡수. (남은 데미지: {remainingDamage:F1})");
         }
 
         // 2. 실제 체력 차감
@@ -52,6 +57,8 @@ public class CharacterHealth : MonoBehaviour
                 finalDamage = Mathf.Max(remainingDamage - _stat.DEF, 1f);
             }
             curHP -= finalDamage;
+            
+            Debug.Log($"<color=red>[Damage-HP]</color> {gameObject.name}: {finalDamage:F1} 피해 입음. 체력: {startHP:F1} -> {curHP:F1}");
             OnDamageTaken?.Invoke();
         }
 

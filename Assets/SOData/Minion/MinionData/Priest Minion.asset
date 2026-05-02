@@ -16,7 +16,7 @@ MonoBehaviour:
   minionName: Skeleton Priest
   throwEffectCategory: 3
   baseEffectValue: 0.3
-  effectMultiplier: 0
+  effectMultiplier: 1
   baseAreaRadius: 0
   maxHP: 100
   attack: 10

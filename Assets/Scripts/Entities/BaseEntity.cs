@@ -44,7 +44,7 @@ public abstract class BaseEntity : MonoBehaviour
     protected virtual void Awake()
     {
         _stats = GetComponentInChildren<CharacterStat>();
-        if (_stats != null) _stats.Setup(); // [추가] 중앙집중식 초기화 강제 호출
+        if (_stats != null) _stats.Setup(); 
 
         _nearestFinder = GetComponent<NearestTargetFinder>();
         _rb = GetComponent<Rigidbody2D>();
@@ -52,26 +52,22 @@ public abstract class BaseEntity : MonoBehaviour
         _collider = GetComponent<Collider2D>();
         _sr = GetComponentInChildren<SpriteRenderer>();
 
-        // [2D 환경 최적화] NavMeshAgent가 스프라이트를 3D 방향으로 돌려버리는 것을 방지
         if (_agent != null)
         {
             _agent.updateRotation = false;
             _agent.updateUpAxis = false;
         }
 
-        // 팀에 따른 레이어 자동 설정
         SetupLayers();
     }
 
     protected virtual void Start()
     {
-        // 데이터가 이미 할당되어 있다면 초기화
         if (minionData != null)
         {
             Initialize(minionData);
         }
 
-        // 타겟 파인더의 대상 레이어를 상대 팀 레이어로 설정
         if (_nearestFinder != null)
         {
             _nearestFinder.targetLayer = opponentLayer;
@@ -80,10 +76,8 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual void Update()
     {
-        // 비행 중이거나 특수 상태일 때는 AI 로직 차단
         if (!CanExecuteAI()) return;
 
-        // 통합 AI 브레인 실행 (타겟팅, 상태전환, 행동 모두 포함)
         if (_runtimeBrain != null)
         {
             _runtimeBrain.Execute(this);
@@ -106,25 +100,18 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual bool CanExecuteAI()
     {
-        // 기본적으로는 항상 AI 실행 가능 (enabled 여부 체크)
         return enabled;
     }
 
-    /// <summary>
-    /// 데이터(SO)로부터 스탯과 통합 AI 패턴을 주입받아 초기화합니다.
-    /// </summary>
     public virtual void Initialize(MinionDataSO data)
     {
         minionData = data;
         
-        // 1. 스탯 초기화
         if (_stats != null) _stats.InitializeStats(data);
         detectRange = data.detectRange;
 
-        // 2. 통합 AI 브레인 생성 및 초기화
         AIPatternSO patternToUse = data.aiPattern;
 
-        // [안전장치] 만약 데이터에 패턴이 명시되어 있지 않다면 DataManager의 기본 패턴 사용
         if (patternToUse == null && GameManager.Instance != null && GameManager.Instance.dataManager != null)
         {
             patternToUse = GameManager.Instance.dataManager.DEFAULT_AI_PATTERN;
@@ -140,18 +127,15 @@ public abstract class BaseEntity : MonoBehaviour
             Debug.LogWarning($"[BaseEntity] {gameObject.name}: 사용 가능한 AI 패턴이 없습니다!");
         }
 
-        // 3. 타겟 레이어 설정
         if (_nearestFinder != null) _nearestFinder.targetLayer = opponentLayer;
     }
 
-    // 기존 HandleAIUpdate를 브레인 체제에 맞게 비워둠
     protected virtual void HandleAIUpdate() { }
 
     protected bool IsTargetInvalid(Transform target)
     {
         if (target == null) return true;
         
-        // [수정] 자식 오브젝트에서 Stat 탐색
         CharacterStat stat = target.GetComponentInChildren<CharacterStat>();
         if (stat != null)
         {
@@ -162,12 +146,10 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected abstract void HandleNoTarget();
 
-    // 공격 실행 시 호출 (각 유닛의 특수 공격 로직은 여기서 구현)
     public virtual void ExecuteAttack(Transform target)
     {
         if (target != null)
         {
-            // [수정] 자식 오브젝트에서 Stat 탐색
             CharacterStat targetStat = target.GetComponentInChildren<CharacterStat>();
             if (targetStat != null)
             {

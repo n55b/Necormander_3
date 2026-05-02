@@ -40,7 +40,6 @@ public class PlayerController : MonoBehaviour
         return Mathf.Lerp(minThrowChargeMultiplier, maxThrowChargeMultiplier, ratio);
     }
 
-    // 최대 배율 증가 (업그레이드 등에서 사용)
     public void IncreaseMaxChargeMultiplier(float amount)
     {
         maxThrowChargeMultiplier += amount;
@@ -52,9 +51,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Vector2 moveInput = Vector2.zero;
     public Vector2 MoveInput => moveInput;
 
+    private Rigidbody2D _rb;
+
     private void Awake()
     {
-        // 동일 오브젝트 또는 자식 오브젝트에서 ThrowController를 찾아 할당
+        _rb = GetComponent<Rigidbody2D>();
         if (throwController == null)
         {
             throwController = GetComponentInChildren<ThrowController>();
@@ -63,7 +64,6 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        // 플레이어 스탯 컴포넌트 강제 초기화 (체력 설정 등)
         if (stat != null)
         {
             stat.Setup();
@@ -77,7 +77,12 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        transform.position += MoveDirection * stat.MOVESPEED * Time.deltaTime;
+        // [복구] 기존 이동 로직으로 원복하되, 넉백 중일 때는 물리 속도를 덮어쓰지 않도록 개선 가능
+        // 만약 리지드바디의 속도가 넉백에 의해 아주 높다면 이동 처리를 스킵하거나 합산
+        if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f) // 대략적인 임계값
+        {
+             transform.position += MoveDirection * stat.MOVESPEED * Time.deltaTime;
+        }
 
         if(P_State == PlayerStates.Battle)
         {
@@ -87,21 +92,17 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // 플레이어 움직임 관리 함수
     public void OnMove(InputAction.CallbackContext context)
     {
         if(context.performed || context.canceled)
         {
             moveInput = context.ReadValue<Vector2>();
         }
-
         return;
     }
 
-    // 아군 유닛 소환 혹은 줍기 관리 함수 (우클릭)
     public void OnRightClick(InputAction.CallbackContext context)
     {
-        // 1. 소환 모드(숫자 키가 눌려 있음)라면 소환 수행
         if (sumController.IsSummoningMode)
         {
             if (context.performed)
@@ -116,13 +117,11 @@ public class PlayerController : MonoBehaviour
                     return;
                 }
 
-                // 소환시 필요 재화 계산
                 if (data.cost == 0)
                 {
                     Debug.LogError($"<color=red>[PlayerController]</color> {data.minionName}의 소환 비용(Cost)이 0으로 설정되어 있습니다!");
                 }
                 
-                // [수정] 자원 체크 없이 즉시 소환 (EconomyManager 로직 제거)
                 int finalSummonCount = 1; 
                 Debug.Log($"<color=white>[Summon Request]</color> Type: {selectedType}, Count: {finalSummonCount} (Resource check disabled)");
 
@@ -134,11 +133,9 @@ public class PlayerController : MonoBehaviour
                     allyManager.SpawnAlly(data, spawnPos);
                 }
 
-                // 소환 완료 후 모드 리셋
                 sumController.ResetSummonMode();
             }
         }
-        // 2. 소환 모드가 아니라면 Radial Menu(핑 시스템) 또는 일반 줍기
         else
         {
             if (throwController != null)
@@ -155,7 +152,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // 아군 유닛 던지기 관리 함수 (좌클릭)
     public void OnThrow(InputAction.CallbackContext context)
     {
         if (throwController != null)
@@ -164,14 +160,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- Input System 전용 메서드들 (Inspector에서 연결 필요) ---
     public void OnTab(InputAction.CallbackContext context) => sumController.OnTab(context);
     public void OnNum1(InputAction.CallbackContext context) => sumController.OnNumKey(1, context);
     public void OnNum2(InputAction.CallbackContext context) => sumController.OnNumKey(2, context);
     public void OnNum3(InputAction.CallbackContext context) => sumController.OnNumKey(3, context);
     public void OnNum4(InputAction.CallbackContext context) => sumController.OnNumKey(4, context);
 
-    // 플레이어 전투 or 평소 상태 변경 함수
     public void ChangeState(PlayerStates _state)
     {
         if(P_State == _state) return;

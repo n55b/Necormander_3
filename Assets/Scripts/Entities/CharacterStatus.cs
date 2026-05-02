@@ -58,9 +58,17 @@ public class CharacterStatus : MonoBehaviour
         float sum = 0;
         for (int i = _shieldInstances.Count - 1; i >= 0; i--)
         {
-            // 시간 만료 혹은 수치가 0 이하인 경우 제거
-            if (Time.time > _shieldInstances[i].EndTime || _shieldInstances[i].RemainingAmount <= 0)
+            // 시간 만료
+            if (Time.time > _shieldInstances[i].EndTime)
             {
+                Debug.Log($"<color=orange>[Shield]</color> {gameObject.name}: 보호막 시간 만료로 소멸 (남았던 수치: {_shieldInstances[i].RemainingAmount:F1})");
+                _shieldInstances.RemoveAt(i);
+                continue;
+            }
+            // 수치 고갈
+            if (_shieldInstances[i].RemainingAmount <= 0)
+            {
+                Debug.Log($"<color=red>[Shield]</color> {gameObject.name}: 보호막 파괴됨 (수치 고갈)");
                 _shieldInstances.RemoveAt(i);
                 continue;
             }
@@ -85,8 +93,9 @@ public class CharacterStatus : MonoBehaviour
 
     public void AddShield(float amount, float duration)
     {
+        Debug.Log($"<color=cyan>[Shield]</color> {gameObject.name}: 보호막 부여됨. 수치: {amount:F1}, 지속시간: {duration}s");
         _shieldInstances.Add(new ShieldInstance(amount, duration));
-        UpdateInstances(); // [추가] 즉시 수치 갱신하여 시각 효과와의 타이밍 이슈 방지
+        UpdateInstances(); 
     }
 
     public float ConsumeShield(float amount)
@@ -100,10 +109,11 @@ public class CharacterStatus : MonoBehaviour
             if (remainingToConsume <= 0) break;
         }
         
-        UpdateInstances(); // [추가] 즉시 수치 갱신
+        UpdateInstances(); 
         return amount - remainingToConsume;
     }
 
+    // [복구] 기존 리지드바디 직접 제어 방식으로 롤백
     public void ApplyKnockback(Vector2 dir, float force, float duration = 0.15f)
     {
         Rigidbody2D rb = GetComponentInParent<Rigidbody2D>();
@@ -112,15 +122,21 @@ public class CharacterStatus : MonoBehaviour
 
     private System.Collections.IEnumerator KnockbackRoutine(Rigidbody2D rb, Vector2 dir, float force, float duration)
     {
+        // [원복] 배율을 다시 2.0f로 되돌림
         float knockbackSpeed = force * 2.0f;
         float elapsed = 0f;
+
         while (elapsed < duration)
         {
             if (rb == null) yield break;
+            
+            // 매 프레임 속도를 강제로 고정하여 다른 이동 스크립트와의 간섭 방지
             rb.linearVelocity = dir * knockbackSpeed;
+            
             elapsed += Time.deltaTime;
             yield return null;
         }
+
         if (rb != null) rb.linearVelocity = Vector2.zero;
     }
 

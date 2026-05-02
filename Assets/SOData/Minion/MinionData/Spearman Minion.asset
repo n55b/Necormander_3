@@ -16,7 +16,7 @@ MonoBehaviour:
   minionName: Skeleton Spearman
   throwEffectCategory: 5
   baseEffectValue: 10
-  effectMultiplier: 0
+  effectMultiplier: 1
   baseAreaRadius: 0
   maxHP: 100
   attack: 10
