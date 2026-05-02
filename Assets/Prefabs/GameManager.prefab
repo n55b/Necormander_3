@@ -119,6 +119,9 @@ MonoBehaviour:
   throwImpactManager: {fileID: 4376407718605823702}
   mouseManager: {fileID: 1447154648404685013}
   mouseCursorManager: {fileID: 7293194052441138037}
+  inventoryManager: {fileID: 3438047193681337848}
+  squadSpawner: {fileID: 6842143012122147092}
+  rewardManager: {fileID: 7453844490307090777}
 --- !u!1 &4057087256918008588
 GameObject:
   m_ObjectHideFlags: 0
@@ -129,6 +132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6304608831586431291}
   - component: {fileID: 5990352106904275992}
+  - component: {fileID: 3438047193681337848}
   m_Layer: 0
   m_Name: Data Systems
   m_TagString: Untagged
@@ -163,10 +167,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1219aa06886ae94fa3f3968b648d40b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  allGrowthItems: []
   minionRegistry: {fileID: 11400000, guid: 752586a47e053ee4a9db401ff13044fc, type: 2}
-  combinationRegistry: {fileID: 11400000, guid: a71bfa6a8039f4f4eab3237085dfae29, type: 2}
   throwEffectRegistry: {fileID: 11400000, guid: 3814eaa3076ff6d468ed15dbf6620499, type: 2}
   defaultAIPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
+--- !u!114 &3438047193681337848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4057087256918008588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffd4e021e330fa94a9f941822a513271, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Slots: []
+  CurrentGold: 0
 --- !u!1 &7727511665536608322
 GameObject:
   m_ObjectHideFlags: 0
@@ -178,6 +196,8 @@ GameObject:
   - component: {fileID: 5289285833282590543}
   - component: {fileID: 4452764349617943537}
   - component: {fileID: 4376407718605823702}
+  - component: {fileID: 6842143012122147092}
+  - component: {fileID: 7453844490307090777}
   m_Layer: 0
   m_Name: Gameplay Systems
   m_TagString: Untagged
@@ -212,7 +232,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c89fcb656c1a58f49a0d325857a0f497, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bonePoint: 10
 --- !u!114 &4376407718605823702
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,5 +242,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6f1d6d6d1e6b9aa4290ee809805c0052, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6842143012122147092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7727511665536608322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c204d0bcc59f1849916b038ab3381da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7453844490307090777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7727511665536608322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 292ebbb98a9c2bb41afb624b3708a37d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
