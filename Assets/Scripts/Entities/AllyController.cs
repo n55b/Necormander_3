@@ -81,7 +81,7 @@ public class AllyController : BaseEntity, IThrowable
         _hasImpacted = false;
 
         // [수정] 피격 연출 코루틴이 실행 중일 경우를 대비해 강제 리셋
-        if (_stats != null) _stats.ResetVisualFeedback();
+        if (_stats != null) _stats.Visual.ResetVisuals();
 
         if (_rb != null) _rb.simulated = false;
         if (_collider != null) _collider.enabled = false;
@@ -167,7 +167,7 @@ public class AllyController : BaseEntity, IThrowable
         {
             float fixedDamage = _stats.MAXHP / 3f;
             DamageInfo riskInfo = new DamageInfo(fixedDamage, DamageType.Fixed, gameObject);
-            _stats.GetDamage(riskInfo);
+            _stats.Health.GetDamage(riskInfo);
             Debug.Log($"<color=red>[Risk]</color> {gameObject.name} 투척 성공으로 인한 체력 차감: {fixedDamage:F1}");
         }
         */

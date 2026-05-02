@@ -1,12 +1,13 @@
 using UnityEngine;
 
 /// <summary>
-/// 유닛의 스탯 데이터 보관 및 관련 컴포넌트들을 통합 관리하는 HUB 클래스입니다.
+/// 유닛의 모든 주요 스탯 컴포넌트들을 한곳에 모아주는 허브 클래스입니다.
+/// 외부에서는 이 클래스를 통해 Health, Status, Visual 컴포넌트에 직접 접근합니다.
 /// </summary>
 [RequireComponent(typeof(CharacterStatus), typeof(CharacterHealth), typeof(CharacterVisualFeedback))]
 public class CharacterStat : MonoBehaviour
 {
-    [Header("캐릭터 기본 스탯")]
+    [Header("캐릭터 기본 스탯 데이터")]
     [SerializeField] private float baseMaxHP = 100f;
     [SerializeField] private float baseAtk = 10f;
     [SerializeField] private float baseAtkSpd = 1f;
@@ -14,57 +15,45 @@ public class CharacterStat : MonoBehaviour
     [SerializeField] private float baseDef = 0f;
     [SerializeField] private float baseMoveSpeed = 5f;
 
-    // 분리된 컴포넌트 참조
-    private CharacterStatus _status;
-    private CharacterHealth _health;
-    private CharacterVisualFeedback _visual;
+    // 하위 컴포넌트 직접 노출 (Read-only Accessors)
+    public CharacterStatus Status { get; private set; }
+    public CharacterHealth Health { get; private set; }
+    public CharacterVisualFeedback Visual { get; private set; }
+
     private bool _isInitialized = false;
 
-    // 외부 참조용 프로퍼티 (기존 코드와 호환 유지)
+    // --- 외부 참조용 단축 프로퍼티 (데이터 중심) ---
     public float MAXHP => baseMaxHP;
-    public float CURHP 
-    { 
-        get 
-        {
-            if (_health == null) Setup(); // [추가] 초기화 보장
-            return (_health != null) ? _health.CurHP : baseMaxHP;
-        }
-    }
+    public float CURHP => (Health != null) ? Health.CurHP : baseMaxHP;
     public float ATK => baseAtk;
     public float ATKSPD => baseAtkSpd;
     public float ATKRANGE => baseAtkRange;
     public float DEF => baseDef;
-    public float MOVESPEED => baseMoveSpeed * (_status != null ? _status.MoveSpeedMultiplier : 1f);
+    public float MOVESPEED => baseMoveSpeed * (Status != null ? Status.MoveSpeedMultiplier : 1f);
     
-    public bool IsDead => _health != null && _health.IsDead;
-    public bool Invincible 
-    { 
-        get => _health != null && _health.Invincible; 
-        set { if (_health != null) _health.Invincible = value; } 
-    }
-    public float SHIELDAMOUNT => _status != null ? _status.TotalShield : 0f;
-    
-    // [복구] 외부 스크립트용 프로퍼티
-    public Color OriginalColor => _visual != null ? _visual.OriginalColor : Color.white;
+    public bool IsDead => Health != null && Health.IsDead;
 
-    // [중앙집중형 초기화] 부모(BaseEntity)에 의해 명시적으로 호출됨
+    // [중앙집중형 초기화]
     public void Setup()
     {
         if (_isInitialized) return;
 
-        _status = GetComponent<CharacterStatus>();
-        _health = GetComponent<CharacterHealth>();
-        _visual = GetComponent<CharacterVisualFeedback>();
+        Status = GetComponent<CharacterStatus>();
+        Health = GetComponent<CharacterHealth>();
+        Visual = GetComponent<CharacterVisualFeedback>();
 
-        if (_visual != null) _visual.Init(_health, _status);
-        if (_health != null) _health.Init(this, _status);
+        if (Visual != null) Visual.Init(Health, Status);
+        if (Health != null) Health.Init(this, Status);
 
         _isInitialized = true;
     }
 
+    /// <summary>
+    /// 데이터(SO)로부터 수치를 주입받고 각 컴포넌트를 초기화합니다.
+    /// </summary>
     public void InitializeStats(MinionDataSO data)
     {
-        Setup(); // 안전장치: 초기화 안 되어 있으면 수행
+        Setup();
 
         if (data != null)
         {
@@ -76,62 +65,18 @@ public class CharacterStat : MonoBehaviour
             baseMoveSpeed = data.moveSpeed;
         }
         
-        if (_health != null) _health.ResetHP();
-        if (_status != null) _status.ClearStatus();
-        if (_visual != null) _visual.ResetVisuals();
+        if (Health != null) Health.ResetHP();
+        if (Status != null) Status.ClearStatus();
+        if (Visual != null) Visual.ResetVisuals();
     }
 
-    // --- 통로(Facade) 메서드들 ---
-    public void GetDamage(DamageInfo info) 
-    {
-        if (_health == null) Setup(); // [추가] 초기화 보장
-        if (_health != null) _health.GetDamage(info);
-    }
-    public void Heal(float amount) 
-    {
-        if (_health == null) Setup();
-        _health.Heal(amount);
-    }
-    public void AddShield(float amount, float duration) 
-    {
-        if (_status == null) Setup();
-        _status.AddShield(amount, duration);
-    }
-    public void ApplySlow(string id, float reduction, float duration) 
-    {
-        if (_status == null) Setup();
-        _status.ApplySlow(id, reduction, duration);
-    }
-    public void ApplyKnockback(Vector2 dir, float force, float duration = 0.15f) 
-    {
-        if (_status == null) Setup();
-        _status.ApplyKnockback(dir, force, duration);
-    }
-    public void BreakShield(float amount) 
-    {
-        if (_status == null) Setup();
-        _status.ConsumeShield(amount);
-    }
-    public void SetShieldVFX(GameObject vfx) 
-    {
-        if (_visual == null) Setup();
-        _visual.SetShieldVFX(vfx);
-    }
-    public void SetCCVFX(GameObject vfx) 
-    {
-        if (_visual == null) Setup();
-        _visual.SetCCVFX(vfx);
-    }
-    public void ResetVisualFeedback() 
-    {
-        if (_visual == null) Setup();
-        _visual.ResetVisuals();
-    }
-
+    /// <summary>
+    /// 분신 소환 등 특수한 경우에 스탯을 절반으로 깎는 로직
+    /// </summary>
     public void ApplySplitStats()
     {
         baseMaxHP *= 0.5f;
         baseAtk *= 0.5f;
-        if (_health != null) _health.ResetHP();
+        if (Health != null) Health.ResetHP();
     }
 }

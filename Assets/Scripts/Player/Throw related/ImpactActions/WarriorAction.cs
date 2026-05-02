@@ -13,7 +13,7 @@ public class WarriorAction : ImpactAction
         if (target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
         {
             float finalDamage = recipe.GetScaledValue(damage);
-            entity.Stats.GetDamage(new DamageInfo(finalDamage, DamageType.Physical, null));
+            entity.Stats.Health.GetDamage(new DamageInfo(finalDamage, DamageType.Physical, null));
         }
     }
 }

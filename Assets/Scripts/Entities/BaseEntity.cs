@@ -131,31 +131,33 @@ public abstract class BaseEntity : MonoBehaviour
     }
 
     protected virtual void HandleAIUpdate() { }
+protected bool IsTargetInvalid(Transform target)
+{
+    if (target == null) return true;
 
-    protected bool IsTargetInvalid(Transform target)
+    CharacterStat stat = target.GetComponentInChildren<CharacterStat>();
+    if (stat != null)
     {
-        if (target == null) return true;
-        
-        CharacterStat stat = target.GetComponentInChildren<CharacterStat>();
-        if (stat != null)
-        {
-            return stat.IsDead || stat.Invincible;
-        }
-        return false;
+        // [수정] 직접 컴포넌트 참조
+        return stat.Health.IsDead || stat.Health.Invincible;
     }
+    return false;
+}
 
-    protected abstract void HandleNoTarget();
+protected abstract void HandleNoTarget();
 
-    public virtual void ExecuteAttack(Transform target)
+// 공격 실행 시 호출 (각 유닛의 특수 공격 로직은 여기서 구현)
+public virtual void ExecuteAttack(Transform target)
+{
+    if (target != null)
     {
-        if (target != null)
+        CharacterStat targetStat = target.GetComponentInChildren<CharacterStat>();
+        if (targetStat != null)
         {
-            CharacterStat targetStat = target.GetComponentInChildren<CharacterStat>();
-            if (targetStat != null)
-            {
-                DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject);
-                targetStat.GetDamage(info);
-            }
+            // [수정] 직접 Health 담당자에게 명령
+            DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject);
+            targetStat.Health.GetDamage(info);
         }
     }
+}
 }

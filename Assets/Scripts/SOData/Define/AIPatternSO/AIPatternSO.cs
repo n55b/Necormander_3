@@ -78,12 +78,12 @@ public abstract class AIPatternSO : ScriptableObject
     {
         if (IsTargetInvalid(currentTarget)) return;
 
-        // [수정] 자식 오브젝트에서 Stat 탐색
+        // [수정] 직접 Health 참조
         CharacterStat targetStat = currentTarget.GetComponentInChildren<CharacterStat>();
         if (targetStat != null)
         {
             DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject);
-            targetStat.GetDamage(info);
+            targetStat.Health.GetDamage(info);
         }
     }
 
@@ -138,11 +138,11 @@ public abstract class AIPatternSO : ScriptableObject
     {
         if (t == null) return true;
         
-        // [수정] 자식 오브젝트에서 Stat 탐색
+        // [수정] 직접 Health 참조
         CharacterStat stat = t.GetComponentInChildren<CharacterStat>();
         if (stat != null)
         {
-            return stat.IsDead || stat.Invincible;
+            return stat.Health.IsDead || stat.Health.Invincible;
         }
         return false;
     }

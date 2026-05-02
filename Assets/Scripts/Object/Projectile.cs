@@ -50,7 +50,7 @@ public class Projectile : MonoBehaviour
             if (targetStat != null)
             {
                 DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter);
-                targetStat.GetDamage(info);
+                targetStat.Health.GetDamage(info);
                 Destroy(gameObject);
             }
         }

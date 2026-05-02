@@ -15,7 +15,7 @@ public class ArcherAction : ImpactAction
         if (recipe.targetingMode == TargetingMode.Area && target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
         {
             float finalDamage = recipe.GetScaledValue(damage);
-            entity.Stats.GetDamage(new DamageInfo(finalDamage, DamageType.Physical, null));
+            entity.Stats.Health.GetDamage(new DamageInfo(finalDamage, DamageType.Physical, null));
         }
     }
 }

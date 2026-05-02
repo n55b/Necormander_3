@@ -42,6 +42,6 @@ public class SpearmanAction : ImpactAction
         }
 
         if (knockbackDir != Vector2.zero)
-            stat.ApplyKnockback(knockbackDir.normalized, knockbackForce);
+            stat.Status.ApplyKnockback(knockbackDir.normalized, knockbackForce);
     }
 }

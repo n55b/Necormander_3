@@ -16,7 +16,7 @@ public class PriestAction : ImpactAction
         {
             float slowAmount = recipe.GetScaledValue(ccPower);
             float duration = 5.0f;
-            entity.Stats.ApplySlow("ThrowCC", slowAmount, duration);
+            entity.Stats.Status.ApplySlow("ThrowCC", slowAmount, duration);
             if (registry != null && registry.ccAttachVFX != null)
             {
                 GameObject vfx = Object.Instantiate(registry.ccAttachVFX, target.transform.position, Quaternion.identity, target.transform);
@@ -31,7 +31,7 @@ public class PriestAction : ImpactAction
                 {
                     CharacterStat pStat = target.GetComponentInChildren<CharacterStat>();
                     GameObject vfx = Object.Instantiate(registry.ccAttachVFX, target.transform.position, Quaternion.identity, target.transform);
-                    if (pStat != null) pStat.SetCCVFX(vfx);
+                    if (pStat != null) pStat.Visual.SetCCVFX(vfx);
                     Object.Destroy(vfx, 1.0f);
                 }
             }

@@ -20,13 +20,13 @@ public class ShieldBearerAction : ImpactAction
             if (allowShield)
             {
                 float finalShield = recipe.GetScaledValue(shieldAmount);
-                targetStat.AddShield(finalShield, 3.0f);
+                targetStat.Status.AddShield(finalShield, 3.0f);
                 
                 ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
                 if (registry != null && registry.shieldAttachVFX != null)
                 {
                     GameObject vfx = Object.Instantiate(registry.shieldAttachVFX, target.transform.position, Quaternion.identity, target.transform);
-                    targetStat.SetShieldVFX(vfx);
+                    targetStat.Visual.SetShieldVFX(vfx);
                 }
             }
         }
