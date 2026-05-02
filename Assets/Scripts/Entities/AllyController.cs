@@ -11,7 +11,6 @@ public class AllyController : BaseEntity, IThrowable
     public Transform player;
     [SerializeField] bool isBattle = false;
 
-    public MinionDataSO MinionData => minionData;
     public CommandData MinionType => minionData != null ? minionData.minionType : CommandData.SkeletonWarrior;
 
     [Header("Throw Physics")]
@@ -37,14 +36,6 @@ public class AllyController : BaseEntity, IThrowable
     private string _originalSortingLayerName;
     private bool _hasImpacted = false;
     private bool _isDirectThrow = false;
-
-    private ThrowCombinationSO _activeCombination;
-    private bool _isCombinationLead = false;
-    private List<AllyController> _combinationSupporters;
-
-    public ThrowCombinationSO ActiveCombination => _activeCombination;
-    public bool IsCombinationLead => _isCombinationLead;
-    public List<AllyController> CombinationSupporters => _combinationSupporters;
 
     protected override void Awake()
     {
@@ -90,18 +81,11 @@ public class AllyController : BaseEntity, IThrowable
         _hasImpacted = false;
 
         // [수정] 피격 연출 코루틴이 실행 중일 경우를 대비해 강제 리셋
-        if (_stats != null) _stats.ResetVisualFeedback();
+        if (_stats != null) _stats.Visual.ResetVisuals();
 
         if (_rb != null) _rb.simulated = false;
         if (_collider != null) _collider.enabled = false;
         if (_agent != null) _agent.enabled = false;
-    }
-
-    public void SetCombination(ThrowCombinationSO combo, bool isLead, List<AllyController> supporters)
-    {
-        _activeCombination = combo;
-        _isCombinationLead = isLead;
-        _combinationSupporters = supporters;
     }
 
     /// <summary>
@@ -177,14 +161,16 @@ public class AllyController : BaseEntity, IThrowable
 
     public virtual void OnLanded()
     {
-        // [복구] 효과 발동에 성공한 경우에만 리스크(체력 차감) 적용
+        // [수정] 투척 성공 시 리스크(체력 차감) 로직 제거
+        /*
         if (_hasImpacted && _stats != null)
         {
             float fixedDamage = _stats.MAXHP / 3f;
             DamageInfo riskInfo = new DamageInfo(fixedDamage, DamageType.Fixed, gameObject);
-            _stats.GetDamage(riskInfo);
+            _stats.Health.GetDamage(riskInfo);
             Debug.Log($"<color=red>[Risk]</color> {gameObject.name} 투척 성공으로 인한 체력 차감: {fixedDamage:F1}");
         }
+        */
 
         gameObject.layer = _originalLayer;
         if (_sr != null && !string.IsNullOrEmpty(_originalSortingLayerName))
@@ -196,10 +182,6 @@ public class AllyController : BaseEntity, IThrowable
             if (UnityEngine.AI.NavMesh.SamplePosition(transform.position, out UnityEngine.AI.NavMeshHit hit, 1.0f, UnityEngine.AI.NavMesh.AllAreas))
                 _agent.Warp(hit.position);
         }
-
-        _activeCombination = null;
-        _isCombinationLead = false;
-        _combinationSupporters = null;
 
         if (_rb != null)
         {

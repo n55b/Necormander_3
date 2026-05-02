@@ -27,12 +27,14 @@ public class TrajectoryPredictor : MonoBehaviour
     private LineRenderer _lineRenderer;
     private ThrowController _throwController; // 차징 상태 정보를 가져오기 위해 필요
 
+    public void Init(ThrowController controller)
+    {
+        _throwController = controller;
+    }
+
     private void Awake()
     {
         _lineRenderer = GetComponent<LineRenderer>();
-        // 같은 오브젝트에 있거나, Player 오브젝트에서 가져오도록 설정
-        _throwController = GetComponentInParent<ThrowController>(); 
-
         // 시작할 때는 가이드를 끕니다.
         _lineRenderer.enabled = false;
     }

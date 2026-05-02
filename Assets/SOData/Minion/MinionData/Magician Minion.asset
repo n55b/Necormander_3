@@ -16,7 +16,7 @@ MonoBehaviour:
   minionName: Skeleton Magician
   throwEffectCategory: 6
   baseEffectValue: 1
-  effectMultiplier: 0
+  effectMultiplier: 1
   baseAreaRadius: 0
   maxHP: 100
   attack: 10

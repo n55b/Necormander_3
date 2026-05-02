@@ -1,5 +1,97 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2048275137793000749
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4334545961223052580}
+  - component: {fileID: 1146241308638057119}
+  - component: {fileID: 3361735179240654997}
+  - component: {fileID: 6779181802174830681}
+  - component: {fileID: 7358129320970090903}
+  m_Layer: 7
+  m_Name: CharacterStatStuff
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4334545961223052580
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048275137793000749}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1096341193455607720}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1146241308638057119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048275137793000749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3504e5b732e46ed47849051799a49b28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3361735179240654997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048275137793000749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 155a5dca3db192e419b63ccf7dcb1f22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  curHP: 0
+  isDead: 0
+  invincible: 0
+--- !u!114 &6779181802174830681
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048275137793000749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7c55176e5d5b1a4c893a01543dd4ac6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7358129320970090903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048275137793000749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 897ebfcee34f3a64fb527f555bf39411, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseMaxHP: 100
+  baseAtk: 10
+  baseAtkSpd: 1
+  baseAtkRange: 2
+  baseDef: 0
+  baseMoveSpeed: 5
 --- !u!1 &5144142430907504354
 GameObject:
   m_ObjectHideFlags: 0
@@ -12,7 +104,6 @@ GameObject:
   - component: {fileID: 7414995997704664874}
   - component: {fileID: 7983487525704611893}
   - component: {fileID: 7675627589926563005}
-  - component: {fileID: 280329618997857556}
   - component: {fileID: 6690404922454239926}
   - component: {fileID: 1872334000514628288}
   - component: {fileID: -2522998909360401651}
@@ -37,6 +128,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 842980764724886598}
+  - {fileID: 4334545961223052580}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!195 &7414995997704664874
@@ -124,28 +216,6 @@ Rigidbody2D:
   m_SleepingMode: 0
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!114 &280329618997857556
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5144142430907504354}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 897ebfcee34f3a64fb527f555bf39411, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MaxHP: 100
-  curHP: 100
-  Atk: 10
-  AtkSpd: 1
-  AtkRange: 1
-  Def: 0
-  MoveSpeed: 10
-  isDead: 0
-  invincible: 0
-  shieldCount: 0
 --- !u!114 &6690404922454239926
 MonoBehaviour:
   m_ObjectHideFlags: 0

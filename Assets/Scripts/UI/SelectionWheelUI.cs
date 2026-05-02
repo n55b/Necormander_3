@@ -70,7 +70,7 @@ public class SelectionWheelUI : MonoBehaviour
                 txt.fontSize = 18;
                 txt.fontStyle = FontStyles.Bold;
                 txt.alignment = TextAlignmentOptions.Center;
-                txt.enableWordWrapping = false;
+                txt.textWrappingMode = TextWrappingModes.NoWrap;
                 
                 _segments.Add(img);
                 _labelTexts.Add(txt);

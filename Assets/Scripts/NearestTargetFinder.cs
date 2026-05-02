@@ -61,7 +61,7 @@ public class NearestTargetFinder : MonoBehaviour
             // 1. 유효성 검사 (무적 상태나 죽은 대상 제외)
             if (results[i].TryGetComponent<CharacterStat>(out var stat))
             {
-                if (stat.IsDead || stat.Invincible) continue;
+                if (stat.Health.IsDead || stat.Health.Invincible) continue;
             }
 
             // 2. sqrMagnitude 사용 (루트 연산을 생략해 성능 최적화)

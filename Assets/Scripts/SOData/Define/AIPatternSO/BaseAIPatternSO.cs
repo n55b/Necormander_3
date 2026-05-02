@@ -41,15 +41,15 @@ public class BaseAIPatternSO : AIPatternSO
         {
             float dist = Vector2.Distance(entity.transform.position, target.position);
             
-            if (target.CompareTag("Player"))
+            // [수정] 아군 미니언이 플레이어를 따라갈 때만 거리 유지, 적군이 플레이어를 잡았을 때는 공격 수행
+            if (entity.team == Team.Ally && target.CompareTag("Player"))
             {
-                // 플레이어와는 일정 거리 유지
                 if (dist > 2.0f) nextState = AIState.Follow;
                 else nextState = AIState.Idle;
             }
             else
             {
-                // 적인 경우 사거리에 따라 결정
+                // 적인 경우(플레이어 포함) 사거리에 따라 결정
                 if (dist <= entity.Stats.ATKRANGE) nextState = AIState.Attack;
                 else nextState = AIState.Follow;
             }

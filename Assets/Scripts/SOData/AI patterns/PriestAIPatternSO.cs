@@ -42,7 +42,7 @@ public class PriestAIPatternSO : BaseAIPatternSO
         {
             if (target != null && target.TryGetComponent<CharacterStat>(out var stat))
             {
-                stat.Heal(entity.Stats.ATK);
+                stat.Health.Heal(entity.Stats.ATK);
                 // Debug.Log($"<color=green>[Priest Pattern]</color> {entity.name} -> {target.name} 치유 완료");
             }
             atkTimer = 0f;

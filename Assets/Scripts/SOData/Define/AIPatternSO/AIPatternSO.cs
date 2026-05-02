@@ -78,11 +78,12 @@ public abstract class AIPatternSO : ScriptableObject
     {
         if (IsTargetInvalid(currentTarget)) return;
 
-        if (currentTarget.TryGetComponent<CharacterStat>(out var targetStat))
+        // [수정] 직접 Health 참조
+        CharacterStat targetStat = currentTarget.GetComponentInChildren<CharacterStat>();
+        if (targetStat != null)
         {
             DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject);
-            targetStat.GetDamage(info);
-            // Debug.Log($"<color=red>[AI Attack]</color> {entity.name} -> {currentTarget.name}에게 데미지 부여");
+            targetStat.Health.GetDamage(info);
         }
     }
 
@@ -136,9 +137,12 @@ public abstract class AIPatternSO : ScriptableObject
     protected bool IsTargetInvalid(Transform t)
     {
         if (t == null) return true;
-        if (t.TryGetComponent<CharacterStat>(out var stat))
+        
+        // [수정] 직접 Health 참조
+        CharacterStat stat = t.GetComponentInChildren<CharacterStat>();
+        if (stat != null)
         {
-            return stat.IsDead || stat.Invincible;
+            return stat.Health.IsDead || stat.Health.Invincible;
         }
         return false;
     }
