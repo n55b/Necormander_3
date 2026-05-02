@@ -116,29 +116,24 @@ public class ThrowStrategy : MonoBehaviour
                 switch (type)
                 {
                     case CommandData.SkeletonWarrior:
-                        // [조건 유지] 전사는 타겟/셀프 모드일 때만 데미지 기여
-                        if (recipe.targetingMode != TargetingMode.Area) recipe.AddAction(ImpactActionType.Damage, baseVal);
+                        // 전사는 타겟/셀프 모드일 때만 데미지 기여
+                        if (recipe.targetingMode != TargetingMode.Area) recipe.actions.Add(new WarriorAction(baseVal));
                         break;
                     case CommandData.SkeletonArcher: 
-                        // [조건 유지] 궁수는 범위(Area) 모드일 때 반지름 설정 및 데미지 기여
-                        recipe.AddAction(ImpactActionType.Area, ally.MinionData.baseAreaRadius);
-                        if (recipe.targetingMode == TargetingMode.Area) recipe.AddAction(ImpactActionType.Damage, baseVal);
+                        // 궁수는 범위(Area) 모드일 때 반지름 설정 및 데미지 기여
+                        recipe.actions.Add(new ArcherAction(baseVal, ally.MinionData.baseAreaRadius));
                         break;
                     case CommandData.SkeletonPriest: 
-                        // 사제는 CC(슬로우) 부여
-                        recipe.AddAction(ImpactActionType.CC, baseVal); 
+                        recipe.actions.Add(new PriestAction(baseVal)); 
                         break;
                     case CommandData.SkeletonShieldbearer: 
-                        // 방패병은 보호막 부여
-                        recipe.AddAction(ImpactActionType.Shield, baseVal); 
+                        recipe.actions.Add(new ShieldBearerAction(baseVal)); 
                         break;
                     case CommandData.SkeletonSpearman: 
-                        // 창병은 넉백/진형파괴 부여
-                        recipe.AddAction(ImpactActionType.Knockback, baseVal); 
+                        recipe.actions.Add(new SpearmanAction(baseVal)); 
                         break;
                     case CommandData.SkeletonMagician: 
-                        // 마법사는 반복 횟수 추가
-                        recipe.AddAction(ImpactActionType.Repeat, baseVal); 
+                        recipe.actions.Add(new MagicianAction(baseVal)); 
                         break;
                 }
             }
