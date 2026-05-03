@@ -113,27 +113,39 @@ public class ThrowStrategy : MonoBehaviour
                 CommandData type = ally.MinionType;
                 float baseVal = ally.MinionData.baseEffectValue;
 
+                // [보석 시스템] 인벤토리에서 해당 직업의 투척 강화 보석 보너스를 가져옴
+                float gemBonus = InventoryManager.Instance.GetGemBonus(type, StatType.ThrowEffect);
+
                 switch (type)
                 {
                     case CommandData.SkeletonWarrior:
-                        // 전사는 타겟/셀프 모드일 때만 데미지 기여
-                        if (recipe.targetingMode != TargetingMode.Area) recipe.actions.Add(new WarriorAction(baseVal));
+                        // 전사: 보석 보너스를 데미지 고정치로 가산 (baseVal + 보너스)
+                        float finalWarriorDmg = baseVal + gemBonus;
+                        if (recipe.targetingMode != TargetingMode.Area) recipe.actions.Add(new WarriorAction(finalWarriorDmg));
                         break;
+
                     case CommandData.SkeletonArcher: 
-                        // 궁수는 범위(Area) 모드일 때 반지름 설정 및 데미지 기여
-                        recipe.actions.Add(new ArcherAction(baseVal, ally.MinionData.baseAreaRadius));
+                        // 궁수: 보석 보너스를 범위(Radius) 고정 가산치로 사용
+                        float finalRadius = ally.MinionData.baseAreaRadius + gemBonus;
+                        recipe.actions.Add(new ArcherAction(baseVal, finalRadius));
                         break;
+
                     case CommandData.SkeletonPriest: 
-                        recipe.actions.Add(new PriestAction(baseVal)); 
-                        break;
                     case CommandData.SkeletonShieldbearer: 
-                        recipe.actions.Add(new ShieldBearerAction(baseVal)); 
-                        break;
                     case CommandData.SkeletonSpearman: 
-                        recipe.actions.Add(new SpearmanAction(baseVal)); 
+                        // 사제/방패병/창병: 보석 보너스를 효과 배율(Multiplier)로 적용 (기본값 * (1 + 보너스))
+                        float multiplierBonus = baseVal * (1.0f + gemBonus);
+                        
+                        if (type == CommandData.SkeletonPriest) recipe.actions.Add(new PriestAction(multiplierBonus)); 
+                        else if (type == CommandData.SkeletonShieldbearer) recipe.actions.Add(new ShieldBearerAction(multiplierBonus)); 
+                        else recipe.actions.Add(new SpearmanAction(multiplierBonus));
                         break;
+
                     case CommandData.SkeletonMagician: 
-                        recipe.actions.Add(new MagicianAction(baseVal)); 
+                        // 마법사: 보석 보너스 1.0당 반복 횟수 1회 추가
+                        int extraRepeats = Mathf.FloorToInt(gemBonus);
+                        float finalMagiVal = baseVal + extraRepeats;
+                        recipe.actions.Add(new MagicianAction(finalMagiVal)); 
                         break;
                 }
             }

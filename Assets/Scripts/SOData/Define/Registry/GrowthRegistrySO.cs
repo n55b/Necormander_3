@@ -31,4 +31,48 @@ public class GrowthRegistrySO : ScriptableObject
         allItems.AddRange(specialAbilities);
         return allItems;
     }
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// 프로젝트 내의 모든 관련 SO를 검색하여 리스트를 자동으로 갱신합니다.
+    /// </summary>
+    public void RefreshRegistry()
+    {
+        minionLineages.Clear();
+        gems.Clear();
+        treasures.Clear();
+
+        // 1. 계보(Lineage) 검색
+        string[] lineageGuids = UnityEditor.AssetDatabase.FindAssets("t:MinionLineageSO");
+        foreach (var guid in lineageGuids)
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionLineageSO>(path);
+            if (asset != null) minionLineages.Add(asset);
+        }
+
+        // 2. 보석(Gem) 검색
+        string[] gemGuids = UnityEditor.AssetDatabase.FindAssets("t:GemSO");
+        foreach (var guid in gemGuids)
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<GemSO>(path);
+            if (asset != null) gems.Add(asset);
+        }
+
+        // 3. 보물(Treasure) 검색
+        string[] treasureGuids = UnityEditor.AssetDatabase.FindAssets("t:TreasureSO");
+        foreach (var guid in treasureGuids)
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<TreasureSO>(path);
+            if (asset != null) treasures.Add(asset);
+        }
+
+        UnityEditor.EditorUtility.SetDirty(this);
+        UnityEditor.AssetDatabase.SaveAssets();
+        
+        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 계보({minionLineages.Count}), 보석({gems.Count}), 보물({treasures.Count})");
+    }
+#endif
 }

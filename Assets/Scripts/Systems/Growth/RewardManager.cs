@@ -2,11 +2,20 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 방 클리어 보상 시퀀스(카테고리 선택 -> 아이템 선택)를 관리하는 매니저입니다.
+/// [역할: 진행자] 방 클리어 후 발생하는 보상 획득의 전체 흐름을 관리합니다.
+/// - 담당: 보상 시퀀스(Queue) 관리, UI 호출 및 닫기, 선택된 보상의 실제 인벤토리 지급.
+/// - 활용: 게임 루프(예: 방 클리어 시점)에서 RequestClearReward를 호출하여 보상 시퀀스를 시작합니다.
+/// - 특징: RewardProcessor를 사용하여 데이터를 생성하고, RewardSelectionUI를 통해 유저와 상호작용합니다.
 /// </summary>
 public class RewardManager : MonoBehaviour
 {
     public static RewardManager Instance;
+
+    [Header("UI Reference")]
+    [SerializeField] private RewardSelectionUI selectionUI;
+
+    // 보상 대기열 (한 번에 3개씩 묶인 후보자들 리스트)
+    private Queue<List<RewardCandidate>> _rewardQueue = new Queue<List<RewardCandidate>>();
 
     public void Initialize()
     {
@@ -19,14 +28,35 @@ public class RewardManager : MonoBehaviour
     /// </summary>
     public void RequestClearReward(RoomType type)
     {
+        _rewardQueue.Clear();
+
         if (type == RoomType.Normal)
         {
-            // 일반 방: 즉시 꾸러미 생성
-            var rewards = RewardProcessor.GenerateNormalRoomRewards(
+            // 1. 골드 즉시 획득
+            int goldAmount = 200;
+            GameManager.Instance.inventoryManager.AddGold(goldAmount);
+            Debug.Log($"<color=yellow>[Reward]</color> 일반 방 클리어! {goldAmount} 골드 즉시 획득.");
+
+            // 2. 보석 후보 생성 -> 큐에 삽입
+            var gemCandidates = RewardProcessor.GenerateCandidatesByCategory(
                 GameManager.Instance.inventoryManager, 
-                GameManager.Instance.dataManager
+                GameManager.Instance.dataManager, 
+                RewardCategory.Gem
             );
-            ShowNormalRewardUI(rewards);
+            _rewardQueue.Enqueue(gemCandidates);
+
+            // 3. 보물 확률(예: 30%) -> 큐에 삽입
+            if (Random.value < 0.3f)
+            {
+                var treasureCandidates = RewardProcessor.GenerateCandidatesByCategory(
+                    GameManager.Instance.inventoryManager, 
+                    GameManager.Instance.dataManager, 
+                    RewardCategory.Treasure
+                );
+                _rewardQueue.Enqueue(treasureCandidates);
+            }
+
+            ProcessNextReward();
         }
         else
         {
@@ -35,13 +65,26 @@ public class RewardManager : MonoBehaviour
         }
     }
 
-    // --- 단계별 UI 호출 (현재는 로그로 대체, 나중에 실제 UI와 연결) ---
+    /// <summary>
+    /// 대기열에 있는 다음 보상을 화면에 띄웁니다.
+    /// </summary>
+    private void ProcessNextReward()
+    {
+        if (_rewardQueue.Count > 0)
+        {
+            List<RewardCandidate> nextSet = _rewardQueue.Dequeue();
+            ShowItemSelectionUI(nextSet);
+        }
+        else
+        {
+            Debug.Log("<color=green>[Reward]</color> 모든 보상 시퀀스가 종료되었습니다.");
+            if (selectionUI != null) selectionUI.Hide();
+        }
+    }
 
     private void ShowCategorySelectionUI()
     {
         Debug.Log("<b>[UI Step 1]</b> 보상 카테고리를 선택하세요: [Minion, Metamorphosis, Gem, Treasure]");
-        // [테스트용] 사용자 선택 시뮬레이션:
-        // OnCategorySelected(RewardCategory.Minion); 
     }
 
     public void OnCategorySelected(RewardCategory category)
@@ -60,63 +103,63 @@ public class RewardManager : MonoBehaviour
 
     private void ShowItemSelectionUI(List<RewardCandidate> candidates)
     {
-        if (candidates.Count == 0)
+        if (selectionUI != null)
         {
-            Debug.Log("<color=orange>[Reward]</color> 해당 카테고리에 제안할 수 있는 보상이 없습니다!");
-            return;
+            selectionUI.Show(candidates);
         }
-
-        Debug.Log("<b>[UI Step 2]</b> 아이템 하나를 선택하세요:");
-        for (int i = 0; i < candidates.Count; i++)
+        else
         {
-            Debug.Log($"[{i}] {candidates[i].displayData.itemName} - {candidates[i].displayData.description}");
-        }
-    }
-
-    private void ShowNormalRewardUI(List<RewardCandidate> rewards)
-    {
-        Debug.Log("<b>[Normal Room Reward]</b> 아래 보상을 모두 획득합니다:");
-        foreach (var r in rewards)
-        {
-            if (r.category == RewardCategory.Gold) Debug.Log($"- Gold: {r.goldAmount}");
-            else Debug.Log($"- {r.displayData.itemName}");
-            
-            ApplyReward(r);
+            Debug.LogWarning("[RewardManager] SelectionUI 참조가 없습니다. 로그로 대체합니다.");
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                Debug.Log($"[{i}] {candidates[i].displayData.itemName} - {candidates[i].displayData.description}");
+            }
         }
     }
 
-    // --- 실제 보상 적용 ---
+    // --- 실제 보상 적용 및 시퀀스 이어가기 ---
 
     public void ApplyReward(RewardCandidate candidate)
     {
-        var inven = GameManager.Instance.inventoryManager;
-
-        switch (candidate.category)
+        if (candidate.rawData == null) 
         {
-            case RewardCategory.Minion:
-                int emptyIdx = inven.Slots.FindIndex(s => s.IsEmpty);
-                if (emptyIdx != -1) inven.EquipLineage(emptyIdx, (MinionLineageSO)candidate.rawData);
-                break;
+            Debug.Log("<color=gray>[Reward]</color> 보상을 선택하지 않았거나 빈 슬롯입니다.");
+        }
+        else
+        {
+            var inven = GameManager.Instance.inventoryManager;
 
-            case RewardCategory.Metamorphosis:
-                inven.ApplyMetamorphosis((MinionLineageSO)candidate.rawData, candidate.techIndex);
-                break;
+            switch (candidate.category)
+            {
+                case RewardCategory.Minion:
+                    int emptyIdx = inven.Slots.FindIndex(s => s.IsEmpty);
+                    if (emptyIdx != -1) inven.EquipLineage(emptyIdx, (MinionLineageSO)candidate.rawData);
+                    break;
 
-            case RewardCategory.Gem:
-                inven.EquipGem(((GemSO)candidate.rawData).targetJob, (GemSO)candidate.rawData);
-                break;
+                case RewardCategory.Metamorphosis:
+                    inven.ApplyMetamorphosis((MinionLineageSO)candidate.rawData, candidate.techIndex);
+                    break;
 
-            case RewardCategory.Treasure:
-                inven.AddTreasure((TreasureSO)candidate.rawData);
-                break;
+                case RewardCategory.Gem:
+                    // [수정] candidate에 저장된 구체적인 targetJob을 사용하여 보석 장착
+                    inven.EquipGem(candidate.targetJob, (GemSO)candidate.rawData);
+                    break;
 
-            case RewardCategory.Gold:
-                // TODO: EconomyManager 연동
-                Debug.Log($"<color=yellow>[Economy]</color> 골드 {candidate.goldAmount} 획득!");
-                break;
+                case RewardCategory.Treasure:
+                    inven.AddTreasure((TreasureSO)candidate.rawData);
+                    break;
+            }
+
+            Debug.Log($"<color=green>[Reward]</color> 획득 완료: {candidate.displayData.itemName}");
+            GameManager.Instance.squadSpawner.RefreshFullSquad();
         }
 
-        Debug.Log($"<color=green>[Reward]</color> 획득 완료: {candidate.displayData.itemName}");
-        GameManager.Instance.squadSpawner.RefreshFullSquad();
+        ProcessNextReward();
+    }
+
+    public void SkipReward()
+    {
+        Debug.Log("<color=orange>[Reward]</color> 보상을 건너뛰었습니다.");
+        ProcessNextReward();
     }
 }

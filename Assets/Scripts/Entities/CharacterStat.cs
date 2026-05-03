@@ -20,20 +20,42 @@ public class CharacterStat : MonoBehaviour
     public CharacterHealth Health { get; private set; }
     public CharacterVisualFeedback Visual { get; private set; }
 
+    [Header("런타임 직업 정보")]
+    [SerializeField] private CommandData jobType; // 보석 계산을 위해 필요
+
     private bool _isInitialized = false;
 
-    // --- 외부 참조용 단축 프로퍼티 (데이터 중심) ---
-    public float MAXHP => baseMaxHP;
-    public float CURHP => (Health != null) ? Health.CurHP : baseMaxHP;
-    public float ATK => baseAtk;
-    public float ATKSPD => baseAtkSpd;
+    // --- 외부 참조용 단축 프로퍼티 (데이터 중심 + 보석 보너스 합산) ---
+    
+    // 공격력: (기본 공격력) * (1 + 보석 배율)
+    public float ATK => baseAtk * (1f + GetGemBonus(StatType.Attack));
+
+    // 최대 체력: (기본 체력) * (1 + 보석 배율)
+    public float MAXHP => baseMaxHP * (1f + GetGemBonus(StatType.Health));
+
+    public float CURHP => (Health != null) ? Health.CurHP : MAXHP;
+
+    // 공격 속도: 기본 공격 주기 / (1 + 보석 배율) -> 배율이 높을수록 주기가 짧아짐(빨라짐)
+    public float ATKSPD => baseAtkSpd / (1f + GetGemBonus(StatType.AttackSpeed));
+
     public float ATKRANGE => baseAtkRange;
     public float DEF => baseDef;
-    public float MOVESPEED => baseMoveSpeed * (Status != null ? Status.MoveSpeedMultiplier : 1f);
+
+    // 이동 속도: 기본 속도 * 상태이상 배율
+    public float MOVESPEED => (baseMoveSpeed * (Status != null ? Status.MoveSpeedMultiplier : 1f));
     
+    // 부활 시간 보너스 (필요 시 외부에서 참조)
+    public float RESPAWN_BONUS => GetGemBonus(StatType.RespawnTime);
+
     public bool IsDead => Health != null && Health.IsDead;
 
-    // [중앙집중형 초기화]
+    private float GetGemBonus(StatType type)
+    {
+        if (InventoryManager.Instance == null) return 0f;
+        return InventoryManager.Instance.GetGemBonus(jobType, type);
+    }
+
+    // [중앙집집중형 초기화]
     public void Setup()
     {
         if (_isInitialized) return;
@@ -57,6 +79,7 @@ public class CharacterStat : MonoBehaviour
 
         if (data != null)
         {
+            jobType = data.minionType; // 직업 정보 저장 (보석 계산용)
             baseMaxHP = data.maxHP;
             baseAtk = data.attack;
             baseAtkSpd = data.attackSpeed;

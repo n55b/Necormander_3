@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 투척 카테고리별 시각 효과(VFX) 및 장판 프리팹을 관리하는 레지스트리입니다.
 /// </summary>
-[CreateAssetMenu(fileName = "ThrowEffectRegistry", menuName = "Necromancer/Data/ThrowEffectRegistry")]
+[CreateAssetMenu(fileName = "ThrowEffectRegistry", menuName = "Necromancer/Registry/ThrowEffectRegistry")]
 public class ThrowEffectRegistrySO : ScriptableObject
 {
     [Header("CC (사제/슬로우)")]

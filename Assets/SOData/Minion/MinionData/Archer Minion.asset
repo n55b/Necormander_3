@@ -16,8 +16,8 @@ MonoBehaviour:
   minionName: Skeleton Archer
   throwEffectCategory: 2
   baseEffectValue: 10
-  throwDamageMultiplier: 1
-  baseAreaRadius: 5
+  effectMultiplier: 1
+  baseAreaRadius: 3
   maxHP: 100
   attack: 10
   attackSpeed: 1

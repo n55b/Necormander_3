@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 992fca418b32f0f46b6872ffbf747b54, type: 3}
+  m_Name: Growth Reward Registry
+  m_EditorClassIdentifier: 
+  minionLineages:
+  - {fileID: 11400000, guid: 6f4994e74423d4643b79946bc7cc5743, type: 2}
+  - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
+  gems:
+  - {fileID: 11400000, guid: 2a4a804bb9ca9f14c8a5402aaafb2883, type: 2}
+  - {fileID: 11400000, guid: 75dc1ae0fa448224784b14bc4181e7f9, type: 2}
+  - {fileID: 11400000, guid: 0ad0b196468b14d4c97d4a5ec802dc51, type: 2}
+  - {fileID: 11400000, guid: 888f15d549cc11144a3eb1476755f876, type: 2}
+  - {fileID: 11400000, guid: e5b3ac3179ec3e34aba5fb32d0dce567, type: 2}
+  treasures: []
+  specialAbilities: []

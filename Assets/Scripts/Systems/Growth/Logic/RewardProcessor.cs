@@ -14,8 +14,15 @@ public struct RewardCandidate
     public int techIndex;              // 계보일 경우 진화 단계
     public RewardCategory category;
     public int goldAmount;             
+    public CommandData targetJob;      // [추가] 보석이나 특정 직업 전용 아이템일 경우 사용
 }
 
+/// <summary>
+/// [역할: 계산기] 보상 시스템의 수학적/논리적 판단을 담당하는 정적 클래스입니다.
+/// - 담당: 인벤토리 분석, 유효한 보상 필터링, 확률 기반 랜덤 추출.
+/// - 활용: RewardManager나 상점 시스템에서 "제공할 보상 리스트"가 필요할 때 호출합니다.
+/// - 특징: UI나 게임 상태를 직접 수정하지 않으며, 오직 데이터(RewardCandidate)만 생성합니다.
+/// </summary>
 public static class RewardProcessor
 {
     // --- 1. 일반 방용: 고정 꾸러미 생성 ---
@@ -41,8 +48,8 @@ public static class RewardProcessor
         return results;
     }
 
-    // --- 2. 엘리트/보상 방용: 카테고리별 후보 생성 (3개 추출) ---
-    public static List<RewardCandidate> GenerateCandidatesByCategory(InventoryManager inven, DataManager data, RewardCategory category, int count)
+    // --- 2. 엘리트/보상 방용: 카테고리별 후보 생성 (무조건 3개 슬롯 반환) ---
+    public static List<RewardCandidate> GenerateCandidatesByCategory(InventoryManager inven, DataManager data, RewardCategory category, int count = 3)
     {
         List<RewardCandidate> allPossible = new List<RewardCandidate>();
         var registry = data.GET_GROWTH_REGISTRY();
@@ -63,14 +70,26 @@ public static class RewardProcessor
                 break;
         }
 
-        // 랜덤 셔플 및 count만큼 추출
         List<RewardCandidate> results = new List<RewardCandidate>();
+        
+        // 실제 데이터가 있는 만큼 랜덤으로 추출
         for (int i = 0; i < count; i++)
         {
-            if (allPossible.Count == 0) break;
-            int idx = Random.Range(0, allPossible.Count);
-            results.Add(allPossible[idx]);
-            allPossible.RemoveAt(idx);
+            if (allPossible.Count > 0)
+            {
+                int idx = Random.Range(0, allPossible.Count);
+                results.Add(allPossible[idx]);
+                allPossible.RemoveAt(idx);
+            }
+            else
+            {
+                // [예외 처리] 데이터가 부족할 경우 "비어있는 슬롯" 후보 추가
+                results.Add(new RewardCandidate { 
+                    category = category, 
+                    displayData = new GrowthItemData { itemName = "없음", description = "더 이상 획득할 수 있는 보상이 없습니다." },
+                    rawData = null 
+                });
+            }
         }
         return results;
     }
@@ -108,10 +127,42 @@ public static class RewardProcessor
     private static List<RewardCandidate> GetValidGems(InventoryManager inven, List<GemSO> gems)
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();
+        
+        // 현재 플레이어가 슬롯에 가지고 있는 모든 직업 리스트 추출
+        HashSet<CommandData> playerJobs = new HashSet<CommandData>();
+        foreach(var slot in inven.Slots)
+        {
+            if (slot.EquippedLineage != null) playerJobs.Add(slot.EquippedLineage.jobType);
+        }
+
         foreach (var gem in gems)
         {
-            if (inven.HasJobInSlots(gem.targetJob))
-                candidates.Add(new RewardCandidate { displayData = new GrowthItemData { itemName = gem.itemName, description = gem.description, icon = gem.icon, rarity = gem.rarity }, rawData = gem, category = RewardCategory.Gem });
+            if (gem.isUniversal)
+            {
+                // 범용 보석은 플레이어가 가진 각 직업별로 후보를 생성 (6가지 바리에이션 가능)
+                foreach (var job in playerJobs)
+                {
+                    candidates.Add(new RewardCandidate { 
+                        displayData = gem.GetDynamicDisplayData(job), 
+                        rawData = gem, 
+                        category = RewardCategory.Gem,
+                        targetJob = job
+                    });
+                }
+            }
+            else
+            {
+                // 전용 보석은 해당 직업을 플레이어가 가지고 있을 때만 생성
+                if (playerJobs.Contains(gem.targetJob))
+                {
+                    candidates.Add(new RewardCandidate { 
+                        displayData = gem.GetDynamicDisplayData(gem.targetJob), 
+                        rawData = gem, 
+                        category = RewardCategory.Gem,
+                        targetJob = gem.targetJob
+                    });
+                }
+            }
         }
         return candidates;
     }
