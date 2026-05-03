@@ -48,9 +48,15 @@ public class GemSO : GrowthItemSO
     public GrowthItemData GetDynamicDisplayData(CommandData job)
     {
         string jobName = job.ToString().Replace("Skeleton", "");
+        
+        // [수정] 기본 설명(description)과 동적 보너스 설명을 합쳐서 표시합니다.
+        // 모든 텍스트는 폰트 깨짐 방지를 위해 영어로 전환합니다.
+        string bonusInfo = $"Enhances {jobName}'s {GetStatName()} by {baseBonusValue * 100}%";
+        string finalDesc = string.IsNullOrEmpty(this.description) ? bonusInfo : $"{this.description}\n({bonusInfo})";
+
         return new GrowthItemData {
             itemName = $"[{jobName}] {itemName}",
-            description = $"{jobName}의 {GetStatName()} 효과를 {baseBonusValue * 100}%만큼 강화합니다.",
+            description = finalDesc,
             icon = this.icon,
             rarity = this.rarity
         };
@@ -60,12 +66,12 @@ public class GemSO : GrowthItemSO
     {
         switch (statType)
         {
-            case StatType.Attack: return "공격력";
-            case StatType.Health: return "최대 체력";
-            case StatType.AttackSpeed: return "공격 속도";
-            case StatType.RespawnTime: return "부활 시간";
-            case StatType.ThrowEffect: return "투척 능력";
-            default: return "이동 속도";
+            case StatType.Attack: return "Attack Damage";
+            case StatType.Health: return "Max Health";
+            case StatType.AttackSpeed: return "Attack Speed";
+            case StatType.RespawnTime: return "Respawn Speed";
+            case StatType.ThrowEffect: return "Throw Ability";
+            default: return "Movement Speed";
         }
     }
 }

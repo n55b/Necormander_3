@@ -12,13 +12,20 @@ public class InventoryManager : MonoBehaviour
     public class CoreSlot
     {
         public bool IsShattered; 
-        public MinionLineageSO EquippedLineage; // [수정] 아이템 파일 대신 계보 마스터를 직접 장착
+        public MinionLineageSO EquippedLineage; 
+        public ThrowAbilitySO EquippedThrowAbility; // [추가] 던지기 능력 장착 슬롯
         public int EvolutionIndex; 
+        public int Quantity; 
         
-        public bool IsEmpty => !IsShattered && EquippedLineage == null;
+        public bool IsEmpty => !IsShattered && EquippedLineage == null && EquippedThrowAbility == null;
 
         public MinionDataSO GetCurrentMinionData() => EquippedLineage != null ? EquippedLineage.GetForm(EvolutionIndex) : null;
-        public GrowthItemData GetCurrentItemData() => EquippedLineage != null ? EquippedLineage.GetItemData(EvolutionIndex) : null;
+        public GrowthItemData GetCurrentItemData()
+        {
+            if (EquippedLineage != null) return EquippedLineage.GetItemData(EvolutionIndex);
+            if (EquippedThrowAbility != null) return new GrowthItemData { itemName = EquippedThrowAbility.itemName, description = EquippedThrowAbility.description, icon = EquippedThrowAbility.icon, rarity = EquippedThrowAbility.rarity };
+            return null;
+        }
     }
 
     [Header("자원 관리")]
@@ -29,11 +36,14 @@ public class InventoryManager : MonoBehaviour
     public List<CoreSlot> Slots = new List<CoreSlot>(10);
 
     [Header("보석 보관함 (직업별)")]
-    // [수정] Dictionary를 사용하여 각 직업(CommandData)이 가진 보석 리스트를 관리합니다.
     public Dictionary<CommandData, List<GemSO>> EquippedGems = new Dictionary<CommandData, List<GemSO>>();
 
     [Header("보물 인벤토리 (중첩)")]
     public Dictionary<TreasureSO, int> TreasureStacks = new Dictionary<TreasureSO, int>();
+
+    // [추가] 현재 활성화된 던지기 능력 리스트 (투척 시스템에서 참조용)
+    private List<ThrowAbilitySO> _activeAbilities = new List<ThrowAbilitySO>();
+    public List<ThrowAbilitySO> ActiveAbilities => _activeAbilities;
 
     public void Initialize()
     {
@@ -42,7 +52,27 @@ public class InventoryManager : MonoBehaviour
         {
             for (int i = 0; i < 10; i++) Slots.Add(new CoreSlot());
         }
+        UpdateActiveAbilities();
         Debug.Log("<color=cyan>[InventoryManager]</color> Initialized.");
+
+        // [디버깅용] 기본 전사 미니언 지급
+        Debug_InitializeDefaultMinion();
+    }
+
+    private void Debug_InitializeDefaultMinion()
+    {
+        AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
+    }
+
+    // 슬롯 변경 시마다 활성화된 능력 리스트를 갱신합니다.
+    public void UpdateActiveAbilities()
+    {
+        _activeAbilities.Clear();
+        foreach (var slot in Slots)
+        {
+            if (slot.EquippedThrowAbility != null)
+                _activeAbilities.Add(slot.EquippedThrowAbility);
+        }
     }
 
     #region Gold System
@@ -64,13 +94,6 @@ public class InventoryManager : MonoBehaviour
     #endregion
 
     #region Gem System
-    /// <summary>
-    /// 특정 직업의 특정 능력치에 대한 보석 보너스 합계를 계산합니다.
-    /// 유닛의 실제 소환 여부와 관계없이 인벤토리 데이터를 직접 참조합니다.
-    /// </summary>
-    /// <param name="job">대상 직업</param>
-    /// <param name="stat">계산할 능력치 타입</param>
-    /// <returns>합산된 보너스 값 (배율 또는 고정치)</returns>
     public float GetGemBonus(CommandData job, StatType stat)
     {
         if (!EquippedGems.ContainsKey(job)) return 0f;
@@ -88,7 +111,6 @@ public class InventoryManager : MonoBehaviour
 
     public bool EquipGem(CommandData job, GemSO gem)
     {
-        // [규칙] 해당 직업 유닛이 슬롯에 하나라도 있어야 장착 가능
         if (!HasJobInSlots(job))
         {
             Debug.LogWarning($"<color=orange>[Inventory]</color> {job} 유닛이 슬롯에 없어 보석을 장착할 수 없습니다.");
@@ -97,7 +119,6 @@ public class InventoryManager : MonoBehaviour
 
         if (!EquippedGems.ContainsKey(job)) EquippedGems[job] = new List<GemSO>();
 
-        // [규칙] 직업당 최대 2개까지 장착 가능
         if (EquippedGems[job].Count < 2)
         {
             EquippedGems[job].Add(gem);
@@ -111,11 +132,62 @@ public class InventoryManager : MonoBehaviour
     #endregion
 
     #region Slot Management
+    public bool AddMinionOrIncreaseQuantity(CommandData job, int amount = 1)
+    {
+        var existingSlot = Slots.Find(s => !s.IsShattered && s.EquippedLineage != null && s.EquippedLineage.jobType == job);
+        
+        if (existingSlot != null)
+        {
+            existingSlot.Quantity += amount;
+            Debug.Log($"<color=green>[Inventory]</color> {job} 수량 증가: {existingSlot.Quantity} (추가: {amount})");
+            return true;
+        }
+
+        var registry = GameManager.Instance.dataManager.GET_GROWTH_REGISTRY();
+        if (registry == null) return false;
+
+        MinionLineageSO targetLineage = registry.minionLineages.Find(lin => lin.jobType == job);
+        if (targetLineage == null) return false;
+
+        int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
+        if (emptyIdx != -1)
+        {
+            EquipLineage(emptyIdx, targetLineage);
+            Slots[emptyIdx].Quantity = amount;
+            return true;
+        }
+        return false;
+    }
+
     public bool EquipLineage(int slotIndex, MinionLineageSO lineage)
     {
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
+        
+        Slots[slotIndex].EquippedThrowAbility = null;
         Slots[slotIndex].EquippedLineage = lineage;
         Slots[slotIndex].EvolutionIndex = 0;
+        Slots[slotIndex].Quantity = 1;
+        
+        UpdateActiveAbilities();
+        return true;
+    }
+
+    public bool EquipThrowAbility(int slotIndex, ThrowAbilitySO ability)
+    {
+        if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
+
+        if (ActiveAbilities.Exists(a => a.abilityType == ability.abilityType))
+        {
+            Debug.LogWarning($"<color=orange>[Inventory]</color> 이미 {ability.abilityType} 능력을 장착하고 있습니다.");
+            return false;
+        }
+
+        Slots[slotIndex].EquippedLineage = null;
+        Slots[slotIndex].Quantity = 0;
+        Slots[slotIndex].EquippedThrowAbility = ability;
+        
+        UpdateActiveAbilities();
+        Debug.Log($"<color=green>[Inventory]</color> 던지기 능력 {ability.abilityType} 장착 완료 (Slot: {slotIndex})");
         return true;
     }
 
@@ -135,6 +207,7 @@ public class InventoryManager : MonoBehaviour
         {
             Slots[slotIndex].IsShattered = true;
             Slots[slotIndex].EquippedLineage = null;
+            Slots[slotIndex].EquippedThrowAbility = null;
         }
     }
     #endregion
@@ -146,5 +219,18 @@ public class InventoryManager : MonoBehaviour
     {
         if (TreasureStacks.ContainsKey(treasure)) TreasureStacks[treasure]++;
         else TreasureStacks[treasure] = 1;
+    }
+
+    public float GetTreasureBonus(TreasureEffectType type)
+    {
+        float totalBonus = 0f;
+        foreach (var kvp in TreasureStacks)
+        {
+            if (kvp.Key.effectType == type)
+            {
+                totalBonus += kvp.Key.valuePerStack * kvp.Value;
+            }
+        }
+        return totalBonus;
     }
 }

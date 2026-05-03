@@ -21,5 +21,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0ad0b196468b14d4c97d4a5ec802dc51, type: 2}
   - {fileID: 11400000, guid: 888f15d549cc11144a3eb1476755f876, type: 2}
   - {fileID: 11400000, guid: e5b3ac3179ec3e34aba5fb32d0dce567, type: 2}
-  treasures: []
+  treasures:
+  - {fileID: 11400000, guid: 4eaa41374a0592a43a6926f9626fc7db, type: 2}
+  - {fileID: 11400000, guid: 860704422158d794d97eb3a850fca8f5, type: 2}
   specialAbilities: []

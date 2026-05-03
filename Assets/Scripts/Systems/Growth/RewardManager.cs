@@ -14,6 +14,9 @@ public class RewardManager : MonoBehaviour
     [Header("UI Reference")]
     [SerializeField] private RewardSelectionUI selectionUI;
 
+    [Header("Reward Settings")]
+    [SerializeField, Range(0f, 1f)] private float treasureDropChance = 0.5f;
+
     // 보상 대기열 (한 번에 3개씩 묶인 후보자들 리스트)
     private Queue<List<RewardCandidate>> _rewardQueue = new Queue<List<RewardCandidate>>();
 
@@ -45,8 +48,8 @@ public class RewardManager : MonoBehaviour
             );
             _rewardQueue.Enqueue(gemCandidates);
 
-            // 3. 보물 확률(예: 30%) -> 큐에 삽입
-            if (Random.value < 0.3f)
+            // 3. 보물 확률(기본 50%) -> 큐에 삽입
+            if (Random.value < treasureDropChance)
             {
                 var treasureCandidates = RewardProcessor.GenerateCandidatesByCategory(
                     GameManager.Instance.inventoryManager, 

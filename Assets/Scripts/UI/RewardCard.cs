@@ -20,6 +20,7 @@ public class RewardCard : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log($"<color=white>[RewardCard]</color> {gameObject.name} Awake called.");
         _parentUI = GetComponentInParent<RewardSelectionUI>();
         EnsureButtonLink();
     }
@@ -30,9 +31,9 @@ public class RewardCard : MonoBehaviour
         
         if (_cardButton != null)
         {
+            Debug.Log($"<color=white>[RewardCard]</color> {gameObject.name}: Button found. Attaching listener.");
             _cardButton.onClick.RemoveAllListeners();
             _cardButton.onClick.AddListener(() => {
-                // 이 로그가 콘솔에 뜨는지 확인하는 것이 최우선입니다!
                 Debug.Log($"<color=cyan>[Card Clicked]</color> {gameObject.name} 클릭됨! Index: {_myIndex}");
                 
                 if (_parentUI != null)
@@ -57,7 +58,7 @@ public class RewardCard : MonoBehaviour
     public void Setup(RewardCandidate candidate, int index)
     {
         _myIndex = index;
-        EnsureButtonLink(); // 혹시 버튼이 늦게 붙었거나 누락된 경우를 위해 재확인
+        EnsureButtonLink();
         
         if (nameText != null) nameText.text = candidate.displayData.itemName;
         if (descText != null) descText.text = candidate.displayData.description;
@@ -68,10 +69,12 @@ public class RewardCard : MonoBehaviour
             iconImage.gameObject.SetActive(candidate.displayData.icon != null);
         }
 
-        // 보상이 없는 슬롯(rawData == null)인 경우 클릭 버튼을 비활성화합니다.
         if (_cardButton != null)
         {
-            _cardButton.interactable = (candidate.rawData != null);
+            // [수정] 데이터가 없어도(rawData == null) 버튼은 항상 활성화하여 
+            // '없음'을 클릭했을 때 다음 보상으로 넘어가거나 UI가 닫힐 수 있도록 합니다.
+            _cardButton.interactable = true;
+            Debug.Log($"<color=white>[RewardCard]</color> {gameObject.name} Setup: Item={candidate.displayData.itemName}, Interactable=True (강제)");
         }
     }
 }

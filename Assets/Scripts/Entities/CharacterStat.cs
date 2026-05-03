@@ -27,11 +27,11 @@ public class CharacterStat : MonoBehaviour
 
     // --- 외부 참조용 단축 프로퍼티 (데이터 중심 + 보석 보너스 합산) ---
     
-    // 공격력: (기본 공격력) * (1 + 보석 배율)
-    public float ATK => baseAtk * (1f + GetGemBonus(StatType.Attack));
+    // 공격력: (기본 공격력) * (1 + 보석 배율 + 보물 배율)
+    public float ATK => baseAtk * (1f + GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
 
-    // 최대 체력: (기본 체력) * (1 + 보석 배율)
-    public float MAXHP => baseMaxHP * (1f + GetGemBonus(StatType.Health));
+    // 최대 체력: (기본 체력) * (1 + 보석 배율 + 보물 배율)
+    public float MAXHP => baseMaxHP * (1f + GetGemBonus(StatType.Health) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
 
     public float CURHP => (Health != null) ? Health.CurHP : MAXHP;
 
@@ -53,6 +53,12 @@ public class CharacterStat : MonoBehaviour
     {
         if (InventoryManager.Instance == null) return 0f;
         return InventoryManager.Instance.GetGemBonus(jobType, type);
+    }
+
+    private float GetTreasureBonus(TreasureEffectType type)
+    {
+        if (InventoryManager.Instance == null) return 0f;
+        return InventoryManager.Instance.GetTreasureBonus(type);
     }
 
     // [중앙집집중형 초기화]

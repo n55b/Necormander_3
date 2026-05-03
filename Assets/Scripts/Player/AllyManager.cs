@@ -156,4 +156,25 @@ public class AllyManager : MonoBehaviour
     {
         allys.RemoveAll(item => !item);
     }
+
+    /// <summary>
+    /// 필드에 소환된 모든 아군을 제거하고 관리 리스트를 초기화합니다.
+    /// SquadSpawner에서 재소환(Refresh) 전 동기화를 위해 사용합니다.
+    /// </summary>
+    public void ClearAll()
+    {
+        RemoveNullinAllys();
+
+        // 1. 모든 게임 오브젝트 파괴
+        foreach (var ally in allys)
+        {
+            if (ally != null) Destroy(ally.gameObject);
+        }
+
+        // 2. 리스트 비우기
+        allys.Clear();
+        activeMinionInfos.Clear();
+
+        Debug.Log("<color=red>[AllyManager]</color> All allies cleared from field.");
+    }
 }

@@ -83,7 +83,9 @@ public class ThrowStrategy : MonoBehaviour
 
         // 플레이어 컨트롤러로부터 계산된 배율을 가져옴
         recipe.chargeMultiplier = GameManager.Instance.PLAYERCONTROLLER.GetThrowChargeMultiplier(chargeRatio);
-        recipe.treasurePowerMultiplier = 1.0f; // 기본값 (추후 보물 시스템에서 가산 가능)
+        
+        // [수정] 보물 시스템으로부터 던지기 전역 강화 수치를 가져와 적용합니다.
+        recipe.treasurePowerMultiplier = 1.0f + InventoryManager.Instance.GetTreasureBonus(TreasureEffectType.GlobalThrowEffect);
 
         if (heldObjects.Count == 0) return recipe;
 

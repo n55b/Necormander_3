@@ -123,14 +123,26 @@ public class PlayerController : MonoBehaviour
                 }
                 
                 int finalSummonCount = 1; 
-                Debug.Log($"<color=white>[Summon Request]</color> Type: {selectedType}, Count: {finalSummonCount} (Resource check disabled)");
+                Debug.Log($"<color=white>[Summon Request]</color> Type: {selectedType}, Count: {finalSummonCount} (Sync with Inventory)");
 
                 List<Vector2> pos = sumController.GetSummonPositions2D(finalSummonCount, summonRange);
 
                 for (int i = 0; i < finalSummonCount; i++)
                 {
-                    Vector2 spawnPos = (i < pos.Count) ? pos[i] : (Vector2)transform.position;
-                    allyManager.SpawnAlly(data, spawnPos);
+                    // [수정] 소환 시 인벤토리에서 해당 유닛의 수량을 늘리거나 새 슬롯을 차지합니다.
+                    // 이는 나중에 "수량 늘리기 아이템"을 먹었을 때와 동일한 로직을 공유합니다.
+                    bool success = GameManager.Instance.inventoryManager.AddMinionOrIncreaseQuantity(selectedType, 1);
+                    
+                    if (success)
+                    {
+                        Vector2 spawnPos = (i < pos.Count) ? pos[i] : (Vector2)transform.position;
+                        allyManager.SpawnAlly(data, spawnPos);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"<color=orange>[PlayerController]</color> 인벤토리 제한으로 {selectedType}을 더 이상 소환할 수 없습니다.");
+                        break;
+                    }
                 }
 
                 sumController.ResetSummonMode();
