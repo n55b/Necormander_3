@@ -419,13 +419,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: dungeon_objects_26
+      name: Candle_1
       rect:
         serializedVersion: 2
         x: 4
         y: 1
         width: 8
-        height: 14
+        height: 15
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -463,7 +463,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: dungeon_objects_28
+      name: Candle_2
       rect:
         serializedVersion: 2
         x: 20
@@ -573,13 +573,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: dungeon_objects_33
+      name: Candle_3
       rect:
         serializedVersion: 2
         x: 36
         y: 1
         width: 8
-        height: 12
+        height: 15
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -595,13 +595,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: dungeon_objects_34
+      name: Candle_4
       rect:
         serializedVersion: 2
         x: 52
         y: 1
         width: 8
-        height: 13
+        height: 15
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -617,7 +617,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: dungeon_objects_35
+      name: Candle_0
       rect:
         serializedVersion: 2
         x: 68
@@ -1092,10 +1092,17 @@ TextureImporter:
     indices: 
     edges: []
     weights: []
-    secondaryTextures: []
+    secondaryTextures:
+    - texture: {fileID: 2800000, guid: f118bdd457edfd54a8aa3cbbec622f13, type: 3}
+      name: _EmissionMap
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
+      Candle_0: -4675003117152778589
+      Candle_1: 3800371483284474313
+      Candle_2: -7023186241087599568
+      Candle_3: -3148975479058652377
+      Candle_4: -5588858509124957460
       dungeon_objects_0: 5583586476820308085
       dungeon_objects_1: 1422000233920434941
       dungeon_objects_10: 3310944270543849329
@@ -1115,17 +1122,12 @@ TextureImporter:
       dungeon_objects_23: -6163397535963075444
       dungeon_objects_24: -4226426169749899577
       dungeon_objects_25: 908243514760696046
-      dungeon_objects_26: 3800371483284474313
       dungeon_objects_27: -1677181409703283400
-      dungeon_objects_28: -7023186241087599568
       dungeon_objects_29: 8040483472052207466
       dungeon_objects_3: 3290337112722832445
       dungeon_objects_30: 181974809779172234
       dungeon_objects_31: -6943235430579529460
       dungeon_objects_32: 4162520688041229853
-      dungeon_objects_33: -3148975479058652377
-      dungeon_objects_34: -5588858509124957460
-      dungeon_objects_35: -4675003117152778589
       dungeon_objects_36: 233180470
       dungeon_objects_37: -1101896660
       dungeon_objects_38: -1634060829
