@@ -20,7 +20,7 @@ public class ThrowJugglingAbilitySO : ThrowAbilitySO
             if (stateManager != null)
             {
                 float bonus = 1.0f + (stateManager.JugglingStacks * stackMultiplier);
-                recipe.abilityMultiplier *= bonus;
+                recipe.modifiers.abilityMultiplier *= bonus;
                 
                 if (stateManager.JugglingStacks > 0)
                 {

@@ -18,5 +18,5 @@ MonoBehaviour:
   rarity: 0
   trajectoryFilter: -1
   targetFilter: -1
-  catchZonePrefab: {fileID: 0}
+  catchZonePrefab: {fileID: 6432499655006681158, guid: 8686f5b311ceb2044887eca4ae2c13e5, type: 3}
   stackMultiplier: 0.5

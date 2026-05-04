@@ -5,32 +5,86 @@ public enum TargetingMode { Self, Target, Area }
 
 /// <summary>
 /// 투척 시 미니언들의 조합을 분석한 결과물(순수 데이터 및 액션 묶음)입니다.
+/// 아키텍처 개선을 위해 성격에 따라 데이터가 그룹화되어 있습니다.
 /// </summary>
 public class ThrowRecipe
 {
-    public TargetingMode targetingMode = TargetingMode.Self;
-    public Team targetTeam = Team.Enemy;
-    public GameObject finalTarget; 
-    public Vector2 impactPoint;    
-    public float chargeRatio;
-    public bool isImmediateApplied = false;
+    /// <summary>
+    /// 투척의 맥락과 기본 설정을 담는 그룹입니다.
+    /// </summary>
+    public class BasicInfo
+    {
+        public TargetingMode targetingMode = TargetingMode.Self;
+        public Team targetTeam = Team.Enemy;
+        public GameObject finalTarget; 
+        public Vector2 impactPoint;    
+        public float chargeRatio;
+        public bool isImmediateApplied = false;
 
-    public float modeMultiplier = 1.0f;
-    public float chargeMultiplier = 1.0f;
-    public float treasurePowerMultiplier = 1.0f; 
-    public float abilityMultiplier = 1.0f; // [추가] 저글링 등 특수 능력 배율
-    public int treasureRepeatBonus = 0;
-    public int bounceCount = 0; // [추가] 튕기기 능력용 현재 튕긴 횟수
-    public bool isBouncing = false; // [추가] 현재 튕기기 중인지 여부
-    
-    // [관통 및 본체 관리]
-    public int pierceCount = 0;    // 현재 관통한 횟수
-    public int maxPierce = 0;      // 최대 관통 가능 횟수
-    public bool isMaster = true;   // 유닛의 생명주기를 관리하는 메인 투척물인지 여부
-    
-    public List<GameObject> hitTargets = new List<GameObject>(); // [추가] 튕기기 중복 타격 방지용 리스트
-    public List<IThrowable> heldUnits = new List<IThrowable>(); // [추가] 투척에 포함된 유닛 리스트
+        public void CopyFrom(BasicInfo other)
+        {
+            targetingMode = other.targetingMode;
+            targetTeam = other.targetTeam;
+            finalTarget = other.finalTarget;
+            impactPoint = other.impactPoint;
+            chargeRatio = other.chargeRatio;
+            isImmediateApplied = other.isImmediateApplied;
+        }
+    }
 
+    /// <summary>
+    /// 각종 강화 시스템에서 계산된 수치적 배율 그룹입니다.
+    /// </summary>
+    public class Modifiers
+    {
+        public float modeMultiplier = 1.0f;
+        public float chargeMultiplier = 1.0f;
+        public float treasurePowerMultiplier = 1.0f; 
+        public float abilityMultiplier = 1.0f; 
+        public int treasureRepeatBonus = 0;
+
+        public void CopyFrom(Modifiers other)
+        {
+            modeMultiplier = other.modeMultiplier;
+            chargeMultiplier = other.chargeMultiplier;
+            treasurePowerMultiplier = other.treasurePowerMultiplier;
+            abilityMultiplier = other.abilityMultiplier;
+            treasureRepeatBonus = other.treasureRepeatBonus;
+        }
+    }
+
+    /// <summary>
+    /// 비행 중 실시간으로 변화하는 궤적 및 연쇄 상태 그룹입니다.
+    /// </summary>
+    public class TrajectoryState
+    {
+        public int bounceCount = 0;
+        public bool isBouncing = false;
+        public int pierceCount = 0;
+        public int maxPierce = 0;
+        public bool isMaster = true;
+        
+        public List<GameObject> hitTargets = new List<GameObject>();
+        public List<IThrowable> heldUnits = new List<IThrowable>();
+
+        public void CopyFrom(TrajectoryState other)
+        {
+            bounceCount = other.bounceCount;
+            isBouncing = other.isBouncing;
+            pierceCount = other.pierceCount;
+            maxPierce = other.maxPierce;
+            isMaster = other.isMaster;
+            hitTargets = new List<GameObject>(other.hitTargets);
+            heldUnits = new List<IThrowable>(other.heldUnits);
+        }
+    }
+
+    // 그룹 인스턴스
+    public BasicInfo info = new BasicInfo();
+    public Modifiers modifiers = new Modifiers();
+    public TrajectoryState state = new TrajectoryState();
+
+    // 액션 리스트는 최상위에 유지 (자주 접근함)
     public List<ImpactAction> actions = new List<ImpactAction>();
 
     /// <summary>
@@ -39,7 +93,8 @@ public class ThrowRecipe
     public float GetScaledValue(float baseValue)
     {
         if (baseValue <= 0) return 0;
-        return baseValue * modeMultiplier * chargeMultiplier * treasurePowerMultiplier * abilityMultiplier;
+        return baseValue * modifiers.modeMultiplier * modifiers.chargeMultiplier * 
+               modifiers.treasurePowerMultiplier * modifiers.abilityMultiplier;
     }
 
     /// <summary>
@@ -65,7 +120,7 @@ public class ThrowRecipe
         {
             if (a is MagicianAction magi) bonus += magi.repeatCount;
         }
-        return 1 + bonus + treasureRepeatBonus;
+        return 1 + bonus + modifiers.treasureRepeatBonus;
     }
 
     /// <summary>

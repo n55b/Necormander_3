@@ -220,10 +220,10 @@ public class ThrowController : MonoBehaviour
             _activeCluster.Setup(_heldObjects); 
             _activeCluster.SetRecipe(recipe);
 
-            if (recipe.targetingMode == TargetingMode.Self)
+            if (recipe.info.targetingMode == TargetingMode.Self)
             {
                 GameManager.Instance.throwImpactManager.ProcessThrowImpact(recipe, startPos, (mousePos - startPos).normalized);
-                recipe.isImmediateApplied = true;
+                recipe.info.isImmediateApplied = true;
             }
 
             // 속도 및 궤적 수치 결정 (유닛이 있으면 첫 번째 유닛 기준, 없으면 기본값)
@@ -243,7 +243,7 @@ public class ThrowController : MonoBehaviour
                 straightH = 0.1f;
             }
 
-            Vector2 finalPos = _physics.GetClampedTargetPos(startPos, recipe.impactPoint, _activeCluster);
+            Vector2 finalPos = _physics.GetClampedTargetPos(startPos, recipe.info.impactPoint, _activeCluster);
             float dist = Vector2.Distance(startPos, finalPos);
             float duration = dist / speed;
             float maxHeight = Mathf.Min(Mathf.Lerp(jumpH, straightH, ratio), dist * 0.5f);
@@ -254,7 +254,7 @@ public class ThrowController : MonoBehaviour
             {
                 foreach (var ability in InventoryManager.Instance.ActiveAbilities)
                 {
-                    if (ability != null && ability.IsApplicable(isDirect, recipe.targetingMode))
+                    if (ability != null && ability.IsApplicable(isDirect, recipe.info.targetingMode))
                     {
                         ability.OnThrowLaunch(this, recipe, startPos, finalPos, duration, maxHeight, isDirect, ratio);
                     }

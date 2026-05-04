@@ -115,9 +115,9 @@ public class ThrowCluster : MonoBehaviour
         _rb.simulated = true;
 
         // 레시피로부터 타겟 정보 획득 (직구 던지기가 아닐 때만)
-        if (_activeRecipe != null && _activeRecipe.targetingMode == TargetingMode.Target && !isDirect)
+        if (_activeRecipe != null && _activeRecipe.info.targetingMode == TargetingMode.Target && !isDirect)
         {
-            _targetTransform = _activeRecipe.finalTarget != null ? _activeRecipe.finalTarget.transform : null;
+            _targetTransform = _activeRecipe.info.finalTarget != null ? _activeRecipe.info.finalTarget.transform : null;
         }
 
         Vector2 diff = targetPos - startPos;
@@ -215,20 +215,20 @@ public class ThrowCluster : MonoBehaviour
         }
 
         // 직구/포물선 공통 충돌 로직
-        int opponentMask = (_activeRecipe.targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
+        int opponentMask = (_activeRecipe.info.targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
         int objectMask = LayerMask.GetMask("Object");
         bool isTargetHit = ((opponentMask | objectMask) & (1 << other.gameObject.layer)) != 0;
 
         if (isTargetHit)
         {
             // 중복 타격 방지 (동일 관통 단계에서 같은 놈 두 번 때리기 방지)
-            if (_activeRecipe.hitTargets.Contains(other.gameObject)) return;
+            if (_activeRecipe.state.hitTargets.Contains(other.gameObject)) return;
 
             // [핵심] 관통 로직
-            if (_activeRecipe.pierceCount < _activeRecipe.maxPierce)
+            if (_activeRecipe.state.pierceCount < _activeRecipe.state.maxPierce)
             {
-                _activeRecipe.pierceCount++;
-                _activeRecipe.finalTarget = other.gameObject;
+                _activeRecipe.state.pierceCount++;
+                _activeRecipe.info.finalTarget = other.gameObject;
                 
                 // 비행 중 즉시 효과 발동 (중단하지 않음)
                 if (GameManager.Instance.throwImpactManager != null)
@@ -239,9 +239,9 @@ public class ThrowCluster : MonoBehaviour
             else
             {
                 // 더 이상 관통할 수 없으면 정지
-                if (_activeRecipe.targetingMode == TargetingMode.Target)
+                if (_activeRecipe.info.targetingMode == TargetingMode.Target)
                 {
-                    _activeRecipe.finalTarget = other.gameObject;
+                    _activeRecipe.info.finalTarget = other.gameObject;
                 }
                 _arcMovement.StopArc();
             }
@@ -273,30 +273,30 @@ public class ThrowCluster : MonoBehaviour
 
             if (!hitWall)
             {
-                if (_activeRecipe.targetingMode == TargetingMode.Self) isImpactSuccess = true;
-                else if (_activeRecipe.targetingMode == TargetingMode.Area) isImpactSuccess = true;
-                else if (_activeRecipe.targetingMode == TargetingMode.Target && _activeRecipe.finalTarget != null) isImpactSuccess = true;
+                if (_activeRecipe.info.targetingMode == TargetingMode.Self) isImpactSuccess = true;
+                else if (_activeRecipe.info.targetingMode == TargetingMode.Area) isImpactSuccess = true;
+                else if (_activeRecipe.info.targetingMode == TargetingMode.Target && _activeRecipe.info.finalTarget != null) isImpactSuccess = true;
                 // [추가] 관통 투척물이 벽에 안 부딪히고 끝까지 날아간 경우도 성공으로 간주
-                else if (_activeRecipe.maxPierce > 0) isImpactSuccess = true;
+                else if (_activeRecipe.state.maxPierce > 0) isImpactSuccess = true;
             }
         }
 
         // 효과 실행 (이때 'this'를 넘겨 능력이 튕기기를 실행할지 결정하게 함)
-        if (isImpactSuccess && _activeRecipe != null && !_activeRecipe.isImmediateApplied)
+        if (isImpactSuccess && _activeRecipe != null && !_activeRecipe.info.isImmediateApplied)
         {
             GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, transform.position, _lastTravelDir, this);
         }
 
         // [핵심] 튕기기 예외 처리
-        if (_activeRecipe != null && _activeRecipe.isBouncing)
+        if (_activeRecipe != null && _activeRecipe.state.isBouncing)
         {
             _isLanded = false; 
-            _activeRecipe.isBouncing = false;
+            _activeRecipe.state.isBouncing = false;
             return;
         }
 
         // [핵심] 마스터 클러스터만 유닛 생명주기 관리
-        if (_activeRecipe != null && _activeRecipe.isMaster)
+        if (_activeRecipe != null && _activeRecipe.state.isMaster)
         {
             foreach (var unit in _units)
             {

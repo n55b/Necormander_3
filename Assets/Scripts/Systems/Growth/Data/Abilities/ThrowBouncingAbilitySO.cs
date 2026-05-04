@@ -23,22 +23,22 @@ public class ThrowBouncingAbilitySO : ThrowAbilitySO
     public override void OnImpact(ThrowRecipe recipe, Vector2 impactPoint, ThrowCluster cluster)
     {
         // 중복 타격 방지 등록
-        if (recipe.finalTarget != null && !recipe.hitTargets.Contains(recipe.finalTarget))
+        if (recipe.info.finalTarget != null && !recipe.state.hitTargets.Contains(recipe.info.finalTarget))
         {
-            recipe.hitTargets.Add(recipe.finalTarget);
+            recipe.state.hitTargets.Add(recipe.info.finalTarget);
         }
 
         // 최대 튕김 횟수 도달 확인
-        if (recipe.bounceCount >= maxBounces) return;
+        if (recipe.state.bounceCount >= maxBounces) return;
 
         // 다음 타겟 검색
         GameObject nextTarget = FindNextTarget(recipe, impactPoint);
         if (nextTarget == null) return;
 
         // [핵심] 시너지 로직: 관통이 남았는가?
-        bool hasPierceRemaining = recipe.pierceCount <= recipe.maxPierce && recipe.maxPierce > 0;
+        bool hasPierceRemaining = recipe.state.pierceCount <= recipe.state.maxPierce && recipe.state.maxPierce > 0;
 
-        if (hasPierceRemaining && recipe.isMaster)
+        if (hasPierceRemaining && recipe.state.isMaster)
         {
             // 1. 관통이 남은 '마스터'라면: 본체는 직진하고, '에코(복제본)'를 생성하여 튕김
             SpawnEchoBounce(recipe, impactPoint, nextTarget);
@@ -69,23 +69,19 @@ public class ThrowBouncingAbilitySO : ThrowAbilitySO
 
             // 레시피 복제 (에코 전용 데이터)
             ThrowRecipe echoRecipe = new ThrowRecipe();
-            echoRecipe.targetingMode = recipe.targetingMode;
-            echoRecipe.targetTeam = recipe.targetTeam;
-            echoRecipe.actions = recipe.actions; // 액션 리스트 공유
-            echoRecipe.chargeMultiplier = recipe.chargeMultiplier;
-            echoRecipe.abilityMultiplier = recipe.abilityMultiplier;
-            echoRecipe.modeMultiplier = recipe.modeMultiplier;
-            echoRecipe.treasurePowerMultiplier = recipe.treasurePowerMultiplier;
+            echoRecipe.info.CopyFrom(recipe.info);
+            echoRecipe.modifiers.CopyFrom(recipe.modifiers);
+            echoRecipe.actions = new List<ImpactAction>(recipe.actions); 
             
-            echoRecipe.isMaster = false; // [중요] 얘는 유닛을 내리지 않음
-            echoRecipe.bounceCount = recipe.bounceCount + 1;
-            echoRecipe.hitTargets = new List<GameObject>(recipe.hitTargets); // 현재까지의 타겟 리스트 복사
+            echoRecipe.state.isMaster = false; // [중요] 얘는 유닛을 내리지 않음
+            echoRecipe.state.bounceCount = recipe.state.bounceCount + 1;
+            echoRecipe.state.hitTargets = new List<GameObject>(recipe.state.hitTargets); // 현재까지의 타겟 리스트 복사
 
             Vector2 targetPos = nextTarget.transform.position;
             float duration = Vector2.Distance(impactPoint, targetPos) / bounceSpeed;
 
-            echoRecipe.finalTarget = nextTarget;
-            echoRecipe.impactPoint = targetPos;
+            echoRecipe.info.finalTarget = nextTarget;
+            echoRecipe.info.impactPoint = targetPos;
 
             var bounceComp = echoObj.AddComponent<BouncingSphere>();
             bounceComp.Init(echoRecipe, (targetPos - impactPoint).normalized);
@@ -101,14 +97,14 @@ public class ThrowBouncingAbilitySO : ThrowAbilitySO
     {
         if (cluster == null) return;
 
-        recipe.bounceCount++;
-        recipe.isBouncing = true;
+        recipe.state.bounceCount++;
+        recipe.state.isBouncing = true;
 
         Vector2 targetPos = nextTarget.transform.position;
         float duration = Vector2.Distance(impactPoint, targetPos) / bounceSpeed;
 
-        recipe.finalTarget = nextTarget;
-        recipe.impactPoint = targetPos;
+        recipe.info.finalTarget = nextTarget;
+        recipe.info.impactPoint = targetPos;
 
         var sr = cluster.GetVisualRenderer();
         if (sr != null) sr.color = new Color(0.6f, 0.9f, 1f, 0.8f);
@@ -120,7 +116,7 @@ public class ThrowBouncingAbilitySO : ThrowAbilitySO
     private GameObject FindNextTarget(ThrowRecipe recipe, Vector2 currentPos)
     {
         // 원래 타겟팅했던 팀과 동일한 팀만 검색
-        LayerMask mask = (recipe.targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
+        LayerMask mask = (recipe.info.targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
         Collider2D[] colls = Physics2D.OverlapCircleAll(currentPos, searchRadius, mask);
         
         GameObject bestTarget = null;
@@ -131,7 +127,7 @@ public class ThrowBouncingAbilitySO : ThrowAbilitySO
             GameObject obj = col.gameObject;
             
             // [수정] 블랙리스트(hitTargets)에 포함된 대상은 무조건 제외
-            if (recipe.hitTargets.Contains(obj)) continue;
+            if (recipe.state.hitTargets.Contains(obj)) continue;
 
             // 죽은 대상 제외 (CharacterStat 확인)
             var stat = obj.GetComponentInChildren<CharacterStat>();

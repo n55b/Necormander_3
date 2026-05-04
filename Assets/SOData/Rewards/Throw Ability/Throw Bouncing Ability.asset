@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 922c0bad9f098e240b066ecf30e58996, type: 3}
   m_Name: Throw Bouncing Ability
   m_EditorClassIdentifier: 
-  itemName: 
-  description: 
+  itemName: Throw Bouncing Ability
+  description: 'Throw ability: Bouncing'
   icon: {fileID: 0}
   rarity: 0
   trajectoryFilter: -1

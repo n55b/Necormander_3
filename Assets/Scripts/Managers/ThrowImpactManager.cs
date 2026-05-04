@@ -20,15 +20,15 @@ public class ThrowImpactManager : MonoBehaviour
     private IEnumerator ExecuteImpactRoutine(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir, ThrowCluster cluster)
     {
         int totalExecutions = recipe.GetTotalExecutionCount();
-        List<GameObject> targets = (recipe.targetingMode == TargetingMode.Area) ? ScanAreaTargets(recipe, impactPos) : null;
+        List<GameObject> targets = (recipe.info.targetingMode == TargetingMode.Area) ? ScanAreaTargets(recipe, impactPos) : null;
 
         // [추가] 던지기 능력 Hook (OnImpact)
         if (InventoryManager.Instance != null)
         {
-            bool isDirect = recipe.chargeRatio >= 0.98f;
+            bool isDirect = recipe.info.chargeRatio >= 0.98f;
             foreach (var ability in InventoryManager.Instance.ActiveAbilities)
             {
-                if (ability != null && ability.IsApplicable(isDirect, recipe.targetingMode))
+                if (ability != null && ability.IsApplicable(isDirect, recipe.info.targetingMode))
                 {
                     ability.OnImpact(recipe, impactPos, cluster);
                 }
@@ -47,12 +47,12 @@ public class ThrowImpactManager : MonoBehaviour
 
     private void ApplyRecipe(ThrowRecipe recipe, int index, Vector2 pos, Vector2 travelDir, List<GameObject> areaTargets)
     {
-        switch (recipe.targetingMode)
+        switch (recipe.info.targetingMode)
         {
             case TargetingMode.Target:
-                Vector2 vfxPos = (recipe.finalTarget != null) ? (Vector2)recipe.finalTarget.transform.position : pos;
+                Vector2 vfxPos = (recipe.info.finalTarget != null) ? (Vector2)recipe.info.finalTarget.transform.position : pos;
                 SpawnImpactVFX(recipe, vfxPos, false);
-                if (recipe.finalTarget != null) ApplyActionsToTarget(recipe, recipe.finalTarget, pos, travelDir);
+                if (recipe.info.finalTarget != null) ApplyActionsToTarget(recipe, recipe.info.finalTarget, pos, travelDir);
                 break;
 
             case TargetingMode.Area:

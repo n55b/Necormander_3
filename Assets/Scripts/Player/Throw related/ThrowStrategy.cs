@@ -73,19 +73,19 @@ public class ThrowStrategy : MonoBehaviour
     public ThrowRecipe CreateRecipe(Vector2 targetPos, float chargeRatio, List<IThrowable> heldObjects)
     {
         ThrowRecipe recipe = new ThrowRecipe();
-        recipe.impactPoint = targetPos;
-        recipe.chargeRatio = chargeRatio;
-        recipe.heldUnits.AddRange(heldObjects); // [추가] 유닛 리스트 저장
+        recipe.info.impactPoint = targetPos;
+        recipe.info.chargeRatio = chargeRatio;
+        recipe.state.heldUnits.AddRange(heldObjects); // [추가] 유닛 리스트 저장
 
         // 플레이어 컨트롤러로부터 계산된 배율을 가져옴
-        recipe.chargeMultiplier = GameManager.Instance.PLAYERCONTROLLER.GetThrowChargeMultiplier(chargeRatio);
+        recipe.modifiers.chargeMultiplier = GameManager.Instance.PLAYERCONTROLLER.GetThrowChargeMultiplier(chargeRatio);
         
         // [보물 시스템] 던지기 전역 강화 수치 적용
-        recipe.treasurePowerMultiplier = 1.0f + InventoryManager.Instance.GetTreasureBonus(TreasureEffectType.GlobalThrowEffect);
+        recipe.modifiers.treasurePowerMultiplier = 1.0f + InventoryManager.Instance.GetTreasureBonus(TreasureEffectType.GlobalThrowEffect);
 
         // [수정] 타겟팅 모드와 팀을 능력 Hook 호출 전에 미리 결정 (필터링에 필요)
-        recipe.targetingMode = GetCurrentTargetingMode(heldObjects);
-        recipe.targetTeam = GetExpectedTargetTeam(heldObjects);
+        recipe.info.targetingMode = GetCurrentTargetingMode(heldObjects);
+        recipe.info.targetTeam = GetExpectedTargetTeam(heldObjects);
         bool isDirect = chargeRatio >= 0.98f;
 
         // [추가] 인벤토리에 장착된 모든 던지기 능력들의 Hook 실행 (ModifyRecipe)
@@ -93,7 +93,7 @@ public class ThrowStrategy : MonoBehaviour
         {
             foreach (var ability in InventoryManager.Instance.ActiveAbilities)
             {
-                if (ability != null && ability.IsApplicable(isDirect, recipe.targetingMode))
+                if (ability != null && ability.IsApplicable(isDirect, recipe.info.targetingMode))
                 {
                     ability.ModifyRecipe(recipe, heldObjects);
                 }
@@ -104,11 +104,11 @@ public class ThrowStrategy : MonoBehaviour
 
         // 주력 유닛(전사/궁수)의 데이터를 가져옴
         IThrowable leadUnit = null;
-        if (recipe.targetingMode == TargetingMode.Area)
+        if (recipe.info.targetingMode == TargetingMode.Area)
         {
             foreach(var obj in heldObjects) if(obj.MinionType == CommandData.SkeletonArcher) { leadUnit = obj; break; }
         }
-        else if (recipe.targetingMode == TargetingMode.Target)
+        else if (recipe.info.targetingMode == TargetingMode.Target)
         {
             foreach(var obj in heldObjects) if(obj.MinionType == CommandData.SkeletonWarrior) { leadUnit = obj; break; }
         }
@@ -116,7 +116,7 @@ public class ThrowStrategy : MonoBehaviour
         // 주력 유닛(전사/궁수)이 없거나 Self 모드인 경우, 섞인 유닛 중 가장 첫 번째 유닛의 배율을 기저 배율로 사용
         if (leadUnit == null && heldObjects.Count > 0) leadUnit = heldObjects[0];
 
-        recipe.modeMultiplier = (leadUnit != null && leadUnit.MinionData != null) ? leadUnit.MinionData.effectMultiplier : 1.0f;
+        recipe.modifiers.modeMultiplier = (leadUnit != null && leadUnit.MinionData != null) ? leadUnit.MinionData.effectMultiplier : 1.0f;
 
         foreach (var obj in heldObjects)
         {
@@ -133,7 +133,7 @@ public class ThrowStrategy : MonoBehaviour
                 case CommandData.SkeletonWarrior:
                     // 전사: 보석 보너스를 데미지 고정치로 가산 (baseVal + 보너스)
                     float finalWarriorDmg = baseVal + gemBonus;
-                    if (recipe.targetingMode != TargetingMode.Area) recipe.actions.Add(new WarriorAction(finalWarriorDmg));
+                    if (recipe.info.targetingMode != TargetingMode.Area) recipe.actions.Add(new WarriorAction(finalWarriorDmg));
                     break;
 
                 case CommandData.SkeletonArcher: 
@@ -162,10 +162,10 @@ public class ThrowStrategy : MonoBehaviour
             }
         }
 
-        if (recipe.targetingMode == TargetingMode.Target && chargeRatio < 0.98f)
+        if (recipe.info.targetingMode == TargetingMode.Target && chargeRatio < 0.98f)
         {
-            recipe.finalTarget = FindSmartTarget(targetPos, recipe.targetTeam);
-            if (recipe.finalTarget != null) recipe.impactPoint = recipe.finalTarget.transform.position;
+            recipe.info.finalTarget = FindSmartTarget(targetPos, recipe.info.targetTeam);
+            if (recipe.info.finalTarget != null) recipe.info.impactPoint = recipe.info.finalTarget.transform.position;
         }
 
         return recipe;

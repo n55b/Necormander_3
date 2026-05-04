@@ -168344,7 +168344,7 @@ PrefabInstance:
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.data[0].ability
       value: 
-      objectReference: {fileID: 11400000, guid: 8b92ac9aa4bdc5b49a6f8e518d6246f1, type: 2}
+      objectReference: {fileID: 11400000, guid: 5d7577772509a5a4e9458ab9cd345b01, type: 2}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

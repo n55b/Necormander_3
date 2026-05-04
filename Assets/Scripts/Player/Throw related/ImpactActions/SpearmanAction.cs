@@ -22,13 +22,13 @@ public class SpearmanAction : ImpactAction
             if (pc != null)
             {
                 knockbackDir = pc.MoveInput;
-                if (knockbackDir == Vector2.zero) knockbackDir = (recipe.targetingMode == TargetingMode.Self) ? travelDir : ((Vector2)target.transform.position - impactPos).normalized;
+                if (knockbackDir == Vector2.zero) knockbackDir = (recipe.info.targetingMode == TargetingMode.Self) ? travelDir : ((Vector2)target.transform.position - impactPos).normalized;
                 Debug.Log($"<color=yellow>[Dash]</color> 플레이어 대시! 방향: {knockbackDir}, 힘: {knockbackForce:F1}");
             }
         }
         else
         {
-            if (recipe.targetingMode == TargetingMode.Area)
+            if (recipe.info.targetingMode == TargetingMode.Area)
             {
                 knockbackDir = ((Vector2)target.transform.position - impactPos).normalized;
                 if (knockbackDir == Vector2.zero) knockbackDir = Random.insideUnitCircle.normalized;
