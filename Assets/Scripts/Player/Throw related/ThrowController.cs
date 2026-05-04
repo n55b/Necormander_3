@@ -13,7 +13,7 @@ public class ThrowController : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Transform holdPoint;
-    [SerializeField] private ThrowCluster clusterPrefab;
+    [SerializeField] public ThrowCluster clusterPrefab; // [수정] 외부(능력)에서 접근 가능하도록 public으로 변경
     [SerializeField] private TrajectoryPredictor trajectoryPredictor;
     
     [Header("Input & UI Settings")]
@@ -100,8 +100,31 @@ public class ThrowController : MonoBehaviour
         if (hovered != null && hovered.TryGetComponent(out IThrowable throwable))
         {
             if (throwable is AllyController ally && !_strategy.CanPickUpType(ally.MinionType, _heldObjects, maxHoldCount)) return;
+            
+            // [수정] 거리 체크를 능력 훅보다 먼저 수행
             float dist = Vector2.Distance(transform.position, hovered.transform.position);
-            if (dist <= GameManager.Instance.PLAYERCONTROLLER.THROWRANGE && !_heldObjects.Contains(throwable))
+            if (dist > GameManager.Instance.PLAYERCONTROLLER.THROWRANGE) return;
+
+            // [추가] 던지기 능력 Hook (OnTryPickUp)
+            if (InventoryManager.Instance != null)
+            {
+                bool handled = false;
+                foreach (var ability in InventoryManager.Instance.ActiveAbilities)
+                {
+                    if (ability != null && ability.OnTryPickUp(throwable, _heldObjects))
+                    {
+                        handled = true;
+                        break;
+                    }
+                }
+                if (handled)
+                {
+                    UpdateClusterAfterPickUp();
+                    return;
+                }
+            }
+
+            if (!_heldObjects.Contains(throwable))
             {
                 PerformPickUp(throwable, hovered);
                 if (trajectoryPredictor != null) trajectoryPredictor.ShowGuide();
@@ -113,22 +136,52 @@ public class ThrowController : MonoBehaviour
     {
         if (!_strategy.CanPickUpType(targetType, _heldObjects, maxHoldCount)) return;
         float radius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
+        
+        // [수정] 이미 Physics2D.OverlapCircleAll로 범위 안의 애들만 가져오므로 거리는 OK
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius);
-        AllyController bestTarget = null;
+        IThrowable bestTarget = null;
         float minDist = float.MaxValue;
         foreach (var col in colls)
         {
-            if (col.TryGetComponent<AllyController>(out var ally) && ally.MinionType == targetType && !_heldObjects.Contains(ally))
+            if (col.TryGetComponent<IThrowable>(out var throwable) && throwable.MinionType == targetType && !_heldObjects.Contains(throwable))
             {
-                float d = Vector2.Distance(transform.position, ally.transform.position);
-                if (d < minDist) { minDist = d; bestTarget = ally; }
+                float d = Vector2.Distance(transform.position, col.transform.position);
+                if (d < minDist) { minDist = d; bestTarget = throwable; }
             }
         }
+
         if (bestTarget != null)
         {
-            PerformPickUp(bestTarget, bestTarget.gameObject);
+            // [추가] 던지기 능력 Hook (OnTryPickUp)
+            if (InventoryManager.Instance != null)
+            {
+                bool handled = false;
+                foreach (var ability in InventoryManager.Instance.ActiveAbilities)
+                {
+                    // [수정] 여기서도 사거리 체크는 이미 되어있으므로 훅만 호출
+                    if (ability != null && ability.OnTryPickUp(bestTarget, _heldObjects))
+                    {
+                        handled = true;
+                        break;
+                    }
+                }
+                if (handled)
+                {
+                    UpdateClusterAfterPickUp();
+                    return;
+                }
+            }
+
+            PerformPickUp(bestTarget, bestTarget.transform.gameObject);
             if (trajectoryPredictor != null) trajectoryPredictor.ShowGuide();
         }
+    }
+
+    private void UpdateClusterAfterPickUp()
+    {
+        ThrowCluster cluster = GetActiveClusterOrCreate();
+        cluster.Setup(_heldObjects);
+        if (trajectoryPredictor != null) trajectoryPredictor.ShowGuide();
     }
 
     private void PerformPickUp(IThrowable throwable, GameObject obj)
@@ -136,10 +189,8 @@ public class ThrowController : MonoBehaviour
         _heldObjects.Add(throwable);
         throwable.OnPickedUp();
         ThrowCluster cluster = GetActiveClusterOrCreate();
-        if (throwable is MonoBehaviour mb) mb.transform.SetParent(cluster.transform);
-        List<AllyController> allyList = new List<AllyController>();
-        foreach (var item in _heldObjects) if (item is AllyController ally) allyList.Add(ally);
-        cluster.Setup(allyList);
+        throwable.transform.SetParent(cluster.transform);
+        cluster.Setup(_heldObjects);
     }
 
     private ThrowCluster GetActiveClusterOrCreate()
@@ -160,29 +211,60 @@ public class ThrowController : MonoBehaviour
         float ratio = _input.ChargeRatio;
         Vector2 startPos = (Vector2)_activeCluster.transform.position;
         Vector2 mousePos = CurrentMouseWorldPos;
+        
+        // 1. 레시피 생성 및 능력 Hook (ModifyRecipe)
         ThrowRecipe recipe = _strategy.CreateRecipe(mousePos, ratio, _heldObjects);
 
         if (_activeCluster != null)
         {
-            List<AllyController> allyList = new List<AllyController>();
-            foreach (var item in _heldObjects) if (item is AllyController ally) allyList.Add(ally);
-            if (allyList.Count > 0)
+            _activeCluster.Setup(_heldObjects); 
+            _activeCluster.SetRecipe(recipe);
+
+            if (recipe.targetingMode == TargetingMode.Self)
             {
-                _activeCluster.Setup(allyList);
-                _activeCluster.SetRecipe(recipe);
-                if (recipe.targetingMode == TargetingMode.Self)
-                {
-                    GameManager.Instance.throwImpactManager.ProcessThrowImpact(recipe, startPos, (mousePos - startPos).normalized);
-                    recipe.isImmediateApplied = true;
-                }
-                AllyController first = allyList[0];
-                float speed = (ratio >= 0.98f) ? first.FullChargeSpeed : Mathf.Lerp(first.MinSpeed, first.MaxSpeed, ratio);
-                Vector2 finalPos = _physics.GetClampedTargetPos(startPos, recipe.impactPoint, _activeCluster);
-                float dist = Vector2.Distance(startPos, finalPos);
-                _activeCluster.Launch(startPos, finalPos, dist / speed, Mathf.Min(Mathf.Lerp(first.JumpHeight, first.StraightHeight, ratio), dist * 0.5f), ratio >= 0.98f, ratio);
-                _activeCluster = null;
+                GameManager.Instance.throwImpactManager.ProcessThrowImpact(recipe, startPos, (mousePos - startPos).normalized);
+                recipe.isImmediateApplied = true;
             }
+
+            // 속도 및 궤적 수치 결정 (유닛이 있으면 첫 번째 유닛 기준, 없으면 기본값)
+            float speed, jumpH, straightH;
+            if (_heldObjects.Count > 0)
+            {
+                IThrowable first = _heldObjects[0];
+                speed = (ratio >= 0.98f) ? first.FullChargeSpeed : Mathf.Lerp(first.MinSpeed, first.MaxSpeed, ratio);
+                jumpH = first.JumpHeight;
+                straightH = first.StraightHeight;
+            }
+            else
+            {
+                // Phantom이나 일반 물체일 경우의 기본 발사 물리량
+                speed = (ratio >= 0.98f) ? 30f : Mathf.Lerp(5f, 20f, ratio);
+                jumpH = 1.5f;
+                straightH = 0.1f;
+            }
+
+            Vector2 finalPos = _physics.GetClampedTargetPos(startPos, recipe.impactPoint, _activeCluster);
+            float dist = Vector2.Distance(startPos, finalPos);
+            float duration = dist / speed;
+            float maxHeight = Mathf.Min(Mathf.Lerp(jumpH, straightH, ratio), dist * 0.5f);
+            bool isDirect = ratio >= 0.98f;
+
+            // [능력 Hook] OnThrowLaunch
+            if (InventoryManager.Instance != null)
+            {
+                foreach (var ability in InventoryManager.Instance.ActiveAbilities)
+                {
+                    if (ability != null && ability.IsApplicable(isDirect, recipe.targetingMode))
+                    {
+                        ability.OnThrowLaunch(this, recipe, startPos, finalPos, duration, maxHeight, isDirect, ratio);
+                    }
+                }
+            }
+
+            _activeCluster.Launch(startPos, finalPos, duration, maxHeight, isDirect, ratio);
+            _activeCluster = null;
         }
+
         _heldObjects.Clear();
         _input.ResetCharging();
     }

@@ -12,15 +12,28 @@ public class ThrowImpactManager : MonoBehaviour
         Debug.Log("<color=cyan>[ThrowImpactManager]</color> Initialized.");
     }
 
-    public void ProcessThrowImpact(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir)
+    public void ProcessThrowImpact(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir, ThrowCluster cluster = null)
     {
-        StartCoroutine(ExecuteImpactRoutine(recipe, impactPos, travelDir));
+        StartCoroutine(ExecuteImpactRoutine(recipe, impactPos, travelDir, cluster));
     }
 
-    private IEnumerator ExecuteImpactRoutine(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir)
+    private IEnumerator ExecuteImpactRoutine(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir, ThrowCluster cluster)
     {
         int totalExecutions = recipe.GetTotalExecutionCount();
         List<GameObject> targets = (recipe.targetingMode == TargetingMode.Area) ? ScanAreaTargets(recipe, impactPos) : null;
+
+        // [추가] 던지기 능력 Hook (OnImpact)
+        if (InventoryManager.Instance != null)
+        {
+            bool isDirect = recipe.chargeRatio >= 0.98f;
+            foreach (var ability in InventoryManager.Instance.ActiveAbilities)
+            {
+                if (ability != null && ability.IsApplicable(isDirect, recipe.targetingMode))
+                {
+                    ability.OnImpact(recipe, impactPos, cluster);
+                }
+            }
+        }
 
         // 투척 프레임의 다른 물리 로직과의 간섭 방지를 위해 1프레임 대기
         yield return null;

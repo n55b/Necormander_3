@@ -7,6 +7,17 @@ using UnityEngine;
 [RequireComponent(typeof(ArcMovement))]
 public class ThrowableUnit : MonoBehaviour, IThrowable
 {
+    // [추가] 인터페이스 구현
+    public virtual CommandData MinionType => CommandData.None;
+    public virtual MinionDataSO MinionData => null;
+
+    // [추가] 물리 수치 노출
+    public float MaxSpeed => maxSpeed;
+    public float MinSpeed => minSpeed;
+    public float FullChargeSpeed => fullChargeSpeed;
+    public float JumpHeight => jumpHeight;
+    public float StraightHeight => straightHeight;
+
     private float jumpHeight = 1.5f;
     private float straightHeight = 0.1f;
     private float minSpeed = 2f;
@@ -102,4 +113,8 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
         
         Debug.Log($"{gameObject.name} landed!");
     }
+
+    // [추가] 인터페이스 구현
+    public virtual void PrepareForClusterThrow(float chargeRatio, bool isDirect) { }
+    public virtual void SetImpacted(bool value) { }
 }

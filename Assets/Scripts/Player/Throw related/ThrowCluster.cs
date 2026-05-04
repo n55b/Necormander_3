@@ -15,7 +15,7 @@ public class ThrowCluster : MonoBehaviour
     private ArcMovement _arcMovement;
     private CircleCollider2D _collider;
     private Rigidbody2D _rb;
-    private List<AllyController> _units = new List<AllyController>();
+    private List<IThrowable> _units = new List<IThrowable>();
     private bool _isDirectThrow = false;
     private float _chargeRatio = 0f;
     private Transform _targetTransform;
@@ -45,25 +45,22 @@ public class ThrowCluster : MonoBehaviour
     /// <summary>
     /// 던질 유닛들을 클러스터 안으로 모으고 크기를 설정합니다.
     /// </summary>
-    public void Setup(List<AllyController> units)
+    public void Setup(List<IThrowable> units)
     {
         _units.Clear();
         _units.AddRange(units);
 
-        if (_units.Count == 0)
-        {
-            if (visualCircle != null) visualCircle.gameObject.SetActive(false);
-            return;
-        }
-
+        // [수정] 유닛이 없어도 비주얼 원은 활성화할 수 있도록 변경 (잔상 효과 등)
         gameObject.SetActive(true);
         if (visualCircle != null) visualCircle.gameObject.SetActive(true);
+
+        if (_units.Count == 0) return;
 
         // 유닛 수에 비례하여 원의 크기 결정
         float targetRadius = baseRadius + (_units.Count - 1) * radiusPerUnit;
         _collider.radius = targetRadius;
 
-        // 비주얼 원 크기 동기화 (Sprite의 기본 크기가 1x1일 때)
+        // 비주얼 원 크기 동기화
         if (visualCircle != null)
         {
             visualCircle.localScale = new Vector3(targetRadius * 2f, targetRadius * 2f, 1f);
@@ -72,11 +69,31 @@ public class ThrowCluster : MonoBehaviour
         // 모든 유닛을 클러스터 자식으로 넣고 중앙으로 정렬
         foreach (var unit in _units)
         {
-            unit.transform.SetParent(this.transform);
-            // 집어들었을 때의 위치 (중앙 근처)
-            unit.transform.localPosition = Random.insideUnitCircle * (_collider.radius * 0.3f);
-            unit.OnPickedUp(); 
+            if (unit != null)
+            {
+                unit.transform.SetParent(this.transform);
+                unit.transform.localPosition = Random.insideUnitCircle * (_collider.radius * 0.3f);
+                unit.OnPickedUp(); 
+            }
         }
+    }
+
+    /// <summary>
+    /// 클러스터의 비주얼 크기를 직접 설정합니다. (실제 유닛이 없는 잔상용)
+    /// </summary>
+    public void SetVisualRadius(float radius)
+    {
+        if (visualCircle != null)
+        {
+            visualCircle.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
+            visualCircle.gameObject.SetActive(true);
+        }
+        if (_collider != null) _collider.radius = radius;
+    }
+
+    public SpriteRenderer GetVisualRenderer()
+    {
+        return visualCircle != null ? visualCircle.GetComponent<SpriteRenderer>() : null;
     }
 
     /// <summary>
@@ -186,6 +203,8 @@ public class ThrowCluster : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (_activeRecipe == null) return;
+
         int wallMask = LayerMask.GetMask("Wall", "Obstacle");
         bool isWall = (wallMask & (1 << other.gameObject.layer)) != 0;
 
@@ -195,23 +214,34 @@ public class ThrowCluster : MonoBehaviour
             return;
         }
 
-        // [추가] 직구(풀차지)일 경우 적이나 오브젝트에 부딪히면 즉시 멈춤
-        if (_isDirectThrow)
+        // 직구/포물선 공통 충돌 로직
+        int opponentMask = (_activeRecipe.targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
+        int objectMask = LayerMask.GetMask("Object");
+        bool isTargetHit = ((opponentMask | objectMask) & (1 << other.gameObject.layer)) != 0;
+
+        if (isTargetHit)
         {
-            int opponentMask = LayerMask.GetMask("Enemy"); 
-            int objectMask = LayerMask.GetMask("Object");
-            
-            bool isTargetHit = ((opponentMask | objectMask) & (1 << other.gameObject.layer)) != 0;
-            
-            if (isTargetHit)
+            // 중복 타격 방지 (동일 관통 단계에서 같은 놈 두 번 때리기 방지)
+            if (_activeRecipe.hitTargets.Contains(other.gameObject)) return;
+
+            // [핵심] 관통 로직
+            if (_activeRecipe.pierceCount < _activeRecipe.maxPierce)
             {
-                // [수정] 직구 충돌 시, 'Target' 모드일 때만 충돌 대상을 타겟으로 등록
-                if (_activeRecipe != null)
+                _activeRecipe.pierceCount++;
+                _activeRecipe.finalTarget = other.gameObject;
+                
+                // 비행 중 즉시 효과 발동 (중단하지 않음)
+                if (GameManager.Instance.throwImpactManager != null)
                 {
-                    if (_activeRecipe.targetingMode == TargetingMode.Target)
-                    {
-                        _activeRecipe.finalTarget = other.gameObject;
-                    }
+                    GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, transform.position, _lastTravelDir, this);
+                }
+            }
+            else
+            {
+                // 더 이상 관통할 수 없으면 정지
+                if (_activeRecipe.targetingMode == TargetingMode.Target)
+                {
+                    _activeRecipe.finalTarget = other.gameObject;
                 }
                 _arcMovement.StopArc();
             }
@@ -219,7 +249,6 @@ public class ThrowCluster : MonoBehaviour
     }
 
     private bool _isLanded = false;
-
     private ThrowRecipe _activeRecipe;
 
     public void SetRecipe(ThrowRecipe recipe)
@@ -235,52 +264,47 @@ public class ThrowCluster : MonoBehaviour
         _rb.simulated = false;
         _rb.linearVelocity = Vector2.zero;
 
-        // [리팩토링] 효과 발동 성공 여부 판단
         bool isImpactSuccess = false;
 
         if (_activeRecipe != null)
         {
-            // [개선] 벽 레이어 체크 (착지 지점에 벽이 있다면 실패 처리)
             int wallMask = LayerMask.GetMask("Wall", "Obstacle");
             bool hitWall = Physics2D.OverlapCircle(transform.position, GetCurrentRadius() * 0.8f, wallMask);
 
             if (!hitWall)
             {
-                // 1. Self 모드: 던지는 즉시 발동되었으므로 무조건 성공
-                if (_activeRecipe.targetingMode == TargetingMode.Self)
-                {
-                    isImpactSuccess = true;
-                }
-                // 2. Area 모드: 지면에 닿으면 무조건 발동
-                else if (_activeRecipe.targetingMode == TargetingMode.Area)
-                {
-                    isImpactSuccess = true;
-                }
-                // 3. Target 모드: 최종 타겟이 지정되어 있어야 성공
-                else if (_activeRecipe.targetingMode == TargetingMode.Target && _activeRecipe.finalTarget != null)
-                {
-                    isImpactSuccess = true;
-                }
+                if (_activeRecipe.targetingMode == TargetingMode.Self) isImpactSuccess = true;
+                else if (_activeRecipe.targetingMode == TargetingMode.Area) isImpactSuccess = true;
+                else if (_activeRecipe.targetingMode == TargetingMode.Target && _activeRecipe.finalTarget != null) isImpactSuccess = true;
+                // [추가] 관통 투척물이 벽에 안 부딪히고 끝까지 날아간 경우도 성공으로 간주
+                else if (_activeRecipe.maxPierce > 0) isImpactSuccess = true;
             }
-            else
+        }
+
+        // 효과 실행 (이때 'this'를 넘겨 능력이 튕기기를 실행할지 결정하게 함)
+        if (isImpactSuccess && _activeRecipe != null && !_activeRecipe.isImmediateApplied)
+        {
+            GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, transform.position, _lastTravelDir, this);
+        }
+
+        // [핵심] 튕기기 예외 처리
+        if (_activeRecipe != null && _activeRecipe.isBouncing)
+        {
+            _isLanded = false; 
+            _activeRecipe.isBouncing = false;
+            return;
+        }
+
+        // [핵심] 마스터 클러스터만 유닛 생명주기 관리
+        if (_activeRecipe != null && _activeRecipe.isMaster)
+        {
+            foreach (var unit in _units)
             {
-                Debug.Log("<color=orange>[ThrowCluster]</color> Hit Wall! Impact Failed.");
+                if (unit == null) continue;
+                unit.SetImpacted(isImpactSuccess); 
+                unit.transform.SetParent(null);
+                unit.OnLanded();
             }
-        }
-
-        // [수정] 효과 처리는 ThrowImpactManager가 담당합니다.
-        if (isImpactSuccess && _activeRecipe != null && !_activeRecipe.isImmediateApplied && GameManager.Instance != null && GameManager.Instance.throwImpactManager != null)
-        {
-            GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, transform.position, _lastTravelDir);
-        }
-
-        // 유닛들에게 결과 알림 및 지상 복구
-        foreach (var unit in _units)
-        {
-            if (unit == null) continue;
-            unit.SetImpacted(isImpactSuccess); // 여기서 결정된 성공 여부를 전달
-            unit.transform.SetParent(null);
-            unit.OnLanded();
         }
 
         _units.Clear();

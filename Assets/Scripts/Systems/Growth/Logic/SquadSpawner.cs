@@ -24,23 +24,31 @@ public class SquadSpawner : MonoBehaviour
     {
         if (_inven == null || _allyManager == null) return;
 
+        Debug.Log($"<color=cyan>[SquadSpawner]</color> Refreshing Full Squad. Slot Count: {_inven.Slots.Count}");
+
         // [추가] 인벤토리 목록에 맞춰 새로 소환하기 전에 필드의 모든 유닛을 먼저 제거합니다.
-        // 이를 통해 오류로 등록되지 않은 미니언을 방지하고 정확한 수량을 유지합니다.
         _allyManager.ClearAll();
 
         // 10개 슬롯을 순회하며 장착된 유닛 소환
-        foreach (var slot in _inven.Slots)
+        for (int i = 0; i < _inven.Slots.Count; i++)
         {
-            if (!slot.IsEmpty)
+            var slot = _inven.Slots[i];
+            
+            // [수정] 능력이 아닌 미니언이 장착된 슬롯만 처리
+            if (slot.EquippedLineage != null)
             {
                 MinionDataSO currentData = slot.GetCurrentMinionData();
                 if (currentData != null)
                 {
-                    // [수정] 슬롯의 수량(Quantity)만큼 반복해서 소환합니다.
-                    for (int i = 0; i < slot.Quantity; i++)
+                    Debug.Log($"<color=cyan>[SquadSpawner]</color> Slot {i}: Found {currentData.minionName} (Quantity: {slot.Quantity})");
+                    for (int j = 0; j < slot.Quantity; j++)
                     {
                         SpawnUnitFromSlot(currentData);
                     }
+                }
+                else
+                {
+                    Debug.LogWarning($"<color=orange>[SquadSpawner]</color> Slot {i} has unit info but data is null!");
                 }
             }
         }

@@ -2,14 +2,15 @@ using UnityEngine;
 
 public enum CommandData
 {
-    SkeletonWarrior,
-    SkeletonShieldbearer,
-    SkeletonArcher,
-    SkeletonPriest,
-    SkeletonBomber,
-    SkeletonSpearman,
-    SkeletonMagician,
-    SkeletonThief
+    SkeletonWarrior = 0,
+    SkeletonShieldbearer = 1,
+    SkeletonArcher = 2,
+    SkeletonPriest = 3,
+    SkeletonBomber = 4,
+    SkeletonSpearman = 5,
+    SkeletonMagician = 6,
+    SkeletonThief = 7,
+    None = 100
 }
 
 public enum ThrowEffectCategory

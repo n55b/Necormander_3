@@ -13,6 +13,7 @@ public class ThrowEffectRegistrySO : ScriptableObject
     [Header("Shield (방패병/보호막)")]
     public GameObject shieldAreaPrefab;  // 광역 장판
     public GameObject shieldAttachVFX;   // 대상 부착형 (Target/Self 공용)
+    public GameObject shieldCollectiblePrefab; // [추가] 적군 타격 시 드롭되는 보호막 아이템
 
     [Header("Formation (창병/넉백)")]
     public GameObject formationAreaVFX;  // 충격 지점 (Area/Target/Self 모두 장판형으로 사용)

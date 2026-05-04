@@ -26,6 +26,22 @@ public class ThrowInputHandler : MonoBehaviour
         if (_isCharging)
         {
             _chargeTimer = Mathf.Min(_chargeTimer + Time.deltaTime, _controller.ChargeTime);
+            
+            // [추가] 던지기 능력 Hook (OnChargeUpdate)
+            if (InventoryManager.Instance != null)
+            {
+                float ratio = ChargeRatio;
+                bool isDirect = ratio >= 0.98f;
+                TargetingMode mode = _controller.GetCurrentTargetingMode();
+
+                foreach (var ability in InventoryManager.Instance.ActiveAbilities)
+                {
+                    if (ability != null && ability.IsApplicable(isDirect, mode))
+                    {
+                        ability.OnChargeUpdate(ratio, Time.deltaTime);
+                    }
+                }
+            }
         }
 
         if (_isWheelActive && _controller.SelectionWheel != null)

@@ -27,12 +27,10 @@ public class ThrowStrategy : MonoBehaviour
 
         foreach (var held in heldObjects)
         {
-            if (held is AllyController ally)
-            {
-                if (ally.MinionType == CommandData.SkeletonWarrior) hasWarrior = true;
-                else if (ally.MinionType == CommandData.SkeletonArcher) hasArcher = true;
-                if (ally.MinionType == targetType) return false;
-            }
+            CommandData heldType = held.MinionType;
+            if (heldType == CommandData.SkeletonWarrior) hasWarrior = true;
+            else if (heldType == CommandData.SkeletonArcher) hasArcher = true;
+            if (heldType == targetType) return false;
         }
 
         if (targetType == CommandData.SkeletonWarrior && hasArcher) return false;
@@ -46,8 +44,8 @@ public class ThrowStrategy : MonoBehaviour
         if (heldObjects.Count == 0) return TargetingMode.Self;
 
         // 우선순위: Archer(Area) > Warrior(Target) > 기타(Spearman 포함 - Self)
-        foreach (var obj in heldObjects) if (obj is AllyController ally && ally.MinionType == CommandData.SkeletonArcher) return TargetingMode.Area;
-        foreach (var obj in heldObjects) if (obj is AllyController ally && ally.MinionType == CommandData.SkeletonWarrior) return TargetingMode.Target;
+        foreach (var obj in heldObjects) if (obj.MinionType == CommandData.SkeletonArcher) return TargetingMode.Area;
+        foreach (var obj in heldObjects) if (obj.MinionType == CommandData.SkeletonWarrior) return TargetingMode.Target;
 
         return TargetingMode.Self;
     }
@@ -62,14 +60,11 @@ public class ThrowStrategy : MonoBehaviour
 
         foreach (var obj in heldObjects)
         {
-            if (obj is AllyController ally)
-            {
-                CommandData type = ally.MinionType;
-                if (type == CommandData.SkeletonWarrior) hasWarrior = true;
-                else if (type == CommandData.SkeletonShieldbearer) hasShield = true;
-                else if (type == CommandData.SkeletonMagician) { /* 법사는 팀 결정에 영향 없음 */ }
-                else hasOthers = true;
-            }
+            CommandData type = obj.MinionType;
+            if (type == CommandData.SkeletonWarrior) hasWarrior = true;
+            else if (type == CommandData.SkeletonShieldbearer) hasShield = true;
+            else if (type == CommandData.SkeletonMagician || type == CommandData.None) { /* 팀 결정에 영향 없음 */ }
+            else hasOthers = true;
         }
 
         return (hasWarrior && hasShield && !hasOthers) ? Team.Ally : Team.Enemy;
@@ -80,76 +75,90 @@ public class ThrowStrategy : MonoBehaviour
         ThrowRecipe recipe = new ThrowRecipe();
         recipe.impactPoint = targetPos;
         recipe.chargeRatio = chargeRatio;
+        recipe.heldUnits.AddRange(heldObjects); // [추가] 유닛 리스트 저장
 
         // 플레이어 컨트롤러로부터 계산된 배율을 가져옴
         recipe.chargeMultiplier = GameManager.Instance.PLAYERCONTROLLER.GetThrowChargeMultiplier(chargeRatio);
         
-        // [수정] 보물 시스템으로부터 던지기 전역 강화 수치를 가져와 적용합니다.
+        // [보물 시스템] 던지기 전역 강화 수치 적용
         recipe.treasurePowerMultiplier = 1.0f + InventoryManager.Instance.GetTreasureBonus(TreasureEffectType.GlobalThrowEffect);
+
+        // [수정] 타겟팅 모드와 팀을 능력 Hook 호출 전에 미리 결정 (필터링에 필요)
+        recipe.targetingMode = GetCurrentTargetingMode(heldObjects);
+        recipe.targetTeam = GetExpectedTargetTeam(heldObjects);
+        bool isDirect = chargeRatio >= 0.98f;
+
+        // [추가] 인벤토리에 장착된 모든 던지기 능력들의 Hook 실행 (ModifyRecipe)
+        if (InventoryManager.Instance != null)
+        {
+            foreach (var ability in InventoryManager.Instance.ActiveAbilities)
+            {
+                if (ability != null && ability.IsApplicable(isDirect, recipe.targetingMode))
+                {
+                    ability.ModifyRecipe(recipe, heldObjects);
+                }
+            }
+        }
 
         if (heldObjects.Count == 0) return recipe;
 
-        recipe.targetingMode = GetCurrentTargetingMode(heldObjects);
-        recipe.targetTeam = GetExpectedTargetTeam(heldObjects);
-
-        // [복구] 하드코딩된 배율을 지우고, 데이터(SO)에 설정된 주력 유닛의 배율을 사용합니다.
-        AllyController leadUnit = null;
+        // 주력 유닛(전사/궁수)의 데이터를 가져옴
+        IThrowable leadUnit = null;
         if (recipe.targetingMode == TargetingMode.Area)
         {
-            foreach(var obj in heldObjects) if(obj is AllyController a && a.MinionType == CommandData.SkeletonArcher) { leadUnit = a; break; }
+            foreach(var obj in heldObjects) if(obj.MinionType == CommandData.SkeletonArcher) { leadUnit = obj; break; }
         }
         else if (recipe.targetingMode == TargetingMode.Target)
         {
-            foreach(var obj in heldObjects) if(obj is AllyController a && a.MinionType == CommandData.SkeletonWarrior) { leadUnit = a; break; }
+            foreach(var obj in heldObjects) if(obj.MinionType == CommandData.SkeletonWarrior) { leadUnit = obj; break; }
         }
 
         // 주력 유닛(전사/궁수)이 없거나 Self 모드인 경우, 섞인 유닛 중 가장 첫 번째 유닛의 배율을 기저 배율로 사용
-        if (leadUnit == null && heldObjects.Count > 0 && heldObjects[0] is AllyController first) leadUnit = first;
+        if (leadUnit == null && heldObjects.Count > 0) leadUnit = heldObjects[0];
 
-        recipe.modeMultiplier = (leadUnit != null) ? leadUnit.MinionData.effectMultiplier : 1.0f;
+        recipe.modeMultiplier = (leadUnit != null && leadUnit.MinionData != null) ? leadUnit.MinionData.effectMultiplier : 1.0f;
 
         foreach (var obj in heldObjects)
         {
-            if (obj is AllyController ally)
+            CommandData type = obj.MinionType;
+            if (type == CommandData.None) continue;
+
+            float baseVal = obj.MinionData.baseEffectValue;
+
+            // [보석 시스템] 인벤토리에서 해당 직업의 투척 강화 보석 보너스를 가져옴
+            float gemBonus = InventoryManager.Instance.GetGemBonus(type, StatType.ThrowEffect);
+
+            switch (type)
             {
-                CommandData type = ally.MinionType;
-                float baseVal = ally.MinionData.baseEffectValue;
+                case CommandData.SkeletonWarrior:
+                    // 전사: 보석 보너스를 데미지 고정치로 가산 (baseVal + 보너스)
+                    float finalWarriorDmg = baseVal + gemBonus;
+                    if (recipe.targetingMode != TargetingMode.Area) recipe.actions.Add(new WarriorAction(finalWarriorDmg));
+                    break;
 
-                // [보석 시스템] 인벤토리에서 해당 직업의 투척 강화 보석 보너스를 가져옴
-                float gemBonus = InventoryManager.Instance.GetGemBonus(type, StatType.ThrowEffect);
+                case CommandData.SkeletonArcher: 
+                    // 궁수: 보석 보너스를 범위(Radius) 고정 가산치로 사용
+                    float finalRadius = obj.MinionData.baseAreaRadius + gemBonus;
+                    recipe.actions.Add(new ArcherAction(baseVal, finalRadius));
+                    break;
 
-                switch (type)
-                {
-                    case CommandData.SkeletonWarrior:
-                        // 전사: 보석 보너스를 데미지 고정치로 가산 (baseVal + 보너스)
-                        float finalWarriorDmg = baseVal + gemBonus;
-                        if (recipe.targetingMode != TargetingMode.Area) recipe.actions.Add(new WarriorAction(finalWarriorDmg));
-                        break;
+                case CommandData.SkeletonPriest: 
+                case CommandData.SkeletonShieldbearer: 
+                case CommandData.SkeletonSpearman: 
+                    // 사제/방패병/창병: 보석 보너스를 효과 배율(Multiplier)로 적용 (기본값 * (1 + 보너스))
+                    float multiplierBonus = baseVal * (1.0f + gemBonus);
+                    
+                    if (type == CommandData.SkeletonPriest) recipe.actions.Add(new PriestAction(multiplierBonus)); 
+                    else if (type == CommandData.SkeletonShieldbearer) recipe.actions.Add(new ShieldBearerAction(multiplierBonus)); 
+                    else recipe.actions.Add(new SpearmanAction(multiplierBonus));
+                    break;
 
-                    case CommandData.SkeletonArcher: 
-                        // 궁수: 보석 보너스를 범위(Radius) 고정 가산치로 사용
-                        float finalRadius = ally.MinionData.baseAreaRadius + gemBonus;
-                        recipe.actions.Add(new ArcherAction(baseVal, finalRadius));
-                        break;
-
-                    case CommandData.SkeletonPriest: 
-                    case CommandData.SkeletonShieldbearer: 
-                    case CommandData.SkeletonSpearman: 
-                        // 사제/방패병/창병: 보석 보너스를 효과 배율(Multiplier)로 적용 (기본값 * (1 + 보너스))
-                        float multiplierBonus = baseVal * (1.0f + gemBonus);
-                        
-                        if (type == CommandData.SkeletonPriest) recipe.actions.Add(new PriestAction(multiplierBonus)); 
-                        else if (type == CommandData.SkeletonShieldbearer) recipe.actions.Add(new ShieldBearerAction(multiplierBonus)); 
-                        else recipe.actions.Add(new SpearmanAction(multiplierBonus));
-                        break;
-
-                    case CommandData.SkeletonMagician: 
-                        // 마법사: 보석 보너스 1.0당 반복 횟수 1회 추가
-                        int extraRepeats = Mathf.FloorToInt(gemBonus);
-                        float finalMagiVal = baseVal + extraRepeats;
-                        recipe.actions.Add(new MagicianAction(finalMagiVal)); 
-                        break;
-                }
+                case CommandData.SkeletonMagician: 
+                    // 마법사: 보석 보너스 1.0당 반복 횟수 1회 추가
+                    int extraRepeats = Mathf.FloorToInt(gemBonus);
+                    float finalMagiVal = baseVal + extraRepeats;
+                    recipe.actions.Add(new MagicianAction(finalMagiVal)); 
+                    break;
             }
         }
 
