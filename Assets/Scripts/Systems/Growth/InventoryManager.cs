@@ -155,7 +155,8 @@ public class InventoryManager : MonoBehaviour
         float totalBonus = 0f;
         foreach (var gem in EquippedGems[job])
         {
-            if (gem.statType == stat)
+            // [수정] 슬롯이 비어있을(null) 수 있으므로 체크 추가
+            if (gem != null && gem.statType == stat)
             {
                 totalBonus += gem.baseBonusValue;
             }
