@@ -205,6 +205,10 @@ public class ThrowCluster : MonoBehaviour
     {
         if (_activeRecipe == null) return;
 
+        // [핵심 수정] 포물선 투척일 때는 비행 중 충돌을 완전히 무시합니다.
+        // 포물선 투척은 오직 목적지에 도달했을 때(OnLanded)만 효과가 발생해야 합니다.
+        if (!_isDirectThrow) return;
+
         int wallLayer = LayerMask.NameToLayer("Wall");
         int obstacleLayer = LayerMask.NameToLayer("Obstacle");
         bool isWall = other.gameObject.layer == wallLayer || other.gameObject.layer == obstacleLayer;

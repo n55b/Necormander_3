@@ -187,8 +187,8 @@ MonoBehaviour:
   Slots: []
   useDebugStartingInventory: 1
   debugStartingSlots:
-  - minion: {fileID: 0}
-    ability: {fileID: 11400000, guid: 63a08e1fc359430409868bc6c5e79d77, type: 2}
+  - minion: {fileID: 11400000, guid: 6dcd2551f98dad446bbd6740e1dc3c30, type: 2}
+    ability: {fileID: 0}
     quantity: 0
 --- !u!1 &7727511665536608322
 GameObject:
@@ -274,4 +274,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   selectionUI: {fileID: 0}
+  handSlotUI: {fileID: 0}
+  gemSlotUI: {fileID: 0}
   treasureDropChance: 1

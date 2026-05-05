@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum RoomType { Normal, Elite, Reward }
-public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold }
+public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold, Ability }
 
 /// <summary>
 /// 보상으로 제안될 아이템 정보를 담는 구조체입니다.
@@ -67,6 +67,9 @@ public static class RewardProcessor
                 break;
             case RewardCategory.Treasure:
                 allPossible.AddRange(GetValidTreasures(registry.treasures));
+                break;
+            case RewardCategory.Ability:
+                allPossible.AddRange(GetValidAbilities(inven, registry));
                 break;
         }
 
@@ -167,11 +170,86 @@ public static class RewardProcessor
         return candidates;
     }
 
+    // --- 3. 엘리트 방용: 여러 카테고리를 섞어서 후보 생성 (예: Minion + Ability) ---
+    public static List<RewardCandidate> GenerateMixedCandidates(InventoryManager inven, DataManager data, List<RewardCategory> categories, int count = 3)
+    {
+        List<RewardCandidate> allPossible = new List<RewardCandidate>();
+        var registry = data.GET_GROWTH_REGISTRY();
+
+        // [디버깅 로그 추가]
+        int mCount = GetValidCores(inven, registry.minionLineages).Count;
+        int aCount = GetValidAbilities(inven, registry).Count;
+        int tCount = GetValidMetamorphoses(inven, registry.minionLineages).Count;
+        Debug.Log($"<color=white>[Reward:Pool]</color> Valid Pool Size -> Minions: {mCount}, Abilities: {aCount}, Metamorphosis: {tCount}");
+
+        foreach (var category in categories)
+        {
+            switch (category)
+            {
+                case RewardCategory.Minion:
+                    allPossible.AddRange(GetValidCores(inven, registry.minionLineages));
+                    break;
+                case RewardCategory.Ability:
+                    allPossible.AddRange(GetValidAbilities(inven, registry));
+                    break;
+                case RewardCategory.Metamorphosis:
+                    allPossible.AddRange(GetValidMetamorphoses(inven, registry.minionLineages));
+                    break;
+                case RewardCategory.Gem:
+                    allPossible.AddRange(GetValidGems(inven, registry.gems));
+                    break;
+                case RewardCategory.Treasure:
+                    allPossible.AddRange(GetValidTreasures(registry.treasures));
+                    break;
+            }
+        }
+
+        List<RewardCandidate> results = new List<RewardCandidate>();
+        for (int i = 0; i < count; i++)
+        {
+            if (allPossible.Count > 0)
+            {
+                int idx = Random.Range(0, allPossible.Count);
+                results.Add(allPossible[idx]);
+                allPossible.RemoveAt(idx);
+            }
+            else
+            {
+                results.Add(new RewardCandidate { 
+                    category = RewardCategory.Gold, // 폴백으로 골드 
+                    displayData = new GrowthItemData { itemName = "None", description = "No more rewards available." },
+                    rawData = null 
+                });
+            }
+        }
+        return results;
+    }
+
     private static List<RewardCandidate> GetValidTreasures(List<TreasureSO> treasures)
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();
         foreach (var t in treasures)
             candidates.Add(new RewardCandidate { displayData = new GrowthItemData { itemName = t.itemName, description = t.description, icon = t.icon, rarity = t.rarity }, rawData = t, category = RewardCategory.Treasure });
+        return candidates;
+    }
+
+    private static List<RewardCandidate> GetValidAbilities(InventoryManager inven, GrowthRegistrySO registry)
+    {
+        List<RewardCandidate> candidates = new List<RewardCandidate>();
+        foreach (var item in registry.specialAbilities)
+        {
+            if (item is ThrowAbilitySO ability)
+            {
+                // 이미 장착 중인 능력은 제외 (중복 장착 방지)
+                if (inven.ActiveAbilities.Exists(a => a.GetType() == ability.GetType())) continue;
+
+                candidates.Add(new RewardCandidate { 
+                    displayData = new GrowthItemData { itemName = ability.itemName, description = ability.description, icon = ability.icon, rarity = ability.rarity }, 
+                    rawData = ability, 
+                    category = RewardCategory.Ability 
+                });
+            }
+        }
         return candidates;
     }
 }

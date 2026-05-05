@@ -26,10 +26,12 @@ public class RewardSelectionUI : MonoBehaviour
     public void Show(List<RewardCandidate> candidates)
     {
         _currentCandidates = candidates;
-        panel.SetActive(true);
+        if (panel != null) panel.SetActive(true);
 
         for (int i = 0; i < cards.Length; i++)
         {
+            if (cards[i] == null) continue; // [방어 코드] 카드가 할당되지 않은 경우 스킵
+
             if (i < candidates.Count)
             {
                 cards[i].gameObject.SetActive(true);

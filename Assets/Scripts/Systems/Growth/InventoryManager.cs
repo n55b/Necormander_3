@@ -163,25 +163,38 @@ public class InventoryManager : MonoBehaviour
         return totalBonus;
     }
 
-    public bool EquipGem(CommandData job, GemSO gem)
+    public bool EquipGem(CommandData job, GemSO gem, int gemSlotIndex)
     {
         if (!HasJobInSlots(job))
         {
-            Debug.LogWarning($"<color=orange>[Inventory]</color> {job} 유닛이 슬롯에 없어 보석을 장착할 수 없습니다.");
+            Debug.LogWarning($"<color=orange>[Inventory]</color> {job} unit is not in slots, cannot equip gem.");
             return false;
         }
 
-        if (!EquippedGems.ContainsKey(job)) EquippedGems[job] = new List<GemSO>();
-
-        if (EquippedGems[job].Count < 2)
+        if (!EquippedGems.ContainsKey(job)) 
         {
-            EquippedGems[job].Add(gem);
-            Debug.Log($"<color=green>[Inventory]</color> {job}에 보석 {gem.itemName} 장착 완료.");
+            EquippedGems[job] = new List<GemSO> { null, null };
+        }
+        else if (EquippedGems[job].Count < 2)
+        {
+            // 리스트 크기가 2가 아니면 보정
+            while (EquippedGems[job].Count < 2) EquippedGems[job].Add(null);
+        }
+
+        if (gemSlotIndex >= 0 && gemSlotIndex < 2)
+        {
+            EquippedGems[job][gemSlotIndex] = gem;
+            Debug.Log($"<color=green>[Inventory]</color> Equipped {gem.itemName} to {job}'s Gem Slot {gemSlotIndex + 1}");
             return true;
         }
         
-        Debug.LogWarning($"<color=orange>[Inventory]</color> {job}의 보석 슬롯이 가득 찼습니다.");
         return false;
+    }
+
+    public List<GemSO> GetEquippedGems(CommandData job)
+    {
+        if (EquippedGems.TryGetValue(job, out var gems)) return gems;
+        return null;
     }
     #endregion
 

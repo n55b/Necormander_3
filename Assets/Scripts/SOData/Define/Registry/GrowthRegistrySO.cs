@@ -69,10 +69,20 @@ public class GrowthRegistrySO : ScriptableObject
             if (asset != null) treasures.Add(asset);
         }
 
+        // 4. 던지기 능력(ThrowAbilitySO) 검색 [추가]
+        specialAbilities.Clear();
+        string[] abilityGuids = UnityEditor.AssetDatabase.FindAssets("t:ThrowAbilitySO");
+        foreach (var guid in abilityGuids)
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<ThrowAbilitySO>(path);
+            if (asset != null) specialAbilities.Add(asset);
+        }
+
         UnityEditor.EditorUtility.SetDirty(this);
         UnityEditor.AssetDatabase.SaveAssets();
         
-        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 계보({minionLineages.Count}), 보석({gems.Count}), 보물({treasures.Count})");
+        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 계보({minionLineages.Count}), 보석({gems.Count}), 보물({treasures.Count}), 능력({specialAbilities.Count})");
     }
 #endif
 }

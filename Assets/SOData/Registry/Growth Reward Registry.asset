@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionLineages:
   - {fileID: 11400000, guid: 6f4994e74423d4643b79946bc7cc5743, type: 2}
+  - {fileID: 11400000, guid: c1e004981cca05047ac62f6b4cbc4db7, type: 2}
+  - {fileID: 11400000, guid: 6dcd2551f98dad446bbd6740e1dc3c30, type: 2}
+  - {fileID: 11400000, guid: 6e17366b9db968141a742cf6efb8ed1f, type: 2}
+  - {fileID: 11400000, guid: d2b24f1249fc5f447a65218055c12665, type: 2}
   - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
   gems:
   - {fileID: 11400000, guid: 2a4a804bb9ca9f14c8a5402aaafb2883, type: 2}
@@ -24,4 +28,11 @@ MonoBehaviour:
   treasures:
   - {fileID: 11400000, guid: 4eaa41374a0592a43a6926f9626fc7db, type: 2}
   - {fileID: 11400000, guid: 860704422158d794d97eb3a850fca8f5, type: 2}
-  specialAbilities: []
+  specialAbilities:
+  - {fileID: 11400000, guid: 5d7577772509a5a4e9458ab9cd345b01, type: 2}
+  - {fileID: 11400000, guid: 8b92ac9aa4bdc5b49a6f8e518d6246f1, type: 2}
+  - {fileID: 11400000, guid: 904539fd742375e408b927b2c431f498, type: 2}
+  - {fileID: 11400000, guid: c8c13a9d948f94d45805ed8b9a262c6c, type: 2}
+  - {fileID: 11400000, guid: f47c1430d098c8246be65a17ff614d73, type: 2}
+  - {fileID: 11400000, guid: 823d55243ebc09545a1993d612f39b07, type: 2}
+  - {fileID: 11400000, guid: 63a08e1fc359430409868bc6c5e79d77, type: 2}
