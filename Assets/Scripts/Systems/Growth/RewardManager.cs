@@ -38,7 +38,7 @@ public class RewardManager : MonoBehaviour
             // 1. 골드 즉시 획득
             int goldAmount = 200;
             GameManager.Instance.inventoryManager.AddGold(goldAmount);
-            Debug.Log($"<color=yellow>[Reward]</color> 일반 방 클리어! {goldAmount} 골드 즉시 획득.");
+            Debug.Log($"<color=yellow>[Reward]</color> Normal Room Cleared! {goldAmount} Gold obtained.");
 
             // 2. 보석 후보 생성 -> 큐에 삽입
             var gemCandidates = RewardProcessor.GenerateCandidatesByCategory(
@@ -80,19 +80,19 @@ public class RewardManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("<color=green>[Reward]</color> 모든 보상 시퀀스가 종료되었습니다.");
+            Debug.Log("<color=green>[Reward]</color> All reward sequences completed.");
             if (selectionUI != null) selectionUI.Hide();
         }
     }
 
     private void ShowCategorySelectionUI()
     {
-        Debug.Log("<b>[UI Step 1]</b> 보상 카테고리를 선택하세요: [Minion, Metamorphosis, Gem, Treasure]");
+        Debug.Log("<b>[UI Step 1]</b> Select Reward Category: [Minion, Metamorphosis, Gem, Treasure]");
     }
 
     public void OnCategorySelected(RewardCategory category)
     {
-        Debug.Log($"<color=yellow>[Reward]</color> {category} 카테고리 선택됨. 후보 생성 중...");
+        Debug.Log($"<color=yellow>[Reward]</color> {category} category selected. Generating candidates...");
 
         List<RewardCandidate> candidates = RewardProcessor.GenerateCandidatesByCategory(
             GameManager.Instance.inventoryManager, 
@@ -112,7 +112,7 @@ public class RewardManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[RewardManager] SelectionUI 참조가 없습니다. 로그로 대체합니다.");
+            Debug.LogWarning("[RewardManager] No SelectionUI reference. Fallback to Log.");
             for (int i = 0; i < candidates.Count; i++)
             {
                 Debug.Log($"[{i}] {candidates[i].displayData.itemName} - {candidates[i].displayData.description}");
@@ -126,7 +126,7 @@ public class RewardManager : MonoBehaviour
     {
         if (candidate.rawData == null) 
         {
-            Debug.Log("<color=gray>[Reward]</color> 보상을 선택하지 않았거나 빈 슬롯입니다.");
+            Debug.Log("<color=gray>[Reward]</color> No reward selected or empty slot.");
         }
         else
         {
@@ -153,7 +153,7 @@ public class RewardManager : MonoBehaviour
                     break;
             }
 
-            Debug.Log($"<color=green>[Reward]</color> 획득 완료: {candidate.displayData.itemName}");
+            Debug.Log($"<color=green>[Reward]</color> Obtained: {candidate.displayData.itemName}");
             GameManager.Instance.squadSpawner.RefreshFullSquad();
         }
 
@@ -162,7 +162,7 @@ public class RewardManager : MonoBehaviour
 
     public void SkipReward()
     {
-        Debug.Log("<color=orange>[Reward]</color> 보상을 건너뛰었습니다.");
+        Debug.Log("<color=orange>[Reward]</color> Reward skipped.");
         ProcessNextReward();
     }
 }

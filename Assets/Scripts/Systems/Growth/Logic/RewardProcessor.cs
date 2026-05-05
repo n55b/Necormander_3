@@ -86,7 +86,7 @@ public static class RewardProcessor
                 // [예외 처리] 데이터가 부족할 경우 "비어있는 슬롯" 후보 추가
                 results.Add(new RewardCandidate { 
                     category = category, 
-                    displayData = new GrowthItemData { itemName = "없음", description = "더 이상 획득할 수 있는 보상이 없습니다." },
+                    displayData = new GrowthItemData { itemName = "None", description = "No more rewards available." },
                     rawData = null 
                 });
             }

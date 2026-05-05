@@ -205,24 +205,44 @@ public class ThrowCluster : MonoBehaviour
     {
         if (_activeRecipe == null) return;
 
-        int wallMask = LayerMask.GetMask("Wall", "Obstacle");
-        bool isWall = (wallMask & (1 << other.gameObject.layer)) != 0;
-
-        if (isWall)
-        {
-            _arcMovement.StopArc();
-            return;
-        }
+        int wallLayer = LayerMask.NameToLayer("Wall");
+        int obstacleLayer = LayerMask.NameToLayer("Obstacle");
+        bool isWall = other.gameObject.layer == wallLayer || other.gameObject.layer == obstacleLayer;
 
         // 직구/포물선 공통 충돌 로직
         int opponentMask = (_activeRecipe.info.targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
         int objectMask = LayerMask.GetMask("Object");
         bool isTargetHit = ((opponentMask | objectMask) & (1 << other.gameObject.layer)) != 0;
 
-        if (isTargetHit)
+        if (isWall || isTargetHit)
         {
+            // [핀볼 로직 우선 체크] (직구 + 범위 모드 + 튕김 횟수 남음)
+            bool isPinballApplicable = _isDirectThrow && 
+                                     _activeRecipe.info.targetingMode == TargetingMode.Area && 
+                                     InventoryManager.Instance.ActiveAbilities.Exists(a => a is ThrowPinballAbilitySO);
+
+            if (isPinballApplicable)
+            {
+                ThrowPinballAbilitySO pinballAbility = (ThrowPinballAbilitySO)InventoryManager.Instance.ActiveAbilities.Find(a => a is ThrowPinballAbilitySO);
+                if (_activeRecipe.state.bounceCount < pinballAbility.maxBounces)
+                {
+                    ExecutePinballBounce(other, pinballAbility.bounceDuration);
+                    return;
+                }
+            }
+
+            // 핀볼이 아니거나 횟수를 다 쓴 경우에만 기존 정지 로직 실행
+            if (isWall)
+            {
+                _arcMovement.StopArc();
+                return;
+            }
+
             // 중복 타격 방지 (동일 관통 단계에서 같은 놈 두 번 때리기 방지)
             if (_activeRecipe.state.hitTargets.Contains(other.gameObject)) return;
+
+            // 타겟 리스트에 추가 (관통 및 최종 적중 공통)
+            _activeRecipe.state.hitTargets.Add(other.gameObject);
 
             // [핵심] 관통 로직
             if (_activeRecipe.state.pierceCount < _activeRecipe.state.maxPierce)
@@ -248,6 +268,43 @@ public class ThrowCluster : MonoBehaviour
         }
     }
 
+    private void ExecutePinballBounce(Collider2D other, float duration)
+    {
+        _activeRecipe.state.bounceCount++;
+        
+        // 반사각 계산을 위해 충돌 법선(Normal) 구하기
+        Vector2 normal;
+        Vector2 currentPos = transform.position;
+        
+        // 가장 가까운 점을 이용한 간이 법선 계산
+        Vector2 closestPoint = other.ClosestPoint(currentPos);
+        normal = (currentPos - closestPoint).normalized;
+        
+        // 만약 법선이 제로라면(완전히 겹침) 현재 방향의 반대 방향 사용
+        if (normal.sqrMagnitude < 0.01f) normal = -_lastTravelDir;
+
+        // 반사 벡터 계산: R = I - 2 * (I · N) * N
+        Vector2 reflectDir = Vector2.Reflect(_lastTravelDir, normal).normalized;
+        
+        // 속도 유지
+        float currentSpeed = _rb.linearVelocity.magnitude;
+        if (currentSpeed < 5f) currentSpeed = 15f; // 최소 속도 보정
+
+        _rb.linearVelocity = reflectDir * currentSpeed;
+        _lastTravelDir = reflectDir;
+
+        // 지속 시간 초기화
+        _arcMovement.ResetDuration(duration);
+
+        // 충격 효과 발동 (핀볼은 튕길 때마다 효과 발생)
+        if (GameManager.Instance.throwImpactManager != null)
+        {
+            GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, currentPos, reflectDir, this);
+        }
+
+        Debug.Log($"<color=cyan>[Pinball]</color> Bounced! Count: {_activeRecipe.state.bounceCount}/{duration}s reset.");
+    }
+
     private bool _isLanded = false;
     private ThrowRecipe _activeRecipe;
 
@@ -269,6 +326,8 @@ public class ThrowCluster : MonoBehaviour
         if (_activeRecipe != null)
         {
             int wallMask = LayerMask.GetMask("Wall", "Obstacle");
+            // [수정] 핀볼은 이미 충돌 시 효과를 냈으므로 마지막 착지 시 중복 방지 체크 필요할 수도 있음
+            // 하지만 요구사항상 "5초가 지나면 멈춘다"이므로 마지막 멈춤 효과도 발동
             bool hitWall = Physics2D.OverlapCircle(transform.position, GetCurrentRadius() * 0.8f, wallMask);
 
             if (!hitWall)
@@ -276,18 +335,19 @@ public class ThrowCluster : MonoBehaviour
                 if (_activeRecipe.info.targetingMode == TargetingMode.Self) isImpactSuccess = true;
                 else if (_activeRecipe.info.targetingMode == TargetingMode.Area) isImpactSuccess = true;
                 else if (_activeRecipe.info.targetingMode == TargetingMode.Target && _activeRecipe.info.finalTarget != null) isImpactSuccess = true;
-                // [추가] 관통 투척물이 벽에 안 부딪히고 끝까지 날아간 경우도 성공으로 간주
                 else if (_activeRecipe.state.maxPierce > 0) isImpactSuccess = true;
+                // [추가] 핀볼로 튕기고 날아가다 멈춘 경우
+                else if (_activeRecipe.state.bounceCount > 0) isImpactSuccess = true;
             }
         }
 
-        // 효과 실행 (이때 'this'를 넘겨 능력이 튕기기를 실행할지 결정하게 함)
+        // 효과 실행
         if (isImpactSuccess && _activeRecipe != null && !_activeRecipe.info.isImmediateApplied)
         {
             GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, transform.position, _lastTravelDir, this);
         }
 
-        // [핵심] 튕기기 예외 처리
+        // [핵심] 튕기기 예외 처리 (Bouncing 능력용)
         if (_activeRecipe != null && _activeRecipe.state.isBouncing)
         {
             _isLanded = false; 

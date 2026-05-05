@@ -20,8 +20,9 @@ public class CharacterStat : MonoBehaviour
     public CharacterHealth Health { get; private set; }
     public CharacterVisualFeedback Visual { get; private set; }
 
-    [Header("런타임 직업 정보")]
+    [Header("런타임 정보")]
     [SerializeField] private CommandData jobType; // 보석 계산을 위해 필요
+    private bool _isAlly = false; // [추가] 아군 여부 캐싱
 
     private bool _isInitialized = false;
 
@@ -51,20 +52,47 @@ public class CharacterStat : MonoBehaviour
 
     private float GetGemBonus(StatType type)
     {
-        if (InventoryManager.Instance == null) return 0f;
+        if (InventoryManager.Instance == null || !_isAlly) return 0f;
         return InventoryManager.Instance.GetGemBonus(jobType, type);
     }
 
     private float GetTreasureBonus(TreasureEffectType type)
     {
-        if (InventoryManager.Instance == null) return 0f;
+        if (InventoryManager.Instance == null || !_isAlly) return 0f;
         return InventoryManager.Instance.GetTreasureBonus(type);
+    }
+
+    private void UpdateTeamStatus()
+    {
+        // 1. BaseEntity가 있다면 팀 확인
+        var entity = GetComponentInParent<BaseEntity>();
+        if (entity != null)
+        {
+            _isAlly = (entity.team == Team.Ally);
+            return;
+        }
+
+        // 2. PlayerController가 있다면 아군
+        if (GetComponentInParent<PlayerController>() != null)
+        {
+            _isAlly = true;
+            return;
+        }
+
+        // 3. 태그 및 레이어 기반 보조 확인
+        _isAlly = CompareTag("Player") || CompareTag("Army") || 
+                  gameObject.layer == LayerMask.NameToLayer("Player") || 
+                  gameObject.layer == LayerMask.NameToLayer("Army");
     }
 
     // [중앙집집중형 초기화]
     public void Setup()
     {
-        if (_isInitialized) return;
+        if (_isInitialized)
+        {
+            UpdateTeamStatus(); // 이미 초기화되었더라도 팀 정보는 갱신할 수 있음
+            return;
+        }
 
         Status = GetComponent<CharacterStatus>();
         Health = GetComponent<CharacterHealth>();
@@ -73,6 +101,7 @@ public class CharacterStat : MonoBehaviour
         if (Visual != null) Visual.Init(Health, Status);
         if (Health != null) Health.Init(this, Status);
 
+        UpdateTeamStatus();
         _isInitialized = true;
     }
 
@@ -94,6 +123,8 @@ public class CharacterStat : MonoBehaviour
             baseMoveSpeed = data.moveSpeed;
         }
         
+        UpdateTeamStatus(); // 데이터 주입 시점에 팀 정보 다시 확인
+
         if (Health != null) Health.ResetHP();
         if (Status != null) Status.ClearStatus();
         if (Visual != null) Visual.ResetVisuals();
