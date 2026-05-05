@@ -155,15 +155,18 @@ public class TrajectoryPredictor : MonoBehaviour
         // 3. 차징 비율에 따른 실시간 물리 수치 계산 및 시각화
         if (isFullCharge)
         {
-            // [개선] 풀차징 상태: 직선 경로상에 적이나 오브젝트가 있는지 추가 체크
+            // [수정] 풀차징 상태: 이제 직구는 아주 멀리 날아가므로 조준선도 길게 표시합니다.
             Vector2 direction = (targetPos - startPos).normalized;
-            float distanceToTarget = Vector2.Distance(startPos, targetPos);
+            if (direction == Vector2.zero) direction = Vector2.right;
+            
+            float maxPredictDistance = 40f; // 충분히 긴 거리 설정
             
             int hitMask = LayerMask.GetMask("Enemy", "Object", "Wall", "Obstacle");
             float radius = (_throwController.ActiveCluster != null) ? _throwController.ActiveCluster.GetCurrentRadius() : 0.35f;
 
-            RaycastHit2D hit = Physics2D.CircleCast(startPos, radius, direction, distanceToTarget, hitMask);
-            Vector2 finalPoint = (hit.collider != null) ? hit.centroid : targetPos;
+            // 경로상에 장애물이 있는지 확인
+            RaycastHit2D hit = Physics2D.CircleCast(startPos, radius, direction, maxPredictDistance, hitMask);
+            Vector2 finalPoint = (hit.collider != null) ? hit.centroid : startPos + direction * maxPredictDistance;
 
             _lineRenderer.positionCount = 2;
             _lineRenderer.SetPosition(0, (Vector3)startPos);

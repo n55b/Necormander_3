@@ -244,10 +244,23 @@ public class ThrowController : MonoBehaviour
             }
 
             Vector2 finalPos = _physics.GetClampedTargetPos(startPos, recipe.info.impactPoint, _activeCluster);
+            bool isDirect = ratio >= 0.98f;
             float dist = Vector2.Distance(startPos, finalPos);
             float duration = dist / speed;
+
+            // [수정] 직구인 경우: 마우스 위치를 넘어서 5초 동안 계속 날아가도록 설정
+            if (isDirect)
+            {
+                Vector2 dir = (finalPos - startPos).normalized;
+                if (dir == Vector2.zero) dir = (mousePos - startPos).normalized;
+                if (dir == Vector2.zero) dir = Vector2.right;
+
+                duration = 5.0f; // 최대 비행 시간 5초
+                finalPos = startPos + dir * (speed * duration); // 5초 동안 이동할 거리
+            }
+
             float maxHeight = Mathf.Min(Mathf.Lerp(jumpH, straightH, ratio), dist * 0.5f);
-            bool isDirect = ratio >= 0.98f;
+            if (isDirect) maxHeight = straightH; // 직구는 고정 높이 유지
 
             // [능력 Hook] OnThrowLaunch
             if (InventoryManager.Instance != null)
