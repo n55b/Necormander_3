@@ -88,6 +88,9 @@ public class ThrowCluster : MonoBehaviour
         _isDirectThrow = isDirect;
         _chargeRatio = chargeRatio;
 
+        // [수정] 발사 시 비주얼 확실히 활성화
+        if (visualCircle != null) visualCircle.gameObject.SetActive(true);
+
         foreach (var unit in _units)
         {
             if (unit != null) unit.PrepareForClusterThrow(chargeRatio, isDirect);
@@ -155,25 +158,22 @@ public class ThrowCluster : MonoBehaviour
                 _lastTravelDir = _rb.linearVelocity.normalized;
             }
 
-            // [추가] 타겟 추적 중이었는데 타겟이 사라진 경우 처리
+            // 타겟 추적 중이었는데 타겟이 사라진 경우 처리
             if (_activeRecipe != null && _activeRecipe.info.targetingMode == TargetingMode.Target && !_isDirectThrow)
             {
                 if (_targetTransform == null)
                 {
-                    // 원래 타겟이 있던 지점으로 이동
                     Vector2 currentPos = transform.position;
                     Vector2 targetPoint = _activeRecipe.info.impactPoint;
                     Vector2 diff = targetPoint - currentPos;
                     float dist = diff.magnitude;
                     
-                    // 목표 지점에 거의 도달했다면 착지 (타겟이 없으므로 자동 Miss 처리됨)
                     if (dist < 0.2f) 
                     {
                         OnLanded();
                         return;
                     }
                     
-                    // 목표 지점 방향으로 속도 유지
                     if (diff.sqrMagnitude > 0.0001f)
                     {
                         _rb.linearVelocity = diff.normalized * _launchSpeed;
@@ -200,7 +200,6 @@ public class ThrowCluster : MonoBehaviour
             float h = _arcMovement.CurrentHeight;
             foreach (var unit in _units)
             {
-                // [방어 코드] 파괴된 유닛 체크 (MissingReferenceException 방지 전용)
                 if (unit != null && (unit is MonoBehaviour mb && mb != null))
                 {
                     Vector3 lp = unit.transform.localPosition;
@@ -312,7 +311,6 @@ public class ThrowCluster : MonoBehaviour
 
         _rb.simulated = false;
         _rb.linearVelocity = Vector2.zero;
-        if (visualCircle != null) visualCircle.gameObject.SetActive(false);
 
         bool isImpactSuccess = false;
         if (_activeRecipe != null)
@@ -323,18 +321,18 @@ public class ThrowCluster : MonoBehaviour
                 if (_activeRecipe.info.targetingMode == TargetingMode.Self || _activeRecipe.info.targetingMode == TargetingMode.Area || (_activeRecipe.info.targetingMode == TargetingMode.Target && _activeRecipe.info.finalTarget != null) || _activeRecipe.state.maxPierce > 0 || _activeRecipe.state.bounceCount > 0)
                     isImpactSuccess = true;
             }
-            
-            // [추가] 레시피에 성공 여부 기록
             _activeRecipe.info.isMissed = !isImpactSuccess;
         }
 
-        // [수정] 성공 여부와 상관없이 매니저 호출 (실패 처리 훅 제공)
         if (_activeRecipe != null && !_activeRecipe.info.isImmediateApplied)
         {
             GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, transform.position, _lastTravelDir, this);
         }
 
         if (_activeRecipe != null && _activeRecipe.state.isBouncing) { _isLanded = false; _activeRecipe.state.isBouncing = false; return; }
+
+        // [수정] 튕기기가 아님을 확인한 뒤에 비주얼을 비활성화
+        if (visualCircle != null) visualCircle.gameObject.SetActive(false);
 
         if (_activeRecipe != null && _activeRecipe.state.isMaster)
         {
