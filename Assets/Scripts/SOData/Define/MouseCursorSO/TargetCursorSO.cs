@@ -4,7 +4,6 @@ using UnityEngine;
 public class TargetCursorSO : MouseCursorSO
 {
     [SerializeField] private Material _material; // 외곽선용 머티리얼
-    [SerializeField] private Color _highlightColor = new Color(2f, 2f, 2f, 1f); // 눈에 띄게 밝은 흰색 (Alpha는 반드시 1)
     
     private SpriteRenderer _currentSpr;
     private Material _originalMaterial;
@@ -36,7 +35,6 @@ public class TargetCursorSO : MouseCursorSO
 
                 // 2. 하이라이트 적용
                 _currentSpr.material = _material;
-                _currentSpr.color = _highlightColor;
             }
         }
         
@@ -49,7 +47,6 @@ public class TargetCursorSO : MouseCursorSO
         {
             // 3. 원래 상태로 복구
             _currentSpr.material = _originalMaterial;
-            _currentSpr.color = _originalColor;
             
             _currentSpr = null;
             _originalMaterial = null;
