@@ -159,19 +159,25 @@ public class AllyManager : MonoBehaviour
 
     /// <summary>
     /// 필드에 소환된 모든 아군을 제거하고 관리 리스트를 초기화합니다.
-    /// SquadSpawner에서 재소환(Refresh) 전 동기화를 위해 사용합니다.
     /// </summary>
     public void ClearAll()
     {
         RemoveNullinAllys();
 
-        // 1. 모든 게임 오브젝트 파괴
+        // [핵심 순서] 1. 투척 시스템 먼저 정리 (들고 있는 유닛 내려놓기 + 클러스터 삭제)
+        var throwController = Object.FindFirstObjectByType<ThrowController>();
+        if (throwController != null)
+        {
+            throwController.ForceClear();
+        }
+
+        // 2. 이제 필드에 내려와 있는 모든 미니언 파괴
         foreach (var ally in allys)
         {
             if (ally != null) Destroy(ally.gameObject);
         }
 
-        // 2. 리스트 비우기
+        // 3. 리스트 비우기
         allys.Clear();
         activeMinionInfos.Clear();
 
