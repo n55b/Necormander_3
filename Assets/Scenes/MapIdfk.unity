@@ -142367,7 +142367,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2513279776471938881, guid: 15e21c4698054ed45a4ad159d640c571, type: 3}
       propertyPath: m_Name
-      value: DynamicEnemySpawner (2)
+      value: EliteEnemySpawner
+      objectReference: {fileID: 0}
+    - target: {fileID: 6706715044398964560, guid: 15e21c4698054ed45a4ad159d640c571, type: 3}
+      propertyPath: roomType
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6706715044398964560, guid: 15e21c4698054ed45a4ad159d640c571, type: 3}
       propertyPath: activationRange
