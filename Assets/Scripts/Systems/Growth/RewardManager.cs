@@ -153,7 +153,8 @@ public class RewardManager : MonoBehaviour
         }
 
         Debug.Log($"<color=green>[Reward]</color> Processing candidate: {candidate.displayData.itemName}");
-        GameManager.Instance.squadSpawner.RefreshFullSquad();
+        // [사용자 요청] 보상 획득 시 즉시 재소환하지 않음 (다음 전투 시작 시 소환)
+        // GameManager.Instance.squadSpawner.RefreshFullSquad();
     }
 
     public void NotifyHandSlotSelectionComplete()

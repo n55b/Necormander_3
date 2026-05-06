@@ -160,6 +160,9 @@ public class ThrowCluster : MonoBehaviour
         OnLanded();
     }
 
+    private bool _isLanded = false;
+    private ThrowRecipe _activeRecipe;
+
     private void Update()
     {
         if (_arcMovement != null && _arcMovement.IsFlying)
@@ -191,7 +194,8 @@ public class ThrowCluster : MonoBehaviour
             float h = _arcMovement.CurrentHeight;
             foreach (var unit in _units)
             {
-                if (unit != null)
+                // [수정] 파괴된 오브젝트 체크 추가 (MissingReferenceException 방지)
+                if (unit != null && (unit is MonoBehaviour mb && mb != null))
                 {
                     Vector3 lp = unit.transform.localPosition;
                     lp.y = h + (unit.transform.GetSiblingIndex() * 0.01f);
@@ -357,9 +361,6 @@ public class ThrowCluster : MonoBehaviour
         }
     }
 
-    private bool _isLanded = false;
-    private ThrowRecipe _activeRecipe;
-
     public void SetRecipe(ThrowRecipe recipe)
     {
         _activeRecipe = recipe;
@@ -372,6 +373,9 @@ public class ThrowCluster : MonoBehaviour
 
         _rb.simulated = false;
         _rb.linearVelocity = Vector2.zero;
+
+        // [추가] 비주얼 즉시 비활성화
+        if (visualCircle != null) visualCircle.gameObject.SetActive(false);
 
         bool isImpactSuccess = false;
 
@@ -412,7 +416,8 @@ public class ThrowCluster : MonoBehaviour
         {
             foreach (var unit in _units)
             {
-                if (unit == null) continue;
+                // [수정] 파괴된 오브젝트 체크 추가
+                if (unit == null || (unit is MonoBehaviour mb && mb == null)) continue;
                 unit.SetImpacted(isImpactSuccess); 
                 unit.transform.SetParent(null);
                 unit.OnLanded();

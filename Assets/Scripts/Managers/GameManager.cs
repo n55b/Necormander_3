@@ -76,10 +76,12 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // 게임 시작 시 슬롯에 있는 유닛들을 자동으로 소환
+        // [사용자 요청] 게임 시작 시 자동으로 소환하지 않음 (적 조우 시에만 소환)
+        /*
         if (squadSpawner != null)
         {
             squadSpawner.RefreshFullSquad();
         }
+        */
     }
 }

@@ -76,6 +76,18 @@ public class DynamicEnemySpawner : MonoBehaviour
             if (_activeEnemies.Count == 0)
             {
                 _rewardGiven = true;
+
+                // [사용자 요청] 클리어 시 미니언 증발 처리 후 보상 요청
+                if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+                {
+                    var allyManager = GameManager.Instance.PLAYERCONTROLLER.GetComponent<AllyManager>();
+                    if (allyManager != null)
+                    {
+                        Debug.Log("<color=yellow>[Spawner]</color> Wave Cleared! Evaporating minions before reward.");
+                        allyManager.ClearAll();
+                    }
+                }
+
                 if (RewardManager.Instance != null) RewardManager.Instance.RequestClearReward(roomType);
             }
         }
@@ -116,6 +128,12 @@ public class DynamicEnemySpawner : MonoBehaviour
     {
         _isTriggered = true;
         Debug.Log($"<color=red>[Encounter]</color> Ambush! Spawning {groupsCount} groups randomly.");
+
+        // [사용자 요청] 새로운 적 조우 시 부대 재소환
+        if (GameManager.Instance != null && GameManager.Instance.squadSpawner != null)
+        {
+            GameManager.Instance.squadSpawner.RefreshFullSquad();
+        }
 
         for (int i = 0; i < groupsCount; i++)
         {

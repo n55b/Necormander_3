@@ -83,7 +83,8 @@ public class HandSlotSelectionUI : MonoBehaviour
         if (success)
         {
             Debug.Log($"<color=green>[HandSlotUI]</color> Equipped to slot {index}");
-            GameManager.Instance.squadSpawner.RefreshFullSquad();
+            // [사용자 요청] 여기서 즉시 재소환하지 않음 (다음 전투 시작 시 소환)
+            // GameManager.Instance.squadSpawner.RefreshFullSquad();
             Hide();
             
             // 보상 시퀀스 재개
