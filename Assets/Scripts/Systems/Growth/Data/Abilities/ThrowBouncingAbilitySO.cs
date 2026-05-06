@@ -83,9 +83,7 @@ public class ThrowBouncingAbilitySO : ThrowAbilitySO
             echoRecipe.info.finalTarget = nextTarget;
             echoRecipe.info.impactPoint = targetPos;
 
-            var bounceComp = echoObj.AddComponent<BouncingSphere>();
-            bounceComp.Init(echoRecipe, (targetPos - impactPoint).normalized);
-
+            // [수정] BouncingSphere 컴포넌트 제거 (ThrowCluster.OnLanded에서 통합 처리됨)
             echoCluster.SetRecipe(echoRecipe);
             echoCluster.Launch(impactPoint, targetPos, duration, 1.0f, false, 0.5f);
             
@@ -126,7 +124,7 @@ public class ThrowBouncingAbilitySO : ThrowAbilitySO
         {
             GameObject obj = col.gameObject;
             
-            // [수정] 블랙리스트(hitTargets)에 포함된 대상은 무조건 제외
+            // 블랙리스트(hitTargets)에 포함된 대상은 무조건 제외
             if (recipe.state.hitTargets.Contains(obj)) continue;
 
             // 죽은 대상 제외 (CharacterStat 확인)
@@ -141,31 +139,5 @@ public class ThrowBouncingAbilitySO : ThrowAbilitySO
             }
         }
         return bestTarget;
-    }
-}
-
-/// <summary>
-/// 튕겨 나가는 구체가 목표에 도달했을 때 효과를 발동시키기 위한 브릿지 컴포넌트입니다.
-/// </summary>
-public class BouncingSphere : MonoBehaviour
-{
-    private ThrowRecipe _recipe;
-    private Vector2 _travelDir;
-    private bool _hasTriggered = false;
-
-    public void Init(ThrowRecipe recipe, Vector2 dir)
-    {
-        _recipe = recipe;
-        _travelDir = dir;
-    }
-
-    private void OnDestroy()
-    {
-        // ThrowCluster가 파괴될 때(OnLanded 호출 후) 효과 발동
-        if (_hasTriggered || _recipe == null || GameManager.Instance == null || GameManager.Instance.throwImpactManager == null) return;
-        _hasTriggered = true;
-
-        // 다음 타격 실행
-        GameManager.Instance.throwImpactManager.ProcessThrowImpact(_recipe, transform.position, _travelDir);
     }
 }

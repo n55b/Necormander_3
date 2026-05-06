@@ -19,6 +19,13 @@ public class ThrowImpactManager : MonoBehaviour
 
     private IEnumerator ExecuteImpactRoutine(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir, ThrowCluster cluster)
     {
+        // [추가] 빗나간 투척에 대한 전용 처리 (실패 경로)
+        if (recipe.info.isMissed)
+        {
+            HandleMissedImpact(recipe, impactPos);
+            yield break;
+        }
+
         int totalExecutions = recipe.GetTotalExecutionCount();
         List<GameObject> targets = (recipe.info.targetingMode == TargetingMode.Area) ? ScanAreaTargets(recipe, impactPos) : null;
 
@@ -72,11 +79,19 @@ public class ThrowImpactManager : MonoBehaviour
     {
         if (target == null) return;
         
-        // [핵심] 매니저는 더 이상 로직을 직접 수행하지 않고, 레시피에 담긴 액션들에게 실행을 위임합니다.
         foreach (var action in recipe.actions)
         {
             action.Execute(target, impactPos, travelDir, recipe);
         }
+    }
+
+    /// <summary>
+    /// 타겟을 맞추지 못했을 때의 처리를 담당합니다. (추후 실패 VFX 등 추가 가능)
+    /// </summary>
+    private void HandleMissedImpact(ThrowRecipe recipe, Vector2 impactPos)
+    {
+        Debug.Log("<color=gray>[Impact]</color> Throw missed. No effective actions triggered.");
+        // 예: Instantiate(missedVFX, impactPos, Quaternion.identity);
     }
 
     private List<GameObject> ScanAreaTargets(ThrowRecipe recipe, Vector2 pos)
