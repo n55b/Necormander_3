@@ -117,4 +117,5 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
     // [추가] 인터페이스 구현
     public virtual void PrepareForClusterThrow(float chargeRatio, bool isDirect) { }
     public virtual void SetImpacted(bool value) { }
+    public virtual void ApplyThrowCost() { } // 기본 투척물은 체력 소모 없음
 }

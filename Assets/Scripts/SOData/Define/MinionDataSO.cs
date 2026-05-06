@@ -31,6 +31,10 @@ public class MinionDataSO : ScriptableObject
     [Header("AI 행동 패턴")]
     public AIPatternSO aiPattern; // 이 유닛의 전체적인 AI 행동 (대기/추격/공격 통합)
 
+    [Header("특수 투척 설정")]
+    [Range(0f, 1f), Tooltip("투척 1회당 소모할 최대 체력 비율 (1.0 = 100%)")]
+    public float hpCostRatioPerThrow = 0f;
+
     [Header("프리팹 설정")]
     public GameObject minionPrefab;
 }
