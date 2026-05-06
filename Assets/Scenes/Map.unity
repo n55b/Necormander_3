@@ -184,6 +184,63 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 15e21c4698054ed45a4ad159d640c571, type: 3}
+--- !u!1001 &63194066
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -10.013723
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -13.5868225
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4998578495538801392, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_Name
+      value: Enemy Scarecrow (2)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
 --- !u!1 &164874725
 GameObject:
   m_ObjectHideFlags: 0
@@ -168059,6 +168116,120 @@ MonoBehaviour:
   m_Area: 1
   m_IgnoreFromBuild: 0
   m_AffectedAgents: ffffffff
+--- !u!1001 &501064297
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.4665973
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -13.118386
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4998578495538801392, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_Name
+      value: Enemy Scarecrow (4)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+--- !u!1001 &631557523
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -11.82
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -11.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4998578495538801392, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_Name
+      value: Enemy Scarecrow (1)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
 --- !u!1001 &710554036
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -168356,7 +168527,7 @@ PrefabInstance:
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.data[1].ability
       value: 
-      objectReference: {fileID: 11400000, guid: f47c1430d098c8246be65a17ff614d73, type: 2}
+      objectReference: {fileID: 11400000, guid: 5d7577772509a5a4e9458ab9cd345b01, type: 2}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -168710,6 +168881,63 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 516779fc0d03f034f9f3624a39ea0ea6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1001 &1249680779
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -18.977463
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -13.554972
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4998578495538801392, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_Name
+      value: Enemy Scarecrow (3)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
 --- !u!1 &1395081135
 GameObject:
   m_ObjectHideFlags: 0
@@ -168794,6 +169022,63 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1427828132
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -8.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -11.89
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 454117476355030219, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4998578495538801392, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_Name
+      value: Enemy Scarecrow
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
 --- !u!1001 &1445457009
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -183120,7 +183405,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 0
+  orthographic size: 8.4375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -183634,3 +183919,8 @@ SceneRoots:
   - {fileID: 54573688}
   - {fileID: 1198423918}
   - {fileID: 2058566597}
+  - {fileID: 1427828132}
+  - {fileID: 631557523}
+  - {fileID: 63194066}
+  - {fileID: 1249680779}
+  - {fileID: 501064297}
