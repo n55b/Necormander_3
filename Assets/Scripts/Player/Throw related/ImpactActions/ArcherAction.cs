@@ -12,7 +12,7 @@ public class ArcherAction : ImpactAction
 
     public override void Execute(GameObject target, Vector2 impactPos, Vector2 travelDir, ThrowRecipe recipe)
     {
-        if (recipe.targetingMode == TargetingMode.Area && target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
+        if (recipe.info.targetingMode == TargetingMode.Area && target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
         {
             float finalDamage = recipe.GetScaledValue(damage);
             entity.Stats.Health.GetDamage(new DamageInfo(finalDamage, DamageType.Physical, null));

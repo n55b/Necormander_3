@@ -10,24 +10,49 @@ public class ShieldBearerAction : ImpactAction
 
     public override void Execute(GameObject target, Vector2 impactPos, Vector2 travelDir, ThrowRecipe recipe)
     {
+        // 1. 타겟 정보 확인
         CharacterStat targetStat = null;
-        if (target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Ally) targetStat = entity.Stats;
-        else if (target.CompareTag("Player")) targetStat = target.GetComponentInChildren<CharacterStat>();
+        bool isAllyOrPlayer = false;
 
-        if (targetStat != null)
+        if (target.TryGetComponent<BaseEntity>(out var entity))
         {
-            bool allowShield = (recipe.targetingMode == TargetingMode.Self) || (recipe.targetingMode == TargetingMode.Area) || (recipe.targetTeam == Team.Ally);
-            if (allowShield)
+            if (entity.team == Team.Ally)
             {
-                float finalShield = recipe.GetScaledValue(shieldAmount);
-                targetStat.Status.AddShield(finalShield, 3.0f);
+                targetStat = entity.Stats;
+                isAllyOrPlayer = true;
+            }
+        }
+        else if (target.CompareTag("Player"))
+        {
+            targetStat = target.GetComponentInChildren<CharacterStat>();
+            isAllyOrPlayer = true;
+        }
+
+        float finalShield = recipe.GetScaledValue(shieldAmount);
+        ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
+
+        // 2. 아군/플레이어인 경우: 즉시 보호막 부여 (기본 전사+방패병 조합 등)
+        if (isAllyOrPlayer && targetStat != null)
+        {
+            targetStat.Status.AddShield(finalShield, 3.0f);
+            
+            if (registry != null && registry.shieldAttachVFX != null)
+            {
+                GameObject vfx = Object.Instantiate(registry.shieldAttachVFX, target.transform.position, Quaternion.identity, target.transform);
+                targetStat.Visual.SetShieldVFX(vfx);
+            }
+        }
+        // 3. 적군인 경우: 보호막 아이템 드랍 (궁수+방패병 등 적군 타겟팅 조합)
+        else if (!isAllyOrPlayer && target.CompareTag("Enemy"))
+        {
+            if (registry != null && registry.shieldCollectiblePrefab != null)
+            {
+                GameObject itemObj = Object.Instantiate(registry.shieldCollectiblePrefab, impactPos, Quaternion.identity);
+                ShieldCollectible collectible = itemObj.GetComponent<ShieldCollectible>();
+                if (collectible == null) collectible = itemObj.AddComponent<ShieldCollectible>();
                 
-                ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
-                if (registry != null && registry.shieldAttachVFX != null)
-                {
-                    GameObject vfx = Object.Instantiate(registry.shieldAttachVFX, target.transform.position, Quaternion.identity, target.transform);
-                    targetStat.Visual.SetShieldVFX(vfx);
-                }
+                collectible.Init(finalShield, 3.0f);
+                Debug.Log($"<color=cyan>[Shield Action]</color> 적군 타격! 보호막 아이템 드랍. (수치: {finalShield:F1})");
             }
         }
     }

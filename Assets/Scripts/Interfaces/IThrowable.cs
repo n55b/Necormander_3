@@ -2,6 +2,11 @@ using UnityEngine;
 
 public interface IThrowable
 {
+    // [추가] 유닛 정보를 인터페이스 수준에서 제공
+    CommandData MinionType { get; }
+    MinionDataSO MinionData { get; }
+    Transform transform { get; }
+
     void OnPickedUp();
 
     /// <summary>
@@ -12,4 +17,15 @@ public interface IThrowable
     void OnThrown(Vector2 targetPosition, float chargeRatio);
 
     void OnLanded();
+
+    // [추가] 투척 물리 수치 (성장 수치 연동용)
+    float MaxSpeed { get; }
+    float MinSpeed { get; }
+    float FullChargeSpeed { get; }
+    float JumpHeight { get; }
+    float StraightHeight { get; }
+
+    // [추가] 클러스터 투척 연동용
+    void PrepareForClusterThrow(float chargeRatio, bool isDirect);
+    void SetImpacted(bool value);
 }

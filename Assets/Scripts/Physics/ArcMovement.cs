@@ -95,6 +95,20 @@ public class ArcMovement : MonoBehaviour
         _totalDuration = 2.0f; 
     }
 
+    public void ResetDuration(float newDuration)
+    {
+        _currentDuration = 0f;
+        _totalDuration = newDuration;
+        _isFlying = true;
+    }
+
+    public void StopArcWithoutLanding()
+    {
+        _isFlying = false;
+        _currentHeight = 0f;
+        if (visualTransform != null) visualTransform.localPosition = Vector3.zero;
+    }
+
     public void StopArc()
     {
         if (_isFlying)

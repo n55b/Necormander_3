@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49461d1437485a444ab9d4d42cd76df7, type: 3}
+  m_Name: Minion Stat Treasure
+  m_EditorClassIdentifier: 
+  itemName: Minion Stat Treasure
+  description: Treasure that enhances all minions stats.
+  icon: {fileID: 0}
+  rarity: 0
+  effectType: 0
+  valuePerStack: 1

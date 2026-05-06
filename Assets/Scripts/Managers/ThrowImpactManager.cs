@@ -12,15 +12,28 @@ public class ThrowImpactManager : MonoBehaviour
         Debug.Log("<color=cyan>[ThrowImpactManager]</color> Initialized.");
     }
 
-    public void ProcessThrowImpact(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir)
+    public void ProcessThrowImpact(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir, ThrowCluster cluster = null)
     {
-        StartCoroutine(ExecuteImpactRoutine(recipe, impactPos, travelDir));
+        StartCoroutine(ExecuteImpactRoutine(recipe, impactPos, travelDir, cluster));
     }
 
-    private IEnumerator ExecuteImpactRoutine(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir)
+    private IEnumerator ExecuteImpactRoutine(ThrowRecipe recipe, Vector2 impactPos, Vector2 travelDir, ThrowCluster cluster)
     {
         int totalExecutions = recipe.GetTotalExecutionCount();
-        List<GameObject> targets = (recipe.targetingMode == TargetingMode.Area) ? ScanAreaTargets(recipe, impactPos) : null;
+        List<GameObject> targets = (recipe.info.targetingMode == TargetingMode.Area) ? ScanAreaTargets(recipe, impactPos) : null;
+
+        // [추가] 던지기 능력 Hook (OnImpact)
+        if (InventoryManager.Instance != null)
+        {
+            bool isDirect = recipe.info.chargeRatio >= 0.98f;
+            foreach (var ability in InventoryManager.Instance.ActiveAbilities)
+            {
+                if (ability != null && ability.IsApplicable(isDirect, recipe.info.targetingMode))
+                {
+                    ability.OnImpact(recipe, impactPos, cluster);
+                }
+            }
+        }
 
         // 투척 프레임의 다른 물리 로직과의 간섭 방지를 위해 1프레임 대기
         yield return null;
@@ -34,12 +47,12 @@ public class ThrowImpactManager : MonoBehaviour
 
     private void ApplyRecipe(ThrowRecipe recipe, int index, Vector2 pos, Vector2 travelDir, List<GameObject> areaTargets)
     {
-        switch (recipe.targetingMode)
+        switch (recipe.info.targetingMode)
         {
             case TargetingMode.Target:
-                Vector2 vfxPos = (recipe.finalTarget != null) ? (Vector2)recipe.finalTarget.transform.position : pos;
+                Vector2 vfxPos = (recipe.info.finalTarget != null) ? (Vector2)recipe.info.finalTarget.transform.position : pos;
                 SpawnImpactVFX(recipe, vfxPos, false);
-                if (recipe.finalTarget != null) ApplyActionsToTarget(recipe, recipe.finalTarget, pos, travelDir);
+                if (recipe.info.finalTarget != null) ApplyActionsToTarget(recipe, recipe.info.finalTarget, pos, travelDir);
                 break;
 
             case TargetingMode.Area:

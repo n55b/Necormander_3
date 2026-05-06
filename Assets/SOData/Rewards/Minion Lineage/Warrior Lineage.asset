@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47612b7e7b5455a4ba0ad2f9144236c6, type: 3}
+  m_Name: Warrior Lineage
+  m_EditorClassIdentifier: 
+  jobType: 0
+  lineageName: Warrior Lineage
+  baseForm: {fileID: 11400000, guid: cb0cbfe654c65244c9e4647136f954b9, type: 2}
+  baseItemData:
+    itemName: Base warrior minion
+    description: 
+    icon: {fileID: 0}
+    rarity: 0
+  techA: {fileID: 0}
+  techAItemData:
+    itemName: 
+    description: 
+    icon: {fileID: 0}
+    rarity: 0
+  techB: {fileID: 0}
+  techBItemData:
+    itemName: 
+    description: 
+    icon: {fileID: 0}
+    rarity: 0

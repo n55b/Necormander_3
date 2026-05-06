@@ -16,6 +16,7 @@ public class DynamicEnemySpawner : MonoBehaviour
 {
     [Header("General Settings")]
     [SerializeField] private SpawnType spawnType = SpawnType.Encounter;
+    [SerializeField] private RoomType roomType = RoomType.Normal; // [추가] 방 타입 설정
     [SerializeField] private float activationRange = 10.0f;
 
     [Header("Encounter Settings (Gungeon Style)")]
@@ -38,6 +39,7 @@ public class DynamicEnemySpawner : MonoBehaviour
     private float _spawnTimer;
     private Transform _playerTransform;
     private bool _isTriggered = false;
+    private bool _rewardGiven = false;
 
     private void Start()
     {
@@ -66,6 +68,17 @@ public class DynamicEnemySpawner : MonoBehaviour
     private void Update()
     {
         if (_playerTransform == null || _enemyDataList == null || _enemyDataList.Count == 0) return;
+
+        // [추가] 클리어 체크 (보상 지급)
+        if (_isTriggered && !_rewardGiven && spawnType == SpawnType.Encounter)
+        {
+            _activeEnemies.RemoveAll(item => item == null);
+            if (_activeEnemies.Count == 0)
+            {
+                _rewardGiven = true;
+                if (RewardManager.Instance != null) RewardManager.Instance.RequestClearReward(roomType);
+            }
+        }
 
         float distanceToPlayer = Vector2.Distance(transform.position, _playerTransform.position);
 

@@ -25,7 +25,7 @@ public class PriestAction : ImpactAction
         }
         else if (target.CompareTag("Player"))
         {
-            if (recipe.targetingMode == TargetingMode.Self || recipe.targetingMode == TargetingMode.Area)
+            if (recipe.info.targetingMode == TargetingMode.Self || recipe.info.targetingMode == TargetingMode.Area)
             {
                 if (registry != null && registry.ccAttachVFX != null)
                 {
