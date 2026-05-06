@@ -47,6 +47,7 @@ public class CharacterVisualFeedback : MonoBehaviour
         // 이벤트 구독
         _health.OnDamageTaken += PlayHitFlash;
         _health.OnHeal += PlayHealFlash;
+        _health.OnDeath += PlayDeathVisual;
     }
 
     private void OnDestroy()
@@ -55,7 +56,17 @@ public class CharacterVisualFeedback : MonoBehaviour
         {
             _health.OnDamageTaken -= PlayHitFlash;
             _health.OnHeal -= PlayHealFlash;
+            _health.OnDeath -= PlayDeathVisual;
         }
+    }
+
+    private void PlayDeathVisual()
+    {
+        if (_sr == null) return;
+        if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
+        
+        // 사망 시 약간 어둡고 투명하게 (혹은 회색조)
+        _sr.color = new Color(0.3f, 0.3f, 0.3f, 0.7f);
     }
 
     private void Update()

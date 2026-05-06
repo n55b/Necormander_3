@@ -84,20 +84,24 @@ public class CharacterHealth : MonoBehaviour
 
         // 본체(Root)를 찾아 사망 보고 및 로그 출력
         BaseEntity rootEntity = GetComponentInParent<BaseEntity>();
+        bool isPlayer = (rootEntity != null && rootEntity.CompareTag("Player")) || CompareTag("Player");
         string entityName = (rootEntity != null) ? rootEntity.gameObject.name : gameObject.name;
         
         if (rootEntity != null)
         {
-            if (rootEntity.team == Team.Ally && !rootEntity.CompareTag("Player"))
+            if (rootEntity.team == Team.Ally && !isPlayer)
             {
                 ReportDeathToManager(rootEntity);
             }
         }
 
-        Debug.Log($"<color=red>[Death]</color> {entityName} 사망 및 오브젝트 파괴.");
+        Debug.Log($"<color=red>[Death]</color> {entityName} 사망. (Player 여부: {isPlayer})");
         
-        // 본체 전체를 파괴 (부모가 없으면 자신만 파괴)
-        Destroy(rootEntity != null ? rootEntity.gameObject : gameObject);
+        // [수정] 플레이어가 아닐 때만 오브젝트 파괴 (플레이어는 게임 오버 처리를 위해 유지)
+        if (!isPlayer)
+        {
+            Destroy(rootEntity != null ? rootEntity.gameObject : gameObject);
+        }
     }
 
     private void ReportDeathToManager(BaseEntity rootEntity)

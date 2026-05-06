@@ -77,6 +77,9 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // 사망 시 조종 불가
+        if (stat.Health.IsDead) return;
+
         // [복구] 기존 이동 로직으로 원복하되, 넉백 중일 때는 물리 속도를 덮어쓰지 않도록 개선 가능
         // 만약 리지드바디의 속도가 넉백에 의해 아주 높다면 이동 처리를 스킵하거나 합산
         if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f) // 대략적인 임계값
@@ -94,6 +97,8 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext context)
     {
+        if (stat.Health.IsDead) { moveInput = Vector2.zero; return; }
+
         if(context.performed || context.canceled)
         {
             moveInput = context.ReadValue<Vector2>();
@@ -103,6 +108,8 @@ public class PlayerController : MonoBehaviour
 
     public void OnRightClick(InputAction.CallbackContext context)
     {
+        if (stat.Health.IsDead) return;
+
         if (sumController.IsSummoningMode)
         {
             if (context.performed)
@@ -166,17 +173,24 @@ public class PlayerController : MonoBehaviour
 
     public void OnThrow(InputAction.CallbackContext context)
     {
+        if (stat.Health.IsDead) return;
+
         if (throwController != null)
         {
             throwController.OnThrow(context);
         }
     }
 
-    public void OnTab(InputAction.CallbackContext context) => sumController.OnTab(context);
-    public void OnNum1(InputAction.CallbackContext context) => sumController.OnNumKey(1, context);
-    public void OnNum2(InputAction.CallbackContext context) => sumController.OnNumKey(2, context);
-    public void OnNum3(InputAction.CallbackContext context) => sumController.OnNumKey(3, context);
-    public void OnNum4(InputAction.CallbackContext context) => sumController.OnNumKey(4, context);
+    public void OnTab(InputAction.CallbackContext context) 
+    {
+        if (stat.Health.IsDead) return;
+        sumController.OnTab(context);
+    }
+
+    public void OnNum1(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(1, context); }
+    public void OnNum2(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(2, context); }
+    public void OnNum3(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(3, context); }
+    public void OnNum4(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(4, context); }
 
     public void ChangeState(PlayerStates _state)
     {
