@@ -282,12 +282,60 @@ public class ThrowController : MonoBehaviour
         _input.ResetCharging();
     }
 
+    /// <summary>
+    /// 들고 있는 모든 유닛을 플레이어 앞에 내려놓고 클러스터를 삭제합니다.
+    /// </summary>
     public void DropAll()
     {
-        if (_heldObjects.Count == 0) return;
-        foreach (var t in _heldObjects) if (t != null) { if (t is MonoBehaviour mb) mb.transform.SetParent(null); t.OnLanded(); }
+        if (_heldObjects.Count == 0 && _activeCluster == null) return;
+        
+        // 플레이어 앞 위치 계산
+        Vector3 dropPos = transform.position + (Vector3)Random.insideUnitCircle * 0.5f;
+
+        foreach (var t in _heldObjects) 
+        {
+            if (t != null && (t is MonoBehaviour mb && mb != null)) 
+            { 
+                mb.transform.SetParent(null); 
+                mb.transform.position = dropPos;
+                t.OnLanded(); 
+            }
+        }
+        
+        // [수정] 클러스터 오브젝트를 여기서 수동으로 확실히 제거
+        if (_activeCluster != null)
+        {
+            Destroy(_activeCluster.gameObject);
+            _activeCluster = null;
+        }
+
         _heldObjects.Clear();
-        _input.ResetCharging();
+        if (_input != null) _input.ResetCharging();
+    }
+
+    /// <summary>
+    /// 모든 투척 상태를 강제로 정리합니다. (클리어 시 미니언 증발 전 호출)
+    /// </summary>
+    public void ForceClear()
+    {
+        // 1. 입력 차단
+        if (_input != null)
+        {
+            _input.ResetCharging();
+            // 입력 핸들러에 휠 UI 숨기기 등 추가 가능
+        }
+
+        // 2. 손에 든 애들 내려놓기 및 클러스터 삭제
+        DropAll();
+
+        // 3. 씬에 혹시 남아있을지 모르는 모든 클러스터 전수 조사 및 삭제
+        ThrowCluster[] activeClusters = Object.FindObjectsByType<ThrowCluster>(FindObjectsSortMode.None);
+        foreach (var cluster in activeClusters)
+        {
+            if (cluster != null) Destroy(cluster.gameObject);
+        }
+
+        if (trajectoryPredictor != null) trajectoryPredictor.HideGuide();
     }
 
     private void OnDrawGizmosSelected() { Gizmos.color = Color.yellow; Gizmos.DrawWireSphere(transform.position, 2.0f); }
