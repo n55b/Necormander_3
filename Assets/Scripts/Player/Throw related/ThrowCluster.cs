@@ -155,6 +155,32 @@ public class ThrowCluster : MonoBehaviour
                 _lastTravelDir = _rb.linearVelocity.normalized;
             }
 
+            // [추가] 타겟 추적 중이었는데 타겟이 사라진 경우 처리
+            if (_activeRecipe != null && _activeRecipe.info.targetingMode == TargetingMode.Target && !_isDirectThrow)
+            {
+                if (_targetTransform == null)
+                {
+                    // 원래 타겟이 있던 지점으로 이동
+                    Vector2 currentPos = transform.position;
+                    Vector2 targetPoint = _activeRecipe.info.impactPoint;
+                    Vector2 diff = targetPoint - currentPos;
+                    float dist = diff.magnitude;
+                    
+                    // 목표 지점에 거의 도달했다면 착지 (타겟이 없으므로 자동 Miss 처리됨)
+                    if (dist < 0.2f) 
+                    {
+                        OnLanded();
+                        return;
+                    }
+                    
+                    // 목표 지점 방향으로 속도 유지
+                    if (diff.sqrMagnitude > 0.0001f)
+                    {
+                        _rb.linearVelocity = diff.normalized * _launchSpeed;
+                    }
+                }
+            }
+
             if (_targetTransform != null)
             {
                 Vector2 currentPos = transform.position;
@@ -297,9 +323,13 @@ public class ThrowCluster : MonoBehaviour
                 if (_activeRecipe.info.targetingMode == TargetingMode.Self || _activeRecipe.info.targetingMode == TargetingMode.Area || (_activeRecipe.info.targetingMode == TargetingMode.Target && _activeRecipe.info.finalTarget != null) || _activeRecipe.state.maxPierce > 0 || _activeRecipe.state.bounceCount > 0)
                     isImpactSuccess = true;
             }
+            
+            // [추가] 레시피에 성공 여부 기록
+            _activeRecipe.info.isMissed = !isImpactSuccess;
         }
 
-        if (isImpactSuccess && _activeRecipe != null && !_activeRecipe.info.isImmediateApplied)
+        // [수정] 성공 여부와 상관없이 매니저 호출 (실패 처리 훅 제공)
+        if (_activeRecipe != null && !_activeRecipe.info.isImmediateApplied)
         {
             GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, transform.position, _lastTravelDir, this);
         }

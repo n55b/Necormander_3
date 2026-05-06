@@ -20,6 +20,7 @@ public class ThrowRecipe
         public Vector2 impactPoint;    
         public float chargeRatio;
         public bool isImmediateApplied = false;
+        public bool isMissed = false; // [추가] 타겟 적중 실패 여부
 
         public void CopyFrom(BasicInfo other)
         {
@@ -29,6 +30,7 @@ public class ThrowRecipe
             impactPoint = other.impactPoint;
             chargeRatio = other.chargeRatio;
             isImmediateApplied = other.isImmediateApplied;
+            isMissed = other.isMissed;
         }
     }
 
