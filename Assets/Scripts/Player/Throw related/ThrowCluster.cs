@@ -276,37 +276,85 @@ public class ThrowCluster : MonoBehaviour
     {
         _activeRecipe.state.bounceCount++;
         
-        // 반사각 계산을 위해 충돌 법선(Normal) 구하기
-        Vector2 normal;
         Vector2 currentPos = transform.position;
+        float radius = GetCurrentRadius();
         
-        // 가장 가까운 점을 이용한 간이 법선 계산
-        Vector2 closestPoint = other.ClosestPoint(currentPos);
-        normal = (currentPos - closestPoint).normalized;
-        
-        // 만약 법선이 제로라면(완전히 겹침) 현재 방향의 반대 방향 사용
-        if (normal.sqrMagnitude < 0.01f) normal = -_lastTravelDir;
+        int wallMask = LayerMask.GetMask("Wall", "Obstacle");
+        int opponentMask = (_activeRecipe.info.targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
+        int objectMask = LayerMask.GetMask("Object");
+        int totalMask = wallMask | opponentMask | objectMask;
 
-        // 반사 벡터 계산: R = I - 2 * (I · N) * N
+        // 1. 정확한 충돌 정보 획득 (CircleCast)
+        float castDist = 1.0f; 
+        RaycastHit2D hit = Physics2D.CircleCast(currentPos - _lastTravelDir * castDist, radius, _lastTravelDir, castDist * 2f, totalMask);
+        
+        Vector2 normal = (hit.collider != null) ? hit.normal : -_lastTravelDir;
+        Vector2 hitCentroid = (hit.collider != null) ? hit.centroid : currentPos;
+
+        // 2. 위치 보정 (부딪힌 지점에서 법선 방향으로 미세하게 띄움)
+        Vector2 safeOrigin = hitCentroid + normal * 0.05f;
+        transform.position = safeOrigin;
+        Physics2D.SyncTransforms();
+
+        // 3. 지능형 경로 샘플링 (Smart Sampling)
         Vector2 reflectDir = Vector2.Reflect(_lastTravelDir, normal).normalized;
+        Vector2 reverseDir = -_lastTravelDir;
         
-        // 속도 유지
-        float currentSpeed = _rb.linearVelocity.magnitude;
-        if (currentSpeed < 5f) currentSpeed = 15f; // 최소 속도 보정
+        // 후보 방향 리스트: 반사 -> 반전 -> 법선 기준 회전각들
+        Vector2[] candidates = {
+            reflectDir,
+            reverseDir,
+            (Quaternion.Euler(0, 0, 45) * normal),
+            (Quaternion.Euler(0, 0, -45) * normal),
+            (Quaternion.Euler(0, 0, 30) * normal),
+            (Quaternion.Euler(0, 0, -30) * normal)
+        };
 
-        _rb.linearVelocity = reflectDir * currentSpeed;
-        _lastTravelDir = reflectDir;
+        Vector2 finalDir = Vector2.zero;
+        float checkDist = 0.6f; // 이 거리만큼 앞길이 비어있어야 함
 
-        // 지속 시간 초기화
-        _arcMovement.ResetDuration(duration);
-
-        // 충격 효과 발동 (핀볼은 튕길 때마다 효과 발생)
-        if (GameManager.Instance.throwImpactManager != null)
+        foreach (Vector2 cand in candidates)
         {
-            GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, currentPos, reflectDir, this);
+            if (cand.sqrMagnitude < 0.01f) continue;
+            
+            // 법선과 반대되는 방향(벽 안쪽)은 아예 배제
+            if (Vector2.Dot(cand, normal) < -0.1f) continue;
+
+            // 해당 방향으로 갈 수 있는지 CircleCast로 미리 확인
+            if (!Physics2D.CircleCast(safeOrigin, radius * 0.85f, cand.normalized, checkDist, totalMask))
+            {
+                finalDir = cand.normalized;
+                break;
+            }
         }
 
-        Debug.Log($"<color=cyan>[Pinball]</color> Bounced! Count: {_activeRecipe.state.bounceCount}/{duration}s reset.");
+        // 모든 후보가 막혔다면 (극심한 끼임 상태) 최후의 수단으로 법선 방향 선택
+        if (finalDir == Vector2.zero) finalDir = normal;
+
+        // 4. 물리 속도 적용
+        float currentSpeed = _rb.linearVelocity.magnitude;
+        if (currentSpeed < 5f) currentSpeed = 15f; 
+        _rb.linearVelocity = finalDir * currentSpeed;
+        _lastTravelDir = finalDir;
+
+        // 5. 지속 시간 및 횟수 처리
+        ThrowPinballAbilitySO pinballAbility = (ThrowPinballAbilitySO)InventoryManager.Instance.ActiveAbilities.Find(a => a is ThrowPinballAbilitySO);
+        if (_activeRecipe.state.bounceCount >= pinballAbility.maxBounces)
+        {
+            _arcMovement.ResetDuration(0.3f);
+            Debug.Log($"<color=yellow>[Pinball]</color> Final Smart Bounce! Dir: {finalDir}");
+        }
+        else
+        {
+            _arcMovement.ResetDuration(duration);
+            Debug.Log($"<color=cyan>[Pinball]</color> Smart Bounced! Count: {_activeRecipe.state.bounceCount}/{pinballAbility.maxBounces}. Dir: {finalDir}");
+        }
+
+        // 효과 발동
+        if (GameManager.Instance.throwImpactManager != null)
+        {
+            GameManager.Instance.throwImpactManager.ProcessThrowImpact(_activeRecipe, transform.position, finalDir, this);
+        }
     }
 
     private bool _isLanded = false;
