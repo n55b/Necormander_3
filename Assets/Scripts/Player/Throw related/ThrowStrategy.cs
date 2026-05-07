@@ -138,14 +138,15 @@ public class ThrowStrategy : MonoBehaviour
             {
                 foreach (var gem in unitGems)
                 {
-                    if (gem != null && gem.statType == StatType.Debuff)
+                    // [수정] GemDebuffSO 타입일 때만 디버프 스택 합산
+                    if (gem is GemDebuffSO debuffGem)
                     {
                         // [사용자 요청 공식] (보석 스택 합산) * (전체 배율)
-                        float scaledStack = gem.baseDebuffStack * totalMultiplier;
-                        if (!recipe.modifiers.debuffStacks.ContainsKey(gem.targetDebuffType))
-                            recipe.modifiers.debuffStacks[gem.targetDebuffType] = 0f;
+                        float scaledStack = debuffGem.baseDebuffStack * totalMultiplier;
+                        if (!recipe.modifiers.debuffStacks.ContainsKey(debuffGem.targetDebuffType))
+                            recipe.modifiers.debuffStacks[debuffGem.targetDebuffType] = 0f;
                         
-                        recipe.modifiers.debuffStacks[gem.targetDebuffType] += scaledStack;
+                        recipe.modifiers.debuffStacks[debuffGem.targetDebuffType] += scaledStack;
                     }
                 }
             }

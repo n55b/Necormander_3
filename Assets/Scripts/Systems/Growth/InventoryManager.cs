@@ -155,10 +155,10 @@ public class InventoryManager : MonoBehaviour
         float totalBonus = 0f;
         foreach (var gem in EquippedGems[job])
         {
-            // [수정] 슬롯이 비어있을(null) 수 있으므로 체크 추가
-            if (gem != null && gem.statType == stat)
+            // [수정] GemAttributeSO 타입일 때만 스탯 보너스 합산
+            if (gem is GemAttributeSO attrGem && attrGem.statType == stat)
             {
-                totalBonus += gem.baseBonusValue;
+                totalBonus += attrGem.baseBonusValue;
             }
         }
         return totalBonus;
