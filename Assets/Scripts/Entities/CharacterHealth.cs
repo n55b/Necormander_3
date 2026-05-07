@@ -13,7 +13,7 @@ public class CharacterHealth : MonoBehaviour
     [SerializeField] private bool isDead = false;
     [SerializeField] private bool invincible = false;
 
-    public event Action OnDamageTaken;
+    public event Action<float> OnDamageTaken; // [수정] 데미지 수치 전달 가능하게 변경
     public event Action OnHeal;
     public event Action OnDeath;
 
@@ -35,6 +35,13 @@ public class CharacterHealth : MonoBehaviour
 
         float startHP = curHP;
         float remainingDamage = info.amount;
+
+        // [추가] 부식(Corroded) 상태라면 받는 피해량 25% 증가
+        if (_status != null && _status.GetDebuffBool(DebuffBoolType.Corroded))
+        {
+            remainingDamage *= 1.25f;
+        }
+
         float totalAbsorbed = 0f;
 
         // 1. 보호막 흡수 로직
@@ -42,10 +49,12 @@ public class CharacterHealth : MonoBehaviour
         {
             totalAbsorbed = _status.ConsumeShield(remainingDamage);
             remainingDamage -= totalAbsorbed;
-            OnDamageTaken?.Invoke(); 
             
             if (totalAbsorbed > 0)
-                Debug.Log($"<color=cyan>[Damage-Shield]</color> {gameObject.name}: 보호막이 {totalAbsorbed:F1} 데미지 흡수. (남은 데미지: {remainingDamage:F1})");
+            {
+                Debug.Log($"<color=cyan>[Damage-Shield]</color> {gameObject.name}: 보호막이 {totalAbsorbed:F1} 데미지 흡수.");
+                OnDamageTaken?.Invoke(0f); // 0 데미지 피격 이벤트
+            }
         }
 
         // 2. 실제 체력 차감
@@ -59,7 +68,18 @@ public class CharacterHealth : MonoBehaviour
             curHP -= finalDamage;
             
             Debug.Log($"<color=red>[Damage-HP]</color> {gameObject.name}: {finalDamage:F1} 피해 입음. 체력: {startHP:F1} -> {curHP:F1}");
-            OnDamageTaken?.Invoke();
+            OnDamageTaken?.Invoke(finalDamage);
+        }
+
+        // [추가] 처형(Execute) 체크: 현재 체력이 처형 스택 이하인가?
+        if (_status != null && !isDead)
+        {
+            int executeThreshold = _status.GetDebuffStack(DebuffStackType.Execute);
+            if (executeThreshold > 0 && curHP > 0 && curHP <= executeThreshold)
+            {
+                Debug.Log($"<color=purple>[Execute]</color> {gameObject.name}: 처형 임계점({executeThreshold}) 도달로 즉시 사망.");
+                curHP = 0;
+            }
         }
 
         if (curHP <= 0.0f)
@@ -80,6 +100,17 @@ public class CharacterHealth : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+
+        // [추가] 비폭(BloodPop) 처리: 사망 시 주변 폭발
+        if (_status != null)
+        {
+            int bloodPopStack = _status.GetDebuffStack(DebuffStackType.BloodPop);
+            if (bloodPopStack > 0)
+            {
+                ExecuteBloodPop(bloodPopStack);
+            }
+        }
+
         OnDeath?.Invoke();
 
         // 본체(Root)를 찾아 사망 보고 및 로그 출력
@@ -97,7 +128,6 @@ public class CharacterHealth : MonoBehaviour
 
         Debug.Log($"<color=red>[Death]</color> {entityName} 사망. (Player 여부: {isPlayer})");
         
-        // [수정] 플레이어가 아닐 때만 오브젝트 파괴 (플레이어는 게임 오버 처리를 위해 유지)
         if (!isPlayer)
         {
             Destroy(rootEntity != null ? rootEntity.gameObject : gameObject);
@@ -110,11 +140,31 @@ public class CharacterHealth : MonoBehaviour
         if (pc != null)
         {
             var allyManager = pc.GetComponentInChildren<AllyManager>() ?? UnityEngine.Object.FindFirstObjectByType<AllyManager>();
-            
             if (allyManager != null && rootEntity != null) 
             {
-                // 본체의 정확한 InstanceID를 전달
                 allyManager.ReportDeath(rootEntity.gameObject.GetInstanceID());
+            }
+        }
+    }
+
+    private void ExecuteBloodPop(int damage)
+    {
+        float explosionRadius = 2.0f;
+        LayerMask opponentLayer;
+        
+        BaseEntity myEntity = GetComponentInParent<BaseEntity>();
+        opponentLayer = (myEntity != null) ? myEntity.opponentLayer : LayerMask.GetMask("Enemy");
+
+        Debug.Log($"<color=red>[BloodPop]</color> {gameObject.name} 폭발! 주변에 {damage} 데미지.");
+
+        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, opponentLayer);
+        foreach (var col in colls)
+        {
+            var health = col.GetComponentInChildren<CharacterHealth>();
+            if (health != null)
+            {
+                // 주변에 고정 데미지 입힘
+                health.GetDamage(new DamageInfo(damage, DamageType.Fixed, this.gameObject));
             }
         }
     }

@@ -98,9 +98,9 @@ public class CharacterVisualFeedback : MonoBehaviour
         _ccVFXInstance = vfx;
     }
 
-    private void PlayHitFlash()
+    private void PlayHitFlash(float damage)
     {
-        if (_status != null && _status.TotalShield > 0) StartFlash(Color.cyan); // 보호막 피격
+        if (_status != null && _status.TotalShield > 0.01f) StartFlash(Color.cyan); // 보호막 피격
         else StartFlash(Color.black); // 일반 피격
     }
 

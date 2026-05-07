@@ -148,29 +148,16 @@ public static class RewardProcessor
 
         foreach (var gem in gems)
         {
-            if (gem.isUniversal)
+            // [수정] 보석이 가진 플래그를 확인하여 플레이어 직업군에 맞는지 체크
+            foreach (var job in playerJobs)
             {
-                // 범용 보석은 플레이어가 가진 각 직업별로 후보를 생성 (6가지 바리에이션 가능)
-                foreach (var job in playerJobs)
+                if (gem.IsEligible(job))
                 {
                     candidates.Add(new RewardCandidate { 
                         displayData = gem.GetDynamicDisplayData(job), 
                         rawData = gem, 
                         category = RewardCategory.Gem,
                         targetJob = job
-                    });
-                }
-            }
-            else
-            {
-                // 전용 보석은 해당 직업을 플레이어가 가지고 있을 때만 생성
-                if (playerJobs.Contains(gem.targetJob))
-                {
-                    candidates.Add(new RewardCandidate { 
-                        displayData = gem.GetDynamicDisplayData(gem.targetJob), 
-                        rawData = gem, 
-                        category = RewardCategory.Gem,
-                        targetJob = gem.targetJob
                     });
                 }
             }

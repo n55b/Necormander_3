@@ -23,3 +23,34 @@ public enum ThrowEffectCategory
     Formation,   // 진형파괴 / 돌진
     Repeat       // 되풀이 (증폭)
 }
+
+public enum DebuffStackType
+{
+    Poison,     // 중독
+    Chill,      // 한기
+    Execute,    // 처형
+    BloodPop,   // 비폭
+    Aging       // 노화
+}
+
+public enum DebuffBoolType
+{
+    Corroded,   // 부식
+    Frozen,     // 동결
+    Stunned     // 기절
+}
+
+[System.Flags]
+public enum MinionJobFlags
+{
+    None = 0,
+    Warrior = 1 << 0,
+    Shieldbearer = 1 << 1,
+    Archer = 1 << 2,
+    Priest = 1 << 3,
+    Bomber = 1 << 4,
+    Spearman = 1 << 5,
+    Magician = 1 << 6,
+    Thief = 1 << 7,
+    All = ~0
+}

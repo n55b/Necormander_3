@@ -6,7 +6,8 @@ public enum StatType
     Health,         // 체력 강화 (배율: 0.1 = 10% 증가)
     AttackSpeed,    // 공격 속도 강화 (배율: 1.0 = 공격 빈도 100% 증가)
     RespawnTime,    // 부활 시간 단축 (고정치: 1.0 = 1초 단축)
-    ThrowEffect     // 던지기 능력 강화 (전사:데미지+, 궁수:범위+, 법사:횟수+, 기타:배율+)
+    ThrowEffect,    // 던지기 능력 강화 (전사:데미지+, 궁수:범위+, 법사:횟수+, 기타:배율+)
+    Debuff          // [추가] 던지기 시 적에게 상태 이상 부여
 }
 
 /// <summary>
@@ -15,32 +16,30 @@ public enum StatType
 [CreateAssetMenu(fileName = "NewGem", menuName = "Necromancer/Growth/Gem")]
 public class GemSO : GrowthItemSO
 {
-    [Header("보석 설정")]
-    public bool isUniversal = true; // true일 경우 모든 직업용 바리에이션 생성 가능
-    
-    [Tooltip("isUniversal이 false일 때만 사용됩니다.")]
-    public CommandData targetJob; 
+    [Header("직업 타겟팅")]
+    [Tooltip("이 보석을 장착할 수 있는 직업들을 선택하세요.")]
+    public MinionJobFlags eligibleJobs = MinionJobFlags.All;
     
     [Header("강화 수치")]
     public StatType statType;
     public float baseBonusValue;
 
-    [Header("도움말: 계산 가이드")]
-    [TextArea(10, 20)]
-#pragma warning disable 0414
-    [SerializeField] private string gemCalculationGuide = 
-        "[보석 타입별 계산 방식]\n" +
-        "▶ 공격력 (Attack): 배율 가산 (예: 0.1 입력 시 10% 증가)\n" +
-        "▶ 체력 (Health): 배율 가산 (예: 0.2 입력 시 20% 증가)\n" +
-        "▶ 공격 속도 (AttackSpeed): 배율 가산 (예: 1.0 입력 시 빈도 100% 증가)\n" +
-        "▶ 부활 시간 (RespawnTime): 고정치 감산 (예: 2.0 입력 시 2초 단축)\n" +
-        "▶ 투척 효과 (ThrowEffect): 아래 직업별 세부 규칙 참조\n\n" +
-        "[ThrowEffect 직업별 세부 규칙]\n" +
-        " * 전사 (Warrior): 데미지 고정치 추가 (예: 10.0 입력 시 데미지 +10)\n" +
-        " * 궁수 (Archer): 폭발 반지름 고정치 추가 (예: 1.5 입력 시 반지름 +1.5m)\n" +
-        " * 마법사 (Magician): 실행 횟수 추가 (예: 1.0 입력 시 +1회 추가)\n" +
-        " * 기타 (사제/방패병 등): 효과 위력 배율 가산 (예: 0.5 입력 시 효과 50% 강화)";
-#pragma warning restore 0414
+    [Header("디버프 설정 (Debuff 타입일 때만)")]
+    public DebuffStackType targetDebuffType;
+    public float baseDebuffStack = 1.0f;
+
+    /// <summary>
+    /// 특정 직업이 이 보석을 사용할 수 있는지 확인합니다.
+    /// </summary>
+    public bool IsEligible(CommandData job)
+    {
+        if (eligibleJobs == MinionJobFlags.None) return false;
+        if (eligibleJobs == MinionJobFlags.All) return true;
+
+        // CommandData를 플래그 비트로 변환하여 대조
+        int jobBit = 1 << (int)job;
+        return ((int)eligibleJobs & jobBit) != 0;
+    }
 
     /// <summary>
     /// 특정 직업에 맞춰 수정된 아이템 데이터를 반환합니다.
@@ -49,9 +48,16 @@ public class GemSO : GrowthItemSO
     {
         string jobName = job.ToString().Replace("Skeleton", "");
         
-        // [수정] 기본 설명(description)과 동적 보너스 설명을 합쳐서 표시합니다.
-        // 모든 텍스트는 폰트 깨짐 방지를 위해 영어로 전환합니다.
-        string bonusInfo = $"Enhances {jobName}'s {GetStatName()} by {baseBonusValue * 100}%";
+        string bonusInfo = "";
+        if (statType == StatType.Debuff)
+        {
+            bonusInfo = $"Applies {baseDebuffStack} stacks of {targetDebuffType}";
+        }
+        else
+        {
+            bonusInfo = $"Enhances {jobName}'s {GetStatName()} by {baseBonusValue * 100}%";
+        }
+        
         string finalDesc = string.IsNullOrEmpty(this.description) ? bonusInfo : $"{this.description}\n({bonusInfo})";
 
         return new GrowthItemData {
@@ -71,6 +77,7 @@ public class GemSO : GrowthItemSO
             case StatType.AttackSpeed: return "Attack Speed";
             case StatType.RespawnTime: return "Respawn Speed";
             case StatType.ThrowEffect: return "Throw Ability";
+            case StatType.Debuff: return "Debuff Effect";
             default: return "Movement Speed";
         }
     }

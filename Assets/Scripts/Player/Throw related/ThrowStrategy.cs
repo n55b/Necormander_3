@@ -116,17 +116,41 @@ public class ThrowStrategy : MonoBehaviour
         // 주력 유닛(전사/궁수)이 없거나 Self 모드인 경우, 섞인 유닛 중 가장 첫 번째 유닛의 배율을 기저 배율로 사용
         if (leadUnit == null && heldObjects.Count > 0) leadUnit = heldObjects[0];
 
+        // [수정] 주력 유닛의 배율을 기저 배율로 사용
         recipe.modifiers.modeMultiplier = (leadUnit != null && leadUnit.MinionData != null) ? leadUnit.MinionData.effectMultiplier : 1.0f;
+
+        // 최종 배율 계산 (나중에 보정치 적용을 위해 미리 계산)
+        float totalMultiplier = recipe.modifiers.modeMultiplier * recipe.modifiers.chargeMultiplier * 
+                                recipe.modifiers.treasurePowerMultiplier * recipe.modifiers.abilityMultiplier;
 
         foreach (var obj in heldObjects)
         {
             CommandData type = obj.MinionType;
             if (type == CommandData.None) continue;
 
-            float baseVal = obj.MinionData.baseEffectValue;
-
-            // [보석 시스템] 인벤토리에서 해당 직업의 투척 강화 보석 보너스를 가져옴
+            // [보석 시스템 1: 투척 강화]
             float gemBonus = InventoryManager.Instance.GetGemBonus(type, StatType.ThrowEffect);
+
+            // [보석 시스템 2: 디버프 부여]
+            // 참여한 유닛들의 디버프 보석을 전수 조사하여 합산합니다.
+            var unitGems = InventoryManager.Instance.GetEquippedGems(type);
+            if (unitGems != null)
+            {
+                foreach (var gem in unitGems)
+                {
+                    if (gem != null && gem.statType == StatType.Debuff)
+                    {
+                        // [사용자 요청 공식] (보석 스택 합산) * (전체 배율)
+                        float scaledStack = gem.baseDebuffStack * totalMultiplier;
+                        if (!recipe.modifiers.debuffStacks.ContainsKey(gem.targetDebuffType))
+                            recipe.modifiers.debuffStacks[gem.targetDebuffType] = 0f;
+                        
+                        recipe.modifiers.debuffStacks[gem.targetDebuffType] += scaledStack;
+                    }
+                }
+            }
+
+            float baseVal = obj.MinionData.baseEffectValue;
 
             switch (type)
             {

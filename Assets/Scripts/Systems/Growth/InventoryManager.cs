@@ -172,6 +172,13 @@ public class InventoryManager : MonoBehaviour
             return false;
         }
 
+        // [추가] 보석의 직업 적합성 체크
+        if (!gem.IsEligible(job))
+        {
+            Debug.LogWarning($"<color=orange>[Inventory]</color> {job} cannot equip {gem.itemName} due to job restrictions.");
+            return false;
+        }
+
         if (!EquippedGems.ContainsKey(job)) 
         {
             EquippedGems[job] = new List<GemSO> { null, null };

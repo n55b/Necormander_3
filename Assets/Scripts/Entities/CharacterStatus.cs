@@ -34,9 +34,17 @@ public class CharacterStatus : MonoBehaviour
     public float MoveSpeedMultiplier => _cachedMoveSpeedMultiplier;
     public float TotalShield => _cachedTotalShield;
 
+    // --- [신규] 스택 및 상태형 디버프 시스템 데이터 ---
+    private Dictionary<DebuffStackType, float> _debuffStacks = new Dictionary<DebuffStackType, float>();
+    private Dictionary<DebuffBoolType, float> _boolTimers = new Dictionary<DebuffBoolType, float>();
+
+    private float _poisonTimer = 0f;
+    private const float POISON_INTERVAL = 3.0f;
+
     private void Update()
     {
         UpdateInstances();
+        UpdateDebuffs();
     }
 
     private void UpdateInstances()
@@ -58,23 +66,57 @@ public class CharacterStatus : MonoBehaviour
         float sum = 0;
         for (int i = _shieldInstances.Count - 1; i >= 0; i--)
         {
-            // 시간 만료
             if (Time.time > _shieldInstances[i].EndTime)
             {
-                Debug.Log($"<color=orange>[Shield]</color> {gameObject.name}: 보호막 시간 만료로 소멸 (남았던 수치: {_shieldInstances[i].RemainingAmount:F1})");
                 _shieldInstances.RemoveAt(i);
                 continue;
             }
-            // 수치 고갈
             if (_shieldInstances[i].RemainingAmount <= 0)
             {
-                Debug.Log($"<color=red>[Shield]</color> {gameObject.name}: 보호막 파괴됨 (수치 고갈)");
                 _shieldInstances.RemoveAt(i);
                 continue;
             }
             sum += _shieldInstances[i].RemainingAmount;
         }
         _cachedTotalShield = sum;
+    }
+
+    private void UpdateDebuffs()
+    {
+        float dt = Time.deltaTime;
+
+        // 1. 상태형 디버프(BoolType) 타이머 업데이트
+        List<DebuffBoolType> boolKeys = new List<DebuffBoolType>(_boolTimers.Keys);
+        foreach (var key in boolKeys)
+        {
+            if (_boolTimers[key] > 0)
+            {
+                _boolTimers[key] -= dt;
+                if (_boolTimers[key] <= 0)
+                {
+                    _boolTimers[key] = 0;
+                    Debug.Log($"<color=white>[Status]</color> {gameObject.name}: {key} 상태 해제.");
+                }
+            }
+        }
+
+        // 2. 중독 주기적 데미지 처리
+        int poisonStack = GetDebuffStack(DebuffStackType.Poison);
+        if (poisonStack > 0)
+        {
+            _poisonTimer += dt;
+            if (_poisonTimer >= POISON_INTERVAL)
+            {
+                _poisonTimer = 0f;
+                var health = GetComponentInChildren<CharacterHealth>();
+                if (health != null)
+                {
+                    health.GetDamage(new DamageInfo(poisonStack, DamageType.Fixed, null));
+                    Debug.Log($"<color=green>[Poison]</color> {gameObject.name}: 중독 데미지 {poisonStack} 입음.");
+                }
+            }
+        }
+        else { _poisonTimer = 0f; }
     }
 
     public void ApplySlow(string id, float reduction, float duration)
@@ -93,7 +135,6 @@ public class CharacterStatus : MonoBehaviour
 
     public void AddShield(float amount, float duration)
     {
-        Debug.Log($"<color=cyan>[Shield]</color> {gameObject.name}: 보호막 부여됨. 수치: {amount:F1}, 지속시간: {duration}s");
         _shieldInstances.Add(new ShieldInstance(amount, duration));
         UpdateInstances(); 
     }
@@ -108,12 +149,10 @@ public class CharacterStatus : MonoBehaviour
             remainingToConsume -= canTake;
             if (remainingToConsume <= 0) break;
         }
-        
         UpdateInstances(); 
         return amount - remainingToConsume;
     }
 
-    // [복구] 기존 리지드바디 직접 제어 방식으로 롤백
     public void ApplyKnockback(Vector2 dir, float force, float duration = 0.15f)
     {
         Rigidbody2D rb = GetComponentInParent<Rigidbody2D>();
@@ -122,28 +161,68 @@ public class CharacterStatus : MonoBehaviour
 
     private System.Collections.IEnumerator KnockbackRoutine(Rigidbody2D rb, Vector2 dir, float force, float duration)
     {
-        // [원복] 배율을 다시 2.0f로 되돌림
         float knockbackSpeed = force * 2.0f;
         float elapsed = 0f;
-
         while (elapsed < duration)
         {
             if (rb == null) yield break;
-            
-            // 매 프레임 속도를 강제로 고정하여 다른 이동 스크립트와의 간섭 방지
             rb.linearVelocity = dir * knockbackSpeed;
-            
             elapsed += Time.deltaTime;
             yield return null;
         }
-
         if (rb != null) rb.linearVelocity = Vector2.zero;
+    }
+
+    // --- Public API: 스택형 디버프 ---
+
+    public void AddDebuffStack(DebuffStackType type, float amount)
+    {
+        if (!_debuffStacks.ContainsKey(type)) _debuffStacks[type] = 0f;
+        _debuffStacks[type] += amount;
+
+        switch (type)
+        {
+            case DebuffStackType.Poison:
+                _debuffStacks[type] = Mathf.Min(_debuffStacks[type], 20f);
+                break;
+            case DebuffStackType.Chill:
+                if (_debuffStacks[type] >= 20f)
+                {
+                    SetDebuffBool(DebuffBoolType.Frozen, 3.0f);
+                    _debuffStacks[type] = 10f; 
+                }
+                break;
+            case DebuffStackType.Aging:
+                _debuffStacks[type] = Mathf.Min(_debuffStacks[type], 25f);
+                break;
+        }
+    }
+
+    public int GetDebuffStack(DebuffStackType type)
+    {
+        return _debuffStacks.ContainsKey(type) ? Mathf.FloorToInt(_debuffStacks[type]) : 0;
+    }
+
+    // --- Public API: 상태형 디버프 (Bool) ---
+
+    public void SetDebuffBool(DebuffBoolType type, float duration)
+    {
+        if (!_boolTimers.ContainsKey(type)) _boolTimers[type] = 0f;
+        _boolTimers[type] = Mathf.Max(_boolTimers[type], duration);
+        Debug.Log($"<color=magenta>[Status]</color> {gameObject.name}: {type} 상태 부여 ({duration}s)");
+    }
+
+    public bool GetDebuffBool(DebuffBoolType type)
+    {
+        return _boolTimers.ContainsKey(type) && _boolTimers[type] > 0;
     }
 
     public void ClearStatus()
     {
         _activeSlows.Clear();
         _shieldInstances.Clear();
+        _debuffStacks.Clear();
+        _boolTimers.Clear();
         _cachedMoveSpeedMultiplier = 1f;
         _cachedTotalShield = 0f;
     }

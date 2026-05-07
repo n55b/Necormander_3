@@ -101,7 +101,17 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual bool CanExecuteAI()
     {
-        return enabled;
+        if (!enabled) return false;
+
+        // [추가] 동결 또는 기절 상태라면 AI 중단
+        if (_stats != null && _stats.Status != null)
+        {
+            if (_stats.Status.GetDebuffBool(DebuffBoolType.Frozen) || 
+                _stats.Status.GetDebuffBool(DebuffBoolType.Stunned))
+                return false;
+        }
+
+        return true;
     }
 
     public virtual void Initialize(MinionDataSO data)
