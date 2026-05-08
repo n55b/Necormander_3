@@ -141644,16 +141644,16 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.size
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.data[0].gem1
       value: 
-      objectReference: {fileID: 11400000, guid: c87296d078b901b43aff65ab1acb0b54, type: 2}
+      objectReference: {fileID: 11400000, guid: 638724044961ece4bb54303090e111ee, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.data[0].gem2
       value: 
-      objectReference: {fileID: 11400000, guid: c87296d078b901b43aff65ab1acb0b54, type: 2}
+      objectReference: {fileID: 11400000, guid: 638724044961ece4bb54303090e111ee, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.data[0].minion
       value: 
@@ -151222,7 +151222,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 8.4375
+  orthographic size: 7.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

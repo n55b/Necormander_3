@@ -35,10 +35,11 @@ public class CharacterHealth : MonoBehaviour
 
         float remainingDamage = info.amount;
 
-        // [부식] 적용
-        if (_status != null && _status.GetDebuffBool(DebuffBoolType.Corroded))
+        // [부식] 스택에 비례한 데미지 증가
+        int corrodedStacks = _status.GetDebuffStack(DebuffStackType.Corroded);
+        if (corrodedStacks > 0)
         {
-            remainingDamage *= 1.25f;
+            remainingDamage *= (1.0f + corrodedStacks * 0.01f); // 스택당 1%씩 피해량 증가
         }
 
         // [쉴드] 적용
@@ -53,6 +54,7 @@ public class CharacterHealth : MonoBehaviour
         if (remainingDamage > 0)
         {
             float finalDamage = (info.type != DamageType.Fixed) ? Mathf.Max(remainingDamage - _stat.DEF, 1f) : remainingDamage;
+            Debug.Log($"{gameObject.name} took {finalDamage} damage. HP: {curHP} -> {curHP - finalDamage}");
             curHP -= finalDamage;
             OnDamageTaken?.Invoke(finalDamage);
         }
@@ -77,7 +79,9 @@ public class CharacterHealth : MonoBehaviour
     public void Heal(float amount)
     {
         if (isDead) return;
+        float oldHP = curHP;
         curHP = Mathf.Min(curHP + amount, _stat.MAXHP);
+        Debug.Log($"{gameObject.name} healed for {amount}. HP: {oldHP} -> {curHP}");
         OnHeal?.Invoke();
     }
 
