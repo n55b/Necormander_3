@@ -35,7 +35,6 @@ public enum DebuffStackType
 
 public enum DebuffBoolType
 {
-    Corroded,   // 부식
     Frozen,     // 동결
     Stunned     // 기절
 }

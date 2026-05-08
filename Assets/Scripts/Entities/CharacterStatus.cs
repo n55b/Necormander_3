@@ -132,7 +132,9 @@ public class CharacterStatus : MonoBehaviour
     {
         if (!_debuffStacks.ContainsKey(type)) _debuffStacks[type] = 0f;
         _debuffStacks[type] += amount;
+
         _stackTimers[type] = STACK_DURATION;
+        Debug.Log($"<color=green>[Debuff]</color> {gameObject.name}: {type} 스택 {GetDebuffStack(type)} 부여 (총 {Mathf.FloorToInt(_debuffStacks[type])} / {STACK_DURATION}s)");
 
         switch (type)
         {

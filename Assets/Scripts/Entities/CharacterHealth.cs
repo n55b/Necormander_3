@@ -33,37 +33,31 @@ public class CharacterHealth : MonoBehaviour
     {
         if (isDead || invincible) return;
 
-        float startHP = curHP;
         float remainingDamage = info.amount;
 
+        // [부식] 적용
         if (_status != null && _status.GetDebuffBool(DebuffBoolType.Corroded))
         {
             remainingDamage *= 1.25f;
         }
 
-        float totalAbsorbed = 0f;
+        // [쉴드] 적용
         if (info.type != DamageType.Fixed && _status != null && _status.TotalShield > 0)
         {
-            totalAbsorbed = _status.ConsumeShield(remainingDamage);
-            remainingDamage -= totalAbsorbed;
-            
-            if (totalAbsorbed > 0)
-            {
-                OnDamageTaken?.Invoke(0f);
-            }
+            float absorbed = _status.ConsumeShield(remainingDamage);
+            remainingDamage -= absorbed;
+            if (absorbed > 0) OnDamageTaken?.Invoke(0f);
         }
 
+        // [최종 데미지 및 체력 차감]
         if (remainingDamage > 0)
         {
-            float finalDamage = remainingDamage;
-            if (info.type != DamageType.Fixed)
-            {
-                finalDamage = Mathf.Max(remainingDamage - _stat.DEF, 1f);
-            }
+            float finalDamage = (info.type != DamageType.Fixed) ? Mathf.Max(remainingDamage - _stat.DEF, 1f) : remainingDamage;
             curHP -= finalDamage;
             OnDamageTaken?.Invoke(finalDamage);
         }
 
+        // [처형] 체크
         if (_status != null && !isDead)
         {
             int executeThreshold = _status.GetDebuffStack(DebuffStackType.Execute);
@@ -73,9 +67,9 @@ public class CharacterHealth : MonoBehaviour
             }
         }
 
-        if (curHP <= 0.0f)
+        // [사망] 체크
+        if (curHP <= 0.0f && !isDead) // isDead 체크로 중복 호출 방지
         {
-            curHP = 0;
             Die();
         }
     }
@@ -89,9 +83,10 @@ public class CharacterHealth : MonoBehaviour
 
     private void Die()
     {
-        if (isDead) return;
+        if (isDead) return; // 중복 실행 방지
         isDead = true;
 
+        // [비폭] 사망 시 최우선 발동
         if (_status != null)
         {
             int bloodPopStack = _status.GetDebuffStack(DebuffStackType.BloodPop);
@@ -105,7 +100,6 @@ public class CharacterHealth : MonoBehaviour
 
         BaseEntity rootEntity = GetComponentInParent<BaseEntity>();
         bool isPlayer = (rootEntity != null && rootEntity.CompareTag("Player")) || CompareTag("Player");
-        string entityName = (rootEntity != null) ? rootEntity.gameObject.name : gameObject.name;
         
         if (rootEntity != null && rootEntity.team == Team.Ally && !isPlayer)
         {
@@ -123,7 +117,7 @@ public class CharacterHealth : MonoBehaviour
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
-            var allyManager = pc.GetComponentInChildren<AllyManager>() ?? UnityEngine.Object.FindFirstObjectByType<AllyManager>();
+            var allyManager = pc.GetComponentInChildren<AllyManager>() ?? FindFirstObjectByType<AllyManager>();
             if (allyManager != null && rootEntity != null) 
             {
                 allyManager.ReportDeath(rootEntity.gameObject.GetInstanceID());
@@ -134,7 +128,8 @@ public class CharacterHealth : MonoBehaviour
     private void ExecuteBloodPop(int damage)
     {
         float explosionRadius = 2.0f;
-        LayerMask opponentLayer = (GetComponentInParent<BaseEntity>() != null) ? GetComponentInParent<BaseEntity>().opponentLayer : LayerMask.GetMask("Enemy");
+        // Bloodpop은 무조건 'Enemy' 레이어의 유닛에게만 데미지를 줍니다. (아군과 플레이어 제외)
+        LayerMask bloodPopTargetLayer = LayerMask.GetMask("Enemy");
 
         var registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
         if (registry != null && registry.bloodPopVFX != null)
@@ -144,7 +139,7 @@ public class CharacterHealth : MonoBehaviour
             Destroy(vfx, 1.0f);
         }
 
-        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, opponentLayer);
+        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, bloodPopTargetLayer); // 변경된 LayerMask 사용
         foreach (var col in colls)
         {
             var health = col.GetComponentInChildren<CharacterHealth>();
