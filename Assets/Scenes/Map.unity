@@ -141574,7 +141574,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6706715044398964560, guid: 15e21c4698054ed45a4ad159d640c571, type: 3}
       propertyPath: roomType
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6706715044398964560, guid: 15e21c4698054ed45a4ad159d640c571, type: 3}
       propertyPath: activationRange
@@ -141649,7 +141649,7 @@ PrefabInstance:
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.data[0].minion
       value: 
-      objectReference: {fileID: 11400000, guid: 6f4994e74423d4643b79946bc7cc5743, type: 2}
+      objectReference: {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.data[1].minion
       value: 
@@ -151214,7 +151214,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 8.4375
+  orthographic size: 7.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

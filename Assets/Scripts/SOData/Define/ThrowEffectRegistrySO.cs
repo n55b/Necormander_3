@@ -7,17 +7,20 @@ using UnityEngine;
 public class ThrowEffectRegistrySO : ScriptableObject
 {
     [Header("CC (사제/슬로우)")]
-    public GameObject ccAreaPrefab;      // 광역 장판
-    public GameObject ccAttachVFX;       // 대상 부착형 (Target/Self 공용)
+    public GameObject ccAreaPrefab;
+    public GameObject ccAttachVFX;
 
     [Header("Shield (방패병/보호막)")]
-    public GameObject shieldAreaPrefab;  // 광역 장판
-    public GameObject shieldAttachVFX;   // 대상 부착형 (Target/Self 공용)
-    public GameObject shieldCollectiblePrefab; // [추가] 적군 타격 시 드롭되는 보호막 아이템
+    public GameObject shieldAreaPrefab;
+    public GameObject shieldAttachVFX;
+    public GameObject shieldCollectiblePrefab;
 
     [Header("Formation (창병/넉백)")]
-    public GameObject formationAreaVFX;  // 충격 지점 (Area/Target/Self 모두 장판형으로 사용)
+    public GameObject formationAreaVFX;
 
     [Header("Basic Impact (기본 데미지 장판)")]
-    public GameObject basicAreaVFX;      // 아무 효과 없이 데미지만 주는 장판 (궁수 등)
+    public GameObject basicAreaVFX;
+
+    [Header("Debuff Special (상태 이상 특수 효과)")]
+    public GameObject bloodPopVFX;
 }
