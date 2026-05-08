@@ -28,22 +28,46 @@ public class CharacterStat : MonoBehaviour
 
     // --- 외부 참조용 단축 프로퍼티 (데이터 중심 + 보석 보너스 합산) ---
     
-    // 공격력: (기본 공격력) * (1 + 보석 배율 + 보물 배율)
-    public float ATK => baseAtk * (1f + GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
+    // 공격력: (기본 공격력) * (1 + 보석 배율 + 보물 배율) * 노화 감소
+    public float ATK 
+    {
+        get
+        {
+            float agingMult = (Status != null) ? Mathf.Max(0.1f, 1f - Status.GetDebuffStack(DebuffStackType.Aging) * 0.01f) : 1f;
+            return baseAtk * (1f + GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats)) * agingMult;
+        }
+    }
 
     // 최대 체력: (기본 체력) * (1 + 보석 배율 + 보물 배율)
     public float MAXHP => baseMaxHP * (1f + GetGemBonus(StatType.Health) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
 
     public float CURHP => (Health != null) ? Health.CurHP : MAXHP;
 
-    // 공격 속도: 기본 공격 주기 / (1 + 보석 배율) -> 배율이 높을수록 주기가 짧아짐(빨라짐)
-    public float ATKSPD => baseAtkSpd / (1f + GetGemBonus(StatType.AttackSpeed));
+    // 공격 속도: (기본 주기 / 보너스) / 한기 감소 -> 주기가 길어질수록 느려짐
+    public float ATKSPD 
+    {
+        get
+        {
+            float chillMult = (Status != null) ? Mathf.Max(0.1f, 1f - Status.GetDebuffStack(DebuffStackType.Chill) * 0.01f) : 1f;
+            return (baseAtkSpd / (1f + GetGemBonus(StatType.AttackSpeed))) / chillMult;
+        }
+    }
 
     public float ATKRANGE => baseAtkRange;
     public float DEF => baseDef;
 
-    // 이동 속도: 기본 속도 * 상태이상 배율
-    public float MOVESPEED => (baseMoveSpeed * (Status != null ? Status.MoveSpeedMultiplier : 1f));
+    // 이동 속도: 기본 속도 * 상태이상 배율 * (한기+노화 감소)
+    public float MOVESPEED 
+    {
+        get
+        {
+            if (Status == null) return baseMoveSpeed;
+            if (Status.GetDebuffBool(DebuffBoolType.Frozen) || Status.GetDebuffBool(DebuffBoolType.Stunned)) return 0f;
+
+            float reductionMult = Mathf.Max(0.1f, 1f - (Status.GetDebuffStack(DebuffStackType.Chill) + Status.GetDebuffStack(DebuffStackType.Aging)) * 0.01f);
+            return (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
+        }
+    }
     
     // 부활 시간 보너스 (필요 시 외부에서 참조)
     public float RESPAWN_BONUS => GetGemBonus(StatType.RespawnTime);

@@ -15,7 +15,7 @@ MonoBehaviour:
   minionType: 0
   minionName: Skeleton Warrior
   throwEffectCategory: 1
-  baseEffectValue: 20
+  baseEffectValue: 10
   effectMultiplier: 2
   baseAreaRadius: 3
   maxHP: 100
@@ -27,4 +27,5 @@ MonoBehaviour:
   moveSpeed: 5
   cost: 1
   aiPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
+  hpCostRatioPerThrow: 0
   minionPrefab: {fileID: 5978108325549925549, guid: eb9b5e3fbf6cf27428ac034e0fc6e8a5, type: 3}

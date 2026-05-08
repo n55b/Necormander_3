@@ -339,9 +339,17 @@ public class ThrowCluster : MonoBehaviour
             foreach (var unit in _units)
             {
                 if (unit == null || (unit is MonoBehaviour mb && mb == null)) continue;
-                unit.SetImpacted(isImpactSuccess); 
+
+                // [추가] 부모 해제 전/후에 투척 비용(체력 소모) 적용
                 unit.transform.SetParent(null);
-                unit.OnLanded();
+                unit.ApplyThrowCost();
+
+                // [체크] 체력 소모 후 아직 살아있는 경우에만 상태 복구(OnLanded) 호출
+                if (unit != null && (unit is MonoBehaviour aliveMb && aliveMb != null))
+                {
+                    unit.SetImpacted(isImpactSuccess); 
+                    unit.OnLanded();
+                }
             }
         }
         _units.Clear();

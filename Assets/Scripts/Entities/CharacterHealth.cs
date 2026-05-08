@@ -13,7 +13,7 @@ public class CharacterHealth : MonoBehaviour
     [SerializeField] private bool isDead = false;
     [SerializeField] private bool invincible = false;
 
-    public event Action OnDamageTaken;
+    public event Action<float> OnDamageTaken;
     public event Action OnHeal;
     public event Action OnDeath;
 
@@ -33,38 +33,45 @@ public class CharacterHealth : MonoBehaviour
     {
         if (isDead || invincible) return;
 
-        float startHP = curHP;
         float remainingDamage = info.amount;
-        float totalAbsorbed = 0f;
 
-        // 1. 보호막 흡수 로직
+        // [부식] 스택에 비례한 데미지 증가
+        int corrodedStacks = _status.GetDebuffStack(DebuffStackType.Corroded);
+        if (corrodedStacks > 0)
+        {
+            remainingDamage *= (1.0f + corrodedStacks * 0.01f); // 스택당 1%씩 피해량 증가
+        }
+
+        // [쉴드] 적용
         if (info.type != DamageType.Fixed && _status != null && _status.TotalShield > 0)
         {
-            totalAbsorbed = _status.ConsumeShield(remainingDamage);
-            remainingDamage -= totalAbsorbed;
-            OnDamageTaken?.Invoke(); 
-            
-            if (totalAbsorbed > 0)
-                Debug.Log($"<color=cyan>[Damage-Shield]</color> {gameObject.name}: 보호막이 {totalAbsorbed:F1} 데미지 흡수. (남은 데미지: {remainingDamage:F1})");
+            float absorbed = _status.ConsumeShield(remainingDamage);
+            remainingDamage -= absorbed;
+            if (absorbed > 0) OnDamageTaken?.Invoke(0f);
         }
 
-        // 2. 실제 체력 차감
+        // [최종 데미지 및 체력 차감]
         if (remainingDamage > 0)
         {
-            float finalDamage = remainingDamage;
-            if (info.type != DamageType.Fixed)
-            {
-                finalDamage = Mathf.Max(remainingDamage - _stat.DEF, 1f);
-            }
+            float finalDamage = (info.type != DamageType.Fixed) ? Mathf.Max(remainingDamage - _stat.DEF, 1f) : remainingDamage;
+            Debug.Log($"{gameObject.name} took {finalDamage} damage. HP: {curHP} -> {curHP - finalDamage}");
             curHP -= finalDamage;
-            
-            Debug.Log($"<color=red>[Damage-HP]</color> {gameObject.name}: {finalDamage:F1} 피해 입음. 체력: {startHP:F1} -> {curHP:F1}");
-            OnDamageTaken?.Invoke();
+            OnDamageTaken?.Invoke(finalDamage);
         }
 
-        if (curHP <= 0.0f)
+        // [처형] 체크
+        if (_status != null && !isDead)
         {
-            curHP = 0;
+            int executeThreshold = _status.GetDebuffStack(DebuffStackType.Execute);
+            if (executeThreshold > 0 && curHP > 0 && curHP <= executeThreshold)
+            {
+                curHP = 0;
+            }
+        }
+
+        // [사망] 체크
+        if (curHP <= 0.0f && !isDead) // isDead 체크로 중복 호출 방지
+        {
             Die();
         }
     }
@@ -72,32 +79,37 @@ public class CharacterHealth : MonoBehaviour
     public void Heal(float amount)
     {
         if (isDead) return;
+        float oldHP = curHP;
         curHP = Mathf.Min(curHP + amount, _stat.MAXHP);
+        Debug.Log($"{gameObject.name} healed for {amount}. HP: {oldHP} -> {curHP}");
         OnHeal?.Invoke();
     }
 
     private void Die()
     {
-        if (isDead) return;
+        if (isDead) return; // 중복 실행 방지
         isDead = true;
-        OnDeath?.Invoke();
 
-        // 본체(Root)를 찾아 사망 보고 및 로그 출력
-        BaseEntity rootEntity = GetComponentInParent<BaseEntity>();
-        bool isPlayer = (rootEntity != null && rootEntity.CompareTag("Player")) || CompareTag("Player");
-        string entityName = (rootEntity != null) ? rootEntity.gameObject.name : gameObject.name;
-        
-        if (rootEntity != null)
+        // [비폭] 사망 시 최우선 발동
+        if (_status != null)
         {
-            if (rootEntity.team == Team.Ally && !isPlayer)
+            int bloodPopStack = _status.GetDebuffStack(DebuffStackType.BloodPop);
+            if (bloodPopStack > 0)
             {
-                ReportDeathToManager(rootEntity);
+                ExecuteBloodPop(bloodPopStack);
             }
         }
 
-        Debug.Log($"<color=red>[Death]</color> {entityName} 사망. (Player 여부: {isPlayer})");
+        OnDeath?.Invoke();
+
+        BaseEntity rootEntity = GetComponentInParent<BaseEntity>();
+        bool isPlayer = (rootEntity != null && rootEntity.CompareTag("Player")) || CompareTag("Player");
         
-        // [수정] 플레이어가 아닐 때만 오브젝트 파괴 (플레이어는 게임 오버 처리를 위해 유지)
+        if (rootEntity != null && rootEntity.team == Team.Ally && !isPlayer)
+        {
+            ReportDeathToManager(rootEntity);
+        }
+        
         if (!isPlayer)
         {
             Destroy(rootEntity != null ? rootEntity.gameObject : gameObject);
@@ -109,12 +121,35 @@ public class CharacterHealth : MonoBehaviour
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
-            var allyManager = pc.GetComponentInChildren<AllyManager>() ?? UnityEngine.Object.FindFirstObjectByType<AllyManager>();
-            
+            var allyManager = pc.GetComponentInChildren<AllyManager>() ?? FindFirstObjectByType<AllyManager>();
             if (allyManager != null && rootEntity != null) 
             {
-                // 본체의 정확한 InstanceID를 전달
                 allyManager.ReportDeath(rootEntity.gameObject.GetInstanceID());
+            }
+        }
+    }
+
+    private void ExecuteBloodPop(int damage)
+    {
+        float explosionRadius = 2.0f;
+        // Bloodpop은 무조건 'Enemy' 레이어의 유닛에게만 데미지를 줍니다. (아군과 플레이어 제외)
+        LayerMask bloodPopTargetLayer = LayerMask.GetMask("Enemy");
+
+        var registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
+        if (registry != null && registry.bloodPopVFX != null)
+        {
+            GameObject vfx = Instantiate(registry.bloodPopVFX, transform.position, Quaternion.identity);
+            vfx.transform.localScale = Vector3.one * (explosionRadius * 2f);
+            Destroy(vfx, 1.0f);
+        }
+
+        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, bloodPopTargetLayer); // 변경된 LayerMask 사용
+        foreach (var col in colls)
+        {
+            var health = col.GetComponentInChildren<CharacterHealth>();
+            if (health != null)
+            {
+                health.GetDamage(new DamageInfo(damage, DamageType.Fixed, this.gameObject));
             }
         }
     }

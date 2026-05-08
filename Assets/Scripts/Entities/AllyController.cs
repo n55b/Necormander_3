@@ -159,6 +159,22 @@ public class AllyController : BaseEntity, IThrowable
         _hasImpacted = value;
     }
 
+    /// <summary>
+    /// 투척 완료 시 체력을 소모합니다. (마법사 등 희생 유닛용)
+    /// </summary>
+    public void ApplyThrowCost()
+    {
+        if (minionData == null || minionData.hpCostRatioPerThrow <= 0) return;
+
+        // 최대 체력 대비 설정된 비율만큼 고정 데미지 입힘
+        float damageAmount = _stats.MAXHP * minionData.hpCostRatioPerThrow;
+        
+        Debug.Log($"<color=red>[Sacrifice]</color> {minionData.minionName}: 투척 비용으로 체력 {damageAmount:F1} 소모.");
+        
+        // CharacterHealth를 통해 데미지 적용 (Fixed 타입으로 방어력 무시)
+        _stats.Health.GetDamage(new DamageInfo(damageAmount, DamageType.Fixed, null));
+    }
+
     public virtual void OnLanded()
     {
         // [수정] 투척 성공 시 리스크(체력 차감) 로직 제거

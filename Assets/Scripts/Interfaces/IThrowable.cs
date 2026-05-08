@@ -28,4 +28,5 @@ public interface IThrowable
     // [추가] 클러스터 투척 연동용
     void PrepareForClusterThrow(float chargeRatio, bool isDirect);
     void SetImpacted(bool value);
+    void ApplyThrowCost(); // [추가] 투척 시 체력 소모 적용
 }

@@ -34,22 +34,12 @@ public class RewardManager : MonoBehaviour
             GameManager.Instance.inventoryManager.AddGold(goldAmount);
             Debug.Log($"<color=yellow>[Reward]</color> Normal Room Cleared! {goldAmount} Gold obtained.");
 
-            var gemCandidates = RewardProcessor.GenerateCandidatesByCategory(
+            // [수정] 사용자 요청에 따라 소환수+보석 혼합 보상 3개 생성
+            var normalRewards = RewardProcessor.GenerateNormalRoomRewards(
                 GameManager.Instance.inventoryManager, 
-                GameManager.Instance.dataManager, 
-                RewardCategory.Gem
+                GameManager.Instance.dataManager
             );
-            _rewardQueue.Enqueue(gemCandidates);
-
-            if (Random.value < treasureDropChance)
-            {
-                var treasureCandidates = RewardProcessor.GenerateCandidatesByCategory(
-                    GameManager.Instance.inventoryManager, 
-                    GameManager.Instance.dataManager, 
-                    RewardCategory.Treasure
-                );
-                _rewardQueue.Enqueue(treasureCandidates);
-            }
+            _rewardQueue.Enqueue(normalRewards);
 
             ProcessNextReward();
         }
@@ -61,7 +51,6 @@ public class RewardManager : MonoBehaviour
                 GameManager.Instance.inventoryManager, 
                 GameManager.Instance.dataManager, 
                 new List<RewardCategory> { 
-                    RewardCategory.Minion, 
                     RewardCategory.Ability,
                     RewardCategory.Metamorphosis 
                 }
@@ -110,6 +99,28 @@ public class RewardManager : MonoBehaviour
         switch (candidate.category)
         {
             case RewardCategory.Minion:
+                // [수정] 이미 가지고 있는 직업이라면 수량만 늘리고, 새로우면 슬롯 선택 UI 오픈
+                MinionLineageSO lineage = (MinionLineageSO)candidate.rawData;
+                if (inven.HasJobInSlots(lineage.jobType))
+                {
+                    inven.AddMinionOrIncreaseQuantity(lineage.jobType, 1);
+                    ProcessNextReward();
+                }
+                else
+                {
+                    if (handSlotUI != null)
+                    {
+                        if (selectionUI != null) selectionUI.Hide();
+                        handSlotUI.Show(candidate);
+                    }
+                    else
+                    {
+                        inven.AddMinionOrIncreaseQuantity(lineage.jobType, 1);
+                        ProcessNextReward();
+                    }
+                }
+                break;
+
             case RewardCategory.Ability:
                 if (handSlotUI != null)
                 {
@@ -121,8 +132,7 @@ public class RewardManager : MonoBehaviour
                     int emptyIdx = inven.Slots.FindIndex(s => s.IsEmpty);
                     if (emptyIdx != -1)
                     {
-                        if (candidate.category == RewardCategory.Minion) inven.EquipLineage(emptyIdx, (MinionLineageSO)candidate.rawData);
-                        else inven.EquipThrowAbility(emptyIdx, (ThrowAbilitySO)candidate.rawData);
+                        inven.EquipThrowAbility(emptyIdx, (ThrowAbilitySO)candidate.rawData);
                     }
                     ProcessNextReward();
                 }

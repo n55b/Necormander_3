@@ -31,18 +31,25 @@ public static class RewardProcessor
         List<RewardCandidate> results = new List<RewardCandidate>();
         var registry = data.GET_GROWTH_REGISTRY();
 
-        // 1. 보석 (확정 1개)
-        var gemPool = GetValidGems(inven, registry.gems);
-        if (gemPool.Count > 0) results.Add(gemPool[Random.Range(0, gemPool.Count)]);
+        // [사용자 요청] 소환수(Minion) + 보석(Gem)을 합친 풀에서 랜덤으로 3개 추출
+        List<RewardCandidate> combinedPool = new List<RewardCandidate>();
+        
+        // 1. 소환수 풀 (이제 이미 있어도 제안함)
+        combinedPool.AddRange(GetValidCores(inven, registry.minionLineages, false));
+        
+        // 2. 보석 풀
+        combinedPool.AddRange(GetValidGems(inven, registry.gems));
 
-        // 2. 골드 (확정)
-        results.Add(new RewardCandidate { category = RewardCategory.Gold, goldAmount = Random.Range(30, 51) });
-
-        // 3. 보물 (확률 30%)
-        if (Random.value < 0.3f)
+        // 랜덤하게 3개 선택
+        for (int i = 0; i < 3; i++)
         {
-            var treasurePool = GetValidTreasures(registry.treasures);
-            if (treasurePool.Count > 0) results.Add(treasurePool[Random.Range(0, treasurePool.Count)]);
+            if (combinedPool.Count > 0)
+            {
+                int idx = Random.Range(0, combinedPool.Count);
+                results.Add(combinedPool[idx]);
+                // 소환수/보석 종류 중복 노출을 피하고 싶다면 아래 주석 해제
+                // combinedPool.RemoveAt(idx); 
+            }
         }
 
         return results;
@@ -57,7 +64,7 @@ public static class RewardProcessor
         switch (category)
         {
             case RewardCategory.Minion:
-                allPossible.AddRange(GetValidCores(inven, registry.minionLineages));
+                allPossible.AddRange(GetValidCores(inven, registry.minionLineages, false)); // [수정] 중복 허용
                 break;
             case RewardCategory.Metamorphosis:
                 allPossible.AddRange(GetValidMetamorphoses(inven, registry.minionLineages));
@@ -66,6 +73,7 @@ public static class RewardProcessor
                 allPossible.AddRange(GetValidGems(inven, registry.gems));
                 break;
             case RewardCategory.Treasure:
+                // [참고] 보물은 다른 방식으로 획득할 예정이므로 여기서 제안하지 않을 수 있음
                 allPossible.AddRange(GetValidTreasures(registry.treasures));
                 break;
             case RewardCategory.Ability:
@@ -99,13 +107,13 @@ public static class RewardProcessor
 
     // --- 세부 필터링 로직 ---
 
-    private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionLineageSO> lineages)
+    private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionLineageSO> lineages, bool filterOwned = true)
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();
         foreach (var lin in lineages)
         {
-            // 부대에 없는 직업만 코어로 제안
-            if (!inven.HasLineageInSlots(lin))
+            // [수정] filterOwned가 false면 이미 가지고 있어도 후보에 포함
+            if (!filterOwned || !inven.HasLineageInSlots(lin))
                 candidates.Add(new RewardCandidate { displayData = lin.baseItemData, rawData = lin, techIndex = 0, category = RewardCategory.Minion });
         }
         return candidates;
@@ -140,29 +148,16 @@ public static class RewardProcessor
 
         foreach (var gem in gems)
         {
-            if (gem.isUniversal)
+            // [수정] 보석이 가진 플래그를 확인하여 플레이어 직업군에 맞는지 체크
+            foreach (var job in playerJobs)
             {
-                // 범용 보석은 플레이어가 가진 각 직업별로 후보를 생성 (6가지 바리에이션 가능)
-                foreach (var job in playerJobs)
+                if (gem.IsEligible(job))
                 {
                     candidates.Add(new RewardCandidate { 
                         displayData = gem.GetDynamicDisplayData(job), 
                         rawData = gem, 
                         category = RewardCategory.Gem,
                         targetJob = job
-                    });
-                }
-            }
-            else
-            {
-                // 전용 보석은 해당 직업을 플레이어가 가지고 있을 때만 생성
-                if (playerJobs.Contains(gem.targetJob))
-                {
-                    candidates.Add(new RewardCandidate { 
-                        displayData = gem.GetDynamicDisplayData(gem.targetJob), 
-                        rawData = gem, 
-                        category = RewardCategory.Gem,
-                        targetJob = gem.targetJob
                     });
                 }
             }
@@ -197,9 +192,6 @@ public static class RewardProcessor
                     break;
                 case RewardCategory.Gem:
                     allPossible.AddRange(GetValidGems(inven, registry.gems));
-                    break;
-                case RewardCategory.Treasure:
-                    allPossible.AddRange(GetValidTreasures(registry.treasures));
                     break;
             }
         }

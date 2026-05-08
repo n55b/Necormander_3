@@ -77,6 +77,7 @@ public class PhantomAlly : MonoBehaviour, IThrowable
     // [추가] 인터페이스 구현
     public void PrepareForClusterThrow(float chargeRatio, bool isDirect) { }
     public void SetImpacted(bool value) { }
+    public void ApplyThrowCost() { /* Phantom은 영혼/환영이므로 체력을 소모하지 않음 */ }
 
     // ThrowStrategy가 기대하는 컴포넌트 접근을 위해 래핑
     public new T GetComponentInParent<T>() where T : Component => _original.GetComponentInParent<T>();

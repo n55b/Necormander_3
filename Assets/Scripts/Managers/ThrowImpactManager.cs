@@ -79,6 +79,20 @@ public class ThrowImpactManager : MonoBehaviour
     {
         if (target == null) return;
         
+        // 1. 디버프 보석 효과 적용 (스택 부여)
+        if (recipe.modifiers.debuffStacks.Count > 0)
+        {
+            var status = target.GetComponentInChildren<CharacterStatus>();
+            if (status != null)
+            {
+                foreach (var kvp in recipe.modifiers.debuffStacks)
+                {
+                    status.AddDebuffStack(kvp.Key, kvp.Value);
+                }
+            }
+        }
+
+        // 2. 기존 액션들 실행
         foreach (var action in recipe.actions)
         {
             action.Execute(target, impactPos, travelDir, recipe);

@@ -13,7 +13,7 @@ public class InventoryManager : MonoBehaviour
     {
         public bool IsShattered; 
         public MinionLineageSO EquippedLineage; 
-        public ThrowAbilitySO EquippedThrowAbility; // [추가] 던지기 능력 장착 슬롯
+        public ThrowAbilitySO EquippedThrowAbility;
         public int EvolutionIndex; 
         public int Quantity; 
         
@@ -45,6 +45,10 @@ public class InventoryManager : MonoBehaviour
         public MinionLineageSO minion;
         public ThrowAbilitySO ability;
         public int quantity;
+        [Tooltip("이 미니언에게 장착할 첫 번째 보석")]
+        public GemSO gem1;
+        [Tooltip("이 미니언에게 장착할 두 번째 보석")]
+        public GemSO gem2;
     }
 
     [Header("보석 보관함 (직업별)")]
@@ -53,14 +57,12 @@ public class InventoryManager : MonoBehaviour
     [Header("보물 인벤토리 (중첩)")]
     public Dictionary<TreasureSO, int> TreasureStacks = new Dictionary<TreasureSO, int>();
 
-    // [추가] 현재 활성화된 던지기 능력 리스트 (투척 시스템에서 참조용)
     private List<ThrowAbilitySO> _activeAbilities = new List<ThrowAbilitySO>();
     public List<ThrowAbilitySO> ActiveAbilities => _activeAbilities;
 
     public void Initialize()
     {
         Instance = this;
-        // [수정] 0개일 때만 추가하는 게 아니라, 부족하면 10개가 될 때까지 채웁니다.
         while (Slots.Count < 10)
         {
             Slots.Add(new CoreSlot());
@@ -68,7 +70,6 @@ public class InventoryManager : MonoBehaviour
         UpdateActiveAbilities();
         Debug.Log("<color=cyan>[InventoryManager]</color> Initialized.");
 
-        // [디버깅용] 설정된 인벤토리 아이템 지급
         if (useDebugStartingInventory)
         {
             Debug_InitializeInventory();
@@ -79,25 +80,26 @@ public class InventoryManager : MonoBehaviour
     {
         if (debugStartingSlots == null || debugStartingSlots.Count == 0)
         {
-            // 설정이 없으면 기본 전사 지급
-            bool success = AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
-            Debug.Log($"<color=white>[Inventory:Debug]</color> Default Warrior initialization {(success ? "Success" : "Failed")}");
+            AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
             return;
         }
 
         foreach (var config in debugStartingSlots)
         {
-            // 1. 미니언 추가
             if (config.minion != null)
             {
                 bool success = AddMinionOrIncreaseQuantity(config.minion.jobType, Mathf.Max(1, config.quantity));
                 Debug.Log($"<color=white>[Inventory:Debug]</color> {config.minion.jobType} initialization {(success ? "Success" : "Failed")}");
+                
+                if (success)
+                {
+                    if (config.gem1 != null) EquipGem(config.minion.jobType, config.gem1, 0);
+                    if (config.gem2 != null) EquipGem(config.minion.jobType, config.gem2, 1);
+                }
             }
             
-            // 2. 능력 추가 (미니언이 방금 추가되었다면 다음 빈 슬롯을 찾음)
             if (config.ability != null)
             {
-                // 빈 슬롯 중 가장 빠른 곳에 장착
                 int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
                 if (emptyIdx != -1)
                 {
@@ -107,8 +109,6 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        // [추가] 유저 요청: 디버그 설정을 다 마친 후에도 인벤토리에 미니언이 단 한 마리도 없다면,
-        // 최소한의 플레이를 위해 기본 전사를 빈 슬롯에 추가합니다.
         if (!Slots.Exists(s => s.EquippedLineage != null))
         {
             AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
@@ -116,9 +116,6 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    private void Debug_InitializeDefaultMinion() { } // 기존 메서드 호환용 (사용 안함)
-
-    // 슬롯 변경 시마다 활성화된 능력 리스트를 갱신합니다.
     public void UpdateActiveAbilities()
     {
         _activeAbilities.Clear();
@@ -155,10 +152,9 @@ public class InventoryManager : MonoBehaviour
         float totalBonus = 0f;
         foreach (var gem in EquippedGems[job])
         {
-            // [수정] 슬롯이 비어있을(null) 수 있으므로 체크 추가
-            if (gem != null && gem.statType == stat)
+            if (gem is GemAttributeSO attrGem && attrGem.statType == stat)
             {
-                totalBonus += gem.baseBonusValue;
+                totalBonus += attrGem.baseBonusValue;
             }
         }
         return totalBonus;
@@ -172,13 +168,18 @@ public class InventoryManager : MonoBehaviour
             return false;
         }
 
+        if (!gem.IsEligible(job))
+        {
+            Debug.LogWarning($"<color=orange>[Inventory]</color> {job} cannot equip {gem.itemName} due to job restrictions.");
+            return false;
+        }
+
         if (!EquippedGems.ContainsKey(job)) 
         {
             EquippedGems[job] = new List<GemSO> { null, null };
         }
         else if (EquippedGems[job].Count < 2)
         {
-            // 리스트 크기가 2가 아니면 보정
             while (EquippedGems[job].Count < 2) EquippedGems[job].Add(null);
         }
 
@@ -240,21 +241,16 @@ public class InventoryManager : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 던지기 능력을 슬롯에 장착합니다.
-    /// </summary>
     public bool EquipThrowAbility(int slotIndex, ThrowAbilitySO ability)
     {
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
 
-        // [중복 체크] 클래스 타입을 기반으로 이미 같은 능력을 장착하고 있는지 확인
         if (ActiveAbilities.Exists(a => a.GetType() == ability.GetType()))
         {
             Debug.LogWarning($"<color=orange>[Inventory]</color> 이미 동일한 종류의 능력을 장착하고 있습니다 ({ability.itemName}).");
             return false;
         }
 
-        // 기존에 미니언이 있었다면 제거
         Slots[slotIndex].EquippedLineage = null;
         Slots[slotIndex].Quantity = 0;
 
