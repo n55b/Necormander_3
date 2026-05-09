@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -22,6 +23,11 @@ public class GemAttributeSO : GemSO
             icon = this.icon,
             rarity = this.rarity
         };
+    }
+
+    public override List<StatModifier> GetStatModifiers()
+    {
+        return new List<StatModifier> { new StatModifier(statType, baseBonusValue) };
     }
 
     private string GetStatName()

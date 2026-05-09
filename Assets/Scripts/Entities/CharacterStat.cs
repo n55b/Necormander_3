@@ -74,10 +74,42 @@ public class CharacterStat : MonoBehaviour
 
     public bool IsDead => Health != null && Health.IsDead;
 
+    private void OnEnable()
+    {
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.OnGemTreeUpdated += RefreshFinalStats;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.OnGemTreeUpdated -= RefreshFinalStats;
+        }
+    }
+
+    /// <summary>
+    /// 보석 트리 업데이트 등 전역 스탯 변화가 생겼을 때 호출되어 하위 컴포넌트들을 갱신합니다.
+    /// </summary>
+    private void RefreshFinalStats()
+    {
+        if (!_isInitialized) return;
+
+        // 최대 체력 변화를 Health 담당자에게 알림 (체력바 UI 갱신 등)
+        if (Health != null)
+        {
+            Health.ResetHP(); // 또는 현재 체력 비율을 유지하며 최대 체력만 변경하는 로직 필요 시 추가
+        }
+        
+        // Debug.Log($"<color=white>[Stat]</color> {gameObject.name} stats refreshed by Gem Tree update.");
+    }
+
     private float GetGemBonus(StatType type)
     {
-        if (InventoryManager.Instance == null || !_isAlly) return 0f;
-        return InventoryManager.Instance.GetGemBonus(jobType, type);
+        if (InventoryManager.Instance == null) return 0f;
+        return InventoryManager.Instance.GetAggregatedGemBonus(jobType, type); // [수정] jobType 전달
     }
 
     private float GetTreasureBonus(TreasureEffectType type)
