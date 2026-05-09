@@ -13,7 +13,7 @@ public class ThrowController : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Transform holdPoint;
-    [SerializeField] public ThrowCluster clusterPrefab; // [수정] 외부(능력)에서 접근 가능하도록 public으로 변경
+    [SerializeField] public ThrowCluster clusterPrefab; 
     [SerializeField] private TrajectoryPredictor trajectoryPredictor;
     
     [Header("Input & UI Settings")]
@@ -65,7 +65,6 @@ public class ThrowController : MonoBehaviour
 
     private void Awake()
     {
-        // 컴포넌트 초기화 및 연결
         _input = GetComponent<ThrowInputHandler>();
         if (_input == null) _input = gameObject.AddComponent<ThrowInputHandler>();
         _input.Init(this);
@@ -100,12 +99,9 @@ public class ThrowController : MonoBehaviour
         if (hovered != null && hovered.TryGetComponent(out IThrowable throwable))
         {
             if (throwable is AllyController ally && !_strategy.CanPickUpType(ally.MinionType, _heldObjects, maxHoldCount)) return;
-            
-            // [수정] 거리 체크를 능력 훅보다 먼저 수행
             float dist = Vector2.Distance(transform.position, hovered.transform.position);
             if (dist > GameManager.Instance.PLAYERCONTROLLER.THROWRANGE) return;
 
-            // [추가] 던지기 능력 Hook (OnTryPickUp)
             if (InventoryManager.Instance != null)
             {
                 bool handled = false;
@@ -136,8 +132,6 @@ public class ThrowController : MonoBehaviour
     {
         if (!_strategy.CanPickUpType(targetType, _heldObjects, maxHoldCount)) return;
         float radius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
-        
-        // [수정] 이미 Physics2D.OverlapCircleAll로 범위 안의 애들만 가져오므로 거리는 OK
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius);
         IThrowable bestTarget = null;
         float minDist = float.MaxValue;
@@ -152,13 +146,11 @@ public class ThrowController : MonoBehaviour
 
         if (bestTarget != null)
         {
-            // [추가] 던지기 능력 Hook (OnTryPickUp)
             if (InventoryManager.Instance != null)
             {
                 bool handled = false;
                 foreach (var ability in InventoryManager.Instance.ActiveAbilities)
                 {
-                    // [수정] 여기서도 사거리 체크는 이미 되어있으므로 훅만 호출
                     if (ability != null && ability.OnTryPickUp(bestTarget, _heldObjects))
                     {
                         handled = true;
@@ -191,6 +183,9 @@ public class ThrowController : MonoBehaviour
         ThrowCluster cluster = GetActiveClusterOrCreate();
         throwable.transform.SetParent(cluster.transform);
         cluster.Setup(_heldObjects);
+
+        // [추가] 카메라 조준 상태 활성화
+        if (CameraTargetController.Instance != null) CameraTargetController.Instance.SetAiming(true);
     }
 
     private ThrowCluster GetActiveClusterOrCreate()
@@ -208,11 +203,13 @@ public class ThrowController : MonoBehaviour
         _heldObjects.RemoveAll(item => item == null || (item is MonoBehaviour mb && mb == null));
         if (_heldObjects.Count == 0) return;
 
+        // [추가] 카메라 조준 상태 비활성화
+        if (CameraTargetController.Instance != null) CameraTargetController.Instance.SetAiming(false);
+
         float ratio = _input.ChargeRatio;
         Vector2 startPos = (Vector2)_activeCluster.transform.position;
         Vector2 mousePos = CurrentMouseWorldPos;
         
-        // 1. 레시피 생성 및 능력 Hook (ModifyRecipe)
         ThrowRecipe recipe = _strategy.CreateRecipe(mousePos, ratio, _heldObjects);
 
         if (_activeCluster != null)
@@ -226,7 +223,6 @@ public class ThrowController : MonoBehaviour
                 recipe.info.isImmediateApplied = true;
             }
 
-            // 속도 및 궤적 수치 결정 (유닛이 있으면 첫 번째 유닛 기준, 없으면 기본값)
             float speed, jumpH, straightH;
             if (_heldObjects.Count > 0)
             {
@@ -237,7 +233,6 @@ public class ThrowController : MonoBehaviour
             }
             else
             {
-                // Phantom이나 일반 물체일 경우의 기본 발사 물리량
                 speed = (ratio >= 0.98f) ? 30f : Mathf.Lerp(5f, 20f, ratio);
                 jumpH = 1.5f;
                 straightH = 0.1f;
@@ -248,21 +243,18 @@ public class ThrowController : MonoBehaviour
             float dist = Vector2.Distance(startPos, finalPos);
             float duration = dist / speed;
 
-            // [수정] 직구인 경우: 마우스 위치를 넘어서 5초 동안 계속 날아가도록 설정
             if (isDirect)
             {
                 Vector2 dir = (finalPos - startPos).normalized;
                 if (dir == Vector2.zero) dir = (mousePos - startPos).normalized;
                 if (dir == Vector2.zero) dir = Vector2.right;
-
-                duration = 5.0f; // 최대 비행 시간 5초
-                finalPos = startPos + dir * (speed * duration); // 5초 동안 이동할 거리
+                duration = 5.0f;
+                finalPos = startPos + dir * (speed * duration);
             }
 
             float maxHeight = Mathf.Min(Mathf.Lerp(jumpH, straightH, ratio), dist * 0.5f);
-            if (isDirect) maxHeight = straightH; // 직구는 고정 높이 유지
+            if (isDirect) maxHeight = straightH;
 
-            // [능력 Hook] OnThrowLaunch
             if (InventoryManager.Instance != null)
             {
                 foreach (var ability in InventoryManager.Instance.ActiveAbilities)
@@ -282,14 +274,13 @@ public class ThrowController : MonoBehaviour
         _input.ResetCharging();
     }
 
-    /// <summary>
-    /// 들고 있는 모든 유닛을 플레이어 앞에 내려놓고 클러스터를 삭제합니다.
-    /// </summary>
     public void DropAll()
     {
         if (_heldObjects.Count == 0 && _activeCluster == null) return;
+
+        // [추가] 카메라 조준 상태 비활성화
+        if (CameraTargetController.Instance != null) CameraTargetController.Instance.SetAiming(false);
         
-        // 플레이어 앞 위치 계산
         Vector3 dropPos = transform.position + (Vector3)Random.insideUnitCircle * 0.5f;
 
         foreach (var t in _heldObjects) 
@@ -302,7 +293,6 @@ public class ThrowController : MonoBehaviour
             }
         }
         
-        // [수정] 클러스터 오브젝트를 여기서 수동으로 확실히 제거
         if (_activeCluster != null)
         {
             Destroy(_activeCluster.gameObject);
@@ -313,22 +303,14 @@ public class ThrowController : MonoBehaviour
         if (_input != null) _input.ResetCharging();
     }
 
-    /// <summary>
-    /// 모든 투척 상태를 강제로 정리합니다. (클리어 시 미니언 증발 전 호출)
-    /// </summary>
     public void ForceClear()
     {
-        // 1. 입력 차단
-        if (_input != null)
-        {
-            _input.ResetCharging();
-            // 입력 핸들러에 휠 UI 숨기기 등 추가 가능
-        }
-
-        // 2. 손에 든 애들 내려놓기 및 클러스터 삭제
+        if (_input != null) _input.ResetCharging();
         DropAll();
 
-        // 3. 씬에 혹시 남아있을지 모르는 모든 클러스터 전수 조사 및 삭제
+        // [추가] 카메라 조준 상태 비활성화
+        if (CameraTargetController.Instance != null) CameraTargetController.Instance.SetAiming(false);
+
         ThrowCluster[] activeClusters = Object.FindObjectsByType<ThrowCluster>(FindObjectsSortMode.None);
         foreach (var cluster in activeClusters)
         {

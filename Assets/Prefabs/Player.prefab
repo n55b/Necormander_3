@@ -112,6 +112,7 @@ MonoBehaviour:
   jugglingCatchRadius: 1.2
   jugglingCatchDuration: 1.5
   jugglingDropDistance: 2.5
+  jugglingStackExpireTime: 4
 --- !u!1 &1851974782102612275
 GameObject:
   m_ObjectHideFlags: 0
@@ -489,6 +490,55 @@ MonoBehaviour:
   minSpeed: 2
   maxSpeed: 18
   fullChargeSpeed: 25
+--- !u!1 &6101957615898550799
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4482872282078055582}
+  - component: {fileID: 4209825265776777927}
+  m_Layer: 8
+  m_Name: CameraTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4482872282078055582
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6101957615898550799}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1604435047591240911}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4209825265776777927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6101957615898550799}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdc7a885a3d25634cac3487ffed4e10e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerTransform: {fileID: 1604435047591240911}
+  smoothTime: 0.2
+  isAiming: 0
+  leanWeight: 0.5
+  maxOffset: {x: 5, y: 3}
 --- !u!1 &7812045167050644549
 GameObject:
   m_ObjectHideFlags: 0
@@ -732,6 +782,7 @@ Transform:
   - {fileID: 1960345371147670449}
   - {fileID: 4138099453950660536}
   - {fileID: 5660769862444332023}
+  - {fileID: 4482872282078055582}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5957193516619015013
