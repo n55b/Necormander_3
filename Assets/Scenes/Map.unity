@@ -142792,6 +142792,11 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!4 &1389156636 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4482872282078055582, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
+  m_PrefabInstance: {fileID: 1445457009}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1395081135
 GameObject:
   m_ObjectHideFlags: 0
@@ -143051,6 +143056,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4209825265776777927, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
+      propertyPath: maxOffset.x
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 4209825265776777927, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
+      propertyPath: maxOffset.y
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 5596731991387463907, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
       propertyPath: selectionWheel
       value: 
@@ -143064,11 +143077,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
---- !u!4 &1445457010 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1604435047591240911, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
-  m_PrefabInstance: {fileID: 1445457009}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1631285459
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -151097,7 +151105,7 @@ MonoBehaviour:
   m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 1445457010}
+    TrackingTarget: {fileID: 1389156636}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
