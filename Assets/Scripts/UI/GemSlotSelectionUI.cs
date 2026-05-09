@@ -83,17 +83,12 @@ public class GemSlotSelectionUI : MonoBehaviour
     {
         if (_pendingCandidate.rawData is GemSO gem)
         {
-            // 실제 인벤토리에 보석 장착 (기존 보석 덮어쓰기 지원)
-            bool success = InventoryManager.Instance.EquipGem(job, gem, gemSlotIndex);
-            
-            if (success)
-            {
-                Debug.Log($"<color=green>[GemUI]</color> Gem {gem.itemName} equipped to {job} slot {gemSlotIndex + 1}");
-                Hide();
-                
-                // 보상 매니저에게 완료 알림 -> 다음 보상(보물 등)으로 진행
-                RewardManager.Instance.NotifyGemSelectionComplete();
-            }
+            // 새로운 보석 트리 시스템에서는 보석을 특정 슬롯에 직접 장착하는 것이 아니라,
+            // AvailableGemInstances 목록에 추가된 후, 플레이어가 직접 트리의 빈 슬롯을 선택하여 장착해야 합니다.
+            // 이 UI는 향후 트리 구조에 맞는 장착 UI로 리팩토링 되어야 합니다.
+            Debug.LogWarning($"<color=orange>[GemUI]</color> Gem {gem.itemName} was selected. Socketing logic needs to be implemented for the new Gem Tree System.");
+            Hide();
+            // RewardManager.Instance.NotifyGemSelectionComplete(); // 삭제됨
         }
     }
 

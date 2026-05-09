@@ -129,25 +129,24 @@ public class ThrowStrategy : MonoBehaviour
             if (type == CommandData.None) continue;
 
             // [보석 시스템 1: 투척 강화]
-            float gemBonus = InventoryManager.Instance.GetGemBonus(type, StatType.ThrowEffect);
+            float gemBonus = InventoryManager.Instance.GetAggregatedGemBonus(type, StatType.ThrowEffect);
 
             // [보석 시스템 2: 디버프 부여]
-            // 참여한 유닛들의 디버프 보석을 전수 조사하여 합산합니다.
-            var unitGems = InventoryManager.Instance.GetEquippedGems(type);
-            if (unitGems != null)
+            // 해당 직업(type)에게 할당된 보석들의 디버프 스택만 가져와 적용합니다.
+            var jobStats = InventoryManager.Instance.GetJobGemStats(type);
+            if (jobStats != null)
             {
-                foreach (var gem in unitGems)
+                foreach (var kvp in jobStats.AggregatedDebuffStacks)
                 {
-                    // [수정] GemDebuffSO 타입일 때만 디버프 스택 합산
-                    if (gem is GemDebuffSO debuffGem)
-                    {
-                        // [사용자 요청 공식] (보석 스택 합산) * (전체 배율)
-                        float scaledStack = debuffGem.baseDebuffStack * totalMultiplier;
-                        if (!recipe.modifiers.debuffStacks.ContainsKey(debuffGem.targetDebuffType))
-                            recipe.modifiers.debuffStacks[debuffGem.targetDebuffType] = 0f;
-                        
-                        recipe.modifiers.debuffStacks[debuffGem.targetDebuffType] += scaledStack;
-                    }
+                    DebuffStackType debuffType = kvp.Key;
+                    float aggregatedStacks = kvp.Value;
+
+                    // [사용자 요청 공식] (보석 스택 합산) * (전체 배율)
+                    float scaledStack = aggregatedStacks * totalMultiplier;
+                    if (!recipe.modifiers.debuffStacks.ContainsKey(debuffType))
+                        recipe.modifiers.debuffStacks[debuffType] = 0f;
+                    
+                    recipe.modifiers.debuffStacks[debuffType] += scaledStack;
                 }
             }
 

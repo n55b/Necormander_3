@@ -29,8 +29,8 @@ public class GemSlotSelectionItem : MonoBehaviour
             minionIcon.sprite = lineage.baseItemData.icon;
         }
 
-        // 현재 장착된 보석 정보 로드
-        var equippedGems = InventoryManager.Instance.GetEquippedGems(job);
+        // 새로운 보석 트리 시스템에서는 미니언 직업에 직접 보석이 장착되지 않습니다.
+        // 이 UI는 향후 보석 트리 구조를 반영하여 장착된 보석을 표시하도록 리팩토링되어야 합니다.
 
         for (int i = 0; i < gemButtons.Length; i++)
         {
@@ -40,19 +40,12 @@ public class GemSlotSelectionItem : MonoBehaviour
             gemButtons[i].onClick.RemoveAllListeners();
             gemButtons[i].onClick.AddListener(() => _parentUI.OnGemSlotSelected(_jobType, slotIndex));
 
-            // [자동 찾기] 버튼 내부의 TextMeshProUGUI 컴포넌트를 긁어옵니다.
             var nameText = gemButtons[i].GetComponentInChildren<TextMeshProUGUI>();
             if (nameText != null)
             {
-                if (equippedGems != null && slotIndex < equippedGems.Count && equippedGems[slotIndex] != null)
-                {
-                    nameText.text = equippedGems[slotIndex].itemName;
-                }
-                else
-                {
-                    nameText.text = "Empty";
-                }
+                nameText.text = $"Slot {slotIndex + 1} (Empty)"; // 임시 텍스트
             }
         }
+
     }
 }

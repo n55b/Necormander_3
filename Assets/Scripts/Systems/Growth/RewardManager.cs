@@ -11,10 +11,10 @@ public class RewardManager : MonoBehaviour
     [Header("UI Reference")]
     [SerializeField] private RewardSelectionUI selectionUI;
     [SerializeField] private HandSlotSelectionUI handSlotUI;
-    [SerializeField] private GemSlotSelectionUI gemSlotUI;
 
     [Header("Reward Settings")]
     [SerializeField, Range(0f, 1f)] private float treasureDropChance = 0.5f;
+
 
     private Queue<List<RewardCandidate>> _rewardQueue = new Queue<List<RewardCandidate>>();
 
@@ -73,7 +73,6 @@ public class RewardManager : MonoBehaviour
             Debug.Log("<color=green>[Reward]</color> All reward sequences completed.");
             if (selectionUI != null) selectionUI.Hide();
             if (handSlotUI != null) handSlotUI.Hide();
-            if (gemSlotUI != null) gemSlotUI.Hide();
         }
     }
 
@@ -144,16 +143,8 @@ public class RewardManager : MonoBehaviour
                 break;
 
             case RewardCategory.Gem:
-                if (gemSlotUI != null)
-                {
-                    if (selectionUI != null) selectionUI.Hide();
-                    gemSlotUI.Show(candidate);
-                }
-                else
-                {
-                    inven.EquipGem(candidate.targetJob, (GemSO)candidate.rawData, 0);
-                    ProcessNextReward();
-                }
+                inven.AddGemToAvailable((GemSO)candidate.rawData, candidate.targetJob);
+                ProcessNextReward();
                 break;
 
             case RewardCategory.Treasure:
@@ -168,11 +159,6 @@ public class RewardManager : MonoBehaviour
     }
 
     public void NotifyHandSlotSelectionComplete()
-    {
-        ProcessNextReward();
-    }
-
-    public void NotifyGemSelectionComplete()
     {
         ProcessNextReward();
     }

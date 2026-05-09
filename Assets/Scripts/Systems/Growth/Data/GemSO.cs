@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum StatType
@@ -27,4 +28,9 @@ public abstract class GemSO : GrowthItemSO
     }
 
     public abstract GrowthItemData GetDynamicDisplayData(CommandData job);
+
+    /// <summary>
+    /// 이 보석이 제공하는 모든 스탯 변경자(StatModifier) 목록을 반환합니다.
+    /// </summary>
+    public abstract List<StatModifier> GetStatModifiers();
 }
