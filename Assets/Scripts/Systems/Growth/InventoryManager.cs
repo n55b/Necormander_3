@@ -35,27 +35,54 @@ public class InventoryManager : MonoBehaviour
     [Header("슬롯 시스템 (10개 고정)")]
     public List<CoreSlot> Slots = new List<CoreSlot>(10);
 
+    // ======================================================
+    // [에러 방지를 위한 병렬 리스트 디버그 설정]
+    // ======================================================
     [Header("Debug Settings (Starting Items)")]
     [SerializeField] private bool useDebugStartingInventory = true;
-    [SerializeField] private List<DebugSlotConfig> debugStartingSlots = new List<DebugSlotConfig>();
+    
+    [Space(10)]
+    [Tooltip("시작 시 지급할 미니언 리스트")]
+    [SerializeField] private List<MinionLineageSO> debugStartingMinions = new List<MinionLineageSO>();
+    [Tooltip("위 미니언들의 수량 (순서대로 매칭)")]
+    [SerializeField] private List<int> debugStartingMinionQuantities = new List<int>();
 
-    [System.Serializable]
-    public struct DebugSlotConfig
-    {
-        public MinionLineageSO minion;
-        public ThrowAbilitySO ability;
-        public int quantity;
-        [Tooltip("이 미니언에게 장착할 첫 번째 보석")]
-        public GemSO gem1;
-        [Tooltip("이 미니언에게 장착할 두 번째 보석")]
-        public GemSO gem2;
-    }
+    [Space(10)]
+    [Tooltip("시작 시 지급할 보석 리스트")]
+    [SerializeField] private List<GemSO> debugStartingGems_Data = new List<GemSO>();
+    [Tooltip("위 보석들의 대상 직업 (순서대로 매칭)")]
+    [SerializeField] private List<CommandData> debugStartingGems_TargetJobs = new List<CommandData>();
+    // ======================================================
 
-    [Header("보석 보관함 (직업별)")]
-    public Dictionary<CommandData, List<GemSO>> EquippedGems = new Dictionary<CommandData, List<GemSO>>();
+    public System.Action OnGemTreeUpdated;
 
     [Header("보물 인벤토리 (중첩)")]
     public Dictionary<TreasureSO, int> TreasureStacks = new Dictionary<TreasureSO, int>();
+
+    [Header("Gem Tree System")]
+    public GemTreeNode GemTreeRoot { get; private set; }
+    private Dictionary<string, GemTreeNode> _gemNodeIndex; 
+    private Dictionary<CommandData, GemAggregatedStats> _jobGemStats = new Dictionary<CommandData, GemAggregatedStats>();
+    public List<GemInstance> AvailableGemInstances { get; private set; } = new List<GemInstance>(); 
+    [SerializeField] private GemSO _defaultRootGemSO; 
+
+    public class GemAggregatedStats
+    {
+        public float AttackBonus = 0f;
+        public float HealthBonus = 0f;
+        public float AttackSpeedBonus = 0f;
+        public float RespawnTimeBonus = 0f;
+        public Dictionary<DebuffStackType, float> AggregatedDebuffStacks = new Dictionary<DebuffStackType, float>();
+
+        public void Clear()
+        {
+            AttackBonus = 0f;
+            HealthBonus = 0f;
+            AttackSpeedBonus = 0f;
+            RespawnTimeBonus = 0f;
+            AggregatedDebuffStacks.Clear();
+        }
+    }
 
     private List<ThrowAbilitySO> _activeAbilities = new List<ThrowAbilitySO>();
     public List<ThrowAbilitySO> ActiveAbilities => _activeAbilities;
@@ -68,6 +95,7 @@ public class InventoryManager : MonoBehaviour
             Slots.Add(new CoreSlot());
         }
         UpdateActiveAbilities();
+        InitializeGemTree(); 
         Debug.Log("<color=cyan>[InventoryManager]</color> Initialized.");
 
         if (useDebugStartingInventory)
@@ -76,44 +104,206 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    private void Debug_InitializeInventory()
+    private void InitializeGemTree()
     {
-        if (debugStartingSlots == null || debugStartingSlots.Count == 0)
+        _gemNodeIndex = new Dictionary<string, GemTreeNode>();
+        _jobGemStats.Clear();
+
+        if (_defaultRootGemSO == null)
         {
-            AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
+            Debug.LogError("InventoryManager: _defaultRootGemSO is not assigned.");
             return;
         }
 
-        foreach (var config in debugStartingSlots)
+        GemInstance rootInstance = new GemInstance(_defaultRootGemSO, CommandData.SkeletonWarrior, 2); 
+        GemTreeRoot = new GemTreeNode(rootInstance);
+
+        _gemNodeIndex.Add(GemTreeRoot.Gem.InstanceId, GemTreeRoot);
+
+        RecalculateGemTreeStats(); 
+        Debug.Log($"<color=cyan>[InventoryManager]</color> Gem Tree Initialized with Root: {GemTreeRoot.Gem.BaseData.itemName}");
+    }
+
+    public GemTreeNode GetNodeById(string instanceId)
+    {
+        if (_gemNodeIndex.TryGetValue(instanceId, out var node)) return node;
+        return null;
+    }
+
+    private void RecalculateGemTreeStats()
+    {
+        foreach (var stats in _jobGemStats.Values) stats.Clear();
+        if (GemTreeRoot == null) return;
+
+        Queue<GemTreeNode> nodesToVisit = new Queue<GemTreeNode>();
+        nodesToVisit.Enqueue(GemTreeRoot);
+
+        while (nodesToVisit.Count > 0)
         {
-            if (config.minion != null)
+            GemTreeNode currentNode = nodesToVisit.Dequeue();
+            if (currentNode.Gem != null)
             {
-                bool success = AddMinionOrIncreaseQuantity(config.minion.jobType, Mathf.Max(1, config.quantity));
-                Debug.Log($"<color=white>[Inventory:Debug]</color> {config.minion.jobType} initialization {(success ? "Success" : "Failed")}");
-                
-                if (success)
+                CommandData job = currentNode.Gem.TargetJob;
+                if (!_jobGemStats.ContainsKey(job)) _jobGemStats[job] = new GemAggregatedStats();
+                GemAggregatedStats targetStats = _jobGemStats[job];
+
+                foreach (var modifier in currentNode.Gem.BaseData.GetStatModifiers())
+                    ApplyStatModifier(targetStats, modifier);
+
+                foreach (var modifier in currentNode.Gem.RandomModifiers)
+                    ApplyStatModifier(targetStats, modifier);
+
+                if (currentNode.Gem.BaseData is GemDebuffSO debuffGem)
                 {
-                    if (config.gem1 != null) EquipGem(config.minion.jobType, config.gem1, 0);
-                    if (config.gem2 != null) EquipGem(config.minion.jobType, config.gem2, 1);
+                    if (!targetStats.AggregatedDebuffStacks.ContainsKey(debuffGem.targetDebuffType))
+                        targetStats.AggregatedDebuffStacks[debuffGem.targetDebuffType] = 0f;
+                    targetStats.AggregatedDebuffStacks[debuffGem.targetDebuffType] += debuffGem.baseDebuffStack;
+                }
+
+                foreach (var child in currentNode.Children)
+                {
+                    if (child != null) nodesToVisit.Enqueue(child);
                 }
             }
-            
-            if (config.ability != null)
-            {
-                int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
-                if (emptyIdx != -1)
-                {
-                    bool success = EquipThrowAbility(emptyIdx, config.ability);
-                    Debug.Log($"<color=white>[Inventory:Debug]</color> {config.ability.itemName} initialization {(success ? "Success" : "Failed")} (Slot: {emptyIdx})");
-                }
-            }
+        }
+    }
+
+    private void ApplyStatModifier(GemAggregatedStats targetStats, StatModifier modifier)
+    {
+        switch (modifier.Type)
+        {
+            case StatType.Attack: targetStats.AttackBonus += modifier.Value; break;
+            case StatType.Health: targetStats.HealthBonus += modifier.Value; break;
+            case StatType.AttackSpeed: targetStats.AttackSpeedBonus += modifier.Value; break;
+            case StatType.RespawnTime: targetStats.RespawnTimeBonus += modifier.Value; break;
+            default: break;
+        }
+    }
+
+    public float GetAggregatedGemBonus(CommandData job, StatType type)
+    {
+        if (!_jobGemStats.TryGetValue(job, out var stats)) return 0f;
+        switch (type)
+        {
+            case StatType.Attack: return stats.AttackBonus;
+            case StatType.Health: return stats.HealthBonus;
+            case StatType.AttackSpeed: return stats.AttackSpeedBonus;
+            case StatType.RespawnTime: return stats.RespawnTimeBonus;
+            default: return 0f;
+        }
+    }
+
+    public GemAggregatedStats GetJobGemStats(CommandData job)
+    {
+        if (_jobGemStats.TryGetValue(job, out var stats)) return stats;
+        return null;
+    }
+
+    public bool SocketGem(string parentNodeId, int slotIndex, GemInstance gemToSocket)
+    {
+        if (gemToSocket == null) return false;
+        GemTreeNode parentNode = GetNodeById(parentNodeId);
+        if (parentNode == null) return false;
+
+        GemTreeNode newChildNode = parentNode.SocketChild(slotIndex, gemToSocket);
+        if (newChildNode != null)
+        {
+            _gemNodeIndex.Add(newChildNode.Gem.InstanceId, newChildNode);
+            AvailableGemInstances.Remove(gemToSocket);
+            RecalculateGemTreeStats();
+            OnGemTreeUpdated?.Invoke(); 
+            Debug.Log($"<color=green>[InventoryManager]</color> Socketed {gemToSocket.BaseData.itemName} for {gemToSocket.TargetJob}.");
+            return true;
+        }
+        return false;
+    }
+
+    public bool UnsocketGem(string nodeId)
+    {
+        GemTreeNode nodeToUnsocket = GetNodeById(nodeId);
+        if (nodeToUnsocket == null || nodeToUnsocket.Parent == null) return false;
+
+        int slotIndex = nodeToUnsocket.Parent.Children.IndexOf(nodeToUnsocket);
+        if (slotIndex == -1) return false;
+
+        List<GemInstance> collectedInstances = nodeToUnsocket.Parent.UnsocketChild(slotIndex);
+        foreach (var instance in collectedInstances)
+        {
+            _gemNodeIndex.Remove(instance.InstanceId);
+            AvailableGemInstances.Add(instance);
+        }
+        RecalculateGemTreeStats();
+        OnGemTreeUpdated?.Invoke(); 
+        return true;
+    }
+
+    public void AddGemToAvailable(GemSO gemData, CommandData targetJob)
+    {
+        if (gemData == null) return;
+        if (!gemData.IsEligible(targetJob))
+        {
+            Debug.LogError($"<color=red>[InventoryManager]</color> Generation Failed: {gemData.itemName} not eligible for {targetJob}.");
+            return;
+        }
+        if (!HasJobInSlots(targetJob))
+        {
+            Debug.LogError($"<color=red>[InventoryManager]</color> Generation Failed: Player does not own {targetJob}.");
+            return;
         }
 
-        if (!Slots.Exists(s => s.EquippedLineage != null))
+        GemInstance newGemInstance = new GemInstance(gemData, targetJob);
+        AvailableGemInstances.Add(newGemInstance);
+        Debug.Log($"<color=green>[InventoryManager]</color> Generated {gemData.itemName} for {targetJob}.");
+    }
+
+    private void Debug_InitializeInventory()
+    {
+        // 1. 미니언 먼저 생성
+        for (int i = 0; i < debugStartingMinions.Count; i++)
         {
-            AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
-            Debug.Log("<color=white>[Inventory:Debug]</color> No minions found after initialization. Added default Warrior as fallback.");
+            if (debugStartingMinions[i] == null) continue;
+            int qty = (i < debugStartingMinionQuantities.Count) ? debugStartingMinionQuantities[i] : 1;
+            AddMinionOrIncreaseQuantity(debugStartingMinions[i].jobType, Mathf.Max(1, qty));
         }
+
+        // 2. 보석 생성 (직업이 없으면 스마트 자동 할당)
+        for (int i = 0; i < debugStartingGems_Data.Count; i++)
+        {
+            GemSO gem = debugStartingGems_Data[i];
+            if (gem == null) continue;
+
+            CommandData job;
+            if (i < debugStartingGems_TargetJobs.Count)
+            {
+                job = debugStartingGems_TargetJobs[i];
+            }
+            else
+            {
+                // [변경] 지정되지 않았다면 소유한 유닛 중 낄 수 있는 첫 번째 놈 자동 선택
+                job = FindFirstEligibleOwnedJob(gem);
+            }
+
+            AddGemToAvailable(gem, job);
+        }
+
+        if (!Slots.Exists(s => s.EquippedLineage != null)) AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
+    }
+
+    /// <summary>
+    /// 현재 소유한 유닛 중 해당 보석을 장착할 수 있는 첫 번째 직업을 반환합니다.
+    /// </summary>
+    private CommandData FindFirstEligibleOwnedJob(GemSO gem)
+    {
+        foreach (var slot in Slots)
+        {
+            if (slot.EquippedLineage != null)
+            {
+                CommandData ownedJob = slot.EquippedLineage.jobType;
+                if (gem.IsEligible(ownedJob)) return ownedJob;
+            }
+        }
+        // 찾지 못했다면 기본값 반환
+        return CommandData.SkeletonWarrior;
     }
 
     public void UpdateActiveAbilities()
@@ -121,82 +311,16 @@ public class InventoryManager : MonoBehaviour
         _activeAbilities.Clear();
         foreach (var slot in Slots)
         {
-            if (slot.EquippedThrowAbility != null)
-                _activeAbilities.Add(slot.EquippedThrowAbility);
+            if (slot.EquippedThrowAbility != null) _activeAbilities.Add(slot.EquippedThrowAbility);
         }
     }
 
     #region Gold System
-    public void AddGold(int amount)
-    {
-        gold += amount;
-        Debug.Log($"<color=yellow>[Economy]</color> 골드 획득: {amount}. 현재 골드: {gold}");
-    }
-
+    public void AddGold(int amount) { gold += amount; }
     public bool SpendGold(int amount)
     {
-        if (gold >= amount)
-        {
-            gold -= amount;
-            return true;
-        }
+        if (gold >= amount) { gold -= amount; return true; }
         return false;
-    }
-    #endregion
-
-    #region Gem System
-    public float GetGemBonus(CommandData job, StatType stat)
-    {
-        if (!EquippedGems.ContainsKey(job)) return 0f;
-
-        float totalBonus = 0f;
-        foreach (var gem in EquippedGems[job])
-        {
-            if (gem is GemAttributeSO attrGem && attrGem.statType == stat)
-            {
-                totalBonus += attrGem.baseBonusValue;
-            }
-        }
-        return totalBonus;
-    }
-
-    public bool EquipGem(CommandData job, GemSO gem, int gemSlotIndex)
-    {
-        if (!HasJobInSlots(job))
-        {
-            Debug.LogWarning($"<color=orange>[Inventory]</color> {job} unit is not in slots, cannot equip gem.");
-            return false;
-        }
-
-        if (!gem.IsEligible(job))
-        {
-            Debug.LogWarning($"<color=orange>[Inventory]</color> {job} cannot equip {gem.itemName} due to job restrictions.");
-            return false;
-        }
-
-        if (!EquippedGems.ContainsKey(job)) 
-        {
-            EquippedGems[job] = new List<GemSO> { null, null };
-        }
-        else if (EquippedGems[job].Count < 2)
-        {
-            while (EquippedGems[job].Count < 2) EquippedGems[job].Add(null);
-        }
-
-        if (gemSlotIndex >= 0 && gemSlotIndex < 2)
-        {
-            EquippedGems[job][gemSlotIndex] = gem;
-            Debug.Log($"<color=green>[Inventory]</color> Equipped {gem.itemName} to {job}'s Gem Slot {gemSlotIndex + 1}");
-            return true;
-        }
-        
-        return false;
-    }
-
-    public List<GemSO> GetEquippedGems(CommandData job)
-    {
-        if (EquippedGems.TryGetValue(job, out var gems)) return gems;
-        return null;
     }
     #endregion
 
@@ -204,13 +328,7 @@ public class InventoryManager : MonoBehaviour
     public bool AddMinionOrIncreaseQuantity(CommandData job, int amount = 1)
     {
         var existingSlot = Slots.Find(s => !s.IsShattered && s.EquippedLineage != null && s.EquippedLineage.jobType == job);
-        
-        if (existingSlot != null)
-        {
-            existingSlot.Quantity += amount;
-            Debug.Log($"<color=green>[Inventory]</color> {job} 수량 증가: {existingSlot.Quantity} (추가: {amount})");
-            return true;
-        }
+        if (existingSlot != null) { existingSlot.Quantity += amount; return true; }
 
         var registry = GameManager.Instance.dataManager.GET_GROWTH_REGISTRY();
         if (registry == null) return false;
@@ -219,24 +337,17 @@ public class InventoryManager : MonoBehaviour
         if (targetLineage == null) return false;
 
         int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
-        if (emptyIdx != -1)
-        {
-            EquipLineage(emptyIdx, targetLineage);
-            Slots[emptyIdx].Quantity = amount;
-            return true;
-        }
+        if (emptyIdx != -1) { EquipLineage(emptyIdx, targetLineage); Slots[emptyIdx].Quantity = amount; return true; }
         return false;
     }
 
     public bool EquipLineage(int slotIndex, MinionLineageSO lineage)
     {
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
-        
         Slots[slotIndex].EquippedThrowAbility = null;
         Slots[slotIndex].EquippedLineage = lineage;
         Slots[slotIndex].EvolutionIndex = 0;
         Slots[slotIndex].Quantity = 1;
-        
         UpdateActiveAbilities();
         return true;
     }
@@ -244,31 +355,18 @@ public class InventoryManager : MonoBehaviour
     public bool EquipThrowAbility(int slotIndex, ThrowAbilitySO ability)
     {
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
-
-        if (ActiveAbilities.Exists(a => a.GetType() == ability.GetType()))
-        {
-            Debug.LogWarning($"<color=orange>[Inventory]</color> 이미 동일한 종류의 능력을 장착하고 있습니다 ({ability.itemName}).");
-            return false;
-        }
-
+        if (ActiveAbilities.Exists(a => a.GetType() == ability.GetType())) return false;
         Slots[slotIndex].EquippedLineage = null;
         Slots[slotIndex].Quantity = 0;
-
         Slots[slotIndex].EquippedThrowAbility = ability;
-
         UpdateActiveAbilities();
-        Debug.Log($"<color=green>[Inventory]</color> 던지기 능력 {ability.itemName} 장착 완료 (Slot: {slotIndex})");
         return true;
     }
 
     public void ApplyMetamorphosis(MinionLineageSO lineage, int index)
     {
         var slot = Slots.Find(s => s.EquippedLineage == lineage);
-        if (slot != null)
-        {
-            slot.EvolutionIndex = index;
-            Debug.Log($"<color=purple>[Growth]</color> {lineage.lineageName} 환골탈태! 단계: {index}");
-        }
+        if (slot != null) slot.EvolutionIndex = index;
     }
 
     public void ShatterSlot(int slotIndex)
@@ -296,10 +394,7 @@ public class InventoryManager : MonoBehaviour
         float totalBonus = 0f;
         foreach (var kvp in TreasureStacks)
         {
-            if (kvp.Key.effectType == type)
-            {
-                totalBonus += kvp.Key.valuePerStack * kvp.Value;
-            }
+            if (kvp.Key.effectType == type) totalBonus += kvp.Key.valuePerStack * kvp.Value;
         }
         return totalBonus;
     }

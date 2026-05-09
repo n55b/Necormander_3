@@ -141643,9 +141643,73 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: _defaultRootGemSO
+      value: 
+      objectReference: {fileID: 11400000, guid: c87296d078b901b43aff65ab1acb0b54, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.size
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: c87296d078b901b43aff65ab1acb0b54, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 638724044961ece4bb54303090e111ee, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 7c38ee95ff23f644fbb2cdc34ea72bb4, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingMinions.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems_Data.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingMinions.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems.Array.data[0].gem
+      value: 
+      objectReference: {fileID: 11400000, guid: a00e3bef20fa22845aece79240983907, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems.Array.data[1].gem
+      value: 
+      objectReference: {fileID: 11400000, guid: 7c38ee95ff23f644fbb2cdc34ea72bb4, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems.Array.data[2].gem
+      value: 
+      objectReference: {fileID: 11400000, guid: 69a3294c65e05a3458bd9569440c2b14, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems.Array.data[3].gem
+      value: 
+      objectReference: {fileID: 11400000, guid: 69a3294c65e05a3458bd9569440c2b14, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems.Array.data[4].gem
+      value: 
+      objectReference: {fileID: 11400000, guid: 69a3294c65e05a3458bd9569440c2b14, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: c87296d078b901b43aff65ab1acb0b54, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: c87296d078b901b43aff65ab1acb0b54, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: c87296d078b901b43aff65ab1acb0b54, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.data[0].gem1
       value: 
@@ -141655,6 +141719,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 638724044961ece4bb54303090e111ee, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems_TargetJobs.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.data[0].minion
       value: 
       objectReference: {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
@@ -141663,8 +141731,16 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingMinionQuantities.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingSlots.Array.data[1].ability
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingMinionQuantities.Array.data[0]'
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
@@ -151082,6 +151158,61 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 362c4b991c7c0e74cb1f1dde79f782c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1980844117
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1980844119}
+  - component: {fileID: 1980844118}
+  m_Layer: 0
+  m_Name: GemTreeDebugger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1980844118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1980844117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c87c2bc952cc624a92cc7b2f929d5ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _gemSOToAddToAvailable: {fileID: 11400000, guid: a00e3bef20fa22845aece79240983907, type: 2}
+  _targetJob: 0
+  _gemInstanceIdToUnsocket: 
+  _targetAvailableSlotIndex: 0
+  _totalAvailableSlotCount: 0
+  _currentAvailableGems: []
+  _availableSlots: []
+  _viewStatsForJob: 0
+  _atkBonus: 0
+  _hpBonus: 0
+  _spdBonus: 0
+--- !u!4 &1980844119
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1980844117}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -13.028209, y: 6.5473433, z: -0.08972158}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2046889395
 GameObject:
   m_ObjectHideFlags: 0
@@ -151222,7 +151353,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 7.5
+  orthographic size: 8.4375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -151732,3 +151863,4 @@ SceneRoots:
   - {fileID: 1249680779}
   - {fileID: 501064297}
   - {fileID: 1854610738}
+  - {fileID: 1980844119}

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -22,5 +23,12 @@ public class GemDebuffSO : GemSO
             icon = this.icon,
             rarity = this.rarity
         };
+    }
+
+    public override List<StatModifier> GetStatModifiers()
+    {
+        // GemDebuffSO는 직접적인 스탯 보너스를 제공하지 않으므로, 현재는 빈 리스트를 반환합니다.
+        // 향후 디버프 스택 관련 시너지 등을 위해 확장될 수 있습니다.
+        return new List<StatModifier>();
     }
 }
