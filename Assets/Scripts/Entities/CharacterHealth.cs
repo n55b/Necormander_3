@@ -15,11 +15,14 @@ public class CharacterHealth : MonoBehaviour
 
     public event Action<float> OnDamageTaken;
     public event Action OnHeal;
+    public event Action UpdateHPBar;
     public event Action OnDeath;
 
     public float CurHP => curHP;
     public bool IsDead => isDead;
     public bool Invincible { get { return invincible; } set { invincible = value; } }
+
+    public event Action<int, string, bool> TakeDamageEvent;
 
     public void Init(CharacterStat stat, CharacterStatus status)
     {
@@ -34,12 +37,14 @@ public class CharacterHealth : MonoBehaviour
         if (isDead || invincible) return;
 
         float remainingDamage = info.amount;
+        string str = "";                             // 데미지 타입
 
         // [부식] 스택에 비례한 데미지 증가
         int corrodedStacks = _status.GetDebuffStack(DebuffStackType.Corroded);
         if (corrodedStacks > 0)
         {
             remainingDamage *= (1.0f + corrodedStacks * 0.01f); // 스택당 1%씩 피해량 증가
+            str = "Corroded";
         }
 
         // [쉴드] 적용
@@ -48,6 +53,8 @@ public class CharacterHealth : MonoBehaviour
             float absorbed = _status.ConsumeShield(remainingDamage);
             remainingDamage -= absorbed;
             if (absorbed > 0) OnDamageTaken?.Invoke(0f);
+            // 쉴드 데미지 별개로 표시
+            TakeDamageEvent?.Invoke((int)absorbed, "Shield", false);
         }
 
         // [최종 데미지 및 체력 차감]
@@ -57,6 +64,8 @@ public class CharacterHealth : MonoBehaviour
             Debug.Log($"{gameObject.name} took {finalDamage} damage. HP: {curHP} -> {curHP - finalDamage}");
             curHP -= finalDamage;
             OnDamageTaken?.Invoke(finalDamage);
+
+            TakeDamageEvent?.Invoke((int)finalDamage, str, false);
         }
 
         // [처형] 체크
@@ -65,6 +74,8 @@ public class CharacterHealth : MonoBehaviour
             int executeThreshold = _status.GetDebuffStack(DebuffStackType.Execute);
             if (executeThreshold > 0 && curHP > 0 && curHP <= executeThreshold)
             {
+                TakeDamageEvent?.Invoke(executeThreshold, "Execution", false);
+
                 curHP = 0;
             }
         }
@@ -74,6 +85,8 @@ public class CharacterHealth : MonoBehaviour
         {
             Die();
         }
+
+        UpdateHPBar?.Invoke(); // HPBar 업데이트
     }
 
     public void Heal(float amount)
@@ -149,6 +162,8 @@ public class CharacterHealth : MonoBehaviour
             var health = col.GetComponentInChildren<CharacterHealth>();
             if (health != null)
             {
+                TakeDamageEvent?.Invoke(damage, "BloodPop", false);
+
                 health.GetDamage(new DamageInfo(damage, DamageType.Fixed, this.gameObject));
             }
         }

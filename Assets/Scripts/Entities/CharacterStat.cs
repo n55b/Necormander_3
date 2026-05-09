@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 /// <summary>
 /// 유닛의 모든 주요 스탯 컴포넌트들을 한곳에 모아주는 허브 클래스입니다.
@@ -24,12 +25,15 @@ public class CharacterStat : MonoBehaviour
     [SerializeField] private CommandData jobType; // 보석 계산을 위해 필요
     private bool _isAlly = false; // [추가] 아군 여부 캐싱
 
+    [Header("셋팅 이후 Action들")]
+    [SerializeField] private UnityEvent setDoneActions;
+
     private bool _isInitialized = false;
 
     // --- 외부 참조용 단축 프로퍼티 (데이터 중심 + 보석 보너스 합산) ---
-    
+
     // 공격력: (기본 공격력) * (1 + 보석 배율 + 보물 배율) * 노화 감소
-    public float ATK 
+    public float ATK
     {
         get
         {
@@ -44,7 +48,7 @@ public class CharacterStat : MonoBehaviour
     public float CURHP => (Health != null) ? Health.CurHP : MAXHP;
 
     // 공격 속도: (기본 주기 / 보너스) / 한기 감소 -> 주기가 길어질수록 느려짐
-    public float ATKSPD 
+    public float ATKSPD
     {
         get
         {
@@ -57,7 +61,7 @@ public class CharacterStat : MonoBehaviour
     public float DEF => baseDef;
 
     // 이동 속도: 기본 속도 * 상태이상 배율 * (한기+노화 감소)
-    public float MOVESPEED 
+    public float MOVESPEED
     {
         get
         {
@@ -68,7 +72,7 @@ public class CharacterStat : MonoBehaviour
             return (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
         }
     }
-    
+
     // 부활 시간 보너스 (필요 시 외부에서 참조)
     public float RESPAWN_BONUS => GetGemBonus(StatType.RespawnTime);
 
@@ -102,7 +106,7 @@ public class CharacterStat : MonoBehaviour
         {
             Health.ResetHP(); // 또는 현재 체력 비율을 유지하며 최대 체력만 변경하는 로직 필요 시 추가
         }
-        
+
         // Debug.Log($"<color=white>[Stat]</color> {gameObject.name} stats refreshed by Gem Tree update.");
     }
 
@@ -136,8 +140,8 @@ public class CharacterStat : MonoBehaviour
         }
 
         // 3. 태그 및 레이어 기반 보조 확인
-        _isAlly = CompareTag("Player") || CompareTag("Army") || 
-                  gameObject.layer == LayerMask.NameToLayer("Player") || 
+        _isAlly = CompareTag("Player") || CompareTag("Army") ||
+                  gameObject.layer == LayerMask.NameToLayer("Player") ||
                   gameObject.layer == LayerMask.NameToLayer("Army");
     }
 
@@ -158,6 +162,17 @@ public class CharacterStat : MonoBehaviour
         if (Health != null) Health.Init(this, Status);
 
         UpdateTeamStatus();
+
+        // 셋업이 완전히 끝난 후 액션 실행
+        setDoneActions.Invoke();
+
+        // 만약 Spawner가 같은 오브젝트에 있다면 직접 초기화 함수를 호출해버리는 게 제일 안전합니다.
+        var spawner = GetComponent<FloatingTextSpawner>();
+        if (spawner != null)
+        {
+            spawner.Initialize(this); // 직접 만든 초기화 함수 호출
+        }
+        
         _isInitialized = true;
     }
 
@@ -178,7 +193,7 @@ public class CharacterStat : MonoBehaviour
             baseDef = data.defense;
             baseMoveSpeed = data.moveSpeed;
         }
-        
+
         UpdateTeamStatus(); // 데이터 주입 시점에 팀 정보 다시 확인
 
         if (Health != null) Health.ResetHP();
