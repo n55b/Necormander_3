@@ -171,6 +171,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Enemy Scarecrow (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 5988460243323439340, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919337193328478871, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919337193328478871, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -117654,6 +117666,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Enemy Scarecrow (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 5988460243323439340, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919337193328478871, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919337193328478871, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -117710,6 +117734,18 @@ PrefabInstance:
     - target: {fileID: 4998578495538801392, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
       propertyPath: m_Name
       value: Enemy Scarecrow (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5988460243323439340, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919337193328478871, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919337193328478871, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -141847,7 +141883,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1198423915
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -142001,6 +142037,18 @@ PrefabInstance:
     - target: {fileID: 4998578495538801392, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
       propertyPath: m_Name
       value: Enemy Scarecrow (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5988460243323439340, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919337193328478871, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919337193328478871, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -142921,6 +142969,18 @@ PrefabInstance:
     - target: {fileID: 4998578495538801392, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
       propertyPath: m_Name
       value: Enemy Scarecrow
+      objectReference: {fileID: 0}
+    - target: {fileID: 5988460243323439340, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919337193328478871, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919337193328478871, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -151222,7 +151282,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 7.5
+  orthographic size: 8.4375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -151660,51 +151720,51 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3129143492395967560, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3129143492395967560, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3129143492395967560, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 680
       objectReference: {fileID: 0}
     - target: {fileID: 3129143492395967560, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -295
       objectReference: {fileID: 0}
     - target: {fileID: 3912188522413884795, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3912188522413884795, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3912188522413884795, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 1133.3334
       objectReference: {fileID: 0}
     - target: {fileID: 3912188522413884795, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -295
       objectReference: {fileID: 0}
     - target: {fileID: 5950913715747645491, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5950913715747645491, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5950913715747645491, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 226.66667
       objectReference: {fileID: 0}
     - target: {fileID: 5950913715747645491, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -295
       objectReference: {fileID: 0}
     - target: {fileID: 6535610810565925902, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_Name
