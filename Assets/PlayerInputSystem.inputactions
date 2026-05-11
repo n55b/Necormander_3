@@ -77,6 +77,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "GemTree",
+                    "type": "Button",
+                    "id": "7d9a1234-b5c6-4d7e-8f90-1a2b3c4d5e6f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -91,6 +100,7 @@
                     "isComposite": true,
                     "isPartOfComposite": false
                 },
+
                 {
                     "name": "up",
                     "id": "92183be7-6183-42e8-a871-2fa7a1799018",
@@ -209,6 +219,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Tab",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "78a9d012-e3f4-5a6b-7c8d-9e0f1a2b3c4d",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "GemTree",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

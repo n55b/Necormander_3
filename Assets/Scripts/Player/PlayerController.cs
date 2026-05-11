@@ -73,6 +73,12 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         MoveDirection = moveInput;
+
+        // [임시 디버깅] 키보드 E 입력을 직접 감지
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Debug.Log("<color=cyan>[DirectInput]</color> Keyboard E Pressed!");
+        }
     }
 
     private void FixedUpdate()
@@ -178,6 +184,24 @@ public class PlayerController : MonoBehaviour
         if (throwController != null)
         {
             throwController.OnThrow(context);
+        }
+    }
+
+    public void OnGemTree(InputAction.CallbackContext context)
+    {
+        if (stat.Health.IsDead) return;
+
+        if (context.performed)
+        {
+            Debug.Log("<color=yellow>[PlayerController]</color> E Key Detected! (context.performed)");
+            if (GemTreeUI.Instance != null)
+            {
+                GemTreeUI.Instance.Toggle();
+            }
+            else
+            {
+                Debug.LogError("<color=red>[PlayerController]</color> GemTreeUI.Instance is NULL!");
+            }
         }
     }
 
