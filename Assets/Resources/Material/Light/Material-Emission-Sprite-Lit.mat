@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Pixel_PickUpOutline
-  m_Shader: {fileID: -6465566751694194690, guid: 4e9ea01da8fa0ca4fb1610af3d22b976, type: 3}
+  m_Name: Material-Emission-Sprite-Lit
+  m_Shader: {fileID: -6465566751694194690, guid: 59e0656e07da8c14c9fe144d77ecfb84, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -23,7 +23,19 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -40,14 +52,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats:
-    - _Thickness: 0.031
+    m_Floats: []
     m_Colors:
-    - _Color: {r: 0, g: 1.2233984, b: 1.4980391, a: 0}
-    - _Thickness: {r: 1, g: 1, b: 0, a: 0}
+    - _EmissionColor: {r: 2.9960785, g: 2.1068184, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &8219064690499041800
+--- !u!114 &1849142642025020096
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
