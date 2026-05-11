@@ -96,6 +96,7 @@ public class CharacterHealth : MonoBehaviour
         curHP = Mathf.Min(curHP + amount, _stat.MAXHP);
         Debug.Log($"{gameObject.name} healed for {amount}. HP: {oldHP} -> {curHP}");
         OnHeal?.Invoke();
+        UpdateHPBar?.Invoke(); // [추가] HPBar 업데이트
     }
 
     private void Die()

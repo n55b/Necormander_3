@@ -11,7 +11,7 @@ public class WorldHPBar : MonoBehaviour
         stats.Health.UpdateHPBar += HPBarUpdate;
     }
 
-    private void Osable()
+    private void OnDisable()
     {
         stats.Health.UpdateHPBar -= HPBarUpdate;
     }
