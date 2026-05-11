@@ -26,7 +26,9 @@ public class GemInventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler
         _gem = gem;
         if (iconImage != null) iconImage.sprite = gem.BaseData.icon;
         if (nameText != null) nameText.text = $"{gem.BaseData.itemName} (Slots: {gem.SubSlots})";
-        if (jobText != null) jobText.text = gem.TargetJob.ToString();
+        
+        // [수정] 젬 인벤토리 슬롯에서 직업 텍스트를 더 이상 표시하지 않음
+        if (jobText != null) jobText.gameObject.SetActive(false);
         
         _canvas = GetComponentInParent<Canvas>();
     }
