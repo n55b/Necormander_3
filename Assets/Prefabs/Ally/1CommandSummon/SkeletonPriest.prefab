@@ -11,7 +11,7 @@ PrefabInstance:
     - target: {fileID: 121906001500000748, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -3630449654345418448, guid: 8450e1c4fa28627449d0984886382bb1, type: 3}
+      objectReference: {fileID: -4608659960397611990, guid: 2cff1864391eb424597b3924e9156db9, type: 3}
     - target: {fileID: 121906001500000748, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
       propertyPath: m_Color.b
       value: 1
@@ -68,6 +68,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4018896265268374098, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 22100000, guid: c91f84d09e0bb7f4a8964c35f6e0999a, type: 2}
     - target: {fileID: 5144142430907504354, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
       propertyPath: m_Name
       value: SkeletonPriest

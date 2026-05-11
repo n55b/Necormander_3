@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 030a9b6437365d949a9777ff280807da
+guid: 5660acefdacda8d44b4154d09184b1ee
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -32,6 +32,18 @@ TextureImporter:
   - first:
       213: -4805197384037469553
     second: Player_Hand_32px_9
+  - first:
+      213: 5772411393278837550
+    second: Player_Hand_32px_10
+  - first:
+      213: 3159925271740817010
+    second: Player_Hand_32px_11
+  - first:
+      213: -5204215264364139740
+    second: Player_Hand_32px_12
+  - first:
+      213: -1360348266544154766
+    second: Player_Hand_32px_13
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -127,12 +139,12 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Player_Hand_32px_0
+      name: Player_Hand_Idle_0
       rect:
         serializedVersion: 2
-        x: 31
+        x: 30
         y: 100
-        width: 25
+        width: 28
         height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -149,12 +161,12 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Hand_32px_1
+      name: Player_Hand_Idle_1
       rect:
         serializedVersion: 2
         x: 63
         y: 100
-        width: 25
+        width: 28
         height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -171,12 +183,12 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Hand_32px_2
+      name: Player_Hand_Idle_2
       rect:
         serializedVersion: 2
         x: 96
         y: 100
-        width: 25
+        width: 28
         height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -193,12 +205,12 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Hand_32px_3
+      name: Player_Hand_Idle_3
       rect:
         serializedVersion: 2
         x: 128
         y: 100
-        width: 25
+        width: 28
         height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -215,12 +227,12 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Hand_32px_4
+      name: Player_Hand_Idle_4
       rect:
         serializedVersion: 2
         x: 160
-        y: 100
-        width: 25
+        y: 99
+        width: 28
         height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -237,12 +249,12 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Hand_32px_5
+      name: Player_Hand_Idle_5
       rect:
         serializedVersion: 2
-        x: 32
+        x: 30
         y: 68
-        width: 25
+        width: 28
         height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -259,12 +271,12 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Hand_32px_6
+      name: Player_Hand_Idle_6
       rect:
         serializedVersion: 2
-        x: 64
+        x: 63
         y: 68
-        width: 25
+        width: 28
         height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -281,12 +293,12 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Hand_32px_7
+      name: Player_Hand_Idle_7
       rect:
         serializedVersion: 2
         x: 96
         y: 68
-        width: 25
+        width: 28
         height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -303,12 +315,12 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Hand_32px_8
+      name: Player_Hand_Idle_8
       rect:
         serializedVersion: 2
         x: 128
         y: 68
-        width: 25
+        width: 28
         height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -325,12 +337,12 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Hand_32px_9
+      name: Player_Hand_Idle_9
       rect:
         serializedVersion: 2
         x: 160
         y: 68
-        width: 25
+        width: 28
         height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -346,11 +358,99 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Player_Hand_Attack_0
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 36
+        width: 28
+        height: 25
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e238dc12499bb1050800000000000000
+      internalID: 5772411393278837550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Player_Hand_Attack_1
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 35
+        width: 28
+        height: 25
+      alignment: 9
+      pivot: {x: 0.45, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27e14eaea4f4adb20800000000000000
+      internalID: 3159925271740817010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Player_Hand_Attack_2
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 35
+        width: 39
+        height: 18
+      alignment: 9
+      pivot: {x: 0.1, y: 0.695}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42be8e84ac9e6c7b0800000000000000
+      internalID: -5204215264364139740
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Player_Hand_Attack_3
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 35
+        width: 40
+        height: 25
+      alignment: 9
+      pivot: {x: 0.04, y: 0.51}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27731d185721f1de0800000000000000
+      internalID: -1360348266544154766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: a871c20b58e89f14c9438a338dd6d23d
+    spriteID: dfd48bd75b54fbc459d04ea1ba1e6859
     internalID: 0
     vertices: []
     indices: 
@@ -360,16 +460,20 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Player_Hand_32px_0: -1827369321840907881
-      Player_Hand_32px_1: -9201907865109664727
-      Player_Hand_32px_2: -2035630666799189480
-      Player_Hand_32px_3: -3780213753577887867
-      Player_Hand_32px_4: -1405876533327725249
-      Player_Hand_32px_5: -5937617241289484168
-      Player_Hand_32px_6: -770103368049923045
-      Player_Hand_32px_7: 8373091380334829472
-      Player_Hand_32px_8: 6417781646357564265
-      Player_Hand_32px_9: -4805197384037469553
+      Player_Hand_Attack_0: 5772411393278837550
+      Player_Hand_Attack_1: 3159925271740817010
+      Player_Hand_Attack_2: -5204215264364139740
+      Player_Hand_Attack_3: -1360348266544154766
+      Player_Hand_Idle_0: -1827369321840907881
+      Player_Hand_Idle_1: -9201907865109664727
+      Player_Hand_Idle_2: -2035630666799189480
+      Player_Hand_Idle_3: -3780213753577887867
+      Player_Hand_Idle_4: -1405876533327725249
+      Player_Hand_Idle_5: -5937617241289484168
+      Player_Hand_Idle_6: -770103368049923045
+      Player_Hand_Idle_7: 8373091380334829472
+      Player_Hand_Idle_8: 6417781646357564265
+      Player_Hand_Idle_9: -4805197384037469553
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

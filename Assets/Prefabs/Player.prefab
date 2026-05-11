@@ -52,7 +52,7 @@ MonoBehaviour:
   holdPoint: {fileID: 1334913734161187280}
   clusterPrefab: {fileID: 7916150823758314427, guid: fb3f0d472a552d64fa46efc25c8355c3, type: 3}
   trajectoryPredictor: {fileID: 1950478616291504012}
-  selectionWheel: {fileID: 4792522433115944391, guid: b66dc36b7002c0d42b59b1b6dd0abdbf, type: 3}
+  selectionWheel: {fileID: 0}
   chargeTime: 1
   dragThreshold: 50
   directionMapping: 000000000200000001000000030000000600000005000000
@@ -156,6 +156,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6475330610207429760}
   - component: {fileID: 960292451620544178}
+  - component: {fileID: 8182820158993313582}
   m_Layer: 8
   m_Name: LeftHand
   m_TagString: Untagged
@@ -221,7 +222,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -455078907
   m_SortingLayer: 6
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: -1827369321840907881, guid: 030a9b6437365d949a9777ff280807da, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -233,6 +234,28 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &8182820158993313582
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2218425221562843783}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 393dad23ead556b40b2814e267f8a01f, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2235908954508541628
 GameObject:
   m_ObjectHideFlags: 0
@@ -326,6 +349,9 @@ MonoBehaviour:
   baseDef: 0
   baseMoveSpeed: 5
   jobType: 0
+  setDoneActions:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &4607958101720925461
 GameObject:
   m_ObjectHideFlags: 0
@@ -538,7 +564,7 @@ MonoBehaviour:
   smoothTime: 0.2
   isAiming: 0
   leanWeight: 0.5
-  maxOffset: {x: 5, y: 3}
+  maxOffset: {x: 8, y: 5}
 --- !u!1 &7812045167050644549
 GameObject:
   m_ObjectHideFlags: 0
@@ -662,6 +688,7 @@ GameObject:
   m_Component:
   - component: {fileID: 981153956595264485}
   - component: {fileID: 7383425379229253445}
+  - component: {fileID: 5375555019013159533}
   m_Layer: 8
   m_Name: RightHand
   m_TagString: Untagged
@@ -727,7 +754,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -455078907
   m_SortingLayer: 6
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: -1827369321840907881, guid: 030a9b6437365d949a9777ff280807da, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 1
@@ -739,6 +766,28 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &5375555019013159533
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8144055808544143906}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 04f434229ff359d4eb30b44df37391b6, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &8389716956321753658
 GameObject:
   m_ObjectHideFlags: 0
@@ -756,6 +805,7 @@ GameObject:
   - component: {fileID: 2140691029848297597}
   - component: {fileID: 1807700438375551738}
   - component: {fileID: 8412499594907926683}
+  - component: {fileID: 8576837497327950917}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -1144,6 +1194,28 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 0.3}
   m_EdgeRadius: 0
+--- !u!95 &8576837497327950917
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8389716956321753658}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: ea86af86b05cb104d9dd5719d54aeb10, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &8633796844698217215
 GameObject:
   m_ObjectHideFlags: 0

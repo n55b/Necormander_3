@@ -1,0 +1,467 @@
+fileFormatVersion: 2
+guid: feb9cefcb3e7bbc48acc81e60ff447c0
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7364389506412118580
+    second: Skeleton_Spearman_32px_0
+  - first:
+      213: -4544808846731864722
+    second: Skeleton_Spearman_32px_1
+  - first:
+      213: 3544090000439589113
+    second: Skeleton_Spearman_32px_2
+  - first:
+      213: -5509928693597615681
+    second: Skeleton_Spearman_32px_3
+  - first:
+      213: 2785236392480861071
+    second: Skeleton_Spearman_32px_4
+  - first:
+      213: 9030914647143163565
+    second: Skeleton_Spearman_32px_5
+  - first:
+      213: -122229848391604198
+    second: Skeleton_Spearman_32px_6
+  - first:
+      213: -2055968791427887174
+    second: Skeleton_Spearman_32px_7
+  - first:
+      213: -3024383863758653983
+    second: Skeleton_Spearman_32px_8
+  - first:
+      213: 6341865801311098578
+    second: Skeleton_Spearman_32px_9
+  - first:
+      213: 6303326946712254293
+    second: Skeleton_Spearman_32px_10
+  - first:
+      213: -8482750202087638575
+    second: Skeleton_Spearman_32px_11
+  - first:
+      213: 534144165711413786
+    second: Skeleton_Spearman_32px_12
+  - first:
+      213: 1411656999711766384
+    second: Skeleton_Spearman_32px_13
+  - first:
+      213: -217282996171664267
+    second: Skeleton_Spearman_32px_14
+  - first:
+      213: 3715921835084961741
+    second: Skeleton_Spearman_32px_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Spearman_Idle_0
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 95
+        width: 23
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e659e7eee689de0c0800000000000000
+      internalID: -4544808846731864722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spearman_Idle_1
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 95
+        width: 23
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f83738f3132f2130800000000000000
+      internalID: 3544090000439589113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spearman_Idle_2
+      rect:
+        serializedVersion: 2
+        x: 117
+        y: 95
+        width: 23
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb9c168cb0dc883b0800000000000000
+      internalID: -5509928693597615681
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spearman_Idle_3
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 96
+        width: 23
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da627d31601445d70800000000000000
+      internalID: 9030914647143163565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skeleton_Spearman_32px_6
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 41
+        width: 17
+        height: 36
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a182ba9b990cd4ef0800000000000000
+      internalID: -122229848391604198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spearman_Attack_0
+      rect:
+        serializedVersion: 2
+        x: 47
+        y: 47
+        width: 30
+        height: 31
+      alignment: 9
+      pivot: {x: 0.6478294, y: 0.49999976}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abfc6a5f64bb773e0800000000000000
+      internalID: -2055968791427887174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spearman_Attack_1
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 47
+        width: 30
+        height: 31
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e5fd3856ea3706d0800000000000000
+      internalID: -3024383863758653983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spearman_Attack_2
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 47
+        width: 41
+        height: 31
+      alignment: 9
+      pivot: {x: 0.798572, y: 0.49999976}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d6985c7855d20850800000000000000
+      internalID: 6341865801311098578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spearman_Attack_3
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 47
+        width: 41
+        height: 31
+      alignment: 9
+      pivot: {x: 0.81331354, y: 0.5098653}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d9713e72a7374a80800000000000000
+      internalID: -8482750202087638575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skeleton_Spearman_32px_12
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 6
+        width: 44
+        height: 40
+      alignment: 9
+      pivot: {x: 0.5208534, y: 0.6338106}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a128318e949a96700800000000000000
+      internalID: 534144165711413786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skeleton_Spearman_32px_13
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 6
+        width: 36
+        height: 40
+      alignment: 9
+      pivot: {x: 0.48725593, y: 0.62998784}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 077738cdf86379310800000000000000
+      internalID: 1411656999711766384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skeleton_Spearman_32px_14
+      rect:
+        serializedVersion: 2
+        x: 154
+        y: 15
+        width: 27
+        height: 31
+      alignment: 9
+      pivot: {x: 0.36406454, y: 0.51973194}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5749475244e0cfcf0800000000000000
+      internalID: -217282996171664267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skeleton_Spearman_32px_15
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 15
+        width: 29
+        height: 31
+      alignment: 9
+      pivot: {x: 0.37871262, y: 0.5147991}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc75b51a83b919330800000000000000
+      internalID: 3715921835084961741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 3e9b729e55a4f924eb9a85948b8c1d4f
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Skeleton_Spearman_32px_0: 7364389506412118580
+      Skeleton_Spearman_32px_10: 6303326946712254293
+      Skeleton_Spearman_32px_12: 534144165711413786
+      Skeleton_Spearman_32px_13: 1411656999711766384
+      Skeleton_Spearman_32px_14: -217282996171664267
+      Skeleton_Spearman_32px_15: 3715921835084961741
+      Skeleton_Spearman_32px_4: 2785236392480861071
+      Skeleton_Spearman_32px_6: -122229848391604198
+      Spearman_Attack_0: -2055968791427887174
+      Spearman_Attack_1: -3024383863758653983
+      Spearman_Attack_2: 6341865801311098578
+      Spearman_Attack_3: -8482750202087638575
+      Spearman_Idle_0: -4544808846731864722
+      Spearman_Idle_1: 3544090000439589113
+      Spearman_Idle_2: -5509928693597615681
+      Spearman_Idle_3: 9030914647143163565
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -53,11 +53,11 @@ TagManager:
   - name: Object
     uniqueID: 1344968519
     locked: 0
-  - name: Effect
-    uniqueID: 66980121
-    locked: 0
   - name: Unit
     uniqueID: 3839888389
+    locked: 0
+  - name: Effect
+    uniqueID: 66980121
     locked: 0
   - name: FlyingObject
     uniqueID: 1659204433

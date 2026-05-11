@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Spearman_Animator
+  m_Controller: {fileID: 9100000, guid: 71446c26c8345f84b9768c9c1e407adc, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 38a1109b82f589844b0fadd2b98715b0, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 3bee7a7c3c4f31e4384fa037157f63a3, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: c7d7ff04afb343247a6689d0e1de9b8c, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 9ad505797aa5fe94f80059babe3930a4, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: df2e473a23963584d80819b13af10b41, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 939aaed1403e1614e80c6dedf7cc4fbe, type: 2}
