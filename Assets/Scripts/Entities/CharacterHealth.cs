@@ -65,6 +65,9 @@ public class CharacterHealth : MonoBehaviour
             curHP -= finalDamage;
             OnDamageTaken?.Invoke(finalDamage);
 
+            if(info.type == DamageType.Fixed)
+                str = "Poison";
+            
             TakeDamageEvent?.Invoke((int)finalDamage, str, false);
         }
 

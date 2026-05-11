@@ -485,6 +485,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4059057076768544384}
+  - component: {fileID: 3857955561310975328}
+  - component: {fileID: 3919374943991972330}
   m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
@@ -511,6 +513,44 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &3857955561310975328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1613821903736243082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 250, y: 400}
+  m_Spacing: {x: 0, y: 0}
+  m_Constraint: 0
+  m_ConstraintCount: 2
+--- !u!114 &3919374943991972330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1613821903736243082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 0
+  m_VerticalFit: 0
 --- !u!1 &2943724670296577686
 GameObject:
   m_ObjectHideFlags: 0
@@ -603,13 +643,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainPanel: {fileID: 2943724670296577686}
   inventoryContainer: {fileID: 4059057076768544384}
-  treeScrollRect: {fileID: 3278903993073805676}
   treeContent: {fileID: 1748085879662998098}
   inventorySlotPrefab: {fileID: 6745674603091857191, guid: a84e6d58fad22f74b9aee4f9487816cd, type: 3}
   nodePrefab: {fileID: 2440628490392310981, guid: 32c574062f4c3e4499a97b909e41b9cd, type: 3}
   connectorPrefab: {fileID: 2608948628137918387, guid: 37c89bd4c40268945a47dc686fc7716d, type: 3}
-  nodeSpacingAngle: 60
-  initialRadius: 150
+  floorLinePrefab: {fileID: 2608948628137918387, guid: 270ef7051d400cf4fb11df2da061d26b, type: 3}
+  rowHeight: 200
+  nodeSpacing: 120
   minZoom: 0.5
   maxZoom: 2
   zoomSpeed: 0.1
