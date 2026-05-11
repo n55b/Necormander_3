@@ -25,7 +25,7 @@ public class GemInventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler
     {
         _gem = gem;
         if (iconImage != null) iconImage.sprite = gem.BaseData.icon;
-        if (nameText != null) nameText.text = gem.BaseData.itemName;
+        if (nameText != null) nameText.text = $"{gem.BaseData.itemName} (Slots: {gem.SubSlots})";
         if (jobText != null) jobText.text = gem.TargetJob.ToString();
         
         _canvas = GetComponentInParent<Canvas>();

@@ -53,6 +53,13 @@ public class GemTreeUI : MonoBehaviour
 
     public void RefreshUI()
     {
+        // [재수정] 어떤 경우에도 살아남는 잔상(Ghost)을 확실하게 제거하는 최종 코드
+        var ghost = GameObject.Find("GemDragGhost");
+        if (ghost != null)
+        {
+            Destroy(ghost);
+        }
+
         ClearUI();
         if (InventoryManager.Instance == null) return;
 
