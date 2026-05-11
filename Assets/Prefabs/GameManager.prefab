@@ -186,10 +186,15 @@ MonoBehaviour:
   gold: 0
   Slots: []
   useDebugStartingInventory: 1
-  debugStartingSlots:
-  - minion: {fileID: 11400000, guid: 6dcd2551f98dad446bbd6740e1dc3c30, type: 2}
-    ability: {fileID: 0}
-    quantity: 0
+  debugStartingMinions:
+  - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
+  debugStartingMinionQuantities: 01000000
+  debugStartingGems_Data:
+  - {fileID: 11400000, guid: eb1a498a81c6a5144afcaa02b23d9818, type: 2}
+  - {fileID: 11400000, guid: eb1a498a81c6a5144afcaa02b23d9818, type: 2}
+  - {fileID: 11400000, guid: eb1a498a81c6a5144afcaa02b23d9818, type: 2}
+  debugStartingGems_TargetJobs: 00000000
+  _defaultRootGemSO: {fileID: 11400000, guid: c87296d078b901b43aff65ab1acb0b54, type: 2}
 --- !u!1 &7727511665536608322
 GameObject:
   m_ObjectHideFlags: 0
@@ -275,5 +280,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectionUI: {fileID: 0}
   handSlotUI: {fileID: 0}
-  gemSlotUI: {fileID: 0}
   treasureDropChance: 1

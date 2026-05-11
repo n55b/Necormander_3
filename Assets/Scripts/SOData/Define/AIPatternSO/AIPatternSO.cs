@@ -41,6 +41,12 @@ public abstract class AIPatternSO : ScriptableObject
         // 던져진 상태일 때는 모든 AI 판단을 중지합니다.
         if (currentState == AIState.Thrown) return;
 
+        // [핵심] 현재 타겟이 유효하지 않으면 즉시 해제하여 다음 UpdateTargeting에서 새 타겟을 찾게 함
+        if (target != null && IsTargetInvalid(target))
+        {
+            target = null;
+        }
+
         UpdateTargeting(entity);
         UpdateStateTransitions(entity);
 
@@ -78,8 +84,23 @@ public abstract class AIPatternSO : ScriptableObject
     {
         if (IsTargetInvalid(currentTarget)) return;
 
-        // [수정] 직접 Health 참조
-        CharacterStat targetStat = currentTarget.GetComponentInChildren<CharacterStat>();
+        // [수정] 플레이어가 미니언을 들고 있을 때, 미니언의 Stat을 가져와 플레이어가 무적이 되는 현상 방지
+        // 타겟 본인의 Stat을 우선적으로 찾고, 자식들 중에서는 FlyingObject가 아닌 것만 찾습니다.
+        CharacterStat targetStat = currentTarget.GetComponent<CharacterStat>();
+        if (targetStat == null)
+        {
+            int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+            foreach (var s in currentTarget.GetComponentsInChildren<CharacterStat>())
+            {
+                // 들려있는 상태나 투척 상태가 아닌 Stat만 골라냄
+                if (s.gameObject.layer != flyingLayer)
+                {
+                    targetStat = s;
+                    break;
+                }
+            }
+        }
+        
         if (targetStat != null)
         {
             DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject);
@@ -138,8 +159,26 @@ public abstract class AIPatternSO : ScriptableObject
     {
         if (t == null) return true;
         
-        // [수정] 직접 Health 참조
-        CharacterStat stat = t.GetComponentInChildren<CharacterStat>();
+        // 1. 레이어 체크: FlyingObject인 경우(들린 상태 또는 날아가는 상태) 즉시 타겟 제외
+        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+        if (t.gameObject.layer == flyingLayer) return true;
+
+        // 2. AI 상태 체크: Thrown 상태인 유닛은 타겟팅 대상에서 제외
+        BaseEntity targetEntity = t.GetComponentInParent<BaseEntity>();
+        if (targetEntity != null && targetEntity.Brain != null && targetEntity.Brain.CurrentState == AIState.Thrown)
+            return true;
+
+        // 3. 체력 및 무적 상태 체크
+        // [수정] 타겟팅 판단 시에도 엉뚱한(들려있는) 자식의 Stat을 보지 않도록 주의
+        CharacterStat stat = t.GetComponent<CharacterStat>();
+        if (stat == null)
+        {
+            foreach (var s in t.GetComponentsInChildren<CharacterStat>())
+            {
+                if (s.gameObject.layer != flyingLayer) { stat = s; break; }
+            }
+        }
+
         if (stat != null)
         {
             return stat.Health.IsDead || stat.Health.Invincible;

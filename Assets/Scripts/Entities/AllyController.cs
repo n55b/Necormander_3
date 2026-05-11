@@ -56,6 +56,12 @@ public class AllyController : BaseEntity, IThrowable
         base.Initialize(data);
     }
 
+    protected override void SetupLayers()
+    {
+        base.SetupLayers();
+        if (_nearestFinder != null) _nearestFinder.targetLayer = opponentLayer;
+    }
+
     protected override bool CanExecuteAI()
     {
         // 비행 중이거나 던져진 상태일 때는 AI 차단
@@ -67,37 +73,53 @@ public class AllyController : BaseEntity, IThrowable
 
     protected override void HandleNoTarget()
     {
-        // 이제 브레인이 스스로 판단하므로, 브레인 외부에서의 강제 개입은 최소화합니다.
     }
 
     #region IThrowable 구현
 
     public void OnPickedUp()
     {
-        // [중요] 구형 FSM 대신 브레인 상태를 Thrown으로 변경
+        // 1. 브레인 상태를 즉시 Thrown으로 변경 (타겟팅 제외 핵심)
         if (_runtimeBrain != null) _runtimeBrain.SetState(AIState.Thrown);
-
-        // [추가] 다음 투척을 위해 충돌 여부 리셋
         _hasImpacted = false;
 
-        // [수정] 피격 연출 코루틴이 실행 중일 경우를 대비해 강제 리셋
-        if (_stats != null) _stats.Visual.ResetVisuals();
+        if (_stats != null)
+        {
+            _stats.Visual.ResetVisuals();
+            // [수정] 사용자 요청에 따라 인스턴트 무적 로직 제거 (레이어로 처리)
+            // if (_stats.Health != null) _stats.Health.Invincible = true;
+        }
+
+        // 2. 모든 자식 포함 레이어 변경 및 콜라이더 비활성화 (투사체 통과용)
+        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+        if (flyingLayer != -1) SetLayerRecursive(gameObject, flyingLayer);
+        else Debug.LogError("[AllyController] FlyingObject layer not found!");
 
         if (_rb != null) _rb.simulated = false;
-        if (_collider != null) _collider.enabled = false;
+        
+        foreach (var col in GetComponentsInChildren<Collider2D>())
+        {
+            col.enabled = false;
+        }
+
         if (_agent != null) _agent.enabled = false;
     }
 
-    /// <summary>
-    /// [추가] 클러스터에 담겨 던져질 때 필요한 데이터를 설정합니다.
-    /// </summary>
+    private void SetLayerRecursive(GameObject obj, int layer)
+    {
+        obj.layer = layer;
+        foreach (Transform child in obj.transform)
+        {
+            SetLayerRecursive(child.gameObject, layer);
+        }
+    }
+
     public void PrepareForClusterThrow(float chargeRatio, bool isDirect)
     {
         _lastChargeRatio = chargeRatio;
         _isDirectThrow = isDirect;
         _hasImpacted = false;
         
-        // 시각적 레이어 설정
         if (_sr != null) _sr.sortingLayerName = "FlyingObject";
     }
 
@@ -107,11 +129,6 @@ public class AllyController : BaseEntity, IThrowable
         _lastChargeRatio = chargeRatio;
         _hasImpacted = false;
         _isDirectThrow = (chargeRatio >= 1.0f); 
-
-        // _originalLayer는 이미 Awake에서 저장됨
-
-        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
-        if (flyingLayer != -1) gameObject.layer = flyingLayer;
 
         if (_sr != null) _sr.sortingLayerName = "FlyingObject";
 
@@ -159,38 +176,22 @@ public class AllyController : BaseEntity, IThrowable
         _hasImpacted = value;
     }
 
-    /// <summary>
-    /// 투척 완료 시 체력을 소모합니다. (마법사 등 희생 유닛용)
-    /// </summary>
     public void ApplyThrowCost()
     {
         if (minionData == null || minionData.hpCostRatioPerThrow <= 0) return;
-
-        // 최대 체력 대비 설정된 비율만큼 고정 데미지 입힘
         float damageAmount = _stats.MAXHP * minionData.hpCostRatioPerThrow;
-        
-        Debug.Log($"<color=red>[Sacrifice]</color> {minionData.minionName}: 투척 비용으로 체력 {damageAmount:F1} 소모.");
-        
-        // CharacterHealth를 통해 데미지 적용 (Fixed 타입으로 방어력 무시)
         _stats.Health.GetDamage(new DamageInfo(damageAmount, DamageType.Fixed, null));
     }
 
     public virtual void OnLanded()
     {
-        // [수정] 투척 성공 시 리스크(체력 차감) 로직 제거
-        /*
-        if (_hasImpacted && _stats != null)
-        {
-            float fixedDamage = _stats.MAXHP / 3f;
-            DamageInfo riskInfo = new DamageInfo(fixedDamage, DamageType.Fixed, gameObject);
-            _stats.Health.GetDamage(riskInfo);
-            Debug.Log($"<color=red>[Risk]</color> {gameObject.name} 투척 성공으로 인한 체력 차감: {fixedDamage:F1}");
-        }
-        */
+        // 1. 레이어 및 상태 복구
+        SetLayerRecursive(gameObject, _originalLayer);
 
-        gameObject.layer = _originalLayer;
         if (_sr != null && !string.IsNullOrEmpty(_originalSortingLayerName))
             _sr.sortingLayerName = _originalSortingLayerName;
+
+        if (_stats != null && _stats.Health != null) _stats.Health.Invincible = false;
 
         if (_agent != null)
         {
@@ -207,10 +208,10 @@ public class AllyController : BaseEntity, IThrowable
             _rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
         }
 
-        if (_collider != null)
+        foreach (var col in GetComponentsInChildren<Collider2D>())
         {
-            _collider.enabled = true; 
-            _collider.isTrigger = false;
+            col.enabled = true;
+            col.isTrigger = false;
         }
 
         if (_runtimeBrain != null) _runtimeBrain.Init(this);

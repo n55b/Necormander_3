@@ -44,8 +44,23 @@ public class Projectile : MonoBehaviour
         // 2. 타겟 레이어(적군)와 충돌 체크
         if ((_targetLayer.value & (1 << other.gameObject.layer)) != 0)
         {
-            // [수정] 자식 오브젝트에 배치된 Stat을 찾을 수 있도록 GetComponentInChildren 사용
-            CharacterStat targetStat = other.GetComponentInChildren<CharacterStat>();
+            // [수정] 들려있는 미니언의 Stat을 플레이어의 것으로 착각하는 현상 방지
+            // 충돌한 오브젝트 본인의 Stat을 우선적으로 찾습니다.
+            CharacterStat targetStat = other.GetComponent<CharacterStat>();
+            
+            // 본인에게 없다면 자식들 중에서 찾되, 들려있는 상태(FlyingObject)가 아닌 것만 골라냅니다.
+            if (targetStat == null)
+            {
+                int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+                foreach (var s in other.GetComponentsInChildren<CharacterStat>())
+                {
+                    if (s.gameObject.layer != flyingLayer)
+                    {
+                        targetStat = s;
+                        break;
+                    }
+                }
+            }
             
             if (targetStat != null)
             {
