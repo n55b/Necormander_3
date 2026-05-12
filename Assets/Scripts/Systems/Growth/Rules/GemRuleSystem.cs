@@ -76,9 +76,9 @@ public static class GemRuleSystem
 
     public static float GetFreezeRefundStacks()
     {
-        if (Inven == null) return 10f; // 기본값
+        if (Inven == null) return 0f; 
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Chill));
-        return 10f + GemSynergyLogic.GetChillRefundAmount(level);
+        return GemSynergyLogic.GetChillRefundAmount(level);
     }
 
     public static bool HasFreezeFixedDamage()

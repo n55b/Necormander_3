@@ -17,11 +17,11 @@ public static class GemSynergyLogic
     // --- Poison ---
     public static float GetPoisonDurationBonus(int level) => (level >= 2) ? 5.0f : 0f;
     public static float GetPoisonExtraStack(int level) => (level >= 3) ? 1.0f : 0f;
-    public static float GetPoisonIntervalMultiplier(int level) => (level >= 4) ? 0.6f : 1.0f; // 40% 단축
+    public static float GetPoisonIntervalMultiplier(int level) => (level >= 4) ? 0.5f : 1.0f; // [보정] 5초에 2번 (인터벌 50% 단축)
 
     // --- Chill ---
     public static float GetChillValueMultiplier(int level) => (level >= 2) ? 1.25f : 1.0f;
-    public static float GetChillRefundAmount(int level) => (level >= 3) ? 5.0f : 0f;
+    public static float GetChillRefundAmount(int level) => (level >= 3) ? 5.0f : 0f; // [보정] 20스택의 25%인 5스택 환급
     public static bool HasChillFreezeDamage(int level) => level >= 4;
 
     // --- BloodPop ---
