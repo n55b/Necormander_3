@@ -157,7 +157,19 @@ public class CharacterStatus : MonoBehaviour
         float maxStack = GetMaxStack(type);
         _debuffStacks[type] = Mathf.Min(_debuffStacks[type], maxStack);
 
-        Debug.Log($"<color=green>[Debuff]</color> {gameObject.name}: {type} 스택 {GetDebuffStack(type)} 부여 (총 {Mathf.FloorToInt(_debuffStacks[type])} / {maxStack})");
+        // [로그 강화] 디버프 종류별 색상 지정
+        string color = "white";
+        switch (type)
+        {
+            case DebuffStackType.Poison: color = "#32CD32"; break; // LimeGreen
+            case DebuffStackType.Chill: color = "#00BFFF"; break; // DeepSkyBlue
+            case DebuffStackType.Execute: color = "#FF4500"; break; // OrangeRed
+            case DebuffStackType.BloodPop: color = "#FF00FF"; break; // Magenta
+            case DebuffStackType.Aging: color = "#BC8F8F"; break; // RosyBrown
+            case DebuffStackType.Corroded: color = "#FFD700"; break; // Gold
+        }
+
+        Debug.Log($"<color={color}>[Debuff]</color> <b>{gameObject.name}</b>: {type} +{amount:F1} (Current: <b>{_debuffStacks[type]:F1}/{maxStack}</b>)");
 
         HandleStackTrigger(type);
     }
