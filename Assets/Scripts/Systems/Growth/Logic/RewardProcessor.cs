@@ -105,6 +105,32 @@ public static class RewardProcessor
         return results;
     }
 
+    // --- 3. 상점용: 꾸러미 생성 ---
+    public static List<PrizeDataSO> GenerateShopRoom(DataManager data)
+    {
+        List<PrizeDataSO> results = new List<PrizeDataSO>();
+        var registry = data.GET_GROWTH_REGISTRY();
+
+        List<PrizeDataSO> combinedPool = new List<PrizeDataSO>();
+
+        foreach(var prize in data.PRIZE_DATA)
+        {
+            combinedPool.Add(prize);
+        }
+
+        // 랜덤하게 5개 선택
+        for(int i = 0; i < 5; i++)
+        {
+            if(combinedPool.Count > 0)
+            {
+                int idx = Random.Range(0, combinedPool.Count);
+                results.Add(combinedPool[idx]);
+            }
+        }
+
+        return results;
+    }
+
     // --- 세부 필터링 로직 ---
 
     private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionLineageSO> lineages, bool filterOwned = true)

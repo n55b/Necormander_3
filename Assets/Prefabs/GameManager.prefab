@@ -171,6 +171,7 @@ MonoBehaviour:
   minionRegistry: {fileID: 11400000, guid: 752586a47e053ee4a9db401ff13044fc, type: 2}
   throwEffectRegistry: {fileID: 11400000, guid: 3814eaa3076ff6d468ed15dbf6620499, type: 2}
   defaultAIPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
+  prizeRegistry: {fileID: 11400000, guid: a133374f9174a7d4d98a000b7acf9b34, type: 2}
 --- !u!114 &3438047193681337848
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -190,11 +191,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
   debugStartingMinionQuantities: 01000000
   debugStartingGems_Data:
-  - {fileID: 11400000, guid: eb1a498a81c6a5144afcaa02b23d9818, type: 2}
-  - {fileID: 11400000, guid: eb1a498a81c6a5144afcaa02b23d9818, type: 2}
-  - {fileID: 11400000, guid: eb1a498a81c6a5144afcaa02b23d9818, type: 2}
+  - {fileID: 11400000, guid: fd7d0461898c75b41a5a9ae9b551e95b, type: 2}
+  - {fileID: 11400000, guid: 0d375b28527a0784c92a4c7c55c9b590, type: 2}
   debugStartingGems_TargetJobs: 00000000
-  _defaultRootGemSO: {fileID: 11400000, guid: c87296d078b901b43aff65ab1acb0b54, type: 2}
+  _defaultRootGemSO: {fileID: 11400000, guid: 87e7260bead92f545aa299410bef22e8, type: 2}
 --- !u!1 &7727511665536608322
 GameObject:
   m_ObjectHideFlags: 0
