@@ -933,6 +933,7 @@ MonoBehaviour:
   mainPanel: {fileID: 2943724670296577686}
   inventoryContainer: {fileID: 4059057076768544384}
   treeContent: {fileID: 1748085879662998098}
+  synergyDisplay: {fileID: 6306538829918872065}
   inventorySlotPrefab: {fileID: 6745674603091857191, guid: a84e6d58fad22f74b9aee4f9487816cd, type: 3}
   nodePrefab: {fileID: 2440628490392310981, guid: 32c574062f4c3e4499a97b909e41b9cd, type: 3}
   connectorPrefab: {fileID: 2608948628137918387, guid: 37c89bd4c40268945a47dc686fc7716d, type: 3}
