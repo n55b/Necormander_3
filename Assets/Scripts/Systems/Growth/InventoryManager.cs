@@ -77,7 +77,7 @@ public class InventoryManager : MonoBehaviour
         // [신규] 속성 및 특수 효과 합산
         public Dictionary<DebuffStackType, float> WeaponAttributes = new Dictionary<DebuffStackType, float>();
         public Dictionary<DebuffStackType, float> HandAttributes = new Dictionary<DebuffStackType, float>();
-        public HashSet<string> SpecialTags = new HashSet<string>();
+        public HashSet<GemUniqueType> UniqueEffects = new HashSet<GemUniqueType>();
 
         public void Clear()
         {
@@ -87,7 +87,7 @@ public class InventoryManager : MonoBehaviour
             RespawnTimeBonus = 0f;
             WeaponAttributes.Clear();
             HandAttributes.Clear();
-            SpecialTags.Clear();
+            UniqueEffects.Clear();
         }
     }
 
@@ -207,9 +207,9 @@ public class InventoryManager : MonoBehaviour
         return _globalGemStats.HandAttributes.TryGetValue(type, out float val) ? val : 0f;
     }
 
-    public bool HasSpecialTag(string tag)
+    public bool HasUniqueEffect(GemUniqueType type)
     {
-        return _globalGemStats.SpecialTags.Contains(tag);
+        return _globalGemStats.UniqueEffects.Contains(type);
     }
 
     public float GetAggregatedGemBonus(CommandData job, StatType type)

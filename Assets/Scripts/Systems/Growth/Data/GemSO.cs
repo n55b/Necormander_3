@@ -11,6 +11,17 @@ public enum StatType
     ThrowEffect     // 던지기 능력 강화 (전사:데미지+, 궁수:범위+, 법사:횟수+, 기타:배율+)
 }
 
+public enum GemUniqueType
+{
+    None = 0,
+    LethalPoison = 1,           // 치명적인 독 (중독 스택 2배)
+    LethalDose = 2,             // 독의 치사량 (틱 주기 단축)
+    AchingBones = 3,            // 시리고 아린 뼈 (동결 중 스택 방지 등)
+    SlowlyFreezingFlower = 4,   // 서서히 얼어붙는 꽃 (한기 최대치 증가)
+    ExplodingFlesh = 5,         // 살덩이가 폭발하는 것 (비폭 전이)
+    NoCountryForOldMen = 6      // 노인을 위한 나라는 없다 (노화 즉사)
+}
+
 /// <summary>
 /// 보석의 최상위 클래스입니다. 이제 다형성 효과 리스트를 통해 다양한 기능을 수행합니다.
 /// </summary>

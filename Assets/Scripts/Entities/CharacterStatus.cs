@@ -81,7 +81,7 @@ public class CharacterStatus : MonoBehaviour
         {
             float interval = POISON_INTERVAL;
             // [특수] 독의 치사량: 틱 횟수 증가 (인터벌 절반)
-            if (InventoryManager.Instance != null && InventoryManager.Instance.HasSpecialTag("LethalDose"))
+            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.LethalDose))
             {
                 interval *= 0.5f;
             }
@@ -145,7 +145,7 @@ public class CharacterStatus : MonoBehaviour
         // [특수] 시리고 아린 뼈: 동결 상태에서는 스택 추가되지 않음
         if (type == DebuffStackType.Chill && GetDebuffBool(DebuffBoolType.Frozen))
         {
-            if (InventoryManager.Instance != null && InventoryManager.Instance.HasSpecialTag("AchingBones"))
+            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.AchingBones))
                 return;
         }
 
@@ -169,11 +169,11 @@ public class CharacterStatus : MonoBehaviour
             case DebuffStackType.Poison: return 20f;
             case DebuffStackType.Chill: 
                 float baseChill = 20f;
-                if (InventoryManager.Instance != null && InventoryManager.Instance.HasSpecialTag("SlowlyFreezingFlower"))
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.SlowlyFreezingFlower))
                     baseChill += 10f;
                 return baseChill;
             case DebuffStackType.Aging: 
-                if (InventoryManager.Instance != null && InventoryManager.Instance.HasSpecialTag("NoCountryForOldMen"))
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.NoCountryForOldMen))
                     return 100f;
                 return 25f;
             case DebuffStackType.BloodPop: return 1000f; 
@@ -200,7 +200,7 @@ public class CharacterStatus : MonoBehaviour
                 break;
             case DebuffStackType.Aging:
                 // [특수] 노인을 위한 나라는 없다: 100스택 시 즉사
-                if (_debuffStacks[type] >= 100f && InventoryManager.Instance != null && InventoryManager.Instance.HasSpecialTag("NoCountryForOldMen"))
+                if (_debuffStacks[type] >= 100f && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.NoCountryForOldMen))
                 {
                     if (!CompareTag("Boss")) 
                     {

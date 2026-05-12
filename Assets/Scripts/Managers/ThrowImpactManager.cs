@@ -104,7 +104,7 @@ public class ThrowImpactManager : MonoBehaviour
                 }
 
                 // [특수] 치명적인 독: 현재 부여된 독 스택을 2배로 올려줌 (리마크 기준)
-                if (InventoryManager.Instance.HasSpecialTag("LethalPoison"))
+                if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.LethalPoison))
                 {
                     int current = status.GetDebuffStack(DebuffStackType.Poison);
                     if (current > 0)

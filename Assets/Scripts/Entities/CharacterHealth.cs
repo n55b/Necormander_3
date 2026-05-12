@@ -172,7 +172,7 @@ public class CharacterHealth : MonoBehaviour
                 targetHealth.GetDamage(new DamageInfo(damage, DamageType.Fixed, this.gameObject));
 
                 // [특수] 살덩이가 폭발하는 것: 비폭 피해 대상에게 데미지의 1/4만큼 비폭 스택 부여
-                if (InventoryManager.Instance != null && InventoryManager.Instance.HasSpecialTag("ExplodingFlesh"))
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.ExplodingFlesh))
                 {
                     var targetStatus = col.GetComponentInChildren<CharacterStatus>();
                     if (targetStatus != null)
