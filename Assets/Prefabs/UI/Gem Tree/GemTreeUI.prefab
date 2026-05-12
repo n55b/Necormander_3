@@ -938,6 +938,7 @@ MonoBehaviour:
   nodePrefab: {fileID: 2440628490392310981, guid: 32c574062f4c3e4499a97b909e41b9cd, type: 3}
   connectorPrefab: {fileID: 2608948628137918387, guid: 37c89bd4c40268945a47dc686fc7716d, type: 3}
   floorLinePrefab: {fileID: 2608948628137918387, guid: 270ef7051d400cf4fb11df2da061d26b, type: 3}
+  tooltipPrefab: {fileID: 1036089158462258122, guid: 44fb233bb58061540a65dc7e659928ad, type: 3}
   rowHeight: 200
   nodeSpacing: 120
   minZoom: 0.5

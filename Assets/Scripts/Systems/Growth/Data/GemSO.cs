@@ -62,6 +62,20 @@ public class GemSO : GrowthItemSO
         return ((int)eligibleJobs & jobBit) != 0;
     }
 
+    public static Color GetSynergyColor(GemSynergyGroup group)
+    {
+        switch (group)
+        {
+            case GemSynergyGroup.Poison: return new Color(0.2f, 0.8f, 0.2f); // Lime
+            case GemSynergyGroup.Chill: return new Color(0.3f, 0.6f, 1.0f); // SkyBlue
+            case GemSynergyGroup.Execution: return new Color(1.0f, 0.3f, 0.1f); // Orange
+            case GemSynergyGroup.BloodPop: return new Color(1.0f, 0.0f, 1.0f); // Magenta
+            case GemSynergyGroup.Aging: return new Color(0.7f, 0.5f, 0.5f); // Brown
+            case GemSynergyGroup.Corrosion: return new Color(1.0f, 0.8f, 0.0f); // Gold
+            default: return Color.white;
+        }
+    }
+
     public GrowthItemData GetDynamicDisplayData(CommandData job)
     {
         // [수정] 이제 직업 이름 대신 보석의 시너지 그룹을 표시합니다.

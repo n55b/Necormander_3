@@ -187,15 +187,45 @@ public class GemTreeUI : MonoBehaviour
             if (child != null)
             {
                 RenderTree(child, positions);
-                CreateConnector(positions[node], positions[child]);
+
+                // [수정] 부모-자식 연결선 색상 세분화
+                Color lineColor;
+                if (node.Gem.BaseData.synergyGroup != GemSynergyGroup.Base &&
+                    node.Gem.BaseData.synergyGroup == child.Gem.BaseData.synergyGroup)
+                {
+                    // 1. 시너지 있음: 그룹 색상
+                    lineColor = GemSO.GetSynergyColor(node.Gem.BaseData.synergyGroup);
+                }
+                else
+                {
+                    // 2. 시너지 없음 (장착됨): 흰색
+                    lineColor = Color.white;
+                }
+                CreateConnector(positions[node], positions[child], lineColor);
+
                 accumulatedWidth += _subTreeWidths[child];
+
+                // [유지] 형제 노드(좌우) 시너지 체크: 시너지가 있을 때만 생성
+                if (i > 0)
+                {
+                    GemTreeNode leftSibling = node.Children[i - 1];
+                    if (leftSibling != null && 
+                        leftSibling.Gem.BaseData.synergyGroup != GemSynergyGroup.Base &&
+                        leftSibling.Gem.BaseData.synergyGroup == child.Gem.BaseData.synergyGroup)
+                    {
+                        CreateConnector(positions[leftSibling], positions[child], GemSO.GetSynergyColor(child.Gem.BaseData.synergyGroup));
+                    }
+                }
             }
             else
             {
                 float emptySlotWidth = nodeSpacing;
                 Vector2 childPos = new Vector2(startX + accumulatedWidth + emptySlotWidth / 2, positions[node].y + rowHeight);
                 CreateEmptySlotNode(childPos, node, i, depth + 1);
-                CreateConnector(positions[node], childPos);
+                
+                // [추가] 빈 슬롯과의 연결선도 기본 구조로 표시
+                CreateConnector(positions[node], childPos, new Color(0.5f, 0.5f, 0.5f, 0.15f));
+                
                 accumulatedWidth += emptySlotWidth;
             }
         }
@@ -231,7 +261,7 @@ public class GemTreeUI : MonoBehaviour
     {
         GameObject nodeObj = Instantiate(nodePrefab, treeContent);
         nodeObj.GetComponent<RectTransform>().anchoredPosition = pos;
-        var ui = nodeObj.GetComponent<GemNodeUI>();
+        var ui = nodeObj.GetComponent<RectTransform>().GetComponent<GemNodeUI>();
         if(ui != null)
         {
             ui.Setup(node, depth);
@@ -244,7 +274,7 @@ public class GemTreeUI : MonoBehaviour
     {
         GameObject nodeObj = Instantiate(nodePrefab, treeContent);
         nodeObj.GetComponent<RectTransform>().anchoredPosition = pos;
-        var ui = nodeObj.GetComponent<GemNodeUI>();
+        var ui = nodeObj.GetComponent<RectTransform>().GetComponent<GemNodeUI>();
         if(ui != null)
         {
             ui.SetupEmpty(parent, slotIdx, depth);
@@ -264,11 +294,16 @@ public class GemTreeUI : MonoBehaviour
         _spawnedUIElements.Add(lineObj);
     }
 
-    private void CreateConnector(Vector2 start, Vector2 end)
+    private void CreateConnector(Vector2 start, Vector2 end, Color color)
     {
         GameObject connObj = Instantiate(connectorPrefab, treeContent);
         connObj.transform.SetAsFirstSibling();
         var rect = connObj.GetComponent<RectTransform>();
+        
+        // [추가] 색상 적용
+        var img = connObj.GetComponent<Image>();
+        if (img != null) img.color = color;
+
         Vector2 mid = (start + end) / 2f;
         rect.anchoredPosition = mid;
         Vector2 dir = end - start;

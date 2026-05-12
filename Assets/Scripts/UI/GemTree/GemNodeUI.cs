@@ -31,10 +31,18 @@ public class GemNodeUI : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         _isEmptySlot = false;
 
         if (emptyVisual != null) emptyVisual.SetActive(false);
-        if (filledVisual != null) filledVisual.SetActive(true);
+        if (filledVisual != null) 
+        {
+            filledVisual.SetActive(true);
+            // [추가] 시너지 그룹에 따른 노드 배경색 변경
+            var bgImage = filledVisual.GetComponent<Image>();
+            if (bgImage != null)
+            {
+                bgImage.color = GemSO.GetSynergyColor(node.Gem.BaseData.synergyGroup);
+            }
+        }
         if (iconImage != null) iconImage.sprite = node.Gem.BaseData.icon;
         
-        // [수정] 젬 트리 노드에서 직업 텍스트를 더 이상 표시하지 않음
         if (jobText != null) jobText.gameObject.SetActive(false);
     }
 
