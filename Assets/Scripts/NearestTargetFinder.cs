@@ -35,8 +35,9 @@ public class NearestTargetFinder : MonoBehaviour
     public Transform FindNearest(float distance)
     {
         if(!canScan)
-            return null;
+            return nearestTarget;
 
+        canScan = false; // 스캔 후 플래그 리셋
         detectionRadius = distance;
         filter.SetLayerMask(targetLayer); // 현재 레이어 마스크 적용
 

@@ -301,6 +301,7 @@ public class ThrowController : MonoBehaviour
 
         _heldObjects.Clear();
         if (_input != null) _input.ResetCharging();
+        if (trajectoryPredictor != null) trajectoryPredictor.HideGuide();
     }
 
     public void ForceClear()

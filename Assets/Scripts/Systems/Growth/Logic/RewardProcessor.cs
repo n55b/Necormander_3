@@ -139,28 +139,16 @@ public static class RewardProcessor
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();
         
-        // 현재 플레이어가 슬롯에 가지고 있는 모든 직업 리스트 추출
-        HashSet<CommandData> playerJobs = new HashSet<CommandData>();
-        foreach(var slot in inven.Slots)
-        {
-            if (slot.EquippedLineage != null) playerJobs.Add(slot.EquippedLineage.jobType);
-        }
-
         foreach (var gem in gems)
         {
-            // [수정] 보석이 가진 플래그를 확인하여 플레이어 직업군에 맞는지 체크
-            foreach (var job in playerJobs)
-            {
-                if (gem.IsEligible(job))
-                {
-                    candidates.Add(new RewardCandidate { 
-                        displayData = gem.GetDynamicDisplayData(job), 
-                        rawData = gem, 
-                        category = RewardCategory.Gem,
-                        targetJob = job
-                    });
-                }
-            }
+            // [수정] 보석은 이제 전역 효과이므로, 특정 직업에 구애받지 않고 모든 보석을 후보에 포함합니다.
+            // 다만 내부 데이터 생성을 위해 기본 직업(SkeletonWarrior)을 사용하며, UI에는 직업이 노출되지 않도록 합니다.
+            candidates.Add(new RewardCandidate { 
+                displayData = gem.GetDynamicDisplayData(CommandData.SkeletonWarrior), 
+                rawData = gem, 
+                category = RewardCategory.Gem,
+                targetJob = CommandData.SkeletonWarrior // 내부 우회용 기본값
+            });
         }
         return candidates;
     }

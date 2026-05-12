@@ -79,20 +79,43 @@ public class ThrowImpactManager : MonoBehaviour
     {
         if (target == null) return;
         
-        // 1. 디버프 보석 효과 적용 (스택 부여)
-        if (recipe.modifiers.debuffStacks.Count > 0)
+        var status = target.GetComponentInChildren<CharacterStatus>();
+        if (status != null)
         {
-            var status = target.GetComponentInChildren<CharacterStatus>();
-            if (status != null)
+            // 1. 디버프 보석 효과 적용 (레시피 기반 - 기존 로직)
+            if (recipe.modifiers.debuffStacks.Count > 0)
             {
                 foreach (var kvp in recipe.modifiers.debuffStacks)
                 {
                     status.AddDebuffStack(kvp.Key, kvp.Value);
                 }
             }
+
+            // 2. [신규] 귀수 속성 부여 (전역 보석 효과)
+            if (InventoryManager.Instance != null)
+            {
+                foreach (var kvp in InventoryManager.Instance.GlobalGemStats.HandAttributes)
+                {
+                    if (kvp.Value > 0)
+                    {
+                        float amount = kvp.Value;
+                        status.AddDebuffStack(kvp.Key, amount);
+                    }
+                }
+
+                // [특수] 치명적인 독: 현재 부여된 독 스택을 2배로 올려줌 (리마크 기준)
+                if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.LethalPoison))
+                {
+                    int current = status.GetDebuffStack(DebuffStackType.Poison);
+                    if (current > 0)
+                    {
+                        status.AddDebuffStack(DebuffStackType.Poison, (float)current);
+                    }
+                }
+            }
         }
 
-        // 2. 기존 액션들 실행
+        // 3. 기존 액션들 실행
         foreach (var action in recipe.actions)
         {
             action.Execute(target, impactPos, travelDir, recipe);

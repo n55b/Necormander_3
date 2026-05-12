@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,14 +11,48 @@ public enum StatType
     ThrowEffect     // 던지기 능력 강화 (전사:데미지+, 궁수:범위+, 법사:횟수+, 기타:배율+)
 }
 
-/// <summary>
-/// 보석의 최상위 기반 클래스입니다.
-/// </summary>
-public abstract class GemSO : GrowthItemSO
+public enum GemUniqueType
 {
+    None = 0,
+    LethalPoison = 1,           // 치명적인 독 (중독 스택 2배)
+    LethalDose = 2,             // 독의 치사량 (틱 주기 단축)
+    AchingBones = 3,            // 시리고 아린 뼈 (동결 중 스택 방지 등)
+    SlowlyFreezingFlower = 4,   // 서서히 얼어붙는 꽃 (한기 최대치 증가)
+    ExplodingFlesh = 5,         // 살덩이가 폭발하는 것 (비폭 전이)
+    NoCountryForOldMen = 6      // 노인을 위한 나라는 없다 (노화 즉사)
+}
+
+public enum GemSynergyGroup
+{
+    Base,
+    Poison,
+    Chill,
+    Execution,
+    BloodPop,
+    Aging,
+    Corrosion
+}
+
+/// <summary>
+/// 보석의 최상위 클래스입니다. 이제 다형성 효과 리스트를 통해 다양한 기능을 수행합니다.
+/// </summary>
+[CreateAssetMenu(fileName = "NewGem", menuName = "Necromancer/Growth/Gem - Unified")]
+public class GemSO : GrowthItemSO
+{
+    [Header("시너지 분류")]
+    public GemSynergyGroup synergyGroup = GemSynergyGroup.Base;
+
+    [Header("트리 구조 설정")]
+    [Tooltip("이 보석이 트리에서 제공하는 하위 슬롯 개수입니다.")]
+    public int subSlots = 1;
+
     [Header("직업 타겟팅")]
     [Tooltip("이 보석을 장착할 수 있는 직업들을 선택하세요.")]
     public MinionJobFlags eligibleJobs = MinionJobFlags.All;
+
+    [Header("보석 효과 목록")]
+    [SerializeReference]
+    public List<GemEffect> effects = new List<GemEffect>();
 
     public bool IsEligible(CommandData job)
     {
@@ -27,10 +62,47 @@ public abstract class GemSO : GrowthItemSO
         return ((int)eligibleJobs & jobBit) != 0;
     }
 
-    public abstract GrowthItemData GetDynamicDisplayData(CommandData job);
+    public GrowthItemData GetDynamicDisplayData(CommandData job)
+    {
+        // [수정] 이제 직업 이름 대신 보석의 시너지 그룹을 표시합니다.
+        string groupName = synergyGroup.ToString();
+        string finalDesc = string.IsNullOrEmpty(description) ? "" : description;
+        
+        if (effects != null && effects.Count > 0)
+        {
+            finalDesc += "\n<color=yellow>";
+            foreach (var effect in effects)
+            {
+                if (effect != null)
+                {
+                    string desc = effect.GetDescription();
+                    if (!string.IsNullOrEmpty(desc)) finalDesc += $"\n- {desc}";
+                }
+            }
+            finalDesc += "</color>";
+        }
+
+        return new GrowthItemData {
+            itemName = $"[{groupName}] {itemName}",
+            description = finalDesc,
+            icon = this.icon,
+            rarity = this.rarity
+        };
+    }
 
     /// <summary>
-    /// 이 보석이 제공하는 모든 스탯 변경자(StatModifier) 목록을 반환합니다.
+    /// 하위 호환성을 위해 StatModifier 목록을 반환합니다. (기존 시스템 대응용)
     /// </summary>
-    public abstract List<StatModifier> GetStatModifiers();
+    public List<StatModifier> GetStatModifiers()
+    {
+        List<StatModifier> modifiers = new List<StatModifier>();
+        foreach (var effect in effects)
+        {
+            if (effect is GemStatEffect statEffect)
+            {
+                modifiers.Add(new StatModifier(statEffect.statType, statEffect.value));
+            }
+        }
+        return modifiers;
+    }
 }

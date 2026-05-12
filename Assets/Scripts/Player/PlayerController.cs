@@ -67,6 +67,28 @@ public class PlayerController : MonoBehaviour
         if (stat != null)
         {
             stat.Setup();
+            // [추가] 플레이어 피격 시 들고 있는 미니언 낙하 로직 연결
+            if (stat.Health != null)
+            {
+                stat.Health.OnDamageTaken += HandleDamageTaken;
+            }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (stat != null && stat.Health != null)
+        {
+            stat.Health.OnDamageTaken -= HandleDamageTaken;
+        }
+    }
+
+    private void HandleDamageTaken(float damage)
+    {
+        // 데미지가 0보다 클 경우(실제 피해를 입었을 경우)에만 낙하
+        if (damage > 0 && throwController != null)
+        {
+            throwController.DropAll();
         }
     }
 

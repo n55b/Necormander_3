@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
+  m_Name: Gem_Unique_AchingBones
+  m_EditorClassIdentifier: 
+  itemName: Aching Bones
+  description: Applies extra Chill stacks to frozen enemies.
+  icon: {fileID: 0}
+  rarity: 2
+  synergyGroup: 2
+  subSlots: 0
+  eligibleJobs: -1
+  effects:
+  - rid: 2006
+  references:
+    version: 2
+    RefIds:
+    - rid: 2006
+      type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
+      data:
+        uniqueType: 0
+        displayDescription: Chill stacks start at 10 upon freezing. Stacks cannot
+          be added while frozen.

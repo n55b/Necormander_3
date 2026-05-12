@@ -63,6 +63,7 @@ public class InventoryManager : MonoBehaviour
     public GemTreeNode GemTreeRoot { get; private set; }
     private Dictionary<string, GemTreeNode> _gemNodeIndex; 
     private Dictionary<CommandData, GemAggregatedStats> _jobGemStats = new Dictionary<CommandData, GemAggregatedStats>();
+    private GemAggregatedStats _globalGemStats = new GemAggregatedStats(); // [추가] 전역 합산 스탯
     public List<GemInstance> AvailableGemInstances { get; private set; } = new List<GemInstance>(); 
     [SerializeField] private GemSO _defaultRootGemSO; 
 
@@ -72,7 +73,11 @@ public class InventoryManager : MonoBehaviour
         public float HealthBonus = 0f;
         public float AttackSpeedBonus = 0f;
         public float RespawnTimeBonus = 0f;
-        public Dictionary<DebuffStackType, float> AggregatedDebuffStacks = new Dictionary<DebuffStackType, float>();
+        
+        // [신규] 속성 및 특수 효과 합산
+        public Dictionary<DebuffStackType, float> WeaponAttributes = new Dictionary<DebuffStackType, float>();
+        public Dictionary<DebuffStackType, float> HandAttributes = new Dictionary<DebuffStackType, float>();
+        public HashSet<GemUniqueType> UniqueEffects = new HashSet<GemUniqueType>();
 
         public void Clear()
         {
@@ -80,7 +85,9 @@ public class InventoryManager : MonoBehaviour
             HealthBonus = 0f;
             AttackSpeedBonus = 0f;
             RespawnTimeBonus = 0f;
-            AggregatedDebuffStacks.Clear();
+            WeaponAttributes.Clear();
+            HandAttributes.Clear();
+            UniqueEffects.Clear();
         }
     }
 
@@ -108,6 +115,7 @@ public class InventoryManager : MonoBehaviour
     {
         _gemNodeIndex = new Dictionary<string, GemTreeNode>();
         _jobGemStats.Clear();
+        _globalGemStats.Clear(); // [추가]
 
         if (_defaultRootGemSO == null)
         {
@@ -133,6 +141,8 @@ public class InventoryManager : MonoBehaviour
     private void RecalculateGemTreeStats()
     {
         foreach (var stats in _jobGemStats.Values) stats.Clear();
+        _globalGemStats.Clear();
+
         if (GemTreeRoot == null) return;
 
         Queue<GemTreeNode> nodesToVisit = new Queue<GemTreeNode>();
@@ -141,23 +151,28 @@ public class InventoryManager : MonoBehaviour
         while (nodesToVisit.Count > 0)
         {
             GemTreeNode currentNode = nodesToVisit.Dequeue();
-            if (currentNode.Gem != null)
+            if (currentNode.Gem != null && currentNode.Gem.BaseData != null)
             {
                 CommandData job = currentNode.Gem.TargetJob;
                 if (!_jobGemStats.ContainsKey(job)) _jobGemStats[job] = new GemAggregatedStats();
+                
                 GemAggregatedStats targetStats = _jobGemStats[job];
 
-                foreach (var modifier in currentNode.Gem.BaseData.GetStatModifiers())
-                    ApplyStatModifier(targetStats, modifier);
-
-                foreach (var modifier in currentNode.Gem.RandomModifiers)
-                    ApplyStatModifier(targetStats, modifier);
-
-                if (currentNode.Gem.BaseData is GemDebuffSO debuffGem)
+                // [수정] 젬의 효과를 다형성을 통해 적용
+                foreach (var effect in currentNode.Gem.BaseData.effects)
                 {
-                    if (!targetStats.AggregatedDebuffStacks.ContainsKey(debuffGem.targetDebuffType))
-                        targetStats.AggregatedDebuffStacks[debuffGem.targetDebuffType] = 0f;
-                    targetStats.AggregatedDebuffStacks[debuffGem.targetDebuffType] += debuffGem.baseDebuffStack;
+                    if (effect != null)
+                    {
+                        effect.Apply(targetStats);
+                        effect.Apply(_globalGemStats);
+                    }
+                }
+
+                // 무작위 변수 처리 (StatModifier 기반)
+                foreach (var modifier in currentNode.Gem.RandomModifiers)
+                {
+                    ApplyStatModifier(targetStats, modifier);
+                    ApplyStatModifier(_globalGemStats, modifier);
                 }
 
                 foreach (var child in currentNode.Children)
@@ -180,24 +195,45 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
+    // --- 신규 젬 효과 쿼리 메서드 ---
+
+    public float GetWeaponAttribute(DebuffStackType type)
+    {
+        return _globalGemStats.WeaponAttributes.TryGetValue(type, out float val) ? val : 0f;
+    }
+
+    public float GetHandAttribute(DebuffStackType type)
+    {
+        return _globalGemStats.HandAttributes.TryGetValue(type, out float val) ? val : 0f;
+    }
+
+    public bool HasUniqueEffect(GemUniqueType type)
+    {
+        return _globalGemStats.UniqueEffects.Contains(type);
+    }
+
     public float GetAggregatedGemBonus(CommandData job, StatType type)
     {
-        if (!_jobGemStats.TryGetValue(job, out var stats)) return 0f;
+        // [수정] job 파라미터를 무시하고 전역 합산 스탯을 반환하여 모든 미니언에게 동일 적용
         switch (type)
         {
-            case StatType.Attack: return stats.AttackBonus;
-            case StatType.Health: return stats.HealthBonus;
-            case StatType.AttackSpeed: return stats.AttackSpeedBonus;
-            case StatType.RespawnTime: return stats.RespawnTimeBonus;
+            case StatType.Attack: return _globalGemStats.AttackBonus;
+            case StatType.Health: return _globalGemStats.HealthBonus;
+            case StatType.AttackSpeed: return _globalGemStats.AttackSpeedBonus;
+            case StatType.RespawnTime: return _globalGemStats.RespawnTimeBonus;
             default: return 0f;
         }
     }
 
     public GemAggregatedStats GetJobGemStats(CommandData job)
     {
+        // UI 등에서 여전히 직업별로 구분된 데이터를 보고 싶을 수 있으므로 유지
         if (_jobGemStats.TryGetValue(job, out var stats)) return stats;
         return null;
     }
+
+    // 전역 스탯 게터 추가
+    public GemAggregatedStats GlobalGemStats => _globalGemStats;
 
     public bool SocketGem(string parentNodeId, int slotIndex, GemInstance gemToSocket)
     {
@@ -240,11 +276,16 @@ public class InventoryManager : MonoBehaviour
     public void AddGemToAvailable(GemSO gemData, CommandData targetJob)
     {
         if (gemData == null) return;
+        
+        // [수정] 직업 적합성 체크 우회 (모든 젬은 모든 직업 노드에 장착 가능하거나, 무시됨)
+        /*
         if (!gemData.IsEligible(targetJob))
         {
             Debug.LogError($"<color=red>[InventoryManager]</color> Generation Failed: {gemData.itemName} not eligible for {targetJob}.");
             return;
         }
+        */
+
         if (!HasJobInSlots(targetJob))
         {
             Debug.LogError($"<color=red>[InventoryManager]</color> Generation Failed: Player does not own {targetJob}.");

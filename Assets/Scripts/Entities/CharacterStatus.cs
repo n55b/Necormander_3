@@ -71,11 +71,23 @@ public class CharacterStatus : MonoBehaviour
             }
         }
 
+        UpdatePoisonTick(dt);
+    }
+
+    private void UpdatePoisonTick(float dt)
+    {
         int poisonStack = GetDebuffStack(DebuffStackType.Poison);
         if (poisonStack > 0)
         {
+            float interval = POISON_INTERVAL;
+            // [특수] 독의 치사량: 틱 횟수 증가 (인터벌 절반)
+            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.LethalDose))
+            {
+                interval *= 0.5f;
+            }
+
             _poisonTimer += dt;
-            if (_poisonTimer >= POISON_INTERVAL)
+            if (_poisonTimer >= interval)
             {
                 _poisonTimer = 0f;
                 var health = GetComponentInChildren<CharacterHealth>();
@@ -130,19 +142,85 @@ public class CharacterStatus : MonoBehaviour
 
     public void AddDebuffStack(DebuffStackType type, float amount)
     {
+        // [특수] 시리고 아린 뼈: 동결 상태에서는 스택 추가되지 않음
+        if (type == DebuffStackType.Chill && GetDebuffBool(DebuffBoolType.Frozen))
+        {
+            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.AchingBones))
+                return;
+        }
+
         if (!_debuffStacks.ContainsKey(type)) _debuffStacks[type] = 0f;
         _debuffStacks[type] += amount;
 
         _stackTimers[type] = STACK_DURATION;
-        Debug.Log($"<color=green>[Debuff]</color> {gameObject.name}: {type} 스택 {GetDebuffStack(type)} 부여 (총 {Mathf.FloorToInt(_debuffStacks[type])} / {STACK_DURATION}s)");
+        
+        float maxStack = GetMaxStack(type);
+        _debuffStacks[type] = Mathf.Min(_debuffStacks[type], maxStack);
 
+        // [로그 강화] 디버프 종류별 색상 지정
+        string color = "white";
         switch (type)
         {
-            case DebuffStackType.Poison: _debuffStacks[type] = Mathf.Min(_debuffStacks[type], 20f); break;
+            case DebuffStackType.Poison: color = "#32CD32"; break; // LimeGreen
+            case DebuffStackType.Chill: color = "#00BFFF"; break; // DeepSkyBlue
+            case DebuffStackType.Execute: color = "#FF4500"; break; // OrangeRed
+            case DebuffStackType.BloodPop: color = "#FF00FF"; break; // Magenta
+            case DebuffStackType.Aging: color = "#BC8F8F"; break; // RosyBrown
+            case DebuffStackType.Corroded: color = "#FFD700"; break; // Gold
+        }
+
+        Debug.Log($"<color={color}>[Debuff]</color> <b>{gameObject.name}</b>: {type} +{amount:F1} (Current: <b>{_debuffStacks[type]:F1}/{maxStack}</b>)");
+
+        HandleStackTrigger(type);
+    }
+
+    private float GetMaxStack(DebuffStackType type)
+    {
+        switch (type)
+        {
+            case DebuffStackType.Poison: return 20f;
+            case DebuffStackType.Chill: 
+                float baseChill = 20f;
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.SlowlyFreezingFlower))
+                    baseChill += 10f;
+                return baseChill;
+            case DebuffStackType.Aging: 
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.NoCountryForOldMen))
+                    return 100f;
+                return 25f;
+            case DebuffStackType.BloodPop: return 1000f; 
+            case DebuffStackType.Execute: return 1000f;
+            default: return 999f;
+        }
+    }
+
+    private void HandleStackTrigger(DebuffStackType type)
+    {
+        switch (type)
+        {
             case DebuffStackType.Chill:
-                if (_debuffStacks[type] >= 20f) { SetDebuffBool(DebuffBoolType.Frozen, 3.0f); _debuffStacks[type] = 10f; _stackTimers[type] = STACK_DURATION; }
+                float threshold = GetMaxStack(DebuffStackType.Chill);
+                if (_debuffStacks[type] >= threshold)
+                {
+                    SetDebuffBool(DebuffBoolType.Frozen, 3.0f);
+                    
+                    float resetStacks = 10f;
+                    // [특수] 시리고 아린 뼈: 동결 시 한기 스택이 10부터 시작
+                    _debuffStacks[type] = resetStacks;
+                    _stackTimers[type] = STACK_DURATION;
+                }
                 break;
-            case DebuffStackType.Aging: _debuffStacks[type] = Mathf.Min(_debuffStacks[type], 25f); break;
+            case DebuffStackType.Aging:
+                // [특수] 노인을 위한 나라는 없다: 100스택 시 즉사
+                if (_debuffStacks[type] >= 100f && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.NoCountryForOldMen))
+                {
+                    if (!CompareTag("Boss")) 
+                    {
+                        var health = GetComponentInChildren<CharacterHealth>();
+                        if (health != null) health.GetDamage(new DamageInfo(health.CurHP + 999f, DamageType.Fixed, null));
+                    }
+                }
+                break;
         }
     }
 

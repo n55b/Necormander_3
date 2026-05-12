@@ -33,7 +33,9 @@ public class GemNodeUI : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         if (emptyVisual != null) emptyVisual.SetActive(false);
         if (filledVisual != null) filledVisual.SetActive(true);
         if (iconImage != null) iconImage.sprite = node.Gem.BaseData.icon;
-        if (jobText != null) jobText.text = node.Gem.TargetJob.ToString();
+        
+        // [수정] 젬 트리 노드에서 직업 텍스트를 더 이상 표시하지 않음
+        if (jobText != null) jobText.gameObject.SetActive(false);
     }
 
     public void SetupEmpty(GemTreeNode parent, int slotIdx, int depth)
