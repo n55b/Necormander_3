@@ -6,7 +6,7 @@ using TMPro;
 /// <summary>
 /// 인벤토리 목록의 개별 보석 아이템을 관리하고 드래그 기능을 제공합니다.
 /// </summary>
-public class GemInventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class GemInventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
     // [추가] 모든 인스턴스가 공유하는 현재 드래그 중인 고스트 참조
     private static GameObject _currentDragGhost;
@@ -31,6 +31,24 @@ public class GemInventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler
         if (jobText != null) jobText.gameObject.SetActive(false);
         
         _canvas = GetComponentInParent<Canvas>();
+    }
+
+    // --- 툴팁 핸들러 ---
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (GemTooltipUI.Instance != null && _gem != null)
+        {
+            GemTooltipUI.Instance.Show(_gem);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (GemTooltipUI.Instance != null)
+        {
+            GemTooltipUI.Instance.Hide();
+        }
     }
 
     // --- 드래그 핸들러 ---

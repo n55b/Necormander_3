@@ -49,22 +49,35 @@ public class GemNodeUI : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoi
         if (jobText != null) jobText.text = "";
     }
 
-    // --- 마우스 피드백 (Highlight) ---
+    // --- 마우스 피드백 (Highlight & Tooltip) ---
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        // 드래그 중일 때만 빈 슬롯을 하이라이트
+        // 1. 드래그 중일 때 빈 슬롯 하이라이트
         if (_isEmptySlot && eventData.dragging && highlightOverlay != null)
         {
             highlightOverlay.gameObject.SetActive(true);
+        }
+
+        // 2. 보석이 장착된 노드일 때 툴팁 표시
+        if (!_isEmptySlot && _nodeData != null && _nodeData.Gem != null && GemTooltipUI.Instance != null)
+        {
+            GemTooltipUI.Instance.Show(_nodeData.Gem);
         }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        // 하이라이트 해제
         if (highlightOverlay != null)
         {
             highlightOverlay.gameObject.SetActive(false);
+        }
+
+        // 툴팁 숨기기
+        if (GemTooltipUI.Instance != null)
+        {
+            GemTooltipUI.Instance.Hide();
         }
     }
 

@@ -10,13 +10,14 @@ public class GemTreeUI : MonoBehaviour
     [SerializeField] private GameObject mainPanel;
     [SerializeField] private Transform inventoryContainer;
     [SerializeField] private RectTransform treeContent;
-    [SerializeField] private GemSynergyDisplayUI synergyDisplay; // [추가] 시너지 디스플레이 참조
+    [SerializeField] private GemSynergyDisplayUI synergyDisplay; 
 
     [Header("Prefabs")]
     [SerializeField] private GameObject inventorySlotPrefab;
     [SerializeField] private GameObject nodePrefab;
     [SerializeField] private GameObject connectorPrefab;
     [SerializeField] private GameObject floorLinePrefab;
+    [SerializeField] private GameObject tooltipPrefab; // [추가] 툴팁 프리팹
 
     [Header("Tree Layout Settings")]
     [SerializeField] private float rowHeight = 200f;
@@ -37,6 +38,12 @@ public class GemTreeUI : MonoBehaviour
     {
         Instance = this;
         if (mainPanel != null) mainPanel.SetActive(false);
+
+        // [추가] 툴팁 프리팹 소환
+        if (tooltipPrefab != null)
+        {
+            Instantiate(tooltipPrefab, transform.parent); // Canvas 하위에 생성
+        }
     }
 
     private void Update()
@@ -49,17 +56,12 @@ public class GemTreeUI : MonoBehaviour
         _isOpen = !_isOpen;
         mainPanel.SetActive(_isOpen);
         if (_isOpen) RefreshUI();
-        // TODO: 게임 일시정지 및 커서 로직 추가
     }
 
     public void RefreshUI()
     {
-        // [재수정] 어떤 경우에도 살아남는 잔상(Ghost)을 확실하게 제거하는 최종 코드
         var ghost = GameObject.Find("GemDragGhost");
-        if (ghost != null)
-        {
-            Destroy(ghost);
-        }
+        if (ghost != null) Destroy(ghost);
 
         ClearUI();
         if (InventoryManager.Instance == null) return;
@@ -74,7 +76,7 @@ public class GemTreeUI : MonoBehaviour
             DrawFloorLines(nodePositions);
         }
 
-        // [추가] 시너지 리스트 갱신
+        // 시너지 리스트 갱신
         if (synergyDisplay != null)
         {
             synergyDisplay.RefreshSynergyList();
