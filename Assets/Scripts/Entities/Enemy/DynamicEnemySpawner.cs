@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 
 public enum SpawnType
 {
@@ -33,6 +34,11 @@ public class DynamicEnemySpawner : MonoBehaviour
 
     [Header("Visual Debug")]
     [SerializeField] private bool showGizmos = true;
+
+    [Header("Unity Event")]
+    [SerializeField] private UnityEvent InRoomEvent;
+    [SerializeField] private UnityEvent OutRoomEvent;
+    [SerializeField] private UnityEvent<Vector3> EliteRoomEvent;
 
     private List<MinionDataSO> _enemyDataList = new List<MinionDataSO>();
     private List<GameObject> _activeEnemies = new List<GameObject>();
@@ -69,37 +75,46 @@ public class DynamicEnemySpawner : MonoBehaviour
     {
         if (_playerTransform == null || _enemyDataList == null || _enemyDataList.Count == 0) return;
 
-        // [추가] 클리어 체크 (보상 지급)
+        // --- [1] 클리어 체크 및 보상 로직 ---
         if (_isTriggered && !_rewardGiven && spawnType == SpawnType.Encounter)
         {
             _activeEnemies.RemoveAll(item => item == null);
             if (_activeEnemies.Count == 0)
             {
-                _rewardGiven = true;
+                _rewardGiven = true; // 이제 이 방은 '클리어' 상태입니다.
 
-                // [사용자 요청] 클리어 시 미니언 증발 처리 후 보상 요청
-                if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+                // 아군 미니언 정리 및 보상 요청
+                if (GameManager.Instance?.PLAYERCONTROLLER != null)
                 {
                     var allyManager = GameManager.Instance.PLAYERCONTROLLER.GetComponent<AllyManager>();
-                    if (allyManager != null)
-                    {
-                        Debug.Log("<color=yellow>[Spawner]</color> Wave Cleared! Evaporating minions before reward.");
-                        allyManager.ClearAll();
-                    }
+                    allyManager?.ClearAll();
                 }
 
-                if (RewardManager.Instance != null) RewardManager.Instance.RequestClearReward(roomType);
+                if (RewardManager.Instance != null)
+                    RewardManager.Instance.RequestClearReward(roomType);
+
+                OutRoomEvent?.Invoke(); // 문 열림 등 퇴장 이벤트
+                Debug.Log("<color=green>[Spawner]</color> Room Cleared! Events reset disabled.");
             }
         }
 
+        // --- [2] 플레이어 감지 및 실행 로직 ---
         float distanceToPlayer = Vector2.Distance(transform.position, _playerTransform.position);
 
         if (distanceToPlayer <= activationRange)
         {
+            // 이미 보상을 받았다면(클리어했다면) 더 이상 아무것도 하지 않음
+            if (_rewardGiven) return;
+
             if (spawnType == SpawnType.Encounter)
             {
-                // 아직 발동되지 않았을 때만 실행
-                if (!_isTriggered) TriggerEncounter();
+                // 발동되지 않은 상태에서만 트리거 실행
+                if (!_isTriggered)
+                {
+                    // 진입 이벤트 실행 (여기서 실행하면 딱 한 번만 터집니다)
+                    InRoomEvent?.Invoke();
+                    TriggerEncounter();
+                }
             }
             else
             {
@@ -108,12 +123,10 @@ public class DynamicEnemySpawner : MonoBehaviour
         }
         else
         {
-            // [추가] 플레이어가 감지 범위를 벗어났을 때
-            // triggerOnlyOnce가 꺼져있다면 다음에 다시 들어왔을 때 재발동 가능하도록 리셋
-            if (spawnType == SpawnType.Encounter && _isTriggered && !triggerOnlyOnce)
+            // 플레이어가 범위를 벗어났을 때 (아직 클리어 전이라면) 다시 리셋할지 여부
+            if (spawnType == SpawnType.Encounter && _isTriggered && !triggerOnlyOnce && !_rewardGiven)
             {
                 _isTriggered = false;
-                Debug.Log($"<color=yellow>[Spawner]</color> {gameObject.name} 리셋됨 (재발동 가능)");
             }
         }
     }
@@ -127,10 +140,9 @@ public class DynamicEnemySpawner : MonoBehaviour
     private void TriggerEncounter()
     {
         _isTriggered = true;
-        Debug.Log($"<color=red>[Encounter]</color> Ambush! Spawning {groupsCount} groups randomly.");
 
-        // [사용자 요청] 새로운 적 조우 시 부대 재소환
-        if (GameManager.Instance != null && GameManager.Instance.squadSpawner != null)
+        // 부대 갱신 및 스폰 로직만 수행
+        if (GameManager.Instance?.squadSpawner != null)
         {
             GameManager.Instance.squadSpawner.RefreshFullSquad();
         }
@@ -155,7 +167,7 @@ public class DynamicEnemySpawner : MonoBehaviour
             {
                 spawnPos = hit.position;
                 MinionDataSO data = GetRandomEnemyData();
-                
+
                 // [수정] 조립은 DataManager에게 맡김
                 GameObject enemyObj = GameManager.Instance.dataManager.CreateUnit(data, spawnPos);
                 if (enemyObj != null)
@@ -163,6 +175,12 @@ public class DynamicEnemySpawner : MonoBehaviour
                     _activeEnemies.Add(enemyObj);
                 }
             }
+        }
+
+        // 엘리트 보스 귀찮으니까 일단 여기서 소환
+        if(roomType == RoomType.Elite)
+        {
+            EliteRoomEvent?.Invoke(center);
         }
     }
 
@@ -181,7 +199,7 @@ public class DynamicEnemySpawner : MonoBehaviour
             {
                 spawnPos = hit.position;
                 MinionDataSO data = GetRandomEnemyData();
-                
+
                 // [수정] 조립은 DataManager에게 맡김
                 GameObject enemyObj = GameManager.Instance.dataManager.CreateUnit(data, spawnPos);
                 if (enemyObj != null)
@@ -192,7 +210,7 @@ public class DynamicEnemySpawner : MonoBehaviour
             }
             else
             {
-                _spawnTimer = spawnInterval * 0.8f; 
+                _spawnTimer = spawnInterval * 0.8f;
             }
         }
     }
