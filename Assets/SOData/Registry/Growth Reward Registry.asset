@@ -20,11 +20,40 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d2b24f1249fc5f447a65218055c12665, type: 2}
   - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
   gems:
-  - {fileID: 11400000, guid: a00e3bef20fa22845aece79240983907, type: 2}
-  - {fileID: 11400000, guid: c87296d078b901b43aff65ab1acb0b54, type: 2}
-  - {fileID: 11400000, guid: 7c38ee95ff23f644fbb2cdc34ea72bb4, type: 2}
-  - {fileID: 11400000, guid: 69a3294c65e05a3458bd9569440c2b14, type: 2}
-  - {fileID: 11400000, guid: eb1a498a81c6a5144afcaa02b23d9818, type: 2}
+  - {fileID: 11400000, guid: f49a0337b306f2946a6d38d9cab045ef, type: 2}
+  - {fileID: 11400000, guid: b46d7dfa712576342a4cabfeaef11b21, type: 2}
+  - {fileID: 11400000, guid: bce38342bf6176245914307d471e4ba1, type: 2}
+  - {fileID: 11400000, guid: a764a3eb7313145489c8a31e34740133, type: 2}
+  - {fileID: 11400000, guid: 18a749239a9053f4f931f4b80860d5ed, type: 2}
+  - {fileID: 11400000, guid: bce3f10add6e66b4d9ebf29afcd35638, type: 2}
+  - {fileID: 11400000, guid: 87e7260bead92f545aa299410bef22e8, type: 2}
+  - {fileID: 11400000, guid: ac1fd43810cab40418ce0e5131fd2c4e, type: 2}
+  - {fileID: 11400000, guid: 6fb66a4ed53c00c42b4d993f2a48fe92, type: 2}
+  - {fileID: 11400000, guid: bf87671410028df47b2745a141ddd89d, type: 2}
+  - {fileID: 11400000, guid: bd732fd81d44c3544beccfd11891eab3, type: 2}
+  - {fileID: 11400000, guid: 2eeb347b0493f264a99b919187701614, type: 2}
+  - {fileID: 11400000, guid: ed16be86daa15e7438fc0ab5d4628b03, type: 2}
+  - {fileID: 11400000, guid: 5670da5cc38ee8b448a9511eae45d907, type: 2}
+  - {fileID: 11400000, guid: 4d46cfbba583c1f46860bc0efa1cc1ef, type: 2}
+  - {fileID: 11400000, guid: a155f0b57089b0f45b3006a7f6605c4c, type: 2}
+  - {fileID: 11400000, guid: acc005324a9e4f3478063edd86765f73, type: 2}
+  - {fileID: 11400000, guid: 9c0dbc350b687e045ab22a7293d21b09, type: 2}
+  - {fileID: 11400000, guid: da1fcf3a86863834798c882a4e5a5856, type: 2}
+  - {fileID: 11400000, guid: d26a38479811bcb419d9090d20d19757, type: 2}
+  - {fileID: 11400000, guid: b27fce08d5a0b9b4db0a64a0e79e3e74, type: 2}
+  - {fileID: 11400000, guid: 8a6a1b0b21205aa42b6582ca6e651ee7, type: 2}
+  - {fileID: 11400000, guid: 957feffd63a77ae4cb13b1bdfc58fc19, type: 2}
+  - {fileID: 11400000, guid: 76c6cdb8e23ea5342be880b6f838560e, type: 2}
+  - {fileID: 11400000, guid: 42dfaf8b2344f5c439c8022a10dea56e, type: 2}
+  - {fileID: 11400000, guid: 11af96e45f9222f499822e13f81a8d5d, type: 2}
+  - {fileID: 11400000, guid: 46a9bbc797c1a8c4680d6c5e8a81a370, type: 2}
+  - {fileID: 11400000, guid: ca8aecde69d0989469666d9df5de3682, type: 2}
+  - {fileID: 11400000, guid: 163b1f2ce5bcb714e8808c3b7db359e4, type: 2}
+  - {fileID: 11400000, guid: a6d62e9e7c5a08a47852b81fb4111961, type: 2}
+  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+  - {fileID: 11400000, guid: fd7d0461898c75b41a5a9ae9b551e95b, type: 2}
+  - {fileID: 11400000, guid: 0d375b28527a0784c92a4c7c55c9b590, type: 2}
+  - {fileID: 11400000, guid: 606a3783d03167a4189f80b08c88fd54, type: 2}
   treasures:
   - {fileID: 11400000, guid: 4eaa41374a0592a43a6926f9626fc7db, type: 2}
   - {fileID: 11400000, guid: 860704422158d794d97eb3a850fca8f5, type: 2}

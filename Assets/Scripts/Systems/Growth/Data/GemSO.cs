@@ -22,12 +22,26 @@ public enum GemUniqueType
     NoCountryForOldMen = 6      // 노인을 위한 나라는 없다 (노화 즉사)
 }
 
+public enum GemSynergyGroup
+{
+    Base,
+    Poison,
+    Chill,
+    Execution,
+    BloodPop,
+    Aging,
+    Corrosion
+}
+
 /// <summary>
 /// 보석의 최상위 클래스입니다. 이제 다형성 효과 리스트를 통해 다양한 기능을 수행합니다.
 /// </summary>
 [CreateAssetMenu(fileName = "NewGem", menuName = "Necromancer/Growth/Gem - Unified")]
 public class GemSO : GrowthItemSO
 {
+    [Header("시너지 분류")]
+    public GemSynergyGroup synergyGroup = GemSynergyGroup.Base;
+
     [Header("트리 구조 설정")]
     [Tooltip("이 보석이 트리에서 제공하는 하위 슬롯 개수입니다.")]
     public int subSlots = 1;
@@ -50,21 +64,26 @@ public class GemSO : GrowthItemSO
 
     public GrowthItemData GetDynamicDisplayData(CommandData job)
     {
-        string jobName = job.ToString().Replace("Skeleton", "");
-        string finalDesc = description;
+        // [수정] 이제 직업 이름 대신 보석의 시너지 그룹을 표시합니다.
+        string groupName = synergyGroup.ToString();
+        string finalDesc = string.IsNullOrEmpty(description) ? "" : description;
         
-        if (effects.Count > 0)
+        if (effects != null && effects.Count > 0)
         {
             finalDesc += "\n<color=yellow>";
             foreach (var effect in effects)
             {
-                if (effect != null) finalDesc += $"\n- {effect.GetDescription()}";
+                if (effect != null)
+                {
+                    string desc = effect.GetDescription();
+                    if (!string.IsNullOrEmpty(desc)) finalDesc += $"\n- {desc}";
+                }
             }
             finalDesc += "</color>";
         }
 
         return new GrowthItemData {
-            itemName = $"[{jobName}] {itemName}",
+            itemName = $"[{groupName}] {itemName}",
             description = finalDesc,
             icon = this.icon,
             rarity = this.rarity

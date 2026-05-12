@@ -160,24 +160,37 @@ public abstract class BaseEntity : MonoBehaviour
     // 공격 실행 시 호출 (각 유닛의 특수 공격 로직은 여기서 구현)
     public virtual void ExecuteAttack(Transform target)
     {
-        if (target != null)
-        {
-            CharacterStat targetStat = target.GetComponentInChildren<CharacterStat>();
-            if (targetStat != null)
-            {
-                // [수정] 직접 Health 담당자에게 명령
-                DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject);
-                targetStat.Health.GetDamage(info);
+        if (target == null) return;
 
-                // [추가] 무기 속성 부여 (보석 효과)
-                if (team == Team.Ally && InventoryManager.Instance != null)
+        // [수정] 플레이어가 미니언을 들고 있을 때 등을 고려하여 robust하게 Stat을 찾습니다.
+        CharacterStat targetStat = target.GetComponent<CharacterStat>();
+        if (targetStat == null)
+        {
+            int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+            foreach (var s in target.GetComponentsInChildren<CharacterStat>())
+            {
+                if (s.gameObject.layer != flyingLayer)
                 {
-                    foreach (var kvp in InventoryManager.Instance.GlobalGemStats.WeaponAttributes)
+                    targetStat = s;
+                    break;
+                }
+            }
+        }
+
+        if (targetStat != null)
+        {
+            // [수정] 직접 Health 담당자에게 명령
+            DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject);
+            targetStat.Health.GetDamage(info);
+
+            // [추가] 무기 속성 부여 (보석 효과)
+            if (team == Team.Ally && InventoryManager.Instance != null)
+            {
+                foreach (var kvp in InventoryManager.Instance.GlobalGemStats.WeaponAttributes)
+                {
+                    if (kvp.Value > 0)
                     {
-                        if (kvp.Value > 0)
-                        {
-                            targetStat.Status.AddDebuffStack(kvp.Key, kvp.Value);
-                        }
+                        targetStat.Status.AddDebuffStack(kvp.Key, kvp.Value);
                     }
                 }
             }

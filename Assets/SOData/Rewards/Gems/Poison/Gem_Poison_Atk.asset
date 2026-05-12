@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
   m_Name: Gem_Poison_Atk
   m_EditorClassIdentifier: 
-  itemName: "Contaminated Attack Gem"
-  description: "Increases minion's attack power."
+  itemName: Contaminated Attack Gem
+  description: Increases minion's attack power.
   icon: {fileID: 0}
   rarity: 1
+  synergyGroup: 1
   subSlots: 1
   eligibleJobs: -1
   effects:

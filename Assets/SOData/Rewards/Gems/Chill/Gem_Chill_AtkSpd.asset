@@ -3,12 +3,22 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
   m_Name: Gem_Chill_AtkSpd
-  itemName: "Cold Attack Speed Gem"
-  description: "Increases minion's attack speed."
+  m_EditorClassIdentifier: 
+  itemName: Cold Attack Speed Gem
+  description: Increases minion's attack speed.
+  icon: {fileID: 0}
   rarity: 1
+  synergyGroup: 2
   subSlots: 1
+  eligibleJobs: -1
   effects:
   - rid: 2005
   references:

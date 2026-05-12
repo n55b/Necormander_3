@@ -84,28 +84,9 @@ public abstract class AIPatternSO : ScriptableObject
     {
         if (IsTargetInvalid(currentTarget)) return;
 
-        // [수정] 플레이어가 미니언을 들고 있을 때, 미니언의 Stat을 가져와 플레이어가 무적이 되는 현상 방지
-        // 타겟 본인의 Stat을 우선적으로 찾고, 자식들 중에서는 FlyingObject가 아닌 것만 찾습니다.
-        CharacterStat targetStat = currentTarget.GetComponent<CharacterStat>();
-        if (targetStat == null)
-        {
-            int flyingLayer = LayerMask.NameToLayer("FlyingObject");
-            foreach (var s in currentTarget.GetComponentsInChildren<CharacterStat>())
-            {
-                // 들려있는 상태나 투척 상태가 아닌 Stat만 골라냄
-                if (s.gameObject.layer != flyingLayer)
-                {
-                    targetStat = s;
-                    break;
-                }
-            }
-        }
-        
-        if (targetStat != null)
-        {
-            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject);
-            targetStat.Health.GetDamage(info);
-        }
+        // [수정] 이제 AI 패턴이 직접 데미지를 주지 않고, Entity에게 공격 실행을 맡깁니다.
+        // 이를 통해 보석 효과(무기 속성 부여 등)가 정상적으로 적용됩니다.
+        entity.ExecuteAttack(currentTarget);
     }
 
     protected void StopNavAgent(BaseEntity entity)

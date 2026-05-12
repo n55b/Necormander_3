@@ -3,12 +3,22 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
   m_Name: Gem_Unique_NoCountry
-  itemName: "No Country for Old Men"
-  description: "Massively increases Aging limit, but kills targets at max stacks."
+  m_EditorClassIdentifier: 
+  itemName: No Country for Old Men
+  description: Massively increases Aging limit, but kills targets at max stacks.
+  icon: {fileID: 0}
   rarity: 2
+  synergyGroup: 5
   subSlots: 0
+  eligibleJobs: -1
   effects:
   - rid: 5006
   references:
@@ -17,5 +27,6 @@ MonoBehaviour:
     - rid: 5006
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
-        uniqueTag: NoCountryForOldMen
-        displayDescription: "Increases max Aging stacks to 100. Targets die instantly at max stacks (Excluding Bosses)."
+        uniqueType: 0
+        displayDescription: Increases max Aging stacks to 100. Targets die instantly
+          at max stacks (Excluding Bosses).
