@@ -27,6 +27,6 @@ MonoBehaviour:
     - rid: 2006
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
-        uniqueType: 0
+        uniqueType: 3
         displayDescription: Chill stacks start at 10 upon freezing. Stacks cannot
           be added while frozen.

@@ -78,6 +78,9 @@ public class InventoryManager : MonoBehaviour
         public Dictionary<DebuffStackType, float> WeaponAttributes = new Dictionary<DebuffStackType, float>();
         public Dictionary<DebuffStackType, float> HandAttributes = new Dictionary<DebuffStackType, float>();
         public HashSet<GemUniqueType> UniqueEffects = new HashSet<GemUniqueType>();
+        
+        // [신규] 시너지 그룹별 최대 인접 개수
+        public Dictionary<GemSynergyGroup, int> SynergyCounts = new Dictionary<GemSynergyGroup, int>();
 
         public void Clear()
         {
@@ -88,6 +91,7 @@ public class InventoryManager : MonoBehaviour
             WeaponAttributes.Clear();
             HandAttributes.Clear();
             UniqueEffects.Clear();
+            SynergyCounts.Clear();
         }
     }
 
@@ -115,7 +119,7 @@ public class InventoryManager : MonoBehaviour
     {
         _gemNodeIndex = new Dictionary<string, GemTreeNode>();
         _jobGemStats.Clear();
-        _globalGemStats.Clear(); // [추가]
+        _globalGemStats.Clear(); 
 
         if (_defaultRootGemSO == null)
         {
@@ -123,7 +127,7 @@ public class InventoryManager : MonoBehaviour
             return;
         }
 
-        GemInstance rootInstance = new GemInstance(_defaultRootGemSO, CommandData.SkeletonWarrior, 2); 
+        GemInstance rootInstance = new GemInstance(_defaultRootGemSO, CommandData.SkeletonWarrior); 
         GemTreeRoot = new GemTreeNode(rootInstance);
 
         _gemNodeIndex.Add(GemTreeRoot.Gem.InstanceId, GemTreeRoot);
@@ -145,12 +149,16 @@ public class InventoryManager : MonoBehaviour
 
         if (GemTreeRoot == null) return;
 
+        // 1. 모든 노드를 순회하며 기본 효과 합산
+        List<GemTreeNode> allNodes = new List<GemTreeNode>();
         Queue<GemTreeNode> nodesToVisit = new Queue<GemTreeNode>();
         nodesToVisit.Enqueue(GemTreeRoot);
 
         while (nodesToVisit.Count > 0)
         {
             GemTreeNode currentNode = nodesToVisit.Dequeue();
+            allNodes.Add(currentNode);
+
             if (currentNode.Gem != null && currentNode.Gem.BaseData != null)
             {
                 CommandData job = currentNode.Gem.TargetJob;
@@ -158,7 +166,6 @@ public class InventoryManager : MonoBehaviour
                 
                 GemAggregatedStats targetStats = _jobGemStats[job];
 
-                // [수정] 젬의 효과를 다형성을 통해 적용
                 foreach (var effect in currentNode.Gem.BaseData.effects)
                 {
                     if (effect != null)
@@ -168,19 +175,96 @@ public class InventoryManager : MonoBehaviour
                     }
                 }
 
-                // 무작위 변수 처리 (StatModifier 기반)
                 foreach (var modifier in currentNode.Gem.RandomModifiers)
                 {
                     ApplyStatModifier(targetStats, modifier);
                     ApplyStatModifier(_globalGemStats, modifier);
                 }
+            }
 
-                foreach (var child in currentNode.Children)
-                {
-                    if (child != null) nodesToVisit.Enqueue(child);
-                }
+            foreach (var child in currentNode.Children)
+            {
+                if (child != null) nodesToVisit.Enqueue(child);
             }
         }
+
+        // 2. 시너지 클러스터 계산 (인접 노드 그래프 탐색)
+        CalculateSynergies(allNodes);
+    }
+
+    private void CalculateSynergies(List<GemTreeNode> allNodes)
+    {
+        HashSet<GemTreeNode> visited = new HashSet<GemTreeNode>();
+        
+        foreach (var node in allNodes)
+        {
+            if (visited.Contains(node) || node.Gem == null || node.Gem.BaseData == null) continue;
+            if (node.Gem.BaseData.synergyGroup == GemSynergyGroup.Base) continue;
+
+            GemSynergyGroup group = node.Gem.BaseData.synergyGroup;
+            int clusterSize = FindClusterSize(node, group, visited);
+
+            // 해당 그룹의 최대 클러스터 크기 저장
+            if (!_globalGemStats.SynergyCounts.ContainsKey(group) || _globalGemStats.SynergyCounts[group] < clusterSize)
+            {
+                _globalGemStats.SynergyCounts[group] = clusterSize;
+            }
+        }
+    }
+
+    private int FindClusterSize(GemTreeNode startNode, GemSynergyGroup targetGroup, HashSet<GemTreeNode> globalVisited)
+    {
+        int size = 0;
+        Queue<GemTreeNode> queue = new Queue<GemTreeNode>();
+        HashSet<GemTreeNode> clusterVisited = new HashSet<GemTreeNode>();
+
+        queue.Enqueue(startNode);
+        clusterVisited.Add(startNode);
+        globalVisited.Add(startNode);
+
+        while (queue.Count > 0)
+        {
+            GemTreeNode current = queue.Dequeue();
+            size++;
+
+            // 상하좌우 인접 노드 체크
+            // 1. 상 (부모)
+            CheckAndEnqueue(current.Parent, targetGroup, queue, clusterVisited, globalVisited);
+
+            // 2. 하 (자식들)
+            foreach (var child in current.Children)
+            {
+                CheckAndEnqueue(child, targetGroup, queue, clusterVisited, globalVisited);
+            }
+
+            // 3. 좌우 (형제)
+            if (current.Parent != null)
+            {
+                int myIdx = current.Parent.Children.IndexOf(current);
+                // 왼쪽 형제 (인덱스 i-1)
+                if (myIdx > 0) CheckAndEnqueue(current.Parent.Children[myIdx - 1], targetGroup, queue, clusterVisited, globalVisited);
+                // 오른쪽 형제 (인덱스 i+1)
+                if (myIdx < current.Parent.Children.Count - 1) CheckAndEnqueue(current.Parent.Children[myIdx + 1], targetGroup, queue, clusterVisited, globalVisited);
+            }
+        }
+
+        return size;
+    }
+
+    private void CheckAndEnqueue(GemTreeNode node, GemSynergyGroup targetGroup, Queue<GemTreeNode> queue, HashSet<GemTreeNode> clusterVisited, HashSet<GemTreeNode> globalVisited)
+    {
+        if (node == null || clusterVisited.Contains(node)) return;
+        if (node.Gem != null && node.Gem.BaseData != null && node.Gem.BaseData.synergyGroup == targetGroup)
+        {
+            queue.Enqueue(node);
+            clusterVisited.Add(node);
+            globalVisited.Add(node);
+        }
+    }
+
+    public int GetSynergyCount(GemSynergyGroup group)
+    {
+        return _globalGemStats.SynergyCounts.TryGetValue(group, out int count) ? count : 0;
     }
 
     private void ApplyStatModifier(GemAggregatedStats targetStats, StatModifier modifier)

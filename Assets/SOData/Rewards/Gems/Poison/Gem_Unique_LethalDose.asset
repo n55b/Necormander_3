@@ -27,5 +27,5 @@ MonoBehaviour:
     - rid: 1007
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
-        uniqueType: 0
+        uniqueType: 1
         displayDescription: Poison tick interval is reduced by 50%.

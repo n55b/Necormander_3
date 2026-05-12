@@ -10,6 +10,7 @@ public class GemTreeUI : MonoBehaviour
     [SerializeField] private GameObject mainPanel;
     [SerializeField] private Transform inventoryContainer;
     [SerializeField] private RectTransform treeContent;
+    [SerializeField] private GemSynergyDisplayUI synergyDisplay; // [추가] 시너지 디스플레이 참조
 
     [Header("Prefabs")]
     [SerializeField] private GameObject inventorySlotPrefab;
@@ -71,6 +72,12 @@ public class GemTreeUI : MonoBehaviour
             var nodePositions = CalculateAllNodePositions();
             RenderTree(InventoryManager.Instance.GemTreeRoot, nodePositions);
             DrawFloorLines(nodePositions);
+        }
+
+        // [추가] 시너지 리스트 갱신
+        if (synergyDisplay != null)
+        {
+            synergyDisplay.RefreshSynergyList();
         }
     }
     

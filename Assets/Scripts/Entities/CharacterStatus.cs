@@ -79,12 +79,7 @@ public class CharacterStatus : MonoBehaviour
         int poisonStack = GetDebuffStack(DebuffStackType.Poison);
         if (poisonStack > 0)
         {
-            float interval = POISON_INTERVAL;
-            // [특수] 독의 치사량: 틱 횟수 증가 (인터벌 절반)
-            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.LethalDose))
-            {
-                interval *= 0.5f;
-            }
+            float interval = GemRuleSystem.GetPoisonInterval();
 
             _poisonTimer += dt;
             if (_poisonTimer >= interval)
@@ -142,17 +137,25 @@ public class CharacterStatus : MonoBehaviour
 
     public void AddDebuffStack(DebuffStackType type, float amount)
     {
-        // [특수] 시리고 아린 뼈: 동결 상태에서는 스택 추가되지 않음
-        if (type == DebuffStackType.Chill && GetDebuffBool(DebuffBoolType.Frozen))
+        // [특수] 시리고 아린 뼈 (또는 기타 차단 로직)
+        if (type == DebuffStackType.Chill && GemRuleSystem.ShouldBlockChill(GetDebuffBool(DebuffBoolType.Frozen)))
         {
-            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.AchingBones))
-                return;
+            return;
+        }
+
+        // [시너지] 중독 추가 스택 등 보정
+        if (type == DebuffStackType.Poison)
+        {
+            amount = GemRuleSystem.ModifyIncomingPoisonStack(amount);
         }
 
         if (!_debuffStacks.ContainsKey(type)) _debuffStacks[type] = 0f;
         _debuffStacks[type] += amount;
 
-        _stackTimers[type] = STACK_DURATION;
+        // [시너지] 유지시간 연장 보정
+        float duration = STACK_DURATION;
+        if (type == DebuffStackType.Poison) duration = GemRuleSystem.GetPoisonDuration();
+        _stackTimers[type] = duration;
         
         float maxStack = GetMaxStack(type);
         _debuffStacks[type] = Mathf.Min(_debuffStacks[type], maxStack);
@@ -179,15 +182,8 @@ public class CharacterStatus : MonoBehaviour
         switch (type)
         {
             case DebuffStackType.Poison: return 20f;
-            case DebuffStackType.Chill: 
-                float baseChill = 20f;
-                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.SlowlyFreezingFlower))
-                    baseChill += 10f;
-                return baseChill;
-            case DebuffStackType.Aging: 
-                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.NoCountryForOldMen))
-                    return 100f;
-                return 25f;
+            case DebuffStackType.Chill: return GemRuleSystem.GetMaxChillStack();
+            case DebuffStackType.Aging: return GemRuleSystem.GetMaxAgingStack();
             case DebuffStackType.BloodPop: return 1000f; 
             case DebuffStackType.Execute: return 1000f;
             default: return 999f;
@@ -199,20 +195,26 @@ public class CharacterStatus : MonoBehaviour
         switch (type)
         {
             case DebuffStackType.Chill:
-                float threshold = GetMaxStack(DebuffStackType.Chill);
+                float threshold = GemRuleSystem.GetMaxChillStack();
                 if (_debuffStacks[type] >= threshold)
                 {
                     SetDebuffBool(DebuffBoolType.Frozen, 3.0f);
                     
-                    float resetStacks = 10f;
-                    // [특수] 시리고 아린 뼈: 동결 시 한기 스택이 10부터 시작
-                    _debuffStacks[type] = resetStacks;
+                    // [시너지] 환급 로직 적용
+                    _debuffStacks[type] = GemRuleSystem.GetFreezeRefundStacks();
                     _stackTimers[type] = STACK_DURATION;
+
+                    // [시너지] 동결 시 고정 피해 로직
+                    if (GemRuleSystem.HasFreezeFixedDamage())
+                    {
+                        var health = GetComponentInChildren<CharacterHealth>();
+                        if (health != null) health.GetDamage(new DamageInfo(threshold, DamageType.Fixed, null));
+                    }
                 }
                 break;
             case DebuffStackType.Aging:
-                // [특수] 노인을 위한 나라는 없다: 100스택 시 즉사
-                if (_debuffStacks[type] >= 100f && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.NoCountryForOldMen))
+                // [유니크] 노인을 위한 나라는 없다: 즉사 체크
+                if (GemRuleSystem.ShouldAgingInstaKill(_debuffStacks[type]))
                 {
                     if (!CompareTag("Boss")) 
                     {
