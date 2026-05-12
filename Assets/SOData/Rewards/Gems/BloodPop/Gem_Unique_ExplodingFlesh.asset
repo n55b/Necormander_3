@@ -27,6 +27,6 @@ MonoBehaviour:
     - rid: 4006
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
-        uniqueType: 0
+        uniqueType: 5
         displayDescription: Applies 1/4 of the explosion damage as BloodPop stacks
           to nearby enemies.

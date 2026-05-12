@@ -39,11 +39,13 @@ public class CharacterHealth : MonoBehaviour
         float remainingDamage = info.amount;
         string str = "";                             // 데미지 타입
 
-        // [부식] 스택에 비례한 데미지 증가
+        // [부식] 시너지에 따른 데미지 증가
+        float corrosionAmp = GemRuleSystem.GetCorrosionDamageAmp();
         int corrodedStacks = _status.GetDebuffStack(DebuffStackType.Corroded);
-        if (corrodedStacks > 0)
+        if (corrodedStacks > 0 || corrosionAmp > 0)
         {
-            remainingDamage *= (1.0f + corrodedStacks * 0.01f); // 스택당 1%씩 피해량 증가
+            // 스택당 1% + 시너지 기본 보너스
+            remainingDamage *= (1.0f + corrodedStacks * 0.01f + corrosionAmp); 
             str = "Corroded";
         }
 
@@ -146,9 +148,14 @@ public class CharacterHealth : MonoBehaviour
         }
     }
 
-    private void ExecuteBloodPop(int damage)
+    private void ExecuteBloodPop(int stacks)
     {
-        float explosionRadius = 2.0f;
+        float baseRadius = 2.0f;
+        float radiusMult = GemRuleSystem.GetBloodPopRadiusMultiplier();
+        float explosionRadius = baseRadius * radiusMult;
+
+        float finalDamage = GemRuleSystem.GetBloodPopDamage(stacks);
+
         // Bloodpop은 무조건 'Enemy' 레이어의 유닛에게만 데미지를 줍니다. (아군과 플레이어 제외)
         LayerMask bloodPopTargetLayer = LayerMask.GetMask("Enemy");
 
@@ -168,16 +175,17 @@ public class CharacterHealth : MonoBehaviour
             if (targetHealth != null && !targetHealth.isDead)
             {
                 // 데미지 팝업 등을 위해 이벤트 호출
-                targetHealth.TakeDamageEvent?.Invoke(damage, "BloodPop", false);
-                targetHealth.GetDamage(new DamageInfo(damage, DamageType.Fixed, this.gameObject));
+                targetHealth.TakeDamageEvent?.Invoke((int)finalDamage, "BloodPop", false);
+                targetHealth.GetDamage(new DamageInfo(finalDamage, DamageType.Fixed, this.gameObject));
 
-                // [특수] 살덩이가 폭발하는 것: 비폭 피해 대상에게 데미지의 1/4만큼 비폭 스택 부여
-                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.ExplodingFlesh))
+                // [유니크] 살덩이가 폭발하는 것: 비폭 피해 대상에게 데미지의 일부만큼 비폭 스택 부여
+                float chainRatio = GemRuleSystem.GetBloodPopChainRatio();
+                if (chainRatio > 0)
                 {
                     var targetStatus = col.GetComponentInChildren<CharacterStatus>();
                     if (targetStatus != null)
                     {
-                        targetStatus.AddDebuffStack(DebuffStackType.BloodPop, damage * 0.25f);
+                        targetStatus.AddDebuffStack(DebuffStackType.BloodPop, finalDamage * chainRatio);
                     }
                 }
             }

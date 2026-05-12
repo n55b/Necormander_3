@@ -27,6 +27,6 @@ MonoBehaviour:
     - rid: 5006
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
-        uniqueType: 0
+        uniqueType: 6
         displayDescription: Increases max Aging stacks to 100. Targets die instantly
           at max stacks (Excluding Bosses).

@@ -37,7 +37,8 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float agingMult = (Status != null) ? Mathf.Max(0.1f, 1f - Status.GetDebuffStack(DebuffStackType.Aging) * 0.01f) : 1f;
+            float agingValue = GemRuleSystem.GetAgingValuePerStack();
+            float agingMult = (Status != null) ? Mathf.Max(0.1f, 1f - Status.GetDebuffStack(DebuffStackType.Aging) * agingValue) : 1f;
             return baseAtk * (1f + GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats)) * agingMult;
         }
     }

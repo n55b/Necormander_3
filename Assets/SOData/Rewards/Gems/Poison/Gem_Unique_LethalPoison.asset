@@ -27,6 +27,6 @@ MonoBehaviour:
     - rid: 1006
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
-        uniqueType: 0
+        uniqueType: 2
         displayDescription: Doubles the current poison stacks on the target upon
           impact.

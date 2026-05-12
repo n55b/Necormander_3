@@ -27,6 +27,6 @@ MonoBehaviour:
     - rid: 2007
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
-        uniqueType: 0
+        uniqueType: 4
         displayDescription: Increases max Chill stacks and freeze threshold by 10
           (Total 30).
