@@ -54,13 +54,17 @@ public class FloatingTextSpawner : MonoBehaviour
     private void ShowDamageText(int damage, string type, bool isCritical)
     {
         string text = damage.ToString();
-        Color color = Color.black;
+        Color color;
+        if(this.transform.gameObject.layer != LayerMask.NameToLayer("Army"))
+            color = Color.white;
+        else
+            color = Color.red;
 
         if (type == "Poison") color = Color.green;          // 중독뎀
         else if (type == "Corroded") color = Color.magenta; // 부식
         else if (type == "Shield") color = Color.grey;      // 쉴드
         else if (type == "Execution") color = Color.yellow; // 처형
-        else if (type == "BloodPop") color = Color.red;     // 비폭
+        // else if (type == "BloodPop") color = Color.red;     // 비폭
 
         TextFloating textObj = FloatingTextManager.instance.GetFromPool();
 
