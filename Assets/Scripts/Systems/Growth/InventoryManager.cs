@@ -73,7 +73,11 @@ public class InventoryManager : MonoBehaviour
         public float HealthBonus = 0f;
         public float AttackSpeedBonus = 0f;
         public float RespawnTimeBonus = 0f;
-        public Dictionary<DebuffStackType, float> AggregatedDebuffStacks = new Dictionary<DebuffStackType, float>();
+        
+        // [신규] 속성 및 특수 효과 합산
+        public Dictionary<DebuffStackType, float> WeaponAttributes = new Dictionary<DebuffStackType, float>();
+        public Dictionary<DebuffStackType, float> HandAttributes = new Dictionary<DebuffStackType, float>();
+        public HashSet<string> SpecialTags = new HashSet<string>();
 
         public void Clear()
         {
@@ -81,22 +85,9 @@ public class InventoryManager : MonoBehaviour
             HealthBonus = 0f;
             AttackSpeedBonus = 0f;
             RespawnTimeBonus = 0f;
-            AggregatedDebuffStacks.Clear();
-        }
-
-        // [추가] 다른 통계 객체로부터 값 합산 (전역 합산용)
-        public void AddFrom(GemAggregatedStats other)
-        {
-            AttackBonus += other.AttackBonus;
-            HealthBonus += other.HealthBonus;
-            AttackSpeedBonus += other.AttackSpeedBonus;
-            RespawnTimeBonus += other.RespawnTimeBonus;
-            
-            foreach (var kvp in other.AggregatedDebuffStacks)
-            {
-                if (!AggregatedDebuffStacks.ContainsKey(kvp.Key)) AggregatedDebuffStacks[kvp.Key] = 0f;
-                AggregatedDebuffStacks[kvp.Key] += kvp.Value;
-            }
+            WeaponAttributes.Clear();
+            HandAttributes.Clear();
+            SpecialTags.Clear();
         }
     }
 
@@ -150,7 +141,7 @@ public class InventoryManager : MonoBehaviour
     private void RecalculateGemTreeStats()
     {
         foreach (var stats in _jobGemStats.Values) stats.Clear();
-        _globalGemStats.Clear(); // [추가] 전역 스탯 초기화
+        _globalGemStats.Clear();
 
         if (GemTreeRoot == null) return;
 
@@ -160,37 +151,28 @@ public class InventoryManager : MonoBehaviour
         while (nodesToVisit.Count > 0)
         {
             GemTreeNode currentNode = nodesToVisit.Dequeue();
-            if (currentNode.Gem != null)
+            if (currentNode.Gem != null && currentNode.Gem.BaseData != null)
             {
-                // [기존] 직업별 스탯 유지 (우회용)
                 CommandData job = currentNode.Gem.TargetJob;
                 if (!_jobGemStats.ContainsKey(job)) _jobGemStats[job] = new GemAggregatedStats();
+                
                 GemAggregatedStats targetStats = _jobGemStats[job];
 
-                // [수정] 모든 젬의 효과를 전역 스탯(_globalGemStats)에 합산
-                foreach (var modifier in currentNode.Gem.BaseData.GetStatModifiers())
+                // [수정] 젬의 효과를 다형성을 통해 적용
+                foreach (var effect in currentNode.Gem.BaseData.effects)
                 {
-                    ApplyStatModifier(targetStats, modifier);
-                    ApplyStatModifier(_globalGemStats, modifier);
+                    if (effect != null)
+                    {
+                        effect.Apply(targetStats);
+                        effect.Apply(_globalGemStats);
+                    }
                 }
 
+                // 무작위 변수 처리 (StatModifier 기반)
                 foreach (var modifier in currentNode.Gem.RandomModifiers)
                 {
                     ApplyStatModifier(targetStats, modifier);
                     ApplyStatModifier(_globalGemStats, modifier);
-                }
-
-                if (currentNode.Gem.BaseData is GemDebuffSO debuffGem)
-                {
-                    // 직업별 데이터
-                    if (!targetStats.AggregatedDebuffStacks.ContainsKey(debuffGem.targetDebuffType))
-                        targetStats.AggregatedDebuffStacks[debuffGem.targetDebuffType] = 0f;
-                    targetStats.AggregatedDebuffStacks[debuffGem.targetDebuffType] += debuffGem.baseDebuffStack;
-
-                    // 전역 데이터
-                    if (!_globalGemStats.AggregatedDebuffStacks.ContainsKey(debuffGem.targetDebuffType))
-                        _globalGemStats.AggregatedDebuffStacks[debuffGem.targetDebuffType] = 0f;
-                    _globalGemStats.AggregatedDebuffStacks[debuffGem.targetDebuffType] += debuffGem.baseDebuffStack;
                 }
 
                 foreach (var child in currentNode.Children)
@@ -211,6 +193,23 @@ public class InventoryManager : MonoBehaviour
             case StatType.RespawnTime: targetStats.RespawnTimeBonus += modifier.Value; break;
             default: break;
         }
+    }
+
+    // --- 신규 젬 효과 쿼리 메서드 ---
+
+    public float GetWeaponAttribute(DebuffStackType type)
+    {
+        return _globalGemStats.WeaponAttributes.TryGetValue(type, out float val) ? val : 0f;
+    }
+
+    public float GetHandAttribute(DebuffStackType type)
+    {
+        return _globalGemStats.HandAttributes.TryGetValue(type, out float val) ? val : 0f;
+    }
+
+    public bool HasSpecialTag(string tag)
+    {
+        return _globalGemStats.SpecialTags.Contains(tag);
     }
 
     public float GetAggregatedGemBonus(CommandData job, StatType type)

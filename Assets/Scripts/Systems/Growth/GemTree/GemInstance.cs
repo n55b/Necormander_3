@@ -27,7 +27,7 @@ public class GemInstance
         TargetJob = targetJob; // [추가] 직업 할당
         InstanceId = Guid.NewGuid().ToString();
 
-        SubSlots = UnityEngine.Random.Range(0, 3); 
+        SubSlots = baseData != null ? baseData.subSlots : 1; 
         RandomModifiers = new List<StatModifier>(); 
     }
 

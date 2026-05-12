@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
+  m_Name: Gem_Unique_ExplodingFlesh
+  itemName: "Exploding Flesh"
+  description: "Distributes BloodPop stacks to nearby enemies upon explosion."
+  rarity: 2
+  subSlots: 0
+  effects:
+  - rid: 4006
+  references:
+    version: 2
+    RefIds:
+    - rid: 4006
+      type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
+      data:
+        uniqueTag: ExplodingFlesh
+        displayDescription: "Applies 1/4 of the explosion damage as BloodPop stacks to nearby enemies."

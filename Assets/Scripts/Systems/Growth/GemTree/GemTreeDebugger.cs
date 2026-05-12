@@ -126,7 +126,7 @@ public class GemTreeDebugger : MonoBehaviour
         string space = new string(' ', indent * 4);
         string prefix = (slotIdx == -1) ? "[Root]" : $"[Slot {slotIdx}]";
         
-        string detail = (node.Gem.BaseData is GemDebuffSO debuff) ? $"{debuff.targetDebuffType}" : "Stat";
+        string detail = (node.Gem.BaseData.effects.Count > 0) ? "Effects" : "Stat";
         sb.AppendLine($"{space}{prefix} <color=cyan>{node.Gem.BaseData.itemName}</color> (<color=orange>{node.Gem.TargetJob}</color>) [{detail}] - ID: {node.Gem.InstanceId.Substring(0, 5)}");
 
         for (int i = 0; i < node.Gem.SubSlots; i++)

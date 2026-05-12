@@ -168,6 +168,18 @@ public abstract class BaseEntity : MonoBehaviour
                 // [수정] 직접 Health 담당자에게 명령
                 DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject);
                 targetStat.Health.GetDamage(info);
+
+                // [추가] 무기 속성 부여 (보석 효과)
+                if (team == Team.Ally && InventoryManager.Instance != null)
+                {
+                    foreach (var kvp in InventoryManager.Instance.GlobalGemStats.WeaponAttributes)
+                    {
+                        if (kvp.Value > 0)
+                        {
+                            targetStat.Status.AddDebuffStack(kvp.Key, kvp.Value);
+                        }
+                    }
+                }
             }
         }
     }

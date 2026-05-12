@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
+  m_Name: Gem_Aging_Atk
+  itemName: "Cracked Attack Gem"
+  description: "Increases minion's attack power."
+  rarity: 1
+  subSlots: 1
+  effects:
+  - rid: 5003
+  references:
+    version: 2
+    RefIds:
+    - rid: 5003
+      type: {class: GemStatEffect, ns: , asm: Assembly-CSharp}
+      data:
+        statType: 0
+        value: 1

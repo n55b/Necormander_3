@@ -132,11 +132,11 @@ public class ThrowStrategy : MonoBehaviour
             float gemBonus = InventoryManager.Instance.GetAggregatedGemBonus(type, StatType.ThrowEffect);
 
             // [보석 시스템 2: 디버프 부여]
-            // 해당 직업(type)에게 할당된 보석들의 디버프 스택만 가져와 적용합니다.
+            // 해당 직업(type)에게 할당된 보석들의 디버프 스택(귀수 속성)만 가져와 적용합니다.
             var jobStats = InventoryManager.Instance.GetJobGemStats(type);
             if (jobStats != null)
             {
-                foreach (var kvp in jobStats.AggregatedDebuffStacks)
+                foreach (var kvp in jobStats.HandAttributes)
                 {
                     DebuffStackType debuffType = kvp.Key;
                     float aggregatedStacks = kvp.Value;

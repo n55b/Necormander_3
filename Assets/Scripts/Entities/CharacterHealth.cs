@@ -160,15 +160,26 @@ public class CharacterHealth : MonoBehaviour
             Destroy(vfx, 1.0f);
         }
 
-        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, bloodPopTargetLayer); // 변경된 LayerMask 사용
+        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, bloodPopTargetLayer); 
+
         foreach (var col in colls)
         {
-            var health = col.GetComponentInChildren<CharacterHealth>();
-            if (health != null)
+            var targetHealth = col.GetComponentInChildren<CharacterHealth>();
+            if (targetHealth != null && !targetHealth.isDead)
             {
-                TakeDamageEvent?.Invoke(damage, "BloodPop", false);
+                // 데미지 팝업 등을 위해 이벤트 호출
+                targetHealth.TakeDamageEvent?.Invoke(damage, "BloodPop", false);
+                targetHealth.GetDamage(new DamageInfo(damage, DamageType.Fixed, this.gameObject));
 
-                health.GetDamage(new DamageInfo(damage, DamageType.Fixed, this.gameObject));
+                // [특수] 살덩이가 폭발하는 것: 비폭 피해 대상에게 데미지의 1/4만큼 비폭 스택 부여
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasSpecialTag("ExplodingFlesh"))
+                {
+                    var targetStatus = col.GetComponentInChildren<CharacterStatus>();
+                    if (targetStatus != null)
+                    {
+                        targetStatus.AddDebuffStack(DebuffStackType.BloodPop, damage * 0.25f);
+                    }
+                }
             }
         }
     }
