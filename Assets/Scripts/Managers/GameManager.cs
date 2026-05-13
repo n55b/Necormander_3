@@ -23,6 +23,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] public SquadSpawner squadSpawner;
     [SerializeField] public RewardManager rewardManager;
 
+    [Header("UI References")]
+    [SerializeField] public PlayerStateUI playerStateUI;
+
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -76,6 +80,13 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        // [추가] 플레이어 HUD 초기화
+        if (playerStateUI != null && playerController != null)
+        {
+            var health = playerController.GetComponentInChildren<CharacterHealth>();
+            playerStateUI.Initialize(health);
+        }
+
         // [사용자 요청] 게임 시작 시 자동으로 소환하지 않음 (적 조우 시에만 소환)
         /*
         if (squadSpawner != null)

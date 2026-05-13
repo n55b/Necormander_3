@@ -60,13 +60,18 @@ public class PlayerController : MonoBehaviour
         {
             throwController = GetComponentInChildren<ThrowController>();
         }
+
+        // [수정] 스탯 초기화를 Awake로 이동하여 초기화 순서 보장
+        if (stat != null)
+        {
+            stat.Setup();
+        }
     }
 
     private void Start()
     {
         if (stat != null)
         {
-            stat.Setup();
             // [추가] 플레이어 피격 시 들고 있는 미니언 낙하 로직 연결
             if (stat.Health != null)
             {

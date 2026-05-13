@@ -19,6 +19,7 @@ public class CharacterHealth : MonoBehaviour
     public event Action OnDeath;
 
     public float CurHP => curHP;
+    public float MaxHP => (_stat != null) ? _stat.MAXHP : 0f; // [추가] 최대 체력 정보 노출
     public bool IsDead => isDead;
     public bool Invincible { get { return invincible; } set { invincible = value; } }
 
@@ -63,6 +64,14 @@ public class CharacterHealth : MonoBehaviour
         if (remainingDamage > 0)
         {
             float finalDamage = (info.type != DamageType.Fixed) ? Mathf.Max(remainingDamage - _stat.DEF, 1f) : remainingDamage;
+
+            // [추가] 플레이어 전용 규칙: 어떤 데미지를 입든 무조건 1씩 차감
+            // (CharacterHealth가 자식 오브젝트에 있을 수 있으므로 root 태그 확인)
+            if (gameObject.CompareTag("Player") || transform.root.CompareTag("Player"))
+            {
+                finalDamage = 1.0f;
+            }
+
             Debug.Log($"{gameObject.name} took {finalDamage} damage. HP: {curHP} -> {curHP - finalDamage}");
             curHP -= finalDamage;
             OnDamageTaken?.Invoke(finalDamage);
