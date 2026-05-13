@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 public class ThrowInputHandler : MonoBehaviour
 {
     private ThrowController _controller;
+    [SerializeField] private PlayerController _playerController;
     private float _chargeTimer;
     private bool _isCharging;
     private Vector2 _rightClickStartPos;
@@ -19,6 +20,11 @@ public class ThrowInputHandler : MonoBehaviour
     public void Init(ThrowController controller)
     {
         _controller = controller;
+    }
+
+    private void Start()
+    {
+        _playerController = GameManager.Instance.PLAYERCONTROLLER;
     }
 
     private void Update()
@@ -103,6 +109,10 @@ public class ThrowInputHandler : MonoBehaviour
             if (_controller.TrajectoryPredictor != null) _controller.TrajectoryPredictor.HideGuide();
             if (_isCharging) _controller.ThrowAll();
             _isCharging = false;
+
+            // 애니메이터 불러와서 실행
+            _playerController.TransitionToState(_playerController.atkState);
+            _playerController.canChangeState = false;
         }
     }
 

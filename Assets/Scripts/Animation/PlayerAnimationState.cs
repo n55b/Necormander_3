@@ -1,12 +1,13 @@
 using UnityEngine;
 
-public abstract class AnimationState
+public abstract class PlayerAnimationState
 {
+    protected PlayerController controller;
     protected Animator animator;
 
-    public AnimationState(Animator animator)
+    public PlayerAnimationState(PlayerController _controller)
     {
-        this.animator = animator;
+        this.controller = _controller;
     }
 
     public abstract void Enter(); // 상태 시작 시 (애니메이션 재생)

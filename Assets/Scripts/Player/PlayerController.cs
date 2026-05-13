@@ -15,14 +15,14 @@ public class PlayerController : MonoBehaviour
     [Header("플레이어 스탯")]
     [SerializeField] CharacterStat stat;
     [SerializeField] float throwRange;
-    public float THROWRANGE {get { return throwRange; }}
+    public float THROWRANGE { get { return throwRange; } }
     [Header("감지 영역")]
     [SerializeField] GameObject TrackingCollider;
     [Header("아군 유닛 관련 매니저")]
     [SerializeField] AllyManager allyManager;
     [Header("소환 컨트롤러")]
     [SerializeField] SummonController sumController;
-    public SummonController SUMCONTROLLER {get{ return sumController;}}
+    public SummonController SUMCONTROLLER { get { return sumController; } }
     [Header("던지기 컨트롤러")]
     [SerializeField] private ThrowController throwController;
     [SerializeField] private int summonNum;
@@ -34,6 +34,19 @@ public class PlayerController : MonoBehaviour
     [Header("던지기 배율 설정")]
     [SerializeField] private float minThrowChargeMultiplier = 1.0f;
     [SerializeField] private float maxThrowChargeMultiplier = 2.0f;
+
+    [Header("플레이어 애니메이터")]
+    [SerializeField] Animator BodyAnimator;
+    [SerializeField] Animator LHandAnimator;
+    [SerializeField] Animator RHandAnimator;
+    [SerializeField] PlayerAnimationState currentAnimState;
+
+    /// <summary>
+    /// 애니메이션 캐싱 변수
+    /// </summary>
+    public IdleState idleState;
+    public AttackState atkState;
+    public bool canChangeState = true;
 
     public float GetThrowChargeMultiplier(float ratio)
     {
@@ -66,6 +79,18 @@ public class PlayerController : MonoBehaviour
         {
             stat.Setup();
         }
+
+        CachingAnim();
+        currentAnimState = null;
+        // 애니메이션 기본으로 설정
+        TransitionToState(idleState);
+    }
+
+    // 애니메이션 캐싱
+    private void CachingAnim()
+    {
+        idleState = new IdleState(this);
+        atkState = new AttackState(this);
     }
 
     private void Start()
@@ -101,6 +126,24 @@ public class PlayerController : MonoBehaviour
     {
         MoveDirection = moveInput;
 
+        if (canChangeState)
+        {
+            if (moveInput == Vector2.zero)
+            {
+                TransitionToState(idleState);
+            }
+            else
+            {
+                // 이동 관련
+                // 이미지 돌려주기
+                if (MoveDirection.x > 0.0f)
+                    this.transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
+                else if (MoveDirection.x < 0.0f)
+                    this.transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
+            }
+
+        }
+
         // [임시 디버깅] 키보드 E 입력을 직접 감지
         if (Input.GetKeyDown(KeyCode.E))
         {
@@ -117,13 +160,13 @@ public class PlayerController : MonoBehaviour
         // 만약 리지드바디의 속도가 넉백에 의해 아주 높다면 이동 처리를 스킵하거나 합산
         if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f) // 대략적인 임계값
         {
-             transform.position += MoveDirection * stat.MOVESPEED * Time.deltaTime;
+            transform.position += MoveDirection * stat.MOVESPEED * Time.deltaTime;
         }
 
-        if(P_State == PlayerStates.Battle)
+        if (P_State == PlayerStates.Battle)
         {
             bool check = allyManager.CheckAllyState();
-            if(!check)
+            if (!check)
                 ChangeState(PlayerStates.Idle);
         }
     }
@@ -132,7 +175,7 @@ public class PlayerController : MonoBehaviour
     {
         if (stat.Health.IsDead) { moveInput = Vector2.zero; return; }
 
-        if(context.performed || context.canceled)
+        if (context.performed || context.canceled)
         {
             moveInput = context.ReadValue<Vector2>();
         }
@@ -151,7 +194,7 @@ public class PlayerController : MonoBehaviour
                 CommandData selectedType = sumController.GetCurrentSelectedType();
                 MinionDataSO data = GameManager.Instance.dataManager.GetMinionData(selectedType);
 
-                if (ReferenceEquals(data, null)) 
+                if (ReferenceEquals(data, null))
                 {
                     sumController.ResetSummonMode();
                     return;
@@ -161,8 +204,8 @@ public class PlayerController : MonoBehaviour
                 {
                     Debug.LogError($"<color=red>[PlayerController]</color> {data.minionName}의 소환 비용(Cost)이 0으로 설정되어 있습니다!");
                 }
-                
-                int finalSummonCount = 1; 
+
+                int finalSummonCount = 1;
                 Debug.Log($"<color=white>[Summon Request]</color> Type: {selectedType}, Count: {finalSummonCount} (Sync with Inventory)");
 
                 List<Vector2> pos = sumController.GetSummonPositions2D(finalSummonCount, summonRange);
@@ -172,7 +215,7 @@ public class PlayerController : MonoBehaviour
                     // [수정] 소환 시 인벤토리에서 해당 유닛의 수량을 늘리거나 새 슬롯을 차지합니다.
                     // 이는 나중에 "수량 늘리기 아이템"을 먹었을 때와 동일한 로직을 공유합니다.
                     bool success = GameManager.Instance.inventoryManager.AddMinionOrIncreaseQuantity(selectedType, 1);
-                    
+
                     if (success)
                     {
                         Vector2 spawnPos = (i < pos.Count) ? pos[i] : (Vector2)transform.position;
@@ -232,7 +275,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void OnTab(InputAction.CallbackContext context) 
+    public void OnTab(InputAction.CallbackContext context)
     {
         if (stat.Health.IsDead) return;
         sumController.OnTab(context);
@@ -245,18 +288,46 @@ public class PlayerController : MonoBehaviour
 
     public void ChangeState(PlayerStates _state)
     {
-        if(P_State == _state) return;
+        if (P_State == _state) return;
 
         P_State = _state;
 
-        if(P_State == PlayerStates.Battle)
+        if (P_State == PlayerStates.Battle)
         {
             TrackingCollider.gameObject.SetActive(false);
             allyManager.SetBattleState(true);
         }
-        else if(P_State == PlayerStates.Idle)
+        else if (P_State == PlayerStates.Idle)
         {
             TrackingCollider.gameObject.SetActive(true);
         }
+    }
+
+    /// <summary>
+    /// 애니메이션용 스테이트 변화 함수들
+    /// </summary>
+    /// <param name="newState"></param>
+    /// <param name="animName"></param>
+    public void TransitionToState(PlayerAnimationState newState)
+    {
+        if (currentAnimState == newState) return;
+
+        currentAnimState?.Exit();
+
+        currentAnimState = newState;
+
+        currentAnimState.Enter();
+    }
+
+    public void CanChangeAnimState()
+    {
+        canChangeState = true;
+    }
+
+    public void PlayAllAnim(string animName)
+    {
+        BodyAnimator.Play(animName);
+        LHandAnimator.Play(animName);
+        RHandAnimator.Play(animName);
     }
 }
