@@ -13,6 +13,7 @@ public class CharacterStatus : MonoBehaviour
 
     public float MoveSpeedMultiplier => _cachedMoveSpeedMultiplier;
     public float TotalShield => _cachedTotalShield;
+    public bool IsBoss { get; set; } // [추가] 보스 유닛 여부
 
     private Dictionary<DebuffStackType, float> _debuffStacks = new Dictionary<DebuffStackType, float>();
     private Dictionary<DebuffStackType, float> _stackTimers = new Dictionary<DebuffStackType, float>();
@@ -216,7 +217,7 @@ public class CharacterStatus : MonoBehaviour
                 // [유니크] 노인을 위한 나라는 없다: 즉사 체크
                 if (GemRuleSystem.ShouldAgingInstaKill(_debuffStacks[type]))
                 {
-                    if (!CompareTag("Boss")) 
+                    if (!IsBoss) 
                     {
                         var health = GetComponentInChildren<CharacterHealth>();
                         if (health != null) health.GetDamage(new DamageInfo(health.CurHP + 999f, DamageType.Fixed, null));

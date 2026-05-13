@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d7a9c26e17bc364b9927307fbaebace, type: 3}
+  m_Name: Summoner Boss Pattern
+  m_EditorClassIdentifier: 
+  currentState: 0
+  pushRadius: 0.8
+  pushStrength: 2
+  target: {fileID: 0}
+  atkTimer: 0
+  phase2Threshold: 0.5
+  cycleDuration: 12
+  fireballInterval: 4
+  fireballsPerCycle: 3
+  minionToSummon: {fileID: 11400000, guid: 511bf63ff8526384c82289018bc02cb3, type: 2}
+  summonCount: 4
+  summonStationaryTime: 1
+  fireballPrefab: {fileID: 4462788868339787736, guid: 7ca574d92ecb4bc4987994c0cdb199a5, type: 3}
+  projectileSpeed: 3
+  lifeTime: 5
+  shootStationaryTime: 0.5
+  shieldPerMinion: 10
+  absorbStationaryTime: 1.5
+  idealDistance: 10
+  minDistance: 5
+  summonerState: 0
+  cycleTimer: 0
+  fireballTimer: 0
+  fireballsShot: 0
+  stationaryTimer: 0
+  hasSpawnedInCurrentCycle: 0

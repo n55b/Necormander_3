@@ -89,11 +89,19 @@ public class PlayerStateUI : MonoBehaviour
         foreach (Transform child in heartContainer) Destroy(child.gameObject);
         _hpFillImages.Clear();
 
+        if (_playerHealth == null || _playerHealth.MaxHP <= 0) return;
+
         int heartCount = Mathf.CeilToInt(_playerHealth.MaxHP / HP_PER_HEART);
         for (int i = 0; i < heartCount; i++)
         {
             GameObject heartObj = Instantiate(heartPrefab, heartContainer);
-            Image fillImg = heartObj.GetComponentInChildren<Image>(); 
+            
+            // [수정] 자식 오브젝트 중 "HP_FillImage"라는 이름을 가진 이미지를 찾습니다.
+            Image fillImg = null;
+            Transform fillTransform = heartObj.transform.Find("HP_FillImage");
+            if (fillTransform != null) fillImg = fillTransform.GetComponent<Image>();
+            else fillImg = heartObj.GetComponentInChildren<Image>(); // 차선책
+
             if (fillImg != null) _hpFillImages.Add(fillImg);
         }
 
@@ -109,10 +117,14 @@ public class PlayerStateUI : MonoBehaviour
     public void RefreshHP()
     {
         if (_playerHealth == null) return;
+        
         float currentHP = _playerHealth.CurHP;
+        // Debug.Log($"<color=red>[PlayerUI]</color> RefreshHP Called. Current HP: {currentHP} / {_playerHealth.MaxHP}");
+
         for (int i = 0; i < _hpFillImages.Count; i++)
         {
-            float heartFill = Mathf.Clamp(currentHP - (i * HP_PER_HEART), 0, HP_PER_HEART) / HP_PER_HEART;
+            float heartValue = currentHP - (i * HP_PER_HEART);
+            float heartFill = Mathf.Clamp(heartValue, 0, HP_PER_HEART) / HP_PER_HEART;
             _hpFillImages[i].fillAmount = heartFill;
         }
     }

@@ -27,6 +27,8 @@ public class MinionDataSO : ScriptableObject
     public float defense = 0f;
     public float moveSpeed = 5f;
     public int cost;
+    public bool isBoss; // [추가] 보스 유닛 여부
+    public bool canSpawnRandomly = true; // [추가] 일반 방에서 랜덤하게 스폰될 수 있는지 여부
 
     [Header("AI 행동 패턴")]
     public AIPatternSO aiPattern; // 이 유닛의 전체적인 AI 행동 (대기/추격/공격 통합)
