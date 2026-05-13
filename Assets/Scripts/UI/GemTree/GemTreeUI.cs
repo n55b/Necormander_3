@@ -56,6 +56,11 @@ public class GemTreeUI : MonoBehaviour
         _isOpen = !_isOpen;
         mainPanel.SetActive(_isOpen);
         if (_isOpen) RefreshUI();
+        else
+        {
+            // [추가] UI를 닫을 때 남아있을 수 있는 툴팁 강제 제거
+            if (GemTooltipUI.Instance != null) GemTooltipUI.Instance.Hide();
+        }
     }
 
     public void RefreshUI()
