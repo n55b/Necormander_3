@@ -1,6 +1,8 @@
 using UnityEngine;
 
-public class PrizeDataSO : ScriptableObject
+public abstract class PrizeDataSO : ScriptableObject
 {
-    [SerializeField] int gold;
+    [SerializeField] public int gold;
+
+    public abstract void BuyItem();
 }
