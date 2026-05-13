@@ -345,7 +345,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -10, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2236123998200502361
 CanvasRenderer:
@@ -908,11 +908,11 @@ MonoBehaviour:
   connectorPrefab: {fileID: 2608948628137918387, guid: 37c89bd4c40268945a47dc686fc7716d, type: 3}
   floorLinePrefab: {fileID: 2608948628137918387, guid: 270ef7051d400cf4fb11df2da061d26b, type: 3}
   tooltipPrefab: {fileID: 1036089158462258122, guid: 44fb233bb58061540a65dc7e659928ad, type: 3}
-  rowHeight: 50
+  rowHeight: 70
   nodeSpacing: 60
   minZoom: 0.5
-  maxZoom: 2
-  zoomSpeed: 0.1
+  maxZoom: 1
+  zoomSpeed: 0.2
 --- !u!1 &3488285877977123210
 GameObject:
   m_ObjectHideFlags: 0
@@ -1109,7 +1109,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.0007052343, y: -0.000030517578}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &3019405005615241121

@@ -155784,6 +155784,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1433340160426765120, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+      propertyPath: m_fontColor.b
+      value: 0.43137258
+      objectReference: {fileID: 0}
+    - target: {fileID: 1433340160426765120, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+      propertyPath: m_fontColor.g
+      value: 0.8588236
+      objectReference: {fileID: 0}
+    - target: {fileID: 1433340160426765120, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+      propertyPath: m_fontColor.r
+      value: 0.9960785
+      objectReference: {fileID: 0}
+    - target: {fileID: 1433340160426765120, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4285455358
+      objectReference: {fileID: 0}
     - target: {fileID: 1832036440184069657, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -155841,22 +155857,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: GemTreeUI
       objectReference: {fileID: 0}
-    - target: {fileID: 3582153314536613096, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: -10
-      objectReference: {fileID: 0}
-    - target: {fileID: 3582153314536613096, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: -10
-      objectReference: {fileID: 0}
-    - target: {fileID: 3582153314536613096, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3582153314536613096, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4059057076768544384, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
@@ -155868,26 +155868,6 @@ PrefabInstance:
     - target: {fileID: 4660927231951443167, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4660927231951443167, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0.0007052343
-      objectReference: {fileID: 0}
-    - target: {fileID: 4660927231951443167, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -0.000030517578
-      objectReference: {fileID: 0}
-    - target: {fileID: 6723107579737936556, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
-      propertyPath: maxZoom
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6723107579737936556, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
-      propertyPath: rowHeight
-      value: 70
-      objectReference: {fileID: 0}
-    - target: {fileID: 6723107579737936556, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
-      propertyPath: zoomSpeed
-      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 8014481183506173875, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
       propertyPath: m_Pivot.x
