@@ -67,7 +67,7 @@ public class SelectionWheelUI : MonoBehaviour
                 GameObject textObj = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
                 textObj.transform.SetParent(container, false); // 텍스트는 회전 안되게 container의 직접 자식으로
                 TextMeshProUGUI txt = textObj.GetComponent<TextMeshProUGUI>();
-                txt.fontSize = 18;
+                txt.fontSize = 11;
                 txt.fontStyle = FontStyles.Bold;
                 txt.alignment = TextAlignmentOptions.Center;
                 txt.textWrappingMode = TextWrappingModes.NoWrap;
