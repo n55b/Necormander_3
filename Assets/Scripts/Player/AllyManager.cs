@@ -22,6 +22,9 @@ public class AllyManager : MonoBehaviour
     [Header("아군 유닛들")]
     [SerializeField] List<AllyController> allys = new List<AllyController>();
     [SerializeField] List<MinionInfo> activeMinionInfos = new List<MinionInfo>();
+
+    public event System.Action<MinionInfo> OnAllyRespawnStart;
+    public event System.Action<MinionInfo> OnAllyRespawned;
     
     [SerializeField] bool isBattle = false;
     [SerializeField] LayerMask playerLayer;
@@ -34,8 +37,9 @@ public class AllyManager : MonoBehaviour
 
     private void HandleRespawns()
     {
-        foreach (var info in activeMinionInfos)
+        for (int i = activeMinionInfos.Count - 1; i >= 0; i--)
         {
+            var info = activeMinionInfos[i];
             if (info.IsDead)
             {
                 info.RespawnTimer -= Time.deltaTime;
@@ -50,17 +54,16 @@ public class AllyManager : MonoBehaviour
     private void RespawnMinion(MinionInfo info)
     {
         info.IsDead = false;
+        OnAllyRespawned?.Invoke(info);
         
-        // 플레이어 주변 위치 계산
         Vector3 spawnPos = transform.position;
-        var sumController = GetComponent<SummonController>();
+        var sumController = GetComponentInParent<SummonController>();
         if (sumController != null)
         {
             var positions = sumController.GetSummonPositions2D(1, 2f);
             if (positions.Count > 0) spawnPos = positions[0];
         }
 
-        // 실제 소환 (기존 SpawnAlly 로직 활용하되 Info는 업데이트)
         AllyController newAlly = InternalSpawn(info.Data, spawnPos);
         if (newAlly != null)
         {
@@ -69,29 +72,23 @@ public class AllyManager : MonoBehaviour
         }
     }
 
-    // 사망 보고 (CharacterStat에서 호출)
     public void ReportDeath(int instanceId)
     {
         var info = activeMinionInfos.Find(i => i.InstanceId == instanceId);
-        if (info != null)
+        if (info != null && !info.IsDead)
         {
             info.IsDead = true;
-            info.RespawnTimer = defaultRespawnTime;
-            Debug.Log($"<color=red>[AllyManager]</color> {info.Data.minionName} (ID: {instanceId}) 사망 확인. {defaultRespawnTime}초 후 부활합니다.");
-        }
-        else
-        {
-            Debug.LogWarning($"<color=orange>[AllyManager]</color> ID {instanceId}에 해당하는 유닛 정보를 찾을 수 없어 부활시키지 못했습니다. (관리 리스트에 없음)");
+            info.RespawnTimer = defaultRespawnTime; // 나중에 보석 등으로 이 시간 조절 가능
+            OnAllyRespawnStart?.Invoke(info);
+            Debug.Log($"<color=red>[AllyManager]</color> {info.Data.minionName} (ID: {instanceId}) 사망. {info.RespawnTimer}s 후 부활");
         }
     }
 
-    // 아군 유닛 소환 함수
     public AllyController SpawnAlly(MinionDataSO data, Vector3 _position)
     {
         AllyController ally = InternalSpawn(data, _position);
         if (ally != null)
         {
-            // 새로운 관리 정보 추가
             activeMinionInfos.Add(new MinionInfo(ally.gameObject.GetInstanceID(), data));
         }
         return ally;
@@ -115,72 +112,43 @@ public class AllyManager : MonoBehaviour
         return _ally;
     }
 
-    // 아군 전투 중인지 상태 받아서 유닛들에게 뿌려주는 함수
     public void SetBattleState(bool _bool)
     {
         isBattle = _bool;
-
-        RemoveNullinAllys(); // 리스트 정리
-
+        RemoveNullinAllys();
         foreach (var ally in allys)
         {
             ally.SetBattleState(isBattle);
         }
     }
 
-    // 아군 유닛들이 전투 중인지 확인하는 함수
     public bool CheckAllyState()
     {
         RemoveNullinAllys();
-
         foreach (var ally in allys)
         {
-            // 1. ally 및 브레인 유효성 체크
-            if (ally == null || ally.Brain == null) continue;
-
-            // 2. 현재 타겟이 없으면 전투 중이 아닌 것으로 간주 (Pass)
-            if (ally.Brain.Target == null) continue;
-
-            // 3. 타겟이 플레이어가 아니라면 (즉, 적군을 조준 중이라면) 전투 중으로 판단
-            if (ally.Brain.Target.gameObject.layer != playerLayer)
-            {
-                return true;
-            }
+            if (ally == null || ally.Brain == null || ally.Brain.Target == null) continue;
+            if (ally.Brain.Target.gameObject.layer != playerLayer) return true;
         }
-
         return false;
     }
 
-    // 아군 리스트 null이 된 개체들 삭제
     private void RemoveNullinAllys()
     {
         allys.RemoveAll(item => !item);
     }
 
-    /// <summary>
-    /// 필드에 소환된 모든 아군을 제거하고 관리 리스트를 초기화합니다.
-    /// </summary>
     public void ClearAll()
     {
         RemoveNullinAllys();
-
-        // [핵심 순서] 1. 투척 시스템 먼저 정리 (들고 있는 유닛 내려놓기 + 클러스터 삭제)
         var throwController = Object.FindFirstObjectByType<ThrowController>();
-        if (throwController != null)
-        {
-            throwController.ForceClear();
-        }
-
-        // 2. 이제 필드에 내려와 있는 모든 미니언 파괴
+        if (throwController != null) throwController.ForceClear();
         foreach (var ally in allys)
         {
             if (ally != null) Destroy(ally.gameObject);
         }
-
-        // 3. 리스트 비우기
         allys.Clear();
         activeMinionInfos.Clear();
-
-        Debug.Log("<color=red>[AllyManager]</color> All allies cleared from field.");
+        Debug.Log("<color=red>[AllyManager]</color> All allies cleared.");
     }
 }

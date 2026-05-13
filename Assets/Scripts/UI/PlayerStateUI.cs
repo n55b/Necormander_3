@@ -4,104 +4,121 @@ using TMPro;
 using System.Collections.Generic;
 
 /// <summary>
-/// GameManager에 의해 초기화되며, 플레이어의 실시간 상태를 표시합니다.
-/// 하트 아이콘을 최대 체력에 맞춰 동적으로 생성합니다.
+/// GameManager에 의해 초기화되며, 플레이어의 실시간 상태(체력, 골드, 부활)를 표시합니다.
 /// </summary>
 public class PlayerStateUI : MonoBehaviour
 {
-    [Header("HP Settings (Dynamic)")]
-    [SerializeField] private GameObject heartPrefab;    // 하트 아이콘 프리팹 (Filled 이미지 포함)
-    [SerializeField] private Transform heartContainer; // 하트가 생성될 부모 (Panel_HP)
-    private const float HP_PER_HEART = 2.0f;           // 하트 하나당 체력 포인트
+    // === 내부 클래스: 부활 타이머 UI 항목 관리 ===
+    private class ReviveIcon
+    {
+        public AllyManager.MinionInfo TargetInfo;
+        public GameObject IconObject;
+        public TextMeshProUGUI TimerText;
+        public Image ArmyImage;
+
+        public ReviveIcon(AllyManager.MinionInfo info, GameObject obj)
+        {
+            TargetInfo = info;
+            IconObject = obj;
+            TimerText = obj.GetComponentInChildren<TextMeshProUGUI>();
+            ArmyImage = obj.GetComponentInChildren<Image>(); // 혹은 특정 이름으로 찾기
+        }
+    }
+
+    [Header("HP Settings")]
+    [SerializeField] private GameObject heartPrefab;
+    [SerializeField] private Transform heartContainer;
+    private const float HP_PER_HEART = 2.0f;
 
     [Header("Gold Settings")]
     [SerializeField] private TextMeshProUGUI goldText;
 
-    private CharacterHealth _playerHealth;
-    private List<Image> _hpFillImages = new List<Image>();
+    [Header("Revive Settings")]
+    [SerializeField] private GameObject reviveIconPrefab;
+    [SerializeField] private Transform reviveContainer;
 
-    public void Initialize(CharacterHealth playerHealth)
+    private CharacterHealth _playerHealth;
+    private AllyManager _allyManager;
+    private List<Image> _hpFillImages = new List<Image>();
+    private List<ReviveIcon> _revivingIcons = new List<ReviveIcon>();
+
+    /// <summary>
+    /// GameManager에서 호출하여 초기 데이터를 연결합니다.
+    /// </summary>
+    public void Initialize(CharacterHealth playerHealth, AllyManager allyManager)
     {
         _playerHealth = playerHealth;
+        _allyManager = allyManager;
         
         if (_playerHealth != null)
         {
-            // 1. 기존 하트 모두 제거
-            foreach (Transform child in heartContainer) Destroy(child.gameObject);
-            _hpFillImages.Clear();
-
-            // 2. 최대 체력에 맞춰 하트 생성 (예: 6 HP -> 3 Hearts)
-            int heartCount = Mathf.CeilToInt(_playerHealth.MaxHP / HP_PER_HEART);
-            for (int i = 0; i < heartCount; i++)
-            {
-                GameObject heartObj = Instantiate(heartPrefab, heartContainer);
-                // 프리팹에서 실제 Fill 기능을 하는 Image 컴포넌트 추출 (보통 자식이나 본인)
-                Image fillImg = heartObj.GetComponentInChildren<Image>(); 
-                if (fillImg != null) _hpFillImages.Add(fillImg);
-            }
-
-            // 3. 이벤트 구독
             _playerHealth.UpdateHPBar += RefreshHP;
+            SetupHearts();
             RefreshHP();
+        }
 
-            // [보강] 최상위 부모부터 하위까지 레이아웃 강제 재구성
-            StopAllCoroutines();
-            StartCoroutine(RefreshLayoutRoutine());
+        if (_allyManager != null)
+        {
+            _allyManager.OnAllyRespawnStart += AddReviveIcon;
+            _allyManager.OnAllyRespawned += RemoveReviveIcon;
         }
 
         RefreshGold();
-        Debug.Log($"<color=green>[PlayerStateUI]</color> HUD Initialized. Hearts Created: {_hpFillImages.Count}");
-    }
-
-    private System.Collections.IEnumerator RefreshLayoutRoutine()
-    {
-        // UI 시스템이 소환된 하트들의 'Preferred Size'를 인식할 시간을 줌
-        yield return new WaitForEndOfFrame();
-
-        // 최상위(PlayerStateUI)부터 하위 레이아웃 그룹들을 순차적으로 재계산
-        RectTransform rootRect = GetComponent<RectTransform>();
-        if (rootRect != null)
-        {
-            // 캔버스 전체 업데이트 강제
-            Canvas.ForceUpdateCanvases();
-            
-            // 모든 자식 레이아웃 리빌드
-            LayoutGroup[] groups = GetComponentsInChildren<LayoutGroup>();
-            // 깊은 곳(자식)부터 얕은 곳(부모) 순서로 갱신하기 위해 역순 순회
-            for (int i = groups.Length - 1; i >= 0; i--)
-            {
-                LayoutRebuilder.ForceRebuildLayoutImmediate(groups[i].GetComponent<RectTransform>());
-            }
-            
-            // 마지막으로 본인 리빌드
-            LayoutRebuilder.ForceRebuildLayoutImmediate(rootRect);
-        }
+        Debug.Log("<color=green>[PlayerStateUI]</color> HUD Initialized.");
     }
 
     private void OnDestroy()
     {
         if (_playerHealth != null) _playerHealth.UpdateHPBar -= RefreshHP;
+        if (_allyManager != null)
+        {
+            _allyManager.OnAllyRespawnStart -= AddReviveIcon;
+            _allyManager.OnAllyRespawned -= RemoveReviveIcon;
+        }
     }
 
     private void Update()
     {
         RefreshGold();
+        UpdateReviveTimers();
+    }
+    
+    #region HP
+    private void SetupHearts()
+    {
+        foreach (Transform child in heartContainer) Destroy(child.gameObject);
+        _hpFillImages.Clear();
+
+        int heartCount = Mathf.CeilToInt(_playerHealth.MaxHP / HP_PER_HEART);
+        for (int i = 0; i < heartCount; i++)
+        {
+            GameObject heartObj = Instantiate(heartPrefab, heartContainer);
+            Image fillImg = heartObj.GetComponentInChildren<Image>(); 
+            if (fillImg != null) _hpFillImages.Add(fillImg);
+        }
+
+        // 레이아웃 갱신
+        if (heartContainer is RectTransform rect)
+        {
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+            if (rect.parent is RectTransform parentRect) LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
+        }
     }
 
     public void RefreshHP()
     {
         if (_playerHealth == null) return;
-
         float currentHP = _playerHealth.CurHP;
-        
         for (int i = 0; i < _hpFillImages.Count; i++)
         {
-            // 각 하트의 체력 잔량 계산
             float heartFill = Mathf.Clamp(currentHP - (i * HP_PER_HEART), 0, HP_PER_HEART) / HP_PER_HEART;
             _hpFillImages[i].fillAmount = heartFill;
         }
     }
+    #endregion
 
+    #region Gold
     public void RefreshGold()
     {
         if (InventoryManager.Instance != null && goldText != null)
@@ -109,4 +126,41 @@ public class PlayerStateUI : MonoBehaviour
             goldText.text = InventoryManager.Instance.GOLD.ToString();
         }
     }
+    #endregion
+    
+    #region Revive
+    private void AddReviveIcon(AllyManager.MinionInfo info)
+    {
+        if (reviveIconPrefab == null) return;
+        GameObject iconObj = Instantiate(reviveIconPrefab, reviveContainer);
+        _revivingIcons.Add(new ReviveIcon(info, iconObj));
+        
+        // 아이콘 이미지 설정 (주석 처리)
+        // if (info.Data.icon != null) {
+        //     var icon = _revivingIcons.Find(r => r.TargetInfo == info);
+        //     if(icon != null && icon.ArmyImage != null) icon.ArmyImage.sprite = info.Data.icon;
+        // }
+    }
+
+    private void RemoveReviveIcon(AllyManager.MinionInfo info)
+    {
+        var icon = _revivingIcons.Find(r => r.TargetInfo == info);
+        if (icon != null)
+        {
+            Destroy(icon.IconObject);
+            _revivingIcons.Remove(icon);
+        }
+    }
+
+    private void UpdateReviveTimers()
+    {
+        foreach (var icon in _revivingIcons)
+        {
+            if (icon.TargetInfo != null && icon.TimerText != null)
+            {
+                icon.TimerText.text = icon.TargetInfo.RespawnTimer.ToString("F1");
+            }
+        }
+    }
+    #endregion
 }

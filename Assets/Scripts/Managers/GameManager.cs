@@ -84,7 +84,8 @@ public class GameManager : MonoBehaviour
         if (playerStateUI != null && playerController != null)
         {
             var health = playerController.GetComponentInChildren<CharacterHealth>();
-            playerStateUI.Initialize(health);
+            var allyManager = Object.FindFirstObjectByType<AllyManager>(); // [추가] AllyManager 참조 찾기
+            playerStateUI.Initialize(health, allyManager);
         }
 
         // [사용자 요청] 게임 시작 시 자동으로 소환하지 않음 (적 조우 시에만 소환)

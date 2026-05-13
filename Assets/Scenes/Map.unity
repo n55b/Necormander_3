@@ -118996,6 +118996,30 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &585955019 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2884488951266304383, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+  m_PrefabInstance: {fileID: 242229405179095275}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &585955020 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1218228168105934502, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+  m_PrefabInstance: {fileID: 242229405179095275}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &585955022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 585955019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &629318669
 GameObject:
   m_ObjectHideFlags: 0
@@ -143167,6 +143191,8 @@ MonoBehaviour:
   heartPrefab: {fileID: 6105954189479027450, guid: e8864a3d3d1d21949b74a3d2910d0c36, type: 3}
   heartContainer: {fileID: 1149855960}
   goldText: {fileID: 834421743}
+  reviveIconPrefab: {fileID: 7732809971070205925, guid: aa48e9f8efdff834c90bb5ce94db47a6, type: 3}
+  reviveContainer: {fileID: 585955020}
 --- !u!1001 &711003751
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -144443,7 +144469,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_HorizontalFit: 2
-  m_VerticalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &1181134932
 GameObject:
   m_ObjectHideFlags: 0
@@ -156102,7 +156128,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1218228168105934502, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 50
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1218228168105934502, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -156142,7 +156168,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1832036440184069657, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 32
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1980655090623038490, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
       propertyPath: m_AnchorMax.y
@@ -156389,6 +156415,7 @@ PrefabInstance:
     - {fileID: 7670531051136478901, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
     - {fileID: 69625039610524713, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
     - {fileID: 7987187702367117378, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+    - {fileID: 4073696041540981838, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2864501795986684358, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
@@ -156400,6 +156427,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7562331024522022739, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1149855963}
+    - targetCorrespondingSourceObject: {fileID: 2884488951266304383, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 585955022}
   m_SourcePrefab: {fileID: 100100000, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
 --- !u!1001 &2949790248353707493
 PrefabInstance:
