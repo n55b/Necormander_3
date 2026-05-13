@@ -40,7 +40,8 @@ public class DynamicEnemySpawner : MonoBehaviour
     [SerializeField] private UnityEvent OutRoomEvent;
     [SerializeField] private UnityEvent<Vector3> EliteRoomEvent;
 
-    private List<MinionDataSO> _enemyDataList = new List<MinionDataSO>();
+    private List<MinionDataSO> _normalEnemyPool = new List<MinionDataSO>();
+    private List<MinionDataSO> _bossEnemyPool = new List<MinionDataSO>();
     private List<GameObject> _activeEnemies = new List<GameObject>();
     private float _spawnTimer;
     private Transform _playerTransform;
@@ -52,10 +53,24 @@ public class DynamicEnemySpawner : MonoBehaviour
         // DataManager로부터 이번 맵에서 소환할 수 있는 적군 데이터 목록을 가져옵니다.
         if (GameManager.Instance != null && GameManager.Instance.dataManager != null)
         {
-            _enemyDataList = GameManager.Instance.dataManager.ENEMY_MINION_DATA;
+            var rawList = GameManager.Instance.dataManager.ENEMY_MINION_DATA;
+            if (rawList != null)
+            {
+                foreach (var data in rawList)
+                {
+                    if (data.isBoss) 
+                    {
+                        _bossEnemyPool.Add(data);
+                    }
+                    else if (data.canSpawnRandomly) 
+                    {
+                        _normalEnemyPool.Add(data);
+                    }
+                }
+            }
         }
 
-        if (_enemyDataList == null || _enemyDataList.Count == 0)
+        if (_normalEnemyPool.Count == 0 && _bossEnemyPool.Count == 0)
         {
             Debug.LogError($"<color=red>[DynamicEnemySpawner]</color> {gameObject.name}: DataManager에서 적군 미니언 데이터를 찾을 수 없습니다! Registry 설정을 확인하세요.");
         }
@@ -73,7 +88,7 @@ public class DynamicEnemySpawner : MonoBehaviour
 
     private void Update()
     {
-        if (_playerTransform == null || _enemyDataList == null || _enemyDataList.Count == 0) return;
+        if (_playerTransform == null || (_normalEnemyPool.Count == 0 && _bossEnemyPool.Count == 0)) return;
 
         // --- [1] 클리어 체크 및 보상 로직 ---
         if (_isTriggered && !_rewardGiven && spawnType == SpawnType.Encounter)
@@ -133,8 +148,8 @@ public class DynamicEnemySpawner : MonoBehaviour
 
     private MinionDataSO GetRandomEnemyData()
     {
-        if (_enemyDataList == null || _enemyDataList.Count == 0) return null;
-        return _enemyDataList[Random.Range(0, _enemyDataList.Count)];
+        if (_normalEnemyPool.Count == 0) return null;
+        return _normalEnemyPool[Random.Range(0, _normalEnemyPool.Count)];
     }
 
     private void TriggerEncounter()
@@ -147,12 +162,44 @@ public class DynamicEnemySpawner : MonoBehaviour
             GameManager.Instance.squadSpawner.RefreshFullSquad();
         }
 
+        // [추가] 보스 방일 경우 단일 보스만 소환
+        if (roomType == RoomType.Boss)
+        {
+            SpawnBoss();
+            return;
+        }
+
         for (int i = 0; i < groupsCount; i++)
         {
             Vector2 randomPosInsideCircle = Random.insideUnitCircle * spawnDistanceFromCenter;
             Vector3 groupCenter = transform.position + new Vector3(randomPosInsideCircle.x, randomPosInsideCircle.y, 0f);
 
             SpawnGroup(groupCenter);
+        }
+    }
+
+    private void SpawnBoss()
+    {
+        if (_bossEnemyPool.Count == 0)
+        {
+            Debug.LogError($"<color=red>[Spawner]</color> {gameObject.name}: Boss Room이지만 보스 데이터 풀이 비어있습니다!");
+            return;
+        }
+
+        // 현재 풀에서 랜덤 보스 선택 (나중에 스테이지별 필터링 가능)
+        MinionDataSO data = _bossEnemyPool[Random.Range(0, _bossEnemyPool.Count)];
+
+        Vector3 spawnPos = transform.position;
+        if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
+        {
+            spawnPos = hit.position;
+        }
+
+        GameObject bossObj = GameManager.Instance.dataManager.CreateUnit(data, spawnPos);
+        if (bossObj != null)
+        {
+            _activeEnemies.Add(bossObj);
+            Debug.Log($"<color=red>[Spawner]</color> Boss <b>{data.minionName}</b> Spawned from Pool!");
         }
     }
 

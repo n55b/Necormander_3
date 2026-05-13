@@ -193,6 +193,9 @@ public class CharacterStat : MonoBehaviour
             baseAtkRange = data.attackRange;
             baseDef = data.defense;
             baseMoveSpeed = data.moveSpeed;
+
+            // [추가] 보스 여부 전달
+            if (Status != null) Status.IsBoss = data.isBoss;
         }
 
         UpdateTeamStatus(); // 데이터 주입 시점에 팀 정보 다시 확인
