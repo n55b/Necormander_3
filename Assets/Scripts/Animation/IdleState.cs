@@ -1,12 +1,12 @@
 using UnityEngine;
 
-public class IdleState : AnimationState
+public class IdleState : PlayerAnimationState
 {
-    public IdleState(Animator animator) : base(animator){}
+    public IdleState(PlayerController _controller) : base(_controller){}
 
     public override void Enter()
     {
-        animator.Play("Idle");
+        controller.PlayAllAnim("Idle");
     }
 
     public override void Update()

@@ -1,12 +1,12 @@
 using UnityEngine;
 
-public class WalkState : AnimationState
+public class WalkState : PlayerAnimationState
 {
-    public WalkState(Animator animator) : base(animator){}
+    public WalkState(PlayerController _controller) : base(_controller){}
 
     public override void Enter()
     {
-        animator.Play("Walk");
+        controller.PlayAllAnim("Walk");
     }
 
     public override void Update()

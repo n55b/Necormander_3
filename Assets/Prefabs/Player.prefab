@@ -71,6 +71,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 280a5d9b1af4b1f4da107f120ab0f6fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _playerController: {fileID: 0}
 --- !u!114 &2025324686124334797
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1087,6 +1088,10 @@ MonoBehaviour:
   P_State: 0
   minThrowChargeMultiplier: 1
   maxThrowChargeMultiplier: 2
+  BodyAnimator: {fileID: 8576837497327950917}
+  LHandAnimator: {fileID: 8182820158993313582}
+  RHandAnimator: {fileID: 5375555019013159533}
+  canChangeState: 1
   MoveDirection: {x: 0, y: 0, z: 0}
   moveInput: {x: 0, y: 0}
 --- !u!114 &6055861653884896251
