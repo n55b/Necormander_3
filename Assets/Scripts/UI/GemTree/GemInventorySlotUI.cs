@@ -70,7 +70,7 @@ public class GemInventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler
         Image ghostImage = _currentDragGhost.AddComponent<Image>();
         ghostImage.sprite = _gem.BaseData.icon;
         ghostImage.raycastTarget = false;
-        ghostImage.rectTransform.sizeDelta = new Vector2(50, 50);
+        ghostImage.rectTransform.sizeDelta = new Vector2(25, 25);
 
         UpdateGhostPosition(eventData);
     }

@@ -84,7 +84,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 516779fc0d03f034f9f3624a39ea0ea6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 200
+  radius: 100
   normalColor: {r: 0, g: 0, b: 0, a: 0.46666667}
   highlightColor: {r: 0.96403784, g: 1, b: 0.6650944, a: 0.8}
   dragThreshold: 30
