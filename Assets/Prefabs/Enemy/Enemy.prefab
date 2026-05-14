@@ -551,7 +551,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3504e5b732e46ed47849051799a49b28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debuffTerminal: {fileID: 0}
+  debuffTerminal: {fileID: 1405805241935053527}
 --- !u!114 &2562986780468983374
 MonoBehaviour:
   m_ObjectHideFlags: 0
