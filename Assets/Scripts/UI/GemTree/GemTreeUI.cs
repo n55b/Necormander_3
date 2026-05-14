@@ -78,6 +78,7 @@ public class GemTreeUI : MonoBehaviour
         {
             var nodePositions = CalculateAllNodePositions();
             RenderTree(InventoryManager.Instance.GemTreeRoot, nodePositions);
+            DrawSynergyLines(nodePositions); // [추가] 시너지 연결선 그리기 호출
             DrawFloorLines(nodePositions);
         }
 
@@ -209,18 +210,6 @@ public class GemTreeUI : MonoBehaviour
                 CreateConnector(positions[node], positions[child], lineColor);
 
                 accumulatedWidth += _subTreeWidths[child];
-
-                // [유지] 형제 노드(좌우) 시너지 체크: 시너지가 있을 때만 생성
-                if (i > 0)
-                {
-                    GemTreeNode leftSibling = node.Children[i - 1];
-                    if (leftSibling != null && 
-                        leftSibling.Gem.BaseData.synergyGroup != GemSynergyGroup.Base &&
-                        leftSibling.Gem.BaseData.synergyGroup == child.Gem.BaseData.synergyGroup)
-                    {
-                        CreateConnector(positions[leftSibling], positions[child], GemSO.GetSynergyColor(child.Gem.BaseData.synergyGroup));
-                    }
-                }
             }
             else
             {
@@ -234,6 +223,74 @@ public class GemTreeUI : MonoBehaviour
                 accumulatedWidth += emptySlotWidth;
             }
         }
+    }
+
+    /// <summary>
+    /// [신규] 모든 노드를 순회하며 시너지 그룹이 일치하는 인접 노드 간에 연결선을 그립니다.
+    /// 사용자의 제안에 따라 층별 슬롯 인덱스 기반으로 인접성을 판단합니다.
+    /// </summary>
+    private void DrawSynergyLines(Dictionary<GemTreeNode, Vector2> positions)
+    {
+        // 층별로 순회
+        for (int d = 1; d < 10; d++) // Root(0층)는 제외
+        {
+            List<GemTreeNode> slots = GetAllSlotsAtDepth(d);
+            if (slots.Count <= 1) continue;
+
+            for (int i = 0; i < slots.Count; i++)
+            {
+                GemTreeNode curr = slots[i];
+                if (curr == null || curr.Gem == null || curr.Gem.BaseData == null) continue;
+                if (curr.Gem.BaseData.synergyGroup == GemSynergyGroup.Base) continue;
+
+                // 왼쪽 인접 슬롯 확인 (Wrap-around 포함)
+                int leftIdx = (i == 0) ? slots.Count - 1 : i - 1;
+                GemTreeNode leftNeighbor = slots[leftIdx];
+
+                if (leftNeighbor != null && positions.ContainsKey(leftNeighbor) &&
+                    leftNeighbor.Gem != null && leftNeighbor.Gem.BaseData != null &&
+                    leftNeighbor.Gem.BaseData.synergyGroup == curr.Gem.BaseData.synergyGroup)
+                {
+                    // 시너지 그룹이 같다면 연결선 생성
+                    CreateConnector(positions[curr], positions[leftNeighbor], GemSO.GetSynergyColor(curr.Gem.BaseData.synergyGroup));
+                }
+            }
+        }
+    }
+
+    private int GetNodeDepth(GemTreeNode node)
+    {
+        int depth = 0;
+        GemTreeNode curr = node;
+        while (curr.Parent != null)
+        {
+            curr = curr.Parent;
+            depth++;
+        }
+        return depth;
+    }
+
+    private List<GemTreeNode> GetAllSlotsAtDepth(int targetDepth)
+    {
+        if (InventoryManager.Instance == null || InventoryManager.Instance.GemTreeRoot == null)
+            return new List<GemTreeNode>();
+
+        List<GemTreeNode> currentLevelNodes = new List<GemTreeNode> { InventoryManager.Instance.GemTreeRoot };
+
+        for (int d = 0; d < targetDepth; d++)
+        {
+            List<GemTreeNode> nextLevelSlots = new List<GemTreeNode>();
+            foreach (var node in currentLevelNodes)
+            {
+                if (node != null)
+                {
+                    nextLevelSlots.AddRange(node.Children);
+                }
+            }
+            currentLevelNodes = nextLevelSlots;
+        }
+
+        return currentLevelNodes;
     }
     
     private void DrawFloorLines(Dictionary<GemTreeNode, Vector2> positions)

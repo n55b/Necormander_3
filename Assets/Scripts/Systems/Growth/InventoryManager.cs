@@ -237,18 +237,68 @@ public class InventoryManager : MonoBehaviour
                 CheckAndEnqueue(child, targetGroup, queue, clusterVisited, globalVisited);
             }
 
-            // 3. 좌우 (형제)
-            if (current.Parent != null)
-            {
-                int myIdx = current.Parent.Children.IndexOf(current);
-                // 왼쪽 형제 (인덱스 i-1)
-                if (myIdx > 0) CheckAndEnqueue(current.Parent.Children[myIdx - 1], targetGroup, queue, clusterVisited, globalVisited);
-                // 오른쪽 형제 (인덱스 i+1)
-                if (myIdx < current.Parent.Children.Count - 1) CheckAndEnqueue(current.Parent.Children[myIdx + 1], targetGroup, queue, clusterVisited, globalVisited);
-            }
+            // 3. 좌우 인접 체크 (층별 시각적 인덱스 기반)
+            CheckAndEnqueue(GetVisualNeighbor(current, -1), targetGroup, queue, clusterVisited, globalVisited);
+            CheckAndEnqueue(GetVisualNeighbor(current, 1), targetGroup, queue, clusterVisited, globalVisited);
         }
 
         return size;
+    }
+
+    /// <summary>
+    /// [신규] 해당 노드와 동일한 층(Depth)에서 시각적으로 바로 옆에 있는 슬롯의 노드를 반환합니다.
+    /// 인덱스 기반으로 사촌 및 Wrap-around를 통합 처리합니다.
+    /// </summary>
+    private GemTreeNode GetVisualNeighbor(GemTreeNode node, int direction)
+    {
+        if (node == null || node.Parent == null) return null;
+
+        // 1. 현재 노드가 속한 층의 모든 슬롯 목록 확보
+        int depth = GetNodeDepth(node);
+        List<GemTreeNode> depthSlots = GetAllSlotsAtDepth(depth);
+
+        int myIdx = depthSlots.IndexOf(node);
+        if (myIdx == -1) return null;
+
+        // 2. 인접 인덱스 계산 (Wrap-around 포함)
+        int targetIdx = myIdx + direction;
+        if (targetIdx < 0) targetIdx = depthSlots.Count - 1;
+        else if (targetIdx >= depthSlots.Count) targetIdx = 0;
+
+        // 3. 해당 슬롯의 노드 반환 (빈 슬롯이면 null이 반환됨)
+        return depthSlots[targetIdx];
+    }
+
+    private int GetNodeDepth(GemTreeNode node)
+    {
+        int depth = 0;
+        GemTreeNode curr = node;
+        while (curr.Parent != null)
+        {
+            curr = curr.Parent;
+            depth++;
+        }
+        return depth;
+    }
+
+    private List<GemTreeNode> GetAllSlotsAtDepth(int targetDepth)
+    {
+        List<GemTreeNode> currentLevelNodes = new List<GemTreeNode> { GemTreeRoot };
+
+        for (int d = 0; d < targetDepth; d++)
+        {
+            List<GemTreeNode> nextLevelSlots = new List<GemTreeNode>();
+            foreach (var node in currentLevelNodes)
+            {
+                if (node != null)
+                {
+                    nextLevelSlots.AddRange(node.Children);
+                }
+            }
+            currentLevelNodes = nextLevelSlots;
+        }
+
+        return currentLevelNodes;
     }
 
     private void CheckAndEnqueue(GemTreeNode node, GemSynergyGroup targetGroup, Queue<GemTreeNode> queue, HashSet<GemTreeNode> clusterVisited, HashSet<GemTreeNode> globalVisited)
