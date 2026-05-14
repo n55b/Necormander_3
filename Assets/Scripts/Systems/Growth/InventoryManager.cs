@@ -52,6 +52,10 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private List<GemSO> debugStartingGems_Data = new List<GemSO>();
     [Tooltip("위 보석들의 대상 직업 (순서대로 매칭)")]
     [SerializeField] private List<CommandData> debugStartingGems_TargetJobs = new List<CommandData>();
+
+    [Space(10)]
+    [Tooltip("시작 시 장착할 투척 능력 리스트")]
+    [SerializeField] private List<ThrowAbilitySO> debugStartingAbilities = new List<ThrowAbilitySO>();
     // ======================================================
 
     public System.Action OnGemTreeUpdated;
@@ -459,6 +463,17 @@ public class InventoryManager : MonoBehaviour
             }
 
             AddGemToAvailable(gem, job);
+        }
+
+        // 3. 투척 능력 자동 장착 [추가]
+        foreach (var ability in debugStartingAbilities)
+        {
+            if (ability == null) continue;
+            int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
+            if (emptyIdx != -1)
+            {
+                EquipThrowAbility(emptyIdx, ability);
+            }
         }
 
         if (!Slots.Exists(s => s.EquippedLineage != null)) AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);

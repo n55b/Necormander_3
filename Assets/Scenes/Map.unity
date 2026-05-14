@@ -143994,28 +143994,44 @@ PrefabInstance:
       objectReference: {fileID: 1467717214}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingGems_Data.Array.size
-      value: 6
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[1]'
       value: 
-      objectReference: {fileID: 11400000, guid: a6d62e9e7c5a08a47852b81fb4111961, type: 2}
+      objectReference: {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[2]'
       value: 
-      objectReference: {fileID: 11400000, guid: ca8aecde69d0989469666d9df5de3682, type: 2}
+      objectReference: {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[3]'
       value: 
-      objectReference: {fileID: 11400000, guid: 0d375b28527a0784c92a4c7c55c9b590, type: 2}
+      objectReference: {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[4]'
       value: 
-      objectReference: {fileID: 11400000, guid: 606a3783d03167a4189f80b08c88fd54, type: 2}
+      objectReference: {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[5]'
       value: 
-      objectReference: {fileID: 11400000, guid: ca8aecde69d0989469666d9df5de3682, type: 2}
+      objectReference: {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[6]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 76c6cdb8e23ea5342be880b6f838560e, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[7]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 42dfaf8b2344f5c439c8022a10dea56e, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[8]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 42dfaf8b2344f5c439c8022a10dea56e, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[9]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 11af96e45f9222f499822e13f81a8d5d, type: 2}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -155527,7 +155543,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5.5
+  orthographic size: 8.4375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
