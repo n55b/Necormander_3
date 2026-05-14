@@ -18,12 +18,18 @@ public class WorldHPBar : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (transform.parent == null) return;
+        // 1. 회전 고정: 부모가 돌아가더라도 체력바는 항상 수평을 유지
+        transform.rotation = Quaternion.identity;
 
-        // 부모의 scale.x가 음수(반전)라면, 자식인 나도 음수로 만들어 월드 기준 정방향(양수) 유지
-        Vector3 newScale = transform.localScale;
-        newScale.x = Mathf.Abs(newScale.x) * (transform.parent.localScale.x < 0 ? -1 : 1);
-        transform.localScale = newScale;
+        // 2. 스케일 보정: 계층 구조 어디선가 Flip이 발생해 전역 스케일이 뒤집혔다면 로컬 스케일을 반전시켜 상쇄
+        if (transform.parent != null)
+        {
+            Vector3 localScale = transform.localScale;
+            // 부모의 전역 스케일 방향을 내 로컬 스케일에 반영하여 최종 월드 스케일이 항상 양수가 되게 함
+            float parentGlobalX = transform.parent.lossyScale.x;
+            localScale.x = Mathf.Abs(localScale.x) * (parentGlobalX < 0 ? -1 : 1);
+            transform.localScale = localScale;
+        }
     }
 
     public void HPBarUpdate()
