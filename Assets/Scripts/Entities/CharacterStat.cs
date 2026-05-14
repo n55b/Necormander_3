@@ -113,7 +113,7 @@ public class CharacterStat : MonoBehaviour
 
     private float GetGemBonus(StatType type)
     {
-        if (InventoryManager.Instance == null) return 0f;
+        if (InventoryManager.Instance == null || !_isAlly) return 0f;
         return InventoryManager.Instance.GetAggregatedGemBonus(jobType, type); // [수정] jobType 전달
     }
 
