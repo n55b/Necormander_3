@@ -65,7 +65,8 @@ public class AllyController : BaseEntity, IThrowable
     protected override bool CanExecuteAI()
     {
         // 비행 중이거나 던져진 상태일 때는 AI 차단
-        if ((_arcMovement != null && _arcMovement.IsFlying) || (_runtimeBrain != null && _runtimeBrain.CurrentState == AIState.Thrown)) 
+        if ((_arcMovement != null && _arcMovement.IsFlying) || (_runtimeBrain != null && _runtimeBrain.CurrentState == AIState.Caught)
+        || _runtimeBrain != null && _runtimeBrain.CurrentState == AIState.Thrown) 
             return false;
         
         return base.CanExecuteAI();
@@ -79,8 +80,8 @@ public class AllyController : BaseEntity, IThrowable
 
     public void OnPickedUp()
     {
-        // 1. 브레인 상태를 즉시 Thrown으로 변경 (타겟팅 제외 핵심)
-        if (_runtimeBrain != null) _runtimeBrain.SetState(AIState.Thrown);
+        // 1. 브레인 상태를 즉시 Caught 변경 (타겟팅 제외 핵심)
+        if (_runtimeBrain != null) _runtimeBrain.SetState(this, AIState.Caught);
         _hasImpacted = false;
 
         if (_stats != null)
@@ -128,7 +129,22 @@ public class AllyController : BaseEntity, IThrowable
         _throwStartTime = Time.time;
         _lastChargeRatio = chargeRatio;
         _hasImpacted = false;
-        _isDirectThrow = (chargeRatio >= 1.0f); 
+        _isDirectThrow = (chargeRatio >= 1.0f);
+        
+        // 던져질 때 Thrown 상태로 변경 (애니메이션 재생)
+        if (_runtimeBrain != null) 
+        {
+            _runtimeBrain.SetState(this, AIState.Thrown);
+
+            if(targetPosition.x - this.transform.position.x > 0.0f)
+            {
+                _sr.flipX = true;
+            }
+            else if (targetPosition.x - this.transform.position.x < 0.0f)
+            {
+                _sr.flipX = false;
+            }
+        }
 
         if (_sr != null) _sr.sortingLayerName = "FlyingObject";
 

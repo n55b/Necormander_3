@@ -25,6 +25,8 @@ public abstract class BaseEntity : MonoBehaviour
     [Header("데이터 참조 (직접 배치 시 필수)")]
     [SerializeField] protected MinionDataSO minionData;
     public MinionDataSO MinionData => minionData;
+    protected Animator _animator; // 애니메이터 추가
+    [SerializeField] protected AIState _lastState = (AIState)(-1); // 이전 상태 기록
 
     // 새로운 통합 AI 브레인 (인스턴스)
     protected AIPatternSO _runtimeBrain;
@@ -43,8 +45,10 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual void Awake()
     {
+        _animator = GetComponentInChildren<Animator>();
+
         _stats = GetComponentInChildren<CharacterStat>();
-        if (_stats != null) _stats.Setup(); 
+        if (_stats != null) _stats.Setup();
 
         _nearestFinder = GetComponent<NearestTargetFinder>();
         _rb = GetComponent<Rigidbody2D>();
@@ -106,7 +110,7 @@ public abstract class BaseEntity : MonoBehaviour
         // [추가] 동결 또는 기절 상태라면 AI 중단
         if (_stats != null && _stats.Status != null)
         {
-            if (_stats.Status.GetDebuffBool(DebuffBoolType.Frozen) || 
+            if (_stats.Status.GetDebuffBool(DebuffBoolType.Frozen) ||
                 _stats.Status.GetDebuffBool(DebuffBoolType.Stunned))
                 return false;
         }
@@ -117,7 +121,7 @@ public abstract class BaseEntity : MonoBehaviour
     public virtual void Initialize(MinionDataSO data)
     {
         minionData = data;
-        
+
         if (_stats != null) _stats.InitializeStats(data);
         detectRange = data.detectRange;
 
@@ -157,10 +161,31 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected abstract void HandleNoTarget();
 
+    // 매 프레임 혹은 상태 변경 시 호출 할 함수
+    public virtual void UpdateAnimation(AIState state)
+    {
+        if (_animator == null) return;
+
+        if(_lastState != state)
+        {
+            _lastState = state;
+            // Enum 이름(Idle, Follow 등)과 애니메이터의 State 이름을 일치시켜야 함
+            // 더 부드럽게 바꾸고 싶다면 Play 대신 CrossFade(state.ToString(), 0.1f) 사용
+            _animator.Play(state.ToString());
+        }
+    }
+
     // 공격 실행 시 호출 (각 유닛의 특수 공격 로직은 여기서 구현)
     public virtual void ExecuteAttack(Transform target)
     {
         if (target == null) return;
+
+        if(_animator != null)
+        {
+            // 공격 애니메이션 강제 재생
+            CalculateRotate(target);
+            _animator.Play("Attack");
+        }
 
         // [수정] 플레이어가 미니언을 들고 있을 때 등을 고려하여 robust하게 Stat을 찾습니다.
         CharacterStat targetStat = target.GetComponent<CharacterStat>();
@@ -194,6 +219,19 @@ public abstract class BaseEntity : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+    // 공격 할 때, 상대 바라보게
+    private void CalculateRotate(Transform target)
+    {
+        if(target.position.x - this.transform.position.x > 0.0f)
+        {
+            _sr.flipX = true;
+        }
+        else if (target.position.x - this.transform.position.x < 0.0f)
+        {
+            _sr.flipX = false;
         }
     }
 }
