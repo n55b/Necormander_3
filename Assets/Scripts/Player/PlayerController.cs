@@ -35,6 +35,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float minThrowChargeMultiplier = 1.0f;
     [SerializeField] private float maxThrowChargeMultiplier = 2.0f;
 
+    [Header("상호작용 설정")]
+    [SerializeField] private float interactRange = 1.5f;
+    [SerializeField] private LayerMask interactableLayer;
+    private IInteractable _closestInteractable;
+
     [Header("플레이어 애니메이터")]
     [SerializeField] Animator BodyAnimator;
     [SerializeField] Animator LHandAnimator;
@@ -138,11 +143,35 @@ public class PlayerController : MonoBehaviour
                 this.transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
         }
 
-        // [임시 디버깅] 키보드 E 입력을 직접 감지
-        if (Input.GetKeyDown(KeyCode.E))
+        CheckForInteractable(); // [추가]
+
+        // [기존 임시 디버깅 삭제]
+        // if (Input.GetKeyDown(KeyCode.E))
+        // {
+        //     Debug.Log("<color=cyan>[DirectInput]</color> Keyboard E Pressed!");
+        // }
+    }
+
+    private void CheckForInteractable() // [추가]
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, interactRange, interactableLayer);
+        _closestInteractable = null;
+        float closestDist = float.MaxValue;
+
+        foreach (var col in colliders)
         {
-            Debug.Log("<color=cyan>[DirectInput]</color> Keyboard E Pressed!");
+            if (col.TryGetComponent<IInteractable>(out var interactable))
+            {
+                float dist = Vector2.Distance(transform.position, col.transform.position);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    _closestInteractable = interactable;
+                }
+            }
         }
+
+        // TODO: 여기에 가장 가까운 상호작용 오브젝트 위에 프롬프트(예: "Press Q")를 표시하는 UI 로직 추가 가능
     }
 
     private void FixedUpdate()
@@ -151,7 +180,7 @@ public class PlayerController : MonoBehaviour
         if (stat.Health.IsDead) return;
 
         // [복구] 기존 이동 로직으로 원복하되, 넉백 중일 때는 물리 속도를 덮어쓰지 않도록 개선 가능
-        // 만약 리지드바디의 속도가 넉백에 의해 아주 높다면 이동 처리를 스킵하거나 합산
+        // 만약 리지드바디의 속도가 아주 높다면 이동 처리를 스킵하거나 합산
         if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f) // 대략적인 임계값
         {
             transform.position += MoveDirection * stat.MOVESPEED * Time.deltaTime;
@@ -251,6 +280,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void OnInteract(InputAction.CallbackContext context) // [추가]
+    {
+        if (context.performed && _closestInteractable != null)
+        {
+            _closestInteractable.Interact(gameObject);
+        }
+    }
+
     public void OnGemTree(InputAction.CallbackContext context)
     {
         if (stat.Health.IsDead) return;
@@ -269,7 +306,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void OnTab(InputAction.CallbackContext context)
+    public void OnHandSlot(InputAction.CallbackContext context)
     {
         if (stat.Health.IsDead) return;
         

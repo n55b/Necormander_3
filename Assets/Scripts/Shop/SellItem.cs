@@ -1,12 +1,30 @@
 using TMPro;
 using UnityEngine;
 
-public class SellItem : MonoBehaviour
+public class SellItem : MonoBehaviour, IInteractable
 {
     [SerializeField] public PrizeDataSO item;
     [SerializeField] private GameObject Canvas;
     [SerializeField] private GameObject explainPrefab;
     private GameObject obj;
+
+    public string InteractionPrompt => $"Buy {item.name} ({item.gold}G)";
+
+    public bool Interact(GameObject interactor)
+    {
+        if (GameManager.Instance.inventoryManager.SpendGold(item.gold))
+        {
+            item.BuyItem();
+            Destroy(this.gameObject);
+            return true;
+        }
+        else
+        {
+            Debug.Log("Not enough gold!");
+            // TODO: 골드 부족 피드백 UI 표시
+            return false;
+        }
+    }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
@@ -22,18 +40,18 @@ public class SellItem : MonoBehaviour
 
     void OnTriggerStay2D(Collider2D collision)
     {
-        // 키 입력시 들어가 있으면 item 함수 받아와서 구매
-        if(collision.tag == "Player")
-        {
-            if(Input.GetKey(KeyCode.Q))
-            {
-                if(GameManager.Instance.inventoryManager.SpendGold(item.gold))
-                {
-                    item.BuyItem();
-                    Destroy(this.gameObject);
-                }
-            }
-        }
+        // 기존 구매 로직은 Interact()로 이전됨
+        // if(collision.tag == "Player")
+        // {
+        //     if(Input.GetKey(KeyCode.Q))
+        //     {
+        //         if(GameManager.Instance.inventoryManager.SpendGold(item.gold))
+        //         {
+        //             item.BuyItem();
+        //             Destroy(this.gameObject);
+        //         }
+        //     }
+        // }
     }
 
     void OnTriggerExit2D(Collider2D collision)

@@ -66,13 +66,24 @@ public class RewardManager : MonoBehaviour
         if (_rewardQueue.Count > 0)
         {
             List<RewardCandidate> nextSet = _rewardQueue.Dequeue();
-            ShowItemSelectionUI(nextSet);
+            ShowRewardSelection(nextSet);
         }
         else
         {
             Debug.Log("<color=green>[Reward]</color> All reward sequences completed.");
             if (selectionUI != null) selectionUI.Hide();
             if (handSlotUI != null) handSlotUI.Hide();
+        }
+    }
+
+    /// <summary>
+    /// [수정] 외부에서 직접 보상 후보 리스트를 전달하여 선택 UI를 띄울 수 있게 합니다.
+    /// </summary>
+    public void ShowRewardSelection(List<RewardCandidate> candidates)
+    {
+        if (selectionUI != null)
+        {
+            selectionUI.Show(candidates);
         }
     }
 
