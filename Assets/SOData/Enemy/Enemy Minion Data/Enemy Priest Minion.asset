@@ -14,14 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 3
   minionName: Enemy Skeleton Priest
-  maxHP: 100
-  attack: 10
+  throwEffectCategory: 0
+  baseEffectValue: 0
+  effectMultiplier: 1
+  baseAreaRadius: 3
+  maxHP: 40
+  attack: 5
   attackSpeed: 1
   attackRange: 8
   detectRange: 10
   defense: 0
   moveSpeed: 5
   cost: 1
+  isBoss: 0
+  canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: af7c5725c03af4c47b009e38c22288ad, type: 2}
-  throwImpact: {fileID: 0}
+  hpCostRatioPerThrow: 0
   minionPrefab: {fileID: 5658053484416891064, guid: 712853cff4e43d84cbc7ee5512484108, type: 3}

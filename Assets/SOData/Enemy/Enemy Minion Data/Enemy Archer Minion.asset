@@ -14,14 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 2
   minionName: Enemy Skeleton Archer
-  maxHP: 100
+  throwEffectCategory: 0
+  baseEffectValue: 0
+  effectMultiplier: 1
+  baseAreaRadius: 3
+  maxHP: 50
   attack: 10
-  attackSpeed: 1
+  attackSpeed: 0.8
   attackRange: 8
   detectRange: 10
   defense: 0
-  moveSpeed: 5
+  moveSpeed: 4
   cost: 1
+  isBoss: 0
+  canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: d714e9ff20833ad43952e96569b7dd59, type: 2}
-  throwImpact: {fileID: 0}
+  hpCostRatioPerThrow: 0
   minionPrefab: {fileID: 5658053484416891064, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
