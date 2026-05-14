@@ -128,20 +128,14 @@ public class PlayerController : MonoBehaviour
 
         if (canChangeState)
         {
-            if (moveInput == Vector2.zero)
-            {
-                TransitionToState(idleState);
-            }
-            else
-            {
-                // 이동 관련
-                // 이미지 돌려주기
-                if (MoveDirection.x > 0.0f)
-                    this.transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
-                else if (MoveDirection.x < 0.0f)
-                    this.transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
-            }
+            TransitionToState(idleState);
 
+            // 이동 관련
+            // 이미지 돌려주기
+            if (MoveDirection.x > 0.0f)
+                this.transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
+            else if (MoveDirection.x < 0.0f)
+                this.transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
         }
 
         // [임시 디버깅] 키보드 E 입력을 직접 감지
