@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public enum AIState { Idle, Follow, Attack, Thrown }
+public enum AIState { Idle, Follow, Attack, Caught, Thrown }
 
 /// <summary>
 /// 유닛의 모든 행동(대기, 추격, 공격, 던져짐)을 관리하는 통합 AI 기반 클래스입니다.
@@ -30,7 +30,7 @@ public abstract class AIPatternSO : ScriptableObject
         currentState = AIState.Idle;
         target = null;
         atkTimer = 0f;
-        
+
         // 이동 중이었다면 즉시 정지
         StopNavAgent(entity);
     }
@@ -38,8 +38,11 @@ public abstract class AIPatternSO : ScriptableObject
     // 매 프레임 실행: AI의 핵심 루프
     public virtual void Execute(BaseEntity entity)
     {
+        // 현재 상태 Entity에게 전달하여 애니메이션 재생
+        entity.UpdateAnimation(currentState);
+        
         // 던져진 상태일 때는 모든 AI 판단을 중지합니다.
-        if (currentState == AIState.Thrown) return;
+        if (currentState == AIState.Thrown || currentState == AIState.Caught) return;
 
         // [핵심] 현재 타겟이 유효하지 않으면 즉시 해제하여 다음 UpdateTargeting에서 새 타겟을 찾게 함
         if (target != null && IsTargetInvalid(target))
@@ -62,9 +65,17 @@ public abstract class AIPatternSO : ScriptableObject
     }
 
     // 외부에서 강제로 상태를 변경할 때 사용 (예: AllyController.OnPickedUp)
-    public void SetState(AIState newState)
+    public void SetState(BaseEntity entity, AIState newState)
     {
+        if (currentState == newState) return;
+
         currentState = newState;
+
+        // 상태를 강제로 바꿀 때 즉시 애니메이션도 동기화!
+        if (entity != null)
+        {
+            entity.UpdateAnimation(newState);
+        }
     }
 
     // --- 가상 메서드 (자식 클래스에서 override) ---
@@ -139,14 +150,15 @@ public abstract class AIPatternSO : ScriptableObject
     protected bool IsTargetInvalid(Transform t)
     {
         if (t == null) return true;
-        
+
         // 1. 레이어 체크: FlyingObject인 경우(들린 상태 또는 날아가는 상태) 즉시 타겟 제외
         int flyingLayer = LayerMask.NameToLayer("FlyingObject");
         if (t.gameObject.layer == flyingLayer) return true;
 
         // 2. AI 상태 체크: Thrown 상태인 유닛은 타겟팅 대상에서 제외
         BaseEntity targetEntity = t.GetComponentInParent<BaseEntity>();
-        if (targetEntity != null && targetEntity.Brain != null && targetEntity.Brain.CurrentState == AIState.Thrown)
+        if (targetEntity != null && targetEntity.Brain != null && targetEntity.Brain.CurrentState == AIState.Thrown
+        || currentState == AIState.Caught)
             return true;
 
         // 3. 체력 및 무적 상태 체크

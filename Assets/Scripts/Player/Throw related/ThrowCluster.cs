@@ -96,6 +96,12 @@ public class ThrowCluster : MonoBehaviour
             if (unit != null) unit.PrepareForClusterThrow(chargeRatio, isDirect);
         }
 
+        // [추가] 각 유닛에 대해 OnThrown 호출 - 애니메이션 상태 변경
+        foreach (var unit in _units)
+        {
+            if (unit != null) unit.OnThrown(targetPos, chargeRatio);
+        }
+
         transform.SetParent(null);
         transform.position = startPos;
         _rb.simulated = true;

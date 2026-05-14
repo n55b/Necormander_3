@@ -113,7 +113,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
     public override void Execute(BaseEntity entity)
     {
         UpdatePhase(entity);
-        if (currentState == AIState.Thrown) return;
+        if (currentState == AIState.Thrown || currentState == AIState.Caught) return;
 
         // 1. 타겟팅 (플레이어 고정)
         if (target == null)
