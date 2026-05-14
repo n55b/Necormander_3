@@ -272,7 +272,15 @@ public class PlayerController : MonoBehaviour
     public void OnTab(InputAction.CallbackContext context)
     {
         if (stat.Health.IsDead) return;
-        sumController.OnTab(context);
+        
+        // [수정] 탭 키를 눌러 현재 장착된 미니언/능력을 상시 조회합니다.
+        if (context.performed)
+        {
+            if (HandSlotSelectionUI.Instance != null)
+            {
+                HandSlotSelectionUI.Instance.ToggleReadOnly();
+            }
+        }
     }
 
     public void OnNum1(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(1, context); }

@@ -144041,6 +144041,46 @@ PrefabInstance:
       propertyPath: playerStateUI
       value: 
       objectReference: {fileID: 1467717214}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems_Data.Array.size
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[3]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[4]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[5]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[6]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 76c6cdb8e23ea5342be880b6f838560e, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[7]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 42dfaf8b2344f5c439c8022a10dea56e, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[8]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 42dfaf8b2344f5c439c8022a10dea56e, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[9]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 11af96e45f9222f499822e13f81a8d5d, type: 2}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

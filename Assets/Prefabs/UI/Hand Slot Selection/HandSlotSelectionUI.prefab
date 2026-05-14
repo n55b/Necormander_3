@@ -154,6 +154,7 @@ MonoBehaviour:
   selectedRewardCard: {fileID: 8827672128077277311}
   slotContainer: {fileID: 2254490307007413773}
   slotItemPrefab: {fileID: -4249280067116810279, guid: 0205eba4ad3350c4ab9c55516228ebd6, type: 3}
+  tooltipPrefab: {fileID: 1036089158462258122, guid: 30db5cba526322f45beea50703eb4a9f, type: 3}
 --- !u!1001 &6948812796700510311
 PrefabInstance:
   m_ObjectHideFlags: 0

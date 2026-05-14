@@ -1,11 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 /// <summary>
 /// 10개 핸드 슬롯 중 하나의 상태를 표시하고 장착 버튼을 제공하는 개별 슬롯 UI 요소입니다.
 /// </summary>
-public class HandSlotSelectionItem : MonoBehaviour
+public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [Header("UI References")]
     [SerializeField] private Image iconImage;
@@ -14,11 +16,13 @@ public class HandSlotSelectionItem : MonoBehaviour
 
     private int _slotIndex;
     private HandSlotSelectionUI _parentUI;
+    private InventoryManager.CoreSlot _currentSlot;
 
-    public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI parent)
+    public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI parent, bool isReadOnly)
     {
         _slotIndex = index;
         _parentUI = parent;
+        _currentSlot = slot; // [추가] 툴팁용 슬롯 데이터 저장
 
         var itemData = slot.GetCurrentItemData();
 
@@ -56,9 +60,70 @@ public class HandSlotSelectionItem : MonoBehaviour
 
         if (equipButton != null)
         {
-            equipButton.interactable = !slot.IsShattered;
+            // [수정] 조회 모드에서는 상호작용 불가
+            equipButton.interactable = !slot.IsShattered && !isReadOnly;
+            
             equipButton.onClick.RemoveAllListeners();
-            equipButton.onClick.AddListener(() => _parentUI.OnSlotSelected(_slotIndex));
+            if (!isReadOnly)
+            {
+                equipButton.onClick.AddListener(() => _parentUI.OnSlotSelected(_slotIndex));
+            }
         }
     }
+
+    #region Tooltip Logic
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (_currentSlot == null || _currentSlot.IsEmpty || CommonTooltipUI.Instance == null) return;
+
+        var itemData = _currentSlot.GetCurrentItemData();
+        if (itemData == null) return;
+
+        TooltipData data = new TooltipData(itemData.itemName, itemData.description);
+        
+        if (_currentSlot.EquippedLineage != null)
+        {
+            // 미니언 정보 구성
+            var minion = _currentSlot.GetCurrentMinionData();
+            data.type = $"<color=#FFD700>[Minion - {minion.minionType}]</color>";
+            data.titleColor = new Color(0.8f, 1f, 0.8f);
+            
+            data.effects = new List<string> {
+                $"HP: {minion.maxHP}",
+                $"ATK: {minion.attack}",
+                $"SPD: {minion.moveSpeed}",
+                $"<color=#AAAAAA>Count: x{_currentSlot.Quantity}</color>"
+            };
+        }
+        else if (_currentSlot.EquippedThrowAbility != null)
+        {
+            // 능력 정보 구성
+            var ability = _currentSlot.EquippedThrowAbility;
+            data.type = $"<color=#00BFFF>[Throw Ability - {ability.rarity}]</color>";
+            data.titleColor = new Color(0.8f, 0.9f, 1f);
+            
+            // 능력은 설명에 상세 수치가 포함되어 있는 경우가 많으므로 기본 정보만 표시
+            data.effects = new List<string> {
+                $"<color=#FF7F50>Equipped Capability</color>"
+            };
+        }
+        else return;
+
+        CommonTooltipUI.Instance.Show(data);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (CommonTooltipUI.Instance != null)
+            CommonTooltipUI.Instance.Hide();
+    }
+
+    private void OnDisable()
+    {
+        if (CommonTooltipUI.Instance != null)
+            CommonTooltipUI.Instance.Hide();
+    }
+
+    #endregion
 }
