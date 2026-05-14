@@ -14,7 +14,14 @@ public class ThrowInputHandler : MonoBehaviour
     private Vector2 _rightClickStartPos;
     private bool _isWheelActive;
 
-    public float ChargeRatio => _controller != null ? Mathf.Min(_chargeTimer / _controller.ChargeTime, 1.0f) : 0f;
+    public float ChargeRatio
+    {
+        get
+        {
+            if (_controller == null || _controller.ChargeTime <= 0.01f) return 1f;
+            return Mathf.Clamp01(_chargeTimer / _controller.ChargeTime);
+        }
+    }
     private Vector2 CurrentMouseScreenPos => Pointer.current.position.ReadValue();
 
     public void Init(ThrowController controller)
@@ -31,12 +38,19 @@ public class ThrowInputHandler : MonoBehaviour
     {
         if (_isCharging)
         {
-            _chargeTimer = Mathf.Min(_chargeTimer + Time.deltaTime, _controller.ChargeTime);
+            _chargeTimer = Mathf.Min(_chargeTimer + Time.unscaledDeltaTime, _controller.ChargeTime);
             
+            float ratio = ChargeRatio;
+
+            // [복구] 차징 바 UI 업데이트
+            if (ThrowChargeBarUI.Instance != null)
+            {
+                ThrowChargeBarUI.Instance.UpdateCharge(ratio);
+            }
+
             // [추가] 던지기 능력 Hook (OnChargeUpdate)
             if (InventoryManager.Instance != null)
             {
-                float ratio = ChargeRatio;
                 bool isDirect = ratio >= 0.98f;
                 TargetingMode mode = _controller.GetCurrentTargetingMode();
 
@@ -103,12 +117,18 @@ public class ThrowInputHandler : MonoBehaviour
         {
             _isCharging = true;
             _chargeTimer = 0f;
+
+            // [추가] 차징 바 표시
+            if (ThrowChargeBarUI.Instance != null) ThrowChargeBarUI.Instance.SetVisible(true);
         }
         else if (context.canceled)
         {
             if (_controller.TrajectoryPredictor != null) _controller.TrajectoryPredictor.HideGuide();
             if (_isCharging) _controller.ThrowAll();
             _isCharging = false;
+
+            // [추가] 차징 바 숨김
+            if (ThrowChargeBarUI.Instance != null) ThrowChargeBarUI.Instance.SetVisible(false);
 
             // 애니메이터 불러와서 실행
             _playerController.TransitionToState(_playerController.atkState);
@@ -120,5 +140,8 @@ public class ThrowInputHandler : MonoBehaviour
     {
         _isCharging = false;
         _chargeTimer = 0f;
+
+        // [추가] 차징 바 숨김
+        if (ThrowChargeBarUI.Instance != null) ThrowChargeBarUI.Instance.SetVisible(false);
     }
 }
