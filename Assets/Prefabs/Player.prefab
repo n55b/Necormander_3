@@ -133,7 +133,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &8435380705204760406
 RectTransform:
   m_ObjectHideFlags: 0
@@ -230,6 +230,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0362a3df535a0fe448862acb542eae1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  visualPanel: {fileID: 1757526723192270232}
   fillImage: {fileID: 7591692039072866238}
   normalColor: {r: 0.2, g: 0.6, b: 1, a: 1}
   fullChargeColor: {r: 0.6, g: 0.9, b: 1, a: 1}
@@ -1330,7 +1331,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 7972545975472383977}
         m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: OnTab
+        m_MethodName: OnHandSlot
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1386,6 +1387,10 @@ MonoBehaviour:
   P_State: 0
   minThrowChargeMultiplier: 1
   maxThrowChargeMultiplier: 2
+  interactRange: 1.5
+  interactableLayer:
+    serializedVersion: 2
+    m_Bits: 8192
   BodyAnimator: {fileID: 8576837497327950917}
   LHandAnimator: {fileID: 8182820158993313582}
   RHandAnimator: {fileID: 5375555019013159533}

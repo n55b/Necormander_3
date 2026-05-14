@@ -70,7 +70,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Tab",
+                    "name": "HandSlot",
                     "type": "Button",
                     "id": "e65bf3c3-4f19-4fbd-b701-654df20e01ac",
                     "expectedControlType": "",
@@ -82,7 +82,16 @@
                     "name": "GemTree",
                     "type": "Button",
                     "id": "7d9a1234-b5c6-4d7e-8f90-1a2b3c4d5e6f",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Interact",
+                    "type": "Button",
+                    "id": "b7c14beb-fa5f-47d3-bc3e-715e09b65a3d",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -100,7 +109,6 @@
                     "isComposite": true,
                     "isPartOfComposite": false
                 },
-
                 {
                     "name": "up",
                     "id": "92183be7-6183-42e8-a871-2fa7a1799018",
@@ -218,7 +226,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Tab",
+                    "action": "HandSlot",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -230,6 +238,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "GemTree",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ea0d6fe8-8c1c-4cb6-9081-74681c60ab61",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Interact",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
