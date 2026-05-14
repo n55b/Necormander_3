@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 2
   minionName: Skeleton Archer
+  minionIcon: {fileID: -8917754032636304279, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}
   throwEffectCategory: 2
   baseEffectValue: 10
   effectMultiplier: 1
@@ -26,5 +27,8 @@ MonoBehaviour:
   defense: 0
   moveSpeed: 5
   cost: 1
+  isBoss: 0
+  canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: d714e9ff20833ad43952e96569b7dd59, type: 2}
+  hpCostRatioPerThrow: 0
   minionPrefab: {fileID: 2865939037112072981, guid: 2e28171d731181f499e4ee8629806884, type: 3}

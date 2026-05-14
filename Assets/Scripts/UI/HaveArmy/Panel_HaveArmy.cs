@@ -1,0 +1,39 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Panel_HaveArmy : MonoBehaviour
+{
+    [SerializeField] List<BG_HaveArmy> haveArmies;
+
+    private void Start()
+    {
+        OpenUI();
+    }
+
+    public void OpenUI()
+    {
+        Update_HaveArmy();
+    }
+
+    public void CloseUI()
+    {
+        foreach(var army in haveArmies)
+        {
+            army.gameObject.SetActive(false);
+        }
+    }
+
+    public void Update_HaveArmy()
+    {
+        int i = 0;
+        foreach(var army in InventoryManager.Instance.Slots)
+        {
+            if(army.Quantity > 0)
+            {
+                haveArmies[i].Init(army.EquippedLineage.baseForm.minionIcon, army.Quantity);
+                haveArmies[i].gameObject.SetActive(true);
+                i++;
+            }
+        }
+    }
+}

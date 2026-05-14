@@ -9,6 +9,7 @@ public class MinionDataSO : ScriptableObject
 {
     public CommandData minionType;
     public string minionName;
+    public Sprite minionIcon;   // 대가리만 달린 이미지
 
     [Header("투척 효과 설정")]
     public ThrowEffectCategory throwEffectCategory;

@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 1
   minionName: Skeleton ShieldBearer
+  minionIcon: {fileID: 1047843002206808338, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}
   throwEffectCategory: 4
   baseEffectValue: 20
   effectMultiplier: 1
@@ -26,5 +27,8 @@ MonoBehaviour:
   defense: 0
   moveSpeed: 5
   cost: 1
+  isBoss: 0
+  canSpawnRandomly: 1
   aiPattern: {fileID: 0}
+  hpCostRatioPerThrow: 0
   minionPrefab: {fileID: 5978108325549925549, guid: d0ae37130e5f054409b3a87a321bedd1, type: 3}

@@ -15,7 +15,7 @@ public class InventoryManager : MonoBehaviour
         public MinionLineageSO EquippedLineage; 
         public ThrowAbilitySO EquippedThrowAbility;
         public int EvolutionIndex; 
-        public int Quantity; 
+        public int Quantity;                // 미니언 마리수
         
         public bool IsEmpty => !IsShattered && EquippedLineage == null && EquippedThrowAbility == null;
 
@@ -59,6 +59,7 @@ public class InventoryManager : MonoBehaviour
     // ======================================================
 
     public System.Action OnGemTreeUpdated;
+    public System.Action OnMinionUpdated;
 
     [Header("보물 인벤토리 (중첩)")]
     public Dictionary<TreasureSO, int> TreasureStacks = new Dictionary<TreasureSO, int>();
@@ -518,7 +519,7 @@ public class InventoryManager : MonoBehaviour
     public bool AddMinionOrIncreaseQuantity(CommandData job, int amount = 1)
     {
         var existingSlot = Slots.Find(s => !s.IsShattered && s.EquippedLineage != null && s.EquippedLineage.jobType == job);
-        if (existingSlot != null) { existingSlot.Quantity += amount; return true; }
+        if (existingSlot != null) { existingSlot.Quantity += amount; OnMinionUpdated?.Invoke(); return true; }
 
         var registry = GameManager.Instance.dataManager.GET_GROWTH_REGISTRY();
         if (registry == null) return false;
