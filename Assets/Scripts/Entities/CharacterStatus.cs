@@ -23,6 +23,8 @@ public class CharacterStatus : MonoBehaviour
     private float _poisonTimer = 0f;
     private const float POISON_INTERVAL = 3.0f;
 
+    [SerializeField] private Base_DebuffUITerminal debuffTerminal;
+
     private void Update()
     {
         UpdateInstances();
@@ -68,7 +70,14 @@ public class CharacterStatus : MonoBehaviour
             if (_stackTimers[key] > 0)
             {
                 _stackTimers[key] -= dt;
-                if (_stackTimers[key] <= 0) { _stackTimers[key] = 0; _debuffStacks[key] = 0; }
+                if (_stackTimers[key] <= 0) 
+                {
+                    _stackTimers[key] = 0;
+                    _debuffStacks[key] = 0;
+
+                    // UI 갱신
+                    debuffTerminal.RemoveIcon(key);
+                }
             }
         }
 
@@ -161,6 +170,9 @@ public class CharacterStatus : MonoBehaviour
         float maxStack = GetMaxStack(type);
         _debuffStacks[type] = Mathf.Min(_debuffStacks[type], maxStack);
 
+        // UI 업데이트
+        debuffTerminal.UpdateUI(type, _debuffStacks[type]);
+
         // [로그 강화] 디버프 종류별 색상 지정
         string color = "white";
         switch (type)
@@ -247,5 +259,8 @@ public class CharacterStatus : MonoBehaviour
     {
         _activeSlows.Clear(); _shieldInstances.Clear(); _debuffStacks.Clear(); _stackTimers.Clear(); _boolTimers.Clear();
         _cachedMoveSpeedMultiplier = 1f; _cachedTotalShield = 0f;
+
+        // UI 갱신
+        debuffTerminal.RemoveAll();
     }
 }
