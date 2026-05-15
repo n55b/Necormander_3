@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Corroding Health Gem
   description: Increases minion's max health.
-  icon: {fileID: 0}
+  icon: {fileID: 6296886257881424038, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 1
   synergyGroup: 6
   subSlots: 1

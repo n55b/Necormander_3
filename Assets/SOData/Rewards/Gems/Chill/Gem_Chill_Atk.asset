@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Cold Attack Gem
   description: Increases minion's attack power.
-  icon: {fileID: 0}
+  icon: {fileID: 851069327, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
   rarity: 1
   synergyGroup: 2
   subSlots: 1

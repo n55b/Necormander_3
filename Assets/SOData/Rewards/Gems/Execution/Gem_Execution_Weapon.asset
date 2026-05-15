@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Decisive Strike
   description: Minion basic attacks apply Execution stacks.
-  icon: {fileID: 0}
+  icon: {fileID: -4818461648906889331, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 0
   synergyGroup: 3
   subSlots: 1

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Hand Infusion - BloodPop
   description: Minion throw hits apply BloodPop stacks.
-  icon: {fileID: 0}
+  icon: {fileID: 8113346447660422594, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 0
   synergyGroup: 4
   subSlots: 1
