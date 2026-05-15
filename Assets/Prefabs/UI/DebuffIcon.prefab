@@ -52,6 +52,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   iconImage: {fileID: 8027592833241344331}
   stackText: {fileID: 2768905983534956152}
+  type: 0
 --- !u!1 &6436573190764500819
 GameObject:
   m_ObjectHideFlags: 0
@@ -162,7 +163,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0.2, y: 0.2}
+  m_SizeDelta: {x: 0.3, y: 0.2}
   m_Pivot: {x: 1, y: 0}
 --- !u!222 &4192441097747111341
 CanvasRenderer:
@@ -219,8 +220,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 0.2
-  m_fontSizeBase: 0.2
+  m_fontSize: 0.15
+  m_fontSizeBase: 0.15
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
