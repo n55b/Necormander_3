@@ -208,8 +208,10 @@ public class ThrowCluster : MonoBehaviour
             {
                 if (unit != null && (unit is MonoBehaviour mb && mb != null))
                 {
-                    Vector3 lp = unit.transform.localPosition;
-                    lp.y = h + (unit.transform.GetSiblingIndex() * 0.01f);
+                    // [수정] 자식 유닛의 위치 동기화 강화
+                    // 수평 위치(x, z)는 부모의 중심(0, 0)에 강제 고정하고, y값만 포물선 높이를 적용합니다.
+                    // 이렇게 하면 유닛이 클러스터 밖으로 사출되거나 뒤쳐지는 현상이 완전히 사라집니다.
+                    Vector3 lp = new Vector3(0, h + (unit.transform.GetSiblingIndex() * 0.01f), 0);
                     unit.transform.localPosition = lp;
                 }
             }
@@ -281,8 +283,13 @@ public class ThrowCluster : MonoBehaviour
         Vector2 normal = (hit.collider != null) ? hit.normal : -_lastTravelDir;
         Vector2 hitCentroid = (hit.collider != null) ? hit.centroid : currentPos;
 
-        Vector2 safeOrigin = hitCentroid + normal * 0.05f;
+        // [수정] 벽 뚫기 방지 (Safe Offset): 
+        // 튕기는 순간, 충돌 지점에서 벽 바깥 방향(Normal)으로 반지름 + 여유분만큼 즉시 위치를 밀어냅니다.
+        // 벽 안쪽에 파묻힌 상태로 속도가 붙어 벽을 통과해버리는 현상을 방지합니다.
+        Vector2 safeOrigin = hitCentroid + normal * (radius + 0.1f);
         transform.position = safeOrigin;
+        
+        // [추가] 물리 세계 즉시 동기화
         Physics2D.SyncTransforms();
 
         Vector2 reflectDir = Vector2.Reflect(_lastTravelDir, normal).normalized;
