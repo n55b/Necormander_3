@@ -48,6 +48,12 @@ public class DynamicEnemySpawner : MonoBehaviour
     private bool _isTriggered = false;
     private bool _rewardGiven = false;
 
+    /// <summary>
+    /// [추가] 현재 전투 이벤트(Encounter)가 활발하게 진행 중인지 여부를 반환합니다.
+    /// UI 차단 판정 등에 활용됩니다.
+    /// </summary>
+    public bool IsEventActive => _isTriggered && !_rewardGiven;
+
     private void Start()
     {
         // DataManager로부터 이번 맵에서 소환할 수 있는 적군 데이터 목록을 가져옵니다.

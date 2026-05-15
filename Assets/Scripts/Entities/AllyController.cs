@@ -148,43 +148,22 @@ public class AllyController : BaseEntity, IThrowable
 
         if (_sr != null) _sr.sortingLayerName = "FlyingObject";
 
+        // [수정] 개별 물리 활성화 제거
+        // 부모인 ThrowCluster가 위치와 궤적을 제어하므로, 자식 유닛은 물리 시뮬레이션을 끕니다.
+        // 이 Rigidbody가 켜져 있으면 부모-자식 간의 물리 충돌이나 보정 때문에 위치가 어긋나게 됩니다.
         if (_rb != null)
         {
-            _rb.simulated = true;
-            _rb.linearDamping = 0f;
-            _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            _rb.simulated = false; 
         }
 
         if (_collider != null)
         {
-            _collider.enabled = true;
-            _collider.isTrigger = true; 
+            _collider.enabled = false; // 충돌 체크도 클러스터가 전담
         }
 
         if (_agent != null) _agent.enabled = false;
 
-        Vector2 startPos = (Vector2)transform.position;
-        Vector2 diff = targetPosition - startPos;
-        float distance = diff.magnitude;
-        Vector2 direction = diff.normalized;
-
-        ThrowParams p = new ThrowParams();
-        if (_isDirectThrow)
-        {
-            p.speed = fullChargeSpeed;
-            p.duration = 1.5f; 
-            p.maxHeight = straightHeight;
-        }
-        else
-        {
-            p.speed = Mathf.Lerp(minSpeed, maxSpeed, chargeRatio);
-            p.duration = distance / p.speed;
-            float targetHeight = Mathf.Lerp(jumpHeight, straightHeight, chargeRatio);
-            p.maxHeight = Mathf.Min(targetHeight, distance * 0.5f);
-        }
-
-        if (_rb != null) _rb.linearVelocity = direction * p.speed;
-        if (_arcMovement != null) _arcMovement.StartArc(p.duration, p.maxHeight);
+        // 기존의 개별 속도 할당 및 ArcMovement 시작 로직을 제거합니다.
     }
 
     public void SetImpacted(bool value)

@@ -425,11 +425,14 @@ public class InventoryManager : MonoBehaviour
         }
         */
 
+        // [수정] 보석이 전역 효과로 변경되어 RewardProcessor에서 targetJob을 강제로 SkeletonWarrior로 넘기므로, 보유 여부 체크를 우회합니다.
+        /*
         if (!HasJobInSlots(targetJob))
         {
             Debug.LogError($"<color=red>[InventoryManager]</color> Generation Failed: Player does not own {targetJob}.");
             return;
         }
+        */
 
         GemInstance newGemInstance = new GemInstance(gemData, targetJob);
         AvailableGemInstances.Add(newGemInstance);

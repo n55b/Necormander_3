@@ -143828,6 +143828,18 @@ PrefabInstance:
       propertyPath: playerStateUI
       value: 
       objectReference: {fileID: 1467717214}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingAbilities.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems_Data.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingAbilities.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: f47c1430d098c8246be65a17ff614d73, type: 2}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -155549,7 +155561,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 8.4375
+  orthographic size: 0
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

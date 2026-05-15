@@ -294,6 +294,13 @@ public class PlayerController : MonoBehaviour
 
         if (context.performed)
         {
+            // [수정] 단순 거리 기반이 아닌, 실제 스포너 이벤트(벽 생성 등)가 활성화된 경우에만 차단
+            if (IsAnyBattleActive())
+            {
+                Debug.Log("<color=orange>[UI]</color> 전투가 진행 중일 때는 보석 트리를 열 수 없습니다.");
+                return;
+            }
+
             Debug.Log("<color=yellow>[PlayerController]</color> E Key Detected! (context.performed)");
             if (GemTreeUI.Instance != null)
             {
@@ -313,11 +320,32 @@ public class PlayerController : MonoBehaviour
         // [수정] 탭 키를 눌러 현재 장착된 미니언/능력을 상시 조회합니다.
         if (context.performed)
         {
+            // [수정] 단순 거리 기반이 아닌, 실제 스포너 이벤트(벽 생성 등)가 활성화된 경우에만 차단
+            if (IsAnyBattleActive())
+            {
+                Debug.Log("<color=orange>[UI]</color> 전투가 진행 중일 때는 인벤토리를 열 수 없습니다.");
+                return;
+            }
+
             if (HandSlotSelectionUI.Instance != null)
             {
                 HandSlotSelectionUI.Instance.ToggleReadOnly();
             }
         }
+    }
+
+    /// <summary>
+    /// [추가] 현재 씬 내에서 활성화된 전투 이벤트(DynamicEnemySpawner)가 있는지 확인합니다.
+    /// 사용자가 언급한 '임시 벽 생성' 로직과 동기화됩니다.
+    /// </summary>
+    private bool IsAnyBattleActive()
+    {
+        var spawners = UnityEngine.Object.FindObjectsByType<DynamicEnemySpawner>(FindObjectsSortMode.None);
+        foreach (var spawner in spawners)
+        {
+            if (spawner.IsEventActive) return true;
+        }
+        return false;
     }
 
     public void OnNum1(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(1, context); }

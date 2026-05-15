@@ -78,42 +78,60 @@ public class ThrowImpactManager : MonoBehaviour
     private void ApplyActionsToTarget(ThrowRecipe recipe, GameObject target, Vector2 impactPos, Vector2 travelDir)
     {
         if (target == null) return;
-        
+
+        // [수정] 팀 확인: 레시피의 의도와 실제 타겟의 팀이 일치할 때만 적대적 효과(디버프)를 적용합니다.
+        Team targetActualTeam = Team.Ally;
+        BaseEntity entity = target.GetComponentInChildren<BaseEntity>();
+        if (entity != null)
+        {
+            targetActualTeam = entity.team;
+        }
+        else if (target.CompareTag("Player"))
+        {
+            targetActualTeam = Team.Ally;
+        }
+
+        bool isHostileMatch = (targetActualTeam == recipe.info.targetTeam);
+
         var status = target.GetComponentInChildren<CharacterStatus>();
         if (status != null)
         {
-            // 1. 디버프 보석 효과 적용 (레시피 기반 - 기존 로직)
-            if (recipe.modifiers.debuffStacks.Count > 0)
+            // 1 & 2. 디버프 보석 효과 및 귀수 속성 부여 (팀이 일치할 때만 적대적 효과 적용)
+            if (isHostileMatch)
             {
-                foreach (var kvp in recipe.modifiers.debuffStacks)
+                // 1. 디버프 보석 효과 적용 (레시피 기반 - 기존 로직)
+                if (recipe.modifiers.debuffStacks.Count > 0)
                 {
-                    status.AddDebuffStack(kvp.Key, kvp.Value);
-                }
-            }
-
-            // 2. [신규] 귀수 속성 부여 (전역 보석 효과)
-            if (InventoryManager.Instance != null)
-            {
-                foreach (var kvp in InventoryManager.Instance.GlobalGemStats.HandAttributes)
-                {
-                    if (kvp.Value > 0)
+                    foreach (var kvp in recipe.modifiers.debuffStacks)
                     {
-                        float amount = kvp.Value;
-                        status.AddDebuffStack(kvp.Key, amount);
+                        status.AddDebuffStack(kvp.Key, kvp.Value);
                     }
                 }
 
-                // [특수] 치명적인 독: 현재 부여된 독 스택을 배로 올려줌 (GemRuleSystem에서 보너스량 계산)
-                int current = status.GetDebuffStack(DebuffStackType.Poison);
-                float bonus = GemRuleSystem.GetLethalPoisonBonus(current);
-                if (bonus > 0)
+                // 2. [신규] 귀수 속성 부여 (전역 보석 효과)
+                if (InventoryManager.Instance != null)
                 {
-                    status.AddDebuffStack(DebuffStackType.Poison, bonus);
+                    foreach (var kvp in InventoryManager.Instance.GlobalGemStats.HandAttributes)
+                    {
+                        if (kvp.Value > 0)
+                        {
+                            float amount = kvp.Value;
+                            status.AddDebuffStack(kvp.Key, amount);
+                        }
+                    }
+
+                    // [특수] 치명적인 독: 현재 부여된 독 스택을 배로 올려줌 (GemRuleSystem에서 보너스량 계산)
+                    int current = status.GetDebuffStack(DebuffStackType.Poison);
+                    float bonus = GemRuleSystem.GetLethalPoisonBonus(current);
+                    if (bonus > 0)
+                    {
+                        status.AddDebuffStack(DebuffStackType.Poison, bonus);
+                    }
                 }
             }
         }
 
-        // 3. 기존 액션들 실행
+        // 3. 기존 액션들 실행 (액션들은 내부에서 팀 필터링을 직접 수행함)
         foreach (var action in recipe.actions)
         {
             action.Execute(target, impactPos, travelDir, recipe);
