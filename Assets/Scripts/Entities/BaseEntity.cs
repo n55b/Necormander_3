@@ -27,6 +27,7 @@ public abstract class BaseEntity : MonoBehaviour
     public MinionDataSO MinionData => minionData;
     protected Animator _animator; // 애니메이터 추가
     [SerializeField] protected AIState _lastState = (AIState)(-1); // 이전 상태 기록
+    [SerializeField] private Transform _target = null;
 
     // 새로운 통합 AI 브레인 (인스턴스)
     protected AIPatternSO _runtimeBrain;
@@ -166,7 +167,7 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (_animator == null) return;
 
-        if(_lastState != state)
+        if (_lastState != state)
         {
             _lastState = state;
             // Enum 이름(Idle, Follow 등)과 애니메이터의 State 이름을 일치시켜야 함
@@ -180,19 +181,45 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (target == null) return;
 
-        if(_animator != null)
+        _target = target; // 공격 대상 저장
+
+        CalculateRotate(_target);
+
+        if (_animator != null)
         {
             // 공격 애니메이션 강제 재생
-            CalculateRotate(target);
             _animator.Play("Attack");
+        }
+        else
+        {
+            StartAttack();
+        }
+    }
+
+    public void StartAttack()
+    {
+        if (_target == null)
+        {
+            // 애니메이션 이벤트 타이밍 때문에 BaseEntity._target이 비워진 경우,
+            // AI 브레인의 현재 타겟을 사용해 공격을 복구합니다.
+            if (_runtimeBrain != null && _runtimeBrain.Target != null && !IsTargetInvalid(_runtimeBrain.Target))
+            {
+                _target = _runtimeBrain.Target;
+            }
+        }
+
+        if (_target == null)
+        {
+            Debug.LogWarning($"{gameObject.name}: 공격 대상이 없는 상태에서 이벤트가 호출됨!");
+            return;
         }
 
         // [수정] 플레이어가 미니언을 들고 있을 때 등을 고려하여 robust하게 Stat을 찾습니다.
-        CharacterStat targetStat = target.GetComponent<CharacterStat>();
+        CharacterStat targetStat = _target.GetComponent<CharacterStat>();
         if (targetStat == null)
         {
             int flyingLayer = LayerMask.NameToLayer("FlyingObject");
-            foreach (var s in target.GetComponentsInChildren<CharacterStat>())
+            foreach (var s in _target.GetComponentsInChildren<CharacterStat>())
             {
                 if (s.gameObject.layer != flyingLayer)
                 {
@@ -220,12 +247,14 @@ public abstract class BaseEntity : MonoBehaviour
                 }
             }
         }
+
+        _target = null;
     }
 
     // 공격 할 때, 상대 바라보게
     private void CalculateRotate(Transform target)
     {
-        if(target.position.x - this.transform.position.x > 0.0f)
+        if (target.position.x - this.transform.position.x > 0.0f)
         {
             _sr.flipX = true;
         }

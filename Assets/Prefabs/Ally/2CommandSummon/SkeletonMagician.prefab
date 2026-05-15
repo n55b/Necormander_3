@@ -72,6 +72,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1348199348988540393, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -5212597425169944854, guid: 15743c4b4c3400f4cafb78d8bc1ecd5d, type: 3}
+    - target: {fileID: 1348199348988540393, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1348199348988540393, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1348199348988540393, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4018896265268374098, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
       propertyPath: m_Controller
       value: 
@@ -84,6 +100,10 @@ PrefabInstance:
       propertyPath: impactEffect
       value: 
       objectReference: {fileID: 11400000, guid: 8dd68a2dd501264429ba99a4e9719238, type: 2}
+    - target: {fileID: 9061937502379027960, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 22100000, guid: 4a64a977c2d8b2945990de9ebd227f1c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
