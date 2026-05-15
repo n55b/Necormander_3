@@ -98,6 +98,10 @@ public class ThrowController : MonoBehaviour
         GameObject hovered = GameManager.Instance.mouseManager.HoverObject;
         if (hovered != null && hovered.TryGetComponent(out IThrowable throwable))
         {
+            // [추가] 이미 던져져서 날아가고 있는 유닛(FlyingObject 레이어)은 다시 잡을 수 없도록 방지
+            int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+            if (hovered.layer == flyingLayer && !_heldObjects.Contains(throwable)) return;
+
             if (throwable is AllyController ally && !_strategy.CanPickUpType(ally.MinionType, _heldObjects, maxHoldCount)) return;
             float dist = Vector2.Distance(transform.position, hovered.transform.position);
             if (dist > GameManager.Instance.PLAYERCONTROLLER.THROWRANGE) return;
@@ -135,8 +139,14 @@ public class ThrowController : MonoBehaviour
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius);
         IThrowable bestTarget = null;
         float minDist = float.MaxValue;
+
+        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+
         foreach (var col in colls)
         {
+            // [수정] 이미 날아가고 있는 유닛(FlyingObject 레이어)은 제외
+            if (col.gameObject.layer == flyingLayer && !_heldObjects.Contains(col.GetComponent<IThrowable>())) continue;
+
             if (col.TryGetComponent<IThrowable>(out var throwable) && throwable.MinionType == targetType && !_heldObjects.Contains(throwable))
             {
                 float d = Vector2.Distance(transform.position, col.transform.position);
