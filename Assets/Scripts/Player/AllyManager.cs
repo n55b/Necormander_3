@@ -61,7 +61,11 @@ public class AllyManager : MonoBehaviour
         if (sumController != null)
         {
             var positions = sumController.GetSummonPositions2D(1, 2f);
-            if (positions.Count > 0) spawnPos = positions[0];
+            if (positions.Count > 0)
+            {
+                // [개선] 여러 마리가 동시에 부활할 때 겹치지 않도록 랜덤 오프셋 추가
+                spawnPos = (Vector3)positions[0] + (Vector3)Random.insideUnitCircle * 0.5f;
+            }
         }
 
         AllyController newAlly = InternalSpawn(info.Data, spawnPos);
