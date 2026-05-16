@@ -71,6 +71,10 @@ public class RewardManager : MonoBehaviour
         else
         {
             Debug.Log("<color=green>[Reward]</color> All reward sequences completed.");
+            
+            // [추가] 모든 보상이 완료되면 시간 재개
+            if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(false);
+
             if (selectionUI != null) selectionUI.Hide();
             if (handSlotUI != null) handSlotUI.Hide();
         }
@@ -83,6 +87,9 @@ public class RewardManager : MonoBehaviour
     {
         if (selectionUI != null)
         {
+            // [추가] 보상 창이 뜨면 시간 정지
+            if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
+            
             selectionUI.Show(candidates);
         }
     }
