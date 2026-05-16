@@ -5,11 +5,12 @@ using UnityEngine;
 /// </summary>
 public static class GemSynergyLogic
 {
+    // [수정] 기획표에 따라 2, 4, 6, 8 시너지를 레벨로 매핑합니다.
     public static int GetLevel(int count)
     {
-        if (count >= 5) return 4;
-        if (count >= 4) return 3;
-        if (count >= 3) return 2;
+        if (count >= 8) return 4;
+        if (count >= 6) return 3;
+        if (count >= 4) return 2;
         if (count >= 2) return 1;
         return 0;
     }
@@ -17,7 +18,7 @@ public static class GemSynergyLogic
     // --- Poison ---
     public static float GetPoisonDurationBonus(int level) => (level >= 2) ? 5.0f : 0f;
     public static float GetPoisonExtraStack(int level) => (level >= 3) ? 1.0f : 0f;
-    public static float GetPoisonIntervalMultiplier(int level) => (level >= 4) ? 0.5f : 1.0f; // [보정] 5초에 2번 (인터벌 50% 단축)
+    public static float GetPoisonIntervalMultiplier(int level) => (level >= 4) ? 0.6f : 1.0f; // [보정] 기본 5초에 0.6을 곱하여 3초로 단축
 
     // --- Chill ---
     public static float GetChillValueMultiplier(int level) => (level >= 2) ? 1.25f : 1.0f;

@@ -82,6 +82,11 @@ public class InventoryManager : MonoBehaviour
         // [신규] 속성 및 특수 효과 합산
         public Dictionary<DebuffStackType, float> WeaponAttributes = new Dictionary<DebuffStackType, float>();
         public Dictionary<DebuffStackType, float> HandAttributes = new Dictionary<DebuffStackType, float>();
+
+        // [추가] 상태형(Bool) 속성 합산
+        public Dictionary<DebuffBoolType, float> WeaponBoolAttributes = new Dictionary<DebuffBoolType, float>();
+        public Dictionary<DebuffBoolType, float> HandBoolAttributes = new Dictionary<DebuffBoolType, float>();
+
         public HashSet<GemUniqueType> UniqueEffects = new HashSet<GemUniqueType>();
         
         // [신규] 시너지 그룹별 최대 인접 개수
@@ -95,6 +100,8 @@ public class InventoryManager : MonoBehaviour
             RespawnTimeBonus = 0f;
             WeaponAttributes.Clear();
             HandAttributes.Clear();
+            WeaponBoolAttributes.Clear(); // [추가]
+            HandBoolAttributes.Clear();   // [추가]
             UniqueEffects.Clear();
             SynergyCounts.Clear();
         }
@@ -154,7 +161,7 @@ public class InventoryManager : MonoBehaviour
 
         if (GemTreeRoot == null) return;
 
-        // 1. 모든 노드를 순회하며 기본 효과 합산
+        // 1. 모든 노드 목록 확보
         List<GemTreeNode> allNodes = new List<GemTreeNode>();
         Queue<GemTreeNode> nodesToVisit = new Queue<GemTreeNode>();
         nodesToVisit.Enqueue(GemTreeRoot);
@@ -162,39 +169,55 @@ public class InventoryManager : MonoBehaviour
         while (nodesToVisit.Count > 0)
         {
             GemTreeNode currentNode = nodesToVisit.Dequeue();
-            allNodes.Add(currentNode);
-
-            if (currentNode.Gem != null && currentNode.Gem.BaseData != null)
+            if (currentNode != null)
             {
-                CommandData job = currentNode.Gem.TargetJob;
-                if (!_jobGemStats.ContainsKey(job)) _jobGemStats[job] = new GemAggregatedStats();
-                
-                GemAggregatedStats targetStats = _jobGemStats[job];
-
-                foreach (var effect in currentNode.Gem.BaseData.effects)
+                allNodes.Add(currentNode);
+                foreach (var child in currentNode.Children)
                 {
-                    if (effect != null)
-                    {
-                        effect.Apply(targetStats);
-                        effect.Apply(_globalGemStats);
-                    }
+                    if (child != null) nodesToVisit.Enqueue(child);
                 }
-
-                foreach (var modifier in currentNode.Gem.RandomModifiers)
-                {
-                    ApplyStatModifier(targetStats, modifier);
-                    ApplyStatModifier(_globalGemStats, modifier);
-                }
-            }
-
-            foreach (var child in currentNode.Children)
-            {
-                if (child != null) nodesToVisit.Enqueue(child);
             }
         }
 
-        // 2. 시너지 클러스터 계산 (인접 노드 그래프 탐색)
+        // 2. 시너지 클러스터 먼저 계산 (활성화 여부 판별을 위해)
         CalculateSynergies(allNodes);
+
+        // 3. 노드를 다시 순회하며 활성화된 효과만 합산
+        foreach (var node in allNodes)
+        {
+            if (node.Gem != null && node.Gem.BaseData != null)
+            {
+                GemSynergyGroup group = node.Gem.BaseData.synergyGroup;
+                int synergyCount = GetSynergyCount(group);
+
+                // [핵심 로직 수정] 
+                // Base 그룹은 1개여도 즉시 적용, 그 외 그룹은 시너지가 2 이상일 때만 모든 보석 효과 활성화
+                bool isEffectActive = (group == GemSynergyGroup.Base) || (synergyCount >= 2);
+
+                if (isEffectActive)
+                {
+                    CommandData job = node.Gem.TargetJob;
+                    if (!_jobGemStats.ContainsKey(job)) _jobGemStats[job] = new GemAggregatedStats();
+                    
+                    GemAggregatedStats targetStats = _jobGemStats[job];
+
+                    foreach (var effect in node.Gem.BaseData.effects)
+                    {
+                        if (effect != null)
+                        {
+                            effect.Apply(targetStats);
+                            effect.Apply(_globalGemStats);
+                        }
+                    }
+
+                    foreach (var modifier in node.Gem.RandomModifiers)
+                    {
+                        ApplyStatModifier(targetStats, modifier);
+                        ApplyStatModifier(_globalGemStats, modifier);
+                    }
+                }
+            }
+        }
     }
 
     private void CalculateSynergies(List<GemTreeNode> allNodes)
@@ -344,6 +367,17 @@ public class InventoryManager : MonoBehaviour
     public float GetHandAttribute(DebuffStackType type)
     {
         return _globalGemStats.HandAttributes.TryGetValue(type, out float val) ? val : 0f;
+    }
+
+    // [추가] 상태형(Bool) 보석 효과 조회 게터
+    public float GetWeaponBoolAttribute(DebuffBoolType type)
+    {
+        return _globalGemStats.WeaponBoolAttributes.TryGetValue(type, out float val) ? val : 0f;
+    }
+
+    public float GetHandBoolAttribute(DebuffBoolType type)
+    {
+        return _globalGemStats.HandBoolAttributes.TryGetValue(type, out float val) ? val : 0f;
     }
 
     public bool HasUniqueEffect(GemUniqueType type)

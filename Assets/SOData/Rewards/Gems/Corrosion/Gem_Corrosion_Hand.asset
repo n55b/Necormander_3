@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Gem_Corrosion_Hand
   m_EditorClassIdentifier: 
   itemName: Hand Infusion - Corrosion
-  description: Minion throw hits apply Corrosion stacks.
+  description: Minion throw hits apply Corrosion.
   icon: {fileID: 6296886257881424038, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 0
   synergyGroup: 6
@@ -27,5 +27,8 @@ MonoBehaviour:
     - rid: 6002
       type: {class: GemHandAttributeEffect, ns: , asm: Assembly-CSharp}
       data:
-        debuffType: 5
-        stackAmount: 1
+        category: 1
+        debuffType: 0
+        stackAmount: 0
+        boolType: 2
+        duration: 10

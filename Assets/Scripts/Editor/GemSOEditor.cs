@@ -54,7 +54,7 @@ public class GemSOEditor : Editor
             EditorGUILayout.EndHorizontal();
 
             // 효과 내부 필드들 그리기
-            EditorGUILayout.PropertyField(element, true);
+            DrawConditionalProperties(element);
             
             EditorGUILayout.EndVertical();
             EditorGUILayout.Space(2);
@@ -68,6 +68,48 @@ public class GemSOEditor : Editor
         }
 
         serializedObject.ApplyModifiedProperties();
+    }
+
+    /// <summary>
+    /// 카테고리(Stack/Bool) 선택에 따라 필요한 필드만 인스펙터에 그립니다.
+    /// </summary>
+    private void DrawConditionalProperties(SerializedProperty element)
+    {
+        // 1. 카테고리 필드 찾기
+        SerializedProperty categoryProp = element.FindPropertyRelative("category");
+        
+        // 카테고리 필드가 없는 일반 효과(GemStatEffect 등)는 기본 방식으로 그림
+        if (categoryProp == null)
+        {
+            // 상속된 필드들을 순회하며 그림 (m_Script 제외)
+            SerializedProperty iterator = element.Copy();
+            SerializedProperty endProperty = iterator.GetEndProperty();
+            bool enterChildren = true;
+            while (iterator.NextVisible(enterChildren) && !SerializedProperty.EqualContents(iterator, endProperty))
+            {
+                if (iterator.name == "m_Script") continue;
+                EditorGUILayout.PropertyField(iterator, true);
+                enterChildren = false;
+            }
+            return;
+        }
+
+        // 2. 카테고리 필드 먼저 그리기
+        EditorGUILayout.PropertyField(categoryProp);
+
+        // 3. 값에 따라 조건부 그리기
+        DebuffCategory category = (DebuffCategory)categoryProp.enumValueIndex;
+
+        if (category == DebuffCategory.Stack)
+        {
+            EditorGUILayout.PropertyField(element.FindPropertyRelative("debuffType"));
+            EditorGUILayout.PropertyField(element.FindPropertyRelative("stackAmount"));
+        }
+        else
+        {
+            EditorGUILayout.PropertyField(element.FindPropertyRelative("boolType"));
+            EditorGUILayout.PropertyField(element.FindPropertyRelative("duration"));
+        }
     }
 
     /// <summary>

@@ -24,20 +24,26 @@ public enum ThrowEffectCategory
     Repeat       // 되풀이 (증폭)
 }
 
+public enum DebuffCategory
+{
+    Stack,
+    Bool
+}
+
 public enum DebuffStackType
 {
     Poison,     // 중독
     Chill,      // 한기
     Execute,    // 처형
     BloodPop,   // 비폭
-    Aging,      // 노화
-    Corroded    // 부식
+    Aging       // 노화
 }
 
 public enum DebuffBoolType
 {
     Frozen,     // 동결
-    Stunned     // 기절
+    Stunned,    // 기절
+    Corroded    // 부식
 }
 
 [System.Flags]
