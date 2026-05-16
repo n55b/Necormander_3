@@ -27,7 +27,7 @@ public abstract class BaseEntity : MonoBehaviour
     public MinionDataSO MinionData => minionData;
     protected Animator _animator; // 애니메이터 추가
     [SerializeField] protected AIState _lastState = (AIState)(-1); // 이전 상태 기록
-    [SerializeField] private Transform _target = null;
+    [SerializeField] public Transform _target = null;
 
     // 새로운 통합 AI 브레인 (인스턴스)
     protected AIPatternSO _runtimeBrain;
@@ -43,6 +43,7 @@ public abstract class BaseEntity : MonoBehaviour
     public CharacterStat Stats => _stats;
     public NearestTargetFinder TargetFinder => _nearestFinder;
     public AIPatternSO Brain => _runtimeBrain;
+    public SpriteRenderer SpriteRenderer => _sr;
 
     protected virtual void Awake()
     {
@@ -183,8 +184,6 @@ public abstract class BaseEntity : MonoBehaviour
 
         _target = target; // 공격 대상 저장
 
-        CalculateRotate(_target);
-
         if (_animator != null)
         {
             // 공격 애니메이션 강제 재생
@@ -249,18 +248,5 @@ public abstract class BaseEntity : MonoBehaviour
         }
 
         _target = null;
-    }
-
-    // 공격 할 때, 상대 바라보게
-    private void CalculateRotate(Transform target)
-    {
-        if (target.position.x - this.transform.position.x > 0.0f)
-        {
-            _sr.flipX = true;
-        }
-        else if (target.position.x - this.transform.position.x < 0.0f)
-        {
-            _sr.flipX = false;
-        }
     }
 }

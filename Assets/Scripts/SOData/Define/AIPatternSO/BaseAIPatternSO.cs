@@ -55,7 +55,20 @@ public class BaseAIPatternSO : AIPatternSO
             }
         }
 
-        currentState = nextState;
+        if(nextState != currentState)
+        {
+            // 상태가 변경될 때마다 해당 상태의 진입 메서드 호출
+            switch (nextState)
+            {
+                case AIState.Thrown:
+                    OutThrown(entity);
+                    break;
+                case AIState.Caught:
+                    OutCaught(entity);
+                    break;
+            }
+            currentState = nextState;
+        }
     }
 
     protected override void OnIdle(BaseEntity entity)

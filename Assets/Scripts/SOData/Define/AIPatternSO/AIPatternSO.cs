@@ -40,7 +40,12 @@ public abstract class AIPatternSO : ScriptableObject
     {
         // 현재 상태 Entity에게 전달하여 애니메이션 재생
         entity.UpdateAnimation(currentState);
-        
+
+        if(target != null)
+        {
+            CalculateRotate(target, entity);
+        }
+
         // 던져진 상태일 때는 모든 AI 판단을 중지합니다.
         if (currentState == AIState.Thrown || currentState == AIState.Caught) return;
 
@@ -68,7 +73,6 @@ public abstract class AIPatternSO : ScriptableObject
     public void SetState(BaseEntity entity, AIState newState)
     {
         if (currentState == newState) return;
-
         currentState = newState;
 
         // 상태를 강제로 바꿀 때 즉시 애니메이션도 동기화!
@@ -85,6 +89,16 @@ public abstract class AIPatternSO : ScriptableObject
     protected virtual void OnIdle(BaseEntity entity) { }
     protected virtual void OnFollow(BaseEntity entity) { }
     protected virtual void OnAttack(BaseEntity entity) { }
+    protected virtual void OutThrown(BaseEntity entity)
+    {
+    }
+    protected virtual void OutCaught(BaseEntity entity)
+    {
+        if(entity._target != null)
+        {
+            entity._target = null;
+        }
+    }
 
     // --- 공통 유틸리티 기능 (모든 브레인이 공유) ---
 
@@ -177,5 +191,18 @@ public abstract class AIPatternSO : ScriptableObject
             return stat.Health.IsDead || stat.Health.Invincible;
         }
         return false;
+    }
+
+    // 공격 할 때, 상대 바라보게
+    private void CalculateRotate(Transform target, BaseEntity entity)
+    {
+        if (target.position.x - entity.transform.position.x > 0.0f)
+        {
+            entity.SpriteRenderer.flipX = true;
+        }
+        else if (target.position.x - entity.transform.position.x < 0.0f)
+        {
+            entity.SpriteRenderer.flipX = false;
+        }
     }
 }
