@@ -62,6 +62,7 @@ Assets/Scripts/
   DamageData.cs
   ThrowParams.cs
   ThrowRecipe.cs
+ Effect/Effect.cs
  Entities/
   AllyController.cs
   BaseEntity.cs
@@ -84,6 +85,7 @@ Assets/Scripts/
   MouseCursorManager.cs
   MouseManager.cs
   SoundManager.cs
+  ThrowEffectPoolManager.cs
   ThrowImpactManager.cs
  NavAgent2D.cs
  NearestTargetFinder.cs

@@ -100,11 +100,6 @@ public abstract class AIPatternSO : ScriptableObject
     protected virtual void OnAttack(BaseEntity entity) { }
     protected virtual void OutCaught(BaseEntity entity)
     {
-        if(entity.gameObject.transform.localScale.x < 0.0f)
-        {
-            entity.gameObject.transform.localScale = new Vector3(-1 * entity.gameObject.transform.localScale.x, entity.gameObject.transform.localScale.y, entity.gameObject.transform.localScale.z);
-        }
-       
         if(entity._target != null)
         {
             entity._target = null;
@@ -207,6 +202,8 @@ public abstract class AIPatternSO : ScriptableObject
     // 공격 할 때, 상대 바라보게
     private void CalculateRotate(Transform target, BaseEntity entity)
     {
+        if(target == null) return;
+
         if (target.position.x - entity.transform.position.x > 0.0f)
         {
             entity.SpriteRenderer.flipX = true;

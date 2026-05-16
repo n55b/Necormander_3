@@ -6,6 +6,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "ThrowEffectRegistry", menuName = "Necromancer/Registry/ThrowEffectRegistry")]
 public class ThrowEffectRegistrySO : ScriptableObject
 {
+    [Header("아군 (직구/포물선)")]
+    public GameObject allyfullchargeVFX;
+    public GameObject allynochargeVFX;
+    [Header("적군 (직구/포물선)")]
+    public GameObject enemyfullchargeVFX;
+    public GameObject enemynochargeVFX;
+
     [Header("CC (사제/슬로우)")]
     public GameObject ccAreaPrefab;
     public GameObject ccAttachVFX;

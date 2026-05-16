@@ -12,6 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 069f72789058f5e4f826ca1906155297, type: 3}
   m_Name: Throw Effect Registry
   m_EditorClassIdentifier: 
+  allyfullchargeVFX: {fileID: 8126676459292147146, guid: 3678c37e84127a04e9f1c3fc82458075, type: 3}
+  allynochargeVFX: {fileID: 8126676459292147146, guid: 3678c37e84127a04e9f1c3fc82458075, type: 3}
+  enemyfullchargeVFX: {fileID: 8126676459292147146, guid: 3678c37e84127a04e9f1c3fc82458075, type: 3}
+  enemynochargeVFX: {fileID: 8126676459292147146, guid: 3678c37e84127a04e9f1c3fc82458075, type: 3}
   ccAreaPrefab: {fileID: 6155637698526660752, guid: c522dbf45c6ea4848a308848b9834d6c, type: 3}
   ccAttachVFX: {fileID: 7694379489354803875, guid: 187385c849b2ddc4599d21e13cb37b27, type: 3}
   shieldAreaPrefab: {fileID: 7191073830009786782, guid: 791d89116eab0364cb5d1562820f07a6, type: 3}
