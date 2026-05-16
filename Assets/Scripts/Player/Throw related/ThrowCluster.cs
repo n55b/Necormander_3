@@ -21,13 +21,13 @@ public class ThrowCluster : MonoBehaviour
     private Transform _targetTransform;
     private float _launchSpeed;
     private Vector2 _lastTravelDir;
-    
+
     private void Awake()
     {
         _arcMovement = gameObject.AddComponent<ArcMovement>();
         _collider = gameObject.AddComponent<CircleCollider2D>();
         _collider.isTrigger = true;
-        
+
         _rb = gameObject.AddComponent<Rigidbody2D>();
         _rb.gravityScale = 0;
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
@@ -63,7 +63,7 @@ public class ThrowCluster : MonoBehaviour
             {
                 unit.transform.SetParent(this.transform);
                 unit.transform.localPosition = Random.insideUnitCircle * (_collider.radius * 0.3f);
-                unit.OnPickedUp(); 
+                unit.OnPickedUp();
             }
         }
     }
@@ -91,6 +91,15 @@ public class ThrowCluster : MonoBehaviour
         // [수정] 발사 시 비주얼 확실히 활성화
         if (visualCircle != null) visualCircle.gameObject.SetActive(true);
 
+        {
+            Vector2 dif = targetPos - startPos;
+            float dirX = dif.x;
+
+            Vector3 localScale = transform.localScale;
+            localScale.x = Mathf.Abs(localScale.x) * (dirX >= 0f ? 1f : -1f);
+            transform.localScale = localScale;
+        }
+
         foreach (var unit in _units)
         {
             if (unit != null) unit.PrepareForClusterThrow(chargeRatio, isDirect);
@@ -112,9 +121,10 @@ public class ThrowCluster : MonoBehaviour
         }
 
         Vector2 diff = targetPos - startPos;
+
         float dist = diff.magnitude;
         _launchSpeed = (duration > 0.001f && dist > 0.001f) ? dist / duration : 0f;
-        
+
         if (_targetTransform != null && !isDirect && _launchSpeed > 0f)
         {
             Vector2 dir = (targetPos - startPos).normalized;
@@ -173,13 +183,13 @@ public class ThrowCluster : MonoBehaviour
                     Vector2 targetPoint = _activeRecipe.info.impactPoint;
                     Vector2 diff = targetPoint - currentPos;
                     float dist = diff.magnitude;
-                    
-                    if (dist < 0.2f) 
+
+                    if (dist < 0.2f)
                     {
                         OnLanded();
                         return;
                     }
-                    
+
                     if (diff.sqrMagnitude > 0.0001f)
                     {
                         _rb.linearVelocity = diff.normalized * _launchSpeed;
@@ -233,8 +243,8 @@ public class ThrowCluster : MonoBehaviour
 
         if (isWall || isTargetHit)
         {
-            bool isPinballApplicable = _isDirectThrow && 
-                                     _activeRecipe.info.targetingMode == TargetingMode.Area && 
+            bool isPinballApplicable = _isDirectThrow &&
+                                     _activeRecipe.info.targetingMode == TargetingMode.Area &&
                                      InventoryManager.Instance.ActiveAbilities.Exists(a => a is ThrowPinballAbilitySO);
 
             if (isPinballApplicable)
@@ -278,7 +288,7 @@ public class ThrowCluster : MonoBehaviour
         int objectMask = LayerMask.GetMask("Object");
         int totalMask = wallMask | opponentMask | objectMask;
 
-        float castDist = 1.0f; 
+        float castDist = 1.0f;
         RaycastHit2D hit = Physics2D.CircleCast(currentPos - _lastTravelDir * castDist, radius, _lastTravelDir, castDist * 2f, totalMask);
         Vector2 normal = (hit.collider != null) ? hit.normal : -_lastTravelDir;
         Vector2 hitCentroid = (hit.collider != null) ? hit.centroid : currentPos;
@@ -288,7 +298,7 @@ public class ThrowCluster : MonoBehaviour
         // 벽 안쪽에 파묻힌 상태로 속도가 붙어 벽을 통과해버리는 현상을 방지합니다.
         Vector2 safeOrigin = hitCentroid + normal * (radius + 0.1f);
         transform.position = safeOrigin;
-        
+
         // [추가] 물리 세계 즉시 동기화
         Physics2D.SyncTransforms();
 
@@ -306,7 +316,7 @@ public class ThrowCluster : MonoBehaviour
         if (finalDir == Vector2.zero) finalDir = normal;
 
         float currentSpeed = _rb.linearVelocity.magnitude;
-        if (currentSpeed < 5f) currentSpeed = 15f; 
+        if (currentSpeed < 5f) currentSpeed = 15f;
         _rb.linearVelocity = finalDir * currentSpeed;
         _lastTravelDir = finalDir;
 
@@ -360,7 +370,7 @@ public class ThrowCluster : MonoBehaviour
                 // [체크] 체력 소모 후 아직 살아있는 경우에만 상태 복구(OnLanded) 호출
                 if (unit != null && (unit is MonoBehaviour aliveMb && aliveMb != null))
                 {
-                    unit.SetImpacted(isImpactSuccess); 
+                    unit.SetImpacted(isImpactSuccess);
                     unit.OnLanded();
                 }
             }

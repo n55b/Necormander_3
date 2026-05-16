@@ -177,6 +177,18 @@ public class ThrowImpactManager : MonoBehaviour
         ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
         if (registry == null) return;
 
+        if(recipe.info.targetingMode == TargetingMode.Target)
+        {
+            if(recipe.info.targetTeam == Team.Ally)
+            {
+                GameObject basic_vfx = Instantiate(registry.allynochargeVFX, spawnPos, Quaternion.identity);
+            }
+            else
+            {
+                GameObject basic_vfx = Instantiate(registry.enemynochargeVFX, spawnPos, Quaternion.identity);
+            }
+        }
+
         float duration = 1.0f;
         if (isArea)
         {
