@@ -42,11 +42,10 @@ public class CharacterHealth : MonoBehaviour
 
         // [부식] 시너지에 따른 데미지 증가
         float corrosionAmp = GemRuleSystem.GetCorrosionDamageAmp();
-        int corrodedStacks = _status.GetDebuffStack(DebuffStackType.Corroded);
-        if (corrodedStacks > 0 || corrosionAmp > 0)
+        if (_status.GetDebuffBool(DebuffBoolType.Corroded))
         {
-            // 스택당 1% + 시너지 기본 보너스
-            remainingDamage *= (1.0f + corrodedStacks * 0.01f + corrosionAmp); 
+            // 부식 상태인 경우 시너지 보너스(25%, 40% 등)만큼 데미지 증폭
+            remainingDamage *= (1.0f + corrosionAmp); 
             str = "Corroded";
         }
 

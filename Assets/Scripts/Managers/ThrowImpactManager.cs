@@ -111,12 +111,22 @@ public class ThrowImpactManager : MonoBehaviour
                 // 2. [신규] 귀수 속성 부여 (전역 보석 효과)
                 if (InventoryManager.Instance != null)
                 {
+                    // 스택형 속성 부여
                     foreach (var kvp in InventoryManager.Instance.GlobalGemStats.HandAttributes)
                     {
                         if (kvp.Value > 0)
                         {
                             float amount = kvp.Value;
                             status.AddDebuffStack(kvp.Key, amount);
+                        }
+                    }
+
+                    // [추가] 상태형(Bool) 속성 부여 (부식 등)
+                    foreach (var kvp in InventoryManager.Instance.GlobalGemStats.HandBoolAttributes)
+                    {
+                        if (kvp.Value > 0)
+                        {
+                            status.SetDebuffBool(kvp.Key, kvp.Value);
                         }
                     }
 

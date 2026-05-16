@@ -5,6 +5,7 @@ public class Panel_Debuff : MonoBehaviour
 {
     // 현재 이 적에게 떠 있는 아이콘들 (중복 방지용)
     private Dictionary<DebuffStackType, DebuffIcon> activeIcons = new Dictionary<DebuffStackType, DebuffIcon>();
+    private Dictionary<DebuffBoolType, DebuffIcon> activeBoolIcons = new Dictionary<DebuffBoolType, DebuffIcon>(); // [추가]
 
     // 현재 각 디버프의 스택 수치 저장
     private Dictionary<DebuffStackType, int> currentStacks = new Dictionary<DebuffStackType, int>();
@@ -30,6 +31,22 @@ public class Panel_Debuff : MonoBehaviour
         }
     }
 
+    // [추가] Bool 타입 디버프 추가
+    public void AddDebuff(DebuffBoolType type, Sprite sprite)
+    {
+        if (activeBoolIcons.TryGetValue(type, out DebuffIcon existingIcon))
+        {
+            existingIcon.UpdateStack(0); // Bool 타입은 스택 표시 안함 (0)
+        }
+        else
+        {
+            DebuffIcon newIcon = DebuffPool.Instance.Pop();
+            newIcon.transform.SetParent(this.transform, false);
+            newIcon.Initialize(sprite, 0, DebuffStackType.Poison); // 임시 타입 (UI 표시용)
+            activeBoolIcons.Add(type, newIcon);
+        }
+    }
+
     // 디버프가 해제될 때 호출
     public void RemoveDebuff(DebuffStackType type)
     {
@@ -41,18 +58,26 @@ public class Panel_Debuff : MonoBehaviour
         }
     }
 
+    // [추가] Bool 타입 디버프 제거
+    public void RemoveDebuff(DebuffBoolType type)
+    {
+        if (activeBoolIcons.TryGetValue(type, out DebuffIcon icon))
+        {
+            DebuffPool.Instance.Push(icon);
+            activeBoolIcons.Remove(type);
+        }
+    }
+
     public void ClearAllDebuffs()
     {
         List<DebuffStackType> keys = new List<DebuffStackType>(activeIcons.Keys);
+        foreach (var type in keys) RemoveDebuff(type);
 
-        foreach (var type in keys)
-        {
-            // 기존 RemoveDebuff 함수를 재사용합니다.
-            RemoveDebuff(type);
-        }
+        List<DebuffBoolType> boolKeys = new List<DebuffBoolType>(activeBoolIcons.Keys); // [추가]
+        foreach (var type in boolKeys) RemoveDebuff(type);
 
-        // 혹시 모르니 남은 데이터들을 확실히 비워줍니다.
         activeIcons.Clear();
+        activeBoolIcons.Clear();
         currentStacks.Clear();
     }
 }

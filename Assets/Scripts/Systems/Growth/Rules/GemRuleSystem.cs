@@ -11,7 +11,7 @@ public static class GemRuleSystem
 
     public static float GetPoisonInterval()
     {
-        float baseInterval = 3.0f; // 기본 틱 주기
+        float baseInterval = 5.0f; // [수정] 기본 틱 주기를 기획에 맞춰 5초로 변경
         if (Inven == null) return baseInterval;
 
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Poison));

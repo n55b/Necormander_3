@@ -26,6 +26,20 @@ public class GameManager : MonoBehaviour
     [Header("UI References")]
     [SerializeField] public PlayerStateUI playerStateUI;
 
+    // [추가] 시간 정지 시스템 관리
+    private bool _isTimeStopped = false;
+    public bool IsTimeStopped => _isTimeStopped;
+
+    /// <summary>
+    /// 게임 전체의 시간을 멈추거나 재개합니다. (범용 기능)
+    /// </summary>
+    public void SetTimeStop(bool stop)
+    {
+        _isTimeStopped = stop;
+        Time.timeScale = stop ? 0f : 1f;
+        
+        Debug.Log($"<color=yellow>[TimeSystem]</color> Time Scale set to: {Time.timeScale}");
+    }
 
     private void Awake()
     {

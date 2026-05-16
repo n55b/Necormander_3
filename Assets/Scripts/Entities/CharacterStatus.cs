@@ -60,7 +60,12 @@ public class CharacterStatus : MonoBehaviour
             if (_boolTimers[key] > 0)
             {
                 _boolTimers[key] -= dt;
-                if (_boolTimers[key] <= 0) _boolTimers[key] = 0;
+                if (_boolTimers[key] <= 0)
+                {
+                    _boolTimers[key] = 0;
+                    // [추가] Bool 타입 디버프가 끝났을 때 UI 아이콘 제거
+                    debuffTerminal.RemoveIcon(key); 
+                }
             }
         }
 
@@ -182,7 +187,6 @@ public class CharacterStatus : MonoBehaviour
             case DebuffStackType.Execute: color = "#FF4500"; break; // OrangeRed
             case DebuffStackType.BloodPop: color = "#FF00FF"; break; // Magenta
             case DebuffStackType.Aging: color = "#BC8F8F"; break; // RosyBrown
-            case DebuffStackType.Corroded: color = "#FFD700"; break; // Gold
         }
 
         Debug.Log($"<color={color}>[Debuff]</color> <b>{gameObject.name}</b>: {type} +{amount:F1} (Current: <b>{_debuffStacks[type]:F1}/{maxStack}</b>)");
@@ -248,6 +252,14 @@ public class CharacterStatus : MonoBehaviour
     {
         if (!_boolTimers.ContainsKey(type)) _boolTimers[type] = 0f;
         _boolTimers[type] = Mathf.Max(_boolTimers[type], duration);
+
+        // [추가] Bool 타입 디버프도 UI에 아이콘 표시 (부식 등)
+        debuffTerminal.UpdateUI(type, 0f); 
+        
+        if (type == DebuffBoolType.Corroded)
+        {
+            Debug.Log($"<color=#FFD700>[Debuff]</color> <b>{gameObject.name}</b>: Corroded Applied! (Duration: {duration}s)");
+        }
     }
 
     public bool GetDebuffBool(DebuffBoolType type)
