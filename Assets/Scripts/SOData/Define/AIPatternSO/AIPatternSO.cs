@@ -73,6 +73,15 @@ public abstract class AIPatternSO : ScriptableObject
     public void SetState(BaseEntity entity, AIState newState)
     {
         if (currentState == newState) return;
+
+        // 상태가 변경될 때마다 해당 상태의 진입 메서드 호출
+        switch (currentState)
+        {
+            case AIState.Caught:    // Caught에서 다른 상태로 나가니까 OutCaught 호출
+                OutCaught(entity);
+                break;
+        }
+
         currentState = newState;
 
         // 상태를 강제로 바꿀 때 즉시 애니메이션도 동기화!
@@ -89,11 +98,13 @@ public abstract class AIPatternSO : ScriptableObject
     protected virtual void OnIdle(BaseEntity entity) { }
     protected virtual void OnFollow(BaseEntity entity) { }
     protected virtual void OnAttack(BaseEntity entity) { }
-    protected virtual void OutThrown(BaseEntity entity)
-    {
-    }
     protected virtual void OutCaught(BaseEntity entity)
     {
+        if(entity.gameObject.transform.localScale.x < 0.0f)
+        {
+            entity.gameObject.transform.localScale = new Vector3(-1 * entity.gameObject.transform.localScale.x, entity.gameObject.transform.localScale.y, entity.gameObject.transform.localScale.z);
+        }
+       
         if(entity._target != null)
         {
             entity._target = null;

@@ -29,6 +29,6 @@ MonoBehaviour:
   cost: 1
   isBoss: 0
   canSpawnRandomly: 1
-  aiPattern: {fileID: 0}
+  aiPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   hpCostRatioPerThrow: 1
   minionPrefab: {fileID: 1959536258159339203, guid: a35288eb4aeed4542a3824e8843ce750, type: 3}
