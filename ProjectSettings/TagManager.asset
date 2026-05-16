@@ -54,6 +54,9 @@ TagManager:
   - name: Object
     uniqueID: 1344968519
     locked: 0
+  - name: GroundEffect
+    uniqueID: 787935263
+    locked: 0
   - name: Unit
     uniqueID: 3839888389
     locked: 0
