@@ -144176,7 +144176,7 @@ PrefabInstance:
     - target: {fileID: 5452969733963804717, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: HitClip
       value: 
-      objectReference: {fileID: 8300000, guid: 23217c85cd43cf84f9e1fa66434034fc, type: 3}
+      objectReference: {fileID: 8300000, guid: 70b56f3aa0c052e429e0729bf89964f0, type: 3}
     - target: {fileID: 7453844490307090777, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: handSlotUI
       value: 
