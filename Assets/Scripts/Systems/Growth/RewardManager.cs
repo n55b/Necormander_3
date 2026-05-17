@@ -127,6 +127,9 @@ public class RewardManager : MonoBehaviour
                 {
                     if (handSlotUI != null)
                     {
+                        // [추가] 장착 UI가 뜨면 시간 정지 (상점 구매 등 직접 호출 케이스 대응)
+                        if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
+
                         if (selectionUI != null) selectionUI.Hide();
                         handSlotUI.Show(candidate);
                     }
@@ -141,6 +144,9 @@ public class RewardManager : MonoBehaviour
             case RewardCategory.Ability:
                 if (handSlotUI != null)
                 {
+                    // [추가] 장착 UI가 뜨면 시간 정지
+                    if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
+
                     if (selectionUI != null) selectionUI.Hide();
                     handSlotUI.Show(candidate);
                 }
