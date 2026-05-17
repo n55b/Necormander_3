@@ -5,12 +5,19 @@ public class SoundManager : MonoBehaviour
 {
     public static SoundManager Instance;
 
+    [Header("BGM Sources")]
     public AudioSource sourceA;
     public AudioSource sourceB;
     private AudioSource activeSource;
-
+    // BGM 페이드 전환을 위한 변수
     public AudioSource newSource;
     public AudioSource oldSource;
+
+    [Header("SFX Sources")]
+    public AudioSource sfxSource;
+
+    [Header("Clips")]
+    [SerializeField]private AudioClip HitClip;
 
     private void Awake()
     {
@@ -40,6 +47,17 @@ public class SoundManager : MonoBehaviour
         // 3. 페이드 실행 (기존 코루틴은 중지하고 새로 시작)
         StopAllCoroutines();
         StartCoroutine(CrossFade(duration));
+    }
+
+    public void HITSoundPlay()
+    {
+        if (HitClip != null) sfxSource.PlayOneShot(HitClip);
+    }
+
+    public void PlaySFX(AudioClip clip, float volume = 1.0f)
+    {
+        if(clip == null) return;
+        sfxSource.PlayOneShot(clip, volume);
     }
 
     private IEnumerator CrossFade(float duration)
