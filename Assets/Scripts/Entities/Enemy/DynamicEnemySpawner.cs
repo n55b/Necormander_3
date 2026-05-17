@@ -162,6 +162,10 @@ public class DynamicEnemySpawner : MonoBehaviour
     {
         _isTriggered = true;
 
+        // [추가] 전투 진입 시 열려 있는 UI 자동 종료
+        if (GemTreeUI.Instance != null && GemTreeUI.Instance.IsOpen) GemTreeUI.Instance.Toggle();
+        if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
+
         // 부대 갱신 및 스폰 로직만 수행
         if (GameManager.Instance?.squadSpawner != null)
         {

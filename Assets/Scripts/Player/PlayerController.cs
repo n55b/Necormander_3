@@ -294,8 +294,10 @@ public class PlayerController : MonoBehaviour
 
         if (context.performed)
         {
-            // [수정] 단순 거리 기반이 아닌, 실제 스포너 이벤트(벽 생성 등)가 활성화된 경우에만 차단
-            if (IsAnyBattleActive())
+            // [수정] 이미 열려 있는 상태라면 전투 중이라도 닫을 수 있게 허용
+            bool isOpen = (GemTreeUI.Instance != null && GemTreeUI.Instance.IsOpen);
+
+            if (!isOpen && IsAnyBattleActive())
             {
                 Debug.Log("<color=orange>[UI]</color> 전투가 진행 중일 때는 보석 트리를 열 수 없습니다.");
                 return;
@@ -316,12 +318,14 @@ public class PlayerController : MonoBehaviour
     public void OnHandSlot(InputAction.CallbackContext context)
     {
         if (stat.Health.IsDead) return;
-        
+
         // [수정] 탭 키를 눌러 현재 장착된 미니언/능력을 상시 조회합니다.
         if (context.performed)
         {
-            // [수정] 단순 거리 기반이 아닌, 실제 스포너 이벤트(벽 생성 등)가 활성화된 경우에만 차단
-            if (IsAnyBattleActive())
+            // [수정] 이미 열려 있는 상태라면 전투 중이라도 닫을 수 있게 허용
+            bool isOpen = (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen);
+
+            if (!isOpen && IsAnyBattleActive())
             {
                 Debug.Log("<color=orange>[UI]</color> 전투가 진행 중일 때는 인벤토리를 열 수 없습니다.");
                 return;
@@ -333,7 +337,6 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-
     /// <summary>
     /// [추가] 현재 씬 내에서 활성화된 전투 이벤트(DynamicEnemySpawner)가 있는지 확인합니다.
     /// 사용자가 언급한 '임시 벽 생성' 로직과 동기화됩니다.

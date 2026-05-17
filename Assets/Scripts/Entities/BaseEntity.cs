@@ -234,8 +234,8 @@ public abstract class BaseEntity : MonoBehaviour
             DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject);
             targetStat.Health.GetDamage(info);
 
-            // 3. 무기 속성 부여 (보석 효과)
-            if (InventoryManager.Instance != null)
+            // 3. 무기 속성 부여 (보석 효과) - 아군일 때만 적용
+            if (this.team == Team.Ally && InventoryManager.Instance != null)
             {
                 // 스택형 속성 부여
                 foreach (var kvp in InventoryManager.Instance.GlobalGemStats.WeaponAttributes)

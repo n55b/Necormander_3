@@ -9,10 +9,10 @@ public static class GemRuleSystem
 
     #region Poison Rules
 
-    public static float GetPoisonInterval()
+    public static float GetPoisonInterval(bool isEnemyTarget)
     {
         float baseInterval = 5.0f; // [수정] 기본 틱 주기를 기획에 맞춰 5초로 변경
-        if (Inven == null) return baseInterval;
+        if (Inven == null || !isEnemyTarget) return baseInterval;
 
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Poison));
         bool hasLethalDose = Inven.HasUniqueEffect(GemUniqueType.LethalDose);
@@ -23,23 +23,23 @@ public static class GemRuleSystem
         return baseInterval * mult;
     }
 
-    public static float GetPoisonDuration()
+    public static float GetPoisonDuration(bool isEnemyTarget)
     {
         float baseDuration = 10.0f;
-        if (Inven == null) return baseDuration;
+        if (Inven == null || !isEnemyTarget) return baseDuration;
 
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Poison));
         return baseDuration + GemSynergyLogic.GetPoisonDurationBonus(level);
     }
 
-    public static float ModifyIncomingPoisonStack(float amount)
+    public static float ModifyIncomingPoisonStack(float amount, bool isEnemyTarget)
     {
-        if (Inven == null) return amount;
+        if (Inven == null || !isEnemyTarget) return amount;
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Poison));
         return amount + GemSynergyLogic.GetPoisonExtraStack(level);
     }
 
-    public static float GetLethalPoisonBonus(int currentStacks)
+    public static float GetLethalPoisonBonus(int currentStacks) // 이건 던질 때 사용하므로 유지
     {
         if (Inven == null) return 0f;
         bool hasLethalPoison = Inven.HasUniqueEffect(GemUniqueType.LethalPoison);
@@ -50,40 +50,40 @@ public static class GemRuleSystem
 
     #region Chill Rules
 
-    public static float GetChillValuePerStack()
+    public static float GetChillValuePerStack(bool isEnemyTarget)
     {
         float baseValue = 0.01f; // 1%
-        if (Inven == null) return baseValue;
+        if (Inven == null || !isEnemyTarget) return baseValue;
 
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Chill));
         return baseValue * GemSynergyLogic.GetChillValueMultiplier(level);
     }
 
-    public static float GetMaxChillStack()
+    public static float GetMaxChillStack(bool isEnemyTarget)
     {
         float baseMax = 20f;
-        if (Inven == null) return baseMax;
+        if (Inven == null || !isEnemyTarget) return baseMax;
 
         bool hasFlower = Inven.HasUniqueEffect(GemUniqueType.SlowlyFreezingFlower);
         return baseMax + GemUniqueLogic.GetSlowlyFreezingFlowerMaxBonus(hasFlower);
     }
 
-    public static bool ShouldBlockChill(bool isFrozen)
+    public static bool ShouldBlockChill(bool isFrozen, bool isEnemyTarget)
     {
-        if (Inven == null) return false;
+        if (Inven == null || !isEnemyTarget) return false;
         return GemUniqueLogic.ShouldBlockChillStack(Inven.HasUniqueEffect(GemUniqueType.AchingBones), isFrozen);
     }
 
-    public static float GetFreezeRefundStacks()
+    public static float GetFreezeRefundStacks(bool isEnemyTarget)
     {
-        if (Inven == null) return 0f; 
+        if (Inven == null || !isEnemyTarget) return 0f; 
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Chill));
         return GemSynergyLogic.GetChillRefundAmount(level);
     }
 
-    public static bool HasFreezeFixedDamage()
+    public static bool HasFreezeFixedDamage(bool isEnemyTarget)
     {
-        if (Inven == null) return false;
+        if (Inven == null || !isEnemyTarget) return false;
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Chill));
         return GemSynergyLogic.HasChillFreezeDamage(level);
     }
@@ -92,25 +92,25 @@ public static class GemRuleSystem
 
     #region BloodPop Rules
 
-    public static float GetBloodPopDamage(int stacks)
+    public static float GetBloodPopDamage(int stacks, bool isEnemyTarget)
     {
         float damage = stacks;
-        if (Inven == null) return damage;
+        if (Inven == null || !isEnemyTarget) return damage;
 
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.BloodPop));
         return damage + GemSynergyLogic.GetBloodPopDamageBonus(level);
     }
 
-    public static float GetBloodPopRadiusMultiplier()
+    public static float GetBloodPopRadiusMultiplier(bool isEnemyTarget)
     {
-        if (Inven == null) return 1.0f;
+        if (Inven == null || !isEnemyTarget) return 1.0f;
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.BloodPop));
         return GemSynergyLogic.GetBloodPopRadiusMultiplier(level);
     }
 
-    public static float GetBloodPopChainRatio()
+    public static float GetBloodPopChainRatio(bool isEnemyTarget)
     {
-        if (Inven == null) return 0f;
+        if (Inven == null || !isEnemyTarget) return 0f;
         return GemUniqueLogic.GetExplodingFleshStackRatio(Inven.HasUniqueEffect(GemUniqueType.ExplodingFlesh));
     }
 
@@ -118,18 +118,18 @@ public static class GemRuleSystem
 
     #region Aging Rules
 
-    public static float GetAgingValuePerStack()
+    public static float GetAgingValuePerStack(bool isEnemyTarget)
     {
         float baseValue = 0.01f;
-        if (Inven == null) return baseValue;
+        if (Inven == null || !isEnemyTarget) return baseValue;
 
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Aging));
         return baseValue * GemSynergyLogic.GetAgingValueMultiplier(level);
     }
 
-    public static float GetMaxAgingStack()
+    public static float GetMaxAgingStack(bool isEnemyTarget)
     {
-        if (Inven == null) return 25f;
+        if (Inven == null || !isEnemyTarget) return 25f;
 
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Aging));
         bool hasNoCountry = Inven.HasUniqueEffect(GemUniqueType.NoCountryForOldMen);
@@ -140,9 +140,9 @@ public static class GemRuleSystem
         return max;
     }
 
-    public static bool ShouldAgingInstaKill(float currentStacks)
+    public static bool ShouldAgingInstaKill(float currentStacks, bool isEnemyTarget)
     {
-        if (Inven == null) return false;
+        if (Inven == null || !isEnemyTarget) return false;
         return GemUniqueLogic.ShouldAgingInstaKill(Inven.HasUniqueEffect(GemUniqueType.NoCountryForOldMen), currentStacks);
     }
 
@@ -150,9 +150,9 @@ public static class GemRuleSystem
 
     #region Corrosion Rules
 
-    public static float GetCorrosionDamageAmp()
+    public static float GetCorrosionDamageAmp(bool isEnemyTarget)
     {
-        if (Inven == null) return 0f;
+        if (Inven == null || !isEnemyTarget) return 0f;
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Corrosion));
         return GemSynergyLogic.GetCorrosionDamageAmp(level);
     }

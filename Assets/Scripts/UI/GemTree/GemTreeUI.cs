@@ -33,6 +33,8 @@ public class GemTreeUI : MonoBehaviour
     private Dictionary<int, List<GemNodeUI>> _nodesByDepth = new Dictionary<int, List<GemNodeUI>>();
     private Dictionary<GemTreeNode, float> _subTreeWidths = new Dictionary<GemTreeNode, float>();
 
+    public bool IsOpen => _isOpen;
+
 
     private void Awake()
     {

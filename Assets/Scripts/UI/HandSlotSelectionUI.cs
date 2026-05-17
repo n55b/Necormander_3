@@ -24,6 +24,8 @@ public class HandSlotSelectionUI : MonoBehaviour
     private RewardCandidate _pendingCandidate;
     private bool _isReadOnly = false; // [추가] 조회 전용 모드 플래그
 
+    public bool IsOpen => panel != null && panel.activeSelf;
+
     private void Awake()
     {
         Instance = this; // [추가]

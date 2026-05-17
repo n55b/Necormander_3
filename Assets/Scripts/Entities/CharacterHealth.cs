@@ -41,7 +41,8 @@ public class CharacterHealth : MonoBehaviour
         string str = "";                             // 데미지 타입
 
         // [부식] 시너지에 따른 데미지 증가
-        float corrosionAmp = GemRuleSystem.GetCorrosionDamageAmp();
+        bool isEnemyTarget = (_stat != null && _stat.IsEnemy);
+        float corrosionAmp = GemRuleSystem.GetCorrosionDamageAmp(isEnemyTarget);
         if (_status.GetDebuffBool(DebuffBoolType.Corroded))
         {
             // 부식 상태인 경우 시너지 보너스(25%, 40% 등)만큼 데미지 증폭
@@ -158,11 +159,13 @@ public class CharacterHealth : MonoBehaviour
 
     private void ExecuteBloodPop(int stacks)
     {
+        bool isEnemyTarget = (_stat != null && _stat.IsEnemy);
+
         float baseRadius = 2.0f;
-        float radiusMult = GemRuleSystem.GetBloodPopRadiusMultiplier();
+        float radiusMult = GemRuleSystem.GetBloodPopRadiusMultiplier(isEnemyTarget);
         float explosionRadius = baseRadius * radiusMult;
 
-        float finalDamage = GemRuleSystem.GetBloodPopDamage(stacks);
+        float finalDamage = GemRuleSystem.GetBloodPopDamage(stacks, isEnemyTarget);
 
         // Bloodpop은 무조건 'Enemy' 레이어의 유닛에게만 데미지를 줍니다. (아군과 플레이어 제외)
         LayerMask bloodPopTargetLayer = LayerMask.GetMask("Enemy");
@@ -187,7 +190,7 @@ public class CharacterHealth : MonoBehaviour
                 targetHealth.GetDamage(new DamageInfo(finalDamage, DamageType.Fixed, this.gameObject));
 
                 // [유니크] 살덩이가 폭발하는 것: 비폭 피해 대상에게 데미지의 일부만큼 비폭 스택 부여
-                float chainRatio = GemRuleSystem.GetBloodPopChainRatio();
+                float chainRatio = GemRuleSystem.GetBloodPopChainRatio(isEnemyTarget);
                 if (chainRatio > 0)
                 {
                     var targetStatus = col.GetComponentInChildren<CharacterStatus>();

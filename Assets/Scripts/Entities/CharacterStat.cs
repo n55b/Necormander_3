@@ -26,6 +26,8 @@ public class CharacterStat : MonoBehaviour
     private bool _isAlly = false; // [추가] 아군 여부 캐싱
     private bool _isPlayer = false; // [추가] 플레이어 여부 캐싱
 
+    public bool IsEnemy => !_isAlly && !_isPlayer; // [추가] 적군 여부 판별
+
     [Header("셋팅 이후 Action들")]
     [SerializeField] private UnityEvent setDoneActions;
 
@@ -38,14 +40,15 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float agingValue = GemRuleSystem.GetAgingValuePerStack();
+            float agingValue = GemRuleSystem.GetAgingValuePerStack(IsEnemy); // [수정] 적군일 경우 노화 효율 증가
             float agingMult = (Status != null) ? Mathf.Max(0.1f, 1f - Status.GetDebuffStack(DebuffStackType.Aging) * agingValue) : 1f;
-            
+
             // 플레이어는 보석/보물(미니언용) 보너스를 받지 않음
             float bonusMult = _isPlayer ? 0f : (GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
             return baseAtk * (1f + bonusMult) * agingMult;
         }
     }
+
 
     // 최대 체력: (기본 체력 + 보석 고정치) * (1 + 보물 배율)
     public float MAXHP 
@@ -176,10 +179,11 @@ public class CharacterStat : MonoBehaviour
         Health = GetComponent<CharacterHealth>();
         Visual = GetComponent<CharacterVisualFeedback>();
 
+        UpdateTeamStatus(); // Init 전에 IsEnemy 설정
+
+        if (Status != null) Status.Init(this); // [추가] Status에 IsEnemy 참조 전달
         if (Visual != null) Visual.Init(Health, Status);
         if (Health != null) Health.Init(this, Status);
-
-        UpdateTeamStatus();
 
         // 셋업이 완전히 끝난 후 액션 실행
         setDoneActions.Invoke();
