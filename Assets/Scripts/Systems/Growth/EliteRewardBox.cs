@@ -26,9 +26,9 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
         }
         else
         {
-            // 능력 또는 환골탈태 중 하나를 랜덤으로 선택하여 3개 추첨
-            RewardCategory selectedCategory = (Random.value > 0.5f) ? RewardCategory.Ability : RewardCategory.Metamorphosis;
-            rewards = RewardProcessor.GenerateCandidatesByCategory(inven, data, selectedCategory);
+            // [수정] 보스 보상과 동일하게 능력과 환골탈태를 섞어서 3개 추첨 (보석 제외)
+            rewards = RewardProcessor.GenerateMixedCandidates(inven, data,
+                new List<RewardCategory> { RewardCategory.Ability, RewardCategory.Metamorphosis });
         }
 
         if (rewards.Count > 0)

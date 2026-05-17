@@ -185,12 +185,6 @@ public static class RewardProcessor
         List<RewardCandidate> allPossible = new List<RewardCandidate>();
         var registry = data.GET_GROWTH_REGISTRY();
 
-        // [디버깅 로그 추가]
-        int mCount = GetValidCores(inven, registry.minionLineages).Count;
-        int aCount = GetValidAbilities(inven, registry).Count;
-        int tCount = GetValidMetamorphoses(inven, registry.minionLineages).Count;
-        Debug.Log($"<color=white>[Reward:Pool]</color> Valid Pool Size -> Minions: {mCount}, Abilities: {aCount}, Metamorphosis: {tCount}");
-
         foreach (var category in categories)
         {
             switch (category)
@@ -242,6 +236,8 @@ public static class RewardProcessor
     private static List<RewardCandidate> GetValidAbilities(InventoryManager inven, GrowthRegistrySO registry)
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();
+        if (registry == null) return candidates;
+
         foreach (var item in registry.specialAbilities)
         {
             if (item is ThrowAbilitySO ability)
