@@ -156674,6 +156674,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Throwable Box
       objectReference: {fileID: 0}
+    - target: {fileID: 6724534978481633609, guid: 0461f8f833eab2a46a9a1017270f5785, type: 3}
+      propertyPath: m_Constraints
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 8030639330128317375, guid: 0461f8f833eab2a46a9a1017270f5785, type: 3}
       propertyPath: m_LocalPosition.x
       value: -13.065792
@@ -156712,6 +156716,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8030639330128317375, guid: 0461f8f833eab2a46a9a1017270f5785, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8502700593417624666, guid: 0461f8f833eab2a46a9a1017270f5785, type: 3}
+      propertyPath: m_IsTrigger
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
