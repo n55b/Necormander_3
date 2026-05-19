@@ -293,16 +293,20 @@ public class ThrowController : MonoBehaviour
         
         Vector3 dropPos = transform.position + (Vector3)Random.insideUnitCircle * 0.5f;
 
-        foreach (var t in _heldObjects) 
+        foreach (var t in _heldObjects)
         {
-            if (t != null && (t is MonoBehaviour mb && mb != null)) 
-            { 
-                mb.transform.SetParent(null); 
+            if (t != null && (t is MonoBehaviour mb && mb != null))
+            {
+                mb.transform.SetParent(null);
                 mb.transform.position = dropPos;
-                t.OnLanded(); 
+
+                // [추가] 물리 상태 강제 복구 (다시 주울 수 있게 함)
+                if (mb.TryGetComponent<Rigidbody2D>(out var rb)) rb.simulated = true;
+                if (mb.TryGetComponent<Collider2D>(out var col)) col.enabled = true;
+
+                t.OnLanded();
             }
-        }
-        
+        }        
         if (_activeCluster != null)
         {
             Destroy(_activeCluster.gameObject);
