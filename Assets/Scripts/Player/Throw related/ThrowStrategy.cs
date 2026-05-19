@@ -20,6 +20,18 @@ public class ThrowStrategy : MonoBehaviour
     {
         if (heldObjects.Count >= maxHoldCount) return false;
 
+        // 상자(None)와 다른 미니언 섞기 방지
+        bool hasBox = false;
+        bool hasMinion = false;
+        foreach (var held in heldObjects)
+        {
+            if (held.MinionType == CommandData.None) hasBox = true;
+            else hasMinion = true;
+        }
+
+        if (targetType == CommandData.None && hasMinion) return false;
+        if (targetType != CommandData.None && hasBox) return false;
+
         if (targetType == CommandData.SkeletonMagician && heldObjects.Count == 0) return false;
 
         bool hasWarrior = false;
@@ -43,6 +55,9 @@ public class ThrowStrategy : MonoBehaviour
     {
         if (heldObjects.Count == 0) return TargetingMode.Self;
 
+        // 상자가 있으면 Warrior와 동일하게 단일 타겟팅(Target) 모드로 설정
+        foreach (var obj in heldObjects) if (obj.MinionType == CommandData.None) return TargetingMode.Target;
+
         // 우선순위: Archer(Area) > Warrior(Target) > 기타(Spearman 포함 - Self)
         foreach (var obj in heldObjects) if (obj.MinionType == CommandData.SkeletonArcher) return TargetingMode.Area;
         foreach (var obj in heldObjects) if (obj.MinionType == CommandData.SkeletonWarrior) return TargetingMode.Target;
@@ -61,9 +76,10 @@ public class ThrowStrategy : MonoBehaviour
         foreach (var obj in heldObjects)
         {
             CommandData type = obj.MinionType;
+            if (type == CommandData.None) return Team.Enemy; // 상자는 적에게 던짐
             if (type == CommandData.SkeletonWarrior) hasWarrior = true;
             else if (type == CommandData.SkeletonShieldbearer) hasShield = true;
-            else if (type == CommandData.SkeletonMagician || type == CommandData.None) { /* 팀 결정에 영향 없음 */ }
+            else if (type == CommandData.SkeletonMagician) { /* 팀 결정에 영향 없음 */ }
             else hasOthers = true;
         }
 
@@ -116,7 +132,7 @@ public class ThrowStrategy : MonoBehaviour
         // 주력 유닛(전사/궁수)이 없거나 Self 모드인 경우, 섞인 유닛 중 가장 첫 번째 유닛의 배율을 기저 배율로 사용
         if (leadUnit == null && heldObjects.Count > 0) leadUnit = heldObjects[0];
 
-        // [수정] 주력 유닛의 배율을 기저 배율로 사용
+        // [수정] 주력 유닛의 배율을 기저 배율로 사용하되, 상자(None)와 같이 데이터가 없는 경우 1.0을 기본값으로 함
         recipe.modifiers.modeMultiplier = (leadUnit != null && leadUnit.MinionData != null) ? leadUnit.MinionData.effectMultiplier : 1.0f;
 
         // 최종 배율 계산 (나중에 보정치 적용을 위해 미리 계산)
@@ -126,7 +142,15 @@ public class ThrowStrategy : MonoBehaviour
         foreach (var obj in heldObjects)
         {
             CommandData type = obj.MinionType;
-            if (type == CommandData.None) continue;
+            
+            // [수정] 상자(None)인 경우 ThrowableBox의 데미지 설정을 가져와 전사 액션 추가
+            if (type == CommandData.None)
+            {
+                float boxDmg = 1.0f;
+                if (obj is ThrowableBox box) boxDmg = box.DamageAmount;
+                recipe.actions.Add(new WarriorAction(boxDmg));
+                continue;
+            }
 
             // [보석 시스템 1: 투척 강화]
             float gemBonus = InventoryManager.Instance.GetAggregatedGemBonus(type, StatType.ThrowEffect);

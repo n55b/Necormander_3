@@ -42,7 +42,8 @@ public class MouseManager : MonoBehaviour
         {
             // 2. 2D 마우스 위치 레이캐스트
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, 0f, allyLayer);
+            LayerMask searchMask = allyLayer | LayerMask.GetMask("ThrowableObject");
+            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, 0f, searchMask);
 
             if (hit.collider != null)
             {

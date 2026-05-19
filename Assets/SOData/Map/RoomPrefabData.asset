@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdbc089f38bc0524eb2bbc387e3e386d, type: 3}
+  m_Name: RoomPrefabData
+  m_EditorClassIdentifier: 
+  roomEntries:
+  - roomType: 0
+    prefabs:
+    - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}
+  - roomType: 1
+    prefabs:
+    - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}
+  - roomType: 2
+    prefabs:
+    - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}
+  - roomType: 3
+    prefabs:
+    - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}
+  - roomType: 4
+    prefabs:
+    - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}
+  - roomType: 5
+    prefabs:
+    - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}

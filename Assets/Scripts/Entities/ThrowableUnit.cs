@@ -30,6 +30,10 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
     private float _originalDamping;
     private LayerMask _hitLayers;
     private float _throwStartTime;
+    
+    // [추가] 레이어 및 충돌 상태 관리
+    private int _originalLayer;
+    protected bool _isImpacted;
 
     private void Awake()
     {
@@ -38,6 +42,7 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
         _collider = GetComponent<Collider2D>();
         _rb.freezeRotation = true;
         _originalDamping = _rb.linearDamping;
+        _originalLayer = gameObject.layer;
 
         _hitLayers = LayerMask.GetMask("Enemy", "Wall", "Obstacle");
         if (_hitLayers == 0)
@@ -50,13 +55,17 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
     {
         _rb.simulated = false;
         _collider.enabled = false;
+        _isImpacted = false; // [추가] 잡을 때 상태 초기화
+
+        // 잡혔을 때부터 FlyingObject 레이어로 변경하여 발 밑 충돌 무시 및 드랍 시 복구 보장
+        gameObject.layer = LayerMask.NameToLayer("FlyingObject");
     }
 
     public virtual void OnThrown(Vector2 targetPosition, float chargeRatio)
     {
         _throwStartTime = Time.time;
         transform.rotation = Quaternion.identity;
-        
+
         _rb.simulated = true;
         _collider.enabled = true;
         _collider.isTrigger = true;
@@ -88,19 +97,16 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
             maxHeight = Mathf.Min(targetHeight, distance * 0.5f); 
         }
 
-        // [중요] 실제 물리 속도 할당
         _rb.linearVelocity = direction * speed;
-
         _arcMovement.StartArc(duration, maxHeight);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    protected virtual void OnTriggerEnter2D(Collider2D other)
     {
         if (Time.time - _throwStartTime < 0.05f) return;
 
         if (_arcMovement.IsFlying && (_hitLayers.value & (1 << other.gameObject.layer)) != 0)
         {
-            Debug.Log($"<color=red>[Throw Hit]</color> {gameObject.name} hit <b>{other.name}</b> (Layer: {LayerMask.LayerToName(other.gameObject.layer)})");
             _arcMovement.StopArc();
         }
     }
@@ -111,11 +117,13 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
         _rb.linearDamping = _originalDamping;
         _collider.isTrigger = false;
         
+        // 착지 시 레이어 복구
+        gameObject.layer = _originalLayer;
+        
         Debug.Log($"{gameObject.name} landed!");
     }
 
-    // [추가] 인터페이스 구현
     public virtual void PrepareForClusterThrow(float chargeRatio, bool isDirect) { }
-    public virtual void SetImpacted(bool value) { }
-    public virtual void ApplyThrowCost() { } // 기본 투척물은 체력 소모 없음
+    public virtual void SetImpacted(bool value) { _isImpacted = value; }
+    public virtual void ApplyThrowCost() { } 
 }
