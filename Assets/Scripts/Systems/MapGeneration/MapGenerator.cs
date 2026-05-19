@@ -82,14 +82,33 @@ public class MapGenerator : MonoBehaviour
     {
         if (globalWallTilemap == null) return;
         GameObject obj = globalWallTilemap.gameObject;
-        obj.layer = LayerMask.NameToLayer("Wall");
+        
+        int wallLayer = LayerMask.NameToLayer("Wall");
+        if (wallLayer != -1) obj.layer = wallLayer;
 
-        Rigidbody2D rb = obj.GetComponent<Rigidbody2D>() ?? obj.AddComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Static;
+        // 1. Rigidbody2D - 가장 안전한 방식으로 접근
+        Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
+        if (rb == null) rb = obj.AddComponent<Rigidbody2D>();
+        
+        if (rb != null)
+        {
+            try { rb.bodyType = RigidbodyType2D.Static; }
+            catch (UnityEngine.MissingComponentException) { rb = obj.AddComponent<Rigidbody2D>(); rb.bodyType = RigidbodyType2D.Static; }
+        }
 
-        TilemapCollider2D tileCol = obj.GetComponent<TilemapCollider2D>() ?? obj.AddComponent<TilemapCollider2D>();
-        CompositeCollider2D composite = obj.GetComponent<CompositeCollider2D>() ?? obj.AddComponent<CompositeCollider2D>();
-        if (composite != null && tileCol != null) { composite.geometryType = CompositeCollider2D.GeometryType.Polygons; tileCol.usedByComposite = true; }
+        // 2. TilemapCollider2D
+        TilemapCollider2D tileCol = obj.GetComponent<TilemapCollider2D>();
+        if (tileCol == null) tileCol = obj.AddComponent<TilemapCollider2D>();
+
+        // 3. CompositeCollider2D
+        CompositeCollider2D composite = obj.GetComponent<CompositeCollider2D>();
+        if (composite == null) composite = obj.AddComponent<CompositeCollider2D>();
+        
+        if (composite != null && tileCol != null)
+        {
+            composite.geometryType = CompositeCollider2D.GeometryType.Polygons;
+            tileCol.usedByComposite = true;
+        }
     }
 
     private void ClearExistingMap()
@@ -122,9 +141,13 @@ public class MapGenerator : MonoBehaviour
     {
         GameObject prefab = prefabData.GetRandomPrefab(type);
         if (prefab == null) return;
+        
         float angle = Random.Range(0f, Mathf.PI * 2f);
         float radius = Random.Range(generationData.minSpawnRadius, generationData.maxSpawnRadius);
-        Vector2 spawnPos = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+        
+        // [수정] 초기 소환 시 Y축에 가중치를 주어 가로 타원 현상 방지
+        Vector2 spawnPos = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle) * 1.3f) * radius;
+
         GameObject roomObj = Instantiate(prefab, (Vector3)spawnPos, Quaternion.identity, transform);
         RoomInstance room = roomObj.GetComponent<RoomInstance>() ?? roomObj.AddComponent<RoomInstance>();
         room.Initialize(type);
@@ -146,8 +169,12 @@ public class MapGenerator : MonoBehaviour
                 Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
                 if (rb == null) continue;
                 Vector2 dir = (Vector2)room.transform.position;
+                if (dir.magnitude < 0.1f) dir = Random.insideUnitCircle.normalized;
+                
+                // 물리력에도 Y축 보정 가미
                 Vector2 combinedDir = (dir + (Vector2)Random.insideUnitCircle * 0.4f);
                 combinedDir.y *= 1.5f; 
+                
                 rb.AddForce(combinedDir.normalized * generationData.spreadingForce, ForceMode2D.Force);
             }
             iterations++;
@@ -215,9 +242,10 @@ public class MapGenerator : MonoBehaviour
         List<Edge> extraEdges = new List<Edge>();
         foreach (var edge in remainingPool)
         {
-            if (edge.distance > 35f) continue;
+            if (edge.distance > 40f) continue; // 거리 제한 완화
             int graphDist = GetGraphDistance(edge.a, edge.b, adjacency);
-            if (graphDist >= 4 && Random.value < 0.2f) // 보너스 확률 조정
+            // 지름길 효과가 큰 곳(그래프 거리 3 이상)에 더 적극적으로 생성
+            if (graphDist >= 3 && Random.value < 0.4f) 
             {
                 extraEdges.Add(edge);
                 adjacency[edge.a].Add(edge.b); adjacency[edge.b].Add(edge.a);
@@ -255,26 +283,20 @@ public class MapGenerator : MonoBehaviour
 
         List<Vector2Int> fullPath = new List<Vector2Int>();
         
-        // 1. 방 A의 벽에서 바깥으로 뻗어나가기 (직선 터널)
         Vector2Int currentA = exitA;
-        fullPath.Add(exitA); // 실제 벽 타일 포함
+        fullPath.Add(exitA); 
         for (int i = 0; i < generationData.corridorStraightLength; i++) { currentA += dirA; fullPath.Add(currentA); }
 
-        // 2. 방 B의 벽에서 바깥으로 뻗어나온 지점 (진입점) 계산
         Vector2Int entrancePointB = exitB;
         for (int i = 0; i < generationData.corridorStraightLength; i++) { entrancePointB += dirB; }
 
-        // 3. A* 길찾기 (A 터널 끝 -> B 터널 끝)
         List<Vector2Int> aStarPath = _painter.FindPath(currentA, entrancePointB, generationData.corridorAvoidMargin);
         if (aStarPath != null)
         {
             fullPath.AddRange(aStarPath);
-            
-            // 4. B 터널 끝에서 B 벽까지 연결
             Vector2Int finalStep = entrancePointB;
             for (int i = 0; i < generationData.corridorStraightLength; i++) { finalStep -= dirB; fullPath.Add(finalStep); }
-            
-            fullPath.Add(exitB); // 방 B의 벽 타일 포함 (문 뚫기 확정)
+            fullPath.Add(exitB); 
             _painter.PaintCorridor(fullPath);
         }
     }
@@ -304,7 +326,7 @@ public class MapGenerator : MonoBehaviour
                 float distToTarget = Vector2.Distance((Vector2)current, (Vector2)targetWorldPos);
                 Vector2 toTargetDir = ((Vector2)targetWorldPos - (Vector2)center).normalized;
                 float dot = Vector2.Dot(toTargetDir, (Vector2)d);
-                float score = distToTarget - (dot * 10f); // 방향 가중치 강화
+                float score = distToTarget - (dot * 10f); 
                 
                 if (score < minScore) { minScore = score; bestPoint = current; bestDir = d; }
             }
