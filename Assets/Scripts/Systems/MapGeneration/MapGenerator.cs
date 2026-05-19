@@ -36,7 +36,6 @@ public class MapGenerator : MonoBehaviour
     private IEnumerator GenerationRoutine()
     {
         _isGenerating = true;
-        
         ClearExistingMap();
         SetGlobalCollidersActive(false); 
 
@@ -58,7 +57,6 @@ public class MapGenerator : MonoBehaviour
         MergeAllRoomTiles();
         ConnectRooms();
 
-        // 에러 방지를 위해 Tilemap 오브젝트가 유효한지 재확인
         if (globalWallTilemap != null)
         {
             EnsureGlobalWallCollider();
@@ -86,37 +84,25 @@ public class MapGenerator : MonoBehaviour
         GameObject obj = globalWallTilemap.gameObject;
         obj.layer = LayerMask.NameToLayer("Wall");
 
-        // Rigidbody2D - 에러 방지를 위해 GetComponent 후 null 체크 철저히
-        Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
-        if (rb == null) rb = obj.AddComponent<Rigidbody2D>();
-        if (rb != null) rb.bodyType = RigidbodyType2D.Static;
+        Rigidbody2D rb = obj.GetComponent<Rigidbody2D>() ?? obj.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Static;
 
-        TilemapCollider2D tileCol = obj.GetComponent<TilemapCollider2D>();
-        if (tileCol == null) tileCol = obj.AddComponent<TilemapCollider2D>();
-
-        CompositeCollider2D composite = obj.GetComponent<CompositeCollider2D>();
-        if (composite == null) composite = obj.AddComponent<CompositeCollider2D>();
-        
-        if (composite != null && tileCol != null)
-        {
-            composite.geometryType = CompositeCollider2D.GeometryType.Polygons;
-            tileCol.usedByComposite = true;
-        }
+        TilemapCollider2D tileCol = obj.GetComponent<TilemapCollider2D>() ?? obj.AddComponent<TilemapCollider2D>();
+        CompositeCollider2D composite = obj.GetComponent<CompositeCollider2D>() ?? obj.AddComponent<CompositeCollider2D>();
+        if (composite != null && tileCol != null) { composite.geometryType = CompositeCollider2D.GeometryType.Polygons; tileCol.usedByComposite = true; }
     }
 
     private void ClearExistingMap()
     {
-        // 1. 방 제거 (DestroyImmediate는 에디터에서 더 즉각적임)
         foreach (var room in _rooms)
         {
             if (room != null)
             {
-                room.name = "DELETING"; // 검색 대상에서 즉시 제외
+                room.name = "DELETING";
                 Destroy(room.gameObject);
             }
         }
         _rooms.Clear();
-
         if (globalGroundTilemap != null) globalGroundTilemap.ClearAllTiles();
         if (globalWallTilemap != null) globalWallTilemap.ClearAllTiles();
     }
@@ -160,8 +146,7 @@ public class MapGenerator : MonoBehaviour
                 Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
                 if (rb == null) continue;
                 Vector2 dir = (Vector2)room.transform.position;
-                Vector2 randomForce = Random.insideUnitCircle.normalized * 0.4f;
-                Vector2 combinedDir = (dir + randomForce);
+                Vector2 combinedDir = (dir + (Vector2)Random.insideUnitCircle * 0.4f);
                 combinedDir.y *= 1.5f; 
                 rb.AddForce(combinedDir.normalized * generationData.spreadingForce, ForceMode2D.Force);
             }
@@ -194,7 +179,6 @@ public class MapGenerator : MonoBehaviour
         if (_rooms.Count < 2) return;
         _painter.Init(globalGroundTilemap, globalWallTilemap, generationData.floorTile, generationData.wallTile);
 
-        // 1. 모든 가능한 경로 수집
         List<Edge> allEdges = new List<Edge>();
         for (int i = 0; i < _rooms.Count; i++)
             for (int j = i + 1; j < _rooms.Count; j++)
@@ -202,7 +186,6 @@ public class MapGenerator : MonoBehaviour
         
         allEdges.Sort((a, b) => a.distance.CompareTo(b.distance));
 
-        // 2. MST 필수 연결 및 그래프 생성
         List<Edge> mstEdges = new List<Edge>();
         HashSet<RoomInstance> reached = new HashSet<RoomInstance> { _rooms[0] };
         Dictionary<RoomInstance, List<RoomInstance>> adjacency = new Dictionary<RoomInstance, List<RoomInstance>>();
@@ -229,25 +212,18 @@ public class MapGenerator : MonoBehaviour
             else break;
         }
 
-        // 3. 지능형 지름길(Shortcut) 추가
-        // 물리적으로는 가깝지만, 그래프 상으로는 멀리 떨어진 방 쌍을 찾음
         List<Edge> extraEdges = new List<Edge>();
         foreach (var edge in remainingPool)
         {
-            if (edge.distance > 30f) continue; // 너무 먼 곳은 잇지 않음
-
-            // 그래프 거리 계산 (BFS)
+            if (edge.distance > 35f) continue;
             int graphDist = GetGraphDistance(edge.a, edge.b, adjacency);
-            
-            // 물리 거리는 가까운데(30 이하), 길을 따라가려면 방을 4개 이상 거쳐야 한다면 지름길 생성
-            if (graphDist >= 4 && Random.value < 0.5f) 
+            if (graphDist >= 4 && Random.value < 0.2f) // 보너스 확률 조정
             {
                 extraEdges.Add(edge);
-                adjacency[edge.a].Add(edge.b); adjacency[edge.b].Add(edge.a); // 그래프 업데이트
+                adjacency[edge.a].Add(edge.b); adjacency[edge.b].Add(edge.a);
             }
         }
 
-        // 4. 복도 그리기
         foreach (var edge in mstEdges) DrawCorridorBetweenRooms(edge.a, edge.b);
         foreach (var edge in extraEdges) DrawCorridorBetweenRooms(edge.a, edge.b);
     }
@@ -257,15 +233,11 @@ public class MapGenerator : MonoBehaviour
         Queue<(RoomInstance, int)> queue = new Queue<(RoomInstance, int)>();
         queue.Enqueue((start, 0));
         HashSet<RoomInstance> visited = new HashSet<RoomInstance> { start };
-
         while (queue.Count > 0)
         {
             var (curr, dist) = queue.Dequeue();
             if (curr == target) return dist;
-            foreach (var neighbor in adj[curr])
-            {
-                if (!visited.Contains(neighbor)) { visited.Add(neighbor); queue.Enqueue((neighbor, dist + 1)); }
-            }
+            foreach (var neighbor in adj[curr]) { if (!visited.Contains(neighbor)) { visited.Add(neighbor); queue.Enqueue((neighbor, dist + 1)); } }
         }
         return 999;
     }
@@ -278,37 +250,66 @@ public class MapGenerator : MonoBehaviour
 
     private void DrawCorridorBetweenRooms(RoomInstance a, RoomInstance b)
     {
-        Vector2 startPos = (Vector2)a.transform.position + a.centerOffset;
-        Vector2 endPos = (Vector2)b.transform.position + b.centerOffset;
-        Vector2 diff = endPos - startPos;
+        (Vector2Int exitA, Vector2Int dirA) = GetBestExitPoint(a, b.transform.position + (Vector3)b.centerOffset);
+        (Vector2Int exitB, Vector2Int dirB) = GetBestExitPoint(b, a.transform.position + (Vector3)a.centerOffset);
 
-        Vector2Int outDir = Vector2Int.zero;
-        if (Mathf.Abs(diff.x) > Mathf.Abs(diff.y)) outDir.x = (int)Mathf.Sign(diff.x);
-        else outDir.y = (int)Mathf.Sign(diff.y);
-
-        Vector2Int startPoint = Vector2Int.RoundToInt(startPos);
-        Vector2Int endPoint = Vector2Int.RoundToInt(endPos);
         List<Vector2Int> fullPath = new List<Vector2Int>();
         
-        Vector2Int current = startPoint;
-        for (int i = 0; i < generationData.corridorStraightLength; i++) { current += outDir; fullPath.Add(current); }
+        // 1. 방 A의 벽에서 바깥으로 뻗어나가기 (직선 터널)
+        Vector2Int currentA = exitA;
+        fullPath.Add(exitA); // 실제 벽 타일 포함
+        for (int i = 0; i < generationData.corridorStraightLength; i++) { currentA += dirA; fullPath.Add(currentA); }
 
-        // 목적지 입구 계산
-        Vector2Int targetDiff = startPoint - endPoint;
-        Vector2Int inDir = Vector2Int.zero;
-        if (Mathf.Abs(targetDiff.x) > Mathf.Abs(targetDiff.y)) inDir.x = (int)Mathf.Sign(targetDiff.x);
-        else inDir.y = (int)Mathf.Sign(targetDiff.y);
+        // 2. 방 B의 벽에서 바깥으로 뻗어나온 지점 (진입점) 계산
+        Vector2Int entrancePointB = exitB;
+        for (int i = 0; i < generationData.corridorStraightLength; i++) { entrancePointB += dirB; }
 
-        Vector2Int entrancePoint = endPoint + (inDir * generationData.corridorStraightLength);
-
-        List<Vector2Int> aStarPath = _painter.FindPath(current, entrancePoint, generationData.corridorAvoidMargin);
+        // 3. A* 길찾기 (A 터널 끝 -> B 터널 끝)
+        List<Vector2Int> aStarPath = _painter.FindPath(currentA, entrancePointB, generationData.corridorAvoidMargin);
         if (aStarPath != null)
         {
             fullPath.AddRange(aStarPath);
-            Vector2Int finalStep = entrancePoint;
-            for (int i = 0; i < generationData.corridorStraightLength; i++) { finalStep -= inDir; fullPath.Add(finalStep); }
+            
+            // 4. B 터널 끝에서 B 벽까지 연결
+            Vector2Int finalStep = entrancePointB;
+            for (int i = 0; i < generationData.corridorStraightLength; i++) { finalStep -= dirB; fullPath.Add(finalStep); }
+            
+            fullPath.Add(exitB); // 방 B의 벽 타일 포함 (문 뚫기 확정)
             _painter.PaintCorridor(fullPath);
         }
+    }
+
+    private (Vector2Int point, Vector2Int direction) GetBestExitPoint(RoomInstance room, Vector3 targetWorldPos)
+    {
+        Vector2Int center = Vector2Int.RoundToInt((Vector2)room.transform.position + room.centerOffset);
+        Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+        
+        Vector2Int bestPoint = center;
+        Vector2Int bestDir = dirs[0];
+        float minScore = float.MaxValue;
+
+        foreach (var d in dirs)
+        {
+            Vector2Int current = center;
+            bool foundWall = false;
+            for (int i = 0; i < 50; i++)
+            {
+                current += d;
+                Vector3Int cellPos = globalWallTilemap.WorldToCell((Vector3)(Vector2)current);
+                if (globalWallTilemap.HasTile(cellPos)) { foundWall = true; break; }
+            }
+
+            if (foundWall)
+            {
+                float distToTarget = Vector2.Distance((Vector2)current, (Vector2)targetWorldPos);
+                Vector2 toTargetDir = ((Vector2)targetWorldPos - (Vector2)center).normalized;
+                float dot = Vector2.Dot(toTargetDir, (Vector2)d);
+                float score = distToTarget - (dot * 10f); // 방향 가중치 강화
+                
+                if (score < minScore) { minScore = score; bestPoint = current; bestDir = d; }
+            }
+        }
+        return (bestPoint, bestDir);
     }
 
     private void AssignSpecialRooms()
