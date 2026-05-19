@@ -14,6 +14,7 @@ public class MapGenerator : MonoBehaviour
     [Header("Global Tilemap References")]
     [SerializeField] private Tilemap globalGroundTilemap;
     [SerializeField] private Tilemap globalWallTilemap;
+    [SerializeField] private Tilemap globalShadowTilemap;
 
     private List<RoomInstance> _rooms = new List<RoomInstance>();
     private CorridorPainter _painter;
@@ -29,13 +30,14 @@ public class MapGenerator : MonoBehaviour
     public void GenerateMap()
     {
         if (_isGenerating) return;
-        if (globalGroundTilemap == null || globalWallTilemap == null) return;
+        if (globalGroundTilemap == null || globalWallTilemap == null || globalShadowTilemap == null) return;
         StartCoroutine(GenerationRoutine());
     }
 
     private IEnumerator GenerationRoutine()
     {
         _isGenerating = true;
+        SetupTilemapLayers();
         ClearExistingMap();
         SetGlobalCollidersActive(false); 
 
@@ -67,6 +69,33 @@ public class MapGenerator : MonoBehaviour
 
         _isGenerating = false;
         Debug.Log("<color=green>[MapGenerator]</color> Map Generation Completed.");
+    }
+
+    /// <summary>
+    /// [추가] 각 타일맵의 Layer와 Sorting Layer를 요구사항에 맞게 강제 설정합니다.
+    /// </summary>
+    private void SetupTilemapLayers()
+    {
+        ConfigureTilemap(globalGroundTilemap, "Ground", "Ground");
+        ConfigureTilemap(globalWallTilemap, "Wall", "Wall");
+        ConfigureTilemap(globalShadowTilemap, "Shadow", "Shadow");
+    }
+
+    private void ConfigureTilemap(Tilemap tm, string layerName, string sortingLayerName)
+    {
+        if (tm == null) return;
+        
+        // 1. Layer 설정
+        int layer = LayerMask.NameToLayer(layerName);
+        if (layer != -1) tm.gameObject.layer = layer;
+        else Debug.LogWarning($"[MapGenerator] '{layerName}' 레이어가 프로젝트에 존재하지 않습니다.");
+
+        // 2. Sorting Layer 설정 (TilemapRenderer)
+        var renderer = tm.GetComponent<TilemapRenderer>();
+        if (renderer != null)
+        {
+            renderer.sortingLayerName = sortingLayerName;
+        }
     }
 
     private void SetGlobalCollidersActive(bool active)
@@ -124,6 +153,7 @@ public class MapGenerator : MonoBehaviour
         _rooms.Clear();
         if (globalGroundTilemap != null) globalGroundTilemap.ClearAllTiles();
         if (globalWallTilemap != null) globalWallTilemap.ClearAllTiles();
+        if (globalShadowTilemap != null) globalShadowTilemap.ClearAllTiles();
     }
 
     private void SpawnRooms()
@@ -198,19 +228,19 @@ public class MapGenerator : MonoBehaviour
 
     private void MergeAllRoomTiles()
     {
-        foreach (var room in _rooms) room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap);
+        foreach (var room in _rooms) room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap);
     }
 
     private void ConnectRooms()
     {
         if (_rooms.Count < 2) return;
-        _painter.Init(globalGroundTilemap, globalWallTilemap, generationData.floorTile, generationData.wallTile);
+        _painter.Init(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, generationData.floorTile, generationData.wallTile, generationData.shadowTile);
 
         List<Edge> allEdges = new List<Edge>();
         for (int i = 0; i < _rooms.Count; i++)
             for (int j = i + 1; j < _rooms.Count; j++)
                 allEdges.Add(new Edge(_rooms[i], _rooms[j]));
-        
+
         allEdges.Sort((a, b) => a.distance.CompareTo(b.distance));
 
         List<Edge> mstEdges = new List<Edge>();
@@ -242,9 +272,8 @@ public class MapGenerator : MonoBehaviour
         List<Edge> extraEdges = new List<Edge>();
         foreach (var edge in remainingPool)
         {
-            if (edge.distance > 40f) continue; // 거리 제한 완화
+            if (edge.distance > 40f) continue;
             int graphDist = GetGraphDistance(edge.a, edge.b, adjacency);
-            // 지름길 효과가 큰 곳(그래프 거리 3 이상)에 더 적극적으로 생성
             if (graphDist >= 3 && Random.value < 0.4f) 
             {
                 extraEdges.Add(edge);
@@ -254,6 +283,9 @@ public class MapGenerator : MonoBehaviour
 
         foreach (var edge in mstEdges) DrawCorridorBetweenRooms(edge.a, edge.b);
         foreach (var edge in extraEdges) DrawCorridorBetweenRooms(edge.a, edge.b);
+
+        // [추가] 모든 통로 등록 완료 후 최종 렌더링
+        _painter.FinalizePainting();
     }
 
     private int GetGraphDistance(RoomInstance start, RoomInstance target, Dictionary<RoomInstance, List<RoomInstance>> adj)
@@ -282,7 +314,7 @@ public class MapGenerator : MonoBehaviour
         (Vector2Int exitB, Vector2Int dirB) = GetBestExitPoint(b, a.transform.position + (Vector3)a.centerOffset);
 
         List<Vector2Int> fullPath = new List<Vector2Int>();
-        
+
         Vector2Int currentA = exitA;
         fullPath.Add(exitA); 
         for (int i = 0; i < generationData.corridorStraightLength; i++) { currentA += dirA; fullPath.Add(currentA); }
@@ -297,7 +329,9 @@ public class MapGenerator : MonoBehaviour
             Vector2Int finalStep = entrancePointB;
             for (int i = 0; i < generationData.corridorStraightLength; i++) { finalStep -= dirB; fullPath.Add(finalStep); }
             fullPath.Add(exitB); 
-            _painter.PaintCorridor(fullPath);
+
+            // [수정] 즉시 그리지 않고 등록만 수행
+            _painter.RegisterCorridor(fullPath);
         }
     }
 
@@ -312,16 +346,41 @@ public class MapGenerator : MonoBehaviour
 
         foreach (var d in dirs)
         {
+            // 수직 방향 (너비 체크용)
+            Vector2Int sideDir = new Vector2Int(-d.y, d.x);
+            
             Vector2Int current = center;
-            bool foundWall = false;
+            bool foundValidSegment = false;
+
             for (int i = 0; i < 50; i++)
             {
                 current += d;
                 Vector3Int cellPos = globalWallTilemap.WorldToCell((Vector3)(Vector2)current);
-                if (globalWallTilemap.HasTile(cellPos)) { foundWall = true; break; }
+                
+                if (globalWallTilemap.HasTile(cellPos)) 
+                {
+                    // 3칸 너비가 모두 벽인지 확인 (꼭짓점 회피 로직 포함)
+                    bool l = globalWallTilemap.HasTile(cellPos + (Vector3Int)sideDir);
+                    bool r = globalWallTilemap.HasTile(cellPos - (Vector3Int)sideDir);
+                    
+                    // 추가 마진 확인 (꼭짓점에서 최소 1칸 더 여유: 총 5칸 직선 필요)
+                    bool l2 = globalWallTilemap.HasTile(cellPos + (Vector3Int)sideDir * 2);
+                    bool r2 = globalWallTilemap.HasTile(cellPos - (Vector3Int)sideDir * 2);
+
+                    if (l && r && l2 && r2)
+                    {
+                        foundValidSegment = true;
+                        break;
+                    }
+                    else
+                    {
+                        // 벽을 만나긴 했으나 3칸 너비가 안됨 -> 이 방향은 포기 (보통 방의 끝/꼭짓점임)
+                        break; 
+                    }
+                }
             }
 
-            if (foundWall)
+            if (foundValidSegment)
             {
                 float distToTarget = Vector2.Distance((Vector2)current, (Vector2)targetWorldPos);
                 Vector2 toTargetDir = ((Vector2)targetWorldPos - (Vector2)center).normalized;

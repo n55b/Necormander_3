@@ -9,6 +9,7 @@ public class RoomInstance : MonoBehaviour
     
     [HideInInspector] public Tilemap wallTilemap;
     [HideInInspector] public Tilemap groundTilemap;
+    [HideInInspector] public Tilemap shadowTilemap;
     
     private Rigidbody2D _rb;
     private BoxCollider2D _collider;
@@ -33,6 +34,13 @@ public class RoomInstance : MonoBehaviour
         {
             groundTilemap = groundTransform.GetComponent<Tilemap>();
             groundTransform.localPosition = Vector3.zero;
+        }
+
+        Transform shadowTransform = transform.Find("Shadow");
+        if (shadowTransform != null)
+        {
+            shadowTilemap = shadowTransform.GetComponent<Tilemap>();
+            shadowTransform.localPosition = Vector3.zero;
         }
 
         Tilemap mainTM = wallTilemap != null ? wallTilemap : groundTilemap;
@@ -64,12 +72,14 @@ public class RoomInstance : MonoBehaviour
         gameObject.layer = LayerMask.NameToLayer("Ignore Raycast"); 
     }
 
-    public void MergeTilesToGlobal(Tilemap globalGround, Tilemap globalWall)
+    public void MergeTilesToGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow)
     {
         StampTilemap(groundTilemap, globalGround);
         StampTilemap(wallTilemap, globalWall);
+        StampTilemap(shadowTilemap, globalShadow);
         if (groundTilemap != null) groundTilemap.gameObject.SetActive(false);
         if (wallTilemap != null) wallTilemap.gameObject.SetActive(false);
+        if (shadowTilemap != null) shadowTilemap.gameObject.SetActive(false);
     }
 
     private void StampTilemap(Tilemap source, Tilemap target)
