@@ -54,7 +54,7 @@ public class SoundManager : MonoBehaviour
         if (HitClip != null) sfxSource.PlayOneShot(HitClip);
     }
 
-    public void PlaySFX(AudioClip clip, float volume = 1.0f)
+    public void PlaySFX(AudioClip clip, float volume)
     {
         if(clip == null) return;
         sfxSource.PlayOneShot(clip, volume);
