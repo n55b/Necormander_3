@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db48b1237efcd2b49bc8992f2d0fd8d3, type: 3}
+  m_Name: MapGenerationData
+  m_EditorClassIdentifier: 
+  totalRoomCount: 10
+  gridUnit: 1
+  minNormalRooms: 5
+  shopCount: 1
+  rewardCount: 2
+  eliteCount: 1
+  spreadingForce: 5
+  maxVelocityThreshold: 0.1
+  maxPhysicsIteration: 500
+  floorTile: {fileID: 11400000, guid: b3683d45783a20448933bef6d6429156, type: 2}
+  wallTile: {fileID: 11400000, guid: 144c517fa9a844344806ce34913d564c, type: 2}

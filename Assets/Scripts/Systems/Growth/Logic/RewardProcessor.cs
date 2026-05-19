@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum RoomType { Normal, Elite, Reward, Boss }
+public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss }
 public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold, Ability }
 
 /// <summary>
