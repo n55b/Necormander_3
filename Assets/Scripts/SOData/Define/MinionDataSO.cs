@@ -38,6 +38,10 @@ public class MinionDataSO : ScriptableObject
     [Range(0f, 1f), Tooltip("투척 1회당 소모할 최대 체력 비율 (1.0 = 100%)")]
     public float hpCostRatioPerThrow = 0f;
 
+    [Header("사운드 설정")]
+    public AudioClip AttackSound;
+    public AudioClip DeathSound;
+
     [Header("프리팹 설정")]
     public GameObject minionPrefab;
 }

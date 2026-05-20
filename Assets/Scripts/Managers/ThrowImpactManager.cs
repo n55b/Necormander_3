@@ -196,7 +196,7 @@ public class ThrowImpactManager : MonoBehaviour
             else
             {
                 
-                SoundManager.Instance.HITSoundPlay();
+                SoundManager.Instance.HITSoundPlay(false); // 적중 사운드 재생
                 GameObject basic_vfx = Instantiate(registry.enemynochargeVFX, spawnPos, Quaternion.identity);
             }
         }
@@ -226,7 +226,7 @@ public class ThrowImpactManager : MonoBehaviour
             if (!spawnedAnySpecific && (recipe.HasAction<WarriorAction>() || recipe.HasAction<ArcherAction>()) && registry.basicAreaVFX != null)
             {
                 GameObject vfx = Instantiate(registry.basicAreaVFX, spawnPos, Quaternion.identity);
-                SoundManager.Instance.HITSoundPlay();
+                SoundManager.Instance.HITSoundPlay(false);
                 vfx.transform.localScale = Vector3.one * (radius * 2f);
                 Destroy(vfx, duration);
             }

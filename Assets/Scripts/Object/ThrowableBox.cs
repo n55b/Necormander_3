@@ -54,7 +54,7 @@ public class ThrowableBox : ThrowableUnit
         }
 
         // 2. 효과음 및 이펙트
-        if (SoundManager.Instance != null) SoundManager.Instance.HITSoundPlay();
+        if (SoundManager.Instance != null) SoundManager.Instance.HITSoundPlay(false);
         if (breakEffect != null) Instantiate(breakEffect, transform.position, Quaternion.identity);
 
         // 3. 오브젝트 제거

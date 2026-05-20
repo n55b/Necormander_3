@@ -195,6 +195,14 @@ public abstract class BaseEntity : MonoBehaviour
         }
     }
 
+    public void PlayAttackSound()
+    {
+        if(minionData.AttackSound != null)
+        {
+            SoundManager.Instance.PlaySFX(minionData.AttackSound, 0.6f);
+        }
+    }
+
     public void StartAttack()
     {
         if (_target == null)

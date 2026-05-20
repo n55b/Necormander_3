@@ -17,7 +17,8 @@ public class SoundManager : MonoBehaviour
     public AudioSource sfxSource;
 
     [Header("Clips")]
-    [SerializeField]private AudioClip HitClip;
+    [SerializeField] private AudioClip HitClip;
+    [SerializeField] private AudioClip CriticalClip;
 
     private void Awake()
     {
@@ -49,9 +50,16 @@ public class SoundManager : MonoBehaviour
         StartCoroutine(CrossFade(duration));
     }
 
-    public void HITSoundPlay()
+    public void HITSoundPlay(bool isCritical)
     {
-        if (HitClip != null) sfxSource.PlayOneShot(HitClip);
+        if (isCritical && CriticalClip != null)
+        {
+            sfxSource.PlayOneShot(CriticalClip);
+        }
+        else if (HitClip != null)
+        {
+            sfxSource.PlayOneShot(HitClip);
+        }
     }
 
     public void PlaySFX(AudioClip clip, float volume)
