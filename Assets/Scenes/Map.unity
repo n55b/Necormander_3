@@ -144173,10 +144173,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager
       objectReference: {fileID: 0}
-    - target: {fileID: 5452969733963804717, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: HitClip
-      value: 
-      objectReference: {fileID: 8300000, guid: 3806c46c2cbb5f14da783d4a353bcd7d, type: 3}
     - target: {fileID: 7453844490307090777, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: handSlotUI
       value: 

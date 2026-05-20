@@ -52,7 +52,8 @@ MonoBehaviour:
   newSource: {fileID: 0}
   oldSource: {fileID: 0}
   sfxSource: {fileID: 5384184289146484121}
-  HitClip: {fileID: 8300000, guid: 708e8b6bc19179e4ba49f01036e6c4cb, type: 3}
+  HitClip: {fileID: 8300000, guid: 3806c46c2cbb5f14da783d4a353bcd7d, type: 3}
+  CriticalClip: {fileID: 0}
 --- !u!1 &2998519205929229877
 GameObject:
   m_ObjectHideFlags: 0
