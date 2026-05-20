@@ -199,7 +199,7 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if(minionData.AttackSound != null)
         {
-            SoundManager.Instance.PlaySFX(minionData.AttackSound, 0.6f);
+            SoundManager.Instance.PlaySFX(minionData.AttackSound, 0.4f);
         }
     }
 
