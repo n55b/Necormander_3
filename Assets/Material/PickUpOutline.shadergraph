@@ -8,9 +8,6 @@
         },
         {
             "m_Id": "da7dd4b859ed4b19a1fce11829d7a1f3"
-        },
-        {
-            "m_Id": "a0c74ca6bf0e43b691d6a788f46814e5"
         }
     ],
     "m_Keywords": [],
@@ -1162,8 +1159,8 @@
     "m_ObjectId": "4553dfdf300c491aa68f2eed410c42c2",
     "m_Title": "Subtract armin's original silhouette from the fat offset version",
     "m_Position": {
-        "x": -2070.000244140625,
-        "y": -376.00006103515627
+        "x": -2070.0,
+        "y": -376.0
     }
 }
 
@@ -2059,34 +2056,6 @@
 }
 
 {
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
-    "m_ObjectId": "a0c74ca6bf0e43b691d6a788f46814e5",
-    "m_Guid": {
-        "m_GuidSerialized": "11b10e52-9200-4355-967d-bc4c40583175"
-    },
-    "m_Name": "Thickness",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Thickness",
-    "m_DefaultReferenceName": "_Thickness",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_DismissedVersion": 0,
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_Value": 0.004999999888241291,
-    "m_FloatType": 1,
-    "m_RangeValues": {
-        "x": 0.0,
-        "y": 0.05000000074505806
-    }
-}
-
-{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Texture2DInputMaterialSlot",
     "m_ObjectId": "a135a23499114bd693760f0f84790c9f",
@@ -2216,9 +2185,6 @@
         },
         {
             "m_Id": "da7dd4b859ed4b19a1fce11829d7a1f3"
-        },
-        {
-            "m_Id": "a0c74ca6bf0e43b691d6a788f46814e5"
         }
     ]
 }
@@ -2739,8 +2705,8 @@
     "m_ObjectId": "cdf174feed8b48d8b1437fa3bd3815b1",
     "m_Title": "SampleOriginTexture",
     "m_Position": {
-        "x": -2694.000244140625,
-        "y": -674.0000610351563
+        "x": -2694.0,
+        "y": -674.0
     }
 }
 
@@ -2815,7 +2781,7 @@
     "hlslDeclarationOverride": 2,
     "m_Hidden": false,
     "m_Value": {
-        "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"3e4fb19c29b77e64d9e8d5870a8a5ca6\",\"type\":3}}",
+        "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"d2583b314d175754f81f49f04777b675\",\"type\":3}}",
         "m_Guid": ""
     },
     "isMainTexture": false,
@@ -3140,8 +3106,8 @@
     "m_ObjectId": "f328317d0cfa48a0a59f7181c999673a",
     "m_Title": "Add all of the offsets together",
     "m_Position": {
-        "x": -2208.000244140625,
-        "y": -20.00006103515625
+        "x": -2208.0,
+        "y": -20.0
     }
 }
 
@@ -3239,7 +3205,7 @@
     "m_ObjectId": "f4eac611ac694abd8584a92abed14f08",
     "m_Title": "Offset the Silhouette in all four direction",
     "m_Position": {
-        "x": -2852.000244140625,
+        "x": -2852.0,
         "y": -194.0
     }
 }
