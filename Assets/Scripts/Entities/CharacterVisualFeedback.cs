@@ -104,26 +104,28 @@ public class CharacterVisualFeedback : MonoBehaviour
         else 
         {
             StartCoroutine(FlashRoutine()); // 일반 피격
-            //StartFlash(Color.black); // 일반 피격
 
-            // [추가] 플레이어가 피격당할 때 카메라 흔들림과 시간 정지 효과
-            if(this.gameObject.layer == LayerMask.NameToLayer("Player"))
+            // [수정] 레이어 체크 대신 root 태그를 사용하여 플레이어 판정 (안정성 강화)
+            bool isPlayer = gameObject.CompareTag("Player") || transform.root.CompareTag("Player");
+            
+            if(isPlayer)
             {
-                CameraManager.Instance.HitShakeCamera(); // 카메라 흔들림
-                GameManager.Instance.TimeStopTimer(0.05f); // 피격 시 시간 정지 효과 (0.05초)
+                // [수정] 인스턴스 널 체크 추가하여 NRE 방지
+                if (CameraManager.Instance != null) CameraManager.Instance.HitShakeCamera(); 
+                if (GameManager.Instance != null) GameManager.Instance.TimeStopTimer(0.05f); 
             }
         }
     }
 
     private IEnumerator FlashRoutine()
     {
+        if (_sr == null) yield break; // [추가] 널 체크
+
         _sr.material.SetFloat("_HitFlash", 1f);
-
         yield return new WaitForSeconds(0.1f);
+        if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
 
-        _sr.material.SetFloat("_HitFlash", 0f);
-
-        StartFlash(Color.grey); // 피격 후 회색으로 잠깐 깜빡임
+        StartFlash(Color.grey); 
     }
 
     private void PlayHealFlash() => StartFlash(Color.green);

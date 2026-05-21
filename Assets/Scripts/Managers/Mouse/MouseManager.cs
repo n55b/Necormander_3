@@ -33,8 +33,10 @@ public class MouseManager : MonoBehaviour
         CursorType newType = CursorType.Default;
         GameObject newHoverObject = null;
 
-        // 1. 소환 모드 우선 체크
-        if (GameManager.Instance.PLAYERCONTROLLER.SUMCONTROLLER.IsSummoningMode)
+        // 1. 소환 모드 우선 체크 (플레이어 존재 시에만)
+        if (GameManager.Instance.PLAYERCONTROLLER != null && 
+            GameManager.Instance.PLAYERCONTROLLER.SUMCONTROLLER != null && 
+            GameManager.Instance.PLAYERCONTROLLER.SUMCONTROLLER.IsSummoningMode)
         {
             newType = CursorType.Throw;
         }

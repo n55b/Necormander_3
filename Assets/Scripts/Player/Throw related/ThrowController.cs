@@ -24,7 +24,7 @@ public class ThrowController : MonoBehaviour
 
     // 데이터 게터 (서브 컴포넌트용)
     public Transform HoldPoint => holdPoint;
-    public SelectionWheelUI SelectionWheel => selectionWheel;
+    public SelectionWheelUI SelectionWheel => (selectionWheel != null) ? selectionWheel : SelectionWheelUI.Instance; // [수정] 싱글톤 우선 활용
     public float ChargeTime => chargeTime;
     public float DragThreshold => dragThreshold;
     public List<CommandData> DirectionMapping => directionMapping;

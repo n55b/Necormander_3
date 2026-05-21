@@ -56,8 +56,14 @@ public class RoomInstance : MonoBehaviour
         {
             wallTilemap = wallTransform.GetComponent<Tilemap>();
             wallTransform.localPosition = Vector3.zero;
+            
             var childCols = wallTransform.GetComponentsInChildren<Collider2D>();
             foreach (var ccol in childCols) { ccol.enabled = false; Destroy(ccol); }
+            
+            // [핵심 복구] 자식 타일맵에 붙어있는 Rigidbody2D 파괴
+            // 이게 남아있으면 Static 바디로 취급되어 부모가 밀려날 때 Wall만 제자리에 남습니다!
+            var childRbs = wallTransform.GetComponentsInChildren<Rigidbody2D>();
+            foreach (var crb in childRbs) { crb.simulated = false; Destroy(crb); }
         }
         
         Transform groundTransform = transform.Find("Ground");

@@ -46,12 +46,27 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Animator RHandAnimator;
     [SerializeField] PlayerAnimationState currentAnimState;
 
+    private bool _inputBlocked = false; // [추가] 맵 생성 중 입력 차단용
+
     /// <summary>
     /// 애니메이션 캐싱 변수
     /// </summary>
     public IdleState idleState;
     public AttackState atkState;
     public bool canChangeState = true;
+
+    // [추가] 외부에서 입력을 차단/해제하는 기능
+    public void SetInputBlocked(bool blocked)
+    {
+        _inputBlocked = blocked;
+        if (blocked)
+        {
+            moveInput = Vector2.zero;
+            MoveDirection = Vector3.zero;
+            if (_rb != null) _rb.linearVelocity = Vector2.zero;
+        }
+        Debug.Log($"<color=yellow>[Player]</color> Input Blocked: {blocked}");
+    }
 
     public float GetThrowChargeMultiplier(float ratio)
     {
@@ -129,6 +144,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (_inputBlocked || (stat != null && stat.Health != null && stat.Health.IsDead)) return;
+
         MoveDirection = moveInput;
 
         if (canChangeState)
@@ -176,6 +193,8 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (_inputBlocked) return; // [추가] 입력 차단 시 로직 스킵
+
         // 사망 시 조종 불가
         if (stat.Health.IsDead) return;
 
@@ -196,7 +215,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        if (stat.Health.IsDead) { moveInput = Vector2.zero; return; }
+        if (_inputBlocked || stat.Health.IsDead) { moveInput = Vector2.zero; return; }
 
         if (context.performed || context.canceled)
         {
@@ -207,7 +226,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnRightClick(InputAction.CallbackContext context)
     {
-        if (stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead) return;
 
         if (sumController.IsSummoningMode)
         {
@@ -272,7 +291,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnThrow(InputAction.CallbackContext context)
     {
-        if (stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead) return;
 
         if (throwController != null)
         {
@@ -282,7 +301,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnInteract(InputAction.CallbackContext context) // [추가]
     {
-        if (context.performed && _closestInteractable != null)
+        if (_inputBlocked || context.performed && _closestInteractable != null)
         {
             _closestInteractable.Interact(gameObject);
         }
@@ -290,7 +309,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnGemTree(InputAction.CallbackContext context)
     {
-        if (stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead) return;
 
         if (context.performed)
         {
@@ -317,7 +336,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnHandSlot(InputAction.CallbackContext context)
     {
-        if (stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead) return;
 
         // [수정] 탭 키를 눌러 현재 장착된 미니언/능력을 상시 조회합니다.
         if (context.performed)

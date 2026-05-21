@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using Unity.Cinemachine; // [추가] 시네머신 연동용
 
 /// <summary>
 /// 게임의 전체 생명주기와 매니저들의 초기화 순서를 관리하는 중앙 컨트롤러입니다.
@@ -9,6 +11,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("Player")]
+    [SerializeField] private GameObject playerPrefab; // [추가] 플레이어 프리팹
     [SerializeField] private PlayerController playerController;
     public PlayerController PLAYERCONTROLLER => playerController;
 
@@ -27,22 +30,21 @@ public class GameManager : MonoBehaviour
     [Header("UI References")]
     [SerializeField] public PlayerStateUI playerStateUI;
 
-    // [추가] 시간 정지 시스템 관리
+    [Header("Map Generation")]
+    [SerializeField] public MapGenerator mapGenerator; 
+    [SerializeField] private MapGenerationDataSO currentStageMapData;
+    [SerializeField] private RoomPrefabDataSO currentStageRoomData;
+
     private bool _isTimeStopped = false;
     public bool IsTimeStopped => _isTimeStopped;
 
-    /// <summary>
-    /// 게임 전체의 시간을 멈추거나 재개합니다. (범용 기능)
-    /// </summary>
     public void SetTimeStop(bool stop)
     {
         _isTimeStopped = stop;
         Time.timeScale = stop ? 0f : 1f;
-        
         Debug.Log($"<color=yellow>[TimeSystem]</color> Time Scale set to: {Time.timeScale}");
     }
 
-    // [추가] 시간 정지 코루틴 (범용적으로 사용 가능)
     public void TimeStopTimer(float duration)
     {
         StartCoroutine(TimeStopCoroutine(duration));
@@ -60,7 +62,6 @@ public class GameManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        // 초기화 시퀀스 시작 (순서가 매우 중요함)
         InitializeGame();
     }
 
@@ -68,7 +69,6 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("<b>[GameManager]</b> Starting Initialization Sequence...");
 
-        // 자식 오브젝트들에서 모든 매니저 자동 확보
         if (dataManager == null) dataManager = GetComponentInChildren<DataManager>();
         if (economyManager == null) economyManager = GetComponentInChildren<EconomyManager>();
         if (throwImpactManager == null) throwImpactManager = GetComponentInChildren<ThrowImpactManager>();
@@ -78,50 +78,96 @@ public class GameManager : MonoBehaviour
         if (squadSpawner == null) squadSpawner = GetComponentInChildren<SquadSpawner>();
         if (rewardManager == null) rewardManager = GetComponentInChildren<RewardManager>();
 
-        // 1. 순수 데이터 로드 (가장 먼저)
         if (dataManager != null) dataManager.Initialize();
-
-        // 2. 인벤토리 및 슬롯 데이터 초기화 (데이터 로드 직후)
         if (inventoryManager != null) inventoryManager.Initialize();
-
-        // 3. 시스템 로드 (데이터에 의존할 수 있는 매니저들)
         if (economyManager != null) economyManager.Initialize();
         if (throwImpactManager != null) throwImpactManager.Initialize();
         if (rewardManager != null) rewardManager.Initialize();
         
-        // 4. 부대 스포너 초기화
         if (squadSpawner != null)
         {
             var allyManager = Object.FindFirstObjectByType<AllyManager>();
             squadSpawner.Initialize(inventoryManager, allyManager);
         }
 
-        // 5. 플레이어 참조 확보
-        if (playerController == null)
-        {
-            GameObject playerObj = GameObject.FindWithTag("Player");
-            if (playerObj != null) playerController = playerObj.GetComponent<PlayerController>();
-        }
-
-        Debug.Log("<b>[GameManager]</b> Initialization Sequence Completed.");
+        Debug.Log("<b>[GameManager]</b> Initial Managers Loaded.");
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
-        // [추가] 플레이어 HUD 초기화
+        if (mapGenerator == null)
+            mapGenerator = Object.FindFirstObjectByType<MapGenerator>();
+
+        if (mapGenerator != null && currentStageMapData != null && currentStageRoomData != null)
+        {
+            Debug.Log("<color=cyan>[GameManager]</color> Injecting Map Data and Waiting for Generation...");
+            mapGenerator.SetMapData(currentStageMapData, currentStageRoomData);
+            yield return StartCoroutine(mapGenerator.GenerateMapCoroutine());
+        }
+        else if (mapGenerator != null)
+        {
+             Debug.LogWarning("[GameManager] Stage Data is missing! Using MapGenerator's default data.");
+             yield return StartCoroutine(mapGenerator.GenerateMapCoroutine());
+        }
+
+        // [핵심 추가] 맵 생성 완료 후 플레이어 동적 스폰
+        SpawnPlayer();
+
+        // 플레이어 HUD 초기화 (스폰된 플레이어의 Health 참조 확보)
         if (playerStateUI != null && playerController != null)
         {
             var health = playerController.GetComponentInChildren<CharacterHealth>();
-            var allyManager = Object.FindFirstObjectByType<AllyManager>(); // [추가] AllyManager 참조 찾기
+            var allyManager = Object.FindFirstObjectByType<AllyManager>();
             playerStateUI.Initialize(health, allyManager);
+            Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");
         }
 
-        // [사용자 요청] 게임 시작 시 자동으로 소환하지 않음 (적 조우 시에만 소환)
-        /*
-        if (squadSpawner != null)
+        Debug.Log("<color=green>[GameManager]</color> All Systems Ready!");
+    }
+
+    private void SpawnPlayer()
+    {
+        if (playerPrefab == null)
         {
-            squadSpawner.RefreshFullSquad();
+            Debug.LogError("[GameManager] Player Prefab이 할당되지 않았습니다!");
+            return;
         }
-        */
+
+        GameObject playerObj = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
+        playerController = playerObj.GetComponent<PlayerController>();
+
+        if (playerController != null)
+        {
+            playerController.SetInputBlocked(true);
+        }
+
+        if (mapGenerator != null)
+        {
+            mapGenerator.PlacePlayerAtSpawn();
+        }
+
+        // [핵심 추가] 카메라 추적 타겟 자동 할당
+        // 플레이어 하위의 'CameraTarget' 오브젝트를 찾아 시네머신 카메라에 연결합니다.
+        Transform camTarget = playerObj.transform.Find("CameraTarget");
+        if (camTarget != null)
+        {
+            var vcam = Object.FindFirstObjectByType<CinemachineCamera>();
+            if (vcam != null)
+            {
+                vcam.Follow = camTarget;
+                Debug.Log("<color=cyan>[GameManager]</color> Cinemachine Camera Target assigned to: " + camTarget.name);
+            }
+            else
+            {
+                Debug.LogWarning("[GameManager] 씬에서 CinemachineCamera를 찾을 수 없습니다.");
+            }
+        }
+
+        if (playerController != null)
+        {
+            playerController.SetInputBlocked(false);
+        }
+
+        Debug.Log("<color=cyan>[GameManager]</color> Player Spawned, Placed, and Camera Assigned.");
     }
 }

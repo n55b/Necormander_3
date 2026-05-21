@@ -52,7 +52,7 @@ MonoBehaviour:
   newSource: {fileID: 0}
   oldSource: {fileID: 0}
   sfxSource: {fileID: 5384184289146484121}
-  HitClip: {fileID: 8300000, guid: 708e8b6bc19179e4ba49f01036e6c4cb, type: 3}
+  HitClip: {fileID: 8300000, guid: 3806c46c2cbb5f14da783d4a353bcd7d, type: 3}
 --- !u!1 &2998519205929229877
 GameObject:
   m_ObjectHideFlags: 0
@@ -188,6 +188,7 @@ GameObject:
   - component: {fileID: 6304608831586431291}
   - component: {fileID: 5990352106904275992}
   - component: {fileID: 3438047193681337848}
+  - component: {fileID: 6139375127595461034}
   m_Layer: 0
   m_Name: Data Systems
   m_TagString: Untagged
@@ -253,6 +254,23 @@ MonoBehaviour:
   debugStartingAbilities:
   - {fileID: 11400000, guid: f47c1430d098c8246be65a17ff614d73, type: 2}
   _defaultRootGemSO: {fileID: 11400000, guid: 87e7260bead92f545aa299410bef22e8, type: 2}
+--- !u!114 &6139375127595461034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4057087256918008588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0e1a9515c81e5a47b8e0d2c828c9896, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  generationData: {fileID: 11400000, guid: 1aced7d90958fe444941591d79d29124, type: 2}
+  prefabData: {fileID: 11400000, guid: 0cabf365deeca87428335ef4d3329951, type: 2}
+  globalGroundTilemap: {fileID: 0}
+  globalWallTilemap: {fileID: 0}
+  globalShadowTilemap: {fileID: 0}
 --- !u!1 &4851146966962830542
 GameObject:
   m_ObjectHideFlags: 0

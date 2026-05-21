@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
+using NavMeshPlus.Components; // [수정] NavMeshPlus 패키지의 올바른 네임스페이스
 using UnityEngine.Tilemaps;
 using System.Linq;
 
@@ -22,9 +24,18 @@ public class MapGenerator : MonoBehaviour
     private Dictionary<RoomInstance, List<RoomInstance>> _masterAdjacency = new Dictionary<RoomInstance, List<RoomInstance>>();
     private Dictionary<RoomInstance, Vector2> _intendedDirs = new Dictionary<RoomInstance, Vector2>(); 
     private CorridorPainter _painter;
-    private GameObject _tempObstacle; 
+    private GameObject _tempObstacle; // [복구] 맵 생성 중에만 사용할 임시 사각형 장애물
     private bool _isGenerating = false;
     private int _currentPhaseIndex = 0;
+
+    public System.Action OnMapGenerated; 
+
+    // [추가] GameManager 등 외부에서 스테이지 데이터를 동적으로 주입하기 위한 함수
+    public void SetMapData(MapGenerationDataSO genData, RoomPrefabDataSO prefData)
+    {
+        if (genData != null) generationData = genData;
+        if (prefData != null) prefabData = prefData;
+    }
 
     private void Awake()
     {
@@ -40,6 +51,11 @@ public class MapGenerator : MonoBehaviour
         StartCoroutine(GenerationSequence());
     }
 
+    public IEnumerator GenerateMapCoroutine()
+    {
+        yield return StartCoroutine(GenerationSequence());
+    }
+
     private IEnumerator GenerationSequence()
     {
         _isGenerating = true;
@@ -51,15 +67,22 @@ public class MapGenerator : MonoBehaviour
         int normalCount = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - 1 - totalSpecials);
 
         // Phase 1: Core
-        yield return StartCoroutine(RunPhase(new List<RoomType> { RoomType.Spawn, RoomType.Normal, RoomType.Normal }));
+        int initialBranchCount = Random.Range(1, 5); 
+        List<RoomType> phase1 = new List<RoomType> { RoomType.Spawn };
+        for (int i = 0; i < initialBranchCount; i++) phase1.Add(RoomType.Normal);
+        yield return StartCoroutine(RunPhase(phase1));
 
+        int remainingNormal = normalCount - initialBranchCount;
+        
         // Phase 2: Expansion 1
         _currentPhaseIndex++;
         List<RoomType> phase2 = new List<RoomType>();
         for (int i = 0; i < generationData.shopCount; i++) phase2.Add(RoomType.Shop);
         int eliteHalf = generationData.eliteCount / 2;
         for (int i = 0; i < eliteHalf; i++) phase2.Add(RoomType.Elite);
-        for (int i = 0; i < Mathf.RoundToInt(normalCount * 0.4f); i++) phase2.Add(RoomType.Normal);
+        int p2Normal = remainingNormal > 0 ? Random.Range(1, remainingNormal / 2 + 2) : 0;
+        for (int i = 0; i < p2Normal; i++) phase2.Add(RoomType.Normal);
+        remainingNormal -= p2Normal;
         if (phase2.Count > 0) yield return StartCoroutine(RunPhase(phase2));
 
         // Phase 3: Expansion 2
@@ -67,8 +90,7 @@ public class MapGenerator : MonoBehaviour
         List<RoomType> phase3 = new List<RoomType>();
         int eliteRest = generationData.eliteCount - eliteHalf;
         for (int i = 0; i < eliteRest; i++) phase3.Add(RoomType.Elite);
-        int currentNormal = _allRooms.Count(r => r.roomType == RoomType.Normal);
-        for (int i = 0; i < (normalCount - currentNormal); i++) phase3.Add(RoomType.Normal);
+        for (int i = 0; i < remainingNormal; i++) phase3.Add(RoomType.Normal);
         if (phase3.Count > 0) yield return StartCoroutine(RunPhase(phase3));
 
         // Phase 4: Strict (Reward)
@@ -80,31 +102,70 @@ public class MapGenerator : MonoBehaviour
         AssignSpecialRooms();
         DumpMapToLog();
 
-        // [추가] 맵 생성 완료 후 플레이어를 시작 방으로 배치
+        // [핵심 추가] 맵 생성이 모두 끝났으므로 실제 게임플레이용 벽 콜라이더 설정
+        SetupFinalColliders();
+
+        // [순서 중요] 콜라이더가 생성된 후에 NavMesh를 구워야 합니다.
+        BakeNavMesh();
+        
         PlacePlayerAtSpawn();
 
         if (_tempObstacle != null) Destroy(_tempObstacle);
         _isGenerating = false;
+        OnMapGenerated?.Invoke(); 
         Debug.Log("<color=green>[MapGenerator]</color> Map Generation Completed.");
     }
 
-    private void PlacePlayerAtSpawn()
+    private void SetupFinalColliders()
+    {
+        if (globalWallTilemap == null) return;
+        
+        GameObject wallObj = globalWallTilemap.gameObject;
+
+        // 1. Rigidbody2D 설정
+        Rigidbody2D rb = wallObj.GetComponent<Rigidbody2D>();
+        if (rb == null) rb = wallObj.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Static;
+
+        // 2. TilemapCollider2D 설정
+        TilemapCollider2D tileCol = wallObj.GetComponent<TilemapCollider2D>();
+        if (tileCol == null) tileCol = wallObj.AddComponent<TilemapCollider2D>();
+        tileCol.compositeOperation = Collider2D.CompositeOperation.Merge; // [수정] 최신 API 적용
+
+        // 3. CompositeCollider2D 설정 (정밀한 폴리곤 형태)
+        CompositeCollider2D comp = wallObj.GetComponent<CompositeCollider2D>();
+        if (comp == null) comp = wallObj.AddComponent<CompositeCollider2D>();
+        comp.geometryType = CompositeCollider2D.GeometryType.Polygons;
+        comp.generationType = CompositeCollider2D.GenerationType.Manual;
+        
+        // [중요] 새로 생성된 타일에 맞춰 콜라이더 메쉬 재생성
+        comp.GenerateGeometry(); 
+        
+        // 물리 엔진에 변경사항 동기화
+        Physics2D.SyncTransforms();
+        
+        Debug.Log("<color=cyan>[MapGen]</color> Final Wall Colliders Setup Done.");
+    }
+
+    private void BakeNavMesh()
+    {
+        var navSurface = Object.FindFirstObjectByType<NavMeshSurface>();
+        if (navSurface != null)
+        {
+            navSurface.BuildNavMesh();
+            Debug.Log("<color=cyan>[MapGen]</color> Dynamic NavMesh Baked Successfully!");
+        }
+    }
+
+    public void PlacePlayerAtSpawn()
     {
         RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
         if (spawnRoom == null) return;
-
         var spawnEvent = spawnRoom.GetComponent<SpawnRoomEvent>();
         Vector3 spawnPos = spawnEvent != null ? spawnEvent.GetSpawnPosition() : spawnRoom.transform.position;
-
-        // GameManager를 통해 플레이어 컨트롤러 위치 수정
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
-            // 플레이어 위치 이동
             GameManager.Instance.PLAYERCONTROLLER.transform.position = spawnPos;
-            
-            // [팁] 만약 시네머신이나 다른 카메라 시스템을 쓴다면 여기서 
-            // Camera.main.transform.position도 초기화해주는 것이 좋습니다.
-            Debug.Log($"<color=cyan>[MapGen]</color> Player placed at SpawnRoom: {spawnPos}");
         }
     }
 
@@ -116,7 +177,8 @@ public class MapGenerator : MonoBehaviour
 
         for (int i = 0; i < types.Count; i++)
         {
-            float targetAngle = (startAngle + (i * angleStep)) * Mathf.Deg2Rad;
+            float jitter = Random.Range(-25f, 25f);
+            float targetAngle = (startAngle + (i * angleStep) + jitter) * Mathf.Deg2Rad;
             RoomInstance room = CreateRoom(types[i], targetAngle);
             if (room != null)
             {
@@ -136,6 +198,7 @@ public class MapGenerator : MonoBehaviour
             room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap);
         }
 
+        // [복구] 맵 바운드 기반 사각형 콜라이더 업데이트
         UpdateGlobalBoundingObstacle();
         ConnectUnreachedRooms();
         yield return null;
@@ -146,15 +209,16 @@ public class MapGenerator : MonoBehaviour
         GameObject prefab = prefabData.GetRandomPrefab(type);
         if (prefab == null) return null;
 
+        // [복구] 현재 맵 바운드 끝자락에서 소환 (끼임 방지)
         float spawnRadius = 1f;
         if (type != RoomType.Spawn && _allRooms.Count > 0)
         {
-            float halfW = _allRooms.Max(r => Mathf.Abs(r.transform.position.x) + r.roomSize.x * 0.5f);
-            float halfH = _allRooms.Max(r => Mathf.Abs(r.transform.position.y) + r.roomSize.y * 0.5f);
+            float halfW = _allRooms.Max(r => Mathf.Abs(r.transform.position.x) + r.roomSize.x * 0.5f + 2f);
+            float halfH = _allRooms.Max(r => Mathf.Abs(r.transform.position.y) + r.roomSize.y * 0.5f + 2f);
             float cos = Mathf.Abs(Mathf.Cos(angle));
             float sin = Mathf.Abs(Mathf.Sin(angle));
             spawnRadius = (halfW * sin <= halfH * cos) ? (halfW / (cos + 0.001f)) : (halfH / (sin + 0.001f));
-            spawnRadius += 2f; 
+            spawnRadius += 3f; 
         }
 
         Vector2 spawnPos = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * spawnRadius;
@@ -220,15 +284,8 @@ public class MapGenerator : MonoBehaviour
             UpdateAllRoomDepths();
             var validReached = _reachedRooms.Where(r => r.debugDepth != -1).ToList();
             if (validReached.Count == 0) continue;
-
-            // [수정] 보상 방은 기존 Max Depth 이상의 깊이를 가지도록 유도
             int currentMaxD = validReached.Max(r => r.debugDepth);
-            var deepNodes = validReached
-                .Where(r => r.debugDepth >= currentMaxD - 1)
-                .OrderByDescending(r => r.debugDepth)
-                .ThenBy(r => Vector2.Distance(r.transform.position, reward.transform.position))
-                .ToList();
-
+            var deepNodes = validReached.Where(r => r.debugDepth >= currentMaxD - 1).OrderByDescending(r => r.debugDepth).ThenBy(r => Vector2.Distance(r.transform.position, reward.transform.position)).ToList();
             foreach (var p in deepNodes)
             {
                 if (DrawCorridorBetweenRooms(p, reward, 0)) { _reachedRooms.Add(reward); _masterAdjacency[p].Add(reward); _masterAdjacency[reward].Add(p); break; }
@@ -255,14 +312,24 @@ public class MapGenerator : MonoBehaviour
 
     private void UpdateGlobalBoundingObstacle()
     {
+        // [복구] 현재 생성된 모든 방을 포함하는 단일 사각형 장애물
         if (_allRooms.Count == 0) return;
-        if (_tempObstacle == null) { _tempObstacle = new GameObject("MapBoundsObstacle"); _tempObstacle.transform.SetParent(transform); var rb = _tempObstacle.AddComponent<Rigidbody2D>(); rb.bodyType = RigidbodyType2D.Static; _tempObstacle.AddComponent<BoxCollider2D>(); }
+        if (_tempObstacle == null) 
+        { 
+            _tempObstacle = new GameObject("MapBoundsObstacle"); 
+            _tempObstacle.transform.SetParent(transform); 
+            var rb = _tempObstacle.AddComponent<Rigidbody2D>(); 
+            rb.bodyType = RigidbodyType2D.Static; 
+            _tempObstacle.AddComponent<BoxCollider2D>(); 
+        }
+        
         float minX = _allRooms.Min(r => r.transform.position.x - r.roomSize.x * 0.5f);
         float maxX = _allRooms.Max(r => r.transform.position.x + r.roomSize.x * 0.5f);
         float minY = _allRooms.Min(r => r.transform.position.y - r.roomSize.y * 0.5f);
         float maxY = _allRooms.Max(r => r.transform.position.y + r.roomSize.y * 0.5f);
+
         BoxCollider2D box = _tempObstacle.GetComponent<BoxCollider2D>();
-        box.size = new Vector2(maxX - minX + 4f, maxY - minY + 4f);
+        box.size = new Vector2(maxX - minX + 2f, maxY - minY + 2f); // 여유 마진 2유닛
         box.offset = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
         Physics2D.SyncTransforms();
     }
@@ -298,11 +365,7 @@ public class MapGenerator : MonoBehaviour
             for (int i = path.Count - 1; i > 0; i--) if (path[i] == path[i - 1]) path.RemoveAt(i); 
             _painter.RegisterCorridorWithAnchors(path, bestA, bestB, pathDepth); 
             bestA.isUsed = true; bestB.isUsed = true; 
-
-            // [추가] 통로 연결 성공 시 두 방에 문(Door) 소환 및 등록
-            SpawnDoorAtAnchor(a, bestA);
-            SpawnDoorAtAnchor(b, bestB);
-
+            SpawnDoorAtAnchor(a, bestA); SpawnDoorAtAnchor(b, bestB);
             return true;
         }
         return false;
@@ -310,42 +373,19 @@ public class MapGenerator : MonoBehaviour
 
     private void SpawnDoorAtAnchor(RoomInstance room, RoomAnchor anchor)
     {
-        GameObject doorPrefab = null;
-        float rotation = 0f;
-
-        // 방향에 따른 프리팹 선택
+        GameObject doorPrefab = null; float rotation = 0f;
         if (anchor.direction == Vector2Int.up) doorPrefab = generationData.doorUp;
         else if (anchor.direction == Vector2Int.down) doorPrefab = generationData.doorDown;
         else if (anchor.direction == Vector2Int.left) doorPrefab = generationData.doorLeft;
         else if (anchor.direction == Vector2Int.right) doorPrefab = generationData.doorRight;
-
-        // [폴백 로직] 특정 방향 프리팹이 없으면 북쪽(Up) 문을 회전해서 사용
-        if (doorPrefab == null && generationData.doorUp != null)
-        {
-            doorPrefab = generationData.doorUp;
-            if (anchor.direction == Vector2Int.down) rotation = 180f;
-            else if (anchor.direction == Vector2Int.left) rotation = 90f;
-            else if (anchor.direction == Vector2Int.right) rotation = -90f;
-        }
-
-        if (doorPrefab != null)
-        {
-            GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform);
-            doorObj.name = $"Door_{anchor.direction}_{room.name}";
-
-            // RoomInstance에 문 등록 (나중에 전투 시 한꺼번에 제어)
-            if (room.TryGetComponent<RoomInstance>(out var roomComp))
-            {
-                // RoomInstance에 doorControllers 리스트가 있다고 가정 (나중에 추가)
-                room.doorObjects.Add(doorObj);
-            }
-        }
+        if (doorPrefab == null && generationData.doorUp != null) { doorPrefab = generationData.doorUp; if (anchor.direction == Vector2Int.down) rotation = 180f; else if (anchor.direction == Vector2Int.left) rotation = 90f; else if (anchor.direction == Vector2Int.right) rotation = -90f; }
+        if (doorPrefab != null) { GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform); doorObj.name = $"Door_{anchor.direction}_{room.name}"; room.doorObjects.Add(doorObj); }
     }
 
     private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground", "Ground"); ConfigureTilemap(globalWallTilemap, "Wall", "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow", "Shadow"); }
     private void ConfigureTilemap(Tilemap tm, string layerName, string sortingLayerName) { if (tm == null) return; int layer = LayerMask.NameToLayer(layerName); if (layer != -1) tm.gameObject.layer = layer; var renderer = tm.GetComponent<TilemapRenderer>(); if (renderer != null) renderer.sortingLayerName = sortingLayerName; }
-
     private void AssignSpecialRooms() { }
+
     private void DumpMapToLog()
     {
         if (globalGroundTilemap == null || globalWallTilemap == null) return;

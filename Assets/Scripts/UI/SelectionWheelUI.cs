@@ -5,6 +5,8 @@ using TMPro;
 
 public class SelectionWheelUI : MonoBehaviour
 {
+    public static SelectionWheelUI Instance { get; private set; } // [추가] 싱글톤
+
     [Header("Settings")]
     [SerializeField] private float radius = 200f;
     [SerializeField] private Color normalColor = new Color(0, 0, 0, 0.4f);
@@ -23,6 +25,14 @@ public class SelectionWheelUI : MonoBehaviour
     private Vector2 _centerPos;
     private int _currentIndex = -1;
     private List<CommandData> _currentTypes;
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
+        Hide();
+    }
 
     public void Show(Vector2 screenPos, List<CommandData> types, List<bool> availability)
     {
