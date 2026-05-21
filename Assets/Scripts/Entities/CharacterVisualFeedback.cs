@@ -101,7 +101,29 @@ public class CharacterVisualFeedback : MonoBehaviour
     private void PlayHitFlash(float damage)
     {
         if (_status != null && _status.TotalShield > 0.01f) StartFlash(Color.cyan); // 보호막 피격
-        else StartFlash(Color.black); // 일반 피격
+        else 
+        {
+            StartCoroutine(FlashRoutine()); // 일반 피격
+            //StartFlash(Color.black); // 일반 피격
+
+            // [추가] 플레이어가 피격당할 때 카메라 흔들림과 시간 정지 효과
+            if(this.gameObject.layer == LayerMask.NameToLayer("Player"))
+            {
+                CameraManager.Instance.HitShakeCamera(); // 카메라 흔들림
+                GameManager.Instance.TimeStopTimer(0.05f); // 피격 시 시간 정지 효과 (0.05초)
+            }
+        }
+    }
+
+    private IEnumerator FlashRoutine()
+    {
+        _sr.material.SetFloat("_HitFlash", 1f);
+
+        yield return new WaitForSeconds(0.1f);
+
+        _sr.material.SetFloat("_HitFlash", 0f);
+
+        StartFlash(Color.grey); // 피격 후 회색으로 잠깐 깜빡임
     }
 
     private void PlayHealFlash() => StartFlash(Color.green);

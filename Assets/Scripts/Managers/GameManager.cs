@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -39,6 +40,19 @@ public class GameManager : MonoBehaviour
         Time.timeScale = stop ? 0f : 1f;
         
         Debug.Log($"<color=yellow>[TimeSystem]</color> Time Scale set to: {Time.timeScale}");
+    }
+
+    // [추가] 시간 정지 코루틴 (범용적으로 사용 가능)
+    public void TimeStopTimer(float duration)
+    {
+        StartCoroutine(TimeStopCoroutine(duration));
+    }
+
+    private IEnumerator TimeStopCoroutine(float duration)
+    {
+        SetTimeStop(true);
+        yield return new WaitForSecondsRealtime(duration);
+        SetTimeStop(false);
     }
 
     private void Awake()
