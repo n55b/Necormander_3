@@ -67,8 +67,53 @@ public class MapGenerator : MonoBehaviour
 
         AssignSpecialRooms();
 
+        DumpMapToLog();
+
         _isGenerating = false;
         Debug.Log("<color=green>[MapGenerator]</color> Map Generation Completed.");
+    }
+
+    private void DumpMapToLog()
+    {
+        if (globalGroundTilemap == null || globalWallTilemap == null) return;
+
+        globalGroundTilemap.CompressBounds();
+        globalWallTilemap.CompressBounds();
+        
+        BoundsInt bounds = globalGroundTilemap.cellBounds;
+        BoundsInt wallBounds = globalWallTilemap.cellBounds;
+        
+        int xMin = Mathf.Min(bounds.xMin, wallBounds.xMin);
+        int xMax = Mathf.Max(bounds.xMax, wallBounds.xMax);
+        int yMin = Mathf.Min(bounds.yMin, wallBounds.yMin);
+        int yMax = Mathf.Max(bounds.yMax, wallBounds.yMax);
+
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        
+        sb.AppendLine($"Map Bounds: X({xMin} to {xMax}), Y({yMin} to {yMax})");
+        sb.AppendLine("W: Wall, S: Shadow, .: Ground, [Space]: Empty");
+        sb.AppendLine();
+
+        for (int y = yMax; y >= yMin; y--)
+        {
+            for (int x = xMin; x <= xMax; x++)
+            {
+                Vector3Int pos = new Vector3Int(x, y, 0);
+                bool hasWall = globalWallTilemap.HasTile(pos);
+                bool hasShadow = globalShadowTilemap.HasTile(pos);
+                bool hasGround = globalGroundTilemap.HasTile(pos);
+
+                if (hasWall) sb.Append("W");
+                else if (hasShadow) sb.Append("S");
+                else if (hasGround) sb.Append(".");
+                else sb.Append(" ");
+            }
+            sb.AppendLine();
+        }
+
+        string path = System.IO.Path.Combine(Application.dataPath, "..", "MapDebugLog.txt");
+        System.IO.File.WriteAllText(path, sb.ToString());
+        Debug.Log($"<color=cyan>[MapGenerator]</color> Map ASCII log saved to: {path}");
     }
 
     /// <summary>
@@ -272,9 +317,10 @@ public class MapGenerator : MonoBehaviour
         List<Edge> extraEdges = new List<Edge>();
         foreach (var edge in remainingPool)
         {
-            if (edge.distance > 40f) continue;
+            // [수정] 지나치게 긴 통로 방지를 위해 거리와 확률 재조정 (80->55, 0.6->0.45)
+            if (edge.distance > 55f) continue;
             int graphDist = GetGraphDistance(edge.a, edge.b, adjacency);
-            if (graphDist >= 3 && Random.value < 0.4f) 
+            if (graphDist >= 3 && Random.value < 0.45f) 
             {
                 extraEdges.Add(edge);
                 adjacency[edge.a].Add(edge.b); adjacency[edge.b].Add(edge.a);
@@ -310,28 +356,91 @@ public class MapGenerator : MonoBehaviour
 
     private void DrawCorridorBetweenRooms(RoomInstance a, RoomInstance b)
     {
-        (Vector2Int exitA, Vector2Int dirA) = GetBestExitPoint(a, b.transform.position + (Vector3)b.centerOffset);
-        (Vector2Int exitB, Vector2Int dirB) = GetBestExitPoint(b, a.transform.position + (Vector3)a.centerOffset);
+        // 1. 두 방 사이의 가장 가까운 앵커 쌍 찾기
+        RoomAnchor bestA = null;
+        RoomAnchor bestB = null;
+        float minTargetDist = float.MaxValue;
+
+        foreach (var anchorA in a.anchors)
+        {
+            foreach (var anchorB in b.anchors)
+            {
+                float d = Vector2.Distance(anchorA.transform.position, anchorB.transform.position);
+                if (d < minTargetDist)
+                {
+                    minTargetDist = d;
+                    bestA = anchorA;
+                    bestB = anchorB;
+                }
+            }
+        }
+
+        if (bestA == null || bestB == null)
+        {
+            Debug.LogWarning($"[MapGen] No anchors found between {a.gameObject.name} and {b.gameObject.name}");
+            return;
+        }
+
+        // [핵심 수정] 타일맵 셀 좌표와 완벽히 동기화
+        Vector3Int cellA = globalWallTilemap.WorldToCell(bestA.transform.position);
+        Vector3Int cellB = globalWallTilemap.WorldToCell(bestB.transform.position);
+        Vector2Int exitA = new Vector2Int(cellA.x, cellA.y);
+        Vector2Int exitB = new Vector2Int(cellB.x, cellB.y);
 
         List<Vector2Int> fullPath = new List<Vector2Int>();
 
+        // 2. 앵커 방향으로 직선 구간 확보
         Vector2Int currentA = exitA;
         fullPath.Add(exitA); 
-        for (int i = 0; i < generationData.corridorStraightLength; i++) { currentA += dirA; fullPath.Add(currentA); }
+        for (int i = 0; i < generationData.corridorStraightLength; i++) 
+        { 
+            currentA += bestA.direction; 
+            fullPath.Add(currentA); 
+        }
 
         Vector2Int entrancePointB = exitB;
-        for (int i = 0; i < generationData.corridorStraightLength; i++) { entrancePointB += dirB; }
+        for (int i = 0; i < generationData.corridorStraightLength; i++) 
+        { 
+            entrancePointB += bestB.direction; 
+        }
 
+        // 3. A* 경로 탐색
         List<Vector2Int> aStarPath = _painter.FindPath(currentA, entrancePointB, generationData.corridorAvoidMargin);
-        if (aStarPath != null)
+        if (aStarPath != null && aStarPath.Count > 0)
         {
-            fullPath.AddRange(aStarPath);
-            Vector2Int finalStep = entrancePointB;
-            for (int i = 0; i < generationData.corridorStraightLength; i++) { finalStep -= dirB; fullPath.Add(finalStep); }
-            fullPath.Add(exitB); 
+            // A* 경로의 첫 번째 점은 currentA와 동일하므로 건너뛰고 추가
+            for (int i = 1; i < aStarPath.Count; i++)
+            {
+                fullPath.Add(aStarPath[i]);
+            }
 
-            // [수정] 즉시 그리지 않고 등록만 수행
-            _painter.RegisterCorridor(fullPath);
+            Vector2Int finalStep = entrancePointB;
+            for (int i = 0; i < generationData.corridorStraightLength; i++) 
+            { 
+                finalStep -= bestB.direction; 
+                fullPath.Add(finalStep); 
+            }
+            
+            // 만약 마지막 지점이 exitB가 아니라면 확실히 닫아줌
+            if (fullPath[fullPath.Count - 1] != exitB)
+            {
+                fullPath.Add(exitB); 
+            }
+
+            // [핵심 오류 수정] 연속된 중복 좌표 제거 (중복 시 방향 벡터가 0,0이 되어 통로가 망가짐)
+            for (int i = fullPath.Count - 1; i > 0; i--)
+            {
+                if (fullPath[i] == fullPath[i - 1])
+                {
+                    fullPath.RemoveAt(i);
+                }
+            }
+
+            // 앵커 정보와 함께 경로 등록
+            _painter.RegisterCorridorWithAnchors(fullPath, bestA, bestB);
+            
+            bestA.isUsed = true;
+            bestB.isUsed = true;
         }
     }
 

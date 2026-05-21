@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -6,6 +7,9 @@ public class RoomInstance : MonoBehaviour
     public RoomType roomType;
     public Vector2Int roomSize;
     public Vector2 centerOffset;
+    
+    [Header("Anchors")]
+    public List<RoomAnchor> anchors = new List<RoomAnchor>();
     
     [HideInInspector] public Tilemap wallTilemap;
     [HideInInspector] public Tilemap groundTilemap;
@@ -18,6 +22,10 @@ public class RoomInstance : MonoBehaviour
     {
         roomType = type;
         
+        // 앵커 수집
+        anchors.Clear();
+        anchors.AddRange(GetComponentsInChildren<RoomAnchor>());
+
         Transform wallTransform = transform.Find("Wall");
         if (wallTransform != null) 
         {
@@ -64,8 +72,10 @@ public class RoomInstance : MonoBehaviour
 
         _collider = gameObject.AddComponent<BoxCollider2D>();
         
-        // [수정] 방 간의 최소 거리를 확보하기 위해 콜라이더 크기에 패딩(+3) 추가
-        _collider.size = new Vector2(roomSize.x + 3.0f, roomSize.y + 3.0f); 
+        // [수정] 방 간의 겹침을 확실히 방지하고 통로 생성 여유 공간을 넓게 확보하기 위한 패딩 조절
+        // 사용자 요청: 방들보다 콜라이더가 확실히 크도록 변경 (기본 3.0f -> 9.0f 로 상향)
+        float colliderPadding = 9.0f; 
+        _collider.size = new Vector2(roomSize.x + colliderPadding, roomSize.y + colliderPadding); 
         _collider.offset = centerOffset;
         _collider.sharedMaterial = mat;
         
