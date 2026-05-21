@@ -2603,8 +2603,9 @@ GameObject:
   - component: {fileID: 432784992532219486}
   - component: {fileID: 5899314902304331144}
   - component: {fileID: 6373223148189787081}
+  - component: {fileID: 1910841934629755616}
   m_Layer: 0
-  m_Name: Room_Normal_01
+  m_Name: Room_Shop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2629,6 +2630,7 @@ Transform:
   - {fileID: 6548353871887703568}
   - {fileID: 6937762629871306822}
   - {fileID: 5932675650070733216}
+  - {fileID: 5874516085063800012}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!156049354 &5899314902304331144
@@ -2666,6 +2668,19 @@ MonoBehaviour:
   isCleared: 0
   doorObjects:
   - {fileID: 8637198600651598581, guid: 307b97e39cd375d47a324403a27bb3a6, type: 3}
+--- !u!114 &1910841934629755616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6853878630644403523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 616047e32657598418fe77c9d99b7c82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shopNPC: {fileID: 2659073384460671025}
 --- !u!1 &7289109739151017139
 GameObject:
   m_ObjectHideFlags: 0
@@ -2758,3 +2773,76 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   direction: {x: 1, y: 0}
   isUsed: 0
+--- !u!1001 &8501073588294667948
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 432784992532219486}
+    m_Modifications:
+    - target: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.96
+      objectReference: {fileID: 0}
+    - target: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.22
+      objectReference: {fileID: 0}
+    - target: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9042384951302017489, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+      propertyPath: m_Name
+      value: ShopNPC
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+--- !u!114 &2659073384460671025 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5845404331569518237, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+  m_PrefabInstance: {fileID: 8501073588294667948}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8e55c69f6e711a40be0a8fc3a85311f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &5874516085063800012 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+  m_PrefabInstance: {fileID: 8501073588294667948}
+  m_PrefabAsset: {fileID: 0}
