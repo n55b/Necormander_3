@@ -21,7 +21,7 @@ TagManager:
   - EnemyEffectOnlyObjects
   - Interactable
   - ThrowableObject
-  - 
+  - Shadow
   - 
   - 
   - 
@@ -65,6 +65,9 @@ TagManager:
     locked: 0
   - name: FlyingObject
     uniqueID: 1659204433
+    locked: 0
+  - name: Shadow
+    uniqueID: 3082331749
     locked: 0
   m_RenderingLayers:
   - Default
