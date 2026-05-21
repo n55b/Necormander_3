@@ -20,8 +20,9 @@ public class MapGenerator : MonoBehaviour
     private List<RoomInstance> _allRooms = new List<RoomInstance>();
     private HashSet<RoomInstance> _reachedRooms = new HashSet<RoomInstance>();
     private Dictionary<RoomInstance, List<RoomInstance>> _masterAdjacency = new Dictionary<RoomInstance, List<RoomInstance>>();
+    private Dictionary<RoomInstance, Vector2> _intendedDirs = new Dictionary<RoomInstance, Vector2>(); 
     private CorridorPainter _painter;
-    private GameObject _tempObstacle; // 맵 생성 중에만 사용할 임시 장애물
+    private GameObject _tempObstacle; 
     private bool _isGenerating = false;
     private int _currentPhaseIndex = 0;
 
@@ -79,20 +80,17 @@ public class MapGenerator : MonoBehaviour
         AssignSpecialRooms();
         DumpMapToLog();
 
-        // [핵심] 생성 완료 후 임시 장애물 제거
         if (_tempObstacle != null) Destroy(_tempObstacle);
 
         _isGenerating = false;
-        Debug.Log("<color=green>[MapGenerator]</color> Phased Map Generation Completed.");
+        Debug.Log("<color=green>[MapGenerator]</color> Map Generation Completed.");
     }
 
     private IEnumerator RunPhase(List<RoomType> types)
     {
         List<RoomInstance> phaseRooms = new List<RoomInstance>();
-        
-        // [수정] 방사형 분산 소환 로직 적용
-        float startAngle = Random.Range(0f, 360f); // 시작 각도 랜덤
-        float angleStep = 360f / types.Count;    // 방 개수만큼 각도 분할
+        float startAngle = Random.Range(0f, 360f);
+        float angleStep = 360f / types.Count;
 
         for (int i = 0; i < types.Count; i++)
         {
@@ -103,6 +101,7 @@ public class MapGenerator : MonoBehaviour
                 phaseRooms.Add(room);
                 _allRooms.Add(room);
                 if (!_masterAdjacency.ContainsKey(room)) _masterAdjacency[room] = new List<RoomInstance>();
+                _intendedDirs[room] = new Vector2(Mathf.Cos(targetAngle), Mathf.Sin(targetAngle));
             }
         }
 
@@ -115,9 +114,7 @@ public class MapGenerator : MonoBehaviour
             room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap);
         }
 
-        // [수정] 맵의 바깥 테두리를 감싸는 단일 사각형 콜라이더 업데이트
         UpdateGlobalBoundingObstacle();
-        
         ConnectUnreachedRooms();
         yield return null;
     }
@@ -127,25 +124,18 @@ public class MapGenerator : MonoBehaviour
         GameObject prefab = prefabData.GetRandomPrefab(type);
         if (prefab == null) return null;
 
-        // [수정] 동적 스폰 반경 + 전달받은 각도(angle) 사용
-        float spawnRadius = 0f;
-        if (type != RoomType.Spawn)
+        float spawnRadius = 1f;
+        if (type != RoomType.Spawn && _allRooms.Count > 0)
         {
-            if (_allRooms.Count > 0)
-            {
-                // 현재 맵의 '가장자리' 거리 측정
-                float currentMaxDist = _allRooms.Max(r => ((Vector2)r.transform.position).magnitude);
-                spawnRadius = currentMaxDist + 3f; 
-            }
-            else
-            {
-                spawnRadius = 1f; // 첫 번째 페이즈의 Spawn 외의 방들
-            }
+            float halfW = _allRooms.Max(r => Mathf.Abs(r.transform.position.x) + r.roomSize.x * 0.5f);
+            float halfH = _allRooms.Max(r => Mathf.Abs(r.transform.position.y) + r.roomSize.y * 0.5f);
+            float cos = Mathf.Abs(Mathf.Cos(angle));
+            float sin = Mathf.Abs(Mathf.Sin(angle));
+            spawnRadius = (halfW * sin <= halfH * cos) ? (halfW / (cos + 0.001f)) : (halfH / (sin + 0.001f));
+            spawnRadius += 2f; 
         }
 
-        // 전달받은 고유 각도를 사용하여 소환 위치 결정 (뭉침 방지)
         Vector2 spawnPos = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * spawnRadius;
-
         GameObject roomObj = Instantiate(prefab, (Vector3)spawnPos, Quaternion.identity, transform);
         RoomInstance room = roomObj.GetComponent<RoomInstance>() ?? roomObj.AddComponent<RoomInstance>();
         room.Initialize(type);
@@ -175,11 +165,7 @@ public class MapGenerator : MonoBehaviour
             {
                 Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
                 if (rb == null || rb.bodyType == RigidbodyType2D.Static) continue;
-
-                Vector2 pos = (Vector2)room.transform.position;
-                Vector2 pushDir = pos.sqrMagnitude < 0.01f ? Random.insideUnitCircle.normalized : pos.normalized;
-                
-                // SO의 spreadingForce를 정직하게 사용
+                Vector2 pushDir = _intendedDirs.ContainsKey(room) ? _intendedDirs[room] : ((Vector2)room.transform.position).normalized;
                 rb.AddForce(pushDir * generationData.spreadingForce, ForceMode2D.Force);
             }
             iterations++;
@@ -191,7 +177,6 @@ public class MapGenerator : MonoBehaviour
     private void ConnectUnreachedRooms()
     {
         _painter.Init(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, generationData.floorTile, generationData.wallTile, generationData.shadowTile);
-        
         List<RoomInstance> unreached = _allRooms.Where(r => !_reachedRooms.Contains(r) && r.roomType != RoomType.Reward).ToList();
         List<RoomInstance> rewardRooms = _allRooms.Where(r => r.roomType == RoomType.Reward && !_reachedRooms.Contains(r)).ToList();
 
@@ -199,62 +184,34 @@ public class MapGenerator : MonoBehaviour
         while (changed && unreached.Count > 0)
         {
             changed = false;
-            var candidates = (from r in _reachedRooms
-                              from u in unreached
-                              let dist = Vector2.Distance(r.transform.position, u.transform.position)
-                              orderby dist
-                              select new { reached = r, unreached = u }).ToList();
-
+            var candidates = (from r in _reachedRooms from u in unreached let dist = Vector2.Distance(r.transform.position, u.transform.position) orderby dist select new { reached = r, unreached = u }).ToList();
             foreach (var c in candidates)
             {
                 if (!unreached.Contains(c.unreached)) continue;
-                if ((c.unreached.roomType == RoomType.Shop || c.unreached.roomType == RoomType.Elite) && c.reached.roomType == RoomType.Spawn)
-                    continue;
-
-                if (DrawCorridorBetweenRooms(c.reached, c.unreached, 0))
-                {
-                    _reachedRooms.Add(c.unreached);
-                    unreached.Remove(c.unreached);
-                    _masterAdjacency[c.reached].Add(c.unreached);
-                    _masterAdjacency[c.unreached].Add(c.reached);
-                    changed = true;
-                    break; 
-                }
+                if ((c.unreached.roomType == RoomType.Shop || c.unreached.roomType == RoomType.Elite) && c.reached.roomType == RoomType.Spawn) continue;
+                if (DrawCorridorBetweenRooms(c.reached, c.unreached, 0)) { _reachedRooms.Add(c.unreached); unreached.Remove(c.unreached); _masterAdjacency[c.reached].Add(c.unreached); _masterAdjacency[c.unreached].Add(c.reached); changed = true; break; }
             }
         }
 
-        // 2. 보상 방 연결 (깊이가 깊은 순서대로 후보를 탐색하여 고립 방지)
         foreach (var reward in rewardRooms)
         {
-            UpdateAllRoomDepths(); // 현재까지의 깊이 갱신
+            UpdateAllRoomDepths();
             var validReached = _reachedRooms.Where(r => r.debugDepth != -1).ToList();
             if (validReached.Count == 0) continue;
 
-            // [수정] 오직 Max Depth만 고집하지 않고, 깊이가 깊은 순서 -> 물리 거리가 가까운 순서로 정렬
+            // [수정] 보상 방은 기존 Max Depth 이상의 깊이를 가지도록 유도
+            int currentMaxD = validReached.Max(r => r.debugDepth);
             var deepNodes = validReached
+                .Where(r => r.debugDepth >= currentMaxD - 1)
                 .OrderByDescending(r => r.debugDepth)
                 .ThenBy(r => Vector2.Distance(r.transform.position, reward.transform.position))
                 .ToList();
 
-            bool rewardConnected = false;
             foreach (var p in deepNodes)
             {
-                if (DrawCorridorBetweenRooms(p, reward, 0))
-                {
-                    _reachedRooms.Add(reward);
-                    _masterAdjacency[p].Add(reward);
-                    _masterAdjacency[reward].Add(p);
-                    rewardConnected = true;
-                    break;
-                }
-            }
-
-            if (!rewardConnected)
-            {
-                Debug.LogWarning($"[MapGen] 보상 방({reward.name}) 연결 실패. 더 얕은 노드까지 탐색 범위를 넓혔음에도 길이 막혔습니다.");
+                if (DrawCorridorBetweenRooms(p, reward, 0)) { _reachedRooms.Add(reward); _masterAdjacency[p].Add(reward); _masterAdjacency[reward].Add(p); break; }
             }
         }
-
         _painter.FinalizePainting();
         UpdateAllRoomDepths();
     }
@@ -265,50 +222,33 @@ public class MapGenerator : MonoBehaviour
         if (spawn == null) return;
         foreach (var r in _allRooms) r.debugDepth = -1;
         Queue<RoomInstance> q = new Queue<RoomInstance>();
-        q.Enqueue(spawn);
-        spawn.debugDepth = 0;
+        q.Enqueue(spawn); spawn.debugDepth = 0;
         while (q.Count > 0)
         {
             RoomInstance curr = q.Dequeue();
             if (!_masterAdjacency.ContainsKey(curr)) continue;
-            foreach (var neighbor in _masterAdjacency[curr])
-            {
-                if (neighbor.debugDepth == -1) { neighbor.debugDepth = curr.debugDepth + 1; q.Enqueue(neighbor); }
-            }
+            foreach (var neighbor in _masterAdjacency[curr]) { if (neighbor.debugDepth == -1) { neighbor.debugDepth = curr.debugDepth + 1; q.Enqueue(neighbor); } }
         }
     }
 
     private void UpdateGlobalBoundingObstacle()
     {
-        // [핵심 로직] 현재 생성된 모든 방을 포함하는 단일 사각형 장애물 구축
         if (_allRooms.Count == 0) return;
-
-        if (_tempObstacle == null)
-        {
-            _tempObstacle = new GameObject("MapBoundsObstacle");
-            _tempObstacle.transform.SetParent(transform);
-            var rb = _tempObstacle.AddComponent<Rigidbody2D>();
-            rb.bodyType = RigidbodyType2D.Static;
-            _tempObstacle.AddComponent<BoxCollider2D>();
-        }
-
-        // 전체 방의 범위를 계산 (Bounds)
+        if (_tempObstacle == null) { _tempObstacle = new GameObject("MapBoundsObstacle"); _tempObstacle.transform.SetParent(transform); var rb = _tempObstacle.AddComponent<Rigidbody2D>(); rb.bodyType = RigidbodyType2D.Static; _tempObstacle.AddComponent<BoxCollider2D>(); }
         float minX = _allRooms.Min(r => r.transform.position.x - r.roomSize.x * 0.5f);
         float maxX = _allRooms.Max(r => r.transform.position.x + r.roomSize.x * 0.5f);
         float minY = _allRooms.Min(r => r.transform.position.y - r.roomSize.y * 0.5f);
         float maxY = _allRooms.Max(r => r.transform.position.y + r.roomSize.y * 0.5f);
-
         BoxCollider2D box = _tempObstacle.GetComponent<BoxCollider2D>();
-        box.size = new Vector2(maxX - minX + 4f, maxY - minY + 4f); // 여유 마진 4유닛 추가
+        box.size = new Vector2(maxX - minX + 4f, maxY - minY + 4f);
         box.offset = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
-
         Physics2D.SyncTransforms();
     }
 
     private void ClearExistingMap() 
     { 
         foreach (var room in _allRooms) if (room != null) Destroy(room.gameObject); 
-        _allRooms.Clear(); _reachedRooms.Clear(); _masterAdjacency.Clear();
+        _allRooms.Clear(); _reachedRooms.Clear(); _masterAdjacency.Clear(); _intendedDirs.Clear();
         if (_tempObstacle != null) Destroy(_tempObstacle);
         if (globalGroundTilemap != null) globalGroundTilemap.ClearAllTiles(); 
         if (globalWallTilemap != null) globalWallTilemap.ClearAllTiles(); 
@@ -329,23 +269,14 @@ public class MapGenerator : MonoBehaviour
         Vector2Int curA = exitA; path.Add(exitA); for (int i = 0; i < generationData.corridorStraightLength; i++) { curA += bestA.direction; path.Add(curA); }
         Vector2Int entB = exitB; for (int i = 0; i < generationData.corridorStraightLength; i++) entB += bestB.direction;
         List<Vector2Int> astar = _painter.FindPath(curA, entB, generationData.corridorAvoidMargin, pathDepth);
-        if (astar != null) { 
-            for (int i = 1; i < astar.Count; i++) path.Add(astar[i]); 
-            Vector2Int fin = entB; for (int i = 0; i < generationData.corridorStraightLength; i++) { fin -= bestB.direction; path.Add(fin); } 
-            if (path.Count > 0 && path.Last() != exitB) path.Add(exitB); 
-            for (int i = path.Count - 1; i > 0; i--) if (path[i] == path[i - 1]) path.RemoveAt(i); 
-            _painter.RegisterCorridorWithAnchors(path, bestA, bestB, pathDepth); 
-            bestA.isUsed = true; bestB.isUsed = true; 
-            return true;
-        }
+        if (astar != null) { for (int i = 1; i < astar.Count; i++) path.Add(astar[i]); Vector2Int fin = entB; for (int i = 0; i < generationData.corridorStraightLength; i++) { fin -= bestB.direction; path.Add(fin); } if (path.Count > 0 && path.Last() != exitB) path.Add(exitB); for (int i = path.Count - 1; i > 0; i--) if (path[i] == path[i - 1]) path.RemoveAt(i); _painter.RegisterCorridorWithAnchors(path, bestA, bestB, pathDepth); bestA.isUsed = true; bestB.isUsed = true; return true; }
         return false;
     }
 
     private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground", "Ground"); ConfigureTilemap(globalWallTilemap, "Wall", "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow", "Shadow"); }
     private void ConfigureTilemap(Tilemap tm, string layerName, string sortingLayerName) { if (tm == null) return; int layer = LayerMask.NameToLayer(layerName); if (layer != -1) tm.gameObject.layer = layer; var renderer = tm.GetComponent<TilemapRenderer>(); if (renderer != null) renderer.sortingLayerName = sortingLayerName; }
-    private void SetGlobalCollidersActive(bool active) { }
-    private void AssignSpecialRooms() { }
 
+    private void AssignSpecialRooms() { }
     private void DumpMapToLog()
     {
         if (globalGroundTilemap == null || globalWallTilemap == null) return;
