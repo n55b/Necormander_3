@@ -80,10 +80,32 @@ public class MapGenerator : MonoBehaviour
         AssignSpecialRooms();
         DumpMapToLog();
 
-        if (_tempObstacle != null) Destroy(_tempObstacle);
+        // [추가] 맵 생성 완료 후 플레이어를 시작 방으로 배치
+        PlacePlayerAtSpawn();
 
+        if (_tempObstacle != null) Destroy(_tempObstacle);
         _isGenerating = false;
         Debug.Log("<color=green>[MapGenerator]</color> Map Generation Completed.");
+    }
+
+    private void PlacePlayerAtSpawn()
+    {
+        RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
+        if (spawnRoom == null) return;
+
+        var spawnEvent = spawnRoom.GetComponent<SpawnRoomEvent>();
+        Vector3 spawnPos = spawnEvent != null ? spawnEvent.GetSpawnPosition() : spawnRoom.transform.position;
+
+        // GameManager를 통해 플레이어 컨트롤러 위치 수정
+        if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        {
+            // 플레이어 위치 이동
+            GameManager.Instance.PLAYERCONTROLLER.transform.position = spawnPos;
+            
+            // [팁] 만약 시네머신이나 다른 카메라 시스템을 쓴다면 여기서 
+            // Camera.main.transform.position도 초기화해주는 것이 좋습니다.
+            Debug.Log($"<color=cyan>[MapGen]</color> Player placed at SpawnRoom: {spawnPos}");
+        }
     }
 
     private IEnumerator RunPhase(List<RoomType> types)
@@ -269,8 +291,55 @@ public class MapGenerator : MonoBehaviour
         Vector2Int curA = exitA; path.Add(exitA); for (int i = 0; i < generationData.corridorStraightLength; i++) { curA += bestA.direction; path.Add(curA); }
         Vector2Int entB = exitB; for (int i = 0; i < generationData.corridorStraightLength; i++) entB += bestB.direction;
         List<Vector2Int> astar = _painter.FindPath(curA, entB, generationData.corridorAvoidMargin, pathDepth);
-        if (astar != null) { for (int i = 1; i < astar.Count; i++) path.Add(astar[i]); Vector2Int fin = entB; for (int i = 0; i < generationData.corridorStraightLength; i++) { fin -= bestB.direction; path.Add(fin); } if (path.Count > 0 && path.Last() != exitB) path.Add(exitB); for (int i = path.Count - 1; i > 0; i--) if (path[i] == path[i - 1]) path.RemoveAt(i); _painter.RegisterCorridorWithAnchors(path, bestA, bestB, pathDepth); bestA.isUsed = true; bestB.isUsed = true; return true; }
+        if (astar != null) { 
+            for (int i = 1; i < astar.Count; i++) path.Add(astar[i]); 
+            Vector2Int fin = entB; for (int i = 0; i < generationData.corridorStraightLength; i++) { fin -= bestB.direction; path.Add(fin); } 
+            if (path.Count > 0 && path.Last() != exitB) path.Add(exitB); 
+            for (int i = path.Count - 1; i > 0; i--) if (path[i] == path[i - 1]) path.RemoveAt(i); 
+            _painter.RegisterCorridorWithAnchors(path, bestA, bestB, pathDepth); 
+            bestA.isUsed = true; bestB.isUsed = true; 
+
+            // [추가] 통로 연결 성공 시 두 방에 문(Door) 소환 및 등록
+            SpawnDoorAtAnchor(a, bestA);
+            SpawnDoorAtAnchor(b, bestB);
+
+            return true;
+        }
         return false;
+    }
+
+    private void SpawnDoorAtAnchor(RoomInstance room, RoomAnchor anchor)
+    {
+        GameObject doorPrefab = null;
+        float rotation = 0f;
+
+        // 방향에 따른 프리팹 선택
+        if (anchor.direction == Vector2Int.up) doorPrefab = generationData.doorUp;
+        else if (anchor.direction == Vector2Int.down) doorPrefab = generationData.doorDown;
+        else if (anchor.direction == Vector2Int.left) doorPrefab = generationData.doorLeft;
+        else if (anchor.direction == Vector2Int.right) doorPrefab = generationData.doorRight;
+
+        // [폴백 로직] 특정 방향 프리팹이 없으면 북쪽(Up) 문을 회전해서 사용
+        if (doorPrefab == null && generationData.doorUp != null)
+        {
+            doorPrefab = generationData.doorUp;
+            if (anchor.direction == Vector2Int.down) rotation = 180f;
+            else if (anchor.direction == Vector2Int.left) rotation = 90f;
+            else if (anchor.direction == Vector2Int.right) rotation = -90f;
+        }
+
+        if (doorPrefab != null)
+        {
+            GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform);
+            doorObj.name = $"Door_{anchor.direction}_{room.name}";
+
+            // RoomInstance에 문 등록 (나중에 전투 시 한꺼번에 제어)
+            if (room.TryGetComponent<RoomInstance>(out var roomComp))
+            {
+                // RoomInstance에 doorControllers 리스트가 있다고 가정 (나중에 추가)
+                room.doorObjects.Add(doorObj);
+            }
+        }
     }
 
     private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground", "Ground"); ConfigureTilemap(globalWallTilemap, "Wall", "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow", "Shadow"); }

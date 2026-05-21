@@ -2603,8 +2603,9 @@ GameObject:
   - component: {fileID: 432784992532219486}
   - component: {fileID: 5899314902304331144}
   - component: {fileID: 6373223148189787081}
+  - component: {fileID: -2148947729574515059}
   m_Layer: 0
-  m_Name: Room_Normal_01
+  m_Name: Room_Normal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2666,6 +2667,28 @@ MonoBehaviour:
   isCleared: 0
   doorObjects:
   - {fileID: 8637198600651598581, guid: 307b97e39cd375d47a324403a27bb3a6, type: 3}
+--- !u!114 &-2148947729574515059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6853878630644403523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e52a622eabe45745a6e5c10a52c7720, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  groupsCount: 3
+  enemiesPerGroup: 3
+  spawnDistanceFromCenter: 5
+  groupSpread: 1.5
+  OnCombatStart:
+    m_PersistentCalls:
+      m_Calls: []
+  OnCombatClear:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &7289109739151017139
 GameObject:
   m_ObjectHideFlags: 0

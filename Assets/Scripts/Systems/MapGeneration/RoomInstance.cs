@@ -16,9 +16,15 @@ public class RoomInstance : MonoBehaviour
     [HideInInspector] public Tilemap shadowTilemap;
     
     [HideInInspector] public int debugDepth = -1; // 맵 생성 시 계산된 깊이 저장용
-
+    
+    [Header("Combat & Events")]
+    public bool isCleared = false;
+    public List<GameObject> doorObjects = new List<GameObject>(); // MapGenerator에서 할당
+    
+    private IRoomEvent _roomEvent;
     private Rigidbody2D _rb;
-    private BoxCollider2D _collider;
+    private BoxCollider2D _physicsCollider;
+    private BoxCollider2D _triggerCollider;
 
 #if UNITY_EDITOR
     private void OnDrawGizmos()
@@ -39,7 +45,8 @@ public class RoomInstance : MonoBehaviour
     public void Initialize(RoomType type)
     {
         roomType = type;
-        
+        _roomEvent = GetComponent<IRoomEvent>();
+
         // 앵커 수집
         anchors.Clear();
         anchors.AddRange(GetComponentsInChildren<RoomAnchor>());
@@ -51,8 +58,6 @@ public class RoomInstance : MonoBehaviour
             wallTransform.localPosition = Vector3.zero;
             var childCols = wallTransform.GetComponentsInChildren<Collider2D>();
             foreach (var ccol in childCols) { ccol.enabled = false; Destroy(ccol); }
-            var childRbs = wallTransform.GetComponentsInChildren<Rigidbody2D>();
-            foreach (var crb in childRbs) { crb.simulated = false; Destroy(crb); }
         }
         
         Transform groundTransform = transform.Find("Ground");
@@ -77,27 +82,62 @@ public class RoomInstance : MonoBehaviour
             roomSize = new Vector2Int(Mathf.CeilToInt(mainTM.localBounds.size.x), Mathf.CeilToInt(mainTM.localBounds.size.y));
         }
 
+        // 물리 연산용 리지드바디 및 콜라이더
         _rb = gameObject.AddComponent<Rigidbody2D>();
         _rb.gravityScale = 0;
         _rb.interpolation = RigidbodyInterpolation2D.None;
         _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         
-        PhysicsMaterial2D mat = new PhysicsMaterial2D("Slippery");
-        mat.friction = 0f;
-        mat.bounciness = 0f;
+        PhysicsMaterial2D mat = new PhysicsMaterial2D("Slippery") { friction = 0f, bounciness = 0f };
         _rb.sharedMaterial = mat;
 
-        _collider = gameObject.AddComponent<BoxCollider2D>();
-
-        // [수정] 개별 방 콜라이더는 최소화하고, 맵 전체의 충돌은 전역 타일맵 콜라이더에 맡깁니다.
-        // 기존 18.0f -> 4.0f로 축소
+        _physicsCollider = gameObject.AddComponent<BoxCollider2D>();
         float colliderPadding = 4.0f; 
-        _collider.size = new Vector2(roomSize.x + colliderPadding, roomSize.y + colliderPadding); 
-        _collider.offset = centerOffset;
-        _collider.sharedMaterial = mat;
+        _physicsCollider.size = new Vector2(roomSize.x + colliderPadding, roomSize.y + colliderPadding); 
+        _physicsCollider.offset = centerOffset;
+        _physicsCollider.sharedMaterial = mat;
+
+        // 플레이어 진입 감지용 트리거 콜라이더
+        _triggerCollider = gameObject.AddComponent<BoxCollider2D>();
+        _triggerCollider.isTrigger = true;
+        _triggerCollider.size = new Vector2(roomSize.x - 2f, roomSize.y - 2f); 
+        _triggerCollider.offset = centerOffset;
         
         gameObject.layer = LayerMask.NameToLayer("Ignore Raycast"); 
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (isCleared || roomType == RoomType.Spawn) return;
+
+        if (other.CompareTag("Player"))
+        {
+            // [수정] 이제 RoomInstance가 문을 자동으로 닫지 않습니다.
+            // 문 제어권은 전적으로 _roomEvent(NormalRoomEvent 등)에게 위임합니다.
+            Debug.Log($"<color=yellow>[Room]</color> Player Entered: {gameObject.name}");
+            _roomEvent?.OnPlayerEnter(this);
+        }
+    }
+
+    public void SetDoorsOpen(bool open)
+    {
+        foreach (var door in doorObjects)
+        {
+            if (door != null)
+            {
+                var controller = door.GetComponent<DoorController>();
+                if (controller != null) controller.SetOpen(open);
+                else door.SetActive(!open);
+            }
+        }
+    }
+
+    public void MarkCleared()
+    {
+        isCleared = true;
+        SetDoorsOpen(true);
+        _roomEvent?.OnRoomCleared(this);
     }
 
     public void MergeTilesToGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow)
@@ -137,8 +177,7 @@ public class RoomInstance : MonoBehaviour
 
     public void CleanupPhysics()
     {
-        if (_collider != null) _collider.enabled = false;
+        if (_physicsCollider != null) Destroy(_physicsCollider);
         if (_rb != null) Destroy(_rb);
-        if (_collider != null) Destroy(_collider);
     }
 }
