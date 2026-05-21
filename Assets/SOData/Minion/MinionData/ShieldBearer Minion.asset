@@ -31,6 +31,6 @@ MonoBehaviour:
   canSpawnRandomly: 1
   aiPattern: {fileID: 0}
   hpCostRatioPerThrow: 0
-  AttackSound: {fileID: 8300000, guid: f141d593daf14834f9efc45e5b9a51ee, type: 3}
+  AttackSound: {fileID: 8300000, guid: be7c781782f79604f8e495dfa3fbd825, type: 3}
   DeathSound: {fileID: 0}
   minionPrefab: {fileID: 5978108325549925549, guid: d0ae37130e5f054409b3a87a321bedd1, type: 3}
