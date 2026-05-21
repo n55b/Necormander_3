@@ -89,9 +89,15 @@ public class MapGenerator : MonoBehaviour
     private IEnumerator RunPhase(List<RoomType> types)
     {
         List<RoomInstance> phaseRooms = new List<RoomInstance>();
-        foreach (var type in types)
+        
+        // [수정] 방사형 분산 소환 로직 적용
+        float startAngle = Random.Range(0f, 360f); // 시작 각도 랜덤
+        float angleStep = 360f / types.Count;    // 방 개수만큼 각도 분할
+
+        for (int i = 0; i < types.Count; i++)
         {
-            RoomInstance room = CreateRoom(type);
+            float targetAngle = (startAngle + (i * angleStep)) * Mathf.Deg2Rad;
+            RoomInstance room = CreateRoom(types[i], targetAngle);
             if (room != null)
             {
                 phaseRooms.Add(room);
@@ -116,14 +122,29 @@ public class MapGenerator : MonoBehaviour
         yield return null;
     }
 
-    private RoomInstance CreateRoom(RoomType type)
+    private RoomInstance CreateRoom(RoomType type, float angle)
     {
         GameObject prefab = prefabData.GetRandomPrefab(type);
         if (prefab == null) return null;
 
-        // 스폰 지점은 중앙 근처로 유지 (사용자 요청: 1f 반경)
-        float spawnRadius = (type == RoomType.Spawn) ? 0f : 1f;
-        Vector2 spawnPos = Random.insideUnitCircle.normalized * spawnRadius;
+        // [수정] 동적 스폰 반경 + 전달받은 각도(angle) 사용
+        float spawnRadius = 0f;
+        if (type != RoomType.Spawn)
+        {
+            if (_allRooms.Count > 0)
+            {
+                // 현재 맵의 '가장자리' 거리 측정
+                float currentMaxDist = _allRooms.Max(r => ((Vector2)r.transform.position).magnitude);
+                spawnRadius = currentMaxDist + 3f; 
+            }
+            else
+            {
+                spawnRadius = 1f; // 첫 번째 페이즈의 Spawn 외의 방들
+            }
+        }
+
+        // 전달받은 고유 각도를 사용하여 소환 위치 결정 (뭉침 방지)
+        Vector2 spawnPos = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * spawnRadius;
 
         GameObject roomObj = Instantiate(prefab, (Vector3)spawnPos, Quaternion.identity, transform);
         RoomInstance room = roomObj.GetComponent<RoomInstance>() ?? roomObj.AddComponent<RoomInstance>();
@@ -202,16 +223,35 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
+        // 2. 보상 방 연결 (깊이가 깊은 순서대로 후보를 탐색하여 고립 방지)
         foreach (var reward in rewardRooms)
         {
-            UpdateAllRoomDepths();
+            UpdateAllRoomDepths(); // 현재까지의 깊이 갱신
             var validReached = _reachedRooms.Where(r => r.debugDepth != -1).ToList();
             if (validReached.Count == 0) continue;
-            int maxD = validReached.Max(r => r.debugDepth);
-            var deepNodes = validReached.Where(r => r.debugDepth >= maxD).OrderBy(r => Vector2.Distance(r.transform.position, reward.transform.position)).ToList();
+
+            // [수정] 오직 Max Depth만 고집하지 않고, 깊이가 깊은 순서 -> 물리 거리가 가까운 순서로 정렬
+            var deepNodes = validReached
+                .OrderByDescending(r => r.debugDepth)
+                .ThenBy(r => Vector2.Distance(r.transform.position, reward.transform.position))
+                .ToList();
+
+            bool rewardConnected = false;
             foreach (var p in deepNodes)
             {
-                if (DrawCorridorBetweenRooms(p, reward, 0)) { _reachedRooms.Add(reward); _masterAdjacency[p].Add(reward); _masterAdjacency[reward].Add(p); break; }
+                if (DrawCorridorBetweenRooms(p, reward, 0))
+                {
+                    _reachedRooms.Add(reward);
+                    _masterAdjacency[p].Add(reward);
+                    _masterAdjacency[reward].Add(p);
+                    rewardConnected = true;
+                    break;
+                }
+            }
+
+            if (!rewardConnected)
+            {
+                Debug.LogWarning($"[MapGen] 보상 방({reward.name}) 연결 실패. 더 얕은 노드까지 탐색 범위를 넓혔음에도 길이 막혔습니다.");
             }
         }
 
