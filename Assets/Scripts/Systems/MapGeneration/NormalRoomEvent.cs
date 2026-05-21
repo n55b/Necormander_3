@@ -33,10 +33,10 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             {
                 foreach (var data in rawList)
                 {
-                    // 보스가 아닌 일반 랜덤 스폰 가능한 적들만 수집
                     if (!data.isBoss && data.canSpawnRandomly) _normalEnemyPool.Add(data);
                 }
             }
+            Debug.Log($"<color=white>[NormalRoom]</color> Pool Initialized. Normal Enemies: {_normalEnemyPool.Count} in {gameObject.name}");
         }
     }
 
@@ -59,7 +59,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         _cachedRoom = room;
         _isBattleActive = true;
 
-        room.SetDoorsOpen(false); // 문 닫기
+        room.SetDoorsOpen(false);
 
         if (GemTreeUI.Instance != null && GemTreeUI.Instance.IsOpen) GemTreeUI.Instance.Toggle();
         if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
@@ -102,11 +102,23 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             Vector2 offset = Random.insideUnitCircle * groupSpread;
             Vector3 spawnPos = center + (Vector3)offset;
 
-            if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
+            // [수정] 샘플링 범위를 늘리고 실패 시 로그 출력
+            if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
             {
                 MinionDataSO data = GetRandomEnemyData();
-                GameObject enemy = GameManager.Instance.dataManager.CreateUnit(data, hit.position);
-                if (enemy != null) _activeEnemies.Add(enemy);
+                if (data != null)
+                {
+                    GameObject enemy = GameManager.Instance.dataManager.CreateUnit(data, hit.position);
+                    if (enemy != null) _activeEnemies.Add(enemy);
+                }
+                else
+                {
+                    Debug.LogWarning("[NormalRoom] RandomEnemyData is null! Check pool.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[NormalRoom] NavMesh SamplePosition failed at {spawnPos}");
             }
         }
     }

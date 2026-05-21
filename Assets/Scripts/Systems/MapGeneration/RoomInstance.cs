@@ -20,6 +20,7 @@ public class RoomInstance : MonoBehaviour
     [Header("Combat & Events")]
     public bool isCleared = false;
     public List<GameObject> doorObjects = new List<GameObject>(); // MapGenerator에서 할당
+    [SerializeField] private AudioClip roomBGM; // [추가] 이 방에서 나올 음악
     
     private IRoomEvent _roomEvent;
     private Rigidbody2D _rb;
@@ -104,21 +105,38 @@ public class RoomInstance : MonoBehaviour
         _physicsCollider.offset = centerOffset;
         _physicsCollider.sharedMaterial = mat;
 
-        // 플레이어 진입 감지용 트리거 콜라이더
+        // [수정] 플레이어 진입 감지용 트리거 콜라이더 (방 안쪽 영역)
         _triggerCollider = gameObject.AddComponent<BoxCollider2D>();
         _triggerCollider.isTrigger = true;
-        _triggerCollider.size = new Vector2(roomSize.x - 2f, roomSize.y - 2f); 
+        // 마진을 더 크게 (4.0f) 주어 통로에서 옆방 트리거를 스치는 현상 방지
+        _triggerCollider.size = new Vector2(Mathf.Max(1, roomSize.x - 4f), Mathf.Max(1, roomSize.y - 4f)); 
         _triggerCollider.offset = centerOffset;
-        
-        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast"); 
-    }
 
-    private void OnTriggerEnter2D(Collider2D other)
+        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast"); 
+        }
+
+        // [추가] 강제 입장 처리 (스폰 시 초기화용)
+        public void ForceEnter()
+        {
+        if (roomBGM != null && SoundManager.Instance != null)
+        {
+            SoundManager.Instance.ChangeBGM(roomBGM);
+        }
+        _roomEvent?.OnPlayerEnter(this);
+        }
+
+        private void OnTriggerEnter2D(Collider2D other)
     {
         if (isCleared || roomType == RoomType.Spawn) return;
 
         if (other.CompareTag("Player"))
         {
+            // [추가] 방 진입 시 BGM 변경
+            if (roomBGM != null && SoundManager.Instance != null)
+            {
+                SoundManager.Instance.ChangeBGM(roomBGM);
+            }
+
             // [수정] 이제 RoomInstance가 문을 자동으로 닫지 않습니다.
             // 문 제어권은 전적으로 _roomEvent(NormalRoomEvent 등)에게 위임합니다.
             Debug.Log($"<color=yellow>[Room]</color> Player Entered: {gameObject.name}");

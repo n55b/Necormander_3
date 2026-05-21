@@ -2667,6 +2667,7 @@ MonoBehaviour:
   isCleared: 0
   doorObjects:
   - {fileID: 8637198600651598581, guid: 307b97e39cd375d47a324403a27bb3a6, type: 3}
+  roomBGM: {fileID: 8300000, guid: 581ebe7ba05b48b459da01dcc7989f84, type: 3}
 --- !u!114 &2178744581457636743
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2680,8 +2681,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   eliteCount: 1
-  groupsCount: 2
-  enemiesPerGroup: 2
   spawnDistanceFromCenter: 6
   OnEliteCombatStart:
     m_PersistentCalls:

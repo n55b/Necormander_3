@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Cinemachine; // [추가] 시네머신 연동용
+using Unity.Cinemachine; 
 
 /// <summary>
 /// 게임의 전체 생명주기와 매니저들의 초기화 순서를 관리하는 중앙 컨트롤러입니다.
@@ -11,13 +11,14 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("Player")]
-    [SerializeField] private GameObject playerPrefab; // [추가] 플레이어 프리팹
+    [SerializeField] private GameObject playerPrefab; 
     [SerializeField] private PlayerController playerController;
     public PlayerController PLAYERCONTROLLER => playerController;
 
     [Header("Core Managers")]
     [SerializeField] public DataManager dataManager;
     [SerializeField] public EconomyManager economyManager;
+    [SerializeField] public CameraManager cameraManager;
     [SerializeField] public ThrowImpactManager throwImpactManager;
     [SerializeField] public MouseManager mouseManager;
     [SerializeField] public MouseCursorManager mouseCursorManager;
@@ -71,6 +72,7 @@ public class GameManager : MonoBehaviour
 
         if (dataManager == null) dataManager = GetComponentInChildren<DataManager>();
         if (economyManager == null) economyManager = GetComponentInChildren<EconomyManager>();
+        if (cameraManager == null) cameraManager = GetComponentInChildren<CameraManager>();
         if (throwImpactManager == null) throwImpactManager = GetComponentInChildren<ThrowImpactManager>();
         if (mouseManager == null) mouseManager = GetComponentInChildren<MouseManager>();
         if (mouseCursorManager == null) mouseCursorManager = GetComponentInChildren<MouseCursorManager>();
@@ -81,14 +83,11 @@ public class GameManager : MonoBehaviour
         if (dataManager != null) dataManager.Initialize();
         if (inventoryManager != null) inventoryManager.Initialize();
         if (economyManager != null) economyManager.Initialize();
+        if (cameraManager != null) cameraManager.Initialize();
         if (throwImpactManager != null) throwImpactManager.Initialize();
         if (rewardManager != null) rewardManager.Initialize();
         
-        if (squadSpawner != null)
-        {
-            var allyManager = Object.FindFirstObjectByType<AllyManager>();
-            squadSpawner.Initialize(inventoryManager, allyManager);
-        }
+        // 초기화 시점에는 아직 플레이어가 없으므로 SquadSpawner의 AllyManager 연결은 미룹니다.
 
         Debug.Log("<b>[GameManager]</b> Initial Managers Loaded.");
     }
@@ -110,14 +109,12 @@ public class GameManager : MonoBehaviour
              yield return StartCoroutine(mapGenerator.GenerateMapCoroutine());
         }
 
-        // [핵심 추가] 맵 생성 완료 후 플레이어 동적 스폰
         SpawnPlayer();
 
-        // 플레이어 HUD 초기화 (스폰된 플레이어의 Health 참조 확보)
         if (playerStateUI != null && playerController != null)
         {
             var health = playerController.GetComponentInChildren<CharacterHealth>();
-            var allyManager = Object.FindFirstObjectByType<AllyManager>();
+            var allyManager = playerController.GetComponent<AllyManager>();
             playerStateUI.Initialize(health, allyManager);
             Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");
         }
@@ -139,6 +136,14 @@ public class GameManager : MonoBehaviour
         if (playerController != null)
         {
             playerController.SetInputBlocked(true);
+            
+            // [핵심 수정] 부대 스포너에 새로 생성된 플레이어의 AllyManager를 연결해줍니다.
+            var allyManager = playerObj.GetComponent<AllyManager>();
+            if (squadSpawner != null && allyManager != null)
+            {
+                squadSpawner.Initialize(inventoryManager, allyManager);
+                Debug.Log("<color=cyan>[GameManager]</color> SquadSpawner Re-Initialized with new AllyManager.");
+            }
         }
 
         if (mapGenerator != null)
@@ -146,8 +151,6 @@ public class GameManager : MonoBehaviour
             mapGenerator.PlacePlayerAtSpawn();
         }
 
-        // [핵심 추가] 카메라 추적 타겟 자동 할당
-        // 플레이어 하위의 'CameraTarget' 오브젝트를 찾아 시네머신 카메라에 연결합니다.
         Transform camTarget = playerObj.transform.Find("CameraTarget");
         if (camTarget != null)
         {
@@ -156,10 +159,6 @@ public class GameManager : MonoBehaviour
             {
                 vcam.Follow = camTarget;
                 Debug.Log("<color=cyan>[GameManager]</color> Cinemachine Camera Target assigned to: " + camTarget.name);
-            }
-            else
-            {
-                Debug.LogWarning("[GameManager] 씬에서 CinemachineCamera를 찾을 수 없습니다.");
             }
         }
 

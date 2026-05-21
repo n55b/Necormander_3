@@ -21,10 +21,10 @@ MonoBehaviour:
     - {fileID: 6853878630644403523, guid: 1a2e0b6bfee08b14886a3b212d64557a, type: 3}
   - roomType: 2
     prefabs:
-    - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}
+    - {fileID: 6853878630644403523, guid: 3c5021a36d749cd448fd76c1d78d9e06, type: 3}
   - roomType: 3
     prefabs:
-    - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}
+    - {fileID: 6853878630644403523, guid: ec82191e454b84f4aa55dc39cd201388, type: 3}
   - roomType: 4
     prefabs:
-    - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}
+    - {fileID: 6853878630644403523, guid: b0672f0ef41f0fc47b8f3867bcabfd4b, type: 3}

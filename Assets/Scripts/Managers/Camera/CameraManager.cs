@@ -7,11 +7,11 @@ public class CameraManager : MonoBehaviour
 
     private CinemachineImpulseSource _impulseSource;
 
-    void Start()
+    public void Initialize()
     {
-        _impulseSource = GetComponent<CinemachineImpulseSource>();
-
         Instance = this;
+        _impulseSource = GetComponent<CinemachineImpulseSource>();
+        Debug.Log("<color=cyan>[CameraManager]</color> Initialized.");
     }
 
     public void HitShakeCamera()

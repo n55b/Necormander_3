@@ -167,9 +167,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d4eba31c935bfc4bbb2987dacf5db4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerPrefab: {fileID: 8389716956321753658, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
   playerController: {fileID: 0}
   dataManager: {fileID: 5990352106904275992}
   economyManager: {fileID: 4452764349617943537}
+  cameraManager: {fileID: 0}
   throwImpactManager: {fileID: 4376407718605823702}
   mouseManager: {fileID: 1447154648404685013}
   mouseCursorManager: {fileID: 7293194052441138037}
@@ -177,6 +179,9 @@ MonoBehaviour:
   squadSpawner: {fileID: 6842143012122147092}
   rewardManager: {fileID: 7453844490307090777}
   playerStateUI: {fileID: 0}
+  mapGenerator: {fileID: 6139375127595461034}
+  currentStageMapData: {fileID: 11400000, guid: 1aced7d90958fe444941591d79d29124, type: 2}
+  currentStageRoomData: {fileID: 11400000, guid: 0cabf365deeca87428335ef4d3329951, type: 2}
 --- !u!1 &4057087256918008588
 GameObject:
   m_ObjectHideFlags: 0

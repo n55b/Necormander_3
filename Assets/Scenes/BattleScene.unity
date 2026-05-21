@@ -769,25 +769,13 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: mapGenerator
+      propertyPath: cameraManager
       value: 
-      objectReference: {fileID: 1012117646}
-    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: playerPrefab
-      value: 
-      objectReference: {fileID: 8389716956321753658, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
+      objectReference: {fileID: 974462709}
     - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: playerStateUI
       value: 
       objectReference: {fileID: 1467717214}
-    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: currentStageMapData
-      value: 
-      objectReference: {fileID: 11400000, guid: 1aced7d90958fe444941591d79d29124, type: 2}
-    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: currentStageRoomData
-      value: 
-      objectReference: {fileID: 11400000, guid: 0cabf365deeca87428335ef4d3329951, type: 2}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -857,17 +845,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
---- !u!114 &1012117646 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6139375127595461034, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-  m_PrefabInstance: {fileID: 1012117645}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0e1a9515c81e5a47b8e0d2c828c9896, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!224 &1054468098 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8014481183506173875, guid: 6ed85d17a89a5574dabd432cc750e5c0, type: 3}
@@ -2837,7 +2814,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 8.4375
+  orthographic size: 5.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
