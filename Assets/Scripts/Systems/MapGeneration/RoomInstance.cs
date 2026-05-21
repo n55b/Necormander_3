@@ -127,10 +127,10 @@ public class RoomInstance : MonoBehaviour
 
         private void OnTriggerEnter2D(Collider2D other)
     {
-        if (isCleared || roomType == RoomType.Spawn) return;
-
         if (other.CompareTag("Player"))
         {
+            if (isCleared || roomType == RoomType.Spawn) return;
+
             // [추가] 방 진입 시 BGM 변경
             if (roomBGM != null && SoundManager.Instance != null)
             {
@@ -150,9 +150,10 @@ public class RoomInstance : MonoBehaviour
         {
             if (door != null)
             {
-                var controller = door.GetComponent<DoorController>();
-                if (controller != null) controller.SetOpen(open);
-                else door.SetActive(!open);
+                // [수정] 복잡한 컨트롤러 없이 직접 오브젝트를 끄고 켬
+                // open == true (문 열림) -> Active(false)
+                // open == false (문 닫힘) -> Active(true)
+                door.SetActive(!open);
             }
         }
     }

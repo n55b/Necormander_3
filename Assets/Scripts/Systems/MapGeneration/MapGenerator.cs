@@ -305,7 +305,16 @@ public class MapGenerator : MonoBehaviour
         else if (anchor.direction == Vector2Int.left) doorPrefab = generationData.doorLeft;
         else if (anchor.direction == Vector2Int.right) doorPrefab = generationData.doorRight;
         if (doorPrefab == null && generationData.doorUp != null) { doorPrefab = generationData.doorUp; if (anchor.direction == Vector2Int.down) rotation = 180f; else if (anchor.direction == Vector2Int.left) rotation = 90f; else if (anchor.direction == Vector2Int.right) rotation = -90f; }
-        if (doorPrefab != null) { GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform); doorObj.name = $"Door_{anchor.direction}_{room.name}"; room.doorObjects.Add(doorObj); }
+        
+        if (doorPrefab != null) 
+        { 
+            GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform); 
+            doorObj.name = $"Door_{anchor.direction}_{room.name}"; 
+            room.doorObjects.Add(doorObj); 
+            
+            // [수정] 생성 시에는 기본적으로 열려(비활성) 있어야 플레이어가 이동 가능함
+            doorObj.SetActive(false);
+        }
     }
 
     private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground", "Ground"); ConfigureTilemap(globalWallTilemap, "Wall", "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow", "Shadow"); }

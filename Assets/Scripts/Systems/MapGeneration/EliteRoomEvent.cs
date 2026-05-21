@@ -11,7 +11,6 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 {
     [Header("Elite Settings")]
     [SerializeField] private int eliteCount = 1;
-    [SerializeField] private float spawnDistanceFromCenter = 2.0f;
 
     [Header("Unity Events")]
     public UnityEvent OnEliteCombatStart;
@@ -88,10 +87,18 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
     private void SpawnEliteOnly(RoomInstance room)
     {
+        float margin = 1.5f;
+        float rangeX = (room.roomSize.x / 2f) - margin;
+        float rangeY = (room.roomSize.y / 2f) - margin;
+
         for (int i = 0; i < eliteCount; i++)
         {
-            Vector3 spawnPos = room.transform.position + (Vector3)Random.insideUnitCircle * spawnDistanceFromCenter;
-            SpawnEliteUnit(spawnPos);
+            Vector3 randPos = new Vector3(
+                Random.Range(-rangeX, rangeX),
+                Random.Range(-rangeY, rangeY),
+                0
+            );
+            SpawnEliteUnit(room.transform.position + (Vector3)room.centerOffset + randPos);
         }
     }
 

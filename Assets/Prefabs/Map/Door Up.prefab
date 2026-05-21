@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 7862350566168797710}
   - component: {fileID: 7504832372557143028}
   - component: {fileID: 6483901600437055044}
-  - component: {fileID: -5813878413050411881}
   m_Layer: 3
   m_Name: Door Up
   m_TagString: Untagged
@@ -96,7 +95,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8637198600651598581}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -135,17 +134,3 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &-5813878413050411881
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8637198600651598581}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3ff233ec73ce9d4a837ed213283c427, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  doorVisual: {fileID: 8637198600651598581}
-  doorCollider: {fileID: 6483901600437055044}

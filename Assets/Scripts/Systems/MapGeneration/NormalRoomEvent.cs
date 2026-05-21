@@ -12,7 +12,6 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     [Header("Combat Settings")]
     [SerializeField] private int groupsCount = 3;
     [SerializeField] private int enemiesPerGroup = 3;
-    [SerializeField] private float spawnDistanceFromCenter = 5.0f;
     [SerializeField] private float groupSpread = 1.5f;
 
     [Header("Unity Events")]
@@ -88,10 +87,20 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
     private void SpawnWaves(RoomInstance room)
     {
+        // [수정] 방의 크기에 맞게 소환 범위를 제한
+        float margin = 2.0f;
+        float rangeX = (room.roomSize.x / 2f) - margin;
+        float rangeY = (room.roomSize.y / 2f) - margin;
+
         for (int i = 0; i < groupsCount; i++)
         {
-            Vector2 randPos = Random.insideUnitCircle * spawnDistanceFromCenter;
-            SpawnGroup(room.transform.position + (Vector3)randPos);
+            Vector3 randPos = new Vector3(
+                Random.Range(-rangeX, rangeX),
+                Random.Range(-rangeY, rangeY),
+                0
+            );
+            // 방의 월드 위치 + 타일맵 중심 오프셋 + 랜덤 위치
+            SpawnGroup(room.transform.position + (Vector3)room.centerOffset + randPos);
         }
     }
 

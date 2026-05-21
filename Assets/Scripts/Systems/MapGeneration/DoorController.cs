@@ -10,8 +10,7 @@ public class DoorController : MonoBehaviour
 
     private void Awake()
     {
-        // 생성 시 기본적으로는 열려있는 상태로 시작
-        SetOpen(true);
+        // 초기화 로직이 필요한 경우 여기에 작성 (SetOpen 강제 호출 제거)
     }
 
     public void SetOpen(bool isOpen)
