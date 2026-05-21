@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using System.Linq;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -16,9 +17,12 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private Tilemap globalWallTilemap;
     [SerializeField] private Tilemap globalShadowTilemap;
 
-    private List<RoomInstance> _rooms = new List<RoomInstance>();
+    private List<RoomInstance> _allRooms = new List<RoomInstance>();
+    private HashSet<RoomInstance> _reachedRooms = new HashSet<RoomInstance>();
+    private Dictionary<RoomInstance, List<RoomInstance>> _masterAdjacency = new Dictionary<RoomInstance, List<RoomInstance>>();
     private CorridorPainter _painter;
     private bool _isGenerating = false;
+    private int _currentPhaseIndex = 0;
 
     private void Awake()
     {
@@ -31,488 +35,304 @@ public class MapGenerator : MonoBehaviour
     {
         if (_isGenerating) return;
         if (globalGroundTilemap == null || globalWallTilemap == null || globalShadowTilemap == null) return;
-        StartCoroutine(GenerationRoutine());
+        StartCoroutine(GenerationSequence());
     }
 
-    private IEnumerator GenerationRoutine()
+    private IEnumerator GenerationSequence()
     {
         _isGenerating = true;
+        _currentPhaseIndex = 0;
         SetupTilemapLayers();
         ClearExistingMap();
-        SetGlobalCollidersActive(false); 
 
-        SpawnRooms();
-        
-        foreach (var room in _rooms)
-        {
-            Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
-            if (rb != null)
-            {
-                Vector2 explodeDir = ((Vector2)room.transform.position + Random.insideUnitCircle * 0.5f).normalized;
-                rb.AddForce(explodeDir * (generationData.spreadingForce * 0.7f), ForceMode2D.Impulse);
-            }
-        }
+        int totalSpecials = generationData.shopCount + generationData.rewardCount + generationData.eliteCount;
+        int normalCount = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - 1 - totalSpecials);
 
-        yield return StartCoroutine(PhysicsSpreadingRoutine());
+        // Phase 1: Core
+        List<RoomType> phase1 = new List<RoomType> { RoomType.Spawn };
+        int p1Normal = Mathf.Max(1, Mathf.RoundToInt(normalCount * 0.3f));
+        for (int i = 0; i < p1Normal; i++) phase1.Add(RoomType.Normal);
+        yield return StartCoroutine(RunPhase(phase1));
 
-        FinalizeRoomPositions();
-        MergeAllRoomTiles();
-        ConnectRooms();
+        // Phase 2: Expansion 1
+        _currentPhaseIndex++;
+        List<RoomType> phase2 = new List<RoomType>();
+        for (int i = 0; i < generationData.shopCount; i++) phase2.Add(RoomType.Shop);
+        int eliteHalf = generationData.eliteCount / 2;
+        for (int i = 0; i < eliteHalf; i++) phase2.Add(RoomType.Elite);
+        int p2Normal = Mathf.RoundToInt(normalCount * 0.4f);
+        for (int i = 0; i < p2Normal; i++) phase2.Add(RoomType.Normal);
+        if (phase2.Count > 0) yield return StartCoroutine(RunPhase(phase2));
 
-        if (globalWallTilemap != null)
-        {
-            EnsureGlobalWallCollider();
-            SetGlobalCollidersActive(true);
-        }
+        // Phase 3: Expansion 2
+        _currentPhaseIndex++;
+        List<RoomType> phase3 = new List<RoomType>();
+        int eliteRest = generationData.eliteCount - eliteHalf;
+        for (int i = 0; i < eliteRest; i++) phase3.Add(RoomType.Elite);
+        int p3Normal = normalCount - p1Normal - p2Normal;
+        for (int i = 0; i < p3Normal; i++) phase3.Add(RoomType.Normal);
+        if (phase3.Count > 0) yield return StartCoroutine(RunPhase(phase3));
+
+        // Phase 4: Strict (Reward)
+        _currentPhaseIndex++;
+        List<RoomType> phase4 = new List<RoomType>();
+        for (int i = 0; i < generationData.rewardCount; i++) phase4.Add(RoomType.Reward);
+        if (phase4.Count > 0) yield return StartCoroutine(RunPhase(phase4));
 
         AssignSpecialRooms();
-
         DumpMapToLog();
 
         _isGenerating = false;
         Debug.Log("<color=green>[MapGenerator]</color> Map Generation Completed.");
     }
 
-    private void DumpMapToLog()
+    private IEnumerator RunPhase(List<RoomType> types)
     {
-        if (globalGroundTilemap == null || globalWallTilemap == null) return;
-
-        globalGroundTilemap.CompressBounds();
-        globalWallTilemap.CompressBounds();
-        
-        BoundsInt bounds = globalGroundTilemap.cellBounds;
-        BoundsInt wallBounds = globalWallTilemap.cellBounds;
-        
-        int xMin = Mathf.Min(bounds.xMin, wallBounds.xMin);
-        int xMax = Mathf.Max(bounds.xMax, wallBounds.xMax);
-        int yMin = Mathf.Min(bounds.yMin, wallBounds.yMin);
-        int yMax = Mathf.Max(bounds.yMax, wallBounds.yMax);
-
-        System.Text.StringBuilder sb = new System.Text.StringBuilder();
-        
-        sb.AppendLine($"Map Bounds: X({xMin} to {xMax}), Y({yMin} to {yMax})");
-        sb.AppendLine("W: Wall, S: Shadow, .: Ground, [Space]: Empty");
-        sb.AppendLine();
-
-        for (int y = yMax; y >= yMin; y--)
+        List<RoomInstance> phaseRooms = new List<RoomInstance>();
+        foreach (var type in types)
         {
-            for (int x = xMin; x <= xMax; x++)
-            {
-                Vector3Int pos = new Vector3Int(x, y, 0);
-                bool hasWall = globalWallTilemap.HasTile(pos);
-                bool hasShadow = globalShadowTilemap.HasTile(pos);
-                bool hasGround = globalGroundTilemap.HasTile(pos);
-
-                if (hasWall) sb.Append("W");
-                else if (hasShadow) sb.Append("S");
-                else if (hasGround) sb.Append(".");
-                else sb.Append(" ");
-            }
-            sb.AppendLine();
-        }
-
-        string path = System.IO.Path.Combine(Application.dataPath, "..", "MapDebugLog.txt");
-        System.IO.File.WriteAllText(path, sb.ToString());
-        Debug.Log($"<color=cyan>[MapGenerator]</color> Map ASCII log saved to: {path}");
-    }
-
-    /// <summary>
-    /// [추가] 각 타일맵의 Layer와 Sorting Layer를 요구사항에 맞게 강제 설정합니다.
-    /// </summary>
-    private void SetupTilemapLayers()
-    {
-        ConfigureTilemap(globalGroundTilemap, "Ground", "Ground");
-        ConfigureTilemap(globalWallTilemap, "Wall", "Wall");
-        ConfigureTilemap(globalShadowTilemap, "Shadow", "Shadow");
-    }
-
-    private void ConfigureTilemap(Tilemap tm, string layerName, string sortingLayerName)
-    {
-        if (tm == null) return;
-        
-        // 1. Layer 설정
-        int layer = LayerMask.NameToLayer(layerName);
-        if (layer != -1) tm.gameObject.layer = layer;
-        else Debug.LogWarning($"[MapGenerator] '{layerName}' 레이어가 프로젝트에 존재하지 않습니다.");
-
-        // 2. Sorting Layer 설정 (TilemapRenderer)
-        var renderer = tm.GetComponent<TilemapRenderer>();
-        if (renderer != null)
-        {
-            renderer.sortingLayerName = sortingLayerName;
-        }
-    }
-
-    private void SetGlobalCollidersActive(bool active)
-    {
-        if (globalWallTilemap != null)
-        {
-            var col = globalWallTilemap.GetComponent<TilemapCollider2D>();
-            if (col != null) col.enabled = active;
-        }
-    }
-
-    private void EnsureGlobalWallCollider()
-    {
-        if (globalWallTilemap == null) return;
-        GameObject obj = globalWallTilemap.gameObject;
-        
-        int wallLayer = LayerMask.NameToLayer("Wall");
-        if (wallLayer != -1) obj.layer = wallLayer;
-
-        // 1. Rigidbody2D - 가장 안전한 방식으로 접근
-        Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
-        if (rb == null) rb = obj.AddComponent<Rigidbody2D>();
-        
-        if (rb != null)
-        {
-            try { rb.bodyType = RigidbodyType2D.Static; }
-            catch (UnityEngine.MissingComponentException) { rb = obj.AddComponent<Rigidbody2D>(); rb.bodyType = RigidbodyType2D.Static; }
-        }
-
-        // 2. TilemapCollider2D
-        TilemapCollider2D tileCol = obj.GetComponent<TilemapCollider2D>();
-        if (tileCol == null) tileCol = obj.AddComponent<TilemapCollider2D>();
-
-        // 3. CompositeCollider2D
-        CompositeCollider2D composite = obj.GetComponent<CompositeCollider2D>();
-        if (composite == null) composite = obj.AddComponent<CompositeCollider2D>();
-        
-        if (composite != null && tileCol != null)
-        {
-            composite.geometryType = CompositeCollider2D.GeometryType.Polygons;
-            tileCol.usedByComposite = true;
-        }
-    }
-
-    private void ClearExistingMap()
-    {
-        foreach (var room in _rooms)
-        {
+            RoomInstance room = CreateRoom(type);
             if (room != null)
             {
-                room.name = "DELETING";
-                Destroy(room.gameObject);
+                phaseRooms.Add(room);
+                _allRooms.Add(room);
+                if (!_masterAdjacency.ContainsKey(room)) _masterAdjacency[room] = new List<RoomInstance>();
             }
         }
-        _rooms.Clear();
-        if (globalGroundTilemap != null) globalGroundTilemap.ClearAllTiles();
-        if (globalWallTilemap != null) globalWallTilemap.ClearAllTiles();
-        if (globalShadowTilemap != null) globalShadowTilemap.ClearAllTiles();
+
+        yield return StartCoroutine(PhysicsSpreadingRoutine(phaseRooms));
+
+        foreach (var room in phaseRooms)
+        {
+            room.SnapToGrid(generationData.gridUnit);
+            room.CleanupPhysics();
+            room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap);
+        }
+
+        UpdateGlobalColliders();
+        ConnectUnreachedRooms();
+        yield return null;
     }
 
-    private void SpawnRooms()
-    {
-        CreateRoom(RoomType.Spawn);
-        for (int i = 0; i < generationData.shopCount; i++) CreateRoom(RoomType.Shop);
-        for (int i = 0; i < generationData.rewardCount; i++) CreateRoom(RoomType.Reward);
-        for (int i = 0; i < generationData.eliteCount; i++) CreateRoom(RoomType.Elite);
-        int currentCount = _rooms.Count;
-        int remaining = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - currentCount);
-        for (int i = 0; i < remaining; i++) CreateRoom(RoomType.Normal);
-    }
-
-    private void CreateRoom(RoomType type)
+    private RoomInstance CreateRoom(RoomType type)
     {
         GameObject prefab = prefabData.GetRandomPrefab(type);
-        if (prefab == null) return;
-        
-        float angle = Random.Range(0f, Mathf.PI * 2f);
-        float radius = Random.Range(generationData.minSpawnRadius, generationData.maxSpawnRadius);
-        
-        // [수정] 초기 소환 시 Y축에 가중치를 주어 가로 타원 현상 방지
-        Vector2 spawnPos = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle) * 1.3f) * radius;
+        if (prefab == null) return null;
+
+        // [수정] 다시 중앙 근처에서 소환 (물리 엔진으로 밀어내기 위함)
+        float spawnRadius = (type == RoomType.Spawn) ? 0f : Random.Range(2f, 5f);
+        Vector2 spawnPos = Random.insideUnitCircle.normalized * spawnRadius;
 
         GameObject roomObj = Instantiate(prefab, (Vector3)spawnPos, Quaternion.identity, transform);
         RoomInstance room = roomObj.GetComponent<RoomInstance>() ?? roomObj.AddComponent<RoomInstance>();
         room.Initialize(type);
-        _rooms.Add(room);
-    }
-
-    private IEnumerator PhysicsSpreadingRoutine()
-    {
-        int iterations = 0, maxIter = 300; 
-        foreach (var room in _rooms)
+        
+        if (type == RoomType.Spawn)
         {
             Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
-            if (rb != null) { rb.sleepMode = RigidbodySleepMode2D.NeverSleep; rb.linearDamping = 3.5f; }
+            if (rb != null) rb.bodyType = RigidbodyType2D.Static;
+            _reachedRooms.Add(room);
+            if (!_masterAdjacency.ContainsKey(room)) _masterAdjacency[room] = new List<RoomInstance>();
         }
+        return room;
+    }
+
+    private IEnumerator PhysicsSpreadingRoutine(List<RoomInstance> activeRooms)
+    {
+        int iterations = 0, maxIter = 200;
+        foreach (var room in activeRooms)
+        {
+            Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
+            if (rb != null) { rb.sleepMode = RigidbodySleepMode2D.NeverSleep; rb.linearDamping = 3f; }
+        }
+
         while (iterations < maxIter)
         {
-            foreach (var room in _rooms)
+            foreach (var room in activeRooms)
             {
                 Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
-                if (rb == null) continue;
-                Vector2 dir = (Vector2)room.transform.position;
-                if (dir.magnitude < 0.1f) dir = Random.insideUnitCircle.normalized;
+                if (rb == null || rb.bodyType == RigidbodyType2D.Static) continue;
+
+                Vector2 pos = (Vector2)room.transform.position;
                 
-                // 물리력에도 Y축 보정 가미
-                Vector2 combinedDir = (dir + (Vector2)Random.insideUnitCircle * 0.4f);
-                combinedDir.y *= 1.5f; 
+                // [수정] 다시 중심에서 바깥으로 밀어내는 힘 (Outward Force) 적용
+                // 만약 너무 중앙에 뭉쳐있다면 무작위 방향으로 튕겨내기
+                Vector2 pushDir = pos.magnitude < 0.1f ? Random.insideUnitCircle.normalized : pos.normalized;
                 
-                rb.AddForce(combinedDir.normalized * generationData.spreadingForce, ForceMode2D.Force);
+                // 중심에서 밀어내는 힘 + 살짝의 무작위성 가미
+                rb.AddForce((pushDir + Random.insideUnitCircle * 0.2f).normalized * (generationData.spreadingForce * 1.5f), ForceMode2D.Force);
             }
             iterations++;
             yield return new WaitForFixedUpdate();
         }
-        foreach (var room in _rooms)
-        {
-            Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
-            if (rb != null) rb.linearVelocity = Vector2.zero;
-        }
+        foreach (var room in activeRooms) { Rigidbody2D rb = room.GetComponent<Rigidbody2D>(); if (rb != null && rb.bodyType != RigidbodyType2D.Static) rb.linearVelocity = Vector2.zero; }
     }
 
-    private void FinalizeRoomPositions()
+    private void ConnectUnreachedRooms()
     {
-        foreach (var room in _rooms)
-        {
-            room.SnapToGrid(generationData.gridUnit);
-            room.CleanupPhysics();
-        }
-    }
-
-    private void MergeAllRoomTiles()
-    {
-        foreach (var room in _rooms) room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap);
-    }
-
-    private void ConnectRooms()
-    {
-        if (_rooms.Count < 2) return;
         _painter.Init(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, generationData.floorTile, generationData.wallTile, generationData.shadowTile);
-
-        List<Edge> allEdges = new List<Edge>();
-        for (int i = 0; i < _rooms.Count; i++)
-            for (int j = i + 1; j < _rooms.Count; j++)
-                allEdges.Add(new Edge(_rooms[i], _rooms[j]));
-
-        allEdges.Sort((a, b) => a.distance.CompareTo(b.distance));
-
-        List<Edge> mstEdges = new List<Edge>();
-        HashSet<RoomInstance> reached = new HashSet<RoomInstance> { _rooms[0] };
-        Dictionary<RoomInstance, List<RoomInstance>> adjacency = new Dictionary<RoomInstance, List<RoomInstance>>();
-        foreach (var r in _rooms) adjacency[r] = new List<RoomInstance>();
-
-        List<Edge> remainingPool = new List<Edge>(allEdges);
-        while (reached.Count < _rooms.Count)
-        {
-            Edge bestEdge = null; float minDist = float.MaxValue;
-            foreach (var edge in remainingPool)
-            {
-                if (reached.Contains(edge.a) != reached.Contains(edge.b))
-                {
-                    if (edge.distance < minDist) { minDist = edge.distance; bestEdge = edge; }
-                }
-            }
-            if (bestEdge != null)
-            {
-                mstEdges.Add(bestEdge);
-                reached.Add(bestEdge.a); reached.Add(bestEdge.b);
-                adjacency[bestEdge.a].Add(bestEdge.b); adjacency[bestEdge.b].Add(bestEdge.a);
-                remainingPool.Remove(bestEdge);
-            }
-            else break;
-        }
-
-        List<Edge> extraEdges = new List<Edge>();
-        foreach (var edge in remainingPool)
-        {
-            // [수정] 지나치게 긴 통로 방지를 위해 거리와 확률 재조정 (80->55, 0.6->0.45)
-            if (edge.distance > 55f) continue;
-            int graphDist = GetGraphDistance(edge.a, edge.b, adjacency);
-            if (graphDist >= 3 && Random.value < 0.45f) 
-            {
-                extraEdges.Add(edge);
-                adjacency[edge.a].Add(edge.b); adjacency[edge.b].Add(edge.a);
-            }
-        }
-
-        foreach (var edge in mstEdges) DrawCorridorBetweenRooms(edge.a, edge.b);
-        foreach (var edge in extraEdges) DrawCorridorBetweenRooms(edge.a, edge.b);
-
-        // [추가] 모든 통로 등록 완료 후 최종 렌더링
-        _painter.FinalizePainting();
-    }
-
-    private int GetGraphDistance(RoomInstance start, RoomInstance target, Dictionary<RoomInstance, List<RoomInstance>> adj)
-    {
-        Queue<(RoomInstance, int)> queue = new Queue<(RoomInstance, int)>();
-        queue.Enqueue((start, 0));
-        HashSet<RoomInstance> visited = new HashSet<RoomInstance> { start };
-        while (queue.Count > 0)
-        {
-            var (curr, dist) = queue.Dequeue();
-            if (curr == target) return dist;
-            foreach (var neighbor in adj[curr]) { if (!visited.Contains(neighbor)) { visited.Add(neighbor); queue.Enqueue((neighbor, dist + 1)); } }
-        }
-        return 999;
-    }
-
-    private class Edge
-    {
-        public RoomInstance a; public RoomInstance b; public float distance;
-        public Edge(RoomInstance a, RoomInstance b) { this.a = a; this.b = b; distance = Vector2.Distance(a.transform.position, b.transform.position); }
-    }
-
-    private void DrawCorridorBetweenRooms(RoomInstance a, RoomInstance b)
-    {
-        // 1. 두 방 사이의 가장 가까운 앵커 쌍 찾기
-        RoomAnchor bestA = null;
-        RoomAnchor bestB = null;
-        float minTargetDist = float.MaxValue;
-
-        foreach (var anchorA in a.anchors)
-        {
-            foreach (var anchorB in b.anchors)
-            {
-                float d = Vector2.Distance(anchorA.transform.position, anchorB.transform.position);
-                if (d < minTargetDist)
-                {
-                    minTargetDist = d;
-                    bestA = anchorA;
-                    bestB = anchorB;
-                }
-            }
-        }
-
-        if (bestA == null || bestB == null)
-        {
-            Debug.LogWarning($"[MapGen] No anchors found between {a.gameObject.name} and {b.gameObject.name}");
-            return;
-        }
-
-        // [핵심 수정] 타일맵 셀 좌표와 완벽히 동기화
-        Vector3Int cellA = globalWallTilemap.WorldToCell(bestA.transform.position);
-        Vector3Int cellB = globalWallTilemap.WorldToCell(bestB.transform.position);
-        Vector2Int exitA = new Vector2Int(cellA.x, cellA.y);
-        Vector2Int exitB = new Vector2Int(cellB.x, cellB.y);
-
-        List<Vector2Int> fullPath = new List<Vector2Int>();
-
-        // 2. 앵커 방향으로 직선 구간 확보
-        Vector2Int currentA = exitA;
-        fullPath.Add(exitA); 
-        for (int i = 0; i < generationData.corridorStraightLength; i++) 
-        { 
-            currentA += bestA.direction; 
-            fullPath.Add(currentA); 
-        }
-
-        Vector2Int entrancePointB = exitB;
-        for (int i = 0; i < generationData.corridorStraightLength; i++) 
-        { 
-            entrancePointB += bestB.direction; 
-        }
-
-        // 3. A* 경로 탐색
-        List<Vector2Int> aStarPath = _painter.FindPath(currentA, entrancePointB, generationData.corridorAvoidMargin);
-        if (aStarPath != null && aStarPath.Count > 0)
-        {
-            // A* 경로의 첫 번째 점은 currentA와 동일하므로 건너뛰고 추가
-            for (int i = 1; i < aStarPath.Count; i++)
-            {
-                fullPath.Add(aStarPath[i]);
-            }
-
-            Vector2Int finalStep = entrancePointB;
-            for (int i = 0; i < generationData.corridorStraightLength; i++) 
-            { 
-                finalStep -= bestB.direction; 
-                fullPath.Add(finalStep); 
-            }
-            
-            // 만약 마지막 지점이 exitB가 아니라면 확실히 닫아줌
-            if (fullPath[fullPath.Count - 1] != exitB)
-            {
-                fullPath.Add(exitB); 
-            }
-
-            // [핵심 오류 수정] 연속된 중복 좌표 제거 (중복 시 방향 벡터가 0,0이 되어 통로가 망가짐)
-            for (int i = fullPath.Count - 1; i > 0; i--)
-            {
-                if (fullPath[i] == fullPath[i - 1])
-                {
-                    fullPath.RemoveAt(i);
-                }
-            }
-
-            // 앵커 정보와 함께 경로 등록
-            _painter.RegisterCorridorWithAnchors(fullPath, bestA, bestB);
-            
-            bestA.isUsed = true;
-            bestB.isUsed = true;
-        }
-    }
-
-    private (Vector2Int point, Vector2Int direction) GetBestExitPoint(RoomInstance room, Vector3 targetWorldPos)
-    {
-        Vector2Int center = Vector2Int.RoundToInt((Vector2)room.transform.position + room.centerOffset);
-        Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
         
-        Vector2Int bestPoint = center;
-        Vector2Int bestDir = dirs[0];
-        float minScore = float.MaxValue;
+        List<RoomInstance> unreached = _allRooms.Where(r => !_reachedRooms.Contains(r) && r.roomType != RoomType.Reward).ToList();
+        List<RoomInstance> rewardRooms = _allRooms.Where(r => r.roomType == RoomType.Reward && !_reachedRooms.Contains(r)).ToList();
 
-        foreach (var d in dirs)
+        bool changed = true;
+        while (changed && unreached.Count > 0)
         {
-            // 수직 방향 (너비 체크용)
-            Vector2Int sideDir = new Vector2Int(-d.y, d.x);
-            
-            Vector2Int current = center;
-            bool foundValidSegment = false;
+            changed = false;
+            var candidates = (from r in _reachedRooms
+                              from u in unreached
+                              let dist = Vector2.Distance(r.transform.position, u.transform.position)
+                              orderby dist
+                              select new { reached = r, unreached = u }).ToList();
 
-            for (int i = 0; i < 50; i++)
+            foreach (var c in candidates)
             {
-                current += d;
-                Vector3Int cellPos = globalWallTilemap.WorldToCell((Vector3)(Vector2)current);
-                
-                if (globalWallTilemap.HasTile(cellPos)) 
-                {
-                    // 3칸 너비가 모두 벽인지 확인 (꼭짓점 회피 로직 포함)
-                    bool l = globalWallTilemap.HasTile(cellPos + (Vector3Int)sideDir);
-                    bool r = globalWallTilemap.HasTile(cellPos - (Vector3Int)sideDir);
-                    
-                    // 추가 마진 확인 (꼭짓점에서 최소 1칸 더 여유: 총 5칸 직선 필요)
-                    bool l2 = globalWallTilemap.HasTile(cellPos + (Vector3Int)sideDir * 2);
-                    bool r2 = globalWallTilemap.HasTile(cellPos - (Vector3Int)sideDir * 2);
+                if (!unreached.Contains(c.unreached)) continue;
+                if ((c.unreached.roomType == RoomType.Shop || c.unreached.roomType == RoomType.Elite) && c.reached.roomType == RoomType.Spawn)
+                    continue;
 
-                    if (l && r && l2 && r2)
-                    {
-                        foundValidSegment = true;
-                        break;
-                    }
-                    else
-                    {
-                        // 벽을 만나긴 했으나 3칸 너비가 안됨 -> 이 방향은 포기 (보통 방의 끝/꼭짓점임)
-                        break; 
-                    }
+                if (DrawCorridorBetweenRooms(c.reached, c.unreached, 0))
+                {
+                    _reachedRooms.Add(c.unreached);
+                    unreached.Remove(c.unreached);
+                    _masterAdjacency[c.reached].Add(c.unreached);
+                    _masterAdjacency[c.unreached].Add(c.reached);
+                    changed = true;
+                    break; 
                 }
             }
+        }
 
-            if (foundValidSegment)
+        foreach (var reward in rewardRooms)
+        {
+            UpdateAllRoomDepths();
+            var validReached = _reachedRooms.Where(r => r.debugDepth != -1).ToList();
+            if (validReached.Count == 0) continue;
+
+            int maxD = validReached.Max(r => r.debugDepth);
+            var deepNodes = validReached.Where(r => r.debugDepth >= maxD).OrderBy(r => Vector2.Distance(r.transform.position, reward.transform.position)).ToList();
+            
+            foreach (var p in deepNodes)
             {
-                float distToTarget = Vector2.Distance((Vector2)current, (Vector2)targetWorldPos);
-                Vector2 toTargetDir = ((Vector2)targetWorldPos - (Vector2)center).normalized;
-                float dot = Vector2.Dot(toTargetDir, (Vector2)d);
-                float score = distToTarget - (dot * 10f); 
-                
-                if (score < minScore) { minScore = score; bestPoint = current; bestDir = d; }
+                if (DrawCorridorBetweenRooms(p, reward, 0))
+                {
+                    _reachedRooms.Add(reward);
+                    _masterAdjacency[p].Add(reward);
+                    _masterAdjacency[reward].Add(p);
+                    break;
+                }
             }
         }
-        return (bestPoint, bestDir);
+
+        _painter.FinalizePainting();
+        UpdateAllRoomDepths();
     }
 
-    private void AssignSpecialRooms()
+    private void UpdateAllRoomDepths()
     {
-        if (_rooms.Count == 0) return;
-        RoomInstance spawnRoom = _rooms.Find(r => r.roomType == RoomType.Spawn) ?? _rooms[0];
-        float maxDist = -1f; RoomInstance farthestRoom = null;
-        foreach (var room in _rooms)
+        RoomInstance spawn = _allRooms.Find(r => r.roomType == RoomType.Spawn);
+        if (spawn == null) return;
+        foreach (var r in _allRooms) r.debugDepth = -1;
+        Queue<RoomInstance> q = new Queue<RoomInstance>();
+        q.Enqueue(spawn);
+        spawn.debugDepth = 0;
+        while (q.Count > 0)
         {
-            if (room == spawnRoom) continue;
-            float d = Vector2.Distance(spawnRoom.transform.position, room.transform.position);
-            if (d > maxDist) { maxDist = d; farthestRoom = room; }
+            RoomInstance curr = q.Dequeue();
+            if (!_masterAdjacency.ContainsKey(curr)) continue;
+            foreach (var neighbor in _masterAdjacency[curr])
+            {
+                if (neighbor.debugDepth == -1)
+                {
+                    neighbor.debugDepth = curr.debugDepth + 1;
+                    q.Enqueue(neighbor);
+                }
+            }
         }
-        if (farthestRoom != null) farthestRoom.roomType = RoomType.Boss;
+    }
+
+    private void UpdateGlobalColliders()
+    {
+        if (globalWallTilemap == null) return;
+        
+        Rigidbody2D rb = globalWallTilemap.GetComponent<Rigidbody2D>();
+        if (rb == null) rb = globalWallTilemap.gameObject.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Static;
+
+        TilemapCollider2D col = globalWallTilemap.GetComponent<TilemapCollider2D>();
+        if (col == null) col = globalWallTilemap.gameObject.AddComponent<TilemapCollider2D>();
+        col.usedByComposite = true;
+        
+        CompositeCollider2D comp = globalWallTilemap.GetComponent<CompositeCollider2D>();
+        if (comp == null) comp = globalWallTilemap.gameObject.AddComponent<CompositeCollider2D>();
+        comp.geometryType = CompositeCollider2D.GeometryType.Polygons;
+        comp.generationType = CompositeCollider2D.GenerationType.Manual;
+        comp.GenerateGeometry(); 
+        
+        // 물리 엔진 동기화
+        Physics2D.SyncTransforms();
+    }
+
+    private void ClearExistingMap() 
+    { 
+        foreach (var room in _allRooms) if (room != null) Destroy(room.gameObject); 
+        _allRooms.Clear(); _reachedRooms.Clear(); _masterAdjacency.Clear();
+        if (globalGroundTilemap != null) globalGroundTilemap.ClearAllTiles(); 
+        if (globalWallTilemap != null) globalWallTilemap.ClearAllTiles(); 
+        if (globalShadowTilemap != null) globalShadowTilemap.ClearAllTiles(); 
+    }
+
+    private bool DrawCorridorBetweenRooms(RoomInstance a, RoomInstance b, int pathDepth)
+    {
+        var availableA = a.anchors.Where(an => !an.isUsed).ToList();
+        var availableB = b.anchors.Where(an => !an.isUsed).ToList();
+        if (availableA.Count == 0 || availableB.Count == 0) return false;
+        RoomAnchor bestA = null, bestB = null; float minDist = float.MaxValue;
+        foreach (var anA in availableA) foreach (var anB in availableB) { float d = Vector2.Distance(anA.transform.position, anB.transform.position); if (d < minDist) { minDist = d; bestA = anA; bestB = anB; } }
+        if (bestA == null || bestB == null) return false;
+        Vector3Int cA = globalWallTilemap.WorldToCell(bestA.transform.position), cB = globalWallTilemap.WorldToCell(bestB.transform.position);
+        Vector2Int exitA = new Vector2Int(cA.x, cA.y), exitB = new Vector2Int(cB.x, cB.y);
+        List<Vector2Int> path = new List<Vector2Int>();
+        Vector2Int curA = exitA; path.Add(exitA); for (int i = 0; i < generationData.corridorStraightLength; i++) { curA += bestA.direction; path.Add(curA); }
+        Vector2Int entB = exitB; for (int i = 0; i < generationData.corridorStraightLength; i++) entB += bestB.direction;
+        List<Vector2Int> astar = _painter.FindPath(curA, entB, generationData.corridorAvoidMargin, pathDepth);
+        if (astar != null) { 
+            for (int i = 1; i < astar.Count; i++) path.Add(astar[i]); 
+            Vector2Int fin = entB; for (int i = 0; i < generationData.corridorStraightLength; i++) { fin -= bestB.direction; path.Add(fin); } 
+            if (path.Count > 0 && path.Last() != exitB) path.Add(exitB); 
+            for (int i = path.Count - 1; i > 0; i--) if (path[i] == path[i - 1]) path.RemoveAt(i); 
+            _painter.RegisterCorridorWithAnchors(path, bestA, bestB, pathDepth); 
+            bestA.isUsed = true; bestB.isUsed = true; 
+            return true;
+        }
+        return false;
+    }
+
+    private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground", "Ground"); ConfigureTilemap(globalWallTilemap, "Wall", "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow", "Shadow"); }
+    private void ConfigureTilemap(Tilemap tm, string layerName, string sortingLayerName) { if (tm == null) return; int layer = LayerMask.NameToLayer(layerName); if (layer != -1) tm.gameObject.layer = layer; var renderer = tm.GetComponent<TilemapRenderer>(); if (renderer != null) renderer.sortingLayerName = sortingLayerName; }
+    private void SetGlobalCollidersActive(bool active) { if (globalWallTilemap != null) { var col = globalWallTilemap.GetComponent<TilemapCollider2D>(); if (col != null) col.enabled = active; } }
+    private void AssignSpecialRooms() { }
+
+    private void DumpMapToLog()
+    {
+        if (globalGroundTilemap == null || globalWallTilemap == null) return;
+        globalGroundTilemap.CompressBounds(); globalWallTilemap.CompressBounds();
+        BoundsInt bounds = globalGroundTilemap.cellBounds; BoundsInt wallBounds = globalWallTilemap.cellBounds;
+        int xMin = Mathf.Min(bounds.xMin, wallBounds.xMin), xMax = Mathf.Max(bounds.xMax, wallBounds.xMax), yMin = Mathf.Min(bounds.yMin, wallBounds.yMin), yMax = Mathf.Max(bounds.yMax, wallBounds.yMax);
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        sb.AppendLine($"Map Bounds: X({xMin} to {xMax}), Y({yMin} to {yMax})");
+        sb.AppendLine("Legend: [P: Spawn], [S: Shop], [R: Reward], [E: Elite], [N: Normal]");
+        sb.AppendLine();
+        for (int y = yMax; y >= yMin; y--) {
+            for (int x = xMin; x <= xMax; x++) {
+                Vector3Int pos = new Vector3Int(x, y, 0); string roomLabel = null;
+                foreach (var room in _allRooms) { Vector3Int centerCell = globalGroundTilemap.WorldToCell(room.transform.position + (Vector3)room.centerOffset); if (pos == centerCell) { string typeKey = room.roomType == RoomType.Spawn ? "P" : room.roomType.ToString().Substring(0, 1); roomLabel = $"[{typeKey}:{room.debugDepth}]"; break; } }
+                if (roomLabel != null) { sb.Append(roomLabel); x += roomLabel.Length - 1; continue; }
+                if (globalWallTilemap.HasTile(pos)) sb.Append("W"); else if (globalShadowTilemap.HasTile(pos)) sb.Append("S"); else if (globalGroundTilemap.HasTile(pos)) sb.Append("."); else sb.Append(" ");
+            }
+            sb.AppendLine();
+        }
+        string path = System.IO.Path.Combine(Application.dataPath, "..", "MapDebugLog.txt");
+        System.IO.File.WriteAllText(path, sb.ToString());
     }
 }

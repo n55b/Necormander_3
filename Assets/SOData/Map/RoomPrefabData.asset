@@ -28,6 +28,3 @@ MonoBehaviour:
   - roomType: 4
     prefabs:
     - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}
-  - roomType: 5
-    prefabs:
-    - {fileID: 6853878630644403523, guid: 279c64d3341146d49b6b78ff7f8de141, type: 3}
