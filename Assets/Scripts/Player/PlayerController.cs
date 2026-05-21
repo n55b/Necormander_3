@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 public enum PlayerStates
@@ -71,6 +73,10 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody2D _rb;
 
+    [Header("지워야 함")]
+    public UnityEvent unityaction;
+    bool isWaiting = false;
+
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
@@ -124,7 +130,27 @@ public class PlayerController : MonoBehaviour
         if (damage > 0 && throwController != null)
         {
             throwController.DropAll();
+
+            // 하드코딩으로 카메라 쉐이킹 잠깐 넣음
+            unityaction?.Invoke();
+            StartCoroutine(HitStopRoutine(0.05f));
         }
+    }
+    private IEnumerator HitStopRoutine(float duration)
+    {
+        isWaiting = true;
+
+        // 유니티 전체 시간을 정지시킵니다.
+        Time.timeScale = 0f;
+
+        // ⚠️ 중요: 시간이 0일 때는 WaitForSeconds를 쓰면 영원히 갇힙니다!
+        // 반드시 현실 세계의 진짜 시간 기준인 Realtime 버전을 써야 합니다.
+        yield return new WaitForSecondsRealtime(duration);
+
+        // 다시 정상 시간 속도로 복구
+        Time.timeScale = 1f;
+        
+        isWaiting = false;
     }
 
     private void Update()
