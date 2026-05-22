@@ -230,9 +230,36 @@ public class CorridorPainter : MonoBehaviour
             _totalPathTiles.Add(pos);
             _tileDepths[pos] = pathDepth;
             
-            AddGroundWithDepth(pos, pathDepth);
-            AddGroundWithDepth(pos + sideDir, pathDepth);
-            AddGroundWithDepth(pos - sideDir, pathDepth);
+            // 코너(꺾임점) 감지: 이전 노드의 방향과 현재 노드의 방향이 다를 때
+            bool isCorner = false;
+            if (i > 0)
+            {
+                Vector2Int dirPrev = GetDirection(path, i - 1);
+                if (dirPrev != dir)
+                {
+                    isCorner = true;
+                }
+            }
+
+            if (isCorner)
+            {
+                // 코너의 경우 모퉁이 중심(pos) 기준 3x3 사각형 영역 전체를 바닥으로 등록하여
+                // 외벽 정렬 시 찌그러지는 현상을 방지합니다.
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        AddGroundWithDepth(pos + new Vector2Int(dx, dy), pathDepth);
+                    }
+                }
+            }
+            else
+            {
+                // 일반 직선 구간은 복도 폭 3칸(수직 방향)으로 등록
+                AddGroundWithDepth(pos, pathDepth);
+                AddGroundWithDepth(pos + sideDir, pathDepth);
+                AddGroundWithDepth(pos - sideDir, pathDepth);
+            }
         }
 
         if (startAnchor != null) ApplyAnchorEntrance(startAnchor, pathDepth);
