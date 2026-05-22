@@ -1,82 +1,406 @@
-Map Bounds: X(-50 to 71), Y(-36 to 42)
+Map Bounds: X(-105 to 98), Y(-123 to 107)
 Legend: [P: Spawn], [S: Shop], [R: Reward], [E: Elite], [N: Normal]
 
-                                                                                                                          
-                      WWWWWWWWWWWW                                                                                        
-                      WWWWWWWWWWWW                                                                                        
-                      WSSSSSSSSSSW                                                                                        
-                      WS........SW                                                                                        
-                      WS........SW                                                                                        
-                      WS........SW                                                                                        
-                      WS....[R:5]W                                                                                        
-                      WS........SW                                                                                        
-                      WS........SW                                                                                        
-                      WS........SW                                                                                        
-                      WS........SW                                                                                        
-                      WSSSS...SSSW                                                                                        
-                      WWWWWS.SWWWW                                                                                        
-                          WS.SWW                                                                                          
-                          WS.SSW                                                                                          
-                          WS..SW                                                                                          
-                          WSS.SW                                                                                          
-                          WWS.SW                                                                                          
-                           WS.SW                                                                                          
-                           WS.SW                                                                                          
-                           WS.SW                                                                                          
-                           WS.SW                                                                                          
-                           WS.SW                                                                                          
-                           WS.SW                                                                                          
-                           WS.SW                                                                                          
-                           WS.SW                                                                                          
-           WWWWWWWWWWWW    WS.SW                                                                                          
-           WWWWWWWWWWWW    WS.SW                                                                                          
-           WSSSSSSSSSSW    WS.SW                                                            WWWWWWWWWWWWWWWWWWWWWWWWWWWWW 
-WWWWWWWWWWWWS........SW    WS.SW                                                            WSSSSSSSSSSSSSSSSSSSSSSSSSSSW 
-WSSSSSSSSSWWS........SW    WS.SW                                        [N:2]               W..........................SW 
-WS.......SSS.........SW    [N:2]                                                            WSSSSSSSSSSSSSSSSSSSSSSSSS.SW 
-WSSSSSSS.........[E:3]W    WS.SW                                                            WWWWWWWWWWWWWWWWWWWWWWWWWS.SW 
-WWWWWWWSSSSS.........SW    WS.SW                                                                                    WS.SW 
-      WWWWWWS........SW    WS.SW                                                                                    WS.SW 
-           WS........SW    WS.SW                                                                                    WS.SW 
-           WS........SW    WS.SW                                                                                    WS.SW 
-           WSSSSSSSSSSW    WS.SW               WWWWWWWWWWWW                                                         WS.SW 
-           WWWWWWWWWWWW    WS.SW               WWWWWWWWWWWW                                                         WS.SW 
-                           WS.SW               WSSSSSSSSSSW                                                         WS.SW 
-                           WS.SW               WS........SW                                                         WS.SW 
-                           WS.SW          WWWWWWS........SWWWWWW      WWWWW                                      WWWWS.SW 
-                      WWWWWWS.SW          WSSSSS..........SSSSSW      WS.SW                                      WSSSS.SW 
-                      WS.SWWS.SW          WS.........[P:0]....SW      WS.SW                  [N:3]               W.....SW 
-                      WS.SWWS.SW          WS.SSS..........SSS.SW      WS.SW                                      WSSSSSSW 
-                      WS.SWWS.SW          WS.SWWS........SWWS.SW      WS.SW                                      WWWWWWWW 
-                      WS.SWWS.SW          WS.SWWS........SWWS.SW      WS.SW                                               
-           WWWWWWWWWWWWS.SWWS.SW          WS.SWWS........SWWS.SWWWW   WS.SW                                               
-           WSSSSSSSSSSSS.SWWS.SW          WS.SWWSSSSSSSSSSWWS.SSSSW   WS.SW                                               
-           WS............SWWS.SW      W[N:1].SWWWWWWWWWWWWWW.....SW   WS.SWWWWWWWWWWWWWWWWWWWW                            
-           WSSSSSSSSSSSSSSWWS.SW      WSSSSS.SW            WSSSSSSW   WS.SSSSSSSSSSSSSSSSSSSSW                            
-           WWWWWWWWWWWWWWWWWS.SW      WS.....SW            WWWWWWW[N:1]S....................SW                            
-                           WS.SW      WSSSSSSSW                       WSSSSSSSSSSSSSSSSSSSSSSW                            
-                           WS.SW      WWWWWWWWW                       WWWWWWWWWWWWWWWWWWWWWWWW                            
-                           WS.SW                 WWWWWWWWWWWW                              WWWWW                          
-                           WS.SW                 WWWWWWWWWWWW                              WS.SW                          
-                           WS.SW                 WSSSSSSSSSSW                              WS.SW                          
-                           WS.SW                 WS........SW                              WS.SW                          
-                           WS.SW                 WS........SWWWWWWWWW                      WS.SW                          
-                           WS.SW                 WS.........SSSSSSSSW                      WS.SW                          
-                           WS.SW                 WS....[S:2].......SW                      WS.SW                          
-                           WS.SW                 WS.........SSSSSS.SW                      WS.SW                          
-                           WS.SW                 WS........SWWWWWS.SW                      WS.SW                          
-                           WS.SW                 WS........SW   WS.SW                      WS.SW                          
-                           WS.SW                 WS........SW   WS.SW                      WS.SW                          
-                           WS.SW                 WSSSSSSSSSSW   WS.WWWWWWWWWWWW            WS.SW                          
-                           WS.SW                 WWWWWWWWWWWW   WS.WWWWWWWWWWWW            WS.SW                          
-                           WS.SW                                WS.WWSSSSSSSSSW            WS.SW                          
-                           WS.SW                                WSSWW........SW            WS.SW                          
-                           WS.SW                              WWWWWWW........SWWWWWWWWWWWWWWS.SW                          
-                           WS.SWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWSSSSS..........SSSSSSSSSSSSSSS.SW                          
-                           WS.SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS.........[R:4]................SW                          
-                           WS....................................SSS..........SSSSSSSSSSSSSSSSSW                          
-                           WSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSWWS........SWWWWWWWWWWWWWWWWWW                          
-                           WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWS........SW                                           
-                                                                   WS........SW                                           
-                                                                   WSSSSSSSSSSW                                           
-                                                                   WWWWWWWWWWWW                                           
+                                                                                                                                                                                                            
+                                                                              WWWWWWWWWWWW                                                                                                                  
+                                                                              WWWWWWWWWWWW                                                                                                                  
+                                                                              WSSSSSSSSSSW                                                                                                                  
+                                                                              WS........SW                                                                                                                  
+ WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWS........SW                                                                                                                  
+ WSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSWS........SW                                                                                                                  
+WW..................................................................................[R:3]W                                                                                                                  
+WS.SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSWS........SW                                                                                                                  
+WS.SWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWS........SW                                                                                                                  
+WS.SW                                                                         WS........SW                                                                                                                  
+WS.SW                                                                         WS........SW                                                                                                                  
+WS.SW                                                                         WSSSSS.SSSSW                                                                                                                  
+WS.SW                                                                         WWWWWW.WWWWW                                                                                                                  
+WS.SW                                                                             WS.SWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW               
+WS.SW                                                                             WS.SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSWWW             
+WS.SW                                                                             WW.........................................................................................................SW             
+WS.SW                                                                              WSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS.SW             
+WS.SW                                                                              WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWS.SW             
+WS.SW                                                                                                                                                                                     WS.SW             
+WS.SW                                                                                                                                                                                     WS.SW             
+WS.SW                                                                                                                                                                                     WS.SW             
+WS.SW                                                                                                                                                                                     WS.SW             
+WS.SW                                                                                                                                                                                     WS.SW             
+WS.SW                                                                                                                                                                                     WS.SW             
+WS.SW                                                                                                                                                                                     WS.SW             
+WS.SW                                                                                                                                                                                     WS.SW             
+WS.SW                                                                                                                                                                                     WS.SW             
+WS.SW                                                                                                                                                                                     WS.SW             
+WS.SWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW                                                                                                                                       WS.SW             
+WS.SWW............................................W                                                                                                                                       WS.SW             
+WS.SWW............................................W                                                                                                                                       WS.SW             
+WS.SWW............................................W                                                                                                                                       WS.SW             
+WS.SWW............................................W                                                                                                                                       WS.SW             
+WS.SWW............................................W                                                                                                                                       WS.SW             
+WS.SWW............................................W                                                                                                                                       WS.SW             
+WS.SWW............................................W                                                                                                                                       WS.SW             
+WS.SWW............................................W                                                                                                                     WWWWWWWWWWWW      WS.SW             
+WS.SWW............................................W                                                                                                                     WWWWWWWWWWWW      WS.SW             
+WS.SWW............................................WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW                                                                                   WSSSSSSSSSSW      WS.SW             
+WS.SSW............................................WSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSW                                                                                   WS........SW      WS.SW             
+WS..........................[N:2]...................................................WW                                               WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWS........SW      WS.SW             
+WWWSSW............................................WSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS.SW                                               WSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSWS........SW      WS.SW             
+  WWWW............................................WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWS.SW                                              WW........................................[E:2]W      WS.SW             
+     W............................................W                              WS.SW                                              WS.SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSWS........SW      WS.SW             
+     W............................................W                              WS.SW                                              WS.SWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWS........SW      WS.SW             
+     W............................................W                              WS.SW                                              WS.SW                               WS........SW      WS.SW             
+     W...WWWWWWW..................................W                              WS.SW                                              WS.SW                               WS........SW      WS.SW             
+     WWWWWWWWWWW..................................W                              WS.SW                                              WS.SW                               WSSSSSSSSSSW      WS.SW             
+     WWWWWWWWWWW..................................W                              WS.SW                                              WS.SW                               WWWWWWWWWWWW      WS.SW             
+     WWWWWWWWWWW..................................W                              WS.SW                                              WS.SW                                                 WS.SW             
+     WWWWWWWWWWW..................................W                              WS.SW                                              WS.SW                                                 WS.SW             
+     WWWWWWWWW....................................W                              WS.SW                                              WS.SW                                                 WS.SW             
+     WWWWWWWW.....................................W                              WS.SW                                              WS.SW                                                 WS.SW             
+     WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW                              WS.SW                                              WS.SW                                                 WS.SW             
+                                                                                 WS.SW                                              WS.SW                                                 WS.SW             
+                                                                                 WS.SW                                              WS.SW                                                 WS.SW             
+                                                                                 WS.SW                                              WS.SW                                                 WS.SW             
+                                                                                 WS.SW                                              WS.SW                                                 WS.SW             
+                                                                                 WS.SW                                              WS.SW                                                 WS.SW             
+                                                                                 WS.SW                                              WS.SW                                                 WS.SW             
+                                                                                 WS.SW                                              WS.SW                                                 WS.SW             
+                                                                                 WS.SW                                              WS.SW                                                 WS.SW             
+                                                                                 WS.SWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWS.SW                                                 WS.SW             
+                                                                                 WS.SWW............................................WWS.SW                                                 WS.SW             
+                                                                                 WS.SWW............................................WWS.SW                                                 WS.SW             
+                                                                                 WS.SWW............................................WWS.SW                                                 WS.SW             
+                                                                                 WS.SWW............................................WWS.SW                                                 WS.SW             
+                                                                                 WS.SWW............................................WWS.SW                                                 WS.SW             
+                                                                                 WS.SWW............................................WWS.SW                                                 WS.SW             
+                                                                                 WS.SWW............................................WWS.SW                                                 WS.SW             
+                                                                                 WS.SWW............................................WWS.SW                                                 WS.SW             
+                                                                                 WS.SWW............................................WWS.SW                                                 WS.SW             
+                                                                                 WS.SWW............................................WWS.SW                                                 WS.SW             
+                                                                                 WS.SSW............................................WSS.SW                                                 WS.SW             
+                                                                                 WS..........................[N:1].....................SW                                                 WS.SW             
+                                                                                 WWWSSW............................................WSSWWW                                                 WS.SW             
+                                                                                   WWWW............................................WWWW                                                   WS.SW             
+                                                                                      W............................................W                                                      WS.SW             
+                                                                                      W............................................W                                                      WS.SW             
+                                                                                      W............................................W                                                      WS.SW             
+                                                                                      W...WWWWWWW..................................W                                                      WS.SW             
+                                                                                      WWWWWWWWWWW..................................W                                                      WS.SW             
+                                                                                      WWWWWWWWWWW..................................W                                                      WS.SW             
+                                                                                      WWWWWWWWWWW..................................W                                                      WS.SW             
+                                                                                      WWWWWWWWWWW..................................W                                                      WS.SW             
+                                                                                      WWWWWWWWW....................................W                                                      WS.SW             
+                                                                                      WWWWWWWW.....................................W                                                      WS.SW             
+                                                                                      WWWWWWWWWWWWWWWWWWWWWWW.WWWWWWWWWWWWWWWWWWWWWW                                                      WS.SW             
+                                                                                                 WWWWWWWWWWWS.SW                                                                          WS.SW             
+                                                                                                 WSSSSSSSSSSS.SW                                                                          WS.SW             
+                                                                                                WW............SW                                                                          WS.SW             
+                                                                                                WS.SSSSSSSSSSWWW                                                                          WS.SW             
+                                                                                                WS.SWWWWWWWWWW                                                                            WS.SW             
+                                                                                                WS.SW                                                                                     WS.SW             
+                                                                                                WS.SW                                                                                     WS.SW             
+                                                                                                WS.SW                                                                                     WS.SW             
+                                                                                                WS.SW                                                                                     WS.SW             
+                                                                                                WS.SW                WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW                       WS.SW             
+                                                                                                WS.SW                W............................................W                       WS.SW             
+                                                                                                WS.SW                W............................................W                       WS.SW             
+                                                                                                WS.SW                W............................................W                       WS.SW             
+                                                                                                WS.SW                W............................................W                       WS.SW             
+                                                                                                WS.SW                W............................................W                       WS.SW             
+                                                                                                WS.SWWWWWWWWWWWWW    W............................................W                       WS.SW             
+                                                                                                WS.SWWWWWWWWWWWWW    W............................................W                       WS.SW             
+                                                                                                WS.SWWSSSSSSSSSSW    W............................................W                       WS.SW             
+                                                                                                WS.SWWS........SW    W............................................W                       WS.SW             
+                                                                                                WS.SWWS........SWWWWWW............................................W                       WS.SW             
+                                                                                                WS.SSWS........SWSSSSW............................................W                       WS.SW             
+                                                                                                WS.........[P:0]............................[N:1].................W                       WS.SW             
+                                                                                                WWWSSWS........SWSSSSW............................................W                       WS.SW             
+                                                                                                  WWWWS........SWWWWWW............................................W                       WS.SW             
+                                                                                                     WS........SW    W............................................W                       WS.SW             
+                                                                                                     WS........SW    W............................................W                       WS.SW             
+                                                                                                     WSSSSS.SSSSW    W............................................W                       WS.SW             
+                                                                                                     WWWWWW.WWWWW    W...WWWWWWW..................................W                       WS.SW             
+                                                                                                         WS.SW       WWWWWWWWWWW..................................W                       WS.SW             
+                                                                                                         WS.SW       WWWWWWWWWWW..................................W                       WS.SW             
+                                                                                                         WS.SW       WWWWWWWWWWW..................................W                       WS.SW             
+                                                                                                         WS.SW       WWWWWWWWWWW..................................W                       WS.SW             
+                                                                                                         WS.SW       WWWWWWWWW....................................W                       WS.SW             
+                                                                                                         WS.SW       WWWWWWWW.....................................W                       WS.SW             
+                                                                                                         WS.SW       WWWWWWWWWWWWWWWWWWWWWWW.WWWWWWWWWWWWWWWWWWWWWW                       WS.SW             
+                                                                                                         WS.SW                            WS.SW                                           WS.SW             
+                                                                                                         WS.SW                            WS.SWW                                          WS.SW             
+                                                                                                         WS.SW                            WW..SW                                          WS.SW             
+                                                                                                         WS.SW                             WS.SW                                          WS.SW             
+                                                                                                         WS.SW                             WS.SW                                          WS.SW             
+                                                                                                         WS.SW                 WWWWWWWWWWWWWS.SW                                          WS.SW             
+                                                                                                         WS.SW                 WWWWWWWWWWWWWS.SW                                          WS.SW             
+                                                                                                         WS.SW                 WSSSSSSSSSSWWS.SW                                          WS.SW             
+                                                                                                         WS.SW                 WS........SWWS.SW                                          WS.SW             
+                                                                                                         WS.SW                 WS........SWWS.SW                                          WS.SW             
+                                                                                                         WS.SW                 WS........SWSS.SW                                          WS.SW             
+                                                                                                         WS.SW                 WS....[S:2]....WW                                          WS.SW             
+                                                                                                         WS.SW                 WS........SWSSSW                                           WS.SW             
+                                                                                                         WS.SW                 WS........SWWWWW                                           WS.SW             
+                                                                                                         WS.SW                 WS........SW                                               WS.SW             
+                                                                                                         WS.SW                 WS........SW                                               WS.SW             
+                                                                                                         WS.SW                 WSSSSSSSSSSW                                               WS.SW             
+                                                                                                         WS.SW                 WWWWWWWWWWWW                                               WS.SW             
+                                                                                                         WS.SW                                                                            WS.SW             
+                                                                                                         WS.SW                                                                            WS.SW             
+                                                                                                         WS.SW                                                                            WS.SW             
+                                         WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW                  WS.SW                                                                            WS.SW             
+                                         W............................................W                  WS.SW                                                                            WS.SW             
+                                         W............................................W                  WS.SW                                                                            WS.SW             
+                                         W............................................W                  WS.SW                                                                            WS.SW             
+                                         W............................................W                  WS.SW                                                                            WS.SW             
+                                         W............................................W                  WS.SW                                                                            WS.SW             
+                                         W............................................W                  WS.SW                                                                            WS.SW             
+                                         W............................................W                  WS.SW                                                                            WS.SW             
+                                         W............................................W                  WS.SW                                                                            WS.SW             
+                                         W............................................W                  WS.SW                                                                            WS.SW             
+                                         W............................................WWWWWWWWWWWWWWWWWWWWS.SW                                                                            WS.SW             
+                                         W............................................WSSSSSSSSSSSSSSSSSSSS.SW                                                                            WS.SW             
+                                         W......................[N:1].......................................WW                                                                            WS.SW             
+                                         W............................................WSSSSSSSSSSSSSSSSSSSSSW                                                                             WS.SW             
+                                         W............................................WWWWWWWWWWWWWWWWWWWWWWW                                                                             WS.SW             
+                                         W............................................W                                                                                                   WS.SW             
+                                         W............................................W                                                                                                   WS.SW             
+                                         W............................................W                                                                                                   WS.SW             
+                                         W...WWWWWWW..................................W                                                                                                   WS.SW             
+                                         WWWWWWWWWWW..................................W                                                                                                   WS.SW             
+                                         WWWWWWWWWWW..................................W                                                                                                   WS.SW             
+                                         WWWWWWWWWWW..................................W                                                                                                   WS.SW             
+                                         WWWWWWWWWWW..................................W                                                                                                   WS.SW             
+                                         WWWWWWWWW....................................W                                                                                                   WS.SW             
+                                         WWWWWWWW.....................................W                                                                                                   WS.SW             
+                                         WWWWWWWWWWWWWWWWWWWWWWW.WWWWWWWWWWWWWWWWWWWWWW                                                                                                   WS.SW             
+                                                              WS.SW                                                                                                                       WS.SW             
+                                                              WS.SW                                                                                                                       WS.SW             
+                                                              WS.SW                                                                                                                       WS.SW             
+                                                              WS.SW                                                                                                                       WS.SW             
+                                                              WS.SW                                                                                                                       WS.SW             
+                                                              WS.SW                                                                                                                       WS.SW             
+                                                              WS.SW                                                                                                                       WS.SW             
+                                                              WS.SW                                                                                                                       WS.SW             
+                                                              WS.SW                                                                                                                       WS.SW             
+                                                              WS.SW  WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW                                                                       WS.SW             
+                                                              WS.SW  W............................................W                                                                       WS.SW             
+                                                              WS.SW  W............................................W                                                                       WS.SW             
+                                                              WS.SW  W............................................W                                                                       WS.SW             
+                                                              WS.SW  W............................................W                                                                       WS.SW             
+                                                              WS.SW  W............................................W                                                                       WS.SW             
+                                                              WS.SW  W............................................W                                                                       WS.SW             
+                                                              WS.SW  W............................................W                                                                       WS.SW             
+                                                              WS.SW  W............................................W                                                                       WS.SW             
+                                                              WS.SW  W............................................W                                                                       WS.SW             
+                                                              WS.SWWWW............................................W                                                                       WS.SW             
+                                                              WS.SSSSW............................................W                                                                       WS.SW             
+                                                              WW............................[N:2].................W                                                                       WS.SW             
+                                                               WSSSSSW............................................W                                                                       WS.SW             
+                                                               WWWWWWW............................................W                                                                       WS.SW             
+                                                                     W............................................W                                                                       WS.SW             
+                                                                     W............................................W                                                                       WS.SW             
+                                                                     W............................................W                                                                       WS.SW             
+                                                                     W...WWWWWWW..................................W                                                                       WS.SW             
+                                                                     WWWWWWWWWWW..................................W                                                                       WS.SW             
+                                                                     WWWWWWWWWWW..................................W                                                                       WS.SW             
+                                                                     WWWWWWWWWWW..................................W                                                                       WS.SW             
+                                                                     WWWWWWWWWWW..................................W                                                                       WS.SW             
+                                                                     WWWWWWWWW....................................W                                                                       WS.SW             
+                                                                     WWWWWWWW.....................................W                                                                       WS.SW             
+                                                                     WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW                                                                       WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SW             
+                                                                                                                                                                                          WS.SWWWWWWWWWWWWW 
+                                                                                                                                                                                          WS.SWWWWWWWWWWWWW 
+                                                                                                                                                                                          WS.SWWSSSSSSSSSSW 
+                                                                                                                                                                                          WS.SWWS........SW 
+                                                                                                                                                                                          WS.SWWS........SW 
+                                                                                                                                                                                          WS.SSWS........SW 
+                                                                                                                                                                                          WW.........[R:4]W 
+                                                                                                                                                                                           WSSSWS........SW 
+                                                                                                                                                                                           WWWWWS........SW 
+                                                                                                                                                                                               WS........SW 
+                                                                                                                                                                                               WS........SW 
+                                                                                                                                                                                               WSSSSSSSSSSW 
+                                                                                                                                                                                               WWWWWWWWWWWW 
+
+==================== ROOM DETAILS ====================
+Room: Room_Spawn(Clone)
+  - Type: Spawn, Depth: 0, PhaseIndex: 0
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (-1.00, 0.00, 0.00)
+  - Global Grid Target Cell Pos: (-1, 0, 0)
+  - Global Grid Target World Pos: (-1.00, 0.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (-1.00, 0.00, 0.00)
+  - Room Cell Position: (-1, 0, 0)
+  - Size: (12, 13), CenterOffset: (3.00, -2.50)
+  - FogMask World Position: None
+  - Anchors count: 3
+    * Anchor 0: LocalPos=(3.49, -8.38, 0.00), CellPos=(2, -9, 0), Dir=(0, -1), IsUsed=True
+    * Anchor 1: LocalPos=(8.52, -2.47, 0.00), CellPos=(7, -3, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(-2.37, -2.47, 0.00), CellPos=(-4, -3, 0), Dir=(-1, 0), IsUsed=True
+
+Room: Room_Normal(Clone)
+  - Type: Normal, Depth: 1, PhaseIndex: 0
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (35.00, -3.00, 0.00)
+  - Global Grid Target Cell Pos: (35, -3, 0)
+  - Global Grid Target World Pos: (35.00, -3.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (35.00, -3.00, 0.00)
+  - Room Cell Position: (35, -3, 0)
+  - Size: (46, 26), CenterOffset: (0.00, 0.00)
+  - FogMask World Position: (35.00, -3.00, 0.00)
+  - Anchors count: 3
+    * Anchor 0: LocalPos=(22.50, 0.45, 0.00), CellPos=(57, -3, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 1: LocalPos=(-22.50, 0.42, 0.00), CellPos=(12, -3, 0), Dir=(-1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(0.46, -12.50, 0.00), CellPos=(35, -16, 0), Dir=(0, -1), IsUsed=True
+
+Room: Room_Shop(Clone)
+  - Type: Shop, Depth: 2, PhaseIndex: 1
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (25.00, -25.00, 0.00)
+  - Global Grid Target Cell Pos: (25, -25, 0)
+  - Global Grid Target World Pos: (25.00, -25.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (25.00, -25.00, 0.00)
+  - Room Cell Position: (25, -25, 0)
+  - Size: (12, 13), CenterOffset: (3.00, -2.50)
+  - FogMask World Position: (28.00, -27.50, 0.00)
+  - Anchors count: 3
+    * Anchor 0: LocalPos=(3.49, -8.38, 0.00), CellPos=(28, -34, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 1: LocalPos=(8.52, -2.47, 0.00), CellPos=(33, -28, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(-2.37, -2.47, 0.00), CellPos=(22, -28, 0), Dir=(-1, 0), IsUsed=False
+
+Room: Room_Normal(Clone)
+  - Type: Normal, Depth: 1, PhaseIndex: 1
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (4.00, 32.00, 0.00)
+  - Global Grid Target Cell Pos: (4, 32, 0)
+  - Global Grid Target World Pos: (4.00, 32.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (4.00, 32.00, 0.00)
+  - Room Cell Position: (4, 32, 0)
+  - Size: (46, 26), CenterOffset: (0.00, 0.00)
+  - FogMask World Position: (4.00, 32.00, 0.00)
+  - Anchors count: 3
+    * Anchor 0: LocalPos=(22.50, 0.45, 0.00), CellPos=(26, 32, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 1: LocalPos=(-22.50, 0.42, 0.00), CellPos=(-19, 32, 0), Dir=(-1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(0.46, -12.50, 0.00), CellPos=(4, 19, 0), Dir=(0, -1), IsUsed=True
+
+Room: Room_Normal(Clone)
+  - Type: Normal, Depth: 1, PhaseIndex: 1
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (-41.00, -50.00, 0.00)
+  - Global Grid Target Cell Pos: (-41, -50, 0)
+  - Global Grid Target World Pos: (-41.00, -50.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (-41.00, -50.00, 0.00)
+  - Room Cell Position: (-41, -50, 0)
+  - Size: (46, 26), CenterOffset: (0.00, 0.00)
+  - FogMask World Position: (-41.00, -50.00, 0.00)
+  - Anchors count: 3
+    * Anchor 0: LocalPos=(22.50, 0.45, 0.00), CellPos=(-19, -50, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 1: LocalPos=(-22.50, 0.42, 0.00), CellPos=(-64, -50, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 2: LocalPos=(0.46, -12.50, 0.00), CellPos=(-41, -63, 0), Dir=(0, -1), IsUsed=True
+
+Room: Room_Elite(Clone)
+  - Type: Elite, Depth: 2, PhaseIndex: 2
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (66.00, 67.00, 0.00)
+  - Global Grid Target Cell Pos: (66, 67, 0)
+  - Global Grid Target World Pos: (66.00, 67.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (66.00, 67.00, 0.00)
+  - Room Cell Position: (66, 67, 0)
+  - Size: (12, 13), CenterOffset: (3.00, -2.50)
+  - FogMask World Position: (69.00, 64.50, 0.00)
+  - Anchors count: 3
+    * Anchor 0: LocalPos=(3.49, -8.38, 0.00), CellPos=(69, 58, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 1: LocalPos=(8.52, -2.47, 0.00), CellPos=(74, 64, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 2: LocalPos=(-2.37, -2.47, 0.00), CellPos=(63, 64, 0), Dir=(-1, 0), IsUsed=True
+
+Room: Room_Normal(Clone)
+  - Type: Normal, Depth: 2, PhaseIndex: 2
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (-77.00, 66.00, 0.00)
+  - Global Grid Target Cell Pos: (-77, 66, 0)
+  - Global Grid Target World Pos: (-77.00, 66.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (-77.00, 66.00, 0.00)
+  - Room Cell Position: (-77, 66, 0)
+  - Size: (46, 26), CenterOffset: (0.00, 0.00)
+  - FogMask World Position: (-77.00, 66.00, 0.00)
+  - Anchors count: 3
+    * Anchor 0: LocalPos=(22.50, 0.45, 0.00), CellPos=(-55, 66, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 1: LocalPos=(-22.50, 0.42, 0.00), CellPos=(-100, 66, 0), Dir=(-1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(0.46, -12.50, 0.00), CellPos=(-77, 53, 0), Dir=(0, -1), IsUsed=False
+
+Room: Room_Normal(Clone)
+  - Type: Normal, Depth: 2, PhaseIndex: 2
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (-13.00, -85.00, 0.00)
+  - Global Grid Target Cell Pos: (-13, -85, 0)
+  - Global Grid Target World Pos: (-13.00, -85.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (-13.00, -85.00, 0.00)
+  - Room Cell Position: (-13, -85, 0)
+  - Size: (46, 26), CenterOffset: (0.00, 0.00)
+  - FogMask World Position: (-13.00, -85.00, 0.00)
+  - Anchors count: 3
+    * Anchor 0: LocalPos=(22.50, 0.45, 0.00), CellPos=(9, -85, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 1: LocalPos=(-22.50, 0.42, 0.00), CellPos=(-36, -85, 0), Dir=(-1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(0.46, -12.50, 0.00), CellPos=(-13, -98, 0), Dir=(0, -1), IsUsed=False
+
+Room: Room_Reward(Clone)
+  - Type: Reward, Depth: 3, PhaseIndex: 3
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (-24.00, 103.00, 0.00)
+  - Global Grid Target Cell Pos: (-24, 103, 0)
+  - Global Grid Target World Pos: (-24.00, 103.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (-24.00, 103.00, 0.00)
+  - Room Cell Position: (-24, 103, 0)
+  - Size: (12, 13), CenterOffset: (3.00, -2.50)
+  - FogMask World Position: (-21.00, 100.50, 0.00)
+  - Anchors count: 3
+    * Anchor 0: LocalPos=(3.49, -8.38, 0.00), CellPos=(-21, 94, 0), Dir=(0, -1), IsUsed=True
+    * Anchor 1: LocalPos=(8.52, -2.47, 0.00), CellPos=(-16, 100, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 2: LocalPos=(-2.37, -2.47, 0.00), CellPos=(-27, 100, 0), Dir=(-1, 0), IsUsed=True
+
+Room: Room_Reward(Clone)
+  - Type: Reward, Depth: 4, PhaseIndex: 3
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (89.00, -114.00, 0.00)
+  - Global Grid Target Cell Pos: (89, -114, 0)
+  - Global Grid Target World Pos: (89.00, -114.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (89.00, -114.00, 0.00)
+  - Room Cell Position: (89, -114, 0)
+  - Size: (12, 13), CenterOffset: (3.00, -2.50)
+  - FogMask World Position: (92.00, -116.50, 0.00)
+  - Anchors count: 3
+    * Anchor 0: LocalPos=(3.49, -8.38, 0.00), CellPos=(92, -123, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 1: LocalPos=(8.52, -2.47, 0.00), CellPos=(97, -117, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 2: LocalPos=(-2.37, -2.47, 0.00), CellPos=(86, -117, 0), Dir=(-1, 0), IsUsed=True
+

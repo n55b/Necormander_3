@@ -30,7 +30,7 @@ public class CorridorPainter : MonoBehaviour
     private int _costMapWidth;
     private int _costMapHeight;
 
-    private static readonly float[,] _corridorWeightTable = new float[5, 5];
+    private static readonly float[,] _corridorWeightTable = new float[7, 7];
 
     // --- 3단계 가비지 재사용 변수 추가 ---
     private readonly Dictionary<Vector2Int, Vector2Int> _cameFrom = new Dictionary<Vector2Int, Vector2Int>();
@@ -47,12 +47,13 @@ public class CorridorPainter : MonoBehaviour
 
     static CorridorPainter()
     {
-        for (int dx = -2; dx <= 2; dx++)
+        for (int dx = -3; dx <= 3; dx++)
         {
-            for (int dy = -2; dy <= 2; dy++)
+            for (int dy = -3; dy <= 3; dy++)
             {
                 if (dx == 0 && dy == 0) continue;
-                _corridorWeightTable[dx + 2, dy + 2] = 40000f / Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
+                // 반경 3칸 범위까지 강력한 가중치를 부여하되, 거리에 따라 감쇄
+                _corridorWeightTable[dx + 3, dy + 3] = 300f / Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
             }
         }
     }
@@ -139,7 +140,7 @@ public class CorridorPainter : MonoBehaviour
             for (int dy = -2; dy <= 2; dy++)
             {
                 if (dx == 0 && dy == 0) continue;
-                roomWeightTable[dx + 2, dy + 2] = 50000f / Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
+                roomWeightTable[dx + 2, dy + 2] = 50f / Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
             }
         }
 
@@ -210,8 +211,7 @@ public class CorridorPainter : MonoBehaviour
         {
             if (tm.HasTile(pos))
             {
-                Vector3 worldPos = tm.CellToWorld(pos);
-                Vector2Int gridPos = new Vector2Int(Mathf.FloorToInt(worldPos.x), Mathf.FloorToInt(worldPos.y));
+                Vector2Int gridPos = new Vector2Int(pos.x, pos.y);
                 if (isWall) _roomWallTiles.Add(gridPos); else _roomFloorTiles.Add(gridPos);
             }
         }
@@ -233,31 +233,29 @@ public class CorridorPainter : MonoBehaviour
             AddGroundWithDepth(pos, pathDepth);
             AddGroundWithDepth(pos + sideDir, pathDepth);
             AddGroundWithDepth(pos - sideDir, pathDepth);
-
-            if (i > 0 && i < path.Count - 1)
-            {
-                if ((path[i] - path[i - 1]) != (path[i + 1] - path[i]))
-                {
-                    for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) AddGroundWithDepth(pos + new Vector2Int(x, y), pathDepth);
-                }
-            }
         }
 
         if (startAnchor != null) ApplyAnchorEntrance(startAnchor, pathDepth);
         if (endAnchor != null) ApplyAnchorEntrance(endAnchor, pathDepth);
     }
 
-    private void AddGroundWithDepth(Vector2Int pos, int depth)
+    private void AddGroundWithDepth(Vector2Int pos, int depth, bool force = false)
     {
+        // force가 false일 때는 방의 기존 벽 타일이나 바닥 타일 좌표인 경우 복도 생성을 스킵합니다.
+        if (!force && (_roomWallTiles.Contains(pos) || _roomFloorTiles.Contains(pos)))
+        {
+            return;
+        }
+
         if (_totalGroundTiles.Add(pos))
         {
             SetCostInMap(pos.x, pos.y, 999999f);
-            for (int dx = -2; dx <= 2; dx++)
+            for (int dx = -3; dx <= 3; dx++)
             {
-                for (int dy = -2; dy <= 2; dy++)
+                for (int dy = -3; dy <= 3; dy++)
                 {
                     if (dx == 0 && dy == 0) continue;
-                    AddCostInMap(pos.x + dx, pos.y + dy, _corridorWeightTable[dx + 2, dy + 2]);
+                    AddCostInMap(pos.x + dx, pos.y + dy, _corridorWeightTable[dx + 3, dy + 3]);
                 }
             }
         }
@@ -273,11 +271,20 @@ public class CorridorPainter : MonoBehaviour
 
         for (int d = -1; d <= 1; d++)
         {
-            for (int s = -1; s <= 1; s++)
+            // 방 안쪽(d = -1)과 벽 경계(d = 0)는 문 크기인 1칸 너비(s = 0)만 뚫고,
+            // 방 바깥 복도 시작 지점(d = 1)에서만 복도 3칸 너비(s = -1 ~ 1) 전체를 뚫습니다.
+            int startS = (d <= 0) ? 0 : -1;
+            int endS = (d <= 0) ? 0 : 1;
+
+            for (int s = startS; s <= endS; s++)
             {
                 Vector2Int targetPos = pos + (dir * d) + (sideDir * s);
                 if (s == 0) { _totalPathTiles.Add(targetPos); _tileDepths[targetPos] = depth; }
-                AddGroundWithDepth(targetPos, depth);
+                
+                // 문 구멍 중앙 라인(s == 0)은 force = true로 문을 뚫고, 
+                // 날개 확장부(s != 0)는 force = false로 설정해 방 벽 훼손을 방지합니다.
+                bool force = (s == 0);
+                AddGroundWithDepth(targetPos, depth, force);
             }
         }
     }
@@ -409,7 +416,10 @@ public class CorridorPainter : MonoBehaviour
                 float moveCost = GetCostFromMap(neighbor.x, neighbor.y);
                 if (moveCost >= 900000f) continue;
 
-                if (lastDir != Vector2Int.zero && lastDir != (neighbor - current)) moveCost += 25f; 
+                if (IsOverlapWithRooms(neighbor, start, end)) continue;
+                if (IsOverlapWithCorridors(neighbor)) continue;
+
+                if (lastDir != Vector2Int.zero && lastDir != (neighbor - current)) moveCost += 2000f; 
 
                 float tentativeGScore = _gScore[current] + moveCost;
                 if (!_gScore.TryGetValue(neighbor, out float existingGScore) || tentativeGScore < existingGScore)
@@ -422,6 +432,47 @@ public class CorridorPainter : MonoBehaviour
             }
         }
         return null;
+    }
+
+    private bool IsOverlapWithCorridors(Vector2Int pos)
+    {
+        for (int dx = -2; dx <= 2; dx++)
+        {
+            for (int dy = -2; dy <= 2; dy++)
+            {
+                Vector2Int checkPos = new Vector2Int(pos.x + dx, pos.y + dy);
+                if (_totalGroundTiles.Contains(checkPos))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private bool IsOverlapWithRooms(Vector2Int pos, Vector2Int start, Vector2Int end)
+    {
+        // 시작점과 끝점 주변(맨해튼 거리 1 이하)은 앵커에서 뻗어 나오는 구간이므로 방 벽 침범 감지를 예외 처리합니다.
+        int distToStart = Mathf.Abs(pos.x - start.x) + Mathf.Abs(pos.y - start.y);
+        int distToEnd = Mathf.Abs(pos.x - end.x) + Mathf.Abs(pos.y - end.y);
+        if (distToStart <= 1 || distToEnd <= 1)
+        {
+            return false;
+        }
+
+        // 복도 5칸 너비 영역(외벽 포함)이 방의 기존 바닥/벽 타일과 오버랩되는지 체크
+        for (int dx = -2; dx <= 2; dx++)
+        {
+            for (int dy = -2; dy <= 2; dy++)
+            {
+                Vector2Int checkPos = new Vector2Int(pos.x + dx, pos.y + dy);
+                if (_roomFloorTiles.Contains(checkPos) || _roomWallTiles.Contains(checkPos))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private float CalculateCost(Vector2Int pos, int margin, int currentPathDepth)

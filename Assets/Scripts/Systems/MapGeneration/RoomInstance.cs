@@ -11,11 +11,13 @@ public class RoomInstance : MonoBehaviour
     [Header("Anchors")]
     public List<RoomAnchor> anchors = new List<RoomAnchor>();
     
-    [HideInInspector] public Tilemap wallTilemap;
-    [HideInInspector] public Tilemap groundTilemap;
-    [HideInInspector] public Tilemap shadowTilemap;
+    [Header("Tilemaps (Optional - Auto-assigned if Null)")]
+    public Tilemap wallTilemap;
+    public Tilemap groundTilemap;
+    public Tilemap shadowTilemap;
     
     [HideInInspector] public int debugDepth = -1; // 맵 생성 시 계산된 깊이 저장용
+    [HideInInspector] public int phaseIndex = -1; // 방이 생성된 맵 생성 페이즈 인덱스
     
     [Header("Combat & Events")]
     public bool isCleared = false;
@@ -50,6 +52,7 @@ public class RoomInstance : MonoBehaviour
     
     public void Initialize(RoomType type)
     {
+        doorObjects.Clear();
         roomType = type;
         _roomEvent = GetComponent<IRoomEvent>();
 
@@ -57,38 +60,58 @@ public class RoomInstance : MonoBehaviour
         anchors.Clear();
         anchors.AddRange(GetComponentsInChildren<RoomAnchor>());
 
-        Transform wallTransform = transform.Find("Wall");
-        if (wallTransform != null) 
+        if (wallTilemap == null)
         {
-            wallTilemap = wallTransform.GetComponent<Tilemap>();
-            
+            Transform wallTransform = FindTransformRecursive(transform, "Wall");
+            if (wallTransform != null) 
+            {
+                wallTilemap = wallTransform.GetComponent<Tilemap>();
+            }
+        }
+
+        if (wallTilemap != null) 
+        {
+            Transform wallTransform = wallTilemap.transform;
             var childCols = wallTransform.GetComponentsInChildren<Collider2D>();
-            foreach (var ccol in childCols) { ccol.enabled = false; Destroy(ccol); }
+            foreach (var ccol in childCols) { ccol.enabled = false; MapGenerator.SafeDestroy(ccol); }
             
             // [핵심 복구] 자식 타일맵에 붙어있는 Rigidbody2D 파괴
             // 이게 남아있으면 Static 바디로 취급되어 부모가 밀려날 때 Wall만 제자리에 남습니다!
             var childRbs = wallTransform.GetComponentsInChildren<Rigidbody2D>();
-            foreach (var crb in childRbs) { crb.simulated = false; Destroy(crb); }
+            foreach (var crb in childRbs) { crb.simulated = false; MapGenerator.SafeDestroy(crb); }
         }
         
-        Transform groundTransform = transform.Find("Ground");
-        if (groundTransform != null) 
+        if (groundTilemap == null)
         {
-            groundTilemap = groundTransform.GetComponent<Tilemap>();
+            Transform groundTransform = FindTransformRecursive(transform, "Ground");
+            if (groundTransform != null) 
+            {
+                groundTilemap = groundTransform.GetComponent<Tilemap>();
+            }
         }
 
-        Transform shadowTransform = transform.Find("Shadow");
-        if (shadowTransform != null)
+        if (shadowTilemap == null)
         {
-            shadowTilemap = shadowTransform.GetComponent<Tilemap>();
+            Transform shadowTransform = FindTransformRecursive(transform, "Shadow");
+            if (shadowTransform != null)
+            {
+                shadowTilemap = shadowTransform.GetComponent<Tilemap>();
+            }
         }
 
         Tilemap mainTM = wallTilemap != null ? wallTilemap : groundTilemap;
         if (mainTM != null)
         {
             mainTM.CompressBounds();
-            // 자식 타일맵의 localPosition 오프셋을 더해 주어야 부모 기준의 정확한 기하 중심이 됩니다.
-            centerOffset = (Vector2)mainTM.localBounds.center + (Vector2)mainTM.transform.localPosition;
+            // 자식 타일맵의 localPosition 오프셋을 루트 부모(transform)까지 거슬러 올라가며 누적해서 더해줍니다.
+            Vector2 localPos = Vector2.zero;
+            Transform curr = mainTM.transform;
+            while (curr != null && curr != transform)
+            {
+                localPos += (Vector2)curr.localPosition;
+                curr = curr.parent;
+            }
+            centerOffset = (Vector2)mainTM.localBounds.center + localPos;
             roomSize = new Vector2Int(Mathf.CeilToInt(mainTM.localBounds.size.x), Mathf.CeilToInt(mainTM.localBounds.size.y));
         }
 
@@ -199,18 +222,80 @@ public class RoomInstance : MonoBehaviour
         }
     }
 
+    public void EraseTilesFromGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow)
+    {
+        UnstampTilemap(groundTilemap, globalGround);
+        UnstampTilemap(wallTilemap, globalWall);
+        UnstampTilemap(shadowTilemap, globalShadow);
+    }
+
+    private void UnstampTilemap(Tilemap source, Tilemap target)
+    {
+        if (source == null || target == null) return;
+        source.CompressBounds();
+        BoundsInt bounds = source.cellBounds;
+        foreach (var pos in bounds.allPositionsWithin)
+        {
+            TileBase tile = source.GetTile(pos);
+            if (tile != null)
+            {
+                Vector3 worldPos = source.CellToWorld(pos);
+                Vector3Int targetCellPos = target.WorldToCell(worldPos);
+                target.SetTile(targetCellPos, null);
+            }
+        }
+    }
+
     public void SnapToGrid(float unit)
     {
         Vector3 pos = transform.position;
-        pos.x = Mathf.Round(pos.x / unit) * unit;
-        pos.y = Mathf.Round(pos.y / unit) * unit;
+        Tilemap mainTM = wallTilemap != null ? wallTilemap : groundTilemap;
+        if (mainTM == null)
+        {
+            pos.x = Mathf.Round(pos.x / unit) * unit;
+            pos.y = Mathf.Round(pos.y / unit) * unit;
+            transform.position = pos;
+            return;
+        }
+
+        // 1. 메인 타일맵의 로컬 셀 (0, 0)의 현재 월드 좌표를 구합니다.
+        Vector3 cellWorldPos = mainTM.CellToWorld(Vector3Int.zero);
+        
+        Vector3 targetWorldPos;
+        if (MapGenerator.Instance != null && MapGenerator.Instance.GlobalGroundTilemap != null)
+        {
+            Tilemap globalTM = MapGenerator.Instance.GlobalGroundTilemap;
+            // 2. 글로벌 타일맵 기준으로 가장 가까운 셀 좌표를 찾습니다.
+            Vector3Int globalCellPos = globalTM.WorldToCell(cellWorldPos);
+            // 3. 해당 셀의 정확한 월드 좌표를 얻습니다.
+            targetWorldPos = globalTM.CellToWorld(globalCellPos);
+        }
+        else
+        {
+            // 폴백: 글로벌 타일맵이 없으면 정수 단위로 스냅합니다.
+            float targetX = Mathf.Round(cellWorldPos.x / unit) * unit;
+            float targetY = Mathf.Round(cellWorldPos.y / unit) * unit;
+            targetWorldPos = new Vector3(targetX, targetY, cellWorldPos.z);
+        }
+        
+        // 4. 목표 월드 좌표와 현재 월드 좌표의 오차(Offset)를 구합니다.
+        Vector3 offset = targetWorldPos - cellWorldPos;
+        
+        // 5. 이 오차만큼 방의 루트 위치를 보정해 줍니다.
+        pos.x += offset.x;
+        pos.y += offset.y;
         transform.position = pos;
     }
 
     public void CleanupPhysics()
     {
-        if (_physicsCollider != null) Destroy(_physicsCollider);
-        if (_rb != null) Destroy(_rb);
+        if (_rb != null)
+        {
+            _rb.simulated = false;
+            _rb.bodyType = RigidbodyType2D.Static;
+        }
+        if (_physicsCollider != null) MapGenerator.SafeDestroy(_physicsCollider);
+        if (_rb != null) MapGenerator.SafeDestroy(_rb);
     }
 
     private void CreateFogMask()
@@ -261,7 +346,7 @@ public class RoomInstance : MonoBehaviour
          */
         if (_fogMaskRenderer == null)
         {
-            if (_fogMaskObj != null) Destroy(_fogMaskObj);
+            if (_fogMaskObj != null) MapGenerator.SafeDestroy(_fogMaskObj);
             yield break;
         }
 
@@ -277,9 +362,33 @@ public class RoomInstance : MonoBehaviour
         }
 
         _fogMaskRenderer.color = targetColor;
-        Destroy(_fogMaskObj);
+        MapGenerator.SafeDestroy(_fogMaskObj);
         _fogMaskObj = null;
         _fogMaskRenderer = null;
         _fadeCoroutine = null;
+    }
+
+    private Transform FindTransformRecursive(Transform current, string targetName)
+    {
+        foreach (Transform child in current)
+        {
+            if (child.name == targetName)
+                return child;
+
+            // 성능 최적화: 가림막, 데코 오브젝트, 조명 등 타일맵과 무관한 하위 계층은 깊이 탐색을 하지 않고 스킵합니다.
+            if (child.name.StartsWith("Fog") || 
+                child.name.StartsWith("Decorate") || 
+                child.name.StartsWith("Light") || 
+                child.name.StartsWith("Global") || 
+                child.name.StartsWith("DoorAnchor"))
+            {
+                continue;
+            }
+
+            Transform found = FindTransformRecursive(child, targetName);
+            if (found != null)
+                return found;
+        }
+        return null;
     }
 }
