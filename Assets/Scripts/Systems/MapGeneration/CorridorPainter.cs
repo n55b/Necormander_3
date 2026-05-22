@@ -18,6 +18,11 @@ public class CorridorPainter : MonoBehaviour
     
     private Dictionary<Vector2Int, int> _tileDepths = new Dictionary<Vector2Int, int>();
 
+    // --- 5단계 드로잉 버퍼 및 중복 제거 캐시 추가 ---
+    private readonly List<Vector3Int> _drawPositions = new List<Vector3Int>(1024);
+    private readonly List<TileBase> _drawTiles = new List<TileBase>(1024);
+    private readonly HashSet<Vector2Int> _outerWallTiles = new HashSet<Vector2Int>();
+
     // --- 2단계 비용 맵 캐시 추가 ---
     private float[,] _costMap;
     private int _costMapOffsetX;
@@ -281,21 +286,97 @@ public class CorridorPainter : MonoBehaviour
 
     public void FinalizePainting()
     {
-        foreach (var gPos in _totalGroundTiles) if (!_roomFloorTiles.Contains(gPos)) _groundTilemap.SetTile((Vector3Int)gPos, _floorTile);
+        // 1. Ground Tilemap 일괄 그리기
+        _drawPositions.Clear();
+        _drawTiles.Clear();
         foreach (var gPos in _totalGroundTiles)
         {
-            _wallTilemap.SetTile((Vector3Int)gPos, null); _shadowTilemap.SetTile((Vector3Int)gPos, null);
-            if (!_totalPathTiles.Contains(gPos) && !_roomFloorTiles.Contains(gPos)) _shadowTilemap.SetTile((Vector3Int)gPos, _shadowTile);
-        }
-        foreach (var gPos in _totalGroundTiles)
-            for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++)
+            if (!_roomFloorTiles.Contains(gPos))
             {
-                Vector2Int neighbor = gPos + new Vector2Int(x, y);
-                if (!_totalGroundTiles.Contains(neighbor) && !_roomFloorTiles.Contains(neighbor))
+                _drawPositions.Add((Vector3Int)gPos);
+                _drawTiles.Add(_floorTile);
+            }
+        }
+        if (_drawPositions.Count > 0)
+        {
+            _groundTilemap.SetTiles(_drawPositions.ToArray(), _drawTiles.ToArray());
+        }
+
+        // 2. Wall Tilemap 및 Shadow Tilemap 복도 바닥 영역 정리 및 그림자 일괄 그리기
+        // - 복도 바닥 영역에서는 벽을 완전히 지우고(null), 그림자 여부에 따라 지우거나 그림자 배치
+        _drawPositions.Clear();
+        _drawTiles.Clear();
+        foreach (var gPos in _totalGroundTiles)
+        {
+            _drawPositions.Add((Vector3Int)gPos);
+            _drawTiles.Add(null);
+        }
+        if (_drawPositions.Count > 0)
+        {
+            _wallTilemap.SetTiles(_drawPositions.ToArray(), _drawTiles.ToArray());
+        }
+
+        _drawPositions.Clear();
+        _drawTiles.Clear();
+        foreach (var gPos in _totalGroundTiles)
+        {
+            _drawPositions.Add((Vector3Int)gPos);
+            if (!_totalPathTiles.Contains(gPos) && !_roomFloorTiles.Contains(gPos))
+            {
+                _drawTiles.Add(_shadowTile);
+            }
+            else
+            {
+                _drawTiles.Add(null);
+            }
+        }
+        if (_drawPositions.Count > 0)
+        {
+            _shadowTilemap.SetTiles(_drawPositions.ToArray(), _drawTiles.ToArray());
+        }
+
+        // 3. 외벽 탐색 및 배치 (중복 타일 처리를 방지하기 위해 먼저 HashSet에 외벽 위치를 고유하게 수집)
+        _outerWallTiles.Clear();
+        foreach (var gPos in _totalGroundTiles)
+        {
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int y = -1; y <= 1; y++)
                 {
-                    _wallTilemap.SetTile((Vector3Int)neighbor, _wallTile); _shadowTilemap.SetTile((Vector3Int)neighbor, _shadowTile);
+                    if (x == 0 && y == 0) continue;
+                    Vector2Int neighbor = gPos + new Vector2Int(x, y);
+                    if (!_totalGroundTiles.Contains(neighbor) && !_roomFloorTiles.Contains(neighbor))
+                    {
+                        _outerWallTiles.Add(neighbor);
+                    }
                 }
             }
+        }
+
+        // 4. 수집된 외벽 위치에 벽 및 그림자 타일 일괄 그리기
+        _drawPositions.Clear();
+        _drawTiles.Clear();
+        foreach (var wPos in _outerWallTiles)
+        {
+            _drawPositions.Add((Vector3Int)wPos);
+            _drawTiles.Add(_wallTile);
+        }
+        if (_drawPositions.Count > 0)
+        {
+            _wallTilemap.SetTiles(_drawPositions.ToArray(), _drawTiles.ToArray());
+        }
+
+        _drawPositions.Clear();
+        _drawTiles.Clear();
+        foreach (var wPos in _outerWallTiles)
+        {
+            _drawPositions.Add((Vector3Int)wPos);
+            _drawTiles.Add(_shadowTile);
+        }
+        if (_drawPositions.Count > 0)
+        {
+            _shadowTilemap.SetTiles(_drawPositions.ToArray(), _drawTiles.ToArray());
+        }
     }
 
     private Vector2Int GetDirection(List<Vector2Int> path, int index)
