@@ -27,6 +27,11 @@ public class RoomInstance : MonoBehaviour
     private BoxCollider2D _physicsCollider;
     private BoxCollider2D _triggerCollider;
 
+    // --- 7단계 안개 가림막용 필드 ---
+    private GameObject _fogMaskObj;
+    private SpriteRenderer _fogMaskRenderer;
+    private Coroutine _fadeCoroutine;
+
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
@@ -56,7 +61,6 @@ public class RoomInstance : MonoBehaviour
         if (wallTransform != null) 
         {
             wallTilemap = wallTransform.GetComponent<Tilemap>();
-            wallTransform.localPosition = Vector3.zero;
             
             var childCols = wallTransform.GetComponentsInChildren<Collider2D>();
             foreach (var ccol in childCols) { ccol.enabled = false; Destroy(ccol); }
@@ -71,21 +75,20 @@ public class RoomInstance : MonoBehaviour
         if (groundTransform != null) 
         {
             groundTilemap = groundTransform.GetComponent<Tilemap>();
-            groundTransform.localPosition = Vector3.zero;
         }
 
         Transform shadowTransform = transform.Find("Shadow");
         if (shadowTransform != null)
         {
             shadowTilemap = shadowTransform.GetComponent<Tilemap>();
-            shadowTransform.localPosition = Vector3.zero;
         }
 
         Tilemap mainTM = wallTilemap != null ? wallTilemap : groundTilemap;
         if (mainTM != null)
         {
             mainTM.CompressBounds();
-            centerOffset = mainTM.localBounds.center;
+            // 자식 타일맵의 localPosition 오프셋을 더해 주어야 부모 기준의 정확한 기하 중심이 됩니다.
+            centerOffset = (Vector2)mainTM.localBounds.center + (Vector2)mainTM.transform.localPosition;
             roomSize = new Vector2Int(Mathf.CeilToInt(mainTM.localBounds.size.x), Mathf.CeilToInt(mainTM.localBounds.size.y));
         }
 
@@ -113,22 +116,26 @@ public class RoomInstance : MonoBehaviour
         _triggerCollider.offset = centerOffset;
 
         gameObject.layer = LayerMask.NameToLayer("Ignore Raycast"); 
-        }
 
-        // [추가] 강제 입장 처리 (스폰 시 초기화용)
+        // 안개 가림막 동적 생성 (스폰 방 제외)
+        CreateFogMask();
+    }
+
         public void ForceEnter()
         {
-        if (roomBGM != null && SoundManager.Instance != null)
-        {
-            SoundManager.Instance.ChangeBGM(roomBGM);
-        }
-        _roomEvent?.OnPlayerEnter(this);
+            RevealRoom();
+            if (roomBGM != null && SoundManager.Instance != null)
+            {
+                SoundManager.Instance.ChangeBGM(roomBGM);
+            }
+            _roomEvent?.OnPlayerEnter(this);
         }
 
         private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
+            RevealRoom();
             if (isCleared || roomType == RoomType.Spawn) return;
 
             // [추가] 방 진입 시 BGM 변경
@@ -204,5 +211,75 @@ public class RoomInstance : MonoBehaviour
     {
         if (_physicsCollider != null) Destroy(_physicsCollider);
         if (_rb != null) Destroy(_rb);
+    }
+
+    private void CreateFogMask()
+    {
+        if (_fogMaskObj != null || roomType == RoomType.Spawn) return;
+
+        _fogMaskObj = new GameObject("FogMask");
+        _fogMaskObj.transform.SetParent(transform);
+        _fogMaskObj.transform.localPosition = (Vector3)centerOffset;
+
+        _fogMaskRenderer = _fogMaskObj.AddComponent<SpriteRenderer>();
+        Texture2D tex = Texture2D.whiteTexture;
+        // pixelsPerUnit을 tex.width로 동적 할당하여 해상도와 무관하게 1x1 유닛 크기를 강제 보장
+        _fogMaskRenderer.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), tex.width);
+        _fogMaskRenderer.color = Color.black;
+        
+        // 소팅 레이어를 Effect로 변경하고 오더를 높여 방 전체 타일 및 플레이어 위로 렌더링되게 수정
+        _fogMaskRenderer.sortingLayerName = "Effect";
+        _fogMaskRenderer.sortingOrder = 100; 
+
+        // 패딩 마진 없이 딱 방 크기(roomSize)에 밀착되도록 수정
+        _fogMaskObj.transform.localScale = new Vector3(roomSize.x, roomSize.y, 1f);
+    }
+
+    public void RevealRoom()
+    {
+        if (_fogMaskObj == null) return;
+        if (_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
+        _fadeCoroutine = StartCoroutine(FadeOutFogMask(1.0f));
+    }
+
+    private System.Collections.IEnumerator FadeOutFogMask(float duration)
+    {
+        /*
+         * [가이드 주석: 타일맵 기반 안개 대체 시 적용 방법]
+         * 만약 차후에 이 스프라이트 가림막을 타일맵(Fog Tilemap) 형태로 교체하고 싶다면:
+         * 1. 맵 생성 완료 후 혹은 각 방 영역의 좌표들을 구합니다.
+         * 2. globalFogTilemap 레이어를 생성하여 방 영역에 검은색 안개 타일들을 채워둡니다.
+         * 3. 이 함수(FadeOutFogMask) 또는 RevealRoom 내에서 아래와 유사한 루프를 통해 타일들을 지웁니다:
+         *    BoundsInt bounds = new BoundsInt(
+         *        Mathf.FloorToInt(transform.position.x + centerOffset.x - roomSize.x * 0.5f),
+         *        Mathf.FloorToInt(transform.position.y + centerOffset.y - roomSize.y * 0.5f),
+         *        0, roomSize.x, roomSize.y, 1
+         *    );
+         *    foreach (var pos in bounds.allPositionsWithin) {
+         *        globalFogTilemap.SetTile(pos, null);
+         *    }
+         */
+        if (_fogMaskRenderer == null)
+        {
+            if (_fogMaskObj != null) Destroy(_fogMaskObj);
+            yield break;
+        }
+
+        float elapsed = 0f;
+        Color startColor = _fogMaskRenderer.color;
+        Color targetColor = new Color(startColor.r, startColor.g, startColor.b, 0f);
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            _fogMaskRenderer.color = Color.Lerp(startColor, targetColor, elapsed / duration);
+            yield return null;
+        }
+
+        _fogMaskRenderer.color = targetColor;
+        Destroy(_fogMaskObj);
+        _fogMaskObj = null;
+        _fogMaskRenderer = null;
+        _fadeCoroutine = null;
     }
 }
