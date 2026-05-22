@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6753367762242577150}
   - component: {fileID: 393181445347658212}
-  - component: {fileID: 7303280904757425614}
+  - component: {fileID: 789911283410254696}
   m_Layer: 0
   m_Name: Room_Shop
   m_TagString: Untagged
@@ -59,11 +59,12 @@ MonoBehaviour:
   groundTilemap: {fileID: 0}
   shadowTilemap: {fileID: 0}
   debugDepth: -1
+  phaseIndex: -1
   isCleared: 0
   doorObjects:
   - {fileID: 8637198600651598581, guid: 307b97e39cd375d47a324403a27bb3a6, type: 3}
   roomBGM: {fileID: 8300000, guid: 76c50e154a0bfa648927b49416b5181a, type: 3}
---- !u!114 &7303280904757425614
+--- !u!114 &789911283410254696
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -72,18 +73,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 219994396242961048}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e52a622eabe45745a6e5c10a52c7720, type: 3}
+  m_Script: {fileID: 11500000, guid: 616047e32657598418fe77c9d99b7c82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groupsCount: 1
-  enemiesPerGroup: 3
-  groupSpread: 1.5
-  OnCombatStart:
-    m_PersistentCalls:
-      m_Calls: []
-  OnCombatClear:
-    m_PersistentCalls:
-      m_Calls: []
+  shopNPC: {fileID: 7485888431113270591}
 --- !u!1 &3570997668046205014
 GameObject:
   m_ObjectHideFlags: 0
@@ -7686,6 +7679,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2629987981121395296, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
   m_PrefabInstance: {fileID: 3962107301888615330}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7485888431113270591 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5845404331569518237, guid: e1a2c8c6f7c3f254fa1285b98e433900, type: 3}
+  m_PrefabInstance: {fileID: 3962107301888615330}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8e55c69f6e711a40be0a8fc3a85311f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &5817830038557424424
 PrefabInstance:
   m_ObjectHideFlags: 0

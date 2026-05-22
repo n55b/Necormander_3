@@ -1460,6 +1460,8 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: c0bab2a6890947e429be89074323cd4f, type: 2}
   - m_RefCount: 24
     m_Data: {fileID: 11400000, guid: 511e88727b1f8f849b52ec344a81e71a, type: 2}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileSpriteArray:
   - m_RefCount: 1
     m_Data: {fileID: -3522130332664450390, guid: b668ce9b0c80d2f4fa294476b08786a3, type: 3}
@@ -1477,6 +1479,8 @@ Tilemap:
     m_Data: {fileID: -8433241169399016145, guid: b668ce9b0c80d2f4fa294476b08786a3, type: 3}
   - m_RefCount: 24
     m_Data: {fileID: 5406717980894771351, guid: b668ce9b0c80d2f4fa294476b08786a3, type: 3}
+  - m_RefCount: 0
+    m_Data: {fileID: 0}
   m_TileMatrixArray:
   - m_RefCount: 140
     m_Data:
@@ -1564,8 +1568,8 @@ TilemapRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 1006732417
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
@@ -12472,7 +12476,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e52a622eabe45745a6e5c10a52c7720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groupsCount: 1
+  groupsCount: 2
   enemiesPerGroup: 3
   groupSpread: 1.5
   OnCombatStart:
