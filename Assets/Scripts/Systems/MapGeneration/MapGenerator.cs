@@ -217,14 +217,114 @@ public class MapGenerator : MonoBehaviour
 
     private IEnumerator PhysicsSpreadingRoutine(List<RoomInstance> activeRooms)
     {
-        int iterations = 0, maxIter = 200;
-        foreach (var room in activeRooms) { Rigidbody2D rb = room.GetComponent<Rigidbody2D>(); if (rb != null) { rb.sleepMode = RigidbodySleepMode2D.NeverSleep; rb.linearDamping = 2f; } }
-        while (iterations < maxIter)
+        // 물리 엔진 시뮬레이션 간섭 방지
+        foreach (var room in activeRooms)
         {
-            foreach (var room in activeRooms) { Rigidbody2D rb = room.GetComponent<Rigidbody2D>(); if (rb == null || rb.bodyType == RigidbodyType2D.Static) continue; Vector2 pushDir = _intendedDirs.ContainsKey(room) ? _intendedDirs[room] : ((Vector2)room.transform.position).normalized; rb.AddForce(pushDir * generationData.spreadingForce, ForceMode2D.Force); }
-            iterations++; yield return new WaitForFixedUpdate();
+            Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
+            if (rb != null) rb.simulated = false;
         }
-        foreach (var room in activeRooms) { Rigidbody2D rb = room.GetComponent<Rigidbody2D>(); if (rb != null && rb.bodyType != RigidbodyType2D.Static) rb.linearVelocity = Vector2.zero; }
+
+        int maxIterations = 60;
+        float stepSize = 0.5f;
+
+        for (int iter = 0; iter < maxIterations; iter++)
+        {
+            // 1. intended direction 방향으로 바깥으로 약간 퍼뜨림 (물리 AddForce 모사)
+            foreach (var room in activeRooms)
+            {
+                Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
+                if (rb != null && rb.bodyType == RigidbodyType2D.Static) continue;
+
+                Vector2 intendedDir = _intendedDirs.ContainsKey(room) ? _intendedDirs[room] : ((Vector2)room.transform.position).normalized;
+                room.transform.position += (Vector3)(intendedDir * stepSize);
+            }
+
+            // 2. 방들 간의 기하학적 AABB 겹침 분산 연산 (Separation)
+            bool anyOverlap = false;
+            for (int i = 0; i < _allRooms.Count; i++)
+            {
+                for (int j = i + 1; j < _allRooms.Count; j++)
+                {
+                    RoomInstance rA = _allRooms[i];
+                    RoomInstance rB = _allRooms[j];
+                    if (rA == null || rB == null) continue;
+
+                    Rigidbody2D rbA = rA.GetComponent<Rigidbody2D>();
+                    Rigidbody2D rbB = rB.GetComponent<Rigidbody2D>();
+                    bool staticA = (rbA != null && rbA.bodyType == RigidbodyType2D.Static);
+                    bool staticB = (rbB != null && rbB.bodyType == RigidbodyType2D.Static);
+
+                    if (staticA && staticB) continue;
+
+                    // 방 크기 + 4.0f 콜라이더 패딩 마진 적용
+                    float halfWA = (rA.roomSize.x + 4f) * 0.5f;
+                    float halfHA = (rA.roomSize.y + 4f) * 0.5f;
+                    float halfWB = (rB.roomSize.x + 4f) * 0.5f;
+                    float halfHB = (rB.roomSize.y + 4f) * 0.5f;
+
+                    Vector2 centerA = (Vector2)rA.transform.position + rA.centerOffset;
+                    Vector2 centerB = (Vector2)rB.transform.position + rB.centerOffset;
+
+                    float dx = centerB.x - centerA.x;
+                    float dy = centerB.y - centerA.y;
+
+                    float overlapX = (halfWA + halfWB) - Mathf.Abs(dx);
+                    float overlapY = (halfHA + halfHB) - Mathf.Abs(dy);
+
+                    if (overlapX > 0 && overlapY > 0)
+                    {
+                        anyOverlap = true;
+
+                        // 겹치는 부피가 더 작은 축 방향으로 밀쳐내어 분리
+                        if (overlapX < overlapY)
+                        {
+                            float pushX = overlapX;
+                            float dirX = dx >= 0 ? 1f : -1f;
+                            if (Mathf.Abs(dx) < 0.001f) dirX = Random.value > 0.5f ? 1f : -1f;
+
+                            if (!staticA && !staticB)
+                            {
+                                rA.transform.position += Vector3.left * (dirX * pushX * 0.5f);
+                                rB.transform.position += Vector3.right * (dirX * pushX * 0.5f);
+                            }
+                            else if (staticA)
+                            {
+                                rB.transform.position += Vector3.right * (dirX * pushX);
+                            }
+                            else if (staticB)
+                            {
+                                rA.transform.position += Vector3.left * (dirX * pushX);
+                            }
+                        }
+                        else
+                        {
+                            float pushY = overlapY;
+                            float dirY = dy >= 0 ? 1f : -1f;
+                            if (Mathf.Abs(dy) < 0.001f) dirY = Random.value > 0.5f ? 1f : -1f;
+
+                            if (!staticA && !staticB)
+                            {
+                                rA.transform.position += Vector3.down * (dirY * pushY * 0.5f);
+                                rB.transform.position += Vector3.up * (dirY * pushY * 0.5f);
+                            }
+                            else if (staticA)
+                            {
+                                rB.transform.position += Vector3.up * (dirY * pushY);
+                            }
+                            else if (staticB)
+                            {
+                                rA.transform.position += Vector3.down * (dirY * pushY);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 모든 방의 겹침이 완전히 풀렸으면 조기 탈출
+            if (!anyOverlap) break;
+        }
+
+        yield break;
     }
 
     private void ConnectUnreachedRooms()
