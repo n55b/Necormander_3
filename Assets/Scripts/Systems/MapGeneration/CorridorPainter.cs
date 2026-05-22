@@ -18,6 +18,27 @@ public class CorridorPainter : MonoBehaviour
     
     private Dictionary<Vector2Int, int> _tileDepths = new Dictionary<Vector2Int, int>();
 
+    // --- 2단계 비용 맵 캐시 추가 ---
+    private float[,] _costMap;
+    private int _costMapOffsetX;
+    private int _costMapOffsetY;
+    private int _costMapWidth;
+    private int _costMapHeight;
+
+    private static readonly float[,] _corridorWeightTable = new float[5, 5];
+
+    static CorridorPainter()
+    {
+        for (int dx = -2; dx <= 2; dx++)
+        {
+            for (int dy = -2; dy <= 2; dy++)
+            {
+                if (dx == 0 && dy == 0) continue;
+                _corridorWeightTable[dx + 2, dy + 2] = 40000f / Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
+            }
+        }
+    }
+
     public void Init(Tilemap ground, Tilemap wall, Tilemap shadow, TileBase floor, TileBase wallT, TileBase shadowT)
     {
         _groundTilemap = ground; _wallTilemap = wall; _shadowTilemap = shadow;
@@ -28,6 +49,139 @@ public class CorridorPainter : MonoBehaviour
 
         SnapshotRoomTiles(_groundTilemap, false);
         SnapshotRoomTiles(_wallTilemap, true);
+
+        InitializeCostMap();
+    }
+
+    private void InitializeCostMap()
+    {
+        if (_roomFloorTiles.Count == 0 && _roomWallTiles.Count == 0)
+        {
+            _costMap = null;
+            return;
+        }
+
+        int minX = int.MaxValue;
+        int minY = int.MaxValue;
+        int maxX = int.MinValue;
+        int maxY = int.MinValue;
+
+        foreach (var pos in _roomFloorTiles)
+        {
+            if (pos.x < minX) minX = pos.x;
+            if (pos.y < minY) minY = pos.y;
+            if (pos.x > maxX) maxX = pos.x;
+            if (pos.y > maxY) maxY = pos.y;
+        }
+        foreach (var pos in _roomWallTiles)
+        {
+            if (pos.x < minX) minX = pos.x;
+            if (pos.y < minY) minY = pos.y;
+            if (pos.x > maxX) maxX = pos.x;
+            if (pos.y > maxY) maxY = pos.y;
+        }
+
+        // 여유 마진 (복도가 외부로 돌아갈 수 있도록 넉넉하게 50칸씩 부여)
+        int padding = 50;
+        minX -= padding;
+        minY -= padding;
+        maxX += padding;
+        maxY += padding;
+
+        _costMapOffsetX = minX;
+        _costMapOffsetY = minY;
+        _costMapWidth = maxX - minX + 1;
+        _costMapHeight = maxY - minY + 1;
+
+        _costMap = new float[_costMapWidth, _costMapHeight];
+
+        // 1. 기본 비용 채우기
+        for (int x = 0; x < _costMapWidth; x++)
+        {
+            for (int y = 0; y < _costMapHeight; y++)
+            {
+                _costMap[x, y] = 1f;
+            }
+        }
+
+        // 2. 방 장애물 위치 지정 및 패널티 누적
+        foreach (var pos in _roomFloorTiles)
+        {
+            SetCostInMap(pos.x, pos.y, 999999f);
+        }
+        foreach (var pos in _roomWallTiles)
+        {
+            SetCostInMap(pos.x, pos.y, 999999f);
+        }
+
+        // 3. 방 장애물로부터의 거리 가중치 누적
+        float[,] roomWeightTable = new float[5, 5];
+        for (int dx = -2; dx <= 2; dx++)
+        {
+            for (int dy = -2; dy <= 2; dy++)
+            {
+                if (dx == 0 && dy == 0) continue;
+                roomWeightTable[dx + 2, dy + 2] = 50000f / Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
+            }
+        }
+
+        foreach (var pos in _roomFloorTiles)
+        {
+            for (int dx = -2; dx <= 2; dx++)
+            {
+                for (int dy = -2; dy <= 2; dy++)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    AddCostInMap(pos.x + dx, pos.y + dy, roomWeightTable[dx + 2, dy + 2]);
+                }
+            }
+        }
+
+        foreach (var pos in _roomWallTiles)
+        {
+            for (int dx = -2; dx <= 2; dx++)
+            {
+                for (int dy = -2; dy <= 2; dy++)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    AddCostInMap(pos.x + dx, pos.y + dy, roomWeightTable[dx + 2, dy + 2]);
+                }
+            }
+        }
+    }
+
+    private float GetCostFromMap(int x, int y)
+    {
+        int lx = x - _costMapOffsetX;
+        int ly = y - _costMapOffsetY;
+        if (lx >= 0 && lx < _costMapWidth && ly >= 0 && ly < _costMapHeight)
+        {
+            return _costMap[lx, ly];
+        }
+        return 999999f;
+    }
+
+    private void SetCostInMap(int x, int y, float cost)
+    {
+        int lx = x - _costMapOffsetX;
+        int ly = y - _costMapOffsetY;
+        if (lx >= 0 && lx < _costMapWidth && ly >= 0 && ly < _costMapHeight)
+        {
+            _costMap[lx, ly] = cost;
+        }
+    }
+
+    private void AddCostInMap(int x, int y, float delta)
+    {
+        int lx = x - _costMapOffsetX;
+        int ly = y - _costMapOffsetY;
+        if (lx >= 0 && lx < _costMapWidth && ly >= 0 && ly < _costMapHeight)
+        {
+            if (_costMap[lx, ly] < 900000f)
+            {
+                _costMap[lx, ly] += delta;
+            }
+        }
     }
 
     private void SnapshotRoomTiles(Tilemap tm, bool isWall)
@@ -77,7 +231,18 @@ public class CorridorPainter : MonoBehaviour
 
     private void AddGroundWithDepth(Vector2Int pos, int depth)
     {
-        _totalGroundTiles.Add(pos);
+        if (_totalGroundTiles.Add(pos))
+        {
+            SetCostInMap(pos.x, pos.y, 999999f);
+            for (int dx = -2; dx <= 2; dx++)
+            {
+                for (int dy = -2; dy <= 2; dy++)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    AddCostInMap(pos.x + dx, pos.y + dy, _corridorWeightTable[dx + 2, dy + 2]);
+                }
+            }
+        }
         if (!_tileDepths.ContainsKey(pos)) _tileDepths[pos] = depth;
     }
 
@@ -165,20 +330,7 @@ public class CorridorPainter : MonoBehaviour
 
     private float CalculateCost(Vector2Int pos, int margin, int currentPathDepth)
     {
-        float cost = 1f;
-        if (_roomFloorTiles.Contains(pos) || _roomWallTiles.Contains(pos)) return 999999f; 
-        if (_totalGroundTiles.Contains(pos)) return 999999f; 
-
-        int checkMargin = Mathf.Max(margin, 2);
-        for (int x = -checkMargin; x <= checkMargin; x++)
-            for (int y = -checkMargin; y <= checkMargin; y++)
-            {
-                if (x == 0 && y == 0) continue;
-                Vector2Int n = pos + new Vector2Int(x, y);
-                if (_roomFloorTiles.Contains(n) || _roomWallTiles.Contains(n)) cost += (50000f / Mathf.Max(Mathf.Abs(x), Mathf.Abs(y))); 
-                else if (_totalGroundTiles.Contains(n)) cost += (40000f / Mathf.Max(Mathf.Abs(x), Mathf.Abs(y)));
-            }
-        return cost;
+        return GetCostFromMap(pos.x, pos.y);
     }
 
     private List<Vector2Int> GetNeighbors(Vector2Int n) => new List<Vector2Int> { new Vector2Int(n.x+1, n.y), new Vector2Int(n.x-1, n.y), new Vector2Int(n.x, n.y+1), new Vector2Int(n.x, n.y-1) };
