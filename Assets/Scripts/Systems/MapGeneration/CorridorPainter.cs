@@ -27,6 +27,19 @@ public class CorridorPainter : MonoBehaviour
 
     private static readonly float[,] _corridorWeightTable = new float[5, 5];
 
+    // --- 3단계 가비지 재사용 변수 추가 ---
+    private readonly Dictionary<Vector2Int, Vector2Int> _cameFrom = new Dictionary<Vector2Int, Vector2Int>();
+    private readonly Dictionary<Vector2Int, float> _gScore = new Dictionary<Vector2Int, float>();
+    private readonly PriorityQueueCustom<Vector2Int> _openSet = new PriorityQueueCustom<Vector2Int>();
+
+    private static readonly Vector2Int[] Directions = new Vector2Int[]
+    {
+        new Vector2Int(1, 0),
+        new Vector2Int(-1, 0),
+        new Vector2Int(0, 1),
+        new Vector2Int(0, -1)
+    };
+
     static CorridorPainter()
     {
         for (int dx = -2; dx <= 2; dx++)
@@ -294,34 +307,36 @@ public class CorridorPainter : MonoBehaviour
 
     public List<Vector2Int> FindPath(Vector2Int start, Vector2Int end, int margin, int currentPathDepth)
     {
-        PriorityQueueCustom<Vector2Int> openSet = new PriorityQueueCustom<Vector2Int>();
-        openSet.Enqueue(start, 0);
-        Dictionary<Vector2Int, Vector2Int> cameFrom = new Dictionary<Vector2Int, Vector2Int>();
-        Dictionary<Vector2Int, float> gScore = new Dictionary<Vector2Int, float>();
-        gScore[start] = 0;
+        _openSet.Clear();
+        _openSet.Enqueue(start, 0);
+        _cameFrom.Clear();
+        _gScore.Clear();
+        _gScore[start] = 0;
 
         int iterations = 0;
-        while (openSet.Count > 0 && iterations < 12000) 
+        while (_openSet.Count > 0 && iterations < 12000) 
         {
             iterations++;
-            Vector2Int current = openSet.Dequeue();
-            if (current == end) return ReconstructPath(cameFrom, current);
+            Vector2Int current = _openSet.Dequeue();
+            if (current == end) return ReconstructPath(_cameFrom, current);
 
-            Vector2Int lastDir = cameFrom.ContainsKey(current) ? current - cameFrom[current] : Vector2Int.zero;
+            Vector2Int lastDir = _cameFrom.ContainsKey(current) ? current - _cameFrom[current] : Vector2Int.zero;
 
-            foreach (Vector2Int neighbor in GetNeighbors(current))
+            for (int i = 0; i < 4; i++)
             {
-                float moveCost = CalculateCost(neighbor, margin, currentPathDepth);
+                Vector2Int neighbor = current + Directions[i];
+                float moveCost = GetCostFromMap(neighbor.x, neighbor.y);
                 if (moveCost >= 900000f) continue;
 
                 if (lastDir != Vector2Int.zero && lastDir != (neighbor - current)) moveCost += 25f; 
 
-                float tentativeGScore = gScore[current] + moveCost;
-                if (!gScore.ContainsKey(neighbor) || tentativeGScore < gScore[neighbor])
+                float tentativeGScore = _gScore[current] + moveCost;
+                if (!_gScore.TryGetValue(neighbor, out float existingGScore) || tentativeGScore < existingGScore)
                 {
-                    cameFrom[neighbor] = current; gScore[neighbor] = tentativeGScore;
+                    _cameFrom[neighbor] = current; 
+                    _gScore[neighbor] = tentativeGScore;
                     float h = Mathf.Abs(neighbor.x - end.x) + Mathf.Abs(neighbor.y - end.y);
-                    openSet.Enqueue(neighbor, tentativeGScore + h * 1.1f);
+                    _openSet.Enqueue(neighbor, tentativeGScore + h * 1.1f);
                 }
             }
         }
@@ -333,8 +348,17 @@ public class CorridorPainter : MonoBehaviour
         return GetCostFromMap(pos.x, pos.y);
     }
 
-    private List<Vector2Int> GetNeighbors(Vector2Int n) => new List<Vector2Int> { new Vector2Int(n.x+1, n.y), new Vector2Int(n.x-1, n.y), new Vector2Int(n.x, n.y+1), new Vector2Int(n.x, n.y-1) };
-    private List<Vector2Int> ReconstructPath(Dictionary<Vector2Int, Vector2Int> cameFrom, Vector2Int current) { List<Vector2Int> path = new List<Vector2Int> { current }; while (cameFrom.ContainsKey(current)) { current = cameFrom[current]; path.Add(current); } path.Reverse(); return path; }
+    private List<Vector2Int> ReconstructPath(Dictionary<Vector2Int, Vector2Int> cameFrom, Vector2Int current) 
+    { 
+        List<Vector2Int> path = new List<Vector2Int>(128) { current }; 
+        while (cameFrom.ContainsKey(current)) 
+        { 
+            current = cameFrom[current]; 
+            path.Add(current); 
+        } 
+        path.Reverse(); 
+        return path; 
+    }
 }
 
 public class PriorityQueueCustom<T>
@@ -342,6 +366,11 @@ public class PriorityQueueCustom<T>
     private List<KeyValuePair<T, float>> _heap = new List<KeyValuePair<T, float>>();
 
     public int Count => _heap.Count;
+
+    public void Clear()
+    {
+        _heap.Clear();
+    }
 
     public void Enqueue(T item, float priority)
     {
