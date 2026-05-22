@@ -12,10 +12,6 @@ public class RewardManager : MonoBehaviour
     [SerializeField] private RewardSelectionUI selectionUI;
     [SerializeField] private HandSlotSelectionUI handSlotUI;
 
-    [Header("Reward Settings")]
-    [SerializeField, Range(0f, 1f)] private float treasureDropChance = 0.5f;
-
-
     private Queue<List<RewardCandidate>> _rewardQueue = new Queue<List<RewardCandidate>>();
 
     public void Initialize()

@@ -18,6 +18,15 @@ public class CorridorPainter : MonoBehaviour
     
     private Dictionary<Vector2Int, int> _tileDepths = new Dictionary<Vector2Int, int>();
 
+    private RoomInstance _roomA;
+    private RoomInstance _roomB;
+
+    public void SetCurrentRooms(RoomInstance a, RoomInstance b)
+    {
+        _roomA = a;
+        _roomB = b;
+    }
+
     // --- 5단계 드로잉 버퍼 및 중복 제거 캐시 추가 ---
     private readonly List<Vector3Int> _drawPositions = new List<Vector3Int>(1024);
     private readonly List<TileBase> _drawTiles = new List<TileBase>(1024);
@@ -479,14 +488,6 @@ public class CorridorPainter : MonoBehaviour
 
     private bool IsOverlapWithRooms(Vector2Int pos, Vector2Int start, Vector2Int end)
     {
-        // 시작점과 끝점 주변(맨해튼 거리 1 이하)은 앵커에서 뻗어 나오는 구간이므로 방 벽 침범 감지를 예외 처리합니다.
-        int distToStart = Mathf.Abs(pos.x - start.x) + Mathf.Abs(pos.y - start.y);
-        int distToEnd = Mathf.Abs(pos.x - end.x) + Mathf.Abs(pos.y - end.y);
-        if (distToStart <= 1 || distToEnd <= 1)
-        {
-            return false;
-        }
-
         // 복도 5칸 너비 영역(외벽 포함)이 방의 기존 바닥/벽 타일과 오버랩되는지 체크
         for (int dx = -2; dx <= 2; dx++)
         {
@@ -495,6 +496,19 @@ public class CorridorPainter : MonoBehaviour
                 Vector2Int checkPos = new Vector2Int(pos.x + dx, pos.y + dy);
                 if (_roomFloorTiles.Contains(checkPos) || _roomWallTiles.Contains(checkPos))
                 {
+                    // 현재 연결하는 방 A와 방 B의 타일인 경우는 겹침 허용
+                    if ((_roomA != null && _roomA.ContainsCell(checkPos)) || (_roomB != null && _roomB.ContainsCell(checkPos)))
+                    {
+                        // 단, 출발점(start) 또는 목적점(end) 근처에서만 겹침을 허용하고,
+                        // 복도의 중간 부분에서는 자신이 연결하는 방이라 할지라도 벽이나 바닥을 침범하지 못하도록 제어합니다.
+                        // (방 출입을 위한 앵커 부근 5칸 맨해튼 거리 이내만 겹침 허용)
+                        int distToStart = Mathf.Abs(pos.x - start.x) + Mathf.Abs(pos.y - start.y);
+                        int distToEnd = Mathf.Abs(pos.x - end.x) + Mathf.Abs(pos.y - end.y);
+                        if (distToStart <= 3 || distToEnd <= 3)
+                        {
+                            continue;
+                        }
+                    }
                     return true;
                 }
             }

@@ -110,7 +110,7 @@ public class InventoryManager : MonoBehaviour
     private List<ThrowAbilitySO> _activeAbilities = new List<ThrowAbilitySO>();
     public List<ThrowAbilitySO> ActiveAbilities => _activeAbilities;
 
-    public void Initialize()
+    public void Initialize(bool hasSave)
     {
         Instance = this;
         while (Slots.Count < 10)
@@ -121,7 +121,7 @@ public class InventoryManager : MonoBehaviour
         InitializeGemTree(); 
         Debug.Log("<color=cyan>[InventoryManager]</color> Initialized.");
 
-        if (useDebugStartingInventory)
+        if (useDebugStartingInventory && !hasSave)
         {
             Debug_InitializeInventory();
         }
@@ -626,4 +626,208 @@ public class InventoryManager : MonoBehaviour
         }
         return totalBonus;
     }
+
+    #region Save / Load Serialization
+    public void SaveToData(SaveData data)
+    {
+        data.gold = gold;
+
+        // Slots 저장
+        data.slots.Clear();
+        foreach (var slot in Slots)
+        {
+            var slotData = new CoreSlotSaveData();
+            slotData.isShattered = slot.IsShattered;
+            slotData.equippedLineageJob = slot.EquippedLineage != null ? slot.EquippedLineage.jobType.ToString() : "";
+            slotData.equippedThrowAbilityName = slot.EquippedThrowAbility != null ? slot.EquippedThrowAbility.name : "";
+            slotData.evolutionIndex = slot.EvolutionIndex;
+            slotData.quantity = slot.Quantity;
+            data.slots.Add(slotData);
+        }
+
+        // Treasures 저장
+        data.treasures.Clear();
+        foreach (var kvp in TreasureStacks)
+        {
+            if (kvp.Key == null) continue;
+            var treasureData = new TreasureSaveData();
+            treasureData.treasureSOAddress = kvp.Key.name;
+            treasureData.stackCount = kvp.Value;
+            data.treasures.Add(treasureData);
+        }
+
+        // AvailableGems 저장
+        data.availableGems.Clear();
+        foreach (var gem in AvailableGemInstances)
+        {
+            if (gem == null || gem.BaseData == null) continue;
+            data.availableGems.Add(SaveGemInstance(gem));
+        }
+
+        // GemTreeRoot 저장
+        if (GemTreeRoot != null)
+        {
+            data.gemTreeRoot = SaveGemTreeNode(GemTreeRoot);
+        }
+        else
+        {
+            data.gemTreeRoot = null;
+        }
+    }
+
+    private GemInstanceSaveData SaveGemInstance(GemInstance gem)
+    {
+        var gemData = new GemInstanceSaveData();
+        gemData.baseGemSOAddress = gem.BaseData.name;
+        gemData.instanceId = gem.InstanceId;
+        gemData.subSlots = gem.SubSlots;
+        gemData.randomModifiers = new List<StatModifier>(gem.RandomModifiers);
+        gemData.targetJob = gem.TargetJob;
+        return gemData;
+    }
+
+    private GemTreeNodeSaveData SaveGemTreeNode(GemTreeNode node)
+    {
+        if (node == null || node.Gem == null) return null;
+        var nodeData = new GemTreeNodeSaveData();
+        nodeData.gem = SaveGemInstance(node.Gem);
+        nodeData.children = new List<GemTreeNodeChildSaveData>();
+
+        for (int i = 0; i < node.Children.Count; i++)
+        {
+            var childNode = node.Children[i];
+            if (childNode != null)
+            {
+                var childSaveData = new GemTreeNodeChildSaveData();
+                childSaveData.slotIndex = i;
+                childSaveData.childNode = SaveGemTreeNode(childNode);
+                nodeData.children.Add(childSaveData);
+            }
+        }
+        return nodeData;
+    }
+
+    public void LoadFromData(SaveData data)
+    {
+        gold = data.gold;
+
+        var registry = GameManager.Instance.dataManager.GET_GROWTH_REGISTRY();
+        if (registry == null)
+        {
+            Debug.LogError("[InventoryManager] GrowthRegistrySO is missing during LoadFromData!");
+            return;
+        }
+
+        // Slots 로드
+        Slots.Clear();
+        for (int i = 0; i < data.slots.Count; i++)
+        {
+            var slotData = data.slots[i];
+            var coreSlot = new CoreSlot();
+            coreSlot.IsShattered = slotData.isShattered;
+
+            if (!string.IsNullOrEmpty(slotData.equippedLineageJob))
+            {
+                if (System.Enum.TryParse<CommandData>(slotData.equippedLineageJob, out var job))
+                {
+                    coreSlot.EquippedLineage = registry.minionLineages.Find(lin => lin.jobType == job);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(slotData.equippedThrowAbilityName))
+            {
+                var ability = registry.specialAbilities.Find(a => a.name == slotData.equippedThrowAbilityName || a.itemName == slotData.equippedThrowAbilityName);
+                coreSlot.EquippedThrowAbility = ability as ThrowAbilitySO;
+            }
+
+            coreSlot.EvolutionIndex = slotData.evolutionIndex;
+            coreSlot.Quantity = slotData.quantity;
+            Slots.Add(coreSlot);
+        }
+        // 10개 맞추기
+        while (Slots.Count < 10)
+        {
+            Slots.Add(new CoreSlot());
+        }
+        UpdateActiveAbilities();
+
+        // Treasures 로드
+        TreasureStacks.Clear();
+        foreach (var treasureData in data.treasures)
+        {
+            var treasure = registry.treasures.Find(t => t.name == treasureData.treasureSOAddress || t.itemName == treasureData.treasureSOAddress);
+            if (treasure != null)
+            {
+                TreasureStacks[treasure] = treasureData.stackCount;
+            }
+        }
+
+        // AvailableGems 로드
+        AvailableGemInstances.Clear();
+        foreach (var gemData in data.availableGems)
+        {
+            var gemInstance = LoadGemInstance(gemData, registry);
+            if (gemInstance != null)
+            {
+                AvailableGemInstances.Add(gemInstance);
+            }
+        }
+
+        // GemTreeRoot 및 Node Index 복원
+        _gemNodeIndex = new Dictionary<string, GemTreeNode>();
+        if (data.gemTreeRoot != null)
+        {
+            var rootInstance = LoadGemInstance(data.gemTreeRoot.gem, registry);
+            if (rootInstance != null)
+            {
+                GemTreeRoot = new GemTreeNode(rootInstance);
+                _gemNodeIndex[GemTreeRoot.Gem.InstanceId] = GemTreeRoot;
+
+                // 자식 재귀 복구
+                LoadGemTreeNodeChildren(GemTreeRoot, data.gemTreeRoot.children, registry);
+            }
+        }
+        else
+        {
+            InitializeGemTree();
+        }
+
+        RecalculateGemTreeStats();
+        OnGemTreeUpdated?.Invoke();
+        OnMinionUpdated?.Invoke();
+    }
+
+    private GemInstance LoadGemInstance(GemInstanceSaveData gemData, GrowthRegistrySO registry)
+    {
+        var gemSO = registry.gems.Find(g => g.name == gemData.baseGemSOAddress || g.itemName == gemData.baseGemSOAddress);
+        if (gemSO == null)
+        {
+            Debug.LogError($"[InventoryManager] GemSO '{gemData.baseGemSOAddress}' not found in registry.");
+            return null;
+        }
+
+        return new GemInstance(gemSO, gemData.instanceId, gemData.subSlots, gemData.randomModifiers, gemData.targetJob);
+    }
+
+    private void LoadGemTreeNodeChildren(GemTreeNode parentNode, List<GemTreeNodeChildSaveData> childrenData, GrowthRegistrySO registry)
+    {
+        if (parentNode == null || childrenData == null) return;
+
+        foreach (var childData in childrenData)
+        {
+            if (childData == null || childData.childNode == null) continue;
+
+            var childInstance = LoadGemInstance(childData.childNode.gem, registry);
+            if (childInstance != null)
+            {
+                GemTreeNode newChildNode = parentNode.SocketChild(childData.slotIndex, childInstance);
+                if (newChildNode != null)
+                {
+                    _gemNodeIndex[newChildNode.Gem.InstanceId] = newChildNode;
+                    LoadGemTreeNodeChildren(newChildNode, childData.childNode.children, registry);
+                }
+            }
+        }
+    }
+    #endregion
 }
