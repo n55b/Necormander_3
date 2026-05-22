@@ -28,6 +28,20 @@ public class MapGenerator : MonoBehaviour
     private bool _isGenerating = false;
     private int _currentPhaseIndex = 0;
 
+    // --- 4단계 가비지 최소화 연결 후보 캐싱 ---
+    private struct RoomConnectionCandidate : System.IComparable<RoomConnectionCandidate>
+    {
+        public RoomInstance reached;
+        public RoomInstance unreached;
+        public float dist;
+
+        public int CompareTo(RoomConnectionCandidate other)
+        {
+            return dist.CompareTo(other.dist);
+        }
+    }
+    private readonly List<RoomConnectionCandidate> _connectionCandidates = new List<RoomConnectionCandidate>(128);
+
     public System.Action OnMapGenerated; 
 
     public void SetMapData(MapGenerationDataSO genData, RoomPrefabDataSO prefData)
@@ -222,12 +236,36 @@ public class MapGenerator : MonoBehaviour
         while (changed && unreached.Count > 0)
         {
             changed = false;
-            var candidates = (from r in _reachedRooms from u in unreached let dist = Vector2.Distance(r.transform.position, u.transform.position) orderby dist select new { reached = r, unreached = u }).ToList();
-            foreach (var c in candidates)
+            _connectionCandidates.Clear();
+
+            foreach (var r in _reachedRooms)
             {
+                for (int uIndex = 0; uIndex < unreached.Count; uIndex++)
+                {
+                    var u = unreached[uIndex];
+                    if ((u.roomType == RoomType.Shop || u.roomType == RoomType.Elite) && r.roomType == RoomType.Spawn) 
+                        continue;
+
+                    float dist = Vector2.Distance(r.transform.position, u.transform.position);
+                    _connectionCandidates.Add(new RoomConnectionCandidate { reached = r, unreached = u, dist = dist });
+                }
+            }
+
+            _connectionCandidates.Sort(); // Comparable 구현으로 가비지 없이 정렬
+
+            for (int i = 0; i < _connectionCandidates.Count; i++)
+            {
+                var c = _connectionCandidates[i];
                 if (!unreached.Contains(c.unreached)) continue;
-                if ((c.unreached.roomType == RoomType.Shop || c.unreached.roomType == RoomType.Elite) && c.reached.roomType == RoomType.Spawn) continue;
-                if (DrawCorridorBetweenRooms(c.reached, c.unreached, 0)) { _reachedRooms.Add(c.unreached); unreached.Remove(c.unreached); _masterAdjacency[c.reached].Add(c.unreached); _masterAdjacency[c.unreached].Add(c.reached); changed = true; break; }
+                if (DrawCorridorBetweenRooms(c.reached, c.unreached, 0)) 
+                { 
+                    _reachedRooms.Add(c.unreached); 
+                    unreached.Remove(c.unreached); 
+                    _masterAdjacency[c.reached].Add(c.unreached); 
+                    _masterAdjacency[c.unreached].Add(c.reached); 
+                    changed = true; 
+                    break; 
+                }
             }
         }
         foreach (var reward in rewardRooms)
