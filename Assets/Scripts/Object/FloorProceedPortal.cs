@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class FloorProceedPortal : MonoBehaviour, IInteractable
 {
-    [SerializeField] private float triggerRadius = 1.2f;
+
 
     public string InteractionPrompt => "Proceed to Next Floor";
 
@@ -12,9 +12,9 @@ public class FloorProceedPortal : MonoBehaviour, IInteractable
         if (col == null)
         {
             col = gameObject.AddComponent<CircleCollider2D>();
+            col.radius = 0.5f; // 동적 생성 시 기본값 할당
         }
         col.isTrigger = true;
-        col.radius = triggerRadius;
 
         var rb = GetComponent<Rigidbody2D>();
         if (rb == null)
@@ -31,15 +31,12 @@ public class FloorProceedPortal : MonoBehaviour, IInteractable
     private void Start()
     {
         var sr = GetComponent<SpriteRenderer>();
-        if (sr == null)
+        if (sr != null)
         {
-            sr = gameObject.AddComponent<SpriteRenderer>();
-            sr.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
             sr.color = new Color(0.6f, 0.1f, 0.9f, 0.8f); // Mystical Purple Portal
             sr.sortingOrder = 5; // Draw above grounds
         }
-        transform.localScale = new Vector3(1.5f, 1.5f, 1.0f);
-        Debug.Log("<color=purple>[FloorProceedPortal]</color> Spawned and initialized. Ready for interaction.");
+        Debug.Log("<color=purple>[FloorProceedPortal]</color> Initialized. Ready for interaction.");
     }
 
     public bool Interact(GameObject interactor)

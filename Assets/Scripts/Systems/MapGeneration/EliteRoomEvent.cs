@@ -11,6 +11,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 {
     [Header("Elite Settings")]
     [SerializeField] private int eliteCount = 1;
+    [SerializeField] private GameObject portalObject;
 
     [Header("Unity Events")]
     public UnityEvent OnEliteCombatStart;
@@ -23,6 +24,12 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
     private void Start()
     {
+        // 씬에 미리 배치해 둔 포탈 오브젝트가 있다면 시작 시 비활성화
+        if (portalObject != null && portalObject.scene.IsValid())
+        {
+            portalObject.SetActive(false);
+        }
+
         if (GameManager.Instance != null && GameManager.Instance.dataManager != null)
         {
             var rawList = GameManager.Instance.dataManager.ENEMY_MINION_DATA;
@@ -81,12 +88,29 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         if (RewardManager.Instance != null)
             RewardManager.Instance.RequestClearReward(room.roomType);
 
-        // [추가] 엘리트 방 클리어 시 방 한가운데 포탈 생성
-        Vector3 portalPos = room.transform.position + (Vector3)room.centerOffset;
-        GameObject portalObj = new GameObject("FloorProceedPortal");
-        portalObj.transform.position = portalPos;
-        portalObj.AddComponent<FloorProceedPortal>();
-        Debug.Log("<color=purple>[EliteRoom]</color> Created FloorProceedPortal dynamically at room center.");
+        // [추가] 엘리트 방 클리어 시 포탈 활성화 또는 생성
+        if (portalObject != null)
+        {
+            if (portalObject.scene.IsValid())
+            {
+                portalObject.SetActive(true);
+                Debug.Log("<color=purple>[EliteRoom]</color> Activated Portal object in the scene.");
+            }
+            else
+            {
+                Vector3 portalPos = room.transform.position + (Vector3)room.centerOffset;
+                Instantiate(portalObject, portalPos, Quaternion.identity);
+                Debug.Log("<color=purple>[EliteRoom]</color> Spawned Portal from Prefab at room center.");
+            }
+        }
+        else
+        {
+            Vector3 portalPos = room.transform.position + (Vector3)room.centerOffset;
+            GameObject portalObj = new GameObject("FloorProceedPortal");
+            portalObj.transform.position = portalPos;
+            portalObj.AddComponent<FloorProceedPortal>();
+            Debug.Log("<color=purple>[EliteRoom]</color> Created FloorProceedPortal dynamically at room center since portalObject is null.");
+        }
 
         OnEliteCombatClear?.Invoke();
         Debug.Log($"<color=red>[EliteRoom]</color> Elite Defeated!");
