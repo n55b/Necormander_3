@@ -81,6 +81,13 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         if (RewardManager.Instance != null)
             RewardManager.Instance.RequestClearReward(room.roomType);
 
+        // [추가] 엘리트 방 클리어 시 방 한가운데 포탈 생성
+        Vector3 portalPos = room.transform.position + (Vector3)room.centerOffset;
+        GameObject portalObj = new GameObject("FloorProceedPortal");
+        portalObj.transform.position = portalPos;
+        portalObj.AddComponent<FloorProceedPortal>();
+        Debug.Log("<color=purple>[EliteRoom]</color> Created FloorProceedPortal dynamically at room center.");
+
         OnEliteCombatClear?.Invoke();
         Debug.Log($"<color=red>[EliteRoom]</color> Elite Defeated!");
     }

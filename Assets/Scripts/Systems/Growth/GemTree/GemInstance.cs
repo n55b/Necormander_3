@@ -38,6 +38,18 @@ public class GemInstance
     {
         SubSlots = forcedSubSlots;
     }
+
+    /// <summary>
+    /// 세이브 데이터로부터 로드할 때 데이터를 복구하기 위한 생성자입니다.
+    /// </summary>
+    public GemInstance(GemSO baseData, string instanceId, int subSlots, List<StatModifier> randomModifiers, CommandData targetJob)
+    {
+        BaseData = baseData;
+        InstanceId = instanceId;
+        SubSlots = subSlots;
+        RandomModifiers = randomModifiers ?? new List<StatModifier>();
+        TargetJob = targetJob;
+    }
 }
 
 /// <summary>

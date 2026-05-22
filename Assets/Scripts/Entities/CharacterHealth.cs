@@ -208,4 +208,11 @@ public class CharacterHealth : MonoBehaviour
         curHP = _stat.MAXHP;
         isDead = false;
     }
+
+    public void SetHP(float hp)
+    {
+        curHP = Mathf.Clamp(hp, 0f, _stat != null ? _stat.MAXHP : hp);
+        isDead = curHP <= 0f;
+        UpdateHPBar?.Invoke();
+    }
 }
