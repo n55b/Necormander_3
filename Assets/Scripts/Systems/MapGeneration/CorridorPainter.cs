@@ -187,8 +187,63 @@ public class CorridorPainter : MonoBehaviour
 
 public class PriorityQueueCustom<T>
 {
-    private List<KeyValuePair<T, float>> elements = new List<KeyValuePair<T, float>>();
-    public int Count => elements.Count;
-    public void Enqueue(T item, float priority) { elements.Add(new KeyValuePair<T, float>(item, priority)); }
-    public T Dequeue() { int b = 0; for (int i = 0; i < elements.Count; i++) if (elements[i].Value < elements[b].Value) b = i; T item = elements[b].Key; elements.RemoveAt(b); return item; }
+    private List<KeyValuePair<T, float>> _heap = new List<KeyValuePair<T, float>>();
+
+    public int Count => _heap.Count;
+
+    public void Enqueue(T item, float priority)
+    {
+        _heap.Add(new KeyValuePair<T, float>(item, priority));
+        int childIndex = _heap.Count - 1;
+        while (childIndex > 0)
+        {
+            int parentIndex = (childIndex - 1) / 2;
+            if (_heap[childIndex].Value >= _heap[parentIndex].Value)
+                break;
+            
+            // Swap child and parent
+            var tmp = _heap[childIndex];
+            _heap[childIndex] = _heap[parentIndex];
+            _heap[parentIndex] = tmp;
+            
+            childIndex = parentIndex;
+        }
+    }
+
+    public T Dequeue()
+    {
+        if (_heap.Count == 0) return default;
+
+        int lastIndex = _heap.Count - 1;
+        T rootItem = _heap[0].Key;
+        _heap[0] = _heap[lastIndex];
+        _heap.RemoveAt(lastIndex);
+
+        int parentIndex = 0;
+        while (true)
+        {
+            int leftChildIndex = parentIndex * 2 + 1;
+            int rightChildIndex = parentIndex * 2 + 2;
+            if (leftChildIndex >= _heap.Count)
+                break;
+
+            int bestChildIndex = leftChildIndex;
+            if (rightChildIndex < _heap.Count && _heap[rightChildIndex].Value < _heap[leftChildIndex].Value)
+            {
+                bestChildIndex = rightChildIndex;
+            }
+
+            if (_heap[parentIndex].Value <= _heap[bestChildIndex].Value)
+                break;
+
+            // Swap parent and best child
+            var tmp = _heap[parentIndex];
+            _heap[parentIndex] = _heap[bestChildIndex];
+            _heap[bestChildIndex] = tmp;
+
+            parentIndex = bestChildIndex;
+        }
+
+        return rootItem;
+    }
 }
