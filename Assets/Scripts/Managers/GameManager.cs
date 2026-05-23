@@ -43,6 +43,8 @@ public class GameManager : MonoBehaviour
     {
         _isTimeStopped = stop;
         Time.timeScale = stop ? 0f : 1f;
+        
+        if(!stop) playerController?.CanChangeAnimState();
         Debug.Log($"<color=yellow>[TimeSystem]</color> Time Scale set to: {Time.timeScale}");
     }
 
