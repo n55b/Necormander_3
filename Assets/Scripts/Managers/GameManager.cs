@@ -58,10 +58,27 @@ public class GameManager : MonoBehaviour
         SetTimeStop(false);
     }
 
+    [Header("Floor Info")]
+    [SerializeField] public int currentFloor = 1;
+    [System.NonSerialized] private SaveData _loadedSaveData = null;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+
+        // Awake에서 세이브 데이터를 먼저 로드해 둡니다.
+        _loadedSaveData = SaveSystem.Load();
+        if (_loadedSaveData != null)
+        {
+            currentFloor = _loadedSaveData.currentFloor;
+            Debug.Log($"<b>[GameManager]</b> Loaded save data. Current Floor: {currentFloor}");
+        }
+        else
+        {
+            currentFloor = 1;
+            Debug.Log("<b>[GameManager]</b> No save data found. Starting from Floor 1.");
+        }
 
         InitializeGame();
     }
@@ -81,7 +98,16 @@ public class GameManager : MonoBehaviour
         if (rewardManager == null) rewardManager = GetComponentInChildren<RewardManager>();
 
         if (dataManager != null) dataManager.Initialize();
-        if (inventoryManager != null) inventoryManager.Initialize();
+        
+        if (inventoryManager != null) 
+        {
+            inventoryManager.Initialize(_loadedSaveData != null);
+            if (_loadedSaveData != null)
+            {
+                inventoryManager.LoadFromData(_loadedSaveData);
+            }
+        }
+        
         if (economyManager != null) economyManager.Initialize();
         if (cameraManager != null) cameraManager.Initialize();
         if (throwImpactManager != null) throwImpactManager.Initialize();
@@ -115,6 +141,14 @@ public class GameManager : MonoBehaviour
         {
             var health = playerController.GetComponentInChildren<CharacterHealth>();
             var allyManager = playerController.GetComponent<AllyManager>();
+
+            // 플레이어 체력 복구
+            if (_loadedSaveData != null && health != null)
+            {
+                health.SetHP(_loadedSaveData.playerHP);
+                Debug.Log($"<color=green>[GameManager]</color> Player HP Restored to: {_loadedSaveData.playerHP}");
+            }
+
             playerStateUI.Initialize(health, allyManager);
             Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");
         }
@@ -168,5 +202,40 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log("<color=cyan>[GameManager]</color> Player Spawned, Placed, and Camera Assigned.");
+    }
+
+    public void GoToNextFloor()
+    {
+        SaveData data = new SaveData();
+        
+        // 다음 층수 저장
+        data.currentFloor = currentFloor + 1;
+
+        // 플레이어 체력 획득
+        if (playerController != null)
+        {
+            var health = playerController.GetComponentInChildren<CharacterHealth>();
+            if (health != null)
+            {
+                data.playerHP = health.CurHP;
+            }
+        }
+        else
+        {
+            data.playerHP = 10f; // 기본값
+        }
+
+        // 인벤토리, 골드, 보물, 보석 저장
+        if (inventoryManager != null)
+        {
+            inventoryManager.SaveToData(data);
+        }
+
+        SaveSystem.Save(data);
+
+        Debug.Log($"<color=green>[GameManager]</color> Floor Cleared! Transitioning to Floor {data.currentFloor}...");
+        
+        // 씬 재로드
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
 }

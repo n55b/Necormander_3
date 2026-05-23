@@ -574,6 +574,7 @@ public class MapGenerator : MonoBehaviour
 
     private bool DrawCorridorBetweenRooms(RoomInstance a, RoomInstance b, int pathDepth, bool shuffle = false)
     {
+        _painter.SetCurrentRooms(a, b);
         var availableA = a.anchors.Where(an => !an.isUsed).ToList();
         var availableB = b.anchors.Where(an => !an.isUsed).ToList();
         if (availableA.Count == 0 || availableB.Count == 0) return false;
@@ -659,8 +660,23 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground", "Ground"); ConfigureTilemap(globalWallTilemap, "Wall", "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow", "Shadow"); }
-    private void ConfigureTilemap(Tilemap tm, string layerName, string sortingLayerName) { if (tm == null) return; int layer = LayerMask.NameToLayer(layerName); if (layer != -1) tm.gameObject.layer = layer; var renderer = tm.GetComponent<TilemapRenderer>(); if (renderer != null) renderer.sortingLayerName = sortingLayerName; }
+    private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground"); ConfigureTilemap(globalWallTilemap, "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow"); }
+    private void ConfigureTilemap(Tilemap tm, string layerName) 
+    { 
+        if (tm == null) return; 
+        int layer = LayerMask.NameToLayer(layerName); 
+        if (layer != -1) tm.gameObject.layer = layer; 
+        
+        if (layerName == "Wall")
+        {
+            var tr = tm.GetComponent<TilemapRenderer>();
+            if (tr != null)
+            {
+                tr.sortingLayerName = "Ground";
+                tr.sortingOrder = 1;
+            }
+        }
+    }
     private void AssignSpecialRooms() { }
     private void DumpMapToLog()
     {

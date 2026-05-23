@@ -197,12 +197,50 @@ public class RoomInstance : MonoBehaviour
 
     public void MergeTilesToGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow)
     {
+        _myTiles = new HashSet<Vector2Int>();
         StampTilemap(groundTilemap, globalGround);
         StampTilemap(wallTilemap, globalWall);
         StampTilemap(shadowTilemap, globalShadow);
         if (groundTilemap != null) groundTilemap.gameObject.SetActive(false);
         if (wallTilemap != null) wallTilemap.gameObject.SetActive(false);
         if (shadowTilemap != null) shadowTilemap.gameObject.SetActive(false);
+    }
+
+    private HashSet<Vector2Int> _myTiles = null;
+
+    public bool ContainsCell(Vector2Int cellPos)
+    {
+        if (_myTiles == null)
+        {
+            _myTiles = new HashSet<Vector2Int>();
+            if (groundTilemap != null && MapGenerator.Instance != null && MapGenerator.Instance.GlobalGroundTilemap != null)
+            {
+                groundTilemap.CompressBounds();
+                foreach (var pos in groundTilemap.cellBounds.allPositionsWithin)
+                {
+                    if (groundTilemap.HasTile(pos))
+                    {
+                        Vector3 worldPos = groundTilemap.CellToWorld(pos);
+                        Vector3Int globalCellPos = MapGenerator.Instance.GlobalGroundTilemap.WorldToCell(worldPos);
+                        _myTiles.Add(new Vector2Int(globalCellPos.x, globalCellPos.y));
+                    }
+                }
+            }
+            if (wallTilemap != null && MapGenerator.Instance != null && MapGenerator.Instance.GlobalGroundTilemap != null)
+            {
+                wallTilemap.CompressBounds();
+                foreach (var pos in wallTilemap.cellBounds.allPositionsWithin)
+                {
+                    if (wallTilemap.HasTile(pos))
+                    {
+                        Vector3 worldPos = wallTilemap.CellToWorld(pos);
+                        Vector3Int globalCellPos = MapGenerator.Instance.GlobalGroundTilemap.WorldToCell(worldPos);
+                        _myTiles.Add(new Vector2Int(globalCellPos.x, globalCellPos.y));
+                    }
+                }
+            }
+        }
+        return _myTiles.Contains(cellPos);
     }
 
     private void StampTilemap(Tilemap source, Tilemap target)
@@ -218,6 +256,11 @@ public class RoomInstance : MonoBehaviour
                 Vector3 worldPos = source.CellToWorld(pos);
                 Vector3Int targetCellPos = target.WorldToCell(worldPos);
                 target.SetTile(targetCellPos, tile);
+                
+                if (_myTiles != null)
+                {
+                    _myTiles.Add(new Vector2Int(targetCellPos.x, targetCellPos.y));
+                }
             }
         }
     }
