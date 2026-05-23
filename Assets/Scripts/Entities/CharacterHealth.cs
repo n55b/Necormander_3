@@ -131,7 +131,7 @@ public class CharacterHealth : MonoBehaviour
         OnDeath?.Invoke();
 
         BaseEntity rootEntity = GetComponentInParent<BaseEntity>();
-        bool isPlayer = (rootEntity != null && rootEntity.CompareTag("Player")) || CompareTag("Player");
+        bool isPlayer = gameObject.layer == LayerMask.NameToLayer("Player"); // (추가) 여기 뭔가 긴데 Player 인식 못 하길래 현재 오브젝트 Layer로 바꿈
         
         if (rootEntity != null && rootEntity.team == Team.Ally && !isPlayer)
         {
@@ -141,6 +141,11 @@ public class CharacterHealth : MonoBehaviour
         if (!isPlayer)
         {
             Destroy(rootEntity != null ? rootEntity.gameObject : gameObject);
+        }
+
+        if(isPlayer)
+        {
+            GameManager.Instance.Gameover(); // 플레이어 사망 처리 (리스폰 등)
         }
     }
 

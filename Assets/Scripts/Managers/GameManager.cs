@@ -53,6 +53,15 @@ public class GameManager : MonoBehaviour
         StartCoroutine(TimeStopCoroutine(duration));
     }
 
+    // 게임오버 처리 메서드
+    public void Gameover()
+    {
+        StopAllCoroutines(); // 모든 코루틴 정지
+        SetTimeStop(true); // 게임 시간 정지
+
+        GameOverManager.Instance.TriggerGameOver();
+    }
+
     private IEnumerator TimeStopCoroutine(float duration)
     {
         SetTimeStop(true);
