@@ -1261,6 +1261,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: b7c14beb-fa5f-47d3-bc3e-715e09b65a3d
     m_ActionName: 'Player/Interact[/Keyboard/q]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7972545975472383977}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnOption
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 592e2f02-539a-4b27-8d7f-a8e4556f745f
+    m_ActionName: 'Player/Option[/Keyboard/escape]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -1280,7 +1296,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stat: {fileID: 5914193569906731681}
   throwRange: 5
-  TrackingCollider: {fileID: 0}
   allyManager: {fileID: 6055861653884896251}
   sumController: {fileID: 2140691029848297597}
   throwController: {fileID: 5596731991387463907}
