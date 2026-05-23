@@ -66,6 +66,9 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
         SpawnWaves(room);
 
+        // [추가] 플레이어 상태 업데이트 코드 추가
+        if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Battle);
+
         OnCombatStart?.Invoke();
         Debug.Log($"<color=white>[NormalRoom]</color> Battle Started in {room.gameObject.name}");
     }
@@ -80,6 +83,9 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
         if (RewardManager.Instance != null)
             RewardManager.Instance.RequestClearReward(room.roomType);
+
+        // [추가] 플레이어 상태 업데이트 코드 추가
+        if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Idle);
 
         OnCombatClear?.Invoke();
         Debug.Log($"<color=green>[NormalRoom]</color> Cleared!");

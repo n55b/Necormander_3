@@ -73,6 +73,9 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         // [수정] 부하들 없이 엘리트만 소환
         SpawnEliteOnly(room);
 
+        // [추가] 플레이어 상태 업데이트 코드 추가
+        if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Battle);
+
         OnEliteCombatStart?.Invoke();
         Debug.Log($"<color=red>[EliteRoom]</color> Warning! Elite Encounter in {room.gameObject.name}");
     }
@@ -111,6 +114,9 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
             portalObj.AddComponent<FloorProceedPortal>();
             Debug.Log("<color=purple>[EliteRoom]</color> Created FloorProceedPortal dynamically at room center since portalObject is null.");
         }
+
+        // [추가] 플레이어 상태 업데이트 코드 추가
+        if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Idle);
 
         OnEliteCombatClear?.Invoke();
         Debug.Log($"<color=red>[EliteRoom]</color> Elite Defeated!");

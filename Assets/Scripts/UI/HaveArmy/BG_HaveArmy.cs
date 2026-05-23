@@ -6,10 +6,12 @@ public class BG_HaveArmy : MonoBehaviour
 {
     [SerializeField] Image image;
     [SerializeField] TextMeshProUGUI text;
+    int num = 0;
 
     public void Init(Sprite _image, int _num)
     {
         image.sprite = _image;
         text.text = _num.ToString();
+        num = _num;
     }
 }

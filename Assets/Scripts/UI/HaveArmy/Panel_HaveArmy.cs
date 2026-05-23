@@ -5,14 +5,39 @@ public class Panel_HaveArmy : MonoBehaviour
 {
     [SerializeField] List<BG_HaveArmy> haveArmies;
 
-    private void Start()
+    private void OnEnable()
     {
-        OpenUI();
+        Initialize();
     }
 
-    public void OpenUI()
+    private void OnDisable()
+    {
+        UnSubscribeFromEvents();
+    }
+
+    public void Initialize()
     {
         Update_HaveArmy();
+
+        InventoryManager.Instance.OnMinionUpdated += Update_HaveArmy;
+        var playerController = GameManager.Instance?.PLAYERCONTROLLER;
+        if (playerController != null)
+        {
+            Debug.Log("구독 완료");
+            playerController.OnEnterBattle += CloseUI;
+            playerController.OnEnterIdle += Update_HaveArmy;
+        }
+    }
+
+    private void UnSubscribeFromEvents()
+    {
+        InventoryManager.Instance.OnMinionUpdated -= Update_HaveArmy;
+        var playerController = GameManager.Instance?.PLAYERCONTROLLER;
+        if (playerController != null)
+        {
+            playerController.OnEnterBattle -= CloseUI;
+            playerController.OnEnterIdle -= Update_HaveArmy;
+        }
     }
 
     public void CloseUI()
@@ -26,9 +51,12 @@ public class Panel_HaveArmy : MonoBehaviour
     public void Update_HaveArmy()
     {
         int i = 0;
+        Debug.Log("업데이트");
+        CloseUI();
+
         foreach(var army in InventoryManager.Instance.Slots)
         {
-            if(army.Quantity > 0)
+            if(army.EquippedLineage != null)
             {
                 haveArmies[i].Init(army.EquippedLineage.baseForm.minionIcon, army.Quantity);
                 haveArmies[i].gameObject.SetActive(true);

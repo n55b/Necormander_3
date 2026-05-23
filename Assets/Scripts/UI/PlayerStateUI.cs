@@ -37,6 +37,9 @@ public class PlayerStateUI : MonoBehaviour
     [SerializeField] private GameObject reviveIconPrefab;
     [SerializeField] private Transform reviveContainer;
 
+    [Header("PanelHaveArmy")]
+    [SerializeField] private Panel_HaveArmy panelHaveArmy;
+
     private CharacterHealth _playerHealth;
     private AllyManager _allyManager;
     private List<Image> _hpFillImages = new List<Image>();
@@ -62,6 +65,8 @@ public class PlayerStateUI : MonoBehaviour
             _allyManager.OnAllyRespawnStart += AddReviveIcon;
             _allyManager.OnAllyRespawned += RemoveReviveIcon;
         }
+
+        if(panelHaveArmy != null) panelHaveArmy.Initialize ();
 
         RefreshGold();
         Debug.Log("<color=green>[PlayerStateUI]</color> HUD Initialized.");

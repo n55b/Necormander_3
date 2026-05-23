@@ -16,8 +16,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] CharacterStat stat;
     [SerializeField] float throwRange;
     public float THROWRANGE { get { return throwRange; } }
-    [Header("감지 영역")]
-    [SerializeField] GameObject TrackingCollider;
     [Header("아군 유닛 관련 매니저")]
     [SerializeField] AllyManager allyManager;
     [Header("소환 컨트롤러")]
@@ -30,6 +28,10 @@ public class PlayerController : MonoBehaviour
 
     [Header("플레이어 상태")]
     [SerializeField] PlayerStates P_State = PlayerStates.Idle;
+
+    // 상태에 따른 Action 이벤트
+    public event Action OnEnterIdle;
+    public event Action OnEnterBattle;
 
     [Header("던지기 배율 설정")]
     [SerializeField] private float minThrowChargeMultiplier = 1.0f;
@@ -204,13 +206,6 @@ public class PlayerController : MonoBehaviour
         {
             transform.position += MoveDirection * stat.MOVESPEED * Time.deltaTime;
         }
-
-        if (P_State == PlayerStates.Battle)
-        {
-            bool check = allyManager.CheckAllyState();
-            if (!check)
-                ChangeState(PlayerStates.Idle);
-        }
     }
 
     public void OnMove(InputAction.CallbackContext context)
@@ -383,12 +378,12 @@ public class PlayerController : MonoBehaviour
 
         if (P_State == PlayerStates.Battle)
         {
-            TrackingCollider.gameObject.SetActive(false);
             allyManager.SetBattleState(true);
+            OnEnterBattle?.Invoke();
         }
         else if (P_State == PlayerStates.Idle)
         {
-            TrackingCollider.gameObject.SetActive(true);
+            OnEnterIdle?.Invoke();
         }
     }
 

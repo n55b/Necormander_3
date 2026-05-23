@@ -576,6 +576,8 @@ public class InventoryManager : MonoBehaviour
         Slots[slotIndex].EquippedLineage = lineage;
         Slots[slotIndex].EvolutionIndex = 0;
         Slots[slotIndex].Quantity = 1;
+        
+        OnMinionUpdated?.Invoke();
         UpdateActiveAbilities();
         return true;
     }

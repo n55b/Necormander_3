@@ -7,23 +7,23 @@ public class RoomInstance : MonoBehaviour
     public RoomType roomType;
     public Vector2Int roomSize;
     public Vector2 centerOffset;
-    
+
     [Header("Anchors")]
     public List<RoomAnchor> anchors = new List<RoomAnchor>();
-    
+
     [Header("Tilemaps (Optional - Auto-assigned if Null)")]
     public Tilemap wallTilemap;
     public Tilemap groundTilemap;
     public Tilemap shadowTilemap;
-    
+
     [HideInInspector] public int debugDepth = -1; // 맵 생성 시 계산된 깊이 저장용
     [HideInInspector] public int phaseIndex = -1; // 방이 생성된 맵 생성 페이즈 인덱스
-    
+
     [Header("Combat & Events")]
     public bool isCleared = false;
     public List<GameObject> doorObjects = new List<GameObject>(); // MapGenerator에서 할당
     [SerializeField] private AudioClip roomBGM; // [추가] 이 방에서 나올 음악
-    
+
     private IRoomEvent _roomEvent;
     private Rigidbody2D _rb;
     private BoxCollider2D _physicsCollider;
@@ -49,7 +49,7 @@ public class RoomInstance : MonoBehaviour
         }
     }
 #endif
-    
+
     public void Initialize(RoomType type)
     {
         doorObjects.Clear();
@@ -63,28 +63,28 @@ public class RoomInstance : MonoBehaviour
         if (wallTilemap == null)
         {
             Transform wallTransform = FindTransformRecursive(transform, "Wall");
-            if (wallTransform != null) 
+            if (wallTransform != null)
             {
                 wallTilemap = wallTransform.GetComponent<Tilemap>();
             }
         }
 
-        if (wallTilemap != null) 
+        if (wallTilemap != null)
         {
             Transform wallTransform = wallTilemap.transform;
             var childCols = wallTransform.GetComponentsInChildren<Collider2D>();
             foreach (var ccol in childCols) { ccol.enabled = false; MapGenerator.SafeDestroy(ccol); }
-            
+
             // [핵심 복구] 자식 타일맵에 붙어있는 Rigidbody2D 파괴
             // 이게 남아있으면 Static 바디로 취급되어 부모가 밀려날 때 Wall만 제자리에 남습니다!
             var childRbs = wallTransform.GetComponentsInChildren<Rigidbody2D>();
             foreach (var crb in childRbs) { crb.simulated = false; MapGenerator.SafeDestroy(crb); }
         }
-        
+
         if (groundTilemap == null)
         {
             Transform groundTransform = FindTransformRecursive(transform, "Ground");
-            if (groundTransform != null) 
+            if (groundTransform != null)
             {
                 groundTilemap = groundTransform.GetComponent<Tilemap>();
             }
@@ -121,13 +121,13 @@ public class RoomInstance : MonoBehaviour
         _rb.interpolation = RigidbodyInterpolation2D.None;
         _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-        
+
         PhysicsMaterial2D mat = new PhysicsMaterial2D("Slippery") { friction = 0f, bounciness = 0f };
         _rb.sharedMaterial = mat;
 
         _physicsCollider = gameObject.AddComponent<BoxCollider2D>();
-        float colliderPadding = 4.0f; 
-        _physicsCollider.size = new Vector2(roomSize.x + colliderPadding, roomSize.y + colliderPadding); 
+        float colliderPadding = 4.0f;
+        _physicsCollider.size = new Vector2(roomSize.x + colliderPadding, roomSize.y + colliderPadding);
         _physicsCollider.offset = centerOffset;
         _physicsCollider.sharedMaterial = mat;
 
@@ -135,26 +135,26 @@ public class RoomInstance : MonoBehaviour
         _triggerCollider = gameObject.AddComponent<BoxCollider2D>();
         _triggerCollider.isTrigger = true;
         // 마진을 더 크게 (4.0f) 주어 통로에서 옆방 트리거를 스치는 현상 방지
-        _triggerCollider.size = new Vector2(Mathf.Max(1, roomSize.x - 4f), Mathf.Max(1, roomSize.y - 4f)); 
+        _triggerCollider.size = new Vector2(Mathf.Max(1, roomSize.x - 4f), Mathf.Max(1, roomSize.y - 4f));
         _triggerCollider.offset = centerOffset;
 
-        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast"); 
+        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
 
         // 안개 가림막 동적 생성 (스폰 방 제외)
         CreateFogMask();
     }
 
-        public void ForceEnter()
+    public void ForceEnter()
+    {
+        RevealRoom();
+        if (roomBGM != null && SoundManager.Instance != null)
         {
-            RevealRoom();
-            if (roomBGM != null && SoundManager.Instance != null)
-            {
-                SoundManager.Instance.ChangeBGM(roomBGM);
-            }
-            _roomEvent?.OnPlayerEnter(this);
+            SoundManager.Instance.ChangeBGM(roomBGM);
         }
+        _roomEvent?.OnPlayerEnter(this);
+    }
 
-        private void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
@@ -256,7 +256,7 @@ public class RoomInstance : MonoBehaviour
                 Vector3 worldPos = source.CellToWorld(pos);
                 Vector3Int targetCellPos = target.WorldToCell(worldPos);
                 target.SetTile(targetCellPos, tile);
-                
+
                 if (_myTiles != null)
                 {
                     _myTiles.Add(new Vector2Int(targetCellPos.x, targetCellPos.y));
@@ -303,7 +303,7 @@ public class RoomInstance : MonoBehaviour
 
         // 1. 메인 타일맵의 로컬 셀 (0, 0)의 현재 월드 좌표를 구합니다.
         Vector3 cellWorldPos = mainTM.CellToWorld(Vector3Int.zero);
-        
+
         Vector3 targetWorldPos;
         if (MapGenerator.Instance != null && MapGenerator.Instance.GlobalGroundTilemap != null)
         {
@@ -320,10 +320,10 @@ public class RoomInstance : MonoBehaviour
             float targetY = Mathf.Round(cellWorldPos.y / unit) * unit;
             targetWorldPos = new Vector3(targetX, targetY, cellWorldPos.z);
         }
-        
+
         // 4. 목표 월드 좌표와 현재 월드 좌표의 오차(Offset)를 구합니다.
         Vector3 offset = targetWorldPos - cellWorldPos;
-        
+
         // 5. 이 오차만큼 방의 루트 위치를 보정해 줍니다.
         pos.x += offset.x;
         pos.y += offset.y;
@@ -354,10 +354,10 @@ public class RoomInstance : MonoBehaviour
         // pixelsPerUnit을 tex.width로 동적 할당하여 해상도와 무관하게 1x1 유닛 크기를 강제 보장
         _fogMaskRenderer.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), tex.width);
         _fogMaskRenderer.color = Color.black;
-        
+
         // 소팅 레이어를 Effect로 변경하고 오더를 높여 방 전체 타일 및 플레이어 위로 렌더링되게 수정
         _fogMaskRenderer.sortingLayerName = "Effect";
-        _fogMaskRenderer.sortingOrder = 100; 
+        _fogMaskRenderer.sortingOrder = 100;
 
         // 패딩 마진 없이 딱 방 크기(roomSize)에 밀착되도록 수정
         _fogMaskObj.transform.localScale = new Vector3(roomSize.x, roomSize.y, 1f);
@@ -419,10 +419,10 @@ public class RoomInstance : MonoBehaviour
                 return child;
 
             // 성능 최적화: 가림막, 데코 오브젝트, 조명 등 타일맵과 무관한 하위 계층은 깊이 탐색을 하지 않고 스킵합니다.
-            if (child.name.StartsWith("Fog") || 
-                child.name.StartsWith("Decorate") || 
-                child.name.StartsWith("Light") || 
-                child.name.StartsWith("Global") || 
+            if (child.name.StartsWith("Fog") ||
+                child.name.StartsWith("Decorate") ||
+                child.name.StartsWith("Light") ||
+                child.name.StartsWith("Global") ||
                 child.name.StartsWith("DoorAnchor"))
             {
                 continue;
