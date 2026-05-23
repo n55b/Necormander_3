@@ -475,6 +475,8 @@ public class InventoryManager : MonoBehaviour
 
     private void Debug_InitializeInventory()
     {
+        Debug.Log($"<color=cyan>[InventoryManager]</color> Debug_InitializeInventory Started. Starting Minions Count: {debugStartingMinions.Count}, Starting Gems Count: {debugStartingGems_Data.Count}");
+
         // 1. 미니언 먼저 생성 (미소유 직업만 추가)
         for (int i = 0; i < debugStartingMinions.Count; i++)
         {
@@ -508,6 +510,8 @@ public class InventoryManager : MonoBehaviour
             int targetCount = kvp.Value;
             int ownedCount = CountGemAlreadyOwned(gem);
             int needToSpawn = targetCount - ownedCount;
+
+            Debug.Log($"<color=cyan>[InventoryManager]</color> Debug Gem Merge Check: {gem.itemName} -> Target: {targetCount}, Owned: {ownedCount}, Need to spawn: {needToSpawn}");
 
             if (needToSpawn > 0)
             {
@@ -858,21 +862,32 @@ public class InventoryManager : MonoBehaviour
             return null;
         }
 
-        var gemSO = registry.gems.Find(g => g != null && (g.name == gemData.baseGemSOAddress || g.itemName == gemData.baseGemSOAddress));
-        
-        // 디버그 보석 리스트에서 백업 탐색
-        if (gemSO == null && debugStartingGems_Data != null)
+        GemSO gemSO = null;
+
+        // 시스템 루트 보석에 대한 특별 예외 처리 (Default_Root_Gem)
+        if (gemData.baseGemSOAddress == "Default_Root_Gem" || (_defaultRootGemSO != null && (gemData.baseGemSOAddress == _defaultRootGemSO.name || gemData.baseGemSOAddress == _defaultRootGemSO.itemName)))
         {
-            gemSO = debugStartingGems_Data.Find(g => g != null && (g.name == gemData.baseGemSOAddress || g.itemName == gemData.baseGemSOAddress));
-            if (gemSO != null)
+            gemSO = _defaultRootGemSO;
+            Debug.Log($"<color=cyan>[InventoryManager]</color> Root GemSO '{gemData.baseGemSOAddress}' recovered using _defaultRootGemSO.");
+        }
+        else
+        {
+            gemSO = registry.gems.Find(g => g != null && (g.name == gemData.baseGemSOAddress || g.itemName == gemData.baseGemSOAddress));
+            
+            // 디버그 보석 리스트에서 백업 탐색
+            if (gemSO == null && debugStartingGems_Data != null)
             {
-                Debug.Log($"<color=cyan>[InventoryManager]</color> GemSO '{gemData.baseGemSOAddress}' recovered from debugStartingGems_Data backup.");
+                gemSO = debugStartingGems_Data.Find(g => g != null && (g.name == gemData.baseGemSOAddress || g.itemName == gemData.baseGemSOAddress));
+                if (gemSO != null)
+                {
+                    Debug.Log($"<color=cyan>[InventoryManager]</color> GemSO '{gemData.baseGemSOAddress}' recovered from debugStartingGems_Data backup.");
+                }
             }
         }
 
         if (gemSO == null)
         {
-            Debug.LogError($"[InventoryManager] GemSO '{gemData.baseGemSOAddress}' not found in registry or debugStartingGems_Data.");
+            Debug.LogError($"[InventoryManager] GemSO '{gemData.baseGemSOAddress}' not found in registry, debugStartingGems_Data, or _defaultRootGemSO. (InstanceId: {gemData.instanceId})");
             return null;
         }
 
@@ -885,17 +900,42 @@ public class InventoryManager : MonoBehaviour
 
         foreach (var childData in childrenData)
         {
-            if (childData == null || childData.childNode == null || childData.childNode.gem == null) continue;
+            if (childData == null || childData.childNode == null || childData.childNode.gem == null)
+            {
+                Debug.LogWarning($"[InventoryManager] LoadGemTreeNodeChildren: childData or gem is null. Skipped.");
+                continue;
+            }
 
             var childInstance = LoadGemInstance(childData.childNode.gem, registry);
             if (childInstance != null)
             {
+                // 소켓팅 전에 사전 검증하여 상세 에러 출력
+                if (childData.slotIndex < 0 || childData.slotIndex >= parentNode.Gem.SubSlots)
+                {
+                    Debug.LogError($"[InventoryManager] SocketChild Failed: SlotIndex {childData.slotIndex} is out of bounds for parent {parentNode.Gem.BaseData.itemName} (Available SubSlots: {parentNode.Gem.SubSlots}). InstanceId: {childInstance.InstanceId}");
+                    continue;
+                }
+                if (parentNode.Children[childData.slotIndex] != null)
+                {
+                    Debug.LogError($"[InventoryManager] SocketChild Failed: SlotIndex {childData.slotIndex} on parent {parentNode.Gem.BaseData.itemName} is already occupied by {parentNode.Children[childData.slotIndex].Gem.BaseData.itemName}. InstanceId: {childInstance.InstanceId}");
+                    continue;
+                }
+
                 GemTreeNode newChildNode = parentNode.SocketChild(childData.slotIndex, childInstance);
                 if (newChildNode != null)
                 {
                     _gemNodeIndex[newChildNode.Gem.InstanceId] = newChildNode;
+                    Debug.Log($"<color=green>[InventoryManager]</color> Successfully socketed child '{childInstance.BaseData.itemName}' into slot {childData.slotIndex} of parent '{parentNode.Gem.BaseData.itemName}'.");
                     LoadGemTreeNodeChildren(newChildNode, childData.childNode.children, registry);
                 }
+                else
+                {
+                    Debug.LogError($"[InventoryManager] SocketChild returned null unexpectedly for {childInstance.BaseData.itemName} at slot {childData.slotIndex}.");
+                }
+            }
+            else
+            {
+                Debug.LogError($"[InventoryManager] LoadGemTreeNodeChildren Failed: childInstance is null for baseGemSOAddress: {childData.childNode.gem.baseGemSOAddress}. Child branch skipped.");
             }
         }
     }
@@ -906,17 +946,22 @@ public class InventoryManager : MonoBehaviour
         int count = 0;
 
         // 1. 인벤토리에서 개수 카운트
+        int inventoryCount = 0;
         foreach (var g in AvailableGemInstances)
         {
-            if (g != null && g.BaseData == gem) count++;
+            if (g != null && g.BaseData == gem) inventoryCount++;
         }
+        count += inventoryCount;
 
         // 2. 젬 트리에서 개수 카운트
+        int treeCount = 0;
         if (GemTreeRoot != null)
         {
-            count += CountGemInTree(GemTreeRoot, gem);
+            treeCount = CountGemInTree(GemTreeRoot, gem);
         }
+        count += treeCount;
 
+        Debug.Log($"<color=cyan>[InventoryManager]</color> CountGemAlreadyOwned({gem.itemName}): Total = {count} (Inventory: {inventoryCount}, Tree: {treeCount})");
         return count;
     }
 
