@@ -351,6 +351,29 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+    
+    public void OnOption(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            if (SceneOptionManager.Instance != null)
+            {
+                if (!SceneOptionManager.Instance.isOptionOpen)
+                {
+                    SceneOptionManager.Instance.OpenOptionScene();
+                }
+                else
+                {
+                    SceneOptionManager.Instance.CloseOptionScene();
+                }
+            }
+            else
+            {
+                Debug.LogError("<color=red>[PlayerController]</color> SceneOptionManager.Instance is NULL!");
+            }
+        }
+    }
+
     /// <summary>
     /// [추가] 현재 씬 내에서 활성화된 전투 이벤트(DynamicEnemySpawner)가 있는지 확인합니다.
     /// 사용자가 언급한 '임시 벽 생성' 로직과 동기화됩니다.
