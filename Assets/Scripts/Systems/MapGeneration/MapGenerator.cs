@@ -664,6 +664,41 @@ public class MapGenerator : MonoBehaviour
         public float dist;
     }
 
+    private List<Vector2Int> SimplifyPath(List<Vector2Int> path)
+    {
+        if (path.Count <= 2) return path;
+
+        List<Vector2Int> optimized = new List<Vector2Int>();
+        int currIndex = 0;
+        optimized.Add(path[0]);
+
+        int safety = 0;
+        while (currIndex < path.Count - 1)
+        {
+            safety++;
+            if (safety > 5000)
+            {
+                Debug.LogError("[MapGenerator] SimplifyPath infinite loop detected!");
+                break;
+            }
+
+            int nextIndex = currIndex + 1;
+            for (int j = path.Count - 1; j > currIndex + 1; j--)
+            {
+                int dist = Mathf.Abs(path[currIndex].x - path[j].x) + Mathf.Abs(path[currIndex].y - path[j].y);
+                if (dist <= 1)
+                {
+                    nextIndex = j;
+                    break;
+                }
+            }
+            optimized.Add(path[nextIndex]);
+            currIndex = nextIndex;
+        }
+
+        return optimized;
+    }
+
     private bool DrawCorridorBetweenRooms(RoomInstance a, RoomInstance b, int pathDepth, bool shuffle = false)
     {
         _painter.SetCurrentRooms(a, b);
@@ -719,6 +754,15 @@ public class MapGenerator : MonoBehaviour
                 if (path.Count > 0 && path.Last() != exitB) path.Add(exitB); 
                 for (int i = path.Count - 1; i > 0; i--) 
                     if (path[i] == path[i - 1]) path.RemoveAt(i); 
+
+                // 경로 단순화 적용: 쓸데없이 앞으로 나갔다가 꺾여서 생기는 T자 꼬리 단락 자동 도려내기
+                path = SimplifyPath(path);
+
+                // 생성될 복도가 기존 복도들과 닿거나 겹치는지 최종 사전 체크
+                if (_painter.CheckCorridorOverlapAndContact(path, bestA, bestB))
+                {
+                    continue; // 닿는다면 해당 경로 기각하고 다른 앵커 매칭 시도
+                }
 
                 _painter.RegisterCorridorWithAnchors(path, bestA, bestB, pathDepth); 
                 bestA.isUsed = true; 

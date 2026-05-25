@@ -307,20 +307,20 @@ public class CorridorPainter : MonoBehaviour
 
         for (int d = -1; d <= 1; d++)
         {
-            // 방 안쪽(d = -1)과 벽 경계(d = 0)는 문 크기인 1칸 너비(s = 0)만 뚫고,
-            // 방 바깥 복도 시작 지점(d = 1)에서만 복도 3칸 너비(s = -1 ~ 1) 전체를 뚫습니다.
-            int startS = (d <= 0) ? 0 : -1;
-            int endS = (d <= 0) ? 0 : 1;
-
-            for (int s = startS; s <= endS; s++)
+            for (int s = -1; s <= 1; s++)
             {
                 Vector2Int targetPos = pos + (dir * d) + (sideDir * s);
-                if (s == 0) { _totalPathTiles.Add(targetPos); _tileDepths[targetPos] = depth; }
                 
-                // 문 구멍 중앙 라인(s == 0)은 force = true로 문을 뚫고, 
-                // 날개 확장부(s != 0)는 force = false로 설정해 방 벽 훼손을 방지합니다.
-                bool force = (s == 0);
-                AddGroundWithDepth(targetPos, depth, force);
+                // 오직 중앙 1칸(s == 0)만 path 타일로 등록하여 그림자를 걷어냅니다 (양옆은 그림자로 가림).
+                if (s == 0)
+                {
+                    _totalPathTiles.Add(targetPos); 
+                }
+                
+                _tileDepths[targetPos] = depth;
+                
+                // 문 입구의 3칸 전체를 강제로 뚫어 방의 벽을 깔끔하게 개방합니다.
+                AddGroundWithDepth(targetPos, depth, force: true);
             }
         }
     }
@@ -468,6 +468,98 @@ public class CorridorPainter : MonoBehaviour
             }
         }
         return null;
+    }
+
+    public bool CheckCorridorOverlapAndContact(List<Vector2Int> path, RoomAnchor startAnchor, RoomAnchor endAnchor)
+    {
+        if (_totalGroundTiles.Count == 0) return false;
+
+        HashSet<Vector2Int> newCorridorTiles = new HashSet<Vector2Int>();
+
+        // 1. 복도 바닥 타일 시뮬레이션 수집 (RegisterCorridorWithAnchors 로직 준용)
+        for (int i = 0; i < path.Count; i++)
+        {
+            Vector2Int pos = path[i];
+            Vector2Int dir = GetDirection(path, i);
+            Vector2Int sideDir = new Vector2Int(-dir.y, dir.x);
+
+            bool isCorner = false;
+            if (i > 0)
+            {
+                Vector2Int dirPrev = GetDirection(path, i - 1);
+                if (dirPrev != dir) isCorner = true;
+            }
+
+            if (isCorner)
+            {
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        Vector2Int p = pos + new Vector2Int(dx, dy);
+                        if (!_roomWallTiles.Contains(p) && !_roomFloorTiles.Contains(p))
+                        {
+                            newCorridorTiles.Add(p);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Vector2Int[] offsets = { Vector2Int.zero, sideDir, -sideDir };
+                foreach (var offset in offsets)
+                {
+                    Vector2Int p = pos + offset;
+                    if (!_roomWallTiles.Contains(p) && !_roomFloorTiles.Contains(p))
+                    {
+                        newCorridorTiles.Add(p);
+                    }
+                }
+            }
+        }
+
+        // 2. 앵커 입구 타일 시뮬레이션 수집 (ApplyAnchorEntrance 로직 준용)
+        System.Action<RoomAnchor> simulatedApplyAnchor = (anchor) =>
+        {
+            if (anchor == null) return;
+            Vector3Int cellPos3 = _wallTilemap.WorldToCell(anchor.transform.position);
+            Vector2Int pos = new Vector2Int(cellPos3.x, cellPos3.y);
+            Vector2Int dir = anchor.direction;
+            Vector2Int sideDir = new Vector2Int(-dir.y, dir.x);
+
+            for (int d = -1; d <= 1; d++)
+            {
+                for (int s = -1; s <= 1; s++)
+                {
+                    Vector2Int targetPos = pos + (dir * d) + (sideDir * s);
+                    newCorridorTiles.Add(targetPos);
+                }
+            }
+        };
+
+        simulatedApplyAnchor(startAnchor);
+        simulatedApplyAnchor(endAnchor);
+
+        // 3. 기존 복도들과의 중첩 및 8방향 인접 닿음 검사
+        foreach (var tile in newCorridorTiles)
+        {
+            if (_totalGroundTiles.Contains(tile)) return true;
+
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    Vector2Int neighbor = tile + new Vector2Int(dx, dy);
+                    if (_totalGroundTiles.Contains(neighbor))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private bool IsOverlapWithCorridors(Vector2Int pos)
