@@ -59,6 +59,9 @@ public class GameManager : MonoBehaviour
         StopAllCoroutines(); // 모든 코루틴 정지
         SetTimeStop(true); // 게임 시간 정지
 
+        // 게임 오버 시 세이브 데이터를 삭제하여 이전 층에서 이어서 하기 방지
+        SaveSystem.DeleteSave();
+
         GameOverManager.Instance.TriggerGameOver();
     }
 
