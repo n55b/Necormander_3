@@ -15,7 +15,6 @@ public class SceneOptionManager : MonoBehaviour
     public void OpenOptionScene()
     {
         isOptionOpen = true;
-        GameManager.Instance.SetTimeStop(true);
 
         SceneManager.LoadScene("OptionScene", LoadSceneMode.Additive);
     }
@@ -23,7 +22,6 @@ public class SceneOptionManager : MonoBehaviour
     public void CloseOptionScene()
     {
         isOptionOpen = false;
-        GameManager.Instance.SetTimeStop(false);
 
         SceneManager.UnloadSceneAsync("OptionScene");
     }
