@@ -25,6 +25,8 @@ public class MapGenerator : MonoBehaviour
     private HashSet<RoomInstance> _reachedRooms = new HashSet<RoomInstance>();
     private Dictionary<RoomInstance, List<RoomInstance>> _masterAdjacency = new Dictionary<RoomInstance, List<RoomInstance>>();
     private Dictionary<RoomInstance, Vector2> _intendedDirs = new Dictionary<RoomInstance, Vector2>(); 
+    private Dictionary<System.Tuple<RoomInstance, RoomInstance>, int> _corridorLengths = new Dictionary<System.Tuple<RoomInstance, RoomInstance>, int>();
+    private List<string> _rewardConnectionDebugLogs = new List<string>();
     private CorridorPainter _painter;
     private GameObject _tempObstacle; 
     private bool _isGenerating = false;
@@ -119,7 +121,7 @@ public class MapGenerator : MonoBehaviour
             if (phase4.Count > 0) yield return StartCoroutine(RunPhase(phase4));
 
             // 모든 방의 물리 분산 및 타일맵 병합이 완료된 후 단 한번 복도 연결 수행!
-            ConnectUnreachedRooms();
+            yield return StartCoroutine(ConnectUnreachedRoomsCoroutine());
 
             // 최종 모든 방이 온전히 다 연결되었는지 검증
             int totalIsolated = _allRooms.Count - _reachedRooms.Count;
@@ -178,6 +180,19 @@ public class MapGenerator : MonoBehaviour
     {
         var navSurface = Object.FindFirstObjectByType<NavMeshSurface>();
         if (navSurface != null) { navSurface.RemoveData(); navSurface.BuildNavMesh(); }
+    }
+
+    private void SaveCorridorLength(RoomInstance r1, RoomInstance r2, int length)
+    {
+        _corridorLengths[System.Tuple.Create(r1, r2)] = length;
+        _corridorLengths[System.Tuple.Create(r2, r1)] = length;
+    }
+
+    private int GetCorridorLength(RoomInstance r1, RoomInstance r2)
+    {
+        var key = System.Tuple.Create(r1, r2);
+        if (_corridorLengths.TryGetValue(key, out int length)) return length;
+        return 0;
     }
 
     public void PlacePlayerAtSpawn()
@@ -244,7 +259,8 @@ public class MapGenerator : MonoBehaviour
             float halfH = _allRooms.Max(r => Mathf.Abs(r.transform.position.y) + r.roomSize.y * 0.5f + 2f);
             float cos = Mathf.Abs(Mathf.Cos(angle)); float sin = Mathf.Abs(Mathf.Sin(angle));
             spawnRadius = (halfW * sin <= halfH * cos) ? (halfW / (cos + 0.001f)) : (halfH / (sin + 0.001f));
-            spawnRadius += 3f; 
+            // 이전 페이즈의 네모 콜라이더 박스 표면에 가깝되, 앵커가 가로막히지 않도록 반경 90% 수준으로 조율
+            spawnRadius = Mathf.Max(5f, spawnRadius * 0.9f); 
         }
         Vector2 spawnPos = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * spawnRadius;
         GameObject roomObj = Instantiate(prefab, (Vector3)spawnPos, Quaternion.identity, transform);
@@ -268,14 +284,17 @@ public class MapGenerator : MonoBehaviour
 
         for (int iter = 0; iter < maxIterations; iter++)
         {
-            // 1. intended direction 방향으로 바깥으로 약간 퍼뜨림 (물리 AddForce 모사)
+            // 1. intended direction 방향으로 바깥으로 약간 퍼뜨리되, 중심부 방향의 가상 중력을 주어 팽창을 억제
             foreach (var room in activeRooms)
             {
                 Rigidbody2D rb = room.GetComponent<Rigidbody2D>();
                 if (rb != null && rb.bodyType == RigidbodyType2D.Static) continue;
 
                 Vector2 intendedDir = _intendedDirs.ContainsKey(room) ? _intendedDirs[room] : ((Vector2)room.transform.position).normalized;
-                room.transform.position += (Vector3)(intendedDir * stepSize);
+                // 바깥으로 미는 힘과 안쪽으로 당기는 복원력의 조합 (콤팩트 팩킹 유도)
+                Vector2 centerGravity = -((Vector2)room.transform.position).normalized * 0.35f;
+                Vector2 finalMove = (intendedDir * stepSize) + centerGravity;
+                room.transform.position += (Vector3)finalMove;
             }
 
             // 2. 방들 간의 기하학적 AABB 겹침 분산 연산 (Separation)
@@ -296,11 +315,11 @@ public class MapGenerator : MonoBehaviour
 
                     if (staticA && staticB) continue;
 
-                    // 방 크기 + 4.0f 콜라이더 패딩 마진 적용
-                    float halfWA = (rA.roomSize.x + 4f) * 0.5f;
-                    float halfHA = (rA.roomSize.y + 4f) * 0.5f;
-                    float halfWB = (rB.roomSize.x + 4f) * 0.5f;
-                    float halfHB = (rB.roomSize.y + 4f) * 0.5f;
+                    // 방 크기 + 3.5f 콜라이더 패딩 마진 적용 (입구 막힘 방지를 위한 최적 마진)
+                    float halfWA = (rA.roomSize.x + 3.5f) * 0.5f;
+                    float halfHA = (rA.roomSize.y + 3.5f) * 0.5f;
+                    float halfWB = (rB.roomSize.x + 3.5f) * 0.5f;
+                    float halfHB = (rB.roomSize.y + 3.5f) * 0.5f;
 
                     Vector2 centerA = (Vector2)rA.transform.position + rA.centerOffset;
                     Vector2 centerB = (Vector2)rB.transform.position + rB.centerOffset;
@@ -367,10 +386,12 @@ public class MapGenerator : MonoBehaviour
         yield break;
     }
 
-    private void ConnectUnreachedRooms()
+    private IEnumerator ConnectUnreachedRoomsCoroutine()
     {
-        int maxAttempts = 5;
+        int maxAttempts = 25; // 밸런스 제약 조건을 통과하는 통로 연결 조합을 탐색하기 위해 최대 시도 상향
         bool routingSuccess = false;
+
+        System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
 
         int maxPhase = 0;
         foreach (var r in _allRooms)
@@ -389,6 +410,10 @@ public class MapGenerator : MonoBehaviour
             }
 
             _painter.Init(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, generationData.floorTile, generationData.wallTile, generationData.shadowTile);
+            
+            // 초기 스폰 방 깊이 연산 실행
+            UpdateAllRoomDepths();
+
             List<RoomInstance> rewardRooms = _allRooms.Where(r => r.roomType == RoomType.Reward).ToList();
             bool phaseRoutingFailed = false;
 
@@ -396,8 +421,15 @@ public class MapGenerator : MonoBehaviour
             {
                 List<RoomInstance> phaseUnreached = _allRooms.Where(r => r.phaseIndex == phase && !_reachedRooms.Contains(r) && r.roomType != RoomType.Reward).ToList();
                 bool changed = true;
+                int safety = 0;
                 while (changed && phaseUnreached.Count > 0)
                 {
+                    safety++;
+                    if (safety > 5000)
+                    {
+                        Debug.LogError("<color=red>[MapGenerator]</color> ConnectUnreachedRooms phase loop timeout! Infinite loop detected.");
+                        break;
+                    }
                     changed = false;
                     _connectionCandidates.Clear();
 
@@ -409,12 +441,16 @@ public class MapGenerator : MonoBehaviour
                             if ((u.roomType == RoomType.Shop || u.roomType == RoomType.Elite) && r.roomType == RoomType.Spawn) 
                                 continue;
 
-                            float dist = Vector2.Distance(r.transform.position, u.transform.position);
+                            // 직선거리를 복도 길이 예상치로 사용
+                            float approxCorridorLen = Vector2.Distance(r.transform.position, u.transform.position);
+                            // 일반 방 연결에서는 순수 물리적 거리를 기준으로 하되, 맵 생성 다양성을 극대화하기 위해 랜덤 노이즈(-30f ~ +30f)를 적용합니다.
+                            float estimatedCumulativeDist = approxCorridorLen + Random.Range(-30f, 30f);
+                            
                             if (attempt > 0)
                             {
-                                dist += Random.Range(-15f, 15f); // 셔플 회차 시 정렬 순서 다각화용 노이즈
+                                estimatedCumulativeDist += Random.Range(-15f, 15f); // 셔플 회차 시 노이즈
                             }
-                            _connectionCandidates.Add(new RoomConnectionCandidate { reached = r, unreached = u, dist = dist });
+                            _connectionCandidates.Add(new RoomConnectionCandidate { reached = r, unreached = u, dist = estimatedCumulativeDist });
                         }
                     }
 
@@ -422,6 +458,12 @@ public class MapGenerator : MonoBehaviour
 
                     for (int i = 0; i < _connectionCandidates.Count; i++)
                     {
+                        if (sw.ElapsedMilliseconds > 15)
+                        {
+                            yield return null;
+                            sw.Restart();
+                        }
+
                         var c = _connectionCandidates[i];
                         if (!phaseUnreached.Contains(c.unreached)) continue;
                         if (DrawCorridorBetweenRooms(c.reached, c.unreached, 0, attempt > 0)) 
@@ -431,6 +473,10 @@ public class MapGenerator : MonoBehaviour
                             _masterAdjacency[c.reached].Add(c.unreached); 
                             _masterAdjacency[c.unreached].Add(c.reached); 
                             changed = true; 
+                            
+                            // 복도가 하나 연결될 때마다 다음 프레임으로 처리를 양보하여 프리징 방지
+                            yield return null;
+                            sw.Restart();
                             break; 
                         }
                     }
@@ -448,6 +494,7 @@ public class MapGenerator : MonoBehaviour
             if (phaseRoutingFailed)
             {
                 Debug.LogWarning($"<color=orange>[MapGenerator]</color> Phase routing failed at attempt {attempt + 1}. Retrying...");
+                yield return null;
                 continue;
             }
 
@@ -457,32 +504,111 @@ public class MapGenerator : MonoBehaviour
                 UpdateAllRoomDepths();
                 var validReached = _reachedRooms.Where(r => r.debugDepth != -1).ToList();
                 if (validReached.Count == 0) continue;
-                int currentMaxD = validReached.Max(r => r.debugDepth);
-                var deepNodes = validReached.Where(r => r.debugDepth >= currentMaxD - 1).OrderByDescending(r => r.debugDepth).ThenBy(r => Vector2.Distance(r.transform.position, reward.transform.position)).ToList();
+                int normalMaxD = validReached.Where(r => r.roomType != RoomType.Reward).Max(r => r.debugDepth);
+                
+                // 홉 수 기준 최대 깊이에서 2 이내에 있는 모든 깊은 방들을 후보군으로 선정
+                float depthThreshold = Mathf.Max(1, normalMaxD - 2);
+                var deepNodes = validReached.Where(r => (float)r.debugDepth >= depthThreshold).OrderBy(r => Vector2.Distance(r.transform.position, reward.transform.position)).ToList();
+                
+                // 디버그 로그 수집
+                System.Text.StringBuilder logSb = new System.Text.StringBuilder();
+                logSb.AppendLine($"[Reward Connection Debug] Connecting Room: {reward.name} (Attempt: {attempt + 1})");
+                logSb.AppendLine($"  - Max Depth (normalMaxD): {normalMaxD}");
+                logSb.AppendLine($"  - Filtering Threshold (normalMaxD - 2): {depthThreshold}");
+                logSb.AppendLine("  - Candidate Reached Rooms (Sorted by Depth DESC):");
+                foreach (var r in validReached.OrderByDescending(node => node.debugDepth))
+                {
+                    bool isSelected = (float)r.debugDepth >= depthThreshold;
+                    logSb.AppendLine($"    * {r.name}: Depth={r.debugDepth}, Diameter={r.GetDiameter()}, IsCandidate={isSelected}");
+                }
+
                 if (attempt > 0)
                 {
                     deepNodes = deepNodes.OrderBy(r => Vector2.Distance(r.transform.position, reward.transform.position) + Random.Range(-15f, 15f)).ToList();
                 }
+                
+                RoomInstance connectedParent = null;
                 foreach (var p in deepNodes) 
                 { 
+                    if (sw.ElapsedMilliseconds > 15)
+                    {
+                        yield return null;
+                        sw.Restart();
+                    }
+
                     if (DrawCorridorBetweenRooms(p, reward, 0, attempt > 0)) 
                     { 
                         _reachedRooms.Add(reward); 
                         _masterAdjacency[p].Add(reward); 
                         _masterAdjacency[reward].Add(p); 
+                        connectedParent = p;
+                        
+                        // 보상 방 연결 시에도 프레임 양보
+                        yield return null;
+                        sw.Restart();
                         break; 
                     } 
                 }
+
+                logSb.AppendLine($"  - Result Connection: {(connectedParent != null ? "SUCCESS to " + connectedParent.name : "FAILED")}");
+                _rewardConnectionDebugLogs.Add(logSb.ToString());
             }
 
             int isolatedCount = _allRooms.Count - _reachedRooms.Count;
             if (isolatedCount == 0)
             {
-                routingSuccess = true;
-                break;
+                // 1. 모든 방이 연결된 시점에서, 숏컷 우회로(루프)를 먼저 설치해 봅니다.
+                // (최종 숏컷이 포함된 동선을 기준으로 뎁스를 검증하기 위함)
+                yield return StartCoroutine(CreateExtraCorridorsCoroutine());
+
+                // 2. 최종 맵의 게임 규칙 제약 조건 유효성 검사 (Constraint Validation)
+                bool isValidMap = true;
+
+                // 마지막 시도(Fallback)인 경우는 무조건 통과시켜 맵 멈춤 방지
+                if (attempt < maxAttempts - 1)
+                {
+                    // 현재 맵의 실제 홉 수 최대 깊이 계산 (보상방 제외)
+                    int normalMaxD = _allRooms.Where(r => r.debugDepth != -1 && r.roomType != RoomType.Reward).Max(r => r.debugDepth);
+
+                    // 조건 A: 모든 보상방(Reward)의 깊이(Depth)가 현재 맵의 최대 깊이보다 최소 1 이내여야 함.
+                    // (즉, 보상방은 상대적으로 가장 깊은 최심부 영역에 매칭되도록 보장)
+                    foreach (var room in _allRooms)
+                    {
+                        if (room.roomType == RoomType.Reward && room.debugDepth < normalMaxD - 1)
+                        {
+                            isValidMap = false;
+                            break;
+                        }
+                    }
+
+                    // 조건 B: 모든 특수방(Shop, Elite)의 깊이가 스폰 방 기준 2 이상이어야 함. (스폰방 바로 옆 직접 연결 방지)
+                    foreach (var room in _allRooms)
+                    {
+                        if ((room.roomType == RoomType.Shop || room.roomType == RoomType.Elite) && room.debugDepth < 2)
+                        {
+                            isValidMap = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (isValidMap)
+                {
+                    routingSuccess = true;
+                    break;
+                }
+                else
+                {
+                    Debug.LogWarning($"<color=orange>[MapGenerator]</color> Generated corridor layout did not satisfy depth rules (Attempt {attempt + 1}). Resetting and retrying routing...");
+                    // 제약 조건을 위반했으므로 통로 데이터를 싹 비우고 재시도
+                    ResetCorridorState(); 
+                    yield return null;
+                    continue;
+                }
             }
             
             Debug.LogWarning($"<color=orange>[MapGenerator]</color> Corridor routing attempt {attempt + 1} failed with {isolatedCount} isolated rooms. Retrying corridor routing...");
+            yield return null;
         }
 
         if (routingSuccess)
@@ -494,6 +620,8 @@ public class MapGenerator : MonoBehaviour
 
     private void ResetCorridorState()
     {
+        _corridorLengths.Clear();
+        _rewardConnectionDebugLogs.Clear();
         _reachedRooms.Clear();
         RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
         if (spawnRoom != null)
@@ -540,10 +668,38 @@ public class MapGenerator : MonoBehaviour
     {
         RoomInstance spawn = _allRooms.Find(r => r.roomType == RoomType.Spawn);
         if (spawn == null) return;
-        foreach (var r in _allRooms) r.debugDepth = -1;
-        Queue<RoomInstance> q = new Queue<RoomInstance>();
-        q.Enqueue(spawn); spawn.debugDepth = 0;
-        while (q.Count > 0) { RoomInstance curr = q.Dequeue(); if (!_masterAdjacency.ContainsKey(curr)) continue; foreach (var neighbor in _masterAdjacency[curr]) { if (neighbor.debugDepth == -1) { neighbor.debugDepth = curr.debugDepth + 1; q.Enqueue(neighbor); } } }
+
+        foreach (var r in _allRooms)
+        {
+            r.debugDepth = -1;
+        }
+
+        Queue<RoomInstance> queue = new Queue<RoomInstance>();
+        spawn.debugDepth = 0;
+        queue.Enqueue(spawn);
+
+        int safety = 0;
+        while (queue.Count > 0)
+        {
+            safety++;
+            if (safety > 5000)
+            {
+                Debug.LogError("<color=red>[MapGenerator]</color> UpdateAllRoomDepths (BFS) loop timeout!");
+                break;
+            }
+
+            RoomInstance curr = queue.Dequeue();
+            if (!_masterAdjacency.ContainsKey(curr)) continue;
+
+            foreach (var neighbor in _masterAdjacency[curr])
+            {
+                if (neighbor.debugDepth == -1) // 아직 방문하지 않은 방
+                {
+                    neighbor.debugDepth = curr.debugDepth + 1; // 홉 수(방 개수) 누적
+                    queue.Enqueue(neighbor);
+                }
+            }
+        }
     }
 
     private void UpdateGlobalBoundingObstacle()
@@ -557,6 +713,8 @@ public class MapGenerator : MonoBehaviour
 
     private void ClearExistingMap() 
     { 
+        _corridorLengths.Clear();
+        _rewardConnectionDebugLogs.Clear();
         foreach (var room in _allRooms) if (room != null) SafeDestroy(room.gameObject); 
         _allRooms.Clear(); _reachedRooms.Clear(); _masterAdjacency.Clear(); _intendedDirs.Clear();
         if (_tempObstacle != null) SafeDestroy(_tempObstacle);
@@ -570,6 +728,117 @@ public class MapGenerator : MonoBehaviour
         public RoomAnchor a;
         public RoomAnchor b;
         public float dist;
+    }
+
+    private List<Vector2Int> SimplifyPath(List<Vector2Int> path)
+    {
+        if (path.Count <= 2) return path;
+
+        List<Vector2Int> optimized = new List<Vector2Int>();
+        int currIndex = 0;
+        optimized.Add(path[0]);
+
+        int safety = 0;
+        while (currIndex < path.Count - 1)
+        {
+            safety++;
+            if (safety > 5000)
+            {
+                Debug.LogError("[MapGenerator] SimplifyPath infinite loop detected!");
+                break;
+            }
+
+            int nextIndex = currIndex + 1;
+            for (int j = path.Count - 1; j > currIndex + 1; j--)
+            {
+                int dist = Mathf.Abs(path[currIndex].x - path[j].x) + Mathf.Abs(path[currIndex].y - path[j].y);
+                if (dist <= 1)
+                {
+                    nextIndex = j;
+                    break;
+                }
+            }
+            optimized.Add(path[nextIndex]);
+            currIndex = nextIndex;
+        }
+
+        return optimized;
+    }
+
+    private IEnumerator CreateExtraCorridorsCoroutine()
+    {
+        System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+        List<System.Tuple<RoomInstance, RoomInstance, float>> extraCandidates = new List<System.Tuple<RoomInstance, RoomInstance, float>>();
+
+        // 1. 서로 인접하고 추가 복도를 뚫을 수 있는 방 쌍 수집
+        for (int i = 0; i < _allRooms.Count; i++)
+        {
+            for (int j = i + 1; j < _allRooms.Count; j++)
+            {
+                RoomInstance r1 = _allRooms[i];
+                RoomInstance r2 = _allRooms[j];
+
+                // 보상 방과 스폰 방은 숏컷 루프 대상에서 제외 (밸런스 보존)
+                if (r1.roomType == RoomType.Reward || r2.roomType == RoomType.Reward) continue;
+                if (r1.roomType == RoomType.Spawn || r2.roomType == RoomType.Spawn) continue;
+
+                // 이미 연결되어 있는 관계는 제외
+                if (_masterAdjacency[r1].Contains(r2)) continue;
+
+                // 두 방의 깊이 차이가 최대 1 이하일 때만 우회로(숏컷) 생성을 시도합니다.
+                // (지름길이 너무 얕아져서 보상방의 상대적 위계질서 깊이가 단축되는 것을 원천 방지)
+                int depthDiff = Mathf.Abs(r1.debugDepth - r2.debugDepth);
+                if (depthDiff > 1) continue;
+
+                float dist = Vector2.Distance(r1.transform.position, r2.transform.position);
+                if (dist < 80f) // 물리적으로 가까운 방들만 후보 선정 (80f 범위로 확장)
+                {
+                    extraCandidates.Add(System.Tuple.Create(r1, r2, dist));
+                }
+            }
+        }
+
+        // 2. 80f 이내의 후보군을 거리순이 아닌 무작위 셔플링하여 맵 전역에 고르게 배분
+        extraCandidates = extraCandidates.OrderBy(x => Random.value).ToList();
+
+        // 3. 전체 방 개수에 비례하여 최대 추가 루프 개수 결정 (최소 1개, 최대 3개)
+        int maxExtraLoops = Mathf.Clamp(_allRooms.Count / 4, 1, 3);
+        int successCount = 0;
+
+        foreach (var candidate in extraCandidates)
+        {
+            if (sw.ElapsedMilliseconds > 15)
+            {
+                yield return null;
+                sw.Restart();
+            }
+
+            if (successCount >= maxExtraLoops) break;
+
+            RoomInstance r1 = candidate.Item1;
+            RoomInstance r2 = candidate.Item2;
+
+            // 특정 방에만 복도 연결이 과도하게 쏠려 스파게티가 되는 현상 차단 (최대 Degree = 3 제한)
+            if (_masterAdjacency[r1].Count >= 3 || _masterAdjacency[r2].Count >= 3) continue;
+
+            // 임의의 앵커 쌍 연결 시도
+            if (DrawCorridorBetweenRooms(r1, r2, 0, shuffle: true))
+            {
+                _masterAdjacency[r1].Add(r2);
+                _masterAdjacency[r2].Add(r1);
+                successCount++;
+                yield return null; // 프레임 분산
+                sw.Restart();
+            }
+        }
+
+        if (successCount > 0)
+        {
+            // 추가된 복도 타일들 최종 일괄 그리기 및 깊이 데이터 재정렬
+            _painter.FinalizePainting();
+            UpdateAllRoomDepths();
+            Debug.Log($"<color=green>[MapGenerator]</color> Added {successCount} extra loop corridors for shortcuts.");
+        }
     }
 
     private bool DrawCorridorBetweenRooms(RoomInstance a, RoomInstance b, int pathDepth, bool shuffle = false)
@@ -628,12 +897,25 @@ public class MapGenerator : MonoBehaviour
                 for (int i = path.Count - 1; i > 0; i--) 
                     if (path[i] == path[i - 1]) path.RemoveAt(i); 
 
+                // 경로 단순화 적용: 쓸데없이 앞으로 나갔다가 꺾여서 생기는 T자 꼬리 단락 자동 도려내기
+                path = SimplifyPath(path);
+
+                // 생성될 복도가 기존 복도들과 닿거나 겹치는지 최종 사전 체크
+                if (_painter.CheckCorridorOverlapAndContact(path, bestA, bestB))
+                {
+                    continue; // 닿는다면 해당 경로 기각하고 다른 앵커 매칭 시도
+                }
+
                 _painter.RegisterCorridorWithAnchors(path, bestA, bestB, pathDepth); 
                 bestA.isUsed = true; 
                 bestB.isUsed = true; 
 
                 SpawnDoorAtAnchor(a, bestA); 
                 SpawnDoorAtAnchor(b, bestB);
+
+                // [추가] 두 방 사이의 실제 복도 타일 수(길이)를 캐시에 저장
+                SaveCorridorLength(a, b, path.Count);
+
                 return true;
             }
         }
@@ -736,6 +1018,20 @@ public class MapGenerator : MonoBehaviour
                 sb.AppendLine($"    * Anchor {i}: LocalPos={anchor.transform.localPosition}, CellPos={anchorCell}, Dir={anchor.direction}, IsUsed={anchor.isUsed}");
             }
             sb.AppendLine();
+        }
+
+        // --- 보상 방 연결 과정 다익스트라 상세 로그 추가 ---
+        sb.AppendLine("\n==================== REWARD ROOM CONNECTION LOGS ====================");
+        if (_rewardConnectionDebugLogs.Count > 0)
+        {
+            foreach (var log in _rewardConnectionDebugLogs)
+            {
+                sb.AppendLine(log);
+            }
+        }
+        else
+        {
+            sb.AppendLine("No Reward Room Connection Logs recorded.");
         }
 
         string path = System.IO.Path.Combine(Application.dataPath, "..", "MapDebugLog.txt");
