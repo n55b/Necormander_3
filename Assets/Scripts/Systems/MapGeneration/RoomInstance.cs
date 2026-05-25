@@ -19,6 +19,11 @@ public class RoomInstance : MonoBehaviour
     [HideInInspector] public int debugDepth = -1; // 맵 생성 시 계산된 깊이 저장용
     [HideInInspector] public int phaseIndex = -1; // 방이 생성된 맵 생성 페이즈 인덱스
 
+    public float GetDiameter()
+    {
+        return Mathf.Max(roomSize.x, roomSize.y);
+    }
+
     [Header("Combat & Events")]
     public bool isCleared = false;
     public List<GameObject> doorObjects = new List<GameObject>(); // MapGenerator에서 할당

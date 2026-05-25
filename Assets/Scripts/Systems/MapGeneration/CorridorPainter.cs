@@ -524,8 +524,15 @@ public class CorridorPainter : MonoBehaviour
     private List<Vector2Int> ReconstructPath(Dictionary<Vector2Int, Vector2Int> cameFrom, Vector2Int current) 
     { 
         List<Vector2Int> path = new List<Vector2Int>(128) { current }; 
+        int safety = 0;
         while (cameFrom.ContainsKey(current)) 
         { 
+            safety++;
+            if (safety > 5000)
+            {
+                Debug.LogError("<color=red>[CorridorPainter]</color> ReconstructPath loop timeout! Cyclic cameFrom detected.");
+                break;
+            }
             current = cameFrom[current]; 
             path.Add(current); 
         } 
