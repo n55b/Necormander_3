@@ -216,7 +216,7 @@ public class CharacterStat : MonoBehaviour
             baseMoveSpeed = data.moveSpeed;
 
             // [추가] 보스 여부 전달
-            if (Status != null) Status.IsBoss = data.isBoss;
+            if (Status != null) Status.IsElite = data.isElite;
         }
 
         UpdateTeamStatus(); // 데이터 주입 시점에 팀 정보 다시 확인

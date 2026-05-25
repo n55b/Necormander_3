@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b1b9e02532d99d4d9fc4534c3ac45e8, type: 3}
+  m_Name: WarriorElitePattern
+  m_EditorClassIdentifier: 
+  currentState: 0
+  pushRadius: 0.8
+  pushStrength: 2
+  target: {fileID: 0}
+  atkTimer: 0
+  phase2Threshold: 0.5
+  specialRushInterval: 14
+  meleeAttackRange: 2.5
+  meleeCooldown: 2
+  chargeTime: 3
+  stunTime: 3
+  slamHitboxPrefab: {fileID: 0}
+  slashHitboxPrefab: {fileID: 0}
+  massiveRushHitboxPrefab: {fileID: 0}
+  warriorState: 0
+  specialTimer: 0
+  actionTimer: 0
+  targetRushPos: {x: 0, y: 0}
+  rushOppositePos: {x: 0, y: 0}

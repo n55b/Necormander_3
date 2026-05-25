@@ -28,7 +28,8 @@ public class MinionDataSO : ScriptableObject
     public float defense = 0f;
     public float moveSpeed = 5f;
     public int cost;
-    public bool isBoss; // [추가] 보스 유닛 여부
+    [UnityEngine.Serialization.FormerlySerializedAs("isBoss")]
+    public bool isElite; // [추가] 엘리트 유닛 여부
     public bool canSpawnRandomly = true; // [추가] 일반 방에서 랜덤하게 스폰될 수 있는지 여부
 
     [Header("AI 행동 패턴")]

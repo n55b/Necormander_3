@@ -32,7 +32,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             {
                 foreach (var data in rawList)
                 {
-                    if (!data.isBoss && data.canSpawnRandomly) _normalEnemyPool.Add(data);
+                    if (!data.isElite && data.canSpawnRandomly) _normalEnemyPool.Add(data);
                 }
             }
             Debug.Log($"<color=white>[NormalRoom]</color> Pool Initialized. Normal Enemies: {_normalEnemyPool.Count} in {gameObject.name}");

@@ -67,7 +67,7 @@ public class DynamicEnemySpawner : MonoBehaviour
             {
                 foreach (var data in rawList)
                 {
-                    if (data.isBoss) 
+                    if (data.isElite) 
                     {
                         _bossEnemyPool.Add(data);
                     }

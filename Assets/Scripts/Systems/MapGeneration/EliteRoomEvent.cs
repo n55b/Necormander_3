@@ -37,8 +37,8 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
             {
                 foreach (var data in rawList)
                 {
-                    // 엘리트 풀에는 isBoss가 true인 데이터만 수집
-                    if (data.isBoss) _eliteEnemyPool.Add(data);
+                    // 엘리트 풀에는 isElite가 true인 데이터만 수집
+                    if (data.isElite) _eliteEnemyPool.Add(data);
                 }
             }
             Debug.Log($"<color=red>[EliteRoom]</color> Pool Initialized. Elites: {_eliteEnemyPool.Count} in {gameObject.name}");
