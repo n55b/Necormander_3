@@ -388,7 +388,7 @@ public class CorridorPainter : MonoBehaviour
                 {
                     if (x == 0 && y == 0) continue;
                     Vector2Int neighbor = gPos + new Vector2Int(x, y);
-                    if (!_totalGroundTiles.Contains(neighbor) && !_roomFloorTiles.Contains(neighbor))
+                    if (!_totalGroundTiles.Contains(neighbor) && !_roomFloorTiles.Contains(neighbor) && !_roomWallTiles.Contains(neighbor))
                     {
                         _outerWallTiles.Add(neighbor);
                     }

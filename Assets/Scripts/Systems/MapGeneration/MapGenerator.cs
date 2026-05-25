@@ -391,6 +391,8 @@ public class MapGenerator : MonoBehaviour
         int maxAttempts = 25; // 밸런스 제약 조건을 통과하는 통로 연결 조합을 탐색하기 위해 최대 시도 상향
         bool routingSuccess = false;
 
+        System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+
         int maxPhase = 0;
         foreach (var r in _allRooms)
         {
@@ -456,6 +458,12 @@ public class MapGenerator : MonoBehaviour
 
                     for (int i = 0; i < _connectionCandidates.Count; i++)
                     {
+                        if (sw.ElapsedMilliseconds > 15)
+                        {
+                            yield return null;
+                            sw.Restart();
+                        }
+
                         var c = _connectionCandidates[i];
                         if (!phaseUnreached.Contains(c.unreached)) continue;
                         if (DrawCorridorBetweenRooms(c.reached, c.unreached, 0, attempt > 0)) 
@@ -468,6 +476,7 @@ public class MapGenerator : MonoBehaviour
                             
                             // 복도가 하나 연결될 때마다 다음 프레임으로 처리를 양보하여 프리징 방지
                             yield return null;
+                            sw.Restart();
                             break; 
                         }
                     }
@@ -495,17 +504,17 @@ public class MapGenerator : MonoBehaviour
                 UpdateAllRoomDepths();
                 var validReached = _reachedRooms.Where(r => r.debugDepth != -1).ToList();
                 if (validReached.Count == 0) continue;
-                int currentMaxD = validReached.Max(r => r.debugDepth);
+                int normalMaxD = validReached.Where(r => r.roomType != RoomType.Reward).Max(r => r.debugDepth);
                 
                 // 홉 수 기준 최대 깊이에서 2 이내에 있는 모든 깊은 방들을 후보군으로 선정
-                float depthThreshold = Mathf.Max(1, currentMaxD - 2);
+                float depthThreshold = Mathf.Max(1, normalMaxD - 2);
                 var deepNodes = validReached.Where(r => (float)r.debugDepth >= depthThreshold).OrderBy(r => Vector2.Distance(r.transform.position, reward.transform.position)).ToList();
                 
                 // 디버그 로그 수집
                 System.Text.StringBuilder logSb = new System.Text.StringBuilder();
                 logSb.AppendLine($"[Reward Connection Debug] Connecting Room: {reward.name} (Attempt: {attempt + 1})");
-                logSb.AppendLine($"  - Max Depth (currentMaxD): {currentMaxD}");
-                logSb.AppendLine($"  - Filtering Threshold (currentMaxD - 2): {depthThreshold}");
+                logSb.AppendLine($"  - Max Depth (normalMaxD): {normalMaxD}");
+                logSb.AppendLine($"  - Filtering Threshold (normalMaxD - 2): {depthThreshold}");
                 logSb.AppendLine("  - Candidate Reached Rooms (Sorted by Depth DESC):");
                 foreach (var r in validReached.OrderByDescending(node => node.debugDepth))
                 {
@@ -521,6 +530,12 @@ public class MapGenerator : MonoBehaviour
                 RoomInstance connectedParent = null;
                 foreach (var p in deepNodes) 
                 { 
+                    if (sw.ElapsedMilliseconds > 15)
+                    {
+                        yield return null;
+                        sw.Restart();
+                    }
+
                     if (DrawCorridorBetweenRooms(p, reward, 0, attempt > 0)) 
                     { 
                         _reachedRooms.Add(reward); 
@@ -530,6 +545,7 @@ public class MapGenerator : MonoBehaviour
                         
                         // 보상 방 연결 시에도 프레임 양보
                         yield return null;
+                        sw.Restart();
                         break; 
                     } 
                 }
@@ -551,14 +567,14 @@ public class MapGenerator : MonoBehaviour
                 // 마지막 시도(Fallback)인 경우는 무조건 통과시켜 맵 멈춤 방지
                 if (attempt < maxAttempts - 1)
                 {
-                    // 현재 맵의 실제 홉 수 최대 깊이 계산
-                    int currentMaxD = _allRooms.Where(r => r.debugDepth != -1).Max(r => r.debugDepth);
+                    // 현재 맵의 실제 홉 수 최대 깊이 계산 (보상방 제외)
+                    int normalMaxD = _allRooms.Where(r => r.debugDepth != -1 && r.roomType != RoomType.Reward).Max(r => r.debugDepth);
 
                     // 조건 A: 모든 보상방(Reward)의 깊이(Depth)가 현재 맵의 최대 깊이보다 최소 1 이내여야 함.
                     // (즉, 보상방은 상대적으로 가장 깊은 최심부 영역에 매칭되도록 보장)
                     foreach (var room in _allRooms)
                     {
-                        if (room.roomType == RoomType.Reward && room.debugDepth < currentMaxD - 1)
+                        if (room.roomType == RoomType.Reward && room.debugDepth < normalMaxD - 1)
                         {
                             isValidMap = false;
                             break;
@@ -751,6 +767,7 @@ public class MapGenerator : MonoBehaviour
 
     private IEnumerator CreateExtraCorridorsCoroutine()
     {
+        System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
         List<System.Tuple<RoomInstance, RoomInstance, float>> extraCandidates = new List<System.Tuple<RoomInstance, RoomInstance, float>>();
 
         // 1. 서로 인접하고 추가 복도를 뚫을 수 있는 방 쌍 수집
@@ -790,6 +807,12 @@ public class MapGenerator : MonoBehaviour
 
         foreach (var candidate in extraCandidates)
         {
+            if (sw.ElapsedMilliseconds > 15)
+            {
+                yield return null;
+                sw.Restart();
+            }
+
             if (successCount >= maxExtraLoops) break;
 
             RoomInstance r1 = candidate.Item1;
@@ -805,6 +828,7 @@ public class MapGenerator : MonoBehaviour
                 _masterAdjacency[r2].Add(r1);
                 successCount++;
                 yield return null; // 프레임 분산
+                sw.Restart();
             }
         }
 
