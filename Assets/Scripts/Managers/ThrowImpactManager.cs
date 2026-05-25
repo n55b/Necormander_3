@@ -185,7 +185,15 @@ public class ThrowImpactManager : MonoBehaviour
     private void SpawnImpactVFX(ThrowRecipe recipe, Vector2 spawnPos, bool isArea)
     {
         ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
+        bool isPlaySound = false;
         if (registry == null) return;
+
+    
+        if(recipe.info.chargeRatio >= 0.98f && Team.Enemy == recipe.info.targetTeam && !isPlaySound) 
+        {
+            SoundManager.Instance.HITSoundPlay(true);  // 강력한 적중 사운드
+            isPlaySound = true;
+        }
 
         if(recipe.info.targetingMode == TargetingMode.Target)
         {
@@ -195,9 +203,12 @@ public class ThrowImpactManager : MonoBehaviour
             }
             else
             {
-                
-                SoundManager.Instance.HITSoundPlay(false); // 적중 사운드 재생
                 GameObject basic_vfx = Instantiate(registry.enemynochargeVFX, spawnPos, Quaternion.identity);
+                if (!isPlaySound)
+                {
+                    SoundManager.Instance.HITSoundPlay(false);  // 일반 단일 적중 사운드
+                    isPlaySound = true;
+                }
             }
         }
 
@@ -226,9 +237,14 @@ public class ThrowImpactManager : MonoBehaviour
             if (!spawnedAnySpecific && (recipe.HasAction<WarriorAction>() || recipe.HasAction<ArcherAction>()) && registry.basicAreaVFX != null)
             {
                 GameObject vfx = Instantiate(registry.basicAreaVFX, spawnPos, Quaternion.identity);
-                SoundManager.Instance.HITSoundPlay(false);
                 vfx.transform.localScale = Vector3.one * (radius * 2f);
                 Destroy(vfx, duration);
+
+                if (!isPlaySound)
+                {
+                    SoundManager.Instance.HITSoundPlay(false);  // 일반 광역 적중 사운드
+                    isPlaySound = true;
+                }
             }
         }
 

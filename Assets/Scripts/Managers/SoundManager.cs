@@ -17,8 +17,8 @@ public class SoundManager : MonoBehaviour
     public AudioSource sfxSource;
 
     [Header("Clips")]
-    [SerializeField] private AudioClip HitClip;
-    [SerializeField] private AudioClip CriticalClip;
+    [SerializeField] private AudioClip ParabolaClip;
+    [SerializeField] private AudioClip PurchaseClip;
 
     private void Awake()
     {
@@ -50,15 +50,15 @@ public class SoundManager : MonoBehaviour
         StartCoroutine(CrossFade(duration));
     }
 
-    public void HITSoundPlay(bool isCritical)
+    public void HITSoundPlay(bool isPurchase)
     {
-        if (isCritical && CriticalClip != null)
+        if (isPurchase && PurchaseClip != null)
         {
-            sfxSource.PlayOneShot(CriticalClip);
+            sfxSource.PlayOneShot(PurchaseClip);
         }
-        else if (HitClip != null)
+        else if (ParabolaClip != null)
         {
-            sfxSource.PlayOneShot(HitClip);
+            sfxSource.PlayOneShot(ParabolaClip);
         }
     }
 

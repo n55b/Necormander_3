@@ -885,6 +885,14 @@ PrefabInstance:
       propertyPath: CriticalClip
       value: 
       objectReference: {fileID: 8300000, guid: da498f638c5629040a4a28579f8e0b40, type: 3}
+    - target: {fileID: 5452969733963804717, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: ParabolaClip
+      value: 
+      objectReference: {fileID: 8300000, guid: da498f638c5629040a4a28579f8e0b40, type: 3}
+    - target: {fileID: 5452969733963804717, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: PurchaseClip
+      value: 
+      objectReference: {fileID: 8300000, guid: db355bc6eca9d204d96fc602c9c21eda, type: 3}
     - target: {fileID: 6139375127595461034, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: globalWallTilemap
       value: 
