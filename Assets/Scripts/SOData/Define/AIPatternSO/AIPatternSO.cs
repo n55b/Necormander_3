@@ -66,7 +66,7 @@ public abstract class AIPatternSO : ScriptableObject
         }
 
         // 공통 물리 로직 (밀어내기)
-        ApplySoftPush(entity);
+        //ApplySoftPush(entity);
     }
 
     // 외부에서 강제로 상태를 변경할 때 사용 (예: AllyController.OnPickedUp)
@@ -130,6 +130,8 @@ public abstract class AIPatternSO : ScriptableObject
         }
     }
 
+    // 밀어내기 로직 임시 비활성화: Navmesh Agent에서 가능
+    /*
     protected void ApplySoftPush(BaseEntity entity)
     {
         int flyingLayer = LayerMask.NameToLayer("FlyingObject");
@@ -166,6 +168,7 @@ public abstract class AIPatternSO : ScriptableObject
             }
         }
     }
+    */
 
     protected bool IsTargetInvalid(Transform t)
     {
