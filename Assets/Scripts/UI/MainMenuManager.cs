@@ -7,6 +7,7 @@ public class MainMenuManager : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private Button startButton;
     [SerializeField] private Button loadButton;
+    [SerializeField] private Button exitButton;
 
     [Header("Scene Settings")]
     [Tooltip("Start 버튼을 눌렀을 때 이동할 메인 게임 씬의 이름입니다.")]
@@ -40,6 +41,17 @@ public class MainMenuManager : MonoBehaviour
             Debug.LogWarning("[MainMenuManager] Load Button이 연결되지 않았습니다! 세이브 파일을 로드하려면 인스펙터에서 버튼을 연결해 주세요.");
         }
 
+        if (exitButton != null)
+        {
+            // 클릭 이벤트 연결
+            exitButton.onClick.RemoveAllListeners();
+            exitButton.onClick.AddListener(GameExit);
+        }
+        else
+        {
+            Debug.LogWarning("[MainMenuManager] Exit Button이 연결되지 않았습니다! 게임을 종료하려면 인스펙터에서 버튼을 연결해 주세요.");
+        }
+
         // 2. Start Button 클릭 이벤트 연결
         startButton.onClick.RemoveAllListeners();
         startButton.onClick.AddListener(OnNewGameButtonClicked);
@@ -63,4 +75,11 @@ public class MainMenuManager : MonoBehaviour
         // 지정된 게임 씬으로 이동
         SceneManager.LoadScene(gameSceneName);
     }
+
+    private void GameExit()
+    {
+        Debug.Log("<color=cyan>[MainMenuManager]</color> 게임 종료!");
+        Application.Quit();
+    }
+
 }

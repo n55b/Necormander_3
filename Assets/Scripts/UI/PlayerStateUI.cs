@@ -66,6 +66,13 @@ public class PlayerStateUI : MonoBehaviour
             _allyManager.OnAllyRespawned += RemoveReviveIcon;
         }
 
+        if(GameManager.Instance.PLAYERCONTROLLER != null)
+        {
+            GameManager.Instance.PLAYERCONTROLLER.OnEnterIdle += () => {
+                ClearReviveIcons();
+            };
+        }
+
         if(panelHaveArmy != null) panelHaveArmy.Initialize ();
 
         RefreshGold();
@@ -167,6 +174,15 @@ public class PlayerStateUI : MonoBehaviour
             Destroy(icon.IconObject);
             _revivingIcons.Remove(icon);
         }
+    }
+
+    private void ClearReviveIcons()
+    {
+        foreach (var icon in _revivingIcons)
+        {
+            Destroy(icon.IconObject);
+        }
+        _revivingIcons.Clear();
     }
 
     private void UpdateReviveTimers()
