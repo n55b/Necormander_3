@@ -20,6 +20,9 @@ public class DynamicEnemySpawner : MonoBehaviour
     [SerializeField] private RoomType roomType = RoomType.Normal; // [추가] 방 타입 설정
     [SerializeField] private float activationRange = 10.0f;
 
+    [Header("Portal Settings")]
+    [SerializeField] private GameObject portalPrefab;
+
     [Header("Encounter Settings (Gungeon Style)")]
     [SerializeField] private int groupsCount = 4;           // 생성할 부대(그룹)의 수
     [SerializeField] private int enemiesPerGroup = 3;       // 각 부대당 마릿수
@@ -113,6 +116,11 @@ public class DynamicEnemySpawner : MonoBehaviour
 
                 if (RewardManager.Instance != null)
                     RewardManager.Instance.RequestClearReward(roomType);
+
+                if (roomType == RoomType.Boss)
+                {
+                    SpawnPortal();
+                }
 
                 OutRoomEvent?.Invoke(); // 문 열림 등 퇴장 이벤트
                 Debug.Log("<color=green>[Spawner]</color> Room Cleared! Events reset disabled.");
@@ -293,6 +301,23 @@ public class DynamicEnemySpawner : MonoBehaviour
             // 주기적 소환 범위 (노란색)
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, spawnRadius);
+        }
+    }
+
+    private void SpawnPortal()
+    {
+        Vector3 spawnPos = transform.position;
+        if (portalPrefab != null)
+        {
+            Instantiate(portalPrefab, spawnPos, Quaternion.identity);
+            Debug.Log("<color=purple>[Spawner]</color> Spawned Portal from Prefab.");
+        }
+        else
+        {
+            GameObject portalObj = new GameObject("FloorProceedPortal");
+            portalObj.transform.position = spawnPos;
+            portalObj.AddComponent<FloorProceedPortal>();
+            Debug.Log("<color=purple>[Spawner]</color> Created FloorProceedPortal dynamically since Prefab is null.");
         }
     }
 }

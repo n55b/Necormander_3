@@ -7,7 +7,7 @@ public class ShopNPC : MonoBehaviour
 
     private void Start()
     {
-        Initialize();
+        // 이제 ShopRoomEvent에서 OnPlayerEnter 시점에 명시적으로 Initialize를 호출합니다.
     }
 
     public void Initialize()

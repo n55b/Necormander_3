@@ -16,8 +16,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] CharacterStat stat;
     [SerializeField] float throwRange;
     public float THROWRANGE { get { return throwRange; } }
-    [Header("감지 영역")]
-    [SerializeField] GameObject TrackingCollider;
     [Header("아군 유닛 관련 매니저")]
     [SerializeField] AllyManager allyManager;
     [Header("소환 컨트롤러")]
@@ -30,6 +28,10 @@ public class PlayerController : MonoBehaviour
 
     [Header("플레이어 상태")]
     [SerializeField] PlayerStates P_State = PlayerStates.Idle;
+
+    // 상태에 따른 Action 이벤트
+    public event Action OnEnterIdle;
+    public event Action OnEnterBattle;
 
     [Header("던지기 배율 설정")]
     [SerializeField] private float minThrowChargeMultiplier = 1.0f;
@@ -46,12 +48,27 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Animator RHandAnimator;
     [SerializeField] PlayerAnimationState currentAnimState;
 
+    private bool _inputBlocked = false; // [추가] 맵 생성 중 입력 차단용
+
     /// <summary>
     /// 애니메이션 캐싱 변수
     /// </summary>
     public IdleState idleState;
     public AttackState atkState;
     public bool canChangeState = true;
+
+    // [추가] 외부에서 입력을 차단/해제하는 기능
+    public void SetInputBlocked(bool blocked)
+    {
+        _inputBlocked = blocked;
+        if (blocked)
+        {
+            moveInput = Vector2.zero;
+            MoveDirection = Vector3.zero;
+            if (_rb != null) _rb.linearVelocity = Vector2.zero;
+        }
+        Debug.Log($"<color=yellow>[Player]</color> Input Blocked: {blocked}");
+    }
 
     public float GetThrowChargeMultiplier(float ratio)
     {
@@ -129,6 +146,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (_inputBlocked || (stat != null && stat.Health != null && stat.Health.IsDead)) return;
+
         MoveDirection = moveInput;
 
         if (canChangeState)
@@ -176,6 +195,8 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (_inputBlocked) return; // [추가] 입력 차단 시 로직 스킵
+
         // 사망 시 조종 불가
         if (stat.Health.IsDead) return;
 
@@ -185,18 +206,11 @@ public class PlayerController : MonoBehaviour
         {
             transform.position += MoveDirection * stat.MOVESPEED * Time.deltaTime;
         }
-
-        if (P_State == PlayerStates.Battle)
-        {
-            bool check = allyManager.CheckAllyState();
-            if (!check)
-                ChangeState(PlayerStates.Idle);
-        }
     }
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        if (stat.Health.IsDead) { moveInput = Vector2.zero; return; }
+        if (_inputBlocked || stat.Health.IsDead) { moveInput = Vector2.zero; return; }
 
         if (context.performed || context.canceled)
         {
@@ -207,7 +221,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnRightClick(InputAction.CallbackContext context)
     {
-        if (stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead) return;
 
         if (sumController.IsSummoningMode)
         {
@@ -272,7 +286,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnThrow(InputAction.CallbackContext context)
     {
-        if (stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead) return;
 
         if (throwController != null)
         {
@@ -282,7 +296,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnInteract(InputAction.CallbackContext context) // [추가]
     {
-        if (context.performed && _closestInteractable != null)
+        if (_inputBlocked || context.performed && _closestInteractable != null)
         {
             _closestInteractable.Interact(gameObject);
         }
@@ -290,7 +304,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnGemTree(InputAction.CallbackContext context)
     {
-        if (stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead) return;
 
         if (context.performed)
         {
@@ -317,7 +331,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnHandSlot(InputAction.CallbackContext context)
     {
-        if (stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead) return;
 
         // [수정] 탭 키를 눌러 현재 장착된 미니언/능력을 상시 조회합니다.
         if (context.performed)
@@ -337,6 +351,29 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+    
+    public void OnOption(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            if (SceneOptionManager.Instance != null)
+            {
+                if (!SceneOptionManager.Instance.isOptionOpen)
+                {
+                    SceneOptionManager.Instance.OpenOptionScene();
+                }
+                else
+                {
+                    SceneOptionManager.Instance.CloseOptionScene();
+                }
+            }
+            else
+            {
+                Debug.LogError("<color=red>[PlayerController]</color> SceneOptionManager.Instance is NULL!");
+            }
+        }
+    }
+
     /// <summary>
     /// [추가] 현재 씬 내에서 활성화된 전투 이벤트(DynamicEnemySpawner)가 있는지 확인합니다.
     /// 사용자가 언급한 '임시 벽 생성' 로직과 동기화됩니다.
@@ -364,12 +401,12 @@ public class PlayerController : MonoBehaviour
 
         if (P_State == PlayerStates.Battle)
         {
-            TrackingCollider.gameObject.SetActive(false);
             allyManager.SetBattleState(true);
+            OnEnterBattle?.Invoke();
         }
         else if (P_State == PlayerStates.Idle)
         {
-            TrackingCollider.gameObject.SetActive(true);
+            OnEnterIdle?.Invoke();
         }
     }
 

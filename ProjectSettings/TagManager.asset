@@ -39,29 +39,17 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Default
-    uniqueID: 0
-    locked: 0
   - name: BackGround
     uniqueID: 588121307
     locked: 0
   - name: Ground
     uniqueID: 1755609611
     locked: 0
-  - name: Wall
-    uniqueID: 1777279099
+  - name: Default
+    uniqueID: 0
     locked: 0
-  - name: Object
-    uniqueID: 1344968519
-    locked: 0
-  - name: GroundEffect
-    uniqueID: 787935263
-    locked: 0
-  - name: Unit
-    uniqueID: 3839888389
-    locked: 0
-  - name: Effect
-    uniqueID: 66980121
+  - name: Shadow
+    uniqueID: 1006732417
     locked: 0
   - name: FlyingObject
     uniqueID: 1659204433

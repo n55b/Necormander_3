@@ -101,7 +101,31 @@ public class CharacterVisualFeedback : MonoBehaviour
     private void PlayHitFlash(float damage)
     {
         if (_status != null && _status.TotalShield > 0.01f) StartFlash(Color.cyan); // 보호막 피격
-        else StartFlash(Color.black); // 일반 피격
+        else 
+        {
+            StartCoroutine(FlashRoutine()); // 일반 피격
+
+            // [수정] 레이어 체크 대신 root 태그를 사용하여 플레이어 판정 (안정성 강화)
+            bool isPlayer = gameObject.CompareTag("Player") || transform.root.CompareTag("Player");
+            
+            if(isPlayer)
+            {
+                // [수정] 인스턴스 널 체크 추가하여 NRE 방지
+                if (CameraManager.Instance != null) CameraManager.Instance.HitShakeCamera(); 
+                if (GameManager.Instance != null) GameManager.Instance.TimeStopTimer(0.05f); 
+            }
+        }
+    }
+
+    private IEnumerator FlashRoutine()
+    {
+        if (_sr == null) yield break; // [추가] 널 체크
+
+        _sr.material.SetFloat("_HitFlash", 1f);
+        yield return new WaitForSeconds(0.1f);
+        if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
+
+        StartFlash(Color.grey); 
     }
 
     private void PlayHealFlash() => StartFlash(Color.green);
