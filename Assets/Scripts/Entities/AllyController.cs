@@ -206,7 +206,6 @@ public class AllyController : BaseEntity, IThrowable
         foreach (var col in GetComponentsInChildren<Collider2D>())
         {
             col.enabled = true;
-            col.isTrigger = false;
         }
 
         if (_runtimeBrain != null) _runtimeBrain.Init(this);

@@ -50,7 +50,7 @@ public class BaseAIPatternSO : AIPatternSO
             else
             {
                 // 적인 경우(플레이어 포함) 사거리에 따라 결정
-                if (dist <= entity.Stats.ATKRANGE - 0.1f) nextState = AIState.Attack;
+                if (dist <= entity.Stats.ATKRANGE - 0.2f) nextState = AIState.Attack;
                 else nextState = AIState.Follow;
             }
         }
