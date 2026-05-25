@@ -549,6 +549,9 @@ public class MapGenerator : MonoBehaviour
         {
             _painter.FinalizePainting();
             UpdateAllRoomDepths();
+
+            // 기본 연결이 100% 완료된 후 가까운 방들 사이에 우회로(숏컷) 추가 생성
+            yield return StartCoroutine(CreateExtraCorridorsCoroutine());
         }
     }
 
@@ -697,6 +700,66 @@ public class MapGenerator : MonoBehaviour
         }
 
         return optimized;
+    }
+
+    private IEnumerator CreateExtraCorridorsCoroutine()
+    {
+        List<System.Tuple<RoomInstance, RoomInstance, float>> extraCandidates = new List<System.Tuple<RoomInstance, RoomInstance, float>>();
+
+        // 1. 서로 인접하고 추가 복도를 뚫을 수 있는 방 쌍 수집
+        for (int i = 0; i < _allRooms.Count; i++)
+        {
+            for (int j = i + 1; j < _allRooms.Count; j++)
+            {
+                RoomInstance r1 = _allRooms[i];
+                RoomInstance r2 = _allRooms[j];
+
+                // 보상 방과 스폰 방은 숏컷 루프 대상에서 제외 (밸런스 보존)
+                if (r1.roomType == RoomType.Reward || r2.roomType == RoomType.Reward) continue;
+                if (r1.roomType == RoomType.Spawn || r2.roomType == RoomType.Spawn) continue;
+
+                // 이미 연결되어 있는 관계는 제외
+                if (_masterAdjacency[r1].Contains(r2)) continue;
+
+                float dist = Vector2.Distance(r1.transform.position, r2.transform.position);
+                if (dist < 80f) // 물리적으로 가까운 방들만 후보 선정 (80f 범위로 확장)
+                {
+                    extraCandidates.Add(System.Tuple.Create(r1, r2, dist));
+                }
+            }
+        }
+
+        // 2. 물리적 거리 기준 오름차순 정렬 (가장 가까운 방끼리 숏컷 우선권)
+        extraCandidates = extraCandidates.OrderBy(c => c.Item3).ToList();
+
+        // 3. 전체 방 개수에 비례하여 최대 추가 루프 개수 결정 (최소 1개, 최대 3개)
+        int maxExtraLoops = Mathf.Clamp(_allRooms.Count / 4, 1, 3);
+        int successCount = 0;
+
+        foreach (var candidate in extraCandidates)
+        {
+            if (successCount >= maxExtraLoops) break;
+
+            RoomInstance r1 = candidate.Item1;
+            RoomInstance r2 = candidate.Item2;
+
+            // 임의의 앵커 쌍 연결 시도
+            if (DrawCorridorBetweenRooms(r1, r2, 0, shuffle: true))
+            {
+                _masterAdjacency[r1].Add(r2);
+                _masterAdjacency[r2].Add(r1);
+                successCount++;
+                yield return null; // 프레임 분산
+            }
+        }
+
+        if (successCount > 0)
+        {
+            // 추가된 복도 타일들 최종 일괄 그리기 및 깊이 데이터 재정렬
+            _painter.FinalizePainting();
+            UpdateAllRoomDepths();
+            Debug.Log($"<color=green>[MapGenerator]</color> Added {successCount} extra loop corridors for shortcuts.");
+        }
     }
 
     private bool DrawCorridorBetweenRooms(RoomInstance a, RoomInstance b, int pathDepth, bool shuffle = false)
