@@ -14,6 +14,9 @@ public class MiniMapTeleporter : MonoBehaviour
     [SerializeField] private Color highlightColor = new Color(0f, 1f, 0.5f, 1f); // 테두리 색상 (초록/형광 등)
     [SerializeField] private float borderPadding = 0.5f; // 방 크기보다 약간 더 크게 테두리를 칠할 여유 공간
 
+    [Header("MiniMapTeleporter")]
+    [SerializeField] private MapUIManager mapUIManager; // 맵 UI 매니저 참조 (맵이 열려있는지 확인용)
+
     private PlayerInput _playerInput;
     private RectTransform _rectTransform;
     private bool _isInitialized = false;
@@ -43,7 +46,7 @@ public class MiniMapTeleporter : MonoBehaviour
             return;
         }
 
-        // 🌟 매 프레임 마우스가 위치한 방을 검사해 테두리를 제어합니다.
+        // 매 프레임 마우스가 위치한 방을 검사해 테두리를 제어합니다.
         HandleMouseHover();
     }
 
@@ -194,7 +197,9 @@ public class MiniMapTeleporter : MonoBehaviour
 
     private void OnMapClickPressed(InputAction.CallbackContext context)
     {
-        if (this == null || !_isInitialized || miniMapCamera == null || playerTransform == null) return;
+        if (this == null || !_isInitialized || miniMapCamera == null || playerTransform == null || 
+        mapUIManager == null) return;
+
         if (!gameObject.activeInHierarchy) return;
 
         if (Pointer.current == null) return;
@@ -229,6 +234,7 @@ public class MiniMapTeleporter : MonoBehaviour
 
     private void TeleportToRoomCenter(RoomInstance room)
     {
+        if(mapUIManager.IsMapOpen == false || GameManager.Instance.PLAYERCONTROLLER.GetPlayerState() == PlayerStates.Battle) return;
         if (MapGenerator.Instance != null && MapGenerator.Instance.FogTilemap != null)
         {
             Vector3 fixedCenter = room.transform.position + (Vector3)room.centerOffset;
