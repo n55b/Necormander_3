@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dbc03656d0c61b43828bae8ccd2d937, type: 3}
+  m_Name: Archer Elite Pattern
+  m_EditorClassIdentifier: 
+  currentState: 0
+  pushRadius: 0.8
+  pushStrength: 2
+  target: {fileID: 0}
+  atkTimer: 0
+  phase2Threshold: 0.5
+  phase2HpThreshold: 350
+  phase2Data: {fileID: 11400000, guid: e22fed12cededa84c8ad3705b1219fc3, type: 2}
+  isPhase2: 0
+  baseAttackInterval: 1
+  maxAttackSpeedMultiplier: 1.4
+  attackSpeedRampTime: 8
+  throwHitsRequired: 2
+  normalArrowPrefab: {fileID: 4462788868339787736, guid: 2c59f161d0857ff4a8126fa2db7df8e0, type: 3}
+  projectileSpeed: 10
+  bombardmentIndicatorPrefab: {fileID: 4280725952711924581, guid: 3c6e7cb083b68474cbae292ffc6515d9, type: 3}
+  bombardmentDuration: 6
+  bombardmentInterval: 0.5
+  fanWarningTime: 2
+  arrowsPerDirection: 3
+  spreadAngle: 15
+  stunDuration: 3
+  throwableBoxPrefab: {fileID: 1296700334336564911, guid: 0461f8f833eab2a46a9a1017270f5785, type: 3}
+  archerCurrentState: 0
+  stateTimer: 0
+  attackTimer: 0
+  loopDuration: 0
+  throwHitCount: 0

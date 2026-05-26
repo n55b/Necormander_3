@@ -203,7 +203,7 @@ public abstract class AIPatternSO : ScriptableObject
     }
 
     // 공격 할 때, 상대 바라보게
-    private void CalculateRotate(Transform target, BaseEntity entity)
+    protected void CalculateRotate(Transform target, BaseEntity entity)
     {
         if(target == null) return;
 

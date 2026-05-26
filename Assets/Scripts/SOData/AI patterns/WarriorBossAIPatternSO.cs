@@ -182,7 +182,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
 
     private RoomInstance GetCurrentRoom(BaseEntity entity)
     {
-        foreach (var room in FindObjectsOfType<RoomInstance>())
+        foreach (var room in FindObjectsByType<RoomInstance>(FindObjectsSortMode.None))
         {
             Bounds bounds = new Bounds((Vector2)room.transform.position + room.centerOffset, new Vector3(room.roomSize.x, room.roomSize.y, 100f));
             if (bounds.Contains(entity.transform.position))
