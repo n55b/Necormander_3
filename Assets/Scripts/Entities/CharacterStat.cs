@@ -227,6 +227,14 @@ public class CharacterStat : MonoBehaviour
     }
 
     /// <summary>
+    /// AI 패턴 등에서 동적으로 기본 이동 속도를 변경할 때 사용합니다.
+    /// </summary>
+    public void SetBaseMoveSpeed(float speed)
+    {
+        baseMoveSpeed = speed;
+    }
+
+    /// <summary>
     /// 분신 소환 등 특수한 경우에 스탯을 절반으로 깎는 로직
     /// </summary>
     public void ApplySplitStats()

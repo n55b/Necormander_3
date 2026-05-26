@@ -14,6 +14,7 @@ public class CharacterHealth : MonoBehaviour
     [SerializeField] private bool invincible = false;
 
     public event Action<float> OnDamageTaken;
+    public event Action<DamageInfo> OnDamageReceived; // [추가] 전체 데미지 정보 전달용
     public event Action OnHeal;
     public event Action UpdateHPBar;
     public event Action OnDeath;
@@ -35,6 +36,8 @@ public class CharacterHealth : MonoBehaviour
 
     public void GetDamage(DamageInfo info)
     {
+        OnDamageReceived?.Invoke(info); // [추가] AI 등에서 피격 상세 정보(Throw 여부 등)를 파악하기 위함
+
         if (isDead || invincible) return;
 
         float remainingDamage = info.amount;
