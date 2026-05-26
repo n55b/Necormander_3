@@ -82,4 +82,12 @@ public class MainMenuManager : MonoBehaviour
         Application.Quit();
     }
 
+    public void OpenOptionSceneDirectly()
+    {
+        Debug.Log("<color=cyan>[MainMenuManager]</color> 옵션 설정 창으로 바로 이동합니다.");
+        // 옵션 씬이 열릴 때 설정 창(Settings)으로 직행하도록 플래그 설정
+        OptionManager.OpenDirectlyToSettings = true;
+        // 옵션 씬 중첩 로드
+        SceneManager.LoadScene("OptionScene", LoadSceneMode.Additive);
+    }
 }

@@ -20,12 +20,45 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private AudioClip ParabolaClip;
     [SerializeField] private AudioClip PurchaseClip;
 
+    [Header("Global Volume Settings")]
+    public float globalBgmVolume = 1f;
+    public float globalSfxVolume = 1f;
+
     private void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
         else { Destroy(gameObject); }
 
+        LoadSettings();
         activeSource = sourceA; // 처음 시작 소스 설정
+    }
+
+    private void LoadSettings()
+    {
+        globalBgmVolume = PlayerPrefs.GetFloat("BGM_Volume", 1f);
+        globalSfxVolume = PlayerPrefs.GetFloat("SFX_Volume", 1f);
+
+        if (sourceA != null) sourceA.volume = globalBgmVolume;
+        if (sourceB != null) sourceB.volume = globalBgmVolume;
+    }
+
+    public void UpdateBgmVolume(float volume)
+    {
+        globalBgmVolume = volume;
+        PlayerPrefs.SetFloat("BGM_Volume", globalBgmVolume);
+        PlayerPrefs.Save();
+
+        if (activeSource != null)
+        {
+            activeSource.volume = globalBgmVolume;
+        }
+    }
+
+    public void UpdateSfxVolume(float volume)
+    {
+        globalSfxVolume = volume;
+        PlayerPrefs.SetFloat("SFX_Volume", globalSfxVolume);
+        PlayerPrefs.Save();
     }
 
     public void ChangeBGM(AudioClip newClip, float duration = 1.0f)
@@ -54,18 +87,18 @@ public class SoundManager : MonoBehaviour
     {
         if (isPurchase && PurchaseClip != null)
         {
-            sfxSource.PlayOneShot(PurchaseClip);
+            sfxSource.PlayOneShot(PurchaseClip, globalSfxVolume);
         }
         else if (ParabolaClip != null)
         {
-            sfxSource.PlayOneShot(ParabolaClip);
+            sfxSource.PlayOneShot(ParabolaClip, globalSfxVolume);
         }
     }
 
     public void PlaySFX(AudioClip clip, float volume)
     {
         if(clip == null) return;
-        sfxSource.PlayOneShot(clip, volume);
+        sfxSource.PlayOneShot(clip, volume * globalSfxVolume);
     }
 
     private IEnumerator CrossFade(float duration)
@@ -80,7 +113,7 @@ public class SoundManager : MonoBehaviour
 
             // 기존 소리는 작게, 새 소리는 크게
             if (oldSource != null) oldSource.volume = Mathf.Lerp(startOldVol, 0, t);
-            newSource.volume = Mathf.Lerp(0, 1, t);
+            newSource.volume = Mathf.Lerp(0, globalBgmVolume, t);
 
             yield return null;
         }

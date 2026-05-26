@@ -468,6 +468,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2e2f53459f927b45888f8d354841298, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pauseMenuPanel: {fileID: 1425876919}
+  settingsMenuPanel: {fileID: 1588091532}
+  bgmSlider: {fileID: 1834561157}
+  sfxSlider: {fileID: 19369577}
 --- !u!1 &354972961
 GameObject:
   m_ObjectHideFlags: 0
@@ -799,7 +803,7 @@ GameObject:
   - component: {fileID: 487954561}
   - component: {fileID: 487954560}
   m_Layer: 5
-  m_Name: Text_NmaeThisImage
+  m_Name: Text_NameThisImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2897,10 +2901,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1588091532}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
+      - m_Target: {fileID: 277591217}
+        m_TargetAssemblyTypeName: OptionManager, Assembly-CSharp
+        m_MethodName: OnBackButtonClicked
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine

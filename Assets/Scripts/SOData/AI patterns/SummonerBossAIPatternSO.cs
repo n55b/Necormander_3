@@ -268,18 +268,6 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
         return minWallDist < 2.5f; // NavMesh 에어리어 바운딩 등을 고려해 넉넉하게 2.5 유닛 이내로 접근 시 벽으로 간주
     }
 
-    private RoomInstance GetCurrentRoom(BaseEntity entity)
-    {
-        foreach (var room in FindObjectsByType<RoomInstance>(FindObjectsSortMode.None))
-        {
-            Bounds bounds = new Bounds((Vector2)room.transform.position + room.centerOffset, new Vector3(room.roomSize.x, room.roomSize.y, 100f));
-            if (bounds.Contains(entity.transform.position))
-            {
-                return room;
-            }
-        }
-        return null;
-    }
 
     private float dashTimeoutTimer = 0f;
 
