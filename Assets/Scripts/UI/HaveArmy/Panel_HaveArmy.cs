@@ -23,7 +23,6 @@ public class Panel_HaveArmy : MonoBehaviour
         var playerController = GameManager.Instance?.PLAYERCONTROLLER;
         if (playerController != null)
         {
-            Debug.Log("구독 완료");
             playerController.OnEnterBattle += CloseUI;
             playerController.OnEnterIdle += Update_HaveArmy;
         }
@@ -51,7 +50,6 @@ public class Panel_HaveArmy : MonoBehaviour
     public void Update_HaveArmy()
     {
         int i = 0;
-        Debug.Log("업데이트");
         CloseUI();
 
         foreach(var army in InventoryManager.Instance.Slots)

@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject playerPrefab; 
     [SerializeField] private PlayerController playerController;
     public PlayerController PLAYERCONTROLLER => playerController;
+    public bool IsPlayerReady { get; private set; } = false;
 
     [Header("Core Managers")]
     [SerializeField] public DataManager dataManager;
@@ -215,6 +216,7 @@ public class GameManager : MonoBehaviour
             playerController.SetInputBlocked(false);
         }
 
+        IsPlayerReady = true;
         Debug.Log("<color=cyan>[GameManager]</color> Player Spawned, Placed, and Camera Assigned.");
     }
 

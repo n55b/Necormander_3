@@ -5380,7 +5380,7 @@ GameObject:
   - component: {fileID: 2320746058205641299}
   - component: {fileID: 2467784662988300142}
   - component: {fileID: 8985164081271137351}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: Room_Normal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5434,9 +5434,9 @@ MonoBehaviour:
   roomSize: {x: 0, y: 0}
   centerOffset: {x: 0, y: 0}
   anchors: []
-  wallTilemap: {fileID: 0}
-  groundTilemap: {fileID: 0}
-  shadowTilemap: {fileID: 0}
+  wallTilemap: {fileID: 2297822278971006684}
+  groundTilemap: {fileID: 8085811977727881938}
+  shadowTilemap: {fileID: 173147117876920774}
   debugDepth: -1
   phaseIndex: -1
   isCleared: 0

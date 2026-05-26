@@ -2,13 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using NavMeshPlus.Components; 
+using NavMeshPlus.Components;
 using UnityEngine.Tilemaps;
 using System.Linq;
 
 public class MapGenerator : MonoBehaviour
 {
     public static MapGenerator Instance;
+
+    // 맵 생성 완료 여부 플래그
+    public bool IsMapGenerationCompleted { get; private set; } = false;
 
     [Header("Data Settings")]
     [SerializeField] private MapGenerationDataSO generationData;
@@ -19,16 +22,26 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private Tilemap globalWallTilemap;
     [SerializeField] private Tilemap globalShadowTilemap;
 
-    public Tilemap GlobalGroundTilemap => globalGroundTilemap;
+    // 미니맵 타일 추가
+    [Header("MiniMap Settings")]
+    [SerializeField] private Tilemap globalMiniMapTilemap; // GlobalMiniMapTilemap 등록
+    [SerializeField] private TileBase miniMapNormalTile;  // 일반 방/복도용 단색 타일
+
+    [Header("안개 시스템")]
+    [SerializeField] private Tilemap fogTilemap; // 방금 만든 FogTilemap 등록
+    [SerializeField] private TileBase blackTile; // 검은색 타일 에셋 등록
+
+    public Tilemap GlobalMiniMapTilemap => globalMiniMapTilemap;
+    public Tilemap FogTilemap => fogTilemap;
 
     private List<RoomInstance> _allRooms = new List<RoomInstance>();
     private HashSet<RoomInstance> _reachedRooms = new HashSet<RoomInstance>();
     private Dictionary<RoomInstance, List<RoomInstance>> _masterAdjacency = new Dictionary<RoomInstance, List<RoomInstance>>();
-    private Dictionary<RoomInstance, Vector2> _intendedDirs = new Dictionary<RoomInstance, Vector2>(); 
+    private Dictionary<RoomInstance, Vector2> _intendedDirs = new Dictionary<RoomInstance, Vector2>();
     private Dictionary<System.Tuple<RoomInstance, RoomInstance>, int> _corridorLengths = new Dictionary<System.Tuple<RoomInstance, RoomInstance>, int>();
     private List<string> _rewardConnectionDebugLogs = new List<string>();
     private CorridorPainter _painter;
-    private GameObject _tempObstacle; 
+    private GameObject _tempObstacle;
     private bool _isGenerating = false;
     private int _currentPhaseIndex = 0;
 
@@ -46,7 +59,7 @@ public class MapGenerator : MonoBehaviour
     }
     private readonly List<RoomConnectionCandidate> _connectionCandidates = new List<RoomConnectionCandidate>(128);
 
-    public System.Action OnMapGenerated; 
+    public System.Action OnMapGenerated;
 
     public void SetMapData(MapGenerationDataSO genData, RoomPrefabDataSO prefData)
     {
@@ -76,7 +89,7 @@ public class MapGenerator : MonoBehaviour
     private IEnumerator GenerationSequence()
     {
         _isGenerating = true;
-        
+
         int maxRegenAttempts = 10;
         int regenAttempt = 0;
         bool mapSuccess = false;
@@ -91,13 +104,13 @@ public class MapGenerator : MonoBehaviour
             int totalSpecials = generationData.shopCount + generationData.rewardCount + generationData.eliteCount;
             int normalCount = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - 1 - totalSpecials);
 
-            int initialBranchCount = Random.Range(1, 5); 
+            int initialBranchCount = Random.Range(1, 5);
             List<RoomType> phase1 = new List<RoomType> { RoomType.Spawn };
             for (int i = 0; i < initialBranchCount; i++) phase1.Add(RoomType.Normal);
             yield return StartCoroutine(RunPhase(phase1));
 
             int remainingNormal = normalCount - initialBranchCount;
-            
+
             _currentPhaseIndex++;
             List<RoomType> phase2 = new List<RoomType>();
             for (int i = 0; i < generationData.shopCount; i++) phase2.Add(RoomType.Shop);
@@ -146,11 +159,25 @@ public class MapGenerator : MonoBehaviour
 
         SetupFinalColliders();
         BakeNavMesh();
+
+        // 안개 타일 배치
+        GenerateFogOfWar(); // 던전 전체 까맣게 칠하기
+
+        // 스폰 방만 게임 시작할 때 안개를 즉시 걷어내 줍니다.
+        RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
+        if (spawnRoom != null)
+        {
+            spawnRoom.RevealRoom();
+        }
+
         PlacePlayerAtSpawn();
 
         if (_tempObstacle != null) SafeDestroy(_tempObstacle);
         _isGenerating = false;
-        OnMapGenerated?.Invoke(); 
+
+        // 맵 생성 완료 플래그 설정 및 이벤트 호출
+        IsMapGenerationCompleted = true;
+        OnMapGenerated?.Invoke();
         Debug.Log("<color=green>[MapGenerator]</color> Map Generation Completed.");
     }
 
@@ -165,14 +192,14 @@ public class MapGenerator : MonoBehaviour
 
         TilemapCollider2D tileCol = wallObj.GetComponent<TilemapCollider2D>();
         if (tileCol == null) tileCol = wallObj.AddComponent<TilemapCollider2D>();
-        tileCol.compositeOperation = Collider2D.CompositeOperation.Merge; 
+        tileCol.compositeOperation = Collider2D.CompositeOperation.Merge;
 
         CompositeCollider2D comp = wallObj.GetComponent<CompositeCollider2D>();
         if (comp == null) comp = wallObj.AddComponent<CompositeCollider2D>();
         comp.geometryType = CompositeCollider2D.GeometryType.Polygons;
         comp.generationType = CompositeCollider2D.GenerationType.Manual;
-        
-        comp.GenerateGeometry(); 
+
+        comp.GenerateGeometry();
         Physics2D.SyncTransforms();
     }
 
@@ -204,9 +231,9 @@ public class MapGenerator : MonoBehaviour
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             GameManager.Instance.PLAYERCONTROLLER.transform.position = spawnPos;
-            
+
             // [추가] 시작 방 진입 로직 강제 실행 (음악 재생 등)
-            spawnRoom.ForceEnter(); 
+            spawnRoom.ForceEnter();
         }
     }
 
@@ -234,10 +261,10 @@ public class MapGenerator : MonoBehaviour
         {
             room.CleanupPhysics();
         }
-        
+
         // 리지드바디 컴포넌트 파괴가 다음 프레임에 완전히 처리되도록 대기하여 물리 롤백 차단
         yield return null;
-        
+
         foreach (var room in phaseRooms)
         {
             room.SnapToGrid(generationData.gridUnit);
@@ -260,7 +287,7 @@ public class MapGenerator : MonoBehaviour
             float cos = Mathf.Abs(Mathf.Cos(angle)); float sin = Mathf.Abs(Mathf.Sin(angle));
             spawnRadius = (halfW * sin <= halfH * cos) ? (halfW / (cos + 0.001f)) : (halfH / (sin + 0.001f));
             // 이전 페이즈의 네모 콜라이더 박스 표면에 가깝되, 앵커가 가로막히지 않도록 반경 90% 수준으로 조율
-            spawnRadius = Mathf.Max(5f, spawnRadius * 0.9f); 
+            spawnRadius = Mathf.Max(5f, spawnRadius * 0.9f);
         }
         Vector2 spawnPos = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * spawnRadius;
         GameObject roomObj = Instantiate(prefab, (Vector3)spawnPos, Quaternion.identity, transform);
@@ -410,7 +437,7 @@ public class MapGenerator : MonoBehaviour
             }
 
             _painter.Init(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, generationData.floorTile, generationData.wallTile, generationData.shadowTile);
-            
+
             // 초기 스폰 방 깊이 연산 실행
             UpdateAllRoomDepths();
 
@@ -438,14 +465,14 @@ public class MapGenerator : MonoBehaviour
                         for (int uIndex = 0; uIndex < phaseUnreached.Count; uIndex++)
                         {
                             var u = phaseUnreached[uIndex];
-                            if ((u.roomType == RoomType.Shop || u.roomType == RoomType.Elite) && r.roomType == RoomType.Spawn) 
+                            if ((u.roomType == RoomType.Shop || u.roomType == RoomType.Elite) && r.roomType == RoomType.Spawn)
                                 continue;
 
                             // 직선거리를 복도 길이 예상치로 사용
                             float approxCorridorLen = Vector2.Distance(r.transform.position, u.transform.position);
                             // 일반 방 연결에서는 순수 물리적 거리를 기준으로 하되, 맵 생성 다양성을 극대화하기 위해 랜덤 노이즈(-30f ~ +30f)를 적용합니다.
                             float estimatedCumulativeDist = approxCorridorLen + Random.Range(-30f, 30f);
-                            
+
                             if (attempt > 0)
                             {
                                 estimatedCumulativeDist += Random.Range(-15f, 15f); // 셔플 회차 시 노이즈
@@ -466,18 +493,18 @@ public class MapGenerator : MonoBehaviour
 
                         var c = _connectionCandidates[i];
                         if (!phaseUnreached.Contains(c.unreached)) continue;
-                        if (DrawCorridorBetweenRooms(c.reached, c.unreached, 0, attempt > 0)) 
-                        { 
-                            _reachedRooms.Add(c.unreached); 
-                            phaseUnreached.Remove(c.unreached); 
-                            _masterAdjacency[c.reached].Add(c.unreached); 
-                            _masterAdjacency[c.unreached].Add(c.reached); 
-                            changed = true; 
-                            
+                        if (DrawCorridorBetweenRooms(c.reached, c.unreached, 0, attempt > 0))
+                        {
+                            _reachedRooms.Add(c.unreached);
+                            phaseUnreached.Remove(c.unreached);
+                            _masterAdjacency[c.reached].Add(c.unreached);
+                            _masterAdjacency[c.unreached].Add(c.reached);
+                            changed = true;
+
                             // 복도가 하나 연결될 때마다 다음 프레임으로 처리를 양보하여 프리징 방지
                             yield return null;
                             sw.Restart();
-                            break; 
+                            break;
                         }
                     }
                 }
@@ -505,11 +532,11 @@ public class MapGenerator : MonoBehaviour
                 var validReached = _reachedRooms.Where(r => r.debugDepth != -1).ToList();
                 if (validReached.Count == 0) continue;
                 int normalMaxD = validReached.Where(r => r.roomType != RoomType.Reward).Max(r => r.debugDepth);
-                
+
                 // 홉 수 기준 최대 깊이에서 2 이내에 있는 모든 깊은 방들을 후보군으로 선정
                 float depthThreshold = Mathf.Max(1, normalMaxD - 2);
                 var deepNodes = validReached.Where(r => (float)r.debugDepth >= depthThreshold).OrderBy(r => Vector2.Distance(r.transform.position, reward.transform.position)).ToList();
-                
+
                 // 디버그 로그 수집
                 System.Text.StringBuilder logSb = new System.Text.StringBuilder();
                 logSb.AppendLine($"[Reward Connection Debug] Connecting Room: {reward.name} (Attempt: {attempt + 1})");
@@ -526,28 +553,28 @@ public class MapGenerator : MonoBehaviour
                 {
                     deepNodes = deepNodes.OrderBy(r => Vector2.Distance(r.transform.position, reward.transform.position) + Random.Range(-15f, 15f)).ToList();
                 }
-                
+
                 RoomInstance connectedParent = null;
-                foreach (var p in deepNodes) 
-                { 
+                foreach (var p in deepNodes)
+                {
                     if (sw.ElapsedMilliseconds > 15)
                     {
                         yield return null;
                         sw.Restart();
                     }
 
-                    if (DrawCorridorBetweenRooms(p, reward, 0, attempt > 0)) 
-                    { 
-                        _reachedRooms.Add(reward); 
-                        _masterAdjacency[p].Add(reward); 
-                        _masterAdjacency[reward].Add(p); 
+                    if (DrawCorridorBetweenRooms(p, reward, 0, attempt > 0))
+                    {
+                        _reachedRooms.Add(reward);
+                        _masterAdjacency[p].Add(reward);
+                        _masterAdjacency[reward].Add(p);
                         connectedParent = p;
-                        
+
                         // 보상 방 연결 시에도 프레임 양보
                         yield return null;
                         sw.Restart();
-                        break; 
-                    } 
+                        break;
+                    }
                 }
 
                 logSb.AppendLine($"  - Result Connection: {(connectedParent != null ? "SUCCESS to " + connectedParent.name : "FAILED")}");
@@ -601,12 +628,12 @@ public class MapGenerator : MonoBehaviour
                 {
                     Debug.LogWarning($"<color=orange>[MapGenerator]</color> Generated corridor layout did not satisfy depth rules (Attempt {attempt + 1}). Resetting and retrying routing...");
                     // 제약 조건을 위반했으므로 통로 데이터를 싹 비우고 재시도
-                    ResetCorridorState(); 
+                    ResetCorridorState();
                     yield return null;
                     continue;
                 }
             }
-            
+
             Debug.LogWarning($"<color=orange>[MapGenerator]</color> Corridor routing attempt {attempt + 1} failed with {isolatedCount} isolated rooms. Retrying corridor routing...");
             yield return null;
         }
@@ -711,16 +738,18 @@ public class MapGenerator : MonoBehaviour
         Physics2D.SyncTransforms();
     }
 
-    private void ClearExistingMap() 
-    { 
+    private void ClearExistingMap()
+    {
         _corridorLengths.Clear();
         _rewardConnectionDebugLogs.Clear();
-        foreach (var room in _allRooms) if (room != null) SafeDestroy(room.gameObject); 
+        foreach (var room in _allRooms) if (room != null) SafeDestroy(room.gameObject);
         _allRooms.Clear(); _reachedRooms.Clear(); _masterAdjacency.Clear(); _intendedDirs.Clear();
         if (_tempObstacle != null) SafeDestroy(_tempObstacle);
-        if (globalGroundTilemap != null) globalGroundTilemap.ClearAllTiles(); 
-        if (globalWallTilemap != null) globalWallTilemap.ClearAllTiles(); 
-        if (globalShadowTilemap != null) globalShadowTilemap.ClearAllTiles(); 
+        if (globalGroundTilemap != null) globalGroundTilemap.ClearAllTiles();
+        if (globalWallTilemap != null) globalWallTilemap.ClearAllTiles();
+        if (globalShadowTilemap != null) globalShadowTilemap.ClearAllTiles();
+
+        if (globalMiniMapTilemap != null) globalMiniMapTilemap.ClearAllTiles(); // [추가] alslaoq
     }
 
     private struct AnchorPair
@@ -872,30 +901,30 @@ public class MapGenerator : MonoBehaviour
             Vector2Int exitB = new Vector2Int(cB.x, cB.y);
 
             List<Vector2Int> path = new List<Vector2Int>();
-            Vector2Int curA = exitA; 
-            path.Add(exitA); 
-            for (int i = 0; i < generationData.corridorStraightLength; i++) 
-            { 
-                curA += bestA.direction; 
-                path.Add(curA); 
+            Vector2Int curA = exitA;
+            path.Add(exitA);
+            for (int i = 0; i < generationData.corridorStraightLength; i++)
+            {
+                curA += bestA.direction;
+                path.Add(curA);
             }
-            Vector2Int entB = exitB; 
-            for (int i = 0; i < generationData.corridorStraightLength; i++) 
+            Vector2Int entB = exitB;
+            for (int i = 0; i < generationData.corridorStraightLength; i++)
                 entB += bestB.direction;
 
             List<Vector2Int> astar = _painter.FindPath(curA, entB, generationData.corridorAvoidMargin, pathDepth);
-            if (astar != null) 
-            { 
-                for (int i = 1; i < astar.Count; i++) path.Add(astar[i]); 
-                Vector2Int fin = entB; 
-                for (int i = 0; i < generationData.corridorStraightLength; i++) 
-                { 
-                    fin -= bestB.direction; 
-                    path.Add(fin); 
-                } 
-                if (path.Count > 0 && path.Last() != exitB) path.Add(exitB); 
-                for (int i = path.Count - 1; i > 0; i--) 
-                    if (path[i] == path[i - 1]) path.RemoveAt(i); 
+            if (astar != null)
+            {
+                for (int i = 1; i < astar.Count; i++) path.Add(astar[i]);
+                Vector2Int fin = entB;
+                for (int i = 0; i < generationData.corridorStraightLength; i++)
+                {
+                    fin -= bestB.direction;
+                    path.Add(fin);
+                }
+                if (path.Count > 0 && path.Last() != exitB) path.Add(exitB);
+                for (int i = path.Count - 1; i > 0; i--)
+                    if (path[i] == path[i - 1]) path.RemoveAt(i);
 
                 // 경로 단순화 적용: 쓸데없이 앞으로 나갔다가 꺾여서 생기는 T자 꼬리 단락 자동 도려내기
                 path = SimplifyPath(path);
@@ -906,11 +935,11 @@ public class MapGenerator : MonoBehaviour
                     continue; // 닿는다면 해당 경로 기각하고 다른 앵커 매칭 시도
                 }
 
-                _painter.RegisterCorridorWithAnchors(path, bestA, bestB, pathDepth); 
-                bestA.isUsed = true; 
-                bestB.isUsed = true; 
+                _painter.RegisterCorridorWithAnchors(path, bestA, bestB, pathDepth);
+                bestA.isUsed = true;
+                bestB.isUsed = true;
 
-                SpawnDoorAtAnchor(a, bestA); 
+                SpawnDoorAtAnchor(a, bestA);
                 SpawnDoorAtAnchor(b, bestB);
 
                 // [추가] 두 방 사이의 실제 복도 타일 수(길이)를 캐시에 저장
@@ -930,25 +959,25 @@ public class MapGenerator : MonoBehaviour
         else if (anchor.direction == Vector2Int.left) doorPrefab = generationData.doorLeft;
         else if (anchor.direction == Vector2Int.right) doorPrefab = generationData.doorRight;
         if (doorPrefab == null && generationData.doorUp != null) { doorPrefab = generationData.doorUp; if (anchor.direction == Vector2Int.down) rotation = 180f; else if (anchor.direction == Vector2Int.left) rotation = 90f; else if (anchor.direction == Vector2Int.right) rotation = -90f; }
-        
-        if (doorPrefab != null) 
-        { 
-            GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform); 
-            doorObj.name = $"Door_{anchor.direction}_{room.name}"; 
-            room.doorObjects.Add(doorObj); 
-            
+
+        if (doorPrefab != null)
+        {
+            GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform);
+            doorObj.name = $"Door_{anchor.direction}_{room.name}";
+            room.doorObjects.Add(doorObj);
+
             // [수정] 생성 시에는 기본적으로 열려(비활성) 있어야 플레이어가 이동 가능함
             doorObj.SetActive(false);
         }
     }
 
-    private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground"); ConfigureTilemap(globalWallTilemap, "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow"); }
-    private void ConfigureTilemap(Tilemap tm, string layerName) 
-    { 
-        if (tm == null) return; 
-        int layer = LayerMask.NameToLayer(layerName); 
-        if (layer != -1) tm.gameObject.layer = layer; 
-        
+    private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground"); ConfigureTilemap(globalWallTilemap, "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow"); ConfigureTilemap(globalMiniMapTilemap, "MiniMap"); /*미니맵 추가*/ }
+    private void ConfigureTilemap(Tilemap tm, string layerName)
+    {
+        if (tm == null) return;
+        int layer = LayerMask.NameToLayer(layerName);
+        if (layer != -1) tm.gameObject.layer = layer;
+
         if (layerName == "Wall")
         {
             var tr = tm.GetComponent<TilemapRenderer>();
@@ -970,8 +999,10 @@ public class MapGenerator : MonoBehaviour
         sb.AppendLine($"Map Bounds: X({xMin} to {xMax}), Y({yMin} to {yMax})");
         sb.AppendLine("Legend: [P: Spawn], [S: Shop], [R: Reward], [E: Elite], [N: Normal]");
         sb.AppendLine();
-        for (int y = yMax; y >= yMin; y--) {
-            for (int x = xMin; x <= xMax; x++) {
+        for (int y = yMax; y >= yMin; y--)
+        {
+            for (int x = xMin; x <= xMax; x++)
+            {
                 Vector3Int pos = new Vector3Int(x, y, 0); string roomLabel = null;
                 foreach (var room in _allRooms) { Vector3Int centerCell = globalGroundTilemap.WorldToCell(room.transform.position + (Vector3)room.centerOffset); if (pos == centerCell) { string typeKey = room.roomType == RoomType.Spawn ? "P" : room.roomType.ToString().Substring(0, 1); roomLabel = $"[{typeKey}:{room.debugDepth}]"; break; } }
                 if (roomLabel != null) { sb.Append(roomLabel); x += roomLabel.Length - 1; continue; }
@@ -1042,13 +1073,13 @@ public class MapGenerator : MonoBehaviour
     {
         if (obj == null) return;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         if (UnityEditor.EditorUtility.IsPersistent(obj))
         {
             Debug.LogWarning($"[SafeDestroy] Prevented destroying asset: {obj.name}");
             return;
         }
-        #endif
+#endif
 
         if (obj is GameObject go)
         {
@@ -1074,6 +1105,83 @@ public class MapGenerator : MonoBehaviour
         else
         {
             DestroyImmediate(obj);
+        }
+    }
+
+    // 미니맵 타일맵 관련 매서드
+    public TileBase GetMiniMapTileByType(RoomType type)
+    {
+        switch (type)
+        {
+            default: return miniMapNormalTile;
+        }
+    }
+    // 카메라 자동 정렬 헬퍼 함수
+    public void AutoFocusMiniMapCamera(Camera miniMapCam)
+    {
+        if (miniMapCam == null || globalMiniMapTilemap == null) return;
+
+        // 유니티 내장 기능으로 미니맵 타일 영역의 타일맵 렌더러 기준 Bounds를 통째로 가져옵니다.
+        var tilemapRenderer = globalMiniMapTilemap.GetComponent<TilemapRenderer>();
+        if (tilemapRenderer == null) return;
+
+        Bounds mapBounds = tilemapRenderer.bounds;
+
+        // 1. 카메라의 중심점을 생성된 맵 전체의 정중앙 좌표로 이동시킵니다.
+        Vector3 centerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position; // 플레이어 위치를 중심으로 시작
+        centerPos.z = miniMapCam.transform.position.z; // 기존 카메라이 Z축 깊이(-100) 유지
+        miniMapCam.transform.position = centerPos;
+
+        miniMapCam.orthographicSize = 30.0f;
+    }
+
+    // 안개 타일 & 미니맵 타일 채우기 함수
+    private void GenerateFogOfWar()
+    {
+        if (fogTilemap == null || blackTile == null) return;
+
+        globalGroundTilemap.CompressBounds();
+        BoundsInt bounds = globalGroundTilemap.cellBounds;
+
+        // 일괄 배치를 위한 리스트
+        List<Vector3Int> fogPositions = new List<Vector3Int>();
+        List<TileBase> fogTiles = new List<TileBase>();
+
+        List<Vector3Int> miniMapPositions = new List<Vector3Int>();
+        List<TileBase> miniMapTiles = new List<TileBase>();
+
+        for (int x = bounds.xMin - 5; x <= bounds.xMax + 5; x++)
+        {
+            for (int y = bounds.yMin - 5; y <= bounds.yMax + 5; y++)
+            {
+                Vector3Int pos = new Vector3Int(x, y, 0);
+
+                bool hasGround = globalGroundTilemap.HasTile(pos);
+                bool hasWall = (globalWallTilemap != null && globalWallTilemap.HasTile(pos));
+
+                if (hasGround || hasWall)
+                {
+                    // 1. 안개 영역 채우기
+                    fogPositions.Add(pos);
+                    fogTiles.Add(blackTile);
+
+                    // 2. 미니맵 전용 타일맵 채우기 (새 씬이라 무조건 깨끗한 상태임)
+                    if (globalMiniMapTilemap != null && miniMapNormalTile != null)
+                    {
+                        miniMapPositions.Add(pos);
+                        miniMapTiles.Add(miniMapNormalTile);
+                    }
+                }
+            }
+        }
+
+        // 배열로 한 번에 쏴서 렉 없이 생성
+        fogTilemap.SetTiles(fogPositions.ToArray(), fogTiles.ToArray());
+
+        if (globalMiniMapTilemap != null && miniMapPositions.Count > 0)
+        {
+            globalMiniMapTilemap.SetTiles(miniMapPositions.ToArray(), miniMapTiles.ToArray());
+            Debug.Log($"<color=green>[MapGenerator]</color> 미니맵 타일맵에 {miniMapPositions.Count}칸의 지도를 그렸습니다.");
         }
     }
 }
