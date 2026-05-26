@@ -45,7 +45,7 @@ public abstract class BaseEntity : MonoBehaviour
     public AIPatternSO Brain => _runtimeBrain;
     public SpriteRenderer SpriteRenderer => _sr;
 
-    private bool _isAttackExecuting = false; // 공격 애니메이션이 실행 중인지 추적
+    // private bool _isAttackExecuting = false; // 공격 애니메이션이 실행 중인지 추적
 
     protected virtual void Awake()
     {
@@ -184,7 +184,7 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (target == null) return;
 
-        _isAttackExecuting = true; // 공격 애니메이션이 실행 중임을 표시
+        // _isAttackExecuting = true; // 공격 애니메이션이 실행 중임을 표시
 
         _target = target; // 공격 대상 저장
 
@@ -271,6 +271,6 @@ public abstract class BaseEntity : MonoBehaviour
         }
 
         _target = null;
-        _isAttackExecuting = false; // 공격 애니메이션 종료
+        // _isAttackExecuting = false; // 공격 애니메이션 종료
     }
 }
