@@ -10,6 +10,7 @@ public class MapUIManager : MonoBehaviour
     private PlayerInput _playerInput;
     private bool _isMapOpen = false;
     private bool _isInitialized = false; // 중복 초기화 방지용 변수
+    public bool IsMapOpen => _isMapOpen; // 다른 스크립트에서 맵 상태 확인용 프로퍼티
 
     private void Start()
     {

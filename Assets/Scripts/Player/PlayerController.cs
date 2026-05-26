@@ -29,6 +29,8 @@ public class PlayerController : MonoBehaviour
     [Header("플레이어 상태")]
     [SerializeField] PlayerStates P_State = PlayerStates.Idle;
 
+    public PlayerStates GetPlayerState() => P_State;
+
     // 상태에 따른 Action 이벤트
     public event Action OnEnterIdle;
     public event Action OnEnterBattle;
