@@ -319,7 +319,6 @@ public class PlayerController : MonoBehaviour
                 return;
             }
 
-            Debug.Log("<color=yellow>[PlayerController]</color> E Key Detected! (context.performed)");
             if (GemTreeUI.Instance != null)
             {
                 GemTreeUI.Instance.Toggle();

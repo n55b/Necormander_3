@@ -20,23 +20,11 @@ public class Panel_HaveArmy : MonoBehaviour
         Update_HaveArmy();
 
         InventoryManager.Instance.OnMinionUpdated += Update_HaveArmy;
-        var playerController = GameManager.Instance?.PLAYERCONTROLLER;
-        if (playerController != null)
-        {
-            playerController.OnEnterBattle += CloseUI;
-            playerController.OnEnterIdle += Update_HaveArmy;
-        }
     }
 
     private void UnSubscribeFromEvents()
     {
         InventoryManager.Instance.OnMinionUpdated -= Update_HaveArmy;
-        var playerController = GameManager.Instance?.PLAYERCONTROLLER;
-        if (playerController != null)
-        {
-            playerController.OnEnterBattle -= CloseUI;
-            playerController.OnEnterIdle -= Update_HaveArmy;
-        }
     }
 
     public void CloseUI()

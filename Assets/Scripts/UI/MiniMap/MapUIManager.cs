@@ -53,18 +53,30 @@ public class MapUIManager : MonoBehaviour
 
     private void OnMapTogglePressed(InputAction.CallbackContext context)
     {
-        _isMapOpen = !_isMapOpen;
-        ToggleFullMap(_isMapOpen);
+        ToggleFullMap(!_isMapOpen);
     }
 
     private void ToggleFullMap(bool isOpen)
     {
-        if (fullMapUIWindow != null) fullMapUIWindow.SetActive(isOpen);
-
-        if (miniMapController != null)
+        // 팝업 매니저에 상태 전달
+        if(isOpen)
         {
-            // 🌟 여기서 true를 던지는 순간 위의 FocusOnPlayer()가 발동되어 카메라가 텔레포트합니다!
-            miniMapController.SetMapActive(isOpen);
+            if(UIPopUpManager.Instance.IsPopUpActive || UIPopUpManager.Instance.IsOnBattle) return;
+
+            if (fullMapUIWindow != null) fullMapUIWindow.SetActive(isOpen);
+            _isMapOpen = isOpen;
+            UIPopUpManager.Instance.PopUpUI(fullMapUIWindow); // 팝업 매니저에 상태 전달
+
+            if (miniMapController != null)
+            {
+                // 여기서 true를 던지는 순간 위의 FocusOnPlayer()가 발동되어 카메라가 텔레포트합니다!
+                miniMapController.SetMapActive(isOpen);
+            }
+        }
+        else
+        {
+            _isMapOpen = isOpen;
+            UIPopUpManager.Instance.ClosePopUpUI(); // 팝업 매니저에 상태 전달
         }
     }
 }

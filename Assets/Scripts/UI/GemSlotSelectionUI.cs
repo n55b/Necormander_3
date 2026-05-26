@@ -28,8 +28,12 @@ public class GemSlotSelectionUI : MonoBehaviour
     /// </summary>
     public void Show(RewardCandidate candidate)
     {
+        if(UIPopUpManager.Instance.IsPopUpActive)  return; // 이미 팝업이 활성화되어 있으면 새로 띄우지 않음
+
         _pendingCandidate = candidate;
         panel.SetActive(true);
+        
+        UIPopUpManager.Instance.PopUpUI(panel);
 
         // 상단에 선택한 보석 정보 표시
         if (selectedGemCard != null)
@@ -95,5 +99,7 @@ public class GemSlotSelectionUI : MonoBehaviour
     public void Hide()
     {
         if (panel != null) panel.SetActive(false);
+        
+        UIPopUpManager.Instance?.ClosePopUpUI();
     }
 }

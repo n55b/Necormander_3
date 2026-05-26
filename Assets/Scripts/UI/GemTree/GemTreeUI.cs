@@ -56,12 +56,29 @@ public class GemTreeUI : MonoBehaviour
     public void Toggle()
     {
         _isOpen = !_isOpen;
-        mainPanel.SetActive(_isOpen);
-        if (_isOpen) RefreshUI();
+
+        if (_isOpen) 
+        {
+            if(UIPopUpManager.Instance.IsPopUpActive || UIPopUpManager.Instance.IsOnBattle) 
+            {
+                _isOpen = !_isOpen; // 팝업이 이미 활성화되어 있으면 토글 상태 원복
+                return; // 이미 팝업이 활성화되어 있으면 새로 띄우지 않음
+            }
+
+            UIPopUpManager.Instance.PopUpUI(mainPanel); // 팝업 매니저에 상태 전달
+
+            mainPanel.SetActive(_isOpen);
+
+            RefreshUI();
+        }
         else
         {
             // [추가] UI를 닫을 때 남아있을 수 있는 툴팁 강제 제거
             if (GemTooltipUI.Instance != null) GemTooltipUI.Instance.Hide();
+
+            mainPanel.SetActive(_isOpen);
+
+            UIPopUpManager.Instance?.ClosePopUpUI(); // 팝업 매니저에 상태 전달
         }
     }
 

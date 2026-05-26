@@ -61,6 +61,10 @@ public class HandSlotSelectionUI : MonoBehaviour
         }
         else
         {
+            if(UIPopUpManager.Instance.IsPopUpActive || UIPopUpManager.Instance.IsOnBattle) return;
+
+            UIPopUpManager.Instance.PopUpUI(gameObject); // 팝업 매니저에 상태 전달
+
             _isReadOnly = true;
             _pendingCandidate = default; // [수정] 구조체는 null 대신 default 사용
             if (selectedRewardCard != null) selectedRewardCard.gameObject.SetActive(false); // 보상 정보 숨김
@@ -77,6 +81,8 @@ public class HandSlotSelectionUI : MonoBehaviour
         _isReadOnly = false;
         _pendingCandidate = candidate;
         panel.SetActive(true);
+
+        UIPopUpManager.Instance.ForcePopUpUI(gameObject); // 팝업 매니저에 상태 전달
 
         // 상단에 선택한 보상 정보 표시
         if (selectedRewardCard != null)
@@ -134,6 +140,8 @@ public class HandSlotSelectionUI : MonoBehaviour
     public void Hide()
     {
         if (panel != null) panel.SetActive(false);
+        
+        UIPopUpManager.Instance.ClosePopUpUI();
         // [추가] UI 닫을 때 툴팁 강제 제거
         if (CommonTooltipUI.Instance != null) CommonTooltipUI.Instance.Hide();
     }

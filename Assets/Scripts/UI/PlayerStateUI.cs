@@ -66,18 +66,21 @@ public class PlayerStateUI : MonoBehaviour
             _allyManager.OnAllyRespawned += RemoveReviveIcon;
         }
 
-        if(GameManager.Instance.PLAYERCONTROLLER != null)
-        {
-            GameManager.Instance.PLAYERCONTROLLER.OnEnterIdle += () => {
-                ClearReviveIcons();
-            };
-        }
-
-        if(panelHaveArmy != null) panelHaveArmy.Initialize ();
-
         RefreshGold();
         Debug.Log("<color=green>[PlayerStateUI]</color> HUD Initialized.");
     }
+
+    #region UI State Management
+    public void PopUpStateUI()
+    {
+        panelHaveArmy.Update_HaveArmy();
+        ClearReviveIcons();
+    }
+    public void CloseStateUI()
+    {
+        panelHaveArmy.CloseUI();
+    }
+    #endregion
 
     private void OnDestroy()
     {

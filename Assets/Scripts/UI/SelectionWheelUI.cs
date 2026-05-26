@@ -16,9 +16,9 @@ public class SelectionWheelUI : MonoBehaviour
     [Header("References")]
     [SerializeField] private RectTransform container;
     [SerializeField] private Sprite circleSprite; // 여기에 위에서 만든 Circle 스프라이트를 넣으세요!
-    
+
     [SerializeField] private Color disabledColor = new Color(0, 0, 0, 0.2f);
-    
+
     private List<Image> _segments = new List<Image>();
     private List<TextMeshProUGUI> _labelTexts = new List<TextMeshProUGUI>();
     private List<bool> _availability = new List<bool>();
@@ -36,6 +36,10 @@ public class SelectionWheelUI : MonoBehaviour
 
     public void Show(Vector2 screenPos, List<CommandData> types, List<bool> availability)
     {
+        if(UIPopUpManager.Instance.IsPopUpActive) return; // 이미 팝업이 활성화되어 있으면 새로 띄우지 않음
+        
+        UIPopUpManager.Instance.PopUpUI(gameObject);    // 팝업 매니저에 상태 전달
+
         gameObject.SetActive(true);
         container.position = screenPos;
         _centerPos = screenPos;
@@ -48,6 +52,7 @@ public class SelectionWheelUI : MonoBehaviour
 
     public void Hide()
     {
+        UIPopUpManager.Instance.ClosePopUpUI();
         gameObject.SetActive(false);
         _currentIndex = -1;
     }
@@ -72,7 +77,7 @@ public class SelectionWheelUI : MonoBehaviour
                 img.fillOrigin = (int)Image.Origin360.Top;
                 img.fillAmount = fillAmount;
                 img.fillClockwise = true;
-                
+
                 // 텍스트 생성
                 GameObject textObj = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
                 textObj.transform.SetParent(container, false); // 텍스트는 회전 안되게 container의 직접 자식으로
@@ -81,7 +86,7 @@ public class SelectionWheelUI : MonoBehaviour
                 txt.fontStyle = FontStyles.Bold;
                 txt.alignment = TextAlignmentOptions.Center;
                 txt.textWrappingMode = TextWrappingModes.NoWrap;
-                
+
                 _segments.Add(img);
                 _labelTexts.Add(txt);
             }
@@ -90,21 +95,21 @@ public class SelectionWheelUI : MonoBehaviour
             {
                 _segments[i].gameObject.SetActive(true);
                 _labelTexts[i].gameObject.SetActive(true);
-                
+
                 _segments[i].sprite = circleSprite;
                 _segments[i].fillAmount = fillAmount;
-                
+
                 // 조각 회전: 12시 방향이 조각의 정중앙이 되도록 보정
                 float offsetRotation = anglePerSegment / 2f;
                 _segments[i].rectTransform.localRotation = Quaternion.Euler(0, 0, offsetRotation - (i * anglePerSegment));
                 _segments[i].rectTransform.sizeDelta = new Vector2(radius * 2, radius * 2);
-                
+
                 // [수정] 집기 가능 여부에 따른 초기 색상 설정
                 bool isAvailable = i < _availability.Count ? _availability[i] : true;
                 _segments[i].color = isAvailable ? normalColor : disabledColor;
                 _labelTexts[i].text = GetShortName(types[i]);
                 _labelTexts[i].color = isAvailable ? new Color(1, 1, 1, 0.5f) : new Color(1, 1, 1, 0.15f);
-                
+
                 // 텍스트 위치: 각 조각의 중앙 각도 계산
                 float labelAngle = (i * anglePerSegment) * Mathf.Deg2Rad;
                 _labelTexts[i].rectTransform.localPosition = new Vector3(Mathf.Sin(labelAngle), Mathf.Cos(labelAngle), 0) * (radius * 0.65f);
@@ -120,7 +125,7 @@ public class SelectionWheelUI : MonoBehaviour
     public void UpdateHighlight(Vector2 currentMousePos)
     {
         float dist = Vector2.Distance(_centerPos, currentMousePos);
-        
+
         if (dist < dragThreshold)
         {
             ResetHighlights();
@@ -134,7 +139,7 @@ public class SelectionWheelUI : MonoBehaviour
 
         int count = _currentTypes.Count;
         float anglePerSegment = 360f / count;
-        
+
         // 인덱스 계산 (반올림을 통해 각도 범위 매칭)
         int index = Mathf.RoundToInt(angle / anglePerSegment) % count;
 

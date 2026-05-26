@@ -25,6 +25,8 @@ public class RewardSelectionUI : MonoBehaviour
 
     public void Show(List<RewardCandidate> candidates)
     {
+        UIPopUpManager.Instance.ForcePopUpUI(gameObject); // 팝업 매니저에 상태 전달
+
         _currentCandidates = candidates;
         if (panel != null) panel.SetActive(true);
 
@@ -48,6 +50,7 @@ public class RewardSelectionUI : MonoBehaviour
     {
         Debug.Log("<color=white>[RewardUI]</color> Hiding Selection UI.");
         if (panel != null) panel.SetActive(false);
+        UIPopUpManager.Instance.ClosePopUpUI(); // 팝업 상태 해제
     }
 
     public void OnCardClicked(int index)
