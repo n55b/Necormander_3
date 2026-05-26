@@ -15,11 +15,13 @@ public struct DamageInfo
     public float amount;
     public DamageType type;
     public GameObject attacker;
+    public bool isThrowDamage;
 
-    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null)
+    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, bool isThrowDamage = false)
     {
         this.amount = amount;
         this.type = type;
         this.attacker = attacker;
+        this.isThrowDamage = isThrowDamage;
     }
 }
