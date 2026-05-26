@@ -15,6 +15,12 @@ public class TrackingFireball : Projectile
         base.Init(target.position, damage, targetLayer, shooter, customSpeed, customLifeTime);
     }
 
+    public void InitLinear(Vector2 targetPos, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
+    {
+        _targetTransform = null;
+        base.Init(targetPos, damage, targetLayer, shooter, customSpeed, customLifeTime);
+    }
+
     protected override void Move()
     {
         if (_targetTransform == null)
