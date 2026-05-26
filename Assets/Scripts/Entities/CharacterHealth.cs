@@ -18,6 +18,7 @@ public class CharacterHealth : MonoBehaviour
     public event Action OnHeal;
     public event Action UpdateHPBar;
     public event Action OnDeath;
+    public event Func<CharacterHealth, bool> OnBeforeDeath; // [추가] 부활/페이즈 전환 시 사망 취소용
 
     public float CurHP => curHP;
     public float MaxHP => (_stat != null) ? _stat.MAXHP : 0f; // [추가] 최대 체력 정보 노출
@@ -100,6 +101,10 @@ public class CharacterHealth : MonoBehaviour
         // [사망] 체크
         if (curHP <= 0.0f && !isDead) // isDead 체크로 중복 호출 방지
         {
+            if (OnBeforeDeath != null && OnBeforeDeath.Invoke(this))
+            {
+                return; // 페이즈 전환 등으로 죽음을 회피함
+            }
             Die();
         }
 

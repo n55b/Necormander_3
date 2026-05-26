@@ -15,12 +15,13 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     [Header("Phase Settings")]
     public float phase2HpThreshold = 350f;
+    public MinionDataSO phase2Data; // [추가] 2페이즈 전용 스탯 데이터 (이 값이 있으면 체력 0 도달 시 부활하며 전환)
     [SerializeField] private bool isPhase2 = false;
 
     [Header("Basic Attack Loop")]
     public float baseAttackInterval = 1.0f;
     public float maxAttackSpeedMultiplier = 1.4f;
-    public float attackSpeedRampTime = 8.0f;
+    public float attackSpeedRampTime = 5.0f; // 8초에서 5초로 단축하여 패턴을 더 자주 보게 함
     public int throwHitsRequired = 2;
     public GameObject normalArrowPrefab;
     public float projectileSpeed = 10f;
@@ -40,7 +41,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     public GameObject throwableBoxPrefab;
 
     [Header("Runtime")]
-    [SerializeField] private ArcherState currentState = ArcherState.P1_Loop;
+    [SerializeField] private ArcherState archerCurrentState = ArcherState.P1_Loop;
     [SerializeField] private float stateTimer = 0f;
     [SerializeField] private float attackTimer = 0f;
     [SerializeField] private float loopDuration = 0f;
@@ -51,7 +52,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     private float p2SubTimer = 0f;
 
     // P2 Pattern 1 internal timer
-    private float p2BombardmentTimer = 0f;
+    // (Removed unused p2BombardmentTimer)
     
     private Coroutine bombardmentCoroutine;
 
@@ -59,7 +60,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     {
         base.Init(entity);
         isPhase2 = false;
-        currentState = ArcherState.P1_Loop;
+        archerCurrentState = ArcherState.P1_Loop;
         loopDuration = 0f;
         throwHitCount = 0;
         attackTimer = baseAttackInterval;
@@ -70,7 +71,42 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         entity.Stats.Health.OnDamageReceived -= HandleDamageTaken;
         entity.Stats.Health.OnDamageReceived += HandleDamageTaken;
 
+        entity.Stats.Health.OnBeforeDeath -= HandleBeforeDeath;
+        entity.Stats.Health.OnBeforeDeath += HandleBeforeDeath;
+
+        // 보스가 처음 등장할 때 무조건 방 중앙으로 강제 텔레포트
+        RoomInstance room = GetCurrentRoom(entity);
+        if (room != null)
+        {
+            Vector2 center = (Vector2)room.transform.position + room.centerOffset;
+            var agent = entity.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            if (agent != null && agent.isActiveAndEnabled)
+            {
+                agent.Warp(center);
+            }
+            else
+            {
+                entity.transform.position = center;
+            }
+            Debug.Log($"<color=green>[ArcherBoss]</color> Warped to Center: {center}");
+        }
+
         Debug.Log("<color=green>[ArcherBoss]</color> Phase 1 Started.");
+    }
+
+    private bool HandleBeforeDeath(CharacterHealth health)
+    {
+        // 2페이즈 데이터가 설정되어 있고, 1페이즈에서 죽었다면 -> 사망을 취소하고 2페이즈 시작
+        if (!isPhase2 && phase2Data != null)
+        {
+            var entity = health.GetComponentInParent<BaseEntity>();
+            if (entity != null)
+            {
+                EnterPhase2(entity);
+                return true; // true를 반환하면 Die()를 건너뛰고 부활함
+            }
+        }
+        return false;
     }
 
     private void HandleDamageTaken(DamageInfo info)
@@ -91,7 +127,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     public override void Execute(BaseEntity entity)
     {
         UpdatePhase(entity); // 타겟 갱신 등
-        if (this.currentState == ArcherState.Transitioning || base.currentState == AIState.Thrown || base.currentState == AIState.Caught) return;
+        if (this.archerCurrentState == ArcherState.Transitioning || base.currentState == AIState.Thrown || base.currentState == AIState.Caught) return;
 
         if (target == null)
         {
@@ -100,14 +136,17 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             if (target == null) return;
         }
 
-        // Phase Transition Check
-        if (!isPhase2 && entity.Stats.Health.CurHP <= phase2HpThreshold)
+        // 보스가 항상 플레이어를 바라보도록 회전
+        CalculateRotate(target, entity);
+
+        // Phase Transition Check (phase2Data가 없다면 체력 절반 시 강제 전환)
+        if (!isPhase2 && phase2Data == null && entity.Stats.Health.CurHP <= entity.Stats.Health.MaxHP * 0.5f)
         {
             EnterPhase2(entity);
             return;
         }
 
-        switch (currentState)
+        switch (archerCurrentState)
         {
             case ArcherState.P1_Loop:
                 HandleP1Loop(entity);
@@ -137,10 +176,20 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     private void EnterPhase2(BaseEntity entity)
     {
         isPhase2 = true;
-        entity.Stats.SetBaseMoveSpeed(5f); // 2페이즈 이속
+
+        if (phase2Data != null)
+        {
+            // 2페이즈 데이터가 있다면 스탯(체력 등)을 완전히 덮어씌움 (내부적으로 ResetHP 호출되어 만피 됨)
+            entity.Stats.InitializeStats(phase2Data);
+        }
+        else
+        {
+            // 데이터가 없다면 임시로 이속만 5로 변경
+            entity.Stats.SetBaseMoveSpeed(5f); 
+        }
         throwHitCount = 0;
         loopDuration = 0f;
-        currentState = ArcherState.P2_Loop;
+        archerCurrentState = ArcherState.P2_Loop;
         if (bombardmentCoroutine != null) entity.StopCoroutine(bombardmentCoroutine);
         
         Debug.Log("<color=red>[ArcherBoss]</color> Phase 2 Started!");
@@ -174,7 +223,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     private void EnterP1Pattern1(BaseEntity entity)
     {
-        currentState = ArcherState.P1_Pattern1;
+        archerCurrentState = ArcherState.P1_Pattern1;
         stateTimer = bombardmentDuration;
         bombardmentCoroutine = entity.StartCoroutine(BombardmentRoutine(entity));
         Debug.Log("<color=green>[ArcherBoss]</color> Phase 1 Pattern 1: Bombardment!");
@@ -191,7 +240,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     private void EnterP1Pattern2(BaseEntity entity)
     {
-        currentState = ArcherState.P1_Pattern2;
+        archerCurrentState = ArcherState.P1_Pattern2;
         p2SubState = 0; // 0: 십자경고1, 1: 대각경고, 2: 십자경고2
         p2SubTimer = fanWarningTime;
         Debug.Log("<color=green>[ArcherBoss]</color> Phase 1 Pattern 2: Cross/Diag/Cross!");
@@ -224,8 +273,14 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     private void EnterStunned(BaseEntity entity, bool dropBox)
     {
-        currentState = ArcherState.Stunned;
+        archerCurrentState = ArcherState.Stunned;
         stateTimer = stunDuration;
+
+        if (bombardmentCoroutine != null)
+        {
+            entity.StopCoroutine(bombardmentCoroutine);
+            bombardmentCoroutine = null;
+        }
         
         if (dropBox && throwableBoxPrefab != null)
         {
@@ -248,7 +303,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             loopDuration = 0f;
             attackTimer = baseAttackInterval;
             throwHitCount = 0;
-            currentState = isPhase2 ? ArcherState.P2_Loop : ArcherState.P1_Loop;
+            archerCurrentState = isPhase2 ? ArcherState.P2_Loop : ArcherState.P1_Loop;
         }
     }
 
@@ -282,7 +337,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     private void EnterP2Pattern1(BaseEntity entity)
     {
-        currentState = ArcherState.P2_Pattern1;
+        archerCurrentState = ArcherState.P2_Pattern1;
         stateTimer = bombardmentDuration;
         bombardmentCoroutine = entity.StartCoroutine(BombardmentRoutine(entity));
         attackTimer = baseAttackInterval; // 공속 1.0 고정
@@ -311,7 +366,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     private void EnterP2Pattern2(BaseEntity entity)
     {
-        currentState = ArcherState.P2_Pattern2;
+        archerCurrentState = ArcherState.P2_Pattern2;
         p2SubState = -1; // -1: 중앙 이동 중
         
         RoomInstance room = GetCurrentRoom(entity);
@@ -380,16 +435,23 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     private void KitePlayer(BaseEntity entity)
     {
         float dist = Vector2.Distance(entity.transform.position, target.position);
-        var agent = entity.GetComponent<NavMeshAgent>();
+        var agent = entity.GetComponent<UnityEngine.AI.NavMeshAgent>();
         if (agent == null || !agent.isActiveAndEnabled) return;
 
-        if (dist < 8f) // 적정 거리 (임시 8)
+        if (dist < 12f) // 거리가 가까우면 전술적 이동 (방 안의 안전한 곳으로)
         {
-            Vector2 runDir = ((Vector2)entity.transform.position - (Vector2)target.position).normalized;
-            Vector2 targetPos = (Vector2)entity.transform.position + runDir * 5f;
             agent.isStopped = false;
             agent.speed = entity.Stats.MOVESPEED;
-            agent.SetDestination(targetPos);
+
+            // 이미 이동 중(목표지가 설정됨)이고 목표에 도달하지 않았다면 계속 이동
+            if (agent.hasPath && agent.remainingDistance > 0.5f)
+            {
+                return;
+            }
+
+            // 새로운 전술적 위치 탐색 후 이동
+            Vector2 tacticalPos = GetTacticalPosition(entity, target);
+            agent.SetDestination(tacticalPos);
         }
         else
         {
@@ -401,10 +463,10 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     {
         if (normalArrowPrefab == null) return;
         GameObject arrow = Instantiate(normalArrowPrefab, entity.transform.position, Quaternion.identity);
-        var tracking = arrow.GetComponent<TrackingFireball>();
-        if (tracking != null)
+        var proj = arrow.GetComponentInChildren<Projectile>();
+        if (proj != null)
         {
-            tracking.InitLinear(targetPos, entity.Stats.ATK, entity.opponentLayer, entity.gameObject, projectileSpeed, 7f);
+            proj.Init(targetPos, entity.Stats.ATK, entity.opponentLayer, entity.gameObject, projectileSpeed, 7f);
         }
     }
 
@@ -423,10 +485,10 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             {
                 Vector2 fireDir = new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad), Mathf.Sin(ang * Mathf.Deg2Rad));
                 GameObject arrow = Instantiate(normalArrowPrefab, entity.transform.position, Quaternion.identity);
-                var tracking = arrow.GetComponent<TrackingFireball>();
-                if (tracking != null)
+                var proj = arrow.GetComponentInChildren<Projectile>();
+                if (proj != null)
                 {
-                    tracking.InitLinear((Vector2)entity.transform.position + fireDir, entity.Stats.ATK, entity.opponentLayer, entity.gameObject, projectileSpeed, 7f);
+                    proj.Init((Vector2)entity.transform.position + fireDir, entity.Stats.ATK, entity.opponentLayer, entity.gameObject, projectileSpeed, 7f);
                 }
             }
         }
@@ -443,19 +505,27 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         {
             Vector2 randomPos = center + new Vector2(Random.Range(-halfWidth, halfWidth), Random.Range(-halfHeight, halfHeight));
             
-            // 경고 이펙트 (구현 생략하거나 나중에 추가)
+            // 경고 이펙트 및 실제 폭발 데미지를 MagicianCircle 프리팹에 위임
             if (bombardmentIndicatorPrefab != null)
             {
-                Instantiate(bombardmentIndicatorPrefab, randomPos, Quaternion.identity);
-                yield return new WaitForSeconds(0.5f);
+                GameObject indicator = Instantiate(bombardmentIndicatorPrefab, randomPos, Quaternion.identity);
+                var circleAttack = indicator.GetComponent<EnemyMagicianCircleAttack>();
+                
+                if (circleAttack != null)
+                {
+                    // 마법사 장판 스크립트를 재활용: 폭발 데미지, 타겟 레이어, 폭발 대기시간(0.5초), 반경(1.5f) 지정
+                    circleAttack.Init(entity.Stats.ATK, entity.opponentLayer, entity.gameObject, 1.5f, 0.5f);
+                }
+                
+                // 폭격 주기만큼 대기 후 다음 폭격
+                yield return new WaitForSeconds(bombardmentInterval);
             }
             else
             {
                 yield return new WaitForSeconds(bombardmentInterval);
+                // 폭격 데미지 임시 땜빵용 (프리팹 없을 때만)
+                ShootNormalArrow(entity, randomPos); 
             }
-
-            // 폭격 데미지
-            ShootNormalArrow(entity, randomPos); // 일단 화살 쏘는 것으로 대체(위에서 아래로 떨어지게 하려면 별도 프리팹/로직 필요)
         }
     }
 
@@ -466,17 +536,6 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             Instantiate(throwableBoxPrefab, position, Quaternion.identity);
         }
     }
-
-    private RoomInstance GetCurrentRoom(BaseEntity entity)
-    {
-        foreach (var room in FindObjectsOfType<RoomInstance>())
-        {
-            Bounds bounds = new Bounds((Vector2)room.transform.position + room.centerOffset, new Vector3(room.roomSize.x, room.roomSize.y, 100f));
-            if (bounds.Contains(entity.transform.position))
-            {
-                return room;
-            }
-        }
-        return null;
-    }
 }
+
+

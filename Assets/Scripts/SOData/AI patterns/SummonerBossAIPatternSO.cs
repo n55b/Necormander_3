@@ -268,18 +268,6 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
         return minWallDist < 2.5f; // NavMesh 에어리어 바운딩 등을 고려해 넉넉하게 2.5 유닛 이내로 접근 시 벽으로 간주
     }
 
-    private RoomInstance GetCurrentRoom(BaseEntity entity)
-    {
-        foreach (var room in FindObjectsOfType<RoomInstance>())
-        {
-            Bounds bounds = new Bounds((Vector2)room.transform.position + room.centerOffset, new Vector3(room.roomSize.x, room.roomSize.y, 100f));
-            if (bounds.Contains(entity.transform.position))
-            {
-                return room;
-            }
-        }
-        return null;
-    }
 
     private float dashTimeoutTimer = 0f;
 
@@ -516,16 +504,23 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
     private void HandleKiting(BaseEntity entity)
     {
         float dist = Vector2.Distance(entity.transform.position, target.position);
-        var agent = entity.GetComponent<NavMeshAgent>();
+        var agent = entity.GetComponent<UnityEngine.AI.NavMeshAgent>();
         if (agent == null || !agent.isActiveAndEnabled) return;
 
-        if (dist < idealDistance)
+        if (dist < idealDistance) // 거리가 가까우면 전술적 이동
         {
-            Vector2 runDir = ((Vector2)entity.transform.position - (Vector2)target.position).normalized;
-            Vector2 targetPos = (Vector2)entity.transform.position + runDir * 5f;
             agent.isStopped = false;
             agent.speed = entity.Stats.MOVESPEED;
-            agent.SetDestination(targetPos);
+
+            // 이미 이동 중(목표지가 설정됨)이고 목표에 도달하지 않았다면 계속 이동
+            if (agent.hasPath && agent.remainingDistance > 0.5f)
+            {
+                return;
+            }
+
+            // 새로운 전술적 위치 탐색 후 이동
+            Vector2 tacticalPos = GetTacticalPosition(entity, target);
+            agent.SetDestination(tacticalPos);
         }
         else
         {
