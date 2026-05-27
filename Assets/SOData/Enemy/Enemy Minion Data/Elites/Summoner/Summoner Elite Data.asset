@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 0
   minionName: 
+  minionIcon: {fileID: 0}
   throwEffectCategory: 0
   baseEffectValue: 0
   effectMultiplier: 1
   baseAreaRadius: 3
-  maxHP: 400
+  maxHP: 500
   attack: 20
   attackSpeed: 1
   attackRange: 2
@@ -26,8 +27,10 @@ MonoBehaviour:
   defense: 0
   moveSpeed: 4
   cost: 0
-  isBoss: 1
+  isElite: 1
   canSpawnRandomly: 0
   aiPattern: {fileID: 11400000, guid: 04b87bffa16522449825795a306bc463, type: 2}
   hpCostRatioPerThrow: 0
+  AttackSound: {fileID: 0}
+  DeathSound: {fileID: 0}
   minionPrefab: {fileID: 2726140859014803944, guid: 1ca6b8719bb170247a2a7a9b0bd136b1, type: 3}

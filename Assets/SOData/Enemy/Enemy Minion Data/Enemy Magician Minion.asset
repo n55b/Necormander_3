@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 6
   minionName: Enemy Skeleton Magician
+  minionIcon: {fileID: 0}
   throwEffectCategory: 0
   baseEffectValue: 0
   effectMultiplier: 1
   baseAreaRadius: 3
-  maxHP: 45
+  maxHP: 150
   attack: 10
   attackSpeed: 1
   attackRange: 10000
@@ -26,8 +27,10 @@ MonoBehaviour:
   defense: 0
   moveSpeed: 3
   cost: 1
-  isBoss: 0
+  isElite: 0
   canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: f4292111f50266441823d06f0499f0f1, type: 2}
   hpCostRatioPerThrow: 0
+  AttackSound: {fileID: 0}
+  DeathSound: {fileID: 0}
   minionPrefab: {fileID: 5658053484416891064, guid: 321acf2406d3af4439b140f834f67313, type: 3}

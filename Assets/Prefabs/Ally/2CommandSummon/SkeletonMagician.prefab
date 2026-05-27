@@ -72,6 +72,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1268860900310637079, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1348199348988540393, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -100,6 +104,18 @@ PrefabInstance:
       propertyPath: impactEffect
       value: 
       objectReference: {fileID: 11400000, guid: 8dd68a2dd501264429ba99a4e9719238, type: 2}
+    - target: {fileID: 7414995997704664874, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7414995997704664874, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_BaseOffset
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7983487525704611893, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_Offset.y
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 9061937502379027960, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
       propertyPath: m_Controller
       value: 
