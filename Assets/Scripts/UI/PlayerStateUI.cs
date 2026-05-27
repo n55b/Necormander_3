@@ -69,6 +69,7 @@ public class PlayerStateUI : MonoBehaviour
         if(InventoryManager.Instance != null)
         {
             InventoryManager.Instance.OnMinionUpdated += panelHaveArmy.Update_HaveArmy;
+            panelHaveArmy.Update_HaveArmy(); // 초기 상태 반영
         }
 
         RefreshGold();

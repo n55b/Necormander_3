@@ -16,6 +16,7 @@ public class UIPopUpManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        _playerStateUI = GetComponentInChildren<PlayerStateUI>();
     }
   
     private void Update()
