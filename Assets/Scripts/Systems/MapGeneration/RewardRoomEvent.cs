@@ -40,7 +40,7 @@ public class RewardRoomEvent : MonoBehaviour, IRoomEvent
         _isEventActive = true;
 
         // 1. 문 폐쇄
-        room.SetDoorsOpen(false);
+        //room.SetDoorsOpen(false);
 
         // 2. 상자 등장
         if (rewardBox != null)
