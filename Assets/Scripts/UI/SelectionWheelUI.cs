@@ -34,9 +34,9 @@ public class SelectionWheelUI : MonoBehaviour
         Hide();
     }
 
-    public void Show(Vector2 screenPos, List<CommandData> types, List<bool> availability)
+    public bool Show(Vector2 screenPos, List<CommandData> types, List<bool> availability)
     {
-        if(UIPopUpManager.Instance.IsPopUpActive) return; // 이미 팝업이 활성화되어 있으면 새로 띄우지 않음
+        if(UIPopUpManager.Instance.IsPopUpActive) return false; // 이미 팝업이 활성화되어 있으면 새로 띄우지 않음
         
         UIPopUpManager.Instance.PopUpUI(gameObject);    // 팝업 매니저에 상태 전달
 
@@ -48,13 +48,18 @@ public class SelectionWheelUI : MonoBehaviour
 
         SetupSegments(types);
         UpdateHighlight(screenPos);
+
+        return true;
     }
 
     public void Hide()
     {
-        UIPopUpManager.Instance.ClosePopUpUI();
-        gameObject.SetActive(false);
-        _currentIndex = -1;
+        if(this.gameObject.activeSelf)
+        {
+            UIPopUpManager.Instance?.ClosePopUpUI();
+            gameObject.SetActive(false);
+            _currentIndex = -1;
+        }
     }
 
     private void SetupSegments(List<CommandData> types)

@@ -52,7 +52,10 @@ MonoBehaviour:
   newSource: {fileID: 0}
   oldSource: {fileID: 0}
   sfxSource: {fileID: 5384184289146484121}
-  HitClip: {fileID: 8300000, guid: 3806c46c2cbb5f14da783d4a353bcd7d, type: 3}
+  ParabolaClip: {fileID: 8300000, guid: da498f638c5629040a4a28579f8e0b40, type: 3}
+  PurchaseClip: {fileID: 8300000, guid: db355bc6eca9d204d96fc602c9c21eda, type: 3}
+  globalBgmVolume: 1
+  globalSfxVolume: 1
 --- !u!1 &2998519205929229877
 GameObject:
   m_ObjectHideFlags: 0
@@ -251,9 +254,17 @@ MonoBehaviour:
   useDebugStartingInventory: 1
   debugStartingMinions:
   - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
-  debugStartingMinionQuantities: 01000000
+  debugStartingMinionQuantities: 02000000
   debugStartingGems_Data:
   - {fileID: 11400000, guid: fd7d0461898c75b41a5a9ae9b551e95b, type: 2}
+  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
   - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
   - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
   debugStartingGems_TargetJobs: 00000000
@@ -277,6 +288,10 @@ MonoBehaviour:
   globalGroundTilemap: {fileID: 0}
   globalWallTilemap: {fileID: 0}
   globalShadowTilemap: {fileID: 0}
+  globalMiniMapTilemap: {fileID: 0}
+  miniMapNormalTile: {fileID: 11400000, guid: 23e093012acb5f346b8c1bd7ec9fee57, type: 2}
+  fogTilemap: {fileID: 0}
+  blackTile: {fileID: 11400000, guid: 5ee6ff73c5bfbc74e9aa365f1d70ac1d, type: 2}
 --- !u!1 &4851146966962830542
 GameObject:
   m_ObjectHideFlags: 0

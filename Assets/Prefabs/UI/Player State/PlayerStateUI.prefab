@@ -144,6 +144,7 @@ MonoBehaviour:
   goldText: {fileID: 1433340160426765120}
   reviveIconPrefab: {fileID: 7732809971070205925, guid: aa48e9f8efdff834c90bb5ce94db47a6, type: 3}
   reviveContainer: {fileID: 1218228168105934502}
+  panelHaveArmy: {fileID: 7314934919693781488}
 --- !u!1 &2884488951266304383
 GameObject:
   m_ObjectHideFlags: 0
@@ -852,3 +853,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6206063767401211103, guid: 3bf2ccd6880e21143b0f4b22a526a55b, type: 3}
   m_PrefabInstance: {fileID: 6505917982536539010}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7314934919693781488 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4596617635924824690, guid: 3bf2ccd6880e21143b0f4b22a526a55b, type: 3}
+  m_PrefabInstance: {fileID: 6505917982536539010}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8171cfb7bf90f44cac33e8d82f1f677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

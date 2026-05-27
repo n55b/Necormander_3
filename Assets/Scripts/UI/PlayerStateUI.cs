@@ -66,6 +66,11 @@ public class PlayerStateUI : MonoBehaviour
             _allyManager.OnAllyRespawned += RemoveReviveIcon;
         }
 
+        if(InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.OnMinionUpdated += panelHaveArmy.Update_HaveArmy;
+        }
+
         RefreshGold();
         Debug.Log("<color=green>[PlayerStateUI]</color> HUD Initialized.");
     }

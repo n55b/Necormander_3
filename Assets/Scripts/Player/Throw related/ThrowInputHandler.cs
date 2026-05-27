@@ -73,7 +73,6 @@ public class ThrowInputHandler : MonoBehaviour
     public void OnRightClickStarted()
     {
         _rightClickStartPos = CurrentMouseScreenPos;
-        _isWheelActive = true;
         
         if (_controller.SelectionWheel != null)
         {
@@ -82,7 +81,7 @@ public class ThrowInputHandler : MonoBehaviour
             {
                 availability.Add(_controller.Strategy.CanPickUpType(type, _controller.HeldObjects, _controller.MaxHoldCount));
             }
-            _controller.SelectionWheel.Show(_rightClickStartPos, _controller.DirectionMapping, availability);
+            _isWheelActive = _controller.SelectionWheel.Show(_rightClickStartPos, _controller.DirectionMapping, availability);
         }
     }
 

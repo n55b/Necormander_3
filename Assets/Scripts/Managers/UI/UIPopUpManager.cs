@@ -5,10 +5,10 @@ public class UIPopUpManager : MonoBehaviour
     public static UIPopUpManager Instance;
 
     private bool _isPopUpActive = false;
-    [SerializeField] private bool _isOnBattle = false;
+    private bool _isOnBattle = false;
     private bool _isInitialized = false; // 중복 초기화 방지용 변수
     private GameObject _currentPopUp;
-    [SerializeField] private PlayerStateUI _playerStateUI;
+    private PlayerStateUI _playerStateUI;
 
     public bool IsPopUpActive => _isPopUpActive;
     public bool IsOnBattle => _isOnBattle;

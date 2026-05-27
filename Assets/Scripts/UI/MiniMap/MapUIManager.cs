@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 public class MapUIManager : MonoBehaviour
 {
     [SerializeField] private GameObject fullMapUIWindow;
+    [SerializeField] private GameObject panelUIWindow;
     [SerializeField] private MiniMapController miniMapController;
 
     private PlayerInput _playerInput;
@@ -63,7 +64,6 @@ public class MapUIManager : MonoBehaviour
         {
             if(UIPopUpManager.Instance.IsPopUpActive || UIPopUpManager.Instance.IsOnBattle) return;
 
-            if (fullMapUIWindow != null) fullMapUIWindow.SetActive(isOpen);
             _isMapOpen = isOpen;
             UIPopUpManager.Instance.PopUpUI(fullMapUIWindow); // 팝업 매니저에 상태 전달
 
@@ -76,7 +76,11 @@ public class MapUIManager : MonoBehaviour
         else
         {
             _isMapOpen = isOpen;
+
             UIPopUpManager.Instance.ClosePopUpUI(); // 팝업 매니저에 상태 전달
         }
+
+        if (fullMapUIWindow != null) fullMapUIWindow.SetActive(isOpen);
+            if (panelUIWindow != null) panelUIWindow.SetActive(isOpen); // 패널 UI는 맵이 열릴 때 숨김
     }
 }
