@@ -20,6 +20,7 @@ public class NearestTargetFinder : MonoBehaviour
     {
         // 필터 초기화
         filter.useLayerMask = true;
+        filter.useTriggers = true; // 트리거 콜라이더도 탐지하도록 설정
     }
 
     void Update()
