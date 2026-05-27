@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 0
   minionName: Enemy Skeleton Warrior
+  minionIcon: {fileID: 0}
   throwEffectCategory: 0
   baseEffectValue: 0
   effectMultiplier: 1
   baseAreaRadius: 3
-  maxHP: 60
+  maxHP: 200
   attack: 10
   attackSpeed: 1
   attackRange: 2
@@ -26,8 +27,10 @@ MonoBehaviour:
   defense: 0
   moveSpeed: 3
   cost: 1
-  isBoss: 0
+  isElite: 0
   canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   hpCostRatioPerThrow: 0
+  AttackSound: {fileID: 0}
+  DeathSound: {fileID: 0}
   minionPrefab: {fileID: 1841339908024047631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}

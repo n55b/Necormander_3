@@ -240,7 +240,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseMaxHP: 100
-  baseAtk: 10
+  baseAtk: 5
   baseAtkSpd: 1
   baseAtkRange: 2
   baseDef: 0
@@ -350,7 +350,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 0.25
-  m_BaseOffset: 0.5
+  m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 2
 --- !u!58 &7983487525704611893
@@ -387,7 +387,7 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: 0.5}
   m_Radius: 0.5
 --- !u!50 &7675627589926563005
 Rigidbody2D:

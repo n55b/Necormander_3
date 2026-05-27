@@ -19,7 +19,7 @@ MonoBehaviour:
   baseEffectValue: 0
   effectMultiplier: 1
   baseAreaRadius: 3
-  maxHP: 150
+  maxHP: 300
   attack: 15
   attackSpeed: 1
   attackRange: 20

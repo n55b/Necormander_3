@@ -25,7 +25,7 @@ public class RewardSelectionUI : MonoBehaviour
 
     public void Show(List<RewardCandidate> candidates)
     {
-        UIPopUpManager.Instance.ForcePopUpUI(gameObject); // 팝업 매니저에 상태 전달
+        UIPopUpManager.Instance.ForcePopUpUI(panel); // 팝업 매니저에 상태 전달
 
         _currentCandidates = candidates;
         if (panel != null) panel.SetActive(true);

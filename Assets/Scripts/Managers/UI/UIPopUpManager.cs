@@ -51,10 +51,11 @@ public class UIPopUpManager : MonoBehaviour
     // 강제로 팝업 띄워야 할 때 사용해야 하는 메서드
     public void ForcePopUpUI(GameObject popUpObj)
     {
-        if (_currentPopUp != null)
+        if (_currentPopUp != null && _currentPopUp != popUpObj)
         {
             _currentPopUp.SetActive(false);
         }
+
         _currentPopUp = popUpObj;
         _isPopUpActive = true;
     }

@@ -20,14 +20,14 @@ MonoBehaviour:
   effectMultiplier: 2
   baseAreaRadius: 3
   maxHP: 100
-  attack: 10
+  attack: 5
   attackSpeed: 1
   attackRange: 2
   detectRange: 10
   defense: 0
   moveSpeed: 5
   cost: 1
-  isBoss: 0
+  isElite: 0
   canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   hpCostRatioPerThrow: 0
