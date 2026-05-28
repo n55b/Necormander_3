@@ -22,6 +22,7 @@ public class PlayerStateUI : MonoBehaviour
             IconObject = obj;
             TimerText = obj.GetComponentInChildren<TextMeshProUGUI>();
             ArmyImage = obj.GetComponentInChildren<Image>(); // 혹은 특정 이름으로 찾기
+            ArmyImage.sprite = info.Data.minionIcon; // 아이콘 설정
         }
     }
 
@@ -167,6 +168,8 @@ public class PlayerStateUI : MonoBehaviour
         if (reviveIconPrefab == null) return;
         GameObject iconObj = Instantiate(reviveIconPrefab, reviveContainer);
         _revivingIcons.Add(new ReviveIcon(info, iconObj));
+
+        Debug.Log($"<color=yellow>[PlayerStateUI]</color> Added revive icon for {info.Data.name}. Total reviving: {_revivingIcons.Count}");
         
         // 아이콘 이미지 설정 (주석 처리)
         // if (info.Data.icon != null) {
