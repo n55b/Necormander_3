@@ -25,85 +25,85 @@ public class GemGeneratorWindow
         if (!AssetDatabase.IsValidFolder(bloodPopPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "BloodPop");
         if (!AssetDatabase.IsValidFolder(agingPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "Aging");
 
-        // 중독 6종 (공용 - Poison)
-        CreateGemSO(poisonPath, "PoisonHost", "숙주", "3초마다 독 스택 광역 전이", GemUniqueType.PoisonHost, SynergyCategory.Common, GemSynergyGroup.Poison);
-        CreateGemSO(poisonPath, "PoisonFootprint", "부식석 발자취", "이동 장판 생성", GemUniqueType.PoisonFootprint, SynergyCategory.Common, GemSynergyGroup.Poison);
-        CreateGemSO(poisonPath, "PoisonFlask", "중독 플라스크", "던지기 스택 기본값 +1", GemUniqueType.PoisonFlask, SynergyCategory.Common, GemSynergyGroup.Poison);
-        CreateGemSO(poisonPath, "WoundInfection", "상처 감염", "평타 시 독 틱 단축", GemUniqueType.WoundInfection, SynergyCategory.Common, GemSynergyGroup.Poison);
-        CreateGemSO(poisonPath, "PoisonContagion", "중독 전염", "사망 시 주변 적에게 독 전이", GemUniqueType.PoisonContagion, SynergyCategory.Common, GemSynergyGroup.Poison);
-        CreateGemSO(poisonPath, "GreenFluid", "초록색 체액", "독 틱 시 포션 스폰", GemUniqueType.GreenFluid, SynergyCategory.Common, GemSynergyGroup.Poison);
+        // Poison 6
+        CreateGemSO(poisonPath, "Gem_Unique_PoisonHost", "Poison Host", "Spreads poison stacks in an area every 3 seconds.", GemUniqueType.PoisonHost, SynergyCategory.Common, GemSynergyGroup.Poison);
+        CreateGemSO(poisonPath, "Gem_Unique_PoisonFootprint", "Poison Footprint", "Creates a poison trail. Allies gain 15% movement speed.", GemUniqueType.PoisonFootprint, SynergyCategory.Common, GemSynergyGroup.Poison);
+        CreateGemSO(poisonPath, "Gem_Unique_PoisonFlask", "Poison Flask", "Increases base throw poison stacks by 1.", GemUniqueType.PoisonFlask, SynergyCategory.Common, GemSynergyGroup.Poison);
+        CreateGemSO(poisonPath, "Gem_Unique_WoundInfection", "Wound Infection", "Basic attacks reduce poison tick interval.", GemUniqueType.WoundInfection, SynergyCategory.Common, GemSynergyGroup.Poison);
+        CreateGemSO(poisonPath, "Gem_Unique_PoisonContagion", "Poison Contagion", "Spreads poison to nearby enemies upon death.", GemUniqueType.PoisonContagion, SynergyCategory.Common, GemSynergyGroup.Poison);
+        CreateGemSO(poisonPath, "Gem_Unique_GreenFluid", "Green Fluid", "Spawns a potion on poison tick.", GemUniqueType.GreenFluid, SynergyCategory.Common, GemSynergyGroup.Poison);
 
-        // 한기 5종 (사제 - Priest_Chill)
-        CreateGemSO(chillPath, "ColdBloodedHunter", "냉혹한 사냥꾼", "한기 적 이속 추가 감소", GemUniqueType.ColdBloodedHunter, SynergyCategory.Priest, GemSynergyGroup.Priest_Chill);
-        CreateGemSO(chillPath, "BitingWind", "칼바람", "주변 적 한기 1스택 부여", GemUniqueType.BitingWind, SynergyCategory.Priest, GemSynergyGroup.Priest_Chill);
-        CreateGemSO(chillPath, "Frostbreaker", "동상 파괴자", "한기 적에게 5% 추가 피해", GemUniqueType.Frostbreaker, SynergyCategory.Priest, GemSynergyGroup.Priest_Chill);
-        CreateGemSO(chillPath, "AbsoluteZero", "절대영도", "동결 시 반경 50스택 광역 (방당 1회)", GemUniqueType.AbsoluteZero, SynergyCategory.Priest, GemSynergyGroup.Priest_Chill);
-        CreateGemSO(chillPath, "ShatterIcicle", "고드름 부시기", "투척 명중 시 동결 해제 및 50% 추가 피해", GemUniqueType.ShatterIcicle, SynergyCategory.Priest, GemSynergyGroup.Priest_Chill);
+        // Chill 5
+        CreateGemSO(chillPath, "Gem_Unique_ColdBloodedHunter", "Cold-Blooded Hunter", "Applies an additional 10% slow to chilled enemies.", GemUniqueType.ColdBloodedHunter, SynergyCategory.Priest, GemSynergyGroup.Priest_Chill);
+        CreateGemSO(chillPath, "Gem_Unique_BitingWind", "Biting Wind", "Applies 1 chill stack to nearby enemies.", GemUniqueType.BitingWind, SynergyCategory.Priest, GemSynergyGroup.Priest_Chill);
+        CreateGemSO(chillPath, "Gem_Unique_Frostbreaker", "Frostbreaker", "Deals 5% additional damage to chilled enemies.", GemUniqueType.Frostbreaker, SynergyCategory.Priest, GemSynergyGroup.Priest_Chill);
+        CreateGemSO(chillPath, "Gem_Unique_AbsoluteZero", "Absolute Zero", "Applies 50 chill stacks in an area upon freezing (Once per room).", GemUniqueType.AbsoluteZero, SynergyCategory.Priest, GemSynergyGroup.Priest_Chill);
+        CreateGemSO(chillPath, "Gem_Unique_ShatterIcicle", "Shatter Icicle", "Throws remove freeze and deal 50% additional damage.", GemUniqueType.ShatterIcicle, SynergyCategory.Priest, GemSynergyGroup.Priest_Chill);
 
-        // 처형 2종 (공용 - Execution)
-        CreateGemSO(executionPath, "ExecutionFear", "공포", "처형 당한 적 주변 일반 적 1초 공포", GemUniqueType.Fear, SynergyCategory.Common, GemSynergyGroup.Execution);
-        CreateGemSO(executionPath, "ExecutionGuillotine", "단두대", "처형 스택 기준치 10% 완화", GemUniqueType.Guillotine, SynergyCategory.Common, GemSynergyGroup.Execution);
+        // Execution 2
+        CreateGemSO(executionPath, "Gem_Unique_ExecutionFear", "Fear", "Fears nearby enemies for 1 second upon executing a target.", GemUniqueType.Fear, SynergyCategory.Common, GemSynergyGroup.Execution);
+        CreateGemSO(executionPath, "Gem_Unique_ExecutionGuillotine", "Guillotine", "Relaxes the execute threshold by 10%.", GemUniqueType.Guillotine, SynergyCategory.Common, GemSynergyGroup.Execution);
 
-        // 비폭 6종 (공용 - BloodPop)
-        CreateGemSO(bloodPopPath, "ImprovisedExplosive", "급조 폭팔물", "비폭 폭발 피해 10% 증가", GemUniqueType.ImprovisedExplosive, SynergyCategory.Common, GemSynergyGroup.BloodPop);
-        CreateGemSO(bloodPopPath, "GoreParty", "내장 파티", "폭발 범위 내 아군 비폭 스택만큼 체력 회복", GemUniqueType.GoreParty, SynergyCategory.Common, GemSynergyGroup.BloodPop);
-        CreateGemSO(bloodPopPath, "BloodArmor", "피철갑", "폭발 범위 내 아군 비폭 스택 2배만큼 쉴드 획득", GemUniqueType.BloodArmor, SynergyCategory.Common, GemSynergyGroup.BloodPop);
-        CreateGemSO(bloodPopPath, "MeltingCorpse", "녹아내리는 시체", "폭발 후 장판 생성, 5초간 지속 피해", GemUniqueType.MeltingCorpse, SynergyCategory.Common, GemSynergyGroup.BloodPop);
-        CreateGemSO(bloodPopPath, "MutualDestruction", "동귀어진", "폭발 전 주변 1.5배 적 끌어당김", GemUniqueType.MutualDestruction, SynergyCategory.Common, GemSynergyGroup.BloodPop);
-        CreateGemSO(bloodPopPath, "AmIExplodingToo", "나도 폭발하는걸까?", "비폭 피해 입은 적 20% 추가 피해 약점", GemUniqueType.AmIExplodingToo, SynergyCategory.Common, GemSynergyGroup.BloodPop);
+        // BloodPop 6
+        CreateGemSO(bloodPopPath, "Gem_Unique_ImprovisedExplosive", "Improvised Explosive", "Increases Blood Pop damage by 10%.", GemUniqueType.ImprovisedExplosive, SynergyCategory.Common, GemSynergyGroup.BloodPop);
+        CreateGemSO(bloodPopPath, "Gem_Unique_GoreParty", "Gore Party", "Heals allies within the explosion radius by the number of Blood Pop stacks.", GemUniqueType.GoreParty, SynergyCategory.Common, GemSynergyGroup.BloodPop);
+        CreateGemSO(bloodPopPath, "Gem_Unique_BloodArmor", "Blood Armor", "Grants allies shields equal to double the Blood Pop stacks upon explosion.", GemUniqueType.BloodArmor, SynergyCategory.Common, GemSynergyGroup.BloodPop);
+        CreateGemSO(bloodPopPath, "Gem_Unique_MeltingCorpse", "Melting Corpse", "Creates a poison area after explosion lasting for 5 seconds.", GemUniqueType.MeltingCorpse, SynergyCategory.Common, GemSynergyGroup.BloodPop);
+        CreateGemSO(bloodPopPath, "Gem_Unique_MutualDestruction", "Mutual Destruction", "Pulls enemies within 1.5x radius before explosion.", GemUniqueType.MutualDestruction, SynergyCategory.Common, GemSynergyGroup.BloodPop);
+        CreateGemSO(bloodPopPath, "Gem_Unique_AmIExplodingToo", "Am I Exploding Too?", "Applies a weakness debuff causing victims to take 20% more damage.", GemUniqueType.AmIExplodingToo, SynergyCategory.Common, GemSynergyGroup.BloodPop);
 
-        // 노화 3종 (사제 - Priest_Aging)
-        CreateGemSO(agingPath, "Goryeojang", "고려장", "노화 최고스택 1명 주변 둔화 장판", GemUniqueType.Goryeojang, SynergyCategory.Priest, GemSynergyGroup.Priest_Aging);
-        CreateGemSO(agingPath, "DimVision", "침침한 시야", "노화 50 이상 적 미스 확률 25% 증가", GemUniqueType.DimVision, SynergyCategory.Priest, GemSynergyGroup.Priest_Aging);
-        CreateGemSO(agingPath, "AgingHunter", "노화 사냥꾼", "전체 노화 100스택 당 아군 공/이속 10% 증가", GemUniqueType.AgingHunter, SynergyCategory.Priest, GemSynergyGroup.Priest_Aging);
+        // Aging 3
+        CreateGemSO(agingPath, "Gem_Unique_Goryeojang", "Goryeojang", "Creates a 20% slow and aging area around the enemy with the highest aging stacks.", GemUniqueType.Goryeojang, SynergyCategory.Priest, GemSynergyGroup.Priest_Aging);
+        CreateGemSO(agingPath, "Gem_Unique_DimVision", "Dim Vision", "Increases miss chance by 25% for enemies with 50+ aging stacks.", GemUniqueType.DimVision, SynergyCategory.Priest, GemSynergyGroup.Priest_Aging);
+        CreateGemSO(agingPath, "Gem_Unique_AgingHunter", "Aging Hunter", "Increases ally attack speed by 10% per 100 total aging stacks on the field.", GemUniqueType.AgingHunter, SynergyCategory.Priest, GemSynergyGroup.Priest_Aging);
 
-        // 부식 4종 (사제 - Priest_Corrosion)
+        // Corrosion 4
         string corrosionPath = "Assets/SOData/Rewards/Gems/Corrosion";
         if (!AssetDatabase.IsValidFolder(corrosionPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "Corrosion");
 
-        CreateGemSO(corrosionPath, "PriestsCantAttack", "사제는 공격을 할 수 없어!", "부식 시너지 활성화 시 아군 치유량 20% 증가", GemUniqueType.PriestsCantAttack, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
-        CreateGemSO(corrosionPath, "DoubleCorrosion", "부식 2배.", "부식 시너지 효과 10% 증폭", GemUniqueType.DoubleCorrosion, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
-        CreateGemSO(corrosionPath, "WeaponCorrosion", "무기 부식", "부식된 적 공격력 10% 감소", GemUniqueType.WeaponCorrosion, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
-        CreateGemSO(corrosionPath, "RustedArmor", "녹슬어 버린 갑옷", "부식된 적 아군 평타 5회 피격 시 체력 5% 고정피해", GemUniqueType.RustedArmor, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
+        CreateGemSO(corrosionPath, "Gem_Unique_PriestsCantAttack", "Priests Can't Attack!", "Increases ally healing received by 20% when Corrosion synergy is active.", GemUniqueType.PriestsCantAttack, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
+        CreateGemSO(corrosionPath, "Gem_Unique_DoubleCorrosion", "Double Corrosion", "Enhances Corrosion synergy damage amplification by 10%.", GemUniqueType.DoubleCorrosion, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
+        CreateGemSO(corrosionPath, "Gem_Unique_WeaponCorrosion", "Weapon Corrosion", "Reduces attack damage of corroded enemies by 10%.", GemUniqueType.WeaponCorrosion, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
+        CreateGemSO(corrosionPath, "Gem_Unique_RustedArmor", "Rusted Armor", "Reflects 5% max HP fixed damage to corroded enemies every 5 hits received.", GemUniqueType.RustedArmor, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
 
-        // 전사 7종 (처형자 - Warrior_Executioner)
+        // Warrior 7
         string warriorPath = "Assets/SOData/Rewards/Gems/Warrior";
         if (!AssetDatabase.IsValidFolder(warriorPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "Warrior");
 
-        CreateGemSO(warriorPath, "WarriorBallistics1", "전사 인형 탄도학 I", "전사의 포물선 던지기 데미지 10% 증가", GemUniqueType.WarriorBallistics1, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
-        CreateGemSO(warriorPath, "WarriorBallistics2", "전사 인형 탄도학 II", "전사의 직구 던지기 데미지 10% 증가", GemUniqueType.WarriorBallistics2, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
-        CreateGemSO(warriorPath, "WarriorBallistics3", "전사 인형 탄도학 III", "전사의 던지기 효과, 단일 적용 시 15% 증가", GemUniqueType.WarriorBallistics3, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
-        CreateGemSO(warriorPath, "CrushingPower", "짓눌리는 힘", "전사 던지기 피해 초과 시, 초과량만큼 전사 체력 회복 (압살)", GemUniqueType.CrushingPower, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
-        CreateGemSO(warriorPath, "WarriorMedal", "전사의 훈장", "전사의 모든 기본 스탯 15% 증가", GemUniqueType.WarriorMedal, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
-        CreateGemSO(warriorPath, "TrackingEye", "추적하는 눈", "같은 대상을 던지기로 맞췄을 때 12% 추가 피해", GemUniqueType.WarriorPursuit, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
-        CreateGemSO(warriorPath, "FanaticRage", "광적인 분노", "기본 공격 피해의 3%만큼 흡혈", GemUniqueType.WarriorFrenzy, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
+        CreateGemSO(warriorPath, "Gem_Unique_WarriorBallistics1", "Warrior Ballistics I", "Increases Warrior's parabolic throw damage by 10%.", GemUniqueType.WarriorBallistics1, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
+        CreateGemSO(warriorPath, "Gem_Unique_WarriorBallistics2", "Warrior Ballistics II", "Increases Warrior's direct throw damage by 10%.", GemUniqueType.WarriorBallistics2, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
+        CreateGemSO(warriorPath, "Gem_Unique_WarriorBallistics3", "Warrior Ballistics III", "Increases Warrior's single-target throw damage by 15%.", GemUniqueType.WarriorBallistics3, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
+        CreateGemSO(warriorPath, "Gem_Unique_CrushingPower", "Crushing Power", "Heals the Warrior for any excess throw damage dealt upon executing an enemy.", GemUniqueType.CrushingPower, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
+        CreateGemSO(warriorPath, "Gem_Unique_WarriorMedal", "Warrior's Medal", "Increases all basic stats of the Warrior by 15%.", GemUniqueType.WarriorMedal, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
+        CreateGemSO(warriorPath, "Gem_Unique_TrackingEye", "Tracking Eye", "Deals 12% additional damage when repeatedly hitting the same target with throws.", GemUniqueType.WarriorPursuit, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
+        CreateGemSO(warriorPath, "Gem_Unique_FanaticRage", "Fanatic Rage", "Grants 3% lifesteal on basic attacks.", GemUniqueType.WarriorFrenzy, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
 
-        // 궁수 8종 (집궁제원칙 - Archer_ArcheryPrinciples)
+        // Archer 8
         string archerPath = "Assets/SOData/Rewards/Gems/Archer";
         if (!AssetDatabase.IsValidFolder(archerPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "Archer");
 
-        CreateGemSO(archerPath, "ArcherTerrain", "선관지형", "범위 내, 상대 적이 많을 수록 던지기 효과 증가", GemUniqueType.ArcherTerrain, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "ArcherWind", "후관풍세", "궁수의 던지기 범위 20% 증가", GemUniqueType.ArcherWind, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "ArcherStance", "비정비팔", "중앙에 있는 적에게 20% 추가 피해", GemUniqueType.ArcherStance, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "ArcherBreath", "흉어복실", "비행 거리에 비례하여 던지기 효과 1~33% 증가", GemUniqueType.ArcherBreath, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "ArcherPush", "전추태산", "궁수의 던지기 광역 피해가 15% 증가", GemUniqueType.ArcherPush, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "ArcherTension", "발여호미", "기본 공격 빈도 25% 느려짐, 공격력 25% 증가", GemUniqueType.ArcherTension, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "ArcherMiss", "발이부중", "공격 빗나갈 시 다음 공격 100% 증폭 (반구저기 필요)", GemUniqueType.ArcherMiss, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "ArcherReflect", "반구저기", "체력 50% 미만 공격력 15%, 50% 이상 공속 15% 증가 (발이부중 필요)", GemUniqueType.ArcherReflect, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherTerrain", "Hunter's Herding", "Increases throw damage by 5% per enemy hit in the radius.", GemUniqueType.ArcherTerrain, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherWind", "Spread Shot", "Increases the Archer's throw radius by 20%.", GemUniqueType.ArcherWind, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherStance", "Aimed Strike", "Deals 20% additional damage to enemies in the center of the throw radius.", GemUniqueType.ArcherStance, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherBreath", "Wind Direction", "Increases throw damage by 1% to 33% based on flight distance.", GemUniqueType.ArcherBreath, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherPush", "Support Fire", "Increases the Archer's AoE throw damage by 15%.", GemUniqueType.ArcherPush, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherTension", "Tension Power", "Reduces basic attack speed by 25% but increases basic attack damage by 25%.", GemUniqueType.ArcherTension, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherMiss", "Unseen Miss", "Acts as a trigger: missing a basic attack primes the next buff. (Requires Reflecting Nature)", GemUniqueType.ArcherMiss, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherReflect", "Reflecting Nature", "Increases Attack by 15% if HP < 50%, or Attack Speed by 15% if HP >= 50% after a miss. (Requires Unseen Miss)", GemUniqueType.ArcherReflect, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
 
-        // 방패병 9종 (수호신 - Shield_Guardian)
+        // Shieldbearer 9
         string shieldPath = "Assets/SOData/Rewards/Gems/Shieldbearer";
         if (!AssetDatabase.IsValidFolder(shieldPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "Shieldbearer");
 
-        CreateGemSO(shieldPath, "ShieldSturdy", "든든한 방패", "방에 진입할 때 방패병에게 체력의 50%만큼 보호막 부여", GemUniqueType.ShieldSturdy, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "ShieldWillCourage", "방패의 의지 - 용기", "방패병의 모든 스탯 10% 증가\n방에 진입할 때 아군의 공격 속도가 10초동안 12% 증가", GemUniqueType.ShieldWillCourage, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "ShieldWillWind", "방패의 의지 - 바람", "방패병의 모든 스탯 10% 증가\n방에 진입할 때 아군의 이동 속도가 10초동안 14% 증가", GemUniqueType.ShieldWillWind, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "ShieldWillClash", "방패의 의지 - 격돌", "방패병의 모든 스탯 10% 증가\n방에 진입할 때 아군의 공격력이 10초동안 8% 증가", GemUniqueType.ShieldWillClash, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "ShieldThornArmor", "가시 갑옷", "방패병이 기본 공격 피격 시 적 현재 체력 2% 고정 피해", GemUniqueType.ShieldThornArmor, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "ShieldHeavyArmor", "육중한 갑옷", "적군 단일 타겟 던지기 적중 시 14% 추가 피해", GemUniqueType.ShieldHeavyArmor, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "ShieldPatienceAura", "인내의 오오라", "5초마다 주변 소환수에게 방패병 체력 18% 보호막 부여", GemUniqueType.ShieldPatienceAura, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "ShieldOverwhelm", "압도", "5초마다 주변 적에게 방패병 체력 4% 피해 및 피해량 120% 흡혈", GemUniqueType.ShieldOverwhelm, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "ShieldTwistedGround", "뒤틀리는 지반", "단일 타겟 적중 시 전방 부채꼴 범위에 30% 추가 피해", GemUniqueType.ShieldTwistedGround, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldSturdy", "Sturdy Shield", "Grants the Shieldbearer a shield equal to 50% of Max HP upon entering a room.", GemUniqueType.ShieldSturdy, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldWillCourage", "Shield's Will - Courage", "Increases all Shieldbearer stats by 10%.\nIncreases ally attack speed by 12% for 10 seconds upon entering a room.", GemUniqueType.ShieldWillCourage, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldWillWind", "Shield's Will - Wind", "Increases all Shieldbearer stats by 10%.\nIncreases ally movement speed by 14% for 10 seconds upon entering a room.", GemUniqueType.ShieldWillWind, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldWillClash", "Shield's Will - Clash", "Increases all Shieldbearer stats by 10%.\nIncreases ally attack damage by 8% for 10 seconds upon entering a room.", GemUniqueType.ShieldWillClash, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldThornArmor", "Thorn Armor", "Reflects fixed damage equal to 2% of the attacker's current HP when taking basic attack damage.", GemUniqueType.ShieldThornArmor, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldHeavyArmor", "Heavy Armor", "Deals additional physical damage equal to 14% of the shield amount on single-target throw hit.", GemUniqueType.ShieldHeavyArmor, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldPatienceAura", "Aura of Patience", "Grants allies a shield equal to 18% of Shieldbearer's Max HP every 5 seconds.", GemUniqueType.ShieldPatienceAura, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldOverwhelm", "Aura of Overwhelming", "Deals 4% of Shieldbearer's Max HP to nearby enemies every 5 seconds and heals for 120% of damage dealt.", GemUniqueType.ShieldOverwhelm, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldTwistedGround", "Twisted Ground", "Deals 20% of the shield amount as AoE damage upon single-target throw hit.", GemUniqueType.ShieldTwistedGround, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
