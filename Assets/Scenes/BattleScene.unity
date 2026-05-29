@@ -926,6 +926,46 @@ PrefabInstance:
       propertyPath: playerStateUI
       value: 
       objectReference: {fileID: 1467717214}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingMinions.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingAbilities.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems_Data.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingMinions.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 6f4994e74423d4643b79946bc7cc5743, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingMinions.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 6dcd2551f98dad446bbd6740e1dc3c30, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingMinions.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 6e17366b9db968141a742cf6efb8ed1f, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingMinions.Array.data[3]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingMinions.Array.data[4]'
+      value: 
+      objectReference: {fileID: 11400000, guid: d2b24f1249fc5f447a65218055c12665, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingMinions.Array.data[5]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 6f4994e74423d4643b79946bc7cc5743, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingMinionQuantities.Array.data[0]'
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
