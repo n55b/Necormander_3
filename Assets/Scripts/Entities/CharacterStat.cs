@@ -15,6 +15,8 @@ public class CharacterStat : MonoBehaviour
     [SerializeField] private float baseAtkRange = 2f;
     [SerializeField] private float baseDef = 0f;
     [SerializeField] private float baseMoveSpeed = 5f;
+    [SerializeField] private float baseEvasion = 0f;
+    [SerializeField] private float baseMissChance = 0f;
 
     // 하위 컴포넌트 직접 노출 (Read-only Accessors)
     public CharacterStatus Status { get; private set; }
@@ -72,12 +74,42 @@ public class CharacterStat : MonoBehaviour
             float chillMult = Mathf.Max(0.1f, 1f - chillReduction);
             
             float bonusMult = _isPlayer ? 0f : GetGemBonus(StatType.AttackSpeed);
+
+            // [유니크] 노화 사냥꾼 (AgingHunter): 방 전체 적의 노화 스택 100당 10% 증가
+            if ((_isPlayer || _isAlly) && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.AgingHunter))
+            {
+                float totalAgingStacks = 0f;
+                foreach (var enemyStatus in CharacterStatus.ActiveEnemies)
+                {
+                    if (enemyStatus != null) totalAgingStacks += enemyStatus.GetDebuffStack(DebuffStackType.Aging);
+                }
+                bonusMult += (totalAgingStacks / 100f) * 0.1f;
+            }
+
             return (baseAtkSpd / (1f + bonusMult)) / chillMult;
         }
     }
 
     public float ATKRANGE => baseAtkRange;
     public float DEF => baseDef;
+    public float EVASION => baseEvasion;
+
+    public float MISS_CHANCE
+    {
+        get
+        {
+            float chance = baseMissChance;
+            // [유니크] 침침한 시야 (DimVision): 노화 스택 50 이상 시 25% 미스 확률 증가
+            if (IsEnemy && Status != null && Status.GetDebuffStack(DebuffStackType.Aging) >= 50)
+            {
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.DimVision))
+                {
+                    chance += 0.25f;
+                }
+            }
+            return chance;
+        }
+    }
 
     // 이동 속도: 기본 속도 * 상태이상 배율 * (한기+노화 감소)
     public float MOVESPEED
@@ -88,10 +120,39 @@ public class CharacterStat : MonoBehaviour
             if (Status.GetDebuffBool(DebuffBoolType.Frozen) || Status.GetDebuffBool(DebuffBoolType.Stunned)) return 0f;
 
             float chillReduction = GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Chill), IsEnemy);
+            
+            // [유니크] 냉혹한 사냥꾼 (ColdBloodedHunter) - 한기 걸린 적 이속 10% 추가 감소
+            if (IsEnemy && Status.GetDebuffStack(DebuffStackType.Chill) > 0f)
+            {
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.ColdBloodedHunter))
+                {
+                    chillReduction += 0.1f; // 10% 추가 감소
+                }
+            }
+
             float agingReduction = GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Aging), IsEnemy);
 
+            // [유니크] 고려장 (Goryeojang): 노화 최고스택 적 2.0f 반경 이내 시 둔화
+            if (IsEnemy && AgingUniqueManager.HighestAgingEnemy != null)
+            {
+                float dist = Vector2.Distance(transform.position, AgingUniqueManager.HighestAgingEnemy.transform.position);
+                if (dist <= 2.0f)
+                {
+                    agingReduction += GemRuleSystem.GetGoryeojangSlowReduction();
+                }
+            }
+
             float reductionMult = Mathf.Max(0.1f, 1f - (chillReduction + agingReduction));
-            return (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
+            
+            float finalSpeed = (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
+            
+            // [유니크] 부식석 발자취 (PoisonFootprint) - 아군 이동속도 15% 증가
+            if (!IsEnemy && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.PoisonFootprint))
+            {
+                finalSpeed *= 1.15f;
+            }
+            
+            return finalSpeed;
         }
     }
 
@@ -219,6 +280,8 @@ public class CharacterStat : MonoBehaviour
             baseAtkRange = data.attackRange;
             baseDef = data.defense;
             baseMoveSpeed = data.moveSpeed;
+            baseEvasion = data.baseEvasion;
+            baseMissChance = data.baseMissChance;
 
             // [추가] 보스 여부 전달
             if (Status != null) Status.IsElite = data.isElite;

@@ -39,6 +39,8 @@ public class SpearmanAction : ImpactAction
                 knockbackDir = travelDir;
                 if (knockbackDir == Vector2.zero) knockbackDir = ((Vector2)target.transform.position - impactPos).normalized;
             }
+            
+            ApplyCommonSynergyDebuffs(target, recipe);
         }
 
         if (knockbackDir != Vector2.zero)

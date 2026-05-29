@@ -16,9 +16,10 @@ MonoBehaviour:
   description: Applies extra Chill stacks to frozen enemies.
   icon: {fileID: -1282794058023969662, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 2
-  synergyGroup: 2
+  category: 1
+  synergyGroup: 100
   subSlots: 0
-  eligibleJobs: -1
+  eligibleJobs: 8
   effects:
   - rid: 2006
   references:

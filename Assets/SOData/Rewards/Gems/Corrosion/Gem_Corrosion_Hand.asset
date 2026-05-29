@@ -16,9 +16,10 @@ MonoBehaviour:
   description: Minion throw hits apply Corrosion.
   icon: {fileID: 6296886257881424038, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 0
-  synergyGroup: 6
+  category: 1
+  synergyGroup: 102
   subSlots: 0
-  eligibleJobs: -1
+  eligibleJobs: 8
   effects:
   - rid: 6002
   references:

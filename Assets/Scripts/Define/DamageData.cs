@@ -16,12 +16,16 @@ public struct DamageInfo
     public DamageType type;
     public GameObject attacker;
     public bool isThrowDamage;
+    public float debuffMultiplier;
+    public bool isBasicAttack;
 
-    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, bool isThrowDamage = false)
+    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, bool isThrowDamage = false, float debuffMultiplier = 1f, bool isBasicAttack = false)
     {
         this.amount = amount;
         this.type = type;
         this.attacker = attacker;
         this.isThrowDamage = isThrowDamage;
+        this.debuffMultiplier = debuffMultiplier;
+        this.isBasicAttack = isBasicAttack;
     }
 }

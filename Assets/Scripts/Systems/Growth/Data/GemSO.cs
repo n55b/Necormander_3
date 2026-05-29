@@ -15,11 +15,47 @@ public enum GemUniqueType
 {
     None = 0,
     LethalPoison = 1,           // 치명적인 독 (중독 스택 2배)
-    LethalDose = 2,             // 독의 치사량 (틱 주기 단축)
-    AchingBones = 3,            // 시리고 아린 뼈 (동결 중 스택 방지 등)
+    LethalDose = 2,             // 치사량 (틱 주기 단축)
+    AchingBones = 3,            // 시리고 아린 뼈 (동결 후 스택 방어)
     SlowlyFreezingFlower = 4,   // 서서히 얼어붙는 꽃 (한기 최대치 증가)
-    ExplodingFlesh = 5,         // 살덩이가 폭발하는 것 (비폭 전이)
-    NoCountryForOldMen = 6      // 노인을 위한 나라는 없다 (노화 즉사)
+    ExplodingFlesh = 5,         // 살덩이가 터지는 것 (비폭 전이)
+    NoCountryForOldMen = 6,     // 노인을 위한 나라는 없다 (노화 즉사)
+    
+    // [추가] 신규 중독 유니크 6종
+    PoisonHost = 7,             // 숙주 (주기적 광역 중독 전염)
+    PoisonFootprint = 8,        // 부식석 발자취 (이동 장판 스폰, 아군 이속 증가)
+    PoisonFlask = 9,            // 중독 플라스크 (던지기 적용 스택 증가)
+    WoundInfection = 10,        // 상처 감염 (평타 시 독 틱타이머 단축)
+    PoisonContagion = 11,       // 중독 전염 (사망 시 주변 전이)
+    GreenFluid = 12,            // 초록색 체액 (틱 피해 시 포션 스폰)
+
+    // [추가] 신규 한기 유니크 5종
+    ColdBloodedHunter = 13,     // 냉혹한 사냥꾼 (적 이속 추가 감소)
+    BitingWind = 14,            // 칼바람 (투척 범위 내 5초마다 한기 스택 부여)
+    Frostbreaker = 15,          // 동상 파괴자 (한기 적에게 5% 추가 피해)
+    AbsoluteZero = 16,          // 절대영도 (동결 진입 시 주변 50스택 광역, 방 1회)
+    ShatterIcicle = 17,         // 고드름 부시기 (투척 적중 시 동결 해제 및 50% 추가 피해)
+
+    // [추가] 처형 유니크 2종
+    Fear = 18,                  // 공포 (처형 당한 적 주변 일반 적 1초 공포)
+    Guillotine = 19,            // 단두대 (처형 스택 기준치 10% 완화)
+
+    // [추가] 비폭 유니크 6종
+    ImprovisedExplosive = 20,   // 급조 폭팔물 (폭발 피해 10% 증가)
+    GoreParty = 21,             // 내장 파티 (반경 내 아군 회복)
+    BloodArmor = 22,            // 피철갑 (반경 내 아군 쉴드)
+    MeltingCorpse = 23,         // 녹아내리는 시체 (폭발 후 장판 생성)
+    MutualDestruction = 24,     // 동귀어진 (폭발 전 1.5배 반경 내 적 끌어당김)
+    AmIExplodingToo = 25,       // 나도 폭발하는걸까? (피격 적에게 약점 부여, 이후 데미지 20% 증가)
+    // [추가] 노화 유니크 3종
+    Goryeojang = 26,            // 고려장 (노화 최고스택 1명 주변 둔화 장판)
+    DimVision = 27,             // 침침한 시야 (노화 50 이상 적 미스 확률 25% 증가)
+    AgingHunter = 28,           // 노화 사냥꾼 (전체 노화 100스택 당 아군 공/이속 10% 증가)
+    // [추가] 부식 유니크 4종
+    PriestsCantAttack = 29,     // 사제는 공격을 할 수 없어! (부식 시너지 시 아군 힐량 20% 증가)
+    DoubleCorrosion = 30,       // 부식 2배. (부식 시너지 효과 10% 증폭)
+    WeaponCorrosion = 31,       // 무기 부식 (부식 시너지 시 적 공격력 10% 감소)
+    RustedArmor = 32            // 녹슬어 버린 갑옷 (부식 시 아군 평타 5회 피격 시 현재 체력 5% 피해)
 }
 
 public enum SynergyCategory

@@ -87,9 +87,29 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (!CanExecuteAI()) return;
 
+        // [유니크] 공포 상태 처리
+        if (_stats != null && _stats.Status != null && _stats.Status.GetDebuffBool(DebuffBoolType.Feared))
+        {
+            ExecuteFearAI();
+            return;
+        }
+
         if (_runtimeBrain != null)
         {
             _runtimeBrain.Execute(this);
+        }
+    }
+
+    private void ExecuteFearAI()
+    {
+        // 공포 상태일 땐 플레이어로부터 멀어지는 방향으로 이동
+        UpdateAnimation(AIState.Follow);
+        var pc = GameManager.Instance.PLAYERCONTROLLER;
+        if (pc != null && _agent != null)
+        {
+            Vector3 dirAwayFromPlayer = (transform.position - pc.transform.position).normalized;
+            Vector3 fleeTarget = transform.position + dirAwayFromPlayer * 5f;
+            _agent.SetDestination(fleeTarget);
         }
     }
 

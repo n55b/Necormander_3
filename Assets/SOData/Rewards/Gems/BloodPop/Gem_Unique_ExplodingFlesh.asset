@@ -16,7 +16,8 @@ MonoBehaviour:
   description: Distributes BloodPop stacks to nearby enemies upon explosion.
   icon: {fileID: 8113346447660422594, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 2
-  synergyGroup: 4
+  category: 0
+  synergyGroup: 2
   subSlots: 0
   eligibleJobs: -1
   effects:

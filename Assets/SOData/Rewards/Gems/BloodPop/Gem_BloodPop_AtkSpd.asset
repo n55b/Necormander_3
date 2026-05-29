@@ -16,7 +16,8 @@ MonoBehaviour:
   description: Increases minion's attack speed.
   icon: {fileID: 8113346447660422594, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 1
-  synergyGroup: 4
+  category: 0
+  synergyGroup: 2
   subSlots: 1
   eligibleJobs: -1
   effects:

@@ -147,7 +147,7 @@ public class ThrowController : MonoBehaviour
             // [수정] 이미 날아가고 있는 유닛(FlyingObject 레이어)은 제외
             if (col.gameObject.layer == flyingLayer && !_heldObjects.Contains(col.GetComponent<IThrowable>())) continue;
 
-            if (col.TryGetComponent<IThrowable>(out var throwable) && throwable.MinionType == targetType && !_heldObjects.Contains(throwable))
+            if (col.TryGetComponent<IThrowable>(out var throwable) && (throwable.MinionType == targetType || throwable.MinionType == CommandData.None) && !_heldObjects.Contains(throwable))
             {
                 float d = Vector2.Distance(transform.position, col.transform.position);
                 if (d < minDist) { minDist = d; bestTarget = throwable; }

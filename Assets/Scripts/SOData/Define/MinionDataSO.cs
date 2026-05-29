@@ -27,6 +27,8 @@ public class MinionDataSO : ScriptableObject
     public float detectRange = 10f;
     public float defense = 0f;
     public float moveSpeed = 5f;
+    [Range(0f, 1f)] public float baseEvasion = 0f; // 회피율 (0~1)
+    [Range(0f, 1f)] public float baseMissChance = 0f; // 공격 시 기본 미스 확률 (0~1)
     public int cost;
     [UnityEngine.Serialization.FormerlySerializedAs("isBoss")]
     public bool isElite; // [추가] 엘리트 유닛 여부

@@ -44,6 +44,9 @@ public class PriestAction : ImpactAction
                 }
             }
 
+            // [추가] 공용 시너지 디버프 (독, 비폭, 처형) 연동
+            ApplyCommonSynergyDebuffs(target, recipe);
+
             if (registry != null && registry.ccAttachVFX != null)
             {
                 GameObject vfx = Object.Instantiate(registry.ccAttachVFX, target.transform.position, Quaternion.identity, target.transform);

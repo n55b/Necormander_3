@@ -16,9 +16,10 @@ MonoBehaviour:
   description: Massively increases Aging limit, but kills targets at max stacks.
   icon: {fileID: -4818461648906889331, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 2
-  synergyGroup: 5
+  category: 1
+  synergyGroup: 101
   subSlots: 0
-  eligibleJobs: -1
+  eligibleJobs: 8
   effects:
   - rid: 5006
   references:

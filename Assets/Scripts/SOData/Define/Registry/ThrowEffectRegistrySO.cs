@@ -30,4 +30,11 @@ public class ThrowEffectRegistrySO : ScriptableObject
 
     [Header("Debuff Special (상태 이상 특수 효과)")]
     public GameObject bloodPopVFX;
+    
+    [Header("Poison Unique (중독 유니크 전용)")]
+    public GameObject poisonFootprintPrefab;
+    public GameObject poisonPotionPrefab;
+
+    [Header("BloodPop Unique (비폭 유니크 전용)")]
+    public GameObject meltingCorpsePuddlePrefab;
 }

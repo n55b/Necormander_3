@@ -37,32 +37,68 @@ public class CharacterHealth : MonoBehaviour
 
     public void GetDamage(DamageInfo info)
     {
-        OnDamageReceived?.Invoke(info); // [추가] AI 등에서 피격 상세 정보(Throw 여부 등)를 파악하기 위함
+        OnDamageReceived?.Invoke(info); // [추가] AI 측에서 피격 상세 정보(Throw 여부 등)를 파악하기 위함
 
         if (isDead || invincible) return;
 
-        float remainingDamage = info.amount;
-        string str = "";                             // 데미지 타입
+        // [추가] 회피 / 미스 판정 (평타인 경우에만 적용)
+        if (info.isBasicAttack && info.attacker != null)
+        {
+            var attackerStat = info.attacker.GetComponent<CharacterStat>();
+            if (attackerStat != null && _stat != null)
+            {
+                float totalMissChance = attackerStat.MISS_CHANCE + _stat.EVASION;
+                if (UnityEngine.Random.value <= totalMissChance)
+                {
+                    // 회피 성공
+                    TakeDamageEvent?.Invoke(0, "MISS", false);
+                    return;
+                }
+            }
+        }
 
-        // [부식 및 노쇠] 시너지에 따른 데미지 증가
+        float remainingDamage = info.amount;
+        string str = "";                             // 데미지 색상타입
+
+        // [부식/노쇠] 시너지에 따른 대미지 증폭
         bool isEnemyTarget = (_stat != null && _stat.IsEnemy);
         float corrosionAmp = GemRuleSystem.GetCorrosionDamageAmp(isEnemyTarget);
         if (_status.GetDebuffBool(DebuffBoolType.Corroded))
         {
-            // 부식 상태인 경우 시너지 보너스(25%, 40% 등)만큼 데미지 증폭
+            // 부식 상태일 경우 시너지 보너스(25%, 40% 등)만큼 대미지 증폭
             remainingDamage *= (1.0f + corrosionAmp); 
             str = "Corroded";
         }
         
-        // [노쇠] 대미지 증가
+        // [노쇠] 대미지 증폭
         if (_status.GetDebuffBool(DebuffBoolType.Senility))
         {
             float senilityAmp = GemRuleSystem.GetSenilityDamageAmp(isEnemyTarget);
             remainingDamage *= (1.0f + senilityAmp);
         }
 
-        // [공용 시너지 확산] 물리 피해(평타 및 던지기) && 적군 타겟 && 공격자가 아군
-        if (info.type == DamageType.Physical && isEnemyTarget && info.attacker != null)
+        // [유니크] 동상 파괴자 (Frostbreaker) - 한기 걸린 적에게 5% 추가 피해
+        if (isEnemyTarget && _status.GetDebuffStack(DebuffStackType.Chill) > 0)
+        {
+            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Frostbreaker))
+            {
+                remainingDamage *= 1.05f;
+            }
+        }
+
+        // [유니크] 고드름 부시기 (ShatterIcicle) - 동결된 적을 투척 공격으로 맞출 시 동결 해제 및 50% 추가 피해
+        if (isEnemyTarget && _status.GetDebuffBool(DebuffBoolType.Frozen) && info.isThrowDamage)
+        {
+            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.ShatterIcicle))
+            {
+                remainingDamage *= 1.50f;
+                // 강제 해제
+                _status.ForceUnfreeze();
+            }
+        }
+
+        // [공용 시너지 연산 (미니언 물리 피해(평타 전용) && 적군 타겟 && 공격자가 아군)]
+        if (info.type == DamageType.Physical && isEnemyTarget && info.attacker != null && !info.isThrowDamage)
         {
             var attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
             if (attackerStat != null && !attackerStat.IsEnemy)
@@ -78,6 +114,12 @@ public class CharacterHealth : MonoBehaviour
                         
                     if (inven.GetSynergyCount(GemSynergyGroup.Execution) >= 2)
                         _status.AddDebuffStack(DebuffStackType.Execute, 1f);
+                        
+                    // [유니크] 상처 감염 (WoundInfection): 평타 명중 시 중독 틱 타이머 단축
+                    if (inven.HasUniqueEffect(GemUniqueType.WoundInfection))
+                    {
+                        _status.AdvancePoisonTimer(0.1f);
+                    }
                 }
             }
         }
@@ -117,12 +159,24 @@ public class CharacterHealth : MonoBehaviour
         // [처형] 체크
         if (_status != null && !isDead)
         {
-            int executeThreshold = _status.GetDebuffStack(DebuffStackType.Execute);
+            float executeThreshold = _status.GetDebuffStack(DebuffStackType.Execute);
+
+            // [유니크] 단두대 (Guillotine): 처형 스택 기준치 10% 완화
+            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Guillotine))
+            {
+                executeThreshold *= 1.1f;
+            }
+
             if (executeThreshold > 0 && curHP > 0 && curHP <= executeThreshold)
             {
-                TakeDamageEvent?.Invoke(executeThreshold, "Execution", false);
-
+                TakeDamageEvent?.Invoke((int)executeThreshold, "Execution", false);
                 curHP = 0;
+
+                // [유니크] 공포 (Fear): 처형 당한 적 주변 일반 적에게 1초간 공포 상태 부여
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Fear))
+                {
+                    ApplyFearToSurroundingEnemies();
+                }
             }
         }
 
@@ -161,6 +215,31 @@ public class CharacterHealth : MonoBehaviour
             if (bloodPopStack > 0)
             {
                 ExecuteBloodPop(bloodPopStack);
+            }
+            
+            // [유니크] 중독 전염 (PoisonContagion): 사망 시 주변 적 1명에게 남은 독 스택의 50% 전이
+            var inven = InventoryManager.Instance;
+            if (inven != null && inven.HasUniqueEffect(GemUniqueType.PoisonContagion) && _stat != null && _stat.IsEnemy)
+            {
+                int poisonStack = _status.GetDebuffStack(DebuffStackType.Poison);
+                if (poisonStack > 0)
+                {
+                    LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+                    Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, 5f, enemyLayer);
+                    foreach (var col in colls)
+                    {
+                        var tHealth = col.GetComponentInChildren<CharacterHealth>();
+                        if (tHealth != null && !tHealth.isDead && tHealth.gameObject != this.gameObject)
+                        {
+                            var tStatus = col.GetComponentInChildren<CharacterStatus>();
+                            if (tStatus != null)
+                            {
+                                tStatus.AddDebuffStack(DebuffStackType.Poison, poisonStack * 0.5f);
+                                break; // 주변 1명에게만 부여 후 종료
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -208,9 +287,35 @@ public class CharacterHealth : MonoBehaviour
 
         float finalDamage = GemRuleSystem.GetBloodPopDamage(stacks, isEnemyTarget);
 
-        // Bloodpop은 무조건 'Enemy' 레이어의 유닛에게만 데미지를 줍니다. (아군과 플레이어 제외)
-        LayerMask bloodPopTargetLayer = LayerMask.GetMask("Enemy");
+        var inven = InventoryManager.Instance;
+        bool hasInven = inven != null;
 
+        // [유니크] 급조 폭팔물 (ImprovisedExplosive): 데미지 10% 증가
+        if (hasInven && inven.HasUniqueEffect(GemUniqueType.ImprovisedExplosive))
+        {
+            finalDamage *= 1.1f;
+        }
+
+        // [유니크] 동귀어진 (MutualDestruction): 폭발 직전 반경 1.5배 내의 적들을 폭발 중심점으로 끌어당김
+        LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+        if (hasInven && inven.HasUniqueEffect(GemUniqueType.MutualDestruction))
+        {
+            Collider2D[] pullColls = Physics2D.OverlapCircleAll(transform.position, explosionRadius * 1.5f, enemyLayer);
+            foreach (var col in pullColls)
+            {
+                if (col.gameObject != this.gameObject)
+                {
+                    Vector3 dirToCenter = (transform.position - col.transform.position).normalized;
+                    float dist = Vector2.Distance(transform.position, col.transform.position);
+                    if (dist > 0.1f)
+                    {
+                        col.transform.position += dirToCenter * (dist * 0.5f); // 중심부를 향해 절반만큼 물리적 이동
+                    }
+                }
+            }
+        }
+
+        // Bloodpop은 무조건 'Enemy' 레이어의 유닛에게만 데미지를 줍니다. (아군과 플레이어 제외)
         var registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
         if (registry != null && registry.bloodPopVFX != null)
         {
@@ -219,27 +324,102 @@ public class CharacterHealth : MonoBehaviour
             Destroy(vfx, 1.0f);
         }
 
-        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, bloodPopTargetLayer); 
+        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, enemyLayer); 
 
         foreach (var col in colls)
         {
             var targetHealth = col.GetComponentInChildren<CharacterHealth>();
             if (targetHealth != null && !targetHealth.isDead)
             {
+                float damageToApply = finalDamage;
+                var targetStatus = col.GetComponentInChildren<CharacterStatus>();
+
+                // [유니크] 나도 폭발하는걸까? (AmIExplodingToo) 약점 상태 시 데미지 1.2배
+                if (hasInven && targetStatus != null && targetStatus.GetDebuffBool(DebuffBoolType.BloodPopVulnerable))
+                {
+                    damageToApply *= 1.2f;
+                }
+
                 // 데미지 팝업 등을 위해 이벤트 호출
-                targetHealth.TakeDamageEvent?.Invoke((int)finalDamage, "BloodPop", false);
-                targetHealth.GetDamage(new DamageInfo(finalDamage, DamageType.Fixed, this.gameObject));
+                targetHealth.TakeDamageEvent?.Invoke((int)damageToApply, "BloodPop", false);
+                targetHealth.GetDamage(new DamageInfo(damageToApply, DamageType.Fixed, this.gameObject));
+
+                // [유니크] 나도 폭발하는걸까? (AmIExplodingToo) 타격 후 약점 상태 5초 부여
+                if (hasInven && inven.HasUniqueEffect(GemUniqueType.AmIExplodingToo) && targetStatus != null)
+                {
+                    targetStatus.SetDebuffBool(DebuffBoolType.BloodPopVulnerable, 5.0f);
+                }
 
                 // [유니크] 살덩이가 폭발하는 것: 비폭 피해 대상에게 데미지의 일부만큼 비폭 스택 부여
                 float chainRatio = GemRuleSystem.GetBloodPopChainRatio(isEnemyTarget);
                 if (chainRatio > 0)
                 {
-                    var targetStatus = col.GetComponentInChildren<CharacterStatus>();
                     if (targetStatus != null)
                     {
-                        targetStatus.AddDebuffStack(DebuffStackType.BloodPop, finalDamage * chainRatio);
+                        targetStatus.AddDebuffStack(DebuffStackType.BloodPop, damageToApply * chainRatio);
                     }
                 }
+            }
+        }
+
+        // [유니크] 내장 파티 (GoreParty) & 피철갑 (BloodArmor): 아군 회복 및 쉴드
+        if (hasInven && (inven.HasUniqueEffect(GemUniqueType.GoreParty) || inven.HasUniqueEffect(GemUniqueType.BloodArmor)))
+        {
+            LayerMask allyLayer = LayerMask.GetMask("Ally", "Player");
+            Collider2D[] allyColls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, allyLayer);
+            foreach (var col in allyColls)
+            {
+                var allyHealth = col.GetComponentInChildren<CharacterHealth>();
+                var allyStatus = col.GetComponentInChildren<CharacterStatus>();
+
+                if (allyHealth != null && !allyHealth.isDead)
+                {
+                    if (inven.HasUniqueEffect(GemUniqueType.GoreParty))
+                    {
+                        allyHealth.Heal(stacks);
+                    }
+                }
+                
+                if (allyStatus != null && inven.HasUniqueEffect(GemUniqueType.BloodArmor))
+                {
+                    allyStatus.AddShield(stacks * 2.0f, 5.0f); // 쉴드 5초 지속으로 가정
+                }
+            }
+        }
+
+        // [유니크] 녹아내리는 시체 (MeltingCorpse): 5초간 장판 생성
+        if (hasInven && inven.HasUniqueEffect(GemUniqueType.MeltingCorpse))
+        {
+            if (registry != null && registry.meltingCorpsePuddlePrefab != null)
+            {
+                // 프리팹이 연결되어 있으면 프리팹 인스턴스화
+                GameObject puddleObj = Instantiate(registry.meltingCorpsePuddlePrefab, transform.position, Quaternion.identity);
+                var puddle = puddleObj.GetComponent<MeltingCorpsePuddle>();
+                if (puddle == null) puddle = puddleObj.AddComponent<MeltingCorpsePuddle>();
+                puddle.Init(finalDamage * 0.1f, explosionRadius);
+            }
+            else
+            {
+                // 연결 안 된 경우 임시 장판 생성
+                GameObject puddleObj = new GameObject("MeltingCorpsePuddle_Temp");
+                puddleObj.transform.position = transform.position;
+                var puddle = puddleObj.AddComponent<MeltingCorpsePuddle>();
+                puddle.Init(finalDamage * 0.1f, explosionRadius);
+            }
+        }
+    }
+
+    private void ApplyFearToSurroundingEnemies()
+    {
+        LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, 5f, enemyLayer);
+        foreach (var col in colls)
+        {
+            var targetStatus = col.GetComponentInChildren<CharacterStatus>();
+            if (targetStatus != null && targetStatus != _status && !targetStatus.IsElite)
+            {
+                // 주변 일반 적에게만 공포 1초 부여
+                targetStatus.SetDebuffBool(DebuffBoolType.Feared, 1.0f);
             }
         }
     }

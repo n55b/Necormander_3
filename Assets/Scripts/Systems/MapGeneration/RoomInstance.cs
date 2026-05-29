@@ -29,6 +29,9 @@ public class RoomInstance : MonoBehaviour
     public List<GameObject> doorObjects = new List<GameObject>(); // MapGenerator에서 할당
     [SerializeField] private AudioClip roomBGM; // [추가] 이 방에서 나올 음악
 
+    // [추가] 방에 처음 들어갈 때마다 호출되는 전역 이벤트 (매니저들에서 방 리셋용으로 사용)
+    public static System.Action<RoomInstance> OnPlayerEnteredRoom;
+
     private IRoomEvent _roomEvent;
     private Rigidbody2D _rb;
     private BoxCollider2D _physicsCollider;
@@ -137,7 +140,11 @@ public class RoomInstance : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            RevealRoom(); // ⭐ 플레이어가 방에 들어가면 해당 방의 안개 타일을 한 번에 싹 지웁니다.
+            RevealRoom(); // 플레이어가 방에 들어가면 해당 방의 안개 타일을 한 번에 지웁니다.
+            
+            // [추가] 방 입장 전역 이벤트 발생
+            OnPlayerEnteredRoom?.Invoke(this);
+
             if (isCleared || roomType == RoomType.Spawn) return;
 
             if (roomBGM != null && SoundManager.Instance != null)

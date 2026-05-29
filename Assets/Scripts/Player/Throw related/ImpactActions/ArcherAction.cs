@@ -16,6 +16,7 @@ public class ArcherAction : ImpactAction
         {
             float finalDamage = recipe.GetScaledValue(damage);
             entity.Stats.Health.GetDamage(new DamageInfo(finalDamage, DamageType.Physical, null, true));
+            ApplyCommonSynergyDebuffs(target, recipe);
         }
     }
 }

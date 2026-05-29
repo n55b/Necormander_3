@@ -176,6 +176,11 @@ public static class GemRuleSystem
         return GemUniqueLogic.ShouldAgingInstaKill(Inven.HasUniqueEffect(GemUniqueType.NoCountryForOldMen), currentStacks);
     }
 
+    public static float GetGoryeojangSlowReduction()
+    {
+        return 0.20f; // 고려장 둔화 20%
+    }
+
     #endregion
 
     #region Corrosion Rules

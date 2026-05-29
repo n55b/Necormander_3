@@ -26,10 +26,23 @@ public class CharacterStatus : MonoBehaviour
     [SerializeField] private Base_DebuffUITerminal debuffTerminal;
     
     private CharacterStat _stat;
+    public static List<CharacterStatus> ActiveEnemies = new List<CharacterStatus>();
 
     public void Init(CharacterStat stat)
     {
         _stat = stat;
+        if (IsEnemyTarget && !ActiveEnemies.Contains(this))
+        {
+            ActiveEnemies.Add(this);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (ActiveEnemies.Contains(this))
+        {
+            ActiveEnemies.Remove(this);
+        }
     }
 
     private bool IsEnemyTarget => _stat != null && _stat.IsEnemy;
@@ -126,10 +139,80 @@ public class CharacterStatus : MonoBehaviour
                     // [수정] 중독 피해량: 스택의 25%, 최소 1 대미지
                     float damage = Mathf.Max(1f, poisonStack * 0.25f);
                     health.GetDamage(new DamageInfo(damage, DamageType.Fixed, null));
+
+                    // [유니크] 초록색 체액 (GreenFluid): 독 틱 피해 발생 시 30% 확률로 던질 수 있는 포션 스폰
+                    var inven = InventoryManager.Instance;
+                    if (inven != null && inven.HasUniqueEffect(GemUniqueType.GreenFluid))
+                    {
+                        if (UnityEngine.Random.value <= 0.3f)
+                        {
+                            SpawnPoisonPotion(transform.position);
+                        }
+                    }
                 }
             }
         }
         else { _poisonTimer = 0f; }
+    }
+
+    private void SpawnPoisonPotion(Vector3 position)
+    {
+        var registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
+        GameObject potionObj = null;
+        Vector3 spawnPos = position + new Vector3(UnityEngine.Random.Range(-0.5f, 0.5f), UnityEngine.Random.Range(-0.5f, 0.5f), 0f);
+
+        if (registry != null && registry.poisonPotionPrefab != null)
+        {
+            potionObj = Instantiate(registry.poisonPotionPrefab, spawnPos, Quaternion.identity);
+            
+            // 만약 프리팹에 해당 컴포넌트가 없다면 부착 (일반적으로 프리팹에 미리 부착하는 것이 좋음)
+            if (potionObj.GetComponent<PoisonPotionThrowable>() == null)
+            {
+                var collider = potionObj.GetComponent<Collider2D>();
+                if (collider == null) 
+                {
+                    var circle = potionObj.AddComponent<CircleCollider2D>();
+                    circle.radius = 0.5f;
+                    circle.isTrigger = true;
+                }
+                potionObj.AddComponent<PoisonPotionThrowable>();
+            }
+        }
+        else
+        {
+            // 런타임에 기본 Sphere를 생성하고 컴포넌트 부착
+            potionObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            potionObj.name = "PoisonPotionThrowable";
+            
+            potionObj.transform.position = spawnPos;
+            potionObj.transform.localScale = Vector3.one * 0.4f;
+            
+            var renderer = potionObj.GetComponent<Renderer>();
+            if (renderer != null) renderer.material.color = new Color(0.2f, 0.8f, 0.2f); // 초록색
+            
+            potionObj.layer = LayerMask.NameToLayer("Default");
+            
+            // SphereCollider는 CreatePrimitive에서 자동 생성됨
+            var collider = potionObj.GetComponent<Collider2D>();
+            if (collider == null) 
+            {
+                var circle = potionObj.AddComponent<CircleCollider2D>();
+                circle.radius = 0.5f;
+                circle.isTrigger = true;
+            }
+
+            potionObj.AddComponent<PoisonPotionThrowable>();
+        }
+    }
+
+    // [추가] 상처 감염(WoundInfection) 유니크 보석 처리를 위한 타이머 앞당기기
+    public void AdvancePoisonTimer(float amount)
+    {
+        if (GetDebuffStack(DebuffStackType.Poison) > 0)
+        {
+            _poisonTimer += amount;
+            // 다음 프레임 UpdatePoisonTick()에서 _poisonTimer >= interval을 만족하면 바로 틱 피해가 들어감
+        }
     }
 
     public void ApplySlow(string id, float reduction, float duration)
@@ -242,6 +325,9 @@ public class CharacterStatus : MonoBehaviour
                 {
                     SetDebuffBool(DebuffBoolType.Frozen, 3.0f);
                     
+                    // [유니크] 절대영도 (AbsoluteZero)
+                    ChillUniqueManager.Instance?.TriggerAbsoluteZero(transform.position);
+                    
                     // [시너지] 환급 로직 적용
                     _debuffStacks[type] = GemRuleSystem.GetFreezeRefundStacks(IsEnemyTarget);
                     _stackTimers[type] = STACK_DURATION;
@@ -302,6 +388,16 @@ public class CharacterStatus : MonoBehaviour
     public bool GetDebuffBool(DebuffBoolType type)
     {
         return _boolTimers.ContainsKey(type) && _boolTimers[type] > 0;
+    }
+
+    public void ForceUnfreeze()
+    {
+        if (_boolTimers.ContainsKey(DebuffBoolType.Frozen))
+        {
+            _boolTimers[DebuffBoolType.Frozen] = 0f;
+            debuffTerminal.RemoveIcon(DebuffBoolType.Frozen);
+            Debug.Log($"<color=#00FFFF>[Debuff]</color> <b>{gameObject.name}</b>: Frozen Shattered!");
+        }
     }
 
     public void ClearStatus()

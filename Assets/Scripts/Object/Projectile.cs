@@ -84,7 +84,7 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnHitTarget(CharacterStat targetStat)
     {
-        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter);
+        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, false, 1f, true);
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
     }

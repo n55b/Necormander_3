@@ -44,7 +44,9 @@ public enum DebuffBoolType
     Frozen,     // 동결
     Stunned,    // 기절
     Corroded,   // 부식
-    Senility    // 노쇠
+    Senility,   // 노쇠
+    Feared,     // 공포
+    BloodPopVulnerable // 비폭 폭발 약점
 }
 
 [System.Flags]

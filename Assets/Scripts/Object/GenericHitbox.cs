@@ -44,7 +44,7 @@ public class GenericHitbox : MonoBehaviour
 
             if (targetStat != null && targetStat.Health != null && !targetStat.Health.IsDead)
             {
-                targetStat.Health.GetDamage(new DamageInfo(_damage, DamageType.Physical, _attacker));
+                targetStat.Health.GetDamage(new DamageInfo(_damage, DamageType.Physical, _attacker, false, 1f, true));
                 _hitTargets.Add(other);
             }
         }

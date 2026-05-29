@@ -119,6 +119,19 @@ public class InventoryManager : MonoBehaviour
         }
         UpdateActiveAbilities();
         InitializeGemTree(); 
+        
+        // [유니크] 중독 전역 유니크(PoisonHost 등) 매니저 부착
+        if (GetComponent<PoisonUniqueManager>() == null)
+            gameObject.AddComponent<PoisonUniqueManager>();
+            
+        // [유니크] 한기 광역 유니크 (AbsoluteZero, BitingWind 등) 매니저 부착
+        if (GetComponent<ChillUniqueManager>() == null)
+            gameObject.AddComponent<ChillUniqueManager>();
+
+        // [유니크] 노화 광역 유니크 (Goryeojang) 매니저 부착
+        if (GetComponent<AgingUniqueManager>() == null)
+            gameObject.AddComponent<AgingUniqueManager>();
+            
         Debug.Log("<color=cyan>[InventoryManager]</color> Initialized.");
 
         if (useDebugStartingInventory && !hasSave)
