@@ -50,23 +50,38 @@ public static class GemRuleSystem
 
     #region Chill Rules
 
-    public static float GetChillValuePerStack(bool isEnemyTarget)
+    // [수정] 한기 스택에 따른 구간별 감속 비율 계산
+    public static float GetChillSlowReduction(int currentStacks, bool isEnemyTarget)
     {
-        float baseValue = 0.01f; // 1%
-        if (Inven == null || !isEnemyTarget) return baseValue;
+        if (Inven == null || !isEnemyTarget || currentStacks <= 0) return 0f;
 
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Chill));
-        return baseValue * GemSynergyLogic.GetChillValueMultiplier(level);
+        // 4세트 보너스
+        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Chill));
+        float bonus = GemSynergyLogic.GetChillSlowBonus(level);
+
+        float baseReduction = 0f;
+        if (currentStacks >= 76) baseReduction = 0.25f;
+        else if (currentStacks >= 51) baseReduction = 0.20f;
+        else if (currentStacks >= 26) baseReduction = 0.10f;
+        else if (currentStacks >= 1) baseReduction = 0.05f;
+
+        return baseReduction + bonus;
     }
 
     public static float GetMaxChillStack(bool isEnemyTarget)
     {
-        float baseMax = 20f;
+        float baseMax = 100f; // [수정] 한기 최대 스택 100 고정
         if (Inven == null || !isEnemyTarget) return baseMax;
 
         bool hasFlower = Inven.HasUniqueEffect(GemUniqueType.SlowlyFreezingFlower);
         return baseMax + GemUniqueLogic.GetSlowlyFreezingFlowerMaxBonus(hasFlower);
     }
+
+    public static float GetChillFreezeDamagePercentage(bool isBoss)
+    {
+        return isBoss ? 0.04f : 0.08f; // 보스 4%, 일반 8%
+    }
+
 
     public static bool ShouldBlockChill(bool isFrozen, bool isEnemyTarget)
     {
@@ -77,14 +92,14 @@ public static class GemRuleSystem
     public static float GetFreezeRefundStacks(bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return 0f; 
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Chill));
+        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Chill));
         return GemSynergyLogic.GetChillRefundAmount(level);
     }
 
     public static bool HasFreezeFixedDamage(bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return false;
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Chill));
+        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Chill));
         return GemSynergyLogic.HasChillFreezeDamage(level);
     }
 
@@ -92,13 +107,13 @@ public static class GemRuleSystem
 
     #region BloodPop Rules
 
-    public static float GetBloodPopDamage(int stacks, bool isEnemyTarget)
+    public static float GetBloodPopDamage(int currentStacks, bool isEnemyTarget)
     {
-        float damage = stacks;
-        if (Inven == null || !isEnemyTarget) return damage;
+        if (Inven == null || !isEnemyTarget) return currentStacks;
 
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.BloodPop));
-        return damage + GemSynergyLogic.GetBloodPopDamageBonus(level);
+        float ratio = GemSynergyLogic.GetBloodPopDamageRatio(level);
+        return currentStacks * ratio;
     }
 
     public static float GetBloodPopRadiusMultiplier(bool isEnemyTarget)
@@ -118,26 +133,41 @@ public static class GemRuleSystem
 
     #region Aging Rules
 
-    public static float GetAgingValuePerStack(bool isEnemyTarget)
+    // [수정] 노화 구간별 감속 비율 계산
+    public static float GetAgingSlowReduction(int currentStacks, bool isEnemyTarget)
     {
-        float baseValue = 0.01f;
-        if (Inven == null || !isEnemyTarget) return baseValue;
+        if (Inven == null || !isEnemyTarget || currentStacks <= 0) return 0f;
 
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Aging));
-        return baseValue * GemSynergyLogic.GetAgingValueMultiplier(level);
+        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Aging));
+        float bonus = GemSynergyLogic.GetAgingSlowBonus(level);
+
+        float baseReduction = 0f;
+        if (currentStacks >= 101) baseReduction = 0.25f;
+        else if (currentStacks >= 81) baseReduction = 0.20f;
+        else if (currentStacks >= 61) baseReduction = 0.16f;
+        else if (currentStacks >= 41) baseReduction = 0.12f;
+        else if (currentStacks >= 21) baseReduction = 0.08f;
+        else if (currentStacks >= 1) baseReduction = 0.04f;
+
+        return baseReduction + bonus;
     }
 
     public static float GetMaxAgingStack(bool isEnemyTarget)
     {
-        if (Inven == null || !isEnemyTarget) return 25f;
+        if (Inven == null || !isEnemyTarget) return 100f;
 
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Aging));
+        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Aging));
+        float baseMax = GemSynergyLogic.GetAgingMaxStack(level); // 100 or 120
+
         bool hasNoCountry = Inven.HasUniqueEffect(GemUniqueType.NoCountryForOldMen);
+        return baseMax + GemUniqueLogic.GetNoCountryMaxStack(hasNoCountry);
+    }
 
-        float max = GemUniqueLogic.GetNoCountryMaxStack(hasNoCountry);
-        max += GemSynergyLogic.GetAgingMaxStackBonus(level);
-
-        return max;
+    public static float GetSenilityDamageAmp(bool isEnemyTarget)
+    {
+        if (Inven == null || !isEnemyTarget) return 0f;
+        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Aging));
+        return GemSynergyLogic.GetSenilityDamageAmp(level);
     }
 
     public static bool ShouldAgingInstaKill(float currentStacks, bool isEnemyTarget)
@@ -153,7 +183,7 @@ public static class GemRuleSystem
     public static float GetCorrosionDamageAmp(bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return 0f;
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Corrosion));
+        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Corrosion));
         return GemSynergyLogic.GetCorrosionDamageAmp(level);
     }
 

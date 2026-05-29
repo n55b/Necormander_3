@@ -44,7 +44,7 @@ public class CharacterHealth : MonoBehaviour
         float remainingDamage = info.amount;
         string str = "";                             // 데미지 타입
 
-        // [부식] 시너지에 따른 데미지 증가
+        // [부식 및 노쇠] 시너지에 따른 데미지 증가
         bool isEnemyTarget = (_stat != null && _stat.IsEnemy);
         float corrosionAmp = GemRuleSystem.GetCorrosionDamageAmp(isEnemyTarget);
         if (_status.GetDebuffBool(DebuffBoolType.Corroded))
@@ -52,6 +52,34 @@ public class CharacterHealth : MonoBehaviour
             // 부식 상태인 경우 시너지 보너스(25%, 40% 등)만큼 데미지 증폭
             remainingDamage *= (1.0f + corrosionAmp); 
             str = "Corroded";
+        }
+        
+        // [노쇠] 대미지 증가
+        if (_status.GetDebuffBool(DebuffBoolType.Senility))
+        {
+            float senilityAmp = GemRuleSystem.GetSenilityDamageAmp(isEnemyTarget);
+            remainingDamage *= (1.0f + senilityAmp);
+        }
+
+        // [공용 시너지 확산] 물리 피해(평타 및 던지기) && 적군 타겟 && 공격자가 아군
+        if (info.type == DamageType.Physical && isEnemyTarget && info.attacker != null)
+        {
+            var attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
+            if (attackerStat != null && !attackerStat.IsEnemy)
+            {
+                var inven = InventoryManager.Instance;
+                if (inven != null)
+                {
+                    if (inven.GetSynergyCount(GemSynergyGroup.Poison) >= 2)
+                        _status.AddDebuffStack(DebuffStackType.Poison, 1f);
+                        
+                    if (inven.GetSynergyCount(GemSynergyGroup.BloodPop) >= 2)
+                        _status.AddDebuffStack(DebuffStackType.BloodPop, 1f);
+                        
+                    if (inven.GetSynergyCount(GemSynergyGroup.Execution) >= 2)
+                        _status.AddDebuffStack(DebuffStackType.Execute, 1f);
+                }
+            }
         }
 
         // [쉴드] 적용

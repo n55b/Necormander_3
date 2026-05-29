@@ -64,6 +64,12 @@ public class CharacterStatus : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
+        // [수정] 노쇠(Senility) 지속 시간 유지 로직: 노화 스택이 남아있으면 계속 5초 갱신
+        if (GetDebuffStack(DebuffStackType.Aging) > 0 && GetDebuffBool(DebuffBoolType.Senility))
+        {
+            _boolTimers[DebuffBoolType.Senility] = 5.0f;
+        }
+
         List<DebuffBoolType> boolKeys = new List<DebuffBoolType>(_boolTimers.Keys);
         foreach (var key in boolKeys)
         {
@@ -72,9 +78,13 @@ public class CharacterStatus : MonoBehaviour
                 _boolTimers[key] -= dt;
                 if (_boolTimers[key] <= 0)
                 {
-                    _boolTimers[key] = 0;
-                    // [추가] Bool 타입 디버프가 끝났을 때 UI 아이콘 제거
+                    _boolTimers[key] = 0f;
                     debuffTerminal.RemoveIcon(key); 
+                    
+                    if (key == DebuffBoolType.Senility)
+                    {
+                        Debug.Log($"<color=#BC8F8F>[Debuff]</color> <b>{gameObject.name}</b>: Senility Expired.");
+                    }
                 }
             }
         }
@@ -111,7 +121,12 @@ public class CharacterStatus : MonoBehaviour
             {
                 _poisonTimer = 0f;
                 var health = GetComponentInChildren<CharacterHealth>();
-                if (health != null) health.GetDamage(new DamageInfo(poisonStack, DamageType.Fixed, null));
+                if (health != null)
+                {
+                    // [수정] 중독 피해량: 스택의 25%, 최소 1 대미지
+                    float damage = Mathf.Max(1f, poisonStack * 0.25f);
+                    health.GetDamage(new DamageInfo(damage, DamageType.Fixed, null));
+                }
             }
         }
         else { _poisonTimer = 0f; }
@@ -208,7 +223,7 @@ public class CharacterStatus : MonoBehaviour
     {
         switch (type)
         {
-            case DebuffStackType.Poison: return 20f;
+            case DebuffStackType.Poison: return 100f; // [수정] 20 -> 100
             case DebuffStackType.Chill: return GemRuleSystem.GetMaxChillStack(IsEnemyTarget);
             case DebuffStackType.Aging: return GemRuleSystem.GetMaxAgingStack(IsEnemyTarget);
             case DebuffStackType.BloodPop: return 1000f; 
@@ -231,15 +246,27 @@ public class CharacterStatus : MonoBehaviour
                     _debuffStacks[type] = GemRuleSystem.GetFreezeRefundStacks(IsEnemyTarget);
                     _stackTimers[type] = STACK_DURATION;
 
-                    // [시너지] 동결 시 고정 피해 로직
+                    // [시너지] 동결 시 체력 비례 고정 피해 로직
                     if (GemRuleSystem.HasFreezeFixedDamage(IsEnemyTarget))
                     {
                         var health = GetComponentInChildren<CharacterHealth>();
-                        if (health != null) health.GetDamage(new DamageInfo(threshold, DamageType.Fixed, null));
+                        if (health != null)
+                        {
+                            float percent = GemRuleSystem.GetChillFreezeDamagePercentage(IsElite);
+                            float freezeDmg = Mathf.Max(1f, health.CurHP * percent);
+                            health.GetDamage(new DamageInfo(freezeDmg, DamageType.Fixed, null));
+                        }
                     }
                 }
                 break;
             case DebuffStackType.Aging:
+                // [노화] 스택 상한 도달 시 노쇠(Senility) 발동
+                float agingMax = GemRuleSystem.GetMaxAgingStack(IsEnemyTarget);
+                if (_debuffStacks[type] >= agingMax)
+                {
+                    SetDebuffBool(DebuffBoolType.Senility, 5.0f);
+                }
+
                 // [유니크] 노인을 위한 나라는 없다: 즉사 체크
                 if (GemRuleSystem.ShouldAgingInstaKill(_debuffStacks[type], IsEnemyTarget))
                 {

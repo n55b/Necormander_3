@@ -21,17 +21,21 @@ public static class GemSynergyLogic
     public static float GetPoisonIntervalMultiplier(int level) => (level >= 4) ? 0.6f : 1.0f; // [보정] 기본 5초에 0.6을 곱하여 3초로 단축
 
     // --- Chill ---
-    public static float GetChillValueMultiplier(int level) => (level >= 2) ? 1.25f : 1.0f;
-    public static float GetChillRefundAmount(int level) => (level >= 3) ? 5.0f : 0f; // [보정] 20스택의 25%인 5스택 환급
-    public static bool HasChillFreezeDamage(int level) => level >= 4;
+    // [수정] 한기 시너지
+    public static float GetChillSlowBonus(int level) => (level >= 2) ? 0.05f : 0f; // 4세트: 각 구역마다 감속량 5% 추가
+    public static float GetChillRefundAmount(int level) => (level >= 3) ? 25.0f : 0f; // 6세트: 동결 후 스택 25 반환
+    public static bool HasChillFreezeDamage(int level) => level >= 4; // 8세트: 동결 시 체력 비례 고정 피해
 
     // --- BloodPop ---
-    public static float GetBloodPopDamageBonus(int level) => (level >= 2) ? 10.0f : 0f;
+    // [수정] 비폭 시너지: 4세트 시 데미지 배율 0.5 (기본 0.4)
+    public static float GetBloodPopDamageRatio(int level) => (level >= 2) ? 0.5f : 0.4f;
     public static float GetBloodPopRadiusMultiplier(int level) => (level >= 3) ? 1.5f : 1.0f;
 
     // --- Aging ---
-    public static float GetAgingValueMultiplier(int level) => (level >= 2) ? 1.25f : 1.0f;
-    public static float GetAgingMaxStackBonus(int level) => (level >= 3) ? 15.0f : 0f;
+    // [수정] 노화 시너지
+    public static float GetAgingSlowBonus(int level) => (level >= 2) ? 0.05f : 0f; // 4세트: 각 구역마다 감속량 5% 추가
+    public static float GetAgingMaxStack(int level) => (level >= 3) ? 120.0f : 100.0f; // 6세트: 최대 상한선 120으로 증가
+    public static float GetSenilityDamageAmp(int level) => (level >= 3) ? 0.12f : 0.08f; // 노쇠 상태일 때 받는 피해 증폭량
 
     // --- Corrosion ---
     public static float GetCorrosionDamageAmp(int level)

@@ -167,7 +167,34 @@ public static class RewardProcessor
         
         foreach (var gem in gems)
         {
-            // [수정] 보석은 이제 전역 효과이므로, 특정 직업에 구애받지 않고 모든 보석을 후보에 포함합니다.
+            // [추가] 직업 전용 보석일 경우, 플레이어가 해당 직업을 덱에 가지고 있는지 검사합니다.
+            bool isEligible = false;
+            if (gem.eligibleJobs == MinionJobFlags.All)
+            {
+                isEligible = true; // 공용 보석은 무조건 등장
+            }
+            else
+            {
+                // 플레이어가 가진 직업 중 하나라도 일치하는지 검사
+                foreach (CommandData job in System.Enum.GetValues(typeof(CommandData)))
+                {
+                    if (job == CommandData.None) continue;
+                    
+                    int bit = 1 << (int)job;
+                    if (((int)gem.eligibleJobs & bit) != 0)
+                    {
+                        if (inven.HasJobInSlots(job))
+                        {
+                            isEligible = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!isEligible) continue; // 덱에 없는 직업의 전용 보석이면 제외
+
+            // 보석은 이제 전역 효과이므로, 특정 직업에 구애받지 않고 후보에 포함합니다.
             // 다만 내부 데이터 생성을 위해 기본 직업(SkeletonWarrior)을 사용하며, UI에는 직업이 노출되지 않도록 합니다.
             candidates.Add(new RewardCandidate { 
                 displayData = gem.GetDynamicDisplayData(CommandData.SkeletonWarrior), 

@@ -40,8 +40,8 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float agingValue = GemRuleSystem.GetAgingValuePerStack(IsEnemy); // [수정] 적군일 경우 노화 효율 증가
-            float agingMult = (Status != null) ? Mathf.Max(0.1f, 1f - Status.GetDebuffStack(DebuffStackType.Aging) * agingValue) : 1f;
+            float agingReduction = (Status != null) ? GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Aging), IsEnemy) : 0f;
+            float agingMult = Mathf.Max(0.1f, 1f - agingReduction);
 
             // 플레이어는 보석/보물(미니언용) 보너스를 받지 않음
             float bonusMult = _isPlayer ? 0f : (GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
@@ -68,7 +68,9 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float chillMult = (Status != null) ? Mathf.Max(0.1f, 1f - Status.GetDebuffStack(DebuffStackType.Chill) * 0.01f) : 1f;
+            float chillReduction = (Status != null) ? GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Chill), IsEnemy) : 0f;
+            float chillMult = Mathf.Max(0.1f, 1f - chillReduction);
+            
             float bonusMult = _isPlayer ? 0f : GetGemBonus(StatType.AttackSpeed);
             return (baseAtkSpd / (1f + bonusMult)) / chillMult;
         }
@@ -85,7 +87,10 @@ public class CharacterStat : MonoBehaviour
             if (Status == null) return baseMoveSpeed;
             if (Status.GetDebuffBool(DebuffBoolType.Frozen) || Status.GetDebuffBool(DebuffBoolType.Stunned)) return 0f;
 
-            float reductionMult = Mathf.Max(0.1f, 1f - (Status.GetDebuffStack(DebuffStackType.Chill) + Status.GetDebuffStack(DebuffStackType.Aging)) * 0.01f);
+            float chillReduction = GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Chill), IsEnemy);
+            float agingReduction = GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Aging), IsEnemy);
+
+            float reductionMult = Mathf.Max(0.1f, 1f - (chillReduction + agingReduction));
             return (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
         }
     }

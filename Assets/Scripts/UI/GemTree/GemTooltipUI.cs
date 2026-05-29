@@ -130,10 +130,10 @@ public class GemTooltipUI : MonoBehaviour
         switch (group)
         {
             case GemSynergyGroup.Poison: return "#32CD32";
-            case GemSynergyGroup.Chill: return "#00BFFF";
+            case GemSynergyGroup.Priest_Chill: return "#00BFFF";
             case GemSynergyGroup.BloodPop: return "#FF00FF";
-            case GemSynergyGroup.Aging: return "#BC8F8F";
-            case GemSynergyGroup.Corrosion: return "#FFD700";
+            case GemSynergyGroup.Priest_Aging: return "#BC8F8F";
+            case GemSynergyGroup.Priest_Corrosion: return "#FFD700";
             default: return "#FFFFFF";
         }
     }

@@ -43,7 +43,8 @@ public enum DebuffBoolType
 {
     Frozen,     // 동결
     Stunned,    // 기절
-    Corroded    // 부식
+    Corroded,   // 부식
+    Senility    // 노쇠
 }
 
 [System.Flags]

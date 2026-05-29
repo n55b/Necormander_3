@@ -107,7 +107,7 @@ public class GemSynergyDisplayUI : MonoBehaviour
                 if (level == 3) return "Basic attacks apply +1 extra Poison stack.";
                 if (level == 4) return "Poison damage interval reduced by 40%.";
                 break;
-            case GemSynergyGroup.Chill:
+            case GemSynergyGroup.Priest_Chill:
                 if (level == 1) return "Chill synergy activated.";
                 if (level == 2) return "Slow value per stack increased to 1.25%.";
                 if (level == 3) return "Refund 5 Chill stacks upon freezing.";
@@ -118,12 +118,12 @@ public class GemSynergyDisplayUI : MonoBehaviour
                 if (level == 2) return "Explosion damage increased by 10.";
                 if (level == 3) return "Explosion radius increased by 1.5x.";
                 break;
-            case GemSynergyGroup.Aging:
+            case GemSynergyGroup.Priest_Aging:
                 if (level == 1) return "Aging synergy activated.";
                 if (level == 2) return "Weakness value per stack increased to 1.25%.";
                 if (level == 3) return "Maximum Aging stacks increased to 40.";
                 break;
-            case GemSynergyGroup.Corrosion:
+            case GemSynergyGroup.Priest_Corrosion:
                 if (level == 1) return "Throw damage increased by 25%.";
                 if (level == 2) return "Throw damage increased by 40% (Total).";
                 break;
@@ -138,9 +138,9 @@ public class GemSynergyDisplayUI : MonoBehaviour
             case GemUniqueType.LethalPoison:
             case GemUniqueType.LethalDose: return GemSynergyGroup.Poison;
             case GemUniqueType.AchingBones:
-            case GemUniqueType.SlowlyFreezingFlower: return GemSynergyGroup.Chill;
+            case GemUniqueType.SlowlyFreezingFlower: return GemSynergyGroup.Priest_Chill;
             case GemUniqueType.ExplodingFlesh: return GemSynergyGroup.BloodPop;
-            case GemUniqueType.NoCountryForOldMen: return GemSynergyGroup.Aging;
+            case GemUniqueType.NoCountryForOldMen: return GemSynergyGroup.Priest_Aging;
             default: return GemSynergyGroup.Base;
         }
     }
@@ -164,11 +164,11 @@ public class GemSynergyDisplayUI : MonoBehaviour
         switch (group)
         {
             case GemSynergyGroup.Poison: return new Color(0.2f, 0.8f, 0.2f);
-            case GemSynergyGroup.Chill: return new Color(0.3f, 0.6f, 1.0f);
+            case GemSynergyGroup.Priest_Chill: return new Color(0.3f, 0.6f, 1.0f);
             case GemSynergyGroup.Execution: return new Color(1.0f, 0.3f, 0.1f);
             case GemSynergyGroup.BloodPop: return new Color(1.0f, 0.0f, 1.0f);
-            case GemSynergyGroup.Aging: return new Color(0.7f, 0.5f, 0.5f);
-            case GemSynergyGroup.Corrosion: return new Color(1.0f, 0.8f, 0.0f);
+            case GemSynergyGroup.Priest_Aging: return new Color(0.7f, 0.5f, 0.5f);
+            case GemSynergyGroup.Priest_Corrosion: return new Color(1.0f, 0.8f, 0.0f);
             default: return Color.white;
         }
     }
