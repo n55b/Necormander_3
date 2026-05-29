@@ -174,7 +174,9 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (target == null) return true;
 
-        CharacterStat stat = target.GetComponentInChildren<CharacterStat>();
+        CharacterStat stat = target.GetComponentInParent<CharacterStat>();
+        if (stat == null) stat = target.GetComponentInChildren<CharacterStat>();
+        
         if (stat != null)
         {
             // [수정] 직접 컴포넌트 참조

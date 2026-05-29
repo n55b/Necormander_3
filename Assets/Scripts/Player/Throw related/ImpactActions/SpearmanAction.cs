@@ -10,7 +10,8 @@ public class SpearmanAction : ImpactAction
 
     public override void Execute(GameObject target, Vector2 impactPos, Vector2 travelDir, ThrowRecipe recipe)
     {
-        CharacterStat stat = target.GetComponentInChildren<CharacterStat>();
+        CharacterStat stat = target.GetComponentInParent<CharacterStat>();
+        if (stat == null) stat = target.GetComponentInChildren<CharacterStat>();
         if (stat == null) return;
 
         float knockbackForce = recipe.GetScaledValue(force);

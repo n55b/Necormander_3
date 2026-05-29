@@ -214,7 +214,10 @@ public class CharacterStatus : MonoBehaviour
             
             potionObj.layer = LayerMask.NameToLayer("Default");
             
-            // SphereCollider는 CreatePrimitive에서 자동 생성됨
+            // SphereCollider(3D) 제거 후 2D 콜라이더 부착
+            var collider3D = potionObj.GetComponent<Collider>();
+            if (collider3D != null) DestroyImmediate(collider3D);
+
             var collider = potionObj.GetComponent<Collider2D>();
             if (collider == null) 
             {

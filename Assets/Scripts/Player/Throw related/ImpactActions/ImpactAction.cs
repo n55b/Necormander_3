@@ -30,8 +30,6 @@ public abstract class ImpactAction
             int bloodPopSynergy = inven.GetSynergyCount(GemSynergyGroup.BloodPop);
             int executionSynergy = inven.GetSynergyCount(GemSynergyGroup.Execution);
 
-            Debug.Log($"<color=orange>[Synergy Check]</color> 투척 명중! Poison:{poisonSynergy}, BloodPop:{bloodPopSynergy}, Execution:{executionSynergy}, Mult:{debuffMult}");
-
             if (poisonSynergy >= 2)
                 status.AddDebuffStack(DebuffStackType.Poison, poisonBase * debuffMult);
                 

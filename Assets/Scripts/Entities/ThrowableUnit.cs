@@ -35,7 +35,7 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
     private int _originalLayer;
     protected bool _isImpacted;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _arcMovement = GetComponent<ArcMovement>();

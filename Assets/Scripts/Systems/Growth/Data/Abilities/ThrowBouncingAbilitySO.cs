@@ -126,7 +126,8 @@ public class ThrowBouncingAbilitySO : ThrowAbilitySO
         {
             GameObject obj = col.gameObject;
             if (recipe.state.hitTargets.Contains(obj)) continue;
-            var stat = obj.GetComponentInChildren<CharacterStat>();
+            var stat = obj.GetComponentInParent<CharacterStat>();
+            if (stat == null) stat = obj.GetComponentInChildren<CharacterStat>();
             if (stat != null && stat.Health.IsDead) continue;
             float d = Vector2.Distance(currentPos, obj.transform.position);
             if (d < minTargetDist)

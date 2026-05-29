@@ -59,7 +59,8 @@ public class PriestAction : ImpactAction
             {
                 if (registry != null && registry.ccAttachVFX != null)
                 {
-                    CharacterStat pStat = target.GetComponentInChildren<CharacterStat>();
+                    CharacterStat pStat = target.GetComponentInParent<CharacterStat>();
+                    if (pStat == null) pStat = target.GetComponentInChildren<CharacterStat>();
                     GameObject vfx = Object.Instantiate(registry.ccAttachVFX, target.transform.position, Quaternion.identity, target.transform);
                     if (pStat != null) pStat.Visual.SetCCVFX(vfx);
                     Object.Destroy(vfx, 1.0f);

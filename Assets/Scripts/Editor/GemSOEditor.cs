@@ -13,6 +13,63 @@ public class GemSOEditor : Editor
 {
     private SerializedProperty _effectsProperty;
 
+    [MenuItem("Tools/Rename Unique Gems")]
+    public static void RenameAllUniqueGems()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:GemSO");
+        int count = 0;
+        
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
+            
+            // Gem_ 파일들만 대상으로 함
+            if (fileName.StartsWith("Gem_"))
+            {
+                GemSO gem = AssetDatabase.LoadAssetAtPath<GemSO>(path);
+                if (gem == null || string.IsNullOrEmpty(gem.itemName)) continue;
+
+                string newName = "";
+                string cleanItemName = gem.itemName.Replace(" ", "").Replace("'", "").Replace("-", "");
+                
+                if (gem.category == SynergyCategory.Common)
+                {
+                    string synergyStr = gem.synergyGroup.ToString().Replace("_", ""); 
+                    newName = $"Gem_{synergyStr}_Unique_{cleanItemName}";
+                }
+                else
+                {
+                    string jobStr = gem.category.ToString(); 
+                    string synergyStr = gem.synergyGroup.ToString();
+                    
+                    if (jobStr == "Shieldbearer" && synergyStr.StartsWith("Shield_")) {
+                        synergyStr = synergyStr.Replace("_", "");
+                    } else if (synergyStr.StartsWith(jobStr + "_")) {
+                        synergyStr = synergyStr.Substring(jobStr.Length + 1).Replace("_", "");
+                    } else {
+                        synergyStr = synergyStr.Replace("_", "");
+                    }
+                    
+                    newName = $"Gem_{jobStr}_{synergyStr}_{cleanItemName}";
+                }
+                
+                if (fileName != newName)
+                {
+                    string result = AssetDatabase.RenameAsset(path, newName);
+                    if (string.IsNullOrEmpty(result))
+                    {
+                        Debug.Log($"Renamed: {fileName} -> {newName}");
+                        count++;
+                    }
+                }
+            }
+        }
+        
+        AssetDatabase.SaveAssets();
+        Debug.Log($"Rename complete! {count} assets renamed.");
+    }
+
     private void OnEnable()
     {
         _effectsProperty = serializedObject.FindProperty("effects");

@@ -192,6 +192,7 @@ public class SelectionWheelUI : MonoBehaviour
 
     private string GetShortName(CommandData type)
     {
+        if (type == CommandData.None) return "Object";
         return type.ToString().Replace("Skeleton", "");
     }
 }

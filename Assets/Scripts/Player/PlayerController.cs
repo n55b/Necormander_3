@@ -98,9 +98,9 @@ public class PlayerController : MonoBehaviour
             throwController = GetComponentInChildren<ThrowController>();
         }
 
-        // [유니크] 부식석 발자취(PoisonFootprint) 스포너 추가
-        if (GetComponent<PoisonFootprintSpawner>() == null)
-            gameObject.AddComponent<PoisonFootprintSpawner>();
+        // [유니크] 유니크 효과 전담 매니저 추가 (만약 인스펙터에서 안 달아뒀을 경우를 대비한 보험)
+        if (GetComponent<PlayerUniqueEffectManager>() == null)
+            gameObject.AddComponent<PlayerUniqueEffectManager>();
 
         // [수정] 스탯 초기화를 Awake로 이동하여 초기화 순서 보장
         if (stat != null)

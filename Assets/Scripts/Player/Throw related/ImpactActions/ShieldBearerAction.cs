@@ -24,7 +24,8 @@ public class ShieldBearerAction : ImpactAction
         }
         else if (target.CompareTag("Player"))
         {
-            targetStat = target.GetComponentInChildren<CharacterStat>();
+            targetStat = target.GetComponentInParent<CharacterStat>();
+            if (targetStat == null) targetStat = target.GetComponentInChildren<CharacterStat>();
             isAllyOrPlayer = true;
         }
 

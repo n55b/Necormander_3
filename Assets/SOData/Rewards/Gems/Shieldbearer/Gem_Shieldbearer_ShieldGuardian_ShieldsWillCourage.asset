@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
+  m_Name: Gem_Shieldbearer_ShieldGuardian_ShieldsWillCourage
+  m_EditorClassIdentifier: 
+  itemName: Shield's Will - Courage
+  description: 'Increases all Shieldbearer stats by 10%.
+
+    Increases ally attack
+    speed by 12% for 10 seconds upon entering a room.'
+  icon: {fileID: 0}
+  rarity: 3
+  category: 4
+  synergyGroup: 400
+  subSlots: 1
+  eligibleJobs: 2
+  effects:
+  - rid: 7626157245485547805
+  references:
+    version: 2
+    RefIds:
+    - rid: 7626157245485547805
+      type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
+      data:
+        uniqueType: 121
+        displayDescription: 'Increases all Shieldbearer stats by 10%.
+
+          Increases
+          ally attack speed by 12% for 10 seconds upon entering a room.'

@@ -17,7 +17,8 @@ public class PriestAIPatternSO : BaseAIPatternSO
         foreach (var col in teammates)
         {
             // [수정] 자식 오브젝트에 CharacterStat이 있을 수 있으므로 GetComponentInChildren 사용
-            CharacterStat stat = col.GetComponentInChildren<CharacterStat>();
+            CharacterStat stat = col.GetComponentInParent<CharacterStat>();
+            if (stat == null) stat = col.GetComponentInChildren<CharacterStat>();
             if (stat != null)
             {
                 // 본인이거나 죽은 대상은 제외
@@ -64,7 +65,8 @@ public class PriestAIPatternSO : BaseAIPatternSO
             bool isPlayer = target.CompareTag("Player");
             bool needsHeal = false;
             
-            CharacterStat targetStat = target.GetComponentInChildren<CharacterStat>();
+            CharacterStat targetStat = target.GetComponentInParent<CharacterStat>();
+            if (targetStat == null) targetStat = target.GetComponentInChildren<CharacterStat>();
             if (targetStat != null && targetStat.CURHP < targetStat.MAXHP * 0.95f)
             {
                 needsHeal = true;
@@ -96,7 +98,8 @@ public class PriestAIPatternSO : BaseAIPatternSO
             // [수정] GetComponentInChildren 사용
             if (target != null)
             {
-                CharacterStat stat = target.GetComponentInChildren<CharacterStat>();
+                CharacterStat stat = target.GetComponentInParent<CharacterStat>();
+                if (stat == null) stat = target.GetComponentInChildren<CharacterStat>();
                 if (stat != null)
                 {
                     // 치유 대상의 체력이 이미 가득찼다면 타겟 초기화

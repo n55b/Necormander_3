@@ -179,8 +179,6 @@ public class CharacterHealth : MonoBehaviour
                     int poisonSynergy = inven.GetSynergyCount(GemSynergyGroup.Poison);
                     int bloodPopSynergy = inven.GetSynergyCount(GemSynergyGroup.BloodPop);
                     int executionSynergy = inven.GetSynergyCount(GemSynergyGroup.Execution);
-                    
-                    Debug.Log($"<color=orange>[Synergy Check]</color> 평타 발동! Poison:{poisonSynergy}, BloodPop:{bloodPopSynergy}, Execution:{executionSynergy}");
 
                     if (poisonSynergy >= 2)
                         _status.AddDebuffStack(DebuffStackType.Poison, 1f);

@@ -59,10 +59,15 @@ public class ShieldCollectible : MonoBehaviour
     private void OnCollected(GameObject collector)
     {
         _isCollected = true;
+        ApplyShield(collector);
+    }
 
-        // 엔티티의 Status를 찾아 보호막 부여
-        CharacterStat stat = collector.GetComponentInChildren<CharacterStat>();
-        if (stat != null)
+    private void ApplyShield(GameObject collector)
+    {
+        CharacterStat stat = collector.GetComponentInParent<CharacterStat>();
+        if (stat == null) stat = collector.GetComponentInChildren<CharacterStat>();
+        
+        if (stat != null && stat.Status != null)     
         {
             stat.Status.AddShield(shieldAmount, duration);
             Debug.Log($"<color=cyan>[Collectible]</color> {collector.name}가 보호막 {shieldAmount:F1}을 획득했습니다!");

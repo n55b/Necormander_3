@@ -969,7 +969,7 @@ PrefabInstance:
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[1]'
       value: 
-      objectReference: {fileID: 11400000, guid: 163b1f2ce5bcb714e8808c3b7db359e4, type: 2}
+      objectReference: {fileID: 11400000, guid: 0bc3a66f63caf8b49aa1acc4428c8f55, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[2]'
       value: 
@@ -2685,7 +2685,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5.5
+  orthographic size: 8.4375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

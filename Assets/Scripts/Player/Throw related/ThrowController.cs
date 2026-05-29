@@ -79,6 +79,18 @@ public class ThrowController : MonoBehaviour
 
         if (trajectoryPredictor == null) trajectoryPredictor = GetComponentInChildren<TrajectoryPredictor>();
         if (trajectoryPredictor != null) trajectoryPredictor.Init(this);
+
+        // [추가] Magician 슬롯을 Object 줍기(None) 모드로 자동 교체
+        if (directionMapping != null)
+        {
+            for (int i = 0; i < directionMapping.Count; i++)
+            {
+                if (directionMapping[i] == CommandData.SkeletonMagician)
+                {
+                    directionMapping[i] = CommandData.None;
+                }
+            }
+        }
     }
 
     private void LateUpdate()
