@@ -52,6 +52,14 @@ public class MapUIManager : MonoBehaviour
         }
     }
 
+    public void CloseMapUI()
+    {
+        if(_isMapOpen)
+        {
+            ToggleFullMap(false);
+        }
+    }
+
     private void OnMapTogglePressed(InputAction.CallbackContext context)
     {
         ToggleFullMap(!_isMapOpen);

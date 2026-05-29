@@ -963,6 +963,18 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 6f4994e74423d4643b79946bc7cc5743, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 49cddaf657c304447924d03bb93b2b32, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 49cddaf657c304447924d03bb93b2b32, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 49cddaf657c304447924d03bb93b2b32, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingMinionQuantities.Array.data[0]'
       value: 1
       objectReference: {fileID: 0}

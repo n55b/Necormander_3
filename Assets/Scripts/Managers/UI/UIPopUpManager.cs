@@ -9,6 +9,7 @@ public class UIPopUpManager : MonoBehaviour
     private bool _isInitialized = false; // 중복 초기화 방지용 변수
     private GameObject _currentPopUp;
     private PlayerStateUI _playerStateUI;
+    private MapUIManager _mapUIManager;
 
     public bool IsPopUpActive => _isPopUpActive;
     public bool IsOnBattle => _isOnBattle;
@@ -17,6 +18,7 @@ public class UIPopUpManager : MonoBehaviour
     {
         Instance = this;
         _playerStateUI = GetComponentInChildren<PlayerStateUI>();
+        _mapUIManager = GetComponentInChildren<MapUIManager>();
     }
   
     private void Update()
@@ -72,6 +74,7 @@ public class UIPopUpManager : MonoBehaviour
                 _currentPopUp.SetActive(false);
             }
             _playerStateUI.CloseStateUI();
+            _mapUIManager.CloseMapUI();
         }
         else
         {
