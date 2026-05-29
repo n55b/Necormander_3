@@ -189,7 +189,16 @@ public static class GemRuleSystem
     {
         if (Inven == null || !isEnemyTarget) return 0f;
         int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Corrosion));
-        return GemSynergyLogic.GetCorrosionDamageAmp(level);
+        
+        float amp = GemSynergyLogic.GetCorrosionDamageAmp(level);
+        
+        // [유니크] 부식 2배. (DoubleCorrosion): 부식 시너지 효과 10% 증폭
+        if (amp > 0f && Inven.HasUniqueEffect(GemUniqueType.DoubleCorrosion))
+        {
+            amp += 0.10f;
+        }
+
+        return amp;
     }
 
     #endregion

@@ -28,6 +28,9 @@ public class CharacterStatus : MonoBehaviour
     private CharacterStat _stat;
     public static List<CharacterStatus> ActiveEnemies = new List<CharacterStatus>();
 
+    // [유니크] 녹슬어 버린 갑옷 (RustedArmor) 타격 횟수 카운터
+    public int CorrosionHitCount { get; set; } = 0;
+
     public void Init(CharacterStat stat)
     {
         _stat = stat;

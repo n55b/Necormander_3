@@ -45,9 +45,20 @@ public class CharacterStat : MonoBehaviour
             float agingReduction = (Status != null) ? GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Aging), IsEnemy) : 0f;
             float agingMult = Mathf.Max(0.1f, 1f - agingReduction);
 
+            // [유니크] 무기 부식 (WeaponCorrosion): 부식된 적 공격력 10% 감소
+            float corrosionWeaponMult = 1f;
+            if (IsEnemy && Status != null && Status.GetDebuffBool(DebuffBoolType.Corroded))
+            {
+                var inven = InventoryManager.Instance;
+                if (inven != null && inven.HasUniqueEffect(GemUniqueType.WeaponCorrosion))
+                {
+                    corrosionWeaponMult = 0.9f;
+                }
+            }
+
             // 플레이어는 보석/보물(미니언용) 보너스를 받지 않음
             float bonusMult = _isPlayer ? 0f : (GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
-            return baseAtk * (1f + bonusMult) * agingMult;
+            return baseAtk * (1f + bonusMult) * agingMult * corrosionWeaponMult;
         }
     }
 

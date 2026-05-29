@@ -52,10 +52,10 @@ public enum GemUniqueType
     DimVision = 27,             // 침침한 시야 (노화 50 이상 적 미스 확률 25% 증가)
     AgingHunter = 28,           // 노화 사냥꾼 (전체 노화 100스택 당 아군 공/이속 10% 증가)
     // [추가] 부식 유니크 4종
-    PriestsCantAttack = 29,     // 사제는 공격을 할 수 없어! (부식 시너지 시 아군 힐량 20% 증가)
-    DoubleCorrosion = 30,       // 부식 2배. (부식 시너지 효과 10% 증폭)
-    WeaponCorrosion = 31,       // 무기 부식 (부식 시너지 시 적 공격력 10% 감소)
-    RustedArmor = 32            // 녹슬어 버린 갑옷 (부식 시 아군 평타 5회 피격 시 현재 체력 5% 피해)
+    PriestsCantAttack = 29,     // 사제는 공격을 할 수 없어! (부식 시너지 활성화 시 아군 치유량 20% 증가)
+    DoubleCorrosion = 30,       // 부식 2배 (부식 시너지 효과 10% 증폭)
+    WeaponCorrosion = 31,       // 무기 부식 (부식된 적 공격력 10% 감소)
+    RustedArmor = 32            // 녹슬어 버린 갑옷 (부식된 적 아군 평타 5회 피격 시 체력 5% 고정피해)
 }
 
 public enum SynergyCategory

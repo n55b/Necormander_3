@@ -57,6 +57,30 @@ public class CharacterHealth : MonoBehaviour
             }
         }
 
+        // [유니크] 녹슬어 버린 갑옷 (RustedArmor): 부식된 적이 아군 미니언 평타 5대 피격 시 현재 체력 5% 고정 피해
+        if (info.isBasicAttack && info.attacker != null && _stat != null && _stat.IsEnemy)
+        {
+            var attackerStat = info.attacker.GetComponent<CharacterStat>();
+            // 플레이어가 아닌 아군 미니언 평타인 경우 (혹은 플레이어도 포함시킬지 여부 - "미니언의 기본 공격" 조건)
+            if (attackerStat != null && !attackerStat.IsEnemy)
+            {
+                var inven = InventoryManager.Instance;
+                if (inven != null && inven.HasUniqueEffect(GemUniqueType.RustedArmor) && _status != null && _status.GetDebuffBool(DebuffBoolType.Corroded))
+                {
+                    _status.CorrosionHitCount++;
+                    if (_status.CorrosionHitCount >= 5)
+                    {
+                        _status.CorrosionHitCount = 0;
+                        float percentDamage = curHP * 0.05f; // 현재 체력 5%
+                        
+                        // 즉시 고정 데미지 적용
+                        GetDamage(new DamageInfo(percentDamage, DamageType.Fixed, info.attacker));
+                        TakeDamageEvent?.Invoke((int)percentDamage, "Fixed", false);
+                    }
+                }
+            }
+        }
+
         float remainingDamage = info.amount;
         string str = "";                             // 데미지 색상타입
 
@@ -196,6 +220,21 @@ public class CharacterHealth : MonoBehaviour
     public void Heal(float amount)
     {
         if (isDead) return;
+
+        // [유니크] 사제는 공격을 할 수 없어! (PriestsCantAttack): 부식 시너지 활성화 시 아군 치유량 20% 증가
+        if (_stat != null && !_stat.IsEnemy)
+        {
+            var inven = InventoryManager.Instance;
+            if (inven != null && inven.HasUniqueEffect(GemUniqueType.PriestsCantAttack))
+            {
+                int corrosionLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Priest_Corrosion));
+                if (corrosionLevel > 0)
+                {
+                    amount *= 1.2f;
+                }
+            }
+        }
+
         float oldHP = curHP;
         curHP = Mathf.Min(curHP + amount, _stat.MAXHP);
         Debug.Log($"{gameObject.name} healed for {amount}. HP: {oldHP} -> {curHP}");

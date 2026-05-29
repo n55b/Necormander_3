@@ -57,6 +57,15 @@ public class GemGeneratorWindow
         CreateGemSO(agingPath, "DimVision", "침침한 시야", "노화 50 이상 적 미스 확률 25% 증가", GemUniqueType.DimVision, SynergyCategory.Priest, GemSynergyGroup.Priest_Aging);
         CreateGemSO(agingPath, "AgingHunter", "노화 사냥꾼", "전체 노화 100스택 당 아군 공/이속 10% 증가", GemUniqueType.AgingHunter, SynergyCategory.Priest, GemSynergyGroup.Priest_Aging);
 
+        // 부식 4종 (사제 - Priest_Corrosion)
+        string corrosionPath = "Assets/SOData/Rewards/Gems/Corrosion";
+        if (!AssetDatabase.IsValidFolder(corrosionPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "Corrosion");
+
+        CreateGemSO(corrosionPath, "PriestsCantAttack", "사제는 공격을 할 수 없어!", "부식 시너지 활성화 시 아군 치유량 20% 증가", GemUniqueType.PriestsCantAttack, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
+        CreateGemSO(corrosionPath, "DoubleCorrosion", "부식 2배.", "부식 시너지 효과 10% 증폭", GemUniqueType.DoubleCorrosion, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
+        CreateGemSO(corrosionPath, "WeaponCorrosion", "무기 부식", "부식된 적 공격력 10% 감소", GemUniqueType.WeaponCorrosion, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
+        CreateGemSO(corrosionPath, "RustedArmor", "녹슬어 버린 갑옷", "부식된 적 아군 평타 5회 피격 시 체력 5% 고정피해", GemUniqueType.RustedArmor, SynergyCategory.Priest, GemSynergyGroup.Priest_Corrosion);
+
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log("<color=green>유니크 보석 SO 데이터들이 성공적으로 생성되었습니다!</color>");
