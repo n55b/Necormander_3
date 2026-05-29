@@ -19,10 +19,10 @@ MonoBehaviour:
   baseEffectValue: 10
   effectMultiplier: 1
   baseAreaRadius: 0
-  maxHP: 100
+  maxHP: 60
   attack: 5
   attackSpeed: 1
-  attackRange: 2
+  attackRange: 3
   detectRange: 10
   defense: 0
   moveSpeed: 5
