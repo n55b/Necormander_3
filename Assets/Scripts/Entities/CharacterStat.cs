@@ -39,9 +39,9 @@ public class CharacterStat : MonoBehaviour
             if (inven == null) return 1f;
 
             float mult = 1f;
-            if (inven.HasUniqueEffect(GemUniqueType.ShieldWillCourage)) mult += 0.1f;
-            if (inven.HasUniqueEffect(GemUniqueType.ShieldWillWind)) mult += 0.1f;
-            if (inven.HasUniqueEffect(GemUniqueType.ShieldWillClash)) mult += 0.1f;
+            if (inven.HasUniqueEffect(GemUniqueType.ShieldsWillCourage)) mult += 0.1f;
+            if (inven.HasUniqueEffect(GemUniqueType.ShieldsWillWind)) mult += 0.1f;
+            if (inven.HasUniqueEffect(GemUniqueType.ShieldsWillClash)) mult += 0.1f;
             
             if (Status != null && Status.TotalShield > 0)
             {
@@ -90,21 +90,31 @@ public class CharacterStat : MonoBehaviour
                 var inven = InventoryManager.Instance;
                 if (inven != null)
                 {
-                    // [유니크] 발여호미 (ArcherTension): 공격력 25% 증가
-                    if (inven.HasUniqueEffect(GemUniqueType.ArcherTension)) uniqueArcherMult *= 1.25f;
+                    // [유니크] 발여호미 (TensionPower): 공격력 25% 증가
+                    if (inven.HasUniqueEffect(GemUniqueType.TensionPower)) uniqueArcherMult *= 1.25f;
 
-                    // [유니크] 반구저기 (ArcherReflect): 발이부중 필수. 체력 50% 미만 시 공격력 15% 증가
-                    if (inven.HasUniqueEffect(GemUniqueType.ArcherReflect) && inven.HasUniqueEffect(GemUniqueType.ArcherMiss))
+                    // [유니크] 반구저기 (ReflectingNature): 발이부중 필수. 체력 50% 미만 시 공격력 15% 증가
+                    if (inven.HasUniqueEffect(GemUniqueType.ReflectingNature) && inven.HasUniqueEffect(GemUniqueType.UnseenMiss))
                     {
                         if (Health != null && Health.CurHP < MAXHP * 0.5f) uniqueArcherMult *= 1.15f;
                     }
                 }
             }
 
+            float uniqueSpearmanMult = 1f;
+            if (jobType == CommandData.SkeletonSpearman)
+            {
+                var inven = InventoryManager.Instance;
+                if (inven != null)
+                {
+                    if (inven.HasUniqueEffect(GemUniqueType.ThousandStabs)) uniqueSpearmanMult *= 1.03f;
+                }
+            }
+
             float allyWillClashMult = 1f;
             if (_isAlly && ShieldbearerUniqueManager.IsWillClashActive) allyWillClashMult += 0.08f;
 
-            return (baseAtk * (1f + bonusMult) * agingMult * corrosionWeaponMult * uniqueArcherMult) * ShieldbearerSelfMult * allyWillClashMult;
+            return (baseAtk * (1f + bonusMult) * agingMult * corrosionWeaponMult * uniqueArcherMult * uniqueSpearmanMult) * ShieldbearerSelfMult * allyWillClashMult;
         }
     }
 
@@ -149,11 +159,11 @@ public class CharacterStat : MonoBehaviour
                 var inven = InventoryManager.Instance;
                 if (inven != null)
                 {
-                    // [유니크] 발여호미 (ArcherTension): 기본 공격 빈도 25% 느려짐 (주기 * 1.25)
-                    if (inven.HasUniqueEffect(GemUniqueType.ArcherTension)) uniqueArcherDivisor *= 1.25f;
+                    // [유니크] 발여호미 (TensionPower): 기본 공격 빈도 25% 느려짐 (주기 * 1.25)
+                    if (inven.HasUniqueEffect(GemUniqueType.TensionPower)) uniqueArcherDivisor *= 1.25f;
 
-                    // [유니크] 반구저기 (ArcherReflect): 발이부중 필수. 체력 50% 이상 시 공격속도 15% 증가 (주기 감소)
-                    if (inven.HasUniqueEffect(GemUniqueType.ArcherReflect) && inven.HasUniqueEffect(GemUniqueType.ArcherMiss))
+                    // [유니크] 반구저기 (ReflectingNature): 발이부중 필수. 체력 50% 이상 시 공격속도 15% 증가 (주기 감소)
+                    if (inven.HasUniqueEffect(GemUniqueType.ReflectingNature) && inven.HasUniqueEffect(GemUniqueType.UnseenMiss))
                     {
                         if (Health != null && Health.CurHP >= MAXHP * 0.5f) uniqueArcherDivisor *= 0.85f;
                     }
@@ -357,9 +367,9 @@ public class CharacterStat : MonoBehaviour
         {
             jobType = data.minionType; // 직업 정보 캐싱 (보석 계산용)
             
-            // [유니크] 전사의 훈장 (WarriorMedal): 전사 기본 스탯 15% 증가
+            // [유니크] 전사의 훈장 (WarriorsMedal): 전사 기본 스탯 15% 증가
             float statMult = 1f;
-            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorMedal))
+            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
             {
                 statMult = 1.15f;
             }

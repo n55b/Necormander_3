@@ -36,10 +36,8 @@ public class SelectionWheelUI : MonoBehaviour
 
     public bool Show(Vector2 screenPos, List<CommandData> types, List<bool> availability)
     {
-        if(UIPopUpManager.Instance.IsPopUpActive) return false; // 이미 팝업이 활성화되어 있으면 새로 띄우지 않음
+        if (UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsPopUpActive) return false; 
         
-        UIPopUpManager.Instance.PopUpUI(gameObject);    // 팝업 매니저에 상태 전달
-
         gameObject.SetActive(true);
         container.position = screenPos;
         _centerPos = screenPos;
@@ -56,7 +54,6 @@ public class SelectionWheelUI : MonoBehaviour
     {
         if(this.gameObject.activeSelf)
         {
-            UIPopUpManager.Instance?.ClosePopUpUI();
             gameObject.SetActive(false);
             _currentIndex = -1;
         }

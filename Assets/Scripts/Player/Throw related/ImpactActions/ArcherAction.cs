@@ -19,24 +19,24 @@ public class ArcherAction : ImpactAction
 
             if (inven != null)
             {
-                // [유니크] 선관지형 (ArcherTerrain): 범위 내 적 마리당 던지기 효과 5% 증가
-                if (inven.HasUniqueEffect(GemUniqueType.ArcherTerrain) && recipe.state.areaTargets != null)
+                // [유니크] 선관지형 (HuntersHerding): 범위 내 적 마리당 던지기 효과 5% 증가
+                if (inven.HasUniqueEffect(GemUniqueType.HuntersHerding) && recipe.state.areaTargets != null)
                 {
                     int targetCount = recipe.state.areaTargets.Count;
                     finalDamage *= (1.0f + 0.05f * targetCount);
                 }
 
-                // [유니크] 전추태산 (ArcherPush): 광역 피해 15% 증가
-                if (inven.HasUniqueEffect(GemUniqueType.ArcherPush))
+                // [유니크] 전추태산 (SupportFire): 광역 피해 15% 증가
+                if (inven.HasUniqueEffect(GemUniqueType.SupportFire))
                 {
                     finalDamage *= 1.15f;
                 }
 
-                // [유니크] 비정비팔 (ArcherStance) 및 [시너지] 6스택: 중앙(30% 이내) 적 추가 피해
+                // [유니크] 비정비팔 (AimedStrike) 및 [시너지] 6스택: 중앙(30% 이내) 적 추가 피해
                 float dist = Vector2.Distance(target.transform.position, impactPos);
                 if (dist <= radius * 0.3f)
                 {
-                    if (inven.HasUniqueEffect(GemUniqueType.ArcherStance)) finalDamage *= 1.20f;
+                    if (inven.HasUniqueEffect(GemUniqueType.AimedStrike)) finalDamage *= 1.20f;
 
                     int archerSynLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Archer_ArcheryPrinciples));
                     if (archerSynLevel >= 3) // (6) 스택
@@ -45,8 +45,8 @@ public class ArcherAction : ImpactAction
                     }
                 }
 
-                // [유니크] 흉어복실 (ArcherBreath): 비행 거리에 비례하여 최대 33% 증가
-                if (inven.HasUniqueEffect(GemUniqueType.ArcherBreath) && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+                // [유니크] 흉어복실 (WindDirection): 비행 거리에 비례하여 최대 33% 증가
+                if (inven.HasUniqueEffect(GemUniqueType.WindDirection) && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
                     Vector2 playerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position;
                     float flightDist = Vector2.Distance(playerPos, impactPos);

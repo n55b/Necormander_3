@@ -266,6 +266,16 @@ public abstract class BaseEntity : MonoBehaviour
             DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject);
             targetStat.Health.GetDamage(info);
 
+            // [추가] 유니크 창병 - 철산고 (IronMountain)
+            if (minionData != null && minionData.minionType == CommandData.SkeletonSpearman)
+            {
+                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.IronMountain))
+                {
+                    Vector2 knockbackDir = (targetStat.transform.position - transform.position).normalized;
+                    targetStat.Status.ApplyKnockback(knockbackDir, 2.5f, 0.15f, true);
+                }
+            }
+
             // 3. 무기 속성 부여 (보석 효과) - 아군일 때만 적용
             if (this.team == Team.Ally && InventoryManager.Instance != null)
             {

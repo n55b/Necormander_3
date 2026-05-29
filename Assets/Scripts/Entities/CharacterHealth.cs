@@ -50,12 +50,12 @@ public class CharacterHealth : MonoBehaviour
                 float totalMissChance = attackerStat.MISS_CHANCE + _stat.EVASION;
                 if (UnityEngine.Random.value <= totalMissChance)
                 {
-                    // [유니크] 발이부중 (ArcherMiss): 빗나갈 경우 상태 기록 (반구저기 필수)
+                    // [유니크] 발이부중 (UnseenMiss): 빗나갈 경우 상태 기록 (반구저기 필수)
                     if (attackerStat.jobType == CommandData.SkeletonArcher)
                     {
                         var attackerStatus = info.attacker.GetComponent<CharacterStatus>();
                         var inven = InventoryManager.Instance;
-                        if (attackerStatus != null && inven != null && inven.HasUniqueEffect(GemUniqueType.ArcherMiss) && inven.HasUniqueEffect(GemUniqueType.ArcherReflect))
+                        if (attackerStatus != null && inven != null && inven.HasUniqueEffect(GemUniqueType.UnseenMiss) && inven.HasUniqueEffect(GemUniqueType.ReflectingNature))
                         {
                             attackerStatus.LastAttackMissed = true;
                         }
@@ -69,12 +69,12 @@ public class CharacterHealth : MonoBehaviour
                 {
                     // 명중 성공
                     
-                    // [방패병 유니크] 가시 갑옷 (ShieldThornArmor)
+                    // [방패병 유니크] 가시 갑옷 (ThornArmor)
                     // 기본 공격 피격 시 적 현재 체력 2% 고정 피해 반사
                     if (_stat.jobType == CommandData.SkeletonShieldbearer)
                     {
                         var inven = InventoryManager.Instance;
-                        if (inven != null && inven.HasUniqueEffect(GemUniqueType.ShieldThornArmor))
+                        if (inven != null && inven.HasUniqueEffect(GemUniqueType.ThornArmor))
                         {
                             var attackerHealth = info.attacker.GetComponent<CharacterHealth>();
                             if (attackerHealth != null && !attackerHealth.IsDead)
@@ -91,7 +91,7 @@ public class CharacterHealth : MonoBehaviour
                     {
                         var attackerStatus = info.attacker.GetComponent<CharacterStatus>();
                         var inven = InventoryManager.Instance;
-                        if (attackerStatus != null && attackerStatus.LastAttackMissed && inven != null && inven.HasUniqueEffect(GemUniqueType.ArcherMiss) && inven.HasUniqueEffect(GemUniqueType.ArcherReflect))
+                        if (attackerStatus != null && attackerStatus.LastAttackMissed && inven != null && inven.HasUniqueEffect(GemUniqueType.UnseenMiss) && inven.HasUniqueEffect(GemUniqueType.ReflectingNature))
                         {
                             info.amount *= 2.0f; // 다음 공격 피해 100% 증가
                             attackerStatus.LastAttackMissed = false; // 소모
@@ -230,7 +230,7 @@ public class CharacterHealth : MonoBehaviour
                 if (attackerStat != null && attackerStat.jobType == CommandData.SkeletonWarrior)
                 {
                     var inven = InventoryManager.Instance;
-                    if (inven != null && inven.HasUniqueEffect(GemUniqueType.WarriorFrenzy))
+                    if (inven != null && inven.HasUniqueEffect(GemUniqueType.FanaticRage))
                     {
                         var attackerHealth = info.attacker.GetComponent<CharacterHealth>();
                         if (attackerHealth != null)

@@ -61,30 +61,36 @@ public enum GemUniqueType
     WarriorBallistics2 = 34,    // 전사 인형 탄도학 II (직구 던지기 데미지 10% 증가)
     WarriorBallistics3 = 35,    // 전사 인형 탄도학 III (던지기 단일 적용 효과 15% 증가)
     CrushingPower = 36,         // 짓눌리는 힘 (오버킬 시 초과 피해량만큼 전사 체력 회복)
-    WarriorMedal = 111,         // 전사의 훈장
-    WarriorPursuit = 112,       // 추적하는 눈
-    WarriorFrenzy = 113,        // 광적인 분노
+    WarriorsMedal = 111,         // 전사의 훈장
+    TrackingEye = 112,       // 추적하는 눈
+    FanaticRage = 113,        // 광적인 분노
 
     // [방패병 전용 유니크 9종]
-    ShieldSturdy = 120,         // 든든한 방패
-    ShieldWillCourage = 121,    // 방패의 의지 - 용기
-    ShieldWillWind = 122,       // 방패의 의지 - 바람
-    ShieldWillClash = 123,      // 방패의 의지 - 격돌
-    ShieldThornArmor = 124,     // 가시 갑옷
-    ShieldHeavyArmor = 125,     // 육중한 갑옷
-    ShieldPatienceAura = 126,   // 인내의 오오라
-    ShieldOverwhelm = 127,      // 압도
-    ShieldTwistedGround = 128,  // 뒤틀리는 지반
+    SturdyShield = 120,         // 든든한 방패
+    ShieldsWillCourage = 121,    // 방패의 의지 - 용기
+    ShieldsWillWind = 122,       // 방패의 의지 - 바람
+    ShieldsWillClash = 123,      // 방패의 의지 - 격돌
+    ThornArmor = 124,     // 가시 갑옷
+    HeavyArmor = 125,     // 육중한 갑옷
+    AuraOfPatience = 126,   // 인내의 오오라
+    AuraOfOverwhelming = 127,      // 압도
+    TwistedGround = 128,  // 뒤틀리는 지반
     
+    // [추가] 창병 유니크 4종
+    Vanguard = 130,
+    SpearSwiftness = 131,
+    IronMountain = 132,
+    ThousandStabs = 133,
+
     // [추가] 궁수 유니크 8종
-    ArcherTerrain = 40,         // 선관지형 / 사냥꾼의 몰이법 (범위 내 마리당 던지기 효과 5% 증가)
-    ArcherWind = 41,            // 후관풍세 / 확산사격 (던지기 범위 20% 증가)
-    ArcherStance = 42,          // 비정비팔 / 정조준 일격 (중앙 적 20% 추가 피해)
-    ArcherBreath = 43,          // 흉어복실 / 바람의 방향 (비행 거리에 비례하여 1~33% 던지기 효과 증가)
-    ArcherPush = 44,            // 전추태산 / 지원사격 (던지기 광역 피해 15% 증가)
-    ArcherTension = 45,         // 발여호미 / 장력의 힘 (기본 공격 빈도 25% 느려짐, 공격력 25% 증가)
-    ArcherMiss = 46,            // 발이부중 (반구저기 필요. 공격 빗나감 시 다음 공격 100% 증가)
-    ArcherReflect = 47          // 반구저기 (발이부중 필요. 체력 50% 미만 시 공격력 15% 증가, 50% 이상 시 공격속도 15% 증가)
+    HuntersHerding = 40,         // 선관지형 / 사냥꾼의 몰이법 (범위 내 마리당 던지기 효과 5% 증가)
+    SpreadShot = 41,            // 후관풍세 / 확산사격 (던지기 범위 20% 증가)
+    AimedStrike = 42,          // 비정비팔 / 정조준 일격 (중앙 적 20% 추가 피해)
+    WindDirection = 43,          // 흉어복실 / 바람의 방향 (비행 거리에 비례하여 1~33% 던지기 효과 증가)
+    SupportFire = 44,            // 전추태산 / 지원사격 (던지기 광역 피해 15% 증가)
+    TensionPower = 45,         // 발여호미 / 장력의 힘 (기본 공격 빈도 25% 느려짐, 공격력 25% 증가)
+    UnseenMiss = 46,            // 발이부중 (반구저기 필요. 공격 빗나감 시 다음 공격 100% 증가)
+    ReflectingNature = 47          // 반구저기 (발이부중 필요. 체력 50% 미만 시 공격력 15% 증가, 50% 이상 시 공격속도 15% 증가)
 }
 
 public enum SynergyCategory
@@ -117,7 +123,10 @@ public enum GemSynergyGroup
     Warrior_Executioner = 300,
 
     // [방패병 전용 시너지]
-    Shield_Guardian = 400
+    Shield_Guardian = 400,
+
+    // [창병 전용 시너지]
+    Spearman_Vanguard = 500
 }
 
 /// <summary>

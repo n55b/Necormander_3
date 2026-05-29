@@ -29,7 +29,7 @@ public class WarriorAction : ImpactAction
                 if (recipe.info.targetingMode == TargetingMode.Target && inven.HasUniqueEffect(GemUniqueType.WarriorBallistics3)) finalDamage *= 1.15f;
 
                 // [유니크] 추적하는 눈 (TrackingEye): 연속으로 같은 대상을 맞출 시 데미지 12% 증가
-                if (inven.HasUniqueEffect(GemUniqueType.WarriorPursuit))
+                if (inven.HasUniqueEffect(GemUniqueType.TrackingEye))
                 {
                     if (_lastHitTarget == target) finalDamage *= 1.12f;
                 }

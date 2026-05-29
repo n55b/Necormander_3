@@ -25,7 +25,9 @@ public class GemGeneratorWindow
         if (!AssetDatabase.IsValidFolder(bloodPopPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "BloodPop");
         if (!AssetDatabase.IsValidFolder(agingPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "Aging");
 
-        // Poison 6
+        // Poison 8
+        CreateGemSO(poisonPath, "Gem_Unique_LethalDose", "Lethal Dose", "Halves poison tick interval.", GemUniqueType.LethalDose, SynergyCategory.Common, GemSynergyGroup.Poison);
+        CreateGemSO(poisonPath, "Gem_Unique_LethalPoison", "Lethal Poison", "Adds throw damage equal to target's poison stacks.", GemUniqueType.LethalPoison, SynergyCategory.Common, GemSynergyGroup.Poison);
         CreateGemSO(poisonPath, "Gem_Unique_PoisonHost", "Poison Host", "Spreads poison stacks in an area every 3 seconds.", GemUniqueType.PoisonHost, SynergyCategory.Common, GemSynergyGroup.Poison);
         CreateGemSO(poisonPath, "Gem_Unique_PoisonFootprint", "Poison Footprint", "Creates a poison trail. Allies gain 15% movement speed.", GemUniqueType.PoisonFootprint, SynergyCategory.Common, GemSynergyGroup.Poison);
         CreateGemSO(poisonPath, "Gem_Unique_PoisonFlask", "Poison Flask", "Increases base throw poison stacks by 1.", GemUniqueType.PoisonFlask, SynergyCategory.Common, GemSynergyGroup.Poison);
@@ -74,36 +76,45 @@ public class GemGeneratorWindow
         CreateGemSO(warriorPath, "Gem_Unique_WarriorBallistics2", "Warrior Ballistics II", "Increases Warrior's direct throw damage by 10%.", GemUniqueType.WarriorBallistics2, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
         CreateGemSO(warriorPath, "Gem_Unique_WarriorBallistics3", "Warrior Ballistics III", "Increases Warrior's single-target throw damage by 15%.", GemUniqueType.WarriorBallistics3, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
         CreateGemSO(warriorPath, "Gem_Unique_CrushingPower", "Crushing Power", "Heals the Warrior for any excess throw damage dealt upon executing an enemy.", GemUniqueType.CrushingPower, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
-        CreateGemSO(warriorPath, "Gem_Unique_WarriorMedal", "Warrior's Medal", "Increases all basic stats of the Warrior by 15%.", GemUniqueType.WarriorMedal, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
-        CreateGemSO(warriorPath, "Gem_Unique_TrackingEye", "Tracking Eye", "Deals 12% additional damage when repeatedly hitting the same target with throws.", GemUniqueType.WarriorPursuit, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
-        CreateGemSO(warriorPath, "Gem_Unique_FanaticRage", "Fanatic Rage", "Grants 3% lifesteal on basic attacks.", GemUniqueType.WarriorFrenzy, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
+        CreateGemSO(warriorPath, "Gem_Unique_WarriorMedal", "Warrior's Medal", "Increases all basic stats of the Warrior by 15%.", GemUniqueType.WarriorsMedal, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
+        CreateGemSO(warriorPath, "Gem_Unique_TrackingEye", "Tracking Eye", "Deals 12% additional damage when repeatedly hitting the same target with throws.", GemUniqueType.TrackingEye, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
+        CreateGemSO(warriorPath, "Gem_Unique_FanaticRage", "Fanatic Rage", "Grants 3% lifesteal on basic attacks.", GemUniqueType.FanaticRage, SynergyCategory.Warrior, GemSynergyGroup.Warrior_Executioner);
 
         // Archer 8
         string archerPath = "Assets/SOData/Rewards/Gems/Archer";
         if (!AssetDatabase.IsValidFolder(archerPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "Archer");
 
-        CreateGemSO(archerPath, "Gem_Unique_ArcherTerrain", "Hunter's Herding", "Increases throw damage by 5% per enemy hit in the radius.", GemUniqueType.ArcherTerrain, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "Gem_Unique_ArcherWind", "Spread Shot", "Increases the Archer's throw radius by 20%.", GemUniqueType.ArcherWind, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "Gem_Unique_ArcherStance", "Aimed Strike", "Deals 20% additional damage to enemies in the center of the throw radius.", GemUniqueType.ArcherStance, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "Gem_Unique_ArcherBreath", "Wind Direction", "Increases throw damage by 1% to 33% based on flight distance.", GemUniqueType.ArcherBreath, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "Gem_Unique_ArcherPush", "Support Fire", "Increases the Archer's AoE throw damage by 15%.", GemUniqueType.ArcherPush, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "Gem_Unique_ArcherTension", "Tension Power", "Reduces basic attack speed by 25% but increases basic attack damage by 25%.", GemUniqueType.ArcherTension, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "Gem_Unique_ArcherMiss", "Unseen Miss", "Acts as a trigger: missing a basic attack primes the next buff. (Requires Reflecting Nature)", GemUniqueType.ArcherMiss, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
-        CreateGemSO(archerPath, "Gem_Unique_ArcherReflect", "Reflecting Nature", "Increases Attack by 15% if HP < 50%, or Attack Speed by 15% if HP >= 50% after a miss. (Requires Unseen Miss)", GemUniqueType.ArcherReflect, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherTerrain", "Hunter's Herding", "Increases throw damage by 5% per enemy hit in the radius.", GemUniqueType.HuntersHerding, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherWind", "Spread Shot", "Increases the Archer's throw radius by 20%.", GemUniqueType.SpreadShot, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherStance", "Aimed Strike", "Deals 20% additional damage to enemies in the center of the throw radius.", GemUniqueType.AimedStrike, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherBreath", "Wind Direction", "Increases throw damage by 1% to 33% based on flight distance.", GemUniqueType.WindDirection, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherPush", "Support Fire", "Increases the Archer's AoE throw damage by 15%.", GemUniqueType.SupportFire, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherTension", "Tension Power", "Reduces basic attack speed by 25% but increases basic attack damage by 25%.", GemUniqueType.TensionPower, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherMiss", "Unseen Miss", "Acts as a trigger: missing a basic attack primes the next buff. (Requires Reflecting Nature)", GemUniqueType.UnseenMiss, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
+        CreateGemSO(archerPath, "Gem_Unique_ArcherReflect", "Reflecting Nature", "Increases Attack by 15% if HP < 50%, or Attack Speed by 15% if HP >= 50% after a miss. (Requires Unseen Miss)", GemUniqueType.ReflectingNature, SynergyCategory.Archer, GemSynergyGroup.Archer_ArcheryPrinciples);
 
         // Shieldbearer 9
         string shieldPath = "Assets/SOData/Rewards/Gems/Shieldbearer";
         if (!AssetDatabase.IsValidFolder(shieldPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "Shieldbearer");
 
-        CreateGemSO(shieldPath, "Gem_Unique_ShieldSturdy", "Sturdy Shield", "Grants the Shieldbearer a shield equal to 50% of Max HP upon entering a room.", GemUniqueType.ShieldSturdy, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "Gem_Unique_ShieldWillCourage", "Shield's Will - Courage", "Increases all Shieldbearer stats by 10%.\nIncreases ally attack speed by 12% for 10 seconds upon entering a room.", GemUniqueType.ShieldWillCourage, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "Gem_Unique_ShieldWillWind", "Shield's Will - Wind", "Increases all Shieldbearer stats by 10%.\nIncreases ally movement speed by 14% for 10 seconds upon entering a room.", GemUniqueType.ShieldWillWind, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "Gem_Unique_ShieldWillClash", "Shield's Will - Clash", "Increases all Shieldbearer stats by 10%.\nIncreases ally attack damage by 8% for 10 seconds upon entering a room.", GemUniqueType.ShieldWillClash, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "Gem_Unique_ShieldThornArmor", "Thorn Armor", "Reflects fixed damage equal to 2% of the attacker's current HP when taking basic attack damage.", GemUniqueType.ShieldThornArmor, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "Gem_Unique_ShieldHeavyArmor", "Heavy Armor", "Deals additional physical damage equal to 14% of the shield amount on single-target throw hit.", GemUniqueType.ShieldHeavyArmor, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "Gem_Unique_ShieldPatienceAura", "Aura of Patience", "Grants allies a shield equal to 18% of Shieldbearer's Max HP every 5 seconds.", GemUniqueType.ShieldPatienceAura, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "Gem_Unique_ShieldOverwhelm", "Aura of Overwhelming", "Deals 4% of Shieldbearer's Max HP to nearby enemies every 5 seconds and heals for 120% of damage dealt.", GemUniqueType.ShieldOverwhelm, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
-        CreateGemSO(shieldPath, "Gem_Unique_ShieldTwistedGround", "Twisted Ground", "Deals 20% of the shield amount as AoE damage upon single-target throw hit.", GemUniqueType.ShieldTwistedGround, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldSturdy", "Sturdy Shield", "Grants the Shieldbearer a shield equal to 50% of Max HP upon entering a room.", GemUniqueType.SturdyShield, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldWillCourage", "Shield's Will - Courage", "Increases all Shieldbearer stats by 10%.\nIncreases ally attack speed by 12% for 10 seconds upon entering a room.", GemUniqueType.ShieldsWillCourage, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldWillWind", "Shield's Will - Wind", "Increases all Shieldbearer stats by 10%.\nIncreases ally movement speed by 14% for 10 seconds upon entering a room.", GemUniqueType.ShieldsWillWind, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldWillClash", "Shield's Will - Clash", "Increases all Shieldbearer stats by 10%.\nIncreases ally attack damage by 8% for 10 seconds upon entering a room.", GemUniqueType.ShieldsWillClash, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldThornArmor", "Thorn Armor", "Reflects fixed damage equal to 2% of the attacker's current HP when taking basic attack damage.", GemUniqueType.ThornArmor, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldHeavyArmor", "Heavy Armor", "Deals additional physical damage equal to 14% of the shield amount on single-target throw hit.", GemUniqueType.HeavyArmor, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldPatienceAura", "Aura of Patience", "Grants allies a shield equal to 18% of Shieldbearer's Max HP every 5 seconds.", GemUniqueType.AuraOfPatience, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldOverwhelm", "Aura of Overwhelming", "Deals 4% of Shieldbearer's Max HP to nearby enemies every 5 seconds and heals for 120% of damage dealt.", GemUniqueType.AuraOfOverwhelming, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+        CreateGemSO(shieldPath, "Gem_Unique_ShieldTwistedGround", "Twisted Ground", "Deals 20% of the shield amount as AoE damage upon single-target throw hit.", GemUniqueType.TwistedGround, SynergyCategory.Shieldbearer, GemSynergyGroup.Shield_Guardian);
+
+        // Spearman 4
+        string spearmanPath = "Assets/SOData/Rewards/Gems/Spearman";
+        if (!AssetDatabase.IsValidFolder(spearmanPath)) AssetDatabase.CreateFolder("Assets/SOData/Rewards/Gems", "Spearman");
+
+        CreateGemSO(spearmanPath, "Gem_Unique_SpearmanVanguard", "Vanguard", "Increases dash distance.", GemUniqueType.Vanguard, SynergyCategory.Spearman, GemSynergyGroup.Spearman_Vanguard);
+        CreateGemSO(spearmanPath, "Gem_Unique_SpearmanSwiftness", "Spear Swiftness", "Reduces throw landing time by 33%.", GemUniqueType.SpearSwiftness, SynergyCategory.Spearman, GemSynergyGroup.Spearman_Vanguard);
+        CreateGemSO(spearmanPath, "Gem_Unique_SpearmanIronMountain", "Iron Mountain", "Basic attacks knock enemies back. If they hit a wall, they take 12% max HP as damage.", GemUniqueType.IronMountain, SynergyCategory.Spearman, GemSynergyGroup.Spearman_Vanguard);
+        CreateGemSO(spearmanPath, "Gem_Unique_SpearmanThousandStabs", "Thousand Stabs", "Spearman's basic attacks deal 3% additional damage.", GemUniqueType.ThousandStabs, SynergyCategory.Spearman, GemSynergyGroup.Spearman_Vanguard);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -113,13 +124,16 @@ public class GemGeneratorWindow
     private static void CreateGemSO(string path, string fileName, string gemName, string desc, GemUniqueType uniqueType, SynergyCategory category, GemSynergyGroup synergyGroup)
     {
         string fullPath = $"{path}/{fileName}.asset";
-        if (AssetDatabase.LoadAssetAtPath<GemSO>(fullPath) != null)
+        GemSO gem = AssetDatabase.LoadAssetAtPath<GemSO>(fullPath);
+        bool isNew = false;
+        
+        if (gem == null)
         {
-            Debug.Log($"이미 존재함: {fullPath}");
-            return;
+            gem = ScriptableObject.CreateInstance<GemSO>();
+            isNew = true;
         }
 
-        GemSO gem = ScriptableObject.CreateInstance<GemSO>();
+        // 유니크 타입 이름 대신, 전달받은 멋진 이름(gemName)을 사용합니다.
         gem.itemName = gemName;
         gem.description = desc;
         gem.rarity = ItemRarity.Legendary; 
@@ -129,7 +143,14 @@ public class GemGeneratorWindow
         var effect = new GemUniqueEffect { uniqueType = uniqueType, displayDescription = desc };
         gem.effects = new System.Collections.Generic.List<GemEffect> { effect };
 
-        AssetDatabase.CreateAsset(gem, fullPath);
+        if (isNew)
+        {
+            AssetDatabase.CreateAsset(gem, fullPath);
+        }
+        else
+        {
+            EditorUtility.SetDirty(gem);
+        }
     }
 }
 #endif

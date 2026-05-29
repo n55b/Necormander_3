@@ -21,11 +21,11 @@ MonoBehaviour:
   subSlots: 1
   eligibleJobs: -1
   effects:
-  - rid: 7626157237455552679
+  - rid: 7626157245485547748
   references:
     version: 2
     RefIds:
-    - rid: 7626157237455552679
+    - rid: 7626157245485547748
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
         uniqueType: 23

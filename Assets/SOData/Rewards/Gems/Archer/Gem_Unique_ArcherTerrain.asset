@@ -19,13 +19,13 @@ MonoBehaviour:
   category: 2
   synergyGroup: 202
   subSlots: 1
-  eligibleJobs: -1
+  eligibleJobs: 4
   effects:
-  - rid: 7626157237455552696
+  - rid: 7626157245485547761
   references:
     version: 2
     RefIds:
-    - rid: 7626157237455552696
+    - rid: 7626157245485547761
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
         uniqueType: 40

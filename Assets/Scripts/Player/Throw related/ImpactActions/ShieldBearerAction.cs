@@ -51,13 +51,13 @@ public class ShieldBearerAction : ImpactAction
             if (inven != null)
             {
                 // [유니크] 육중한 갑옷: 방패 수치의 14% 단일 피해
-                if (inven.HasUniqueEffect(GemUniqueType.ShieldHeavyArmor))
+                if (inven.HasUniqueEffect(GemUniqueType.HeavyArmor))
                 {
                     totalDamage += finalShield * 0.14f;
                 }
 
                 // [유니크] 뒤틀리는 지반: 방패 수치의 20% 범위 피해
-                bool hasTwistedGround = inven.HasUniqueEffect(GemUniqueType.ShieldTwistedGround);
+                bool hasTwistedGround = inven.HasUniqueEffect(GemUniqueType.TwistedGround);
                 
                 // [시너지] 수호신(Shield_Guardian) (2) 스택: 방패 수치의 20% 광역 피해
                 int guardianLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Shield_Guardian));

@@ -192,8 +192,8 @@ public class ThrowStrategy : MonoBehaviour
                     if (InventoryManager.Instance != null)
                     {
                         float radiusMult = 1.0f;
-                        // [유니크] 후관풍세(ArcherWind)
-                        if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.ArcherWind)) radiusMult += 0.20f;
+                        // [유니크] 후관풍세(SpreadShot)
+                        if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.SpreadShot)) radiusMult += 0.20f;
 
                         // [시너지] 집궁제원칙
                         int archerSynLevel = GemSynergyLogic.GetLevel(InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.Archer_ArcheryPrinciples));

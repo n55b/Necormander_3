@@ -188,6 +188,8 @@ public class ThrowController : MonoBehaviour
 
     private void PerformPickUp(IThrowable throwable, GameObject obj)
     {
+        if (throwable == null || obj == null || (throwable is MonoBehaviour mb && (mb == null || !mb.gameObject.activeInHierarchy))) return;
+
         _heldObjects.Add(throwable);
         throwable.OnPickedUp();
         ThrowCluster cluster = GetActiveClusterOrCreate();
@@ -252,6 +254,17 @@ public class ThrowController : MonoBehaviour
             bool isDirect = ratio >= 0.98f;
             float dist = Vector2.Distance(startPos, finalPos);
             float duration = dist / speed;
+
+            // [유니크] 창병 - 창의 신속함 (SpearSwiftness): 던지기 착지 시간 33% 단축
+            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.SpearSwiftness))
+            {
+                bool hasSpearman = false;
+                foreach (var held in _heldObjects)
+                {
+                    if (held != null && held.MinionType == CommandData.SkeletonSpearman) { hasSpearman = true; break; }
+                }
+                if (hasSpearman) duration *= 0.67f;
+            }
 
             if (isDirect)
             {

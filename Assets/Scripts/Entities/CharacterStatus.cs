@@ -282,21 +282,69 @@ public class CharacterStatus : MonoBehaviour
         return amount - remainingToConsume;
     }
 
-    public void ApplyKnockback(Vector2 dir, float force, float duration = 0.15f)
+    public void ApplyKnockback(Vector2 dir, float force, float duration = 0.15f, bool isIronMountain = false)
     {
         Rigidbody2D rb = GetComponentInParent<Rigidbody2D>();
-        if (rb != null) StartCoroutine(KnockbackRoutine(rb, dir, force, duration));
+        if (rb != null) StartCoroutine(KnockbackRoutine(rb, dir, force, duration, isIronMountain));
     }
 
-    private System.Collections.IEnumerator KnockbackRoutine(Rigidbody2D rb, Vector2 dir, float force, float duration)
+    private System.Collections.IEnumerator KnockbackRoutine(Rigidbody2D rb, Vector2 dir, float force, float duration, bool isIronMountain)
     {
+        bool isPlayer = gameObject.CompareTag("Player");
+        bool hasVanguard = false;
+        if (isPlayer && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Vanguard))
+        {
+            hasVanguard = true;
+            force *= 1.2f;
+            duration *= 1.3f;
+        }
+
         float knockbackSpeed = force * 2.0f;
         float elapsed = 0f;
+        int wallMask = LayerMask.GetMask("Wall", "Obstacle");
+
         while (elapsed < duration)
         {
             if (rb == null) yield break;
             rb.linearVelocity = dir * knockbackSpeed;
             elapsed += Time.deltaTime;
+
+            if (isIronMountain && !isPlayer)
+            {
+                Collider2D wallHit = Physics2D.OverlapCircle(transform.position, 0.4f, wallMask);
+                if (wallHit != null)
+                {
+                    float damagePercent = IsElite ? 0.06f : 0.12f;
+                    var health = GetComponentInChildren<CharacterHealth>();
+                    if (health != null) health.GetDamage(new DamageInfo(health.CurHP * damagePercent, DamageType.Fixed, null));
+                    break;
+                }
+            }
+
+            if (hasVanguard)
+            {
+                Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 1.0f);
+                foreach(var hit in hits)
+                {
+                    if (hit.CompareTag("Enemy") && hit.TryGetComponent<CharacterStat>(out var enemyStat))
+                    {
+                        var pc = GameManager.Instance.PLAYERCONTROLLER;
+                        float damage = 10f;
+                        if (pc != null)
+                        {
+                            var pcStat = pc.GetComponent<CharacterStat>();
+                            if (pcStat != null) damage = pcStat.ATK * 1.5f;
+                        }
+                        enemyStat.Health.GetDamage(new DamageInfo(damage, DamageType.Physical, gameObject));
+                    }
+                    if (hit.CompareTag("Ally") && hit.TryGetComponent<CharacterStatus>(out var allyStat))
+                    {
+                        // Vanguard 버프 로직 (간단히 이속 버프로 대체 가능)
+                        // TODO: 회피율 및 이속 버프
+                    }
+                }
+            }
+
             yield return null;
         }
         if (rb != null) rb.linearVelocity = Vector2.zero;

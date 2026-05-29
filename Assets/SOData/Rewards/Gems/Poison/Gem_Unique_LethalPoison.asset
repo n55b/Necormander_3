@@ -13,20 +13,20 @@ MonoBehaviour:
   m_Name: Gem_Unique_LethalPoison
   m_EditorClassIdentifier: 
   itemName: Lethal Poison
-  description: Poison stacks applied by throwing are doubled.
+  description: Adds throw damage equal to target's poison stacks.
   icon: {fileID: -6456797788255482139, guid: 92818d43a7364814a8842a145202f981, type: 3}
-  rarity: 2
+  rarity: 3
+  category: 0
   synergyGroup: 1
   subSlots: 0
   eligibleJobs: -1
   effects:
-  - rid: 1006
+  - rid: 7626157245485547726
   references:
     version: 2
     RefIds:
-    - rid: 1006
+    - rid: 7626157245485547726
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
-        uniqueType: 2
-        displayDescription: Doubles the current poison stacks on the target upon
-          impact.
+        uniqueType: 1
+        displayDescription: Adds throw damage equal to target's poison stacks.

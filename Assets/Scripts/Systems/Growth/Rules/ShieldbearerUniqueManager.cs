@@ -30,8 +30,8 @@ public class ShieldbearerUniqueManager : MonoBehaviour
         var inven = InventoryManager.Instance;
         if (inven == null) return;
 
-        bool hasPatience = inven.HasUniqueEffect(GemUniqueType.ShieldPatienceAura);
-        bool hasOverwhelm = inven.HasUniqueEffect(GemUniqueType.ShieldOverwhelm);
+        bool hasPatience = inven.HasUniqueEffect(GemUniqueType.AuraOfPatience);
+        bool hasOverwhelm = inven.HasUniqueEffect(GemUniqueType.AuraOfOverwhelming);
 
         if (!hasPatience && !hasOverwhelm)
         {
@@ -151,10 +151,10 @@ public class ShieldbearerUniqueManager : MonoBehaviour
         var inven = InventoryManager.Instance;
         if (inven == null) return;
 
-        bool hasSturdy = inven.HasUniqueEffect(GemUniqueType.ShieldSturdy);
-        bool hasCourage = inven.HasUniqueEffect(GemUniqueType.ShieldWillCourage);
-        bool hasWind = inven.HasUniqueEffect(GemUniqueType.ShieldWillWind);
-        bool hasClash = inven.HasUniqueEffect(GemUniqueType.ShieldWillClash);
+        bool hasSturdy = inven.HasUniqueEffect(GemUniqueType.SturdyShield);
+        bool hasCourage = inven.HasUniqueEffect(GemUniqueType.ShieldsWillCourage);
+        bool hasWind = inven.HasUniqueEffect(GemUniqueType.ShieldsWillWind);
+        bool hasClash = inven.HasUniqueEffect(GemUniqueType.ShieldsWillClash);
 
         if (!hasSturdy && !hasCourage && !hasWind && !hasClash) return;
 
