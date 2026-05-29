@@ -169,18 +169,26 @@ public class CharacterHealth : MonoBehaviour
         if (info.type == DamageType.Physical && isEnemyTarget && info.attacker != null && !info.isThrowDamage)
         {
             var attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
+            if (attackerStat == null) attackerStat = info.attacker.GetComponentInChildren<CharacterStat>();
+            
             if (attackerStat != null && !attackerStat.IsEnemy)
             {
                 var inven = InventoryManager.Instance;
                 if (inven != null)
                 {
-                    if (inven.GetSynergyCount(GemSynergyGroup.Poison) >= 2)
+                    int poisonSynergy = inven.GetSynergyCount(GemSynergyGroup.Poison);
+                    int bloodPopSynergy = inven.GetSynergyCount(GemSynergyGroup.BloodPop);
+                    int executionSynergy = inven.GetSynergyCount(GemSynergyGroup.Execution);
+                    
+                    Debug.Log($"<color=orange>[Synergy Check]</color> 평타 발동! Poison:{poisonSynergy}, BloodPop:{bloodPopSynergy}, Execution:{executionSynergy}");
+
+                    if (poisonSynergy >= 2)
                         _status.AddDebuffStack(DebuffStackType.Poison, 1f);
                         
-                    if (inven.GetSynergyCount(GemSynergyGroup.BloodPop) >= 2)
+                    if (bloodPopSynergy >= 2)
                         _status.AddDebuffStack(DebuffStackType.BloodPop, 1f);
                         
-                    if (inven.GetSynergyCount(GemSynergyGroup.Execution) >= 2)
+                    if (executionSynergy >= 2)
                         _status.AddDebuffStack(DebuffStackType.Execute, 1f);
                         
                     // [유니크] 상처 감염 (WoundInfection): 평타 명중 시 중독 틱 타이머 단축
