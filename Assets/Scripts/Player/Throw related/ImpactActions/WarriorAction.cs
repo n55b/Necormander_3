@@ -72,7 +72,8 @@ public class WarriorAction : ImpactAction
                     {
                         if (unit.MinionType == CommandData.SkeletonWarrior)
                         {
-                            var allyHealth = unit.transform.GetComponent<CharacterHealth>();
+                            var allyHealth = unit.transform.GetComponentInChildren<CharacterHealth>();
+                            if (allyHealth == null) allyHealth = unit.transform.GetComponentInParent<CharacterHealth>();
                             if (allyHealth != null) allyHealth.Heal(excess);
                         }
                     }

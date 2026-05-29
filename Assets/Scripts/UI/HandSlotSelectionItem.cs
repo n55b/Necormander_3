@@ -89,10 +89,12 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
             data.type = $"<color=#FFD700>[Minion - {minion.minionType}]</color>";
             data.titleColor = new Color(0.8f, 1f, 0.8f);
             
+            var stats = CharacterStat.GetPreviewStats(minion);
+
             data.effects = new List<string> {
-                $"HP: {minion.maxHP}",
-                $"ATK: {minion.attack}",
-                $"SPD: {minion.moveSpeed}",
+                $"HP: {stats.hp:F1}",
+                $"ATK: {stats.atk:F1}",
+                $"SPD: {stats.spd:F1}",
                 $"<color=#AAAAAA>Count: x{_currentSlot.Quantity}</color>"
             };
         }

@@ -26,6 +26,7 @@ public class CharacterHealth : MonoBehaviour
     public bool Invincible { get { return invincible; } set { invincible = value; } }
 
     public event Action<int, string, bool> TakeDamageEvent;
+    public event Action<float> TakeHealEvent;
 
     public void Init(CharacterStat stat, CharacterStatus status)
     {
@@ -232,13 +233,17 @@ public class CharacterHealth : MonoBehaviour
             // [유니크] 광적인 분노 (FanaticRage): 기본 공격 피해의 3%만큼 흡혈
             if (info.isBasicAttack && info.attacker != null)
             {
-                var attackerStat = info.attacker.GetComponent<CharacterStat>();
+                var attackerStat = info.attacker.GetComponentInChildren<CharacterStat>();
+                if (attackerStat == null) attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
+                
                 if (attackerStat != null && attackerStat.jobType == CommandData.SkeletonWarrior)
                 {
                     var inven = InventoryManager.Instance;
                     if (inven != null && inven.HasUniqueEffect(GemUniqueType.FanaticRage))
                     {
-                        var attackerHealth = info.attacker.GetComponent<CharacterHealth>();
+                        var attackerHealth = info.attacker.GetComponentInChildren<CharacterHealth>();
+                        if (attackerHealth == null) attackerHealth = info.attacker.GetComponentInParent<CharacterHealth>();
+                        
                         if (attackerHealth != null)
                         {
                             attackerHealth.Heal(finalDamage * 0.03f);
@@ -335,6 +340,7 @@ public class CharacterHealth : MonoBehaviour
         }
 
         Debug.Log($"{gameObject.name} healed for {healAmount}. HP: {oldHP} -> {curHP}");
+        TakeHealEvent?.Invoke(healAmount); // [추가] 힐 텍스트 띄우기
         OnHeal?.Invoke();
         UpdateHPBar?.Invoke(); // [추가] HPBar 업데이트
     }

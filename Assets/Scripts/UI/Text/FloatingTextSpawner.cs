@@ -23,6 +23,7 @@ public class FloatingTextSpawner : MonoBehaviour
         if (stats != null && stats.Health != null)
         {
             stats.Health.TakeDamageEvent += ShowDamageText;
+            stats.Health.TakeHealEvent += ShowHealText;
             isSubscribed = true;
             Debug.Log($"{gameObject.name} 데미지 텍스트 구독 성공!");
         }
@@ -37,6 +38,7 @@ public class FloatingTextSpawner : MonoBehaviour
             if (stats.Health != null)
             {
                 stats.Health.TakeDamageEvent -= ShowDamageText;
+                stats.Health.TakeHealEvent -= ShowHealText;
                 isSubscribed = false;
             }
         }
@@ -48,6 +50,7 @@ public class FloatingTextSpawner : MonoBehaviour
         if (stats != null && stats.Health != null)
         {
             stats.Health.TakeDamageEvent -= ShowDamageText;
+            stats.Health.TakeHealEvent -= ShowHealText;
         }
     }
 
@@ -69,6 +72,16 @@ public class FloatingTextSpawner : MonoBehaviour
         TextFloating textObj = FloatingTextManager.instance.GetFromPool();
 
         textObj.SetUp(text, color, vec_float, isCritical);
+    }
+
+    private void ShowHealText(float amount)
+    {
+        if (amount <= 0.001f) return;
+        string text = $"+{amount:F1}"; // 소수점 첫째자리까지 힐량 표시
+        Color color = Color.green;
+
+        TextFloating textObj = FloatingTextManager.instance.GetFromPool();
+        textObj.SetUp(text, color, vec_float, false);
     }
 
     private void ShowStatusText(string statusName)

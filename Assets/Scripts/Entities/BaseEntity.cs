@@ -264,8 +264,8 @@ public abstract class BaseEntity : MonoBehaviour
 
         if (targetStat != null)
         {
-            // [수정] 직접 Health 담당자에게 명령
-            DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject);
+            // [수정] 직접 Health 담당자에게 명령, isBasicAttack = true 추가
+            DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true);
             targetStat.Health.GetDamage(info);
 
             // [추가] 유니크 창병 - 철산고 (IronMountain)

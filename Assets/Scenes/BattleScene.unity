@@ -936,7 +936,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingGems_Data.Array.size
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingMinions.Array.data[0]'
@@ -965,15 +965,19 @@ PrefabInstance:
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[0]'
       value: 
-      objectReference: {fileID: 11400000, guid: ca8aecde69d0989469666d9df5de3682, type: 2}
+      objectReference: {fileID: 11400000, guid: 7d22137f788b46c448fd8de3be95fda5, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[1]'
       value: 
-      objectReference: {fileID: 11400000, guid: 0bc3a66f63caf8b49aa1acc4428c8f55, type: 2}
+      objectReference: {fileID: 11400000, guid: 04b99f52c9a01a24f9de2e831a458f72, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[2]'
       value: 
-      objectReference: {fileID: 11400000, guid: 49cddaf657c304447924d03bb93b2b32, type: 2}
+      objectReference: {fileID: 11400000, guid: 9008f551f1467f346b4282d1afee1f92, type: 2}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'debugStartingGems_Data.Array.data[3]'
+      value: 
+      objectReference: {fileID: 11400000, guid: be902ae0e11dec243b6552cdce7f0cd0, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingMinionQuantities.Array.data[0]'
       value: 1

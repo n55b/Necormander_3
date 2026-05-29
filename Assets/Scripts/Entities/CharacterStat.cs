@@ -110,11 +110,21 @@ public class CharacterStat : MonoBehaviour
                     if (inven.HasUniqueEffect(GemUniqueType.ThousandStabs)) uniqueSpearmanMult *= 1.03f;
                 }
             }
+            
+            float uniqueWarriorMult = 1f;
+            if (jobType == CommandData.SkeletonWarrior)
+            {
+                var inven = InventoryManager.Instance;
+                if (inven != null)
+                {
+                    if (inven.HasUniqueEffect(GemUniqueType.WarriorsMedal)) uniqueWarriorMult *= 1.15f;
+                }
+            }
 
             float allyWillClashMult = 1f;
             if (_isAlly && ShieldbearerUniqueManager.IsWillClashActive) allyWillClashMult += 0.08f;
 
-            return (baseAtk * (1f + bonusMult) * agingMult * corrosionWeaponMult * uniqueArcherMult * uniqueSpearmanMult) * ShieldbearerSelfMult * allyWillClashMult;
+            return (baseAtk * (1f + bonusMult) * agingMult * corrosionWeaponMult * uniqueArcherMult * uniqueSpearmanMult * uniqueWarriorMult) * ShieldbearerSelfMult * allyWillClashMult;
         }
     }
 
@@ -126,7 +136,12 @@ public class CharacterStat : MonoBehaviour
         {
             float gemFlatBonus = _isPlayer ? 0f : GetGemBonus(StatType.Health);
             float treasureMult = _isPlayer ? 0f : GetTreasureBonus(TreasureEffectType.GlobalMinionStats);
-            return (baseMaxHP + gemFlatBonus) * (1f + treasureMult) * ShieldbearerSelfMult;
+            float uniqueWarriorMult = 1f;
+            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
+            {
+                uniqueWarriorMult *= 1.15f;
+            }
+            return (baseMaxHP + gemFlatBonus) * (1f + treasureMult) * ShieldbearerSelfMult * uniqueWarriorMult;
         }
     }
 
@@ -172,15 +187,32 @@ public class CharacterStat : MonoBehaviour
 
             float allyWillCourageDivisor = 1f;
             if (_isAlly && ShieldbearerUniqueManager.IsWillCourageActive) allyWillCourageDivisor = 1f / 1.12f;
+            
+            float uniqueWarriorDivisor = 1f;
+            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
+            {
+                uniqueWarriorDivisor = 1f / 1.15f;
+            }
 
             float selfMultDivisor = 1f / ShieldbearerSelfMult;
 
-            return (baseAtkSpd * uniqueArcherDivisor * allyWillCourageDivisor * selfMultDivisor / (1f + bonusMult)) / chillMult;
+            return (baseAtkSpd * uniqueArcherDivisor * allyWillCourageDivisor * uniqueWarriorDivisor * selfMultDivisor / (1f + bonusMult)) / chillMult;
         }
     }
 
     public float ATKRANGE => baseAtkRange;
-    public float DEF => baseDef;
+    public float DEF 
+    {
+        get
+        {
+            float uniqueWarriorMult = 1f;
+            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
+            {
+                uniqueWarriorMult = 1.15f;
+            }
+            return baseDef * uniqueWarriorMult;
+        }
+    }
     public float EVASION => baseEvasion;
 
     public float MISS_CHANCE
@@ -243,8 +275,14 @@ public class CharacterStat : MonoBehaviour
             
             float allyWillWindMult = 1f;
             if (_isAlly && ShieldbearerUniqueManager.IsWillWindActive) allyWillWindMult += 0.14f;
+            
+            float uniqueWarriorMult = 1f;
+            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
+            {
+                uniqueWarriorMult = 1.15f;
+            }
 
-            return finalSpeed * ShieldbearerSelfMult * allyWillWindMult;
+            return finalSpeed * ShieldbearerSelfMult * allyWillWindMult * uniqueWarriorMult;
         }
     }
 
@@ -366,20 +404,13 @@ public class CharacterStat : MonoBehaviour
         if (data != null)
         {
             jobType = data.minionType; // 직업 정보 캐싱 (보석 계산용)
-            
-            // [유니크] 전사의 훈장 (WarriorsMedal): 전사 기본 스탯 15% 증가
-            float statMult = 1f;
-            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
-            {
-                statMult = 1.15f;
-            }
 
-            baseMaxHP = data.maxHP * statMult;
-            baseAtk = data.attack * statMult;
-            baseAtkSpd = data.attackSpeed / statMult; // 공격속도는 간격(주기)이므로 작아질수록 좋음
-            baseAtkRange = data.attackRange * statMult;
-            baseDef = data.defense * statMult;
-            baseMoveSpeed = data.moveSpeed * statMult;
+            baseMaxHP = data.maxHP;
+            baseAtk = data.attack;
+            baseAtkSpd = data.attackSpeed; // 공격속도는 간격(주기)이므로 작아질수록 좋음
+            baseAtkRange = data.attackRange;
+            baseDef = data.defense;
+            baseMoveSpeed = data.moveSpeed;
             baseEvasion = data.baseEvasion;
             baseMissChance = data.baseMissChance;
 
@@ -400,6 +431,46 @@ public class CharacterStat : MonoBehaviour
     public void SetBaseMoveSpeed(float speed)
     {
         baseMoveSpeed = speed;
+    }
+
+    /// <summary>
+    /// [신규] UI(예: 핸드슬롯 툴팁)에서 보석 효과가 반영된 최종 예상 스탯을 미리 계산하여 반환합니다.
+    /// </summary>
+    public static (float hp, float atk, float spd) GetPreviewStats(MinionDataSO data)
+    {
+        float hp = data.maxHP;
+        float atk = data.attack;
+        float spd = data.moveSpeed;
+
+        var inven = InventoryManager.Instance;
+        if (inven != null)
+        {
+            float gemHp = inven.GetAggregatedGemBonus(data.minionType, StatType.Health);
+            float gemAtk = inven.GetAggregatedGemBonus(data.minionType, StatType.Attack);
+            float treasureHp = inven.GetTreasureBonus(TreasureEffectType.GlobalMinionStats);
+
+            hp = (hp + gemHp) * (1f + treasureHp);
+            atk = atk * (1f + gemAtk);
+
+            if (data.minionType == CommandData.SkeletonWarrior && inven.HasUniqueEffect(GemUniqueType.WarriorsMedal))
+            {
+                hp *= 1.15f;
+                atk *= 1.15f;
+                spd *= 1.15f;
+            }
+
+            if (data.minionType == CommandData.SkeletonArcher)
+            {
+                if (inven.HasUniqueEffect(GemUniqueType.TensionPower)) atk *= 1.25f;
+            }
+
+            if (data.minionType == CommandData.SkeletonSpearman)
+            {
+                if (inven.HasUniqueEffect(GemUniqueType.ThousandStabs)) atk *= 1.03f;
+            }
+        }
+
+        return (hp, atk, spd);
     }
 
     /// <summary>

@@ -208,8 +208,9 @@ public class InventoryManager : MonoBehaviour
                 int synergyCount = GetSynergyCount(group);
 
                 // [핵심 로직 수정] 
-                // Base 그룹은 1개여도 즉시 적용, 그 외 그룹은 시너지가 2 이상일 때만 모든 보석 효과 활성화
-                bool isEffectActive = (group == GemSynergyGroup.Base) || (synergyCount >= 2);
+                // 시너지 세트 효과는 각 스크립트에서 GetLevel로 체크하므로, 
+                // 보석 자체의 기본 스탯과 유니크 효과는 장착 즉시 발동하도록 제한 해제.
+                bool isEffectActive = true; 
 
                 if (isEffectActive)
                 {
