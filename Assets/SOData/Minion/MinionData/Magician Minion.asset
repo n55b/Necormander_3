@@ -16,17 +16,17 @@ MonoBehaviour:
   minionName: Skeleton Magician
   minionIcon: {fileID: -8614651213226230117, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}
   throwEffectCategory: 6
-  baseEffectValue: 1
-  effectMultiplier: 1
+  baseEffectValue: 0
+  effectMultiplier: 0
   baseAreaRadius: 0
-  maxHP: 100
-  attack: 5
-  attackSpeed: 1
-  attackRange: 2
-  detectRange: 10
+  maxHP: 0
+  attack: 0
+  attackSpeed: 0
+  attackRange: 0
+  detectRange: 0
   defense: 0
-  moveSpeed: 5
-  cost: 1
+  moveSpeed: 0
+  cost: 0
   isElite: 0
   canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}

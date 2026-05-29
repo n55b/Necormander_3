@@ -17,11 +17,11 @@ MonoBehaviour:
   minionIcon: {fileID: -5846066792380020892, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}
   throwEffectCategory: 1
   baseEffectValue: 10
-  effectMultiplier: 2
+  effectMultiplier: 1.5
   baseAreaRadius: 3
-  maxHP: 100
-  attack: 5
-  attackSpeed: 1
+  maxHP: 75
+  attack: 8
+  attackSpeed: 0.8
   attackRange: 2
   detectRange: 10
   defense: 0
