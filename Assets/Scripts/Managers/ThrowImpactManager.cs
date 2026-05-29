@@ -27,7 +27,12 @@ public class ThrowImpactManager : MonoBehaviour
         }
 
         int totalExecutions = recipe.GetTotalExecutionCount();
-        List<GameObject> targets = (recipe.info.targetingMode == TargetingMode.Area) ? ScanAreaTargets(recipe, impactPos) : null;
+        List<GameObject> targets = null;
+        if (recipe.info.targetingMode == TargetingMode.Area)
+        {
+            targets = ScanAreaTargets(recipe, impactPos);
+            recipe.state.areaTargets = targets; // [추가] 레시피 상태에 범위 내 타겟 저장
+        }
 
         // [추가] 던지기 능력 Hook (OnImpact)
         if (InventoryManager.Instance != null)

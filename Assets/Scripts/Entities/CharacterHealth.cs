@@ -50,9 +50,53 @@ public class CharacterHealth : MonoBehaviour
                 float totalMissChance = attackerStat.MISS_CHANCE + _stat.EVASION;
                 if (UnityEngine.Random.value <= totalMissChance)
                 {
+                    // [유니크] 발이부중 (ArcherMiss): 빗나갈 경우 상태 기록 (반구저기 필수)
+                    if (attackerStat.jobType == CommandData.SkeletonArcher)
+                    {
+                        var attackerStatus = info.attacker.GetComponent<CharacterStatus>();
+                        var inven = InventoryManager.Instance;
+                        if (attackerStatus != null && inven != null && inven.HasUniqueEffect(GemUniqueType.ArcherMiss) && inven.HasUniqueEffect(GemUniqueType.ArcherReflect))
+                        {
+                            attackerStatus.LastAttackMissed = true;
+                        }
+                    }
+
                     // 회피 성공
                     TakeDamageEvent?.Invoke(0, "MISS", false);
                     return;
+                }
+                else
+                {
+                    // 명중 성공
+                    
+                    // [방패병 유니크] 가시 갑옷 (ShieldThornArmor)
+                    // 기본 공격 피격 시 적 현재 체력 2% 고정 피해 반사
+                    if (_stat.jobType == CommandData.SkeletonShieldbearer)
+                    {
+                        var inven = InventoryManager.Instance;
+                        if (inven != null && inven.HasUniqueEffect(GemUniqueType.ShieldThornArmor))
+                        {
+                            var attackerHealth = info.attacker.GetComponent<CharacterHealth>();
+                            if (attackerHealth != null && !attackerHealth.IsDead)
+                            {
+                                float thornDamage = attackerHealth.CurHP * 0.02f;
+                                DamageInfo thornInfo = new DamageInfo(thornDamage, DamageType.Fixed, this.gameObject);
+                                attackerHealth.GetDamage(thornInfo);
+                                attackerHealth.TakeDamageEvent?.Invoke((int)thornDamage, "Fixed", false);
+                            }
+                        }
+                    }
+
+                    if (attackerStat.jobType == CommandData.SkeletonArcher)
+                    {
+                        var attackerStatus = info.attacker.GetComponent<CharacterStatus>();
+                        var inven = InventoryManager.Instance;
+                        if (attackerStatus != null && attackerStatus.LastAttackMissed && inven != null && inven.HasUniqueEffect(GemUniqueType.ArcherMiss) && inven.HasUniqueEffect(GemUniqueType.ArcherReflect))
+                        {
+                            info.amount *= 2.0f; // 다음 공격 피해 100% 증가
+                            attackerStatus.LastAttackMissed = false; // 소모
+                        }
+                    }
                 }
             }
         }
@@ -178,6 +222,24 @@ public class CharacterHealth : MonoBehaviour
                 str = "Poison";
             
             TakeDamageEvent?.Invoke((int)finalDamage, str, false);
+
+            // [유니크] 광적인 분노 (FanaticRage): 기본 공격 피해의 3%만큼 흡혈
+            if (info.isBasicAttack && info.attacker != null)
+            {
+                var attackerStat = info.attacker.GetComponent<CharacterStat>();
+                if (attackerStat != null && attackerStat.jobType == CommandData.SkeletonWarrior)
+                {
+                    var inven = InventoryManager.Instance;
+                    if (inven != null && inven.HasUniqueEffect(GemUniqueType.WarriorFrenzy))
+                    {
+                        var attackerHealth = info.attacker.GetComponent<CharacterHealth>();
+                        if (attackerHealth != null)
+                        {
+                            attackerHealth.Heal(finalDamage * 0.03f);
+                        }
+                    }
+                }
+            }
         }
 
         // [처형] 체크
@@ -236,8 +298,37 @@ public class CharacterHealth : MonoBehaviour
         }
 
         float oldHP = curHP;
+        float healAmount = amount;
+        float excessHeal = (curHP + amount) - _stat.MAXHP;
+        
         curHP = Mathf.Min(curHP + amount, _stat.MAXHP);
-        Debug.Log($"{gameObject.name} healed for {amount}. HP: {oldHP} -> {curHP}");
+
+        // [시너지] 수호신(Shield_Guardian) (6) 스택: 체력 회복 초과양 15%가 보호막으로 전환 (최대 체력의 15% 제한)
+        if (excessHeal > 0 && _stat != null)
+        {
+            var inven = InventoryManager.Instance;
+            if (inven != null)
+            {
+                int guardianLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
+                if (guardianLevel >= 3 && _status != null) // (6) 스택
+                {
+                    float shieldToAdd = excessHeal * 0.15f;
+                    float maxShieldLimit = _stat.MAXHP * 0.15f;
+                    
+                    // 기존 보호막이 최대 한도를 넘지 않도록 제한적으로 추가
+                    if (_status.TotalShield < maxShieldLimit)
+                    {
+                        float allowedToAdd = Mathf.Min(shieldToAdd, maxShieldLimit - _status.TotalShield);
+                        if (allowedToAdd > 0)
+                        {
+                            _status.AddShield(allowedToAdd, 10.0f); // 임시 10초
+                        }
+                    }
+                }
+            }
+        }
+
+        Debug.Log($"{gameObject.name} healed for {healAmount}. HP: {oldHP} -> {curHP}");
         OnHeal?.Invoke();
         UpdateHPBar?.Invoke(); // [추가] HPBar 업데이트
     }

@@ -24,11 +24,36 @@ public class CharacterStat : MonoBehaviour
     public CharacterVisualFeedback Visual { get; private set; }
 
     [Header("런타임 정보")]
-    [SerializeField] private CommandData jobType; // 보석 계산을 위해 필요
+    public CommandData jobType; // 보석 계산을 위해 필요
     private bool _isAlly = false; // [추가] 아군 여부 캐싱
     private bool _isPlayer = false; // [추가] 플레이어 여부 캐싱
 
-    public bool IsEnemy => !_isAlly && !_isPlayer; // [추가] 적군 여부 판별
+    public bool IsEnemy => !_isAlly && !_isPlayer; // [추가] 적군 여부 식별
+
+    private float ShieldbearerSelfMult
+    {
+        get
+        {
+            if (jobType != CommandData.SkeletonShieldbearer) return 1f;
+            var inven = InventoryManager.Instance;
+            if (inven == null) return 1f;
+
+            float mult = 1f;
+            if (inven.HasUniqueEffect(GemUniqueType.ShieldWillCourage)) mult += 0.1f;
+            if (inven.HasUniqueEffect(GemUniqueType.ShieldWillWind)) mult += 0.1f;
+            if (inven.HasUniqueEffect(GemUniqueType.ShieldWillClash)) mult += 0.1f;
+            
+            if (Status != null && Status.TotalShield > 0)
+            {
+                int guardianLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
+                if (guardianLevel >= 4) // (8) 스택
+                {
+                    mult += 0.15f;
+                }
+            }
+            return mult;
+        }
+    }
 
     [Header("셋팅 이후 Action들")]
     [SerializeField] private UnityEvent setDoneActions;
@@ -58,7 +83,28 @@ public class CharacterStat : MonoBehaviour
 
             // 플레이어는 보석/보물(미니언용) 보너스를 받지 않음
             float bonusMult = _isPlayer ? 0f : (GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
-            return baseAtk * (1f + bonusMult) * agingMult * corrosionWeaponMult;
+            
+            float uniqueArcherMult = 1f;
+            if (jobType == CommandData.SkeletonArcher)
+            {
+                var inven = InventoryManager.Instance;
+                if (inven != null)
+                {
+                    // [유니크] 발여호미 (ArcherTension): 공격력 25% 증가
+                    if (inven.HasUniqueEffect(GemUniqueType.ArcherTension)) uniqueArcherMult *= 1.25f;
+
+                    // [유니크] 반구저기 (ArcherReflect): 발이부중 필수. 체력 50% 미만 시 공격력 15% 증가
+                    if (inven.HasUniqueEffect(GemUniqueType.ArcherReflect) && inven.HasUniqueEffect(GemUniqueType.ArcherMiss))
+                    {
+                        if (Health != null && Health.CurHP < MAXHP * 0.5f) uniqueArcherMult *= 1.15f;
+                    }
+                }
+            }
+
+            float allyWillClashMult = 1f;
+            if (_isAlly && ShieldbearerUniqueManager.IsWillClashActive) allyWillClashMult += 0.08f;
+
+            return (baseAtk * (1f + bonusMult) * agingMult * corrosionWeaponMult * uniqueArcherMult) * ShieldbearerSelfMult * allyWillClashMult;
         }
     }
 
@@ -70,7 +116,7 @@ public class CharacterStat : MonoBehaviour
         {
             float gemFlatBonus = _isPlayer ? 0f : GetGemBonus(StatType.Health);
             float treasureMult = _isPlayer ? 0f : GetTreasureBonus(TreasureEffectType.GlobalMinionStats);
-            return (baseMaxHP + gemFlatBonus) * (1f + treasureMult);
+            return (baseMaxHP + gemFlatBonus) * (1f + treasureMult) * ShieldbearerSelfMult;
         }
     }
 
@@ -97,7 +143,29 @@ public class CharacterStat : MonoBehaviour
                 bonusMult += (totalAgingStacks / 100f) * 0.1f;
             }
 
-            return (baseAtkSpd / (1f + bonusMult)) / chillMult;
+            float uniqueArcherDivisor = 1f;
+            if (jobType == CommandData.SkeletonArcher)
+            {
+                var inven = InventoryManager.Instance;
+                if (inven != null)
+                {
+                    // [유니크] 발여호미 (ArcherTension): 기본 공격 빈도 25% 느려짐 (주기 * 1.25)
+                    if (inven.HasUniqueEffect(GemUniqueType.ArcherTension)) uniqueArcherDivisor *= 1.25f;
+
+                    // [유니크] 반구저기 (ArcherReflect): 발이부중 필수. 체력 50% 이상 시 공격속도 15% 증가 (주기 감소)
+                    if (inven.HasUniqueEffect(GemUniqueType.ArcherReflect) && inven.HasUniqueEffect(GemUniqueType.ArcherMiss))
+                    {
+                        if (Health != null && Health.CurHP >= MAXHP * 0.5f) uniqueArcherDivisor *= 0.85f;
+                    }
+                }
+            }
+
+            float allyWillCourageDivisor = 1f;
+            if (_isAlly && ShieldbearerUniqueManager.IsWillCourageActive) allyWillCourageDivisor = 1f / 1.12f;
+
+            float selfMultDivisor = 1f / ShieldbearerSelfMult;
+
+            return (baseAtkSpd * uniqueArcherDivisor * allyWillCourageDivisor * selfMultDivisor / (1f + bonusMult)) / chillMult;
         }
     }
 
@@ -163,7 +231,10 @@ public class CharacterStat : MonoBehaviour
                 finalSpeed *= 1.15f;
             }
             
-            return finalSpeed;
+            float allyWillWindMult = 1f;
+            if (_isAlly && ShieldbearerUniqueManager.IsWillWindActive) allyWillWindMult += 0.14f;
+
+            return finalSpeed * ShieldbearerSelfMult * allyWillWindMult;
         }
     }
 
@@ -284,13 +355,21 @@ public class CharacterStat : MonoBehaviour
 
         if (data != null)
         {
-            jobType = data.minionType; // 직업 정보 저장 (보석 계산용)
-            baseMaxHP = data.maxHP;
-            baseAtk = data.attack;
-            baseAtkSpd = data.attackSpeed;
-            baseAtkRange = data.attackRange;
-            baseDef = data.defense;
-            baseMoveSpeed = data.moveSpeed;
+            jobType = data.minionType; // 직업 정보 캐싱 (보석 계산용)
+            
+            // [유니크] 전사의 훈장 (WarriorMedal): 전사 기본 스탯 15% 증가
+            float statMult = 1f;
+            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorMedal))
+            {
+                statMult = 1.15f;
+            }
+
+            baseMaxHP = data.maxHP * statMult;
+            baseAtk = data.attack * statMult;
+            baseAtkSpd = data.attackSpeed / statMult; // 공격속도는 간격(주기)이므로 작아질수록 좋음
+            baseAtkRange = data.attackRange * statMult;
+            baseDef = data.defense * statMult;
+            baseMoveSpeed = data.moveSpeed * statMult;
             baseEvasion = data.baseEvasion;
             baseMissChance = data.baseMissChance;
 

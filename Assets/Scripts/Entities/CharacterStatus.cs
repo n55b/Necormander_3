@@ -11,6 +11,8 @@ public class CharacterStatus : MonoBehaviour
     private float _cachedMoveSpeedMultiplier = 1f;
     private float _cachedTotalShield = 0f;
 
+    public bool LastAttackMissed = false; // [추가] 궁수 발이부중 기믹용 (이전 기본 공격이 빗나갔는지 여부)
+
     public float MoveSpeedMultiplier => _cachedMoveSpeedMultiplier;
     public float TotalShield => _cachedTotalShield;
     public bool IsElite { get; set; } // [추가] 엘리트 유닛 여부
@@ -27,6 +29,7 @@ public class CharacterStatus : MonoBehaviour
     
     private CharacterStat _stat;
     public static List<CharacterStatus> ActiveEnemies = new List<CharacterStatus>();
+    public static List<CharacterStatus> ActiveAllies = new List<CharacterStatus>();
 
     // [유니크] 녹슬어 버린 갑옷 (RustedArmor) 타격 횟수 카운터
     public int CorrosionHitCount { get; set; } = 0;
@@ -34,9 +37,13 @@ public class CharacterStatus : MonoBehaviour
     public void Init(CharacterStat stat)
     {
         _stat = stat;
-        if (IsEnemyTarget && !ActiveEnemies.Contains(this))
+        if (IsEnemyTarget)
         {
-            ActiveEnemies.Add(this);
+            if (!ActiveEnemies.Contains(this)) ActiveEnemies.Add(this);
+        }
+        else
+        {
+            if (!ActiveAllies.Contains(this)) ActiveAllies.Add(this);
         }
     }
 
@@ -45,6 +52,10 @@ public class CharacterStatus : MonoBehaviour
         if (ActiveEnemies.Contains(this))
         {
             ActiveEnemies.Remove(this);
+        }
+        if (ActiveAllies.Contains(this))
+        {
+            ActiveAllies.Remove(this);
         }
     }
 
@@ -70,7 +81,15 @@ public class CharacterStatus : MonoBehaviour
         float sum = 0;
         for (int i = _shieldInstances.Count - 1; i >= 0; i--)
         {
-            if (Time.time > _shieldInstances[i].EndTime || _shieldInstances[i].RemainingAmount <= 0) { _shieldInstances.RemoveAt(i); continue; }
+            if (Time.time > _shieldInstances[i].EndTime || _shieldInstances[i].RemainingAmount <= 0) 
+            { 
+                if (Time.time > _shieldInstances[i].EndTime && _shieldInstances[i].RemainingAmount > 0)
+                {
+                    ExplodeExpiredShield(_shieldInstances[i].RemainingAmount);
+                }
+                _shieldInstances.RemoveAt(i); 
+                continue; 
+            }
             sum += _shieldInstances[i].RemainingAmount;
         }
         _cachedTotalShield = sum;
@@ -226,6 +245,28 @@ public class CharacterStatus : MonoBehaviour
     }
 
     public void AddShield(float amount, float duration) { _shieldInstances.Add(new ShieldInstance(amount, duration)); UpdateInstances(); }
+
+    private void ExplodeExpiredShield(float amount)
+    {
+        if (IsEnemyTarget || InventoryManager.Instance == null) return;
+        
+        int guardianLevel = GemSynergyLogic.GetLevel(InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
+        if (guardianLevel >= 2) // (4) 스택: 보호막이 사라지면 주변 피해
+        {
+            float radius = 3.0f;
+            foreach (var enemy in ActiveEnemies)
+            {
+                if (enemy != null && Vector2.Distance(transform.position, enemy.transform.position) <= radius)
+                {
+                    if (enemy.TryGetComponent(out CharacterHealth health))
+                    {
+                        DamageInfo info = new DamageInfo(amount, DamageType.Fixed, this.gameObject);
+                        health.GetDamage(info);
+                    }
+                }
+            }
+        }
+    }
 
     public float ConsumeShield(float amount)
     {

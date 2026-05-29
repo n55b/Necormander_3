@@ -128,9 +128,13 @@ public class InventoryManager : MonoBehaviour
         if (GetComponent<ChillUniqueManager>() == null)
             gameObject.AddComponent<ChillUniqueManager>();
 
-        // [유니크] 노화 광역 유니크 (Goryeojang) 매니저 부착
+        // [유니크] 기력/노화 광역 매니저 (Goryeojang) 매니저 부착
         if (GetComponent<AgingUniqueManager>() == null)
             gameObject.AddComponent<AgingUniqueManager>();
+            
+        // [유니크] 방패병 고유 매니저 (ShieldbearerUniqueManager) 부착
+        if (GetComponent<ShieldbearerUniqueManager>() == null)
+            gameObject.AddComponent<ShieldbearerUniqueManager>();
             
         Debug.Log("<color=cyan>[InventoryManager]</color> Initialized.");
 

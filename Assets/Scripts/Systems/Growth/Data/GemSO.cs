@@ -55,7 +55,36 @@ public enum GemUniqueType
     PriestsCantAttack = 29,     // 사제는 공격을 할 수 없어! (부식 시너지 활성화 시 아군 치유량 20% 증가)
     DoubleCorrosion = 30,       // 부식 2배 (부식 시너지 효과 10% 증폭)
     WeaponCorrosion = 31,       // 무기 부식 (부식된 적 공격력 10% 감소)
-    RustedArmor = 32            // 녹슬어 버린 갑옷 (부식된 적 아군 평타 5회 피격 시 체력 5% 고정피해)
+    RustedArmor = 32,           // 녹슬어 버린 갑옷 (부식된 적 아군 평타 5회 피격 시 체력 5% 고정피해)
+    // [추가] 전사 유니크 7종
+    WarriorBallistics1 = 33,    // 전사 인형 탄도학 I (포물선 던지기 데미지 10% 증가)
+    WarriorBallistics2 = 34,    // 전사 인형 탄도학 II (직구 던지기 데미지 10% 증가)
+    WarriorBallistics3 = 35,    // 전사 인형 탄도학 III (던지기 단일 적용 효과 15% 증가)
+    CrushingPower = 36,         // 짓눌리는 힘 (오버킬 시 초과 피해량만큼 전사 체력 회복)
+    WarriorMedal = 111,         // 전사의 훈장
+    WarriorPursuit = 112,       // 추적하는 눈
+    WarriorFrenzy = 113,        // 광적인 분노
+
+    // [방패병 전용 유니크 9종]
+    ShieldSturdy = 120,         // 든든한 방패
+    ShieldWillCourage = 121,    // 방패의 의지 - 용기
+    ShieldWillWind = 122,       // 방패의 의지 - 바람
+    ShieldWillClash = 123,      // 방패의 의지 - 격돌
+    ShieldThornArmor = 124,     // 가시 갑옷
+    ShieldHeavyArmor = 125,     // 육중한 갑옷
+    ShieldPatienceAura = 126,   // 인내의 오오라
+    ShieldOverwhelm = 127,      // 압도
+    ShieldTwistedGround = 128,  // 뒤틀리는 지반
+    
+    // [추가] 궁수 유니크 8종
+    ArcherTerrain = 40,         // 선관지형 / 사냥꾼의 몰이법 (범위 내 마리당 던지기 효과 5% 증가)
+    ArcherWind = 41,            // 후관풍세 / 확산사격 (던지기 범위 20% 증가)
+    ArcherStance = 42,          // 비정비팔 / 정조준 일격 (중앙 적 20% 추가 피해)
+    ArcherBreath = 43,          // 흉어복실 / 바람의 방향 (비행 거리에 비례하여 1~33% 던지기 효과 증가)
+    ArcherPush = 44,            // 전추태산 / 지원사격 (던지기 광역 피해 15% 증가)
+    ArcherTension = 45,         // 발여호미 / 장력의 힘 (기본 공격 빈도 25% 느려짐, 공격력 25% 증가)
+    ArcherMiss = 46,            // 발이부중 (반구저기 필요. 공격 빗나감 시 다음 공격 100% 증가)
+    ArcherReflect = 47          // 반구저기 (발이부중 필요. 체력 50% 미만 시 공격력 15% 증가, 50% 이상 시 공격속도 15% 증가)
 }
 
 public enum SynergyCategory
@@ -82,20 +111,13 @@ public enum GemSynergyGroup
     Priest_Corrosion = 102,
 
     // [궁수 전용 시너지]
-    Archer_Bullseye = 200,
-    Archer_CarpetBomb = 201,
+    Archer_ArcheryPrinciples = 202,
 
     // [전사 전용 시너지]
-    Warrior_FatalStrike = 300,
-    Warrior_Duel = 301,
+    Warrior_Executioner = 300,
 
     // [방패병 전용 시너지]
-    Shield_Vitality = 400,
-    Shield_Frenzy = 401,
-
-    // [창병 전용 시너지]
-    Spear_Sprint = 500,
-    Spear_Collision = 501
+    Shield_Guardian = 400
 }
 
 /// <summary>
@@ -138,6 +160,9 @@ public class GemSO : GrowthItemSO
             case GemSynergyGroup.BloodPop: return new Color(1.0f, 0.0f, 1.0f); // Magenta
             case GemSynergyGroup.Priest_Aging: return new Color(0.7f, 0.5f, 0.5f); // Brown
             case GemSynergyGroup.Priest_Corrosion: return new Color(1.0f, 0.8f, 0.0f); // Gold
+            case GemSynergyGroup.Warrior_Executioner: return new Color(0.8f, 0.1f, 0.1f); // DarkRed
+            case GemSynergyGroup.Archer_ArcheryPrinciples: return new Color(0.1f, 0.8f, 0.5f); // SeaGreen
+            case GemSynergyGroup.Shield_Guardian: return new Color(0.6f, 0.6f, 0.8f); // LightPurple
             default: return Color.white;
         }
     }

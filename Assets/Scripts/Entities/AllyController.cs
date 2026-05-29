@@ -175,6 +175,17 @@ public class AllyController : BaseEntity, IThrowable
     {
         if (minionData == null || minionData.hpCostRatioPerThrow <= 0) return;
         float damageAmount = _stats.MAXHP * minionData.hpCostRatioPerThrow;
+
+        // [시너지] 처형자 (Warrior_Executioner): 4스택(Lv2) 이상 시 스테미너 소모 30% 감소
+        if (minionData.minionType == CommandData.SkeletonWarrior && InventoryManager.Instance != null)
+        {
+            int execLevel = GemSynergyLogic.GetLevel(InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.Warrior_Executioner));
+            if (execLevel >= 2)
+            {
+                damageAmount *= 0.7f;
+            }
+        }
+
         _stats.Health.GetDamage(new DamageInfo(damageAmount, DamageType.Fixed, null));
     }
 

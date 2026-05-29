@@ -42,9 +42,51 @@ public class ShieldBearerAction : ImpactAction
                 targetStat.Visual.SetShieldVFX(vfx);
             }
         }
-        // 3. 적군인 경우: 보호막 아이템 드랍 (궁수+방패병 등 적군 타겟팅 조합)
-        else if (!isAllyOrPlayer && target.CompareTag("Enemy"))
+        // 3. 적군인 경우: 보호막 아이템 드랍 및 적군 피해(유니크/시너지)
+        else if (!isAllyOrPlayer && target.TryGetComponent(out CharacterHealth enemyHealth))
         {
+            var inven = InventoryManager.Instance;
+            float totalDamage = 0f;
+
+            if (inven != null)
+            {
+                // [유니크] 육중한 갑옷: 방패 수치의 14% 단일 피해
+                if (inven.HasUniqueEffect(GemUniqueType.ShieldHeavyArmor))
+                {
+                    totalDamage += finalShield * 0.14f;
+                }
+
+                // [유니크] 뒤틀리는 지반: 방패 수치의 20% 범위 피해
+                bool hasTwistedGround = inven.HasUniqueEffect(GemUniqueType.ShieldTwistedGround);
+                
+                // [시너지] 수호신(Shield_Guardian) (2) 스택: 방패 수치의 20% 광역 피해
+                int guardianLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
+                bool hasGuardianAoE = guardianLevel >= 1; // (2) 스택
+
+                if (hasTwistedGround || hasGuardianAoE)
+                {
+                    float aoeDamage = finalShield * 0.20f;
+                    if (hasTwistedGround && hasGuardianAoE) aoeDamage = finalShield * 0.40f; // 둘 다 있으면 40%
+
+                    float radius = 2.5f;
+                    foreach (var status in CharacterStatus.ActiveEnemies)
+                    {
+                        if (status != null && Vector2.Distance(impactPos, status.transform.position) <= radius)
+                        {
+                            if (status.TryGetComponent(out CharacterHealth health))
+                            {
+                                health.GetDamage(new DamageInfo(aoeDamage, DamageType.Physical, null));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (totalDamage > 0f)
+            {
+                enemyHealth.GetDamage(new DamageInfo(totalDamage, DamageType.Physical, null));
+            }
+
             if (registry != null && registry.shieldCollectiblePrefab != null)
             {
                 GameObject itemObj = Object.Instantiate(registry.shieldCollectiblePrefab, impactPos, Quaternion.identity);
@@ -52,7 +94,6 @@ public class ShieldBearerAction : ImpactAction
                 if (collectible == null) collectible = itemObj.AddComponent<ShieldCollectible>();
                 
                 collectible.Init(finalShield, 3.0f);
-                Debug.Log($"<color=cyan>[Shield Action]</color> 적군 타격! 보호막 아이템 드랍. (수치: {finalShield:F1})");
             }
         }
     }

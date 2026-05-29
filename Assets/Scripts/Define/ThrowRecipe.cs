@@ -17,6 +17,7 @@ public class ThrowRecipe
         public float chargeRatio;
         public bool isImmediateApplied = false;
         public bool isMissed = false;
+        public bool isDirect = false; // [추가] 직구 여부
 
         public void CopyFrom(BasicInfo other)
         {
@@ -27,6 +28,7 @@ public class ThrowRecipe
             chargeRatio = other.chargeRatio;
             isImmediateApplied = other.isImmediateApplied;
             isMissed = other.isMissed;
+            isDirect = other.isDirect;
         }
     }
 
@@ -62,6 +64,7 @@ public class ThrowRecipe
         
         public List<GameObject> hitTargets = new List<GameObject>();
         public List<IThrowable> heldUnits = new List<IThrowable>();
+        public List<GameObject> areaTargets = new List<GameObject>(); // [추가] 범위 내 타겟 리스트 (궁수 시너지/유니크용)
 
         public void CopyFrom(TrajectoryState other)
         {
@@ -72,6 +75,7 @@ public class ThrowRecipe
             isMaster = other.isMaster;
             hitTargets = new List<GameObject>(other.hitTargets);
             heldUnits = new List<IThrowable>(other.heldUnits);
+            if (other.areaTargets != null) areaTargets = new List<GameObject>(other.areaTargets);
         }
     }
 

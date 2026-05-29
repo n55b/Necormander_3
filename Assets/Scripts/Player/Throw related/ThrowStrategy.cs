@@ -103,6 +103,7 @@ public class ThrowStrategy : MonoBehaviour
         recipe.info.targetingMode = GetCurrentTargetingMode(heldObjects);
         recipe.info.targetTeam = GetExpectedTargetTeam(heldObjects);
         bool isDirect = chargeRatio >= 0.98f;
+        recipe.info.isDirect = isDirect; // [추가] 레시피에 직구 여부 저장
 
         // [추가] 인벤토리에 장착된 모든 던지기 능력들의 Hook 실행 (ModifyRecipe)
         if (InventoryManager.Instance != null)
@@ -185,8 +186,23 @@ public class ThrowStrategy : MonoBehaviour
                     break;
 
                 case CommandData.SkeletonArcher: 
-                    // 궁수: 보석 보너스를 범위(Radius) 고정 가산치로 사용
+                    // 궁수: 보석 보너스는 범위(Radius) 고정 가산치로 적용
                     float finalRadius = obj.MinionData.baseAreaRadius + gemBonus;
+                    
+                    if (InventoryManager.Instance != null)
+                    {
+                        float radiusMult = 1.0f;
+                        // [유니크] 후관풍세(ArcherWind)
+                        if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.ArcherWind)) radiusMult += 0.20f;
+
+                        // [시너지] 집궁제원칙
+                        int archerSynLevel = GemSynergyLogic.GetLevel(InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.Archer_ArcheryPrinciples));
+                        if (archerSynLevel >= 1) radiusMult += 0.20f; // (2) 스택
+                        if (archerSynLevel >= 4) radiusMult += 0.10f; // (8) 스택
+
+                        finalRadius *= radiusMult;
+                    }
+
                     recipe.actions.Add(new ArcherAction(baseVal, finalRadius));
                     break;
 
