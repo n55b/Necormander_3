@@ -105,22 +105,27 @@ public class CharacterHealth : MonoBehaviour
         // [유니크] 녹슬어 버린 갑옷 (RustedArmor): 부식된 적이 아군 미니언 평타 5대 피격 시 현재 체력 5% 고정 피해
         if (info.isBasicAttack && info.attacker != null && _stat != null && _stat.IsEnemy)
         {
-            var attackerStat = info.attacker.GetComponent<CharacterStat>();
+            var attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
+            if (attackerStat == null) attackerStat = info.attacker.GetComponentInChildren<CharacterStat>();
+            
             // 플레이어가 아닌 아군 미니언 평타인 경우 (혹은 플레이어도 포함시킬지 여부 - "미니언의 기본 공격" 조건)
             if (attackerStat != null && !attackerStat.IsEnemy)
             {
                 var inven = InventoryManager.Instance;
-                if (inven != null && inven.HasUniqueEffect(GemUniqueType.RustedArmor) && _status != null && _status.GetDebuffBool(DebuffBoolType.Corroded))
+                if (inven != null && _status != null && _status.GetDebuffBool(DebuffBoolType.Corroded))
                 {
-                    _status.CorrosionHitCount++;
-                    if (_status.CorrosionHitCount >= 5)
+                    int rustedCount = inven.GetUniqueEffectCount(GemUniqueType.RustedArmor);
+                    if (rustedCount > 0)
                     {
-                        _status.CorrosionHitCount = 0;
-                        float percentDamage = curHP * 0.05f; // 현재 체력 5%
-                        
-                        // 즉시 고정 데미지 적용
-                        GetDamage(new DamageInfo(percentDamage, DamageType.Fixed, info.attacker));
-                        TakeDamageEvent?.Invoke((int)percentDamage, "Fixed", false);
+                        _status.CorrosionHitCount++;
+                        if (_status.CorrosionHitCount >= 5)
+                        {
+                            _status.CorrosionHitCount = 0;
+                            float percentDamage = curHP * 0.05f * rustedCount; // 현재 체력 5% * 장착 개수
+                            
+                            // 즉시 고정 데미지 적용 (팝업 텍스트: Rusted로 갈색 표시)
+                            GetDamage(new DamageInfo(percentDamage, DamageType.Fixed, info.attacker, false, 1f, false, "Rusted"));
+                        }
                     }
                 }
             }
@@ -236,8 +241,6 @@ public class CharacterHealth : MonoBehaviour
             string popupStr = "Normal";
             if (!string.IsNullOrEmpty(info.popupText))
                 popupStr = info.popupText;
-            else if (info.type == DamageType.Fixed)
-                popupStr = "Poison"; // 하위 호환성을 위해 Fixed 데미지이고 지정된 텍스트가 없으면 Poison으로 처리
 
             TakeDamageEvent?.Invoke((int)finalDamage, popupStr, false);
 

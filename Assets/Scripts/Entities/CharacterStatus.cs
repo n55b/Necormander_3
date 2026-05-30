@@ -160,7 +160,7 @@ public class CharacterStatus : MonoBehaviour
                 {
                     // [수정] 중독 피해량: 스택의 25%, 최소 1 대미지
                     float damage = Mathf.Max(1f, poisonStack * 0.25f);
-                    health.GetDamage(new DamageInfo(damage, DamageType.Fixed, null));
+                    health.GetDamage(new DamageInfo(damage, DamageType.Fixed, null, false, 1f, false, "Poison"));
 
                     // [유니크] 초록색 체액 (GreenFluid): 독 틱 피해 발생 시 30% 확률로 던질 수 있는 포션 스폰
                     var inven = InventoryManager.Instance;
@@ -454,7 +454,7 @@ public class CharacterStatus : MonoBehaviour
                     if (!IsElite) 
                     {
                         var health = GetComponentInChildren<CharacterHealth>();
-                        if (health != null) health.GetDamage(new DamageInfo(health.CurHP + 999f, DamageType.Fixed, null));
+                        if (health != null) health.GetDamage(new DamageInfo(health.CurHP + 999f, DamageType.Fixed, null, false, 1f, false, "Execution"));
                     }
                 }
                 break;

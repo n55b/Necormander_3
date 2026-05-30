@@ -936,7 +936,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingGems_Data.Array.size
-      value: 11
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingMinions.Array.data[0]'
@@ -965,23 +965,23 @@ PrefabInstance:
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[0]'
       value: 
-      objectReference: {fileID: 11400000, guid: 4e072439658105943be804ce1c98096b, type: 2}
+      objectReference: {fileID: 11400000, guid: 6e63e604fd74f164bbf0ffb2848540c1, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[1]'
       value: 
-      objectReference: {fileID: 11400000, guid: 0ec9d1b7fa7383240a0e5043fee93717, type: 2}
+      objectReference: {fileID: 11400000, guid: f5b88ccb54cbe1343ab9de6c0d4d745d, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[2]'
       value: 
-      objectReference: {fileID: 11400000, guid: ed16be86daa15e7438fc0ab5d4628b03, type: 2}
+      objectReference: {fileID: 11400000, guid: 06b5260d3ed0e044dab893d38d7489ea, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[3]'
       value: 
-      objectReference: {fileID: 11400000, guid: 223ba33ad0fea894ab0607bd8411be19, type: 2}
+      objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[4]'
       value: 
-      objectReference: {fileID: 11400000, guid: 725e0d9fbfe95104f875d1b9849eba1a, type: 2}
+      objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[5]'
       value: 

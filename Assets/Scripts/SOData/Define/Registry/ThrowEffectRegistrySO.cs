@@ -37,4 +37,7 @@ public class ThrowEffectRegistrySO : ScriptableObject
 
     [Header("BloodPop Unique (비폭 유니크 전용)")]
     public GameObject meltingCorpsePuddlePrefab;
+
+    [Header("Aging Unique (노화 유니크 전용)")]
+    public GameObject goryeojangAuraPrefab;
 }

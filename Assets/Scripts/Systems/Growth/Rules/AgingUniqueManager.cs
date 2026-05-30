@@ -54,18 +54,52 @@ public class AgingUniqueManager : MonoBehaviour
         {
             if (_goryeojangAuraVFX == null)
             {
-                _goryeojangAuraVFX = new GameObject("GoryeojangAura_Temp");
-                // 임시로 시각적 표현이 필요하다면 SpriteRenderer 등을 붙일 수 있습니다.
+                var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null ? GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY : null;
+                
+                if (registry != null && registry.goryeojangAuraPrefab != null)
+                {
+                    _goryeojangAuraVFX = Instantiate(registry.goryeojangAuraPrefab);
+                }
+                else
+                {
+                    _goryeojangAuraVFX = new GameObject("GoryeojangAura_Temp");
+                    var sr = _goryeojangAuraVFX.AddComponent<SpriteRenderer>();
+                    sr.sprite = CreateCircleSprite();
+                    sr.color = new Color(0f, 0f, 0f, 0.5f); // 50% 반투명 검정색
+                }
             }
             _goryeojangAuraVFX.SetActive(true);
             _goryeojangAuraVFX.transform.position = HighestAgingEnemy.transform.position;
             
-            // 임시 크기 적용 (비폭 기본 폭발 반경이 2.0f 이므로 지름 4.0f)
+            // 임시 크기 적용 (비폭 기본 폭발 반경이 2.0f 이므로 지름 4.0f) - 프리팹이면 자체 크기를 쓰거나 맞게 스케일
             _goryeojangAuraVFX.transform.localScale = Vector3.one * 4.0f; 
         }
         else
         {
             if (_goryeojangAuraVFX != null) _goryeojangAuraVFX.SetActive(false);
         }
+    }
+
+    private Sprite CreateCircleSprite()
+    {
+        int size = 64;
+        Texture2D texture = new Texture2D(size, size);
+        Color transparent = new Color(0, 0, 0, 0);
+        Color black = Color.white; 
+        float radius = size / 2f;
+        Vector2 center = new Vector2(radius, radius);
+        
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                if (Vector2.Distance(center, new Vector2(x, y)) <= radius)
+                    texture.SetPixel(x, y, black);
+                else
+                    texture.SetPixel(x, y, transparent);
+            }
+        }
+        texture.Apply();
+        return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
     }
 }
