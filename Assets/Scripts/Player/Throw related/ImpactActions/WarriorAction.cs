@@ -20,14 +20,34 @@ public class WarriorAction : ImpactAction
             if (inven != null)
             {
                 float ballisticsMultiplier = 1f;
-                // [유니크] 전사 인형 탄도학 I (포물선 던지기 데미지 10% 증가)
-                if (!recipe.info.isDirect && inven.HasUniqueEffect(GemUniqueType.WarriorBallistics1)) ballisticsMultiplier += 0.10f;
+                if (!recipe.info.isDirect)
+                {
+                    int wbCount = inven.GetUniqueEffectCount(GemUniqueType.WarriorBallistics1);
+                    if (wbCount > 0)
+                    {
+                        ballisticsMultiplier += 0.10f * wbCount;
+                    }
+                }
                 
                 // [유니크] 전사 인형 탄도학 II (직구 던지기 데미지 10% 증가)
-                if (recipe.info.isDirect && inven.HasUniqueEffect(GemUniqueType.WarriorBallistics2)) ballisticsMultiplier += 0.10f;
+                if (recipe.info.isDirect)
+                {
+                    int wb2Count = inven.GetUniqueEffectCount(GemUniqueType.WarriorBallistics2);
+                    if (wb2Count > 0)
+                    {
+                        ballisticsMultiplier += 0.10f * wb2Count;
+                    }
+                }
                 
                 // [유니크] 전사 인형 탄도학 III (던지기 단일 적용 효과 15% 증가)
-                if (recipe.info.targetingMode == TargetingMode.Target && inven.HasUniqueEffect(GemUniqueType.WarriorBallistics3)) ballisticsMultiplier += 0.15f;
+                if (recipe.info.targetingMode == TargetingMode.Target)
+                {
+                    int wb3Count = inven.GetUniqueEffectCount(GemUniqueType.WarriorBallistics3);
+                    if (wb3Count > 0)
+                    {
+                        ballisticsMultiplier += 0.15f * wb3Count;
+                    }
+                }
 
                 finalDamage *= ballisticsMultiplier;
 

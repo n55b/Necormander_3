@@ -149,20 +149,28 @@ public class CharacterHealth : MonoBehaviour
         // [유니크] 동상 파괴자 (Frostbreaker) - 한기 걸린 적에게 5% 추가 피해
         if (isEnemyTarget && _status.GetDebuffStack(DebuffStackType.Chill) > 0)
         {
-            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Frostbreaker))
+            if (InventoryManager.Instance != null)
             {
-                remainingDamage *= 1.05f;
+                int count = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.Frostbreaker);
+                if (count > 0)
+                {
+                    remainingDamage *= (1.0f + 0.05f * count);
+                }
             }
         }
 
         // [유니크] 고드름 부시기 (ShatterIcicle) - 동결된 적을 투척 공격으로 맞출 시 동결 해제 및 50% 추가 피해
         if (isEnemyTarget && _status.GetDebuffBool(DebuffBoolType.Frozen) && info.isThrowDamage)
         {
-            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.ShatterIcicle))
+            if (InventoryManager.Instance != null)
             {
-                remainingDamage *= 1.50f;
-                // 강제 해제
-                _status.ForceUnfreeze();
+                int count = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.ShatterIcicle);
+                if (count > 0)
+                {
+                    remainingDamage *= (1.0f + 0.50f * count);
+                    // 강제 해제
+                    _status.ForceUnfreeze();
+                }
             }
         }
 
@@ -225,10 +233,13 @@ public class CharacterHealth : MonoBehaviour
             curHP -= finalDamage;
             OnDamageTaken?.Invoke(finalDamage);
 
-            if(info.type == DamageType.Fixed)
-                str = "Poison";
-            
-            TakeDamageEvent?.Invoke((int)finalDamage, str, false);
+            string popupStr = "Normal";
+            if (!string.IsNullOrEmpty(info.popupText))
+                popupStr = info.popupText;
+            else if (info.type == DamageType.Fixed)
+                popupStr = "Poison"; // 하위 호환성을 위해 Fixed 데미지이고 지정된 텍스트가 없으면 Poison으로 처리
+
+            TakeDamageEvent?.Invoke((int)finalDamage, popupStr, false);
 
             // [유니크] 광적인 분노 (FanaticRage): 기본 공격 피해의 3%만큼 흡혈
             if (info.isBasicAttack && info.attacker != null)
@@ -259,9 +270,13 @@ public class CharacterHealth : MonoBehaviour
             float executeThreshold = _status.GetDebuffStack(DebuffStackType.Execute);
 
             // [유니크] 단두대 (Guillotine): 처형 스택 기준치 10% 완화
-            if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Guillotine))
+            if (InventoryManager.Instance != null)
             {
-                executeThreshold *= 1.1f;
+                int count = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.Guillotine);
+                if (count > 0)
+                {
+                    executeThreshold *= (1.0f + 0.1f * count);
+                }
             }
 
             if (executeThreshold > 0 && curHP > 0 && curHP <= executeThreshold)
@@ -294,25 +309,32 @@ public class CharacterHealth : MonoBehaviour
     {
         if (isDead) return;
 
+        float healAmount = amount;
+
         // [유니크] 사제는 공격을 할 수 없어! (PriestsCantAttack): 부식 시너지 활성화 시 아군 치유량 20% 증가
         if (_stat != null && !_stat.IsEnemy)
         {
             var inven = InventoryManager.Instance;
-            if (inven != null && inven.HasUniqueEffect(GemUniqueType.PriestsCantAttack))
+            if (inven != null)
             {
+                int pcCount = inven.GetUniqueEffectCount(GemUniqueType.PriestsCantAttack);
+                if (pcCount > 0)
+                {
+                    healAmount *= (1.0f + 0.20f * pcCount);
+                }
+
                 int corrosionLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Priest_Corrosion));
                 if (corrosionLevel > 0)
                 {
-                    amount *= 1.2f;
+                    healAmount *= 1.2f;
                 }
             }
         }
 
         float oldHP = curHP;
-        float healAmount = amount;
-        float excessHeal = (curHP + amount) - _stat.MAXHP;
+        float excessHeal = (curHP + healAmount) - _stat.MAXHP;
         
-        curHP = Mathf.Min(curHP + amount, _stat.MAXHP);
+        curHP = Mathf.Min(curHP + healAmount, _stat.MAXHP);
 
         // [시너지] 수호신(Shield_Guardian) (6) 스택: 체력 회복 초과양 15%가 보호막으로 전환 (최대 체력의 15% 제한)
         if (excessHeal > 0 && _stat != null)
@@ -433,9 +455,13 @@ public class CharacterHealth : MonoBehaviour
         bool hasInven = inven != null;
 
         // [유니크] 급조 폭팔물 (ImprovisedExplosive): 데미지 10% 증가
-        if (hasInven && inven.HasUniqueEffect(GemUniqueType.ImprovisedExplosive))
+        if (hasInven)
         {
-            finalDamage *= 1.1f;
+            int ieCount = inven.GetUniqueEffectCount(GemUniqueType.ImprovisedExplosive);
+            if (ieCount > 0)
+            {
+                finalDamage *= (1.0f + 0.10f * ieCount);
+            }
         }
 
         // [유니크] 동귀어진 (MutualDestruction): 폭발 직전 반경 1.5배 내의 적들을 폭발 중심점으로 끌어당김
@@ -476,20 +502,27 @@ public class CharacterHealth : MonoBehaviour
                 float damageToApply = finalDamage;
                 var targetStatus = col.GetComponentInChildren<CharacterStatus>();
 
-                // [유니크] 나도 폭발하는걸까? (AmIExplodingToo) 약점 상태 시 데미지 1.2배
+                // [유니크] 나도 폭발하는걸까? (AmIExplodingToo) 약점 상태 시 데미지 장착 개수 비례 증폭
                 if (hasInven && targetStatus != null && targetStatus.GetDebuffBool(DebuffBoolType.BloodPopVulnerable))
                 {
-                    damageToApply *= 1.2f;
+                    int amICount = inven.GetUniqueEffectCount(GemUniqueType.AmIExplodingToo);
+                    if (amICount > 0)
+                    {
+                        damageToApply *= (1.0f + 0.20f * amICount);
+                    }
+                    else
+                    {
+                        damageToApply *= 1.20f; // 보석을 뺀 상태라도 디버프가 남아있다면 기본 20%는 적용되게 유지
+                    }
                 }
 
-                // 데미지 팝업 등을 위해 이벤트 호출
-                targetHealth.TakeDamageEvent?.Invoke((int)damageToApply, "BloodPop", false);
-                targetHealth.GetDamage(new DamageInfo(damageToApply, DamageType.Fixed, this.gameObject));
+                // 데미지 팝업 등을 위해 이벤트 호출 (GetDamage 내부에서 팝업을 띄우므로 여기서는 직접 호출 생략)
+                targetHealth.GetDamage(new DamageInfo(damageToApply, DamageType.Fixed, this.gameObject, false, 1f, false, "BloodPop"));
 
-                // [유니크] 나도 폭발하는걸까? (AmIExplodingToo) 타격 후 약점 상태 5초 부여
+                // [유니크] 나도 폭발하는걸까? (AmIExplodingToo) 타격 후 약점 상태 영구 부여
                 if (hasInven && inven.HasUniqueEffect(GemUniqueType.AmIExplodingToo) && targetStatus != null)
                 {
-                    targetStatus.SetDebuffBool(DebuffBoolType.BloodPopVulnerable, 5.0f);
+                    targetStatus.SetDebuffBool(DebuffBoolType.BloodPopVulnerable, 9999f);
                 }
 
                 // [유니크] 살덩이가 폭발하는 것: 비폭 피해 대상에게 데미지의 일부만큼 비폭 스택 부여
@@ -507,7 +540,7 @@ public class CharacterHealth : MonoBehaviour
         // [유니크] 내장 파티 (GoreParty) & 피철갑 (BloodArmor): 아군 회복 및 쉴드
         if (hasInven && (inven.HasUniqueEffect(GemUniqueType.GoreParty) || inven.HasUniqueEffect(GemUniqueType.BloodArmor)))
         {
-            LayerMask allyLayer = LayerMask.GetMask("Ally", "Player");
+            LayerMask allyLayer = LayerMask.GetMask("Army", "Player");
             Collider2D[] allyColls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, allyLayer);
             foreach (var col in allyColls)
             {
@@ -516,15 +549,30 @@ public class CharacterHealth : MonoBehaviour
 
                 if (allyHealth != null && !allyHealth.isDead)
                 {
-                    if (inven.HasUniqueEffect(GemUniqueType.GoreParty))
+                    int goreCount = inven.GetUniqueEffectCount(GemUniqueType.GoreParty);
+                    if (goreCount > 0)
                     {
-                        allyHealth.Heal(stacks);
+                        allyHealth.Heal(stacks * goreCount);
                     }
                 }
                 
-                if (allyStatus != null && inven.HasUniqueEffect(GemUniqueType.BloodArmor))
+                if (allyStatus != null)
                 {
-                    allyStatus.AddShield(stacks * 2.0f, 5.0f); // 쉴드 5초 지속으로 가정
+                    int bloodArmorCount = inven.GetUniqueEffectCount(GemUniqueType.BloodArmor);
+                    if (bloodArmorCount > 0)
+                    {
+                        allyStatus.AddShield(stacks * 2.0f * bloodArmorCount, 5.0f); // 쉴드 5초 지속으로 가정
+                        
+                        if (registry != null && registry.shieldAttachVFX != null)
+                        {
+                            var allyStat = col.GetComponentInChildren<CharacterStat>();
+                            if (allyStat != null && allyStat.Visual != null)
+                            {
+                                GameObject vfx = Instantiate(registry.shieldAttachVFX, col.transform.position, Quaternion.identity, col.transform);
+                                allyStat.Visual.SetShieldVFX(vfx);
+                            }
+                        }
+                    }
                 }
             }
         }

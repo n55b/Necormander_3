@@ -71,15 +71,20 @@ public class CharacterStat : MonoBehaviour
             float agingMult = Mathf.Max(0.1f, 1f - agingReduction);
 
             // [유니크] 무기 부식 (WeaponCorrosion): 부식된 적 공격력 10% 감소
-            float corrosionWeaponMult = 1f;
+            float corrosionAtkReduction = 0f;
             if (IsEnemy && Status != null && Status.GetDebuffBool(DebuffBoolType.Corroded))
             {
                 var inven = InventoryManager.Instance;
-                if (inven != null && inven.HasUniqueEffect(GemUniqueType.WeaponCorrosion))
+                if (inven != null)
                 {
-                    corrosionWeaponMult = 0.9f;
+                    int wcCount = inven.GetUniqueEffectCount(GemUniqueType.WeaponCorrosion);
+                    if (wcCount > 0)
+                    {
+                        corrosionAtkReduction += 0.10f * wcCount; // 무기 부식 공격력 추가 감소
+                    }
                 }
             }
+            float corrosionMult = Mathf.Max(0f, 1f - corrosionAtkReduction);
 
             // 플레이어는 보석/보물(미니언용) 보너스를 받지 않음
             float bonusMult = _isPlayer ? 0f : (GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
@@ -124,7 +129,7 @@ public class CharacterStat : MonoBehaviour
             float allyWillClashMult = 1f;
             if (_isAlly && ShieldbearerUniqueManager.IsWillClashActive) allyWillClashMult += 0.08f;
 
-            return (baseAtk * (1f + bonusMult) * agingMult * corrosionWeaponMult * uniqueArcherMult * uniqueSpearmanMult * uniqueWarriorMult) * ShieldbearerSelfMult * allyWillClashMult;
+            return (baseAtk * (1f + bonusMult) * agingMult * corrosionMult * uniqueArcherMult * uniqueSpearmanMult * uniqueWarriorMult) * ShieldbearerSelfMult * allyWillClashMult;
         }
     }
 
@@ -158,14 +163,22 @@ public class CharacterStat : MonoBehaviour
             float bonusMult = _isPlayer ? 0f : GetGemBonus(StatType.AttackSpeed);
 
             // [유니크] 노화 사냥꾼 (AgingHunter): 방 전체 적의 노화 스택 100당 10% 증가
-            if ((_isPlayer || _isAlly) && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.AgingHunter))
+            if ((_isPlayer || _isAlly) && InventoryManager.Instance != null)
             {
-                float totalAgingStacks = 0f;
-                foreach (var enemyStatus in CharacterStatus.ActiveEnemies)
+                int ahCount = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.AgingHunter);
+                if (ahCount > 0)
                 {
-                    if (enemyStatus != null) totalAgingStacks += enemyStatus.GetDebuffStack(DebuffStackType.Aging);
+                    float totalAgingStacks = 0f;
+                    foreach (var enemyStatus in CharacterStatus.ActiveEnemies)
+                    {
+                        if (enemyStatus != null) totalAgingStacks += enemyStatus.GetDebuffStack(DebuffStackType.Aging);
+                    }
+                    int multiplier = Mathf.FloorToInt(totalAgingStacks / 100f);
+                    if (multiplier > 0)
+                    {
+                        bonusMult += (0.1f * multiplier * ahCount);
+                    }
                 }
-                bonusMult += (totalAgingStacks / 100f) * 0.1f;
             }
 
             float uniqueArcherDivisor = 1f;
@@ -221,11 +234,15 @@ public class CharacterStat : MonoBehaviour
         {
             float chance = baseMissChance;
             // [유니크] 침침한 시야 (DimVision): 노화 스택 50 이상 시 25% 미스 확률 증가
-            if (IsEnemy && Status != null && Status.GetDebuffStack(DebuffStackType.Aging) >= 50)
+            if (IsEnemy && Status != null && Status.GetDebuffStack(DebuffStackType.Aging) >= 50f)
             {
-                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.DimVision))
+                if (InventoryManager.Instance != null)
                 {
-                    chance += 0.25f;
+                    int dvCount = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.DimVision);
+                    if (dvCount > 0)
+                    {
+                        chance += (0.25f * dvCount);
+                    }
                 }
             }
             return chance;
@@ -245,9 +262,13 @@ public class CharacterStat : MonoBehaviour
             // [유니크] 냉혹한 사냥꾼 (ColdBloodedHunter) - 한기 걸린 적 이속 10% 추가 감소
             if (IsEnemy && Status.GetDebuffStack(DebuffStackType.Chill) > 0f)
             {
-                if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.ColdBloodedHunter))
+                if (InventoryManager.Instance != null)
                 {
-                    chillReduction += 0.1f; // 10% 추가 감소
+                    int count = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.ColdBloodedHunter);
+                    if (count > 0)
+                    {
+                        chillReduction += (0.1f * count); // 10% 추가 감소 * 개수
+                    }
                 }
             }
 

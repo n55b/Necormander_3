@@ -67,7 +67,7 @@ public class FloatingTextSpawner : MonoBehaviour
         else if (type == "Corroded") color = Color.magenta; // 부식
         else if (type == "Shield") color = Color.grey;      // 쉴드
         else if (type == "Execution") color = Color.yellow; // 처형
-        // else if (type == "BloodPop") color = Color.red;     // 비폭
+        else if (type == "BloodPop") color = Color.red;     // 비폭
 
         TextFloating textObj = FloatingTextManager.instance.GetFromPool();
 

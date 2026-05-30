@@ -68,13 +68,13 @@ public static class GemRuleSystem
         return baseReduction + bonus;
     }
 
-    public static float GetMaxChillStack(bool isEnemyTarget)
+    public static float GetMaxChillStacks(bool isEnemyTarget)
     {
-        float baseMax = 100f; // [수정] 한기 최대 스택 100 고정
-        if (Inven == null || !isEnemyTarget) return baseMax;
+        float baseMax = isEnemyTarget ? 15.0f : 5.0f;
+        if (Inven == null) return baseMax;
 
-        bool hasFlower = Inven.HasUniqueEffect(GemUniqueType.SlowlyFreezingFlower);
-        return baseMax + GemUniqueLogic.GetSlowlyFreezingFlowerMaxBonus(hasFlower);
+        int flowerCount = Inven.GetUniqueEffectCount(GemUniqueType.SlowlyFreezingFlower);
+        return baseMax + GemUniqueLogic.GetSlowlyFreezingFlowerMaxBonus(flowerCount);
     }
 
     public static float GetChillFreezeDamagePercentage(bool isBoss)
@@ -152,15 +152,13 @@ public static class GemRuleSystem
         return baseReduction + bonus;
     }
 
-    public static float GetMaxAgingStack(bool isEnemyTarget)
+    public static float GetMaxAgingStacks(bool isEnemyTarget)
     {
-        if (Inven == null || !isEnemyTarget) return 100f;
+        if (!isEnemyTarget) return 10f;
+        if (Inven == null) return 25f;
 
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Aging));
-        float baseMax = GemSynergyLogic.GetAgingMaxStack(level); // 100 or 120
-
-        bool hasNoCountry = Inven.HasUniqueEffect(GemUniqueType.NoCountryForOldMen);
-        return baseMax + GemUniqueLogic.GetNoCountryMaxStack(hasNoCountry);
+        int noCountryCount = Inven.GetUniqueEffectCount(GemUniqueType.NoCountryForOldMen);
+        return GemUniqueLogic.GetNoCountryMaxStack(noCountryCount);
     }
 
     public static float GetSenilityDamageAmp(bool isEnemyTarget)
@@ -172,8 +170,10 @@ public static class GemRuleSystem
 
     public static bool ShouldAgingInstaKill(float currentStacks, bool isEnemyTarget)
     {
-        if (Inven == null || !isEnemyTarget) return false;
-        return GemUniqueLogic.ShouldAgingInstaKill(Inven.HasUniqueEffect(GemUniqueType.NoCountryForOldMen), currentStacks);
+        if (!isEnemyTarget || Inven == null) return false;
+        
+        int noCountryCount = Inven.GetUniqueEffectCount(GemUniqueType.NoCountryForOldMen);
+        return GemUniqueLogic.ShouldAgingInstaKill(noCountryCount, currentStacks);
     }
 
     public static float GetGoryeojangSlowReduction()
@@ -193,9 +193,10 @@ public static class GemRuleSystem
         float amp = GemSynergyLogic.GetCorrosionDamageAmp(level);
         
         // [유니크] 부식 2배. (DoubleCorrosion): 부식 시너지 효과 10% 증폭
-        if (amp > 0f && Inven.HasUniqueEffect(GemUniqueType.DoubleCorrosion))
+        int doubleCorrosionCount = Inven.GetUniqueEffectCount(GemUniqueType.DoubleCorrosion);
+        if (amp > 0f && doubleCorrosionCount > 0)
         {
-            amp += 0.10f;
+            amp += 0.10f * doubleCorrosionCount;
         }
 
         return amp;

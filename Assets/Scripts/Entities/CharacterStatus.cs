@@ -401,9 +401,9 @@ public class CharacterStatus : MonoBehaviour
     {
         switch (type)
         {
-            case DebuffStackType.Poison: return 100f; // [수정] 20 -> 100
-            case DebuffStackType.Chill: return GemRuleSystem.GetMaxChillStack(IsEnemyTarget);
-            case DebuffStackType.Aging: return GemRuleSystem.GetMaxAgingStack(IsEnemyTarget);
+            case DebuffStackType.Poison: return 9999f; // 무제한
+            case DebuffStackType.Chill: return GemRuleSystem.GetMaxChillStacks(IsEnemyTarget);
+            case DebuffStackType.Aging: return GemRuleSystem.GetMaxAgingStacks(IsEnemyTarget);
             case DebuffStackType.BloodPop: return 1000f; 
             case DebuffStackType.Execute: return 1000f;
             default: return 999f;
@@ -415,8 +415,8 @@ public class CharacterStatus : MonoBehaviour
         switch (type)
         {
             case DebuffStackType.Chill:
-                float threshold = GemRuleSystem.GetMaxChillStack(IsEnemyTarget);
-                if (_debuffStacks[type] >= threshold)
+                float threshold = GemRuleSystem.GetMaxChillStacks(IsEnemyTarget);
+                if (threshold > 0 && _debuffStacks[type] >= threshold)
                 {
                     SetDebuffBool(DebuffBoolType.Frozen, 3.0f);
                     
@@ -442,8 +442,8 @@ public class CharacterStatus : MonoBehaviour
                 break;
             case DebuffStackType.Aging:
                 // [노화] 스택 상한 도달 시 노쇠(Senility) 발동
-                float agingMax = GemRuleSystem.GetMaxAgingStack(IsEnemyTarget);
-                if (_debuffStacks[type] >= agingMax)
+                float agingMax = GemRuleSystem.GetMaxAgingStacks(IsEnemyTarget);
+                if (agingMax > 0 && _debuffStacks[type] >= agingMax)
                 {
                     SetDebuffBool(DebuffBoolType.Senility, 5.0f);
                 }

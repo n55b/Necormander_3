@@ -87,7 +87,7 @@ public class InventoryManager : MonoBehaviour
         public Dictionary<DebuffBoolType, float> WeaponBoolAttributes = new Dictionary<DebuffBoolType, float>();
         public Dictionary<DebuffBoolType, float> HandBoolAttributes = new Dictionary<DebuffBoolType, float>();
 
-        public HashSet<GemUniqueType> UniqueEffects = new HashSet<GemUniqueType>();
+        public Dictionary<GemUniqueType, int> UniqueEffectCounts = new Dictionary<GemUniqueType, int>();
         
         // [신규] 시너지 그룹별 최대 인접 개수
         public Dictionary<GemSynergyGroup, int> SynergyCounts = new Dictionary<GemSynergyGroup, int>();
@@ -102,7 +102,7 @@ public class InventoryManager : MonoBehaviour
             HandAttributes.Clear();
             WeaponBoolAttributes.Clear(); // [추가]
             HandBoolAttributes.Clear();   // [추가]
-            UniqueEffects.Clear();
+            UniqueEffectCounts.Clear();
             SynergyCounts.Clear();
         }
     }
@@ -398,9 +398,18 @@ public class InventoryManager : MonoBehaviour
         return _globalGemStats.HandBoolAttributes.TryGetValue(type, out float val) ? val : 0f;
     }
 
+    public int GetUniqueEffectCount(GemUniqueType type)
+    {
+        if (_globalGemStats.UniqueEffectCounts.TryGetValue(type, out int count))
+        {
+            return count;
+        }
+        return 0;
+    }
+
     public bool HasUniqueEffect(GemUniqueType type)
     {
-        return _globalGemStats.UniqueEffects.Contains(type);
+        return GetUniqueEffectCount(type) > 0;
     }
 
     public float GetAggregatedGemBonus(CommandData job, StatType type)

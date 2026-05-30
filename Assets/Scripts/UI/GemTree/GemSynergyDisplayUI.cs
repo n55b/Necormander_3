@@ -45,11 +45,13 @@ public class GemSynergyDisplayUI : MonoBehaviour
             }
 
             // 2. 해당 그룹에 속한 유니크 효과들 표시
-            foreach (var unique in globalStats.UniqueEffects)
+            foreach (var uniqueKvp in globalStats.UniqueEffectCounts)
             {
-                if (GetSynergyGroupOfUnique(unique) == group)
+                var unique = uniqueKvp.Key;
+                var uniqueCount = uniqueKvp.Value;
+                if (GetSynergyGroupOfUnique(unique) == group && uniqueCount > 0)
                 {
-                    CreateSynergyItem("Unique", 0, 1, GetUniqueDescription(unique), Color.yellow);
+                    CreateSynergyItem("Unique", 0, uniqueCount, GetUniqueDescription(unique), Color.yellow);
                 }
             }
         }

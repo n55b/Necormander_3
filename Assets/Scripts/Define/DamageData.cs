@@ -18,8 +18,9 @@ public struct DamageInfo
     public bool isThrowDamage;
     public float debuffMultiplier;
     public bool isBasicAttack;
+    public string popupText;
 
-    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, bool isThrowDamage = false, float debuffMultiplier = 1f, bool isBasicAttack = false)
+    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, bool isThrowDamage = false, float debuffMultiplier = 1f, bool isBasicAttack = false, string popupText = "")
     {
         this.amount = amount;
         this.type = type;
@@ -27,5 +28,6 @@ public struct DamageInfo
         this.isThrowDamage = isThrowDamage;
         this.debuffMultiplier = debuffMultiplier;
         this.isBasicAttack = isBasicAttack;
+        this.popupText = popupText;
     }
 }

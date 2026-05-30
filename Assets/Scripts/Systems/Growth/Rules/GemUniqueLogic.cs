@@ -19,13 +19,13 @@ public static class GemUniqueLogic
         return achingBonesActive && isFrozen;
     }
 
-    public static float GetSlowlyFreezingFlowerMaxBonus(bool active) => active ? 10.0f : 0f;
+    public static float GetSlowlyFreezingFlowerMaxBonus(int count) => count * 10.0f;
 
     // --- Aging ---
-    public static float GetNoCountryMaxStack(bool active) => active ? 100f : 25f;
-    public static bool ShouldAgingInstaKill(bool active, float currentStacks)
+    public static float GetNoCountryMaxStack(int count) => count > 0 ? (25f + count * 100f) : 25f; // Wait, wait. "Aging max stacks +100".
+    public static bool ShouldAgingInstaKill(int count, float currentStacks)
     {
-        return active && currentStacks >= 100f;
+        return count > 0 && currentStacks >= 100f;
     }
 
     // --- BloodPop ---

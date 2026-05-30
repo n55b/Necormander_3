@@ -12,6 +12,13 @@ public class GemUniqueEffect : GemEffect
     public override string GetDescription() => $"Unique: {displayDescription}";
     public override void Apply(InventoryManager.GemAggregatedStats targetStats)
     {
-        if (uniqueType != GemUniqueType.None) targetStats.UniqueEffects.Add(uniqueType);
+        if (uniqueType != GemUniqueType.None)
+        {
+            if (!targetStats.UniqueEffectCounts.ContainsKey(uniqueType))
+            {
+                targetStats.UniqueEffectCounts[uniqueType] = 0;
+            }
+            targetStats.UniqueEffectCounts[uniqueType]++;
+        }
     }
 }
