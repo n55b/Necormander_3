@@ -31,6 +31,12 @@ public class PoisonUniqueManager : MonoBehaviour
         // 3초마다 숙주의 스택 10% 광역 전염
         if (currentHost != null && !currentHost.Stats.Health.IsDead)
         {
+            // 숙주 아이콘을 UI에 띄우기 위해 지속적으로 시간 갱신 (0.5초)
+            if (currentHost.Stats != null && currentHost.Stats.Status != null)
+            {
+                currentHost.Stats.Status.SetDebuffBool(DebuffBoolType.PoisonHost, 0.5f);
+            }
+
             spreadTimer += Time.deltaTime;
             if (spreadTimer >= SPREAD_INTERVAL)
             {
@@ -60,11 +66,16 @@ public class PoisonUniqueManager : MonoBehaviour
             Debug.Log($"<color=green>[PoisonHost]</color> 새로운 숙주 지정: {currentHost.gameObject.name}");
             
             // 시각적 피드백 (선택 사항: 외곽선이나 특수 파티클)
-            var renderer = currentHost.GetComponentInChildren<SpriteRenderer>();
-            if (renderer != null)
+            var visualFeedback = currentHost.GetComponentInChildren<CharacterVisualFeedback>();
+            if (visualFeedback != null)
             {
-                // 색상을 살짝 독성 띄게 변경
-                renderer.color = new Color(0.7f, 1f, 0.7f);
+                // 색상을 살짝 독성 띄게 변경 (피격 후에도 유지되도록 원본 색상 자체를 변경)
+                visualFeedback.SetBaseColor(new Color(0.7f, 1f, 0.7f));
+            }
+            else
+            {
+                var renderer = currentHost.GetComponentInChildren<SpriteRenderer>();
+                if (renderer != null) renderer.color = new Color(0.7f, 1f, 0.7f);
             }
         }
         else
@@ -82,8 +93,8 @@ public class PoisonUniqueManager : MonoBehaviour
         
         if (hostStack > 0)
         {
-            float passAmount = hostStack * 0.1f;
-            if (passAmount < 1f) return; // 전염량이 너무 적으면 무시 (옵션)
+            // [수정] 최소 1스택 이상은 무조건 전염되도록 보장
+            float passAmount = Mathf.Max(1f, hostStack * 0.1f);
 
             LayerMask enemyLayer = LayerMask.GetMask("Enemy");
             Collider2D[] colls = Physics2D.OverlapCircleAll(currentHost.transform.position, SPREAD_RADIUS, enemyLayer);

@@ -9,7 +9,7 @@ public class SaveData
     public List<CoreSlotSaveData> slots = new List<CoreSlotSaveData>();
     public List<TreasureSaveData> treasures = new List<TreasureSaveData>();
     public List<GemInstanceSaveData> availableGems = new List<GemInstanceSaveData>();
-    public GemTreeNodeSaveData gemTreeRoot;
+    public List<FlatGemTreeNodeSaveData> flatGemTree = new List<FlatGemTreeNodeSaveData>();
 }
 
 [System.Serializable]
@@ -40,15 +40,9 @@ public class GemInstanceSaveData
 }
 
 [System.Serializable]
-public class GemTreeNodeSaveData
+public class FlatGemTreeNodeSaveData
 {
     public GemInstanceSaveData gem;
-    public List<GemTreeNodeChildSaveData> children = new List<GemTreeNodeChildSaveData>();
-}
-
-[System.Serializable]
-public class GemTreeNodeChildSaveData
-{
-    public int slotIndex;
-    public GemTreeNodeSaveData childNode;
+    public string parentInstanceId; // 부모의 인스턴스 ID (루트 노드인 경우 비어있거나 null)
+    public int slotIndexInParent;   // 부모의 몇 번째 슬롯에 장착되었는지 (-1이면 루트)
 }

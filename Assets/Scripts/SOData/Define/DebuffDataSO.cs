@@ -9,6 +9,12 @@ public class DebuffDataSO : ScriptableObject
     public Sprite bloodPopIcon;
     public Sprite agingIcon;
     public Sprite corrodedIcon;
+    public Sprite fearedIcon; // [추가]
+    public Sprite frozenIcon;
+    public Sprite stunnedIcon;
+    public Sprite senilityIcon;
+    public Sprite bloodPopVulnerableIcon;
+    public Sprite poisonHostIcon; // [추가]
     // ... 추가 가능
 
     // 타입에 맞는 스프라이트를 반환하는 함수 (스택형)
@@ -37,7 +43,12 @@ public class DebuffDataSO : ScriptableObject
         return type switch
         {
             DebuffBoolType.Corroded => corrodedIcon,
-            // Frozen이나 Stunned는 필요 시 추가
+            DebuffBoolType.Feared => fearedIcon, // [추가]
+            DebuffBoolType.Frozen => frozenIcon,
+            DebuffBoolType.Stunned => stunnedIcon,
+            DebuffBoolType.Senility => senilityIcon,
+            DebuffBoolType.BloodPopVulnerable => bloodPopVulnerableIcon,
+            DebuffBoolType.PoisonHost => poisonHostIcon,
             _ => null
         };
     }

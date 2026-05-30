@@ -46,7 +46,8 @@ public enum DebuffBoolType
     Corroded,   // 부식
     Senility,   // 노쇠
     Feared,     // 공포
-    BloodPopVulnerable // 비폭 폭발 약점
+    BloodPopVulnerable, // 비폭 폭발 약점
+    PoisonHost  // 숙주
 }
 
 [System.Flags]

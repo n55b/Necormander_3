@@ -276,6 +276,11 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         archerCurrentState = ArcherState.Stunned;
         stateTimer = stunDuration;
 
+        if (entity.Stats != null && entity.Stats.Status != null)
+        {
+            entity.Stats.Status.SetDebuffBool(DebuffBoolType.Stunned, stunDuration);
+        }
+
         if (bombardmentCoroutine != null)
         {
             entity.StopCoroutine(bombardmentCoroutine);

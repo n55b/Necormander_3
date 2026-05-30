@@ -24,7 +24,8 @@ public class DebuffPool : MonoBehaviour
     public void Push(DebuffIcon icon)
     {
         icon.gameObject.SetActive(false);
-        icon.transform.SetParent(this.transform); // 관리 편의를 위해 풀 밑으로 이동
+        icon.transform.SetParent(this.transform, false); // 관리 편의를 위해 풀 밑으로 이동 (스케일 변조 방지)
+        icon.transform.localScale = Vector3.one; // 크기 리셋
         pool.Push(icon);
     }
 }

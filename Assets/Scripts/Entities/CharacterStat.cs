@@ -85,7 +85,7 @@ public class CharacterStat : MonoBehaviour
             float bonusMult = _isPlayer ? 0f : (GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
             
             float uniqueArcherMult = 1f;
-            if (jobType == CommandData.SkeletonArcher)
+            if (!IsEnemy && jobType == CommandData.SkeletonArcher)
             {
                 var inven = InventoryManager.Instance;
                 if (inven != null)
@@ -102,7 +102,7 @@ public class CharacterStat : MonoBehaviour
             }
 
             float uniqueSpearmanMult = 1f;
-            if (jobType == CommandData.SkeletonSpearman)
+            if (!IsEnemy && jobType == CommandData.SkeletonSpearman)
             {
                 var inven = InventoryManager.Instance;
                 if (inven != null)
@@ -112,7 +112,7 @@ public class CharacterStat : MonoBehaviour
             }
             
             float uniqueWarriorMult = 1f;
-            if (jobType == CommandData.SkeletonWarrior)
+            if (!IsEnemy && jobType == CommandData.SkeletonWarrior)
             {
                 var inven = InventoryManager.Instance;
                 if (inven != null)
@@ -137,7 +137,7 @@ public class CharacterStat : MonoBehaviour
             float gemFlatBonus = _isPlayer ? 0f : GetGemBonus(StatType.Health);
             float treasureMult = _isPlayer ? 0f : GetTreasureBonus(TreasureEffectType.GlobalMinionStats);
             float uniqueWarriorMult = 1f;
-            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
+            if (!IsEnemy && jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
             {
                 uniqueWarriorMult *= 1.15f;
             }
@@ -169,7 +169,7 @@ public class CharacterStat : MonoBehaviour
             }
 
             float uniqueArcherDivisor = 1f;
-            if (jobType == CommandData.SkeletonArcher)
+            if (!IsEnemy && jobType == CommandData.SkeletonArcher)
             {
                 var inven = InventoryManager.Instance;
                 if (inven != null)
@@ -189,7 +189,7 @@ public class CharacterStat : MonoBehaviour
             if (_isAlly && ShieldbearerUniqueManager.IsWillCourageActive) allyWillCourageDivisor = 1f / 1.12f;
             
             float uniqueWarriorDivisor = 1f;
-            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
+            if (!IsEnemy && jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
             {
                 uniqueWarriorDivisor = 1f / 1.15f;
             }
@@ -206,7 +206,7 @@ public class CharacterStat : MonoBehaviour
         get
         {
             float uniqueWarriorMult = 1f;
-            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
+            if (!IsEnemy && jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
             {
                 uniqueWarriorMult = 1.15f;
             }
@@ -277,7 +277,7 @@ public class CharacterStat : MonoBehaviour
             if (_isAlly && ShieldbearerUniqueManager.IsWillWindActive) allyWillWindMult += 0.14f;
             
             float uniqueWarriorMult = 1f;
-            if (jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
+            if (!IsEnemy && jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
             {
                 uniqueWarriorMult = 1.15f;
             }

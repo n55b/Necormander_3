@@ -36,13 +36,19 @@ public static class SaveLoadTest
         data.availableGems.Add(gem1);
 
         // 보석 트리 테스트
-        data.gemTreeRoot = new GemTreeNodeSaveData();
-        data.gemTreeRoot.gem = new GemInstanceSaveData { baseGemSOAddress = "RootGem", instanceId = "root-id", subSlots = 3, targetJob = CommandData.SkeletonWarrior };
+        data.flatGemTree.Add(new FlatGemTreeNodeSaveData
+        {
+            gem = new GemInstanceSaveData { baseGemSOAddress = "RootGem", instanceId = "root-id", subSlots = 3, targetJob = CommandData.SkeletonWarrior },
+            parentInstanceId = null,
+            slotIndexInParent = -1
+        });
         
-        GemTreeNodeChildSaveData child1 = new GemTreeNodeChildSaveData();
-        child1.slotIndex = 0;
-        child1.childNode = new GemTreeNodeSaveData { gem = new GemInstanceSaveData { baseGemSOAddress = "EmeraldGem", instanceId = "child-id-1", subSlots = 1, targetJob = CommandData.SkeletonWarrior } };
-        data.gemTreeRoot.children.Add(child1);
+        data.flatGemTree.Add(new FlatGemTreeNodeSaveData
+        {
+            gem = new GemInstanceSaveData { baseGemSOAddress = "EmeraldGem", instanceId = "child-id-1", subSlots = 1, targetJob = CommandData.SkeletonWarrior },
+            parentInstanceId = "root-id",
+            slotIndexInParent = 0
+        });
 
         // 2. 직렬화 테스트
         string json = "";
@@ -106,16 +112,20 @@ public static class SaveLoadTest
             }
         }
 
-        if (restored.gemTreeRoot == null) { Debug.LogError("Restored gemTreeRoot is null"); success = false; }
+        if (restored.flatGemTree == null || restored.flatGemTree.Count == 0) { Debug.LogError("Restored flatGemTree is empty"); success = false; }
         else
         {
-            if (restored.gemTreeRoot.gem.instanceId != "root-id") { Debug.LogError("Mismatch root-id"); success = false; }
-            if (restored.gemTreeRoot.children.Count != 1) { Debug.LogError($"Mismatch root children count: {restored.gemTreeRoot.children.Count}"); success = false; }
+            var rootNode = restored.flatGemTree.Find(x => string.IsNullOrEmpty(x.parentInstanceId));
+            var childNode = restored.flatGemTree.Find(x => x.parentInstanceId == "root-id");
+            
+            if (rootNode == null) { Debug.LogError("Root node not found in flatGemTree"); success = false; }
+            else if (rootNode.gem.instanceId != "root-id") { Debug.LogError("Mismatch root-id"); success = false; }
+            
+            if (childNode == null) { Debug.LogError("Child node not found in flatGemTree"); success = false; }
             else
             {
-                var child = restored.gemTreeRoot.children[0];
-                if (child.slotIndex != 0) { Debug.LogError($"Mismatch child slotIndex: {child.slotIndex}"); success = false; }
-                if (child.childNode.gem.instanceId != "child-id-1") { Debug.LogError($"Mismatch child gem instance id: {child.childNode.gem.instanceId}"); success = false; }
+                if (childNode.slotIndexInParent != 0) { Debug.LogError($"Mismatch child slotIndex: {childNode.slotIndexInParent}"); success = false; }
+                if (childNode.gem.instanceId != "child-id-1") { Debug.LogError($"Mismatch child gem instance id: {childNode.gem.instanceId}"); success = false; }
             }
         }
 

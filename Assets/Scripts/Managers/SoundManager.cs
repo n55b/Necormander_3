@@ -26,7 +26,12 @@ public class SoundManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        if (Instance == null) 
+        { 
+            Instance = this; 
+            transform.SetParent(null); // [수정] 자식 오브젝트로 있을 경우 경고 발생 방지
+            DontDestroyOnLoad(gameObject); 
+        }
         else { Destroy(gameObject); }
 
         LoadSettings();

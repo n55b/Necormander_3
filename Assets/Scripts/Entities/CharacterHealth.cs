@@ -52,7 +52,7 @@ public class CharacterHealth : MonoBehaviour
                 if (UnityEngine.Random.value <= totalMissChance)
                 {
                     // [유니크] 발이부중 (UnseenMiss): 빗나갈 경우 상태 기록 (반구저기 필수)
-                    if (attackerStat.jobType == CommandData.SkeletonArcher)
+                    if (attackerStat != null && !attackerStat.IsEnemy && attackerStat.jobType == CommandData.SkeletonArcher)
                     {
                         var attackerStatus = info.attacker.GetComponent<CharacterStatus>();
                         var inven = InventoryManager.Instance;
@@ -72,7 +72,7 @@ public class CharacterHealth : MonoBehaviour
                     
                     // [방패병 유니크] 가시 갑옷 (ThornArmor)
                     // 기본 공격 피격 시 적 현재 체력 2% 고정 피해 반사
-                    if (_stat.jobType == CommandData.SkeletonShieldbearer)
+                    if (_stat != null && !_stat.IsEnemy && _stat.jobType == CommandData.SkeletonShieldbearer)
                     {
                         var inven = InventoryManager.Instance;
                         if (inven != null && inven.HasUniqueEffect(GemUniqueType.ThornArmor))
@@ -88,7 +88,7 @@ public class CharacterHealth : MonoBehaviour
                         }
                     }
 
-                    if (attackerStat.jobType == CommandData.SkeletonArcher)
+                    if (attackerStat != null && !attackerStat.IsEnemy && attackerStat.jobType == CommandData.SkeletonArcher)
                     {
                         var attackerStatus = info.attacker.GetComponent<CharacterStatus>();
                         var inven = InventoryManager.Instance;
@@ -236,7 +236,7 @@ public class CharacterHealth : MonoBehaviour
                 var attackerStat = info.attacker.GetComponentInChildren<CharacterStat>();
                 if (attackerStat == null) attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
                 
-                if (attackerStat != null && attackerStat.jobType == CommandData.SkeletonWarrior)
+                if (attackerStat != null && !attackerStat.IsEnemy && attackerStat.jobType == CommandData.SkeletonWarrior)
                 {
                     var inven = InventoryManager.Instance;
                     if (inven != null && inven.HasUniqueEffect(GemUniqueType.FanaticRage))

@@ -723,13 +723,10 @@ public class InventoryManager : MonoBehaviour
         }
 
         // GemTreeRoot 저장
+        data.flatGemTree.Clear();
         if (GemTreeRoot != null)
         {
-            data.gemTreeRoot = SaveGemTreeNode(GemTreeRoot);
-        }
-        else
-        {
-            data.gemTreeRoot = null;
+            SaveGemTreeFlat(GemTreeRoot, data.flatGemTree);
         }
     }
 
@@ -744,25 +741,34 @@ public class InventoryManager : MonoBehaviour
         return gemData;
     }
 
-    private GemTreeNodeSaveData SaveGemTreeNode(GemTreeNode node)
+    private void SaveGemTreeFlat(GemTreeNode rootNode, List<FlatGemTreeNodeSaveData> flatList)
     {
-        if (node == null || node.Gem == null) return null;
-        var nodeData = new GemTreeNodeSaveData();
-        nodeData.gem = SaveGemInstance(node.Gem);
-        nodeData.children = new List<GemTreeNodeChildSaveData>();
+        if (rootNode == null) return;
+        Queue<(GemTreeNode node, string parentId, int slotIndex)> queue = new Queue<(GemTreeNode, string, int)>();
+        queue.Enqueue((rootNode, null, -1));
 
-        for (int i = 0; i < node.Children.Count; i++)
+        while (queue.Count > 0)
         {
-            var childNode = node.Children[i];
-            if (childNode != null)
+            var current = queue.Dequeue();
+            var node = current.node;
+
+            if (node == null || node.Gem == null) continue;
+
+            var flatData = new FlatGemTreeNodeSaveData();
+            flatData.gem = SaveGemInstance(node.Gem);
+            flatData.parentInstanceId = current.parentId;
+            flatData.slotIndexInParent = current.slotIndex;
+            flatList.Add(flatData);
+
+            for (int i = 0; i < node.Children.Count; i++)
             {
-                var childSaveData = new GemTreeNodeChildSaveData();
-                childSaveData.slotIndex = i;
-                childSaveData.childNode = SaveGemTreeNode(childNode);
-                nodeData.children.Add(childSaveData);
+                var childNode = node.Children[i];
+                if (childNode != null)
+                {
+                    queue.Enqueue((childNode, node.Gem.InstanceId, i));
+                }
             }
         }
-        return nodeData;
     }
 
     public void LoadFromData(SaveData data)
@@ -833,16 +839,48 @@ public class InventoryManager : MonoBehaviour
 
         // GemTreeRoot 및 Node Index 복원
         _gemNodeIndex = new Dictionary<string, GemTreeNode>();
-        if (data.gemTreeRoot != null)
+        
+        if (data.flatGemTree != null && data.flatGemTree.Count > 0)
         {
-            var rootInstance = LoadGemInstance(data.gemTreeRoot.gem, registry);
-            if (rootInstance != null)
-            {
-                GemTreeRoot = new GemTreeNode(rootInstance);
-                _gemNodeIndex[GemTreeRoot.Gem.InstanceId] = GemTreeRoot;
+            var loadedNodes = new Dictionary<string, GemTreeNode>();
 
-                // 자식 재귀 복구
-                LoadGemTreeNodeChildren(GemTreeRoot, data.gemTreeRoot.children, registry);
+            // 1차: 모든 노드 인스턴스화
+            foreach (var flatData in data.flatGemTree)
+            {
+                var gemInstance = LoadGemInstance(flatData.gem, registry);
+                if (gemInstance != null)
+                {
+                    var node = new GemTreeNode(gemInstance);
+                    loadedNodes[gemInstance.InstanceId] = node;
+                    _gemNodeIndex[gemInstance.InstanceId] = node;
+
+                    // 부모 ID가 없으면 루트
+                    if (string.IsNullOrEmpty(flatData.parentInstanceId))
+                    {
+                        GemTreeRoot = node;
+                    }
+                }
+            }
+
+            // 2차: 부모-자식 연결
+            foreach (var flatData in data.flatGemTree)
+            {
+                if (string.IsNullOrEmpty(flatData.parentInstanceId)) continue;
+
+                if (loadedNodes.TryGetValue(flatData.gem.instanceId, out GemTreeNode childNode) &&
+                    loadedNodes.TryGetValue(flatData.parentInstanceId, out GemTreeNode parentNode))
+                {
+                    if (flatData.slotIndexInParent >= 0 && flatData.slotIndexInParent < parentNode.Gem.SubSlots)
+                    {
+                        // 기존 SocketChild를 사용하면 내부 배열을 대체하므로
+                        // 단순 배열 할당으로 복원 (이미 GemTreeNode 생성 시 할당됨)
+                        parentNode.Children[flatData.slotIndexInParent] = childNode;
+                    }
+                    else
+                    {
+                        Debug.LogError($"[InventoryManager] Invalid slot index {flatData.slotIndexInParent} for parent {parentNode.Gem.BaseData.itemName}");
+                    }
+                }
             }
         }
         else
@@ -912,51 +950,7 @@ public class InventoryManager : MonoBehaviour
         return new GemInstance(gemSO, gemData.instanceId, gemData.subSlots, gemData.randomModifiers, gemData.targetJob);
     }
 
-    private void LoadGemTreeNodeChildren(GemTreeNode parentNode, List<GemTreeNodeChildSaveData> childrenData, GrowthRegistrySO registry)
-    {
-        if (parentNode == null || childrenData == null) return;
 
-        foreach (var childData in childrenData)
-        {
-            if (childData == null || childData.childNode == null || childData.childNode.gem == null)
-            {
-                Debug.LogWarning($"[InventoryManager] LoadGemTreeNodeChildren: childData or gem is null. Skipped.");
-                continue;
-            }
-
-            var childInstance = LoadGemInstance(childData.childNode.gem, registry);
-            if (childInstance != null)
-            {
-                // 소켓팅 전에 사전 검증하여 상세 에러 출력
-                if (childData.slotIndex < 0 || childData.slotIndex >= parentNode.Gem.SubSlots)
-                {
-                    Debug.LogError($"[InventoryManager] SocketChild Failed: SlotIndex {childData.slotIndex} is out of bounds for parent {parentNode.Gem.BaseData.itemName} (Available SubSlots: {parentNode.Gem.SubSlots}). InstanceId: {childInstance.InstanceId}");
-                    continue;
-                }
-                if (parentNode.Children[childData.slotIndex] != null)
-                {
-                    Debug.LogError($"[InventoryManager] SocketChild Failed: SlotIndex {childData.slotIndex} on parent {parentNode.Gem.BaseData.itemName} is already occupied by {parentNode.Children[childData.slotIndex].Gem.BaseData.itemName}. InstanceId: {childInstance.InstanceId}");
-                    continue;
-                }
-
-                GemTreeNode newChildNode = parentNode.SocketChild(childData.slotIndex, childInstance);
-                if (newChildNode != null)
-                {
-                    _gemNodeIndex[newChildNode.Gem.InstanceId] = newChildNode;
-                    Debug.Log($"<color=green>[InventoryManager]</color> Successfully socketed child '{childInstance.BaseData.itemName}' into slot {childData.slotIndex} of parent '{parentNode.Gem.BaseData.itemName}'.");
-                    LoadGemTreeNodeChildren(newChildNode, childData.childNode.children, registry);
-                }
-                else
-                {
-                    Debug.LogError($"[InventoryManager] SocketChild returned null unexpectedly for {childInstance.BaseData.itemName} at slot {childData.slotIndex}.");
-                }
-            }
-            else
-            {
-                Debug.LogError($"[InventoryManager] LoadGemTreeNodeChildren Failed: childInstance is null for baseGemSOAddress: {childData.childNode.gem.baseGemSOAddress}. Child branch skipped.");
-            }
-        }
-    }
 
     private int CountGemAlreadyOwned(GemSO gem)
     {

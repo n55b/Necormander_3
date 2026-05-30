@@ -145,6 +145,15 @@ public class CharacterVisualFeedback : MonoBehaviour
         _flashCoroutine = null;
     }
 
+    public void SetBaseColor(Color newColor)
+    {
+        _originalColor = newColor;
+        if (_sr != null && _flashCoroutine == null)
+        {
+            _sr.color = newColor;
+        }
+    }
+
     public void ResetVisuals()
     {
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);

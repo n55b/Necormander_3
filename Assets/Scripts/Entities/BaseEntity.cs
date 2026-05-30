@@ -107,9 +107,13 @@ public abstract class BaseEntity : MonoBehaviour
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null && _agent != null)
         {
-            Vector3 dirAwayFromPlayer = (transform.position - pc.transform.position).normalized;
-            Vector3 fleeTarget = transform.position + dirAwayFromPlayer * 5f;
-            _agent.SetDestination(fleeTarget);
+            if (_agent.isActiveAndEnabled)
+            {
+                _agent.isStopped = false;
+                Vector3 dirAwayFromPlayer = (transform.position - pc.transform.position).normalized;
+                Vector3 fleeTarget = transform.position + dirAwayFromPlayer * 5f;
+                _agent.SetDestination(fleeTarget);
+            }
         }
     }
 
