@@ -38,6 +38,13 @@ public class SoundManager : MonoBehaviour
         activeSource = sourceA; // 처음 시작 소스 설정
     }
 
+    public void AllStop()
+    {
+        sourceA.Stop();
+        sourceB.Stop();
+        sfxSource.Stop();
+    }
+
     private void LoadSettings()
     {
         globalBgmVolume = PlayerPrefs.GetFloat("BGM_Volume", 1f);
