@@ -23,6 +23,9 @@ public class PlayerController : MonoBehaviour
     public SummonController SUMCONTROLLER { get { return sumController; } }
     [Header("던지기 컨트롤러")]
     [SerializeField] private ThrowController throwController;
+    [Header("스태미나 시스템")]
+    [SerializeField] private PlayerStamina staminaSystem;
+    public PlayerStamina STAMINA => staminaSystem;
     [SerializeField] private int summonNum;
     [SerializeField] private float summonRange;
 
@@ -96,6 +99,12 @@ public class PlayerController : MonoBehaviour
         if (throwController == null)
         {
             throwController = GetComponentInChildren<ThrowController>();
+        }
+
+        if (staminaSystem == null)
+        {
+            staminaSystem = GetComponent<PlayerStamina>();
+            if (staminaSystem == null) staminaSystem = gameObject.AddComponent<PlayerStamina>();
         }
 
         // [유니크] 유니크 효과 전담 매니저 추가 (만약 인스펙터에서 안 달아뒀을 경우를 대비한 보험)

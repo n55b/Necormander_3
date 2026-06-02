@@ -107,6 +107,13 @@ public class ThrowController : MonoBehaviour
 
     public void TryPickUpWithMouse()
     {
+        var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
+        if (stamina != null && !stamina.CanThrow())
+        {
+            stamina.TriggerInsufficientFeedback();
+            return;
+        }
+
         GameObject hovered = GameManager.Instance.mouseManager.HoverObject;
         if (hovered != null && hovered.TryGetComponent(out IThrowable throwable))
         {
@@ -146,6 +153,13 @@ public class ThrowController : MonoBehaviour
 
     public void TryPickUpByType(CommandData targetType)
     {
+        var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
+        if (stamina != null && !stamina.CanThrow())
+        {
+            stamina.TriggerInsufficientFeedback();
+            return;
+        }
+
         if (!_strategy.CanPickUpType(targetType, _heldObjects, maxHoldCount)) return;
         float radius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius);
@@ -229,6 +243,10 @@ public class ThrowController : MonoBehaviour
 
         // [추가] 카메라 조준 상태 비활성화
         if (CameraTargetController.Instance != null) CameraTargetController.Instance.SetAiming(false);
+
+        // 스태미나 차감
+        var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
+        if (stamina != null) stamina.ConsumeStamina();
 
         float ratio = _input.ChargeRatio;
         Vector2 startPos = (Vector2)_activeCluster.transform.position;

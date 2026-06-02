@@ -38,6 +38,9 @@ public class PlayerStateUI : MonoBehaviour
     [SerializeField] private GameObject reviveIconPrefab;
     [SerializeField] private Transform reviveContainer;
 
+    [Header("Stamina Settings")]
+    [SerializeField] private GameObject staminaUIPrefab;
+
     [Header("PanelHaveArmy")]
     [SerializeField] private Panel_HaveArmy panelHaveArmy;
 
@@ -74,6 +77,29 @@ public class PlayerStateUI : MonoBehaviour
         }
 
         RefreshGold();
+
+        // 스태미나 UI 초기화
+        StaminaUI staminaUI = GetComponentInChildren<StaminaUI>();
+        
+        if (staminaUI == null)
+        {
+            if (staminaUIPrefab != null)
+            {
+                GameObject obj = Instantiate(staminaUIPrefab, transform);
+                staminaUI = obj.GetComponent<StaminaUI>();
+                if (staminaUI == null) staminaUI = obj.AddComponent<StaminaUI>();
+            }
+            else
+            {
+                staminaUI = gameObject.AddComponent<StaminaUI>();
+            }
+        }
+        
+        if (staminaUI != null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        {
+            staminaUI.Initialize(GameManager.Instance.PLAYERCONTROLLER.STAMINA);
+        }
+
         Debug.Log("<color=green>[PlayerStateUI]</color> HUD Initialized.");
     }
 
