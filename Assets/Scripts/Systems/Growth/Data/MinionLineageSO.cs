@@ -21,6 +21,7 @@ public class MinionLineageSO : ScriptableObject
     [Header("계보 기본 정보")]
     public CommandData jobType;
     public string lineageName;
+    public int shopCost = 150; // [추가] 상점 판매 가격
 
     [Header("1. 기본 형태 (코어 아이템 정보)")]
     public MinionDataSO baseForm;

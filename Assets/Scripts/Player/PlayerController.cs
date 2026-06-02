@@ -45,6 +45,22 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float minThrowChargeMultiplier = 1.0f;
     [SerializeField] private float maxThrowChargeMultiplier = 2.0f;
 
+    [Header("투척 및 차징 모디파이어 (보석/시너지용)")]
+    public float bonusThrowChargeTime = 0f;
+    public float chargeEfficiencyMultiplier = 0f; // 기본 0 (보너스 퍼센트 합산, 예: +50% = 0.5f)
+    public float maxChargeTimeLimit = 0f; // 클로저 보석용 (예: 5초로 덮어쓰기)
+    public float bonusThrowEffectMultiplier = 0f; // 기본 0 (예: +25% = 0.25f)
+    public float chargeMoveSpeedMultiplier = 0.5f; // 차징 중 이동속도 배율 (기본 0.5 = 50% 감소)
+
+    // 비전투 상태 추적
+    private float lastCombatTime = 0f;
+    public bool IsOutOfCombat => (Time.time - lastCombatTime) > 5.0f;
+
+    public void RecordCombatAction()
+    {
+        lastCombatTime = Time.time;
+    }
+
     [Header("상호작용 설정")]
     [SerializeField] private float interactRange = 1.5f;
     [SerializeField] private LayerMask interactableLayer;
@@ -158,6 +174,7 @@ public class PlayerController : MonoBehaviour
         // 데미지가 0보다 클 경우(실제 피해를 입었을 경우)에만 낙하
         if (damage > 0 && throwController != null)
         {
+            RecordCombatAction(); // 피격 시 전투 상태 갱신
             throwController.DropAll();
         }
     }
@@ -218,11 +235,18 @@ public class PlayerController : MonoBehaviour
         // 사망 시 조종 불가
         if (stat.Health.IsDead) return;
 
+        // 차징 중 이동속도 페널티 적용 (기본 50% 감소)
+        float currentSpeed = stat.MOVESPEED;
+        if (throwController != null && throwController.IsCharging)
+        {
+            currentSpeed *= chargeMoveSpeedMultiplier;
+        }
+
         // [복구] 기존 이동 로직으로 원복하되, 넉백 중일 때는 물리 속도를 덮어쓰지 않도록 개선 가능
         // 만약 리지드바디의 속도가 아주 높다면 이동 처리를 스킵하거나 합산
         if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f) // 대략적인 임계값
         {
-            transform.position += MoveDirection * stat.MOVESPEED * Time.deltaTime;
+            transform.position += MoveDirection * currentSpeed * Time.deltaTime;
         }
     }
 

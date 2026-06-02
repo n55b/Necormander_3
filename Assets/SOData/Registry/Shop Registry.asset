@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4ff914f023d5474da888bc038f2a784, type: 3}
+  m_Name: Shop Registry
+  m_EditorClassIdentifier: 
+  gemPool:
+  - {fileID: 11400000, guid: 87e7260bead92f545aa299410bef22e8, type: 2}
+  - {fileID: 11400000, guid: 105928107c038ac46b8d02a1f7265365, type: 2}
+  - {fileID: 11400000, guid: 15a9caccb80772b4f8155343fd5ba2bc, type: 2}
+  - {fileID: 11400000, guid: ff530fc8f0709d942a426d515c67fc01, type: 2}
+  - {fileID: 11400000, guid: a75a6e7db2b470e46b72fffa5cbf777b, type: 2}
+  - {fileID: 11400000, guid: 18d015bd3b4493340980a5dbba36eef0, type: 2}
+  - {fileID: 11400000, guid: 09cd199554ad6b94897f71acb10a4681, type: 2}
+  - {fileID: 11400000, guid: a4109e81b625af740b96d3ca9a1362d1, type: 2}
+  - {fileID: 11400000, guid: 86f6c2ba1e48a5641994dec4a848cad3, type: 2}
+  - {fileID: 11400000, guid: ccc0ea88951697e4c9143c61599615c3, type: 2}
+  - {fileID: 11400000, guid: b0a5c85710b3fe54da6d0affc213207a, type: 2}
+  - {fileID: 11400000, guid: e425c38957e581740aa006a470645d74, type: 2}
+  - {fileID: 11400000, guid: b65e730ec45424d45bba28323d55f054, type: 2}
+  - {fileID: 11400000, guid: 0e9b5be9bcca5c144add9eb2bb3cce82, type: 2}
+  - {fileID: 11400000, guid: 195613f57fc28da4d97643c05e99376d, type: 2}
+  - {fileID: 11400000, guid: aadebb68046975b4cbb19908c7793d1a, type: 2}
+  - {fileID: 11400000, guid: 41160761c100c11438c204f56dcd320c, type: 2}
+  minionPool:
+  - {fileID: 11400000, guid: 6f4994e74423d4643b79946bc7cc5743, type: 2}
+  - {fileID: 11400000, guid: 6dcd2551f98dad446bbd6740e1dc3c30, type: 2}
+  - {fileID: 11400000, guid: 6e17366b9db968141a742cf6efb8ed1f, type: 2}
+  - {fileID: 11400000, guid: d2b24f1249fc5f447a65218055c12665, type: 2}
+  - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}

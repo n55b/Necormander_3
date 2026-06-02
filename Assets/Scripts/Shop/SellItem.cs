@@ -3,62 +3,64 @@ using UnityEngine;
 
 public class SellItem : MonoBehaviour, IInteractable
 {
-    [SerializeField] public PrizeDataSO item;
+    public RewardCandidate item;
     [SerializeField] private GameObject Canvas;
     [SerializeField] private GameObject explainPrefab;
     private GameObject obj;
+    private SpriteRenderer _spriteRenderer;
 
-    public string InteractionPrompt => $"Buy {item.name} ({item.gold}G)";
+    public string InteractionPrompt => item.displayData != null ? $"Buy {item.displayData.itemName} ({item.goldAmount}G)" : "Buy (??)";
+
+    private void Awake()
+    {
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    public void InitializeUI()
+    {
+        if (item.displayData != null && _spriteRenderer != null)
+        {
+            if (item.displayData.icon != null)
+            {
+                _spriteRenderer.sprite = item.displayData.icon;
+            }
+        }
+    }
 
     public bool Interact(GameObject interactor)
     {
-        if (GameManager.Instance.inventoryManager.SpendGold(item.gold))
+        if (item.rawData == null) return false;
+
+        if (GameManager.Instance.inventoryManager.SpendGold(item.goldAmount))
         {
-            item.BuyItem();
+            RewardManager.Instance.ApplyReward(item);
             Destroy(this.gameObject);
             return true;
         }
         else
         {
             Debug.Log("Not enough gold!");
-            // TODO: 골드 부족 피드백 UI 표시
             return false;
         }
     }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.tag == "Player")
+        if(collision.tag == "Player" && item.displayData != null)
         {
             Canvas.SetActive(true);
             obj = Instantiate(explainPrefab, Canvas.transform);
             Tooltip text = obj.GetComponent<Tooltip>();
-            text.name.text = item.name;
-            text.price.text = $"{item.gold}G";
+            text.name.text = item.displayData.itemName;
+            text.price.text = $"{item.goldAmount}G";
         }
-    }
-
-    void OnTriggerStay2D(Collider2D collision)
-    {
-        // 기존 구매 로직은 Interact()로 이전됨
-        // if(collision.tag == "Player")
-        // {
-        //     if(Input.GetKey(KeyCode.Q))
-        //     {
-        //         if(GameManager.Instance.inventoryManager.SpendGold(item.gold))
-        //         {
-        //             item.BuyItem();
-        //             Destroy(this.gameObject);
-        //         }
-        //     }
-        // }
     }
 
     void OnTriggerExit2D(Collider2D collision)
     {
         if(collision.tag == "Player")
         {
-            Destroy(obj);
+            if (obj != null) Destroy(obj);
             Canvas.SetActive(false);
         }
     }

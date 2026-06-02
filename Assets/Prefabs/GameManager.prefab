@@ -236,7 +236,7 @@ MonoBehaviour:
   minionRegistry: {fileID: 11400000, guid: 752586a47e053ee4a9db401ff13044fc, type: 2}
   throwEffectRegistry: {fileID: 11400000, guid: 3814eaa3076ff6d468ed15dbf6620499, type: 2}
   defaultAIPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
-  prizeRegistry: {fileID: 11400000, guid: a133374f9174a7d4d98a000b7acf9b34, type: 2}
+  shopRegistry: {fileID: 11400000, guid: 4930ca0a9c595b6408f83c0719490716, type: 2}
 --- !u!114 &3438047193681337848
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -253,23 +253,18 @@ MonoBehaviour:
   Slots: []
   useDebugStartingInventory: 1
   debugStartingMinions:
+  - {fileID: 11400000, guid: 6f4994e74423d4643b79946bc7cc5743, type: 2}
+  - {fileID: 11400000, guid: 6dcd2551f98dad446bbd6740e1dc3c30, type: 2}
+  - {fileID: 11400000, guid: 6e17366b9db968141a742cf6efb8ed1f, type: 2}
   - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
-  debugStartingMinionQuantities: 02000000
+  - {fileID: 11400000, guid: d2b24f1249fc5f447a65218055c12665, type: 2}
+  debugStartingMinionQuantities: 01000000
   debugStartingGems_Data:
-  - {fileID: 11400000, guid: fd7d0461898c75b41a5a9ae9b551e95b, type: 2}
-  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
-  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
-  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
-  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
-  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
-  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
-  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
-  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
-  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
-  - {fileID: 11400000, guid: 8e9f8c4481d5f5049886610b24b64edd, type: 2}
+  - {fileID: 11400000, guid: 6e63e604fd74f164bbf0ffb2848540c1, type: 2}
+  - {fileID: 11400000, guid: f5b88ccb54cbe1343ab9de6c0d4d745d, type: 2}
+  - {fileID: 11400000, guid: 06b5260d3ed0e044dab893d38d7489ea, type: 2}
   debugStartingGems_TargetJobs: 00000000
-  debugStartingAbilities:
-  - {fileID: 11400000, guid: f47c1430d098c8246be65a17ff614d73, type: 2}
+  debugStartingAbilities: []
   _defaultRootGemSO: {fileID: 11400000, guid: 87e7260bead92f545aa299410bef22e8, type: 2}
 --- !u!114 &6139375127595461034
 MonoBehaviour:

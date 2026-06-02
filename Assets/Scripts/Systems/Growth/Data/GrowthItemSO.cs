@@ -10,6 +10,9 @@ public abstract class GrowthItemSO : ScriptableObject
     [TextArea] public string description;
     public Sprite icon;
     public ItemRarity rarity;
+
+    [Header("상점 정보")]
+    public int shopCost = 100; // 상점에서 판매 시 가격
 }
 
 public enum ItemRarity

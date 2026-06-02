@@ -38,6 +38,7 @@ public class ThrowRecipe
         public float chargeMultiplier = 1.0f;
         public float treasurePowerMultiplier = 1.0f;
         public float abilityMultiplier = 1.0f;
+        public float gemPowerMultiplier = 1.0f; // [추가] 보석/시너지로 인한 투척 효율 곱연산
         public int treasureRepeatBonus = 0;
         
         // [추가] 보석 등으로 인한 디버프 부여 데이터 (스택형)
@@ -49,6 +50,7 @@ public class ThrowRecipe
             chargeMultiplier = other.chargeMultiplier;
             treasurePowerMultiplier = other.treasurePowerMultiplier;
             abilityMultiplier = other.abilityMultiplier;
+            gemPowerMultiplier = other.gemPowerMultiplier; // [추가]
             treasureRepeatBonus = other.treasureRepeatBonus;
             debuffStacks = new Dictionary<DebuffStackType, float>(other.debuffStacks);
         }
@@ -89,7 +91,7 @@ public class ThrowRecipe
     {
         if (baseValue <= 0) return 0;
         return baseValue * modifiers.modeMultiplier * modifiers.chargeMultiplier * 
-               modifiers.treasurePowerMultiplier * modifiers.abilityMultiplier;
+               modifiers.treasurePowerMultiplier * modifiers.abilityMultiplier * modifiers.gemPowerMultiplier;
     }
 
     public float GetScaledRadius()

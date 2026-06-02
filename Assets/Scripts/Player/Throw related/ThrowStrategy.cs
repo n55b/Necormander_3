@@ -117,6 +117,10 @@ public class ThrowStrategy : MonoBehaviour
             }
         }
 
+        // [추가] 이벤트 버스 / 핸들러 훅 호출 (보석 스탯, 투척 효율 등 동적 계산)
+        var throwCtrl = GameManager.Instance.PLAYERCONTROLLER.GetComponentInChildren<ThrowController>();
+        if (throwCtrl != null) throwCtrl.InvokeRecipeCreated(recipe);
+
         if (heldObjects.Count == 0) return recipe;
 
         // 주력 유닛(전사/궁수)의 데이터를 가져옴

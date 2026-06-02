@@ -106,16 +106,47 @@ public static class RewardProcessor
     }
 
     // --- 3. 상점용: 꾸러미 생성 ---
-    public static List<PrizeDataSO> GenerateShopRoom(DataManager data)
+    public static List<RewardCandidate> GenerateShopRoom(DataManager data)
     {
-        List<PrizeDataSO> results = new List<PrizeDataSO>();
-        var registry = data.GET_GROWTH_REGISTRY();
+        List<RewardCandidate> results = new List<RewardCandidate>();
+        var shopRegistry = data.SHOP_REGISTRY;
 
-        List<PrizeDataSO> combinedPool = new List<PrizeDataSO>();
+        if (shopRegistry == null) return results;
 
-        foreach(var prize in data.PRIZE_DATA)
+        List<RewardCandidate> combinedPool = new List<RewardCandidate>();
+
+        // 미니언 계보 풀 추가
+        if (shopRegistry.minionPool != null)
         {
-            combinedPool.Add(prize);
+            foreach(var minion in shopRegistry.minionPool)
+            {
+                if (minion == null) continue;
+                combinedPool.Add(new RewardCandidate 
+                { 
+                    displayData = minion.baseItemData, 
+                    rawData = minion, 
+                    techIndex = 0, 
+                    category = RewardCategory.Minion,
+                    goldAmount = minion.shopCost
+                });
+            }
+        }
+
+        // 보석 풀 추가
+        if (shopRegistry.gemPool != null)
+        {
+            foreach(var gem in shopRegistry.gemPool)
+            {
+                if (gem == null) continue;
+                combinedPool.Add(new RewardCandidate 
+                { 
+                    displayData = gem.GetDynamicDisplayData(CommandData.SkeletonWarrior), 
+                    rawData = gem, 
+                    category = RewardCategory.Gem,
+                    targetJob = CommandData.SkeletonWarrior,
+                    goldAmount = gem.shopCost
+                });
+            }
         }
 
         // 랜덤하게 5개 선택
@@ -125,6 +156,9 @@ public static class RewardProcessor
             {
                 int idx = Random.Range(0, combinedPool.Count);
                 results.Add(combinedPool[idx]);
+                
+                // 중복을 피하고 싶다면 아래 주석을 해제하세요.
+                // combinedPool.RemoveAt(idx); 
             }
         }
 

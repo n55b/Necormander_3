@@ -85,7 +85,27 @@ public class StaminaUI : MonoBehaviour
     {
         if (_fillImage != null)
         {
-            _fillImage.fillAmount = Mathf.Clamp01(current / max);
+            if (current >= 0)
+            {
+                // 정상 상태: 녹색, 현재 스태미나 / 최대치
+                _fillImage.color = new Color(0.2f, 0.8f, 0.2f, 1f);
+                _fillImage.fillAmount = Mathf.Clamp01(current / max);
+            }
+            else
+            {
+                // 침식(음수) 상태: 보라색, 절대값(현재 스태미나) / 음수 한계치
+                _fillImage.color = new Color(0.6f, 0.1f, 0.8f, 1f);
+                
+                float negLimit = _playerStamina != null ? _playerStamina.negativeLimit : 50f;
+                if (negLimit > 0)
+                {
+                    _fillImage.fillAmount = Mathf.Clamp01(Mathf.Abs(current) / negLimit);
+                }
+                else
+                {
+                    _fillImage.fillAmount = 1f;
+                }
+            }
         }
     }
 

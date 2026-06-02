@@ -149,6 +149,15 @@ public class GemSynergyDisplayUI : MonoBehaviour
                 if (level == 3) return "Allies touched by dash gain +15% move/evasion speed.";
                 if (level == 4) return "Player becomes invincible during dash.";
                 break;
+            case GemSynergyGroup.Stamina:
+                if (level == 1) return "Stamina regen +1 (Out of combat & Base).";
+                if (level == 2) return "Max stamina +20.";
+                if (level == 3) return "Stamina regen up to 2x at 0 stamina.";
+                break;
+            case GemSynergyGroup.Fastball:
+                if (level == 1) return "Direct throw efficiency +50%.";
+                if (level == 2) return "Direct throw efficiency +75%.";
+                break;
         }
         return "New power unlocked.";
     }
@@ -163,6 +172,21 @@ public class GemSynergyDisplayUI : MonoBehaviour
             case GemUniqueType.SlowlyFreezingFlower: return GemSynergyGroup.Priest_Chill;
             case GemUniqueType.ExplodingFlesh: return GemSynergyGroup.BloodPop;
             case GemUniqueType.NoCountryForOldMen: return GemSynergyGroup.Priest_Aging;
+            case GemUniqueType.CatchBreath:
+            case GemUniqueType.HarvestOfDeath:
+            case GemUniqueType.BasicFitness:
+            case GemUniqueType.EndlessVitality:
+            case GemUniqueType.OverflowingThrow:
+            case GemUniqueType.OrderedBreath:
+            case GemUniqueType.ThrowOverload:
+            case GemUniqueType.MasterOfRapidFire:
+            case GemUniqueType.LimitBreak:
+            case GemUniqueType.EfficientThrow: return GemSynergyGroup.Stamina;
+            case GemUniqueType.SetPosition:
+            case GemUniqueType.Windup:
+            case GemUniqueType.MagicPitchFireball:
+            case GemUniqueType.MagicPitchArirangBall:
+            case GemUniqueType.Closer: return GemSynergyGroup.Fastball;
             default: return GemSynergyGroup.Base;
         }
     }
@@ -171,6 +195,25 @@ public class GemSynergyDisplayUI : MonoBehaviour
     {
         switch (type)
         {
+            // [스태미나 유니크 10종]
+            case GemUniqueType.CatchBreath: return "Out of combat: Stamina regen +1.";
+            case GemUniqueType.HarvestOfDeath: return "Dead minions grant +1 stamina regen until revived.";
+            case GemUniqueType.BasicFitness: return "Max stamina +20.";
+            case GemUniqueType.EndlessVitality: return "Stamina regen +0.5.";
+            case GemUniqueType.OverflowingThrow: return "Throw cost +5, Throw effect +25%.";
+            case GemUniqueType.OrderedBreath: return "Throw cost -3.";
+            case GemUniqueType.ThrowOverload: return "Throw effect increases 2% per 1 stamina cost.";
+            case GemUniqueType.MasterOfRapidFire: return "Throw cost -7, Throw effect -30%.";
+            case GemUniqueType.LimitBreak: return "Stamina limit drops to -50. Regen is halved if < 0.";
+            case GemUniqueType.EfficientThrow: return "Max stamina -40, Throw effect +60%.";
+
+            // [강속구 유니크 5종]
+            case GemUniqueType.SetPosition: return "Charge time -0.1s, Direct throw efficiency -2%.";
+            case GemUniqueType.Windup: return "Charge time +0.5s, Direct throw efficiency +2%.";
+            case GemUniqueType.MagicPitchFireball: return "Direct throw efficiency +10% per 1s charge time.";
+            case GemUniqueType.MagicPitchArirangBall: return "Charge time -0.5s, Direct throw efficiency -40%.";
+            case GemUniqueType.Closer: return "Max charge time extended to 5s.";
+
             case GemUniqueType.LethalPoison: return "Ally throw deals extra damage based on target's Poison stacks.";
             case GemUniqueType.LethalDose: return "Poison tick interval -50%.";
             case GemUniqueType.PoisonContagion: return "Spreads 50% of remaining Poison stacks to 1 enemy on death.";
@@ -251,6 +294,8 @@ public class GemSynergyDisplayUI : MonoBehaviour
             case GemSynergyGroup.BloodPop: return new Color(1.0f, 0.0f, 1.0f);
             case GemSynergyGroup.Priest_Aging: return new Color(0.7f, 0.5f, 0.5f);
             case GemSynergyGroup.Priest_Corrosion: return new Color(1.0f, 0.8f, 0.0f);
+            case GemSynergyGroup.Stamina: return new Color(0.1f, 0.8f, 0.2f); // Greenish
+            case GemSynergyGroup.Fastball: return new Color(1.0f, 0.5f, 0.0f); // Amber
             default: return Color.white;
         }
     }

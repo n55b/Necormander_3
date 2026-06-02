@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
+  m_Name: Gem_Fastball_MagicPitchFireball
+  m_EditorClassIdentifier: 
+  itemName: 'Magic Pitch: Fireball'
+  description: Fastball effect +10% per 1s of required charge time.
+  icon: {fileID: 0}
+  rarity: 3
+  shopCost: 320
+  category: 0
+  synergyGroup: 5
+  subSlots: 1
+  eligibleJobs: -1
+  effects:
+  - rid: 6640442256592994399
+  references:
+    version: 2
+    RefIds:
+    - rid: 6640442256592994399
+      type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
+      data:
+        uniqueType: 212
+        displayDescription: Fastball effect +10% per 1s of required charge time.

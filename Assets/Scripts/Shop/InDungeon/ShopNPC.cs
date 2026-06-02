@@ -12,11 +12,15 @@ public class ShopNPC : MonoBehaviour
 
     public void Initialize()
     {
-        List<PrizeDataSO> prizes = RewardProcessor.GenerateShopRoom(GameManager.Instance.dataManager);
+        List<RewardCandidate> prizes = RewardProcessor.GenerateShopRoom(GameManager.Instance.dataManager);
 
         for(int i = 0; i < prizes.Count; i++)
         {
-            items[i].item = prizes[i];
+            if (i < items.Count && items[i] != null)
+            {
+                items[i].item = prizes[i];
+                items[i].InitializeUI(); // UI를 업데이트하는 함수 호출 (SellItem에 추가 예정)
+            }
         }
     }
 }

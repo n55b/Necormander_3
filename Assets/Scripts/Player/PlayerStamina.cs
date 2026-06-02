@@ -6,17 +6,51 @@ using UnityEngine;
 /// </summary>
 public class PlayerStamina : MonoBehaviour
 {
-    [Header("Stamina Settings")]
+    [Header("Base Settings")]
     [SerializeField] private float defaultMaxStamina = 100f;
     [SerializeField] private float defaultThrowCost = 15f;
     [SerializeField] private float defaultRegenRate = 3f; // 초당 회복량
 
+    // 모디파이어(보너스) 값들
+    [HideInInspector] public float maxStaminaBonus = 0f;
+    [HideInInspector] public float throwCostBonus = 0f;
+    [HideInInspector] public float regenRateBonus = 0f;
+    [HideInInspector] public float outOfCombatRegenBonus = 0f;
+    [HideInInspector] public float deadMinionRegenBonus = 0f;
+    
+    // 한계돌파 등 특수 상태
+    [HideInInspector] public float negativeLimit = 0f; // 기본 0, 한계돌파시 -50
+    [HideInInspector] public bool hasStaminaSynergyMax = false; // 6시너지 활성화 여부
+
     private float _currentStamina;
 
-    // 프로퍼티 (추후 시너지 효과 등에 의해 변경될 수 있도록 Getter 형태로 열어둠)
-    public float MaxStamina => defaultMaxStamina; 
-    public float ThrowCost => defaultThrowCost;
-    public float RegenRate => defaultRegenRate;
+    // 계산된 최종 스탯 프로퍼티
+    public float MaxStamina => defaultMaxStamina + maxStaminaBonus; 
+    public float ThrowCost => Mathf.Max(0f, defaultThrowCost + throwCostBonus);
+    public float RegenRate
+    {
+        get
+        {
+            float baseRegen = defaultRegenRate + regenRateBonus + deadMinionRegenBonus;
+            
+            // 비전투 보너스
+            if (GameManager.Instance.PLAYERCONTROLLER.IsOutOfCombat)
+                baseRegen += outOfCombatRegenBonus;
+            
+            // 음수 페널티 (침식 상태)
+            float erosionMultiplier = (_currentStamina < 0) ? 0.5f : 1.0f;
+            
+            // 시너지(6) 등 최종 배율 곱연산
+            float synergyMulti = 1.0f;
+            if (hasStaminaSynergyMax)
+            {
+                float ratio = Mathf.Clamp01(_currentStamina / MaxStamina);
+                synergyMulti = Mathf.Lerp(2.0f, 1.0f, ratio);
+            }
+
+            return baseRegen * erosionMultiplier * synergyMulti;
+        }
+    }
     
     public float CurrentStamina => _currentStamina;
 
@@ -44,12 +78,12 @@ public class PlayerStamina : MonoBehaviour
 
     public bool CanThrow()
     {
-        return _currentStamina >= ThrowCost;
+        return _currentStamina - ThrowCost >= -negativeLimit;
     }
 
     public void ConsumeStamina()
     {
-        if (_currentStamina >= ThrowCost)
+        if (CanThrow())
         {
             _currentStamina -= ThrowCost;
             NotifyStaminaChanged();

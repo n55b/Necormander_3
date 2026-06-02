@@ -11,6 +11,7 @@ public class ThrowInputHandler : MonoBehaviour
     [SerializeField] private PlayerController _playerController;
     private float _chargeTimer;
     private bool _isCharging;
+    public bool IsCharging => _isCharging; // [추가] 외부 노출용
     private Vector2 _rightClickStartPos;
     private bool _isWheelActive;
 

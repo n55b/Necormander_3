@@ -21,6 +21,26 @@ public enum GemUniqueType
     ExplodingFlesh = 5,         // 살덩이가 터지는 것 (비폭 전이)
     NoCountryForOldMen = 6,     // 노인을 위한 나라는 없다 (노화 즉사)
     
+    // [추가] 신규 스태미너 유니크 10종
+    CatchBreath = 200,          // 숨 고르기
+    HarvestOfDeath = 201,       // 죽음의 수확
+    BasicFitness = 202,         // 기초체력 강화
+    EndlessVitality = 203,      // 끊임없는 활력
+    OverflowingThrow = 204,     // 넘치는 투척
+    OrderedBreath = 205,        // 정돈된 숨결
+    ThrowOverload = 206,        // 투척 과부화
+    MasterOfRapidFire = 207,    // 속사의 대가
+    LimitBreak = 208,           // 한계돌파
+    EfficientThrow = 209,       // 효율적인 투척
+
+    // [추가] 신규 강속구 유니크 5종
+    SetPosition = 210,          // 셋 포지션
+    Windup = 211,               // 와인드업
+    MagicPitchFireball = 212,   // 마구: 파이어볼
+    MagicPitchArirangBall = 213,// 마구: 아리랑볼
+    Closer = 214,               // 클로저
+    ExperiencedPitcher = 215,   // 숙련된 투수 (Experienced Pitcher)
+    
     // [추가] 신규 중독 유니크 6종
     PoisonHost = 7,             // 숙주 (주기적 광역 중독 전염)
     PoisonFootprint = 8,        // 부식석 발자취 (이동 장판 스폰, 아군 이속 증가)
@@ -110,6 +130,8 @@ public enum GemSynergyGroup
     Poison = 1,
     BloodPop = 2,
     Execution = 3,
+    Stamina = 4,
+    Fastball = 5,
 
     // [사제 전용 시너지]
     Priest_Chill = 100,
@@ -167,6 +189,8 @@ public class GemSO : GrowthItemSO
             case GemSynergyGroup.Priest_Chill: return new Color(0.3f, 0.6f, 1.0f); // SkyBlue
             case GemSynergyGroup.Execution: return new Color(1.0f, 0.3f, 0.1f); // Orange
             case GemSynergyGroup.BloodPop: return new Color(1.0f, 0.0f, 1.0f); // Magenta
+            case GemSynergyGroup.Stamina: return new Color(0.1f, 0.8f, 0.2f); // Greenish
+            case GemSynergyGroup.Fastball: return new Color(1.0f, 0.5f, 0.0f); // Amber
             case GemSynergyGroup.Priest_Aging: return new Color(0.7f, 0.5f, 0.5f); // Brown
             case GemSynergyGroup.Priest_Corrosion: return new Color(1.0f, 0.8f, 0.0f); // Gold
             case GemSynergyGroup.Warrior_Executioner: return new Color(0.8f, 0.1f, 0.1f); // DarkRed
@@ -178,28 +202,43 @@ public class GemSO : GrowthItemSO
 
     public GrowthItemData GetDynamicDisplayData(CommandData job)
     {
-        // [수정] 실제 직업 이름 대신 보석의 시너지 그룹을 표시합니다.
-        string groupName = synergyGroup.ToString().Replace("_", " ");
         string finalDesc = string.IsNullOrEmpty(description) ? "" : description;
         
         if (effects != null && effects.Count > 0)
         {
-            finalDesc += "\n<color=yellow>";
+            string effectText = "";
             foreach (var effect in effects)
             {
                 if (effect != null)
                 {
                     string desc = effect.GetDescription();
-                    if (!string.IsNullOrEmpty(desc)) finalDesc += $"\n- {desc}";
+                    
+                    // 유니크 효과의 경우, 이미 본문(description)에 같은 내용이 있다면 노란색 텍스트를 중복으로 추가하지 않습니다.
+                    if (effect is GemUniqueEffect uniqueEffect)
+                    {
+                        if (finalDesc.Contains(uniqueEffect.displayDescription)) continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(desc)) 
+                    {
+                        effectText += $"\n- {desc}";
+                    }
                 }
             }
-            finalDesc += "</color>";
+
+            if (!string.IsNullOrEmpty(effectText))
+            {
+                finalDesc += "\n<color=yellow>" + effectText.TrimStart('\n') + "</color>";
+            }
         }
+
+        // 보석의 고유 이름이 설정되어 있다면 우선적으로 사용하고, 없다면 그룹 이름을 사용합니다.
+        string dName = !string.IsNullOrEmpty(this.itemName) ? this.itemName : $"{synergyGroup.ToString().Replace("_", " ")} Gem";
 
         return new GrowthItemData
         {
-            itemName = $"{groupName} Gem",
-            description = finalDesc,
+            itemName = dName,
+            description = finalDesc.Trim(),
             icon = icon,
             rarity = rarity
         };

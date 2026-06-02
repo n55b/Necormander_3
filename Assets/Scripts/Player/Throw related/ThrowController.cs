@@ -24,7 +24,20 @@ public class ThrowController : MonoBehaviour
     // 데이터 게터 (서브 컴포넌트용)
     public Transform HoldPoint => holdPoint;
     public SelectionWheelUI SelectionWheel => (selectionWheel != null) ? selectionWheel : SelectionWheelUI.Instance; // [수정] 싱글톤 우선 활용
-    public float ChargeTime => GameManager.Instance.PLAYERCONTROLLER.ThrowChargeTime;
+    
+    // [수정] 모디파이어가 반영된 최종 ChargeTime 계산
+    public float ChargeTime 
+    {
+        get
+        {
+            var pc = GameManager.Instance.PLAYERCONTROLLER;
+            float time = pc.ThrowChargeTime + pc.bonusThrowChargeTime;
+            if (pc.maxChargeTimeLimit > 0)
+                time = Mathf.Max(time, pc.maxChargeTimeLimit);
+            return Mathf.Max(0.1f, time); // 최소 0.1초 보장
+        }
+    }
+
     public float DragThreshold => dragThreshold;
     public List<CommandData> DirectionMapping => directionMapping;
 
@@ -44,6 +57,9 @@ public class ThrowController : MonoBehaviour
     public List<IThrowable> HeldObjects => _heldObjects;
     public ThrowCluster ActiveCluster => _activeCluster;
     public float CurrentChargeRatio => _input != null ? _input.ChargeRatio : 0f;
+    public bool IsCharging => _input != null && _input.IsCharging; // [추가]
+
+    public event System.Action<ThrowRecipe> OnRecipeCreated; // [추가] 보석/시너지 핸들러들이 레시피를 수정할 수 있는 후킹 포인트
 
     // 호환성 래핑
     public TargetingMode GetCurrentTargetingMode() => _strategy.GetCurrentTargetingMode(_heldObjects);
@@ -60,6 +76,21 @@ public class ThrowController : MonoBehaviour
             mousePos.z = 0f;
             return (Vector2)mousePos;
         }
+    }
+
+    public void InvokeRecipeCreated(ThrowRecipe recipe)
+    {
+        var pc = GameManager.Instance.PLAYERCONTROLLER;
+        if (pc != null)
+        {
+            recipe.modifiers.gemPowerMultiplier += pc.bonusThrowEffectMultiplier;
+            if (recipe.info.isDirect)
+            {
+                recipe.modifiers.gemPowerMultiplier += pc.chargeEfficiencyMultiplier;
+            }
+        }
+        
+        OnRecipeCreated?.Invoke(recipe);
     }
 
     private void Awake()
@@ -246,6 +277,8 @@ public class ThrowController : MonoBehaviour
         // 스태미나 차감
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.ConsumeStamina();
+        
+        GameManager.Instance.PLAYERCONTROLLER.RecordCombatAction(); // 투척 시 전투 상태 갱신
 
         float ratio = _input.ChargeRatio;
         Vector2 startPos = (Vector2)_activeCluster.transform.position;

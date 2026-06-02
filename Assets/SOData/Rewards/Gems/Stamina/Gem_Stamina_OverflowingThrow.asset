@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
+  m_Name: Gem_Stamina_OverflowingThrow
+  m_EditorClassIdentifier: 
+  itemName: Overflowing Throw
+  description: Stamina cost +5, Throw effect +25%.
+  icon: {fileID: 0}
+  rarity: 3
+  shopCost: 320
+  category: 0
+  synergyGroup: 4
+  subSlots: 1
+  eligibleJobs: -1
+  effects:
+  - rid: 6640442256592994392
+  references:
+    version: 2
+    RefIds:
+    - rid: 6640442256592994392
+      type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
+      data:
+        uniqueType: 204
+        displayDescription: Stamina cost +5, Throw effect +25%.
