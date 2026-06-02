@@ -28,7 +28,7 @@ public class ChillUniqueManager : MonoBehaviour
         if (InventoryManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
 
         // [유니크] 칼바람 (BitingWind) 주기적 발동
-        if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.BitingWind))
+        if (InventoryManager.Instance != null && false /* InventoryManager.Instance.HasUniqueEffect(GemUniqueType.BitingWind) */)
         {
             _bitingWindTimer += Time.deltaTime;
             if (_bitingWindTimer >= bitingWindInterval)
@@ -83,7 +83,7 @@ public class ChillUniqueManager : MonoBehaviour
 
     public void TriggerAbsoluteZero(Vector3 centerPosition)
     {
-        if (InventoryManager.Instance == null || !InventoryManager.Instance.HasUniqueEffect(GemUniqueType.AbsoluteZero)) return;
+        if (InventoryManager.Instance == null || true /* !InventoryManager.Instance.HasUniqueEffect(GemUniqueType.AbsoluteZero) */) return;
         if (_hasTriggeredAbsoluteZeroThisRoom) return;
 
         _hasTriggeredAbsoluteZeroThisRoom = true;

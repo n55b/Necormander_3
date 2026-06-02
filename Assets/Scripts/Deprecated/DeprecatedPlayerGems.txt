@@ -1,0 +1,82 @@
+// --- Deprecated Player Gems Backup ---
+// 이 파일은 플레이어 전용 유니크 보석 효과(PoisonFootprint 등)를 백업한 것입니다.
+
+/*
+public class PlayerUniqueEffectManager : MonoBehaviour
+{
+    [Header("부식석 발자취 (Poison Footprint)")]
+    public float poisonSpawnDistance = 0.5f; // 충돌체 생성 간격
+    private Vector2 _lastPoisonSpawnPosition;
+    private TrailRenderer _poisonTrail;
+
+    private void Start()
+    {
+        InitPoisonFootprint();
+    }
+
+    private void Update()
+    {
+        HandlePoisonFootprint();
+    }
+
+    private void InitPoisonFootprint()
+    {
+        _lastPoisonSpawnPosition = transform.position;
+        
+        _poisonTrail = gameObject.GetComponent<TrailRenderer>();
+        if (_poisonTrail == null)
+        {
+            _poisonTrail = gameObject.AddComponent<TrailRenderer>();
+        }
+        
+        _poisonTrail.time = 5.0f; // 5초 유지 후 꼬리부터 서서히 사라짐
+        _poisonTrail.startWidth = 1.0f;
+        _poisonTrail.endWidth = 1.0f;
+        
+        Material trailMat = new Material(Shader.Find("Sprites/Default"));
+        _poisonTrail.material = trailMat;
+        
+        _poisonTrail.startColor = new Color(0f, 0.8f, 0f, 0.6f);
+        _poisonTrail.endColor = new Color(0f, 0.8f, 0f, 0.0f);
+        
+        _poisonTrail.sortingLayerName = "Background";
+        _poisonTrail.sortingOrder = 10;
+        _poisonTrail.emitting = false;
+    }
+
+    private void HandlePoisonFootprint()
+    {
+        var inven = InventoryManager.Instance;
+        bool hasUnique = (inven != null && inven.HasUniqueEffect(GemUniqueType.PoisonFootprint));
+        
+        if (_poisonTrail != null)
+        {
+            _poisonTrail.emitting = hasUnique;
+        }
+
+        if (!hasUnique)
+            return;
+
+        float dist = Vector2.Distance(transform.position, _lastPoisonSpawnPosition);
+        if (dist >= poisonSpawnDistance)
+        {
+            SpawnInvisibleTrigger(transform.position);
+            _lastPoisonSpawnPosition = transform.position;
+        }
+    }
+
+    private void SpawnInvisibleTrigger(Vector3 pos)
+    {
+        GameObject footprint = new GameObject("PoisonFootprint_Trigger");
+        footprint.transform.position = pos;
+
+        var circle = footprint.AddComponent<CircleCollider2D>();
+        circle.radius = 0.6f;
+        circle.isTrigger = true;
+
+        footprint.AddComponent<PoisonPuddle>();
+
+        Destroy(footprint, 5.0f); // 5초 뒤 보이지 않는 충돌체 소멸
+    }
+}
+*/

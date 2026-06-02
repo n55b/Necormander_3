@@ -1,0 +1,176 @@
+// --- Deprecated Throw Gems Backup ---
+// 이 파일은 각 직업별 ImpactAction (WarriorAction, ArcherAction 등)에서 뜯어낸 투척 보석들의 원본 하드코딩 로직입니다.
+// 나중에 이 보석들을 부활시킬 때, ThrowEventBus 핸들러 안에서 아래 로직을 참고하여 구현하세요.
+
+/*
+// --- 전사 (WarriorAction) ---
+float ballisticsMultiplier = 1f;
+if (!recipe.info.isDirect)
+{
+    int wbCount = inven.GetUniqueEffectCount(GemUniqueType.WarriorBallistics1);
+    if (wbCount > 0)
+    {
+        ballisticsMultiplier += 0.10f * wbCount;
+    }
+}
+
+// [유니크] 전사 인형 탄도학 II (직구 던지기 데미지 10% 증가)
+if (recipe.info.isDirect)
+{
+    int wb2Count = inven.GetUniqueEffectCount(GemUniqueType.WarriorBallistics2);
+    if (wb2Count > 0)
+    {
+        ballisticsMultiplier += 0.10f * wb2Count;
+    }
+}
+
+// [유니크] 전사 인형 탄도학 III (던지기 단일 적용 효과 15% 증가)
+if (recipe.info.targetingMode == TargetingMode.Target)
+{
+    int wb3Count = inven.GetUniqueEffectCount(GemUniqueType.WarriorBallistics3);
+    if (wb3Count > 0)
+    {
+        ballisticsMultiplier += 0.15f * wb3Count;
+    }
+}
+
+finalDamage *= ballisticsMultiplier;
+
+// [유니크] 추적하는 눈 (TrackingEye): 연속으로 같은 대상을 맞출 시 데미지 12% 증가
+if (inven.HasUniqueEffect(GemUniqueType.TrackingEye))
+{
+    if (_lastHitTarget == target) finalDamage *= 1.12f;
+}
+
+// [시너지] 처형자 (Warrior_Executioner)
+if (inven != null)
+{
+    int execLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Warrior_Executioner));
+    float hpRatio = entity.Stats.Health.MaxHP > 0 ? entity.Stats.Health.CurHP / entity.Stats.Health.MaxHP : 1f;
+
+    if (execLevel >= 1 && hpRatio < 0.5f) // (2) 스택: 50% 미만 적 20% 증가
+    {
+        finalDamage *= 1.2f;
+    }
+    
+    if (execLevel >= 3 && hpRatio <= 0.3f) // (6) 스택: 30% 이하 시 최대 50% 비례 증폭
+    {
+        float extraAmp = 0.5f * ((0.3f - hpRatio) / 0.3f);
+        finalDamage *= (1f + extraAmp);
+    }
+}
+
+// [유니크] 짓눌리는 힘 (CrushingPower): 던지기 피해 초과 시(압살) 전사 체력 회복
+if (inven != null && inven.HasUniqueEffect(GemUniqueType.CrushingPower))
+{
+    if (finalDamage > hpBefore)
+    {
+        float excess = finalDamage - hpBefore;
+        foreach (var unit in recipe.state.heldUnits)
+        {
+            if (unit.MinionType == CommandData.SkeletonWarrior)
+            {
+                var allyHealth = unit.transform.GetComponentInChildren<CharacterHealth>();
+                if (allyHealth == null) allyHealth = unit.transform.GetComponentInParent<CharacterHealth>();
+                if (allyHealth != null) allyHealth.Heal(excess);
+            }
+        }
+    }
+}
+
+// --- 궁수 (ArcherAction) ---
+// [유니크] 선관지형 (HuntersHerding): 범위 내 적 마리당 던지기 효과 5% 증가
+if (inven.HasUniqueEffect(GemUniqueType.HuntersHerding) && recipe.state.areaTargets != null)
+{
+    int targetCount = recipe.state.areaTargets.Count;
+    finalDamage *= (1.0f + 0.05f * targetCount);
+}
+
+// [유니크] 전추태산 (SupportFire): 광역 피해 15% 증가
+if (inven.HasUniqueEffect(GemUniqueType.SupportFire))
+{
+    finalDamage *= 1.15f;
+}
+
+// [유니크] 비정비팔 (AimedStrike) 및 [시너지] 6스택: 중앙(30% 이내) 적 추가 피해
+float dist = Vector2.Distance(target.transform.position, impactPos);
+if (dist <= radius * 0.3f)
+{
+    if (inven.HasUniqueEffect(GemUniqueType.AimedStrike)) finalDamage *= 1.20f;
+
+    int archerSynLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Archer_ArcheryPrinciples));
+    if (archerSynLevel >= 3) // (6) 스택
+    {
+        finalDamage *= 1.50f;
+    }
+}
+
+// [유니크] 흉어복실 (WindDirection): 비행 거리에 비례하여 최대 33% 증가
+if (inven.HasUniqueEffect(GemUniqueType.WindDirection) && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+{
+    Vector2 playerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position;
+    float flightDist = Vector2.Distance(playerPos, impactPos);
+    float ratio = Mathf.Clamp01(flightDist / 15f); // 15 유닛을 최대 비행 거리로 산정
+    finalDamage *= (1.0f + 0.33f * ratio);
+}
+*/
+
+// --- 방패병 (ShieldBearerAction) ---
+/*
+// [유니크] 육중한 갑옷: 방패 수치의 14% 단일 피해
+if (inven.HasUniqueEffect(GemUniqueType.HeavyArmor))
+{
+    totalDamage += finalShield * 0.14f;
+}
+
+// [유니크] 뒤틀리는 지반: 방패 수치의 20% 범위 피해
+bool hasTwistedGround = inven.HasUniqueEffect(GemUniqueType.TwistedGround);
+
+// [시너지] 수호신(Shield_Guardian) (2) 스택: 방패 수치의 20% 광역 피해
+int guardianLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
+bool hasGuardianAoE = guardianLevel >= 1; // (2) 스택
+
+if (hasTwistedGround || hasGuardianAoE)
+{
+    float aoeDamage = finalShield * 0.20f;
+    if (hasTwistedGround && hasGuardianAoE) aoeDamage = finalShield * 0.40f; // 둘 다 있으면 40%
+
+    float radius = 2.5f;
+    foreach (var status in CharacterStatus.ActiveEnemies)
+    {
+        if (status != null && Vector2.Distance(impactPos, status.transform.position) <= radius)
+        {
+            if (status.TryGetComponent(out CharacterHealth health))
+            {
+                health.GetDamage(new DamageInfo(aoeDamage, DamageType.Physical, null));
+            }
+        }
+    }
+}
+}
+*/
+
+// --- 체공 시간 제어 (ThrowController) ---
+/*
+// [유니크] 창병 - 창의 신속함 (SpearSwiftness): 던지기 착지 시간 33% 단축
+if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.SpearSwiftness))
+{
+    bool hasSpearman = false;
+    foreach (var held in _heldObjects)
+    {
+        if (held != null && held.MinionType == CommandData.SkeletonSpearman) { hasSpearman = true; break; }
+    }
+    if (hasSpearman) duration *= 0.67f;
+}
+*/
+
+// --- 던지기 레시피 구성 시 (ThrowStrategy) ---
+/*
+// [유니크] 후관풍세(SpreadShot)
+if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.SpreadShot)) radiusMult += 0.20f;
+
+// [시너지] 집궁제원칙
+int archerSynLevel = GemSynergyLogic.GetLevel(InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.Archer_ArcheryPrinciples));
+if (archerSynLevel >= 1) radiusMult += 0.20f; // (2) 스택
+if (archerSynLevel >= 4) radiusMult += 0.10f; // (8) 스택
+*/

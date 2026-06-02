@@ -1,0 +1,164 @@
+// --- Deprecated Status Gems Backup ---
+// 이 파일은 상태이상 및 비폭(BloodPop) 등에서 뜯어낸 특수 보석들의 원본 하드코딩 로직입니다.
+// 나중에 부활시킬 때 StatusEventBus 핸들러 안에서 아래 로직을 참고하세요.
+
+/*
+// --- 비폭 (BloodPop) 폭발 관련 (CharacterHealth.cs) ---
+
+// [유니크] 사제 폭탄마 (ImprovisedExplosive): 비폭 10% 증가
+if (inven != null)
+{
+    int ieCount = inven.GetUniqueEffectCount(GemUniqueType.ImprovisedExplosive);
+    if (ieCount > 0)
+    {
+        finalDamage *= (1.0f + 0.10f * ieCount);
+    }
+}
+
+// [유니크] 동귀어진 (MutualDestruction): 폭발 직전 반경 1.5배 내의 적들을 폭발 중심점으로 끌어당김
+LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+if (hasInven && inven.HasUniqueEffect(GemUniqueType.MutualDestruction))
+{
+    Collider2D[] pullColls = Physics2D.OverlapCircleAll(transform.position, explosionRadius * 1.5f, enemyLayer);
+    foreach (var col in pullColls)
+    {
+        if (col.gameObject != this.gameObject)
+        {
+            Vector3 dirToCenter = (transform.position - col.transform.position).normalized;
+            float dist = Vector2.Distance(transform.position, col.transform.position);
+            if (dist > 0.1f)
+            {
+                col.transform.position += dirToCenter * (dist * 0.5f); // 중심부를 향해 절반만큼 물리적 이동
+            }
+        }
+    }
+}
+
+// [유니크] 나도 폭발하는걸까? (AmIExplodingToo) 약점 상태 시 데미지 장착 개수 비례 증폭
+if (hasInven && targetStatus != null && targetStatus.GetDebuffBool(DebuffBoolType.BloodPopVulnerable))
+{
+    int amICount = inven.GetUniqueEffectCount(GemUniqueType.AmIExplodingToo);
+    if (amICount > 0)
+    {
+        damageToApply *= (1.0f + 0.20f * amICount);
+    }
+    else
+    {
+        damageToApply *= 1.20f; // 보석을 뺀 상태라도 디버프가 남아있다면 기본 20%는 적용되게 유지
+    }
+}
+
+// [유니크] 나도 폭발하는걸까? (AmIExplodingToo) 타격 후 약점 상태 영구 부여
+if (hasInven && inven.HasUniqueEffect(GemUniqueType.AmIExplodingToo) && targetStatus != null)
+{
+    targetStatus.SetDebuffBool(DebuffBoolType.BloodPopVulnerable, 9999f);
+}
+
+// [유니크] 살덩이가 폭발하는 것: 비폭 피해 대상에게 데미지의 일부만큼 비폭 스택 부여
+float chainRatio = GemRuleSystem.GetBloodPopChainRatio(isEnemyTarget);
+if (chainRatio > 0)
+{
+    if (targetStatus != null)
+    {
+        targetStatus.AddDebuffStack(DebuffStackType.BloodPop, damageToApply * chainRatio);
+    }
+}
+
+// [유니크] 내장 파티 (GoreParty) & 피철갑 (BloodArmor): 아군 회복 및 쉴드
+if (hasInven && (inven.HasUniqueEffect(GemUniqueType.GoreParty) || inven.HasUniqueEffect(GemUniqueType.BloodArmor)))
+{
+    LayerMask allyLayer = LayerMask.GetMask("Army", "Player");
+    Collider2D[] allyColls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, allyLayer);
+    foreach (var col in allyColls)
+    {
+        var allyHealth = col.GetComponentInChildren<CharacterHealth>();
+        var allyStatus = col.GetComponentInChildren<CharacterStatus>();
+
+        if (allyHealth != null && !allyHealth.isDead)
+        {
+            int goreCount = inven.GetUniqueEffectCount(GemUniqueType.GoreParty);
+            if (goreCount > 0)
+            {
+                allyHealth.Heal(stacks * goreCount);
+            }
+        }
+        
+        if (allyStatus != null)
+        {
+            int bloodArmorCount = inven.GetUniqueEffectCount(GemUniqueType.BloodArmor);
+            if (bloodArmorCount > 0)
+            {
+                allyStatus.AddShield(stacks * 2.0f * bloodArmorCount, 5.0f); // 쉴드 5초 지속으로 가정
+                
+                if (registry != null && registry.shieldAttachVFX != null)
+                {
+                    var allyStat = col.GetComponentInChildren<CharacterStat>();
+                    if (allyStat != null && allyStat.Visual != null)
+                    {
+                        GameObject vfx = Instantiate(registry.shieldAttachVFX, col.transform.position, Quaternion.identity, col.transform);
+                        allyStat.Visual.SetShieldVFX(vfx);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// [유니크] 녹아내리는 시체 (MeltingCorpse): 5초간 장판 생성
+if (hasInven && inven.HasUniqueEffect(GemUniqueType.MeltingCorpse))
+{
+    if (registry != null && registry.meltingCorpsePuddlePrefab != null)
+    {
+        // 프리팹이 연결되어 있으면 프리팹 인스턴스화
+        GameObject puddleObj = Instantiate(registry.meltingCorpsePuddlePrefab, transform.position, Quaternion.identity);
+        var puddle = puddleObj.GetComponent<MeltingCorpsePuddle>();
+        if (puddle == null) puddle = puddleObj.AddComponent<MeltingCorpsePuddle>();
+        puddle.Init(finalDamage * 0.1f, explosionRadius);
+    }
+}
+*/
+
+// --- 상태이상 틱 (CharacterStatus.cs) ---
+/*
+// [유니크] 초록색 체액 (GreenFluid): 독 틱 피해 발생 시 30% 확률로 던질 수 있는 포션 스폰
+var inven = InventoryManager.Instance;
+if (inven != null && inven.HasUniqueEffect(GemUniqueType.GreenFluid))
+{
+    if (UnityEngine.Random.value <= 0.3f)
+    {
+        SpawnPoisonPotion(transform.position);
+    }
+}
+*/
+
+// --- 보호막 소멸 (CharacterStatus.cs) ---
+/*
+int guardianLevel = GemSynergyLogic.GetLevel(InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
+if (guardianLevel >= 2) // (4) 스택: 보호막이 사라지면 주변 피해
+{
+    float radius = 3.0f;
+    foreach (var enemy in ActiveEnemies)
+    {
+        if (enemy != null && Vector2.Distance(transform.position, enemy.transform.position) <= radius)
+        {
+            if (enemy.TryGetComponent(out CharacterHealth health))
+            {
+                DamageInfo info = new DamageInfo(amount, DamageType.Fixed, this.gameObject);
+                health.GetDamage(info);
+            }
+        }
+    }
+}
+*/
+
+// --- 넉백 (CharacterStatus.cs) ---
+/*
+bool isPlayer = gameObject.CompareTag("Player");
+bool hasVanguard = false;
+if (isPlayer && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Vanguard))
+{
+    hasVanguard = true;
+    force *= 1.2f;
+    duration *= 1.3f;
+}
+*/

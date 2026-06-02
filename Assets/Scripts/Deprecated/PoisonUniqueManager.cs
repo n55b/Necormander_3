@@ -19,7 +19,7 @@ public class PoisonUniqueManager : MonoBehaviour
     private void Update()
     {
         var inven = InventoryManager.Instance;
-        if (inven == null || !inven.HasUniqueEffect(GemUniqueType.PoisonHost))
+        if (inven == null || true /* !inven.HasUniqueEffect(GemUniqueType.PoisonHost) */)
             return;
 
         // 숙주가 없거나 죽었다면 새로운 숙주 탐색

@@ -161,6 +161,8 @@ public class InventoryManager : MonoBehaviour
 
         _gemNodeIndex.Add(GemTreeRoot.Gem.InstanceId, GemTreeRoot);
 
+        GemHandlerRegistry.InitializeAllHandlers();
+
         RecalculateGemTreeStats(); 
         Debug.Log($"<color=cyan>[InventoryManager]</color> Gem Tree Initialized with Root: {GemTreeRoot.Gem.BaseData.itemName}");
     }
@@ -236,6 +238,14 @@ public class InventoryManager : MonoBehaviour
                 }
             }
         }
+
+        // 4. 장착된 보석 목록을 수집하여 핸들러 매니저 갱신 (핸들러 켜기/끄기)
+        List<GemUniqueType> activeUniqueGems = new List<GemUniqueType>();
+        foreach (var kvp in _globalGemStats.UniqueEffectCounts)
+        {
+            if (kvp.Value > 0) activeUniqueGems.Add(kvp.Key);
+        }
+        GemHandlerRegistry.RefreshActiveHandlers(activeUniqueGems);
     }
 
     private void CalculateSynergies(List<GemTreeNode> allNodes)

@@ -27,7 +27,7 @@ public class AgingUniqueManager : MonoBehaviour
     private void UpdateGoryeojangTarget()
     {
         var inven = InventoryManager.Instance;
-        if (inven == null || !inven.HasUniqueEffect(GemUniqueType.Goryeojang))
+        if (inven == null || true /* !inven.HasUniqueEffect(GemUniqueType.Goryeojang) */)
         {
             HighestAgingEnemy = null;
             if (_goryeojangAuraVFX != null) _goryeojangAuraVFX.SetActive(false);

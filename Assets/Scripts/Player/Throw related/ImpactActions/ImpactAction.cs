@@ -10,33 +10,6 @@ public abstract class ImpactAction
 
     protected void ApplyCommonSynergyDebuffs(GameObject target, ThrowRecipe recipe)
     {
-        var stat = target.GetComponentInParent<CharacterStat>();
-        if (stat == null) stat = target.GetComponentInChildren<CharacterStat>();
-        
-        if (stat == null || !stat.IsEnemy) return;
-        
-        var status = stat.Status;
-        if (status == null) return;
-
-        var inven = InventoryManager.Instance;
-        if (inven == null) return;
-            
-            float debuffMult = recipe.GetScaledValue(1f);
-            
-            // [유니크] 중독 플라스크: 기본값 +1 스택
-            float poisonBase = inven.HasUniqueEffect(GemUniqueType.PoisonFlask) ? 2f : 1f;
-
-            int poisonSynergy = inven.GetSynergyCount(GemSynergyGroup.Poison);
-            int bloodPopSynergy = inven.GetSynergyCount(GemSynergyGroup.BloodPop);
-            int executionSynergy = inven.GetSynergyCount(GemSynergyGroup.Execution);
-
-            if (poisonSynergy >= 2)
-                status.AddDebuffStack(DebuffStackType.Poison, poisonBase * debuffMult);
-                
-            if (bloodPopSynergy >= 2)
-                status.AddDebuffStack(DebuffStackType.BloodPop, debuffMult);
-                
-            if (executionSynergy >= 2)
-                status.AddDebuffStack(DebuffStackType.Execute, debuffMult);
+        // 이제 이 로직은 ThrowEventBus.OnThrowImpactAfterDamage 핸들러로 위임될 예정이므로 공란으로 비워둡니다.
     }
 }

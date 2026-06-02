@@ -14,93 +14,17 @@ public class WarriorAction : ImpactAction
     {
         if (target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
         {
-            var inven = InventoryManager.Instance;
             float finalDamage = recipe.GetScaledValue(damage);
+            float radius = 0f;
 
-            if (inven != null)
-            {
-                float ballisticsMultiplier = 1f;
-                if (!recipe.info.isDirect)
-                {
-                    int wbCount = inven.GetUniqueEffectCount(GemUniqueType.WarriorBallistics1);
-                    if (wbCount > 0)
-                    {
-                        ballisticsMultiplier += 0.10f * wbCount;
-                    }
-                }
-                
-                // [유니크] 전사 인형 탄도학 II (직구 던지기 데미지 10% 증가)
-                if (recipe.info.isDirect)
-                {
-                    int wb2Count = inven.GetUniqueEffectCount(GemUniqueType.WarriorBallistics2);
-                    if (wb2Count > 0)
-                    {
-                        ballisticsMultiplier += 0.10f * wb2Count;
-                    }
-                }
-                
-                // [유니크] 전사 인형 탄도학 III (던지기 단일 적용 효과 15% 증가)
-                if (recipe.info.targetingMode == TargetingMode.Target)
-                {
-                    int wb3Count = inven.GetUniqueEffectCount(GemUniqueType.WarriorBallistics3);
-                    if (wb3Count > 0)
-                    {
-                        ballisticsMultiplier += 0.15f * wb3Count;
-                    }
-                }
-
-                finalDamage *= ballisticsMultiplier;
-
-                // [유니크] 추적하는 눈 (TrackingEye): 연속으로 같은 대상을 맞출 시 데미지 12% 증가
-                if (inven.HasUniqueEffect(GemUniqueType.TrackingEye))
-                {
-                    if (_lastHitTarget == target) finalDamage *= 1.12f;
-                }
-            }
-
-            _lastHitTarget = target; // 마지막 피격 타겟 갱신
-
-            // [시너지] 처형자 (Warrior_Executioner)
-            if (inven != null)
-            {
-                int execLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Warrior_Executioner));
-                float hpRatio = entity.Stats.Health.MaxHP > 0 ? entity.Stats.Health.CurHP / entity.Stats.Health.MaxHP : 1f;
-
-                if (execLevel >= 1 && hpRatio < 0.5f) // (2) 스택: 50% 미만 적 20% 증가
-                {
-                    finalDamage *= 1.2f;
-                }
-                
-                if (execLevel >= 3 && hpRatio <= 0.3f) // (6) 스택: 30% 이하 시 최대 50% 비례 증폭
-                {
-                    float extraAmp = 0.5f * ((0.3f - hpRatio) / 0.3f);
-                    finalDamage *= (1f + extraAmp);
-                }
-            }
+            ThrowEventBus.TriggerThrowImpactBeforeDamage(CommandData.SkeletonWarrior, this, impactPos, ref finalDamage, ref radius, target);
 
             float hpBefore = entity.Stats.Health.CurHP;
 
             entity.Stats.Health.GetDamage(new DamageInfo(finalDamage, DamageType.Physical, null, true));
 
-            // [유니크] 짓눌리는 힘 (CrushingPower): 던지기 피해 초과 시(압살) 전사 체력 회복
-            if (inven != null && inven.HasUniqueEffect(GemUniqueType.CrushingPower))
-            {
-                if (finalDamage > hpBefore)
-                {
-                    float excess = finalDamage - hpBefore;
-                    foreach (var unit in recipe.state.heldUnits)
-                    {
-                        if (unit.MinionType == CommandData.SkeletonWarrior)
-                        {
-                            var allyHealth = unit.transform.GetComponentInChildren<CharacterHealth>();
-                            if (allyHealth == null) allyHealth = unit.transform.GetComponentInParent<CharacterHealth>();
-                            if (allyHealth != null) allyHealth.Heal(excess);
-                        }
-                    }
-                }
-            }
-
-            ApplyCommonSynergyDebuffs(target, recipe);
+            Collider2D[] dummyHits = new Collider2D[0]; // 단일 타겟 스킬이므로 빈 배열 전달 (필요 시 target collider 포함 가능)
+            ThrowEventBus.TriggerThrowImpactAfterDamage(CommandData.SkeletonWarrior, this, impactPos, dummyHits, target);
         }
     }
 }

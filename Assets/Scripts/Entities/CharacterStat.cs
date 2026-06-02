@@ -35,20 +35,18 @@ public class CharacterStat : MonoBehaviour
         get
         {
             if (jobType != CommandData.SkeletonShieldbearer) return 1f;
-            var inven = InventoryManager.Instance;
-            if (inven == null) return 1f;
-
-            float mult = 1f;
-            if (inven.HasUniqueEffect(GemUniqueType.ShieldsWillCourage)) mult += 0.1f;
-            if (inven.HasUniqueEffect(GemUniqueType.ShieldsWillWind)) mult += 0.1f;
-            if (inven.HasUniqueEffect(GemUniqueType.ShieldsWillClash)) mult += 0.1f;
             
+            float mult = 1f;
             if (Status != null && Status.TotalShield > 0)
             {
-                int guardianLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
-                if (guardianLevel >= 4) // (8) 스택
+                var inven = InventoryManager.Instance;
+                if (inven != null)
                 {
-                    mult += 0.15f;
+                    int guardianLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
+                    if (guardianLevel >= 4) // (8) 스택
+                    {
+                        mult += 0.15f;
+                    }
                 }
             }
             return mult;
@@ -62,7 +60,7 @@ public class CharacterStat : MonoBehaviour
 
     // --- 외부 참조용 단축 프로퍼티 (데이터 중심 + 보석 보너스 합산) ---
 
-    // 공격력: (기본 공격력) * (1 + 보석 배율 + 보물 배율) * 노화 감소
+    // 공격력: (기본 공격력) * (1 + 보물 배율) * 노화 감소 * 부식 감소 * 기타
     public float ATK
     {
         get
@@ -70,66 +68,22 @@ public class CharacterStat : MonoBehaviour
             float agingReduction = (Status != null) ? GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Aging), IsEnemy) : 0f;
             float agingMult = Mathf.Max(0.1f, 1f - agingReduction);
 
-            // [유니크] 무기 부식 (WeaponCorrosion): 부식된 적 공격력 10% 감소
             float corrosionAtkReduction = 0f;
-            if (IsEnemy && Status != null && Status.GetDebuffBool(DebuffBoolType.Corroded))
-            {
-                var inven = InventoryManager.Instance;
-                if (inven != null)
-                {
-                    int wcCount = inven.GetUniqueEffectCount(GemUniqueType.WeaponCorrosion);
-                    if (wcCount > 0)
-                    {
-                        corrosionAtkReduction += 0.10f * wcCount; // 무기 부식 공격력 추가 감소
-                    }
-                }
-            }
             float corrosionMult = Mathf.Max(0f, 1f - corrosionAtkReduction);
 
-            // 플레이어는 보석/보물(미니언용) 보너스를 받지 않음
+            // 플레이어는 보물(미니언용) 보너스를 받지 않음
             float bonusMult = _isPlayer ? 0f : (GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
             
-            float uniqueArcherMult = 1f;
-            if (!IsEnemy && jobType == CommandData.SkeletonArcher)
-            {
-                var inven = InventoryManager.Instance;
-                if (inven != null)
-                {
-                    // [유니크] 발여호미 (TensionPower): 공격력 25% 증가
-                    if (inven.HasUniqueEffect(GemUniqueType.TensionPower)) uniqueArcherMult *= 1.25f;
-
-                    // [유니크] 반구저기 (ReflectingNature): 발이부중 필수. 체력 50% 미만 시 공격력 15% 증가
-                    if (inven.HasUniqueEffect(GemUniqueType.ReflectingNature) && inven.HasUniqueEffect(GemUniqueType.UnseenMiss))
-                    {
-                        if (Health != null && Health.CurHP < MAXHP * 0.5f) uniqueArcherMult *= 1.15f;
-                    }
-                }
-            }
-
-            float uniqueSpearmanMult = 1f;
-            if (!IsEnemy && jobType == CommandData.SkeletonSpearman)
-            {
-                var inven = InventoryManager.Instance;
-                if (inven != null)
-                {
-                    if (inven.HasUniqueEffect(GemUniqueType.ThousandStabs)) uniqueSpearmanMult *= 1.03f;
-                }
-            }
-            
-            float uniqueWarriorMult = 1f;
-            if (!IsEnemy && jobType == CommandData.SkeletonWarrior)
-            {
-                var inven = InventoryManager.Instance;
-                if (inven != null)
-                {
-                    if (inven.HasUniqueEffect(GemUniqueType.WarriorsMedal)) uniqueWarriorMult *= 1.15f;
-                }
-            }
-
             float allyWillClashMult = 1f;
             if (_isAlly && ShieldbearerUniqueManager.IsWillClashActive) allyWillClashMult += 0.08f;
 
-            return (baseAtk * (1f + bonusMult) * agingMult * corrosionMult * uniqueArcherMult * uniqueSpearmanMult * uniqueWarriorMult) * ShieldbearerSelfMult * allyWillClashMult;
+            float atkMult = 1f;
+            float hpMult = 1f;
+            float atkSpdMult = 1f;
+            float moveSpdMult = 1f;
+            StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
+
+            return (baseAtk * (1f + bonusMult) * agingMult * corrosionMult * atkMult) * ShieldbearerSelfMult * allyWillClashMult;
         }
     }
 
@@ -141,12 +95,14 @@ public class CharacterStat : MonoBehaviour
         {
             float gemFlatBonus = _isPlayer ? 0f : GetGemBonus(StatType.Health);
             float treasureMult = _isPlayer ? 0f : GetTreasureBonus(TreasureEffectType.GlobalMinionStats);
-            float uniqueWarriorMult = 1f;
-            if (!IsEnemy && jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
-            {
-                uniqueWarriorMult *= 1.15f;
-            }
-            return (baseMaxHP + gemFlatBonus) * (1f + treasureMult) * ShieldbearerSelfMult * uniqueWarriorMult;
+            
+            float atkMult = 1f;
+            float hpMult = 1f;
+            float atkSpdMult = 1f;
+            float moveSpdMult = 1f;
+            StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
+            
+            return (baseMaxHP + gemFlatBonus) * (1f + treasureMult) * ShieldbearerSelfMult * hpMult;
         }
     }
 
@@ -162,92 +118,29 @@ public class CharacterStat : MonoBehaviour
             
             float bonusMult = _isPlayer ? 0f : GetGemBonus(StatType.AttackSpeed);
 
-            // [유니크] 노화 사냥꾼 (AgingHunter): 방 전체 적의 노화 스택 100당 10% 증가
-            if ((_isPlayer || _isAlly) && InventoryManager.Instance != null)
-            {
-                int ahCount = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.AgingHunter);
-                if (ahCount > 0)
-                {
-                    float totalAgingStacks = 0f;
-                    foreach (var enemyStatus in CharacterStatus.ActiveEnemies)
-                    {
-                        if (enemyStatus != null) totalAgingStacks += enemyStatus.GetDebuffStack(DebuffStackType.Aging);
-                    }
-                    int multiplier = Mathf.FloorToInt(totalAgingStacks / 100f);
-                    if (multiplier > 0)
-                    {
-                        bonusMult += (0.1f * multiplier * ahCount);
-                    }
-                }
-            }
-
-            float uniqueArcherDivisor = 1f;
-            if (!IsEnemy && jobType == CommandData.SkeletonArcher)
-            {
-                var inven = InventoryManager.Instance;
-                if (inven != null)
-                {
-                    // [유니크] 발여호미 (TensionPower): 기본 공격 빈도 25% 느려짐 (주기 * 1.25)
-                    if (inven.HasUniqueEffect(GemUniqueType.TensionPower)) uniqueArcherDivisor *= 1.25f;
-
-                    // [유니크] 반구저기 (ReflectingNature): 발이부중 필수. 체력 50% 이상 시 공격속도 15% 증가 (주기 감소)
-                    if (inven.HasUniqueEffect(GemUniqueType.ReflectingNature) && inven.HasUniqueEffect(GemUniqueType.UnseenMiss))
-                    {
-                        if (Health != null && Health.CurHP >= MAXHP * 0.5f) uniqueArcherDivisor *= 0.85f;
-                    }
-                }
-            }
-
             float allyWillCourageDivisor = 1f;
             if (_isAlly && ShieldbearerUniqueManager.IsWillCourageActive) allyWillCourageDivisor = 1f / 1.12f;
             
-            float uniqueWarriorDivisor = 1f;
-            if (!IsEnemy && jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
-            {
-                uniqueWarriorDivisor = 1f / 1.15f;
-            }
-
             float selfMultDivisor = 1f / ShieldbearerSelfMult;
 
-            return (baseAtkSpd * uniqueArcherDivisor * allyWillCourageDivisor * uniqueWarriorDivisor * selfMultDivisor / (1f + bonusMult)) / chillMult;
+            float atkMult = 1f;
+            float hpMult = 1f;
+            float atkSpdMult = 1f;
+            float moveSpdMult = 1f;
+            StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
+
+            // 공속은 atkSpdMult의 역수를 취해 곱함 (공격 딜레이 감소)
+            float speedDivisor = (atkSpdMult != 0) ? (1f / atkSpdMult) : 1f;
+
+            return (baseAtkSpd * allyWillCourageDivisor * selfMultDivisor * speedDivisor / (1f + bonusMult)) / chillMult;
         }
     }
 
     public float ATKRANGE => baseAtkRange;
-    public float DEF 
-    {
-        get
-        {
-            float uniqueWarriorMult = 1f;
-            if (!IsEnemy && jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
-            {
-                uniqueWarriorMult = 1.15f;
-            }
-            return baseDef * uniqueWarriorMult;
-        }
-    }
+    public float DEF => baseDef;
     public float EVASION => baseEvasion;
 
-    public float MISS_CHANCE
-    {
-        get
-        {
-            float chance = baseMissChance;
-            // [유니크] 침침한 시야 (DimVision): 노화 스택 50 이상 시 25% 미스 확률 증가
-            if (IsEnemy && Status != null && Status.GetDebuffStack(DebuffStackType.Aging) >= 50f)
-            {
-                if (InventoryManager.Instance != null)
-                {
-                    int dvCount = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.DimVision);
-                    if (dvCount > 0)
-                    {
-                        chance += (0.25f * dvCount);
-                    }
-                }
-            }
-            return chance;
-        }
-    }
+    public float MISS_CHANCE => baseMissChance;
 
     // 이동 속도: 기본 속도 * 상태이상 배율 * (한기+노화 감소)
     public float MOVESPEED
@@ -258,52 +151,22 @@ public class CharacterStat : MonoBehaviour
             if (Status.GetDebuffBool(DebuffBoolType.Frozen) || Status.GetDebuffBool(DebuffBoolType.Stunned)) return 0f;
 
             float chillReduction = GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Chill), IsEnemy);
-            
-            // [유니크] 냉혹한 사냥꾼 (ColdBloodedHunter) - 한기 걸린 적 이속 10% 추가 감소
-            if (IsEnemy && Status.GetDebuffStack(DebuffStackType.Chill) > 0f)
-            {
-                if (InventoryManager.Instance != null)
-                {
-                    int count = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.ColdBloodedHunter);
-                    if (count > 0)
-                    {
-                        chillReduction += (0.1f * count); // 10% 추가 감소 * 개수
-                    }
-                }
-            }
-
             float agingReduction = GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Aging), IsEnemy);
-
-            // [유니크] 고려장 (Goryeojang): 노화 최고스택 적 2.0f 반경 이내 시 둔화
-            if (IsEnemy && AgingUniqueManager.HighestAgingEnemy != null)
-            {
-                float dist = Vector2.Distance(transform.position, AgingUniqueManager.HighestAgingEnemy.transform.position);
-                if (dist <= 2.0f)
-                {
-                    agingReduction += GemRuleSystem.GetGoryeojangSlowReduction();
-                }
-            }
 
             float reductionMult = Mathf.Max(0.1f, 1f - (chillReduction + agingReduction));
             
             float finalSpeed = (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
             
-            // [유니크] 부식석 발자취 (PoisonFootprint) - 아군 이동속도 15% 증가
-            if (!IsEnemy && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.PoisonFootprint))
-            {
-                finalSpeed *= 1.15f;
-            }
-            
             float allyWillWindMult = 1f;
             if (_isAlly && ShieldbearerUniqueManager.IsWillWindActive) allyWillWindMult += 0.14f;
             
-            float uniqueWarriorMult = 1f;
-            if (!IsEnemy && jobType == CommandData.SkeletonWarrior && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.WarriorsMedal))
-            {
-                uniqueWarriorMult = 1.15f;
-            }
+            float atkMult = 1f;
+            float hpMult = 1f;
+            float atkSpdMult = 1f;
+            float moveSpdMult = 1f;
+            StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
 
-            return finalSpeed * ShieldbearerSelfMult * allyWillWindMult * uniqueWarriorMult;
+            return finalSpeed * ShieldbearerSelfMult * allyWillWindMult * moveSpdMult;
         }
     }
 
@@ -473,22 +336,8 @@ public class CharacterStat : MonoBehaviour
             hp = (hp + gemHp) * (1f + treasureHp);
             atk = atk * (1f + gemAtk);
 
-            if (data.minionType == CommandData.SkeletonWarrior && inven.HasUniqueEffect(GemUniqueType.WarriorsMedal))
-            {
-                hp *= 1.15f;
-                atk *= 1.15f;
-                spd *= 1.15f;
-            }
-
-            if (data.minionType == CommandData.SkeletonArcher)
-            {
-                if (inven.HasUniqueEffect(GemUniqueType.TensionPower)) atk *= 1.25f;
-            }
-
-            if (data.minionType == CommandData.SkeletonSpearman)
-            {
-                if (inven.HasUniqueEffect(GemUniqueType.ThousandStabs)) atk *= 1.03f;
-            }
+            // [이벤트 버스] UI 프리뷰 스탯 계산용 이벤트 호출
+            StatEventBus.TriggerPreviewStatCalculate(data.minionType, ref hp, ref atk, ref spd);
         }
 
         return (hp, atk, spd);

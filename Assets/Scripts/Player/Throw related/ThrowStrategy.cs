@@ -192,13 +192,10 @@ public class ThrowStrategy : MonoBehaviour
                     if (InventoryManager.Instance != null)
                     {
                         float radiusMult = 1.0f;
-                        // [유니크] 후관풍세(SpreadShot)
-                        if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.SpreadShot)) radiusMult += 0.20f;
+                        float damageMult = 1.0f;
+                        float durationMult = 1.0f;
 
-                        // [시너지] 집궁제원칙
-                        int archerSynLevel = GemSynergyLogic.GetLevel(InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.Archer_ArcheryPrinciples));
-                        if (archerSynLevel >= 1) radiusMult += 0.20f; // (2) 스택
-                        if (archerSynLevel >= 4) radiusMult += 0.10f; // (8) 스택
+                        ThrowEventBus.TriggerThrowStart(CommandData.SkeletonArcher, ref damageMult, ref radiusMult, ref durationMult);
 
                         finalRadius *= radiusMult;
                     }

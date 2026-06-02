@@ -56,6 +56,8 @@ public class GrowthRegistrySO : ScriptableObject
         foreach (var guid in gemGuids)
         {
             string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            if (path.Contains("/Deprecated/")) continue; // [추가] Deprecated 보석 제외
+            
             var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<GemSO>(path);
             if (asset != null) gems.Add(asset);
         }

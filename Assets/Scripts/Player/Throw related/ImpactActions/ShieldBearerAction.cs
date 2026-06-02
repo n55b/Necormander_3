@@ -32,6 +32,10 @@ public class ShieldBearerAction : ImpactAction
         float finalShield = recipe.GetScaledValue(shieldAmount);
         ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
 
+        // [이벤트 버스] 투척 착탄 전 이벤트: 보호막 수치나 추가 데미지 스탯 변경 가능
+        float radius = 0f;
+        ThrowEventBus.TriggerThrowImpactBeforeDamage(CommandData.SkeletonShieldbearer, this, impactPos, ref finalShield, ref radius, target);
+
         // 2. 아군/플레이어인 경우: 즉시 보호막 부여 (기본 전사+방패병 조합 등)
         if (isAllyOrPlayer && targetStat != null)
         {
@@ -43,51 +47,9 @@ public class ShieldBearerAction : ImpactAction
                 targetStat.Visual.SetShieldVFX(vfx);
             }
         }
-        // 3. 적군인 경우: 보호막 아이템 드랍 및 적군 피해(유니크/시너지)
+        // 3. 적군인 경우: 보호막 아이템 드랍
         else if (!isAllyOrPlayer && target.TryGetComponent(out CharacterHealth enemyHealth))
         {
-            var inven = InventoryManager.Instance;
-            float totalDamage = 0f;
-
-            if (inven != null)
-            {
-                // [유니크] 육중한 갑옷: 방패 수치의 14% 단일 피해
-                if (inven.HasUniqueEffect(GemUniqueType.HeavyArmor))
-                {
-                    totalDamage += finalShield * 0.14f;
-                }
-
-                // [유니크] 뒤틀리는 지반: 방패 수치의 20% 범위 피해
-                bool hasTwistedGround = inven.HasUniqueEffect(GemUniqueType.TwistedGround);
-                
-                // [시너지] 수호신(Shield_Guardian) (2) 스택: 방패 수치의 20% 광역 피해
-                int guardianLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
-                bool hasGuardianAoE = guardianLevel >= 1; // (2) 스택
-
-                if (hasTwistedGround || hasGuardianAoE)
-                {
-                    float aoeDamage = finalShield * 0.20f;
-                    if (hasTwistedGround && hasGuardianAoE) aoeDamage = finalShield * 0.40f; // 둘 다 있으면 40%
-
-                    float radius = 2.5f;
-                    foreach (var status in CharacterStatus.ActiveEnemies)
-                    {
-                        if (status != null && Vector2.Distance(impactPos, status.transform.position) <= radius)
-                        {
-                            if (status.TryGetComponent(out CharacterHealth health))
-                            {
-                                health.GetDamage(new DamageInfo(aoeDamage, DamageType.Physical, null));
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (totalDamage > 0f)
-            {
-                enemyHealth.GetDamage(new DamageInfo(totalDamage, DamageType.Physical, null));
-            }
-
             if (registry != null && registry.shieldCollectiblePrefab != null)
             {
                 GameObject itemObj = Object.Instantiate(registry.shieldCollectiblePrefab, impactPos, Quaternion.identity);
@@ -97,5 +59,9 @@ public class ShieldBearerAction : ImpactAction
                 collectible.Init(finalShield, 3.0f);
             }
         }
+
+        // [이벤트 버스] 투척 착탄 후 이벤트: 광역 폭발 데미지 등 추가 이펙트 처리
+        Collider2D[] dummyHits = new Collider2D[0];
+        ThrowEventBus.TriggerThrowImpactAfterDamage(CommandData.SkeletonShieldbearer, this, impactPos, dummyHits, target);
     }
 }

@@ -14,8 +14,8 @@ public static class GemRuleSystem
         float baseInterval = 5.0f; // [수정] 기본 틱 주기를 기획에 맞춰 5초로 변경
         if (Inven == null || !isEnemyTarget) return baseInterval;
 
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Poison));
-        bool hasLethalDose = Inven.HasUniqueEffect(GemUniqueType.LethalDose);
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Poison));
+        bool hasLethalDose = false; // Inven.HasUniqueEffect(GemUniqueType.LethalDose);
 
         float mult = GemSynergyLogic.GetPoisonIntervalMultiplier(level) * 
                      GemUniqueLogic.GetLethalDoseIntervalMultiplier(hasLethalDose);
@@ -28,21 +28,21 @@ public static class GemRuleSystem
         float baseDuration = 10.0f;
         if (Inven == null || !isEnemyTarget) return baseDuration;
 
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Poison));
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Poison));
         return baseDuration + GemSynergyLogic.GetPoisonDurationBonus(level);
     }
 
     public static float ModifyIncomingPoisonStack(float amount, bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return amount;
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Poison));
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Poison));
         return amount + GemSynergyLogic.GetPoisonExtraStack(level);
     }
 
     public static float GetLethalPoisonBonus(int currentStacks) // 이건 던질 때 사용하므로 유지
     {
         if (Inven == null) return 0f;
-        bool hasLethalPoison = Inven.HasUniqueEffect(GemUniqueType.LethalPoison);
+        bool hasLethalPoison = false; // Inven.HasUniqueEffect(GemUniqueType.LethalPoison);
         return GemUniqueLogic.GetLethalPoisonBonus(hasLethalPoison, currentStacks);
     }
 
@@ -56,7 +56,7 @@ public static class GemRuleSystem
         if (Inven == null || !isEnemyTarget || currentStacks <= 0) return 0f;
 
         // 4세트 보너스
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Chill));
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Chill));
         float bonus = GemSynergyLogic.GetChillSlowBonus(level);
 
         float baseReduction = 0f;
@@ -73,7 +73,7 @@ public static class GemRuleSystem
         float baseMax = isEnemyTarget ? 15.0f : 5.0f;
         if (Inven == null) return baseMax;
 
-        int flowerCount = Inven.GetUniqueEffectCount(GemUniqueType.SlowlyFreezingFlower);
+        int flowerCount = 0; // Inven.GetUniqueEffectCount(GemUniqueType.SlowlyFreezingFlower);
         return baseMax + GemUniqueLogic.GetSlowlyFreezingFlowerMaxBonus(flowerCount);
     }
 
@@ -86,20 +86,20 @@ public static class GemRuleSystem
     public static bool ShouldBlockChill(bool isFrozen, bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return false;
-        return GemUniqueLogic.ShouldBlockChillStack(Inven.HasUniqueEffect(GemUniqueType.AchingBones), isFrozen);
+        return false; // GemUniqueLogic.ShouldBlockChillStack(Inven.HasUniqueEffect(GemUniqueType.AchingBones), isFrozen);
     }
 
     public static float GetFreezeRefundStacks(bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return 0f; 
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Chill));
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Chill));
         return GemSynergyLogic.GetChillRefundAmount(level);
     }
 
     public static bool HasFreezeFixedDamage(bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return false;
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Chill));
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Chill));
         return GemSynergyLogic.HasChillFreezeDamage(level);
     }
 
@@ -111,7 +111,7 @@ public static class GemRuleSystem
     {
         if (Inven == null || !isEnemyTarget) return currentStacks;
 
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.BloodPop));
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.BloodPop));
         float ratio = GemSynergyLogic.GetBloodPopDamageRatio(level);
         return currentStacks * ratio;
     }
@@ -119,14 +119,14 @@ public static class GemRuleSystem
     public static float GetBloodPopRadiusMultiplier(bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return 1.0f;
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.BloodPop));
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.BloodPop));
         return GemSynergyLogic.GetBloodPopRadiusMultiplier(level);
     }
 
     public static float GetBloodPopChainRatio(bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return 0f;
-        return GemUniqueLogic.GetExplodingFleshStackRatio(Inven.HasUniqueEffect(GemUniqueType.ExplodingFlesh));
+        return 0f; // GemUniqueLogic.GetExplodingFleshStackRatio(Inven.HasUniqueEffect(GemUniqueType.ExplodingFlesh));
     }
 
     #endregion
@@ -138,7 +138,7 @@ public static class GemRuleSystem
     {
         if (Inven == null || !isEnemyTarget || currentStacks <= 0) return 0f;
 
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Aging));
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Aging));
         float bonus = GemSynergyLogic.GetAgingSlowBonus(level);
 
         float baseReduction = 0f;
@@ -157,23 +157,20 @@ public static class GemRuleSystem
         if (!isEnemyTarget) return 10f;
         if (Inven == null) return 25f;
 
-        int noCountryCount = Inven.GetUniqueEffectCount(GemUniqueType.NoCountryForOldMen);
+        int noCountryCount = 0; // Inven.GetUniqueEffectCount(GemUniqueType.NoCountryForOldMen);
         return GemUniqueLogic.GetNoCountryMaxStack(noCountryCount);
     }
 
     public static float GetSenilityDamageAmp(bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return 0f;
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Aging));
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Aging));
         return GemSynergyLogic.GetSenilityDamageAmp(level);
     }
 
     public static bool ShouldAgingInstaKill(float currentStacks, bool isEnemyTarget)
     {
-        if (!isEnemyTarget || Inven == null) return false;
-        
-        int noCountryCount = Inven.GetUniqueEffectCount(GemUniqueType.NoCountryForOldMen);
-        return GemUniqueLogic.ShouldAgingInstaKill(noCountryCount, currentStacks);
+        return false;
     }
 
     public static float GetGoryeojangSlowReduction()
@@ -188,12 +185,12 @@ public static class GemRuleSystem
     public static float GetCorrosionDamageAmp(bool isEnemyTarget)
     {
         if (Inven == null || !isEnemyTarget) return 0f;
-        int level = GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Corrosion));
+        int level = 0; // GemSynergyLogic.GetLevel(Inven.GetSynergyCount(GemSynergyGroup.Priest_Corrosion));
         
         float amp = GemSynergyLogic.GetCorrosionDamageAmp(level);
         
         // [유니크] 부식 2배. (DoubleCorrosion): 부식 시너지 효과 10% 증폭
-        int doubleCorrosionCount = Inven.GetUniqueEffectCount(GemUniqueType.DoubleCorrosion);
+        int doubleCorrosionCount = 0; // Inven.GetUniqueEffectCount(GemUniqueType.DoubleCorrosion);
         if (amp > 0f && doubleCorrosionCount > 0)
         {
             amp += 0.10f * doubleCorrosionCount;

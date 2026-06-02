@@ -161,16 +161,6 @@ public class CharacterStatus : MonoBehaviour
                     // [수정] 중독 피해량: 스택의 25%, 최소 1 대미지
                     float damage = Mathf.Max(1f, poisonStack * 0.25f);
                     health.GetDamage(new DamageInfo(damage, DamageType.Fixed, null, false, 1f, false, "Poison"));
-
-                    // [유니크] 초록색 체액 (GreenFluid): 독 틱 피해 발생 시 30% 확률로 던질 수 있는 포션 스폰
-                    var inven = InventoryManager.Instance;
-                    if (inven != null && inven.HasUniqueEffect(GemUniqueType.GreenFluid))
-                    {
-                        if (UnityEngine.Random.value <= 0.3f)
-                        {
-                            SpawnPoisonPotion(transform.position);
-                        }
-                    }
                 }
             }
         }
@@ -253,22 +243,7 @@ public class CharacterStatus : MonoBehaviour
     {
         if (IsEnemyTarget || InventoryManager.Instance == null) return;
         
-        int guardianLevel = GemSynergyLogic.GetLevel(InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
-        if (guardianLevel >= 2) // (4) 스택: 보호막이 사라지면 주변 피해
-        {
-            float radius = 3.0f;
-            foreach (var enemy in ActiveEnemies)
-            {
-                if (enemy != null && Vector2.Distance(transform.position, enemy.transform.position) <= radius)
-                {
-                    if (enemy.TryGetComponent(out CharacterHealth health))
-                    {
-                        DamageInfo info = new DamageInfo(amount, DamageType.Fixed, this.gameObject);
-                        health.GetDamage(info);
-                    }
-                }
-            }
-        }
+        // [이벤트 버스] 쉴드 폭발 시 추가 이펙트 처리 (추후 연동 시 여기에 이벤트 추가)
     }
 
     public float ConsumeShield(float amount)
@@ -295,12 +270,8 @@ public class CharacterStatus : MonoBehaviour
     {
         bool isPlayer = gameObject.CompareTag("Player");
         bool hasVanguard = false;
-        if (isPlayer && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Vanguard))
-        {
-            hasVanguard = true;
-            force *= 1.2f;
-            duration *= 1.3f;
-        }
+        
+        // [이벤트 버스] 넉백 전처리: force, duration 변조 기능 추가 가능
 
         float knockbackSpeed = force * 2.0f;
         float elapsed = 0f;
