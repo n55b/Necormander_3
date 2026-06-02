@@ -19,13 +19,15 @@ MonoBehaviour:
   baseEffectValue: 0
   effectMultiplier: 1
   baseAreaRadius: 3
-  maxHP: 150
+  maxHP: 120
   attack: 10
   attackSpeed: 1.2
   attackRange: 8
   detectRange: 10
   defense: 0
   moveSpeed: 4
+  baseEvasion: 0
+  baseMissChance: 0
   cost: 1
   isElite: 0
   canSpawnRandomly: 1

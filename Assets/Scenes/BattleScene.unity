@@ -936,7 +936,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingGems_Data.Array.size
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingMinions.Array.data[0]'
@@ -1070,6 +1070,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager
       objectReference: {fileID: 0}
+    - target: {fileID: 5384184289146484121, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: m_Volume
+      value: 0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5452969733963804717, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: globalBgmVolume
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5452969733963804717, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: globalSfxVolume
+      value: 0.6
+      objectReference: {fileID: 0}
     - target: {fileID: 6139375127595461034, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: fogTilemap
       value: 
@@ -1090,6 +1102,10 @@ PrefabInstance:
       propertyPath: globalMiniMapTilemap
       value: 
       objectReference: {fileID: 1968011884}
+    - target: {fileID: 7219595044889989361, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: m_Volume
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 7453844490307090777, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: handSlotUI
       value: 
@@ -1098,6 +1114,10 @@ PrefabInstance:
       propertyPath: selectionUI
       value: 
       objectReference: {fileID: 939998463}
+    - target: {fileID: 7599988210987596527, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: m_Volume
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
