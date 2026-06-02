@@ -23,7 +23,10 @@ public class PlayerController : MonoBehaviour
     public SummonController SUMCONTROLLER { get { return sumController; } }
     [Header("던지기 컨트롤러")]
     [SerializeField] private ThrowController throwController;
-    [Header("스태미나 시스템")]
+    [SerializeField] private float throwChargeTime = 1.0f;
+    public float ThrowChargeTime => throwChargeTime;
+
+    [HideInInspector]
     [SerializeField] private PlayerStamina staminaSystem;
     public PlayerStamina STAMINA => staminaSystem;
     [SerializeField] private int summonNum;

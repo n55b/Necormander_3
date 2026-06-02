@@ -10,6 +10,8 @@ public class StaminaUI : MonoBehaviour
     [SerializeField] private Image _backgroundImage;
 
     private Coroutine _flashCoroutine;
+    private Sprite _generatedSprite;
+    private Texture2D _generatedTexture;
 
     public void Initialize(PlayerStamina staminaSystem)
     {
@@ -31,6 +33,9 @@ public class StaminaUI : MonoBehaviour
             _playerStamina.OnStaminaChanged -= HandleStaminaChanged;
             _playerStamina.OnStaminaInsufficient -= HandleStaminaInsufficient;
         }
+
+        if (_generatedSprite != null) Destroy(_generatedSprite);
+        if (_generatedTexture != null) Destroy(_generatedTexture);
     }
 
     private void CreateStaminaBarUI()
@@ -122,9 +127,10 @@ public class StaminaUI : MonoBehaviour
 
     private Sprite CreateWhiteSprite()
     {
-        Texture2D texture = new Texture2D(1, 1);
-        texture.SetPixel(0, 0, Color.white);
-        texture.Apply();
-        return Sprite.Create(texture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+        _generatedTexture = new Texture2D(1, 1);
+        _generatedTexture.SetPixel(0, 0, Color.white);
+        _generatedTexture.Apply();
+        _generatedSprite = Sprite.Create(_generatedTexture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+        return _generatedSprite;
     }
 }

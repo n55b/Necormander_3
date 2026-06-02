@@ -18,14 +18,13 @@ public class ThrowController : MonoBehaviour
     
     [Header("Input & UI Settings")]
     [SerializeField] private SelectionWheelUI selectionWheel;
-    [SerializeField] private float chargeTime = 1.0f;
     [SerializeField] private float dragThreshold = 50f;
     [SerializeField] private List<CommandData> directionMapping;
 
     // 데이터 게터 (서브 컴포넌트용)
     public Transform HoldPoint => holdPoint;
     public SelectionWheelUI SelectionWheel => (selectionWheel != null) ? selectionWheel : SelectionWheelUI.Instance; // [수정] 싱글톤 우선 활용
-    public float ChargeTime => chargeTime;
+    public float ChargeTime => GameManager.Instance.PLAYERCONTROLLER.ThrowChargeTime;
     public float DragThreshold => dragThreshold;
     public List<CommandData> DirectionMapping => directionMapping;
 

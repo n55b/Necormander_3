@@ -132,7 +132,6 @@ public class CharacterHealth : MonoBehaviour
         }
 
         float remainingDamage = info.amount;
-        string str = "";                             // 데미지 색상타입
 
         // [부식/노쇠] 시너지에 따른 대미지 증폭
         bool isEnemyTarget = (_stat != null && _stat.IsEnemy);
@@ -141,7 +140,6 @@ public class CharacterHealth : MonoBehaviour
         {
             // 부식 상태일 경우 시너지 보너스(25%, 40% 등)만큼 대미지 증폭
             remainingDamage *= (1.0f + corrosionAmp); 
-            str = "Corroded";
         }
         
         // [노쇠] 대미지 증폭
