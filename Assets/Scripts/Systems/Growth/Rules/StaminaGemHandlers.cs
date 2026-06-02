@@ -1,7 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 // ---------------------------------------------------------
-// [시너지 핸들러] 스태미너
+// [?쒕꼫吏 ?몃뱾?? ?ㅽ깭誘몃꼫
 // ---------------------------------------------------------
 public class StaminaSynergyHandler
 {
@@ -45,8 +45,8 @@ public class StaminaSynergyHandler
 }
 
 // ---------------------------------------------------------
-// 200. CatchBreath (숨 고르기)
-// 비전투 상태: 스태미너 자연 회복량 +1
+// 200. CatchBreath (??怨좊Ⅴ湲?
+// 鍮꾩쟾???곹깭: ?ㅽ깭誘몃꼫 ?먯뿰 ?뚮났??+1
 // ---------------------------------------------------------
 public class CatchBreathHandler : IGemEffectHandler
 {
@@ -54,20 +54,22 @@ public class CatchBreathHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.outOfCombatRegenBonus += 1f;
     }
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.outOfCombatRegenBonus -= 1f;
     }
 }
 
 // ---------------------------------------------------------
-// 201. HarvestOfDeath (죽음의 수확)
-// 소환수가 죽었을 때, 죽은 수만큼 자연 회복량 증가
+// 201. HarvestOfDeath (二쎌쓬???섑솗)
+// ?뚰솚?섍? 二쎌뿀???? 二쎌? ?섎쭔???먯뿰 ?뚮났??利앷?
 // ---------------------------------------------------------
 public class HarvestOfDeathHandler : IGemEffectHandler
 {
@@ -78,6 +80,7 @@ public class HarvestOfDeathHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         _allyManager = Object.FindFirstObjectByType<AllyManager>();
         _stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         
@@ -90,6 +93,7 @@ public class HarvestOfDeathHandler : IGemEffectHandler
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         if (_allyManager != null)
         {
             _allyManager.OnAllyRespawnStart -= HandleAllyDeath;
@@ -119,8 +123,8 @@ public class HarvestOfDeathHandler : IGemEffectHandler
 }
 
 // ---------------------------------------------------------
-// 202. BasicFitness (기초체력 강화)
-// 스태미너 최대치 증가 (+20)
+// 202. BasicFitness (湲곗큹泥대젰 媛뺥솕)
+// ?ㅽ깭誘몃꼫 理쒕?移?利앷? (+20)
 // ---------------------------------------------------------
 public class BasicFitnessHandler : IGemEffectHandler
 {
@@ -128,20 +132,22 @@ public class BasicFitnessHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.maxStaminaBonus += 20f;
     }
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.maxStaminaBonus -= 20f;
     }
 }
 
 // ---------------------------------------------------------
-// 203. EndlessVitality (끊임없는 활력)
-// 스태미너 자연 회복량 증가 (+0.5)
+// 203. EndlessVitality (?딆엫?녿뒗 ?쒕젰)
+// ?ㅽ깭誘몃꼫 ?먯뿰 ?뚮났??利앷? (+0.5)
 // ---------------------------------------------------------
 public class EndlessVitalityHandler : IGemEffectHandler
 {
@@ -149,20 +155,22 @@ public class EndlessVitalityHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.regenRateBonus += 0.5f;
     }
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.regenRateBonus -= 0.5f;
     }
 }
 
 // ---------------------------------------------------------
-// 204. OverflowingThrow (넘치는 투척)
-// 소모량 증가 (+5), 투척 효과 증가 (+25%)
+// 204. OverflowingThrow (?섏튂???ъ쿃)
+// ?뚮え??利앷? (+5), ?ъ쿃 ?④낵 利앷? (+25%)
 // ---------------------------------------------------------
 public class OverflowingThrowHandler : IGemEffectHandler
 {
@@ -170,6 +178,7 @@ public class OverflowingThrowHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null && pc.STAMINA != null)
         {
@@ -180,6 +189,7 @@ public class OverflowingThrowHandler : IGemEffectHandler
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null && pc.STAMINA != null)
         {
@@ -190,8 +200,8 @@ public class OverflowingThrowHandler : IGemEffectHandler
 }
 
 // ---------------------------------------------------------
-// 205. OrderedBreath (정돈된 숨결)
-// 스태미너 소모량 감소 (-3)
+// 205. OrderedBreath (?뺣룉???④껐)
+// ?ㅽ깭誘몃꼫 ?뚮え??媛먯냼 (-3)
 // ---------------------------------------------------------
 public class OrderedBreathHandler : IGemEffectHandler
 {
@@ -199,21 +209,23 @@ public class OrderedBreathHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.throwCostBonus -= 3f;
     }
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.throwCostBonus += 3f;
     }
 }
 
 // ---------------------------------------------------------
-// 206. ThrowOverload (투척 과부화)
-// 투척할 때 마다 소모되는 스태미너 1당 투척 효과 2% 증가
-// (동적 계산 필요 -> OnRecipeCreated 훅 사용)
+// 206. ThrowOverload (?ъ쿃 怨쇰???
+// ?ъ쿃????留덈떎 ?뚮え?섎뒗 ?ㅽ깭誘몃꼫 1???ъ쿃 ?④낵 2% 利앷?
+// (?숈쟻 怨꾩궛 ?꾩슂 -> OnRecipeCreated ???ъ슜)
 // ---------------------------------------------------------
 public class ThrowOverloadHandler : IGemEffectHandler
 {
@@ -222,12 +234,14 @@ public class ThrowOverloadHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         _throwCtrl = GameManager.Instance.PLAYERCONTROLLER.GetComponentInChildren<ThrowController>();
         if (_throwCtrl != null) _throwCtrl.OnRecipeCreated += ModifyRecipe;
     }
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         if (_throwCtrl != null) _throwCtrl.OnRecipeCreated -= ModifyRecipe;
     }
 
@@ -243,8 +257,8 @@ public class ThrowOverloadHandler : IGemEffectHandler
 }
 
 // ---------------------------------------------------------
-// 207. MasterOfRapidFire (속사의 대가)
-// 소모량 7 감소, 투척 효과 30% 감소
+// 207. MasterOfRapidFire (?띿궗???媛)
+// ?뚮え??7 媛먯냼, ?ъ쿃 ?④낵 30% 媛먯냼
 // ---------------------------------------------------------
 public class MasterOfRapidFireHandler : IGemEffectHandler
 {
@@ -252,6 +266,7 @@ public class MasterOfRapidFireHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null && pc.STAMINA != null)
         {
@@ -262,6 +277,7 @@ public class MasterOfRapidFireHandler : IGemEffectHandler
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null && pc.STAMINA != null)
         {
@@ -272,8 +288,8 @@ public class MasterOfRapidFireHandler : IGemEffectHandler
 }
 
 // ---------------------------------------------------------
-// 208. LimitBreak (한계돌파)
-// 스태미나가 음수까지 도달할 수 있음 (최대 -50). 단, 음수일 때 침식(회복량 절반)
+// 208. LimitBreak (?쒓퀎?뚰뙆)
+// ?ㅽ깭誘몃굹媛 ?뚯닔源뚯? ?꾨떖?????덉쓬 (理쒕? -50). ?? ?뚯닔????移⑥떇(?뚮났???덈컲)
 // ---------------------------------------------------------
 public class LimitBreakHandler : IGemEffectHandler
 {
@@ -281,20 +297,22 @@ public class LimitBreakHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.negativeLimit = 50f;
     }
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null) stamina.negativeLimit = 0f;
     }
 }
 
 // ---------------------------------------------------------
-// 209. EfficientThrow (효율적인 투척)
-// 최대 스태미너 -40, 투척 효과 60% 증가
+// 209. EfficientThrow (?⑥쑉?곸씤 ?ъ쿃)
+// 理쒕? ?ㅽ깭誘몃꼫 -40, ?ъ쿃 ?④낵 60% 利앷?
 // ---------------------------------------------------------
 public class EfficientThrowHandler : IGemEffectHandler
 {
@@ -302,6 +320,7 @@ public class EfficientThrowHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null && pc.STAMINA != null)
         {
@@ -312,6 +331,7 @@ public class EfficientThrowHandler : IGemEffectHandler
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null && pc.STAMINA != null)
         {

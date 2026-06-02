@@ -48,6 +48,7 @@ public class SetPositionHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
@@ -58,6 +59,7 @@ public class SetPositionHandler : IGemEffectHandler
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
@@ -77,6 +79,7 @@ public class WindupHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
@@ -87,6 +90,7 @@ public class WindupHandler : IGemEffectHandler
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
@@ -108,12 +112,14 @@ public class MagicPitchFireballHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         _throwCtrl = GameManager.Instance.PLAYERCONTROLLER.GetComponentInChildren<ThrowController>();
         if (_throwCtrl != null) _throwCtrl.OnRecipeCreated += ModifyRecipe;
     }
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         if (_throwCtrl != null) _throwCtrl.OnRecipeCreated -= ModifyRecipe;
     }
 
@@ -138,6 +144,7 @@ public class MagicPitchArirangBallHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
@@ -148,6 +155,7 @@ public class MagicPitchArirangBallHandler : IGemEffectHandler
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
@@ -167,6 +175,7 @@ public class CloserHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
@@ -177,6 +186,7 @@ public class CloserHandler : IGemEffectHandler
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
@@ -197,6 +207,7 @@ public class ExperiencedPitcherHandler : IGemEffectHandler
 
     public void OnEquipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
@@ -206,6 +217,7 @@ public class ExperiencedPitcherHandler : IGemEffectHandler
 
     public void OnUnequipped()
     {
+        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
