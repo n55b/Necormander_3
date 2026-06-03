@@ -31,7 +31,7 @@ public class GemGeneratorWindow
         CreateGemSO(fastballPath, "Gem_Fastball_Windup", "Windup", "Charge time +0.5s, Fastball effect +2%.", GemUniqueType.Windup, SynergyCategory.Common, GemSynergyGroup.Fastball, 2);
         CreateGemSO(fastballPath, "Gem_Fastball_MagicPitchFireball", "Magic Pitch: Fireball", "Fastball effect +10% per 1s of required charge time.", GemUniqueType.MagicPitchFireball, SynergyCategory.Common, GemSynergyGroup.Fastball, 1);
         CreateGemSO(fastballPath, "Gem_Fastball_MagicPitchArirangBall", "Magic Pitch: Arirang Ball", "Charge time -0.5s, Fastball effect -40%.", GemUniqueType.MagicPitchArirangBall, SynergyCategory.Common, GemSynergyGroup.Fastball, 1);
-        CreateGemSO(fastballPath, "Gem_Fastball_Closer", "Closer", "Max charge time limit is set to 5s. Throw effect +50% on full charge.", GemUniqueType.Closer, SynergyCategory.Common, GemSynergyGroup.Fastball, 0);
+        CreateGemSO(fastballPath, "Gem_Fastball_Closer", "Closer", "Grants 4s of overcharge after fastball. Throw effect increases linearly up to +50% during overcharge.", GemUniqueType.Closer, SynergyCategory.Common, GemSynergyGroup.Fastball, 0);
         CreateGemSO(fastballPath, "Gem_Fastball_ExperiencedPitcher", "Experienced Pitcher", "Movement speed reduction while charging is reduced to 25%.", GemUniqueType.ExperiencedPitcher, SynergyCategory.Common, GemSynergyGroup.Fastball, 1);
 
         AssetDatabase.SaveAssets();

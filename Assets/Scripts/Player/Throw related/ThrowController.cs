@@ -25,16 +25,24 @@ public class ThrowController : MonoBehaviour
     public Transform HoldPoint => holdPoint;
     public SelectionWheelUI SelectionWheel => (selectionWheel != null) ? selectionWheel : SelectionWheelUI.Instance; // [수정] 싱글톤 우선 활용
     
-    // [수정] 모디파이어가 반영된 최종 ChargeTime 계산
+    // [수정] 모디파이어가 반영된 최종 ChargeTime 계산 (직구 도달 기준 시간)
     public float ChargeTime 
     {
         get
         {
             var pc = GameManager.Instance.PLAYERCONTROLLER;
             float time = pc.ThrowChargeTime + pc.bonusThrowChargeTime;
-            if (pc.maxChargeTimeLimit > 0)
-                time = Mathf.Max(time, pc.maxChargeTimeLimit);
             return Mathf.Max(0.1f, time); // 최소 0.1초 보장
+        }
+    }
+
+    // [추가] 오버차지 허용 시간을 포함한 최대 차지 가능 시간
+    public float MaxChargeTime
+    {
+        get
+        {
+            var pc = GameManager.Instance.PLAYERCONTROLLER;
+            return ChargeTime + pc.overchargeTimeLimit;
         }
     }
 
@@ -203,7 +211,7 @@ public class ThrowController : MonoBehaviour
             // [수정] 이미 날아가고 있는 유닛(FlyingObject 레이어)은 제외
             if (col.gameObject.layer == flyingLayer && !_heldObjects.Contains(col.GetComponent<IThrowable>())) continue;
 
-            if (col.TryGetComponent<IThrowable>(out var throwable) && (throwable.MinionType == targetType || throwable.MinionType == CommandData.None) && !_heldObjects.Contains(throwable))
+            if (col.TryGetComponent<IThrowable>(out var throwable) && throwable.MinionType == targetType && !_heldObjects.Contains(throwable))
             {
                 float d = Vector2.Distance(transform.position, col.transform.position);
                 if (d < minDist) { minDist = d; bestTarget = throwable; }

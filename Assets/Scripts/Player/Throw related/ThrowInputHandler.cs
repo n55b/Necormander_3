@@ -23,6 +23,19 @@ public class ThrowInputHandler : MonoBehaviour
             return Mathf.Clamp01(_chargeTimer / _controller.ChargeTime);
         }
     }
+
+    // [추가] 오버차지 구간에서의 충전 비율 (0~1)
+    public float OverchargeRatio
+    {
+        get
+        {
+            if (_controller == null || _controller.MaxChargeTime <= _controller.ChargeTime) return 0f;
+            float overchargeAmount = _chargeTimer - _controller.ChargeTime;
+            if (overchargeAmount <= 0) return 0f;
+            return Mathf.Clamp01(overchargeAmount / (_controller.MaxChargeTime - _controller.ChargeTime));
+        }
+    }
+
     private Vector2 CurrentMouseScreenPos => Pointer.current.position.ReadValue();
 
     public void Init(ThrowController controller)
@@ -39,7 +52,7 @@ public class ThrowInputHandler : MonoBehaviour
     {
         if (_isCharging)
         {
-            _chargeTimer = Mathf.Min(_chargeTimer + Time.unscaledDeltaTime, _controller.ChargeTime);
+            _chargeTimer = Mathf.Min(_chargeTimer + Time.unscaledDeltaTime, _controller.MaxChargeTime);
             
             float ratio = ChargeRatio;
 

@@ -928,12 +928,12 @@ PrefabInstance:
       objectReference: {fileID: 1467717214}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingGems_Data.Array.size
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[0]'
       value: 
-      objectReference: {fileID: 11400000, guid: 195613f57fc28da4d97643c05e99376d, type: 2}
+      objectReference: {fileID: 11400000, guid: 105928107c038ac46b8d02a1f7265365, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[1]'
       value: 
@@ -2677,7 +2677,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 8.4375
+  orthographic size: 5.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

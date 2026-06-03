@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 // ---------------------------------------------------------
 // [?쒕꼫吏 ?몃뱾?? 媛뺤냽援?// ---------------------------------------------------------
@@ -167,11 +167,14 @@ public class MagicPitchArirangBallHandler : IGemEffectHandler
 
 // ---------------------------------------------------------
 // 214. Closer (?대줈?)
+// 214. Closer (?대줈?€)
 // 理쒕? 李⑥쭠 ?곹븳??5珥덈줈 利앷?
 // ---------------------------------------------------------
 public class CloserHandler : IGemEffectHandler
 {
     public GemUniqueType HandledType => GemUniqueType.Closer;
+
+    private ThrowController _throwCtrl;
 
     public void OnEquipped()
     {
@@ -179,9 +182,11 @@ public class CloserHandler : IGemEffectHandler
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
-            pc.maxChargeTimeLimit = 5.0f;
-            pc.chargeEfficiencyMultiplier += 0.50f;
+            pc.overchargeTimeLimit += 4.0f;
         }
+
+        _throwCtrl = pc.GetComponentInChildren<ThrowController>();
+        if (_throwCtrl != null) _throwCtrl.OnRecipeCreated += ModifyRecipe;
     }
 
     public void OnUnequipped()
@@ -190,9 +195,18 @@ public class CloserHandler : IGemEffectHandler
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         if (pc != null)
         {
-            // 湲곕낯媛?0)?쇰줈 蹂듦뎄 (?ㅻⅨ ?대줈? ?μ갑 ?곹깭媛 ?녿떎硫?
-            pc.maxChargeTimeLimit = 0f;
-            pc.chargeEfficiencyMultiplier -= 0.50f;
+            pc.overchargeTimeLimit -= 4.0f;
+        }
+
+        if (_throwCtrl != null) _throwCtrl.OnRecipeCreated -= ModifyRecipe;
+    }
+
+    private void ModifyRecipe(ThrowRecipe recipe)
+    {
+        if (_throwCtrl != null && _throwCtrl.InputHandler.OverchargeRatio > 0f)
+        {
+            // 오버차지 비율에 따라 선형적으로 최대 +50% 효과 부여
+            recipe.modifiers.gemPowerMultiplier += 0.50f * _throwCtrl.InputHandler.OverchargeRatio;
         }
     }
 }

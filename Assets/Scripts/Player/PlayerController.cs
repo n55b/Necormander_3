@@ -48,7 +48,9 @@ public class PlayerController : MonoBehaviour
     [Header("투척 및 차징 모디파이어 (보석/시너지용)")]
     public float bonusThrowChargeTime = 0f;
     public float chargeEfficiencyMultiplier = 0f; // 기본 0 (보너스 퍼센트 합산, 예: +50% = 0.5f)
-    public float maxChargeTimeLimit = 0f; // 클로저 보석용 (예: 5초로 덮어쓰기)
+    
+    [Header("Overcharge System (Closer Gem)")]
+    public float overchargeTimeLimit = 0f; // 오버차지 허용 시간 (기본 0, 클로저 장착시 증가)
     public float bonusThrowEffectMultiplier = 0f; // 기본 0 (예: +25% = 0.25f)
     public float chargeMoveSpeedMultiplier = 0.5f; // 차징 중 이동속도 배율 (기본 0.5 = 50% 감소)
 

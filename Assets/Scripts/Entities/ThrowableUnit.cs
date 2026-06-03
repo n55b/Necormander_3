@@ -20,9 +20,9 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
 
     private float jumpHeight = 1.5f;
     private float straightHeight = 0.1f;
-    private float minSpeed = 2f;
-    private float maxSpeed = 18f;
-    private float fullChargeSpeed = 25f;
+    private float minSpeed = 5f;
+    private float maxSpeed = 20f;
+    private float fullChargeSpeed = 30f;
 
     private Rigidbody2D _rb;
     private ArcMovement _arcMovement;

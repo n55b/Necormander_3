@@ -10,6 +10,8 @@ public class TrajectoryPredictor : MonoBehaviour
     [SerializeField, Range(10, 100)] private int numPoints = 50; 
     [SerializeField] private Color normalColor = Color.white;    
     [SerializeField] private Color fullChargeColor = Color.green; 
+    [SerializeField] private Color overchargeColor = new Color(1f, 0.2f, 0.2f); // 빨간색 계열 
+    [SerializeField] private Color fullOverchargeColor = new Color(1f, 0.8f, 0f); // 황금색 (완전 충전)
 
     [Header("PickUp Range Settings")]
     [SerializeField] private LineRenderer rangeLineRenderer; // 줍기 범위를 그릴 두 번째 라인 렌더러
@@ -194,6 +196,20 @@ public class TrajectoryPredictor : MonoBehaviour
 
         // 4. 차징 상태에 따른 색상 업데이트
         Color targetColor = isFullCharge ? fullChargeColor : normalColor;
+        
+        // [추가] 오버차지 비율에 따라 색상 변화 (초록 -> 빨강 -> 최종 도달 시 황금색)
+        float overchargeRatio = _throwController.InputHandler.OverchargeRatio;
+        if (overchargeRatio > 0f)
+        {
+            if (overchargeRatio >= 0.98f)
+            {
+                targetColor = fullOverchargeColor; // 오버차지가 꽉 차면 팍 튀는 색상으로 변경
+            }
+            else
+            {
+                targetColor = Color.Lerp(fullChargeColor, overchargeColor, overchargeRatio);
+            }
+        }
 
         Gradient gradient = new Gradient();
         gradient.SetKeys(
