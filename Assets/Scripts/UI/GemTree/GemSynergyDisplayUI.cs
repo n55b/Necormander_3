@@ -38,7 +38,7 @@ public class GemSynergyDisplayUI : MonoBehaviour
                 // 달성한 모든 레벨을 개별 항목으로 생성
                 for (int lv = 1; lv <= maxLevel; lv++)
                 {
-                    string synergyName = group.ToString();
+                    string synergyName = GetUIString("UI Text Table", $"Synergy_{group}", group.ToString());
                     string description = GetSingleLevelDescription(group, lv);
                     CreateSynergyItem(synergyName, lv, count, description, GetSynergyColor(group));
                 }
@@ -51,7 +51,8 @@ public class GemSynergyDisplayUI : MonoBehaviour
                 var uniqueCount = uniqueKvp.Value;
                 if (GetSynergyGroupOfUnique(unique) == group && uniqueCount > 0)
                 {
-                    CreateSynergyItem("Unique", 0, uniqueCount, GetUniqueDescription(unique), Color.yellow);
+                    string uniqueLabel = GetUIString("UI Text Table", "UI_Unique", "유니크");
+                    CreateSynergyItem(uniqueLabel, 0, uniqueCount, GetUniqueDescription(unique), Color.yellow);
                 }
             }
         }
@@ -101,65 +102,66 @@ public class GemSynergyDisplayUI : MonoBehaviour
 
     private string GetSingleLevelDescription(GemSynergyGroup group, int level)
     {
+        string fallback = "New power unlocked.";
         switch (group)
         {
             case GemSynergyGroup.Poison:
-                if (level == 1) return "Poison duration extended to +5s.";
-                if (level == 2) return "Basic attacks apply +1 extra Poison stack.";
-                if (level == 3) return "Poison tick interval reduced to 3s (0.6x).";
+                if (level == 1) fallback = "Poison duration extended to +5s.";
+                if (level == 2) fallback = "Basic attacks apply +1 extra Poison stack.";
+                if (level == 3) fallback = "Poison tick interval reduced to 3s (0.6x).";
                 break;
             case GemSynergyGroup.Priest_Chill:
-                if (level == 1) return "Slow effect per stack increased by 5%.";
-                if (level == 2) return "Refund 25 Chill stacks upon freezing.";
-                if (level == 3) return "Freezing deals true damage based on max HP.";
+                if (level == 1) fallback = "Slow effect per stack increased by 5%.";
+                if (level == 2) fallback = "Refund 25 Chill stacks upon freezing.";
+                if (level == 3) fallback = "Freezing deals true damage based on max HP.";
                 break;
             case GemSynergyGroup.BloodPop:
-                if (level == 1) return "BloodPop damage multiplier increased to 0.5.";
-                if (level == 2) return "BloodPop explosion radius increased by 1.5x.";
+                if (level == 1) fallback = "BloodPop damage multiplier increased to 0.5.";
+                if (level == 2) fallback = "BloodPop explosion radius increased by 1.5x.";
                 break;
             case GemSynergyGroup.Priest_Aging:
-                if (level == 1) return "Slow effect per stack increased by 5%.";
-                if (level == 2) return "Maximum Aging stacks increased to 120.";
-                if (level == 3) return "Senile enemies take 12% extra damage.";
+                if (level == 1) fallback = "Slow effect per stack increased by 5%.";
+                if (level == 2) fallback = "Maximum Aging stacks increased to 120.";
+                if (level == 3) fallback = "Senile enemies take 12% extra damage.";
                 break;
             case GemSynergyGroup.Priest_Corrosion:
-                if (level == 1) return "Corrosion damage amplification increased to 25%.";
-                if (level == 2) return "Corrosion damage amplification increased to 40%.";
+                if (level == 1) fallback = "Corrosion damage amplification increased to 25%.";
+                if (level == 2) fallback = "Corrosion damage amplification increased to 40%.";
                 break;
             case GemSynergyGroup.Execution:
-                if (level == 1) return "Basic attacks and throws apply 1 Execute stack.";
+                if (level == 1) fallback = "Basic attacks and throws apply 1 Execute stack.";
                 break;
             case GemSynergyGroup.Warrior_Executioner:
-                if (level == 1) return "Warrior throw damage +20% to enemies below 50% HP.";
-                if (level == 2) return "Warrior throw HP cost reduced by 30%.";
-                if (level == 3) return "Throw damage amplified up to +50% based on enemy missing HP.";
+                if (level == 1) fallback = "Warrior throw damage +20% to enemies below 50% HP.";
+                if (level == 2) fallback = "Warrior throw HP cost reduced by 30%.";
+                if (level == 3) fallback = "Throw damage amplified up to +50% based on enemy missing HP.";
                 break;
             case GemSynergyGroup.Archer_ArcheryPrinciples:
-                if (level == 1) return "Fires a piercing arrow after every 5 missed attacks.";
+                if (level == 1) fallback = "Fires a piercing arrow after every 5 missed attacks.";
                 break;
             case GemSynergyGroup.Shield_Guardian:
-                if (level == 1) return "Throwing Shieldbearer deals 20% of shield as AoE damage.";
-                if (level == 2) return "Shield expiration deals true damage to nearby enemies.";
-                if (level == 3) return "Converts 15% of excess healing into Shield.";
-                if (level == 4) return "All stats +15% while shielded.";
+                if (level == 1) fallback = "Throwing Shieldbearer deals 20% of shield as AoE damage.";
+                if (level == 2) fallback = "Shield expiration deals true damage to nearby enemies.";
+                if (level == 3) fallback = "Converts 15% of excess healing into Shield.";
+                if (level == 4) fallback = "All stats +15% while shielded.";
                 break;
             case GemSynergyGroup.Spearman_Vanguard:
-                if (level == 1) return "Dash distance +30%, dash speed +20%.";
-                if (level == 2) return "Dash deals 150% physical damage to collided enemies.";
-                if (level == 3) return "Allies touched by dash gain +15% move/evasion speed.";
-                if (level == 4) return "Player becomes invincible during dash.";
+                if (level == 1) fallback = "Dash distance +30%, dash speed +20%.";
+                if (level == 2) fallback = "Dash deals 150% physical damage to collided enemies.";
+                if (level == 3) fallback = "Allies touched by dash gain +15% move/evasion speed.";
+                if (level == 4) fallback = "Player becomes invincible during dash.";
                 break;
             case GemSynergyGroup.Stamina:
-                if (level == 1) return "Stamina regen +1 (Out of combat & Base).";
-                if (level == 2) return "Max stamina +20.";
-                if (level == 3) return "Stamina regen up to 2x at 0 stamina.";
+                if (level == 1) fallback = "Stamina regen +1 (Out of combat & Base).";
+                if (level == 2) fallback = "Max stamina +20.";
+                if (level == 3) fallback = "Stamina regen up to 2x at 0 stamina.";
                 break;
             case GemSynergyGroup.Fastball:
-                if (level == 1) return "Direct throw efficiency +50%.";
-                if (level == 2) return "Direct throw efficiency +75%.";
+                if (level == 1) fallback = "Direct throw efficiency +50%.";
+                if (level == 2) fallback = "Direct throw efficiency +75%.";
                 break;
         }
-        return "New power unlocked.";
+        return GetRewardString($"Synergy_{group}_Lv{level}", fallback);
     }
 
     private GemSynergyGroup GetSynergyGroupOfUnique(GemUniqueType type)
@@ -193,95 +195,97 @@ public class GemSynergyDisplayUI : MonoBehaviour
 
     private string GetUniqueDescription(GemUniqueType type)
     {
+        string fallback = "Unique ability active";
         switch (type)
         {
             // [스태미나 유니크 10종]
-            case GemUniqueType.CatchBreath: return "Out of combat: Stamina regen +1.";
-            case GemUniqueType.HarvestOfDeath: return "Dead minions grant +1 stamina regen until revived.";
-            case GemUniqueType.BasicFitness: return "Max stamina +20.";
-            case GemUniqueType.EndlessVitality: return "Stamina regen +0.5.";
-            case GemUniqueType.OverflowingThrow: return "Throw cost +5, Throw effect +25%.";
-            case GemUniqueType.OrderedBreath: return "Throw cost -3.";
-            case GemUniqueType.ThrowOverload: return "Throw effect increases 2% per 1 stamina cost.";
-            case GemUniqueType.MasterOfRapidFire: return "Throw cost -7, Throw effect -30%.";
-            case GemUniqueType.LimitBreak: return "Stamina limit drops to -50. Regen is halved if < 0.";
-            case GemUniqueType.EfficientThrow: return "Max stamina -40, Throw effect +60%.";
+            case GemUniqueType.CatchBreath: fallback = "Out of combat: Stamina regen +1."; break;
+            case GemUniqueType.HarvestOfDeath: fallback = "Dead minions grant +1 stamina regen until revived."; break;
+            case GemUniqueType.BasicFitness: fallback = "Max stamina +20."; break;
+            case GemUniqueType.EndlessVitality: fallback = "Stamina regen +0.5."; break;
+            case GemUniqueType.OverflowingThrow: fallback = "Throw cost +5, Throw effect +25%."; break;
+            case GemUniqueType.OrderedBreath: fallback = "Throw cost -3."; break;
+            case GemUniqueType.ThrowOverload: fallback = "Throw effect increases 2% per 1 stamina cost."; break;
+            case GemUniqueType.MasterOfRapidFire: fallback = "Throw cost -7, Throw effect -30%."; break;
+            case GemUniqueType.LimitBreak: fallback = "Stamina limit drops to -50. Regen is halved if < 0."; break;
+            case GemUniqueType.EfficientThrow: fallback = "Max stamina -40, Throw effect +60%."; break;
 
             // [강속구 유니크 5종]
-            case GemUniqueType.SetPosition: return "Charge time -0.1s, Direct throw efficiency -2%.";
-            case GemUniqueType.Windup: return "Charge time +0.5s, Direct throw efficiency +2%.";
-            case GemUniqueType.MagicPitchFireball: return "Direct throw efficiency +10% per 1s charge time.";
-            case GemUniqueType.MagicPitchArirangBall: return "Charge time -0.5s, Direct throw efficiency -40%.";
-            case GemUniqueType.Closer: return "Max charge time extended to 5s.";
+            case GemUniqueType.SetPosition: fallback = "Charge time -0.1s, Direct throw efficiency -2%."; break;
+            case GemUniqueType.Windup: fallback = "Charge time +0.5s, Direct throw efficiency +2%."; break;
+            case GemUniqueType.MagicPitchFireball: fallback = "Direct throw efficiency +10% per 1s charge time."; break;
+            case GemUniqueType.MagicPitchArirangBall: fallback = "Charge time -0.5s, Direct throw efficiency -40%."; break;
+            case GemUniqueType.Closer: fallback = "Max charge time extended to 5s."; break;
 
-            case GemUniqueType.LethalPoison: return "Ally throw deals extra damage based on target's Poison stacks.";
-            case GemUniqueType.LethalDose: return "Poison tick interval -50%.";
-            case GemUniqueType.PoisonContagion: return "Spreads 50% of remaining Poison stacks to 1 enemy on death.";
-            case GemUniqueType.WoundInfection: return "Basic attacks reduce Poison tick timer by 0.1s.";
-            case GemUniqueType.GreenFluid: return "Poison tick has 30% chance to drop a Poison Potion.";
-            case GemUniqueType.PoisonHost: return "Spreads 10% of Poison stacks to nearby enemies every 3s.";
-            case GemUniqueType.PoisonFootprint: return "All allies' movement speed +15%.";
+            case GemUniqueType.LethalPoison: fallback = "Ally throw deals extra damage based on target's Poison stacks."; break;
+            case GemUniqueType.LethalDose: fallback = "Poison tick interval -50%."; break;
+            case GemUniqueType.PoisonContagion: fallback = "Spreads 50% of remaining Poison stacks to 1 enemy on death."; break;
+            case GemUniqueType.WoundInfection: fallback = "Basic attacks reduce Poison tick timer by 0.1s."; break;
+            case GemUniqueType.GreenFluid: fallback = "Poison tick has 30% chance to drop a Poison Potion."; break;
+            case GemUniqueType.PoisonHost: fallback = "Spreads 10% of Poison stacks to nearby enemies every 3s."; break;
+            case GemUniqueType.PoisonFootprint: fallback = "All allies' movement speed +15%."; break;
 
-            case GemUniqueType.ColdBloodedHunter: return "Chilled enemies' move speed reduced by extra 10%.";
-            case GemUniqueType.AchingBones: return "Chill stacks do not accumulate while frozen.";
-            case GemUniqueType.SlowlyFreezingFlower: return "Max Chill stacks +10.";
-            case GemUniqueType.ShatterIcicle: return "Throwing at frozen enemy causes AoE fixed damage.";
-            case GemUniqueType.Frostbreaker: return "Deals 5% extra damage to chilled enemies.";
+            case GemUniqueType.ColdBloodedHunter: fallback = "Chilled enemies' move speed reduced by extra 10%."; break;
+            case GemUniqueType.AchingBones: fallback = "Chill stacks do not accumulate while frozen."; break;
+            case GemUniqueType.SlowlyFreezingFlower: fallback = "Max Chill stacks +10."; break;
+            case GemUniqueType.ShatterIcicle: fallback = "Throwing at frozen enemy causes AoE fixed damage."; break;
+            case GemUniqueType.Frostbreaker: fallback = "Deals 5% extra damage to chilled enemies."; break;
 
-            case GemUniqueType.NoCountryForOldMen: return "Aging max stacks +100, triggers instant kill at max.";
-            case GemUniqueType.Goryeojang: return "Spawns slow/aging aura around highest Aging enemy.";
-            case GemUniqueType.DimVision: return "Enemies with 50+ Aging stacks gain 25% miss chance.";
-            case GemUniqueType.AgingHunter: return "Ally attack speed +10% per 100 total Aging stacks on field.";
+            case GemUniqueType.NoCountryForOldMen: fallback = "Aging max stacks +100, triggers instant kill at max."; break;
+            case GemUniqueType.Goryeojang: fallback = "Spawns slow/aging aura around highest Aging enemy."; break;
+            case GemUniqueType.DimVision: fallback = "Enemies with 50+ Aging stacks gain 25% miss chance."; break;
+            case GemUniqueType.AgingHunter: fallback = "Ally attack speed +10% per 100 total Aging stacks on field."; break;
 
-            case GemUniqueType.PriestsCantAttack: return "Healing received +20% when Corrosion synergy is lv 2.";
-            case GemUniqueType.DoubleCorrosion: return "Corrosion damage amplification +10%.";
-            case GemUniqueType.WeaponCorrosion: return "Corroded enemies' attack power -10%.";
-            case GemUniqueType.RustedArmor: return "Reflects 5% max HP damage per 5 ally basic attacks on corroded enemies.";
+            case GemUniqueType.PriestsCantAttack: fallback = "Healing received +20% when Corrosion synergy is lv 2."; break;
+            case GemUniqueType.DoubleCorrosion: fallback = "Corrosion damage amplification +10%."; break;
+            case GemUniqueType.WeaponCorrosion: fallback = "Corroded enemies' attack power -10%."; break;
+            case GemUniqueType.RustedArmor: fallback = "Reflects 5% max HP damage per 5 ally basic attacks on corroded enemies."; break;
 
-            case GemUniqueType.ExplodingFlesh: return "Explosion spreads 25% of consumed BloodPop stacks.";
-            case GemUniqueType.BloodArmor: return "Grants shield to allies upon BloodPop explosion.";
-            case GemUniqueType.MeltingCorpse: return "Creates poison puddle upon BloodPop explosion.";
-            case GemUniqueType.MutualDestruction: return "Pulls nearby enemies into BloodPop explosion center.";
-            case GemUniqueType.AmIExplodingToo: return "Applies Weakness (20% extra damage) for 5s after explosion.";
-            case GemUniqueType.ImprovisedExplosive: return "BloodPop damage +10%.";
+            case GemUniqueType.ExplodingFlesh: fallback = "Explosion spreads 25% of consumed BloodPop stacks."; break;
+            case GemUniqueType.BloodArmor: fallback = "Grants shield to allies upon BloodPop explosion."; break;
+            case GemUniqueType.MeltingCorpse: fallback = "Creates poison puddle upon BloodPop explosion."; break;
+            case GemUniqueType.MutualDestruction: fallback = "Pulls nearby enemies into BloodPop explosion center."; break;
+            case GemUniqueType.AmIExplodingToo: fallback = "Applies Weakness (20% extra damage) for 5s after explosion."; break;
+            case GemUniqueType.ImprovisedExplosive: fallback = "BloodPop damage +10%."; break;
 
-            case GemUniqueType.Guillotine: return "Execution threshold increased by 10%.";
-            case GemUniqueType.Fear: return "Executing an enemy fears nearby enemies for 1s.";
+            case GemUniqueType.Guillotine: fallback = "Execution threshold increased by 10%."; break;
+            case GemUniqueType.Fear: fallback = "Executing an enemy fears nearby enemies for 1s."; break;
 
-            case GemUniqueType.WarriorBallistics1: return "Parabolic throw damage +10%.";
-            case GemUniqueType.WarriorBallistics2: return "Straight throw damage +10%.";
-            case GemUniqueType.WarriorBallistics3: return "Single-target throw damage +15%.";
-            case GemUniqueType.CrushingPower: return "Overkill throw damage heals Warrior.";
-            case GemUniqueType.WarriorsMedal: return "Warrior basic stats +15%.";
-            case GemUniqueType.TrackingEye: return "Successive throws on same target deal +12% damage.";
-            case GemUniqueType.FanaticRage: return "Basic attacks heal Warrior for 3% of damage dealt.";
+            case GemUniqueType.WarriorBallistics1: fallback = "Parabolic throw damage +10%."; break;
+            case GemUniqueType.WarriorBallistics2: fallback = "Straight throw damage +10%."; break;
+            case GemUniqueType.WarriorBallistics3: fallback = "Single-target throw damage +15%."; break;
+            case GemUniqueType.CrushingPower: fallback = "Overkill throw damage heals Warrior."; break;
+            case GemUniqueType.WarriorsMedal: fallback = "Warrior basic stats +15%."; break;
+            case GemUniqueType.TrackingEye: fallback = "Successive throws on same target deal +12% damage."; break;
+            case GemUniqueType.FanaticRage: fallback = "Basic attacks heal Warrior for 3% of damage dealt."; break;
 
-            case GemUniqueType.HuntersHerding: return "AoE damage +5% per enemy hit.";
-            case GemUniqueType.SpreadShot: return "Throw blast radius +20%.";
-            case GemUniqueType.AimedStrike: return "+20% damage to enemies in dead center.";
-            case GemUniqueType.WindDirection: return "Throw damage increases based on flight time (up to 33%).";
-            case GemUniqueType.SupportFire: return "Throw AoE damage +15%.";
-            case GemUniqueType.TensionPower: return "Attack speed -25%, Attack damage +25%.";
-            case GemUniqueType.UnseenMiss: return "Records when Archer's basic attack misses.";
-            case GemUniqueType.ReflectingNature: return "Upon miss, +15% ATK (HP < 50%) or +15% ASPD (HP >= 50%).";
+            case GemUniqueType.HuntersHerding: fallback = "AoE damage +5% per enemy hit."; break;
+            case GemUniqueType.SpreadShot: fallback = "Throw blast radius +20%."; break;
+            case GemUniqueType.AimedStrike: fallback = "+20% damage to enemies in dead center."; break;
+            case GemUniqueType.WindDirection: fallback = "Throw damage increases based on flight time (up to 33%)."; break;
+            case GemUniqueType.SupportFire: fallback = "Throw AoE damage +15%."; break;
+            case GemUniqueType.TensionPower: fallback = "Attack speed -25%, Attack damage +25%."; break;
+            case GemUniqueType.UnseenMiss: fallback = "Records when Archer's basic attack misses."; break;
+            case GemUniqueType.ReflectingNature: fallback = "Upon miss, +15% ATK (HP < 50%) or +15% ASPD (HP >= 50%)."; break;
 
-            case GemUniqueType.SturdyShield: return "Grants shield equal to 50% max HP upon entering a room.";
-            case GemUniqueType.ShieldsWillCourage: return "Allies gain +12% ATK SPD for 10s upon entering a room.";
-            case GemUniqueType.ShieldsWillWind: return "Allies gain +14% Move SPD for 10s upon entering a room.";
-            case GemUniqueType.ShieldsWillClash: return "Allies gain +8% ATK for 10s upon entering a room.";
-            case GemUniqueType.ThornArmor: return "Reflects 2% of enemy's current HP as fixed damage upon hit.";
-            case GemUniqueType.HeavyArmor: return "Throw deals 14% of shield amount as physical damage.";
-            case GemUniqueType.TwistedGround: return "Throw deals 20% of shield amount as AoE damage.";
-            case GemUniqueType.AuraOfPatience: return "Grants shield (18% max HP) to nearby allies every 5s.";
-            case GemUniqueType.AuraOfOverwhelming: return "Slows nearby enemies by 35% every 5s.";
+            case GemUniqueType.SturdyShield: fallback = "Grants shield equal to 50% max HP upon entering a room."; break;
+            case GemUniqueType.ShieldsWillCourage: fallback = "Allies gain +12% ATK SPD for 10s upon entering a room."; break;
+            case GemUniqueType.ShieldsWillWind: fallback = "Allies gain +14% Move SPD for 10s upon entering a room."; break;
+            case GemUniqueType.ShieldsWillClash: fallback = "Allies gain +8% ATK for 10s upon entering a room."; break;
+            case GemUniqueType.ThornArmor: fallback = "Reflects 2% of enemy's current HP as fixed damage upon hit."; break;
+            case GemUniqueType.HeavyArmor: fallback = "Throw deals 14% of shield amount as physical damage."; break;
+            case GemUniqueType.TwistedGround: fallback = "Throw deals 20% of shield amount as AoE damage."; break;
+            case GemUniqueType.AuraOfPatience: fallback = "Grants shield (18% max HP) to nearby allies every 5s."; break;
+            case GemUniqueType.AuraOfOverwhelming: fallback = "Slows nearby enemies by 35% every 5s."; break;
 
-            case GemUniqueType.Vanguard: return "Enables player dash when throwing Spearman.";
-            case GemUniqueType.SpearSwiftness: return "Spearman throw flight time reduced by 33%.";
-            case GemUniqueType.IronMountain: return "Basic attacks knockback enemies; +damage on wall collision.";
-            case GemUniqueType.ThousandStabs: return "Spearman basic attack damage +3%.";
+            case GemUniqueType.Vanguard: fallback = "Enables player dash when throwing Spearman."; break;
+            case GemUniqueType.SpearSwiftness: fallback = "Spearman throw flight time reduced by 33%."; break;
+            case GemUniqueType.IronMountain: fallback = "Basic attacks knockback enemies; +damage on wall collision."; break;
+            case GemUniqueType.ThousandStabs: fallback = "Spearman basic attack damage +3%."; break;
 
-            default: return "Unique ability active";
+            default: fallback = "Unique ability active"; break;
         }
+        return GetRewardString($"UniqueEffect_{type}", fallback);
     }
 
     private Color GetSynergyColor(GemSynergyGroup group)
@@ -304,5 +308,23 @@ public class GemSynergyDisplayUI : MonoBehaviour
     {
         foreach (var item in _spawnedItems) if (item != null) Destroy(item);
         _spawnedItems.Clear();
+    }
+
+    private string GetUIString(string table, string key, string fallback)
+    {
+        var op = UnityEngine.Localization.Settings.LocalizationSettings.StringDatabase.GetLocalizedStringAsync(table, key);
+        if (op.IsDone)
+        {
+            return (string.IsNullOrEmpty(op.Result) || op.Result.Contains("No translation")) ? fallback : op.Result;
+        }
+        
+        var handle = op;
+        handle.WaitForCompletion();
+        return (string.IsNullOrEmpty(handle.Result) || handle.Result.Contains("No translation")) ? fallback : handle.Result;
+    }
+    
+    private string GetRewardString(string key, string fallback)
+    {
+        return GetUIString("Reward Text Table", key, fallback);
     }
 }

@@ -202,7 +202,22 @@ public class GemSO : GrowthItemSO
 
     public GrowthItemData GetDynamicDisplayData(CommandData job)
     {
-        string finalDesc = string.IsNullOrEmpty(description) ? "" : description;
+        string baseName = this.itemName;
+        if (this.localizedItemName != null && !this.localizedItemName.IsEmpty)
+        {
+            var op = this.localizedItemName.GetLocalizedStringAsync();
+            if (op.IsDone) baseName = op.Result;
+            else { op.WaitForCompletion(); baseName = op.Result; }
+        }
+
+        string finalDesc = this.description;
+        if (this.localizedDescription != null && !this.localizedDescription.IsEmpty)
+        {
+            var op = this.localizedDescription.GetLocalizedStringAsync();
+            if (op.IsDone) finalDesc = op.Result;
+            else { op.WaitForCompletion(); finalDesc = op.Result; }
+        }
+        if (string.IsNullOrEmpty(finalDesc)) finalDesc = "";
         
         if (effects != null && effects.Count > 0)
         {
@@ -232,8 +247,7 @@ public class GemSO : GrowthItemSO
             }
         }
 
-        // 보석의 고유 이름이 설정되어 있다면 우선적으로 사용하고, 없다면 그룹 이름을 사용합니다.
-        string dName = !string.IsNullOrEmpty(this.itemName) ? this.itemName : $"{synergyGroup.ToString().Replace("_", " ")} Gem";
+        string dName = !string.IsNullOrEmpty(baseName) ? baseName : $"{synergyGroup.ToString().Replace("_", " ")} Gem";
 
         return new GrowthItemData
         {
@@ -241,6 +255,7 @@ public class GemSO : GrowthItemSO
             description = finalDesc.Trim(),
             icon = icon,
             rarity = rarity
+            // localizedItemName과 localizedDescription은 이미 문자열에 반영되었으므로 빈 상태로 넘깁니다.
         };
     }
 

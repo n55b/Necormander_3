@@ -18,233 +18,693 @@ MonoBehaviour:
   m_Metadata:
     m_Items: []
   m_TableData:
-  - m_Id: 6213540483072
+  - m_Id: 47607881633792
     m_Localized: Core of Origin
     m_Metadata:
       m_Items: []
-  - m_Id: 6213565648896
+  - m_Id: 47607890022400
     m_Localized: The foundational core where all gem powers begin.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213569843200
+  - m_Id: 47607894216704
     m_Localized: Closer
     m_Metadata:
       m_Items: []
-  - m_Id: 6213569843201
+  - m_Id: 47607894216705
     m_Localized: Max charge time limit is set to 5s. Throw effect +50% on full charge.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213574037504
+  - m_Id: 47607898411008
     m_Localized: Experienced Pitcher
     m_Metadata:
       m_Items: []
-  - m_Id: 6213574037505
+  - m_Id: 47607898411009
     m_Localized: Movement speed reduction while charging is reduced to 25%.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213582426112
+  - m_Id: 47607898411010
     m_Localized: 'Magic Pitch: Arirang Ball'
     m_Metadata:
       m_Items: []
-  - m_Id: 6213582426113
+  - m_Id: 47607898411011
     m_Localized: Charge time -0.5s, Fastball effect -40%.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213582426114
+  - m_Id: 47607898411012
     m_Localized: 'Magic Pitch: Fireball'
     m_Metadata:
       m_Items: []
-  - m_Id: 6213582426115
+  - m_Id: 47607898411013
     m_Localized: Fastball effect +10% per 1s of required charge time.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213586620416
+  - m_Id: 47607898411014
     m_Localized: Set Position
     m_Metadata:
       m_Items: []
-  - m_Id: 6213586620417
+  - m_Id: 47607898411015
     m_Localized: Charge time -0.1s, Fastball effect -2%.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213586620418
+  - m_Id: 47607898411016
     m_Localized: Windup
     m_Metadata:
       m_Items: []
-  - m_Id: 6213586620419
+  - m_Id: 47607898411017
     m_Localized: Charge time +0.5s, Fastball effect +2%.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213590814720
+  - m_Id: 47607898411018
     m_Localized: Basic Fitness
     m_Metadata:
       m_Items: []
-  - m_Id: 6213590814721
+  - m_Id: 47607898411019
     m_Localized: Max stamina +20.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213590814722
+  - m_Id: 47607898411020
     m_Localized: Catch Breath
     m_Metadata:
       m_Items: []
-  - m_Id: 6213590814723
+  - m_Id: 47607898411021
     m_Localized: Increases natural stamina regeneration when out of combat.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213595009024
+  - m_Id: 47607898411022
     m_Localized: Efficient Throw
     m_Metadata:
       m_Items: []
-  - m_Id: 6213595009025
+  - m_Id: 47607898411023
     m_Localized: Max stamina -40, Throw effect +60%.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203328
+  - m_Id: 47607898411024
     m_Localized: Endless Vitality
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203329
+  - m_Id: 47607898411025
     m_Localized: Increases natural stamina regeneration (+0.5).
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203330
+  - m_Id: 47607898411026
     m_Localized: Harvest of Death
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203331
+  - m_Id: 47607898411027
     m_Localized: Increases stamina regeneration based on the number of dead minions.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203332
+  - m_Id: 47607898411028
     m_Localized: Limit Break
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203333
+  - m_Id: 47607898411029
     m_Localized: Stamina can drop below zero (up to -50). Halves regeneration when
       negative.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213607591936
+  - m_Id: 47607898411030
     m_Localized: Master of Rapid Fire
     m_Metadata:
       m_Items: []
-  - m_Id: 6213607591937
+  - m_Id: 47607898411031
     m_Localized: Stamina cost -7, Throw effect -30%.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213607591938
+  - m_Id: 47607898411032
     m_Localized: Ordered Breath
     m_Metadata:
       m_Items: []
-  - m_Id: 6213607591939
+  - m_Id: 47607898411033
     m_Localized: Stamina cost -3.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213611786240
+  - m_Id: 47607898411034
     m_Localized: Overflowing Throw
     m_Metadata:
       m_Items: []
-  - m_Id: 6213611786241
+  - m_Id: 47607898411035
     m_Localized: Stamina cost +5, Throw effect +25%.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213615980544
+  - m_Id: 47607898411036
     m_Localized: Throw Overload
     m_Metadata:
       m_Items: []
-  - m_Id: 6213615980545
+  - m_Id: 47607898411037
     m_Localized: Throw effect +2% per 1 stamina cost.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213615980546
+  - m_Id: 47607898411038
     m_Localized: Throw Bouncing Ability
     m_Metadata:
       m_Items: []
-  - m_Id: 6213615980547
+  - m_Id: 47607898411039
     m_Localized: 'Throw ability: Bouncing'
     m_Metadata:
       m_Items: []
-  - m_Id: 6213624369152
+  - m_Id: 47607898411040
     m_Localized: Throw Juggling Ability
     m_Metadata:
       m_Items: []
-  - m_Id: 6213624369153
+  - m_Id: 47607898411041
     m_Localized: 'Throw ability: Juggling'
     m_Metadata:
       m_Items: []
-  - m_Id: 6213628563456
+  - m_Id: 47607898411042
     m_Localized: Throw Phantom Ability
     m_Metadata:
       m_Items: []
-  - m_Id: 6213628563457
+  - m_Id: 47607898411043
     m_Localized: 'Throw Ability: Phantom'
     m_Metadata:
       m_Items: []
-  - m_Id: 6213632757760
+  - m_Id: 47607898411044
     m_Localized: Throw Pierce Ability
     m_Metadata:
       m_Items: []
-  - m_Id: 6213632757761
+  - m_Id: 47607898411045
     m_Localized: 'Throw ability: Pierce'
     m_Metadata:
       m_Items: []
-  - m_Id: 6213641146368
+  - m_Id: 47607898411046
     m_Localized: Throw Pinball Ability
     m_Metadata:
       m_Items: []
-  - m_Id: 6213641146369
+  - m_Id: 47607898411047
     m_Localized: 'Throw Ability: Pinball'
     m_Metadata:
       m_Items: []
-  - m_Id: 6213641146370
+  - m_Id: 47607898411048
     m_Localized: Throw Repeat Ability
     m_Metadata:
       m_Items: []
-  - m_Id: 6213641146371
+  - m_Id: 47607898411049
     m_Localized: 'Throw ability: Repeat'
     m_Metadata:
       m_Items: []
-  - m_Id: 6213649534976
+  - m_Id: 47607898411050
     m_Localized: Throw Timing Charge Ability
     m_Metadata:
       m_Items: []
-  - m_Id: 6213649534977
+  - m_Id: 47607898411051
     m_Localized: 'Throw Ability: Timing Charge'
     m_Metadata:
       m_Items: []
-  - m_Id: 6213653729280
+  - m_Id: 47607898411052
     m_Localized: Minion Stat Treasure
     m_Metadata:
       m_Items: []
-  - m_Id: 6213653729281
+  - m_Id: 47607898411053
     m_Localized: Treasure that enhances all minions stats.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213653729282
+  - m_Id: 47607898411054
     m_Localized: Throw Effect Treasure
     m_Metadata:
       m_Items: []
-  - m_Id: 6213653729283
+  - m_Id: 47607898411055
     m_Localized: Treasure that enhances all throw effects.
     m_Metadata:
       m_Items: []
-  - m_Id: 6213708255232
+  - m_Id: 48123755859968
     m_Localized: Base archer minion
     m_Metadata:
       m_Items: []
-  - m_Id: 6213733421056
+  - m_Id: 48123760054272
     m_Localized: Base Priest minion
     m_Metadata:
       m_Items: []
-  - m_Id: 6213746003968
+  - m_Id: 48123760054273
     m_Localized: Base Shieldbearer minion
     m_Metadata:
       m_Items: []
-  - m_Id: 6213758586880
+  - m_Id: 48123760054274
     m_Localized: Base Spearman minion
     m_Metadata:
       m_Items: []
-  - m_Id: 6213779558400
+  - m_Id: 48123760054275
     m_Localized: Base warrior minion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637184
+    m_Localized: Increases ally attack speed by 10% per 100 total aging stacks on
+      the field.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637185
+    m_Localized: Increases miss chance by 25% for enemies with 50+ aging stacks.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637186
+    m_Localized: Creates a 20% slow and aging area around the enemy with the highest
+      aging stacks.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637187
+    m_Localized: Increases max Aging stacks to 100. Targets die instantly at max
+      stacks (Excluding Bosses).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637188
+    m_Localized: Deals 20% additional damage to enemies in the center of the throw
+      radius.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637189
+    m_Localized: Increases throw damage by 5% per enemy hit in the radius.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637190
+    m_Localized: Increases Attack by 15% if HP < 50%, or Attack Speed by 15% if HP
+      >= 50% after a miss. (Requires Unseen Miss)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637191
+    m_Localized: Increases the Archer's throw radius by 20%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637192
+    m_Localized: Increases the Archer's AoE throw damage by 15%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637193
+    m_Localized: Reduces basic attack speed by 25% but increases basic attack damage
+      by 25%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637194
+    m_Localized: 'Acts as a trigger: missing a basic attack primes the next buff.
+      (Requires Reflecting Nature)'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637195
+    m_Localized: Increases throw damage by 1% to 33% based on flight distance.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637196
+    m_Localized: Applies a weakness debuff causing victims to take 20% more damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637197
+    m_Localized: Grants allies shields equal to double the Blood Pop stacks upon
+      explosion.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637198
+    m_Localized: Applies 1/4 of the explosion damage as BloodPop stacks to nearby
+      enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637199
+    m_Localized: Heals allies within the explosion radius by the number of Blood
+      Pop stacks.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637200
+    m_Localized: Increases Blood Pop damage by 10%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637201
+    m_Localized: Creates a poison area after explosion lasting for 5 seconds.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637202
+    m_Localized: Pulls enemies within 1.5x radius before explosion.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637203
+    m_Localized: Applies 50 chill stacks in an area upon freezing (Once per room).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637204
+    m_Localized: Chill stacks start at 10 upon freezing. Stacks cannot be added while
+      frozen.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637205
+    m_Localized: Applies 1 chill stack to nearby enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637206
+    m_Localized: Applies an additional 10% slow to chilled enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637207
+    m_Localized: Deals 5% additional damage to chilled enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637208
+    m_Localized: Throws remove freeze and deal 50% additional damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637209
+    m_Localized: Increases max Chill stacks and freeze threshold by 10 (Total 30).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637210
+    m_Localized: Enhances Corrosion synergy damage amplification by 10%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637211
+    m_Localized: Increases ally healing received by 20% when Corrosion synergy is
+      active.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637212
+    m_Localized: Reflects 5% max HP fixed damage to corroded enemies every 5 hits
+      received.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637213
+    m_Localized: Reduces attack damage of corroded enemies by 10%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637214
+    m_Localized: Fears nearby enemies for 1 second upon executing a target.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637215
+    m_Localized: Relaxes the execute threshold by 10%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637216
+    m_Localized: Spawns a potion on poison tick.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637217
+    m_Localized: Halves poison tick interval.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637218
+    m_Localized: Adds throw damage equal to target's poison stacks.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637219
+    m_Localized: Spreads poison to nearby enemies upon death.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637220
+    m_Localized: Increases base throw poison stacks by 1.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637221
+    m_Localized: Creates a poison trail. Allies gain 15% movement speed.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637222
+    m_Localized: Spreads poison stacks in an area every 3 seconds.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637223
+    m_Localized: Basic attacks reduce poison tick interval.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637224
+    m_Localized: Deals 4% of Shieldbearer's Max HP to nearby enemies every 5 seconds
+      and heals for 120% of damage dealt.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637225
+    m_Localized: Grants allies a shield equal to 18% of Shieldbearer's Max HP every
+      5 seconds.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637226
+    m_Localized: Deals additional physical damage equal to 14% of the shield amount
+      on single-target throw hit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637227
+    m_Localized: 'Increases all Shieldbearer stats by 10%.
+
+      Increases ally
+      attack damage by 8% for 10 seconds upon entering a room.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637228
+    m_Localized: 'Increases all Shieldbearer stats by 10%.
+
+      Increases ally
+      attack speed by 12% for 10 seconds upon entering a room.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637229
+    m_Localized: 'Increases all Shieldbearer stats by 10%.
+
+      Increases ally
+      movement speed by 14% for 10 seconds upon entering a room.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637230
+    m_Localized: Grants the Shieldbearer a shield equal to 50% of Max HP upon entering
+      a room.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637231
+    m_Localized: Reflects fixed damage equal to 2% of the attacker's current HP when
+      taking basic attack damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637232
+    m_Localized: Deals 20% of the shield amount as AoE damage upon single-target
+      throw hit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637233
+    m_Localized: Basic attacks knock enemies back. If they hit a wall, they take
+      12% max HP as damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637234
+    m_Localized: Reduces throw landing time by 33%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637235
+    m_Localized: Spearman's basic attacks deal 3% additional damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637236
+    m_Localized: Increases dash distance.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637237
+    m_Localized: Heals the Warrior for any excess throw damage dealt upon executing
+      an enemy.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637238
+    m_Localized: Grants 3% lifesteal on basic attacks.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637239
+    m_Localized: Deals 12% additional damage when repeatedly hitting the same target
+      with throws.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637240
+    m_Localized: Increases Warrior's parabolic throw damage by 10%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637241
+    m_Localized: Increases Warrior's direct throw damage by 10%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637242
+    m_Localized: Increases Warrior's single-target throw damage by 15%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637243
+    m_Localized: Increases all basic stats of the Warrior by 15%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637244
+    m_Localized: Max charge time limit is set to 5s. Throw effect +50% on full charge.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637245
+    m_Localized: Movement speed reduction while charging is reduced to 25%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637246
+    m_Localized: Charge time -0.5s, Fastball effect -40%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637247
+    m_Localized: Fastball effect +10% per 1s of required charge time.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637248
+    m_Localized: Charge time -0.1s, Fastball effect -2%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637249
+    m_Localized: Charge time +0.5s, Fastball effect +2%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637250
+    m_Localized: Max stamina +20.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637251
+    m_Localized: Increases natural stamina regeneration when out of combat.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637252
+    m_Localized: Max stamina -40, Throw effect +60%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637253
+    m_Localized: Increases natural stamina regeneration (+0.5).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637254
+    m_Localized: Increases stamina regeneration based on the number of dead minions.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637255
+    m_Localized: Stamina can drop below zero (up to -50). Halves regeneration when
+      negative.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637256
+    m_Localized: Stamina cost -7, Throw effect -30%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637257
+    m_Localized: Stamina cost -3.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637258
+    m_Localized: Stamina cost +5, Throw effect +25%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637259
+    m_Localized: Throw effect +2% per 1 stamina cost.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122150543360
+    m_Localized: Poison duration extended to +5s.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931968
+    m_Localized: Basic attacks apply +1 extra Poison stack.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931969
+    m_Localized: Poison tick interval reduced to 3s (0.6x).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931970
+    m_Localized: Slow effect per stack increased by 5%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931971
+    m_Localized: Refund 25 Chill stacks upon freezing.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931972
+    m_Localized: Freezing deals true damage based on max HP.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931973
+    m_Localized: BloodPop damage multiplier increased to 0.5.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931974
+    m_Localized: BloodPop explosion radius increased by 1.5x.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931975
+    m_Localized: Slow effect per stack increased by 5%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931976
+    m_Localized: Maximum Aging stacks increased to 120.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931977
+    m_Localized: Senile enemies take 12% extra damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931978
+    m_Localized: Corrosion damage amplification increased to 25%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931979
+    m_Localized: Corrosion damage amplification increased to 40%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931980
+    m_Localized: Basic attacks and throws apply 1 Execute stack.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931981
+    m_Localized: Warrior throw damage +20% to enemies below 50% HP.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931982
+    m_Localized: Warrior throw HP cost reduced by 30%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931983
+    m_Localized: Throw damage amplified up to +50% based on enemy missing HP.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931984
+    m_Localized: Fires a piercing arrow after every 5 missed attacks.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931985
+    m_Localized: Throwing Shieldbearer deals 20% of shield as AoE damage.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931986
+    m_Localized: Shield expiration deals true damage to nearby enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931987
+    m_Localized: Converts 15% of excess healing into Shield.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931988
+    m_Localized: All stats +15% while shielded.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931989
+    m_Localized: Dash distance +30%, dash speed +20%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931990
+    m_Localized: Dash deals 150% physical damage to collided enemies.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931991
+    m_Localized: Allies touched by dash gain +15% move/evasion speed.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931992
+    m_Localized: Player becomes invincible during dash.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931993
+    m_Localized: Stamina regen +1 (Out of combat & Base).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931994
+    m_Localized: Max stamina +20.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931995
+    m_Localized: Stamina regen up to 2x at 0 stamina.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931996
+    m_Localized: Direct throw efficiency +50%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931997
+    m_Localized: Direct throw efficiency +75%.
     m_Metadata:
       m_Items: []
   references:

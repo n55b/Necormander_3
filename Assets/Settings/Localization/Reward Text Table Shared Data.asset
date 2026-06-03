@@ -15,232 +15,660 @@ MonoBehaviour:
   m_TableCollectionName: Reward Text Table
   m_TableCollectionNameGuidString: fb33b23eb1ad3d64b9b02523ebac3189
   m_Entries:
-  - m_Id: 6213540483072
+  - m_Id: 47607881633792
     m_Key: Default_Root_Gem_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213565648896
+  - m_Id: 47607890022400
     m_Key: Default_Root_Gem_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213569843200
+  - m_Id: 47607894216704
     m_Key: Gem_Fastball_Closer_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213569843201
+  - m_Id: 47607894216705
     m_Key: Gem_Fastball_Closer_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213574037504
+  - m_Id: 47607898411008
     m_Key: Gem_Fastball_ExperiencedPitcher_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213574037505
+  - m_Id: 47607898411009
     m_Key: Gem_Fastball_ExperiencedPitcher_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213582426112
+  - m_Id: 47607898411010
     m_Key: Gem_Fastball_MagicPitchArirangBall_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213582426113
+  - m_Id: 47607898411011
     m_Key: Gem_Fastball_MagicPitchArirangBall_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213582426114
+  - m_Id: 47607898411012
     m_Key: Gem_Fastball_MagicPitchFireball_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213582426115
+  - m_Id: 47607898411013
     m_Key: Gem_Fastball_MagicPitchFireball_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213586620416
+  - m_Id: 47607898411014
     m_Key: Gem_Fastball_SetPosition_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213586620417
+  - m_Id: 47607898411015
     m_Key: Gem_Fastball_SetPosition_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213586620418
+  - m_Id: 47607898411016
     m_Key: Gem_Fastball_Windup_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213586620419
+  - m_Id: 47607898411017
     m_Key: Gem_Fastball_Windup_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213590814720
+  - m_Id: 47607898411018
     m_Key: Gem_Stamina_BasicFitness_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213590814721
+  - m_Id: 47607898411019
     m_Key: Gem_Stamina_BasicFitness_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213590814722
+  - m_Id: 47607898411020
     m_Key: Gem_Stamina_CatchBreath_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213590814723
+  - m_Id: 47607898411021
     m_Key: Gem_Stamina_CatchBreath_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213595009024
+  - m_Id: 47607898411022
     m_Key: Gem_Stamina_EfficientThrow_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213595009025
+  - m_Id: 47607898411023
     m_Key: Gem_Stamina_EfficientThrow_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203328
+  - m_Id: 47607898411024
     m_Key: Gem_Stamina_EndlessVitality_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203329
+  - m_Id: 47607898411025
     m_Key: Gem_Stamina_EndlessVitality_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203330
+  - m_Id: 47607898411026
     m_Key: Gem_Stamina_HarvestOfDeath_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203331
+  - m_Id: 47607898411027
     m_Key: Gem_Stamina_HarvestOfDeath_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203332
+  - m_Id: 47607898411028
     m_Key: Gem_Stamina_LimitBreak_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213599203333
+  - m_Id: 47607898411029
     m_Key: Gem_Stamina_LimitBreak_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213607591936
+  - m_Id: 47607898411030
     m_Key: Gem_Stamina_MasterOfRapidFire_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213607591937
+  - m_Id: 47607898411031
     m_Key: Gem_Stamina_MasterOfRapidFire_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213607591938
+  - m_Id: 47607898411032
     m_Key: Gem_Stamina_OrderedBreath_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213607591939
+  - m_Id: 47607898411033
     m_Key: Gem_Stamina_OrderedBreath_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213611786240
+  - m_Id: 47607898411034
     m_Key: Gem_Stamina_OverflowingThrow_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213611786241
+  - m_Id: 47607898411035
     m_Key: Gem_Stamina_OverflowingThrow_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213615980544
+  - m_Id: 47607898411036
     m_Key: Gem_Stamina_ThrowOverload_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213615980545
+  - m_Id: 47607898411037
     m_Key: Gem_Stamina_ThrowOverload_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213615980546
+  - m_Id: 47607898411038
     m_Key: Throw Bouncing Ability_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213615980547
+  - m_Id: 47607898411039
     m_Key: Throw Bouncing Ability_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213624369152
+  - m_Id: 47607898411040
     m_Key: Throw Juggling Ability_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213624369153
+  - m_Id: 47607898411041
     m_Key: Throw Juggling Ability_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213628563456
+  - m_Id: 47607898411042
     m_Key: Throw Phantom Ability_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213628563457
+  - m_Id: 47607898411043
     m_Key: Throw Phantom Ability_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213632757760
+  - m_Id: 47607898411044
     m_Key: Throw Pierce Ability_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213632757761
+  - m_Id: 47607898411045
     m_Key: Throw Pierce Ability_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213641146368
+  - m_Id: 47607898411046
     m_Key: Throw Pinball Ability_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213641146369
+  - m_Id: 47607898411047
     m_Key: Throw Pinball Ability_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213641146370
+  - m_Id: 47607898411048
     m_Key: Throw Repeat Ability_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213641146371
+  - m_Id: 47607898411049
     m_Key: Throw Repeat Ability_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213649534976
+  - m_Id: 47607898411050
     m_Key: Throw TimingCharge Ability_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213649534977
+  - m_Id: 47607898411051
     m_Key: Throw TimingCharge Ability_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213653729280
+  - m_Id: 47607898411052
     m_Key: Minion Stat Treasure_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213653729281
+  - m_Id: 47607898411053
     m_Key: Minion Stat Treasure_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213653729282
+  - m_Id: 47607898411054
     m_Key: Throw Effect Treasure_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213653729283
+  - m_Id: 47607898411055
     m_Key: Throw Effect Treasure_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 6213708255232
+  - m_Id: 48123755859968
     m_Key: Archer Lineage_Base_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213733421056
+  - m_Id: 48123760054272
     m_Key: Priest Lineage_Base_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213746003968
+  - m_Id: 48123760054273
     m_Key: Shieldbearer Lineage_Base_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213758586880
+  - m_Id: 48123760054274
     m_Key: Spearman Lineage_Base_Name
     m_Metadata:
       m_Items: []
-  - m_Id: 6213779558400
+  - m_Id: 48123760054275
     m_Key: Warrior Lineage_Base_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637184
+    m_Key: UniqueEffect_AgingHunter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637185
+    m_Key: UniqueEffect_DimVision
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637186
+    m_Key: UniqueEffect_Goryeojang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637187
+    m_Key: UniqueEffect_NoCountryForOldMen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637188
+    m_Key: UniqueEffect_AimedStrike
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637189
+    m_Key: UniqueEffect_HuntersHerding
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637190
+    m_Key: UniqueEffect_ReflectingNature
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637191
+    m_Key: UniqueEffect_SpreadShot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637192
+    m_Key: UniqueEffect_SupportFire
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637193
+    m_Key: UniqueEffect_TensionPower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637194
+    m_Key: UniqueEffect_UnseenMiss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637195
+    m_Key: UniqueEffect_WindDirection
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637196
+    m_Key: UniqueEffect_AmIExplodingToo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637197
+    m_Key: UniqueEffect_BloodArmor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637198
+    m_Key: UniqueEffect_ExplodingFlesh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637199
+    m_Key: UniqueEffect_GoreParty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637200
+    m_Key: UniqueEffect_ImprovisedExplosive
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637201
+    m_Key: UniqueEffect_MeltingCorpse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637202
+    m_Key: UniqueEffect_MutualDestruction
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637203
+    m_Key: UniqueEffect_AbsoluteZero
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637204
+    m_Key: UniqueEffect_AchingBones
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637205
+    m_Key: UniqueEffect_BitingWind
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637206
+    m_Key: UniqueEffect_ColdBloodedHunter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637207
+    m_Key: UniqueEffect_Frostbreaker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637208
+    m_Key: UniqueEffect_ShatterIcicle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637209
+    m_Key: UniqueEffect_SlowlyFreezingFlower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637210
+    m_Key: UniqueEffect_DoubleCorrosion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637211
+    m_Key: UniqueEffect_PriestsCantAttack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637212
+    m_Key: UniqueEffect_RustedArmor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637213
+    m_Key: UniqueEffect_WeaponCorrosion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637214
+    m_Key: UniqueEffect_Fear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637215
+    m_Key: UniqueEffect_Guillotine
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637216
+    m_Key: UniqueEffect_GreenFluid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637217
+    m_Key: UniqueEffect_LethalDose
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637218
+    m_Key: UniqueEffect_LethalPoison
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637219
+    m_Key: UniqueEffect_PoisonContagion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637220
+    m_Key: UniqueEffect_PoisonFlask
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637221
+    m_Key: UniqueEffect_PoisonFootprint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637222
+    m_Key: UniqueEffect_PoisonHost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637223
+    m_Key: UniqueEffect_WoundInfection
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637224
+    m_Key: UniqueEffect_AuraOfOverwhelming
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637225
+    m_Key: UniqueEffect_AuraOfPatience
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637226
+    m_Key: UniqueEffect_HeavyArmor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637227
+    m_Key: UniqueEffect_ShieldsWillClash
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637228
+    m_Key: UniqueEffect_ShieldsWillCourage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637229
+    m_Key: UniqueEffect_ShieldsWillWind
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637230
+    m_Key: UniqueEffect_SturdyShield
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637231
+    m_Key: UniqueEffect_ThornArmor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637232
+    m_Key: UniqueEffect_TwistedGround
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637233
+    m_Key: UniqueEffect_IronMountain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637234
+    m_Key: UniqueEffect_SpearSwiftness
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637235
+    m_Key: UniqueEffect_ThousandStabs
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637236
+    m_Key: UniqueEffect_Vanguard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637237
+    m_Key: UniqueEffect_CrushingPower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637238
+    m_Key: UniqueEffect_FanaticRage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637239
+    m_Key: UniqueEffect_TrackingEye
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637240
+    m_Key: UniqueEffect_WarriorBallistics1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637241
+    m_Key: UniqueEffect_WarriorBallistics2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637242
+    m_Key: UniqueEffect_WarriorBallistics3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637243
+    m_Key: UniqueEffect_WarriorsMedal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637244
+    m_Key: UniqueEffect_Closer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637245
+    m_Key: UniqueEffect_ExperiencedPitcher
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637246
+    m_Key: UniqueEffect_MagicPitchArirangBall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637247
+    m_Key: UniqueEffect_MagicPitchFireball
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637248
+    m_Key: UniqueEffect_SetPosition
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637249
+    m_Key: UniqueEffect_Windup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637250
+    m_Key: UniqueEffect_BasicFitness
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637251
+    m_Key: UniqueEffect_CatchBreath
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637252
+    m_Key: UniqueEffect_EfficientThrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637253
+    m_Key: UniqueEffect_EndlessVitality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637254
+    m_Key: UniqueEffect_HarvestOfDeath
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637255
+    m_Key: UniqueEffect_LimitBreak
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637256
+    m_Key: UniqueEffect_MasterOfRapidFire
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637257
+    m_Key: UniqueEffect_OrderedBreath
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637258
+    m_Key: UniqueEffect_OverflowingThrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48123772637259
+    m_Key: UniqueEffect_ThrowOverload
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122150543360
+    m_Key: Synergy_Poison_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931968
+    m_Key: Synergy_Poison_Lv2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931969
+    m_Key: Synergy_Poison_Lv3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931970
+    m_Key: Synergy_Priest_Chill_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931971
+    m_Key: Synergy_Priest_Chill_Lv2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931972
+    m_Key: Synergy_Priest_Chill_Lv3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931973
+    m_Key: Synergy_BloodPop_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931974
+    m_Key: Synergy_BloodPop_Lv2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931975
+    m_Key: Synergy_Priest_Aging_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931976
+    m_Key: Synergy_Priest_Aging_Lv2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931977
+    m_Key: Synergy_Priest_Aging_Lv3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931978
+    m_Key: Synergy_Priest_Corrosion_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931979
+    m_Key: Synergy_Priest_Corrosion_Lv2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931980
+    m_Key: Synergy_Execution_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931981
+    m_Key: Synergy_Warrior_Executioner_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931982
+    m_Key: Synergy_Warrior_Executioner_Lv2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931983
+    m_Key: Synergy_Warrior_Executioner_Lv3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931984
+    m_Key: Synergy_Archer_ArcheryPrinciples_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931985
+    m_Key: Synergy_Shield_Guardian_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931986
+    m_Key: Synergy_Shield_Guardian_Lv2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931987
+    m_Key: Synergy_Shield_Guardian_Lv3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931988
+    m_Key: Synergy_Shield_Guardian_Lv4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931989
+    m_Key: Synergy_Spearman_Vanguard_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931990
+    m_Key: Synergy_Spearman_Vanguard_Lv2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931991
+    m_Key: Synergy_Spearman_Vanguard_Lv3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931992
+    m_Key: Synergy_Spearman_Vanguard_Lv4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931993
+    m_Key: Synergy_Stamina_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931994
+    m_Key: Synergy_Stamina_Lv2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931995
+    m_Key: Synergy_Stamina_Lv3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931996
+    m_Key: Synergy_Fastball_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 51122158931997
+    m_Key: Synergy_Fastball_Lv2
     m_Metadata:
       m_Items: []
   m_Metadata:
