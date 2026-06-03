@@ -15,9 +15,28 @@ MonoBehaviour:
   itemName: Iron Mountain
   description: Basic attacks knock enemies back. If they hit a wall, they take 12%
     max HP as damage.
+  localizedItemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 1622555987968
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  localizedDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 1622555987969
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 0}
   rarity: 3
-  category: 5
+  shopCost: 100
+  category: 0
   synergyGroup: 500
   subSlots: 1
   eligibleJobs: -1

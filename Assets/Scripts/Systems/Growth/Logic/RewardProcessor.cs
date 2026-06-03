@@ -290,7 +290,7 @@ public static class RewardProcessor
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();
         foreach (var t in treasures)
-            candidates.Add(new RewardCandidate { displayData = new GrowthItemData { itemName = t.itemName, description = t.description, icon = t.icon, rarity = t.rarity }, rawData = t, category = RewardCategory.Treasure });
+            candidates.Add(new RewardCandidate { displayData = new GrowthItemData { itemName = t.itemName, description = t.description, icon = t.icon, rarity = t.rarity, localizedItemName = t.localizedItemName, localizedDescription = t.localizedDescription }, rawData = t, category = RewardCategory.Treasure });
         return candidates;
     }
 
@@ -307,7 +307,7 @@ public static class RewardProcessor
                 if (inven.ActiveAbilities.Exists(a => a.GetType() == ability.GetType())) continue;
 
                 candidates.Add(new RewardCandidate { 
-                    displayData = new GrowthItemData { itemName = ability.itemName, description = ability.description, icon = ability.icon, rarity = ability.rarity }, 
+                    displayData = new GrowthItemData { itemName = ability.itemName, description = ability.description, icon = ability.icon, rarity = ability.rarity, localizedItemName = ability.localizedItemName, localizedDescription = ability.localizedDescription }, 
                     rawData = ability, 
                     category = RewardCategory.Ability 
                 });

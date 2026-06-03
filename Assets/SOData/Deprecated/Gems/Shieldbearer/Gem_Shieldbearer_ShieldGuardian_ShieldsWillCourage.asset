@@ -17,8 +17,27 @@ MonoBehaviour:
 
     Increases ally attack
     speed by 12% for 10 seconds upon entering a room.'
+  localizedItemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 1622417575936
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  localizedDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 1622417575937
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 0}
   rarity: 3
+  shopCost: 100
   category: 4
   synergyGroup: 400
   subSlots: 1

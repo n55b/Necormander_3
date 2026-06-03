@@ -23,7 +23,7 @@ public class InventoryManager : MonoBehaviour
         public GrowthItemData GetCurrentItemData()
         {
             if (EquippedLineage != null) return EquippedLineage.GetItemData(EvolutionIndex);
-            if (EquippedThrowAbility != null) return new GrowthItemData { itemName = EquippedThrowAbility.itemName, description = EquippedThrowAbility.description, icon = EquippedThrowAbility.icon, rarity = EquippedThrowAbility.rarity };
+            if (EquippedThrowAbility != null) return new GrowthItemData { itemName = EquippedThrowAbility.itemName, description = EquippedThrowAbility.description, icon = EquippedThrowAbility.icon, rarity = EquippedThrowAbility.rarity, localizedItemName = EquippedThrowAbility.localizedItemName, localizedDescription = EquippedThrowAbility.localizedDescription };
             return null;
         }
     }

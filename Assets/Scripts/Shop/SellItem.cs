@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization.Components;
 
 public class SellItem : MonoBehaviour, IInteractable
 {
@@ -51,7 +52,24 @@ public class SellItem : MonoBehaviour, IInteractable
             Canvas.SetActive(true);
             obj = Instantiate(explainPrefab, Canvas.transform);
             Tooltip text = obj.GetComponent<Tooltip>();
-            text.name.text = item.displayData.itemName;
+            
+            if (item.displayData.localizedItemName != null && !item.displayData.localizedItemName.IsEmpty)
+            {
+                var locEvent = text.name.GetComponent<LocalizeStringEvent>();
+                if (locEvent == null)
+                {
+                    locEvent = text.name.gameObject.AddComponent<LocalizeStringEvent>();
+                    locEvent.OnUpdateString.AddListener((s) => text.name.text = s);
+                }
+                locEvent.StringReference = item.displayData.localizedItemName;
+            }
+            else
+            {
+                var locEvent = text.name.GetComponent<LocalizeStringEvent>();
+                if (locEvent != null) locEvent.StringReference = null;
+                text.name.text = item.displayData.itemName;
+            }
+            
             text.price.text = $"{item.goldAmount}G";
         }
     }

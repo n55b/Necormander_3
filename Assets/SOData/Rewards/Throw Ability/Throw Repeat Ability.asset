@@ -14,7 +14,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Throw Repeat Ability
   description: 'Throw ability: Repeat'
+  localizedItemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 6213641146370
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  localizedDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 6213641146371
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 0}
   rarity: 0
+  shopCost: 100
+  trajectoryFilter: -1
+  targetFilter: -1
   delayBetweenThrows: 0.2
   afterimageColor: {r: 1, g: 1, b: 1, a: 0.4}
+  references:
+    version: 2
+    RefIds: []

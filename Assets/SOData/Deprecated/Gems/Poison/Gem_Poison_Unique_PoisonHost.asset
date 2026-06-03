@@ -14,8 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Poison Host
   description: Spreads poison stacks in an area every 3 seconds.
+  localizedItemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 1622241415168
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  localizedDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 1622241415169
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 0}
   rarity: 3
+  shopCost: 100
   category: 0
   synergyGroup: 1
   subSlots: 1

@@ -1,0 +1,139 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: UI Text Table_en
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 7a7975ca1158bab49a3b878c2cd56d9d, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 9182835085312
+    m_Localized: Start Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9525966901248
+    m_Localized: Load Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9699753693184
+    m_Localized: Option
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9810726588416
+    m_Localized: Exit Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12631387639808
+    m_Localized: Continue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12755518066688
+    m_Localized: Option
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12938427469824
+    m_Localized: Exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13305466818560
+    m_Localized: Option
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13473519996928
+    m_Localized: BGM Sound
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13670350295040
+    m_Localized: SFX Sound
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13862315200512
+    m_Localized: Exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 16915349082112
+    m_Localized: Language
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21955640004608
+    m_Localized: Synergy_Poison
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21955673559040
+    m_Localized: Synergy_Priest_Chill
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21955673559041
+    m_Localized: Synergy_BloodPop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21955673559042
+    m_Localized: Synergy_Priest_Aging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21955673559043
+    m_Localized: Synergy_Priest_Corrosion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21955673559044
+    m_Localized: Synergy_None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21955677753344
+    m_Localized: Tooltip_BonusModifiers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21955677753345
+    m_Localized: Tooltip_TreeExpansion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21955677753346
+    m_Localized: UI_Slot_Empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21955677753347
+    m_Localized: UI_Slot_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23944910311424
+    m_Localized: Synergy_Fastball
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23944918700032
+    m_Localized: Synergy_Stamina
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23944918700033
+    m_Localized: UI_Unique
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23944918700034
+    m_Localized: UI_Minion_Prefix
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23944918700035
+    m_Localized: UI_Count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23944918700036
+    m_Localized: UI_ThrowAbility_Prefix
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23944918700037
+    m_Localized: UI_Equipped_Capability
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

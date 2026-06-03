@@ -2,6 +2,8 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Components;
 
 /// <summary>
 /// 툴팁에 표시될 공통 데이터 구조입니다.
@@ -14,6 +16,9 @@ public struct TooltipData
     public List<string> effects;
     public string footer;
     public Color titleColor;
+    
+    public LocalizedString localizedTitle;
+    public LocalizedString localizedDescription;
 
     public TooltipData(string title, string description)
     {
@@ -23,6 +28,8 @@ public struct TooltipData
         this.effects = new List<string>();
         this.footer = "";
         this.titleColor = Color.white;
+        this.localizedTitle = null;
+        this.localizedDescription = null;
     }
 }
 
@@ -71,13 +78,52 @@ public class CommonTooltipUI : MonoBehaviour
 
     public void Show(TooltipData data)
     {
-        titleText.text = data.title;
-        titleText.color = data.titleColor;
+        if (titleText != null)
+        {
+            if (data.localizedTitle != null && !data.localizedTitle.IsEmpty)
+            {
+                var locEvent = titleText.GetComponent<LocalizeStringEvent>();
+                if (locEvent == null)
+                {
+                    locEvent = titleText.gameObject.AddComponent<LocalizeStringEvent>();
+                    locEvent.OnUpdateString.AddListener((s) => titleText.text = s);
+                }
+                locEvent.StringReference = data.localizedTitle;
+            }
+            else
+            {
+                var locEvent = titleText.GetComponent<LocalizeStringEvent>();
+                if (locEvent != null) locEvent.StringReference = null;
+                titleText.text = data.title;
+            }
+            titleText.color = data.titleColor;
+        }
         
-        typeText.text = data.type;
-        typeText.gameObject.SetActive(!string.IsNullOrEmpty(data.type));
+        if (typeText != null)
+        {
+            typeText.text = data.type;
+            typeText.gameObject.SetActive(!string.IsNullOrEmpty(data.type));
+        }
         
-        descriptionText.text = data.description;
+        if (descriptionText != null)
+        {
+            if (data.localizedDescription != null && !data.localizedDescription.IsEmpty)
+            {
+                var locEvent = descriptionText.GetComponent<LocalizeStringEvent>();
+                if (locEvent == null)
+                {
+                    locEvent = descriptionText.gameObject.AddComponent<LocalizeStringEvent>();
+                    locEvent.OnUpdateString.AddListener((s) => descriptionText.text = s);
+                }
+                locEvent.StringReference = data.localizedDescription;
+            }
+            else
+            {
+                var locEvent = descriptionText.GetComponent<LocalizeStringEvent>();
+                if (locEvent != null) locEvent.StringReference = null;
+                descriptionText.text = data.description;
+            }
+        }
         
         if (data.effects != null && data.effects.Count > 0)
         {

@@ -14,6 +14,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: 'Magic Pitch: Arirang Ball'
   description: Charge time -0.5s, Fastball effect -40%.
+  localizedItemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 6213582426112
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  localizedDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 6213582426113
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 0}
   rarity: 3
   shopCost: 320

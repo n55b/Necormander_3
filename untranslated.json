@@ -1,0 +1,232 @@
+{
+    "items": [
+        {
+            "key": "Default_Root_Gem_Name",
+            "englishText": "Core of Origin"
+        },
+        {
+            "key": "Default_Root_Gem_Desc",
+            "englishText": "The foundational core where all gem powers begin."
+        },
+        {
+            "key": "Gem_Fastball_Closer_Name",
+            "englishText": "Closer"
+        },
+        {
+            "key": "Gem_Fastball_Closer_Desc",
+            "englishText": "Max charge time limit is set to 5s. Throw effect +50% on full charge."
+        },
+        {
+            "key": "Gem_Fastball_ExperiencedPitcher_Name",
+            "englishText": "Experienced Pitcher"
+        },
+        {
+            "key": "Gem_Fastball_ExperiencedPitcher_Desc",
+            "englishText": "Movement speed reduction while charging is reduced to 25%."
+        },
+        {
+            "key": "Gem_Fastball_MagicPitchArirangBall_Name",
+            "englishText": "Magic Pitch: Arirang Ball"
+        },
+        {
+            "key": "Gem_Fastball_MagicPitchArirangBall_Desc",
+            "englishText": "Charge time -0.5s, Fastball effect -40%."
+        },
+        {
+            "key": "Gem_Fastball_MagicPitchFireball_Name",
+            "englishText": "Magic Pitch: Fireball"
+        },
+        {
+            "key": "Gem_Fastball_MagicPitchFireball_Desc",
+            "englishText": "Fastball effect +10% per 1s of required charge time."
+        },
+        {
+            "key": "Gem_Fastball_SetPosition_Name",
+            "englishText": "Set Position"
+        },
+        {
+            "key": "Gem_Fastball_SetPosition_Desc",
+            "englishText": "Charge time -0.1s, Fastball effect -2%."
+        },
+        {
+            "key": "Gem_Fastball_Windup_Name",
+            "englishText": "Windup"
+        },
+        {
+            "key": "Gem_Fastball_Windup_Desc",
+            "englishText": "Charge time +0.5s, Fastball effect +2%."
+        },
+        {
+            "key": "Gem_Stamina_BasicFitness_Name",
+            "englishText": "Basic Fitness"
+        },
+        {
+            "key": "Gem_Stamina_BasicFitness_Desc",
+            "englishText": "Max stamina +20."
+        },
+        {
+            "key": "Gem_Stamina_CatchBreath_Name",
+            "englishText": "Catch Breath"
+        },
+        {
+            "key": "Gem_Stamina_CatchBreath_Desc",
+            "englishText": "Increases natural stamina regeneration when out of combat."
+        },
+        {
+            "key": "Gem_Stamina_EfficientThrow_Name",
+            "englishText": "Efficient Throw"
+        },
+        {
+            "key": "Gem_Stamina_EfficientThrow_Desc",
+            "englishText": "Max stamina -40, Throw effect +60%."
+        },
+        {
+            "key": "Gem_Stamina_EndlessVitality_Name",
+            "englishText": "Endless Vitality"
+        },
+        {
+            "key": "Gem_Stamina_EndlessVitality_Desc",
+            "englishText": "Increases natural stamina regeneration (+0.5)."
+        },
+        {
+            "key": "Gem_Stamina_HarvestOfDeath_Name",
+            "englishText": "Harvest of Death"
+        },
+        {
+            "key": "Gem_Stamina_HarvestOfDeath_Desc",
+            "englishText": "Increases stamina regeneration based on the number of dead minions."
+        },
+        {
+            "key": "Gem_Stamina_LimitBreak_Name",
+            "englishText": "Limit Break"
+        },
+        {
+            "key": "Gem_Stamina_LimitBreak_Desc",
+            "englishText": "Stamina can drop below zero (up to -50). Halves regeneration when negative."
+        },
+        {
+            "key": "Gem_Stamina_MasterOfRapidFire_Name",
+            "englishText": "Master of Rapid Fire"
+        },
+        {
+            "key": "Gem_Stamina_MasterOfRapidFire_Desc",
+            "englishText": "Stamina cost -7, Throw effect -30%."
+        },
+        {
+            "key": "Gem_Stamina_OrderedBreath_Name",
+            "englishText": "Ordered Breath"
+        },
+        {
+            "key": "Gem_Stamina_OrderedBreath_Desc",
+            "englishText": "Stamina cost -3."
+        },
+        {
+            "key": "Gem_Stamina_OverflowingThrow_Name",
+            "englishText": "Overflowing Throw"
+        },
+        {
+            "key": "Gem_Stamina_OverflowingThrow_Desc",
+            "englishText": "Stamina cost +5, Throw effect +25%."
+        },
+        {
+            "key": "Gem_Stamina_ThrowOverload_Name",
+            "englishText": "Throw Overload"
+        },
+        {
+            "key": "Gem_Stamina_ThrowOverload_Desc",
+            "englishText": "Throw effect +2% per 1 stamina cost."
+        },
+        {
+            "key": "Throw Bouncing Ability_Name",
+            "englishText": "Throw Bouncing Ability"
+        },
+        {
+            "key": "Throw Bouncing Ability_Desc",
+            "englishText": "Throw ability: Bouncing"
+        },
+        {
+            "key": "Throw Juggling Ability_Name",
+            "englishText": "Throw Juggling Ability"
+        },
+        {
+            "key": "Throw Juggling Ability_Desc",
+            "englishText": "Throw ability: Juggling"
+        },
+        {
+            "key": "Throw Phantom Ability_Name",
+            "englishText": "Throw Phantom Ability"
+        },
+        {
+            "key": "Throw Phantom Ability_Desc",
+            "englishText": "Throw Ability: Phantom"
+        },
+        {
+            "key": "Throw Pierce Ability_Name",
+            "englishText": "Throw Pierce Ability"
+        },
+        {
+            "key": "Throw Pierce Ability_Desc",
+            "englishText": "Throw ability: Pierce"
+        },
+        {
+            "key": "Throw Pinball Ability_Name",
+            "englishText": "Throw Pinball Ability"
+        },
+        {
+            "key": "Throw Pinball Ability_Desc",
+            "englishText": "Throw Ability: Pinball"
+        },
+        {
+            "key": "Throw Repeat Ability_Name",
+            "englishText": "Throw Repeat Ability"
+        },
+        {
+            "key": "Throw Repeat Ability_Desc",
+            "englishText": "Throw ability: Repeat"
+        },
+        {
+            "key": "Throw TimingCharge Ability_Name",
+            "englishText": "Throw Timing Charge Ability"
+        },
+        {
+            "key": "Throw TimingCharge Ability_Desc",
+            "englishText": "Throw Ability: Timing Charge"
+        },
+        {
+            "key": "Minion Stat Treasure_Name",
+            "englishText": "Minion Stat Treasure"
+        },
+        {
+            "key": "Minion Stat Treasure_Desc",
+            "englishText": "Treasure that enhances all minions stats."
+        },
+        {
+            "key": "Throw Effect Treasure_Name",
+            "englishText": "Throw Effect Treasure"
+        },
+        {
+            "key": "Throw Effect Treasure_Desc",
+            "englishText": "Treasure that enhances all throw effects."
+        },
+        {
+            "key": "Archer Lineage_Base_Name",
+            "englishText": "Base archer minion"
+        },
+        {
+            "key": "Priest Lineage_Base_Name",
+            "englishText": "Base Priest minion"
+        },
+        {
+            "key": "Shieldbearer Lineage_Base_Name",
+            "englishText": "Base Shieldbearer minion"
+        },
+        {
+            "key": "Spearman Lineage_Base_Name",
+            "englishText": "Base Spearman minion"
+        },
+        {
+            "key": "Warrior Lineage_Base_Name",
+            "englishText": "Base warrior minion"
+        }
+    ]
+}

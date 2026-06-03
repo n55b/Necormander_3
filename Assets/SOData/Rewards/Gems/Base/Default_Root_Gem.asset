@@ -12,10 +12,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
   m_Name: Default_Root_Gem
   m_EditorClassIdentifier: 
-  itemName: "Core of Origin"
-  description: "The foundational core where all gem powers begin."
+  itemName: Core of Origin
+  description: The foundational core where all gem powers begin.
+  localizedItemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 6213540483072
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  localizedDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 6213565648896
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 0}
   rarity: 0
+  shopCost: 100
+  category: 0
+  synergyGroup: 0
   subSlots: 2
   eligibleJobs: -1
   effects: []

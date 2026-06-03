@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Localization.Components;
 
 /// <summary>
 /// 개별 보상 카드를 관리하는 클래스입니다.
@@ -56,8 +57,46 @@ public class RewardCard : MonoBehaviour
         _myIndex = index;
         EnsureButtonLink();
         
-        if (nameText != null) nameText.text = candidate.displayData.itemName;
-        if (descText != null) descText.text = candidate.displayData.description;
+        if (nameText != null)
+        {
+            if (candidate.displayData.localizedItemName != null && !candidate.displayData.localizedItemName.IsEmpty)
+            {
+                var locEvent = nameText.GetComponent<LocalizeStringEvent>();
+                if (locEvent == null)
+                {
+                    locEvent = nameText.gameObject.AddComponent<LocalizeStringEvent>();
+                    locEvent.OnUpdateString.AddListener((s) => nameText.text = s);
+                }
+                locEvent.StringReference = candidate.displayData.localizedItemName;
+            }
+            else
+            {
+                // 로컬라이즈 이벤트가 있으면 참조 해제
+                var locEvent = nameText.GetComponent<LocalizeStringEvent>();
+                if (locEvent != null) locEvent.StringReference = null;
+                nameText.text = candidate.displayData.itemName;
+            }
+        }
+
+        if (descText != null)
+        {
+            if (candidate.displayData.localizedDescription != null && !candidate.displayData.localizedDescription.IsEmpty)
+            {
+                var locEvent = descText.GetComponent<LocalizeStringEvent>();
+                if (locEvent == null)
+                {
+                    locEvent = descText.gameObject.AddComponent<LocalizeStringEvent>();
+                    locEvent.OnUpdateString.AddListener((s) => descText.text = s);
+                }
+                locEvent.StringReference = candidate.displayData.localizedDescription;
+            }
+            else
+            {
+                var locEvent = descText.GetComponent<LocalizeStringEvent>();
+                if (locEvent != null) locEvent.StringReference = null;
+                descText.text = candidate.displayData.description;
+            }
+        }
         
         if (iconImage != null)
         {

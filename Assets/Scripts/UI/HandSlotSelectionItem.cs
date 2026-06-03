@@ -30,9 +30,13 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
         if (infoText != null)
         {
             if (itemData != null && !string.IsNullOrEmpty(itemData.itemName))
-                infoText.text = itemData.itemName;
+            {
+                infoText.text = GetUIString("UI_Slot_Name", index + 1);
+            }
             else
-                infoText.text = $"Slot {index + 1}";
+            {
+                infoText.text = GetUIString("UI_Slot_Empty", index + 1);
+            }
         }
 
         // 슬롯의 현재 내용물 아이콘 표시
@@ -81,12 +85,14 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
         if (itemData == null) return;
 
         TooltipData data = new TooltipData(itemData.itemName, itemData.description);
+        data.localizedTitle = itemData.localizedItemName;
+        data.localizedDescription = itemData.localizedDescription;
         
         if (_currentSlot.EquippedLineage != null)
         {
             // 미니언 정보 구성
             var minion = _currentSlot.GetCurrentMinionData();
-            data.type = $"<color=#FFD700>[Minion - {minion.minionType}]</color>";
+            data.type = $"<color=#FFD700>{GetUIString("UI_Minion_Prefix", minion.minionType)}</color>";
             data.titleColor = new Color(0.8f, 1f, 0.8f);
             
             var stats = CharacterStat.GetPreviewStats(minion);
@@ -95,19 +101,19 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
                 $"HP: {stats.hp:F1}",
                 $"ATK: {stats.atk:F1}",
                 $"SPD: {stats.spd:F1}",
-                $"<color=#AAAAAA>Count: x{_currentSlot.Quantity}</color>"
+                $"<color=#AAAAAA>{GetUIString("UI_Count", _currentSlot.Quantity)}</color>"
             };
         }
         else if (_currentSlot.EquippedThrowAbility != null)
         {
             // 능력 정보 구성
             var ability = _currentSlot.EquippedThrowAbility;
-            data.type = $"<color=#00BFFF>[Throw Ability - {ability.rarity}]</color>";
+            data.type = $"<color=#00BFFF>{GetUIString("UI_ThrowAbility_Prefix", ability.rarity)}</color>";
             data.titleColor = new Color(0.8f, 0.9f, 1f);
             
             // 능력은 설명에 상세 수치가 포함되어 있는 경우가 많으므로 기본 정보만 표시
             data.effects = new List<string> {
-                $"<color=#FF7F50>Equipped Capability</color>"
+                $"<color=#FF7F50>{GetUIString("UI_Equipped_Capability")}</color>"
             };
         }
         else return;
@@ -127,5 +133,15 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
             CommonTooltipUI.Instance.Hide();
     }
 
+    private string GetUIString(string key, params object[] args)
+    {
+        var op = UnityEngine.Localization.Settings.LocalizationSettings.StringDatabase.GetLocalizedStringAsync("UI Text Table", key, arguments: args);
+        if (op.IsDone)
+            return op.Result;
+        
+        var handle = op;
+        handle.WaitForCompletion();
+        return handle.Result;
+    }
     #endregion
 }

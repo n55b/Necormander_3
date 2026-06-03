@@ -1,0 +1,256 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Reward Text Table Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: Reward Text Table
+  m_TableCollectionNameGuidString: fb33b23eb1ad3d64b9b02523ebac3189
+  m_Entries:
+  - m_Id: 6213540483072
+    m_Key: Default_Root_Gem_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213565648896
+    m_Key: Default_Root_Gem_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213569843200
+    m_Key: Gem_Fastball_Closer_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213569843201
+    m_Key: Gem_Fastball_Closer_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213574037504
+    m_Key: Gem_Fastball_ExperiencedPitcher_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213574037505
+    m_Key: Gem_Fastball_ExperiencedPitcher_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213582426112
+    m_Key: Gem_Fastball_MagicPitchArirangBall_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213582426113
+    m_Key: Gem_Fastball_MagicPitchArirangBall_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213582426114
+    m_Key: Gem_Fastball_MagicPitchFireball_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213582426115
+    m_Key: Gem_Fastball_MagicPitchFireball_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213586620416
+    m_Key: Gem_Fastball_SetPosition_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213586620417
+    m_Key: Gem_Fastball_SetPosition_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213586620418
+    m_Key: Gem_Fastball_Windup_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213586620419
+    m_Key: Gem_Fastball_Windup_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213590814720
+    m_Key: Gem_Stamina_BasicFitness_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213590814721
+    m_Key: Gem_Stamina_BasicFitness_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213590814722
+    m_Key: Gem_Stamina_CatchBreath_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213590814723
+    m_Key: Gem_Stamina_CatchBreath_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213595009024
+    m_Key: Gem_Stamina_EfficientThrow_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213595009025
+    m_Key: Gem_Stamina_EfficientThrow_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203328
+    m_Key: Gem_Stamina_EndlessVitality_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203329
+    m_Key: Gem_Stamina_EndlessVitality_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203330
+    m_Key: Gem_Stamina_HarvestOfDeath_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203331
+    m_Key: Gem_Stamina_HarvestOfDeath_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203332
+    m_Key: Gem_Stamina_LimitBreak_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203333
+    m_Key: Gem_Stamina_LimitBreak_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213607591936
+    m_Key: Gem_Stamina_MasterOfRapidFire_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213607591937
+    m_Key: Gem_Stamina_MasterOfRapidFire_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213607591938
+    m_Key: Gem_Stamina_OrderedBreath_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213607591939
+    m_Key: Gem_Stamina_OrderedBreath_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213611786240
+    m_Key: Gem_Stamina_OverflowingThrow_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213611786241
+    m_Key: Gem_Stamina_OverflowingThrow_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213615980544
+    m_Key: Gem_Stamina_ThrowOverload_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213615980545
+    m_Key: Gem_Stamina_ThrowOverload_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213615980546
+    m_Key: Throw Bouncing Ability_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213615980547
+    m_Key: Throw Bouncing Ability_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213624369152
+    m_Key: Throw Juggling Ability_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213624369153
+    m_Key: Throw Juggling Ability_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213628563456
+    m_Key: Throw Phantom Ability_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213628563457
+    m_Key: Throw Phantom Ability_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213632757760
+    m_Key: Throw Pierce Ability_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213632757761
+    m_Key: Throw Pierce Ability_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213641146368
+    m_Key: Throw Pinball Ability_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213641146369
+    m_Key: Throw Pinball Ability_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213641146370
+    m_Key: Throw Repeat Ability_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213641146371
+    m_Key: Throw Repeat Ability_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213649534976
+    m_Key: Throw TimingCharge Ability_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213649534977
+    m_Key: Throw TimingCharge Ability_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213653729280
+    m_Key: Minion Stat Treasure_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213653729281
+    m_Key: Minion Stat Treasure_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213653729282
+    m_Key: Throw Effect Treasure_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213653729283
+    m_Key: Throw Effect Treasure_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213708255232
+    m_Key: Archer Lineage_Base_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213733421056
+    m_Key: Priest Lineage_Base_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213746003968
+    m_Key: Shieldbearer Lineage_Base_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213758586880
+    m_Key: Spearman Lineage_Base_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213779558400
+    m_Key: Warrior Lineage_Base_Name
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 6640442280425291878
+  references:
+    version: 2
+    RefIds:
+    - rid: 6640442280425291878
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1780486957895
