@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using TMPro;
 
 public class StaminaUI : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class StaminaUI : MonoBehaviour
     
     [SerializeField] private Image _fillImage;
     [SerializeField] private Image _backgroundImage;
+    [SerializeField] private TextMeshProUGUI _staminaText;
 
     private Coroutine _flashCoroutine;
     private Sprite _generatedSprite;
@@ -105,6 +107,20 @@ public class StaminaUI : MonoBehaviour
                 {
                     _fillImage.fillAmount = 1f;
                 }
+            }
+        }
+
+        if(_staminaText != null)
+        {
+            if (current >= 0)
+            {
+                _staminaText.text = $"{(int)current} / {(int)max}";
+                _staminaText.color = Color.white;
+            }
+            else
+            {
+                _staminaText.text = $"-{(int)Mathf.Abs(current)} / {(int)max}";
+                _staminaText.color = new Color(0.8f, 0.2f, 0.8f);
             }
         }
     }
