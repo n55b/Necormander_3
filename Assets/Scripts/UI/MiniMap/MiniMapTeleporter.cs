@@ -176,16 +176,9 @@ public class MiniMapTeleporter : MonoBehaviour
             {
                 RoomInstance room = hitCollider.GetComponent<RoomInstance>();
                 
-                // 안개 타일 검사: 이미 밝혀진(방문한) 방만 하이라이트 대상으로 인정
-                if (room != null && MapGenerator.Instance != null && MapGenerator.Instance.FogTilemap != null)
+                if (room != null && IsRoomRevealed(room))
                 {
-                    Vector3 fixedCenter = room.transform.position + (Vector3)room.centerOffset;
-                    Vector3Int centerCell = MapGenerator.Instance.FogTilemap.WorldToCell(fixedCenter);
-
-                    if (!MapGenerator.Instance.FogTilemap.HasTile(centerCell))
-                    {
-                        currentRoom = room;
-                    }
+                    currentRoom = room;
                 }
             }
         }
@@ -248,16 +241,10 @@ public class MiniMapTeleporter : MonoBehaviour
     private void TeleportToRoomCenter(RoomInstance room)
     {
         if(mapUIManager.IsMapOpen == false || GameManager.Instance.PLAYERCONTROLLER.GetPlayerState() == PlayerStates.Battle) return;
-        if (MapGenerator.Instance != null && MapGenerator.Instance.FogTilemap != null)
+        if (!IsRoomRevealed(room))
         {
-            Vector3 fixedCenter = room.transform.position + (Vector3)room.centerOffset;
-            Vector3Int centerCell = MapGenerator.Instance.FogTilemap.WorldToCell(fixedCenter);
-
-            if (MapGenerator.Instance.FogTilemap.HasTile(centerCell))
-            {
-                Debug.LogWarning($"<color=orange>[Teleport]</color> 아직 안 가본 방으로는 갈 수 없습니다.");
-                return;
-            }
+            Debug.LogWarning($"<color=orange>[Teleport]</color> 아직 안 가본 방으로는 갈 수 없습니다.");
+            return;
         }
 
         Vector3 targetPos = room.transform.position + (Vector3)room.centerOffset;
@@ -265,5 +252,17 @@ public class MiniMapTeleporter : MonoBehaviour
 
         playerTransform.position = targetPos;
         Debug.Log($"<color=green>[Teleport]</color> {room.gameObject.name}의 중심으로 순간이동했습니다.");
+    }
+
+    private bool IsRoomRevealed(RoomInstance room)
+    {
+        if (room == null) return false;
+        if (room.roomType == RoomType.Spawn || room.isCleared || room.hasBeenVisited) return true;
+
+        if (MapGenerator.Instance == null || MapGenerator.Instance.FogTilemap == null) return false;
+
+        Vector3 fixedCenter = room.transform.position + (Vector3)room.centerOffset;
+        Vector3Int centerCell = MapGenerator.Instance.FogTilemap.WorldToCell(fixedCenter);
+        return !MapGenerator.Instance.FogTilemap.HasTile(centerCell);
     }
 }
