@@ -118,7 +118,17 @@ public enum GemUniqueType
     JustThrowIt = 250,          // 일단 던지고 보자
     Ballistics = 251,           // 탄도학
     SiegeMode = 252,            // 시즈 모드
-    Monocle = 253               // 단안경
+    Monocle = 253,              // 단안경
+
+    // [추가] 신규 큰손 유니크 8종
+    DemonHandPower = 260,       // 귀수의 힘
+    HumanWaveTactics = 261,     // 인해전술
+    TwinFusion = 262,           // 쌍둥이 연성
+    MobMentality = 263,         // 군중심리
+    SwiftRelocation = 264,      // 신속한 재배치
+    Afterimage = 265,           // 잔상
+    AllMine = 266,              // 다 내꺼야
+    Golemizing = 267            // 골레마이징
 }
 
 public enum SynergyCategory
@@ -159,7 +169,10 @@ public enum GemSynergyGroup
     Spearman_Vanguard = 500,
 
     // [투포환 시너지]
-    Shotput = 600
+    Shotput = 600,
+
+    // [큰손 시너지]
+    BigHand = 700
 }
 
 /// <summary>

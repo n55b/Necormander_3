@@ -29,7 +29,7 @@ MonoBehaviour:
   cost: 1
   isElite: 0
   canSpawnRandomly: 1
-  aiPattern: {fileID: 0}
+  aiPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   hpCostRatioPerThrow: 0
   AttackSound: {fileID: 8300000, guid: be7c781782f79604f8e495dfa3fbd825, type: 3}
   DeathSound: {fileID: 0}

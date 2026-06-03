@@ -150,6 +150,12 @@ public class ThrowStrategy : MonoBehaviour
             Vector2 playerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position;
             float dist = Vector2.Distance(playerPos, targetPos);
             
+            // [기초 개선안] 기본 투척 거리 비례 데미지 감소 (-5% per 1 distance)
+            // 1칸부터 5%씩 감소하여 최소 60%(-40%)까지 적용
+            float distancePenalty = -0.05f * Mathf.Max(0f, Mathf.Floor(dist));
+            distancePenalty = Mathf.Max(-0.40f, distancePenalty);
+            parabolicDmgBonus += distancePenalty;
+
             // [탄도학] 거리 1마다 10% 증가 * 보유 개수
             int ballisticsCount = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.Ballistics);
             if (ballisticsCount > 0)
@@ -169,8 +175,27 @@ public class ThrowStrategy : MonoBehaviour
             if (shotputGems >= 4) parabolicDmgBonus += 0.50f;
             else if (shotputGems >= 2) parabolicDmgBonus += 0.25f;
 
+            // [인해전술] 3명 이상 투척 시 1명당 7% 효율 증가
+            if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.HumanWaveTactics))
+            {
+                if (heldObjects.Count >= 3)
+                {
+                    parabolicDmgBonus += (heldObjects.Count * 0.07f);
+                }
+            }
+
             totalMultiplier *= (1f + parabolicDmgBonus);
         }
+
+        // [잔상] 이전 조합과 완전히 일치하면 데미지 1.5배 (150% 증폭)
+        if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Afterimage))
+        {
+            if (CheckAfterimageCombo(heldObjects))
+            {
+                totalMultiplier *= 1.5f;
+            }
+        }
+        SaveComboForAfterimage(heldObjects);
 
         foreach (var obj in heldObjects)
         {
@@ -278,5 +303,26 @@ public class ThrowStrategy : MonoBehaviour
             if (dist < minTargetDist) { minTargetDist = dist; bestTarget = col.gameObject; }
         }
         return bestTarget;
+    }
+
+    private List<CommandData> _lastThrowCombo = new List<CommandData>();
+
+    private bool CheckAfterimageCombo(List<IThrowable> currentCombo)
+    {
+        if (_lastThrowCombo.Count == 0 || _lastThrowCombo.Count != currentCombo.Count) return false;
+        for (int i = 0; i < currentCombo.Count; i++)
+        {
+            if (_lastThrowCombo[i] != currentCombo[i].MinionType) return false;
+        }
+        return true;
+    }
+
+    private void SaveComboForAfterimage(List<IThrowable> currentCombo)
+    {
+        _lastThrowCombo.Clear();
+        foreach (var obj in currentCombo)
+        {
+            _lastThrowCombo.Add(obj.MinionType);
+        }
     }
 }

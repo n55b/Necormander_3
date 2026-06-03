@@ -359,19 +359,60 @@ public class ThrowCluster : MonoBehaviour
 
         if (_activeRecipe != null && _activeRecipe.state.isMaster)
         {
-            foreach (var unit in _units)
+            List<IThrowable> fusedUnits = new List<IThrowable>();
+            bool performTwinFusion = false;
+            bool performGolemFusion = false;
+
+            if (InventoryManager.Instance != null)
             {
+                // [골레마이징] 5명 던질 때 앞 5명 합체
+                if (_units.Count >= 5 && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Golemizing))
+                {
+                    performGolemFusion = true;
+                }
+                // [쌍둥이 연성] 2명 이상 던질 때 앞 2명 합체
+                else if (_units.Count >= 2 && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.TwinFusion))
+                {
+                    performTwinFusion = true;
+                }
+            }
+
+            int fusionCount = performGolemFusion ? 5 : (performTwinFusion ? 2 : 0);
+
+            for (int i = 0; i < _units.Count; i++)
+            {
+                var unit = _units[i];
                 if (unit == null || (unit is MonoBehaviour mb && mb == null)) continue;
 
-                // [추가] 부모 해제 전/후에 투척 비용(체력 소모) 적용
                 unit.transform.SetParent(null);
                 unit.ApplyThrowCost();
 
-                // [체크] 체력 소모 후 아직 살아있는 경우에만 상태 복구(OnLanded) 호출
                 if (unit != null && (unit is MonoBehaviour aliveMb && aliveMb != null))
                 {
                     unit.SetImpacted(isImpactSuccess);
                     unit.OnLanded();
+
+                    if (i < fusionCount)
+                    {
+                        fusedUnits.Add(unit);
+                    }
+                }
+            }
+
+            // 융합 실행
+            if (fusionCount > 0 && fusedUnits.Count == fusionCount)
+            {
+                var firstUnit = fusedUnits[0] as MonoBehaviour;
+                if (firstUnit != null)
+                {
+                    GameObject fusionObj = Instantiate(firstUnit.gameObject, transform.position, Quaternion.identity);
+                    var fusionController = fusionObj.AddComponent<FusionMinionController>();
+                    
+                    float scaleMult = performGolemFusion ? 2.5f : 1.5f;
+                    Color fusionColor = performGolemFusion ? Color.red : Color.blue;
+                    string popupName = performGolemFusion ? "Golem!" : "Twin!";
+                    
+                    fusionController.Setup(fusedUnits, 10f, 1f, scaleMult, fusionColor, popupName);
                 }
             }
         }

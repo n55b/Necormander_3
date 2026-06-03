@@ -735,6 +735,102 @@ MonoBehaviour:
     m_Key: UniqueEffect_Monocle
     m_Metadata:
       m_Items: []
+  - m_Id: 98372570550272
+    m_Key: Gem_BigHand_Afterimage_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938880
+    m_Key: Gem_BigHand_Afterimage_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938881
+    m_Key: Gem_BigHand_AllMine_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938882
+    m_Key: Gem_BigHand_AllMine_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938883
+    m_Key: Gem_BigHand_DemonHandPower_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938884
+    m_Key: Gem_BigHand_DemonHandPower_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938885
+    m_Key: Gem_BigHand_Golemizing_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938886
+    m_Key: Gem_BigHand_Golemizing_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938887
+    m_Key: Gem_BigHand_HumanWaveTactics_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938888
+    m_Key: Gem_BigHand_HumanWaveTactics_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938889
+    m_Key: Gem_BigHand_MobMentality_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938890
+    m_Key: Gem_BigHand_MobMentality_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938891
+    m_Key: Gem_BigHand_SwiftRelocation_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938892
+    m_Key: Gem_BigHand_SwiftRelocation_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938893
+    m_Key: Gem_BigHand_TwinFusion_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938894
+    m_Key: Gem_BigHand_TwinFusion_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938895
+    m_Key: UniqueEffect_DemonHandPower
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938896
+    m_Key: UniqueEffect_HumanWaveTactics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938897
+    m_Key: UniqueEffect_TwinFusion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938898
+    m_Key: UniqueEffect_MobMentality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938899
+    m_Key: UniqueEffect_SwiftRelocation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938900
+    m_Key: UniqueEffect_Afterimage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938901
+    m_Key: UniqueEffect_AllMine
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938902
+    m_Key: UniqueEffect_Golemizing
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

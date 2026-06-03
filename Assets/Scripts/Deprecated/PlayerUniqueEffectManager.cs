@@ -36,6 +36,8 @@ public class PlayerUniqueEffectManager : MonoBehaviour
                 Debug.Log("<color=cyan>[Unique]</color> 일단 던지고 보자 스택 초기화");
             }
         }
+
+        UpdateMobMentality();
     }
 
     /// <summary>
@@ -53,6 +55,40 @@ public class PlayerUniqueEffectManager : MonoBehaviour
                 _justThrowItTimer = JustThrowItDuration;
                 Debug.Log($"<color=cyan>[Unique]</color> 일단 던지고 보자 버프! (스택: {_justThrowItStacks}, 보유 수량 증폭 대기중)");
             }
+        }
+    }
+
+    // [군중심리] 버프 스택 관련 변수
+    private float _mobMentalityCheckTimer = 0f;
+    private const float MobMentalityCheckInterval = 0.2f;
+    public float MobMentalitySpeedBonus { get; private set; } = 0f;
+
+    private void UpdateMobMentality()
+    {
+        if (InventoryManager.Instance == null || !InventoryManager.Instance.HasUniqueEffect(GemUniqueType.MobMentality))
+        {
+            MobMentalitySpeedBonus = 0f;
+            return;
+        }
+
+        _mobMentalityCheckTimer += Time.deltaTime;
+        if (_mobMentalityCheckTimer >= MobMentalityCheckInterval)
+        {
+            _mobMentalityCheckTimer = 0f;
+            int gemCount = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.MobMentality);
+            
+            float radius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
+            Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius, LayerMask.GetMask("Army", "Player"));
+            
+            int minionCount = 0;
+            foreach (var col in colls)
+            {
+                if (col.CompareTag("Army")) minionCount++;
+            }
+
+            // 마리당 이속 0.1 증가 (기본 공식: 스택 * 0.1 * 마리수)
+            // 보유 보석 개수에 비례하여 추가 효과
+            MobMentalitySpeedBonus = minionCount * 0.1f * gemCount;
         }
     }
 }

@@ -4,9 +4,11 @@ using UnityEngine;
 public class CharacterStatus : MonoBehaviour
 {
     private class SlowInstance { public string EffectId; public float Reduction; public float EndTime; }
+    private class SpeedBuffInstance { public string EffectId; public float Increase; public float EndTime; }
     private class ShieldInstance { public float RemainingAmount; public float EndTime; public ShieldInstance(float amount, float duration){ RemainingAmount = amount; EndTime = Time.time + duration; }}
 
     private List<SlowInstance> _activeSlows = new List<SlowInstance>();
+    private List<SpeedBuffInstance> _activeSpeedBuffs = new List<SpeedBuffInstance>();
     private List<ShieldInstance> _shieldInstances = new List<ShieldInstance>();
     private float _cachedMoveSpeedMultiplier = 1f;
     private float _cachedTotalShield = 0f;
@@ -75,6 +77,11 @@ public class CharacterStatus : MonoBehaviour
         {
             if (Time.time > _activeSlows[i].EndTime) { _activeSlows.RemoveAt(i); continue; }
             multiplier *= (1.0f - _activeSlows[i].Reduction);
+        }
+        for (int i = _activeSpeedBuffs.Count - 1; i >= 0; i--)
+        {
+            if (Time.time > _activeSpeedBuffs[i].EndTime) { _activeSpeedBuffs.RemoveAt(i); continue; }
+            multiplier *= (1.0f + _activeSpeedBuffs[i].Increase);
         }
         _cachedMoveSpeedMultiplier = Mathf.Max(0.1f, multiplier);
 
@@ -235,6 +242,13 @@ public class CharacterStatus : MonoBehaviour
         var existing = _activeSlows.Find(s => s.EffectId == id);
         if (existing != null) { existing.Reduction = Mathf.Max(existing.Reduction, reduction); existing.EndTime = Time.time + duration; }
         else { _activeSlows.Add(new SlowInstance { EffectId = id, Reduction = reduction, EndTime = Time.time + duration }); }
+    }
+
+    public void ApplySpeedBuff(string id, float increase, float duration)
+    {
+        var existing = _activeSpeedBuffs.Find(s => s.EffectId == id);
+        if (existing != null) { existing.Increase = Mathf.Max(existing.Increase, increase); existing.EndTime = Time.time + duration; }
+        else { _activeSpeedBuffs.Add(new SpeedBuffInstance { EffectId = id, Increase = increase, EndTime = Time.time + duration }); }
     }
 
     public void AddShield(float amount, float duration) { _shieldInstances.Add(new ShieldInstance(amount, duration)); UpdateInstances(); }

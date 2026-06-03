@@ -781,6 +781,109 @@ MonoBehaviour:
       as distance increases (based on 5 grids).
     m_Metadata:
       m_Items: []
+  - m_Id: 98372570550272
+    m_Localized: Afterimage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938880
+    m_Localized: Throwing the exact same combination of minions (same type, count,
+      and order) in succession amplifies their throw effect by 150%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938881
+    m_Localized: All Mine
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938882
+    m_Localized: Increases minion grab radius by 1.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938883
+    m_Localized: Demon Hand Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938884
+    m_Localized: Increases minion grab radius by 0.5.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938885
+    m_Localized: Golemizing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938886
+    m_Localized: When thrown as a combination, the first 5 minions merge into a giant
+      Golem for a set duration. The Golem possesses the combined stats of all 5 minions.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938887
+    m_Localized: Human Wave Tactics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938888
+    m_Localized: Throwing 3 or more minions increases the throw effect by 7% per
+      minion.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938889
+    m_Localized: Mob Mentality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938890
+    m_Localized: Increases player movement speed by 0.1 for each minion within grab
+      radius.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938891
+    m_Localized: Swift Relocation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938892
+    m_Localized: Throwing 3 or more minions increases their movement speed by 50%
+      for 5 seconds.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938893
+    m_Localized: Twin Fusion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938894
+    m_Localized: When thrown as a combination, the first 2 minions merge into a Twin
+      for 10 seconds. The Twin possesses the combined stats of both minions. Upon
+      destruction or timeout, they split out at half health ratio.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938895
+    m_Localized: Demon Hand Power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938896
+    m_Localized: Human Wave Tactics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938897
+    m_Localized: Twin Fusion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938898
+    m_Localized: Mob Mentality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938899
+    m_Localized: Swift Relocation
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938900
+    m_Localized: Afterimage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938901
+    m_Localized: All Mine
+    m_Metadata:
+      m_Items: []
+  - m_Id: 98372578938902
+    m_Localized: Golemizing
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

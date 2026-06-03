@@ -15,7 +15,22 @@ public class PlayerController : MonoBehaviour
     [Header("플레이어 스탯")]
     [SerializeField] CharacterStat stat;
     [SerializeField] float throwRange;
-    public float THROWRANGE { get { return throwRange; } }
+    [HideInInspector] public float throwRangeBonus = 0f;
+    public float THROWRANGE 
+    { 
+        get 
+        { 
+            float range = throwRange + throwRangeBonus;
+            if (InventoryManager.Instance != null)
+            {
+                // [귀수의 힘] 0.5칸 증가 (스택 비례)
+                range += InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.DemonHandPower) * 0.5f;
+                // [다 내꺼야] 1칸 증가 (스택 비례)
+                range += InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.AllMine) * 1.0f;
+            }
+            return range;
+        } 
+    }
     [Header("아군 유닛 관련 매니저")]
     [SerializeField] AllyManager allyManager;
     [Header("소환 컨트롤러")]
@@ -188,7 +203,18 @@ public class PlayerController : MonoBehaviour
         if (damage > 0 && throwController != null)
         {
             RecordCombatAction(); // 피격 시 전투 상태 갱신
-            throwController.DropAll();
+            
+            // [시너지] 큰손 (BigHand) 3세트 이상일 경우 드롭 면역
+            bool preventDrop = false;
+            if (InventoryManager.Instance != null && InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.BigHand) >= 3)
+            {
+                preventDrop = true;
+            }
+
+            if (!preventDrop)
+            {
+                throwController.DropAll();
+            }
         }
     }
 
@@ -255,6 +281,12 @@ public class PlayerController : MonoBehaviour
 
         // 차징 중 이동속도 페널티 적용 (기본 50% 감소)
         float currentSpeed = stat.MOVESPEED;
+        
+        if (TryGetComponent<PlayerUniqueEffectManager>(out var uem))
+        {
+            currentSpeed += uem.MobMentalitySpeedBonus;
+        }
+
         if (throwController != null && throwController.IsCharging)
         {
             currentSpeed *= chargeMoveSpeedMultiplier;

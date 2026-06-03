@@ -45,6 +45,19 @@ public class GemGeneratorWindow
         CreateGemSO(shotputPath, "Gem_Shotput_SiegeMode", "시즈 모드", "플레이어가 해당 위치에 고정되며, 카메라 위치가 넓게 고정됩니다.\n보유한 소환수의 수 만큼 탄약으로 변경되어 고각도 포격을 실시합니다.", GemUniqueType.SiegeMode, SynergyCategory.Common, GemSynergyGroup.Shotput, 0);
         CreateGemSO(shotputPath, "Gem_Shotput_Monocle", "단안경", "5칸을 기준으로 역순. 즉 자기 발밑에 던지면 피해량이 최대(50%), 멀어질수록 감소", GemUniqueType.Monocle, SynergyCategory.Common, GemSynergyGroup.Shotput, 1);
 
+        // --- 큰손 보석 ---
+        string bigHandPath = "Assets/SOData/Rewards/Gems/BigHand";
+        if (!AssetDatabase.IsValidFolder(bigHandPath)) CreateFolderRecursively(bigHandPath);
+
+        CreateGemSO(bigHandPath, "Gem_BigHand_DemonHandPower", "귀수의 힘", "집을 수 있는 소환수 범위 0.5칸 증가", GemUniqueType.DemonHandPower, SynergyCategory.Common, GemSynergyGroup.BigHand, 2);
+        CreateGemSO(bigHandPath, "Gem_BigHand_HumanWaveTactics", "인해전술", "3명 이상 투척 시 1명당 투척 효율 7% 증가", GemUniqueType.HumanWaveTactics, SynergyCategory.Common, GemSynergyGroup.BigHand, 2);
+        CreateGemSO(bigHandPath, "Gem_BigHand_TwinFusion", "쌍둥이 연성", "조합 투척 시 앞 큐의 2명의 소환수가 10초동안 합체합니다. 합체한 소환수의 능력치는 2명의 소환수를 합한 것과 같습니다. 시간이 지나거나 파괴되면, 소환수들이 반피 비율로 튀어 나옵니다.", GemUniqueType.TwinFusion, SynergyCategory.Common, GemSynergyGroup.BigHand, 1);
+        CreateGemSO(bigHandPath, "Gem_BigHand_MobMentality", "군중심리", "소환수 집기 범위 내 소환수가 많을 경우 1명당 플레이어 이동속도 0.1증가", GemUniqueType.MobMentality, SynergyCategory.Common, GemSynergyGroup.BigHand, 1);
+        CreateGemSO(bigHandPath, "Gem_BigHand_SwiftRelocation", "신속한 재배치", "3명 이상 투척 시 사용된 소환수들의 이동 속도가 5초간 50% 증가", GemUniqueType.SwiftRelocation, SynergyCategory.Common, GemSynergyGroup.BigHand, 1);
+        CreateGemSO(bigHandPath, "Gem_BigHand_Afterimage", "잔상", "바로 직전의 소환수 조합(타입, 개수, 순서가 동일)을 똑같이 연속해서 던질 시, 해당 조합의 투척 효율 150% 증폭", GemUniqueType.Afterimage, SynergyCategory.Common, GemSynergyGroup.BigHand, 1);
+        CreateGemSO(bigHandPath, "Gem_BigHand_AllMine", "다 내꺼야", "소환수 집기 범위가 1칸 증가", GemUniqueType.AllMine, SynergyCategory.Common, GemSynergyGroup.BigHand, 0);
+        CreateGemSO(bigHandPath, "Gem_BigHand_Golemizing", "골레마이징", "조합 투척 시, 앞의 5명의 소환수가 일정 시간동안 골렘으로 합체합니다. 능력치는 5마리를 합한 것과 같고 매우 거대해집니다.", GemUniqueType.Golemizing, SynergyCategory.Common, GemSynergyGroup.BigHand, 0);
+
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log("<color=green>신규 보석 SO 데이터들이 성공적으로 생성(또는 갱신)되었습니다!</color>");

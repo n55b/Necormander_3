@@ -8,8 +8,29 @@ using UnityEngine.InputSystem;
 public class ThrowController : MonoBehaviour
 {
     [Header("Throw Settings")]
-    [SerializeField] private int maxHoldCount = 5;
-    public int MaxHoldCount => maxHoldCount;
+    [SerializeField] private int maxHoldCount = 2;
+    public int BaseMaxHoldCount => maxHoldCount;
+
+    // [추가] 외부 접근용
+    public int HeldObjectsCount => _heldObjects.Count;
+
+    // 시너지 등에 의해 확장된 최대 집기 수 반환
+    public int MaxHoldCount 
+    {
+        get
+        {
+            int bonus = 0;
+            if (InventoryManager.Instance != null)
+            {
+                int count = InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.BigHand);
+                if (count >= 5)
+                    bonus += 3;
+                else if (count >= 3)
+                    bonus += 1;
+            }
+            return maxHoldCount + bonus;
+        }
+    }
 
     [Header("References")]
     [SerializeField] private Transform holdPoint;
@@ -146,7 +167,7 @@ public class ThrowController : MonoBehaviour
     public void TryPickUpWithMouse()
     {
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
-        if (stamina != null && !stamina.CanThrow())
+        if (stamina != null && !stamina.CanThrow(_heldObjects.Count + 1))
         {
             stamina.TriggerInsufficientFeedback();
             return;
@@ -159,7 +180,10 @@ public class ThrowController : MonoBehaviour
             int flyingLayer = LayerMask.NameToLayer("FlyingObject");
             if (hovered.layer == flyingLayer && !_heldObjects.Contains(throwable)) return;
 
-            if (throwable is AllyController ally && !_strategy.CanPickUpType(ally.MinionType, _heldObjects, maxHoldCount)) return;
+            // [융합 방지] 융합체는 집을 수 없음
+            if (hovered.TryGetComponent<FusionMinionController>(out var fusion) && fusion.IsFused) return;
+
+            if (throwable is AllyController ally && !_strategy.CanPickUpType(ally.MinionType, _heldObjects, MaxHoldCount)) return;
             float dist = Vector2.Distance(transform.position, hovered.transform.position);
             if (dist > GameManager.Instance.PLAYERCONTROLLER.THROWRANGE) return;
 
@@ -192,13 +216,13 @@ public class ThrowController : MonoBehaviour
     public void TryPickUpByType(CommandData targetType)
     {
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
-        if (stamina != null && !stamina.CanThrow())
+        if (stamina != null && !stamina.CanThrow(_heldObjects.Count + 1))
         {
             stamina.TriggerInsufficientFeedback();
             return;
         }
 
-        if (!_strategy.CanPickUpType(targetType, _heldObjects, maxHoldCount)) return;
+        if (!_strategy.CanPickUpType(targetType, _heldObjects, MaxHoldCount)) return;
         float radius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius);
         IThrowable bestTarget = null;
@@ -213,6 +237,9 @@ public class ThrowController : MonoBehaviour
 
             if (col.TryGetComponent<IThrowable>(out var throwable) && throwable.MinionType == targetType && !_heldObjects.Contains(throwable))
             {
+                // [융합 방지] 융합체는 집을 수 없음
+                if (throwable is MonoBehaviour mb && mb.TryGetComponent<FusionMinionController>(out var fusion) && fusion.IsFused) continue;
+
                 float d = Vector2.Distance(transform.position, col.transform.position);
                 if (d < minDist) { minDist = d; bestTarget = throwable; }
             }
@@ -284,7 +311,7 @@ public class ThrowController : MonoBehaviour
 
         // 스태미나 차감
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
-        if (stamina != null) stamina.ConsumeStamina();
+        if (stamina != null) stamina.ConsumeStamina(_heldObjects.Count);
         
         GameManager.Instance.PLAYERCONTROLLER.RecordCombatAction(); // 투척 시 전투 상태 갱신
 
@@ -375,6 +402,18 @@ public class ThrowController : MonoBehaviour
 
             _activeCluster.Launch(startPos, finalPos, duration, maxHeight, isDirect, ratio);
             _activeCluster = null;
+        }
+
+        // [신속한 재배치] 3명 이상 투척 시 소환수들에게 5초간 이동속도 50% 증가 버프
+        if (_heldObjects.Count >= 3 && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.SwiftRelocation))
+        {
+            foreach (var t in _heldObjects)
+            {
+                if (t is MonoBehaviour mb && mb.TryGetComponent<CharacterStatus>(out var status))
+                {
+                    status.ApplySpeedBuff("SwiftRelocation", 0.5f, 5.0f);
+                }
+            }
         }
 
         _heldObjects.Clear();
