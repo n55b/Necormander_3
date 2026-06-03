@@ -16,6 +16,9 @@
         { "key": "UI_Minion_Prefix", "koreanText": "[미니언 - {0}]" },
         { "key": "UI_Count", "koreanText": "개수: x{0}" },
         { "key": "UI_ThrowAbility_Prefix", "koreanText": "[투척 능력 - {0}]" },
-        { "key": "UI_Equipped_Capability", "koreanText": "장착된 능력" }
+        { "key": "UI_Equipped_Capability", "koreanText": "장착된 능력" },
+        { "key": "UI_Stat_HP", "koreanText": "체력" },
+        { "key": "UI_Stat_ATK", "koreanText": "공격력" },
+        { "key": "UI_Stat_SPD", "koreanText": "속도" }
     ]
 }

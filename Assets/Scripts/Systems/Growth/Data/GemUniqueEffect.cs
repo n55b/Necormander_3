@@ -21,7 +21,18 @@ public class GemUniqueEffect : GemEffect
             handle.WaitForCompletion();
             prefix = handle.Result;
         }
-        return $"{prefix}{displayDescription}";
+
+        string desc = displayDescription;
+        var descOp = LocalizationSettings.StringDatabase.GetLocalizedStringAsync("Reward Text Table", $"UniqueEffect_{uniqueType}");
+        if (descOp.IsDone) { if (!string.IsNullOrEmpty(descOp.Result)) desc = descOp.Result; }
+        else 
+        {
+            var handle = descOp;
+            handle.WaitForCompletion();
+            if (!string.IsNullOrEmpty(handle.Result)) desc = handle.Result;
+        }
+
+        return $"{prefix}{desc}";
     }
     public override void Apply(InventoryManager.GemAggregatedStats targetStats)
     {

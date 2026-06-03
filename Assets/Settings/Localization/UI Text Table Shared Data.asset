@@ -131,6 +131,18 @@ MonoBehaviour:
     m_Key: UI_Equipped_Capability
     m_Metadata:
       m_Items: []
+  - m_Id: 42022750621696
+    m_Key: UI_Stat_HP
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42022771593216
+    m_Key: UI_Stat_ATK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42022771593217
+    m_Key: UI_Stat_SPD
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

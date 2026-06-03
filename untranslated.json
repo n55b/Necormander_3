@@ -1,232 +1,384 @@
 {
     "items": [
         {
-            "key": "Default_Root_Gem_Name",
-            "englishText": "Core of Origin"
+            "key": "UniqueEffect_AgingHunter",
+            "englishText": "Increases ally attack speed by 10% per 100 total aging stacks on the field.",
+            "koreanText": ""
         },
         {
-            "key": "Default_Root_Gem_Desc",
-            "englishText": "The foundational core where all gem powers begin."
+            "key": "UniqueEffect_DimVision",
+            "englishText": "Increases miss chance by 25% for enemies with 50+ aging stacks.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_Closer_Name",
-            "englishText": "Closer"
+            "key": "UniqueEffect_Goryeojang",
+            "englishText": "Creates a 20% slow and aging area around the enemy with the highest aging stacks.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_Closer_Desc",
-            "englishText": "Max charge time limit is set to 5s. Throw effect +50% on full charge."
+            "key": "UniqueEffect_NoCountryForOldMen",
+            "englishText": "Increases max Aging stacks to 100. Targets die instantly at max stacks (Excluding Bosses).",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_ExperiencedPitcher_Name",
-            "englishText": "Experienced Pitcher"
+            "key": "UniqueEffect_AimedStrike",
+            "englishText": "Deals 20% additional damage to enemies in the center of the throw radius.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_ExperiencedPitcher_Desc",
-            "englishText": "Movement speed reduction while charging is reduced to 25%."
+            "key": "UniqueEffect_HuntersHerding",
+            "englishText": "Increases throw damage by 5% per enemy hit in the radius.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_MagicPitchArirangBall_Name",
-            "englishText": "Magic Pitch: Arirang Ball"
+            "key": "UniqueEffect_ReflectingNature",
+            "englishText": "Increases Attack by 15% if HP < 50%, or Attack Speed by 15% if HP >= 50% after a miss. (Requires Unseen Miss)",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_MagicPitchArirangBall_Desc",
-            "englishText": "Charge time -0.5s, Fastball effect -40%."
+            "key": "UniqueEffect_SpreadShot",
+            "englishText": "Increases the Archer's throw radius by 20%.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_MagicPitchFireball_Name",
-            "englishText": "Magic Pitch: Fireball"
+            "key": "UniqueEffect_SupportFire",
+            "englishText": "Increases the Archer's AoE throw damage by 15%.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_MagicPitchFireball_Desc",
-            "englishText": "Fastball effect +10% per 1s of required charge time."
+            "key": "UniqueEffect_TensionPower",
+            "englishText": "Reduces basic attack speed by 25% but increases basic attack damage by 25%.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_SetPosition_Name",
-            "englishText": "Set Position"
+            "key": "UniqueEffect_UnseenMiss",
+            "englishText": "Acts as a trigger: missing a basic attack primes the next buff. (Requires Reflecting Nature)",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_SetPosition_Desc",
-            "englishText": "Charge time -0.1s, Fastball effect -2%."
+            "key": "UniqueEffect_WindDirection",
+            "englishText": "Increases throw damage by 1% to 33% based on flight distance.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_Windup_Name",
-            "englishText": "Windup"
+            "key": "UniqueEffect_AmIExplodingToo",
+            "englishText": "Applies a weakness debuff causing victims to take 20% more damage.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Fastball_Windup_Desc",
-            "englishText": "Charge time +0.5s, Fastball effect +2%."
+            "key": "UniqueEffect_BloodArmor",
+            "englishText": "Grants allies shields equal to double the Blood Pop stacks upon explosion.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_BasicFitness_Name",
-            "englishText": "Basic Fitness"
+            "key": "UniqueEffect_ExplodingFlesh",
+            "englishText": "Applies 1/4 of the explosion damage as BloodPop stacks to nearby enemies.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_BasicFitness_Desc",
-            "englishText": "Max stamina +20."
+            "key": "UniqueEffect_GoreParty",
+            "englishText": "Heals allies within the explosion radius by the number of Blood Pop stacks.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_CatchBreath_Name",
-            "englishText": "Catch Breath"
+            "key": "UniqueEffect_ImprovisedExplosive",
+            "englishText": "Increases Blood Pop damage by 10%.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_CatchBreath_Desc",
-            "englishText": "Increases natural stamina regeneration when out of combat."
+            "key": "UniqueEffect_MeltingCorpse",
+            "englishText": "Creates a poison area after explosion lasting for 5 seconds.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_EfficientThrow_Name",
-            "englishText": "Efficient Throw"
+            "key": "UniqueEffect_MutualDestruction",
+            "englishText": "Pulls enemies within 1.5x radius before explosion.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_EfficientThrow_Desc",
-            "englishText": "Max stamina -40, Throw effect +60%."
+            "key": "UniqueEffect_AbsoluteZero",
+            "englishText": "Applies 50 chill stacks in an area upon freezing (Once per room).",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_EndlessVitality_Name",
-            "englishText": "Endless Vitality"
+            "key": "UniqueEffect_AchingBones",
+            "englishText": "Chill stacks start at 10 upon freezing. Stacks cannot be added while frozen.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_EndlessVitality_Desc",
-            "englishText": "Increases natural stamina regeneration (+0.5)."
+            "key": "UniqueEffect_BitingWind",
+            "englishText": "Applies 1 chill stack to nearby enemies.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_HarvestOfDeath_Name",
-            "englishText": "Harvest of Death"
+            "key": "UniqueEffect_ColdBloodedHunter",
+            "englishText": "Applies an additional 10% slow to chilled enemies.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_HarvestOfDeath_Desc",
-            "englishText": "Increases stamina regeneration based on the number of dead minions."
+            "key": "UniqueEffect_Frostbreaker",
+            "englishText": "Deals 5% additional damage to chilled enemies.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_LimitBreak_Name",
-            "englishText": "Limit Break"
+            "key": "UniqueEffect_ShatterIcicle",
+            "englishText": "Throws remove freeze and deal 50% additional damage.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_LimitBreak_Desc",
-            "englishText": "Stamina can drop below zero (up to -50). Halves regeneration when negative."
+            "key": "UniqueEffect_SlowlyFreezingFlower",
+            "englishText": "Increases max Chill stacks and freeze threshold by 10 (Total 30).",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_MasterOfRapidFire_Name",
-            "englishText": "Master of Rapid Fire"
+            "key": "UniqueEffect_DoubleCorrosion",
+            "englishText": "Enhances Corrosion synergy damage amplification by 10%.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_MasterOfRapidFire_Desc",
-            "englishText": "Stamina cost -7, Throw effect -30%."
+            "key": "UniqueEffect_PriestsCantAttack",
+            "englishText": "Increases ally healing received by 20% when Corrosion synergy is active.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_OrderedBreath_Name",
-            "englishText": "Ordered Breath"
+            "key": "UniqueEffect_RustedArmor",
+            "englishText": "Reflects 5% max HP fixed damage to corroded enemies every 5 hits received.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_OrderedBreath_Desc",
-            "englishText": "Stamina cost -3."
+            "key": "UniqueEffect_WeaponCorrosion",
+            "englishText": "Reduces attack damage of corroded enemies by 10%.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_OverflowingThrow_Name",
-            "englishText": "Overflowing Throw"
+            "key": "UniqueEffect_Fear",
+            "englishText": "Fears nearby enemies for 1 second upon executing a target.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_OverflowingThrow_Desc",
-            "englishText": "Stamina cost +5, Throw effect +25%."
+            "key": "UniqueEffect_Guillotine",
+            "englishText": "Relaxes the execute threshold by 10%.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_ThrowOverload_Name",
-            "englishText": "Throw Overload"
+            "key": "UniqueEffect_GreenFluid",
+            "englishText": "Spawns a potion on poison tick.",
+            "koreanText": ""
         },
         {
-            "key": "Gem_Stamina_ThrowOverload_Desc",
-            "englishText": "Throw effect +2% per 1 stamina cost."
+            "key": "UniqueEffect_LethalDose",
+            "englishText": "Halves poison tick interval.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Bouncing Ability_Name",
-            "englishText": "Throw Bouncing Ability"
+            "key": "UniqueEffect_LethalPoison",
+            "englishText": "Adds throw damage equal to target's poison stacks.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Bouncing Ability_Desc",
-            "englishText": "Throw ability: Bouncing"
+            "key": "UniqueEffect_PoisonContagion",
+            "englishText": "Spreads poison to nearby enemies upon death.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Juggling Ability_Name",
-            "englishText": "Throw Juggling Ability"
+            "key": "UniqueEffect_PoisonFlask",
+            "englishText": "Increases base throw poison stacks by 1.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Juggling Ability_Desc",
-            "englishText": "Throw ability: Juggling"
+            "key": "UniqueEffect_PoisonFootprint",
+            "englishText": "Creates a poison trail. Allies gain 15% movement speed.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Phantom Ability_Name",
-            "englishText": "Throw Phantom Ability"
+            "key": "UniqueEffect_PoisonHost",
+            "englishText": "Spreads poison stacks in an area every 3 seconds.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Phantom Ability_Desc",
-            "englishText": "Throw Ability: Phantom"
+            "key": "UniqueEffect_WoundInfection",
+            "englishText": "Basic attacks reduce poison tick interval.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Pierce Ability_Name",
-            "englishText": "Throw Pierce Ability"
+            "key": "UniqueEffect_AuraOfOverwhelming",
+            "englishText": "Deals 4% of Shieldbearer's Max HP to nearby enemies every 5 seconds and heals for 120% of damage dealt.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Pierce Ability_Desc",
-            "englishText": "Throw ability: Pierce"
+            "key": "UniqueEffect_AuraOfPatience",
+            "englishText": "Grants allies a shield equal to 18% of Shieldbearer's Max HP every 5 seconds.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Pinball Ability_Name",
-            "englishText": "Throw Pinball Ability"
+            "key": "UniqueEffect_HeavyArmor",
+            "englishText": "Deals additional physical damage equal to 14% of the shield amount on single-target throw hit.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Pinball Ability_Desc",
-            "englishText": "Throw Ability: Pinball"
+            "key": "UniqueEffect_ShieldsWillClash",
+            "englishText": "Increases all Shieldbearer stats by 10%.\nIncreases ally attack damage by 8% for 10 seconds upon entering a room.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Repeat Ability_Name",
-            "englishText": "Throw Repeat Ability"
+            "key": "UniqueEffect_ShieldsWillCourage",
+            "englishText": "Increases all Shieldbearer stats by 10%.\nIncreases ally attack speed by 12% for 10 seconds upon entering a room.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Repeat Ability_Desc",
-            "englishText": "Throw ability: Repeat"
+            "key": "UniqueEffect_ShieldsWillWind",
+            "englishText": "Increases all Shieldbearer stats by 10%.\nIncreases ally movement speed by 14% for 10 seconds upon entering a room.",
+            "koreanText": ""
         },
         {
-            "key": "Throw TimingCharge Ability_Name",
-            "englishText": "Throw Timing Charge Ability"
+            "key": "UniqueEffect_SturdyShield",
+            "englishText": "Grants the Shieldbearer a shield equal to 50% of Max HP upon entering a room.",
+            "koreanText": ""
         },
         {
-            "key": "Throw TimingCharge Ability_Desc",
-            "englishText": "Throw Ability: Timing Charge"
+            "key": "UniqueEffect_ThornArmor",
+            "englishText": "Reflects fixed damage equal to 2% of the attacker's current HP when taking basic attack damage.",
+            "koreanText": ""
         },
         {
-            "key": "Minion Stat Treasure_Name",
-            "englishText": "Minion Stat Treasure"
+            "key": "UniqueEffect_TwistedGround",
+            "englishText": "Deals 20% of the shield amount as AoE damage upon single-target throw hit.",
+            "koreanText": ""
         },
         {
-            "key": "Minion Stat Treasure_Desc",
-            "englishText": "Treasure that enhances all minions stats."
+            "key": "UniqueEffect_IronMountain",
+            "englishText": "Basic attacks knock enemies back. If they hit a wall, they take 12% max HP as damage.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Effect Treasure_Name",
-            "englishText": "Throw Effect Treasure"
+            "key": "UniqueEffect_SpearSwiftness",
+            "englishText": "Reduces throw landing time by 33%.",
+            "koreanText": ""
         },
         {
-            "key": "Throw Effect Treasure_Desc",
-            "englishText": "Treasure that enhances all throw effects."
+            "key": "UniqueEffect_ThousandStabs",
+            "englishText": "Spearman's basic attacks deal 3% additional damage.",
+            "koreanText": ""
         },
         {
-            "key": "Archer Lineage_Base_Name",
-            "englishText": "Base archer minion"
+            "key": "UniqueEffect_Vanguard",
+            "englishText": "Increases dash distance.",
+            "koreanText": ""
         },
         {
-            "key": "Priest Lineage_Base_Name",
-            "englishText": "Base Priest minion"
+            "key": "UniqueEffect_CrushingPower",
+            "englishText": "Heals the Warrior for any excess throw damage dealt upon executing an enemy.",
+            "koreanText": ""
         },
         {
-            "key": "Shieldbearer Lineage_Base_Name",
-            "englishText": "Base Shieldbearer minion"
+            "key": "UniqueEffect_FanaticRage",
+            "englishText": "Grants 3% lifesteal on basic attacks.",
+            "koreanText": ""
         },
         {
-            "key": "Spearman Lineage_Base_Name",
-            "englishText": "Base Spearman minion"
+            "key": "UniqueEffect_TrackingEye",
+            "englishText": "Deals 12% additional damage when repeatedly hitting the same target with throws.",
+            "koreanText": ""
         },
         {
-            "key": "Warrior Lineage_Base_Name",
-            "englishText": "Base warrior minion"
+            "key": "UniqueEffect_WarriorBallistics1",
+            "englishText": "Increases Warrior's parabolic throw damage by 10%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_WarriorBallistics2",
+            "englishText": "Increases Warrior's direct throw damage by 10%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_WarriorBallistics3",
+            "englishText": "Increases Warrior's single-target throw damage by 15%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_WarriorsMedal",
+            "englishText": "Increases all basic stats of the Warrior by 15%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_Closer",
+            "englishText": "Max charge time limit is set to 5s. Throw effect +50% on full charge.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_ExperiencedPitcher",
+            "englishText": "Movement speed reduction while charging is reduced to 25%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_MagicPitchArirangBall",
+            "englishText": "Charge time -0.5s, Fastball effect -40%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_MagicPitchFireball",
+            "englishText": "Fastball effect +10% per 1s of required charge time.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_SetPosition",
+            "englishText": "Charge time -0.1s, Fastball effect -2%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_Windup",
+            "englishText": "Charge time +0.5s, Fastball effect +2%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_BasicFitness",
+            "englishText": "Max stamina +20.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_CatchBreath",
+            "englishText": "Increases natural stamina regeneration when out of combat.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_EfficientThrow",
+            "englishText": "Max stamina -40, Throw effect +60%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_EndlessVitality",
+            "englishText": "Increases natural stamina regeneration (+0.5).",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_HarvestOfDeath",
+            "englishText": "Increases stamina regeneration based on the number of dead minions.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_LimitBreak",
+            "englishText": "Stamina can drop below zero (up to -50). Halves regeneration when negative.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_MasterOfRapidFire",
+            "englishText": "Stamina cost -7, Throw effect -30%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_OrderedBreath",
+            "englishText": "Stamina cost -3.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_OverflowingThrow",
+            "englishText": "Stamina cost +5, Throw effect +25%.",
+            "koreanText": ""
+        },
+        {
+            "key": "UniqueEffect_ThrowOverload",
+            "englishText": "Throw effect +2% per 1 stamina cost.",
+            "koreanText": ""
         }
     ]
 }

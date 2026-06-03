@@ -31,7 +31,14 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
         {
             if (itemData != null && !string.IsNullOrEmpty(itemData.itemName))
             {
-                infoText.text = GetUIString("UI_Slot_Name", index + 1);
+                var op = itemData.localizedItemName.GetLocalizedStringAsync();
+                if (op.IsDone) infoText.text = op.Result;
+                else 
+                {
+                    var handle = op;
+                    handle.WaitForCompletion();
+                    infoText.text = handle.Result;
+                }
             }
             else
             {
@@ -92,15 +99,21 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
         {
             // 미니언 정보 구성
             var minion = _currentSlot.GetCurrentMinionData();
-            data.type = $"<color=#FFD700>{GetUIString("UI_Minion_Prefix", minion.minionType)}</color>";
+            
+            string minionLocalizedName = itemData.itemName;
+            var nameOp = itemData.localizedItemName.GetLocalizedStringAsync();
+            if (nameOp.IsDone) minionLocalizedName = nameOp.Result;
+            else { var handle = nameOp; handle.WaitForCompletion(); minionLocalizedName = handle.Result; }
+
+            data.type = $"<color=#FFD700>{GetUIString("UI_Minion_Prefix", minionLocalizedName)}</color>";
             data.titleColor = new Color(0.8f, 1f, 0.8f);
             
             var stats = CharacterStat.GetPreviewStats(minion);
 
             data.effects = new List<string> {
-                $"HP: {stats.hp:F1}",
-                $"ATK: {stats.atk:F1}",
-                $"SPD: {stats.spd:F1}",
+                $"{GetUIString("UI_Stat_HP")}: {stats.hp:F1}",
+                $"{GetUIString("UI_Stat_ATK")}: {stats.atk:F1}",
+                $"{GetUIString("UI_Stat_SPD")}: {stats.spd:F1}",
                 $"<color=#AAAAAA>{GetUIString("UI_Count", _currentSlot.Quantity)}</color>"
             };
         }

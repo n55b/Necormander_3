@@ -64,6 +64,37 @@ public class TranslationPipeline : EditorWindow
             }
         }
 
+        // SO를 직접 스캔하여 테이블에 없는 고유 효과 설명 추가
+        string[] guids = AssetDatabase.FindAssets("t:GemSO");
+        foreach(string guid in guids)
+        {
+            string path2 = AssetDatabase.GUIDToAssetPath(guid);
+            GemSO gem = AssetDatabase.LoadAssetAtPath<GemSO>(path2);
+            if (gem != null && gem.effects != null)
+            {
+                foreach(var effect in gem.effects)
+                {
+                    if (effect is GemUniqueEffect uniqueEff)
+                    {
+                        string uKey = $"UniqueEffect_{uniqueEff.uniqueType}";
+                        var entry = collection.SharedData.GetEntry(uKey);
+                        if (entry == null || koTable.GetEntry(entry.Id) == null || string.IsNullOrEmpty(koTable.GetEntry(entry.Id).LocalizedValue))
+                        {
+                            // 중복 추가 방지
+                            if (list.items.Find(x => x.key == uKey) == null)
+                            {
+                                list.items.Add(new TranslationData
+                                {
+                                    key = uKey,
+                                    englishText = uniqueEff.displayDescription
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         string json = JsonUtility.ToJson(list, true);
         string path = Path.Combine(Application.dataPath, "../untranslated.json");
         File.WriteAllText(path, json);
@@ -97,6 +128,9 @@ public class TranslationPipeline : EditorWindow
             return;
         }
 
+        var enTable = collection.GetTable("en") as StringTable;
+        if (enTable == null) enTable = collection.StringTables[0];
+
         Undo.RecordObject(koTable, "Import Translated Texts");
 
         int count = 0;
@@ -105,11 +139,14 @@ public class TranslationPipeline : EditorWindow
             if (!string.IsNullOrEmpty(item.koreanText))
             {
                 var entry = collection.SharedData.GetEntry(item.key);
-                if (entry != null)
+                if (entry == null)
                 {
-                    koTable.AddEntry(item.key, item.koreanText);
-                    count++;
+                    entry = collection.SharedData.AddKey(item.key);
                 }
+                
+                koTable.AddEntry(item.key, item.koreanText);
+                if (enTable != null) enTable.AddEntry(item.key, item.englishText);
+                count++;
             }
         }
 

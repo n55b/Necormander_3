@@ -1,61 +1,384 @@
 {
     "items": [
-        { "key": "Default_Root_Gem_Name", "koreanText": "기원의 코어" },
-        { "key": "Default_Root_Gem_Desc", "koreanText": "모든 보석의 힘이 시작되는 근원적인 코어입니다." },
-        { "key": "Gem_Fastball_Closer_Name", "koreanText": "클로저" },
-        { "key": "Gem_Fastball_Closer_Desc", "koreanText": "최대 차지 시간이 5초로 증가합니다. 오버차지를 최대로 마쳤을 때 투척 효과가 50% 추가 증가합니다." },
-        { "key": "Gem_Fastball_ExperiencedPitcher_Name", "koreanText": "숙련된 투수" },
-        { "key": "Gem_Fastball_ExperiencedPitcher_Desc", "koreanText": "차지 중 이동 속도 감소율이 25%로 줄어듭니다." },
-        { "key": "Gem_Fastball_MagicPitchArirangBall_Name", "koreanText": "마구: 아리랑볼" },
-        { "key": "Gem_Fastball_MagicPitchArirangBall_Desc", "koreanText": "차지 시간 -0.5초, 직구 효과 -40%." },
-        { "key": "Gem_Fastball_MagicPitchFireball_Name", "koreanText": "마구: 파이어볼" },
-        { "key": "Gem_Fastball_MagicPitchFireball_Desc", "koreanText": "요구되는 차지 시간 1초당 직구 효과가 10% 증가합니다." },
-        { "key": "Gem_Fastball_SetPosition_Name", "koreanText": "셋 포지션" },
-        { "key": "Gem_Fastball_SetPosition_Desc", "koreanText": "차지 시간 -0.1초, 직구 효과 -2%." },
-        { "key": "Gem_Fastball_Windup_Name", "koreanText": "와인드업" },
-        { "key": "Gem_Fastball_Windup_Desc", "koreanText": "차지 시간 +0.5초, 직구 효과 +2%." },
-        { "key": "Gem_Stamina_BasicFitness_Name", "koreanText": "기초체력 강화" },
-        { "key": "Gem_Stamina_BasicFitness_Desc", "koreanText": "최대 스태미나 +20." },
-        { "key": "Gem_Stamina_CatchBreath_Name", "koreanText": "숨 고르기" },
-        { "key": "Gem_Stamina_CatchBreath_Desc", "koreanText": "비전투 시 스태미나 자연 회복량이 증가합니다." },
-        { "key": "Gem_Stamina_EfficientThrow_Name", "koreanText": "효율적인 투척" },
-        { "key": "Gem_Stamina_EfficientThrow_Desc", "koreanText": "최대 스태미나 -40, 투척 효과 +60%." },
-        { "key": "Gem_Stamina_EndlessVitality_Name", "koreanText": "끊임없는 활력" },
-        { "key": "Gem_Stamina_EndlessVitality_Desc", "koreanText": "스태미나 자연 회복량이 초당 0.5 증가합니다." },
-        { "key": "Gem_Stamina_HarvestOfDeath_Name", "koreanText": "죽음의 수확" },
-        { "key": "Gem_Stamina_HarvestOfDeath_Desc", "koreanText": "사망한 미니언 수에 비례하여 스태미나 회복량이 증가합니다." },
-        { "key": "Gem_Stamina_LimitBreak_Name", "koreanText": "한계돌파" },
-        { "key": "Gem_Stamina_LimitBreak_Desc", "koreanText": "스태미나가 0 미만(최대 -50)으로 떨어질 수 있습니다. 마이너스 상태일 때 스태미나 회복량이 절반이 됩니다." },
-        { "key": "Gem_Stamina_MasterOfRapidFire_Name", "koreanText": "속사의 대가" },
-        { "key": "Gem_Stamina_MasterOfRapidFire_Desc", "koreanText": "스태미나 소모량 -7, 투척 효과 -30%." },
-        { "key": "Gem_Stamina_OrderedBreath_Name", "koreanText": "정돈된 숨결" },
-        { "key": "Gem_Stamina_OrderedBreath_Desc", "koreanText": "스태미나 소모량 -3." },
-        { "key": "Gem_Stamina_OverflowingThrow_Name", "koreanText": "넘치는 투척" },
-        { "key": "Gem_Stamina_OverflowingThrow_Desc", "koreanText": "스태미나 소모량 +5, 투척 효과 +25%." },
-        { "key": "Gem_Stamina_ThrowOverload_Name", "koreanText": "투척 과부하" },
-        { "key": "Gem_Stamina_ThrowOverload_Desc", "koreanText": "스태미나 소모량 1당 투척 효과가 2% 증가합니다." },
-        { "key": "Throw Bouncing Ability_Name", "koreanText": "바운싱 투척 능력" },
-        { "key": "Throw Bouncing Ability_Desc", "koreanText": "투척 능력: 바운싱" },
-        { "key": "Throw Juggling Ability_Name", "koreanText": "저글링 투척 능력" },
-        { "key": "Throw Juggling Ability_Desc", "koreanText": "투척 능력: 저글링" },
-        { "key": "Throw Phantom Ability_Name", "koreanText": "팬텀 투척 능력" },
-        { "key": "Throw Phantom Ability_Desc", "koreanText": "투척 능력: 팬텀" },
-        { "key": "Throw Pierce Ability_Name", "koreanText": "관통 투척 능력" },
-        { "key": "Throw Pierce Ability_Desc", "koreanText": "투척 능력: 관통" },
-        { "key": "Throw Pinball Ability_Name", "koreanText": "핀볼 투척 능력" },
-        { "key": "Throw Pinball Ability_Desc", "koreanText": "투척 능력: 핀볼" },
-        { "key": "Throw Repeat Ability_Name", "koreanText": "반복 투척 능력" },
-        { "key": "Throw Repeat Ability_Desc", "koreanText": "투척 능력: 반복" },
-        { "key": "Throw TimingCharge Ability_Name", "koreanText": "타이밍 차지 투척 능력" },
-        { "key": "Throw TimingCharge Ability_Desc", "koreanText": "투척 능력: 타이밍 차지" },
-        { "key": "Minion Stat Treasure_Name", "koreanText": "미니언 스탯 보물" },
-        { "key": "Minion Stat Treasure_Desc", "koreanText": "모든 미니언의 능력치를 강화하는 보물입니다." },
-        { "key": "Throw Effect Treasure_Name", "koreanText": "투척 효과 보물" },
-        { "key": "Throw Effect Treasure_Desc", "koreanText": "모든 투척 효과를 강화하는 보물입니다." },
-        { "key": "Archer Lineage_Base_Name", "koreanText": "기본 궁수 미니언" },
-        { "key": "Priest Lineage_Base_Name", "koreanText": "기본 사제 미니언" },
-        { "key": "Shieldbearer Lineage_Base_Name", "koreanText": "기본 방패병 미니언" },
-        { "key": "Spearman Lineage_Base_Name", "koreanText": "기본 창병 미니언" },
-        { "key": "Warrior Lineage_Base_Name", "koreanText": "기본 전사 미니언" }
+        {
+            "key": "UniqueEffect_AgingHunter",
+            "englishText": "Increases ally attack speed by 10% per 100 total aging stacks on the field.",
+            "koreanText": "필드 위의 총 노화 스택 100당 아군의 공격 속도가 10% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_DimVision",
+            "englishText": "Increases miss chance by 25% for enemies with 50+ aging stacks.",
+            "koreanText": "노화 스택이 50 이상인 적의 공격 빗나감 확률이 25% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_Goryeojang",
+            "englishText": "Creates a 20% slow and aging area around the enemy with the highest aging stacks.",
+            "koreanText": "가장 노화 스택이 높은 적 주변에 20% 둔화 및 노화 장판을 생성합니다."
+        },
+        {
+            "key": "UniqueEffect_NoCountryForOldMen",
+            "englishText": "Increases max Aging stacks to 100. Targets die instantly at max stacks (Excluding Bosses).",
+            "koreanText": "최대 노화 스택이 100으로 증가합니다. 최대 스택 도달 시 대상을 즉사시킵니다 (보스 제외)."
+        },
+        {
+            "key": "UniqueEffect_AimedStrike",
+            "englishText": "Deals 20% additional damage to enemies in the center of the throw radius.",
+            "koreanText": "투척 범위 중심에 있는 적에게 20%의 추가 피해를 입힙니다."
+        },
+        {
+            "key": "UniqueEffect_HuntersHerding",
+            "englishText": "Increases throw damage by 5% per enemy hit in the radius.",
+            "koreanText": "범위 내에 적중한 적 하나당 투척 피해가 5% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_ReflectingNature",
+            "englishText": "Increases Attack by 15% if HP < 50%, or Attack Speed by 15% if HP >= 50% after a miss. (Requires Unseen Miss)",
+            "koreanText": "공격 빗나감 시 체력이 50% 미만이면 공격력이 15% 증가하고, 50% 이상이면 공격 속도가 15% 증가합니다. (보이지 않는 빗나감 필요)"
+        },
+        {
+            "key": "UniqueEffect_SpreadShot",
+            "englishText": "Increases the Archer's throw radius by 20%.",
+            "koreanText": "궁수의 투척 범위 반경이 20% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_SupportFire",
+            "englishText": "Increases the Archer's AoE throw damage by 15%.",
+            "koreanText": "궁수의 광역 투척 피해가 15% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_TensionPower",
+            "englishText": "Reduces basic attack speed by 25% but increases basic attack damage by 25%.",
+            "koreanText": "기본 공격 속도가 25% 감소하지만 기본 공격 피해가 25% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_UnseenMiss",
+            "englishText": "Acts as a trigger: missing a basic attack primes the next buff. (Requires Reflecting Nature)",
+            "koreanText": "트리거로 작용합니다: 기본 공격 빗나감 시 다음 버프가 장전됩니다. (자연의 투영 필요)"
+        },
+        {
+            "key": "UniqueEffect_WindDirection",
+            "englishText": "Increases throw damage by 1% to 33% based on flight distance.",
+            "koreanText": "비행 거리에 비례하여 투척 피해가 1%에서 33%까지 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_AmIExplodingToo",
+            "englishText": "Applies a weakness debuff causing victims to take 20% more damage.",
+            "koreanText": "희생자가 20%의 추가 피해를 받는 약화 디버프를 부여합니다."
+        },
+        {
+            "key": "UniqueEffect_BloodArmor",
+            "englishText": "Grants allies shields equal to double the Blood Pop stacks upon explosion.",
+            "koreanText": "폭발 시 피의 폭발 스택의 두 배만큼 아군에게 보호막을 부여합니다."
+        },
+        {
+            "key": "UniqueEffect_ExplodingFlesh",
+            "englishText": "Applies 1/4 of the explosion damage as BloodPop stacks to nearby enemies.",
+            "koreanText": "폭발 피해의 1/4을 주변 적에게 피의 폭발 스택으로 부여합니다."
+        },
+        {
+            "key": "UniqueEffect_GoreParty",
+            "englishText": "Heals allies within the explosion radius by the number of Blood Pop stacks.",
+            "koreanText": "폭발 반경 내의 아군을 피의 폭발 스택 수만큼 회복시킵니다."
+        },
+        {
+            "key": "UniqueEffect_ImprovisedExplosive",
+            "englishText": "Increases Blood Pop damage by 10%.",
+            "koreanText": "피의 폭발 피해가 10% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_MeltingCorpse",
+            "englishText": "Creates a poison area after explosion lasting for 5 seconds.",
+            "koreanText": "폭발 후 5초간 유지되는 독 장판을 생성합니다."
+        },
+        {
+            "key": "UniqueEffect_MutualDestruction",
+            "englishText": "Pulls enemies within 1.5x radius before explosion.",
+            "koreanText": "폭발 전 1.5배 반경 내의 적들을 끌어당깁니다."
+        },
+        {
+            "key": "UniqueEffect_AbsoluteZero",
+            "englishText": "Applies 50 chill stacks in an area upon freezing (Once per room).",
+            "koreanText": "빙결 시 반경 내에 50의 한기 스택을 부여합니다 (방당 1회)."
+        },
+        {
+            "key": "UniqueEffect_AchingBones",
+            "englishText": "Chill stacks start at 10 upon freezing. Stacks cannot be added while frozen.",
+            "koreanText": "빙결 시 한기 스택이 10에서 시작합니다. 빙결 중에는 스택이 쌓이지 않습니다."
+        },
+        {
+            "key": "UniqueEffect_BitingWind",
+            "englishText": "Applies 1 chill stack to nearby enemies.",
+            "koreanText": "주변 적들에게 1의 한기 스택을 부여합니다."
+        },
+        {
+            "key": "UniqueEffect_ColdBloodedHunter",
+            "englishText": "Applies an additional 10% slow to chilled enemies.",
+            "koreanText": "한기가 묻은 적에게 10%의 추가 둔화를 부여합니다."
+        },
+        {
+            "key": "UniqueEffect_Frostbreaker",
+            "englishText": "Deals 5% additional damage to chilled enemies.",
+            "koreanText": "한기가 묻은 적에게 5%의 추가 피해를 입힙니다."
+        },
+        {
+            "key": "UniqueEffect_ShatterIcicle",
+            "englishText": "Throws remove freeze and deal 50% additional damage.",
+            "koreanText": "투척 시 빙결을 해제하고 50%의 추가 피해를 입힙니다."
+        },
+        {
+            "key": "UniqueEffect_SlowlyFreezingFlower",
+            "englishText": "Increases max Chill stacks and freeze threshold by 10 (Total 30).",
+            "koreanText": "최대 한기 스택과 빙결 임계값이 10 증가합니다 (총 30)."
+        },
+        {
+            "key": "UniqueEffect_DoubleCorrosion",
+            "englishText": "Enhances Corrosion synergy damage amplification by 10%.",
+            "koreanText": "부식 시너지의 피해 증폭량이 10% 상승합니다."
+        },
+        {
+            "key": "UniqueEffect_PriestsCantAttack",
+            "englishText": "Increases ally healing received by 20% when Corrosion synergy is active.",
+            "koreanText": "부식 시너지가 활성화되어 있을 때 아군이 받는 치유량이 20% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_RustedArmor",
+            "englishText": "Reflects 5% max HP fixed damage to corroded enemies every 5 hits received.",
+            "koreanText": "부식된 적에게서 5번 피격될 때마다 부식된 적에게 최대 체력의 5% 고정 피해를 반사합니다."
+        },
+        {
+            "key": "UniqueEffect_WeaponCorrosion",
+            "englishText": "Reduces attack damage of corroded enemies by 10%.",
+            "koreanText": "부식된 적의 공격력이 10% 감소합니다."
+        },
+        {
+            "key": "UniqueEffect_Fear",
+            "englishText": "Fears nearby enemies for 1 second upon executing a target.",
+            "koreanText": "대상을 처형할 때 1초 동안 주변 적들에게 공포를 부여합니다."
+        },
+        {
+            "key": "UniqueEffect_Guillotine",
+            "englishText": "Relaxes the execute threshold by 10%.",
+            "koreanText": "처형 임계값이 10% 완화됩니다."
+        },
+        {
+            "key": "UniqueEffect_GreenFluid",
+            "englishText": "Spawns a potion on poison tick.",
+            "koreanText": "독 피해 틱마다 포션을 생성합니다."
+        },
+        {
+            "key": "UniqueEffect_LethalDose",
+            "englishText": "Halves poison tick interval.",
+            "koreanText": "독 피해 틱 간격을 절반으로 줄입니다."
+        },
+        {
+            "key": "UniqueEffect_LethalPoison",
+            "englishText": "Adds throw damage equal to target's poison stacks.",
+            "koreanText": "대상의 독 스택 수만큼 투척 피해를 추가합니다."
+        },
+        {
+            "key": "UniqueEffect_PoisonContagion",
+            "englishText": "Spreads poison to nearby enemies upon death.",
+            "koreanText": "사망 시 주변 적들에게 독을 전염시킵니다."
+        },
+        {
+            "key": "UniqueEffect_PoisonFlask",
+            "englishText": "Increases base throw poison stacks by 1.",
+            "koreanText": "기본 투척 독 스택 부여량이 1 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_PoisonFootprint",
+            "englishText": "Creates a poison trail. Allies gain 15% movement speed.",
+            "koreanText": "독 발자국 장판을 생성합니다. 아군의 이동 속도가 15% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_PoisonHost",
+            "englishText": "Spreads poison stacks in an area every 3 seconds.",
+            "koreanText": "3초마다 주변 반경에 독 스택을 퍼뜨립니다."
+        },
+        {
+            "key": "UniqueEffect_WoundInfection",
+            "englishText": "Basic attacks reduce poison tick interval.",
+            "koreanText": "기본 공격 시 독 피해 틱 간격이 감소합니다."
+        },
+        {
+            "key": "UniqueEffect_AuraOfOverwhelming",
+            "englishText": "Deals 4% of Shieldbearer's Max HP to nearby enemies every 5 seconds and heals for 120% of damage dealt.",
+            "koreanText": "5초마다 방패병 최대 체력의 4%만큼 주변 적들에게 피해를 주고 가한 피해의 120%만큼 회복합니다."
+        },
+        {
+            "key": "UniqueEffect_AuraOfPatience",
+            "englishText": "Grants allies a shield equal to 18% of Shieldbearer's Max HP every 5 seconds.",
+            "koreanText": "5초마다 아군에게 방패병 최대 체력의 18%에 해당하는 보호막을 부여합니다."
+        },
+        {
+            "key": "UniqueEffect_HeavyArmor",
+            "englishText": "Deals additional physical damage equal to 14% of the shield amount on single-target throw hit.",
+            "koreanText": "단일 투척 적중 시 보호막 수치의 14%에 해당하는 물리 피해를 추가로 입힙니다."
+        },
+        {
+            "key": "UniqueEffect_ShieldsWillClash",
+            "englishText": "Increases all Shieldbearer stats by 10%.\nIncreases ally attack damage by 8% for 10 seconds upon entering a room.",
+            "koreanText": "방패병의 모든 스탯이 10% 증가합니다.\\n방에 진입 시 10초 동안 아군의 공격력이 8% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_ShieldsWillCourage",
+            "englishText": "Increases all Shieldbearer stats by 10%.\nIncreases ally attack speed by 12% for 10 seconds upon entering a room.",
+            "koreanText": "방패병의 모든 스탯이 10% 증가합니다.\\n방에 진입 시 10초 동안 아군의 공격 속도가 12% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_ShieldsWillWind",
+            "englishText": "Increases all Shieldbearer stats by 10%.\nIncreases ally movement speed by 14% for 10 seconds upon entering a room.",
+            "koreanText": "방패병의 모든 스탯이 10% 증가합니다.\\n방에 진입 시 10초 동안 아군의 이동 속도가 14% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_SturdyShield",
+            "englishText": "Grants the Shieldbearer a shield equal to 50% of Max HP upon entering a room.",
+            "koreanText": "방에 진입 시 방패병에게 최대 체력의 50%에 해당하는 보호막을 부여합니다."
+        },
+        {
+            "key": "UniqueEffect_ThornArmor",
+            "englishText": "Reflects fixed damage equal to 2% of the attacker's current HP when taking basic attack damage.",
+            "koreanText": "기본 공격을 받을 때 공격자 현재 체력의 2%에 해당하는 고정 피해를 반사합니다."
+        },
+        {
+            "key": "UniqueEffect_TwistedGround",
+            "englishText": "Deals 20% of the shield amount as AoE damage upon single-target throw hit.",
+            "koreanText": "단일 투척 적중 시 보호막 수치의 20%에 해당하는 광역 피해를 입힙니다."
+        },
+        {
+            "key": "UniqueEffect_IronMountain",
+            "englishText": "Basic attacks knock enemies back. If they hit a wall, they take 12% max HP as damage.",
+            "koreanText": "기본 공격 시 적을 넉백시킵니다. 적이 벽에 부딪히면 최대 체력의 12%를 피해로 입습니다."
+        },
+        {
+            "key": "UniqueEffect_SpearSwiftness",
+            "englishText": "Reduces throw landing time by 33%.",
+            "koreanText": "투척 착탄 시간을 33% 단축시킵니다."
+        },
+        {
+            "key": "UniqueEffect_ThousandStabs",
+            "englishText": "Spearman's basic attacks deal 3% additional damage.",
+            "koreanText": "창병의 기본 공격 피해가 3% 추가로 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_Vanguard",
+            "englishText": "Increases dash distance.",
+            "koreanText": "돌진 거리가 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_CrushingPower",
+            "englishText": "Heals the Warrior for any excess throw damage dealt upon executing an enemy.",
+            "koreanText": "적을 처형할 때 초과된 투척 피해만큼 전사를 회복시킵니다."
+        },
+        {
+            "key": "UniqueEffect_FanaticRage",
+            "englishText": "Grants 3% lifesteal on basic attacks.",
+            "koreanText": "기본 공격에 3%의 생명력 흡수를 부여합니다."
+        },
+        {
+            "key": "UniqueEffect_TrackingEye",
+            "englishText": "Deals 12% additional damage when repeatedly hitting the same target with throws.",
+            "koreanText": "같은 대상을 투척으로 반복해서 맞출 때 12%의 추가 피해를 입힙니다."
+        },
+        {
+            "key": "UniqueEffect_WarriorBallistics1",
+            "englishText": "Increases Warrior's parabolic throw damage by 10%.",
+            "koreanText": "전사의 포물선 투척 피해가 10% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_WarriorBallistics2",
+            "englishText": "Increases Warrior's direct throw damage by 10%.",
+            "koreanText": "전사의 직사 투척 피해가 10% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_WarriorBallistics3",
+            "englishText": "Increases Warrior's single-target throw damage by 15%.",
+            "koreanText": "전사의 단일 대상 투척 피해가 15% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_WarriorsMedal",
+            "englishText": "Increases all basic stats of the Warrior by 15%.",
+            "koreanText": "전사의 모든 기본 스탯이 15% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_Closer",
+            "englishText": "Max charge time limit is set to 5s. Throw effect +50% on full charge.",
+            "koreanText": "최대 차지 시간 제한이 5초로 고정됩니다. 풀 차지 시 투척 효과가 50% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_ExperiencedPitcher",
+            "englishText": "Movement speed reduction while charging is reduced to 25%.",
+            "koreanText": "차지 중 이동 속도 감소가 25%로 줄어듭니다."
+        },
+        {
+            "key": "UniqueEffect_MagicPitchArirangBall",
+            "englishText": "Charge time -0.5s, Fastball effect -40%.",
+            "koreanText": "차지 시간이 0.5초 감소하고, 강속구 효과가 40% 감소합니다."
+        },
+        {
+            "key": "UniqueEffect_MagicPitchFireball",
+            "englishText": "Fastball effect +10% per 1s of required charge time.",
+            "koreanText": "요구 차지 시간 1초당 강속구 효과가 10% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_SetPosition",
+            "englishText": "Charge time -0.1s, Fastball effect -2%.",
+            "koreanText": "차지 시간이 0.1초 감소하고, 강속구 효과가 2% 감소합니다."
+        },
+        {
+            "key": "UniqueEffect_Windup",
+            "englishText": "Charge time +0.5s, Fastball effect +2%.",
+            "koreanText": "차지 시간이 0.5초 증가하고, 강속구 효과가 2% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_BasicFitness",
+            "englishText": "Max stamina +20.",
+            "koreanText": "최대 스태미나가 20 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_CatchBreath",
+            "englishText": "Increases natural stamina regeneration when out of combat.",
+            "koreanText": "비전투 시 자연 스태미나 회복량이 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_EfficientThrow",
+            "englishText": "Max stamina -40, Throw effect +60%.",
+            "koreanText": "최대 스태미나가 40 감소하고, 투척 효과가 60% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_EndlessVitality",
+            "englishText": "Increases natural stamina regeneration (+0.5).",
+            "koreanText": "자연 스태미나 회복량이 증가합니다 (+0.5)."
+        },
+        {
+            "key": "UniqueEffect_HarvestOfDeath",
+            "englishText": "Increases stamina regeneration based on the number of dead minions.",
+            "koreanText": "죽은 미니언 수에 비례하여 스태미나 회복량이 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_LimitBreak",
+            "englishText": "Stamina can drop below zero (up to -50). Halves regeneration when negative.",
+            "koreanText": "스태미나가 0 미만으로 떨어질 수 있습니다 (최대 -50). 음수일 때는 회복량이 절반이 됩니다."
+        },
+        {
+            "key": "UniqueEffect_MasterOfRapidFire",
+            "englishText": "Stamina cost -7, Throw effect -30%.",
+            "koreanText": "스태미나 소모가 7 감소하고, 투척 효과가 30% 감소합니다."
+        },
+        {
+            "key": "UniqueEffect_OrderedBreath",
+            "englishText": "Stamina cost -3.",
+            "koreanText": "스태미나 소모가 3 감소합니다."
+        },
+        {
+            "key": "UniqueEffect_OverflowingThrow",
+            "englishText": "Stamina cost +5, Throw effect +25%.",
+            "koreanText": "스태미나 소모가 5 증가하고, 투척 효과가 25% 증가합니다."
+        },
+        {
+            "key": "UniqueEffect_ThrowOverload",
+            "englishText": "Throw effect +2% per 1 stamina cost.",
+            "koreanText": "스태미나 소모량 1당 투척 효과가 2% 증가합니다."
+        }
     ]
 }
