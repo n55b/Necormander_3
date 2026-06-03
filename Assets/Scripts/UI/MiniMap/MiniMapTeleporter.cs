@@ -19,6 +19,8 @@ public class MiniMapTeleporter : MonoBehaviour
 
     private PlayerInput _playerInput;
     private RectTransform _rectTransform;
+    private Canvas _canvas;
+    private Camera _canvasCamera;
     private bool _isInitialized = false;
 
     // 런타임에 관리할 테두리 게임 오브젝트 및 렌더러
@@ -29,6 +31,9 @@ public class MiniMapTeleporter : MonoBehaviour
     private void Start()
     {
         _rectTransform = GetComponent<RectTransform>();
+        _canvas = GetComponentInParent<Canvas>();
+        _canvasCamera = (_canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay) ? _canvas.worldCamera : null;
+
         if (roomLayer == 0) roomLayer = LayerMask.GetMask("Room");
 
         // 하이라이트 테두리 오브젝트 동적 생성
@@ -100,6 +105,40 @@ public class MiniMapTeleporter : MonoBehaviour
         _isInitialized = false;
     }
 
+    private bool TryGetMiniMapWorldPoint(Vector2 screenPosition, out Vector2 worldPoint2D)
+    {
+        worldPoint2D = Vector2.zero;
+        if (_rectTransform == null || miniMapCamera == null) return false;
+
+        if (!RectTransformUtility.RectangleContainsScreenPoint(_rectTransform, screenPosition, _canvasCamera))
+            return false;
+
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(_rectTransform, screenPosition, _canvasCamera, out var localPoint))
+            return false;
+
+        Vector2 normalizedPoint = new Vector2(
+            (localPoint.x - _rectTransform.rect.x) / _rectTransform.rect.width,
+            (localPoint.y - _rectTransform.rect.y) / _rectTransform.rect.height
+        );
+
+        if (miniMapCamera.targetTexture != null)
+        {
+            Vector3 worldPoint = miniMapCamera.ViewportToWorldPoint(new Vector3(normalizedPoint.x, normalizedPoint.y, miniMapCamera.nearClipPlane));
+            worldPoint2D = new Vector2(worldPoint.x, worldPoint.y);
+            return true;
+        }
+
+        Rect camRect = miniMapCamera.pixelRect;
+        Vector2 cameraScreenPoint = new Vector2(
+            camRect.x + normalizedPoint.x * camRect.width,
+            camRect.y + normalizedPoint.y * camRect.height
+        );
+
+        Vector3 worldPoint2 = miniMapCamera.ScreenToWorldPoint(new Vector3(cameraScreenPoint.x, cameraScreenPoint.y, miniMapCamera.nearClipPlane));
+        worldPoint2D = new Vector2(worldPoint2.x, worldPoint2.y);
+        return true;
+    }
+
     /// <summary>
     /// 하이라이트용 유령 테두리 오브젝트를 하이어라키에 풀링용으로 생성합니다.
     /// </summary>
@@ -129,37 +168,23 @@ public class MiniMapTeleporter : MonoBehaviour
         Vector2 screenPosition = Pointer.current.position.ReadValue();
 
         RoomInstance currentRoom = null;
-
-        // 마우스가 미니맵 UI 윈도우 안에 들어와 있을 때만 연산
-        if (RectTransformUtility.RectangleContainsScreenPoint(_rectTransform, screenPosition, null))
+        if (TryGetMiniMapWorldPoint(screenPosition, out Vector2 worldPoint2D))
         {
-            Vector2 localPoint;
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(_rectTransform, screenPosition, null, out localPoint))
+            Collider2D hitCollider = Physics2D.OverlapPoint(worldPoint2D, roomLayer);
+
+            if (hitCollider != null)
             {
-                Vector2 normalizedPoint = new Vector2(
-                    (localPoint.x - _rectTransform.rect.x) / _rectTransform.rect.width,
-                    (localPoint.y - _rectTransform.rect.y) / _rectTransform.rect.height
-                );
-
-                Vector3 worldPoint = miniMapCamera.ViewportToWorldPoint(normalizedPoint);
-                Vector2 worldPoint2D = new Vector2(worldPoint.x, worldPoint.y);
-
-                Collider2D hitCollider = Physics2D.OverlapPoint(worldPoint2D, roomLayer);
-
-                if (hitCollider != null)
+                RoomInstance room = hitCollider.GetComponent<RoomInstance>();
+                
+                // 안개 타일 검사: 이미 밝혀진(방문한) 방만 하이라이트 대상으로 인정
+                if (room != null && MapGenerator.Instance != null && MapGenerator.Instance.FogTilemap != null)
                 {
-                    RoomInstance room = hitCollider.GetComponent<RoomInstance>();
-                    
-                    // 안개 타일 검사: 이미 밝혀진(방문한) 방만 하이라이트 대상으로 인정
-                    if (room != null && MapGenerator.Instance != null && MapGenerator.Instance.FogTilemap != null)
-                    {
-                        Vector3 fixedCenter = room.transform.position + (Vector3)room.centerOffset;
-                        Vector3Int centerCell = MapGenerator.Instance.FogTilemap.WorldToCell(fixedCenter);
+                    Vector3 fixedCenter = room.transform.position + (Vector3)room.centerOffset;
+                    Vector3Int centerCell = MapGenerator.Instance.FogTilemap.WorldToCell(fixedCenter);
 
-                        if (!MapGenerator.Instance.FogTilemap.HasTile(centerCell))
-                        {
-                            currentRoom = room;
-                        }
+                    if (!MapGenerator.Instance.FogTilemap.HasTile(centerCell))
+                    {
+                        currentRoom = room;
                     }
                 }
             }
@@ -205,28 +230,16 @@ public class MiniMapTeleporter : MonoBehaviour
         if (Pointer.current == null) return;
         Vector2 screenPosition = Pointer.current.position.ReadValue();
 
-        if (RectTransformUtility.RectangleContainsScreenPoint(_rectTransform, screenPosition, null))
+        if (TryGetMiniMapWorldPoint(screenPosition, out Vector2 worldPoint2D))
         {
-            Vector2 localPoint;
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(_rectTransform, screenPosition, null, out localPoint))
+            Collider2D hitCollider = Physics2D.OverlapPoint(worldPoint2D, roomLayer);
+
+            if (hitCollider != null)
             {
-                Vector2 normalizedPoint = new Vector2(
-                    (localPoint.x - _rectTransform.rect.x) / _rectTransform.rect.width,
-                    (localPoint.y - _rectTransform.rect.y) / _rectTransform.rect.height
-                );
-
-                Vector3 worldPoint = miniMapCamera.ViewportToWorldPoint(normalizedPoint);
-                Vector2 worldPoint2D = new Vector2(worldPoint.x, worldPoint.y);
-
-                Collider2D hitCollider = Physics2D.OverlapPoint(worldPoint2D, roomLayer);
-
-                if (hitCollider != null)
+                RoomInstance clickedRoom = hitCollider.GetComponent<RoomInstance>();
+                if (clickedRoom != null)
                 {
-                    RoomInstance clickedRoom = hitCollider.GetComponent<RoomInstance>();
-                    if (clickedRoom != null)
-                    {
-                        TeleportToRoomCenter(clickedRoom);
-                    }
+                    TeleportToRoomCenter(clickedRoom);
                 }
             }
         }
