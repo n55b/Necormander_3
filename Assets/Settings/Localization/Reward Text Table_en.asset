@@ -707,6 +707,80 @@ MonoBehaviour:
     m_Localized: Direct throw efficiency +75%.
     m_Metadata:
       m_Items: []
+  - m_Id: 71717584080896
+    m_Localized: Ballistics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441024
+    m_Localized: Damage increases by 10% per 1 grid distance.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441025
+    m_Localized: Efficient Curve
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441026
+    m_Localized: Speeds up the throwing speed of parabolic throws. (Falls 20% faster)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441027
+    m_Localized: Just Throw It
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441028
+    m_Localized: Throw speed increases by 8% for 8 seconds each time you make a parabolic
+      throw in this room. Stacks up to 5 times.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441029
+    m_Localized: Monocle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441030
+    m_Localized: Damage is maximized (50%) when thrown right at your feet and decreases
+      as distance increases (based on 5 grids).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441031
+    m_Localized: Protractor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441032
+    m_Localized: Increases the damage of parabolic throws.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441033
+    m_Localized: Siege Mode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441034
+    m_Localized: 'Roots the player in place and expands the camera view.
+
+      Converts
+      all owned minions into ammo to perform high-angle bombardments.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441035
+    m_Localized: Throw speed increases by 8% for 8 seconds each time you make a parabolic
+      throw in this room. Stacks up to 5 times.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441036
+    m_Localized: Damage increases by 10% per 1 grid distance.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441037
+    m_Localized: 'Roots the player in place and expands the camera view.
+
+      Converts
+      all owned minions into ammo to perform high-angle bombardments.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441038
+    m_Localized: Damage is maximized (50%) when thrown right at your feet and decreases
+      as distance increases (based on 5 grids).
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

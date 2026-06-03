@@ -1,0 +1,84 @@
+{
+    "items": [
+        {
+            "key": "Gem_Shotput_Ballistics_Name",
+            "englishText": "Ballistics",
+            "koreanText": "탄도학"
+        },
+        {
+            "key": "Gem_Shotput_Ballistics_Desc",
+            "englishText": "Damage increases by 10% per 1 grid distance.",
+            "koreanText": "거리에 비례하여 1칸마다 피해량 10% 증가"
+        },
+        {
+            "key": "Gem_Shotput_EfficientCurve_Name",
+            "englishText": "Efficient Curve",
+            "koreanText": "효율적인 곡선"
+        },
+        {
+            "key": "Gem_Shotput_EfficientCurve_Desc",
+            "englishText": "Speeds up the throwing speed of parabolic throws. (Falls 20% faster)",
+            "koreanText": "포물선 던지기의 투척 속도가 빨라집니다. (20% 더 빨리 떨어집니다)"
+        },
+        {
+            "key": "Gem_Shotput_JustThrowIt_Name",
+            "englishText": "Just Throw It",
+            "koreanText": "일단 던지고 보자"
+        },
+        {
+            "key": "Gem_Shotput_JustThrowIt_Desc",
+            "englishText": "Throw speed increases by 8% for 8 seconds each time you make a parabolic throw in this room. Stacks up to 5 times.",
+            "koreanText": "이번 방에서 포물선 던질 때 마다 8초동안 투척 속도가 8% 빨라지며 해당 효과는 5번까지 중첩됩니다."
+        },
+        {
+            "key": "Gem_Shotput_Monocle_Name",
+            "englishText": "Monocle",
+            "koreanText": "단안경"
+        },
+        {
+            "key": "Gem_Shotput_Monocle_Desc",
+            "englishText": "Damage is maximized (50%) when thrown right at your feet and decreases as distance increases (based on 5 grids).",
+            "koreanText": "5칸을 기준으로 역순. 즉 자기 발밑에 던지면 피해량이 최대(50%), 멀어질수록 감소"
+        },
+        {
+            "key": "Gem_Shotput_Protractor_Name",
+            "englishText": "Protractor",
+            "koreanText": "각도기"
+        },
+        {
+            "key": "Gem_Shotput_Protractor_Desc",
+            "englishText": "Increases the damage of parabolic throws.",
+            "koreanText": "포물선 던지기 피해량이 증가합니다"
+        },
+        {
+            "key": "Gem_Shotput_SiegeMode_Name",
+            "englishText": "Siege Mode",
+            "koreanText": "시즈 모드"
+        },
+        {
+            "key": "Gem_Shotput_SiegeMode_Desc",
+            "englishText": "Roots the player in place and expands the camera view.\nConverts all owned minions into ammo to perform high-angle bombardments.",
+            "koreanText": "플레이어가 해당 위치에 고정되며, 카메라 위치가 넓게 고정됩니다.\n보유한 소환수의 수 만큼 탄약으로 변경되어 고각도 포격을 실시합니다."
+        },
+        {
+            "key": "UniqueEffect_JustThrowIt",
+            "englishText": "Throw speed increases by 8% for 8 seconds each time you make a parabolic throw in this room. Stacks up to 5 times.",
+            "koreanText": "이번 방에서 포물선 던질 때 마다 8초동안 투척 속도가 8% 빨라지며 해당 효과는 5번까지 중첩됩니다."
+        },
+        {
+            "key": "UniqueEffect_Ballistics",
+            "englishText": "Damage increases by 10% per 1 grid distance.",
+            "koreanText": "거리에 비례하여 1칸마다 피해량 10% 증가"
+        },
+        {
+            "key": "UniqueEffect_SiegeMode",
+            "englishText": "Roots the player in place and expands the camera view.\nConverts all owned minions into ammo to perform high-angle bombardments.",
+            "koreanText": "플레이어가 해당 위치에 고정되며, 카메라 위치가 넓게 고정됩니다.\n보유한 소환수의 수 만큼 탄약으로 변경되어 고각도 포격을 실시합니다."
+        },
+        {
+            "key": "UniqueEffect_Monocle",
+            "englishText": "Damage is maximized (50%) when thrown right at your feet and decreases as distance increases (based on 5 grids).",
+            "koreanText": "5칸을 기준으로 역순. 즉 자기 발밑에 던지면 피해량이 최대(50%), 멀어질수록 감소"
+        }
+    ]
+}

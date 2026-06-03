@@ -246,6 +246,26 @@ public class InventoryManager : MonoBehaviour
             if (kvp.Value > 0) activeUniqueGems.Add(kvp.Key);
         }
         GemHandlerRegistry.RefreshActiveHandlers(activeUniqueGems);
+
+        // [액티브 스킬] 시즈 모드 동적 장착/해제
+        var activeSkillManager = GameManager.Instance?.PLAYERCONTROLLER?.ActiveSkillManager;
+        if (activeSkillManager != null)
+        {
+            if (HasUniqueEffect(GemUniqueType.SiegeMode))
+            {
+                if (activeSkillManager.ActiveSkill == null || activeSkillManager.ActiveSkill.SkillName != "시즈 모드")
+                {
+                    activeSkillManager.EquipSkill(new SiegeModeSkill());
+                }
+            }
+            else
+            {
+                if (activeSkillManager.ActiveSkill != null && activeSkillManager.ActiveSkill.SkillName == "시즈 모드")
+                {
+                    activeSkillManager.EquipSkill(null);
+                }
+            }
+        }
     }
 
     private void CalculateSynergies(List<GemTreeNode> allNodes)

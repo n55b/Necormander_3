@@ -143,6 +143,34 @@ public class ThrowStrategy : MonoBehaviour
         // 최종 배율 계산 (나중에 보정치 적용을 위해 미리 계산)
         float totalMultiplier = recipe.modifiers.modeMultiplier * recipe.modifiers.chargeMultiplier * 
                                 recipe.modifiers.treasurePowerMultiplier * recipe.modifiers.abilityMultiplier;
+                                
+        if (!isDirect && InventoryManager.Instance != null)
+        {
+            float parabolicDmgBonus = InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicDamageMultiplier);
+            Vector2 playerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position;
+            float dist = Vector2.Distance(playerPos, targetPos);
+            
+            // [탄도학] 거리 1마다 10% 증가 * 보유 개수
+            int ballisticsCount = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.Ballistics);
+            if (ballisticsCount > 0)
+            {
+                parabolicDmgBonus += (dist * 0.10f * ballisticsCount);
+            }
+
+            // [단안경] (On/Off형 효과) 거리 5칸을 기준으로 가까울수록 10%씩 증가 (최대 50%)
+            if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Monocle))
+            {
+                float monocleBonus = Mathf.Max(0f, 5f - dist) * 0.10f;
+                parabolicDmgBonus += monocleBonus;
+            }
+
+            // [시너지] 투포환 (2) / (4) 세트 효과 - 포물선 투척 효율 25% / 50% 증가
+            int shotputGems = InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.Shotput);
+            if (shotputGems >= 4) parabolicDmgBonus += 0.50f;
+            else if (shotputGems >= 2) parabolicDmgBonus += 0.25f;
+
+            totalMultiplier *= (1f + parabolicDmgBonus);
+        }
 
         foreach (var obj in heldObjects)
         {

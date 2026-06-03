@@ -26,6 +26,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float throwChargeTime = 1.0f;
     public float ThrowChargeTime => throwChargeTime;
 
+    [Header("액티브 스킬 매니저")]
+    [SerializeField] private ActiveSkillManager activeSkillManager;
+    public ActiveSkillManager ActiveSkillManager => activeSkillManager;
+
     [HideInInspector]
     [SerializeField] private PlayerStamina staminaSystem;
     public PlayerStamina STAMINA => staminaSystem;
@@ -132,6 +136,13 @@ public class PlayerController : MonoBehaviour
         if (GetComponent<PlayerUniqueEffectManager>() == null)
             gameObject.AddComponent<PlayerUniqueEffectManager>();
 
+        // [액티브 스킬] 액티브 스킬 매니저 추가
+        if (activeSkillManager == null)
+        {
+            activeSkillManager = gameObject.AddComponent<ActiveSkillManager>();
+            activeSkillManager.Initialize(this);
+        }
+
         // [수정] 스탯 초기화를 Awake로 이동하여 초기화 순서 보장
         if (stat != null)
         {
@@ -184,6 +195,11 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         if (_inputBlocked || (stat != null && stat.Health != null && stat.Health.IsDead)) return;
+
+        if (activeSkillManager != null)
+        {
+            activeSkillManager.CheckInput();
+        }
 
         MoveDirection = moveInput;
 
@@ -331,6 +347,15 @@ public class PlayerController : MonoBehaviour
     public void OnThrow(InputAction.CallbackContext context)
     {
         if (_inputBlocked || stat.Health.IsDead) return;
+
+        if (activeSkillManager != null)
+        {
+            if (activeSkillManager.ActiveSkill != null && activeSkillManager.ActiveSkill.IsActive)
+            {
+                if (context.started) activeSkillManager.HandleLeftClick();
+                return; // 시즈 모드 등이 켜져 있으면 투척 이벤트를 완전히 삼킴
+            }
+        }
 
         if (throwController != null)
         {

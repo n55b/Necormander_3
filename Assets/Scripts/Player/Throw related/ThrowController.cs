@@ -325,6 +325,20 @@ public class ThrowController : MonoBehaviour
             float dist = Vector2.Distance(startPos, finalPos);
             float duration = dist / speed;
 
+            if (!isDirect && InventoryManager.Instance != null)
+            {
+                float flightTimeBonus = InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicFlightTimeMultiplier);
+                
+                // [일단 던지고 보자] 버프 스택 적용 (PlayerUniqueEffectManager에서 받아옴)
+                if (GameManager.Instance.PLAYERCONTROLLER.TryGetComponent<PlayerUniqueEffectManager>(out var uem))
+                {
+                    flightTimeBonus += uem.JustThrowItSpeedBonus;
+                }
+
+                // 20% 증가 시 => duration * 0.8 (최대 90% 감소로 제한)
+                duration *= (1f - Mathf.Clamp(flightTimeBonus, 0f, 0.9f));
+            }
+
             // [이벤트 버스] 투척 시작 시 비행 시간 등 파라미터 조절용 확장 공간 (추후 연동 시 duration 조절 가능)
             // ref float durationMult 파라미터를 통해 ThrowStrategy에서 세팅된 값을 받아오거나, ThrowStart 이벤트로 제어 가능
 
@@ -348,6 +362,14 @@ public class ThrowController : MonoBehaviour
                     {
                         ability.OnThrowLaunch(this, recipe, startPos, finalPos, duration, maxHeight, isDirect, ratio);
                     }
+                }
+            }
+
+            if (!isDirect)
+            {
+                if (GameManager.Instance.PLAYERCONTROLLER.TryGetComponent<PlayerUniqueEffectManager>(out var uem))
+                {
+                    uem.OnParabolicThrow();
                 }
             }
 

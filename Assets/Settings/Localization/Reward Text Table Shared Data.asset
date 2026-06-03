@@ -671,6 +671,70 @@ MonoBehaviour:
     m_Key: Synergy_Fastball_Lv2
     m_Metadata:
       m_Items: []
+  - m_Id: 71717584080896
+    m_Key: Gem_Shotput_Ballistics_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441024
+    m_Key: Gem_Shotput_Ballistics_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441025
+    m_Key: Gem_Shotput_EfficientCurve_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441026
+    m_Key: Gem_Shotput_EfficientCurve_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441027
+    m_Key: Gem_Shotput_JustThrowIt_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441028
+    m_Key: Gem_Shotput_JustThrowIt_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441029
+    m_Key: Gem_Shotput_Monocle_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441030
+    m_Key: Gem_Shotput_Monocle_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441031
+    m_Key: Gem_Shotput_Protractor_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441032
+    m_Key: Gem_Shotput_Protractor_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441033
+    m_Key: Gem_Shotput_SiegeMode_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441034
+    m_Key: Gem_Shotput_SiegeMode_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441035
+    m_Key: UniqueEffect_JustThrowIt
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441036
+    m_Key: UniqueEffect_Ballistics
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441037
+    m_Key: UniqueEffect_SiegeMode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71717613441038
+    m_Key: UniqueEffect_Monocle
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

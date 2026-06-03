@@ -8,7 +8,9 @@ public enum StatType
     Health,         // 체력 강화 (배율: 0.1 = 10% 증가)
     AttackSpeed,    // 공격 속도 강화 (배율: 1.0 = 공격 빈도 100% 증가)
     RespawnTime,    // 부활 시간 단축 (고정치: 1.0 = 1초 단축)
-    ThrowEffect     // 던지기 능력 강화 (전사:데미지+, 궁수:범위+, 법사:횟수+, 기타:배율+)
+    ThrowEffect,    // 던지기 능력 강화 (전사:데미지+, 궁수:범위+, 법사:횟수+, 기타:배율+)
+    ParabolicDamageMultiplier,    // 포물선 데미지 추가 배율
+    ParabolicFlightTimeMultiplier // 포물선 체공 시간 보정치
 }
 
 public enum GemUniqueType
@@ -110,7 +112,13 @@ public enum GemUniqueType
     SupportFire = 44,            // 전추태산 / 지원사격 (던지기 광역 피해 15% 증가)
     TensionPower = 45,         // 발여호미 / 장력의 힘 (기본 공격 빈도 25% 느려짐, 공격력 25% 증가)
     UnseenMiss = 46,            // 발이부중 (반구저기 필요. 공격 빗나감 시 다음 공격 100% 증가)
-    ReflectingNature = 47          // 반구저기 (발이부중 필요. 체력 50% 미만 시 공격력 15% 증가, 50% 이상 시 공격속도 15% 증가)
+    ReflectingNature = 47,          // 반구저기 (발이부중 필요. 체력 50% 미만 시 공격력 15% 증가, 50% 이상 시 공격속도 15% 증가)
+
+    // [추가] 신규 투포환 유니크 4종
+    JustThrowIt = 250,          // 일단 던지고 보자
+    Ballistics = 251,           // 탄도학
+    SiegeMode = 252,            // 시즈 모드
+    Monocle = 253               // 단안경
 }
 
 public enum SynergyCategory
@@ -148,7 +156,10 @@ public enum GemSynergyGroup
     Shield_Guardian = 400,
 
     // [창병 전용 시너지]
-    Spearman_Vanguard = 500
+    Spearman_Vanguard = 500,
+
+    // [투포환 시너지]
+    Shotput = 600
 }
 
 /// <summary>
