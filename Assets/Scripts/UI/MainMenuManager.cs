@@ -13,8 +13,12 @@ public class MainMenuManager : MonoBehaviour
     [Tooltip("Start 버튼을 눌렀을 때 이동할 메인 게임 씬의 이름입니다.")]
     [SerializeField] private string gameSceneName = "Map"; 
 
-    private void Awake()
+    private UnityNote.SceneLoader sceneLoader;
+
+    private void Start()
     {
+        sceneLoader = UnityNote.SceneLoader.Instance;
+
         InitializeButtons();
     }
 
@@ -65,7 +69,7 @@ public class MainMenuManager : MonoBehaviour
         SaveSystem.DeleteSave();
         
         // 지정된 게임 씬으로 이동
-        SceneManager.LoadScene(gameSceneName);
+        sceneLoader.LoadScene(gameSceneName);
     }
 
     private void OnLoadButtonClicked()
@@ -73,7 +77,7 @@ public class MainMenuManager : MonoBehaviour
         Debug.Log("<color=cyan>[MainMenuManager]</color> Load Game 시작! 기존 세이브 파일을 유지하고 로드합니다.");
         
         // 지정된 게임 씬으로 이동
-        SceneManager.LoadScene(gameSceneName);
+        sceneLoader.LoadScene(gameSceneName);
     }
 
     private void GameExit()

@@ -88,6 +88,7 @@ public class MapGenerator : MonoBehaviour
 
     private IEnumerator GenerationSequence()
     {
+        IsMapGenerationCompleted = false;
         _isGenerating = true;
 
         int maxRegenAttempts = 10;
