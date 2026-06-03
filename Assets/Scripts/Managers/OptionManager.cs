@@ -1,5 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+using UnityEngine.Localization.Settings;
+using System.Collections;
 
 public class OptionManager : MonoBehaviour
 {
@@ -13,6 +16,9 @@ public class OptionManager : MonoBehaviour
     [Header("Audio Sliders")]
     public Slider bgmSlider;
     public Slider sfxSlider;
+
+    [Header("Localization")]
+    public TMP_Dropdown languageDropdown;
 
     private void Start()
     {
@@ -42,6 +48,49 @@ public class OptionManager : MonoBehaviour
         {
             sfxSlider.value = currentSfxVolume;
             sfxSlider.onValueChanged.AddListener(OnSfxSliderChanged);
+        }
+
+        StartCoroutine(InitLanguageDropdown());
+    }
+
+    private IEnumerator InitLanguageDropdown()
+    {
+        // 로컬라이제이션 초기화 대기
+        yield return LocalizationSettings.InitializationOperation;
+
+        if (languageDropdown != null)
+        {
+            // 현재 선택된 언어의 인덱스를 찾아 드롭다운에 설정
+            var locales = LocalizationSettings.AvailableLocales.Locales;
+            var currentLocale = LocalizationSettings.SelectedLocale;
+            
+            for (int i = 0; i < locales.Count; i++)
+            {
+                if (locales[i] == currentLocale)
+                {
+                    languageDropdown.SetValueWithoutNotify(i);
+                    break;
+                }
+            }
+
+            // 값이 바뀔 때 언어 변경 이벤트 등록
+            languageDropdown.onValueChanged.AddListener(OnLanguageChanged);
+        }
+    }
+
+    public void OnLanguageChanged(int index)
+    {
+        StartCoroutine(ChangeLanguageCoroutine(index));
+    }
+
+    private IEnumerator ChangeLanguageCoroutine(int index)
+    {
+        yield return LocalizationSettings.InitializationOperation;
+        var locales = LocalizationSettings.AvailableLocales.Locales;
+        if (index >= 0 && index < locales.Count)
+        {
+            LocalizationSettings.SelectedLocale = locales[index];
+            Debug.Log($"<color=cyan>[OptionManager]</color> 언어가 변경되었습니다: {locales[index].Identifier.Code}");
         }
     }
 

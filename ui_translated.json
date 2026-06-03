@@ -1,0 +1,24 @@
+{
+    "items": [
+        { "key": "Synergy_Poison", "koreanText": "맹독" },
+        { "key": "Synergy_Priest_Chill", "koreanText": "한기" },
+        { "key": "Synergy_BloodPop", "koreanText": "피의 폭발" },
+        { "key": "Synergy_Priest_Aging", "koreanText": "노화" },
+        { "key": "Synergy_Priest_Corrosion", "koreanText": "부식" },
+        { "key": "Synergy_Fastball", "koreanText": "강속구" },
+        { "key": "Synergy_Stamina", "koreanText": "스태미나" },
+        { "key": "Synergy_None", "koreanText": "없음" },
+        { "key": "Tooltip_BonusModifiers", "koreanText": "[추가 무작위 옵션]" },
+        { "key": "Tooltip_TreeExpansion", "koreanText": "트리 확장: <b>+{0} 슬롯</b>" },
+        { "key": "UI_Slot_Empty", "koreanText": "{0}번 슬롯 (비어있음)" },
+        { "key": "UI_Slot_Name", "koreanText": "{0}번 슬롯" },
+        { "key": "UI_Unique", "koreanText": "고유 효과: " },
+        { "key": "UI_Minion_Prefix", "koreanText": "[미니언 - {0}]" },
+        { "key": "UI_Count", "koreanText": "개수: x{0}" },
+        { "key": "UI_ThrowAbility_Prefix", "koreanText": "[투척 능력 - {0}]" },
+        { "key": "UI_Equipped_Capability", "koreanText": "장착된 능력" },
+        { "key": "UI_Stat_HP", "koreanText": "체력" },
+        { "key": "UI_Stat_ATK", "koreanText": "공격력" },
+        { "key": "UI_Stat_SPD", "koreanText": "속도" }
+    ]
+}

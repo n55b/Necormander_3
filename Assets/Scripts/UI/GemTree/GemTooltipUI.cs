@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.Localization.Components;
 
 /// <summary>
 /// 보석의 상세 정보를 보여주는 툴팁 UI 클래스입니다.
@@ -53,28 +54,68 @@ public class GemTooltipUI : MonoBehaviour
 
         GemSO data = gem.BaseData;
         
-        titleText.text = data.itemName;
-        typeText.text = $"<color={GetGroupColorTag(data.synergyGroup)}>[{data.synergyGroup}]</color>";
-        descriptionText.text = data.description;
+        if (titleText != null)
+        {
+            if (data.localizedItemName != null && !data.localizedItemName.IsEmpty)
+            {
+                var locEvent = titleText.GetComponent<LocalizeStringEvent>();
+                if (locEvent == null)
+                {
+                    locEvent = titleText.gameObject.AddComponent<LocalizeStringEvent>();
+                    locEvent.OnUpdateString.AddListener((s) => titleText.text = s);
+                }
+                locEvent.StringReference = data.localizedItemName;
+            }
+            else
+            {
+                var locEvent = titleText.GetComponent<LocalizeStringEvent>();
+                if (locEvent != null) locEvent.StringReference = null;
+                titleText.text = data.itemName;
+            }
+        }
+
+        typeText.text = $"<color={GetGroupColorTag(data.synergyGroup)}>[{GetUIString($"Synergy_{data.synergyGroup}")}]</color>";
+        
+        if (descriptionText != null)
+        {
+            if (data.localizedDescription != null && !data.localizedDescription.IsEmpty)
+            {
+                var locEvent = descriptionText.GetComponent<LocalizeStringEvent>();
+                if (locEvent == null)
+                {
+                    locEvent = descriptionText.gameObject.AddComponent<LocalizeStringEvent>();
+                    locEvent.OnUpdateString.AddListener((s) => descriptionText.text = s);
+                }
+                locEvent.StringReference = data.localizedDescription;
+            }
+            else
+            {
+                var locEvent = descriptionText.GetComponent<LocalizeStringEvent>();
+                if (locEvent != null) locEvent.StringReference = null;
+                descriptionText.text = data.description;
+            }
+        }
         
         string effectsStr = "";
         foreach (var effect in data.effects)
         {
             if (effect != null)
-                effectsStr += $"- {effect.GetDescription()}\n";
+                effectsStr += $"- {effect.GetDescription()}\n"; // 참고: effect.GetDescription()도 나중에 번역이 필요할 수 있습니다.
         }
         
         if (gem.RandomModifiers != null && gem.RandomModifiers.Count > 0)
         {
-            effectsStr += "<color=#ADD8E6>\n[Bonus Modifiers]</color>\n";
+            effectsStr += $"<color=#ADD8E6>\n{GetUIString("Tooltip_BonusModifiers")}</color>\n";
             foreach (var mod in gem.RandomModifiers)
             {
-                effectsStr += $"- {mod.Type}: +{mod.Value * 100}%\n";
+                effectsStr += $"- {mod.Type}: +{mod.Value * 100}%\n"; // mod.Type도 나중에 번역 필요 시 GetUIString 적용
             }
         }
         effectsText.text = effectsStr.TrimEnd();
 
-        subSlotsText.text = $"Tree Expansion: <b>+{data.subSlots} Slots</b>";
+        string treeExpFormat = GetUIString("Tooltip_TreeExpansion");
+        if (string.IsNullOrEmpty(treeExpFormat)) treeExpFormat = "Tree Expansion: <b>+{0} Slots</b>";
+        subSlotsText.text = string.Format(treeExpFormat, data.subSlots);
 
         tooltipPanel.gameObject.SetActive(true);
         
@@ -136,5 +177,17 @@ public class GemTooltipUI : MonoBehaviour
             case GemSynergyGroup.Priest_Corrosion: return "#FFD700";
             default: return "#FFFFFF";
         }
+    }
+
+    private string GetUIString(string key)
+    {
+        var op = UnityEngine.Localization.Settings.LocalizationSettings.StringDatabase.GetLocalizedStringAsync("UI Text Table", key);
+        if (op.IsDone)
+            return op.Result;
+        
+        // 데이터가 아직 로드되지 않은 경우 강제로 대기 (UI 툴팁이므로 큰 문제 없음)
+        var handle = op;
+        handle.WaitForCompletion();
+        return handle.Result;
     }
 }

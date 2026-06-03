@@ -14,8 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Aching Bones
   description: Applies extra Chill stacks to frozen enemies.
+  localizedItemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 1621670989824
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  localizedDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 1621670989825
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: -1282794058023969662, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 2
+  shopCost: 100
   category: 1
   synergyGroup: 100
   subSlots: 0

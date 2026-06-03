@@ -14,7 +14,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Throw Effect Treasure
   description: Treasure that enhances all throw effects.
+  localizedItemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 6213653729282
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  localizedDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 6213653729283
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: 0}
   rarity: 0
+  shopCost: 100
   effectType: 1
   valuePerStack: 1
+  references:
+    version: 2
+    RefIds: []

@@ -1,0 +1,252 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Reward Text Table_en
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: fb33b23eb1ad3d64b9b02523ebac3189, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 6213540483072
+    m_Localized: Core of Origin
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213565648896
+    m_Localized: The foundational core where all gem powers begin.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213569843200
+    m_Localized: Closer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213569843201
+    m_Localized: Max charge time limit is set to 5s. Throw effect +50% on full charge.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213574037504
+    m_Localized: Experienced Pitcher
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213574037505
+    m_Localized: Movement speed reduction while charging is reduced to 25%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213582426112
+    m_Localized: 'Magic Pitch: Arirang Ball'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213582426113
+    m_Localized: Charge time -0.5s, Fastball effect -40%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213582426114
+    m_Localized: 'Magic Pitch: Fireball'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213582426115
+    m_Localized: Fastball effect +10% per 1s of required charge time.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213586620416
+    m_Localized: Set Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213586620417
+    m_Localized: Charge time -0.1s, Fastball effect -2%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213586620418
+    m_Localized: Windup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213586620419
+    m_Localized: Charge time +0.5s, Fastball effect +2%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213590814720
+    m_Localized: Basic Fitness
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213590814721
+    m_Localized: Max stamina +20.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213590814722
+    m_Localized: Catch Breath
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213590814723
+    m_Localized: Increases natural stamina regeneration when out of combat.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213595009024
+    m_Localized: Efficient Throw
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213595009025
+    m_Localized: Max stamina -40, Throw effect +60%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203328
+    m_Localized: Endless Vitality
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203329
+    m_Localized: Increases natural stamina regeneration (+0.5).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203330
+    m_Localized: Harvest of Death
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203331
+    m_Localized: Increases stamina regeneration based on the number of dead minions.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203332
+    m_Localized: Limit Break
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213599203333
+    m_Localized: Stamina can drop below zero (up to -50). Halves regeneration when
+      negative.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213607591936
+    m_Localized: Master of Rapid Fire
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213607591937
+    m_Localized: Stamina cost -7, Throw effect -30%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213607591938
+    m_Localized: Ordered Breath
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213607591939
+    m_Localized: Stamina cost -3.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213611786240
+    m_Localized: Overflowing Throw
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213611786241
+    m_Localized: Stamina cost +5, Throw effect +25%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213615980544
+    m_Localized: Throw Overload
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213615980545
+    m_Localized: Throw effect +2% per 1 stamina cost.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213615980546
+    m_Localized: Throw Bouncing Ability
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213615980547
+    m_Localized: 'Throw ability: Bouncing'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213624369152
+    m_Localized: Throw Juggling Ability
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213624369153
+    m_Localized: 'Throw ability: Juggling'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213628563456
+    m_Localized: Throw Phantom Ability
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213628563457
+    m_Localized: 'Throw Ability: Phantom'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213632757760
+    m_Localized: Throw Pierce Ability
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213632757761
+    m_Localized: 'Throw ability: Pierce'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213641146368
+    m_Localized: Throw Pinball Ability
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213641146369
+    m_Localized: 'Throw Ability: Pinball'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213641146370
+    m_Localized: Throw Repeat Ability
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213641146371
+    m_Localized: 'Throw ability: Repeat'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213649534976
+    m_Localized: Throw Timing Charge Ability
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213649534977
+    m_Localized: 'Throw Ability: Timing Charge'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213653729280
+    m_Localized: Minion Stat Treasure
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213653729281
+    m_Localized: Treasure that enhances all minions stats.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213653729282
+    m_Localized: Throw Effect Treasure
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213653729283
+    m_Localized: Treasure that enhances all throw effects.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213708255232
+    m_Localized: Base archer minion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213733421056
+    m_Localized: Base Priest minion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213746003968
+    m_Localized: Base Shieldbearer minion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213758586880
+    m_Localized: Base Spearman minion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6213779558400
+    m_Localized: Base warrior minion
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

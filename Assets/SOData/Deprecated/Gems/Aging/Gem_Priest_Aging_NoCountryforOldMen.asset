@@ -14,8 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: No Country for Old Men
   description: Massively increases Aging limit, but kills targets at max stacks.
+  localizedItemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 1621138313216
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  localizedDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 1621142507520
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
   icon: {fileID: -4818461648906889331, guid: 92818d43a7364814a8842a145202f981, type: 3}
   rarity: 2
+  shopCost: 100
   category: 1
   synergyGroup: 101
   subSlots: 0
