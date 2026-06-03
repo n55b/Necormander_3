@@ -26,6 +26,7 @@ public class RoomInstance : MonoBehaviour
 
     [Header("Combat & Events")]
     public bool isCleared = false;
+    public bool hasBeenVisited = false;
     public List<GameObject> doorObjects = new List<GameObject>(); // MapGenerator에서 할당
     [SerializeField] private AudioClip roomBGM; // [추가] 이 방에서 나올 음악
 
@@ -128,6 +129,7 @@ public class RoomInstance : MonoBehaviour
 
     public void ForceEnter()
     {
+        hasBeenVisited = true;
         RevealRoom(); // 타일 안개 제거 호출
         if (roomBGM != null && SoundManager.Instance != null)
         {
@@ -140,6 +142,7 @@ public class RoomInstance : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            hasBeenVisited = true;
             RevealRoom(); // 플레이어가 방에 들어가면 해당 방의 안개 타일을 한 번에 지웁니다.
             
             // [추가] 방 입장 전역 이벤트 발생
