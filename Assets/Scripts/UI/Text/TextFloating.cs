@@ -7,13 +7,14 @@ public class TextFloating : MonoBehaviour
     private TextMeshProUGUI textMesh;
 
     private Camera cam;
+    private Canvas parentCanvas;
     private RectTransform rectTransform;
 
     // Text Location
     private Transform target;
     private Vector3 offSet;
 
-        [Header("[ Text Setting ]")]
+    [Header("[ Text Setting ]")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float fadeTime;
     [SerializeField] private float displaytime;
@@ -22,8 +23,10 @@ public class TextFloating : MonoBehaviour
     private void Awake()
     {
         textMesh = GetComponent<TextMeshProUGUI>();
-        cam = Camera.main;
         rectTransform = GetComponent<RectTransform>();
+        parentCanvas = GetComponentInParent<Canvas>();
+        cam = parentCanvas != null ? parentCanvas.worldCamera : Camera.main;
+        if (cam == null) cam = Camera.main;
     }
 
     public void SetUp(string _text, Color _color, Transform _target, bool isCritical = false)
@@ -42,6 +45,8 @@ public class TextFloating : MonoBehaviour
 
         offSet = new Vector3(Random.Range(-0.5f, 0.5f), 0);
 
+        // Set initial position immediately to avoid flashes at incorrect world coordinates.
+        UpdatePosition();
         gameObject.SetActive(true);
 
         // Reset Transform
@@ -76,7 +81,7 @@ public class TextFloating : MonoBehaviour
 
     private void Update()
     {
-        if(target == null)
+        if (target == null)
         {
             gameObject.SetActive(false);
             return;
@@ -92,13 +97,52 @@ public class TextFloating : MonoBehaviour
 
         offSet.y += moveSpeed * Time.deltaTime;
 
-        Vector3 screenPos = cam.WorldToScreenPoint(target.position + offSet);
-        transform.position = screenPos;
+        UpdatePosition();
 
         if (timer <= 0)
         {
             target = null;
             gameObject.SetActive(false);
+        }
+    }
+
+    private void UpdatePosition()
+    {
+        if (target == null || rectTransform == null) return;
+
+        if (cam == null)
+        {
+            cam = parentCanvas != null ? parentCanvas.worldCamera : Camera.main;
+            if (cam == null) return;
+        }
+
+        Vector3 worldPosition = target.position + offSet;
+        Vector3 screenPos = cam.WorldToScreenPoint(worldPosition);
+
+        if (parentCanvas == null)
+        {
+            transform.position = screenPos;
+            return;
+        }
+
+        RectTransform canvasRect = parentCanvas.transform as RectTransform;
+        if (canvasRect == null)
+        {
+            transform.position = screenPos;
+            return;
+        }
+
+        if (parentCanvas.renderMode == RenderMode.WorldSpace)
+        {
+            if (RectTransformUtility.ScreenPointToWorldPointInRectangle(canvasRect, screenPos, parentCanvas.worldCamera, out Vector3 worldPoint))
+            {
+                rectTransform.position = worldPoint;
+            }
+        }
+        else
+        {
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenPos, parentCanvas.worldCamera, out Vector2 localPoint);
+            rectTransform.anchoredPosition = localPoint;
         }
     }
 
