@@ -29,14 +29,14 @@ public class ShieldBearerAction : ImpactAction
             isAllyOrPlayer = true;
         }
 
-        float finalShield = recipe.GetScaledValue(shieldAmount);
+        float finalShield = recipe.GetScaledEffectValue(shieldAmount);
         ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
 
         // [이벤트 버스] 투척 착탄 전 이벤트: 보호막 수치나 추가 데미지 스탯 변경 가능
         float radius = 0f;
         ThrowEventBus.TriggerThrowImpactBeforeDamage(CommandData.SkeletonShieldbearer, this, impactPos, ref finalShield, ref radius, target);
 
-        // 2. 아군/플레이어인 경우: 즉시 보호막 부여 (기본 전사+방패병 조합 등)
+        // 2. 아군/플레이어인 경우: 즉시 보호막 부여
         if (isAllyOrPlayer && targetStat != null)
         {
             targetStat.Status.AddShield(finalShield, 3.0f);
@@ -47,18 +47,7 @@ public class ShieldBearerAction : ImpactAction
                 targetStat.Visual.SetShieldVFX(vfx);
             }
         }
-        // 3. 적군인 경우: 보호막 아이템 드랍
-        else if (!isAllyOrPlayer && target.TryGetComponent(out CharacterHealth enemyHealth))
-        {
-            if (registry != null && registry.shieldCollectiblePrefab != null)
-            {
-                GameObject itemObj = Object.Instantiate(registry.shieldCollectiblePrefab, impactPos, Quaternion.identity);
-                ShieldCollectible collectible = itemObj.GetComponent<ShieldCollectible>();
-                if (collectible == null) collectible = itemObj.AddComponent<ShieldCollectible>();
-                
-                collectible.Init(finalShield, 3.0f);
-            }
-        }
+        // 적군인 경우: 아무 효과도 주지 않습니다. (데미지는 BaseDamageAction이 처리)
 
         // [이벤트 버스] 투척 착탄 후 이벤트: 광역 폭발 데미지 등 추가 이펙트 처리
         Collider2D[] dummyHits = new Collider2D[0];

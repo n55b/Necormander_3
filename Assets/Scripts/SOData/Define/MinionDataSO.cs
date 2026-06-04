@@ -12,12 +12,7 @@ public class MinionDataSO : ScriptableObject
     public Sprite minionIcon;   // 대가리만 달린 이미지
 
     [Header("투척 효과 설정")]
-    public ThrowEffectCategory throwEffectCategory;
-    public float baseEffectValue; // CC위력, 쉴드량, 넉백힘 등 (전사/궁수는 투척 데미지로 사용)
-    public float effectMultiplier = 1.0f; // 효과 배율 지수 (위력 조절)
-
-    [Tooltip("궁수(Archer) 타입일 때만 사용되는 범위 반지름입니다.")]
-    public float baseAreaRadius = 3.0f; 
+    public float baseEffectValue; // 전사: 추가 데미지, 궁수: 범위, 사제/방패/창병: 고유 효과(CC/쉴드/넉백) 수치
 
     [Header("기본 능력치")]
     public float maxHP = 100f;

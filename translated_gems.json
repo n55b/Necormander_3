@@ -1,14 +1,29 @@
 {
     "items": [
         {
-            "key": "Gem_BigHand_AllMine_Desc",
-            "englishText": "Increases grab range for each grabbed minion.",
-            "koreanText": "소환수 1마리를 집을 때 마다 집을 수 있는 소환수 범위 증가"
+            "key": "Gem_Shotput_Protractor_Desc",
+            "englishText": "Increases throw efficiency when using a parabolic throw.",
+            "koreanText": "포물선 던지기 시 투척 효율이 증가합니다."
         },
         {
-            "key": "UniqueEffect_AllMine",
-            "englishText": "Increases grab range for each grabbed minion.",
-            "koreanText": "소환수 1마리를 집을 때 마다 집을 수 있는 소환수 범위 증가"
+            "key": "Gem_Shotput_Ballistics_Desc",
+            "englishText": "Throw efficiency increases by 10% for every 1 unit of distance.",
+            "koreanText": "거리에 비례하여 1칸마다 투척 효율 10% 증가"
+        },
+        {
+            "key": "Gem_Shotput_Monocle_Desc",
+            "englishText": "Based on 5 units distance. Max throw efficiency (+50%) at your feet, decreases as distance increases.",
+            "koreanText": "5칸을 기준으로 역순. 즉 자기 발밑에 던지면 투척 효율이 최대(50%) 증가하며, 멀어질수록 감소합니다."
+        },
+        {
+            "key": "UniqueEffect_Monocle",
+            "englishText": "Based on 5 units distance. Max throw efficiency (+50%) at your feet, decreases as distance increases.",
+            "koreanText": "5칸을 기준으로 역순. 즉 자기 발밑에 던지면 투척 효율이 최대(50%) 증가하며, 멀어질수록 감소합니다."
+        },
+        {
+            "key": "UniqueEffect_Ballistics",
+            "englishText": "Throw efficiency increases by 10% for every 1 unit of distance.",
+            "koreanText": "거리에 비례하여 1칸마다 투척 효율 10% 증가"
         }
     ]
 }

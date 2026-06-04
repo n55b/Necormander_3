@@ -17,6 +17,7 @@ public class CharacterStat : MonoBehaviour
     [SerializeField] private float baseMoveSpeed = 5f;
     [SerializeField] private float baseEvasion = 0f;
     [SerializeField] private float baseMissChance = 0f;
+    [SerializeField] private float baseThrowDamage = 5f; // [추가] 플레이어 기본 투척 데미지
 
     // 하위 컴포넌트 직접 노출 (Read-only Accessors)
     public CharacterStatus Status { get; private set; }
@@ -143,6 +144,8 @@ public class CharacterStat : MonoBehaviour
     public float EVASION => baseEvasion;
 
     public float MISS_CHANCE => baseMissChance;
+    
+    public float BASE_THROW_DAMAGE => baseThrowDamage;
 
     // 이동 속도: 기본 속도 * 상태이상 배율 * (한기+노화 감소)
     public float MOVESPEED

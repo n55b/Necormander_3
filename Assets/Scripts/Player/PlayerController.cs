@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("플레이어 스탯")]
     [SerializeField] CharacterStat stat;
+    public CharacterStat Stat => stat;
     [SerializeField] float throwRange;
     [HideInInspector] public float throwRangeBonus = 0f;
     public float THROWRANGE 

@@ -38,12 +38,12 @@ public class GemGeneratorWindow
         string shotputPath = "Assets/SOData/Rewards/Gems/Shotput";
         if (!AssetDatabase.IsValidFolder(shotputPath)) CreateFolderRecursively(shotputPath);
 
-        CreateGemSO(shotputPath, "Gem_Shotput_Protractor", "각도기", "포물선 던지기 피해량이 증가합니다", GemUniqueType.None, SynergyCategory.Common, GemSynergyGroup.Shotput, 2, StatType.ParabolicDamageMultiplier, 0.2f);
+        CreateGemSO(shotputPath, "Gem_Shotput_Protractor", "각도기", "포물선 던지기 시 투척 효율이 증가합니다.", GemUniqueType.None, SynergyCategory.Common, GemSynergyGroup.Shotput, 2, StatType.ParabolicEffectMultiplier, 0.2f);
         CreateGemSO(shotputPath, "Gem_Shotput_EfficientCurve", "효율적인 곡선", "포물선 던지기의 투척 속도가 빨라집니다. (20% 더 빨리 떨어집니다)", GemUniqueType.None, SynergyCategory.Common, GemSynergyGroup.Shotput, 2, StatType.ParabolicFlightTimeMultiplier, 0.2f);
         CreateGemSO(shotputPath, "Gem_Shotput_JustThrowIt", "일단 던지고 보자", "이번 방에서 포물선 던질 때 마다 8초동안 투척 속도가 8% 빨라지며 해당 효과는 5번까지 중첩됩니다.", GemUniqueType.JustThrowIt, SynergyCategory.Common, GemSynergyGroup.Shotput, 1);
-        CreateGemSO(shotputPath, "Gem_Shotput_Ballistics", "탄도학", "거리에 비례하여 1칸마다 피해량 10% 증가", GemUniqueType.Ballistics, SynergyCategory.Common, GemSynergyGroup.Shotput, 1);
+        CreateGemSO(shotputPath, "Gem_Shotput_Ballistics", "탄도학", "거리에 비례하여 1칸마다 투척 효율 10% 증가", GemUniqueType.Ballistics, SynergyCategory.Common, GemSynergyGroup.Shotput, 1);
         CreateGemSO(shotputPath, "Gem_Shotput_SiegeMode", "시즈 모드", "플레이어가 해당 위치에 고정되며, 카메라 위치가 넓게 고정됩니다.\n보유한 소환수의 수 만큼 탄약으로 변경되어 고각도 포격을 실시합니다.", GemUniqueType.SiegeMode, SynergyCategory.Common, GemSynergyGroup.Shotput, 0);
-        CreateGemSO(shotputPath, "Gem_Shotput_Monocle", "단안경", "5칸을 기준으로 역순. 즉 자기 발밑에 던지면 피해량이 최대(50%), 멀어질수록 감소", GemUniqueType.Monocle, SynergyCategory.Common, GemSynergyGroup.Shotput, 1);
+        CreateGemSO(shotputPath, "Gem_Shotput_Monocle", "단안경", "5칸을 기준으로 역순. 즉 자기 발밑에 던지면 투척 효율이 최대(50%) 증가하며, 멀어질수록 감소합니다.", GemUniqueType.Monocle, SynergyCategory.Common, GemSynergyGroup.Shotput, 0);
 
         // --- 큰손 보석 ---
         string bigHandPath = "Assets/SOData/Rewards/Gems/BigHand";

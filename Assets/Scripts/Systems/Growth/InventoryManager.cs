@@ -78,7 +78,7 @@ public class InventoryManager : MonoBehaviour
         public float HealthBonus = 0f;
         public float AttackSpeedBonus = 0f;
         public float RespawnTimeBonus = 0f;
-        public float ParabolicDamageMultiplierBonus = 0f;
+        public float ParabolicEffectMultiplierBonus = 0f;
         public float ParabolicFlightTimeMultiplierBonus = 0f;
         
         // [신규] 속성 및 특수 효과 합산
@@ -100,7 +100,7 @@ public class InventoryManager : MonoBehaviour
             HealthBonus = 0f;
             AttackSpeedBonus = 0f;
             RespawnTimeBonus = 0f;
-            ParabolicDamageMultiplierBonus = 0f;
+            ParabolicEffectMultiplierBonus = 0f;
             ParabolicFlightTimeMultiplierBonus = 0f;
             WeaponAttributes.Clear();
             HandAttributes.Clear();
@@ -405,7 +405,7 @@ public class InventoryManager : MonoBehaviour
             case StatType.Health: targetStats.HealthBonus += modifier.Value; break;
             case StatType.AttackSpeed: targetStats.AttackSpeedBonus += modifier.Value; break;
             case StatType.RespawnTime: targetStats.RespawnTimeBonus += modifier.Value; break;
-            case StatType.ParabolicDamageMultiplier: targetStats.ParabolicDamageMultiplierBonus += modifier.Value; break;
+            case StatType.ParabolicEffectMultiplier: targetStats.ParabolicEffectMultiplierBonus += modifier.Value; break;
             case StatType.ParabolicFlightTimeMultiplier: targetStats.ParabolicFlightTimeMultiplierBonus += modifier.Value; break;
             default: break;
         }
@@ -457,7 +457,7 @@ public class InventoryManager : MonoBehaviour
             case StatType.Health: return _globalGemStats.HealthBonus;
             case StatType.AttackSpeed: return _globalGemStats.AttackSpeedBonus;
             case StatType.RespawnTime: return _globalGemStats.RespawnTimeBonus;
-            case StatType.ParabolicDamageMultiplier: return _globalGemStats.ParabolicDamageMultiplierBonus;
+            case StatType.ParabolicEffectMultiplier: return _globalGemStats.ParabolicEffectMultiplierBonus;
             case StatType.ParabolicFlightTimeMultiplier: return _globalGemStats.ParabolicFlightTimeMultiplierBonus;
             default: return 0f;
         }

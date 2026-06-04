@@ -34,19 +34,11 @@ public class ThrowStrategy : MonoBehaviour
 
         if (targetType == CommandData.SkeletonMagician && heldObjects.Count == 0) return false;
 
-        bool hasWarrior = false;
-        bool hasArcher = false;
-
         foreach (var held in heldObjects)
         {
             CommandData heldType = held.MinionType;
-            if (heldType == CommandData.SkeletonWarrior) hasWarrior = true;
-            else if (heldType == CommandData.SkeletonArcher) hasArcher = true;
             if (heldType == targetType) return false;
         }
-
-        if (targetType == CommandData.SkeletonWarrior && hasArcher) return false;
-        if (targetType == CommandData.SkeletonArcher && hasWarrior) return false;
 
         return true;
     }
@@ -55,35 +47,28 @@ public class ThrowStrategy : MonoBehaviour
     {
         if (heldObjects.Count == 0) return TargetingMode.Self;
 
-        // 상자가 있으면 Warrior와 동일하게 단일 타겟팅(Target) 모드로 설정
-        foreach (var obj in heldObjects) if (obj.MinionType == CommandData.None) return TargetingMode.Target;
-
-        // 우선순위: Archer(Area) > Warrior(Target) > 기타(Spearman 포함 - Self)
+        // 우선순위: Archer(Area) > 기타(모두 Target)
+        // Self 모드는 나중에 스페이스바로 처리하기 전까지 기본 투척에서는 제거됨
         foreach (var obj in heldObjects) if (obj.MinionType == CommandData.SkeletonArcher) return TargetingMode.Area;
-        foreach (var obj in heldObjects) if (obj.MinionType == CommandData.SkeletonWarrior) return TargetingMode.Target;
-
-        return TargetingMode.Self;
+        
+        return TargetingMode.Target;
     }
 
     public Team GetExpectedTargetTeam(List<IThrowable> heldObjects)
     {
         if (heldObjects.Count == 0) return Team.Enemy;
 
-        bool hasWarrior = false;
-        bool hasShield = false;
-        bool hasOthers = false;
+        // 상자는 적에게 던짐
+        foreach (var obj in heldObjects) if (obj.MinionType == CommandData.None) return Team.Enemy;
 
-        foreach (var obj in heldObjects)
+        // 방패병 혼자 던질 때만 아군 타겟팅
+        if (heldObjects.Count == 1 && heldObjects[0].MinionType == CommandData.SkeletonShieldbearer)
         {
-            CommandData type = obj.MinionType;
-            if (type == CommandData.None) return Team.Enemy; // 상자는 적에게 던짐
-            if (type == CommandData.SkeletonWarrior) hasWarrior = true;
-            else if (type == CommandData.SkeletonShieldbearer) hasShield = true;
-            else if (type == CommandData.SkeletonMagician) { /* 팀 결정에 영향 없음 */ }
-            else hasOthers = true;
+            return Team.Ally;
         }
 
-        return (hasWarrior && hasShield && !hasOthers) ? Team.Ally : Team.Enemy;
+        // 그 외 단일/콤보 투척은 모두 적군 타겟팅
+        return Team.Enemy;
     }
 
     public ThrowRecipe CreateRecipe(Vector2 targetPos, float chargeRatio, List<IThrowable> heldObjects)
@@ -137,11 +122,8 @@ public class ThrowStrategy : MonoBehaviour
         // 주력 유닛(전사/궁수)이 없거나 Self 모드인 경우, 섞인 유닛 중 가장 첫 번째 유닛의 배율을 기저 배율로 사용
         if (leadUnit == null && heldObjects.Count > 0) leadUnit = heldObjects[0];
 
-        // [수정] 주력 유닛의 배율을 기저 배율로 사용하되, 상자(None)와 같이 데이터가 없는 경우 1.0을 기본값으로 함
-        recipe.modifiers.modeMultiplier = (leadUnit != null && leadUnit.MinionData != null) ? leadUnit.MinionData.effectMultiplier : 1.0f;
-
         // 최종 배율 계산 (나중에 보정치 적용을 위해 미리 계산)
-        float totalMultiplier = recipe.modifiers.modeMultiplier * recipe.modifiers.chargeMultiplier * 
+        float totalMultiplier = recipe.modifiers.chargeMultiplier * 
                                 recipe.modifiers.treasurePowerMultiplier * recipe.modifiers.abilityMultiplier;
                                 
         float gemEffectBonus = 0f;
@@ -149,7 +131,7 @@ public class ThrowStrategy : MonoBehaviour
                                 
         if (!isDirect && InventoryManager.Instance != null)
         {
-            gemDamageBonus += InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicDamageMultiplier);
+            gemEffectBonus += InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicEffectMultiplier);
             Vector2 playerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position;
             float dist = Vector2.Distance(playerPos, targetPos);
             
@@ -163,14 +145,14 @@ public class ThrowStrategy : MonoBehaviour
             int ballisticsCount = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.Ballistics);
             if (ballisticsCount > 0)
             {
-                gemDamageBonus += (dist * 0.10f * ballisticsCount);
+                gemEffectBonus += (dist * 0.10f * ballisticsCount);
             }
 
             // [단안경] (On/Off형 효과) 거리 5칸을 기준으로 가까울수록 10%씩 증가 (최대 50%)
             if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Monocle))
             {
                 float monocleBonus = Mathf.Max(0f, 5f - dist) * 0.10f;
-                gemDamageBonus += monocleBonus;
+                gemEffectBonus += monocleBonus;
             }
 
             // [시너지] 투포환 (2) / (4) 세트 효과 - 포물선 투척 효율 25% / 50% 증가
@@ -204,16 +186,27 @@ public class ThrowStrategy : MonoBehaviour
         // 스택 등을 계산할 때 쓰이는 totalMultiplier에 전체 효율을 곱해줌
         totalMultiplier *= recipe.modifiers.gemPowerMultiplier;
 
+        // [신규] 플레이어 기본 데미지 할당
+        if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        {
+            recipe.modifiers.baseDamage = GameManager.Instance.PLAYERCONTROLLER.Stat.BASE_THROW_DAMAGE;
+        }
+
+        // [신규] 타격을 담당하는 공통 액션 추가
+        recipe.actions.Add(new BaseDamageAction());
+
         foreach (var obj in heldObjects)
         {
             CommandData type = obj.MinionType;
             
-            // [수정] 상자(None)인 경우 ThrowableBox의 데미지 설정을 가져와 전사 액션 추가
+            // [수정] 상자(None)인 경우 ThrowableBox의 데미지 설정을 가져와 보너스 데미지에 가산
             if (type == CommandData.None)
             {
                 float boxDmg = 1.0f;
                 if (obj is ThrowableBox box) boxDmg = box.DamageAmount;
-                recipe.actions.Add(new WarriorAction(boxDmg));
+                recipe.modifiers.bonusDamage += boxDmg;
+                // 단일 타겟 시 시각/이벤트를 위한 더미 전사 액션
+                if (recipe.info.targetingMode != TargetingMode.Area) recipe.actions.Add(new WarriorAction(0f));
                 continue;
             }
 
@@ -244,14 +237,15 @@ public class ThrowStrategy : MonoBehaviour
             switch (type)
             {
                 case CommandData.SkeletonWarrior:
-                    // 전사: 보석 보너스를 데미지 고정치로 가산 (baseVal + 보너스)
+                    // 전사: 보석 보너스를 데미지 고정치로 가산하여 recipe.bonusDamage에 누적
                     float finalWarriorDmg = baseVal + gemBonus;
-                    if (recipe.info.targetingMode != TargetingMode.Area) recipe.actions.Add(new WarriorAction(finalWarriorDmg));
+                    recipe.modifiers.bonusDamage += finalWarriorDmg;
+                    if (recipe.info.targetingMode != TargetingMode.Area) recipe.actions.Add(new WarriorAction(0f));
                     break;
 
                 case CommandData.SkeletonArcher: 
                     // 궁수: 보석 보너스는 범위(Radius) 고정 가산치로 적용
-                    float finalRadius = obj.MinionData.baseAreaRadius + gemBonus;
+                    float finalRadius = baseVal + gemBonus;
                     
                     if (InventoryManager.Instance != null)
                     {
@@ -264,7 +258,7 @@ public class ThrowStrategy : MonoBehaviour
                         finalRadius *= radiusMult;
                     }
 
-                    recipe.actions.Add(new ArcherAction(baseVal, finalRadius));
+                    recipe.actions.Add(new ArcherAction(finalRadius));
                     break;
 
                 case CommandData.SkeletonPriest: 

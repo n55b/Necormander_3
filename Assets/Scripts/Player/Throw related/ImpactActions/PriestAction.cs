@@ -15,7 +15,7 @@ public class PriestAction : ImpactAction
         if (target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
         {
             // 기존 기본 슬로우 유지
-            float slowAmount = recipe.GetScaledValue(ccPower);
+            float slowAmount = recipe.GetScaledEffectValue(ccPower);
             float duration = 5.0f;
             entity.Stats.Status.ApplySlow("ThrowCC", slowAmount, duration);
 
@@ -24,7 +24,7 @@ public class PriestAction : ImpactAction
             if (inven != null)
             {
                 // 기본 1스택에 대해 풀차지/조합(multiplierBonus 등) 배율 적용
-                float scaledStacks = recipe.GetScaledValue(1.0f);
+                float scaledStacks = recipe.GetScaledEffectValue(1.0f);
 
                 // 2개 시너지 (Level 1) 이상일 때 사제 발현
                 if (GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Priest_Chill)) >= 1)
