@@ -152,6 +152,28 @@ public class ThrowController : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.OnGemTreeUpdated += RefreshThrowInfo;
+        }
+        RefreshThrowInfo();
+    }
+
+    private void OnDestroy()
+    {
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.OnGemTreeUpdated -= RefreshThrowInfo;
+        }
+    }
+
+    private void RefreshThrowInfo()
+    {
+        Panel_ThrowInformation.Instance?.Refresh(MaxHoldCount, _heldObjects);
+    }
+
     private void LateUpdate()
     {
         if (_activeCluster != null && _activeCluster.transform.parent == holdPoint)
@@ -275,6 +297,7 @@ public class ThrowController : MonoBehaviour
         ThrowCluster cluster = GetActiveClusterOrCreate();
         cluster.Setup(_heldObjects);
         if (trajectoryPredictor != null) trajectoryPredictor.ShowGuide();
+        RefreshThrowInfo();
     }
 
     private void PerformPickUp(IThrowable throwable, GameObject obj)
@@ -289,6 +312,8 @@ public class ThrowController : MonoBehaviour
 
         // [추가] 카메라 조준 상태 활성화
         if (CameraTargetController.Instance != null) CameraTargetController.Instance.SetAiming(true);
+
+        RefreshThrowInfo();
     }
 
     private ThrowCluster GetActiveClusterOrCreate()
@@ -418,6 +443,7 @@ public class ThrowController : MonoBehaviour
 
         _heldObjects.Clear();
         _input.ResetCharging();
+        RefreshThrowInfo();
     }
 
     public void DropAll()
@@ -452,6 +478,7 @@ public class ThrowController : MonoBehaviour
         _heldObjects.Clear();
         if (_input != null) _input.ResetCharging();
         if (trajectoryPredictor != null) trajectoryPredictor.HideGuide();
+        RefreshThrowInfo();
     }
 
     public void ForceClear()
@@ -469,6 +496,7 @@ public class ThrowController : MonoBehaviour
         }
 
         if (trajectoryPredictor != null) trajectoryPredictor.HideGuide();
+        RefreshThrowInfo();
     }
 
     private void OnDrawGizmosSelected() { Gizmos.color = Color.yellow; Gizmos.DrawWireSphere(transform.position, 2.0f); }
