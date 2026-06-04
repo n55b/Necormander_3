@@ -14,7 +14,7 @@ public class WarriorAction : ImpactAction
     {
         if (target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
         {
-            float finalDamage = recipe.GetScaledValue(damage);
+            float finalDamage = recipe.GetScaledDamage(damage);
             float radius = 0f;
 
             ThrowEventBus.TriggerThrowImpactBeforeDamage(CommandData.SkeletonWarrior, this, impactPos, ref finalDamage, ref radius, target);

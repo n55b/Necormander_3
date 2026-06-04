@@ -1,124 +1,14 @@
 {
     "items": [
         {
-            "key": "Gem_BigHand_Afterimage_Name",
-            "englishText": "Afterimage",
-            "koreanText": "잔상"
-        },
-        {
-            "key": "Gem_BigHand_Afterimage_Desc",
-            "englishText": "Throwing the exact same combination of minions (same type, count, and order) in succession amplifies their throw effect by 150%.",
-            "koreanText": "바로 직전의 소환수 조합(타입, 개수, 순서가 동일)을 똑같이 연속해서 던질 시, 해당 조합의 투척 효율 150% 증폭"
-        },
-        {
-            "key": "Gem_BigHand_AllMine_Name",
-            "englishText": "All Mine",
-            "koreanText": "다 내꺼야"
-        },
-        {
             "key": "Gem_BigHand_AllMine_Desc",
-            "englishText": "Increases minion grab radius by 1.",
-            "koreanText": "소환수 집기 범위가 1칸 증가"
-        },
-        {
-            "key": "Gem_BigHand_DemonHandPower_Name",
-            "englishText": "Demon Hand Power",
-            "koreanText": "귀수의 힘"
-        },
-        {
-            "key": "Gem_BigHand_DemonHandPower_Desc",
-            "englishText": "Increases minion grab radius by 0.5.",
-            "koreanText": "집을 수 있는 소환수 범위 0.5칸 증가"
-        },
-        {
-            "key": "Gem_BigHand_Golemizing_Name",
-            "englishText": "Golemizing",
-            "koreanText": "골레마이징"
-        },
-        {
-            "key": "Gem_BigHand_Golemizing_Desc",
-            "englishText": "When thrown as a combination, the first 5 minions merge into a giant Golem for a set duration. The Golem possesses the combined stats of all 5 minions.",
-            "koreanText": "조합 투척 시, 앞의 5명의 소환수가 일정 시간동안 골렘으로 합체합니다. 능력치는 5마리를 합한 것과 같고 매우 거대해집니다."
-        },
-        {
-            "key": "Gem_BigHand_HumanWaveTactics_Name",
-            "englishText": "Human Wave Tactics",
-            "koreanText": "인해전술"
-        },
-        {
-            "key": "Gem_BigHand_HumanWaveTactics_Desc",
-            "englishText": "Throwing 3 or more minions increases the throw effect by 7% per minion.",
-            "koreanText": "3명 이상 투척 시 1명당 투척 효율 7% 증가"
-        },
-        {
-            "key": "Gem_BigHand_MobMentality_Name",
-            "englishText": "Mob Mentality",
-            "koreanText": "군중심리"
-        },
-        {
-            "key": "Gem_BigHand_MobMentality_Desc",
-            "englishText": "Increases player movement speed by 0.1 for each minion within grab radius.",
-            "koreanText": "소환수 집기 범위 내 소환수가 많을 경우 1명당 플레이어 이동속도 0.1증가"
-        },
-        {
-            "key": "Gem_BigHand_SwiftRelocation_Name",
-            "englishText": "Swift Relocation",
-            "koreanText": "신속한 재배치"
-        },
-        {
-            "key": "Gem_BigHand_SwiftRelocation_Desc",
-            "englishText": "Throwing 3 or more minions increases their movement speed by 50% for 5 seconds.",
-            "koreanText": "3명 이상 투척 시 사용된 소환수들의 이동 속도가 5초간 50% 증가"
-        },
-        {
-            "key": "Gem_BigHand_TwinFusion_Name",
-            "englishText": "Twin Fusion",
-            "koreanText": "쌍둥이 연성"
-        },
-        {
-            "key": "Gem_BigHand_TwinFusion_Desc",
-            "englishText": "When thrown as a combination, the first 2 minions merge into a Twin for 10 seconds. The Twin possesses the combined stats of both minions. Upon destruction or timeout, they split out at half health ratio.",
-            "koreanText": "조합 투척 시 앞 큐의 2명의 소환수가 10초동안 합체합니다. 합체한 소환수의 능력치는 2명의 소환수를 합한 것과 같습니다. 시간이 지나거나 파괴되면, 소환수들이 반피 비율로 튀어 나옵니다."
-        },
-        {
-            "key": "UniqueEffect_DemonHandPower",
-            "englishText": "Demon Hand Power",
-            "koreanText": "귀수의 힘"
-        },
-        {
-            "key": "UniqueEffect_HumanWaveTactics",
-            "englishText": "Human Wave Tactics",
-            "koreanText": "인해전술"
-        },
-        {
-            "key": "UniqueEffect_TwinFusion",
-            "englishText": "Twin Fusion",
-            "koreanText": "쌍둥이 연성"
-        },
-        {
-            "key": "UniqueEffect_MobMentality",
-            "englishText": "Mob Mentality",
-            "koreanText": "군중심리"
-        },
-        {
-            "key": "UniqueEffect_SwiftRelocation",
-            "englishText": "Swift Relocation",
-            "koreanText": "신속한 재배치"
-        },
-        {
-            "key": "UniqueEffect_Afterimage",
-            "englishText": "Afterimage",
-            "koreanText": "잔상"
+            "englishText": "Increases grab range for each grabbed minion.",
+            "koreanText": "소환수 1마리를 집을 때 마다 집을 수 있는 소환수 범위 증가"
         },
         {
             "key": "UniqueEffect_AllMine",
-            "englishText": "All Mine",
-            "koreanText": "다 내꺼야"
-        },
-        {
-            "key": "UniqueEffect_Golemizing",
-            "englishText": "Golemizing",
-            "koreanText": "골레마이징"
+            "englishText": "Increases grab range for each grabbed minion.",
+            "koreanText": "소환수 1마리를 집을 때 마다 집을 수 있는 소환수 범위 증가"
         }
     ]
 }

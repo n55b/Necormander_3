@@ -98,7 +98,7 @@ public class TextFloating : MonoBehaviour
         if (timer <= 0)
         {
             target = null;
-            OnDisable();
+            gameObject.SetActive(false);
         }
     }
 

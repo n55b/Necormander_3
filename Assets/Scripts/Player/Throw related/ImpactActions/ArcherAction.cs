@@ -14,7 +14,7 @@ public class ArcherAction : ImpactAction
     {
         if (recipe.info.targetingMode == TargetingMode.Area && target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
         {
-            float finalDamage = recipe.GetScaledValue(damage);
+            float finalDamage = recipe.GetScaledDamage(damage);
             float currentRadius = radius;
 
             ThrowEventBus.TriggerThrowImpactBeforeDamage(CommandData.SkeletonArcher, this, impactPos, ref finalDamage, ref currentRadius, target);

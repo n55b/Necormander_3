@@ -63,6 +63,22 @@ public static class GemHandlerRegistry
         RegisterHandlerFactory(GemUniqueType.MagicPitchArirangBall, () => new MagicPitchArirangBallHandler());
         RegisterHandlerFactory(GemUniqueType.Closer, () => new CloserHandler());
         RegisterHandlerFactory(GemUniqueType.ExperiencedPitcher, () => new ExperiencedPitcherHandler());
+
+        // 투포환 보석
+        RegisterHandlerFactory(GemUniqueType.SiegeMode, () => new SiegeModeHandler());
+        RegisterHandlerFactory(GemUniqueType.JustThrowIt, () => new EmptyGemHandler(GemUniqueType.JustThrowIt));
+        RegisterHandlerFactory(GemUniqueType.Ballistics, () => new EmptyGemHandler(GemUniqueType.Ballistics));
+        RegisterHandlerFactory(GemUniqueType.Monocle, () => new EmptyGemHandler(GemUniqueType.Monocle));
+
+        // 큰손 보석
+        RegisterHandlerFactory(GemUniqueType.DemonHandPower, () => new EmptyGemHandler(GemUniqueType.DemonHandPower));
+        RegisterHandlerFactory(GemUniqueType.HumanWaveTactics, () => new EmptyGemHandler(GemUniqueType.HumanWaveTactics));
+        RegisterHandlerFactory(GemUniqueType.TwinFusion, () => new EmptyGemHandler(GemUniqueType.TwinFusion));
+        RegisterHandlerFactory(GemUniqueType.MobMentality, () => new EmptyGemHandler(GemUniqueType.MobMentality));
+        RegisterHandlerFactory(GemUniqueType.SwiftRelocation, () => new EmptyGemHandler(GemUniqueType.SwiftRelocation));
+        RegisterHandlerFactory(GemUniqueType.Afterimage, () => new EmptyGemHandler(GemUniqueType.Afterimage));
+        RegisterHandlerFactory(GemUniqueType.AllMine, () => new EmptyGemHandler(GemUniqueType.AllMine));
+        RegisterHandlerFactory(GemUniqueType.Golemizing, () => new EmptyGemHandler(GemUniqueType.Golemizing));
     }
 
     /// <summary>

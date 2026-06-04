@@ -55,7 +55,7 @@ public class GemGeneratorWindow
         CreateGemSO(bigHandPath, "Gem_BigHand_MobMentality", "군중심리", "소환수 집기 범위 내 소환수가 많을 경우 1명당 플레이어 이동속도 0.1증가", GemUniqueType.MobMentality, SynergyCategory.Common, GemSynergyGroup.BigHand, 1);
         CreateGemSO(bigHandPath, "Gem_BigHand_SwiftRelocation", "신속한 재배치", "3명 이상 투척 시 사용된 소환수들의 이동 속도가 5초간 50% 증가", GemUniqueType.SwiftRelocation, SynergyCategory.Common, GemSynergyGroup.BigHand, 1);
         CreateGemSO(bigHandPath, "Gem_BigHand_Afterimage", "잔상", "바로 직전의 소환수 조합(타입, 개수, 순서가 동일)을 똑같이 연속해서 던질 시, 해당 조합의 투척 효율 150% 증폭", GemUniqueType.Afterimage, SynergyCategory.Common, GemSynergyGroup.BigHand, 1);
-        CreateGemSO(bigHandPath, "Gem_BigHand_AllMine", "다 내꺼야", "소환수 집기 범위가 1칸 증가", GemUniqueType.AllMine, SynergyCategory.Common, GemSynergyGroup.BigHand, 0);
+        CreateGemSO(bigHandPath, "Gem_BigHand_AllMine", "다 내꺼야", "소환수 1마리를 집을 때 마다 집을 수 있는 소환수 범위 증가", GemUniqueType.AllMine, SynergyCategory.Common, GemSynergyGroup.BigHand, 1);
         CreateGemSO(bigHandPath, "Gem_BigHand_Golemizing", "골레마이징", "조합 투척 시, 앞의 5명의 소환수가 일정 시간동안 골렘으로 합체합니다. 능력치는 5마리를 합한 것과 같고 매우 거대해집니다.", GemUniqueType.Golemizing, SynergyCategory.Common, GemSynergyGroup.BigHand, 0);
 
         AssetDatabase.SaveAssets();
@@ -122,7 +122,21 @@ public class GemGeneratorWindow
         }
         else
         {
-            // 이미 존재하는 경우, 스크립트 연결이나 기타 메타데이터만 갱신 (내용은 건드리지 않음)
+            // 이미 존재하는 경우에도 기획 변경(설명, 노드 수 등 밸런스와 무관한 구조적 데이터)은 갱신해줍니다.
+            gem.description = desc;
+            gem.subSlots = subSlots;
+            
+            // UniqueEffect의 설명 텍스트도 같이 갱신
+            if (gem.effects != null)
+            {
+                foreach(var effect in gem.effects)
+                {
+                    if (effect is GemUniqueEffect uniqueEffect && uniqueEffect.uniqueType == uniqueType)
+                    {
+                        uniqueEffect.displayDescription = desc;
+                    }
+                }
+            }
             EditorUtility.SetDirty(gem);
         }
     }

@@ -6,14 +6,28 @@ public class WorldHPBar : MonoBehaviour
     [SerializeField] CharacterStat stats;
     [SerializeField] private Image hpBar;
 
-    private void Start()
+    private void OnEnable()
     {
-        stats.Health.UpdateHPBar += HPBarUpdate;
+        if (stats != null)
+        {
+            if (stats.Health == null)
+            {
+                stats.Setup();
+            }
+            if (stats.Health != null)
+            {
+                stats.Health.UpdateHPBar += HPBarUpdate;
+                HPBarUpdate(); // 활성화 시 즉시 갱신
+            }
+        }
     }
 
     private void OnDisable()
     {
-        stats.Health.UpdateHPBar -= HPBarUpdate;
+        if (stats != null && stats.Health != null)
+        {
+            stats.Health.UpdateHPBar -= HPBarUpdate;
+        }
     }
 
     private void LateUpdate()

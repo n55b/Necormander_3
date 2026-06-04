@@ -144,9 +144,12 @@ public class ThrowStrategy : MonoBehaviour
         float totalMultiplier = recipe.modifiers.modeMultiplier * recipe.modifiers.chargeMultiplier * 
                                 recipe.modifiers.treasurePowerMultiplier * recipe.modifiers.abilityMultiplier;
                                 
+        float gemEffectBonus = 0f;
+        float gemDamageBonus = 0f;
+                                
         if (!isDirect && InventoryManager.Instance != null)
         {
-            float parabolicDmgBonus = InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicDamageMultiplier);
+            gemDamageBonus += InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicDamageMultiplier);
             Vector2 playerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position;
             float dist = Vector2.Distance(playerPos, targetPos);
             
@@ -154,48 +157,52 @@ public class ThrowStrategy : MonoBehaviour
             // 1칸부터 5%씩 감소하여 최소 60%(-40%)까지 적용
             float distancePenalty = -0.05f * Mathf.Max(0f, Mathf.Floor(dist));
             distancePenalty = Mathf.Max(-0.40f, distancePenalty);
-            parabolicDmgBonus += distancePenalty;
+            gemDamageBonus += distancePenalty;
 
             // [탄도학] 거리 1마다 10% 증가 * 보유 개수
             int ballisticsCount = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.Ballistics);
             if (ballisticsCount > 0)
             {
-                parabolicDmgBonus += (dist * 0.10f * ballisticsCount);
+                gemDamageBonus += (dist * 0.10f * ballisticsCount);
             }
 
             // [단안경] (On/Off형 효과) 거리 5칸을 기준으로 가까울수록 10%씩 증가 (최대 50%)
             if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Monocle))
             {
                 float monocleBonus = Mathf.Max(0f, 5f - dist) * 0.10f;
-                parabolicDmgBonus += monocleBonus;
+                gemDamageBonus += monocleBonus;
             }
 
             // [시너지] 투포환 (2) / (4) 세트 효과 - 포물선 투척 효율 25% / 50% 증가
             int shotputGems = InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.Shotput);
-            if (shotputGems >= 4) parabolicDmgBonus += 0.50f;
-            else if (shotputGems >= 2) parabolicDmgBonus += 0.25f;
+            if (shotputGems >= 4) gemEffectBonus += 0.50f;
+            else if (shotputGems >= 2) gemEffectBonus += 0.25f;
 
             // [인해전술] 3명 이상 투척 시 1명당 7% 효율 증가
             if (InventoryManager.Instance.HasUniqueEffect(GemUniqueType.HumanWaveTactics))
             {
                 if (heldObjects.Count >= 3)
                 {
-                    parabolicDmgBonus += (heldObjects.Count * 0.07f);
+                    gemEffectBonus += (heldObjects.Count * 0.07f);
                 }
             }
-
-            totalMultiplier *= (1f + parabolicDmgBonus);
         }
+
+        recipe.modifiers.gemPowerMultiplier = 1f + gemEffectBonus;
+        recipe.modifiers.gemDamageMultiplier = 1f + gemDamageBonus;
 
         // [잔상] 이전 조합과 완전히 일치하면 데미지 1.5배 (150% 증폭)
         if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Afterimage))
         {
             if (CheckAfterimageCombo(heldObjects))
             {
-                totalMultiplier *= 1.5f;
+                recipe.modifiers.gemPowerMultiplier *= 1.5f;
             }
         }
         SaveComboForAfterimage(heldObjects);
+
+        // 스택 등을 계산할 때 쓰이는 totalMultiplier에 전체 효율을 곱해줌
+        totalMultiplier *= recipe.modifiers.gemPowerMultiplier;
 
         foreach (var obj in heldObjects)
         {

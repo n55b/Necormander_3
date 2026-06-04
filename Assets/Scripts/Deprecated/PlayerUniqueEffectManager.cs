@@ -80,10 +80,11 @@ public class PlayerUniqueEffectManager : MonoBehaviour
             float radius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
             Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius, LayerMask.GetMask("Army", "Player"));
             
+            int armyLayer = LayerMask.NameToLayer("Army");
             int minionCount = 0;
             foreach (var col in colls)
             {
-                if (col.CompareTag("Army")) minionCount++;
+                if (col.gameObject.layer == armyLayer) minionCount++;
             }
 
             // 마리당 이속 0.1 증가 (기본 공식: 스택 * 0.1 * 마리수)

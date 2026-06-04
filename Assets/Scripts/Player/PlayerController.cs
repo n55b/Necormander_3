@@ -25,8 +25,14 @@ public class PlayerController : MonoBehaviour
             {
                 // [귀수의 힘] 0.5칸 증가 (스택 비례)
                 range += InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.DemonHandPower) * 0.5f;
-                // [다 내꺼야] 1칸 증가 (스택 비례)
-                range += InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.AllMine) * 1.0f;
+                // [다 내꺼야] 집어든 소환수 1마리당 기본 1칸 증가, 추가 노드당 0.4칸씩 추가 증가
+                int allMineLevel = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.AllMine);
+                if (allMineLevel > 0)
+                {
+                    float multiplierPerHeld = 1.0f + (allMineLevel - 1) * 0.4f;
+                    int heldCount = (throwController != null) ? throwController.HeldObjectsCount : 0;
+                    range += heldCount * multiplierPerHeld;
+                }
             }
             return range;
         } 
@@ -220,12 +226,14 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (_inputBlocked || (stat != null && stat.Health != null && stat.Health.IsDead)) return;
+        if (stat != null && stat.Health != null && stat.Health.IsDead) return;
 
         if (activeSkillManager != null)
         {
             activeSkillManager.CheckInput();
         }
+
+        if (_inputBlocked) return;
 
         MoveDirection = moveInput;
 
@@ -279,13 +287,7 @@ public class PlayerController : MonoBehaviour
         // 사망 시 조종 불가
         if (stat.Health.IsDead) return;
 
-        // 차징 중 이동속도 페널티 적용 (기본 50% 감소)
         float currentSpeed = stat.MOVESPEED;
-        
-        if (TryGetComponent<PlayerUniqueEffectManager>(out var uem))
-        {
-            currentSpeed += uem.MobMentalitySpeedBonus;
-        }
 
         if (throwController != null && throwController.IsCharging)
         {
@@ -378,7 +380,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnThrow(InputAction.CallbackContext context)
     {
-        if (_inputBlocked || stat.Health.IsDead) return;
+        if (stat.Health.IsDead) return;
 
         if (activeSkillManager != null)
         {
@@ -388,6 +390,8 @@ public class PlayerController : MonoBehaviour
                 return; // 시즈 모드 등이 켜져 있으면 투척 이벤트를 완전히 삼킴
             }
         }
+
+        if (_inputBlocked) return;
 
         if (throwController != null)
         {
