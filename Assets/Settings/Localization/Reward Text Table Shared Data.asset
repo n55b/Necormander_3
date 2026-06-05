@@ -831,6 +831,22 @@ MonoBehaviour:
     m_Key: UniqueEffect_Golemizing
     m_Metadata:
       m_Items: []
+  - m_Id: 261573782245376
+    m_Key: Synergy_Shotput_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 261573794828288
+    m_Key: Synergy_Shotput_Lv2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 261573794828289
+    m_Key: Synergy_BigHand_Lv1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 261573794828290
+    m_Key: Synergy_BigHand_Lv2
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

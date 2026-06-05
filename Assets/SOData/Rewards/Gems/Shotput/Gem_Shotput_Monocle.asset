@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: "\uB2E8\uC548\uACBD"
   description: "5\uCE78\uC744 \uAE30\uC900\uC73C\uB85C \uC5ED\uC21C. \uC989 \uC790\uAE30
-    \uBC1C\uBC11\uC5D0 \uB358\uC9C0\uBA74 \uD53C\uD574\uB7C9\uC774 \uCD5C\uB300(50%),
-    \uBA40\uC5B4\uC9C8\uC218\uB85D \uAC10\uC18C"
+    \uBC1C\uBC11\uC5D0 \uB358\uC9C0\uBA74 \uD22C\uCC99 \uD6A8\uC728\uC774 \uCD5C\uB300(50%)
+    \uC99D\uAC00\uD558\uBA70, \uBA40\uC5B4\uC9C8\uC218\uB85D \uAC10\uC18C\uD569\uB2C8\uB2E4."
   localizedItemName:
     m_TableReference:
       m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
@@ -39,7 +39,7 @@ MonoBehaviour:
   shopCost: 320
   category: 0
   synergyGroup: 600
-  subSlots: 1
+  subSlots: 0
   eligibleJobs: -1
   effects:
   - rid: 6640442284343033951
@@ -51,5 +51,6 @@ MonoBehaviour:
       data:
         uniqueType: 253
         displayDescription: "5\uCE78\uC744 \uAE30\uC900\uC73C\uB85C \uC5ED\uC21C.
-          \uC989 \uC790\uAE30 \uBC1C\uBC11\uC5D0 \uB358\uC9C0\uBA74 \uD53C\uD574\uB7C9\uC774
-          \uCD5C\uB300(50%), \uBA40\uC5B4\uC9C8\uC218\uB85D \uAC10\uC18C"
+          \uC989 \uC790\uAE30 \uBC1C\uBC11\uC5D0 \uB358\uC9C0\uBA74 \uD22C\uCC99
+          \uD6A8\uC728\uC774 \uCD5C\uB300(50%) \uC99D\uAC00\uD558\uBA70, \uBA40\uC5B4\uC9C8\uC218\uB85D
+          \uAC10\uC18C\uD569\uB2C8\uB2E4."

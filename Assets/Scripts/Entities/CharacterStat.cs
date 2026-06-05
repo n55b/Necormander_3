@@ -17,6 +17,7 @@ public class CharacterStat : MonoBehaviour
     [SerializeField] private float baseMoveSpeed = 5f;
     [SerializeField] private float baseEvasion = 0f;
     [SerializeField] private float baseMissChance = 0f;
+    [SerializeField] private float baseThrowDamage = 5f; // [추가] 플레이어 기본 투척 데미지
 
     // 하위 컴포넌트 직접 노출 (Read-only Accessors)
     public CharacterStatus Status { get; private set; }
@@ -136,11 +137,15 @@ public class CharacterStat : MonoBehaviour
         }
     }
 
+    public float BaseMaxHP => baseMaxHP;
+    public float BaseAtk => baseAtk;
     public float ATKRANGE => baseAtkRange;
     public float DEF => baseDef;
     public float EVASION => baseEvasion;
 
     public float MISS_CHANCE => baseMissChance;
+    
+    public float BASE_THROW_DAMAGE => baseThrowDamage;
 
     // 이동 속도: 기본 속도 * 상태이상 배율 * (한기+노화 감소)
     public float MOVESPEED
@@ -154,8 +159,13 @@ public class CharacterStat : MonoBehaviour
             float agingReduction = GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Aging), IsEnemy);
 
             float reductionMult = Mathf.Max(0.1f, 1f - (chillReduction + agingReduction));
-            
             float finalSpeed = (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
+
+            if (_isPlayer)
+            {
+                var uem = GetComponentInParent<PlayerUniqueEffectManager>();
+                if (uem != null) finalSpeed += uem.MobMentalitySpeedBonus;
+            }
             
             float allyWillWindMult = 1f;
             if (_isAlly && ShieldbearerUniqueManager.IsWillWindActive) allyWillWindMult += 0.14f;
@@ -241,9 +251,9 @@ public class CharacterStat : MonoBehaviour
             return;
         }
 
-        // 3. 태그 및 레이어 기반 보조 확인
-        _isPlayer = CompareTag("Player") || gameObject.layer == LayerMask.NameToLayer("Player");
-        _isAlly = _isPlayer || CompareTag("Army") || gameObject.layer == LayerMask.NameToLayer("Army");
+        // 2. 플레이어 본체거나 군대(미니언) 태그/레이어인지 체크 (자식 오브젝트일 수 있으므로 root 태그도 확인)
+        _isPlayer = CompareTag("Player") || gameObject.layer == LayerMask.NameToLayer("Player") || transform.root.CompareTag("Player");
+        _isAlly = _isPlayer || CompareTag("Army") || gameObject.layer == LayerMask.NameToLayer("Army") || transform.root.CompareTag("Army");
     }
 
     // [중앙집집중형 초기화]
@@ -281,11 +291,13 @@ public class CharacterStat : MonoBehaviour
     /// <summary>
     /// 데이터(SO)로부터 수치를 주입받고 각 컴포넌트를 초기화합니다.
     /// </summary>
+    public bool IsFusion { get; set; } = false;
+
     public void InitializeStats(MinionDataSO data)
     {
         Setup();
 
-        if (data != null)
+        if (data != null && !IsFusion)
         {
             jobType = data.minionType; // 직업 정보 캐싱 (보석 계산용)
 
@@ -315,6 +327,16 @@ public class CharacterStat : MonoBehaviour
     public void SetBaseMoveSpeed(float speed)
     {
         baseMoveSpeed = speed;
+    }
+
+    public void OverrideBaseStats(float newMaxHP, float newAtk)
+    {
+        baseMaxHP = newMaxHP;
+        baseAtk = newAtk;
+        if (Health != null)
+        {
+            Health.ResetHP(); // MaxHP 변경 후 체력 가득 채우기 (융합체용)
+        }
     }
 
     /// <summary>

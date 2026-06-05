@@ -12,6 +12,9 @@ public class SiegeModeSkill : IActiveSkill
     private PlayerController _player;
     private float _lastUsedTime;
 
+    private GameObject _trajectoryObj;
+    private LineRenderer _lineRenderer;
+
     public void Initialize(PlayerController player)
     {
         _player = player;
@@ -28,6 +31,21 @@ public class SiegeModeSkill : IActiveSkill
         {
             CameraTargetController.Instance.SetAiming(true); // 시야 넓히기
         }
+        if (CameraManager.Instance != null)
+        {
+            CameraManager.Instance.SetZoom(true); // 줌아웃
+        }
+
+        _trajectoryObj = new GameObject("SiegeTrajectory");
+        _lineRenderer = _trajectoryObj.AddComponent<LineRenderer>();
+        _lineRenderer.startWidth = 0.05f;
+        _lineRenderer.endWidth = 0.05f;
+        _lineRenderer.positionCount = 50;
+        _lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        _lineRenderer.startColor = Color.red;
+        _lineRenderer.endColor = Color.red;
+        _lineRenderer.sortingOrder = 50;
+
         Debug.Log("<color=cyan>[SiegeMode]</color> 시즈 모드 활성화!");
     }
 
@@ -41,6 +59,16 @@ public class SiegeModeSkill : IActiveSkill
         {
             CameraTargetController.Instance.SetAiming(false);
         }
+        if (CameraManager.Instance != null)
+        {
+            CameraManager.Instance.SetZoom(false); // 줌복구
+        }
+
+        if (_trajectoryObj != null)
+        {
+            Object.Destroy(_trajectoryObj);
+        }
+
         Debug.Log("<color=cyan>[SiegeMode]</color> 시즈 모드 종료.");
     }
 
@@ -48,10 +76,31 @@ public class SiegeModeSkill : IActiveSkill
     {
         if (IsActive)
         {
-            // 탄약(소환수)이 0이 되면 자동 종료하는 로직 추가 필요
+            // 탄약(소환수)이 0이 되면 자동 종료
             if (GetAliveMinionCount() <= 0)
             {
                 OnDeactivate();
+                return;
+            }
+
+            if (_lineRenderer != null)
+            {
+                Vector2 startPos = _player.transform.position;
+                Vector2 targetPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                
+                int numPoints = 50;
+                float distance = Vector2.Distance(startPos, targetPos);
+                float maxHeight = Mathf.Min(distance * 0.5f, 3f); // 포물선 최대 높이
+
+                Vector3[] points = new Vector3[numPoints];
+                for (int i = 0; i < numPoints; i++)
+                {
+                    float t = i / (float)(numPoints - 1);
+                    Vector2 currentPos = Vector2.Lerp(startPos, targetPos, t);
+                    float height = 4f * maxHeight * t * (1f - t);
+                    points[i] = new Vector3(currentPos.x, currentPos.y + height, 0f);
+                }
+                _lineRenderer.SetPositions(points);
             }
         }
     }
@@ -67,7 +116,6 @@ public class SiegeModeSkill : IActiveSkill
 
     private int GetAliveMinionCount()
     {
-        // TODO: AllyManager에서 살아있는 소환수 개수 가져오기
         var allies = Object.FindObjectsByType<AllyController>(FindObjectsSortMode.None);
         int count = 0;
         foreach (var ally in allies)
@@ -82,12 +130,19 @@ public class SiegeModeSkill : IActiveSkill
     {
         var allies = Object.FindObjectsByType<AllyController>(FindObjectsSortMode.None);
         AllyController targetAmmo = null;
+        float minDistance = float.MaxValue;
+        Vector2 playerPos = _player.transform.position;
+
         foreach (var ally in allies)
         {
             if (ally.Stats != null && !ally.Stats.Health.IsDead && ally.MinionType != CommandData.None)
             {
-                targetAmmo = ally;
-                break;
+                float dist = Vector2.Distance(playerPos, ally.transform.position);
+                if (dist < minDistance)
+                {
+                    minDistance = dist;
+                    targetAmmo = ally;
+                }
             }
         }
 
@@ -97,20 +152,72 @@ public class SiegeModeSkill : IActiveSkill
             return;
         }
 
-        // 탄약 사망 처리 (고정 피해)
-        targetAmmo.Stats.Health.GetDamage(new DamageInfo(99999f, DamageType.Fixed, _player.gameObject));
-
-        // 포격체 생성 (투포환)
         Vector2 targetPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         
-        // TODO: 포격 프리팹 생성 및 폭발 로직 연결 (33% / 10% / 5% 로직 구현)
         GameManager.Instance.cameraManager.HitShakeCamera();
-        Debug.Log($"<color=red>[SiegeMode]</color> {targetPos} 위치로 포격 실시!");
         
-        // 여기에 타격 처리 (OverlapCircle)
+        // 미니언 시각 요소 복사 및 날아가기 연출 (플레이어 위치에서 시작)
+        SpriteRenderer sr = targetAmmo.GetComponentInChildren<SpriteRenderer>();
+        GameObject projObj = new GameObject("ArtilleryProjectile");
+        projObj.transform.position = _player.transform.position; // 플레이어에서 발사
+        if (sr != null)
+        {
+            SpriteRenderer newSr = projObj.AddComponent<SpriteRenderer>();
+            newSr.sprite = sr.sprite;
+            newSr.color = sr.color;
+            newSr.sortingOrder = 100;
+        }
+
+        var artillery = projObj.AddComponent<SiegeArtilleryProjectile>();
+        artillery.Initialize(targetPos, _player.gameObject);
+
+        // 탄약 즉시 사망 처리 (로직상 소비됨)
+        targetAmmo.Stats.Health.GetDamage(new DamageInfo(99999f, DamageType.Fixed, _player.gameObject));
+    }
+}
+
+public class SiegeArtilleryProjectile : MonoBehaviour
+{
+    private Vector2 _startPos;
+    private Vector2 _targetPos;
+    private GameObject _playerObj;
+    private float _time;
+    private float _duration = 0.5f;
+
+    public void Initialize(Vector2 targetPos, GameObject playerObj)
+    {
+        _startPos = transform.position;
+        _targetPos = targetPos;
+        _playerObj = playerObj;
+        _time = 0f;
+    }
+
+    private void Update()
+    {
+        _time += Time.deltaTime;
+        float t = Mathf.Clamp01(_time / _duration);
+        
+        // 포물선 궤적 (y축 높이 궤적 그리기와 동일하게 연산)
+        float distance = Vector2.Distance(_startPos, _targetPos);
+        float maxHeight = Mathf.Min(distance * 0.5f, 3f);
+        float height = 4f * maxHeight * t * (1f - t);
+
+        Vector2 currentPos = Vector2.Lerp(_startPos, _targetPos, t);
+        currentPos.y += height;
+
+        transform.position = currentPos;
+
+        if (t >= 1f)
+        {
+            Explode();
+        }
+    }
+
+    private void Explode()
+    {
         float explosionRadius = 3f;
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(targetPos, explosionRadius, LayerMask.GetMask("Enemy"));
-        foreach(var col in colliders)
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(_targetPos, explosionRadius, LayerMask.GetMask("Enemy"));
+        foreach (var col in colliders)
         {
             if (col.TryGetComponent<EnemyController>(out var enemy))
             {
@@ -119,12 +226,13 @@ public class SiegeModeSkill : IActiveSkill
                     float maxHp = enemy.Stats.Health.MaxHP;
                     float damagePercent = 0.33f;
                     if (enemy.MinionData != null && enemy.MinionData.isElite) damagePercent = 0.10f;
-                    // 보스 구분 플래그가 없으므로 엘리트와 동일하게 취급
 
                     float damage = maxHp * damagePercent;
-                    enemy.Stats.Health.GetDamage(new DamageInfo(damage, DamageType.Fixed, _player.gameObject));
+                    enemy.Stats.Health.GetDamage(new DamageInfo(damage, DamageType.Fixed, _playerObj));
                 }
             }
         }
+        
+        Destroy(gameObject);
     }
 }

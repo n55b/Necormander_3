@@ -712,7 +712,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 71717613441024
-    m_Localized: Damage increases by 10% per 1 grid distance.
+    m_Localized: Throw efficiency increases by 10% for every 1 unit of distance.
     m_Metadata:
       m_Items: []
   - m_Id: 71717613441025
@@ -737,8 +737,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 71717613441030
-    m_Localized: Damage is maximized (50%) when thrown right at your feet and decreases
-      as distance increases (based on 5 grids).
+    m_Localized: Based on 5 units distance. Max throw efficiency (+50%) at your feet,
+      decreases as distance increases.
     m_Metadata:
       m_Items: []
   - m_Id: 71717613441031
@@ -746,7 +746,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 71717613441032
-    m_Localized: Increases the damage of parabolic throws.
+    m_Localized: Increases throw efficiency when using a parabolic throw.
     m_Metadata:
       m_Items: []
   - m_Id: 71717613441033
@@ -766,7 +766,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 71717613441036
-    m_Localized: Damage increases by 10% per 1 grid distance.
+    m_Localized: Throw efficiency increases by 10% for every 1 unit of distance.
     m_Metadata:
       m_Items: []
   - m_Id: 71717613441037
@@ -777,8 +777,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 71717613441038
-    m_Localized: Damage is maximized (50%) when thrown right at your feet and decreases
-      as distance increases (based on 5 grids).
+    m_Localized: Based on 5 units distance. Max throw efficiency (+50%) at your feet,
+      decreases as distance increases.
     m_Metadata:
       m_Items: []
   - m_Id: 98372570550272
@@ -795,7 +795,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 98372578938882
-    m_Localized: Increases minion grab radius by 1.
+    m_Localized: Increases grab range for each grabbed minion.
     m_Metadata:
       m_Items: []
   - m_Id: 98372578938883
@@ -877,11 +877,28 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 98372578938901
-    m_Localized: All Mine
+    m_Localized: Increases grab range for each grabbed minion.
     m_Metadata:
       m_Items: []
   - m_Id: 98372578938902
     m_Localized: Golemizing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 261573782245376
+    m_Localized: Increases parabolic throw effect by 25%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 261573794828288
+    m_Localized: Increases parabolic throw effect by 50%.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 261573794828289
+    m_Localized: Prevents dropping grabbed minions when taking damage. Increases
+      Max Hold Count by 1.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 261573794828290
+    m_Localized: Increases Max Hold Count by 3 (total).
     m_Metadata:
       m_Items: []
   references:

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Gem_Shotput_Ballistics
   m_EditorClassIdentifier: 
   itemName: "\uD0C4\uB3C4\uD559"
-  description: "\uAC70\uB9AC\uC5D0 \uBE44\uB840\uD558\uC5EC 1\uCE78\uB9C8\uB2E4 \uD53C\uD574\uB7C9
-    10% \uC99D\uAC00"
+  description: "\uAC70\uB9AC\uC5D0 \uBE44\uB840\uD558\uC5EC 1\uCE78\uB9C8\uB2E4 \uD22C\uCC99
+    \uD6A8\uC728 10% \uC99D\uAC00"
   localizedItemName:
     m_TableReference:
       m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
@@ -50,4 +50,4 @@ MonoBehaviour:
       data:
         uniqueType: 251
         displayDescription: "\uAC70\uB9AC\uC5D0 \uBE44\uB840\uD558\uC5EC 1\uCE78\uB9C8\uB2E4
-          \uD53C\uD574\uB7C9 10% \uC99D\uAC00"
+          \uD22C\uCC99 \uD6A8\uC728 10% \uC99D\uAC00"

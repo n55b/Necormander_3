@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Gem_Fastball_Closer
   m_EditorClassIdentifier: 
   itemName: Closer
-  description: Max charge time limit is set to 5s. Throw effect +50% on full charge.
+  description: Grants 4s of overcharge after fastball. Throw effect increases linearly
+    up to +50% during overcharge.
   localizedItemName:
     m_TableReference:
       m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
@@ -48,5 +49,5 @@ MonoBehaviour:
       type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
       data:
         uniqueType: 214
-        displayDescription: Max charge time limit is set to 5s. Throw effect +50%
-          on full charge.
+        displayDescription: Grants 4s of overcharge after fastball. Throw effect
+          increases linearly up to +50% during overcharge.

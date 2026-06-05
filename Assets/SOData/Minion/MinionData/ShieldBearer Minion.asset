@@ -15,10 +15,7 @@ MonoBehaviour:
   minionType: 1
   minionName: Skeleton ShieldBearer
   minionIcon: {fileID: 1047843002206808338, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}
-  throwEffectCategory: 4
-  baseEffectValue: 20
-  effectMultiplier: 1
-  baseAreaRadius: 0
+  baseEffectValue: 10
   maxHP: 100
   attack: 5
   attackSpeed: 1
@@ -26,6 +23,8 @@ MonoBehaviour:
   detectRange: 10
   defense: 0
   moveSpeed: 5
+  baseEvasion: 0
+  baseMissChance: 0
   cost: 1
   isElite: 0
   canSpawnRandomly: 1

@@ -933,23 +933,23 @@ PrefabInstance:
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[0]'
       value: 
-      objectReference: {fileID: 11400000, guid: 105928107c038ac46b8d02a1f7265365, type: 2}
+      objectReference: {fileID: 11400000, guid: e9d2b0e964c50fa419bb8a37f4cbea24, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[1]'
       value: 
-      objectReference: {fileID: 11400000, guid: 105928107c038ac46b8d02a1f7265365, type: 2}
+      objectReference: {fileID: 11400000, guid: c6e00796a2c822848943353865d8ba80, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[2]'
       value: 
-      objectReference: {fileID: 11400000, guid: 105928107c038ac46b8d02a1f7265365, type: 2}
+      objectReference: {fileID: 11400000, guid: bc2802b5647804a4bba31e9c5c7a36b1, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[3]'
       value: 
-      objectReference: {fileID: 11400000, guid: 105928107c038ac46b8d02a1f7265365, type: 2}
+      objectReference: {fileID: 11400000, guid: 178a972c2c90c4141b5db78d526c7bb4, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[4]'
       value: 
-      objectReference: {fileID: 11400000, guid: 105928107c038ac46b8d02a1f7265365, type: 2}
+      objectReference: {fileID: 11400000, guid: fe6621571d0651d40b024e0286fada2b, type: 2}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'debugStartingGems_Data.Array.data[5]'
       value: 

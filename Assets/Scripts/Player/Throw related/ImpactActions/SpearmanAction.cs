@@ -14,7 +14,7 @@ public class SpearmanAction : ImpactAction
         if (stat == null) stat = target.GetComponentInChildren<CharacterStat>();
         if (stat == null) return;
 
-        float knockbackForce = recipe.GetScaledValue(force);
+        float knockbackForce = recipe.GetScaledEffectValue(force);
         Vector2 knockbackDir = Vector2.zero;
 
         if (target.CompareTag("Player"))

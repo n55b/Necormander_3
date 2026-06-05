@@ -9,7 +9,7 @@ public enum StatType
     AttackSpeed,    // 공격 속도 강화 (배율: 1.0 = 공격 빈도 100% 증가)
     RespawnTime,    // 부활 시간 단축 (고정치: 1.0 = 1초 단축)
     ThrowEffect,    // 던지기 능력 강화 (전사:데미지+, 궁수:범위+, 법사:횟수+, 기타:배율+)
-    ParabolicDamageMultiplier,    // 포물선 데미지 추가 배율
+    ParabolicEffectMultiplier,    // 포물선 투척 효율 추가 배율
     ParabolicFlightTimeMultiplier // 포물선 체공 시간 보정치
 }
 

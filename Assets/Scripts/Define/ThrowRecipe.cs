@@ -34,24 +34,30 @@ public class ThrowRecipe
 
     public class Modifiers
     {
-        public float modeMultiplier = 1.0f;
         public float chargeMultiplier = 1.0f;
         public float treasurePowerMultiplier = 1.0f;
         public float abilityMultiplier = 1.0f;
         public float gemPowerMultiplier = 1.0f; // [추가] 보석/시너지로 인한 투척 효율 곱연산
+        public float gemDamageMultiplier = 1.0f; // [추가] 데미지에만 적용되는 추가 배율 (거리 패널티 등)
         public int treasureRepeatBonus = 0;
         
+        // [신규] 데미지 계산을 위한 베이스와 보너스 분리
+        public float baseDamage = 0f;
+        public float bonusDamage = 0f;
+
         // [추가] 보석 등으로 인한 디버프 부여 데이터 (스택형)
         public Dictionary<DebuffStackType, float> debuffStacks = new Dictionary<DebuffStackType, float>();
 
         public void CopyFrom(Modifiers other)
         {
-            modeMultiplier = other.modeMultiplier;
             chargeMultiplier = other.chargeMultiplier;
             treasurePowerMultiplier = other.treasurePowerMultiplier;
             abilityMultiplier = other.abilityMultiplier;
-            gemPowerMultiplier = other.gemPowerMultiplier; // [추가]
+            gemPowerMultiplier = other.gemPowerMultiplier;
+            gemDamageMultiplier = other.gemDamageMultiplier;
             treasureRepeatBonus = other.treasureRepeatBonus;
+            baseDamage = other.baseDamage;
+            bonusDamage = other.bonusDamage;
             debuffStacks = new Dictionary<DebuffStackType, float>(other.debuffStacks);
         }
     }
@@ -87,11 +93,30 @@ public class ThrowRecipe
 
     public List<ImpactAction> actions = new List<ImpactAction>();
 
-    public float GetScaledValue(float baseValue)
+    public float GetScaledEffectValue(float baseValue)
     {
         if (baseValue <= 0) return 0;
-        return baseValue * modifiers.modeMultiplier * modifiers.chargeMultiplier * 
+        return baseValue * modifiers.chargeMultiplier * 
                modifiers.treasurePowerMultiplier * modifiers.abilityMultiplier * modifiers.gemPowerMultiplier;
+    }
+
+    // [신규] 기본 데미지(5.0)는 데미지 증폭 배율(거리 패널티 등)만 적용
+    public float GetScaledBaseDamage()
+    {
+        if (modifiers.baseDamage <= 0) return 0;
+        return modifiers.baseDamage * modifiers.gemDamageMultiplier;
+    }
+
+    // [신규] 전사 추가 데미지는 효율 증폭 배율(시너지 등) 적용
+    public float GetScaledBonusDamage()
+    {
+        return GetScaledEffectValue(modifiers.bonusDamage);
+    }
+    
+    // [신규] 최종 합산 데미지
+    public float GetFinalDamage()
+    {
+        return GetScaledBaseDamage() + GetScaledBonusDamage();
     }
 
     public float GetScaledRadius()
@@ -101,7 +126,7 @@ public class ThrowRecipe
         {
             if (a is ArcherAction archer) radius = archer.radius;
         }
-        return radius;
+        return GetScaledEffectValue(radius);
     }
 
     public int GetTotalExecutionCount()
