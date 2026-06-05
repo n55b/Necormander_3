@@ -27,12 +27,33 @@ public class PlayerStamina : MonoBehaviour
     // 계산된 최종 스탯 프로퍼티
     public float MaxStamina => defaultMaxStamina + maxStaminaBonus; 
     
-    // 던지는 미니언 수에 따른 가변 스태미나 코스트 계산 (기본 15 + 추가 1마리당 5)
-    public float GetThrowCost(int minionCount)
+    public float GetThrowCost(int minionCount, CommandData predictedType = CommandData.None)
     {
         int count = Mathf.Max(1, minionCount);
         float dynamicCost = defaultThrowCost + ((count - 1) * 5f);
-        return Mathf.Max(0f, dynamicCost + throwCostBonus);
+        float finalCost = Mathf.Max(0f, dynamicCost + throwCostBonus);
+
+        if (InventoryManager.Instance != null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        {
+            var tc = GameManager.Instance.PLAYERCONTROLLER.GetComponentInChildren<ThrowController>();
+            if (tc != null)
+            {
+                // 예상되는 타겟팅 모드를 계산
+                TargetingMode currentMode = tc.GetCurrentTargetingMode();
+                if (predictedType == CommandData.SkeletonArcher) currentMode = TargetingMode.Area;
+                else if (predictedType != CommandData.None && currentMode == TargetingMode.Self) currentMode = TargetingMode.Target;
+
+                foreach (var ability in InventoryManager.Instance.ActiveAbilities)
+                {
+                    if (ability != null)
+                    {
+                        finalCost = ability.ModifyStaminaCost(finalCost, currentMode, count);
+                    }
+                }
+            }
+        }
+        
+        return finalCost;
     }
 
     public float RegenRate
@@ -84,18 +105,22 @@ public class PlayerStamina : MonoBehaviour
         }
     }
 
-    public bool CanThrow(int minionCount = 1)
+    public bool CanThrow(int minionCount = 1, CommandData predictedType = CommandData.None)
     {
-        return _currentStamina - GetThrowCost(minionCount) >= -negativeLimit;
+        return _currentStamina - GetThrowCost(minionCount, predictedType) >= -negativeLimit;
     }
 
-    public void ConsumeStamina(int minionCount = 1)
+    public void ConsumeStamina(int minionCount = 1, CommandData predictedType = CommandData.None)
     {
-        if (CanThrow(minionCount))
-        {
-            _currentStamina -= GetThrowCost(minionCount);
-            NotifyStaminaChanged();
-        }
+        _currentStamina -= GetThrowCost(minionCount, predictedType);
+        NotifyStaminaChanged();
+    }
+
+    // [추가] 능력이 스태미너를 직접 차감할 때 사용
+    public void ConsumeRawStamina(float amount)
+    {
+        _currentStamina -= amount;
+        NotifyStaminaChanged();
     }
 
     public void TriggerInsufficientFeedback()

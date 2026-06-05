@@ -29,7 +29,7 @@ public abstract class ThrowAbilitySO : GrowthItemSO
     /// <summary>
     /// 현재 투척 상황이 이 능력의 적용 조건에 부합하는지 확인합니다.
     /// </summary>
-    public bool IsApplicable(bool isDirect, TargetingMode mode)
+    public virtual bool IsApplicable(bool isDirect, TargetingMode mode)
     {
         bool trajMatch = false;
         if (isDirect)
@@ -57,6 +57,11 @@ public abstract class ThrowAbilitySO : GrowthItemSO
 
         return trajMatch && targetMatch;
     }
+
+    /// <summary>
+    /// 던지기나 집기 시 요구되는 스태미너 양을 변조합니다.
+    /// </summary>
+    public virtual float ModifyStaminaCost(float originalCost, TargetingMode mode, int minionCount) { return originalCost; }
 
     /// <summary>
     /// 던지기 레시피 생성 단계에 개입합니다. (수치 변환, 반복 횟수 추가 등)

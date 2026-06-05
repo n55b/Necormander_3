@@ -170,8 +170,8 @@ public class ThrowStrategy : MonoBehaviour
             }
         }
 
-        recipe.modifiers.gemPowerMultiplier = 1f + gemEffectBonus;
-        recipe.modifiers.gemDamageMultiplier = 1f + gemDamageBonus;
+        recipe.modifiers.gemPowerMultiplier += gemEffectBonus;
+        recipe.modifiers.gemDamageMultiplier += gemDamageBonus;
 
         // [잔상] 이전 조합과 완전히 일치하면 데미지 1.5배 (150% 증폭)
         if (InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Afterimage))

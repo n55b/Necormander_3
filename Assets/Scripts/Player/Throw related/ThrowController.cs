@@ -188,16 +188,15 @@ public class ThrowController : MonoBehaviour
 
     public void TryPickUpWithMouse()
     {
-        var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
-        if (stamina != null && !stamina.CanThrow(_heldObjects.Count + 1))
-        {
-            stamina.TriggerInsufficientFeedback();
-            return;
-        }
-
         GameObject hovered = GameManager.Instance.mouseManager.HoverObject;
         if (hovered != null && hovered.TryGetComponent(out IThrowable throwable))
         {
+            var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
+            if (stamina != null && !stamina.CanThrow(_heldObjects.Count + 1, throwable.MinionType))
+            {
+                stamina.TriggerInsufficientFeedback();
+                return;
+            }
             // [추가] 이미 던져져서 날아가고 있는 유닛(FlyingObject 레이어)은 다시 잡을 수 없도록 방지
             int flyingLayer = LayerMask.NameToLayer("FlyingObject");
             if (hovered.layer == flyingLayer && !_heldObjects.Contains(throwable)) return;
@@ -238,7 +237,7 @@ public class ThrowController : MonoBehaviour
     public void TryPickUpByType(CommandData targetType)
     {
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
-        if (stamina != null && !stamina.CanThrow(_heldObjects.Count + 1))
+        if (stamina != null && !stamina.CanThrow(_heldObjects.Count + 1, targetType))
         {
             stamina.TriggerInsufficientFeedback();
             return;
