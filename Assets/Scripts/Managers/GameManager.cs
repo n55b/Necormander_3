@@ -75,6 +75,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Floor Info")]
     [SerializeField] public int currentFloor = 1;
+    [SerializeField] public bool debugStartAtBoss = false; // [추가] 보스방 직행 디버그 옵션
+    [SerializeField] public int debugStartFloor = 4;       // [추가] 보스방 기준 층
     [System.NonSerialized] private SaveData _loadedSaveData = null;
 
     private void Awake()
@@ -93,6 +95,12 @@ public class GameManager : MonoBehaviour
         {
             currentFloor = 1;
             Debug.Log("<b>[GameManager]</b> No save data found. Starting from Floor 1.");
+        }
+
+        if (debugStartAtBoss)
+        {
+            currentFloor = debugStartFloor;
+            Debug.Log($"<color=yellow>[GameManager]</color> Debug Start at Boss enabled! Forcing Floor {currentFloor}");
         }
 
         InitializeGame();

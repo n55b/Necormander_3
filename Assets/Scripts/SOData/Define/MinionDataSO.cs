@@ -20,7 +20,8 @@ public class MinionDataSO : ScriptableObject
     public float attackSpeed = 1f;
     public float attackRange = 2f;
     public float detectRange = 10f;
-    public float defense = 0f;
+    public float defense = 0f; // 일반 방어력 (퍼센트 데미지 감소)
+    public float flatDefense = 0f; // 고정 수치 방어력 (고정 데미지 차감)
     public float moveSpeed = 5f;
     [Range(0f, 1f)] public float baseEvasion = 0f; // 회피율 (0~1)
     [Range(0f, 1f)] public float baseMissChance = 0f; // 공격 시 기본 미스 확률 (0~1)

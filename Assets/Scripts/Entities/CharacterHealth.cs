@@ -144,7 +144,14 @@ public class CharacterHealth : MonoBehaviour
         // [최종 데미지 및 체력 차감]
         if (remainingDamage > 0)
         {
-            float finalDamage = (info.type != DamageType.Fixed) ? Mathf.Max(remainingDamage - _stat.DEF, 1f) : remainingDamage;
+            float finalDamage = remainingDamage;
+            if (info.type != DamageType.Fixed)
+            {
+                // [신규 방어력 로직 적용]
+                // 최종 데미지 = (총 데미지 * (100 - 일반 방어력) / 100) - 고정 수치 방어력
+                float dmgAfterPercentDef = remainingDamage * ((100f - _stat.DEF) / 100f);
+                finalDamage = Mathf.Max(dmgAfterPercentDef - _stat.FLAT_DEF, 1f);
+            }
 
             // [추가] 플레이어 전용 규칙: 어떤 데미지를 입든 무조건 1씩 차감
             // (CharacterHealth가 자식 오브젝트에 있을 수 있으므로 root 태그 확인)

@@ -10,6 +10,7 @@ public class EnemyController : BaseEntity
     {
         base.Awake();
         team = Team.Enemy;
+        SetupLayers(); // base.Awake()에서 잘못 설정된 레이어를 덮어씀
     }
 
     protected override void HandleNoTarget()

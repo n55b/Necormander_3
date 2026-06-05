@@ -926,6 +926,10 @@ PrefabInstance:
       propertyPath: playerStateUI
       value: 
       objectReference: {fileID: 1467717214}
+    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartAtBoss
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingAbilities.Array.size
       value: 1
@@ -2685,7 +2689,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 8.4375
+  orthographic size: 7.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

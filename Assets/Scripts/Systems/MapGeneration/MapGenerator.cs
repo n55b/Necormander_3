@@ -102,37 +102,47 @@ public class MapGenerator : MonoBehaviour
             SetupTilemapLayers();
             ClearExistingMap();
 
-            int totalSpecials = generationData.shopCount + generationData.rewardCount + generationData.eliteCount;
-            int normalCount = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - 1 - totalSpecials);
+            bool isBossFloor = GameManager.Instance != null && (GameManager.Instance.currentFloor == 4 || (GameManager.Instance.debugStartAtBoss && GameManager.Instance.currentFloor == GameManager.Instance.debugStartFloor));
 
-            int initialBranchCount = Random.Range(1, 5);
-            List<RoomType> phase1 = new List<RoomType> { RoomType.Spawn };
-            for (int i = 0; i < initialBranchCount; i++) phase1.Add(RoomType.Normal);
-            yield return StartCoroutine(RunPhase(phase1));
+            if (isBossFloor)
+            {
+                List<RoomType> bossPhase = new List<RoomType> { RoomType.Spawn, RoomType.Boss };
+                yield return StartCoroutine(RunPhase(bossPhase));
+            }
+            else
+            {
+                int totalSpecials = generationData.shopCount + generationData.rewardCount + generationData.eliteCount;
+                int normalCount = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - 1 - totalSpecials);
 
-            int remainingNormal = normalCount - initialBranchCount;
+                int initialBranchCount = Random.Range(1, 5);
+                List<RoomType> phase1 = new List<RoomType> { RoomType.Spawn };
+                for (int i = 0; i < initialBranchCount; i++) phase1.Add(RoomType.Normal);
+                yield return StartCoroutine(RunPhase(phase1));
 
-            _currentPhaseIndex++;
-            List<RoomType> phase2 = new List<RoomType>();
-            for (int i = 0; i < generationData.shopCount; i++) phase2.Add(RoomType.Shop);
-            int eliteHalf = generationData.eliteCount / 2;
-            for (int i = 0; i < eliteHalf; i++) phase2.Add(RoomType.Elite);
-            int p2Normal = remainingNormal > 0 ? Random.Range(1, remainingNormal / 2 + 2) : 0;
-            for (int i = 0; i < p2Normal; i++) phase2.Add(RoomType.Normal);
-            remainingNormal -= p2Normal;
-            if (phase2.Count > 0) yield return StartCoroutine(RunPhase(phase2));
+                int remainingNormal = normalCount - initialBranchCount;
 
-            _currentPhaseIndex++;
-            List<RoomType> phase3 = new List<RoomType>();
-            int eliteRest = generationData.eliteCount - eliteHalf;
-            for (int i = 0; i < eliteRest; i++) phase3.Add(RoomType.Elite);
-            for (int i = 0; i < remainingNormal; i++) phase3.Add(RoomType.Normal);
-            if (phase3.Count > 0) yield return StartCoroutine(RunPhase(phase3));
+                _currentPhaseIndex++;
+                List<RoomType> phase2 = new List<RoomType>();
+                for (int i = 0; i < generationData.shopCount; i++) phase2.Add(RoomType.Shop);
+                int eliteHalf = generationData.eliteCount / 2;
+                for (int i = 0; i < eliteHalf; i++) phase2.Add(RoomType.Elite);
+                int p2Normal = remainingNormal > 0 ? Random.Range(1, remainingNormal / 2 + 2) : 0;
+                for (int i = 0; i < p2Normal; i++) phase2.Add(RoomType.Normal);
+                remainingNormal -= p2Normal;
+                if (phase2.Count > 0) yield return StartCoroutine(RunPhase(phase2));
 
-            _currentPhaseIndex++;
-            List<RoomType> phase4 = new List<RoomType>();
-            for (int i = 0; i < generationData.rewardCount; i++) phase4.Add(RoomType.Reward);
-            if (phase4.Count > 0) yield return StartCoroutine(RunPhase(phase4));
+                _currentPhaseIndex++;
+                List<RoomType> phase3 = new List<RoomType>();
+                int eliteRest = generationData.eliteCount - eliteHalf;
+                for (int i = 0; i < eliteRest; i++) phase3.Add(RoomType.Elite);
+                for (int i = 0; i < remainingNormal; i++) phase3.Add(RoomType.Normal);
+                if (phase3.Count > 0) yield return StartCoroutine(RunPhase(phase3));
+
+                _currentPhaseIndex++;
+                List<RoomType> phase4 = new List<RoomType>();
+                for (int i = 0; i < generationData.rewardCount; i++) phase4.Add(RoomType.Reward);
+                if (phase4.Count > 0) yield return StartCoroutine(RunPhase(phase4));
+            }
 
             // 모든 방의 물리 분산 및 타일맵 병합이 완료된 후 단 한번 복도 연결 수행!
             yield return StartCoroutine(ConnectUnreachedRoomsCoroutine());

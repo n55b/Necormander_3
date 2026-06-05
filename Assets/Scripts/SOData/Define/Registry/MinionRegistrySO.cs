@@ -10,6 +10,9 @@ public class MinionRegistrySO : ScriptableObject
     [Header("아군 미니언 데이터")]
     public List<MinionDataSO> allyMinionData;
 
-    [Header("적군 미니언 데이터")]
+    [Header("Enemy Minions")]
     public List<MinionDataSO> enemyMinionData;
+
+    [Header("Boss Minions")]
+    public List<MinionDataSO> bossMinionData; // 보스 전용 데이터 목록
 }

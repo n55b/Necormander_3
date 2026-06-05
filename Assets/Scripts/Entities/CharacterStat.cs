@@ -14,6 +14,7 @@ public class CharacterStat : MonoBehaviour
     [SerializeField] private float baseAtkSpd = 1f;
     [SerializeField] private float baseAtkRange = 2f;
     [SerializeField] private float baseDef = 0f;
+    [SerializeField] private float baseFlatDef = 0f;
     [SerializeField] private float baseMoveSpeed = 5f;
     [SerializeField] private float baseEvasion = 0f;
     [SerializeField] private float baseMissChance = 0f;
@@ -140,7 +141,8 @@ public class CharacterStat : MonoBehaviour
     public float BaseMaxHP => baseMaxHP;
     public float BaseAtk => baseAtk;
     public float ATKRANGE => baseAtkRange;
-    public float DEF => baseDef;
+    public float DEF { get; private set; } // 런타임 비율 방어력
+    public float FLAT_DEF { get; private set; } // [추가] 런타임 고정 방어력
     public float EVASION => baseEvasion;
 
     public float MISS_CHANCE => baseMissChance;
@@ -306,6 +308,9 @@ public class CharacterStat : MonoBehaviour
             baseAtkSpd = data.attackSpeed; // 공격속도는 간격(주기)이므로 작아질수록 좋음
             baseAtkRange = data.attackRange;
             baseDef = data.defense;
+            DEF = baseDef; // 초기 방어력 세팅
+            baseFlatDef = data.flatDefense;
+            FLAT_DEF = baseFlatDef; // 초기 고정 방어력 세팅
             baseMoveSpeed = data.moveSpeed;
             baseEvasion = data.baseEvasion;
             baseMissChance = data.baseMissChance;
@@ -373,5 +378,21 @@ public class CharacterStat : MonoBehaviour
         baseMaxHP *= 0.5f;
         baseAtk *= 0.5f;
         if (Health != null) Health.ResetHP();
+    }
+
+    /// <summary>
+    /// 런타임에 현재 일반 방어력(퍼센트)을 수정합니다. (본 마스터 기믹 등에서 사용)
+    /// </summary>
+    public void SetCurrentDef(float newDef)
+    {
+        DEF = Mathf.Max(0f, newDef);
+    }
+
+    /// <summary>
+    /// 런타임에 현재 고정 방어력을 수정합니다.
+    /// </summary>
+    public void SetCurrentFlatDef(float newFlatDef)
+    {
+        FLAT_DEF = Mathf.Max(0f, newFlatDef);
     }
 }

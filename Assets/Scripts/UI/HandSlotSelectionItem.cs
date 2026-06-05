@@ -31,13 +31,25 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
         {
             if (itemData != null && !string.IsNullOrEmpty(itemData.itemName))
             {
-                var op = itemData.localizedItemName.GetLocalizedStringAsync();
-                if (op.IsDone) infoText.text = op.Result;
-                else 
+                if (itemData.localizedItemName != null && !itemData.localizedItemName.IsEmpty)
                 {
-                    var handle = op;
-                    handle.WaitForCompletion();
-                    infoText.text = handle.Result;
+                    var op = itemData.localizedItemName.GetLocalizedStringAsync();
+                    if (op.IsDone) infoText.text = op.Result;
+                    else 
+                    {
+                        var handle = op;
+                        handle.WaitForCompletion();
+                        infoText.text = handle.Result;
+                    }
+                    
+                    if (string.IsNullOrEmpty(infoText.text) || infoText.text.StartsWith("No translation"))
+                    {
+                        infoText.text = itemData.itemName;
+                    }
+                }
+                else
+                {
+                    infoText.text = itemData.itemName;
                 }
             }
             else
