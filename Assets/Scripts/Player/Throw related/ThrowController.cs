@@ -8,8 +8,29 @@ using UnityEngine.InputSystem;
 public class ThrowController : MonoBehaviour
 {
     [Header("Throw Settings")]
-    [SerializeField] private int maxHoldCount = 5;
-    public int MaxHoldCount => maxHoldCount;
+    [SerializeField] private int maxHoldCount = 2;
+    public int BaseMaxHoldCount => maxHoldCount;
+
+    // [추가] 외부 접근용
+    public int HeldObjectsCount => _heldObjects.Count;
+
+    // 시너지 등에 의해 확장된 최대 집기 수 반환
+    public int MaxHoldCount 
+    {
+        get
+        {
+            int bonus = 0;
+            if (InventoryManager.Instance != null)
+            {
+                int count = InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.BigHand);
+                if (count >= 5)
+                    bonus += 3;
+                else if (count >= 3)
+                    bonus += 1;
+            }
+            return maxHoldCount + bonus;
+        }
+    }
 
     [Header("References")]
     [SerializeField] private Transform holdPoint;
@@ -131,6 +152,28 @@ public class ThrowController : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.OnGemTreeUpdated += RefreshThrowInfo;
+        }
+        RefreshThrowInfo();
+    }
+
+    private void OnDestroy()
+    {
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.OnGemTreeUpdated -= RefreshThrowInfo;
+        }
+    }
+
+    private void RefreshThrowInfo()
+    {
+        Panel_ThrowInformation.Instance?.Refresh(MaxHoldCount, _heldObjects);
+    }
+
     private void LateUpdate()
     {
         if (_activeCluster != null && _activeCluster.transform.parent == holdPoint)
@@ -146,7 +189,7 @@ public class ThrowController : MonoBehaviour
     public void TryPickUpWithMouse()
     {
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
-        if (stamina != null && !stamina.CanThrow())
+        if (stamina != null && !stamina.CanThrow(_heldObjects.Count + 1))
         {
             stamina.TriggerInsufficientFeedback();
             return;
@@ -159,7 +202,10 @@ public class ThrowController : MonoBehaviour
             int flyingLayer = LayerMask.NameToLayer("FlyingObject");
             if (hovered.layer == flyingLayer && !_heldObjects.Contains(throwable)) return;
 
-            if (throwable is AllyController ally && !_strategy.CanPickUpType(ally.MinionType, _heldObjects, maxHoldCount)) return;
+            // [융합 방지] 융합체는 집을 수 없음
+            if (hovered.TryGetComponent<FusionMinionController>(out var fusion) && fusion.IsFused) return;
+
+            if (throwable is AllyController ally && !_strategy.CanPickUpType(ally.MinionType, _heldObjects, MaxHoldCount)) return;
             float dist = Vector2.Distance(transform.position, hovered.transform.position);
             if (dist > GameManager.Instance.PLAYERCONTROLLER.THROWRANGE) return;
 
@@ -192,13 +238,13 @@ public class ThrowController : MonoBehaviour
     public void TryPickUpByType(CommandData targetType)
     {
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
-        if (stamina != null && !stamina.CanThrow())
+        if (stamina != null && !stamina.CanThrow(_heldObjects.Count + 1))
         {
             stamina.TriggerInsufficientFeedback();
             return;
         }
 
-        if (!_strategy.CanPickUpType(targetType, _heldObjects, maxHoldCount)) return;
+        if (!_strategy.CanPickUpType(targetType, _heldObjects, MaxHoldCount)) return;
         float radius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius);
         IThrowable bestTarget = null;
@@ -213,6 +259,9 @@ public class ThrowController : MonoBehaviour
 
             if (col.TryGetComponent<IThrowable>(out var throwable) && throwable.MinionType == targetType && !_heldObjects.Contains(throwable))
             {
+                // [융합 방지] 융합체는 집을 수 없음
+                if (throwable is MonoBehaviour mb && mb.TryGetComponent<FusionMinionController>(out var fusion) && fusion.IsFused) continue;
+
                 float d = Vector2.Distance(transform.position, col.transform.position);
                 if (d < minDist) { minDist = d; bestTarget = throwable; }
             }
@@ -248,6 +297,7 @@ public class ThrowController : MonoBehaviour
         ThrowCluster cluster = GetActiveClusterOrCreate();
         cluster.Setup(_heldObjects);
         if (trajectoryPredictor != null) trajectoryPredictor.ShowGuide();
+        RefreshThrowInfo();
     }
 
     private void PerformPickUp(IThrowable throwable, GameObject obj)
@@ -262,6 +312,8 @@ public class ThrowController : MonoBehaviour
 
         // [추가] 카메라 조준 상태 활성화
         if (CameraTargetController.Instance != null) CameraTargetController.Instance.SetAiming(true);
+
+        RefreshThrowInfo();
     }
 
     private ThrowCluster GetActiveClusterOrCreate()
@@ -284,7 +336,7 @@ public class ThrowController : MonoBehaviour
 
         // 스태미나 차감
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
-        if (stamina != null) stamina.ConsumeStamina();
+        if (stamina != null) stamina.ConsumeStamina(_heldObjects.Count);
         
         GameManager.Instance.PLAYERCONTROLLER.RecordCombatAction(); // 투척 시 전투 상태 갱신
 
@@ -325,6 +377,20 @@ public class ThrowController : MonoBehaviour
             float dist = Vector2.Distance(startPos, finalPos);
             float duration = dist / speed;
 
+            if (!isDirect && InventoryManager.Instance != null)
+            {
+                float flightTimeBonus = InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicFlightTimeMultiplier);
+                
+                // [일단 던지고 보자] 버프 스택 적용 (PlayerUniqueEffectManager에서 받아옴)
+                if (GameManager.Instance.PLAYERCONTROLLER.TryGetComponent<PlayerUniqueEffectManager>(out var uem))
+                {
+                    flightTimeBonus += uem.JustThrowItSpeedBonus;
+                }
+
+                // 20% 증가 시 => duration * 0.8 (최대 90% 감소로 제한)
+                duration *= (1f - Mathf.Clamp(flightTimeBonus, 0f, 0.9f));
+            }
+
             // [이벤트 버스] 투척 시작 시 비행 시간 등 파라미터 조절용 확장 공간 (추후 연동 시 duration 조절 가능)
             // ref float durationMult 파라미터를 통해 ThrowStrategy에서 세팅된 값을 받아오거나, ThrowStart 이벤트로 제어 가능
 
@@ -351,12 +417,33 @@ public class ThrowController : MonoBehaviour
                 }
             }
 
+            if (!isDirect)
+            {
+                if (GameManager.Instance.PLAYERCONTROLLER.TryGetComponent<PlayerUniqueEffectManager>(out var uem))
+                {
+                    uem.OnParabolicThrow();
+                }
+            }
+
             _activeCluster.Launch(startPos, finalPos, duration, maxHeight, isDirect, ratio);
             _activeCluster = null;
         }
 
+        // [신속한 재배치] 3명 이상 투척 시 소환수들에게 5초간 이동속도 50% 증가 버프
+        if (_heldObjects.Count >= 3 && InventoryManager.Instance != null && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.SwiftRelocation))
+        {
+            foreach (var t in _heldObjects)
+            {
+                if (t is MonoBehaviour mb && mb.TryGetComponent<CharacterStatus>(out var status))
+                {
+                    status.ApplySpeedBuff("SwiftRelocation", 0.5f, 5.0f);
+                }
+            }
+        }
+
         _heldObjects.Clear();
         _input.ResetCharging();
+        RefreshThrowInfo();
     }
 
     public void DropAll()
@@ -391,6 +478,7 @@ public class ThrowController : MonoBehaviour
         _heldObjects.Clear();
         if (_input != null) _input.ResetCharging();
         if (trajectoryPredictor != null) trajectoryPredictor.HideGuide();
+        RefreshThrowInfo();
     }
 
     public void ForceClear()
@@ -408,6 +496,7 @@ public class ThrowController : MonoBehaviour
         }
 
         if (trajectoryPredictor != null) trajectoryPredictor.HideGuide();
+        RefreshThrowInfo();
     }
 
     private void OnDrawGizmosSelected() { Gizmos.color = Color.yellow; Gizmos.DrawWireSphere(transform.position, 2.0f); }

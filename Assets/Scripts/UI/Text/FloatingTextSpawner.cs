@@ -29,6 +29,17 @@ public class FloatingTextSpawner : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        if (stats != null && stats.Health != null && !isSubscribed)
+        {
+            stats.Health.TakeDamageEvent += ShowDamageText;
+            stats.Health.TakeHealEvent += ShowHealText;
+            isSubscribed = true;
+            Debug.Log($"{gameObject.name} 데미지 텍스트 재구독 성공!");
+        }
+    }
+
     private void OnDisable()
     {
         // stats가 null인지 먼저 확인 (매우 중요!)

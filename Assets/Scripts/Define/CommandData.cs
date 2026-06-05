@@ -13,16 +13,6 @@ public enum CommandData
     None = 100
 }
 
-public enum ThrowEffectCategory
-{
-    None,
-    Target,      // 타겟팅 (단일)
-    Area,        // 광역 (범위)
-    CC,          // 상태이상 / 버프
-    Shield,      // 보호막
-    Formation,   // 진형파괴 / 돌진
-    Repeat       // 되풀이 (증폭)
-}
 
 public enum DebuffCategory
 {

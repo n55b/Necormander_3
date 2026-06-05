@@ -26,6 +26,12 @@ public class PlayerStateUI : MonoBehaviour
         }
     }
 
+    [Header("Panel Parent")]
+    [SerializeField] private GameObject panelParent;
+
+    [Header("ThrowInfo Settings")]
+    [SerializeField] private Panel_ThrowInformation throwInfoPanel;
+
     [Header("HP Settings")]
     [SerializeField] private GameObject heartPrefab;
     [SerializeField] private Transform heartContainer;
@@ -85,7 +91,7 @@ public class PlayerStateUI : MonoBehaviour
         {
             if (staminaUIPrefab != null)
             {
-                GameObject obj = Instantiate(staminaUIPrefab, transform);
+                GameObject obj = Instantiate(staminaUIPrefab, panelParent.transform);
                 staminaUI = obj.GetComponent<StaminaUI>();
                 if (staminaUI == null) staminaUI = obj.AddComponent<StaminaUI>();
             }

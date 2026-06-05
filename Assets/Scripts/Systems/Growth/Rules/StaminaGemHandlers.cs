@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 // ---------------------------------------------------------
 // [?쒕꼫吏 ?몃뱾?? ?ㅽ깭誘몃꼫
@@ -250,7 +250,9 @@ public class ThrowOverloadHandler : IGemEffectHandler
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
         if (stamina != null)
         {
-            float bonus = stamina.ThrowCost * 0.02f;
+            var throwCtrl = GameManager.Instance.PLAYERCONTROLLER.GetComponentInChildren<ThrowController>();
+            int count = throwCtrl != null ? throwCtrl.HeldObjectsCount : 1;
+            float bonus = stamina.GetThrowCost(count) * 0.02f;
             recipe.modifiers.gemPowerMultiplier += bonus;
         }
     }

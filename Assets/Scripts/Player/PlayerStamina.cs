@@ -26,7 +26,15 @@ public class PlayerStamina : MonoBehaviour
 
     // 계산된 최종 스탯 프로퍼티
     public float MaxStamina => defaultMaxStamina + maxStaminaBonus; 
-    public float ThrowCost => Mathf.Max(0f, defaultThrowCost + throwCostBonus);
+    
+    // 던지는 미니언 수에 따른 가변 스태미나 코스트 계산 (기본 15 + 추가 1마리당 5)
+    public float GetThrowCost(int minionCount)
+    {
+        int count = Mathf.Max(1, minionCount);
+        float dynamicCost = defaultThrowCost + ((count - 1) * 5f);
+        return Mathf.Max(0f, dynamicCost + throwCostBonus);
+    }
+
     public float RegenRate
     {
         get
@@ -76,16 +84,16 @@ public class PlayerStamina : MonoBehaviour
         }
     }
 
-    public bool CanThrow()
+    public bool CanThrow(int minionCount = 1)
     {
-        return _currentStamina - ThrowCost >= -negativeLimit;
+        return _currentStamina - GetThrowCost(minionCount) >= -negativeLimit;
     }
 
-    public void ConsumeStamina()
+    public void ConsumeStamina(int minionCount = 1)
     {
-        if (CanThrow())
+        if (CanThrow(minionCount))
         {
-            _currentStamina -= ThrowCost;
+            _currentStamina -= GetThrowCost(minionCount);
             NotifyStaminaChanged();
         }
     }

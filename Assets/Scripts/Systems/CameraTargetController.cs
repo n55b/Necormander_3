@@ -61,12 +61,12 @@ public class CameraTargetController : MonoBehaviour
             Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mouseWorldPos.z = 0f;
 
-            // 2. 부모(플레이어) 기준으로 마우스가 어디 있는지 '상대적 거리' 계산
-            Vector3 relativeMousePos = mouseWorldPos - playerTransform.position;
+            // 2. 부모(플레이어) 로컬 공간 기준으로 마우스의 위치(상대적 거리) 계산
+            Vector3 localMousePos = playerTransform.InverseTransformPoint(mouseWorldPos);
             
             // 3. 가중치 적용 및 박스 범위 제한 (Clamp)
-            float targetX = Mathf.Clamp(relativeMousePos.x * leanWeight, -maxOffset.x, maxOffset.x);
-            float targetY = Mathf.Clamp(relativeMousePos.y * leanWeight, -maxOffset.y, maxOffset.y);
+            float targetX = Mathf.Clamp(localMousePos.x * leanWeight, -maxOffset.x, maxOffset.x);
+            float targetY = Mathf.Clamp(localMousePos.y * leanWeight, -maxOffset.y, maxOffset.y);
             
             targetLocalPos = new Vector3(targetX, targetY, 0f);
         }

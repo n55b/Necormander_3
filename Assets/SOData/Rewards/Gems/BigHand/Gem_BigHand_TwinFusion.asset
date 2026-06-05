@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2414d1164e5f0d842bc248ecf182dbde, type: 3}
+  m_Name: Gem_BigHand_TwinFusion
+  m_EditorClassIdentifier: 
+  itemName: "\uC30D\uB465\uC774 \uC5F0\uC131"
+  description: "\uC870\uD569 \uD22C\uCC99 \uC2DC \uC55E \uD050\uC758 2\uBA85\uC758
+    \uC18C\uD658\uC218\uAC00 10\uCD08\uB3D9\uC548 \uD569\uCCB4\uD569\uB2C8\uB2E4.
+    \uD569\uCCB4\uD55C \uC18C\uD658\uC218\uC758 \uB2A5\uB825\uCE58\uB294 2\uBA85\uC758
+    \uC18C\uD658\uC218\uB97C \uD569\uD55C \uAC83\uACFC \uAC19\uC2B5\uB2C8\uB2E4.
+    \uC2DC\uAC04\uC774 \uC9C0\uB098\uAC70\uB098 \uD30C\uAD34\uB418\uBA74, \uC18C\uD658\uC218\uB4E4\uC774
+    \uBC18\uD53C \uBE44\uC728\uB85C \uD280\uC5B4 \uB098\uC635\uB2C8\uB2E4."
+  localizedItemName:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 98372578938893
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  localizedDescription:
+    m_TableReference:
+      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
+    m_TableEntryReference:
+      m_KeyId: 98372578938894
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  icon: {fileID: 0}
+  rarity: 3
+  shopCost: 320
+  category: 0
+  synergyGroup: 700
+  subSlots: 1
+  eligibleJobs: -1
+  effects:
+  - rid: 6640442284343033956
+  references:
+    version: 2
+    RefIds:
+    - rid: 6640442284343033956
+      type: {class: GemUniqueEffect, ns: , asm: Assembly-CSharp}
+      data:
+        uniqueType: 262
+        displayDescription: "\uC870\uD569 \uD22C\uCC99 \uC2DC \uC55E \uD050\uC758
+          2\uBA85\uC758 \uC18C\uD658\uC218\uAC00 10\uCD08\uB3D9\uC548 \uD569\uCCB4\uD569\uB2C8\uB2E4.
+          \uD569\uCCB4\uD55C \uC18C\uD658\uC218\uC758 \uB2A5\uB825\uCE58\uB294 2\uBA85\uC758
+          \uC18C\uD658\uC218\uB97C \uD569\uD55C \uAC83\uACFC \uAC19\uC2B5\uB2C8\uB2E4.
+          \uC2DC\uAC04\uC774 \uC9C0\uB098\uAC70\uB098 \uD30C\uAD34\uB418\uBA74, \uC18C\uD658\uC218\uB4E4\uC774
+          \uBC18\uD53C \uBE44\uC728\uB85C \uD280\uC5B4 \uB098\uC635\uB2C8\uB2E4."

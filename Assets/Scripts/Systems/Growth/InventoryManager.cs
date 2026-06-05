@@ -78,6 +78,8 @@ public class InventoryManager : MonoBehaviour
         public float HealthBonus = 0f;
         public float AttackSpeedBonus = 0f;
         public float RespawnTimeBonus = 0f;
+        public float ParabolicEffectMultiplierBonus = 0f;
+        public float ParabolicFlightTimeMultiplierBonus = 0f;
         
         // [신규] 속성 및 특수 효과 합산
         public Dictionary<DebuffStackType, float> WeaponAttributes = new Dictionary<DebuffStackType, float>();
@@ -98,6 +100,8 @@ public class InventoryManager : MonoBehaviour
             HealthBonus = 0f;
             AttackSpeedBonus = 0f;
             RespawnTimeBonus = 0f;
+            ParabolicEffectMultiplierBonus = 0f;
+            ParabolicFlightTimeMultiplierBonus = 0f;
             WeaponAttributes.Clear();
             HandAttributes.Clear();
             WeaponBoolAttributes.Clear(); // [추가]
@@ -246,6 +250,26 @@ public class InventoryManager : MonoBehaviour
             if (kvp.Value > 0) activeUniqueGems.Add(kvp.Key);
         }
         GemHandlerRegistry.RefreshActiveHandlers(activeUniqueGems);
+
+        // [액티브 스킬] 시즈 모드 동적 장착/해제
+        var activeSkillManager = GameManager.Instance?.PLAYERCONTROLLER?.ActiveSkillManager;
+        if (activeSkillManager != null)
+        {
+            if (HasUniqueEffect(GemUniqueType.SiegeMode))
+            {
+                if (activeSkillManager.ActiveSkill == null || activeSkillManager.ActiveSkill.SkillName != "시즈 모드")
+                {
+                    activeSkillManager.EquipSkill(new SiegeModeSkill());
+                }
+            }
+            else
+            {
+                if (activeSkillManager.ActiveSkill != null && activeSkillManager.ActiveSkill.SkillName == "시즈 모드")
+                {
+                    activeSkillManager.EquipSkill(null);
+                }
+            }
+        }
     }
 
     private void CalculateSynergies(List<GemTreeNode> allNodes)
@@ -381,6 +405,8 @@ public class InventoryManager : MonoBehaviour
             case StatType.Health: targetStats.HealthBonus += modifier.Value; break;
             case StatType.AttackSpeed: targetStats.AttackSpeedBonus += modifier.Value; break;
             case StatType.RespawnTime: targetStats.RespawnTimeBonus += modifier.Value; break;
+            case StatType.ParabolicEffectMultiplier: targetStats.ParabolicEffectMultiplierBonus += modifier.Value; break;
+            case StatType.ParabolicFlightTimeMultiplier: targetStats.ParabolicFlightTimeMultiplierBonus += modifier.Value; break;
             default: break;
         }
     }
@@ -431,6 +457,8 @@ public class InventoryManager : MonoBehaviour
             case StatType.Health: return _globalGemStats.HealthBonus;
             case StatType.AttackSpeed: return _globalGemStats.AttackSpeedBonus;
             case StatType.RespawnTime: return _globalGemStats.RespawnTimeBonus;
+            case StatType.ParabolicEffectMultiplier: return _globalGemStats.ParabolicEffectMultiplierBonus;
+            case StatType.ParabolicFlightTimeMultiplier: return _globalGemStats.ParabolicFlightTimeMultiplierBonus;
             default: return 0f;
         }
     }

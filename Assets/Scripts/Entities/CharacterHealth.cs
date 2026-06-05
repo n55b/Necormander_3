@@ -67,6 +67,42 @@ public class CharacterHealth : MonoBehaviour
 
         float remainingDamage = info.amount;
 
+        // [기초 개선안] 방패병 데미지 대신 받기 (15%)
+        // 아군 타겟(플레이어 포함), 리다이렉트된 데미지가 아닐 때
+        if (_stat != null && !_stat.IsEnemy && !info.isRedirected && remainingDamage > 0)
+        {
+            // 본인이 방패병이 아닐 경우에만 주변 2반경 내의 방패병 탐색
+            if (_stat.jobType != CommandData.SkeletonShieldbearer)
+            {
+                Collider2D[] allies = Physics2D.OverlapCircleAll(transform.position, 2f, LayerMask.GetMask("Army"));
+                CharacterHealth bestShieldbearer = null;
+                float minDist = float.MaxValue;
+
+                foreach (var allyCol in allies)
+                {
+                    var allyStat = allyCol.GetComponent<CharacterStat>();
+                    var allyHealth = allyCol.GetComponent<CharacterHealth>();
+                    if (allyStat != null && allyHealth != null && !allyHealth.isDead && allyStat.jobType == CommandData.SkeletonShieldbearer)
+                    {
+                        float d = Vector2.Distance(transform.position, allyCol.transform.position);
+                        if (d < minDist) { minDist = d; bestShieldbearer = allyHealth; }
+                    }
+                }
+
+                if (bestShieldbearer != null)
+                {
+                    float redirectAmount = remainingDamage * 0.15f;
+                    remainingDamage -= redirectAmount;
+
+                    DamageInfo redirectInfo = info;
+                    redirectInfo.amount = redirectAmount;
+                    redirectInfo.isRedirected = true;
+                    redirectInfo.popupText = "Guard";
+                    bestShieldbearer.GetDamage(redirectInfo);
+                }
+            }
+        }
+
         // [공용 시너지 연산 (미니언 물리 피해(평타 전용) && 적군 타겟 && 공격자가 아군)]
         bool isEnemyTarget = (_stat != null && _stat.IsEnemy);
         if (info.type == DamageType.Physical && isEnemyTarget && info.attacker != null && !info.isThrowDamage)
