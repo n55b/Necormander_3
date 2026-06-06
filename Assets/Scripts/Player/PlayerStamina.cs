@@ -29,6 +29,8 @@ public class PlayerStamina : MonoBehaviour
     
     public float GetThrowCost(int minionCount, CommandData predictedType = CommandData.None)
     {
+        if (GameManager.Instance != null && GameManager.Instance.testMode_InfiniteStamina) return 0f;
+
         int count = Mathf.Max(1, minionCount);
         float dynamicCost = defaultThrowCost + ((count - 1) * 5f);
         float finalCost = Mathf.Max(0f, dynamicCost + throwCostBonus);

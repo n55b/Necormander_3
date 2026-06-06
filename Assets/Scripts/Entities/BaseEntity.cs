@@ -71,6 +71,16 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual void Start()
     {
+        // [수정] 오토배틀러 비활성화 상태에서는 적군의 모든 물리/타겟팅 판정(opponentLayer)에서 아군 미니언을 제외함
+        if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
+        {
+            if (team == Team.Enemy)
+            {
+                opponentLayer.value &= ~(1 << LayerMask.NameToLayer("Army"));
+                opponentLayer.value &= ~(1 << LayerMask.NameToLayer("Ally"));
+            }
+        }
+
         // [수정] 직접 배치된 개체라면 스스로 초기화 (스탯 및 브레인 생성)
         if (minionData != null && _runtimeBrain == null)
         {

@@ -41,6 +41,33 @@ public abstract class AIPatternSO : ScriptableObject
         // 현재 상태 Entity에게 전달하여 애니메이션 재생
         entity.UpdateAnimation(currentState);
 
+        // [Test Mode] 오토배틀러 비활성화 시, 아군(Ally)은 모든 AI 판단(공격, 타겟팅)을 중단하고 플레이어만 따라다님
+        if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
+        {
+            if (entity.team == Team.Ally)
+            {
+                var ally = entity as AllyController;
+                if (ally != null && ally.player != null)
+                {
+                    target = ally.player;
+                    float dist = Vector2.Distance(entity.transform.position, target.position);
+                    
+                    if (dist > 2.0f) currentState = AIState.Follow;
+                    else currentState = AIState.Idle;
+
+                    switch (currentState)
+                    {
+                        case AIState.Idle: OnIdle(entity); break;
+                        case AIState.Follow: OnFollow(entity); break;
+                    }
+                    
+                    entity.UpdateAnimation(currentState);
+                    CalculateRotate(target, entity);
+                    return; // 더 이상 하위 로직(적군 탐색 등)을 실행하지 않음
+                }
+            }
+        }
+
         if(target != null)
         {
             CalculateRotate(target, entity);

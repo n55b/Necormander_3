@@ -17,8 +17,18 @@ public class Projectile : MonoBehaviour
 
     public virtual void Init(Vector2 targetPos, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
     {
-        _damage = damage;
         _targetLayer = targetLayer;
+        
+        if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
+        {
+            if (shooter != null && (shooter.layer == LayerMask.NameToLayer("Enemy") || shooter.layer == LayerMask.NameToLayer("Boss")))
+            {
+                _targetLayer.value &= ~(1 << LayerMask.NameToLayer("Army"));
+                _targetLayer.value &= ~(1 << LayerMask.NameToLayer("Ally"));
+            }
+        }
+
+        _damage = damage;
         _shooter = shooter;
         speed = customSpeed;
         lifeTime = customLifeTime;

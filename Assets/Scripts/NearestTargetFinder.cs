@@ -40,7 +40,17 @@ public class NearestTargetFinder : MonoBehaviour
 
         canScan = false; // 스캔 후 플래그 리셋
         detectionRadius = distance;
-        filter.SetLayerMask(targetLayer); // 현재 레이어 마스크 적용
+        
+        int currentMask = targetLayer.value;
+        if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
+        {
+            if (gameObject.layer == LayerMask.NameToLayer("Enemy") || gameObject.layer == LayerMask.NameToLayer("Boss"))
+            {
+                currentMask &= ~(1 << LayerMask.NameToLayer("Ally"));
+            }
+        }
+        
+        filter.SetLayerMask(currentMask); // 현재 레이어 마스크 적용
 
         // 1. 범위 내 특정 레이어만 추출 (최신 비할당 API 사용)
         int count = Physics2D.OverlapCircle(transform.position, detectionRadius, filter, results);

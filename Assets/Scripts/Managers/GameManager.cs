@@ -73,6 +73,10 @@ public class GameManager : MonoBehaviour
         SetTimeStop(false);
     }
 
+    [Header("Test Options")]
+    [SerializeField] public bool testMode_InfiniteStamina = false;
+    [SerializeField] public bool testMode_DisableAutoBattle = false;
+
     [Header("Floor Info")]
     [SerializeField] public int currentFloor = 1;
     [SerializeField] public bool debugStartAtBoss = false; // [추가] 보스방 직행 디버그 옵션
