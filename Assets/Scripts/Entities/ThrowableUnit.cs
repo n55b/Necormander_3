@@ -34,6 +34,7 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
     // [추가] 레이어 및 충돌 상태 관리
     private int _originalLayer;
     protected bool _isImpacted;
+    private Transform _originalParent; // [추가] 던지기 전 원래 부모 오브젝트
 
     protected virtual void Awake()
     {
@@ -53,6 +54,12 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
 
     public virtual void OnPickedUp()
     {
+        // 이미 클러스터에 잡힌 상태에서 재호출될 경우, 부모를 덮어씌우지 않도록 방어 코드 추가
+        if (transform.parent == null || transform.parent.GetComponent<ThrowCluster>() == null)
+        {
+            _originalParent = transform.parent; // 원래 부모 기억
+        }
+        
         _rb.simulated = false;
         _collider.enabled = false;
         _isImpacted = false; // [추가] 잡을 때 상태 초기화
@@ -65,6 +72,13 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
     {
         _throwStartTime = Time.time;
         transform.rotation = Quaternion.identity;
+
+        // [수정] 클러스터에 포함되어 던져지는 경우, 이동과 물리는 클러스터가 전담하므로 개별 물리 연산을 생략합니다.
+        // 이를 생략하지 않으면 상자 내부의 자체 ArcMovement가 실행되어 착지 시 0,0,0으로 위치를 강제 텔레포트시키는 심각한 버그가 발생합니다.
+        if (transform.parent != null && transform.parent.GetComponent<ThrowCluster>() != null)
+        {
+            return;
+        }
 
         _rb.simulated = true;
         _collider.enabled = true;
@@ -115,10 +129,26 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
     {
         _rb.linearVelocity = Vector2.zero;
         _rb.linearDamping = _originalDamping;
-        _collider.isTrigger = false;
         
-        // 착지 시 레이어 복구
+        // [수정] simulated를 켜면 물리 엔진이 과거 위치(0,0)로 Transform을 덮어씌우는 현상 완벽 방어
+        Vector3 currentWorldPos = transform.position;
+        _rb.simulated = true;
+        transform.position = currentWorldPos;
+        _rb.position = currentWorldPos;
+        
+        if (_collider != null)
+        {
+            _collider.enabled = true;
+            _collider.isTrigger = false;
+        }
+        
+        // 착지 시 레이어 및 부모 복구
         gameObject.layer = _originalLayer;
+        
+        if (_originalParent != null)
+        {
+            transform.SetParent(_originalParent, true); // true: 현재 월드 좌표 유지
+        }
         
         Debug.Log($"{gameObject.name} landed!");
     }

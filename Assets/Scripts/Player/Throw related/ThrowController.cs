@@ -234,6 +234,50 @@ public class ThrowController : MonoBehaviour
         }
     }
 
+    public bool TryAutoPickUpNearbyThrowable()
+    {
+        // 1. 이미 들고 있는 사물이 있다면 성공으로 간주
+        if (_heldObjects.Count > 0) return true;
+
+        // 2. 주변 탐색
+        float radius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
+        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius);
+        IThrowable bestTarget = null;
+        GameObject bestObj = null;
+        float minDist = float.MaxValue;
+        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+
+        foreach (var col in colls)
+        {
+            // 날아가고 있는 객체 제외
+            if (col.gameObject.layer == flyingLayer) continue;
+
+            if (col.TryGetComponent<IThrowable>(out var throwable))
+            {
+                // 융합체 등 집을 수 없는 조건 확인
+                if (throwable is MonoBehaviour mb && mb.TryGetComponent<FusionMinionController>(out var fusion) && fusion.IsFused) continue;
+
+                float dist = Vector2.Distance(transform.position, col.transform.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    bestTarget = throwable;
+                    bestObj = col.gameObject;
+                }
+            }
+        }
+
+        // 3. 찾았다면 즉시 집기 처리
+        if (bestTarget != null)
+        {
+            PerformPickUp(bestTarget, bestObj);
+            return true;
+        }
+
+        // 찾지 못했다면 투척 실패
+        return false;
+    }
+
     public void TryPickUpByType(CommandData targetType)
     {
         var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
@@ -337,16 +381,15 @@ public class ThrowController : MonoBehaviour
         Vector2 mousePos = CurrentMouseWorldPos;
         float ratio = 1.0f; // 즉발이므로 풀 차징으로 간주
         
-        // 빈 리스트를 넘겨서 순수 기본 데미지만 가진 레시피 생성
-        List<IThrowable> emptyList = new List<IThrowable>();
-        ThrowRecipe recipe = _strategy.CreateRecipe(mousePos, ratio, emptyList);
+        // 방금 집은 사물 리스트를 넘겨서 레시피 생성
+        ThrowRecipe recipe = _strategy.CreateRecipe(mousePos, ratio, _heldObjects);
         
         // 강제로 직구/곡선 모드 오버라이드
         recipe.info.isDirect = isDirect;
         recipe.info.targetingMode = TargetingMode.Area; // 일단 기본적으로 범위 타격으로 간주 (원한다면 Target으로 수정 가능)
         
-        ThrowCluster cluster = Instantiate(clusterPrefab, holdPoint.position, Quaternion.identity);
-        cluster.Setup(emptyList);
+        // PickUp에서 이미 만들어진 클러스터 사용
+        ThrowCluster cluster = GetActiveClusterOrCreate();
         cluster.SetRecipe(recipe);
 
         float speed = isDirect ? 35f : 12f; // 직구는 35로 더 빠르게, 곡선은 12로 여유있게
@@ -394,6 +437,11 @@ public class ThrowController : MonoBehaviour
         }
 
         cluster.Launch(startPos, finalPos, duration, maxHeight, isDirect, ratio);
+        
+        // 날아간 클러스터는 내 손을 떠났으므로 참조 해제 및 리스트 비우기
+        _activeCluster = null;
+        _heldObjects.Clear();
+        RefreshThrowInfo();
     }
 
     public void ThrowAll()

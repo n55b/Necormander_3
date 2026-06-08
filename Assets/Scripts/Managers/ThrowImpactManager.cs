@@ -178,6 +178,25 @@ public class ThrowImpactManager : MonoBehaviour
             GameObject rootObj = root.gameObject;
 
             if (processed.Contains(rootObj)) continue;
+            // 던져진 물체(자기 자신)가 자신의 폭발에 맞고 죽는 것을 방지
+            bool isHeldUnit = false;
+            foreach (var unit in recipe.state.heldUnits)
+            {
+                if (unit != null && unit is MonoBehaviour mb)
+                {
+                    if (obj.transform.IsChildOf(mb.transform))
+                    {
+                        isHeldUnit = true;
+                        break;
+                    }
+                }
+            }
+            if (isHeldUnit) continue;
+
+            // [추가] 다른 투척물의 폭발에 상자가 휩쓸려 파괴되는 현상 방지
+            var throwable = rootObj.GetComponentInChildren<IThrowable>();
+            if (throwable != null && throwable.MinionType == CommandData.None) continue;
+
             if (rootObj.GetComponentInChildren<BaseEntity>() != null || rootObj.CompareTag("Player"))
             {
                 targets.Add(rootObj);

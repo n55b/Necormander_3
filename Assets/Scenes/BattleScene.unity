@@ -939,6 +939,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingMinions.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartingAbilities.Array.size
       value: 0
       objectReference: {fileID: 0}

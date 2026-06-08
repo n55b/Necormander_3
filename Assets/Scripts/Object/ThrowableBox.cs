@@ -28,7 +28,8 @@ public class ThrowableBox : ThrowableUnit
         // 클러스터가 적이나 벽에 부딪혔다고 판단했을 때만 파괴 로직 실행
         if (_isImpacted)
         {
-            DestroyBox();
+            // [임시 수정] 상자가 무조건 파괴되지 않도록 파괴 로직을 주석 처리합니다.
+            // DestroyBox();
         }
     }
 

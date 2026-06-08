@@ -617,7 +617,8 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        if (!Slots.Exists(s => s.EquippedLineage != null)) AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
+        // [수정] 유저 요청에 의해 미니언이 없을 때 기본 전사 1마리를 추가하는 로직을 제거(주석 처리)합니다.
+        // if (!Slots.Exists(s => s.EquippedLineage != null)) AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
     }
 
     /// <summary>

@@ -139,7 +139,7 @@ public class PlayerController : MonoBehaviour
     public Vector2 MoveInput => moveInput;
 
     [Header("조작감 설정")]
-    [SerializeField] private float movementSmoothTime = 0.05f;
+    [SerializeField] private float movementSmoothTime = 0.15f;
     private Vector2 _smoothedMoveInput;
     private Vector2 _moveInputVelocity;
 
@@ -252,8 +252,6 @@ public class PlayerController : MonoBehaviour
 
         if (_inputBlocked) return;
 
-        MoveDirection = moveInput;
-
         if (canChangeState)
         {
             TransitionToState(idleState);
@@ -277,11 +275,21 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // --- 관성 이동 계산 (SmoothDamp) ---
-        // 대쉬 중이 아닐 때만 입력에 따라 목표 방향을 업데이트
         if (!_isDashing)
         {
-            _smoothedMoveInput = Vector2.SmoothDamp(_smoothedMoveInput, moveInput, ref _moveInputVelocity, movementSmoothTime);
+            float actualSmoothTime;
+            // 입력이 있을 때(가속/방향전환)는 무겁지 않게 아주 빠릿하게 반응
+            if (moveInput.sqrMagnitude > 0.01f)
+            {
+                actualSmoothTime = 0.02f;
+            }
+            // 키보드에서 손을 뗐을 때(감속)만 미끄러지도록 관성 적용
+            else
+            {
+                actualSmoothTime = Mathf.Max(movementSmoothTime, 0.15f);
+            }
+
+            _smoothedMoveInput = Vector2.SmoothDamp(_smoothedMoveInput, moveInput, ref _moveInputVelocity, actualSmoothTime, Mathf.Infinity, Time.deltaTime);
             MoveDirection = _smoothedMoveInput;
         }
     }
@@ -335,11 +343,11 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // [개선] 기존 이동 로직: 물리 속도를 덮어쓰지 않고 위치를 보간된 MoveDirection에 따라 번역
-            // 넉백(200 이상) 중일 때는 입력을 무시하여 넉백 효과를 온전히 받도록 함
-            if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f) // 대략적인 임계값
+            // [개선] 물리 충돌과 자연스러운 관성을 위해 transform.position 대신 linearVelocity를 사용합니다.
+            // 넉백(200 이상) 중일 때는 속도를 덮어쓰지 않아 넉백 효과를 유지합니다.
+            if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f)
             {
-                transform.position += MoveDirection * currentSpeed * Time.fixedDeltaTime;
+                _rb.linearVelocity = MoveDirection * currentSpeed;
             }
         }
     }
