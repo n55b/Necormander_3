@@ -138,6 +138,22 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Vector2 moveInput = Vector2.zero;
     public Vector2 MoveInput => moveInput;
 
+    [Header("조작감 설정")]
+    [SerializeField] private float movementSmoothTime = 0.05f;
+    private Vector2 _smoothedMoveInput;
+    private Vector2 _moveInputVelocity;
+
+    [Header("구르기(대쉬) 설정")]
+    [SerializeField] private float dashSpeed = 15f;
+    [SerializeField] private float dashDuration = 0.2f;
+    [SerializeField] private float dashCooldown = 1.0f;
+    private bool _isDashing = false;
+    private float _dashTimeLeft;
+    private float _lastDashTime;
+    private Vector2 _dashDir;
+
+    public bool IsDashing => _isDashing;
+
     private Rigidbody2D _rb;
 
     private void Awake()
@@ -252,11 +268,22 @@ public class PlayerController : MonoBehaviour
 
         CheckForInteractable(); // [추가]
 
-        // [기존 임시 디버깅 삭제]
-        // if (Input.GetKeyDown(KeyCode.E))
-        // {
-        //     Debug.Log("<color=cyan>[DirectInput]</color> Keyboard E Pressed!");
-        // }
+        // --- 구르기(대쉬) 입력 처리 ---
+        if (Keyboard.current != null && Keyboard.current.shiftKey.wasPressedThisFrame)
+        {
+            if (!_isDashing && Time.time >= _lastDashTime + dashCooldown)
+            {
+                StartDash();
+            }
+        }
+
+        // --- 관성 이동 계산 (SmoothDamp) ---
+        // 대쉬 중이 아닐 때만 입력에 따라 목표 방향을 업데이트
+        if (!_isDashing)
+        {
+            _smoothedMoveInput = Vector2.SmoothDamp(_smoothedMoveInput, moveInput, ref _moveInputVelocity, movementSmoothTime);
+            MoveDirection = _smoothedMoveInput;
+        }
     }
 
     private void CheckForInteractable() // [추가]
@@ -295,11 +322,62 @@ public class PlayerController : MonoBehaviour
             currentSpeed *= chargeMoveSpeedMultiplier;
         }
 
-        // [복구] 기존 이동 로직으로 원복하되, 넉백 중일 때는 물리 속도를 덮어쓰지 않도록 개선 가능
-        // 만약 리지드바디의 속도가 아주 높다면 이동 처리를 스킵하거나 합산
-        if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f) // 대략적인 임계값
+        if (_isDashing)
         {
-            transform.position += MoveDirection * currentSpeed * Time.deltaTime;
+            // 대쉬 중에는 물리 속도를 강제로 덮어써서 빠르게 이동
+            _rb.linearVelocity = _dashDir * dashSpeed;
+            _dashTimeLeft -= Time.fixedDeltaTime;
+
+            if (_dashTimeLeft <= 0)
+            {
+                EndDash();
+            }
+        }
+        else
+        {
+            // [개선] 기존 이동 로직: 물리 속도를 덮어쓰지 않고 위치를 보간된 MoveDirection에 따라 번역
+            // 넉백(200 이상) 중일 때는 입력을 무시하여 넉백 효과를 온전히 받도록 함
+            if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f) // 대략적인 임계값
+            {
+                transform.position += MoveDirection * currentSpeed * Time.fixedDeltaTime;
+            }
+        }
+    }
+
+    private void StartDash()
+    {
+        _isDashing = true;
+        _dashTimeLeft = dashDuration;
+        _lastDashTime = Time.time;
+        
+        // 이동 입력이 있으면 그 방향으로, 없으면 현재 바라보는 방향(또는 우측)으로 대쉬
+        _dashDir = moveInput.normalized;
+        if (_dashDir == Vector2.zero)
+        {
+            _dashDir = new Vector2(-transform.localScale.x, 0).normalized; // x scale이 -1이면 오른쪽
+        }
+
+        if (stat != null && stat.Health != null)
+        {
+            stat.Health.Invincible = true; // 대쉬 무적 시작
+        }
+
+        // TODO: 대쉬 애니메이션 재생 트리거
+        // BodyAnimator.Play("Dash");
+    }
+
+    private void EndDash()
+    {
+        _isDashing = false;
+        
+        // 관성 초기화
+        _smoothedMoveInput = Vector2.zero;
+        _moveInputVelocity = Vector2.zero;
+        if (_rb != null) _rb.linearVelocity = Vector2.zero; // 대쉬 끝나고 미끄러짐 방지
+
+        if (stat != null && stat.Health != null)
+        {
+            stat.Health.Invincible = false; // 대쉬 무적 종료
         }
     }
 

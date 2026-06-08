@@ -106,6 +106,13 @@ public class ThrowStrategy : MonoBehaviour
         var throwCtrl = GameManager.Instance.PLAYERCONTROLLER.GetComponentInChildren<ThrowController>();
         if (throwCtrl != null) throwCtrl.InvokeRecipeCreated(recipe);
 
+        // [신규] 플레이어 기본 데미지 할당 및 타격을 담당하는 공통 액션 추가 (미니언이 없어도 무조건 적용)
+        if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        {
+            recipe.modifiers.baseDamage = GameManager.Instance.PLAYERCONTROLLER.Stat.BASE_THROW_DAMAGE;
+        }
+        recipe.actions.Add(new BaseDamageAction());
+
         if (heldObjects.Count == 0) return recipe;
 
         // 주력 유닛(전사/궁수)의 데이터를 가져옴
@@ -185,15 +192,6 @@ public class ThrowStrategy : MonoBehaviour
 
         // 스택 등을 계산할 때 쓰이는 totalMultiplier에 전체 효율을 곱해줌
         totalMultiplier *= recipe.modifiers.gemPowerMultiplier;
-
-        // [신규] 플레이어 기본 데미지 할당
-        if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-        {
-            recipe.modifiers.baseDamage = GameManager.Instance.PLAYERCONTROLLER.Stat.BASE_THROW_DAMAGE;
-        }
-
-        // [신규] 타격을 담당하는 공통 액션 추가
-        recipe.actions.Add(new BaseDamageAction());
 
         foreach (var obj in heldObjects)
         {

@@ -325,6 +325,77 @@ public class ThrowController : MonoBehaviour
         return _activeCluster;
     }
 
+    // [NEW LOGIC] 미니언 픽업 없이 즉발(Instant) 데미지 클러스터를 쏘는 새로운 투척 로직
+    public void FireDamageCluster(bool isDirect)
+    {
+        var stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
+        if (stamina != null) stamina.ConsumeStamina(1); // 기본 기력 소모량 1명 분량 적용 (또는 0으로 처리해도 됨)
+        
+        GameManager.Instance.PLAYERCONTROLLER.RecordCombatAction();
+
+        Vector2 startPos = (Vector2)holdPoint.position;
+        Vector2 mousePos = CurrentMouseWorldPos;
+        float ratio = 1.0f; // 즉발이므로 풀 차징으로 간주
+        
+        // 빈 리스트를 넘겨서 순수 기본 데미지만 가진 레시피 생성
+        List<IThrowable> emptyList = new List<IThrowable>();
+        ThrowRecipe recipe = _strategy.CreateRecipe(mousePos, ratio, emptyList);
+        
+        // 강제로 직구/곡선 모드 오버라이드
+        recipe.info.isDirect = isDirect;
+        recipe.info.targetingMode = TargetingMode.Area; // 일단 기본적으로 범위 타격으로 간주 (원한다면 Target으로 수정 가능)
+        
+        ThrowCluster cluster = Instantiate(clusterPrefab, holdPoint.position, Quaternion.identity);
+        cluster.Setup(emptyList);
+        cluster.SetRecipe(recipe);
+
+        float speed = isDirect ? 35f : 12f; // 직구는 35로 더 빠르게, 곡선은 12로 여유있게
+        float jumpH = isDirect ? 0.1f : 3.5f; // 곡선은 확연히 붕 뜨게 (높이 3.5)
+
+        Vector2 finalPos = _physics.GetClampedTargetPos(startPos, mousePos, cluster);
+        float dist = Vector2.Distance(startPos, finalPos);
+        float duration = dist / speed;
+
+        if (isDirect)
+        {
+            Vector2 dir = (finalPos - startPos).normalized;
+            if (dir == Vector2.zero) dir = (mousePos - startPos).normalized;
+            if (dir == Vector2.zero) dir = Vector2.right;
+            duration = 5.0f; // 직구는 멀리 날아가게 둠
+            finalPos = startPos + dir * (speed * duration);
+        }
+        else
+        {
+            // 곡선 던지기 시 거리에 따른 데미지/효과 보너스 계산 (ThrowStrategy와 동일 로직 적용)
+            if (InventoryManager.Instance != null)
+            {
+                float flightTimeBonus = InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicFlightTimeMultiplier);
+                if (GameManager.Instance.PLAYERCONTROLLER.TryGetComponent<PlayerUniqueEffectManager>(out var uem))
+                {
+                    flightTimeBonus += uem.JustThrowItSpeedBonus;
+                    uem.OnParabolicThrow();
+                }
+                duration *= (1f - Mathf.Clamp(flightTimeBonus, 0f, 0.9f));
+            }
+        }
+
+        float maxHeight = isDirect ? jumpH : Mathf.Min(jumpH, dist * 0.5f);
+
+        // 어빌리티 Hook
+        if (InventoryManager.Instance != null)
+        {
+            foreach (var ability in InventoryManager.Instance.ActiveAbilities)
+            {
+                if (ability != null && ability.IsApplicable(isDirect, recipe.info.targetingMode))
+                {
+                    ability.OnThrowLaunch(this, recipe, startPos, finalPos, duration, maxHeight, isDirect, ratio);
+                }
+            }
+        }
+
+        cluster.Launch(startPos, finalPos, duration, maxHeight, isDirect, ratio);
+    }
+
     public void ThrowAll()
     {
         _heldObjects.RemoveAll(item => item == null || (item is MonoBehaviour mb && mb == null));

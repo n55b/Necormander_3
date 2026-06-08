@@ -11,9 +11,10 @@ public class ArcherAction : ImpactAction
 
     public override void Execute(GameObject target, Vector2 impactPos, Vector2 travelDir, ThrowRecipe recipe)
     {
-        if (recipe.info.targetingMode == TargetingMode.Area && target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
+        BaseEntity entity = target.GetComponentInChildren<BaseEntity>();
+        if (recipe.info.targetingMode == TargetingMode.Area && entity != null && entity.team == Team.Enemy)
         {
-            // 데미지는 BaseDamageAction에서 일괄 처리되므로 이벤트 용 더미 값 사용
+            // 이펙트 및 스턴 로직은 ThrowImpactManager와 ThrowEffectRegistry에 위임서 일괄 처리되므로 이벤트 용 더미 값 사용
             float finalDamage = recipe.GetFinalDamage();
             float currentRadius = recipe.GetScaledRadius();
 

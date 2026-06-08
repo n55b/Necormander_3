@@ -14,7 +14,8 @@ public class ShieldBearerAction : ImpactAction
         CharacterStat targetStat = null;
         bool isAllyOrPlayer = false;
 
-        if (target.TryGetComponent<BaseEntity>(out var entity))
+        BaseEntity entity = target.GetComponentInChildren<BaseEntity>();
+        if (entity != null)
         {
             if (entity.team == Team.Ally)
             {

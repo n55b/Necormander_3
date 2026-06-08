@@ -1,442 +1,385 @@
-Map Bounds: X(-42 to 41), Y(-77 to 95)
+Map Bounds: X(-88 to 98), Y(-53 to 62)
 Legend: [P: Spawn], [S: Shop], [R: Reward], [E: Elite], [N: Normal]
 
-                                                                                    
-                  WWWWWWWWWWW                                                       
-                  WWWWWWWWWWW                                                       
-                  WWWWWWWWWWW                                                       
-                  WWWWWWWWWWW                                                       
-                  WWWWWWWWWWW                                                       
-                  WWWWWWWWWWW                                                       
-                  WWWWWWWWWWW                                                       
-                  W....[R:3]W                                                       
-                  W.........W                                                       
-                  W.........W                                                       
-                  W.........W                                                       
-                  W.........W                                                       
-                  W.........W                                                       
-                  W.........W                                                       
-                  W.........W                                                       
-                  WWWWS.SWWWW                                                       
-                     WS.SWW                                                         
-                     WS.SSW                                                         
-                     WS..SW                                                         
-               WWWWWWWWS.SWWWWWWWWWWWWWWWWWW                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W.............[E:2].........W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               W...........................W                                        
-               WWWWWWWWWWWWWWWWWWWWS.SWWWWWW                                        
-                                  WS.SWWWWWWWWWWWWWWW                               
-                                  WS.SSSSSSSSSSSSSSSW                               
-                                  WS...............SW                               
-   WWWWWWWWWWWWWWWWWWWWWWWWWWWWW  WSSSSSSSSSSSSSSS.SW                               
-   W...........................W  WWWWWWWWWWWWWWWS.SW                               
-   W...........................W                WS.SW                               
-   W...........................W                WS.SW                               
-   W...........................W                WS.SW                               
-   W...........................W                WS.SW                               
-   W...........................W                WS.SW                               
-   W...........................W                WS.SW                               
-   W.............[N:2].........W                WS.SW                               
-   W...........................W                WS.SW                               
-   W...........................W                WS.SW                               
-   WWWWWW......................WWWWWW           WS.SW                               
-   WWWWWW......................SSSSSW           WS.SW                               
-   WWWWWW..........................SW           WS.SW                               
-   WWWWWW......................SSS.SW           WS.SW                               
-   WWWWWW......................WWS.SW           WS.SW                               
-   WWWWWWWWWWS.SWWWWWWWWWWWWWWWWWS.SW           WS.SW                               
-            WS.SWWWW            WS.SW           WS.SW                               
-            WS.SSSSW            WS.SW           WS.SW                               
-            WS....SW            WS.SW           WS.SW                               
-            WSSSS.SW            WS.SW           WS.SW                               
-            WWWWS.SW            WS.SWWWWWWWWWWWWWS.SW                               
-               WS.SW            WS.SSSSSSSSSSSSWWS.SW                               
-               WS.SW            WS............SWWS.SW                               
-               WS.SW            WSSSSSSSSSSSS.SWWS.SW                               
-               WS.SW            WWWWWWWWWWWWS.SWWS.SW                               
-        WWWWWWWWS.SWWWWWWWWWWWWWWWWWW    WWWS.SWWS.SWWWWWWWWWWWWWWWWWW              
-        W...........................W    W...........................W              
-        W...........................W    W...........................W              
-        W...........................W    W...........................W              
-        W...........................W    W...........................W              
-        W...........................W    W...........................W              
-        W...........................W    W...........................W              
-        W...........................W    W...........................W              
-        W.............[N:2].........W    W.............[N:1].........W              
-        W...........................W    W...........................W              
-        W...........................W    W...........................W              
-        WWWWWW......................W    WWWWWW......................W              
-        WWWWWW......................W    WWWWWW......................W              
-        WWWWWW......................W    WWWWWW......................W              
-        WWWWWW......................W    WWWWWW......................W              
-        WWWWWW......................W    WWWWWW......................W              
-        WWWWWWWWWWWWWWWS.SWWWWWWWWWWW    WWWWWWWWWWS.SWWWWWWWWWWWWWWWW              
-                      WS.SW                       WS.SW                             
-                      WS.SW                 WWWWWWWS.SW                             
-                      WS.SW                 WSSSSSSS.SW                             
-                      WS.SW                 WS.......SW                             
-                      WS.SW                 WS.SSSSSSSW                             
-                      WS.SW                 WS.SWWWWWWW                             
-                      WS.SW              WWWWS.SWWWW                                
-                      WS.SW              W.........W                                
-                      WS.SW              W.........W                                
-                      WS.SW         WWWWWW.........W                                
-                      WS.SW         WSSSSS.........W                                
-                      WS.SW         WS........[P:0]W                                
-                      WS.SW         WS.SSS.........W                                
-                      WS.SW         WS.SWW.........W                                
-                      WS.SW         WS.SWW.........W                                
-                      WS.SW         WS.SWW.........W                                
-                      WS.SW         WS.SWWWWWS.SWWWW                                
-                      WS.SW         WS.SW   WS.SW                                   
-                      WS.SW         WS.SW   WS.SW                                   
-                      WS.SW         WS.SW   WS.SW                                   
-                      WS.SW         WS.SW   WS.SW                                   
-                      WS.SW         WS.SW   WS.SW                                   
-                      WS.SW         WS.SW   WS.SW                                   
-                      WS.SW         WS.SW   WS.SW                                   
-                      WS.SW         WS.SW   WS.SW                                   
-                      WS.SW         WS.SW   WS.SW                                   
-                      WS.SW         WS.SW   WS.SW                                   
-WWWWWWWWWWWWWWWWWWWWWWWS.SWWW       WS.SW   WS.SW                                   
-W...........................WWWWWWWWWS.SW   WS.SW                                   
-W...........................SSSSSSSSSS.SW   WS.SWWW                                 
-W......................................SW   WS.SSSW                                 
-W...........................SSSSSSSSSSSSW   WS...SW                                 
-W...........................WWWWWWWWWWWWW   WSSS.SW                                 
-W...........................W               WWWS.SW                                 
-W...........................W     WWWWWWWWWWWWWS.SWWWWWWWWWWWWW                     
-W.............[N:1].........W     W...........................W                     
-W...........................W     W...........................W                     
-W...........................W     W...........................W                     
-WWWWWW......................WWWWWWW...........................W                     
-WWWWWW......................SSSSSWW...........................W                     
-WWWWWW..........................SWW...........................W                     
-WWWWWW......................SSS.SSS...........................W                     
-WWWWWW......................WWS.................[N:1].........W                     
-WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWSSSSS...........................W                     
-                             WWWWWW...........................W                     
-                                  WWWWWW......................WWWWWWWWWWWW          
-                                  WWWWWW......................SSSSSSSSSSSW          
-                                  WWWWWW................................SW          
-                                  WWWWWW......................SSSSSSSSS.SW          
-                                  WWWWWW......................WWWWWWWWS.SW          
-                                  WWWWWWWWWWWWWWWWWWWWWWWWWWWWW      WS.SW          
-                                                                     WS.SW          
-                                           SSSSSSSSSSSSSSSSSSSSSSSSSSWS.SW          
-                                           SSSSSSSSSSSSSSSSSSSSSSSSSSWS.SW          
-                                           SSSSSSSSSSSSSSSSSSSSSSSSSSWS.SW          
-                                           WWWWWWWWWWWWWWWWWWWWWWWWWWWS.SW          
-                                           WWWWWWWWWWWWWWWWWWWWWWWWWWWS.SW          
-                                           WWWWWWWWWWWWWWWWWWWWWWWWWWWS.SW          
-                                           WWWWWWWWW........WWWWWWWWWWS.SW          
-                                           WWWWWWWW..........WWWWWWWWWS.SW          
-                                           WWWWWWW............WWWWWWWWS.SW          
-                                           WWWWWWW............WWWWWWWWS.SW          
-                                           WWWWW................WWWWWWS.SW          
-                                           W........................WWS.SW          
-                                           W........................SSS.SW          
-                                           W............[S:2]...........SW          
-                                           W........................SSSSSW          
-                                           W........................WWWWWW          
-                                           W........................W               
-                                           W........................W               
-                                           W........................W               
-                                           WW......................WW               
-                                            W......................W    WWWWWWWWWWW 
-                                            WW....................WW    WWWWWWWWWWW 
-                                             W....................W     WWWWWWWWWWW 
-                                             WWWWWWWWWWS.SWWWWWWWWW     WWWWWWWWWWW 
-                                                      WS.SWWWWWWWWWWWWWWWWWWWWWWWWW 
-                                                      WS.SSSSSSSSSSSSSSWWWWWWWWWWWW 
-                                                      WS..............SWWWWWWWWWWWW 
-                                                      WSSSSSSSSSSSSSS.SWW....[R:3]W 
-                                                      WWWWWWWWWWWWWWS.SSS.........W 
-                                                                   WS.............W 
-                                                                   WSSSSS.........W 
-                                                                   WWWWWW.........W 
-                                                                        W.........W 
-                                                                        W.........W 
-                                                                        W.........W 
-                                                                        WWWWWWWWWWW 
+                                                                                                                                                                                           
+                                                                                                                             WWWWWWWWWWW                                                   
+                                                                                                                             WWWWWWWWWWW                                                   
+                                                                                                                             WWWWWWWWWWW                                                   
+                                                                                                                             WWWWWWWWWWW                                                   
+                                                                                                                             WWWWWWWWWWW                                                   
+                                                                                                                             WWWWWWWWWWW                                                   
+                                                                                                                             WWWWWWWWWWW                                                   
+                                                                                                                      WWWWWWWW....[R:4]W                                                   
+                                                                                                                      WSSSSSSS.........W                                                   
+                                                                                                                      WS...............W                                                   
+                                                                                                                      WS.SSSSS.........W                                                   
+                                                                                         WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWS.SWWWW.........W                                                   
+                                                                                         W...........................WWS.SW  W.........W                                                   
+                                                                                         W...........................SSS.SW  W.........W                                                   
+                                                                                         W...............................SW  W.........W                                                   
+                                                                                         W...........................SSSSSW  WWWWWWWWWWW                                                   
+                                                                                         W...........................WWWWWW                                                                
+                                                                                         W...........................W                                                                     
+                                                                                         W...........................W                                                                     
+                                                                                         W.............[N:3].........W                                                                     
+                                                                                         W...........................W                                                                     
+                                                                                         W...........................W                                                                     
+                                                                                         WWWWWW......................WWWWWWWWWWWWWWWWWWWWWWWWWW                                            
+                                                                                         WWWWWW......................SSSSSSSSSSSSSSSSSSSSSSSSSW                                            
+                                                                                         WWWWWW..............................................SW              WWWWWWWWWWWWWWWWWWWWWWWWWWWWW 
+                                                                                         WWWWWW......................SSSSSSSSSSSSSSSSSSSSSSS.SW              W...........................W 
+                                                                                         WWWWWW......................WWWWWWWWWWWWWWWWWWWWWWS.SW              W...........................W 
+                                                                                         WWWWWWWWWWWWWWWWWWWWS.SWWWWWW                    WS.SW              W...........................W 
+                                                                                                          WWWS.SW                         WS.SW              W...........................W 
+                                                                                                          WSSS.SW                         WS.SW              W...........................W 
+                                                                                                          WS...SW                         WS.SW              W...........................W 
+                                                                                                          WS.SSSW                         WS.SW              W...........................W 
+                                                                                                          WS.SWWW                         WS.SW              W.............[N:4].........W 
+                                                                                                          WS.SW                           WS.SW              W...........................W 
+                                                                                                          WS.SW                           WS.SW              W...........................W 
+                                                                                                          WS.SW                           WS.SW              WWWWWW......................W 
+                                                                                                          WS.SW                           WS.SW              WWWWWW......................W 
+                                                                                                   WWWWWWWWS.SWWWWWWWWWWWWWWWWWW          WS.SW              WWWWWW......................W 
+                                                                                                   W...........................W          WS.SW              WWWWWW......................W 
+                                                                                                   W...........................W          WS.SW              WWWWWW......................W 
+             SSSSSSSSSSSSSSSSSSSSSSSSSS                                                            W...........................W          WS.SW              WWWWWWWWWWS.SWWWWWWWWWWWWWWWW 
+             SSSSSSSSSSSSSSSSSSSSSSSSSS                                                            W...........................W          WS.SW                 WWWWWWWS.SW                
+             SSSSSSSSSSSSSSSSSSSSSSSSSS                                                            W...........................W          WS.SW                 WSSSSSSS.SW                
+             WWWWWWWWWWWWWWWWWWWWWWWWWW                                                       WWWWWW...........................W          WS.SW                 WS.......SW                
+             WWWWWWWWWWWWWWWWWWWWWWWWWW                                                       WSSSSS...........................W          WS.SW                 WS.SSSSSSSW                
+             WWWWWWWWWWWWWWWWWWWWWWWWWW    WWWWWWWWWWWWWWWWWWWWWWWWWWWWW                      WS.................[N:2].........W          WS.SW                 WS.SWWWWWWW                
+             WWWWWWWWW........WWWWWWWWW    W...........................WWWWWWWWWWWWWWWWWWWWWWWWS.SSS...........................W          WS.SW                 WS.SW                      
+             WWWWWWWW..........WWWWWWWW    W...........................SSSSSSSSSSSSSSSSSSSSSSSSS.SWW...........................W          WS.SW                 WS.SW                      
+             WWWWWWW............WWWWWWW    W.....................................................SWWWWWWW......................WWWWWWWWWWWWS.SW                 WS.SW                      
+             WWWWWWW............WWWWWWW    W...........................SSSSSSSSSSSSSSSSSSSSSSSSSSSWWWWWWW......................SSSSSSSSSSWWS.SW                 WS.SW                      
+             WWWWW................WWWWW    W...........................WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW...............................SWWS.SW                 WS.SW                      
+             W........................WWWWWW...........................W                           WWWWWW......................SSSSSSSS.SWWS.SW                 WS.SW                      
+             W........................SSSSSS...........................W                           WWWWWW......................WWWWWWWS.SWWS.SW                 WS.SW                      
+             W............[S:2]..........................[N:1].........W                           WWWWWWWWWWWWWWWWWWWWWWWWWWWWW   WWWS.SWWS.SWWWWWWWWWWWWWWWWWWWS.SW                      
+             W........................SSSSSS...........................W                                                           W...........................WWS.SW                      
+             W........................WWWWWW...........................W                                                           W...........................SSS.SW                      
+             W........................W    WWWWWW......................WWWWWW                                                      W...............................SW                      
+             W........................W    WWWWWW......................SSSSSW         WWWWWWWWWWW                                  W...........................SSSSSW                      
+             W........................W    WWWWWW..........................SW         W.........W                                  W...........................WWWWWW                      
+             WW......................WW    WWWWWW......................SSS.SW         W.........W                                  W...........................W                           
+              W......................W     WWWWWW......................WWS.SWWWWWWWWWWW.........W                                  W...........................W                           
+              WW....................WW     WWWWWWWWWWS.SWWWWWWWWWWWWWWWWWS.SSSSSSSSSSSS.........W                                  W.............[N:3].........W                           
+               W....................W               WS.SW               WS.................[P:0]W                                  W...........................W                           
+               WWWWWWWWWWS.SWWWWWWWWW               WS.SW               WSSSSSSSSSSSSSS.........W                                  W...........................W                           
+                        WS.SW                       WS.SW               WWWWWWWWWWWWWWW.........W                                  WWWWWW......................W                           
+                        WS.SW                       WS.SW                             W.........W                                  WWWWWW......................W                           
+                        WS.SW                       WS.SW                             W.........W                                  WWWWWW......................W                           
+                        WS.SW                       WS.SW                             WWWWWWWWWWW                                  WWWWWW......................W                           
+                        WS.SW                       WS.SW                                                                          WWWWWW......................W                           
+                        WS.SW                       WS.SW                                                                          WWWWWWWWWWWWWWWWWWWWWWWWWWWWW                           
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+                        WS.SW                       WS.SW                                                                                                                                  
+       WWWWWWWWWWWWWWWWWWS.SW                       WS.SW                                                                                                                                  
+       WSSSSSSSSSSSSSSSSSS.SW                       WS.SW                                                                                                                                  
+       WS..................SW                       WS.SW                                                                                                                                  
+       WS.SSSSSSSSSSSSSSSSSSW                       WS.SW                                                                                                                                  
+       WS.SWWWWWWWWWWWWWWWWWW                       WS.SW                                                                                                                                  
+WWWWWWWWS.SWWWWWWWWWWWWWWWWWW                       WS.SW                                                                                                                                  
+W...........................WWWWWWWWWWWWWWWWWWWWWWWWWS.SW                                                                                                                                  
+W...........................SSSSSSSSSSSSSSSSSSSSSSSSSS.SW                                                                                                                                  
+W......................................................SW                                                                                                                                  
+W...........................SSSSSSSSSSSSSSSSSSSSSSSSSSSSW                                                                                                                                  
+W...........................WWWWWWWWWWWWWWWWWWWWWWWWWWWWW                                                                                                                                  
+W...........................W                               WWWWWWWWWWW                                                                                                                    
+W...........................W                               WWWWWWWWWWW                                                                                                                    
+W...........................W                               WWWWWWWWWWW                                                                                                                    
+W.............[E:2].........W                               WWWWWWWWWWW                                                                                                                    
+W...........................W                               WWWWWWWWWWW                                                                                                                    
+W...........................W                               WWWWWWWWWWW                                                                                                                    
+W...........................WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW                                                                                                                    
+W...........................SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSWW....[R:3]W                                                                                                                    
+W.........................................................SSS.........W                                                                                                                    
+W...........................SSSSSSSSSSSSSSSSSSSSSSSSSSSSS.............W                                                                                                                    
+W...........................WWWWWWWWWWWWWWWWWWWWWWWWWWWWSSSSS.........W                                                                                                                    
+W...........................W                          WWWWWW.........W                                                                                                                    
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWW                               W.........W                                                                                                                    
+                                                            W.........W                                                                                                                    
+                                                            W.........W                                                                                                                    
+                                                            WWWWWWWWWWW                                                                                                                    
 
 ==================== ROOM DETAILS ====================
 Room: Room_Spawn(Clone)
   - Type: Spawn, Depth: 0, PhaseIndex: 0
   - MainTilemap Found: True (Name: Wall)
   - Alignment Status: SUCCESS (Aligned)
-  - Local (0,0) Cell World Pos: (0.00, -1.00, 0.00)
-  - Global Grid Target Cell Pos: (0, -1, 0)
-  - Global Grid Target World Pos: (0.00, -1.00, 0.00)
+  - Local (0,0) Cell World Pos: (-1.00, -1.00, 0.00)
+  - Global Grid Target Cell Pos: (-1, -1, 0)
+  - Global Grid Target World Pos: (-1.00, -1.00, 0.00)
   - Applied Snapping Offset: (0.00, 0.00, 0.00)
-  - Room Transform Position: (0.00, -1.00, 0.00)
-  - Room Cell Position: (0, -1, 0)
+  - Room Transform Position: (-1.00, -1.00, 0.00)
+  - Room Cell Position: (-1, -1, 0)
   - Size: (11, 11), CenterOffset: (4.50, 0.50)
   - FogMask World Position: None
   - Anchors count: 4
-    * Anchor 0: LocalPos=(-0.50, 0.50, 0.00), CellPos=(-1, -1, 0), Dir=(-1, 0), IsUsed=True
-    * Anchor 1: LocalPos=(9.50, 0.50, 0.00), CellPos=(9, -1, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 2: LocalPos=(4.50, 5.50, 0.00), CellPos=(4, 4, 0), Dir=(0, 1), IsUsed=True
-    * Anchor 3: LocalPos=(4.50, -4.50, 0.00), CellPos=(4, -6, 0), Dir=(0, -1), IsUsed=True
-
-Room: Room_Normal(Clone)
-  - Type: Normal, Depth: 1, PhaseIndex: 0
-  - MainTilemap Found: True (Name: Wall)
-  - Alignment Status: SUCCESS (Aligned)
-  - Local (0,0) Cell World Pos: (11.00, 19.00, 0.00)
-  - Global Grid Target Cell Pos: (11, 19, 0)
-  - Global Grid Target World Pos: (11.00, 19.00, 0.00)
-  - Applied Snapping Offset: (0.00, 0.00, 0.00)
-  - Room Transform Position: (11.00, 19.00, 0.00)
-  - Room Cell Position: (11, 19, 0)
-  - Size: (29, 17), CenterOffset: (2.50, 0.50)
-  - FogMask World Position: None
-  - Anchors count: 13
-    * Anchor 0: LocalPos=(16.50, 0.50, 0.00), CellPos=(27, 19, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 1: LocalPos=(16.50, -4.50, 0.00), CellPos=(27, 14, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 2: LocalPos=(16.50, 5.50, 0.00), CellPos=(27, 24, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 3: LocalPos=(12.50, 8.50, 0.00), CellPos=(23, 27, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 4: LocalPos=(7.50, 8.50, 0.00), CellPos=(18, 27, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 5: LocalPos=(2.50, 8.50, 0.00), CellPos=(13, 27, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 6: LocalPos=(-2.50, 8.50, 0.00), CellPos=(8, 27, 0), Dir=(0, 1), IsUsed=True
-    * Anchor 7: LocalPos=(-7.50, 8.50, 0.00), CellPos=(3, 27, 0), Dir=(0, 1), IsUsed=True
-    * Anchor 8: LocalPos=(-11.50, 0.50, 0.00), CellPos=(-1, 19, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 9: LocalPos=(-11.50, 5.50, 0.00), CellPos=(-1, 24, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 10: LocalPos=(4.50, -7.50, 0.00), CellPos=(15, 11, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 11: LocalPos=(9.50, -7.50, 0.00), CellPos=(20, 11, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 12: LocalPos=(-0.50, -7.50, 0.00), CellPos=(10, 11, 0), Dir=(0, -1), IsUsed=True
+    * Anchor 0: LocalPos=(-0.50, 0.50, 0.00), CellPos=(-2, -1, 0), Dir=(-1, 0), IsUsed=True
+    * Anchor 1: LocalPos=(9.50, 0.50, 0.00), CellPos=(8, -1, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 2: LocalPos=(4.50, 5.50, 0.00), CellPos=(3, 4, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 3: LocalPos=(4.50, -4.50, 0.00), CellPos=(3, -6, 0), Dir=(0, -1), IsUsed=False
 
 Room: Room_Normal(Clone)
   - Type: Normal, Depth: 2, PhaseIndex: 0
   - MainTilemap Found: True (Name: Wall)
   - Alignment Status: SUCCESS (Aligned)
-  - Local (0,0) Cell World Pos: (-22.00, 19.00, 0.00)
-  - Global Grid Target Cell Pos: (-22, 19, 0)
-  - Global Grid Target World Pos: (-22.00, 19.00, 0.00)
+  - Local (0,0) Cell World Pos: (23.00, 16.00, 0.00)
+  - Global Grid Target Cell Pos: (23, 16, 0)
+  - Global Grid Target World Pos: (23.00, 16.00, 0.00)
   - Applied Snapping Offset: (0.00, 0.00, 0.00)
-  - Room Transform Position: (-22.00, 19.00, 0.00)
-  - Room Cell Position: (-22, 19, 0)
+  - Room Transform Position: (23.00, 16.00, 0.00)
+  - Room Cell Position: (23, 16, 0)
   - Size: (29, 17), CenterOffset: (2.50, 0.50)
   - FogMask World Position: None
   - Anchors count: 13
-    * Anchor 0: LocalPos=(16.50, 0.50, 0.00), CellPos=(-6, 19, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 1: LocalPos=(16.50, -4.50, 0.00), CellPos=(-6, 14, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 2: LocalPos=(16.50, 5.50, 0.00), CellPos=(-6, 24, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 3: LocalPos=(12.50, 8.50, 0.00), CellPos=(-10, 27, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 4: LocalPos=(7.50, 8.50, 0.00), CellPos=(-15, 27, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 5: LocalPos=(2.50, 8.50, 0.00), CellPos=(-20, 27, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 6: LocalPos=(-2.50, 8.50, 0.00), CellPos=(-25, 27, 0), Dir=(0, 1), IsUsed=True
-    * Anchor 7: LocalPos=(-7.50, 8.50, 0.00), CellPos=(-30, 27, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 8: LocalPos=(-11.50, 0.50, 0.00), CellPos=(-34, 19, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 9: LocalPos=(-11.50, 5.50, 0.00), CellPos=(-34, 24, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 10: LocalPos=(4.50, -7.50, 0.00), CellPos=(-18, 11, 0), Dir=(0, -1), IsUsed=True
-    * Anchor 11: LocalPos=(9.50, -7.50, 0.00), CellPos=(-13, 11, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 12: LocalPos=(-0.50, -7.50, 0.00), CellPos=(-23, 11, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 0: LocalPos=(16.50, 0.50, 0.00), CellPos=(39, 16, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 1: LocalPos=(16.50, -4.50, 0.00), CellPos=(39, 11, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(16.50, 5.50, 0.00), CellPos=(39, 21, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 3: LocalPos=(12.50, 8.50, 0.00), CellPos=(35, 24, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 4: LocalPos=(7.50, 8.50, 0.00), CellPos=(30, 24, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 5: LocalPos=(2.50, 8.50, 0.00), CellPos=(25, 24, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 6: LocalPos=(-2.50, 8.50, 0.00), CellPos=(20, 24, 0), Dir=(0, 1), IsUsed=True
+    * Anchor 7: LocalPos=(-7.50, 8.50, 0.00), CellPos=(15, 24, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 8: LocalPos=(-11.50, 0.50, 0.00), CellPos=(11, 16, 0), Dir=(-1, 0), IsUsed=True
+    * Anchor 9: LocalPos=(-11.50, 5.50, 0.00), CellPos=(11, 21, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 10: LocalPos=(4.50, -7.50, 0.00), CellPos=(27, 8, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 11: LocalPos=(9.50, -7.50, 0.00), CellPos=(32, 8, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 12: LocalPos=(-0.50, -7.50, 0.00), CellPos=(22, 8, 0), Dir=(0, -1), IsUsed=False
+
+Room: Room_Normal(Clone)
+  - Type: Normal, Depth: 3, PhaseIndex: 0
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (13.00, 42.00, 0.00)
+  - Global Grid Target Cell Pos: (13, 42, 0)
+  - Global Grid Target World Pos: (13.00, 42.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (13.00, 42.00, 0.00)
+  - Room Cell Position: (13, 42, 0)
+  - Size: (29, 17), CenterOffset: (2.50, 0.50)
+  - FogMask World Position: None
+  - Anchors count: 13
+    * Anchor 0: LocalPos=(16.50, 0.50, 0.00), CellPos=(29, 42, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 1: LocalPos=(16.50, -4.50, 0.00), CellPos=(29, 37, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(16.50, 5.50, 0.00), CellPos=(29, 47, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 3: LocalPos=(12.50, 8.50, 0.00), CellPos=(25, 50, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 4: LocalPos=(7.50, 8.50, 0.00), CellPos=(20, 50, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 5: LocalPos=(2.50, 8.50, 0.00), CellPos=(15, 50, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 6: LocalPos=(-2.50, 8.50, 0.00), CellPos=(10, 50, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 7: LocalPos=(-7.50, 8.50, 0.00), CellPos=(5, 50, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 8: LocalPos=(-11.50, 0.50, 0.00), CellPos=(1, 42, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 9: LocalPos=(-11.50, 5.50, 0.00), CellPos=(1, 47, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 10: LocalPos=(4.50, -7.50, 0.00), CellPos=(17, 34, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 11: LocalPos=(9.50, -7.50, 0.00), CellPos=(22, 34, 0), Dir=(0, -1), IsUsed=True
+    * Anchor 12: LocalPos=(-0.50, -7.50, 0.00), CellPos=(12, 34, 0), Dir=(0, -1), IsUsed=False
 
 Room: Room_Normal(Clone)
   - Type: Normal, Depth: 1, PhaseIndex: 0
   - MainTilemap Found: True (Name: Wall)
   - Alignment Status: SUCCESS (Aligned)
-  - Local (0,0) Cell World Pos: (-30.00, -25.00, 0.00)
-  - Global Grid Target Cell Pos: (-30, -25, 0)
-  - Global Grid Target World Pos: (-30.00, -25.00, 0.00)
+  - Local (0,0) Cell World Pos: (-33.00, 8.00, 0.00)
+  - Global Grid Target Cell Pos: (-33, 8, 0)
+  - Global Grid Target World Pos: (-33.00, 8.00, 0.00)
   - Applied Snapping Offset: (0.00, 0.00, 0.00)
-  - Room Transform Position: (-30.00, -25.00, 0.00)
-  - Room Cell Position: (-30, -25, 0)
+  - Room Transform Position: (-33.00, 8.00, 0.00)
+  - Room Cell Position: (-33, 8, 0)
   - Size: (29, 17), CenterOffset: (2.50, 0.50)
   - FogMask World Position: None
   - Anchors count: 13
-    * Anchor 0: LocalPos=(16.50, 0.50, 0.00), CellPos=(-14, -25, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 1: LocalPos=(16.50, -4.50, 0.00), CellPos=(-14, -30, 0), Dir=(1, 0), IsUsed=True
-    * Anchor 2: LocalPos=(16.50, 5.50, 0.00), CellPos=(-14, -20, 0), Dir=(1, 0), IsUsed=True
-    * Anchor 3: LocalPos=(12.50, 8.50, 0.00), CellPos=(-18, -17, 0), Dir=(0, 1), IsUsed=True
-    * Anchor 4: LocalPos=(7.50, 8.50, 0.00), CellPos=(-23, -17, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 5: LocalPos=(2.50, 8.50, 0.00), CellPos=(-28, -17, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 6: LocalPos=(-2.50, 8.50, 0.00), CellPos=(-33, -17, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 7: LocalPos=(-7.50, 8.50, 0.00), CellPos=(-38, -17, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 8: LocalPos=(-11.50, 0.50, 0.00), CellPos=(-42, -25, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 9: LocalPos=(-11.50, 5.50, 0.00), CellPos=(-42, -20, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 10: LocalPos=(4.50, -7.50, 0.00), CellPos=(-26, -33, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 11: LocalPos=(9.50, -7.50, 0.00), CellPos=(-21, -33, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 12: LocalPos=(-0.50, -7.50, 0.00), CellPos=(-31, -33, 0), Dir=(0, -1), IsUsed=False
-
-Room: Room_Normal(Clone)
-  - Type: Normal, Depth: 1, PhaseIndex: 0
-  - MainTilemap Found: True (Name: Wall)
-  - Alignment Status: SUCCESS (Aligned)
-  - Local (0,0) Cell World Pos: (4.00, -32.00, 0.00)
-  - Global Grid Target Cell Pos: (4, -32, 0)
-  - Global Grid Target World Pos: (4.00, -32.00, 0.00)
-  - Applied Snapping Offset: (0.00, 0.00, 0.00)
-  - Room Transform Position: (4.00, -32.00, 0.00)
-  - Room Cell Position: (4, -32, 0)
-  - Size: (29, 17), CenterOffset: (2.50, 0.50)
-  - FogMask World Position: None
-  - Anchors count: 13
-    * Anchor 0: LocalPos=(16.50, 0.50, 0.00), CellPos=(20, -32, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 1: LocalPos=(16.50, -4.50, 0.00), CellPos=(20, -37, 0), Dir=(1, 0), IsUsed=True
-    * Anchor 2: LocalPos=(16.50, 5.50, 0.00), CellPos=(20, -27, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 3: LocalPos=(12.50, 8.50, 0.00), CellPos=(16, -24, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 4: LocalPos=(7.50, 8.50, 0.00), CellPos=(11, -24, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 5: LocalPos=(2.50, 8.50, 0.00), CellPos=(6, -24, 0), Dir=(0, 1), IsUsed=True
-    * Anchor 6: LocalPos=(-2.50, 8.50, 0.00), CellPos=(1, -24, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 7: LocalPos=(-7.50, 8.50, 0.00), CellPos=(-4, -24, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 8: LocalPos=(-11.50, 0.50, 0.00), CellPos=(-8, -32, 0), Dir=(-1, 0), IsUsed=True
-    * Anchor 9: LocalPos=(-11.50, 5.50, 0.00), CellPos=(-8, -27, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 10: LocalPos=(4.50, -7.50, 0.00), CellPos=(8, -40, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 11: LocalPos=(9.50, -7.50, 0.00), CellPos=(13, -40, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 12: LocalPos=(-0.50, -7.50, 0.00), CellPos=(3, -40, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 0: LocalPos=(16.50, 0.50, 0.00), CellPos=(-17, 8, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 1: LocalPos=(16.50, -4.50, 0.00), CellPos=(-17, 3, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(16.50, 5.50, 0.00), CellPos=(-17, 13, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 3: LocalPos=(12.50, 8.50, 0.00), CellPos=(-21, 16, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 4: LocalPos=(7.50, 8.50, 0.00), CellPos=(-26, 16, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 5: LocalPos=(2.50, 8.50, 0.00), CellPos=(-31, 16, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 6: LocalPos=(-2.50, 8.50, 0.00), CellPos=(-36, 16, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 7: LocalPos=(-7.50, 8.50, 0.00), CellPos=(-41, 16, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 8: LocalPos=(-11.50, 0.50, 0.00), CellPos=(-45, 8, 0), Dir=(-1, 0), IsUsed=True
+    * Anchor 9: LocalPos=(-11.50, 5.50, 0.00), CellPos=(-45, 13, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 10: LocalPos=(4.50, -7.50, 0.00), CellPos=(-29, 0, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 11: LocalPos=(9.50, -7.50, 0.00), CellPos=(-24, 0, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 12: LocalPos=(-0.50, -7.50, 0.00), CellPos=(-34, 0, 0), Dir=(0, -1), IsUsed=True
 
 Room: Room_Shop(Clone)
   - Type: Shop, Depth: 2, PhaseIndex: 1
   - MainTilemap Found: True (Name: Wall)
   - Alignment Status: SUCCESS (Aligned)
-  - Local (0,0) Cell World Pos: (9.00, -55.00, 0.00)
-  - Global Grid Target Cell Pos: (9, -55, 0)
-  - Global Grid Target World Pos: (9.00, -55.00, 0.00)
+  - Local (0,0) Cell World Pos: (-67.00, 8.00, 0.00)
+  - Global Grid Target Cell Pos: (-67, 8, 0)
+  - Global Grid Target World Pos: (-67.00, 8.00, 0.00)
   - Applied Snapping Offset: (0.00, 0.00, 0.00)
-  - Room Transform Position: (9.00, -55.00, 0.00)
-  - Room Cell Position: (9, -55, 0)
+  - Room Transform Position: (-67.00, 8.00, 0.00)
+  - Room Cell Position: (-67, 8, 0)
   - Size: (26, 21), CenterOffset: (5.00, 0.50)
   - FogMask World Position: None
   - Anchors count: 3
-    * Anchor 0: LocalPos=(5.00, -9.50, 0.00), CellPos=(14, -65, 0), Dir=(0, -1), IsUsed=True
-    * Anchor 1: LocalPos=(-7.50, 0.00, 0.00), CellPos=(1, -55, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 2: LocalPos=(17.50, 0.00, 0.00), CellPos=(26, -55, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 0: LocalPos=(5.00, -9.50, 0.00), CellPos=(-62, -2, 0), Dir=(0, -1), IsUsed=True
+    * Anchor 1: LocalPos=(-7.50, 0.00, 0.00), CellPos=(-75, 8, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 2: LocalPos=(17.50, 0.00, 0.00), CellPos=(-50, 8, 0), Dir=(1, 0), IsUsed=True
 
 Room: Room_Normal(Clone)
-  - Type: Normal, Depth: 2, PhaseIndex: 1
+  - Type: Normal, Depth: 3, PhaseIndex: 1
   - MainTilemap Found: True (Name: Wall)
   - Alignment Status: SUCCESS (Aligned)
-  - Local (0,0) Cell World Pos: (-27.00, 45.00, 0.00)
-  - Global Grid Target Cell Pos: (-27, 45, 0)
-  - Global Grid Target World Pos: (-27.00, 45.00, 0.00)
+  - Local (0,0) Cell World Pos: (55.00, 0.00, 0.00)
+  - Global Grid Target Cell Pos: (55, 0, 0)
+  - Global Grid Target World Pos: (55.00, 0.00, 0.00)
   - Applied Snapping Offset: (0.00, 0.00, 0.00)
-  - Room Transform Position: (-27.00, 45.00, 0.00)
-  - Room Cell Position: (-27, 45, 0)
+  - Room Transform Position: (55.00, 0.00, 0.00)
+  - Room Cell Position: (55, 0, 0)
   - Size: (29, 17), CenterOffset: (2.50, 0.50)
   - FogMask World Position: None
   - Anchors count: 13
-    * Anchor 0: LocalPos=(16.50, 0.50, 0.00), CellPos=(-11, 45, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 1: LocalPos=(16.50, -4.50, 0.00), CellPos=(-11, 40, 0), Dir=(1, 0), IsUsed=True
-    * Anchor 2: LocalPos=(16.50, 5.50, 0.00), CellPos=(-11, 50, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 3: LocalPos=(12.50, 8.50, 0.00), CellPos=(-15, 53, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 4: LocalPos=(7.50, 8.50, 0.00), CellPos=(-20, 53, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 5: LocalPos=(2.50, 8.50, 0.00), CellPos=(-25, 53, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 6: LocalPos=(-2.50, 8.50, 0.00), CellPos=(-30, 53, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 7: LocalPos=(-7.50, 8.50, 0.00), CellPos=(-35, 53, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 8: LocalPos=(-11.50, 0.50, 0.00), CellPos=(-39, 45, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 9: LocalPos=(-11.50, 5.50, 0.00), CellPos=(-39, 50, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 10: LocalPos=(4.50, -7.50, 0.00), CellPos=(-23, 37, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 11: LocalPos=(9.50, -7.50, 0.00), CellPos=(-18, 37, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 12: LocalPos=(-0.50, -7.50, 0.00), CellPos=(-28, 37, 0), Dir=(0, -1), IsUsed=True
+    * Anchor 0: LocalPos=(16.50, 0.50, 0.00), CellPos=(71, 0, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 1: LocalPos=(16.50, -4.50, 0.00), CellPos=(71, -5, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 2: LocalPos=(16.50, 5.50, 0.00), CellPos=(71, 5, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 3: LocalPos=(12.50, 8.50, 0.00), CellPos=(67, 8, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 4: LocalPos=(7.50, 8.50, 0.00), CellPos=(62, 8, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 5: LocalPos=(2.50, 8.50, 0.00), CellPos=(57, 8, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 6: LocalPos=(-2.50, 8.50, 0.00), CellPos=(52, 8, 0), Dir=(0, 1), IsUsed=True
+    * Anchor 7: LocalPos=(-7.50, 8.50, 0.00), CellPos=(47, 8, 0), Dir=(0, 1), IsUsed=True
+    * Anchor 8: LocalPos=(-11.50, 0.50, 0.00), CellPos=(43, 0, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 9: LocalPos=(-11.50, 5.50, 0.00), CellPos=(43, 5, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 10: LocalPos=(4.50, -7.50, 0.00), CellPos=(59, -8, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 11: LocalPos=(9.50, -7.50, 0.00), CellPos=(64, -8, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 12: LocalPos=(-0.50, -7.50, 0.00), CellPos=(54, -8, 0), Dir=(0, -1), IsUsed=False
 
 Room: Room_Elite(Clone)
   - Type: Elite, Depth: 2, PhaseIndex: 2
   - MainTilemap Found: True (Name: Wall)
   - Alignment Status: SUCCESS (Aligned)
-  - Local (0,0) Cell World Pos: (-13.00, 66.00, 0.00)
-  - Global Grid Target Cell Pos: (-13, 66, 0)
-  - Global Grid Target World Pos: (-13.00, 66.00, 0.00)
+  - Local (0,0) Cell World Pos: (-74.00, -41.00, 0.00)
+  - Global Grid Target Cell Pos: (-74, -41, 0)
+  - Global Grid Target World Pos: (-74.00, -41.00, 0.00)
   - Applied Snapping Offset: (0.00, 0.00, 0.00)
-  - Room Transform Position: (-13.00, 66.00, 0.00)
-  - Room Cell Position: (-13, 66, 0)
+  - Room Transform Position: (-74.00, -41.00, 0.00)
+  - Room Cell Position: (-74, -41, 0)
   - Size: (29, 19), CenterOffset: (0.50, 0.50)
   - FogMask World Position: None
   - Anchors count: 15
-    * Anchor 0: LocalPos=(14.50, 6.50, 0.00), CellPos=(1, 72, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 1: LocalPos=(14.50, 1.50, 0.00), CellPos=(1, 67, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 2: LocalPos=(14.50, -4.50, 0.00), CellPos=(1, 61, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 3: LocalPos=(10.50, 9.50, 0.00), CellPos=(-3, 75, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 4: LocalPos=(5.50, 9.50, 0.00), CellPos=(-8, 75, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 5: LocalPos=(0.50, 9.50, 0.00), CellPos=(-13, 75, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 6: LocalPos=(-4.50, 9.50, 0.00), CellPos=(-18, 75, 0), Dir=(0, 1), IsUsed=True
-    * Anchor 7: LocalPos=(-9.50, 9.50, 0.00), CellPos=(-23, 75, 0), Dir=(0, 1), IsUsed=False
-    * Anchor 8: LocalPos=(-13.50, 4.50, 0.00), CellPos=(-27, 70, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 9: LocalPos=(-13.50, -0.50, 0.00), CellPos=(-27, 65, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 10: LocalPos=(-13.50, -5.50, 0.00), CellPos=(-27, 60, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 11: LocalPos=(-8.50, -8.50, 0.00), CellPos=(-22, 57, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 12: LocalPos=(-3.50, -8.50, 0.00), CellPos=(-17, 57, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 13: LocalPos=(2.50, -8.50, 0.00), CellPos=(-11, 57, 0), Dir=(0, -1), IsUsed=False
-    * Anchor 14: LocalPos=(7.50, -8.50, 0.00), CellPos=(-6, 57, 0), Dir=(0, -1), IsUsed=True
+    * Anchor 0: LocalPos=(14.50, 6.50, 0.00), CellPos=(-60, -35, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 1: LocalPos=(14.50, 1.50, 0.00), CellPos=(-60, -40, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 2: LocalPos=(14.50, -4.50, 0.00), CellPos=(-60, -46, 0), Dir=(1, 0), IsUsed=True
+    * Anchor 3: LocalPos=(10.50, 9.50, 0.00), CellPos=(-64, -32, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 4: LocalPos=(5.50, 9.50, 0.00), CellPos=(-69, -32, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 5: LocalPos=(0.50, 9.50, 0.00), CellPos=(-74, -32, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 6: LocalPos=(-4.50, 9.50, 0.00), CellPos=(-79, -32, 0), Dir=(0, 1), IsUsed=True
+    * Anchor 7: LocalPos=(-9.50, 9.50, 0.00), CellPos=(-84, -32, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 8: LocalPos=(-13.50, 4.50, 0.00), CellPos=(-88, -37, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 9: LocalPos=(-13.50, -0.50, 0.00), CellPos=(-88, -42, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 10: LocalPos=(-13.50, -5.50, 0.00), CellPos=(-88, -47, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 11: LocalPos=(-8.50, -8.50, 0.00), CellPos=(-83, -50, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 12: LocalPos=(-3.50, -8.50, 0.00), CellPos=(-78, -50, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 13: LocalPos=(2.50, -8.50, 0.00), CellPos=(-72, -50, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 14: LocalPos=(7.50, -8.50, 0.00), CellPos=(-67, -50, 0), Dir=(0, -1), IsUsed=False
+
+Room: Room_Normal(Clone)
+  - Type: Normal, Depth: 4, PhaseIndex: 2
+  - MainTilemap Found: True (Name: Wall)
+  - Alignment Status: SUCCESS (Aligned)
+  - Local (0,0) Cell World Pos: (81.00, 29.00, 0.00)
+  - Global Grid Target Cell Pos: (81, 29, 0)
+  - Global Grid Target World Pos: (81.00, 29.00, 0.00)
+  - Applied Snapping Offset: (0.00, 0.00, 0.00)
+  - Room Transform Position: (81.00, 29.00, 0.00)
+  - Room Cell Position: (81, 29, 0)
+  - Size: (29, 17), CenterOffset: (2.50, 0.50)
+  - FogMask World Position: None
+  - Anchors count: 13
+    * Anchor 0: LocalPos=(16.50, 0.50, 0.00), CellPos=(97, 29, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 1: LocalPos=(16.50, -4.50, 0.00), CellPos=(97, 24, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 2: LocalPos=(16.50, 5.50, 0.00), CellPos=(97, 34, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 3: LocalPos=(12.50, 8.50, 0.00), CellPos=(93, 37, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 4: LocalPos=(7.50, 8.50, 0.00), CellPos=(88, 37, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 5: LocalPos=(2.50, 8.50, 0.00), CellPos=(83, 37, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 6: LocalPos=(-2.50, 8.50, 0.00), CellPos=(78, 37, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 7: LocalPos=(-7.50, 8.50, 0.00), CellPos=(73, 37, 0), Dir=(0, 1), IsUsed=False
+    * Anchor 8: LocalPos=(-11.50, 0.50, 0.00), CellPos=(69, 29, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 9: LocalPos=(-11.50, 5.50, 0.00), CellPos=(69, 34, 0), Dir=(-1, 0), IsUsed=False
+    * Anchor 10: LocalPos=(4.50, -7.50, 0.00), CellPos=(85, 21, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 11: LocalPos=(9.50, -7.50, 0.00), CellPos=(90, 21, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 12: LocalPos=(-0.50, -7.50, 0.00), CellPos=(80, 21, 0), Dir=(0, -1), IsUsed=True
 
 Room: Room_Reward(Clone)
   - Type: Reward, Depth: 3, PhaseIndex: 3
   - MainTilemap Found: True (Name: Wall)
   - Alignment Status: SUCCESS (Aligned)
-  - Local (0,0) Cell World Pos: (-23.00, 84.00, 0.00)
-  - Global Grid Target Cell Pos: (-23, 84, 0)
-  - Global Grid Target World Pos: (-23.00, 84.00, 0.00)
+  - Local (0,0) Cell World Pos: (-27.00, -48.00, 0.00)
+  - Global Grid Target Cell Pos: (-27, -48, 0)
+  - Global Grid Target World Pos: (-27.00, -48.00, 0.00)
   - Applied Snapping Offset: (0.00, 0.00, 0.00)
-  - Room Transform Position: (-23.00, 84.00, 0.00)
-  - Room Cell Position: (-23, 84, 0)
+  - Room Transform Position: (-27.00, -48.00, 0.00)
+  - Room Cell Position: (-27, -48, 0)
   - Size: (11, 16), CenterOffset: (4.50, 3.00)
   - FogMask World Position: None
   - Anchors count: 3
-    * Anchor 0: LocalPos=(9.50, 1.50, 0.00), CellPos=(-14, 85, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 1: LocalPos=(-0.50, 1.50, 0.00), CellPos=(-24, 85, 0), Dir=(-1, 0), IsUsed=False
-    * Anchor 2: LocalPos=(4.50, -4.50, 0.00), CellPos=(-19, 79, 0), Dir=(0, -1), IsUsed=True
+    * Anchor 0: LocalPos=(9.50, 1.50, 0.00), CellPos=(-18, -47, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 1: LocalPos=(-0.50, 1.50, 0.00), CellPos=(-28, -47, 0), Dir=(-1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(4.50, -4.50, 0.00), CellPos=(-23, -53, 0), Dir=(0, -1), IsUsed=False
 
 Room: Room_Reward(Clone)
-  - Type: Reward, Depth: 3, PhaseIndex: 3
+  - Type: Reward, Depth: 4, PhaseIndex: 3
   - MainTilemap Found: True (Name: Wall)
   - Alignment Status: SUCCESS (Aligned)
-  - Local (0,0) Cell World Pos: (31.00, -72.00, 0.00)
-  - Global Grid Target Cell Pos: (31, -72, 0)
-  - Global Grid Target World Pos: (31.00, -72.00, 0.00)
+  - Local (0,0) Cell World Pos: (38.00, 51.00, 0.00)
+  - Global Grid Target Cell Pos: (38, 51, 0)
+  - Global Grid Target World Pos: (38.00, 51.00, 0.00)
   - Applied Snapping Offset: (0.00, 0.00, 0.00)
-  - Room Transform Position: (31.00, -72.00, 0.00)
-  - Room Cell Position: (31, -72, 0)
+  - Room Transform Position: (38.00, 51.00, 0.00)
+  - Room Cell Position: (38, 51, 0)
   - Size: (11, 16), CenterOffset: (4.50, 3.00)
   - FogMask World Position: None
   - Anchors count: 3
-    * Anchor 0: LocalPos=(9.50, 1.50, 0.00), CellPos=(40, -71, 0), Dir=(1, 0), IsUsed=False
-    * Anchor 1: LocalPos=(-0.50, 1.50, 0.00), CellPos=(30, -71, 0), Dir=(-1, 0), IsUsed=True
-    * Anchor 2: LocalPos=(4.50, -4.50, 0.00), CellPos=(35, -77, 0), Dir=(0, -1), IsUsed=False
+    * Anchor 0: LocalPos=(9.50, 1.50, 0.00), CellPos=(47, 52, 0), Dir=(1, 0), IsUsed=False
+    * Anchor 1: LocalPos=(-0.50, 1.50, 0.00), CellPos=(37, 52, 0), Dir=(-1, 0), IsUsed=True
+    * Anchor 2: LocalPos=(4.50, -4.50, 0.00), CellPos=(42, 46, 0), Dir=(0, -1), IsUsed=False
 
 
 ==================== REWARD ROOM CONNECTION LOGS ====================
 [Reward Connection Debug] Connecting Room: Room_Reward(Clone) (Attempt: 1)
-  - Max Depth (normalMaxD): 2
-  - Filtering Threshold (normalMaxD - 2): 1
+  - Max Depth (normalMaxD): 4
+  - Filtering Threshold (normalMaxD - 2): 2
   - Candidate Reached Rooms (Sorted by Depth DESC):
-    * Room_Normal(Clone): Depth=2, Diameter=29, IsCandidate=True
+    * Room_Normal(Clone): Depth=4, Diameter=29, IsCandidate=True
+    * Room_Normal(Clone): Depth=3, Diameter=29, IsCandidate=True
+    * Room_Normal(Clone): Depth=3, Diameter=29, IsCandidate=True
     * Room_Normal(Clone): Depth=2, Diameter=29, IsCandidate=True
     * Room_Shop(Clone): Depth=2, Diameter=26, IsCandidate=True
     * Room_Elite(Clone): Depth=2, Diameter=29, IsCandidate=True
-    * Room_Normal(Clone): Depth=1, Diameter=29, IsCandidate=True
-    * Room_Normal(Clone): Depth=1, Diameter=29, IsCandidate=True
-    * Room_Normal(Clone): Depth=1, Diameter=29, IsCandidate=True
+    * Room_Normal(Clone): Depth=1, Diameter=29, IsCandidate=False
     * Room_Spawn(Clone): Depth=0, Diameter=11, IsCandidate=False
   - Result Connection: SUCCESS to Room_Elite(Clone)
 
 [Reward Connection Debug] Connecting Room: Room_Reward(Clone) (Attempt: 1)
-  - Max Depth (normalMaxD): 2
-  - Filtering Threshold (normalMaxD - 2): 1
+  - Max Depth (normalMaxD): 4
+  - Filtering Threshold (normalMaxD - 2): 2
   - Candidate Reached Rooms (Sorted by Depth DESC):
+    * Room_Normal(Clone): Depth=4, Diameter=29, IsCandidate=True
+    * Room_Normal(Clone): Depth=3, Diameter=29, IsCandidate=True
+    * Room_Normal(Clone): Depth=3, Diameter=29, IsCandidate=True
     * Room_Reward(Clone): Depth=3, Diameter=16, IsCandidate=True
-    * Room_Normal(Clone): Depth=2, Diameter=29, IsCandidate=True
     * Room_Normal(Clone): Depth=2, Diameter=29, IsCandidate=True
     * Room_Shop(Clone): Depth=2, Diameter=26, IsCandidate=True
     * Room_Elite(Clone): Depth=2, Diameter=29, IsCandidate=True
-    * Room_Normal(Clone): Depth=1, Diameter=29, IsCandidate=True
-    * Room_Normal(Clone): Depth=1, Diameter=29, IsCandidate=True
-    * Room_Normal(Clone): Depth=1, Diameter=29, IsCandidate=True
+    * Room_Normal(Clone): Depth=1, Diameter=29, IsCandidate=False
     * Room_Spawn(Clone): Depth=0, Diameter=11, IsCandidate=False
-  - Result Connection: SUCCESS to Room_Shop(Clone)
+  - Result Connection: SUCCESS to Room_Normal(Clone)
 

@@ -7,8 +7,10 @@ public class BaseDamageAction : ImpactAction
 {
     public override void Execute(GameObject target, Vector2 impactPos, Vector2 travelDir, ThrowRecipe recipe)
     {
+        BaseEntity entity = target.GetComponentInChildren<BaseEntity>();
+        
         // 아군에게는 기본 데미지를 주지 않음 (방패병이 아군 타겟팅 시 데미지 면제)
-        if (target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
+        if (entity != null && entity.team == Team.Enemy)
         {
             float finalDamage = recipe.GetFinalDamage();
             // 참고: WarriorAction 등에서 추가 데미지가 있다면 recipe.bonusDamage에 누적되어 여기서 합산(GetFinalDamage)됩니다.

@@ -47,15 +47,20 @@ public class ThrowCluster : MonoBehaviour
         gameObject.SetActive(true);
         if (visualCircle != null) visualCircle.gameObject.SetActive(true);
 
-        if (_units.Count == 0) return;
+        float targetRadius = baseRadius;
+        if (_units.Count > 0)
+        {
+            targetRadius += (_units.Count - 1) * radiusPerUnit;
+        }
 
-        float targetRadius = baseRadius + (_units.Count - 1) * radiusPerUnit;
         _collider.radius = targetRadius;
 
         if (visualCircle != null)
         {
             visualCircle.localScale = new Vector3(targetRadius * 2f, targetRadius * 2f, 1f);
         }
+
+        if (_units.Count == 0) return; // 반지름 세팅 후 리턴 (자식 유닛 이동은 생략)
 
         foreach (var unit in _units)
         {
@@ -214,6 +219,13 @@ public class ThrowCluster : MonoBehaviour
             }
 
             float h = _arcMovement.CurrentHeight;
+            
+            // [추가] 빈 클러스터여도 곡선을 그리며 날아가는 모습을 보여주기 위해 시각 효과 원의 높이도 조절합니다.
+            if (visualCircle != null)
+            {
+                visualCircle.localPosition = new Vector3(0, h, 0);
+            }
+
             foreach (var unit in _units)
             {
                 if (unit != null && (unit is MonoBehaviour mb && mb != null))

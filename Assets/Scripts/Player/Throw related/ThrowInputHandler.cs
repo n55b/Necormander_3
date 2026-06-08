@@ -86,6 +86,15 @@ public class ThrowInputHandler : MonoBehaviour
 
     public void OnRightClickStarted()
     {
+        // [NEW LOGIC] 우클릭 시 즉발 직구(Direct) 투척
+        if (_controller != null)
+        {
+            _playerController.TransitionToState(_playerController.atkState);
+            _playerController.canChangeState = false;
+            _controller.FireDamageCluster(true); // true = isDirect
+        }
+
+        /* [OLD LOGIC]
         _rightClickStartPos = CurrentMouseScreenPos;
         
         if (_controller.SelectionWheel != null)
@@ -97,10 +106,12 @@ public class ThrowInputHandler : MonoBehaviour
             }
             _isWheelActive = _controller.SelectionWheel.Show(_rightClickStartPos, _controller.DirectionMapping, availability);
         }
+        */
     }
 
     public void OnRightClickCanceled()
     {
+        /* [OLD LOGIC]
         if (!_isWheelActive) return;
         _isWheelActive = false;
 
@@ -120,10 +131,23 @@ public class ThrowInputHandler : MonoBehaviour
         }
 
         _controller.TryPickUpWithMouse();
+        */
     }
 
     public void OnThrow(InputAction.CallbackContext context)
     {
+        // [NEW LOGIC] 좌클릭 시 즉발 곡선(Parabolic) 투척
+        if (context.started)
+        {
+            if (_controller != null)
+            {
+                _playerController.TransitionToState(_playerController.atkState);
+                _playerController.canChangeState = false;
+                _controller.FireDamageCluster(false); // false = isParabolic (Curve)
+            }
+        }
+
+        /* [OLD LOGIC]
         if (_controller.HeldObjects.Count == 0) return;
 
         if (context.started)
@@ -147,6 +171,7 @@ public class ThrowInputHandler : MonoBehaviour
             _playerController.TransitionToState(_playerController.atkState);
             _playerController.canChangeState = false;
         }
+        */
     }
 
     public void ResetCharging()

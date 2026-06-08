@@ -12,7 +12,8 @@ public class PriestAction : ImpactAction
     {
         ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
         
-        if (target.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy)
+        BaseEntity entity = target.GetComponentInChildren<BaseEntity>();
+        if (entity != null && entity.team == Team.Enemy)
         {
             // 기존 기본 슬로우 유지
             float slowAmount = recipe.GetScaledEffectValue(ccPower);
