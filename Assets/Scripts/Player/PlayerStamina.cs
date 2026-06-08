@@ -8,7 +8,7 @@ public class PlayerStamina : MonoBehaviour
 {
     [Header("Base Settings")]
     [SerializeField] private float defaultMaxStamina = 100f;
-    [SerializeField] private float defaultThrowCost = 15f;
+    [SerializeField] private float defaultThrowCost = 10f;
     [SerializeField] private float defaultRegenRate = 3f; // 초당 회복량
 
     // 모디파이어(보너스) 값들

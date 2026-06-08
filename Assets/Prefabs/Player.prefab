@@ -53,7 +53,6 @@ MonoBehaviour:
   clusterPrefab: {fileID: 7916150823758314427, guid: fb3f0d472a552d64fa46efc25c8355c3, type: 3}
   trajectoryPredictor: {fileID: 1950478616291504012}
   selectionWheel: {fileID: 0}
-  chargeTime: 1
   dragThreshold: 50
   directionMapping: 000000000200000001000000030000000600000005000000
   _input: {fileID: 2533774752874665119}
@@ -471,9 +470,11 @@ MonoBehaviour:
   baseAtkSpd: 1
   baseAtkRange: 2
   baseDef: 0
+  baseFlatDef: 0
   baseMoveSpeed: 5
   baseEvasion: 0
   baseMissChance: 0
+  baseThrowDamage: 30
   jobType: 0
   setDoneActions:
     m_PersistentCalls:
@@ -733,6 +734,8 @@ MonoBehaviour:
   numPoints: 50
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   fullChargeColor: {r: 0, g: 1, b: 0, a: 1}
+  overchargeColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  fullOverchargeColor: {r: 1, g: 0.8, b: 0, a: 1}
   rangeLineRenderer: {fileID: 6713288937476526914}
   rangeColor: {r: 0.5, g: 0.8, b: 1, a: 0.5}
   rangeCirclePoints: 60
@@ -1409,14 +1412,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stat: {fileID: 5914193569906731681}
   throwRange: 5
+  throwRangeBonus: 0
   allyManager: {fileID: 6055861653884896251}
   sumController: {fileID: 2140691029848297597}
   throwController: {fileID: 5596731991387463907}
+  throwChargeTime: 1
+  activeSkillManager: {fileID: 0}
+  staminaSystem: {fileID: 0}
   summonNum: 3
   summonRange: 5
   P_State: 0
   minThrowChargeMultiplier: 1
   maxThrowChargeMultiplier: 2
+  bonusThrowChargeTime: 0
+  chargeEfficiencyMultiplier: 0
+  overchargeTimeLimit: 0
+  bonusThrowEffectMultiplier: 0
+  chargeMoveSpeedMultiplier: 0.5
   interactRange: 1.5
   interactableLayer:
     serializedVersion: 2
@@ -1427,6 +1439,10 @@ MonoBehaviour:
   canChangeState: 1
   MoveDirection: {x: 0, y: 0, z: 0}
   moveInput: {x: 0, y: 0}
+  movementSmoothTime: 0.05
+  dashSpeed: 15
+  dashDuration: 0.2
+  dashCooldown: 1
 --- !u!114 &6055861653884896251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1595,7 +1611,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fecc708d442b824b9a5abc8bc6dbf99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  poisonSpawnDistance: 0.5
 --- !u!1 &8633796844698217215
 GameObject:
   m_ObjectHideFlags: 0
