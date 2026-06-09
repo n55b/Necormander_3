@@ -56,7 +56,7 @@ public class Projectile : MonoBehaviour
     protected virtual void OnTriggerEnter2D(Collider2D other)
     {
         // 1. 벽이나 장애물에 부딪히면 파괴
-        if (((LayerMask.GetMask("Wall", "Obstacle")) & (1 << other.gameObject.layer)) != 0)
+        if (((LayerMask.GetMask("Wall", "Object")) & (1 << other.gameObject.layer)) != 0)
         {
             OnHitObstacle(other);
             return;
