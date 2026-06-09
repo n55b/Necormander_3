@@ -22,6 +22,16 @@ public class SiegeModeSkill : IActiveSkill
         IsActive = false;
     }
 
+    public void OnInputStart()
+    {
+        if (IsActive) OnDeactivate();
+        else if (!IsOnCooldown) OnActivate();
+        else Debug.Log($"<color=orange>[Skill]</color> {SkillName} 쿨타임 중입니다.");
+    }
+
+    public void OnInputHold() { }
+    public void OnInputRelease() { }
+
     public void OnActivate()
     {
         IsActive = true;

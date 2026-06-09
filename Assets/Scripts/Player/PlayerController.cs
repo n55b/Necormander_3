@@ -40,9 +40,6 @@ public class PlayerController : MonoBehaviour
     }
     [Header("아군 유닛 관련 매니저")]
     [SerializeField] AllyManager allyManager;
-    [Header("소환 컨트롤러")]
-    [SerializeField] SummonController sumController;
-    public SummonController SUMCONTROLLER { get { return sumController; } }
     [Header("던지기 컨트롤러")]
     [SerializeField] private ThrowController throwController;
     [SerializeField] private float throwChargeTime = 1.0f;
@@ -245,9 +242,14 @@ public class PlayerController : MonoBehaviour
     {
         if (stat != null && stat.Health != null && stat.Health.IsDead) return;
 
-        if (activeSkillManager != null)
+        if (activeSkillManager != null && UnityEngine.InputSystem.Keyboard.current != null)
         {
-            activeSkillManager.CheckInput();
+            var kb = UnityEngine.InputSystem.Keyboard.current;
+            if (kb.qKey.wasPressedThisFrame) activeSkillManager.HandleSkill1Input(true, false);
+            if (kb.qKey.wasReleasedThisFrame) activeSkillManager.HandleSkill1Input(false, true);
+
+            if (kb.eKey.wasPressedThisFrame) activeSkillManager.HandleSkill2Input(true, false);
+            if (kb.eKey.wasReleasedThisFrame) activeSkillManager.HandleSkill2Input(false, true);
         }
 
         if (_inputBlocked) return;
@@ -398,6 +400,7 @@ public class PlayerController : MonoBehaviour
     {
         if (_inputBlocked || stat.Health.IsDead) return;
 
+        /*
         if (sumController.IsSummoningMode)
         {
             if (context.performed)
@@ -444,6 +447,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         else
+        */
         {
             if (throwController != null)
             {
@@ -465,7 +469,10 @@ public class PlayerController : MonoBehaviour
 
         if (activeSkillManager != null)
         {
-            if (activeSkillManager.ActiveSkill != null && activeSkillManager.ActiveSkill.IsActive)
+            bool isAnySkillActive = (activeSkillManager.SkillSlot1 != null && activeSkillManager.SkillSlot1.IsActive) ||
+                                    (activeSkillManager.SkillSlot2 != null && activeSkillManager.SkillSlot2.IsActive);
+            
+            if (isAnySkillActive)
             {
                 if (context.started) activeSkillManager.HandleLeftClick();
                 return; // 시즈 모드 등이 켜져 있으면 투척 이벤트를 완전히 삼킴
@@ -595,10 +602,11 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
-    public void OnNum1(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(1, context); }
-    public void OnNum2(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(2, context); }
-    public void OnNum3(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(3, context); }
-    public void OnNum4(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(4, context); }
+    // [주석 처리] 수동 소환 입력 제거
+    // public void OnNum1(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(1, context); }
+    // public void OnNum2(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(2, context); }
+    // public void OnNum3(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(3, context); }
+    // public void OnNum4(InputAction.CallbackContext context) { if (stat.Health.IsDead) return; sumController.OnNumKey(4, context); }
 
     public void ChangeState(PlayerStates _state)
     {

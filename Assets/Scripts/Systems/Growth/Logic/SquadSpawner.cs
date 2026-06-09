@@ -52,17 +52,17 @@ public class SquadSpawner : MonoBehaviour
         // 2. 한 번에 모든 소환 위치 확보 (뭉침 방지)
         List<Vector2> spawnPositions = new List<Vector2>();
         var pc = GameManager.Instance.PLAYERCONTROLLER;
-        if (pc != null && pc.SUMCONTROLLER != null)
+        if (pc != null)
         {
-            // 마릿수에 따라 탐색 반경을 유동적으로 조절 (최소 3m)
             float radius = Mathf.Max(3f, Mathf.Sqrt(spawnList.Count) * 1.5f);
-            spawnPositions = pc.SUMCONTROLLER.GetSummonPositions2D(spawnList.Count, radius);
+            spawnPositions = GetSummonPositions2D(pc.transform.position, spawnList.Count, radius);
         }
 
         // 3. 확보된 위치에 순차적으로 소환
+        Vector3 fallbackPos = (pc != null) ? pc.transform.position : transform.position;
         for (int i = 0; i < spawnList.Count; i++)
         {
-            Vector3 pos = (i < spawnPositions.Count) ? (Vector3)spawnPositions[i] : transform.position;
+            Vector3 pos = (i < spawnPositions.Count) ? (Vector3)spawnPositions[i] : fallbackPos;
             _allyManager.SpawnAlly(spawnList[i], pos);
         }
 
@@ -74,11 +74,12 @@ public class SquadSpawner : MonoBehaviour
         if (data == null) return;
 
         // 플레이어 주변 소환 위치 확보 (낱개 소환 시에도 약간의 랜덤성 부여)
-        Vector3 spawnPos = transform.position; 
         var pc = GameManager.Instance.PLAYERCONTROLLER;
-        if (pc != null && pc.SUMCONTROLLER != null)
+        Vector3 spawnPos = pc != null ? pc.transform.position : transform.position; 
+        
+        if (pc != null)
         {
-            var positions = pc.SUMCONTROLLER.GetSummonPositions2D(1, 3f);
+            var positions = GetSummonPositions2D(pc.transform.position, 1, 3f);
             if (positions.Count > 0)
             {
                 // [개선] 낱개 소환 시에도 겹침을 방지하기 위해 약간의 랜덤 오프셋 추가
@@ -88,5 +89,64 @@ public class SquadSpawner : MonoBehaviour
 
         // AllyManager를 통해 실제 소환 및 관리 등록
         _allyManager.SpawnAlly(data, spawnPos);
+    }
+
+    public List<Vector2> GetSummonPositions2D(Vector2 centerPos, int count, float radius)
+    {
+        List<Vector2> resultPositions = new List<Vector2>();
+
+        float distanceStep = 0.5f;
+        int angleStep = 30; // 30도 간격
+
+        for (float currentDist = 0.5f; currentDist <= radius; currentDist += distanceStep)
+        {
+            for (int angle = 0; angle < 360; angle += angleStep)
+            {
+                if (resultPositions.Count >= count) break;
+
+                float rad = angle * Mathf.Deg2Rad;
+                Vector2 targetPos = centerPos + new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * currentDist;
+
+                if (!UnityEngine.AI.NavMesh.Raycast(centerPos, targetPos, out UnityEngine.AI.NavMeshHit hit, UnityEngine.AI.NavMesh.AllAreas))
+                {
+                    if (UnityEngine.AI.NavMesh.SamplePosition(targetPos, out UnityEngine.AI.NavMeshHit navHit, 0.5f, UnityEngine.AI.NavMesh.AllAreas))
+                    {
+                        Vector2 sampledPos = navHit.position;
+                        if (!IsTooClose(sampledPos, resultPositions, 0.4f))
+                        {
+                            resultPositions.Add(sampledPos);
+                        }
+                    }
+                }
+            }
+            if (resultPositions.Count >= count) break;
+        }
+
+        int attempts = 0;
+        while (resultPositions.Count < count && attempts < 20)
+        {
+            attempts++;
+            Vector2 randomPos = centerPos + (Random.insideUnitCircle * 0.5f);
+            if (UnityEngine.AI.NavMesh.SamplePosition(randomPos, out UnityEngine.AI.NavMeshHit navHit, 1.0f, UnityEngine.AI.NavMesh.AllAreas))
+            {
+                resultPositions.Add(navHit.position);
+            }
+        }
+        
+        if (resultPositions.Count == 0)
+        {
+            resultPositions.Add(centerPos);
+        }
+        
+        return resultPositions;
+    }
+
+    private bool IsTooClose(Vector2 pos, List<Vector2> list, float minDistance)
+    {
+        foreach (Vector2 p in list)
+        {
+            if (Vector2.Distance(pos, p) < minDistance) return true;
+        }
+        return false;
     }
 }

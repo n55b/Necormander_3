@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public enum AIState { Idle, Follow, Attack, Caught, Thrown }
+public enum AIState { Idle, Follow, Attack, Caught, Thrown, Skill }
 
 /// <summary>
 /// 유닛의 모든 행동(대기, 추격, 공격, 던져짐)을 관리하는 통합 AI 기반 클래스입니다.
@@ -73,8 +73,8 @@ public abstract class AIPatternSO : ScriptableObject
             CalculateRotate(target, entity);
         }
 
-        // 던져진 상태일 때는 모든 AI 판단을 중지합니다.
-        if (currentState == AIState.Thrown || currentState == AIState.Caught) return;
+        // 던져진 상태이거나 스킬 시전(강제 제어) 상태일 때는 모든 AI 판단을 중지합니다.
+        if (currentState == AIState.Thrown || currentState == AIState.Caught || currentState == AIState.Skill) return;
 
         // [핵심] 현재 타겟이 유효하지 않으면 즉시 해제하여 다음 UpdateTargeting에서 새 타겟을 찾게 함
         if (target != null && IsTargetInvalid(target))

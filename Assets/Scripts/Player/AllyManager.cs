@@ -57,10 +57,9 @@ public class AllyManager : MonoBehaviour
         OnAllyRespawned?.Invoke(info);
         
         Vector3 spawnPos = transform.position;
-        var sumController = GetComponentInParent<SummonController>();
-        if (sumController != null)
+        if (GameManager.Instance != null && GameManager.Instance.squadSpawner != null)
         {
-            var positions = sumController.GetSummonPositions2D(1, 2f);
+            var positions = GameManager.Instance.squadSpawner.GetSummonPositions2D(transform.position, 1, 2f);
             if (positions.Count > 0)
             {
                 // [개선] 여러 마리가 동시에 부활할 때 겹치지 않도록 랜덤 오프셋 추가
@@ -140,6 +139,13 @@ public class AllyManager : MonoBehaviour
     private void RemoveNullinAllys()
     {
         allys.RemoveAll(item => !item);
+    }
+
+    // [추가] 액티브 스킬 등에서 특정 직업군 미니언을 일괄 제어할 때 사용
+    public List<AllyController> GetAliveAllies(CommandData jobType)
+    {
+        RemoveNullinAllys();
+        return allys.FindAll(a => a != null && a.Stats != null && !a.Stats.Health.IsDead && a.MinionType == jobType);
     }
 
     public void ClearAll()

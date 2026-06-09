@@ -257,16 +257,16 @@ public class InventoryManager : MonoBehaviour
         {
             if (HasUniqueEffect(GemUniqueType.SiegeMode))
             {
-                if (activeSkillManager.ActiveSkill == null || activeSkillManager.ActiveSkill.SkillName != "시즈 모드")
+                if (activeSkillManager.SkillSlot1 == null || activeSkillManager.SkillSlot1.SkillName != "시즈 모드")
                 {
-                    activeSkillManager.EquipSkill(new SiegeModeSkill());
+                    activeSkillManager.EquipSkill(new SiegeModeSkill(), 1);
                 }
             }
             else
             {
-                if (activeSkillManager.ActiveSkill != null && activeSkillManager.ActiveSkill.SkillName == "시즈 모드")
+                if (activeSkillManager.SkillSlot1 != null && activeSkillManager.SkillSlot1.SkillName == "시즈 모드")
                 {
-                    activeSkillManager.EquipSkill(null);
+                    activeSkillManager.EquipSkill(null, 1);
                 }
             }
         }

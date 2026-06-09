@@ -224,6 +224,30 @@ public class AllyController : BaseEntity, IThrowable
 
     #endregion
 
+    // --- 스킬 호응(시너지) 상태 제어 ---
+    public void EnterSkillState()
+    {
+        if (_runtimeBrain != null) _runtimeBrain.SetState(this, AIState.Skill);
+        if (_agent != null) _agent.enabled = false;
+        
+        // 스킬 시전 중 일시적 무적 처리 여부 (선택)
+        // if (_stats != null && _stats.Health != null) _stats.Health.Invincible = true;
+    }
+
+    public void ExitSkillState()
+    {
+        // if (_stats != null && _stats.Health != null) _stats.Health.Invincible = false;
+        
+        if (_agent != null)
+        {
+            _agent.enabled = true;
+            if (UnityEngine.AI.NavMesh.SamplePosition(transform.position, out UnityEngine.AI.NavMeshHit hit, 1.0f, UnityEngine.AI.NavMesh.AllAreas))
+                _agent.Warp(hit.position);
+        }
+        
+        if (_runtimeBrain != null) _runtimeBrain.Init(this); // 다시 Idle부터 정상 재시작
+    }
+
     public void SetBattleState(bool _set)
     {
         isBattle = _set;

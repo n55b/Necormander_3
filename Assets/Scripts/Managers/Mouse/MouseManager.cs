@@ -33,25 +33,15 @@ public class MouseManager : MonoBehaviour
         CursorType newType = CursorType.Default;
         GameObject newHoverObject = null;
 
-        // 1. 소환 모드 우선 체크 (플레이어 존재 시에만)
-        if (GameManager.Instance.PLAYERCONTROLLER != null && 
-            GameManager.Instance.PLAYERCONTROLLER.SUMCONTROLLER != null && 
-            GameManager.Instance.PLAYERCONTROLLER.SUMCONTROLLER.IsSummoningMode)
-        {
-            newType = CursorType.Throw;
-        }
-        else
-        {
-            // 2. 2D 마우스 위치 레이캐스트
+        // 2. 2D 마우스 위치 레이캐스트
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             LayerMask searchMask = allyLayer | LayerMask.GetMask("ThrowableObject");
             RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, 0f, searchMask);
 
-            if (hit.collider != null)
-            {
-                newType = CursorType.Targeting;
-                newHoverObject = hit.transform.gameObject;
-            }
+        if (hit.collider != null)
+        {
+            newType = CursorType.Targeting;
+            newHoverObject = hit.transform.gameObject;
         }
 
         // 3. 상태 변화가 있을 때만 업데이트

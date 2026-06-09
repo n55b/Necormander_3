@@ -25,7 +25,7 @@ public class SiegeModeHandler : IGemEffectHandler
         if (activeSkillManager != null)
         {
             if (_skillInstance == null) _skillInstance = new SiegeModeSkill();
-            activeSkillManager.EquipSkill(_skillInstance);
+            activeSkillManager.EquipSkill(_skillInstance, 1);
         }
     }
 
@@ -33,9 +33,9 @@ public class SiegeModeHandler : IGemEffectHandler
     {
         if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
         var activeSkillManager = GameManager.Instance.PLAYERCONTROLLER.GetComponent<ActiveSkillManager>();
-        if (activeSkillManager != null && activeSkillManager.ActiveSkill == (IActiveSkill)_skillInstance)
+        if (activeSkillManager != null && activeSkillManager.SkillSlot1 == (IActiveSkill)_skillInstance)
         {
-            activeSkillManager.EquipSkill(null);
+            activeSkillManager.EquipSkill(null, 1);
         }
     }
 }

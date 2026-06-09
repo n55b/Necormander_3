@@ -1081,7 +1081,6 @@ GameObject:
   - component: {fileID: 7972545975472383977}
   - component: {fileID: 6055861653884896251}
   - component: {fileID: 3671673066107762978}
-  - component: {fileID: 2140691029848297597}
   - component: {fileID: 1807700438375551738}
   - component: {fileID: 8412499594907926683}
   - component: {fileID: 8576837497327950917}
@@ -1430,7 +1429,6 @@ MonoBehaviour:
   throwRange: 5
   throwRangeBonus: 0
   allyManager: {fileID: 6055861653884896251}
-  sumController: {fileID: 2140691029848297597}
   throwController: {fileID: 5596731991387463907}
   throwChargeTime: 1
   activeSkillManager: {fileID: 0}
@@ -1459,6 +1457,7 @@ MonoBehaviour:
   dashSpeed: 15
   dashDuration: 0.2
   dashCooldown: 1
+  SpeedMultiplier: 1
 --- !u!114 &6055861653884896251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1492,21 +1491,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visualTransform: {fileID: 1334913734161187280}
---- !u!114 &2140691029848297597
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8389716956321753658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17d247d914776e54283770f1e5b08297, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  obstacleLayer:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!50 &1807700438375551738
 Rigidbody2D:
   serializedVersion: 5
