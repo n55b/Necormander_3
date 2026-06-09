@@ -22,6 +22,9 @@ public abstract class BaseEntity : MonoBehaviour
     [Header("탐색 설정")]
     public float detectRange = 10f;
 
+    [Header("전투 프리팹")]
+    [SerializeField] protected GameObject telegraphPrefab; // 공격 경고(Telegraph) 프리팹 (인스펙터 할당)
+
     [Header("데이터 참조 (직접 배치 시 필수)")]
     [SerializeField] protected MinionDataSO minionData;
     public MinionDataSO MinionData => minionData;
@@ -45,7 +48,8 @@ public abstract class BaseEntity : MonoBehaviour
     public AIPatternSO Brain => _runtimeBrain;
     public SpriteRenderer SpriteRenderer => _sr;
 
-    // private bool _isAttackExecuting = false; // 공격 애니메이션이 실행 중인지 추적
+    protected TelegraphHitbox _activeTelegraph;
+    public bool IsAttacking => _activeTelegraph != null;
 
     protected virtual void Awake()
     {
@@ -144,6 +148,9 @@ public abstract class BaseEntity : MonoBehaviour
     protected virtual bool CanExecuteAI()
     {
         if (!enabled) return false;
+        
+        // [추가] 공격 중(Telegraph 차오르는 중)일 때는 다른 행동 불가
+        if (IsAttacking) return false;
 
         // [추가] 동결 또는 기절 상태라면 AI 중단
         if (_stats != null && _stats.Status != null)
@@ -219,18 +226,40 @@ public abstract class BaseEntity : MonoBehaviour
     public virtual void ExecuteAttack(Transform target)
     {
         if (target == null) return;
-
-        // _isAttackExecuting = true; // 공격 애니메이션이 실행 중임을 표시
-
         _target = target; // 공격 대상 저장
 
         if (_animator != null)
         {
-            // 공격 애니메이션 강제 재생
             _animator.Play("Attack");
+        }
+
+        // [추가] TelegraphHitbox 스폰 로직 (원거리 마법사는 이를 오버라이드하거나 우회함)
+        if (telegraphPrefab != null)
+        {
+            Vector3 dir = (target.position - transform.position).normalized;
+            // 살짝 앞에 생성
+            Vector3 spawnPos = transform.position + dir * 0.5f; 
+            GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity);
+            _activeTelegraph = go.GetComponent<TelegraphHitbox>();
+
+            if (_activeTelegraph != null)
+            {
+                float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                go.transform.rotation = Quaternion.Euler(0, 0, angle);
+
+                // 데미지 페이로드 생성 (경직 유발 가능, 기본 넉백 1f 추가 가능)
+                DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true, "", false, false, 0f); 
+                
+                // Telegraph 완성 시간은 공속의 절반 정도로 임시 지정. (애니메이션 길이에 맞추려면 별도 설정 필요)
+                float telegraphDuration = _stats.ATKSPD * 0.5f; 
+                if (telegraphDuration < 0.2f) telegraphDuration = 0.2f;
+
+                _activeTelegraph.Init(telegraphDuration, info, opponentLayer, new Vector2(2f, 2f));
+            }
         }
         else
         {
+            // 리소스가 없으면 레거시 방식으로 넘어감 (StartAttack에서 즉발 데미지)
             StartAttack();
         }
     }
@@ -245,6 +274,9 @@ public abstract class BaseEntity : MonoBehaviour
 
     public void StartAttack()
     {
+        // Telegraph가 활성화되어 데미지를 처리하는 중이라면 기존 애니메이션 이벤트(StartAttack)의 즉발 데미지 판정을 무시합니다.
+        if (IsAttacking) return;
+
         if (_target == null)
         {
             // 애니메이션 이벤트 타이밍 때문에 BaseEntity._target이 비워진 경우,
@@ -311,5 +343,37 @@ public abstract class BaseEntity : MonoBehaviour
 
         _target = null;
         // _isAttackExecuting = false; // 공격 애니메이션 종료
+    }
+
+    // [추가] 공격 취소 (경직 시 호출)
+    public virtual void CancelAttack()
+    {
+        _target = null;
+        
+        if (_activeTelegraph != null)
+        {
+            Destroy(_activeTelegraph.gameObject);
+            _activeTelegraph = null;
+        }
+
+        if (_animator != null)
+        {
+            _animator.Play("Idle"); // 애니메이션 강제 초기화
+        }
+
+        if (_runtimeBrain != null)
+        {
+            _runtimeBrain.ResetAttackTimer(); // 타격 시전 시간 초기화
+        }
+    }
+
+    // [추가] 넉백 적용
+    public virtual void ApplyKnockback(Vector2 force)
+    {
+        if (_rb != null)
+        {
+            // NavMeshAgent가 켜져 있으면 넉백을 방해할 수 있으므로 임시 처리 고려 (현재는 AddForce)
+            _rb.AddForce(force, ForceMode2D.Impulse);
+        }
     }
 }

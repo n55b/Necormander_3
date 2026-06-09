@@ -1393,6 +1393,22 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 11a8d24f-3b32-46c5-94af-fda8af417bf0
     m_ActionName: 'Player/PanHold[/Mouse/rightButton]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7972545975472383977}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnDash
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 51482a36-8c85-4ad2-9661-ca4ddad636cb
+    m_ActionName: 'Player/Dash[/Keyboard/leftShift]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player

@@ -118,6 +118,11 @@ public abstract class AIPatternSO : ScriptableObject
         }
     }
 
+    public void ResetAttackTimer()
+    {
+        atkTimer = 0f;
+    }
+
     // --- 가상 메서드 (자식 클래스에서 override) ---
 
     protected virtual void UpdateTargeting(BaseEntity entity) { }

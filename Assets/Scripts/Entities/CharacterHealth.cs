@@ -62,6 +62,30 @@ public class CharacterHealth : MonoBehaviour
             }
         }
 
+        // [추가] 경직(Hitstun) 및 넉백(Knockback) 처리
+        if (info.causesHitstun || info.knockbackForce > 0f)
+        {
+            var rootEntity = GetComponentInParent<BaseEntity>();
+            if (rootEntity != null)
+            {
+                if (info.causesHitstun)
+                {
+                    rootEntity.CancelAttack();
+                    // Status(디버프)에 Stunned 등을 0.2초 정도 추가해 경직을 줄 수도 있습니다.
+                    if (_status != null)
+                    {
+                        _status.SetDebuffBool(DebuffBoolType.Stunned, 0.2f); // 0.2초 경직
+                    }
+                }
+
+                if (info.knockbackForce > 0f && info.attacker != null)
+                {
+                    Vector2 dir = (transform.position - info.attacker.transform.position).normalized;
+                    rootEntity.ApplyKnockback(dir * info.knockbackForce);
+                }
+            }
+        }
+
         // 데미지 파이프라인: 계산 전 증폭/변형 이벤트
         DamageEventBus.TriggerBeforeDamageCalculated(this, ref info);
 

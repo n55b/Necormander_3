@@ -1,0 +1,140 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class MeleeCombatController : MonoBehaviour
+{
+    [SerializeField] private GameObject telegraphPrefab; // 인스펙터 할당
+    
+    private PlayerController _player;
+    private float _lastAttackTime;
+    private int _comboStep = 0; // 0, 1, 2
+    
+    [Header("콤보 설정")]
+    [SerializeField] private float comboResetTime = 1.0f; 
+    [SerializeField] private float attackCooldown = 0.3f; // 콤보 간 최소 딜레이
+
+    [Header("타격 범위 설정")]
+    [SerializeField] private Vector2 lightHitboxSize = new Vector2(2f, 1.5f);
+    [SerializeField] private Vector2 mediumHitboxSize = new Vector2(3f, 2f);
+    [SerializeField] private float lightTelegraphDuration = 0.2f;
+    [SerializeField] private float mediumTelegraphDuration = 0.4f;
+
+    private bool _isHoldingAttack = false;
+    private TelegraphHitbox _activeTelegraph;
+
+    public bool IsAttacking => _activeTelegraph != null || (Time.time - _lastAttackTime) < attackCooldown;
+
+    private void Awake()
+    {
+        _player = GetComponent<PlayerController>();
+    }
+
+    private void Update()
+    {
+        // 콤보 리셋
+        if (!IsAttacking)
+        {
+            if (_player != null) _player.SpeedMultiplier = 1.0f; // 공격 끝났으므로 이속 복구
+            
+            if (Time.time - _lastAttackTime > comboResetTime)
+            {
+                _comboStep = 0;
+            }
+
+            // 홀드 공격 유지 (현재 텔레그래프가 끝났고, 쿨다운이 지났다면 다음 콤보 발동)
+            if (_isHoldingAttack)
+            {
+                ExecuteMeleeAttack();
+            }
+        }
+    }
+
+    public void OnAttackInput(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            _isHoldingAttack = true;
+            if (!IsAttacking)
+            {
+                ExecuteMeleeAttack();
+            }
+        }
+        else if (context.canceled)
+        {
+            _isHoldingAttack = false;
+        }
+    }
+
+    private void ExecuteMeleeAttack()
+    {
+        if (_player == null || _player.Stat.Health.IsDead) return;
+
+        _lastAttackTime = Time.time;
+
+        float telegraphDuration = (_comboStep == 2) ? mediumTelegraphDuration : lightTelegraphDuration;
+        Vector2 hitboxSize = (_comboStep == 2) ? mediumHitboxSize : lightHitboxSize;
+        float damageMultiplier = (_comboStep == 2) ? 1.5f : 1.0f;
+
+        // [애니메이션 재생]
+        _player.SpeedMultiplier = 0.3f; // 공격 중 이동 속도 감소
+        if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1");
+        else if (_comboStep == 1) _player.PlayAllAnim("Attack_Light2");
+        else _player.PlayAllAnim("Attack_Medium");
+
+        // [Telegraph 소환]
+        if (telegraphPrefab != null)
+        {
+            // 마우스 방향 또는 이동 방향을 공격 방향으로 설정
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+            mousePos.z = 0;
+            Vector2 dir = (mousePos - transform.position).normalized;
+            
+            // 플레이어가 바라보는 방향 동기화
+            if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
+            else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
+
+            Vector3 spawnPos = transform.position + (Vector3)dir * (hitboxSize.x * 0.4f);
+            GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity);
+            _activeTelegraph = go.GetComponent<TelegraphHitbox>();
+
+            if (_activeTelegraph != null)
+            {
+                float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                go.transform.rotation = Quaternion.Euler(0, 0, angle);
+
+                // 플레이어 공격은 적에게 경직과 약간의 넉백을 유발
+                DamageInfo info = new DamageInfo(
+                    _player.Stat.ATK * damageMultiplier, 
+                    DamageType.Physical, 
+                    this.gameObject, 
+                    false, 1f, true, "", false, 
+                    causesHitstun: true, 
+                    knockbackForce: 2f
+                );
+
+                LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+                _activeTelegraph.Init(telegraphDuration, info, enemyLayer, hitboxSize);
+            }
+        }
+        else
+        {
+            Debug.LogError("[MeleeCombat] telegraphPrefab이 인스펙터에 할당되지 않았습니다.");
+        }
+
+        // 콤보 진행
+        _comboStep = (_comboStep + 1) % 3;
+    }
+
+    public void CancelAttack()
+    {
+        if (_activeTelegraph != null)
+        {
+            Destroy(_activeTelegraph.gameObject);
+            _activeTelegraph = null;
+        }
+        _comboStep = 0;
+        _isHoldingAttack = false;
+        _player.PlayAllAnim("Idle"); // 공격 끝났으므로 Idle로 복귀
+        _player.SpeedMultiplier = 1.0f; // 이동 속도 복구
+    }
+}

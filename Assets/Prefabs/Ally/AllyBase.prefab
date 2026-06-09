@@ -199,6 +199,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3504e5b732e46ed47849051799a49b28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  LastAttackMissed: 0
   debuffTerminal: {fileID: 6967537705218596196}
 --- !u!114 &3361735179240654997
 MonoBehaviour:
@@ -244,7 +245,11 @@ MonoBehaviour:
   baseAtkSpd: 1
   baseAtkRange: 2
   baseDef: 0
+  baseFlatDef: 0
   baseMoveSpeed: 5
+  baseEvasion: 0
+  baseMissChance: 0
+  baseThrowDamage: 5
   jobType: 0
   setDoneActions:
     m_PersistentCalls:
@@ -436,6 +441,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   detectRange: 10
+  telegraphPrefab: {fileID: 4280725952711924581, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
   minionData: {fileID: 0}
   _lastState: -1
   _target: {fileID: 0}

@@ -20,8 +20,10 @@ public struct DamageInfo
     public bool isBasicAttack;
     public string popupText;
     public bool isRedirected;
+    public bool causesHitstun;
+    public float knockbackForce;
 
-    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, bool isThrowDamage = false, float debuffMultiplier = 1f, bool isBasicAttack = false, string popupText = "", bool isRedirected = false)
+    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, bool isThrowDamage = false, float debuffMultiplier = 1f, bool isBasicAttack = false, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f)
     {
         this.amount = amount;
         this.type = type;
@@ -31,5 +33,7 @@ public struct DamageInfo
         this.isBasicAttack = isBasicAttack;
         this.popupText = popupText;
         this.isRedirected = isRedirected;
+        this.causesHitstun = causesHitstun;
+        this.knockbackForce = knockbackForce;
     }
 }

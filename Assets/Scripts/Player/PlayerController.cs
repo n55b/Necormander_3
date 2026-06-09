@@ -266,14 +266,8 @@ public class PlayerController : MonoBehaviour
 
         CheckForInteractable(); // [추가]
 
-        // --- 구르기(대쉬) 입력 처리 ---
-        if (Keyboard.current != null && Keyboard.current.shiftKey.wasPressedThisFrame)
-        {
-            if (!_isDashing && Time.time >= _lastDashTime + dashCooldown)
-            {
-                StartDash();
-            }
-        }
+        // --- 구르기(대쉬) 입력 처리 (하드코딩 제거) ---
+        // OnDash(InputAction.CallbackContext context) 콜백에서 처리합니다.
 
         if (!_isDashing)
         {
@@ -316,14 +310,14 @@ public class PlayerController : MonoBehaviour
         // TODO: 여기에 가장 가까운 상호작용 오브젝트 위에 프롬프트(예: "Press Q")를 표시하는 UI 로직 추가 가능
     }
 
+    // [추가] 외부(MeleeCombatController 등)에서 이동 속도를 비율로 줄이거나 늘리기 위한 변수
+    [HideInInspector] public float SpeedMultiplier = 1.0f;
+
     private void FixedUpdate()
     {
-        if (_inputBlocked) return; // [추가] 입력 차단 시 로직 스킵
+        if (_inputBlocked || (stat != null && stat.Health.IsDead)) return;
 
-        // 사망 시 조종 불가
-        if (stat.Health.IsDead) return;
-
-        float currentSpeed = stat.MOVESPEED;
+        float currentSpeed = stat.MOVESPEED * SpeedMultiplier;
 
         if (throwController != null && throwController.IsCharging)
         {
@@ -486,6 +480,28 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void OnDash(InputAction.CallbackContext context)
+    {
+        if (_inputBlocked || stat.Health.IsDead) return;
+
+        if (context.performed)
+        {
+            // 근접 구르기 컨트롤러가 있다면 우선적으로 사용 (2스택 구르기 등)
+            MeleeDodgeController dodgeController = GetComponent<MeleeDodgeController>();
+            if (dodgeController != null)
+            {
+                dodgeController.TryDash(moveInput, transform.localScale.x);
+                return;
+            }
+
+            // 없다면 기존 1스택 기본 구르기 사용
+            if (!_isDashing && Time.time >= _lastDashTime + dashCooldown)
+            {
+                StartDash();
+            }
+        }
+    }
+
     public void OnInteract(InputAction.CallbackContext context) // [추가]
     {
         if (_inputBlocked || context.performed && _closestInteractable != null)
@@ -624,8 +640,9 @@ public class PlayerController : MonoBehaviour
 
     public void PlayAllAnim(string animName)
     {
-        BodyAnimator.Play(animName);
-        LHandAnimator.Play(animName);
-        RHandAnimator.Play(animName);
+        int hash = Animator.StringToHash(animName);
+        if (BodyAnimator != null && BodyAnimator.HasState(0, hash)) BodyAnimator.Play(hash);
+        if (LHandAnimator != null && LHandAnimator.HasState(0, hash)) LHandAnimator.Play(hash);
+        if (RHandAnimator != null && RHandAnimator.HasState(0, hash)) RHandAnimator.Play(hash);
     }
 }
