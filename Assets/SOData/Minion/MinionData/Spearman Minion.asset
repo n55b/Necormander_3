@@ -15,17 +15,16 @@ MonoBehaviour:
   minionType: 5
   minionName: Skeleton Spearman
   minionIcon: {fileID: -2024665684537906775, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}
-  throwEffectCategory: 5
   baseEffectValue: 10
-  effectMultiplier: 1
-  baseAreaRadius: 0
   maxHP: 100
-  attack: 5
+  attack: 10
   attackSpeed: 1
   attackRange: 2
   detectRange: 10
   defense: 0
   moveSpeed: 5
+  baseEvasion: 0
+  baseMissChance: 0
   cost: 1
   isElite: 0
   canSpawnRandomly: 1

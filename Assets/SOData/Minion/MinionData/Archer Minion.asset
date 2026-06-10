@@ -17,7 +17,7 @@ MonoBehaviour:
   minionIcon: {fileID: -8917754032636304279, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}
   baseEffectValue: 3
   maxHP: 100
-  attack: 5
+  attack: 10
   attackSpeed: 1
   attackRange: 8
   detectRange: 10

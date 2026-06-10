@@ -15,17 +15,16 @@ MonoBehaviour:
   minionType: 6
   minionName: Enemy Skeleton Magician
   minionIcon: {fileID: 0}
-  throwEffectCategory: 0
   baseEffectValue: 0
-  effectMultiplier: 1
-  baseAreaRadius: 3
-  maxHP: 150
+  maxHP: 100
   attack: 10
   attackSpeed: 1
   attackRange: 10000
   detectRange: 10000
   defense: 0
   moveSpeed: 3
+  baseEvasion: 0
+  baseMissChance: 0
   cost: 1
   isElite: 0
   canSpawnRandomly: 1
