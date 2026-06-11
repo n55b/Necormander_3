@@ -160,11 +160,8 @@ public class BaseAIPatternSO : AIPatternSO
             windupTime = eventTime / entity.Animator.speed;
         }
 
-        // 패턴 설정에 따라 텔레그래프 자동 생성 여부 결정 (원거리는 생성 안함)
-        if (spawnTelegraph)
-        {
-            entity.StartTelegraph(target, windupTime);
-        }
+        // [수정] 텔레그래프 등 선딜레이 시작 시점의 처리를 가상 메서드로 분리
+        OnWindupStart(entity, windupTime);
 
         // 애니메이션 이벤트를 우선 대기
         bool hasHitEvent = hasAnimator && entity.HasAnimationEvent("Attack", "OnHitEvent");
@@ -178,14 +175,20 @@ public class BaseAIPatternSO : AIPatternSO
             while (!entity.HasFiredHitEvent && timeout > 0f)
             {
                 timeout -= Time.deltaTime;
+                OnWindupUpdate(entity);
                 yield return null;
             }
         }
         else
         {
-            // Fallback: 이벤트가 없거나 애니메이터가 없을 경우 임시 시간 대기 (0.3초)
-            entity.SpriteRenderer.color = Color.red;
-            yield return new WaitForSeconds(0.3f);
+            // Fallback: 이벤트가 없거나 애니메이터가 없을 경우 임시 시간 대기
+            float timeout = 0.3f;
+            while (timeout > 0f)
+            {
+                timeout -= Time.deltaTime;
+                OnWindupUpdate(entity);
+                yield return null;
+            }
         }
 
         // [2] Execution (타격)
@@ -205,7 +208,6 @@ public class BaseAIPatternSO : AIPatternSO
         else
         {
             // Fallback: 이벤트가 없거나 애니메이터가 없을 경우 임시 시간 대기 (0.5초)
-            entity.SpriteRenderer.color = Color.white;
             yield return new WaitForSeconds(0.5f);
         }
 
@@ -215,6 +217,20 @@ public class BaseAIPatternSO : AIPatternSO
         }
 
         entity.IsAttacking = false;
+    }
+
+    protected virtual void OnWindupStart(BaseEntity entity, float windupTime)
+    {
+        // 기본 근접 몹: 설정에 따라 둥근/네모난 장판 자동 생성
+        if (spawnTelegraph)
+        {
+            entity.StartTelegraph(target, windupTime);
+        }
+    }
+
+    protected virtual void OnWindupUpdate(BaseEntity entity)
+    {
+        // 선딜레이 동안 매 프레임 호출됩니다.
     }
 
     protected virtual void ExecuteBasicAttack(BaseEntity entity)

@@ -15,7 +15,11 @@ MonoBehaviour:
   currentState: 0
   pushRadius: 0.8
   pushStrength: 2
+  target: {fileID: 0}
+  atkTimer: 0
+  spawnTelegraph: 0
   projectilePrefab: {fileID: 4462788868339787736, guid: 2c59f161d0857ff4a8126fa2db7df8e0, type: 3}
   projectileSpeed: 15
   lifeTime: 3
   launchOffset: 0.5
+  aimLinePrefab: {fileID: 4280725952711924581, guid: cab592efd7b92504fb55c3c437314bc3, type: 3}

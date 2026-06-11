@@ -22,6 +22,10 @@ public class BaseHitBox : MonoBehaviour
     [Tooltip("가득 찼을 때의 최대 로컬 스케일")]
     public Vector3 maxFillScale = Vector3.one;
 
+    public enum FillStyle { Uniform, Horizontal }
+    [Tooltip("장판 차오르는 방식 (Uniform: 점방사형, Horizontal: 로딩바형)")]
+    public FillStyle fillStyle = FillStyle.Uniform;
+
     private DamageInfo _damageInfo;
     private LayerMask _targetLayer;
     private bool _isInitialized = false;
@@ -41,7 +45,7 @@ public class BaseHitBox : MonoBehaviour
         // [추가] 아군/적군에 따른 장판 색상 자동 변경 (파란색 / 빨간색)
         if (fillingTransform != null)
         {
-            var sr = fillingTransform.GetComponent<SpriteRenderer>();
+            var sr = fillingTransform.GetComponentInChildren<SpriteRenderer>();
             if (sr != null)
             {
                 // 투명도(Alpha)를 유지하면서 색상만 변경
@@ -89,7 +93,17 @@ public class BaseHitBox : MonoBehaviour
             
             if (fillingTransform != null)
             {
-                fillingTransform.localScale = Vector3.Lerp(Vector3.zero, maxFillScale, progress);
+                if (fillStyle == FillStyle.Horizontal)
+                {
+                    // 두께(Y,Z)는 처음부터 최대로 유지하고 가로(X)만 0에서 최대로 커지는 로딩바 방식
+                    Vector3 startScale = new Vector3(0f, maxFillScale.y, maxFillScale.z);
+                    fillingTransform.localScale = Vector3.Lerp(startScale, maxFillScale, progress);
+                }
+                else
+                {
+                    // 점 하나에서부터 상하좌우로 둥글게 커지는 방식
+                    fillingTransform.localScale = Vector3.Lerp(Vector3.zero, maxFillScale, progress);
+                }
             }
             
             yield return null;

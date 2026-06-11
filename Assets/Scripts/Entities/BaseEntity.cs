@@ -296,6 +296,16 @@ public abstract class BaseEntity : MonoBehaviour
     }
 
     protected BaseHitBox _activeHitbox; // _activeTelegraph 대신 BaseHitBox를 추적합니다.
+    public BaseHitBox ActiveHitbox => _activeHitbox;
+
+    public virtual void SetActiveHitbox(BaseHitBox hitbox)
+    {
+        if (_activeHitbox != null && _activeHitbox != hitbox)
+        {
+            Destroy(_activeHitbox.gameObject);
+        }
+        _activeHitbox = hitbox;
+    }
 
     public virtual void StartTelegraph(Transform target, float windupTime = 0.5f)
     {

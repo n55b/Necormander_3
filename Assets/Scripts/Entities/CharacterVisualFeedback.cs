@@ -11,6 +11,7 @@ public class CharacterVisualFeedback : MonoBehaviour
     private SpriteRenderer _sr;
     private Color _originalColor;
     private Coroutine _flashCoroutine;
+    private Coroutine _hitFlashCoroutine;
 
     private GameObject _shieldVFXInstance;
     private GameObject _ccVFXInstance;
@@ -103,7 +104,12 @@ public class CharacterVisualFeedback : MonoBehaviour
         if (_status != null && _status.TotalShield > 0.01f) StartFlash(Color.cyan); // 보호막 피격
         else 
         {
-            StartCoroutine(FlashRoutine()); // 일반 피격
+            if (_hitFlashCoroutine != null)
+            {
+                StopCoroutine(_hitFlashCoroutine);
+                if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
+            }
+            _hitFlashCoroutine = StartCoroutine(FlashRoutine()); // 일반 피격
 
             // [수정] 레이어 체크 대신 root 태그를 사용하여 플레이어 판정 (안정성 강화)
             bool isPlayer = gameObject.CompareTag("Player") || transform.root.CompareTag("Player");
@@ -133,7 +139,11 @@ public class CharacterVisualFeedback : MonoBehaviour
     private void StartFlash(Color color)
     {
         if (_sr == null) return;
-        if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
+        if (_flashCoroutine != null) 
+        {
+            StopCoroutine(_flashCoroutine);
+            _sr.color = _originalColor; // 강제 종료 시 색상 원상복구 보장
+        }
         _flashCoroutine = StartCoroutine(FlashRoutine(color));
     }
 
