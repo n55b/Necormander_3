@@ -65,8 +65,7 @@ public class AllyController : BaseEntity, IThrowable
     protected override bool CanExecuteAI()
     {
         // 비행 중이거나 던져진 상태일 때는 AI 차단
-        if ((_arcMovement != null && _arcMovement.IsFlying) || (_runtimeBrain != null && _runtimeBrain.CurrentState == AIState.Caught)
-        || _runtimeBrain != null && _runtimeBrain.CurrentState == AIState.Thrown) 
+        if ((_arcMovement != null && _arcMovement.IsFlying) || (CurrentState == AIState.Caught) || (CurrentState == AIState.Thrown) || (CurrentState == AIState.Skill)) 
             return false;
         
         return base.CanExecuteAI();

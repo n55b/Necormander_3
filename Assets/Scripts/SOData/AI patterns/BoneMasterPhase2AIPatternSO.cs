@@ -81,11 +81,11 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         // 유저 요청: 패턴을 보기 위해 무조건 플레이어만 타겟팅하도록 고정
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
-            target = GameManager.Instance.PLAYERCONTROLLER.transform;
+            entity.Target = GameManager.Instance.PLAYERCONTROLLER.transform;
         }
         else
         {
-            target = null;
+            entity.Target = null;
         }
     }
 
@@ -111,9 +111,9 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
 
     protected override void UpdateStateTransitions(BaseEntity entity)
     {
-        if (target == null) return;
+        if (entity.Target == null) return;
 
-        float dist = Vector2.Distance(entity.transform.position, target.position);
+        float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
         float time = Time.time;
 
         bool canPattern1 = (time - _lastPattern1Time >= pattern1Cooldown);
@@ -149,14 +149,14 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
             }
             else
             {
-                currentState = AIState.Follow;
+                entity.CurrentState = AIState.Follow;
                 if (_bossController != null) _bossController.SetStateText("추격 중...");
             }
         }
         else
         {
             // 아무 조건도 안 맞으면 상시 추격
-            currentState = AIState.Follow;
+            entity.CurrentState = AIState.Follow;
             if (_bossController != null) _bossController.SetStateText("추격 중...");
         }
     }
@@ -235,9 +235,9 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
             
             // 타겟 방향으로 강한 데미지의 직선 공격
             yield return new WaitForSeconds(0.5f);
-            if (target != null)
+            if (entity.Target != null)
             {
-                ApplyLineDamage(entity, target.position, 15f, 1.5f, spearLaserPrefab); // 사거리 15 직선 광선(투척 대체)
+                ApplyLineDamage(entity, entity.Target.position, 15f, 1.5f, spearLaserPrefab); // 사거리 15 직선 광선(투척 대체)
             }
             yield return new WaitForSeconds(0.5f);
         }
@@ -302,9 +302,9 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
             {
                 if (_bossController != null) _bossController.SetStateText("돌진 휩쓸기!", Color.yellow);
                 
-                if (target != null)
+                if (entity.Target != null)
                 {
-                    Vector3 dashTarget = target.position;
+                    Vector3 dashTarget = entity.Target.position;
                     float dashTime = 0.4f;
                     float elapsed = 0f;
                     Vector3 startPos = entity.transform.position;
@@ -348,15 +348,15 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         for (int i = 0; i < swordWaveCount; i++)
         {
             yield return new WaitForSeconds(swordWaveDelay);
-            if (target != null) ApplyLineDamage(entity, target.position, 12f, 0.8f, swordWavePrefab);
+            if (entity.Target != null) ApplyLineDamage(entity, entity.Target.position, 12f, 0.8f, swordWavePrefab);
         }
         
         yield return new WaitForSeconds(coneWaveDelay);
         if (_bossController != null) _bossController.SetStateText("3갈래 확산 검기!", Color.cyan);
         
-        if (target != null)
+        if (entity.Target != null)
         {
-            Vector3 centerDir = (target.position - entity.transform.position).normalized;
+            Vector3 centerDir = (entity.Target.position - entity.transform.position).normalized;
             Vector3 leftDir = Quaternion.Euler(0, 0, 30) * centerDir;
             Vector3 rightDir = Quaternion.Euler(0, 0, -30) * centerDir;
 

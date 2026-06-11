@@ -26,7 +26,7 @@ public class RangedAIPatternSO : BaseAIPatternSO
     {
         base.OnWindupStart(entity, windupTime);
 
-        if (aimLinePrefab != null && target != null)
+        if (aimLinePrefab != null && entity.Target != null)
         {
             Vector2 spawnPos = (Vector2)entity.transform.position + (Vector2.up * launchOffset);
             GameObject aimLine = Instantiate(aimLinePrefab, spawnPos, Quaternion.identity);
@@ -51,29 +51,29 @@ public class RangedAIPatternSO : BaseAIPatternSO
     {
         base.OnWindupUpdate(entity);
 
-        if (entity.ActiveHitbox != null && target != null)
+        if (entity.ActiveHitbox != null && entity.Target != null)
         {
             Vector2 spawnPos = (Vector2)entity.transform.position + (Vector2.up * launchOffset);
-            Vector2 dir = ((Vector2)target.position - spawnPos).normalized;
+            Vector2 dir = ((Vector2)entity.Target.position - spawnPos).normalized;
             
             // 1. 회전 업데이트 (타겟이 움직이면 쫓아가며 록온)
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
             entity.ActiveHitbox.transform.rotation = Quaternion.Euler(0, 0, angle);
 
             // 2. 박스 크기(길이) 업데이트 (현재 타겟 위치까지만 딱 맞춰서 그려짐)
-            float currentDistToTarget = Vector2.Distance(spawnPos, target.position);
+            float currentDistToTarget = Vector2.Distance(spawnPos, entity.Target.position);
             entity.ActiveHitbox.transform.localScale = new Vector3(currentDistToTarget, 1f, 1f);
         }
     }
 
     protected override void ExecuteBasicAttack(BaseEntity entity)
     {
-        if (projectilePrefab == null || target == null) return;
+        if (projectilePrefab == null || entity.Target == null) return;
 
         Vector2 spawnPos = (Vector2)entity.transform.position + (Vector2.up * launchOffset);
         
         // 조준선(AimLine)이 활성화되어 있다면, 타겟의 새 위치가 아니라 '처음 록온했던 조준선 방향'으로 쏩니다.
-        Vector3 shootTargetPos = target.position;
+        Vector3 shootTargetPos = entity.Target.position;
         if (entity.ActiveHitbox != null)
         {
             // 조준선의 방향(transform.right)을 가져와 실제 비행 거리만큼 연장

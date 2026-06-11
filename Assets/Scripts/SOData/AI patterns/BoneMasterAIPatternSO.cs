@@ -68,11 +68,11 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
         // 유저 요청: 패턴을 보기 위해 무조건 플레이어만 타겟팅하도록 고정
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
-            target = GameManager.Instance.PLAYERCONTROLLER.transform;
+            entity.Target = GameManager.Instance.PLAYERCONTROLLER.transform;
         }
         else
         {
-            target = null;
+            entity.Target = null;
         }
     }
 
@@ -104,9 +104,9 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
 
     protected override void UpdateStateTransitions(BaseEntity entity)
     {
-        if (target == null) return;
+        if (entity.Target == null) return;
 
-        float dist = Vector2.Distance(entity.transform.position, target.position);
+        float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
         float time = Time.time;
 
         bool canPattern1 = (time - _lastPattern1Time >= pattern1Cooldown);
@@ -127,7 +127,7 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
             }
             else
             {
-                currentState = AIState.Follow;
+                entity.CurrentState = AIState.Follow;
                 if (_bossController != null) _bossController.SetStateText("추격 중...");
             }
         }
@@ -139,7 +139,7 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
             }
             else
             {
-                currentState = AIState.Follow;
+                entity.CurrentState = AIState.Follow;
                 if (_bossController != null) _bossController.SetStateText("추격 중...");
             }
         }
@@ -158,7 +158,7 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
             // 둘 다 사거리가 안 닿으면 다가감
             else
             {
-                currentState = AIState.Follow;
+                entity.CurrentState = AIState.Follow;
                 if (_bossController != null) _bossController.SetStateText("추격 중...");
             }
         }
@@ -226,9 +226,9 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
                 Debug.Log("<color=yellow>[BoneMaster]</color> 4초 경과. 돌진 후 휩쓸기 발동!");
                 
                 // 타겟 방향으로 돌진
-                if (target != null)
+                if (entity.Target != null)
                 {
-                    Vector3 dashTarget = target.position;
+                    Vector3 dashTarget = entity.Target.position;
                     float dashTime = 0.5f;
                     float elapsed = 0f;
                     Vector3 startPos = entity.transform.position;
@@ -301,10 +301,10 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
         Debug.Log("<color=blue>[BoneMaster]</color> 전방 2회 연속 찌르기 시전 완료");
         
         // 짧은 돌진 (부드럽게 이동)
-        if (target != null)
+        if (entity.Target != null)
         {
             Vector3 startPos = entity.transform.position;
-            Vector3 dir = (target.position - startPos).normalized;
+            Vector3 dir = (entity.Target.position - startPos).normalized;
             Vector3 dashTarget = startPos + dir * 2f; // 2 유닛 앞으로
             float dashTime = 0.15f; // 0.15초 동안 빠르게 돌진
             float elapsed = 0f;
@@ -396,8 +396,8 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
 
     private void ApplyConeDamage(BaseEntity entity, float radius, float angleDegree, float damageMultiplier = 1f, GameObject vfxPrefab = null)
     {
-        if (target == null) return;
-        Vector2 dirToTarget = (target.position - entity.transform.position).normalized;
+        if (entity.Target == null) return;
+        Vector2 dirToTarget = (entity.Target.position - entity.transform.position).normalized;
         
         if (vfxPrefab != null)
         {

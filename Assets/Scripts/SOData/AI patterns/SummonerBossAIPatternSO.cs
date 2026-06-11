@@ -130,13 +130,13 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
     public override void Execute(BaseEntity entity)
     {
         UpdatePhase(entity);
-        if (currentState == AIState.Thrown || currentState == AIState.Caught) return;
+        if (entity.CurrentState == AIState.Thrown || entity.CurrentState == AIState.Caught) return;
 
-        if (target == null)
+        if (entity.Target == null)
         {
             var player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null) target = player.transform;
-            if (target == null) return;
+            if (player != null) entity.Target = player.transform;
+            if (entity.Target == null) return;
         }
 
         if (stationaryTimer > 0)
@@ -276,8 +276,8 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
         summonerState = SummonerState.Dashing;
         dashCooldownTimer = dashCooldown;
         
-        dashDirection = ((Vector2)target.position - (Vector2)entity.transform.position).normalized;
-        float dist = Vector2.Distance(entity.transform.position, target.position);
+        dashDirection = ((Vector2)entity.Target.position - (Vector2)entity.transform.position).normalized;
+        float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
         dashTargetPos = (Vector2)entity.transform.position + dashDirection * (dist * 1.5f);
 
         // NavMeshAgent 임시 비활성화 (순수 물리 직선 이동을 위해)
@@ -397,9 +397,9 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
     private void PerformSpreadShoot(BaseEntity entity)
     {
         Debug.Log("<color=orange>[SummonerBoss]</color> Spread Fireball Released!");
-        if (fireballPrefab == null || target == null) return;
+        if (fireballPrefab == null || entity.Target == null) return;
         
-        Vector2 dirToTarget = ((Vector2)target.position - (Vector2)entity.transform.position).normalized;
+        Vector2 dirToTarget = ((Vector2)entity.Target.position - (Vector2)entity.transform.position).normalized;
         float baseAngle = Mathf.Atan2(dirToTarget.y, dirToTarget.x) * Mathf.Rad2Deg;
 
         float[] angles = { baseAngle - spreadAngle, baseAngle, baseAngle + spreadAngle };
@@ -468,7 +468,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
             var tracking = fb.GetComponent<TrackingFireball>();
             if (tracking != null)
             {
-                tracking.Init(target, entity.Stats.ATK, entity.opponentLayer, entity.gameObject, projectileSpeed, lifeTime);
+                tracking.Init(entity.Target, entity.Stats.ATK, entity.opponentLayer, entity.gameObject, projectileSpeed, lifeTime);
             }
         }
     }
@@ -503,7 +503,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
 
     private void HandleKiting(BaseEntity entity)
     {
-        float dist = Vector2.Distance(entity.transform.position, target.position);
+        float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
         var agent = entity.GetComponent<UnityEngine.AI.NavMeshAgent>();
         if (agent == null || !agent.isActiveAndEnabled) return;
 
@@ -519,7 +519,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
             }
 
             // 새로운 전술적 위치 탐색 후 이동
-            Vector2 tacticalPos = GetTacticalPosition(entity, target);
+            Vector2 tacticalPos = GetTacticalPosition(entity, entity.Target);
             agent.SetDestination(tacticalPos);
         }
         else

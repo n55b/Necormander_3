@@ -130,8 +130,8 @@ public class AllyManager : MonoBehaviour
         RemoveNullinAllys();
         foreach (var ally in allys)
         {
-            if (ally == null || ally.Brain == null || ally.Brain.Target == null) continue;
-            if (ally.Brain.Target.gameObject.layer != playerLayer) return true;
+            if (ally == null || ally.Target == null) continue;
+            if (ally.Target.gameObject.layer != playerLayer) return true;
         }
         return false;
     }

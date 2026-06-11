@@ -55,10 +55,12 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     // (Removed unused p2BombardmentTimer)
     
     private Coroutine bombardmentCoroutine;
+    [System.NonSerialized] private BaseEntity _cachedEntity;
 
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);
+        _cachedEntity = entity;
         isPhase2 = false;
         archerCurrentState = ArcherState.P1_Loop;
         loopDuration = 0f;
@@ -117,9 +119,9 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             Debug.Log($"<color=green>[ArcherBoss]</color> Hit by Throw Attack! Count: {throwHitCount}");
             
             // 1페이즈에서 투척 맞으면 상자 하나 드랍
-            if (!isPhase2 && throwableBoxPrefab != null)
+            if (!isPhase2 && throwableBoxPrefab != null && _cachedEntity != null)
             {
-                SpawnBox(info.attacker != null ? info.attacker.transform.position : target.position);
+                SpawnBox(info.attacker != null ? info.attacker.transform.position : _cachedEntity.Target.position);
             }
         }
     }
@@ -127,17 +129,17 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     public override void Execute(BaseEntity entity)
     {
         UpdatePhase(entity); // 타겟 갱신 등
-        if (this.archerCurrentState == ArcherState.Transitioning || base.currentState == AIState.Thrown || base.currentState == AIState.Caught) return;
+        if (this.archerCurrentState == ArcherState.Transitioning || entity.CurrentState == AIState.Thrown || entity.CurrentState == AIState.Caught) return;
 
-        if (target == null)
+        if (entity.Target == null)
         {
             var player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null) target = player.transform;
-            if (target == null) return;
+            if (player != null) entity.Target = player.transform;
+            if (entity.Target == null) return;
         }
 
         // 보스가 항상 플레이어를 바라보도록 회전
-        CalculateRotate(target, entity);
+        entity.LookAtTarget(entity.Target);
 
         // Phase Transition Check (phase2Data가 없다면 체력 절반 시 강제 전환)
         if (!isPhase2 && phase2Data == null && entity.Stats.Health.CurHP <= entity.Stats.Health.MaxHP * 0.5f)
@@ -208,7 +210,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
         if (attackTimer <= 0f)
         {
-            ShootNormalArrow(entity, target.position);
+            ShootNormalArrow(entity, entity.Target.position);
             attackTimer = baseAttackInterval;
         }
 
@@ -324,7 +326,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
         if (attackTimer <= 0f)
         {
-            ShootNormalArrow(entity, target.position);
+            ShootNormalArrow(entity, entity.Target.position);
             attackTimer = baseAttackInterval;
         }
 
@@ -357,7 +359,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         attackTimer -= Time.deltaTime * 1.0f;
         if (attackTimer <= 0f)
         {
-            ShootNormalArrow(entity, target.position);
+            ShootNormalArrow(entity, entity.Target.position);
             attackTimer = baseAttackInterval;
         }
         KitePlayer(entity);
@@ -439,7 +441,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     private void KitePlayer(BaseEntity entity)
     {
-        float dist = Vector2.Distance(entity.transform.position, target.position);
+        float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
         var agent = entity.GetComponent<UnityEngine.AI.NavMeshAgent>();
         if (agent == null || !agent.isActiveAndEnabled) return;
 
@@ -455,7 +457,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             }
 
             // 새로운 전술적 위치 탐색 후 이동
-            Vector2 tacticalPos = GetTacticalPosition(entity, target);
+            Vector2 tacticalPos = GetTacticalPosition(entity, entity.Target);
             agent.SetDestination(tacticalPos);
         }
         else

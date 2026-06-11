@@ -64,7 +64,7 @@ public abstract class BossAIPatternSO : AIPatternSO
             float randY = Random.Range(-extents.y, extents.y);
             Vector2 candidate = roomCenter + new Vector2(randX, randY);
 
-            float distToPlayer = Vector2.Distance(candidate, target.position);
+            float distToPlayer = Vector2.Distance(candidate, entity.Target.position);
             if (distToPlayer > maxDist)
             {
                 maxDist = distToPlayer;

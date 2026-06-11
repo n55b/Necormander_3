@@ -19,7 +19,7 @@ public class BaseAIPatternSO : AIPatternSO
         
         if (nearestEnemy != null)
         {
-            target = nearestEnemy;
+            entity.Target = nearestEnemy;
         }
         else
         {
@@ -27,12 +27,12 @@ public class BaseAIPatternSO : AIPatternSO
             if (entity.team == Team.Ally)
             {
                 var ally = entity as AllyController;
-                if (ally != null && ally.player != null) target = ally.player;
-                else target = null;
+                if (ally != null && ally.player != null) entity.Target = ally.player;
+                else entity.Target = null;
             }
             else
             {
-                target = null;
+                entity.Target = null;
             }
         }
     }
@@ -40,16 +40,16 @@ public class BaseAIPatternSO : AIPatternSO
     protected override void UpdateStateTransitions(BaseEntity entity)
     {
         // [상태 잠금] 공격 중일 때는 상태 전이를 무시하고 공격을 끝까지 완수합니다.
-        if (currentState == AIState.Attack && entity.IsAttacking) return;
+        if (entity.CurrentState == AIState.Attack && entity.IsAttacking) return;
 
         AIState nextState = AIState.Idle;
 
-        if (target != null)
+        if (entity.Target != null)
         {
-            float dist = Vector2.Distance(entity.transform.position, target.position);
+            float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
             
             // [수정] 아군 미니언이 플레이어를 따라갈 때만 거리 유지, 적군이 플레이어를 잡았을 때는 공격 수행
-            if (entity.team == Team.Ally && target.CompareTag("Player"))
+            if (entity.team == Team.Ally && entity.Target.CompareTag("Player"))
             {
                 if (dist > 2.0f) nextState = AIState.Follow;
                 else nextState = AIState.Idle;
@@ -62,16 +62,16 @@ public class BaseAIPatternSO : AIPatternSO
             }
         }
 
-        if(nextState != currentState)
+        if(nextState != entity.CurrentState)
         {
-            currentState = nextState;
+            entity.CurrentState = nextState;
         }
     }
 
     protected override void OnIdle(BaseEntity entity)
     {
         StopNavAgent(entity);
-        atkTimer = 1000f; // 적을 만나면 즉시 첫 공격 발동을 위해 큰 값으로 세팅
+        entity.AtkTimer = 1000f; // 적을 만나면 즉시 첫 공격 발동을 위해 큰 값으로 세팅
     }
 
     protected override void OnFollow(BaseEntity entity)
@@ -81,9 +81,9 @@ public class BaseAIPatternSO : AIPatternSO
         {
             agent.isStopped = false;
             agent.speed = entity.Stats.MOVESPEED;
-            agent.SetDestination(target.position);
+            agent.SetDestination(entity.Target.position);
         }
-        atkTimer = 1000f; // 이동 중에는 게이지를 가득 채워두어 접근 즉시 타격
+        entity.AtkTimer = 1000f; // 이동 중에는 게이지를 가득 채워두어 접근 즉시 타격
     }
 
     protected override void OnAttack(BaseEntity entity)
@@ -91,14 +91,14 @@ public class BaseAIPatternSO : AIPatternSO
         StopNavAgent(entity);
 
         // 타이머는 공격 중이든 아니든 무조건 돕니다. (초당 공격 횟수 정확히 보장)
-        atkTimer += Time.deltaTime;
+        entity.AtkTimer += Time.deltaTime;
 
         // 단, 이미 공격을 실행 중(애니메이션 재생 중)이라면 중복 실행하지 않습니다.
         if (entity.IsAttacking) return;
 
-        if (atkTimer >= entity.Stats.ATKSPD)
+        if (entity.AtkTimer >= entity.Stats.ATKSPD)
         {
-            atkTimer = 0f;
+            entity.AtkTimer = 0f;
             entity.StartCoroutine(AttackRoutine(entity));
         }
     }
@@ -224,7 +224,7 @@ public class BaseAIPatternSO : AIPatternSO
         // 기본 근접 몹: 설정에 따라 둥근/네모난 장판 자동 생성
         if (spawnTelegraph)
         {
-            entity.StartTelegraph(target, windupTime);
+            entity.StartTelegraph(entity.Target, windupTime);
         }
     }
 
@@ -236,6 +236,6 @@ public class BaseAIPatternSO : AIPatternSO
     protected virtual void ExecuteBasicAttack(BaseEntity entity)
     {
         // 기본값: 근접 공격 수행 (HitBox가 아닌 직접 데미지 부여 방식)
-        ExecuteAttack(entity, target);
+        ExecuteAttack(entity, entity.Target);
     }
 }

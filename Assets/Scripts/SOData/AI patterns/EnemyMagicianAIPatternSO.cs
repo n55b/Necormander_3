@@ -18,7 +18,7 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null)
         {
-            target = player.transform;
+            entity.Target = player.transform;
         }
         else
         {
@@ -30,13 +30,13 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
     protected override void UpdateStateTransitions(BaseEntity entity)
     {
         // 마법사는 타겟이 있기만 하면 거리에 상관없이 공격 상태를 유지합니다. (제자리 포격)
-        if (target != null)
+        if (entity.Target != null)
         {
-            currentState = AIState.Attack;
+            entity.CurrentState = AIState.Attack;
         }
         else
         {
-            currentState = AIState.Idle;
+            entity.CurrentState = AIState.Idle;
         }
     }
 
@@ -47,25 +47,25 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
 
         // attackInterval ~ attackInterval + 1.0s 사이의 랜덤한 주기를 위해 
         // 매 프레임 체크하는 대신, 한 번 쏘고 나서 타이머를 미세하게 조절합니다.
-        atkTimer += Time.deltaTime;
+        entity.AtkTimer += Time.deltaTime;
         
         // 브레인이 인스턴스화되므로 개별 유닛마다 독립적인 타이머 흐름을 가집니다.
-        if (atkTimer >= attackInterval)
+        if (entity.AtkTimer >= attackInterval)
         {
             ExecuteBasicAttack(entity);
             
             // [중요] 다음 공격 타이머를 0이 아닌 -Random 값으로 설정하여 
             // 실질적으로 '공격 간격 + 랜덤 추가 시간' 효과를 줍니다.
-            atkTimer = -Random.Range(0f, 1.0f);
+            entity.AtkTimer = -Random.Range(0f, 1.0f);
         }
     }
 
     protected override void ExecuteBasicAttack(BaseEntity entity)
     {
-        if (magicCirclePrefab == null || target == null) return;
+        if (magicCirclePrefab == null || entity.Target == null) return;
 
         // 플레이어의 현재 위치(발밑)에 장판 소환
-        Vector3 spawnPos = target.position;
+        Vector3 spawnPos = entity.Target.position;
         GameObject circleObj = Instantiate(magicCirclePrefab, spawnPos, Quaternion.identity);
 
         // 장판 초기화 (범용 BaseHitBox 사용)

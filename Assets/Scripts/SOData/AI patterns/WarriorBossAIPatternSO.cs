@@ -37,13 +37,13 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
     public override void Execute(BaseEntity entity)
     {
         UpdatePhase(entity);
-        if (currentState == AIState.Thrown || currentState == AIState.Caught) return;
+        if (entity.CurrentState == AIState.Thrown || entity.CurrentState == AIState.Caught) return;
 
-        if (target == null)
+        if (entity.Target == null)
         {
             var player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null) target = player.transform;
-            if (target == null) return;
+            if (player != null) entity.Target = player.transform;
+            if (entity.Target == null) return;
         }
 
         // 특수 패턴 쿨타임은 병렬로 계속 흐름
@@ -59,7 +59,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
         {
             case WarriorState.Chasing:
                 actionTimer -= Time.deltaTime;
-                float dist = Vector2.Distance(entity.transform.position, target.position);
+                float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
                 
                 if (dist <= meleeAttackRange && actionTimer <= 0f)
                 {
@@ -73,7 +73,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
                     {
                         agent.isStopped = false;
                         agent.speed = entity.Stats.MOVESPEED;
-                        agent.SetDestination(target.position);
+                        agent.SetDestination(entity.Target.position);
                     }
                 }
                 break;
@@ -158,7 +158,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
         bool isSlam = Random.value > 0.5f;
         GameObject prefab = isSlam ? slamHitboxPrefab : slashHitboxPrefab;
 
-        Vector2 dir = ((Vector2)target.position - (Vector2)entity.transform.position).normalized;
+        Vector2 dir = ((Vector2)entity.Target.position - (Vector2)entity.transform.position).normalized;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         Vector2 spawnPos = (Vector2)entity.transform.position + dir * 1.5f;
 
@@ -212,8 +212,8 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
         }
 
         // 둘 중 플레이어에게서 더 먼 방향을 선택
-        float distToRight = Vector2.Distance(target.position, rightPos);
-        float distToLeft = Vector2.Distance(target.position, leftPos);
+        float distToRight = Vector2.Distance(entity.Target.position, rightPos);
+        float distToLeft = Vector2.Distance(entity.Target.position, leftPos);
 
         bool goRight = distToRight > distToLeft;
 

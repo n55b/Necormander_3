@@ -30,9 +30,41 @@ public abstract class BaseEntity : MonoBehaviour
     public MinionDataSO MinionData => minionData;
     protected Animator _animator; // 애니메이터 추가
     [SerializeField] protected AIState _lastState = (AIState)(-1); // 이전 상태 기록
-    [SerializeField] public Transform _target = null;
+    [SerializeField] protected Transform _target = null;
+    [SerializeField] protected CharacterStat _targetStat = null;
+    public Transform Target 
+    {
+        get => _target;
+        set 
+        {
+            if (_target != value)
+            {
+                _target = value;
+                if (_target != null)
+                {
+                    _targetStat = _target.GetComponentInParent<CharacterStat>();
+                    if (_targetStat == null) _targetStat = _target.GetComponentInChildren<CharacterStat>();
+                }
+                else
+                {
+                    _targetStat = null;
+                }
+            }
+        }
+    }
+    public CharacterStat TargetStat => _targetStat;
 
-    // 새로운 통합 AI 브레인 (인스턴스)
+    [SerializeField] protected AIState _currentState = AIState.Idle;
+    public AIState CurrentState
+    {
+        get => _currentState;
+        set => _currentState = value;
+    }
+
+    public float AtkTimer { get; set; } = 0f;
+    public NavMeshPath NavPath { get; set; }
+
+    // 새로운 통합 AI 브레인 (공유 인스턴스)
     protected AIPatternSO _runtimeBrain;
 
     // 공통 컴포넌트 캐싱 및 노출
@@ -68,22 +100,6 @@ public abstract class BaseEntity : MonoBehaviour
         {
             SoundManager.Instance.PlaySFX(minionData.AttackSound, 0.4f);
         }
-    }
-
-    // [레거시 호환성] 기존 애니메이션에서 사용되던 구형 이벤트들이 호출되면 OnHitEvent로 우회시킵니다.
-    public virtual void StartAttack()
-    {
-        OnHitEvent();
-    }
-
-    public virtual void PlayAttackSound()
-    {
-        OnHitEvent();
-    }
-
-    public virtual void Hitsound()
-    {
-        OnHitEvent();
     }
 
     public virtual void OnAttackEndEvent()
@@ -244,7 +260,7 @@ public abstract class BaseEntity : MonoBehaviour
 
         if (patternToUse != null)
         {
-            _runtimeBrain = Instantiate(patternToUse);
+            _runtimeBrain = patternToUse; // 원본 SO 공유 참조
             _runtimeBrain.Init(this);
         }
         else
@@ -260,15 +276,36 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (target == null) return true;
 
-        CharacterStat stat = target.GetComponentInParent<CharacterStat>();
-        if (stat == null) stat = target.GetComponentInChildren<CharacterStat>();
+        CharacterStat stat;
+        if (target == _target && _targetStat != null)
+        {
+            stat = _targetStat; // 캐싱된 스탯 사용
+        }
+        else
+        {
+            stat = target.GetComponentInParent<CharacterStat>();
+            if (stat == null) stat = target.GetComponentInChildren<CharacterStat>();
+        }
         
         if (stat != null)
         {
-            // [수정] 직접 컴포넌트 참조
             return stat.Health.IsDead || stat.Health.Invincible;
         }
         return false;
+    }
+
+    public virtual void LookAtTarget(Transform t)
+    {
+        if (t == null) return;
+
+        if (t.position.x - transform.position.x > 0.0f)
+        {
+            _sr.flipX = true;
+        }
+        else if (t.position.x - transform.position.x < 0.0f)
+        {
+            _sr.flipX = false;
+        }
     }
 
     protected abstract void HandleNoTarget();
@@ -366,16 +403,6 @@ public abstract class BaseEntity : MonoBehaviour
 
         if (_target == null)
         {
-            // 애니메이션 이벤트 타이밍 때문에 BaseEntity._target이 비워진 경우,
-            // AI 브레인의 현재 타겟을 사용해 공격을 복구합니다.
-            if (_runtimeBrain != null && _runtimeBrain.Target != null && !IsTargetInvalid(_runtimeBrain.Target))
-            {
-                _target = _runtimeBrain.Target;
-            }
-        }
-
-        if (_target == null)
-        {
             Debug.LogWarning($"{gameObject.name}: 공격 대상이 없는 상태에서 이벤트가 호출됨!");
             return;
         }
@@ -450,7 +477,7 @@ public abstract class BaseEntity : MonoBehaviour
 
         if (_runtimeBrain != null)
         {
-            _runtimeBrain.ResetAttackTimer(); // 타격 시전 시간 초기화
+            _runtimeBrain.ResetAttackTimer(this); // 타격 시전 시간 초기화
         }
     }
 

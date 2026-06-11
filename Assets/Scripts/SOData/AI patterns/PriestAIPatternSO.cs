@@ -35,7 +35,7 @@ public class PriestAIPatternSO : BaseAIPatternSO
 
         if (lowestHPStat != null)
         {
-            target = lowestHPStat.transform;
+            entity.Target = lowestHPStat.transform;
         }
         else
         {
@@ -43,12 +43,12 @@ public class PriestAIPatternSO : BaseAIPatternSO
             if (entity.team == Team.Ally)
             {
                 var ally = entity as AllyController;
-                if (ally != null && ally.player != null) target = ally.player;
-                else target = null;
+                if (ally != null && ally.player != null) entity.Target = ally.player;
+                else entity.Target = null;
             }
             else
             {
-                target = null;
+                entity.Target = null;
             }
         }
     }
@@ -57,16 +57,16 @@ public class PriestAIPatternSO : BaseAIPatternSO
     {
         AIState nextState = AIState.Idle;
 
-        if (target != null)
+        if (entity.Target != null)
         {
-            float dist = Vector2.Distance(entity.transform.position, target.position);
+            float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
             
             // [수정] 타겟이 플레이어인데 체력이 꽉 차있다면 Follow, 아니면 Attack(힐)
-            bool isPlayer = target.CompareTag("Player");
+            bool isPlayer = entity.Target.CompareTag("Player");
             bool needsHeal = false;
             
-            CharacterStat targetStat = target.GetComponentInParent<CharacterStat>();
-            if (targetStat == null) targetStat = target.GetComponentInChildren<CharacterStat>();
+            CharacterStat targetStat = entity.Target.GetComponentInParent<CharacterStat>();
+            if (targetStat == null) targetStat = entity.Target.GetComponentInChildren<CharacterStat>();
             if (targetStat != null && targetStat.CURHP < targetStat.MAXHP * 0.95f)
             {
                 needsHeal = true;
@@ -85,36 +85,36 @@ public class PriestAIPatternSO : BaseAIPatternSO
             }
         }
 
-        currentState = nextState;
+        entity.CurrentState = nextState;
     }
 
     protected override void OnAttack(BaseEntity entity)
     {
         StopNavAgent(entity);
 
-        atkTimer += Time.deltaTime;
-        if (atkTimer >= entity.Stats.ATKSPD)
+        entity.AtkTimer += Time.deltaTime;
+        if (entity.AtkTimer >= entity.Stats.ATKSPD)
         {
             // [수정] GetComponentInChildren 사용
-            if (target != null)
+            if (entity.Target != null)
             {
-                CharacterStat stat = target.GetComponentInParent<CharacterStat>();
-                if (stat == null) stat = target.GetComponentInChildren<CharacterStat>();
+                CharacterStat stat = entity.Target.GetComponentInParent<CharacterStat>();
+                if (stat == null) stat = entity.Target.GetComponentInChildren<CharacterStat>();
                 if (stat != null)
                 {
                     // 치유 대상의 체력이 이미 가득찼다면 타겟 초기화
                     if (stat.CURHP >= stat.MAXHP)
                     {
-                        target = null;
+                        entity.Target = null;
                     }
                     else
                     {
                         stat.Health.Heal(entity.Stats.ATK);
-                        // Debug.Log($"<color=green>[Priest AI]</color> {entity.name} healed {target.name}");
+                        // Debug.Log($"<color=green>[Priest AI]</color> {entity.name} healed {entity.Target.name}");
                     }
                 }
             }
-            atkTimer = 0f;
+            entity.AtkTimer = 0f;
         }
     }
 }

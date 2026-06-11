@@ -20,19 +20,19 @@ public class HunterAIPatternSO : BaseAIPatternSO
                 var agent = entity.GetComponent<NavMeshAgent>();
                 if (agent != null && agent.isActiveAndEnabled)
                 {
-                    agent.CalculatePath(player.transform.position, testPath);
+                    agent.CalculatePath(player.transform.position, entity.NavPath);
                     
-                    if (testPath.status == NavMeshPathStatus.PathComplete)
+                    if (entity.NavPath.status == NavMeshPathStatus.PathComplete)
                     {
-                        target = player.transform;
+                        entity.Target = player.transform;
                         return;
                     }
-                    else if (testPath.status == NavMeshPathStatus.PathPartial)
+                    else if (entity.NavPath.status == NavMeshPathStatus.PathPartial)
                     {
-                        Vector3 lastPoint = testPath.corners[testPath.corners.Length - 1];
+                        Vector3 lastPoint = entity.NavPath.corners[entity.NavPath.corners.Length - 1];
                         if (Vector2.Distance(lastPoint, player.transform.position) <= entity.Stats.ATKRANGE)
                         {
-                            target = player.transform;
+                            entity.Target = player.transform;
                             return;
                         }
                     }
