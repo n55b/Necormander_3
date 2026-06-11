@@ -97,7 +97,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 51144799616402961}
-  - component: {fileID: 7431168654872380599}
+  - component: {fileID: 3747391856757494731}
+  - component: {fileID: 4608646808853412988}
   m_Layer: 0
   m_Name: Enemy Magic Attack Effect
   m_TagString: Untagged
@@ -122,7 +123,7 @@ Transform:
   - {fileID: 9115464562463897977}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7431168654872380599
+--- !u!114 &3747391856757494731
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -131,11 +132,51 @@ MonoBehaviour:
   m_GameObject: {fileID: 4280725952711924581}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee17282d6f6771e4691181071f7e0ba6, type: 3}
+  m_Script: {fileID: 11500000, guid: 5ef89c7f38b5cc64998afe93fd52c01d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fillingCircle: {fileID: 9115464562463897977}
-  outerBoundary: {fileID: 3807027872810897347}
+  duration: 0.5
+  destroyOnFinish: 1
+  isContinuousDamage: 0
+  damageTickRate: 0.5
+  fillingTransform: {fileID: 9115464562463897977}
+  maxFillScale: {x: 1, y: 1, z: 1}
+--- !u!58 &4608646808853412988
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4280725952711924581}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 0.5
 --- !u!1 &6711780852233548206
 GameObject:
   m_ObjectHideFlags: 0

@@ -20,9 +20,9 @@ public class MeleeCombatController : MonoBehaviour
     [SerializeField] private float mediumTelegraphDuration = 0.4f;
 
     private bool _isHoldingAttack = false;
-    private TelegraphHitbox _activeTelegraph;
+    private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
 
-    public bool IsAttacking => _activeTelegraph != null || (Time.time - _lastAttackTime) < attackCooldown;
+    public bool IsAttacking => _activeHitbox != null || (Time.time - _lastAttackTime) < attackCooldown;
 
     private void Awake()
     {
@@ -81,7 +81,7 @@ public class MeleeCombatController : MonoBehaviour
         else if (_comboStep == 1) _player.PlayAllAnim("Attack_Light2");
         else _player.PlayAllAnim("Attack_Medium");
 
-        // [Telegraph 소환]
+        // [HitBox 소환]
         if (telegraphPrefab != null)
         {
             // 마우스 방향 또는 이동 방향을 공격 방향으로 설정
@@ -95,12 +95,17 @@ public class MeleeCombatController : MonoBehaviour
 
             Vector3 spawnPos = transform.position + (Vector3)dir * (hitboxSize.x * 0.4f);
             GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity);
-            _activeTelegraph = go.GetComponent<TelegraphHitbox>();
+            
+            // 범용 BaseHitBox 사용
+            _activeHitbox = go.GetComponent<BaseHitBox>();
 
-            if (_activeTelegraph != null)
+            if (_activeHitbox != null)
             {
                 float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
                 go.transform.rotation = Quaternion.Euler(0, 0, angle);
+                
+                // 크기 설정 (TelegraphHitbox 로직 대체)
+                go.transform.localScale = new Vector3(hitboxSize.x, hitboxSize.y, 1f);
 
                 // 플레이어 공격은 적에게 경직과 약간의 넉백을 유발
                 DamageInfo info = new DamageInfo(
@@ -113,7 +118,12 @@ public class MeleeCombatController : MonoBehaviour
                 );
 
                 LayerMask enemyLayer = LayerMask.GetMask("Enemy");
-                _activeTelegraph.Init(telegraphDuration, info, enemyLayer, hitboxSize);
+                // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
+                _activeHitbox.Init(info, enemyLayer, 0.2f, telegraphDuration);
+            }
+            else
+            {
+                Debug.LogError("[MeleeCombat] telegraphPrefab에 BaseHitBox 스크립트가 없습니다!");
             }
         }
         else
@@ -127,10 +137,10 @@ public class MeleeCombatController : MonoBehaviour
 
     public void CancelAttack()
     {
-        if (_activeTelegraph != null)
+        if (_activeHitbox != null)
         {
-            Destroy(_activeTelegraph.gameObject);
-            _activeTelegraph = null;
+            Destroy(_activeHitbox.gameObject);
+            _activeHitbox = null;
         }
         _comboStep = 0;
         _isHoldingAttack = false;

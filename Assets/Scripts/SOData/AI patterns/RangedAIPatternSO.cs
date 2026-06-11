@@ -12,6 +12,12 @@ public class RangedAIPatternSO : BaseAIPatternSO
     [SerializeField] private float lifeTime = 3f;
     [SerializeField] private float launchOffset = 0.5f;
 
+    private void OnEnable()
+    {
+        // 원거리 유닛은 기본적으로 근접용 장판(Telegraph)을 자동 생성하지 않습니다.
+        spawnTelegraph = false;
+    }
+
     protected override void ExecuteBasicAttack(BaseEntity entity)
     {
         if (projectilePrefab == null || target == null) return;

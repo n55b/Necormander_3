@@ -47,9 +47,74 @@ public abstract class BaseEntity : MonoBehaviour
     public NearestTargetFinder TargetFinder => _nearestFinder;
     public AIPatternSO Brain => _runtimeBrain;
     public SpriteRenderer SpriteRenderer => _sr;
+    public Animator Animator => _animator;
+
+    public bool HasFiredHitEvent { get; set; } = false;
+    public bool HasFiredAttackEndEvent { get; set; } = false;
+
+    // =======================================================================
+    // [애니메이션 작업자 가이드라인]
+    // 향후 유니티 창에서 유닛의 공격(Attack) 애니메이션을 만들 때, 아래 두 개의 이벤트를 타임라인에 꼭 추가해 주세요!
+    // 1. 공격 판정(Hit)이 들어가야 하는 프레임에 Add Event -> Function Name: OnHitEvent
+    // 2. 무기를 다 휘두르고 원래 자세로 돌아가는(후딜레이 끝) 프레임에 Add Event -> Function Name: OnAttackEndEvent
+    // 만약 이벤트를 깜빡 잊고 안 넣으셔도 스크립트가 자동으로 감지해서 임시 타이머(0.3초/0.5초)로 Fallback 되니 에러가 나진 않습니다.
+    // =======================================================================
+
+    public virtual void OnHitEvent()
+    {
+        HasFiredHitEvent = true;
+
+        if (minionData != null && minionData.AttackSound != null)
+        {
+            SoundManager.Instance.PlaySFX(minionData.AttackSound, 0.4f);
+        }
+    }
+
+    // [레거시 호환성] 기존 애니메이션에서 사용되던 구형 이벤트들이 호출되면 OnHitEvent로 우회시킵니다.
+    public virtual void StartAttack()
+    {
+        OnHitEvent();
+    }
+
+    public virtual void PlayAttackSound()
+    {
+        OnHitEvent();
+    }
+
+    public virtual void Hitsound()
+    {
+        OnHitEvent();
+    }
+
+    public virtual void OnAttackEndEvent()
+    {
+        HasFiredAttackEndEvent = true;
+    }
+
+    /// <summary>
+    /// 현재 Animator에 연결된 특정 클립이 주어진 이벤트를 가지고 있는지 검사합니다.
+    /// (위에서 설명한 OnHitEvent, OnAttackEndEvent가 제대로 설정되어 있는지 검사하는 용도)
+    /// </summary>
+    public bool HasAnimationEvent(string clipName, string eventName)
+    {
+        if (_animator == null || _animator.runtimeAnimatorController == null) return false;
+
+        foreach (var clip in _animator.runtimeAnimatorController.animationClips)
+        {
+            // 클립 이름이 포함되어 있는지 확인 (Attack_Skeleton 등)
+            if (clip.name.Contains(clipName))
+            {
+                foreach (var ev in clip.events)
+                {
+                    if (ev.functionName == eventName) return true;
+                }
+            }
+        }
+        return false;
+    }
 
     protected TelegraphHitbox _activeTelegraph;
-    public bool IsAttacking => _activeTelegraph != null;
+    public bool IsAttacking { get; set; } = false;
 
     protected virtual void Awake()
     {
@@ -216,66 +281,78 @@ public abstract class BaseEntity : MonoBehaviour
         if (_lastState != state)
         {
             _lastState = state;
-            // Enum 이름(Idle, Follow 등)과 애니메이터의 State 이름을 일치시켜야 함
-            // 더 부드럽게 바꾸고 싶다면 Play 대신 CrossFade(state.ToString(), 0.1f) 사용
-            _animator.Play(state.ToString());
+
+            // Attack 상태 진입 시 바로 Attack 애니메이션을 틀지 않고 대기(Idle) 모션을 취합니다.
+            // 실제 Attack 애니메이션은 쿨타임이 차고 AttackRoutine이 실행될 때 한 번만 틉니다.
+            if (state == AIState.Attack)
+            {
+                _animator.Play("Idle");
+            }
+            else
+            {
+                _animator.Play(state.ToString());
+            }
         }
     }
 
-    // 공격 실행 시 호출 (각 유닛의 특수 공격 로직은 여기서 구현)
-    public virtual void ExecuteAttack(Transform target)
+    protected BaseHitBox _activeHitbox; // _activeTelegraph 대신 BaseHitBox를 추적합니다.
+
+    public virtual void StartTelegraph(Transform target, float windupTime = 0.5f)
     {
         if (target == null) return;
-        _target = target; // 공격 대상 저장
+        _target = target;
 
-        if (_animator != null)
-        {
-            _animator.Play("Attack");
-        }
-
-        // [추가] TelegraphHitbox 스폰 로직 (원거리 마법사는 이를 오버라이드하거나 우회함)
         if (telegraphPrefab != null)
         {
             Vector3 dir = (target.position - transform.position).normalized;
-            // 살짝 앞에 생성
             Vector3 spawnPos = transform.position + dir * 0.5f; 
             GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity);
-            _activeTelegraph = go.GetComponent<TelegraphHitbox>();
-
-            if (_activeTelegraph != null)
+            
+            _activeHitbox = go.GetComponent<BaseHitBox>();
+            if (_activeHitbox != null)
             {
                 float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
                 go.transform.rotation = Quaternion.Euler(0, 0, angle);
 
-                // 데미지 페이로드 생성 (경직 유발 가능, 기본 넉백 1f 추가 가능)
                 DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true, "", false, false, 0f); 
                 
-                // Telegraph 완성 시간은 공속의 절반 정도로 임시 지정. (애니메이션 길이에 맞추려면 별도 설정 필요)
-                float telegraphDuration = _stats.ATKSPD * 0.5f; 
-                if (telegraphDuration < 0.2f) telegraphDuration = 0.2f;
+                // [수정] 길쭉하게 늘어나지 않도록, 타격 범위(ATKRANGE)를 X, Y 균등하게 적용 (원형/정사각형 형태 유지)
+                go.transform.localScale = new Vector3(_stats.ATKRANGE, _stats.ATKRANGE, 1f);
 
-                _activeTelegraph.Init(telegraphDuration, info, opponentLayer, new Vector2(2f, 2f));
+                // 전달받은 실제 애니메이션 이벤트 시간(windupTime)과 피아식별 정보(team)를 넘겨줍니다.
+                _activeHitbox.Init(info, opponentLayer, 0.2f, windupTime, this.team == Team.Ally);
+            }
+            else
+            {
+                Debug.LogError($"[BaseEntity] {telegraphPrefab.name}에 BaseHitBox가 없습니다!");
             }
         }
-        else
+    }
+
+    // 공격 실행 시 호출 (애니메이션 타격 프레임에 맞춰 호출됨)
+    public virtual void ExecuteAttack(Transform target)
+    {
+        if (target == null) return;
+        _target = target;
+
+        if (_activeHitbox != null)
         {
-            // 리소스가 없으면 레거시 방식으로 넘어감 (StartAttack에서 즉발 데미지)
-            StartAttack();
+            // 대기 중이던 장판의 선딜레이를 즉시 끝내고 타격을 가합니다.
+            _activeHitbox.ForceActivate();
+            _activeHitbox = null;
+        }
+        else if (telegraphPrefab == null)
+        {
+            // 리소스가 없으면 구형 방식으로 즉발 데미지
+            ExecuteLegacyDamage();
         }
     }
 
-    public void PlayAttackSound()
-    {
-        if(minionData.AttackSound != null)
-        {
-            SoundManager.Instance.PlaySFX(minionData.AttackSound, 0.4f);
-        }
-    }
+    // PlayAttackSound는 OnHitEvent로 통합되었으므로 기존 메서드 본문은 제거합니다.
 
-    public void StartAttack()
+    public void ExecuteLegacyDamage()
     {
-        // Telegraph가 활성화되어 데미지를 처리하는 중이라면 기존 애니메이션 이벤트(StartAttack)의 즉발 데미지 판정을 무시합니다.
-        if (IsAttacking) return;
+        // 더 이상 애니메이션 이벤트로 불리지 않으므로 검사 코드 생략
 
         if (_target == null)
         {
@@ -350,10 +427,10 @@ public abstract class BaseEntity : MonoBehaviour
     {
         _target = null;
         
-        if (_activeTelegraph != null)
+        if (_activeHitbox != null)
         {
-            Destroy(_activeTelegraph.gameObject);
-            _activeTelegraph = null;
+            Destroy(_activeHitbox.gameObject);
+            _activeHitbox = null;
         }
 
         if (_animator != null)

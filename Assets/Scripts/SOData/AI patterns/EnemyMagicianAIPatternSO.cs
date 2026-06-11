@@ -68,11 +68,18 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
         Vector3 spawnPos = target.position;
         GameObject circleObj = Instantiate(magicCirclePrefab, spawnPos, Quaternion.identity);
 
-        // 장판 초기화
-        EnemyMagicianCircleAttack magicCircle = circleObj.GetComponent<EnemyMagicianCircleAttack>();
+        // 장판 초기화 (범용 BaseHitBox 사용)
+        BaseHitBox magicCircle = circleObj.GetComponent<BaseHitBox>();
         if (magicCircle != null)
         {
-            magicCircle.Init(entity.Stats.ATK, entity.opponentLayer, entity.gameObject, explosionRadius, waitTime);
+            // 크기 적용
+            circleObj.transform.localScale = new Vector3(explosionRadius, explosionRadius, 1f);
+
+            // 마법사 장판은 마법 데미지로 취급
+            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Magical, entity.gameObject, false, 1f, true, "", false, false, 0f);
+            
+            // 단발성 공격이므로 타격 판정은 0.2초간만 유지하고, waitTime 만큼 선딜레이(startDelay)를 줍니다.
+            magicCircle.Init(info, entity.opponentLayer, 0.2f, waitTime);
         }
 
         Debug.Log($"<color=magenta>[Magician Pattern]</color> {entity.name}가 포격 실행 (주기: {attackInterval}s)");
