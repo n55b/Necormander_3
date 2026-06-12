@@ -7,6 +7,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewMinionData", menuName = "Necromancer/Data/MinionData")]
 public class MinionDataSO : ScriptableObject
 {
+    [Header("Skill Information")]
+    public Necromancer.Skills.PlayerSkillSO playerSkill;
+    public Necromancer.Skills.MinionSkillSO minionSkill;
+
+    [Header("Basic Information")]
     public CommandData minionType;
     public string minionName;
     public Sprite minionIcon;   // 대가리만 달린 이미지
