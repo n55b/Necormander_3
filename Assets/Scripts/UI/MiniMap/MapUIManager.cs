@@ -7,6 +7,7 @@ public class MapUIManager : MonoBehaviour
     [SerializeField] private GameObject fullMapUIWindow;
     [SerializeField] private GameObject panelUIWindow;
     [SerializeField] private MiniMapController miniMapController;
+    [SerializeField] private GameObject hudMiniMapToggleObject;
 
     private PlayerInput _playerInput;
     private bool _isMapOpen = false;
@@ -54,7 +55,7 @@ public class MapUIManager : MonoBehaviour
 
     public void CloseMapUI()
     {
-        if(_isMapOpen)
+        if (_isMapOpen)
         {
             ToggleFullMap(false);
         }
@@ -64,31 +65,39 @@ public class MapUIManager : MonoBehaviour
     {
         ToggleFullMap(!_isMapOpen);
     }
-
     private void ToggleFullMap(bool isOpen)
     {
-        // 팝업 매니저에 상태 전달
-        if(isOpen)
+        if (isOpen)
         {
-            if(UIPopUpManager.Instance.IsPopUpActive || UIPopUpManager.Instance.IsOnBattle) return;
+            if (UIPopUpManager.Instance.IsPopUpActive || UIPopUpManager.Instance.IsOnBattle) return;
 
             _isMapOpen = isOpen;
-            UIPopUpManager.Instance.PopUpUI(fullMapUIWindow); // 팝업 매니저에 상태 전달
+            UIPopUpManager.Instance.PopUpUI(fullMapUIWindow);
 
             if (miniMapController != null)
             {
-                // 여기서 true를 던지는 순간 위의 FocusOnPlayer()가 발동되어 카메라가 텔레포트합니다!
                 miniMapController.SetMapActive(isOpen);
             }
+
+            // 🌟 전체 지도가 열리면 우측 상단 작은 미니맵은 끕니다.
+            if (hudMiniMapToggleObject != null) hudMiniMapToggleObject.SetActive(false);
         }
         else
         {
             _isMapOpen = isOpen;
+            UIPopUpManager.Instance.ClosePopUpUI();
 
-            UIPopUpManager.Instance.ClosePopUpUI(); // 팝업 매니저에 상태 전달
+            // 전체 지도가 닫히면 우측 상단 작은 미니맵을 다시 켭니다.
+            if (hudMiniMapToggleObject != null) hudMiniMapToggleObject.SetActive(true);
+
+            // 지도가 닫힐 때 MiniMapController에게 알림 (다시 플레이어 추적 모드로 돌리기 위함)
+            if (miniMapController != null)
+            {
+                miniMapController.SetMapActive(false);
+            }
         }
 
         if (fullMapUIWindow != null) fullMapUIWindow.SetActive(isOpen);
-            if (panelUIWindow != null) panelUIWindow.SetActive(isOpen); // 패널 UI는 맵이 열릴 때 숨김
+        if (panelUIWindow != null) panelUIWindow.SetActive(isOpen);
     }
 }
