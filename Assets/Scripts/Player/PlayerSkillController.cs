@@ -26,6 +26,9 @@ public class PlayerSkillController : MonoBehaviour
     [Header("Queue Settings")]
     public float skillTimeout = 1.5f;
     
+    private float[] playerSkillCooldownEnds = new float[3];
+    private float[] minionSkillCooldownEnds = new float[3];
+    
     private Queue<PendingMinionSkill> skillQueue = new Queue<PendingMinionSkill>();
     private PendingMinionSkill currentPendingSkill;
 
@@ -104,6 +107,12 @@ public class PlayerSkillController : MonoBehaviour
             {
                 if (minionData.minionSkill.reactKeyword == keyword)
                 {
+                    if (Time.time < minionSkillCooldownEnds[i])
+                    {
+                        Debug.Log($"<color=gray>[PlayerSkillController]</color> {minionData.minionName} is on cooldown!");
+                        continue;
+                    }
+
                     var newPending = new PendingMinionSkill(minionData, (SkillSlot)i, skillTimeout);
                     skillQueue.Enqueue(newPending);
                     added = true;
@@ -139,6 +148,13 @@ public class PlayerSkillController : MonoBehaviour
         var minionData = equippedMinions[(int)slot];
         if (minionData != null && minionData.playerSkill != null)
         {
+            if (Time.time < playerSkillCooldownEnds[(int)slot])
+            {
+                Debug.Log($"<color=gray>[PlayerSkillController]</color> Player Skill {slot} is on cooldown!");
+                return;
+            }
+
+            playerSkillCooldownEnds[(int)slot] = Time.time + minionData.playerSkill.cooldownTime;
             minionData.playerSkill.ExecuteSkill(playerTransform);
         }
         else
@@ -152,12 +168,33 @@ public class PlayerSkillController : MonoBehaviour
         if (currentPendingSkill == null) return;
 
         var minionData = currentPendingSkill.minionData;
+        int slotIndex = (int)currentPendingSkill.slot;
+
         if (minionData != null && minionData.minionSkill != null)
         {
+            if (Time.time < minionSkillCooldownEnds[slotIndex])
+            {
+                Debug.Log($"<color=gray>[PlayerSkillController]</color> {minionData.minionName} is on cooldown! Skipping queue.");
+                ProcessNextInQueue();
+                return;
+            }
+
+            minionSkillCooldownEnds[slotIndex] = Time.time + minionData.minionSkill.cooldownTime;
             minionData.minionSkill.ExecuteSkill(playerTransform);
             Debug.Log($"<color=green>[PlayerSkillController]</color> Minion Skill Executed!");
         }
 
         ProcessNextInQueue();
+    }
+
+    // --- UI 연동을 위한 외부 접근용 함수 ---
+    public float GetPlayerSkillCooldownRemaining(SkillSlot slot)
+    {
+        return Mathf.Max(0f, playerSkillCooldownEnds[(int)slot] - Time.time);
+    }
+
+    public float GetMinionSkillCooldownRemaining(SkillSlot slot)
+    {
+        return Mathf.Max(0f, minionSkillCooldownEnds[(int)slot] - Time.time);
     }
 }
