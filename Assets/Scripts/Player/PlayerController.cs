@@ -271,9 +271,9 @@ public class PlayerController : MonoBehaviour
 
             // 이동 관련
             // 이미지 돌려주기
-            if (MoveDirection.x > 0.0f)
+            if (MoveDirection.x > 0.1f)
                 this.transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
-            else if (MoveDirection.x < 0.0f)
+            else if (MoveDirection.x < -0.1f)
                 this.transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
         }
 
@@ -293,7 +293,7 @@ public class PlayerController : MonoBehaviour
             // 키보드에서 손을 뗐을 때(감속)만 미끄러지도록 관성 적용
             else
             {
-                actualSmoothTime = Mathf.Max(movementSmoothTime, 0.15f);
+                actualSmoothTime = Mathf.Max(movementSmoothTime, 0.08f);
             }
 
             _smoothedMoveInput = Vector2.SmoothDamp(_smoothedMoveInput, moveInput, ref _moveInputVelocity, actualSmoothTime, Mathf.Infinity, Time.deltaTime);
