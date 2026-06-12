@@ -153,11 +153,11 @@ public class PlayerStateUI : MonoBehaviour
     #region Revive
     private void AddReviveIcon(AllyManager.MinionInfo info)
     {
-        if (reviveIconPrefab == null) return;
-        GameObject iconObj = Instantiate(reviveIconPrefab, reviveContainer);
-        _revivingIcons.Add(new ReviveIcon(info, iconObj));
+        // if (reviveIconPrefab == null) return;
+        // GameObject iconObj = Instantiate(reviveIconPrefab, reviveContainer);
+        // _revivingIcons.Add(new ReviveIcon(info, iconObj));
 
-        Debug.Log($"<color=yellow>[PlayerStateUI]</color> Added revive icon for {info.Data.name}. Total reviving: {_revivingIcons.Count}");
+        // Debug.Log($"<color=yellow>[PlayerStateUI]</color> Added revive icon for {info.Data.name}. Total reviving: {_revivingIcons.Count}");
         
         // 아이콘 이미지 설정 (주석 처리)
         // if (info.Data.icon != null) {
