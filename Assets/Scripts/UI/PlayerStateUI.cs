@@ -29,9 +29,6 @@ public class PlayerStateUI : MonoBehaviour
     [Header("Panel Parent")]
     [SerializeField] private GameObject panelParent;
 
-    [Header("ThrowInfo Settings")]
-    [SerializeField] private Panel_ThrowInformation throwInfoPanel;
-
     [Header("HP Settings")]
     [SerializeField] private Image hpSprite;
     [SerializeField] private TextMeshProUGUI hpText;
@@ -45,9 +42,6 @@ public class PlayerStateUI : MonoBehaviour
 
     [Header("Stamina Settings")]
     [SerializeField] private GameObject staminaUIPrefab;
-
-    [Header("PanelHaveArmy")]
-    [SerializeField] private Panel_HaveArmy panelHaveArmy;
 
     private CharacterHealth _playerHealth;
     private AllyManager _allyManager;
@@ -73,12 +67,6 @@ public class PlayerStateUI : MonoBehaviour
         {
             _allyManager.OnAllyRespawnStart += AddReviveIcon;
             _allyManager.OnAllyRespawned += RemoveReviveIcon;
-        }
-
-        if(InventoryManager.Instance != null)
-        {
-            InventoryManager.Instance.OnMinionUpdated += panelHaveArmy.Update_HaveArmy;
-            panelHaveArmy.Update_HaveArmy(); // 초기 상태 반영
         }
 
         RefreshGold();
@@ -111,12 +99,10 @@ public class PlayerStateUI : MonoBehaviour
     #region UI State Management
     public void PopUpStateUI()
     {
-        panelHaveArmy.Update_HaveArmy();
         ClearReviveIcons();
     }
     public void CloseStateUI()
     {
-        panelHaveArmy.CloseUI();
     }
     #endregion
 
