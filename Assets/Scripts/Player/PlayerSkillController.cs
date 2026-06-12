@@ -7,12 +7,14 @@ public class PendingMinionSkill
     public MinionDataSO minionData;
     public PlayerSkillController.SkillSlot slot;
     public float timeRemaining;
+    public List<Transform> validTargets;
 
     public PendingMinionSkill(MinionDataSO data, PlayerSkillController.SkillSlot slot, float timeout)
     {
         this.minionData = data;
         this.slot = slot;
         this.timeRemaining = timeout;
+        this.validTargets = new List<Transform>();
     }
 }
 
@@ -97,7 +99,7 @@ public class PlayerSkillController : MonoBehaviour
 #endif
     }
 
-    public void OnKeywordApplied(SkillKeyword keyword)
+    public void OnKeywordApplied(SkillKeyword keyword, Transform target = null)
     {
         bool added = false;
         for (int i = 0; i < 3; i++)
@@ -109,14 +111,36 @@ public class PlayerSkillController : MonoBehaviour
                 {
                     if (Time.time < minionSkillCooldownEnds[i])
                     {
-                        Debug.Log($"<color=gray>[PlayerSkillController]</color> {minionData.minionName} is on cooldown!");
                         continue;
                     }
 
-                    var newPending = new PendingMinionSkill(minionData, (SkillSlot)i, skillTimeout);
-                    skillQueue.Enqueue(newPending);
-                    added = true;
-                    Debug.Log($"<color=magenta>[PlayerSkillController]</color> {minionData.minionName} queued! (Reacts: {keyword})");
+                    bool found = false;
+                    foreach (var pending in skillQueue)
+                    {
+                        if (pending.minionData == minionData)
+                        {
+                            if (target != null && !pending.validTargets.Contains(target))
+                                pending.validTargets.Add(target);
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (currentPendingSkill != null && currentPendingSkill.minionData == minionData)
+                    {
+                        if (target != null && !currentPendingSkill.validTargets.Contains(target))
+                            currentPendingSkill.validTargets.Add(target);
+                        found = true;
+                    }
+
+                    if (!found)
+                    {
+                        var newPending = new PendingMinionSkill(minionData, (SkillSlot)i, skillTimeout);
+                        if (target != null) newPending.validTargets.Add(target);
+                        skillQueue.Enqueue(newPending);
+                        added = true;
+                        Debug.Log($"<color=magenta>[PlayerSkillController]</color> {minionData.minionName} queued! (Reacts: {keyword})");
+                    }
                 }
             }
         }
@@ -180,7 +204,7 @@ public class PlayerSkillController : MonoBehaviour
             }
 
             minionSkillCooldownEnds[slotIndex] = Time.time + minionData.minionSkill.cooldownTime;
-            minionData.minionSkill.ExecuteSkill(playerTransform);
+            minionData.minionSkill.ExecuteSkill(playerTransform, null, currentPendingSkill.validTargets);
             Debug.Log($"<color=green>[PlayerSkillController]</color> Minion Skill Executed!");
         }
 

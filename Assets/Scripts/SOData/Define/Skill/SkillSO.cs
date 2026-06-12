@@ -14,7 +14,7 @@ public abstract class SkillSO : ScriptableObject
     [TextArea] public string description;
     public float cooldownTime = 5f;
 
-    public abstract void ExecuteSkill(Transform user, Transform target = null);
+    public abstract void ExecuteSkill(Transform user, Transform target = null, System.Collections.Generic.List<Transform> validTargets = null);
 }
 
 public abstract class PlayerSkillSO : SkillSO

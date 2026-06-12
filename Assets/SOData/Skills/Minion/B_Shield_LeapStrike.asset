@@ -18,7 +18,7 @@ MonoBehaviour:
     \uB0B4\uB824\uCC0D\uC2B5\uB2C8\uB2E4. [\uD638\uCD9C: \uD0C0\uACA9]"
   cooldownTime: 0
   reactKeyword: 3
-  hitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
+  hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
   jumpDuration: 0.5
   jumpHeight: 3
   baseDamage: 30

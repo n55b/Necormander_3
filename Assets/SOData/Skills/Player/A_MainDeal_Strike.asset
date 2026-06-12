@@ -16,8 +16,9 @@ MonoBehaviour:
   description: "\uC804\uBC29\uC5D0 \uAC15\uD55C \uD0C0\uACA9\uC744 \uC90D\uB2C8\uB2E4.
     [\uD638\uCD9C: \uD0C0\uACA9]"
   cooldownTime: 3
-  hitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
+  hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
   damageRadius: 2
   firstHitDamage: 10
   secondHitDamage: 25
   hitDelay: 0.2
+  maxRange: 2
