@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// 미니언(아군/적군 공용)의 마스터 데이터입니다. 
@@ -8,8 +8,8 @@ using UnityEngine;
 public class MinionDataSO : ScriptableObject
 {
     [Header("Skill Information")]
-    public Necromancer.Skills.PlayerSkillSO playerSkill;
-    public Necromancer.Skills.MinionSkillSO minionSkill;
+    public PlayerSkillSO playerSkill;
+    public MinionSkillSO minionSkill;
 
     [Header("Basic Information")]
     public CommandData minionType;
@@ -49,3 +49,4 @@ public class MinionDataSO : ScriptableObject
     [Header("프리팹 설정")]
     public GameObject minionPrefab;
 }
+

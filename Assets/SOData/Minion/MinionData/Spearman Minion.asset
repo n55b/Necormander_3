@@ -12,20 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
   m_Name: Spearman Minion
   m_EditorClassIdentifier: 
+  playerSkill: {fileID: 11400000, guid: 26cc89957856bf74687e1b1d59abdec4, type: 2}
+  minionSkill: {fileID: 11400000, guid: 84e90e15b06d0424dafa1ecd8af4aa2a, type: 2}
   minionType: 5
   minionName: Skeleton Spearman
   minionIcon: {fileID: -2024665684537906775, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}
-  throwEffectCategory: 5
   baseEffectValue: 10
-  effectMultiplier: 1
-  baseAreaRadius: 0
   maxHP: 100
   attack: 5
   attackSpeed: 1
   attackRange: 2
   detectRange: 10
   defense: 0
+  flatDefense: 0
   moveSpeed: 5
+  baseEvasion: 0
+  baseMissChance: 0
   cost: 1
   isElite: 0
   canSpawnRandomly: 1

@@ -1,20 +1,31 @@
 using UnityEngine;
 
-namespace Necromancer.Skills
+public enum SkillKeyword
 {
-    public abstract class SkillSO : ScriptableObject
-    {
-        [Header("기본 정보")]
-        public string skillName;
-        [TextArea] public string description;
-        public Sprite icon;
+    None = 0,
+    Strike = 1,
+    Corrosion = 2,
+    StatusEffect = 3
+}
 
-        [Header("자원 및 쿨타임")]
-        public float cooldownTime;
-        public float manaCost;
+public abstract class SkillSO : ScriptableObject
+{
+    public string skillName;
+    [TextArea] public string description;
+    public float cooldownTime = 5f;
 
-        // 실제 스킬 로직은 구체적인 하위 클래스에서 오버라이드하여 구현
-        // 지금은 Base 구조만 잡아둡니다.
-        public abstract void ExecuteSkill(Transform user, Transform target = null);
-    }
+    public abstract void ExecuteSkill(Transform user, Transform target = null);
+}
+
+public abstract class PlayerSkillSO : SkillSO
+{
+    // 추가적인 플레이어 전용 데이터 (스테미나 소모량 등)
+}
+
+public abstract class MinionSkillSO : SkillSO
+{
+    [Header("Reaction")]
+    public SkillKeyword reactKeyword;
+
+    // 추가적인 미니언 전용 데이터
 }

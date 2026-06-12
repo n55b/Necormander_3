@@ -975,6 +975,7 @@ GameObject:
   - component: {fileID: 6829083333298408906}
   - component: {fileID: 7483555610792978852}
   - component: {fileID: 7957941004026145679}
+  - component: {fileID: 1103040150316217935}
   m_Layer: 8
   m_Name: Player Melee
   m_TagString: Player
@@ -1474,6 +1475,23 @@ MonoBehaviour:
   dashDuration: 0.2
   maxCharges: 2
   rechargeTime: 2
+--- !u!114 &1103040150316217935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8389716956321753658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5701508bce8e7a44b98dbba1ef83d3b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  equippedMinions:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  skillTimeout: 1.5
 --- !u!1 &8633796844698217215
 GameObject:
   m_ObjectHideFlags: 0

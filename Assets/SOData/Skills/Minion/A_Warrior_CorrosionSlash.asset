@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7632434f6533df9418f9ec283807678e, type: 3}
+  m_Name: A_Warrior_CorrosionSlash
+  m_EditorClassIdentifier: 
+  skillName: "\uBD80\uC2DD \uCC38\uACA9 (\uC804\uC0AC \uC5F0\uACC4)"
+  description: "[\uBC18\uC751: \uD0C0\uACA9] \uD0C0\uACA9 \uD0A4\uC6CC\uB4DC \uAC10\uC9C0
+    \uC2DC, \uBBF8\uB2C8\uC5B8\uC774 \uC801\uC5D0\uAC8C \uCC38\uACA9\uC744 \uB0A0\uB824
+    \uBC29\uC5B4\uB825\uC744 \uAC10\uC18C\uC2DC\uD0B5\uB2C8\uB2E4. [\uD638\uCD9C:
+    \uBD80\uC2DD]"
+  cooldownTime: 0
+  reactKeyword: 1
+  hitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
+  hitRadius: 2
+  baseDamage: 20
+  corrosionTime: 3

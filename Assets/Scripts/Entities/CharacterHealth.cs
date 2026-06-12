@@ -177,7 +177,6 @@ public class CharacterHealth : MonoBehaviour
                 finalDamage = Mathf.Max(dmgAfterPercentDef - _stat.FLAT_DEF, 1f);
             }
 
-            Debug.Log($"{gameObject.name} took {finalDamage} damage. HP: {curHP} -> {curHP - finalDamage}");
             curHP -= finalDamage;
             OnDamageTaken?.Invoke(finalDamage);
 

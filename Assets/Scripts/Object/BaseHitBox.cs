@@ -33,9 +33,11 @@ public class BaseHitBox : MonoBehaviour
 
     // 1회 타격 시 중복 타격 방지
     private HashSet<CharacterHealth> _hitTargets = new HashSet<CharacterHealth>();
+    private System.Action<CharacterHealth> _onHitEnemy;
 
-    public void Init(DamageInfo damageInfo, LayerMask targetLayer, float overrideDuration = -1f, float startDelay = 0f, bool isAlly = false)
+    public void Init(DamageInfo damageInfo, LayerMask targetLayer, float overrideDuration = -1f, float startDelay = 0f, bool isAlly = false, System.Action<CharacterHealth> onHitEnemy = null)
     {
+        _onHitEnemy = onHitEnemy;
         _damageInfo = damageInfo;
         _targetLayer = targetLayer;
         
@@ -171,6 +173,8 @@ public class BaseHitBox : MonoBehaviour
                 {
                     health.GetDamage(_damageInfo);
                     _tickTimer = 0f; // 모든 적에게 동시 데미지가 들어가는 구조 (원한다면 개별 쿨타임으로 개선 가능)
+                    
+                    _onHitEnemy?.Invoke(health);
                 }
             }
             else
@@ -180,6 +184,8 @@ public class BaseHitBox : MonoBehaviour
                 {
                     _hitTargets.Add(health);
                     health.GetDamage(_damageInfo);
+                    
+                    _onHitEnemy?.Invoke(health);
                 }
             }
         }

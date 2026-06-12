@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fbc6d379bda6c44d9d41d09025ebd06, type: 3}
+  m_Name: A_MainDeal_Strike
+  m_EditorClassIdentifier: 
+  skillName: "\uC804\uBC29 \uD0C0\uACA9 (\uC804\uC0AC \uAE30\uBCF8)"
+  description: "\uC804\uBC29\uC5D0 \uAC15\uD55C \uD0C0\uACA9\uC744 \uC90D\uB2C8\uB2E4.
+    [\uD638\uCD9C: \uD0C0\uACA9]"
+  cooldownTime: 3
+  hitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
+  damageRadius: 2
+  firstHitDamage: 10
+  secondHitDamage: 25
+  hitDelay: 0.2

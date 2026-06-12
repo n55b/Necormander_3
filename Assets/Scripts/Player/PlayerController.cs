@@ -246,39 +246,20 @@ public class PlayerController : MonoBehaviour
         {
             var kb = UnityEngine.InputSystem.Keyboard.current;
             
-            // SkillManager가 있으면 연계 스킬(불렛 타임) 및 상시 스킬(PlayerSkill)을 처리합니다.
-            if (Necromancer.Managers.SkillManager.Instance != null)
+            // PlayerSkillController를 통한 연계 스킬(스페이스바) 및 상시 스킬(Q, E, R) 처리
+            var skillCtrl = GetComponent<PlayerSkillController>();
+            if (skillCtrl != null && !_inputBlocked)
             {
-                var skillMgr = Necromancer.Managers.SkillManager.Instance;
-                
-                if (skillMgr.IsBulletTimeActive())
+                // 스페이스바: 큐에 대기 중인 미니언 스킬 발동
+                if (kb.spaceKey.wasPressedThisFrame)
                 {
-                    // 불렛 타임 중: 누르는 즉시 미니언 연계 스킬 발동
-                    if (kb.qKey.wasPressedThisFrame) skillMgr.ExecuteMinionSkill(Necromancer.Managers.SkillManager.SkillSlot.Q, transform);
-                    if (kb.eKey.wasPressedThisFrame) skillMgr.ExecuteMinionSkill(Necromancer.Managers.SkillManager.SkillSlot.E, transform);
-                    if (kb.rKey.wasPressedThisFrame) skillMgr.ExecuteMinionSkill(Necromancer.Managers.SkillManager.SkillSlot.R, transform);
-                    
-                    // 불렛 타임 중에는 기존 액티브 스킬이나 이동을 일시정지할 수 있도록 리턴(옵션)
-                    return;
+                    skillCtrl.ExecuteNextMinionSkill(transform);
                 }
-                else
-                {
-                    // 평소: 플레이어 스킬 발동 (상시 스킬)
-                    // 현재는 누르는 즉시 발동하는 형태로 구현 (ActiveSkillManager 대체 가능성)
-                    if (kb.qKey.wasPressedThisFrame) skillMgr.ExecutePlayerSkill(Necromancer.Managers.SkillManager.SkillSlot.Q, transform);
-                    if (kb.eKey.wasPressedThisFrame) skillMgr.ExecutePlayerSkill(Necromancer.Managers.SkillManager.SkillSlot.E, transform);
-                    if (kb.rKey.wasPressedThisFrame) skillMgr.ExecutePlayerSkill(Necromancer.Managers.SkillManager.SkillSlot.R, transform);
-                }
-            }
 
-            // 기존 ActiveSkillManager 로직 (호환성을 위해 남겨둠, 필요 시 제거)
-            if (activeSkillManager != null)
-            {
-                if (kb.qKey.wasPressedThisFrame) activeSkillManager.HandleSkill1Input(true, false);
-                if (kb.qKey.wasReleasedThisFrame) activeSkillManager.HandleSkill1Input(false, true);
-
-                if (kb.eKey.wasPressedThisFrame) activeSkillManager.HandleSkill2Input(true, false);
-                if (kb.eKey.wasReleasedThisFrame) activeSkillManager.HandleSkill2Input(false, true);
+                // 평소: 플레이어 스킬 발동 (상시 스킬, Q, E, R)
+                if (kb.qKey.wasPressedThisFrame) skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.Q, transform);
+                if (kb.eKey.wasPressedThisFrame) skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.E, transform);
+                if (kb.rKey.wasPressedThisFrame) skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.R, transform);
             }
         }
 
