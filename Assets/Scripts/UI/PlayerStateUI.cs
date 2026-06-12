@@ -33,9 +33,8 @@ public class PlayerStateUI : MonoBehaviour
     [SerializeField] private Panel_ThrowInformation throwInfoPanel;
 
     [Header("HP Settings")]
-    [SerializeField] private GameObject heartPrefab;
-    [SerializeField] private Transform heartContainer;
-    private const float HP_PER_HEART = 2.0f;
+    [SerializeField] private Image hpSprite;
+    [SerializeField] private TextMeshProUGUI hpText;
 
     [Header("Gold Settings")]
     [SerializeField] private TextMeshProUGUI goldText;
@@ -140,47 +139,18 @@ public class PlayerStateUI : MonoBehaviour
     #region HP
     private void SetupHearts()
     {
-        foreach (Transform child in heartContainer) Destroy(child.gameObject);
-        _hpFillImages.Clear();
-
-        if (_playerHealth == null || _playerHealth.MaxHP <= 0) return;
-
-        int heartCount = Mathf.CeilToInt(_playerHealth.MaxHP / HP_PER_HEART);
-        for (int i = 0; i < heartCount; i++)
-        {
-            GameObject heartObj = Instantiate(heartPrefab, heartContainer);
-            
-            // [수정] 자식 오브젝트 중 "HP_FillImage"라는 이름을 가진 이미지를 찾습니다.
-            Image fillImg = null;
-            Transform fillTransform = heartObj.transform.Find("HP_FillImage");
-            if (fillTransform != null) fillImg = fillTransform.GetComponent<Image>();
-            else fillImg = heartObj.GetComponentInChildren<Image>(); // 차선책
-
-            if (fillImg != null) _hpFillImages.Add(fillImg);
-        }
-
-        // 레이아웃 갱신
-        if (heartContainer is RectTransform rect)
-        {
-            Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
-            if (rect.parent is RectTransform parentRect) LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
-        }
+        RefreshHP();
     }
 
     public void RefreshHP()
     {
-        if (_playerHealth == null) return;
-        
-        float currentHP = _playerHealth.CurHP;
-        // Debug.Log($"<color=red>[PlayerUI]</color> RefreshHP Called. Current HP: {currentHP} / {_playerHealth.MaxHP}");
+        if (hpSprite == null || hpText == null) return;
 
-        for (int i = 0; i < _hpFillImages.Count; i++)
-        {
-            float heartValue = currentHP - (i * HP_PER_HEART);
-            float heartFill = Mathf.Clamp(heartValue, 0, HP_PER_HEART) / HP_PER_HEART;
-            _hpFillImages[i].fillAmount = heartFill;
-        }
+        int maxHP = (int)_playerHealth.MaxHP;
+        int curHP = (int)_playerHealth.CurHP;
+
+        hpSprite.fillAmount = (float)curHP / maxHP;
+        hpText.text = $"{curHP} / {maxHP}";
     }
     #endregion
 

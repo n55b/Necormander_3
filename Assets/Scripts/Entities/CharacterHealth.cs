@@ -177,13 +177,6 @@ public class CharacterHealth : MonoBehaviour
                 finalDamage = Mathf.Max(dmgAfterPercentDef - _stat.FLAT_DEF, 1f);
             }
 
-            // [추가] 플레이어 전용 규칙: 어떤 데미지를 입든 무조건 1씩 차감
-            // (CharacterHealth가 자식 오브젝트에 있을 수 있으므로 root 태그 확인)
-            if (gameObject.CompareTag("Player") || transform.root.CompareTag("Player"))
-            {
-                finalDamage = 1.0f;
-            }
-
             Debug.Log($"{gameObject.name} took {finalDamage} damage. HP: {curHP} -> {curHP - finalDamage}");
             curHP -= finalDamage;
             OnDamageTaken?.Invoke(finalDamage);
