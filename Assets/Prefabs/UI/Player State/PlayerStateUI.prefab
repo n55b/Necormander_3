@@ -610,10 +610,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: b281b91a70a624a0da1c43adc1c30c7b, type: 3}
-  m_Type: 0
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
@@ -1281,6 +1281,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2112924842816249966}
   - component: {fileID: 6118423970300040726}
+  - component: {fileID: 3414240765128004310}
   m_Layer: 5
   m_Name: MinionStateUI(Temp)
   m_TagString: Untagged
@@ -1336,6 +1337,34 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &3414240765128004310
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2434775535676405209}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3fb5c9662dcf204a8155f6c27bb8cb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minionSlots:
+  - SlotRoot: {fileID: 3408286206697068008}
+    MinionIcon: {fileID: 8907906152542057740}
+    SkillCoolFill: {fileID: 6624419567404605517}
+    CooldownText: {fileID: 4855378173373362352}
+    DeadOverlay: {fileID: 3765214585658691562}
+  - SlotRoot: {fileID: 6214011179198511418}
+    MinionIcon: {fileID: 2054042407983263648}
+    SkillCoolFill: {fileID: 759867881257699763}
+    CooldownText: {fileID: 3273403595127844428}
+    DeadOverlay: {fileID: 964506563122911560}
+  - SlotRoot: {fileID: 2033199476969178683}
+    MinionIcon: {fileID: 2848518652899262580}
+    SkillCoolFill: {fileID: 8903045763460178642}
+    CooldownText: {fileID: 6621300791259888309}
+    DeadOverlay: {fileID: 1656571275862102553}
 --- !u!1 &2514741955713377491
 GameObject:
   m_ObjectHideFlags: 0
@@ -1615,6 +1644,21 @@ MonoBehaviour:
   reviveIconPrefab: {fileID: 7732809971070205925, guid: aa48e9f8efdff834c90bb5ce94db47a6, type: 3}
   reviveContainer: {fileID: 1218228168105934502}
   staminaUIPrefab: {fileID: 5572966085134324014, guid: 8551e31bfd8b3634d981136652f7da06, type: 3}
+  skillSlotQ:
+    SlotRoot: {fileID: 9135890455306156187}
+    SkillIcon: {fileID: 1797911469231240220}
+    CooldownFill: {fileID: 4111923499676928051}
+    CooldownText: {fileID: 162269975672049733}
+  skillSlotE:
+    SlotRoot: {fileID: 4043866116575253152}
+    SkillIcon: {fileID: 6260943862355405547}
+    CooldownFill: {fileID: 3579238233044058732}
+    CooldownText: {fileID: 354848920080566086}
+  skillSlotR:
+    SlotRoot: {fileID: 8080524559712951000}
+    SkillIcon: {fileID: 4499342310527320339}
+    CooldownFill: {fileID: 4226887366143657427}
+    CooldownText: {fileID: 4449052604660960719}
 --- !u!1 &2884488951266304383
 GameObject:
   m_ObjectHideFlags: 0
@@ -1879,10 +1923,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: b281b91a70a624a0da1c43adc1c30c7b, type: 3}
-  m_Type: 0
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
@@ -1959,7 +2003,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 15}
+  m_AnchoredPosition: {x: -5, y: 15}
   m_SizeDelta: {x: 100, y: 50}
   m_Pivot: {x: 1, y: 0}
 --- !u!114 &2577569234097411800
@@ -1999,7 +2043,6 @@ GameObject:
   - component: {fileID: 8673151152236571357}
   - component: {fileID: 3924462616738916635}
   - component: {fileID: 2054042407983263648}
-  - component: {fileID: 8390907239172214537}
   m_Layer: 5
   m_Name: Image_Minion
   m_TagString: Untagged
@@ -2066,19 +2109,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &8390907239172214537
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3623571002176244474}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ShowMaskGraphic: 1
 --- !u!1 &4041199253457670703
 GameObject:
   m_ObjectHideFlags: 0
@@ -2318,10 +2348,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: b281b91a70a624a0da1c43adc1c30c7b, type: 3}
-  m_Type: 0
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
@@ -2574,7 +2604,6 @@ GameObject:
   - component: {fileID: 4151745131123109007}
   - component: {fileID: 1581893676722660589}
   - component: {fileID: 2848518652899262580}
-  - component: {fileID: 6916461991397337175}
   m_Layer: 5
   m_Name: Image_Minion
   m_TagString: Untagged
@@ -2641,19 +2670,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &6916461991397337175
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4679210434311114977}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ShowMaskGraphic: 1
 --- !u!1 &4751004525848805827
 GameObject:
   m_ObjectHideFlags: 0
@@ -3008,10 +3024,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: b281b91a70a624a0da1c43adc1c30c7b, type: 3}
-  m_Type: 0
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
@@ -3195,10 +3211,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: b281b91a70a624a0da1c43adc1c30c7b, type: 3}
-  m_Type: 0
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
@@ -3690,7 +3706,6 @@ GameObject:
   - component: {fileID: 5447806871818911916}
   - component: {fileID: 4323330078435368940}
   - component: {fileID: 8907906152542057740}
-  - component: {fileID: 6746192629040674708}
   m_Layer: 5
   m_Name: Image_Minion
   m_TagString: Untagged
@@ -3757,19 +3772,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &6746192629040674708
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8293346642856758475}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ShowMaskGraphic: 1
 --- !u!1 &8334710199801392066
 GameObject:
   m_ObjectHideFlags: 0
@@ -3836,10 +3838,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: b281b91a70a624a0da1c43adc1c30c7b, type: 3}
-  m_Type: 0
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0

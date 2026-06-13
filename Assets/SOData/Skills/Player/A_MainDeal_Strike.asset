@@ -15,6 +15,7 @@ MonoBehaviour:
   skillName: "\uC804\uBC29 \uD0C0\uACA9 (\uC804\uC0AC \uAE30\uBCF8)"
   description: "\uC804\uBC29\uC5D0 \uAC15\uD55C \uD0C0\uACA9\uC744 \uC90D\uB2C8\uB2E4.
     [\uD638\uCD9C: \uD0C0\uACA9]"
+  icon: {fileID: 8063658267984395209, guid: ba85ec8311f6f504eaa478645c2b7a83, type: 3}
   cooldownTime: 3
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
   damageRadius: 2

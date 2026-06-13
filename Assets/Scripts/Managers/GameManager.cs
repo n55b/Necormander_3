@@ -31,6 +31,7 @@ public class GameManager : MonoBehaviour
 
     [Header("UI References")]
     [SerializeField] public PlayerStateUI playerStateUI;
+    [SerializeField] public MinionStateUI minionStateUI;
 
     [Header("Map Generation")]
     [SerializeField] public MapGenerator mapGenerator; 
@@ -176,7 +177,19 @@ public class GameManager : MonoBehaviour
                 Debug.Log($"<color=green>[GameManager]</color> Player HP Restored to: {_loadedSaveData.playerHP}");
             }
 
+            if (minionStateUI != null)
+            {
+                var skillCtrl = playerController.GetComponent<PlayerSkillController>();
+                minionStateUI.Initialize(allyManager, skillCtrl);
+            }
+
             playerStateUI.Initialize(health, allyManager);
+
+            // PlayerSkillController.Awake()가 같은 프레임에 실행됐으므로
+            // equippedMinions가 이미 채워진 상태 → 아이콘 즉시 갱신
+            playerStateUI.RefreshSkillIcons();
+
+
             Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");
         }
 

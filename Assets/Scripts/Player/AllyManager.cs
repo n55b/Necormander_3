@@ -22,6 +22,7 @@ public class AllyManager : MonoBehaviour
     [Header("아군 유닛들")]
     [SerializeField] List<AllyController> allys = new List<AllyController>();
     [SerializeField] List<MinionInfo> activeMinionInfos = new List<MinionInfo>();
+    public List<MinionInfo> ActiveMinionInfos => activeMinionInfos; // 외부에서 읽기 전용으로 접근
 
     public event System.Action<MinionInfo> OnAllyRespawnStart;
     public event System.Action<MinionInfo> OnAllyRespawned;
@@ -142,7 +143,9 @@ public class AllyManager : MonoBehaviour
     }
 
     // [추가] 액티브 스킬 등에서 특정 직업군 미니언을 일괄 제어할 때 사용
-    public List<AllyController> GetAliveAllies(CommandData jobType)
+// ActiveMinionInfos 정의는 아래 단일 선언으로 통합되었습니다.;
+
+public List<AllyController> GetAliveAllies(CommandData jobType)
     {
         RemoveNullinAllys();
         return allys.FindAll(a => a != null && a.Stats != null && !a.Stats.Health.IsDead && a.MinionType == jobType);

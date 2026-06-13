@@ -10,9 +10,10 @@ public enum SkillKeyword
 
 public abstract class SkillSO : ScriptableObject
 {
-    public string skillName;
+public string skillName;
     [TextArea] public string description;
-    public float cooldownTime = 5f;
+    public Sprite icon;           // UI에 표시할 스킬 아이콘 (null이면 MinionDataSO.minionIcon 대체)
+    public float cooldownTime = 5f; // 스킬의 기본 쿨타임 (초 단위)
 
     public abstract void ExecuteSkill(Transform user, Transform target = null);
 }

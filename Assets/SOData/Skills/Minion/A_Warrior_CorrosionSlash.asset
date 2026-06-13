@@ -17,7 +17,8 @@ MonoBehaviour:
     \uC2DC, \uBBF8\uB2C8\uC5B8\uC774 \uC801\uC5D0\uAC8C \uCC38\uACA9\uC744 \uB0A0\uB824
     \uBC29\uC5B4\uB825\uC744 \uAC10\uC18C\uC2DC\uD0B5\uB2C8\uB2E4. [\uD638\uCD9C:
     \uBD80\uC2DD]"
-  cooldownTime: 0
+  icon: {fileID: 0}
+  cooldownTime: 5
   reactKeyword: 1
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
   hitRadius: 2

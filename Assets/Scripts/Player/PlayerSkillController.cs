@@ -33,14 +33,26 @@ public class PlayerSkillController : MonoBehaviour
     private PendingMinionSkill currentPendingSkill;
 
     public event Action<PendingMinionSkill> OnQueueUpdated;
+// UI에서 미니언 정보를 읽기 위한 public getter
+public MinionDataSO GetEquippedMinion(int index)
+{
+    if (index < 0 || index >= equippedMinions.Length) return null;
+    return equippedMinions[index];
+}
+
+
+private void Awake()
+    {
+        // Awake에서 동기화하면, 같은 프레임 내 UI Initialize() 시점엔 이미 equippedMinions가 채워진 상태
+        if (InventoryManager.Instance != null)
+            SyncWithInventory();
+    }
 
     private void Start()
     {
+        // 이벤트 등록만 담당 (Awake에서 이미 1회 동기화됨)
         if (InventoryManager.Instance != null)
-        {
             InventoryManager.Instance.OnMinionUpdated += SyncWithInventory;
-            SyncWithInventory();
-        }
     }
 
     private void OnDestroy()
