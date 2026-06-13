@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: "\uBAA8\uC73C\uAE30 (\uBC29\uD328\uBCD1 \uAE30\uBCF8)"
   description: "\uC804\uBC29\uC758 \uC801\uB4E4\uC744 \uD55C \uACF3\uC73C\uB85C \uBAA8\uC74D\uB2C8\uB2E4.
     [\uD638\uCD9C: \uC0C1\uD0DC\uC774\uC0C1]"
-  cooldownTime: 5
+  cooldownTime: 10
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
   gatherRadius: 4
   gatherDuration: 0.2

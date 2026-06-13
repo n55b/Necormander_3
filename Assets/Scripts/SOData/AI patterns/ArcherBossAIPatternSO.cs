@@ -517,11 +517,24 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             {
                 GameObject indicator = Instantiate(bombardmentIndicatorPrefab, randomPos, Quaternion.identity);
                 var circleAttack = indicator.GetComponent<EnemyMagicianCircleAttack>();
+                var telegraph = indicator.GetComponent<TelegraphHitbox>();
+                var baseHitBox = indicator.GetComponent<BaseHitBox>();
                 
                 if (circleAttack != null)
                 {
                     // 마법사 장판 스크립트를 재활용: 폭발 데미지, 타겟 레이어, 폭발 대기시간(0.5초), 반경(1.5f) 지정
                     circleAttack.Init(entity.Stats.ATK, entity.opponentLayer, entity.gameObject, 1.5f, 0.5f);
+                }
+                else if (telegraph != null)
+                {
+                    DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Magical, entity.gameObject, false, 1f, false, "Archer Bombardment");
+                    telegraph.Init(0.5f, info, entity.opponentLayer, new Vector2(3f, 3f)); // 반경 1.5면 지름 3.0
+                }
+                else if (baseHitBox != null)
+                {
+                    DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Magical, entity.gameObject, false, 1f, false, "Archer Bombardment");
+                    indicator.transform.localScale = new Vector3(3f, 3f, 1f);
+                    baseHitBox.Init(info, entity.opponentLayer, 0.1f, 0.5f, false, null);
                 }
                 
                 // 폭격 주기만큼 대기 후 다음 폭격

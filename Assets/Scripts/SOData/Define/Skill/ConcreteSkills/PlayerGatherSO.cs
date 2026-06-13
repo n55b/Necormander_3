@@ -38,10 +38,10 @@ public class PlayerGatherSO : PlayerSkillSO
             GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.StatusEffect, health.transform);
         };
 
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
         if (hitBoxPrefab != null)
         {
-            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            
             BaseHitBox box = Instantiate(hitBoxPrefab, center, Quaternion.Euler(0, 0, angle));
             box.transform.localScale = new Vector3(gatherRadius * 2f, gatherRadius * 2f, 1f);
             DamageInfo info = new DamageInfo(baseDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Gather!");
@@ -49,7 +49,24 @@ public class PlayerGatherSO : PlayerSkillSO
         }
 
         // 시각 및 데미지는 HitBox가 주지만, 물리적으로 끌어당기는 것은 직접 수행
-        Collider2D[] cols = Physics2D.OverlapCircleAll(center, gatherRadius, LayerMask.GetMask("Enemy"));
+        Collider2D[] cols;
+        
+        // 프리팹에 붙어있는 콜라이더가 원형인지 사각형인지 시스템이 스스로 판별하여 적용!
+        bool isCircle = false;
+        if (hitBoxPrefab != null)
+        {
+            var prefabCol = hitBoxPrefab.GetComponent<Collider2D>();
+            if (prefabCol is CircleCollider2D) isCircle = true;
+        }
+
+        if (isCircle)
+        {
+            cols = Physics2D.OverlapCircleAll(center, gatherRadius, LayerMask.GetMask("Enemy"));
+        }
+        else
+        {
+            cols = Physics2D.OverlapBoxAll(center, new Vector2(gatherRadius * 2f, gatherRadius * 2f), angle, LayerMask.GetMask("Enemy"));
+        }
         List<Transform> targetsToMove = new List<Transform>();
         List<Vector2> startPositions = new List<Vector2>();
 
