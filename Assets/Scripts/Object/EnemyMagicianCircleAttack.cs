@@ -51,11 +51,16 @@ public class EnemyMagicianCircleAttack : MonoBehaviour
             yield return null;
         }
 
-        // 2. 폭발 및 데미지 판정
-        Explode();
-
-        // 3. 소멸
-        Destroy(gameObject);
+        try
+        {
+            // 2. 폭발 및 데미지 판정
+            Explode();
+        }
+        finally
+        {
+            // 3. 소멸 (오류가 나더라도 반드시 파괴되도록 보장)
+            Destroy(gameObject);
+        }
     }
 
     private void Explode()
@@ -69,10 +74,17 @@ public class EnemyMagicianCircleAttack : MonoBehaviour
             CharacterStat stat = col.GetComponentInChildren<CharacterStat>();
             if (stat == null) stat = col.GetComponentInParent<CharacterStat>();
 
-            if (stat != null)
+            if (stat != null && stat.Health != null)
             {
                 DamageInfo info = new DamageInfo(_damage, DamageType.Magical, _attacker);
-                stat.Health.GetDamage(info);
+                try
+                {
+                    stat.Health.GetDamage(info);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"[EnemyMagicianCircleAttack] 데미지 처리 중 에러 발생 (Target: {stat.gameObject.name}): {ex}");
+                }
             }
         }
 

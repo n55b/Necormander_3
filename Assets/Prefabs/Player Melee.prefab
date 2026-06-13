@@ -1306,7 +1306,7 @@ MonoBehaviour:
   playerLayer:
     serializedVersion: 2
     m_Bits: 256
-  defaultRespawnTime: 3
+  defaultRespawnTime: 6
 --- !u!114 &3671673066107762978
 MonoBehaviour:
   m_ObjectHideFlags: 0

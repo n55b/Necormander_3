@@ -10,7 +10,7 @@ public class SpearMinionSkillSO : MinionSkillSO
     public float baseDamage = 25f;
     public float stunTime = 2f;
 
-    public override void ExecuteSkill(Transform user, Transform target = null)
+    public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
@@ -47,16 +47,41 @@ public class SpearMinionSkillSO : MinionSkillSO
             {
                 hasInvokedKeyword = true;
                 Debug.Log($"<color=magenta>[Minion Skill C]</color> 창병 찌르기 적중! 기절 부여 (호출: StatusEffect)");
-                GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.StatusEffect);
             }
+            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.StatusEffect, health.transform);
         };
 
         foreach (var s in spearmen)
         {
             if (s == null || s.Stats.Health.IsDead) continue;
 
-            Vector2 dir = (mousePos - (Vector2)s.transform.position).normalized;
-            Vector2 attackCenter = (Vector2)s.transform.position + dir * (thrustDistance / 2f);
+            Vector2 sPos = s.transform.position;
+            Transform closestTarget = null;
+            float minDist = float.MaxValue;
+            
+            if (validTargets != null && validTargets.Count > 0)
+            {
+                foreach (var vt in validTargets)
+                {
+                    if (vt == null) continue;
+                    var health = vt.GetComponent<CharacterHealth>();
+                    if (health != null && health.IsDead) continue; // 죽은 타겟 제외
+
+                    float dist = Vector2.Distance(sPos, vt.position);
+                    if (dist < minDist)
+                    {
+                        minDist = dist;
+                        closestTarget = vt;
+                    }
+                }
+            }
+
+            Vector2 targetPos = closestTarget != null ? (Vector2)closestTarget.position : (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 dir = (targetPos - sPos).normalized;
+            if (dir == Vector2.zero) dir = Vector2.right;
+
+            // 미니언 앞이 아니라 타겟의 위치에 직접 스폰
+            Vector2 attackCenter = targetPos;
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
             if (hitBoxPrefab != null)
