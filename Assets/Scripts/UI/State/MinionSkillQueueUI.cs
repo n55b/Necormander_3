@@ -25,7 +25,10 @@ public class MinionSkillQueueUI : MonoBehaviour
         public Image      MinionIcon;
         public Image      TimerFill;       // 남은 시간 게이지 (1→0 줄어듦)
         public TextMeshProUGUI TimerText;  // 남은 초 텍스트
-        public PendingMinionSkill Bound;   // 연결된 큐 항목
+        public PendingMinionSkill Bound;
+        // dirty 캐시
+        public float LastDisplayedTime = -1f;
+        public bool  TextCleared       = false;
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -70,21 +73,43 @@ public class MinionSkillQueueUI : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     private void Update()
     {
-        foreach (var slot in _slots)
+        if (_slots.Count == 0) return;
+
+        // 나눗셈 대신 곱셈 사용
+        float maxTimeout = _skillCtrl != null ? _skillCtrl.skillTimeout : 1f;
+        float invMax     = maxTimeout > 0f ? 1f / maxTimeout : 1f;
+
+        for (int i = 0; i < _slots.Count; i++)
         {
+            var slot = _slots[i];
             if (slot.Bound == null) continue;
-            float t   = slot.Bound.timeRemaining;
-            float max = _skillCtrl != null ? _skillCtrl.skillTimeout : 1f;
+
+            float t = slot.Bound.timeRemaining;
 
             if (slot.TimerFill != null)
-                slot.TimerFill.fillAmount = Mathf.Clamp01(t / max);
+                slot.TimerFill.fillAmount = Mathf.Clamp01(t * invMax);
 
             if (slot.TimerText != null)
-                slot.TimerText.text = t > 0.05f ? t.ToString("F1") : "";
+            {
+                if (t > 0.05f)
+                {
+                    // 0.1초 단위로만 텍스트 갱신 → 매 프레임 GC 방지
+                    float floored = Mathf.Floor(t * 10f) * 0.1f;
+                    if (Mathf.Abs(floored - slot.LastDisplayedTime) >= 0.099f)
+                    {
+                        slot.LastDisplayedTime = floored;
+                        slot.TimerText.SetText("{0:F1}", t);
+                        slot.TextCleared = false;
+                    }
+                }
+                else if (!slot.TextCleared)
+                {
+                    slot.TimerText.text = "";
+                    slot.TextCleared    = true;
+                }
+            }
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────
     // 큐 변경 시 전체 재구성
     // ─────────────────────────────────────────────────────────────────────
     private void RebuildSlots()
