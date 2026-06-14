@@ -118,18 +118,18 @@ public class PlayerStateUI : MonoBehaviour
         }
 
         // 스타미나 UI
-        StaminaUI staminaUI = GetComponentInChildren<StaminaUI>();
-        if (staminaUI == null)
-        {
-            if (staminaUIPrefab != null)
-            {
-                GameObject obj = Instantiate(staminaUIPrefab, panelParent != null ? panelParent.transform : transform);
-                staminaUI = obj.GetComponent<StaminaUI>() ?? obj.AddComponent<StaminaUI>();
-            }
-            else staminaUI = gameObject.AddComponent<StaminaUI>();
-        }
-        if (staminaUI != null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-            staminaUI.Initialize(GameManager.Instance.PLAYERCONTROLLER.STAMINA);
+        // StaminaUI staminaUI = GetComponentInChildren<StaminaUI>();
+        // if (staminaUI == null)
+        // {
+        //     if (staminaUIPrefab != null)
+        //     {
+        //         GameObject obj = Instantiate(staminaUIPrefab, panelParent != null ? panelParent.transform : transform);
+        //         staminaUI = obj.GetComponent<StaminaUI>() ?? obj.AddComponent<StaminaUI>();
+        //     }
+        //     else staminaUI = gameObject.AddComponent<StaminaUI>();
+        // }
+        // if (staminaUI != null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        //     staminaUI.Initialize(GameManager.Instance.PLAYERCONTROLLER.STAMINA);
 
         // Dash 쿨타임 UI
         if (dashCooldownUI != null)
