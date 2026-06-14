@@ -69,7 +69,8 @@ public class PlayerStateUI : MonoBehaviour
     [Header("Stamina Settings")]
     [SerializeField] private GameObject staminaUIPrefab;
 
-    [Header("Q / E / R 플레이어 스킬 슬롯")]
+    [Header("Dash / Q / E / R 플레이어 스킬 슬롯")]
+    [SerializeField] private DashCooldownUI dashCooldownUI;
     [SerializeField] private SkillSlotUI skillSlotQ;
     [SerializeField] private SkillSlotUI skillSlotE;
     [SerializeField] private SkillSlotUI skillSlotR;
@@ -83,6 +84,8 @@ public class PlayerStateUI : MonoBehaviour
     private List<Image>           _hpFillImages  = new List<Image>();
     private List<ReviveIcon>      _revivingIcons = new List<ReviveIcon>();
     private SkillSlotUI[]         _skillSlots;
+    private int _lastGold = int.MinValue; // dirty 비교용
+
 
     // ─────────────────────────────────────────────────────────────────────
     // 초기화
@@ -128,6 +131,13 @@ public class PlayerStateUI : MonoBehaviour
         if (staminaUI != null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
             staminaUI.Initialize(GameManager.Instance.PLAYERCONTROLLER.STAMINA);
 
+        // Dash 쿨타임 UI
+        if (dashCooldownUI != null)
+        {
+            if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+                dashCooldownUI.Initialize(GameManager.Instance.PLAYERCONTROLLER);
+        }
+
         Debug.Log("<color=green>[PlayerStateUI]</color> HUD Initialized.");
     }
 
@@ -172,10 +182,13 @@ public class PlayerStateUI : MonoBehaviour
     // Gold
     // ─────────────────────────────────────────────────────────────────────
     #region Gold
-    public void RefreshGold()
+public void RefreshGold()
     {
-        if (InventoryManager.Instance != null && goldText != null)
-            goldText.text = InventoryManager.Instance.GOLD.ToString();
+        if (InventoryManager.Instance == null || goldText == null) return;
+        int gold = InventoryManager.Instance.GOLD;
+        if (gold == _lastGold) return;
+        _lastGold = gold;
+        goldText.SetText("{0}", gold);
     }
     #endregion
 
@@ -255,7 +268,7 @@ public class PlayerStateUI : MonoBehaviour
         }
     }
 
-    private void UpdateSkillCooldowns()
+private void UpdateSkillCooldowns()
     {
         if (_skillCtrl == null || _skillSlots == null) return;
 
@@ -272,13 +285,13 @@ public class PlayerStateUI : MonoBehaviour
             bool  onCd      = remaining > 0.05f;
             float fill      = (maxCd > 0f && onCd) ? Mathf.Clamp01(remaining / maxCd) : 0f;
 
-            // CooldownFill이 별도로 있으면 그걸 켜고/끄기
             if (slot.CooldownFill != null)
             {
-                slot.CooldownFill.gameObject.SetActive(onCd);
-                slot.CooldownFill.fillAmount = fill;
+                // SetActive는 값이 달라질 때만 호출
+                bool isActive = slot.CooldownFill.gameObject.activeSelf;
+                if (isActive != onCd) slot.CooldownFill.gameObject.SetActive(onCd);
+                if (onCd) slot.CooldownFill.fillAmount = fill;
             }
-            // CooldownFill이 없으면 SkillIcon 자체를 Filled 타입으로 마스크
             else if (slot.SkillIcon != null)
             {
                 slot.SkillIcon.type          = Image.Type.Filled;
@@ -288,7 +301,12 @@ public class PlayerStateUI : MonoBehaviour
             }
 
             if (slot.CooldownText != null)
-                slot.CooldownText.text = onCd ? remaining.ToString("F1") : "";
+            {
+                if (onCd)
+                    slot.CooldownText.SetText("{0:1}", remaining);
+                else if (slot.CooldownText.text.Length > 0)
+                    slot.CooldownText.text = "";
+            }
         }
     }
     #endregion

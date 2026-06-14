@@ -149,7 +149,9 @@ public class PlayerController : MonoBehaviour
     private float _lastDashTime;
     private Vector2 _dashDir;
 
-    public bool IsDashing => _isDashing;
+    public bool  IsDashing            => _isDashing;
+    public float DashCooldown         => dashCooldown;
+    public float DashCooldownProgress => dashCooldown > 0f ? Mathf.Clamp01((Time.time - _lastDashTime) / dashCooldown) : 1f;
 
     private Rigidbody2D _rb;
 

@@ -115,4 +115,12 @@ public class MeleeDodgeController : MonoBehaviour
         
         _player.PlayAllAnim("Idle");
     }
+
+
+public int   MaxCharges      => maxCharges;
+    public float RechargeTime    => rechargeTime;
+    public float RechargeProgress
+        => (_currentCharges < maxCharges && rechargeTime > 0f)
+            ? 1f - Mathf.Clamp01(_rechargeTimer / rechargeTime)
+            : 1f;
 }

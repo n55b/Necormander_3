@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Cinemachine; 
+using Unity.Cinemachine;
 
 /// <summary>
 /// 게임의 전체 생명주기와 매니저들의 초기화 순서를 관리하는 중앙 컨트롤러입니다.
@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("Player")]
-    [SerializeField] private GameObject playerPrefab; 
+    [SerializeField] private GameObject playerPrefab;
     [SerializeField] private PlayerController playerController;
     public PlayerController PLAYERCONTROLLER => playerController;
     public bool IsPlayerReady { get; private set; } = false;
@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] public ThrowImpactManager throwImpactManager;
     [SerializeField] public MouseManager mouseManager;
     [SerializeField] public MouseCursorManager mouseCursorManager;
-    
+
     [Header("Growth System")]
     [SerializeField] public InventoryManager inventoryManager;
     [SerializeField] public SquadSpawner squadSpawner;
@@ -34,9 +34,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] public MinionStateUI minionStateUI;
     [SerializeField] public MinionSkillQueueUI minionSkillQueueUI;
 
-
     [Header("Map Generation")]
-    [SerializeField] public MapGenerator mapGenerator; 
+    [SerializeField] public MapGenerator mapGenerator;
     [SerializeField] private MapGenerationDataSO currentStageMapData;
     [SerializeField] private RoomPrefabDataSO currentStageRoomData;
 
@@ -47,8 +46,8 @@ public class GameManager : MonoBehaviour
     {
         _isTimeStopped = stop;
         Time.timeScale = stop ? 0f : 1f;
-        
-        if(!stop) playerController?.CanChangeAnimState();
+
+        if (!stop) playerController?.CanChangeAnimState();
         Debug.Log($"<color=yellow>[TimeSystem]</color> Time Scale set to: {Time.timeScale}");
     }
 
@@ -128,8 +127,8 @@ public class GameManager : MonoBehaviour
         if (rewardManager == null) rewardManager = GetComponentInChildren<RewardManager>();
 
         if (dataManager != null) dataManager.Initialize();
-        
-        if (inventoryManager != null) 
+
+        if (inventoryManager != null)
         {
             inventoryManager.Initialize(_loadedSaveData != null);
             if (_loadedSaveData != null)
@@ -137,12 +136,12 @@ public class GameManager : MonoBehaviour
                 inventoryManager.LoadFromData(_loadedSaveData);
             }
         }
-        
+
         if (economyManager != null) economyManager.Initialize();
         if (cameraManager != null) cameraManager.Initialize();
         if (throwImpactManager != null) throwImpactManager.Initialize();
         if (rewardManager != null) rewardManager.Initialize();
-        
+
         // 초기화 시점에는 아직 플레이어가 없으므로 SquadSpawner의 AllyManager 연결은 미룹니다.
 
         Debug.Log("<b>[GameManager]</b> Initial Managers Loaded.");
@@ -161,8 +160,8 @@ public class GameManager : MonoBehaviour
         }
         else if (mapGenerator != null)
         {
-             Debug.LogWarning("[GameManager] Stage Data is missing! Using MapGenerator's default data.");
-             yield return StartCoroutine(mapGenerator.GenerateMapCoroutine());
+            Debug.LogWarning("[GameManager] Stage Data is missing! Using MapGenerator's default data.");
+            yield return StartCoroutine(mapGenerator.GenerateMapCoroutine());
         }
 
         SpawnPlayer();
@@ -185,11 +184,10 @@ public class GameManager : MonoBehaviour
                 minionStateUI.Initialize(allyManager, skillCtrl);
                 Debug.Log("<color=cyan>[GameManager]</color> MinionStateUI Initialized.");
 
-            if (minionSkillQueueUI != null)
-            {
-                minionSkillQueueUI.Initialize(skillCtrl);
-                Debug.Log("<color=cyan>[GameManager]</color> MinionSkillQueueUI Initialized.");
-            }
+                if (minionSkillQueueUI != null)
+                    minionSkillQueueUI.Initialize(skillCtrl);
+
+            // DashCooldownUI는 PlayerStateUI.Initialize()에서 자체 처리
 
             }
 
@@ -220,7 +218,7 @@ public class GameManager : MonoBehaviour
         if (playerController != null)
         {
             playerController.SetInputBlocked(true);
-            
+
             // [핵심 수정] 부대 스포너에 새로 생성된 플레이어의 AllyManager를 연결해줍니다.
             var allyManager = playerObj.GetComponent<AllyManager>();
             if (squadSpawner != null && allyManager != null)
@@ -258,7 +256,7 @@ public class GameManager : MonoBehaviour
     public void GoToNextFloor()
     {
         SaveData data = new SaveData();
-        
+
         // 다음 층수 저장
         data.currentFloor = currentFloor + 1;
 
@@ -285,7 +283,7 @@ public class GameManager : MonoBehaviour
         SaveSystem.Save(data);
 
         Debug.Log($"<color=green>[GameManager]</color> Floor Cleared! Transitioning to Floor {data.currentFloor}...");
-        
+
         // 씬 재로드
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }

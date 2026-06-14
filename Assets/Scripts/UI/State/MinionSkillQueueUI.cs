@@ -131,12 +131,12 @@ public class MinionSkillQueueUI : MonoBehaviour
 
         // 자식 탐색
         var tf = root.transform;
-        var iconT  = tf.Find("MinionIcon");
-        var fillT  = tf.Find("TimerFill");
+        var iconT  = tf.Find("Icon_SkillQueue");
+        var fillT  = tf.Find("Outline_SkillQueue");
         var textT  = tf.Find("TimerText");
 
-        slot.MinionIcon = iconT  != null ? iconT.GetComponent<Image>()             : root.GetComponentInChildren<Image>();
-        slot.TimerFill  = fillT  != null ? fillT.GetComponent<Image>()             : null;
+        slot.MinionIcon = iconT  != null ? iconT.GetComponent<Image>()             : root.GetComponent<Image>();
+        slot.TimerFill  = fillT  != null ? fillT.GetComponent<Image>()              : root.GetComponentInChildren<Image>();
         slot.TimerText  = textT  != null ? textT.GetComponent<TextMeshProUGUI>()   : root.GetComponentInChildren<TextMeshProUGUI>();
 
         // 아이콘 세팅
