@@ -35,6 +35,16 @@ public class PlayerSkillController : MonoBehaviour
     private PendingMinionSkill currentPendingSkill;
 
     public event Action<PendingMinionSkill> OnQueueUpdated;
+    public event Action                     OnQueueChanged;  // 큐 구성 변경 시 (추가/제거/타임아웃)
+
+    // 큐 전체 스냅쌏 (currentPendingSkill + 대기열, 순서 유지)
+    public List<PendingMinionSkill> GetAllPendingSkills()
+    {
+        var result = new List<PendingMinionSkill>();
+        if (currentPendingSkill != null) result.Add(currentPendingSkill);
+        result.AddRange(skillQueue);
+        return result;
+    }
 // UI에서 미니언 정보를 읽기 위한 public getter
 public MinionDataSO GetEquippedMinion(int index)
 {
@@ -85,95 +95,98 @@ private void Awake()
         Debug.Log("<color=cyan>[PlayerSkillController]</color> Sync Inventory -> Q,E,R slots complete.");
     }
 
-    private void Update()
+private void Update()
     {
+        // currentPendingSkill 타임아웃
         if (currentPendingSkill != null)
         {
             currentPendingSkill.timeRemaining -= Time.deltaTime;
             if (currentPendingSkill.timeRemaining <= 0f)
             {
-                Debug.Log($"<color=orange>[PlayerSkillController]</color> {currentPendingSkill.minionData.minionName} timeout!");
+                Debug.Log($"<color=orange>[PSC]</color> {currentPendingSkill.minionData.minionName} timeout!");
                 ProcessNextInQueue();
             }
         }
 
+        // 대기열 항목들도 각자 timeRemaining 감소
+        bool anyExpired = false;
+        foreach (var p in skillQueue)
+        {
+            p.timeRemaining -= Time.deltaTime;
+            if (p.timeRemaining <= 0f) anyExpired = true;
+        }
+        // 만료된 항목 정리
+        if (anyExpired)
+        {
+            var temp = new Queue<PendingMinionSkill>();
+            foreach (var p in skillQueue)
+                if (p.timeRemaining > 0f) temp.Enqueue(p);
+            skillQueue = temp;
+            OnQueueChanged?.Invoke();
+        }
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            Debug.Log("<color=red>[Debug]</color> Force Strike!");
-            OnKeywordApplied(SkillKeyword.Strike);
-        }
-        if (Input.GetKeyDown(KeyCode.F2))
-        {
-            Debug.Log("<color=red>[Debug]</color> Force Corrosion!");
-            OnKeywordApplied(SkillKeyword.Corrosion);
-        }
+        if (Input.GetKeyDown(KeyCode.F1)) { Debug.Log("[Debug] Force Strike!");    OnKeywordApplied(SkillKeyword.Strike); }
+        if (Input.GetKeyDown(KeyCode.F2)) { Debug.Log("[Debug] Force Corrosion!"); OnKeywordApplied(SkillKeyword.Corrosion); }
 #endif
     }
 
-    public void OnKeywordApplied(SkillKeyword keyword, Transform target = null)
+public void OnKeywordApplied(SkillKeyword keyword, Transform target = null)
     {
         bool added = false;
         for (int i = 0; i < 3; i++)
         {
             var minionData = equippedMinions[i];
-            if (minionData != null && minionData.minionSkill != null)
+            if (minionData == null || minionData.minionSkill == null) continue;
+            if (minionData.minionSkill.reactKeyword != keyword) continue;
+            if (Time.time < minionSkillCooldownEnds[i]) continue;
+
+            bool found = false;
+            foreach (var pending in skillQueue)
             {
-                if (minionData.minionSkill.reactKeyword == keyword)
+                if (pending.minionData == minionData)
                 {
-                    if (Time.time < minionSkillCooldownEnds[i])
-                    {
-                        continue;
-                    }
-
-                    bool found = false;
-                    foreach (var pending in skillQueue)
-                    {
-                        if (pending.minionData == minionData)
-                        {
-                            if (target != null && !pending.validTargets.Contains(target))
-                                pending.validTargets.Add(target);
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (currentPendingSkill != null && currentPendingSkill.minionData == minionData)
-                    {
-                        if (target != null && !currentPendingSkill.validTargets.Contains(target))
-                            currentPendingSkill.validTargets.Add(target);
-                        found = true;
-                    }
-
-                    if (!found)
-                    {
-                        var newPending = new PendingMinionSkill(minionData, (SkillSlot)i, skillTimeout);
-                        if (target != null) newPending.validTargets.Add(target);
-                        skillQueue.Enqueue(newPending);
-                        added = true;
-                        Debug.Log($"<color=magenta>[PlayerSkillController]</color> {minionData.minionName} queued! (Reacts: {keyword})");
-                    }
+                    if (target != null && !pending.validTargets.Contains(target))
+                        pending.validTargets.Add(target);
+                    found = true;
+                    break;
                 }
+            }
+            if (!found && currentPendingSkill != null && currentPendingSkill.minionData == minionData)
+            {
+                if (target != null && !currentPendingSkill.validTargets.Contains(target))
+                    currentPendingSkill.validTargets.Add(target);
+                found = true;
+            }
+
+            if (!found)
+            {
+                var newPending = new PendingMinionSkill(minionData, (SkillSlot)i, skillTimeout);
+                if (target != null) newPending.validTargets.Add(target);
+                skillQueue.Enqueue(newPending);
+                added = true;
+                OnQueueChanged?.Invoke();
+                Debug.Log($"<color=magenta>[PSC]</color> {minionData.minionName} queued! ({keyword})");
             }
         }
 
         if (added && currentPendingSkill == null)
-        {
             ProcessNextInQueue();
-        }
     }
 
-    private void ProcessNextInQueue()
+private void ProcessNextInQueue()
     {
         if (skillQueue.Count > 0)
         {
             currentPendingSkill = skillQueue.Dequeue();
             OnQueueUpdated?.Invoke(currentPendingSkill);
+            OnQueueChanged?.Invoke();
         }
         else
         {
             currentPendingSkill = null;
             OnQueueUpdated?.Invoke(null);
+            OnQueueChanged?.Invoke();
         }
     }
 
@@ -199,27 +212,25 @@ private void Awake()
         }
     }
 
-    public void ExecuteNextMinionSkill(Transform playerTransform)
+public void ExecuteNextMinionSkill(Transform playerTransform)
     {
         if (currentPendingSkill == null) return;
 
         var minionData = currentPendingSkill.minionData;
-        int slotIndex = (int)currentPendingSkill.slot;
+        int slotIndex  = (int)currentPendingSkill.slot;
 
         if (minionData != null && minionData.minionSkill != null)
         {
             if (Time.time < minionSkillCooldownEnds[slotIndex])
             {
-                Debug.Log($"<color=gray>[PlayerSkillController]</color> {minionData.minionName} is on cooldown! Skipping queue.");
+                Debug.Log($"<color=gray>[PSC]</color> {minionData.minionName} on cooldown. Skipping.");
                 ProcessNextInQueue();
                 return;
             }
-
             minionSkillCooldownEnds[slotIndex] = Time.time + minionData.minionSkill.cooldownTime;
             minionData.minionSkill.ExecuteSkill(playerTransform, null, currentPendingSkill.validTargets);
-            Debug.Log($"<color=green>[PlayerSkillController]</color> Minion Skill Executed!");
+            Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed: {minionData.minionName}");
         }
-
         ProcessNextInQueue();
     }
 

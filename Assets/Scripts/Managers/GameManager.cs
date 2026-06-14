@@ -32,6 +32,8 @@ public class GameManager : MonoBehaviour
     [Header("UI References")]
     [SerializeField] public PlayerStateUI playerStateUI;
     [SerializeField] public MinionStateUI minionStateUI;
+    [SerializeField] public MinionSkillQueueUI minionSkillQueueUI;
+
 
     [Header("Map Generation")]
     [SerializeField] public MapGenerator mapGenerator; 
@@ -181,6 +183,14 @@ public class GameManager : MonoBehaviour
             {
                 var skillCtrl = playerController.GetComponent<PlayerSkillController>();
                 minionStateUI.Initialize(allyManager, skillCtrl);
+                Debug.Log("<color=cyan>[GameManager]</color> MinionStateUI Initialized.");
+
+            if (minionSkillQueueUI != null)
+            {
+                minionSkillQueueUI.Initialize(skillCtrl);
+                Debug.Log("<color=cyan>[GameManager]</color> MinionSkillQueueUI Initialized.");
+            }
+
             }
 
             playerStateUI.Initialize(health, allyManager);

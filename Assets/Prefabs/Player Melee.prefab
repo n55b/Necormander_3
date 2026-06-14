@@ -1491,7 +1491,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  skillTimeout: 1.5
+  skillTimeout: 8
 --- !u!1 &8633796844698217215
 GameObject:
   m_ObjectHideFlags: 0
