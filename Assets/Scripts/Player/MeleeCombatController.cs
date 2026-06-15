@@ -4,13 +4,13 @@ using UnityEngine.InputSystem;
 public class MeleeCombatController : MonoBehaviour
 {
     [SerializeField] private GameObject telegraphPrefab; // 인스펙터 할당
-    
+
     private PlayerController _player;
     private float _lastAttackTime;
     private int _comboStep = 0; // 0, 1, 2
-    
+
     [Header("콤보 설정")]
-    [SerializeField] private float comboResetTime = 1.0f; 
+    [SerializeField] private float comboResetTime = 1.0f;
     [SerializeField] private float attackCooldown = 0.3f; // 콤보 간 최소 딜레이
 
     [Header("타격 범위 설정")]
@@ -21,6 +21,9 @@ public class MeleeCombatController : MonoBehaviour
 
     private bool _isHoldingAttack = false;
     private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
+
+    // 콤보 스텝을 함께 전달하는 공격 시작 이벤트 (int = comboStep 0/1/2)
+    public event System.Action<int> OnAttackExecuted;
 
     public bool IsAttacking => _activeHitbox != null || (Time.time - _lastAttackTime) < attackCooldown;
 
@@ -35,7 +38,7 @@ public class MeleeCombatController : MonoBehaviour
         if (!IsAttacking)
         {
             if (_player != null) _player.SpeedMultiplier = 1.0f; // 공격 끝났으므로 이속 복구
-            
+
             if (Time.time - _lastAttackTime > comboResetTime)
             {
                 _comboStep = 0;
@@ -70,6 +73,8 @@ public class MeleeCombatController : MonoBehaviour
         if (_player == null || _player.Stat.Health.IsDead) return;
 
         _lastAttackTime = Time.time;
+        OnAttackExecuted?.Invoke(_comboStep);
+
 
         float telegraphDuration = (_comboStep == 2) ? mediumTelegraphDuration : lightTelegraphDuration;
         Vector2 hitboxSize = (_comboStep == 2) ? mediumHitboxSize : lightHitboxSize;
@@ -88,14 +93,14 @@ public class MeleeCombatController : MonoBehaviour
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             mousePos.z = 0;
             Vector2 dir = (mousePos - transform.position).normalized;
-            
+
             // 플레이어가 바라보는 방향 동기화
             if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
             else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
 
             Vector3 spawnPos = transform.position + (Vector3)dir * (hitboxSize.x * 0.4f);
             GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity);
-            
+
             // 범용 BaseHitBox 사용
             _activeHitbox = go.GetComponent<BaseHitBox>();
 
@@ -103,17 +108,17 @@ public class MeleeCombatController : MonoBehaviour
             {
                 float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
                 go.transform.rotation = Quaternion.Euler(0, 0, angle);
-                
+
                 // 크기 설정 (TelegraphHitbox 로직 대체)
                 go.transform.localScale = new Vector3(hitboxSize.x, hitboxSize.y, 1f);
 
                 // 플레이어 공격은 적에게 경직과 약간의 넉백을 유발
                 DamageInfo info = new DamageInfo(
-                    _player.Stat.ATK * damageMultiplier, 
-                    DamageType.Physical, 
-                    this.gameObject, 
-                    false, 1f, true, "", false, 
-                    causesHitstun: true, 
+                    _player.Stat.ATK * damageMultiplier,
+                    DamageType.Physical,
+                    this.gameObject,
+                    false, 1f, true, "", false,
+                    causesHitstun: true,
                     knockbackForce: 2f
                 );
 

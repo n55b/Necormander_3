@@ -12,8 +12,9 @@ public class PlayerMainDealSO : PlayerSkillSO
     public float hitDelay = 0.2f;
     public float maxRange = 5f;
     
-    public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
+public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
+        PlaySkillSound();
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
         player.StartCoroutine(AttackRoutine(player));

@@ -9,8 +9,9 @@ public class PlayerDebuffSO : PlayerSkillSO
     public float corrosionTime = 3f;
     public float maxRange = 4.5f;
 
-    public override void ExecuteSkill(Transform user, Transform target = null, System.Collections.Generic.List<Transform> validTargets = null)
+        public override void ExecuteSkill(Transform user, Transform target = null, System.Collections.Generic.List<Transform> validTargets = null)
     {
+        PlaySkillSound();
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
 

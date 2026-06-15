@@ -9,8 +9,9 @@ public class WarriorMinionSkillSO : MinionSkillSO
     public float baseDamage = 20f;
     public float corrosionTime = 3f;
 
-    public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
+public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
+        PlaySkillSound();
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
 
@@ -38,9 +39,7 @@ public class WarriorMinionSkillSO : MinionSkillSO
         System.Action<CharacterHealth> onSlashHit = (health) => {
             var stat = health.GetComponent<CharacterStat>();
             if (stat != null && stat.Status != null)
-            {
                 stat.Status.SetDebuffBool(DebuffBoolType.Corroded, corrosionTime);
-            }
 
             if (!hasInvokedKeyword)
             {
@@ -64,22 +63,16 @@ public class WarriorMinionSkillSO : MinionSkillSO
                 {
                     if (vt == null) continue;
                     var health = vt.GetComponent<CharacterHealth>();
-                    if (health != null && health.IsDead) continue; // 죽은 타겟 제외
-
+                    if (health != null && health.IsDead) continue;
                     float dist = Vector2.Distance(wPos, vt.position);
-                    if (dist < minDist)
-                    {
-                        minDist = dist;
-                        closestTarget = vt;
-                    }
+                    if (dist < minDist) { minDist = dist; closestTarget = vt; }
                 }
             }
 
             Vector2 targetPos = closestTarget != null ? (Vector2)closestTarget.position : (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2 dir = (targetPos - wPos).normalized;
-            if (dir == Vector2.zero) dir = Vector2.right; // 같은 위치일 경우 예외 처리
+            if (dir == Vector2.zero) dir = Vector2.right;
 
-            // 미니언 앞이 아니라 타겟의 위치에 직접 스폰
             Vector2 attackCenter = targetPos;
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
@@ -87,7 +80,6 @@ public class WarriorMinionSkillSO : MinionSkillSO
             {
                 BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
                 box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
-                
                 DamageInfo info = new DamageInfo(baseDamage, DamageType.Physical, w.gameObject, false, 1f, false, "Corrosion Slash!");
                 box.Init(info, LayerMask.GetMask("Enemy"), 0.3f, 0f, true, onSlashHit);
             }

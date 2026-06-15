@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa6b22660c4eab43a65fe4abcdcccea, type: 3}
+  m_Name: PlayerAttackSoundData
+  m_EditorClassIdentifier: 
+  attackClips:
+  - {fileID: 8300000, guid: 5b52fe23d069864408b180527a2440f8, type: 3}
+  - {fileID: 8300000, guid: f141d593daf14834f9efc45e5b9a51ee, type: 3}
+  - {fileID: 8300000, guid: 3806c46c2cbb5f14da783d4a353bcd7d, type: 3}
+  hitClips: []
+  playerHurtClips:
+  - {fileID: 8300000, guid: 1e7786ab8c2b55541ab0a75777997058, type: 3}
+  - {fileID: 8300000, guid: da498f638c5629040a4a28579f8e0b40, type: 3}
+  - {fileID: 8300000, guid: db355bc6eca9d204d96fc602c9c21eda, type: 3}
+  comboResetTime: 1.2
+  pitchIncreasePerCombo: 0.02
+  maxPitch: 1.2
+  attackVolume: 0.8
+  hitVolume: 0.7
+  playerHurtVolume: 0.9

@@ -10,8 +10,9 @@ public class SpearMinionSkillSO : MinionSkillSO
     public float baseDamage = 25f;
     public float stunTime = 2f;
 
-    public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
+public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
+        PlaySkillSound();
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
 
@@ -39,9 +40,7 @@ public class SpearMinionSkillSO : MinionSkillSO
         System.Action<CharacterHealth> onThrustHit = (health) => {
             var stat = health.GetComponent<CharacterStat>();
             if (stat != null && stat.Status != null)
-            {
                 stat.Status.SetDebuffBool(DebuffBoolType.Stunned, stunTime);
-            }
 
             if (!hasInvokedKeyword)
             {
@@ -65,14 +64,9 @@ public class SpearMinionSkillSO : MinionSkillSO
                 {
                     if (vt == null) continue;
                     var health = vt.GetComponent<CharacterHealth>();
-                    if (health != null && health.IsDead) continue; // 죽은 타겟 제외
-
+                    if (health != null && health.IsDead) continue;
                     float dist = Vector2.Distance(sPos, vt.position);
-                    if (dist < minDist)
-                    {
-                        minDist = dist;
-                        closestTarget = vt;
-                    }
+                    if (dist < minDist) { minDist = dist; closestTarget = vt; }
                 }
             }
 
@@ -80,16 +74,13 @@ public class SpearMinionSkillSO : MinionSkillSO
             Vector2 dir = (targetPos - sPos).normalized;
             if (dir == Vector2.zero) dir = Vector2.right;
 
-            // 미니언 앞이 아니라 타겟의 위치에 직접 스폰
             Vector2 attackCenter = targetPos;
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
             if (hitBoxPrefab != null)
             {
                 BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
-                // 네모 반듯한 기본 프리팹을 길고 좁게(직사각형) 변형하여 사용
                 box.transform.localScale = new Vector3(thrustDistance, hitWidth, 1f);
-                
                 DamageInfo info = new DamageInfo(baseDamage, DamageType.Physical, s.gameObject, false, 1f, false, "Spear Thrust!");
                 box.Init(info, LayerMask.GetMask("Enemy"), 0.3f, 0f, true, onThrustHit);
             }

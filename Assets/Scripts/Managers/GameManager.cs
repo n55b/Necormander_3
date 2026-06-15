@@ -33,6 +33,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] public PlayerStateUI playerStateUI;
     [SerializeField] public MinionStateUI minionStateUI;
     [SerializeField] public MinionSkillQueueUI minionSkillQueueUI;
+    [Header("Combat Sound")]
+    [SerializeField] private PlayerAttackSoundData playerAttackSoundData;
+
 
     [Header("Map Generation")]
     [SerializeField] public MapGenerator mapGenerator;
@@ -196,6 +199,12 @@ public class GameManager : MonoBehaviour
             // PlayerSkillController.Awake()가 같은 프레임에 실행됐으므로
             // equippedMinions가 이미 채워진 상태 → 아이콘 즉시 갱신
             playerStateUI.RefreshSkillIcons();
+
+            // 전투 사운드 콘트롤러 연결
+            var combatSound = playerController.GetComponent<PlayerCombatSoundController>();
+            if (combatSound != null && playerAttackSoundData != null)
+                combatSound.SetSoundData(playerAttackSoundData);
+
 
 
             Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");
