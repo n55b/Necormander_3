@@ -3,9 +3,21 @@ using UnityEngine;
 public enum SkillKeyword
 {
     None = 0,
-    Strike = 1,
-    Corrosion = 2,
-    StatusEffect = 3
+    Vulnerability = 1, // 취약 (파괴, 밀치기, 끌어당김 등)
+    Debuff = 2,        // 디버프 (비폭, 출혈, 상처, 부식, 골절 등)
+    Strike = 3,        // 격파
+    Stun = 4,          // 기절
+    Smash = 5          // 강타
+}
+
+public enum DebuffType
+{
+    None = 0,
+    Explosion,   // 비폭
+    Bleed,       // 출혈
+    Wound,       // 상처
+    Corrosion,   // 부식
+    Fracture     // 골절
 }
 
 public abstract class SkillSO : ScriptableObject

@@ -127,7 +127,7 @@ private void Update()
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Input.GetKeyDown(KeyCode.F1)) { Debug.Log("[Debug] Force Strike!");    OnKeywordApplied(SkillKeyword.Strike); }
-        if (Input.GetKeyDown(KeyCode.F2)) { Debug.Log("[Debug] Force Corrosion!"); OnKeywordApplied(SkillKeyword.Corrosion); }
+        if (Input.GetKeyDown(KeyCode.F2)) { Debug.Log("[Debug] Force Debuff!"); OnKeywordApplied(SkillKeyword.Debuff); }
 #endif
     }
 

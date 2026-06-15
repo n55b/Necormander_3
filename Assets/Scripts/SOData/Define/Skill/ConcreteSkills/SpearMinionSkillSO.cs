@@ -40,14 +40,15 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
         System.Action<CharacterHealth> onThrustHit = (health) => {
             var stat = health.GetComponent<CharacterStat>();
             if (stat != null && stat.Status != null)
-                stat.Status.SetDebuffBool(DebuffBoolType.Stunned, stunTime);
+            {
+                stat.Status.ApplyStatusEffect(SkillKeyword.Stun, health.gameObject, false);
+            }
 
             if (!hasInvokedKeyword)
             {
                 hasInvokedKeyword = true;
-                Debug.Log($"<color=magenta>[Minion Skill C]</color> 창병 찌르기 적중! 기절 부여 (호출: StatusEffect)");
+                Debug.Log($"<color=magenta>[Minion Skill C]</color> 창병 찌르기 적중! 기절 및 터트림 발동 (미니언 시전)");
             }
-            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.StatusEffect, health.transform);
         };
 
         foreach (var s in spearmen)

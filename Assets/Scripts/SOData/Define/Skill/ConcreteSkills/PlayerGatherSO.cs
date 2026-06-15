@@ -33,9 +33,9 @@ public class PlayerGatherSO : PlayerSkillSO
         System.Action<CharacterHealth> onGatherSuccess = (health) => {
             if (!hasInvokedKeyword) {
                 hasInvokedKeyword = true;
-                Debug.Log("<color=cyan>[Player Skill B]</color> 모으기 적중! (호출: StatusEffect)");
+                Debug.Log("<color=cyan>[Player Skill B]</color> 모으기 적중! (호출: Vulnerability)");
             }
-            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.StatusEffect, health.transform);
+            health.GetComponent<CharacterStat>()?.Status.ApplyVulnerability(true);
         };
 
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;

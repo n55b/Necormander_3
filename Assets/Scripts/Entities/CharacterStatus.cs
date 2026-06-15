@@ -23,6 +23,20 @@ public class CharacterStatus : MonoBehaviour
     private Dictionary<DebuffStackType, float> _stackTimers = new Dictionary<DebuffStackType, float>();
     private Dictionary<DebuffBoolType, float> _boolTimers = new Dictionary<DebuffBoolType, float>();
 
+    [Header("New Trigger System")]
+    private int _vulnerabilityStacks = 0;
+    private float _vulnerabilityTimer = 0f;
+
+    private DebuffType _currentDebuffType = DebuffType.None;
+    private int _debuffStackCount = 0;
+    private float _debuffTimer = 0f;
+
+    public int VulnerabilityStacks => _vulnerabilityStacks;
+    public DebuffType CurrentDebuffType => _currentDebuffType;
+    public int DebuffStackCount => _debuffStackCount;
+
+    private const float TRIGGER_STACK_DURATION = 20.0f;
+
     private const float STACK_DURATION = 10.0f;
     private float _poisonTimer = 0f;
     private const float POISON_INTERVAL = 3.0f;
@@ -67,6 +81,27 @@ public class CharacterStatus : MonoBehaviour
     {
         UpdateInstances();
         UpdateDebuffs();
+        UpdateTriggerStacks();
+    }
+
+    private void UpdateTriggerStacks()
+    {
+        if (_vulnerabilityTimer > 0)
+        {
+            _vulnerabilityTimer -= Time.deltaTime;
+            if (_vulnerabilityTimer <= 0)
+                _vulnerabilityStacks = 0;
+        }
+
+        if (_debuffTimer > 0)
+        {
+            _debuffTimer -= Time.deltaTime;
+            if (_debuffTimer <= 0)
+            {
+                _debuffStackCount = 0;
+                _currentDebuffType = DebuffType.None;
+            }
+        }
     }
 
 
@@ -479,6 +514,175 @@ public class CharacterStatus : MonoBehaviour
             Debug.Log($"<color=#00FFFF>[Debuff]</color> <b>{gameObject.name}</b>: Frozen Shattered!");
         }
     }
+
+    #region New Trigger System
+
+    public void ApplyVulnerability(bool isPlayerApplied)
+    {
+        if (_stat != null && _stat.IsDead) return;
+
+        if (_vulnerabilityStacks < 3)
+            _vulnerabilityStacks++;
+        
+        _vulnerabilityTimer = TRIGGER_STACK_DURATION;
+
+        if (isPlayerApplied)
+        {
+            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Vulnerability, transform);
+        }
+    }
+
+    public void ApplyDebuff(DebuffType type, GameObject attacker, bool isPlayerApplied)
+    {
+        if (_stat != null && _stat.IsDead || type == DebuffType.None) return;
+
+        if (_currentDebuffType == type)
+        {
+            if (_debuffStackCount < 3)
+                _debuffStackCount++;
+            _debuffTimer = TRIGGER_STACK_DURATION;
+        }
+        else
+        {
+            if (_debuffStackCount > 0)
+            {
+                PopCurrentDebuff(attacker);
+            }
+            
+            // 만약 터트림 이후 스택이 0이 되었다면 (즉, 기존에 아무것도 없었거나 방금 터졌거나)
+            // 기획: "다른 디버프 적용 시 새로 가한 디버프 스택은 부여되지 않음"
+            // 방금 터졌다면 적용 불가, 원래 0이었다면 적용 가능!
+            if (_currentDebuffType == DebuffType.None)
+            {
+                _currentDebuffType = type;
+                _debuffStackCount = 1;
+                _debuffTimer = TRIGGER_STACK_DURATION;
+            }
+        }
+
+        if (isPlayerApplied)
+        {
+            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Debuff, transform);
+        }
+    }
+
+    public void ApplyStatusEffect(SkillKeyword statusType, GameObject attacker, bool isPlayerApplied)
+    {
+        // 상태이상 부여 시 기존 디버프 터트림 발동
+        if (_debuffStackCount > 0)
+        {
+            PopCurrentDebuff(attacker);
+        }
+
+        if (statusType == SkillKeyword.Stun)
+        {
+            ConsumeVulnerability(SkillKeyword.Stun, attacker, isPlayerApplied);
+        }
+
+        if (isPlayerApplied)
+        {
+            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(statusType, transform);
+        }
+    }
+
+    public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker, bool isPlayerApplied)
+    {
+        if (consumeType == SkillKeyword.Stun)
+        {
+            if (_vulnerabilityStacks == 0)
+            {
+                ApplyVulnerability(isPlayerApplied);
+            }
+            else
+            {
+                float dmg = 10f * (_vulnerabilityStacks == 1 ? 1.0f : _vulnerabilityStacks == 2 ? 1.5f : 2.0f);
+                float duration = _vulnerabilityStacks == 1 ? 0.5f : _vulnerabilityStacks == 2 ? 1.0f : 1.5f;
+
+                DamageInfo stunDmg = new DamageInfo(dmg, DamageType.Fixed, attacker, false, 1f, false, "Vulnerability Stun");
+                GetComponent<CharacterHealth>().GetDamage(stunDmg);
+
+                if (duration > 0f) SetDebuffBool(DebuffBoolType.Stunned, duration);
+
+                _vulnerabilityStacks = 0;
+                _vulnerabilityTimer = 0f;
+            }
+        }
+        else if (consumeType == SkillKeyword.Strike)
+        {
+            if (_vulnerabilityStacks > 0)
+            {
+                // 격파: 기본 공격 피격 데미지 증가 (구현은 CharacterHealth 쪽에서 처리하도록 추가 필요)
+                // 지금은 타이머와 효과 정보만 설정
+                float duration = _vulnerabilityStacks == 1 ? 12f : _vulnerabilityStacks == 2 ? 18f : 24f;
+                // TODO: 격파 상태 등록 로직 추가
+                Debug.Log($"<color=orange>격파 터짐! {_vulnerabilityStacks}스택. {duration}초간 기본공격 피해 증가.</color>");
+
+                _vulnerabilityStacks = 0;
+                _vulnerabilityTimer = 0f;
+            }
+        }
+        else if (consumeType == SkillKeyword.Smash)
+        {
+            if (_vulnerabilityStacks > 0)
+            {
+                float dmg = 10f * (_vulnerabilityStacks == 1 ? 3.0f : _vulnerabilityStacks == 2 ? 4.5f : 6.0f);
+                DamageInfo smashDmg = new DamageInfo(dmg, DamageType.Fixed, attacker, false, 1f, false, "Vulnerability Smash");
+                GetComponent<CharacterHealth>().GetDamage(smashDmg);
+
+                _vulnerabilityStacks = 0;
+                _vulnerabilityTimer = 0f;
+            }
+        }
+    }
+
+    private void PopCurrentDebuff(GameObject attacker)
+    {
+        if (_debuffStackCount == 0 || _currentDebuffType == DebuffType.None) return;
+
+        float baseDmg = 10f; // 임시 고정 수치
+        float burstDmg = 0f;
+
+        switch (_currentDebuffType)
+        {
+            case DebuffType.Explosion:
+                burstDmg = baseDmg * (_debuffStackCount == 1 ? 2.4f : _debuffStackCount == 2 ? 3.6f : 4.8f);
+                // 광역 폭발
+                Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, 3f, LayerMask.GetMask("Enemy"));
+                foreach (var col in cols)
+                {
+                    var health = col.GetComponent<CharacterHealth>();
+                    if (health != null) health.GetDamage(new DamageInfo(burstDmg, DamageType.Magical, attacker, false, 1f, false, "Explosion Pop"));
+                }
+                break;
+            case DebuffType.Bleed:
+                burstDmg = baseDmg * (_debuffStackCount == 1 ? 1.6f : _debuffStackCount == 2 ? 2.4f : 3.2f);
+                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Fixed, attacker, false, 1f, false, "Bleed Pop"));
+                // 지속딜 로직 등록
+                break;
+            case DebuffType.Wound:
+                burstDmg = baseDmg * (_debuffStackCount == 1 ? 1.6f : _debuffStackCount == 2 ? 2.4f : 3.2f);
+                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Fixed, attacker, false, 1f, false, "Wound Pop"));
+                // 받피증 증가 로직 등록
+                break;
+            case DebuffType.Corrosion:
+                burstDmg = baseDmg * (_debuffStackCount == 1 ? 1.6f : _debuffStackCount == 2 ? 2.4f : 3.2f);
+                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Fixed, attacker, false, 1f, false, "Corrosion Pop"));
+                // 방깎 로직 등록
+                break;
+            case DebuffType.Fracture:
+                burstDmg = baseDmg * 1.3f;
+                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Fixed, attacker, false, 1f, false, "Fracture Pop"));
+                // 속깎 로직 등록
+                break;
+        }
+
+        // 터트림 완료 후 초기화
+        _debuffStackCount = 0;
+        _currentDebuffType = DebuffType.None;
+        _debuffTimer = 0f;
+    }
+
+    #endregion
 
     public void ClearStatus()
     {

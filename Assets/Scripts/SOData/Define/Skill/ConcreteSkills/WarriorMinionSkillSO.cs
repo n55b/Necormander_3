@@ -39,14 +39,16 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
         System.Action<CharacterHealth> onSlashHit = (health) => {
             var stat = health.GetComponent<CharacterStat>();
             if (stat != null && stat.Status != null)
+            {
                 stat.Status.SetDebuffBool(DebuffBoolType.Corroded, corrosionTime);
+                stat.Status.ApplyDebuff(DebuffType.Corrosion, health.gameObject, false); // isPlayerApplied = false
+            }
 
             if (!hasInvokedKeyword)
             {
                 hasInvokedKeyword = true;
-                Debug.Log($"<color=magenta>[Minion Skill A]</color> 전사 참격 적중! 부식 적용 (호출: Corrosion)");
+                Debug.Log($"<color=magenta>[Minion Skill A]</color> 전사 참격 적중! 부식 적용 (미니언 시전으로 트리거 미발생)");
             }
-            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Corrosion, health.transform);
         };
 
         foreach (var w in warriors)

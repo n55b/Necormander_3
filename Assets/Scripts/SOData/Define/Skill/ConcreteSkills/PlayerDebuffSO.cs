@@ -26,14 +26,14 @@ public class PlayerDebuffSO : PlayerSkillSO
             if (stat != null && stat.Status != null)
             {
                 stat.Status.SetDebuffBool(DebuffBoolType.Corroded, corrosionTime);
+                stat.Status.ApplyDebuff(DebuffType.Corrosion, user.gameObject, true);
             }
 
             if (!hasInvokedKeyword)
             {
                 hasInvokedKeyword = true;
-                Debug.Log("<color=cyan>[Player Skill C]</color> 전방 디버프 적중! (호출: Corrosion)");
+                Debug.Log("<color=cyan>[Player Skill C]</color> 전방 디버프 적중! (호출: Debuff)");
             }
-            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Corrosion, health.transform);
         };
 
         if (hitBoxPrefab != null)
