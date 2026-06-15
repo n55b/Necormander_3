@@ -73,6 +73,8 @@ public class MapUIManager : MonoBehaviour
 
             _isMapOpen = isOpen;
             UIPopUpManager.Instance.PopUpUI(fullMapUIWindow);
+            UIEventBus.NotifyOpen("Map");
+
 
             if (miniMapController != null)
             {
@@ -86,6 +88,8 @@ public class MapUIManager : MonoBehaviour
         {
             _isMapOpen = isOpen;
             UIPopUpManager.Instance.ClosePopUpUI();
+            UIEventBus.NotifyClose("Map");
+
 
             // 전체 지도가 닫히면 우측 상단 작은 미니맵을 다시 켭니다.
             if (hudMiniMapToggleObject != null) hudMiniMapToggleObject.SetActive(true);

@@ -69,6 +69,7 @@ public class HandSlotSelectionUI : MonoBehaviour
             _pendingCandidate = default; // [수정] 구조체는 null 대신 default 사용
             if (selectedRewardCard != null) selectedRewardCard.gameObject.SetActive(false); // 보상 정보 숨김
             panel.SetActive(true);
+            UIEventBus.NotifyOpen("HandSlot");
             RefreshSlots();
         }
     }
@@ -81,6 +82,7 @@ public class HandSlotSelectionUI : MonoBehaviour
         _isReadOnly = false;
         _pendingCandidate = candidate;
         panel.SetActive(true);
+        UIEventBus.NotifyOpen("HandSlot");
 
         UIPopUpManager.Instance.ForcePopUpUI(gameObject); // 팝업 매니저에 상태 전달
 
@@ -140,6 +142,7 @@ public class HandSlotSelectionUI : MonoBehaviour
     public void Hide()
     {
         if (panel != null) panel.SetActive(false);
+        UIEventBus.NotifyClose("HandSlot");
         
         UIPopUpManager.Instance.ClosePopUpUI();
         // [추가] UI 닫을 때 툴팁 강제 제거

@@ -29,6 +29,9 @@ public class RewardSelectionUI : MonoBehaviour
 
         _currentCandidates = candidates;
         if (panel != null) panel.SetActive(true);
+        UIEventBus.NotifyOpen("Reward");
+        UIEventBus.NotifyOpen("Reward");
+
 
         for (int i = 0; i < cards.Length; i++)
         {
@@ -50,7 +53,10 @@ public class RewardSelectionUI : MonoBehaviour
     {
         Debug.Log("<color=white>[RewardUI]</color> Hiding Selection UI.");
         if (panel != null) panel.SetActive(false);
-        UIPopUpManager.Instance?.ClosePopUpUI(); // 팝업 상태 해제
+        UIPopUpManager.Instance?.ClosePopUpUI();
+        UIEventBus.NotifyClose("Reward"); // 팝업 상태 해제태 해제
+        UIEventBus.NotifyClose("Reward");
+
     }
 
     public void OnCardClicked(int index)

@@ -932,14 +932,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1051151079312591265, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: defaultVolume
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 1557044542994201147, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: gameOverPanel
       value: 
       objectReference: {fileID: 873873543}
-    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: playerPrefab
-      value: 
-      objectReference: {fileID: 8389716956321753658, guid: a30e235aa3ef85c48bd0bce9f76be120, type: 3}
     - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: cameraManager
       value: 
@@ -953,93 +953,9 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1467717214}
     - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: debugStartAtBoss
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: minionSkillQueueUI
       value: 
       objectReference: {fileID: 432988342}
-    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: playerAttackSoundData
-      value: 
-      objectReference: {fileID: 11400000, guid: abdae526f219dc04dbee902382943a37, type: 2}
-    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: testMode_InfiniteStamina
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: testMode_DisableAutoBattle
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: Slots.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: debugStartingMinions.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: debugStartingAbilities.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: debugStartingGems_Data.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingMinions.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 6e17366b9db968141a742cf6efb8ed1f, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingMinions.Array.data[1]'
-      value: 
-      objectReference: {fileID: 11400000, guid: d2b24f1249fc5f447a65218055c12665, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingMinions.Array.data[2]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingAbilities.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 365a6762742513948a499c2f034fc60c, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingGems_Data.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: e9d2b0e964c50fa419bb8a37f4cbea24, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingGems_Data.Array.data[1]'
-      value: 
-      objectReference: {fileID: 11400000, guid: c6e00796a2c822848943353865d8ba80, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingGems_Data.Array.data[2]'
-      value: 
-      objectReference: {fileID: 11400000, guid: bc2802b5647804a4bba31e9c5c7a36b1, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingGems_Data.Array.data[3]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 178a972c2c90c4141b5db78d526c7bb4, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingGems_Data.Array.data[4]'
-      value: 
-      objectReference: {fileID: 11400000, guid: fe6621571d0651d40b024e0286fada2b, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingGems_Data.Array.data[5]'
-      value: 
-      objectReference: {fileID: 11400000, guid: b65e730ec45424d45bba28323d55f054, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: debugStartingMinionQuantities.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingMinionQuantities.Array.data[0]'
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'debugStartingMinionQuantities.Array.data[1]'
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1084,10 +1000,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager
       objectReference: {fileID: 0}
-    - target: {fileID: 5452969733963804717, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: sfxMixerGroup
-      value: 
-      objectReference: {fileID: 24300002, guid: 0d813ccb3cb165a4094886f331623a67, type: 2}
     - target: {fileID: 6139375127595461034, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: fogTilemap
       value: 

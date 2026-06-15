@@ -65,7 +65,10 @@ public class GemTreeUI : MonoBehaviour
                 return; // 이미 팝업이 활성화되어 있으면 새로 띄우지 않음
             }
 
-            UIPopUpManager.Instance.PopUpUI(mainPanel); // 팝업 매니저에 상태 전달
+            UIPopUpManager.Instance.PopUpUI(mainPanel);
+            UIEventBus.NotifyOpen("GemTree");;
+            UIEventBus.NotifyOpen("GemTree");
+ // 팝업 매니저에 상태 전달
 
             mainPanel.SetActive(_isOpen);
 
@@ -78,7 +81,10 @@ public class GemTreeUI : MonoBehaviour
 
             mainPanel.SetActive(_isOpen);
 
-            UIPopUpManager.Instance?.ClosePopUpUI(); // 팝업 매니저에 상태 전달
+            UIPopUpManager.Instance?.ClosePopUpUI();
+            UIEventBus.NotifyClose("GemTree");// 팝업 매니저에 상태 전달
+            UIEventBus.NotifyClose("GemTree");
+
         }
     }
 

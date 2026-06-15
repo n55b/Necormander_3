@@ -205,6 +205,10 @@ public class GameManager : MonoBehaviour
             if (combatSound != null && playerAttackSoundData != null)
                 combatSound.SetSoundData(playerAttackSoundData);
 
+            // 로딩 완료 → UI 사운드 연다
+            UISoundController.SetReady();
+
+
 
 
             Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");

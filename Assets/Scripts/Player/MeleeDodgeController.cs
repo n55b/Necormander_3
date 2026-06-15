@@ -19,6 +19,9 @@ public class MeleeDodgeController : MonoBehaviour
     private Rigidbody2D _rb;
 
     public bool IsDashing => _isDashing;
+    /// <summary>TryDash 성공 시 발생</summary>
+    public event System.Action OnDodgeStarted;
+
     public int CurrentCharges => _currentCharges;
 
     private void Awake()
@@ -96,7 +99,9 @@ public class MeleeDodgeController : MonoBehaviour
             _player.Stat.Health.Invincible = true; // 대쉬 무적
         }
 
-        _player.PlayAllAnim("Dash"); // 애니메이션 이름은 실제 환경에 맞춰 수정
+        _player.PlayAllAnim("Dash");
+        OnDodgeStarted?.Invoke();
+ // 애니메이션 이름은 실제 환경에 맞춰 수정
     }
 
     private void EndDash()
