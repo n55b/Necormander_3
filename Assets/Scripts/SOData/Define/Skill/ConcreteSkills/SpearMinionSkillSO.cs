@@ -37,19 +37,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
         }
 
         bool hasInvokedKeyword = false;
-        System.Action<CharacterHealth> onThrustHit = (health) => {
-            var stat = health.GetComponent<CharacterStat>();
-            if (stat != null && stat.Status != null)
-            {
-                stat.Status.ApplyStatusEffect(SkillKeyword.Stun, health.gameObject, false);
-            }
 
-            if (!hasInvokedKeyword)
-            {
-                hasInvokedKeyword = true;
-                Debug.Log($"<color=magenta>[Minion Skill C]</color> 창병 찌르기 적중! 기절 및 터트림 발동 (미니언 시전)");
-            }
-        };
 
         foreach (var s in spearmen)
         {
@@ -83,6 +71,20 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
                 BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
                 box.transform.localScale = new Vector3(thrustDistance, hitWidth, 1f);
                 DamageInfo info = new DamageInfo(baseDamage, DamageType.Physical, s.gameObject, false, 1f, false, "Spear Thrust!");
+                System.Action<CharacterHealth> onThrustHit = (health) => {
+                    var stat = health.GetComponent<CharacterStat>();
+                    if (stat != null && stat.Status != null)
+                    {
+                        stat.Status.ApplyStatusEffect(SkillKeyword.Stun, s.gameObject, false);
+                    }
+
+                    if (!hasInvokedKeyword)
+                    {
+                        hasInvokedKeyword = true;
+                        Debug.Log($"<color=magenta>[Minion Skill C]</color> 창병 찌르기 적중! 기절 및 터트림 발동 (미니언 시전)");
+                    }
+                };
+                
                 box.Init(info, LayerMask.GetMask("Enemy"), 0.3f, 0f, true, onThrustHit);
             }
         }

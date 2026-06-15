@@ -36,20 +36,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
         }
 
         bool hasInvokedKeyword = false;
-        System.Action<CharacterHealth> onSlashHit = (health) => {
-            var stat = health.GetComponent<CharacterStat>();
-            if (stat != null && stat.Status != null)
-            {
-                stat.Status.SetDebuffBool(DebuffBoolType.Corroded, corrosionTime);
-                stat.Status.ApplyDebuff(DebuffType.Corrosion, health.gameObject, false); // isPlayerApplied = false
-            }
 
-            if (!hasInvokedKeyword)
-            {
-                hasInvokedKeyword = true;
-                Debug.Log($"<color=magenta>[Minion Skill A]</color> 전사 참격 적중! 부식 적용 (미니언 시전으로 트리거 미발생)");
-            }
-        };
 
         foreach (var w in warriors)
         {
@@ -83,6 +70,20 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
                 BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
                 box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
                 DamageInfo info = new DamageInfo(baseDamage, DamageType.Physical, w.gameObject, false, 1f, false, "Corrosion Slash!");
+                System.Action<CharacterHealth> onSlashHit = (health) => {
+                    var stat = health.GetComponent<CharacterStat>();
+                    if (stat != null && stat.Status != null)
+                    {
+                        stat.Status.SetDebuffBool(DebuffBoolType.Corroded, corrosionTime);
+                        stat.Status.ApplyDebuff(DebuffType.Corrosion, w.gameObject, false); // isPlayerApplied = false
+                    }
+
+                    if (!hasInvokedKeyword)
+                    {
+                        hasInvokedKeyword = true;
+                        Debug.Log($"<color=magenta>[Minion Skill A]</color> 전사 참격 적중! 부식 적용 (미니언 시전으로 트리거 미발생)");
+                    }
+                };
                 box.Init(info, LayerMask.GetMask("Enemy"), 0.3f, 0f, true, onSlashHit);
             }
         }
