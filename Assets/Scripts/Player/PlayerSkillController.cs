@@ -131,10 +131,20 @@ private void Update()
 #endif
     }
 
-public void OnKeywordApplied(SkillKeyword keyword, Transform target = null)
+    private SkillSlot lastUsedPlayerSkillSlot = SkillSlot.Q;
+
+    public void OnKeywordApplied(SkillKeyword keyword, Transform target = null)
     {
         bool added = false;
-        for (int i = 0; i < 3; i++)
+        
+        // 탐색 순서: 트리거를 발생시킨(가장 최근에 사용한) 슬롯부터 큐에 넣고, 나머지는 Q-E-R 순환 순서대로
+        int firstSlot = (int)lastUsedPlayerSkillSlot;
+        int[] searchOrder = new int[3];
+        searchOrder[0] = firstSlot;
+        searchOrder[1] = (firstSlot + 1) % 3;
+        searchOrder[2] = (firstSlot + 2) % 3;
+
+        foreach (int i in searchOrder)
         {
             var minionData = equippedMinions[i];
             if (minionData == null || minionData.minionSkill == null) continue;
@@ -194,6 +204,8 @@ private void ProcessNextInQueue()
 
     public void ExecutePlayerSkill(SkillSlot slot, Transform playerTransform)
     {
+        lastUsedPlayerSkillSlot = slot;
+
         var minionData = equippedMinions[(int)slot];
         if (minionData != null && minionData.playerSkill != null)
         {
