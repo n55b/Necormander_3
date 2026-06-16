@@ -119,6 +119,7 @@ public class CharacterVisualFeedback : MonoBehaviour
                 // [수정] 인스턴스 널 체크 추가하여 NRE 방지
                 if (CameraManager.Instance != null) CameraManager.Instance.HitShakeCamera(); 
                 if (GameManager.Instance != null) GameManager.Instance.TimeStopTimer(0.05f); 
+                if (GameManager.Instance != null) GameManager.Instance.ChangeVignetteColor(0.05f, Color.red);
             }
         }
     }
@@ -127,8 +128,8 @@ public class CharacterVisualFeedback : MonoBehaviour
     {
         if (_sr == null) yield break; // [추가] 널 체크
 
-        _sr.material.SetFloat("_HitFlash", 1f);
-        yield return new WaitForSeconds(0.1f);
+        _sr.material.SetFloat("_HitFlash", 0.5f);
+        yield return new WaitForSeconds(0.1f);       
         if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
 
         StartFlash(Color.grey); 

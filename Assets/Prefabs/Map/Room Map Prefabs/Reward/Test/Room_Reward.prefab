@@ -2581,6 +2581,7 @@ MonoBehaviour:
   debugDepth: -1
   phaseIndex: -1
   isCleared: 0
+  hasBeenVisited: 0
   doorObjects:
   - {fileID: 8637198600651598581, guid: 307b97e39cd375d47a324403a27bb3a6, type: 3}
   roomBGM: {fileID: 8300000, guid: 76c50e154a0bfa648927b49416b5181a, type: 3}
