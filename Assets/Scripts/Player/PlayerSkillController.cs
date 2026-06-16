@@ -199,11 +199,12 @@ private void ProcessNextInQueue()
         {
             if (Time.time < playerSkillCooldownEnds[(int)slot])
             {
-                Debug.Log($"<color=gray>[PlayerSkillController]</color> Player Skill {slot} is on cooldown!");
+                Debug.Log($"<color=orange>[Skill]</color> {minionData.playerSkill.skillName} 쿨타임 중입니다!");
                 return;
             }
-
+            
             playerSkillCooldownEnds[(int)slot] = Time.time + minionData.playerSkill.cooldownTime;
+            Debug.Log($"<color=green>[Player Skill]</color> 플레이어가 '{minionData.playerSkill.skillName}' 스킬을 사용했습니다! (슬롯: {slot})");
             minionData.playerSkill.ExecuteSkill(playerTransform);
         }
         else
@@ -228,7 +229,31 @@ public void ExecuteNextMinionSkill(Transform playerTransform)
                 return;
             }
             minionSkillCooldownEnds[slotIndex] = Time.time + minionData.minionSkill.cooldownTime;
-            minionData.minionSkill.ExecuteSkill(playerTransform, null, currentPendingSkill.validTargets);
+            
+            var allyManager = GetComponent<AllyManager>();
+            if (allyManager != null && minionData.minionType != CommandData.None)
+            {
+                var allies = allyManager.GetAliveAllies(minionData.minionType);
+                if (allies.Count > 0)
+                {
+                    foreach (var ally in allies)
+                    {
+                        // 미니언 개별 스킬 시전 애니메이션 및 액션 호출
+                        ally.EnterSkillState();
+                        ally.ExitSkillState();
+                        minionData.minionSkill.ExecuteSkill(ally.transform, null, currentPendingSkill.validTargets);
+                    }
+                }
+                else
+                {
+                    Debug.Log($"<color=gray>[PSC]</color> No alive allies of type {minionData.minionType} found. Execution failed.");
+                }
+            }
+            else
+            {
+                // Fallback (for non-minion bound skills or no ally manager)
+                minionData.minionSkill.ExecuteSkill(playerTransform, null, currentPendingSkill.validTargets);
+            }
             Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed: {minionData.minionName}");
         }
         ProcessNextInQueue();

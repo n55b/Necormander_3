@@ -847,6 +847,118 @@ MonoBehaviour:
     m_Key: Synergy_BigHand_Lv2
     m_Metadata:
       m_Items: []
+  - m_Id: 4624237589401600
+    m_Key: Skill_PlayerGroundSmash_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178816
+    m_Key: Skill_PlayerGroundSmash_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178817
+    m_Key: Skill_PlayerTetsuzanko_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178818
+    m_Key: Skill_PlayerTetsuzanko_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178819
+    m_Key: Skill_PlayerGuardBreak_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178820
+    m_Key: Skill_PlayerGuardBreak_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178821
+    m_Key: Skill_PlayerRapidPunch_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178822
+    m_Key: Skill_PlayerRapidPunch_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178823
+    m_Key: Skill_PlayerStunSmash_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178824
+    m_Key: Skill_PlayerStunSmash_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178825
+    m_Key: Skill_PlayerStrikeFlurry_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178826
+    m_Key: Skill_PlayerStrikeFlurry_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178827
+    m_Key: Skill_PlayerSmashPunch_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178828
+    m_Key: Skill_PlayerSmashPunch_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178829
+    m_Key: MinionReaction_Type1_Damage_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178830
+    m_Key: MinionReaction_Type1_Damage_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178831
+    m_Key: MinionReaction_Type2_1_Push_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178832
+    m_Key: MinionReaction_Type2_1_Push_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178833
+    m_Key: MinionReaction_Type2_2_Pull_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178834
+    m_Key: MinionReaction_Type2_2_Pull_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178835
+    m_Key: MinionReaction_Type4_1_Stun_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178836
+    m_Key: MinionReaction_Type4_1_Stun_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178837
+    m_Key: MinionReaction_Type4_2_Strike_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178838
+    m_Key: MinionReaction_Type4_2_Strike_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178839
+    m_Key: MinionReaction_Type4_3_Smash_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178840
+    m_Key: MinionReaction_Type4_3_Smash_Desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178841
+    m_Key: MinionReaction_Type5_StunExt_Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178842
+    m_Key: MinionReaction_Type5_StunExt_Desc
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

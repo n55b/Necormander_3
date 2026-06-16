@@ -32,15 +32,14 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private int gold = 0;
     public int GOLD => gold;
 
-    [Header("슬롯 시스템 (10개 고정)")]
-    public List<CoreSlot> Slots = new List<CoreSlot>(10);
+    [Header("슬롯 시스템 (3개 고정)")]
+    public List<CoreSlot> Slots = new List<CoreSlot>(3);
 
     // ======================================================
     // [에러 방지를 위한 병렬 리스트 디버그 설정]
-    // ======================================================
     [Header("Debug Settings (Starting Items)")]
     [SerializeField] private bool useDebugStartingInventory = true;
-    
+
     [Space(10)]
     [Tooltip("시작 시 지급할 미니언 리스트")]
     [SerializeField] private List<MinionLineageSO> debugStartingMinions = new List<MinionLineageSO>();
@@ -117,7 +116,7 @@ public class InventoryManager : MonoBehaviour
     public void Initialize(bool hasSave)
     {
         Instance = this;
-        while (Slots.Count < 10)
+        while (Slots.Count < 3)
         {
             Slots.Add(new CoreSlot());
         }

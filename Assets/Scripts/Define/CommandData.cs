@@ -26,7 +26,8 @@ public enum DebuffStackType
     Chill,      // 한기
     Execute,    // 처형
     BloodPop,   // 비폭
-    Aging       // 노화
+    Aging,      // 노화
+    Vulnerability // 취약 (추가)
 }
 
 public enum DebuffBoolType

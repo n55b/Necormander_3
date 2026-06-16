@@ -90,7 +90,10 @@ public class CharacterStatus : MonoBehaviour
         {
             _vulnerabilityTimer -= Time.deltaTime;
             if (_vulnerabilityTimer <= 0)
+            {
                 _vulnerabilityStacks = 0;
+                debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
+            }
         }
 
         if (_debuffTimer > 0)
@@ -525,6 +528,7 @@ public class CharacterStatus : MonoBehaviour
             _vulnerabilityStacks++;
         
         _vulnerabilityTimer = TRIGGER_STACK_DURATION;
+        debuffTerminal.UpdateUI(DebuffStackType.Vulnerability, _vulnerabilityStacks);
 
         if (isPlayerApplied)
         {
@@ -598,13 +602,18 @@ public class CharacterStatus : MonoBehaviour
                 float dmg = 10f * (_vulnerabilityStacks == 1 ? 1.0f : _vulnerabilityStacks == 2 ? 1.5f : 2.0f);
                 float duration = _vulnerabilityStacks == 1 ? 0.5f : _vulnerabilityStacks == 2 ? 1.0f : 1.5f;
 
+                _vulnerabilityStacks = 0;
+                _vulnerabilityTimer = 0f;
+                debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
                 DamageInfo stunDmg = new DamageInfo(dmg, DamageType.Fixed, attacker, false, 1f, false, "Vulnerability Stun");
                 GetComponent<CharacterHealth>().GetDamage(stunDmg);
 
                 if (duration > 0f) SetDebuffBool(DebuffBoolType.Stunned, duration);
 
-                _vulnerabilityStacks = 0;
-                _vulnerabilityTimer = 0f;
+                if (isPlayerApplied)
+                {
+                    GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
+                }
             }
         }
         else if (consumeType == SkillKeyword.Strike)
@@ -619,6 +628,12 @@ public class CharacterStatus : MonoBehaviour
 
                 _vulnerabilityStacks = 0;
                 _vulnerabilityTimer = 0f;
+                debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
+
+                if (isPlayerApplied)
+                {
+                    GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
+                }
             }
         }
         else if (consumeType == SkillKeyword.Smash)
@@ -631,6 +646,12 @@ public class CharacterStatus : MonoBehaviour
 
                 _vulnerabilityStacks = 0;
                 _vulnerabilityTimer = 0f;
+                debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
+
+                if (isPlayerApplied)
+                {
+                    GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
+                }
             }
         }
     }

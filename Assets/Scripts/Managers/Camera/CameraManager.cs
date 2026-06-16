@@ -58,7 +58,12 @@ private void OnDamageReceived(CharacterHealth target, DamageInfo info)
         if (_impulseSource == null) return;
 
         var stat = target.GetComponent<CharacterStat>();
-        if (stat != null && !stat.IsEnemy) return;
+        if (stat != null && !stat.IsEnemy) 
+        {
+            // 플레이어가 피격당했을 때의 카메라 흔들림
+            _impulseSource.GenerateImpulseWithForce(hurtShakeForce);
+            return;
+        }
 
         if (info.amount <= 0f) return;
 

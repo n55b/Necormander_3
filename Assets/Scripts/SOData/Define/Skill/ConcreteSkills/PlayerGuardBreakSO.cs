@@ -1,0 +1,81 @@
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+[CreateAssetMenu(fileName = "PlayerGuardBreak", menuName = "Necromancer/Skills/Player/Physical/GuardBreak")]
+public class PlayerGuardBreakSO : PlayerSkillSO
+{
+    public BaseHitBox hitBoxPrefab;
+    public float hitDistance = 3f;
+    public float hitWidth = 2f;
+    public float damageMultiplier = 1.2f; // 기본 공격력의 120%
+    public float knockbackForce = 4f;
+    public float knockbackDuration = 0.2f;
+    
+    public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
+    {
+        PlaySkillSound();
+        ShakeCamera();
+
+        PlayerController player = user.GetComponent<PlayerController>();
+        if (player == null) return;
+        
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 startPos = player.transform.position;
+        Vector2 dir = (mousePos - startPos).normalized;
+        if (dir == Vector2.zero) dir = Vector2.right;
+
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+        if (hitBoxPrefab != null)
+        {
+            Vector2 attackCenter = startPos + dir * (hitDistance * 0.5f);
+            BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
+            box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
+            
+            float finalDamage = player.Stat.ATK * damageMultiplier;
+            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Guard Break!");
+            
+            bool hasInvokedKeyword = false;
+            System.Action<CharacterHealth> onHit = (health) => {
+                if (!hasInvokedKeyword) {
+                    hasInvokedKeyword = true;
+                    Debug.Log($"<color=cyan>[Physical]</color> '{skillName}' 적중! (호출: Vulnerability)");
+                }
+                
+                var stat = health.GetComponent<CharacterStat>();
+                if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
+                if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
+
+                if (stat != null)
+                {
+                    stat.Status.ApplyVulnerability(true);
+                    
+                    // 넉백 처리 (최상단 transform 기준)
+                    player.StartCoroutine(PushEnemy(stat.transform.root, dir));
+                }
+            };
+
+            box.Init(info, LayerMask.GetMask("Enemy"), 0.2f, 0f, true, onHit);
+        }
+    }
+
+    private IEnumerator PushEnemy(Transform enemy, Vector2 pushDir)
+    {
+        if (enemy == null) yield break;
+        
+        float elapsed = 0f;
+        Vector2 startPos = enemy.position;
+        Vector2 targetPos = startPos + pushDir * knockbackForce;
+
+        while (elapsed < knockbackDuration)
+        {
+            if (enemy == null) yield break;
+            elapsed += Time.deltaTime;
+            float t = elapsed / knockbackDuration;
+            enemy.position = Vector2.Lerp(startPos, targetPos, t);
+            yield return null;
+        }
+        if (enemy != null) enemy.position = targetPos;
+    }
+}

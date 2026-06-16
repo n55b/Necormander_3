@@ -8,7 +8,7 @@ public class PlayerGatherSO : PlayerSkillSO
     public BaseHitBox hitBoxPrefab;
     public float gatherRadius = 4f;
     public float gatherDuration = 0.15f; // 좀 더 짧고 강하게
-    public float baseDamage = 10f;
+    public float damageMultiplier = 0.6f; // 기본 공격력의 60%
     public float maxRange = 6f;
     
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
@@ -35,9 +35,16 @@ public class PlayerGatherSO : PlayerSkillSO
         System.Action<CharacterHealth> onGatherSuccess = (health) => {
             if (!hasInvokedKeyword) {
                 hasInvokedKeyword = true;
-                Debug.Log("<color=cyan>[Player Skill B]</color> 모으기 적중! (호출: Vulnerability)");
+                Debug.Log($"<color=cyan>[Player Skill]</color> '{skillName}' 적중! (호출: Vulnerability)");
             }
-            health.GetComponent<CharacterStat>()?.Status.ApplyVulnerability(true);
+            var stat = health.GetComponent<CharacterStat>();
+            if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
+            if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
+
+            if (stat != null)
+            {
+                stat.Status.ApplyVulnerability(true);
+            }
         };
 
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
@@ -46,8 +53,11 @@ public class PlayerGatherSO : PlayerSkillSO
         {
             BaseHitBox box = Instantiate(hitBoxPrefab, center, Quaternion.Euler(0, 0, angle));
             box.transform.localScale = new Vector3(gatherRadius * 2f, gatherRadius * 2f, 1f);
-            DamageInfo info = new DamageInfo(baseDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Gather!");
-            box.Init(info, LayerMask.GetMask("Enemy"), 0.5f, 0f, true, onGatherSuccess);
+            
+            float finalDamage = player.Stat.ATK * damageMultiplier;
+            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Gather!");
+            
+            box.Init(info, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, onGatherSuccess);
         }
 
         // 시각 및 데미지는 HitBox가 주지만, 물리적으로 끌어당기는 것은 직접 수행
@@ -79,8 +89,20 @@ public class PlayerGatherSO : PlayerSkillSO
 
             if (health != null && !health.IsDead)
             {
-                targetsToMove.Add(col.transform);
-                startPositions.Add(col.transform.position);
+                var stat = health.GetComponent<CharacterStat>();
+                if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
+                if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
+
+                if (stat != null)
+                {
+                    Transform rootObj = stat.transform.root;
+                    // 중복 방지 (같은 캐릭터의 여러 콜라이더가 잡혔을 경우)
+                    if (!targetsToMove.Contains(rootObj))
+                    {
+                        targetsToMove.Add(rootObj);
+                        startPositions.Add(rootObj.position);
+                    }
+                }
             }
         }
 

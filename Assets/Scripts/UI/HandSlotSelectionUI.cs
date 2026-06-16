@@ -36,10 +36,10 @@ public class HandSlotSelectionUI : MonoBehaviour
             Instantiate(tooltipPrefab, transform.parent); // Canvas 하위에 생성
         }
 
-        // [자동 생성] 10개의 슬롯을 미리 생성해둡니다.
+        // [자동 생성] 3개의 슬롯을 미리 생성해둡니다.
         if (slotItemPrefab != null && slotContainer != null && _spawnedItems.Count == 0)
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 3; i++)
             {
                 var item = Instantiate(slotItemPrefab, slotContainer);
                 _spawnedItems.Add(item);

@@ -901,6 +901,118 @@ MonoBehaviour:
     m_Localized: Increases Max Hold Count by 3 (total).
     m_Metadata:
       m_Items: []
+  - m_Id: 4624237589401600
+    m_Localized: Translation Missing (Skill_PlayerGroundSmash_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178816
+    m_Localized: Translation Missing (Skill_PlayerGroundSmash_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178817
+    m_Localized: Translation Missing (Skill_PlayerTetsuzanko_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178818
+    m_Localized: Translation Missing (Skill_PlayerTetsuzanko_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178819
+    m_Localized: Translation Missing (Skill_PlayerGuardBreak_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178820
+    m_Localized: Translation Missing (Skill_PlayerGuardBreak_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178821
+    m_Localized: Translation Missing (Skill_PlayerRapidPunch_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178822
+    m_Localized: Translation Missing (Skill_PlayerRapidPunch_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178823
+    m_Localized: Translation Missing (Skill_PlayerStunSmash_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178824
+    m_Localized: Translation Missing (Skill_PlayerStunSmash_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178825
+    m_Localized: Translation Missing (Skill_PlayerStrikeFlurry_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178826
+    m_Localized: Translation Missing (Skill_PlayerStrikeFlurry_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178827
+    m_Localized: Translation Missing (Skill_PlayerSmashPunch_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178828
+    m_Localized: Translation Missing (Skill_PlayerSmashPunch_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178829
+    m_Localized: Translation Missing (MinionReaction_Type1_Damage_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178830
+    m_Localized: Translation Missing (MinionReaction_Type1_Damage_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178831
+    m_Localized: Translation Missing (MinionReaction_Type2_1_Push_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178832
+    m_Localized: Translation Missing (MinionReaction_Type2_1_Push_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178833
+    m_Localized: Translation Missing (MinionReaction_Type2_2_Pull_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178834
+    m_Localized: Translation Missing (MinionReaction_Type2_2_Pull_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178835
+    m_Localized: Translation Missing (MinionReaction_Type4_1_Stun_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178836
+    m_Localized: Translation Missing (MinionReaction_Type4_1_Stun_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178837
+    m_Localized: Translation Missing (MinionReaction_Type4_2_Strike_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178838
+    m_Localized: Translation Missing (MinionReaction_Type4_2_Strike_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178839
+    m_Localized: Translation Missing (MinionReaction_Type4_3_Smash_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178840
+    m_Localized: Translation Missing (MinionReaction_Type4_3_Smash_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178841
+    m_Localized: Translation Missing (MinionReaction_Type5_StunExt_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4624237606178842
+    m_Localized: Translation Missing (MinionReaction_Type5_StunExt_Desc)
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

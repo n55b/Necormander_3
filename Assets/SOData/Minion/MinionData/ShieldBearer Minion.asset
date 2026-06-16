@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
   m_Name: ShieldBearer Minion
   m_EditorClassIdentifier: 
-  playerSkill: {fileID: 11400000, guid: 870861ab5418a6347880d021ef7e989b, type: 2}
-  minionSkill: {fileID: 11400000, guid: 7d15fe6f5f43da643ba45e731045d3d2, type: 2}
+  playerSkill: {fileID: 11400000, guid: 138d38128c227d744b24a5ad22a6c034, type: 2}
+  minionSkill: {fileID: 11400000, guid: 8963711745301c247b1be200bfe15cb3, type: 2}
   minionType: 1
   minionName: Skeleton ShieldBearer
   minionIcon: {fileID: 1047843002206808338, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}

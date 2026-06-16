@@ -426,7 +426,7 @@ public class MapGenerator : MonoBehaviour
 
     private IEnumerator ConnectUnreachedRoomsCoroutine()
     {
-        int maxAttempts = 25; // 밸런스 제약 조건을 통과하는 통로 연결 조합을 탐색하기 위해 최대 시도 상향
+        int maxAttempts = 5; // 통로 연결을 최대 5번만 시도하고, 실패 시 방 배치 자체를 새로 돌림
         bool routingSuccess = false;
 
         System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();

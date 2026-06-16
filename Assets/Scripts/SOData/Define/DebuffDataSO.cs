@@ -8,6 +8,7 @@ public class DebuffDataSO : ScriptableObject
     public Sprite executeIcon;
     public Sprite bloodPopIcon;
     public Sprite agingIcon;
+    public Sprite vulnerabilityIcon; // [추가] 취약
     public Sprite corrodedIcon;
     public Sprite fearedIcon; // [추가]
     public Sprite frozenIcon;
@@ -27,6 +28,7 @@ public class DebuffDataSO : ScriptableObject
             DebuffStackType.Execute => executeIcon,
             DebuffStackType.BloodPop => bloodPopIcon,
             DebuffStackType.Aging => agingIcon,
+            DebuffStackType.Vulnerability => vulnerabilityIcon, // [추가]
             _ => null
         };
 

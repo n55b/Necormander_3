@@ -154,6 +154,118 @@ MonoBehaviour:
     m_Localized: Synergy_BigHand
     m_Metadata:
       m_Items: []
+  - m_Id: 4625352133414912
+    m_Localized: Translation Missing (Skill_PlayerGroundSmash_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940864
+    m_Localized: Translation Missing (Skill_PlayerGroundSmash_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940865
+    m_Localized: Translation Missing (Skill_PlayerTetsuzanko_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940866
+    m_Localized: Translation Missing (Skill_PlayerTetsuzanko_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940867
+    m_Localized: Translation Missing (Skill_PlayerGuardBreak_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940868
+    m_Localized: Translation Missing (Skill_PlayerGuardBreak_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940869
+    m_Localized: Translation Missing (Skill_PlayerRapidPunch_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940870
+    m_Localized: Translation Missing (Skill_PlayerRapidPunch_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940871
+    m_Localized: Translation Missing (Skill_PlayerStunSmash_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940872
+    m_Localized: Translation Missing (Skill_PlayerStunSmash_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940873
+    m_Localized: Translation Missing (Skill_PlayerStrikeFlurry_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940874
+    m_Localized: Translation Missing (Skill_PlayerStrikeFlurry_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940875
+    m_Localized: Translation Missing (Skill_PlayerSmashPunch_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940876
+    m_Localized: Translation Missing (Skill_PlayerSmashPunch_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940877
+    m_Localized: Translation Missing (MinionReaction_Type1_Damage_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940878
+    m_Localized: Translation Missing (MinionReaction_Type1_Damage_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940879
+    m_Localized: Translation Missing (MinionReaction_Type2_1_Push_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940880
+    m_Localized: Translation Missing (MinionReaction_Type2_1_Push_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940881
+    m_Localized: Translation Missing (MinionReaction_Type2_2_Pull_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940882
+    m_Localized: Translation Missing (MinionReaction_Type2_2_Pull_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352187940883
+    m_Localized: Translation Missing (MinionReaction_Type4_1_Stun_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352192135168
+    m_Localized: Translation Missing (MinionReaction_Type4_1_Stun_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352192135169
+    m_Localized: Translation Missing (MinionReaction_Type4_2_Strike_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352192135170
+    m_Localized: Translation Missing (MinionReaction_Type4_2_Strike_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352192135171
+    m_Localized: Translation Missing (MinionReaction_Type4_3_Smash_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352192135172
+    m_Localized: Translation Missing (MinionReaction_Type4_3_Smash_Desc)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352192135173
+    m_Localized: Translation Missing (MinionReaction_Type5_StunExt_Name)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4625352192135174
+    m_Localized: Translation Missing (MinionReaction_Type5_StunExt_Desc)
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

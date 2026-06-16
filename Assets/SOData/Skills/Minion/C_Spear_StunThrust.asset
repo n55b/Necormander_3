@@ -9,17 +9,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86579deb9c1185b41b3c23e31182ec5a, type: 3}
+  m_Script: {fileID: 11500000, guid: b903e5195d425944aa1c1677ca0f7b79, type: 3}
   m_Name: C_Spear_StunThrust
   m_EditorClassIdentifier: 
   skillName: "\uAE30\uC808 \uCC0C\uB974\uAE30 (\uCC3D\uBCD1 \uC5F0\uACC4)"
   description: "[\uBC18\uC751: \uBD80\uC2DD] \uBD80\uC2DD \uD0A4\uC6CC\uB4DC \uAC10\uC9C0
     \uC2DC, \uBBF8\uB2C8\uC5B8\uC774 \uAC15\uB825\uD558\uAC8C \uCC14\uB7EC \uAE30\uC808\uC744
     \uBD80\uC5EC\uD569\uB2C8\uB2E4. [\uD638\uCD9C: \uC0C1\uD0DC\uC774\uC0C1]"
+  icon: {fileID: 0}
   cooldownTime: 10
-  reactKeyword: 2
+  skillSound: {fileID: 0}
+  skillSoundVolume: 0.85
+  shakeForce: 0.5
+  reactKeyword: 1
+  actionType: 3
+  useHitBox: 1
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
-  thrustDistance: 4
-  hitWidth: 1.5
-  baseDamage: 25
-  stunTime: 2
+  hitRadius: 1.5
+  damageMultiplier: 1.2
+  forceAmount: 4
+  forceDuration: 0.2

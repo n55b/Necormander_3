@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b86e9e11990399e40a2d04a169796cbc, type: 3}
+  m_Name: PlayerStunSmash
+  m_EditorClassIdentifier: 
+  skillName: "\uAF41!"
+  description: "\uCDE8\uC57D \uC0C1\uD0DC\uC778 \uC801\uC744 \uD0C0\uACA9\uD558\uC5EC
+    \uCDE8\uC57D\uC744 \uC18C\uBAA8\uD574 \uAE30\uC808\uC744 \uBD80\uC5EC\uD558\uBA70
+    \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758 180% \uD53C\uD574\uB97C \uC785\uD799\uB2C8\uB2E4."
+  icon: {fileID: 0}
+  cooldownTime: 5
+  skillSound: {fileID: 0}
+  skillSoundVolume: 0.85
+  shakeForce: 0.5
+  hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
+  hitDistance: 3
+  hitWidth: 2
+  damageMultiplier: 1.8

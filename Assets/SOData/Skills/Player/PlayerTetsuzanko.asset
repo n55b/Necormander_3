@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 192d18b886fa8e24da10fe40e465aabe, type: 3}
+  m_Name: PlayerTetsuzanko
+  m_EditorClassIdentifier: 
+  skillName: "\uCCA0\uC0B0\uACE0"
+  description: "\uC804\uBC29\uC73C\uB85C \uB3CC\uC9C4\uD558\uBA70 \uC801\uC744 \uBC00\uCCD0\uB0B4\uACE0
+    \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758 80% \uD53C\uD574\uB97C \uC785\uD799\uB2C8\uB2E4.
+    \uCDE8\uC57D 1\uC2A4\uD0DD\uC744 \uBD80\uC5EC\uD569\uB2C8\uB2E4."
+  icon: {fileID: 0}
+  cooldownTime: 5
+  skillSound: {fileID: 0}
+  skillSoundVolume: 0.85
+  shakeForce: 0.5
+  hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
+  dashDistance: 4
+  dashDuration: 0.2
+  hitWidth: 2
+  damageMultiplier: 0.8
+  knockbackForce: 5
+  knockbackDuration: 0.2

@@ -7,6 +7,7 @@ public class DPSMeter : MonoBehaviour
 
     private float _totalDamage = 0f;
     private Dictionary<string, float> _damageBySource = new Dictionary<string, float>();
+    private Dictionary<string, Dictionary<string, float>> _damageBySkill = new Dictionary<string, Dictionary<string, float>>();
     private float _startTime = 0f;
     private bool _isRecording = false;
 
@@ -68,17 +69,27 @@ public class DPSMeter : MonoBehaviour
             sourceName = info.type.ToString() + " Damage";
         }
 
+        string skillName = string.IsNullOrEmpty(info.popupText) ? (info.isBasicAttack ? "Basic Attack" : "Unknown Skill") : info.popupText;
+
         if (!_damageBySource.ContainsKey(sourceName))
         {
             _damageBySource[sourceName] = 0f;
+            _damageBySkill[sourceName] = new Dictionary<string, float>();
         }
         _damageBySource[sourceName] += dmg;
+
+        if (!_damageBySkill[sourceName].ContainsKey(skillName))
+        {
+            _damageBySkill[sourceName][skillName] = 0f;
+        }
+        _damageBySkill[sourceName][skillName] += dmg;
     }
 
     private void ResetMeter()
     {
         _totalDamage = 0f;
         _damageBySource.Clear();
+        _damageBySkill.Clear();
         _isRecording = false;
         _startTime = Time.time;
     }
@@ -107,7 +118,16 @@ public class DPSMeter : MonoBehaviour
         foreach (var kvp in _damageBySource)
         {
             float percentage = _totalDamage > 0 ? (kvp.Value / _totalDamage) * 100f : 0f;
-            GUILayout.Label($"- {kvp.Key}: {kvp.Value:F1} ({percentage:F1}%)");
+            GUILayout.Label($"- <b>{kvp.Key}</b>: {kvp.Value:F1} ({percentage:F1}%)");
+
+            if (_damageBySkill.ContainsKey(kvp.Key))
+            {
+                foreach (var skillKvp in _damageBySkill[kvp.Key])
+                {
+                    float skillPercentage = kvp.Value > 0 ? (skillKvp.Value / kvp.Value) * 100f : 0f;
+                    GUILayout.Label($"   └ <color=#cccccc>{skillKvp.Key}</color>: {skillKvp.Value:F1} ({skillPercentage:F1}%)");
+                }
+            }
         }
         GUILayout.EndArea();
     }
