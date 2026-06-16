@@ -15,6 +15,8 @@ public class ShieldMinionSkillSO : MinionSkillSO
 public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
         PlaySkillSound();
+        ShakeCamera();
+
         Debug.Log($"<color=magenta>[Minion Skill B]</color> 방패병 미니언 도약 타격 발동! (반응: {reactKeyword} / 호출: Strike)");
 
         PlayerController player = user.GetComponent<PlayerController>();

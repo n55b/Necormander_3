@@ -24,6 +24,9 @@ MonoBehaviour:
   comboResetTime: 1.2
   pitchIncreasePerCombo: 0.02
   maxPitch: 1.2
+  dodgeClips:
+  - {fileID: 8300000, guid: 5b52fe23d069864408b180527a2440f8, type: 3}
+  dodgeVolume: 0.85
   attackVolume: 0.8
   hitVolume: 0.7
   playerHurtVolume: 0.9

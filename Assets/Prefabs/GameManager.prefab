@@ -51,7 +51,8 @@ MonoBehaviour:
   sourceB: {fileID: 7219595044889989361}
   newSource: {fileID: 0}
   oldSource: {fileID: 0}
-  sfxSource: {fileID: 5384184289146484121}
+  sfxPoolSize: 8
+  sfxMixerGroup: {fileID: 24300002, guid: 0d813ccb3cb165a4094886f331623a67, type: 2}
   ParabolaClip: {fileID: 8300000, guid: da498f638c5629040a4a28579f8e0b40, type: 3}
   PurchaseClip: {fileID: 8300000, guid: db355bc6eca9d204d96fc602c9c21eda, type: 3}
   globalBgmVolume: 1
@@ -132,6 +133,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3877437135718828404}
   - component: {fileID: 3038419152311975761}
+  - component: {fileID: 1051151079312591265}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -170,7 +172,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d4eba31c935bfc4bbb2987dacf5db4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerPrefab: {fileID: 8389716956321753658, guid: e90580e27f19f164bb73a7a5215ce6e8, type: 3}
+  playerPrefab: {fileID: 8389716956321753658, guid: a30e235aa3ef85c48bd0bce9f76be120, type: 3}
   playerController: {fileID: 0}
   dataManager: {fileID: 5990352106904275992}
   economyManager: {fileID: 4452764349617943537}
@@ -182,10 +184,33 @@ MonoBehaviour:
   squadSpawner: {fileID: 6842143012122147092}
   rewardManager: {fileID: 7453844490307090777}
   playerStateUI: {fileID: 0}
+  minionStateUI: {fileID: 0}
+  minionSkillQueueUI: {fileID: 0}
+  playerAttackSoundData: {fileID: 11400000, guid: abdae526f219dc04dbee902382943a37, type: 2}
   mapGenerator: {fileID: 6139375127595461034}
   currentStageMapData: {fileID: 11400000, guid: 1aced7d90958fe444941591d79d29124, type: 2}
   currentStageRoomData: {fileID: 11400000, guid: 0cabf365deeca87428335ef4d3329951, type: 2}
+  testMode_InfiniteStamina: 1
+  testMode_DisableAutoBattle: 0
   currentFloor: 1
+  debugStartAtBoss: 0
+  debugStartFloor: 4
+--- !u!114 &1051151079312591265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3878380797755390178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6b1a96a8f6f58a41a62fbec6eed5b94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultOpenClip: {fileID: 8300000, guid: a2003d9782456764d9eee5dc0d43a6e4, type: 3}
+  defaultCloseClip: {fileID: 8300000, guid: 6223122151204ef448bed84dd2603f99, type: 3}
+  defaultVolume: 1
+  entries: []
 --- !u!1 &4057087256918008588
 GameObject:
   m_ObjectHideFlags: 0
@@ -253,16 +278,11 @@ MonoBehaviour:
   Slots: []
   useDebugStartingInventory: 1
   debugStartingMinions:
-  - {fileID: 11400000, guid: 6f4994e74423d4643b79946bc7cc5743, type: 2}
-  - {fileID: 11400000, guid: 6dcd2551f98dad446bbd6740e1dc3c30, type: 2}
   - {fileID: 11400000, guid: 6e17366b9db968141a742cf6efb8ed1f, type: 2}
-  - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
   - {fileID: 11400000, guid: d2b24f1249fc5f447a65218055c12665, type: 2}
-  debugStartingMinionQuantities: 01000000
-  debugStartingGems_Data:
-  - {fileID: 11400000, guid: 6e63e604fd74f164bbf0ffb2848540c1, type: 2}
-  - {fileID: 11400000, guid: f5b88ccb54cbe1343ab9de6c0d4d745d, type: 2}
-  - {fileID: 11400000, guid: 06b5260d3ed0e044dab893d38d7489ea, type: 2}
+  - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
+  debugStartingMinionQuantities: 
+  debugStartingGems_Data: []
   debugStartingGems_TargetJobs: 00000000
   debugStartingAbilities: []
   _defaultRootGemSO: {fileID: 11400000, guid: 87e7260bead92f545aa299410bef22e8, type: 2}

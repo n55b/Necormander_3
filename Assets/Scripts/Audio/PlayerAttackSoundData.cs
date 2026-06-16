@@ -27,7 +27,14 @@ public class PlayerAttackSoundData : ScriptableObject
     [Range(1f, 1.5f)]
     public float maxPitch = 1.2f;
 
-    [Header("볼륨")]
+    [Header("구르기 사운드")]
+    public AudioClip[] dodgeClips;
+    [Range(0f, 1f)] public float dodgeVolume = 0.85f;
+
+    public AudioClip GetDodgeClip() => PickRandom(dodgeClips);
+
+    
+[Header("볼륨")]
     [Range(0f, 1f)] public float attackVolume     = 0.8f;
     [Range(0f, 1f)] public float hitVolume        = 0.7f;
     [Range(0f, 1f)] public float playerHurtVolume = 0.9f;

@@ -32,6 +32,7 @@ public class GemSlotSelectionUI : MonoBehaviour
 
         _pendingCandidate = candidate;
         panel.SetActive(true);
+        UIEventBus.NotifyOpen("GemSlot");
         
         UIPopUpManager.Instance.PopUpUI(panel);
 
@@ -99,6 +100,7 @@ public class GemSlotSelectionUI : MonoBehaviour
     public void Hide()
     {
         if (panel != null) panel.SetActive(false);
+        UIEventBus.NotifyClose("GemSlot");
         
         UIPopUpManager.Instance?.ClosePopUpUI();
     }
