@@ -14,6 +14,8 @@ public class PlayerGatherSO : PlayerSkillSO
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
         PlaySkillSound();
+        ShakeCamera();
+
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
         player.StartCoroutine(GatherRoutine(player));

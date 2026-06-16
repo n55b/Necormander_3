@@ -11,10 +11,12 @@ public class PlayerMainDealSO : PlayerSkillSO
     public float secondHitDamage = 25f;
     public float hitDelay = 0.2f;
     public float maxRange = 5f;
-    
-public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
+
+    public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
         PlaySkillSound();
+        ShakeCamera();
+
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
         player.StartCoroutine(AttackRoutine(player));
@@ -25,15 +27,17 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 offset = mousePos - (Vector2)player.transform.position;
         Vector2 dir = offset.normalized;
-        
+
         // 최대 범위 제한
         Vector2 attackCenter = (Vector2)player.transform.position + Vector2.ClampMagnitude(offset, maxRange);
 
         Debug.Log("<color=cyan>[Player Skill A]</color> 1타 타격!");
-        
+
         bool hasInvokedKeyword = false;
-        System.Action<CharacterHealth> onStrikeSuccess = (health) => {
-            if (!hasInvokedKeyword) {
+        System.Action<CharacterHealth> onStrikeSuccess = (health) =>
+        {
+            if (!hasInvokedKeyword)
+            {
                 hasInvokedKeyword = true;
                 Debug.Log("<color=cyan>[Player Skill A]</color> 1타 적중! (호출: Strike)");
             }
@@ -57,7 +61,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         BaseHitBox box = Instantiate(hitBoxPrefab, center, Quaternion.Euler(0, 0, angle));
         box.transform.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
-        
+
         DamageInfo info = new DamageInfo(damage, DamageType.Physical, attacker, false, 1f, false, "PlayerStrike", false, true, 2f);
         box.Init(info, LayerMask.GetMask("Enemy"), 0.2f, 0f, true, onHit);
     }
