@@ -10,7 +10,7 @@ public class GameOverManager : MonoBehaviour
     private void Start()
     {
         Instance = this;
-        gameOverPanel.SetActive(false); // 게임 시작 시 게임오버 패널 비활성화
+        if(gameOverPanel != null)gameOverPanel.SetActive(false); // 게임 시작 시 게임오버 패널 비활성화
     }
 
     public void TriggerGameOver()

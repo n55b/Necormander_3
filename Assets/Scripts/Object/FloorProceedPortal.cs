@@ -1,9 +1,7 @@
 using UnityEngine;
 
-public class FloorProceedPortal : MonoBehaviour, IInteractable
+public class FloorProceedPortal : MonoBehaviour
 {
-
-
     public string InteractionPrompt => "Proceed to Next Floor";
 
     private void Awake()
