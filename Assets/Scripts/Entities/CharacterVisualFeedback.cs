@@ -117,7 +117,6 @@ public class CharacterVisualFeedback : MonoBehaviour
             if(isPlayer)
             {
                 // [수정] 인스턴스 널 체크 추가하여 NRE 방지
-                if (CameraManager.Instance != null) CameraManager.Instance.HitShakeCamera(); 
                 if (GameManager.Instance != null) GameManager.Instance.TimeStopTimer(0.05f); 
                 if (GameManager.Instance != null) GameManager.Instance.ChangeVignetteColor(0.05f, Color.red);
             }

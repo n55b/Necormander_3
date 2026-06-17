@@ -53,12 +53,12 @@ public class CameraManager : MonoBehaviour
     }
 
     // ─── DamageEventBus 구독: 플레이어 공격이 적에게 맞을 때 ─────────
-private void OnDamageReceived(CharacterHealth target, DamageInfo info)
+    private void OnDamageReceived(CharacterHealth target, DamageInfo info)
     {
         if (_impulseSource == null) return;
 
         var stat = target.GetComponent<CharacterStat>();
-        if (stat != null && !stat.IsEnemy) 
+        if (stat != null && stat.tag == "Player") 
         {
             // 플레이어가 피격당했을 때의 카메라 흔들림
             _impulseSource.GenerateImpulseWithForce(hurtShakeForce);
@@ -68,11 +68,11 @@ private void OnDamageReceived(CharacterHealth target, DamageInfo info)
         if (info.amount <= 0f) return;
 
         // 미니언 평타 제외 (스킬은 SkillSO.ShakeCamera로 별도 처리)
-        if (info.attacker != null)
-            Debug.Log($"[CameraShake] attacker: {info.attacker.name} / hasAlly: {info.attacker.GetComponent<AllyController>() != null}");
-        if (info.attacker != null && info.attacker.GetComponent<AllyController>() != null) return;
-
-        _impulseSource.GenerateImpulseWithForce(hitShakeForce);
+        if (info.attacker != null && info.attacker.CompareTag("Player"))
+        {
+            Debug.Log("적 히트 카메라 흔들림");
+            _impulseSource.GenerateImpulseWithForce(hitShakeForce);
+        }
     }
 
     // ─── 줌 ──────────────────────────────────────────────────────────
