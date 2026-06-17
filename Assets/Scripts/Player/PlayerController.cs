@@ -17,10 +17,10 @@ public class PlayerController : MonoBehaviour
     public CharacterStat Stat => stat;
     [SerializeField] float throwRange;
     [HideInInspector] public float throwRangeBonus = 0f;
-    public float THROWRANGE 
-    { 
-        get 
-        { 
+    public float THROWRANGE
+    {
+        get
+        {
             float range = throwRange + throwRangeBonus;
             if (InventoryManager.Instance != null)
             {
@@ -36,7 +36,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
             return range;
-        } 
+        }
     }
     [Header("아군 유닛 관련 매니저")]
     [SerializeField] AllyManager allyManager;
@@ -71,7 +71,7 @@ public class PlayerController : MonoBehaviour
     [Header("투척 및 차징 모디파이어 (보석/시너지용)")]
     public float bonusThrowChargeTime = 0f;
     public float chargeEfficiencyMultiplier = 0f; // 기본 0 (보너스 퍼센트 합산, 예: +50% = 0.5f)
-    
+
     [Header("Overcharge System (Closer Gem)")]
     public float overchargeTimeLimit = 0f; // 오버차지 허용 시간 (기본 0, 클로저 장착시 증가)
     public float bonusThrowEffectMultiplier = 0f; // 기본 0 (예: +25% = 0.25f)
@@ -149,8 +149,8 @@ public class PlayerController : MonoBehaviour
     private float _lastDashTime;
     private Vector2 _dashDir;
 
-    public bool  IsDashing            => _isDashing;
-    public float DashCooldown         => dashCooldown;
+    public bool IsDashing => _isDashing;
+    public float DashCooldown => dashCooldown;
     public float DashCooldownProgress => dashCooldown > 0f ? Mathf.Clamp01((Time.time - _lastDashTime) / dashCooldown) : 1f;
 
     private Rigidbody2D _rb;
@@ -225,7 +225,7 @@ public class PlayerController : MonoBehaviour
         if (damage > 0 && throwController != null)
         {
             RecordCombatAction(); // 피격 시 전투 상태 갱신
-            
+
             // [시너지] 큰손 (BigHand) 3세트 이상일 경우 드롭 면역
             bool preventDrop = false;
             if (InventoryManager.Instance != null && InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.BigHand) >= 3)
@@ -247,7 +247,7 @@ public class PlayerController : MonoBehaviour
         if (UnityEngine.InputSystem.Keyboard.current != null)
         {
             var kb = UnityEngine.InputSystem.Keyboard.current;
-            
+
             // PlayerSkillController를 통한 연계 스킬(스페이스바) 및 상시 스킬(Q, E, R) 처리
             var skillCtrl = GetComponent<PlayerSkillController>();
             if (skillCtrl != null && !_inputBlocked)
@@ -303,26 +303,33 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void CheckForInteractable() // [추가]
+    private void CheckForInteractable()
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, interactRange, interactableLayer);
-        _closestInteractable = null;
-        float closestDist = float.MaxValue;
+
+        IInteractable nearest = null;
+        float minDist = float.MaxValue;
 
         foreach (var col in colliders)
         {
             if (col.TryGetComponent<IInteractable>(out var interactable))
             {
-                float dist = Vector2.Distance(transform.position, col.transform.position);
-                if (dist < closestDist)
+                float dist = Vector2.SqrMagnitude(col.transform.position - transform.position);
+                if (dist < minDist)
                 {
-                    closestDist = dist;
-                    _closestInteractable = interactable;
+                    minDist = dist;
+                    nearest = interactable;
                 }
             }
         }
 
-        // TODO: 여기에 가장 가까운 상호작용 오브젝트 위에 프롬프트(예: "Press Q")를 표시하는 UI 로직 추가 가능
+        // 포커스 변경 시 OnFocused / OnLostFocus 호출
+        if (!ReferenceEquals(nearest, _closestInteractable))
+        {
+            _closestInteractable?.OnLostFocus(gameObject);
+            nearest?.OnFocused(gameObject);
+            _closestInteractable = nearest;
+        }
     }
 
     // [추가] 외부(MeleeCombatController 등)에서 이동 속도를 비율로 줄이거나 늘리기 위한 변수
@@ -366,7 +373,7 @@ public class PlayerController : MonoBehaviour
         _isDashing = true;
         _dashTimeLeft = dashDuration;
         _lastDashTime = Time.time;
-        
+
         // 이동 입력이 있으면 그 방향으로, 없으면 현재 바라보는 방향(또는 우측)으로 대쉬
         _dashDir = moveInput.normalized;
         if (_dashDir == Vector2.zero)
@@ -386,7 +393,7 @@ public class PlayerController : MonoBehaviour
     private void EndDash()
     {
         _isDashing = false;
-        
+
         // 관성 초기화
         _smoothedMoveInput = Vector2.zero;
         _moveInputVelocity = Vector2.zero;
@@ -484,7 +491,7 @@ public class PlayerController : MonoBehaviour
         {
             bool isAnySkillActive = (activeSkillManager.SkillSlot1 != null && activeSkillManager.SkillSlot1.IsActive) ||
                                     (activeSkillManager.SkillSlot2 != null && activeSkillManager.SkillSlot2.IsActive);
-            
+
             if (isAnySkillActive)
             {
                 if (context.started) activeSkillManager.HandleLeftClick();
@@ -578,7 +585,7 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-    
+
     public void OnOption(InputAction.CallbackContext context)
     {
         if (context.performed)

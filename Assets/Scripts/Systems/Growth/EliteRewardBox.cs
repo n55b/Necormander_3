@@ -45,4 +45,7 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
         Debug.LogWarning("[EliteRewardBox] No valid rewards to offer.");
         return false;
     }
+
+    public void OnFocused(GameObject interactor){}
+    public void OnLostFocus(GameObject interactor){}
 }

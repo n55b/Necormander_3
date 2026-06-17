@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Cinemachine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 게임의 전체 생명주기와 매니저들의 초기화 순서를 관리하는 중앙 컨트롤러입니다.
@@ -15,6 +18,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private PlayerController playerController;
     public PlayerController PLAYERCONTROLLER => playerController;
     public bool IsPlayerReady { get; private set; } = false;
+
+    [Header("Global Volume")]
+    [SerializeField] public Volume globalvolume;
 
     [Header("Core Managers")]
     [SerializeField] public DataManager dataManager;
@@ -57,6 +63,26 @@ public class GameManager : MonoBehaviour
     public void TimeStopTimer(float duration)
     {
         StartCoroutine(TimeStopCoroutine(duration));
+    }
+
+    // [추가] 게임 매니저에서 비네트 색상 변경 메서드
+    public void ChangeVignetteColor(float time, Color color)
+    {
+        StartCoroutine(ChangeVignetteColorCoroutine(time, color));
+    }
+
+    private IEnumerator ChangeVignetteColorCoroutine(float time, Color color)
+    {
+        Vignette vignette;
+        if (globalvolume != null && globalvolume.profile.TryGet(out vignette))
+        {
+            Color originalColor = vignette.color.value;
+            vignette.color.value = color;
+
+            yield return new WaitForSeconds(time);
+
+            vignette.color.value = originalColor;
+        }
     }
 
     // 게임오버 처리 메서드
@@ -128,6 +154,7 @@ public class GameManager : MonoBehaviour
         if (inventoryManager == null) inventoryManager = GetComponentInChildren<InventoryManager>();
         if (squadSpawner == null) squadSpawner = GetComponentInChildren<SquadSpawner>();
         if (rewardManager == null) rewardManager = GetComponentInChildren<RewardManager>();
+        if (globalvolume == null) globalvolume = GameObject.Find("Global Volume")?.GetComponent<Volume>();
 
         if (dataManager != null) dataManager.Initialize();
 
@@ -212,6 +239,15 @@ public class GameManager : MonoBehaviour
 
 
             Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");
+        }
+
+        // 마을 시스템을 위해서 임시로 추가한 코드
+        if(SceneManager.GetActiveScene().name == "VillageScene")
+        {
+            if (squadSpawner != null)
+            {
+                squadSpawner.RefreshFullSquad();
+            }
         }
 
         Debug.Log("<color=green>[GameManager]</color> All Systems Ready!");

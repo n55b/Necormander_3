@@ -35,6 +35,7 @@ public class UIPopUpManager : MonoBehaviour
     {
         if (_isOnBattle || _isPopUpActive) return; // 전투 중에는 팝업 띄우지 않음
 
+        popUpObj.SetActive(true);
         _currentPopUp = popUpObj;
         _isPopUpActive = true;
     }

@@ -209,7 +209,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultOpenClip: {fileID: 8300000, guid: a2003d9782456764d9eee5dc0d43a6e4, type: 3}
   defaultCloseClip: {fileID: 8300000, guid: 6223122151204ef448bed84dd2603f99, type: 3}
-  defaultVolume: 1
+  defaultVolume: 0.5
   entries: []
 --- !u!1 &4057087256918008588
 GameObject:
@@ -223,6 +223,7 @@ GameObject:
   - component: {fileID: 5990352106904275992}
   - component: {fileID: 3438047193681337848}
   - component: {fileID: 6139375127595461034}
+  - component: {fileID: 5933129654467836410}
   m_Layer: 0
   m_Name: Data Systems
   m_TagString: Untagged
@@ -307,6 +308,18 @@ MonoBehaviour:
   miniMapNormalTile: {fileID: 11400000, guid: 23e093012acb5f346b8c1bd7ec9fee57, type: 2}
   fogTilemap: {fileID: 0}
   blackTile: {fileID: 11400000, guid: 5ee6ff73c5bfbc74e9aa365f1d70ac1d, type: 2}
+--- !u!114 &5933129654467836410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4057087256918008588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bf706e88abd6c64e822dc1a1a71c397, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4851146966962830542
 GameObject:
   m_ObjectHideFlags: 0

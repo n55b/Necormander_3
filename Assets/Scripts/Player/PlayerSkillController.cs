@@ -27,15 +27,15 @@ public class PlayerSkillController : MonoBehaviour
 
     [Header("Queue Settings")]
     public float skillTimeout = 1.5f;
-    
+
     private float[] playerSkillCooldownEnds = new float[3];
     private float[] minionSkillCooldownEnds = new float[3];
-    
+
     private Queue<PendingMinionSkill> skillQueue = new Queue<PendingMinionSkill>();
     private PendingMinionSkill currentPendingSkill;
 
     public event Action<PendingMinionSkill> OnQueueUpdated;
-    public event Action                     OnQueueChanged;  // 큐 구성 변경 시 (추가/제거/타임아웃)
+    public event Action OnQueueChanged;  // 큐 구성 변경 시 (추가/제거/타임아웃)
 
     // 큐 전체 스냅쌏 (currentPendingSkill + 대기열, 순서 유지)
     public List<PendingMinionSkill> GetAllPendingSkills()
@@ -45,15 +45,15 @@ public class PlayerSkillController : MonoBehaviour
         result.AddRange(skillQueue);
         return result;
     }
-// UI에서 미니언 정보를 읽기 위한 public getter
-public MinionDataSO GetEquippedMinion(int index)
-{
-    if (index < 0 || index >= equippedMinions.Length) return null;
-    return equippedMinions[index];
-}
+    // UI에서 미니언 정보를 읽기 위한 public getter
+    public MinionDataSO GetEquippedMinion(int index)
+    {
+        if (index < 0 || index >= equippedMinions.Length) return null;
+        return equippedMinions[index];
+    }
 
 
-private void Awake()
+    private void Awake()
     {
         // Awake에서 동기화하면, 같은 프레임 내 UI Initialize() 시점엔 이미 equippedMinions가 채워진 상태
         if (InventoryManager.Instance != null)
@@ -95,7 +95,7 @@ private void Awake()
         Debug.Log("<color=cyan>[PlayerSkillController]</color> Sync Inventory -> Q,E,R slots complete.");
     }
 
-private void Update()
+    private void Update()
     {
         // currentPendingSkill 타임아웃
         if (currentPendingSkill != null)
@@ -126,7 +126,7 @@ private void Update()
         }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (Input.GetKeyDown(KeyCode.F1)) { Debug.Log("[Debug] Force Strike!");    OnKeywordApplied(SkillKeyword.Strike); }
+        if (Input.GetKeyDown(KeyCode.F1)) { Debug.Log("[Debug] Force Strike!"); OnKeywordApplied(SkillKeyword.Strike); }
         if (Input.GetKeyDown(KeyCode.F2)) { Debug.Log("[Debug] Force Debuff!"); OnKeywordApplied(SkillKeyword.Debuff); }
 #endif
     }
@@ -136,7 +136,7 @@ private void Update()
     public void OnKeywordApplied(SkillKeyword keyword, Transform target = null)
     {
         bool added = false;
-        
+
         // 탐색 순서: 트리거를 발생시킨(가장 최근에 사용한) 슬롯부터 큐에 넣고, 나머지는 Q-E-R 순환 순서대로
         int firstSlot = (int)lastUsedPlayerSkillSlot;
         int[] searchOrder = new int[3];
@@ -184,7 +184,7 @@ private void Update()
             ProcessNextInQueue();
     }
 
-private void ProcessNextInQueue()
+    private void ProcessNextInQueue()
     {
         if (skillQueue.Count > 0)
         {
@@ -214,7 +214,7 @@ private void ProcessNextInQueue()
                 Debug.Log($"<color=orange>[Skill]</color> {minionData.playerSkill.skillName} 쿨타임 중입니다!");
                 return;
             }
-            
+
             playerSkillCooldownEnds[(int)slot] = Time.time + minionData.playerSkill.cooldownTime;
             Debug.Log($"<color=green>[Player Skill]</color> 플레이어가 '{minionData.playerSkill.skillName}' 스킬을 사용했습니다! (슬롯: {slot})");
             minionData.playerSkill.ExecuteSkill(playerTransform);
@@ -225,12 +225,12 @@ private void ProcessNextInQueue()
         }
     }
 
-public void ExecuteNextMinionSkill(Transform playerTransform)
+    public void ExecuteNextMinionSkill(Transform playerTransform)
     {
         if (currentPendingSkill == null) return;
 
         var minionData = currentPendingSkill.minionData;
-        int slotIndex  = (int)currentPendingSkill.slot;
+        int slotIndex = (int)currentPendingSkill.slot;
 
         if (minionData != null && minionData.minionSkill != null)
         {
@@ -241,7 +241,7 @@ public void ExecuteNextMinionSkill(Transform playerTransform)
                 return;
             }
             minionSkillCooldownEnds[slotIndex] = Time.time + minionData.minionSkill.cooldownTime;
-            
+
             var allyManager = GetComponent<AllyManager>();
             if (allyManager != null && minionData.minionType != CommandData.None)
             {
