@@ -66,7 +66,6 @@ public class GemTreeUI : MonoBehaviour
             }
 
             UIPopUpManager.Instance.PopUpUI(mainPanel);
-            UIEventBus.NotifyOpen("GemTree");;
             UIEventBus.NotifyOpen("GemTree");
             // 팝업 매니저에 상태 전달
 
@@ -78,8 +77,7 @@ public class GemTreeUI : MonoBehaviour
             if (GemTooltipUI.Instance != null) GemTooltipUI.Instance.Hide();
 
             UIPopUpManager.Instance?.ClosePopUpUI();
-            UIEventBus.NotifyClose("GemTree");// 팝업 매니저에 상태 전달
-            UIEventBus.NotifyClose("GemTree");
+            UIEventBus.NotifyClose("GemTree"); // 팝업 매니저에 상태 전달
 
         }
     }
