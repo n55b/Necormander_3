@@ -15,15 +15,32 @@ public class PopupSystem : MonoBehaviour
     [Header("Prompt Text (선택)")]
     [SerializeField] private TextMeshProUGUI promptText;
 
+    private string npcName;
+
+    private void Awake()
+    {
+        npcName = GetComponent<NPCBase>().name;
+    }
+
     // ─── 팝업 ────────────────────────────────────────────────────────
     public void ShowPopup()
     {
-        if (popupPanel != null) popupPanel.SetActive(true);
+        if (popupPanel != null && !popupPanel.activeSelf) 
+        {
+            GameManager.Instance.SetTimeStop(true);
+            UIPopUpManager.Instance.PopUpUI(popupPanel);
+            if(npcName != null) UIEventBus.NotifyOpen(npcName);
+        }
     }
 
     public void HidePopup()
     {
-        if (popupPanel != null) popupPanel.SetActive(false);
+        if (popupPanel != null && popupPanel.activeSelf) 
+        {
+            UIPopUpManager.Instance.ClosePopUpUI();
+            GameManager.Instance.SetTimeStop(false);
+            if(npcName != null) UIEventBus.NotifyClose(npcName);
+        }
     }
 
     public bool IsOpen => popupPanel != null && popupPanel.activeSelf;

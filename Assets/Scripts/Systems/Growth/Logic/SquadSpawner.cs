@@ -6,8 +6,9 @@ using UnityEngine;
 /// </summary>
 public class SquadSpawner : MonoBehaviour
 {
-    private AllyManager _allyManager;
-    private InventoryManager _inven;
+    private AllyManager      _allyManager;
+    private InventoryManager  _inven;
+    private Transform         _playerTransform; // GameManager 없이 플레이어 위치 취득
 
     public void Initialize(InventoryManager inven, AllyManager allyManager)
     {

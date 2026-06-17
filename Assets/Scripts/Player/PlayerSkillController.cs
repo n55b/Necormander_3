@@ -27,15 +27,15 @@ public class PlayerSkillController : MonoBehaviour
 
     [Header("Queue Settings")]
     public float skillTimeout = 1.5f;
-    
+
     private float[] playerSkillCooldownEnds = new float[3];
     private float[] minionSkillCooldownEnds = new float[3];
-    
+
     private Queue<PendingMinionSkill> skillQueue = new Queue<PendingMinionSkill>();
     private PendingMinionSkill currentPendingSkill;
 
     public event Action<PendingMinionSkill> OnQueueUpdated;
-    public event Action                     OnQueueChanged;  // 큐 구성 변경 시 (추가/제거/타임아웃)
+    public event Action OnQueueChanged;  // 큐 구성 변경 시 (추가/제거/타임아웃)
 
     // 큐 전체 스냅쌏 (currentPendingSkill + 대기열, 순서 유지)
     public List<PendingMinionSkill> GetAllPendingSkills()
@@ -45,15 +45,15 @@ public class PlayerSkillController : MonoBehaviour
         result.AddRange(skillQueue);
         return result;
     }
-// UI에서 미니언 정보를 읽기 위한 public getter
-public MinionDataSO GetEquippedMinion(int index)
-{
-    if (index < 0 || index >= equippedMinions.Length) return null;
-    return equippedMinions[index];
-}
+    // UI에서 미니언 정보를 읽기 위한 public getter
+    public MinionDataSO GetEquippedMinion(int index)
+    {
+        if (index < 0 || index >= equippedMinions.Length) return null;
+        return equippedMinions[index];
+    }
 
 
-private void Awake()
+    private void Awake()
     {
         // Awake에서 동기화하면, 같은 프레임 내 UI Initialize() 시점엔 이미 equippedMinions가 채워진 상태
         if (InventoryManager.Instance != null)
@@ -95,7 +95,7 @@ private void Awake()
         Debug.Log("<color=cyan>[PlayerSkillController]</color> Sync Inventory -> Q,E,R slots complete.");
     }
 
-private void Update()
+    private void Update()
     {
         // currentPendingSkill 타임아웃
         if (currentPendingSkill != null)
@@ -126,12 +126,12 @@ private void Update()
         }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (Input.GetKeyDown(KeyCode.F1)) { Debug.Log("[Debug] Force Strike!");    OnKeywordApplied(SkillKeyword.Strike); }
+        if (Input.GetKeyDown(KeyCode.F1)) { Debug.Log("[Debug] Force Strike!"); OnKeywordApplied(SkillKeyword.Strike); }
         if (Input.GetKeyDown(KeyCode.F2)) { Debug.Log("[Debug] Force Debuff!"); OnKeywordApplied(SkillKeyword.Debuff); }
 #endif
     }
 
-public void OnKeywordApplied(SkillKeyword keyword, Transform target = null)
+    public void OnKeywordApplied(SkillKeyword keyword, Transform target = null)
     {
         bool added = false;
         for (int i = 0; i < 3; i++)
@@ -174,7 +174,7 @@ public void OnKeywordApplied(SkillKeyword keyword, Transform target = null)
             ProcessNextInQueue();
     }
 
-private void ProcessNextInQueue()
+    private void ProcessNextInQueue()
     {
         if (skillQueue.Count > 0)
         {
@@ -212,12 +212,12 @@ private void ProcessNextInQueue()
         }
     }
 
-public void ExecuteNextMinionSkill(Transform playerTransform)
+    public void ExecuteNextMinionSkill(Transform playerTransform)
     {
         if (currentPendingSkill == null) return;
 
         var minionData = currentPendingSkill.minionData;
-        int slotIndex  = (int)currentPendingSkill.slot;
+        int slotIndex = (int)currentPendingSkill.slot;
 
         if (minionData != null && minionData.minionSkill != null)
         {

@@ -35,6 +35,8 @@ public class PlayerStateUI : MonoBehaviour
     /// - CooldownFill : 쿨타임 마스크 Image (별도 오버레이 오브젝트 권장)
     ///                  null 이면 SkillIcon 자체에 Filled 타입 적용
     /// - CooldownText : 남은 초 텍스트 (선택)
+    /// - ArrowImage   : 스킬 교체 UI
+    /// - SkillChangeButton : 스킬 교체 버튼
     /// </summary>
     [System.Serializable]
     public class SkillSlotUI
@@ -47,6 +49,9 @@ public class PlayerStateUI : MonoBehaviour
         public Image CooldownFill;
         [Tooltip("쿨타임 남은 초 텍스트 (선택)")]
         public TextMeshProUGUI CooldownText;
+        [Tooltip("스킬 교체 UI")]
+        public GameObject ArrowImage;
+        public Button SkillChangeButton;
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -182,7 +187,7 @@ public class PlayerStateUI : MonoBehaviour
     // Gold
     // ─────────────────────────────────────────────────────────────────────
     #region Gold
-public void RefreshGold()
+    public void RefreshGold()
     {
         if (InventoryManager.Instance == null || goldText == null) return;
         int gold = InventoryManager.Instance.GOLD;
@@ -268,7 +273,7 @@ public void RefreshGold()
         }
     }
 
-private void UpdateSkillCooldowns()
+    private void UpdateSkillCooldowns()
     {
         if (_skillCtrl == null || _skillSlots == null) return;
 
@@ -307,6 +312,29 @@ private void UpdateSkillCooldowns()
                 else if (slot.CooldownText.text.Length > 0)
                     slot.CooldownText.text = "";
             }
+        }
+    }
+    #endregion
+
+    #region Skill Change
+
+    /// <summary>
+    /// 스킬 변경에 필요한 매서드
+    /// </summary>
+    public void OpenChangeSkillUI()
+    {
+        foreach(var slot in _skillSlots)
+        {
+            slot.ArrowImage.SetActive(true);
+            slot.SkillChangeButton.enabled = true;
+        }
+    }
+    public void CloseChangeSkillUI()
+    {
+        foreach(var slot in _skillSlots)
+        {
+            slot.ArrowImage.SetActive(false);
+            slot.SkillChangeButton.enabled = false;
         }
     }
     #endregion

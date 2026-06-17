@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class FloorProceedPortal : MonoBehaviour
+public class FloorProceedPortal : MonoBehaviour, IInteractable
 {
     public string InteractionPrompt => "Proceed to Next Floor";
 
@@ -48,4 +48,6 @@ public class FloorProceedPortal : MonoBehaviour
         Destroy(gameObject);
         return true;
     }
+    public void OnFocused(GameObject interactor){}
+    public void OnLostFocus(GameObject interactor){}
 }

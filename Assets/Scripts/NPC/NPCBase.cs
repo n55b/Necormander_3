@@ -19,8 +19,11 @@ public class NPCBase : MonoBehaviour, IInteractable
     [Header("Popup UI System")]
     [SerializeField] protected PopupSystem popupSystem;
 
+    [Header("NPC UI Name")]
+    [SerializeField] public string name = "";
+
     // ─── IInteractable ────────────────────────────────────────────────
-    public virtual string InteractionPrompt => "E : 상호작용";
+    public virtual string InteractionPrompt => "F : 상호작용";
 
     /// <summary>
     /// 플레이어가 E키를 눌렀을 때 호출됩니다.

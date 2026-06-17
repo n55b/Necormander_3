@@ -10,8 +10,9 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private Button exitButton;
 
     [Header("Scene Settings")]
-    [Tooltip("Start 버튼을 눌렀을 때 이동할 메인 게임 씬의 이름입니다.")]
+    [Tooltip("Load 버튼을 눌렀을 때 이동할 메인 게임 씬의 이름입니다.")]
     [SerializeField] private string gameSceneName = "Map"; 
+    [SerializeField] private string startSceneName = "VillageScene";
 
     private UnityNote.SceneLoader sceneLoader;
 
@@ -69,7 +70,7 @@ public class MainMenuManager : MonoBehaviour
         SaveSystem.DeleteSave();
         
         // 지정된 게임 씬으로 이동
-        sceneLoader.LoadScene(gameSceneName);
+        sceneLoader.LoadScene(startSceneName);
     }
 
     private void OnLoadButtonClicked()

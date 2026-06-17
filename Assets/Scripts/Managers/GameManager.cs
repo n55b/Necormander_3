@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.Cinemachine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 게임의 전체 생명주기와 매니저들의 초기화 순서를 관리하는 중앙 컨트롤러입니다.
@@ -238,6 +239,15 @@ public class GameManager : MonoBehaviour
 
 
             Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");
+        }
+
+        // 마을 시스템을 위해서 임시로 추가한 코드
+        if(SceneManager.GetActiveScene().name == "VillageScene")
+        {
+            if (squadSpawner != null)
+            {
+                squadSpawner.RefreshFullSquad();
+            }
         }
 
         Debug.Log("<color=green>[GameManager]</color> All Systems Ready!");
