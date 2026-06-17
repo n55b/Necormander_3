@@ -5,10 +5,7 @@ using UnityEngine.InputSystem;
 public class MapUIManager : MonoBehaviour
 {
     [SerializeField] private GameObject fullMapUIWindow;
-    [SerializeField] private GameObject panelUIWindow;
     [SerializeField] private MiniMapController miniMapController;
-    [SerializeField] private GameObject hudMiniMapToggleObject;
-
     private PlayerInput _playerInput;
     private bool _isMapOpen = false;
     private bool _isInitialized = false; // 중복 초기화 방지용 변수
@@ -65,7 +62,7 @@ public class MapUIManager : MonoBehaviour
     {
         ToggleFullMap(!_isMapOpen);
     }
-    private void ToggleFullMap(bool isOpen)
+    public void ToggleFullMap(bool isOpen)
     {
         if (isOpen)
         {
@@ -75,14 +72,10 @@ public class MapUIManager : MonoBehaviour
             UIPopUpManager.Instance.PopUpUI(fullMapUIWindow);
             UIEventBus.NotifyOpen("Map");
 
-
             if (miniMapController != null)
             {
                 miniMapController.SetMapActive(isOpen);
             }
-
-            // 🌟 전체 지도가 열리면 우측 상단 작은 미니맵은 끕니다.
-            if (hudMiniMapToggleObject != null) hudMiniMapToggleObject.SetActive(false);
         }
         else
         {
@@ -90,18 +83,11 @@ public class MapUIManager : MonoBehaviour
             UIPopUpManager.Instance.ClosePopUpUI();
             UIEventBus.NotifyClose("Map");
 
-
-            // 전체 지도가 닫히면 우측 상단 작은 미니맵을 다시 켭니다.
-            if (hudMiniMapToggleObject != null) hudMiniMapToggleObject.SetActive(true);
-
             // 지도가 닫힐 때 MiniMapController에게 알림 (다시 플레이어 추적 모드로 돌리기 위함)
             if (miniMapController != null)
             {
                 miniMapController.SetMapActive(false);
             }
         }
-
-        if (fullMapUIWindow != null) fullMapUIWindow.SetActive(isOpen);
-        if (panelUIWindow != null) panelUIWindow.SetActive(isOpen);
     }
 }

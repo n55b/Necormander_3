@@ -174,6 +174,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 8389716956321753658, guid: a30e235aa3ef85c48bd0bce9f76be120, type: 3}
   playerController: {fileID: 0}
+  globalvolume: {fileID: 0}
   dataManager: {fileID: 5990352106904275992}
   economyManager: {fileID: 4452764349617943537}
   cameraManager: {fileID: 0}

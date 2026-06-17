@@ -27,7 +27,6 @@ public class PopupSystem : MonoBehaviour
     {
         if (popupPanel != null && !popupPanel.activeSelf) 
         {
-            GameManager.Instance.SetTimeStop(true);
             UIPopUpManager.Instance.PopUpUI(popupPanel);
             if(npcName != null) UIEventBus.NotifyOpen(npcName);
         }

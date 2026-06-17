@@ -31,7 +31,6 @@ public class GemSlotSelectionUI : MonoBehaviour
         if(UIPopUpManager.Instance.IsPopUpActive)  return; // 이미 팝업이 활성화되어 있으면 새로 띄우지 않음
 
         _pendingCandidate = candidate;
-        panel.SetActive(true);
         UIEventBus.NotifyOpen("GemSlot");
         
         UIPopUpManager.Instance.PopUpUI(panel);

@@ -68,7 +68,6 @@ public class HandSlotSelectionUI : MonoBehaviour
             _isReadOnly = true;
             _pendingCandidate = default; // [수정] 구조체는 null 대신 default 사용
             if (selectedRewardCard != null) selectedRewardCard.gameObject.SetActive(false); // 보상 정보 숨김
-            panel.SetActive(true);
             UIEventBus.NotifyOpen("HandSlot");
             RefreshSlots();
         }

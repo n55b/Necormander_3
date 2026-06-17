@@ -14,15 +14,16 @@ public class SceneOptionManager : MonoBehaviour
 
     public void OpenOptionScene()
     {
-        isOptionOpen = true;
-
-        SceneManager.LoadScene("OptionScene", LoadSceneMode.Additive);
+        isOptionOpen = UIPopUpManager.Instance.PushOptionKey();
+        if(isOptionOpen)
+            SceneManager.LoadScene("OptionScene", LoadSceneMode.Additive);
     }
 
     public void CloseOptionScene()
     {
         isOptionOpen = false;
 
+        UIPopUpManager.Instance.CloseOption();
         SceneManager.UnloadSceneAsync("OptionScene");
     }
 }

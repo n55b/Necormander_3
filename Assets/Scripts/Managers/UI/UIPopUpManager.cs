@@ -38,6 +38,7 @@ public class UIPopUpManager : MonoBehaviour
         popUpObj.SetActive(true);
         _currentPopUp = popUpObj;
         _isPopUpActive = true;
+        GameManager.Instance.SetTimeStop(true);
     }
 
     // 팝업 닫힐 때 호출해야 하는 메서드
@@ -48,6 +49,8 @@ public class UIPopUpManager : MonoBehaviour
             _currentPopUp.SetActive(false);
             _currentPopUp = null;
         }
+
+        GameManager.Instance.SetTimeStop(false);
         _isPopUpActive = false;
     }
 
@@ -59,8 +62,23 @@ public class UIPopUpManager : MonoBehaviour
             _currentPopUp.SetActive(false);
         }
 
+        GameManager.Instance.SetTimeStop(true);
         _currentPopUp = popUpObj;
         _isPopUpActive = true;
+    }
+
+    public bool PushOptionKey()
+    {
+        GameManager.Instance.SetTimeStop(true);
+        _isPopUpActive = true;
+
+        return true;
+    }
+
+    public void CloseOption()
+    {
+        _isPopUpActive = false;
+        GameManager.Instance.SetTimeStop(false);
     }
 
     /// Battle이나 Idle 상태 일 때 팝업 하는 것과 안 하는 것 관리

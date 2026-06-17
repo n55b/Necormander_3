@@ -68,9 +68,7 @@ public class GemTreeUI : MonoBehaviour
             UIPopUpManager.Instance.PopUpUI(mainPanel);
             UIEventBus.NotifyOpen("GemTree");;
             UIEventBus.NotifyOpen("GemTree");
- // 팝업 매니저에 상태 전달
-
-            mainPanel.SetActive(_isOpen);
+            // 팝업 매니저에 상태 전달
 
             RefreshUI();
         }
@@ -78,8 +76,6 @@ public class GemTreeUI : MonoBehaviour
         {
             // [추가] UI를 닫을 때 남아있을 수 있는 툴팁 강제 제거
             if (GemTooltipUI.Instance != null) GemTooltipUI.Instance.Hide();
-
-            mainPanel.SetActive(_isOpen);
 
             UIPopUpManager.Instance?.ClosePopUpUI();
             UIEventBus.NotifyClose("GemTree");// 팝업 매니저에 상태 전달

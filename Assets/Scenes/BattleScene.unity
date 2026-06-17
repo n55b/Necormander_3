@@ -1047,22 +1047,6 @@ PrefabInstance:
       propertyPath: minionSkillQueueUI
       value: 
       objectReference: {fileID: 432988342}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'DebugPlayerSkills.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 138d38128c227d744b24a5ad22a6c034, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'DebugPlayerSkills.Array.data[1]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 083258dd8e5cca04b953dc235db497e5, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: 'DebugPlayerSkills.Array.data[2]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 0088919065887b84399dce4d642c50e2, type: 2}
-    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: debugStartingAbilities.Array.size
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

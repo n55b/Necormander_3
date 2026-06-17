@@ -70,8 +70,8 @@ public class SoundManager : MonoBehaviour
     {
         if (clip == null) return;
         var src    = GetNextSfxSource();
-        src.pitch  = pitch;
-        src.volume = volume * globalSfxVolume; // Clamp01은 Audio 엔진이 처리
+        //src.pitch  = pitch;
+        src.volume = Mathf.Round(volume * globalSfxVolume * 100f) / 100f; // Clamp01은 Audio 엔진이 처리
         src.clip   = clip;
         src.Play();
     }

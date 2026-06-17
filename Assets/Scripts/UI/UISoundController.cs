@@ -26,7 +26,7 @@ public class UISoundController : MonoBehaviour
     [Header("기본 클립 (uiName 미등록 시 폴백)")]
     [SerializeField] private AudioClip defaultOpenClip;
     [SerializeField] private AudioClip defaultCloseClip;
-    [Range(0f, 1f)] [SerializeField] private float defaultVolume = 1f;
+    [Range(0f, 1f)] [SerializeField] private float defaultVolume = 0.5f;
 
     [Header("UI별 클립 등록")]
     [SerializeField] private List<UISoundEntry> entries = new List<UISoundEntry>();
