@@ -89,6 +89,14 @@ public class CharacterHealth : MonoBehaviour
         // 데미지 파이프라인: 계산 전 증폭/변형 이벤트
         DamageEventBus.TriggerBeforeDamageCalculated(this, ref info);
 
+        // [추가] 상처(Wounded) 부여 시 받피증 (Damage Amp) 적용
+        if (_status != null && _status.GetDebuffBool(DebuffBoolType.Wounded))
+        {
+            int woundTier = _status.GetDebuffTier(DebuffBoolType.Wounded);
+            float damageAmp = woundTier == 1 ? 0.15f : woundTier == 2 ? 0.30f : 0.45f; // 15%, 30%, 45%
+            info.amount *= (1f + damageAmp);
+        }
+
         float remainingDamage = info.amount;
 
         // [기초 개선안] 방패병 데미지 대신 받기 (15%)

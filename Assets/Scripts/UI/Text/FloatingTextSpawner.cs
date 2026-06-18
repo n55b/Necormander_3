@@ -96,6 +96,7 @@ public class FloatingTextSpawner : MonoBehaviour
         else if (typeStr == "Execution") color = Color.yellow; // 처형
         else if (typeStr == "MISS") color = Color.gray;        // 회피
 
+        if (FloatingTextManager.instance == null) return;
         TextFloating textObj = FloatingTextManager.instance.GetFromPool();
 
         textObj.SetUp(text, color, vec_float, isCritical);
@@ -107,6 +108,7 @@ public class FloatingTextSpawner : MonoBehaviour
         string text = $"+{amount:F1}"; // 소수점 첫째자리까지 힐량 표시
         Color color = Color.green;
 
+        if (FloatingTextManager.instance == null) return;
         TextFloating textObj = FloatingTextManager.instance.GetFromPool();
         textObj.SetUp(text, color, vec_float, false);
     }

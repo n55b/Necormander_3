@@ -116,6 +116,14 @@ public class CharacterStat : MonoBehaviour
         get
         {
             float chillReduction = (Status != null) ? GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy) : 0f;
+            
+            if (Status != null && Status.GetDebuffBool(DebuffBoolType.Fractured))
+            {
+                int fracTier = Status.GetDebuffTier(DebuffBoolType.Fractured);
+                float fracReduction = fracTier == 1 ? 0.15f : fracTier == 2 ? 0.30f : 0.45f;
+                chillReduction += fracReduction;
+            }
+
             float chillMult = Mathf.Max(0.1f, 1f - chillReduction);
             
             float bonusMult = _isPlayer ? 0f : GetGemBonus(StatType.AttackSpeed);
@@ -180,6 +188,13 @@ public class CharacterStat : MonoBehaviour
 
             float chillReduction = GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy);
             float agingReduction = GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy);
+
+            if (Status.GetDebuffBool(DebuffBoolType.Fractured))
+            {
+                int fracTier = Status.GetDebuffTier(DebuffBoolType.Fractured);
+                float fracReduction = fracTier == 1 ? 0.15f : fracTier == 2 ? 0.30f : 0.45f;
+                chillReduction += fracReduction;
+            }
 
             float reductionMult = Mathf.Max(0.1f, 1f - (chillReduction + agingReduction));
             float finalSpeed = (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
