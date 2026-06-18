@@ -183,7 +183,7 @@ public abstract class BaseEntity : MonoBehaviour
         if (!CanExecuteAI()) return;
 
         // [유니크] 공포 상태 처리
-        if (_stats != null && _stats.Status != null && _stats.Status.GetDebuffBool(DebuffBoolType.Feared))
+        if (_stats != null && _stats.Status != null && _stats.Status.GetDebuffBool(DebuffBoolType.Wounded))
         {
             ExecuteFearAI();
             return;
@@ -236,7 +236,7 @@ public abstract class BaseEntity : MonoBehaviour
         // [추가] 동결 또는 기절 상태라면 AI 중단
         if (_stats != null && _stats.Status != null)
         {
-            if (_stats.Status.GetDebuffBool(DebuffBoolType.Frozen) ||
+            if (_stats.Status.GetDebuffBool(DebuffBoolType.Stunned) ||
                 _stats.Status.GetDebuffBool(DebuffBoolType.Stunned))
                 return false;
         }

@@ -112,7 +112,7 @@ public class PoisonPuddle : MonoBehaviour
             {
                 targetsInPuddle.Add(status);
                 // 들어오자마자 1스택
-                status.AddDebuffStack(DebuffStackType.Poison, 1f);
+                status.AddDebuffStack(DebuffStackType.BloodPop, 1f);
             }
         }
     }
@@ -146,7 +146,7 @@ public class PoisonPuddle : MonoBehaviour
                     targetsInPuddle.RemoveAt(i);
                     continue;
                 }
-                targetsInPuddle[i].AddDebuffStack(DebuffStackType.Poison, 1f);
+                targetsInPuddle[i].AddDebuffStack(DebuffStackType.BloodPop, 1f);
             }
         }
     }

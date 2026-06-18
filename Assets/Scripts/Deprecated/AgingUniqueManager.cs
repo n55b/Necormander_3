@@ -40,7 +40,7 @@ public class AgingUniqueManager : MonoBehaviour
         foreach (var enemy in CharacterStatus.ActiveEnemies)
         {
             if (enemy == null) continue;
-            float currentStack = enemy.GetDebuffStack(DebuffStackType.Aging);
+            float currentStack = enemy.GetDebuffStack(DebuffStackType.Corrosion);
             if (currentStack > maxStack)
             {
                 maxStack = currentStack;

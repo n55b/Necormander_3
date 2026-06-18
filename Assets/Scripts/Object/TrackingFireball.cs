@@ -44,7 +44,7 @@ public class TrackingFireball : Projectile
     protected override void OnHitTarget(CharacterStat targetStat)
     {
         // 화염구는 마법 데미지로 처리
-        DamageInfo info = new DamageInfo(_damage, DamageType.Magical, _shooter);
+        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter);
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
     }

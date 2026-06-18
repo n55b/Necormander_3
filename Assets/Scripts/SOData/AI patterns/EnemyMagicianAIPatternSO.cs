@@ -76,7 +76,7 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
             circleObj.transform.localScale = new Vector3(explosionRadius, explosionRadius, 1f);
 
             // 마법사 장판은 마법 데미지로 취급
-            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Magical, entity.gameObject, false, 1f, true, "", false, false, 0f);
+            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, true, "", false, false, 0f);
             
             // 단발성 공격이므로 타격 판정은 0.2초간만 유지하고, waitTime 만큼 선딜레이(startDelay)를 줍니다.
             magicCircle.Init(info, entity.opponentLayer, 0.2f, waitTime);

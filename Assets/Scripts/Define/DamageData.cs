@@ -3,10 +3,11 @@ using UnityEngine;
 public enum DamageType
 {
     Physical,
-    Ice,
-    Fire,
-    Shadow,
-    Magical,
+    BloodPop,
+    Bleed,
+    Wound,
+    Corrosion,
+    Fracture,
     Fixed
 }
 [System.Serializable]

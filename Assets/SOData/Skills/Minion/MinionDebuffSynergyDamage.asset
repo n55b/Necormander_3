@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cbbbecbbae905d4e923dcd15e56edd8, type: 3}
+  m_Name: MinionDebuffSynergyDamage
+  m_EditorClassIdentifier: 
+  synergyType: 0
+  skillName: 디버프 연계 (피해)
+  description: 디버프 스택이 쌓인 적에게 날아가 160%의 추가 피해를 입힙니다.
+  icon: {fileID: 0}
+  cooldownTime: 5
+  skillSound: {fileID: 0}
+  skillSoundVolume: 0.85
+  shakeForce: 0.5
+  reactKeyword: 2
+  damageMultiplier: 1.6

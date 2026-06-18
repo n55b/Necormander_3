@@ -16,7 +16,7 @@ public class EnemyDebuffTerminal : Base_DebuffUITerminal
     public override void UpdateUI(DebuffBoolType type, float value)
     {
         Sprite _sprite = debuffData.GetSprite(type);
-        debuffUI.AddDebuff(type, _sprite);
+        debuffUI.AddDebuff(type, _sprite, (int)value);
     }
 
     public override void RemoveIcon(DebuffStackType type)

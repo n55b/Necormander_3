@@ -76,7 +76,7 @@ public class EnemyMagicianCircleAttack : MonoBehaviour
 
             if (stat != null && stat.Health != null)
             {
-                DamageInfo info = new DamageInfo(_damage, DamageType.Magical, _attacker);
+                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _attacker);
                 try
                 {
                     stat.Health.GetDamage(info);

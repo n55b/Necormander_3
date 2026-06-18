@@ -24,7 +24,7 @@ public class SynergyDamageAmplifier
             remainingDamage *= (1.0f + corrosionAmp);
         }
         
-        if (status.GetDebuffBool(DebuffBoolType.Senility))
+        if (status.GetDebuffBool(DebuffBoolType.Corroded))
         {
             float senilityAmp = GemRuleSystem.GetSenilityDamageAmp(isEnemyTarget);
             remainingDamage *= (1.0f + senilityAmp);

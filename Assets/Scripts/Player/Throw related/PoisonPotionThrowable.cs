@@ -94,12 +94,12 @@ public class PoisonPotionThrowable : ThrowableUnit
             var health = col.GetComponentInChildren<CharacterHealth>();
             if (health != null && !health.IsDead)
             {
-                health.GetDamage(new DamageInfo(explosionDamage, DamageType.Ice, null)); 
+                health.GetDamage(new DamageInfo(explosionDamage, DamageType.Physical, null)); 
                 
                 var status = col.GetComponentInChildren<CharacterStatus>();
                 if (status != null)
                 {
-                    status.AddDebuffStack(DebuffStackType.Poison, poisonStacks);
+                    status.AddDebuffStack(DebuffStackType.BloodPop, poisonStacks);
                 }
             }
         }

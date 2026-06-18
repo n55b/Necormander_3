@@ -19,9 +19,8 @@ public class CharacterStatus : MonoBehaviour
     public float TotalShield => _cachedTotalShield;
     public bool IsElite { get; set; } // [추가] 엘리트 유닛 여부
 
-    private Dictionary<DebuffStackType, float> _debuffStacks = new Dictionary<DebuffStackType, float>();
-    private Dictionary<DebuffStackType, float> _stackTimers = new Dictionary<DebuffStackType, float>();
     private Dictionary<DebuffBoolType, float> _boolTimers = new Dictionary<DebuffBoolType, float>();
+    private Dictionary<DebuffBoolType, int> _boolTiers = new Dictionary<DebuffBoolType, int>();
 
     [Header("New Trigger System")]
     private int _vulnerabilityStacks = 0;
@@ -37,10 +36,9 @@ public class CharacterStatus : MonoBehaviour
 
     private const float TRIGGER_STACK_DURATION = 20.0f;
 
-    private const float STACK_DURATION = 10.0f;
-    private float _poisonTimer = 0f;
-    private const float POISON_INTERVAL = 3.0f;
+    private float _bleedTickTimer = 0f;
 
+    private const float STACK_DURATION = 10.0f;
     [SerializeField] private Base_DebuffUITerminal debuffTerminal;
     
     private CharacterStat _stat;
@@ -101,6 +99,10 @@ public class CharacterStatus : MonoBehaviour
             _debuffTimer -= Time.deltaTime;
             if (_debuffTimer <= 0)
             {
+                if (debuffTerminal != null && _currentDebuffType != DebuffType.None)
+                {
+                    debuffTerminal.RemoveIcon(ConvertDebuffTypeToStackType(_currentDebuffType));
+                }
                 _debuffStackCount = 0;
                 _currentDebuffType = DebuffType.None;
             }
@@ -121,6 +123,14 @@ public class CharacterStatus : MonoBehaviour
             if (Time.time > _activeSpeedBuffs[i].EndTime) { _activeSpeedBuffs.RemoveAt(i); continue; }
             multiplier *= (1.0f + _activeSpeedBuffs[i].Increase);
         }
+        
+        if (GetDebuffBool(DebuffBoolType.Fractured))
+        {
+            int tier = GetDebuffTier(DebuffBoolType.Fractured);
+            float fracReduction = tier == 1 ? 0.12f : tier == 2 ? 0.24f : 0.36f;
+            multiplier *= (1.0f - fracReduction);
+        }
+
         _cachedMoveSpeedMultiplier = Mathf.Max(0.1f, multiplier);
 
         float sum = 0;
@@ -144,12 +154,6 @@ public class CharacterStatus : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        // [수정] 노쇠(Senility) 지속 시간 유지 로직: 노화 스택이 남아있으면 계속 5초 갱신
-        if (GetDebuffStack(DebuffStackType.Aging) > 0 && GetDebuffBool(DebuffBoolType.Senility))
-        {
-            _boolTimers[DebuffBoolType.Senility] = 5.0f;
-        }
-
         List<DebuffBoolType> boolKeys = new List<DebuffBoolType>(_boolTimers.Keys);
         foreach (var key in boolKeys)
         {
@@ -159,119 +163,27 @@ public class CharacterStatus : MonoBehaviour
                 if (_boolTimers[key] <= 0)
                 {
                     _boolTimers[key] = 0f;
+                    _boolTiers[key] = 0;
                     debuffTerminal.RemoveIcon(key); 
-                    
-                    if (key == DebuffBoolType.Senility)
-                    {
-                        Debug.Log($"<color=#BC8F8F>[Debuff]</color> <b>{gameObject.name}</b>: Senility Expired.");
-                    }
                 }
             }
         }
 
-        List<DebuffStackType> stackKeys = new List<DebuffStackType>(_stackTimers.Keys);
-        foreach (var key in stackKeys)
+        if (GetDebuffBool(DebuffBoolType.Bleeding))
         {
-            if (_stackTimers[key] > 0)
+            _bleedTickTimer += dt;
+            if (_bleedTickTimer >= 1.0f)
             {
-                _stackTimers[key] -= dt;
-                if (_stackTimers[key] <= 0) 
-                {
-                    _stackTimers[key] = 0;
-                    _debuffStacks[key] = 0;
-
-                    // UI 갱신
-                    debuffTerminal.RemoveIcon(key);
-                }
-            }
-        }
-
-        UpdatePoisonTick(dt);
-    }
-
-    private void UpdatePoisonTick(float dt)
-    {
-        int poisonStack = GetDebuffStack(DebuffStackType.Poison);
-        if (poisonStack > 0)
-        {
-            float interval = GemRuleSystem.GetPoisonInterval(IsEnemyTarget);
-
-            _poisonTimer += dt;
-            if (_poisonTimer >= interval)
-            {
-                _poisonTimer = 0f;
+                _bleedTickTimer -= 1.0f;
+                int tier = GetDebuffTier(DebuffBoolType.Bleeding);
+                float damage = 10f * (tier == 1 ? 0.24f : tier == 2 ? 0.36f : 0.48f);
                 var health = GetComponentInChildren<CharacterHealth>();
-                if (health != null)
-                {
-                    // [수정] 중독 피해량: 스택의 25%, 최소 1 대미지
-                    float damage = Mathf.Max(1f, poisonStack * 0.25f);
-                    health.GetDamage(new DamageInfo(damage, DamageType.Fixed, null, false, 1f, false, "Poison"));
-                }
-            }
-        }
-        else { _poisonTimer = 0f; }
-    }
-
-    private void SpawnPoisonPotion(Vector3 position)
-    {
-        var registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
-        GameObject potionObj = null;
-        Vector3 spawnPos = position + new Vector3(UnityEngine.Random.Range(-0.5f, 0.5f), UnityEngine.Random.Range(-0.5f, 0.5f), 0f);
-
-        if (registry != null && registry.poisonPotionPrefab != null)
-        {
-            potionObj = Instantiate(registry.poisonPotionPrefab, spawnPos, Quaternion.identity);
-            
-            // 만약 프리팹에 해당 컴포넌트가 없다면 부착 (일반적으로 프리팹에 미리 부착하는 것이 좋음)
-            if (potionObj.GetComponent<PoisonPotionThrowable>() == null)
-            {
-                var collider = potionObj.GetComponent<Collider2D>();
-                if (collider == null) 
-                {
-                    var circle = potionObj.AddComponent<CircleCollider2D>();
-                    circle.radius = 0.5f;
-                    circle.isTrigger = true;
-                }
-                potionObj.AddComponent<PoisonPotionThrowable>();
+                if (health != null) health.GetDamage(new DamageInfo(damage, DamageType.Bleed, null, false, 1f, false, "Bleed Tick"));
             }
         }
         else
         {
-            // 런타임에 기본 Sphere를 생성하고 컴포넌트 부착
-            potionObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            potionObj.name = "PoisonPotionThrowable";
-            
-            potionObj.transform.position = spawnPos;
-            potionObj.transform.localScale = Vector3.one * 0.4f;
-            
-            var renderer = potionObj.GetComponent<Renderer>();
-            if (renderer != null) renderer.material.color = new Color(0.2f, 0.8f, 0.2f); // 초록색
-            
-            potionObj.layer = LayerMask.NameToLayer("Default");
-            
-            // SphereCollider(3D) 제거 후 2D 콜라이더 부착
-            var collider3D = potionObj.GetComponent<Collider>();
-            if (collider3D != null) DestroyImmediate(collider3D);
-
-            var collider = potionObj.GetComponent<Collider2D>();
-            if (collider == null) 
-            {
-                var circle = potionObj.AddComponent<CircleCollider2D>();
-                circle.radius = 0.5f;
-                circle.isTrigger = true;
-            }
-
-            potionObj.AddComponent<PoisonPotionThrowable>();
-        }
-    }
-
-    // [추가] 상처 감염(WoundInfection) 유니크 보석 처리를 위한 타이머 앞당기기
-    public void AdvancePoisonTimer(float amount)
-    {
-        if (GetDebuffStack(DebuffStackType.Poison) > 0)
-        {
-            _poisonTimer += amount;
-            // 다음 프레임 UpdatePoisonTick()에서 _poisonTimer >= interval을 만족하면 바로 틱 피해가 들어감
+            _bleedTickTimer = 0f;
         }
     }
 
@@ -376,131 +288,13 @@ public class CharacterStatus : MonoBehaviour
         if (rb != null) rb.linearVelocity = Vector2.zero;
     }
 
-    public void AddDebuffStack(DebuffStackType type, float amount)
-    {
-        // [특수] 시리고 아린 뼈 (또는 기타 차단 로직)
-        if (type == DebuffStackType.Chill && GemRuleSystem.ShouldBlockChill(GetDebuffBool(DebuffBoolType.Frozen), IsEnemyTarget))
-        {
-            return;
-        }
-
-        // [시너지] 중독 추가 스택 등 보정
-        if (type == DebuffStackType.Poison)
-        {
-            amount = GemRuleSystem.ModifyIncomingPoisonStack(amount, IsEnemyTarget);
-        }
-
-        if (!_debuffStacks.ContainsKey(type)) _debuffStacks[type] = 0f;
-        _debuffStacks[type] += amount;
-
-        // [시너지] 유지시간 연장 보정
-        float duration = STACK_DURATION;
-        if (type == DebuffStackType.Poison) duration = GemRuleSystem.GetPoisonDuration(IsEnemyTarget);
-        _stackTimers[type] = duration;
-        
-        float maxStack = GetMaxStack(type);
-        _debuffStacks[type] = Mathf.Min(_debuffStacks[type], maxStack);
-
-        // UI 업데이트
-        debuffTerminal.UpdateUI(type, _debuffStacks[type]);
-
-        // [로그 강화] 디버프 종류별 색상 지정
-        string color = "white";
-        switch (type)
-        {
-            case DebuffStackType.Poison: color = "#32CD32"; break; // LimeGreen
-            case DebuffStackType.Chill: color = "#00BFFF"; break; // DeepSkyBlue
-            case DebuffStackType.Execute: color = "#FF4500"; break; // OrangeRed
-            case DebuffStackType.BloodPop: color = "#FF00FF"; break; // Magenta
-            case DebuffStackType.Aging: color = "#BC8F8F"; break; // RosyBrown
-        }
-
-        Debug.Log($"<color={color}>[Debuff]</color> <b>{gameObject.name}</b>: {type} +{amount:F1} (Current: <b>{_debuffStacks[type]:F1}/{maxStack}</b>)");
-
-        HandleStackTrigger(type);
-    }
-
-    private float GetMaxStack(DebuffStackType type)
-    {
-        switch (type)
-        {
-            case DebuffStackType.Poison: return 9999f; // 무제한
-            case DebuffStackType.Chill: return GemRuleSystem.GetMaxChillStacks(IsEnemyTarget);
-            case DebuffStackType.Aging: return GemRuleSystem.GetMaxAgingStacks(IsEnemyTarget);
-            case DebuffStackType.BloodPop: return 1000f; 
-            case DebuffStackType.Execute: return 1000f;
-            default: return 999f;
-        }
-    }
-
-    private void HandleStackTrigger(DebuffStackType type)
-    {
-        switch (type)
-        {
-            case DebuffStackType.Chill:
-                float threshold = GemRuleSystem.GetMaxChillStacks(IsEnemyTarget);
-                if (threshold > 0 && _debuffStacks[type] >= threshold)
-                {
-                    SetDebuffBool(DebuffBoolType.Frozen, 3.0f);
-                    
-                    // [유니크] 절대영도 (AbsoluteZero)
-                    ChillUniqueManager.Instance?.TriggerAbsoluteZero(transform.position);
-                    
-                    // [시너지] 환급 로직 적용
-                    _debuffStacks[type] = GemRuleSystem.GetFreezeRefundStacks(IsEnemyTarget);
-                    _stackTimers[type] = STACK_DURATION;
-
-                    // [시너지] 동결 시 체력 비례 고정 피해 로직
-                    if (GemRuleSystem.HasFreezeFixedDamage(IsEnemyTarget))
-                    {
-                        var health = GetComponentInChildren<CharacterHealth>();
-                        if (health != null)
-                        {
-                            float percent = GemRuleSystem.GetChillFreezeDamagePercentage(IsElite);
-                            float freezeDmg = Mathf.Max(1f, health.CurHP * percent);
-                            health.GetDamage(new DamageInfo(freezeDmg, DamageType.Fixed, null));
-                        }
-                    }
-                }
-                break;
-            case DebuffStackType.Aging:
-                // [노화] 스택 상한 도달 시 노쇠(Senility) 발동
-                float agingMax = GemRuleSystem.GetMaxAgingStacks(IsEnemyTarget);
-                if (agingMax > 0 && _debuffStacks[type] >= agingMax)
-                {
-                    SetDebuffBool(DebuffBoolType.Senility, 5.0f);
-                }
-
-                // [유니크] 노인을 위한 나라는 없다: 즉사 체크
-                if (GemRuleSystem.ShouldAgingInstaKill(_debuffStacks[type], IsEnemyTarget))
-                {
-                    if (!IsElite) 
-                    {
-                        var health = GetComponentInChildren<CharacterHealth>();
-                        if (health != null) health.GetDamage(new DamageInfo(health.CurHP + 999f, DamageType.Fixed, null, false, 1f, false, "Execution"));
-                    }
-                }
-                break;
-        }
-    }
-
-    public int GetDebuffStack(DebuffStackType type)
-    {
-        return _debuffStacks.ContainsKey(type) ? Mathf.FloorToInt(_debuffStacks[type]) : 0;
-    }
-
-    public void SetDebuffBool(DebuffBoolType type, float duration)
+    public void SetDebuffBool(DebuffBoolType type, float duration, int tier = 0)
     {
         if (!_boolTimers.ContainsKey(type)) _boolTimers[type] = 0f;
         _boolTimers[type] = Mathf.Max(_boolTimers[type], duration);
+        _boolTiers[type] = tier;
 
-        // [추가] Bool 타입 디버프도 UI에 아이콘 표시 (부식 등)
-        debuffTerminal.UpdateUI(type, 0f); 
-        
-        if (type == DebuffBoolType.Corroded)
-        {
-            Debug.Log($"<color=#FFD700>[Debuff]</color> <b>{gameObject.name}</b>: Corroded Applied! (Duration: {duration}s)");
-        }
+        debuffTerminal.UpdateUI(type, tier); 
     }
 
     public bool GetDebuffBool(DebuffBoolType type)
@@ -508,19 +302,129 @@ public class CharacterStatus : MonoBehaviour
         return _boolTimers.ContainsKey(type) && _boolTimers[type] > 0;
     }
 
-    public void ForceUnfreeze()
+    public int GetDebuffTier(DebuffBoolType type)
     {
-        if (_boolTimers.ContainsKey(DebuffBoolType.Frozen))
-        {
-            _boolTimers[DebuffBoolType.Frozen] = 0f;
-            debuffTerminal.RemoveIcon(DebuffBoolType.Frozen);
-            Debug.Log($"<color=#00FFFF>[Debuff]</color> <b>{gameObject.name}</b>: Frozen Shattered!");
-        }
+        return _boolTiers.ContainsKey(type) ? _boolTiers[type] : 0;
     }
 
     #region New Trigger System
 
-    public void ApplyVulnerability(bool isPlayerApplied)
+        public void ApplyElementalDebuff(DebuffStackType type, int amount = 1, GameObject attacker = null)
+    {
+        if (_stat != null && _stat.IsDead) return;
+
+        DebuffType newType = ConvertStackTypeToDebuffType(type);
+        if (newType == DebuffType.None) return;
+
+        if (_currentDebuffType != newType && _debuffStackCount > 0)
+        {
+            PopCurrentDebuff(attacker);
+            _currentDebuffType = newType;
+            _debuffStackCount = amount;
+            _debuffTimer = TRIGGER_STACK_DURATION;
+        }
+        else
+        {
+            if (_currentDebuffType == DebuffType.None)
+            {
+                _currentDebuffType = newType;
+                _debuffStackCount = amount;
+            }
+            else
+            {
+                _debuffStackCount = Mathf.Min(3, _debuffStackCount + amount);
+            }
+            _debuffTimer = TRIGGER_STACK_DURATION;
+        }
+
+        if (debuffTerminal != null)
+        {
+            debuffTerminal.UpdateUI(ConvertDebuffTypeToStackType(_currentDebuffType), _debuffStackCount);
+        }
+    }
+
+    private DebuffType ConvertStackTypeToDebuffType(DebuffStackType stackType)
+    {
+        switch(stackType)
+        {
+            case DebuffStackType.BloodPop: return DebuffType.BloodPop;
+            case DebuffStackType.Bleed: return DebuffType.Bleed;
+            case DebuffStackType.Wound: return DebuffType.Wound;
+            case DebuffStackType.Corrosion: return DebuffType.Corrosion;
+            case DebuffStackType.Fracture: return DebuffType.Fracture;
+            default: return DebuffType.None;
+        }
+    }
+
+    private DebuffStackType ConvertDebuffTypeToStackType(DebuffType type)
+    {
+        switch(type)
+        {
+            case DebuffType.BloodPop: return DebuffStackType.BloodPop;
+            case DebuffType.Bleed: return DebuffStackType.Bleed;
+            case DebuffType.Wound: return DebuffStackType.Wound;
+            case DebuffType.Corrosion: return DebuffStackType.Corrosion;
+            case DebuffType.Fracture: return DebuffStackType.Fracture;
+            default: return DebuffStackType.BloodPop;
+        }
+    }
+
+    private void PopCurrentDebuff(GameObject attacker)
+    {
+        if (_debuffStackCount == 0 || _currentDebuffType == DebuffType.None) return;
+
+        float baseDmg = 10f;
+        float burstDmg = 0f;
+        int stacks = _debuffStackCount;
+
+        switch (_currentDebuffType)
+        {
+            case DebuffType.BloodPop:
+                burstDmg = baseDmg * (stacks == 1 ? 2.4f : stacks == 2 ? 3.6f : 4.8f);
+                Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, 3f + (stacks * 0.5f), LayerMask.GetMask("Enemy"));
+                foreach (var col in cols)
+                {
+                    var health = col.GetComponent<CharacterHealth>();
+                    if (health != null) health.GetDamage(new DamageInfo(burstDmg, DamageType.BloodPop, attacker, false, 1f, false, "BloodPop Explosion"));
+                }
+                break;
+            case DebuffType.Bleed:
+                burstDmg = baseDmg * (stacks == 1 ? 1.6f : stacks == 2 ? 2.4f : 3.2f);
+                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Bleed, attacker, false, 1f, false, "Bleed Pop"));
+                SetDebuffBool(DebuffBoolType.Bleeding, 10f, stacks);
+                break;
+            case DebuffType.Wound:
+                burstDmg = baseDmg * (stacks == 1 ? 1.6f : stacks == 2 ? 2.4f : 3.2f);
+                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Wound, attacker, false, 1f, false, "Wound Pop"));
+                SetDebuffBool(DebuffBoolType.Wounded, 10f, stacks);
+                break;
+            case DebuffType.Corrosion:
+                burstDmg = baseDmg * (stacks == 1 ? 1.6f : stacks == 2 ? 2.4f : 3.2f);
+                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Corrosion, attacker, false, 1f, false, "Corrosion Pop"));
+                SetDebuffBool(DebuffBoolType.Corroded, 15f, stacks);
+                break;
+            case DebuffType.Fracture:
+                burstDmg = baseDmg * 1.3f;
+                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Fracture, attacker, false, 1f, false, "Fracture Pop"));
+                float fracDur = stacks == 1 ? 6f : stacks == 2 ? 7f : 8f;
+                SetDebuffBool(DebuffBoolType.Fractured, fracDur, stacks);
+                break;
+        }
+
+        if (debuffTerminal != null && _currentDebuffType != DebuffType.None)
+        {
+            debuffTerminal.RemoveIcon(ConvertDebuffTypeToStackType(_currentDebuffType));
+        }
+
+        _debuffStackCount = 0;
+        _currentDebuffType = DebuffType.None;
+        _debuffTimer = 0f;
+    }
+
+    #endregion
+
+    // === Restored Methods for Compatibility & Triggers ===
+    public void ApplyVulnerability(bool isPlayerApplied = false)
     {
         if (_stat != null && _stat.IsDead) return;
 
@@ -530,66 +434,13 @@ public class CharacterStatus : MonoBehaviour
         _vulnerabilityTimer = TRIGGER_STACK_DURATION;
         debuffTerminal.UpdateUI(DebuffStackType.Vulnerability, _vulnerabilityStacks);
 
-        if (isPlayerApplied)
+        if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Vulnerability, transform);
         }
     }
 
-    public void ApplyDebuff(DebuffType type, GameObject attacker, bool isPlayerApplied)
-    {
-        if (_stat != null && _stat.IsDead || type == DebuffType.None) return;
-
-        if (_currentDebuffType == type)
-        {
-            if (_debuffStackCount < 3)
-                _debuffStackCount++;
-            _debuffTimer = TRIGGER_STACK_DURATION;
-        }
-        else
-        {
-            if (_debuffStackCount > 0)
-            {
-                PopCurrentDebuff(attacker);
-            }
-            
-            // 만약 터트림 이후 스택이 0이 되었다면 (즉, 기존에 아무것도 없었거나 방금 터졌거나)
-            // 기획: "다른 디버프 적용 시 새로 가한 디버프 스택은 부여되지 않음"
-            // 방금 터졌다면 적용 불가, 원래 0이었다면 적용 가능!
-            if (_currentDebuffType == DebuffType.None)
-            {
-                _currentDebuffType = type;
-                _debuffStackCount = 1;
-                _debuffTimer = TRIGGER_STACK_DURATION;
-            }
-        }
-
-        if (isPlayerApplied)
-        {
-            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Debuff, transform);
-        }
-    }
-
-    public void ApplyStatusEffect(SkillKeyword statusType, GameObject attacker, bool isPlayerApplied)
-    {
-        // 상태이상 부여 시 기존 디버프 터트림 발동
-        if (_debuffStackCount > 0)
-        {
-            PopCurrentDebuff(attacker);
-        }
-
-        if (statusType == SkillKeyword.Stun)
-        {
-            ConsumeVulnerability(SkillKeyword.Stun, attacker, isPlayerApplied);
-        }
-
-        if (isPlayerApplied)
-        {
-            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(statusType, transform);
-        }
-    }
-
-    public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker, bool isPlayerApplied)
+    public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker = null, bool isPlayerApplied = false)
     {
         if (consumeType == SkillKeyword.Stun)
         {
@@ -610,7 +461,7 @@ public class CharacterStatus : MonoBehaviour
 
                 if (duration > 0f) SetDebuffBool(DebuffBoolType.Stunned, duration);
 
-                if (isPlayerApplied)
+                if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
                     GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
                 }
@@ -620,17 +471,11 @@ public class CharacterStatus : MonoBehaviour
         {
             if (_vulnerabilityStacks > 0)
             {
-                // 격파: 기본 공격 피격 데미지 증가 (구현은 CharacterHealth 쪽에서 처리하도록 추가 필요)
-                // 지금은 타이머와 효과 정보만 설정
-                float duration = _vulnerabilityStacks == 1 ? 12f : _vulnerabilityStacks == 2 ? 18f : 24f;
-                // TODO: 격파 상태 등록 로직 추가
-                Debug.Log($"<color=orange>격파 터짐! {_vulnerabilityStacks}스택. {duration}초간 기본공격 피해 증가.</color>");
-
                 _vulnerabilityStacks = 0;
                 _vulnerabilityTimer = 0f;
                 debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
 
-                if (isPlayerApplied)
+                if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
                     GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
                 }
@@ -648,7 +493,7 @@ public class CharacterStatus : MonoBehaviour
                 _vulnerabilityTimer = 0f;
                 debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
 
-                if (isPlayerApplied)
+                if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
                     GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
                 }
@@ -656,58 +501,60 @@ public class CharacterStatus : MonoBehaviour
         }
     }
 
-    private void PopCurrentDebuff(GameObject attacker)
+    public void ApplyStatusEffect(SkillKeyword statusType, GameObject attacker = null, bool isPlayerApplied = false)
     {
-        if (_debuffStackCount == 0 || _currentDebuffType == DebuffType.None) return;
-
-        float baseDmg = 10f; // 임시 고정 수치
-        float burstDmg = 0f;
-
-        switch (_currentDebuffType)
+        if (_debuffStackCount > 0)
         {
-            case DebuffType.Explosion:
-                burstDmg = baseDmg * (_debuffStackCount == 1 ? 2.4f : _debuffStackCount == 2 ? 3.6f : 4.8f);
-                // 광역 폭발
-                Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, 3f, LayerMask.GetMask("Enemy"));
-                foreach (var col in cols)
-                {
-                    var health = col.GetComponent<CharacterHealth>();
-                    if (health != null) health.GetDamage(new DamageInfo(burstDmg, DamageType.Magical, attacker, false, 1f, false, "Explosion Pop"));
-                }
-                break;
-            case DebuffType.Bleed:
-                burstDmg = baseDmg * (_debuffStackCount == 1 ? 1.6f : _debuffStackCount == 2 ? 2.4f : 3.2f);
-                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Fixed, attacker, false, 1f, false, "Bleed Pop"));
-                // 지속딜 로직 등록
-                break;
-            case DebuffType.Wound:
-                burstDmg = baseDmg * (_debuffStackCount == 1 ? 1.6f : _debuffStackCount == 2 ? 2.4f : 3.2f);
-                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Fixed, attacker, false, 1f, false, "Wound Pop"));
-                // 받피증 증가 로직 등록
-                break;
-            case DebuffType.Corrosion:
-                burstDmg = baseDmg * (_debuffStackCount == 1 ? 1.6f : _debuffStackCount == 2 ? 2.4f : 3.2f);
-                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Fixed, attacker, false, 1f, false, "Corrosion Pop"));
-                // 방깎 로직 등록
-                break;
-            case DebuffType.Fracture:
-                burstDmg = baseDmg * 1.3f;
-                GetComponent<CharacterHealth>().GetDamage(new DamageInfo(burstDmg, DamageType.Fixed, attacker, false, 1f, false, "Fracture Pop"));
-                // 속깎 로직 등록
-                break;
+            PopCurrentDebuff(attacker);
         }
 
-        // 터트림 완료 후 초기화
-        _debuffStackCount = 0;
-        _currentDebuffType = DebuffType.None;
-        _debuffTimer = 0f;
+        if (statusType == SkillKeyword.Stun)
+        {
+            ConsumeVulnerability(SkillKeyword.Stun, attacker, isPlayerApplied);
+        }
+
+        if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        {
+            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(statusType, transform);
+        }
     }
 
-    #endregion
+    public void ApplyDebuff(DebuffType type, GameObject attacker = null, bool isPlayerApplied = false)
+    {
+        // Redirect to ApplyElementalDebuff logic
+        DebuffStackType stackType = DebuffStackType.BloodPop; // Default fallback
+        if (type == DebuffType.BloodPop) stackType = DebuffStackType.BloodPop;
+        else if (type == DebuffType.Bleed) stackType = DebuffStackType.Bleed;
+        else if (type == DebuffType.Wound) stackType = DebuffStackType.Wound;
+        else if (type == DebuffType.Corrosion) stackType = DebuffStackType.Corrosion;
+        else if (type == DebuffType.Fracture) stackType = DebuffStackType.Fracture;
+        
+        ApplyElementalDebuff(stackType, 1, attacker);
+
+        if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        {
+            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Debuff, transform);
+        }
+    }
+
+    // Temporary Obsolete Mappings to fix compile errors for deprecated scripts
+    public void AddDebuffStack(DebuffStackType type, float amount)
+    {
+        // Just route it to ElementalDebuff if it's one of the new ones
+        ApplyElementalDebuff(type, Mathf.CeilToInt(amount));
+    }
+
+    public int GetDebuffStack(DebuffStackType type)
+    {
+        // Return 0 for obsolete types to let them compile
+        return 0;
+    }
+    // ==============================================================
+
 
     public void ClearStatus()
     {
-        _activeSlows.Clear(); _shieldInstances.Clear(); _debuffStacks.Clear(); _stackTimers.Clear(); _boolTimers.Clear();
+        _activeSlows.Clear(); _shieldInstances.Clear(); _boolTimers.Clear();
         _cachedMoveSpeedMultiplier = 1f; _cachedTotalShield = 0f;
 
         // UI 갱신

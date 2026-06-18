@@ -12,16 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efa96912b61e0524faaffc29c74d243a, type: 3}
   m_Name: DebuffData
   m_EditorClassIdentifier: 
-  poisonIcon: {fileID: 6904289081528659875, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
-  chillIcon: {fileID: 851069327, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
-  executeIcon: {fileID: 593807851, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
-  bloodPopIcon: {fileID: 944605690, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
-  agingIcon: {fileID: 1644328816, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
   vulnerabilityIcon: {fileID: 944605690, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
-  corrodedIcon: {fileID: 1190683440, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
-  fearedIcon: {fileID: 0}
-  frozenIcon: {fileID: 0}
+  bloodPopIcon: {fileID: 944605690, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  bleedIcon: {fileID: 6904289081528659875, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  woundIcon: {fileID: 593807851, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  corrosionIcon: {fileID: 1190683440, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  fractureIcon: {fileID: 1190683440, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
   stunnedIcon: {fileID: 1644328816, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
-  senilityIcon: {fileID: 0}
-  bloodPopVulnerableIcon: {fileID: 0}
-  poisonHostIcon: {fileID: 0}

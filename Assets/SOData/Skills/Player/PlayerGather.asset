@@ -12,11 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96cfbf1dbb62ccb4a887048c556ed592, type: 3}
   m_Name: PlayerGather
   m_EditorClassIdentifier: 
-  skillName: "멱살잡기"
-  description: "전방의 적을 자신의 앞으로 끌어당기고 60%의 피해와 취약 1스택을 부여합니다."
+  skillName: "\uBA71\uC0B4\uC7A1\uAE30"
+  description: "\uC804\uBC29\uC758 \uC801\uC744 \uC790\uC2E0\uC758 \uC55E\uC73C\uB85C
+    \uB04C\uC5B4\uB2F9\uAE30\uACE0 60%\uC758 \uD53C\uD574\uC640 \uCDE8\uC57D 1\uC2A4\uD0DD\uC744
+    \uBD80\uC5EC\uD569\uB2C8\uB2E4."
   icon: {fileID: 7693308044905398322, guid: cf3f5ee9f0c370c4584f100456ab0454, type: 3}
   cooldownTime: 10
-  hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
+  skillSound: {fileID: 0}
+  skillSoundVolume: 0.85
+  shakeForce: 0.5
+  hitBoxPrefab: {fileID: -7664338518204726940, guid: d1ce623f6fad4bb4dba1c4257fa1fefa, type: 3}
   gatherRadius: 4
   gatherDuration: 0.2
   damageMultiplier: 0.6

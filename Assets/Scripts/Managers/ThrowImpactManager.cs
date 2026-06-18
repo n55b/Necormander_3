@@ -136,11 +136,11 @@ public class ThrowImpactManager : MonoBehaviour
                     }
 
                     // [특수] 치명적인 독: 현재 부여된 독 스택을 배로 올려줌 (GemRuleSystem에서 보너스량 계산)
-                    int current = status.GetDebuffStack(DebuffStackType.Poison);
+                    int current = status.GetDebuffStack(DebuffStackType.BloodPop);
                     float bonus = GemRuleSystem.GetLethalPoisonBonus(current);
                     if (bonus > 0)
                     {
-                        status.AddDebuffStack(DebuffStackType.Poison, bonus);
+                        status.AddDebuffStack(DebuffStackType.BloodPop, bonus);
                     }
                 }
             }

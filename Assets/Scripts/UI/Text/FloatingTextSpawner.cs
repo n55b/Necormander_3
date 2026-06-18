@@ -65,22 +65,36 @@ public class FloatingTextSpawner : MonoBehaviour
         }
     }
 
-    private void ShowDamageText(int damage, string type, bool isCritical)
+    private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool isCritical)
     {
-        string text = type == "MISS" ? "MISS" : damage.ToString();
-        Color color;
-        if(this.transform.gameObject.layer != LayerMask.NameToLayer("Army"))
-            color = Color.white;
-        else
+        string text = typeStr == "MISS" ? "MISS" : damage.ToString();
+        Color color = Color.white;
+        
+        if(this.transform.gameObject.layer == LayerMask.NameToLayer("Army"))
             color = Color.red;
+        else
+        {
+            // 데미지 타입에 따른 색상 지정
+            switch (dmgType)
+            {
+                case DamageType.Physical: color = Color.white; break;
+                case DamageType.Fixed: color = Color.cyan; break; // 고정 데미지는 청록색
+                case DamageType.BloodPop: color = Color.yellow; break; // 비폭은 노란색
+                case DamageType.Bleed: color = Color.red; break; // 출혈은 붉은색
+                case DamageType.Wound: color = new Color(1f, 0.5f, 0f); break; // 상처는 주황색
+                case DamageType.Corrosion: color = Color.green; break; // 부식은 초록색
+                case DamageType.Fracture: color = new Color(0.5f, 0f, 0.5f); break; // 골절은 보라색
+                default: color = Color.white; break;
+            }
+        }
 
-        if (type == "Poison") color = Color.green;          // 중독뎀
-        else if (type == "Corroded") color = Color.magenta; // 부식
-        else if (type == "Rusted") color = new Color(0.6f, 0.4f, 0.2f); // 갈색
-        else if (type == "Shield") color = Color.grey;      // 쉴드
-        else if (type == "Execution") color = Color.yellow; // 처형
-        else if (type == "BloodPop") color = Color.red;     // 비폭
-        else if (type == "MISS") color = Color.gray;        // 회피
+        // 특수한 팝업 스트링이 있을 경우 강제 덮어쓰기
+        if (typeStr == "Poison") color = Color.green;          // 중독뎀
+        else if (typeStr == "Corroded") color = Color.magenta; // 구버전 부식 (필요시 삭제)
+        else if (typeStr == "Rusted") color = new Color(0.6f, 0.4f, 0.2f); // 갈색
+        else if (typeStr == "Shield") color = Color.grey;      // 쉴드
+        else if (typeStr == "Execution") color = Color.yellow; // 처형
+        else if (typeStr == "MISS") color = Color.gray;        // 회피
 
         TextFloating textObj = FloatingTextManager.instance.GetFromPool();
 

@@ -22,23 +22,21 @@ public enum DebuffCategory
 
 public enum DebuffStackType
 {
-    Poison,     // 중독
-    Chill,      // 한기
-    Execute,    // 처형
-    BloodPop,   // 비폭
-    Aging,      // 노화
-    Vulnerability // 취약 (추가)
+    Vulnerability, // 취약
+    BloodPop,      // 비폭
+    Bleed,         // 출혈
+    Wound,         // 상처
+    Corrosion,     // 부식
+    Fracture       // 골절
 }
 
 public enum DebuffBoolType
 {
-    Frozen,     // 동결
-    Stunned,    // 기절
-    Corroded,   // 부식
-    Senility,   // 노쇠
-    Feared,     // 공포
-    BloodPopVulnerable, // 비폭 폭발 약점
-    PoisonHost  // 숙주
+    Stunned,       // 기절 (취약 소모)
+    Bleeding,      // 출혈 상태
+    Wounded,       // 상처 상태
+    Corroded,      // 부식 상태
+    Fractured      // 골절 상태
 }
 
 [System.Flags]

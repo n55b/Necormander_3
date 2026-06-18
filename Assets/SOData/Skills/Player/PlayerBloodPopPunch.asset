@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bc92c64e57bed3459bb881f21fce60a, type: 3}
+  m_Name: PlayerBloodPopPunch
+  m_EditorClassIdentifier: 
+  skillName: "\uD3ED\uBC1C \uD380\uCE58"
+  description: "\uD50C\uB808\uC774\uC5B4\uAC00 \uBC14\uB2E5\uC744 \uB0B4\uB824\uCCD0
+    2\uCE78 \uBC94\uC704 \uB0B4\uC5D0 \uD53C\uD574\uB97C \uC8FC\uACE0 \uBE44\uD3ED
+    \uC2A4\uD0DD\uC744 \uBD80\uC5EC\uD569\uB2C8\uB2E4."
+  icon: {fileID: 0}
+  cooldownTime: 5
+  skillSound: {fileID: 0}
+  skillSoundVolume: 0.85
+  shakeForce: 0.5
+  hitBoxPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
+  hitRadius: 2
+  damageMultiplier: 0.9

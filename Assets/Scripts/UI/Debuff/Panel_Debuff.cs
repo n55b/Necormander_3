@@ -32,17 +32,19 @@ public class Panel_Debuff : MonoBehaviour
     }
 
     // [추가] Bool 타입 디버프 추가
-    public void AddDebuff(DebuffBoolType type, Sprite sprite)
+    public void AddDebuff(DebuffBoolType type, Sprite sprite, int _stack)
     {
         if (activeBoolIcons.TryGetValue(type, out DebuffIcon existingIcon))
         {
-            existingIcon.UpdateStack(0); // Bool 타입은 스택 표시 안함 (0)
+            existingIcon.UpdateStack(_stack); // 전달받은 스택 값 사용 (0이면 알아서 안보임)
+            existingIcon.SetTriggeredState(true);
         }
         else
         {
             DebuffIcon newIcon = DebuffPool.Instance.Pop();
             newIcon.transform.SetParent(this.transform, false);
-            newIcon.Initialize(sprite, 0, DebuffStackType.Poison); // 임시 타입 (UI 표시용)
+            newIcon.Initialize(sprite, _stack, DebuffStackType.Vulnerability); // 임시 타입 (UI 표시용)
+            newIcon.SetTriggeredState(true);
             activeBoolIcons.Add(type, newIcon);
         }
     }

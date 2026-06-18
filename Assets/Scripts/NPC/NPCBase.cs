@@ -20,7 +20,7 @@ public class NPCBase : MonoBehaviour, IInteractable
     [SerializeField] protected PopupSystem popupSystem;
 
     [Header("NPC UI Name")]
-    [SerializeField] public string name = "";
+    [SerializeField] public new string name = "";
 
     // ─── IInteractable ────────────────────────────────────────────────
     public virtual string InteractionPrompt => "F : 상호작용";

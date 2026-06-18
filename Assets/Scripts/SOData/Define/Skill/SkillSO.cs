@@ -13,7 +13,7 @@ public enum SkillKeyword
 public enum DebuffType
 {
     None = 0,
-    Explosion,   // 비폭
+    BloodPop,    // 비폭
     Bleed,       // 출혈
     Wound,       // 상처
     Corrosion,   // 부식

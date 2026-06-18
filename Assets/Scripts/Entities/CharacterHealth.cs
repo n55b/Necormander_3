@@ -25,7 +25,7 @@ public class CharacterHealth : MonoBehaviour
     public bool IsDead => isDead;
     public bool Invincible { get { return invincible; } set { invincible = value; } }
 
-    public event Action<int, string, bool> TakeDamageEvent;
+    public event Action<int, DamageType, string, bool> TakeDamageEvent;
     public event Action<float> TakeHealEvent;
 
     public void Init(CharacterStat stat, CharacterStatus status)
@@ -55,7 +55,7 @@ public class CharacterHealth : MonoBehaviour
                     DamageEventBus.TriggerEvasionOccurred(this, attackerStat);
 
                     // 회피 성공
-                    TakeDamageEvent?.Invoke(0, "MISS", false);
+                    TakeDamageEvent?.Invoke(0, info.type, "MISS", false);
                     return;
                 }
                 // else (명중 성공) 시 아래의 데미지 파이프라인으로 계속 진행됨
@@ -143,14 +143,12 @@ public class CharacterHealth : MonoBehaviour
                     int bloodPopSynergy = inven.GetSynergyCount(GemSynergyGroup.BloodPop);
                     int executionSynergy = inven.GetSynergyCount(GemSynergyGroup.Execution);
 
-                    if (poisonSynergy >= 2)
-                        _status.AddDebuffStack(DebuffStackType.Poison, 1f);
+                    // Obsolete Poison synergy removed
                         
-                    if (bloodPopSynergy >= 2)
-                        _status.AddDebuffStack(DebuffStackType.BloodPop, 1f);
+                    // Obsolete BloodPop synergy removed
                         
                     if (executionSynergy >= 2)
-                        _status.AddDebuffStack(DebuffStackType.Execute, 1f);
+                        _status.AddDebuffStack(DebuffStackType.Wound, 1f);
                 }
             }
         }
@@ -162,7 +160,7 @@ public class CharacterHealth : MonoBehaviour
             remainingDamage -= absorbed;
             if (absorbed > 0) OnDamageTaken?.Invoke(0f);
             // 쉴드 데미지 별개로 표시
-            TakeDamageEvent?.Invoke((int)absorbed, "Shield", false);
+            TakeDamageEvent?.Invoke((int)absorbed, info.type, "Shield", false);
         }
 
         // [최종 데미지 및 체력 차감]
@@ -184,7 +182,7 @@ public class CharacterHealth : MonoBehaviour
             if (!string.IsNullOrEmpty(info.popupText))
                 popupStr = info.popupText;
 
-            TakeDamageEvent?.Invoke((int)finalDamage, popupStr, false);
+            TakeDamageEvent?.Invoke((int)finalDamage, info.type, popupStr, false);
 
             // 실제 데미지 피격 후 이벤트 트리거
             DamageEventBus.TriggerDamageReceived(this, info);
@@ -193,7 +191,7 @@ public class CharacterHealth : MonoBehaviour
         // [처형] 체크
         if (_status != null && !isDead)
         {
-            float executeThreshold = _status.GetDebuffStack(DebuffStackType.Execute);
+            float executeThreshold = _status.GetDebuffStack(DebuffStackType.Wound);
 
             // 처형 계산 전 이벤트 트리거 (단두대 등에서 Threshold 증폭)
             if (executeThreshold > 0)
@@ -203,7 +201,7 @@ public class CharacterHealth : MonoBehaviour
 
             if (executeThreshold > 0 && curHP > 0 && curHP <= executeThreshold)
             {
-                TakeDamageEvent?.Invoke((int)executeThreshold, "Execution", false);
+                TakeDamageEvent?.Invoke((int)executeThreshold, DamageType.Fixed, "Execution", false);
                 curHP = 0;
 
                 // 처형 완료 이벤트 트리거 (공포 등 발동)
@@ -348,9 +346,9 @@ public class CharacterHealth : MonoBehaviour
         StatusEventBus.TriggerBloodPopExplodeAfterDamage(this, finalDamage, explosionRadius, colls);
     }
 
-    public void TriggerDamagePopup(int amount, string type, bool isCritical)
+    public void TriggerDamagePopup(int amount, DamageType dmgType, string type, bool isCritical)
     {
-        TakeDamageEvent?.Invoke(amount, type, isCritical);
+        TakeDamageEvent?.Invoke(amount, dmgType, type, isCritical);
     }
 
     public void ApplyFearToSurroundingEnemies()
@@ -363,7 +361,7 @@ public class CharacterHealth : MonoBehaviour
             if (targetStatus != null && targetStatus != _status && !targetStatus.IsElite)
             {
                 // 주변 일반 적에게만 공포 1초 부여
-                targetStatus.SetDebuffBool(DebuffBoolType.Feared, 1.0f);
+                // targetStatus.SetDebuffBool(DebuffBoolType.Wounded, 1.0f);
             }
         }
     }

@@ -58,7 +58,21 @@ public class TranslationPatcher : EditorWindow
             {"MinionReaction_Type4_3_Smash_Name", "연계 4.3"},
             {"MinionReaction_Type4_3_Smash_Desc", "대상에게 순간이동하여 타격하고, 취약 스택이 3스택 이상이면 강타를 부여합니다."},
             {"MinionReaction_Type5_StunExt_Name", "연계 5"},
-            {"MinionReaction_Type5_StunExt_Desc", "대상에게 순간이동하여 타격하고, 대상이 기절 상태이면 기절 시간을 연장합니다."}
+            {"MinionReaction_Type5_StunExt_Desc", "대상에게 순간이동하여 타격하고, 대상이 기절 상태이면 기절 시간을 연장합니다."},
+            {"Skill_PlayerBloodPopPunch_Name", "폭발 펀치"},
+            {"Skill_PlayerBloodPopPunch_Desc", "플레이어가 바닥을 내려쳐 2칸 범위 내에 피해를 주고 비폭 스택을 부여합니다."},
+            {"Skill_PlayerBleedCone_Name", "날카로운 파편"},
+            {"Skill_PlayerBleedCone_Desc", "전방의 작은 부채꼴 범위의 적에게 손날 비껴치기를 시전하여 출혈 스택을 부여합니다."},
+            {"Skill_PlayerWoundPunch_Name", "까칠한 주먹"},
+            {"Skill_PlayerWoundPunch_Desc", "전방의 적에게 주먹을 질러 상처 스택을 부여합니다."},
+            {"Skill_PlayerCorrosionPunch_Name", "산성 주먹"},
+            {"Skill_PlayerCorrosionPunch_Desc", "1초 동안 충전한 뒤 전방에 주먹을 질러 부식 스택을 부여합니다."},
+            {"Skill_PlayerFracturePunch_Name", "다리 부수기"},
+            {"Skill_PlayerFracturePunch_Desc", "전방의 적에게 주먹을 내리쳐 골절 스택을 부여합니다."},
+            {"Skill_MinionDebuffSynergyDamage_Name", "디버프 연계 (피해)"},
+            {"Skill_MinionDebuffSynergyDamage_Desc", "디버프 스택이 쌓인 적에게 날아가 160%의 추가 피해를 입힙니다."},
+            {"Skill_MinionDebuffSynergyStack_Name", "디버프 연계 (스택)"},
+            {"Skill_MinionDebuffSynergyStack_Desc", "디버프 스택이 쌓인 적에게 날아가 동일한 디버프 스택을 1개 추가합니다."}
         };
 
         foreach (var kvp in entries)

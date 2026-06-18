@@ -59,7 +59,7 @@ public class ChillUniqueManager : MonoBehaviour
                 var status = col.GetComponentInChildren<CharacterStatus>();
                 if (status != null)
                 {
-                    status.AddDebuffStack(DebuffStackType.Chill, bitingWindChillStacks);
+                    status.AddDebuffStack(DebuffStackType.Fracture, bitingWindChillStacks);
                 }
             }
         }
@@ -102,7 +102,7 @@ public class ChillUniqueManager : MonoBehaviour
                 var status = col.GetComponentInChildren<CharacterStatus>();
                 if (status != null)
                 {
-                    status.AddDebuffStack(DebuffStackType.Chill, 50f);
+                    status.AddDebuffStack(DebuffStackType.Fracture, 50f);
                 }
             }
         }

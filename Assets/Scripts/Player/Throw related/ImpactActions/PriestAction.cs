@@ -30,12 +30,12 @@ public class PriestAction : ImpactAction
                 // 2개 시너지 (Level 1) 이상일 때 사제 발현
                 if (GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Priest_Chill)) >= 1)
                 {
-                    entity.Stats.Status.AddDebuffStack(DebuffStackType.Chill, scaledStacks);
+                    entity.Stats.Status.AddDebuffStack(DebuffStackType.Fracture, scaledStacks);
                 }
                 
                 if (GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Priest_Aging)) >= 1)
                 {
-                    entity.Stats.Status.AddDebuffStack(DebuffStackType.Aging, scaledStacks);
+                    entity.Stats.Status.AddDebuffStack(DebuffStackType.Corrosion, scaledStacks);
                 }
 
                 if (GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Priest_Corrosion)) >= 1)

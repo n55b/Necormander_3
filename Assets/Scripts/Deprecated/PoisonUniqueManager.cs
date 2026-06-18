@@ -34,7 +34,7 @@ public class PoisonUniqueManager : MonoBehaviour
             // 숙주 아이콘을 UI에 띄우기 위해 지속적으로 시간 갱신 (0.5초)
             if (currentHost.Stats != null && currentHost.Stats.Status != null)
             {
-                currentHost.Stats.Status.SetDebuffBool(DebuffBoolType.PoisonHost, 0.5f);
+                currentHost.Stats.Status.SetDebuffBool(DebuffBoolType.Bleeding, 0.5f);
             }
 
             spreadTimer += Time.deltaTime;
@@ -89,7 +89,7 @@ public class PoisonUniqueManager : MonoBehaviour
         if (currentHost == null) return;
         
         var status = currentHost.Stats.Status;
-        int hostStack = status.GetDebuffStack(DebuffStackType.Poison);
+        int hostStack = status.GetDebuffStack(DebuffStackType.BloodPop);
         
         if (hostStack > 0)
         {
@@ -106,7 +106,7 @@ public class PoisonUniqueManager : MonoBehaviour
                 var targetStatus = col.GetComponentInChildren<CharacterStatus>();
                 if (targetStatus != null)
                 {
-                    targetStatus.AddDebuffStack(DebuffStackType.Poison, passAmount);
+                    targetStatus.AddDebuffStack(DebuffStackType.BloodPop, passAmount);
                 }
             }
         }

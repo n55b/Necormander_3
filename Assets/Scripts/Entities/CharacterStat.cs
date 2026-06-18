@@ -67,7 +67,7 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float agingReduction = (Status != null) ? GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Aging), IsEnemy) : 0f;
+            float agingReduction = (Status != null) ? GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy) : 0f;
             float agingMult = Mathf.Max(0.1f, 1f - agingReduction);
 
             float corrosionAtkReduction = 0f;
@@ -115,7 +115,7 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float chillReduction = (Status != null) ? GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Chill), IsEnemy) : 0f;
+            float chillReduction = (Status != null) ? GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy) : 0f;
             float chillMult = Mathf.Max(0.1f, 1f - chillReduction);
             
             float bonusMult = _isPlayer ? 0f : GetGemBonus(StatType.AttackSpeed);
@@ -141,8 +141,29 @@ public class CharacterStat : MonoBehaviour
     public float BaseMaxHP => baseMaxHP;
     public float BaseAtk => baseAtk;
     public float ATKRANGE => baseAtkRange;
-    public float DEF { get; private set; } // 런타임 비율 방어력
-    public float FLAT_DEF { get; private set; } // [추가] 런타임 고정 방어력
+    public float DEF 
+    { 
+        get
+        {
+            float finalDef = baseDef;
+            return finalDef;
+        }
+    }
+    public float FLAT_DEF
+    {
+        get
+        {
+            float finalFlatDef = baseFlatDef;
+            if (Status != null && Status.GetDebuffBool(DebuffBoolType.Corroded))
+            {
+                int corrodedTier = Status.GetDebuffTier(DebuffBoolType.Corroded);
+                float corrodedReduction = corrodedTier == 1 ? 12f : corrodedTier == 2 ? 16f : 20f;
+                finalFlatDef -= corrodedReduction;
+            }
+            return finalFlatDef;
+        }
+    }
+
     public float EVASION => baseEvasion;
 
     public float MISS_CHANCE => baseMissChance;
@@ -155,10 +176,10 @@ public class CharacterStat : MonoBehaviour
         get
         {
             if (Status == null) return baseMoveSpeed;
-            if (Status.GetDebuffBool(DebuffBoolType.Frozen) || Status.GetDebuffBool(DebuffBoolType.Stunned)) return 0f;
+            if (Status.GetDebuffBool(DebuffBoolType.Stunned) || Status.GetDebuffBool(DebuffBoolType.Stunned)) return 0f;
 
-            float chillReduction = GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Chill), IsEnemy);
-            float agingReduction = GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Aging), IsEnemy);
+            float chillReduction = GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy);
+            float agingReduction = GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy);
 
             float reductionMult = Mathf.Max(0.1f, 1f - (chillReduction + agingReduction));
             float finalSpeed = (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
@@ -308,9 +329,7 @@ public class CharacterStat : MonoBehaviour
             baseAtkSpd = data.attackSpeed; // 공격속도는 간격(주기)이므로 작아질수록 좋음
             baseAtkRange = data.attackRange;
             baseDef = data.defense;
-            DEF = baseDef; // 초기 방어력 세팅
             baseFlatDef = data.flatDefense;
-            FLAT_DEF = baseFlatDef; // 초기 고정 방어력 세팅
             baseMoveSpeed = data.moveSpeed;
             baseEvasion = data.baseEvasion;
             baseMissChance = data.baseMissChance;
@@ -385,7 +404,7 @@ public class CharacterStat : MonoBehaviour
     /// </summary>
     public void SetCurrentDef(float newDef)
     {
-        DEF = Mathf.Max(0f, newDef);
+        baseDef = Mathf.Max(0f, newDef);
     }
 
     /// <summary>
@@ -393,6 +412,6 @@ public class CharacterStat : MonoBehaviour
     /// </summary>
     public void SetCurrentFlatDef(float newFlatDef)
     {
-        FLAT_DEF = Mathf.Max(0f, newFlatDef);
+        baseFlatDef = Mathf.Max(0f, newFlatDef);
     }
 }

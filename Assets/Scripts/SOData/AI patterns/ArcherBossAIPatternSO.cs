@@ -527,12 +527,12 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
                 }
                 else if (telegraph != null)
                 {
-                    DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Magical, entity.gameObject, false, 1f, false, "Archer Bombardment");
+                    DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, false, "Archer Bombardment");
                     telegraph.Init(0.5f, info, entity.opponentLayer, new Vector2(3f, 3f)); // 반경 1.5면 지름 3.0
                 }
                 else if (baseHitBox != null)
                 {
-                    DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Magical, entity.gameObject, false, 1f, false, "Archer Bombardment");
+                    DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, false, "Archer Bombardment");
                     indicator.transform.localScale = new Vector3(3f, 3f, 1f);
                     baseHitBox.Init(info, entity.opponentLayer, 0.1f, 0.5f, false, null);
                 }
