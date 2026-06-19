@@ -103,6 +103,7 @@ public class PlayerController : MonoBehaviour
     /// 애니메이션 캐싱 변수
     /// </summary>
     public IdleState idleState;
+    public WalkState walkState;
     public AttackState atkState;
     public bool canChangeState = true;
 
@@ -196,6 +197,7 @@ public class PlayerController : MonoBehaviour
     private void CachingAnim()
     {
         idleState = new IdleState(this);
+        walkState = new WalkState(this);
         atkState = new AttackState(this);
     }
 
@@ -269,7 +271,14 @@ public class PlayerController : MonoBehaviour
 
         if (canChangeState)
         {
-            TransitionToState(idleState);
+            if((-0.0f < MoveDirection.x && MoveDirection.x < 0.0f) && (-0.0f < MoveDirection.y && MoveDirection.y < 0.0f))
+            {
+                TransitionToState(idleState);   
+            }
+            else
+            {
+                TransitionToState(walkState);
+            }
 
             // 이동 관련
             // 이미지 돌려주기
