@@ -36,7 +36,8 @@ public enum DebuffBoolType
     Bleeding,      // 출혈 상태
     Wounded,       // 상처 상태
     Corroded,      // 부식 상태
-    Fractured      // 골절 상태
+    Fractured,     // 골절 상태
+    Feared         // 공포 상태
 }
 
 [System.Flags]

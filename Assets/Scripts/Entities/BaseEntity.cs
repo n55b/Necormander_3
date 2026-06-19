@@ -183,7 +183,7 @@ public abstract class BaseEntity : MonoBehaviour
         if (!CanExecuteAI()) return;
 
         // [유니크] 공포 상태 처리
-        if (_stats != null && _stats.Status != null && _stats.Status.GetDebuffBool(DebuffBoolType.Wounded))
+        if (_stats != null && _stats.Status != null && _stats.Status.GetDebuffBool(DebuffBoolType.Feared))
         {
             ExecuteFearAI();
             return;
@@ -233,11 +233,10 @@ public abstract class BaseEntity : MonoBehaviour
         // [추가] 공격 중(Telegraph 차오르는 중)일 때는 다른 행동 불가
         if (IsAttacking) return false;
 
-        // [추가] 동결 또는 기절 상태라면 AI 중단
+        // [추가] 기절 상태라면 AI 중단
         if (_stats != null && _stats.Status != null)
         {
-            if (_stats.Status.GetDebuffBool(DebuffBoolType.Stunned) ||
-                _stats.Status.GetDebuffBool(DebuffBoolType.Stunned))
+            if (_stats.Status.GetDebuffBool(DebuffBoolType.Stunned))
                 return false;
         }
 

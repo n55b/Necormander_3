@@ -319,9 +319,8 @@ public class CharacterStatus : MonoBehaviour
         if (_currentDebuffType != newType && _debuffStackCount > 0)
         {
             PopCurrentDebuff(attacker);
-            _currentDebuffType = newType;
-            _debuffStackCount = amount;
-            _debuffTimer = TRIGGER_STACK_DURATION;
+            // 부여된 다른 디버프는 스택을 터뜨리는 데 소모되고 증발함
+            return;
         }
         else
         {

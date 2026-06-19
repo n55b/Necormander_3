@@ -89,10 +89,7 @@ public class FloatingTextSpawner : MonoBehaviour
         }
 
         // 특수한 팝업 스트링이 있을 경우 강제 덮어쓰기
-        if (typeStr == "Poison") color = Color.green;          // 중독뎀
-        else if (typeStr == "Corroded") color = Color.magenta; // 구버전 부식 (필요시 삭제)
-        else if (typeStr == "Rusted") color = new Color(0.6f, 0.4f, 0.2f); // 갈색
-        else if (typeStr == "Shield") color = Color.grey;      // 쉴드
+        if (typeStr == "Shield") color = Color.grey;      // 쉴드
         else if (typeStr == "Execution") color = Color.yellow; // 처형
         else if (typeStr == "MISS") color = Color.gray;        // 회피
 
