@@ -433,6 +433,7 @@ GameObject:
   - component: {fileID: 474246058}
   - component: {fileID: 474246059}
   - component: {fileID: 474246060}
+  - component: {fileID: 474246061}
   m_Layer: 5
   m_Name: FloatingTextPool
   m_TagString: Untagged
@@ -481,6 +482,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   textPrefab: {fileID: 717604425048194122, guid: ad279bdf08f980742b70fceeaa100b90, type: 3}
   poolSize: 20
+--- !u!114 &474246061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 474246057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff005c2a54e7dd547b6fc361e2ec71c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  styles:
+  - {fileID: 11400000, guid: f710fc1ec5354e44eb983925cd2eb5cf, type: 2}
+  - {fileID: 11400000, guid: e473decbaae02d24889413645929a335, type: 2}
+  - {fileID: 11400000, guid: 035482cb81992ce4586ee69b919b7eff, type: 2}
+  - {fileID: 11400000, guid: 73170a345c66d824c953b86cdd256bc0, type: 2}
+  - {fileID: 11400000, guid: 90476473e34088f449b13e0b71771dd5, type: 2}
+  - {fileID: 11400000, guid: 1090bdf768afe0e4896d0a0a56726493, type: 2}
+  - {fileID: 11400000, guid: 211c92b5cdc86744c8dc09fd718e6430, type: 2}
+  - {fileID: 11400000, guid: 487de3876ef832f4f927186627ecd065, type: 2}
+  - {fileID: 11400000, guid: 15d54cdf06ee066499e696e502b5f2db, type: 2}
+  - {fileID: 11400000, guid: 0f438dab02b3afa4fad8dc00f3b60cb0, type: 2}
+  - {fileID: 11400000, guid: f65c465db50991b4da7468d41438d5ea, type: 2}
+  - {fileID: 11400000, guid: beea36bd836080a4bb286242c095ba7c, type: 2}
+  - {fileID: 11400000, guid: dbeafc3ae284e4840bcef15cb340c578, type: 2}
+  - {fileID: 11400000, guid: cfff8c20e119daa4badbc6f170d5569e, type: 2}
+  defaultStyle: {fileID: 11400000, guid: f710fc1ec5354e44eb983925cd2eb5cf, type: 2}
 --- !u!1 &505867719
 GameObject:
   m_ObjectHideFlags: 0

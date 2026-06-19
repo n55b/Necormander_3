@@ -391,6 +391,7 @@ public class CharacterStatus : MonoBehaviour
         }
 
         if (!_debuffStacks.ContainsKey(type)) _debuffStacks[type] = 0f;
+        bool wasZero = _debuffStacks[type] <= 0f;
         _debuffStacks[type] += amount;
 
         // [시너지] 유지시간 연장 보정
@@ -403,6 +404,11 @@ public class CharacterStatus : MonoBehaviour
 
         // UI 업데이트
         debuffTerminal.UpdateUI(type, _debuffStacks[type]);
+
+        // 새로 걸렸을 때(0→양수)만 타입버 텍스트 발생
+        if (wasZero && _debuffStacks[type] > 0f)
+            OnDebuffNewlyApplied?.Invoke(type.ToString());
+
 
         // [로그 강화] 디버프 종류별 색상 지정
         string color = "white";
@@ -713,4 +719,7 @@ public class CharacterStatus : MonoBehaviour
         // UI 갱신
         debuffTerminal.RemoveAll();
     }
+
+
+public event System.Action<string> OnDebuffNewlyApplied;
 }
