@@ -363,7 +363,10 @@ public class CharacterStat : MonoBehaviour
     /// <summary>
     /// AI 패턴 등에서 동적으로 기본 이동 속도를 변경할 때 사용합니다.
     /// </summary>
-    public void SetBaseMoveSpeed(float speed)
+    public float BaseMoveSpeed => baseMoveSpeed;
+
+    
+public void SetBaseMoveSpeed(float speed)
     {
         baseMoveSpeed = speed;
     }

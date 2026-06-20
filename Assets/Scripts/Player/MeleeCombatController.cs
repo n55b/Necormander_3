@@ -86,6 +86,25 @@ public class MeleeCombatController : MonoBehaviour
         else if (_comboStep == 1) _player.PlayAllAnim("Attack_Light2");
         else _player.PlayAllAnim("Attack_Medium");
 
+        if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
+        {
+            float atkAnimSpeed = Mathf.Clamp(1f / _player.Stat.ATKSPD, 0.5f, 3f);
+            _player.SetAttackAnimSpeed(atkAnimSpeed);
+        }
+
+        if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
+        {
+            float atkAnimSpeed = Mathf.Clamp(1f / _player.Stat.ATKSPD, 0.5f, 3f);
+            _player.SetAttackAnimSpeed(atkAnimSpeed);
+        }
+
+        // 공격속도에 맞춰 건 애니모르 재생 속도 조절 (ATKSPD는 주기(조)이단 작을수르 묌단)
+        if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
+        {
+            float atkAnimSpeed = Mathf.Clamp(1f / _player.Stat.ATKSPD, 0.5f, 3f);
+            _player.SetAttackAnimSpeed(atkAnimSpeed);
+        }
+
         // [HitBox 소환]
         if (telegraphPrefab != null)
         {
@@ -149,7 +168,10 @@ public class MeleeCombatController : MonoBehaviour
         }
         _comboStep = 0;
         _isHoldingAttack = false;
-        _player.PlayAllAnim("Idle"); // 공격 끝났으므로 Idle로 복귀
+        _player.SetAttackAnimSpeed(1f);
+        
+_player._player.SetAttackAnimSpeed(1f);
+        _player.PlayAllAnim("Idle");으므로 Idle로 복귀
         _player.SpeedMultiplier = 1.0f; // 이동 속도 복구
     }
 }

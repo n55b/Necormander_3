@@ -273,7 +273,8 @@ public class PlayerController : MonoBehaviour
         {
             if (moveInput.sqrMagnitude < 0.0001f)
             {
-                TransitionToState(idleState);   
+                ResetWalkAnimSpeed();
+                TransitionToState(idleState);
             }
             else
             {
@@ -373,6 +374,8 @@ public class PlayerController : MonoBehaviour
             if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f)
             {
                 _rb.linearVelocity = MoveDirection * currentSpeed;
+                UpdateWalkAnimSpeed(currentSpeed);
+
             }
         }
     }
@@ -654,22 +657,64 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
     /// <summary>
-    /// 애니메이션용 스테이트 변화 함수들
+    /// 애니메이션용 스테이트 변화 및 재생 제어 함수들
     /// </summary>
-    /// <param name="newState"></param>
-    /// <param name="animName"></param>
+    private float _lastAnimSpeed = 1f;
+
     /// <summary>
-    /// 외부(MeleeDodgeController 독)에서 PlayAllAnim으로 애니모르르 직접 결꿞을 때 호출.
-    /// currentAnimState 상태 캐시림 드합 해 제, 다음 TransitionToState 호출을 제대덩·게 적용되게 한다.
+    /// 이동 속도에 비례해 걷기/달리기 애니메이션 재생 속도를 맞춥니다.
+    /// baseMoveSpeed를 기준(1.0x)으로 재생 속도를 기본값(1.0f)으로 초기화합니다.
+    /// </summary>
+    private void ResetWalkAnimSpeed()
+    {
+        if (Mathf.Abs(1f - _lastAnimSpeed) < 0.01f) return;
+        _lastAnimSpeed = 1f;
+
+        if (BodyAnimator != null) BodyAnimator.speed = 1f;
+        if (LHandAnimator != null) LHandAnimator.speed = 1f;
+        if (RHandAnimator != null) RHandAnimator.speed = 1f;
+    }
+
+    /// <summary>
+    /// 현재 이동 속도와 캐릭터의 기본 이동 속도를 비교하여 애니메이션 재생 속도를 동적으로 업데이트합니다.
+    /// </summary>
+    /// <param name="currentSpeed">현재 실제 캐릭터 이동 속도</param>
+public void SetAttackAnimSpeed(float speed)
+    {
+        if (BodyAnimator  != null) BodyAnimator.speed  = speed;
+        if (LHandAnimator != null) LHandAnimator.speed = speed;
+        if (RHandAnimator != null) RHandAnimator.speed = speed;
+    }
+
+    
+private void UpdateWalkAnimSpeed(float currentSpeed)
+    {
+        float speedRatio = Mathf.Clamp(currentSpeed * 0.2f, 0.3f, 3f);
+
+        if (Mathf.Abs(speedRatio - _lastAnimSpeed) < 0.01f) return;
+        _lastAnimSpeed = speedRatio;
+
+        if (BodyAnimator  != null) BodyAnimator.speed  = speedRatio;
+        if (LHandAnimator != null) LHandAnimator.speed = speedRatio;
+        if (RHandAnimator != null) RHandAnimator.speed = speedRatio;
+    }
+
+    /// <summary>
+    /// 외부(예: MeleeDodgeController 등)에서 PlayAllAnim으로 애니메이션을 직접 강제 재생했을 때 호출합니다.
+    /// 현재 애니메이션 상태 캐시를 해제하여, 다음 TransitionToState 호출이 정상적으로 적용되도록 합니다.
     /// </summary>
     public void ResetAnimStateCache()
     {
         currentAnimState = null;
     }
 
-    
-public void TransitionToState(PlayerAnimationState newState)
+    /// <summary>
+    /// 새로운 애니메이션 상태(State)로 전환합니다. 기존 상태의 Exit()와 새 상태의 Enter()를 처리합니다.
+    /// </summary>
+    /// <param name="newState">전환할 새로운 애니메이션 상태</param>
+    public void TransitionToState(PlayerAnimationState newState)
     {
         if (currentAnimState == newState) return;
 
@@ -680,11 +725,18 @@ public void TransitionToState(PlayerAnimationState newState)
         currentAnimState.Enter();
     }
 
+    /// <summary>
+    /// 애니메이션 상태 변경이 가능한 상태로 플래그를 전환합니다.
+    /// </summary>
     public void CanChangeAnimState()
     {
         canChangeState = true;
     }
 
+    /// <summary>
+    /// 모든 부위(Body, 왼손, 오른손)의 Animator에서 지정된 이름의 애니메이션 상태를 강제로 재생합니다.
+    /// </summary>
+    /// <param name="animName">재생할 애니메이션 상태의 이름</param>
     public void PlayAllAnim(string animName)
     {
         int hash = Animator.StringToHash(animName);
