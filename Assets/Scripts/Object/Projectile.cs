@@ -14,6 +14,7 @@ public class Projectile : MonoBehaviour
     protected LayerMask _targetLayer;
     protected GameObject _shooter;
     protected Vector2 _direction;
+    protected System.Collections.Generic.HashSet<Collider2D> _ignoredColliders = new System.Collections.Generic.HashSet<Collider2D>();
 
     public virtual void Init(Vector2 targetPos, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
     {
@@ -40,6 +41,39 @@ public class Projectile : MonoBehaviour
 
         // 일정 시간 후 자동 파괴
         Destroy(gameObject, lifeTime);
+
+        // 초기 겹쳐 있는 콜라이더 오버랩 체크
+        Collider2D myCol = GetComponent<Collider2D>();
+        if (myCol != null)
+        {
+            ContactFilter2D filter = new ContactFilter2D();
+            filter.useTriggers = true;
+
+            Collider2D[] results = new Collider2D[20];
+            int count = myCol.Overlap(filter, results);
+            for (int i = 0; i < count; i++)
+            {
+                Collider2D otherCol = results[i];
+                if (otherCol == null || otherCol.gameObject == shooter) continue;
+
+                // 겹쳐 있는 것 중 플레이어(타겟 레이어)가 있다면 즉시 대미지를 입히고 파괴 처리
+                if ((_targetLayer.value & (1 << otherCol.gameObject.layer)) != 0)
+                {
+                    CharacterStat targetStat = GetTargetStat(otherCol);
+                    if (targetStat != null)
+                    {
+                        OnHitTarget(targetStat);
+                        return;
+                    }
+                }
+
+                // 겹쳐 있는 것이 벽/장애물이면 안전구역 진입 전까지 임시 무시
+                if (((LayerMask.GetMask("Wall", "Obstacle")) & (1 << otherCol.gameObject.layer)) != 0)
+                {
+                    _ignoredColliders.Add(otherCol);
+                }
+            }
+        }
     }
 
     protected virtual void Update()
@@ -55,6 +89,7 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnTriggerEnter2D(Collider2D other)
     {
+        if (_ignoredColliders.Contains(other)) return;
         // 1. 벽이나 장애물에 부딪히면 파괴
         if (((LayerMask.GetMask("Wall", "Obstacle")) & (1 << other.gameObject.layer)) != 0)
         {
@@ -71,6 +106,14 @@ public class Projectile : MonoBehaviour
             {
                 OnHitTarget(targetStat);
             }
+        }
+    }
+
+    protected virtual void OnTriggerExit2D(Collider2D other)
+    {
+        if (_ignoredColliders.Contains(other))
+        {
+            _ignoredColliders.Remove(other);
         }
     }
 

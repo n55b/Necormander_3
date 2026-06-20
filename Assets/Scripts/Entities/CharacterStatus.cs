@@ -25,6 +25,7 @@ public class CharacterStatus : MonoBehaviour
 
     public bool HasSuperArmor => _hasSuperArmor;
     public float SuperArmorGauge => _superArmorGauge;
+    public float MaxSuperArmorGauge => _maxSuperArmorGauge;
 
     public void ApplySuperArmor(float amount = 100f)
     {

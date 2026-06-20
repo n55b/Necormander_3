@@ -10,7 +10,6 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
     [SerializeField] private GameObject magicCirclePrefab;
     [SerializeField] private float explosionRadius = 2.0f;
     [SerializeField] private float waitTime = 2.0f;
-    [SerializeField] private float attackInterval = 3.0f; // 장판 소환 주기
 
     protected override void UpdateTargeting(BaseEntity entity)
     {

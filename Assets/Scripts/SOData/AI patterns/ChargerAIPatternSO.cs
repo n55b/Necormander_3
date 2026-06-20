@@ -81,10 +81,21 @@ public class ChargerAIPatternSO : BaseAIPatternSO
 
         // [3] 돌진 돌입
         var agent = entity.GetComponent<NavMeshAgent>();
-        if (agent != null && agent.isActiveAndEnabled)
+        bool wasAgentEnabled = agent != null && agent.enabled;
+        if (wasAgentEnabled)
         {
             agent.isStopped = true;
             agent.velocity = Vector3.zero;
+            agent.enabled = false;
+        }
+
+        // 물리 겹침 방지를 위해 콜라이더 트리거 설정
+        var chargerCollider = entity.GetComponent<Collider2D>();
+        bool originalIsTrigger = false;
+        if (chargerCollider != null)
+        {
+            originalIsTrigger = chargerCollider.isTrigger;
+            chargerCollider.isTrigger = true;
         }
 
         var rb = entity.GetComponent<Rigidbody2D>();
@@ -106,17 +117,18 @@ public class ChargerAIPatternSO : BaseAIPatternSO
                 rb.linearVelocity = chargeDir * chargeSpeed;
             }
 
-            // 전방 충돌 판정 (몸체 반경 0.6f 크기 오버랩)
-            Collider2D hit = Physics2D.OverlapCircle(entity.transform.position, 0.6f, hitMask);
-            if (hit != null)
+            // 전방 충돌 판정 (터널링 방지를 위한 CircleCast 사용)
+            float checkDistance = chargeSpeed * Time.deltaTime + 0.1f;
+            RaycastHit2D hit = Physics2D.CircleCast(entity.transform.position, 0.6f, chargeDir, checkDistance, hitMask);
+            if (hit.collider != null)
             {
                 hasHitObstacle = true;
                 
                 // 플레이어에 닿은 경우에만 데미지
-                if (((1 << hit.gameObject.layer) & playerMask) != 0)
+                if (((1 << hit.collider.gameObject.layer) & playerMask) != 0)
                 {
-                    var playerHealth = hit.GetComponentInChildren<CharacterHealth>();
-                    if (playerHealth == null) playerHealth = hit.GetComponentInParent<CharacterHealth>();
+                    var playerHealth = hit.collider.GetComponentInChildren<CharacterHealth>();
+                    if (playerHealth == null) playerHealth = hit.collider.GetComponentInParent<CharacterHealth>();
                     if (playerHealth != null)
                     {
                         DamageInfo chargeDmg = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject);
@@ -131,7 +143,15 @@ public class ChargerAIPatternSO : BaseAIPatternSO
 
         // 돌진 정지
         if (rb != null) rb.linearVelocity = Vector2.zero;
-        if (agent != null && agent.isActiveAndEnabled) agent.isStopped = false;
+        if (chargerCollider != null)
+        {
+            chargerCollider.isTrigger = originalIsTrigger;
+        }
+        if (wasAgentEnabled && agent != null)
+        {
+            agent.enabled = true;
+            agent.isStopped = false;
+        }
 
         entity.IsAttacking = false;
 

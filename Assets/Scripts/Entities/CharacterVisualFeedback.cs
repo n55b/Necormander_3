@@ -11,6 +11,8 @@ public class CharacterVisualFeedback : MonoBehaviour
     private SpriteRenderer _sr;
     private Color _originalColor;
     private Coroutine _flashCoroutine;
+    private Color _originalBaseColor;
+    private bool _hasSavedOriginalBaseColor = false;
     private Coroutine _hitFlashCoroutine;
 
     private GameObject _shieldVFXInstance;
@@ -73,6 +75,40 @@ public class CharacterVisualFeedback : MonoBehaviour
     private void Update()
     {
         UpdateStatusVFX();
+        UpdateSuperArmorColor();
+    }
+
+    private void UpdateSuperArmorColor()
+    {
+        if (_status == null || _sr == null) return;
+
+        if (!_hasSavedOriginalBaseColor)
+        {
+            _originalBaseColor = _originalColor;
+            _hasSavedOriginalBaseColor = true;
+        }
+
+        if (_status.HasSuperArmor)
+        {
+            float maxSA = _status.MaxSuperArmorGauge;
+            float currentSA = _status.SuperArmorGauge;
+            float ratio = maxSA > 0f ? (currentSA / maxSA) : 0f;
+
+            // 찐한 파란색 정의 (Deep Blue)
+            Color superArmorColor = new Color(0.1f, 0.3f, 1f, 1f);
+            
+            // 원래 베이스 색상과 찐한 파란색을 비율에 따라 Lerp
+            Color lerpedColor = Color.Lerp(_originalBaseColor, superArmorColor, ratio);
+            
+            SetBaseColor(lerpedColor);
+        }
+        else
+        {
+            if (_originalColor != _originalBaseColor)
+            {
+                SetBaseColor(_originalBaseColor);
+            }
+        }
     }
 
     private void UpdateStatusVFX()

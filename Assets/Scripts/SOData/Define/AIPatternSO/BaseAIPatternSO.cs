@@ -85,28 +85,21 @@ public class BaseAIPatternSO : AIPatternSO
             // 원거리 적(사거리 3.0f 이상)이고 공격 쿨타임이 아직 차지 않은 경우
             if (entity.Stats.ATKRANGE >= 3.0f && entity.AtkTimer < entity.Stats.ATKSPD)
             {
-                // 매 프레임 목적지를 갱신하여 덜덜덜 흔들리는 것을 막기 위해, 이전 목적지에 근접했을 때만 신규 도망 방향을 연산합니다.
-                if (!agent.pathPending && agent.remainingDistance < 0.5f)
+                // 플레이어가 평타 사거리의 약 2배(거리 7f) 내에 접근했을 때만 도망침
+                float fleeTriggerRange = 7.0f;
+                if (ShouldFleeFromTarget(entity, fleeTriggerRange))
                 {
-                    Vector3 dirToPlayer = (entity.Target.position - entity.transform.position).normalized;
-                    if (dirToPlayer == Vector3.zero) dirToPlayer = Vector3.right;
-
-                    // 플레이어를 직접 바라보는 각도(플레이어 방향 기준 +-15도, 총 30도)를 차단하고 나머지 330도 내에서 무작위 방향 추출
-                    float angleToPlayer = Mathf.Atan2(dirToPlayer.y, dirToPlayer.x) * Mathf.Rad2Deg;
-                    float randomOffset = Random.Range(15f, 345f); // +-15도를 제외한 330도 편차
-                    float finalAngle = (angleToPlayer + randomOffset) * Mathf.Deg2Rad;
-
-                    Vector3 randomDir = new Vector3(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle), 0f);
-                    Vector3 fleeTarget = entity.transform.position + randomDir * 3.5f; // 약 3.5칸 이동
-                    
-                    if (NavMesh.SamplePosition(fleeTarget, out NavMeshHit hit, 3.5f, NavMesh.AllAreas))
+                    // 매 프레임 목적지를 갱신하여 덜덜덜 흔들리는 것을 막기 위해, 이전 목적지에 근접했을 때만 신규 도망 방향을 연산합니다.
+                    if (!agent.pathPending && agent.remainingDistance < 0.5f)
                     {
-                        agent.SetDestination(hit.position);
+                        Vector3 fleeDest = CalculateFleeDestination(entity, 3.5f);
+                        agent.SetDestination(fleeDest);
                     }
-                    else
-                    {
-                        agent.SetDestination(fleeTarget);
-                    }
+                }
+                else
+                {
+                    // Flee 범위 밖에 있다면 도망치지 않고 정지하여 대기
+                    StopNavAgent(entity);
                 }
             }
             else
@@ -127,6 +120,7 @@ public class BaseAIPatternSO : AIPatternSO
         if (entity.AtkTimer >= entity.Stats.ATKSPD)
         {
             entity.AtkTimer = 0f;
+            entity.IsAttacking = true; // 코루틴 대기 전 상태 잠금을 위해 선제적 true 처리!
             entity.ActiveAttackCoroutine = entity.StartCoroutine(AttackRoutine(entity));
         }
     }
@@ -267,5 +261,40 @@ public class BaseAIPatternSO : AIPatternSO
     {
         // 기본값: 근접 공격 수행 (HitBox가 아닌 직접 데미지 부여 방식)
         ExecuteAttack(entity, entity.Target);
+    }
+
+    /// <summary>
+    /// 대상(플레이어 등)이 도망 트리거 범위 내에 들어왔는지 검사합니다.
+    /// </summary>
+    protected bool ShouldFleeFromTarget(BaseEntity entity, float fleeRangeThreshold)
+    {
+        if (entity.Target == null) return false;
+        float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
+        return dist <= fleeRangeThreshold;
+    }
+
+    /// <summary>
+    /// 대상으로부터 330도 범위 내 무작위 방향으로 fleeDistance 만큼 도망친 목적지(NavMesh 좌표)를 구합니다.
+    /// </summary>
+    protected Vector3 CalculateFleeDestination(BaseEntity entity, float fleeDistance)
+    {
+        if (entity.Target == null) return entity.transform.position;
+
+        Vector3 dirToPlayer = (entity.Target.position - entity.transform.position).normalized;
+        if (dirToPlayer == Vector3.zero) dirToPlayer = Vector3.right;
+
+        // 플레이어 반대 방향(플레이어 방향 + 180도) 기준으로 +-90도(총 180도) 범위 내에서 무작위 방향 추출
+        float angleToPlayer = Mathf.Atan2(dirToPlayer.y, dirToPlayer.x) * Mathf.Rad2Deg;
+        float randomOffset = Random.Range(-90f, 90f); // +-90도 편차
+        float finalAngle = (angleToPlayer + 180f + randomOffset) * Mathf.Deg2Rad;
+
+        Vector3 randomDir = new Vector3(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle), 0f);
+        Vector3 fleeTarget = entity.transform.position + randomDir * fleeDistance;
+
+        if (NavMesh.SamplePosition(fleeTarget, out NavMeshHit hit, fleeDistance, NavMesh.AllAreas))
+        {
+            return hit.position;
+        }
+        return fleeTarget;
     }
 }
