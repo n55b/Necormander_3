@@ -110,7 +110,7 @@ public class BaseAIPatternSO : AIPatternSO
         entity.HasFiredAttackEndEvent = false;
 
         bool hasAnimator = entity.Animator != null;
-        float windupTime = 0.3f; // 기본 선딜레이 fallback
+        float windupTime = 1.0f; // 기본 선딜레이 fallback (0.6f -> 1.0f 증가)
 
         if (hasAnimator) 
         {
@@ -141,7 +141,7 @@ public class BaseAIPatternSO : AIPatternSO
             entity.Animator.Play("Attack", -1, 0f);
 
             // [추가] 애니메이션 이벤트(OnHitEvent)의 정확한 발생 시간(windupTime)을 찾아 배속을 반영합니다.
-            float eventTime = 0.5f; // fallback
+            float eventTime = 1.0f; // fallback (0.6f -> 1.0f 증가)
             foreach (var clip in clips)
             {
                 if (clip.name.IndexOf("Attack", System.StringComparison.OrdinalIgnoreCase) >= 0)
@@ -182,7 +182,7 @@ public class BaseAIPatternSO : AIPatternSO
         else
         {
             // Fallback: 이벤트가 없거나 애니메이터가 없을 경우 임시 시간 대기
-            float timeout = 0.3f;
+            float timeout = 1.0f; // 0.6f -> 1.0f 증가
             while (timeout > 0f)
             {
                 timeout -= Time.deltaTime;
