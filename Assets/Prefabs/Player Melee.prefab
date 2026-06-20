@@ -312,6 +312,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   LastAttackMissed: 0
+  _hasSuperArmor: 0
+  _superArmorGauge: 0
+  _maxSuperArmorGauge: 100
   debuffTerminal: {fileID: 1667872381858726077}
 --- !u!114 &8147807942231057785
 MonoBehaviour:
@@ -394,7 +397,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6262675877589433185
 Transform:
   m_ObjectHideFlags: 0
