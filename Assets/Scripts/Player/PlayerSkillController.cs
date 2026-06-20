@@ -242,33 +242,73 @@ public class PlayerSkillController : MonoBehaviour
             }
             minionSkillCooldownEnds[slotIndex] = Time.time + minionData.minionSkill.cooldownTime;
 
-            var allyManager = GetComponent<AllyManager>();
-            if (allyManager != null && minionData.minionType != CommandData.None)
+            // [수정] 평소 소환되는 미니언이 없는 구조이므로, 스킬 사용 시점에 임시 미니언을 생성하여 스킬 시전 후 소멸시킵니다.
+            if (GameManager.Instance != null && GameManager.Instance.dataManager != null && minionData.minionType != CommandData.None)
             {
-                var allies = allyManager.GetAliveAllies(minionData.minionType);
-                if (allies.Count > 0)
+                Vector3 spawnPos = playerTransform.position;
+                GameObject obj = GameManager.Instance.dataManager.CreateUnit(minionData, spawnPos);
+                if (obj != null)
                 {
-                    foreach (var ally in allies)
+                    AllyController tempAlly = obj.GetComponent<AllyController>();
+                    if (tempAlly != null)
                     {
-                        // 미니언 개별 스킬 시전 애니메이션 및 액션 호출
-                        ally.EnterSkillState();
-                        ally.ExitSkillState();
-                        minionData.minionSkill.ExecuteSkill(ally.transform, null, currentPendingSkill.validTargets);
+                        tempAlly.player = playerTransform;
+                        tempAlly.SetBattleState(true);
+                        
+                        // 1. 적들이 타겟팅 못하게 무적 처리
+                        if (tempAlly.Stats != null && tempAlly.Stats.Health != null)
+                        {
+                            tempAlly.Stats.Health.Invincible = true;
+                        }
+                        
+                        // 2. 레이어를 FlyingObject로 변경하여 투사체 충돌 패스 및 AI 타겟팅 제외
+                        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+                        if (flyingLayer != -1)
+                        {
+                            SetLayerRecursive(obj, flyingLayer);
+                        }
+                        
+                        // 3. AI 동작 차단 및 스킬 상태 돌입 (애니메이션 동기화 포함)
+                        tempAlly.EnterSkillState();
+                        
+                        // 4. 미니언 스킬 실행
+                        minionData.minionSkill.ExecuteSkill(tempAlly.transform, null, currentPendingSkill.validTargets);
+                        
+                        // 5. 일정 시간 후 소멸 처리 (1.5초 후 파괴)
+                        StartCoroutine(DestroyTempMinionAfterDelay(obj, tempAlly, 1.5f));
                     }
-                }
-                else
-                {
-                    Debug.Log($"<color=gray>[PSC]</color> No alive allies of type {minionData.minionType} found. Execution failed.");
                 }
             }
             else
             {
-                // Fallback (for non-minion bound skills or no ally manager)
+                // Fallback (for non-minion bound skills or no data manager)
                 minionData.minionSkill.ExecuteSkill(playerTransform, null, currentPendingSkill.validTargets);
             }
-            Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed: {minionData.minionName}");
+            Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed (Transient): {minionData.minionName}");
         }
         ProcessNextInQueue();
+    }
+
+    private void SetLayerRecursive(GameObject obj, int layer)
+    {
+        obj.layer = layer;
+        foreach (Transform child in obj.transform)
+        {
+            SetLayerRecursive(child.gameObject, layer);
+        }
+    }
+
+    private System.Collections.IEnumerator DestroyTempMinionAfterDelay(GameObject obj, AllyController ally, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (ally != null)
+        {
+            ally.ExitSkillState();
+        }
+        if (obj != null)
+        {
+            Destroy(obj);
+        }
     }
 
     // --- UI 연동을 위한 외부 접근용 함수 ---

@@ -33,7 +33,8 @@ public class AllyManager : MonoBehaviour
 
     private void Update()
     {
-        HandleRespawns();
+        // [수정] 평소 소환되는 미니언이 없으므로 부활 로직 호출도 비활성화합니다.
+        // HandleRespawns();
     }
 
     private void HandleRespawns()

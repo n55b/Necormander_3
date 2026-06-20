@@ -50,6 +50,8 @@ public class SquadSpawner : MonoBehaviour
 
         if (spawnList.Count == 0) return;
 
+        // [수정] 평소 소환 비활성화: 실제로 유닛을 스폰하여 따라다니게 하는 방식을 제외합니다.
+        /*
         // 2. 한 번에 모든 소환 위치 확보 (뭉침 방지)
         List<Vector2> spawnPositions = new List<Vector2>();
         var pc = GameManager.Instance.PLAYERCONTROLLER;
@@ -66,14 +68,17 @@ public class SquadSpawner : MonoBehaviour
             Vector3 pos = (i < spawnPositions.Count) ? (Vector3)spawnPositions[i] : fallbackPos;
             _allyManager.SpawnAlly(spawnList[i], pos);
         }
+        */
 
-        Debug.Log($"<color=cyan>[SquadSpawner]</color> Full Squad Spawned: {spawnList.Count} units spread across {spawnPositions.Count} positions.");
+        Debug.Log($"<color=cyan>[SquadSpawner]</color> Full Squad Refresh (Persistent spawning is disabled, only tracking data).");
     }
 
     public void SpawnUnitFromSlot(MinionDataSO data)
     {
         if (data == null) return;
 
+        // [수정] 평소 소환 비활성화 (스킬 사용 시 임시 소환 구조)
+        /*
         // 플레이어 주변 소환 위치 확보 (낱개 소환 시에도 약간의 랜덤성 부여)
         var pc = GameManager.Instance.PLAYERCONTROLLER;
         Vector3 spawnPos = pc != null ? pc.transform.position : transform.position; 
@@ -90,6 +95,7 @@ public class SquadSpawner : MonoBehaviour
 
         // AllyManager를 통해 실제 소환 및 관리 등록
         _allyManager.SpawnAlly(data, spawnPos);
+        */
     }
 
     public List<Vector2> GetSummonPositions2D(Vector2 centerPos, int count, float radius)
