@@ -27,39 +27,6 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
         }
     }
 
-    protected override void UpdateStateTransitions(BaseEntity entity)
-    {
-        // 마법사는 타겟이 있기만 하면 거리에 상관없이 공격 상태를 유지합니다. (제자리 포격)
-        if (entity.Target != null)
-        {
-            entity.CurrentState = AIState.Attack;
-        }
-        else
-        {
-            entity.CurrentState = AIState.Idle;
-        }
-    }
-
-    protected override void OnAttack(BaseEntity entity)
-    {
-        // 공격 중에는 절대로 움직이지 않음
-        StopNavAgent(entity);
-
-        // attackInterval ~ attackInterval + 1.0s 사이의 랜덤한 주기를 위해 
-        // 매 프레임 체크하는 대신, 한 번 쏘고 나서 타이머를 미세하게 조절합니다.
-        entity.AtkTimer += Time.deltaTime;
-        
-        // 브레인이 인스턴스화되므로 개별 유닛마다 독립적인 타이머 흐름을 가집니다.
-        if (entity.AtkTimer >= attackInterval)
-        {
-            ExecuteBasicAttack(entity);
-            
-            // [중요] 다음 공격 타이머를 0이 아닌 -Random 값으로 설정하여 
-            // 실질적으로 '공격 간격 + 랜덤 추가 시간' 효과를 줍니다.
-            entity.AtkTimer = -Random.Range(0f, 1.0f);
-        }
-    }
-
     protected override void ExecuteBasicAttack(BaseEntity entity)
     {
         if (magicCirclePrefab == null || entity.Target == null) return;
@@ -82,6 +49,11 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
             magicCircle.Init(info, entity.opponentLayer, 0.2f, waitTime);
         }
 
-        Debug.Log($"<color=magenta>[Magician Pattern]</color> {entity.name}가 포격 실행 (주기: {attackInterval}s)");
+        Debug.Log($"<color=magenta>[Magician Pattern]</color> {entity.name}가 포격 실행");
+    }
+
+    protected override void OnWindupStart(BaseEntity entity, float windupTime)
+    {
+        // 마법사 전용 장판은 ExecuteBasicAttack 시점에 생성되므로 선딜레이 장판 생성은 불필요
     }
 }

@@ -64,8 +64,6 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
 
                 if (stat != null)
                 {
-                    stat.Status.ApplyVulnerability(true);
-                    
                     Transform rootObj = stat.transform.root;
                     if (!pushedRoots.Contains(rootObj))
                     {
@@ -92,6 +90,19 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
     private IEnumerator PushEnemy(Transform enemy, Vector2 pushDir)
     {
         if (enemy == null) yield break;
+
+        var status = enemy.GetComponentInChildren<CharacterStatus>();
+        if (status == null) status = enemy.GetComponentInParent<CharacterStatus>();
+        if (status != null)
+        {
+            if (status.HasSuperArmor)
+            {
+                status.DamageSuperArmor(30f);
+                yield break;
+            }
+            // [추가] 실제로 밀려나므로 밀기(Push)에 묶여있는 취약 부여 작동!
+            status.ApplyVulnerability(true);
+        }
         
         float elapsed = 0f;
         Vector2 startPos = enemy.position;

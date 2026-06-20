@@ -117,7 +117,7 @@ public class MeleeCombatController : MonoBehaviour
             if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
             else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
 
-            Vector3 spawnPos = transform.position + (Vector3)dir * (hitboxSize.x * 0.4f);
+            Vector3 spawnPos = transform.position;
             GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity);
 
             // 범용 BaseHitBox 사용
@@ -132,13 +132,15 @@ public class MeleeCombatController : MonoBehaviour
                 go.transform.localScale = new Vector3(hitboxSize.x, hitboxSize.y, 1f);
 
                 // 플레이어 공격은 적에게 경직과 약간의 넉백을 유발
+                float saDmg = (_comboStep == 2) ? 30f : 20f; // 1,2타는 20f, 3타는 30f
                 DamageInfo info = new DamageInfo(
                     _player.Stat.ATK * damageMultiplier,
                     DamageType.Physical,
                     this.gameObject,
                     false, 1f, true, "", false,
                     causesHitstun: true,
-                    knockbackForce: 2f
+                    knockbackForce: 2f,
+                    superArmorDamage: saDmg
                 );
 
                 LayerMask enemyLayer = LayerMask.GetMask("Enemy");

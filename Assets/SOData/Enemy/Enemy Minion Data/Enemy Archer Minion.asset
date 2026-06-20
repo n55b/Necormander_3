@@ -12,20 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
   m_Name: Enemy Archer Minion
   m_EditorClassIdentifier: 
+  playerSkill: {fileID: 0}
+  minionSkill: {fileID: 0}
   minionType: 2
   minionName: Enemy Skeleton Archer
   minionIcon: {fileID: 0}
-  throwEffectCategory: 0
   baseEffectValue: 0
-  effectMultiplier: 1
-  baseAreaRadius: 3
   maxHP: 150
   attack: 10
-  attackSpeed: 1.2
+  attackSpeed: 2
   attackRange: 8
   detectRange: 10
   defense: 0
+  flatDefense: 0
   moveSpeed: 4
+  baseEvasion: 0
+  baseMissChance: 0
   cost: 1
   isElite: 0
   canSpawnRandomly: 1

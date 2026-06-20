@@ -29,15 +29,7 @@ public class PlayerGroundSmashSO : PlayerSkillSO
         System.Action<CharacterHealth> onSmashHit = (health) => {
             if (!hasInvokedKeyword) {
                 hasInvokedKeyword = true;
-                Debug.Log("<color=cyan>[Physical]</color> 바닥 부수기 적중! (호출: Vulnerability)");
-            }
-            var stat = health.GetComponent<CharacterStat>();
-            if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
-            if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
-            
-            if (stat != null)
-            {
-                stat.Status.ApplyVulnerability(true);
+                Debug.Log("<color=cyan>[Physical]</color> 바닥 부수기 적중!");
             }
         };
 
@@ -103,6 +95,21 @@ public class PlayerGroundSmashSO : PlayerSkillSO
 
     private IEnumerator PullEnemy(Transform enemy, Vector2 center)
     {
+        if (enemy == null) yield break;
+
+        var status = enemy.GetComponentInChildren<CharacterStatus>();
+        if (status == null) status = enemy.GetComponentInParent<CharacterStatus>();
+        if (status != null)
+        {
+            if (status.HasSuperArmor)
+            {
+                status.DamageSuperArmor(30f);
+                yield break;
+            }
+            // [추가] 실제로 당겨지므로 당기기(Pull)에 묶여있는 취약 부여 작동!
+            status.ApplyVulnerability(true);
+        }
+
         float elapsed = 0f;
         Vector2 startPos = enemy.position;
         // 플레이어에게서 약간 떨어진 위치까지만 당기기

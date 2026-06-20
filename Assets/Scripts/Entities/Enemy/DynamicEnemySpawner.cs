@@ -217,6 +217,10 @@ public class DynamicEnemySpawner : MonoBehaviour
         if (bossObj != null)
         {
             _activeEnemies.Add(bossObj);
+            if (bossObj.TryGetComponent<BaseEntity>(out var entity))
+            {
+                entity.Spawner = this;
+            }
             Debug.Log($"<color=red>[Spawner]</color> Boss <b>{data.minionName}</b> Spawned from Pool!");
         }
     }
@@ -238,6 +242,10 @@ public class DynamicEnemySpawner : MonoBehaviour
                 if (enemyObj != null)
                 {
                     _activeEnemies.Add(enemyObj);
+                    if (enemyObj.TryGetComponent<BaseEntity>(out var entity))
+                    {
+                        entity.Spawner = this;
+                    }
                 }
             }
         }
@@ -318,6 +326,14 @@ public class DynamicEnemySpawner : MonoBehaviour
             portalObj.transform.position = spawnPos;
             portalObj.AddComponent<FloorProceedPortal>();
             Debug.Log("<color=purple>[Spawner]</color> Created FloorProceedPortal dynamically since Prefab is null.");
+        }
+    }
+
+    public void RegisterActiveEnemy(GameObject enemy)
+    {
+        if (enemy != null && !_activeEnemies.Contains(enemy))
+        {
+            _activeEnemies.Add(enemy);
         }
     }
 }

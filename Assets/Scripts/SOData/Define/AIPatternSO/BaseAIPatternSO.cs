@@ -57,7 +57,8 @@ public class BaseAIPatternSO : AIPatternSO
             else
             {
                 // 적인 경우(플레이어 포함) 사거리에 따라 결정
-                if (dist <= entity.Stats.ATKRANGE - 0.2f) nextState = AIState.Attack;
+                // 공격 쿨타임이 찼고, 사거리 내에 있을 때만 공격 상태로 전환
+                if (dist <= entity.Stats.ATKRANGE - 0.2f && entity.AtkTimer >= entity.Stats.ATKSPD) nextState = AIState.Attack;
                 else nextState = AIState.Follow;
             }
         }
@@ -71,27 +72,54 @@ public class BaseAIPatternSO : AIPatternSO
     protected override void OnIdle(BaseEntity entity)
     {
         StopNavAgent(entity);
-        entity.AtkTimer = 1000f; // 적을 만나면 즉시 첫 공격 발동을 위해 큰 값으로 세팅
     }
 
     protected override void OnFollow(BaseEntity entity)
     {
         var agent = entity.GetComponent<NavMeshAgent>();
-        if (agent != null && agent.isActiveAndEnabled)
+        if (agent != null && agent.isActiveAndEnabled && entity.Target != null)
         {
             agent.isStopped = false;
             agent.speed = entity.Stats.MOVESPEED;
-            agent.SetDestination(entity.Target.position);
+
+            // 원거리 적(사거리 3.0f 이상)이고 공격 쿨타임이 아직 차지 않은 경우
+            if (entity.Stats.ATKRANGE >= 3.0f && entity.AtkTimer < entity.Stats.ATKSPD)
+            {
+                // 매 프레임 목적지를 갱신하여 덜덜덜 흔들리는 것을 막기 위해, 이전 목적지에 근접했을 때만 신규 도망 방향을 연산합니다.
+                if (!agent.pathPending && agent.remainingDistance < 0.5f)
+                {
+                    Vector3 dirToPlayer = (entity.Target.position - entity.transform.position).normalized;
+                    if (dirToPlayer == Vector3.zero) dirToPlayer = Vector3.right;
+
+                    // 플레이어를 직접 바라보는 각도(플레이어 방향 기준 +-15도, 총 30도)를 차단하고 나머지 330도 내에서 무작위 방향 추출
+                    float angleToPlayer = Mathf.Atan2(dirToPlayer.y, dirToPlayer.x) * Mathf.Rad2Deg;
+                    float randomOffset = Random.Range(15f, 345f); // +-15도를 제외한 330도 편차
+                    float finalAngle = (angleToPlayer + randomOffset) * Mathf.Deg2Rad;
+
+                    Vector3 randomDir = new Vector3(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle), 0f);
+                    Vector3 fleeTarget = entity.transform.position + randomDir * 3.5f; // 약 3.5칸 이동
+                    
+                    if (NavMesh.SamplePosition(fleeTarget, out NavMeshHit hit, 3.5f, NavMesh.AllAreas))
+                    {
+                        agent.SetDestination(hit.position);
+                    }
+                    else
+                    {
+                        agent.SetDestination(fleeTarget);
+                    }
+                }
+            }
+            else
+            {
+                // 근접 몹이거나 공격 쿨타임이 찼을 때는 타겟에게 붙음
+                agent.SetDestination(entity.Target.position);
+            }
         }
-        entity.AtkTimer = 1000f; // 이동 중에는 게이지를 가득 채워두어 접근 즉시 타격
     }
 
     protected override void OnAttack(BaseEntity entity)
     {
         StopNavAgent(entity);
-
-        // 타이머는 공격 중이든 아니든 무조건 돕니다. (초당 공격 횟수 정확히 보장)
-        entity.AtkTimer += Time.deltaTime;
 
         // 단, 이미 공격을 실행 중(애니메이션 재생 중)이라면 중복 실행하지 않습니다.
         if (entity.IsAttacking) return;
@@ -99,7 +127,7 @@ public class BaseAIPatternSO : AIPatternSO
         if (entity.AtkTimer >= entity.Stats.ATKSPD)
         {
             entity.AtkTimer = 0f;
-            entity.StartCoroutine(AttackRoutine(entity));
+            entity.ActiveAttackCoroutine = entity.StartCoroutine(AttackRoutine(entity));
         }
     }
 
@@ -193,6 +221,7 @@ public class BaseAIPatternSO : AIPatternSO
 
         // [2] Execution (타격)
         ExecuteBasicAttack(entity);
+        entity.HasFiredHitEvent = true;
 
         // [3] Recovery (후딜레이)
         if (hasEndEvent)
@@ -207,8 +236,8 @@ public class BaseAIPatternSO : AIPatternSO
         }
         else
         {
-            // Fallback: 이벤트가 없거나 애니메이터가 없을 경우 임시 시간 대기 (0.5초)
-            yield return new WaitForSeconds(0.5f);
+            // Fallback: 이벤트가 없거나 애니메이터가 없을 경우 임시 대기 (후딜레이 없음)
+            yield return null;
         }
 
         if (hasAnimator)
@@ -217,6 +246,7 @@ public class BaseAIPatternSO : AIPatternSO
         }
 
         entity.IsAttacking = false;
+        entity.ActiveAttackCoroutine = null;
     }
 
     protected virtual void OnWindupStart(BaseEntity entity, float windupTime)

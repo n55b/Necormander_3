@@ -62,8 +62,15 @@ public class CharacterHealth : MonoBehaviour
             }
         }
 
+        // [추가] 슈퍼아머 게이지 차감 처리
+        if (_status != null && _status.HasSuperArmor && info.superArmorDamage > 0f)
+        {
+            _status.DamageSuperArmor(info.superArmorDamage);
+        }
+
         // [추가] 경직(Hitstun) 및 넉백(Knockback) 처리
-        if (info.causesHitstun || info.knockbackForce > 0f)
+        bool hasSuperArmor = (_status != null && _status.HasSuperArmor);
+        if ((info.causesHitstun || info.knockbackForce > 0f) && !hasSuperArmor)
         {
             var rootEntity = GetComponentInParent<BaseEntity>();
             if (rootEntity != null)

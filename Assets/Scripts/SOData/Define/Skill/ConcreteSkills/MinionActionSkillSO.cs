@@ -152,11 +152,9 @@ public class MinionActionSkillSO : MinionSkillSO
             case MinionActionType.DamageOnly:
                 break;
             case MinionActionType.DamageAndPush:
-                stat.Status.ApplyVulnerability(false);
                 ally.StartCoroutine(PushEnemy(targetTransform, dirFromPlayer));
                 break;
             case MinionActionType.DamageAndPull:
-                stat.Status.ApplyVulnerability(false);
                 ally.StartCoroutine(PushEnemy(targetTransform, -dirFromPlayer));
                 break;
             case MinionActionType.ApplyStun:
@@ -184,6 +182,20 @@ public class MinionActionSkillSO : MinionSkillSO
     private IEnumerator PushEnemy(Transform enemy, Vector2 pushDir)
     {
         if (enemy == null) yield break;
+
+        var status = enemy.GetComponentInChildren<CharacterStatus>();
+        if (status == null) status = enemy.GetComponentInParent<CharacterStatus>();
+        if (status != null)
+        {
+            if (status.HasSuperArmor)
+            {
+                status.DamageSuperArmor(30f);
+                yield break;
+            }
+            // 미니언 공격이므로 isPlayerApplied = false로 취약 부여
+            status.ApplyVulnerability(false);
+        }
+
         float elapsed = 0f;
         Vector2 startPos = enemy.position;
         Vector2 targetPos = startPos + pushDir * forceAmount;
@@ -202,6 +214,20 @@ public class MinionActionSkillSO : MinionSkillSO
     private IEnumerator PullEnemy(Transform enemy, Vector2 center)
     {
         if (enemy == null) yield break;
+
+        var status = enemy.GetComponentInChildren<CharacterStatus>();
+        if (status == null) status = enemy.GetComponentInParent<CharacterStatus>();
+        if (status != null)
+        {
+            if (status.HasSuperArmor)
+            {
+                status.DamageSuperArmor(30f);
+                yield break;
+            }
+            // 미니언 공격이므로 isPlayerApplied = false로 취약 부여
+            status.ApplyVulnerability(false);
+        }
+
         float elapsed = 0f;
         Vector2 startPos = enemy.position;
         Vector2 targetPos = center + (startPos - center).normalized * 0.5f;

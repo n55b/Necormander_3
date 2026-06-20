@@ -24,8 +24,6 @@ public class RangedAIPatternSO : BaseAIPatternSO
 
     protected override void OnWindupStart(BaseEntity entity, float windupTime)
     {
-        base.OnWindupStart(entity, windupTime);
-
         if (aimLinePrefab != null && entity.Target != null)
         {
             Vector2 spawnPos = (Vector2)entity.transform.position + (Vector2.up * launchOffset);

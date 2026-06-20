@@ -60,6 +60,10 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.06469488
       objectReference: {fileID: 0}
+    - target: {fileID: 2262207286068843843, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: minionData
+      value: 
+      objectReference: {fileID: 11400000, guid: f62b26e50f698ca43aa3b9b48385576c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

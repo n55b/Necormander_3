@@ -137,6 +137,34 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
             );
             SpawnEliteUnit(room.transform.position + (Vector3)room.centerOffset + randPos);
         }
+
+        // [추가] 생성된 엘리트 중 무작위 2명에게 슈퍼아머 부여
+        ApplySuperArmorToRandomEnemies(2);
+    }
+
+    private void ApplySuperArmorToRandomEnemies(int count)
+    {
+        if (_activeEnemies.Count == 0) return;
+        List<GameObject> enemiesToBuff = new List<GameObject>();
+        foreach (var obj in _activeEnemies)
+        {
+            if (obj != null) enemiesToBuff.Add(obj);
+        }
+
+        int actualCount = Mathf.Min(count, enemiesToBuff.Count);
+        for (int i = 0; i < actualCount; i++)
+        {
+            int randIndex = Random.Range(0, enemiesToBuff.Count);
+            GameObject enemyObj = enemiesToBuff[randIndex];
+            enemiesToBuff.RemoveAt(randIndex);
+
+            var status = enemyObj.GetComponentInChildren<CharacterStatus>();
+            if (status == null) status = enemyObj.GetComponentInParent<CharacterStatus>();
+            if (status != null)
+            {
+                status.ApplySuperArmor(100f);
+            }
+        }
     }
 
     private void SpawnEliteUnit(Vector3 position)

@@ -14,10 +14,38 @@ public class CharacterStatus : MonoBehaviour
     private float _cachedTotalShield = 0f;
 
     public bool LastAttackMissed = false; // [추가] 궁수 발이부중 기믹용 (이전 기본 공격이 빗나갔는지 여부)
-
     public float MoveSpeedMultiplier => _cachedMoveSpeedMultiplier;
     public float TotalShield => _cachedTotalShield;
     public bool IsElite { get; set; } // [추가] 엘리트 유닛 여부
+
+    [Header("Super Armor Settings")]
+    [SerializeField] private bool _hasSuperArmor = false;
+    [SerializeField] private float _superArmorGauge = 0f;
+    [SerializeField] private float _maxSuperArmorGauge = 100f;
+
+    public bool HasSuperArmor => _hasSuperArmor;
+    public float SuperArmorGauge => _superArmorGauge;
+
+    public void ApplySuperArmor(float amount = 100f)
+    {
+        _hasSuperArmor = true;
+        _superArmorGauge = amount;
+        _maxSuperArmorGauge = amount;
+    }
+
+    public void DamageSuperArmor(float amount)
+    {
+        if (!_hasSuperArmor) return;
+        _superArmorGauge = Mathf.Max(0f, _superArmorGauge - amount);
+        if (_superArmorGauge <= 0f)
+        {
+            _hasSuperArmor = false;
+            
+            // 골절 디버프 대신 '파괴' 효과를 직접 발생시켜 취약을 유도합니다.
+            ApplyBreak(true);
+            Debug.Log($"<color=red>[Super Armor]</color> {gameObject.name}의 슈퍼아머 파괴! '파괴' 효과 적용 및 취약 유발.");
+        }
+    }
 
     private Dictionary<DebuffBoolType, float> _boolTimers = new Dictionary<DebuffBoolType, float>();
     private Dictionary<DebuffBoolType, int> _boolTiers = new Dictionary<DebuffBoolType, int>();
@@ -226,6 +254,7 @@ public class CharacterStatus : MonoBehaviour
 
     public void ApplyKnockback(Vector2 dir, float force, float duration = 0.15f, bool isIronMountain = false)
     {
+        if (HasSuperArmor) return; // [추가] 슈퍼아머 상태일 때는 넉백 불가
         Rigidbody2D rb = GetComponentInParent<Rigidbody2D>();
         if (rb != null) StartCoroutine(KnockbackRoutine(rb, dir, force, duration, isIronMountain));
     }
@@ -295,6 +324,21 @@ public class CharacterStatus : MonoBehaviour
         _boolTiers[type] = tier;
 
         debuffTerminal.UpdateUI(type, tier); 
+    }
+
+    /// <summary>
+    /// 대상에게 '파괴' 효과를 직접 부여합니다.
+    /// 슈퍼아머 상태일 경우 슈퍼아머가 즉시 0이 되며 파괴되고, 파괴 효과의 결과로 취약 1스택이 부여됩니다.
+    /// </summary>
+    public void ApplyBreak(bool isPlayerApplied = false)
+    {
+        if (_hasSuperArmor)
+        {
+            _hasSuperArmor = false;
+            _superArmorGauge = 0f;
+            Debug.Log($"<color=red>[Break Effect]</color> {gameObject.name}의 슈퍼아머가 파괴 효과로 인해 즉시 부서졌습니다!");
+        }
+        ApplyVulnerability(isPlayerApplied);
     }
 
     public bool GetDebuffBool(DebuffBoolType type)

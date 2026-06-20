@@ -20,7 +20,7 @@ public abstract class AIPatternSO : ScriptableObject
         
         entity.CurrentState = AIState.Idle;
         entity.Target = null;
-        entity.AtkTimer = 0f;
+        entity.AtkTimer = 1000f; // [수정] 조우 시 즉시 첫 공격이 발동되도록 가득 채움
 
         // 이동 중이었다면 즉시 정지
         StopNavAgent(entity);
@@ -29,6 +29,9 @@ public abstract class AIPatternSO : ScriptableObject
     // 매 프레임 실행: AI의 핵심 루프
     public virtual void Execute(BaseEntity entity)
     {
+        // [추가] 상태와 무관하게 타이머는 무조건 매 프레임 돕니다.
+        entity.AtkTimer += Time.deltaTime;
+
         // 현재 상태 Entity에게 전달하여 애니메이션 재생
         entity.UpdateAnimation(entity.CurrentState);
 

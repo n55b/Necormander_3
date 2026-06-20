@@ -16,6 +16,6 @@ MonoBehaviour:
   bloodPopIcon: {fileID: 944605690, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
   bleedIcon: {fileID: 6904289081528659875, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
   woundIcon: {fileID: 593807851, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
-  corrosionIcon: {fileID: 1190683440, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  corrosionIcon: {fileID: 6904289081528659875, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
   fractureIcon: {fileID: 1190683440, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
   stunnedIcon: {fileID: 0}

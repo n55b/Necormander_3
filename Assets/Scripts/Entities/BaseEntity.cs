@@ -80,6 +80,7 @@ public abstract class BaseEntity : MonoBehaviour
     public AIPatternSO Brain => _runtimeBrain;
     public SpriteRenderer SpriteRenderer => _sr;
     public Animator Animator => _animator;
+    public DynamicEnemySpawner Spawner { get; set; } = null;
 
     public bool HasFiredHitEvent { get; set; } = false;
     public bool HasFiredAttackEndEvent { get; set; } = false;
@@ -131,6 +132,7 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected TelegraphHitbox _activeTelegraph;
     public bool IsAttacking { get; set; } = false;
+    public Coroutine ActiveAttackCoroutine { get; set; }
 
     protected virtual void Awake()
     {
@@ -180,7 +182,29 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (!CanExecuteAI()) return;
+        if (!CanExecuteAI())
+        {
+            // [경직/기절 제동] 관성으로 인해 스르륵 미끄러지는 현상을 방지하기 위해 정지 처리
+            if (_stats != null && _stats.Status != null && _stats.Status.GetDebuffBool(DebuffBoolType.Stunned))
+            {
+                if (_agent != null && _agent.isActiveAndEnabled)
+                {
+                    _agent.isStopped = true;
+                    _agent.velocity = Vector3.zero;
+                }
+                if (_rb != null)
+                {
+                    _rb.linearVelocity = Vector2.zero;
+                }
+            }
+            return;
+        }
+
+        // 경직이 풀려 AI 동작이 재개되었으므로 에이전트 정지 상태 해제
+        if (_agent != null && _agent.isActiveAndEnabled && _agent.isStopped)
+        {
+            _agent.isStopped = false;
+        }
 
         // [유니크] 공포 상태 처리
         if (_stats != null && _stats.Status != null && _stats.Status.GetDebuffBool(DebuffBoolType.Feared))
@@ -463,6 +487,14 @@ public abstract class BaseEntity : MonoBehaviour
     {
         _target = null;
         
+        if (ActiveAttackCoroutine != null)
+        {
+            StopCoroutine(ActiveAttackCoroutine);
+            ActiveAttackCoroutine = null;
+        }
+
+        IsAttacking = false;
+
         if (_activeHitbox != null)
         {
             Destroy(_activeHitbox.gameObject);
@@ -472,17 +504,28 @@ public abstract class BaseEntity : MonoBehaviour
         if (_animator != null)
         {
             _animator.Play("Idle"); // 애니메이션 강제 초기화
+            _animator.speed = 1f; // 공격 취소 시 배속 강제 원복
         }
 
         if (_runtimeBrain != null)
         {
-            _runtimeBrain.ResetAttackTimer(this); // 타격 시전 시간 초기화
+            if (!HasFiredHitEvent)
+            {
+                // 타격 수행 전이므로 쿨타임을 채워두어 경직 해제 시 즉시 재시도하게 함
+                AtkTimer = _stats != null ? _stats.ATKSPD : 0f;
+            }
+            else
+            {
+                // 이미 타격을 수행했으므로 정상 쿨타임 리셋
+                _runtimeBrain.ResetAttackTimer(this);
+            }
         }
     }
 
     // [추가] 넉백 적용
     public virtual void ApplyKnockback(Vector2 force)
     {
+        if (_stats != null && _stats.Status != null && _stats.Status.HasSuperArmor) return; // [추가] 슈퍼아머 시 넉백 무시
         if (_rb != null)
         {
             // NavMeshAgent가 켜져 있으면 넉백을 방해할 수 있으므로 임시 처리 고려 (현재는 AddForce)

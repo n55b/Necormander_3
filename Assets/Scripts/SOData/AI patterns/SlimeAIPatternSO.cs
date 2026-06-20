@@ -40,7 +40,27 @@ public class SlimeAIPatternSO : BaseAIPatternSO
                 // 주변 반경 내 무작위 위치에 흩뿌려 소환
                 Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * spawnRadius;
                 Vector3 spawnPos = _myEntity.transform.position + (Vector3)randomOffset;
-                Instantiate(smallSlimePrefab, spawnPos, Quaternion.identity);
+                GameObject smallSlimeObj = Instantiate(smallSlimePrefab, spawnPos, Quaternion.identity);
+                
+                if (smallSlimeObj != null)
+                {
+                    if (smallSlimeObj.TryGetComponent<BaseEntity>(out var smallEntity))
+                    {
+                        // 1. 프리팹에 오버라이드된 minionData를 기반으로 즉시 Initialize 처리
+                        MinionDataSO data = smallEntity.MinionData;
+                        if (data != null)
+                        {
+                            smallEntity.Initialize(data);
+                        }
+
+                        // 2. 부모 슬라임의 스포너에 동적 등록하여 방 클리어 판정에 귀속시킴
+                        if (_myEntity.Spawner != null)
+                        {
+                            smallEntity.Spawner = _myEntity.Spawner;
+                            _myEntity.Spawner.RegisterActiveEnemy(smallSlimeObj);
+                        }
+                    }
+                }
             }
         }
     }
