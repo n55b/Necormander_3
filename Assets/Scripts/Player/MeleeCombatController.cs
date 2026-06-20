@@ -170,8 +170,8 @@ public class MeleeCombatController : MonoBehaviour
         _isHoldingAttack = false;
         _player.SetAttackAnimSpeed(1f);
         
-_player._player.SetAttackAnimSpeed(1f);
-        _player.PlayAllAnim("Idle");으므로 Idle로 복귀
+        _player.SetAttackAnimSpeed(1f);
+        _player.PlayAllAnim("Idle");
         _player.SpeedMultiplier = 1.0f; // 이동 속도 복구
     }
 }
