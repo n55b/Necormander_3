@@ -271,7 +271,7 @@ public class PlayerController : MonoBehaviour
 
         if (canChangeState)
         {
-            if((-0.0f < MoveDirection.x && MoveDirection.x < 0.0f) && (-0.0f < MoveDirection.y && MoveDirection.y < 0.0f))
+            if (moveInput.sqrMagnitude < 0.0001f)
             {
                 TransitionToState(idleState);   
             }
@@ -659,7 +659,17 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     /// <param name="newState"></param>
     /// <param name="animName"></param>
-    public void TransitionToState(PlayerAnimationState newState)
+    /// <summary>
+    /// 외부(MeleeDodgeController 독)에서 PlayAllAnim으로 애니모르르 직접 결꿞을 때 호출.
+    /// currentAnimState 상태 캐시림 드합 해 제, 다음 TransitionToState 호출을 제대덩·게 적용되게 한다.
+    /// </summary>
+    public void ResetAnimStateCache()
+    {
+        currentAnimState = null;
+    }
+
+    
+public void TransitionToState(PlayerAnimationState newState)
     {
         if (currentAnimState == newState) return;
 
