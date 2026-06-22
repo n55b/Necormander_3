@@ -19,7 +19,7 @@ MonoBehaviour:
   rewardCount: 2
   eliteCount: 1
   wavesCount: 2
-  clustersPerWave: 2
+  clustersPerWave: 1
   minDistanceBetweenClusters: 3
   maxSpawnAttempts: 5
   spreadingForce: 5
