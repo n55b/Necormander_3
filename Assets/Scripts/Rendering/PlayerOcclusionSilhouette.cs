@@ -38,14 +38,19 @@ private void Awake()
         }
     }
 
-    private void LateUpdate()
+private void LateUpdate()
     {
         if (silhouetteRenderer == null || _mainRenderer == null) return;
 
-        // 본체 애니메이션을 그대로 따라가도록 매 프레임 스프라이트 동기화
+        // Sync sprite/flip every frame to follow body animation
         silhouetteRenderer.sprite = _mainRenderer.sprite;
         silhouetteRenderer.flipX = _mainRenderer.flipX;
         silhouetteRenderer.flipY = _mainRenderer.flipY;
+
+        // Re-apply tint every frame (not just once in Awake) - otherwise any other system
+        // that touches this renderer's color (hit flash, status effect tint, etc.) permanently
+        // overrides our silhouette tint and it never recovers.
+        silhouetteRenderer.color = silhouetteColor;
 
         silhouetteRenderer.enabled = IsOccluded();
     }
@@ -59,6 +64,7 @@ private bool IsOccluded()
         if (_mainRenderer == null) return false;
         Bounds myBounds = _mainRenderer.bounds;
         float maxDistSqr = maxCheckDistance * maxCheckDistance;
+        Transform myRoot = transform.root;
 
         var instances = YSortableObject.ActiveInstances;
         for (int i = 0; i < instances.Count; i++)
@@ -67,7 +73,11 @@ private bool IsOccluded()
             if (ys == null) continue;
 
             var occluderRenderer = ys.Renderer;
-            if (occluderRenderer == null || occluderRenderer.transform == transform) continue;
+            if (occluderRenderer == null) continue;
+
+            // Skip anything that belongs to my own character (body/hands/etc share the same root) -
+            // otherwise my own hand (drawn in front of my body) gets mistaken for something occluding me.
+            if (occluderRenderer.transform.root == myRoot) continue;
 
             // Cheap distance check first - skip far-away objects before touching bounds (perf)
             float distSqr = (occluderRenderer.transform.position - transform.position).sqrMagnitude;

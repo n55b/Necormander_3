@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 849927348699020487}
-  - component: {fileID: 4042300128671097788}
+  - component: {fileID: 3248023711508856617}
   m_Layer: 0
   m_Name: Silhouette
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 981153956595264485}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &4042300128671097788
+--- !u!212 &3248023711508856617
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -381,13 +381,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d623f6f2919a69e448465b4f79db6bda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  silhouetteRenderer: {fileID: 973053875459094770}
+  silhouetteRenderer: {fileID: 7014098569055171752}
   silhouetteColor: {r: 1, g: 1, b: 1, a: 0.55}
-  checkBoxSize: {x: 0.9, y: 0.6}
-  checkBoxOffset: {x: 0, y: 0}
-  occluderLayerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
+  maxCheckDistance: 3
 --- !u!1 &2235908954508541628
 GameObject:
   m_ObjectHideFlags: 0
@@ -981,7 +977,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2174475832111382353}
-  - component: {fileID: 6694664740271215440}
+  - component: {fileID: 7773861144495448027}
   m_Layer: 0
   m_Name: Silhouette
   m_TagString: Untagged
@@ -1004,7 +1000,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1604435047591240911}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &6694664740271215440
+--- !u!212 &7773861144495448027
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1200,13 +1196,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d623f6f2919a69e448465b4f79db6bda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  silhouetteRenderer: {fileID: 4042300128671097788}
+  silhouetteRenderer: {fileID: 3248023711508856617}
   silhouetteColor: {r: 1, g: 1, b: 1, a: 0.55}
-  checkBoxSize: {x: 0.9, y: 0.6}
-  checkBoxOffset: {x: 0, y: 0}
-  occluderLayerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
+  maxCheckDistance: 3
 --- !u!1 &8389716956321753658
 GameObject:
   m_ObjectHideFlags: 0
@@ -1230,7 +1222,6 @@ GameObject:
   - component: {fileID: 7957941004026145679}
   - component: {fileID: 1103040150316217935}
   - component: {fileID: 3445112678206032524}
-  - component: {fileID: 8993269466842838964}
   - component: {fileID: 5149496357544255013}
   - component: {fileID: 4725907438386194668}
   m_Layer: 8
@@ -1582,6 +1573,8 @@ MonoBehaviour:
   staminaSystem: {fileID: 0}
   summonNum: 3
   summonRange: 5
+  invincibilityDuration: 1
+  invincibilityBlinkInterval: 0.1
   P_State: 0
   minThrowChargeMultiplier: 1
   maxThrowChargeMultiplier: 2
@@ -1604,7 +1597,6 @@ MonoBehaviour:
   dashSpeed: 15
   dashDuration: 0.2
   dashCooldown: 1
-  SpeedMultiplier: 1
 --- !u!114 &6055861653884896251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1823,7 +1815,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   soundData: {fileID: 0}
---- !u!114 &8993269466842838964
 --- !u!114 &5149496357544255013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1842,13 +1833,7 @@ MonoBehaviour:
   parryActiveDuration: 0.05
   parryRecoveryDuration: 0.8
   parryTelegraphPrefab: {fileID: 0}
-  m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isDynamic: 1
-  precision: 100
-  baseOffset: 0
-  pivotOverride: {fileID: 0}
+  parryMoveSpeedMultiplier: 0.3
 --- !u!114 &4725907438386194668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1861,13 +1846,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d623f6f2919a69e448465b4f79db6bda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  silhouetteRenderer: {fileID: 6694664740271215440}
+  silhouetteRenderer: {fileID: 7773861144495448027}
   silhouetteColor: {r: 1, g: 1, b: 1, a: 0.55}
-  checkBoxSize: {x: 0.9, y: 0.6}
-  checkBoxOffset: {x: 0, y: 0}
-  occluderLayerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
+  maxCheckDistance: 3
 --- !u!1 &8633796844698217215
 GameObject:
   m_ObjectHideFlags: 0
@@ -2047,7 +2028,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7550031707332359919}
-  - component: {fileID: 973053875459094770}
+  - component: {fileID: 7014098569055171752}
   m_Layer: 0
   m_Name: Silhouette
   m_TagString: Untagged
@@ -2070,7 +2051,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6475330610207429760}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &973053875459094770
+--- !u!212 &7014098569055171752
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
