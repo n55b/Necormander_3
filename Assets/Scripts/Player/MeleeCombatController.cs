@@ -98,7 +98,7 @@ public class MeleeCombatController : MonoBehaviour
             _player.SetAttackAnimSpeed(atkAnimSpeed);
         }
 
-        // 공격속도에 맞춰 건 애니모르 재생 속도 조절 (ATKSPD는 주기(조)이단 작을수르 묌단)
+        // Adjust animation speed based on attack speed (lower ATKSPD = faster)
         if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
         {
             float atkAnimSpeed = Mathf.Clamp(1f / _player.Stat.ATKSPD, 0.5f, 3f);

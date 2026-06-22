@@ -179,6 +179,7 @@ GameObject:
   - component: {fileID: 7818082784768736543}
   - component: {fileID: 4852760606132103031}
   - component: {fileID: 8150888168159850155}
+  - component: {fileID: 2058294130096282616}
   m_Layer: 6
   m_Name: Enemy
   m_TagString: Untagged
@@ -228,6 +229,8 @@ MonoBehaviour:
   minionData: {fileID: 0}
   _lastState: -1
   _target: {fileID: 0}
+  _targetStat: {fileID: 0}
+  _currentState: 0
 --- !u!114 &8809371560834086903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -386,6 +389,21 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &2058294130096282616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1841339908024047631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isDynamic: 1
+  precision: 100
+  baseOffset: 0
 --- !u!1 &7086929190223598649
 GameObject:
   m_ObjectHideFlags: 0
@@ -555,6 +573,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   LastAttackMissed: 0
+  _hasSuperArmor: 0
+  _superArmorGauge: 0
+  _maxSuperArmorGauge: 100
   debuffTerminal: {fileID: 1405805241935053527}
 --- !u!114 &2562986780468983374
 MonoBehaviour:
