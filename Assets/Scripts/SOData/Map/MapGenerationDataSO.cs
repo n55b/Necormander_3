@@ -18,12 +18,10 @@ public class MapGenerationDataSO : ScriptableObject
     [Header("Encounter Spawning Settings")]
     [Tooltip("일반방 전투 웨이브 수 (기본 2)")]
     public int wavesCount = 2;
-    [Tooltip("웨이브당 생성할 군집 개수")]
-    public int clustersPerWave = 3;
-    [Tooltip("군집 간 최소 간격")]
-    public float minDistanceBetweenClusters = 4.0f;
+    [Tooltip("적 개체 간 최소 간격")]
+    public float minDistanceBetweenEnemies = 2.0f;
     [Tooltip("최소 간격을 만족하지 못할 때 포기할 최대 시도 횟수")]
-    public int maxSpawnAttempts = 5;
+    public int maxSpawnAttempts = 10;
 
     [Header("Spreading Settings")]
     public float spreadingForce = 5f;
