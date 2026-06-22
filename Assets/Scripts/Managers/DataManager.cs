@@ -15,6 +15,7 @@ public class DataManager : MonoBehaviour
     [SerializeField] private ThrowEffectRegistrySO throwEffectRegistry;
     [SerializeField] private AIPatternSO defaultAIPattern; 
     [SerializeField] private ShopRegistrySO shopRegistry;
+    [SerializeField] private EnemyClusterRegistrySO clusterRegistry;
 
     public ThrowEffectRegistrySO THROW_EFFECT_REGISTRY => throwEffectRegistry;
     public AIPatternSO DEFAULT_AI_PATTERN => defaultAIPattern;
@@ -24,6 +25,7 @@ public class DataManager : MonoBehaviour
     public List<MinionDataSO> ENEMY_MINION_DATA => minionRegistry != null ? minionRegistry.enemyMinionData : null;
     public List<MinionDataSO> BOSS_MINION_DATA => minionRegistry != null ? minionRegistry.bossMinionData : null; // [추가] 보스 데이터 접근
     public ShopRegistrySO SHOP_REGISTRY => shopRegistry;
+    public List<EnemyClusterSO> ENEMY_CLUSTERS => clusterRegistry != null ? clusterRegistry.enemyClusters : new List<EnemyClusterSO>();
 
     /// <summary>
     /// 다른 매니저들이 준비되기 전에 가장 먼저 초기화되어야 합니다.

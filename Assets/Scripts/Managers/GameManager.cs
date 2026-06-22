@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour
     [Header("Map Generation")]
     [SerializeField] public MapGenerator mapGenerator;
     [SerializeField] private MapGenerationDataSO currentStageMapData;
+    public MapGenerationDataSO CurrentStageMapData => currentStageMapData;
     [SerializeField] private RoomPrefabDataSO currentStageRoomData;
 
     private bool _isTimeStopped = false;

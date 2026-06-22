@@ -983,6 +983,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager
       objectReference: {fileID: 0}
+    - target: {fileID: 5990352106904275992, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: clusterRegistry
+      value: 
+      objectReference: {fileID: 11400000, guid: 4a525318270344540ae65dd9032dcb3d, type: 2}
     - target: {fileID: 6139375127595461034, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: fogTilemap
       value: 

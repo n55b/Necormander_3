@@ -18,6 +18,10 @@ MonoBehaviour:
   shopCount: 1
   rewardCount: 2
   eliteCount: 1
+  wavesCount: 2
+  clustersPerWave: 2
+  minDistanceBetweenClusters: 3
+  maxSpawnAttempts: 5
   spreadingForce: 5
   maxVelocityThreshold: 0.1
   maxPhysicsIteration: 500

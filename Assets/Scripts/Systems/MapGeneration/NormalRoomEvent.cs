@@ -10,8 +10,7 @@ using UnityEngine.Events;
 public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 {
     [Header("Combat Settings")]
-    [SerializeField] private int groupsCount = 3;
-    [SerializeField] private int enemiesPerGroup = 3;
+    [SerializeField] private MapGenerationDataSO mapGenerationData;
     [SerializeField] private float groupSpread = 1.5f;
 
     [Header("Unity Events")]
@@ -19,23 +18,16 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     public UnityEvent OnCombatClear;
 
     private List<GameObject> _activeEnemies = new List<GameObject>();
-    private List<MinionDataSO> _normalEnemyPool = new List<MinionDataSO>();
     private bool _isBattleActive = false;
     private RoomInstance _cachedRoom;
+    private int _currentWave = 1;
+    private List<Vector3> _spawnedClusterCenters = new List<Vector3>();
 
     private void Start()
     {
-        if (GameManager.Instance != null && GameManager.Instance.dataManager != null)
+        if (mapGenerationData == null && GameManager.Instance != null)
         {
-            var rawList = GameManager.Instance.dataManager.ENEMY_MINION_DATA;
-            if (rawList != null)
-            {
-                foreach (var data in rawList)
-                {
-                    if (!data.isElite && data.canSpawnRandomly) _normalEnemyPool.Add(data);
-                }
-            }
-            Debug.Log($"<color=white>[NormalRoom]</color> Pool Initialized. Normal Enemies: {_normalEnemyPool.Count} in {gameObject.name}");
+            mapGenerationData = GameManager.Instance.CurrentStageMapData;
         }
     }
 
@@ -46,8 +38,16 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         _activeEnemies.RemoveAll(item => item == null);
         if (_activeEnemies.Count == 0)
         {
-            _isBattleActive = false;
-            _cachedRoom.MarkCleared();
+            if (mapGenerationData != null && _currentWave < mapGenerationData.wavesCount)
+            {
+                _currentWave++;
+                SpawnWaves(_cachedRoom);
+            }
+            else
+            {
+                _isBattleActive = false;
+                _cachedRoom.MarkCleared();
+            }
         }
     }
 
@@ -57,6 +57,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         
         _cachedRoom = room;
         _isBattleActive = true;
+        _currentWave = 1;
 
         room.SetDoorsOpen(false);
 
@@ -93,24 +94,130 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
     private void SpawnWaves(RoomInstance room)
     {
-        // [수정] 방의 크기에 맞게 소환 범위를 제한
+        if (mapGenerationData == null)
+        {
+            Debug.LogWarning("[NormalRoom] MapGenerationData is not assigned!");
+            return;
+        }
+
+        Debug.Log($"[NormalRoom] SpawnWaves started. Wave: {_currentWave}/{mapGenerationData.wavesCount}, Clusters to spawn: {mapGenerationData.clustersPerWave}");
+
+        if (mapGenerationData.clustersPerWave <= 0)
+        {
+            Debug.LogWarning("[NormalRoom] mapGenerationData.clustersPerWave is 0 or less! No enemies will be spawned.");
+        }
+
         float margin = 2.0f;
         float rangeX = (room.roomSize.x / 2f) - margin;
         float rangeY = (room.roomSize.y / 2f) - margin;
 
-        for (int i = 0; i < groupsCount; i++)
+        _spawnedClusterCenters.Clear();
+
+        var clusters = GameManager.Instance.dataManager.ENEMY_CLUSTERS;
+        if (clusters == null || clusters.Count == 0)
         {
-            Vector3 randPos = new Vector3(
-                Random.Range(-rangeX, rangeX),
-                Random.Range(-rangeY, rangeY),
-                0
-            );
-            // 방의 월드 위치 + 타일맵 중심 오프셋 + 랜덤 위치
-            SpawnGroup(room.transform.position + (Vector3)room.centerOffset + randPos);
+            Debug.LogWarning("[NormalRoom] No enemy clusters found in DataManager.");
+            return;
+        }
+
+        for (int i = 0; i < mapGenerationData.clustersPerWave; i++)
+        {
+            Vector3 bestPos = room.transform.position + (Vector3)room.centerOffset;
+            float bestDist = -1f;
+
+            for (int attempt = 0; attempt < mapGenerationData.maxSpawnAttempts; attempt++)
+            {
+                Vector3 randPos = new Vector3(
+                    Random.Range(-rangeX, rangeX),
+                    Random.Range(-rangeY, rangeY),
+                    0
+                );
+                Vector3 candidatePos = room.transform.position + (Vector3)room.centerOffset + randPos;
+
+                float minDist = float.MaxValue;
+                foreach (var center in _spawnedClusterCenters)
+                {
+                    float dist = Vector3.Distance(candidatePos, center);
+                    if (dist < minDist) minDist = dist;
+                }
+
+                if (_spawnedClusterCenters.Count == 0 || minDist >= mapGenerationData.minDistanceBetweenClusters)
+                {
+                    bestPos = candidatePos;
+                    break;
+                }
+
+                if (minDist > bestDist)
+                {
+                    bestDist = minDist;
+                    bestPos = candidatePos;
+                }
+            }
+
+            _spawnedClusterCenters.Add(bestPos);
+            
+            // Random Cluster Select
+            var selectedCluster = clusters[Random.Range(0, clusters.Count)];
+            SpawnCluster(selectedCluster, bestPos);
         }
 
         // [추가] 생성된 적군 중 무작위 2명에게 슈퍼아머 부여
         ApplySuperArmorToRandomEnemies(2);
+    }
+
+    private void SpawnCluster(EnemyClusterSO cluster, Vector3 center)
+    {
+        if (cluster == null)
+        {
+            Debug.LogWarning("[NormalRoom] SpawnCluster: cluster is null!");
+            return;
+        }
+        if (cluster.enemies == null || cluster.enemies.Count == 0)
+        {
+            Debug.LogWarning($"[NormalRoom] SpawnCluster: cluster '{cluster.name}' has no enemies defined!");
+            return;
+        }
+
+        int spawnedCount = 0;
+        foreach (var enemyCount in cluster.enemies)
+        {
+            if (enemyCount.enemyData == null)
+            {
+                Debug.LogWarning($"[NormalRoom] SpawnCluster: cluster '{cluster.name}' has an enemy with missing Data!");
+                continue;
+            }
+            if (enemyCount.count <= 0)
+            {
+                Debug.LogWarning($"[NormalRoom] SpawnCluster: cluster '{cluster.name}' enemy '{enemyCount.enemyData.name}' count is {enemyCount.count}!");
+                continue;
+            }
+
+            for (int i = 0; i < enemyCount.count; i++)
+            {
+                Vector2 offset = Random.insideUnitCircle * groupSpread;
+                Vector3 spawnPos = center + (Vector3)offset;
+
+                if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
+                {
+                    GameObject enemy = GameManager.Instance.dataManager.CreateUnit(enemyCount.enemyData, hit.position);
+                    if (enemy != null)
+                    {
+                        _activeEnemies.Add(enemy);
+                        spawnedCount++;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[NormalRoom] SpawnCluster: CreateUnit returned null for {enemyCount.enemyData.name}");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[NormalRoom] NavMesh SamplePosition failed at {spawnPos}");
+                }
+            }
+        }
+        
+        Debug.Log($"[NormalRoom] SpawnCluster '{cluster.name}' finished. Spawned {spawnedCount} enemies. Total Active: {_activeEnemies.Count}");
     }
 
     private void ApplySuperArmorToRandomEnemies(int count)
@@ -136,39 +243,5 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
                 status.ApplySuperArmor(100f);
             }
         }
-    }
-
-    private void SpawnGroup(Vector3 center)
-    {
-        for (int i = 0; i < enemiesPerGroup; i++)
-        {
-            Vector2 offset = Random.insideUnitCircle * groupSpread;
-            Vector3 spawnPos = center + (Vector3)offset;
-
-            // [수정] 샘플링 범위를 늘리고 실패 시 로그 출력
-            if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
-            {
-                MinionDataSO data = GetRandomEnemyData();
-                if (data != null)
-                {
-                    GameObject enemy = GameManager.Instance.dataManager.CreateUnit(data, hit.position);
-                    if (enemy != null) _activeEnemies.Add(enemy);
-                }
-                else
-                {
-                    Debug.LogWarning("[NormalRoom] RandomEnemyData is null! Check pool.");
-                }
-            }
-            else
-            {
-                Debug.LogWarning($"[NormalRoom] NavMesh SamplePosition failed at {spawnPos}");
-            }
-        }
-    }
-
-    private MinionDataSO GetRandomEnemyData()
-    {
-        if (_normalEnemyPool.Count == 0) return null;
-        return _normalEnemyPool[Random.Range(0, _normalEnemyPool.Count)];
     }
 }
