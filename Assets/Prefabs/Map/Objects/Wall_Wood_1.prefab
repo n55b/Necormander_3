@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 4737396578180319513}
   - component: {fileID: 4899279998522714708}
   - component: {fileID: 8710407449564795451}
-  - component: {fileID: -6101219623693511960}
+  - component: {fileID: 430592485063588069}
+  - component: {fileID: 9001282895118144742}
   m_Layer: 3
   m_Name: Wall_Wood_1
   m_TagString: Untagged
@@ -133,8 +134,24 @@ MonoBehaviour:
   m_Area: 1
   m_IgnoreFromBuild: 0
   m_AffectedAgents: ffffffff
---- !u!60 &-6101219623693511960
-PolygonCollider2D:
+--- !u!114 &430592485063588069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6218379266994702215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isDynamic: 0
+  precision: 100
+  baseOffset: 0
+  pivotOverride: {fileID: 0}
+--- !u!61 &9001282895118144742
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -167,22 +184,15 @@ PolygonCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: 0.1}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.49458343, y: 0.27781135}
+    pivot: {x: 0.5, y: 0}
     oldSize: {x: 3.25, y: 2.8125}
     newSize: {x: 3.25, y: 2.8125}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 1.5801039, y: 1.3436556}
-      - {x: 1.0801039, y: 1.9686556}
-      - {x: 0.017603874, y: 1.9686556}
-      - {x: -1.4823961, y: 1.7186556}
-      - {x: -1.4823961, y: -0.7188444}
-      - {x: 1.5801039, y: -0.7188444}
-  m_UseDelaunayMesh: 0
+  m_Size: {x: 3.25, y: 0.2}
+  m_EdgeRadius: 0
