@@ -398,19 +398,57 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // [추가] 외부(MeleeCombatController 등)에서 이동 속도를 비율로 줄이거나 늘리기 위한 변수
-    [HideInInspector] public float SpeedMultiplier = 1.0f;
+    public enum SpeedModifierSource
+    {
+        MeleeAttack,
+        Parry,
+        ThrowCharge,
+        Skill,
+        Debuff
+    }
+
+    private Dictionary<SpeedModifierSource, float> _speedModifiers = new Dictionary<SpeedModifierSource, float>();
+
+    public void SetSpeedModifier(SpeedModifierSource source, float multiplier)
+    {
+        _speedModifiers[source] = multiplier;
+    }
+
+    public void RemoveSpeedModifier(SpeedModifierSource source)
+    {
+        if (_speedModifiers.ContainsKey(source))
+        {
+            _speedModifiers.Remove(source);
+        }
+    }
+
+    public float SpeedMultiplier
+    {
+        get
+        {
+            float total = 1.0f;
+            foreach (var mult in _speedModifiers.Values)
+            {
+                total *= mult;
+            }
+            return total;
+        }
+    }
 
     private void FixedUpdate()
     {
         if (_inputBlocked || (stat != null && stat.Health.IsDead)) return;
 
-        float currentSpeed = stat.MOVESPEED * SpeedMultiplier;
-
         if (throwController != null && throwController.IsCharging)
         {
-            currentSpeed *= chargeMoveSpeedMultiplier;
+            SetSpeedModifier(SpeedModifierSource.ThrowCharge, chargeMoveSpeedMultiplier);
         }
+        else
+        {
+            RemoveSpeedModifier(SpeedModifierSource.ThrowCharge);
+        }
+
+        float currentSpeed = stat.MOVESPEED * SpeedMultiplier;
 
         if (_isDashing)
         {

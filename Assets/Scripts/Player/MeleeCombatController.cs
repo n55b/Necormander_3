@@ -40,11 +40,7 @@ public class MeleeCombatController : MonoBehaviour
         {
             if (_player != null)
             {
-                var parryCtrl = _player.GetComponent<PlayerParryController>();
-                if (parryCtrl == null || !parryCtrl.IsParrying)
-                {
-                    _player.SpeedMultiplier = 1.0f; // 공격 끝났으므로 이속 복구
-                }
+                _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack); // 공격 끝났으므로 이속 복구
             }
 
             if (Time.time - _lastAttackTime > comboResetTime)
@@ -92,7 +88,7 @@ public class MeleeCombatController : MonoBehaviour
         float damageMultiplier = (_comboStep == 2) ? 1.5f : 1.0f;
 
         // [애니메이션 재생]
-        _player.SpeedMultiplier = 0.3f; // 공격 중 이동 속도 감소
+        _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0.3f); // 공격 중 이동 속도 감소
         if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1");
         else if (_comboStep == 1) _player.PlayAllAnim("Attack_Light2");
         else _player.PlayAllAnim("Attack_Medium");
@@ -185,6 +181,6 @@ public class MeleeCombatController : MonoBehaviour
         
         _player.SetAttackAnimSpeed(1f);
         _player.PlayAllAnim("Idle");
-        _player.SpeedMultiplier = 1.0f; // 이동 속도 복구
+        _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack); // 이동 속도 복구
     }
 }

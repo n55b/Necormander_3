@@ -135,7 +135,7 @@ public class PlayerParryController : MonoBehaviour
     private IEnumerator ParrySequence(Vector2 mouseDir)
     {
         _isParrying = true;
-        _player.SpeedMultiplier = parryMoveSpeedMultiplier; // 감속
+        _player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, parryMoveSpeedMultiplier); // 감속
 
         // 1. 애니메이션 재생 시도
         _player.PlayAllAnim("Parry");
@@ -174,7 +174,7 @@ public class PlayerParryController : MonoBehaviour
     private void EndParry()
     {
         _isParrying = false;
-        _player.SpeedMultiplier = 1.0f; // 이속 복구
+        _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.Parry); // 이속 복구
         _player.PlayAllAnim("Idle");
         _parryCoroutine = null;
     }
