@@ -10,7 +10,9 @@ public class PlayerParryController : MonoBehaviour
     [SerializeField] private float parryRadius = 2.5f;
     [SerializeField] private float parryAngle = 160f;
     
-    [Header("패리 타이머 설정 (애니메이션 없을 때의 기본값)")]
+    [Header("패리 타이머 설정")]
+    [Tooltip("체크하면 Animator의 Parry 애니메이션 클립 길이에 맞춰 판정/후딜레이 시간이 자동 조정됩니다. 체크 해제 시 아래 수동 설정값이 적용됩니다.")]
+    [SerializeField] private bool useAnimationDuration = false;
     [SerializeField] private float parryActiveDuration = 0.05f;
     [SerializeField] private float parryRecoveryDuration = 0.2f;
 
@@ -42,6 +44,12 @@ public class PlayerParryController : MonoBehaviour
     /// </summary>
     public void UpdateDurationsFromAnimation()
     {
+        if (!useAnimationDuration)
+        {
+            Debug.Log($"<color=cyan>[Parry]</color> 인스펙터 수동 시간 적용됨! 판정: {parryActiveDuration:F3}초, 후딜레이: {parryRecoveryDuration:F3}초");
+            return;
+        }
+
         float clipLength = GetParryAnimationClipLength();
         if (clipLength > 0f)
         {
@@ -55,9 +63,8 @@ public class PlayerParryController : MonoBehaviour
         }
         else
         {
-            // 애니메이션이 없을 경우 기본 강제 시간 설정
-            parryActiveDuration = 0.05f;
-            parryRecoveryDuration = 0.2f;
+            // 애니메이션이 없을 경우 인스펙터 설정 시간 그대로 사용
+            Debug.Log($"<color=cyan>[Parry]</color> Parry 애니메이션을 찾지 못해 인스펙터 값을 사용합니다. 판정: {parryActiveDuration:F3}초, 후딜레이: {parryRecoveryDuration:F3}초");
         }
     }
 

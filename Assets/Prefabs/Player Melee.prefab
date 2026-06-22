@@ -980,6 +980,7 @@ GameObject:
   - component: {fileID: 7957941004026145679}
   - component: {fileID: 1103040150316217935}
   - component: {fileID: 3445112678206032524}
+  - component: {fileID: 8993269466842838964}
   m_Layer: 8
   m_Name: Player Melee
   m_TagString: Player
@@ -1569,6 +1570,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   soundData: {fileID: 0}
+--- !u!114 &8993269466842838964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8389716956321753658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d04cdc34e11097e4dbd2d3d6a637e686, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  parryRadius: 2.5
+  parryAngle: 160
+  useAnimationDuration: 0
+  parryActiveDuration: 0.05
+  parryRecoveryDuration: 0.8
+  parryTelegraphPrefab: {fileID: 0}
 --- !u!1 &8633796844698217215
 GameObject:
   m_ObjectHideFlags: 0
