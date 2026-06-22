@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 public class MeleeCombatController : MonoBehaviour
 {
     [SerializeField] private GameObject telegraphPrefab; // 인스펙터 할당
+    public GameObject TelegraphPrefab => telegraphPrefab;
 
     private PlayerController _player;
     private float _lastAttackTime;
@@ -71,6 +72,9 @@ public class MeleeCombatController : MonoBehaviour
     private void ExecuteMeleeAttack()
     {
         if (_player == null || _player.Stat.Health.IsDead) return;
+
+        var parryCtrl = _player.GetComponent<PlayerParryController>();
+        if (parryCtrl != null && parryCtrl.IsParrying) return;
 
         _lastAttackTime = Time.time;
         OnAttackExecuted?.Invoke(_comboStep);

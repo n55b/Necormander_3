@@ -48,4 +48,10 @@ public class TrackingFireball : Projectile
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
     }
+
+    public override void InitDeflected(Vector2 originDirection, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
+    {
+        _targetTransform = null; // 유도 해제하여 직선 비행
+        base.InitDeflected(originDirection, damage, targetLayer, shooter, customSpeed, customLifeTime);
+    }
 }

@@ -174,6 +174,10 @@ public class PlayerController : MonoBehaviour
         if (GetComponent<PlayerUniqueEffectManager>() == null)
             gameObject.AddComponent<PlayerUniqueEffectManager>();
 
+        // [패리] 패리 컨트롤러 추가
+        if (GetComponent<PlayerParryController>() == null)
+            gameObject.AddComponent<PlayerParryController>();
+
         // [액티브 스킬] 액티브 스킬 매니저 추가
         if (activeSkillManager == null)
         {
@@ -192,6 +196,8 @@ public class PlayerController : MonoBehaviour
         // 애니메이션 기본으로 설정
         TransitionToState(idleState);
     }
+
+
 
     // 애니메이션 캐싱
     private void CachingAnim()
@@ -250,20 +256,18 @@ public class PlayerController : MonoBehaviour
         {
             var kb = UnityEngine.InputSystem.Keyboard.current;
 
+            var parryCtrl = GetComponent<PlayerParryController>();
+            bool isParrying = parryCtrl != null && parryCtrl.IsParrying;
+
             // PlayerSkillController를 통한 연계 스킬(스페이스바) 및 상시 스킬(Q, E, R) 처리
             var skillCtrl = GetComponent<PlayerSkillController>();
-            if (skillCtrl != null && !_inputBlocked)
+            if (skillCtrl != null && !_inputBlocked && !isParrying)
             {
                 // 스페이스바: 큐에 대기 중인 미니언 스킬 발동
                 if (kb.spaceKey.wasPressedThisFrame)
                 {
                     skillCtrl.ExecuteNextMinionSkill(transform);
                 }
-
-                // 평소: 플레이어 스킬 발동 (상시 스킬, Q, E, R)
-                if (kb.qKey.wasPressedThisFrame) skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.Q, transform);
-                if (kb.eKey.wasPressedThisFrame) skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.E, transform);
-                if (kb.rKey.wasPressedThisFrame) skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.R, transform);
             }
         }
 
@@ -428,69 +432,16 @@ public class PlayerController : MonoBehaviour
         return;
     }
 
-    public void OnRightClick(InputAction.CallbackContext context)
+    public void OnParry(InputAction.CallbackContext context)
     {
         if (_inputBlocked || stat.Health.IsDead) return;
 
-        /*
-        if (sumController.IsSummoningMode)
+        if (context.started)
         {
-            if (context.performed)
+            var parryCtrl = GetComponent<PlayerParryController>();
+            if (parryCtrl != null)
             {
-                Debug.Log($"<color=white>[PlayerController]</color> 우클릭 입력됨! 소환 수행");
-                CommandData selectedType = sumController.GetCurrentSelectedType();
-                MinionDataSO data = GameManager.Instance.dataManager.GetMinionData(selectedType);
-
-                if (ReferenceEquals(data, null))
-                {
-                    sumController.ResetSummonMode();
-                    return;
-                }
-
-                if (data.cost == 0)
-                {
-                    Debug.LogError($"<color=red>[PlayerController]</color> {data.minionName}의 소환 비용(Cost)이 0으로 설정되어 있습니다!");
-                }
-
-                int finalSummonCount = 1;
-                Debug.Log($"<color=white>[Summon Request]</color> Type: {selectedType}, Count: {finalSummonCount} (Sync with Inventory)");
-
-                List<Vector2> pos = sumController.GetSummonPositions2D(finalSummonCount, summonRange);
-
-                for (int i = 0; i < finalSummonCount; i++)
-                {
-                    // [수정] 소환 시 인벤토리에서 해당 유닛의 수량을 늘리거나 새 슬롯을 차지합니다.
-                    // 이는 나중에 "수량 늘리기 아이템"을 먹었을 때와 동일한 로직을 공유합니다.
-                    bool success = GameManager.Instance.inventoryManager.AddMinionOrIncreaseQuantity(selectedType, 1);
-
-                    if (success)
-                    {
-                        Vector2 spawnPos = (i < pos.Count) ? pos[i] : (Vector2)transform.position;
-                        allyManager.SpawnAlly(data, spawnPos);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"<color=orange>[PlayerController]</color> 인벤토리 제한으로 {selectedType}을 더 이상 소환할 수 없습니다.");
-                        break;
-                    }
-                }
-
-                sumController.ResetSummonMode();
-            }
-        }
-        else
-        */
-        {
-            if (throwController != null)
-            {
-                if (context.started)
-                {
-                    throwController.OnRightClickStarted();
-                }
-                else if (context.canceled)
-                {
-                    throwController.OnRightClickCanceled();
-                }
+                parryCtrl.TryStartParry();
             }
         }
     }
@@ -498,6 +449,9 @@ public class PlayerController : MonoBehaviour
     public void OnThrow(InputAction.CallbackContext context)
     {
         if (stat.Health.IsDead) return;
+
+        var parryCtrl = GetComponent<PlayerParryController>();
+        if (parryCtrl != null && parryCtrl.IsParrying) return;
 
         if (activeSkillManager != null)
         {
@@ -523,6 +477,9 @@ public class PlayerController : MonoBehaviour
     {
         if (_inputBlocked || stat.Health.IsDead) return;
 
+        var parryCtrl = GetComponent<PlayerParryController>();
+        if (parryCtrl != null && parryCtrl.IsParrying) return;
+
         if (context.performed)
         {
             // 근접 구르기 컨트롤러가 있다면 우선적으로 사용 (2스택 구르기 등)
@@ -537,6 +494,57 @@ public class PlayerController : MonoBehaviour
             if (!_isDashing && Time.time >= _lastDashTime + dashCooldown)
             {
                 StartDash();
+            }
+        }
+    }
+
+    public void OnSkillQ(InputAction.CallbackContext context)
+    {
+        if (_inputBlocked || stat.Health.IsDead) return;
+
+        var parryCtrl = GetComponent<PlayerParryController>();
+        if (parryCtrl != null && parryCtrl.IsParrying) return;
+
+        if (context.performed)
+        {
+            var skillCtrl = GetComponent<PlayerSkillController>();
+            if (skillCtrl != null)
+            {
+                skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.Q, transform);
+            }
+        }
+    }
+
+    public void OnSkillE(InputAction.CallbackContext context)
+    {
+        if (_inputBlocked || stat.Health.IsDead) return;
+
+        var parryCtrl = GetComponent<PlayerParryController>();
+        if (parryCtrl != null && parryCtrl.IsParrying) return;
+
+        if (context.performed)
+        {
+            var skillCtrl = GetComponent<PlayerSkillController>();
+            if (skillCtrl != null)
+            {
+                skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.E, transform);
+            }
+        }
+    }
+
+    public void OnSkillR(InputAction.CallbackContext context)
+    {
+        if (_inputBlocked || stat.Health.IsDead) return;
+
+        var parryCtrl = GetComponent<PlayerParryController>();
+        if (parryCtrl != null && parryCtrl.IsParrying) return;
+
+        if (context.performed)
+        {
+            var skillCtrl = GetComponent<PlayerSkillController>();
+            if (skillCtrl != null)
+            {
+                skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.R, transform);
             }
         }
     }
