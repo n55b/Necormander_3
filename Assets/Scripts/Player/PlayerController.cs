@@ -55,6 +55,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private int summonNum;
     [SerializeField] private float summonRange;
 
+    [Header("무적 (i-Frame) 설정")]
+    [SerializeField] private float invincibilityDuration = 1.0f;
+    [SerializeField] private float invincibilityBlinkInterval = 0.1f;
+
     [Header("플레이어 상태")]
     [SerializeField] PlayerStates P_State = PlayerStates.Idle;
 
@@ -227,6 +231,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private Coroutine _invincibilityCoroutine;
+
     private void HandleDamageTaken(float damage)
     {
         // 데미지가 0보다 클 경우(실제 피해를 입었을 경우)에만 낙하
@@ -246,6 +252,52 @@ public class PlayerController : MonoBehaviour
                 throwController.DropAll();
             }
         }
+
+        // 데미지를 받았을 때 1초 무적 & 깜빡임 처리
+        if (damage > 0)
+        {
+            if (_invincibilityCoroutine != null) StopCoroutine(_invincibilityCoroutine);
+            _invincibilityCoroutine = StartCoroutine(InvincibilitySequence());
+        }
+    }
+
+    private System.Collections.IEnumerator InvincibilitySequence()
+    {
+        if (stat == null || stat.Health == null) yield break;
+
+        stat.Health.Invincible = true;
+        
+        SpriteRenderer[] srs = GetComponentsInChildren<SpriteRenderer>();
+        float elapsed = 0f;
+        float duration = invincibilityDuration;
+        float blinkInterval = invincibilityBlinkInterval;
+        bool isVisible = true;
+        
+        while (elapsed < duration)
+        {
+            elapsed += blinkInterval;
+            isVisible = !isVisible;
+            
+            foreach (var sr in srs)
+            {
+                if (sr == null) continue;
+                Color c = sr.color;
+                c.a = isVisible ? 1.0f : 0.2f;
+                sr.color = c;
+            }
+            yield return new WaitForSeconds(blinkInterval);
+        }
+        
+        foreach (var sr in srs)
+        {
+            if (sr == null) continue;
+            Color finalC = sr.color;
+            finalC.a = 1.0f;
+            sr.color = finalC;
+        }
+
+        stat.Health.Invincible = false;
+        _invincibilityCoroutine = null;
     }
 
     private void Update()

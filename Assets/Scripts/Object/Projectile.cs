@@ -150,7 +150,7 @@ public class Projectile : MonoBehaviour
     public Vector2 Direction => _direction;
     public LayerMask TargetLayer => _targetLayer;
 
-    public virtual void InitDeflected(Vector2 originDirection, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
+    public virtual void InitDeflected(Vector2 newDirection, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
     {
         _targetLayer = targetLayer;
         _damage = damage;
@@ -158,8 +158,8 @@ public class Projectile : MonoBehaviour
         speed = customSpeed;
         lifeTime = customLifeTime;
 
-        // 왔던 방향(원래 가던 방향의 반대)으로 설정
-        _direction = -originDirection;
+        // 지정된 새로운 방향으로 설정
+        _direction = newDirection.normalized;
         float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
 
@@ -203,15 +203,15 @@ public class Projectile : MonoBehaviour
         Destroy(gameObject, lifeTime);
     }
 
-    public virtual Projectile Deflect(GameObject newShooter, LayerMask newTargetLayer)
+    public virtual Projectile Deflect(GameObject newShooter, LayerMask newTargetLayer, Vector2 newDirection)
     {
         GameObject go = Instantiate(gameObject, transform.position, Quaternion.identity);
         Projectile newProj = go.GetComponent<Projectile>();
         if (newProj != null)
         {
             go.transform.localScale = transform.localScale;
-            // 복제본에 InitDeflected 호출 (원래 투사체 가던 방향의 반대로 날아감, 데미지 1.5배)
-            newProj.InitDeflected(_direction, _damage * 1.5f, newTargetLayer, newShooter, speed, lifeTime);
+            // 복제본에 InitDeflected 호출 (새로운 방향으로 날아감, 데미지 1.5배)
+            newProj.InitDeflected(newDirection, _damage * 1.5f, newTargetLayer, newShooter, speed, lifeTime);
         }
 
         // 원본 투사체 파괴

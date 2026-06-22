@@ -38,7 +38,14 @@ public class MeleeCombatController : MonoBehaviour
         // 콤보 리셋
         if (!IsAttacking)
         {
-            if (_player != null) _player.SpeedMultiplier = 1.0f; // 공격 끝났으므로 이속 복구
+            if (_player != null)
+            {
+                var parryCtrl = _player.GetComponent<PlayerParryController>();
+                if (parryCtrl == null || !parryCtrl.IsParrying)
+                {
+                    _player.SpeedMultiplier = 1.0f; // 공격 끝났으므로 이속 복구
+                }
+            }
 
             if (Time.time - _lastAttackTime > comboResetTime)
             {

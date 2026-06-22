@@ -49,9 +49,9 @@ public class TrackingFireball : Projectile
         Destroy(gameObject);
     }
 
-    public override void InitDeflected(Vector2 originDirection, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
+    public override void InitDeflected(Vector2 newDirection, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
     {
-        _targetTransform = null; // 유도 해제하여 직선 비행
-        base.InitDeflected(originDirection, damage, targetLayer, shooter, customSpeed, customLifeTime);
+        _targetTransform = null; // 패리 시 유도 대상 해제 (직선 비행)
+        base.InitDeflected(newDirection, damage, targetLayer, shooter, customSpeed, customLifeTime);
     }
 }

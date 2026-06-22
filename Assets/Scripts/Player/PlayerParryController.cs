@@ -135,7 +135,7 @@ public class PlayerParryController : MonoBehaviour
     private IEnumerator ParrySequence(Vector2 mouseDir)
     {
         _isParrying = true;
-        _player.SpeedMultiplier = 0.3f; // 감속
+        _player.SpeedMultiplier = parryMoveSpeedMultiplier; // 감속
 
         // 1. 애니메이션 재생 시도
         _player.PlayAllAnim("Parry");
@@ -206,13 +206,15 @@ public class PlayerParryController : MonoBehaviour
             // 160도 범위 이내인지 체크 (사잇각 <= 80도)
             if (angle <= parryAngle / 2f)
             {
-                proj.Deflect(gameObject, enemyLayer);
+                proj.Deflect(gameObject, enemyLayer, mouseDir);
                 deflectedAny = true;
             }
         }
 
         return deflectedAny;
     }
+
+    [SerializeField] private float parryMoveSpeedMultiplier = 0.3f; // 패리 시 이속 배율
 
     private void CreateParryVisualSector(Vector2 dir)
     {
@@ -223,6 +225,14 @@ public class PlayerParryController : MonoBehaviour
             float angleCustom = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
             customGo.transform.rotation = Quaternion.Euler(0, 0, angleCustom);
             customGo.transform.localScale = new Vector3(parryRadius, parryRadius, 1f);
+
+            // [수정] 커스텀 프리팹에 콜라이더가 있다면 적의 길을 막지 않게 isTrigger로 강제 변경
+            Collider2D[] colliders = customGo.GetComponentsInChildren<Collider2D>();
+            foreach (var col in colliders)
+            {
+                col.isTrigger = true;
+            }
+
             Destroy(customGo, parryActiveDuration);
             return;
         }
