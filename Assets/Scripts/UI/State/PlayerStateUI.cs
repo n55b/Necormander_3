@@ -67,10 +67,6 @@ public class PlayerStateUI : MonoBehaviour
     [Header("Gold Settings")]
     [SerializeField] private TextMeshProUGUI goldText;
 
-    [Header("Revive Settings")]
-    [SerializeField] private GameObject reviveIconPrefab;
-    [SerializeField] private Transform  reviveContainer;
-
     [Header("Stamina Settings")]
     [SerializeField] private GameObject staminaUIPrefab;
 

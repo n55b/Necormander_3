@@ -97,9 +97,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("플레이어 애니메이터")]
     [SerializeField] Animator BodyAnimator;
-    [SerializeField] Animator LHandAnimator;
-    [SerializeField] Animator RHandAnimator;
-    [SerializeField] PlayerAnimationState currentAnimState;
+        [SerializeField] PlayerAnimationState currentAnimState;
 
     private bool _inputBlocked = false; // [추가] 맵 생성 중 입력 차단용
 
@@ -765,14 +763,12 @@ public class PlayerController : MonoBehaviour
     /// 이동 속도에 비례해 걷기/달리기 애니메이션 재생 속도를 맞춥니다.
     /// baseMoveSpeed를 기준(1.0x)으로 재생 속도를 기본값(1.0f)으로 초기화합니다.
     /// </summary>
-    private void ResetWalkAnimSpeed()
+private void ResetWalkAnimSpeed()
     {
         if (Mathf.Abs(1f - _lastAnimSpeed) < 0.01f) return;
         _lastAnimSpeed = 1f;
 
         if (BodyAnimator != null) BodyAnimator.speed = 1f;
-        if (LHandAnimator != null) LHandAnimator.speed = 1f;
-        if (RHandAnimator != null) RHandAnimator.speed = 1f;
     }
 
     /// <summary>
@@ -781,9 +777,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="currentSpeed">현재 실제 캐릭터 이동 속도</param>
 public void SetAttackAnimSpeed(float speed)
     {
-        if (BodyAnimator  != null) BodyAnimator.speed  = speed;
-        if (LHandAnimator != null) LHandAnimator.speed = speed;
-        if (RHandAnimator != null) RHandAnimator.speed = speed;
+        if (BodyAnimator != null) BodyAnimator.speed = speed;
     }
 
     
@@ -794,9 +788,7 @@ private void UpdateWalkAnimSpeed(float currentSpeed)
         if (Mathf.Abs(speedRatio - _lastAnimSpeed) < 0.01f) return;
         _lastAnimSpeed = speedRatio;
 
-        if (BodyAnimator  != null) BodyAnimator.speed  = speedRatio;
-        if (LHandAnimator != null) LHandAnimator.speed = speedRatio;
-        if (RHandAnimator != null) RHandAnimator.speed = speedRatio;
+        if (BodyAnimator != null) BodyAnimator.speed = speedRatio;
     }
 
     /// <summary>
@@ -835,11 +827,9 @@ private void UpdateWalkAnimSpeed(float currentSpeed)
     /// 모든 부위(Body, 왼손, 오른손)의 Animator에서 지정된 이름의 애니메이션 상태를 강제로 재생합니다.
     /// </summary>
     /// <param name="animName">재생할 애니메이션 상태의 이름</param>
-    public void PlayAllAnim(string animName)
+public void PlayAllAnim(string animName)
     {
         int hash = Animator.StringToHash(animName);
         if (BodyAnimator != null && BodyAnimator.HasState(0, hash)) BodyAnimator.Play(hash);
-        if (LHandAnimator != null && LHandAnimator.HasState(0, hash)) LHandAnimator.Play(hash);
-        if (RHandAnimator != null && RHandAnimator.HasState(0, hash)) RHandAnimator.Play(hash);
     }
 }

@@ -34,7 +34,15 @@ public class CharacterVisualFeedback : MonoBehaviour
         if (_sr == null)
         {
             Transform root = transform.root;
-            _sr = root.GetComponentInChildren<SpriteRenderer>();
+
+            // Prefer the dedicated "Body" child by name first - multiple SpriteRenderers exist
+            // under root (hands, silhouettes, icon), so a blind "first match" search is unreliable.
+            Transform bodyChild = root.Find("Body");
+            if (bodyChild != null) _sr = bodyChild.GetComponent<SpriteRenderer>();
+
+            // Fallback: old behavior if no "Body" child exists (e.g. other character prefabs)
+            if (_sr == null)
+                _sr = root.GetComponentInChildren<SpriteRenderer>();
         }
 
         if (_sr != null) 

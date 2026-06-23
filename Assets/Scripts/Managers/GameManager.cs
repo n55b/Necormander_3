@@ -212,7 +212,7 @@ public class GameManager : MonoBehaviour
             if (minionStateUI != null)
             {
                 var skillCtrl = playerController.GetComponent<PlayerSkillController>();
-                minionStateUI.Initialize(allyManager, skillCtrl);
+                minionStateUI.Initialize(skillCtrl);
                 Debug.Log("<color=cyan>[GameManager]</color> MinionStateUI Initialized.");
 
                 if (minionSkillQueueUI != null)
