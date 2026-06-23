@@ -93,7 +93,7 @@ public class MinionStateUI : MonoBehaviour
             }
             if (!has) continue;
 
-            // ── 연계스킬 쿸타임 Fill (1=방금 발동, 0=쿸 완료) ──────────────
+            // ── 연계스킬 쿨타임 Fill (1=방금 발동, 0=쿨 완료) ──────────────
             if (data.minionSkill == null || s.SkillCoolFill == null) continue;
 
             float maxCd = data.minionSkill.cooldownTime;
@@ -101,7 +101,7 @@ public class MinionStateUI : MonoBehaviour
             bool onCd = remaining > 0.05f;
             float fill = (maxCd > 0f && onCd) ? Mathf.Clamp01(remaining / maxCd) : 0f;
 
-            // 준뱄 완료이믈돈 Fill Image 자신을 켜고/타이명
+            // 쿨타임 완료 시 Fill Image 자신을 꺼줌
             bool wasActive = s.SkillCoolFill.gameObject.activeSelf;
             if (wasActive != onCd)
                 s.SkillCoolFill.gameObject.SetActive(onCd);
@@ -112,7 +112,7 @@ public class MinionStateUI : MonoBehaviour
                 s.SkillCoolFill.fillAmount = fill;
             }
 
-            // ── 쿸타임 텍스트 (0.1초 단위 변동 시난 갱신) ────────
+            // ── 쿨타임 텍스트 (0.1초 단위 변동 시만 갱신) ────────────
             if (s.CooldownText != null)
             {
                 if (onCd)

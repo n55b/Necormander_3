@@ -26,7 +26,7 @@ public class YSortableObject : MonoBehaviour
     [Tooltip("정렬 기준점을 다른 Transform으로 고정할 때 지정. 예: 손/무기 스프라이트가 자기 Y가 아니라 몸통 Y를 기준으로 정렬되도록. 비워두면 자기 자신의 Transform 사용.")]
     [SerializeField] private Transform pivotOverride;
 
-    /// <summary>적 씬에 활성화된 모든 YSortableObject 등롱. 가림(occlusion) 판정 등에서 순회용으로 사용.</summary>
+    /// <summary>현재 씬에 활성화된 모든 YSortableObject 등록. 가림(occlusion) 판정 등에서 순회용으로 사용.</summary>
     public static readonly List<YSortableObject> ActiveInstances = new List<YSortableObject>();
 
     /// <summary>이 오브젝트의 SpriteRenderer (읽기 전용 노출).</summary>

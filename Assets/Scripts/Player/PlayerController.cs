@@ -824,7 +824,7 @@ private void UpdateWalkAnimSpeed(float currentSpeed)
     }
 
     /// <summary>
-    /// 모든 부위(Body, 왼손, 오른손)의 Animator에서 지정된 이름의 애니메이션 상태를 강제로 재생합니다.
+    /// Body의 Animator에서 지정된 이름의 애니메이션 상태를 강제로 재생합니다 (손은 같은 클립 안에 함께 키프레임으로 포함됨).
     /// </summary>
     /// <param name="animName">재생할 애니메이션 상태의 이름</param>
 public void PlayAllAnim(string animName)
