@@ -71,20 +71,19 @@ public class TelegraphHitbox : MonoBehaviour
         Debug.Log($"<color=red>[TelegraphHitbox]</color> {gameObject.name} 타격 판정! 중심: {transform.position}, 크기: {_originalSize}, 각도: {transform.eulerAngles.z}, 감지된 타겟 수: {hitColliders.Length}");
 
             // 중복 타격 방지
-            HashSet<CharacterHealth> hitTargets = new HashSet<CharacterHealth>();
-
+            HashSet<IDamageable> hitTargets = new HashSet<IDamageable>();
+ 
             foreach (var col in hitColliders)
             {
-                // 부모, 자기자신, 자식 모두에서 CharacterHealth를 찾습니다.
-                var health = col.GetComponent<CharacterHealth>();
-                if (health == null) health = col.GetComponentInParent<CharacterHealth>();
-                if (health == null) health = col.GetComponentInChildren<CharacterHealth>();
-
-                if (health != null && !health.IsDead && !hitTargets.Contains(health))
+                var damageable = col.GetComponent<IDamageable>();
+                if (damageable == null) damageable = col.GetComponentInParent<IDamageable>();
+                if (damageable == null) damageable = col.GetComponentInChildren<IDamageable>();
+ 
+                if (damageable != null && !damageable.IsDead && !hitTargets.Contains(damageable))
                 {
-                    Debug.Log($"<color=red>[TelegraphHitbox]</color> 적중! 타겟: {health.gameObject.name}, 데미지: {_damageInfo.amount}");
-                    hitTargets.Add(health);
-                    health.GetDamage(_damageInfo);
+                    Debug.Log($"<color=red>[TelegraphHitbox]</color> 적중! 타겟: {col.gameObject.name}, 데미지: {_damageInfo.amount}");
+                    hitTargets.Add(damageable);
+                    damageable.TakeDamage(_damageInfo);
                 }
             }
 

@@ -99,6 +99,8 @@ public class MeleeDodgeController : MonoBehaviour
             _player.Stat.Health.Invincible = true; // 대쉬 무적
         }
 
+        _player.SetDashLayer(true); // 대쉬 레이어 설정
+
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Dash");
         OnDodgeStarted?.Invoke();
@@ -118,6 +120,8 @@ public class MeleeDodgeController : MonoBehaviour
         {
             _player.Stat.Health.Invincible = false;
         }
+
+        _player.SetDashLayer(false); // 대쉬 레이어 복구
         
         _player.ResetAnimStateCache();
         _player.ResetAnimStateCache();

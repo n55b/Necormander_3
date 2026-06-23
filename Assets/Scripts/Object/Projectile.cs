@@ -100,6 +100,18 @@ public class Projectile : MonoBehaviour
         // 2. 타겟 레이어와 충돌 체크
         if ((_targetLayer.value & (1 << other.gameObject.layer)) != 0)
         {
+            var damageable = other.GetComponent<IDamageable>();
+            if (damageable == null) damageable = other.GetComponentInParent<IDamageable>();
+            if (damageable == null) damageable = other.GetComponentInChildren<IDamageable>();
+
+            if (damageable != null && !damageable.IsDead)
+            {
+                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, false, 1f, true);
+                damageable.TakeDamage(info);
+                Destroy(gameObject);
+                return;
+            }
+
             CharacterStat targetStat = GetTargetStat(other);
             
             if (targetStat != null)

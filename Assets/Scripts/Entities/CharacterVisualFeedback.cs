@@ -33,6 +33,20 @@ public class CharacterVisualFeedback : MonoBehaviour
         // (이 방식은 CharacterStatStuff와 Visual이 형제 관계여도 Root를 통해 찾을 수 있게 해줍니다)
         if (_sr == null)
         {
+            var parentEntity = GetComponentInParent<BaseEntity>();
+            if (parentEntity != null)
+            {
+                _sr = parentEntity.GetComponentInChildren<SpriteRenderer>();
+            }
+        }
+
+        if (_sr == null)
+        {
+            _sr = GetComponentInChildren<SpriteRenderer>();
+        }
+
+        if (_sr == null)
+        {
             Transform root = transform.root;
 
             // Prefer the dedicated "Body" child by name first - multiple SpriteRenderers exist

@@ -92,6 +92,7 @@ public class DashChargeSkill : IActiveSkill
 
     private IEnumerator DashRoutine(float dist, Vector2 dir)
     {
+        if (_player != null) _player.SetDashLayer(true);
         float elapsed = 0f;
         
         Vector2 pStartPos = _player.transform.position;
@@ -182,7 +183,11 @@ public class DashChargeSkill : IActiveSkill
     {
         IsActive = false;
         _isCharging = false;
-        if (_player != null) _player.SetInputBlocked(false);
+        if (_player != null)
+        {
+            _player.SetInputBlocked(false);
+            _player.SetDashLayer(false);
+        }
     }
 
     public void UpdateSkill() { }

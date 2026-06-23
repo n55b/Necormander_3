@@ -15,6 +15,7 @@ public class RoomInstance : MonoBehaviour
     public Tilemap wallTilemap;
     public Tilemap groundTilemap;
     public Tilemap shadowTilemap;
+    public Tilemap unsteppableTilemap;
 
     [HideInInspector] public int debugDepth = -1; // 맵 생성 시 계산된 깊이 저장용
     [HideInInspector] public int phaseIndex = -1; // 방이 생성된 맵 생성 페이즈 인덱스
@@ -89,6 +90,21 @@ public class RoomInstance : MonoBehaviour
         {
             Transform shadowTransform = FindTransformRecursive(transform, "Shadow");
             if (shadowTransform != null) shadowTilemap = shadowTransform.GetComponent<Tilemap>();
+        }
+
+        if (unsteppableTilemap == null)
+        {
+            Transform unsteppableTransform = FindTransformRecursive(transform, "Unsteppable");
+            if (unsteppableTransform != null) unsteppableTilemap = unsteppableTransform.GetComponent<Tilemap>();
+        }
+
+        if (unsteppableTilemap != null)
+        {
+            Transform unsteppableTransform = unsteppableTilemap.transform;
+            var childCols = unsteppableTransform.GetComponentsInChildren<Collider2D>();
+            foreach (var ccol in childCols) { ccol.enabled = false; MapGenerator.SafeDestroy(ccol); }
+            var childRbs = unsteppableTransform.GetComponentsInChildren<Rigidbody2D>();
+            foreach (var crb in childRbs) { crb.simulated = false; MapGenerator.SafeDestroy(crb); }
         }
 
         Tilemap mainTM = wallTilemap != null ? wallTilemap : groundTilemap;
@@ -175,15 +191,20 @@ public class RoomInstance : MonoBehaviour
         _roomEvent?.OnRoomCleared(this);
     }
 
-    public void MergeTilesToGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow)
+    public void MergeTilesToGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow, Tilemap globalUnsteppable = null)
     {
         _myTiles = new HashSet<Vector2Int>();
         StampTilemap(groundTilemap, globalGround);
         StampTilemap(wallTilemap, globalWall);
         StampTilemap(shadowTilemap, globalShadow);
+        if (unsteppableTilemap != null && globalUnsteppable != null)
+        {
+            StampTilemap(unsteppableTilemap, globalUnsteppable);
+        }
         if (groundTilemap != null) groundTilemap.gameObject.SetActive(false);
         if (wallTilemap != null) wallTilemap.gameObject.SetActive(false);
         if (shadowTilemap != null) shadowTilemap.gameObject.SetActive(false);
+        if (unsteppableTilemap != null) unsteppableTilemap.gameObject.SetActive(false);
     }
 
     private HashSet<Vector2Int> _myTiles = null;
@@ -219,6 +240,19 @@ public class RoomInstance : MonoBehaviour
                     }
                 }
             }
+            if (unsteppableTilemap != null && MapGenerator.Instance != null && MapGenerator.Instance.GlobalMiniMapTilemap != null)
+            {
+                unsteppableTilemap.CompressBounds();
+                foreach (var pos in unsteppableTilemap.cellBounds.allPositionsWithin)
+                {
+                    if (unsteppableTilemap.HasTile(pos))
+                    {
+                        Vector3 worldPos = unsteppableTilemap.CellToWorld(pos);
+                        Vector3Int globalCellPos = MapGenerator.Instance.GlobalMiniMapTilemap.WorldToCell(worldPos);
+                        _myTiles.Add(new Vector2Int(globalCellPos.x, globalCellPos.y));
+                    }
+                }
+            }
         }
         return _myTiles.Contains(cellPos);
     }
@@ -241,11 +275,15 @@ public class RoomInstance : MonoBehaviour
         }
     }
 
-    public void EraseTilesFromGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow)
+    public void EraseTilesFromGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow, Tilemap globalUnsteppable = null)
     {
         UnstampTilemap(groundTilemap, globalGround);
         UnstampTilemap(wallTilemap, globalWall);
         UnstampTilemap(shadowTilemap, globalShadow);
+        if (unsteppableTilemap != null && globalUnsteppable != null)
+        {
+            UnstampTilemap(unsteppableTilemap, globalUnsteppable);
+        }
     }
 
     private void UnstampTilemap(Tilemap source, Tilemap target)

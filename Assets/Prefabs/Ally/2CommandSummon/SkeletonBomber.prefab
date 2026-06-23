@@ -76,6 +76,10 @@ PrefabInstance:
       propertyPath: impactEffect
       value: 
       objectReference: {fileID: 11400000, guid: 8dd68a2dd501264429ba99a4e9719238, type: 2}
+    - target: {fileID: 7414995997704664874, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_WalkableMask
+      value: 4294967287
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -21,6 +21,7 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private Tilemap globalGroundTilemap;
     [SerializeField] private Tilemap globalWallTilemap;
     [SerializeField] private Tilemap globalShadowTilemap;
+    [SerializeField] private Tilemap globalUnsteppableTilemap;
 
     // 미니맵 타일 추가
     [Header("MiniMap Settings")]
@@ -168,6 +169,7 @@ public class MapGenerator : MonoBehaviour
         AssignSpecialRooms();
         DumpMapToLog();
 
+        CarveUnsteppableHoles();
         SetupFinalColliders();
         BakeNavMesh();
 
@@ -279,7 +281,7 @@ public class MapGenerator : MonoBehaviour
         foreach (var room in phaseRooms)
         {
             room.SnapToGrid(generationData.gridUnit);
-            room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap);
+            room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, globalUnsteppableTilemap);
         }
         UpdateGlobalBoundingObstacle();
         // 각 페이즈 단위 즉시 연결을 제거하고, 모든 방의 배치가 완료된 최종 시점에 한번에 복도를 연결하도록 합니다.
@@ -447,7 +449,7 @@ public class MapGenerator : MonoBehaviour
                 ResetCorridorState();
             }
 
-            _painter.Init(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, generationData.floorTile, generationData.wallTile, generationData.shadowTile);
+            _painter.Init(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, globalUnsteppableTilemap, generationData.floorTile, generationData.wallTile, generationData.shadowTile);
 
             // 초기 스폰 방 깊이 연산 실행
             UpdateAllRoomDepths();
@@ -693,7 +695,7 @@ public class MapGenerator : MonoBehaviour
         List<RoomInstance> isolatedRooms = _allRooms.Where(r => !_reachedRooms.Contains(r)).ToList();
         foreach (var room in isolatedRooms)
         {
-            room.EraseTilesFromGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap);
+            room.EraseTilesFromGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, globalUnsteppableTilemap);
             _allRooms.Remove(room);
             if (_masterAdjacency.ContainsKey(room)) _masterAdjacency.Remove(room);
             if (_intendedDirs.ContainsKey(room)) _intendedDirs.Remove(room);
@@ -759,6 +761,7 @@ public class MapGenerator : MonoBehaviour
         if (globalGroundTilemap != null) globalGroundTilemap.ClearAllTiles();
         if (globalWallTilemap != null) globalWallTilemap.ClearAllTiles();
         if (globalShadowTilemap != null) globalShadowTilemap.ClearAllTiles();
+        if (globalUnsteppableTilemap != null) globalUnsteppableTilemap.ClearAllTiles();
 
         if (globalMiniMapTilemap != null) globalMiniMapTilemap.ClearAllTiles(); // [추가] alslaoq
     }
@@ -982,14 +985,14 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground"); ConfigureTilemap(globalWallTilemap, "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow"); ConfigureTilemap(globalMiniMapTilemap, "MiniMap"); /*미니맵 추가*/ }
+    private void SetupTilemapLayers() { ConfigureTilemap(globalGroundTilemap, "Ground"); ConfigureTilemap(globalWallTilemap, "Wall"); ConfigureTilemap(globalShadowTilemap, "Shadow"); ConfigureTilemap(globalMiniMapTilemap, "MiniMap"); ConfigureTilemap(globalUnsteppableTilemap, "Unsteppable"); /*미니맵 추가*/ }
     private void ConfigureTilemap(Tilemap tm, string layerName)
     {
         if (tm == null) return;
         int layer = LayerMask.NameToLayer(layerName);
         if (layer != -1) tm.gameObject.layer = layer;
 
-        if (layerName == "Wall")
+        if (layerName == "Wall" || layerName == "Unsteppable")
         {
             var tr = tm.GetComponent<TilemapRenderer>();
             if (tr != null)
@@ -1169,8 +1172,9 @@ public class MapGenerator : MonoBehaviour
 
                 bool hasGround = globalGroundTilemap.HasTile(pos);
                 bool hasWall = (globalWallTilemap != null && globalWallTilemap.HasTile(pos));
+                bool hasUnsteppable = (globalUnsteppableTilemap != null && globalUnsteppableTilemap.HasTile(pos));
 
-                if (hasGround || hasWall)
+                if (hasGround || hasWall || hasUnsteppable)
                 {
                     // 1. 안개 영역 채우기
                     fogPositions.Add(pos);
@@ -1193,6 +1197,22 @@ public class MapGenerator : MonoBehaviour
         {
             globalMiniMapTilemap.SetTiles(miniMapPositions.ToArray(), miniMapTiles.ToArray());
             Debug.Log($"<color=green>[MapGenerator]</color> 미니맵 타일맵에 {miniMapPositions.Count}칸의 지도를 그렸습니다.");
+        }
+    }
+
+    private void CarveUnsteppableHoles()
+    {
+        if (globalUnsteppableTilemap == null || globalGroundTilemap == null) return;
+
+        globalUnsteppableTilemap.CompressBounds();
+        BoundsInt bounds = globalUnsteppableTilemap.cellBounds;
+
+        foreach (var pos in bounds.allPositionsWithin)
+        {
+            if (globalUnsteppableTilemap.HasTile(pos))
+            {
+                globalGroundTilemap.SetTile(pos, null);
+            }
         }
     }
 }

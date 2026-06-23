@@ -32,7 +32,7 @@ public class BaseHitBox : MonoBehaviour
     private float _tickTimer;
 
     // 1회 타격 시 중복 타격 방지
-    private HashSet<CharacterHealth> _hitTargets = new HashSet<CharacterHealth>();
+    private HashSet<IDamageable> _hitTargets = new HashSet<IDamageable>();
     private System.Action<CharacterHealth> _onHitEnemy;
 
     public void Init(DamageInfo damageInfo, LayerMask targetLayer, float overrideDuration = -1f, float startDelay = 0f, bool isAlly = false, System.Action<CharacterHealth> onHitEnemy = null)
@@ -160,32 +160,38 @@ public class BaseHitBox : MonoBehaviour
         // 타겟 레이어 검사
         if (((1 << col.gameObject.layer) & _targetLayer) == 0) return;
 
-        var health = col.GetComponent<CharacterHealth>();
-        if (health == null) health = col.GetComponentInParent<CharacterHealth>();
-        if (health == null) health = col.GetComponentInChildren<CharacterHealth>();
+        var damageable = col.GetComponent<IDamageable>();
+        if (damageable == null) damageable = col.GetComponentInParent<IDamageable>();
+        if (damageable == null) damageable = col.GetComponentInChildren<IDamageable>();
 
-        if (health != null && !health.IsDead)
+        if (damageable != null && !damageable.IsDead)
         {
             if (isContinuousDamage)
             {
                 // 지속 데미지 (장판)
                 if (_tickTimer >= damageTickRate)
                 {
-                    health.GetDamage(_damageInfo);
+                    damageable.TakeDamage(_damageInfo);
                     _tickTimer = 0f; // 모든 적에게 동시 데미지가 들어가는 구조 (원한다면 개별 쿨타임으로 개선 가능)
                     
-                    _onHitEnemy?.Invoke(health);
+                    if (damageable is CharacterHealth ch)
+                    {
+                        _onHitEnemy?.Invoke(ch);
+                    }
                 }
             }
             else
             {
                 // 단발성 히트박스 (1번만 타격)
-                if (!_hitTargets.Contains(health))
+                if (!_hitTargets.Contains(damageable))
                 {
-                    _hitTargets.Add(health);
-                    health.GetDamage(_damageInfo);
+                    _hitTargets.Add(damageable);
+                    damageable.TakeDamage(_damageInfo);
                     
-                    _onHitEnemy?.Invoke(health);
+                    if (damageable is CharacterHealth ch)
+                    {
+                        _onHitEnemy?.Invoke(ch);
+                    }
                 }
             }
         }
