@@ -24,7 +24,7 @@ public class TargetCursorSO : MouseCursorSO
                 _originalMaterial = _currentSpr.material;
                 
                 // [수정] 현재 색상이 아닌, CharacterStat이 들고 있는 진짜 원본 색상을 가져옴
-                if (obj.TryGetComponent<CharacterStat>(out var stat))
+                if (obj.TryGetComponent<CharacterStat>(out var stat) && stat.Visual != null)
                 {
                     _originalColor = stat.Visual.OriginalColor;
                 }

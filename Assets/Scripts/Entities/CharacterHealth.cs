@@ -4,7 +4,7 @@ using System;
 /// <summary>
 /// 유닛의 체력 관리와 데미지 계산, 사망 처리를 담당하는 컴포넌트입니다.
 /// </summary>
-public class CharacterHealth : MonoBehaviour
+public class CharacterHealth : MonoBehaviour, IDamageable
 {
     private CharacterStat _stat;
     private CharacterStatus _status;
@@ -34,6 +34,11 @@ public class CharacterHealth : MonoBehaviour
         _status = status;
         curHP = _stat.MAXHP;
         isDead = false;
+    }
+
+    public void TakeDamage(DamageInfo info)
+    {
+        GetDamage(info);
     }
 
     public void GetDamage(DamageInfo info)
