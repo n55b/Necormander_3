@@ -23,7 +23,12 @@ public class PlayerParryController : MonoBehaviour
     private bool _isParrying = false;
     private Coroutine _parryCoroutine;
 
-    public bool IsParrying => _isParrying;
+    
+
+    public event System.Action OnParryStart;
+    public event System.Action OnParrySuccess;
+    public event System.Action OnParryFail;
+public bool IsParrying => _isParrying;
     public float ParryRadius => parryRadius;
     public float ParryAngle => parryAngle;
 
@@ -132,21 +137,23 @@ public class PlayerParryController : MonoBehaviour
         _parryCoroutine = StartCoroutine(ParrySequence(mouseDir));
     }
 
-    private IEnumerator ParrySequence(Vector2 mouseDir)
+private IEnumerator ParrySequence(Vector2 mouseDir)
     {
         _isParrying = true;
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, parryMoveSpeedMultiplier); // 감속
 
-        // 1. 애니메이션 재생 시도
+        OnParryStart?.Invoke();
+
+        // 1. Play parry animation
         _player.PlayAllAnim("Parry");
 
-        // 2. 시각적인 범위 메쉬 그리기
+        // 2. Draw the visual telegraph sector
         CreateParryVisualSector(mouseDir);
 
         bool success = false;
         float elapsed = 0f;
 
-        // active window 동안 매 프레임 스캔
+        // Scan every frame during the active window
         while (elapsed < parryActiveDuration)
         {
             if (CheckAndDeflectProjectiles(mouseDir))
@@ -160,11 +167,13 @@ public class PlayerParryController : MonoBehaviour
 
         if (success)
         {
-            // 성공 시 즉시 복구 (캔슬)
+            OnParrySuccess?.Invoke();
+            // Cancel immediately into recovery on success
             EndParry();
         }
         else
         {
+            OnParryFail?.Invoke();
             // 실패 시 후딜레이 돌입 (여전히 IsParrying 상태 및 감속 유지)
             yield return new WaitForSeconds(parryRecoveryDuration);
             EndParry();
