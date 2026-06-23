@@ -100,6 +100,10 @@ PrefabInstance:
       propertyPath: impactEffect
       value: 
       objectReference: {fileID: 11400000, guid: 7e70952aa8ded974fa86ed1b51e26a53, type: 2}
+    - target: {fileID: 7414995997704664874, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
+      propertyPath: m_WalkableMask
+      value: 4294967287
+      objectReference: {fileID: 0}
     - target: {fileID: 9061937502379027960, guid: 501e8ce388ec2bf45a9d0a1e2868c9ed, type: 3}
       propertyPath: m_Controller
       value: 

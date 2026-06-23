@@ -67,7 +67,7 @@ public class CorridorPainter : MonoBehaviour
         }
     }
 
-    public void Init(Tilemap ground, Tilemap wall, Tilemap shadow, TileBase floor, TileBase wallT, TileBase shadowT)
+    public void Init(Tilemap ground, Tilemap wall, Tilemap shadow, Tilemap unsteppable, TileBase floor, TileBase wallT, TileBase shadowT)
     {
         _groundTilemap = ground; _wallTilemap = wall; _shadowTilemap = shadow;
         _floorTile = floor; _wallTile = wallT; _shadowTile = shadowT;
@@ -77,6 +77,10 @@ public class CorridorPainter : MonoBehaviour
 
         SnapshotRoomTiles(_groundTilemap, false);
         SnapshotRoomTiles(_wallTilemap, true);
+        if (unsteppable != null)
+        {
+            SnapshotRoomTiles(unsteppable, false);
+        }
 
         InitializeCostMap();
     }

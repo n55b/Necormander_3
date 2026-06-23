@@ -269,7 +269,7 @@ NavMeshAgent:
   m_AutoRepath: 1
   m_Height: 0.25
   m_BaseOffset: 0.5
-  m_WalkableMask: 4294967295
+  m_WalkableMask: 4294967287
   m_ObstacleAvoidanceType: 2
 --- !u!58 &7818082784768736543
 CircleCollider2D:
@@ -404,6 +404,7 @@ MonoBehaviour:
   isDynamic: 1
   precision: 100
   baseOffset: 0
+  pivotOverride: {fileID: 0}
 --- !u!1 &7086929190223598649
 GameObject:
   m_ObjectHideFlags: 0

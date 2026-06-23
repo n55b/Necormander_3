@@ -153,6 +153,8 @@ public class PlayerController : MonoBehaviour
     private float _dashTimeLeft;
     private float _lastDashTime;
     private Vector2 _dashDir;
+    private int _originalLayer;
+    private int _dashLayer;
 
     public bool IsDashing => _isDashing;
     public float DashCooldown => dashCooldown;
@@ -163,6 +165,15 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
+        
+        _originalLayer = gameObject.layer;
+        _dashLayer = LayerMask.NameToLayer("Player_Dash");
+        if (_dashLayer == -1) 
+        {
+            Debug.LogWarning("[PlayerController] 'Player_Dash' 레이어가 설정되어 있지 않습니다! 레이어 세팅 가이드를 확인해주세요.");
+            _dashLayer = _originalLayer;
+        }
+
         if (throwController == null)
         {
             throwController = GetComponentInChildren<ThrowController>();
@@ -474,11 +485,25 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void SetDashLayer(bool isDash)
+    {
+        if (isDash)
+        {
+            gameObject.layer = _dashLayer;
+        }
+        else
+        {
+            gameObject.layer = _originalLayer;
+        }
+    }
+
     private void StartDash()
     {
         _isDashing = true;
         _dashTimeLeft = dashDuration;
         _lastDashTime = Time.time;
+
+        SetDashLayer(true);
 
         // 이동 입력이 있으면 그 방향으로, 없으면 현재 바라보는 방향(또는 우측)으로 대쉬
         _dashDir = moveInput.normalized;
@@ -499,6 +524,8 @@ public class PlayerController : MonoBehaviour
     private void EndDash()
     {
         _isDashing = false;
+
+        SetDashLayer(false);
 
         // 관성 초기화
         _smoothedMoveInput = Vector2.zero;

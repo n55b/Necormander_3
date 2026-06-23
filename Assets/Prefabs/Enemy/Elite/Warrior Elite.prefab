@@ -13,12 +13,16 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1578376785222923104, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_WalkableMask
+      value: 4294967287
+      objectReference: {fileID: 0}
+    - target: {fileID: 1578376785222923104, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_ObstacleAvoidanceType
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1841339908024047631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Name
-      value: Summoner Boss
+      value: Warrior Elite
       objectReference: {fileID: 0}
     - target: {fileID: 1841339908024047631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_TagString

@@ -151,6 +151,14 @@ public abstract class BaseEntity : MonoBehaviour
         {
             _agent.updateRotation = false;
             _agent.updateUpAxis = false;
+
+            // UnsteppableArea (Index 3) 배제 설정 (Enemy_Flying 레이어가 아닐 경우)
+            int unsteppableArea = UnityEngine.AI.NavMesh.GetAreaFromName("UnsteppableArea");
+            int flyingLayer = LayerMask.NameToLayer("Enemy_Flying");
+            if (unsteppableArea != -1 && gameObject.layer != flyingLayer)
+            {
+                _agent.areaMask &= ~(1 << unsteppableArea);
+            }
         }
 
         SetupLayers();

@@ -200,6 +200,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   LastAttackMissed: 0
+  _hasSuperArmor: 0
+  _superArmorGauge: 0
+  _maxSuperArmorGauge: 100
   debuffTerminal: {fileID: 6967537705218596196}
 --- !u!114 &3361735179240654997
 MonoBehaviour:
@@ -356,7 +359,7 @@ NavMeshAgent:
   m_AutoRepath: 1
   m_Height: 0.25
   m_BaseOffset: 0
-  m_WalkableMask: 4294967295
+  m_WalkableMask: 4294967287
   m_ObstacleAvoidanceType: 2
 --- !u!58 &7983487525704611893
 CircleCollider2D:
@@ -445,6 +448,8 @@ MonoBehaviour:
   minionData: {fileID: 0}
   _lastState: -1
   _target: {fileID: 0}
+  _targetStat: {fileID: 0}
+  _currentState: 0
   player: {fileID: 0}
   isBattle: 0
   jumpHeight: 1.5
