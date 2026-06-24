@@ -26,6 +26,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] public DataManager dataManager;
     [SerializeField] public EconomyManager economyManager;
     [SerializeField] public CameraManager cameraManager;
+    [SerializeField] public HitStopManager hitStopManager;
+
     [SerializeField] public ThrowImpactManager throwImpactManager;
     [SerializeField] public MouseManager mouseManager;
     [SerializeField] public MouseCursorManager mouseCursorManager;
@@ -61,10 +63,7 @@ public class GameManager : MonoBehaviour
         Debug.Log($"<color=yellow>[TimeSystem]</color> Time Scale set to: {Time.timeScale}");
     }
 
-    public void TimeStopTimer(float duration)
-    {
-        StartCoroutine(TimeStopCoroutine(duration));
-    }
+
 
     // [추가] 게임 매니저에서 비네트 색상 변경 메서드
     public void ChangeVignetteColor(float time, Color color)
@@ -98,12 +97,7 @@ public class GameManager : MonoBehaviour
         GameOverManager.Instance.TriggerGameOver();
     }
 
-    private IEnumerator TimeStopCoroutine(float duration)
-    {
-        SetTimeStop(true);
-        yield return new WaitForSecondsRealtime(duration);
-        SetTimeStop(false);
-    }
+
 
     [Header("Test Options")]
     [SerializeField] public bool testMode_InfiniteStamina = false;
@@ -149,6 +143,8 @@ public class GameManager : MonoBehaviour
         if (dataManager == null) dataManager = GetComponentInChildren<DataManager>();
         if (economyManager == null) economyManager = GetComponentInChildren<EconomyManager>();
         if (cameraManager == null) cameraManager = GetComponentInChildren<CameraManager>();
+        if (hitStopManager == null) hitStopManager = GetComponentInChildren<HitStopManager>();
+
         if (throwImpactManager == null) throwImpactManager = GetComponentInChildren<ThrowImpactManager>();
         if (mouseManager == null) mouseManager = GetComponentInChildren<MouseManager>();
         if (mouseCursorManager == null) mouseCursorManager = GetComponentInChildren<MouseCursorManager>();
@@ -170,6 +166,8 @@ public class GameManager : MonoBehaviour
 
         if (economyManager != null) economyManager.Initialize();
         if (cameraManager != null) cameraManager.Initialize();
+        if (hitStopManager != null) hitStopManager.Initialize();
+
         if (throwImpactManager != null) throwImpactManager.Initialize();
         if (rewardManager != null) rewardManager.Initialize();
 

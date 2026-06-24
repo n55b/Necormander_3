@@ -20,6 +20,7 @@ MonoBehaviour:
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
   shakeForce: 0.5
+  hitStopDuration: 0.08
   reactKeyword: 5
   actionType: 0
   useHitBox: 0
