@@ -37,6 +37,11 @@ public abstract class SkillSO : ScriptableObject
     [Tooltip("스킬 발동 시 카메라 흔들림 강도 (0.5f = 기본, 강한 스킬은 1~1.5f 권장)")]
     public float shakeForce = 0.5f;
 
+    [Header("Hit Stop")]
+    [Tooltip("0보다 크면 이 스킬이 명중할 때 히트스탑 발동. 값(초)이 곧 정지 시간. 0이면 없음.")]
+    public float hitStopDuration = 0f;
+
+
     /// <summary>
     /// 스킬 사운드를 재생합니다. ExecuteSkill() 시작 시점에 호출하세요.
     /// </summary>
@@ -49,6 +54,20 @@ public abstract class SkillSO : ScriptableObject
         if (CameraManager.Instance != null)
             CameraManager.Instance.HitShakeCamera(shakeForce);
     }
+
+    /// <summary>
+    /// 히트스탑 발동. hitStopDuration이 0보다 크면 그대로 발동합니다(타입 제한 없음).
+    /// 강타/처형처럼 묵직한 타격에만 값을 채워서 쓰는 걸 권장하지만, 강제하지는 않습니다.
+    /// 처형(Execute) 트리거는 CharacterHealth.GetDamage()의 처형 체크 구간에서 별도로 직접 호출합니다.
+    /// </summary>
+    protected void DoHitStop()
+    {
+        if (hitStopDuration <= 0f) return;
+
+        if (HitStopManager.Instance != null)
+            HitStopManager.Instance.DoHitStop(hitStopDuration);
+    }
+
 
 
     protected void PlaySkillSound()

@@ -91,6 +91,7 @@ public class MinionActionSkillSO : MinionSkillSO
 
         PlaySkillSound();
         ShakeCamera();
+        DoHitStop();
 
         Debug.Log($"<color=cyan>[Minion Skill]</color> 미니언이 '{skillName}' 스킬을 사용했습니다! (대상: {closestTarget.name})");
 

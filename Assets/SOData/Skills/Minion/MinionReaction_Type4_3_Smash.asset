@@ -22,8 +22,10 @@ MonoBehaviour:
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
   shakeForce: 0.5
+  hitStopDuration: 0.1
   reactKeyword: 1
   actionType: 5
+  useHitBox: 0
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
   hitRadius: 1.5
   damageMultiplier: 1.2

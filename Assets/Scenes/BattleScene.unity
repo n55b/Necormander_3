@@ -908,6 +908,7 @@ GameObject:
   - component: {fileID: 974462711}
   - component: {fileID: 974462710}
   - component: {fileID: 974462709}
+  - component: {fileID: 974462716}
   m_Layer: 0
   m_Name: CinemachineCamera
   m_TagString: Untagged
@@ -1095,6 +1096,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &974462716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 974462708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0133936009bff1489b5e93886014459, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultDuration: 0.08
+  freezeScale: 0.02
+  maxDuration: 0.15
 --- !u!1001 &1012117645
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1119,6 +1135,10 @@ PrefabInstance:
       propertyPath: playerStateUI
       value: 
       objectReference: {fileID: 1467717214}
+    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: hitStopManager
+      value: 
+      objectReference: {fileID: 974462716}
     - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: minionSkillQueueUI
       value: 
@@ -2932,7 +2952,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5.5
+  orthographic size: 8.4375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
