@@ -22,6 +22,10 @@ public class BaseHitBox : MonoBehaviour
     [Tooltip("가득 찼을 때의 최대 로컬 스케일")]
     public Vector3 maxFillScale = Vector3.one;
 
+    [Header("Hit Effect")]
+    [Tooltip("적중 시 생성할 타격 이펙트 프리팹 (HitEffect)")]
+    public GameObject hitEffectPrefab;
+
     public enum FillStyle { Uniform, Horizontal }
     [Tooltip("장판 차오르는 방식 (Uniform: 점방사형, Horizontal: 로딩바형)")]
     public FillStyle fillStyle = FillStyle.Uniform;
@@ -172,6 +176,7 @@ public class BaseHitBox : MonoBehaviour
                 if (_tickTimer >= damageTickRate)
                 {
                     damageable.TakeDamage(_damageInfo);
+                    SpawnHitEffect(col.transform.position);
                     _tickTimer = 0f; // 모든 적에게 동시 데미지가 들어가는 구조 (원한다면 개별 쿨타임으로 개선 가능)
                     
                     if (damageable is CharacterHealth ch)
@@ -187,6 +192,7 @@ public class BaseHitBox : MonoBehaviour
                 {
                     _hitTargets.Add(damageable);
                     damageable.TakeDamage(_damageInfo);
+                    SpawnHitEffect(col.transform.position);
                     
                     if (damageable is CharacterHealth ch)
                     {
@@ -195,5 +201,19 @@ public class BaseHitBox : MonoBehaviour
                 }
             }
         }
+    }
+
+
+
+    /// <summary>
+    /// 적중 위치에 타격 이펙트(HitEffect)를 생성합니다.
+    /// </summary>
+private void SpawnHitEffect(Vector3 position)
+    {
+        if (hitEffectPrefab == null) return;
+
+        // 타격 방향(히트박스 자신의 회전값)을 이펙트에 그대로 전도합니다.
+        GameObject effect = Instantiate(hitEffectPrefab, position, transform.rotation);
+        Destroy(effect, 1.0f);
     }
 }

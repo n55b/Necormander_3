@@ -7,7 +7,12 @@ public class GenericHitbox : MonoBehaviour
     private LayerMask _targetLayer;
     private GameObject _attacker;
     private HashSet<Collider2D> _hitTargets = new HashSet<Collider2D>();
-    private float _lifetime;
+    
+
+    [Header("Hit Effect")]
+    [Tooltip("적중 시 생성할 타격 이펙트 프리팹 (HitEffect)")]
+    public GameObject hitEffectPrefab;
+private float _lifetime;
 
     public void Init(float damage, LayerMask targetLayer, GameObject attacker, float lifetime = 0.5f)
     {
@@ -46,7 +51,21 @@ public class GenericHitbox : MonoBehaviour
             {
                 targetStat.Health.GetDamage(new DamageInfo(_damage, DamageType.Physical, _attacker, false, 1f, true));
                 _hitTargets.Add(other);
+                SpawnHitEffect(other.transform.position);
             }
         }
+    }
+
+
+
+    /// <summary>
+    /// 적중 위치에 타격 이펙트(HitEffect)를 생성합니다.
+    /// </summary>
+private void SpawnHitEffect(Vector3 position)
+    {
+        if (hitEffectPrefab == null) return;
+
+        GameObject effect = Instantiate(hitEffectPrefab, position, transform.rotation);
+        Destroy(effect, 1.0f);
     }
 }
