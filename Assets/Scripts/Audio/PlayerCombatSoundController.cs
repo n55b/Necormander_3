@@ -13,7 +13,9 @@ public class PlayerCombatSoundController : MonoBehaviour
 
     // ─── 캐시 ────────────────────────────────────────────────────────
     private MeleeCombatController _melee;
-    private MeleeDodgeController  _dodge;
+    
+    private PlayerParryController _parry;
+private MeleeDodgeController  _dodge;
 
     private CharacterHealth       _health;
     private bool                  _initialized;
@@ -23,7 +25,9 @@ public class PlayerCombatSoundController : MonoBehaviour
 private void Awake()
     {
         _melee       = GetComponent<MeleeCombatController>();
-        _dodge       = GetComponent<MeleeDodgeController>();
+        
+        _parry       = GetComponent<PlayerParryController>();
+_dodge       = GetComponent<MeleeDodgeController>();
         _health      = GetComponentInChildren<CharacterHealth>();
         _playerLayer = LayerMask.NameToLayer("Player");
     }
@@ -36,6 +40,12 @@ public void Initialize()
 
         if (_melee  != null) _melee.OnAttackExecuted += OnMeleeAttack;
         if (_dodge  != null) _dodge.OnDodgeStarted  += OnDodge;
+        if (_parry  != null)
+        {
+            _parry.OnParryStart   += OnParryStart;
+            _parry.OnParrySuccess += OnParrySuccess;
+            _parry.OnParryFail    += OnParryFail;
+        }
         if (_health != null) _health.OnDamageTaken  += OnPlayerHurt;
         DamageEventBus.OnDamageReceived += OnDamageReceived;
 
@@ -47,6 +57,12 @@ private void OnDestroy()
     {
         if (_melee  != null) _melee.OnAttackExecuted -= OnMeleeAttack;
         if (_dodge  != null) _dodge.OnDodgeStarted  -= OnDodge;
+        if (_parry  != null)
+        {
+            _parry.OnParryStart   -= OnParryStart;
+            _parry.OnParrySuccess -= OnParrySuccess;
+            _parry.OnParryFail    -= OnParryFail;
+        }
         if (_health != null) _health.OnDamageTaken  -= OnPlayerHurt;
         DamageEventBus.OnDamageReceived -= OnDamageReceived;
     }
@@ -54,10 +70,29 @@ private void OnDestroy()
     // ─── ① 근접 공격 → 콤보 사운드 ──────────────────────────────────
     // comboStep: 0=1타(경타), 1=2타(경타), 2=3타(중타)
     // ─── ① 구르기 → 구르기 사운드 ────────────────────────────────────────────
-    private void OnDodge()
+private void OnDodge()
     {
         if (soundData == null || SoundManager.Instance == null) return;
         SoundManager.Instance.PlaySFX(soundData.GetDodgeClip(), soundData.dodgeVolume);
+    }
+
+    // ─── 패리 사운드 3개 (시작 / 성공 / 실패) ──────────────────
+    private void OnParryStart()
+    {
+        if (soundData == null || SoundManager.Instance == null) return;
+        SoundManager.Instance.PlaySFX(soundData.GetParryStartClip(), soundData.parryStartVolume);
+    }
+
+    private void OnParrySuccess()
+    {
+        if (soundData == null || SoundManager.Instance == null) return;
+        SoundManager.Instance.PlaySFX(soundData.GetParrySuccessClip(), soundData.parrySuccessVolume);
+    }
+
+    private void OnParryFail()
+    {
+        if (soundData == null || SoundManager.Instance == null) return;
+        SoundManager.Instance.PlaySFX(soundData.GetParryFailClip(), soundData.parryFailVolume);
     }
 
     

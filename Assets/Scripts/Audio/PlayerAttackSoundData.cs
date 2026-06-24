@@ -31,7 +31,20 @@ public class PlayerAttackSoundData : ScriptableObject
     public AudioClip[] dodgeClips;
     [Range(0f, 1f)] public float dodgeVolume = 0.85f;
 
-    public AudioClip GetDodgeClip() => PickRandom(dodgeClips);
+    
+
+    [Header("패리 사운드")]
+    public AudioClip[] parryStartClips;
+    public AudioClip[] parrySuccessClips;
+    public AudioClip[] parryFailClips;
+    [Range(0f, 1f)] public float parryStartVolume   = 0.7f;
+    [Range(0f, 1f)] public float parrySuccessVolume = 0.9f;
+    [Range(0f, 1f)] public float parryFailVolume    = 0.6f;
+
+    public AudioClip GetParryStartClip()   => PickRandom(parryStartClips);
+    public AudioClip GetParrySuccessClip() => PickRandom(parrySuccessClips);
+    public AudioClip GetParryFailClip()    => PickRandom(parryFailClips);
+public AudioClip GetDodgeClip() => PickRandom(dodgeClips);
 
     
 [Header("볼륨")]
