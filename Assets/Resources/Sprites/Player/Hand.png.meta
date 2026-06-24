@@ -1,0 +1,1005 @@
+fileFormatVersion: 2
+guid: 07df4f33f48b78e4dbae02a9e1d8041f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 140433255743585067
+    second: Hand_0
+  - first:
+      213: 562137124616465177
+    second: Hand_1
+  - first:
+      213: 6154574129086443714
+    second: Hand_2
+  - first:
+      213: 221626951010510309
+    second: Hand_3
+  - first:
+      213: -2849654119546418606
+    second: Hand_4
+  - first:
+      213: 3636446236040794570
+    second: Hand_5
+  - first:
+      213: -2108518928582217112
+    second: Hand_6
+  - first:
+      213: 3751353961570923179
+    second: Hand_7
+  - first:
+      213: -711544313521421489
+    second: Hand_8
+  - first:
+      213: -1921727788298035922
+    second: Hand_9
+  - first:
+      213: -8482845576496581372
+    second: Hand_10
+  - first:
+      213: 5407173279276041793
+    second: Hand_11
+  - first:
+      213: 5920334521499159721
+    second: Hand_12
+  - first:
+      213: -5710403291221122412
+    second: Hand_13
+  - first:
+      213: -5972426019187428323
+    second: Hand_14
+  - first:
+      213: 2122609724539273234
+    second: Hand_15
+  - first:
+      213: -4545643705908570827
+    second: Hand_16
+  - first:
+      213: 8181637859671652861
+    second: Hand_17
+  - first:
+      213: -2023127528079997265
+    second: Hand_18
+  - first:
+      213: 4974137266819031667
+    second: Hand_19
+  - first:
+      213: 7537559855576369437
+    second: Hand_20
+  - first:
+      213: 6840382383145243239
+    second: Hand_21
+  - first:
+      213: 1187872431408192554
+    second: Hand_22
+  - first:
+      213: 8786022852709659878
+    second: Hand_23
+  - first:
+      213: 566196716316439618
+    second: Hand_24
+  - first:
+      213: -1643001343224973327
+    second: Hand_25
+  - first:
+      213: 6153265324991332868
+    second: Hand_26
+  - first:
+      213: 7422340887720695042
+    second: Hand_27
+  - first:
+      213: 6218529152627320969
+    second: Hand_28
+  - first:
+      213: 4852432168686908251
+    second: Hand_29
+  - first:
+      213: 8028267169985803488
+    second: Hand_30
+  - first:
+      213: -3093140176092804555
+    second: Hand_31
+  - first:
+      213: -7273551879091575564
+    second: Hand_32
+  - first:
+      213: 1428205091701273848
+    second: Hand_33
+  - first:
+      213: -7808868726702248005
+    second: Hand_34
+  - first:
+      213: -1553621399976206959
+    second: Hand_35
+  - first:
+      213: -2464325317095325425
+    second: Hand_36
+  - first:
+      213: 3105478244164283817
+    second: Hand_37
+  - first:
+      213: 2843890114731856884
+    second: Hand_38
+  - first:
+      213: -8402664801195488629
+    second: Hand_39
+  - first:
+      213: -5017748807049590912
+    second: Hand_40
+  - first:
+      213: 8450862816921639493
+    second: Hand_41
+  - first:
+      213: -2496261425179897232
+    second: Hand_42
+  - first:
+      213: -2894499950304778463
+    second: Hand_43
+  - first:
+      213: 3569706205165014614
+    second: Hand_44
+  - first:
+      213: -8021044090581444387
+    second: Hand_45
+  - first:
+      213: 4725743449441654321
+    second: Hand_46
+  - first:
+      213: -3745226144524492280
+    second: Hand_47
+  - first:
+      213: -2984508283241145542
+    second: Hand_48
+  - first:
+      213: -2354047076398504915
+    second: Hand_49
+  - first:
+      213: -7154143316674334573
+    second: Hand_50
+  - first:
+      213: 7007941291817600098
+    second: Hand_51
+  - first:
+      213: -7544226741840470476
+    second: Hand_52
+  - first:
+      213: 5554460482533951426
+    second: Hand_53
+  - first:
+      213: 462768148685388279
+    second: Hand_54
+  - first:
+      213: -19301693825092417
+    second: Hand_55
+  - first:
+      213: -4900796967575599353
+    second: Hand_56
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Hand_Idle_07
+      rect:
+        serializedVersion: 2
+        x: 672
+        y: 240
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4cb101248f3defa418f4be3e1dcef506
+      internalID: 140433255743585067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Idle_06
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 240
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: de8f34a80893516438478419f83fa69b
+      internalID: 562137124616465177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Idle_05
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 240
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 90ab81973adffc24899a815e8f00bd2e
+      internalID: 6154574129086443714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Idle_04
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 240
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be3463858be03c44a86bd1a0db4a7f59
+      internalID: 221626951010510309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Idle_03
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 240
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6f5cd215da6cde847b513681e824eb3d
+      internalID: -2849654119546418606
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Idle_02
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 240
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cbf88965ce5c40543b4a4d804a64a871
+      internalID: 3636446236040794570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Idle_01
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 240
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d4ccebc1cb3811c4abcc4e49b98d6142
+      internalID: -2108518928582217112
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK1_01
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 192
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 95034060ed8ffec47a711bd8fec8dd7c
+      internalID: 3751353961570923179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK1_02
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 192
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 92b56d928d9f6b14394a739259c65ccf
+      internalID: -711544313521421489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK1_03
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 192
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8672425d16bd7af4baeb5a88c3e412e2
+      internalID: -1921727788298035922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK1_04
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 192
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ab3d46402b98a2846a5cb6f0669e85cb
+      internalID: -8482845576496581372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK1_05
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 192
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b154f5a9ffef6734d80ffc52966c1ae3
+      internalID: 5407173279276041793
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK2_01
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 192
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c0f4e2cc99a8c5d45a491d81b4007ebf
+      internalID: 5920334521499159721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK2_02
+      rect:
+        serializedVersion: 2
+        x: 672
+        y: 192
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2cad4a79647d3bc4aa047ce931d19d7e
+      internalID: -5710403291221122412
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK2_03
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 144
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 23fae6ccf005bd04fb1923f9109bed15
+      internalID: -5972426019187428323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK3_01
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 144
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 63b30402c7dbb184c859f349e481f188
+      internalID: 2122609724539273234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK3_02
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 144
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 94278d03cfe52a24a9adbf900222691a
+      internalID: -4545643705908570827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK3_03
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 144
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 999e39a6a37af5842b83d5fb7428c6a3
+      internalID: 8181637859671652861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK3_04
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 144
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 86292fa84cf64a04caecac9d580b0a17
+      internalID: -2023127528079997265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK3_05
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 144
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2813c387bcccc0c458007fa4bdf7028b
+      internalID: 4974137266819031667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_ATK3_06
+      rect:
+        serializedVersion: 2
+        x: 672
+        y: 144
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 47f526727694951429598b550317051d
+      internalID: 7537559855576369437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Parry_01
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 96
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6770d581da6341c41bf9d2d8c489735d
+      internalID: 6840382383145243239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Parry_02
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 96
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c847c19f6b2d8ec46babfd7371f02d24
+      internalID: 1187872431408192554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Parry_04
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 96
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5e48f7126bfa5414f86ff690b71cd9a9
+      internalID: 8786022852709659878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Parry_0
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 96
+        width: 96
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eedd5b79bcaabf04e993e40017b39178
+      internalID: 566196716316439618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Parry_Success_01
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 32
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.609375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e6886d0021973fb41aad60d262c852bc
+      internalID: -1643001343224973327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Parry_Success_02
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 32
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.609375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d2c9d2a238ad7224f9f915df3b8c0f1a
+      internalID: 6153265324991332868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Parry_Success_03
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 32
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.609375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3797a3335aab5724fb3f6b2f4ed9f5ab
+      internalID: 7422340887720695042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Parry_Success_04
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 32
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.609375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a8852790e84a794419168bdb20c02d53
+      internalID: 6218529152627320969
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hand_Parry_Success_05
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 32
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.609375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4e60b31f34ec28f4f990707dc08889eb
+      internalID: 4852432168686908251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: a49d50a8e0faf2f4bbcb97226c268be5
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Hand_30: 8028267169985803488
+      Hand_31: -3093140176092804555
+      Hand_32: -7273551879091575564
+      Hand_33: 1428205091701273848
+      Hand_34: -7808868726702248005
+      Hand_35: -1553621399976206959
+      Hand_36: -2464325317095325425
+      Hand_37: 3105478244164283817
+      Hand_38: 2843890114731856884
+      Hand_39: -8402664801195488629
+      Hand_40: -5017748807049590912
+      Hand_41: 8450862816921639493
+      Hand_42: -2496261425179897232
+      Hand_43: -2894499950304778463
+      Hand_44: 3569706205165014614
+      Hand_45: -8021044090581444387
+      Hand_46: 4725743449441654321
+      Hand_47: -3745226144524492280
+      Hand_48: -2984508283241145542
+      Hand_49: -2354047076398504915
+      Hand_50: -7154143316674334573
+      Hand_51: 7007941291817600098
+      Hand_52: -7544226741840470476
+      Hand_53: 5554460482533951426
+      Hand_54: 462768148685388279
+      Hand_55: -19301693825092417
+      Hand_56: -4900796967575599353
+      Hand_ATK1_01: 3751353961570923179
+      Hand_ATK1_02: -711544313521421489
+      Hand_ATK1_03: -1921727788298035922
+      Hand_ATK1_04: -8482845576496581372
+      Hand_ATK1_05: 5407173279276041793
+      Hand_ATK2_01: 5920334521499159721
+      Hand_ATK2_02: -5710403291221122412
+      Hand_ATK2_03: -5972426019187428323
+      Hand_ATK3_01: 2122609724539273234
+      Hand_ATK3_02: -4545643705908570827
+      Hand_ATK3_03: 8181637859671652861
+      Hand_ATK3_04: -2023127528079997265
+      Hand_ATK3_05: 4974137266819031667
+      Hand_ATK3_06: 7537559855576369437
+      Hand_Idle_01: -2108518928582217112
+      Hand_Idle_02: 3636446236040794570
+      Hand_Idle_03: -2849654119546418606
+      Hand_Idle_04: 221626951010510309
+      Hand_Idle_05: 6154574129086443714
+      Hand_Idle_06: 562137124616465177
+      Hand_Idle_07: 140433255743585067
+      Hand_Parry_0: 566196716316439618
+      Hand_Parry_01: 6840382383145243239
+      Hand_Parry_02: 1187872431408192554
+      Hand_Parry_04: 8786022852709659878
+      Hand_Parry_Success_01: -1643001343224973327
+      Hand_Parry_Success_02: 6153265324991332868
+      Hand_Parry_Success_03: 7422340887720695042
+      Hand_Parry_Success_04: 6218529152627320969
+      Hand_Parry_Success_05: 4852432168686908251
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

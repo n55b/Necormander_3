@@ -1,139 +1,151 @@
 fileFormatVersion: 2
-guid: 3d0fe9f5bdf9f344c9e1cfaae8d9b330
+guid: 4dec7337d9e86804d8b1c7e78673cffd
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2311659948842064771
-    second: Player_0
+      213: 2594183008947116555
+    second: Enemy_03_LionMask_48px_0
   - first:
-      213: 7364682651488144517
-    second: Player_1
+      213: -8658024769240696255
+    second: Enemy_03_LionMask_48px_1
   - first:
-      213: -6287787046888575383
-    second: Player_2
+      213: 7181525879175501253
+    second: Enemy_03_LionMask_48px_2
   - first:
-      213: -1182821291677670348
-    second: Player_3
+      213: -687951561248416201
+    second: Enemy_03_LionMask_48px_3
   - first:
-      213: -4709456396536258026
-    second: Player_4
+      213: 6225305429773874515
+    second: Enemy_03_LionMask_48px_4
   - first:
-      213: -4529042392078601758
-    second: Player_5
+      213: -3277524837052064080
+    second: Enemy_03_LionMask_48px_5
   - first:
-      213: -7446026091647042388
-    second: Player_6
+      213: 5430031450245208282
+    second: Enemy_03_LionMask_48px_6
   - first:
-      213: 5938012242645255967
-    second: Player_7
+      213: -2478947850871984041
+    second: Enemy_03_LionMask_48px_7
   - first:
-      213: -4245738604243887485
-    second: Player_8
+      213: -5182230280413705288
+    second: Enemy_03_LionMask_48px_8
   - first:
-      213: 2473453845335418800
-    second: Player_9
+      213: -6349741023572304842
+    second: Enemy_03_LionMask_48px_9
   - first:
-      213: -3287367053296241113
-    second: Player_10
+      213: -2240395273830347173
+    second: Enemy_03_LionMask_48px_10
   - first:
-      213: -5319882733741912588
-    second: Player_11
+      213: 3080356637603021115
+    second: Enemy_03_LionMask_48px_11
   - first:
-      213: 7365574002475698461
-    second: Player_12
+      213: 9075947028415988008
+    second: Enemy_03_LionMask_48px_12
   - first:
-      213: 6472545519820947264
-    second: Player_13
+      213: 6262816448374183991
+    second: Enemy_03_LionMask_48px_13
   - first:
-      213: -2472340072831945791
-    second: Player_14
+      213: 3090079901193261698
+    second: Enemy_03_LionMask_48px_14
   - first:
-      213: 4681514556078180949
-    second: Player_15
+      213: -6509058488802128829
+    second: Enemy_03_LionMask_48px_15
   - first:
-      213: -2521826894279438384
-    second: Player_16
+      213: -7660396864105186243
+    second: Enemy_03_LionMask_48px_16
   - first:
-      213: -7338765713033929952
-    second: Player_17
+      213: 3485574253887710003
+    second: Enemy_03_LionMask_48px_17
   - first:
-      213: 1522305984107872113
-    second: Player_18
+      213: -6249477538692296562
+    second: Enemy_03_LionMask_48px_18
   - first:
-      213: -661973496601677656
-    second: Player_19
+      213: 7878047668193793334
+    second: Enemy_03_LionMask_48px_19
   - first:
-      213: -5989208844104669019
-    second: Player_20
+      213: 6792089149711874479
+    second: Enemy_03_LionMask_48px_20
   - first:
-      213: -620360788158790383
-    second: Player_21
+      213: 1347233532162519368
+    second: Enemy_03_LionMask_48px_21
   - first:
-      213: 5007636379019871947
-    second: Player_22
+      213: 1400297933779813039
+    second: Enemy_03_LionMask_48px_22
   - first:
-      213: 585951966842662488
-    second: Player_23
+      213: 5535372380742668453
+    second: Enemy_03_LionMask_48px_23
   - first:
-      213: -5324252115843577105
-    second: Player_24
+      213: 200196558816566182
+    second: Enemy_03_LionMask_48px_24
   - first:
-      213: 802321206317977270
-    second: Player_25
+      213: 2491518581384308648
+    second: Enemy_03_LionMask_48px_25
   - first:
-      213: -2531074035140014093
-    second: Player_26
+      213: -2407569357738998195
+    second: Enemy_03_LionMask_48px_26
   - first:
-      213: 2425571995158539275
-    second: Player_27
+      213: -1951786299254708162
+    second: Enemy_03_LionMask_48px_27
   - first:
-      213: 7504173757061796091
-    second: Player_28
+      213: -7461106417179524669
+    second: Enemy_03_LionMask_48px_28
   - first:
-      213: -482043112589295754
-    second: Player_29
+      213: -5508411990032160779
+    second: Enemy_03_LionMask_48px_29
   - first:
-      213: 5858650361913189150
-    second: Player_30
+      213: -3439824748036584081
+    second: Enemy_03_LionMask_48px_30
   - first:
-      213: -8673286262977101647
-    second: Player_31
+      213: 8120758154521444966
+    second: Enemy_03_LionMask_48px_31
   - first:
-      213: -5582666879068068913
-    second: Player_32
+      213: 1042643932186742198
+    second: Enemy_03_LionMask_48px_32
   - first:
-      213: -1143793458617422335
-    second: Player_33
+      213: -2806905207774598690
+    second: Enemy_03_LionMask_48px_33
   - first:
-      213: -3357028997785511978
-    second: Player_34
+      213: -1625527773051642461
+    second: Enemy_03_LionMask_48px_34
   - first:
-      213: -1287317561693210830
-    second: Player_35
+      213: -2811227190006560996
+    second: Enemy_03_LionMask_48px_35
   - first:
-      213: -880019952005955485
-    second: Player_36
+      213: 2318024990172845354
+    second: Enemy_03_LionMask_48px_36
   - first:
-      213: -2236138401977818221
-    second: Player_37
+      213: 728782127273541025
+    second: Enemy_03_LionMask_48px_37
   - first:
-      213: 444229463124618271
-    second: Player_38
+      213: -7362569163270351944
+    second: Enemy_03_LionMask_48px_38
   - first:
-      213: 4058882637061436657
-    second: Player_39
+      213: 813250277620504883
+    second: Enemy_03_LionMask_48px_39
   - first:
-      213: -6654760982662145220
-    second: Player_40
+      213: -7824407769701652151
+    second: Enemy_03_LionMask_48px_40
   - first:
-      213: -1644491751466927929
-    second: Player_41
+      213: 4614887748455113571
+    second: Enemy_03_LionMask_48px_41
   - first:
-      213: 840494989937961389
-    second: Player_42
+      213: 3352237285169590070
+    second: Enemy_03_LionMask_48px_42
   - first:
-      213: 7595658228077749015
-    second: Player_43
+      213: 6440243222752698103
+    second: Enemy_03_LionMask_48px_43
+  - first:
+      213: -9149296332308233103
+    second: Enemy_03_LionMask_48px_44
+  - first:
+      213: 8616390542924865494
+    second: Enemy_03_LionMask_48px_45
+  - first:
+      213: 8178895468689881931
+    second: Enemy_03_LionMask_48px_46
+  - first:
+      213: -7212536583921936060
+    second: Enemy_03_LionMask_48px_47
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -229,252 +241,10 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Player_Idle_01
+      name: LionMask_Idle_01
       rect:
         serializedVersion: 2
-        x: 96
-        y: 288
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d7465c336855befd0800000000000000
-      internalID: -2311659948842064771
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Idle_02
-      rect:
-        serializedVersion: 2
-        x: 144
-        y: 288
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 58cce6d0adb943660800000000000000
-      internalID: 7364682651488144517
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Idle_03
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 288
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 96e67e6befa4db8a0800000000000000
-      internalID: -6287787046888575383
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Idle_04
-      rect:
-        serializedVersion: 2
-        x: 240
-        y: 288
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 434a8c45d46c59fe0800000000000000
-      internalID: -1182821291677670348
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Idle_05
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 288
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 612e34feb56a4aeb0800000000000000
-      internalID: -4709456396536258026
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Idle_06
-      rect:
-        serializedVersion: 2
-        x: 336
-        y: 288
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2e13877b0fb9521c0800000000000000
-      internalID: -4529042392078601758
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Idle_07
-      rect:
-        serializedVersion: 2
-        x: 384
-        y: 288
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: cac761b68b66aa890800000000000000
-      internalID: -7446026091647042388
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Idle2_04
-      rect:
-        serializedVersion: 2
-        x: 480
-        y: 288
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f178aca7cae086250800000000000000
-      internalID: 5938012242645255967
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Idle2_05
-      rect:
-        serializedVersion: 2
-        x: 528
-        y: 288
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 38a51ecfb3b1415c0800000000000000
-      internalID: -4245738604243887485
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Idle2_06
-      rect:
-        serializedVersion: 2
-        x: 576
-        y: 288
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 0b7aa8bda29735220800000000000000
-      internalID: 2473453845335418800
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player
-      rect:
-        serializedVersion: 2
-        x: 42
-        y: 240
-        width: 48
-        height: 48
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 72674fd051de062d0800000000000000
-      internalID: -3287367053296241113
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Run_01
-      rect:
-        serializedVersion: 2
-        x: 96
+        x: 64
         y: 240
         width: 48
         height: 48
@@ -486,17 +256,17 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4fd4490f6dafb26b0800000000000000
-      internalID: -5319882733741912588
+      spriteID: b0a95aab3b3600420800000000000000
+      internalID: 2594183008947116555
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Run_02
+      name: LionMask_Idle_02
       rect:
         serializedVersion: 2
-        x: 144
+        x: 112
         y: 240
         width: 48
         height: 48
@@ -508,17 +278,17 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d198a60e786c73660800000000000000
-      internalID: 7365574002475698461
+      spriteID: 14affd4385488d780800000000000000
+      internalID: -8658024769240696255
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Run_03
+      name: LionMask_Idle_03
       rect:
         serializedVersion: 2
-        x: 192
+        x: 160
         y: 240
         width: 48
         height: 48
@@ -530,17 +300,17 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 04f39757bd913d950800000000000000
-      internalID: 6472545519820947264
+      spriteID: 5c5d78ddcb7e9a360800000000000000
+      internalID: 7181525879175501253
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Run_04
+      name: LionMask_Idle_04
       rect:
         serializedVersion: 2
-        x: 240
+        x: 208
         y: 240
         width: 48
         height: 48
@@ -552,17 +322,17 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1c373e28dcb70bdd0800000000000000
-      internalID: -2472340072831945791
+      spriteID: 73edc1133b7e376f0800000000000000
+      internalID: -687951561248416201
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Run_05
+      name: LionMask_Idle_05
       rect:
         serializedVersion: 2
-        x: 288
+        x: 256
         y: 240
         width: 48
         height: 48
@@ -574,17 +344,17 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 55a4cdd5fa418f040800000000000000
-      internalID: 4681514556078180949
+      spriteID: 3557bf72e4ab46650800000000000000
+      internalID: 6225305429773874515
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Run_06
+      name: LionMask_Idle_06
       rect:
         serializedVersion: 2
-        x: 336
+        x: 304
         y: 240
         width: 48
         height: 48
@@ -596,42 +366,460 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0df82750dcba00dd0800000000000000
-      internalID: -2521826894279438384
+      spriteID: 0beddf89684e382d0800000000000000
+      internalID: -3277524837052064080
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Head
+      name: LionMask_Move_01
       rect:
         serializedVersion: 2
-        x: 46
-        y: 194
+        x: 64
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 750be0c4012099dd0800000000000000
+      internalID: -2478947850871984041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LionMask_Move_02
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bb0baf34050518b0800000000000000
+      internalID: -5182230280413705288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LionMask_Move_03
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63c5f327e2031e7a0800000000000000
+      internalID: -6349741023572304842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LionMask_Move_04
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5ec0ea5e5488e0e0800000000000000
+      internalID: -2240395273830347173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LionMask_Move_05
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3148dd9a00afba20800000000000000
+      internalID: 3080356637603021115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LionMask_Move_06
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8214ff46cbd34fd70800000000000000
+      internalID: 9075947028415988008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LionMask_Move_07
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73811d2c06ef9e650800000000000000
+      internalID: 6262816448374183991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LionMask_Move_08
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 282d2365c4b22ea20800000000000000
+      internalID: 3090079901193261698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LionMask_Move_09
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34c45b87acd2ba5a0800000000000000
+      internalID: -6509058488802128829
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LionMask_Move_10
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3c7e7c73adc0b590800000000000000
+      internalID: -7660396864105186243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LionMask_Move_11
+      rect:
+        serializedVersion: 2
+        x: 544
+        y: 192
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3336939015f3f5030800000000000000
+      internalID: 3485574253887710003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mask_Move_01
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 144
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63519425d92745d60800000000000000
+      internalID: 7878047668193793334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mask_Move_02
+      rect:
+        serializedVersion: 2
+        x: 126
+        y: 144
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa97c5b7819524e50800000000000000
+      internalID: 6792089149711874479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mask_Move_03
+      rect:
+        serializedVersion: 2
+        x: 174
+        y: 145
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 841ba0272c552b210800000000000000
+      internalID: 1347233532162519368
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mask_Move_04
+      rect:
+        serializedVersion: 2
+        x: 222
+        y: 144
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa2c8aa3d8bde6310800000000000000
+      internalID: 1400297933779813039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mask_Move_05
+      rect:
+        serializedVersion: 2
+        x: 270
+        y: 144
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a0dca54ad791dc40800000000000000
+      internalID: 5535372380742668453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mask_Move_06
+      rect:
+        serializedVersion: 2
+        x: 318
+        y: 144
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ab5485a5bd37c200800000000000000
+      internalID: 200196558816566182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mask_Move_07
+      rect:
+        serializedVersion: 2
+        x: 366
+        y: 145
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a762baf2f6a39220800000000000000
+      internalID: 2491518581384308648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mask_Move_08
+      rect:
+        serializedVersion: 2
+        x: 415
+        y: 144
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d460adbcc68969ed0800000000000000
+      internalID: -2407569357738998195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mask_Move_09
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 144
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e38e27ba3bcd9e4e0800000000000000
+      internalID: -1951786299254708162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Lion_Move_01
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 96
         width: 36
-        height: 36
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 02bdbc86777772a90800000000000000
-      internalID: -7338765713033929952
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dashf_01
-      rect:
-        serializedVersion: 2
-        x: 96
-        y: 192
-        width: 48
-        height: 48
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -640,262 +828,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 17f733e1a31502510800000000000000
-      internalID: 1522305984107872113
+      spriteID: 5f761a9da703e83b0800000000000000
+      internalID: -5508411990032160779
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Dashf_02
+      name: Lion_Move_02
       rect:
         serializedVersion: 2
-        x: 144
-        y: 192
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8a07554bc9230d6f0800000000000000
-      internalID: -661973496601677656
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dashf_03
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 192
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 5a86389d94e02eca0800000000000000
-      internalID: -5989208844104669019
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dashf_04
-      rect:
-        serializedVersion: 2
-        x: 240
-        y: 192
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 115c63566290467f0800000000000000
-      internalID: -620360788158790383
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dashb_01
-      rect:
-        serializedVersion: 2
-        x: 336
-        y: 192
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bc68dcf41c2be7540800000000000000
-      internalID: 5007636379019871947
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dashb_02
-      rect:
-        serializedVersion: 2
-        x: 384
-        y: 192
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 85e29179538b12800800000000000000
-      internalID: 585951966842662488
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dashb_03
-      rect:
-        serializedVersion: 2
-        x: 432
-        y: 192
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: fea8584e8e47c16b0800000000000000
-      internalID: -5324252115843577105
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dashb_04
-      rect:
-        serializedVersion: 2
-        x: 480
-        y: 192
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6be8852e2ea622b00800000000000000
-      internalID: 802321206317977270
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dead_01
-      rect:
-        serializedVersion: 2
-        x: 96
-        y: 144
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3ffc3434391dfdcd0800000000000000
-      internalID: -2531074035140014093
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dead_02
-      rect:
-        serializedVersion: 2
-        x: 144
-        y: 144
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b0c6f8cd0ec59a120800000000000000
-      internalID: 2425571995158539275
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dead_03
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 144
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bf01a72f54e242860800000000000000
-      internalID: 7504173757061796091
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Dead_04
-      rect:
-        serializedVersion: 2
-        x: 240
-        y: 144
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 67ff0b3d7507f49f0800000000000000
-      internalID: -482043112589295754
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Attack_01
-      rect:
-        serializedVersion: 2
-        x: 96
+        x: 125
         y: 96
-        width: 48
-        height: 48
+        width: 36
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -904,20 +850,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e13ac05b67b1e4150800000000000000
-      internalID: 5858650361913189150
+      spriteID: f6d8eabdd994340d0800000000000000
+      internalID: -3439824748036584081
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Attack_02
+      name: Lion_Move_03
       rect:
         serializedVersion: 2
-        x: 144
+        x: 173
         y: 96
-        width: 48
-        height: 48
+        width: 36
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -926,20 +872,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1b089fbc81c42a780800000000000000
-      internalID: -8673286262977101647
+      spriteID: 6628b13148ab2b070800000000000000
+      internalID: 8120758154521444966
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Attack_03
+      name: Lion_Move_04
       rect:
         serializedVersion: 2
-        x: 192
+        x: 221
         y: 96
-        width: 48
-        height: 48
+        width: 36
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -948,20 +894,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fc32fcd3d026682b0800000000000000
-      internalID: -5582666879068068913
+      spriteID: 6bd0535d127387e00800000000000000
+      internalID: 1042643932186742198
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Attack_04
+      name: Lion_Move_05
       rect:
         serializedVersion: 2
-        x: 240
+        x: 269
         y: 96
-        width: 48
-        height: 48
+        width: 36
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -970,20 +916,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 10e61b2d8ed6020f0800000000000000
-      internalID: -1143793458617422335
+      spriteID: ed9a66cc59edb09d0800000000000000
+      internalID: -2806905207774598690
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Attack_05
+      name: Lion_Move_06
       rect:
         serializedVersion: 2
-        x: 288
+        x: 318
         y: 96
-        width: 48
-        height: 48
+        width: 36
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -992,20 +938,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6d71f4ea9ef6961d0800000000000000
-      internalID: -3357028997785511978
+      spriteID: 3ad99b25a17f079e0800000000000000
+      internalID: -1625527773051642461
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Attack_06
+      name: Lion_Move_07
       rect:
         serializedVersion: 2
-        x: 336
+        x: 366
         y: 96
-        width: 48
-        height: 48
+        width: 36
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1014,130 +960,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 23777268f77822ee0800000000000000
-      internalID: -1287317561693210830
+      spriteID: c174db4e3c38cf8d0800000000000000
+      internalID: -2811227190006560996
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Attack_07
+      name: Mask_Dead_01
       rect:
         serializedVersion: 2
-        x: 384
-        y: 96
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 360cd65248a89c3f0800000000000000
-      internalID: -880019952005955485
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Attack_08
-      rect:
-        serializedVersion: 2
-        x: 432
-        y: 96
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 393a08198f3a7f0e0800000000000000
-      internalID: -2236138401977818221
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Attack_09
-      rect:
-        serializedVersion: 2
-        x: 480
-        y: 96
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f1c2e44d7583a2600800000000000000
-      internalID: 444229463124618271
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Attack_10
-      rect:
-        serializedVersion: 2
-        x: 528
-        y: 96
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1f43c07e04c045830800000000000000
-      internalID: 4058882637061436657
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Attack_11
-      rect:
-        serializedVersion: 2
-        x: 576
-        y: 96
-        width: 48
-        height: 48
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c3b1b4b052a85a3a0800000000000000
-      internalID: -6654760982662145220
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Player_Attack_12
-      rect:
-        serializedVersion: 2
-        x: 96
+        x: 71
         y: 48
-        width: 48
-        height: 48
+        width: 32
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1146,20 +982,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7c8f0c507779d29e0800000000000000
-      internalID: -1644491751466927929
+      spriteID: a251bb772774b2020800000000000000
+      internalID: 2318024990172845354
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Attack_13
+      name: Mask_Dead_02
       rect:
         serializedVersion: 2
-        x: 144
+        x: 117
         y: 48
-        width: 48
-        height: 48
+        width: 32
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1168,20 +1004,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: da96fbe7db90aab00800000000000000
-      internalID: 840494989937961389
+      spriteID: 1adfac6cb772d1a00800000000000000
+      internalID: 728782127273541025
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Attack_14
+      name: Mask_Dead_03
       rect:
         serializedVersion: 2
-        x: 192
+        x: 162
         y: 48
-        width: 48
-        height: 48
+        width: 32
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1190,118 +1026,206 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 713e8d73ae2396960800000000000000
-      internalID: 7595658228077749015
+      spriteID: 8b39605ca56e2d990800000000000000
+      internalID: -7362569163270351944
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Parry_01
+      name: Mask_Dead_04
       rect:
         serializedVersion: 2
-        x: 96
-        y: 0
-        width: 48
-        height: 48
+        x: 208
+        y: 48
+        width: 32
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: b6532d482380cab43bd5177ca5dfc12e
-      internalID: -2072010280
+      spriteID: 339de0791de394b00800000000000000
+      internalID: 813250277620504883
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Parry_02
+      name: Mask_Dead_05
       rect:
         serializedVersion: 2
-        x: 144
-        y: 0
-        width: 48
-        height: 48
+        x: 258
+        y: 48
+        width: 32
+        height: 32
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 84019616dbda9ce4793c4e54ff9909d5
-      internalID: -3758159
+      spriteID: 9496025c69e1a6390800000000000000
+      internalID: -7824407769701652151
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Parry_03
+      name: Mask_Dead_06
       rect:
         serializedVersion: 2
-        x: 192
-        y: 0
-        width: 48
-        height: 48
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 306
+        y: 48
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: c3116d371c6805a4baf3516d0f2f70ee
-      internalID: 629773994
+      spriteID: 36328fcd4ff5b0040800000000000000
+      internalID: 4614887748455113571
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Parry_04
+      name: Lion_Dead_01
       rect:
         serializedVersion: 2
-        x: 240
+        x: 70
         y: 0
-        width: 48
-        height: 48
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 36
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 7534c8ae0fdb0584784583e12176d4c9
-      internalID: -1998883222
+      spriteID: 63f6a59cc0a858e20800000000000000
+      internalID: 3352237285169590070
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Player_Parry_05
+      name: Lion_Dead_02
       rect:
         serializedVersion: 2
-        x: 288
+        x: 119
         y: 0
-        width: 48
-        height: 48
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 36
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 5329cabeddc4b8a43801fe0ceef63b4a
-      internalID: 813892125
+      spriteID: 7fe9a47d617506950800000000000000
+      internalID: 6440243222752698103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Lion_Dead_03
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 0
+        width: 36
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 174cbf7f57b270180800000000000000
+      internalID: -9149296332308233103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Lion_Dead_04
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 0
+        width: 36
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6df52151c81939770800000000000000
+      internalID: 8616390542924865494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Lion_Dead_05
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 0
+        width: 36
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4bff4a5816418170800000000000000
+      internalID: 8178895468689881931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Lion_Dead_06
+      rect:
+        serializedVersion: 2
+        x: 314
+        y: 0
+        width: 36
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 449d2d9c03ce7eb90800000000000000
+      internalID: -7212536583921936060
       vertices: []
       indices: 
       edges: []
@@ -1310,7 +1234,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: defb5544a9be09448a9f6b18a814c72d
+    spriteID: 4fff7d48b20c48d4d974a31f206e903e
     internalID: 0
     vertices: []
     indices: 
@@ -1320,57 +1244,54 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Player: -3287367053296241113
-      Player_30: -1050032071
-      Player_Attack_01: 5858650361913189150
-      Player_Attack_02: -8673286262977101647
-      Player_Attack_03: -5582666879068068913
-      Player_Attack_04: -1143793458617422335
-      Player_Attack_05: -3357028997785511978
-      Player_Attack_06: -1287317561693210830
-      Player_Attack_07: -880019952005955485
-      Player_Attack_08: -2236138401977818221
-      Player_Attack_09: 444229463124618271
-      Player_Attack_10: 4058882637061436657
-      Player_Attack_11: -6654760982662145220
-      Player_Attack_12: -1644491751466927929
-      Player_Attack_13: 840494989937961389
-      Player_Attack_14: 7595658228077749015
-      Player_Dashb_01: 5007636379019871947
-      Player_Dashb_02: 585951966842662488
-      Player_Dashb_03: -5324252115843577105
-      Player_Dashb_04: 802321206317977270
-      Player_Dashf_01: 1522305984107872113
-      Player_Dashf_01Player_Dashf_01: 1522305984107872113
-      Player_Dashf_02: -661973496601677656
-      Player_Dashf_03: -5989208844104669019
-      Player_Dashf_04: -620360788158790383
-      Player_Dead_01: -2531074035140014093
-      Player_Dead_02: 2425571995158539275
-      Player_Dead_03: 7504173757061796091
-      Player_Dead_04: -482043112589295754
-      Player_Head: -7338765713033929952
-      Player_Idle2_04: 5938012242645255967
-      Player_Idle2_05: -4245738604243887485
-      Player_Idle2_06: 2473453845335418800
-      Player_Idle_01: -2311659948842064771
-      Player_Idle_02: 7364682651488144517
-      Player_Idle_03: -6287787046888575383
-      Player_Idle_04: -1182821291677670348
-      Player_Idle_05: -4709456396536258026
-      Player_Idle_06: -4529042392078601758
-      Player_Idle_07: -7446026091647042388
-      Player_Parry_01: -2072010280
-      Player_Parry_02: -3758159
-      Player_Parry_03: 629773994
-      Player_Parry_04: -1998883222
-      Player_Parry_05: 813892125
-      Player_Run_01: -5319882733741912588
-      Player_Run_02: 7365574002475698461
-      Player_Run_03: 6472545519820947264
-      Player_Run_04: -2472340072831945791
-      Player_Run_05: 4681514556078180949
-      Player_Run_06: -2521826894279438384
+      Enemy_03_LionMask_48px_18: -6249477538692296562
+      Enemy_03_LionMask_48px_28: -7461106417179524669
+      Enemy_03_LionMask_48px_6: 5430031450245208282
+      LionMask_Idle_01: 2594183008947116555
+      LionMask_Idle_02: -8658024769240696255
+      LionMask_Idle_03: 7181525879175501253
+      LionMask_Idle_04: -687951561248416201
+      LionMask_Idle_05: 6225305429773874515
+      LionMask_Idle_06: -3277524837052064080
+      LionMask_Move_01: -2478947850871984041
+      LionMask_Move_02: -5182230280413705288
+      LionMask_Move_03: -6349741023572304842
+      LionMask_Move_04: -2240395273830347173
+      LionMask_Move_05: 3080356637603021115
+      LionMask_Move_06: 9075947028415988008
+      LionMask_Move_07: 6262816448374183991
+      LionMask_Move_08: 3090079901193261698
+      LionMask_Move_09: -6509058488802128829
+      LionMask_Move_10: -7660396864105186243
+      LionMask_Move_11: 3485574253887710003
+      Lion_Dead_01: 3352237285169590070
+      Lion_Dead_02: 6440243222752698103
+      Lion_Dead_03: -9149296332308233103
+      Lion_Dead_04: 8616390542924865494
+      Lion_Dead_05: 8178895468689881931
+      Lion_Dead_06: -7212536583921936060
+      Lion_Move_01: -5508411990032160779
+      Lion_Move_02: -3439824748036584081
+      Lion_Move_03: 8120758154521444966
+      Lion_Move_04: 1042643932186742198
+      Lion_Move_05: -2806905207774598690
+      Lion_Move_06: -1625527773051642461
+      Lion_Move_07: -2811227190006560996
+      Mask_Dead_01: 2318024990172845354
+      Mask_Dead_02: 728782127273541025
+      Mask_Dead_03: -7362569163270351944
+      Mask_Dead_04: 813250277620504883
+      Mask_Dead_05: -7824407769701652151
+      Mask_Dead_06: 4614887748455113571
+      Mask_Move_01: 7878047668193793334
+      Mask_Move_02: 6792089149711874479
+      Mask_Move_03: 1347233532162519368
+      Mask_Move_04: 1400297933779813039
+      Mask_Move_05: 5535372380742668453
+      Mask_Move_06: 200196558816566182
+      Mask_Move_07: 2491518581384308648
+      Mask_Move_08: -2407569357738998195
+      Mask_Move_09: -1951786299254708162
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
