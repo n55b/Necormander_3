@@ -89,23 +89,18 @@ public class MeleeCombatController : MonoBehaviour
 
         // [애니메이션 재생]
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0.3f); // 공격 중 이동 속도 감소
-        if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1");
-        else if (_comboStep == 1) _player.PlayAllAnim("Attack_Light2");
-        else _player.PlayAllAnim("Attack_Medium");
 
-        if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
-        {
-            float atkAnimSpeed = Mathf.Clamp(1f / _player.Stat.ATKSPD, 0.5f, 3f);
-            _player.SetAttackAnimSpeed(atkAnimSpeed);
-        }
+        // 공격 애니메이션 재생 중에는 Update()의 Idle/Walk 자동 전환을 잠그고,
+        // 캐시를 초기화해서 공격이 끝난 뒤 Idle로 제대로 복귀하도록 합니다.
+        // (실제 복귀는 애니메이션 클립의 'CanChangeAnimState' 이벤트가 canChangeState를 다시 true로 바꿔줄 때 일어납니다)
+        _player.canChangeState = false;
+        _player.ResetAnimStateCache();
 
-        if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
-        {
-            float atkAnimSpeed = Mathf.Clamp(1f / _player.Stat.ATKSPD, 0.5f, 3f);
-            _player.SetAttackAnimSpeed(atkAnimSpeed);
-        }
+        if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
+        else if (_comboStep == 1) _player.PlayAllAnim("Attack_Light2", "Attack");
+        else _player.PlayAllAnim("Attack_Medium", "Attack");
 
-        // Adjust animation speed based on attack speed (lower ATKSPD = faster)
+        // Higher ATKSPD (lower stat value) plays the attack animation faster.
         if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
         {
             float atkAnimSpeed = Mathf.Clamp(1f / _player.Stat.ATKSPD, 0.5f, 3f);
@@ -178,8 +173,10 @@ public class MeleeCombatController : MonoBehaviour
         _comboStep = 0;
         _isHoldingAttack = false;
         _player.SetAttackAnimSpeed(1f);
-        
-        _player.SetAttackAnimSpeed(1f);
+
+        // 공격이 중간에 취소되더도 Idle/Walk 전환이 영원히 잠겨있지 않도록 해제합니다.
+        _player.canChangeState = true;
+        _player.ResetAnimStateCache();
         _player.PlayAllAnim("Idle");
         _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack); // 이동 속도 복구
     }

@@ -55,7 +55,7 @@ public bool IsParrying => _isParrying;
             return;
         }
 
-        float clipLength = GetParryAnimationClipLength();
+        float clipLength = GetAnimationClipLength("Parry");
         if (clipLength > 0f)
         {
             // 애니메이션이 존재할 경우
@@ -73,10 +73,12 @@ public bool IsParrying => _isParrying;
         }
     }
 
-    private float GetParryAnimationClipLength()
+    // state name suffix ("Parry" or "Parry_Success") -> matching clip length, or -1 if not found.
+    // Uses EndsWith so that "Parry" never accidentally matches the "Parry_Success" clip.
+    private float GetAnimationClipLength(string stateNameSuffix)
     {
         if (_player == null) return -1f;
-        
+
         // PlayerController 하위 혹은 본인에게 붙어 있는 Animator 검색
         Animator anim = GetComponentInChildren<Animator>();
         if (anim == null) anim = GetComponent<Animator>();
@@ -85,7 +87,7 @@ public bool IsParrying => _isParrying;
         {
             foreach (var clip in anim.runtimeAnimatorController.animationClips)
             {
-                if (clip.name.IndexOf("Parry", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                if (clip.name.EndsWith(stateNameSuffix, System.StringComparison.OrdinalIgnoreCase))
                 {
                     return clip.length;
                 }
@@ -93,8 +95,6 @@ public bool IsParrying => _isParrying;
         }
         return -1f;
     }
-
-
 
     public void TryStartParry()
     {
@@ -145,6 +145,9 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
         OnParryStart?.Invoke();
 
         // 1. Play parry animation
+        // Lock the Idle/Walk auto-transition (same reason as the attack animation) and reset the cache
+        _player.canChangeState = false;
+        _player.ResetAnimStateCache();
         _player.PlayAllAnim("Parry");
 
         // 2. Draw the visual telegraph sector
@@ -168,7 +171,17 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
         if (success)
         {
             OnParrySuccess?.Invoke();
-            // Cancel immediately into recovery on success
+
+            // Play the Parry_Success motion, then wait for it before returning to Idle.
+            _player.ResetAnimStateCache();
+            _player.PlayAllAnim("Parry_Success", "Parry");
+
+            float successClipLength = GetAnimationClipLength("Parry_Success");
+            if (successClipLength > 0f)
+            {
+                yield return new WaitForSeconds(successClipLength);
+            }
+
             EndParry();
         }
         else
@@ -184,6 +197,10 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
     {
         _isParrying = false;
         _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.Parry); // 이속 복구
+
+        // Release the Idle/Walk transition lock regardless of how the parry animation ends.
+        _player.canChangeState = true;
+        _player.ResetAnimStateCache();
         _player.PlayAllAnim("Idle");
         _parryCoroutine = null;
     }

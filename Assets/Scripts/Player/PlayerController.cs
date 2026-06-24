@@ -477,7 +477,15 @@ public class PlayerController : MonoBehaviour
             if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f)
             {
                 _rb.linearVelocity = MoveDirection * currentSpeed;
-                UpdateWalkAnimSpeed(currentSpeed);
+
+                // 공격(등) 애니매이션이 잠겨있는 동안(canChangeState == false)은
+                // 이동속도 기반 애니타 속뗔 갑신이 SetAttackAnimSpeed()가 설정한 값을 덩어쓰지 않도록 건대넌다.
+                // While an attack (or similar) animation lock is active, skip movement-speed-based
+                // animator speed updates so they don't override SetAttackAnimSpeed().
+                if (canChangeState)
+                {
+                    UpdateWalkAnimSpeed(currentSpeed);
+                }
 
             }
         }
@@ -804,6 +812,7 @@ private void ResetWalkAnimSpeed()
     /// <param name="currentSpeed">현재 실제 캐릭터 이동 속도</param>
 public void SetAttackAnimSpeed(float speed)
     {
+        _lastAnimSpeed = speed;
         if (BodyAnimator != null) BodyAnimator.speed = speed;
     }
 
@@ -854,9 +863,25 @@ private void UpdateWalkAnimSpeed(float currentSpeed)
     /// Body의 Animator에서 지정된 이름의 애니메이션 상태를 강제로 재생합니다 (손은 같은 클립 안에 함께 키프레임으로 포함됨).
     /// </summary>
     /// <param name="animName">재생할 애니메이션 상태의 이름</param>
-public void PlayAllAnim(string animName)
+public void PlayAllAnim(string animName, string fallbackAnimName = null)
     {
+        if (BodyAnimator == null) return;
+
         int hash = Animator.StringToHash(animName);
-        if (BodyAnimator != null && BodyAnimator.HasState(0, hash)) BodyAnimator.Play(hash);
+        if (BodyAnimator.HasState(0, hash))
+        {
+            BodyAnimator.Play(hash);
+            return;
+        }
+
+        // requested state not ready yet -> play fallback state instead
+        if (!string.IsNullOrEmpty(fallbackAnimName))
+        {
+            int fallbackHash = Animator.StringToHash(fallbackAnimName);
+            if (BodyAnimator.HasState(0, fallbackHash))
+            {
+                BodyAnimator.Play(fallbackHash);
+            }
+        }
     }
 }
