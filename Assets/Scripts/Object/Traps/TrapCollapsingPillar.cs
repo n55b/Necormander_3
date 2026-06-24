@@ -111,8 +111,8 @@ public class TrapCollapsingPillar : MonoBehaviour, IDamageable
         // 이를 통해 2D NavMesh Carving이 정확하게 가로막을 수 있게 픽스합니다.
         ConfigurePillarObstacle(collapseDir);
 
-        // 쓰러진 상태에서는 타격 레이어를 Obstacle로 변경하여 중복 타격을 방지
-        gameObject.layer = LayerMask.NameToLayer("Obstacle");
+        // 쓰러진 상태에서는 타격 레이어를 Object로 변경하여 중복 타격을 방지
+        gameObject.layer = LayerMask.NameToLayer("Object");
     }
 
     private void SpawnTelegraphHitbox(Vector2 collapseDir)

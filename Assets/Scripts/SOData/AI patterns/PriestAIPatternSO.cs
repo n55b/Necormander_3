@@ -4,7 +4,7 @@ using UnityEngine;
 /// 아군을 치유하는 사제 전용 AI 패턴입니다.
 /// </summary>
 [CreateAssetMenu(fileName = "PriestAIPattern", menuName = "Necromancer/AI/PriestPattern")]
-public class PriestAIPatternSO : BaseAIPatternSO
+public class PriestAIPatternSO : RangedBaseAIPatternSO
 {
     protected override void UpdateTargeting(BaseEntity entity)
     {

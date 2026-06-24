@@ -4,7 +4,7 @@ using UnityEngine;
 /// 플레이어를 추적하는 파이어볼을 발사하고 쿨타임 중에는 도망치는 원거리 마법사 AI 패턴입니다.
 /// </summary>
 [CreateAssetMenu(fileName = "HomingMageAIPattern", menuName = "Necromancer/AI/HomingMagePattern")]
-public class HomingMageAIPatternSO : BaseAIPatternSO
+public class HomingMageAIPatternSO : RangedBaseAIPatternSO
 {
     [Header("추적 마법사 설정")]
     [SerializeField] private GameObject projectilePrefab; // TrackingFireball 스크립트 보유 프리팹

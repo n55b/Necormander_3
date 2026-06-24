@@ -196,24 +196,104 @@ public class MapGenerator : MonoBehaviour
 
     private void SetupFinalColliders()
     {
-        if (globalWallTilemap == null) return;
-        GameObject wallObj = globalWallTilemap.gameObject;
+        // 1. 벽 타일맵 콜라이더 및 NavMeshModifier 설정 (Not Walkable)
+        if (globalWallTilemap != null)
+        {
+            GameObject wallObj = globalWallTilemap.gameObject;
 
-        Rigidbody2D rb = wallObj.GetComponent<Rigidbody2D>();
-        if (rb == null) rb = wallObj.AddComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Static;
+            Rigidbody2D rb = wallObj.GetComponent<Rigidbody2D>();
+            if (rb == null) rb = wallObj.AddComponent<Rigidbody2D>();
+            rb.bodyType = RigidbodyType2D.Static;
 
-        TilemapCollider2D tileCol = wallObj.GetComponent<TilemapCollider2D>();
-        if (tileCol == null) tileCol = wallObj.AddComponent<TilemapCollider2D>();
-        tileCol.compositeOperation = Collider2D.CompositeOperation.Merge;
+            TilemapCollider2D tileCol = wallObj.GetComponent<TilemapCollider2D>();
+            if (tileCol == null) tileCol = wallObj.AddComponent<TilemapCollider2D>();
+            tileCol.compositeOperation = Collider2D.CompositeOperation.Merge;
 
-        CompositeCollider2D comp = wallObj.GetComponent<CompositeCollider2D>();
-        if (comp == null) comp = wallObj.AddComponent<CompositeCollider2D>();
-        comp.geometryType = CompositeCollider2D.GeometryType.Polygons;
-        comp.generationType = CompositeCollider2D.GenerationType.Manual;
+            CompositeCollider2D comp = wallObj.GetComponent<CompositeCollider2D>();
+            if (comp == null) comp = wallObj.AddComponent<CompositeCollider2D>();
+            comp.geometryType = CompositeCollider2D.GeometryType.Polygons;
+            comp.generationType = CompositeCollider2D.GenerationType.Manual;
 
-        comp.GenerateGeometry();
+            comp.GenerateGeometry();
+
+            // NavMesh 상에서 완전히 걸을 수 없는 영역(Not Walkable)으로 설정
+            AddNavMeshModifier(wallObj, null);
+        }
+
+        // 2. Unsteppable(낭떠러지/구덩이) 타일맵 콜라이더 및 NavMeshModifier 설정 (UnsteppableArea)
+        if (globalUnsteppableTilemap != null)
+        {
+            GameObject unsteppableObj = globalUnsteppableTilemap.gameObject;
+
+            Rigidbody2D rb = unsteppableObj.GetComponent<Rigidbody2D>();
+            if (rb == null) rb = unsteppableObj.AddComponent<Rigidbody2D>();
+            rb.bodyType = RigidbodyType2D.Static;
+
+            TilemapCollider2D tileCol = unsteppableObj.GetComponent<TilemapCollider2D>();
+            if (tileCol == null) tileCol = unsteppableObj.AddComponent<TilemapCollider2D>();
+            tileCol.compositeOperation = Collider2D.CompositeOperation.Merge;
+
+            CompositeCollider2D comp = unsteppableObj.GetComponent<CompositeCollider2D>();
+            if (comp == null) comp = unsteppableObj.AddComponent<CompositeCollider2D>();
+            comp.geometryType = CompositeCollider2D.GeometryType.Polygons;
+            comp.generationType = CompositeCollider2D.GenerationType.Manual;
+
+            comp.GenerateGeometry();
+
+            // NavMesh 상에서 날 수 있는 유닛만 지나가도록 UnsteppableArea 영역으로 설정
+            AddNavMeshModifier(unsteppableObj, "UnsteppableArea");
+        }
+
         Physics2D.SyncTransforms();
+    }
+
+    /// <summary>
+    /// 지정된 게임오브젝트에 NavMeshModifier를 부착하고 지정된 에어리어로 설정합니다.
+    /// areaName이 제공되고 등록되어 있다면 해당 에어리어를 쓰고, 그렇지 않다면 1(Not Walkable)을 적용합니다.
+    /// </summary>
+    private void AddNavMeshModifier(GameObject go, string areaName)
+    {
+        System.Type modifierType = System.Type.GetType("Unity.AI.Navigation.NavMeshModifier, Unity.AI.Navigation");
+        if (modifierType == null)
+        {
+            modifierType = System.Type.GetType("UnityEngine.AI.NavMeshModifier, UnityEngine.AIModule");
+        }
+
+        if (modifierType != null)
+        {
+            Component modifier = go.GetComponent(modifierType);
+            if (modifier == null)
+            {
+                modifier = go.AddComponent(modifierType);
+            }
+
+            var overrideAreaProp = modifierType.GetProperty("overrideArea");
+            if (overrideAreaProp != null)
+            {
+                overrideAreaProp.SetValue(modifier, true);
+            }
+
+            var areaProp = modifierType.GetProperty("area");
+            if (areaProp != null)
+            {
+                int areaIndex = 1; // 기본값: 1 (Not Walkable)
+
+                if (!string.IsNullOrEmpty(areaName))
+                {
+                    int resolvedIndex = NavMesh.GetAreaFromName(areaName);
+                    if (resolvedIndex != -1)
+                    {
+                        areaIndex = resolvedIndex;
+                    }
+                }
+
+                areaProp.SetValue(modifier, areaIndex);
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[MapGenerator] NavMeshModifier type could not be resolved for {go.name}. Check Navigation package settings.");
+        }
     }
 
     private void BakeNavMesh()

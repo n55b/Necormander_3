@@ -4,7 +4,7 @@ using UnityEngine;
 /// 투사체를 발사하는 원거리 유닛용 AI 패턴입니다.
 /// </summary>
 [CreateAssetMenu(fileName = "RangedAIPattern", menuName = "Necromancer/AI/RangedPattern")]
-public class RangedAIPatternSO : BaseAIPatternSO
+public class RangedAIPatternSO : RangedBaseAIPatternSO
 {
     [Header("원거리 공격 설정")]
     [SerializeField] private GameObject projectilePrefab;

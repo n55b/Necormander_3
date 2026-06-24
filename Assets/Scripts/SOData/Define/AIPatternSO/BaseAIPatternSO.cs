@@ -57,9 +57,22 @@ public class BaseAIPatternSO : AIPatternSO
             else
             {
                 // 적인 경우(플레이어 포함) 사거리에 따라 결정
-                // 공격 쿨타임이 찼고, 사거리 내에 있을 때만 공격 상태로 전환
-                if (dist <= entity.Stats.ATKRANGE - 0.2f && entity.AtkTimer >= entity.Stats.ATKSPD) nextState = AIState.Attack;
-                else nextState = AIState.Follow;
+                // 공격 쿨타임이 찼고, 사거리 내에 있을 때 가시선이 확보되어야 공격 상태로 전환
+                if (dist <= entity.Stats.ATKRANGE - 0.2f && entity.AtkTimer >= entity.Stats.ATKSPD)
+                {
+                    if (HasLineOfSight(entity))
+                    {
+                        nextState = AIState.Attack;
+                    }
+                    else
+                    {
+                        nextState = AIState.Follow;
+                    }
+                }
+                else
+                {
+                    nextState = AIState.Follow;
+                }
             }
         }
 
@@ -296,5 +309,68 @@ public class BaseAIPatternSO : AIPatternSO
             return hit.position;
         }
         return fleeTarget;
+    }
+
+    /// <summary>
+    /// 가시선 검사 시 Unsteppable(낭떠러지 등) 레이어를 장애물로 보지 않고 무시할지 여부입니다.
+    /// </summary>
+    protected virtual bool IgnoreUnsteppableForLOS => false;
+
+    /// <summary>
+    /// 엔티티와 타겟 사이에 가시선이 확보되어 장애물에 가로막히지 않았는지 검사합니다.
+    /// </summary>
+    protected bool HasLineOfSight(BaseEntity entity)
+    {
+        if (entity.Target == null) return false;
+
+        // 원거리 계열(사거리 3.0f 이상)인 경우에만 가시선 검사 수행
+        // 근거리 적은 보통 사거리가 극히 짧아 굳이 가시선 체크가 없어도 지형을 돌아갑니다.
+        if (entity.Stats == null || entity.Stats.ATKRANGE < 3.0f) return true;
+
+        Vector2 start = entity.transform.position;
+        Vector2 end = entity.Target.position;
+        Vector2 direction = end - start;
+        float distance = direction.magnitude;
+
+        if (distance <= 0.2f) return true;
+
+        int wallLayer = LayerMask.NameToLayer("Wall");
+        int unsteppableLayer = LayerMask.NameToLayer("Unsteppable");
+        int obstacleLayer = LayerMask.NameToLayer("Obstacle");
+
+        RaycastHit2D[] hits = Physics2D.RaycastAll(start, direction.normalized, distance);
+
+        foreach (var hit in hits)
+        {
+            // 자신 및 타겟의 자식/부모 오브젝트는 무시
+            if (hit.transform == entity.transform || hit.transform.IsChildOf(entity.transform)) continue;
+            if (hit.transform == entity.Target || hit.transform.IsChildOf(entity.Target)) continue;
+
+            int hitLayer = hit.transform.gameObject.layer;
+
+            // 벽이나 물리 장애물에 막힌 경우 시야 차단
+            if (hitLayer == wallLayer || hitLayer == obstacleLayer)
+            {
+                return false;
+            }
+
+            // Unsteppable 레이어에 막힌 경우, IgnoreUnsteppableForLOS 플래그가 false인 적(돌진, 근접 몹 등)만 시야 차단
+            if (hitLayer == unsteppableLayer && !IgnoreUnsteppableForLOS)
+            {
+                return false;
+            }
+
+            // 폭탄 상자나 쓰러지기 전 기둥 함정도 시야를 차단함
+            if (hit.transform.TryGetComponent<TrapBombBarrel>(out _))
+            {
+                return false;
+            }
+            if (hit.transform.TryGetComponent<TrapCollapsingPillar>(out _))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

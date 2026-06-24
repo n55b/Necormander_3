@@ -4,7 +4,7 @@ using UnityEngine;
 /// 플레이어를 최우선으로 사냥하며, 원거리 장판 폭발 공격을 수행하는 적군 마법사 전용 패턴입니다.
 /// </summary>
 [CreateAssetMenu(fileName = "EnemyMagicianAIPattern", menuName = "Necromancer/AI/EnemyMagicianPattern")]
-public class EnemyMagicianAIPatternSO : BaseAIPatternSO
+public class EnemyMagicianAIPatternSO : RangedBaseAIPatternSO
 {
     [Header("마법사 전용 설정")]
     [SerializeField] private GameObject magicCirclePrefab;
