@@ -12,13 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cbbbecbbae905d4e923dcd15e56edd8, type: 3}
   m_Name: MinionDebuffSynergyDamage
   m_EditorClassIdentifier: 
-  synergyType: 0
-  skillName: 디버프 연계 (피해)
-  description: 디버프 스택이 쌓인 적에게 날아가 160%의 추가 피해를 입힙니다.
+  skillName: "\uB514\uBC84\uD504 \uC5F0\uACC4 (\uD53C\uD574)"
+  description: "\uB3D9\uC77C\uD55C \uB514\uBC84\uD504\uAC00 \uC313\uC5EC\uC788\uB294
+    \uC801\uC5D0\uAC8C \uCD94\uAC00 \uD53C\uD574\uB97C \uC785\uD799\uB2C8\uB2E4."
   icon: {fileID: 0}
   cooldownTime: 5
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
   shakeForce: 0.5
+  hitStopDuration: 0
   reactKeyword: 2
+  synergyType: 0
   damageMultiplier: 1.6

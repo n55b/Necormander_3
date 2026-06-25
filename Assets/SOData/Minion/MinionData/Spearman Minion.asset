@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
   m_Name: Spearman Minion
   m_EditorClassIdentifier: 
-  playerSkill: {fileID: 11400000, guid: cff250b705d5ebb41a363499cf0494d6, type: 2}
-  minionSkill: {fileID: 11400000, guid: 17f137f5c600e94458fded34208c32ca, type: 2}
+  minionSkill: {fileID: 11400000, guid: 84e90e15b06d0424dafa1ecd8af4aa2a, type: 2}
   minionType: 5
   minionName: Skeleton Spearman
   minionIcon: {fileID: -2024665684537906775, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}

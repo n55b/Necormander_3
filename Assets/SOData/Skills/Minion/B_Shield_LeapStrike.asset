@@ -13,14 +13,15 @@ MonoBehaviour:
   m_Name: B_Shield_LeapStrike
   m_EditorClassIdentifier: 
   skillName: "\uB3C4\uC57D \uD0C0\uACA9 (\uBC29\uD328\uBCD1 \uC5F0\uACC4)"
-  description: "[\uBC18\uC751: \uC0C1\uD0DC\uC774\uC0C1] \uC0C1\uD0DC\uC774\uC0C1
-    \uD0A4\uC6CC\uB4DC \uAC10\uC9C0 \uC2DC, \uBBF8\uB2C8\uC5B8\uC774 \uB3C4\uC57D\uD558\uC5EC
-    \uB0B4\uB824\uCC0D\uC2B5\uB2C8\uB2E4. [\uD638\uCD9C: \uD0C0\uACA9]"
+  description: "\uBC29\uD328\uBCD1\uC774 \uB3C4\uC57D\uD558\uC5EC \uBC29\uD328\uB85C
+    \uB0B4\uB9AC\uCABD\uC5B4, \uC801\uC744 \uAC15\uD558\uAC8C \uD0C0\uACA9\uD558\uACE0
+    \uC808\uB440\uD569\uB2C8\uB2E4."
   icon: {fileID: 0}
   cooldownTime: 10
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
   shakeForce: 0.5
+  hitStopDuration: 0
   reactKeyword: 2
   actionType: 4
   useHitBox: 1

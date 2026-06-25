@@ -12,13 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cbbbecbbae905d4e923dcd15e56edd8, type: 3}
   m_Name: MinionDebuffSynergyStack
   m_EditorClassIdentifier: 
-  synergyType: 1
-  damageMultiplier: 1.6
-  skillName: 디버프 연계 (스택)
-  description: 디버프 스택이 쌓인 적에게 날아가 동일한 디버프 스택을 1개 추가합니다.
+  skillName: "\uB514\uBC84\uD504 \uC5F0\uACC4 (\uC2A4\uD0DD)"
+  description: "\uB514\uBC84\uD504\uAC00 \uC313\uC5EC\uC788\uB294 \uC801\uC5D0\uAC8C
+    \uAC19\uC740 \uB514\uBC84\uD504 \uC2A4\uD0DD\uC744 \uB354 \uC313\uC2B5\uB2C8\uB2E4."
   icon: {fileID: 0}
   cooldownTime: 5
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
   shakeForce: 0.5
+  hitStopDuration: 0
   reactKeyword: 2
+  synergyType: 1
+  damageMultiplier: 1.6

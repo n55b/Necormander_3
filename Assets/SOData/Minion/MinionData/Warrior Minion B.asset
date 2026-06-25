@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
-  m_Name: Warrior Minion
+  m_Name: Warrior Minion B
   m_EditorClassIdentifier: 
-  minionSkill: {fileID: 11400000, guid: 080903a1eaf4d4f4ca954097cb7e847d, type: 2}
+  minionSkill: {fileID: 11400000, guid: ec145b19a67bb9b48bac87fc0359d2ef, type: 2}
   minionType: 0
   minionName: Skeleton Warrior
   minionIcon: {fileID: -5846066792380020892, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}

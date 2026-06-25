@@ -121,9 +121,9 @@ public static class RewardProcessor
             foreach(var minion in shopRegistry.minionPool)
             {
                 if (minion == null) continue;
-                combinedPool.Add(new RewardCandidate 
+                combinedPool.Add(new RewardCandidate
                 { 
-                    displayData = minion.baseItemData, 
+                    displayData = BuildMinionDisplayData(minion), 
                     rawData = minion, 
                     techIndex = 0, 
                     category = RewardCategory.Minion,
@@ -172,11 +172,33 @@ public static class RewardProcessor
         List<RewardCandidate> candidates = new List<RewardCandidate>();
         foreach (var lin in lineages)
         {
-            // [수정] filterOwned가 false면 이미 가지고 있어도 후보에 포함
             if (!filterOwned || !inven.HasLineageInSlots(lin))
-                candidates.Add(new RewardCandidate { displayData = lin.baseItemData, rawData = lin, techIndex = 0, category = RewardCategory.Minion });
+                candidates.Add(new RewardCandidate { displayData = BuildMinionDisplayData(lin), rawData = lin, techIndex = 0, category = RewardCategory.Minion });
         }
         return candidates;
+    }
+
+    // Builds the display data for a minion reward card. Uses the paired link-skill's SkillSO.description
+    // when available, falling back to the lineage's own baseItemData.description otherwise.
+    private static GrowthItemData BuildMinionDisplayData(MinionLineageSO lin)
+    {
+        var baseData = lin.baseItemData;
+        string skillDescription = null;
+
+        if (lin.baseForm != null && lin.baseForm.minionSkill != null && !string.IsNullOrEmpty(lin.baseForm.minionSkill.description))
+        {
+            skillDescription = lin.baseForm.minionSkill.description;
+        }
+
+        return new GrowthItemData
+        {
+            itemName = baseData != null ? baseData.itemName : lin.lineageName,
+            description = skillDescription ?? (baseData != null ? baseData.description : null),
+            localizedItemName = baseData != null ? baseData.localizedItemName : null,
+            localizedDescription = baseData != null ? baseData.localizedDescription : null,
+            icon = baseData != null ? baseData.icon : null,
+            rarity = baseData != null ? baseData.rarity : default
+        };
     }
 
     private static List<RewardCandidate> GetValidMetamorphoses(InventoryManager inven, List<MinionLineageSO> lineages)

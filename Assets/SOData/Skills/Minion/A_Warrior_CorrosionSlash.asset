@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: A_Warrior_CorrosionSlash
   m_EditorClassIdentifier: 
   skillName: "\uBD80\uC2DD \uCC38\uACA9 (\uC804\uC0AC \uC5F0\uACC4)"
-  description: "[\uBC18\uC751: \uD0C0\uACA9] \uD0C0\uACA9 \uD0A4\uC6CC\uB4DC \uAC10\uC9C0
-    \uC2DC, \uBBF8\uB2C8\uC5B8\uC774 \uC801\uC5D0\uAC8C \uCC38\uACA9\uC744 \uB0A0\uB824
-    \uBC29\uC5B4\uB825\uC744 \uAC10\uC18C\uC2DC\uD0B5\uB2C8\uB2E4. [\uD638\uCD9C:
-    \uBD80\uC2DD]"
+  description: "\uC804\uC0AC\uAC00 \uB2EC\uB824\uC640 \uBD80\uC2DD\uC758 \uCE7C\uB0A0\uB85C
+    \uC801\uC744 \uBCA0\uC5B4, \uCD94\uAC00 \uD53C\uD574\uC640 \uD568\uAED8 \uBD80\uC2DD
+    \uD6A8\uACFC\uB97C \uC785\uD799\uB2C8\uB2E4."
   icon: {fileID: 0}
   cooldownTime: 10
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
   shakeForce: 0.5
+  hitStopDuration: 0
   reactKeyword: 3
   actionType: 7
   useHitBox: 1

@@ -113,14 +113,8 @@ public class RewardManager : MonoBehaviour
         switch (candidate.category)
         {
             case RewardCategory.Minion:
-                // [수정] 이미 가지고 있는 직업이라면 수량만 늘리고, 새로우면 슬롯 선택 UI 오픈
+                // Metamorphosis is unused for now; every minion reward always opens the hand-slot picker (swap-based design)
                 MinionLineageSO lineage = (MinionLineageSO)candidate.rawData;
-                if (inven.HasJobInSlots(lineage.jobType))
-                {
-                    inven.AddMinionOrIncreaseQuantity(lineage.jobType, 1);
-                    ProcessNextReward();
-                }
-                else
                 {
                     if (handSlotUI != null)
                     {

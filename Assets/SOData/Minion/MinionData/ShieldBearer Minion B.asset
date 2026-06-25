@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
-  m_Name: Warrior Minion
+  m_Name: ShieldBearer Minion B
   m_EditorClassIdentifier: 
-  minionSkill: {fileID: 11400000, guid: 080903a1eaf4d4f4ca954097cb7e847d, type: 2}
-  minionType: 0
-  minionName: Skeleton Warrior
-  minionIcon: {fileID: -5846066792380020892, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}
+  minionSkill: {fileID: 11400000, guid: 62c5c367442d91f4f81de91dae3e099a, type: 2}
+  minionType: 1
+  minionName: Skeleton ShieldBearer
+  minionIcon: {fileID: 1047843002206808338, guid: 3e4ecbbc0979ad946aab21fa12697534, type: 3}
   baseEffectValue: 10
   maxHP: 100
   attack: 5
@@ -32,6 +32,6 @@ MonoBehaviour:
   canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   hpCostRatioPerThrow: 0
-  AttackSound: {fileID: 8300000, guid: 5b52fe23d069864408b180527a2440f8, type: 3}
+  AttackSound: {fileID: 8300000, guid: be7c781782f79604f8e495dfa3fbd825, type: 3}
   DeathSound: {fileID: 0}
-  minionPrefab: {fileID: 5978108325549925549, guid: eb9b5e3fbf6cf27428ac034e0fc6e8a5, type: 3}
+  minionPrefab: {fileID: 5978108325549925549, guid: d0ae37130e5f054409b3a87a321bedd1, type: 3}
