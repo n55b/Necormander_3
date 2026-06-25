@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 미니언(아군/적군 공용)의 마스터 데이터입니다. 
@@ -8,7 +8,7 @@
 public class MinionDataSO : ScriptableObject
 {
     [Header("Skill Information")]
-    public PlayerSkillSO playerSkill;
+    // playerSkill은 삭제되었습니다 (개별 관리로 분리). 플레이어 스킬은 PlayerSkillController.equippedPlayerSkills가 담당.
     public MinionSkillSO minionSkill;
 
     [Header("Basic Information")]

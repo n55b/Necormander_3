@@ -223,7 +223,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             {
                 TakeDamageEvent?.Invoke((int)executeThreshold, DamageType.Fixed, "Execution", false);
 
-                // 처형 트리거 히트스탑 (강타와 동일한 구조, 다만 스킬 에셋과 별건로 직접 호출)
+                // Execute-trigger hit stop (same idea as Smash, but called directly here instead of via a skill asset)
                 if (HitStopManager.Instance != null)
                     HitStopManager.Instance.DoHitStop(0.1f);
 

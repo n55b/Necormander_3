@@ -19,6 +19,10 @@ public class GrowthRegistrySO : ScriptableObject
     [Header("특수 능력 (추후 확장용)")]
     public List<GrowthItemSO> specialAbilities = new List<GrowthItemSO>();
 
+    [Header("플레이어 스킬 (Q/E/R 장착용)")]
+    public List<PlayerSkillSO> playerSkills = new List<PlayerSkillSO>();
+
+
     /// <summary>
     /// 모든 아이템을 하나의 리스트로 합쳐서 반환합니다. (보상 생성용)
     /// </summary>
@@ -79,6 +83,16 @@ public class GrowthRegistrySO : ScriptableObject
             string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
             var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<ThrowAbilitySO>(path);
             if (asset != null) specialAbilities.Add(asset);
+        }
+
+        // 5. 플레이어 스킬(PlayerSkillSO) 검색 [추가]
+        playerSkills.Clear();
+        string[] playerSkillGuids = UnityEditor.AssetDatabase.FindAssets("t:PlayerSkillSO");
+        foreach (var guid in playerSkillGuids)
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            var asset2 = UnityEditor.AssetDatabase.LoadAssetAtPath<PlayerSkillSO>(path);
+            if (asset2 != null) playerSkills.Add(asset2);
         }
 
         UnityEditor.EditorUtility.SetDirty(this);

@@ -238,6 +238,7 @@ MonoBehaviour:
   dataManager: {fileID: 5990352106904275992}
   economyManager: {fileID: 4452764349617943537}
   cameraManager: {fileID: 0}
+  hitStopManager: {fileID: 0}
   throwImpactManager: {fileID: 4376407718605823702}
   mouseManager: {fileID: 1447154648404685013}
   mouseCursorManager: {fileID: 7293194052441138037}
@@ -285,6 +286,7 @@ GameObject:
   - component: {fileID: 3438047193681337848}
   - component: {fileID: 6139375127595461034}
   - component: {fileID: 5933129654467836410}
+  - component: {fileID: 7749112568104373486}
   m_Layer: 0
   m_Name: Data Systems
   m_TagString: Untagged
@@ -324,6 +326,7 @@ MonoBehaviour:
   throwEffectRegistry: {fileID: 11400000, guid: 3814eaa3076ff6d468ed15dbf6620499, type: 2}
   defaultAIPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   shopRegistry: {fileID: 11400000, guid: 4930ca0a9c595b6408f83c0719490716, type: 2}
+  clusterRegistry: {fileID: 11400000, guid: 4a525318270344540ae65dd9032dcb3d, type: 2}
 --- !u!114 &3438047193681337848
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -365,6 +368,7 @@ MonoBehaviour:
   globalGroundTilemap: {fileID: 0}
   globalWallTilemap: {fileID: 0}
   globalShadowTilemap: {fileID: 0}
+  globalUnsteppableTilemap: {fileID: 0}
   globalMiniMapTilemap: {fileID: 0}
   miniMapNormalTile: {fileID: 11400000, guid: 23e093012acb5f346b8c1bd7ec9fee57, type: 2}
   fogTilemap: {fileID: 0}
@@ -381,6 +385,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8bf706e88abd6c64e822dc1a1a71c397, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7749112568104373486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4057087256918008588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e16d21fdc222cac46996b59c212ce1b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  equippedSkills:
+  - {fileID: 11400000, guid: 083258dd8e5cca04b953dc235db497e5, type: 2}
+  - {fileID: 11400000, guid: 0088919065887b84399dce4d642c50e2, type: 2}
+  - {fileID: 11400000, guid: dd0f9af07b521f144acaa410d1b7afd0, type: 2}
+  ownedSkills: []
 --- !u!1 &4851146966962830542
 GameObject:
   m_ObjectHideFlags: 0

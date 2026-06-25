@@ -10,6 +10,9 @@ public class SaveData
     public List<TreasureSaveData> treasures = new List<TreasureSaveData>();
     public List<GemInstanceSaveData> availableGems = new List<GemInstanceSaveData>();
     public List<FlatGemTreeNodeSaveData> flatGemTree = new List<FlatGemTreeNodeSaveData>();
+    public List<string> equippedPlayerSkillNames = new List<string>(); // index 0-2 = Q/E/R, empty slot = ""
+    public List<string> ownedPlayerSkillNames = new List<string>();
+
 }
 
 [System.Serializable]

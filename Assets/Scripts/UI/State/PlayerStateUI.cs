@@ -243,16 +243,17 @@ public class PlayerStateUI : MonoBehaviour
             if (slot == null) continue;
 
             MinionDataSO data = _skillCtrl.GetEquippedMinion(i);
-            bool has = data != null && data.playerSkill != null;
+            var pSkill = _skillCtrl.GetEquippedPlayerSkill(i);
+            bool has = pSkill != null;
 
             if (slot.SkillIcon != null)
             {
                 if (has)
                 {
                     // playerSkill.icon이 있으면 우선 사용, 없으면 미니언 아이콘으로 대체
-                    slot.SkillIcon.sprite = (data.playerSkill.icon != null)
-                        ? data.playerSkill.icon
-                        : data.minionIcon;
+                    slot.SkillIcon.sprite = (pSkill.icon != null)
+                        ? pSkill.icon
+                        : (data != null ? data.minionIcon : null);
                     slot.SkillIcon.color = Color.white;
                     slot.SkillIcon.type  = Image.Type.Simple;
                 }
@@ -278,10 +279,10 @@ public class PlayerStateUI : MonoBehaviour
             var slot = _skillSlots[i];
             if (slot == null) continue;
 
-            MinionDataSO data = _skillCtrl.GetEquippedMinion(i);
-            if (data == null || data.playerSkill == null) continue;
+            var pSkill = _skillCtrl.GetEquippedPlayerSkill(i);
+            if (pSkill == null) continue;
 
-            float maxCd     = data.playerSkill.cooldownTime;
+            float maxCd     = pSkill.cooldownTime;
             float remaining = _skillCtrl.GetPlayerSkillCooldownRemaining((PlayerSkillController.SkillSlot)i);
             bool  onCd      = remaining > 0.05f;
             float fill      = (maxCd > 0f && onCd) ? Mathf.Clamp01(remaining / maxCd) : 0f;

@@ -34,6 +34,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Growth System")]
     [SerializeField] public InventoryManager inventoryManager;
+    [SerializeField] public PlayerSkillInventoryManager playerSkillInventoryManager;
+
     [SerializeField] public SquadSpawner squadSpawner;
     [SerializeField] public RewardManager rewardManager;
 
@@ -149,6 +151,8 @@ public class GameManager : MonoBehaviour
         if (mouseManager == null) mouseManager = GetComponentInChildren<MouseManager>();
         if (mouseCursorManager == null) mouseCursorManager = GetComponentInChildren<MouseCursorManager>();
         if (inventoryManager == null) inventoryManager = GetComponentInChildren<InventoryManager>();
+        if (playerSkillInventoryManager == null) playerSkillInventoryManager = GetComponentInChildren<PlayerSkillInventoryManager>();
+
         if (squadSpawner == null) squadSpawner = GetComponentInChildren<SquadSpawner>();
         if (rewardManager == null) rewardManager = GetComponentInChildren<RewardManager>();
         if (globalvolume == null) globalvolume = GameObject.Find("Global Volume")?.GetComponent<Volume>();
@@ -158,9 +162,17 @@ public class GameManager : MonoBehaviour
         if (inventoryManager != null)
         {
             inventoryManager.Initialize(_loadedSaveData != null);
+
+        if (playerSkillInventoryManager != null)
+            playerSkillInventoryManager.Initialize();
+
             if (_loadedSaveData != null)
             {
                 inventoryManager.LoadFromData(_loadedSaveData);
+
+            if (playerSkillInventoryManager != null)
+                playerSkillInventoryManager.LoadFromData(_loadedSaveData);
+
             }
         }
 
@@ -326,6 +338,10 @@ public class GameManager : MonoBehaviour
         if (inventoryManager != null)
         {
             inventoryManager.SaveToData(data);
+
+        if (playerSkillInventoryManager != null)
+            playerSkillInventoryManager.SaveToData(data);
+
         }
 
         SaveSystem.Save(data);

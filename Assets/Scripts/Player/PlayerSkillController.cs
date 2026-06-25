@@ -25,6 +25,10 @@ public class PlayerSkillController : MonoBehaviour
     [Header("Equipped Minion Data (Auto-Synced)")]
     [SerializeField] private MinionDataSO[] equippedMinions = new MinionDataSO[3];
 
+    [Header("Equipped Player Skills (Q/E/R, 독립 장착)")]
+    [SerializeField] private PlayerSkillSO[] equippedPlayerSkills = new PlayerSkillSO[3];
+
+
     [Header("Queue Settings")]
     public float skillTimeout = 1.5f;
 
@@ -52,12 +56,32 @@ public class PlayerSkillController : MonoBehaviour
         return equippedMinions[index];
     }
 
+    public PlayerSkillSO GetEquippedPlayerSkill(int index)
+    {
+        if (index < 0 || index >= equippedPlayerSkills.Length) return null;
+        return equippedPlayerSkills[index];
+    }
+
+public void SetEquippedPlayerSkill(int index, PlayerSkillSO skill)
+    {
+        // Delegate to the source of truth (PlayerSkillInventoryManager) instead of touching the local cache directly.
+        // This ensures OnPlayerSkillUpdated fires correctly, keeping other listeners (e.g. UI) in sync too.
+        if (PlayerSkillInventoryManager.Instance != null)
+            PlayerSkillInventoryManager.Instance.Equip(index, skill);
+        else
+            Debug.LogWarning("<color=orange>[PlayerSkillController]</color> PlayerSkillInventoryManager.Instance is null, equip request was not applied.");
+    }
+
+
 
     private void Awake()
     {
         // Awake에서 동기화하면, 같은 프레임 내 UI Initialize() 시점엔 이미 equippedMinions가 채워진 상태
         if (InventoryManager.Instance != null)
             SyncWithInventory();
+
+        if (PlayerSkillInventoryManager.Instance != null)
+            SyncPlayerSkillsFromInventory();
     }
 
     private void Start()
@@ -65,6 +89,9 @@ public class PlayerSkillController : MonoBehaviour
         // 이벤트 등록만 담당 (Awake에서 이미 1회 동기화됨)
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnMinionUpdated += SyncWithInventory;
+
+        if (PlayerSkillInventoryManager.Instance != null)
+            PlayerSkillInventoryManager.Instance.OnPlayerSkillUpdated += SyncPlayerSkillsFromInventory;
     }
 
     private void OnDestroy()
@@ -73,9 +100,23 @@ public class PlayerSkillController : MonoBehaviour
         {
             InventoryManager.Instance.OnMinionUpdated -= SyncWithInventory;
         }
+
+        if (PlayerSkillInventoryManager.Instance != null)
+            PlayerSkillInventoryManager.Instance.OnPlayerSkillUpdated -= SyncPlayerSkillsFromInventory;
     }
 
-    public void SyncWithInventory()
+    public void SyncPlayerSkillsFromInventory()
+    {
+        if (PlayerSkillInventoryManager.Instance == null) return;
+
+        for (int i = 0; i < equippedPlayerSkills.Length; i++)
+            equippedPlayerSkills[i] = PlayerSkillInventoryManager.Instance.GetEquipped(i);
+
+        Debug.Log("<color=cyan>[PlayerSkillController]</color> Sync PlayerSkillInventory -> Q,E,R slots complete.");
+    }
+
+    
+public void SyncWithInventory()
     {
         if (InventoryManager.Instance == null) return;
 
@@ -202,26 +243,26 @@ public class PlayerSkillController : MonoBehaviour
 
     public PendingMinionSkill GetCurrentPendingSkill() => currentPendingSkill;
 
-    public void ExecutePlayerSkill(SkillSlot slot, Transform playerTransform)
+public void ExecutePlayerSkill(SkillSlot slot, Transform playerTransform)
     {
         lastUsedPlayerSkillSlot = slot;
 
-        var minionData = equippedMinions[(int)slot];
-        if (minionData != null && minionData.playerSkill != null)
+        var skill = equippedPlayerSkills[(int)slot];
+        if (skill != null)
         {
             if (Time.time < playerSkillCooldownEnds[(int)slot])
             {
-                Debug.Log($"<color=orange>[Skill]</color> {minionData.playerSkill.skillName} 쿨타임 중입니다!");
+                Debug.Log($"<color=orange>[Skill]</color> {skill.skillName} 쿨타임 중입니다!");
                 return;
             }
 
-            playerSkillCooldownEnds[(int)slot] = Time.time + minionData.playerSkill.cooldownTime;
-            Debug.Log($"<color=green>[Player Skill]</color> 플레이어가 '{minionData.playerSkill.skillName}' 스킬을 사용했습니다! (슬롯: {slot})");
-            minionData.playerSkill.ExecuteSkill(playerTransform);
+            playerSkillCooldownEnds[(int)slot] = Time.time + skill.cooldownTime;
+            Debug.Log($"<color=green>[Player Skill]</color> 플레이어가 '{skill.skillName}' 스킬을 사용했습니다! (슬롯: {slot})");
+            skill.ExecuteSkill(playerTransform);
         }
         else
         {
-            Debug.Log($"<color=gray>[PlayerSkillController]</color> Empty slot {slot}.");
+            Debug.Log($"<color=gray>[PlayerSkillController]</color> Empty player skill slot {slot}.");
         }
     }
 
