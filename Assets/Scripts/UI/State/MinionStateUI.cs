@@ -64,7 +64,17 @@ public class MinionStateUI : MonoBehaviour
             s.LastHas = has;
             if (!has) continue;
 
-            if (s.MinionIcon != null) s.MinionIcon.sprite = data.minionIcon;
+            if (s.MinionIcon != null)
+            {
+                s.MinionIcon.sprite = data.minionIcon;
+
+                var tooltip = s.MinionIcon.GetComponent<SkillTooltipTrigger>();
+                if (tooltip == null) tooltip = s.MinionIcon.gameObject.AddComponent<SkillTooltipTrigger>();
+                if (data.minionSkill != null)
+                    tooltip.SetData(data.minionSkill.skillName, data.minionSkill.description);
+                else
+                    tooltip.Clear();
+            }
             if (s.SkillCoolFill != null) { s.SkillCoolFill.fillAmount = 0f; s.SkillCoolFill.gameObject.SetActive(false); }
             if (s.CooldownText != null) { s.CooldownText.text = ""; s.TextEmpty = true; }
             s.LastFill = 0f;
@@ -89,7 +99,16 @@ public class MinionStateUI : MonoBehaviour
                 s.LastHas = has;
                 s.SlotRoot.SetActive(has);
                 if (has && s.MinionIcon != null)
+                {
                     s.MinionIcon.sprite = data.minionIcon;
+
+                    var tooltip = s.MinionIcon.GetComponent<SkillTooltipTrigger>();
+                    if (tooltip == null) tooltip = s.MinionIcon.gameObject.AddComponent<SkillTooltipTrigger>();
+                    if (data.minionSkill != null)
+                        tooltip.SetData(data.minionSkill.skillName, data.minionSkill.description);
+                    else
+                        tooltip.Clear();
+                }
             }
             if (!has) continue;
 

@@ -256,10 +256,17 @@ public class PlayerStateUI : MonoBehaviour
                         : (data != null ? data.minionIcon : null);
                     slot.SkillIcon.color = Color.white;
                     slot.SkillIcon.type  = Image.Type.Simple;
+
+                    var tooltip = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
+                    if (tooltip == null) tooltip = slot.SkillIcon.gameObject.AddComponent<SkillTooltipTrigger>();
+                    tooltip.SetData(pSkill.skillName, pSkill.description);
                 }
                 else
                 {
                     slot.SkillIcon.sprite = null;
+
+                    var tooltipEmpty = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
+                    if (tooltipEmpty != null) tooltipEmpty.Clear();
                     slot.SkillIcon.color  = new Color(1f, 1f, 1f, 0.2f);
                 }
             }

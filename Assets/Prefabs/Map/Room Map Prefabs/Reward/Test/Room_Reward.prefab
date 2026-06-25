@@ -2761,6 +2761,7 @@ MonoBehaviour:
   wallTilemap: {fileID: 6896188599996111708}
   groundTilemap: {fileID: 8686150503317057536}
   shadowTilemap: {fileID: 4373891090650228046}
+  unsteppableTilemap: {fileID: 0}
   debugDepth: -1
   phaseIndex: -1
   isCleared: 0
