@@ -76,6 +76,11 @@ public void SetEquippedPlayerSkill(int index, PlayerSkillSO skill)
 
     private void Awake()
     {
+                // [Fix] 직렬화된 배열 길이가 3이 아니면 인덱스 예외가 발생한다. 강제로 새로 만들어서 방지한다.
+        // 아래에서 바로 동기화 함수가 다시 채워주므로 값을 잃지 않는다.전하다. 난다웳을 쟁합니다.
+        // 둘 다 원당은 아래에서 더 목 동기화되머로 여기서 재생성해도 안전합니다.
+        if (equippedMinions == null || equippedMinions.Length != 3) equippedMinions = new MinionDataSO[3];
+        if (equippedPlayerSkills == null || equippedPlayerSkills.Length != 3) equippedPlayerSkills = new PlayerSkillSO[3];
         // Awake에서 동기화하면, 같은 프레임 내 UI Initialize() 시점엔 이미 equippedMinions가 채워진 상태
         if (InventoryManager.Instance != null)
             SyncWithInventory();

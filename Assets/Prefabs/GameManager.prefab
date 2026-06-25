@@ -344,8 +344,6 @@ MonoBehaviour:
   Slots: []
   useDebugStartingInventory: 1
   debugStartingMinions:
-  - {fileID: 11400000, guid: 6e17366b9db968141a742cf6efb8ed1f, type: 2}
-  - {fileID: 11400000, guid: d2b24f1249fc5f447a65218055c12665, type: 2}
   - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
   debugStartingMinionQuantities: 
   debugStartingGems_Data: []
@@ -400,8 +398,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   equippedSkills:
   - {fileID: 11400000, guid: 083258dd8e5cca04b953dc235db497e5, type: 2}
-  - {fileID: 11400000, guid: 0088919065887b84399dce4d642c50e2, type: 2}
-  - {fileID: 11400000, guid: dd0f9af07b521f144acaa410d1b7afd0, type: 2}
   ownedSkills: []
 --- !u!1 &4851146966962830542
 GameObject:

@@ -552,9 +552,11 @@ public class CharacterStatus : MonoBehaviour
             PopCurrentDebuff(attacker);
         }
 
-        if (statusType == SkillKeyword.Stun)
+        if (statusType == SkillKeyword.Stun || statusType == SkillKeyword.Strike || statusType == SkillKeyword.Smash)
         {
-            ConsumeVulnerability(SkillKeyword.Stun, attacker, isPlayerApplied);
+            // [Fix] 기절뿐 아니라 격파(Strike)/강타(Smash) 소모도 동일하게 라우팅되어야
+            // 연계 4.2/4.3 (MinionActionType.ApplyStrike / ApplySmash)이 정상 동작합니다.
+            ConsumeVulnerability(statusType, attacker, isPlayerApplied);
         }
 
         if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)

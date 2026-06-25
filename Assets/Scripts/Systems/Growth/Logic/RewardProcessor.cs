@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss }
-public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold, Ability }
+public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold, Ability, PlayerSkill }
 
 /// <summary>
 /// 보상으로 제안될 아이템 정보를 담는 구조체입니다.
@@ -39,6 +39,9 @@ public static class RewardProcessor
         
         // 2. 보석 풀
         combinedPool.AddRange(GetValidGems(inven, registry.gems));
+
+        // 3. 플레이어 스킬 풀 (이미 장착되어 있거나 보유 중인 스킬은 제외)
+        combinedPool.AddRange(GetValidPlayerSkills(registry.playerSkills));
 
         // 랜덤하게 3개 선택
         for (int i = 0; i < 3; i++)
@@ -78,6 +81,9 @@ public static class RewardProcessor
                 break;
             case RewardCategory.Ability:
                 allPossible.AddRange(GetValidAbilities(inven, registry));
+                break;
+            case RewardCategory.PlayerSkill:
+                allPossible.AddRange(GetValidPlayerSkills(registry.playerSkills));
                 break;
         }
 
@@ -176,6 +182,49 @@ public static class RewardProcessor
                 candidates.Add(new RewardCandidate { displayData = BuildMinionDisplayData(lin), rawData = lin, techIndex = 0, category = RewardCategory.Minion });
         }
         return candidates;
+    }
+
+        // 이미 장착되어 있거나(equippedSkills) 보유 중인(ownedSkills) 스킬은 제외하고 후보만 제안합니다.합니다.
+    private static List<RewardCandidate> GetValidPlayerSkills(List<PlayerSkillSO> playerSkills)
+    {
+        List<RewardCandidate> candidates = new List<RewardCandidate>();
+        if (playerSkills == null) return candidates;
+
+        var pInven = PlayerSkillInventoryManager.Instance;
+
+        foreach (var skill in playerSkills)
+        {
+            if (skill == null) continue;
+
+            if (pInven != null)
+            {
+                bool alreadyOwned = pInven.GetOwnedSkills().Contains(skill);
+                bool alreadyEquipped = false;
+                for (int i = 0; i < 3; i++)
+                {
+                    if (pInven.GetEquipped(i) == skill) { alreadyEquipped = true; break; }
+                }
+                if (alreadyOwned || alreadyEquipped) continue;
+            }
+
+            candidates.Add(new RewardCandidate
+            {
+                displayData = BuildPlayerSkillDisplayData(skill),
+                rawData = skill,
+                category = RewardCategory.PlayerSkill
+            });
+        }
+        return candidates;
+    }
+
+    private static GrowthItemData BuildPlayerSkillDisplayData(PlayerSkillSO skill)
+    {
+        return new GrowthItemData
+        {
+            itemName = skill.skillName,
+            description = skill.description,
+            icon = skill.icon
+        };
     }
 
     // Builds the display data for a minion reward card. Uses the paired link-skill's SkillSO.description
@@ -277,6 +326,9 @@ public static class RewardProcessor
                     break;
                 case RewardCategory.Ability:
                     allPossible.AddRange(GetValidAbilities(inven, registry));
+                    break;
+                case RewardCategory.PlayerSkill:
+                    allPossible.AddRange(GetValidPlayerSkills(registry.playerSkills));
                     break;
                 case RewardCategory.Metamorphosis:
                     allPossible.AddRange(GetValidMetamorphoses(inven, registry.minionLineages));

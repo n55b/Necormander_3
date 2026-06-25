@@ -1585,10 +1585,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5701508bce8e7a44b98dbba1ef83d3b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  equippedMinions:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  equippedMinions: []
+  equippedPlayerSkills: []
   skillTimeout: 8
 --- !u!114 &3445112678206032524
 MonoBehaviour:

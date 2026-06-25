@@ -166,6 +166,12 @@ public class RewardManager : MonoBehaviour
                 inven.AddTreasure((TreasureSO)candidate.rawData);
                 ProcessNextReward();
                 break;
+
+            case RewardCategory.PlayerSkill:
+                // Added to owned skill pool only. Actual Q/E/R equip happens in the skill UI.
+                PlayerSkillInventoryManager.Instance?.AddOwnedSkill((PlayerSkillSO)candidate.rawData);
+                ProcessNextReward();
+                break;
         }
 
         Debug.Log($"<color=green>[Reward]</color> Processing candidate: {candidate.displayData.itemName}");

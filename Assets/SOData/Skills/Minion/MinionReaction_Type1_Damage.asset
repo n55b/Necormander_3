@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b903e5195d425944aa1c1677ca0f7b79, type: 3}
   m_Name: MinionReaction_Type1_Damage
   m_EditorClassIdentifier: 
-  skillName: "\uC5F0\uACC4 \uC2A4\uD0AC 1"
-  description: "\uD2B8\uB9AC\uAC70\uAC00 \uBC1C\uC0DD\uD558\uC790 \uB2EC\uB824\uC640
-    \uB2E8\uC21C\uD55C \uCD94\uAC00 \uD0C0\uACA9\uC744 \uAC00\uD569\uB2C8\uB2E4."
+  skillName: "\uC5F0\uACC4 1"
+  description: "\uCDE8\uC57D \uC2A4\uD0DD\uC774 \uBD80\uC5EC\uB418\uC5C8\uC744 \uB54C
+    \uBBF8\uB2C8\uC5B8\uC774 \uB0A0\uC544\uC640 \uD574\uB2F9 \uC801\uC5D0\uAC8C \uCD94\uAC00
+    \uD53C\uD574\uB97C \uC90D\uB2C8\uB2E4."
   icon: {fileID: 0}
   cooldownTime: 5
   skillSound: {fileID: 0}

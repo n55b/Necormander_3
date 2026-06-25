@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b903e5195d425944aa1c1677ca0f7b79, type: 3}
   m_Name: MinionReaction_Type5_StunExt
   m_EditorClassIdentifier: 
-  skillName: "\uC5F0\uACC4 \uC2A4\uD0AC 5"
-  description: "\uAE30\uC808 \uC0C1\uD0DC\uC778 \uC801\uC758 \uAE30\uC808 \uC2DC\uAC04\uC744
-    \uB354 \uAE38\uAC8C \uC5F0\uC7A5\uD569\uB2C8\uB2E4."
+  skillName: "\uC5F0\uACC4 5"
+  description: "\uAE30\uC808 \uC0C1\uD0DC\uC758 \uC801\uC5D0\uAC8C \uB0A0\uC544\uC640
+    \uD574\uB2F9 \uC801\uC5D0\uAC8C \uD53C\uD574\uB97C \uC8FC\uACE0, \uAE30\uC808
+    \uC2DC\uAC04\uC744 1\uCD08 \uC5F0\uC7A5\uD569\uB2C8\uB2E4."
   icon: {fileID: 0}
   cooldownTime: 5
   skillSound: {fileID: 0}

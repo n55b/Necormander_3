@@ -29,4 +29,24 @@ MonoBehaviour:
   gems: []
   treasures: []
   specialAbilities: []
-  playerSkills: []
+  playerSkills:
+  - {fileID: 11400000, guid: 0088919065887b84399dce4d642c50e2, type: 2}
+  - {fileID: 11400000, guid: 0dca2cff1570712469fda810400fad17, type: 2}
+  - {fileID: 11400000, guid: 138d38128c227d744b24a5ad22a6c034, type: 2}
+  - {fileID: 11400000, guid: 083258dd8e5cca04b953dc235db497e5, type: 2}
+  - {fileID: 11400000, guid: 10703c0388fbae847a896a3d4c38a1e5, type: 2}
+  - {fileID: 11400000, guid: 47b190d18ba4dc94994de988c0689e1c, type: 2}
+  - {fileID: 11400000, guid: dd0f9af07b521f144acaa410d1b7afd0, type: 2}
+  - {fileID: 11400000, guid: ccf0ffcea70d44d4195870544a453f42, type: 2}
+  - {fileID: 11400000, guid: 8ffba0baff747c3418d4261959da8854, type: 2}
+  - {fileID: 11400000, guid: d2a87b3e1c0773141a161772c0f7914c, type: 2}
+  - {fileID: 11400000, guid: 70e1cb204c469be4ea44b5519dcc0a1e, type: 2}
+  - {fileID: 11400000, guid: 7f02ed511782c5748ba16d1768bf0e65, type: 2}
+  - {fileID: 11400000, guid: fc7d035727287434eb161f6e6dc69e35, type: 2}
+  - {fileID: 11400000, guid: 16edda5eb0a7e9540b3a34f47ad37110, type: 2}
+  - {fileID: 11400000, guid: 26cc89957856bf74687e1b1d59abdec4, type: 2}
+  - {fileID: 11400000, guid: cff250b705d5ebb41a363499cf0494d6, type: 2}
+  - {fileID: 11400000, guid: 31febb67bbfeb1a4aa7f82bf96c7acfd, type: 2}
+  - {fileID: 11400000, guid: 4b258438faf520343a9f55051223e755, type: 2}
+  - {fileID: 11400000, guid: bb8698258114ac744927db101e024dcb, type: 2}
+  - {fileID: 11400000, guid: 0ccd25972481aa743a170a71266c0d6f, type: 2}
