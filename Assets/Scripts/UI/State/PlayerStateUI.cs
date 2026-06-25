@@ -109,6 +109,9 @@ public class PlayerStateUI : MonoBehaviour
         // 인벤토리 변경될 때마다 스킬 아이콘 자동 갱신
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnMinionUpdated += RefreshSkillIcons;
+        if (PlayerSkillInventoryManager.Instance != null)
+            PlayerSkillInventoryManager.Instance.OnPlayerSkillUpdated += RefreshSkillIcons;
+
 
         // Fill 초기 비활성화
         foreach (var s in _skillSlots)
@@ -157,6 +160,9 @@ public class PlayerStateUI : MonoBehaviour
         }
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnMinionUpdated -= RefreshSkillIcons;
+        if (PlayerSkillInventoryManager.Instance != null)
+            PlayerSkillInventoryManager.Instance.OnPlayerSkillUpdated -= RefreshSkillIcons;
+
     }
 
     private void Update()

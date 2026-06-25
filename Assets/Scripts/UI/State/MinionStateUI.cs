@@ -22,6 +22,8 @@ public class MinionStateUI : MonoBehaviour
 
         // ─── dirty 비교용 캐시 (인스펙터 비노출) ───────────────────
         [System.NonSerialized] public bool LastHas;
+        [System.NonSerialized] public MinionDataSO LastData;
+
         [System.NonSerialized] public float LastFill = -1f;
         [System.NonSerialized] public float LastRemaining = -1f;
         [System.NonSerialized] public bool TextEmpty = true;
@@ -62,6 +64,7 @@ public class MinionStateUI : MonoBehaviour
 
             s.SlotRoot.SetActive(has);
             s.LastHas = has;
+            s.LastData = data;
             if (!has) continue;
 
             if (s.MinionIcon != null)
@@ -98,17 +101,24 @@ public class MinionStateUI : MonoBehaviour
             {
                 s.LastHas = has;
                 s.SlotRoot.SetActive(has);
-                if (has && s.MinionIcon != null)
-                {
-                    s.MinionIcon.sprite = data.minionIcon;
+            }
 
-                    var tooltip = s.MinionIcon.GetComponent<SkillTooltipTrigger>();
-                    if (tooltip == null) tooltip = s.MinionIcon.gameObject.AddComponent<SkillTooltipTrigger>();
-                    if (data.minionSkill != null)
-                        tooltip.SetData(data.minionSkill.skillName, data.minionSkill.description);
-                    else
-                        tooltip.Clear();
-                }
+            // 교쟮된 경우도 감지해서 갱신해야 함 (has가 안 변해도 data가 바땀 수 있어서)
+            if (has && s.MinionIcon != null && data != s.LastData)
+            {
+                s.LastData = data;
+                s.MinionIcon.sprite = data.minionIcon;
+
+                var tooltip = s.MinionIcon.GetComponent<SkillTooltipTrigger>();
+                if (tooltip == null) tooltip = s.MinionIcon.gameObject.AddComponent<SkillTooltipTrigger>();
+                if (data.minionSkill != null)
+                    tooltip.SetData(data.minionSkill.skillName, data.minionSkill.description);
+                else
+                    tooltip.Clear();
+            }
+            else if (!has)
+            {
+                s.LastData = null;
             }
             if (!has) continue;
 
