@@ -200,9 +200,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fullMapUIWindow: {fileID: 5070203268765729340}
-  panelUIWindow: {fileID: 4618190273104363274}
   miniMapController: {fileID: 0}
-  hudMiniMapToggleObject: {fileID: 8241081770844231223}
 --- !u!114 &3745461021170952362
 MonoBehaviour:
   m_ObjectHideFlags: 0
