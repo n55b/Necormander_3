@@ -16,8 +16,8 @@ using TMPro;
 /// </summary>
 public class DashCooldownUI : MonoBehaviour
 {
-    [Header("스택 숫자 텍스트")]
-    [SerializeField] private TextMeshProUGUI chargeText;
+    [Header("스택")]
+    [SerializeField] private GameObject[] dashCount; 
 
     [Header("쿨타임/회복 Fill Image (1→0 줄어듦)")]
     [SerializeField] private Image cooldownFill;
@@ -29,7 +29,12 @@ public class DashCooldownUI : MonoBehaviour
     // ─── dirty 비교용 캐시 ───────────────────────────────────────────
     private int   _lastCharges    = -1;
     private float _lastFill       = -1f;
-    private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
+private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
+
+    // ─── 스택 핀(GameObject) 관리 ───
+    private int   _lastPipCurrent = -1;
+    private int   _lastPipMax     = -1;
+    private const float PIP_USED_ALPHA = 0.35f; // recharging pip alpha
 
     // ─────────────────────────────────────────────────────────────────
     public void Initialize(PlayerController playerController)
@@ -81,8 +86,6 @@ public class DashCooldownUI : MonoBehaviour
         if (cur != _lastCharges)
         {
             _lastCharges = cur;
-            if (chargeText != null)
-                chargeText.SetText("{0}", cur); // TMP SetText 오버로드: 가비지 없음
         }
 
         // Fill: 임계값 비교로 불필요한 갱신 제거
@@ -92,6 +95,7 @@ public class DashCooldownUI : MonoBehaviour
             if (cooldownFill != null)
                 cooldownFill.fillAmount = fill;
         }
+        UpdatePips(cur, max);
     }
 
     // ─── 기본 1스택 구르기 모드 ──────────────────────────────────────
@@ -106,8 +110,6 @@ public class DashCooldownUI : MonoBehaviour
         if (charge != _lastCharges)
         {
             _lastCharges = charge;
-            if (chargeText != null)
-                chargeText.SetText("{0}", charge);
         }
 
         // Fill
@@ -117,6 +119,7 @@ public class DashCooldownUI : MonoBehaviour
             if (cooldownFill != null)
                 cooldownFill.fillAmount = fill;
         }
+        UpdatePips(charge, 1);
     }
 
     // ─── 강제 전체 갱신 (Initialize 후 1회) ──────────────────────────
@@ -129,8 +132,8 @@ public class DashCooldownUI : MonoBehaviour
 
             _lastCharges = cur;
             _lastFill    = fill;
-            if (chargeText   != null) chargeText.SetText("{0}", cur);
             if (cooldownFill != null) cooldownFill.fillAmount = fill;
+            UpdatePips(cur, _dodge.MaxCharges);
         }
         else if (_player != null)
         {
@@ -141,8 +144,42 @@ public class DashCooldownUI : MonoBehaviour
 
             _lastCharges = charge;
             _lastFill    = fill;
-            if (chargeText   != null) chargeText.SetText("{0}", charge);
             if (cooldownFill != null) cooldownFill.fillAmount = fill;
+            UpdatePips(charge, 1);
+        }
+    }
+
+    // ─── stack pip GameObjects ───
+    private void UpdatePips(int current, int max)
+    {
+        if (dashCount == null || dashCount.Length == 0) return;
+        if (current == _lastPipCurrent && max == _lastPipMax) return;
+
+        _lastPipCurrent = current;
+        _lastPipMax     = max;
+
+        for (int i = 0; i < dashCount.Length; i++)
+        {
+            var pip = dashCount[i];
+            if (pip == null) continue;
+
+            bool withinMax = i < max;
+            if (pip.activeSelf != withinMax)
+                pip.SetActive(withinMax);
+
+            if (!withinMax) continue;
+
+            var img = pip.GetComponent<Image>();
+            if (img == null) continue;
+
+            bool available = i < current;
+            Color c = img.color;
+            float targetAlpha = available ? 1f : PIP_USED_ALPHA;
+            if (!Mathf.Approximately(c.a, targetAlpha))
+            {
+                c.a = targetAlpha;
+                img.color = c;
+            }
         }
     }
 }
