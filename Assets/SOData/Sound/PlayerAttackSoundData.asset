@@ -13,20 +13,28 @@ MonoBehaviour:
   m_Name: PlayerAttackSoundData
   m_EditorClassIdentifier: 
   attackClips:
-  - {fileID: 8300000, guid: 5b52fe23d069864408b180527a2440f8, type: 3}
-  - {fileID: 8300000, guid: f141d593daf14834f9efc45e5b9a51ee, type: 3}
-  - {fileID: 8300000, guid: 3806c46c2cbb5f14da783d4a353bcd7d, type: 3}
-  hitClips: []
+  - {fileID: 8300000, guid: e8fff4ee753b9da44b3f352f7daa09f3, type: 3}
+  - {fileID: 8300000, guid: f937f5d282854364c8a0abec721edf00, type: 3}
+  - {fileID: 8300000, guid: 3b5411e0ff2028842ac0f63e6a073f22, type: 3}
+  hitClips:
+  - {fileID: 8300000, guid: 9429bbf84d24a8c4aa53e080d48ff80d, type: 3}
+  - {fileID: 8300000, guid: 1339cd58ce579f944804a24b7e7fd997, type: 3}
+  - {fileID: 8300000, guid: 0489d18face941d479620277f5dcfc33, type: 3}
+  - {fileID: 8300000, guid: b9c21f55bec0bfa46889833b4f2207ac, type: 3}
   playerHurtClips:
-  - {fileID: 8300000, guid: 1e7786ab8c2b55541ab0a75777997058, type: 3}
-  - {fileID: 8300000, guid: da498f638c5629040a4a28579f8e0b40, type: 3}
-  - {fileID: 8300000, guid: db355bc6eca9d204d96fc602c9c21eda, type: 3}
-  comboResetTime: 1.2
+  - {fileID: 8300000, guid: bfc8eb06cb2dafd49b0328f7f17a235a, type: 3}
+  comboResetTime: 1
   pitchIncreasePerCombo: 0.02
   maxPitch: 1.2
   dodgeClips:
-  - {fileID: 8300000, guid: 5b52fe23d069864408b180527a2440f8, type: 3}
+  - {fileID: 8300000, guid: 156c308a1d873d844b3356057ff6ed38, type: 3}
   dodgeVolume: 0.85
+  parryStartClips: []
+  parrySuccessClips: []
+  parryFailClips: []
+  parryStartVolume: 0.7
+  parrySuccessVolume: 0.9
+  parryFailVolume: 0.6
   attackVolume: 0.8
-  hitVolume: 0.7
-  playerHurtVolume: 0.9
+  hitVolume: 0.3
+  playerHurtVolume: 0.6

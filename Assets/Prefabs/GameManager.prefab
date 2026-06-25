@@ -243,6 +243,7 @@ MonoBehaviour:
   mouseManager: {fileID: 1447154648404685013}
   mouseCursorManager: {fileID: 7293194052441138037}
   inventoryManager: {fileID: 3438047193681337848}
+  playerSkillInventoryManager: {fileID: 0}
   squadSpawner: {fileID: 6842143012122147092}
   rewardManager: {fileID: 7453844490307090777}
   playerStateUI: {fileID: 0}
@@ -269,8 +270,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6b1a96a8f6f58a41a62fbec6eed5b94, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultOpenClip: {fileID: 8300000, guid: a2003d9782456764d9eee5dc0d43a6e4, type: 3}
-  defaultCloseClip: {fileID: 8300000, guid: 6223122151204ef448bed84dd2603f99, type: 3}
+  defaultOpenClip: {fileID: 8300000, guid: aabfbd2445b817142b6be4ae4e897a6c, type: 3}
+  defaultCloseClip: {fileID: 8300000, guid: 96a52cb7dc9dbec47a9827295d8c3531, type: 3}
   defaultVolume: 0.5
   entries: []
 --- !u!1 &4057087256918008588
