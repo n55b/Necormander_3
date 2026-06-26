@@ -9,10 +9,12 @@ using UnityEngine;
 public class BodyAnimationEventRelay : MonoBehaviour
 {
     private PlayerController _controller;
+    private MeleeCombatController _melee;
 
     private void Awake()
     {
         _controller = GetComponentInParent<PlayerController>();
+        _melee = GetComponentInParent<MeleeCombatController>();
         if (_controller == null)
         {
             Debug.LogWarning($"[BodyAnimationEventRelay] {gameObject.name}: 부모에서 PlayerController를 찾지 못했습니다.");
@@ -25,5 +27,13 @@ public class BodyAnimationEventRelay : MonoBehaviour
     public void CanChangeAnimState()
     {
         _controller?.CanChangeAnimState();
+    }
+
+    /// <summary>
+    /// Attack 애니메이션 클립의 실제 타격 프레임(Animation Event)에서 호출됩니다.
+    /// </summary>
+    public void OnAttackHitFrame()
+    {
+        _melee?.OnAttackHitFrame();
     }
 }
