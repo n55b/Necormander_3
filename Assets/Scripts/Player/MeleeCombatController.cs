@@ -27,6 +27,7 @@ public class MeleeCombatController : MonoBehaviour
     public event System.Action<int> OnAttackExecuted;
 
     public bool IsAttacking => _activeHitbox != null || (Time.time - _lastAttackTime) < attackCooldown;
+    public Vector2 CurrentAttackDir { get; private set; } = Vector2.right;
 
     private void Awake()
     {
@@ -114,6 +115,7 @@ public class MeleeCombatController : MonoBehaviour
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             mousePos.z = 0;
             Vector2 dir = (mousePos - transform.position).normalized;
+            CurrentAttackDir = dir;
 
             // 플레이어가 바라보는 방향 동기화
             if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);

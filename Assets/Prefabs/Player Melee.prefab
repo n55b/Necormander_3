@@ -290,6 +290,7 @@ GameObject:
   - component: {fileID: 960292451620544178}
   - component: {fileID: 659937523484627104}
   - component: {fileID: 3940698526423894861}
+  - component: {fileID: 3550151716728198299}
   m_Layer: 8
   m_Name: Hand
   m_TagString: Untagged
@@ -306,7 +307,7 @@ Transform:
   m_GameObject: {fileID: 2218425221562843783}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.1, y: 0.2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -399,6 +400,18 @@ MonoBehaviour:
   silhouetteRenderer: {fileID: 7014098569055171752}
   silhouetteColor: {r: 1, g: 1, b: 1, a: 0.55}
   maxCheckDistance: 3
+--- !u!114 &3550151716728198299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2218425221562843783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f0b1f09ef2c5774c8d04c5f4ec24a0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2235908954508541628
 GameObject:
   m_ObjectHideFlags: 0
