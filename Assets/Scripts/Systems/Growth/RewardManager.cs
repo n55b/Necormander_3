@@ -168,9 +168,22 @@ public class RewardManager : MonoBehaviour
                 break;
 
             case RewardCategory.PlayerSkill:
-                // Added to owned skill pool only. Actual Q/E/R equip happens in the skill UI.
-                PlayerSkillInventoryManager.Instance?.AddOwnedSkill((PlayerSkillSO)candidate.rawData);
-                ProcessNextReward();
+                var skill = (PlayerSkillSO)candidate.rawData;
+                PlayerSkillInventoryManager.Instance?.AddOwnedSkill(skill);
+
+                if (GameManager.Instance != null && GameManager.Instance.playerStateUI != null)
+                {
+                    // 슬롯 선택을 기다림. 선택이 끝난 다음 NotifyHandSlotSelectionComplete 호출되어야 다음 보상으로 넘어감
+                    if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
+                    if (selectionUI != null) selectionUI.Hide();
+
+                    GameManager.Instance.playerStateUI.OpenChangeSkillUI(skill);
+                }
+                else
+                {
+                    // UI가 연결돼 있지 않으면 풀에만 넣고 즉시 다음 보상으로상으로행
+                    ProcessNextReward();
+                }
                 break;
         }
 

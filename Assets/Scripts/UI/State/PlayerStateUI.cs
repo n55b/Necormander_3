@@ -86,6 +86,7 @@ public class PlayerStateUI : MonoBehaviour
     private List<ReviveIcon>      _revivingIcons = new List<ReviveIcon>();
     private SkillSlotUI[]         _skillSlots;
     private int _lastGold = int.MinValue; // dirty 비교용
+    private PlayerSkillSO _pendingSkill; // 보상으로 받아서 장착 슬롯 선택을 기다리는 중인 스킬
 
 
     // ─────────────────────────────────────────────────────────────────────
@@ -96,6 +97,18 @@ public class PlayerStateUI : MonoBehaviour
         _playerHealth = playerHealth;
         _allyManager  = allyManager;
         _skillSlots   = new SkillSlotUI[] { skillSlotQ, skillSlotE, skillSlotR };
+
+        // 각 슬롯의 "스킬 바꾸기" 버튼을 실제 장착 동작에 연결
+        for (int i = 0; i < _skillSlots.Length; i++)
+        {
+            int slotIndex = i; // 클로저 캡처용 로컬 변수
+            var slot = _skillSlots[i];
+            if (slot == null || slot.SkillChangeButton == null) continue;
+
+            // 중복 등록 방지를 위해 기존 리스너를 먼저 제거
+            slot.SkillChangeButton.onClick.RemoveAllListeners();
+            slot.SkillChangeButton.onClick.AddListener(() => OnSkillSlotChangeClicked(slotIndex));
+        }
 
         if (_playerHealth != null) { _playerHealth.UpdateHPBar += RefreshHP; RefreshHP(); }
         if (_allyManager  != null) { _allyManager.OnAllyRespawnStart += AddReviveIcon; _allyManager.OnAllyRespawned += RemoveReviveIcon; }
@@ -331,12 +344,15 @@ public class PlayerStateUI : MonoBehaviour
     /// <summary>
     /// 스킬 변경에 필요한 매서드
     /// </summary>
-    public void OpenChangeSkillUI()
+    public void OpenChangeSkillUI(PlayerSkillSO pendingSkill)
     {
+        _pendingSkill = pendingSkill;
+
         foreach(var slot in _skillSlots)
         {
             slot.ArrowImage.SetActive(true);
             slot.SkillChangeButton.enabled = true;
+            slot.SkillChangeButton.interactable = true;
         }
     }
     public void CloseChangeSkillUI()
@@ -345,7 +361,25 @@ public class PlayerStateUI : MonoBehaviour
         {
             slot.ArrowImage.SetActive(false);
             slot.SkillChangeButton.enabled = false;
+            slot.SkillChangeButton.interactable = false;
         }
+    }
+
+    /// <summary>
+    /// 슬롯의 "스킬 바꾸기" 버튼을 눌렀을 때, 대기 중이던 스킬을 그 슬롯에 장착하고 UI를 닫습니다.
+    /// </summary>
+    private void OnSkillSlotChangeClicked(int slotIndex)
+    {
+        if (_pendingSkill == null) return;
+
+        PlayerSkillInventoryManager.Instance?.Equip(slotIndex, _pendingSkill);
+        RefreshSkillIcons(); // Event 타이밍에 의존하지 않고 장착 즉시 UI를 강제로 갱신
+        _pendingSkill = null;
+
+        CloseChangeSkillUI();
+
+        // Reward 재개
+        RewardManager.Instance?.NotifyHandSlotSelectionComplete();
     }
     #endregion
 }

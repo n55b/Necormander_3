@@ -32,6 +32,19 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     public void Initialize()
     {
         Instance = this;
+
+        // Inspector에 저장된 배열 사이즈가 작아도(예: 슬롯 1개) 강제로 슬롯 3개로 보장합니다.
+        if (equippedSkills == null || equippedSkills.Length != 3)
+        {
+            Debug.LogWarning($"<color=orange>[PlayerSkillInventoryManager]</color> equippedSkills 배열 크기가 {(equippedSkills == null ? "null" : equippedSkills.Length.ToString())}이어서 3으로 재조정합니다.");
+            var resized = new PlayerSkillSO[3];
+            if (equippedSkills != null)
+            {
+                for (int i = 0; i < equippedSkills.Length && i < 3; i++)
+                    resized[i] = equippedSkills[i];
+            }
+            equippedSkills = resized;
+        }
     }
 
     public PlayerSkillSO GetEquipped(int slotIndex)

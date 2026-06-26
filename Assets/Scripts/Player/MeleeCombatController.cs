@@ -165,7 +165,7 @@ public class MeleeCombatController : MonoBehaviour
         _comboStep = (_comboStep + 1) % 3;
     }
 
-/// <summary>
+    /// <summary>
     /// Attack 애니메이션 클립의 실제 타격 프레임(Animation Event)에서 호출됩니다.
     /// 텔레그래프 선딜레이를 강제로 끝내고 즉시 데미지 판정을 시작합니다.
     /// (BodyAnimationEventRelay -> 여기로 전달됨)
@@ -175,7 +175,7 @@ public class MeleeCombatController : MonoBehaviour
         _activeHitbox?.ForceActivate();
     }
 
-        public void CancelAttack()
+    public void CancelAttack()
     {
         if (_activeHitbox != null)
         {

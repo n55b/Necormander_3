@@ -5,6 +5,10 @@ using UnityEngine;
 /// 예: LionMask가 사망하면 서로 다르게 생긴 LionMask_A, LionMask_B 두 마리로 갈라짐.
 /// SlimeAIPatternSO와 분열 컨셉은 같지만, 같은 프리팹을 N번 복제하는 대신
 /// 서로 다른 두 프리팹을 각각 1번씩 스폰합니다.
+///
+/// 주의: 이 SO 에셋은 같은 타입의 모든 적 인스턴스가 공유합니다.
+/// 그래서 죽은 개체 정보를 필드에 저장해두지 않고, 사망 이벤트 콜백에 클로저로
+/// 바로 넘겨서 사용합니다. (동시에 여러 마리가 존재해도 서로 안 섞이게)
 /// </summary>
 [CreateAssetMenu(fileName = "DualSplitAIPattern", menuName = "Necromancer/AI/DualSplitPattern")]
 public class DualSplitAIPatternSO : BaseAIPatternSO
@@ -17,35 +21,30 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
     [Tooltip("원본 위치 기준 좌우로 얼마나 떨어진 곳에 스폰할지 (서로 반대 방향으로 적용됩니다)")]
     public float spawnOffset = 0.5f;
 
-    private BaseEntity _myEntity;
-
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);
-        _myEntity = entity;
 
         var health = entity.GetComponentInChildren<CharacterHealth>();
         if (health != null)
         {
-            // 중복 구독 방지를 위해 한 번 빼주고 다시 등록
-            health.OnDeath -= HandleDeath;
-            health.OnDeath += HandleDeath;
+            health.OnDeath += () => HandleDeath(entity);
         }
     }
 
-    private void HandleDeath()
+    private void HandleDeath(BaseEntity diedEntity)
     {
-        if (_myEntity == null) return;
+        if (diedEntity == null) return;
 
-        SpawnSplit(splitPrefabA, -1f);
-        SpawnSplit(splitPrefabB, 1f);
+        SpawnSplit(diedEntity, splitPrefabA, -1f);
+        SpawnSplit(diedEntity, splitPrefabB, 1f);
     }
 
-    private void SpawnSplit(GameObject prefab, float sideSign)
+    private void SpawnSplit(BaseEntity diedEntity, GameObject prefab, float sideSign)
     {
         if (prefab == null) return;
 
-        Vector3 spawnPos = _myEntity.transform.position + new Vector3(sideSign * spawnOffset, 0f, 0f);
+        Vector3 spawnPos = diedEntity.transform.position + new Vector3(sideSign * spawnOffset, 0f, 0f);
         GameObject obj = Instantiate(prefab, spawnPos, Quaternion.identity);
 
         if (obj.TryGetComponent<BaseEntity>(out var splitEntity))
@@ -57,11 +56,11 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
                 splitEntity.Initialize(data);
             }
 
-            // 2. 부모(원본)의 스포너에 동적 등록하여 방 클리어 판정에 귀속시킴
-            if (_myEntity.Spawner != null)
+            // 2. 원본의 스포너에 동적 등록하여 방 클리어 판정에 귀속시킴
+            if (diedEntity.Spawner != null)
             {
-                splitEntity.Spawner = _myEntity.Spawner;
-                _myEntity.Spawner.RegisterActiveEnemy(obj);
+                splitEntity.Spawner = diedEntity.Spawner;
+                diedEntity.Spawner.RegisterActiveEnemy(obj);
             }
         }
     }
