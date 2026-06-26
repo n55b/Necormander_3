@@ -131,7 +131,7 @@ public class BaseAIPatternSO : AIPatternSO
         entity.HasFiredHitEvent = false;
         entity.HasFiredAttackEndEvent = false;
 
-        bool hasAnimator = entity.Animator != null;
+        bool hasAnimator = entity.Animator != null && entity.Animator.runtimeAnimatorController != null;
         float windupTime = 1.0f; // 기본 선딜레이 fallback (0.6f -> 1.0f 증가)
 
         if (hasAnimator) 

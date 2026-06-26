@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &650946866942723745
+--- !u!1001 &69462819511347746
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -9,17 +9,33 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1578376785222923104, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
-      propertyPath: m_WalkableMask
-      value: 4294967287
+      propertyPath: m_BaseOffset
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1841339908024047631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Name
-      value: Enemy Small Slime
+      value: Monster Melee_Doll
       objectReference: {fileID: 0}
-    - target: {fileID: 2262207286068843843, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
-      propertyPath: minionData
+    - target: {fileID: 1955936330828241677, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2058294130096282616, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2069716193292111499, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2865743803237924778, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 11400000, guid: 0c5a3546b653bb34e96cc7bdff5eb406, type: 2}
+      objectReference: {fileID: 22100000, guid: d09461136b43a684ebf192dd3ca0ba4f, type: 2}
+    - target: {fileID: 6046870846990017207, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6529688652472716852, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -60,9 +76,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7818082784768736543, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7818082784768736543, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Offset.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8150888168159850155, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -3243506655306670123, guid: cb344d87ae0b4674bbfc90e6518b4785, type: 3}
     - target: {fileID: 8150888168159850155, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Color.b
-      value: 0.723227
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8150888168159850155, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Color.g
@@ -70,7 +98,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8150888168159850155, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Color.r
-      value: 0.6933962
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8150888168159850155, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

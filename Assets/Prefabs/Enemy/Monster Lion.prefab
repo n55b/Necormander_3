@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &6271457409853710519
+--- !u!1001 &650946866942723745
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -9,21 +9,33 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1578376785222923104, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_BaseOffset
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1578376785222923104, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_WalkableMask
       value: 4294967287
       objectReference: {fileID: 0}
     - target: {fileID: 1841339908024047631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Name
-      value: Enemy Archer
+      value: Monster Lion
+      objectReference: {fileID: 0}
+    - target: {fileID: 1955936330828241677, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2069716193292111499, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 2262207286068843843, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: minionData
       value: 
-      objectReference: {fileID: 11400000, guid: 363e1cee013c2214ba9b05f2f13aa7d4, type: 2}
-    - target: {fileID: 2842974361319273631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
-      propertyPath: m_Color.b
-      value: 0.2784314
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 11400000, guid: 0c5a3546b653bb34e96cc7bdff5eb406, type: 2}
+    - target: {fileID: 2865743803237924778, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 22100000, guid: 80384f9eab9c6824d9eda9d5c4bb1f7a, type: 2}
     - target: {fileID: 6529688652472716852, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -64,18 +76,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6540714341632788058, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
-      propertyPath: baseMaxHP
-      value: 200
+    - target: {fileID: 7818082784768736543, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Radius
+      value: 0.4
       objectReference: {fileID: 0}
-    - target: {fileID: 7554189359459977900, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
-      propertyPath: debuffTerminal
-      value: 
-      objectReference: {fileID: 4939003080381932128}
+    - target: {fileID: 7818082784768736543, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Offset.y
+      value: 0.4
+      objectReference: {fileID: 0}
     - target: {fileID: 8150888168159850155, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -7132172409892320828, guid: 84ccc63d921da594488a96efa54ca39c, type: 3}
+      objectReference: {fileID: -5508411990032160779, guid: 4dec7337d9e86804d8b1c7e78673cffd, type: 3}
     - target: {fileID: 8150888168159850155, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Color.b
       value: 1
@@ -93,14 +105,3 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
---- !u!114 &4939003080381932128 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1405805241935053527, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
-  m_PrefabInstance: {fileID: 6271457409853710519}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 929d3ed3b063e994ebdcbfba3d4cb4fe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

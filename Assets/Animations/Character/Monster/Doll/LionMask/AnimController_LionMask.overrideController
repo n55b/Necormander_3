@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: AnimController_LionMask
+  m_Controller: {fileID: 9100000, guid: 71446c26c8345f84b9768c9c1e407adc, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 38a1109b82f589844b0fadd2b98715b0, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 1e86fc95c413ca543bbe7de0fc8f7adc, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: c7d7ff04afb343247a6689d0e1de9b8c, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: d1c269dda6cd9fa4981fd9a6c9e2b510, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: df2e473a23963584d80819b13af10b41, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: f22b79b724434144f9e3cd239cbac098, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 35bf54ba35ee6304c93fdcb4b9319baa, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 4a1ca94f62e821f408a569131003c818, type: 2}
