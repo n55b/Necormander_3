@@ -354,6 +354,9 @@ public class PlayerStateUI : MonoBehaviour
             slot.SkillChangeButton.enabled = true;
             slot.SkillChangeButton.interactable = true;
         }
+
+        // Stop time so the player can't act while picking a slot.
+        if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
     }
     public void CloseChangeSkillUI()
     {
@@ -363,6 +366,9 @@ public class PlayerStateUI : MonoBehaviour
             slot.SkillChangeButton.enabled = false;
             slot.SkillChangeButton.interactable = false;
         }
+
+        // Resume time once a slot has been chosen (or the UI is closed).
+        if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(false);
     }
 
     /// <summary>
