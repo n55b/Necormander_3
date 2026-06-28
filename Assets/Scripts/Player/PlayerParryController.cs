@@ -160,7 +160,8 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
         // Lock the Idle/Walk auto-transition (same reason as the attack animation) and reset the cache
         _player.canChangeState = false;
         _player.ResetAnimStateCache();
-        _player.PlayAllAnim("Parry");
+        _player.PlayAllAnim("Parry", "Idle");
+        yield return null; // 패링 준비 자세가 최소 1프레임은 화면에 보이도록 강제 대기
 
         // 2. Draw the visual telegraph sector
         CreateParryVisualSector(mouseDir);
@@ -189,10 +190,8 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
             _player.PlayAllAnim("Parry_Success", "Parry");
 
             float successClipLength = GetAnimationClipLength("Parry_Success");
-            if (successClipLength > 0f)
-            {
-                yield return new WaitForSeconds(successClipLength);
-            }
+            // Always wait at least a minimum time so the success pose is never skipped within the same frame
+            yield return new WaitForSeconds(successClipLength > 0f ? successClipLength : parryRecoveryDuration);
 
             EndParry();
         }
