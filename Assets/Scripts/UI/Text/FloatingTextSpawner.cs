@@ -3,16 +3,17 @@ using UnityEngine.UI;
 
 public class FloatingTextSpawner : MonoBehaviour
 {
-    private CharacterStat stats;
+    
+    private CharacterStatus status;
+private CharacterStat stats;
 
     [SerializeField] private Transform vec_float;
 
     [SerializeField] private bool isSubscribed = false;
 
     // CharacterStat에서 호출해줄 초기화 함수
-    public void Initialize(CharacterStat characterStat)
+public void Initialize(CharacterStat characterStat)
     {
-        // 이미 구독 중이면 중복 구독 방지
         if (isSubscribed) return;
 
         this.stats = characterStat;
@@ -27,9 +28,16 @@ public class FloatingTextSpawner : MonoBehaviour
             isSubscribed = true;
             Debug.Log($"{gameObject.name} 데미지 텍스트 구독 성공!");
         }
+
+        status = stats != null ? stats.GetComponent<CharacterStatus>() : null;
+        if (status != null)
+        {
+            status.OnDebuffPopped -= ShowStatusText;
+            status.OnDebuffPopped += ShowStatusText;
+        }
     }
 
-    private void OnEnable()
+private void OnEnable()
     {
         if (stats != null && stats.Health != null && !isSubscribed)
         {
@@ -38,14 +46,20 @@ public class FloatingTextSpawner : MonoBehaviour
             isSubscribed = true;
             Debug.Log($"{gameObject.name} 데미지 텍스트 재구독 성공!");
         }
+
+        if (status != null)
+        {
+            status.OnDebuffPopped -= ShowStatusText; // avoid double subscription
+            status.OnDebuffPopped += ShowStatusText;
+        }
     }
 
-    private void OnDisable()
+private void OnDisable()
     {
         // stats가 null인지 먼저 확인 (매우 중요!)
         if (stats != null)
         {
-            // stats는 있지만 Health가 이미 파괴되었을 수도 있으므로 한 번 더 체크
+            // stats is set but Health may already be destroyed, so double-check
             if (stats.Health != null)
             {
                 stats.Health.TakeDamageEvent -= ShowDamageText;
@@ -53,15 +67,25 @@ public class FloatingTextSpawner : MonoBehaviour
                 isSubscribed = false;
             }
         }
+
+        if (status != null)
+        {
+            status.OnDebuffPopped -= ShowStatusText;
+        }
     }
 
     // OnDestroy도 동일하게 방어 코드를 작성합니다.
-    private void OnDestroy()
+private void OnDestroy()
     {
         if (stats != null && stats.Health != null)
         {
             stats.Health.TakeDamageEvent -= ShowDamageText;
             stats.Health.TakeHealEvent -= ShowHealText;
+        }
+
+        if (status != null)
+        {
+            status.OnDebuffPopped -= ShowStatusText;
         }
     }
 
@@ -110,9 +134,9 @@ public class FloatingTextSpawner : MonoBehaviour
         textObj.SetUp(text, color, vec_float, false);
     }
 
-    private void ShowStatusText(string statusName)
+private void ShowStatusText(string statusName)
     {
-        Color color = Color.cyan;
+        Color color = Color.gray;
         TextFloating textObj = FloatingTextManager.instance.GetFromPool();
 
         textObj.SetUp(statusName, color, vec_float);

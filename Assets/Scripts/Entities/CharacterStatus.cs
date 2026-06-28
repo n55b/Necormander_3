@@ -61,7 +61,9 @@ public class CharacterStatus : MonoBehaviour
 
     public int VulnerabilityStacks => _vulnerabilityStacks;
     public DebuffType CurrentDebuffType => _currentDebuffType;
-    public int DebuffStackCount => _debuffStackCount;
+    
+    public event System.Action<string> OnDebuffPopped; // fires with a Korean label when a stack effect triggers (e.g. Vulnerability consumed)f)
+public int DebuffStackCount => _debuffStackCount;
 
     private const float TRIGGER_STACK_DURATION = 20.0f;
 
@@ -413,7 +415,7 @@ public class CharacterStatus : MonoBehaviour
         }
     }
 
-    private void PopCurrentDebuff(GameObject attacker)
+private void PopCurrentDebuff(GameObject attacker)
     {
         if (_debuffStackCount == 0 || _currentDebuffType == DebuffType.None) return;
 
@@ -465,6 +467,8 @@ public class CharacterStatus : MonoBehaviour
         _debuffTimer = 0f;
     }
 
+
+
     #endregion
 
     // === Restored Methods for Compatibility & Triggers ===
@@ -484,7 +488,7 @@ public class CharacterStatus : MonoBehaviour
         }
     }
 
-    public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker = null, bool isPlayerApplied = false)
+public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker = null, bool isPlayerApplied = false)
     {
         if (consumeType == SkillKeyword.Stun)
         {
@@ -503,6 +507,8 @@ public class CharacterStatus : MonoBehaviour
                 DamageInfo stunDmg = new DamageInfo(dmg, DamageType.Fixed, attacker, false, 1f, false, "Vulnerability Stun");
                 GetComponent<CharacterHealth>().GetDamage(stunDmg);
 
+                OnDebuffPopped?.Invoke("기절!");
+
                 if (duration > 0f) SetDebuffBool(DebuffBoolType.Stunned, duration);
 
                 if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -518,6 +524,8 @@ public class CharacterStatus : MonoBehaviour
                 _vulnerabilityStacks = 0;
                 _vulnerabilityTimer = 0f;
                 debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
+
+                OnDebuffPopped?.Invoke("격파!");
 
                 if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
@@ -536,6 +544,8 @@ public class CharacterStatus : MonoBehaviour
                 _vulnerabilityStacks = 0;
                 _vulnerabilityTimer = 0f;
                 debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
+
+                OnDebuffPopped?.Invoke("강타!");
 
                 if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
