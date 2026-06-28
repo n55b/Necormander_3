@@ -17,8 +17,8 @@ MonoBehaviour:
   minionName: Monster Doll Melee
   minionIcon: {fileID: 0}
   baseEffectValue: 0
-  maxHP: 200
-  attack: 10
+  maxHP: 120
+  attack: 8
   attackSpeed: 1
   attackRange: 2
   detectRange: 10
