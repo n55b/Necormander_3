@@ -106,8 +106,10 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public IdleState idleState;
     public WalkState walkState;
-    public AttackState atkState;
-    public bool canChangeState = true;
+
+    
+    private Coroutine _animStateLockTimeoutCoroutine; // safety net so canChangeState never gets stuck false forever
+public bool canChangeState = true;
 
     // [추가] 외부에서 입력을 차단/해제하는 기능
     public void SetInputBlocked(bool blocked)
@@ -217,7 +219,7 @@ public class PlayerController : MonoBehaviour
     {
         idleState = new IdleState(this);
         walkState = new WalkState(this);
-        atkState = new AttackState(this);
+
     }
 
     private void Start()
@@ -870,10 +872,42 @@ private void UpdateWalkAnimSpeed(float currentSpeed)
     /// <summary>
     /// 애니메이션 상태 변경이 가능한 상태로 플래그를 전환합니다.
     /// </summary>
-    public void CanChangeAnimState()
+public void CanChangeAnimState()
     {
         canChangeState = true;
+
+        if (_animStateLockTimeoutCoroutine != null)
+        {
+            StopCoroutine(_animStateLockTimeoutCoroutine);
+            _animStateLockTimeoutCoroutine = null;
+        }
     }
+
+/// <summary>
+    /// Locks the Idle/Walk auto-transition (canChangeState = false), the same as setting
+    /// canChangeState directly, but also schedules a safety-net timeout that force-unlocks
+    /// it if CanChangeAnimState() is never called (missing/mistimed Animation Event,
+    /// interrupted animation, etc.) so the character can never get stuck forever.
+    /// </summary>
+    public void LockAnimState(float maxLockDuration = 3f)
+    {
+        canChangeState = false;
+
+        if (_animStateLockTimeoutCoroutine != null) StopCoroutine(_animStateLockTimeoutCoroutine);
+        _animStateLockTimeoutCoroutine = StartCoroutine(AnimStateLockTimeoutRoutine(maxLockDuration));
+    }
+
+    private System.Collections.IEnumerator AnimStateLockTimeoutRoutine(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+
+        if (!canChangeState)
+        {
+            Debug.LogWarning("<color=red>[PlayerController]</color> canChangeState was force-reset by the timeout safety net. Check for a missing/mistimed Animation Event.");
+            CanChangeAnimState();
+        }
+    }
+
 
     /// <summary>
     /// Body의 Animator에서 지정된 이름의 애니메이션 상태를 강제로 재생합니다 (손은 같은 클립 안에 함께 키프레임으로 포함됨).

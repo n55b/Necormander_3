@@ -6,7 +6,7 @@ public class WalkState : PlayerAnimationState
 
     public override void Enter()
     {
-        controller.PlayAllAnim("Walk");
+        controller.PlayAllAnim("Walk", "Idle");
     }
 
     public override void Update()
