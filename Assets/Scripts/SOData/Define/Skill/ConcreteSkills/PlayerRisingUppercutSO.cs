@@ -29,7 +29,7 @@ public class PlayerRisingUppercutSO : PlayerSkillSO
         if (dir == Vector2.zero) dir = Vector2.right;
 
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        Vector2 attackCenter = startPos + dir * (hitDistance * 0.5f);
+        Vector2 attackCenter = startPos;
         BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
         box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
 

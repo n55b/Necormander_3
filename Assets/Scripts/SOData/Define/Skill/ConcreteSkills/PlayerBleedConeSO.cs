@@ -34,7 +34,7 @@ public class PlayerBleedConeSO : PlayerSkillSO
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         
         // 자식 오브젝트(삼각형)가 중심(0,0)에 있다면, 부모를 거리의 절반만큼 앞으로 밀어야 꼭짓점(또는 밑변)이 플레이어에 닿습니다.
-        Vector2 spawnPos = startPos + dir * (distance * 0.5f);
+        Vector2 spawnPos = startPos;
         BaseHitBox box = Instantiate(hitBoxPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
         
         // 부채꼴(삼각형)의 크기를 distance와 width로 조절합니다.

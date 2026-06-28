@@ -89,15 +89,8 @@ public class ChargerAIPatternSO : BaseAIPatternSO
             agent.enabled = false;
         }
 
-        // 물리 겹침 방지를 위해 콜라이더 트리거 설정
+        // 물리 겹침 방지를 위해 콜라이더 트리거 설정 (제거: 벽 뚫기를 물리적으로 막기 위해 isTrigger=false 고수)
         var chargerCollider = entity.GetComponent<Collider2D>();
-        bool originalIsTrigger = false;
-        if (chargerCollider != null)
-        {
-            originalIsTrigger = chargerCollider.isTrigger;
-            chargerCollider.isTrigger = true;
-        }
-
         var rb = entity.GetComponent<Rigidbody2D>();
         float chargeSpeed = entity.Stats.MOVESPEED * chargeSpeedMultiplier;
         float maxChargeDuration = 3.0f; // 안전 타임아웃
@@ -106,14 +99,6 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         LayerMask wallMask = LayerMask.GetMask("Wall", "Obstacle");
         LayerMask playerMask = LayerMask.GetMask("Player");
         LayerMask hitMask = wallMask | playerMask;
-
-        // 돌진 시작 시점에 이미 몸에 겹쳐 있는 충돌체들을 기억해 둡니다. (시작 시점 겹침 방어)
-        System.Collections.Generic.HashSet<Collider2D> ignoredColliders = new System.Collections.Generic.HashSet<Collider2D>();
-        Collider2D[] initialOverlaps = Physics2D.OverlapCircleAll(entity.transform.position, 0.6f, hitMask);
-        foreach (var col in initialOverlaps)
-        {
-            ignoredColliders.Add(col);
-        }
 
         bool hasHitObstacle = false;
 
@@ -125,25 +110,37 @@ public class ChargerAIPatternSO : BaseAIPatternSO
                 rb.linearVelocity = chargeDir * chargeSpeed;
             }
 
-            // 전방 충돌 판정 (터널링 방지를 위한 CircleCast 사용, 시작 지점부터 겹쳐 있던 정적 지형은 무시)
-            float checkDistance = chargeSpeed * Time.deltaTime + 0.1f;
-            RaycastHit2D hit = Physics2D.CircleCast(entity.transform.position, 0.6f, chargeDir, checkDistance, hitMask);
-            if (hit.collider != null && !ignoredColliders.Contains(hit.collider))
+            // 돌진 시작 0.15초 이후부터 벽/플레이어 충돌 감지 ( Stun 판정 목적 )
+            if (chargeElapsed > 0.15f)
             {
-                hasHitObstacle = true;
-                
-                // 플레이어에 닿은 경우에만 데미지
-                if (((1 << hit.collider.gameObject.layer) & playerMask) != 0)
+                float checkDistance = chargeSpeed * Time.deltaTime + 0.15f;
+                RaycastHit2D hit = Physics2D.CircleCast(entity.transform.position, 0.55f, chargeDir, checkDistance, hitMask);
+                if (hit.collider != null)
                 {
-                    var playerHealth = hit.collider.GetComponentInChildren<CharacterHealth>();
-                    if (playerHealth == null) playerHealth = hit.collider.GetComponentInParent<CharacterHealth>();
-                    if (playerHealth != null)
+                    hasHitObstacle = true;
+                    
+                    // 플레이어에 닿은 경우 데미지
+                    if (((1 << hit.collider.gameObject.layer) & playerMask) != 0)
                     {
-                        DamageInfo chargeDmg = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject);
-                        playerHealth.GetDamage(chargeDmg);
+                        var playerHealth = hit.collider.GetComponentInChildren<CharacterHealth>();
+                        if (playerHealth == null) playerHealth = hit.collider.GetComponentInParent<CharacterHealth>();
+                        if (playerHealth != null)
+                        {
+                            DamageInfo chargeDmg = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject);
+                            playerHealth.GetDamage(chargeDmg);
+                        }
                     }
+                    else
+                    {
+                        // 벽/정적 장애물에 충돌한 경우, Stuck 방지를 위해 물리 반동 및 강제 좌표 미세 오프셋 확보
+                        if (rb != null)
+                        {
+                            rb.linearVelocity = -chargeDir * 3f;
+                        }
+                        entity.transform.position = (Vector2)entity.transform.position - chargeDir * 0.15f;
+                    }
+                    break;
                 }
-                break;
             }
 
             yield return null;
@@ -151,12 +148,15 @@ public class ChargerAIPatternSO : BaseAIPatternSO
 
         // 돌진 정지
         if (rb != null) rb.linearVelocity = Vector2.zero;
-        if (chargerCollider != null)
-        {
-            chargerCollider.isTrigger = originalIsTrigger;
-        }
+        
         if (wasAgentEnabled && agent != null)
         {
+            // NavMesh 영역 바깥 탈출 Stuck 방지를 위해 재배치 보증
+            Vector3 finalPos = entity.transform.position;
+            if (NavMesh.SamplePosition(finalPos, out NavMeshHit navHit, 2.0f, NavMesh.AllAreas))
+            {
+                entity.transform.position = navHit.position;
+            }
             agent.enabled = true;
             agent.isStopped = false;
         }

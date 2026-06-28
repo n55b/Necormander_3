@@ -14,32 +14,52 @@ public class SlimeAIPatternSO : BaseAIPatternSO
     public int splitCount = 2;
     public float spawnRadius = 0.5f;
 
-    private BaseEntity _myEntity;
-
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);
-        _myEntity = entity;
 
         var health = entity.GetComponentInChildren<CharacterHealth>();
         if (health != null)
         {
-            // 중복 구독 방지를 위해 한 번 빼주고 다시 등록
-            health.OnDeath -= HandleDeath;
-            health.OnDeath += HandleDeath;
+            // 람다를 사용해 매개변수 공유 문제를 피함
+            health.OnDeath += () => HandleDeath(entity);
         }
     }
 
-    private void HandleDeath()
+    private void HandleDeath(BaseEntity diedEntity)
     {
+        if (diedEntity == null) return;
+
+        Debug.Log($"<color=yellow>[SlimeSplit]</color> {diedEntity.gameObject.name} died. Attempting split. Spawner: {(diedEntity.Spawner != null ? diedEntity.Spawner.gameObject.name : "Null")}");
+
         // 프리팹이 등록되어 있지 않거나(작은 슬라임), 엔티티가 파괴된 상태라면 실행하지 않음
-        if (smallSlimePrefab != null && _myEntity != null)
+        if (smallSlimePrefab != null)
         {
+            RoomInstance room = diedEntity.GetComponentInParent<RoomInstance>();
+            Debug.Log($"<color=yellow>[SlimeSplit]</color> RoomInstance found in parent: {(room != null ? room.gameObject.name : "Null")}");
+
+            // 부모 중 RoomInstance가 없다면 주변 반경 내 가장 가까운 RoomInstance 탐색
+            if (room == null)
+            {
+                RoomInstance[] allRooms = FindObjectsByType<RoomInstance>(FindObjectsSortMode.None);
+                float minDist = float.MaxValue;
+                foreach (var r in allRooms)
+                {
+                    float d = Vector2.Distance(diedEntity.transform.position, r.transform.position);
+                    if (d < minDist)
+                    {
+                        minDist = d;
+                        room = r;
+                    }
+                }
+                Debug.Log($"<color=yellow>[SlimeSplit]</color> Nearest RoomInstance search result: {(room != null ? room.gameObject.name : "Null")} (Distance: {minDist})");
+            }
+
             for (int i = 0; i < splitCount; i++)
             {
                 // 주변 반경 내 무작위 위치에 흩뿌려 소환
                 Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * spawnRadius;
-                Vector3 spawnPos = _myEntity.transform.position + (Vector3)randomOffset;
+                Vector3 spawnPos = diedEntity.transform.position + (Vector3)randomOffset;
                 GameObject smallSlimeObj = Instantiate(smallSlimePrefab, spawnPos, Quaternion.identity);
                 
                 if (smallSlimeObj != null)
@@ -53,11 +73,40 @@ public class SlimeAIPatternSO : BaseAIPatternSO
                             smallEntity.Initialize(data);
                         }
 
-                        // 2. 부모 슬라임의 스포너에 동적 등록하여 방 클리어 판정에 귀속시킴
-                        if (_myEntity.Spawner != null)
+                        // 2. 부모 슬라임의 방(RoomInstance)을 찾아 동적 등록하여 방 클리어 판정에 귀속시킴
+                        if (room != null)
                         {
-                            smallEntity.Spawner = _myEntity.Spawner;
-                            _myEntity.Spawner.RegisterActiveEnemy(smallSlimeObj);
+                            var normalEvent = room.GetComponentInChildren<NormalRoomEvent>();
+                            if (normalEvent != null)
+                            {
+                                normalEvent.RegisterActiveEnemy(smallSlimeObj);
+                                Debug.Log($"<color=yellow>[SlimeSplit]</color> Registered {smallSlimeObj.name} to NormalRoomEvent: {normalEvent.gameObject.name}");
+                            }
+
+                            var eliteEvent = room.GetComponentInChildren<EliteRoomEvent>();
+                            if (eliteEvent != null)
+                            {
+                                eliteEvent.RegisterActiveEnemy(smallSlimeObj);
+                                Debug.Log($"<color=yellow>[SlimeSplit]</color> Registered {smallSlimeObj.name} to EliteRoomEvent: {eliteEvent.gameObject.name}");
+                            }
+
+                            var dynamicSpawner = room.GetComponentInChildren<DynamicEnemySpawner>();
+                            if (dynamicSpawner != null)
+                            {
+                                smallEntity.Spawner = dynamicSpawner;
+                                dynamicSpawner.RegisterActiveEnemy(smallSlimeObj);
+                                Debug.Log($"<color=yellow>[SlimeSplit]</color> Registered {smallSlimeObj.name} to DynamicEnemySpawner: {dynamicSpawner.gameObject.name}");
+                            }
+                        }
+                        else if (diedEntity.Spawner != null)
+                        {
+                            smallEntity.Spawner = diedEntity.Spawner;
+                            diedEntity.Spawner.RegisterActiveEnemy(smallSlimeObj);
+                            Debug.Log($"<color=yellow>[SlimeSplit]</color> Registered {smallSlimeObj.name} to Spawner fallback");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"<color=red>[SlimeSplit]</color> Failed to find any RoomInstance or Spawner to register {smallSlimeObj.name}!");
                         }
                     }
                 }

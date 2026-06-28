@@ -49,11 +49,20 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
     {
         if (!_isBattleActive) return;
 
+        int beforeCount = _activeEnemies.Count;
         _activeEnemies.RemoveAll(item => item == null);
+        int afterCount = _activeEnemies.Count;
+
+        if (beforeCount != afterCount)
+        {
+            Debug.Log($"<color=red>[EliteRoomEvent]</color> Enemy removed. Count: {beforeCount} -> {afterCount}. Remaining: {string.Join(", ", _activeEnemies.ConvertAll(e => e != null ? e.name : "null"))}");
+        }
+
         if (_activeEnemies.Count == 0)
         {
             _isBattleActive = false;
             _cachedRoom.MarkCleared();
+            Debug.Log("<color=green>[EliteRoomEvent]</color> All enemies cleared. Marking room cleared.");
         }
     }
 
@@ -185,6 +194,15 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         else
         {
             Debug.LogWarning($"[EliteRoom] NavMesh SamplePosition (Elite) failed at {position}");
+        }
+    }
+
+    public void RegisterActiveEnemy(GameObject enemy)
+    {
+        if (enemy != null && !_activeEnemies.Contains(enemy))
+        {
+            _activeEnemies.Add(enemy);
+            Debug.Log($"<color=red>[EliteRoomEvent]</color> Added split enemy: {enemy.name}. Current Active Count: {_activeEnemies.Count}");
         }
     }
 }

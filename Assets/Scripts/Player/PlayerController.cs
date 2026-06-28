@@ -521,7 +521,6 @@ public bool canChangeState = true;
         CancelActiveSkill();
 
         _isDashing = true;
-        _dashTimeLeft = dashDuration;
         _lastDashTime = Time.time;
 
         SetDashLayer(true);
@@ -532,6 +531,12 @@ public bool canChangeState = true;
         {
             _dashDir = new Vector2(-transform.localScale.x, 0).normalized; // x scale이 -1이면 오른쪽
         }
+
+        // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
+        float originalDist = dashSpeed * dashDuration;
+        Vector2 safePos = GetSafeDashPosition(transform.position, _dashDir, originalDist);
+        float actualDist = Vector2.Distance(transform.position, safePos);
+        _dashTimeLeft = actualDist / dashSpeed; // 동적으로 대시 시간 조절
 
         if (stat != null && stat.Health != null)
         {
@@ -968,5 +973,36 @@ public void PlayAllAnim(string animName, string fallbackAnimName = null)
             RemoveSpeedModifier(SpeedModifierSource.Skill); // 이속 복구
             Debug.Log("<color=red>[Player]</color> Active skill cast canceled!");
         }
+    }
+
+    /// <summary>
+    /// 대시 방향으로 Unsteppable(낭떠러지) 또는 벽이 있으면 걸치지 않고 안전하게 제동할 목적지 위치를 반환합니다.
+    /// </summary>
+    public Vector2 GetSafeDashPosition(Vector2 startPos, Vector2 direction, float maxDistance)
+    {
+        int unsteppableMask = LayerMask.GetMask("Unsteppable");
+        int wallMask = LayerMask.GetMask("Wall", "Obstacle");
+
+        Vector2 targetPos = startPos + direction * maxDistance;
+        float checkStep = 0.1f;
+        float elapsed = 0f;
+
+        // 도착 지점에서부터 역으로 훑어가며 안전한 바닥 지점을 찾음
+        while (elapsed < maxDistance)
+        {
+            Vector2 checkPos = targetPos - direction * elapsed;
+            
+            // 0.25f 반경으로 체크하여 걸치는지 확인
+            bool isUnsteppable = Physics2D.OverlapCircle(checkPos, 0.25f, unsteppableMask) != null;
+            bool isWall = Physics2D.OverlapCircle(checkPos, 0.25f, wallMask) != null;
+
+            if (!isUnsteppable && !isWall)
+            {
+                return checkPos;
+            }
+            elapsed += checkStep;
+        }
+
+        return startPos; // 안전한 곳이 전혀 없다면 제자리 정지
     }
 }
