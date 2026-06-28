@@ -91,8 +91,9 @@ public class ThrowInputHandler : MonoBehaviour
         {
             if (!_controller.TryAutoPickUpNearbyThrowable()) return; // 주변에 던질 사물이 없으면 무시
 
-            _playerController.TransitionToState(_playerController.atkState);
-            _playerController.canChangeState = false;
+            _playerController.LockAnimState(); // canChangeState lock with timeout safety net
+            _playerController.ResetAnimStateCache();
+            _playerController.PlayAllAnim("Attack", "Idle");
             _controller.FireDamageCluster(true); // true = isDirect
         }
 
@@ -145,8 +146,9 @@ public class ThrowInputHandler : MonoBehaviour
             {
                 if (!_controller.TryAutoPickUpNearbyThrowable()) return; // 주변에 던질 사물이 없으면 무시
 
-                _playerController.TransitionToState(_playerController.atkState);
-                _playerController.canChangeState = false;
+                _playerController.LockAnimState(); // canChangeState lock with timeout safety net
+                _playerController.ResetAnimStateCache();
+                _playerController.PlayAllAnim("Attack", "Idle");
                 _controller.FireDamageCluster(false); // false = isParabolic (Curve)
             }
         }

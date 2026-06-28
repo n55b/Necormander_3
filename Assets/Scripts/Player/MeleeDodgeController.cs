@@ -82,9 +82,9 @@ public class MeleeDodgeController : MonoBehaviour
         return true;
     }
 
-    private void StartDash(Vector2 moveInput, float currentFacingSign)
+private void StartDash(Vector2 moveInput, float currentFacingSign)
     {
-        // [추가] 진행 중인 근접 공격 및 투척 차징, 액티브 스킬 취소
+        // Cancel ongoing melee attack, throw charge, and active skill cast
         var meleeCtrl = _player.GetComponent<MeleeCombatController>();
         if (meleeCtrl != null && meleeCtrl.IsAttacking)
         {
@@ -109,18 +109,20 @@ public class MeleeDodgeController : MonoBehaviour
 
         if (_player.Stat != null && _player.Stat.Health != null)
         {
-            _player.Stat.Health.Invincible = true; // 대쉬 무적
+            _player.Stat.Health.Invincible = true; // dash invincibility
         }
 
-        _player.SetDashLayer(true); // 대쉬 레이어 설정
+        _player.SetDashLayer(true); // set dash layer
 
+        // Lock the Idle/Walk auto-transition for the dash duration, otherwise
+        // PlayerController.Update() overwrites the Dash pose one frame later.
+        _player.LockAnimState(dashDuration);
         _player.ResetAnimStateCache();
-        _player.PlayAllAnim("Dash");
+        _player.PlayAllAnim("Dash", "Idle");
         OnDodgeStarted?.Invoke();
- // 애니메이션 이름은 실제 환경에 맞춰 수정
     }
 
-    private void EndDash()
+private void EndDash()
     {
         _isDashing = false;
 
@@ -134,10 +136,9 @@ public class MeleeDodgeController : MonoBehaviour
             _player.Stat.Health.Invincible = false;
         }
 
-        _player.SetDashLayer(false); // 대쉬 레이어 복구
-        
-        _player.ResetAnimStateCache();
-        _player.ResetAnimStateCache();
+        _player.SetDashLayer(false); // restore original layer
+
+        _player.CanChangeAnimState(); // unlocks canChangeState and cancels the LockAnimState timeout
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Idle");
     }

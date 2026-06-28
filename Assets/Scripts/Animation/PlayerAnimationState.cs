@@ -3,7 +3,7 @@ using UnityEngine;
 public abstract class PlayerAnimationState
 {
     protected PlayerController controller;
-    protected Animator animator;
+
 
     public PlayerAnimationState(PlayerController _controller)
     {

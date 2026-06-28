@@ -158,10 +158,13 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
 
         // 1. Play parry animation
         // Lock the Idle/Walk auto-transition (same reason as the attack animation) and reset the cache
-        _player.canChangeState = false;
+        _player.LockAnimState(); // canChangeState lock with timeout safety net
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Parry", "Idle");
-        yield return null; // 패링 준비 자세가 최소 1프레임은 화면에 보이도록 강제 대기
+
+        // Guarantee at least one frame so the windup pose is never skipped
+        // even if a projectile is deflected on the very first check below.
+        yield return null;
 
         // 2. Draw the visual telegraph sector
         CreateParryVisualSector(mouseDir);
@@ -189,8 +192,9 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
             _player.ResetAnimStateCache();
             _player.PlayAllAnim("Parry_Success", "Parry");
 
+            // Always wait at least parryRecoveryDuration so the success pose has
+            // time to show, even if the clip length couldn't be determined.
             float successClipLength = GetAnimationClipLength("Parry_Success");
-            // Always wait at least a minimum time so the success pose is never skipped within the same frame
             yield return new WaitForSeconds(successClipLength > 0f ? successClipLength : parryRecoveryDuration);
 
             EndParry();
@@ -198,7 +202,7 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
         else
         {
             OnParryFail?.Invoke();
-            // 실패 시 후딜레이 돌입 (여전히 IsParrying 상태 및 감속 유지)
+            // Enter recovery on failure (still IsParrying, slow-move kept)
             yield return new WaitForSeconds(parryRecoveryDuration);
             EndParry();
         }
@@ -210,7 +214,7 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
         _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.Parry); // 이속 복구
 
         // Release the Idle/Walk transition lock regardless of how the parry animation ends.
-        _player.canChangeState = true;
+        _player.CanChangeAnimState();
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Idle");
         _parryCoroutine = null;

@@ -109,7 +109,7 @@ public class MeleeCombatController : MonoBehaviour
         // 공격 애니메이션 재생 중에는 Update()의 Idle/Walk 자동 전환을 잠그고,
         // 캐시를 초기화해서 공격이 끝난 뒤 Idle로 제대로 복귀하도록 합니다.
         // (실제 복귀는 애니메이션 클립의 'CanChangeAnimState' 이벤트가 canChangeState를 다시 true로 바꿔줄 때 일어납니다)
-        _player.canChangeState = false;
+        _player.LockAnimState(); // canChangeState lock with timeout safety net
         _player.ResetAnimStateCache();
 
         if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
@@ -202,7 +202,7 @@ public class MeleeCombatController : MonoBehaviour
         _player.SetAttackAnimSpeed(1f);
 
         // 공격이 중간에 취소되더도 Idle/Walk 전환이 영원히 잠겨있지 않도록 해제합니다.
-        _player.canChangeState = true;
+        _player.CanChangeAnimState();
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Idle");
         _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack); // 이동 속도 복구
