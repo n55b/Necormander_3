@@ -17,7 +17,7 @@ public class PlayerStrikeFlurrySO : PlayerSkillSO
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
         
-        player.StartCoroutine(FlurryRoutine(player));
+        player.StartSkillCasting(FlurryRoutine(player));
     }
 
     private IEnumerator FlurryRoutine(PlayerController player)

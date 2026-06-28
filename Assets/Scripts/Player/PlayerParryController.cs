@@ -103,18 +103,30 @@ public bool IsParrying => _isParrying;
         // 이동 불가/입력 막힘 상태일 때도 패리 방지
         if (_player.Stat.Health.IsDead) return;
 
-        // 공격 중일 때는 패리 방지
-        var meleeCtrl = GetComponent<MeleeCombatController>();
-        if (meleeCtrl != null && meleeCtrl.IsAttacking) return;
-        
         // 대시 중일 때는 패리 방지
         if (_player.IsDashing) return;
 
-        // 투척 충전(차징) 중이거나 조준 중일 때도 패리 방지
-        var throwCtrl = GetComponentInChildren<ThrowController>();
-        if (throwCtrl != null && throwCtrl.IsCharging) return;
+        // 공격 중일 때는 기존 공격을 캔슬하고 패리 시도
+        var meleeCtrl = GetComponent<MeleeCombatController>();
+        if (meleeCtrl != null && meleeCtrl.IsAttacking)
+        {
+            meleeCtrl.CancelAttack();
+        }
 
-        // 스킬 시전 중일 때도 패리 방지
+        // 투척 충전(차징) 중일 때도 캔슬하고 패리 시도
+        var throwCtrl = GetComponentInChildren<ThrowController>();
+        if (throwCtrl != null && throwCtrl.IsCharging)
+        {
+            throwCtrl.InputHandler.ResetCharging();
+        }
+
+        // 플레이어 액티브 스킬 시전 중일 때도 캔슬하고 패리 시도
+        if (_player.IsCastingSkill)
+        {
+            _player.CancelActiveSkill();
+        }
+
+        // 스킬 시전 중일 때도 패리 방지 (지속 시즈 모드 등 액티브스킬 매니저 판정)
         var activeSkillCtrl = GetComponent<ActiveSkillManager>();
         if (activeSkillCtrl != null)
         {

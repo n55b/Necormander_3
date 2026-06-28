@@ -84,6 +84,19 @@ public class MeleeDodgeController : MonoBehaviour
 
     private void StartDash(Vector2 moveInput, float currentFacingSign)
     {
+        // [추가] 진행 중인 근접 공격 및 투척 차징, 액티브 스킬 취소
+        var meleeCtrl = _player.GetComponent<MeleeCombatController>();
+        if (meleeCtrl != null && meleeCtrl.IsAttacking)
+        {
+            meleeCtrl.CancelAttack();
+        }
+        var throwCtrl = _player.GetComponentInChildren<ThrowController>();
+        if (throwCtrl != null && throwCtrl.IsCharging)
+        {
+            throwCtrl.InputHandler.ResetCharging();
+        }
+        _player.CancelActiveSkill();
+
         _isDashing = true;
         _dashTimeLeft = dashDuration;
 

@@ -24,7 +24,7 @@ public class PlayerCorrosionPunchSO : PlayerSkillSO
             return;
         }
 
-        player.StartCoroutine(ChargeAndPunch(player));
+        player.StartSkillCasting(ChargeAndPunch(player));
     }
 
     private IEnumerator ChargeAndPunch(PlayerController player)

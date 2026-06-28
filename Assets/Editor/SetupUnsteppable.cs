@@ -50,12 +50,20 @@ public static class SetupUnsteppable
         int unsteppableIdx = -1;
         int playerDashIdx = -1;
         int enemyFlyingIdx = -1;
+        int enemyIdx = -1;
+        int allyIdx = -1;
+        int armyIdx = -1;
+        int playerIdx = -1;
         for (int i = 0; i < layersProp.arraySize; i++)
         {
             string val = layersProp.GetArrayElementAtIndex(i).stringValue;
             if (val == "Unsteppable") unsteppableIdx = i;
             if (val == "Player_Dash") playerDashIdx = i;
             if (val == "Enemy_Flying") enemyFlyingIdx = i;
+            if (val == "Enemy") enemyIdx = i;
+            if (val == "Ally") allyIdx = i;
+            if (val == "Army") armyIdx = i;
+            if (val == "Player") playerIdx = i;
         }
         
         if (unsteppableIdx != -1 && playerDashIdx != -1)
@@ -67,6 +75,29 @@ public static class SetupUnsteppable
         {
             Physics2D.IgnoreLayerCollision(enemyFlyingIdx, unsteppableIdx, true);
             Debug.Log("Set Physics2D.IgnoreLayerCollision(Enemy_Flying, Unsteppable, true)");
+        }
+        if (playerDashIdx != -1)
+        {
+            if (enemyIdx != -1)
+            {
+                Physics2D.IgnoreLayerCollision(playerDashIdx, enemyIdx, true);
+                Debug.Log("Set Physics2D.IgnoreLayerCollision(Player_Dash, Enemy, true)");
+            }
+            if (allyIdx != -1)
+            {
+                Physics2D.IgnoreLayerCollision(playerDashIdx, allyIdx, true);
+                Debug.Log("Set Physics2D.IgnoreLayerCollision(Player_Dash, Ally, true)");
+            }
+            if (armyIdx != -1)
+            {
+                Physics2D.IgnoreLayerCollision(playerDashIdx, armyIdx, true);
+                Debug.Log("Set Physics2D.IgnoreLayerCollision(Player_Dash, Army, true)");
+            }
+            if (playerIdx != -1)
+            {
+                Physics2D.IgnoreLayerCollision(playerDashIdx, playerIdx, true);
+                Debug.Log("Set Physics2D.IgnoreLayerCollision(Player_Dash, Player, true)");
+            }
         }
         
         // 3. NavMesh Area 설정

@@ -21,7 +21,7 @@ public class PlayerFaceCrusherSO : PlayerSkillSO
     {
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
-        player.StartCoroutine(FaceCrusherRoutine(player));
+        player.StartSkillCasting(FaceCrusherRoutine(player));
     }
 
     private IEnumerator FaceCrusherRoutine(PlayerController player)

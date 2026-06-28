@@ -107,6 +107,14 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         LayerMask playerMask = LayerMask.GetMask("Player");
         LayerMask hitMask = wallMask | playerMask;
 
+        // 돌진 시작 시점에 이미 몸에 겹쳐 있는 충돌체들을 기억해 둡니다. (시작 시점 겹침 방어)
+        System.Collections.Generic.HashSet<Collider2D> ignoredColliders = new System.Collections.Generic.HashSet<Collider2D>();
+        Collider2D[] initialOverlaps = Physics2D.OverlapCircleAll(entity.transform.position, 0.6f, hitMask);
+        foreach (var col in initialOverlaps)
+        {
+            ignoredColliders.Add(col);
+        }
+
         bool hasHitObstacle = false;
 
         while (chargeElapsed < maxChargeDuration)
@@ -117,10 +125,10 @@ public class ChargerAIPatternSO : BaseAIPatternSO
                 rb.linearVelocity = chargeDir * chargeSpeed;
             }
 
-            // 전방 충돌 판정 (터널링 방지를 위한 CircleCast 사용)
+            // 전방 충돌 판정 (터널링 방지를 위한 CircleCast 사용, 시작 지점부터 겹쳐 있던 정적 지형은 무시)
             float checkDistance = chargeSpeed * Time.deltaTime + 0.1f;
             RaycastHit2D hit = Physics2D.CircleCast(entity.transform.position, 0.6f, chargeDir, checkDistance, hitMask);
-            if (hit.collider != null)
+            if (hit.collider != null && !ignoredColliders.Contains(hit.collider))
             {
                 hasHitObstacle = true;
                 

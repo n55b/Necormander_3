@@ -19,7 +19,7 @@ public class PlayerMainDealSO : PlayerSkillSO
 
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
-        player.StartCoroutine(AttackRoutine(player));
+        player.StartSkillCasting(AttackRoutine(player));
     }
 
     private IEnumerator AttackRoutine(PlayerController player)

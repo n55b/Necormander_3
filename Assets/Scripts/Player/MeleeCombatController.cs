@@ -52,7 +52,22 @@ public class MeleeCombatController : MonoBehaviour
             // 홀드 공격 유지 (현재 텔레그래프가 끝났고, 쿨다운이 지났다면 다음 콤보 발동)
             if (_isHoldingAttack)
             {
-                ExecuteMeleeAttack();
+                // 플레이어가 대시 중, 패리 중, 또는 스킬 시전 중일 때는 꾹 누르고 있어도 자동 공격 제한
+                bool canAttack = true;
+                if (_player != null)
+                {
+                    var parryCtrl = _player.GetComponent<PlayerParryController>();
+                    bool isParrying = parryCtrl != null && parryCtrl.IsParrying;
+                    if (_player.IsDashing || isParrying || _player.IsCastingSkill)
+                    {
+                        canAttack = false;
+                    }
+                }
+
+                if (canAttack)
+                {
+                    ExecuteMeleeAttack();
+                }
             }
         }
     }
@@ -183,7 +198,7 @@ public class MeleeCombatController : MonoBehaviour
             _activeHitbox = null;
         }
         _comboStep = 0;
-        _isHoldingAttack = false;
+        // _isHoldingAttack = false; // 대시/패리 후에도 꾹 누르고 있으면 이어서 공격하도록 주석 처리
         _player.SetAttackAnimSpeed(1f);
 
         // 공격이 중간에 취소되더도 Idle/Walk 전환이 영원히 잠겨있지 않도록 해제합니다.

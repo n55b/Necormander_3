@@ -18,7 +18,7 @@ public class PlayerGatherSO : PlayerSkillSO
 
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
-        player.StartCoroutine(GatherRoutine(player));
+        player.StartSkillCasting(GatherRoutine(player));
     }
 
     private IEnumerator GatherRoutine(PlayerController player)

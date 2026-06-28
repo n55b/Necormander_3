@@ -17,7 +17,7 @@ public class PlayerRapidPunchSO : PlayerSkillSO
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
         
-        player.StartCoroutine(RapidPunchRoutine(player));
+        player.StartSkillCasting(RapidPunchRoutine(player));
     }
 
     private IEnumerator RapidPunchRoutine(PlayerController player)

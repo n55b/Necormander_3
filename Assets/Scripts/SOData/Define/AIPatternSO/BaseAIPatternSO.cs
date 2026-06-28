@@ -82,8 +82,9 @@ public class BaseAIPatternSO : AIPatternSO
             agent.isStopped = false;
             agent.speed = entity.Stats.MOVESPEED;
 
-            // 원거리 적(사거리 3.0f 이상)이고 공격 쿨타임이 아직 차지 않은 경우
-            if (entity.Stats.ATKRANGE >= 3.0f && entity.AtkTimer < entity.Stats.ATKSPD)
+            // 원거리 적(사거리 3.0f 이상, 단 돌진 몬스터 제외)이고 공격 쿨타임이 아직 차지 않은 경우
+            bool isCharger = entity.Brain is ChargerAIPatternSO;
+            if (!isCharger && entity.Stats.ATKRANGE >= 3.0f && entity.AtkTimer < entity.Stats.ATKSPD)
             {
                 // 플레이어가 평타 사거리의 약 2배(거리 7f) 내에 접근했을 때만 도망침
                 float fleeTriggerRange = 7.0f;

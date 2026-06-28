@@ -22,7 +22,7 @@ public class PlayerLeapSO : PlayerSkillSO
 
         PlaySkillSound();
         ShakeCamera();
-        player.StartCoroutine(LeapRoutine(player));
+        player.StartSkillCasting(LeapRoutine(player));
     }
 
     private IEnumerator LeapRoutine(PlayerController player)

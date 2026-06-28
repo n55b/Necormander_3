@@ -17,7 +17,7 @@ public class PlayerGroundSmashSO : PlayerSkillSO
 
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
-        player.StartCoroutine(SmashRoutine(player));
+        player.StartSkillCasting(SmashRoutine(player));
     }
 
     private IEnumerator SmashRoutine(PlayerController player)

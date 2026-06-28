@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6724534978481633609}
   - component: {fileID: 8502700593417624666}
   - component: {fileID: 5548258361412959121}
+  - component: {fileID: 8715005498025257399}
   m_Layer: 6
   m_Name: TrapBombBarrel
   m_TagString: Untagged
@@ -184,3 +185,19 @@ MonoBehaviour:
     m_Bits: 0
   explosionEffectPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   spriteRenderer: {fileID: 0}
+--- !u!208 &8715005498025257399
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1296700334336564911}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.4, y: 0.4, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0, z: 0}
+  m_TimeToStationary: 0.5

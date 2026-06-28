@@ -20,7 +20,7 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
 
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
-        player.StartCoroutine(DashRoutine(player));
+        player.StartSkillCasting(DashRoutine(player));
     }
 
     private IEnumerator DashRoutine(PlayerController player)

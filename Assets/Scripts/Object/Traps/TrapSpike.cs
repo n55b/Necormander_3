@@ -40,6 +40,10 @@ public class TrapSpike : MonoBehaviour
         // 타겟 레이어 검사
         if (((1 << other.gameObject.layer) & targetLayer) == 0) return;
 
+        // [추가] 방이 클리어되었다면 작동 안함
+        RoomInstance room = GetComponentInParent<RoomInstance>();
+        if (room != null && room.isCleared) return;
+
         // 발판을 밟으면 1초 후 가시 발동 코루틴 실행
         if (!_isTriggered)
         {

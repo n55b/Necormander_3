@@ -505,6 +505,19 @@ public class PlayerController : MonoBehaviour
 
     private void StartDash()
     {
+        // [추가] 진행 중인 근접 공격 및 투척 차징 캔슬
+        var meleeCtrl = GetComponent<MeleeCombatController>();
+        if (meleeCtrl != null && meleeCtrl.IsAttacking)
+        {
+            meleeCtrl.CancelAttack();
+        }
+        if (throwController != null && throwController.IsCharging)
+        {
+            throwController.InputHandler.ResetCharging();
+        }
+        // [추가] 시전 중인 액티브 스킬 취소
+        CancelActiveSkill();
+
         _isDashing = true;
         _dashTimeLeft = dashDuration;
         _lastDashTime = Time.time;
@@ -573,6 +586,9 @@ public class PlayerController : MonoBehaviour
     {
         if (stat.Health.IsDead) return;
 
+        // [추가] 스킬 시전 중 투척 차단
+        if (IsCastingSkill) return;
+
         var parryCtrl = GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
 
@@ -623,7 +639,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnSkillQ(InputAction.CallbackContext context)
     {
-        if (_inputBlocked || stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
@@ -640,7 +656,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnSkillE(InputAction.CallbackContext context)
     {
-        if (_inputBlocked || stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
@@ -657,7 +673,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnSkillR(InputAction.CallbackContext context)
     {
-        if (_inputBlocked || stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
@@ -877,11 +893,46 @@ public void PlayAllAnim(string animName, string fallbackAnimName = null)
         // requested state not ready yet -> play fallback state instead
         if (!string.IsNullOrEmpty(fallbackAnimName))
         {
-            int fallbackHash = Animator.StringToHash(fallbackAnimName);
-            if (BodyAnimator.HasState(0, fallbackHash))
+            if (BodyAnimator.HasState(0, Animator.StringToHash(fallbackAnimName)))
             {
-                BodyAnimator.Play(fallbackHash);
+                BodyAnimator.Play(fallbackAnimName);
             }
+        }
+    }
+
+    [Header("스킬 시전 시스템")]
+    private Coroutine _activeSkillCoroutine;
+    public bool IsCastingSkill => _activeSkillCoroutine != null;
+
+    /// <summary>
+    /// 플레이어 액티브 스킬 시전을 시작합니다.
+    /// 시전 시간 동안 이속이 0.3배로 감소하며, 다른 행동(투척, 타스킬)이 차단됩니다.
+    /// </summary>
+    public void StartSkillCasting(System.Collections.IEnumerator skillRoutine)
+    {
+        CancelActiveSkill(); // 기존 시전 중인 스킬이 있다면 취소
+        _activeSkillCoroutine = StartCoroutine(RunSkillRoutineWithCleanup(skillRoutine));
+    }
+
+    private System.Collections.IEnumerator RunSkillRoutineWithCleanup(System.Collections.IEnumerator skillRoutine)
+    {
+        SetSpeedModifier(SpeedModifierSource.Skill, 0.3f); // 스킬 시전 중 이속 감소 0.3배
+        yield return StartCoroutine(skillRoutine);
+        RemoveSpeedModifier(SpeedModifierSource.Skill); // 이속 복구
+        _activeSkillCoroutine = null;
+    }
+
+    /// <summary>
+    /// 현재 시전 중인 플레이어 액티브 스킬을 강제 취소합니다.
+    /// </summary>
+    public void CancelActiveSkill()
+    {
+        if (_activeSkillCoroutine != null)
+        {
+            StopCoroutine(_activeSkillCoroutine);
+            _activeSkillCoroutine = null;
+            RemoveSpeedModifier(SpeedModifierSource.Skill); // 이속 복구
+            Debug.Log("<color=red>[Player]</color> Active skill cast canceled!");
         }
     }
 }

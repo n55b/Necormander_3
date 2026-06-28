@@ -57,6 +57,10 @@ public class TrapCollapsingPillar : MonoBehaviour, IDamageable
     {
         if (_isDead || _isCollapsing) return;
 
+        // [추가] 방이 클리어되었다면 피해를 입지 않고 쓰러지지도 않음
+        RoomInstance room = GetComponentInParent<RoomInstance>();
+        if (room != null && room.isCleared) return;
+
         // 공격한 캐릭터가 있다면 공격 방향을 캐싱
         if (info.attacker != null)
         {
