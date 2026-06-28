@@ -36,7 +36,7 @@ public class PlayerRapidPunchSO : PlayerSkillSO
 
             if (hitBoxPrefab != null)
             {
-                Vector2 attackCenter = startPos + dir * (hitDistance * 0.5f);
+                Vector2 attackCenter = startPos;
                 BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
                 box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
                 

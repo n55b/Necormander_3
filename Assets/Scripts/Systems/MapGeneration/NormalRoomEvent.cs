@@ -34,7 +34,15 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     {
         if (!_isBattleActive) return;
 
+        int beforeCount = _activeEnemies.Count;
         _activeEnemies.RemoveAll(item => item == null);
+        int afterCount = _activeEnemies.Count;
+
+        if (beforeCount != afterCount)
+        {
+            Debug.Log($"<color=cyan>[NormalRoomEvent]</color> Enemy removed. Count: {beforeCount} -> {afterCount}. Remaining: {string.Join(", ", _activeEnemies.ConvertAll(e => e != null ? e.name : "null"))}");
+        }
+
         if (_activeEnemies.Count == 0)
         {
             if (mapGenerationData != null && _currentWave < mapGenerationData.wavesCount)
@@ -46,6 +54,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             {
                 _isBattleActive = false;
                 _cachedRoom.MarkCleared();
+                Debug.Log("<color=green>[NormalRoomEvent]</color> All enemies cleared. Marking room cleared.");
             }
         }
     }
@@ -220,6 +229,15 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             {
                 status.ApplySuperArmor(100f);
             }
+        }
+    }
+
+    public void RegisterActiveEnemy(GameObject enemy)
+    {
+        if (enemy != null && !_activeEnemies.Contains(enemy))
+        {
+            _activeEnemies.Add(enemy);
+            Debug.Log($"<color=cyan>[NormalRoomEvent]</color> Added split enemy: {enemy.name}. Current Active Count: {_activeEnemies.Count}");
         }
     }
 }

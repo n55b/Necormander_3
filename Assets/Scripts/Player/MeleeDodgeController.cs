@@ -98,7 +98,6 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         _player.CancelActiveSkill();
 
         _isDashing = true;
-        _dashTimeLeft = dashDuration;
 
         // 입력 방향이 없으면 바라보는 방향으로
         _dashDir = moveInput.normalized;
@@ -107,9 +106,15 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
             _dashDir = new Vector2(-Mathf.Sign(currentFacingSign), 0).normalized;
         }
 
+        // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
+        float originalDist = dashSpeed * dashDuration;
+        Vector2 safePos = _player.GetSafeDashPosition(transform.position, _dashDir, originalDist);
+        float actualDist = Vector2.Distance(transform.position, safePos);
+        _dashTimeLeft = actualDist / dashSpeed; // 동적으로 대시 시간 조절
+
         if (_player.Stat != null && _player.Stat.Health != null)
         {
-            _player.Stat.Health.Invincible = true; // dash invincibility
+            _player.Stat.Health.Invincible = true; // 대쉬 무적
         }
 
         _player.SetDashLayer(true); // set dash layer

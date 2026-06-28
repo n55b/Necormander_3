@@ -44,7 +44,7 @@ public class PlayerFaceCrusherSO : PlayerSkillSO
 
         if (hitBoxPrefab == null) yield break;
 
-        Vector2 spawnPos = startPos + dir * (distance * 0.5f);
+        Vector2 spawnPos = startPos;
 
         // 1. 전체 부채꼴 (기본 100%)
         BaseHitBox wideBox = Instantiate(hitBoxPrefab, spawnPos, Quaternion.Euler(0, 0, angle));

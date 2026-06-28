@@ -99,6 +99,10 @@ public static class SetupUnsteppable
                 Debug.Log("Set Physics2D.IgnoreLayerCollision(Player_Dash, Player, true)");
             }
         }
+
+        // 변경된 Physics2D 설정을 디스크에 즉시 영구 저장하여 DynamicsManager.asset에 기록
+        AssetDatabase.SaveAssets();
+        EditorApplication.ExecuteMenuItem("File/Save Project");
         
         // 3. NavMesh Area 설정
         var navSettings = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/NavMeshAreas.asset")[0];

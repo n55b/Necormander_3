@@ -36,11 +36,33 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
     {
         if (diedEntity == null) return;
 
-        SpawnSplit(diedEntity, splitPrefabA, -1f);
-        SpawnSplit(diedEntity, splitPrefabB, 1f);
+        Debug.Log($"<color=orange>[DualSplit]</color> {diedEntity.gameObject.name} died. Attempting split. Spawner: {(diedEntity.Spawner != null ? diedEntity.Spawner.gameObject.name : "Null")}");
+
+        RoomInstance room = diedEntity.GetComponentInParent<RoomInstance>();
+        Debug.Log($"<color=orange>[DualSplit]</color> RoomInstance found in parent: {(room != null ? room.gameObject.name : "Null")}");
+
+        // 부모 중 RoomInstance가 없다면 주변 반경 내 가장 가까운 RoomInstance 탐색
+        if (room == null)
+        {
+            RoomInstance[] allRooms = FindObjectsByType<RoomInstance>(FindObjectsSortMode.None);
+            float minDist = float.MaxValue;
+            foreach (var r in allRooms)
+            {
+                float d = Vector2.Distance(diedEntity.transform.position, r.transform.position);
+                if (d < minDist)
+                {
+                    minDist = d;
+                    room = r;
+                }
+            }
+            Debug.Log($"<color=orange>[DualSplit]</color> Nearest RoomInstance search result: {(room != null ? room.gameObject.name : "Null")} (Distance: {minDist})");
+        }
+
+        SpawnSplit(diedEntity, room, splitPrefabA, -1f);
+        SpawnSplit(diedEntity, room, splitPrefabB, 1f);
     }
 
-    private void SpawnSplit(BaseEntity diedEntity, GameObject prefab, float sideSign)
+    private void SpawnSplit(BaseEntity diedEntity, RoomInstance room, GameObject prefab, float sideSign)
     {
         if (prefab == null) return;
 
@@ -56,11 +78,40 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
                 splitEntity.Initialize(data);
             }
 
-            // 2. 원본의 스포너에 동적 등록하여 방 클리어 판정에 귀속시킴
-            if (diedEntity.Spawner != null)
+            // 2. 원본의 방(RoomInstance)을 찾아 동적 등록하여 방 클리어 판정에 귀속시킴
+            if (room != null)
+            {
+                var normalEvent = room.GetComponentInChildren<NormalRoomEvent>();
+                if (normalEvent != null)
+                {
+                    normalEvent.RegisterActiveEnemy(obj);
+                    Debug.Log($"<color=orange>[DualSplit]</color> Registered {obj.name} to NormalRoomEvent: {normalEvent.gameObject.name}");
+                }
+
+                var eliteEvent = room.GetComponentInChildren<EliteRoomEvent>();
+                if (eliteEvent != null)
+                {
+                    eliteEvent.RegisterActiveEnemy(obj);
+                    Debug.Log($"<color=orange>[DualSplit]</color> Registered {obj.name} to EliteRoomEvent: {eliteEvent.gameObject.name}");
+                }
+
+                var dynamicSpawner = room.GetComponentInChildren<DynamicEnemySpawner>();
+                if (dynamicSpawner != null)
+                {
+                    splitEntity.Spawner = dynamicSpawner;
+                    dynamicSpawner.RegisterActiveEnemy(obj);
+                    Debug.Log($"<color=orange>[DualSplit]</color> Registered {obj.name} to DynamicEnemySpawner: {dynamicSpawner.gameObject.name}");
+                }
+            }
+            else if (diedEntity.Spawner != null)
             {
                 splitEntity.Spawner = diedEntity.Spawner;
                 diedEntity.Spawner.RegisterActiveEnemy(obj);
+                Debug.Log($"<color=orange>[DualSplit]</color> Registered {obj.name} to Spawner fallback");
+            }
+            else
+            {
+                Debug.LogWarning($"<color=red>[DualSplit]</color> Failed to find any RoomInstance or Spawner to register {obj.name}!");
             }
         }
     }

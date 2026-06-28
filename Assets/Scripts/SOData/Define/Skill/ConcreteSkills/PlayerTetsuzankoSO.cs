@@ -34,7 +34,7 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
 
         // 프리팹 대신 직접 OverlapBox 처리
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        Vector2 attackCenter = startPos + dir * (dashDistance * 0.5f);
+        Vector2 attackCenter = startPos;
         Collider2D[] hits = Physics2D.OverlapBoxAll(attackCenter, new Vector2(dashDistance, hitWidth), angle, LayerMask.GetMask("Enemy"));
         
         float finalDamage = player.Stat.ATK * damageMultiplier;
@@ -107,15 +107,59 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
         float elapsed = 0f;
         Vector2 startPos = enemy.position;
         Vector2 targetPos = startPos + pushDir * knockbackForce;
+        
+        int obstacleMask = LayerMask.GetMask("Wall", "Obstacle");
+        
+        // 몬스터 콜라이더 크기 구하기
+        var enemyCol = enemy.GetComponent<Collider2D>();
+        float checkRadius = 0.3f;
+        if (enemyCol != null)
+        {
+            if (enemyCol is CircleCollider2D circle) checkRadius = circle.radius * enemy.localScale.x;
+            else checkRadius = Mathf.Max(enemyCol.bounds.extents.x, enemyCol.bounds.extents.y);
+        }
 
         while (elapsed < knockbackDuration)
         {
             if (enemy == null) yield break;
             elapsed += Time.deltaTime;
             float t = elapsed / knockbackDuration;
-            enemy.position = Vector2.Lerp(startPos, targetPos, t);
+            
+            Vector2 nextPos = Vector2.Lerp(startPos, targetPos, t);
+            Vector2 moveDir = nextPos - (Vector2)enemy.position;
+            float moveDist = moveDir.magnitude;
+            
+            if (moveDist > 0.001f)
+            {
+                RaycastHit2D hit = Physics2D.CircleCast(enemy.position, checkRadius * 0.9f, moveDir.normalized, moveDist, obstacleMask);
+                if (hit.collider != null)
+                {
+                    enemy.position = hit.centroid;
+                    yield break;
+                }
+                else
+                {
+                    enemy.position = nextPos;
+                }
+            }
             yield return null;
         }
-        if (enemy != null) enemy.position = targetPos;
+        if (enemy != null)
+        {
+            Vector2 moveDir = targetPos - (Vector2)enemy.position;
+            float moveDist = moveDir.magnitude;
+            if (moveDist > 0.001f)
+            {
+                RaycastHit2D hit = Physics2D.CircleCast(enemy.position, checkRadius * 0.9f, moveDir.normalized, moveDist, obstacleMask);
+                if (hit.collider != null)
+                {
+                    enemy.position = hit.centroid;
+                }
+                else
+                {
+                    enemy.position = targetPos;
+                }
+            }
+        }
     }
 }
