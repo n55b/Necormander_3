@@ -1,23 +1,138 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// 개별 문의 상태(열림/닫힘)와 비주얼을 관리하는 컨트롤러입니다.
+/// 룸 앵커에 부착되어 아이작 스타일의 순간이동 트리거 및 카메라 워프를 처리하는 컨트롤러입니다.
 /// </summary>
 public class DoorController : MonoBehaviour
 {
-    [SerializeField] private GameObject doorVisual; // 실제 문 스프라이트 및 애니메이터가 있는 오브젝트
-    [SerializeField] private Collider2D doorCollider;
+    private BoxCollider2D _teleportTrigger;
+    private DoorController _destinationDoor;
+    private Vector2Int _roomEntranceDirection; // 순간이동 후 플레이어가 안착할 방 내부 방향
+    private bool _isTeleporting = false;
+    private bool _isEnabled = false;
 
-    private void Awake()
+    private void EnsureTriggerCollider()
     {
-        // 초기화 로직이 필요한 경우 여기에 작성 (SetOpen 강제 호출 제거)
+        if (_teleportTrigger == null)
+        {
+            _teleportTrigger = gameObject.AddComponent<BoxCollider2D>();
+            _teleportTrigger.isTrigger = true;
+            _teleportTrigger.size = new Vector2(1.5f, 1.5f); // 앵커 지점 기준 적절한 감지 영역
+            _teleportTrigger.enabled = _isEnabled;
+        }
     }
 
-    public void SetOpen(bool isOpen)
+    public void SetTriggerEnabled(bool enabled)
     {
-        if (doorVisual != null) doorVisual.SetActive(!isOpen);
-        if (doorCollider != null) doorCollider.enabled = !isOpen;
-        
-        // TODO: 향후 Animator.SetBool("isOpen", isOpen) 등으로 애니메이션 처리 가능
+        _isEnabled = enabled;
+        EnsureTriggerCollider();
+        if (_teleportTrigger != null)
+        {
+            _teleportTrigger.enabled = enabled;
+        }
+    }
+
+    public void SetupTeleport(DoorController destination, Vector2Int entranceDir)
+    {
+        _destinationDoor = destination;
+        _roomEntranceDirection = entranceDir;
+        EnsureTriggerCollider();
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!_isEnabled || _isTeleporting) return;
+
+        if (other.CompareTag("Player"))
+        {
+            PlayerController player = other.GetComponentInParent<PlayerController>() ?? other.GetComponent<PlayerController>();
+            if (player != null && _destinationDoor != null)
+            {
+                StartCoroutine(TeleportSequence(player));
+            }
+        }
+    }
+
+    private IEnumerator TeleportSequence(PlayerController player)
+    {
+        _isTeleporting = true;
+        player.SetInputBlocked(true);
+
+        // 페이드 아웃 연출
+        float fadeTime = 0.2f;
+        CanvasGroup fadeCanvas = CreateFadeCanvas();
+        if (fadeCanvas != null)
+        {
+            float elapsed = 0f;
+            while (elapsed < fadeTime)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                fadeCanvas.alpha = Mathf.Clamp01(elapsed / fadeTime);
+                yield return null;
+            }
+            fadeCanvas.alpha = 1f;
+        }
+
+        // 플레이어 순간이동 전 위치 저장
+        Vector3 prevPos = player.transform.position;
+
+        // 목적지 앵커 위치 계산 및 플레이어 텔레포트
+        // 목적지 앵커 위치에서 방 안쪽 방향(_roomEntranceDirection)으로 2.5유닛 정도 띈 좌표를 목적지로 설정
+        Vector3 destAnchorPos = _destinationDoor.transform.position;
+        Vector3 spawnOffset = new Vector3(_roomEntranceDirection.x, _roomEntranceDirection.y, 0) * 2.5f;
+        Vector3 targetWorldPos = destAnchorPos + spawnOffset;
+
+        // 플레이어 트랜스폼 순간이동
+        player.transform.position = targetWorldPos;
+
+        // 카메라 즉시 이동 (Warp)
+        if (CameraManager.Instance != null)
+        {
+            Vector3 delta = targetWorldPos - prevPos;
+            CameraManager.Instance.WarpCamera(player.transform, delta);
+        }
+
+        yield return new WaitForSecondsRealtime(0.1f);
+
+        // 페이드 인 연출
+        if (fadeCanvas != null)
+        {
+            float elapsed = 0f;
+            while (elapsed < fadeTime)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                fadeCanvas.alpha = Mathf.Clamp01(1f - (elapsed / fadeTime));
+                yield return null;
+            }
+            Destroy(fadeCanvas.gameObject);
+        }
+
+        player.SetInputBlocked(false);
+        _isTeleporting = false;
+    }
+
+    private CanvasGroup CreateFadeCanvas()
+    {
+        GameObject canvasObj = new GameObject("TeleportFadeCanvas");
+        Canvas canvas = canvasObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 999;
+
+        canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+        CanvasGroup group = canvasObj.AddComponent<CanvasGroup>();
+
+        GameObject panel = new GameObject("FadeImage");
+        panel.transform.SetParent(canvasObj.transform, false);
+        var image = panel.AddComponent<UnityEngine.UI.Image>();
+        image.color = Color.black;
+
+        var rect = image.rectTransform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.sizeDelta = Vector2.zero;
+
+        group.alpha = 0f;
+        return group;
     }
 }

@@ -19,6 +19,7 @@ public class RoomInstance : MonoBehaviour
 
     [HideInInspector] public int debugDepth = -1; // 맵 생성 시 계산된 깊이 저장용
     [HideInInspector] public int phaseIndex = -1; // 방이 생성된 맵 생성 페이즈 인덱스
+    [HideInInspector] public Vector2Int gridPosition = Vector2Int.zero; // [추가] 아이작 스타일 가상 그리드 좌표
 
     public float GetDiameter()
     {
@@ -51,7 +52,7 @@ public class RoomInstance : MonoBehaviour
             style.fontSize = 20;
             style.fontStyle = FontStyle.Bold;
             style.alignment = TextAnchor.MiddleCenter;
-            UnityEditor.Handles.Label(transform.position, $"[{roomType}]\nDepth: {debugDepth}", style);
+            UnityEditor.Handles.Label(transform.position, $"[{roomType}]\nDepth: {debugDepth}\nGrid: {gridPosition}", style);
         }
     }
 #endif
@@ -178,9 +179,26 @@ public class RoomInstance : MonoBehaviour
 
     public void SetDoorsOpen(bool open)
     {
+        // 1. 방을 가로막는 문 오브젝트 비활성화 (기존 방식 유지)
         foreach (var door in doorObjects)
         {
-            if (door != null) door.SetActive(!open);
+            if (door != null)
+            {
+                door.SetActive(!open); // 열리면(open == true) 문을 끈다!
+            }
+        }
+
+        // 2. 방 앵커에 달린 텔레포트 트리거들을 활성화 (아이작 방식 순간이동 연동)
+        foreach (var anchor in anchors)
+        {
+            if (anchor != null)
+            {
+                DoorController doorCtrl = anchor.GetComponent<DoorController>();
+                if (doorCtrl != null)
+                {
+                    doorCtrl.SetTriggerEnabled(open); // 열려 있을 때만 순간이동 텔레포트 활성화
+                }
+            }
         }
     }
 

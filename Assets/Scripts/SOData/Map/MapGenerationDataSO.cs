@@ -9,6 +9,12 @@ public class MapGenerationDataSO : ScriptableObject
     public int totalRoomCount = 15;
     public float gridUnit = 1.0f;
     
+    [Header("Isaac Style Settings")]
+    [Tooltip("기존 물리 분산 방식 대신 아이작 스타일 그리드 배치 및 텔레포트 이동 사용 여부")]
+    public bool useIsaacStylePlacement = true;
+    [Tooltip("아이작 스타일 배치 시 방 간의 배치 간격 (물리 충돌 방지용)")]
+    public float gridSpacing = 160f;
+    
     [Header("Room Distribution")]
     public int minNormalRooms = 5;
     public int shopCount = 1;

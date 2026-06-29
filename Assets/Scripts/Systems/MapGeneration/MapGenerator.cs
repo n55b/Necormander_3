@@ -89,6 +89,12 @@ public class MapGenerator : MonoBehaviour
 
     private IEnumerator GenerationSequence()
     {
+        if (generationData != null && generationData.useIsaacStylePlacement)
+        {
+            yield return StartCoroutine(IsaacStyleGenerationSequence());
+            yield break;
+        }
+
         IsMapGenerationCompleted = false;
         _isGenerating = true;
 
@@ -1212,6 +1218,532 @@ public class MapGenerator : MonoBehaviour
             if (globalUnsteppableTilemap.HasTile(pos))
             {
                 globalGroundTilemap.SetTile(pos, null);
+            }
+        }
+    }
+
+    // =========================================================================
+    // ================== 아이작 스타일 그리드 배치 & 텔레포트 이동 로직 ==================
+    // =========================================================================
+
+    private IEnumerator IsaacStyleGenerationSequence()
+    {
+        IsMapGenerationCompleted = false;
+        _isGenerating = true;
+
+        int maxRegenAttempts = 15;
+        int regenAttempt = 0;
+        bool mapSuccess = false;
+        Dictionary<Vector2Int, RoomInstance> gridMap = null;
+
+        while (!mapSuccess && regenAttempt < maxRegenAttempts)
+        {
+            regenAttempt++;
+            _currentPhaseIndex = 0;
+            SetupTilemapLayers();
+            ClearExistingMap();
+
+            gridMap = new Dictionary<Vector2Int, RoomInstance>();
+
+            bool isBossFloor = GameManager.Instance != null && (GameManager.Instance.currentFloor == 4 || (GameManager.Instance.debugStartAtBoss && GameManager.Instance.currentFloor == GameManager.Instance.debugStartFloor));
+
+            bool placementSuccess = false;
+            if (isBossFloor)
+            {
+                placementSuccess = PlaceIsaacRoomsBossFloor(gridMap);
+            }
+            else
+            {
+                placementSuccess = PlaceIsaacRoomsNormalFloor(gridMap);
+            }
+
+            if (placementSuccess)
+            {
+                mapSuccess = true;
+            }
+            else
+            {
+                Debug.LogWarning($"<color=orange>[MapGenerator]</color> Isaac-style map placement attempt {regenAttempt} failed. Re-generating...");
+                yield return null;
+            }
+        }
+
+        if (!mapSuccess)
+        {
+            Debug.LogError($"<color=red>[MapGenerator]</color> Failed to generate Isaac-style map after {maxRegenAttempts} attempts!");
+            _isGenerating = false;
+            yield break;
+        }
+
+        // 배치 간격(spacing)에 맞춰 방들의 물리적 위치 재조정 및 병합 (단계별 분리)
+        Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 1단계: 방 위치 정렬 및 타일 병합 시작...");
+        float spacing = generationData.gridSpacing;
+        foreach (var room in _allRooms)
+        {
+            room.transform.position = new Vector3(room.gridPosition.x * spacing, room.gridPosition.y * spacing, 0);
+            room.SnapToGrid(generationData.gridUnit);
+            room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, globalUnsteppableTilemap);
+            
+            // 한 프레임에 모든 방 타일을 한꺼번에 병합하여 발생하는 프레임 드랍 방지
+            yield return new WaitForSeconds(0.03f);
+        }
+
+        // 문 스폰 및 텔레포트 매핑 연동
+        Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 2단계: 문 스폰 및 텔레포터 연결 중...");
+        yield return StartCoroutine(SetupIsaacDoorsAndTeleporters(gridMap));
+        yield return new WaitForSeconds(0.05f);
+
+        // 최종 가공
+        Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 3단계: 특수 방 할당 및 통행 불가 구역 갱신...");
+        AssignSpecialRooms();
+        CarveUnsteppableHoles();
+        yield return new WaitForSeconds(0.05f);
+
+        Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 4단계: 타일맵 콜라이더 갱신 및 결합...");
+        if (globalWallTilemap != null)
+        {
+            globalWallTilemap.RefreshAllTiles();
+        }
+        SetupFinalColliders();
+        yield return new WaitForSeconds(0.05f);
+
+        Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 5단계: NavMesh 빌드 및 안개 시스템 가동...");
+        BakeNavMesh();
+
+        // 안개 생성
+        GenerateFogOfWar();
+
+        // 스폰 방 안개 즉시 제거
+        RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
+        if (spawnRoom != null)
+        {
+            spawnRoom.RevealRoom();
+        }
+
+        // 생성 완료 후 모든 방의 문을 기본 개방 상태로 설정하여 자유로운 이동 및 텔레포터 활성화 보장
+        foreach (var room in _allRooms)
+        {
+            room.SetDoorsOpen(true);
+        }
+
+        PlacePlayerAtSpawn();
+
+        if (_tempObstacle != null) SafeDestroy(_tempObstacle);
+        _isGenerating = false;
+        IsMapGenerationCompleted = true;
+        OnMapGenerated?.Invoke();
+        Debug.Log("<color=green>[MapGenerator]</color> Isaac-style Map Generation Completed Successfully.");
+    }
+
+    private RoomInstance CreateRoomAtGrid(RoomType type, Vector2Int gridPos)
+    {
+        GameObject prefab = prefabData.GetRandomPrefab(type);
+        if (prefab == null) return null;
+
+        // 처음부터 최종 배치 간격을 곱한 물리적 위치에 생성하여 물리 겹침 반발 자체를 사전에 예방
+        float spacing = generationData.gridSpacing;
+        Vector3 spawnPos = new Vector3(gridPos.x * spacing, gridPos.y * spacing, 0);
+
+        GameObject roomObj = Instantiate(prefab, spawnPos, Quaternion.identity, transform);
+        RoomInstance room = roomObj.GetComponent<RoomInstance>() ?? roomObj.AddComponent<RoomInstance>();
+        room.Initialize(type);
+        room.gridPosition = gridPos;
+
+        // 생성 즉시 Rigidbody2D와 물리 콜라이더를 비활성화/파괴하여 완벽하게 정적으로 위치 고정
+        room.CleanupPhysics();
+
+        if (type == RoomType.Spawn)
+        {
+            _reachedRooms.Add(room);
+            if (!_masterAdjacency.ContainsKey(room)) _masterAdjacency[room] = new List<RoomInstance>();
+        }
+        else
+        {
+            if (!_masterAdjacency.ContainsKey(room)) _masterAdjacency[room] = new List<RoomInstance>();
+        }
+
+        return room;
+    }
+
+    private bool PlaceIsaacRoomsBossFloor(Dictionary<Vector2Int, RoomInstance> gridMap)
+    {
+        // 보스층: Spawn (0,0) -> Boss (0,1)
+        RoomInstance spawn = CreateRoomAtGrid(RoomType.Spawn, Vector2Int.zero);
+        if (spawn == null) return false;
+        gridMap[Vector2Int.zero] = spawn;
+        _allRooms.Add(spawn);
+
+        bool hasUp = spawn.anchors.Any(a => a.direction == Vector2Int.up);
+        if (!hasUp)
+        {
+            Debug.LogError("[MapGenerator] Spawn room doesn't have an Up anchor!");
+            return false;
+        }
+
+        RoomInstance boss = CreateRoomAtGrid(RoomType.Boss, Vector2Int.up);
+        if (boss == null) return false;
+        bool hasDown = boss.anchors.Any(a => a.direction == Vector2Int.down);
+        if (!hasDown)
+        {
+            Debug.LogError("[MapGenerator] Boss room doesn't have a Down anchor!");
+            SafeDestroy(boss.gameObject);
+            return false;
+        }
+
+        gridMap[Vector2Int.up] = boss;
+        _allRooms.Add(boss);
+        _reachedRooms.Add(boss);
+
+        _masterAdjacency[spawn].Add(boss);
+        _masterAdjacency[boss].Add(spawn);
+
+        return true;
+    }
+
+    private bool PlaceIsaacRoomsNormalFloor(Dictionary<Vector2Int, RoomInstance> gridMap)
+    {
+        // 1. 스폰 룸 배치
+        RoomInstance spawn = CreateRoomAtGrid(RoomType.Spawn, Vector2Int.zero);
+        if (spawn == null) return false;
+        gridMap[Vector2Int.zero] = spawn;
+        _allRooms.Add(spawn);
+
+        // 2. 일반 방 수 결정
+        int totalSpecials = generationData.shopCount + generationData.rewardCount + generationData.eliteCount + 1; // 특수방 + 보스방
+        int normalCount = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - totalSpecials);
+
+        int normalPlaced = 0;
+        int failedAttempts = 0;
+
+        while (normalPlaced < normalCount)
+        {
+            bool placed = false;
+            // 이미 배치된 방들의 무작위 셔플링
+            List<RoomInstance> currentRooms = _allRooms.OrderBy(x => Random.value).ToList();
+
+            foreach (var parent in currentRooms)
+            {
+                // 부모 방의 미사용 앵커 중 무작위 셔플
+                var anchors = parent.anchors.Where(a => !a.isUsed).OrderBy(x => Random.value).ToList();
+                foreach (var anchor in anchors)
+                {
+                    Vector2Int targetPos = parent.gridPosition + anchor.direction;
+                    if (gridMap.ContainsKey(targetPos)) continue;
+
+                    Vector2Int neededDir = -anchor.direction;
+
+                    // 일반방 프리팹 목록에서 해당 앵커를 지원하는 에셋 탐색
+                    GameObject selectedPrefab = null;
+                    var entries = prefabData.roomEntries.Find(e => e.roomType == RoomType.Normal);
+                    if (entries == null || entries.prefabs.Count == 0) continue;
+                    
+                    var shuffledPrefabs = entries.prefabs.OrderBy(x => Random.value).ToList();
+                    foreach (var p in shuffledPrefabs)
+                    {
+                        RoomInstance tempRoom = p.GetComponent<RoomInstance>();
+                        if (tempRoom == null) continue;
+                        
+                        bool hasAnchor = p.GetComponentsInChildren<RoomAnchor>().Any(a => a.direction == neededDir);
+                        if (hasAnchor)
+                        {
+                            selectedPrefab = p;
+                            break;
+                        }
+                    }
+
+                    if (selectedPrefab != null)
+                    {
+                        RoomInstance newRoom = CreateRoomAtGrid(RoomType.Normal, targetPos);
+                        if (newRoom == null) continue;
+
+                        gridMap[targetPos] = newRoom;
+                        _allRooms.Add(newRoom);
+                        _reachedRooms.Add(newRoom);
+
+                        _masterAdjacency[parent].Add(newRoom);
+                        _masterAdjacency[newRoom].Add(parent);
+
+                        // 방을 순차적으로 뻗어나가는 시점의 임시 앵커 사용 처리
+                        anchor.isUsed = true;
+                        var matchingNewAnchor = newRoom.anchors.FirstOrDefault(a => a.direction == neededDir && !a.isUsed);
+                        if (matchingNewAnchor != null) matchingNewAnchor.isUsed = true;
+
+                        normalPlaced++;
+                        placed = true;
+                        break;
+                    }
+                }
+                if (placed) break;
+            }
+
+            if (!placed)
+            {
+                failedAttempts++;
+                if (failedAttempts > 200)
+                {
+                    return false; // 일반 방 배치 루프 탈출 실패로 맵 재생성 유도
+                }
+            }
+        }
+
+        // 3. 특수 방 배치 (막다른 골목 탐색)
+        // 뻗어 나갈 때 잠가두었던 임시 앵커 상태 초기화
+        foreach (var r in _allRooms)
+        {
+            foreach (var a in r.anchors) a.isUsed = false;
+        }
+
+        List<RoomType> specialTypes = new List<RoomType>();
+        for (int i = 0; i < generationData.shopCount; i++) specialTypes.Add(RoomType.Shop);
+        for (int i = 0; i < generationData.eliteCount; i++) specialTypes.Add(RoomType.Elite);
+        for (int i = 0; i < generationData.rewardCount; i++) specialTypes.Add(RoomType.Reward);
+        specialTypes.Add(RoomType.Boss); // 보스방 최종 배치
+
+        foreach (var specType in specialTypes)
+        {
+            var deadEndCandidates = GetDeadEndCandidates(gridMap);
+            if (deadEndCandidates.Count == 0)
+            {
+                deadEndCandidates = GetAnyEmptyNeighborCandidates(gridMap);
+            }
+
+            if (deadEndCandidates.Count == 0)
+            {
+                return false; // 막다른 골목 혹은 빈 이웃이 아예 없는 비정상 상태
+            }
+
+            bool placed = false;
+
+            if (specType == RoomType.Boss)
+            {
+                // 보스는 스폰(0,0)에서 그리드 상 맨해튼 거리가 가장 먼 곳에 우선 배치
+                deadEndCandidates = deadEndCandidates.OrderByDescending(c => Mathf.Abs(c.Item3.x) + Mathf.Abs(c.Item3.y)).ToList();
+            }
+            else
+            {
+                deadEndCandidates = deadEndCandidates.OrderBy(x => Random.value).ToList();
+            }
+
+            foreach (var candidate in deadEndCandidates)
+            {
+                RoomInstance parent = candidate.Item1;
+                RoomAnchor parentAnchor = candidate.Item2;
+                Vector2Int targetPos = candidate.Item3;
+                Vector2Int neededDir = -parentAnchor.direction;
+
+                GameObject selectedPrefab = null;
+                var entries = prefabData.roomEntries.Find(e => e.roomType == specType);
+                if (entries == null || entries.prefabs.Count == 0) continue;
+
+                var shuffledPrefabs = entries.prefabs.OrderBy(x => Random.value).ToList();
+                foreach (var p in shuffledPrefabs)
+                {
+                    bool hasAnchor = p.GetComponentsInChildren<RoomAnchor>().Any(a => a.direction == neededDir);
+                    if (hasAnchor)
+                    {
+                        selectedPrefab = p;
+                        break;
+                    }
+                }
+
+                if (selectedPrefab != null)
+                {
+                    RoomInstance newRoom = CreateRoomAtGrid(specType, targetPos);
+                    if (newRoom == null) continue;
+
+                    gridMap[targetPos] = newRoom;
+                    _allRooms.Add(newRoom);
+                    _reachedRooms.Add(newRoom);
+
+                    _masterAdjacency[parent].Add(newRoom);
+                    _masterAdjacency[newRoom].Add(parent);
+
+                    placed = true;
+                    break;
+                }
+            }
+
+            if (!placed)
+            {
+                return false; // 해당 특수방 배치 실패 시 재배치
+            }
+        }
+
+        // BFS 깊이(debugDepth) 계산 갱신
+        UpdateAllRoomDepths();
+
+        return true;
+    }
+
+    private List<System.Tuple<RoomInstance, RoomAnchor, Vector2Int>> GetDeadEndCandidates(Dictionary<Vector2Int, RoomInstance> gridMap)
+    {
+        var list = new List<System.Tuple<RoomInstance, RoomAnchor, Vector2Int>>();
+        var sourceRooms = _allRooms.Where(r => r.roomType == RoomType.Spawn || r.roomType == RoomType.Normal).ToList();
+
+        foreach (var room in sourceRooms)
+        {
+            foreach (var anchor in room.anchors)
+            {
+                Vector2Int targetPos = room.gridPosition + anchor.direction;
+                if (gridMap.ContainsKey(targetPos)) continue;
+
+                int neighborCount = 0;
+                Vector2Int[] checkDirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+                foreach (var d in checkDirs)
+                {
+                    if (gridMap.ContainsKey(targetPos + d))
+                    {
+                        neighborCount++;
+                    }
+                }
+
+                if (neighborCount == 1)
+                {
+                    list.Add(System.Tuple.Create(room, anchor, targetPos));
+                }
+            }
+        }
+
+        return list;
+    }
+
+    private List<System.Tuple<RoomInstance, RoomAnchor, Vector2Int>> GetAnyEmptyNeighborCandidates(Dictionary<Vector2Int, RoomInstance> gridMap)
+    {
+        var list = new List<System.Tuple<RoomInstance, RoomAnchor, Vector2Int>>();
+        var sourceRooms = _allRooms.Where(r => r.roomType == RoomType.Spawn || r.roomType == RoomType.Normal).ToList();
+
+        foreach (var room in sourceRooms)
+        {
+            foreach (var anchor in room.anchors)
+            {
+                Vector2Int targetPos = room.gridPosition + anchor.direction;
+                if (!gridMap.ContainsKey(targetPos))
+                {
+                    list.Add(System.Tuple.Create(room, anchor, targetPos));
+                }
+            }
+        }
+        return list;
+    }
+
+    private IEnumerator SetupIsaacDoorsAndTeleporters(Dictionary<Vector2Int, RoomInstance> gridMap)
+    {
+        foreach (var r in _allRooms)
+        {
+            foreach (var a in r.anchors) a.isUsed = false;
+        }
+
+        for (int i = 0; i < _allRooms.Count; i++)
+        {
+            for (int j = i + 1; j < _allRooms.Count; j++)
+            {
+                RoomInstance rA = _allRooms[i];
+                RoomInstance rB = _allRooms[j];
+
+                int dist = Mathf.Abs(rA.gridPosition.x - rB.gridPosition.x) + Mathf.Abs(rA.gridPosition.y - rB.gridPosition.y);
+                if (dist != 1) continue;
+
+                Vector2Int dirAToB = rB.gridPosition - rA.gridPosition;
+                Vector2Int dirBToA = -dirAToB;
+
+                RoomAnchor anchorA = rA.anchors.FirstOrDefault(a => a.direction == dirAToB && !a.isUsed);
+                RoomAnchor anchorB = rB.anchors.FirstOrDefault(a => a.direction == dirBToA && !a.isUsed);
+
+                if (anchorA != null && anchorB != null)
+                {
+                    anchorA.isUsed = true;
+                    anchorB.isUsed = true;
+
+                    // 1. 방 막기용 물리 장벽 문 스폰 및 등록 (기존 Active 껐다 켰다 하는 구조)
+                    SpawnIsaacDoorAtAnchor(rA, anchorA);
+                    SpawnIsaacDoorAtAnchor(rB, anchorB);
+
+                    // 2. 텔레포트 기능은 상시 켜져 있는 앵커(RoomAnchor) 게임오브젝트에 직접 부착해 연동
+                    DoorController doorCtrlA = anchorA.gameObject.GetComponent<DoorController>() ?? anchorA.gameObject.AddComponent<DoorController>();
+                    DoorController doorCtrlB = anchorB.gameObject.GetComponent<DoorController>() ?? anchorB.gameObject.AddComponent<DoorController>();
+
+                    if (doorCtrlA != null && doorCtrlB != null)
+                    {
+                        // 문 A 진입 시 문 B의 방 안쪽 방향(B의 앵커 반대 방향 = -dirBToA = dirAToB)으로 스폰
+                        doorCtrlA.SetupTeleport(doorCtrlB, dirAToB);
+                        doorCtrlB.SetupTeleport(doorCtrlA, dirBToA);
+                        
+                        // 초기 시점에는 문이 개방된 상태(전투 시작 전)이므로 텔레포터 트리거 활성화
+                        doorCtrlA.SetTriggerEnabled(true);
+                        doorCtrlB.SetTriggerEnabled(true);
+
+                        // 문 위치의 전역 벽 타일 제거하여 입구 구멍 개방
+                        CarveDoorEntrance(rA, anchorA);
+                        CarveDoorEntrance(rB, anchorB);
+                    }
+                }
+            }
+        }
+
+        yield break;
+    }
+
+    private GameObject SpawnIsaacDoorAtAnchor(RoomInstance room, RoomAnchor anchor)
+    {
+        GameObject doorPrefab = null; float rotation = 0f;
+        if (anchor.direction == Vector2Int.up) doorPrefab = generationData.doorUp;
+        else if (anchor.direction == Vector2Int.down) doorPrefab = generationData.doorDown;
+        else if (anchor.direction == Vector2Int.left) doorPrefab = generationData.doorLeft;
+        else if (anchor.direction == Vector2Int.right) doorPrefab = generationData.doorRight;
+        
+        if (doorPrefab == null && generationData.doorUp != null)
+        {
+            doorPrefab = generationData.doorUp;
+            if (anchor.direction == Vector2Int.down) rotation = 180f;
+            else if (anchor.direction == Vector2Int.left) rotation = 90f;
+            else if (anchor.direction == Vector2Int.right) rotation = -90f;
+        }
+
+        if (doorPrefab != null)
+        {
+            GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform);
+            doorObj.name = $"Door_{anchor.direction}_{room.name}";
+            room.doorObjects.Add(doorObj);
+
+            // 플레이어와의 트리거 충돌 감지가 물리 엔진 매트릭스 상에서 100% 감지되도록 레이어 지정
+            doorObj.gameObject.layer = LayerMask.NameToLayer("Default");
+            foreach (Transform child in doorObj.transform)
+            {
+                child.gameObject.layer = LayerMask.NameToLayer("Default");
+            }
+            return doorObj;
+        }
+        return null;
+    }
+
+    private void CarveDoorEntrance(RoomInstance room, RoomAnchor anchor)
+    {
+        if (globalWallTilemap == null) return;
+
+        Vector3Int cellPos = globalWallTilemap.WorldToCell(anchor.transform.position);
+        Vector2Int pos = new Vector2Int(cellPos.x, cellPos.y);
+        Vector2Int dir = anchor.direction;
+        Vector2Int sideDir = new Vector2Int(-dir.y, dir.x); // 문 수직(폭) 방향
+
+        // 문 규격 폭 3칸(s = -1 ~ 1)에 대해, 딱 벽이 있는 라인(d = 0)만 정밀 개방
+        // 이렇게 하면 플레이어가 좁은 틈새에 끼지 않으면서도 외부 우주 공간 타일이 휑하게 뚫리지 않습니다.
+        int d = 0;
+        for (int s = -1; s <= 1; s++)
+        {
+            Vector2Int targetPos = pos + (dir * d) + (sideDir * s);
+            Vector3Int targetCell = new Vector3Int(targetPos.x, targetPos.y, 0);
+
+            // 벽 타일 및 그림자 제거
+            globalWallTilemap.SetTile(targetCell, null);
+            if (globalShadowTilemap != null)
+            {
+                globalShadowTilemap.SetTile(targetCell, null);
+            }
+
+            // 지나갈 수 없는 영역 타일(Unsteppable)도 함께 뚫어주어 보이지 않는 장벽 파괴
+            if (globalUnsteppableTilemap != null)
+            {
+                globalUnsteppableTilemap.SetTile(targetCell, null);
             }
         }
     }

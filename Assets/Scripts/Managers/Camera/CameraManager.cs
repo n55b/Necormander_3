@@ -39,6 +39,15 @@ public class CameraManager : MonoBehaviour
         Debug.Log("<color=cyan>[CameraManager]</color> Initialized.");
     }
 
+    // [추가] 텔레포트 이동 시 카메라 즉시 순간이동 기능
+    public void WarpCamera(Transform target, Vector3 delta)
+    {
+        if (_vcam != null)
+        {
+            _vcam.OnTargetObjectWarped(target, delta);
+        }
+    }
+
     private void OnDestroy()
     {
         DamageEventBus.OnDamageReceived -= OnDamageReceived;
