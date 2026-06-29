@@ -20,8 +20,26 @@ public class UIBasedMiniMap : MonoBehaviour
     [SerializeField] private float hudRoomSize = 20f;
     [SerializeField] private float hudRoomSpacing = 6f;
 
-    [Header("스프라이트 설정")]
-    [SerializeField] private Sprite roomSprite;              // 방 기본 흰색 사각형 스프라이트
+    [Header("기본 폴백 스프라이트 설정")]
+    [SerializeField] private Sprite fallbackRoomSprite;       // 방 기본 흰색 사각형 스프라이트
+
+    [Header("🌟 1. 방 테두리 / 배경 커스텀 에셋 (비워두면 기본 틴팅 폴백 작동)")]
+    [SerializeField] private Sprite customNormalRoomSprite;   // 일반 방 전용 오버라이드 스킨
+    [SerializeField] private Sprite customBossRoomSprite;     // 보스 방 전용 오버라이드 스킨
+    [SerializeField] private Sprite customShopRoomSprite;     // 상점 방 전용 오버라이드 스킨
+    [SerializeField] private Sprite customRewardRoomSprite;   // 보상 방 전용 오버라이드 스킨
+    [SerializeField] private Sprite customEliteRoomSprite;    // 엘리트 방 전용 오버라이드 스킨
+
+    [Header("🌟 2. 지형 도트 커스텀 연출")]
+    [SerializeField] private Sprite customTerrainDotSprite;   // 지형 도트용 스프라이트 (비워두면 사각형)
+    [SerializeField] private bool useTerrainShadow = true;     // 2D 입체 그림자 효과 사용 여부
+    [SerializeField] private Color terrainShadowColor = new Color(0f, 0f, 0f, 0.6f);
+    [SerializeField] private Vector2 terrainShadowOffset = new Vector2(1.5f, -1.5f);
+
+    [Header("🌟 3. 플레이어 / 적군 마커 커스텀 오버라이드")]
+    [SerializeField] private Sprite customPlayerIcon;         // 플레이어 마커 이미지 (비워두면 기본 얼굴)
+    [SerializeField] private bool syncPlayerZRotation = true; // 플레이어 회전 각도(방향) 동기화 여부
+    [SerializeField] private Sprite customEnemyIcon;          // 적 마커 이미지 (비워두면 빨간 도트)
 
     // 스프라이트 시트 로드 캐시
     private Sprite _playerIcon;
@@ -32,22 +50,21 @@ public class UIBasedMiniMap : MonoBehaviour
     private List<GameObject> _spawnedFullRooms = new List<GameObject>();
     private List<GameObject> _spawnedHudRooms = new List<GameObject>();
 
-    // 🌟 방별 실제 바닥 타일맵 로컬 좌표 캐시 (방 모양 반영용)
-    // Key: 방 이름, Value: 방 중심 기준 타일들의 로컬 상대 셀 좌표 목록
+    // 방별 실제 바닥 타일맵 로컬 좌표 캐시 (방 모양 반영용)
     private Dictionary<string, HashSet<Vector2Int>> _roomTilemapsCache = new Dictionary<string, HashSet<Vector2Int>>();
 
     // 몬스터 레이더 추적용 캐시
     private List<GameObject> _cachedEnemies = new List<GameObject>();
     private float _enemyScanTimer = 0f;
-    private const float EnemyScanInterval = 0.15f; // 0.15초마다 몹 목록 갱신
+    private const float EnemyScanInterval = 0.15f;
 
-    // 실시간 적 마커 딕셔너리 (Key: 몬스터 GameObject, Value: 생성된 UI 적 마커 RectTransforms)
+    // 실시간 적 마커 딕셔너리
     private Dictionary<GameObject, List<RectTransform>> _enemyMarkers = new Dictionary<GameObject, List<RectTransform>>();
 
-    // 🌟 실시간 플레이어 마커 RectTransform 캐시 (매 프레임 위치 실시간 추적용)
+    // 실시간 플레이어 마커 RectTransform 캐시
     private List<RectTransform> _playerMarkers = new List<RectTransform>();
 
-    // 실시간 적 마커들을 꽂아줄 UI 부모 컨테이너 (Refresh할 때마다 초기화)
+    // 실시간 적 마커들을 꽂아줄 UI 부모 컨테이너
     private Dictionary<string, Transform> _roomRadarContainers = new Dictionary<string, Transform>();
 
     // 전투 및 방 줌 상태 캐시
@@ -98,12 +115,12 @@ public class UIBasedMiniMap : MonoBehaviour
         if (isBattle != _lastWasBattle)
         {
             _lastWasBattle = isBattle;
-            hudRoomSize = isBattle ? 90f : 20f;     // 전투 중이면 90으로 초대형 확대 (단일 방 집중), 평소엔 20으로 축소
+            hudRoomSize = isBattle ? 90f : 20f; 
             hudRoomSpacing = isBattle ? 0f : 6f;
             RefreshMap();
         }
 
-        // 2. 경량화 적군 위치 물리 스캔 (0.15초 주기로 씬 내 몹 수집)
+        // 2. 경량화 적군 위치 물리 스캔
         _enemyScanTimer += Time.deltaTime;
         if (_enemyScanTimer >= EnemyScanInterval)
         {
@@ -111,7 +128,7 @@ public class UIBasedMiniMap : MonoBehaviour
             ScanRoomEnemies(currentRoom);
         }
 
-        // 3. 🌟 플레이어 및 적군 마커 위치 매 프레임 실시간 레이더 좌표 연산 동기화
+        // 3. 플레이어 및 적군 마커 위치 매 프레임 실시간 레이더 좌표 연산 동기화
         UpdateRealTimeMarkers(currentRoom);
     }
 
@@ -122,7 +139,6 @@ public class UIBasedMiniMap : MonoBehaviour
         RoomInstance currentRoom = MapGenerator.Instance.CurrentRoom;
         if (currentRoom == null) return;
 
-        // 마커 및 컨테이너 사전 초기화
         _enemyMarkers.Clear();
         _playerMarkers.Clear();
         _roomRadarContainers.Clear();
@@ -147,7 +163,6 @@ public class UIBasedMiniMap : MonoBehaviour
             DrawRoomsOnContainer(hudMapContainer, _spawnedHudRooms, currentRoom, hudRoomSize, hudRoomSpacing, false, isBattle);
         }
 
-        // 미니맵 재생성 즉시 1차 스캔 실행하여 몹 도트 즉각 스폰
         ScanRoomEnemies(currentRoom);
         UpdateRealTimeMarkers(currentRoom);
     }
@@ -174,7 +189,6 @@ public class UIBasedMiniMap : MonoBehaviour
         {
             if (room == null) continue;
 
-            // 전투 중 단일 방 모드일 때는 현재 방 외에는 스킵
             if (focusOnlyCurrentRoom && room != currentRoom) continue;
 
             bool isVisited = room.hasBeenVisited || room.roomType == RoomType.Spawn;
@@ -210,15 +224,14 @@ public class UIBasedMiniMap : MonoBehaviour
             rt.anchoredPosition = gridDiff * (roomUiSize + roomUiSpacing);
 
             Image img = roomObj.GetComponent<Image>();
-            img.sprite = roomSprite;
+            img.sprite = fallbackRoomSprite;
 
             Button btn = roomObj.GetComponent<Button>();
 
-            // 🌟 1. 방 고유의 지형 모양 픽셀 사상 (전투 중 줌인 상태일 때 현재 방 내부에만 투과 렌더링)
+            // 🌟 1. 방 모양 지형 그리기 (전투 줌인 시 현재 방 내부에만 지형 투과)
             if (focusOnlyCurrentRoom && room == currentRoom)
             {
-                // 기본 사각형 배경을 보이지 않게 투명화하여 실제 방 지형 모양만 돋보이게 만듭니다.
-                img.color = new Color(0f, 0f, 0f, 0f);
+                img.color = new Color(0f, 0f, 0f, 0f); // 배경 사각형 투명화
                 DrawRoomTerrainShape(roomObj, room, roomUiSize);
             }
 
@@ -244,33 +257,53 @@ public class UIBasedMiniMap : MonoBehaviour
                 else if (room.roomType == RoomType.Spawn) roomIconSprite = _stairIcon;
             }
 
-            // 방문 여부 및 방 종류에 따른 색상 지정 (전투 줌 상태가 아닐 때만 사각형 색 채우기)
+            // 🌟 2. 인스펙터 커스텀 방 스프라이트 교체 분기 (비워져 있으면 fallback 기본 컬러 틴팅)
+            Sprite customRoomSprite = GetCustomRoomSprite(room.roomType);
+
             if (!focusOnlyCurrentRoom)
             {
+                if (customRoomSprite != null)
+                {
+                    // 커스텀 방 스프라이트 장착 완료시 틴트 없이 원본 출력
+                    img.sprite = customRoomSprite;
+                    img.color = Color.white;
+                }
+                else
+                {
+                    // 커스텀 스프라이트 누락 시: 기존 틴팅 방식으로 그리기
+                    if (isVisited)
+                    {
+                        switch (room.roomType)
+                        {
+                            case RoomType.Spawn:
+                                img.color = new Color(0.2f, 0.7f, 1f, 1.0f);
+                                break;
+                            case RoomType.Shop:
+                                img.color = new Color(1f, 0.85f, 0.2f, 1.0f);
+                                break;
+                            case RoomType.Reward:
+                                img.color = new Color(0.2f, 0.85f, 0.4f, 1.0f);
+                                break;
+                            case RoomType.Boss:
+                                img.color = new Color(0.95f, 0.2f, 0.2f, 1.0f);
+                                break;
+                            case RoomType.Elite:
+                                img.color = new Color(0.8f, 0.3f, 0.9f, 1.0f);
+                                break;
+                            default:
+                                img.color = new Color(0.35f, 0.45f, 0.65f, 1.0f);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        img.color = new Color(0.4f, 0.4f, 0.4f, 0.6f);
+                    }
+                }
+
+                // 기호 및 룸 아이콘 얹기
                 if (isVisited)
                 {
-                    switch (room.roomType)
-                    {
-                        case RoomType.Spawn:
-                            img.color = new Color(0.2f, 0.7f, 1f, 1.0f); // 하늘색
-                            break;
-                        case RoomType.Shop:
-                            img.color = new Color(1f, 0.85f, 0.2f, 1.0f); // 노란색
-                            break;
-                        case RoomType.Reward:
-                            img.color = new Color(0.2f, 0.85f, 0.4f, 1.0f); // 초록색
-                            break;
-                        case RoomType.Boss:
-                            img.color = new Color(0.95f, 0.2f, 0.2f, 1.0f); // 붉은색
-                            break;
-                        case RoomType.Elite:
-                            img.color = new Color(0.8f, 0.3f, 0.9f, 1.0f); // 보라색
-                            break;
-                        default:
-                            img.color = new Color(0.35f, 0.45f, 0.65f, 1.0f); // 일반 방: 블루/그레이
-                            break;
-                    }
-
                     if (roomIconSprite != null)
                     {
                         AddMarkerImage(roomObj, roomIconSprite, roomUiSize * 0.6f, iconColor);
@@ -292,9 +325,7 @@ public class UIBasedMiniMap : MonoBehaviour
                 }
                 else
                 {
-                    img.color = new Color(0.4f, 0.4f, 0.4f, 0.6f);
                     btn.interactable = false;
-                    
                     if (roomIconSprite != null)
                     {
                         AddMarkerImage(roomObj, roomIconSprite, roomUiSize * 0.6f, new Color(iconColor.r, iconColor.g, iconColor.b, 0.4f));
@@ -306,7 +337,7 @@ public class UIBasedMiniMap : MonoBehaviour
                 }
             }
 
-            // 🌟 2. 플레이어 캐릭터 본래 얼굴 이미지 그대로 얹기 (Color.white 복구로 선명하게 표시!)
+            // 🌟 3. 플레이어 캐릭터 머리 아이콘 연동
             if (room == currentRoom)
             {
                 GameObject playerMarker = new GameObject("PlayerMarker", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
@@ -314,24 +345,17 @@ public class UIBasedMiniMap : MonoBehaviour
                 
                 RectTransform pRt = playerMarker.GetComponent<RectTransform>();
                 pRt.sizeDelta = new Vector2(roomUiSize * 0.35f, roomUiSize * 0.35f);
-                pRt.anchoredPosition = Vector2.zero; // 실시간 위치는 Update에서 매 프레임 갱신합니다.
+                pRt.anchoredPosition = Vector2.zero;
 
                 Image pImg = playerMarker.GetComponent<Image>();
-                if (_playerIcon != null)
-                {
-                    pImg.sprite = _playerIcon;
-                    pImg.color = Color.white; 
-                }
-                else
-                {
-                    pImg.color = Color.yellow;
-                }
+                // 인스펙터 커스텀 오버라이드 또는 동적 시트 로드 아이콘 선택
+                pImg.sprite = (customPlayerIcon != null) ? customPlayerIcon : _playerIcon;
+                pImg.color = Color.white; 
 
-                // 매 프레임 추적하기 위해 리스트 캐싱
                 _playerMarkers.Add(pRt);
             }
 
-            // 🌟 3. 적군 마커를 꽂아둘 레이더 컨테이너를 생성하여 저장
+            // 🌟 4. 적군 레이더 컨테이너 등록
             if (room == currentRoom)
             {
                 GameObject radarContainer = new GameObject("RadarContainer", typeof(RectTransform));
@@ -343,6 +367,19 @@ public class UIBasedMiniMap : MonoBehaviour
                 string containerKey = isFullMap ? "full" : "hud";
                 _roomRadarContainers[containerKey] = radarContainer.transform;
             }
+        }
+    }
+
+    private Sprite GetCustomRoomSprite(RoomType type)
+    {
+        switch (type)
+        {
+            case RoomType.Spawn: return customNormalRoomSprite; // 스폰 방도 기본 일반 형태 활용
+            case RoomType.Shop: return customShopRoomSprite;
+            case RoomType.Reward: return customRewardRoomSprite;
+            case RoomType.Boss: return customBossRoomSprite;
+            case RoomType.Elite: return customEliteRoomSprite;
+            default: return customNormalRoomSprite;
         }
     }
 
@@ -379,23 +416,19 @@ public class UIBasedMiniMap : MonoBehaviour
         var terrainTiles = _roomTilemapsCache[cacheKey];
         if (terrainTiles.Count == 0) return;
 
-        // 룸 지형 컨테이너 생성
         GameObject terrainContainer = new GameObject("TerrainContainer", typeof(RectTransform));
         terrainContainer.transform.SetParent(roomObj.transform, false);
         RectTransform containerRt = terrainContainer.GetComponent<RectTransform>();
         containerRt.sizeDelta = new Vector2(roomUiSize, roomUiSize);
         containerRt.anchoredPosition = Vector2.zero;
 
-        // 방의 정규화 가로세로 비율
         float roomW = room.roomSize.x;
         float roomH = room.roomSize.y;
         if (roomW <= 0.1f) roomW = 25f;
         if (roomH <= 0.1f) roomH = 25f;
 
-        // 미니 지형 도트의 스케일 크기 (방 크기 대비 90% 공간 사상)
         float dotSize = (roomUiSize / roomW) * 0.95f; 
 
-        // 캐싱된 모든 타일에 미니 지형 이미지 소환
         foreach (var tilePos in terrainTiles)
         {
             GameObject dotObj = new GameObject("TerrainDot", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
@@ -404,15 +437,21 @@ public class UIBasedMiniMap : MonoBehaviour
             RectTransform dRt = dotObj.GetComponent<RectTransform>();
             dRt.sizeDelta = new Vector2(dotSize, dotSize);
 
-            // 타일의 물리 상대 좌표를 UI 로컬 비율 좌표로 변사
             float normX = tilePos.x / roomW;
             float normY = tilePos.y / roomH;
             dRt.anchoredPosition = new Vector2(normX * roomUiSize, normY * roomUiSize);
 
             Image img = dotObj.GetComponent<Image>();
-            img.sprite = roomSprite;
-            // 은은한 블루 그레이 색으로 타일 지형 형상화
-            img.color = new Color(0.25f, 0.4f, 0.6f, 0.75f);
+            img.sprite = (customTerrainDotSprite != null) ? customTerrainDotSprite : fallbackRoomSprite;
+            img.color = new Color(0.25f, 0.4f, 0.6f, 0.75f); // 차분하고 멋스러운 블루 그레이 틴트
+
+            // 🌟 [입체 그림자 셋팅] useTerrainShadow가 인스펙터에서 켜져 있다면 UI Shadow 컴포넌트 자동 주입
+            if (useTerrainShadow)
+            {
+                Shadow shadow = dotObj.AddComponent<Shadow>();
+                shadow.effectColor = terrainShadowColor;
+                shadow.effectDistance = terrainShadowOffset;
+            }
         }
     }
 
@@ -446,7 +485,6 @@ public class UIBasedMiniMap : MonoBehaviour
         tmp.color = new Color(1f, 1f, 1f, opacity);
     }
 
-    // 🌟 안전한 물리 레이어 스캔 및 실시간 적 마커 동적 갱신(소멸/생성 싱크)
     private void ScanRoomEnemies(RoomInstance currentRoom)
     {
         _cachedEnemies.Clear();
@@ -478,7 +516,7 @@ public class UIBasedMiniMap : MonoBehaviour
             }
         }
 
-        // 🌟 [핵심 추가] 씬 상에서 죽은 적의 UI 마커 즉시 제거
+        // 씬 상에서 죽은 적의 UI 마커 즉시 제거
         List<GameObject> deadEnemies = new List<GameObject>();
         foreach (var enemy in _enemyMarkers.Keys)
         {
@@ -499,7 +537,7 @@ public class UIBasedMiniMap : MonoBehaviour
             _enemyMarkers.Remove(dead);
         }
 
-        // 🌟 [핵심 추가] 실시간 플레이 중 새로 생성(스폰)된 적의 UI 마커 즉시 동적 소환
+        // 실시간 플레이 중 새로 생성(스폰)된 적의 UI 마커 즉시 동적 소환
         foreach (var enemy in _cachedEnemies)
         {
             if (enemy == null) continue;
@@ -507,7 +545,6 @@ public class UIBasedMiniMap : MonoBehaviour
             {
                 List<RectTransform> newMarkers = new List<RectTransform>();
                 
-                // full 및 hud 레이더 컨테이너 모두에 동적 소환
                 foreach (var pair in _roomRadarContainers)
                 {
                     Transform parentContainer = pair.Value;
@@ -518,12 +555,17 @@ public class UIBasedMiniMap : MonoBehaviour
 
                     RectTransform eRt = enemyMarker.GetComponent<RectTransform>();
                     
-                    // 스케일 계산용 (부모 UI 사이즈의 15% 크기)
                     float parentSize = parentContainer.parent.GetComponent<RectTransform>().sizeDelta.x;
-                    eRt.sizeDelta = new Vector2(parentSize * 0.12f, parentSize * 0.12f);
+                    
+                    // 🌟 [적 마커 스케일 분기] 보스이거나 이름에 Boss가 섞인 강한 적은 마커 크기를 1.8배 확대
+                    bool isBoss = enemy.CompareTag("Boss") || enemy.name.Contains("Boss");
+                    float scaleMultiplier = isBoss ? 0.22f : 0.12f;
+                    
+                    eRt.sizeDelta = new Vector2(parentSize * scaleMultiplier, parentSize * scaleMultiplier);
 
                     Image eImg = enemyMarker.GetComponent<Image>();
-                    eImg.color = Color.red;
+                    eImg.sprite = (customEnemyIcon != null) ? customEnemyIcon : null; // 커스텀 적 아이콘 오버라이드 지원
+                    eImg.color = isBoss ? new Color(1f, 0.1f, 0.1f, 1f) : Color.red; // 보스는 진한 빨간색 강조
 
                     newMarkers.Add(eRt);
                 }
@@ -532,7 +574,6 @@ public class UIBasedMiniMap : MonoBehaviour
         }
     }
 
-    // 🌟 플레이어 및 적 몬스터들의 좌표를 매 프레임 실시간 사상하여 미니맵 상에 꼼지락거리며 흐르도록 갱신합니다.
     private void UpdateRealTimeMarkers(RoomInstance currentRoom)
     {
         if (currentRoom == null) return;
@@ -543,7 +584,7 @@ public class UIBasedMiniMap : MonoBehaviour
         if (roomW <= 0.1f) roomW = 25f;
         if (roomH <= 0.1f) roomH = 25f;
 
-        // 1. 🌟 플레이어 위치 실시간 스크롤 동기화
+        // 1. 플레이어 위치 및 회전 각도 실시간 동기화
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             Vector3 playerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position;
@@ -558,11 +599,18 @@ public class UIBasedMiniMap : MonoBehaviour
                 {
                     float parentSize = pRt.parent.GetComponent<RectTransform>().sizeDelta.x;
                     pRt.anchoredPosition = new Vector2(pNormX * parentSize, pNormY * parentSize);
+
+                    // 🌟 [플레이어 360도 회전 실시간 매핑] syncPlayerZRotation이 켜져 있을 때 각도 복사
+                    if (syncPlayerZRotation)
+                    {
+                        float playerZRot = GameManager.Instance.PLAYERCONTROLLER.transform.rotation.eulerAngles.z;
+                        pRt.localRotation = Quaternion.Euler(0f, 0f, playerZRot);
+                    }
                 }
             }
         }
 
-        // 2. 🌟 적군 위치 실시간 스크롤 동기화
+        // 2. 적군 위치 실시간 스크롤 동기화
         foreach (var pair in _enemyMarkers)
         {
             GameObject enemy = pair.Key;
