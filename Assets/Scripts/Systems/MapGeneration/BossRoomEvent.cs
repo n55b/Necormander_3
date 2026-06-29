@@ -15,6 +15,10 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     [SerializeField] private MinionDataSO specificBossData;
     [SerializeField] private GameObject portalObject;
 
+    [Header("Reward Box Settings")]
+    [Tooltip("방 클리어 시 한가운데에 생성할 보상 상자 프리팹을 연결해 주세요.")]
+    [SerializeField] private GameObject rewardBoxPrefab;
+
     [Header("Unity Events")]
     public UnityEvent OnBossCombatStart;
     public UnityEvent OnBossCombatClear;
@@ -22,6 +26,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     private GameObject _activeBoss;
     private List<MinionDataSO> _bossEnemyPool = new List<MinionDataSO>(); 
     private bool _isBattleActive = false;
+    private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
     private RoomInstance _cachedRoom;
 
     private void Start()
@@ -47,7 +52,8 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 
     private void Update()
     {
-        if (!_isBattleActive) return;
+        // 지연 스폰 중에는 보스가 소환 안 된 상태이므로 즉시 클리어되는 현상 방지
+        if (!_isBattleActive || _isSpawnPending) return;
 
         if (_activeBoss == null)
         {
@@ -62,6 +68,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         
         _cachedRoom = room;
         _isBattleActive = true;
+        _isSpawnPending = true; // 스폰 진행 예정 상태 설정
 
         room.SetDoorsOpen(false); // 문 폐쇄
 
@@ -69,13 +76,21 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
         if (GameManager.Instance?.squadSpawner != null) GameManager.Instance.squadSpawner.RefreshFullSquad();
 
-        SpawnBoss(room);
+        // 1초 후 보스가 소환되도록 텀(Term) 연출 구현
+        StartCoroutine(DelayedSpawnBoss(room));
 
         // 플레이어 상태 업데이트 (전투 중)
         if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Battle);
 
         OnBossCombatStart?.Invoke();
         Debug.Log($"<color=red>[BossRoom]</color> Warning! Boss Encounter in {room.gameObject.name}");
+    }
+
+    private IEnumerator DelayedSpawnBoss(RoomInstance room)
+    {
+        yield return new WaitForSeconds(0.5f); // 카메라 워프가 안착하는 약 0.5초 동안만 대기 후 스폰
+        _isSpawnPending = false; // 지연 해제, 이제부터 Update 감지 가능
+        SpawnBoss(room);
     }
 
     public void OnRoomCleared(RoomInstance room)
@@ -86,8 +101,8 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
             allyManager?.ClearAll();
         }
 
-        if (RewardManager.Instance != null)
-            RewardManager.Instance.RequestClearReward(room.roomType);
+        // 인스펙터에 할당된 상자를 방 정중앙에 생성
+        SpawnRoomRewardBox(room);
 
         // 보스 방 클리어 시 포탈 활성화 또는 생성
         if (portalObject != null)
@@ -143,6 +158,34 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         {
             // 네비메쉬 위가 아니더라도 강제 소환 (중앙)
             _activeBoss = GameManager.Instance.dataManager.CreateUnit(dataToSpawn, spawnPos);
+        }
+    }
+
+    private void SpawnRoomRewardBox(RoomInstance room)
+    {
+        if (rewardBoxPrefab == null)
+        {
+            // 상자가 없으면 예외 복구 조치로 즉시 UI 개방
+            if (RewardManager.Instance != null)
+                RewardManager.Instance.RequestClearReward(room.roomType);
+            return;
+        }
+
+        Vector3 spawnPos = room.transform.position + (Vector3)room.centerOffset;
+        GameObject boxObj = Instantiate(rewardBoxPrefab, spawnPos, Quaternion.identity);
+        boxObj.name = $"RoomRewardBox_{room.roomType}_{room.name}";
+
+        RoomRewardBox rewardBox = boxObj.GetComponent<RoomRewardBox>();
+        if (rewardBox != null)
+        {
+            rewardBox.Initialize(room.roomType);
+            Debug.Log($"<color=magenta>[BossRoomEvent]</color> Spawned RoomRewardBox at {spawnPos}");
+        }
+        else
+        {
+            Debug.LogWarning("[BossRoomEvent] Spawned object lacks RoomRewardBox script. Triggering reward instantly.");
+            if (RewardManager.Instance != null)
+                RewardManager.Instance.RequestClearReward(room.roomType);
         }
     }
 }

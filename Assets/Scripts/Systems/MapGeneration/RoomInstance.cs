@@ -148,6 +148,13 @@ public class RoomInstance : MonoBehaviour
     {
         hasBeenVisited = true;
         RevealRoom(); // 타일 안개 제거 호출
+
+        // [추가] 강제 진입 시 진입한 방을 촘촘한 미니맵에 실시간으로 그려서 개방
+        if (MapGenerator.Instance != null)
+        {
+            MapGenerator.Instance.DrawRoomOnMinimap(this);
+        }
+
         if (roomBGM != null && SoundManager.Instance != null)
         {
             SoundManager.Instance.ChangeBGM(roomBGM);
@@ -162,6 +169,12 @@ public class RoomInstance : MonoBehaviour
             hasBeenVisited = true;
             RevealRoom(); // 플레이어가 방에 들어가면 해당 방의 안개 타일을 한 번에 지웁니다.
             
+            // [추가] 플레이어가 방 진입 시 촘촘한 미니맵에 그려서 실시간으로 미니맵 안개를 걷음
+            if (MapGenerator.Instance != null)
+            {
+                MapGenerator.Instance.DrawRoomOnMinimap(this);
+            }
+
             // [추가] 방 입장 전역 이벤트 발생
             OnPlayerEnteredRoom?.Invoke(this);
 
@@ -374,7 +387,7 @@ public class RoomInstance : MonoBehaviour
         Tilemap fogTM = MapGenerator.Instance.FogTilemap;
         if (fogTM == null) return;
 
-        // 이 방의 월드 기준 정중앙 구하기
+        // 1. 실제 월드 맵 상의 방 안개 제거
         Vector3 roomCenterWorld = transform.position + (Vector3)centerOffset;
         Vector3Int roomCenterCell = fogTM.WorldToCell(roomCenterWorld);
 
@@ -390,6 +403,29 @@ public class RoomInstance : MonoBehaviour
                 if (fogTM.HasTile(targetCell))
                 {
                     fogTM.SetTile(targetCell, null); // 타일을 없앰으로써 시야 확보
+                }
+            }
+        }
+
+        // 2. 촘촘한 미니맵 영역 상의 방 안개 제거 (미니맵 시꺼먼 현상 완벽 박멸)
+        int minimapSpacing = 12; // 방들을 찰떡같이 밀착시키기 위해 간격을 12로 지정
+        
+        // 정수 그리드 좌표를 실제 타일맵의 원점 오프셋과 동기화하기 위해 WorldToCell을 필수 역산합니다.
+        Vector3 miniMapCenterWorld = new Vector3(gridPosition.x * minimapSpacing, gridPosition.y * minimapSpacing, 0);
+        Vector3Int miniMapCenterCell = fogTM.WorldToCell(miniMapCenterWorld);
+
+        // 이웃한 방(간격 12)의 안개 영역을 침범하지 않도록 미니맵용 제거 반경은 5칸으로 제한합니다.
+        int miniHalfX = 5;
+        int miniHalfY = 5;
+
+        for (int x = -miniHalfX; x <= miniHalfX; x++)
+        {
+            for (int y = -miniHalfY; y <= miniHalfY; y++)
+            {
+                Vector3Int targetCell = new Vector3Int(miniMapCenterCell.x + x, miniMapCenterCell.y + y, 0);
+                if (fogTM.HasTile(targetCell))
+                {
+                    fogTM.SetTile(targetCell, null); // 촘촘한 미니맵 위를 가리던 반투명 안개 타일을 정확하게 제거
                 }
             }
         }

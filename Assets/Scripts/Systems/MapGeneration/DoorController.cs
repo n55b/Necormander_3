@@ -9,7 +9,7 @@ public class DoorController : MonoBehaviour
     private BoxCollider2D _teleportTrigger;
     private DoorController _destinationDoor;
     private Vector2Int _roomEntranceDirection; // 순간이동 후 플레이어가 안착할 방 내부 방향
-    private bool _isTeleporting = false;
+    private static bool _isTeleporting = false;
     private bool _isEnabled = false;
 
     private void EnsureTriggerCollider()
@@ -91,6 +91,13 @@ public class DoorController : MonoBehaviour
         {
             Vector3 delta = targetWorldPos - prevPos;
             CameraManager.Instance.WarpCamera(player.transform, delta);
+        }
+
+        // 목적지 방의 촘촘한 미니맵 좌표로 카메라 초점 실시간 정렬
+        RoomInstance targetRoom = _destinationDoor.GetComponentInParent<RoomInstance>();
+        if (targetRoom != null && MapGenerator.Instance != null)
+        {
+            MapGenerator.Instance.UpdateMiniMapCameraFocus(targetRoom);
         }
 
         yield return new WaitForSecondsRealtime(0.1f);

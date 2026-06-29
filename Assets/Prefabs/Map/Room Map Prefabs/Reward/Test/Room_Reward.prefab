@@ -2764,6 +2764,7 @@ MonoBehaviour:
   unsteppableTilemap: {fileID: 0}
   debugDepth: -1
   phaseIndex: -1
+  gridPosition: {x: 0, y: 0}
   isCleared: 0
   hasBeenVisited: 0
   doorObjects:

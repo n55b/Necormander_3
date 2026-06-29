@@ -59,8 +59,10 @@ MonoBehaviour:
   wallTilemap: {fileID: 5697393862760950415}
   groundTilemap: {fileID: 5582858188239855898}
   shadowTilemap: {fileID: 5285718320597319693}
+  unsteppableTilemap: {fileID: 0}
   debugDepth: -1
   phaseIndex: -1
+  gridPosition: {x: 0, y: 0}
   isCleared: 0
   hasBeenVisited: 0
   doorObjects:

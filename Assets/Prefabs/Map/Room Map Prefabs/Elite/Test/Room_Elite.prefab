@@ -72,8 +72,10 @@ MonoBehaviour:
   wallTilemap: {fileID: 4174498041373795814}
   groundTilemap: {fileID: 8555464852167452663}
   shadowTilemap: {fileID: 16374153610447067}
+  unsteppableTilemap: {fileID: 0}
   debugDepth: -1
   phaseIndex: -1
+  gridPosition: {x: 0, y: 0}
   isCleared: 0
   hasBeenVisited: 0
   doorObjects:
@@ -93,6 +95,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   eliteCount: 1
   portalObject: {fileID: 488039822873264620}
+  rewardBoxPrefab: {fileID: 5837210638417428083, guid: 912d8a7544ed68f4bade387c04358ac1, type: 3}
   OnEliteCombatStart:
     m_PersistentCalls:
       m_Calls: []

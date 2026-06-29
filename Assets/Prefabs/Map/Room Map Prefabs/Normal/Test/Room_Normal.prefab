@@ -3268,6 +3268,7 @@ MonoBehaviour:
   unsteppableTilemap: {fileID: 0}
   debugDepth: -1
   phaseIndex: -1
+  gridPosition: {x: 0, y: 0}
   isCleared: 0
   hasBeenVisited: 0
   doorObjects:
@@ -3286,6 +3287,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mapGenerationData: {fileID: 0}
+  rewardBoxPrefab: {fileID: 5837210638417428083, guid: 912d8a7544ed68f4bade387c04358ac1, type: 3}
   OnCombatStart:
     m_PersistentCalls:
       m_Calls: []

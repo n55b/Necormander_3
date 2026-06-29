@@ -12,15 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db48b1237efcd2b49bc8992f2d0fd8d3, type: 3}
   m_Name: MapGenerationData
   m_EditorClassIdentifier: 
-  totalRoomCount: 10
+  totalRoomCount: 14
   gridUnit: 1
-  minNormalRooms: 5
+  useIsaacStylePlacement: 1
+  gridSpacing: 160
+  minNormalRooms: 10
   shopCount: 1
   rewardCount: 2
   eliteCount: 1
   wavesCount: 2
-  clustersPerWave: 1
-  minDistanceBetweenClusters: 3
+  minDistanceBetweenEnemies: 2
   maxSpawnAttempts: 5
   spreadingForce: 5
   maxVelocityThreshold: 0.1

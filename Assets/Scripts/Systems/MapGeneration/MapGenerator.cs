@@ -998,6 +998,22 @@ public class MapGenerator : MonoBehaviour
         int layer = LayerMask.NameToLayer(layerName);
         if (layer != -1) tm.gameObject.layer = layer;
 
+        // 미니맵 타일맵이 광원이 없는 가상 좌표계에서도 훤하고 선명하게 밝혀지도록 Unlit 머티리얼 지정
+        if (layerName == "MiniMap")
+        {
+            var tr = tm.GetComponent<TilemapRenderer>();
+            if (tr != null)
+            {
+                tr.sortingOrder = 100;
+                Shader spritesDefaultShader = Shader.Find("Sprites/Default");
+                if (spritesDefaultShader != null)
+                {
+                    tr.material = new Material(spritesDefaultShader);
+                    Debug.Log("<color=green>[MapGenerator]</color> Applied Sprites/Default (Unlit) Material to MiniMap TilemapRenderer.");
+                }
+            }
+        }
+
         if (layerName == "Wall" || layerName == "Unsteppable")
         {
             var tr = tm.GetComponent<TilemapRenderer>();
@@ -1167,9 +1183,6 @@ public class MapGenerator : MonoBehaviour
         List<Vector3Int> fogPositions = new List<Vector3Int>();
         List<TileBase> fogTiles = new List<TileBase>();
 
-        List<Vector3Int> miniMapPositions = new List<Vector3Int>();
-        List<TileBase> miniMapTiles = new List<TileBase>();
-
         for (int x = bounds.xMin - 5; x <= bounds.xMax + 5; x++)
         {
             for (int y = bounds.yMin - 5; y <= bounds.yMax + 5; y++)
@@ -1185,13 +1198,6 @@ public class MapGenerator : MonoBehaviour
                     // 1. 안개 영역 채우기
                     fogPositions.Add(pos);
                     fogTiles.Add(blackTile);
-
-                    // 2. 미니맵 전용 타일맵 채우기 (새 씬이라 무조건 깨끗한 상태임)
-                    if (globalMiniMapTilemap != null && miniMapNormalTile != null)
-                    {
-                        miniMapPositions.Add(pos);
-                        miniMapTiles.Add(miniMapNormalTile);
-                    }
                 }
             }
         }
@@ -1199,11 +1205,117 @@ public class MapGenerator : MonoBehaviour
         // 배열로 한 번에 쏴서 렉 없이 생성
         fogTilemap.SetTiles(fogPositions.ToArray(), fogTiles.ToArray());
 
-        if (globalMiniMapTilemap != null && miniMapPositions.Count > 0)
+        // [추가] 아이작 스타일 모드라면 논리 그리드 기반 미니맵 영역을 초기화하고 스폰 방만 먼저 그려둠
+        if (generationData != null && generationData.useIsaacStylePlacement)
+        {
+            if (globalMiniMapTilemap != null) globalMiniMapTilemap.ClearAllTiles();
+            RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
+            if (spawnRoom != null)
+            {
+                DrawRoomOnMinimap(spawnRoom);
+            }
+        }
+        else
+        {
+            if (globalMiniMapTilemap != null)
+            {
+                globalMiniMapTilemap.ClearAllTiles();
+                List<Vector3Int> miniMapPositions = new List<Vector3Int>();
+                List<TileBase> miniMapTiles = new List<TileBase>();
+                foreach (var pos in fogPositions)
+                {
+                    if (miniMapNormalTile != null)
+                    {
+                        miniMapPositions.Add(pos);
+                        miniMapTiles.Add(miniMapNormalTile);
+                    }
+                }
+                globalMiniMapTilemap.SetTiles(miniMapPositions.ToArray(), miniMapTiles.ToArray());
+            }
+        }
+    }
+
+    public void DrawRoomOnMinimap(RoomInstance room)
+    {
+        if (globalMiniMapTilemap == null || room == null) return;
+
+        // 아이작 배치 모드가 아닌 경우 미니맵을 실시간으로 누적하지 않음
+        if (generationData == null || !generationData.useIsaacStylePlacement) return;
+
+        // 방 타입에 따른 밝고 선명한 미니맵 전용 타일 획득
+        TileBase miniMapTile = GetMiniMapTileByType(room.roomType);
+        if (miniMapTile == null) miniMapTile = miniMapNormalTile; // 방어 코드
+        if (miniMapTile == null) return; // 에셋이 아예 없는 경우는 스킵
+
+        // 촘촘한 미니맵 방 간격
+        int minimapSpacing = 12;
+
+        List<Vector3Int> miniMapPositions = new List<Vector3Int>();
+        List<TileBase> miniMapTiles = new List<TileBase>();
+
+        // 방의 실제 월드 중심 좌표
+        Vector3 roomCenterWorldPos = room.transform.position + (Vector3)room.centerOffset;
+
+        // 방 내부 타일맵들을 획득하여 분석
+        Tilemap[] childTilemaps = room.GetComponentsInChildren<Tilemap>();
+        foreach (var tm in childTilemaps)
+        {
+            // 방 모양(바닥 영역)만 선명하고 밝게 표시하기 위해 "Ground" 계열 타일맵만 복사
+            // 벽(Wall)이나 그림자 등은 미니맵 가독성을 위해 제외하여 경계를 깔끔하게 만듭니다.
+            if (!tm.name.Contains("Ground")) continue;
+
+            tm.CompressBounds();
+            BoundsInt bounds = tm.cellBounds;
+
+            foreach (var pos in bounds.allPositionsWithin)
+            {
+                TileBase tile = tm.GetTile(pos);
+                if (tile != null)
+                {
+                    // 월드 좌표 기준 방 중심과의 상대 오프셋 계산
+                    Vector3 tileWorldPos = tm.CellToWorld(pos);
+                    int localX = Mathf.RoundToInt(tileWorldPos.x - roomCenterWorldPos.x);
+                    int localY = Mathf.RoundToInt(tileWorldPos.y - roomCenterWorldPos.y);
+
+                    Vector3Int miniMapCell = new Vector3Int(
+                        room.gridPosition.x * minimapSpacing + localX,
+                        room.gridPosition.y * minimapSpacing + localY,
+                        0
+                    );
+
+                    miniMapPositions.Add(miniMapCell);
+                    
+                    // 실제 어두컴컴한 바닥 타일 비주얼 대신 밝은 미니맵 전용 단색 타일로 교체
+                    miniMapTiles.Add(miniMapTile);
+                }
+            }
+        }
+
+        if (miniMapPositions.Count > 0)
         {
             globalMiniMapTilemap.SetTiles(miniMapPositions.ToArray(), miniMapTiles.ToArray());
-            Debug.Log($"<color=green>[MapGenerator]</color> 미니맵 타일맵에 {miniMapPositions.Count}칸의 지도를 그렸습니다.");
+            globalMiniMapTilemap.RefreshAllTiles();
+            Debug.Log($"<color=green>[MapGenerator]</color> [아이작 미니맵] 방 {room.name}을 미니맵에 정밀 전사했습니다. ({miniMapPositions.Count}칸)");
         }
+    }
+
+    public void UpdateMiniMapCameraFocus(RoomInstance currentRoom)
+    {
+        if (currentRoom == null) return;
+
+        Camera miniMapCam = GameObject.Find("MiniMapCamera")?.GetComponent<Camera>();
+        if (miniMapCam == null) return;
+
+        int minimapSpacing = 12;
+        Vector3 targetPos = new Vector3(
+            currentRoom.gridPosition.x * minimapSpacing,
+            currentRoom.gridPosition.y * minimapSpacing,
+            miniMapCam.transform.position.z
+        );
+
+        miniMapCam.transform.position = targetPos;
+        miniMapCam.orthographicSize = 13.0f; // 25.0f에서 13.0f로 대폭 당겨, 촘촘히 엮인 방들의 디자인이 큼직하고 알차게 보이도록 설정
+        Debug.Log($"<color=cyan>[MapGenerator]</color> MiniMap camera focused on logical room: {currentRoom.name} at {targetPos} (Zoom: 13.0)");
     }
 
     private void CarveUnsteppableHoles()
@@ -1324,6 +1436,12 @@ public class MapGenerator : MonoBehaviour
         foreach (var room in _allRooms)
         {
             room.SetDoorsOpen(true);
+        }
+
+        // 스폰 방 위치로 미니맵 카메라 정밀 포커싱 초기화
+        if (spawnRoom != null)
+        {
+            UpdateMiniMapCameraFocus(spawnRoom);
         }
 
         PlacePlayerAtSpawn();

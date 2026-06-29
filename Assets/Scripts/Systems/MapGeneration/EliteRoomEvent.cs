@@ -13,6 +13,10 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
     [SerializeField] private int eliteCount = 1;
     [SerializeField] private GameObject portalObject;
 
+    [Header("Reward Box Settings")]
+    [Tooltip("방 클리어 시 한가운데에 생성할 보상 상자 프리팹을 연결해 주세요.")]
+    [SerializeField] private GameObject rewardBoxPrefab;
+
     [Header("Unity Events")]
     public UnityEvent OnEliteCombatStart;
     public UnityEvent OnEliteCombatClear;
@@ -20,6 +24,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
     private List<GameObject> _activeEnemies = new List<GameObject>();
     private List<MinionDataSO> _eliteEnemyPool = new List<MinionDataSO>(); 
     private bool _isBattleActive = false;
+    private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
     private RoomInstance _cachedRoom;
 
     private void Start()
@@ -47,7 +52,8 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
     private void Update()
     {
-        if (!_isBattleActive) return;
+        // 지연 스폰 중에는 엘리트 몹 수가 0명이므로 즉시 클리어되는 현상 방지
+        if (!_isBattleActive || _isSpawnPending) return;
 
         int beforeCount = _activeEnemies.Count;
         _activeEnemies.RemoveAll(item => item == null);
@@ -72,6 +78,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         
         _cachedRoom = room;
         _isBattleActive = true;
+        _isSpawnPending = true; // 스폰 진행 예정 상태 설정
 
         room.SetDoorsOpen(false); // 문 폐쇄
 
@@ -79,14 +86,21 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
         if (GameManager.Instance?.squadSpawner != null) GameManager.Instance.squadSpawner.RefreshFullSquad();
 
-        // [수정] 부하들 없이 엘리트만 소환
-        SpawnEliteOnly(room);
+        // 1초 후 적들이 소환되도록 텀(Term) 연출 구현
+        StartCoroutine(DelayedSpawnElite(room));
 
         // [추가] 플레이어 상태 업데이트 코드 추가
         if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Battle);
 
         OnEliteCombatStart?.Invoke();
         Debug.Log($"<color=red>[EliteRoom]</color> Warning! Elite Encounter in {room.gameObject.name}");
+    }
+
+    private IEnumerator DelayedSpawnElite(RoomInstance room)
+    {
+        yield return new WaitForSeconds(0.5f); // 카메라 워프가 안착하는 약 0.5초 동안만 대기 후 스폰
+        _isSpawnPending = false; // 지연 해제, 이제부터 Update 감지 가능
+        SpawnEliteOnly(room);
     }
 
     public void OnRoomCleared(RoomInstance room)
@@ -97,8 +111,8 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
             allyManager?.ClearAll();
         }
 
-        if (RewardManager.Instance != null)
-            RewardManager.Instance.RequestClearReward(room.roomType);
+        // 인스펙터에 할당된 상자를 방 정중앙에 생성
+        SpawnRoomRewardBox(room);
 
         // [추가] 엘리트 방 클리어 시 포탈 활성화 또는 생성
         if (portalObject != null)
@@ -203,6 +217,34 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         {
             _activeEnemies.Add(enemy);
             Debug.Log($"<color=red>[EliteRoomEvent]</color> Added split enemy: {enemy.name}. Current Active Count: {_activeEnemies.Count}");
+        }
+    }
+
+    private void SpawnRoomRewardBox(RoomInstance room)
+    {
+        if (rewardBoxPrefab == null)
+        {
+            // 상자가 없으면 예외 복구 조치로 즉시 UI 개방
+            if (RewardManager.Instance != null)
+                RewardManager.Instance.RequestClearReward(room.roomType);
+            return;
+        }
+
+        Vector3 spawnPos = room.transform.position + (Vector3)room.centerOffset;
+        GameObject boxObj = Instantiate(rewardBoxPrefab, spawnPos, Quaternion.identity);
+        boxObj.name = $"RoomRewardBox_{room.roomType}_{room.name}";
+
+        RoomRewardBox rewardBox = boxObj.GetComponent<RoomRewardBox>();
+        if (rewardBox != null)
+        {
+            rewardBox.Initialize(room.roomType);
+            Debug.Log($"<color=magenta>[EliteRoomEvent]</color> Spawned RoomRewardBox at {spawnPos}");
+        }
+        else
+        {
+            Debug.LogWarning("[EliteRoomEvent] Spawned object lacks RoomRewardBox script. Triggering reward instantly.");
+            if (RewardManager.Instance != null)
+                RewardManager.Instance.RequestClearReward(room.roomType);
         }
     }
 }
