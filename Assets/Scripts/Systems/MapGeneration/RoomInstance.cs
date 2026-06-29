@@ -407,28 +407,7 @@ public class RoomInstance : MonoBehaviour
             }
         }
 
-        // 2. 촘촘한 미니맵 영역 상의 방 안개 제거 (미니맵 시꺼먼 현상 완벽 박멸)
-        int minimapSpacing = 12; // 방들을 찰떡같이 밀착시키기 위해 간격을 12로 지정
-        
-        // 정수 그리드 좌표를 실제 타일맵의 원점 오프셋과 동기화하기 위해 WorldToCell을 필수 역산합니다.
-        Vector3 miniMapCenterWorld = new Vector3(gridPosition.x * minimapSpacing, gridPosition.y * minimapSpacing, 0);
-        Vector3Int miniMapCenterCell = fogTM.WorldToCell(miniMapCenterWorld);
-
-        // 이웃한 방(간격 12)의 안개 영역을 침범하지 않도록 미니맵용 제거 반경은 5칸으로 제한합니다.
-        int miniHalfX = 5;
-        int miniHalfY = 5;
-
-        for (int x = -miniHalfX; x <= miniHalfX; x++)
-        {
-            for (int y = -miniHalfY; y <= miniHalfY; y++)
-            {
-                Vector3Int targetCell = new Vector3Int(miniMapCenterCell.x + x, miniMapCenterCell.y + y, 0);
-                if (fogTM.HasTile(targetCell))
-                {
-                    fogTM.SetTile(targetCell, null); // 촘촘한 미니맵 위를 가리던 반투명 안개 타일을 정확하게 제거
-                }
-            }
-        }
+        // 2. 촘촘한 미니맵 영역 상의 안개 제거는 미니맵이 (-1000, -1000) 격리 공간으로 이전되어 겹칠 일 없으므로 생략합니다.
     }
 
     private Transform FindTransformRecursive(Transform current, string targetName)

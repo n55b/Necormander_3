@@ -102,19 +102,48 @@ public class MiniMapController : MonoBehaviour
     {
         if (_playerTransform == null) return;
         
-        Vector3 targetPos = _playerTransform.position;
-        targetPos.z = transform.position.z; 
+        // 플레이어의 실제 월드 위치를 160 Spacing으로 나누어 현재 논리 그리드(방) 위치를 계산
+        float actualX = _playerTransform.position.x;
+        float actualY = _playerTransform.position.y;
+        
+        int gridX = Mathf.RoundToInt(actualX / 160f);
+        int gridY = Mathf.RoundToInt(actualY / 160f);
+
+        // 독립 격리 공간(-1000, -1000) 상의 촘촘한 미니맵 대응 방 중심 좌표 산출
+        int minimapSpacing = 12;
+        int minimapOffsetX = -1000;
+        int minimapOffsetY = -1000;
+
+        Vector3 targetPos = new Vector3(
+            minimapOffsetX + gridX * minimapSpacing,
+            minimapOffsetY + gridY * minimapSpacing,
+            transform.position.z
+        );
         
         transform.position = targetPos;
-        Debug.Log("<color=cyan>[MiniMapController]</color> 미니맵 카메라가 플레이어 중심으로 정렬되었습니다.");
+        Debug.Log("<color=cyan>[MiniMapController]</color> 미니맵 카메라가 격리 가상 좌표계의 방 중심으로 정렬되었습니다.");
     }
 
     private void FollowPlayerSmooth()
     {
         if (_playerTransform == null) return;
 
-        Vector3 targetPos = _playerTransform.position;
-        targetPos.z = transform.position.z;
+        // 매 프레임 플레이어 위치를 직접 졸졸 따라가지 않고, 플레이어가 서 있는 방의 격리 가상 중심에 고정시킵니다.
+        float actualX = _playerTransform.position.x;
+        float actualY = _playerTransform.position.y;
+        
+        int gridX = Mathf.RoundToInt(actualX / 160f);
+        int gridY = Mathf.RoundToInt(actualY / 160f);
+
+        int minimapSpacing = 12;
+        int minimapOffsetX = -1000;
+        int minimapOffsetY = -1000;
+
+        Vector3 targetPos = new Vector3(
+            minimapOffsetX + gridX * minimapSpacing,
+            minimapOffsetY + gridY * minimapSpacing,
+            transform.position.z
+        );
 
         transform.position = targetPos; 
 

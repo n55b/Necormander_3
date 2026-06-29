@@ -35,6 +35,23 @@ public class MapGenerator : MonoBehaviour
     public Tilemap GlobalMiniMapTilemap => globalMiniMapTilemap;
     public Tilemap FogTilemap => fogTilemap;
 
+    public List<RoomInstance> AllRooms => _allRooms;
+    private RoomInstance _currentRoom;
+    public RoomInstance CurrentRoom => _currentRoom;
+    public void SetCurrentRoom(RoomInstance room)
+    {
+        _currentRoom = room;
+    }
+
+    public List<RoomInstance> GetConnectedRooms(RoomInstance room)
+    {
+        if (room != null && _masterAdjacency != null && _masterAdjacency.ContainsKey(room))
+        {
+            return _masterAdjacency[room];
+        }
+        return new List<RoomInstance>();
+    }
+
     private List<RoomInstance> _allRooms = new List<RoomInstance>();
     private HashSet<RoomInstance> _reachedRooms = new HashSet<RoomInstance>();
     private Dictionary<RoomInstance, List<RoomInstance>> _masterAdjacency = new Dictionary<RoomInstance, List<RoomInstance>>();
@@ -998,19 +1015,13 @@ public class MapGenerator : MonoBehaviour
         int layer = LayerMask.NameToLayer(layerName);
         if (layer != -1) tm.gameObject.layer = layer;
 
-        // 미니맵 타일맵이 광원이 없는 가상 좌표계에서도 훤하고 선명하게 밝혀지도록 Unlit 머티리얼 지정
+        // 미니맵 소팅 오더를 가장 위로 올림
         if (layerName == "MiniMap")
         {
             var tr = tm.GetComponent<TilemapRenderer>();
             if (tr != null)
             {
                 tr.sortingOrder = 100;
-                Shader spritesDefaultShader = Shader.Find("Sprites/Default");
-                if (spritesDefaultShader != null)
-                {
-                    tr.material = new Material(spritesDefaultShader);
-                    Debug.Log("<color=green>[MapGenerator]</color> Applied Sprites/Default (Unlit) Material to MiniMap TilemapRenderer.");
-                }
             }
         }
 
@@ -1212,7 +1223,12 @@ public class MapGenerator : MonoBehaviour
             RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
             if (spawnRoom != null)
             {
+                SetCurrentRoom(spawnRoom);
                 DrawRoomOnMinimap(spawnRoom);
+                if (UIBasedMiniMap.Instance != null)
+                {
+                    UIBasedMiniMap.Instance.RefreshMap();
+                }
             }
         }
         else
@@ -1247,7 +1263,7 @@ public class MapGenerator : MonoBehaviour
         if (miniMapTile == null) miniMapTile = miniMapNormalTile; // 방어 코드
         if (miniMapTile == null) return; // 에셋이 아예 없는 경우는 스킵
 
-        // 촘촘한 미니맵 방 간격
+        // Spacing을 12(촘촘한 논리 정렬)로 지정합니다.
         int minimapSpacing = 12;
 
         List<Vector3Int> miniMapPositions = new List<Vector3Int>();
@@ -1277,9 +1293,12 @@ public class MapGenerator : MonoBehaviour
                     int localX = Mathf.RoundToInt(tileWorldPos.x - roomCenterWorldPos.x);
                     int localY = Mathf.RoundToInt(tileWorldPos.y - roomCenterWorldPos.y);
 
+                    // 독립 격리 공간(-1000, -1000)으로 오프셋을 이전하여 월드 안개 및 라이팅 간섭을 완벽히 격리합니다.
+                    int minimapOffsetX = -1000;
+                    int minimapOffsetY = -1000;
                     Vector3Int miniMapCell = new Vector3Int(
-                        room.gridPosition.x * minimapSpacing + localX,
-                        room.gridPosition.y * minimapSpacing + localY,
+                        minimapOffsetX + room.gridPosition.x * minimapSpacing + localX,
+                        minimapOffsetY + room.gridPosition.y * minimapSpacing + localY,
                         0
                     );
 
@@ -1303,19 +1322,16 @@ public class MapGenerator : MonoBehaviour
     {
         if (currentRoom == null) return;
 
-        Camera miniMapCam = GameObject.Find("MiniMapCamera")?.GetComponent<Camera>();
-        if (miniMapCam == null) return;
+        // 플레이어의 현재 위치 방 정보 갱신
+        SetCurrentRoom(currentRoom);
 
-        int minimapSpacing = 12;
-        Vector3 targetPos = new Vector3(
-            currentRoom.gridPosition.x * minimapSpacing,
-            currentRoom.gridPosition.y * minimapSpacing,
-            miniMapCam.transform.position.z
-        );
+        // 신형 UI 기반 미니맵 실시간 갱신 실행!
+        if (UIBasedMiniMap.Instance != null)
+        {
+            UIBasedMiniMap.Instance.RefreshMap();
+        }
 
-        miniMapCam.transform.position = targetPos;
-        miniMapCam.orthographicSize = 13.0f; // 25.0f에서 13.0f로 대폭 당겨, 촘촘히 엮인 방들의 디자인이 큼직하고 알차게 보이도록 설정
-        Debug.Log($"<color=cyan>[MapGenerator]</color> MiniMap camera focused on logical room: {currentRoom.name} at {targetPos} (Zoom: 13.0)");
+        Debug.Log($"<color=cyan>[MapGenerator]</color> 플레이어가 방 {currentRoom.name}에 진입하여 UI 미니맵을 실시간 갱신했습니다.");
     }
 
     private void CarveUnsteppableHoles()

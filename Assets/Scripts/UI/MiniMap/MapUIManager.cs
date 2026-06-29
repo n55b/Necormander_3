@@ -72,6 +72,11 @@ public class MapUIManager : MonoBehaviour
             UIPopUpManager.Instance.PopUpUI(fullMapUIWindow);
             UIEventBus.NotifyOpen("Map");
 
+            if (UIBasedMiniMap.Instance != null)
+            {
+                UIBasedMiniMap.Instance.RefreshMap();
+            }
+
             if (miniMapController != null)
             {
                 miniMapController.SetMapActive(isOpen);
