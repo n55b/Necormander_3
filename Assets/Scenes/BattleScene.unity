@@ -2932,7 +2932,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5.5
+  orthographic size: 8.4375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -3445,6 +3445,10 @@ PrefabInstance:
     - target: {fileID: 7230002428586878986, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7418972757804075378, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8170277978846969626, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
       propertyPath: m_AnchorMax.y
@@ -4312,7 +4316,19 @@ MonoBehaviour:
   fullRoomSpacing: 15
   hudRoomSize: 20
   hudRoomSpacing: 6
-  roomSprite: {fileID: 0}
+  fallbackRoomSprite: {fileID: 0}
+  customNormalRoomSprite: {fileID: 0}
+  customBossRoomSprite: {fileID: 0}
+  customShopRoomSprite: {fileID: 0}
+  customRewardRoomSprite: {fileID: 0}
+  customEliteRoomSprite: {fileID: 0}
+  customTerrainDotSprite: {fileID: 0}
+  useTerrainShadow: 1
+  terrainShadowColor: {r: 0, g: 0, b: 0, a: 0.6}
+  terrainShadowOffset: {x: 1.5, y: -1.5}
+  customPlayerIcon: {fileID: 0}
+  syncPlayerZRotation: 1
+  customEnemyIcon: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

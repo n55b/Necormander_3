@@ -103,7 +103,7 @@ public class MinionStateUI : MonoBehaviour
                 s.SlotRoot.SetActive(has);
             }
 
-            // 교쟮된 경우도 감지해서 갱신해야 함 (has가 안 변해도 data가 바땀 수 있어서)
+            // 교체된 경우도 감지해서 갱신해야 함 (has가 안 변해도 data가 바뀔 수 있어서)
             if (has && s.MinionIcon != null && data != s.LastData)
             {
                 s.LastData = data;

@@ -16,7 +16,7 @@ public struct TooltipData
     public List<string> effects;
     public string footer;
     public Color titleColor;
-    
+
     public LocalizedString localizedTitle;
     public LocalizedString localizedDescription;
 
@@ -48,6 +48,9 @@ public class CommonTooltipUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI effectsText;
     [SerializeField] private TextMeshProUGUI footerText;
 
+    [Header("Keyword Sub Tooltip")]
+    [SerializeField] private AstroNuts.Localization.KeywordDictionary keywordDictionary; // 사전 연결
+
     [Header("Settings")]
     [SerializeField] private Vector2 offset = new Vector2(15, -15);
 
@@ -57,7 +60,7 @@ public class CommonTooltipUI : MonoBehaviour
     {
         Instance = this;
         _canvas = GetComponentInParent<Canvas>();
-        
+
         var canvasGroup = tooltipPanel.GetComponent<CanvasGroup>();
         if (canvasGroup == null) canvasGroup = tooltipPanel.gameObject.AddComponent<CanvasGroup>();
         canvasGroup.blocksRaycasts = false;
@@ -98,13 +101,13 @@ public class CommonTooltipUI : MonoBehaviour
             }
             titleText.color = data.titleColor;
         }
-        
+
         if (typeText != null)
         {
             typeText.text = data.type;
             typeText.gameObject.SetActive(!string.IsNullOrEmpty(data.type));
         }
-        
+
         if (descriptionText != null)
         {
             if (data.localizedDescription != null && !data.localizedDescription.IsEmpty)
@@ -124,7 +127,7 @@ public class CommonTooltipUI : MonoBehaviour
                 descriptionText.text = data.description;
             }
         }
-        
+
         if (data.effects != null && data.effects.Count > 0)
         {
             effectsText.text = string.Join("\n", data.effects);
@@ -145,6 +148,24 @@ public class CommonTooltipUI : MonoBehaviour
             footerText.gameObject.SetActive(false);
         }
 
+        if (keywordDictionary != null && !string.IsNullOrEmpty(data.description))
+        {
+            foreach (var entry in keywordDictionary.entries)
+            {
+                string keyword = entry.displayName.GetLocalizedString();
+
+                if (data.description.Contains(keyword))
+                {
+                    // 🔥 기존 스킬 설명 밑에 한 줄 띄우고 키워드 설명을 강제로 추가해버립니다!
+                    string kTitle = entry.displayName.GetLocalizedString();
+                    string kDesc = entry.description.GetLocalizedString();
+
+                    descriptionText.text += $"\n\n<b><color=#E24B4A>[{kTitle}]</color></b>\n{kDesc}";
+                    break;
+                }
+            }
+        }
+
         tooltipPanel.gameObject.SetActive(true);
         LayoutRebuilder.ForceRebuildLayoutImmediate(tooltipPanel);
         UpdatePosition();
@@ -161,9 +182,9 @@ public class CommonTooltipUI : MonoBehaviour
         Vector2 mousePos = Input.mousePosition;
         Vector2 localPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            _canvas.transform as RectTransform, 
-            mousePos, 
-            _canvas.worldCamera, 
+            _canvas.transform as RectTransform,
+            mousePos,
+            _canvas.worldCamera,
             out localPos
         );
 

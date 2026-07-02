@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 5517057280704058679}
   - component: {fileID: 6771171242067697347}
   - component: {fileID: 6675390630596056679}
+  - component: {fileID: 6962168289986651567}
+  - component: {fileID: 7974581936152868959}
   m_Layer: 5
   m_Name: Desc Text
   m_TagString: Untagged
@@ -136,6 +138,33 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6962168289986651567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891012998185012567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96cbff3071b053d43a43a9957b66549d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dictionary: {fileID: 11400000, guid: b7b974fe952173c4bbbadf26da8ffa6b, type: 2}
+--- !u!114 &7974581936152868959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891012998185012567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b649a50146221642a9ef55abe2ea9db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dictionary: {fileID: 11400000, guid: b7b974fe952173c4bbbadf26da8ffa6b, type: 2}
+  uiCamera: {fileID: 0}
 --- !u!1 &1036089158462258122
 GameObject:
   m_ObjectHideFlags: 0
@@ -150,6 +179,7 @@ GameObject:
   - component: {fileID: 2604772102251882296}
   - component: {fileID: 7322822122760452193}
   - component: {fileID: -2780339732925542370}
+  - component: {fileID: 1340817099372360849}
   m_Layer: 5
   m_Name: CommonTooltipUI
   m_TagString: Untagged
@@ -277,7 +307,48 @@ MonoBehaviour:
   descriptionText: {fileID: 6675390630596056679}
   effectsText: {fileID: 6819183639840191393}
   footerText: {fileID: 7433634329274117965}
+  keywordDictionary: {fileID: 11400000, guid: b7b974fe952173c4bbbadf26da8ffa6b, type: 2}
   offset: {x: 15, y: -15}
+--- !u!114 &1340817099372360849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1036089158462258122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56eb0353ae6e5124bb35b17aff880f16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_StringReference:
+    m_TableReference:
+      m_TableCollectionName: 
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  m_FormatArguments: []
+  m_UpdateString:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 6962168289986651567}
+        m_TargetAssemblyTypeName: AstroNuts.Localization.LocalizedSkillText, Assembly-CSharp
+        m_MethodName: OnLocalizedTextUpdated
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  references:
+    version: 2
+    RefIds: []
 --- !u!1 &2315802342894221613
 GameObject:
   m_ObjectHideFlags: 0
