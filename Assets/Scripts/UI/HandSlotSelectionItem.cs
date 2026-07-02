@@ -107,7 +107,7 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
         data.localizedTitle = itemData.localizedItemName;
         data.localizedDescription = itemData.localizedDescription;
         
-        if (_currentSlot.EquippedLineage != null)
+        if (_currentSlot.EquippedMinion != null)
         {
             // 미니언 정보 구성
             var minion = _currentSlot.GetCurrentMinionData();

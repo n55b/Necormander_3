@@ -48,5 +48,9 @@ public class MinionDataSO : ScriptableObject
 
     [Header("프리팹 설정")]
     public GameObject minionPrefab;
+
+    [Header("UI & Reward Settings")]
+    public int shopCost = 150;
+    public GrowthItemData rewardItemData;
 }
 

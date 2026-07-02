@@ -119,7 +119,7 @@ public class HandSlotSelectionUI : MonoBehaviour
         switch (_pendingCandidate.category)
         {
             case RewardCategory.Minion:
-                success = inven.EquipLineage(index, (MinionLineageSO)_pendingCandidate.rawData);
+                success = inven.EquipMinion(index, (MinionDataSO)_pendingCandidate.rawData);
                 break;
             case RewardCategory.Ability:
                 success = inven.EquipThrowAbility(index, (ThrowAbilitySO)_pendingCandidate.rawData);

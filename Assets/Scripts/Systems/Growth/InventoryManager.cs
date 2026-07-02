@@ -12,17 +12,16 @@ public class InventoryManager : MonoBehaviour
     public class CoreSlot
     {
         public bool IsShattered; 
-        public MinionLineageSO EquippedLineage; 
+        public MinionDataSO EquippedMinion; 
         public ThrowAbilitySO EquippedThrowAbility;
-        public int EvolutionIndex; 
         public int Quantity;                // 미니언 마리수
         
-        public bool IsEmpty => !IsShattered && EquippedLineage == null && EquippedThrowAbility == null;
+        public bool IsEmpty => !IsShattered && EquippedMinion == null && EquippedThrowAbility == null;
 
-        public MinionDataSO GetCurrentMinionData() => EquippedLineage != null ? EquippedLineage.GetForm(EvolutionIndex) : null;
+        public MinionDataSO GetCurrentMinionData() => EquippedMinion;
         public GrowthItemData GetCurrentItemData()
         {
-            if (EquippedLineage != null) return EquippedLineage.GetItemData(EvolutionIndex);
+            if (EquippedMinion != null) return EquippedMinion.rewardItemData;
             if (EquippedThrowAbility != null) return new GrowthItemData { itemName = EquippedThrowAbility.itemName, description = EquippedThrowAbility.description, icon = EquippedThrowAbility.icon, rarity = EquippedThrowAbility.rarity, localizedItemName = EquippedThrowAbility.localizedItemName, localizedDescription = EquippedThrowAbility.localizedDescription };
             return null;
         }
@@ -42,7 +41,7 @@ public class InventoryManager : MonoBehaviour
 
     [Space(10)]
     [Tooltip("시작 시 지급할 미니언 리스트")]
-    [SerializeField] private List<MinionLineageSO> debugStartingMinions = new List<MinionLineageSO>();
+    [SerializeField] private List<MinionDataSO> debugStartingMinions = new List<MinionDataSO>();
     [Tooltip("위 미니언들의 수량 (순서대로 매칭)")]
     [SerializeField] private List<int> debugStartingMinionQuantities = new List<int>();
 
@@ -545,10 +544,10 @@ public class InventoryManager : MonoBehaviour
         for (int i = 0; i < debugStartingMinions.Count; i++)
         {
             if (debugStartingMinions[i] == null) continue;
-            if (HasMinion(debugStartingMinions[i].jobType)) continue;
+            if (HasMinion(debugStartingMinions[i].minionType)) continue;
 
             int qty = (i < debugStartingMinionQuantities.Count) ? debugStartingMinionQuantities[i] : 1;
-            AddMinionOrIncreaseQuantity(debugStartingMinions[i].jobType, Mathf.Max(1, qty));
+            AddMinionOrIncreaseQuantity(debugStartingMinions[i].minionType, Mathf.Max(1, qty));
         }
 
         // 2. 보석 생성 (인벤토리나 장착창의 개수와 디버그 보석 리스트의 개수를 매칭하여 부족분만 추가)
@@ -617,7 +616,7 @@ public class InventoryManager : MonoBehaviour
         }
 
         // [수정] 유저 요청에 의해 미니언이 없을 때 기본 전사 1마리를 추가하는 로직을 제거(주석 처리)합니다.
-        // if (!Slots.Exists(s => s.EquippedLineage != null)) AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
+        // if (!Slots.Exists(s => s.EquippedMinion != null)) AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
     }
 
     /// <summary>
@@ -627,9 +626,9 @@ public class InventoryManager : MonoBehaviour
     {
         foreach (var slot in Slots)
         {
-            if (slot.EquippedLineage != null)
+            if (slot.EquippedMinion != null)
             {
-                CommandData ownedJob = slot.EquippedLineage.jobType;
+                CommandData ownedJob = slot.EquippedMinion.minionType;
                 if (gem.IsEligible(ownedJob)) return ownedJob;
             }
         }
@@ -658,26 +657,25 @@ public class InventoryManager : MonoBehaviour
     #region Slot Management
     public bool AddMinionOrIncreaseQuantity(CommandData job, int amount = 1)
     {
-        var existingSlot = Slots.Find(s => !s.IsShattered && s.EquippedLineage != null && s.EquippedLineage.jobType == job);
+        var existingSlot = Slots.Find(s => !s.IsShattered && s.EquippedMinion != null && s.EquippedMinion.minionType == job);
         if (existingSlot != null) { existingSlot.Quantity += amount; OnMinionUpdated?.Invoke(); return true; }
 
         var registry = GameManager.Instance.dataManager.GET_GROWTH_REGISTRY();
         if (registry == null) return false;
 
-        MinionLineageSO targetLineage = registry.minionLineages.Find(lin => lin.jobType == job);
-        if (targetLineage == null) return false;
+        MinionDataSO targetMinion = registry.minionDatas.Find(m => m.minionType == job);
+        if (targetMinion == null) return false;
 
         int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
-        if (emptyIdx != -1) { EquipLineage(emptyIdx, targetLineage); Slots[emptyIdx].Quantity = amount; return true; }
+        if (emptyIdx != -1) { EquipMinion(emptyIdx, targetMinion); Slots[emptyIdx].Quantity = amount; return true; }
         return false;
     }
 
-    public bool EquipLineage(int slotIndex, MinionLineageSO lineage)
+    public bool EquipMinion(int slotIndex, MinionDataSO minion)
     {
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
         Slots[slotIndex].EquippedThrowAbility = null;
-        Slots[slotIndex].EquippedLineage = lineage;
-        Slots[slotIndex].EvolutionIndex = 0;
+        Slots[slotIndex].EquippedMinion = minion;
         Slots[slotIndex].Quantity = 1;
         
         OnMinionUpdated?.Invoke();
@@ -689,17 +687,11 @@ public class InventoryManager : MonoBehaviour
     {
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
         if (ActiveAbilities.Exists(a => a.GetType() == ability.GetType())) return false;
-        Slots[slotIndex].EquippedLineage = null;
+        Slots[slotIndex].EquippedMinion = null;
         Slots[slotIndex].Quantity = 0;
         Slots[slotIndex].EquippedThrowAbility = ability;
         UpdateActiveAbilities();
         return true;
-    }
-
-    public void ApplyMetamorphosis(MinionLineageSO lineage, int index)
-    {
-        var slot = Slots.Find(s => s.EquippedLineage == lineage);
-        if (slot != null) slot.EvolutionIndex = index;
     }
 
     public void ShatterSlot(int slotIndex)
@@ -707,14 +699,14 @@ public class InventoryManager : MonoBehaviour
         if (slotIndex >= 0 && slotIndex < Slots.Count)
         {
             Slots[slotIndex].IsShattered = true;
-            Slots[slotIndex].EquippedLineage = null;
+            Slots[slotIndex].EquippedMinion = null;
             Slots[slotIndex].EquippedThrowAbility = null;
         }
     }
     #endregion
 
-    public bool HasLineageInSlots(MinionLineageSO lineage) => Slots.Exists(s => s.EquippedLineage == lineage);
-    public bool HasJobInSlots(CommandData job) => Slots.Exists(s => s.EquippedLineage != null && s.EquippedLineage.jobType == job);
+    public bool HasMinionInSlots(MinionDataSO minion) => Slots.Exists(s => s.EquippedMinion == minion);
+    public bool HasJobInSlots(CommandData job) => Slots.Exists(s => s.EquippedMinion != null && s.EquippedMinion.minionType == job);
 
     public void AddTreasure(TreasureSO treasure)
     {
@@ -743,9 +735,9 @@ public class InventoryManager : MonoBehaviour
         {
             var slotData = new CoreSlotSaveData();
             slotData.isShattered = slot.IsShattered;
-            slotData.equippedLineageJob = slot.EquippedLineage != null ? slot.EquippedLineage.jobType.ToString() : "";
+            slotData.equippedLineageJob = slot.EquippedMinion != null ? slot.EquippedMinion.minionType.ToString() : "";
             slotData.equippedThrowAbilityName = slot.EquippedThrowAbility != null ? slot.EquippedThrowAbility.name : "";
-            slotData.evolutionIndex = slot.EvolutionIndex;
+            slotData.evolutionIndex = 0;
             slotData.quantity = slot.Quantity;
             data.slots.Add(slotData);
         }
@@ -841,7 +833,7 @@ public class InventoryManager : MonoBehaviour
             {
                 if (System.Enum.TryParse<CommandData>(slotData.equippedLineageJob, out var job))
                 {
-                    coreSlot.EquippedLineage = registry.minionLineages.Find(lin => lin.jobType == job);
+                    coreSlot.EquippedMinion = registry.minionDatas.Find(m => m.minionType == job);
                 }
             }
 
@@ -851,7 +843,6 @@ public class InventoryManager : MonoBehaviour
                 coreSlot.EquippedThrowAbility = ability as ThrowAbilitySO;
             }
 
-            coreSlot.EvolutionIndex = slotData.evolutionIndex;
             coreSlot.Quantity = slotData.quantity;
             Slots.Add(coreSlot);
         }
@@ -1047,7 +1038,7 @@ public class InventoryManager : MonoBehaviour
 
     private bool HasMinion(CommandData jobType)
     {
-        return Slots.Exists(s => s.EquippedLineage != null && s.EquippedLineage.jobType == jobType);
+        return Slots.Exists(s => s.EquippedMinion != null && s.EquippedMinion.minionType == jobType);
     }
     #endregion
 }

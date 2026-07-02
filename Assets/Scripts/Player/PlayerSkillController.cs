@@ -132,7 +132,7 @@ public void SyncWithInventory()
         {
             if (slotIndex >= 3) break;
 
-            if (!slot.IsEmpty && slot.EquippedLineage != null)
+            if (!slot.IsEmpty && slot.EquippedMinion != null)
             {
                 equippedMinions[slotIndex] = slot.GetCurrentMinionData();
                 slotIndex++;

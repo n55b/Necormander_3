@@ -21,7 +21,7 @@ public class RewardManager : MonoBehaviour
         Debug.Log("<color=cyan>[RewardManager]</color> Initialized.");
     }
 
-    public void RequestClearReward(RoomType type)
+    public void RequestClearReward(RoomType type, RoomInstance.NormalRewardType normalRewardType = RoomInstance.NormalRewardType.PlayerSkill)
     {
         _rewardQueue.Clear();
 
@@ -29,13 +29,23 @@ public class RewardManager : MonoBehaviour
         {
             int goldAmount = 200;
             GameManager.Instance.inventoryManager.AddGold(goldAmount);
-            Debug.Log($"<color=yellow>[Reward]</color> Normal Room Cleared! {goldAmount} Gold obtained.");
+            Debug.Log($"<color=yellow>[Reward]</color> Normal Room Cleared! {goldAmount} Gold obtained. RewardType: {normalRewardType}");
 
-            // [수정] 사용자 요청에 따라 소환수+보석 혼합 보상 3개 생성
-            var normalRewards = RewardProcessor.GenerateNormalRoomRewards(
-                GameManager.Instance.inventoryManager, 
-                GameManager.Instance.dataManager
-            );
+            List<RewardCandidate> normalRewards;
+            if (normalRewardType == RoomInstance.NormalRewardType.PlayerSkill)
+            {
+                normalRewards = RewardProcessor.GeneratePlayerSkillRewards(
+                    GameManager.Instance.inventoryManager, 
+                    GameManager.Instance.dataManager
+                );
+            }
+            else
+            {
+                normalRewards = RewardProcessor.GenerateMinionSkillRewards(
+                    GameManager.Instance.inventoryManager, 
+                    GameManager.Instance.dataManager
+                );
+            }
             _rewardQueue.Enqueue(normalRewards);
 
             ProcessNextReward();
@@ -114,7 +124,7 @@ public class RewardManager : MonoBehaviour
         {
             case RewardCategory.Minion:
                 // Metamorphosis is unused for now; every minion reward always opens the hand-slot picker (swap-based design)
-                MinionLineageSO lineage = (MinionLineageSO)candidate.rawData;
+                MinionDataSO minion = (MinionDataSO)candidate.rawData;
                 {
                     if (handSlotUI != null)
                     {
@@ -126,7 +136,7 @@ public class RewardManager : MonoBehaviour
                     }
                     else
                     {
-                        inven.AddMinionOrIncreaseQuantity(lineage.jobType, 1);
+                        inven.AddMinionOrIncreaseQuantity(minion.minionType, 1);
                         ProcessNextReward();
                     }
                 }
@@ -153,7 +163,7 @@ public class RewardManager : MonoBehaviour
                 break;
 
             case RewardCategory.Metamorphosis:
-                inven.ApplyMetamorphosis((MinionLineageSO)candidate.rawData, candidate.techIndex);
+                // 변이/진화 시스템 폐지로 동작 생략
                 ProcessNextReward();
                 break;
 

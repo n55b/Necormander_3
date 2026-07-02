@@ -6,6 +6,7 @@ using UnityEngine;
 public class RoomRewardBox : MonoBehaviour, IInteractable
 {
     private RoomType _roomType = RoomType.Normal;
+    private RoomInstance.NormalRewardType _normalRewardType = RoomInstance.NormalRewardType.PlayerSkill;
     private bool _isInitialized = false;
 
     public string InteractionPrompt => "Open Reward Box";
@@ -13,8 +14,17 @@ public class RoomRewardBox : MonoBehaviour, IInteractable
     public void Initialize(RoomType roomType)
     {
         _roomType = roomType;
+        _normalRewardType = RoomInstance.NormalRewardType.PlayerSkill;
         _isInitialized = true;
-        Debug.Log($"<color=magenta>[RoomRewardBox]</color> Initialized for RoomType: {roomType}");
+        Debug.Log($"<color=magenta>[RoomRewardBox]</color> Initialized for RoomType: {roomType} (Fallback: PlayerSkill)");
+    }
+
+    public void Initialize(RoomType roomType, RoomInstance.NormalRewardType normalRewardType)
+    {
+        _roomType = roomType;
+        _normalRewardType = normalRewardType;
+        _isInitialized = true;
+        Debug.Log($"<color=magenta>[RoomRewardBox]</color> Initialized for RoomType: {roomType}, NormalRewardType: {normalRewardType}");
     }
 
     public bool Interact(GameObject interactor)
@@ -23,9 +33,9 @@ public class RoomRewardBox : MonoBehaviour, IInteractable
 
         if (RewardManager.Instance != null)
         {
-            // 기존 보상 매니저의 방 클리어 보상 요청을 트리거
-            RewardManager.Instance.RequestClearReward(_roomType);
-            Debug.Log($"<color=magenta>[RoomRewardBox]</color> Opened, requested clear reward for: {_roomType}");
+            // 기존 보상 매니저의 방 클리어 보상 요청을 트리거 (세부 보상 속성 전달)
+            RewardManager.Instance.RequestClearReward(_roomType, _normalRewardType);
+            Debug.Log($"<color=magenta>[RoomRewardBox]</color> Opened, requested clear reward for: {_roomType} ({_normalRewardType})");
             
             // 획득 시 자신을 파괴
             Destroy(gameObject);

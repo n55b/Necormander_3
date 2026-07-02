@@ -31,9 +31,9 @@ public class Panel_HaveArmy : MonoBehaviour
 
         foreach(var army in InventoryManager.Instance?.Slots)
         {
-            if(army.EquippedLineage != null)
+            if(army.EquippedMinion != null)
             {
-                haveArmies[i].Init(army.EquippedLineage.baseForm.minionIcon, army.Quantity);
+                haveArmies[i].Init(army.EquippedMinion.minionIcon, army.Quantity);
                 haveArmies[i].gameObject.SetActive(true);
                 i++;
             }

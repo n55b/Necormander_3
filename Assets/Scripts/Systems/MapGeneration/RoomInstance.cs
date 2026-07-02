@@ -5,6 +5,9 @@ using UnityEngine.Tilemaps;
 public class RoomInstance : MonoBehaviour
 {
     public RoomType roomType;
+    public enum NormalRewardType { PlayerSkill, MinionSkill }
+    [Header("일반 방 보상 세부 설정")]
+    public NormalRewardType normalRewardType;
     public Vector2Int roomSize;
     public Vector2 centerOffset;
 

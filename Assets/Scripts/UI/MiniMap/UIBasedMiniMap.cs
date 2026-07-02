@@ -312,6 +312,17 @@ public class UIBasedMiniMap : MonoBehaviour
                     {
                         AddMarkerText(roomObj, "☠", roomUiSize);
                     }
+                    else if (room.roomType == RoomType.Normal)
+                    {
+                        if (room.normalRewardType == RoomInstance.NormalRewardType.PlayerSkill)
+                        {
+                            AddMarkerText(roomObj, "▲", roomUiSize);
+                        }
+                        else
+                        {
+                            AddMarkerText(roomObj, "■", roomUiSize);
+                        }
+                    }
 
                     if (isFullMap)
                     {
@@ -333,6 +344,17 @@ public class UIBasedMiniMap : MonoBehaviour
                     else if (room.roomType == RoomType.Boss)
                     {
                         AddMarkerText(roomObj, "☠", roomUiSize, 0.4f);
+                    }
+                    else if (room.roomType == RoomType.Normal)
+                    {
+                        if (room.normalRewardType == RoomInstance.NormalRewardType.PlayerSkill)
+                        {
+                            AddMarkerText(roomObj, "▲", roomUiSize, 0.4f);
+                        }
+                        else
+                        {
+                            AddMarkerText(roomObj, "■", roomUiSize, 0.4f);
+                        }
                     }
                 }
             }

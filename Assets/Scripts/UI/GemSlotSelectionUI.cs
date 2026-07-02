@@ -61,8 +61,8 @@ public class GemSlotSelectionUI : MonoBehaviour
         HashSet<CommandData> uniqueJobs = new HashSet<CommandData>();
         foreach (var slot in inven.Slots)
         {
-            if (slot.EquippedLineage != null)
-                uniqueJobs.Add(slot.EquippedLineage.jobType);
+            if (slot.EquippedMinion != null)
+                uniqueJobs.Add(slot.EquippedMinion.minionType);
         }
 
         // 3. 추출된 직업 개수만큼 항목 생성 (최대 6종)
@@ -72,9 +72,9 @@ public class GemSlotSelectionUI : MonoBehaviour
             if (count >= 6) break;
 
             var item = Instantiate(itemPrefab, container);
-            var lineage = registry.minionLineages.Find(l => l.jobType == job);
+            var minion = registry.minionDatas.Find(m => m.minionType == job);
             
-            item.Setup(job, lineage, this);
+            item.Setup(job, minion, this);
             _spawnedItems.Add(item);
             count++;
         }

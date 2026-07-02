@@ -35,7 +35,7 @@ public class SquadSpawner : MonoBehaviour
         for (int i = 0; i < _inven.Slots.Count; i++)
         {
             var slot = _inven.Slots[i];
-            if (slot.EquippedLineage != null)
+            if (slot.EquippedMinion != null)
             {
                 MinionDataSO currentData = slot.GetCurrentMinionData();
                 if (currentData != null)

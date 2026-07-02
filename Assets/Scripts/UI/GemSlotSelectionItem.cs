@@ -17,16 +17,16 @@ public class GemSlotSelectionItem : MonoBehaviour
     private CommandData _jobType;
     private GemSlotSelectionUI _parentUI;
 
-    public void Setup(CommandData job, MinionLineageSO lineage, GemSlotSelectionUI parent)
+    public void Setup(CommandData job, MinionDataSO minion, GemSlotSelectionUI parent)
     {
         _jobType = job;
         _parentUI = parent;
 
         if (jobNameText != null) jobNameText.text = job.ToString().Replace("Skeleton", "");
         
-        if (minionIcon != null && lineage != null)
+        if (minionIcon != null && minion != null)
         {
-            minionIcon.sprite = lineage.baseItemData.icon;
+            minionIcon.sprite = minion.rewardItemData != null && minion.rewardItemData.icon != null ? minion.rewardItemData.icon : minion.minionIcon;
         }
 
         // 새로운 보석 트리 시스템에서는 미니언 직업에 직접 보석이 장착되지 않습니다.

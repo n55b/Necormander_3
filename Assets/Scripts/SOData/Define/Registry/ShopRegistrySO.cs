@@ -10,8 +10,8 @@ public class ShopRegistrySO : ScriptableObject
     [Header("상점에 등장할 보석 목록")]
     public List<GemSO> gemPool = new List<GemSO>();
 
-    [Header("상점에 등장할 미니언 계보 목록")]
-    public List<MinionLineageSO> minionPool = new List<MinionLineageSO>();
+    [Header("상점에 등장할 미니언 목록")]
+    public List<MinionDataSO> minionPool = new List<MinionDataSO>();
 
 #if UNITY_EDITOR
     [ContextMenu("Refresh Registry (Load All Active Items)")]
@@ -31,20 +31,19 @@ public class ShopRegistrySO : ScriptableObject
             if (asset != null) gemPool.Add(asset);
         }
 
-        // 2. 미니언 계보(Lineage) 검색
-        string[] lineageGuids = UnityEditor.AssetDatabase.FindAssets("t:MinionLineageSO");
-        foreach (var guid in lineageGuids)
+        // 2. 미니언 데이터(MinionDataSO) 검색
+        string[] minionGuids = UnityEditor.AssetDatabase.FindAssets("t:MinionDataSO");
+        foreach (var guid in minionGuids)
         {
             string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            // 필요하다면 미니언 계보도 특정 폴더 배제 가능
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionLineageSO>(path);
+            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionDataSO>(path);
             if (asset != null) minionPool.Add(asset);
         }
 
         UnityEditor.EditorUtility.SetDirty(this);
         UnityEditor.AssetDatabase.SaveAssets();
         
-        Debug.Log($"<color=yellow>[ShopRegistry]</color> 자동 갱신 완료: 상점 보석({gemPool.Count}), 미니언 계보({minionPool.Count})");
+        Debug.Log($"<color=yellow>[ShopRegistry]</color> 자동 갱신 완료: 상점 보석({gemPool.Count}), 미니언({minionPool.Count})");
     }
 #endif
 }

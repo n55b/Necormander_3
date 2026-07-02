@@ -18,8 +18,34 @@ public class DoorController : MonoBehaviour
         {
             _teleportTrigger = gameObject.AddComponent<BoxCollider2D>();
             _teleportTrigger.isTrigger = true;
-            _teleportTrigger.size = new Vector2(1.5f, 1.5f); // 앵커 지점 기준 적절한 감지 영역
+            
+            // 문 방향에 맞추어 트리거 감지 영역 넓히기 (벽 뚫린 3칸 영역 전체를 커버하여 공허 탈출 예방)
+            if (_roomEntranceDirection.y != 0) // Up/Down 이동 -> 가로로 긴 트리거
+            {
+                _teleportTrigger.size = new Vector2(4.5f, 1.5f);
+            }
+            else if (_roomEntranceDirection.x != 0) // Left/Right 이동 -> 세로로 긴 트리거
+            {
+                _teleportTrigger.size = new Vector2(1.5f, 4.5f);
+            }
+            else
+            {
+                _teleportTrigger.size = new Vector2(1.5f, 1.5f); // 기본값
+            }
+            
             _teleportTrigger.enabled = _isEnabled;
+        }
+        else
+        {
+            // 이미 생성되어 있는 경우에도 방향에 맞게 크기 동적 갱신
+            if (_roomEntranceDirection.y != 0)
+            {
+                _teleportTrigger.size = new Vector2(4.5f, 1.5f);
+            }
+            else if (_roomEntranceDirection.x != 0)
+            {
+                _teleportTrigger.size = new Vector2(1.5f, 4.5f);
+            }
         }
     }
 

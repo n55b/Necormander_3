@@ -25,33 +25,71 @@ public struct RewardCandidate
 /// </summary>
 public static class RewardProcessor
 {
-    // --- 1. 일반 방용: 고정 꾸러미 생성 ---
-    public static List<RewardCandidate> GenerateNormalRoomRewards(InventoryManager inven, DataManager data)
+    // --- 1-A. 플레이어 스킬 방용: 플레이어 스킬 + 보석 배출 ---
+    public static List<RewardCandidate> GeneratePlayerSkillRewards(InventoryManager inven, DataManager data)
     {
         List<RewardCandidate> results = new List<RewardCandidate>();
         var registry = data.GET_GROWTH_REGISTRY();
 
-        // [사용자 요청] 소환수(Minion) + 보석(Gem)을 합친 풀에서 랜덤으로 3개 추출
         List<RewardCandidate> combinedPool = new List<RewardCandidate>();
         
-        // 1. 소환수 풀 (이제 이미 있어도 제안함)
-        combinedPool.AddRange(GetValidCores(inven, registry.minionLineages, false));
-        
-        // 2. 보석 풀
+        // 1. 보석 풀
         combinedPool.AddRange(GetValidGems(inven, registry.gems));
 
-        // 3. 플레이어 스킬 풀 (이미 장착되어 있거나 보유 중인 스킬은 제외)
+        // 2. 플레이어 스킬 풀 (이미 장착되어 있거나 보유 중인 스킬은 제외)
         combinedPool.AddRange(GetValidPlayerSkills(registry.playerSkills));
 
-        // 랜덤하게 3개 선택
+        // 랜덤하게 3개 선택 (중복 제거)
         for (int i = 0; i < 3; i++)
         {
             if (combinedPool.Count > 0)
             {
                 int idx = Random.Range(0, combinedPool.Count);
                 results.Add(combinedPool[idx]);
-                // 소환수/보석 종류 중복 노출을 피하고 싶다면 아래 주석 해제
-                // combinedPool.RemoveAt(idx); 
+                combinedPool.RemoveAt(idx); 
+            }
+            else
+            {
+                // 보상이 고갈되었을 때 빈 보상 추가 방어 로직
+                results.Add(new RewardCandidate { 
+                    category = RewardCategory.PlayerSkill, 
+                    displayData = new GrowthItemData { itemName = "None", description = "No more player rewards available." },
+                    rawData = null 
+                });
+            }
+        }
+
+        return results;
+    }
+
+    // --- 1-B. 미니언 스킬 방용: 소환수 코어 배출 ---
+    public static List<RewardCandidate> GenerateMinionSkillRewards(InventoryManager inven, DataManager data)
+    {
+        List<RewardCandidate> results = new List<RewardCandidate>();
+        var registry = data.GET_GROWTH_REGISTRY();
+
+        List<RewardCandidate> combinedPool = new List<RewardCandidate>();
+        
+        // 1. 소환수 코어 풀
+        combinedPool.AddRange(GetValidCores(inven, registry.minionDatas, false));
+
+        // 랜덤하게 3개 선택 (중복 제거)
+        for (int i = 0; i < 3; i++)
+        {
+            if (combinedPool.Count > 0)
+            {
+                int idx = Random.Range(0, combinedPool.Count);
+                results.Add(combinedPool[idx]);
+                combinedPool.RemoveAt(idx); 
+            }
+            else
+            {
+                // 보상이 고갈되었을 때 빈 보상 추가 방어 로직
+                results.Add(new RewardCandidate { 
+                    category = RewardCategory.Minion, 
+                    displayData = new GrowthItemData { itemName = "None", description = "No more minion rewards available." },
+                    rawData = null 
+                });
             }
         }
 
@@ -67,10 +105,10 @@ public static class RewardProcessor
         switch (category)
         {
             case RewardCategory.Minion:
-                allPossible.AddRange(GetValidCores(inven, registry.minionLineages, false)); // [수정] 중복 허용
+                allPossible.AddRange(GetValidCores(inven, registry.minionDatas, false)); // [수정] 중복 허용
                 break;
             case RewardCategory.Metamorphosis:
-                allPossible.AddRange(GetValidMetamorphoses(inven, registry.minionLineages));
+                // 변이/승급 시스템 삭제로 아무것도 생성 안함
                 break;
             case RewardCategory.Gem:
                 allPossible.AddRange(GetValidGems(inven, registry.gems));
@@ -173,13 +211,13 @@ public static class RewardProcessor
 
     // --- 세부 필터링 로직 ---
 
-    private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionLineageSO> lineages, bool filterOwned = true)
+    private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionDataSO> minions, bool filterOwned = true)
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();
-        foreach (var lin in lineages)
+        foreach (var m in minions)
         {
-            if (!filterOwned || !inven.HasLineageInSlots(lin))
-                candidates.Add(new RewardCandidate { displayData = BuildMinionDisplayData(lin), rawData = lin, techIndex = 0, category = RewardCategory.Minion });
+            if (!filterOwned || !inven.HasMinionInSlots(m))
+                candidates.Add(new RewardCandidate { displayData = BuildMinionDisplayData(m), rawData = m, techIndex = 0, category = RewardCategory.Minion });
         }
         return candidates;
     }
@@ -229,41 +267,29 @@ public static class RewardProcessor
 
     // Builds the display data for a minion reward card. Uses the paired link-skill's SkillSO.description
     // when available, falling back to the lineage's own baseItemData.description otherwise.
-    private static GrowthItemData BuildMinionDisplayData(MinionLineageSO lin)
+    private static GrowthItemData BuildMinionDisplayData(MinionDataSO minion)
     {
-        var baseData = lin.baseItemData;
+        var baseData = minion.rewardItemData;
         string skillDescription = null;
 
-        if (lin.baseForm != null && lin.baseForm.minionSkill != null && !string.IsNullOrEmpty(lin.baseForm.minionSkill.description))
+        if (minion.minionSkill != null && !string.IsNullOrEmpty(minion.minionSkill.description))
         {
-            skillDescription = lin.baseForm.minionSkill.description;
+            skillDescription = minion.minionSkill.description;
         }
+
+        // [안전장치] baseData가 존재하더라도 필드가 비어있으면 에셋 기본정보로 대체(Fallback)
+        string finalName = (baseData != null && !string.IsNullOrEmpty(baseData.itemName)) ? baseData.itemName : minion.minionName;
+        Sprite finalIcon = (baseData != null && baseData.icon != null) ? baseData.icon : minion.minionIcon;
 
         return new GrowthItemData
         {
-            itemName = baseData != null ? baseData.itemName : lin.lineageName,
-            description = skillDescription ?? (baseData != null ? baseData.description : null),
+            itemName = finalName,
+            description = skillDescription ?? (baseData != null && !string.IsNullOrEmpty(baseData.description) ? baseData.description : null),
             localizedItemName = baseData != null ? baseData.localizedItemName : null,
             localizedDescription = baseData != null ? baseData.localizedDescription : null,
-            icon = baseData != null ? baseData.icon : null,
+            icon = finalIcon,
             rarity = baseData != null ? baseData.rarity : default
         };
-    }
-
-    private static List<RewardCandidate> GetValidMetamorphoses(InventoryManager inven, List<MinionLineageSO> lineages)
-    {
-        List<RewardCandidate> candidates = new List<RewardCandidate>();
-        foreach (var lin in lineages)
-        {
-            // 이미 부대에 있고, 아직 진화 전인 경우만 환골탈태 제안
-            var slot = inven.Slots.Find(s => s.EquippedLineage == lin);
-            if (slot != null && slot.EvolutionIndex == 0)
-            {
-                if (lin.techA != null) candidates.Add(new RewardCandidate { displayData = lin.techAItemData, rawData = lin, techIndex = 1, category = RewardCategory.Metamorphosis });
-                if (lin.techB != null) candidates.Add(new RewardCandidate { displayData = lin.techBItemData, rawData = lin, techIndex = 2, category = RewardCategory.Metamorphosis });
-            }
-        }
-        return candidates;
     }
 
     private static List<RewardCandidate> GetValidGems(InventoryManager inven, List<GemSO> gems)
@@ -322,7 +348,7 @@ public static class RewardProcessor
             switch (category)
             {
                 case RewardCategory.Minion:
-                    allPossible.AddRange(GetValidCores(inven, registry.minionLineages));
+                    allPossible.AddRange(GetValidCores(inven, registry.minionDatas));
                     break;
                 case RewardCategory.Ability:
                     allPossible.AddRange(GetValidAbilities(inven, registry));
@@ -331,7 +357,7 @@ public static class RewardProcessor
                     allPossible.AddRange(GetValidPlayerSkills(registry.playerSkills));
                     break;
                 case RewardCategory.Metamorphosis:
-                    allPossible.AddRange(GetValidMetamorphoses(inven, registry.minionLineages));
+                    // 변이/승급 삭제
                     break;
                 case RewardCategory.Gem:
                     allPossible.AddRange(GetValidGems(inven, registry.gems));

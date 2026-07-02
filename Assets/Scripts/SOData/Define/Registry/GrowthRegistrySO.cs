@@ -7,8 +7,8 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "GrowthRegistry", menuName = "Necromancer/Registry/GrowthRegistry")]
 public class GrowthRegistrySO : ScriptableObject
 {
-    [Header("소환수 직업 계보 (이곳에 직업별 마스터 파일을 등록하세요)")]
-    public List<MinionLineageSO> minionLineages = new List<MinionLineageSO>();
+    [Header("소환수 데이터")]
+    public List<MinionDataSO> minionDatas = new List<MinionDataSO>();
 
     [Header("강화 보석")]
     public List<GemSO> gems = new List<GemSO>();
@@ -42,17 +42,17 @@ public class GrowthRegistrySO : ScriptableObject
     /// </summary>
     public void RefreshRegistry()
     {
-        minionLineages.Clear();
+        minionDatas.Clear();
         gems.Clear();
         treasures.Clear();
 
-        // 1. 계보(Lineage) 검색
-        string[] lineageGuids = UnityEditor.AssetDatabase.FindAssets("t:MinionLineageSO");
-        foreach (var guid in lineageGuids)
+        // 1. 소환수 데이터(MinionDataSO) 검색
+        string[] minionGuids = UnityEditor.AssetDatabase.FindAssets("t:MinionDataSO");
+        foreach (var guid in minionGuids)
         {
             string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionLineageSO>(path);
-            if (asset != null) minionLineages.Add(asset);
+            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionDataSO>(path);
+            if (asset != null) minionDatas.Add(asset);
         }
 
         // 2. 보석(Gem) 검색
@@ -98,7 +98,7 @@ public class GrowthRegistrySO : ScriptableObject
         UnityEditor.EditorUtility.SetDirty(this);
         UnityEditor.AssetDatabase.SaveAssets();
         
-        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 계보({minionLineages.Count}), 보석({gems.Count}), 보물({treasures.Count}), 능력({specialAbilities.Count})");
+        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 소환수({minionDatas.Count}), 보석({gems.Count}), 보물({treasures.Count}), 능력({specialAbilities.Count})");
     }
 #endif
 }

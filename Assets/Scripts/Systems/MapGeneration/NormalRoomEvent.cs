@@ -121,7 +121,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         {
             // 상자가 없으면 예외 복구 조치로 즉시 UI 개방
             if (RewardManager.Instance != null)
-                RewardManager.Instance.RequestClearReward(room.roomType);
+                RewardManager.Instance.RequestClearReward(room.roomType, room.normalRewardType);
             return;
         }
 
@@ -132,14 +132,14 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         RoomRewardBox rewardBox = boxObj.GetComponent<RoomRewardBox>();
         if (rewardBox != null)
         {
-            rewardBox.Initialize(room.roomType);
-            Debug.Log($"<color=magenta>[NormalRoomEvent]</color> Spawned RoomRewardBox at {spawnPos}");
+            rewardBox.Initialize(room.roomType, room.normalRewardType);
+            Debug.Log($"<color=magenta>[NormalRoomEvent]</color> Spawned RoomRewardBox at {spawnPos} (Type: {room.normalRewardType})");
         }
         else
         {
             Debug.LogWarning("[NormalRoomEvent] Spawned object lacks RoomRewardBox script. Triggering reward instantly.");
             if (RewardManager.Instance != null)
-                RewardManager.Instance.RequestClearReward(room.roomType);
+                RewardManager.Instance.RequestClearReward(room.roomType, room.normalRewardType);
         }
     }
 
