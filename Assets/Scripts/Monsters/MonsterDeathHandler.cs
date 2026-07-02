@@ -32,6 +32,8 @@ namespace AstroNuts.Monsters
         private Animator _animator;
         private NavMeshAgent _agent;
         private Rigidbody2D _rb;
+        private BaseEntity _baseEntity;
+        private Canvas _hpCanvas;
         private bool _isDead;
         private bool _hasFinished;
 
@@ -43,6 +45,8 @@ namespace AstroNuts.Monsters
             _animator = GetComponentInChildren<Animator>();
             _agent = GetComponent<NavMeshAgent>();
             _rb = GetComponent<Rigidbody2D>();
+            _baseEntity = GetComponent<BaseEntity>();
+            _hpCanvas = GetComponentInChildren<Canvas>(true); // 머리 위 HP바/디버프 패널이 담긴 Canvas
         }
 
         /// <summary>외부(전투 로직 등)에서 이 몬스터/미니언을 죽일 때 호출.</summary>
@@ -57,6 +61,9 @@ namespace AstroNuts.Monsters
             foreach (var behaviour in behavioursToDisable)
                 if (behaviour != null) behaviour.enabled = false;
 
+            // 돌격 등 코루틴으로 이동 중인 공격이 있다면 먼저 멈춤 (enabled=false만으론 코루틴이 안 멈춤)
+            _baseEntity?.CancelAttack();
+
             // 죽는 순간 남아있는 관성(미끄러짐) 제거 - BaseEntity의 기절 처리와 동일한 패턴
             if (_agent != null && _agent.isActiveAndEnabled)
             {
@@ -67,6 +74,10 @@ namespace AstroNuts.Monsters
             {
                 _rb.linearVelocity = Vector2.zero;
             }
+
+            // 애니메이션 재생 중엔 머리 위 HP 캔버스(체력바+디버프 패널)를 숨김
+            if (_hpCanvas != null)
+                _hpCanvas.gameObject.SetActive(false);
 
             if (_animator != null)
                 _animator.Play(deathStateName);

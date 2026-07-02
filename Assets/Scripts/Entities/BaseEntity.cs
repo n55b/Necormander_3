@@ -134,6 +134,8 @@ public abstract class BaseEntity : MonoBehaviour
     public bool IsAttacking { get; set; } = false;
     public Coroutine ActiveAttackCoroutine { get; set; }
 
+    private bool _isPlayingStunAnim = false;
+
     protected virtual void Awake()
     {
         _animator = GetComponentInChildren<Animator>();
@@ -204,6 +206,19 @@ public abstract class BaseEntity : MonoBehaviour
                 {
                     _rb.linearVelocity = Vector2.zero;
                 }
+
+                // 기절 애니메이션은 시작될 때 한 번만 재생 (매 프레임 재시작 방지)
+                if (!_isPlayingStunAnim && _animator != null)
+                {
+                    _animator.Play("Stun");
+                    _isPlayingStunAnim = true;
+                }
+            }
+            else if (_isPlayingStunAnim)
+            {
+                // 기절이 끝났으므로, 다음 UpdateAnimation 호출이 반드시 재생되도록 강제
+                _isPlayingStunAnim = false;
+                _lastState = (AIState)(-1);
             }
             return;
         }
