@@ -1,0 +1,944 @@
+fileFormatVersion: 2
+guid: 4e20f2881092ec242a0402af44d1e294
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -9106747036528068268
+    second: Enemy_06_DashDoll_64px_0
+  - first:
+      213: 4447793323723535326
+    second: Enemy_06_DashDoll_64px_1
+  - first:
+      213: 4352314557454702192
+    second: Enemy_06_DashDoll_64px_2
+  - first:
+      213: 3542075087476594432
+    second: Enemy_06_DashDoll_64px_3
+  - first:
+      213: 2168765767700707498
+    second: Enemy_06_DashDoll_64px_4
+  - first:
+      213: -4761178343310293340
+    second: Enemy_06_DashDoll_64px_5
+  - first:
+      213: 1658071051708791826
+    second: Enemy_06_DashDoll_64px_6
+  - first:
+      213: -7106500172096103372
+    second: Enemy_06_DashDoll_64px_7
+  - first:
+      213: 6613474819415219715
+    second: Enemy_06_DashDoll_64px_8
+  - first:
+      213: 3136842549493716404
+    second: Enemy_06_DashDoll_64px_9
+  - first:
+      213: -8935951554919541484
+    second: Enemy_06_DashDoll_64px_10
+  - first:
+      213: 8824086766557972756
+    second: Enemy_06_DashDoll_64px_11
+  - first:
+      213: -3896655545864900414
+    second: Enemy_06_DashDoll_64px_12
+  - first:
+      213: 405396599130376395
+    second: Enemy_06_DashDoll_64px_13
+  - first:
+      213: 3262427284913595050
+    second: Enemy_06_DashDoll_64px_14
+  - first:
+      213: 3189366769458927217
+    second: Enemy_06_DashDoll_64px_15
+  - first:
+      213: 1123062023117612519
+    second: Enemy_06_DashDoll_64px_16
+  - first:
+      213: -2943146953122742714
+    second: Enemy_06_DashDoll_64px_17
+  - first:
+      213: -6934133651281371192
+    second: Enemy_06_DashDoll_64px_18
+  - first:
+      213: -8440034730831552239
+    second: Enemy_06_DashDoll_64px_19
+  - first:
+      213: 7200827774654458111
+    second: Enemy_06_DashDoll_64px_20
+  - first:
+      213: 2824202412884015995
+    second: Enemy_06_DashDoll_64px_21
+  - first:
+      213: 680726510109422371
+    second: Enemy_06_DashDoll_64px_22
+  - first:
+      213: 2047002368709733655
+    second: Enemy_06_DashDoll_64px_23
+  - first:
+      213: 720853655218793630
+    second: Enemy_06_DashDoll_64px_24
+  - first:
+      213: 6037815024783199957
+    second: Enemy_06_DashDoll_64px_25
+  - first:
+      213: -8678493689988906993
+    second: Enemy_06_DashDoll_64px_26
+  - first:
+      213: 7232878024381908660
+    second: Enemy_06_DashDoll_64px_27
+  - first:
+      213: 2802549895752739471
+    second: Enemy_06_DashDoll_64px_28
+  - first:
+      213: -6019505822436732345
+    second: Enemy_06_DashDoll_64px_29
+  - first:
+      213: -5728706493031235663
+    second: Enemy_06_DashDoll_64px_30
+  - first:
+      213: -4819634607139930680
+    second: Enemy_06_DashDoll_64px_31
+  - first:
+      213: -8197050552795895603
+    second: Enemy_06_DashDoll_64px_32
+  - first:
+      213: 2537106033188420042
+    second: Enemy_06_DashDoll_64px_33
+  - first:
+      213: -6200209254157358788
+    second: Enemy_06_DashDoll_64px_34
+  - first:
+      213: 540058453069346136
+    second: Enemy_06_DashDoll_64px_35
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: DashDoll_Idle_0
+      rect:
+        serializedVersion: 2
+        x: 77
+        y: 191
+        width: 37
+        height: 52
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4593764e1d55e9180800000000000000
+      internalID: -9106747036528068268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Idle_1
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 191
+        width: 37
+        height: 52
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed335e6667cb9bd30800000000000000
+      internalID: 4447793323723535326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Idle_2
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 191
+        width: 37
+        height: 53
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07659dbc707866c30800000000000000
+      internalID: 4352314557454702192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Idle_3
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 191
+        width: 37
+        height: 53
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0079dcc768af72130800000000000000
+      internalID: 3542075087476594432
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Idle_4
+      rect:
+        serializedVersion: 2
+        x: 333
+        y: 191
+        width: 37
+        height: 53
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa8f3d0a9f0091e10800000000000000
+      internalID: 2168765767700707498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Idle_5
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 191
+        width: 37
+        height: 52
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a605b6c585ecedb0800000000000000
+      internalID: -4761178343310293340
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Walk_0
+      rect:
+        serializedVersion: 2
+        x: 76
+        y: 127
+        width: 37
+        height: 52
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21cf57136d6a20710800000000000000
+      internalID: 1658071051708791826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Walk_1
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 127
+        width: 37
+        height: 52
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43c95fdceb3a06d90800000000000000
+      internalID: -7106500172096103372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Walk_2
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 127
+        width: 37
+        height: 52
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30e1c3efe48c7cb50800000000000000
+      internalID: 6613474819415219715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Walk_3
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 127
+        width: 37
+        height: 53
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b557e6ddad488b20800000000000000
+      internalID: 3136842549493716404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Walk_4
+      rect:
+        serializedVersion: 2
+        x: 333
+        y: 127
+        width: 37
+        height: 52
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 415dbeec76f1df380800000000000000
+      internalID: -8935951554919541484
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Walk_5
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 127
+        width: 37
+        height: 52
+      alignment: 9
+      pivot: {x: 0.5405405, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 419c9e38924757a70800000000000000
+      internalID: 8824086766557972756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Attack_0
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 63
+        width: 43
+        height: 45
+      alignment: 9
+      pivot: {x: 0.60465115, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c0baa82d6c4ce9c0800000000000000
+      internalID: -3896655545864900414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Attack_1
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 63
+        width: 43
+        height: 44
+      alignment: 9
+      pivot: {x: 0.60465115, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc8415c1f0240a500800000000000000
+      internalID: 405396599130376395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Attack_2
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 63
+        width: 43
+        height: 44
+      alignment: 9
+      pivot: {x: 0.60465115, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa221de9458764d20800000000000000
+      internalID: 3262427284913595050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Attack_3
+      rect:
+        serializedVersion: 2
+        x: 260
+        y: 63
+        width: 43
+        height: 48
+      alignment: 9
+      pivot: {x: 0.60465115, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 176d808cd28e24c20800000000000000
+      internalID: 3189366769458927217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Attack_4
+      rect:
+        serializedVersion: 2
+        x: 325
+        y: 63
+        width: 43
+        height: 49
+      alignment: 9
+      pivot: {x: 0.60465115, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e528a4b5fae59f00800000000000000
+      internalID: 1123062023117612519
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Attack_5
+      rect:
+        serializedVersion: 2
+        x: 387
+        y: 63
+        width: 43
+        height: 45
+      alignment: 9
+      pivot: {x: 0.60465115, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64e78598077d727d0800000000000000
+      internalID: -2943146953122742714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Stun_0
+      rect:
+        serializedVersion: 2
+        x: 468
+        y: 63
+        width: 45
+        height: 52
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11163d82129feda80800000000000000
+      internalID: -8440034730831552239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Stun_1
+      rect:
+        serializedVersion: 2
+        x: 533
+        y: 63
+        width: 43
+        height: 52
+      alignment: 9
+      pivot: {x: 0.53488374, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff8ab0d95ba7ee360800000000000000
+      internalID: 7200827774654458111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_0
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 0
+        width: 38
+        height: 51
+      alignment: 9
+      pivot: {x: 0.5263158, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7bb0c99125913720800000000000000
+      internalID: 2824202412884015995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_1
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 0
+        width: 39
+        height: 51
+      alignment: 9
+      pivot: {x: 0.53846157, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71da3511fc9686c10800000000000000
+      internalID: 2047002368709733655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_2
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 0
+        width: 46
+        height: 51
+      alignment: 9
+      pivot: {x: 0.6086956, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5de08bb76c0aac350800000000000000
+      internalID: 6037815024783199957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_3
+      rect:
+        serializedVersion: 2
+        x: 282
+        y: 0
+        width: 37
+        height: 51
+      alignment: 9
+      pivot: {x: 0.5135135, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f000eb638fbcf8780800000000000000
+      internalID: -8678493689988906993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_4
+      rect:
+        serializedVersion: 2
+        x: 347
+        y: 0
+        width: 37
+        height: 51
+      alignment: 9
+      pivot: {x: 0.5135135, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b64303ed38506460800000000000000
+      internalID: 7232878024381908660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_5
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 0
+        width: 39
+        height: 46
+      alignment: 9
+      pivot: {x: 0.53846157, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8a66a91848a4e620800000000000000
+      internalID: 2802549895752739471
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_6
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 0
+        width: 53
+        height: 37
+      alignment: 9
+      pivot: {x: 0.7169811, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bf366cebcb8f70b0800000000000000
+      internalID: -5728706493031235663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_7
+      rect:
+        serializedVersion: 2
+        x: 515
+        y: 0
+        width: 57
+        height: 18
+      alignment: 9
+      pivot: {x: 0.7368421, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8cdbe3e3cd73d1db0800000000000000
+      internalID: -4819634607139930680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_8
+      rect:
+        serializedVersion: 2
+        x: 577
+        y: 0
+        width: 59
+        height: 18
+      alignment: 9
+      pivot: {x: 0.7457627, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac932b9be7c953320800000000000000
+      internalID: 2537106033188420042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_9
+      rect:
+        serializedVersion: 2
+        x: 640
+        y: 0
+        width: 60
+        height: 18
+      alignment: 9
+      pivot: {x: 0.75, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c396cd0988e64f9a0800000000000000
+      internalID: -6200209254157358788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DashDoll_Death_10
+      rect:
+        serializedVersion: 2
+        x: 710
+        y: 0
+        width: 54
+        height: 18
+      alignment: 9
+      pivot: {x: 0.7592593, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 855352d3d4cae7700800000000000000
+      internalID: 540058453069346136
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 440f6d59b81b8514e8167efee964a575
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      4: -8935951554919541484
+      DashDoll_Attack_0: -3896655545864900414
+      DashDoll_Attack_1: 405396599130376395
+      DashDoll_Attack_2: 3262427284913595050
+      DashDoll_Attack_3: 3189366769458927217
+      DashDoll_Attack_4: 1123062023117612519
+      DashDoll_Attack_5: -2943146953122742714
+      DashDoll_Death_0: 2824202412884015995
+      DashDoll_Death_1: 2047002368709733655
+      DashDoll_Death_10: 540058453069346136
+      DashDoll_Death_2: 6037815024783199957
+      DashDoll_Death_3: -8678493689988906993
+      DashDoll_Death_4: 7232878024381908660
+      DashDoll_Death_5: 2802549895752739471
+      DashDoll_Death_6: -5728706493031235663
+      DashDoll_Death_7: -4819634607139930680
+      DashDoll_Death_8: 2537106033188420042
+      DashDoll_Death_9: -6200209254157358788
+      DashDoll_Idle_0: -9106747036528068268
+      DashDoll_Idle_1: 4447793323723535326
+      DashDoll_Idle_2: 4352314557454702192
+      DashDoll_Idle_3: 3542075087476594432
+      DashDoll_Idle_4: 2168765767700707498
+      DashDoll_Idle_5: -4761178343310293340
+      DashDoll_Stun_0: -8440034730831552239
+      DashDoll_Stun_1: 7200827774654458111
+      DashDoll_Walk_0: 1658071051708791826
+      DashDoll_Walk_1: -7106500172096103372
+      DashDoll_Walk_2: 6613474819415219715
+      DashDoll_Walk_3: 3136842549493716404
+      DashDoll_Walk_4: -8935951554919541484
+      DashDoll_Walk_5: 8824086766557972756
+      Enemy_06_DashDoll_64px_18: -6934133651281371192
+      Enemy_06_DashDoll_64px_22: 680726510109422371
+      Enemy_06_DashDoll_64px_24: 720853655218793630
+      Enemy_06_DashDoll_64px_29: -6019505822436732345
+      Enemy_06_DashDoll_64px_32: -8197050552795895603
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

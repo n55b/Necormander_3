@@ -14,7 +14,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1841339908024047631, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Name
-      value: Enemy Magician
+      value: Monster Necromancer
+      objectReference: {fileID: 0}
+    - target: {fileID: 1955936330828241677, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2069716193292111499, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 2262207286068843843, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: minionData
@@ -36,6 +44,10 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.7356782
       objectReference: {fileID: 0}
+    - target: {fileID: 2865743803237924778, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 22100000, guid: ac4d0255fd289db4899c79646a185928, type: 2}
     - target: {fileID: 6529688652472716852, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -79,7 +91,7 @@ PrefabInstance:
     - target: {fileID: 8150888168159850155, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 1457491203435894738, guid: 345a1f26ac34562478b57c2def80ab0f, type: 3}
+      objectReference: {fileID: 1864559892512495675, guid: 109439ab1b078bf48acabbcea3dd6d61, type: 3}
     - target: {fileID: 8150888168159850155, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Color.b
       value: 1

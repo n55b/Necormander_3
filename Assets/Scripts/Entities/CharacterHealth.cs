@@ -1,5 +1,7 @@
 using UnityEngine;
 using System;
+using AstroNuts.Monsters;
+
 
 /// <summary>
 /// 유닛의 체력 관리와 데미지 계산, 사망 처리를 담당하는 컴포넌트입니다.
@@ -321,7 +323,16 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         
         if (!isPlayer)
         {
-            Destroy(rootEntity != null ? rootEntity.gameObject : gameObject);
+            GameObject targetObj = rootEntity != null ? rootEntity.gameObject : gameObject;
+            var deathHandler = targetObj.GetComponent<MonsterDeathHandler>();
+            if (deathHandler != null)
+            {
+                deathHandler.Die(); // 죽음 애니메이션 재생 후 알아서 제거됨
+            }
+            else
+            {
+                Destroy(targetObj); // MonsterDeathHandler가 없는 오브젝트는 기존처럼 즉시 제거
+            }
         }
 
         if(isPlayer)

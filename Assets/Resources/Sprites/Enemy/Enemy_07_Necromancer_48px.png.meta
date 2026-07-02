@@ -1,0 +1,772 @@
+fileFormatVersion: 2
+guid: 109439ab1b078bf48acabbcea3dd6d61
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1864559892512495675
+    second: Enemy_07_Necromancer_48px_0
+  - first:
+      213: 4005684634540711807
+    second: Enemy_07_Necromancer_48px_1
+  - first:
+      213: 7631462856145798722
+    second: Enemy_07_Necromancer_48px_2
+  - first:
+      213: 2614749080953858344
+    second: Enemy_07_Necromancer_48px_3
+  - first:
+      213: -3031013756068044394
+    second: Enemy_07_Necromancer_48px_4
+  - first:
+      213: 6169696463042518992
+    second: Enemy_07_Necromancer_48px_5
+  - first:
+      213: 2097969292080183721
+    second: Enemy_07_Necromancer_48px_6
+  - first:
+      213: -1612298259488107842
+    second: Enemy_07_Necromancer_48px_7
+  - first:
+      213: 2305153023474036419
+    second: Enemy_07_Necromancer_48px_8
+  - first:
+      213: 6703357256622816508
+    second: Enemy_07_Necromancer_48px_9
+  - first:
+      213: -322994710306802070
+    second: Enemy_07_Necromancer_48px_10
+  - first:
+      213: 4796784018749018619
+    second: Enemy_07_Necromancer_48px_11
+  - first:
+      213: -8821187206282319928
+    second: Enemy_07_Necromancer_48px_12
+  - first:
+      213: -7542519148930061492
+    second: Enemy_07_Necromancer_48px_13
+  - first:
+      213: 199924239878249577
+    second: Enemy_07_Necromancer_48px_14
+  - first:
+      213: 8059489660678491417
+    second: Enemy_07_Necromancer_48px_15
+  - first:
+      213: -6793558674864931607
+    second: Enemy_07_Necromancer_48px_16
+  - first:
+      213: 1432761465841275490
+    second: Enemy_07_Necromancer_48px_17
+  - first:
+      213: -2245911288727936232
+    second: Enemy_07_Necromancer_48px_18
+  - first:
+      213: 2369588818924133588
+    second: Enemy_07_Necromancer_48px_19
+  - first:
+      213: -594184326168897204
+    second: Enemy_07_Necromancer_48px_20
+  - first:
+      213: -174076300575902787
+    second: Enemy_07_Necromancer_48px_21
+  - first:
+      213: 1683662181539454623
+    second: Enemy_07_Necromancer_48px_22
+  - first:
+      213: 8657902882794664155
+    second: Enemy_07_Necromancer_48px_23
+  - first:
+      213: -8313196217492168949
+    second: Enemy_07_Necromancer_48px_24
+  - first:
+      213: -7843665242737518764
+    second: Enemy_07_Necromancer_48px_25
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Idle_0
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 143
+        width: 30
+        height: 35
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b38d5a7e75f30e910800000000000000
+      internalID: 1864559892512495675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Idle_1
+      rect:
+        serializedVersion: 2
+        x: 152
+        y: 143
+        width: 30
+        height: 36
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7f1a0cb3fc079730800000000000000
+      internalID: 4005684634540711807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Idle_2
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 143
+        width: 30
+        height: 36
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2468821d80768e960800000000000000
+      internalID: 7631462856145798722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Idle_3
+      rect:
+        serializedVersion: 2
+        x: 248
+        y: 143
+        width: 30
+        height: 36
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 829a8038f64794420800000000000000
+      internalID: 2614749080953858344
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Idle_4
+      rect:
+        serializedVersion: 2
+        x: 296
+        y: 143
+        width: 30
+        height: 36
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 691ed304c0dafe5d0800000000000000
+      internalID: -3031013756068044394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Idle_5
+      rect:
+        serializedVersion: 2
+        x: 344
+        y: 143
+        width: 30
+        height: 36
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0df12a3ae3a2f9550800000000000000
+      internalID: 6169696463042518992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Walk_0
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 95
+        width: 30
+        height: 36
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a9fd14a4fb7d1d10800000000000000
+      internalID: 2097969292080183721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Walk_1
+      rect:
+        serializedVersion: 2
+        x: 152
+        y: 95
+        width: 30
+        height: 36
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb21b3b7647ff99e0800000000000000
+      internalID: -1612298259488107842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Walk_2
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 95
+        width: 30
+        height: 36
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ce661d267c8dff10800000000000000
+      internalID: 2305153023474036419
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Walk_3
+      rect:
+        serializedVersion: 2
+        x: 248
+        y: 95
+        width: 30
+        height: 36
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfc3a83b8eb170d50800000000000000
+      internalID: 6703357256622816508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Walk_4
+      rect:
+        serializedVersion: 2
+        x: 296
+        y: 95
+        width: 30
+        height: 36
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6635d3b50e748bf0800000000000000
+      internalID: -322994710306802070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Walk_5
+      rect:
+        serializedVersion: 2
+        x: 344
+        y: 95
+        width: 30
+        height: 36
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf15ecd86a9919240800000000000000
+      internalID: 4796784018749018619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Attack_0
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 47
+        width: 29
+        height: 35
+      alignment: 9
+      pivot: {x: 0.51724136, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c76258f8f8d49580800000000000000
+      internalID: -8821187206282319928
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Attack_1
+      rect:
+        serializedVersion: 2
+        x: 151
+        y: 47
+        width: 29
+        height: 33
+      alignment: 9
+      pivot: {x: 0.51724136, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4b2178cbc6935790800000000000000
+      internalID: -7542519148930061492
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Attack_2
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 47
+        width: 31
+        height: 35
+      alignment: 9
+      pivot: {x: 0.5483871, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96cdee3790646c200800000000000000
+      internalID: 199924239878249577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Attack_3
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 47
+        width: 35
+        height: 35
+      alignment: 9
+      pivot: {x: 0.6, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91dcca7352f09df60800000000000000
+      internalID: 8059489660678491417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Attack_4
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 47
+        width: 39
+        height: 35
+      alignment: 9
+      pivot: {x: 0.64102566, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 262565b46f032e310800000000000000
+      internalID: 1432761465841275490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Attack_5
+      rect:
+        serializedVersion: 2
+        x: 345
+        y: 47
+        width: 31
+        height: 35
+      alignment: 9
+      pivot: {x: 0.5483871, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 813e45e059be4d0e0800000000000000
+      internalID: -2245911288727936232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Attack_6
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 47
+        width: 31
+        height: 35
+      alignment: 9
+      pivot: {x: 0.5483871, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dcd5b7e97872e020800000000000000
+      internalID: 2369588818924133588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Dead_0
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 0
+        width: 30
+        height: 34
+      alignment: 9
+      pivot: {x: 0.53333336, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c491993e08801c7f0800000000000000
+      internalID: -594184326168897204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Dead_1
+      rect:
+        serializedVersion: 2
+        x: 155
+        y: 0
+        width: 29
+        height: 33
+      alignment: 9
+      pivot: {x: 0.51724136, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db3fb54e68e859df0800000000000000
+      internalID: -174076300575902787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Dead_2
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 0
+        width: 28
+        height: 33
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9e1b6c65d19d5710800000000000000
+      internalID: 1683662181539454623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Dead_3
+      rect:
+        serializedVersion: 2
+        x: 253
+        y: 0
+        width: 28
+        height: 31
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd07ec4eccc072870800000000000000
+      internalID: 8657902882794664155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Dead_4
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 0
+        width: 26
+        height: 29
+      alignment: 9
+      pivot: {x: 0.46153846, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0f124cd51891ac80800000000000000
+      internalID: -8313196217492168949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Enemy_07_Necromancer_Dead_5
+      rect:
+        serializedVersion: 2
+        x: 347
+        y: 0
+        width: 26
+        height: 28
+      alignment: 9
+      pivot: {x: 0.46153846, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4575d8de404b52390800000000000000
+      internalID: -7843665242737518764
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 898189a9e4ac30d4d97acd969fc84e99
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      DashDoll_Death_0: 1864559892512495675
+      Enemy_07_Necromancer_48px_16: -6793558674864931607
+      Enemy_07_Necromancer_Attack_0: -8821187206282319928
+      Enemy_07_Necromancer_Attack_1: -7542519148930061492
+      Enemy_07_Necromancer_Attack_2: 199924239878249577
+      Enemy_07_Necromancer_Attack_3: 8059489660678491417
+      Enemy_07_Necromancer_Attack_4: 1432761465841275490
+      Enemy_07_Necromancer_Attack_5: -2245911288727936232
+      Enemy_07_Necromancer_Attack_6: 2369588818924133588
+      Enemy_07_Necromancer_Dead_0: -594184326168897204
+      Enemy_07_Necromancer_Dead_1: -174076300575902787
+      Enemy_07_Necromancer_Dead_2: 1683662181539454623
+      Enemy_07_Necromancer_Dead_3: 8657902882794664155
+      Enemy_07_Necromancer_Dead_4: -8313196217492168949
+      Enemy_07_Necromancer_Dead_5: -7843665242737518764
+      Enemy_07_Necromancer_Idle_0: 1864559892512495675
+      Enemy_07_Necromancer_Idle_1: 4005684634540711807
+      Enemy_07_Necromancer_Idle_2: 7631462856145798722
+      Enemy_07_Necromancer_Idle_3: 2614749080953858344
+      Enemy_07_Necromancer_Idle_4: -3031013756068044394
+      Enemy_07_Necromancer_Idle_5: 6169696463042518992
+      Enemy_07_Necromancer_Walk_0: 2097969292080183721
+      Enemy_07_Necromancer_Walk_1: -1612298259488107842
+      Enemy_07_Necromancer_Walk_2: 2305153023474036419
+      Enemy_07_Necromancer_Walk_3: 6703357256622816508
+      Enemy_07_Necromancer_Walk_4: -322994710306802070
+      Enemy_07_Necromancer_Walk_5: 4796784018749018619
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
