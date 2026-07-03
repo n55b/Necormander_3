@@ -13,6 +13,7 @@ public class TrackingFireball : Projectile
         _targetTransform = target;
         // 부모의 Init을 활용하되, targetPos는 현재 타겟 위치로 초기화
         base.Init(target.position, damage, targetLayer, shooter, customSpeed, customLifeTime);
+        this.transform.localRotation = Quaternion.identity; // 초기 회전값을 리셋
     }
 
     public void InitLinear(Vector2 targetPos, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
@@ -35,10 +36,6 @@ public class TrackingFireball : Projectile
         
         // 이동
         transform.position = Vector2.MoveTowards(transform.position, _targetTransform.position, speed * Time.deltaTime);
-
-        // 회전 업데이트 (시각적)
-        float angle = Mathf.Atan2(targetDir.y, targetDir.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
     }
 
     protected override void OnHitTarget(CharacterStat targetStat)
