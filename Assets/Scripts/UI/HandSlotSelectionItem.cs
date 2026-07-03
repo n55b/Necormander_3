@@ -18,7 +18,7 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
     private HandSlotSelectionUI _parentUI;
     private InventoryManager.CoreSlot _currentSlot;
 
-    public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI parent, bool isReadOnly)
+public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI parent, bool isReadOnly)
     {
         _slotIndex = index;
         _parentUI = parent;
@@ -26,31 +26,36 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
 
         var itemData = slot.GetCurrentItemData();
 
-        // [추가] 텍스트 칸 로직: 아이템이 있으면 이름, 없으면 슬롯 번호
+        // [수정] 빈 슬롯 판정은 itemData 존재 여부로만 하고, 표시 텍스트는 내부에서 localizedItemName -> itemName 순으로 폴백합니다.
+        // (itemName 필드가 비어있고 localizedItemName만 채워진 아이템의 경우 '비어있음'으로 잘못 표시되던 버그 수정)
         if (infoText != null)
         {
-            if (itemData != null && !string.IsNullOrEmpty(itemData.itemName))
+            if (itemData != null)
             {
+                string resolvedName = null;
+
                 if (itemData.localizedItemName != null && !itemData.localizedItemName.IsEmpty)
                 {
                     var op = itemData.localizedItemName.GetLocalizedStringAsync();
-                    if (op.IsDone) infoText.text = op.Result;
+                    if (op.IsDone) resolvedName = op.Result;
                     else 
                     {
                         var handle = op;
                         handle.WaitForCompletion();
-                        infoText.text = handle.Result;
+                        resolvedName = handle.Result;
                     }
-                    
-                    if (string.IsNullOrEmpty(infoText.text) || infoText.text.StartsWith("No translation"))
+
+                    if (string.IsNullOrEmpty(resolvedName) || resolvedName.StartsWith("No translation"))
                     {
-                        infoText.text = itemData.itemName;
+                        resolvedName = itemData.itemName;
                     }
                 }
                 else
                 {
-                    infoText.text = itemData.itemName;
+                    resolvedName = itemData.itemName;
                 }
+
+                infoText.text = !string.IsNullOrEmpty(resolvedName) ? resolvedName : GetUIString("UI_Slot_Empty", index + 1);
             }
             else
             {
@@ -96,7 +101,7 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
 
     #region Tooltip Logic
 
-    public void OnPointerEnter(PointerEventData eventData)
+public void OnPointerEnter(PointerEventData eventData)
     {
         if (_currentSlot == null || _currentSlot.IsEmpty || CommonTooltipUI.Instance == null) return;
 
@@ -113,9 +118,12 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
             var minion = _currentSlot.GetCurrentMinionData();
             
             string minionLocalizedName = itemData.itemName;
-            var nameOp = itemData.localizedItemName.GetLocalizedStringAsync();
-            if (nameOp.IsDone) minionLocalizedName = nameOp.Result;
-            else { var handle = nameOp; handle.WaitForCompletion(); minionLocalizedName = handle.Result; }
+            if (itemData.localizedItemName != null && !itemData.localizedItemName.IsEmpty)
+            {
+                var nameOp = itemData.localizedItemName.GetLocalizedStringAsync();
+                if (nameOp.IsDone) minionLocalizedName = nameOp.Result;
+                else { var handle = nameOp; handle.WaitForCompletion(); minionLocalizedName = handle.Result; }
+            }
 
             data.type = $"<color=#FFD700>{GetUIString("UI_Minion_Prefix", minionLocalizedName)}</color>";
             data.titleColor = new Color(0.8f, 1f, 0.8f);

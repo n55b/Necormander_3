@@ -34,6 +34,13 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         entity.HasFiredHitEvent = false;
         entity.HasFiredAttackEndEvent = false;
 
+        // [수정] Attack 애니메이션 재생 (기존엔 누락되어 있어 돌진 중 Attack 애니메이션이 재생되지 않았음)
+        if (entity.Animator != null && entity.Animator.runtimeAnimatorController != null)
+        {
+            entity.Animator.speed = 1f;
+            entity.Animator.Play("Attack", -1, 0f);
+        }
+
         GameObject aimLine = null;
         BaseHitBox aimHitbox = null;
 
