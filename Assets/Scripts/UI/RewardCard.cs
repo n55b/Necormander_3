@@ -13,6 +13,10 @@ public class RewardCard : MonoBehaviour
     [SerializeField] private Image iconImage;
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI descText;
+
+    [Header("Keyword Sub Tooltip")]
+    [Tooltip("설명에 포함된 키워드(예: 취약)를 감지해 아래에 추가 설명을 붙여줍니다. CommonTooltipUI와 동일한 사전을 연결하세요.")]
+    [SerializeField] private AstroNuts.Localization.KeywordDictionary keywordDictionary;
     
     // 카드 자체에 Button 컴포넌트가 있는 경우를 위해 캐싱
     private Button _cardButton;
@@ -95,6 +99,25 @@ public class RewardCard : MonoBehaviour
                 var locEvent = descText.GetComponent<LocalizeStringEvent>();
                 if (locEvent != null) locEvent.StringReference = null;
                 descText.text = candidate.displayData.description;
+            }
+
+            // [추가] 설명 안에 키워드 사전(예: "취약")에 등록된 단어가 있으면 아래에 추가 효과 설명을 붙여줍니다.
+            // (CommonTooltipUI의 스킬 툴팁과 동일한 방식)
+            if (keywordDictionary != null && !string.IsNullOrEmpty(candidate.displayData.description))
+            {
+                foreach (var entry in keywordDictionary.entries)
+                {
+                    string keyword = entry.displayName.GetLocalizedString();
+
+                    if (candidate.displayData.description.Contains(keyword))
+                    {
+                        string kTitle = entry.displayName.GetLocalizedString();
+                        string kDesc = entry.description.GetLocalizedString();
+
+                        descText.text += $"\n\n<b><color=#E24B4A>[{kTitle}]</color></b>\n{kDesc}";
+                        break;
+                    }
+                }
             }
         }
         
