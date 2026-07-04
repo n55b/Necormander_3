@@ -205,683 +205,683 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: DashDoll_Idle_0
+      name: Idle_01
       rect:
         serializedVersion: 2
-        x: 77
-        y: 191
-        width: 37
-        height: 52
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 64
+        y: 192
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 4593764e1d55e9180800000000000000
-      internalID: -9106747036528068268
+      spriteID: d477328b9eafcf540a4a1c0181e91778
+      internalID: 1810791864
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Idle_1
+      name: Idle_02
       rect:
         serializedVersion: 2
-        x: 141
-        y: 191
-        width: 37
-        height: 52
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 128
+        y: 192
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: ed335e6667cb9bd30800000000000000
-      internalID: 4447793323723535326
+      spriteID: 7227f1e64c26353478839476baf7d3d7
+      internalID: -989842289
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Idle_2
+      name: Idle_03
       rect:
         serializedVersion: 2
-        x: 205
-        y: 191
-        width: 37
-        height: 53
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 192
+        y: 192
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 07659dbc707866c30800000000000000
-      internalID: 4352314557454702192
+      spriteID: 8bcc70100304adf4089fabcbc9ada454
+      internalID: -464817228
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Idle_3
+      name: Idle_04
       rect:
         serializedVersion: 2
-        x: 269
-        y: 191
-        width: 37
-        height: 53
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 256
+        y: 192
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 0079dcc768af72130800000000000000
-      internalID: 3542075087476594432
+      spriteID: 004597aa5dcb99343be27284d9c39995
+      internalID: -1885042969
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Idle_4
+      name: Idle_05
       rect:
         serializedVersion: 2
-        x: 333
-        y: 191
-        width: 37
-        height: 53
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 320
+        y: 192
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: aa8f3d0a9f0091e10800000000000000
-      internalID: 2168765767700707498
+      spriteID: ca272d576dc4a2a4cbcf95869b862b4a
+      internalID: -1088745217
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Idle_5
+      name: Idle_06
       rect:
         serializedVersion: 2
-        x: 397
-        y: 191
-        width: 37
-        height: 52
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 384
+        y: 192
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 4a605b6c585ecedb0800000000000000
-      internalID: -4761178343310293340
+      spriteID: a5fe49fbfb0a40249933eac3bdba92d5
+      internalID: -599748661
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Walk_0
+      name: Move_01
       rect:
         serializedVersion: 2
-        x: 76
-        y: 127
-        width: 37
-        height: 52
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 21cf57136d6a20710800000000000000
-      internalID: 1658071051708791826
+      spriteID: 4d7ff14fba28d2c4a9add34a0408c00b
+      internalID: 92607909
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Walk_1
+      name: Move_02
       rect:
         serializedVersion: 2
-        x: 141
-        y: 127
-        width: 37
-        height: 52
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 128
+        y: 128
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 43c95fdceb3a06d90800000000000000
-      internalID: -7106500172096103372
+      spriteID: 3a5ad4f8c90f36349ac4e01996c6a454
+      internalID: 880607319
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Walk_2
+      name: Move_03
       rect:
         serializedVersion: 2
-        x: 205
-        y: 127
-        width: 37
-        height: 52
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 192
+        y: 128
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 30e1c3efe48c7cb50800000000000000
-      internalID: 6613474819415219715
+      spriteID: 21fb8cdaf5ed5f14494963ab652fcda9
+      internalID: 290387767
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Walk_3
+      name: Move_04
       rect:
         serializedVersion: 2
-        x: 269
-        y: 127
-        width: 37
-        height: 53
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 256
+        y: 128
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 4b557e6ddad488b20800000000000000
-      internalID: 3136842549493716404
+      spriteID: 804900508da3250468b9046fe9fc5cc5
+      internalID: -336427936
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Walk_4
+      name: Move_05
       rect:
         serializedVersion: 2
-        x: 333
-        y: 127
-        width: 37
-        height: 52
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 320
+        y: 128
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 415dbeec76f1df380800000000000000
-      internalID: -8935951554919541484
+      spriteID: bffe38c0450f383449f227afc1756639
+      internalID: -211574877
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Walk_5
+      name: Move_06
       rect:
         serializedVersion: 2
-        x: 397
-        y: 127
-        width: 37
-        height: 52
-      alignment: 9
-      pivot: {x: 0.5405405, y: 0}
+        x: 384
+        y: 128
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 419c9e38924757a70800000000000000
-      internalID: 8824086766557972756
+      spriteID: b4cbde5f05f37d143af0a32f27659f33
+      internalID: 1501387394
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Attack_0
+      name: Attack_01
       rect:
         serializedVersion: 2
-        x: 66
-        y: 63
-        width: 43
-        height: 45
-      alignment: 9
-      pivot: {x: 0.60465115, y: 0}
+        x: 64
+        y: 64
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 2c0baa82d6c4ce9c0800000000000000
-      internalID: -3896655545864900414
+      spriteID: b8c1e01fcb4b2784c8598f60c48a447f
+      internalID: -1916249325
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Attack_1
+      name: Attack_02
       rect:
         serializedVersion: 2
-        x: 130
-        y: 63
-        width: 43
-        height: 44
-      alignment: 9
-      pivot: {x: 0.60465115, y: 0}
+        x: 128
+        y: 64
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: bc8415c1f0240a500800000000000000
-      internalID: 405396599130376395
+      spriteID: da2de2e6abedb9143beac21422d00f0d
+      internalID: -2118632394
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Attack_2
+      name: Attack_03
       rect:
         serializedVersion: 2
-        x: 195
-        y: 63
-        width: 43
-        height: 44
-      alignment: 9
-      pivot: {x: 0.60465115, y: 0}
+        x: 192
+        y: 64
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: aa221de9458764d20800000000000000
-      internalID: 3262427284913595050
+      spriteID: e39b70d8bf0515141922f10f5f9770c6
+      internalID: -1850489091
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Attack_3
+      name: Attack_04
       rect:
         serializedVersion: 2
-        x: 260
-        y: 63
-        width: 43
-        height: 48
-      alignment: 9
-      pivot: {x: 0.60465115, y: 0}
+        x: 256
+        y: 64
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 176d808cd28e24c20800000000000000
-      internalID: 3189366769458927217
+      spriteID: 9b95f3d31c737c94d883b398ab824260
+      internalID: -2082727489
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Attack_4
+      name: Attack_05
       rect:
         serializedVersion: 2
-        x: 325
-        y: 63
-        width: 43
-        height: 49
-      alignment: 9
-      pivot: {x: 0.60465115, y: 0}
+        x: 320
+        y: 64
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 7e528a4b5fae59f00800000000000000
-      internalID: 1123062023117612519
+      spriteID: a60225e4643cd3d4f9a33b3c33c06342
+      internalID: -1281625988
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Attack_5
+      name: Attack_06
       rect:
         serializedVersion: 2
-        x: 387
-        y: 63
-        width: 43
-        height: 45
-      alignment: 9
-      pivot: {x: 0.60465115, y: 0}
+        x: 384
+        y: 64
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 64e78598077d727d0800000000000000
-      internalID: -2943146953122742714
+      spriteID: 1a4d37c73a0bd534aa0a7792e3e179db
+      internalID: 2144350034
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Stun_0
+      name: Stun_01
       rect:
         serializedVersion: 2
-        x: 468
-        y: 63
-        width: 45
-        height: 52
-      alignment: 9
-      pivot: {x: 0.51111114, y: 0}
+        x: 448
+        y: 64
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 11163d82129feda80800000000000000
-      internalID: -8440034730831552239
+      spriteID: f0ecd3957bdb8ff4ab0a61d14ec3aa41
+      internalID: -177789278
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Stun_1
+      name: Stun_02
       rect:
         serializedVersion: 2
-        x: 533
-        y: 63
-        width: 43
-        height: 52
-      alignment: 9
-      pivot: {x: 0.53488374, y: 0}
+        x: 512
+        y: 64
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: ff8ab0d95ba7ee360800000000000000
-      internalID: 7200827774654458111
+      spriteID: d5ca5ff57e249c143829916bac03b2e8
+      internalID: 716909899
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_0
+      name: Dead_01
       rect:
         serializedVersion: 2
-        x: 82
+        x: 64
         y: 0
-        width: 38
-        height: 51
-      alignment: 9
-      pivot: {x: 0.5263158, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: b7bb0c99125913720800000000000000
-      internalID: 2824202412884015995
+      spriteID: 61b5226082a141345a032d41025c0c3c
+      internalID: 2042906367
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_1
+      name: Dead_02
       rect:
         serializedVersion: 2
-        x: 148
+        x: 128
         y: 0
-        width: 39
-        height: 51
-      alignment: 9
-      pivot: {x: 0.53846157, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 71da3511fc9686c10800000000000000
-      internalID: 2047002368709733655
+      spriteID: cb8a03dad386f7c4796d620e8d8356a7
+      internalID: -916523718
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_2
+      name: Dead_03
       rect:
         serializedVersion: 2
-        x: 211
+        x: 192
         y: 0
-        width: 46
-        height: 51
-      alignment: 9
-      pivot: {x: 0.6086956, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 5de08bb76c0aac350800000000000000
-      internalID: 6037815024783199957
+      spriteID: fc1e9095abd09944dadb375cd8f2f3c4
+      internalID: 1626228773
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_3
+      name: Dead_04
       rect:
         serializedVersion: 2
-        x: 282
+        x: 256
         y: 0
-        width: 37
-        height: 51
-      alignment: 9
-      pivot: {x: 0.5135135, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: f000eb638fbcf8780800000000000000
-      internalID: -8678493689988906993
+      spriteID: 0b4f73cc3c44a6e45b09212d38654ee2
+      internalID: -827750215
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_4
+      name: Dead_05
       rect:
         serializedVersion: 2
-        x: 347
+        x: 320
         y: 0
-        width: 37
-        height: 51
-      alignment: 9
-      pivot: {x: 0.5135135, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 4b64303ed38506460800000000000000
-      internalID: 7232878024381908660
+      spriteID: 83843532d9cf2834ab4b7ef5a42bbda3
+      internalID: -2115588939
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_5
+      name: Dead_06
       rect:
         serializedVersion: 2
-        x: 407
+        x: 384
         y: 0
-        width: 39
-        height: 46
-      alignment: 9
-      pivot: {x: 0.53846157, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: f8a66a91848a4e620800000000000000
-      internalID: 2802549895752739471
+      spriteID: 4791bb2e3a9b918479c9bf7b20f8d4d2
+      internalID: 1003739934
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_6
+      name: Dead_07
       rect:
         serializedVersion: 2
-        x: 455
+        x: 448
         y: 0
-        width: 53
-        height: 37
-      alignment: 9
-      pivot: {x: 0.7169811, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 1bf366cebcb8f70b0800000000000000
-      internalID: -5728706493031235663
+      spriteID: 594545d6181b68142acb4b9fdc6300c7
+      internalID: -1367501177
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_7
+      name: Dead_08
       rect:
         serializedVersion: 2
-        x: 515
+        x: 512
         y: 0
-        width: 57
-        height: 18
-      alignment: 9
-      pivot: {x: 0.7368421, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 8cdbe3e3cd73d1db0800000000000000
-      internalID: -4819634607139930680
+      spriteID: 97e691384dcf3454d96bb948b5141b0c
+      internalID: 2086711163
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_8
+      name: Dead_09
       rect:
         serializedVersion: 2
-        x: 577
+        x: 576
         y: 0
-        width: 59
-        height: 18
-      alignment: 9
-      pivot: {x: 0.7457627, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: ac932b9be7c953320800000000000000
-      internalID: 2537106033188420042
+      spriteID: d9557e832dcc83d4fb5a7983d54275ea
+      internalID: -219445491
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_9
+      name: Dead_10
       rect:
         serializedVersion: 2
         x: 640
         y: 0
-        width: 60
-        height: 18
-      alignment: 9
-      pivot: {x: 0.75, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: c396cd0988e64f9a0800000000000000
-      internalID: -6200209254157358788
+      spriteID: ee7286463dabb284d9c10a8e9482ce32
+      internalID: 1767639589
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: DashDoll_Death_10
+      name: Dead_11
       rect:
         serializedVersion: 2
-        x: 710
+        x: 704
         y: 0
-        width: 54
-        height: 18
-      alignment: 9
-      pivot: {x: 0.7592593, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 855352d3d4cae7700800000000000000
-      internalID: 540058453069346136
+      spriteID: 8b066f033c7f36c4aa1fe6f1dadcae86
+      internalID: -834113700
       vertices: []
       indices: 
       edges: []
@@ -900,43 +900,38 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      4: -8935951554919541484
-      DashDoll_Attack_0: -3896655545864900414
-      DashDoll_Attack_1: 405396599130376395
-      DashDoll_Attack_2: 3262427284913595050
-      DashDoll_Attack_3: 3189366769458927217
-      DashDoll_Attack_4: 1123062023117612519
-      DashDoll_Attack_5: -2943146953122742714
-      DashDoll_Death_0: 2824202412884015995
-      DashDoll_Death_1: 2047002368709733655
-      DashDoll_Death_10: 540058453069346136
-      DashDoll_Death_2: 6037815024783199957
-      DashDoll_Death_3: -8678493689988906993
-      DashDoll_Death_4: 7232878024381908660
-      DashDoll_Death_5: 2802549895752739471
-      DashDoll_Death_6: -5728706493031235663
-      DashDoll_Death_7: -4819634607139930680
-      DashDoll_Death_8: 2537106033188420042
-      DashDoll_Death_9: -6200209254157358788
-      DashDoll_Idle_0: -9106747036528068268
-      DashDoll_Idle_1: 4447793323723535326
-      DashDoll_Idle_2: 4352314557454702192
-      DashDoll_Idle_3: 3542075087476594432
-      DashDoll_Idle_4: 2168765767700707498
-      DashDoll_Idle_5: -4761178343310293340
-      DashDoll_Stun_0: -8440034730831552239
-      DashDoll_Stun_1: 7200827774654458111
-      DashDoll_Walk_0: 1658071051708791826
-      DashDoll_Walk_1: -7106500172096103372
-      DashDoll_Walk_2: 6613474819415219715
-      DashDoll_Walk_3: 3136842549493716404
-      DashDoll_Walk_4: -8935951554919541484
-      DashDoll_Walk_5: 8824086766557972756
-      Enemy_06_DashDoll_64px_18: -6934133651281371192
-      Enemy_06_DashDoll_64px_22: 680726510109422371
-      Enemy_06_DashDoll_64px_24: 720853655218793630
-      Enemy_06_DashDoll_64px_29: -6019505822436732345
-      Enemy_06_DashDoll_64px_32: -8197050552795895603
+      Attack_01: -1916249325
+      Attack_02: -2118632394
+      Attack_03: -1850489091
+      Attack_04: -2082727489
+      Attack_05: -1281625988
+      Attack_06: 2144350034
+      Dead_01: 2042906367
+      Dead_02: -916523718
+      Dead_03: 680726510109422371
+      Dead_04: -827750215
+      Dead_05: 720853655218793630
+      Dead_06: 1003739934
+      Dead_07: -1367501177
+      Dead_08: 2086711163
+      Dead_09: -219445491
+      Dead_10: -6019505822436732345
+      Dead_11: -834113700
+      Enemy_06_DashDoll_64px_0: -1222991898
+      Idle_01: 1810791864
+      Idle_02: -989842289
+      Idle_03: -464817228
+      Idle_04: -1885042969
+      Idle_05: -1088745217
+      Idle_06: -599748661
+      Move_01: 92607909
+      Move_02: 880607319
+      Move_03: 290387767
+      Move_04: -336427936
+      Move_05: -211574877
+      Move_06: 1501387394
+      Stun_01: -6934133651281371192
+      Stun_02: 716909899
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
