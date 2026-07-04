@@ -1,85 +1,85 @@
 fileFormatVersion: 2
-guid: eb4170895e77ed54eb8c5e9f287f4486
+guid: 57755fd8576a59d459b979f158ca0cda
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6488192843672609616
-    second: Enemy_02_RangeDoll_48px_0
+      213: 8648426290298007891
+    second: Enemy_08_Necromancer_48px_0
   - first:
-      213: 5314607054714200756
-    second: Enemy_02_RangeDoll_48px_1
+      213: -1500633447593336068
+    second: Enemy_08_Necromancer_48px_1
   - first:
-      213: -5373884819780085484
-    second: Enemy_02_RangeDoll_48px_2
+      213: 2024875146614862961
+    second: Enemy_08_Necromancer_48px_2
   - first:
-      213: -4548941948733780008
-    second: Enemy_02_RangeDoll_48px_3
+      213: -6665901235944585697
+    second: Enemy_08_Necromancer_48px_3
   - first:
-      213: 900319510542574890
-    second: Enemy_02_RangeDoll_48px_4
+      213: 7311229492111716123
+    second: Enemy_08_Necromancer_48px_4
   - first:
-      213: -7682194204806484512
-    second: Enemy_02_RangeDoll_48px_5
+      213: -7284669766006245812
+    second: Enemy_08_Necromancer_48px_5
   - first:
-      213: 3576880429450407412
-    second: Enemy_02_RangeDoll_48px_6
+      213: -8358115419501710885
+    second: Enemy_08_Necromancer_48px_6
   - first:
-      213: 5647822222490703300
-    second: Enemy_02_RangeDoll_48px_7
+      213: -7244195239728399866
+    second: Enemy_08_Necromancer_48px_7
   - first:
-      213: -1519113945271938014
-    second: Enemy_02_RangeDoll_48px_8
+      213: 8064888741254624772
+    second: Enemy_08_Necromancer_48px_8
   - first:
-      213: 8504785603956643077
-    second: Enemy_02_RangeDoll_48px_9
+      213: 2293760221543389071
+    second: Enemy_08_Necromancer_48px_9
   - first:
-      213: -7054232797778520198
-    second: Enemy_02_RangeDoll_48px_10
+      213: 8696050778321558464
+    second: Enemy_08_Necromancer_48px_10
   - first:
-      213: -8855015065585059169
-    second: Enemy_02_RangeDoll_48px_11
+      213: -6602113087915855633
+    second: Enemy_08_Necromancer_48px_11
   - first:
-      213: -680292126603519642
-    second: Enemy_02_RangeDoll_48px_12
+      213: -3164519536131833325
+    second: Enemy_08_Necromancer_48px_12
   - first:
-      213: -9148727157697663750
-    second: Enemy_02_RangeDoll_48px_13
+      213: 4793156661879816018
+    second: Enemy_08_Necromancer_48px_13
   - first:
-      213: 7233058620866391236
-    second: Enemy_02_RangeDoll_48px_14
+      213: 3354273660541057252
+    second: Enemy_08_Necromancer_48px_14
   - first:
-      213: -8580075317666183830
-    second: Enemy_02_RangeDoll_48px_15
+      213: 2538826904301757379
+    second: Enemy_08_Necromancer_48px_15
   - first:
-      213: 2033587301732108907
-    second: Enemy_02_RangeDoll_48px_16
+      213: 3856471821717035429
+    second: Enemy_08_Necromancer_48px_16
   - first:
-      213: 5661330299175403502
-    second: Enemy_02_RangeDoll_48px_17
+      213: 5994872776887629238
+    second: Enemy_08_Necromancer_48px_17
   - first:
-      213: -8554913192344130889
-    second: Enemy_02_RangeDoll_48px_18
+      213: -8892602108888088580
+    second: Enemy_08_Necromancer_48px_18
   - first:
-      213: 8121543381945081944
-    second: Enemy_02_RangeDoll_48px_19
+      213: -1192342077205511298
+    second: Enemy_08_Necromancer_48px_19
   - first:
-      213: -981149405736131402
-    second: Enemy_02_RangeDoll_48px_20
+      213: 1706553402731152410
+    second: Enemy_08_Necromancer_48px_20
   - first:
-      213: -3854537791924039647
-    second: Enemy_02_RangeDoll_48px_21
+      213: -7011810444029532376
+    second: Enemy_08_Necromancer_48px_21
   - first:
-      213: 7991749570490962041
-    second: Enemy_02_RangeDoll_48px_22
+      213: 366231583373524940
+    second: Enemy_08_Necromancer_48px_22
   - first:
-      213: 4130541455866131960
-    second: Enemy_02_RangeDoll_48px_23
+      213: 1251745626921572936
+    second: Enemy_08_Necromancer_48px_23
   - first:
-      213: -5186967439314396917
-    second: Enemy_02_RangeDoll_48px_24
+      213: 6731216654426510261
+    second: Enemy_08_Necromancer_48px_24
   - first:
-      213: 2601532881902751977
-    second: Enemy_02_RangeDoll_48px_25
+      213: -6779901892389986688
+    second: Enemy_08_Necromancer_48px_25
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -175,10 +175,10 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Idle_01
+      name: Necro_Idle_01
       rect:
         serializedVersion: 2
-        x: 64
+        x: 96
         y: 144
         width: 48
         height: 48
@@ -188,19 +188,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 0bc99ae0cfe45f5a0800000000000000
-      internalID: -6488192843672609616
+      spriteID: 44b2b226aa3fc9a4696134d6b3f4bfbc
+      internalID: 880677035
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Idle_02
+      name: Necro_Idle_02
       rect:
         serializedVersion: 2
-        x: 112
+        x: 144
         y: 144
         width: 48
         height: 48
@@ -210,19 +210,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 4b2660155f641c940800000000000000
-      internalID: 5314607054714200756
+      spriteID: a896f3060a51c774083e2e5c8ab2d9d9
+      internalID: -1978969638
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Idle_03
+      name: Necro_Idle_03
       rect:
         serializedVersion: 2
-        x: 160
+        x: 192
         y: 144
         width: 48
         height: 48
@@ -232,19 +232,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 419d42d7a302c65b0800000000000000
-      internalID: -5373884819780085484
+      spriteID: 913e288bf6ae1694ca317d63f4c516e1
+      internalID: 1486409465
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Idle_04
+      name: Necro_Idle_04
       rect:
         serializedVersion: 2
-        x: 208
+        x: 240
         y: 144
         width: 48
         height: 48
@@ -254,19 +254,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 8df89d12669eed0c0800000000000000
-      internalID: -4548941948733780008
+      spriteID: eabdf327ea9fc5849973b9ba4c8ad50a
+      internalID: 950140105
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Idle_05
+      name: Necro_Idle_05
       rect:
         serializedVersion: 2
-        x: 256
+        x: 288
         y: 144
         width: 48
         height: 48
@@ -276,19 +276,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: a256e3223d39e7c00800000000000000
-      internalID: 900319510542574890
+      spriteID: fee530599b96ecb4bba6b5abd6cccf26
+      internalID: 1954414648
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Idle_06
+      name: Necro_Idle_06
       rect:
         serializedVersion: 2
-        x: 304
+        x: 336
         y: 144
         width: 48
         height: 48
@@ -298,19 +298,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 0ede1fe921d536590800000000000000
-      internalID: -7682194204806484512
+      spriteID: 86ece4aa2aa5e96479486f00bdb6b185
+      internalID: -249640022
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Move_01
+      name: Necro_Move_01
       rect:
         serializedVersion: 2
-        x: 64
+        x: 96
         y: 96
         width: 48
         height: 48
@@ -320,19 +320,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 4c59d1e4368116e40800000000000000
-      internalID: 5647822222490703300
+      spriteID: 2349568447ff8304080b8e9cbe886021
+      internalID: 1308379589
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Move_02
+      name: Necro_Move_02
       rect:
         serializedVersion: 2
-        x: 112
+        x: 144
         y: 96
         width: 48
         height: 48
@@ -342,19 +342,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 22459b65ae50beae0800000000000000
-      internalID: -1519113945271938014
+      spriteID: aa4ded1fed9c31f408d97473bd2a4ee5
+      internalID: 252966279
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Move_03
+      name: Necro_Move_03
       rect:
         serializedVersion: 2
-        x: 160
+        x: 192
         y: 96
         width: 48
         height: 48
@@ -364,19 +364,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 50511be4271170670800000000000000
-      internalID: 8504785603956643077
+      spriteID: 50f61530e4117bf4fbd03663e4117065
+      internalID: 330058754
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Move_04
+      name: Necro_Move_04
       rect:
         serializedVersion: 2
-        x: 208
+        x: 240
         y: 96
         width: 48
         height: 48
@@ -386,19 +386,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: a77508535a45a1e90800000000000000
-      internalID: -7054232797778520198
+      spriteID: e5a49945b56da33469f7a61879cf76a1
+      internalID: -1938080460
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Move_05
+      name: Necro_Move_05
       rect:
         serializedVersion: 2
-        x: 256
+        x: 288
         y: 96
         width: 48
         height: 48
@@ -408,19 +408,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: f9af117b6baac1580800000000000000
-      internalID: -8855015065585059169
+      spriteID: f779df0784573f64bad3aeaf544a2074
+      internalID: 2121423873
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Move_06
+      name: Necro_Move_06
       rect:
         serializedVersion: 2
-        x: 304
+        x: 336
         y: 96
         width: 48
         height: 48
@@ -430,63 +430,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 6695d4a4aed1f86f0800000000000000
-      internalID: -680292126603519642
+      spriteID: ce31443a8526ca94abdbbd3ce877d724
+      internalID: 369416600
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Arrow
+      name: Necro_Attack_01
       rect:
         serializedVersion: 2
-        x: 20
-        y: 68
-        width: 21
-        height: 5
-      alignment: 5
-      pivot: {x: 1, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: afc26724f11390180800000000000000
-      internalID: -9148727157697663750
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Attack_01
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 45
-        width: 48
-        height: 51
-      alignment: 9
-      pivot: {x: 0.5, y: 0.05882353}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4cc61584e7cf06460800000000000000
-      internalID: 7233058620866391236
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Attack_02
-      rect:
-        serializedVersion: 2
-        x: 112
+        x: 96
         y: 48
         width: 48
         height: 48
@@ -496,19 +452,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: a65096035f27de880800000000000000
-      internalID: -8580075317666183830
+      spriteID: d79fd59bd8686b14099464fe50ac228c
+      internalID: -1191625279
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Attack_03
+      name: Necro_Attack_02
       rect:
         serializedVersion: 2
-        x: 160
+        x: 144
         y: 48
         width: 48
         height: 48
@@ -518,19 +474,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: b6acc7360e0c83c10800000000000000
-      internalID: 2033587301732108907
+      spriteID: 8b667cbadd1813a4a939f5d5dcc28abd
+      internalID: -2008918446
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Attack_04
+      name: Necro_Attack_03
       rect:
         serializedVersion: 2
-        x: 208
+        x: 192
         y: 48
         width: 48
         height: 48
@@ -540,19 +496,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: eef718e79e5119e40800000000000000
-      internalID: 5661330299175403502
+      spriteID: 8c89f2cafb83d9b439a0c2a9458b6e2c
+      internalID: 1247366924
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Attack_05
+      name: Necro_Attack_04
       rect:
         serializedVersion: 2
-        x: 256
+        x: 240
         y: 48
         width: 48
         height: 48
@@ -562,19 +518,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 7ba660607c7d64980800000000000000
-      internalID: -8554913192344130889
+      spriteID: b7b8e98864b9e6d40b3ae08bd85093a3
+      internalID: 1484737436
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Attack_06
+      name: Necro_Attack_05
       rect:
         serializedVersion: 2
-        x: 304
+        x: 288
         y: 48
         width: 48
         height: 48
@@ -584,41 +540,63 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 850e2c41da485b070800000000000000
-      internalID: 8121543381945081944
+      spriteID: 1b5685207b5083e4d981ad993a7e236d
+      internalID: 1759615856
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Dead_01
+      name: Necro_Attack_06
       rect:
         serializedVersion: 2
-        x: 64
-        y: 0
+        x: 336
+        y: 48
         width: 48
-        height: 45
+        height: 48
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 6b4238750d14262f0800000000000000
-      internalID: -981149405736131402
+      spriteID: 2092415396398b544ab4198e1d931650
+      internalID: 390415110
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Dead_02
+      name: Necro_Attack_07
       rect:
         serializedVersion: 2
-        x: 112
+        x: 384
+        y: 48
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c917938524d46e4782feaa78ba5194a
+      internalID: 1902094038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Necro_Dead_01
+      rect:
+        serializedVersion: 2
+        x: 96
         y: 0
         width: 48
         height: 48
@@ -628,19 +606,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 1209c0bec4ee18ac0800000000000000
-      internalID: -3854537791924039647
+      spriteID: 31e6651a0f3e07c458f6029fdea2761c
+      internalID: -1654217557
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Dead_03
+      name: Necro_Dead_02
       rect:
         serializedVersion: 2
-        x: 160
+        x: 144
         y: 0
         width: 48
         height: 48
@@ -650,19 +628,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 9709efa64e568ee60800000000000000
-      internalID: 7991749570490962041
+      spriteID: 1cd0f8b50ea781f4591002f2a06995f2
+      internalID: 2080066086
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Dead_04
+      name: Necro_Dead_03
       rect:
         serializedVersion: 2
-        x: 208
+        x: 192
         y: 0
         width: 48
         height: 48
@@ -672,19 +650,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 8f5fceec191a25930800000000000000
-      internalID: 4130541455866131960
+      spriteID: 130dbda2b2a903e478655333911ae140
+      internalID: -106356452
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Dead_05
+      name: Necro_Dead_04
       rect:
         serializedVersion: 2
-        x: 256
+        x: 240
         y: 0
         width: 48
         height: 48
@@ -694,19 +672,19 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: b09d52e78903408b0800000000000000
-      internalID: -5186967439314396917
+      spriteID: 2654d7a78f734af45b1be262aa05eddf
+      internalID: -1027265847
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Dead_06
+      name: Necro_Dead_05
       rect:
         serializedVersion: 2
-        x: 304
+        x: 288
         y: 0
         width: 48
         height: 48
@@ -716,10 +694,32 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 9e0df416f508a1420800000000000000
-      internalID: 2601532881902751977
+      spriteID: d8f8934f94fe95f4f8b19cbe5d24bc24
+      internalID: -1266558346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Necro_Dead_06
+      rect:
+        serializedVersion: 2
+        x: 336
+        y: 0
+        width: 48
+        height: 48
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0efd27160b6a98f4da3de58ce12caaad
+      internalID: -1387118201
       vertices: []
       indices: 
       edges: []
@@ -728,7 +728,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 1af371c5e031b3640a001c7610f6005e
+    spriteID: 394230726b6746f4d98cb28bbece0c35
     internalID: 0
     vertices: []
     indices: 
@@ -738,32 +738,31 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Arrow: -9148727157697663750
-      Attack_01: 7233058620866391236
-      Attack_02: -8580075317666183830
-      Attack_03: 2033587301732108907
-      Attack_04: 5661330299175403502
-      Attack_05: -8554913192344130889
-      Attack_06: 8121543381945081944
-      Dead_01: -981149405736131402
-      Dead_02: -3854537791924039647
-      Dead_03: 7991749570490962041
-      Dead_04: 4130541455866131960
-      Dead_05: -5186967439314396917
-      Dead_06: 2601532881902751977
-      Enemy_02_RangeDoll_48px_6: 3576880429450407412
-      Idle_01: -6488192843672609616
-      Idle_02: 5314607054714200756
-      Idle_03: -5373884819780085484
-      Idle_04: -4548941948733780008
-      Idle_05: 900319510542574890
-      Idle_06: -7682194204806484512
-      Move_01: 5647822222490703300
-      Move_02: -1519113945271938014
-      Move_03: 8504785603956643077
-      Move_04: -7054232797778520198
-      Move_05: -8855015065585059169
-      Move_06: -680292126603519642
+      Necro_Attack_01: -1191625279
+      Necro_Attack_02: -2008918446
+      Necro_Attack_03: 1247366924
+      Necro_Attack_04: 1484737436
+      Necro_Attack_05: 1759615856
+      Necro_Attack_06: 390415110
+      Necro_Attack_07: 1902094038
+      Necro_Dead_01: -1654217557
+      Necro_Dead_02: 2080066086
+      Necro_Dead_03: -106356452
+      Necro_Dead_04: -1027265847
+      Necro_Dead_05: -1266558346
+      Necro_Dead_06: -1387118201
+      Necro_Idle_01: 880677035
+      Necro_Idle_02: -1978969638
+      Necro_Idle_03: 1486409465
+      Necro_Idle_04: 950140105
+      Necro_Idle_05: 1954414648
+      Necro_Idle_06: -249640022
+      Necro_Move_01: 1308379589
+      Necro_Move_02: 252966279
+      Necro_Move_03: 330058754
+      Necro_Move_04: -1938080460
+      Necro_Move_05: 2121423873
+      Necro_Move_06: 369416600
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
