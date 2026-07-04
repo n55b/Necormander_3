@@ -19,7 +19,8 @@ public class InventoryManager : MonoBehaviour
         public bool IsEmpty => !IsShattered && EquippedMinion == null && EquippedThrowAbility == null;
 
         public MinionDataSO GetCurrentMinionData() => EquippedMinion;
-public GrowthItemData GetCurrentItemData()
+
+        public GrowthItemData GetCurrentItemData()
         {
             if (EquippedMinion != null)
             {
