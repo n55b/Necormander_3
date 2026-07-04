@@ -18,7 +18,7 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
     private HandSlotSelectionUI _parentUI;
     private InventoryManager.CoreSlot _currentSlot;
 
-public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI parent, bool isReadOnly)
+    public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI parent, bool isReadOnly)
     {
         _slotIndex = index;
         _parentUI = parent;
@@ -101,7 +101,7 @@ public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI
 
     #region Tooltip Logic
 
-public void OnPointerEnter(PointerEventData eventData)
+    public void OnPointerEnter(PointerEventData eventData)
     {
         if (_currentSlot == null || _currentSlot.IsEmpty || CommonTooltipUI.Instance == null) return;
 
@@ -135,7 +135,6 @@ public void OnPointerEnter(PointerEventData eventData)
                 data.localizedDescription = null; // 스킬 설명은 로컬라이즈 대상이 아니므로 참조 해제
             }
 
-            
             // [수정] 미니언 스탯 및 보유 수량은 더 이상 표시하지 않습니다 (스킬 설명만 표시).
             data.effects = null;
         }

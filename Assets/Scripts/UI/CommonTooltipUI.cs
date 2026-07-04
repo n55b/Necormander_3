@@ -81,6 +81,10 @@ public class CommonTooltipUI : MonoBehaviour
 
     public void Show(TooltipData data)
     {
+        // [수정] 다른 UI(보상 카드 등)가 나중에 활성화되면서 툴팁보다 앞쪽 sibling으로 그려져
+        // 툴팁이 그 뒤에 가려지는 문제를 방지하기 위해, 표시할 때마다 항상 맨 앞으로 올립니다.
+        transform.SetAsLastSibling();
+
         if (titleText != null)
         {
             if (data.localizedTitle != null && !data.localizedTitle.IsEmpty)
@@ -99,7 +103,11 @@ public class CommonTooltipUI : MonoBehaviour
                 if (locEvent != null) locEvent.StringReference = null;
                 titleText.text = data.title;
             }
-            titleText.color = data.titleColor;
+            // [수정] titleColor의 알파값이 0으로 넘어오는 경우(데이터 실수 등)에도 타이틀이
+            // 항상 보이도록 알파를 강제로 1로 고정합니다.
+            Color safeTitleColor = data.titleColor;
+            safeTitleColor.a = 1f;
+            titleText.color = safeTitleColor;
         }
 
         if (typeText != null)
