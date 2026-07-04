@@ -106,6 +106,19 @@ public class PlayerGatherSO : PlayerSkillSO
             }
         }
 
+        // [추가] 당겨지는 모든 대상에게 공격 취소 및 경직 인터럽트 적용
+        for (int i = 0; i < targetsToMove.Count; i++)
+        {
+            if (targetsToMove[i] != null)
+            {
+                var entity = targetsToMove[i].GetComponent<BaseEntity>() ?? targetsToMove[i].GetComponentInChildren<BaseEntity>();
+                if (entity != null)
+                {
+                    entity.ApplyKnockback(Vector2.zero); // 수동 Lerp 이동을 진행하므로 물리 힘은 zero 전달해 충돌 예방
+                }
+            }
+        }
+
         float elapsed = 0f;
         Vector2 lineOrigin = player.transform.position;
         Vector2 lineDir = dir;
@@ -124,8 +137,33 @@ public class PlayerGatherSO : PlayerSkillSO
                     float dot = Vector2.Dot(v, lineDir);
                     Vector2 closestPointOnLine = lineOrigin + lineDir * dot;
 
-                    // 점이 아닌 플레이어 시선 방향의 중심축(Line)으로 쫙 모이도록 수정
-                    targetsToMove[i].position = Vector2.Lerp(p, closestPointOnLine, t);
+                    Vector2 nextPos = Vector2.Lerp(p, closestPointOnLine, t);
+                    Vector2 moveDir = nextPos - (Vector2)targetsToMove[i].position;
+                    float moveDist = moveDir.magnitude;
+
+                    if (moveDist > 0.001f)
+                    {
+                        var col = targetsToMove[i].GetComponent<Collider2D>();
+                        float checkRadius = 0.3f;
+                        if (col != null)
+                        {
+                            if (col is CircleCollider2D circle) checkRadius = circle.radius * targetsToMove[i].localScale.x;
+                            else checkRadius = Mathf.Max(col.bounds.extents.x, col.bounds.extents.y);
+                        }
+
+                        int obstacleMask = LayerMask.GetMask("Wall", "Obstacle");
+                        // 충돌 반지름 마진 1.0f 적용으로 벽 관통 예방
+                        RaycastHit2D hit = Physics2D.CircleCast(targetsToMove[i].position, checkRadius * 1.0f, moveDir.normalized, moveDist, obstacleMask);
+                        if (hit.collider != null)
+                        {
+                            // 벽 바깥 법선 안전 오프셋 마진으로 고정
+                            targetsToMove[i].position = hit.point + hit.normal * (checkRadius * 1.02f);
+                        }
+                        else
+                        {
+                            targetsToMove[i].position = nextPos;
+                        }
+                    }
                 }
             }
             yield return null;

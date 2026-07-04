@@ -71,7 +71,7 @@ public static class RewardProcessor
         List<RewardCandidate> combinedPool = new List<RewardCandidate>();
         
         // 1. 소환수 코어 풀
-        combinedPool.AddRange(GetValidCores(inven, registry.minionDatas, false));
+        combinedPool.AddRange(GetValidCores(inven, registry.minionDatas, true));
 
         // 랜덤하게 3개 선택 (중복 제거)
         for (int i = 0; i < 3; i++)
@@ -105,7 +105,7 @@ public static class RewardProcessor
         switch (category)
         {
             case RewardCategory.Minion:
-                allPossible.AddRange(GetValidCores(inven, registry.minionDatas, false)); // [수정] 중복 허용
+                allPossible.AddRange(GetValidCores(inven, registry.minionDatas, true)); // [수정] 중복 제외
                 break;
             case RewardCategory.Metamorphosis:
                 // 변이/승급 시스템 삭제로 아무것도 생성 안함

@@ -11,6 +11,7 @@ public class DebuffDataSO : ScriptableObject
     public Sprite fractureIcon;
     
     public Sprite stunnedIcon;
+    public Sprite hitstunnedIcon;
 
     // 타입에 맞는 스프라이트를 반환하는 함수 (스택형)
     public Sprite GetSprite(DebuffStackType type)
@@ -43,6 +44,7 @@ public class DebuffDataSO : ScriptableObject
             DebuffBoolType.Wounded => woundIcon,
             DebuffBoolType.Corroded => corrosionIcon,
             DebuffBoolType.Fractured => fractureIcon,
+            DebuffBoolType.Hitstunned => hitstunnedIcon,
             _ => null
         };
     }

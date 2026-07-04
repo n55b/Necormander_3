@@ -37,7 +37,8 @@ public enum DebuffBoolType
     Wounded,       // 상처 상태
     Corroded,      // 부식 상태
     Fractured,     // 골절 상태
-    Feared         // 공포 상태
+    Feared,        // 공포 상태
+    Hitstunned     // 순수 피격 경직 (취약 미소모, 시너지 격리)
 }
 
 [System.Flags]

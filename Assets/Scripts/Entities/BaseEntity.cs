@@ -195,14 +195,16 @@ public abstract class BaseEntity : MonoBehaviour
         if (!CanExecuteAI())
         {
             // [경직/기절 제동] 관성으로 인해 스르륵 미끄러지는 현상을 방지하기 위해 정지 처리
-            if (_stats != null && _stats.Status != null && _stats.Status.GetDebuffBool(DebuffBoolType.Stunned))
+            if (_stats != null && _stats.Status != null && (_stats.Status.GetDebuffBool(DebuffBoolType.Stunned) || _stats.Status.GetDebuffBool(DebuffBoolType.Hitstunned)))
             {
                 if (_agent != null && _agent.isActiveAndEnabled)
                 {
                     _agent.isStopped = true;
                     _agent.velocity = Vector3.zero;
                 }
-                if (_rb != null)
+                
+                // 넉백 중(에이전트 임시 비활성화 상태)에는 속도 강제 리셋을 무시하여 넉백 물리 힘 보존
+                if (_rb != null && (_agent == null || _agent.enabled))
                 {
                     _rb.linearVelocity = Vector2.zero;
                 }
@@ -283,7 +285,7 @@ public abstract class BaseEntity : MonoBehaviour
         // [추가] 기절 상태라면 AI 중단
         if (_stats != null && _stats.Status != null)
         {
-            if (_stats.Status.GetDebuffBool(DebuffBoolType.Stunned))
+            if (_stats.Status.GetDebuffBool(DebuffBoolType.Stunned) || _stats.Status.GetDebuffBool(DebuffBoolType.Hitstunned))
                 return false;
         }
 
@@ -549,10 +551,40 @@ public abstract class BaseEntity : MonoBehaviour
     public virtual void ApplyKnockback(Vector2 force)
     {
         if (_stats != null && _stats.Status != null && _stats.Status.HasSuperArmor) return; // [추가] 슈퍼아머 시 넉백 무시
+
+        // 공격 취소 및 넉백 피격 경직(기존 평타 경직과 통일된 0.25초 경직 부여)
+        CancelAttack();
+        if (_stats != null && _stats.Status != null)
+        {
+            _stats.Status.SetDebuffBool(DebuffBoolType.Hitstunned, 0.25f);
+        }
+
         if (_rb != null)
         {
-            // NavMeshAgent가 켜져 있으면 넉백을 방해할 수 있으므로 임시 처리 고려 (현재는 AddForce)
+            // NavMeshAgent가 켜져 있으면 넉백을 방해하므로 임시 비활성화 처리
+            if (_agent != null && _agent.enabled)
+            {
+                _agent.enabled = false;
+                StartCoroutine(ReenableAgentAfterKnockback(0.25f));
+            }
+
+            _rb.linearVelocity = Vector2.zero; // 기존 속도 및 돌진 속도 리셋
             _rb.AddForce(force, ForceMode2D.Impulse);
+        }
+    }
+
+    private System.Collections.IEnumerator ReenableAgentAfterKnockback(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (_agent != null && !_agent.enabled)
+        {
+            // NavMesh 영역 이탈로 인한 끼임(Stuck) 방지를 위해 재샘플링 보정
+            if (UnityEngine.AI.NavMesh.SamplePosition(transform.position, out UnityEngine.AI.NavMeshHit navHit, 2.0f, UnityEngine.AI.NavMesh.AllAreas))
+            {
+                transform.position = navHit.position;
+            }
+            _agent.enabled = true;
+            _agent.isStopped = false;
         }
     }
 }

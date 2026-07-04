@@ -62,6 +62,13 @@ public class PlayerGuardBreakSO : PlayerSkillSO
     {
         if (enemy == null) yield break;
 
+        // [추가] 넉백 경직 및 돌진/공격 인터럽트 적용
+        var entity = enemy.GetComponent<BaseEntity>() ?? enemy.GetComponentInChildren<BaseEntity>();
+        if (entity != null)
+        {
+            entity.ApplyKnockback(Vector2.zero); // 수동 Lerp 이동을 타므로 물리 힘은 zero 전달해 충돌 예방
+        }
+
         var status = enemy.GetComponentInChildren<CharacterStatus>();
         if (status == null) status = enemy.GetComponentInParent<CharacterStatus>();
         if (status != null)
@@ -102,10 +109,12 @@ public class PlayerGuardBreakSO : PlayerSkillSO
             
             if (moveDist > 0.001f)
             {
-                RaycastHit2D hit = Physics2D.CircleCast(enemy.position, checkRadius * 0.9f, moveDir.normalized, moveDist, obstacleMask);
+                // 충돌 반지름 마진을 1.0f로 원의 축소를 방지하고 온전한 크기 검출
+                RaycastHit2D hit = Physics2D.CircleCast(enemy.position, checkRadius * 1.0f, moveDir.normalized, moveDist, obstacleMask);
                 if (hit.collider != null)
                 {
-                    enemy.position = hit.centroid;
+                    // hit.centroid 대신 충돌지점에서 벽 바깥 법선(normal) 방향으로 반지름+안전오차 만큼 떨어진 포지션 밀착 지정
+                    enemy.position = hit.point + hit.normal * (checkRadius * 1.02f);
                     yield break;
                 }
                 else

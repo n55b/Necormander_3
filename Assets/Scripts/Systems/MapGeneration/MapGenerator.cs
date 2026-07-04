@@ -1809,6 +1809,13 @@ public class MapGenerator : MonoBehaviour
                         // 문 위치의 전역 벽 타일 제거하여 입구 구멍 개방
                         CarveDoorEntrance(rA, anchorA);
                         CarveDoorEntrance(rB, anchorB);
+
+                        // [추가] 인접 방 리스트에 상호 연결 관계 주입 (미니맵 인접 노출 정상화)
+                        if (!_masterAdjacency.ContainsKey(rA)) _masterAdjacency[rA] = new List<RoomInstance>();
+                        if (!_masterAdjacency.ContainsKey(rB)) _masterAdjacency[rB] = new List<RoomInstance>();
+                        
+                        if (!_masterAdjacency[rA].Contains(rB)) _masterAdjacency[rA].Add(rB);
+                        if (!_masterAdjacency[rB].Contains(rA)) _masterAdjacency[rB].Add(rA);
                     }
                 }
             }

@@ -85,10 +85,10 @@ public class CharacterHealth : MonoBehaviour, IDamageable
                 if (info.causesHitstun)
                 {
                     rootEntity.CancelAttack();
-                    // Status(디버프)에 Stunned 등을 0.2초 정도 추가해 경직을 줄 수도 있습니다.
+                    // Status(디버프)에 Hitstunned 등을 0.2초 정도 추가해 경직을 줄 수도 있습니다.
                     if (_status != null)
                     {
-                        _status.SetDebuffBool(DebuffBoolType.Stunned, 0.2f); // 0.2초 경직
+                        _status.SetDebuffBool(DebuffBoolType.Hitstunned, 0.2f); // 0.2초 경직
                     }
                 }
 
