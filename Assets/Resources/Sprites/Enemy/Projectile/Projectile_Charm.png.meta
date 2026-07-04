@@ -118,12 +118,12 @@ TextureImporter:
       name: Projectile_Charm_0
       rect:
         serializedVersion: 2
-        x: 7
-        y: 2
-        width: 17
-        height: 29
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 9
+        y: 4
+        width: 30
+        height: 44
+      alignment: 9
+      pivot: {x: 0.5, y: 0.06818182}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -140,12 +140,12 @@ TextureImporter:
       name: Projectile_Charm_1
       rect:
         serializedVersion: 2
-        x: 36
-        y: 2
-        width: 23
-        height: 29
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 57
+        y: 4
+        width: 30
+        height: 44
+      alignment: 9
+      pivot: {x: 0.5, y: 0.06818182}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -162,12 +162,12 @@ TextureImporter:
       name: Projectile_Charm_2
       rect:
         serializedVersion: 2
-        x: 68
-        y: 2
-        width: 23
-        height: 29
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 105
+        y: 4
+        width: 30
+        height: 44
+      alignment: 9
+      pivot: {x: 0.5, y: 0.06818182}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -184,12 +184,12 @@ TextureImporter:
       name: Projectile_Charm_3
       rect:
         serializedVersion: 2
-        x: 101
-        y: 1
-        width: 21
-        height: 30
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 153
+        y: 4
+        width: 30
+        height: 44
+      alignment: 9
+      pivot: {x: 0.5, y: 0.06818182}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -206,12 +206,12 @@ TextureImporter:
       name: Projectile_Charm_4
       rect:
         serializedVersion: 2
-        x: 134
-        y: 2
-        width: 19
-        height: 29
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 201
+        y: 4
+        width: 30
+        height: 44
+      alignment: 9
+      pivot: {x: 0.5, y: 0.06818182}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -228,12 +228,12 @@ TextureImporter:
       name: Projectile_Charm_5
       rect:
         serializedVersion: 2
-        x: 166
-        y: 2
-        width: 19
-        height: 29
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 249
+        y: 4
+        width: 30
+        height: 44
+      alignment: 9
+      pivot: {x: 0.5, y: 0.06818182}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []

@@ -19,9 +19,26 @@ public class InventoryManager : MonoBehaviour
         public bool IsEmpty => !IsShattered && EquippedMinion == null && EquippedThrowAbility == null;
 
         public MinionDataSO GetCurrentMinionData() => EquippedMinion;
-        public GrowthItemData GetCurrentItemData()
+public GrowthItemData GetCurrentItemData()
         {
-            if (EquippedMinion != null) return EquippedMinion.rewardItemData;
+            if (EquippedMinion != null)
+            {
+                // [수정] rewardItemData가 비어있어도(미할당) 미니언 자체 정보(minionName/minionIcon)로 대체하여
+                // 이미 장착된 미니언이 '비어있음'으로 잘못 표시되는 버그를 방지합니다.
+                var baseData = EquippedMinion.rewardItemData;
+                string finalName = (baseData != null && !string.IsNullOrEmpty(baseData.itemName)) ? baseData.itemName : EquippedMinion.minionName;
+                Sprite finalIcon = (baseData != null && baseData.icon != null) ? baseData.icon : EquippedMinion.minionIcon;
+
+                return new GrowthItemData
+                {
+                    itemName = finalName,
+                    description = baseData != null ? baseData.description : null,
+                    icon = finalIcon,
+                    rarity = baseData != null ? baseData.rarity : default,
+                    localizedItemName = baseData != null ? baseData.localizedItemName : null,
+                    localizedDescription = baseData != null ? baseData.localizedDescription : null
+                };
+            }
             if (EquippedThrowAbility != null) return new GrowthItemData { itemName = EquippedThrowAbility.itemName, description = EquippedThrowAbility.description, icon = EquippedThrowAbility.icon, rarity = EquippedThrowAbility.rarity, localizedItemName = EquippedThrowAbility.localizedItemName, localizedDescription = EquippedThrowAbility.localizedDescription };
             return null;
         }

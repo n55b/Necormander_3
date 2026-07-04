@@ -127,15 +127,17 @@ public void OnPointerEnter(PointerEventData eventData)
 
             data.type = $"<color=#FFD700>{GetUIString("UI_Minion_Prefix", minionLocalizedName)}</color>";
             data.titleColor = new Color(0.8f, 1f, 0.8f);
-            
-            var stats = CharacterStat.GetPreviewStats(minion);
 
-            data.effects = new List<string> {
-                $"{GetUIString("UI_Stat_HP")}: {stats.hp:F1}",
-                $"{GetUIString("UI_Stat_ATK")}: {stats.atk:F1}",
-                $"{GetUIString("UI_Stat_SPD")}: {stats.spd:F1}",
-                $"<color=#AAAAAA>{GetUIString("UI_Count", _currentSlot.Quantity)}</color>"
-            };
+            // [추가] 슬롯에 바인딩된 미니언 스킬의 설명을 툴팁에 표시합니다.
+            if (minion.minionSkill != null && !string.IsNullOrEmpty(minion.minionSkill.description))
+            {
+                data.description = minion.minionSkill.description;
+                data.localizedDescription = null; // 스킬 설명은 로컬라이즈 대상이 아니므로 참조 해제
+            }
+
+            
+            // [수정] 미니언 스탯 및 보유 수량은 더 이상 표시하지 않습니다 (스킬 설명만 표시).
+            data.effects = null;
         }
         else if (_currentSlot.EquippedThrowAbility != null)
         {
