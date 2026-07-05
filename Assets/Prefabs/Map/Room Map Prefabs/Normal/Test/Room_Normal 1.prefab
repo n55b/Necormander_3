@@ -7524,14 +7524,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roomType: 1
+  normalRewardType: 0
   roomSize: {x: 0, y: 0}
   centerOffset: {x: 0, y: 0}
   anchors: []
   wallTilemap: {fileID: 2297822278971006684}
   groundTilemap: {fileID: 8085811977727881938}
   shadowTilemap: {fileID: 173147117876920774}
+  unsteppableTilemap: {fileID: 0}
   debugDepth: -1
   phaseIndex: -1
+  gridPosition: {x: 0, y: 0}
   isCleared: 0
   hasBeenVisited: 0
   doorObjects:
@@ -7549,9 +7552,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e52a622eabe45745a6e5c10a52c7720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groupsCount: 1
-  enemiesPerGroup: 5
-  groupSpread: 1.5
+  mapGenerationData: {fileID: 0}
+  rewardBoxPrefab: {fileID: 0}
   OnCombatStart:
     m_PersistentCalls:
       m_Calls: []
@@ -9702,7 +9704,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5493038495254695657, guid: 8dfc3b2439daccd439e86bf81bb76eca, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.8
+      value: -0.91
       objectReference: {fileID: 0}
     - target: {fileID: 5493038495254695657, guid: 8dfc3b2439daccd439e86bf81bb76eca, type: 3}
       propertyPath: m_LocalPosition.y
@@ -9888,7 +9890,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5493038495254695657, guid: 8dfc3b2439daccd439e86bf81bb76eca, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.99
+      value: 1.88
       objectReference: {fileID: 0}
     - target: {fileID: 5493038495254695657, guid: 8dfc3b2439daccd439e86bf81bb76eca, type: 3}
       propertyPath: m_LocalPosition.y

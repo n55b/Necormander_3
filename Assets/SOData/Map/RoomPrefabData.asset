@@ -18,8 +18,11 @@ MonoBehaviour:
     - {fileID: 3145241417507046039, guid: 2e89135908243ef47bab9aacb3b63338, type: 3}
   - roomType: 1
     prefabs:
-    - {fileID: 3242139126785221393, guid: e4ac810a1e7c8ea4f84cf67d9012fc9f, type: 3}
-    - {fileID: 3242139126785221393, guid: be4e1f8a1c64fd6429e0010bb2e83789, type: 3}
+    - {fileID: 3242139126785221393, guid: f02bbde11b106bf4f90de50886bfdbee, type: 3}
+    - {fileID: 3242139126785221393, guid: e364dc3b8e0e9ab4eb508b5cb8f4819c, type: 3}
+    - {fileID: 3242139126785221393, guid: 90bc2591cb13da34a89c62cd9f785baa, type: 3}
+    - {fileID: 3242139126785221393, guid: abf2da361e6140242a9193f4d300229f, type: 3}
+    - {fileID: 3242139126785221393, guid: 92bb0ed95bbd9d64ab810213a93b3049, type: 3}
   - roomType: 2
     prefabs:
     - {fileID: 1169290717255257725, guid: fa8a909d6ed01e246b2b2b0b8c69b4c1, type: 3}
