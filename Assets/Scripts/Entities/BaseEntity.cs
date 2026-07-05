@@ -28,7 +28,7 @@ public abstract class BaseEntity : MonoBehaviour
     [Header("데이터 참조 (직접 배치 시 필수)")]
     [SerializeField] protected MinionDataSO minionData;
     public MinionDataSO MinionData => minionData;
-    protected Animator _animator; // 애니메이터 추가
+    protected Animator _animator;
     [SerializeField] protected AIState _lastState = (AIState)(-1); // 이전 상태 기록
     [SerializeField] protected Transform _target = null;
     [SerializeField] protected CharacterStat _targetStat = null;
@@ -363,6 +363,11 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (_animator == null) return;
 
+        // [수정] 공격 애니메이션 재생 중(IsAttacking)에는 AttackRoutine이 애니메이터를 직접 제어하므로
+        // 여기서 간섭하면 안 됩니다. (기존에는 공격 시작 다음 프레임에 상태 변경이 뒤늦게 감지되어
+        // Attack 애니메이션이 1프레임만 재생되고 바로 Idle로 덮어써지는 버그가 있었습니다.)
+        if (IsAttacking) return;
+
         if (_lastState != state)
         {
             _lastState = state;
@@ -378,6 +383,16 @@ public abstract class BaseEntity : MonoBehaviour
                 _animator.Play(state.ToString());
             }
         }
+    }
+
+    /// <summary>
+    /// [추가] 공격 애니메이션 종료 등, 강제로 애니메이션 상태를 다시 평가하게 만들고 싶을 때 호출합니다.
+    /// (공격 중에는 UpdateAnimation이 아무것도 하지 않으므로, 공격이 끝난 직후 CurrentState가
+    /// 공격 시작 전과 동일하면 Play가 호출되지 않아 마지막 공격 포즈에 멈춰있는 문제를 방지합니다.)
+    /// </summary>
+    public void ResetAnimationState()
+    {
+        _lastState = (AIState)(-1);
     }
 
     protected BaseHitBox _activeHitbox; // _activeTelegraph 대신 BaseHitBox를 추적합니다.
@@ -443,8 +458,6 @@ public abstract class BaseEntity : MonoBehaviour
         }
     }
 
-    // PlayAttackSound는 OnHitEvent로 통합되었으므로 기존 메서드 본문은 제거합니다.
-
     public void ExecuteLegacyDamage()
     {
         // 더 이상 애니메이션 이벤트로 불리지 않으므로 검사 코드 생략
@@ -476,10 +489,7 @@ public abstract class BaseEntity : MonoBehaviour
             DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true);
             targetStat.Health.GetDamage(info);
 
-            // [이벤트 버스] 기본 공격 타격 시 넉백 등 특수 처리 연동용
-            // DamageEventBus.TriggerBasicAttackImpactAfterDamage(...) 등으로 확장 가능
-
-            // 3. 무기 속성 부여 (보석 효과) - 아군일 때만 적용
+            // 무기 속성 부여 (보석 효과) - 아군일 때만 적용
             if (this.team == Team.Ally && InventoryManager.Instance != null)
             {
                 // 스택형 속성 부여
@@ -504,7 +514,6 @@ public abstract class BaseEntity : MonoBehaviour
         }
 
         _target = null;
-        // _isAttackExecuting = false; // 공격 애니메이션 종료
     }
 
     // [추가] 공격 취소 (경직 시 호출)
@@ -530,6 +539,7 @@ public abstract class BaseEntity : MonoBehaviour
         {
             _animator.Play("Idle"); // 애니메이션 강제 초기화
             _animator.speed = 1f; // 공격 취소 시 배속 강제 원복
+            ResetAnimationState(); // [수정] _lastState도 함께 초기화하여 이후 상태 변화 시 재생 누락 방지
         }
 
         if (_runtimeBrain != null)

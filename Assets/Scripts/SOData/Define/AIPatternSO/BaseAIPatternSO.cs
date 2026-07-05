@@ -242,6 +242,9 @@ public class BaseAIPatternSO : AIPatternSO
 
         entity.IsAttacking = false;
         entity.ActiveAttackCoroutine = null;
+        // [수정] 공격 중 멈춰있던 애니메이션 상태 추적을 초기화하여, 공격 종료 직후
+        // 다음 상태(Idle/Follow 등)가 정상적으로 재생되도록 강제합니다.
+        entity.ResetAnimationState();
     }
 
     protected virtual void OnWindupStart(BaseEntity entity, float windupTime)

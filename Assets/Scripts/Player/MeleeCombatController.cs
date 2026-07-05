@@ -158,7 +158,7 @@ public class MeleeCombatController : MonoBehaviour
                     this.gameObject,
                     false, 1f, true, "", false,
                     causesHitstun: true,
-                    knockbackForce: 2f,
+                    knockbackForce: _comboStep == 2 ? 6f : 2f,
                     superArmorDamage: saDmg
                 );
 
