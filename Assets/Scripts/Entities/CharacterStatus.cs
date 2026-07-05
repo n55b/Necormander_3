@@ -511,7 +511,8 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
                 if (duration > 0f) SetDebuffBool(DebuffBoolType.Stunned, duration);
 
-                if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+                bool isAllySource = isPlayerApplied || (attacker != null && (attacker.CompareTag("Player") || attacker.CompareTag("Ally") || attacker.GetComponent<AllyController>() != null));
+                if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
                     GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
                 }
@@ -527,7 +528,8 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
                 OnDebuffPopped?.Invoke("격파!");
 
-                if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+                bool isAllySource = isPlayerApplied || (attacker != null && (attacker.CompareTag("Player") || attacker.CompareTag("Ally") || attacker.GetComponent<AllyController>() != null));
+                if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
                     GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
                 }
@@ -547,7 +549,8 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
                 OnDebuffPopped?.Invoke("강타!");
 
-                if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+                bool isAllySource = isPlayerApplied || (attacker != null && (attacker.CompareTag("Player") || attacker.CompareTag("Ally") || attacker.GetComponent<AllyController>() != null));
+                if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
                     GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
                 }
@@ -569,7 +572,8 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
             ConsumeVulnerability(statusType, attacker, isPlayerApplied);
         }
 
-        if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        bool isAllySource = isPlayerApplied || (attacker != null && (attacker.CompareTag("Player") || attacker.CompareTag("Ally") || attacker.GetComponent<AllyController>() != null));
+        if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(statusType, transform);
         }
@@ -587,7 +591,8 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
         
         ApplyElementalDebuff(stackType, 1, attacker);
 
-        if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        bool isAllySource = isPlayerApplied || (attacker != null && (attacker.CompareTag("Player") || attacker.CompareTag("Ally") || attacker.GetComponent<AllyController>() != null));
+        if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Debuff, transform);
         }

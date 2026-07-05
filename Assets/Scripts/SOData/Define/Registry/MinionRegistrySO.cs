@@ -13,6 +13,9 @@ public class MinionRegistrySO : ScriptableObject
     [Header("Enemy Minions")]
     public List<MinionDataSO> enemyMinionData;
 
+    [Header("Elite Minions")]
+    public List<MinionDataSO> eliteMinionData; // 엘리트 전용 데이터 목록
+
     [Header("Boss Minions")]
     public List<MinionDataSO> bossMinionData; // 보스 전용 데이터 목록
 }

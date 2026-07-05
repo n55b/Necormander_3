@@ -11,9 +11,9 @@ public class PlayerFaceCrusherSO : PlayerSkillSO
 {
     public BaseHitBox hitBoxPrefab; // 부채꼴(콘) 형태의 히트박스 프리팹
     public float chargeTime = 1f;
-    public float distance = 3f;
-    public float width = 3f;          // 부채꼴 전체 폭
-    public float centerWidth = 1f;    // 가운데 보너스 판정 폭 (width보다 작아야 함)
+    public float distance = 4.2f;      // [상향] 3f -> 4.2f
+    public float width = 4.0f;         // [상향] 3f -> 4.0f 부채꼴/사각형 전체 폭
+    public float centerWidth = 1.8f;   // [상향] 1f -> 1.8f 가운데 보너스 판정 폭 (width보다 작아야 함)
     public float damageMultiplier = 1.0f;       // 기본 100%
     public float centerBonusMultiplier = 0.5f;  // 가운데 추가 +50%
 

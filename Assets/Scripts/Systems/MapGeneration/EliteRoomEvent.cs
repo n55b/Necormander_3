@@ -37,13 +37,23 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
         if (GameManager.Instance != null && GameManager.Instance.dataManager != null)
         {
+            // 1. 일반 적군 목록에서 엘리트 데이터 수집
             var rawList = GameManager.Instance.dataManager.ENEMY_MINION_DATA;
             if (rawList != null)
             {
                 foreach (var data in rawList)
                 {
-                    // 엘리트 풀에는 isElite가 true인 데이터만 수집
                     if (data.isElite) _eliteEnemyPool.Add(data);
+                }
+            }
+            
+            // 2. 새롭게 분리된 엘리트 전용 목록에서도 유니크하게 엘리트 수집
+            var eliteList = GameManager.Instance.dataManager.ELITE_MINION_DATA;
+            if (eliteList != null)
+            {
+                foreach (var data in eliteList)
+                {
+                    if (data.isElite && !_eliteEnemyPool.Contains(data)) _eliteEnemyPool.Add(data);
                 }
             }
             Debug.Log($"<color=red>[EliteRoom]</color> Pool Initialized. Elites: {_eliteEnemyPool.Count} in {gameObject.name}");

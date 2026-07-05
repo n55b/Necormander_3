@@ -62,6 +62,7 @@ public class DynamicEnemySpawner : MonoBehaviour
         // DataManager로부터 이번 맵에서 소환할 수 있는 적군 데이터 목록을 가져옵니다.
         if (GameManager.Instance != null && GameManager.Instance.dataManager != null)
         {
+            // 1. 일반 적군 목록에서 스폰 대상 분류
             var rawList = GameManager.Instance.dataManager.ENEMY_MINION_DATA;
             if (rawList != null)
             {
@@ -74,6 +75,23 @@ public class DynamicEnemySpawner : MonoBehaviour
                     else if (data.canSpawnRandomly) 
                     {
                         _normalEnemyPool.Add(data);
+                    }
+                }
+            }
+
+            // 2. 새롭게 분리된 엘리트 전용 목록에서도 가져와 스폰 대상 분류 연동
+            var eliteList = GameManager.Instance.dataManager.ELITE_MINION_DATA;
+            if (eliteList != null)
+            {
+                foreach (var data in eliteList)
+                {
+                    if (data.isElite)
+                    {
+                        if (!_bossEnemyPool.Contains(data)) _bossEnemyPool.Add(data);
+                    }
+                    else if (data.canSpawnRandomly)
+                    {
+                        if (!_normalEnemyPool.Contains(data)) _normalEnemyPool.Add(data);
                     }
                 }
             }

@@ -577,6 +577,7 @@ public bool canChangeState = true;
 
     public void OnParry(InputAction.CallbackContext context)
     {
+        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (_inputBlocked || stat.Health.IsDead) return;
 
         if (context.started)
@@ -591,6 +592,7 @@ public bool canChangeState = true;
 
     public void OnThrow(InputAction.CallbackContext context)
     {
+        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (stat.Health.IsDead) return;
 
         // [추가] 스킬 시전 중 투척 차단
@@ -621,6 +623,7 @@ public bool canChangeState = true;
 
     public void OnDash(InputAction.CallbackContext context)
     {
+        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (_inputBlocked || stat.Health.IsDead) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();
@@ -646,6 +649,7 @@ public bool canChangeState = true;
 
     public void OnSkillQ(InputAction.CallbackContext context)
     {
+        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (_inputBlocked || stat.Health.IsDead || IsCastingSkill) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();
@@ -663,6 +667,7 @@ public bool canChangeState = true;
 
     public void OnSkillE(InputAction.CallbackContext context)
     {
+        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (_inputBlocked || stat.Health.IsDead || IsCastingSkill) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();
@@ -680,6 +685,7 @@ public bool canChangeState = true;
 
     public void OnSkillR(InputAction.CallbackContext context)
     {
+        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (_inputBlocked || stat.Health.IsDead || IsCastingSkill) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();

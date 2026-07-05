@@ -8,8 +8,8 @@ using System.Collections.Generic;
 public class PlayerRisingUppercutSO : PlayerSkillSO
 {
     public BaseHitBox hitBoxPrefab;
-    public float hitDistance = 2.2f;
-    public float hitWidth = 1.6f;
+    public float hitDistance = 3.5f; // [상향] 2.2f -> 3.5f
+    public float hitWidth = 2.5f;    // [상향] 1.6f -> 2.5f
     public float damageMultiplier = 1.5f; // 기본 공격력의 150%
     public float launchHeight = 0.6f;     // 연출용 띄움 높이
     public float launchDuration = 0.35f;  // 연출용 띄움 지속 시간

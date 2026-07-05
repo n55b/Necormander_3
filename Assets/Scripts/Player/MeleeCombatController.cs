@@ -90,6 +90,7 @@ public class MeleeCombatController : MonoBehaviour
 
     private void ExecuteMeleeAttack()
     {
+        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 공격 차단
         if (_player == null || _player.Stat.Health.IsDead) return;
 
         var parryCtrl = _player.GetComponent<PlayerParryController>();

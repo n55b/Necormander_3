@@ -9,6 +9,7 @@ public class Projectile : MonoBehaviour
     [Header("Base Projectile Settings")]
     [SerializeField] protected float speed = 15f;
     [SerializeField] protected float lifeTime = 3f;
+    [SerializeField] protected bool rotateToDirection = true; // [추가] 날아가는 궤적 방향으로 오브젝트를 회전시킬지 여부 (구체형 등은 false)
 
     protected float _damage;
     protected LayerMask _targetLayer;
@@ -34,10 +35,18 @@ public class Projectile : MonoBehaviour
         speed = customSpeed;
         lifeTime = customLifeTime;
 
-        // 방향 계산 및 초기 회전 설정
+        // 방향 계산 및 초기 회전/반전 설정
         _direction = (targetPos - (Vector2)transform.position).normalized;
-        float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        if (rotateToDirection)
+        {
+            float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
+        else
+        {
+            transform.localScale = new Vector3(Mathf.Sign(_direction.x) * Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
 
         // 일정 시간 후 자동 파괴
         Destroy(gameObject, lifeTime);
@@ -83,8 +92,8 @@ public class Projectile : MonoBehaviour
 
     protected virtual void Move()
     {
-        // 기본값: 오른쪽(Forward) 방향으로 직선 이동
-        transform.Translate(Vector3.right * speed * Time.deltaTime);
+        // [수정] 패링 회전 여부(rotateToDirection)와 무관하게 항상 조준한 월드 방향(_direction)으로 비행하도록 월드 좌표 이동 적용
+        transform.Translate(_direction * speed * Time.deltaTime, Space.World);
     }
 
     protected virtual void OnTriggerEnter2D(Collider2D other)
@@ -170,10 +179,18 @@ public class Projectile : MonoBehaviour
         speed = customSpeed;
         lifeTime = customLifeTime;
 
-        // 지정된 새로운 방향으로 설정
         _direction = newDirection.normalized;
-        float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+        if (rotateToDirection)
+        {
+            float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
+        else
+        {
+            transform.localScale = new Vector3(Mathf.Sign(_direction.x) * Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
 
         // 이전 무시 콜라이더 클리어
         _ignoredColliders.Clear();

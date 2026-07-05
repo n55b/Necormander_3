@@ -91,12 +91,18 @@ public void SetEquippedPlayerSkill(int index, PlayerSkillSO skill)
 
     private void Start()
     {
-        // 이벤트 등록만 담당 (Awake에서 이미 1회 동기화됨)
+        // 이벤트 등록 및 최종 데이터 확정 동기화 (Awake 이후에 채워진 데이터 동기화 보장)
         if (InventoryManager.Instance != null)
+        {
             InventoryManager.Instance.OnMinionUpdated += SyncWithInventory;
+            SyncWithInventory(); // [추가] Start 타이밍에 강제 동기화 보장
+        }
 
         if (PlayerSkillInventoryManager.Instance != null)
+        {
             PlayerSkillInventoryManager.Instance.OnPlayerSkillUpdated += SyncPlayerSkillsFromInventory;
+            SyncPlayerSkillsFromInventory(); // [추가] 강제 동기화 보장
+        }
     }
 
     private void OnDestroy()

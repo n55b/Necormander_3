@@ -23,6 +23,7 @@ public class DataManager : MonoBehaviour
     // 데이터 게터
     public List<MinionDataSO> ALL_MINION_DATA => minionRegistry != null ? minionRegistry.allyMinionData : null;
     public List<MinionDataSO> ENEMY_MINION_DATA => minionRegistry != null ? minionRegistry.enemyMinionData : null;
+    public List<MinionDataSO> ELITE_MINION_DATA => minionRegistry != null ? minionRegistry.eliteMinionData : null; // [추가] 엘리트 데이터 접근
     public List<MinionDataSO> BOSS_MINION_DATA => minionRegistry != null ? minionRegistry.bossMinionData : null; // [추가] 보스 데이터 접근
     public ShopRegistrySO SHOP_REGISTRY => shopRegistry;
     public List<EnemyClusterSO> ENEMY_CLUSTERS => clusterRegistry != null ? clusterRegistry.enemyClusters : new List<EnemyClusterSO>();
@@ -44,6 +45,18 @@ public class DataManager : MonoBehaviour
         
         foreach (var data in minionRegistry.enemyMinionData)
             if (data.minionType == type) return data;
+
+        if (minionRegistry.eliteMinionData != null)
+        {
+            foreach (var data in minionRegistry.eliteMinionData)
+                if (data.minionType == type) return data;
+        }
+
+        if (minionRegistry.bossMinionData != null)
+        {
+            foreach (var data in minionRegistry.bossMinionData)
+                if (data.minionType == type) return data;
+        }
         
         return null;
     }

@@ -223,6 +223,16 @@ public class RoomInstance : MonoBehaviour
         isCleared = true;
         SetDoorsOpen(true);
         _roomEvent?.OnRoomCleared(this);
+
+        // [추가] 방 클리어 시 플레이어 체력을 10 회복시킵니다.
+        if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+        {
+            var pHealth = GameManager.Instance.PLAYERCONTROLLER.GetComponentInChildren<CharacterHealth>();
+            if (pHealth != null && !pHealth.IsDead)
+            {
+                pHealth.Heal(10f);
+            }
+        }
     }
 
     public void MergeTilesToGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow, Tilemap globalUnsteppable = null)

@@ -565,7 +565,22 @@ public class InventoryManager : MonoBehaviour
             if (HasMinion(debugStartingMinions[i].minionType)) continue;
 
             int qty = (i < debugStartingMinionQuantities.Count) ? debugStartingMinionQuantities[i] : 1;
-            AddMinionOrIncreaseQuantity(debugStartingMinions[i].minionType, Mathf.Max(1, qty));
+            
+            // [개선] Registry 에셋 등록 상태와 무관하게 인스펙터에 직접 지정된 미니언 데이터를 100% 꽂아 장착합니다.
+            var existingSlot = Slots.Find(s => !s.IsShattered && s.EquippedMinion != null && s.EquippedMinion.minionType == debugStartingMinions[i].minionType);
+            if (existingSlot != null)
+            {
+                existingSlot.Quantity += qty;
+            }
+            else
+            {
+                int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
+                if (emptyIdx != -1)
+                {
+                    EquipMinion(emptyIdx, debugStartingMinions[i]);
+                    Slots[emptyIdx].Quantity = qty;
+                }
+            }
         }
 
         // 2. 보석 생성 (인벤토리나 장착창의 개수와 디버그 보석 리스트의 개수를 매칭하여 부족분만 추가)
@@ -635,6 +650,9 @@ public class InventoryManager : MonoBehaviour
 
         // [수정] 유저 요청에 의해 미니언이 없을 때 기본 전사 1마리를 추가하는 로직을 제거(주석 처리)합니다.
         // if (!Slots.Exists(s => s.EquippedMinion != null)) AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
+
+        // [추가] 디버그용 시작 미니언 적재가 끝나면 갱신 이벤트를 격발하여 동기화시킵니다.
+        OnMinionUpdated?.Invoke();
     }
 
     /// <summary>
