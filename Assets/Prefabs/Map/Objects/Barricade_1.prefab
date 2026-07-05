@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2326747760228574257}
   - component: {fileID: 7083105603068031696}
   - component: {fileID: 4292847492274192051}
-  - component: {fileID: -1985158833426345815}
+  - component: {fileID: 3381724723447081617}
   m_Layer: 0
   m_Name: Barricade_1
   m_TagString: Untagged
@@ -133,7 +133,7 @@ MonoBehaviour:
   m_Area: 1
   m_IgnoreFromBuild: 0
   m_AffectedAgents: ffffffff
---- !u!60 &-1985158833426345815
+--- !u!60 &3381724723447081617
 PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -170,7 +170,7 @@ PolygonCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.49413237, y: 0.20792106}
+    pivot: {x: 0.5, y: 0}
     oldSize: {x: 3, y: 3.375}
     newSize: {x: 3, y: 3.375}
     adaptiveTilingThreshold: 0.5
@@ -179,15 +179,15 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 1.4551029, y: -0.014233589}
-      - {x: 1.4551029, y: 0.23576641}
-      - {x: 0.8301029, y: 1.4857664}
-      - {x: 0.08010292, y: 2.6107664}
-      - {x: -0.04489708, y: 2.6107664}
-      - {x: -0.6073971, y: 1.9857664}
-      - {x: -1.4198971, y: 1.9857664}
-      - {x: -1.4198971, y: 1.7982664}
-      - {x: -0.8573971, y: 0.4857664}
-      - {x: -0.10739708, y: -0.6392336}
-      - {x: 0.33010292, y: -0.6392336}
+    - - {x: 1.4375, y: 0.6875}
+      - {x: 1.4375, y: 0.9375}
+      - {x: 0.8125, y: 2.1875}
+      - {x: 0.0625, y: 3.3125}
+      - {x: -0.0625, y: 3.3125}
+      - {x: -0.625, y: 2.6875}
+      - {x: -1.4375, y: 2.6875}
+      - {x: -1.4375, y: 2.5}
+      - {x: -0.875, y: 1.1875}
+      - {x: -0.125, y: 0.0625}
+      - {x: 0.3125, y: 0.0625}
   m_UseDelaunayMesh: 0

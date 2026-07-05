@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6128025598625285197}
   - component: {fileID: 5047538776959171750}
   - component: {fileID: 1854899032696376240}
-  - component: {fileID: 1998680573286900898}
+  - component: {fileID: 4525527921396370327}
   m_Layer: 0
   m_Name: Tent_1
   m_TagString: Untagged
@@ -133,7 +133,7 @@ MonoBehaviour:
   m_Area: 1
   m_IgnoreFromBuild: 0
   m_AffectedAgents: ffffffff
---- !u!60 &1998680573286900898
+--- !u!60 &4525527921396370327
 PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -170,7 +170,7 @@ PolygonCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.4982397, y: 0.2693403}
+    pivot: {x: 0.5, y: 0}
     oldSize: {x: 5, y: 3.625}
     newSize: {x: 5, y: 3.625}
     adaptiveTilingThreshold: 0.5
@@ -179,13 +179,13 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 1.4463015, y: -0.41385865}
-      - {x: 2.4463015, y: 0.46114135}
-      - {x: 1.5713015, y: 1.3361413}
-      - {x: 1.0088015, y: 2.5861413}
-      - {x: -1.7411985, y: 1.5236413}
-      - {x: -2.4286985, y: -0.41385865}
-      - {x: -2.0536985, y: -0.85135865}
-      - {x: -0.55369854, y: -0.91385865}
-      - {x: 0.13380146, y: -0.91385865}
+    - - {x: 1.4375, y: 0.5625}
+      - {x: 2.4375, y: 1.4375}
+      - {x: 1.5625, y: 2.3125}
+      - {x: 1, y: 3.5625}
+      - {x: -1.75, y: 2.5}
+      - {x: -2.4375, y: 0.5625}
+      - {x: -2.0625, y: 0.125}
+      - {x: -0.5625, y: 0.0625}
+      - {x: 0.125, y: 0.0625}
   m_UseDelaunayMesh: 0
