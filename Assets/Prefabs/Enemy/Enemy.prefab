@@ -787,6 +787,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   vec_float: {fileID: 6184298598156169921}
+  colorConfig: {fileID: 11400000, guid: 0f12a9940bf0d14488491d74b766f27c, type: 2}
   isSubscribed: 0
 --- !u!114 &1405805241935053527
 MonoBehaviour:

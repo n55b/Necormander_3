@@ -9,6 +9,10 @@ private CharacterStat stats;
 
     [SerializeField] private Transform vec_float;
 
+    [Header("색상 설정 (공용)")]
+    [Tooltip("비워두면 기본 색상(코드에 내장된 기존 값)을 그대로 사용합니다.")]
+    [SerializeField] private DamageTextColorConfigSO colorConfig;
+
     [SerializeField] private bool isSubscribed = false;
 
     // CharacterStat에서 호출해줄 초기화 함수
@@ -89,33 +93,20 @@ private void OnDestroy()
         }
     }
 
-    private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool isCritical)
+private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool isCritical)
     {
         string text = typeStr == "MISS" ? "MISS" : damage.ToString();
-        Color color = Color.white;
-        
-        if(this.transform.gameObject.layer == LayerMask.NameToLayer("Army"))
-            color = Color.red;
+        Color color;
+
+        if (this.transform.gameObject.layer == LayerMask.NameToLayer("Army"))
+            color = colorConfig != null ? colorConfig.allyHitColor : Color.red;
         else
-        {
-            // 데미지 타입에 따른 색상 지정
-            switch (dmgType)
-            {
-                case DamageType.Physical: color = Color.white; break;
-                case DamageType.Fixed: color = Color.cyan; break; // 고정 데미지는 청록색
-                case DamageType.BloodPop: color = Color.yellow; break; // 비폭은 노란색
-                case DamageType.Bleed: color = Color.red; break; // 출혈은 붉은색
-                case DamageType.Wound: color = new Color(1f, 0.5f, 0f); break; // 상처는 주황색
-                case DamageType.Corrosion: color = Color.green; break; // 부식은 초록색
-                case DamageType.Fracture: color = new Color(0.5f, 0f, 0.5f); break; // 골절은 보라색
-                default: color = Color.white; break;
-            }
-        }
+            color = colorConfig != null ? colorConfig.GetDamageColor(dmgType) : GetDefaultDamageColor(dmgType);
 
         // 특수한 팝업 스트링이 있을 경우 강제 덮어쓰기
-        if (typeStr == "Shield") color = Color.grey;      // 쉴드
-        else if (typeStr == "Execution") color = Color.yellow; // 처형
-        else if (typeStr == "MISS") color = Color.gray;        // 회피
+        if (typeStr == "Shield") color = colorConfig != null ? colorConfig.shieldColor : Color.grey;           // 쉴드
+        else if (typeStr == "Execution") color = colorConfig != null ? colorConfig.executionColor : Color.yellow; // 처형
+        else if (typeStr == "MISS") color = colorConfig != null ? colorConfig.missColor : Color.gray;             // 회피
 
         if (FloatingTextManager.instance == null) return;
         TextFloating textObj = FloatingTextManager.instance.GetFromPool();
@@ -123,11 +114,29 @@ private void OnDestroy()
         textObj.SetUp(text, color, vec_float, isCritical);
     }
 
-    private void ShowHealText(float amount)
+    /// <summary>
+    /// colorConfig가 할당되지 않았을 때 사용할 기본 색상 (기존 하드코딩 값과 동일)
+    /// </summary>
+    private Color GetDefaultDamageColor(DamageType dmgType)
+    {
+        switch (dmgType)
+        {
+            case DamageType.Physical: return Color.white;
+            case DamageType.Fixed: return Color.cyan;
+            case DamageType.BloodPop: return Color.yellow;
+            case DamageType.Bleed: return Color.red;
+            case DamageType.Wound: return new Color(1f, 0.5f, 0f);
+            case DamageType.Corrosion: return Color.green;
+            case DamageType.Fracture: return new Color(0.5f, 0f, 0.5f);
+            default: return Color.white;
+        }
+    }
+
+private void ShowHealText(float amount)
     {
         if (amount <= 0.001f) return;
         string text = $"+{amount:F1}"; // 소수점 첫째자리까지 힐량 표시
-        Color color = Color.green;
+        Color color = colorConfig != null ? colorConfig.healColor : Color.green;
 
         if (FloatingTextManager.instance == null) return;
         TextFloating textObj = FloatingTextManager.instance.GetFromPool();
@@ -136,7 +145,7 @@ private void OnDestroy()
 
 private void ShowStatusText(string statusName)
     {
-        Color color = Color.gray;
+        Color color = colorConfig != null ? colorConfig.GetStatusPopColor(statusName) : Color.gray;
         TextFloating textObj = FloatingTextManager.instance.GetFromPool();
 
         textObj.SetUp(statusName, color, vec_float);
