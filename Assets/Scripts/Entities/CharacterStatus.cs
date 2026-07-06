@@ -296,7 +296,12 @@ public int DebuffStackCount => _debuffStackCount;
                 Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 1.0f);
                 foreach(var hit in hits)
                 {
-                    if (hit.CompareTag("Enemy") && hit.TryGetComponent<CharacterStat>(out var enemyStat))
+                    int layerVal = hit.gameObject.layer;
+                    bool isEnemy = layerVal == LayerMask.NameToLayer("Enemy") || 
+                                   layerVal == LayerMask.NameToLayer("Boss") || 
+                                   hit.CompareTag("Boss") || 
+                                   (hit.TryGetComponent<BaseEntity>(out var entEnemy) && entEnemy.team == Team.Enemy);
+                    if (isEnemy && hit.TryGetComponent<CharacterStat>(out var enemyStat))
                     {
                         var pc = GameManager.Instance.PLAYERCONTROLLER;
                         float damage = 10f;
@@ -307,7 +312,11 @@ public int DebuffStackCount => _debuffStackCount;
                         }
                         enemyStat.Health.GetDamage(new DamageInfo(damage, DamageType.Physical, gameObject));
                     }
-                    if (hit.CompareTag("Ally") && hit.TryGetComponent<CharacterStatus>(out var allyStat))
+                    bool isAlly = layerVal == LayerMask.NameToLayer("Player") || 
+                                  layerVal == LayerMask.NameToLayer("Army") || 
+                                  layerVal == LayerMask.NameToLayer("FlyingObject") ||
+                                  (hit.TryGetComponent<BaseEntity>(out var entAlly) && entAlly.team == Team.Ally);
+                    if (isAlly && hit.TryGetComponent<CharacterStatus>(out var allyStat))
                     {
                         // Vanguard 버프 로직 (간단히 이속 버프로 대체 가능)
                         // TODO: 회피율 및 이속 버프
@@ -511,7 +520,13 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
                 if (duration > 0f) SetDebuffBool(DebuffBoolType.Stunned, duration);
 
-                bool isAllySource = isPlayerApplied || (attacker != null && (attacker.CompareTag("Player") || attacker.CompareTag("Ally") || attacker.GetComponent<AllyController>() != null));
+                bool isAllySource = isPlayerApplied || (attacker != null && (
+                    attacker.CompareTag("Player") || 
+                    attacker.gameObject.layer == LayerMask.NameToLayer("Player") || 
+                    attacker.gameObject.layer == LayerMask.NameToLayer("Army") || 
+                    attacker.gameObject.layer == LayerMask.NameToLayer("FlyingObject") ||
+                    (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
+                ));
                 if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
                     GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
@@ -528,7 +543,13 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
                 OnDebuffPopped?.Invoke("격파!");
 
-                bool isAllySource = isPlayerApplied || (attacker != null && (attacker.CompareTag("Player") || attacker.CompareTag("Ally") || attacker.GetComponent<AllyController>() != null));
+                bool isAllySource = isPlayerApplied || (attacker != null && (
+                    attacker.CompareTag("Player") || 
+                    attacker.gameObject.layer == LayerMask.NameToLayer("Player") || 
+                    attacker.gameObject.layer == LayerMask.NameToLayer("Army") || 
+                    attacker.gameObject.layer == LayerMask.NameToLayer("FlyingObject") ||
+                    (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
+                ));
                 if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
                     GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
@@ -549,7 +570,13 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
                 OnDebuffPopped?.Invoke("강타!");
 
-                bool isAllySource = isPlayerApplied || (attacker != null && (attacker.CompareTag("Player") || attacker.CompareTag("Ally") || attacker.GetComponent<AllyController>() != null));
+                bool isAllySource = isPlayerApplied || (attacker != null && (
+                    attacker.CompareTag("Player") || 
+                    attacker.gameObject.layer == LayerMask.NameToLayer("Player") || 
+                    attacker.gameObject.layer == LayerMask.NameToLayer("Army") || 
+                    attacker.gameObject.layer == LayerMask.NameToLayer("FlyingObject") ||
+                    (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
+                ));
                 if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
                 {
                     GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
@@ -572,7 +599,13 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
             ConsumeVulnerability(statusType, attacker, isPlayerApplied);
         }
 
-        bool isAllySource = isPlayerApplied || (attacker != null && (attacker.CompareTag("Player") || attacker.CompareTag("Ally") || attacker.GetComponent<AllyController>() != null));
+        bool isAllySource = isPlayerApplied || (attacker != null && (
+            attacker.CompareTag("Player") || 
+            attacker.gameObject.layer == LayerMask.NameToLayer("Player") || 
+            attacker.gameObject.layer == LayerMask.NameToLayer("Army") || 
+            attacker.gameObject.layer == LayerMask.NameToLayer("FlyingObject") ||
+            (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
+        ));
         if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(statusType, transform);
@@ -591,7 +624,13 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
         
         ApplyElementalDebuff(stackType, 1, attacker);
 
-        bool isAllySource = isPlayerApplied || (attacker != null && (attacker.CompareTag("Player") || attacker.CompareTag("Ally") || attacker.GetComponent<AllyController>() != null));
+        bool isAllySource = isPlayerApplied || (attacker != null && (
+            attacker.CompareTag("Player") || 
+            attacker.gameObject.layer == LayerMask.NameToLayer("Player") || 
+            attacker.gameObject.layer == LayerMask.NameToLayer("Army") || 
+            attacker.gameObject.layer == LayerMask.NameToLayer("FlyingObject") ||
+            (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
+        ));
         if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Debuff, transform);

@@ -49,13 +49,16 @@ public class MinionActionSkillSO : MinionSkillSO
                 if (health == null) health = vt.GetComponentInParent<CharacterHealth>();
                 if (health != null && health.IsDead) continue;
 
-                // 취약 연계 스킬이라면 타겟이 여전히 취약을 갖고 있는지 확인
-                if (this.reactKeyword == SkillKeyword.Vulnerability)
-                {
-                    var status = vt.GetComponentInChildren<CharacterStatus>();
-                    if (status == null) status = vt.GetComponentInParent<CharacterStatus>();
-                    if (status == null || status.VulnerabilityStacks <= 0) continue;
-                }
+                // 각 연계 스킬 키워드별 타겟 상태 유효성 실시간 체크
+                var status = vt.GetComponentInChildren<CharacterStatus>();
+                if (status == null) status = vt.GetComponentInParent<CharacterStatus>();
+                
+                if (status == null) continue;
+
+                if (this.reactKeyword == SkillKeyword.Vulnerability && status.VulnerabilityStacks <= 0) continue;
+                if (this.reactKeyword == SkillKeyword.Stun && !(status.GetDebuffBool(DebuffBoolType.Stunned) || status.GetDebuffBool(DebuffBoolType.Hitstunned))) continue;
+                if ((this.reactKeyword == SkillKeyword.Strike || this.reactKeyword == SkillKeyword.Smash) && status.VulnerabilityStacks <= 0) continue;
+                if (this.reactKeyword == SkillKeyword.Debuff && status.DebuffStackCount <= 0) continue;
 
                 float dist = Vector2.Distance(playerPos, vt.position);
                 if (dist < minDist) { minDist = dist; closestTarget = vt; }
@@ -64,11 +67,8 @@ public class MinionActionSkillSO : MinionSkillSO
 
         if (closestTarget == null)
         {
-            // validTargets가 없으면 그냥 마우스 위치로
-            Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            closestTarget = new GameObject("TempTarget").transform;
-            closestTarget.position = mousePos;
-            Destroy(closestTarget.gameObject, 1f); // 임시 타겟 파괴
+            // [개선] 찰나의 프레임 차이로 유효 타겟이 소멸되었을 경우, 소환수 강제 돌진을 예방하고 동작을 완전히 차단합니다.
+            return;
         }
 
         // 2. 텔레포트 및 넉백 방향 계산 (플레이어 기준)

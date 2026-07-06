@@ -105,7 +105,13 @@ public class ThrowableBoneSpear : MonoBehaviour, IThrowable
         if (_isHeld) return;
         
         // 던져진 상태에서 충돌 발생
-        if (collision.CompareTag("Enemy") || collision.CompareTag("Boss"))
+        int layer = collision.gameObject.layer;
+        bool isEnemyTarget = layer == LayerMask.NameToLayer("Enemy") || 
+                             layer == LayerMask.NameToLayer("Boss") || 
+                             collision.CompareTag("Boss") || 
+                             (collision.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy);
+
+        if (isEnemyTarget)
         {
             // 보스 충돌 처리 (BoneMasterController에서 OnSpearHit를 받아서 처리할 수도 있고 여기서 보낼 수도 있음)
             BoneMasterController boss = collision.GetComponentInParent<BoneMasterController>();

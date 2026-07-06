@@ -149,14 +149,39 @@ public void SyncWithInventory()
 
     private void Update()
     {
-        // currentPendingSkill 타임아웃
-        if (currentPendingSkill != null)
+        // currentPendingSkill 실시간 타겟 유효성 및 타임아웃 검사
+        if (currentPendingSkill != null && currentPendingSkill.minionData != null && currentPendingSkill.minionData.minionSkill != null)
         {
-            currentPendingSkill.timeRemaining -= Time.deltaTime;
-            if (currentPendingSkill.timeRemaining <= 0f)
+            SkillKeyword keyword = currentPendingSkill.minionData.minionSkill.reactKeyword;
+            bool anyValidTarget = false;
+            
+            // 씬 내에 이 연계 반응 조건(기절, 취약 등)을 만족하는 살아있는 적이 단 한 마리라도 있는지 실시간 체크
+            foreach (var activeEnemy in CharacterStatus.ActiveEnemies)
             {
-                Debug.Log($"<color=orange>[PSC]</color> {currentPendingSkill.minionData.minionName} timeout!");
+                if (activeEnemy == null) continue;
+                if (IsTargetValidForKeyword(activeEnemy, keyword))
+                {
+                    anyValidTarget = true;
+                    break;
+                }
+            }
+
+            if (!anyValidTarget)
+            {
+                // 만족하는 적이 몰살되거나 기절 해제 등 0마리가 된 즉시, 실시간 자동 Dequeue 폭파 및 동일 큐 일괄 제거
+                Debug.Log($"<color=orange>[PSC]</color> {currentPendingSkill.minionData.minionName} ({keyword}) has no valid targets in scene. Auto-dequeuing.");
+                ClearQueueForKeyword(keyword);
                 ProcessNextInQueue();
+            }
+            else
+            {
+                // 유효한 적이 살아있을 때만 시간초 카운트다운 진행
+                currentPendingSkill.timeRemaining -= Time.deltaTime;
+                if (currentPendingSkill.timeRemaining <= 0f)
+                {
+                    Debug.Log($"<color=orange>[PSC]</color> {currentPendingSkill.minionData.minionName} timeout!");
+                    ProcessNextInQueue();
+                }
             }
         }
 
@@ -277,6 +302,37 @@ public void ExecutePlayerSkill(SkillSlot slot, Transform playerTransform)
         }
     }
 
+    private bool IsTargetValidForKeyword(CharacterStatus target, SkillKeyword keyword)
+    {
+        if (target == null) return false;
+        
+        var health = target.GetComponent<CharacterHealth>();
+        if (health == null) health = target.GetComponentInParent<CharacterHealth>();
+        if (health != null && health.IsDead) return false;
+
+        switch (keyword)
+        {
+            case SkillKeyword.Vulnerability:
+                return target.VulnerabilityStacks > 0;
+            
+            case SkillKeyword.Stun:
+                // 일반 기절(Stunned) 및 평타 경직(Hitstunned) 상태 검사
+                return target.GetDebuffBool(DebuffBoolType.Stunned) || target.GetDebuffBool(DebuffBoolType.Hitstunned);
+            
+            case SkillKeyword.Strike:
+            case SkillKeyword.Smash:
+                // 격파와 강타는 취약 상태인 대상에만 유효
+                return target.VulnerabilityStacks > 0;
+            
+            case SkillKeyword.Debuff:
+                // 디버프 연계는 최소 1개 이상의 속성 디버프 스택 소유 시 유효
+                return target.DebuffStackCount > 0;
+            
+            default:
+                return false;
+        }
+    }
+
     public void ExecuteNextMinionSkill(Transform playerTransform)
     {
         if (currentPendingSkill == null) return;
@@ -286,6 +342,53 @@ public void ExecutePlayerSkill(SkillSlot slot, Transform playerTransform)
 
         if (minionData != null && minionData.minionSkill != null)
         {
+            SkillKeyword keyword = minionData.minionSkill.reactKeyword;
+            
+            // 1. 기존 유효 타겟들 중 사망했거나 조건이 풀린 적들을 실시간 필터링
+            List<Transform> finalValidTargets = new List<Transform>();
+            if (currentPendingSkill.validTargets != null)
+            {
+                foreach (var vt in currentPendingSkill.validTargets)
+                {
+                    if (vt == null) continue;
+                    var status = vt.GetComponentInChildren<CharacterStatus>();
+                    if (status == null) status = vt.GetComponentInParent<CharacterStatus>();
+                    
+                    if (IsTargetValidForKeyword(status, keyword))
+                    {
+                        finalValidTargets.Add(vt);
+                    }
+                }
+            }
+
+            // 2. 만약 오리지널 타겟이 유효하지 않다면, 씬 내의 다른 조건 만족 중인 적들을 대안으로 수색
+            if (finalValidTargets.Count == 0)
+            {
+                foreach (var activeEnemy in CharacterStatus.ActiveEnemies)
+                {
+                    if (activeEnemy == null) continue;
+                    if (IsTargetValidForKeyword(activeEnemy, keyword))
+                    {
+                        finalValidTargets.Add(activeEnemy.transform);
+                    }
+                }
+            }
+
+            // 3. 씬 전역을 뒤져도 조건에 부합하는 타겟이 단 한 마리도 없다면, 스킬 시전을 하지 않고 즉시 큐에서 Dequeue 폐기
+            if (finalValidTargets.Count == 0)
+            {
+                Debug.Log($"<color=orange>[PSC]</color> No valid target for {minionData.minionName} ({keyword}). Dequeuing and skipping execution.");
+                
+                // [개선] 현재 반응 조건(기절 등)을 만족하는 대상이 없으므로, 대기열 큐 내에 있는 동일 키워드 반응 스킬들도 싹 쓸어서 일괄 제거/폐기합니다.
+                ClearQueueForKeyword(keyword);
+                
+                ProcessNextInQueue();
+                return;
+            }
+
+            // 4. 유효한 타겟이 확보되었으므로 리스트 업데이트
+            currentPendingSkill.validTargets = finalValidTargets;
+
             if (Time.time < minionSkillCooldownEnds[slotIndex])
             {
                 Debug.Log($"<color=gray>[PSC]</color> {minionData.minionName} on cooldown. Skipping.");
@@ -339,6 +442,22 @@ public void ExecutePlayerSkill(SkillSlot slot, Transform playerTransform)
             Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed (Transient): {minionData.minionName}");
         }
         ProcessNextInQueue();
+    }
+
+    private void ClearQueueForKeyword(SkillKeyword keyword)
+    {
+        var newQueue = new Queue<PendingMinionSkill>();
+        foreach (var pending in skillQueue)
+        {
+            if (pending.minionData != null && pending.minionData.minionSkill != null && pending.minionData.minionSkill.reactKeyword == keyword)
+            {
+                Debug.Log($"<color=orange>[PSC]</color> Cleaned up queued reaction skill {pending.minionData.minionName} ({keyword}) due to lack of targets.");
+                continue;
+            }
+            newQueue.Enqueue(pending);
+        }
+        skillQueue = newQueue;
+        OnQueueChanged?.Invoke();
     }
 
     private void SetLayerRecursive(GameObject obj, int layer)
