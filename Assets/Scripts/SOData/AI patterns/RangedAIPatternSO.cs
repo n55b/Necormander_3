@@ -26,8 +26,9 @@ public class RangedAIPatternSO : BaseAIPatternSO
     {
         if (aimLinePrefab != null && entity.Target != null)
         {
-            Vector2 spawnPos = (Vector2)entity.transform.position + (Vector2.up * launchOffset);
-            GameObject aimLine = Instantiate(aimLinePrefab, spawnPos, Quaternion.identity);
+            // [수정] 월드가 아닌 시전자(entity) 자식으로 매달아 몬스터가 이동/넉백되어도 오프셋 지점에 록온 가이드 라인이 따라붙도록 처리
+            GameObject aimLine = Instantiate(aimLinePrefab, entity.transform.position, Quaternion.identity, entity.transform);
+            aimLine.transform.localPosition = Vector3.up * launchOffset;
 
             var hitbox = aimLine.GetComponent<BaseHitBox>();
             if (hitbox != null)
@@ -51,12 +52,12 @@ public class RangedAIPatternSO : BaseAIPatternSO
 
         if (entity.ActiveHitbox != null && entity.Target != null)
         {
-            Vector2 spawnPos = (Vector2)entity.transform.position + (Vector2.up * launchOffset);
+            Vector2 spawnPos = entity.ActiveHitbox.transform.position; // 부모 오프셋에 고정된 자식의 월드 위치 참조
             Vector2 dir = ((Vector2)entity.Target.position - spawnPos).normalized;
             
             // 1. 회전 업데이트 (타겟이 움직이면 쫓아가며 록온)
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            entity.ActiveHitbox.transform.rotation = Quaternion.Euler(0, 0, angle);
+            entity.ActiveHitbox.transform.localRotation = Quaternion.Euler(0, 0, angle);
 
             // 2. 박스 크기(길이) 업데이트 (현재 타겟 위치까지만 딱 맞춰서 그려짐)
             float currentDistToTarget = Vector2.Distance(spawnPos, entity.Target.position);

@@ -105,7 +105,7 @@ public class MeleeCombatController : MonoBehaviour
         float damageMultiplier = (_comboStep == 2) ? 1.5f : 1.0f;
 
         // [애니메이션 재생]
-        _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0.3f); // 공격 중 이동 속도 감소
+        _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0f); // [수정] 평타 모션 중 키보드 수동 이동 차단
 
         // 공격 애니메이션 재생 중에는 Update()의 Idle/Walk 자동 전환을 잠그고,
         // 캐시를 초기화해서 공격이 끝난 뒤 Idle로 제대로 복귀하도록 합니다.
@@ -137,16 +137,19 @@ public class MeleeCombatController : MonoBehaviour
             if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
             else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
 
-            Vector3 spawnPos = transform.position;
-            GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity);
+            GameObject go = Instantiate(telegraphPrefab, transform.position, Quaternion.identity, transform); // [수정] 월드가 아닌 시전자(플레이어)의 하위 자식으로 붙여 이동 궤적 동기화
 
             // 범용 BaseHitBox 사용
             _activeHitbox = go.GetComponent<BaseHitBox>();
 
             if (_activeHitbox != null)
             {
+                go.transform.localPosition = Vector3.zero; // 시전자 부모 좌표 중심으로 밀착 정렬
+
                 float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-                go.transform.rotation = Quaternion.Euler(0, 0, angle);
+                // [수정] 부모(플레이어)의 localScale.x 반전(-1) 상태에 따른 로컬 회전 각도 기하학적 보정 (마우스 좌우 대칭 오류 해결)
+                float localAngle = (transform.localScale.x < 0f) ? (180f - angle) : angle;
+                go.transform.localRotation = Quaternion.Euler(0, 0, localAngle);
 
                 // 크기 설정 (TelegraphHitbox 로직 대체)
                 go.transform.localScale = new Vector3(hitboxSize.x, hitboxSize.y, 1f);
@@ -189,6 +192,27 @@ public class MeleeCombatController : MonoBehaviour
     public void OnAttackHitFrame()
     {
         _activeHitbox?.ForceActivate();
+
+        if (_player != null)
+        {
+            // 1. 방향키 입력 방향 (MoveInput) 가져오기
+            Vector2 inputDir = _player.MoveInput;
+            
+            // 2. [수정] 방향키 입력이 있는 경우에만 가속 전진을 수행 (가만히 서서 때릴 때는 제자리 타격)
+            if (inputDir.sqrMagnitude > 0.001f)
+            {
+                Vector2 dashDir = inputDir.normalized;
+                
+                // 3. 콤보 피니시(3타)일 때는 1.5배의 묵직한 전진 가속, 1/2타는 1.0배 적용
+                // ExecuteMeleeAttack에서 _comboStep이 이미 (스텝+1)%3 으로 갱신되어 있으므로:
+                // 1타 타격 시점: _comboStep == 1
+                // 2타 타격 시점: _comboStep == 2
+                // 3타 타격 시점: _comboStep == 0
+                float forceMultiplier = (_comboStep == 0) ? 1.5f : 1.0f;
+
+                _player.ApplyAttackDash(dashDir, forceMultiplier);
+            }
+        }
     }
 
     public void CancelAttack()
