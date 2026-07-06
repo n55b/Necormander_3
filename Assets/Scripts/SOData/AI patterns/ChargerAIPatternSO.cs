@@ -47,8 +47,10 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         // [1] 돌진 방향 조준선 생성 (락온 연출)
         if (aimLinePrefab != null && entity.Target != null)
         {
-            Vector2 spawnPos = (Vector2)entity.transform.position + (Vector2.up * launchOffset);
-            aimLine = Instantiate(aimLinePrefab, spawnPos, Quaternion.identity);
+            // [수정] 월드가 아닌 시전자(entity) 자식으로 매달아 몬스터가 이동/넉백되어도 오프셋 지점에 조준선이 따라붙도록 처리
+            aimLine = Instantiate(aimLinePrefab, entity.transform.position, Quaternion.identity, entity.transform);
+            aimLine.transform.localPosition = Vector3.up * launchOffset;
+            
             aimHitbox = aimLine.GetComponent<BaseHitBox>();
             if (aimHitbox != null)
             {
@@ -67,14 +69,19 @@ public class ChargerAIPatternSO : BaseAIPatternSO
             if (entity.Target == null) break;
             timeout -= Time.deltaTime;
 
-            Vector2 spawnPos = (Vector2)entity.transform.position + (Vector2.up * launchOffset);
+            Vector2 spawnPos = aimHitbox != null ? (Vector2)aimHitbox.transform.position : (Vector2)entity.transform.position + (Vector2.up * launchOffset);
             chargeDir = ((Vector2)entity.Target.position - spawnPos).normalized;
+
+            // [수정] 차지 준비 중 실시간 플립: 본래의 LookAtTarget 공통 메서드를 사용하여 SpriteRenderer.flipX를 실시간 제어
+            entity.LookAtTarget(entity.Target);
 
             if (aimHitbox != null)
             {
+                // 1. 회전 업데이트 (타겟 추적 회전)
                 float angle = Mathf.Atan2(chargeDir.y, chargeDir.x) * Mathf.Rad2Deg;
-                aimHitbox.transform.rotation = Quaternion.Euler(0, 0, angle);
+                aimHitbox.transform.localRotation = Quaternion.Euler(0, 0, angle);
 
+                // 2. 박스 크기(길이) 업데이트 (현재 타겟 위치까지 조준선 신장)
                 float currentDist = Vector2.Distance(spawnPos, entity.Target.position);
                 aimHitbox.transform.localScale = new Vector3(currentDist, 1f, 1f);
             }
@@ -102,6 +109,14 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         float chargeSpeed = entity.Stats.MOVESPEED * chargeSpeedMultiplier;
         float maxChargeDuration = 3.0f; // 안전 타임아웃
         float chargeElapsed = 0f;
+
+        // [수정] 물리 scale.x를 뒤흔들지 않고, 스프라이트 flipX만 돌진 물리 진행 방향에 정확히 동기화
+        var entitySR = entity.GetComponentInChildren<SpriteRenderer>();
+        if (entitySR != null)
+        {
+            if (chargeDir.x > 0.01f) entitySR.flipX = true;
+            else if (chargeDir.x < -0.01f) entitySR.flipX = false;
+        }
 
         LayerMask wallMask = LayerMask.GetMask("Wall", "Obstacle");
         LayerMask playerMask = LayerMask.GetMask("Player");

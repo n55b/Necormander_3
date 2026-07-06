@@ -342,6 +342,8 @@ public abstract class BaseEntity : MonoBehaviour
         return false;
     }
 
+    public bool IsFacingRight => (_sr != null && _sr.flipX);
+
     public virtual void LookAtTarget(Transform t)
     {
         if (t == null) return;
@@ -415,18 +417,20 @@ public abstract class BaseEntity : MonoBehaviour
         if (telegraphPrefab != null)
         {
             Vector3 dir = (target.position - transform.position).normalized;
-            Vector3 spawnPos = transform.position + dir * 0.5f; 
-            GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity);
+            // [수정] 몬스터가 공격 시전 중 이동할 때 판정 범위가 따라오도록 시전자(BaseEntity)의 하위 자식으로 붙임
+            GameObject go = Instantiate(telegraphPrefab, transform.position, Quaternion.identity, transform);
             
             _activeHitbox = go.GetComponent<BaseHitBox>();
             if (_activeHitbox != null)
             {
+                go.transform.localPosition = Vector3.zero; // 시전자 부모 좌표 중심으로 밀착 정렬
+
                 float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-                go.transform.rotation = Quaternion.Euler(0, 0, angle);
+                go.transform.localRotation = Quaternion.Euler(0, 0, angle);
 
                 DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true, "", false, false, 0f); 
                 
-                // [수정] 길쭉하게 늘어나지 않도록, 타격 범위(ATKRANGE)를 X, Y 균등하게 적용 (원형/정사각형 형태 유지)
+                // [수정] 몬스터는 localScale.x가 상시 양수이므로 스케일 X를 음수로 뒤집을 필요 없이 상시 양수 유지
                 go.transform.localScale = new Vector3(_stats.ATKRANGE, _stats.ATKRANGE, 1f);
 
                 // 전달받은 실제 애니메이션 이벤트 시간(windupTime)과 피아식별 정보(team)를 넘겨줍니다.

@@ -89,6 +89,15 @@ public class MinionActionSkillSO : MinionSkillSO
         
         user.position = teleportPos;
 
+        // [수정] 텔레포트 돌진 직후, 타겟을 직접 바라보도록 미니언의 SpriteRenderer.flipX를 설정
+        Vector2 lookDir = ((Vector2)closestTarget.position - (Vector2)user.position).normalized;
+        var userSR = user.GetComponentInChildren<SpriteRenderer>();
+        if (userSR != null)
+        {
+            if (lookDir.x > 0.01f) userSR.flipX = true; // 오른쪽 바라봄
+            else if (lookDir.x < -0.01f) userSR.flipX = false; // 왼쪽 바라봄
+        }
+
         PlaySkillSound();
         ShakeCamera();
         DoHitStop();
@@ -101,7 +110,10 @@ public class MinionActionSkillSO : MinionSkillSO
         if (useHitBox && hitBoxPrefab != null)
         {
             float angle = Mathf.Atan2(dirFromPlayer.y, dirFromPlayer.x) * Mathf.Rad2Deg;
-            BaseHitBox box = Instantiate(hitBoxPrefab, closestTarget.position, Quaternion.Euler(0, 0, angle));
+            BaseHitBox box = Instantiate(hitBoxPrefab, user.position, Quaternion.identity, user); // [수정] 월드가 아닌 시전자(미니언) 하위 자식으로 붙여 이동 동기화
+            box.transform.localPosition = Vector3.zero; // 시전자 중심 정렬
+            
+            box.transform.localRotation = Quaternion.Euler(0, 0, angle);
             box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
             
             DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, user.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");

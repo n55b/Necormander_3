@@ -156,6 +156,14 @@ public bool canChangeState = true;
     private int _originalLayer;
     private int _dashLayer;
 
+    [Header("평타 전진 가속 설정")]
+    [SerializeField] private float attackDashSpeed = 10f; // 평타 공격 시 순간 대시 속도
+    [SerializeField] private float attackDashDuration = 0.08f; // 평타 대시 지속 시간 (절도 있는 느낌용 극단적 짧은 시간)
+    private bool _isAttackDashing = false;
+    private float _attackDashTimeLeft = 0f;
+    private Vector2 _attackDashDir = Vector2.zero;
+    private float _attackDashSpeedVal = 10f;
+
     public bool IsDashing => _isDashing;
     public float DashCooldown => dashCooldown;
     public float DashCooldownProgress => dashCooldown > 0f ? Mathf.Clamp01((Time.time - _lastDashTime) / dashCooldown) : 1f;
@@ -472,6 +480,17 @@ public bool canChangeState = true;
                 EndDash();
             }
         }
+        else if (_isAttackDashing)
+        {
+            // 평타 가속 전진 중에는 해당 속도를 덮어씌워 강제 이동
+            _rb.linearVelocity = _attackDashDir * _attackDashSpeedVal;
+            _attackDashTimeLeft -= Time.fixedDeltaTime;
+            if (_attackDashTimeLeft <= 0f)
+            {
+                _isAttackDashing = false;
+                if (_rb != null) _rb.linearVelocity = Vector2.zero; // [추가] 평타 돌진 완료 즉시 속도 강제 제동
+            }
+        }
         else
         {
             // [개선] 물리 충돌과 자연스러운 관성을 위해 transform.position 대신 linearVelocity를 사용합니다.
@@ -491,6 +510,21 @@ public bool canChangeState = true;
 
             }
         }
+    }
+
+    /// <summary>
+    /// 평타 타격 순간에 절도 있는 짧은 전진(Lunging) 물리력을 방향키/조준선 방향으로 가합니다.
+    /// 실제 대시(무적, 레이어 변경) 판정 없이 속도로만 순간 미끄러뜨립니다.
+    /// </summary>
+    public void ApplyAttackDash(Vector2 direction, float forceMultiplier = 1.0f)
+    {
+        if (_inputBlocked || (stat != null && stat.Health.IsDead)) return;
+        if (_isDashing) return; // 구르는 중(대시)에는 평타 대시 무시
+
+        _isAttackDashing = true;
+        _attackDashDir = direction.normalized;
+        _attackDashSpeedVal = attackDashSpeed * forceMultiplier;
+        _attackDashTimeLeft = attackDashDuration;
     }
 
     public void SetDashLayer(bool isDash)
