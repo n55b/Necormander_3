@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 429021718782858115}
   - component: {fileID: 3008647980326254636}
   m_Layer: 13
-  m_Name: EliteRewardBox
+  m_Name: RoomRewardBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -57,7 +57,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 755df84368055dc48836bff4efd59104, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

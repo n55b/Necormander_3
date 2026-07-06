@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 3961345273550800504}
   - component: {fileID: 3364672550813035699}
   - component: {fileID: 8547818776763304811}
-  m_Layer: 0
+  - component: {fileID: 4923819110345603996}
+  m_Layer: 3
   m_Name: Tent_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -190,3 +191,19 @@ PolygonCollider2D:
       - {x: -0.125, y: 0.0625}
       - {x: 0.5625, y: 0.0625}
   m_UseDelaunayMesh: 0
+--- !u!114 &4923819110345603996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3736454552294466656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isDynamic: 0
+  precision: 100
+  baseOffset: 0
+  pivotOverride: {fileID: 0}

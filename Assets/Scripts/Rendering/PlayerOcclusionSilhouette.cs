@@ -23,6 +23,13 @@ public class PlayerOcclusionSilhouette : MonoBehaviour
     [Tooltip("Occlusion check radius. Objects farther than this skip the bounds check entirely (perf).")]
     [SerializeField] private float maxCheckDistance = 3f;
 
+    [Tooltip("실루엣이 반응할 대상의 레이어. 기본값은 Wall/Obstacle만 포함되어 몬스터(Enemy)는 가림막으로 취급하지 않습니다. 인스펙터에서 원하는 레이어로 바꿀 수 있습니다.")]
+    [SerializeField] private LayerMask occluderLayers = 0;
+
+    [Tooltip("위 occluderLayers가 설정 안 된 채(Nothing/0) 남아있으면 Awake에서 Wall+Obstacle로 자동 대체됩니다.")]
+    [SerializeField] private bool autoDefaultToWallLayers = true;
+
+
     
     private SpriteRenderer _mainRenderer;
 
@@ -30,6 +37,11 @@ public class PlayerOcclusionSilhouette : MonoBehaviour
 private void Awake()
     {
         _mainRenderer = GetComponent<SpriteRenderer>();
+
+        if (autoDefaultToWallLayers && occluderLayers.value == 0)
+        {
+            occluderLayers = LayerMask.GetMask("Wall", "Obstacle");
+        }
 
         if (silhouetteRenderer != null)
         {
@@ -85,6 +97,10 @@ private bool IsOccluded()
 
             if (occluderRenderer.sortingLayerID != _mainRenderer.sortingLayerID) continue;
             if (occluderRenderer.sortingOrder <= _mainRenderer.sortingOrder) continue;
+
+            // 지정된 레이어(기본: 벽/장애물)에 속한 오브젝트만 가림막으로 인정. 몬스터 등은 제외됨.
+            if (((1 << occluderRenderer.gameObject.layer) & occluderLayers.value) == 0) continue;
+
 
             // Actual visual overlap check using rendered sprite bounds
             if (occluderRenderer.bounds.Intersects(myBounds)) return true;
