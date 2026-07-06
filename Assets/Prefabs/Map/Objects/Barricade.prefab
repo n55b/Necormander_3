@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 5654444423735484543}
   - component: {fileID: 6849678664410979706}
   - component: {fileID: 7690125658897640450}
-  m_Layer: 11
+  - component: {fileID: 8146734334599477059}
+  m_Layer: 3
   m_Name: Barricade
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -192,3 +193,19 @@ PolygonCollider2D:
       - {x: -0.3125, y: 0.0625}
       - {x: 0.125, y: 0.0625}
   m_UseDelaunayMesh: 0
+--- !u!114 &8146734334599477059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6573063553699626744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isDynamic: 0
+  precision: 100
+  baseOffset: 0
+  pivotOverride: {fileID: 0}

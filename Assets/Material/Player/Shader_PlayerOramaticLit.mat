@@ -42,7 +42,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _HitFlash: 0
-    - _PowerValue: 0.3
+    - _PowerValue: 0.7
     m_Colors:
     - _FlshColor: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
