@@ -23,6 +23,7 @@ public class RoomInstance : MonoBehaviour
     [HideInInspector] public int debugDepth = -1; // 맵 생성 시 계산된 깊이 저장용
     [HideInInspector] public int phaseIndex = -1; // 방이 생성된 맵 생성 페이즈 인덱스
     [HideInInspector] public Vector2Int gridPosition = Vector2Int.zero; // [추가] 아이작 스타일 가상 그리드 좌표
+    [HideInInspector] public bool isRevealedOnMinimap = false; // [추가] 미니맵에 밝혀져 전사된 상태인지 여부
 
     public float GetDiameter()
     {
@@ -34,6 +35,10 @@ public class RoomInstance : MonoBehaviour
     public bool hasBeenVisited = false;
     public List<GameObject> doorObjects = new List<GameObject>(); // MapGenerator에서 할당
     [SerializeField] private AudioClip roomBGM; // [추가] 이 방에서 나올 음악
+
+    [Header("미니맵 아이콘 설정")]
+    [Tooltip("방 프리팹 하위의 MiniMapIcons 최상위 부모 오브젝트입니다. 미지정 시 transform.Find(\"MiniMapIcons\")로 자동 검색합니다.")]
+    [SerializeField] private Transform miniMapIconsParent;
 
     // [추가] 방에 처음 들어갈 때마다 호출되는 전역 이벤트 (매니저들에서 방 리셋용으로 사용)
     public static System.Action<RoomInstance> OnPlayerEnteredRoom;
@@ -145,6 +150,99 @@ public class RoomInstance : MonoBehaviour
         _triggerCollider.isTrigger = true;
         _triggerCollider.size = new Vector2(Mathf.Max(1, roomSize.x - 4f), Mathf.Max(1, roomSize.y - 4f));
         _triggerCollider.offset = centerOffset;
+
+        // [수정] 일반 방(Normal)일 때 보상 종류를 전체 Enum 개수에 맞추어 무작위로 초기 결정 (맵 빌더에서 오버라이트 가능)
+        if (roomType == RoomType.Normal)
+        {
+            normalRewardType = (NormalRewardType)Random.Range(0, System.Enum.GetValues(typeof(NormalRewardType)).Length);
+        }
+
+        // 미니맵 아이콘들 상태 갱신
+        SetRewardTypeAndSyncIcon(normalRewardType);
+
+        // [수정] 방 한가운데 감지용 콜라이더(CombatCenterTrigger) 프리팹 바인딩 및 누락 시 Fallback 안전 자동 셋업
+        if (roomType == RoomType.Normal || roomType == RoomType.Elite || roomType == RoomType.Boss)
+        {
+            Transform centerTriggerTrans = transform.Find("CombatCenterTrigger");
+            GameObject centerTriggerObj = null;
+
+            if (centerTriggerTrans != null)
+            {
+                centerTriggerObj = centerTriggerTrans.gameObject;
+            }
+            else
+            {
+                // Fallback: 프리팹 누락 시 씬 붕괴 방지를 위해 코드로 동적 백업 생성
+                centerTriggerObj = new GameObject("CombatCenterTrigger");
+                centerTriggerObj.transform.SetParent(this.transform, false);
+                centerTriggerObj.transform.localPosition = (Vector3)centerOffset;
+
+                var circleCol = centerTriggerObj.AddComponent<CircleCollider2D>();
+                circleCol.isTrigger = true;
+                circleCol.radius = 3.5f;
+                Debug.Log($"<color=yellow>[RoomInstance]</color> Built fallback center trigger for {gameObject.name}");
+            }
+
+            if (centerTriggerObj != null)
+            {
+                var triggerComp = centerTriggerObj.GetComponent<RoomCombatTrigger>() ?? centerTriggerObj.AddComponent<RoomCombatTrigger>();
+                triggerComp.Init(this);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 외부 맵 생성기 등에서 방 보상 속성을 지정하고 미니맵 아이콘의 상태를 동적으로 동기화 갱신합니다.
+    /// </summary>
+    public void SetRewardTypeAndSyncIcon(NormalRewardType rewardType)
+    {
+        normalRewardType = rewardType;
+
+        // 인스펙터에 직접 연결된 부모 트랜스폼을 우선 사용하고, 없을 때만 동적 탐색(Find)으로 보완
+        Transform iconsParent = miniMapIconsParent != null ? miniMapIconsParent : transform.Find("MiniMapIcons");
+        if (iconsParent != null)
+        {
+            // 모든 자식 아이콘 오브젝트 비활성화
+            for (int i = 0; i < iconsParent.childCount; i++)
+            {
+                iconsParent.GetChild(i).gameObject.SetActive(false);
+            }
+
+            Transform targetIcon = null;
+
+            if (roomType == RoomType.Normal)
+            {
+                if (normalRewardType == NormalRewardType.PlayerSkill)
+                    targetIcon = iconsParent.Find("PlayerSkillMinimapIcon") ?? iconsParent.Find("playerskill");
+                else if (normalRewardType == NormalRewardType.MinionSkill)
+                    targetIcon = iconsParent.Find("MinionSkillMinimapIcon") ?? iconsParent.Find("minionskill");
+            }
+            else if (roomType == RoomType.Boss)
+            {
+                targetIcon = iconsParent.Find("boss") ?? iconsParent.Find("BossMinimapIcon");
+            }
+            else if (roomType == RoomType.Shop)
+            {
+                targetIcon = iconsParent.Find("ShopMiniMapIcon") ?? iconsParent.Find("shop") ?? iconsParent.Find("ShopMinimapIcon");
+            }
+            else if (roomType == RoomType.Spawn)
+            {
+                targetIcon = iconsParent.Find("spawn") ?? iconsParent.Find("SpawnMinimapIcon");
+            }
+            else if (roomType == RoomType.Reward)
+            {
+                targetIcon = iconsParent.Find("RewardMiniMapIcon") ?? iconsParent.Find("reward") ?? iconsParent.Find("RewardMinimapIcon");
+            }
+            else if (roomType == RoomType.Elite)
+            {
+                targetIcon = iconsParent.Find("EliteMiniMapIcon") ?? iconsParent.Find("elite");
+            }
+
+            if (targetIcon != null)
+            {
+                targetIcon.gameObject.SetActive(true);
+            }
+        }
     }
 
     public void ForceEnter()
@@ -181,16 +279,37 @@ public class RoomInstance : MonoBehaviour
             // [추가] 방 입장 전역 이벤트 발생
             OnPlayerEnteredRoom?.Invoke(this);
 
-            if (isCleared || roomType == RoomType.Spawn) return;
-
-            if (roomBGM != null && SoundManager.Instance != null)
+            // [수정] 전투를 시작하지 않는 예외적인 방(스폰, 상점, 보상방 등)에만 입장 즉시 BGM 및 이벤트 격발
+            if (roomType == RoomType.Spawn || roomType == RoomType.Shop || roomType == RoomType.Reward)
             {
-                SoundManager.Instance.ChangeBGM(roomBGM);
+                if (roomBGM != null && SoundManager.Instance != null)
+                {
+                    SoundManager.Instance.ChangeBGM(roomBGM);
+                }
+                _roomEvent?.OnPlayerEnter(this);
             }
-
-            Debug.Log($"<color=yellow>[Room]</color> Player Entered: {gameObject.name}");
-            _roomEvent?.OnPlayerEnter(this);
         }
+    }
+
+    /// <summary>
+    /// 플레이어가 방 한가운데 CombatCenterTrigger에 도달하는 순간 호출되어 실제 전투를 시작합니다.
+    /// </summary>
+    public void StartCombatEvent()
+    {
+        if (isCleared || roomType == RoomType.Spawn || roomType == RoomType.Shop || roomType == RoomType.Reward) return;
+
+        // 문 닫음
+        SetDoorsOpen(false);
+
+        // BGM 전투 음악 전환
+        if (roomBGM != null && SoundManager.Instance != null)
+        {
+            SoundManager.Instance.ChangeBGM(roomBGM);
+        }
+
+        // 룸 이벤트 전투 시퀀스 시작
+        _roomEvent?.OnPlayerEnter(this);
+        Debug.Log($"<color=yellow>[Room]</color> Player reached center, combat sequence triggered: {gameObject.name}");
     }
 
     public void SetDoorsOpen(bool open)

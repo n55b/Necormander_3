@@ -146,6 +146,10 @@ MonoBehaviour:
   silhouetteRenderer: {fileID: 7773861144495448027}
   silhouetteColor: {r: 1, g: 1, b: 1, a: 0.55}
   maxCheckDistance: 3
+  occluderLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  autoDefaultToWallLayers: 1
 --- !u!114 &7250412908182429482
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -400,6 +404,10 @@ MonoBehaviour:
   silhouetteRenderer: {fileID: 7014098569055171752}
   silhouetteColor: {r: 1, g: 1, b: 1, a: 0.55}
   maxCheckDistance: 3
+  occluderLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  autoDefaultToWallLayers: 1
 --- !u!114 &3550151716728198299
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -783,6 +791,37 @@ MonoBehaviour:
   minSpeed: 2
   maxSpeed: 18
   fullChargeSpeed: 25
+--- !u!1 &5667133705545565858
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6148272567664776443}
+  m_Layer: 0
+  m_Name: AttackSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6148272567664776443
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5667133705545565858}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.07, y: 0.38898966, z: -0.33808148}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1604435047591240911}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6101957615898550799
 GameObject:
   m_ObjectHideFlags: 0
@@ -1132,6 +1171,7 @@ Transform:
   - {fileID: 4482872282078055582}
   - {fileID: 8435380705204760406}
   - {fileID: 6262675877589433185}
+  - {fileID: 6148272567664776443}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7993269466842838964
@@ -1420,6 +1460,8 @@ MonoBehaviour:
   dashSpeed: 15
   dashDuration: 0.2
   dashCooldown: 1
+  attackDashSpeed: 10
+  attackDashDuration: 0.08
 --- !u!114 &6055861653884896251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1564,10 +1606,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   telegraphPrefab: {fileID: 4280725952711924581, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
+  attackSpawnPoint: {fileID: 6148272567664776443}
+  lightAttackDashMultiplier: 1
+  mediumAttackDashMultiplier: 1.5
   comboResetTime: 1
   attackCooldown: 0.3
-  lightHitboxSize: {x: 2, y: 1.5}
-  mediumHitboxSize: {x: 3, y: 2}
+  lightHitboxSize: {x: 2, y: 0.5}
+  mediumHitboxSize: {x: 3, y: 0.5}
   lightTelegraphDuration: 0.2
   mediumTelegraphDuration: 0.4
 --- !u!114 &7957941004026145679

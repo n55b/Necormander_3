@@ -20,6 +20,10 @@ public class MapGenerationDataSO : ScriptableObject
     public int shopCount = 1;
     public int rewardCount = 2;
     public int eliteCount = 1;
+    [Tooltip("일반 전투 방 중 플레이어 스킬 보상을 배정할 정확한 방의 수량")]
+    public int playerSkillRewardRoomCount = 3;
+    [Tooltip("일반 전투 방 중 미니언 스킬 보상을 배정할 정확한 방의 수량")]
+    public int minionSkillRewardRoomCount = 3;
 
     [Header("Encounter Spawning Settings")]
     [Tooltip("일반방 전투 웨이브 수 (기본 2)")]

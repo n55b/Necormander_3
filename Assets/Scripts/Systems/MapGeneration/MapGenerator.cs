@@ -196,6 +196,19 @@ public class MapGenerator : MonoBehaviour
         SetupFinalColliders();
         BakeNavMesh();
 
+        // [추가] 물리 분산 모드 시 미니맵 위치 정밀 전사 및 다리(길) 렌더링 조건을 위해 월드 좌표 기반 가상 그리드 좌표 갱신
+        float spacing = generationData.gridSpacing > 0 ? generationData.gridSpacing : 160f;
+        foreach (var room in _allRooms)
+        {
+            room.gridPosition = new Vector2Int(
+                Mathf.RoundToInt(room.transform.position.x / spacing),
+                Mathf.RoundToInt(room.transform.position.y / spacing)
+            );
+        }
+
+        // [추가] 일반 전투 방들의 보상 수량을 지정된 개수대로 무작위 분배 및 안배
+        DistributeNormalRoomRewards();
+
         // 안개 타일 배치
         GenerateFogOfWar(); // 던전 전체 까맣게 칠하기
 
@@ -1255,12 +1268,12 @@ public class MapGenerator : MonoBehaviour
     {
         if (globalMiniMapTilemap == null || room == null) return;
 
-        // 아이작 배치 모드가 아닌 경우 미니맵을 실시간으로 누적하지 않음
-        if (generationData == null || !generationData.useIsaacStylePlacement) return;
+        // [수정] 아이작 배치 모드 여부와 관계없이 미니맵 실시간 드로잉과 다리(길) 렌더링을 일괄 가동합니다.
 
         // 방 타입에 따른 밝고 선명한 미니맵 전용 타일 획득
         TileBase miniMapTile = GetMiniMapTileByType(room.roomType);
-        if (miniMapTile == null) miniMapTile = miniMapNormalTile; // 방어 코드
+        if (miniMapTile == null) miniMapTile = miniMapNormalTile; // 1차 방어 코드
+        if (miniMapTile == null && generationData != null) miniMapTile = generationData.floorTile; // 2차 안전 Fallback (바닥 타일 치환)
         if (miniMapTile == null) return; // 에셋이 아예 없는 경우는 스킵
 
         // Spacing을 12(촘촘한 논리 정렬)로 지정합니다.
@@ -1312,9 +1325,83 @@ public class MapGenerator : MonoBehaviour
 
         if (miniMapPositions.Count > 0)
         {
+            room.isRevealedOnMinimap = true; // [추가] 미니맵에 그려진 상태임을 기록
+
             globalMiniMapTilemap.SetTiles(miniMapPositions.ToArray(), miniMapTiles.ToArray());
             globalMiniMapTilemap.RefreshAllTiles();
             Debug.Log($"<color=green>[MapGenerator]</color> [아이작 미니맵] 방 {room.name}을 미니맵에 정밀 전사했습니다. ({miniMapPositions.Count}칸)");
+
+            // [수정] 방문 여부가 아니라, 미니맵 상에 이미 노출되어 떠 있는 방들(isRevealedOnMinimap) 간의 연결 통로를 흰색 타일막대로 드로잉
+            var connected = GetConnectedRooms(room);
+            foreach (var conn in connected)
+            {
+                if (conn != null && conn.isRevealedOnMinimap)
+                {
+                    DrawConnectionOnMinimap(room, conn, miniMapTile);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 미니맵 상에서 두 방의 그리드 가상 격자 사이를 잇는 통로 다리를 흰색 막대 타일로 그립니다.
+    /// </summary>
+    private void DrawConnectionOnMinimap(RoomInstance roomA, RoomInstance roomB, TileBase tile)
+    {
+        if (globalMiniMapTilemap == null || tile == null) return;
+
+        int minimapSpacing = 12;
+        int minimapOffsetX = -1000;
+        int minimapOffsetY = -1000;
+
+        Vector2Int gridA = roomA.gridPosition;
+        Vector2Int gridB = roomB.gridPosition;
+
+        // 두 방의 미니맵 격자 중심 좌표
+        int centerA_X = minimapOffsetX + gridA.x * minimapSpacing;
+        int centerA_Y = minimapOffsetY + gridA.y * minimapSpacing;
+        int centerB_X = minimapOffsetX + gridB.x * minimapSpacing;
+        int centerB_Y = minimapOffsetY + gridB.y * minimapSpacing;
+
+        List<Vector3Int> bridgePositions = new List<Vector3Int>();
+        List<TileBase> bridgeTiles = new List<TileBase>();
+
+        if (gridA.y == gridB.y)
+        {
+            // 가로 연결 (두 방 사이의 빈 틈 복도)
+            int startX = Mathf.Min(centerA_X, centerB_X);
+            int endX = Mathf.Max(centerA_X, centerB_X);
+            
+            for (int x = startX + 3; x <= endX - 3; x++)
+            {
+                // 두께 2칸짜리 가로 연결 막대
+                bridgePositions.Add(new Vector3Int(x, centerA_Y, 0));
+                bridgePositions.Add(new Vector3Int(x, centerA_Y - 1, 0));
+                
+                bridgeTiles.Add(tile);
+                bridgeTiles.Add(tile);
+            }
+        }
+        else if (gridA.x == gridB.x)
+        {
+            // 세로 연결 (두 방 사이의 빈 틈 복도)
+            int startY = Mathf.Min(centerA_Y, centerB_Y);
+            int endY = Mathf.Max(centerA_Y, centerB_Y);
+            
+            for (int y = startY + 3; y <= endY - 3; y++)
+            {
+                // 두께 2칸짜리 세로 연결 막대
+                bridgePositions.Add(new Vector3Int(centerA_X, y, 0));
+                bridgePositions.Add(new Vector3Int(centerA_X - 1, y, 0));
+                
+                bridgeTiles.Add(tile);
+                bridgeTiles.Add(tile);
+            }
+        }
+
+        if (bridgePositions.Count > 0)
+        {
+            globalMiniMapTilemap.SetTiles(bridgePositions.ToArray(), bridgeTiles.ToArray());
         }
     }
 
@@ -1437,6 +1524,9 @@ public class MapGenerator : MonoBehaviour
 
         Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 5단계: NavMesh 빌드 및 안개 시스템 가동...");
         BakeNavMesh();
+
+        // [추가] 일반 전투 방들의 보상 수량을 지정된 개수대로 무작위 분배 및 안배
+        DistributeNormalRoomRewards();
 
         // 안개 생성
         GenerateFogOfWar();
@@ -1887,5 +1977,61 @@ public class MapGenerator : MonoBehaviour
                 globalUnsteppableTilemap.SetTile(targetCell, null);
             }
         }
+    }
+
+    /// <summary>
+    /// 일반 전투 방(Normal Room)의 보상 유형을 SO 설정에 기재된 정확한 개수대로 분배 안배하고 아이콘을 갱신합니다.
+    /// </summary>
+    private void DistributeNormalRoomRewards()
+    {
+        if (generationData == null) return;
+
+        // 1. 전체 방에서 일반방들만 필터링
+        List<RoomInstance> normalRooms = _allRooms.FindAll(r => r.roomType == RoomType.Normal);
+        if (normalRooms.Count == 0) return;
+
+        // 2. 무작위 분배를 위해 셔플
+        for (int i = 0; i < normalRooms.Count; i++)
+        {
+            RoomInstance temp = normalRooms[i];
+            int randomIndex = Random.Range(i, normalRooms.Count);
+            normalRooms[i] = normalRooms[randomIndex];
+            normalRooms[randomIndex] = temp;
+        }
+
+        int targetPlayerCount = generationData.playerSkillRewardRoomCount;
+        int targetMinionCount = generationData.minionSkillRewardRoomCount;
+
+        // 만약 설정값이 아예 비어있거나 극도로 이상하다면 예외 대처로 절반씩 분배
+        if (targetPlayerCount <= 0 && targetMinionCount <= 0)
+        {
+            targetPlayerCount = normalRooms.Count / 2;
+            targetMinionCount = normalRooms.Count - targetPlayerCount;
+        }
+
+        for (int i = 0; i < normalRooms.Count; i++)
+        {
+            RoomInstance room = normalRooms[i];
+            RoomInstance.NormalRewardType selectedReward;
+
+            if (i < targetPlayerCount)
+            {
+                selectedReward = RoomInstance.NormalRewardType.PlayerSkill;
+            }
+            else if (i < targetPlayerCount + targetMinionCount)
+            {
+                selectedReward = RoomInstance.NormalRewardType.MinionSkill;
+            }
+            else
+            {
+                // 설정된 할당 개수를 초과하여 남는 방들은 무작위 배정
+                selectedReward = (RoomInstance.NormalRewardType)Random.Range(0, System.Enum.GetValues(typeof(RoomInstance.NormalRewardType)).Length);
+            }
+
+            // 방의 보상 설정하고 자식 아이콘 갱신
+            room.SetRewardTypeAndSyncIcon(selectedReward);
+        }
+
+        Debug.Log($"<color=green>[MapGenerator]</color> Distributed Normal Room Rewards: PlayerSkill={targetPlayerCount}, MinionSkill={targetMinionCount}. Actual Normal Rooms: {normalRooms.Count}");
     }
 }

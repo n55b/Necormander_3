@@ -6,6 +6,16 @@ public class MeleeCombatController : MonoBehaviour
     [SerializeField] private GameObject telegraphPrefab; // 인스펙터 할당
     public GameObject TelegraphPrefab => telegraphPrefab;
 
+    [Header("공격 스폰 포인트")]
+    [Tooltip("플레이어 공격 히트박스가 스폰될 시작 기준점 트랜스폼입니다. 미지정 시 플레이어 본체 피벗을 사용합니다.")]
+    [SerializeField] private Transform attackSpawnPoint;
+
+    [Header("평타 대시 물리력 설정")]
+    [Tooltip("평타 1, 2타 시의 순간 돌진력(가속 배율)입니다. 기본값 1.0f")]
+    [SerializeField] private float lightAttackDashMultiplier = 1.0f;
+    [Tooltip("평타 3타(피니시) 시의 순간 돌진력(가속 배율)입니다. 기본값 1.5f")]
+    [SerializeField] private float mediumAttackDashMultiplier = 1.5f;
+
     private PlayerController _player;
     private float _lastAttackTime;
     private int _comboStep = 0; // 0, 1, 2
@@ -127,24 +137,27 @@ public class MeleeCombatController : MonoBehaviour
         // [HitBox 소환]
         if (telegraphPrefab != null)
         {
-            // 마우스 방향 또는 이동 방향을 공격 방향으로 설정
+            // 마우스 방향 또는 이동 방향을 공격 방향으로 설정 (지정된 스폰포인트 기준으로 에이밍 방향 산출)
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             mousePos.z = 0;
-            Vector2 dir = (mousePos - transform.position).normalized;
+            Vector3 startOrigin = attackSpawnPoint != null ? attackSpawnPoint.position : transform.position;
+            Vector2 dir = (mousePos - startOrigin).normalized;
             CurrentAttackDir = dir;
 
             // 플레이어가 바라보는 방향 동기화
             if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
             else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
 
-            GameObject go = Instantiate(telegraphPrefab, transform.position, Quaternion.identity, transform); // [수정] 월드가 아닌 시전자(플레이어)의 하위 자식으로 붙여 이동 궤적 동기화
+            Vector3 spawnPos = attackSpawnPoint != null ? attackSpawnPoint.position : transform.position;
+            GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity, transform); // [수정] 월드가 아닌 시전자(플레이어)의 하위 자식으로 붙여 이동 궤적 동기화
 
             // 범용 BaseHitBox 사용
             _activeHitbox = go.GetComponent<BaseHitBox>();
 
             if (_activeHitbox != null)
             {
-                go.transform.localPosition = Vector3.zero; // 시전자 부모 좌표 중심으로 밀착 정렬
+                // 부모의 scale.x 반전에 맞물려 대칭 정렬되도록 로컬 오프셋 유지
+                go.transform.localPosition = attackSpawnPoint != null ? attackSpawnPoint.localPosition : Vector3.zero;
 
                 float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
                 // [수정] 부모(플레이어)의 localScale.x 반전(-1) 상태에 따른 로컬 회전 각도 기하학적 보정 (마우스 좌우 대칭 오류 해결)
@@ -203,12 +216,12 @@ public class MeleeCombatController : MonoBehaviour
             {
                 Vector2 dashDir = inputDir.normalized;
                 
-                // 3. 콤보 피니시(3타)일 때는 1.5배의 묵직한 전진 가속, 1/2타는 1.0배 적용
+                // 3. 콤보 피니시(3타) 및 1/2타 타격 순간 대시 가속력 배율 적용
                 // ExecuteMeleeAttack에서 _comboStep이 이미 (스텝+1)%3 으로 갱신되어 있으므로:
                 // 1타 타격 시점: _comboStep == 1
                 // 2타 타격 시점: _comboStep == 2
                 // 3타 타격 시점: _comboStep == 0
-                float forceMultiplier = (_comboStep == 0) ? 1.5f : 1.0f;
+                float forceMultiplier = (_comboStep == 0) ? mediumAttackDashMultiplier : lightAttackDashMultiplier;
 
                 _player.ApplyAttackDash(dashDir, forceMultiplier);
             }

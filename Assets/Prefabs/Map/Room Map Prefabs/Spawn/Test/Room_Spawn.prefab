@@ -31,6 +31,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 605796432445166598}
   - {fileID: 6141032051855648512}
   - {fileID: 1193608882396900905}
   - {fileID: 8769169166370444067}
@@ -54,19 +55,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roomType: 0
+  normalRewardType: 0
   roomSize: {x: 0, y: 0}
   centerOffset: {x: 0, y: 0}
   anchors: []
   wallTilemap: {fileID: 7482565349495772583}
   groundTilemap: {fileID: 8951215741032348266}
   shadowTilemap: {fileID: 2159475724986116677}
+  unsteppableTilemap: {fileID: 0}
   debugDepth: -1
   phaseIndex: -1
+  gridPosition: {x: 0, y: 0}
+  isRevealedOnMinimap: 0
   isCleared: 0
   hasBeenVisited: 0
   doorObjects:
   - {fileID: 8637198600651598581, guid: 307b97e39cd375d47a324403a27bb3a6, type: 3}
   roomBGM: {fileID: 8300000, guid: 76c50e154a0bfa648927b49416b5181a, type: 3}
+  miniMapIconsParent: {fileID: 605796432445166598}
 --- !u!114 &5674212857449078194
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2817,6 +2823,68 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 2210365909244622604, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
   m_PrefabInstance: {fileID: 1025766150248339749}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &4945479516802286353
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7365735896519185538}
+    m_Modifications:
+    - target: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7287430034549184763, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+      propertyPath: m_Name
+      value: MiniMapIcons
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+--- !u!4 &605796432445166598 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5533208490642724631, guid: 58e4b77f98e72c842b083d9c04358aa1, type: 3}
+  m_PrefabInstance: {fileID: 4945479516802286353}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5446426484653445132
 PrefabInstance:

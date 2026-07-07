@@ -176,7 +176,7 @@ public class UIBasedMiniMap : MonoBehaviour
         spawnedList.Clear();
     }
 
-    private void DrawRoomsOnContainer(
+    private void DrawRoomsOnContainer( 
         RectTransform container, 
         List<GameObject> spawnedList, 
         RoomInstance currentRoom, 
@@ -185,6 +185,9 @@ public class UIBasedMiniMap : MonoBehaviour
         bool isFullMap,
         bool focusOnlyCurrentRoom)
     {
+        // 캔버스에 그려진 방들의 UI 좌표를 누적 캐싱할 임시 딕셔너리
+        Dictionary<RoomInstance, Vector2> roomUiPositions = new Dictionary<RoomInstance, Vector2>();
+
         foreach (var room in MapGenerator.Instance.AllRooms)
         {
             if (room == null) continue;
@@ -222,6 +225,9 @@ public class UIBasedMiniMap : MonoBehaviour
                 room.gridPosition.y - currentRoom.gridPosition.y
             );
             rt.anchoredPosition = gridDiff * (roomUiSize + roomUiSpacing);
+            
+            // 좌표 캐싱 등록
+            roomUiPositions[room] = rt.anchoredPosition;
 
             Image img = roomObj.GetComponent<Image>();
             img.sprite = fallbackRoomSprite;
@@ -235,18 +241,22 @@ public class UIBasedMiniMap : MonoBehaviour
                 DrawRoomTerrainShape(roomObj, room, roomUiSize);
             }
 
-            // 방 프리팹 깊은 자식 계층의 MiniMapIcon 스프라이트 복사
+            // [수정] 방 프리팹 자식 계층 중 활성화된(activeSelf) MiniMapIcon 스프라이트 정밀 추출
             Sprite roomIconSprite = null;
             Color iconColor = Color.white;
 
             SpriteRenderer[] childRenderers = room.GetComponentsInChildren<SpriteRenderer>(true);
             foreach (var sr in childRenderers)
             {
-                if (sr != null && sr.gameObject.name == "MiniMapIcon")
+                if (sr != null && sr.gameObject.activeSelf)
                 {
-                    roomIconSprite = sr.sprite;
-                    iconColor = sr.color;
-                    break;
+                    string nameLower = sr.gameObject.name.ToLower();
+                    if (nameLower.Contains("minimapicon") || nameLower.Contains("minimap_icon"))
+                    {
+                        roomIconSprite = sr.sprite;
+                        iconColor = sr.color;
+                        break;
+                    }
                 }
             }
 
@@ -257,7 +267,7 @@ public class UIBasedMiniMap : MonoBehaviour
                 else if (room.roomType == RoomType.Spawn) roomIconSprite = _stairIcon;
             }
 
-            // 🌟 2. 인스펙터 커스텀 방 스프라이트 교체 분기 (비워져 있으면 fallback 기본 컬러 틴팅)
+            // 🌟 2. 인스펙터 커스텀 방 스프라이트 교체 분기 (비워져 있으면 fallback 기본 틴팅 폴백 작동)
             Sprite customRoomSprite = GetCustomRoomSprite(room.roomType);
 
             if (!focusOnlyCurrentRoom)
@@ -312,17 +322,6 @@ public class UIBasedMiniMap : MonoBehaviour
                     {
                         AddMarkerText(roomObj, "☠", roomUiSize);
                     }
-                    else if (room.roomType == RoomType.Normal)
-                    {
-                        if (room.normalRewardType == RoomInstance.NormalRewardType.PlayerSkill)
-                        {
-                            AddMarkerText(roomObj, "▲", roomUiSize);
-                        }
-                        else
-                        {
-                            AddMarkerText(roomObj, "■", roomUiSize);
-                        }
-                    }
 
                     if (isFullMap)
                     {
@@ -345,17 +344,6 @@ public class UIBasedMiniMap : MonoBehaviour
                     {
                         AddMarkerText(roomObj, "☠", roomUiSize, 0.4f);
                     }
-                    else if (room.roomType == RoomType.Normal)
-                    {
-                        if (room.normalRewardType == RoomInstance.NormalRewardType.PlayerSkill)
-                        {
-                            AddMarkerText(roomObj, "▲", roomUiSize, 0.4f);
-                        }
-                        else
-                        {
-                            AddMarkerText(roomObj, "■", roomUiSize, 0.4f);
-                        }
-                    }
                 }
             }
 
@@ -370,9 +358,14 @@ public class UIBasedMiniMap : MonoBehaviour
                 pRt.anchoredPosition = Vector2.zero;
 
                 Image pImg = playerMarker.GetComponent<Image>();
-                // 인스펙터 커스텀 오버라이드 또는 동적 시트 로드 아이콘 선택
-                pImg.sprite = (customPlayerIcon != null) ? customPlayerIcon : _playerIcon;
-                pImg.color = Color.white; 
+                pImg.sprite = customPlayerIcon != null ? customPlayerIcon : _playerIcon;
+                pImg.color = Color.white;
+
+                if (syncPlayerZRotation && GameManager.Instance?.PLAYERCONTROLLER != null)
+                {
+                    float angle = GameManager.Instance.PLAYERCONTROLLER.transform.eulerAngles.z;
+                    pRt.localRotation = Quaternion.Euler(0f, 0f, angle);
+                }
 
                 _playerMarkers.Add(pRt);
             }
@@ -388,6 +381,62 @@ public class UIBasedMiniMap : MonoBehaviour
 
                 string containerKey = isFullMap ? "full" : "hud";
                 _roomRadarContainers[containerKey] = radarContainer.transform;
+            }
+        }
+
+        // [수정] 방들의 UI 캔버스 배치가 모두 마무리된 뒤, 서로 문(복도)으로 연결된 방 노드들 사이에 흰색 UI 실선(Line)들을 드로잉
+        HashSet<string> drawnLines = new HashSet<string>();
+        foreach (var room in MapGenerator.Instance.AllRooms)
+        {
+            if (room == null || !roomUiPositions.ContainsKey(room)) continue;
+
+            var connected = MapGenerator.Instance.GetConnectedRooms(room);
+            foreach (var conn in connected)
+            {
+                if (conn == null || !roomUiPositions.ContainsKey(conn)) continue;
+
+                // 양방향 중복 렌더링 방지용 고유 정렬 키 생성
+                string lineKey = room.GetInstanceID() < conn.GetInstanceID() 
+                    ? $"{room.GetInstanceID()}_{conn.GetInstanceID()}" 
+                    : $"{conn.GetInstanceID()}_{room.GetInstanceID()}";
+
+                if (drawnLines.Contains(lineKey)) continue;
+                drawnLines.Add(lineKey);
+
+                // 두 방의 UI 중심 좌표
+                Vector2 posA = roomUiPositions[room];
+                Vector2 posB = roomUiPositions[conn];
+
+                // 복도 선 UI 오브젝트 생성 (부모 캔버스 하위에 배치)
+                GameObject lineObj = new GameObject($"Line_{room.name}_{conn.name}", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                lineObj.transform.SetParent(container, false);
+                lineObj.transform.SetAsFirstSibling(); // 선이 방 마커 뒤로 숨어 예쁘게 표현되도록 최하단 정렬
+                spawnedList.Add(lineObj);
+
+                RectTransform lineRt = lineObj.GetComponent<RectTransform>();
+                Vector2 dir = posB - posA;
+                
+                // [수정] 방 정중앙을 침범하지 않도록, 양끝 방의 테두리(반지름 2개 합산 = roomUiSize) 크기만큼 선 길이를 축소
+                float length = dir.magnitude - roomUiSize;
+                if (length <= 0.1f)
+                {
+                    // 예외적으로 방들이 겹쳐 있거나 너무 붙어 있는 경우 그리지 않음
+                    Destroy(lineObj);
+                    continue;
+                }
+
+                // 선 규격 설정 (양끝 수축된 길이 반영, 두께 3.5f의 깔끔하고 부드러운 흰색 라인)
+                lineRt.sizeDelta = new Vector2(length, 3.5f);
+                lineRt.anchoredPosition = posA + (dir * 0.5f); // 중간 좌표 안착
+                
+                // Z회전각 각도 환산
+                float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                lineRt.localRotation = Quaternion.Euler(0f, 0f, angle);
+
+                // 반투명 흰색 단색 이미지 처리
+                Image lineImg = lineObj.GetComponent<Image>();
+                lineImg.sprite = fallbackRoomSprite;
+                lineImg.color = new Color(1f, 1f, 1f, 0.7f); // 70% 투명도 흰색선
             }
         }
     }
