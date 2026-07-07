@@ -146,6 +146,10 @@ MonoBehaviour:
   silhouetteRenderer: {fileID: 7773861144495448027}
   silhouetteColor: {r: 1, g: 1, b: 1, a: 0.55}
   maxCheckDistance: 3
+  occluderLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  autoDefaultToWallLayers: 1
 --- !u!114 &7250412908182429482
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -400,6 +404,10 @@ MonoBehaviour:
   silhouetteRenderer: {fileID: 7014098569055171752}
   silhouetteColor: {r: 1, g: 1, b: 1, a: 0.55}
   maxCheckDistance: 3
+  occluderLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  autoDefaultToWallLayers: 1
 --- !u!114 &3550151716728198299
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1420,6 +1428,8 @@ MonoBehaviour:
   dashSpeed: 15
   dashDuration: 0.2
   dashCooldown: 1
+  attackDashSpeed: 10
+  attackDashDuration: 0.08
 --- !u!114 &6055861653884896251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1586,6 +1596,7 @@ MonoBehaviour:
   dashDuration: 0.2
   maxCharges: 2
   rechargeTime: 2
+  dashEffectPrefab: {fileID: 1585796293089155853, guid: c5d0c7c91c095c74fb398f43b9bd4cf5, type: 3}
 --- !u!114 &1103040150316217935
 MonoBehaviour:
   m_ObjectHideFlags: 0

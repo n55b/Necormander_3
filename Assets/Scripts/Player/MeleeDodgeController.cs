@@ -7,6 +7,9 @@ public class MeleeDodgeController : MonoBehaviour
     [SerializeField] private float dashDuration = 0.2f;
     [SerializeField] private int maxCharges = 2;
     [SerializeField] private float rechargeTime = 2.0f; // 스택 회복 시간
+    
+    [Header("대쉬 이펙트")]
+    [SerializeField] private GameObject dashEffectPrefab; // 대쉬 이펙트 프리팹
 
     private int _currentCharges;
     private float _rechargeTimer;
@@ -98,6 +101,12 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         _player.CancelActiveSkill();
 
         _isDashing = true;
+
+        // [추가] Dash Smog Effect
+        if (dashEffectPrefab != null)
+        {
+            Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
+        }
 
         // 입력 방향이 없으면 바라보는 방향으로
         _dashDir = moveInput.normalized;
