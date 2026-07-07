@@ -34,7 +34,7 @@ MonoBehaviour:
   hpCostRatioPerThrow: 0
   AttackSound: {fileID: 0}
   DeathSound: {fileID: 0}
-  minionPrefab: {fileID: 1190463616093019822, guid: 94222fd4519c1974aac8e103ed3e8311, type: 3}
+  minionPrefab: {fileID: 1190463616093019822, guid: a5a554fab7e153149a18b2c6fa30e720, type: 3}
   shopCost: 150
   rewardItemData:
     itemName: 
