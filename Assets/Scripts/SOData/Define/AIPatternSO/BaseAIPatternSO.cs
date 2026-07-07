@@ -12,6 +12,7 @@ public class BaseAIPatternSO : AIPatternSO
     [Tooltip("공격 루틴 시작 시 BaseEntity의 telegraphPrefab(장판)을 자동 생성할지 여부 (궁수, 마법사 등은 false로 설정)")]
     public bool spawnTelegraph = true;
 
+
     protected override void UpdateTargeting(BaseEntity entity)
     {
         // 1. 적군(Enemy) 탐색

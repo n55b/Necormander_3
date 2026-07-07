@@ -100,6 +100,22 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             }
         }
 
+        // [추가] 공격자(info.attacker)가 사자탈(DualSplitAIPatternSO)을 쓰는 몹이고 타격이 정상 명중한 경우 슬로우 디버프 인젝션
+        if (info.attacker != null && _status != null)
+        {
+            var attackerEntity = info.attacker.GetComponent<BaseEntity>();
+            if (attackerEntity == null)
+            {
+                attackerEntity = info.attacker.GetComponentInParent<BaseEntity>();
+            }
+
+            if (attackerEntity != null && attackerEntity.Brain is DualSplitAIPatternSO lionMaskPattern)
+            {
+                _status.ApplySlow("LionMaskSlow", lionMaskPattern.slowReduction, lionMaskPattern.slowDuration);
+                Debug.Log($"<color=cyan>[LionMaskSlow]</color> Hit by {info.attacker.name}. Applied slow ({lionMaskPattern.slowReduction * 100}% for {lionMaskPattern.slowDuration}s)");
+            }
+        }
+
         // 데미지 파이프라인: 계산 전 증폭/변형 이벤트
         DamageEventBus.TriggerBeforeDamageCalculated(this, ref info);
 

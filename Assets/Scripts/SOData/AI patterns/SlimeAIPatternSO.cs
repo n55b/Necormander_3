@@ -14,6 +14,7 @@ public class SlimeAIPatternSO : BaseAIPatternSO
     public int splitCount = 2;
     public float spawnRadius = 0.5f;
 
+
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);
@@ -113,4 +114,5 @@ public class SlimeAIPatternSO : BaseAIPatternSO
             }
         }
     }
+
 }

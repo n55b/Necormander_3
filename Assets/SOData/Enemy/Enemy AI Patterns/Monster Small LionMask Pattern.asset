@@ -10,16 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c68622cc18fdaed4b985ad963474ace7, type: 3}
-  m_Name: Monster LionMask Pattern
+  m_Name: Monster Small LionMask Pattern
   m_EditorClassIdentifier: 
-  applySlowOnHit: 1
-  slowReduction: 0.3
-  slowDuration: 3
   pushRadius: 0.8
   pushStrength: 2
   spawnTelegraph: 1
-  splitPrefabA: {fileID: 1190463616093019822, guid: 94222fd4519c1974aac8e103ed3e8311, type: 3}
-  splitPrefabB: {fileID: 1190463616093019822, guid: a5a554fab7e153149a18b2c6fa30e720, type: 3}
+  splitPrefabA: {fileID: 0}
+  splitPrefabB: {fileID: 0}
   spawnOffset: 0.5
-  slowReduction: 0.5
-  slowDuration: 3
+  slowReduction: 0.3
+  slowDuration: 2

@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
-  m_Name: Monster LionMask
+  m_Name: Enemy Small Mask
   m_EditorClassIdentifier: 
   minionSkill: {fileID: 0}
   minionType: 0
-  minionName: Monster LionMask
+  minionName: Enemy Small Slime
   minionIcon: {fileID: 0}
   baseEffectValue: 0
   maxHP: 60
-  attack: 3
+  attack: 5
   attackSpeed: 1
   attackRange: 2
   detectRange: 10
@@ -29,12 +29,12 @@ MonoBehaviour:
   baseMissChance: 0
   cost: 1
   isElite: 0
-  canSpawnRandomly: 1
-  aiPattern: {fileID: 11400000, guid: b1bf31aae6e40ed45a5247df568f0e2f, type: 2}
+  canSpawnRandomly: 0
+  aiPattern: {fileID: 11400000, guid: 047a205c8279f3949b31d4d02e9122fe, type: 2}
   hpCostRatioPerThrow: 0
   AttackSound: {fileID: 0}
   DeathSound: {fileID: 0}
-  minionPrefab: {fileID: 6906322067675149183, guid: e832ce6b5994dd7439cad5690d036f61, type: 3}
+  minionPrefab: {fileID: 1190463616093019822, guid: 94222fd4519c1974aac8e103ed3e8311, type: 3}
   shopCost: 150
   rewardItemData:
     itemName: 

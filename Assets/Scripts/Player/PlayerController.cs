@@ -469,7 +469,11 @@ public bool canChangeState = true;
 
         float currentSpeed = stat.MOVESPEED * SpeedMultiplier;
 
-        if (_isDashing)
+        // [수정] MeleeDodgeController(2스택 구르기) 시전 중인 런타임 상태도 대시로 안전 통합 감지
+        var dodgeCtrl = GetComponent<MeleeDodgeController>();
+        bool activeDash = _isDashing || (dodgeCtrl != null && dodgeCtrl.IsDashing);
+
+        if (activeDash)
         {
             // 대쉬 중에는 물리 속도를 강제로 덮어써서 빠르게 이동
             _rb.linearVelocity = _dashDir * dashSpeed;

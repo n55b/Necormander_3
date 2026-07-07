@@ -21,6 +21,12 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
     [Tooltip("원본 위치 기준 좌우로 얼마나 떨어진 곳에 스폰할지 (서로 반대 방향으로 적용됩니다)")]
     public float spawnOffset = 0.5f;
 
+    [Header("사자탈 전용 슬로우 설정")]
+    [Range(0f, 1f), Tooltip("사자탈 및 미니 사자탈 평타 피격 시 플레이어의 이동속도 감속 비율입니다. (0.3 = 30% 감속)")]
+    public float slowReduction = 0.3f;
+    [Tooltip("평타 피격 시 슬로우 디버프 지속 시간(초)입니다.")]
+    public float slowDuration = 3.0f;
+
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);
@@ -115,4 +121,5 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
             }
         }
     }
+
 }
