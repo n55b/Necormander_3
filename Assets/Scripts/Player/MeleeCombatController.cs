@@ -164,6 +164,9 @@ public class MeleeCombatController : MonoBehaviour
                 float localAngle = (transform.localScale.x < 0f) ? (180f - angle) : angle;
                 go.transform.localRotation = Quaternion.Euler(0, 0, localAngle);
 
+            // [추가] 히트 이펙트는 부모(플레이어)의 미러링 보정 없이 스폰되므로, 보정 전의 실제 타격 방향(angle)을 그대로 전달
+            if (_activeHitbox != null) _activeHitbox.hitEffectAngle = angle;
+
                 // 크기 설정 (TelegraphHitbox 로직 대체)
                 go.transform.localScale = new Vector3(hitboxSize.x, hitboxSize.y, 1f);
 

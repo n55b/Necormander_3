@@ -1027,6 +1027,16 @@ public void PlayAllAnim(string animName, string fallbackAnimName = null)
         int unsteppableMask = LayerMask.GetMask("Unsteppable");
         int wallMask = LayerMask.GetMask("Wall", "Obstacle");
 
+        // [Fix] 플레이어가 이미 Unsteppable/Wall 위에 있다면(맵 밖으로 나간 상태)
+        // 안전 지점 탐색을 건너뛰고 원래 목표 지점까지 그대로 이동시켜 탈출을 허용
+        bool alreadyStuck = Physics2D.OverlapCircle(startPos, 0.25f, unsteppableMask) != null
+                          || Physics2D.OverlapCircle(startPos, 0.25f, wallMask) != null;
+        if (alreadyStuck)
+        {
+            return startPos + direction * maxDistance;
+        }
+
+
         Vector2 targetPos = startPos + direction * maxDistance;
         float checkStep = 0.1f;
         float elapsed = 0f;

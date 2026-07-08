@@ -1611,8 +1611,8 @@ MonoBehaviour:
   mediumAttackDashMultiplier: 1.5
   comboResetTime: 1
   attackCooldown: 0.3
-  lightHitboxSize: {x: 2, y: 0.5}
-  mediumHitboxSize: {x: 3, y: 0.5}
+  lightHitboxSize: {x: 2.7, y: 1.7}
+  mediumHitboxSize: {x: 3, y: 1.7}
   lightTelegraphDuration: 0.2
   mediumTelegraphDuration: 0.4
 --- !u!114 &7957941004026145679
