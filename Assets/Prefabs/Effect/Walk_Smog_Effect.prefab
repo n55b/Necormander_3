@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7640531148316428694}
   - component: {fileID: 454277934158331459}
   - component: {fileID: 6961594523790180649}
-  - component: {fileID: 3949363193512275851}
+  - component: {fileID: 3908119063364906468}
   m_Layer: 0
   m_Name: Walk_Smog_Effect
   m_TagString: Untagged
@@ -111,7 +111,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &3949363193512275851
+--- !u!114 &3908119063364906468
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -120,6 +120,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 5578466105845466699}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 460839efdd1643f4a9bc954eedec7609, type: 3}
+  m_Script: {fileID: 11500000, guid: 74b861a256d287a42ab970853d9b372a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

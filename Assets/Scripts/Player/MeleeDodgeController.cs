@@ -102,17 +102,20 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
 
         _isDashing = true;
 
-        // [추가] Dash Smog Effect
-        if (dashEffectPrefab != null)
-        {
-            Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
-        }
-
-        // 입력 방향이 없으면 바라보는 방향으로
+        // 입력 방향이 없으면 바라보는 방향으로 (Instantiate보다 먼저 계산해야 이펙트 방향을 알 수 있음)
         _dashDir = moveInput.normalized;
         if (_dashDir == Vector2.zero)
         {
             _dashDir = new Vector2(-Mathf.Sign(currentFacingSign), 0).normalized;
+        }
+
+        // [수정] Dash Smog Effect - 대쉬 방향에 따라 좌우 반전
+        if (dashEffectPrefab != null)
+        {
+            GameObject fx = Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
+            Vector3 fxScale = fx.transform.localScale;
+            fxScale.x = Mathf.Abs(fxScale.x) * (_dashDir.x < 0f ? 1f : -1f);
+            fx.transform.localScale = fxScale;
         }
 
         // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
