@@ -4435,6 +4435,63 @@ MonoBehaviour:
   customPlayerIcon: {fileID: 0}
   syncPlayerZRotation: 1
   customEnemyIcon: {fileID: 0}
+--- !u!1001 &8234931992339128605
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 7556301273617652918, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556301273617652918, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556301273617652918, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556301273617652918, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556301273617652918, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556301273617652918, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556301273617652918, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556301273617652918, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556301273617652918, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556301273617652918, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837376966609715097, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+      propertyPath: m_Name
+      value: MeleeHitSparkEffect_Source
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -4456,3 +4513,4 @@ SceneRoots:
   - {fileID: 1980844119}
   - {fileID: 2058566597}
   - {fileID: 1765209735}
+  - {fileID: 8234931992339128605}
