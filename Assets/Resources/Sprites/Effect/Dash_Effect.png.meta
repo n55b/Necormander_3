@@ -1,0 +1,614 @@
+fileFormatVersion: 2
+guid: 52b2868f89abdfc4f811374ce0009d17
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5114965986176453560
+    second: Dash_Effect_0
+  - first:
+      213: 6587847630820797633
+    second: Dash_Effect_1
+  - first:
+      213: 3578992561395259354
+    second: Dash_Effect_2
+  - first:
+      213: -660636221265090745
+    second: Dash_Effect_3
+  - first:
+      213: 1467882470782279198
+    second: Dash_Effect_4
+  - first:
+      213: -7232172665153402997
+    second: Dash_Effect_5
+  - first:
+      213: 5967395046971241958
+    second: Dash_Effect_6
+  - first:
+      213: 4907085290422114239
+    second: Dash_Effect_7
+  - first:
+      213: -7775479673685169039
+    second: Dash_Effect_8
+  - first:
+      213: -9157688304905316233
+    second: Dash_Effect_9
+  - first:
+      213: 4280630058190650305
+    second: Dash_Effect_10
+  - first:
+      213: 4964899129898350495
+    second: Dash_Effect_11
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Dash_Effect_Right_Up_0
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 48
+        width: 13
+        height: 8
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8443fbb298df309b0800000000000000
+      internalID: -5114965986176453560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Right_Up_1
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 48
+        width: 12
+        height: 8
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cce87d248cbc6b50800000000000000
+      internalID: 6587847630820797633
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Right_Up_2
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 48
+        width: 13
+        height: 8
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad7dab3b5c22ba130800000000000000
+      internalID: 3578992561395259354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Right_Down_0
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 32
+        width: 13
+        height: 7
+      alignment: 1
+      pivot: {x: 0, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1e100b7457fe5410800000000000000
+      internalID: 1467882470782279198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Right_Down_1
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 32
+        width: 12
+        height: 8
+      alignment: 1
+      pivot: {x: 0, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b87cd3b574922ab90800000000000000
+      internalID: -7232172665153402997
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Right_Down_2
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 34
+        width: 13
+        height: 6
+      alignment: 1
+      pivot: {x: 0, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e57529bd2270d250800000000000000
+      internalID: 5967395046971241958
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Left_Up_0
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 15
+        width: 15
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb79722a218791440800000000000000
+      internalID: 4907085290422114239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Left_Up_1
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 15
+        width: 14
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17ca9bbde62f71490800000000000000
+      internalID: -7775479673685169039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Left_Down_0
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 0
+        width: 15
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7789e56910b59e080800000000000000
+      internalID: -9157688304905316233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Left_Down_1
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 0
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cb3051bb5ad76b30800000000000000
+      internalID: 4280630058190650305
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Left_Down_2
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 1
+        width: 15
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f97bc37147dd6e440800000000000000
+      internalID: 4964899129898350495
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Right_Up_3
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 48
+        width: 14
+        height: 9
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5018d4c8570087044b5f8e0aaaf8cccf
+      internalID: -884573446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Right_Up_4
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 48
+        width: 14
+        height: 10
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 53b66328e9e31614fac971f9bd2907bc
+      internalID: -1892233081
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Right_Down_3
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 36
+        width: 14
+        height: 4
+      alignment: 1
+      pivot: {x: 0, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5f398f14c750fe949b763069ac21999e
+      internalID: -801497062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Right_Down_4
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 36
+        width: 14
+        height: 4
+      alignment: 1
+      pivot: {x: 0, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 670a8223e3e0a984bbf6d1913ff29d55
+      internalID: -1544185012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Left_Up_2
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 15
+        width: 15
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6c192922f75235a428ccc5a60e76db99
+      internalID: -1944648749
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Left_Up_3
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 15
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bed0e0d491ccfa247b1346d4151b5cb6
+      internalID: 223199844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Left_Up_4
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 15
+        width: 18
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ce21f4d0e4d415e438a05bf26d5c0bbe
+      internalID: 1978635683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Left_Down_3
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 1
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 95a94b99f4a4f1742b27b1afc2321722
+      internalID: 623969436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dash_Effect_Left_Down_4
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 2
+        width: 18
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bad01668d604a0346bfca8f3d8ea14a4
+      internalID: 373444209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: e9204974df7861d43ab6a04ce95d795b
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Dash_Effect_3: -660636221265090745
+      Dash_Effect_Left_Down_0: -9157688304905316233
+      Dash_Effect_Left_Down_1: 4280630058190650305
+      Dash_Effect_Left_Down_2: 4964899129898350495
+      Dash_Effect_Left_Down_3: 623969436
+      Dash_Effect_Left_Down_4: 373444209
+      Dash_Effect_Left_Up_0: 4907085290422114239
+      Dash_Effect_Left_Up_1: -7775479673685169039
+      Dash_Effect_Left_Up_2: -1944648749
+      Dash_Effect_Left_Up_3: 223199844
+      Dash_Effect_Left_Up_4: 1978635683
+      Dash_Effect_Right_Down_0: 1467882470782279198
+      Dash_Effect_Right_Down_1: -7232172665153402997
+      Dash_Effect_Right_Down_2: 5967395046971241958
+      Dash_Effect_Right_Down_3: -801497062
+      Dash_Effect_Right_Down_4: -1544185012
+      Dash_Effect_Right_Up_0: -5114965986176453560
+      Dash_Effect_Right_Up_1: 6587847630820797633
+      Dash_Effect_Right_Up_2: 3578992561395259354
+      Dash_Effect_Right_Up_3: -884573446
+      Dash_Effect_Right_Up_4: -1892233081
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

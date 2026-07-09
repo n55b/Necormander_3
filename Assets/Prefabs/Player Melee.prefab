@@ -1665,6 +1665,7 @@ MonoBehaviour:
   dashDuration: 0.2
   maxCharges: 2
   rechargeTime: 2
+  dashEffectPrefab: {fileID: 1585796293089155853, guid: c5d0c7c91c095c74fb398f43b9bd4cf5, type: 3}
 --- !u!114 &1103040150316217935
 MonoBehaviour:
   m_ObjectHideFlags: 0
