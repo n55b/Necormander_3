@@ -41,8 +41,6 @@ public class BodyAnimationEventRelay : MonoBehaviour
         _melee?.OnAttackHitFrame();
     }
 
-
-
     /// <summary>
     /// 걷기 애니메이션 클립의 Animation Event(발이 땅에 닿는 프레임)에서 호출됩니다.
     /// </summary>
