@@ -1908,6 +1908,14 @@ public class MapGenerator : MonoBehaviour
                         if (!_masterAdjacency[rB].Contains(rA)) _masterAdjacency[rB].Add(rA);
                     }
                 }
+                else
+                {
+                    // [수정] 실제 문(텔레포터)을 만들 앵커를 못 찾은 경우, 배치 단계에서 미리 등록해뒀던
+                    // 인접 관계를 제거합니다. 그대로 두면 미니맵에는 '연결됨'으로 표시되지만
+                    // 실제로는 갈 수 없는 길이 되어버립니다.
+                    if (_masterAdjacency.ContainsKey(rA)) _masterAdjacency[rA].Remove(rB);
+                    if (_masterAdjacency.ContainsKey(rB)) _masterAdjacency[rB].Remove(rA);
+                }
             }
         }
 
