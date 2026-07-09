@@ -128,7 +128,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5070203268765729340}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
@@ -159,6 +159,7 @@ GameObject:
   - component: {fileID: 6320138657239782059}
   - component: {fileID: 6677011221068204053}
   - component: {fileID: 3745461021170952362}
+  - component: {fileID: 1754198902470083834}
   m_Layer: 5
   m_Name: MiniMap
   m_TagString: Untagged
@@ -222,6 +223,41 @@ MonoBehaviour:
   highlightColor: {r: 1, g: 1, b: 1, a: 1}
   borderPadding: 0.5
   mapUIManager: {fileID: 6677011221068204053}
+--- !u!114 &1754198902470083834
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6418142126244670648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2533cae336578a3458e21198e2bb9f37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fullMapContainer: {fileID: 0}
+  hudMapContainer: {fileID: 0}
+  fullRoomSize: 50
+  fullRoomSpacing: 15
+  hudRoomSize: 20
+  hudRoomSpacing: 6
+  fallbackRoomSprite: {fileID: 0}
+  customNormalRoomSprite: {fileID: 0}
+  customBossRoomSprite: {fileID: 0}
+  customShopRoomSprite: {fileID: 0}
+  customRewardRoomSprite: {fileID: 0}
+  customEliteRoomSprite: {fileID: 0}
+  customTerrainDotSprite: {fileID: 0}
+  useTerrainShadow: 1
+  terrainShadowColor: {r: 0, g: 0, b: 0, a: 0.6}
+  terrainShadowOffset: {x: 1.5, y: -1.5}
+  customPlayerIcon: {fileID: 0}
+  syncPlayerZRotation: 1
+  customEnemyIcon: {fileID: 0}
+  teleportPoofEffectPrefab: {fileID: 0}
+  teleportFadeOutDuration: 0.25
+  teleportFadeHoldDuration: 0.1
+  teleportFadeInDuration: 0.25
 --- !u!1 &8241081770844231223
 GameObject:
   m_ObjectHideFlags: 0
@@ -274,7 +310,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8241081770844231223}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
