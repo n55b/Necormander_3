@@ -36,9 +36,8 @@ public struct TooltipData
 /// <summary>
 /// 미니언, 능력, 보석 등 모든 게임 요소를 위한 범용 툴팁 UI입니다.
 /// </summary>
-public class CommonTooltipUI : MonoBehaviour
+public class CommonTooltipUI : Singleton<CommonTooltipUI>
 {
-    public static CommonTooltipUI Instance;
 
     [Header("UI References")]
     [SerializeField] private RectTransform tooltipPanel;
@@ -56,9 +55,8 @@ public class CommonTooltipUI : MonoBehaviour
 
     private Canvas _canvas;
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        Instance = this;
         _canvas = GetComponentInParent<Canvas>();
 
         var canvasGroup = tooltipPanel.GetComponent<CanvasGroup>();

@@ -3,9 +3,8 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
 
-public class SelectionWheelUI : MonoBehaviour
+public class SelectionWheelUI : Singleton<SelectionWheelUI>
 {
-    public static SelectionWheelUI Instance { get; private set; } // [추가] 싱글톤
 
     [Header("Settings")]
     [SerializeField] private float radius = 200f;
@@ -26,11 +25,8 @@ public class SelectionWheelUI : MonoBehaviour
     private int _currentIndex = -1;
     private List<CommandData> _currentTypes;
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
-
         Hide();
     }
 

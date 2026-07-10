@@ -819,17 +819,12 @@ public bool canChangeState = true;
     }
 
     /// <summary>
-    /// [추가] 현재 씬 내에서 활성화된 전투 이벤트(DynamicEnemySpawner)가 있는지 확인합니다.
-    /// 사용자가 언급한 '임시 벽 생성' 로직과 동기화됩니다.
+    /// 현재 전투가 진행 중인지 확인합니다. 전투 상태는 IRoomEvent 들이 플레이어 상태(P_State)로
+    /// 반영하므로 그 값을 그대로 사용합니다.
     /// </summary>
     private bool IsAnyBattleActive()
     {
-        var spawners = UnityEngine.Object.FindObjectsByType<DynamicEnemySpawner>(FindObjectsSortMode.None);
-        foreach (var spawner in spawners)
-        {
-            if (spawner.IsEventActive) return true;
-        }
-        return false;
+        return P_State == PlayerStates.Battle;
     }
 
     // [주석 처리] 수동 소환 입력 제거

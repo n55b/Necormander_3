@@ -80,7 +80,6 @@ public abstract class BaseEntity : MonoBehaviour
     public AIPatternSO Brain => _runtimeBrain;
     public SpriteRenderer SpriteRenderer => _sr;
     public Animator Animator => _animator;
-    public DynamicEnemySpawner Spawner { get; set; } = null;
 
     public bool HasFiredHitEvent { get; set; } = false;
     public bool HasFiredAttackEndEvent { get; set; } = false;

@@ -47,9 +47,9 @@ public class ThrowableBox : ThrowableUnit
                 InventoryManager.Instance.AddGold(gold);
             }
             
-            if (FloatingTextManager.instance != null)
+            if (FloatingTextManager.Instance != null)
             {
-                var text = FloatingTextManager.instance.GetFromPool();
+                var text = FloatingTextManager.Instance.GetFromPool();
                 text.SetUp($"+{gold} Gold", Color.yellow, transform);
             }
         }

@@ -4,9 +4,8 @@ using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using TMPro;
 
-public class UIBasedMiniMap : MonoBehaviour
+public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
 {
-    public static UIBasedMiniMap Instance { get; private set; }
 
     [Header("UI 컨테이너 설정")]
     [SerializeField] private RectTransform fullMapContainer; // MiniMapUI 오브젝트 연결
@@ -75,9 +74,8 @@ public class UIBasedMiniMap : MonoBehaviour
     // 전투 및 방 줌 상태 캐시
     private bool _lastWasBattle = false;
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        Instance = this;
         
         if (fullMapContainer == null)
         {

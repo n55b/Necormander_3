@@ -4,9 +4,8 @@ using UnityEngine;
 /// 카메라가 실제로 추적할 타겟 오브젝트를 제어합니다.
 /// 플레이어를 따라다니되, 조준 중일 때는 마우스 방향으로 일정 범위(박스) 내에서 이동합니다.
 /// </summary>
-public class CameraTargetController : MonoBehaviour
+public class CameraTargetController : Singleton<CameraTargetController>
 {
-    public static CameraTargetController Instance;
 
     [Header("Follow Settings")]
     [SerializeField] private Transform playerTransform;
@@ -27,11 +26,6 @@ public class CameraTargetController : MonoBehaviour
     {
         isAiming = aiming;
         if (!isAiming) _targetOffset = Vector3.zero;
-    }
-
-    private void Awake()
-    {
-        Instance = this;
     }
 
     private void Start()
