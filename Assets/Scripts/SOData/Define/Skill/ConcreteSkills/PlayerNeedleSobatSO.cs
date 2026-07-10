@@ -15,11 +15,23 @@ public class PlayerNeedleSobatSO : PlayerSkillSO
 
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
-        PlaySkillSound();
-        ShakeCamera();
-
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
+        if (hitBoxPrefab == null) return;
+
+        player.StartCoroutine(HitRoutine(player));
+    }
+
+    private IEnumerator HitRoutine(PlayerController player)
+    {
+        float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
+
+        if (player == null) yield break;
+
+        PlaySkillSound();
+        ShakeCamera();
 
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 startPos = player.transform.position;
@@ -27,8 +39,6 @@ public class PlayerNeedleSobatSO : PlayerSkillSO
         if (dir == Vector2.zero) dir = Vector2.right;
 
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-
-        if (hitBoxPrefab == null) return;
 
         Vector2 attackCenter = startPos;
         BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));

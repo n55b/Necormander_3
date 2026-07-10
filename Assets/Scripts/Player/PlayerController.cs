@@ -97,7 +97,9 @@ public class PlayerController : MonoBehaviour
 
     [Header("플레이어 애니메이터")]
     [SerializeField] Animator BodyAnimator;
-        [SerializeField] PlayerAnimationState currentAnimState;
+    [Header("스킬 손 모션 애니메이터 (Hand 오브젝트)")]
+    [SerializeField] Animator HandSkillAnimator;
+    [SerializeField] PlayerAnimationState currentAnimState;
 
     private bool _inputBlocked = false; // [추가] 맵 생성 중 입력 차단용
 
@@ -107,9 +109,9 @@ public class PlayerController : MonoBehaviour
     public IdleState idleState;
     public WalkState walkState;
 
-    
+
     private Coroutine _animStateLockTimeoutCoroutine; // safety net so canChangeState never gets stuck false forever
-public bool canChangeState = true;
+    public bool canChangeState = true;
 
     // [추가] 외부에서 입력을 차단/해제하는 기능
     public void SetInputBlocked(bool blocked)
@@ -173,10 +175,10 @@ public bool canChangeState = true;
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
-        
+
         _originalLayer = gameObject.layer;
         _dashLayer = LayerMask.NameToLayer("Player_Dash");
-        if (_dashLayer == -1) 
+        if (_dashLayer == -1)
         {
             Debug.LogWarning("[PlayerController] 'Player_Dash' 레이어가 설정되어 있지 않습니다! 레이어 세팅 가이드를 확인해주세요.");
             _dashLayer = _originalLayer;
@@ -285,18 +287,18 @@ public bool canChangeState = true;
         if (stat == null || stat.Health == null) yield break;
 
         stat.Health.Invincible = true;
-        
+
         SpriteRenderer[] srs = GetComponentsInChildren<SpriteRenderer>();
         float elapsed = 0f;
         float duration = invincibilityDuration;
         float blinkInterval = invincibilityBlinkInterval;
         bool isVisible = true;
-        
+
         while (elapsed < duration)
         {
             elapsed += blinkInterval;
             isVisible = !isVisible;
-            
+
             foreach (var sr in srs)
             {
                 if (sr == null) continue;
@@ -306,7 +308,7 @@ public bool canChangeState = true;
             }
             yield return new WaitForSeconds(blinkInterval);
         }
-        
+
         foreach (var sr in srs)
         {
             if (sr == null) continue;
@@ -357,7 +359,6 @@ public bool canChangeState = true;
             }
 
             // 이동 관련
-            // 이미지 돌려주기
             if (MoveDirection.x > 0.1f)
                 this.transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
             else if (MoveDirection.x < -0.1f)
@@ -504,7 +505,7 @@ public bool canChangeState = true;
                 _rb.linearVelocity = MoveDirection * currentSpeed;
 
                 // 공격(등) 애니매이션이 잠겨있는 동안(canChangeState == false)은
-                // 이동속도 기반 애니타 속뗔 갑신이 SetAttackAnimSpeed()가 설정한 값을 덩어쓰지 않도록 건대넌다.
+                // 이동속도 기반 애니메이터 속도 값이 SetAttackAnimSpeed()가 설정한 값을 덮어쓰지 않도록 건대넌다.
                 // While an attack (or similar) animation lock is active, skip movement-speed-based
                 // animator speed updates so they don't override SetAttackAnimSpeed().
                 if (canChangeState)
@@ -865,7 +866,7 @@ public bool canChangeState = true;
     /// 이동 속도에 비례해 걷기/달리기 애니메이션 재생 속도를 맞춥니다.
     /// baseMoveSpeed를 기준(1.0x)으로 재생 속도를 기본값(1.0f)으로 초기화합니다.
     /// </summary>
-private void ResetWalkAnimSpeed()
+    private void ResetWalkAnimSpeed()
     {
         if (Mathf.Abs(1f - _lastAnimSpeed) < 0.01f) return;
         _lastAnimSpeed = 1f;
@@ -877,14 +878,14 @@ private void ResetWalkAnimSpeed()
     /// 현재 이동 속도와 캐릭터의 기본 이동 속도를 비교하여 애니메이션 재생 속도를 동적으로 업데이트합니다.
     /// </summary>
     /// <param name="currentSpeed">현재 실제 캐릭터 이동 속도</param>
-public void SetAttackAnimSpeed(float speed)
+    public void SetAttackAnimSpeed(float speed)
     {
         _lastAnimSpeed = speed;
         if (BodyAnimator != null) BodyAnimator.speed = speed;
     }
 
-    
-private void UpdateWalkAnimSpeed(float currentSpeed)
+
+    private void UpdateWalkAnimSpeed(float currentSpeed)
     {
         float speedRatio = Mathf.Clamp(currentSpeed * 0.2f, 0.3f, 3f);
 
@@ -921,7 +922,7 @@ private void UpdateWalkAnimSpeed(float currentSpeed)
     /// <summary>
     /// 애니메이션 상태 변경이 가능한 상태로 플래그를 전환합니다.
     /// </summary>
-public void CanChangeAnimState()
+    public void CanChangeAnimState()
     {
         canChangeState = true;
 
@@ -932,7 +933,7 @@ public void CanChangeAnimState()
         }
     }
 
-/// <summary>
+    /// <summary>
     /// Locks the Idle/Walk auto-transition (canChangeState = false), the same as setting
     /// canChangeState directly, but also schedules a safety-net timeout that force-unlocks
     /// it if CanChangeAnimState() is never called (missing/mistimed Animation Event,
@@ -962,7 +963,7 @@ public void CanChangeAnimState()
     /// Body의 Animator에서 지정된 이름의 애니메이션 상태를 강제로 재생합니다 (손은 같은 클립 안에 함께 키프레임으로 포함됨).
     /// </summary>
     /// <param name="animName">재생할 애니메이션 상태의 이름</param>
-public void PlayAllAnim(string animName, string fallbackAnimName = null)
+    public void PlayAllAnim(string animName, string fallbackAnimName = null)
     {
         if (BodyAnimator == null) return;
 
@@ -982,6 +983,112 @@ public void PlayAllAnim(string animName, string fallbackAnimName = null)
             }
         }
     }
+
+
+    public Vector2 CurrentSkillAimDir { get; private set; } = Vector2.right;
+
+    private SpriteRenderer _handSpriteRenderer;
+    private Sprite _defaultHandSprite;
+    private bool _handSpriteCached = false;
+    private Coroutine _handSkillDisableCoroutine;
+
+    /// <summary>
+    /// Hand 오브젝트의 전용 Animator(HandSkill.aseprite 기반)에서 지정된 이름의 스킬 손 모션을 재생합니다.
+    /// Body의 Idle/Walk/Attack 애니메이션과는 완전히 독립적으로 동작하며, 평타와 동일한 방식으로
+    /// 마우스 조준 방향 계산 + 플레이어 본체 반전 + canChangeState 잠금을 함께 처리합니다.
+    /// </summary>
+    public void PlayHandSkillAnim(string animName)
+    {
+        if (HandSkillAnimator == null || string.IsNullOrEmpty(animName)) return;
+
+        // Hand의 기본(평상시) 스프라이트를 최초 1회만 캐싱해둠
+        // (스킬 클립 마지막 프레임이 빈 스프라이트여도 재생 종료 후 이 값으로 복원)
+        if (!_handSpriteCached)
+        {
+            _handSpriteRenderer = HandSkillAnimator.GetComponent<SpriteRenderer>();
+            if (_handSpriteRenderer != null) _defaultHandSprite = _handSpriteRenderer.sprite;
+            _handSpriteCached = true;
+        }
+
+        // 평타(MeleeCombatController.ExecuteMeleeAttack)와 동일한 방식으로 마우스 방향을 조준 방향으로 계산하고,
+        // 같은 부호로 플레이어 본체(Body) 반전도 맞춥니다.
+        if (Mouse.current != null && Camera.main != null)
+        {
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+            mousePos.z = 0;
+            Vector2 dir = ((Vector2)mousePos - (Vector2)transform.position).normalized;
+            if (dir.sqrMagnitude > 0.0001f)
+            {
+                CurrentSkillAimDir = dir;
+
+                if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
+                else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
+            }
+        }
+
+        int hash = Animator.StringToHash(animName);
+        if (!HandSkillAnimator.HasState(0, hash))
+        {
+            Debug.LogWarning($"<color=orange>[PlayerController]</color> HandSkillAnimator에 '{animName}' 스테이트가 없습니다.");
+            return;
+        }
+
+        float clipLength = GetHandSkillClipLength(animName);
+        if (clipLength <= 0f) clipLength = 0.5f; // 클립을 못 찾았을 때의 안전 기본값
+
+        // 평타와 동일하게, 재생 중에는 canChangeState를 잠가 이동 기반 반전이 개입하지 못하게 합니다.
+        // HandSkill 클립에는 Animation Event가 없으므로, 타이머로 직접 풀어줍니다.
+        LockAnimState(clipLength + 0.2f);
+
+        HandSkillAnimator.enabled = true;
+        HandSkillAnimator.Play(hash, 0, 0f);
+
+        if (_handSkillDisableCoroutine != null) StopCoroutine(_handSkillDisableCoroutine);
+        _handSkillDisableCoroutine = StartCoroutine(DisableHandSkillAnimatorAfter(clipLength));
+    }
+
+    /// <summary>
+    /// HandSkillAnimator에 등록된 클립 중 이름이 일치하는 것의 길이(초)를 반환합니다. 없으면 0.
+    /// 스킬 SO의 hitTimingRatio와 결합해 타격 타이밍을 계산할 때 쓰세요.
+    /// </summary>
+    public float GetHandSkillClipLength(string animName)
+    {
+        if (HandSkillAnimator == null || string.IsNullOrEmpty(animName)) return 0f;
+        var controller = HandSkillAnimator.runtimeAnimatorController;
+        if (controller == null) return 0f;
+
+        foreach (var clip in controller.animationClips)
+        {
+            if (clip != null && clip.name == animName) return clip.length;
+        }
+        return 0f;
+    }
+
+    /// <summary>
+    /// 스킬 손 모션 재생이 끝난 뒤, HandSkillAnimator를 다시 비활성화해 자동 반복/마지막 프레임 고정을 방지합니다.
+    /// (Hand는 다시 Body 애니메이션이 제어하는 기본 손 스프라이트로 돌아감니다)
+    /// </summary>
+    private System.Collections.IEnumerator DisableHandSkillAnimatorAfter(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (HandSkillAnimator != null) HandSkillAnimator.enabled = false;
+
+        // 마지막 프레임이 빈 스프라이트였을 경우를 대비해 기본 스프라이트로 강제 복원
+        if (_handSpriteRenderer != null && _defaultHandSprite != null)
+        {
+            _handSpriteRenderer.sprite = _defaultHandSprite;
+        }
+
+        CanChangeAnimState();
+        _handSkillDisableCoroutine = null;
+    }
+
+    /// <summary>
+    /// 현재 스킬 손 모션(HandSkillAnimator)이 재생 중인지 여부. 모든 스킬이 PlayHandSkillAnim()을 통해
+    /// 공통적으로 이 값을 켜고 끄므로, IsCastingSkill(StartSkillCasting을 쓰는 스킬에만 해당)보다
+    /// 더 일관적인 차단 조건입니다.
+    /// </summary>
+    public bool IsUsingHandSkill => HandSkillAnimator != null && HandSkillAnimator.enabled;
 
     [Header("스킬 시전 시스템")]
     private Coroutine _activeSkillCoroutine;
@@ -1045,7 +1152,7 @@ public void PlayAllAnim(string animName, string fallbackAnimName = null)
         while (elapsed < maxDistance)
         {
             Vector2 checkPos = targetPos - direction * elapsed;
-            
+
             // 0.25f 반경으로 체크하여 걸치는지 확인
             bool isUnsteppable = Physics2D.OverlapCircle(checkPos, 0.25f, unsteppableMask) != null;
             bool isWall = Physics2D.OverlapCircle(checkPos, 0.25f, wallMask) != null;

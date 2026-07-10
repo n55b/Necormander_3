@@ -16,14 +16,20 @@ public class PlayerStrikeFlurrySO : PlayerSkillSO
     {
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
         
         player.StartSkillCasting(FlurryRoutine(player));
     }
 
     private IEnumerator FlurryRoutine(PlayerController player)
     {
+        float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
+
         for (int i = 0; i < hitCount; i++)
         {
+            if (player == null) yield break;
+
             PlaySkillSound();
             ShakeCamera();
 
@@ -39,15 +45,14 @@ public class PlayerStrikeFlurrySO : PlayerSkillSO
                 Vector2 attackCenter = startPos;
                 BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
                 box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
-                
+
                 float finalDamage = player.Stat.ATK * damageMultiplier;
                 DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, $"Flurry {i+1}!");
-                
+
                 System.Action<CharacterHealth> onHit = (health) => {
                     var stat = health.GetComponent<CharacterStat>();
                     if (stat != null && stat.Status != null)
                     {
-                        // 마지막 타격에만 격파 호출할 수도 있지만, 타격마다 호출해도 스택 없으면 무시됨
                         if (i == hitCount - 1)
                         {
                             Debug.Log("<color=red>[Physical]</color> 총난타 적중! (호출: Consume Strike)");

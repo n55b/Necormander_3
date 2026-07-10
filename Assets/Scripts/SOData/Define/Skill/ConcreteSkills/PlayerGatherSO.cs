@@ -13,16 +13,22 @@ public class PlayerGatherSO : PlayerSkillSO
     
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
-        PlaySkillSound();
-        ShakeCamera();
-
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
         player.StartSkillCasting(GatherRoutine(player));
     }
 
     private IEnumerator GatherRoutine(PlayerController player)
     {
+        float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
+
+        if (player == null) yield break;
+
+        PlaySkillSound();
+        ShakeCamera();
+
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 offset = mousePos - (Vector2)player.transform.position;
         Vector2 dir = offset.normalized;

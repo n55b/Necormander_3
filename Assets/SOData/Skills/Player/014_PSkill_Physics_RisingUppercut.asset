@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 268be2f84539d2245a3efb2548cb7623, type: 3}
-  m_Name: PlayerRisingUppercut
+  m_Name: 014_PSkill_Physics_RisingUppercut
   m_EditorClassIdentifier: 
   skillName: "\uB77C\uC774\uC9D5 \uC5B4\uD37C\uCEF7"
   description: "\uD50C\uB808\uC774\uC5B4\uAC00 \uC804\uBC29\uC758 \uC801\uC5D0\uAC8C
@@ -22,6 +22,7 @@ MonoBehaviour:
   skillSoundVolume: 0.85
   shakeForce: 0.5
   hitStopDuration: 0
+  handSkillAnimName: 014_Physics_RisingUppercut
   hitBoxPrefab: {fileID: -7664338518204726940, guid: d1ce623f6fad4bb4dba1c4257fa1fefa, type: 3}
   hitDistance: 2.2
   hitWidth: 1.6

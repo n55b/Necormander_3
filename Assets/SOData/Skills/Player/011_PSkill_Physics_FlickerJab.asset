@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0f5ab7bf773f03d4d8d3803783306e01, type: 3}
-  m_Name: PlayerFlickerJab
+  m_Name: 011_PSkill_Physics_FlickerJab
   m_EditorClassIdentifier: 
   skillName: "\uD50C\uB9AC\uCEE4 \uC7BD"
   description: "\uC804\uBC29\uC758 \uB9AC\uC488\uAC00 \uAE34 \uBC60\uB9B8 \uC7BD\uC744
@@ -23,6 +23,8 @@ MonoBehaviour:
   skillSoundVolume: 0.85
   shakeForce: 0.5
   hitStopDuration: 0
+  handSkillAnimName: 011_Physics_FlickerJab
+  hitTimingRatio: 0.3
   hitBoxPrefab: {fileID: -7664338518204726940, guid: d1ce623f6fad4bb4dba1c4257fa1fefa, type: 3}
   hitDistance: 3.5
   hitWidth: 1.5

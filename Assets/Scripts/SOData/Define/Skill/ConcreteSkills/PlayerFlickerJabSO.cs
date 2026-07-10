@@ -18,12 +18,23 @@ public class PlayerFlickerJabSO : PlayerSkillSO
 
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
-        PlaySkillSound();
-        ShakeCamera();
-
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
         if (hitBoxPrefab == null) return;
+
+        player.StartCoroutine(HitRoutine(player));
+    }
+
+    private IEnumerator HitRoutine(PlayerController player)
+    {
+        float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
+
+        if (player == null) yield break;
+
+        PlaySkillSound();
+        ShakeCamera();
 
         // 현재 이동 속도(실제 물리 속도)에 따른 피해 보너스 계산
         float currentSpeed = 0f;

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc72baf54bce0c14085ce1a40c003fd0, type: 3}
-  m_Name: PlayerGroundSmash
+  m_Name: 003_PSkill_Physics_GroundSmash
   m_EditorClassIdentifier: 
   skillName: "\uBC14\uB2E5 \uBD80\uC218\uAE30"
   description: "\uD50C\uB808\uC774\uC5B4\uAC00 \uBC14\uB2E5\uC744 \uB0B4\uB9AC\uCCD0,
@@ -22,6 +22,7 @@ MonoBehaviour:
   skillSoundVolume: 0.85
   shakeForce: 0.5
   hitStopDuration: 0
+  handSkillAnimName: 003_Physics_GroundSmash
   hitBoxPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   gatherRadius: 4
   gatherDuration: 0.2

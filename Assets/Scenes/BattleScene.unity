@@ -1162,16 +1162,20 @@ PrefabInstance:
       objectReference: {fileID: 939998463}
     - target: {fileID: 7749112568104373486, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: equippedSkills.Array.size
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7749112568104373486, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'equippedSkills.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 7f02ed511782c5748ba16d1768bf0e65, type: 2}
     - target: {fileID: 7749112568104373486, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'equippedSkills.Array.data[1]'
       value: 
-      objectReference: {fileID: 11400000, guid: 10703c0388fbae847a896a3d4c38a1e5, type: 2}
+      objectReference: {fileID: 11400000, guid: 8ffba0baff747c3418d4261959da8854, type: 2}
     - target: {fileID: 7749112568104373486, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'equippedSkills.Array.data[2]'
       value: 
-      objectReference: {fileID: 11400000, guid: 7f02ed511782c5748ba16d1768bf0e65, type: 2}
+      objectReference: {fileID: 11400000, guid: fc7d035727287434eb161f6e6dc69e35, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

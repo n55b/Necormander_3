@@ -19,6 +19,7 @@ public class PlayerLeapSO : PlayerSkillSO
     {
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
 
         PlaySkillSound();
         ShakeCamera();

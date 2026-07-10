@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bb91f1612deb9c04fadcaef7732e58da, type: 3}
-  m_Name: PlayerLeap
+  m_Name: 020_PSkill_Physics_Leap
   m_EditorClassIdentifier: 
   skillName: "\uB3C4\uC57D"
   description: "\uD50C\uB808\uC774\uC5B4\uAC00 \uBCF4\uB294 \uBC29\uD5A5\uC73C\uB85C
@@ -24,6 +24,7 @@ MonoBehaviour:
   skillSoundVolume: 0.85
   shakeForce: 0.5
   hitStopDuration: 0
+  handSkillAnimName: 020_Physics_Leap
   leapDistance: 3
   leapDuration: 0.25
   impactRadius: 1

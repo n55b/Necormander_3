@@ -12,19 +12,25 @@ public class PlayerGroundSmashSO : PlayerSkillSO
     
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
-        PlaySkillSound();
-        ShakeCamera();
-
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
         player.StartSkillCasting(SmashRoutine(player));
     }
 
     private IEnumerator SmashRoutine(PlayerController player)
     {
+        float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
+
+        if (player == null) yield break;
+
+        PlaySkillSound();
+        ShakeCamera();
+
         Vector2 center = player.transform.position;
         float angle = 0f;
-        
+
         bool hasInvokedKeyword = false;
         System.Action<CharacterHealth> onSmashHit = (health) => {
             if (!hasInvokedKeyword) {
@@ -37,7 +43,7 @@ public class PlayerGroundSmashSO : PlayerSkillSO
         {
             BaseHitBox box = Instantiate(hitBoxPrefab, center, Quaternion.Euler(0, 0, angle));
             box.transform.localScale = new Vector3(gatherRadius * 2f, gatherRadius * 2f, 1f);
-            
+
             float finalDamage = player.Stat.ATK * damageMultiplier;
             DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Ground Smash!");
             box.Init(info, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, onSmashHit);

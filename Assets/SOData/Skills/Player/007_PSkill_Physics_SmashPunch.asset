@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ba362a3b879e0f94daf7b9c1eee48f6b, type: 3}
-  m_Name: PlayerSmashPunch
+  m_Name: 007_PSkill_Physics_SmashPunch
   m_EditorClassIdentifier: 
   skillName: "\uC721\uC655\uAD8C"
   description: "\uCDE8\uC57D \uC0C1\uD0DC\uC778 \uC801\uC744 \uD0C0\uACA9\uD558\uC5EC
@@ -22,6 +22,7 @@ MonoBehaviour:
   skillSoundVolume: 0.85
   shakeForce: 0.5
   hitStopDuration: 0
+  handSkillAnimName: 007_Physics_SmashPunch
   hitBoxPrefab: {fileID: -7664338518204726940, guid: d1ce623f6fad4bb4dba1c4257fa1fefa, type: 3}
   hitDistance: 3
   hitWidth: 2
