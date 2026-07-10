@@ -15,7 +15,7 @@ public class ThrowPhysics : MonoBehaviour
 
     public Vector2 GetClampedTargetPos(Vector2 origin, Vector2 targetPos, ThrowCluster activeCluster)
     {
-        int wallLayer = LayerMask.GetMask("Wall", "Obstacle");
+        int wallLayer = Layers.WallObstacle;
         Vector2 direction = targetPos - origin;
         float distance = direction.magnitude;
         if (distance < 0.01f) return targetPos;
@@ -30,7 +30,7 @@ public class ThrowPhysics : MonoBehaviour
         if (activeCluster == null || _controller.HoldPoint == null) return;
 
         Vector2 idealWorldPos = (Vector2)_controller.HoldPoint.position;
-        int forbiddenLayers = LayerMask.GetMask("Wall", "Obstacle", "BackGround");
+        int forbiddenLayers = Layers.WallObstacleBackground;
         
         float clusterRadius = activeCluster.GetCurrentRadius();
         float totalThreshold = clusterRadius + safetyDistance;

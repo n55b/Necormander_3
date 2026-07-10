@@ -34,7 +34,7 @@ public class MiniMapTeleporter : MonoBehaviour
         _canvas = GetComponentInParent<Canvas>();
         _canvasCamera = (_canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay) ? _canvas.worldCamera : null;
 
-        if (roomLayer == 0) roomLayer = LayerMask.GetMask("Room");
+        if (roomLayer == 0) roomLayer = Layers.RoomMask;
 
         // 하이라이트 테두리 오브젝트 동적 생성
         CreateHighlightBorderObject();
@@ -150,7 +150,7 @@ public class MiniMapTeleporter : MonoBehaviour
         _borderRenderer = _borderObject.AddComponent<SpriteRenderer>();
 
         // 중요: 미니맵 카메라만 볼 수 있도록 레이어를 강제 지정합니다.
-        int miniMapLayer = LayerMask.NameToLayer("MiniMap");
+        int miniMapLayer = Layers.MiniMap;
         if (miniMapLayer != -1) _borderObject.layer = miniMapLayer;
 
         // 크기가 유연하게 늘어나도록 슬라이싱 모드 채택 (9-Slice 설정 필요)

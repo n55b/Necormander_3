@@ -7,8 +7,10 @@ public class PlayerMainDealSO : PlayerSkillSO
 {
     public BaseHitBox hitBoxPrefab;
     public float damageRadius = 2f;
-    public float firstHitDamage = 10f;
-    public float secondHitDamage = 25f;
+    [Tooltip("1타 기본 공격력 배율. 100% = 1.0")]
+    public float firstHitMultiplier = 1.0f;
+    [Tooltip("2타 기본 공격력 배율. 250% = 2.5")]
+    public float secondHitMultiplier = 2.5f;
     public float hitDelay = 0.2f;
     public float maxRange = 5f;
 
@@ -45,13 +47,13 @@ public class PlayerMainDealSO : PlayerSkillSO
             GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Strike, health.transform);
         };
 
-        SpawnHitBox(player.gameObject, attackCenter, dir, damageRadius, firstHitDamage, onStrikeSuccess);
+        SpawnHitBox(player.gameObject, attackCenter, dir, damageRadius, player.Stat.ATK * firstHitMultiplier, onStrikeSuccess);
 
         yield return new WaitForSeconds(hitDelay);
 
         Debug.Log("<color=cyan>[Player Skill A]</color> 2타 추가 공격!");
         Vector2 secondAttackCenter = attackCenter + dir * 1.5f; // 2타는 1타 위치에서 약간 더 앞쪽
-        SpawnHitBox(player.gameObject, secondAttackCenter, dir, damageRadius * 1.5f, secondHitDamage, null);
+        SpawnHitBox(player.gameObject, secondAttackCenter, dir, damageRadius * 1.5f, player.Stat.ATK * secondHitMultiplier, null);
     }
 
     private void SpawnHitBox(GameObject attacker, Vector2 center, Vector2 dir, float radius, float damage, System.Action<CharacterHealth> onHit)
@@ -63,6 +65,6 @@ public class PlayerMainDealSO : PlayerSkillSO
         box.transform.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
 
         DamageInfo info = new DamageInfo(damage, DamageType.Physical, attacker, false, 1f, false, "PlayerStrike", false, true, 2f);
-        box.Init(info, LayerMask.GetMask("Enemy"), 0.2f, 0f, true, onHit);
+        box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, onHit);
     }
 }

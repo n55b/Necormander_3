@@ -133,7 +133,7 @@ public class MinionActionSkillSO : MinionSkillSO
 
                 ApplyActionEffect(stat, stat.transform.root, ally, dirFromPlayer, teleportPos);
             };
-            box.Init(info, LayerMask.GetMask("Enemy"), 0.2f, 0f, true, onHit);
+            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, onHit);
         }
         else
         {
@@ -220,7 +220,7 @@ public class MinionActionSkillSO : MinionSkillSO
         Vector2 startPos = enemy.position;
         Vector2 targetPos = startPos + pushDir * forceAmount;
         
-        int obstacleMask = LayerMask.GetMask("Wall", "Obstacle");
+        int obstacleMask = Layers.WallObstacle;
         
         // 몬스터 콜라이더 크기 구하기
         var enemyCol = enemy.GetComponent<Collider2D>();

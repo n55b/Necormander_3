@@ -18,8 +18,9 @@ public class EnemyController : BaseEntity
         // 이제 브레인이 스스로 판단하므로, 브레인 외부에서의 강제 개입은 최소화합니다.
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy(); // 브레인 클론 정리 (BaseEntity)
         // 사망 시 재화 지급 등의 보상 로직을 여기에 추가할 수 있습니다.
     }
 }

@@ -175,7 +175,7 @@ public bool canChangeState = true;
         _rb = GetComponent<Rigidbody2D>();
         
         _originalLayer = gameObject.layer;
-        _dashLayer = LayerMask.NameToLayer("Player_Dash");
+        _dashLayer = Layers.PlayerDash;
         if (_dashLayer == -1) 
         {
             Debug.LogWarning("[PlayerController] 'Player_Dash' 레이어가 설정되어 있지 않습니다! 레이어 세팅 가이드를 확인해주세요.");
@@ -985,24 +985,29 @@ public void PlayAllAnim(string animName, string fallbackAnimName = null)
 
     [Header("스킬 시전 시스템")]
     private Coroutine _activeSkillCoroutine;
+    private System.Action _activeSkillCleanup; // 종료/취소 시 반드시 1회 실행할 정리(무적 해제·입력 복구 등)
     public bool IsCastingSkill => _activeSkillCoroutine != null;
 
     /// <summary>
     /// 플레이어 액티브 스킬 시전을 시작합니다.
     /// 시전 시간 동안 이속이 0.3배로 감소하며, 다른 행동(투척, 타스킬)이 차단됩니다.
+    /// cleanup: 정상 종료든 중간 취소(StopCoroutine)든 반드시 실행됩니다.
     /// </summary>
-    public void StartSkillCasting(System.Collections.IEnumerator skillRoutine)
+    public void StartSkillCasting(System.Collections.IEnumerator skillRoutine, System.Action cleanup = null)
     {
         CancelActiveSkill(); // 기존 시전 중인 스킬이 있다면 취소
+        _activeSkillCleanup = cleanup;
         _activeSkillCoroutine = StartCoroutine(RunSkillRoutineWithCleanup(skillRoutine));
     }
 
     private System.Collections.IEnumerator RunSkillRoutineWithCleanup(System.Collections.IEnumerator skillRoutine)
     {
         SetSpeedModifier(SpeedModifierSource.Skill, 0.3f); // 스킬 시전 중 이속 감소 0.3배
-        yield return StartCoroutine(skillRoutine);
-        RemoveSpeedModifier(SpeedModifierSource.Skill); // 이속 복구
-        _activeSkillCoroutine = null;
+        // 내부 루틴을 직접 구동한다. 별도 StartCoroutine으로 감싸면 StopCoroutine이 래퍼만 멈추고
+        // 본체는 계속 도는 '고아 코루틴' 문제가 생기므로 MoveNext로 직접 돌린다.
+        while (skillRoutine != null && skillRoutine.MoveNext())
+            yield return skillRoutine.Current;
+        FinishSkillCast();
     }
 
     /// <summary>
@@ -1010,13 +1015,26 @@ public void PlayAllAnim(string animName, string fallbackAnimName = null)
     /// </summary>
     public void CancelActiveSkill()
     {
-        if (_activeSkillCoroutine != null)
-        {
-            StopCoroutine(_activeSkillCoroutine);
-            _activeSkillCoroutine = null;
-            RemoveSpeedModifier(SpeedModifierSource.Skill); // 이속 복구
-            Debug.Log("<color=red>[Player]</color> Active skill cast canceled!");
-        }
+        if (_activeSkillCoroutine == null) return;
+        StopCoroutine(_activeSkillCoroutine);
+        FinishSkillCast(); // StopCoroutine은 finally를 실행하지 않으므로 여기서 명시적으로 정리
+        Debug.Log("<color=red>[Player]</color> Active skill cast canceled!");
+    }
+
+    // 시전 종료(정상/취소 공통): 이속 복구 + 정리 델리게이트 1회 실행.
+    private void FinishSkillCast()
+    {
+        RemoveSpeedModifier(SpeedModifierSource.Skill); // 이속 복구
+        _activeSkillCoroutine = null;
+        var cleanup = _activeSkillCleanup;
+        _activeSkillCleanup = null;
+        cleanup?.Invoke();
+    }
+
+    private void OnDisable()
+    {
+        // 비활성/파괴 직전, 시전 중이던 스킬의 정리를 보장한다(무적 해제·입력 복구 등).
+        if (_activeSkillCoroutine != null) FinishSkillCast();
     }
 
     /// <summary>
@@ -1024,8 +1042,8 @@ public void PlayAllAnim(string animName, string fallbackAnimName = null)
     /// </summary>
     public Vector2 GetSafeDashPosition(Vector2 startPos, Vector2 direction, float maxDistance)
     {
-        int unsteppableMask = LayerMask.GetMask("Unsteppable");
-        int wallMask = LayerMask.GetMask("Wall", "Obstacle");
+        int unsteppableMask = Layers.UnsteppableMask;
+        int wallMask = Layers.WallObstacle;
 
         // [Fix] 플레이어가 이미 Unsteppable/Wall 위에 있다면(맵 밖으로 나간 상태)
         // 안전 지점 탐색을 건너뛰고 원래 목표 지점까지 그대로 이동시켜 탈출을 허용

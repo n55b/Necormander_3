@@ -565,8 +565,8 @@ public class UIBasedMiniMap : MonoBehaviour
     {
         _cachedEnemies.Clear();
 
-        int enemyLayer = LayerMask.GetMask("Enemy");
-        int bossLayer = LayerMask.GetMask("Boss");
+        int enemyLayer = Layers.EnemyMask;
+        int bossLayer = Layers.BossMask;
         int targetMask = enemyLayer | bossLayer;
 
         Vector3 roomCenter = currentRoom.transform.position + (Vector3)currentRoom.centerOffset;
@@ -580,7 +580,7 @@ public class UIBasedMiniMap : MonoBehaviour
                 if (col == null) continue;
                 GameObject enemyObj = col.gameObject;
                 
-                if (col.transform.parent != null && col.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+                if (col.transform.parent != null && col.gameObject.layer == Layers.Enemy)
                 {
                     enemyObj = col.transform.root.gameObject;
                 }

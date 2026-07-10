@@ -225,7 +225,7 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
         // parryRadius 반경 내의 Collider2D 검색 (Trigger 포함)
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, parryRadius);
         bool deflectedAny = false;
-        LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+        LayerMask enemyLayer = Layers.EnemyMask;
 
         foreach (var col in colliders)
         {
@@ -235,7 +235,7 @@ private IEnumerator ParrySequence(Vector2 mouseDir)
             if (proj == null) continue;
 
             // 이미 적군을 대상으로 하는 투사체(반사됨)는 다시 반사하지 않음
-            if ((proj.TargetLayer.value & (1 << LayerMask.NameToLayer("Enemy"))) != 0)
+            if ((proj.TargetLayer.value & (1 << Layers.Enemy)) != 0)
             {
                 continue;
             }

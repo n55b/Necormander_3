@@ -49,7 +49,7 @@ public class TrapCollapsingPillar : MonoBehaviour, IDamageable
 
         if (targetLayer == 0)
         {
-            targetLayer = LayerMask.GetMask("Player", "Enemy", "Ally", "Army", "Player_Dash");
+            targetLayer = Layers.TrapTargets;
         }
     }
 
@@ -116,7 +116,7 @@ public class TrapCollapsingPillar : MonoBehaviour, IDamageable
         ConfigurePillarObstacle(collapseDir);
 
         // 쓰러진 상태에서는 타격 레이어를 Obstacle로 변경하여 중복 타격을 방지
-        gameObject.layer = LayerMask.NameToLayer("Obstacle");
+        gameObject.layer = Layers.Obstacle;
     }
 
     private void SpawnTelegraphHitbox(Vector2 collapseDir)

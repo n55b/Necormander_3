@@ -136,7 +136,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             // 본인이 방패병이 아닐 경우에만 주변 2반경 내의 방패병 탐색
             if (_stat.jobType != CommandData.SkeletonShieldbearer)
             {
-                Collider2D[] allies = Physics2D.OverlapCircleAll(transform.position, 2f, LayerMask.GetMask("Army"));
+                Collider2D[] allies = Physics2D.OverlapCircleAll(transform.position, 2f, Layers.ArmyMask);
                 CharacterHealth bestShieldbearer = null;
                 float minDist = float.MaxValue;
 
@@ -330,7 +330,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         OnDeath?.Invoke();
 
         BaseEntity rootEntity = GetComponentInParent<BaseEntity>();
-        bool isPlayer = gameObject.layer == LayerMask.NameToLayer("Player"); // (추가) 여기 뭔가 긴데 Player 인식 못 하길래 현재 오브젝트 Layer로 바꿈
+        bool isPlayer = gameObject.layer == Layers.Player; // (추가) 여기 뭔가 긴데 Player 인식 못 하길래 현재 오브젝트 Layer로 바꿈
         
         if (rootEntity != null && rootEntity.team == Team.Ally && !isPlayer)
         {
@@ -375,7 +375,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             Destroy(vfx, 1.0f);
         }
 
-        LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+        LayerMask enemyLayer = Layers.EnemyMask;
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, enemyLayer); 
 
         foreach (var col in colls)
@@ -405,7 +405,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
     public void ApplyFearToSurroundingEnemies()
     {
-        LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+        LayerMask enemyLayer = Layers.EnemyMask;
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, 5f, enemyLayer);
         foreach (var col in colls)
         {

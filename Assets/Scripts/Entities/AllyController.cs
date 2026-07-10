@@ -91,7 +91,7 @@ public class AllyController : BaseEntity, IThrowable
         }
 
         // 2. 모든 자식 포함 레이어 변경 및 콜라이더 비활성화 (투사체 통과용)
-        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+        int flyingLayer = Layers.FlyingObject;
         if (flyingLayer != -1) SetLayerRecursive(gameObject, flyingLayer);
         else Debug.LogError("[AllyController] FlyingObject layer not found!");
 

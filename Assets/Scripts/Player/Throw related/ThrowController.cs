@@ -198,7 +198,7 @@ public class ThrowController : MonoBehaviour
                 return;
             }
             // [추가] 이미 던져져서 날아가고 있는 유닛(FlyingObject 레이어)은 다시 잡을 수 없도록 방지
-            int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+            int flyingLayer = Layers.FlyingObject;
             if (hovered.layer == flyingLayer && !_heldObjects.Contains(throwable)) return;
 
             // [융합 방지] 융합체는 집을 수 없음
@@ -245,7 +245,7 @@ public class ThrowController : MonoBehaviour
         IThrowable bestTarget = null;
         GameObject bestObj = null;
         float minDist = float.MaxValue;
-        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+        int flyingLayer = Layers.FlyingObject;
 
         foreach (var col in colls)
         {
@@ -293,7 +293,7 @@ public class ThrowController : MonoBehaviour
         IThrowable bestTarget = null;
         float minDist = float.MaxValue;
 
-        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+        int flyingLayer = Layers.FlyingObject;
 
         foreach (var col in colls)
         {

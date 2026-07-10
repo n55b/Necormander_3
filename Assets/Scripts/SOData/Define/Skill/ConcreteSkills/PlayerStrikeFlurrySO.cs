@@ -56,7 +56,7 @@ public class PlayerStrikeFlurrySO : PlayerSkillSO
                     }
                 };
 
-                box.Init(info, LayerMask.GetMask("Enemy"), 0.05f, 0f, true, onHit);
+                box.Init(info, Layers.EnemyMask, 0.05f, 0f, true, onHit);
             }
 
             yield return new WaitForSeconds(timeBetweenHits);

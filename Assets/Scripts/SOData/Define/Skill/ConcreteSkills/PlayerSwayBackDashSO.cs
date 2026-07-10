@@ -100,8 +100,8 @@ public class SwayBackDashRuntime : MonoBehaviour
         _player.PlayAllAnim("Dash", "Idle"); // 젖히는 모션(Dash 클립 재사용, 없으면 Idle)
 
         Vector2 startPos = _player.transform.position;
-        Vector2 backTarget = ComputeClampedTarget(startPos, -_aimDir, _so.swayBackDistance);
-        yield return MoveOverTime(startPos, backTarget, _so.swayDuration);
+        Vector2 backTarget = SkillCombatUtil.ClampToWall(startPos, -_aimDir, _so.swayBackDistance);
+        yield return SkillCombatUtil.MoveOverTime(_player.transform, startPos, backTarget, _so.swayDuration);
 
         // 무적 종료 + 감지 해제
         if (_health != null) _health.Invincible = false;
@@ -112,10 +112,10 @@ public class SwayBackDashRuntime : MonoBehaviour
         if (_dodged)
         {
             Vector2 dashStart = _player.transform.position;
-            Vector2 dashTarget = ComputeClampedTarget(dashStart, _aimDir, _so.dashDistance);
+            Vector2 dashTarget = SkillCombatUtil.ClampToWall(dashStart, _aimDir, _so.dashDistance);
             _player.PlayAllAnim("Attack", "Idle");
             SpawnStraightPunch(); // 히트박스는 즉시 전방 생성, 돌진과 함께 판정
-            yield return MoveOverTime(dashStart, dashTarget, _so.dashDuration);
+            yield return SkillCombatUtil.MoveOverTime(_player.transform, dashStart, dashTarget, _so.dashDuration);
         }
 
         _player.SetInputBlocked(false);
@@ -139,7 +139,7 @@ public class SwayBackDashRuntime : MonoBehaviour
         float dmg = _player.Stat.ATK * _so.damageMultiplier;
         DamageInfo info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, false, 1f, false, "Dash Straight!");
         GameObject attacker = _player.gameObject;
-        box.Init(info, LayerMask.GetMask("Enemy"), 0.2f, 0f, true, (health) =>
+        box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, (health) =>
         {
             var stat = health.GetComponent<CharacterStat>() ?? health.GetComponentInParent<CharacterStat>();
             if (stat != null && stat.Status != null)
@@ -156,34 +156,6 @@ public class SwayBackDashRuntime : MonoBehaviour
         _dodged = true;
     }
 
-    private Vector2 ComputeClampedTarget(Vector2 from, Vector2 dir, float distance)
-    {
-        // 벽/장애물을 파고들지 않도록 CircleCast 로 제동 (Tetsuzanko/FlickerJab 의 PushEnemy 방식)
-        const float radius = 0.4f;
-        RaycastHit2D hit = Physics2D.CircleCast(from, radius, dir, distance, LayerMask.GetMask("Wall", "Obstacle"));
-        if (hit.collider != null)
-            return hit.point + hit.normal * (radius * 1.02f);
-        return from + dir * distance;
-    }
-
-    private IEnumerator MoveOverTime(Vector2 from, Vector2 to, float duration)
-    {
-        if (duration <= 0f)
-        {
-            if (_player != null) _player.transform.position = to;
-            yield break;
-        }
-        float t = 0f;
-        while (t < duration)
-        {
-            t += Time.deltaTime;
-            if (_player == null) yield break;
-            _player.transform.position = Vector2.Lerp(from, to, t / duration);
-            yield return null;
-        }
-        if (_player != null) _player.transform.position = to;
-    }
-
     private void Unsubscribe()
     {
         if (_subscribed && _health != null)
@@ -198,20 +170,5 @@ public class SwayBackDashRuntime : MonoBehaviour
         if (_invincibleByUs && _health != null) _health.Invincible = false; // 우리가 켠 무적만 되돌림
         _invincibleByUs = false;
         if (_player != null) _player.SetInputBlocked(false);
-    }
-}
-
-/// <summary>
-/// 카운터 계열 스킬이 공유하는 판정 유틸리티.
-/// </summary>
-public static class SkillCombatUtil
-{
-    /// <summary>공격자 GameObject 가 적(Enemy)인지 판정한다. (CharacterStat.IsEnemy 우선, 없으면 Enemy 레이어)</summary>
-    public static bool IsEnemyAttacker(GameObject attacker)
-    {
-        if (attacker == null) return false;
-        var stat = attacker.GetComponent<CharacterStat>() ?? attacker.GetComponentInParent<CharacterStat>();
-        if (stat != null) return stat.IsEnemy;
-        return attacker.layer == LayerMask.NameToLayer("Enemy");
     }
 }

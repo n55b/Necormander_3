@@ -182,7 +182,7 @@ public class MeleeCombatController : MonoBehaviour
                     superArmorDamage: saDmg
                 );
 
-                LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+                LayerMask enemyLayer = Layers.EnemyMask;
                 // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
                 _activeHitbox.Init(info, enemyLayer, 0.2f, telegraphDuration);
             }

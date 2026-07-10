@@ -48,7 +48,7 @@ public class PlayerRapidPunchSO : PlayerSkillSO
                     Debug.Log($"<color=yellow>[Physical]</color> 둥둥타 {i+1}타 적중! (기본 공격 판정)");
                 };
 
-                box.Init(info, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, onHit);
+                box.Init(info, Layers.EnemyMask, 0.1f, 0f, true, onHit);
             }
 
             yield return new WaitForSeconds(timeBetweenPunches);

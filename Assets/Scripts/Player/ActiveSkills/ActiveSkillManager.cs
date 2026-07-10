@@ -101,4 +101,12 @@ public class ActiveSkillManager : MonoBehaviour
         if (_skillSlot2 != null && _skillSlot2.IsActive) handled |= _skillSlot2.HandleLeftClick();
         return handled;
     }
+
+    private void OnDisable()
+    {
+        // 액티브 스킬은 순수 C# 클래스라 자체 OnDisable이 없다. 매니저가 비활성/파괴/씬전환될 때
+        // 진행 중인 스킬을 강제 종료해 입력 차단·카메라 줌·조준선 오브젝트 누수를 막는다.
+        if (_skillSlot1 != null && _skillSlot1.IsActive) _skillSlot1.OnDeactivate();
+        if (_skillSlot2 != null && _skillSlot2.IsActive) _skillSlot2.OnDeactivate();
+    }
 }

@@ -157,7 +157,7 @@ public class LeapStrikeSkill : IActiveSkill
 
     private void CheckAndDamage(HashSet<int> hitEnemies, Vector2 checkPos, float damage, float stunTime)
     {
-        Collider2D[] cols = Physics2D.OverlapCircleAll(checkPos, hitRadius, LayerMask.GetMask("Enemy"));
+        Collider2D[] cols = Physics2D.OverlapCircleAll(checkPos, hitRadius, Layers.EnemyMask);
         foreach (var col in cols)
         {
             var health = col.GetComponentInChildren<CharacterHealth>();

@@ -116,7 +116,7 @@ public class ThrowBouncingAbilitySO : ThrowAbilitySO
 
     private GameObject FindNextTarget(ThrowRecipe recipe, Vector2 currentPos)
     {
-        LayerMask mask = (recipe.info.targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
+        LayerMask mask = (recipe.info.targetTeam == Team.Enemy) ? Layers.EnemyMask : Layers.PlayerArmy;
         Collider2D[] colls = Physics2D.OverlapCircleAll(currentPos, searchRadius, mask);
         
         GameObject bestTarget = null;

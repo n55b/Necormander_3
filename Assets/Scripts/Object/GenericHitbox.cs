@@ -36,7 +36,7 @@ private float _lifetime;
             if (targetStat == null)
             {
                 // 미니언 중에는 Stat이 자식에 있는 경우가 있을 수 있으므로 Children 탐색
-                int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+                int flyingLayer = Layers.FlyingObject;
                 foreach (var s in other.GetComponentsInChildren<CharacterStat>())
                 {
                     if (s.gameObject.layer != flyingLayer)

@@ -98,7 +98,7 @@ private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool
         string text = typeStr == "MISS" ? "MISS" : damage.ToString();
         Color color;
 
-        if (this.transform.gameObject.layer == LayerMask.NameToLayer("Army"))
+        if (this.transform.gameObject.layer == Layers.Army)
             color = colorConfig != null ? colorConfig.allyHitColor : Color.red;
         else
             color = colorConfig != null ? colorConfig.GetDamageColor(dmgType) : GetDefaultDamageColor(dmgType);

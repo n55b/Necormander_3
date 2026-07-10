@@ -47,7 +47,7 @@ public class PlayerDebuffSO : PlayerSkillSO
             box.transform.localScale = new Vector3(damageRadius * 2f, damageRadius * 2f, 1f);
             
             DamageInfo info = new DamageInfo(baseDamage, DamageType.Physical, user.gameObject, false, 1f, false, "Player Debuff", false, true, 2f);
-            box.Init(info, LayerMask.GetMask("Enemy"), 0.5f, 0f, true, onDebuffHit);
+            box.Init(info, Layers.EnemyMask, 0.5f, 0f, true, onDebuffHit);
         }
     }
 }

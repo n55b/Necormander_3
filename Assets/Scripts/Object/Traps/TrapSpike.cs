@@ -31,7 +31,7 @@ public class TrapSpike : MonoBehaviour
         // 기본적으로 targetLayer가 설정되어 있지 않다면 Player, Enemy, Ally 등을 포함
         if (targetLayer == 0)
         {
-            targetLayer = LayerMask.GetMask("Player", "Enemy", "Ally", "Army", "Player_Dash");
+            targetLayer = Layers.TrapTargets;
         }
     }
 

@@ -43,7 +43,7 @@ public class PlayerSmashPunchSO : PlayerSkillSO
                 }
             };
 
-            box.Init(info, LayerMask.GetMask("Enemy"), 0.2f, 0f, true, onHit);
+            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, onHit);
         }
     }
 }

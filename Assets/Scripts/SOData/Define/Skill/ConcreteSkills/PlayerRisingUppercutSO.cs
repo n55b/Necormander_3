@@ -55,7 +55,7 @@ public class PlayerRisingUppercutSO : PlayerSkillSO
             player.StartCoroutine(LaunchVisual(stat.transform.root));
         };
 
-        box.Init(info, LayerMask.GetMask("Enemy"), 0.15f, 0f, true, onHit);
+        box.Init(info, Layers.EnemyMask, 0.15f, 0f, true, onHit);
     }
 
     // 실제 상태이상은 아니고, 살짝 떠올랐다가 내려오는 연출용 코루틴입니다.

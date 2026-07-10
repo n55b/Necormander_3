@@ -44,9 +44,9 @@ public class NearestTargetFinder : MonoBehaviour
         int currentMask = targetLayer.value;
         if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
         {
-            if (gameObject.layer == LayerMask.NameToLayer("Enemy") || gameObject.layer == LayerMask.NameToLayer("Boss"))
+            if (gameObject.layer == Layers.Enemy || gameObject.layer == Layers.Boss)
             {
-                currentMask &= ~(1 << LayerMask.NameToLayer("Ally"));
+                currentMask &= ~(1 << Layers.Ally);
             }
         }
         

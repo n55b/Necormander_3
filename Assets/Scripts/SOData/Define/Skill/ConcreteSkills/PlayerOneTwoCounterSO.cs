@@ -161,7 +161,7 @@ public class OneTwoCounterRuntime : MonoBehaviour
 
         float dmg = _player.Stat.ATK * _so.jabMultiplier;
         DamageInfo info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, false, 1f, false, $"Jab {index}!");
-        box.Init(info, LayerMask.GetMask("Enemy"), 0.15f, 0f, true, null);
+        box.Init(info, Layers.EnemyMask, 0.15f, 0f, true, null);
     }
 
     private IEnumerator DoCounterHook()
@@ -176,8 +176,8 @@ public class OneTwoCounterRuntime : MonoBehaviour
             Vector2 toEnemy = (Vector2)_counterAttacker.transform.position - start;
             if (toEnemy.sqrMagnitude > 0.0001f) dir = toEnemy.normalized;
             Vector2 target = (Vector2)_counterAttacker.transform.position - dir * _so.counterCloseOffset;
-            target = ComputeClampedTarget(start, dir, Vector2.Distance(start, target));
-            yield return MoveOverTime(start, target, _so.counterDashDuration);
+            target = SkillCombatUtil.ClampToWall(start, dir, Vector2.Distance(start, target));
+            yield return SkillCombatUtil.MoveOverTime(_player.transform, start, target, _so.counterDashDuration);
         }
 
         // 어퍼컷 히트박스
@@ -191,7 +191,7 @@ public class OneTwoCounterRuntime : MonoBehaviour
             float dmg = _player.Stat.ATK * _so.uppercutMultiplier;
             DamageInfo info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, false, 1f, false, "Counter Hook!");
             GameObject attacker = _player.gameObject;
-            box.Init(info, LayerMask.GetMask("Enemy"), 0.2f, 0f, true, (health) =>
+            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, (health) =>
             {
                 var stat = health.GetComponent<CharacterStat>() ?? health.GetComponentInParent<CharacterStat>();
                 if (stat != null && stat.Status != null)
@@ -204,33 +204,6 @@ public class OneTwoCounterRuntime : MonoBehaviour
             HitStopManager.Instance.DoHitStop(_so.uppercutHitStop);
         if (CameraManager.Instance != null)
             CameraManager.Instance.HitShakeCamera(_so.shakeForce);
-    }
-
-    private Vector2 ComputeClampedTarget(Vector2 from, Vector2 dir, float distance)
-    {
-        const float radius = 0.4f;
-        RaycastHit2D hit = Physics2D.CircleCast(from, radius, dir, distance, LayerMask.GetMask("Wall", "Obstacle"));
-        if (hit.collider != null)
-            return hit.point + hit.normal * (radius * 1.02f);
-        return from + dir * distance;
-    }
-
-    private IEnumerator MoveOverTime(Vector2 from, Vector2 to, float duration)
-    {
-        if (duration <= 0f)
-        {
-            if (_player != null) _player.transform.position = to;
-            yield break;
-        }
-        float t = 0f;
-        while (t < duration)
-        {
-            t += Time.deltaTime;
-            if (_player == null) yield break;
-            _player.transform.position = Vector2.Lerp(from, to, t / duration);
-            yield return null;
-        }
-        if (_player != null) _player.transform.position = to;
     }
 
     private void Unsubscribe()

@@ -141,7 +141,7 @@ public class BoneMasterController : EnemyController
         // 2페이즈 기본 방어 상태 가시 데미지 (플레이어 전용)
         if (CurrentPhase == 2 && !_isStunned && !_isVulnerable)
         {
-            if (collision.CompareTag("Player") || collision.gameObject.layer == LayerMask.NameToLayer("Player"))
+            if (collision.CompareTag("Player") || collision.gameObject.layer == Layers.Player)
             {
                 var hp = collision.GetComponentInParent<CharacterHealth>();
                 if (hp == null) hp = collision.GetComponentInChildren<CharacterHealth>();
@@ -225,6 +225,7 @@ public class BoneMasterController : EnemyController
             {
                 var newAi = ScriptableObject.Instantiate(p1Brain.phase2Data.aiPattern);
                 newAi.Init(this);
+                if (_runtimeBrain != null) Destroy(_runtimeBrain); // 기존 P1 클론 정리
                 _runtimeBrain = newAi; // 상위 클래스(BaseEntity)의 런타임 뇌 교체
             }
         }

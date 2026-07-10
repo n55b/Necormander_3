@@ -1945,10 +1945,10 @@ public class MapGenerator : MonoBehaviour
             room.doorObjects.Add(doorObj);
 
             // 플레이어와의 트리거 충돌 감지가 물리 엔진 매트릭스 상에서 100% 감지되도록 레이어 지정
-            doorObj.gameObject.layer = LayerMask.NameToLayer("Default");
+            doorObj.gameObject.layer = Layers.Default;
             foreach (Transform child in doorObj.transform)
             {
-                child.gameObject.layer = LayerMask.NameToLayer("Default");
+                child.gameObject.layer = Layers.Default;
             }
             return doorObj;
         }

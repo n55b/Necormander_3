@@ -181,7 +181,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
         var hitbox = hitboxObj.GetComponent<GenericHitbox>();
         if (hitbox == null) hitbox = hitboxObj.AddComponent<GenericHitbox>();
         
-        hitboxObj.layer = LayerMask.NameToLayer("FlyingObject"); // 물리 계층 맞춤 (투사체와 동일하게 범용 레이어 사용)
+        hitboxObj.layer = Layers.FlyingObject; // 물리 계층 맞춤 (투사체와 동일하게 범용 레이어 사용)
         hitbox.Init(entity.Stats.ATK, entity.opponentLayer, entity.gameObject, 0.5f);
     }
 
@@ -203,7 +203,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
         else
         {
             // 방을 찾지 못했을 때 기존 레이캐스트 기반 로직 (Fallback)
-            int wallLayer = LayerMask.GetMask("Wall"); 
+            int wallLayer = Layers.WallMask; 
             RaycastHit2D rightHit = Physics2D.Raycast(entity.transform.position, Vector2.right, 50f, wallLayer);
             RaycastHit2D leftHit = Physics2D.Raycast(entity.transform.position, Vector2.left, 50f, wallLayer);
 
@@ -271,7 +271,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
             hitboxObj.transform.rotation = Quaternion.identity;
         }
 
-        hitboxObj.layer = LayerMask.NameToLayer("FlyingObject"); // 물리 계층 맞춤 (투사체와 동일하게 범용 레이어 사용)
+        hitboxObj.layer = Layers.FlyingObject; // 물리 계층 맞춤 (투사체와 동일하게 범용 레이어 사용)
 
         var hitbox = hitboxObj.GetComponent<GenericHitbox>();
         if (hitbox == null) hitbox = hitboxObj.AddComponent<GenericHitbox>();
