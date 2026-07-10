@@ -176,7 +176,8 @@ public class OneTwoCounterRuntime : MonoBehaviour
             Vector2 toEnemy = (Vector2)_counterAttacker.transform.position - start;
             if (toEnemy.sqrMagnitude > 0.0001f) dir = toEnemy.normalized;
             Vector2 target = (Vector2)_counterAttacker.transform.position - dir * _so.counterCloseOffset;
-            target = SkillCombatUtil.ClampToWall(start, dir, Vector2.Distance(start, target));
+            // 대시와 동일 판정(벽+낭떠러지)으로 파고들기 목적지 제동.
+            target = SkillCombatUtil.GetSafeDestination(start, dir, Vector2.Distance(start, target));
             yield return SkillCombatUtil.MoveOverTime(_player.transform, start, target, _so.counterDashDuration);
         }
 

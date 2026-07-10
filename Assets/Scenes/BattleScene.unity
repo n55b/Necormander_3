@@ -1025,7 +1025,7 @@ PrefabInstance:
     - target: {fileID: 7749112568104373486, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'equippedSkills.Array.data[1]'
       value: 
-      objectReference: {fileID: 11400000, guid: d2a87b3e1c0773141a161772c0f7914c, type: 2}
+      objectReference: {fileID: 11400000, guid: fc7d035727287434eb161f6e6dc69e35, type: 2}
     - target: {fileID: 7749112568104373486, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'equippedSkills.Array.data[2]'
       value: 

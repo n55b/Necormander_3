@@ -40,12 +40,39 @@ public static class SkillCombatUtil
         return dir == Vector2.zero ? Vector2.right : dir;
     }
 
-    /// <summary>벽/장애물을 파고들지 않도록 CircleCast 로 제동한 목적지를 반환한다.</summary>
+    /// <summary>벽/장애물을 파고들지 않도록 CircleCast 로 제동한 목적지를 반환한다. (벽만, 낭떠러지 미검사)</summary>
     public static Vector2 ClampToWall(Vector2 from, Vector2 dir, float distance, float radius = 0.4f)
     {
         RaycastHit2D hit = Physics2D.CircleCast(from, radius, dir, distance, Layers.WallObstacle);
         if (hit.collider != null) return hit.point + hit.normal * (radius * 1.02f);
         return from + dir * distance;
+    }
+
+    /// <summary>
+    /// 좌표 텔레포트(Lerp) 이동이 <b>벽(Wall/Obstacle)을 절대 통과하지 못하도록</b> 제동한 목적지를 반환한다.
+    /// from→목적지 <b>중심선(Linecast)</b>이 벽을 가로지르면 그 벽면 앞(radius 만큼 여유)에서 하드 정지한다.
+    /// 벽은 맵(방)을 감싸는 경계라 무조건 막는다.
+    ///
+    /// 낭떠러지(Unsteppable)는 맵 생성 시 물리 콜라이더가 제거되어(RoomInstance/ MapGenerator) 물리적으로
+    /// 막지 않으므로 대시와 동일하게 자유롭게 뛰어넘는다 — 별도 제동하지 않는다.
+    ///
+    /// Linecast(중심선)라 반경 기반 OverlapCircle 의 오탐/관통 문제가 없다: 벽과 나란히·멀어지는 이동은
+    /// 벽을 가로지르지 않아 통과되고, 벽에 '딱 붙어' 벽 쪽으로 쏘면 즉시 벽면에 걸려 제자리에 멈춘다.
+    /// radius 는 벽면에서 뒤로 물러설 여유(플레이어 반폭)다.
+    /// </summary>
+    public static Vector2 GetSafeDestination(Vector2 from, Vector2 dir, float distance, float radius = 0.3f)
+    {
+        if (dir == Vector2.zero || distance <= 0f) return from;
+        dir = dir.normalized;
+        Vector2 target = from + dir * distance;
+
+        // 벽은 절대 통과 불가: 중심선이 벽을 가로지르면 벽면 직전에서 하드 정지.
+        RaycastHit2D wallHit = Physics2D.Linecast(from, target, Layers.WallObstacle);
+        if (wallHit.collider != null)
+            return from + dir * Mathf.Max(0f, wallHit.distance - radius);
+
+        // 벽이 없으면 목적지까지 (낭떠러지는 콜라이더가 없어 자연히 통과 = 대시로 넘기 가능).
+        return target;
     }
 
     /// <summary>mover 를 from→to 로 duration 동안 Lerp 이동시킨다.</summary>
@@ -87,7 +114,8 @@ public static class SkillCombatUtil
         float elapsed = 0f;
         Vector2 startPos = enemy.position;
         Vector2 targetPos = startPos + pushDir * force;
-        int obstacleMask = Layers.WallObstacle;
+        // 벽뿐 아니라 낭떠러지(Unsteppable)도 넉백을 제동한다 — 적이 못 밟는 곳으로 밀려나지 않도록.
+        int obstacleMask = Layers.WallObstacle | Layers.UnsteppableMask;
 
         // 몬스터 콜라이더 크기로 충돌 반지름 산정
         var enemyCol = enemy.GetComponent<Collider2D>();

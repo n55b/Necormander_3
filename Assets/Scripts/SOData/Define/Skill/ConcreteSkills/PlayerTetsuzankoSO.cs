@@ -30,7 +30,8 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
         Vector2 dir = (mousePos - startPos).normalized;
         if (dir == Vector2.zero) dir = Vector2.right;
 
-        Vector2 targetPos = startPos + dir * dashDistance;
+        // 대시와 동일 판정: 벽/낭떠러지를 넘지 않도록 돌진 목적지를 제동한다. (히트박스는 아래에서 full dashDistance 유지 → 주먹은 벽까지 닿음)
+        Vector2 targetPos = SkillCombatUtil.GetSafeDestination(startPos, dir, dashDistance);
 
         // 프리팹 대신 직접 OverlapBox 처리
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;

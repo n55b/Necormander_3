@@ -32,7 +32,8 @@ public class PlayerLeapSO : PlayerSkillSO
         Vector2 dir = (mousePos - startPos).normalized;
         if (dir == Vector2.zero) dir = Vector2.right;
 
-        Vector2 fullTargetPos = startPos + dir * leapDistance;
+        // 대시와 동일 판정: 도약 착지점이 벽/낭떠러지를 넘지 않도록 제동한다.
+        Vector2 fullTargetPos = SkillCombatUtil.GetSafeDestination(startPos, dir, leapDistance);
         int enemyMask = Layers.EnemyMask;
 
         float elapsed = 0f;

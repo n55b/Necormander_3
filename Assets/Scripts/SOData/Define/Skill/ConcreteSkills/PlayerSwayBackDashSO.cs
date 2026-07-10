@@ -100,7 +100,8 @@ public class SwayBackDashRuntime : MonoBehaviour
         _player.PlayAllAnim("Dash", "Idle"); // 젖히는 모션(Dash 클립 재사용, 없으면 Idle)
 
         Vector2 startPos = _player.transform.position;
-        Vector2 backTarget = SkillCombatUtil.ClampToWall(startPos, -_aimDir, _so.swayBackDistance);
+        // 대시와 동일 판정(벽+낭떠러지): 뒤로 젖히는 이동도 못 밟는 곳으로 밀려나지 않게 제동.
+        Vector2 backTarget = SkillCombatUtil.GetSafeDestination(startPos, -_aimDir, _so.swayBackDistance);
         yield return SkillCombatUtil.MoveOverTime(_player.transform, startPos, backTarget, _so.swayDuration);
 
         // 무적 종료 + 감지 해제
@@ -112,7 +113,7 @@ public class SwayBackDashRuntime : MonoBehaviour
         if (_dodged)
         {
             Vector2 dashStart = _player.transform.position;
-            Vector2 dashTarget = SkillCombatUtil.ClampToWall(dashStart, _aimDir, _so.dashDistance);
+            Vector2 dashTarget = SkillCombatUtil.GetSafeDestination(dashStart, _aimDir, _so.dashDistance);
             _player.PlayAllAnim("Attack", "Idle");
             SpawnStraightPunch(); // 히트박스는 즉시 전방 생성, 돌진과 함께 판정
             yield return SkillCombatUtil.MoveOverTime(_player.transform, dashStart, dashTarget, _so.dashDuration);
