@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
+  m_Name: Charger Elite Data
+  m_EditorClassIdentifier: 
+  minionSkill: {fileID: 0}
+  minionType: 0
+  minionName: "\uCC28\uC800 \uC5D8\uB9AC\uD2B8"
+  minionIcon: {fileID: 0}
+  baseEffectValue: 0
+  maxHP: 550
+  attack: 26
+  attackSpeed: 0.5
+  attackRange: 3.8
+  detectRange: 12
+  defense: 10
+  flatDefense: 2
+  moveSpeed: 3.2
+  baseEvasion: 0
+  baseMissChance: 0
+  cost: 0
+  isElite: 1
+  canSpawnRandomly: 0
+  aiPattern: {fileID: 11400000, guid: 320005db47f1e0b40b33ac4cde2c6c35, type: 2}
+  hpCostRatioPerThrow: 0
+  AttackSound: {fileID: 0}
+  DeathSound: {fileID: 0}
+  minionPrefab: {fileID: 2726140859014803944, guid: b069553ee12c38e4c9fc72a014ec6d6f, type: 3}
+  shopCost: 150
+  rewardItemData:
+    itemName: 
+    description: 
+    localizedItemName:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    icon: {fileID: 0}
+    rarity: 0
+  references:
+    version: 2
+    RefIds: []
