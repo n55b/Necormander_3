@@ -52,13 +52,13 @@ public class PlayerFaceCrusherSO : PlayerSkillSO
         wideBox.transform.localScale = new Vector3(distance, width, 1f);
         float baseDamage = player.Stat.ATK * damageMultiplier;
         DamageInfo baseInfo = new DamageInfo(baseDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Face Crusher!");
-        wideBox.Init(baseInfo, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, null);
+        wideBox.Init(baseInfo, Layers.EnemyMask, 0.1f, 0f, true, null);
 
         // 2. 중앙 보너스 판정 (가운데에 있는 적만 +50% 추가)
         BaseHitBox centerBox = Instantiate(hitBoxPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
         centerBox.transform.localScale = new Vector3(distance, centerWidth, 1f);
         float bonusDamage = player.Stat.ATK * centerBonusMultiplier;
         DamageInfo bonusInfo = new DamageInfo(bonusDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Face Crusher (Center)!");
-        centerBox.Init(bonusInfo, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, null);
+        centerBox.Init(bonusInfo, Layers.EnemyMask, 0.1f, 0f, true, null);
     }
 }

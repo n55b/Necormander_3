@@ -80,7 +80,6 @@ public abstract class BaseEntity : MonoBehaviour
     public AIPatternSO Brain => _runtimeBrain;
     public SpriteRenderer SpriteRenderer => _sr;
     public Animator Animator => _animator;
-    public DynamicEnemySpawner Spawner { get; set; } = null;
 
     public bool HasFiredHitEvent { get; set; } = false;
     public bool HasFiredAttackEndEvent { get; set; } = false;
@@ -156,7 +155,7 @@ public abstract class BaseEntity : MonoBehaviour
 
             // UnsteppableArea (Index 3) 배제 설정 (Enemy_Flying 레이어가 아닐 경우)
             int unsteppableArea = UnityEngine.AI.NavMesh.GetAreaFromName("UnsteppableArea");
-            int flyingLayer = LayerMask.NameToLayer("Enemy_Flying");
+            int flyingLayer = Layers.EnemyFlying;
             if (unsteppableArea != -1 && gameObject.layer != flyingLayer)
             {
                 _agent.areaMask &= ~(1 << unsteppableArea);
@@ -173,8 +172,8 @@ public abstract class BaseEntity : MonoBehaviour
         {
             if (team == Team.Enemy)
             {
-                opponentLayer.value &= ~(1 << LayerMask.NameToLayer("Army"));
-                opponentLayer.value &= ~(1 << LayerMask.NameToLayer("Ally"));
+                opponentLayer.value &= ~(1 << Layers.Army);
+                opponentLayer.value &= ~(1 << Layers.Ally);
             }
         }
 
@@ -265,13 +264,13 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (team == Team.Ally)
         {
-            myTeamLayer = LayerMask.GetMask("Army", "Player");
-            opponentLayer = LayerMask.GetMask("Enemy");
+            myTeamLayer = Layers.PlayerArmy;
+            opponentLayer = Layers.EnemyMask;
         }
         else
         {
-            myTeamLayer = LayerMask.GetMask("Enemy");
-            opponentLayer = LayerMask.GetMask("Army", "Player");
+            myTeamLayer = Layers.EnemyMask;
+            opponentLayer = Layers.PlayerArmy;
         }
     }
 
@@ -308,7 +307,8 @@ public abstract class BaseEntity : MonoBehaviour
 
         if (patternToUse != null)
         {
-            _runtimeBrain = patternToUse; // 원본 SO 공유 참조
+            if (_runtimeBrain != null) Destroy(_runtimeBrain); // 재초기화 대비: 이전 클론 정리
+            _runtimeBrain = Instantiate(patternToUse); // 엔티티별 클론 — 공유 인스턴스 상태 오염 방지
             _runtimeBrain.Init(this);
         }
         else
@@ -317,6 +317,12 @@ public abstract class BaseEntity : MonoBehaviour
         }
 
         if (_nearestFinder != null) _nearestFinder.targetLayer = opponentLayer;
+    }
+
+    protected virtual void OnDestroy()
+    {
+        // 브레인은 엔티티별로 Instantiate한 클론이므로 파괴 시 함께 정리한다 (ScriptableObject는 자동 해제되지 않음).
+        if (_runtimeBrain != null) Destroy(_runtimeBrain);
     }
 
     protected virtual void HandleAIUpdate() { }
@@ -476,7 +482,7 @@ public abstract class BaseEntity : MonoBehaviour
         CharacterStat targetStat = _target.GetComponent<CharacterStat>();
         if (targetStat == null)
         {
-            int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+            int flyingLayer = Layers.FlyingObject;
             foreach (var s in _target.GetComponentsInChildren<CharacterStat>())
             {
                 if (s.gameObject.layer != flyingLayer)

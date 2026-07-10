@@ -47,7 +47,7 @@ public class ShieldCollectible : MonoBehaviour
         if (_isCollected) return;
 
         // 주변 아군이나 플레이어 감지 (물리 레이어 사용)
-        int targetMask = LayerMask.GetMask("Player", "Army");
+        int targetMask = Layers.PlayerArmy;
         Collider2D hit = Physics2D.OverlapCircle(transform.position, collectRadius, targetMask);
 
         if (hit != null)

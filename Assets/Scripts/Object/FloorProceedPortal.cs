@@ -22,8 +22,8 @@ public class FloorProceedPortal : MonoBehaviour, IInteractable
         }
 
         // 상호작용 레이어가 존재하면 설정, 없으면 Default 사용
-        int interactableLayer = LayerMask.NameToLayer("Interactable");
-        gameObject.layer = interactableLayer != -1 ? interactableLayer : LayerMask.NameToLayer("Default");
+        int interactableLayer = Layers.Interactable;
+        gameObject.layer = interactableLayer != -1 ? interactableLayer : Layers.Default;
     }
 
     private void Start()

@@ -42,7 +42,7 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
     {
         if (diedEntity == null) return;
 
-        Debug.Log($"<color=orange>[DualSplit]</color> {diedEntity.gameObject.name} died. Attempting split. Spawner: {(diedEntity.Spawner != null ? diedEntity.Spawner.gameObject.name : "Null")}");
+        Debug.Log($"<color=orange>[DualSplit]</color> {diedEntity.gameObject.name} died. Attempting split.");
 
         RoomInstance room = diedEntity.GetComponentInParent<RoomInstance>();
         Debug.Log($"<color=orange>[DualSplit]</color> RoomInstance found in parent: {(room != null ? room.gameObject.name : "Null")}");
@@ -101,23 +101,16 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
                     Debug.Log($"<color=orange>[DualSplit]</color> Registered {obj.name} to EliteRoomEvent: {eliteEvent.gameObject.name}");
                 }
 
-                var dynamicSpawner = room.GetComponentInChildren<DynamicEnemySpawner>();
-                if (dynamicSpawner != null)
+                var bossEvent = room.GetComponentInChildren<BossRoomEvent>();
+                if (bossEvent != null)
                 {
-                    splitEntity.Spawner = dynamicSpawner;
-                    dynamicSpawner.RegisterActiveEnemy(obj);
-                    Debug.Log($"<color=orange>[DualSplit]</color> Registered {obj.name} to DynamicEnemySpawner: {dynamicSpawner.gameObject.name}");
+                    bossEvent.RegisterActiveEnemy(obj);
+                    Debug.Log($"<color=orange>[DualSplit]</color> Registered {obj.name} to BossRoomEvent: {bossEvent.gameObject.name}");
                 }
-            }
-            else if (diedEntity.Spawner != null)
-            {
-                splitEntity.Spawner = diedEntity.Spawner;
-                diedEntity.Spawner.RegisterActiveEnemy(obj);
-                Debug.Log($"<color=orange>[DualSplit]</color> Registered {obj.name} to Spawner fallback");
             }
             else
             {
-                Debug.LogWarning($"<color=red>[DualSplit]</color> Failed to find any RoomInstance or Spawner to register {obj.name}!");
+                Debug.LogWarning($"<color=red>[DualSplit]</color> Failed to find any RoomInstance to register {obj.name}!");
             }
         }
     }

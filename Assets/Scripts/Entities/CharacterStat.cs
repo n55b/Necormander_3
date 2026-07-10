@@ -290,8 +290,8 @@ public class CharacterStat : MonoBehaviour
         }
 
         // 2. 플레이어 본체거나 군대(미니언) 태그/레이어인지 체크 (자식 오브젝트일 수 있으므로 root 태그도 확인)
-        _isPlayer = CompareTag("Player") || gameObject.layer == LayerMask.NameToLayer("Player") || transform.root.CompareTag("Player");
-        _isAlly = _isPlayer || tag == "Army" || gameObject.layer == LayerMask.NameToLayer("Army") || transform.root.tag == "Army";
+        _isPlayer = CompareTag("Player") || gameObject.layer == Layers.Player || transform.root.CompareTag("Player");
+        _isAlly = _isPlayer || tag == "Army" || gameObject.layer == Layers.Army || transform.root.tag == "Army";
     }
 
     // [중앙집집중형 초기화]

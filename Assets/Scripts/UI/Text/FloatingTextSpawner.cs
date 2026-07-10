@@ -98,7 +98,7 @@ private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool
         string text = typeStr == "MISS" ? "MISS" : damage.ToString();
         Color color;
 
-        if (this.transform.gameObject.layer == LayerMask.NameToLayer("Army"))
+        if (this.transform.gameObject.layer == Layers.Army)
             color = colorConfig != null ? colorConfig.allyHitColor : Color.red;
         else
             color = colorConfig != null ? colorConfig.GetDamageColor(dmgType) : GetDefaultDamageColor(dmgType);
@@ -108,8 +108,8 @@ private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool
         else if (typeStr == "Execution") color = colorConfig != null ? colorConfig.executionColor : Color.yellow; // 처형
         else if (typeStr == "MISS") color = colorConfig != null ? colorConfig.missColor : Color.gray;             // 회피
 
-        if (FloatingTextManager.instance == null) return;
-        TextFloating textObj = FloatingTextManager.instance.GetFromPool();
+        if (FloatingTextManager.Instance == null) return;
+        TextFloating textObj = FloatingTextManager.Instance.GetFromPool();
 
         textObj.SetUp(text, color, vec_float, isCritical);
     }
@@ -138,15 +138,15 @@ private void ShowHealText(float amount)
         string text = $"+{amount:F1}"; // 소수점 첫째자리까지 힐량 표시
         Color color = colorConfig != null ? colorConfig.healColor : Color.green;
 
-        if (FloatingTextManager.instance == null) return;
-        TextFloating textObj = FloatingTextManager.instance.GetFromPool();
+        if (FloatingTextManager.Instance == null) return;
+        TextFloating textObj = FloatingTextManager.Instance.GetFromPool();
         textObj.SetUp(text, color, vec_float, false);
     }
 
 private void ShowStatusText(string statusName)
     {
         Color color = colorConfig != null ? colorConfig.GetStatusPopColor(statusName) : Color.gray;
-        TextFloating textObj = FloatingTextManager.instance.GetFromPool();
+        TextFloating textObj = FloatingTextManager.Instance.GetFromPool();
 
         textObj.SetUp(statusName, color, vec_float);
     }

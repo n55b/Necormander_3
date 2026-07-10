@@ -1,18 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FloatingTextManager : MonoBehaviour
+public class FloatingTextManager : Singleton<FloatingTextManager>
 {
-    public static FloatingTextManager instance { get; private set; }
 
     public GameObject textPrefab;
     public int poolSize = 20;
 
     private Queue<TextFloating> textPool = new Queue<TextFloating>();
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        instance = this;
         InitializePool();
     }
 

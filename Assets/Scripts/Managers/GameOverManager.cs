@@ -1,15 +1,14 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameOverManager : MonoBehaviour
+public class GameOverManager : Singleton<GameOverManager>
 {
-    public static GameOverManager Instance;
-
     public GameObject gameOverPanel; // 게임오버 UI 패널
+
+    // Instance 할당은 Singleton<T> 베이스가 Awake에서 처리(가드 포함). Start 레이스 해소.
 
     private void Start()
     {
-        Instance = this;
         if(gameOverPanel != null)gameOverPanel.SetActive(false); // 게임 시작 시 게임오버 패널 비활성화
     }
 

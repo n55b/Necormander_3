@@ -19,7 +19,7 @@ MonoBehaviour:
   cooldownTime: 10
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
   damageRadius: 2
-  firstHitDamage: 10
-  secondHitDamage: 25
+  firstHitMultiplier: 1
+  secondHitMultiplier: 2.5
   hitDelay: 0.2
   maxRange: 2

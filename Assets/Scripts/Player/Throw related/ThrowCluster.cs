@@ -33,7 +33,7 @@ public class ThrowCluster : MonoBehaviour
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         _rb.simulated = false;
 
-        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+        int flyingLayer = Layers.FlyingObject;
         if (flyingLayer != -1) gameObject.layer = flyingLayer;
 
         if (visualCircle != null) visualCircle.gameObject.SetActive(false);
@@ -245,12 +245,12 @@ public class ThrowCluster : MonoBehaviour
         if (_activeRecipe == null) return;
         if (!_isDirectThrow) return;
 
-        int wallLayer = LayerMask.NameToLayer("Wall");
-        int obstacleLayer = LayerMask.NameToLayer("Obstacle");
+        int wallLayer = Layers.Wall;
+        int obstacleLayer = Layers.Obstacle;
         bool isWall = other.gameObject.layer == wallLayer || other.gameObject.layer == obstacleLayer;
 
-        int opponentMask = (_activeRecipe.info.targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
-        int objectMask = LayerMask.GetMask("Object");
+        int opponentMask = (_activeRecipe.info.targetTeam == Team.Enemy) ? Layers.EnemyMask : Layers.PlayerArmy;
+        int objectMask = Layers.ObjectMask;
         bool isTargetHit = ((opponentMask | objectMask) & (1 << other.gameObject.layer)) != 0;
 
         if (isWall || isTargetHit)
@@ -295,9 +295,9 @@ public class ThrowCluster : MonoBehaviour
         _activeRecipe.state.bounceCount++;
         Vector2 currentPos = transform.position;
         float radius = GetCurrentRadius();
-        int wallMask = LayerMask.GetMask("Wall", "Obstacle");
-        int opponentMask = (_activeRecipe.info.targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
-        int objectMask = LayerMask.GetMask("Object");
+        int wallMask = Layers.WallObstacle;
+        int opponentMask = (_activeRecipe.info.targetTeam == Team.Enemy) ? Layers.EnemyMask : Layers.PlayerArmy;
+        int objectMask = Layers.ObjectMask;
         int totalMask = wallMask | opponentMask | objectMask;
 
         float castDist = 1.0f;
@@ -350,7 +350,7 @@ public class ThrowCluster : MonoBehaviour
         bool isImpactSuccess = false;
         if (_activeRecipe != null)
         {
-            int wallMask = LayerMask.GetMask("Wall", "Obstacle");
+            int wallMask = Layers.WallObstacle;
             if (!Physics2D.OverlapCircle(transform.position, GetCurrentRadius() * 0.8f, wallMask))
             {
                 if (_activeRecipe.info.targetingMode == TargetingMode.Self || _activeRecipe.info.targetingMode == TargetingMode.Area || (_activeRecipe.info.targetingMode == TargetingMode.Target && _activeRecipe.info.finalTarget != null) || _activeRecipe.state.maxPierce > 0 || _activeRecipe.state.bounceCount > 0)

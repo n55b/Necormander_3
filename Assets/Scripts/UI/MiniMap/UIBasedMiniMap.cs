@@ -4,9 +4,8 @@ using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using TMPro;
 
-public class UIBasedMiniMap : MonoBehaviour
+public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
 {
-    public static UIBasedMiniMap Instance { get; private set; }
 
     [Header("UI 컨테이너 설정")]
     [SerializeField] private RectTransform fullMapContainer; // MiniMapUI 오브젝트 연결
@@ -75,9 +74,8 @@ public class UIBasedMiniMap : MonoBehaviour
     // 전투 및 방 줌 상태 캐시
     private bool _lastWasBattle = false;
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        Instance = this;
         
         if (fullMapContainer == null)
         {
@@ -565,8 +563,8 @@ public class UIBasedMiniMap : MonoBehaviour
     {
         _cachedEnemies.Clear();
 
-        int enemyLayer = LayerMask.GetMask("Enemy");
-        int bossLayer = LayerMask.GetMask("Boss");
+        int enemyLayer = Layers.EnemyMask;
+        int bossLayer = Layers.BossMask;
         int targetMask = enemyLayer | bossLayer;
 
         Vector3 roomCenter = currentRoom.transform.position + (Vector3)currentRoom.centerOffset;
@@ -580,7 +578,7 @@ public class UIBasedMiniMap : MonoBehaviour
                 if (col == null) continue;
                 GameObject enemyObj = col.gameObject;
                 
-                if (col.transform.parent != null && col.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+                if (col.transform.parent != null && col.gameObject.layer == Layers.Enemy)
                 {
                     enemyObj = col.transform.root.gameObject;
                 }

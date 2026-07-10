@@ -1,8 +1,7 @@
 using UnityEngine;
 
-public class UIPopUpManager : MonoBehaviour
+public class UIPopUpManager : Singleton<UIPopUpManager>
 {
-    public static UIPopUpManager Instance;
 
     private bool _isPopUpActive = false;
     private bool _isOnBattle = false;
@@ -14,9 +13,8 @@ public class UIPopUpManager : MonoBehaviour
     public bool IsPopUpActive => _isPopUpActive;
     public bool IsOnBattle => _isOnBattle;
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        Instance = this;
         _playerStateUI = GetComponentInChildren<PlayerStateUI>();
         _mapUIManager = GetComponentInChildren<MapUIManager>();
     }
@@ -111,8 +109,9 @@ public class UIPopUpManager : MonoBehaviour
         GameManager.Instance.PLAYERCONTROLLER.OnEnterIdle += () => SetPopUpState(false);
         GameManager.Instance.PLAYERCONTROLLER.OnEnterBattle += () => SetPopUpState(true);
     }
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             GameManager.Instance.PLAYERCONTROLLER.OnEnterIdle -= () => SetPopUpState(false);

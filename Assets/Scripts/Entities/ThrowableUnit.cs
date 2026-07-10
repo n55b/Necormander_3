@@ -45,10 +45,10 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
         _originalDamping = _rb.linearDamping;
         _originalLayer = gameObject.layer;
 
-        _hitLayers = LayerMask.GetMask("Enemy", "Wall", "Obstacle");
+        _hitLayers = Layers.EnemyWallObstacle;
         if (_hitLayers == 0)
         {
-            _hitLayers = ~(LayerMask.GetMask("Player") | (1 << 2)); 
+            _hitLayers = ~(Layers.PlayerMask | (1 << 2)); 
         }
     }
 
@@ -65,7 +65,7 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
         _isImpacted = false; // [추가] 잡을 때 상태 초기화
 
         // 잡혔을 때부터 FlyingObject 레이어로 변경하여 발 밑 충돌 무시 및 드랍 시 복구 보장
-        gameObject.layer = LayerMask.NameToLayer("FlyingObject");
+        gameObject.layer = Layers.FlyingObject;
     }
 
     public virtual void OnThrown(Vector2 targetPosition, float chargeRatio)

@@ -46,7 +46,7 @@ public class PlayerGroundSmashSO : PlayerSkillSO
 
             float finalDamage = player.Stat.ATK * damageMultiplier;
             DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Ground Smash!");
-            box.Init(info, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, onSmashHit);
+            box.Init(info, Layers.EnemyMask, 0.1f, 0f, true, onSmashHit);
         }
 
         // 당겨오기 처리
@@ -60,11 +60,11 @@ public class PlayerGroundSmashSO : PlayerSkillSO
 
         if (isCircle)
         {
-            hitEnemies = Physics2D.OverlapCircleAll(center, gatherRadius, LayerMask.GetMask("Enemy"));
+            hitEnemies = Physics2D.OverlapCircleAll(center, gatherRadius, Layers.EnemyMask);
         }
         else
         {
-            hitEnemies = Physics2D.OverlapBoxAll(center, new Vector2(gatherRadius * 2f, gatherRadius * 2f), angle, LayerMask.GetMask("Enemy"));
+            hitEnemies = Physics2D.OverlapBoxAll(center, new Vector2(gatherRadius * 2f, gatherRadius * 2f), angle, Layers.EnemyMask);
         }
 
         List<Coroutine> pullCoroutines = new List<Coroutine>();

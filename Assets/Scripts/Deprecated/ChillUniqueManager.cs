@@ -48,7 +48,7 @@ public class ChillUniqueManager : MonoBehaviour
         var player = GameManager.Instance.PLAYERCONTROLLER;
         float radius = player.THROWRANGE;
 
-        LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+        LayerMask enemyLayer = Layers.EnemyMask;
         Collider2D[] colls = Physics2D.OverlapCircleAll(player.transform.position, radius, enemyLayer);
 
         foreach (var col in colls)
@@ -91,7 +91,7 @@ public class ChillUniqueManager : MonoBehaviour
 
         // 반경 5 내 적에게 한기 50스택 부여
         float radius = 5f;
-        LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+        LayerMask enemyLayer = Layers.EnemyMask;
         Collider2D[] colls = Physics2D.OverlapCircleAll(centerPosition, radius, enemyLayer);
 
         foreach (var col in colls)

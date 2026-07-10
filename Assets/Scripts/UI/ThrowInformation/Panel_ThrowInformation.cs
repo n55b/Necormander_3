@@ -2,9 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-public class Panel_ThrowInformation : MonoBehaviour
+public class Panel_ThrowInformation : Singleton<Panel_ThrowInformation>
 {
-    public static Panel_ThrowInformation Instance { get; private set; }
 
     [Header("Thrown Object")]
     [SerializeField] private GameObject imageThrown;
@@ -15,11 +14,6 @@ public class Panel_ThrowInformation : MonoBehaviour
     private List<ImageThrown> thrownImages = new List<ImageThrown>();
     private int maxSlots = 0;
 
-    private void Awake()
-    {
-        Instance = this;
-    }
-
     private void Start()
     {
         if (InventoryManager.Instance != null)
@@ -29,9 +23,9 @@ public class Panel_ThrowInformation : MonoBehaviour
         RefreshFromController();
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
-        if (Instance == this) Instance = null;
+        base.OnDestroy();
         if (InventoryManager.Instance != null)
         {
             InventoryManager.Instance.OnGemTreeUpdated -= RefreshFromController;

@@ -163,7 +163,7 @@ public abstract class AIPatternSO : ScriptableObject
         if (t == null) return true;
 
         // 1. 레이어 체크: FlyingObject인 경우(들린 상태 또는 날아가는 상태) 즉시 타겟 제외
-        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+        int flyingLayer = Layers.FlyingObject;
         if (t.gameObject.layer == flyingLayer) return true;
 
         // 2. AI 상태 체크: Thrown 상태인 유닛은 타겟팅 대상에서 제외

@@ -29,7 +29,7 @@ private void Awake()
         _parry       = GetComponent<PlayerParryController>();
 _dodge       = GetComponent<MeleeDodgeController>();
         _health      = GetComponentInChildren<CharacterHealth>();
-        _playerLayer = LayerMask.NameToLayer("Player");
+        _playerLayer = Layers.Player;
     }
 
     private void Start() => Initialize();

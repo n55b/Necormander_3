@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GemTreeUI : MonoBehaviour
+public class GemTreeUI : Singleton<GemTreeUI>
 {
-    public static GemTreeUI Instance;
 
     [Header("UI Panels")]
     [SerializeField] private GameObject mainPanel;
@@ -36,9 +35,8 @@ public class GemTreeUI : MonoBehaviour
     public bool IsOpen => _isOpen;
 
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        Instance = this;
         if (mainPanel != null) mainPanel.SetActive(false);
 
         // [추가] 툴팁 프리팹 소환

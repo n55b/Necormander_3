@@ -78,9 +78,9 @@ public class PlayerUniqueEffectManager : MonoBehaviour
             int gemCount = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.MobMentality);
             
             float radius = GameManager.Instance.PLAYERCONTROLLER.THROWRANGE;
-            Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius, LayerMask.GetMask("Army", "Player"));
+            Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius, Layers.PlayerArmy);
             
-            int armyLayer = LayerMask.NameToLayer("Army");
+            int armyLayer = Layers.Army;
             int minionCount = 0;
             foreach (var col in colls)
             {

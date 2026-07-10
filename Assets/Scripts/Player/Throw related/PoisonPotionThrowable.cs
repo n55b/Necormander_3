@@ -53,7 +53,7 @@ public class PoisonPotionThrowable : ThrowableUnit
         if (ActivePotions.Count > MAX_POTIONS)
         {
             // 가장 오래된 포션을 찾아서 삭제 (현재 들고있거나 날아가고 있는 오브젝트가 아닌 것 우선)
-            int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+            int flyingLayer = Layers.FlyingObject;
             for (int i = 0; i < ActivePotions.Count; i++)
             {
                 if (ActivePotions[i] != this && ActivePotions[i].gameObject.layer != flyingLayer)
@@ -86,7 +86,7 @@ public class PoisonPotionThrowable : ThrowableUnit
         if (_exploded) return;
         _exploded = true;
 
-        LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+        LayerMask enemyLayer = Layers.EnemyMask;
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, enemyLayer);
         
         foreach (var col in colls)

@@ -4,9 +4,8 @@ using UnityEngine.UI;
 /// <summary>
 /// 플레이어 발밑에서 투척 차징 상태를 시각적으로 보여주는 UI 클래스입니다.
 /// </summary>
-public class ThrowChargeBarUI : MonoBehaviour
+public class ThrowChargeBarUI : Singleton<ThrowChargeBarUI>
 {
-    public static ThrowChargeBarUI Instance;
 
     [Header("UI References")]
     [SerializeField] private GameObject visualPanel;
@@ -16,9 +15,8 @@ public class ThrowChargeBarUI : MonoBehaviour
     [SerializeField] private Color normalColor = new Color(0.2f, 0.6f, 1.0f);
     [SerializeField] private Color fullChargeColor = new Color(0.6f, 0.9f, 1.0f);
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        Instance = this;
         if (visualPanel != null) visualPanel.SetActive(false);
     }
 

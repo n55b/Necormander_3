@@ -31,7 +31,7 @@ public class SlimeAIPatternSO : BaseAIPatternSO
     {
         if (diedEntity == null) return;
 
-        Debug.Log($"<color=yellow>[SlimeSplit]</color> {diedEntity.gameObject.name} died. Attempting split. Spawner: {(diedEntity.Spawner != null ? diedEntity.Spawner.gameObject.name : "Null")}");
+        Debug.Log($"<color=yellow>[SlimeSplit]</color> {diedEntity.gameObject.name} died. Attempting split.");
 
         // 프리팹이 등록되어 있지 않거나(작은 슬라임), 엔티티가 파괴된 상태라면 실행하지 않음
         if (smallSlimePrefab != null)
@@ -91,23 +91,16 @@ public class SlimeAIPatternSO : BaseAIPatternSO
                                 Debug.Log($"<color=yellow>[SlimeSplit]</color> Registered {smallSlimeObj.name} to EliteRoomEvent: {eliteEvent.gameObject.name}");
                             }
 
-                            var dynamicSpawner = room.GetComponentInChildren<DynamicEnemySpawner>();
-                            if (dynamicSpawner != null)
+                            var bossEvent = room.GetComponentInChildren<BossRoomEvent>();
+                            if (bossEvent != null)
                             {
-                                smallEntity.Spawner = dynamicSpawner;
-                                dynamicSpawner.RegisterActiveEnemy(smallSlimeObj);
-                                Debug.Log($"<color=yellow>[SlimeSplit]</color> Registered {smallSlimeObj.name} to DynamicEnemySpawner: {dynamicSpawner.gameObject.name}");
+                                bossEvent.RegisterActiveEnemy(smallSlimeObj);
+                                Debug.Log($"<color=yellow>[SlimeSplit]</color> Registered {smallSlimeObj.name} to BossRoomEvent: {bossEvent.gameObject.name}");
                             }
-                        }
-                        else if (diedEntity.Spawner != null)
-                        {
-                            smallEntity.Spawner = diedEntity.Spawner;
-                            diedEntity.Spawner.RegisterActiveEnemy(smallSlimeObj);
-                            Debug.Log($"<color=yellow>[SlimeSplit]</color> Registered {smallSlimeObj.name} to Spawner fallback");
                         }
                         else
                         {
-                            Debug.LogWarning($"<color=red>[SlimeSplit]</color> Failed to find any RoomInstance or Spawner to register {smallSlimeObj.name}!");
+                            Debug.LogWarning($"<color=red>[SlimeSplit]</color> Failed to find any RoomInstance to register {smallSlimeObj.name}!");
                         }
                     }
                 }
