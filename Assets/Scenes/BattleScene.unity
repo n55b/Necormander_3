@@ -1165,9 +1165,13 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7749112568104373486, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: 'equippedSkills.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: e6f0a2b4c8d3519e0f7a2b3c4d5e6f70, type: 2}
+    - target: {fileID: 7749112568104373486, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'equippedSkills.Array.data[1]'
       value: 
-      objectReference: {fileID: 11400000, guid: 10703c0388fbae847a896a3d4c38a1e5, type: 2}
+      objectReference: {fileID: 11400000, guid: d5e9f1a3b7c2408d9e6f1a2b3c4d5e6f, type: 2}
     - target: {fileID: 7749112568104373486, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: 'equippedSkills.Array.data[2]'
       value: 
@@ -2884,7 +2888,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 8.4375
+  orthographic size: 5.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

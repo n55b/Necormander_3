@@ -1131,6 +1131,7 @@ MonoBehaviour:
   loadButton: {fileID: 1280517091}
   exitButton: {fileID: 131092720}
   gameSceneName: BattleScene
+  startSceneName: VillageScene
 --- !u!1 &1280517090
 GameObject:
   m_ObjectHideFlags: 0
