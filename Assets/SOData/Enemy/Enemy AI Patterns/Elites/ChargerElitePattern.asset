@@ -25,7 +25,17 @@ MonoBehaviour:
   stabRadius: 4.4
   fanRadius: 7.2
   sweepRadius: 6
-  fanApexLocalOffset: 0.58
+  fanRotationOffset: 90
+  miniChargeDistance: 1.6
+  miniChargeDashDuration: 0.15
+  miniChargeCheckRadius: 0.6
+  miniChargeSquashScale: 0.82
+  miniChargeStretchScale: 1.2
+  pursuitBurstMinInterval: 2.5
+  pursuitBurstMaxInterval: 4.5
+  pursuitBurstSpeedMultiplier: 2.2
+  pursuitBurstDuration: 0.35
+  pursuitBurstDecelDuration: 0.25
   pillarPrefab: {fileID: 0}
   pillarCount: 4
   pillarSpawnDistance: 5.5
@@ -54,19 +64,14 @@ MonoBehaviour:
   chargeTelegraphColor: {r: 1, g: 0, b: 0, a: 0.35}
   pillarChargeStunDuration: 5
   wallChargeStunDuration: 1.5
-  donutInnerSmallRatio: 0.38
-  donutOuterSmallRatio: 0.62
-  donutInnerLargeRatio: 0.75
-  donutOuterLargeRatio: 0.92
-  donutFieldMaxRatio: 1.25
-  donutFallbackInnerSmall: 4.5
-  donutFallbackOuterSmall: 7
-  donutFallbackInnerLarge: 8.5
-  donutFallbackOuterLarge: 10.5
-  donutExplodeDelay: 1.5
-  donutStunDuration: 3
-  donutSafeColor: {r: 0.25, g: 1, b: 0.35, a: 0.35}
-  donutDangerColor: {r: 1, g: 0, b: 0, a: 0.4}
+  gravityPullDuration: 6
+  gravityPullTickInterval: 1
+  gravityPullTickDistance: 1
+  gravityFieldRadiusRatio: 1
+  gravityFieldFallbackRadius: 9
+  gravityExplosionDamage: 22
+  gravityPillarDamage: 2
+  gravityFieldColor: {r: 0.5, g: 0.22, b: 0.85, a: 0.32}
   slamPreCastDelay: 1.3
   slamMeleeRadius: 2
   slamWaveCount: 2

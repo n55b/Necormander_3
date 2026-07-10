@@ -16,6 +16,21 @@ using System.Collections.Generic;
 /// 6) 기본 공격 8초 반복 -> 7) 마지막 남은 1개 패턴을 발동 -> 8) 기본 공격 8초 반복
 /// 9) 이후 다시 3개 중 1개를 무작위로 뽑는 사이클로 복귀 (풀 리필)
 ///
+/// [v1.2] "차저"라는 정체성이 8초에 한 번뿐인 특수 패턴 1개에만 있어 정적으로 느껴진다는
+/// 피드백을 반영해, 기본 공격을 "3단 돌진 체계"로 재편했습니다.
+///   ① 약한 돌진: 기본 공격 3종 중 "미니 돌진 찍기" (실제 짧은 전진 + 스쿼시/스트레치 연출)
+///   ② 추격 버스트: 사거리 밖에서 추격(Follow)하는 동안 간헐적으로 짧게 가속 후 감속
+///   ③ 강한 돌진: 기존 패턴 1 (기둥과 돌진) - 스펙 변경 없이 그대로 유지
+///
+/// [v1.3] 패턴 2를 "안 팎 도넛"에서 "중력 도넛 폭발"로 완전히 교체했습니다.
+///   - 엘리트 몹이 6초간 자신을 중심으로 주변 대상을 끌어당깁니다.
+///   - 매 프레임 연속으로 끄는 대신, gravityPullTickInterval초마다 한 번씩 gravityPullTickDistance만큼
+///     "틱" 형태로 짧게 끌어당깁니다. 틱과 틱 사이에는 플레이어가 완전히 자유롭게 움직일 수 있어,
+///     기획 의도대로 "6초 동안 기둥 뒤로 도망갈 시간"이 실제로 주어집니다.
+///   - 살아있는 기둥 뒤에 서면 그 틱에서 끌려가지 않고(유일한 회피 수단), 그 기둥은 대신 내구도 2를 잃습니다.
+///   - 6초가 끝나면 "폭발"하여, 기둥 뒤에 숨지 못한 대상에게 직접 피해를 줍니다.
+///   - 이 패턴은 보스에게 그로기(기절)를 전혀 부여하지 않습니다.
+///
 /// [중요] Unity 엔진의 BaseEntity.Update()는 IsAttacking == true인 동안(공격 windup~후딜레이)에는
 /// CanExecuteAI()가 false를 반환해 브레인의 Execute()를 아예 호출하지 않습니다. 그래서 8초 판정은
 /// Time.deltaTime 누적이 아니라, "기본 공격 상태로 돌아온 절대 시각(Time.time)"을 기록해두고 그로부터
@@ -23,7 +38,7 @@ using System.Collections.Generic;
 ///
 /// - 플레이어의 기본 공격에는 슈퍼아머로 경직/넉백되지 않습니다.
 /// - 현재 사용 중인 공격/패턴 이름을 보스 머리 위에 한글로 표시합니다.
-/// (기획서: 스테이지 1 엘리트 몬스터 기획, 26/07/09 최신 수정안 기준)
+/// (기획서: 스테이지 1 엘리트 몬스터 기획, EliteMob1.2 최신 수정안 기준)
 /// </summary>
 [CreateAssetMenu(fileName = "EliteChargerAIPattern", menuName = "Necromancer/AI/EliteChargerPattern")]
 public class EliteChargerAIPatternSO : BossAIPatternSO
@@ -32,22 +47,67 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     // 기본 공격 3종 설정
     // ==============================================================
     [Header("기본 공격 - 프리팹 (비워두면 기본 원형/부채꼴 히트박스로 대체)")]
-    [Tooltip("단순 찍기: 전방 원형 범위")] public GameObject stabHitboxPrefab;
+    [Tooltip("미니 돌진 찍기: 짧은 전진 후 전방 원형 범위")] public GameObject stabHitboxPrefab;
     [Tooltip("부채꼴 범위 공격: 전방 넓은 부채꼴 (보스 중심에서 플레이어 방향으로 회전만 적용됩니다)")] public GameObject fanHitboxPrefab;
     [Tooltip("휩쓸기 공격: 보스 주변 원형 범위")] public GameObject sweepHitboxPrefab;
 
     [Header("기본 공격 - 타이밍/범위")]
     public float stabWindup = 1.0f;
     public float fanWindup = 1.0f;
-    [Tooltip("20% 빨라진 값 (기존 1.5초 -> 1.2초)")]
-    public float sweepWindup = 1.2f;
+    [Tooltip("기존 1.5초 -> 1.2초(20% 단축) -> 1.02초(추가 15% 단축)")]
+    public float sweepWindup = 1.02f;
     [Tooltip("모든 기본 공격 후 공통으로 부여되는 후딜레이")]
     public float basicAttackPostDelay = 1.0f;
     public float stabRadius = 4.4f;
     public float fanRadius = 7.2f;
-    public float sweepRadius = 6.0f;
+    public float sweepRadius = 7.2f; // 20% 증가 (기존 6.0)
     [Tooltip("부채꼴 프리팹의 '앞쪽(뾰족한 방향)' 로컬 회전 보정값(도). 프리팹의 기본 방향과 실제 조준 방향이 어긋날 때 이 값만 조정하면 됩니다. (예: 위쪽이 앞이면 -90, 아래쪽이 앞이면 90)")]
     public float fanRotationOffset = 90f;
+
+    [Header("기본 공격 - 미니 돌진 찍기 연출 (v1.2, 3단 돌진 체계 ① 약한 돌진)")]
+    [Tooltip("전방으로 실제 전진하는 거리 (1~2유닛 권장)")]
+    public float miniChargeDistance = 3.6f;
+    [Tooltip("대시 경로에 살아있는 기둥이 있으면 그 기둥이 잃는 내구도")]
+    public int miniChargePillarDamage = 1;
+    [Tooltip("전진(대시)에 걸리는 시간. 나머지 windup 시간은 웅크림(스쿼시) 연출에 사용됩니다.")]
+    public float miniChargeDashDuration = 0.15f;
+    [Tooltip("대시 도중 벽/기둥 충돌 검사에 사용할 반경")]
+    public float miniChargeCheckRadius = 0.6f;
+    [Tooltip("웅크릴 때의 스케일 배율 (1보다 작을수록 더 낮고 넓게 웅크립니다)")]
+    public float miniChargeSquashScale = 0.82f;
+    [Tooltip("튀어나갈 때의 스케일 배율 (1보다 클수록 더 크게 튀어나가 보입니다)")]
+    public float miniChargeStretchScale = 1.2f;
+
+    [Header("기본 공격 - 일반 돌진 (v1.35 신규, 4종 로테이션 ②)")]
+    [Tooltip("일반 차저가 가진 직선형 고속 돌진입니다. 데미지는 낮지만, 기둥에 닿으면 기둥이 파훔되며(내구도 -1) 돌진도 멈춥니다.")]
+    public float normalChargeWindup = 0.8f;
+    [Tooltip("돌진 속도 배율 (보스 이동속도 대비). 미니 돌진 찍기보다는 빠르지만 패턴 1의 강한 돌진보다는 느립니다.")]
+    public float normalChargeSpeedMultiplier = 7f;
+    [Tooltip("예비동작(윈드업) 동안 웅크린 정도")]
+    public float normalChargeSquashScale = 0.82f;
+    [Tooltip("돌진 시작 순간 튀어나가는 스트레치 정도 (대시의 1.2보다 더 과장해서 확실한 느낌을 줍니다)")]
+    public float normalChargeStretchScale = 1.4f;
+    [Tooltip("돌진 지속(최대) 시간. 벥/기둥/플레이어에 맞으면 그 전에 멈췄니다.")]
+    public float normalChargeMaxDuration = 1.2f;
+    [Tooltip("돌진 중 충돌 검사에 사용할 반경")]
+    public float normalChargeHitRadius = 1.0f;
+    [Tooltip("플레이어 직격 시 피해량 배율 (ATK 대비, 약하게)")]
+    public float normalChargeDamageMultiplier = 0.5f;
+    [Tooltip("기둥에 닿았을 때 그 기둥이 잃는 내구도 (파훔되지는 않고 돌진만 멈춤)")]
+    public int normalChargePillarDamage = 1;
+
+    [Header("추격 버스트 (v1.2, 3단 돌진 체계 ② 추격 중 간헐적 가속)")]
+    [Header("추격 버스트 (v1.2, 3단 돌진 체계 ② 추격 중 간헐적 가속)")]
+    [Tooltip("버스트 발동 간 최소 대기시간")]
+    public float pursuitBurstMinInterval = 2.5f;
+    [Tooltip("버스트 발동 간 최대 대기시간")]
+    public float pursuitBurstMaxInterval = 4.5f;
+    [Tooltip("버스트 중 이동속도 배율")]
+    public float pursuitBurstSpeedMultiplier = 2.2f;
+    [Tooltip("가속 유지 시간")]
+    public float pursuitBurstDuration = 0.35f;
+    [Tooltip("가속에서 평상시 속도로 되돌아오는 감속 시간")]
+    public float pursuitBurstDecelDuration = 0.25f;
 
     // ==============================================================
     // 기둥 설정
@@ -76,12 +136,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public bool showPatternLabel = true;
     public TMP_FontAsset patternLabelFont;
     public Vector3 patternLabelOffset = new Vector3(0f, 1.3f, 0f);
-    public string label_Stab = "단순 찍기";
+    public string label_Stab = "미니 돌진 찍기";
+    public string label_NormalCharge = "돌진";
     public string label_Fan = "부채꼴 공격";
     public string label_Sweep = "휩쓸기";
     public string label_Pattern1Windup = "기둥과 돌진 준비";
     public string label_Pattern1 = "돌진!";
-    public string label_Pattern2 = "안 팎 도넛";
+    public string label_Pattern2 = "중력 도넛 폭발";
     public string label_Pattern3Windup = "바닥 충격파 준비";
     public string label_Pattern3 = "바닥 충격파";
 
@@ -94,8 +155,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     [Tooltip("특수 패턴 장판(경고) 프리팹. 비워두면 원형 히트박스로 대체합니다.")]
     public GameObject fieldTelegraphPrefab;
 
-    // --- 패턴 1: 기둥과 돌진 ---
-    [Header("패턴 1 - 기둥과 돌진")]
+    // --- 패턴 1: 기둥과 돌진 (3단 돌진 체계 ③ 강한 돌진) ---
+    [Header("패턴 1 - 기둥과 돌진 (v1.2: 3단 돌진 체계의 ③ 강한 돌진 단계. 스펙 변경 없음)")]
     public float chargeWindup = 3f;
     [Tooltip("돌진 속도 배율 (보스 이동속도 대비). 값이 클수록 돌진이 훨씬 빨라집니다.")]
     public float chargeSpeedMultiplier = 9f;
@@ -111,27 +172,24 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     [Tooltip("기둥이 없거나 벽에 유도되었을 때 보스 기절 시간")]
     public float wallChargeStunDuration = 1.5f;
 
-    // --- 패턴 2: 안 팎 도넛 ---
-    [Header("패턴 2 - 안 팎 도넛 (엘리트 몹 위치 중심, 방 크기에 비례해서 자동 조정됩니다)")]
-    [Range(0.1f, 1.2f)] public float donutInnerSmallRatio = 0.38f;
-    [Range(0.1f, 1.2f)] public float donutOuterSmallRatio = 0.62f;
-    [Range(0.1f, 1.2f)] public float donutInnerLargeRatio = 0.75f;
-    [Tooltip("2회차 '팎' 페이즈의 안전지대 반경 비율. fieldMax에 너무 가까우면 위험지대(고리) 폭이 얇아져 범위가 작아 보이므로 여유를 둡니다.")]
-    [Range(0.1f, 1.2f)] public float donutOuterLargeRatio = 0.92f;
-    [Tooltip("판정에 사용할 필드 최대 반경의 배율 (방 반경 기준)")]
-    public float donutFieldMaxRatio = 1.2f;
-    [Tooltip("방을 찾지 못했을 때(fallback) 사용할 절대 반경 4종 (작은 안/팎, 큰 안/팎)")]
-    public float donutFallbackInnerSmall = 4.5f;
-    public float donutFallbackOuterSmall = 7f;
-    public float donutFallbackInnerLarge = 8.5f;
-    public float donutFallbackOuterLarge = 10.5f;
-    [Tooltip("장판 표시 이후 실제 피해가 들어가기까지의 시간")]
-    public float donutExplodeDelay = 1.5f;
-    public float donutStunDuration = 3f;
-    [Tooltip("안전지대(초록) 색상")]
-    public Color donutSafeColor = new Color(0.25f, 1f, 0.35f, 0.35f);
-    [Tooltip("위험지대(빨강) 색상")]
-    public Color donutDangerColor = new Color(1f, 0f, 0f, 0.4f);
+    // --- 패턴 2: 중력 도넛 폭발 (v1.3, 기존 안/팎 도넛 완전 대체) ---
+    [Header("패턴 2 - 중력 도넛 폭발 (엘리트 몹 위치 중심, 방 크기에 비례해서 자동 조정됩니다)")]
+    [Tooltip("플레이어를 끌어당기는 총 지속시간")]
+    public float gravityPullDuration = 6f;
+    [Tooltip("몇 초마다 한 번씩 끌어당길지. 이 간격 사이에는 플레이어가 완전히 자유롭게 움직일 수 있습니다.")]
+    public float gravityPullTickInterval = 1f;
+    [Tooltip("한 번(1틱)에 순간적으로 끌려가는 거리")]
+    public float gravityPullTickDistance = 1.0f;
+    [Tooltip("판정 범위 반경의 비율 (방 반경 기준)")]
+    public float gravityFieldRadiusRatio = 1.0f;
+    [Tooltip("방을 찾지 못했을 때(fallback) 사용할 판정 범위 절대 반경")]
+    public float gravityFieldFallbackRadius = 9f;
+    [Tooltip("6초 종료 시 '폭발' 피해량 (기둥 뒤에 숨지 못한 대상에게 적용)")]
+    public float gravityExplosionDamage = 22f;
+    [Tooltip("폭발 시점에 기둥 뒤에 숨어 회피한 경우, 그 기둥이 대신 입는 내구도 피해")]
+    public int gravityPillarDamage = 2;
+    [Tooltip("중력장 시각화 색상")]
+    public Color gravityFieldColor = new Color(0.5f, 0.22f, 0.85f, 0.32f);
 
     // --- 패턴 3: 바닥 충격파 ---
     [Header("패턴 3 - 바닥 충격파 (파동이 방 끝까지 퍼져나갑니다, 대쉬로 회피 가능)")]
@@ -164,6 +222,11 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     private EliteBossPatternLabel _label;
     private Coroutine _basicAttackCoroutine;
 
+    // v1.2 추격 버스트 런타임 상태
+    private Coroutine _pursuitBurstCoroutine;
+    private bool _isBursting = false;
+    private float _nextBurstTime;
+
     // 마지막으로 유효했던(0벡터가 아니었던) 조준 방향입니다. 목표와 완전히 겹치는 등 방향 계산이
     // 불가능한 순간에도, 임의의 고정 방향(예: 오른쪽) 대신 이 값을 사용해 "플레이어 반대 방향으로
     // 공격이 나가는" 것처럼 보이는 문제를 방지합니다.
@@ -184,6 +247,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         _lastBasicAttack = -1;
         _label = null;
         _basicAttackCoroutine = null;
+        _pursuitBurstCoroutine = null;
+        _isBursting = false;
+        _nextBurstTime = Time.time + Random.Range(pursuitBurstMinInterval, pursuitBurstMaxInterval);
         _lastAimDir = Vector2.down;
         _basicPhaseStartTime = Time.time;
     }
@@ -241,6 +307,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                     entity.IsAttacking = false;
                     ClearLabel();
                 }
+                StopPursuitBurst(entity);
 
                 int pattern = DrawFromSpecialPool();
                 entity.StartCoroutine(RunSpecialPattern(entity, pattern));
@@ -257,6 +324,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 if (dist <= entity.Stats.ATKRANGE && entity.AtkTimer >= entity.Stats.ATKSPD)
                 {
                     entity.CurrentState = AIState.Attack;
+                    StopPursuitBurst(entity);
                     StopNavAgent(entity);
                     entity.AtkTimer = 0f;
                     _basicAttackCoroutine = entity.StartCoroutine(BasicAttackRoutine(entity));
@@ -267,8 +335,15 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                     if (agent != null && agent.isActiveAndEnabled)
                     {
                         agent.isStopped = false;
-                        agent.speed = entity.Stats.MOVESPEED;
+                        if (!_isBursting) agent.speed = entity.Stats.MOVESPEED;
                         agent.SetDestination(entity.Target.position);
+                    }
+
+                    // ② 추격 버스트 (v1.2): 사거리 밖에서 추격하는 동안 간헐적으로 짧게 가속 후 감속합니다.
+                    // "8초에 한 번만 돌진하는 보스"가 아니라 "항상 돌진할 수 있는 보스"로 체감시키기 위한 연출입니다.
+                    if (!_isBursting && Time.time >= _nextBurstTime)
+                    {
+                        _pursuitBurstCoroutine = entity.StartCoroutine(PursuitBurstRoutine(entity));
                     }
                 }
             }
@@ -468,12 +543,69 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     }
 
     // ==============================================================
+    // 추격 버스트 (v1.2, 3단 돌진 체계 ②)
+    // ==============================================================
+    private IEnumerator PursuitBurstRoutine(BaseEntity entity)
+    {
+        _isBursting = true;
+        var agent = entity.GetComponent<NavMeshAgent>();
+
+        if (agent != null && agent.isActiveAndEnabled && entity.Stats != null)
+        {
+            float baseSpeed = entity.Stats.MOVESPEED;
+            float burstSpeed = baseSpeed * pursuitBurstSpeedMultiplier;
+
+            agent.speed = burstSpeed;
+            float t = 0f;
+            while (t < pursuitBurstDuration)
+            {
+                t += Time.deltaTime;
+                if (entity.Target != null) agent.SetDestination(entity.Target.position);
+                yield return null;
+            }
+
+            float dt = 0f;
+            while (dt < pursuitBurstDecelDuration)
+            {
+                dt += Time.deltaTime;
+                float f = Mathf.Clamp01(dt / pursuitBurstDecelDuration);
+                agent.speed = Mathf.Lerp(burstSpeed, baseSpeed, f);
+                yield return null;
+            }
+            agent.speed = baseSpeed;
+        }
+
+        _isBursting = false;
+        _pursuitBurstCoroutine = null;
+        _nextBurstTime = Time.time + Random.Range(pursuitBurstMinInterval, pursuitBurstMaxInterval);
+    }
+
+    /// <summary>
+    /// 진행 중인 추격 버스트가 있다면 즉시 중단하고 이동속도를 원래대로 되돌립니다.
+    /// (기본 공격 시작, 특수 패턴 강제 발동 등 다른 행동으로 전환될 때 호출합니다.)
+    /// </summary>
+    private void StopPursuitBurst(BaseEntity entity)
+    {
+        if (_pursuitBurstCoroutine != null)
+        {
+            entity.StopCoroutine(_pursuitBurstCoroutine);
+            _pursuitBurstCoroutine = null;
+        }
+        if (_isBursting)
+        {
+            var agent = entity.GetComponent<NavMeshAgent>();
+            if (agent != null && agent.isActiveAndEnabled && entity.Stats != null) agent.speed = entity.Stats.MOVESPEED;
+            _isBursting = false;
+        }
+    }
+
+    // ==============================================================
     // 기본 공격 3종
     // ==============================================================
     private int PickBasicAttack()
     {
         int next;
-        do { next = Random.Range(0, 3); } while (next == _lastBasicAttack);
+        do { next = Random.Range(0, 4); } while (next == _lastBasicAttack);
         _lastBasicAttack = next;
         return next;
     }
@@ -490,66 +622,91 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             entity.Animator.Play("Attack", -1, 0f);
         }
 
-        int atkIndex = PickBasicAttack(); // 0: 단순찍기, 1: 부채꼴, 2: 휩쓸기
+        int atkIndex = PickBasicAttack(); // 0: 미니 돌진 찍기, 1: 일반 돌진, 2: 부채꼴, 3: 휩쓸기
 
-        float windup = atkIndex == 0 ? stabWindup : atkIndex == 1 ? fanWindup : sweepWindup;
-        float radius = atkIndex == 0 ? stabRadius : atkIndex == 1 ? fanRadius : sweepRadius;
-        GameObject prefab = atkIndex == 0 ? stabHitboxPrefab : atkIndex == 1 ? fanHitboxPrefab : sweepHitboxPrefab;
-        string labelText = atkIndex == 0 ? label_Stab : atkIndex == 1 ? label_Fan : label_Sweep;
+        float windup = atkIndex == 0 ? stabWindup : atkIndex == 1 ? normalChargeWindup : atkIndex == 2 ? fanWindup : sweepWindup;
+        float radius = atkIndex == 0 ? stabRadius : atkIndex == 1 ? normalChargeHitRadius : atkIndex == 2 ? fanRadius : sweepRadius;
+        string labelText = atkIndex == 0 ? label_Stab : atkIndex == 1 ? label_NormalCharge : atkIndex == 2 ? label_Fan : label_Sweep;
 
         ShowLabel(labelText);
 
         Vector2 dir = GetAimDir(entity);
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
-        GameObject hitboxObj;
-        bool isFan = (atkIndex == 1);
+        bool isFan = (atkIndex == 2);
 
-        if (isFan)
+        if (atkIndex == 0)
+        {
+            // ① 약한 돌진 (v1.2): 제자리 판정 대신 실제로 짧은 거리를 전진하며 찍습니다.
+            yield return MiniChargeStabRoutine(entity, dir, radius, windup);
+        }
+        else if (atkIndex == 1)
+        {
+            // ② 일반 돌진 (v1.35 신규): 일반 차저의 직선형 고속 돌진입니다. 데미지는 낮고, 기둥에
+            // 닿으면 기둥의 내구도를 1 깎으며 돌진이 멈춥니다 (기둥이 완전히 무너지진 않습니다).
+            yield return NormalChargeRoutine(entity, dir, windup);
+        }
+        else if (isFan)
         {
             // 부채꼴(삼각형) 공격: 보스 중심에 스폰하고, 회전은 AimFanHitbox()가 담당합니다.
             // 이 함수는 아래 윈드업 대기 루프에서 매 프레임 다시 호출되어, 시전 도중에도
-            // 플레이어를 계속 조준하도록 합니다.
-            hitboxObj = fanHitboxPrefab != null
+            // 플레이어를 계속 조준하도록 합니다. 시전 도중 각도(폭)가 좁았다가 넓어지는 연출로
+            // "휘두른다"는 느낌을 줍니다 (localScale.x를 폭으로 사용 - 프리팹의 가로축이 폭이
+            // 아니라면 이 축만 바꾸면 됩니다).
+            GameObject hitboxObj = fanHitboxPrefab != null
                 ? GameObject.Instantiate(fanHitboxPrefab, entity.transform.position, Quaternion.identity)
                 : CreateFallbackCircle(entity.transform.position, 0.5f, new Color(1f, 0f, 0f, 0.35f));
 
-            hitboxObj.transform.localScale = Vector3.one * radius;
+            hitboxObj.transform.localScale = new Vector3(radius * 0.3f, radius, 1f);
             AimFanHitbox(hitboxObj, entity);
+
+            BaseHitBox hb = hitboxObj.GetComponent<BaseHitBox>();
+            if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
+
+            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, true);
+            hb.Init(info, entity.opponentLayer, 0.25f, windup, entity.team == Team.Ally);
+
+            float t = 0f;
+            while (t < windup)
+            {
+                t += Time.deltaTime;
+                float f = Mathf.Clamp01(t / windup);
+
+                // 부채꼴 공격은 시전(윈드업) 도중에도 매 프레임 다시 조준해, 마지막 순간까지
+                // 플레이어를 따라갑니다. 동시에 폭이 좁음 -> 넓음으로 벌어집니다.
+                if (hitboxObj != null)
+                {
+                    AimFanHitbox(hitboxObj, entity);
+                    float widthScale = Mathf.Lerp(0.3f, 1f, f);
+                    hitboxObj.transform.localScale = new Vector3(radius * widthScale, radius, 1f);
+                }
+
+                yield return null;
+            }
         }
         else
         {
-            // 휩쓸기는 보스 자신을 중심으로, 단순 찍기는 전방으로 살짝 띄워서 스폰합니다.
-            Vector2 spawnPos = atkIndex == 2
-                ? (Vector2)entity.transform.position
-                : (Vector2)entity.transform.position + dir * 0.8f;
+            // 휩쓸기: 보스 자신을 중심으로 원형 범위
+            Vector2 spawnPos = entity.transform.position;
 
-            hitboxObj = prefab != null
-                ? GameObject.Instantiate(prefab, spawnPos, Quaternion.Euler(0, 0, angle))
+            GameObject hitboxObj = sweepHitboxPrefab != null
+                ? GameObject.Instantiate(sweepHitboxPrefab, spawnPos, Quaternion.Euler(0, 0, angle))
                 : CreateFallbackCircle(spawnPos, 0.5f, new Color(1f, 0f, 0f, 0.35f));
 
             hitboxObj.transform.localScale = Vector3.one * radius;
-        }
 
-        BaseHitBox hb = hitboxObj.GetComponent<BaseHitBox>();
-        if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
+            BaseHitBox hb = hitboxObj.GetComponent<BaseHitBox>();
+            if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
 
-        DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, true);
-        hb.Init(info, entity.opponentLayer, 0.25f, windup, entity.team == Team.Ally);
+            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, true);
+            hb.Init(info, entity.opponentLayer, 0.25f, windup, entity.team == Team.Ally);
 
-        float t = 0f;
-        while (t < windup)
-        {
-            t += Time.deltaTime;
-
-            // 부채꼴 공격은 시전(윈드업) 도중에도 매 프레임 다시 조준해, 마지막 순간까지
-            // 플레이어를 따라갑니다.
-            if (isFan && hitboxObj != null)
+            float t = 0f;
+            while (t < windup)
             {
-                AimFanHitbox(hitboxObj, entity);
+                t += Time.deltaTime;
+                yield return null;
             }
-
-            yield return null;
         }
 
         entity.HasFiredHitEvent = true;
@@ -562,6 +719,190 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         _basicAttackCoroutine = null;
         entity.ResetAnimationState();
         ClearLabel();
+    }
+
+    // ==============================================================
+    // ① 약한 돌진: 미니 돌진 찍기 (v1.2)
+    // 전용 애니메이션이 없어서, 웅크렸다가(스쿼시) 튀어나가는(스트레치) 스케일 연출로
+    // 그 부재를 보완합니다. 실제 이동은 벽/기둥에 막히면 그 앞에서 멈춥니다.
+    // ==============================================================
+    private IEnumerator MiniChargeStabRoutine(BaseEntity entity, Vector2 dir, float radius, float windup)
+    {
+        float dashDuration = Mathf.Min(miniChargeDashDuration, Mathf.Max(0.05f, windup - 0.1f));
+        float squashDuration = Mathf.Max(0.05f, windup - dashDuration);
+
+        entity.StartCoroutine(ScaleCoroutine(entity, squashDuration, miniChargeSquashScale, dashDuration, miniChargeStretchScale));
+
+        yield return new WaitForSeconds(squashDuration);
+
+        yield return MiniChargeDash(entity, dir, miniChargeDistance, dashDuration);
+
+        Vector2 spawnPos = (Vector2)entity.transform.position + dir * 0.6f;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+        GameObject hitboxObj = stabHitboxPrefab != null
+            ? GameObject.Instantiate(stabHitboxPrefab, spawnPos, Quaternion.Euler(0f, 0f, angle))
+            : CreateFallbackCircle(spawnPos, 0.5f, new Color(1f, 0f, 0f, 0.35f));
+        hitboxObj.transform.localScale = Vector3.one * radius;
+
+        BaseHitBox hb = hitboxObj.GetComponent<BaseHitBox>();
+        if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
+
+        DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, true);
+        hb.Init(info, entity.opponentLayer, 0.25f, 0.05f, entity.team == Team.Ally);
+
+        yield return new WaitForSeconds(0.05f);
+    }
+
+    /// <summary>
+    /// 짧은 거리를 실제로 전진합니다. 대시 경로에 벽/기둥이 있으면 그 앞에서 멈춥니다.
+    /// </summary>
+    private IEnumerator MiniChargeDash(BaseEntity entity, Vector2 dir, float distance, float duration)
+    {
+        // 기둥은 더 이상 대시를 막거나 데미지를 입지 않습니다 (실제 벽만 이동을 제한합니다).
+        // 기둥 데미지는 대시 종료 후 "마지막 내려찍기" 판정(MiniChargeStabRoutine)에서만 발생합니다.
+        LayerMask wallMask = LayerMask.GetMask("Wall");
+        float clampedDistance = distance;
+
+        RaycastHit2D obstacleHit = Physics2D.CircleCast(entity.transform.position, miniChargeCheckRadius, dir, distance, wallMask);
+        if (obstacleHit.collider != null)
+        {
+            clampedDistance = Mathf.Max(0.1f, obstacleHit.distance - 0.1f);
+        }
+
+        Vector2 start = entity.transform.position;
+        Vector2 end = start + dir * clampedDistance;
+
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float f = Mathf.Clamp01(t / duration);
+            entity.transform.position = Vector2.Lerp(start, end, f);
+            yield return null;
+        }
+        entity.transform.position = end;
+    }
+
+    /// <summary>
+    /// ② 일반 돌진 (v1.35 신규): 일반 차저가 가진 직선형 고속 돌진입니다. 미니 돌진 찍기보다
+    /// 빠르고 멀리 가지만, 패턴 1의 강한 돌진보다는 약하고 데미지도 낮습니다. 기둥에 닿으면
+    /// (강한 돌진처럼 완전히 무너뜨리는 게 아니라) 기둥의 내구도만 1 깎고 그 자리에서 멈춥니다.
+    /// </summary>
+    private IEnumerator NormalChargeRoutine(BaseEntity entity, Vector2 dir, float windup)
+    {
+        // 다른 기본 공격들과 통일된 예비동작: 짧은 직선 전조를 표시합니다.
+        GameObject telegraph = CreateFallbackRect(new Color(1f, 0.55f, 0f, 0.3f));
+
+        // 확실한 돌진 느낌을 위해, 윈드업 동안 웅크렸다가 돌진 시작 순간 크게 튀어나가는 스쿼시/스트레치 연출입니다.
+        entity.StartCoroutine(ScaleCoroutine(entity, windup, normalChargeSquashScale, 0.2f, normalChargeStretchScale));
+        float estimatedLength = entity.Stats.MOVESPEED * normalChargeSpeedMultiplier * normalChargeMaxDuration;
+
+        float wt = 0f;
+        while (wt < windup)
+        {
+            wt += Time.deltaTime;
+            if (entity.Target != null) dir = GetAimDir(entity);
+            UpdateChargeTelegraph(telegraph, entity.transform.position, dir, estimatedLength, normalChargeHitRadius * 2f);
+            yield return null;
+        }
+        if (telegraph != null) GameObject.Destroy(telegraph);
+
+        var agent = entity.GetComponent<NavMeshAgent>();
+        bool wasAgentEnabled = agent != null && agent.enabled;
+        if (wasAgentEnabled)
+        {
+            agent.isStopped = true;
+            agent.velocity = Vector3.zero;
+            agent.enabled = false;
+        }
+
+        var rb = entity.GetComponent<Rigidbody2D>();
+        float chargeSpeed = entity.Stats.MOVESPEED * normalChargeSpeedMultiplier;
+        float elapsed = 0f;
+
+        LayerMask playerMask = LayerMask.GetMask("Player", "Player_Dash");
+        LayerMask wallMask = LayerMask.GetMask("Wall", "Object");
+
+        while (elapsed < normalChargeMaxDuration)
+        {
+            elapsed += Time.deltaTime;
+            if (rb != null) rb.linearVelocity = dir * chargeSpeed;
+
+            float checkDist = chargeSpeed * Time.deltaTime + 0.15f;
+
+            RaycastHit2D obstacleHit = Physics2D.CircleCast(entity.transform.position, normalChargeHitRadius, dir, checkDist, wallMask);
+            if (obstacleHit.collider != null)
+            {
+                // 강한 돌진(패턴 1)과 달리, 기둥을 완전히 무너뜨리지 않고 내구도만 1 깎습니다.
+                EliteMonsterPillar hitPillar = obstacleHit.collider.GetComponentInParent<EliteMonsterPillar>();
+                if (hitPillar != null && hitPillar.IsAlive)
+                {
+                    hitPillar.DamagePattern(normalChargePillarDamage);
+                }
+                if (rb != null) rb.linearVelocity = Vector2.zero;
+                break;
+            }
+
+            RaycastHit2D playerHit = Physics2D.CircleCast(entity.transform.position, normalChargeHitRadius, dir, checkDist, playerMask);
+            if (playerHit.collider != null)
+            {
+                CharacterHealth pHealth = playerHit.collider.GetComponentInChildren<CharacterHealth>();
+                if (pHealth == null) pHealth = playerHit.collider.GetComponentInParent<CharacterHealth>();
+                if (pHealth != null && !pHealth.Invincible)
+                {
+                    pHealth.GetDamage(new DamageInfo(entity.Stats.ATK * normalChargeDamageMultiplier, DamageType.Physical, entity.gameObject));
+                }
+                if (rb != null) rb.linearVelocity = Vector2.zero;
+                break;
+            }
+
+            yield return null;
+        }
+
+        if (rb != null) rb.linearVelocity = Vector2.zero;
+
+        if (wasAgentEnabled && agent != null)
+        {
+            if (NavMesh.SamplePosition(entity.transform.position, out NavMeshHit navHit, 2f, NavMesh.AllAreas))
+            {
+                entity.transform.position = navHit.position;
+            }
+            agent.enabled = true;
+            agent.isStopped = false;
+        }
+    }
+
+    /// <summary>
+    /// 애니메이션 부재를 보완하기 위한 스쿼시(웅크림) -> 스트레치(튀어나감) 스케일 연출입니다.
+    /// entity.transform.localScale을 기준 스케일의 배율로 조정하므로, 좌우 반전을 위해
+    /// 음수 X 스케일을 쓰는 경우에도 부호가 그대로 유지됩니다.
+    /// </summary>
+    private IEnumerator ScaleCoroutine(BaseEntity entity, float squashDuration, float squashScale, float stretchDuration, float stretchScale)
+    {
+        Vector3 baseScale = entity.transform.localScale;
+
+        float t = 0f;
+        while (t < squashDuration)
+        {
+            t += Time.deltaTime;
+            float s = Mathf.Lerp(1f, squashScale, Mathf.Clamp01(t / squashDuration));
+            entity.transform.localScale = baseScale * s;
+            yield return null;
+        }
+
+        entity.transform.localScale = baseScale * stretchScale;
+
+        t = 0f;
+        while (t < stretchDuration)
+        {
+            t += Time.deltaTime;
+            float s = Mathf.Lerp(stretchScale, 1f, Mathf.Clamp01(t / stretchDuration));
+            entity.transform.localScale = baseScale * s;
+            yield return null;
+        }
+
+        entity.transform.localScale = baseScale;
     }
 
     // ==============================================================
@@ -593,7 +934,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 yield return Pattern1_PillarCharge(entity);
                 break;
             case 1:
-                yield return Pattern2_Donut(entity);
+                yield return Pattern2_GravityDonut(entity);
                 break;
             default:
                 yield return Pattern3_GroundSlam(entity);
@@ -609,7 +950,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         _basicPhaseStartTime = Time.time;
     }
 
-    // --- 패턴 1: 기둥과 돌진 ---
+    // --- 패턴 1: 기둥과 돌진 (3단 돌진 체계 ③ 강한 돌진, 스펙 변경 없음) ---
     private IEnumerator Pattern1_PillarCharge(BaseEntity entity)
     {
         ShowLabel(label_Pattern1Windup);
@@ -772,116 +1113,121 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         telegraph.transform.localScale = new Vector3(length, width, 1f);
     }
 
-    // --- 패턴 2: 안 팎 도넛 ---
-    private IEnumerator Pattern2_Donut(BaseEntity entity)
+    // --- 패턴 2: 중력 도넛 폭발 (v1.3, 기존 안/팎 도넛 완전 대체) ---
+    private IEnumerator Pattern2_GravityDonut(BaseEntity entity)
     {
         ShowLabel(label_Pattern2);
 
         StopNavAgent(entity);
 
-        RoomMetrics room = GetRoomMetrics(entity);
-
-        // 판정 중심은 항상 "엘리트 몹 자신의 현재 위치"입니다. (맵/방 중앙이 아님)
         Vector2 center = entity.transform.position;
 
-        float innerSmall, outerSmall, innerLarge, outerLarge, fieldMax;
-        if (room.found)
+        RoomMetrics room = GetRoomMetrics(entity);
+        float fieldRadius = room.found
+            ? Mathf.Min(room.halfX, room.halfY) * gravityFieldRadiusRatio
+            : gravityFieldFallbackRadius;
+
+        GameObject telegraph = SpawnGravityTelegraph(center, fieldRadius);
+
+        LayerMask targetLayer = LayerMask.GetMask("Player", "Army", "Ally");
+
+        // v1.3: 매 프레임 연속으로 끄는 대신, tickInterval초마다 한 번씩 tickDistance만큼만 순간적으로
+        // 끌어당깁니다. 틱과 틱 사이에는 플레이어가 완전히 자유롭게 움직일 수 있어, 기획 의도대로
+        // "6초 동안 기둥 뒤로 도망갈 시간"이 실제로 주어집니다.
+        float t = 0f;
+        float nextTickTime = gravityPullTickInterval;
+        while (t < gravityPullDuration)
         {
-            // 방이 원형이 아니므로, 짧은 쪽 절반 크기를 기준으로 원형 범위 크기만 산정합니다.
-            // (판정 "중심"은 여전히 보스 위치이며, 이 값은 크기 스케일링에만 사용됩니다.)
-            float roomRadius = Mathf.Min(room.halfX, room.halfY);
-            innerSmall = roomRadius * donutInnerSmallRatio;
-            outerSmall = roomRadius * donutOuterSmallRatio;
-            innerLarge = roomRadius * donutInnerLargeRatio;
-            outerLarge = roomRadius * donutOuterLargeRatio;
-            fieldMax = roomRadius * donutFieldMaxRatio;
-        }
-        else
-        {
-            innerSmall = donutFallbackInnerSmall;
-            outerSmall = donutFallbackOuterSmall;
-            innerLarge = donutFallbackInnerLarge;
-            outerLarge = donutFallbackOuterLarge;
-            fieldMax = donutFallbackOuterLarge * 1.25f;
-        }
+            t += Time.deltaTime;
 
-        // 안->팎->안->팎 또는 팎->안->팎->안 중 랜덤
-        bool startsIn = Random.value > 0.5f;
-
-        float[] innerRadii = { innerSmall, innerLarge };
-        float[] outerRadii = { outerSmall, outerLarge };
-
-        for (int i = 0; i < 4; i++)
-        {
-            bool isInPhase = (i % 2 == 0) ? startsIn : !startsIn;
-            int sizeIndex = i / 2; // 0: 1회차(작은 범위), 1: 2회차(더 넓은 범위)
-            float radius = isInPhase ? innerRadii[sizeIndex] : outerRadii[sizeIndex];
-
-            GameObject telegraph = SpawnDonutTelegraph(center, radius, isInPhase, fieldMax);
-
-            yield return new WaitForSeconds(donutExplodeDelay);
-
-            LayerMask targetLayer = LayerMask.GetMask("Player", "Army", "Ally");
-            Collider2D[] hits = Physics2D.OverlapCircleAll(center, fieldMax, targetLayer);
-            foreach (var hit in hits)
+            if (telegraph != null)
             {
-                float d = Vector2.Distance(center, hit.transform.position);
-                bool inDanger = isInPhase ? (d <= radius) : (d > radius && d <= fieldMax);
-                if (!inDanger) continue;
-
-                CharacterStat stat = hit.GetComponentInParent<CharacterStat>();
-                if (stat == null) stat = hit.GetComponentInChildren<CharacterStat>();
-                if (stat != null && stat.Health != null && !stat.Health.IsDead)
+                var sr = telegraph.GetComponent<SpriteRenderer>();
+                if (sr != null)
                 {
-                    stat.Health.GetDamage(new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject));
+                    // 펄스 연출: 시간에 따라 투명도가 진동하며 끌어당기는 중임을 표현합니다.
+                    float pulse = gravityFieldColor.a + 0.15f * Mathf.Sin(t * 6f);
+                    Color c = gravityFieldColor;
+                    c.a = Mathf.Clamp01(pulse);
+                    sr.color = c;
                 }
             }
 
-            if (telegraph != null) GameObject.Destroy(telegraph);
+            if (t >= nextTickTime)
+            {
+                nextTickTime += gravityPullTickInterval;
+
+                Collider2D[] hits = Physics2D.OverlapCircleAll(center, fieldRadius, targetLayer);
+                foreach (var hit in hits)
+                {
+                    // 살아있는 기둥 뒤에 숨은 대상은 이 틱에서 끌려가지 않습니다. (유일한 회피 수단)
+                    if (FindShelteringPillar(hit.transform.position) != null)
+                    {
+                        continue;
+                    }
+
+                    Vector2 currentPos = hit.transform.position;
+                    Vector2 pulled = Vector2.MoveTowards(currentPos, center, gravityPullTickDistance);
+
+                    Rigidbody2D rb2 = hit.attachedRigidbody;
+                    if (rb2 != null)
+                    {
+                        rb2.MovePosition(pulled);
+                    }
+                    else
+                    {
+                        hit.transform.position = pulled;
+                    }
+                }
+            }
+
+            yield return null;
         }
 
-        if (entity.Stats != null && entity.Stats.Status != null)
+        if (telegraph != null)
         {
-            entity.Stats.Status.SetDebuffBool(DebuffBoolType.Stunned, donutStunDuration);
+            GameObject.Destroy(telegraph);
+        }
+
+        // 폭발: 기둥 뒤에 숨어있지 않은 대상은 직접 피해를, 숨어있던 대상은 무피해 대신
+        // 그 기둥이 내구도 피해를 입습니다. 이 패턴은 그로기를 전혀 부여하지 않습니다.
+        Collider2D[] finalHits = Physics2D.OverlapCircleAll(center, fieldRadius, targetLayer);
+        foreach (var hit in finalHits)
+        {
+            EliteMonsterPillar shelterPillar = FindShelteringPillar(hit.transform.position);
+            if (shelterPillar != null)
+            {
+                shelterPillar.DamagePattern(gravityPillarDamage);
+                continue;
+            }
+
+            CharacterHealth pHealth = hit.GetComponentInChildren<CharacterHealth>();
+            if (pHealth == null)
+            {
+                pHealth = hit.GetComponentInParent<CharacterHealth>();
+            }
+            if (pHealth == null || pHealth.IsDead || pHealth.Invincible)
+            {
+                continue;
+            }
+
+            pHealth.GetDamage(new DamageInfo(gravityExplosionDamage, DamageType.Physical, entity.gameObject));
         }
     }
 
     /// <summary>
-    /// 안/팎 도넛 전조를 위험지대(빨강)와 안전지대(초록) 두 겹으로 표시합니다.
-    /// isInPhase == true: 중심(radius 이내)이 위험, 그 바깥이 안전.
-    /// isInPhase == false: 중심(radius 이내)이 안전, 그 바깥이 위험.
+    /// 중력장 범위를 표시하는 원형 전조입니다. 시전 중 계속 유지되며, 펄스 연출로 투명도가 진동합니다.
     /// </summary>
-    private GameObject SpawnDonutTelegraph(Vector2 center, float radius, bool isInPhase, float fieldMax)
+    private GameObject SpawnGravityTelegraph(Vector2 center, float radius)
     {
-        GameObject container = new GameObject("Elite_Telegraph_Donut");
-        container.transform.position = center;
-
-        GameObject outer = new GameObject("Outer");
-        outer.transform.SetParent(container.transform, false);
-        SpriteRenderer outerSr = outer.AddComponent<SpriteRenderer>();
-        outerSr.sprite = GetOrCreateCircleSprite();
-        outerSr.sortingOrder = 9;
-        outer.transform.localScale = Vector3.one * (fieldMax * 2f);
-
-        GameObject inner = new GameObject("Inner");
-        inner.transform.SetParent(container.transform, false);
-        SpriteRenderer innerSr = inner.AddComponent<SpriteRenderer>();
-        innerSr.sprite = GetOrCreateCircleSprite();
-        innerSr.sortingOrder = 10;
-        inner.transform.localScale = Vector3.one * (radius * 2f);
-
-        if (isInPhase)
-        {
-            outerSr.color = donutSafeColor;
-            innerSr.color = donutDangerColor;
-        }
-        else
-        {
-            outerSr.color = donutDangerColor;
-            innerSr.color = donutSafeColor;
-        }
-
-        return container;
+        GameObject obj = new GameObject("Elite_Telegraph_Gravity");
+        obj.transform.position = center;
+        var sr = obj.AddComponent<SpriteRenderer>();
+        sr.sprite = GetOrCreateCircleSprite();
+        sr.color = gravityFieldColor;
+        sr.sortingOrder = 9;
+        obj.transform.localScale = Vector3.one * (radius * 2f);
+        return obj;
     }
 
     // --- 패턴 3: 바닥 충격파 (보스를 중심으로 퍼져나가는 얇은 고리형 파동, 대쉬로 회피 가능) ---
