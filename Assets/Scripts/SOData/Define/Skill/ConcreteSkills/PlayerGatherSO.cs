@@ -157,8 +157,8 @@ public class PlayerGatherSO : PlayerSkillSO
                             else checkRadius = Mathf.Max(col.bounds.extents.x, col.bounds.extents.y);
                         }
 
-                        int obstacleMask = Layers.WallObstacle;
-                        // 충돌 반지름 마진 1.0f 적용으로 벽 관통 예방
+                        int obstacleMask = Layers.WallObstacle | Layers.UnsteppableMask;
+                        // 충돌 반지름 마진 1.0f 적용으로 벽/낭떠러지 관통 예방
                         RaycastHit2D hit = Physics2D.CircleCast(targetsToMove[i].position, checkRadius * 1.0f, moveDir.normalized, moveDist, obstacleMask);
                         if (hit.collider != null)
                         {

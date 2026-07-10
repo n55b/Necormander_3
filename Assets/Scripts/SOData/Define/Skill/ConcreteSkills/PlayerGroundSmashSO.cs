@@ -118,8 +118,13 @@ public class PlayerGroundSmashSO : PlayerSkillSO
 
         float elapsed = 0f;
         Vector2 startPos = enemy.position;
-        // 플레이어에게서 약간 떨어진 위치까지만 당기기
-        Vector2 targetPos = center + (startPos - center).normalized * 0.5f;
+        // 플레이어에게서 약간 떨어진 위치까지만 당기기 (벽/낭떠러지를 관통해 끌려오지 않도록 대시와 동일 판정으로 제동)
+        Vector2 rawTarget = center + (startPos - center).normalized * 0.5f;
+        Vector2 toTarget = rawTarget - startPos;
+        float pullDist = toTarget.magnitude;
+        Vector2 targetPos = pullDist > 0.001f
+            ? SkillCombatUtil.GetSafeDestination(startPos, toTarget / pullDist, pullDist)
+            : rawTarget;
 
         while (elapsed < gatherDuration)
         {

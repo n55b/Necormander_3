@@ -86,7 +86,14 @@ public class MinionActionSkillSO : MinionSkillSO
             // 나머지는 플레이어와 타겟 사이로 이동
             teleportPos = (Vector2)closestTarget.position - dirFromPlayer * 0.5f;
         }
-        
+
+        // 대시와 동일 판정: 미니언이 벽/낭떠러지를 뚫고 타겟으로 순간이동하지 않도록 목적지 제동.
+        Vector2 teleStart = user.position;
+        Vector2 teleTo = teleportPos - teleStart;
+        float teleDist = teleTo.magnitude;
+        if (teleDist > 0.001f)
+            teleportPos = SkillCombatUtil.GetSafeDestination(teleStart, teleTo / teleDist, teleDist);
+
         user.position = teleportPos;
 
         // [수정] 텔레포트 돌진 직후, 타겟을 직접 바라보도록 미니언의 SpriteRenderer.flipX를 설정
@@ -220,8 +227,8 @@ public class MinionActionSkillSO : MinionSkillSO
         Vector2 startPos = enemy.position;
         Vector2 targetPos = startPos + pushDir * forceAmount;
         
-        int obstacleMask = Layers.WallObstacle;
-        
+        int obstacleMask = Layers.WallObstacle | Layers.UnsteppableMask;
+
         // 몬스터 콜라이더 크기 구하기
         var enemyCol = enemy.GetComponent<Collider2D>();
         float checkRadius = 0.3f;

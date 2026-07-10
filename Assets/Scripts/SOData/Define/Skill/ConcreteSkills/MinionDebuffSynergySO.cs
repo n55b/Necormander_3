@@ -47,7 +47,13 @@ public class MinionDebuffSynergySO : MinionSkillSO
         Vector2 dirFromPlayer = ((Vector2)closestTarget.position - (Vector2)user.position).normalized;
         if (dirFromPlayer == Vector2.zero) dirFromPlayer = Vector2.right;
         
-        user.position = (Vector2)closestTarget.position - dirFromPlayer * 0.5f;
+        // 대시와 동일 판정: 미니언이 벽/낭떠러지를 뚫고 타겟으로 순간이동하지 않도록 목적지 제동.
+        Vector2 rawTelePos = (Vector2)closestTarget.position - dirFromPlayer * 0.5f;
+        Vector2 teleTo = rawTelePos - (Vector2)user.position;
+        float teleDist = teleTo.magnitude;
+        user.position = teleDist > 0.001f
+            ? SkillCombatUtil.GetSafeDestination(user.position, teleTo / teleDist, teleDist)
+            : rawTelePos;
 
         PlaySkillSound();
         ShakeCamera();

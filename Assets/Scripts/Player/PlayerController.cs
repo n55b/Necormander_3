@@ -1141,42 +1141,11 @@ public class PlayerController : MonoBehaviour
 
     /// <summary>
     /// 대시 방향으로 Unsteppable(낭떠러지) 또는 벽이 있으면 걸치지 않고 안전하게 제동할 목적지 위치를 반환합니다.
+    /// 실제 스캔 로직은 <see cref="SkillCombatUtil.GetSafeDestination"/> 로 일원화되어, 좌표 텔레포트로 이동하는
+    /// 모든 스킬·넉백이 대시와 동일한 벽/낭떠러지 판정을 공유합니다.
     /// </summary>
     public Vector2 GetSafeDashPosition(Vector2 startPos, Vector2 direction, float maxDistance)
     {
-        int unsteppableMask = Layers.UnsteppableMask;
-        int wallMask = Layers.WallObstacle;
-
-        // [Fix] 플레이어가 이미 Unsteppable/Wall 위에 있다면(맵 밖으로 나간 상태)
-        // 안전 지점 탐색을 건너뛰고 원래 목표 지점까지 그대로 이동시켜 탈출을 허용
-        bool alreadyStuck = Physics2D.OverlapCircle(startPos, 0.25f, unsteppableMask) != null
-                          || Physics2D.OverlapCircle(startPos, 0.25f, wallMask) != null;
-        if (alreadyStuck)
-        {
-            return startPos + direction * maxDistance;
-        }
-
-
-        Vector2 targetPos = startPos + direction * maxDistance;
-        float checkStep = 0.1f;
-        float elapsed = 0f;
-
-        // 도착 지점에서부터 역으로 훑어가며 안전한 바닥 지점을 찾음
-        while (elapsed < maxDistance)
-        {
-            Vector2 checkPos = targetPos - direction * elapsed;
-
-            // 0.25f 반경으로 체크하여 걸치는지 확인
-            bool isUnsteppable = Physics2D.OverlapCircle(checkPos, 0.25f, unsteppableMask) != null;
-            bool isWall = Physics2D.OverlapCircle(checkPos, 0.25f, wallMask) != null;
-
-            if (!isUnsteppable && !isWall)
-            {
-                return checkPos;
-            }
-            elapsed += checkStep;
-        }
-
-        return startPos; // 안전한 곳이 전혀 없다면 제자리 정지
+        return SkillCombatUtil.GetSafeDestination(startPos, direction, maxDistance);
     }
 }
