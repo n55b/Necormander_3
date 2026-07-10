@@ -23,9 +23,10 @@ MonoBehaviour:
   shakeForce: 0.5
   hitStopDuration: 0
   handSkillAnimName: 019_Physics_NeedleSobat
+  hitTimingRatio: 0.4
   hitBoxPrefab: {fileID: -7664338518204726940, guid: d1ce623f6fad4bb4dba1c4257fa1fefa, type: 3}
   hitDistance: 2.5
-  hitWidth: 1.8
+  hitWidth: 3
   damageMultiplier: 1.2
   knockbackForce: 4
   knockbackDuration: 0.2

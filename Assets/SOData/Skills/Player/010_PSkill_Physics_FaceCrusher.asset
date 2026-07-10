@@ -24,9 +24,8 @@ MonoBehaviour:
   shakeForce: 0.5
   hitStopDuration: 0
   handSkillAnimName: 010_Physics_FaceCrusher
-  hitTimingRatio: 0
+  hitTimingRatio: 0.5
   hitBoxPrefab: {fileID: -7664338518204726940, guid: d1ce623f6fad4bb4dba1c4257fa1fefa, type: 3}
-  chargeTime: 1
   distance: 3
   width: 3
   centerWidth: 1
