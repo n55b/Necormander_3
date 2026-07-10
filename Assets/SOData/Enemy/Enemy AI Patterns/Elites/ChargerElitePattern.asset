@@ -27,10 +27,19 @@ MonoBehaviour:
   sweepRadius: 6
   fanRotationOffset: 90
   miniChargeDistance: 1.6
+  miniChargePillarDamage: 1
   miniChargeDashDuration: 0.15
   miniChargeCheckRadius: 0.6
   miniChargeSquashScale: 0.82
   miniChargeStretchScale: 1.2
+  normalChargeWindup: 0.8
+  normalChargeSpeedMultiplier: 5
+  normalChargeSquashScale: 0.82
+  normalChargeStretchScale: 1.4
+  normalChargeMaxDuration: 1.2
+  normalChargeHitRadius: 1
+  normalChargeDamageMultiplier: 0.5
+  normalChargePillarDamage: 1
   pursuitBurstMinInterval: 2.5
   pursuitBurstMaxInterval: 4.5
   pursuitBurstSpeedMultiplier: 2.2
@@ -47,11 +56,12 @@ MonoBehaviour:
   patternLabelFont: {fileID: 11400000, guid: 67c80a13426f71f4a97281daae4e471e, type: 2}
   patternLabelOffset: {x: 0, y: 1.3, z: 0}
   label_Stab: "\uB2E8\uC21C \uCC0D\uAE30"
+  label_NormalCharge: "\uB3CC\uC9C4"
   label_Fan: "\uBD80\uCC44\uAF34 \uACF5\uACA9"
   label_Sweep: "\uD729\uC4F8\uAE30"
   label_Pattern1Windup: "\uAE30\uB465\uACFC \uB3CC\uC9C4 \uC900\uBE44"
   label_Pattern1: "\uB3CC\uC9C4!"
-  label_Pattern2: "\uC548 \uD30E \uB3C4\uB11B"
+  label_Pattern2: "\uC911\uB825 \uB3C4\uB11B \uD3ED\uBC1C"
   label_Pattern3Windup: "\uBC14\uB2E5 \uCDA9\uACA9\uD30C \uC900\uBE44"
   label_Pattern3: "\uBC14\uB2E5 \uCDA9\uACA9\uD30C"
   specialPatternInterval: 8
@@ -64,13 +74,13 @@ MonoBehaviour:
   chargeTelegraphColor: {r: 1, g: 0, b: 0, a: 0.35}
   pillarChargeStunDuration: 5
   wallChargeStunDuration: 1.5
-  gravityPullDuration: 6
-  gravityPullTickInterval: 1
+  gravityPullDuration: 5
+  gravityPullTickInterval: 0.3
   gravityPullTickDistance: 1
   gravityFieldRadiusRatio: 1
   gravityFieldFallbackRadius: 9
   gravityExplosionDamage: 22
-  gravityPillarDamage: 2
+  gravityPillarDamage: 4
   gravityFieldColor: {r: 0.5, g: 0.22, b: 0.85, a: 0.32}
   slamPreCastDelay: 1.3
   slamMeleeRadius: 2

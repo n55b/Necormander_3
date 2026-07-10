@@ -44,32 +44,22 @@ using System.Collections.Generic;
 public class EliteChargerAIPatternSO : BossAIPatternSO
 {
     // ==============================================================
-    // 기본 공격 3종 설정
+    // 기본 공격 4종 (v1.3, 인스펙터에서 알아보기 쉬도록 공격별로 그룹화)
     // ==============================================================
-    [Header("기본 공격 - 프리팹 (비워두면 기본 원형/부채꼴 히트박스로 대체)")]
-    [Tooltip("미니 돌진 찍기: 짧은 전진 후 전방 원형 범위")] public GameObject stabHitboxPrefab;
-    [Tooltip("부채꼴 범위 공격: 전방 넓은 부채꼴 (보스 중심에서 플레이어 방향으로 회전만 적용됩니다)")] public GameObject fanHitboxPrefab;
-    [Tooltip("휩쓸기 공격: 보스 주변 원형 범위")] public GameObject sweepHitboxPrefab;
-
-    [Header("기본 공격 - 타이밍/범위")]
-    public float stabWindup = 1.0f;
-    public float fanWindup = 1.0f;
-    [Tooltip("기존 1.5초 -> 1.2초(20% 단축) -> 1.02초(추가 15% 단축)")]
-    public float sweepWindup = 1.02f;
+    [Header("공통 설정 (4종 전체 공통 적용)")]
     [Tooltip("모든 기본 공격 후 공통으로 부여되는 후딜레이")]
     public float basicAttackPostDelay = 1.0f;
-    public float stabRadius = 4.4f;
-    public float fanRadius = 7.2f;
-    public float sweepRadius = 7.2f; // 20% 증가 (기존 6.0)
-    [Tooltip("부채꼴 프리팹의 '앞쪽(뾰족한 방향)' 로컬 회전 보정값(도). 프리팹의 기본 방향과 실제 조준 방향이 어긋날 때 이 값만 조정하면 됩니다. (예: 위쪽이 앞이면 -90, 아래쪽이 앞이면 90)")]
-    public float fanRotationOffset = 90f;
 
-    [Header("기본 공격 - 미니 돌진 찍기 연출 (v1.2, 3단 돌진 체계 ① 약한 돌진)")]
-    [Tooltip("전방으로 실제 전진하는 거리 (1~2유닛 권장)")]
+    [Header("① 미니 돌진 찍기 (약한 돌진)")]
+    [Tooltip("비워두면 기본 원형 히트박스로 대체됩니다")]
+    public GameObject stabHitboxPrefab;
+    [Tooltip("시전(웅크림+대시) 시간")]
+    public float stabWindup = 1.0f;
+    [Tooltip("대시 끝에 생기는 전방 원형 판정 반경")]
+    public float stabRadius = 4.4f;
+    [Tooltip("전방으로 실제로 전진하는 거리")]
     public float miniChargeDistance = 3.6f;
-    [Tooltip("대시 경로에 살아있는 기둥이 있으면 그 기둥이 잃는 내구도")]
-    public int miniChargePillarDamage = 1;
-    [Tooltip("전진(대시)에 걸리는 시간. 나머지 windup 시간은 웅크림(스쿼시) 연출에 사용됩니다.")]
+    [Tooltip("전진(대시)에 걸리는 시간. 나머지 windup 시간은 웅크림(스쿼시) 연출에 사용됩니다")]
     public float miniChargeDashDuration = 0.15f;
     [Tooltip("대시 도중 벽/기둥 충돌 검사에 사용할 반경")]
     public float miniChargeCheckRadius = 0.6f;
@@ -77,27 +67,36 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public float miniChargeSquashScale = 0.82f;
     [Tooltip("튀어나갈 때의 스케일 배율 (1보다 클수록 더 크게 튀어나가 보입니다)")]
     public float miniChargeStretchScale = 1.2f;
+    [Tooltip("전방 원형 판정 범위 안에 살아있는 기둥이 있을 때, 그 기둥이 잃는 내구도")]
+    public int miniChargePillarDamage = 1;
 
-    [Header("기본 공격 - 일반 돌진 (v1.35 신규, 4종 로테이션 ②)")]
-    [Tooltip("일반 차저가 가진 직선형 고속 돌진입니다. 데미지는 낮지만, 기둥에 닿으면 기둥이 파훔되며(내구도 -1) 돌진도 멈춥니다.")]
+    [Header("② 일반 돌진 (v1.35 신규)")]
+    [Tooltip("일반 차저가 가진 직선형 고속 돌진입니다. 데미지는 낮고, 기둥에 닿으면 내구도만 1 깎입니다 (파훼 없이 그 자리에서 멈춤)")]
     public float normalChargeWindup = 0.8f;
-    [Tooltip("돌진 속도 배율 (보스 이동속도 대비). 미니 돌진 찍기보다는 빠르지만 패턴 1의 강한 돌진보다는 느립니다.")]
+    [Tooltip("돌진 속도 배율 (보스 이동속도 대비). ①번보다는 빠르지만 패턴 1의 강한 돌진보다는 느립니다")]
     public float normalChargeSpeedMultiplier = 7f;
-    [Tooltip("예비동작(윈드업) 동안 웅크린 정도")]
-    public float normalChargeSquashScale = 0.82f;
-    [Tooltip("돌진 시작 순간 튀어나가는 스트레치 정도 (대시의 1.2보다 더 과장해서 확실한 느낌을 줍니다)")]
-    public float normalChargeStretchScale = 1.4f;
-    [Tooltip("돌진 지속(최대) 시간. 벥/기둥/플레이어에 맞으면 그 전에 멈췄니다.")]
+    [Tooltip("돌진 지속(최대) 시간. 벽/기둥/플레이어에 맞으면 그 전에 멈추어요")]
     public float normalChargeMaxDuration = 1.2f;
     [Tooltip("돌진 중 충돌 검사에 사용할 반경")]
     public float normalChargeHitRadius = 1.0f;
     [Tooltip("플레이어 직격 시 피해량 배율 (ATK 대비, 약하게)")]
     public float normalChargeDamageMultiplier = 0.5f;
-    [Tooltip("기둥에 닿았을 때 그 기둥이 잃는 내구도 (파훔되지는 않고 돌진만 멈춤)")]
+    [Tooltip("기둥에 닿았을 때 그 기둥이 잃는 내구도 (파훼되지는 않고 돌진만 멈춤)")]
     public int normalChargePillarDamage = 1;
+    [Tooltip("예비동작(윈드업) 동안 웅크린 정도")]
+    public float normalChargeSquashScale = 0.82f;
+    [Tooltip("돌진 시작 순간 튀어나가는 스트레치 정도 (미니 돌진보다 더 과장해서 확실한 느낌을 줍니다)")]
+    public float normalChargeStretchScale = 1.4f;
 
-    [Header("추격 버스트 (v1.2, 3단 돌진 체계 ② 추격 중 간헐적 가속)")]
-    [Header("추격 버스트 (v1.2, 3단 돌진 체계 ② 추격 중 간헐적 가속)")]
+    [Header("③ 휩쓸기 공격")]
+    [Tooltip("비워두면 기본 원형 히트박스로 대체됩니다")]
+    public GameObject sweepHitboxPrefab;
+    [Tooltip("시전(웅크림+대시) 시간. 기존 1.5초 -> 1.2초(20% 단축) -> 1.02초(추가 15% 단축)")]
+    public float sweepWindup = 1.02f;
+    [Tooltip("휩쓸기 반경. 20% 증가 (기존 6.0)")]
+    public float sweepRadius = 7.2f;
+
+    [Header("추격 버스트 (사거리 밖에서 추격 중 간헐적 가속, 기본 공격과는 별개)")]
     [Tooltip("버스트 발동 간 최소 대기시간")]
     public float pursuitBurstMinInterval = 2.5f;
     [Tooltip("버스트 발동 간 최대 대기시간")]
@@ -138,7 +137,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public Vector3 patternLabelOffset = new Vector3(0f, 1.3f, 0f);
     public string label_Stab = "미니 돌진 찍기";
     public string label_NormalCharge = "돌진";
-    public string label_Fan = "부채꼴 공격";
     public string label_Sweep = "휩쓸기";
     public string label_Pattern1Windup = "기둥과 돌진 준비";
     public string label_Pattern1 = "돌진!";
@@ -180,10 +178,10 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public float gravityPullTickInterval = 1f;
     [Tooltip("한 번(1틱)에 순간적으로 끌려가는 거리")]
     public float gravityPullTickDistance = 1.0f;
-    [Tooltip("판정 범위 반경의 비율 (방 반경 기준)")]
-    public float gravityFieldRadiusRatio = 1.0f;
+    [Tooltip("판정 범위 반경의 비율 (방의 대각선 기준). 맵 전체를 덮도록 크게 확장됨 (방 반경이 아니라 대각선 기준이라 모서리까지 확실히 덮습니다)")]
+    public float gravityFieldRadiusRatio = 1.3f;
     [Tooltip("방을 찾지 못했을 때(fallback) 사용할 판정 범위 절대 반경")]
-    public float gravityFieldFallbackRadius = 9f;
+    public float gravityFieldFallbackRadius = 20f;
     [Tooltip("6초 종료 시 '폭발' 피해량 (기둥 뒤에 숨지 못한 대상에게 적용)")]
     public float gravityExplosionDamage = 22f;
     [Tooltip("폭발 시점에 기둥 뒤에 숨어 회피한 경우, 그 기둥이 대신 입는 내구도 피해")]
@@ -372,22 +370,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         return _lastAimDir;
     }
 
-    /// <summary>
-    /// [단순화] 부채꼴 히트박스를 항상 보스 중심에 위치시키고, 현재 조준 방향(GetAimDir)을 향해
-    /// 회전만 시킵니다. 예전에는 프리팹의 로컬 꼭짓점 좌표를 역산해 꼭짓점을 보스 위치에 정확히
-    /// 맞추려 했는데, 프리팹의 실제 "앞쪽" 방향에 대한 가정이 틀려서 오히려 반대 방향으로 나가는
-    /// 문제가 있었습니다. 정확한 꼭짓점 정렬보다 확실하게 플레이어를 향하는 것이 더 중요하므로,
-    /// 보스 중심 고정 + 회전만 적용하는 단순한 방식으로 바꿨습니다. 시전(윈드업) 도중 매 프레임
-    /// 호출해 마지막 순간까지 플레이어를 계속 조준합니다.
-    /// </summary>
-    private void AimFanHitbox(GameObject hitboxObj, BaseEntity entity)
-    {
-        Vector2 dir = GetAimDir(entity);
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-
-        hitboxObj.transform.position = entity.transform.position;
-        hitboxObj.transform.rotation = Quaternion.Euler(0f, 0f, angle + fanRotationOffset);
-    }
 
     // ==============================================================
     // 방 정보 헬퍼
@@ -605,7 +587,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     private int PickBasicAttack()
     {
         int next;
-        do { next = Random.Range(0, 4); } while (next == _lastBasicAttack);
+        do { next = Random.Range(0, 3); } while (next == _lastBasicAttack);
         _lastBasicAttack = next;
         return next;
     }
@@ -622,18 +604,16 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             entity.Animator.Play("Attack", -1, 0f);
         }
 
-        int atkIndex = PickBasicAttack(); // 0: 미니 돌진 찍기, 1: 일반 돌진, 2: 부채꼴, 3: 휩쓸기
+        int atkIndex = PickBasicAttack(); // 0: 미니 돌진 찍기, 1: 일반 돌진, 2: 휩쓸기
 
-        float windup = atkIndex == 0 ? stabWindup : atkIndex == 1 ? normalChargeWindup : atkIndex == 2 ? fanWindup : sweepWindup;
-        float radius = atkIndex == 0 ? stabRadius : atkIndex == 1 ? normalChargeHitRadius : atkIndex == 2 ? fanRadius : sweepRadius;
-        string labelText = atkIndex == 0 ? label_Stab : atkIndex == 1 ? label_NormalCharge : atkIndex == 2 ? label_Fan : label_Sweep;
+        float windup = atkIndex == 0 ? stabWindup : atkIndex == 1 ? normalChargeWindup : sweepWindup;
+        float radius = atkIndex == 0 ? stabRadius : atkIndex == 1 ? normalChargeHitRadius : sweepRadius;
+        string labelText = atkIndex == 0 ? label_Stab : atkIndex == 1 ? label_NormalCharge : label_Sweep;
 
         ShowLabel(labelText);
 
         Vector2 dir = GetAimDir(entity);
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-
-        bool isFan = (atkIndex == 2);
 
         if (atkIndex == 0)
         {
@@ -646,47 +626,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             // 닿으면 기둥의 내구도를 1 깎으며 돌진이 멈춥니다 (기둥이 완전히 무너지진 않습니다).
             yield return NormalChargeRoutine(entity, dir, windup);
         }
-        else if (isFan)
-        {
-            // 부채꼴(삼각형) 공격: 보스 중심에 스폰하고, 회전은 AimFanHitbox()가 담당합니다.
-            // 이 함수는 아래 윈드업 대기 루프에서 매 프레임 다시 호출되어, 시전 도중에도
-            // 플레이어를 계속 조준하도록 합니다. 시전 도중 각도(폭)가 좁았다가 넓어지는 연출로
-            // "휘두른다"는 느낌을 줍니다 (localScale.x를 폭으로 사용 - 프리팹의 가로축이 폭이
-            // 아니라면 이 축만 바꾸면 됩니다).
-            GameObject hitboxObj = fanHitboxPrefab != null
-                ? GameObject.Instantiate(fanHitboxPrefab, entity.transform.position, Quaternion.identity)
-                : CreateFallbackCircle(entity.transform.position, 0.5f, new Color(1f, 0f, 0f, 0.35f));
-
-            hitboxObj.transform.localScale = new Vector3(radius * 0.3f, radius, 1f);
-            AimFanHitbox(hitboxObj, entity);
-
-            BaseHitBox hb = hitboxObj.GetComponent<BaseHitBox>();
-            if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
-
-            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, true);
-            hb.Init(info, entity.opponentLayer, 0.25f, windup, entity.team == Team.Ally);
-
-            float t = 0f;
-            while (t < windup)
-            {
-                t += Time.deltaTime;
-                float f = Mathf.Clamp01(t / windup);
-
-                // 부채꼴 공격은 시전(윈드업) 도중에도 매 프레임 다시 조준해, 마지막 순간까지
-                // 플레이어를 따라갑니다. 동시에 폭이 좁음 -> 넓음으로 벌어집니다.
-                if (hitboxObj != null)
-                {
-                    AimFanHitbox(hitboxObj, entity);
-                    float widthScale = Mathf.Lerp(0.3f, 1f, f);
-                    hitboxObj.transform.localScale = new Vector3(radius * widthScale, radius, 1f);
-                }
-
-                yield return null;
-            }
-        }
         else
         {
-            // 휩쓸기: 보스 자신을 중심으로 원형 범위
+            // ③ 휩쓸기: 보스 자신을 중심으로 원형 범위
             Vector2 spawnPos = entity.transform.position;
 
             GameObject hitboxObj = sweepHitboxPrefab != null
@@ -751,6 +693,17 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, true);
         hb.Init(info, entity.opponentLayer, 0.25f, 0.05f, entity.team == Team.Ally);
 
+        // v1.3 수정: 대시 경로가 아니라, 최종 전방 원형 판정(spawnPos, radius) 안에 있는 기둥에게만 내구도 피해를 줍니다.
+        Collider2D[] pillarHits = Physics2D.OverlapCircleAll(spawnPos, radius, LayerMask.GetMask("Object"));
+        foreach (var pillarHit in pillarHits)
+        {
+            EliteMonsterPillar hitPillar = pillarHit.GetComponentInParent<EliteMonsterPillar>();
+            if (hitPillar != null && hitPillar.IsAlive)
+            {
+                hitPillar.DamagePattern(miniChargePillarDamage);
+            }
+        }
+
         yield return new WaitForSeconds(0.05f);
     }
 
@@ -759,9 +712,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     /// </summary>
     private IEnumerator MiniChargeDash(BaseEntity entity, Vector2 dir, float distance, float duration)
     {
-        // 기둥은 더 이상 대시를 막거나 데미지를 입지 않습니다 (실제 벽만 이동을 제한합니다).
-        // 기둥 데미지는 대시 종료 후 "마지막 내려찍기" 판정(MiniChargeStabRoutine)에서만 발생합니다.
-        LayerMask wallMask = LayerMask.GetMask("Wall");
+        LayerMask wallMask = LayerMask.GetMask("Wall", "Object");
         float clampedDistance = distance;
 
         RaycastHit2D obstacleHit = Physics2D.CircleCast(entity.transform.position, miniChargeCheckRadius, dir, distance, wallMask);
@@ -772,6 +723,15 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         Vector2 start = entity.transform.position;
         Vector2 end = start + dir * clampedDistance;
+
+        // 방 경계를 벗어나는 것을 막는 안전장치 (벽 콜라이더를 놓치고 통과해버리는 경우 대비)
+        RoomMetrics room = GetRoomMetrics(entity);
+        if (room.found)
+        {
+            end = new Vector2(
+                Mathf.Clamp(end.x, room.bounds.min.x, room.bounds.max.x),
+                Mathf.Clamp(end.y, room.bounds.min.y, room.bounds.max.y));
+        }
 
         float t = 0f;
         while (t < duration)
@@ -824,9 +784,21 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         LayerMask playerMask = LayerMask.GetMask("Player", "Player_Dash");
         LayerMask wallMask = LayerMask.GetMask("Wall", "Object");
 
+        // 방 경계 안전장치 (벽/기둥 충돌 감지를 놓치고 통과해버리는 경우 대비)
+        RoomMetrics room = GetRoomMetrics(entity);
+        Bounds? roomBounds = room.found ? (Bounds?)room.bounds : null;
+
         while (elapsed < normalChargeMaxDuration)
         {
             elapsed += Time.deltaTime;
+
+            if (roomBounds.HasValue && !roomBounds.Value.Contains(entity.transform.position))
+            {
+                if (rb != null) rb.linearVelocity = Vector2.zero;
+                entity.transform.position = (Vector2)entity.transform.position - dir * 0.3f;
+                break;
+            }
+
             if (rb != null) rb.linearVelocity = dir * chargeSpeed;
 
             float checkDist = chargeSpeed * Time.deltaTime + 0.15f;
@@ -1124,7 +1096,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         RoomMetrics room = GetRoomMetrics(entity);
         float fieldRadius = room.found
-            ? Mathf.Min(room.halfX, room.halfY) * gravityFieldRadiusRatio
+            ? Mathf.Sqrt(room.halfX * room.halfX + room.halfY * room.halfY) * gravityFieldRadiusRatio
             : gravityFieldFallbackRadius;
 
         GameObject telegraph = SpawnGravityTelegraph(center, fieldRadius);
@@ -1269,7 +1241,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         {
             CharacterHealth pHealth = hit.GetComponentInChildren<CharacterHealth>();
             if (pHealth == null) pHealth = hit.GetComponentInParent<CharacterHealth>();
-            if (pHealth == null || pHealth.IsDead || pHealth.Invincible) continue;
+            bool isDashingLayer = hit.gameObject.layer == LayerMask.NameToLayer("Player_Dash");
+            if (pHealth == null || pHealth.IsDead || pHealth.Invincible || isDashingLayer) continue; // LShift 대쉬(무적/레이어 전환)로 회피 가능
 
             EliteMonsterPillar shelterPillar = FindShelteringPillar(hit.transform.position);
             if (shelterPillar != null)
@@ -1328,7 +1301,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
                 CharacterHealth pHealth = hit.GetComponentInChildren<CharacterHealth>();
                 if (pHealth == null) pHealth = hit.GetComponentInParent<CharacterHealth>();
-                if (pHealth == null || pHealth.IsDead || pHealth.Invincible) continue; // 대쉬(무적)로 회피 가능
+                bool isDashingLayer = hit.gameObject.layer == LayerMask.NameToLayer("Player_Dash");
+                if (pHealth == null || pHealth.IsDead || pHealth.Invincible || isDashingLayer) continue; // LShift 대쉬(무적/레이어 전환)로 회피 가능
 
                 EliteMonsterPillar shelterPillar = FindShelteringPillar(hit.transform.position);
                 if (shelterPillar != null)
