@@ -41,7 +41,7 @@ MonoBehaviour:
   pursuitBurstSpeedMultiplier: 2.2
   pursuitBurstDuration: 0.35
   pursuitBurstDecelDuration: 0.25
-  pillarPrefab: {fileID: 0}
+  pillarPrefab: {fileID: 978541601432865119, guid: e730ed920a1c46645810f6be252800f4, type: 3}
   pillarCount: 4
   pillarSpawnDistance: 5.5
   pillarMaxHP: 4
@@ -65,7 +65,6 @@ MonoBehaviour:
   stackIndicatorFilledColor: {r: 1, g: 0.35, b: 0.1, a: 1}
   stackIndicatorEmptyColor: {r: 0.15, g: 0.15, b: 0.15, a: 0.7}
   specialPatternInterval: 8
-  fieldTelegraphPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   chargeWindup: 3
   chargeSpeedMultiplier: 9
   chargeHitRadius: 1.5

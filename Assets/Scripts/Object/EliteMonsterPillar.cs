@@ -113,6 +113,20 @@ public class EliteMonsterPillar : MonoBehaviour
         EnterActiveState(initial: true);
     }
 
+    // 자신이 만든 FX(오라/균열 경고/마법진 재생성 마커/카운터 리시버/체력바)를 파괴 시 함께 정리한다.
+    // 마법진·균열 마커 등 일부는 이 오브젝트의 자식이 아니라 월드-스페이스 오브젝트라, 기둥이
+    // (보스 사망 등으로) 통째로 파괴될 때 여기서 치우지 않으면 마커가 씬에 그대로 남는다.
+    private void OnDestroy()
+    {
+        DestroyIfExists(ref _auraObj);
+        DestroyIfExists(ref _crackWarningObj);
+        DestroyIfExists(ref _magicCircleObj);
+        DestroyIfExists(ref _magicCircleFillObj);
+        DestroyIfExists(ref _hitReceiverObj);
+        DestroyIfExists(ref _activeHitReceiverObj);
+        DestroyIfExists(ref _healthBarRoot);
+    }
+
     public void SetMaxHP(int hp)
     {
         maxHP = hp;
@@ -533,7 +547,7 @@ public void OnCounterHit()
     /// </summary>
     private void ApplyAreaDamage(float radius, float damage, float excludeRadius)
     {
-        LayerMask targetLayer = LayerMask.GetMask("Player", "Army", "Ally");
+        LayerMask targetLayer = LayerMask.GetMask("Player", "Army"); // "Ally"는 프로젝트에 없는 레이어라 제거(런타임 동일)
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius, targetLayer);
         foreach (var hit in hits)
         {
@@ -596,73 +610,8 @@ public void OnCounterHit()
         }
     }
 
-    private static Sprite _cachedCircleSprite;
-    private static Sprite GetOrCreateCircleSprite()
-    {
-        if (_cachedCircleSprite != null) return _cachedCircleSprite;
-
-        int size = 64;
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        Vector2 center = new Vector2(size / 2f, size / 2f);
-        float r = size / 2f;
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float dist = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), center);
-                tex.SetPixel(x, y, dist <= r ? Color.white : new Color(1, 1, 1, 0));
-            }
-        }
-        tex.Apply();
-
-        _cachedCircleSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        return _cachedCircleSprite;
-    }
-
-    private static Sprite _cachedSquareSprite;
-    private static Sprite GetOrCreateSquareSprite()
-    {
-        if (_cachedSquareSprite != null) return _cachedSquareSprite;
-
-        int size = 8;
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                tex.SetPixel(x, y, Color.white);
-            }
-        }
-        tex.Apply();
-
-        _cachedSquareSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        return _cachedSquareSprite;
-    }
-
-    private static Sprite _cachedRingSprite;
-    private static Sprite GetOrCreateRingSprite()
-    {
-        if (_cachedRingSprite != null) return _cachedRingSprite;
-
-        int size = 128;
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        Vector2 center = new Vector2(size / 2f, size / 2f);
-        float outerR = size / 2f;
-        float innerR = outerR * 0.85f;
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float dist = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), center);
-                bool inRing = dist <= outerR && dist >= innerR;
-                tex.SetPixel(x, y, inRing ? Color.white : new Color(1, 1, 1, 0));
-            }
-        }
-        tex.Apply();
-
-        _cachedRingSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        return _cachedRingSprite;
-    }
+    // 절차적 텔레그래프 스프라이트는 BossTelegraph 로 일원화(SO/기둥/BossTelegraph 3벌 중복 제거).
+    private static Sprite GetOrCreateCircleSprite() => BossTelegraph.GetCircleSprite();
+    private static Sprite GetOrCreateSquareSprite() => BossTelegraph.GetSquareSprite();
+    private static Sprite GetOrCreateRingSprite() => BossTelegraph.GetRingSprite();
 }
