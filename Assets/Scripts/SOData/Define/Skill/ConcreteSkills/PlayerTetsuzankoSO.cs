@@ -40,44 +40,38 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
         Vector2 targetPos = SkillCombatUtil.GetSafeDestination(startPos, dir, dashDistance);
 
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        Vector2 attackCenter = startPos;
-        Collider2D[] hits = Physics2D.OverlapBoxAll(attackCenter, new Vector2(dashDistance, hitWidth), angle, Layers.EnemyMask);
-        
         float finalDamage = player.Stat.ATK * damageMultiplier;
-        bool hasInvokedKeyword = false;
 
-        List<Coroutine> pushCoroutines = new List<Coroutine>();
-        List<Transform> pushedRoots = new List<Transform>();
-
-        foreach (var col in hits)
+        // [변경] 기존엔 시전 순간 1프레임짜리 OverlapBox 를 '플레이어 중심'으로 깔아(전방 도달거리 = dashDistance/2 뿐)
+        // 판정이 빡빡했다. 이제 돌진 복도 전체(길이 = dashDistance)를 덮는 히트박스를 깔아, 돌진하는 동안 그 안에
+        // 있거나 들어온 적을 모두 타격한다. (히트박스는 벽 클램프와 무관하게 full dashDistance → 주먹은 벽까지 닿음)
+        if (hitBoxPrefab != null)
         {
-            var health = col.GetComponentInChildren<CharacterHealth>();
-            if (health == null) health = col.GetComponentInParent<CharacterHealth>();
+            // Center 프리팹은 피벗이 중앙이라, 시작점에서 dashDistance/2 앞에 스폰하면 [시작점 ~ 착지점] 구간을 정확히 덮는다.
+            Vector2 boxCenter = startPos + dir * (dashDistance * 0.5f);
+            BaseHitBox box = Instantiate(hitBoxPrefab, boxCenter, Quaternion.Euler(0, 0, angle));
+            box.transform.localScale = new Vector3(dashDistance, hitWidth, 1f);
+            box.hitEffectAngle = angle;
 
-            if (health != null && !health.IsDead)
+            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Tetsuzanko!");
+
+            // 적중한 적을 돌진 방향으로 넉백(PushEnemy 가 취약 1스택도 부여) — 루트 기준 1회만, 코루틴은 히트박스보다
+            // 오래 사는 player 에서 돌린다(히트박스가 먼저 파괴돼도 넉백이 끊기지 않도록).
+            var pushedRoots = new HashSet<Transform>();
+            System.Action<CharacterHealth> onHit = (health) =>
             {
-                if (!hasInvokedKeyword) {
-                    hasInvokedKeyword = true;
-                    Debug.Log($"<color=cyan>[Physical]</color> '{skillName}' 적중! (호출: Vulnerability)");
-                }
+                if (health == null) return;
+                var stat = health.GetComponent<CharacterStat>()
+                    ?? health.GetComponentInParent<CharacterStat>()
+                    ?? health.GetComponentInChildren<CharacterStat>();
+                Transform root = (stat != null) ? stat.transform.root : health.transform.root;
+                if (root == null || !pushedRoots.Add(root)) return;
+                if (player != null)
+                    player.StartCoroutine(SkillCombatUtil.PushEnemy(root, dir, knockbackForce, knockbackDuration));
+            };
 
-                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Tetsuzanko!");
-                health.GetDamage(info);
-
-                var stat = health.GetComponent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
-
-                if (stat != null)
-                {
-                    Transform rootObj = stat.transform.root;
-                    if (!pushedRoots.Contains(rootObj))
-                    {
-                        pushedRoots.Add(rootObj);
-                        pushCoroutines.Add(player.StartCoroutine(SkillCombatUtil.PushEnemy(rootObj, dir, knockbackForce, knockbackDuration)));
-                    }
-                }
-            }
+            // 돌진 시간 동안 판정 유지(짧은 최소창 보장) → 스쳐 지나가는 적도 놓치지 않는다.
+            box.Init(info, Layers.EnemyMask, Mathf.Max(dashDuration, 0.15f), 0f, true, onHit);
         }
 
         float elapsed = 0f;
