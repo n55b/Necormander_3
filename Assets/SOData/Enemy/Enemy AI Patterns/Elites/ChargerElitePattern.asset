@@ -59,6 +59,11 @@ MonoBehaviour:
   label_Pattern2: "\uC911\uB825 \uB3C4\uB11B \uD3ED\uBC1C"
   label_Pattern3Windup: "\uBC14\uB2E5 \uCDA9\uACA9\uD30C \uC900\uBE44"
   label_Pattern3: "\uBC14\uB2E5 \uCDA9\uACA9\uD30C"
+  stackIndicatorOffset: {x: 0, y: 1, z: 0}
+  stackIndicatorPipSize: 0.16
+  stackIndicatorPipSpacing: 0.2
+  stackIndicatorFilledColor: {r: 1, g: 0.35, b: 0.1, a: 1}
+  stackIndicatorEmptyColor: {r: 0.15, g: 0.15, b: 0.15, a: 0.7}
   specialPatternInterval: 8
   fieldTelegraphPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   chargeWindup: 3
@@ -86,3 +91,15 @@ MonoBehaviour:
   slamRingThickness: 0.9
   slamWaveDamage: 18
   slamPillarDamagePerWave: 2
+  disablePhase2: 1
+  phase2HpThreshold: 0.4
+  label_Howl: "\uD558\uC6B8\uB9C1!"
+  howlBossInvincible: 1
+  howlRingColor: {r: 0.85, g: 0.8, b: 1, a: 0.55}
+  howlRingExpandTime: 1.2
+  howlRingThickness: 1.2
+  howlKnockbackForce: 5
+  howlKnockbackDuration: 0.25
+  howlHitstunDuration: 0.4
+  howlCameraShakeForce: 1.8
+  phase2SpeedIncreasePercent: 0.125

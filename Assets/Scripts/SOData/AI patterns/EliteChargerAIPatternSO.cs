@@ -144,6 +144,14 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public string label_Pattern3Windup = "바닥 충격파 준비";
     public string label_Pattern3 = "바닥 충격파";
 
+    [Header("v1.4 B2 - 기둥 스택 표시 (체력바 근처, 몇 번 맞았는지 pip으로 표시)")]
+    [Tooltip("보스 기준 스택 인디케이터 위치. 월드 HP 바 높이에 맞춰 조정하세요.")]
+    public Vector3 stackIndicatorOffset = new Vector3(0f, 1.0f, 0f);
+    public float stackIndicatorPipSize = 0.16f;
+    public float stackIndicatorPipSpacing = 0.2f;
+    public Color stackIndicatorFilledColor = new Color(1f, 0.35f, 0.1f);
+    public Color stackIndicatorEmptyColor = new Color(0.15f, 0.15f, 0.15f, 0.7f);
+
     // ==============================================================
     // 특수 패턴 공통 설정
     // ==============================================================
@@ -209,6 +217,38 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public int slamPillarDamagePerWave = 2;
 
     // ==============================================================
+    // v1.4 D - 2페이즈 전환 (하울링, HP 40% 최초 1회만 발동)
+    // ==============================================================
+    [Header("D0 - 2페이즈 전환 하울링 (HP 임계치에서 최초 1회만 발동)")]
+    [Tooltip("0 = 2페이즈 발동함(기본값), 1 = 2페이즈 발동 안함 (디버그/밸런스 테스트용 스위치)")]
+    public int disablePhase2 = 0;
+    [Range(0.1f, 0.6f)]
+    [Tooltip("보스 체력 비율이 이 값 아래로 내려가는 순간(최초 1회) 하울링 전환이 발동합니다.")]
+    public float phase2HpThreshold = 0.4f;
+    public string label_Howl = "하울링!";
+    [Tooltip("하울링 시전 중 보스를 무적으로 만들지 여부 (연출 도중 부당하게 맞아 타이밍이 꼬이는 것 방지)")]
+    public bool howlBossInvincible = true;
+    [Tooltip("하울링 링 색상")]
+    public Color howlRingColor = new Color(0.85f, 0.8f, 1f, 0.55f);
+    [Tooltip("하울링 링이 중심에서 방 크기만큼 퍼지는 데 걸리는 시간")]
+    public float howlRingExpandTime = 1.2f;
+    [Tooltip("하울링 링의 실제 판정 두께 (이 두께만큼 스쳐 지나가는 순간에만 판정 - 대쉬 무적으로 완전 회피 가능)")]
+    public float howlRingThickness = 1.2f;
+    [Tooltip("하울링에 맞았을 때 밀려나는 힘 (데미지는 없음)")]
+    public float howlKnockbackForce = 5f;
+    [Tooltip("밀려나는 데 걸리는 시간")]
+    public float howlKnockbackDuration = 0.25f;
+    [Tooltip("밀려난 뒤 부여되는 경직(행동 불가) 시간")]
+    public float howlHitstunDuration = 0.4f;
+    [Tooltip("하울링 발동 시 플레이어 카메라 흔들림 강도")]
+    public float howlCameraShakeForce = 1.8f;
+
+    [Header("D1 - 2페이즈 이후 상시 속도 증가 (전투 끝까지 유지, 이동속도/시전 윈드업/8초 주기에 동일 비율 적용)")]
+    [Range(0.1f, 0.15f)]
+    [Tooltip("0.125 = 12.5%. 이동속도는 곱으로 증가하고, 시전(윈드업)과 8초 특수 패턴 주기는 같은 비율로 단축됩니다.")]
+    public float phase2SpeedIncreasePercent = 0.125f;
+
+    // ==============================================================
     // 런타임 상태 (ScriptableObject 공유 인스턴스 기준 - 다른 보스 패턴들과 동일한 구조)
     // ==============================================================
     private bool _isBusy = false;
@@ -218,6 +258,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     private List<int> _specialPool = new List<int>();
     private int _lastBasicAttack = -1;
     private EliteBossPatternLabel _label;
+    private EliteChargerStackIndicator _stackIndicator; // v1.4 B2
     private Coroutine _basicAttackCoroutine;
 
     // v1.2 추격 버스트 런타임 상태
@@ -234,6 +275,26 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     // 지나면 다음 패턴을 발동합니다. Execute()가 매 프레임 불리지 않아도(공격 중엔 아예 안 불림) 정확합니다.
     private float _basicPhaseStartTime;
 
+    // ==============================================================
+    // v1.4 B2: 기둥 파편 누적 강화 스택 (전투 끝까지 영구 유지, 시간 경과로 안 풀림)
+    // ==============================================================
+    private int _pillarDamageStackCount = 0;
+    private CharacterHealth _selfHealthRef;
+    private const float PillarStackBonusPerStack = 0.05f;
+    private const int PillarStackMaxCount = 4;
+
+    // v1.4 D0/D3: 2페이즈 전환은 전투당 최초 1회만 발동합니다.
+    private bool _phase2Triggered = false;
+
+    /// <summary>
+    /// v1.4 D1: 2페이즈 전환 이후, "시전(윈드업)" 성격의 지속시간을 이동속도 증가와 같은 비율로 단축합니다.
+    /// (예: phase2SpeedIncreasePercent=0.15면 15% 빨라짐 -> 지속시간은 1/1.15배로 단축)
+    /// </summary>
+    private float ScaleDuration(float baseDuration)
+    {
+        return _phase2Triggered ? baseDuration / (1f + phase2SpeedIncreasePercent) : baseDuration;
+    }
+
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);
@@ -244,12 +305,51 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         _specialPool.Clear();
         _lastBasicAttack = -1;
         _label = null;
+        _stackIndicator = null; // v1.4 B2
         _basicAttackCoroutine = null;
         _pursuitBurstCoroutine = null;
         _isBursting = false;
         _nextBurstTime = Time.time + Random.Range(pursuitBurstMinInterval, pursuitBurstMaxInterval);
         _lastAimDir = Vector2.down;
         _basicPhaseStartTime = Time.time;
+
+        // v1.4 D0/D3: 2페이즈 전환 플래그도 전투마다 초기화
+        _phase2Triggered = false;
+
+        // v1.4 B2: 스택 초기화 및 데미지 증폭 훅 구독 (전투마다 새로 시작, 죽으면 구독 해제)
+        _pillarDamageStackCount = 0;
+        DamageEventBus.OnBeforeDamageCalculated -= HandlePillarStackDamageAmp; // 중복 구독 방지 안전장치
+        DamageEventBus.OnBeforeDamageCalculated += HandlePillarStackDamageAmp;
+        _selfHealthRef = (entity.Stats != null) ? entity.Stats.Health : null;
+        if (_selfHealthRef != null)
+        {
+            _selfHealthRef.OnDeath -= UnsubscribePillarStackHandler;
+            _selfHealthRef.OnDeath += UnsubscribePillarStackHandler;
+        }
+    }
+
+    private void UnsubscribePillarStackHandler()
+    {
+        DamageEventBus.OnBeforeDamageCalculated -= HandlePillarStackDamageAmp;
+    }
+
+    private void HandlePillarStackDamageAmp(CharacterHealth target, ref DamageInfo info)
+    {
+        if (_pillarDamageStackCount <= 0) return;
+        if (target == null || target != _selfHealthRef) return;
+        info.amount *= (1f + PillarStackBonusPerStack * _pillarDamageStackCount);
+    }
+
+    /// <summary>
+    /// v1.4 B2: 기둥 파편에 보스가 맞을 때(균열 카운터 성공 / 재생성 유도 성공)마다 호출됩니다.
+    /// 받는 피해 +5%, 최대 20%(4스택)까지 전투 끝까지 영구적으로 누적됩니다 (시간 경과로 안 풀림).
+    /// </summary>
+    public void AddPillarDamageStack()
+    {
+        if (_pillarDamageStackCount >= PillarStackMaxCount) return;
+        _pillarDamageStackCount++;
+        Debug.Log($"<color=orange>[EliteCharger]</color> 기둥 누적 강화 스택 획득! {_pillarDamageStackCount}/{PillarStackMaxCount} (받는 피해 +{_pillarDamageStackCount * 5}%)");
+        _stackIndicator?.UpdateStack(_pillarDamageStackCount, PillarStackBonusPerStack);
     }
 
     public override void Execute(BaseEntity entity)
@@ -285,6 +385,36 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             _label = CreatePatternLabel(entity);
         }
 
+        if (_stackIndicator == null)
+        {
+            _stackIndicator = CreateStackIndicator(entity);
+        }
+
+        // v1.4 D0/D3: 2페이즈 전환(하울링) - 체력 임계치를 넘는 순간 최초 1회, 다른 모든 행동보다 우선 발동
+        if (disablePhase2 == 0 && !_phase2Triggered && !_isBusy && entity.Stats != null && entity.Stats.MAXHP > 0f)
+        {
+            float hpRatio = entity.Stats.CURHP / entity.Stats.MAXHP;
+            if (hpRatio < phase2HpThreshold)
+            {
+                _phase2Triggered = true;
+
+                if (entity.IsAttacking)
+                {
+                    if (_basicAttackCoroutine != null)
+                    {
+                        entity.StopCoroutine(_basicAttackCoroutine);
+                        _basicAttackCoroutine = null;
+                    }
+                    entity.IsAttacking = false;
+                    ClearLabel();
+                }
+                StopPursuitBurst(entity);
+
+                entity.StartCoroutine(RunPhase2Transition(entity));
+                return;
+            }
+        }
+
         // 참고: 엔진(BaseEntity.Update -> CanExecuteAI)이 IsAttacking == true인 동안에는 이 함수 자체를
         // 호출하지 않으므로, 아래 인터럽트 분기는 사실상 "공격과 공격 사이의 짧은 순간"에만 유효합니다.
         // 그래도 8초 판정 자체는 Time.time 절대시각 비교라 정확합니다.
@@ -292,7 +422,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         {
             entity.LookAtTarget(entity.Target);
 
-            if (Time.time - _basicPhaseStartTime >= specialPatternInterval)
+            if (Time.time - _basicPhaseStartTime >= ScaleDuration(specialPatternInterval))
             {
                 // 기본 공격 도중이라도(가능한 타이밍이라면) 강제로 중단하고 즉시 패턴을 발동합니다.
                 if (entity.IsAttacking)
@@ -514,6 +644,26 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         return label;
     }
 
+    /// <summary>
+    /// v1.4 B2: 기둥 파편에 맞은 횟수(누적 강화 스택)를 보스 체력바 근처에 pip으로 표시합니다.
+    /// </summary>
+    private EliteChargerStackIndicator CreateStackIndicator(BaseEntity entity)
+    {
+        GameObject obj = new GameObject("PillarStackIndicator");
+        obj.transform.SetParent(entity.transform, false);
+        obj.transform.localPosition = stackIndicatorOffset;
+
+        Vector3 lossy = entity.transform.lossyScale;
+        float invX = lossy.x != 0f ? 1f / lossy.x : 1f;
+        float invY = lossy.y != 0f ? 1f / lossy.y : 1f;
+        obj.transform.localScale = new Vector3(invX, invY, 1f);
+
+        EliteChargerStackIndicator indicator = obj.AddComponent<EliteChargerStackIndicator>();
+        indicator.Build(PillarStackMaxCount, stackIndicatorPipSize, stackIndicatorPipSpacing, stackIndicatorFilledColor, stackIndicatorEmptyColor, patternLabelFont);
+        indicator.UpdateStack(_pillarDamageStackCount, PillarStackBonusPerStack);
+        return indicator;
+    }
+
     private void ShowLabel(string text)
     {
         if (showPatternLabel && _label != null) _label.SetText(text);
@@ -606,7 +756,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         int atkIndex = PickBasicAttack(); // 0: 미니 돌진 찍기, 1: 일반 돌진, 2: 휩쓸기
 
-        float windup = atkIndex == 0 ? stabWindup : atkIndex == 1 ? normalChargeWindup : sweepWindup;
+        float windup = atkIndex == 0 ? ScaleDuration(stabWindup) : atkIndex == 1 ? ScaleDuration(normalChargeWindup) : ScaleDuration(sweepWindup);
         float radius = atkIndex == 0 ? stabRadius : atkIndex == 1 ? normalChargeHitRadius : sweepRadius;
         string labelText = atkIndex == 0 ? label_Stab : atkIndex == 1 ? label_NormalCharge : label_Sweep;
 
@@ -922,6 +1072,127 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         _basicPhaseStartTime = Time.time;
     }
 
+    // ==============================================================
+    // v1.4 D0 - 2페이즈 전환 하울링 (HP 임계치 최초 1회, 패턴3 충격파 링 로직 재사용)
+    // ==============================================================
+    private IEnumerator RunPhase2Transition(BaseEntity entity)
+    {
+        _isBusy = true;
+        entity.IsAttacking = true;
+        entity.CurrentState = AIState.Attack;
+
+        StopNavAgent(entity);
+
+        bool wasInvincible = false;
+        if (howlBossInvincible && entity.Stats != null && entity.Stats.Health != null)
+        {
+            wasInvincible = entity.Stats.Health.Invincible;
+            entity.Stats.Health.Invincible = true;
+        }
+
+        ShowLabel(label_Howl);
+
+        // "지금부터 다르다"를 확실히 알리는 충격 연출
+        if (CameraManager.Instance != null) CameraManager.Instance.HitShakeCamera(3f);
+        if (HitStopManager.Instance != null) HitStopManager.Instance.DoHitStop(0.12f);
+
+        // D2 흡수: 기둥 4개 즉시 균열 상태로 전환 (기존 CollapseInstantly 재사용, 새 로직 불필요)
+        for (int i = 0; i < _pillars.Count; i++)
+        {
+            if (_pillars[i] != null && _pillars[i].IsAlive)
+            {
+                _pillars[i].CollapseInstantly();
+            }
+        }
+
+        Vector2 center = entity.transform.position;
+        RoomMetrics room = GetRoomMetrics(entity);
+        float maxRadius = room.found ? Mathf.Max(room.halfX, room.halfY) * 1.15f : slamWaveFallbackMaxRadius;
+
+        yield return RunHowlRing(entity, center, maxRadius);
+
+        if (howlBossInvincible && entity.Stats != null && entity.Stats.Health != null)
+        {
+            entity.Stats.Health.Invincible = wasInvincible;
+        }
+
+        // D1: 전투 끝까지 유지되는 속도 증가 적용 (이동속도는 CharacterStatus의 지속 버프 시스템 재사용,
+        // 시전/8초 주기는 ScaleDuration()이 이후 _phase2Triggered를 보고 자동으로 단축시킵니다)
+        if (entity.Stats != null && entity.Stats.Status != null)
+        {
+            entity.Stats.Status.ApplySpeedBuff("Phase2Howl", phase2SpeedIncreasePercent, 99999f);
+        }
+
+        ClearLabel();
+        entity.IsAttacking = false;
+        entity.ResetAnimationState();
+        _isBusy = false;
+
+        _basicPhaseStartTime = Time.time;
+    }
+
+    /// <summary>
+    /// 패턴3의 RunShockwaveRing()과 동일한 확장 링 로직을 재사용하되, 데미지 대신 방사형 넉백 + 경직 +
+    /// (플레이어라면) 카메라 흔들림을 부여합니다. 대쉬 무적 중이면 다른 패턴들과 동일하게 완전히 회피됩니다.
+    /// </summary>
+    private IEnumerator RunHowlRing(BaseEntity entity, Vector2 center, float maxRadius)
+    {
+        GameObject ring = CreateFallbackRing(howlRingColor);
+        ring.transform.position = center;
+
+        HashSet<GameObject> alreadyChecked = new HashSet<GameObject>();
+        LayerMask targetLayer = LayerMask.GetMask("Player", "Player_Dash", "Army", "Ally");
+
+        float t = 0f;
+        while (t < howlRingExpandTime)
+        {
+            t += Time.deltaTime;
+            float progress = Mathf.Clamp01(t / howlRingExpandTime);
+            float currentRadius = Mathf.Lerp(0f, maxRadius, progress);
+
+            float diameter = currentRadius * 2f;
+            ring.transform.localScale = new Vector3(diameter, diameter, 1f);
+
+            Collider2D[] hits = Physics2D.OverlapCircleAll(center, currentRadius + howlRingThickness, targetLayer);
+            foreach (var hit in hits)
+            {
+                if (alreadyChecked.Contains(hit.gameObject)) continue;
+
+                float d = Vector2.Distance(center, hit.transform.position);
+                bool inRing = d >= currentRadius - howlRingThickness && d <= currentRadius + howlRingThickness;
+                if (!inRing) continue;
+
+                alreadyChecked.Add(hit.gameObject);
+
+                CharacterHealth hHealth = hit.GetComponentInChildren<CharacterHealth>();
+                if (hHealth == null) hHealth = hit.GetComponentInParent<CharacterHealth>();
+                bool isDashingLayer = hit.gameObject.layer == LayerMask.NameToLayer("Player_Dash");
+                if (hHealth == null || hHealth.IsDead || hHealth.Invincible || isDashingLayer) continue; // 대쉬 무적으로 완전 회피 가능
+
+                Vector2 rawDir = (Vector2)hit.transform.position - center;
+                Vector2 pushDir = rawDir.sqrMagnitude > 0.0001f ? rawDir.normalized : Vector2.up;
+
+                CharacterStatus status = hit.GetComponentInChildren<CharacterStatus>();
+                if (status == null) status = hit.GetComponentInParent<CharacterStatus>();
+                if (status != null)
+                {
+                    status.ApplyKnockback(pushDir, howlKnockbackForce, howlKnockbackDuration);
+                    status.SetDebuffBool(DebuffBoolType.Hitstunned, howlHitstunDuration);
+                }
+
+                bool isPlayerHit = hit.gameObject.layer == LayerMask.NameToLayer("Player");
+                if (isPlayerHit && CameraManager.Instance != null)
+                {
+                    CameraManager.Instance.HitShakeCamera(howlCameraShakeForce);
+                }
+            }
+
+            yield return null;
+        }
+
+        if (ring != null) GameObject.Destroy(ring);
+    }
+
     // --- 패턴 1: 기둥과 돌진 (3단 돌진 체계 ③ 강한 돌진, 스펙 변경 없음) ---
     private IEnumerator Pattern1_PillarCharge(BaseEntity entity)
     {
@@ -932,10 +1203,11 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         float t = 0f;
         Vector2 chargeDir = GetAimDir(entity);
         GameObject telegraph = null;
+        float scaledChargeWindup = ScaleDuration(chargeWindup); // v1.4 D1
 
         // 3초 조준: 플레이어 방향을 실시간으로 주시하며, 바닥에 돌진 경로를 빨간 직사각형으로 표시합니다.
         // 전조는 항상 "플레이어 발밑"까지 확실히 이어지도록 대상과의 거리 기준으로 길이를 계산합니다.
-        while (t < chargeWindup)
+        while (t < scaledChargeWindup)
         {
             t += Time.deltaTime;
             if (entity.Target != null)
@@ -1213,16 +1485,17 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         // 애니메이션이 없는 것을 보완하는 사전 예비동작: 발밑에 경고 원이 서서히 채워집니다. (이 동안은 무피해)
         GameObject warmup = CreateFallbackCircle(preCenter, 0.4f, new Color(1f, 0.4f, 0f, 0.15f));
         float wt = 0f;
-        while (wt < slamPreCastDelay)
+        float scaledPreCastDelay = ScaleDuration(slamPreCastDelay); // v1.4 D1
+        while (wt < scaledPreCastDelay)
         {
             wt += Time.deltaTime;
-            float scale = Mathf.Lerp(0.4f, slamMeleeRadius * 2f, wt / slamPreCastDelay);
+            float scale = Mathf.Lerp(0.4f, slamMeleeRadius * 2f, wt / scaledPreCastDelay);
             if (warmup != null)
             {
                 warmup.transform.position = entity.transform.position;
                 warmup.transform.localScale = Vector3.one * scale;
                 var wsr = warmup.GetComponent<SpriteRenderer>();
-                if (wsr != null) wsr.color = new Color(1f, 0.4f, 0f, Mathf.Lerp(0.15f, 0.4f, wt / slamPreCastDelay));
+                if (wsr != null) wsr.color = new Color(1f, 0.4f, 0f, Mathf.Lerp(0.15f, 0.4f, wt / scaledPreCastDelay));
             }
             yield return null;
         }
@@ -1326,7 +1599,10 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         for (int i = 0; i < _pillars.Count; i++)
         {
             EliteMonsterPillar p = _pillars[i];
-            if (p != null && p.IsAlive && p.IsSheltering(worldPos)) return p;
+            // 버그 수정: p.IsAlive(=Active 전용)로 게이트를 걸면 균열(Cracking) 상태 기둥 뒤에 숨어도
+            // 회피가 인정되지 않았습니다. IsSheltering() 내부에서 이미 ProvidesShelter(Active|Cracking)를
+            // 검사하므로 별도의 IsAlive 조건은 불필요하며, 오히려 잘못된 제한이었습니다.
+            if (p != null && p.IsSheltering(worldPos)) return p;
         }
         return null;
     }

@@ -66,7 +66,22 @@ public class EliteMonsterPillar : MonoBehaviour
     [SerializeField] private Collider2D physicsCollider;
 
     /// <summary>이 기둥을 소환한 엘리트 몬스터(공격자 정보로 사용).</summary>
-    public GameObject Owner { get; set; }
+    public GameObject Owner
+    {
+        get => _owner;
+        set
+        {
+            _owner = value;
+            // v1.4 B1: Awake 시점엔 아직 Owner가 없어 리시버 레이어를 못 잡는 경우가 있어, Owner가
+            // 나중에 세팅되는 시점에도 기존에 만들어진 히트 리시버들의 레이어를 다시 맞춰줍니다.
+            if (_owner != null)
+            {
+                if (_activeHitReceiverObj != null) _activeHitReceiverObj.layer = _owner.layer;
+                if (_hitReceiverObj != null) _hitReceiverObj.layer = _owner.layer;
+            }
+        }
+    }
+    private GameObject _owner;
 
     /// <summary>상태1(활성화)일 때만 true. 돌진/충격파 등 물리적 충돌 판정에 사용됩니다.</summary>
     public bool IsAlive => _state == PillarState.Active;
@@ -86,6 +101,7 @@ public class EliteMonsterPillar : MonoBehaviour
     private GameObject _magicCircleObj;
     private GameObject _magicCircleFillObj;
     private GameObject _hitReceiverObj;
+    private GameObject _activeHitReceiverObj; // v1.4 B1: 활성화 상태에서 평타 파괴를 받기 위한 리시버
     private Coroutine _stateCoroutine;
 
     private void Awake()
@@ -126,6 +142,19 @@ public class EliteMonsterPillar : MonoBehaviour
     }
 
     /// <summary>
+    /// v1.4 B1: 활성화 상태 기둥도 플레이어 평타로 파괴할 수 있습니다. 평타 1대당 내구도 1을 잃습니다.
+    /// 패턴 피해(DamagePattern)와 달리 즉시 충격 피해가 없습니다 (플레이어가 기둥 바로 옆에서 때리는
+    /// 상황이므로, 폭발 피해를 주면 스스로를 때리는 꼴이 되어버리기 때문입니다).
+    /// </summary>
+    public void DamageByPlayerBasicAttack()
+    {
+        if (_state != PillarState.Active) return;
+        curHP -= 1;
+        UpdateHealthBar();
+        if (curHP <= 0) EnterCrackingState(dealImmediateImpact: false);
+    }
+
+    /// <summary>
     /// 체력과 무관하게 즉시 균열 상태로 전환합니다. (강한 돌진 직격)
     /// 기획서대로, 이 경로에서는 즉시 피해가 전혀 없습니다.
     /// </summary>
@@ -159,6 +188,10 @@ public class EliteMonsterPillar : MonoBehaviour
         DestroyIfExists(ref _magicCircleFillObj);
         DestroyIfExists(ref _hitReceiverObj);
 
+        // v1.4 B1: 활성화 상태 진입 때마다(최초 소환 및 재생성 시) 평타 파괴용 리시버를 새로 만듭니다.
+        DestroyIfExists(ref _activeHitReceiverObj);
+        _activeHitReceiverObj = CreateActiveHitReceiver();
+
         if (_auraObj == null) _auraObj = CreateAura();
         _auraObj.SetActive(true);
 
@@ -178,6 +211,9 @@ public class EliteMonsterPillar : MonoBehaviour
 
         if (_auraObj != null) _auraObj.SetActive(false);
         if (_healthBarRoot != null) _healthBarRoot.SetActive(false);
+
+        // v1.4 B1: 균열 상태로 넘어가면 평타 파괴 리시버는 더 이상 필요 없습니다 (카운터 리시버로 대체됨).
+        DestroyIfExists(ref _activeHitReceiverObj);
 
         if (dealImmediateImpact)
         {
@@ -248,6 +284,13 @@ public void OnCounterHit()
         if (ownerEntity != null && ownerEntity.Stats != null && ownerEntity.Stats.Health != null && !ownerEntity.Stats.Health.IsDead)
         {
             ownerEntity.Stats.Health.GetDamage(new DamageInfo(counterHitDamage, DamageType.Physical, gameObject, false, 1f, false));
+
+            // v1.4 A1: 균열 카운터 성공 연출 강화 (화면 흔들림 + 히트스탑). 게임적 효과(경직/그로기)는 여전히 없음, 순수 피드백용.
+            if (CameraManager.Instance != null) CameraManager.Instance.HitShakeCamera(2.2f);
+            if (HitStopManager.Instance != null) HitStopManager.Instance.DoHitStop(0.1f);
+
+            // v1.4 B2: 균열 카운터 성공 - 누적 강화 스택 부여
+            NotifyPillarStackToBrain(ownerEntity);
         }
     }
 
@@ -309,6 +352,9 @@ public void OnCounterHit()
                 {
                     ownerStat.Health.GetDamage(new DamageInfo(regenCounterDamage, DamageType.Physical, gameObject, false, 1f, false));
                 }
+
+                // v1.4 B2: 재생성 유도 성공 - 누적 강화 스택 부여
+                NotifyPillarStackToBrain(ownerEntity);
             }
         }
 
@@ -384,6 +430,44 @@ public void OnCounterHit()
         return obj;
     }
 
+    /// <summary>
+    /// v1.4 B1: 활성화 상태 전용 히트 리시버입니다. 균열 리시버(PillarCounterHitReceiver)와 달리
+    /// 1회 소모되지 않고, 활성화 상태인 동안 평타를 맞을 때마다 계속 내구도를 깎습니다.
+    /// </summary>
+    private class PillarActiveHitReceiver : MonoBehaviour, IDamageable
+    {
+        public EliteMonsterPillar pillar;
+        public bool IsDead => false;
+
+        public void TakeDamage(DamageInfo info)
+        {
+            if (pillar == null) return;
+            if (!info.isBasicAttack) return; // 평타(기본 공격)만 인정합니다.
+            if (info.attacker != null && info.attacker == pillar.Owner) return; // 보스 자신의 공격은 무시
+
+            pillar.DamageByPlayerBasicAttack();
+        }
+    }
+
+    private GameObject CreateActiveHitReceiver()
+    {
+        GameObject obj = new GameObject("Pillar_ActiveHitReceiver");
+        obj.transform.SetParent(transform, false);
+        obj.transform.localPosition = Vector3.zero;
+
+        var col = obj.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        col.radius = 0.6f;
+
+        // 플레이어의 평타가 정상적으로 타겟팅할 수 있도록, 보스(Owner)와 동일한 레이어를 사용합니다.
+        if (Owner != null) obj.layer = Owner.layer;
+
+        var receiver = obj.AddComponent<PillarActiveHitReceiver>();
+        receiver.pillar = this;
+
+        return obj;
+    }
+
     // ==============================================================
     // 상시 오라 / 마법진 등 비주얼 헬퍼
     // ==============================================================
@@ -428,6 +512,19 @@ public void OnCounterHit()
         {
             Destroy(obj);
             obj = null;
+        }
+    }
+
+    /// <summary>
+    /// v1.4 B2: 기둥 파편 카운터/재생성 유도가 성공했을 때, 보스의 AI 브레인(EliteChargerAIPatternSO)에게
+    /// 알려 누적 강화 스택을 쌓게 합니다. 다른 보스 AI 패턴에 붙어있는 경우 조용히 무시됩니다.
+    /// </summary>
+    private void NotifyPillarStackToBrain(BaseEntity ownerEntity)
+    {
+        if (ownerEntity == null) return;
+        if (ownerEntity.Brain is EliteChargerAIPatternSO chargerBrain)
+        {
+            chargerBrain.AddPillarDamageStack();
         }
     }
 

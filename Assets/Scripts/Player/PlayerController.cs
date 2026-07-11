@@ -471,11 +471,11 @@ public bool canChangeState = true;
 
         // [수정] MeleeDodgeController(2스택 구르기) 시전 중인 런타임 상태도 대시로 안전 통합 감지
         var dodgeCtrl = GetComponent<MeleeDodgeController>();
-        bool activeDash = _isDashing || (dodgeCtrl != null && dodgeCtrl.IsDashing);
+        bool dodgeControllerActive = dodgeCtrl != null && dodgeCtrl.IsDashing;
 
-        if (activeDash)
+        if (_isDashing)
         {
-            // 대쉬 중에는 물리 속도를 강제로 덮어써서 빠르게 이동
+            // 대쉬 중에는 물리 속도를 강제로 덮어써서 빠르게 이동 (기존 1스택 구르기 전용 물리)
             _rb.linearVelocity = _dashDir * dashSpeed;
             _dashTimeLeft -= Time.fixedDeltaTime;
 
@@ -483,6 +483,15 @@ public bool canChangeState = true;
             {
                 EndDash();
             }
+        }
+        else if (dodgeControllerActive)
+        {
+            // 버그 수정(v1.4): 예전엔 이 상태도 activeDash 하나로 묶여서 위 EndDash() 분기가 그대로 실행됐습니다.
+            // 이때 _dashTimeLeft(PlayerController 자신의 필드)는 초기화된 적이 없어 0에서 시작하므로,
+            // 매 FixedUpdate마다 조건을 만족해 EndDash()가 즉시 호출되며 MeleeDodgeController가 방금 켠
+            // 무적(Invincible)과 Player_Dash 레이어를 같은 프레임에 바로 꺼버렸습니다. 그 결과 대쉬 무적시간이
+            // 사실상 0에 가까워져 "회피해도 맞는" 현상의 원인이었습니다. MeleeDodgeController는 자신의
+            // FixedUpdate에서 속도/무적/레이어를 전부 스스로 관리하므로, 여기서는 일반 이동 로직만 건너뜁니다.
         }
         else if (_isAttackDashing)
         {
