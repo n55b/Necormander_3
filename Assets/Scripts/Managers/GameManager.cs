@@ -300,6 +300,19 @@ public class GameManager : MonoBehaviour
             if (vcam != null)
             {
                 vcam.Follow = camTarget;
+
+                // 텔레포트와 동일한 워프 방식: CameraManager를 통해 즉시 스냅시킴
+                Vector3 camDelta = camTarget.position - vcam.transform.position;
+                var camMgr = CameraManager.Instance != null ? CameraManager.Instance : vcam.GetComponent<CameraManager>();
+                if (camMgr != null)
+                {
+                    camMgr.WarpCamera(camTarget, camDelta);
+                }
+                else
+                {
+                    vcam.OnTargetObjectWarped(camTarget, camDelta);
+                }
+
                 Debug.Log("<color=cyan>[GameManager]</color> Cinemachine Camera Target assigned to: " + camTarget.name);
             }
         }
@@ -349,6 +362,17 @@ public class GameManager : MonoBehaviour
         Debug.Log($"<color=green>[GameManager]</color> Floor Cleared! Transitioning to Floor {data.currentFloor}...");
 
         // 씬 재로드
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        string nextSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (ScreenFadeController.Instance != null)
+        {
+            ScreenFadeController.Instance.FadeOutIn(0.5f, 0.2f, 0.5f, () =>
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+            });
+        }
+        else
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+        }
     }
 }

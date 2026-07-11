@@ -716,9 +716,23 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         Vector3 targetPos = room.transform.position + (Vector3)room.centerOffset;
         targetPos.z = playerTr.position.z;
 
+        // 카메라가 부드러운 추적 지연 없이 텔레포트 위치로 즉시 스냅되도록 이동량 계산
+        Vector3 teleportCamDelta = targetPos - playerTr.position;
+
         System.Action doTeleport = () =>
         {
             playerTr.position = targetPos;
+
+            // 텔레포트와 동일한 워프 방식: 카메라를 즉시 스낵시킴
+            if (CameraManager.Instance != null)
+            {
+                Transform camTarget = playerTr.Find("CameraTarget");
+                if (camTarget != null)
+                {
+                    CameraManager.Instance.WarpCamera(camTarget, teleportCamDelta);
+                }
+            }
+
 
             if (MapGenerator.Instance != null)
             {
