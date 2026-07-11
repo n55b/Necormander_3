@@ -48,6 +48,7 @@ public class PlayerOneTwoCounterSO : PlayerSkillSO
 
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
 
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 aimDir = ((Vector2)mousePos - (Vector2)player.transform.position).normalized;

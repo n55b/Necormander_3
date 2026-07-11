@@ -150,6 +150,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5a9f1a8cf7cf4840a02c9f8839b582e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  persistAcrossScenes: 0
   panel: {fileID: 3883363901962577329}
   selectedRewardCard: {fileID: 8827672128077277311}
   slotContainer: {fileID: 2254490307007413773}

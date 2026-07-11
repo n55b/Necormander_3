@@ -41,6 +41,7 @@ public class PlayerSwayBackDashSO : PlayerSkillSO
 
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
 
         // 조준 방향(마우스). 젖힘 = 반대 방향, 돌진/정권 = 이 방향.
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);

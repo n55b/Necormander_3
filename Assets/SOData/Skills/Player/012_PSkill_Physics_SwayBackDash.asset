@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a9dd963750ea3944789e509356fa3352, type: 3}
-  m_Name: 016_PSkill_Physics_SwayBackDash
+  m_Name: 012_PSkill_Physics_SwayBackDash
   m_EditorClassIdentifier: 
   skillName: "\uC2A4\uC6E8\uC774 \uBC31 & \uB300\uC2DC \uC2A4\uD2B8\uB808\uC774\uD2B8"
   description: "\uC0C1\uCCB4\uB97C \uB4A4\uB85C \uC816\uD788\uBA70 0.5\uCD08\uAC04
@@ -24,6 +24,8 @@ MonoBehaviour:
   skillSoundVolume: 0.85
   shakeForce: 0.6
   hitStopDuration: 0
+  handSkillAnimName: 012_Physics_SwayBack
+  hitTimingRatio: 0.4
   swayDuration: 0.5
   swayBackDistance: 1
   hitBoxPrefab: {fileID: -7664338518204726940, guid: d1ce623f6fad4bb4dba1c4257fa1fefa, type: 3}
