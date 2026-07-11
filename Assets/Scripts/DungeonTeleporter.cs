@@ -9,7 +9,17 @@ public class DungeonTeleporter : MonoBehaviour, IInteractable
 
     public bool Interact(GameObject interactor)
     {
-        SceneManager.LoadScene(DungeonSceneName);
+        if (ScreenFadeController.Instance != null)
+        {
+            ScreenFadeController.Instance.FadeOutIn(0.5f, 0.2f, 0.5f, () =>
+            {
+                SceneManager.LoadScene(DungeonSceneName);
+            });
+        }
+        else
+        {
+            SceneManager.LoadScene(DungeonSceneName);
+        }
 
         return true;
     }
