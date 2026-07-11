@@ -184,7 +184,7 @@ public class JugglingCatchZone : MonoBehaviour
 
         // [개선] 단순 거리 체크 대신 물리 엔진(OverlapCircle)을 사용하여 플레이어 감지
         // 플레이어 레이어를 감지하여 범위 안에 플레이어가 걸쳐만 있어도 성공으로 판정
-        int playerMask = LayerMask.GetMask("Player");
+        int playerMask = Layers.PlayerMask;
         Collider2D playerCollider = Physics2D.OverlapCircle(transform.position, _radius, playerMask);
         
         if (playerCollider != null)

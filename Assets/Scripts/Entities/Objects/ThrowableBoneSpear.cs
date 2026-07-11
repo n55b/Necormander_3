@@ -82,7 +82,7 @@ public class ThrowableBoneSpear : MonoBehaviour, IThrowable
         }
         
         // 튕겨져 나온 후 바닥에 완전히 안착함. 다시 주울 수 있는 상태.
-        gameObject.layer = LayerMask.NameToLayer("Default"); // 마우스 클릭 가능 레이어
+        gameObject.layer = Layers.Default; // 마우스 클릭 가능 레이어
     }
 
     public void PrepareForClusterThrow(float chargeRatio, bool isDirect)
@@ -106,8 +106,8 @@ public class ThrowableBoneSpear : MonoBehaviour, IThrowable
         
         // 던져진 상태에서 충돌 발생
         int layer = collision.gameObject.layer;
-        bool isEnemyTarget = layer == LayerMask.NameToLayer("Enemy") || 
-                             layer == LayerMask.NameToLayer("Boss") || 
+        bool isEnemyTarget = layer == Layers.Enemy || 
+                             layer == Layers.Boss || 
                              collision.CompareTag("Boss") || 
                              (collision.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy);
 
@@ -128,7 +128,7 @@ public class ThrowableBoneSpear : MonoBehaviour, IThrowable
                 BounceOff(collision.transform.position);
             }
         }
-        else if (collision.CompareTag("Wall") || collision.gameObject.layer == LayerMask.NameToLayer("Obstacle"))
+        else if (collision.CompareTag("Wall") || collision.gameObject.layer == Layers.Obstacle)
         {
             // 벽에 꽂힘
             StickToWall();

@@ -96,7 +96,7 @@ public class PoisonUniqueManager : MonoBehaviour
             // [수정] 최소 1스택 이상은 무조건 전염되도록 보장
             float passAmount = Mathf.Max(1f, hostStack * 0.1f);
 
-            LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+            LayerMask enemyLayer = Layers.EnemyMask;
             Collider2D[] colls = Physics2D.OverlapCircleAll(currentHost.transform.position, SPREAD_RADIUS, enemyLayer);
             
             foreach (var col in colls)

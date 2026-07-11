@@ -148,6 +148,6 @@ public class TextFloating : MonoBehaviour
 
     private void OnDisable()
     {
-        FloatingTextManager.instance.ReturnToPool(this);
+        FloatingTextManager.Instance.ReturnToPool(this);
     }
 }

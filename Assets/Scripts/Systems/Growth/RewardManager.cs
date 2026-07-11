@@ -15,6 +15,9 @@ public class RewardManager : MonoBehaviour
 
     private Queue<List<RewardCandidate>> _rewardQueue = new Queue<List<RewardCandidate>>();
 
+    [Header("보상 스킵 설정")]
+    [SerializeField] private float skipRewardHealAmount = 10f;
+
     public void Initialize()
     {
         Instance = this;
@@ -210,6 +213,23 @@ public class RewardManager : MonoBehaviour
     public void SkipReward()
     {
         Debug.Log("<color=orange>[Reward]</color> Reward skipped.");
+
+        // 보상을 건너뛰면 보상 대신 체력을 회복시켜줍니다.
+        HealPlayer(skipRewardHealAmount);
+
         ProcessNextReward();
     }
+
+    /// <summary>
+    /// 플레이어 체력을 회복시킵니다. 보상 스킵뿐 아니라 다른 곳에서도 재사용할 수 있도록 분리해뒀습니다.
+    /// </summary>
+    private void HealPlayer(float amount)
+    {
+        var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
+        if (player != null && player.Stat != null && player.Stat.Health != null)
+        {
+            player.Stat.Health.Heal(amount);
+        }
+    }
+
 }

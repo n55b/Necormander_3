@@ -16,14 +16,21 @@ public class PlayerRapidPunchSO : PlayerSkillSO
     {
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
         
         player.StartSkillCasting(RapidPunchRoutine(player));
     }
 
     private IEnumerator RapidPunchRoutine(PlayerController player)
     {
+        // 첫 타격까지만 HandSkill 모션 타이밍에 맞춤 (이후 타격은 timeBetweenPunches 간격 유지)
+        float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
+
         for (int i = 0; i < punchCount; i++)
         {
+            if (player == null) yield break;
+
             PlaySkillSound();
             ShakeCamera();
 
@@ -39,16 +46,16 @@ public class PlayerRapidPunchSO : PlayerSkillSO
                 Vector2 attackCenter = startPos;
                 BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
                 box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
-                
+
                 float finalDamage = player.Stat.ATK * damageMultiplier;
                 // isBasicAttack = true 로 설정
                 DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, true, $"Rapid Punch {i+1}!");
-                
+
                 System.Action<CharacterHealth> onHit = (health) => {
                     Debug.Log($"<color=yellow>[Physical]</color> 둥둥타 {i+1}타 적중! (기본 공격 판정)");
                 };
 
-                box.Init(info, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, onHit);
+                box.Init(info, Layers.EnemyMask, 0.1f, 0f, true, onHit);
             }
 
             yield return new WaitForSeconds(timeBetweenPunches);

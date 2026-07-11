@@ -5,17 +5,10 @@ using UnityEngine.InputSystem;
 public class MapUIManager : MonoBehaviour
 {
     [SerializeField] private GameObject fullMapUIWindow;
-    [SerializeField] private MiniMapController miniMapController;
     private PlayerInput _playerInput;
     private bool _isMapOpen = false;
     private bool _isInitialized = false; // 중복 초기화 방지용 변수
     public bool IsMapOpen => _isMapOpen; // 다른 스크립트에서 맵 상태 확인용 프로퍼티
-
-    private void Start()
-    {
-        if (miniMapController == null)
-            miniMapController = Object.FindFirstObjectByType<MiniMapController>();
-    }
 
     private void Update()
     {
@@ -76,23 +69,12 @@ public class MapUIManager : MonoBehaviour
             {
                 UIBasedMiniMap.Instance.RefreshMap();
             }
-
-            if (miniMapController != null)
-            {
-                miniMapController.SetMapActive(isOpen);
-            }
         }
         else
         {
             _isMapOpen = isOpen;
             UIPopUpManager.Instance.ClosePopUpUI();
             UIEventBus.NotifyClose("Map");
-
-            // 지도가 닫힐 때 MiniMapController에게 알림 (다시 플레이어 추적 모드로 돌리기 위함)
-            if (miniMapController != null)
-            {
-                miniMapController.SetMapActive(false);
-            }
         }
     }
 }

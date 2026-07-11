@@ -32,7 +32,7 @@ public class MeltingCorpsePuddle : MonoBehaviour
 
     private void DealDamage()
     {
-        LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+        LayerMask enemyLayer = Layers.EnemyMask;
         Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, radius, enemyLayer);
         foreach (var col in colls)
         {

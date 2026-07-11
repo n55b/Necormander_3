@@ -4,9 +4,8 @@ using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 using TMPro;
 
-public class UIBasedMiniMap : MonoBehaviour
+public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
 {
-    public static UIBasedMiniMap Instance { get; private set; }
 
     [Header("UI 컨테이너 설정")]
     [SerializeField] private RectTransform fullMapContainer; // MiniMapUI 오브젝트 연결
@@ -41,6 +40,11 @@ public class UIBasedMiniMap : MonoBehaviour
     [SerializeField] private bool syncPlayerZRotation = true; // 플레이어 회전 각도(방향) 동기화 여부
     [SerializeField] private Sprite customEnemyIcon;          // 적 마커 이미지 (비워두면 빨간 도트)
 
+    [Header("텔레포트 연출 설정")]
+    [SerializeField] private float teleportFadeOutDuration = 0.25f;
+    [SerializeField] private float teleportFadeHoldDuration = 0.1f;
+    [SerializeField] private float teleportFadeInDuration = 0.25f;
+
     // 스프라이트 시트 로드 캐시
     private Sprite _playerIcon;
     private Sprite _shopIcon;
@@ -70,9 +74,8 @@ public class UIBasedMiniMap : MonoBehaviour
     // 전투 및 방 줌 상태 캐시
     private bool _lastWasBattle = false;
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        Instance = this;
         
         if (fullMapContainer == null)
         {
@@ -560,8 +563,8 @@ public class UIBasedMiniMap : MonoBehaviour
     {
         _cachedEnemies.Clear();
 
-        int enemyLayer = LayerMask.GetMask("Enemy");
-        int bossLayer = LayerMask.GetMask("Boss");
+        int enemyLayer = Layers.EnemyMask;
+        int bossLayer = Layers.BossMask;
         int targetMask = enemyLayer | bossLayer;
 
         Vector3 roomCenter = currentRoom.transform.position + (Vector3)currentRoom.centerOffset;
@@ -575,7 +578,7 @@ public class UIBasedMiniMap : MonoBehaviour
                 if (col == null) continue;
                 GameObject enemyObj = col.gameObject;
                 
-                if (col.transform.parent != null && col.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+                if (col.transform.parent != null && col.gameObject.layer == Layers.Enemy)
                 {
                     enemyObj = col.transform.root.gameObject;
                 }
@@ -712,17 +715,31 @@ public class UIBasedMiniMap : MonoBehaviour
         Transform playerTr = GameManager.Instance.PLAYERCONTROLLER.transform;
         Vector3 targetPos = room.transform.position + (Vector3)room.centerOffset;
         targetPos.z = playerTr.position.z;
-        playerTr.position = targetPos;
 
-        if (MapGenerator.Instance != null)
+        System.Action doTeleport = () =>
         {
-            MapGenerator.Instance.SetCurrentRoom(room);
+            playerTr.position = targetPos;
+
+            if (MapGenerator.Instance != null)
+            {
+                MapGenerator.Instance.SetCurrentRoom(room);
+            }
+            RefreshMap();
+
+            Debug.Log($"<color=green>[Teleport]</color> {room.gameObject.name}의 중심으로 UI 텔레포트 완료!");
+
+            var mapUI = Object.FindFirstObjectByType<MapUIManager>();
+            if (mapUI != null) mapUI.CloseMapUI();
+        };
+
+        // 화면 페이드(암전) 연출. 페이드 컨트롤러가 없으면 즉시 텔레포트로 폴백.
+        if (ScreenFadeController.Instance != null)
+        {
+            ScreenFadeController.Instance.FadeOutIn(teleportFadeOutDuration, teleportFadeHoldDuration, teleportFadeInDuration, doTeleport);
         }
-        RefreshMap();
-
-        Debug.Log($"<color=green>[Teleport]</color> {room.gameObject.name}의 중심으로 UI 텔레포트 완료!");
-
-        var mapUI = Object.FindFirstObjectByType<MapUIManager>();
-        if (mapUI != null) mapUI.CloseMapUI();
+        else
+        {
+            doTeleport();
+        }
     }
 }

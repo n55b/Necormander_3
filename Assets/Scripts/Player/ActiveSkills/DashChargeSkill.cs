@@ -96,7 +96,8 @@ public class DashChargeSkill : IActiveSkill
         float elapsed = 0f;
         
         Vector2 pStartPos = _player.transform.position;
-        Vector2 pEndPos = pStartPos + dir * dist;
+        // 대시와 동일 판정: 방패 돌진이 벽/낭떠러지를 뚫고 나가지 않도록 목적지 제동.
+        Vector2 pEndPos = SkillCombatUtil.GetSafeDestination(pStartPos, dir, dist);
 
         // 미니언 시작 위치 및 도착 위치 저장 (마우스/목표점 방향으로 수렴 돌진)
         List<Vector2> mStartPos = new List<Vector2>();
@@ -104,9 +105,9 @@ public class DashChargeSkill : IActiveSkill
         foreach (var m in _synergyMinions)
         {
             mStartPos.Add(m.transform.position);
-            // 미니언 위치에서 플레이어의 목표점(마우스 방향)을 향하는 벡터 계산
+            // 미니언 위치에서 플레이어의 목표점(마우스 방향)을 향하는 벡터 계산 (벽/낭떠러지 제동 포함)
             Vector2 mDir = (pEndPos - (Vector2)m.transform.position).normalized;
-            mEndPos.Add((Vector2)m.transform.position + mDir * dist);
+            mEndPos.Add(SkillCombatUtil.GetSafeDestination(m.transform.position, mDir, dist));
         }
 
         HashSet<int> hitEnemies = new HashSet<int>();
@@ -162,7 +163,7 @@ public class DashChargeSkill : IActiveSkill
 
     private void CheckHit(HashSet<int> hitEnemies, Vector2 checkPos, GameObject attacker)
     {
-        Collider2D[] cols = Physics2D.OverlapCircleAll(checkPos, hitRadius, LayerMask.GetMask("Enemy"));
+        Collider2D[] cols = Physics2D.OverlapCircleAll(checkPos, hitRadius, Layers.EnemyMask);
         foreach (var col in cols)
         {
             var health = col.GetComponentInChildren<CharacterHealth>();

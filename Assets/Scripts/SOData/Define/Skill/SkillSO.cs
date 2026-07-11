@@ -83,6 +83,15 @@ public abstract class SkillSO : ScriptableObject
 public abstract class PlayerSkillSO : SkillSO
 {
     // 추가적인 플레이어 전용 데이터 (스테미나 소모량 등)
+
+    [Header("Hand Skill Animation")]
+    [Tooltip("Hand 오브젝트의 HandSkillAnimator에서 재생할 State/Clip 이름 (예: \"020_Physics_Leap\"). 비워두면 손 모션 없이 스킬만 발동됩니다.")]
+    public string handSkillAnimName;
+
+    [Header("Hit Timing")]
+    [Range(0f, 1f)]
+    [Tooltip("HandSkill 클립 길이 중 실제 타격(데미지/히트박스)이 발생해야 하는 시점 비율 (0=시작, 1=끝). Animation Event 대신 이 비율로 타이밍을 맞췄니다.")]
+    public float hitTimingRatio = 0.4f;
 }
 
 public abstract class MinionSkillSO : SkillSO

@@ -165,7 +165,7 @@ public class ThrowImpactManager : MonoBehaviour
     private List<GameObject> ScanAreaTargets(ThrowRecipe recipe, Vector2 pos)
     {
         float radius = recipe.GetScaledRadius();
-        int targetMask = LayerMask.GetMask("Player", "Army", "Enemy");
+        int targetMask = Layers.PlayerArmyEnemy;
         Collider2D[] hitColls = Physics2D.OverlapCircleAll(pos, radius, targetMask);
         
         List<GameObject> targets = new List<GameObject>();

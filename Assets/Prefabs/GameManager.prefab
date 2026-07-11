@@ -57,6 +57,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3756802b4adc47347822130f5c9d25ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  persistAcrossScenes: 0
   textPrefab: {fileID: 717604425048194122, guid: ad279bdf08f980742b70fceeaa100b90, type: 3}
   poolSize: 20
 --- !u!1 &2670220591623535792
@@ -344,7 +345,8 @@ MonoBehaviour:
   Slots: []
   useDebugStartingInventory: 1
   debugStartingMinions:
-  - {fileID: 11400000, guid: 89dac6d06c1df48408873ac097bafeee, type: 2}
+  - {fileID: 11400000, guid: c7e0121e41f118b45b1ebcd4cdc78e8e, type: 2}
+  - {fileID: 11400000, guid: f67166d43b3c4a646b53721afbc5498b, type: 2}
   debugStartingMinionQuantities: 
   debugStartingGems_Data: []
   debugStartingGems_TargetJobs: 00000000
@@ -397,7 +399,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   equippedSkills:
-  - {fileID: 11400000, guid: 083258dd8e5cca04b953dc235db497e5, type: 2}
+  - {fileID: 11400000, guid: 0dca2cff1570712469fda810400fad17, type: 2}
+  - {fileID: 11400000, guid: d2a87b3e1c0773141a161772c0f7914c, type: 2}
+  - {fileID: 11400000, guid: 8ffba0baff747c3418d4261959da8854, type: 2}
   ownedSkills: []
 --- !u!1 &4851146966962830542
 GameObject:
@@ -735,7 +739,7 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 32
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 450}
+  m_ReferenceResolution: {x: 960, y: 540}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -937,6 +941,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3512611c91744f84d87229e161ad2db6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  persistAcrossScenes: 0
   iconPrefab: {fileID: 4131985615072024581, guid: 216621601e917814eb0796b0a0b4cea4, type: 3}
 --- !u!1 &7727511665536608322
 GameObject:
@@ -1024,6 +1029,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectionUI: {fileID: 0}
   handSlotUI: {fileID: 0}
+  skipRewardHealAmount: 10
 --- !u!114 &1557044542994201147
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1036,6 +1042,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7745e54370706147b5aa490f232cda2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  persistAcrossScenes: 0
   gameOverPanel: {fileID: 0}
 --- !u!1 &7931369442624503284
 GameObject:

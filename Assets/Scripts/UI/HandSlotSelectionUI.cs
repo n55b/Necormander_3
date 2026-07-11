@@ -6,9 +6,8 @@ using UnityEngine.UI;
 /// 미니언이나 능력을 선택했을 때, 10개의 핸드 슬롯 중 어디에 넣을지 결정하는 전용 UI입니다.
 /// 상단에는 선택한 보상 정보를, 하단에는 10개의 핸드 슬롯 상태를 보여줍니다.
 /// </summary>
-public class HandSlotSelectionUI : MonoBehaviour
+public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
 {
-    public static HandSlotSelectionUI Instance; // [추가] 싱글톤
 
     [Header("UI Containers")]
     [SerializeField] private GameObject panel;
@@ -26,10 +25,8 @@ public class HandSlotSelectionUI : MonoBehaviour
 
     public bool IsOpen => panel != null && panel.activeSelf;
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        Instance = this; // [추가]
-
         // [추가] 툴팁 프리팹 소환
         if (tooltipPrefab != null && CommonTooltipUI.Instance == null)
         {

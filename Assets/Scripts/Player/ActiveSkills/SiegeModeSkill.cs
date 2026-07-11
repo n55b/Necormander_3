@@ -226,7 +226,7 @@ public class SiegeArtilleryProjectile : MonoBehaviour
     private void Explode()
     {
         float explosionRadius = 3f;
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(_targetPos, explosionRadius, LayerMask.GetMask("Enemy"));
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(_targetPos, explosionRadius, Layers.EnemyMask);
         foreach (var col in colliders)
         {
             if (col.TryGetComponent<EnemyController>(out var enemy))

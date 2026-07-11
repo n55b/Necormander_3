@@ -121,7 +121,7 @@ public int DebuffStackCount => _debuffStackCount;
             if (_vulnerabilityTimer <= 0)
             {
                 _vulnerabilityStacks = 0;
-                debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
+                debuffTerminal?.RemoveIcon(DebuffStackType.Vulnerability);
             }
         }
 
@@ -132,7 +132,7 @@ public int DebuffStackCount => _debuffStackCount;
             {
                 if (debuffTerminal != null && _currentDebuffType != DebuffType.None)
                 {
-                    debuffTerminal.RemoveIcon(ConvertDebuffTypeToStackType(_currentDebuffType));
+                    debuffTerminal?.RemoveIcon(ConvertDebuffTypeToStackType(_currentDebuffType));
                 }
                 _debuffStackCount = 0;
                 _currentDebuffType = DebuffType.None;
@@ -195,7 +195,7 @@ public int DebuffStackCount => _debuffStackCount;
                 {
                     _boolTimers[key] = 0f;
                     _boolTiers[key] = 0;
-                    debuffTerminal.RemoveIcon(key); 
+                    debuffTerminal?.RemoveIcon(key); 
                 }
             }
         }
@@ -271,7 +271,7 @@ public int DebuffStackCount => _debuffStackCount;
 
         float knockbackSpeed = force * 2.0f;
         float elapsed = 0f;
-        int wallMask = LayerMask.GetMask("Wall", "Obstacle");
+        int wallMask = Layers.WallObstacle;
 
         while (elapsed < duration)
         {
@@ -297,8 +297,8 @@ public int DebuffStackCount => _debuffStackCount;
                 foreach(var hit in hits)
                 {
                     int layerVal = hit.gameObject.layer;
-                    bool isEnemy = layerVal == LayerMask.NameToLayer("Enemy") || 
-                                   layerVal == LayerMask.NameToLayer("Boss") || 
+                    bool isEnemy = layerVal == Layers.Enemy || 
+                                   layerVal == Layers.Boss || 
                                    hit.CompareTag("Boss") || 
                                    (hit.TryGetComponent<BaseEntity>(out var entEnemy) && entEnemy.team == Team.Enemy);
                     if (isEnemy && hit.TryGetComponent<CharacterStat>(out var enemyStat))
@@ -312,9 +312,9 @@ public int DebuffStackCount => _debuffStackCount;
                         }
                         enemyStat.Health.GetDamage(new DamageInfo(damage, DamageType.Physical, gameObject));
                     }
-                    bool isAlly = layerVal == LayerMask.NameToLayer("Player") || 
-                                  layerVal == LayerMask.NameToLayer("Army") || 
-                                  layerVal == LayerMask.NameToLayer("FlyingObject") ||
+                    bool isAlly = layerVal == Layers.Player || 
+                                  layerVal == Layers.Army || 
+                                  layerVal == Layers.FlyingObject ||
                                   (hit.TryGetComponent<BaseEntity>(out var entAlly) && entAlly.team == Team.Ally);
                     if (isAlly && hit.TryGetComponent<CharacterStatus>(out var allyStat))
                     {
@@ -335,7 +335,7 @@ public int DebuffStackCount => _debuffStackCount;
         _boolTimers[type] = Mathf.Max(_boolTimers[type], duration);
         _boolTiers[type] = tier;
 
-        debuffTerminal.UpdateUI(type, tier); 
+        debuffTerminal?.UpdateUI(type, tier); 
     }
 
     /// <summary>
@@ -394,7 +394,7 @@ public int DebuffStackCount => _debuffStackCount;
 
         if (debuffTerminal != null)
         {
-            debuffTerminal.UpdateUI(ConvertDebuffTypeToStackType(_currentDebuffType), _debuffStackCount);
+            debuffTerminal?.UpdateUI(ConvertDebuffTypeToStackType(_currentDebuffType), _debuffStackCount);
         }
     }
 
@@ -436,7 +436,7 @@ private void PopCurrentDebuff(GameObject attacker)
         {
             case DebuffType.BloodPop:
                 burstDmg = baseDmg * (stacks == 1 ? 2.4f : stacks == 2 ? 3.6f : 4.8f);
-                Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, 3f + (stacks * 0.5f), LayerMask.GetMask("Enemy"));
+                Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, 3f + (stacks * 0.5f), Layers.EnemyMask);
                 foreach (var col in cols)
                 {
                     var health = col.GetComponent<CharacterHealth>();
@@ -468,7 +468,7 @@ private void PopCurrentDebuff(GameObject attacker)
 
         if (debuffTerminal != null && _currentDebuffType != DebuffType.None)
         {
-            debuffTerminal.RemoveIcon(ConvertDebuffTypeToStackType(_currentDebuffType));
+            debuffTerminal?.RemoveIcon(ConvertDebuffTypeToStackType(_currentDebuffType));
         }
 
         _debuffStackCount = 0;
@@ -489,7 +489,7 @@ private void PopCurrentDebuff(GameObject attacker)
             _vulnerabilityStacks++;
         
         _vulnerabilityTimer = TRIGGER_STACK_DURATION;
-        debuffTerminal.UpdateUI(DebuffStackType.Vulnerability, _vulnerabilityStacks);
+        debuffTerminal?.UpdateUI(DebuffStackType.Vulnerability, _vulnerabilityStacks);
 
         if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
@@ -512,7 +512,7 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
                 _vulnerabilityStacks = 0;
                 _vulnerabilityTimer = 0f;
-                debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
+                debuffTerminal?.RemoveIcon(DebuffStackType.Vulnerability);
                 DamageInfo stunDmg = new DamageInfo(dmg, DamageType.Fixed, attacker, false, 1f, false, "Vulnerability Stun");
                 GetComponent<CharacterHealth>().GetDamage(stunDmg);
 
@@ -522,9 +522,9 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
                 bool isAllySource = isPlayerApplied || (attacker != null && (
                     attacker.CompareTag("Player") || 
-                    attacker.gameObject.layer == LayerMask.NameToLayer("Player") || 
-                    attacker.gameObject.layer == LayerMask.NameToLayer("Army") || 
-                    attacker.gameObject.layer == LayerMask.NameToLayer("FlyingObject") ||
+                    attacker.gameObject.layer == Layers.Player || 
+                    attacker.gameObject.layer == Layers.Army || 
+                    attacker.gameObject.layer == Layers.FlyingObject ||
                     (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
                 ));
                 if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -539,15 +539,15 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
             {
                 _vulnerabilityStacks = 0;
                 _vulnerabilityTimer = 0f;
-                debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
+                debuffTerminal?.RemoveIcon(DebuffStackType.Vulnerability);
 
                 OnDebuffPopped?.Invoke("격파!");
 
                 bool isAllySource = isPlayerApplied || (attacker != null && (
                     attacker.CompareTag("Player") || 
-                    attacker.gameObject.layer == LayerMask.NameToLayer("Player") || 
-                    attacker.gameObject.layer == LayerMask.NameToLayer("Army") || 
-                    attacker.gameObject.layer == LayerMask.NameToLayer("FlyingObject") ||
+                    attacker.gameObject.layer == Layers.Player || 
+                    attacker.gameObject.layer == Layers.Army || 
+                    attacker.gameObject.layer == Layers.FlyingObject ||
                     (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
                 ));
                 if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -566,15 +566,15 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
                 _vulnerabilityStacks = 0;
                 _vulnerabilityTimer = 0f;
-                debuffTerminal.RemoveIcon(DebuffStackType.Vulnerability);
+                debuffTerminal?.RemoveIcon(DebuffStackType.Vulnerability);
 
                 OnDebuffPopped?.Invoke("강타!");
 
                 bool isAllySource = isPlayerApplied || (attacker != null && (
                     attacker.CompareTag("Player") || 
-                    attacker.gameObject.layer == LayerMask.NameToLayer("Player") || 
-                    attacker.gameObject.layer == LayerMask.NameToLayer("Army") || 
-                    attacker.gameObject.layer == LayerMask.NameToLayer("FlyingObject") ||
+                    attacker.gameObject.layer == Layers.Player || 
+                    attacker.gameObject.layer == Layers.Army || 
+                    attacker.gameObject.layer == Layers.FlyingObject ||
                     (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
                 ));
                 if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -601,9 +601,9 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
         bool isAllySource = isPlayerApplied || (attacker != null && (
             attacker.CompareTag("Player") || 
-            attacker.gameObject.layer == LayerMask.NameToLayer("Player") || 
-            attacker.gameObject.layer == LayerMask.NameToLayer("Army") || 
-            attacker.gameObject.layer == LayerMask.NameToLayer("FlyingObject") ||
+            attacker.gameObject.layer == Layers.Player || 
+            attacker.gameObject.layer == Layers.Army || 
+            attacker.gameObject.layer == Layers.FlyingObject ||
             (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
         ));
         if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -626,9 +626,9 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
         bool isAllySource = isPlayerApplied || (attacker != null && (
             attacker.CompareTag("Player") || 
-            attacker.gameObject.layer == LayerMask.NameToLayer("Player") || 
-            attacker.gameObject.layer == LayerMask.NameToLayer("Army") || 
-            attacker.gameObject.layer == LayerMask.NameToLayer("FlyingObject") ||
+            attacker.gameObject.layer == Layers.Player || 
+            attacker.gameObject.layer == Layers.Army || 
+            attacker.gameObject.layer == Layers.FlyingObject ||
             (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
         ));
         if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -658,6 +658,6 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
         _cachedMoveSpeedMultiplier = 1f; _cachedTotalShield = 0f;
 
         // UI 갱신
-        debuffTerminal.RemoveAll();
+        debuffTerminal?.RemoveAll();
     }
 }

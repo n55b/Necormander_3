@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb91f1612deb9c04fadcaef7732e58da, type: 3}
+  m_Name: 020_PSkill_Physics_Leap
+  m_EditorClassIdentifier: 
+  skillName: "\uB3C4\uC57D"
+  description: "\uD50C\uB808\uC774\uC5B4\uAC00 \uBCF4\uB294 \uBC29\uD5A5\uC73C\uB85C
+    3\uC9C4 \uAC70\uB9AC\uB97C \uB3C4\uC57D\uD569\uB2C8\uB2E4. \uC801\uC5D0\uAC8C
+    \uB2FF\uAC70\uB098 \uCD5C\uB300 \uC0AC\uAC70\uB9AC\uC5D0\uC11C \uCC29\uC9C0\uD558\uBA74
+    \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758 100% \uD53C\uD574\uB97C \uC8FC\uACE0 1\uCE78
+    \uBC94\uC704\uC758 \uC801\uC744 \uBC00\uCCD0\uB0C5\uB2C8\uB2E4."
+  icon: {fileID: 0}
+  cooldownTime: 6
+  skillSound: {fileID: 0}
+  skillSoundVolume: 0.85
+  shakeForce: 0.5
+  hitStopDuration: 0
+  handSkillAnimName: 020_Physics_Leap
+  leapDistance: 3
+  leapDuration: 0.25
+  impactRadius: 1
+  damageMultiplier: 1
+  knockbackForce: 4
+  knockbackDuration: 0.2
+  midFlightCheckRadius: 0.5

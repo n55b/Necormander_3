@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db0dbcc01eaee6540bbba864b13a0ef6, type: 3}
+  m_Name: 006_PSkill_Physics_StrikeFlurry
+  m_EditorClassIdentifier: 
+  skillName: "\uCD1D\uB09C\uD0C0"
+  description: "\uCDE8\uC57D \uC0C1\uD0DC\uC778 \uC801\uC744 \uD0C0\uACA9\uD558\uC5EC
+    \uCDE8\uC57D\uC744 \uC18C\uBAA8\uD574 \uACA9\uD30C\uB97C \uBD80\uC5EC\uD558\uBA70
+    6\uBC88 \uC5F0\uC18D\uC73C\uB85C \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758 30% \uD53C\uD574\uB97C
+    \uC785\uD799\uB2C8\uB2E4."
+  icon: {fileID: 0}
+  cooldownTime: 5
+  skillSound: {fileID: 0}
+  skillSoundVolume: 0.85
+  shakeForce: 0.5
+  hitStopDuration: 0
+  handSkillAnimName: 006_Physics_StrikeFlurry
+  hitTimingRatio: 0.2
+  hitBoxPrefab: {fileID: -7664338518204726940, guid: d1ce623f6fad4bb4dba1c4257fa1fefa, type: 3}
+  hitDistance: 3
+  hitWidth: 2
+  damageMultiplier: 0.3
+  hitCount: 6
+  timeBetweenHits: 0.08

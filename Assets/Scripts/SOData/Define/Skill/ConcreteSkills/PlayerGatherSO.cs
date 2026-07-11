@@ -13,16 +13,22 @@ public class PlayerGatherSO : PlayerSkillSO
     
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
-        PlaySkillSound();
-        ShakeCamera();
-
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
         player.StartSkillCasting(GatherRoutine(player));
     }
 
     private IEnumerator GatherRoutine(PlayerController player)
     {
+        float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
+
+        if (player == null) yield break;
+
+        PlaySkillSound();
+        ShakeCamera();
+
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 offset = mousePos - (Vector2)player.transform.position;
         Vector2 dir = offset.normalized;
@@ -57,7 +63,7 @@ public class PlayerGatherSO : PlayerSkillSO
             float finalDamage = player.Stat.ATK * damageMultiplier;
             DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Gather!");
             
-            box.Init(info, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, onGatherSuccess);
+            box.Init(info, Layers.EnemyMask, 0.1f, 0f, true, onGatherSuccess);
         }
 
         // 시각 및 데미지는 HitBox가 주지만, 물리적으로 끌어당기는 것은 직접 수행
@@ -73,11 +79,11 @@ public class PlayerGatherSO : PlayerSkillSO
 
         if (isCircle)
         {
-            cols = Physics2D.OverlapCircleAll(center, gatherRadius, LayerMask.GetMask("Enemy"));
+            cols = Physics2D.OverlapCircleAll(center, gatherRadius, Layers.EnemyMask);
         }
         else
         {
-            cols = Physics2D.OverlapBoxAll(center, new Vector2(gatherRadius * 2f, gatherRadius * 2f), angle, LayerMask.GetMask("Enemy"));
+            cols = Physics2D.OverlapBoxAll(center, new Vector2(gatherRadius * 2f, gatherRadius * 2f), angle, Layers.EnemyMask);
         }
         List<Transform> targetsToMove = new List<Transform>();
         List<Vector2> startPositions = new List<Vector2>();
@@ -151,8 +157,8 @@ public class PlayerGatherSO : PlayerSkillSO
                             else checkRadius = Mathf.Max(col.bounds.extents.x, col.bounds.extents.y);
                         }
 
-                        int obstacleMask = LayerMask.GetMask("Wall", "Obstacle");
-                        // 충돌 반지름 마진 1.0f 적용으로 벽 관통 예방
+                        int obstacleMask = Layers.WallObstacle | Layers.UnsteppableMask;
+                        // 충돌 반지름 마진 1.0f 적용으로 벽/낭떠러지 관통 예방
                         RaycastHit2D hit = Physics2D.CircleCast(targetsToMove[i].position, checkRadius * 1.0f, moveDir.normalized, moveDist, obstacleMask);
                         if (hit.collider != null)
                         {

@@ -6,9 +6,8 @@ using UnityEngine.Localization.Components;
 /// <summary>
 /// 보석의 상세 정보를 보여주는 툴팁 UI 클래스입니다.
 /// </summary>
-public class GemTooltipUI : MonoBehaviour
+public class GemTooltipUI : Singleton<GemTooltipUI>
 {
-    public static GemTooltipUI Instance;
 
     [Header("UI References")]
     [SerializeField] private RectTransform tooltipPanel;
@@ -23,9 +22,8 @@ public class GemTooltipUI : MonoBehaviour
 
     private Canvas _canvas;
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        Instance = this;
         _canvas = GetComponentInParent<Canvas>();
         
         // [추가] 툴팁 자체가 마우스를 가려 깜빡이는 현상 방지

@@ -11,6 +11,10 @@ public class BodyAnimationEventRelay : MonoBehaviour
     private PlayerController _controller;
     private MeleeCombatController _melee;
 
+    [Header("Walk Footstep Effect")]
+    [SerializeField] private GameObject walkSmogEffectPrefab;
+    [SerializeField] private Transform footEffectPoint;
+
     private void Awake()
     {
         _controller = GetComponentInParent<PlayerController>();
@@ -35,5 +39,25 @@ public class BodyAnimationEventRelay : MonoBehaviour
     public void OnAttackHitFrame()
     {
         _melee?.OnAttackHitFrame();
+    }
+
+    /// <summary>
+    /// 걷기 애니메이션 클립의 Animation Event(발이 땅에 닿는 프레임)에서 호출됩니다.
+    /// </summary>
+    public void OnFootstep()
+    {
+        if (walkSmogEffectPrefab == null) return;
+        Vector3 spawnPos = footEffectPoint != null ? footEffectPoint.position : transform.position;
+
+        GameObject fx = Instantiate(walkSmogEffectPrefab, spawnPos, Quaternion.identity);
+
+        // 플레이어 루트(Player Melee)의 localScale.x 부호가 곧 '현재 바라보는 방향'입니다.
+        // (PlayerController.Update()에서 이동 방향에 따라 뒤집어서 유지하는 값)
+        float rootScaleX = _controller != null ? _controller.transform.localScale.x : 1f;
+        float facingSign = rootScaleX < 0f ? -1f : 1f;
+
+        Vector3 scale = fx.transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * facingSign;
+        fx.transform.localScale = scale;
     }
 }

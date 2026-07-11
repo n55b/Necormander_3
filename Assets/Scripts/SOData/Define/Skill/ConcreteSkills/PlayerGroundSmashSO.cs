@@ -12,19 +12,25 @@ public class PlayerGroundSmashSO : PlayerSkillSO
     
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
-        PlaySkillSound();
-        ShakeCamera();
-
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
         player.StartSkillCasting(SmashRoutine(player));
     }
 
     private IEnumerator SmashRoutine(PlayerController player)
     {
+        float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
+
+        if (player == null) yield break;
+
+        PlaySkillSound();
+        ShakeCamera();
+
         Vector2 center = player.transform.position;
         float angle = 0f;
-        
+
         bool hasInvokedKeyword = false;
         System.Action<CharacterHealth> onSmashHit = (health) => {
             if (!hasInvokedKeyword) {
@@ -37,10 +43,10 @@ public class PlayerGroundSmashSO : PlayerSkillSO
         {
             BaseHitBox box = Instantiate(hitBoxPrefab, center, Quaternion.Euler(0, 0, angle));
             box.transform.localScale = new Vector3(gatherRadius * 2f, gatherRadius * 2f, 1f);
-            
+
             float finalDamage = player.Stat.ATK * damageMultiplier;
             DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Ground Smash!");
-            box.Init(info, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, onSmashHit);
+            box.Init(info, Layers.EnemyMask, 0.1f, 0f, true, onSmashHit);
         }
 
         // 당겨오기 처리
@@ -54,11 +60,11 @@ public class PlayerGroundSmashSO : PlayerSkillSO
 
         if (isCircle)
         {
-            hitEnemies = Physics2D.OverlapCircleAll(center, gatherRadius, LayerMask.GetMask("Enemy"));
+            hitEnemies = Physics2D.OverlapCircleAll(center, gatherRadius, Layers.EnemyMask);
         }
         else
         {
-            hitEnemies = Physics2D.OverlapBoxAll(center, new Vector2(gatherRadius * 2f, gatherRadius * 2f), angle, LayerMask.GetMask("Enemy"));
+            hitEnemies = Physics2D.OverlapBoxAll(center, new Vector2(gatherRadius * 2f, gatherRadius * 2f), angle, Layers.EnemyMask);
         }
 
         List<Coroutine> pullCoroutines = new List<Coroutine>();
@@ -112,8 +118,13 @@ public class PlayerGroundSmashSO : PlayerSkillSO
 
         float elapsed = 0f;
         Vector2 startPos = enemy.position;
-        // 플레이어에게서 약간 떨어진 위치까지만 당기기
-        Vector2 targetPos = center + (startPos - center).normalized * 0.5f;
+        // 플레이어에게서 약간 떨어진 위치까지만 당기기 (벽/낭떠러지를 관통해 끌려오지 않도록 대시와 동일 판정으로 제동)
+        Vector2 rawTarget = center + (startPos - center).normalized * 0.5f;
+        Vector2 toTarget = rawTarget - startPos;
+        float pullDist = toTarget.magnitude;
+        Vector2 targetPos = pullDist > 0.001f
+            ? SkillCombatUtil.GetSafeDestination(startPos, toTarget / pullDist, pullDist)
+            : rawTarget;
 
         while (elapsed < gatherDuration)
         {

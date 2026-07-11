@@ -295,7 +295,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
         currentDashHitbox.transform.localScale = Vector3.one * 1.5f; // 본체와 비슷하게 크게
         currentDashHitbox.GetComponent<MeshRenderer>().enabled = false;
         
-        currentDashHitbox.layer = LayerMask.NameToLayer("FlyingObject"); 
+        currentDashHitbox.layer = Layers.FlyingObject; 
         var hitbox = currentDashHitbox.AddComponent<GenericHitbox>();
         hitbox.Init(entity.Stats.ATK * 1.5f, entity.opponentLayer, entity.gameObject, dashDuration);
 

@@ -291,7 +291,7 @@ public class ThrowStrategy : MonoBehaviour
     public GameObject FindSmartTarget(Vector2 searchPos, Team targetTeam)
     {
         float searchRadius = 5.0f;
-        LayerMask mask = (targetTeam == Team.Enemy) ? LayerMask.GetMask("Enemy") : LayerMask.GetMask("Army", "Player");
+        LayerMask mask = (targetTeam == Team.Enemy) ? Layers.EnemyMask : Layers.PlayerArmy;
         Collider2D[] colls = Physics2D.OverlapCircleAll(searchPos, searchRadius, mask);
         GameObject bestTarget = null;
         float minTargetDist = float.MaxValue;

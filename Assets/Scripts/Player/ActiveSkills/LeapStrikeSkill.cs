@@ -38,7 +38,14 @@ public class LeapStrikeSkill : IActiveSkill
         IsActive = true;
         _player.SetInputBlocked(true);
 
-        Vector2 targetPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        // 대시와 동일 판정: 마우스 지점으로 도약하되 벽/낭떠러지 너머로 착지하지 않도록 제동.
+        Vector2 rawTarget = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 leapStart = _player.transform.position;
+        Vector2 leapTo = rawTarget - leapStart;
+        float leapDist = leapTo.magnitude;
+        Vector2 targetPos = leapDist > 0.001f
+            ? SkillCombatUtil.GetSafeDestination(leapStart, leapTo / leapDist, leapDist)
+            : rawTarget;
 
         // 시너지 미니언 탐색 (창병)
         var allyManager = _player.GetComponent<AllyManager>();
@@ -76,11 +83,16 @@ public class LeapStrikeSkill : IActiveSkill
 
         for (int i = 0; i < _synergyMinions.Count; i++)
         {
-            mStartPos.Add(_synergyMinions[i].transform.position);
-            
+            Vector2 mStart = _synergyMinions[i].transform.position;
+            mStartPos.Add(mStart);
+
             float angle = i * angleStep * Mathf.Deg2Rad;
             Vector2 offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
-            mEndPos.Add(targetPos + offset);
+            Vector2 mRawEnd = targetPos + offset;
+            // 미니언 착지도 벽/낭떠러지를 넘지 않도록 대시와 동일 판정으로 제동.
+            Vector2 mTo = mRawEnd - mStart;
+            float mDist = mTo.magnitude;
+            mEndPos.Add(mDist > 0.001f ? SkillCombatUtil.GetSafeDestination(mStart, mTo / mDist, mDist) : mRawEnd);
         }
 
         while (elapsed < jumpDuration)
@@ -157,7 +169,7 @@ public class LeapStrikeSkill : IActiveSkill
 
     private void CheckAndDamage(HashSet<int> hitEnemies, Vector2 checkPos, float damage, float stunTime)
     {
-        Collider2D[] cols = Physics2D.OverlapCircleAll(checkPos, hitRadius, LayerMask.GetMask("Enemy"));
+        Collider2D[] cols = Physics2D.OverlapCircleAll(checkPos, hitRadius, Layers.EnemyMask);
         foreach (var col in cols)
         {
             var health = col.GetComponentInChildren<CharacterHealth>();

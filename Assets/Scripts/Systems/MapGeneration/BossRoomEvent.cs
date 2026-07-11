@@ -24,7 +24,8 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     public UnityEvent OnBossCombatClear;
 
     private GameObject _activeBoss;
-    private List<MinionDataSO> _bossEnemyPool = new List<MinionDataSO>(); 
+    private List<MinionDataSO> _bossEnemyPool = new List<MinionDataSO>();
+    private List<GameObject> _activeEnemies = new List<GameObject>(); // 분열 등으로 추가된 적(보스 외)
     private bool _isBattleActive = false;
     private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
     private RoomInstance _cachedRoom;
@@ -55,11 +56,18 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         // 지연 스폰 중에는 보스가 소환 안 된 상태이므로 즉시 클리어되는 현상 방지
         if (!_isBattleActive || _isSpawnPending) return;
 
-        if (_activeBoss == null)
+        _activeEnemies.RemoveAll(e => e == null);
+        if (_activeBoss == null && _activeEnemies.Count == 0)
         {
             _isBattleActive = false;
             _cachedRoom.MarkCleared();
         }
+    }
+
+    // 분열 적 등을 방 클리어 판정에 귀속시킨다. (SlimeAIPatternSO/DualSplitAIPatternSO 에서 호출)
+    public void RegisterActiveEnemy(GameObject enemy)
+    {
+        if (enemy != null && !_activeEnemies.Contains(enemy)) _activeEnemies.Add(enemy);
     }
 
     public void OnPlayerEnter(RoomInstance room)

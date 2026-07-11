@@ -40,6 +40,6 @@ public class PlayerFracturePunchSO : PlayerSkillSO
             }
         };
 
-        box.Init(info, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, onHit);
+        box.Init(info, Layers.EnemyMask, 0.1f, 0f, true, onHit);
     }
 }

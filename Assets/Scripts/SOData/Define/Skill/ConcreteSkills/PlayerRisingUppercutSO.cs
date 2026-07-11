@@ -16,12 +16,23 @@ public class PlayerRisingUppercutSO : PlayerSkillSO
 
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
-        PlaySkillSound();
-        ShakeCamera();
-
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
         if (hitBoxPrefab == null) return;
+
+        player.StartCoroutine(HitRoutine(player));
+    }
+
+    private IEnumerator HitRoutine(PlayerController player)
+    {
+        float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
+
+        if (player == null) yield break;
+
+        PlaySkillSound();
+        ShakeCamera();
 
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 startPos = player.transform.position;
@@ -49,13 +60,12 @@ public class PlayerRisingUppercutSO : PlayerSkillSO
                 return;
             }
 
-            // 부여(띄움) -> 취약 1스택
             stat.Status.ApplyVulnerability(true);
 
             player.StartCoroutine(LaunchVisual(stat.transform.root));
         };
 
-        box.Init(info, LayerMask.GetMask("Enemy"), 0.15f, 0f, true, onHit);
+        box.Init(info, Layers.EnemyMask, 0.15f, 0f, true, onHit);
     }
 
     // 실제 상태이상은 아니고, 살짝 떠올랐다가 내려오는 연출용 코루틴입니다.

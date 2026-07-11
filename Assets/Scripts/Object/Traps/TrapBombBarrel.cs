@@ -31,7 +31,7 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
 
         if (targetLayer == 0)
         {
-            targetLayer = LayerMask.GetMask("Player", "Enemy", "Ally", "Army", "Player_Dash");
+            targetLayer = Layers.TrapTargets;
         }
     }
 

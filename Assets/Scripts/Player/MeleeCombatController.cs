@@ -68,7 +68,7 @@ public class MeleeCombatController : MonoBehaviour
                 {
                     var parryCtrl = _player.GetComponent<PlayerParryController>();
                     bool isParrying = parryCtrl != null && parryCtrl.IsParrying;
-                    if (_player.IsDashing || isParrying || _player.IsCastingSkill)
+                    if (_player.IsDashing || isParrying || _player.IsCastingSkill || _player.IsUsingHandSkill)
                     {
                         canAttack = false;
                     }
@@ -102,6 +102,7 @@ public class MeleeCombatController : MonoBehaviour
     {
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 공격 차단
         if (_player == null || _player.Stat.Health.IsDead) return;
+        if (_player.IsCastingSkill || _player.IsUsingHandSkill) return; // [추가] 스킬 사용 중에는 평타 차단
 
         var parryCtrl = _player.GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
@@ -182,7 +183,7 @@ public class MeleeCombatController : MonoBehaviour
                     superArmorDamage: saDmg
                 );
 
-                LayerMask enemyLayer = LayerMask.GetMask("Enemy");
+                LayerMask enemyLayer = Layers.EnemyMask;
                 // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
                 _activeHitbox.Init(info, enemyLayer, 0.2f, telegraphDuration);
             }

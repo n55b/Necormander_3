@@ -417,7 +417,7 @@ public void ExecutePlayerSkill(SkillSlot slot, Transform playerTransform)
                         }
                         
                         // 2. 레이어를 FlyingObject로 변경하여 투사체 충돌 패스 및 AI 타겟팅 제외
-                        int flyingLayer = LayerMask.NameToLayer("FlyingObject");
+                        int flyingLayer = Layers.FlyingObject;
                         if (flyingLayer != -1)
                         {
                             SetLayerRecursive(obj, flyingLayer);

@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-// 안면강타: 1초간 힘을 모은 뒤 전방 부채꼴 범위의 적을 강타합니다.
+// 안면강타: 손 모션 타이밍(hitTimingRatio)에 맞춰 전방 부채꼴 범위의 적을 강타합니다.
 // 기본: 기본 공격력의 100% 피해. 부채꼴 가운데에 있는 적은 +50% 추가 피해(총 150%).
 // 구현 방식: 같은 모양의 부채꼴 히트박스를 두 개(넓은 폭 100% + 좁은 중앙 폭 +50%) 겹쳐 스폰해서
 // 중앙에 있는 적만 두 번 맞아 150%가 되도록 처리합니다.
@@ -10,7 +10,6 @@ using System.Collections.Generic;
 public class PlayerFaceCrusherSO : PlayerSkillSO
 {
     public BaseHitBox hitBoxPrefab; // 부채꼴(콘) 형태의 히트박스 프리팹
-    public float chargeTime = 1f;
     public float distance = 4.2f;      // [상향] 3f -> 4.2f
     public float width = 4.0f;         // [상향] 3f -> 4.0f 부채꼴/사각형 전체 폭
     public float centerWidth = 1.8f;   // [상향] 1f -> 1.8f 가운데 보너스 판정 폭 (width보다 작아야 함)
@@ -21,6 +20,7 @@ public class PlayerFaceCrusherSO : PlayerSkillSO
     {
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
+        player.PlayHandSkillAnim(handSkillAnimName);
         player.StartSkillCasting(FaceCrusherRoutine(player));
     }
 
@@ -31,8 +31,9 @@ public class PlayerFaceCrusherSO : PlayerSkillSO
         Vector2 dir = (mousePos - startPos).normalized;
         if (dir == Vector2.zero) dir = Vector2.right;
 
-        // 1초간 선딜레이 (힘을 모으는 구간)
-        yield return new WaitForSeconds(chargeTime);
+        // 손 모션 클립 길이 * hitTimingRatio 시점까지 기다렸다가 타격 (chargeTime은 고정값이라 클립 길이와 엇갈려 애니매이션 끝난 뒤 히트박스가 나가는 버그가 있었음)
+        float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
         if (player == null) yield break;
 
         PlaySkillSound();
@@ -51,13 +52,13 @@ public class PlayerFaceCrusherSO : PlayerSkillSO
         wideBox.transform.localScale = new Vector3(distance, width, 1f);
         float baseDamage = player.Stat.ATK * damageMultiplier;
         DamageInfo baseInfo = new DamageInfo(baseDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Face Crusher!");
-        wideBox.Init(baseInfo, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, null);
+        wideBox.Init(baseInfo, Layers.EnemyMask, 0.1f, 0f, true, null);
 
         // 2. 중앙 보너스 판정 (가운데에 있는 적만 +50% 추가)
         BaseHitBox centerBox = Instantiate(hitBoxPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
         centerBox.transform.localScale = new Vector3(distance, centerWidth, 1f);
         float bonusDamage = player.Stat.ATK * centerBonusMultiplier;
         DamageInfo bonusInfo = new DamageInfo(bonusDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Face Crusher (Center)!");
-        centerBox.Init(bonusInfo, LayerMask.GetMask("Enemy"), 0.1f, 0f, true, null);
+        centerBox.Init(bonusInfo, Layers.EnemyMask, 0.1f, 0f, true, null);
     }
 }

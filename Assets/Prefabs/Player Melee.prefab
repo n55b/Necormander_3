@@ -36,6 +36,7 @@ Transform:
   m_Children:
   - {fileID: 6475330610207429760}
   - {fileID: 2174475832111382353}
+  - {fileID: 4011984707191010717}
   m_Father: {fileID: 1604435047591240911}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7482918772539710054
@@ -162,6 +163,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d20917bc8e9c75644989cc04aec10a86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  walkSmogEffectPrefab: {fileID: 5578466105845466699, guid: 8939cee3313b4e74ea111509ca7382fc, type: 3}
+  footEffectPoint: {fileID: 4011984707191010717}
 --- !u!1 &1757526723192270232
 GameObject:
   m_ObjectHideFlags: 0
@@ -295,6 +298,7 @@ GameObject:
   - component: {fileID: 659937523484627104}
   - component: {fileID: 3940698526423894861}
   - component: {fileID: 3550151716728198299}
+  - component: {fileID: 5125588004716113357}
   m_Layer: 8
   m_Name: Hand
   m_TagString: Untagged
@@ -420,6 +424,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f0b1f09ef2c5774c8d04c5f4ec24a0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!95 &5125588004716113357
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2218425221562843783}
+  m_Enabled: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: -3093028422847736631, guid: ed542784f4ec7824dbfb4d708ce3c1d7, type: 3}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2235908954508541628
 GameObject:
   m_ObjectHideFlags: 0
@@ -1035,6 +1061,37 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &7486575472172356911
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4011984707191010717}
+  m_Layer: 0
+  m_Name: FootEffectPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4011984707191010717
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7486575472172356911}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.4, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8947953161765370038}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7999888722073057843
 GameObject:
   m_ObjectHideFlags: 0
@@ -1453,6 +1510,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8192
   BodyAnimator: {fileID: 2915690303190765393}
+  HandSkillAnimator: {fileID: 5125588004716113357}
   canChangeState: 1
   MoveDirection: {x: 0, y: 0, z: 0}
   moveInput: {x: 0, y: 0}
@@ -1631,6 +1689,7 @@ MonoBehaviour:
   dashDuration: 0.2
   maxCharges: 2
   rechargeTime: 2
+  dashEffectPrefab: {fileID: 1585796293089155853, guid: c5d0c7c91c095c74fb398f43b9bd4cf5, type: 3}
 --- !u!114 &1103040150316217935
 MonoBehaviour:
   m_ObjectHideFlags: 0

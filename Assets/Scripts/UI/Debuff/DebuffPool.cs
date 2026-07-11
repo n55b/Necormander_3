@@ -1,14 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DebuffPool : MonoBehaviour
+public class DebuffPool : Singleton<DebuffPool>
 {
-    public static DebuffPool Instance;
-
     [SerializeField] private GameObject iconPrefab; // DebuffIcon 스크립트가 붙은 프리팹
     private Stack<DebuffIcon> pool = new Stack<DebuffIcon>();
-
-    void Awake() => Instance = this;
 
     public DebuffIcon Pop()
     {
