@@ -43,6 +43,55 @@ using System.Collections.Generic;
 [CreateAssetMenu(fileName = "EliteChargerAIPattern", menuName = "Necromancer/AI/EliteChargerPattern")]
 public class EliteChargerAIPatternSO : BossAIPatternSO
 {
+    // ##############################################################################
+    // # [Step 4b 계획 — 아직 실행 안 함] IBossAction 카탈로그 리팩터                  #
+    // # 새 보스를 만들 때 이 파일을 참고할 텐데, 그때 "이 정리를 지금 할지" 판단용 메모.     #
+    // ##############################################################################
+    //
+    // ▷ 지금 구조(문제):
+    //   이 SO 한 파일(~1600줄)에 6개 공격 '바디'가 전부 private 코루틴으로 살고,
+    //   index(매직넘버 0/1/2)로 switch 디스패치한다.
+    //     - 기본 3종: BasicAttackRoutine()이 _scheduler.NextBasic() index로 windup/radius/label을
+    //       삼항으로 고르고 → MiniChargeStabRoutine / NormalChargeRoutine / (sweep 인라인) 분기.
+    //     - 특수 3종: RunSpecialPattern(p)의 switch(p) → Pattern1_PillarCharge / Pattern2_GravityDonut /
+    //       Pattern3_GroundSlam.
+    //
+    // ▷ 목표 구조(리팩 후):
+    //   각 공격을 IBossAction 구현 1개로 분리하고, 브레인은 "고르고 실행"만 한다.
+    //     _basics   = { MiniStabAction, NormalChargeAction, SweepAction };
+    //     _specials = { PillarChargeAction, GravityDonutAction, GroundSlamAction };
+    //     Execute(): scheduler가 고른 _basics[i] / _specials[i] 의 .Run(ctx) 만 호출.
+    //   => 공격 추가/삭제/교체 = 클래스 하나 + 리스트 한 줄. index 매직넘버·거대 switch 사라짐.
+    //
+    // ▷ 이미 만들어 둔 재사용 인프라 (Assets/Scripts/SOData/AI patterns/Boss/):
+    //     IBossAction / BossContext (BossAction.cs), BossActionScheduler, BossTelegraph,
+    //     BossCombat(TryDamage/DealCircle/ExpandingRing), PillarField.
+    //   => 새 보스는 '엘리트를 안 뜯어도' 이 인프라 위에 IBossAction 리스트로 바로 만들 수 있다.
+    //      (즉 미래 보스가 '잠겨있는' 게 아니다. 4b는 순수하게 '엘리트 자신을 그 모양에 맞추는' 일.)
+    //
+    // ▷ 추출 방법(한 번에 X, 액션 하나씩 → 매번 플레이테스트):
+    //   1) 각 액션 클래스는 생성자로 이 SO(설정 필드 provider)를 받는다. (config는 전부 public 필드라 접근 가능)
+    //   2) 액션이 쓰는 헬퍼를 공용으로 옮기거나 노출:
+    //        - GetAimDir      → 이미 BossContext.AimDir() 로 대체 가능
+    //        - 텔레그래프 생성   → BossTelegraph (원/사각/링). CreateFallbackRect/Circle/Ring도 여기로 흡수
+    //        - 데미지/링 판정    → BossCombat.TryDamage / DealCircle / ExpandingRing (이미 링·데미지는 이걸 씀)
+    //        - 기둥 질의/수명    → PillarField (이미 이관됨)
+    //        - GetRoomMetrics / GetBoundsExitDistance / ScaleCoroutine / MiniChargeDash / StopNavAgent /
+    //          ShowLabel/ClearLabel → 공용 유틸(예: BossContext 또는 새 BossMotion/BossRoom 유틸)로 이동하거나
+    //          SO 메서드를 internal 로 노출해 액션이 호출.
+    //   3) BasicAttackRoutine의 '공통 래퍼'(IsAttacking/Animator/postDelay/ClearLabel)는 브레인에 남기고,
+    //      액션은 '공격 고유부'만 담당하게 쪼갠다. (특수 3종은 이미 자기완결형이라 래핑이 더 쉬움)
+    //
+    // ▷ 왜/언제:
+    //   기능 변화 0의 순수 정리다. 즉시 이득(#6 기둥누수, 데미지 단일경로, 텔레그래프/링 중복제거, 레이어 정리)은
+    //   이미 다 챙겼다. 회귀 리스크는 제일 크고 즉시 이득은 제일 작으므로 급하지 않다.
+    //   ⇒ 보스 #2를 만들며 '두 보스 공통 모양'이 실제로 필요해질 때, 그 김에 여기도 함께 정리하는 걸 권장.
+    //
+    // ▷ 이미 완료된 관련 리팩(참고): SO 브레인 클론 방식 유지(BaseEntity가 인스턴스별 Instantiate),
+    //   PillarField로 기둥 수명/정리(#6) 캡슐화, 스케줄러 일원화(_scheduler), 데미지 단일경로(BossCombat),
+    //   텔레그래프 스프라이트 BossTelegraph로 통합, 링 2종 BossCombat.ExpandingRing으로 통합.
+    // ##############################################################################
+
     // ==============================================================
     // 기본 공격 4종 (v1.3, 인스펙터에서 알아보기 쉬도록 공격별로 그룹화)
     // ==============================================================
@@ -158,8 +207,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     [Header("특수 패턴 공통 설정 (기본 공격 8초 -> 패턴 1회 -> 기본 공격 8초 -> ...)")]
     [Tooltip("기본 공격 상태로 돌아온 뒤 이 시간(초)이 지나면, 하던 행동을 강제로 중단하고 패턴을 발동합니다.")]
     public float specialPatternInterval = 8f;
-    [Tooltip("특수 패턴 장판(경고) 프리팹. 비워두면 원형 히트박스로 대체합니다.")]
-    public GameObject fieldTelegraphPrefab;
 
     // --- 패턴 1: 기둥과 돌진 (3단 돌진 체계 ③ 강한 돌진) ---
     [Header("패턴 1 - 기둥과 돌진 (v1.2: 3단 돌진 체계의 ③ 강한 돌진 단계. 스펙 변경 없음)")]
@@ -254,9 +301,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     private bool _isBusy = false;
     private bool _pillarsSpawned = false;
     private bool _superArmorApplied = false;
-    private List<EliteMonsterPillar> _pillars = new List<EliteMonsterPillar>();
-    private List<int> _specialPool = new List<int>();
-    private int _lastBasicAttack = -1;
+    private PillarField _pillarField; // 기둥 무리의 수명/질의/정리를 캡슐화 (기존 List<EliteMonsterPillar> 대체)
+    private BossActionScheduler _scheduler; // 기본 no-repeat + 특수 무반복풀 + 타이머 선택 로직 일원화
     private EliteBossPatternLabel _label;
     private EliteChargerStackIndicator _stackIndicator; // v1.4 B2
     private Coroutine _basicAttackCoroutine;
@@ -271,9 +317,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     // 공격이 나가는" 것처럼 보이는 문제를 방지합니다.
     private Vector2 _lastAimDir = Vector2.down;
 
-    // 기본 공격 상태로 (다시) 돌아온 절대 시각(Time.time). 이 시각으로부터 specialPatternInterval초가
-    // 지나면 다음 패턴을 발동합니다. Execute()가 매 프레임 불리지 않아도(공격 중엔 아예 안 불림) 정확합니다.
-    private float _basicPhaseStartTime;
 
     // ==============================================================
     // v1.4 B2: 기둥 파편 누적 강화 스택 (전투 끝까지 영구 유지, 시간 경과로 안 풀림)
@@ -295,15 +338,22 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         return _phase2Triggered ? baseDuration / (1f + phase2SpeedIncreasePercent) : baseDuration;
     }
 
+    // #6 정리: 브레인 클론이 파괴될 때(엔티티 사망/씬 언로드/재초기화 — BaseEntity.OnDestroy:325) 남은 기둥을 전부 제거.
+    // 기둥은 보스의 자식이 아니라 월드에 스폰되므로, 이 훅이 없으면 클리어한 방에 유령 기둥이 남는다.
+    private void OnDestroy()
+    {
+        _pillarField?.DestroyAll();
+    }
+
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);
         _isBusy = false;
         _pillarsSpawned = false;
         _superArmorApplied = false;
-        _pillars.Clear();
-        _specialPool.Clear();
-        _lastBasicAttack = -1;
+        _pillarField?.DestroyAll();          // 재초기화 대비: 이전 기둥 정리 후
+        _pillarField = new PillarField();     // 새 필드로 교체
+        _scheduler = new BossActionScheduler(3, 3);
         _label = null;
         _stackIndicator = null; // v1.4 B2
         _basicAttackCoroutine = null;
@@ -311,7 +361,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         _isBursting = false;
         _nextBurstTime = Time.time + Random.Range(pursuitBurstMinInterval, pursuitBurstMaxInterval);
         _lastAimDir = Vector2.down;
-        _basicPhaseStartTime = Time.time;
+        _scheduler.ResetBasicPhase(Time.time);
 
         // v1.4 D0/D3: 2페이즈 전환 플래그도 전투마다 초기화
         _phase2Triggered = false;
@@ -422,7 +472,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         {
             entity.LookAtTarget(entity.Target);
 
-            if (Time.time - _basicPhaseStartTime >= ScaleDuration(specialPatternInterval))
+            if (_scheduler.ShouldTriggerSpecial(Time.time, ScaleDuration(specialPatternInterval)))
             {
                 // 기본 공격 도중이라도(가능한 타이밍이라면) 강제로 중단하고 즉시 패턴을 발동합니다.
                 if (entity.IsAttacking)
@@ -437,7 +487,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 }
                 StopPursuitBurst(entity);
 
-                int pattern = DrawFromSpecialPool();
+                int pattern = _scheduler.NextSpecial();
                 entity.StartCoroutine(RunSpecialPattern(entity, pattern));
                 return;
             }
@@ -562,6 +612,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         Vector2 origin = entity.transform.position;
         Vector2[] dirs = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
 
+        List<Vector2> positions = new List<Vector2>();
         for (int i = 0; i < pillarCount && i < dirs.Length; i++)
         {
             Vector2 targetPos;
@@ -584,45 +635,11 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 targetPos = navHit.position;
             }
 
-            GameObject pillarObj;
-            if (pillarPrefab != null)
-            {
-                pillarObj = GameObject.Instantiate(pillarPrefab, targetPos, Quaternion.identity);
-            }
-            else
-            {
-                pillarObj = CreateFallbackPillar(targetPos);
-            }
-
-            EliteMonsterPillar pillar = pillarObj.GetComponent<EliteMonsterPillar>();
-            if (pillar == null) pillar = pillarObj.AddComponent<EliteMonsterPillar>();
-            pillar.SetMaxHP(pillarMaxHP);
-            pillar.Owner = entity.gameObject;
-
-            _pillars.Add(pillar);
+            positions.Add(targetPos);
         }
-    }
 
-    private GameObject CreateFallbackPillar(Vector2 pos)
-    {
-        GameObject obj = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        Object.DestroyImmediate(obj.GetComponent<Collider>());
-        obj.name = "EliteMonster_Pillar";
-        obj.transform.position = pos;
-        obj.transform.localScale = new Vector3(1f, 1.4f, 1f);
-
-        var col = obj.AddComponent<CircleCollider2D>();
-        col.radius = 0.55f;
-
-        // "Obstacle" 레이어는 이 프로젝트에 존재하지 않으므로, 실제 존재하며 Player/Enemy와
-        // 충돌하도록 설정되어 있는 "Object" 레이어를 사용합니다.
-        int objectLayer = LayerMask.NameToLayer("Object");
-        if (objectLayer >= 0) obj.layer = objectLayer;
-
-        var renderer = obj.GetComponent<Renderer>();
-        if (renderer != null) renderer.material.color = new Color(0.55f, 0.4f, 0.25f);
-
-        return obj;
+        // 실제 스폰/수명/정리는 PillarField 가 담당 (프리팹 없으면 내부 fallback). 배치 계산만 여기서.
+        _pillarField.Spawn(entity.gameObject, pillarPrefab, positions, pillarMaxHP);
     }
 
     // ==============================================================
@@ -734,13 +751,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     // ==============================================================
     // 기본 공격 3종
     // ==============================================================
-    private int PickBasicAttack()
-    {
-        int next;
-        do { next = Random.Range(0, 3); } while (next == _lastBasicAttack);
-        _lastBasicAttack = next;
-        return next;
-    }
+    // 기본/특수 선택 로직은 BossActionScheduler(_scheduler)로 이관됨 (기존 PickBasicAttack/DrawFromSpecialPool 대체)
 
     private IEnumerator BasicAttackRoutine(BaseEntity entity)
     {
@@ -754,7 +765,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             entity.Animator.Play("Attack", -1, 0f);
         }
 
-        int atkIndex = PickBasicAttack(); // 0: 미니 돌진 찍기, 1: 일반 돌진, 2: 휩쓸기
+        int atkIndex = _scheduler.NextBasic(); // 0: 미니 돌진 찍기, 1: 일반 돌진, 2: 휩쓸기
 
         float windup = atkIndex == 0 ? ScaleDuration(stabWindup) : atkIndex == 1 ? ScaleDuration(normalChargeWindup) : ScaleDuration(sweepWindup);
         float radius = atkIndex == 0 ? stabRadius : atkIndex == 1 ? normalChargeHitRadius : sweepRadius;
@@ -843,16 +854,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, true);
         hb.Init(info, entity.opponentLayer, 0.25f, 0.05f, entity.team == Team.Ally);
 
-        // v1.3 수정: 대시 경로가 아니라, 최종 전방 원형 판정(spawnPos, radius) 안에 있는 기둥에게만 내구도 피해를 줍니다.
-        Collider2D[] pillarHits = Physics2D.OverlapCircleAll(spawnPos, radius, LayerMask.GetMask("Object"));
-        foreach (var pillarHit in pillarHits)
-        {
-            EliteMonsterPillar hitPillar = pillarHit.GetComponentInParent<EliteMonsterPillar>();
-            if (hitPillar != null && hitPillar.IsAlive)
-            {
-                hitPillar.DamagePattern(miniChargePillarDamage);
-            }
-        }
+        // v1.3: 최종 전방 원형 판정(spawnPos, radius) 안에 있는 살아있는 기둥에게만 내구도 피해.
+        _pillarField.DamageInRadius(spawnPos, radius, miniChargePillarDamage);
 
         yield return new WaitForSeconds(0.05f);
     }
@@ -967,14 +970,11 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
 
             RaycastHit2D playerHit = Physics2D.CircleCast(entity.transform.position, normalChargeHitRadius, dir, checkDist, playerMask);
-            if (playerHit.collider != null)
+            // 대쉬(Player_Dash) 중인 플레이어는 관통(phase-through): 멈추지도/데미지도 없이 그대로 돌진 지속.
+            // 그 외 플레이어만 정지 + 데미지. (여전히 레이어 기반 CircleCast — 감지는 하되 대쉬는 통과시킴)
+            if (playerHit.collider != null && playerHit.collider.gameObject.layer != LayerMask.NameToLayer("Player_Dash"))
             {
-                CharacterHealth pHealth = playerHit.collider.GetComponentInChildren<CharacterHealth>();
-                if (pHealth == null) pHealth = playerHit.collider.GetComponentInParent<CharacterHealth>();
-                if (pHealth != null && !pHealth.Invincible)
-                {
-                    pHealth.GetDamage(new DamageInfo(entity.Stats.ATK * normalChargeDamageMultiplier, DamageType.Physical, entity.gameObject));
-                }
+                BossCombat.TryDamage(playerHit.collider, new DamageInfo(entity.Stats.ATK * normalChargeDamageMultiplier, DamageType.Physical, entity.gameObject));
                 if (rb != null) rb.linearVelocity = Vector2.zero;
                 break;
             }
@@ -1031,18 +1031,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     // 특수 패턴 풀: 3개(0,1,2)를 전부 한 번씩 쓸 때까지 같은 패턴이 다시 나오지 않습니다.
     // 풀이 비면(3개 다 사용) 다시 3개로 리필합니다.
     // ==============================================================
-    private int DrawFromSpecialPool()
-    {
-        if (_specialPool.Count == 0)
-        {
-            _specialPool = new List<int> { 0, 1, 2 };
-        }
-
-        int idx = Random.Range(0, _specialPool.Count);
-        int picked = _specialPool[idx];
-        _specialPool.RemoveAt(idx);
-        return picked;
-    }
+    // (특수 패턴 무반복풀은 BossActionScheduler.NextSpecial() 로 이관)
 
     private IEnumerator RunSpecialPattern(BaseEntity entity, int pattern)
     {
@@ -1069,7 +1058,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         _isBusy = false;
 
         // 이제부터 다시 기본 공격 페이즈이므로, 8초 카운트를 여기서부터 새로 시작합니다.
-        _basicPhaseStartTime = Time.time;
+        _scheduler.ResetBasicPhase(Time.time);
     }
 
     // ==============================================================
@@ -1096,13 +1085,10 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         if (CameraManager.Instance != null) CameraManager.Instance.HitShakeCamera(3f);
         if (HitStopManager.Instance != null) HitStopManager.Instance.DoHitStop(0.12f);
 
-        // D2 흡수: 기둥 4개 즉시 균열 상태로 전환 (기존 CollapseInstantly 재사용, 새 로직 불필요)
-        for (int i = 0; i < _pillars.Count; i++)
+        // D2 흡수: 살아있는 기둥 전부 즉시 균열 상태로 전환 (기존 CollapseInstantly 재사용)
+        foreach (var p in _pillarField.All)
         {
-            if (_pillars[i] != null && _pillars[i].IsAlive)
-            {
-                _pillars[i].CollapseInstantly();
-            }
+            if (p != null && p.IsAlive) p.CollapseInstantly();
         }
 
         Vector2 center = entity.transform.position;
@@ -1128,7 +1114,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         entity.ResetAnimationState();
         _isBusy = false;
 
-        _basicPhaseStartTime = Time.time;
+        _scheduler.ResetBasicPhase(Time.time);
     }
 
     /// <summary>
@@ -1140,55 +1126,30 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         GameObject ring = CreateFallbackRing(howlRingColor);
         ring.transform.position = center;
 
-        HashSet<GameObject> alreadyChecked = new HashSet<GameObject>();
-        LayerMask targetLayer = LayerMask.GetMask("Player", "Player_Dash", "Army", "Ally");
+        LayerMask targetLayer = LayerMask.GetMask("Player", "Player_Dash", "Army"); // "Ally"는 프로젝트에 없는 레이어라 제거(런타임 동일)
 
-        float t = 0f;
-        while (t < howlRingExpandTime)
-        {
-            t += Time.deltaTime;
-            float progress = Mathf.Clamp01(t / howlRingExpandTime);
-            float currentRadius = Mathf.Lerp(0f, maxRadius, progress);
-
-            float diameter = currentRadius * 2f;
-            ring.transform.localScale = new Vector3(diameter, diameter, 1f);
-
-            Collider2D[] hits = Physics2D.OverlapCircleAll(center, currentRadius + howlRingThickness, targetLayer);
-            foreach (var hit in hits)
+        // 공용 확장 링 판정으로 통일. add-before-guard 순서(밴드 진입 순간 소비 → 대쉬로 흘리면 재히트 없음)는 ExpandingRing이 보존.
+        yield return BossCombat.ExpandingRing(center, maxRadius, howlRingExpandTime, howlRingThickness, targetLayer,
+            onHit: (hit, pushDir) =>
             {
-                if (alreadyChecked.Contains(hit.gameObject)) continue;
-
-                float d = Vector2.Distance(center, hit.transform.position);
-                bool inRing = d >= currentRadius - howlRingThickness && d <= currentRadius + howlRingThickness;
-                if (!inRing) continue;
-
-                alreadyChecked.Add(hit.gameObject);
-
-                CharacterHealth hHealth = hit.GetComponentInChildren<CharacterHealth>();
-                if (hHealth == null) hHealth = hit.GetComponentInParent<CharacterHealth>();
+                CharacterHealth hHealth = hit.GetComponentInChildren<CharacterHealth>() ?? hit.GetComponentInParent<CharacterHealth>();
                 bool isDashingLayer = hit.gameObject.layer == LayerMask.NameToLayer("Player_Dash");
-                if (hHealth == null || hHealth.IsDead || hHealth.Invincible || isDashingLayer) continue; // 대쉬 무적으로 완전 회피 가능
+                if (hHealth == null || hHealth.IsDead || hHealth.Invincible || isDashingLayer) return; // 대쉬 무적으로 완전 회피
 
-                Vector2 rawDir = (Vector2)hit.transform.position - center;
-                Vector2 pushDir = rawDir.sqrMagnitude > 0.0001f ? rawDir.normalized : Vector2.up;
-
-                CharacterStatus status = hit.GetComponentInChildren<CharacterStatus>();
-                if (status == null) status = hit.GetComponentInParent<CharacterStatus>();
+                CharacterStatus status = hit.GetComponentInChildren<CharacterStatus>() ?? hit.GetComponentInParent<CharacterStatus>();
                 if (status != null)
                 {
                     status.ApplyKnockback(pushDir, howlKnockbackForce, howlKnockbackDuration);
                     status.SetDebuffBool(DebuffBoolType.Hitstunned, howlHitstunDuration);
                 }
 
-                bool isPlayerHit = hit.gameObject.layer == LayerMask.NameToLayer("Player");
-                if (isPlayerHit && CameraManager.Instance != null)
-                {
+                if (hit.gameObject.layer == LayerMask.NameToLayer("Player") && CameraManager.Instance != null)
                     CameraManager.Instance.HitShakeCamera(howlCameraShakeForce);
-                }
-            }
-
-            yield return null;
-        }
+            },
+            onExpand: (cur) =>
+            {
+                if (ring != null) ring.transform.localScale = new Vector3(cur * 2f, cur * 2f, 1f);
+            });
 
         if (ring != null) GameObject.Destroy(ring);
     }
@@ -1294,16 +1255,12 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
             // 기둥/벽에 막히지 않았을 때만 플레이어 직격 여부를 검사합니다.
             RaycastHit2D playerHit = Physics2D.CircleCast(entity.transform.position, chargeHitRadius, chargeDir, checkDist, playerMask);
-            if (playerHit.collider != null)
+            // 대쉬(Player_Dash) 중인 플레이어는 관통(phase-through): 정지/반동/기절/데미지 전부 없이 돌진 지속.
+            if (playerHit.collider != null && playerHit.collider.gameObject.layer != LayerMask.NameToLayer("Player_Dash"))
             {
                 hitSomething = true;
 
-                CharacterHealth pHealth = playerHit.collider.GetComponentInChildren<CharacterHealth>();
-                if (pHealth == null) pHealth = playerHit.collider.GetComponentInParent<CharacterHealth>();
-                if (pHealth != null && !pHealth.Invincible)
-                {
-                    pHealth.GetDamage(new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject));
-                }
+                BossCombat.TryDamage(playerHit.collider, new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject));
 
                 if (rb != null) rb.linearVelocity = -chargeDir * 3f;
                 entity.transform.position = (Vector2)entity.transform.position - chargeDir * 0.15f;
@@ -1373,7 +1330,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         GameObject telegraph = SpawnGravityTelegraph(center, fieldRadius);
 
-        LayerMask targetLayer = LayerMask.GetMask("Player", "Army", "Ally");
+        LayerMask targetLayer = LayerMask.GetMask("Player", "Army"); // "Ally"는 프로젝트에 없는 레이어라 제거(런타임 동일)
 
         // v1.3: 매 프레임 연속으로 끄는 대신, tickInterval초마다 한 번씩 tickDistance만큼만 순간적으로
         // 끌어당깁니다. 틱과 틱 사이에는 플레이어가 완전히 자유롭게 움직일 수 있어, 기획 의도대로
@@ -1445,17 +1402,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 continue;
             }
 
-            CharacterHealth pHealth = hit.GetComponentInChildren<CharacterHealth>();
-            if (pHealth == null)
-            {
-                pHealth = hit.GetComponentInParent<CharacterHealth>();
-            }
-            if (pHealth == null || pHealth.IsDead || pHealth.Invincible)
-            {
-                continue;
-            }
-
-            pHealth.GetDamage(new DamageInfo(gravityExplosionDamage, DamageType.Physical, entity.gameObject));
+            // 단일 데미지 경로: 무적/사망/대쉬(Player_Dash) 회피 판정을 BossCombat 한 곳에서 처리.
+            // (중력장 마스크엔 Player_Dash가 없어 대쉬는 애초에 안 잡히지만, TryDamage가 방어적으로도 걸러냄.)
+            BossCombat.TryDamage(hit, new DamageInfo(gravityExplosionDamage, DamageType.Physical, entity.gameObject));
         }
     }
 
@@ -1524,7 +1473,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 continue;
             }
 
-            pHealth.GetDamage(new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject));
+            // 위에서 이미 dash/무적/사망을 걸렀지만, 최종 데미지 전달은 BossCombat 단일 경로로 통일.
+            BossCombat.TryDamage(hit, new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject));
         }
 
         for (int wave = 0; wave < slamWaveCount; wave++)
@@ -1548,63 +1498,38 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         GameObject ring = CreateFallbackRing(new Color(1f, 0.35f, 0f, 0.5f));
         ring.transform.position = center;
 
-        HashSet<GameObject> alreadyChecked = new HashSet<GameObject>();
         LayerMask targetLayer = LayerMask.GetMask("Player", "Player_Dash");
 
-        float t = 0f;
-        while (t < slamWaveExpandTime)
-        {
-            t += Time.deltaTime;
-            float progress = Mathf.Clamp01(t / slamWaveExpandTime);
-            float currentRadius = Mathf.Lerp(0f, maxRadius, progress);
-
-            float diameter = currentRadius * 2f;
-            ring.transform.localScale = new Vector3(diameter, diameter, 1f);
-
-            Collider2D[] hits = Physics2D.OverlapCircleAll(center, currentRadius + slamRingThickness, targetLayer);
-            foreach (var hit in hits)
+        // 공용 확장 링으로 통일. add-before-guard 순서(대쉬로 밴드를 흘려도 소비 → 재히트 없음) 보존. 웨이브마다 새 판정셋(호출 단위).
+        yield return BossCombat.ExpandingRing(center, maxRadius, slamWaveExpandTime, slamRingThickness, targetLayer,
+            onHit: (hit, dir) =>
             {
-                if (alreadyChecked.Contains(hit.gameObject)) continue;
-
-                float d = Vector2.Distance(center, hit.transform.position);
-                bool inRing = d >= currentRadius - slamRingThickness && d <= currentRadius + slamRingThickness;
-                if (!inRing) continue;
-
-                alreadyChecked.Add(hit.gameObject);
-
-                CharacterHealth pHealth = hit.GetComponentInChildren<CharacterHealth>();
-                if (pHealth == null) pHealth = hit.GetComponentInParent<CharacterHealth>();
+                CharacterHealth pHealth = hit.GetComponentInChildren<CharacterHealth>() ?? hit.GetComponentInParent<CharacterHealth>();
                 bool isDashingLayer = hit.gameObject.layer == LayerMask.NameToLayer("Player_Dash");
-                if (pHealth == null || pHealth.IsDead || pHealth.Invincible || isDashingLayer) continue; // LShift 대쉬(무적/레이어 전환)로 회피 가능
+                if (pHealth == null || pHealth.IsDead || pHealth.Invincible || isDashingLayer) return; // 대쉬 무적으로 완전 회피
 
                 EliteMonsterPillar shelterPillar = FindShelteringPillar(hit.transform.position);
                 if (shelterPillar != null)
                 {
-                    // 기둥 뒤에 숨었다면 플레이어는 무피해, 대신 기둥이 내구도 피해를 입음
-                    shelterPillar.DamagePattern(slamPillarDamagePerWave);
-                    continue;
+                    shelterPillar.DamagePattern(slamPillarDamagePerWave); // 기둥 뒤 = 무피해, 기둥 내구도 소모
+                    return;
                 }
 
-                pHealth.GetDamage(new DamageInfo(slamWaveDamage, DamageType.Physical, entity.gameObject));
-            }
-
-            yield return null;
-        }
+                BossCombat.TryDamage(hit, new DamageInfo(slamWaveDamage, DamageType.Physical, entity.gameObject));
+            },
+            onExpand: (cur) =>
+            {
+                if (ring != null) ring.transform.localScale = new Vector3(cur * 2f, cur * 2f, 1f);
+            });
 
         if (ring != null) GameObject.Destroy(ring);
     }
 
+    // 숨을 수 있는(Active|Cracking) 기둥 뒤에 있으면 그 기둥을 반환. 순회/판정은 PillarField 로 위임.
+    // (IsSheltering 내부에서 ProvidesShelter 를 검사하므로 IsAlive 게이트는 걸지 않는다 — 균열 상태 뒤도 회피 인정)
     private EliteMonsterPillar FindShelteringPillar(Vector2 worldPos)
     {
-        for (int i = 0; i < _pillars.Count; i++)
-        {
-            EliteMonsterPillar p = _pillars[i];
-            // 버그 수정: p.IsAlive(=Active 전용)로 게이트를 걸면 균열(Cracking) 상태 기둥 뒤에 숨어도
-            // 회피가 인정되지 않았습니다. IsSheltering() 내부에서 이미 ProvidesShelter(Active|Cracking)를
-            // 검사하므로 별도의 IsAlive 조건은 불필요하며, 오히려 잘못된 제한이었습니다.
-            if (p != null && p.IsSheltering(worldPos)) return p;
-        }
-        return null;
+        return _pillarField.FindSheltering(worldPos);
     }
 
     // ==============================================================
@@ -1642,74 +1567,10 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         return obj;
     }
 
-    private static Sprite _cachedCircleSprite;
-    private static Sprite GetOrCreateCircleSprite()
-    {
-        if (_cachedCircleSprite != null) return _cachedCircleSprite;
+    // 절차적 텔레그래프 스프라이트는 BossTelegraph 로 일원화(SO/기둥/BossTelegraph 3벌 중복 제거). 링 두께 정규값 0.85.
+    private static Sprite GetOrCreateCircleSprite() => BossTelegraph.GetCircleSprite();
 
-        int size = 64;
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        Vector2 center = new Vector2(size / 2f, size / 2f);
-        float r = size / 2f;
+    private static Sprite GetOrCreateSquareSprite() => BossTelegraph.GetSquareSprite();
 
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float dist = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), center);
-                tex.SetPixel(x, y, dist <= r ? Color.white : new Color(1, 1, 1, 0));
-            }
-        }
-        tex.Apply();
-
-        _cachedCircleSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        return _cachedCircleSprite;
-    }
-
-    private static Sprite _cachedSquareSprite;
-    private static Sprite GetOrCreateSquareSprite()
-    {
-        if (_cachedSquareSprite != null) return _cachedSquareSprite;
-
-        int size = 8;
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                tex.SetPixel(x, y, Color.white);
-            }
-        }
-        tex.Apply();
-
-        _cachedSquareSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        return _cachedSquareSprite;
-    }
-
-    private static Sprite _cachedRingSprite;
-    private static Sprite GetOrCreateRingSprite()
-    {
-        if (_cachedRingSprite != null) return _cachedRingSprite;
-
-        int size = 128;
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        Vector2 center = new Vector2(size / 2f, size / 2f);
-        float outerR = size / 2f;
-        // 반경 대비 12%만 고리 두께로 사용 (실제 판정 두께와 시각적으로 더 잘 맞도록)
-        float innerR = outerR * 0.88f;
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float dist = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), center);
-                bool inRing = dist <= outerR && dist >= innerR;
-                tex.SetPixel(x, y, inRing ? Color.white : new Color(1, 1, 1, 0));
-            }
-        }
-        tex.Apply();
-
-        _cachedRingSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        return _cachedRingSprite;
-    }
+    private static Sprite GetOrCreateRingSprite() => BossTelegraph.GetRingSprite();
 }
