@@ -14,24 +14,22 @@ public class BossActionScheduler
 {
     private readonly int _basicCount;
     private readonly int _specialCount;
-    private readonly float _interval;
 
     private int _lastBasic = -1;
     private readonly List<int> _specialPool = new List<int>();
     private float _basicPhaseStart;
 
-    public BossActionScheduler(int basicCount, int specialCount, float interval)
+    public BossActionScheduler(int basicCount, int specialCount)
     {
         _basicCount = Mathf.Max(1, basicCount);
         _specialCount = Mathf.Max(1, specialCount);
-        _interval = interval;
     }
 
     /// <summary>기본 페이즈 시작 시각을 now로 리셋. (Init / 특수 패턴 종료 직후 호출)</summary>
     public void ResetBasicPhase(float now) => _basicPhaseStart = now;
 
-    /// <summary>지금(now) 특수 패턴을 발동할 때가 됐는가.</summary>
-    public bool ShouldTriggerSpecial(float now) => now - _basicPhaseStart >= _interval;
+    /// <summary>지금(now) 특수 패턴을 발동할 때가 됐는가. interval은 호출측이 넘긴다(페이즈2 등 동적 간격 지원).</summary>
+    public bool ShouldTriggerSpecial(float now, float interval) => now - _basicPhaseStart >= interval;
 
     /// <summary>직전과 겹치지 않는 다음 기본 공격 인덱스.</summary>
     public int NextBasic()
