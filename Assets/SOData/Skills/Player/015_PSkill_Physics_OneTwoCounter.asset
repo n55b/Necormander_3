@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 921950d3b44f25b4a82106c940f3b257, type: 3}
-  m_Name: PlayerOneTwoCounter
+  m_Name: 015_PSkill_Physics_OneTwoCounter
   m_EditorClassIdentifier: 
   skillName: "\uC6D0 \uD22C \uCE74\uC6B4\uD130"
   description: "\uC81C\uC790\uB9AC\uC5D0\uC11C \uAC00\uBCBC\uC6B4 \uC7BD\uC744 2\uBC88
