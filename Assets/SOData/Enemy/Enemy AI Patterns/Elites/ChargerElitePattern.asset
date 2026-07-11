@@ -15,31 +15,27 @@ MonoBehaviour:
   pushRadius: 0.8
   pushStrength: 2
   phase2Threshold: 0
-  stabHitboxPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
-  fanHitboxPrefab: {fileID: 4280725952711924581, guid: 5705911e3fff4cd48968270c9af81683, type: 3}
-  sweepHitboxPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
-  stabWindup: 1
-  fanWindup: 1
-  sweepWindup: 1.2
   basicAttackPostDelay: 1
+  stabHitboxPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
+  stabWindup: 1
   stabRadius: 4.4
-  fanRadius: 7.2
-  sweepRadius: 6
-  fanRotationOffset: 90
-  miniChargeDistance: 1.6
-  miniChargePillarDamage: 1
+  miniChargeDistance: 2
   miniChargeDashDuration: 0.15
   miniChargeCheckRadius: 0.6
   miniChargeSquashScale: 0.82
   miniChargeStretchScale: 1.2
+  miniChargePillarDamage: 1
   normalChargeWindup: 0.8
   normalChargeSpeedMultiplier: 5
-  normalChargeSquashScale: 0.82
-  normalChargeStretchScale: 1.4
   normalChargeMaxDuration: 1.2
   normalChargeHitRadius: 1
   normalChargeDamageMultiplier: 0.5
   normalChargePillarDamage: 1
+  normalChargeSquashScale: 0.82
+  normalChargeStretchScale: 1.4
+  sweepHitboxPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
+  sweepWindup: 1.2
+  sweepRadius: 6
   pursuitBurstMinInterval: 2.5
   pursuitBurstMaxInterval: 4.5
   pursuitBurstSpeedMultiplier: 2.2
@@ -57,7 +53,6 @@ MonoBehaviour:
   patternLabelOffset: {x: 0, y: 1.3, z: 0}
   label_Stab: "\uB2E8\uC21C \uCC0D\uAE30"
   label_NormalCharge: "\uB3CC\uC9C4"
-  label_Fan: "\uBD80\uCC44\uAF34 \uACF5\uACA9"
   label_Sweep: "\uD729\uC4F8\uAE30"
   label_Pattern1Windup: "\uAE30\uB465\uACFC \uB3CC\uC9C4 \uC900\uBE44"
   label_Pattern1: "\uB3CC\uC9C4!"
