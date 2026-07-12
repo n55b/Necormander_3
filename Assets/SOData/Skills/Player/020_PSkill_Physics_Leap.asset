@@ -18,13 +18,14 @@ MonoBehaviour:
     \uB2FF\uAC70\uB098 \uCD5C\uB300 \uC0AC\uAC70\uB9AC\uC5D0\uC11C \uCC29\uC9C0\uD558\uBA74
     \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758 100% \uD53C\uD574\uB97C \uC8FC\uACE0 1\uCE78
     \uBC94\uC704\uC758 \uC801\uC744 \uBC00\uCCD0\uB0C5\uB2C8\uB2E4."
-  icon: {fileID: 0}
+  icon: {fileID: -6245926524738137337, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 6
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
   shakeForce: 0.5
   hitStopDuration: 0
   handSkillAnimName: 020_Physics_Leap
+  hitTimingRatio: 0.4
   leapDistance: 3
   leapDuration: 0.25
   impactRadius: 1

@@ -16,13 +16,14 @@ MonoBehaviour:
   description: "\uCDE8\uC57D \uC0C1\uD0DC\uC778 \uC801\uC744 \uD0C0\uACA9\uD558\uC5EC
     \uCDE8\uC57D\uC744 \uC18C\uBAA8\uD574 \uAC15\uD0C0\uB97C \uBD80\uC5EC\uD558\uBA70
     \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758 180% \uD53C\uD574\uB97C \uC785\uD799\uB2C8\uB2E4."
-  icon: {fileID: 0}
+  icon: {fileID: 1478503353297562604, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 5
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
   shakeForce: 0.5
   hitStopDuration: 0
   handSkillAnimName: 007_Physics_SmashPunch
+  hitTimingRatio: 0.4
   hitBoxPrefab: {fileID: -7664338518204726940, guid: d1ce623f6fad4bb4dba1c4257fa1fefa, type: 3}
   hitDistance: 3
   hitWidth: 2

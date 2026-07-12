@@ -19,7 +19,7 @@ MonoBehaviour:
     \uBB34\uC2DC\uD558\uACE0 \uC989\uC2DC \uC801\uC758 \uD488\uC73C\uB85C \uD30C\uACE0\uB4E4\uC5B4
     \uCE74\uC6B4\uD130 \uD6C5\uC744 \uAF42\uC544 \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758
     300% \uD53C\uD574\uB97C \uC8FC\uACE0 \uAC15\uD0C0\uD569\uB2C8\uB2E4."
-  icon: {fileID: 0}
+  icon: {fileID: 3200735900723754865, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 3
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85

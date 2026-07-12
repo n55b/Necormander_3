@@ -16,13 +16,14 @@ MonoBehaviour:
   description: "\uD50C\uB808\uC774\uC5B4\uAC00 \uC804\uBC29\uC758 \uC801\uC5D0\uAC8C
     \uC5B4\uD37C\uCEF7\uC744 \uB0A0\uB9AC\uBA70, \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758
     150% \uD53C\uD574\uB97C \uC8FC\uACE0 \uB744\uC6C1\uB2C8\uB2E4."
-  icon: {fileID: 0}
+  icon: {fileID: 6992996214258372075, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 6
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
   shakeForce: 0.5
   hitStopDuration: 0
   handSkillAnimName: 014_Physics_RisingUppercut
+  hitTimingRatio: 0.4
   hitBoxPrefab: {fileID: -7664338518204726940, guid: d1ce623f6fad4bb4dba1c4257fa1fefa, type: 3}
   hitDistance: 2.2
   hitWidth: 1.6
