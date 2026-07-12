@@ -281,6 +281,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0362a3df535a0fe448862acb542eae1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  persistAcrossScenes: 0
   visualPanel: {fileID: 1757526723192270232}
   fillImage: {fileID: 7591692039072866238}
   normalColor: {r: 0.2, g: 0.6, b: 1, a: 1}
@@ -892,6 +893,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdc7a885a3d25634cac3487ffed4e10e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  persistAcrossScenes: 0
   playerTransform: {fileID: 1604435047591240911}
   smoothTime: 0.2
   isAiming: 0

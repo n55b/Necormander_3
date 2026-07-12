@@ -16,7 +16,11 @@ public class PlayerRapidPunchSO : PlayerSkillSO
     {
         PlayerController player = user.GetComponent<PlayerController>();
         if (player == null) return;
-        player.PlayHandSkillAnim(handSkillAnimName);
+        // [Fix] 총난타는 3연타(punchCount)를 timeBetweenPunches 간격으로 시전하므로, 손 애니메이션 클립 하나보다 시전 시간이 깁니다.
+        // 전체 예상 시전 시간을 계산해 넘겨줘서, HandSkillAnimator가 스킬 도중에 꺼지지 않도록 합니다.
+        float estimatedHitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
+        float totalHandHoldDuration = estimatedHitDelay + punchCount * timeBetweenPunches;
+        player.PlayHandSkillAnim(handSkillAnimName, totalHandHoldDuration);
         
         player.StartSkillCasting(RapidPunchRoutine(player));
     }
@@ -30,6 +34,9 @@ public class PlayerRapidPunchSO : PlayerSkillSO
         for (int i = 0; i < punchCount; i++)
         {
             if (player == null) yield break;
+
+            // [Fix] 매 펀치마다 손 스킬 애니메이션을 다시 재생해, 클립이 끝난 뒤(마지막 프레임이 비어있을 수 있음) 정지된 채로 남지 않도록 합니다.
+            player.PlayHandSkillAnim(handSkillAnimName);
 
             PlaySkillSound();
             ShakeCamera();

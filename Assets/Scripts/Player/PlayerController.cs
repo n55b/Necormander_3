@@ -1001,18 +1001,25 @@ public class PlayerController : MonoBehaviour
     /// Body의 Idle/Walk/Attack 애니메이션과는 완전히 독립적으로 동작하며, 평타와 동일한 방식으로
     /// 마우스 조준 방향 계산 + 플레이어 본체 반전 + canChangeState 잠금을 함께 처리합니다.
     /// </summary>
-    public void PlayHandSkillAnim(string animName)
+    public void PlayHandSkillAnim(string animName, float holdDurationOverride = -1f)
     {
         if (HandSkillAnimator == null || string.IsNullOrEmpty(animName)) return;
 
         // Hand의 기본(평상시) 스프라이트를 최초 1회만 캐싱해둠
         // (스킬 클립 마지막 프레임이 빈 스프라이트여도 재생 종료 후 이 값으로 복원)
-        if (!_handSpriteCached)
+        if (_handSpriteRenderer == null)
         {
             _handSpriteRenderer = HandSkillAnimator.GetComponent<SpriteRenderer>();
-            if (_handSpriteRenderer != null) _defaultHandSprite = _handSpriteRenderer.sprite;
-            _handSpriteCached = true;
         }
+
+        // [Fix] 애니메이터가 꺼져있는 상태(= 이전 스킬 모션이 끝난 뒤)일 때만 "기본 스프라이트"를 다시 캐싱합니다.
+        if (!HandSkillAnimator.enabled && _handSpriteRenderer != null && _handSpriteRenderer.sprite != null)
+        {
+            _defaultHandSprite = _handSpriteRenderer.sprite;
+        }
+        // [Fix] 스킬 시작 시점에도 렌더러가 꺼져있을 수 있으므로 방어적으로 켜줍니다.
+        if (_handSpriteRenderer != null) _handSpriteRenderer.enabled = true;
+        _handSpriteCached = true;
 
         // 평타(MeleeCombatController.ExecuteMeleeAttack)와 동일한 방식으로 마우스 방향을 조준 방향으로 계산하고,
         // 같은 부호로 플레이어 본체(Body) 반전도 맞춥니다.
@@ -1039,6 +1046,10 @@ public class PlayerController : MonoBehaviour
 
         float clipLength = GetHandSkillClipLength(animName);
         if (clipLength <= 0f) clipLength = 0.5f; // 클립을 못 찾았을 때의 안전 기본값
+
+        // [Fix] 총난타(RapidPunch)처럼 실제 시전 시간이 손 애니메이션 클립 길이보다 긴 스킬은
+        // 호출측에서 전체 시전 시간(holdDurationOverride)을 넘겨받아, 애니메이터가 스킬 도중에 꺼지지 않도록 합니다.
+        if (holdDurationOverride > 0f) clipLength = Mathf.Max(clipLength, holdDurationOverride);
 
         // 평타와 동일하게, 재생 중에는 canChangeState를 잠가 이동 기반 반전이 개입하지 못하게 합니다.
         // HandSkill 클립에는 Animation Event가 없으므로, 타이머로 직접 풀어줍니다.
@@ -1078,9 +1089,12 @@ public class PlayerController : MonoBehaviour
         if (HandSkillAnimator != null) HandSkillAnimator.enabled = false;
 
         // 마지막 프레임이 빈 스프라이트였을 경우를 대비해 기본 스프라이트로 강제 복원
-        if (_handSpriteRenderer != null && _defaultHandSprite != null)
+        // [Fix] Aseprite에서 임포트된 애니메이션 클립에는 SpriteRenderer.enabled를 직접 켜다 끔는 커브가 들어있을 수 있습니다.
+        // 클립 재생이 끝나면 .sprite만 복원해서는 부족하고, 렉더러 자체를 반드시 다시 켜줘야 합니다.
+        if (_handSpriteRenderer != null)
         {
-            _handSpriteRenderer.sprite = _defaultHandSprite;
+            _handSpriteRenderer.enabled = true;
+            if (_defaultHandSprite != null) _handSpriteRenderer.sprite = _defaultHandSprite;
         }
 
         CanChangeAnimState();
