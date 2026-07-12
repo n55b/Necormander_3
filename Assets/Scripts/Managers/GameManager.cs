@@ -360,9 +360,6 @@ public void GoToNextFloor()
 
         Debug.Log($"<color=green>[GameManager]</color> Floor Cleared! Transitioning to Floor {data.currentFloor}...");
 
-        // 층 이동 시 이전 BGM이 이어지지 않도록 초기화
-        if (SoundManager.Instance != null) SoundManager.Instance.StopBGM();
-
         // 씨 재로드
         string nextSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (ScreenFadeController.Instance != null)
