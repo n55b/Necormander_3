@@ -140,6 +140,7 @@ MonoBehaviour:
   fillingTransform: {fileID: 3021924502636314110}
   maxFillScale: {x: 1, y: 1, z: 1}
   hitEffectPrefab: {fileID: 1982468720443373819, guid: 8d06d861d308b6343908d022f4a95489, type: 3}
+  hitEffectAngle: 0
   fillStyle: 1
 --- !u!1 &6480604364339004408
 GameObject:
