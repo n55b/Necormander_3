@@ -132,10 +132,10 @@ public class OptionManager : MonoBehaviour
         }
     }
 
-    public void CloseOption()
+public void CloseOption()
     {
         Debug.Log("<color=yellow>[OptionManager]</color> CloseOption() 호출됨");
-        
+
         if (SceneOptionManager.Instance != null)
         {
             Debug.Log("<color=yellow>[OptionManager]</color> SceneOptionManager를 통해 씬 닫기 시도");
@@ -144,6 +144,7 @@ public class OptionManager : MonoBehaviour
         else
         {
             Debug.Log("<color=yellow>[OptionManager]</color> SceneOptionManager가 없으므로 직접 UnloadSceneAsync 호출");
+            if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(false); // 안전장치: timeScale 복구 누락 방지
             UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync("OptionScene");
         }
     }
@@ -164,8 +165,9 @@ public class OptionManager : MonoBehaviour
         }
     }
 
-    public void LoadMainMenu()
+public void LoadMainMenu()
     {
+        Time.timeScale = 1f; // 정지 상태(ESC 메뉴)에서 나갈 경우를 대비해 반드시 복구
         UnityEngine.SceneManagement.SceneManager.LoadScene("StartScene"); // 메인 메뉴 씬으로 이동
     }
 }

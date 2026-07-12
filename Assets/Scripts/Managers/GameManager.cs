@@ -326,14 +326,14 @@ public class GameManager : MonoBehaviour
         Debug.Log("<color=cyan>[GameManager]</color> Player Spawned, Placed, and Camera Assigned.");
     }
 
-    public void GoToNextFloor()
+public void GoToNextFloor()
     {
         SaveData data = new SaveData();
 
         // 다음 층수 저장
         data.currentFloor = currentFloor + 1;
 
-        // 플레이어 체력 획득
+        // 플레이어 체력 횝득
         if (playerController != null)
         {
             var health = playerController.GetComponentInChildren<CharacterHealth>();
@@ -352,16 +352,18 @@ public class GameManager : MonoBehaviour
         {
             inventoryManager.SaveToData(data);
 
-        if (playerSkillInventoryManager != null)
-            playerSkillInventoryManager.SaveToData(data);
-
+            if (playerSkillInventoryManager != null)
+                playerSkillInventoryManager.SaveToData(data);
         }
 
         SaveSystem.Save(data);
 
         Debug.Log($"<color=green>[GameManager]</color> Floor Cleared! Transitioning to Floor {data.currentFloor}...");
 
-        // 씬 재로드
+        // 층 이동 시 이전 BGM이 이어지지 않도록 초기화
+        if (SoundManager.Instance != null) SoundManager.Instance.StopBGM();
+
+        // 씨 재로드
         string nextSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (ScreenFadeController.Instance != null)
         {

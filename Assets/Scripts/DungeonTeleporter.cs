@@ -5,9 +5,10 @@ public class DungeonTeleporter : MonoBehaviour, IInteractable
 {
      public virtual string InteractionPrompt => "F : 상호작용";
 
+
     [SerializeField] private string DungeonSceneName = "BattleScene";
 
-    public bool Interact(GameObject interactor)
+public bool Interact(GameObject interactor)
     {
         if (ScreenFadeController.Instance != null)
         {
