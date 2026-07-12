@@ -16,13 +16,14 @@ MonoBehaviour:
   description: "\uD50C\uB808\uC774\uC5B4\uAC00 \uBC14\uB2E5\uC744 \uB0B4\uB9AC\uCCD0,
     2\uCE78 \uC8FC\uBCC0\uC758 \uC801\uC744 \uB04C\uC5B4\uB2F9\uAE30\uACE0 \uCDE8\uC57D
     1\uC2A4\uD0DD\uC744 \uBD80\uC5EC\uD569\uB2C8\uB2E4."
-  icon: {fileID: 0}
+  icon: {fileID: 5560125120997645518, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 5
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
   shakeForce: 0.5
   hitStopDuration: 0
   handSkillAnimName: 003_Physics_GroundSmash
+  hitTimingRatio: 0.4
   hitBoxPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   gatherRadius: 4
   gatherDuration: 0.2

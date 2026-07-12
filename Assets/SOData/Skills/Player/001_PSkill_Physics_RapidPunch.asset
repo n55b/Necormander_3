@@ -16,7 +16,7 @@ MonoBehaviour:
   description: "\uBE60\uB974\uAC8C 3\uC5F0\uD0C0 \uACF5\uACA9\uC744 \uB0A0\uB824
     \uAC01\uAC01 \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758 110% \uD53C\uD574\uB97C \uC785\uD799\uB2C8\uB2E4.
     (\uAE30\uBCF8 \uACF5\uACA9 \uD310\uC815)"
-  icon: {fileID: 0}
+  icon: {fileID: 319494196138589398, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 5
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
