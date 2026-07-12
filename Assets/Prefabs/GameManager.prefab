@@ -398,10 +398,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e16d21fdc222cac46996b59c212ce1b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  equippedSkills:
-  - {fileID: 11400000, guid: 0dca2cff1570712469fda810400fad17, type: 2}
-  - {fileID: 11400000, guid: d2a87b3e1c0773141a161772c0f7914c, type: 2}
-  - {fileID: 11400000, guid: 8ffba0baff747c3418d4261959da8854, type: 2}
+  equippedSkills: []
   ownedSkills: []
 --- !u!1 &4851146966962830542
 GameObject:
