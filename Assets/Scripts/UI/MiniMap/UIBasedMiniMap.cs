@@ -570,6 +570,12 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         Vector3 roomCenter = currentRoom.transform.position + (Vector3)currentRoom.centerOffset;
         Vector2 boxSize = new Vector2(currentRoom.roomSize.x + 3f, currentRoom.roomSize.y + 3f);
 
+        // [근본수정] UpdateRealTimeMarkers의 정규화(-0.5~0.5) 계산에 실제로 쓰이는 방 경계와 동일한 기준으로,
+        // 그 범위를 베어난 적(인접 방의 적 등)은 물리 박스에 걸려도 추적 대상에서 아예 제외해,
+        // 레이더에 엉뚂한 위치에 마커가 생기는 일 자체를 막습니다.
+        float roomHalfW = (currentRoom.roomSize.x <= 0.1f ? 25f : currentRoom.roomSize.x) * 0.5f + 1.5f;
+        float roomHalfH = (currentRoom.roomSize.y <= 0.1f ? 25f : currentRoom.roomSize.y) * 0.5f + 1.5f;
+
         Collider2D[] cols = Physics2D.OverlapBoxAll(roomCenter, boxSize, 0f, targetMask);
         if (cols != null)
         {
@@ -582,6 +588,9 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                 {
                     enemyObj = col.transform.root.gameObject;
                 }
+
+            Vector3 diffFromCenter = enemyObj.transform.position - roomCenter;
+            if (Mathf.Abs(diffFromCenter.x) > roomHalfW || Mathf.Abs(diffFromCenter.y) > roomHalfH) continue;
 
                 if (!_cachedEnemies.Contains(enemyObj))
                 {
@@ -695,6 +704,11 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             Vector3 eDiff = enemy.transform.position - roomCenter;
             float eNormX = eDiff.x / roomW;
             float eNormY = eDiff.y / roomH;
+
+            // [수정] 방 전환 직후에 이전 방의 적이 잠시 계속 남아있거나 등 계산이 틀어졌을 때, 마커가 방 타일 밖으로 멀리 튀어나가지 않도록
+            // 정규화된 좌표를 방 경계값(-0.5~0.5)로 강제 클램프합니다.
+            eNormX = Mathf.Clamp(eNormX, -0.5f, 0.5f);
+            eNormY = Mathf.Clamp(eNormY, -0.5f, 0.5f);
 
             foreach (var markerRt in markerList)
             {
