@@ -1733,6 +1733,12 @@ public class MapGenerator : MonoBehaviour
 
             if (deadEndCandidates.Count == 0)
             {
+                // [수정] 보스 방은 배치할 공간이 없어도 맵 생성 자체를 실패시키지 않고 건너뜁니다.
+                if (specType == RoomType.Boss)
+                {
+                    Debug.LogWarning("<color=orange>[MapGenerator]</color> 보스 방을 배치할 공간이 없어 보스 방 없이 맵을 생성합니다.");
+                    continue;
+                }
                 return false; // 막다른 골목 혹은 빈 이웃이 아예 없는 비정상 상태
             }
 
@@ -1789,6 +1795,12 @@ public class MapGenerator : MonoBehaviour
 
             if (!placed)
             {
+                // [수정] 보스 방 배치에 실패해도 맵 생성 자체는 계속 진행합니다.
+                if (specType == RoomType.Boss)
+                {
+                    Debug.LogWarning("<color=orange>[MapGenerator]</color> 보스 방 배치에 실패해 보스 방 없이 맵을 생성합니다.");
+                    continue;
+                }
                 return false; // 해당 특수방 배치 실패 시 재배치
             }
         }
