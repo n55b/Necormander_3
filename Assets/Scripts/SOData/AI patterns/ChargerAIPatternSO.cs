@@ -13,6 +13,8 @@ public class ChargerAIPatternSO : BaseAIPatternSO
     [SerializeField] private float launchOffset = 0.5f;
     [SerializeField] private float windupTime = 1.0f; // 돌진 준비 시간 (락온 유지 시간)
     [SerializeField] private float chargeSpeedMultiplier = 3.0f; // 기본 이속 대비 돌진 배수
+    [SerializeField, Range(0.1f, 1.5f)] private float wallStopRadiusRatio = 0.55f; // [추가] 돌진 중 벽/장애물 감지용 CircleCast 반지름. 값을 낮추면 벽에 더 가까이 붙은 뒤에 멈춤
+    [SerializeField, Range(0f, 0.3f)] private float wallCheckDistanceBuffer = 0.15f; // [추가] 벽 감지 거리에 매 프레임 고정으로 더해지는 여유값. 낮추면 벽에 더 붙어서 멈춤
 
     protected override void UpdateTargeting(BaseEntity entity)
     {
@@ -135,8 +137,8 @@ public class ChargerAIPatternSO : BaseAIPatternSO
             // 돌진 시작 0.15초 이후부터 벽/플레이어 충돌 감지 ( Stun 판정 목적 )
             if (chargeElapsed > 0.15f)
             {
-                float checkDistance = chargeSpeed * Time.deltaTime + 0.15f;
-                RaycastHit2D hit = Physics2D.CircleCast(entity.transform.position, 0.55f, chargeDir, checkDistance, hitMask);
+                float checkDistance = chargeSpeed * Time.deltaTime + wallCheckDistanceBuffer;
+                RaycastHit2D hit = Physics2D.CircleCast(entity.transform.position, wallStopRadiusRatio, chargeDir, checkDistance, hitMask);
                 if (hit.collider != null)
                 {
                     hasHitObstacle = true;

@@ -19,3 +19,5 @@ MonoBehaviour:
   launchOffset: 0.5
   windupTime: 1
   chargeSpeedMultiplier: 3
+  wallStopRadiusRatio: 0.5
+  wallCheckDistanceBuffer: 0.05
