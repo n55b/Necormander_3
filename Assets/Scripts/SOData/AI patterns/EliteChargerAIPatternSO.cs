@@ -24,11 +24,9 @@ using System.Collections.Generic;
 ///
 /// [v1.3] 패턴 2를 "안 팎 도넛"에서 "중력 도넛 폭발"로 완전히 교체했습니다.
 ///   - 엘리트 몹이 6초간 자신을 중심으로 주변 대상을 끌어당깁니다.
-///   - 매 프레임 연속으로 끄는 대신, gravityPullTickInterval초마다 한 번씩 gravityPullTickDistance만큼
-///     "틱" 형태로 짧게 끌어당깁니다. 틱과 틱 사이에는 플레이어가 완전히 자유롭게 움직일 수 있어,
-///     기획 의도대로 "6초 동안 기둥 뒤로 도망갈 시간"이 실제로 주어집니다.
-///   - 살아있는 기둥 뒤에 서면 그 틱에서 끌려가지 않고(유일한 회피 수단), 그 기둥은 대신 내구도 2를 잃습니다.
-///   - 6초가 끝나면 "폭발"하여, 기둥 뒤에 숨지 못한 대상에게 직접 피해를 줍니다.
+///   - 매 프레임 지속적으로 gravityPullSpeed(초당 거리)만큼 끌어당깁니다. 기둥 뒤에 숨지 않는 한
+///     끌림에서 벗어날 수 없습니다.
+///   - 살아있는 기둥 뒤에 서 있는 동안에는 끌려가지 않고(유일한 회피 수단), 그 기둥은 폭발 시점에 대신 내구도 2를 잃습니다.
 ///   - 이 패턴은 보스에게 그로기(기절)를 전혀 부여하지 않습니다.
 ///
 /// [중요] Unity 엔진의 BaseEntity.Update()는 IsAttacking == true인 동안(공격 windup~후딜레이)에는
@@ -229,10 +227,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     [Header("패턴 2 - 중력 도넛 폭발 (엘리트 몹 위치 중심, 방 크기에 비례해서 자동 조정됩니다)")]
     [Tooltip("플레이어를 끌어당기는 총 지속시간")]
     public float gravityPullDuration = 6f;
-    [Tooltip("몇 초마다 한 번씩 끌어당길지. 이 간격 사이에는 플레이어가 완전히 자유롭게 움직일 수 있습니다.")]
-    public float gravityPullTickInterval = 1f;
-    [Tooltip("한 번(1틱)에 순간적으로 끌려가는 거리")]
-    public float gravityPullTickDistance = 1.0f;
+    [Tooltip("초당 끌려가는 속도 (매 프레임 지속적으로 끌어당깁니다)")]
+    public float gravityPullSpeed = 1f;
     [Tooltip("판정 범위 반경의 비율 (방의 대각선 기준). 맵 전체를 덮도록 크게 확장됨 (방 반경이 아니라 대각선 기준이라 모서리까지 확실히 덮습니다)")]
     public float gravityFieldRadiusRatio = 1.3f;
     [Tooltip("방을 찾지 못했을 때(fallback) 사용할 판정 범위 절대 반경")]
@@ -1332,11 +1328,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         LayerMask targetLayer = LayerMask.GetMask("Player", "Army"); // "Ally"는 프로젝트에 없는 레이어라 제거(런타임 동일)
 
-        // v1.3: 매 프레임 연속으로 끄는 대신, tickInterval초마다 한 번씩 tickDistance만큼만 순간적으로
-        // 끌어당깁니다. 틱과 틱 사이에는 플레이어가 완전히 자유롭게 움직일 수 있어, 기획 의도대로
-        // "6초 동안 기둥 뒤로 도망갈 시간"이 실제로 주어집니다.
+        // v1.3.1: 매 프레임 지속적으로 gravityPullSpeed(초당 거리)만큼 순간적으로
+        // 끌어당깁니다. 기둥 뒤에 숨지 않는 한 끌림에서 벗어날 수 없습니다.
         float t = 0f;
-        float nextTickTime = gravityPullTickInterval;
         while (t < gravityPullDuration)
         {
             t += Time.deltaTime;
@@ -1354,32 +1348,19 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 }
             }
 
-            if (t >= nextTickTime)
+            Collider2D[] hits = Physics2D.OverlapCircleAll(center, fieldRadius, targetLayer);
+            foreach (var hit in hits)
             {
-                nextTickTime += gravityPullTickInterval;
-
-                Collider2D[] hits = Physics2D.OverlapCircleAll(center, fieldRadius, targetLayer);
-                foreach (var hit in hits)
+                // 살아있는 기둥 뒤에 숨어 있는 동안에는 끌려가지 않습니다. (유일한 회피 수단)
+                if (FindShelteringPillar(hit.transform.position) != null)
                 {
-                    // 살아있는 기둥 뒤에 숨은 대상은 이 틱에서 끌려가지 않습니다. (유일한 회피 수단)
-                    if (FindShelteringPillar(hit.transform.position) != null)
-                    {
-                        continue;
-                    }
-
-                    Vector2 currentPos = hit.transform.position;
-                    Vector2 pulled = Vector2.MoveTowards(currentPos, center, gravityPullTickDistance);
-
-                    Rigidbody2D rb2 = hit.attachedRigidbody;
-                    if (rb2 != null)
-                    {
-                        rb2.MovePosition(pulled);
-                    }
-                    else
-                    {
-                        hit.transform.position = pulled;
-                    }
+                    continue;
                 }
+
+                Vector2 currentPos = hit.transform.position;
+                Vector2 pulled = Vector2.MoveTowards(currentPos, center, gravityPullSpeed * Time.deltaTime);
+
+                hit.transform.position = pulled;
             }
 
             yield return null;
