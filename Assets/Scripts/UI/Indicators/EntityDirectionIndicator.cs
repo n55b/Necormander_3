@@ -156,14 +156,22 @@ public class EntityDirectionIndicator : MonoBehaviour
         // 적: (1) AI 조준 오버라이드가 살아있으면 우선 (돌진 충전 중 실시간 재조준 등 — 멈춰 있어도 방향이 바뀐다)
         if (Time.time < _aimOverrideExpiry) return _aimOverride;
 
-        // (2) 아니면 유닛의 '앞' = 실제 진행(이동) 방향. 스프라이트 좌/우와 무관하게 연속 각도(예: 우상 53°).
+        // (2) 공격 대상(타겟)이 있으면 그 방향을 바라본다. 궁수 등 원거리 유닛도 이동하며 타겟을 조준해야
+        // 자연스럽기 때문에, 이동 방향보다 타겟 방향을 우선한다. (넉백으로 밀려도 타겟 위치는 그대로라 영향 없음)
+        if (_entity != null && _entity.Target != null)
+        {
+            Vector2 toTarget = (Vector2)_entity.Target.position - (Vector2)_unit.position;
+            if (toTarget.sqrMagnitude > 0.0001f) return toTarget;
+        }
+
+        // (3) 타겟이 없으면 유닛의 '앞' = 실제 진행(이동) 방향. 스프라이트 좌/우와 무관하게 연속 각도(예: 우상 53°).
         if (_entity != null)
         {
             Vector2 v = _entity.MoveVelocity;
             if (v.sqrMagnitude > 0.01f) return v; // 0.1 유닛/초 이상 움직일 때만 갱신
         }
 
-        // (3) 멈춰 있고 오버라이드도 없으면 마지막 진행 방향 유지 (일반 공격 중 고정)
+        // (4) 멈춰 있고 타겟/오버라이드도 없으면 마지막 진행 방향 유지 (일반 공격 중 고정)
         return _lastAim;
     }
 }

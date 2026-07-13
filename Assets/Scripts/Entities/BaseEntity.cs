@@ -134,6 +134,7 @@ public abstract class BaseEntity : MonoBehaviour
     public Coroutine ActiveAttackCoroutine { get; set; }
 
     private bool _isPlayingStunAnim = false;
+    private float _knockbackExpiry = 0f; // [추가] 넉백 중 DirectionIndicator 오작동 방지용 만료 시각 (Time.time 기준)
 
     protected virtual void Awake()
     {
@@ -359,6 +360,8 @@ public abstract class BaseEntity : MonoBehaviour
     {
         get
         {
+            if (Time.time < _knockbackExpiry) return Vector2.zero; // [추가] 넉백 중엔 방향 갱신용 속도를 주지 않음 (DirectionIndicator가 밀리는 방향으로 도는 문제 방지)
+
             if (_agent != null && _agent.isActiveAndEnabled)
             {
                 Vector2 av = _agent.velocity;
@@ -609,6 +612,9 @@ public abstract class BaseEntity : MonoBehaviour
 
             _rb.linearVelocity = Vector2.zero; // 기존 속도 및 돌진 속도 리셋
             _rb.AddForce(force, ForceMode2D.Impulse);
+
+            // [추가] 넉백 중에는 DirectionIndicator가 밀려나는 방향을 진행 방향으로 오인하지 않도록 방지. 연타로 이어져도 높은 만료 시각으로 덮여쓰이도록 Max 사용
+            _knockbackExpiry = Mathf.Max(_knockbackExpiry, Time.time + 0.25f);
         }
     }
 
