@@ -29,7 +29,7 @@ public class TextFloating : MonoBehaviour
         if (cam == null) cam = Camera.main;
     }
 
-    public void SetUp(string _text, Color _color, Transform _target, bool isCritical = false)
+public void SetUp(string _text, Color _color, Transform _target, bool isCritical = false, float scaleMultiplier = 1f)
     {
         DOTween.Kill(textMesh); // Kill previous tween
         DOTween.Kill(rectTransform);
@@ -50,13 +50,13 @@ public class TextFloating : MonoBehaviour
         gameObject.SetActive(true);
 
         // Reset Transform
-        rectTransform.localScale = Vector3.one;
+        rectTransform.localScale = Vector3.one * scaleMultiplier;
         rectTransform.localRotation = Quaternion.identity;
 
         if (isCritical)
         {
-            // 1. Critical Scale Base
-            rectTransform.localScale = Vector3.one * 1.5f;
+            // 1. Critical Scale Base (scaleMultiplier와 함께 적용)
+            rectTransform.localScale = Vector3.one * 1.5f * scaleMultiplier;
 
             // 2. Powerful Animation Combo
             // Scale Punch ("Pop" effect)

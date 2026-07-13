@@ -7,6 +7,12 @@ public class FloatingTextManager : Singleton<FloatingTextManager>
     public GameObject textPrefab;
     public int poolSize = 20;
 
+    [Header("디버그/테스트용")]
+    [Tooltip("체크 해제하면 데미지 숫자(MISS, 쉴드, 처형 포함) 팝업이 뜨지 않습니다. 힐/상태 텍스트는 영향 없음.")]
+    [SerializeField] private bool showDamageNumbers = true;
+    public bool ShowDamageNumbers => showDamageNumbers;
+    public void SetShowDamageNumbers(bool value) => showDamageNumbers = value;
+
     private Queue<TextFloating> textPool = new Queue<TextFloating>();
 
     protected override void OnAwake()

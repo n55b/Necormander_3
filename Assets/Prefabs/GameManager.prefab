@@ -60,6 +60,7 @@ MonoBehaviour:
   persistAcrossScenes: 0
   textPrefab: {fileID: 717604425048194122, guid: ad279bdf08f980742b70fceeaa100b90, type: 3}
   poolSize: 20
+  showDamageNumbers: 0
 --- !u!1 &2670220591623535792
 GameObject:
   m_ObjectHideFlags: 0

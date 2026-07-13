@@ -95,6 +95,8 @@ private void OnDestroy()
 
 private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool isCritical)
     {
+        if (FloatingTextManager.Instance != null && !FloatingTextManager.Instance.ShowDamageNumbers) return; // [추가] 데미지 텍스트 켜기/끄기 스위치
+
         string text = typeStr == "MISS" ? "MISS" : damage.ToString();
         Color color;
 
@@ -146,8 +148,15 @@ private void ShowHealText(float amount)
 private void ShowStatusText(string statusName)
     {
         Color color = colorConfig != null ? colorConfig.GetStatusPopColor(statusName) : Color.gray;
+
+        // [추가] 기절/격파/강타처럼 취약을 소모하는 팝업은 더 눈에 띄게 크게 표시
+        bool isVulnerabilityPop = colorConfig != null
+            ? colorConfig.IsVulnerabilityPop(statusName)
+            : (!string.IsNullOrEmpty(statusName) && (statusName.Contains("기절") || statusName.Contains("격파") || statusName.Contains("강타")));
+        float scale = isVulnerabilityPop ? (colorConfig != null ? colorConfig.vulnerabilityPopScale : 1.4f) : 1f;
+
         TextFloating textObj = FloatingTextManager.Instance.GetFromPool();
 
-        textObj.SetUp(statusName, color, vec_float);
+        textObj.SetUp(statusName, color, vec_float, false, scale);
     }
 }

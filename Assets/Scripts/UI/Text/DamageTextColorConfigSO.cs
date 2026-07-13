@@ -44,14 +44,22 @@ public class DamageTextColorConfigSO : ScriptableObject
     [Tooltip("'기절!'/'격파!'/'강타!' 등 취약 소모 시 뜨는 텍스트 색상 (셋 다 취약을 소모한다는 공통점으로 하나의 색을 공유합니다)")]
     public Color vulnerabilityPopColor = Color.gray;
 
+    [Tooltip("'기절!'/'격파!'/'강타!' 텍스트 팝업 크기 배율. 1보다 크게 하면 더 눈에 띄게 표시됩니다")]
+    public float vulnerabilityPopScale = 1.4f;
+
+    /// <summary>
+    /// 기절/격파/강타처럼 '취약'을 소모하는 상태 팝업인지 여부.
+    /// </summary>
+    public bool IsVulnerabilityPop(string statusName)
+    {
+        return !string.IsNullOrEmpty(statusName) &&
+            (statusName.Contains("기절") || statusName.Contains("격파") || statusName.Contains("강타"));
+    }
+
     public Color GetStatusPopColor(string statusName)
     {
         if (string.IsNullOrEmpty(statusName)) return statusTextColor;
-
-        if (statusName.Contains("기절") || statusName.Contains("격파") || statusName.Contains("강타"))
-            return vulnerabilityPopColor;
-
-        return statusTextColor;
+        return IsVulnerabilityPop(statusName) ? vulnerabilityPopColor : statusTextColor;
     }
 
     public Color GetDamageColor(DamageType type)
