@@ -911,11 +911,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         entity.StartCoroutine(ScaleCoroutine(entity, windup, normalChargeSquashScale, 0.2f, normalChargeStretchScale));
         float estimatedLength = entity.Stats.MOVESPEED * normalChargeSpeedMultiplier * normalChargeMaxDuration;
 
+        var dirIndicator = entity.GetComponentInChildren<EntityDirectionIndicator>();
         float wt = 0f;
         while (wt < windup)
         {
             wt += Time.deltaTime;
             if (entity.Target != null) dir = GetAimDir(entity);
+            dirIndicator?.SetAimOverride(dir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
             UpdateChargeTelegraph(telegraph, entity.transform.position, dir, estimatedLength, normalChargeHitRadius * 2f);
             yield return null;
         }
@@ -1165,6 +1167,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         Vector2 chargeDir = GetAimDir(entity);
         GameObject telegraph = null;
         float scaledChargeWindup = ScaleDuration(chargeWindup); // v1.4 D1
+        var dirIndicator = entity.GetComponentInChildren<EntityDirectionIndicator>();
 
         // 3초 조준: 플레이어 방향을 실시간으로 주시하며, 바닥에 돌진 경로를 빨간 직사각형으로 표시합니다.
         // 전조는 항상 "플레이어 발밑"까지 확실히 이어지도록 대상과의 거리 기준으로 길이를 계산합니다.
@@ -1194,6 +1197,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 telegraph = CreateFallbackRect(chargeTelegraphColor);
             }
             UpdateChargeTelegraph(telegraph, entity.transform.position, chargeDir, length, chargeHitRadius * 2f);
+            dirIndicator?.SetAimOverride(chargeDir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
 
             yield return null;
         }

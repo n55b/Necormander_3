@@ -350,6 +350,25 @@ public abstract class BaseEntity : MonoBehaviour
 
     public bool IsFacingRight => (_sr != null && _sr.flipX);
 
+    /// <summary>
+    /// 유닛이 실제로 '진행하는' 방향(연속 각도). 스프라이트 좌우(flipX)와 무관하게 실제 이동 벡터를 준다.
+    /// NavMeshAgent가 활성이면 그 velocity를, 아니면(넉백/대시 등 rb 직접 구동) Rigidbody2D 속도를 쓴다.
+    /// 방향 인디케이터가 유닛의 '앞'을 나타내는 데 사용한다.
+    /// </summary>
+    public Vector2 MoveVelocity
+    {
+        get
+        {
+            if (_agent != null && _agent.isActiveAndEnabled)
+            {
+                Vector2 av = _agent.velocity;
+                if (av.sqrMagnitude > 0.0001f) return av;
+            }
+            if (_rb != null) return _rb.linearVelocity;
+            return Vector2.zero;
+        }
+    }
+
     public virtual void LookAtTarget(Transform t)
     {
         if (t == null) return;

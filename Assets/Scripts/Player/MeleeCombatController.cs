@@ -30,6 +30,10 @@ public class MeleeCombatController : MonoBehaviour
     [SerializeField] private float lightTelegraphDuration = 0.2f;
     [SerializeField] private float mediumTelegraphDuration = 0.4f;
 
+    [Header("평타 범위 표시(텔레그래프) 숨김")]
+    [Tooltip("평타(기본 공격)의 범위 표시용 히트박스 시각효과를 숨깁니다. 데미지 판정은 그대로 유지됩니다. (스킬/적 텔레그래프에는 영향 없음)")]
+    [SerializeField] private bool hideBasicAttackTelegraph = true;
+
     private bool _isHoldingAttack = false;
     private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
 
@@ -151,6 +155,13 @@ public class MeleeCombatController : MonoBehaviour
 
             Vector3 spawnPos = attackSpawnPoint != null ? attackSpawnPoint.position : transform.position;
             GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity, transform); // [수정] 월드가 아닌 시전자(플레이어)의 하위 자식으로 붙여 이동 궤적 동기화
+
+            // [평타 텔레그래프 숨김] 범위 표시용 시각(SpriteRenderer)만 끄고 콜라이더/데미지 판정은 그대로 둔다.
+            if (hideBasicAttackTelegraph)
+            {
+                foreach (var vis in go.GetComponentsInChildren<SpriteRenderer>(true))
+                    vis.enabled = false;
+            }
 
             // 범용 BaseHitBox 사용
             _activeHitbox = go.GetComponent<BaseHitBox>();

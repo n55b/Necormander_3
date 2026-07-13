@@ -39,6 +39,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] public SquadSpawner squadSpawner;
     [SerializeField] public RewardManager rewardManager;
 
+    [Header("HUD / Feedback")]
+    [SerializeField] public OffscreenEnemyArrowManager offscreenEnemyArrowManager;
+
     [Header("UI References")]
     [SerializeField] public PlayerStateUI playerStateUI;
     [SerializeField] public MinionStateUI minionStateUI;
@@ -155,6 +158,7 @@ public class GameManager : MonoBehaviour
 
         if (squadSpawner == null) squadSpawner = GetComponentInChildren<SquadSpawner>();
         if (rewardManager == null) rewardManager = GetComponentInChildren<RewardManager>();
+        if (offscreenEnemyArrowManager == null) offscreenEnemyArrowManager = GetComponentInChildren<OffscreenEnemyArrowManager>();
         if (globalvolume == null) globalvolume = GameObject.Find("Global Volume")?.GetComponent<Volume>();
 
         if (dataManager != null) dataManager.Initialize();
@@ -182,6 +186,7 @@ public class GameManager : MonoBehaviour
 
         if (throwImpactManager != null) throwImpactManager.Initialize();
         if (rewardManager != null) rewardManager.Initialize();
+        if (offscreenEnemyArrowManager != null) offscreenEnemyArrowManager.Initialize();
 
         // 초기화 시점에는 아직 플레이어가 없으므로 SquadSpawner의 AllyManager 연결은 미룹니다.
 

@@ -247,6 +247,7 @@ MonoBehaviour:
   playerSkillInventoryManager: {fileID: 0}
   squadSpawner: {fileID: 6842143012122147092}
   rewardManager: {fileID: 7453844490307090777}
+  offscreenEnemyArrowManager: {fileID: 0}
   playerStateUI: {fileID: 0}
   minionStateUI: {fileID: 0}
   minionSkillQueueUI: {fileID: 0}
@@ -954,6 +955,7 @@ GameObject:
   - component: {fileID: 6842143012122147092}
   - component: {fileID: 7453844490307090777}
   - component: {fileID: 1557044542994201147}
+  - component: {fileID: 3823117376901426705}
   m_Layer: 0
   m_Name: Gameplay Systems
   m_TagString: Untagged
@@ -1041,6 +1043,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   persistAcrossScenes: 0
   gameOverPanel: {fileID: 0}
+--- !u!114 &3823117376901426705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7727511665536608322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5625879729df5bd4caa06db8f448d3dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  overlayEnabled: 1
+  edgeMargin: 0.7
+  arrowScale: 2.2
+  arrowBaseAngle: 180
+  arrowSortingOrder: 10000
+  sortingLayerName: 
+  maxArrows: 16
+  arrowSpriteOverride: {fileID: 0}
+  arrowMaterial: {fileID: 0}
 --- !u!1 &7931369442624503284
 GameObject:
   m_ObjectHideFlags: 0

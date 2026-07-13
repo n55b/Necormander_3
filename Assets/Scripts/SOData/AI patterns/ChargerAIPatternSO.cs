@@ -66,6 +66,9 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         float timeout = windupTime;
         Vector2 chargeDir = Vector2.right;
 
+        // 방향 인디케이터: 돌진 충전 중엔 멈춰 있어도(이동 velocity≈0) 실시간 재조준 방향을 가리키게 오버라이드.
+        var dirIndicator = entity.GetComponentInChildren<EntityDirectionIndicator>();
+
         while (timeout > 0f)
         {
             if (entity.Target == null) break;
@@ -76,6 +79,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
 
             // [수정] 차지 준비 중 실시간 플립: 본래의 LookAtTarget 공통 메서드를 사용하여 SpriteRenderer.flipX를 실시간 제어
             entity.LookAtTarget(entity.Target);
+            dirIndicator?.SetAimOverride(chargeDir); // 인디케이터도 실시간 조준 방향으로 (돌진 개시 후엔 자동 만료 → 이동 방향 복귀)
 
             if (aimHitbox != null)
             {
