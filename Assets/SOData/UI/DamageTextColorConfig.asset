@@ -26,3 +26,4 @@ MonoBehaviour:
   healColor: {r: 0, g: 1, b: 0, a: 1}
   statusTextColor: {r: 1, g: 1, b: 1, a: 1}
   vulnerabilityPopColor: {r: 1, g: 1, b: 1, a: 1}
+  vulnerabilityPopScale: 1.3
