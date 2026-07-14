@@ -757,28 +757,22 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void OnGemTree(InputAction.CallbackContext context)
+public void OnGemTree(InputAction.CallbackContext context)
     {
+        // [수정] V키(Input Actions의 "GemTree" 액션)를 더 이상 GemTreeUI가 아닌
+        // SkillExplainUI 토글용으로 재사용합니다. 메서드 이름은 PlayerInput 이벤트 바인딩이
+        // 끊어지지 않도록 그대로 유지합니다. GemTreeUI는 별도의 키가 없는 상태로 남겨둡니다.
         if (_inputBlocked || stat.Health.IsDead) return;
 
         if (context.performed)
         {
-            // [수정] 이미 열려 있는 상태라면 전투 중이라도 닫을 수 있게 허용
-            bool isOpen = (GemTreeUI.Instance != null && GemTreeUI.Instance.IsOpen);
-
-            if (!isOpen && IsAnyBattleActive())
+            if (SkillExplainUI.Instance != null)
             {
-                Debug.Log("<color=orange>[UI]</color> 전투가 진행 중일 때는 보석 트리를 열 수 없습니다.");
-                return;
-            }
-
-            if (GemTreeUI.Instance != null)
-            {
-                GemTreeUI.Instance.Toggle();
+                SkillExplainUI.Instance.Toggle();
             }
             else
             {
-                Debug.LogError("<color=red>[PlayerController]</color> GemTreeUI.Instance is NULL!");
+                Debug.LogError("<color=red>[PlayerController]</color> SkillExplainUI.Instance is NULL!");
             }
         }
     }

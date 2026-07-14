@@ -23,6 +23,30 @@ MonoBehaviour:
     m_Key: vulnerable_desc
     m_Metadata:
       m_Items: []
+  - m_Id: 4410816994385920
+    m_Key: ' stun_title'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4410933583454208
+    m_Key: stun_desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4411268486045696
+    m_Key: break_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4411496823955456
+    m_Key: breaki_desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4412421667987456
+    m_Key: smash_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4412423886774272
+    m_Key: smash_desc
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
