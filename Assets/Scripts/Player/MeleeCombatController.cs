@@ -161,6 +161,11 @@ public class MeleeCombatController : MonoBehaviour
             {
                 foreach (var vis in go.GetComponentsInChildren<SpriteRenderer>(true))
                     vis.enabled = false;
+                // [중요] SpriteMask도 반드시 꺼야 한다. 텔레그래프 프리팹엔 안쪽을 도려내는 SpriteMask가 들어있는데,
+                // SpriteRenderer만 끄면 눈엔 안 보여도 '마스크'는 살아있어서, 겹치는 적 텔레그래프의
+                // 외곽선(MaskInteraction=Visible Outside Mask)을 마스크 영역만큼 잘라내(덮어써) 경계선이 사라진다.
+                foreach (var mask in go.GetComponentsInChildren<SpriteMask>(true))
+                    mask.enabled = false;
             }
 
             // 범용 BaseHitBox 사용

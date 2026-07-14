@@ -350,11 +350,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4485842914912f247a668e767ea5b500, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   kind: 2
   baseAngle: 90
   spriteOverride: {fileID: 0}
+  indicatorScale: 1
 --- !u!114 &6090153119606151792
 MonoBehaviour:
   m_ObjectHideFlags: 0

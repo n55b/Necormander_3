@@ -31,6 +31,9 @@ public class EntityDirectionIndicator : MonoBehaviour
     [SerializeField] private float baseAngle = 90f;
     [Tooltip("비워두면 kind에 맞는 Arrow.aseprite 로케이터(Ally/Enemy_Locator)를 런타임에 자동 로드.")]
     [SerializeField] private Sprite spriteOverride;
+    [Tooltip("로케이터 크기. 이 값이 자식 Transform의 localScale에 그대로 적용된다(여기서만 조절하면 됨). 플레이어는 좀 더 크게.")]
+    [Min(0.01f)]
+    [SerializeField] private float indicatorScale = 1.6f;
 
     /// <summary>화면 밖 화살표가 순회할 적군 로케이터 레지스트리.</summary>
     public static readonly List<EntityDirectionIndicator> EnemyIndicators = new List<EntityDirectionIndicator>();
@@ -70,8 +73,21 @@ public class EntityDirectionIndicator : MonoBehaviour
 
     public void ClearAimOverride() => _aimOverrideExpiry = 0f;
 
+    /// <summary>인스펙터의 크기 값을 자식 Transform localScale에 적용. 부모 좌우반전(±scale/flipX)과 무관하게 항상 양수 균등 스케일.</summary>
+    private void ApplyScale()
+    {
+        if (indicatorScale > 0f)
+            transform.localScale = new Vector3(indicatorScale, indicatorScale, 1f);
+    }
+
+#if UNITY_EDITOR
+    // 에디터에서 슬라이더를 움직이면 곧바로 크기가 반영되도록(플레이 없이도 프리팹에서 바로 확인).
+    private void OnValidate() => ApplyScale();
+#endif
+
     private void Awake()
     {
+        ApplyScale();
         _sr = GetComponent<SpriteRenderer>();
         _player = GetComponentInParent<PlayerController>();
         _entity = GetComponentInParent<BaseEntity>();

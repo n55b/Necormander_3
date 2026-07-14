@@ -15,6 +15,12 @@ public class TrapArrow : MonoBehaviour
     [SerializeField] private int arrowCount = 3;        // 한 번에 쏘는 화살 개수
     [SerializeField] private float fireInterval = 0.2f; // 연속 발사 시 시간 간격
 
+    [Header("Spawn (벽 안쪽 발사)")]
+    [Tooltip("함정에서 벽 방향으로 레이캐스트해 만난 벽 표면에서 방 '안쪽'으로 이만큼 물러난 지점에서 화살을 쏜다. 값이 클수록 벽에서 더 떨어져(더 안쪽에서) 발사.")]
+    [SerializeField] private float wallInsetMargin = 0.4f;
+    [Tooltip("벽 탐지 레이캐스트가 기하학적 예상 거리보다 얼마나 더 멀리까지 벽을 찾을지의 여유값.")]
+    [SerializeField] private float wallRaycastPadding = 3f;
+
     [Header("References")]
     [SerializeField] private GameObject arrowPrefab; // Projectile 컴포넌트가 붙어 있는 프리팹
     [SerializeField] private Transform firePoint;     // 화살 스폰 기본 위치 (방을 못 찾을 때의 폴백용)
@@ -75,46 +81,54 @@ public class TrapArrow : MonoBehaviour
 
     private Vector2 GetArrowSpawnPosition(RoomInstance room)
     {
-        if (room == null)
+        // 함정(압력 발판)은 항상 방 '안쪽'에 있으므로, 여기서 바깥(벽)으로 레이캐스트해
+        // 실제 벽면을 찾은 뒤 그 벽 '안쪽'에서 화살을 쏜다. 이렇게 하면 벽 두께/방 원점 오프셋과
+        // 무관하게 항상 방 내부에서 발사되어, 화살이 벽에 막혀 사라지는 문제가 사라진다.
+        Vector2 trapPos = (Vector2)transform.position;
+
+        // 1) 대략적인 목표 벽 지점을 잡아 '방향'을 정한다(좌/우/상/하 랜덤 + 벽면 따라 랜덤 위치).
+        Vector2 aimWallPoint;
+        if (room != null)
         {
-            // 방이 존재하지 않는 맵 빌드 외 환경(테스트 씬 등): 함정 주변 8~12칸 반경의 랜덤 방향
+            // ★ 방의 실제 월드 중심 = transform.position + centerOffset (벽 타일맵 중심). centerOffset를 빼먹으면 벽선이 어긋난다.
+            Vector2 roomCenter = (Vector2)room.transform.position + room.centerOffset;
+            Vector2 size = (Vector2)room.roomSize;
+            float minX = roomCenter.x - size.x * 0.5f;
+            float maxX = roomCenter.x + size.x * 0.5f;
+            float minY = roomCenter.y - size.y * 0.5f;
+            float maxY = roomCenter.y + size.y * 0.5f;
+
+            switch (Random.Range(0, 4)) // 0: 좌, 1: 우, 2: 하, 3: 상
+            {
+                case 0:  aimWallPoint = new Vector2(minX, Random.Range(minY, maxY)); break;
+                case 1:  aimWallPoint = new Vector2(maxX, Random.Range(minY, maxY)); break;
+                case 2:  aimWallPoint = new Vector2(Random.Range(minX, maxX), minY); break;
+                default: aimWallPoint = new Vector2(Random.Range(minX, maxX), maxY); break;
+            }
+        }
+        else
+        {
+            // 방이 없는 테스트 씬 등: 함정 주변 랜덤 방향으로 약 12칸 지점을 목표로.
             float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-            float distance = Random.Range(8f, 12f);
-            Vector2 offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * distance;
-            return (Vector2)transform.position + offset;
+            aimWallPoint = trapPos + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * 12f;
         }
 
-        // 방이 존재하는 경우: 방의 외곽 벽 계산
-        Vector2 roomCenter = (Vector2)room.transform.position;
-        Vector2 size = (Vector2)room.roomSize;
+        // 2) 함정 → 목표 방향으로 실제 벽을 찾아 벽 안쪽 지점을 반환.
+        Vector2 dir = aimWallPoint - trapPos;
+        if (dir.sqrMagnitude < 0.0001f) dir = Vector2.right;
+        dir.Normalize();
 
-        // 벽 안쪽에 스폰되도록 약간의 마진(0.5f)을 줌
-        float minX = roomCenter.x - size.x * 0.5f + 0.5f;
-        float maxX = roomCenter.x + size.x * 0.5f - 0.5f;
-        float minY = roomCenter.y - size.y * 0.5f + 0.5f;
-        float maxY = roomCenter.y + size.y * 0.5f - 0.5f;
-
-        // 4개의 외벽 방향 중 랜덤 선택 (0: 좌, 1: 우, 2: 하, 3: 상)
-        int wallSide = Random.Range(0, 4);
-        Vector2 spawnPos = Vector2.zero;
-
-        switch (wallSide)
+        float maxDist = Vector2.Distance(trapPos, aimWallPoint) + wallRaycastPadding;
+        RaycastHit2D hit = Physics2D.Raycast(trapPos, dir, maxDist, Layers.WallObstacle);
+        if (hit.collider != null)
         {
-            case 0: // 왼쪽 벽면
-                spawnPos = new Vector2(minX, Random.Range(minY, maxY));
-                break;
-            case 1: // 오른쪽 벽면
-                spawnPos = new Vector2(maxX, Random.Range(minY, maxY));
-                break;
-            case 2: // 아래쪽 벽면
-                spawnPos = new Vector2(Random.Range(minX, maxX), minY);
-                break;
-            case 3: // 위쪽 벽면
-                spawnPos = new Vector2(Random.Range(minX, maxX), maxY);
-                break;
+            // 레이는 함정(내부)에서 바깥으로 나가므로 hit.point는 벽의 '안쪽 면'.
+            // dir(=바깥 방향)만큼 되돌아오면 벽 바로 안쪽(방 내부)에서 발사된다.
+            return hit.point - dir * wallInsetMargin;
         }
 
-        return spawnPos;
+        // 벽을 못 찾으면(열린 통로 등) 기하학적 벽 지점에서 살짝 안쪽으로 당겨 폴백.
+        return aimWallPoint - dir * wallInsetMargin;
     }
 
     private void FireArrow(Vector2 spawnPos)
