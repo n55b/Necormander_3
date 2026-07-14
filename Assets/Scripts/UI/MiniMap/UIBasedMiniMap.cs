@@ -33,6 +33,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     [SerializeField] private Sprite customTerrainDotSprite;   // 지형 도트용 스프라이트 (비워두면 사각형)
     [Tooltip("지형 도트에 곱해지는 색(틴트). 커스텀 스프라이트를 원본 색 그대로 보고 싶으면 흰색(1,1,1,1)으로 두면 됨.")]
     [SerializeField] private Color terrainDotColor = new Color(0.25f, 0.4f, 0.6f, 0.75f); // 기존 하드코딩 값이 기본
+    [Tooltip("각 지형 도트를 셀 크기보다 이 픽셀만큼 크게 그려 항상 겹치게 한다(방 크기와 무관하게 빈틈 없이). 큰 방(작은 도트)에서 격자 틈이 보이면 이 값을 키우면 됨.")]
+    [SerializeField] private float terrainDotPadding = 1.5f;
     [SerializeField] private bool useTerrainShadow = true;     // 2D 입체 그림자 효과 사용 여부
     [SerializeField] private Color terrainShadowColor = new Color(0f, 0f, 0f, 0.6f);
     [SerializeField] private Vector2 terrainShadowOffset = new Vector2(1.5f, -1.5f);
@@ -498,17 +500,11 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         containerRt.sizeDelta = new Vector2(roomUiSize, roomUiSize);
         containerRt.anchoredPosition = Vector2.zero;
 
-        float roomW = room.roomSize.x;
-        float roomH = room.roomSize.y;
-        if (roomW <= 0.1f) roomW = 25f;
-        if (roomH <= 0.1f) roomH = 25f;
-
-        // 한 타일이 차지하는 UI 셀 크기를 '축별로' 계산한다. (기존엔 roomW로만 정사각 크기를 잡아서
-        // 정사각형이 아닌 방에선 세로 간격≠도트 높이가 되어 가로 줄이 갈라져 보였다 = '스도쿠 판' 현상)
-        float cellW = roomUiSize / roomW;
-        float cellH = roomUiSize / roomH;
-        // 인접 도트가 딱 맞닿아(살짝 겹쳐) 바닥이 끊김 없이 이어지도록 셀보다 약간 크게. (기존 0.95 = 5% 틈)
-        const float fillOverlap = 1.05f;
+        // [개선] 방 크기(벽 포함 roomSize)가 아니라 '실제 바닥 타일 범위'에 꽉 차게 그린다.
+        // (roomSize는 벽까지 포함해서 바닥이 미니맵 칸 가운데 작게 떠 빈 여백이 컸다.)
+        // 정사각 셀(가로=세로)로 방 비율을 보존하고, 인접 타일은 항상 1칸 간격이라 도트가 늘 맞닿는다.
+        ComputeFloorLayout(terrainTiles, out Vector2 floorCenter, out int floorSpan);
+        float cell = roomUiSize / floorSpan;
 
         // 그림자가 도트 사이사이에 껴서 격자처럼 보이지 않도록, 위→아래·왼→오 순서로 그린다.
         // (오른쪽/아래 이웃이 나중에(위에) 그려져 안쪽 그림자를 덮어, 실루엣 바깥 테두리에만 그림자가 남는다.)
@@ -521,11 +517,9 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             dotObj.transform.SetParent(terrainContainer.transform, false);
 
             RectTransform dRt = dotObj.GetComponent<RectTransform>();
-            dRt.sizeDelta = new Vector2(cellW * fillOverlap, cellH * fillOverlap);
-
-            float normX = tilePos.x / roomW;
-            float normY = tilePos.y / roomH;
-            dRt.anchoredPosition = new Vector2(normX * roomUiSize, normY * roomUiSize);
+            dRt.sizeDelta = new Vector2(cell + terrainDotPadding, cell + terrainDotPadding);
+            // 바닥 범위 중심을 컨테이너 정중앙에 맞춰 배치 (도트 간격 = cell, 크기 = cell+padding → 항상 맞닿음).
+            dRt.anchoredPosition = new Vector2((tilePos.x - floorCenter.x) * cell, (tilePos.y - floorCenter.y) * cell);
 
             Image img = dotObj.GetComponent<Image>();
             img.sprite = (customTerrainDotSprite != null) ? customTerrainDotSprite : fallbackRoomSprite;
@@ -539,6 +533,19 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                 shadow.effectDistance = terrainShadowOffset;
             }
         }
+    }
+
+    /// <summary>타일 집합의 중심(로컬 오프셋)과 정사각 span(긴 축 칸수)을 구한다. 지형 도트와 마커가 같은 기준으로 배치되도록 공용.</summary>
+    private void ComputeFloorLayout(HashSet<Vector2Int> tiles, out Vector2 center, out int span)
+    {
+        int minX = int.MaxValue, maxX = int.MinValue, minY = int.MaxValue, maxY = int.MinValue;
+        foreach (var p in tiles)
+        {
+            if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+            if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+        }
+        center = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
+        span = Mathf.Max(1, Mathf.Max(maxX - minX + 1, maxY - minY + 1));
     }
 
     private void AddMarkerImage(GameObject parent, Sprite sprite, float size, Color color)
@@ -674,10 +681,22 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         if (currentRoom == null) return;
         Vector3 roomCenter = currentRoom.transform.position + (Vector3)currentRoom.centerOffset;
 
-        float roomW = currentRoom.roomSize.x;
-        float roomH = currentRoom.roomSize.y;
-        if (roomW <= 0.1f) roomW = 25f;
-        if (roomH <= 0.1f) roomH = 25f;
+        // 지형 도트와 '같은 기준'(실제 바닥 범위)으로 마커를 얹어야 정확히 정렬된다.
+        // 지형이 그려져 타일이 캐시된 방이면 그 바닥 범위를, 아니면(캐시 없음) 방 크기를 폴백으로 사용.
+        float roomW, roomH;
+        Vector2 floorCenter = Vector2.zero;
+        if (_roomTilemapsCache.TryGetValue(currentRoom.gameObject.name, out var floorTiles) && floorTiles.Count > 0)
+        {
+            ComputeFloorLayout(floorTiles, out floorCenter, out int floorSpan);
+            roomW = floorSpan; roomH = floorSpan; // 지형과 동일한 정사각 셀 기준
+        }
+        else
+        {
+            roomW = currentRoom.roomSize.x;
+            roomH = currentRoom.roomSize.y;
+            if (roomW <= 0.1f) roomW = 25f;
+            if (roomH <= 0.1f) roomH = 25f;
+        }
 
         // 1. 플레이어 위치 및 회전 각도 실시간 동기화
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -685,8 +704,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             Vector3 playerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position;
             Vector3 pDiff = playerPos - roomCenter;
 
-            float pNormX = pDiff.x / roomW;
-            float pNormY = pDiff.y / roomH;
+            float pNormX = (pDiff.x - floorCenter.x) / roomW;
+            float pNormY = (pDiff.y - floorCenter.y) / roomH;
 
             foreach (var pRt in _playerMarkers)
             {
@@ -714,8 +733,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             if (enemy == null || markerList == null) continue;
 
             Vector3 eDiff = enemy.transform.position - roomCenter;
-            float eNormX = eDiff.x / roomW;
-            float eNormY = eDiff.y / roomH;
+            float eNormX = (eDiff.x - floorCenter.x) / roomW;
+            float eNormY = (eDiff.y - floorCenter.y) / roomH;
 
             // [수정] 방 전환 직후에 이전 방의 적이 잠시 계속 남아있거나 등 계산이 틀어졌을 때, 마커가 방 타일 밖으로 멀리 튀어나가지 않도록
             // 정규화된 좌표를 방 경계값(-0.5~0.5)로 강제 클램프합니다.
