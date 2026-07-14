@@ -25,7 +25,7 @@ public class MinionActionSkillSO : MinionSkillSO
     public float forceAmount = 4f; // 넉백/끌어당김 힘
     public float forceDuration = 0.2f;
 
-    public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
+public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
         var ally = user.GetComponent<AllyController>();
         if (ally == null || ally.Stats.Health.IsDead) return;
@@ -39,7 +39,7 @@ public class MinionActionSkillSO : MinionSkillSO
         // 1. 적절한 타겟 찾기 (플레이어 기준 가장 가까운 대상)
         Transform closestTarget = null;
         float minDist = float.MaxValue;
-        
+
         if (validTargets != null && validTargets.Count > 0)
         {
             foreach (var vt in validTargets)
@@ -52,7 +52,7 @@ public class MinionActionSkillSO : MinionSkillSO
                 // 각 연계 스킬 키워드별 타겟 상태 유효성 실시간 체크
                 var status = vt.GetComponentInChildren<CharacterStatus>();
                 if (status == null) status = vt.GetComponentInParent<CharacterStatus>();
-                
+
                 if (status == null) continue;
 
                 if (this.reactKeyword == SkillKeyword.Vulnerability && status.VulnerabilityStacks <= 0) continue;
@@ -107,24 +107,49 @@ public class MinionActionSkillSO : MinionSkillSO
 
         PlaySkillSound();
         ShakeCamera();
-        DoHitStop();
+        float animDuration = PlaySkillAnimVisual(user);
 
         Debug.Log($"<color=cyan>[Minion Skill]</color> 미니언이 '{skillName}' 스킬을 사용했습니다! (대상: {closestTarget.name})");
 
+        float hitDelay = animDuration * hitTimingRatio;
+        if (hitDelay > 0f)
+        {
+            ally.StartCoroutine(DelayedHit(hitDelay, ally, closestTarget, dirFromPlayer, teleportPos));
+        }
+        else
+        {
+            DoHitStop();
+            DealHit(ally, closestTarget, dirFromPlayer, teleportPos);
+        }
+    }
+
+    private IEnumerator DelayedHit(float delay, AllyController ally, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos)
+    {
+        yield return new WaitForSeconds(delay);
+
+        // 대기 중 미니언이 죽는 등 상황이 바뀌었을 수 있으니 재검사
+        if (ally == null || ally.Stats.Health.IsDead) yield break;
+
+        DoHitStop();
+        DealHit(ally, closestTarget, dirFromPlayer, teleportPos);
+    }
+
+    private void DealHit(AllyController ally, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos)
+    {
         float finalDamage = ally.Stats.ATK * damageMultiplier;
 
-        // 3. 공격 실행
+        // 공격 실행
         if (useHitBox && hitBoxPrefab != null)
         {
             float angle = Mathf.Atan2(dirFromPlayer.y, dirFromPlayer.x) * Mathf.Rad2Deg;
-            BaseHitBox box = Instantiate(hitBoxPrefab, user.position, Quaternion.identity, user); // [수정] 월드가 아닌 시전자(미니언) 하위 자식으로 붙여 이동 동기화
+            BaseHitBox box = Instantiate(hitBoxPrefab, ally.transform.position, Quaternion.identity, ally.transform); // [수정] 월드가 아닌 시전자(미니언) 하위 자식으로 붙여 이동 동기화
             box.transform.localPosition = Vector3.zero; // 시전자 중심 정렬
-            
+
             box.transform.localRotation = Quaternion.Euler(0, 0, angle);
             box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
-            
-            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, user.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
-            
+
+            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, ally.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
+
             bool hasInvokedKeyword = false;
             System.Action<CharacterHealth> onHit = (health) => {
                 var stat = health.GetComponent<CharacterStat>();
@@ -145,14 +170,16 @@ public class MinionActionSkillSO : MinionSkillSO
         else
         {
             // 히트박스 없이 즉시 타격
+            if (closestTarget == null) return;
+
             var health = closestTarget.GetComponentInChildren<CharacterHealth>();
             if (health == null) health = closestTarget.GetComponentInParent<CharacterHealth>();
 
             if (health != null && !health.IsDead)
             {
-                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, user.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
+                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, ally.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
                 health.GetDamage(info);
-                
+
                 var stat = health.GetComponent<CharacterStat>();
                 if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
                 if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();

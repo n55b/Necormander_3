@@ -1,6 +1,7 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class TextFloating : MonoBehaviour
 {
@@ -19,6 +20,8 @@ public class TextFloating : MonoBehaviour
     [SerializeField] private float fadeTime;
     [SerializeField] private float displaytime;
     private float timer;
+    private TMPTextEffectPlayer effectPlayer;
+    private static readonly List<TextEffectRange> tempEffectRanges = new List<TextEffectRange>();
 
     private void Awake()
     {
@@ -27,6 +30,8 @@ public class TextFloating : MonoBehaviour
         parentCanvas = GetComponentInParent<Canvas>();
         cam = parentCanvas != null ? parentCanvas.worldCamera : Camera.main;
         if (cam == null) cam = Camera.main;
+        effectPlayer = GetComponent<TMPTextEffectPlayer>();
+        if (effectPlayer == null) effectPlayer = gameObject.AddComponent<TMPTextEffectPlayer>();
     }
 
 public void SetUp(string _text, Color _color, Transform _target, bool isCritical = false, float scaleMultiplier = 1f)
@@ -39,7 +44,8 @@ public void SetUp(string _text, Color _color, Transform _target, bool isCritical
         if(textMesh == null)
             textMesh = GetComponent<TextMeshProUGUI>();
 
-        textMesh.text = _text;
+        string parsedText = TextEffectParser.Parse(_text, tempEffectRanges);
+        textMesh.text = parsedText;
         textMesh.color = _color;
         target = _target;
 
@@ -76,7 +82,9 @@ public void SetUp(string _text, Color _color, Transform _target, bool isCritical
 
             // Normal Punch
             rectTransform.DOPunchPosition(new Vector3(1f, 1f, 1f), 0.5f, 10, 1);
+            rectTransform.DOPunchScale(Vector3.one * 0.2f, 0.25f, 8, 0.6f);
         }
+        effectPlayer.ApplyEffects(tempEffectRanges);
     }
 
     private void Update()

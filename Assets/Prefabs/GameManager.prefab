@@ -60,7 +60,7 @@ MonoBehaviour:
   persistAcrossScenes: 0
   textPrefab: {fileID: 717604425048194122, guid: ad279bdf08f980742b70fceeaa100b90, type: 3}
   poolSize: 20
-  showDamageNumbers: 0
+  showDamageNumbers: 1
 --- !u!1 &2670220591623535792
 GameObject:
   m_ObjectHideFlags: 0
@@ -347,8 +347,8 @@ MonoBehaviour:
   Slots: []
   useDebugStartingInventory: 1
   debugStartingMinions:
-  - {fileID: 11400000, guid: c7e0121e41f118b45b1ebcd4cdc78e8e, type: 2}
-  - {fileID: 11400000, guid: f67166d43b3c4a646b53721afbc5498b, type: 2}
+  - {fileID: 11400000, guid: b12fdbc1ee273224f9d5fe960d6b18e2, type: 2}
+  - {fileID: 11400000, guid: 02b328c2889b4af408a588ed6baae425, type: 2}
   debugStartingMinionQuantities: 
   debugStartingGems_Data: []
   debugStartingGems_TargetJobs: 00000000

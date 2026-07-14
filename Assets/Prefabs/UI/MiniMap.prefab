@@ -197,7 +197,9 @@ MonoBehaviour:
   customShopRoomSprite: {fileID: 0}
   customRewardRoomSprite: {fileID: 0}
   customEliteRoomSprite: {fileID: 0}
-  customTerrainDotSprite: {fileID: 0}
+  customTerrainDotSprite: {fileID: 926835386022057724, guid: b668ce9b0c80d2f4fa294476b08786a3, type: 3}
+  terrainDotColor: {r: 0.25, g: 0.4, b: 0.6, a: 0.75}
+  terrainDotPadding: 1.5
   useTerrainShadow: 1
   terrainShadowColor: {r: 0, g: 0, b: 0, a: 0.6}
   terrainShadowOffset: {x: 1.5, y: -1.5}
