@@ -65,6 +65,12 @@ public class EliteMonsterPillar : MonoBehaviour
     [SerializeField] private SpriteRenderer visual;
     [SerializeField] private Collider2D physicsCollider;
 
+    [Header("기둥 비주얼 (프리팹에 미리 배치된 세그먼트 그룹)")]
+    [Tooltip("온전한 기둥 세그먼트(Traps_14~17)들을 담은 그룹 오브젝트. 프리팹 자식으로 미리 배치. 미지정 시 자식 'Pillar_Intact' 탐색.")]
+    [SerializeField] private GameObject intactVisual;
+    [Tooltip("부서진 기둥 세그먼트(Traps_18~21) 그룹. 균열 상태에서 표시. 프리팹 자식으로 미리 배치(기본 비활성). 미지정 시 자식 'Pillar_Broken' 탐색.")]
+    [SerializeField] private GameObject brokenVisual;
+
     /// <summary>이 기둥을 소환한 엘리트 몬스터(공격자 정보로 사용).</summary>
     public GameObject Owner
     {
@@ -102,15 +108,34 @@ public class EliteMonsterPillar : MonoBehaviour
     private GameObject _magicCircleFillObj;
     private GameObject _hitReceiverObj;
     private GameObject _activeHitReceiverObj; // v1.4 B1: 활성화 상태에서 평타 파괴를 받기 위한 리시버
+    private GameObject _intactRoot;  // 온전한 기둥(14~17 스택)
+    private GameObject _brokenRoot;  // 부서진 기둥(18~21 스택)
     private Coroutine _stateCoroutine;
 
     private void Awake()
     {
         curHP = maxHP;
-        if (visual == null) visual = GetComponentInChildren<SpriteRenderer>();
         if (physicsCollider == null) physicsCollider = GetComponent<Collider2D>();
 
+        // 세그먼트 그룹은 프리팹에 미리 authoring 되어 있다. 미지정이면 이름으로 자식 탐색.
+        if (intactVisual == null) { var t = transform.Find("Pillar_Intact"); if (t != null) intactVisual = t.gameObject; }
+        if (brokenVisual == null) { var t = transform.Find("Pillar_Broken"); if (t != null) brokenVisual = t.gameObject; }
+        _intactRoot = intactVisual;
+        _brokenRoot = brokenVisual;
+
         EnterActiveState(initial: true);
+    }
+
+    private void Start()
+    {
+        // 세그먼트들의 동적 Y정렬 기준점을 '기둥 밑동(루트)'으로 통일한다. 그래야 키 큰 기둥이 한 덩어리로
+        // 정렬되어, 플레이어가 밑동보다 아래(앞)에 있으면 기둥 앞에, 위(뒤)에 있으면 기둥 뒤에 가려진다.
+        // (세그먼트마다 자기 Y로 정렬하면 플레이어 몸이 기둥 중간에서 잘려 보인다.) baseOffset은 세그먼트 간
+        // 상대 순서(아래일수록 위)만 담당하고, 실제 깊이는 이 공통 밑동 Y가 결정한다.
+        // Start에서 세팅하는 이유: 모든 컴포넌트 Awake(=YSortableObject가 pivot을 자기 자신으로 초기화하는 시점)
+        // 이후에 덮어써야 하고, 세그먼트는 isDynamic=true라 이후 LateUpdate에서 이 기준으로 재정렬되기 때문.
+        foreach (var ys in GetComponentsInChildren<YSortableObject>(true))
+            ys.SetPivot(transform);
     }
 
     // 자신이 만든 FX(오라/균열 경고/마법진 재생성 마커/카운터 리시버/체력바)를 파괴 시 함께 정리한다.
@@ -189,11 +214,8 @@ public class EliteMonsterPillar : MonoBehaviour
         curHP = maxHP;
 
         if (physicsCollider != null) physicsCollider.enabled = true;
-        if (visual != null)
-        {
-            visual.enabled = true;
-            visual.color = Color.white;
-        }
+        if (_intactRoot != null) _intactRoot.SetActive(true);
+        if (_brokenRoot != null) _brokenRoot.SetActive(false);
         RebuildHealthBar();
         if (_healthBarRoot != null) _healthBarRoot.SetActive(true);
 
@@ -235,7 +257,9 @@ public class EliteMonsterPillar : MonoBehaviour
             ApplyAreaDamage(explosionRadius, impactDamage, shelterRadius);
         }
 
-        if (visual != null) visual.color = new Color(0.45f, 0.45f, 0.45f, 1f);
+        // 균열: 온전한 기둥을 부서진 스프라이트(18~21)로 교체
+        if (_intactRoot != null) _intactRoot.SetActive(false);
+        if (_brokenRoot != null) _brokenRoot.SetActive(true);
 
         _crackWarningObj = CreateFallbackCircle(new Color(1f, 0f, 0f, 0.35f), explosionRadius * 2f);
         _crackWarningObj.transform.position = transform.position;
@@ -316,7 +340,8 @@ public void OnCounterHit()
         DestroyIfExists(ref _hitReceiverObj);
 
         if (physicsCollider != null) physicsCollider.enabled = false;
-        if (visual != null) visual.enabled = false;
+        if (_intactRoot != null) _intactRoot.SetActive(false);
+        if (_brokenRoot != null) _brokenRoot.SetActive(false);
 
         OnFullyDestroyed?.Invoke(this);
 

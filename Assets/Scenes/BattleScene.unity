@@ -4129,6 +4129,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1198423918}
     m_Modifications:
+    - target: {fileID: 1754198902470083834, guid: 4252bbb80ebf5f94192451edeb69b5c2, type: 3}
+      propertyPath: customTerrainDotSprite
+      value:
+      objectReference: {fileID: 926835386022057724, guid: b668ce9b0c80d2f4fa294476b08786a3, type: 3}
     - target: {fileID: 6320138657239782059, guid: 4252bbb80ebf5f94192451edeb69b5c2, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5

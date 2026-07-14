@@ -1051,6 +1051,7 @@ public class MapGenerator : MonoBehaviour
     private void AssignSpecialRooms() { }
     private void DumpMapToLog()
     {
+      try {
         if (globalGroundTilemap == null || globalWallTilemap == null) return;
         globalGroundTilemap.CompressBounds(); globalWallTilemap.CompressBounds();
         BoundsInt bounds = globalGroundTilemap.cellBounds; BoundsInt wallBounds = globalWallTilemap.cellBounds;
@@ -1058,6 +1059,8 @@ public class MapGenerator : MonoBehaviour
         System.Text.StringBuilder sb = new System.Text.StringBuilder();
         sb.AppendLine($"Map Bounds: X({xMin} to {xMax}), Y({yMin} to {yMax})");
         sb.AppendLine("Legend: [P: Spawn], [S: Shop], [R: Reward], [E: Elite], [N: Normal]");
+        bool isaacMode = generationData != null && generationData.useIsaacStylePlacement;
+        sb.AppendLine($"Generation Mode: {(isaacMode ? "Isaac (grid / teleporter doors)" : "Physics (drawn corridors)")}");
         sb.AppendLine();
         for (int y = yMax; y >= yMin; y--)
         {
@@ -1099,6 +1102,7 @@ public class MapGenerator : MonoBehaviour
             sb.AppendLine($"  - Applied Snapping Offset: {alignmentError}");
             sb.AppendLine($"  - Room Transform Position: {room.transform.position}");
             sb.AppendLine($"  - Room Cell Position: {cellPos}");
+            sb.AppendLine($"  - GridPosition (미니맵 배치/연결선 기준): {room.gridPosition}");
             sb.AppendLine($"  - Size: {room.roomSize}, CenterOffset: {room.centerOffset}");
             sb.AppendLine($"  - FogMask World Position: {(fogMaskTrans != null ? fogMaskPos.ToString() : "None")}");
             sb.AppendLine($"  - Anchors count: {room.anchors.Count}");
@@ -1125,8 +1129,95 @@ public class MapGenerator : MonoBehaviour
             sb.AppendLine("No Reward Room Connection Logs recorded.");
         }
 
+        // --- [추가] 인접 그래프 덤프: 미니맵이 '연결됨'으로 읽는 바로 그 데이터(_masterAdjacency) ---
+        sb.AppendLine("\n==================== ADJACENCY GRAPH (미니맵이 읽는 연결 관계) ====================");
+        foreach (var room in _allRooms)
+        {
+            var neighbors = GetConnectedRooms(room);
+            sb.Append($"{room.name} [{room.roomType}:{room.debugDepth}] grid{room.gridPosition} -> ");
+            if (neighbors == null || neighbors.Count == 0) { sb.AppendLine("(none)"); continue; }
+            for (int i = 0; i < neighbors.Count; i++)
+            {
+                var n = neighbors[i];
+                if (n == null) { sb.Append("(null) "); continue; }
+                sb.Append($"{n.name}[{n.roomType}:{n.debugDepth}]grid{n.gridPosition}{(i < neighbors.Count - 1 ? ", " : "")}");
+            }
+            sb.AppendLine();
+        }
+
+        // --- [추가] 연결 감사(CONNECTION AUDIT): 미니맵 엣지마다 실제 통행 가능한 문/통로가 있는지 교차검증 ---
+        // "미니맵엔 연결됐는데 방엔 문이 없는" 팬텀 엣지를 한눈에 잡기 위한 섹션.
+        //  - 각 엣지의 '사용된' 앵커 쌍을 추정해 서로 마주보는지(facing), 앵커 간 셀 거리(gap),
+        //    물리 모드면 실제 통로 길이(corridorLen)를 함께 찍는다.
+        //  - SUSPECT = 사용된 앵커를 못 찾음 / 서로 안 마주봄 / (물리 모드) 통로 길이 0  → 팬텀 후보.
+        sb.AppendLine("\n==================== CONNECTION AUDIT (엣지 <-> 실제 문 교차검증) ====================");
+        sb.AppendLine("A.usedAnchor(Dir) <-> B.usedAnchor(Dir) | facing | anchorGap | corridorLen | VERDICT");
+        var auditedEdges = new HashSet<string>();
+        int suspectCount = 0;
+        foreach (var a in _allRooms)
+        {
+            foreach (var b in GetConnectedRooms(a))
+            {
+                if (b == null) continue;
+                string key = a.GetInstanceID() < b.GetInstanceID() ? $"{a.GetInstanceID()}_{b.GetInstanceID()}" : $"{b.GetInstanceID()}_{a.GetInstanceID()}";
+                if (!auditedEdges.Add(key)) continue; // 무방향 엣지 중복 제거
+
+                RoomAnchor anA = FindUsedAnchorToward(a, b);
+                RoomAnchor anB = FindUsedAnchorToward(b, a);
+                int corridorLen = GetCorridorLen(a, b);
+
+                string dirAStr = anA != null ? anA.direction.ToString() : "NO-USED-ANCHOR";
+                string dirBStr = anB != null ? anB.direction.ToString() : "NO-USED-ANCHOR";
+                bool facing = anA != null && anB != null && anA.direction == -anB.direction;
+                string gapStr = "-";
+                if (anA != null && anB != null)
+                {
+                    Vector3Int ca = globalGroundTilemap.WorldToCell(anA.transform.position);
+                    Vector3Int cb = globalGroundTilemap.WorldToCell(anB.transform.position);
+                    gapStr = (Mathf.Abs(ca.x - cb.x) + Mathf.Abs(ca.y - cb.y)).ToString();
+                }
+                string corridorStr = corridorLen > 0 ? corridorLen.ToString() : (isaacMode ? "n/a(teleporter)" : "MISSING");
+
+                bool suspect = anA == null || anB == null || !facing || (!isaacMode && corridorLen <= 0);
+                if (suspect) suspectCount++;
+
+                sb.AppendLine($"{a.name}.{dirAStr} <-> {b.name}.{dirBStr} | facing={facing} | gap={gapStr} | corridor={corridorStr} | {(suspect ? ">>> SUSPECT" : "ok")}");
+            }
+        }
+        sb.AppendLine($"\nSuspect edges: {suspectCount}  (facing=false / NO-USED-ANCHOR / (물리모드)corridor=MISSING => '미니맵엔 연결·방엔 문 없음' 후보)");
+
         string path = System.IO.Path.Combine(Application.dataPath, "..", "MapDebugLog.txt");
         System.IO.File.WriteAllText(path, sb.ToString());
+      }
+      catch (System.Exception _dumpEx)
+      {
+          // 디버그 로그는 생성 파이프라인을 절대 막으면 안 된다. 예외는 삼키고 생성은 계속.
+          Debug.LogWarning($"[MapGenerator] DumpMapToLog 실패(비치명적, 생성엔 영향 없음): {_dumpEx.Message}");
+      }
+    }
+
+    /// <summary>두 방 사이 통로 길이를 (순서 무관) 조회. 없으면 0.</summary>
+    private int GetCorridorLen(RoomInstance a, RoomInstance b)
+    {
+        if (_corridorLengths == null) return 0;
+        if (_corridorLengths.TryGetValue(System.Tuple.Create(a, b), out int len)) return len;
+        if (_corridorLengths.TryGetValue(System.Tuple.Create(b, a), out len)) return len;
+        return 0;
+    }
+
+    /// <summary>from 방의 '사용된(isUsed)' 앵커 중 to 방 중심에 가장 가까운 것(=이 엣지에 쓰였을 앵커)을 추정.</summary>
+    private RoomAnchor FindUsedAnchorToward(RoomInstance from, RoomInstance to)
+    {
+        RoomAnchor best = null;
+        float bestD = float.MaxValue;
+        Vector3 toCenter = to.transform.position + (Vector3)to.centerOffset;
+        foreach (var an in from.anchors)
+        {
+            if (an == null || !an.isUsed) continue;
+            float d = Vector2.Distance(an.transform.position, toCenter);
+            if (d < bestD) { bestD = d; best = an; }
+        }
+        return best;
     }
 
     public static void SafeDestroy(UnityEngine.Object obj)
@@ -1556,6 +1647,12 @@ public class MapGenerator : MonoBehaviour
         _isGenerating = false;
         IsMapGenerationCompleted = true;
         OnMapGenerated?.Invoke();
+
+        // [이동] 디버그 로그는 맵 생성이 '완전히' 끝난 뒤 맨 마지막에 기록한다.
+        // (기존엔 문 설치 직후에 호출했는데, 혹시 로깅이 예외를 던지면 타일 리프레시/콜라이더/네브메시/적 스폰이
+        //  통째로 스킵되어 맵이 텅 비어 보였다. 이제 위치도 마지막이고 내부도 try-catch라 생성엔 절대 영향 없음.)
+        DumpMapToLog();
+
         Debug.Log("<color=green>[MapGenerator]</color> Isaac-style Map Generation Completed Successfully.");
     }
 
@@ -1864,11 +1961,23 @@ public class MapGenerator : MonoBehaviour
 
     private IEnumerator SetupIsaacDoorsAndTeleporters(Dictionary<Vector2Int, RoomInstance> gridMap)
     {
+        // 1) 모든 앵커 사용 상태 초기화
+        foreach (var r in _allRooms)
+            foreach (var a in r.anchors) if (a != null) a.isUsed = false;
+
+        // 2) [핵심 수정] 인접 그래프(_masterAdjacency)를 '실제로 문을 만든 연결'만으로 처음부터 재구성한다.
+        //    기존 코드는 성공 시 엣지 추가 / 실패 시 제거였는데, 그 검증이 격자상 맞닿은(dist==1) 쌍에만 돌아서
+        //    격자 인접이 아니거나 재조정이 스킵된 잔재 엣지가 그대로 남으면 '미니맵엔 연결·방엔 문 없음' 팬텀이 됐다.
+        //    여기서 통째로 비우고 문을 실제로 만든 쌍만 다시 넣으면 edge ⟺ door 가 구조적으로 보장된다.
         foreach (var r in _allRooms)
         {
-            foreach (var a in r.anchors) a.isUsed = false;
+            if (!_masterAdjacency.ContainsKey(r)) _masterAdjacency[r] = new List<RoomInstance>();
+            else _masterAdjacency[r].Clear();
         }
 
+        // 3) 격자상 맞닿은(dist==1) 모든 방 쌍에 대해, 서로 '마주보는 미사용 앵커'가 양쪽에 있을 때만 문을 만든다.
+        //    - 한 벽에 앵커가 여러 개면 미사용 하나를 집어 쓰고 나머지는 남긴다(정상).
+        //    - 어느 한쪽 벽에 마주보는 앵커가 아예 없으면 문도 엣지도 만들지 않는다(연결 자체가 성립 안 함 → 팬텀 원천 차단).
         for (int i = 0; i < _allRooms.Count; i++)
         {
             for (int j = i + 1; j < _allRooms.Count; j++)
@@ -1882,52 +1991,38 @@ public class MapGenerator : MonoBehaviour
                 Vector2Int dirAToB = rB.gridPosition - rA.gridPosition;
                 Vector2Int dirBToA = -dirAToB;
 
-                RoomAnchor anchorA = rA.anchors.FirstOrDefault(a => a.direction == dirAToB && !a.isUsed);
-                RoomAnchor anchorB = rB.anchors.FirstOrDefault(a => a.direction == dirBToA && !a.isUsed);
+                RoomAnchor anchorA = rA.anchors.FirstOrDefault(a => a != null && a.direction == dirAToB && !a.isUsed);
+                RoomAnchor anchorB = rB.anchors.FirstOrDefault(a => a != null && a.direction == dirBToA && !a.isUsed);
 
-                if (anchorA != null && anchorB != null)
-                {
-                    anchorA.isUsed = true;
-                    anchorB.isUsed = true;
+                // 한쪽이라도 마주보는 미사용 앵커가 없으면 이 쌍은 연결하지 않는다 (문·엣지 둘 다 X).
+                if (anchorA == null || anchorB == null) continue;
 
-                    // 1. 방 막기용 물리 장벽 문 스폰 및 등록 (기존 Active 껐다 켰다 하는 구조)
-                    SpawnIsaacDoorAtAnchor(rA, anchorA);
-                    SpawnIsaacDoorAtAnchor(rB, anchorB);
+                anchorA.isUsed = true;
+                anchorB.isUsed = true;
 
-                    // 2. 텔레포트 기능은 상시 켜져 있는 앵커(RoomAnchor) 게임오브젝트에 직접 부착해 연동
-                    DoorController doorCtrlA = anchorA.gameObject.GetComponent<DoorController>() ?? anchorA.gameObject.AddComponent<DoorController>();
-                    DoorController doorCtrlB = anchorB.gameObject.GetComponent<DoorController>() ?? anchorB.gameObject.AddComponent<DoorController>();
+                // 방 막기용 물리 장벽 문 스폰 (전투 중 봉쇄용, 개방 시 비활성)
+                SpawnIsaacDoorAtAnchor(rA, anchorA);
+                SpawnIsaacDoorAtAnchor(rB, anchorB);
 
-                    if (doorCtrlA != null && doorCtrlB != null)
-                    {
-                        // 문 A 진입 시 문 B의 방 안쪽 방향(B의 앵커 반대 방향 = -dirBToA = dirAToB)으로 스폰
-                        doorCtrlA.SetupTeleport(doorCtrlB, dirAToB);
-                        doorCtrlB.SetupTeleport(doorCtrlA, dirBToA);
-                        
-                        // 초기 시점에는 문이 개방된 상태(전투 시작 전)이므로 텔레포터 트리거 활성화
-                        doorCtrlA.SetTriggerEnabled(true);
-                        doorCtrlB.SetTriggerEnabled(true);
+                // 텔레포트 기능은 상시 켜져 있는 앵커(RoomAnchor) 게임오브젝트에 직접 부착해 연동
+                DoorController doorCtrlA = anchorA.gameObject.GetComponent<DoorController>() ?? anchorA.gameObject.AddComponent<DoorController>();
+                DoorController doorCtrlB = anchorB.gameObject.GetComponent<DoorController>() ?? anchorB.gameObject.AddComponent<DoorController>();
 
-                        // 문 위치의 전역 벽 타일 제거하여 입구 구멍 개방
-                        CarveDoorEntrance(rA, anchorA);
-                        CarveDoorEntrance(rB, anchorB);
+                // 문 A 진입 시 B의 방 안쪽 방향(dirAToB)으로 스폰
+                doorCtrlA.SetupTeleport(doorCtrlB, dirAToB);
+                doorCtrlB.SetupTeleport(doorCtrlA, dirBToA);
 
-                        // [추가] 인접 방 리스트에 상호 연결 관계 주입 (미니맵 인접 노출 정상화)
-                        if (!_masterAdjacency.ContainsKey(rA)) _masterAdjacency[rA] = new List<RoomInstance>();
-                        if (!_masterAdjacency.ContainsKey(rB)) _masterAdjacency[rB] = new List<RoomInstance>();
-                        
-                        if (!_masterAdjacency[rA].Contains(rB)) _masterAdjacency[rA].Add(rB);
-                        if (!_masterAdjacency[rB].Contains(rA)) _masterAdjacency[rB].Add(rA);
-                    }
-                }
-                else
-                {
-                    // [수정] 실제 문(텔레포터)을 만들 앵커를 못 찾은 경우, 배치 단계에서 미리 등록해뒀던
-                    // 인접 관계를 제거합니다. 그대로 두면 미니맵에는 '연결됨'으로 표시되지만
-                    // 실제로는 갈 수 없는 길이 되어버립니다.
-                    if (_masterAdjacency.ContainsKey(rA)) _masterAdjacency[rA].Remove(rB);
-                    if (_masterAdjacency.ContainsKey(rB)) _masterAdjacency[rB].Remove(rA);
-                }
+                // 초기 시점(전투 시작 전)엔 문이 개방된 상태이므로 텔레포터 트리거 활성화
+                doorCtrlA.SetTriggerEnabled(true);
+                doorCtrlB.SetTriggerEnabled(true);
+
+                // 문 위치의 전역 벽 타일 제거하여 입구 구멍 개방
+                CarveDoorEntrance(rA, anchorA);
+                CarveDoorEntrance(rB, anchorB);
+
+                // 문을 실제로 만든 경우에만 인접 엣지 추가 (미니맵은 이 그래프를 그대로 그림 → 연결선=진짜 문)
+                _masterAdjacency[rA].Add(rB);
+                _masterAdjacency[rB].Add(rA);
             }
         }
 

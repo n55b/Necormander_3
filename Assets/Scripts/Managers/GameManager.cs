@@ -379,4 +379,35 @@ public void GoToNextFloor()
             UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
         }
     }
+
+    /// <summary>
+    /// 현재 상태(장착 미니언/스킬, 골드, 보물, 보석, 체력)를 '층 이동 없이' 즉시 디스크에 저장한다.
+    /// 마을→던전(BattleScene) 진입처럼 씬만 바뀌는 시점에 호출하면, 마을에서 세팅한 장착이 그대로 유지된다.
+    /// (층수는 현재 값 그대로 저장 — 진입 시 특정 층으로 강제하고 싶으면 호출 전에 currentFloor를 조정.)
+    /// </summary>
+    public void SaveCurrentState()
+    {
+        SaveData data = new SaveData();
+        data.currentFloor = currentFloor;
+
+        if (playerController != null)
+        {
+            var health = playerController.GetComponentInChildren<CharacterHealth>();
+            if (health != null) data.playerHP = health.CurHP;
+        }
+        else
+        {
+            data.playerHP = 10f;
+        }
+
+        if (inventoryManager != null)
+        {
+            inventoryManager.SaveToData(data);
+            if (playerSkillInventoryManager != null)
+                playerSkillInventoryManager.SaveToData(data);
+        }
+
+        SaveSystem.Save(data);
+        Debug.Log("<color=green>[GameManager]</color> 현재 상태 저장 완료 (씬 이동 전).");
+    }
 }
