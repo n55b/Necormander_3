@@ -129,9 +129,9 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
             // [사용자 요청] 여기서 즉시 재소환하지 않음 (다음 전투 시작 시 소환)
             // GameManager.Instance.squadSpawner.RefreshFullSquad();
             Hide();
-            
-            // 보상 시퀀스 재개
-            RewardManager.Instance.NotifyHandSlotSelectionComplete();
+
+            // 보상 시퀀스 재개 (마을 디버그 메뉴 등 RewardManager가 없는 씬에서 호출될 수 있어 null-safe)
+            RewardManager.Instance?.NotifyHandSlotSelectionComplete();
         }
     }
 
@@ -139,8 +139,9 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
     {
         if (panel != null) panel.SetActive(false);
         UIEventBus.NotifyClose("HandSlot");
-        
-        UIPopUpManager.Instance.ClosePopUpUI();
+
+        // OnAwake의 초기 Hide() 등, 매니저가 아직 준비되기 전(마을 씬에 픽커를 추가한 경우 등)에 불릴 수 있어 null-safe.
+        if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.ClosePopUpUI();
         // [추가] UI 닫을 때 툴팁 강제 제거
         if (CommonTooltipUI.Instance != null) CommonTooltipUI.Instance.Hide();
     }

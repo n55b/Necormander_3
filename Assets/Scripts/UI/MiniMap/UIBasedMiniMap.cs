@@ -31,6 +31,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
 
     [Header("🌟 2. 지형 도트 커스텀 연출")]
     [SerializeField] private Sprite customTerrainDotSprite;   // 지형 도트용 스프라이트 (비워두면 사각형)
+    [Tooltip("지형 도트에 곱해지는 색(틴트). 커스텀 스프라이트를 원본 색 그대로 보고 싶으면 흰색(1,1,1,1)으로 두면 됨.")]
+    [SerializeField] private Color terrainDotColor = new Color(0.25f, 0.4f, 0.6f, 0.75f); // 기존 하드코딩 값이 기본
     [SerializeField] private bool useTerrainShadow = true;     // 2D 입체 그림자 효과 사용 여부
     [SerializeField] private Color terrainShadowColor = new Color(0f, 0f, 0f, 0.6f);
     [SerializeField] private Vector2 terrainShadowOffset = new Vector2(1.5f, -1.5f);
@@ -501,15 +503,25 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         if (roomW <= 0.1f) roomW = 25f;
         if (roomH <= 0.1f) roomH = 25f;
 
-        float dotSize = (roomUiSize / roomW) * 0.95f; 
+        // 한 타일이 차지하는 UI 셀 크기를 '축별로' 계산한다. (기존엔 roomW로만 정사각 크기를 잡아서
+        // 정사각형이 아닌 방에선 세로 간격≠도트 높이가 되어 가로 줄이 갈라져 보였다 = '스도쿠 판' 현상)
+        float cellW = roomUiSize / roomW;
+        float cellH = roomUiSize / roomH;
+        // 인접 도트가 딱 맞닿아(살짝 겹쳐) 바닥이 끊김 없이 이어지도록 셀보다 약간 크게. (기존 0.95 = 5% 틈)
+        const float fillOverlap = 1.05f;
 
-        foreach (var tilePos in terrainTiles)
+        // 그림자가 도트 사이사이에 껴서 격자처럼 보이지 않도록, 위→아래·왼→오 순서로 그린다.
+        // (오른쪽/아래 이웃이 나중에(위에) 그려져 안쪽 그림자를 덮어, 실루엣 바깥 테두리에만 그림자가 남는다.)
+        List<Vector2Int> sortedTiles = new List<Vector2Int>(terrainTiles);
+        sortedTiles.Sort((a, b) => a.y != b.y ? b.y.CompareTo(a.y) : a.x.CompareTo(b.x));
+
+        foreach (var tilePos in sortedTiles)
         {
             GameObject dotObj = new GameObject("TerrainDot", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             dotObj.transform.SetParent(terrainContainer.transform, false);
 
             RectTransform dRt = dotObj.GetComponent<RectTransform>();
-            dRt.sizeDelta = new Vector2(dotSize, dotSize);
+            dRt.sizeDelta = new Vector2(cellW * fillOverlap, cellH * fillOverlap);
 
             float normX = tilePos.x / roomW;
             float normY = tilePos.y / roomH;
@@ -517,7 +529,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
 
             Image img = dotObj.GetComponent<Image>();
             img.sprite = (customTerrainDotSprite != null) ? customTerrainDotSprite : fallbackRoomSprite;
-            img.color = new Color(0.25f, 0.4f, 0.6f, 0.75f); // 차분하고 멋스러운 블루 그레이 틴트
+            img.color = terrainDotColor; // 인스펙터에서 조절(흰색이면 커스텀 스프라이트 원본색 그대로 노출)
 
             // 🌟 [입체 그림자 셋팅] useTerrainShadow가 인스펙터에서 켜져 있다면 UI Shadow 컴포넌트 자동 주입
             if (useTerrainShadow)
