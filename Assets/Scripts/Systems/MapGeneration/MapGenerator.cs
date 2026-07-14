@@ -1818,7 +1818,10 @@ public class MapGenerator : MonoBehaviour
         for (int i = 0; i < generationData.shopCount; i++) specialTypes.Add(RoomType.Shop);
         for (int i = 0; i < generationData.eliteCount; i++) specialTypes.Add(RoomType.Elite);
         for (int i = 0; i < generationData.rewardCount; i++) specialTypes.Add(RoomType.Reward);
-        specialTypes.Add(RoomType.Boss); // 보스방 최종 배치
+        // [제거] 보스는 4층 전용(isBossFloor → PlaceIsaacRoomsBossFloor)이라 일반 층(1~3)엔 넣지 않는다.
+        // 예전엔 여기서 매 층 보스방을 추가했는데, 배치할 자리를 못 찾으면 "보스 방 배치에 실패..." 경고만 뜨고
+        // 실제로 보스도 안 생겨서(원래 의도대로) 경고만 노이즈였음.
+        // specialTypes.Add(RoomType.Boss);
 
         foreach (var specType in specialTypes)
         {
