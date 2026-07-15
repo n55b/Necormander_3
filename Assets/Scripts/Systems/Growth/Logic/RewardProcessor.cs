@@ -176,22 +176,7 @@ public static class RewardProcessor
             }
         }
 
-        // 보석 풀 추가
-        if (shopRegistry.gemPool != null)
-        {
-            foreach(var gem in shopRegistry.gemPool)
-            {
-                if (gem == null) continue;
-                combinedPool.Add(new RewardCandidate 
-                { 
-                    displayData = gem.GetDynamicDisplayData(CommandData.SkeletonWarrior), 
-                    rawData = gem, 
-                    category = RewardCategory.Gem,
-                    targetJob = CommandData.SkeletonWarrior,
-                    goldAmount = gem.shopCost
-                });
-            }
-        }
+        // 젬 효과가 전부 제거되어 상점 젬 풀도 내렸다. (GEM_LEGACY.md)
 
         // 랜덤하게 5개 선택
         for(int i = 0; i < 5; i++)

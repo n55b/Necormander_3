@@ -369,26 +369,6 @@ public class ThrowCluster : MonoBehaviour
 
         if (_activeRecipe != null && _activeRecipe.state.isMaster)
         {
-            List<IThrowable> fusedUnits = new List<IThrowable>();
-            bool performTwinFusion = false;
-            bool performGolemFusion = false;
-
-            if (InventoryManager.Instance != null)
-            {
-                // [골레마이징] 5명 던질 때 앞 5명 합체
-                if (_units.Count >= 5 && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Golemizing))
-                {
-                    performGolemFusion = true;
-                }
-                // [쌍둥이 연성] 2명 이상 던질 때 앞 2명 합체
-                else if (_units.Count >= 2 && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.TwinFusion))
-                {
-                    performTwinFusion = true;
-                }
-            }
-
-            int fusionCount = performGolemFusion ? 5 : (performTwinFusion ? 2 : 0);
-
             for (int i = 0; i < _units.Count; i++)
             {
                 var unit = _units[i];
@@ -401,28 +381,6 @@ public class ThrowCluster : MonoBehaviour
                 {
                     unit.SetImpacted(isImpactSuccess);
                     unit.OnLanded();
-
-                    if (i < fusionCount)
-                    {
-                        fusedUnits.Add(unit);
-                    }
-                }
-            }
-
-            // 융합 실행
-            if (fusionCount > 0 && fusedUnits.Count == fusionCount)
-            {
-                var firstUnit = fusedUnits[0] as MonoBehaviour;
-                if (firstUnit != null)
-                {
-                    GameObject fusionObj = Instantiate(firstUnit.gameObject, transform.position, Quaternion.identity);
-                    var fusionController = fusionObj.AddComponent<FusionMinionController>();
-                    
-                    float scaleMult = performGolemFusion ? 2.5f : 1.5f;
-                    Color fusionColor = performGolemFusion ? Color.red : Color.blue;
-                    string popupName = performGolemFusion ? "Golem!" : "Twin!";
-                    
-                    fusionController.Setup(fusedUnits, 10f, 1f, scaleMult, fusionColor, popupName);
                 }
             }
         }

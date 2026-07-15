@@ -520,28 +520,6 @@ public abstract class BaseEntity : MonoBehaviour
             DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true);
             targetStat.Health.GetDamage(info);
 
-            // 무기 속성 부여 (보석 효과) - 아군일 때만 적용
-            if (this.team == Team.Ally && InventoryManager.Instance != null)
-            {
-                // 스택형 속성 부여
-                foreach (var kvp in InventoryManager.Instance.GlobalGemStats.WeaponAttributes)
-                {
-                    if (kvp.Value > 0)
-                    {
-                        targetStat.Status.AddDebuffStack(kvp.Key, kvp.Value);
-                    }
-                }
-
-                // [추가] 상태형(Bool) 속성 부여 (부식 등)
-                foreach (var kvp in InventoryManager.Instance.GlobalGemStats.WeaponBoolAttributes)
-                {
-                    if (kvp.Value > 0)
-                    {
-                        targetStat.Status.SetDebuffBool(kvp.Key, kvp.Value);
-                    }
-                }
-            }
-
         }
 
         _target = null;

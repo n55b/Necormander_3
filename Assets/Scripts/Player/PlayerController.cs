@@ -190,10 +190,6 @@ public class PlayerController : MonoBehaviour
             if (staminaSystem == null) staminaSystem = gameObject.AddComponent<PlayerStamina>();
         }
 
-        // [유니크] 유니크 효과 전담 매니저 추가 (만약 인스펙터에서 안 달아뒀을 경우를 대비한 보험)
-        if (GetComponent<PlayerUniqueEffectManager>() == null)
-            gameObject.AddComponent<PlayerUniqueEffectManager>();
-
         // [패리] 패리 컨트롤러 추가
         if (GetComponent<PlayerParryController>() == null)
             gameObject.AddComponent<PlayerParryController>();

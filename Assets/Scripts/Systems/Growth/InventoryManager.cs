@@ -97,14 +97,6 @@ public class InventoryManager : MonoBehaviour
         public float ParabolicEffectMultiplierBonus = 0f;
         public float ParabolicFlightTimeMultiplierBonus = 0f;
         
-        // [신규] 속성 및 특수 효과 합산
-        public Dictionary<DebuffStackType, float> WeaponAttributes = new Dictionary<DebuffStackType, float>();
-        public Dictionary<DebuffStackType, float> HandAttributes = new Dictionary<DebuffStackType, float>();
-
-        // [추가] 상태형(Bool) 속성 합산
-        public Dictionary<DebuffBoolType, float> WeaponBoolAttributes = new Dictionary<DebuffBoolType, float>();
-        public Dictionary<DebuffBoolType, float> HandBoolAttributes = new Dictionary<DebuffBoolType, float>();
-
         public Dictionary<GemUniqueType, int> UniqueEffectCounts = new Dictionary<GemUniqueType, int>();
         
         // [신규] 시너지 그룹별 최대 인접 개수
@@ -118,10 +110,6 @@ public class InventoryManager : MonoBehaviour
             RespawnTimeBonus = 0f;
             ParabolicEffectMultiplierBonus = 0f;
             ParabolicFlightTimeMultiplierBonus = 0f;
-            WeaponAttributes.Clear();
-            HandAttributes.Clear();
-            WeaponBoolAttributes.Clear(); // [추가]
-            HandBoolAttributes.Clear();   // [추가]
             UniqueEffectCounts.Clear();
             SynergyCounts.Clear();
         }
@@ -138,24 +126,8 @@ public class InventoryManager : MonoBehaviour
             Slots.Add(new CoreSlot());
         }
         UpdateActiveAbilities();
-        InitializeGemTree(); 
-        
-        // [유니크] 중독 전역 유니크(PoisonHost 등) 매니저 부착
-        if (GetComponent<PoisonUniqueManager>() == null)
-            gameObject.AddComponent<PoisonUniqueManager>();
-            
-        // [유니크] 한기 광역 유니크 (AbsoluteZero, BitingWind 등) 매니저 부착
-        if (GetComponent<ChillUniqueManager>() == null)
-            gameObject.AddComponent<ChillUniqueManager>();
+        InitializeGemTree();
 
-        // [유니크] 기력/노화 광역 매니저 (Goryeojang) 매니저 부착
-        if (GetComponent<AgingUniqueManager>() == null)
-            gameObject.AddComponent<AgingUniqueManager>();
-            
-        // [유니크] 방패병 고유 매니저 (ShieldbearerUniqueManager) 부착
-        if (GetComponent<ShieldbearerUniqueManager>() == null)
-            gameObject.AddComponent<ShieldbearerUniqueManager>();
-            
         Debug.Log("<color=cyan>[InventoryManager]</color> Initialized.");
 
         if (useDebugStartingInventory && !hasSave)
@@ -181,9 +153,7 @@ public class InventoryManager : MonoBehaviour
 
         _gemNodeIndex.Add(GemTreeRoot.Gem.InstanceId, GemTreeRoot);
 
-        GemHandlerRegistry.InitializeAllHandlers();
-
-        RecalculateGemTreeStats(); 
+        RecalculateGemTreeStats();
         Debug.Log($"<color=cyan>[InventoryManager]</color> Gem Tree Initialized with Root: {GemTreeRoot.Gem.BaseData.itemName}");
     }
 
@@ -259,13 +229,9 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        // 4. 장착된 보석 목록을 수집하여 핸들러 매니저 갱신 (핸들러 켜기/끄기)
-        List<GemUniqueType> activeUniqueGems = new List<GemUniqueType>();
-        foreach (var kvp in _globalGemStats.UniqueEffectCounts)
-        {
-            if (kvp.Value > 0) activeUniqueGems.Add(kvp.Key);
-        }
-        GemHandlerRegistry.RefreshActiveHandlers(activeUniqueGems);
+        // 젬 효과는 전부 제거됐다(GEM_LEGACY.md). 집계는 그대로 돌아가므로
+        // GetSynergyCount / GetUniqueEffectCount / HasUniqueEffect 는 계속 정상 동작한다.
+        // 효과를 재건할 때는 OnGemTreeUpdated 를 구독해 그 질의를 읽으면 된다.
     }
 
     private void CalculateSynergies(List<GemTreeNode> allNodes)
@@ -405,29 +371,6 @@ public class InventoryManager : MonoBehaviour
             case StatType.ParabolicFlightTimeMultiplier: targetStats.ParabolicFlightTimeMultiplierBonus += modifier.Value; break;
             default: break;
         }
-    }
-
-    // --- 신규 젬 효과 쿼리 메서드 ---
-
-    public float GetWeaponAttribute(DebuffStackType type)
-    {
-        return _globalGemStats.WeaponAttributes.TryGetValue(type, out float val) ? val : 0f;
-    }
-
-    public float GetHandAttribute(DebuffStackType type)
-    {
-        return _globalGemStats.HandAttributes.TryGetValue(type, out float val) ? val : 0f;
-    }
-
-    // [추가] 상태형(Bool) 보석 효과 조회 게터
-    public float GetWeaponBoolAttribute(DebuffBoolType type)
-    {
-        return _globalGemStats.WeaponBoolAttributes.TryGetValue(type, out float val) ? val : 0f;
-    }
-
-    public float GetHandBoolAttribute(DebuffBoolType type)
-    {
-        return _globalGemStats.HandBoolAttributes.TryGetValue(type, out float val) ? val : 0f;
     }
 
     public int GetUniqueEffectCount(GemUniqueType type)

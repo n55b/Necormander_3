@@ -201,9 +201,6 @@ public class ThrowController : MonoBehaviour
             int flyingLayer = Layers.FlyingObject;
             if (hovered.layer == flyingLayer && !_heldObjects.Contains(throwable)) return;
 
-            // [융합 방지] 융합체는 집을 수 없음
-            if (hovered.TryGetComponent<FusionMinionController>(out var fusion) && fusion.IsFused) return;
-
             if (throwable is AllyController ally && !_strategy.CanPickUpType(ally.MinionType, _heldObjects, MaxHoldCount)) return;
             float dist = Vector2.Distance(transform.position, hovered.transform.position);
             if (dist > GameManager.Instance.PLAYERCONTROLLER.THROWRANGE) return;
@@ -254,9 +251,6 @@ public class ThrowController : MonoBehaviour
 
             if (col.TryGetComponent<IThrowable>(out var throwable))
             {
-                // 융합체 등 집을 수 없는 조건 확인
-                if (throwable is MonoBehaviour mb && mb.TryGetComponent<FusionMinionController>(out var fusion) && fusion.IsFused) continue;
-
                 float dist = Vector2.Distance(transform.position, col.transform.position);
                 if (dist < minDist)
                 {
@@ -302,9 +296,6 @@ public class ThrowController : MonoBehaviour
 
             if (col.TryGetComponent<IThrowable>(out var throwable) && throwable.MinionType == targetType && !_heldObjects.Contains(throwable))
             {
-                // [융합 방지] 융합체는 집을 수 없음
-                if (throwable is MonoBehaviour mb && mb.TryGetComponent<FusionMinionController>(out var fusion) && fusion.IsFused) continue;
-
                 float d = Vector2.Distance(transform.position, col.transform.position);
                 if (d < minDist) { minDist = d; bestTarget = throwable; }
             }
@@ -413,11 +404,6 @@ public class ThrowController : MonoBehaviour
             if (InventoryManager.Instance != null)
             {
                 float flightTimeBonus = InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicFlightTimeMultiplier);
-                if (GameManager.Instance.PLAYERCONTROLLER.TryGetComponent<PlayerUniqueEffectManager>(out var uem))
-                {
-                    flightTimeBonus += uem.JustThrowItSpeedBonus;
-                    uem.OnParabolicThrow();
-                }
                 duration *= (1f - Mathf.Clamp(flightTimeBonus, 0f, 0.9f));
             }
         }
@@ -498,12 +484,6 @@ public class ThrowController : MonoBehaviour
             if (!isDirect && InventoryManager.Instance != null)
             {
                 float flightTimeBonus = InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicFlightTimeMultiplier);
-                
-                // [일단 던지고 보자] 버프 스택 적용 (PlayerUniqueEffectManager에서 받아옴)
-                if (GameManager.Instance.PLAYERCONTROLLER.TryGetComponent<PlayerUniqueEffectManager>(out var uem))
-                {
-                    flightTimeBonus += uem.JustThrowItSpeedBonus;
-                }
 
                 // 20% 증가 시 => duration * 0.8 (최대 90% 감소로 제한)
                 duration *= (1f - Mathf.Clamp(flightTimeBonus, 0f, 0.9f));
@@ -532,14 +512,6 @@ public class ThrowController : MonoBehaviour
                     {
                         ability.OnThrowLaunch(this, recipe, startPos, finalPos, duration, maxHeight, isDirect, ratio);
                     }
-                }
-            }
-
-            if (!isDirect)
-            {
-                if (GameManager.Instance.PLAYERCONTROLLER.TryGetComponent<PlayerUniqueEffectManager>(out var uem))
-                {
-                    uem.OnParabolicThrow();
                 }
             }
 

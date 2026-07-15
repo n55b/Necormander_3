@@ -32,29 +32,6 @@ public class CharacterStat : MonoBehaviour
 
     public bool IsEnemy => !_isAlly && !_isPlayer; // [추가] 적군 여부 식별
 
-    private float ShieldbearerSelfMult
-    {
-        get
-        {
-            if (jobType != CommandData.SkeletonShieldbearer) return 1f;
-            
-            float mult = 1f;
-            if (Status != null && Status.TotalShield > 0)
-            {
-                var inven = InventoryManager.Instance;
-                if (inven != null)
-                {
-                    int guardianLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
-                    if (guardianLevel >= 4) // (8) 스택
-                    {
-                        mult += 0.15f;
-                    }
-                }
-            }
-            return mult;
-        }
-    }
-
     [Header("셋팅 이후 Action들")]
     [SerializeField] private UnityEvent setDoneActions;
 
@@ -67,7 +44,7 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float agingReduction = (Status != null) ? GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy) : 0f;
+            float agingReduction = (Status != null) ? DebuffRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy) : 0f;
             float agingMult = Mathf.Max(0.1f, 1f - agingReduction);
 
             float corrosionAtkReduction = 0f;
@@ -76,16 +53,13 @@ public class CharacterStat : MonoBehaviour
             // 플레이어는 보물(미니언용) 보너스를 받지 않음
             float bonusMult = _isPlayer ? 0f : (GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
             
-            float allyWillClashMult = 1f;
-            if (_isAlly && ShieldbearerUniqueManager.IsWillClashActive) allyWillClashMult += 0.08f;
-
             float atkMult = 1f;
             float hpMult = 1f;
             float atkSpdMult = 1f;
             float moveSpdMult = 1f;
             StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
 
-            return (baseAtk * (1f + bonusMult) * agingMult * corrosionMult * atkMult) * ShieldbearerSelfMult * allyWillClashMult;
+            return baseAtk * (1f + bonusMult) * agingMult * corrosionMult * atkMult;
         }
     }
 
@@ -104,7 +78,7 @@ public class CharacterStat : MonoBehaviour
             float moveSpdMult = 1f;
             StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
             
-            return (baseMaxHP + gemFlatBonus) * (1f + treasureMult) * ShieldbearerSelfMult * hpMult;
+            return (baseMaxHP + gemFlatBonus) * (1f + treasureMult) * hpMult;
         }
     }
 
@@ -115,7 +89,7 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float chillReduction = (Status != null) ? GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy) : 0f;
+            float chillReduction = (Status != null) ? DebuffRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy) : 0f;
             
             if (Status != null && Status.GetDebuffBool(DebuffBoolType.Fractured))
             {
@@ -128,11 +102,6 @@ public class CharacterStat : MonoBehaviour
             
             float bonusMult = _isPlayer ? 0f : GetGemBonus(StatType.AttackSpeed);
 
-            float allyWillCourageDivisor = 1f;
-            if (_isAlly && ShieldbearerUniqueManager.IsWillCourageActive) allyWillCourageDivisor = 1f / 1.12f;
-            
-            float selfMultDivisor = 1f / ShieldbearerSelfMult;
-
             float atkMult = 1f;
             float hpMult = 1f;
             float atkSpdMult = 1f;
@@ -142,7 +111,7 @@ public class CharacterStat : MonoBehaviour
             // 공속은 atkSpdMult의 역수를 취해 곱함 (공격 딜레이 감소)
             float speedDivisor = (atkSpdMult != 0) ? (1f / atkSpdMult) : 1f;
 
-            return (baseAtkSpd * allyWillCourageDivisor * selfMultDivisor * speedDivisor / (1f + bonusMult)) / chillMult;
+            return (baseAtkSpd * speedDivisor / (1f + bonusMult)) / chillMult;
         }
     }
 
@@ -186,8 +155,8 @@ public class CharacterStat : MonoBehaviour
             if (Status == null) return baseMoveSpeed;
             if (Status.GetDebuffBool(DebuffBoolType.Stunned) || Status.GetDebuffBool(DebuffBoolType.Hitstunned)) return 0f;
 
-            float chillReduction = GemRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy);
-            float agingReduction = GemRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy);
+            float chillReduction = DebuffRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy);
+            float agingReduction = DebuffRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy);
 
             if (Status.GetDebuffBool(DebuffBoolType.Fractured))
             {
@@ -199,22 +168,13 @@ public class CharacterStat : MonoBehaviour
             float reductionMult = Mathf.Max(0.1f, 1f - (chillReduction + agingReduction));
             float finalSpeed = (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
 
-            if (_isPlayer)
-            {
-                var uem = GetComponentInParent<PlayerUniqueEffectManager>();
-                if (uem != null) finalSpeed += uem.MobMentalitySpeedBonus;
-            }
-            
-            float allyWillWindMult = 1f;
-            if (_isAlly && ShieldbearerUniqueManager.IsWillWindActive) allyWillWindMult += 0.14f;
-            
             float atkMult = 1f;
             float hpMult = 1f;
             float atkSpdMult = 1f;
             float moveSpdMult = 1f;
             StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
 
-            return finalSpeed * ShieldbearerSelfMult * allyWillWindMult * moveSpdMult;
+            return finalSpeed * moveSpdMult;
         }
     }
 
@@ -329,13 +289,11 @@ public class CharacterStat : MonoBehaviour
     /// <summary>
     /// 데이터(SO)로부터 수치를 주입받고 각 컴포넌트를 초기화합니다.
     /// </summary>
-    public bool IsFusion { get; set; } = false;
-
     public void InitializeStats(MinionDataSO data)
     {
         Setup();
 
-        if (data != null && !IsFusion)
+        if (data != null)
         {
             jobType = data.minionType; // 직업 정보 캐싱 (보석 계산용)
 
@@ -371,15 +329,6 @@ public void SetBaseMoveSpeed(float speed)
         baseMoveSpeed = speed;
     }
 
-    public void OverrideBaseStats(float newMaxHP, float newAtk)
-    {
-        baseMaxHP = newMaxHP;
-        baseAtk = newAtk;
-        if (Health != null)
-        {
-            Health.ResetHP(); // MaxHP 변경 후 체력 가득 채우기 (융합체용)
-        }
-    }
 
     /// <summary>
     /// [신규] UI(예: 핸드슬롯 툴팁)에서 보석 효과가 반영된 최종 예상 스탯을 미리 계산하여 반환합니다.
