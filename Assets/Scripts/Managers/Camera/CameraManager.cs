@@ -5,7 +5,7 @@ using UnityEngine;
 /// 카메라 흔들림 / 줌 '엔진'. 실제로 흔드는 일만 한다 — 언제 흔들지는 판단하지 않는다.
 ///
 /// 흔들림 발동 경로:
-///   1. 피격 → ShakeSignalBridge가 ShakeSignal을 쏨 → CameraShaker(카메라 리그에 부착) → HitShakeCamera()
+///   1. 피격 → CharacterHealth가 ShakeSignal을 쏨 → CameraShaker(카메라 리그에 부착) → HitShakeCamera()
 ///   2. 스킬 발동 → SkillSO.ShakeCamera(force) → HitShakeCamera(force) (스킬별 강도)
 ///
 /// 구르기 흔들림: 없음 (의도적 제외)

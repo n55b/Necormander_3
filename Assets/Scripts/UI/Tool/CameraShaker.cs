@@ -9,6 +9,7 @@ using UnityEngine;
 /// 카메라 추적이 Cinemachine Follow라서 카메라 위치를 직접 만지면 추적과 싸운다 — 임펄스가 유일한 정답이다.
 /// 파형/지속시간/전역세기는 카메라 리그의 CinemachineImpulseSource / ImpulseListener 인스펙터에서 조절한다.
 /// </summary>
+[DisallowMultipleComponent] // 두 개 붙으면 경고 없이 세기가 2배가 된다. 신호별 세기는 아래 목록에 줄로 추가할 것.
 public class CameraShaker : MonoBehaviour
 {
     [System.Serializable]
@@ -30,9 +31,11 @@ public class CameraShaker : MonoBehaviour
 
     private void OnSignal(ShakeSignal signal)
     {
+        // 첫 줄만 쓰고 끝낸다(UIShaker와 동일). 같은 신호를 실수로 두 줄 넣었을 때
+        // 한쪽은 겹쳐 흔들리고 한쪽은 안 겹치면 기획자가 원인을 못 찾는다.
         foreach (var r in reactions)
         {
-            if (r != null && r.signal == signal) Shake(r.force);
+            if (r != null && r.signal == signal) { Shake(r.force); return; }
         }
     }
 

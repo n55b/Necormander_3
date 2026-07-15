@@ -50,11 +50,6 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     [SerializeField] private bool syncPlayerZRotation = true; // 플레이어 회전 각도(방향) 동기화 여부
     [SerializeField] private Sprite customEnemyIcon;          // 적 마커 이미지 (비워두면 빨간 도트)
 
-    [Header("텔레포트 연출 설정")]
-    [SerializeField] private float teleportFadeOutDuration = 0.25f;
-    [SerializeField] private float teleportFadeHoldDuration = 0.1f;
-    [SerializeField] private float teleportFadeInDuration = 0.25f;
-
     // 스프라이트 시트 로드 캐시
     private Sprite _playerIcon;
     private Sprite _shopIcon;
@@ -853,10 +848,12 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             if (mapUI != null) mapUI.CloseMapUI();
         };
 
-        // 화면 페이드(암전) 연출. 페이드 컨트롤러가 없으면 즉시 텔레포트로 폴백.
-        if (ScreenFadeController.Instance != null)
+        // 화면 페이드(암전) 연출. 양은 여기 박지 않는다 — 문 통과와 똑같은 '방이동'이라
+        // ScreenFadeCanvas의 Fader에서 그 줄 하나로 같이 조절된다. 페이더가 없으면 즉시 텔레포트로 폴백.
+        Fader fader = Fader.FullScreenFader;
+        if (fader != null)
         {
-            ScreenFadeController.Instance.FadeOutIn(teleportFadeOutDuration, teleportFadeHoldDuration, teleportFadeInDuration, doTeleport);
+            fader.FadeOutIn(FadeSignal.방이동, doTeleport);
         }
         else
         {

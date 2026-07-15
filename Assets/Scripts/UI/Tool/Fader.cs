@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 /// <summary>
@@ -31,10 +30,15 @@ public class Fader : MonoBehaviour
     [System.Serializable]
     public class Reaction
     {
-        [Tooltip("이 신호가 오면 아래 설정대로 페이드한다. '없음'이면 신호로는 안 불리고, 버튼/코드로 부를 때의 설정으로만 쓰인다.")]
+        [Tooltip("이 줄이 어느 페이드에 대한 설정인지.\n\n" +
+                 "[UI·스프라이트에 붙인 Fader] 이 신호가 오면 아래 설정대로 알아서 페이드한다. " +
+                 "예: 신호=방이동으로 두면 문을 지날 때 이 UI도 같이 사라진다.\n\n" +
+                 "[화면 커튼(ScreenFadeCanvas)] 커튼은 신호를 듣지 않는다. 문·포탈·FadeAction이 직접 부르면서 " +
+                 "이름으로 이 줄을 찾아 아래 수치만 쓴다.\n\n" +
+                 "'없음' = 버튼이나 코드가 인자 없이 FadeOut()/FadeIn()을 부를 때 쓰는 줄.")]
         public FadeSignal signal = FadeSignal.방이동;
 
-        [Tooltip("신호를 받았을 때 뭘 할지.")]
+        [Tooltip("이 신호를 받았을 때 뭘 할지. (커튼은 항상 사라졌다나타나기로 직접 불린다)")]
         public SignalAction action = SignalAction.사라졌다나타나기;
 
         [Tooltip("사라지거나 나타나는 데 걸리는 시간(초).")]
@@ -48,21 +52,12 @@ public class Fader : MonoBehaviour
 
         [Tooltip("화면 전체를 덮을 때의 커튼 색. 흰 페이드/붉은 페이드용. (UI·스프라이트를 페이드할 땐 안 쓰임)")]
         public Color color = Color.black;
-
-        [Tooltip("이 줄의 신호로 페이드했을 때만, 완전히 가려진 순간에 실행된다. = 아무도 못 보는 사이에 일을 처리하는 타이밍.\n\n" +
-                 "화면(또는 UI)이 100% 가려진 시점이라 여기서 뭘 바꿔도 바뀌는 티가 안 난다. " +
-                 "그래서 '뚝 끊기는 게 보이면 안 되는 일'을 꽂는다:\n" +
-                 "  · 보스 등장 오브젝트 SetActive(true)\n" +
-                 "  · UI 내용 갈아끼우기 / 씬 로드\n" +
-                 "  · (순간이동은 방 이동 코드가 같은 타이밍에 이미 하고 있다)\n\n" +
-                 "★ 반드시 '이 줄' 전용이다. 보스등장 줄에 꽂은 건 방이동 때 안 불린다.\n" +
-                 "'사라졌다나타나기'면 한가운데서, '사라지기'면 다 사라진 뒤에 불린다. '나타나기'에선 안 불린다.\n" +
-                 "얼마나 오래 가려져 있을지는 위의 '유지' 값으로 늘린다.")]
-        public UnityEvent onBlackout;
     }
 
-    [Tooltip("무슨 신호에 어떻게 페이드할지. 필요한 만큼 줄을 추가하면 된다. 목록에 없는 신호엔 반응하지 않는다. " +
-             "버튼이나 코드가 인자 없이 부르면 맨 윗줄([0]) 설정을 쓴다.")]
+    [Tooltip("페이드 종류별 수치. 필요한 만큼 줄을 추가하면 된다.\n" +
+             "코드나 FadeAction이 종류 이름으로 줄을 찾아 그 수치로 페이드한다 — 그래서 같은 커튼이어도 " +
+             "문 이동은 0.2초 검정, 층 이동은 2초 흰색으로 다르게 줄 수 있다.\n" +
+             "버튼/코드가 인자 없이 부르면 '없음' 줄을 쓴다(없으면 맨 윗줄).")]
     [SerializeField] private List<Reaction> reactions = new List<Reaction> { new Reaction() };
 
     [Header("UI 열고 닫기용 (화면 전체를 덮는 경우엔 둘 다 안 쓰임)")]
@@ -72,14 +67,14 @@ public class Fader : MonoBehaviour
              "UI를 여는 기존 코드나 버튼 배선을 하나도 안 건드려도 등장 연출이 붙는다.\n\n" +
              "[끌 때] 처음부터 보이는 채로 시작한다. 나타내려면 FadeIn()을 직접 불러야 한다.\n\n" +
              "※ 화면 전체 페이드(빈 오브젝트에 붙인 경우)엔 켜지 말 것 — 게임 시작하자마자 암전이 걷히는 연출이 된다.")]
-    [SerializeField] private bool 켜질때나타나기 = false;
+    [SerializeField] private bool fadeInOnEnable = false;
 
     [Tooltip("[켤 때] UI가 '닫힐 때' 스르륵 사라지게 하고 싶을 때.\n\n" +
              "사라지기가 끝나면 자기를 SetActive(false) 한다. 이게 없으면 UI가 투명해질 뿐 계속 살아있어서 " +
              "안 보이는 채로 화면에 남는다.\n\n" +
              "[짝으로 해야 할 일] 닫기 버튼 OnClick에 걸린 'SetActive(false)' 배선을 지우고 이 컴포넌트의 " +
              "FadeOut()으로 바꿔라. SetActive(false)를 그대로 두면 즉시 꺼져버려서 페이드가 아예 안 보인다.")]
-    [SerializeField] private bool 사라지면끄기 = false;
+    [SerializeField] private bool deactivateOnFadeOutComplete = false;
 
     private enum Mode { UI, Sprite, FullScreen }
 
@@ -96,13 +91,25 @@ public class Fader : MonoBehaviour
 
     /// <summary>화면 전체 페이드는 세상에 하나뿐이므로 Fader도 하나만 두고 모두가 공유한다.
     /// 검은 커튼(씬이 바뀌어도 안 죽음) 위에 얹혀 있어서, 이걸 부른 오브젝트가 도중에 파괴돼도 페이드가 끝까지 돈다.
-    /// 양은 ScreenFadeCanvas 프리팹의 Fader 반응 목록에서 조절한다.</summary>
+    /// 양은 ScreenFadeCanvas 프리팹의 Fader 반응 목록에서 조절한다.
+    ///
+    /// 이 씬에 ScreenFadeCanvas를 안 넣어뒀으면 null. 부르는 쪽은 반드시 null이어도 '할 일'은 하도록 짜야 한다
+    /// (연출만 생략, 이동/로드는 정상 수행 — 검은 화면에 갇히는 것보다 낫다).</summary>
     public static Fader FullScreenFader
     {
         get
         {
-            var ctrl = ScreenFadeController.Instance;
-            if (ctrl == null) return null;
+            var ctrl = ScreenCurtain.Instance;
+            if (ctrl == null)
+            {
+                if (!_warnedNoCurtain && Application.isPlaying)
+                {
+                    _warnedNoCurtain = true;
+                    Debug.LogWarning("[Fader] 이 씬에 ScreenFadeCanvas가 없어서 화면 페이드가 생략된다. " +
+                                     "Assets/Prefabs/UI/ScreenFadeCanvas 프리팹을 씬에 하나 넣어라.");
+                }
+                return null;
+            }
 
             var f = ctrl.GetComponent<Fader>();
             if (f == null) f = ctrl.gameObject.AddComponent<Fader>(); // 커튼 위에 붙으면 알아서 FullScreen으로 잡힌다
@@ -110,9 +117,13 @@ public class Fader : MonoBehaviour
         }
     }
 
+    private static bool _warnedNoCurtain;
+
     private void Awake()
     {
-        if (켜질때나타나기) SetVisibleInstant(false, Row(FadeSignal.없음));
+        EnsureResolved();
+        // 화면 커튼에 fadeInOnEnable를 켜면 게임 시작하자마자 암전이 걷히는 연출이 된다. UI 전용으로 막는다.
+        if (fadeInOnEnable && _mode != Mode.FullScreen) SetVisibleInstant(false, Row(FadeSignal.없음));
     }
 
     /// <summary>뭘 페이드시킬지 첫 사용 시점에 한 번만 결정한다.
@@ -139,7 +150,7 @@ public class Fader : MonoBehaviour
     private Mode ResolveMode()
     {
         // 검은 커튼 본인이면 화면 전체. (커튼에도 CanvasGroup이 있어서 UI로 오판하는 걸 먼저 걸러낸다)
-        if (GetComponent<ScreenFadeController>() != null) return Mode.FullScreen;
+        if (GetComponent<ScreenCurtain>() != null) return Mode.FullScreen;
 
         if (GetComponent<CanvasGroup>() != null || GetComponentInChildren<Graphic>(true) != null) return Mode.UI;
         if (GetComponentInChildren<SpriteRenderer>(true) != null) return Mode.Sprite;
@@ -149,13 +160,18 @@ public class Fader : MonoBehaviour
 
     private void OnEnable()
     {
-        Signal.Listen<FadeSignal>(OnSignal);
-        if (켜질때나타나기) FadeIn();
+        // 화면 커튼(FullScreen)은 신호를 듣지 않는다. 커튼은 세상에 하나뿐인 공유 자원이라
+        // '깜깜해진 순간'을 돌려받아야 하는 쪽(문/포탈/FadeAction)이 직접 부르고,
+        // 그 커튼이 아래 FadeOutIn에서 "지금 방이동 페이드 중"이라고 방송해준다.
+        // 여기서 같이 들으면 직접 호출 + 신호로 두 번 페이드된다.
+        if (_mode != Mode.FullScreen) Signal.Listen<FadeSignal>(OnSignal);
+
+        if (fadeInOnEnable && _mode != Mode.FullScreen) FadeIn();
     }
 
     private void OnDisable()
     {
-        Signal.Unlisten<FadeSignal>(OnSignal);
+        if (_mode != Mode.FullScreen) Signal.Unlisten<FadeSignal>(OnSignal);
 
         // 도중에 꺼지면 코루틴이 죽으면서 반투명인 채로 굳는다. 목표 상태로 확정해두고 끝낸다.
         if (_running != null)
@@ -166,6 +182,8 @@ public class Fader : MonoBehaviour
         }
     }
 
+    /// <summary>화면이 아닌 것들(UI·스프라이트)이 "방이동 중이다" 같은 순간에 같이 반응하는 경로.
+    /// 목록에 그 신호 줄이 없으면 그냥 무시한다 — 안 적어둔 건 관심 없다는 뜻이다.</summary>
     private void OnSignal(FadeSignal signal)
     {
         if (signal == FadeSignal.없음) return;
@@ -184,12 +202,19 @@ public class Fader : MonoBehaviour
         }
     }
 
-    /// <summary>이 신호의 설정 줄을 찾는다. 없으면 맨 윗줄, 그것도 없으면 기본값.</summary>
+    /// <summary>이 종류의 설정 줄을 찾는다. 없으면 맨 윗줄로 폴백하되 반드시 경고한다 —
+    /// 조용히 딴 줄 수치로 도는 게 제일 찾기 힘든 사고다(0.1초 암전 사이에 보스가 튀어나오는 식).</summary>
     private Reaction Row(FadeSignal signal)
     {
         foreach (var r in reactions)
         {
             if (r != null && r.signal == signal) return r;
+        }
+
+        if (signal != FadeSignal.없음)
+        {
+            Debug.LogWarning($"[Fader] '{name}'의 반응 목록에 '{signal}' 줄이 없어서 맨 윗줄 수치로 대신한다. " +
+                             $"ScreenFadeCanvas의 Fader에 '{signal}' 줄을 추가해라.", this);
         }
         return reactions.Count > 0 && reactions[0] != null ? reactions[0] : Fallback;
     }
@@ -208,9 +233,14 @@ public class Fader : MonoBehaviour
     /// <summary>코드용. 어느 신호의 설정으로 할지 이름만 고르고, 인스펙터에선 드래그할 수 없는 일
     /// (텔레포트처럼 런타임 대상이 필요한 것)을 암전 순간에 끼워넣는다.
     /// 인스펙터의 On Blackout도 똑같이 같이 불린다 — 기획자가 나중에 연출을 더 얹을 수 있게.</summary>
-    public void FadeOutIn(FadeSignal settingsFrom, System.Action onBlackoutCallback, System.Action onCompleteCallback = null)
+    public void FadeOutIn(FadeSignal signal, System.Action onBlackoutCallback, System.Action onCompleteCallback = null)
     {
-        Play(FadeOutInRoutine(Row(settingsFrom), onBlackoutCallback, onCompleteCallback));
+        // "지금 이 페이드가 벌어진다"고 방송한다. 커튼은 자기가 안 듣지만(직접 불렸으니),
+        // 이 순간에 같이 반응하고 싶은 UI·스프라이트 Fader들이 목록에 그 줄만 적어두면 알아서 따라온다.
+        // → 부르는 쪽(문/포탈)은 누가 듣는지 몰라도 되고, 기획자는 코드 없이 연출을 얹을 수 있다.
+        Signal.Fire(signal);
+
+        Play(FadeOutInRoutine(Row(signal), onBlackoutCallback, onCompleteCallback));
     }
 
     private void Play(IEnumerator routine)
@@ -225,11 +255,9 @@ public class Fader : MonoBehaviour
     {
         yield return FadeTo(0f, r);
 
-        // 완전히 사라진 순간. 코드가 넘긴 일(텔레포트)을 먼저, 그 다음 기획자가 '이 줄'에 꽂아둔 연출.
-        // 반드시 r.onBlackout이어야 한다 — 컴포넌트에 하나만 두면 커튼을 모두가 공유하니
-        // 보스등장에 꽂은 게 방이동 때도 터진다.
+        // 완전히 가려진 순간. '무슨 일이 일어날지'는 부르는 쪽이 들고 넘긴다 — Fader는 어떻게 보일지만 안다.
+        // (Fader에 할 일을 꽂아두면 커튼을 모두가 공유하니 딴 페이드 때도 같이 터진다.)
         onBlackoutCallback?.Invoke();
-        r.onBlackout?.Invoke();
 
         if (r.holdDuration > 0f)
         {
@@ -247,17 +275,11 @@ public class Fader : MonoBehaviour
         yield return FadeTo(goalVisible, r);
         _running = null;
 
-        if (goalVisible > 0f) yield break; // 나타나기: 가려진 순간이 없으니 onBlackout도 없다
-
-        // '사라지기'로도 다 사라진 순간은 온다. 여기서 안 불러주면 동작을 사라지기로 바꾼 순간
-        // onBlackout에 꽂아둔 게 조용히 죽는다.
-        r.onBlackout?.Invoke();
-
-        if (사라지면끄기 && _mode != Mode.FullScreen) gameObject.SetActive(false);
+        if (goalVisible <= 0f && deactivateOnFadeOutComplete && _mode != Mode.FullScreen) gameObject.SetActive(false);
     }
 
     /// <summary>순수 보간만. 완료 처리는 밖에서 한다 —
-    /// 사라졌다나타나기 한가운데서 '사라지면끄기'가 오브젝트를 꺼버려 나타나기가 영영 안 오는 사고를 막으려고 분리했다.
+    /// 사라졌다나타나기 한가운데서 'deactivateOnFadeOutComplete'가 오브젝트를 꺼버려 나타나기가 영영 안 오는 사고를 막으려고 분리했다.
     /// 시간은 항상 unscaled: 히트스톱/일시정지 중에도 페이드는 흘러야 하고, 안 그러면 화면이 검은 채로 멈춘다.</summary>
     private IEnumerator FadeTo(float goalVisible, Reaction r)
     {
@@ -283,7 +305,7 @@ public class Fader : MonoBehaviour
         EnsureResolved();
         if (_mode != Mode.FullScreen) return null;
 
-        var ctrl = ScreenFadeController.Instance;
+        var ctrl = ScreenCurtain.Instance;
         if (ctrl == null) return null;
 
         ctrl.SetColor(r.color); // 색은 신호마다 다를 수 있어서 매번 맞춰준다
