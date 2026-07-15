@@ -35,8 +35,14 @@ public class TMPTextEffectPlayer : MonoBehaviour
     [SerializeField] private float rainbowSaturation = 0.85f;
     [SerializeField] private float rainbowSpeed = 1f;
 
+    [Header("자동 동작")]
+    [Tooltip("켜질 때 인스펙터 Text 칸에 직접 쳐둔 태그(<wave>글자</wave> 등)를 알아서 해석한다. " +
+             "코드가 SetText()로 밀어넣는 텍스트(데미지 숫자 등)는 꺼두면 된다.")]
+    [SerializeField] private bool parseOwnTextOnEnable = false;
+
     private TMP_Text tmp;
     private readonly List<TextEffectRange> activeRanges = new List<TextEffectRange>();
+    private readonly List<TextEffectRange> parseBuffer = new List<TextEffectRange>();
     private float startTime;
     private bool hasContinuousEffect;
     private float oneShotEndTime;
@@ -44,6 +50,28 @@ public class TMPTextEffectPlayer : MonoBehaviour
     private void Awake()
     {
         tmp = GetComponent<TMP_Text>();
+    }
+
+    private void OnEnable()
+    {
+        if (parseOwnTextOnEnable && tmp != null) SetText(tmp.text);
+    }
+
+    /// <summary>
+    /// 태그가 섞인 원본 문자열을 넣는 유일한 관문.
+    /// 태그를 떼어내 실제 표시 문자열만 TMP에 넣고, 떼어낸 이펙트 구간을 재생한다.
+    ///
+    /// tmp.text에 직접 대입하면 안 된다 — TMP는 모르는 태그를 화면에 그대로 찍어버리고,
+    /// activeRanges가 옛 텍스트 기준으로 남아 엉뚱한 글자에 효과가 걸린다.
+    /// </summary>
+    public void SetText(string raw)
+    {
+        if (tmp == null) tmp = GetComponent<TMP_Text>();
+        if (tmp == null) return;
+
+        parseBuffer.Clear();
+        tmp.text = TextEffectParser.Parse(raw, parseBuffer);
+        ApplyEffects(parseBuffer);
     }
 
     /// <summary>
@@ -117,12 +145,16 @@ public class TMPTextEffectPlayer : MonoBehaviour
 
         foreach (var range in activeRanges)
         {
-            int endIndex = Mathf.Min(range.startIndex + range.length, textInfo.characterCount);
-            for (int i = range.startIndex; i < endIndex; i++)
-            {
-                if (i < 0 || i >= textInfo.characterCount) continue;
+            int endIndex = range.startIndex + range.length;
 
+            // 주의: 순번 i로 자르면 안 된다. characterInfo의 순번은 TMP가 자기 태그(<color>, <sprite> 등)를
+            // 걷어낸 뒤의 '보이는 글자' 순서라, 파서가 준 문자열 인덱스와 어긋난다.
+            // charInfo.index가 곧 tmp.text 기준 인덱스이고 그게 파서와 같은 기준이라, 그걸로 걸러야 한다.
+            // (지금까지 안 터진 건 데미지 숫자가 평문이라 우연히 i == index였기 때문이다.)
+            for (int i = 0; i < textInfo.characterCount; i++)
+            {
                 TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
+                if (charInfo.index < range.startIndex || charInfo.index >= endIndex) continue;
                 if (!charInfo.isVisible) continue;
 
                 int matIndex = charInfo.materialReferenceIndex;
