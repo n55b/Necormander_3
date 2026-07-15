@@ -1,7 +1,18 @@
 using UnityEngine;
 
 /// <summary>
-/// 미니언(아군/적군 공용)의 마스터 데이터입니다. 
+/// 소환수의 역할. 슬롯은 메인 1 + 서브 1로 고정이며 파밍 풀도 이 축으로 갈린다.
+/// </summary>
+public enum MinionRole
+{
+    /// <summary>스페이스바 액티브 + 플레이어의 대쉬/평타를 변화시킨다.</summary>
+    Main = 0,
+    /// <summary>실체화하지 않고 상시 스탯 보너스 + 패시브만 제공한다.</summary>
+    Sub = 1,
+}
+
+/// <summary>
+/// 미니언(아군/적군 공용)의 마스터 데이터입니다.
 /// 스탯과 고유 공격 패턴(Attack State)을 정의합니다.
 /// </summary>
 [CreateAssetMenu(fileName = "NewMinionData", menuName = "Necromancer/Data/MinionData")]
@@ -12,6 +23,8 @@ public class MinionDataSO : ScriptableObject
     public MinionSkillSO minionSkill;
 
     [Header("Basic Information")]
+    [Tooltip("메인: 스페이스바 액티브 + 대쉬/평타 변화. 서브: 상시 패시브만 (실체화 없음).")]
+    public MinionRole role = MinionRole.Main;
     public CommandData minionType;
     public string minionName;
     public Sprite minionIcon;   // 대가리만 달린 이미지

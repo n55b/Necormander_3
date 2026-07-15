@@ -49,8 +49,22 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private int gold = 0;
     public int GOLD => gold;
 
-    [Header("슬롯 시스템 (3개 고정)")]
-    public List<CoreSlot> Slots = new List<CoreSlot>(3);
+    /// <summary>소환수 슬롯 인덱스. 메인 1 + 서브 1 고정.</summary>
+    public const int SLOT_MAIN = 0;
+    public const int SLOT_SUB = 1;
+    public const int SLOT_COUNT = 2;
+
+    [Header("슬롯 시스템 (메인 1 + 서브 1 고정)")]
+    public List<CoreSlot> Slots = new List<CoreSlot>(SLOT_COUNT);
+
+    /// <summary>역할에 대응하는 슬롯 인덱스.</summary>
+    public static int SlotIndexOf(MinionRole role) => role == MinionRole.Sub ? SLOT_SUB : SLOT_MAIN;
+
+    public MinionDataSO MainSummon => GetSummon(SLOT_MAIN);
+    public MinionDataSO SubSummon => GetSummon(SLOT_SUB);
+
+    private MinionDataSO GetSummon(int index)
+        => (index >= 0 && index < Slots.Count && !Slots[index].IsShattered) ? Slots[index].EquippedMinion : null;
 
     // ======================================================
     // [에러 방지를 위한 병렬 리스트 디버그 설정]
@@ -121,7 +135,7 @@ public class InventoryManager : MonoBehaviour
     public void Initialize(bool hasSave)
     {
         Instance = this;
-        while (Slots.Count < 3)
+        while (Slots.Count < SLOT_COUNT)
         {
             Slots.Add(new CoreSlot());
         }
@@ -488,22 +502,10 @@ public class InventoryManager : MonoBehaviour
             if (HasMinion(debugStartingMinions[i].minionType)) continue;
 
             int qty = (i < debugStartingMinionQuantities.Count) ? debugStartingMinionQuantities[i] : 1;
-            
+
             // [개선] Registry 에셋 등록 상태와 무관하게 인스펙터에 직접 지정된 미니언 데이터를 100% 꽂아 장착합니다.
-            var existingSlot = Slots.Find(s => !s.IsShattered && s.EquippedMinion != null && s.EquippedMinion.minionType == debugStartingMinions[i].minionType);
-            if (existingSlot != null)
-            {
-                existingSlot.Quantity += qty;
-            }
-            else
-            {
-                int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
-                if (emptyIdx != -1)
-                {
-                    EquipMinion(emptyIdx, debugStartingMinions[i]);
-                    Slots[emptyIdx].Quantity = qty;
-                }
-            }
+            // 슬롯은 역할당 1칸이므로 빈 칸을 찾지 않고 역할 슬롯에 바로 넣는다.
+            EquipMinion(debugStartingMinions[i], qty);
         }
 
         // 2. 보석 생성 (인벤토리나 장착창의 개수와 디버그 보석 리스트의 개수를 매칭하여 부족분만 추가)
@@ -625,18 +627,33 @@ public class InventoryManager : MonoBehaviour
         MinionDataSO targetMinion = registry.minionDatas.Find(m => m.minionType == job);
         if (targetMinion == null) return false;
 
-        int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
-        if (emptyIdx != -1) { EquipMinion(emptyIdx, targetMinion); Slots[emptyIdx].Quantity = amount; return true; }
-        return false;
+        return EquipMinion(minion: targetMinion, amount: amount);
     }
 
-    public bool EquipMinion(int slotIndex, MinionDataSO minion)
+    /// <summary>
+    /// 소환수를 자기 역할의 슬롯에 장착한다. 슬롯은 역할당 1칸이므로 기존 것을 덮어쓴다.
+    /// </summary>
+    public bool EquipMinion(MinionDataSO minion, int amount = 1)
+    {
+        if (minion == null) return false;
+        return EquipMinion(SlotIndexOf(minion.role), minion, amount);
+    }
+
+    public bool EquipMinion(int slotIndex, MinionDataSO minion, int amount = 1)
     {
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
+
+        // 역할과 슬롯이 어긋나면 역할 쪽 슬롯으로 돌려보낸다 (서브 카드가 메인 슬롯에 앉는 것을 방지).
+        if (minion != null && SlotIndexOf(minion.role) != slotIndex)
+        {
+            slotIndex = SlotIndexOf(minion.role);
+            if (slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
+        }
+
         Slots[slotIndex].EquippedThrowAbility = null;
         Slots[slotIndex].EquippedMinion = minion;
-        Slots[slotIndex].Quantity = 1;
-        
+        Slots[slotIndex].Quantity = amount;
+
         OnMinionUpdated?.Invoke();
         UpdateActiveAbilities();
         return true;
@@ -694,7 +711,7 @@ public class InventoryManager : MonoBehaviour
         {
             var slotData = new CoreSlotSaveData();
             slotData.isShattered = slot.IsShattered;
-            slotData.equippedLineageJob = slot.EquippedMinion != null ? slot.EquippedMinion.minionType.ToString() : "";
+            slotData.equippedMinionName = slot.EquippedMinion != null ? slot.EquippedMinion.name : "";
             slotData.equippedThrowAbilityName = slot.EquippedThrowAbility != null ? slot.EquippedThrowAbility.name : "";
             slotData.evolutionIndex = 0;
             slotData.quantity = slot.Quantity;
@@ -788,12 +805,12 @@ public class InventoryManager : MonoBehaviour
             var coreSlot = new CoreSlot();
             coreSlot.IsShattered = slotData.isShattered;
 
-            if (!string.IsNullOrEmpty(slotData.equippedLineageJob))
+            if (!string.IsNullOrEmpty(slotData.equippedMinionName))
             {
-                if (System.Enum.TryParse<CommandData>(slotData.equippedLineageJob, out var job))
-                {
-                    coreSlot.EquippedMinion = registry.minionDatas.Find(m => m.minionType == job);
-                }
+                // 에셋 이름으로 정확히 복원한다 (직업으로 찾으면 A/B/C 배리언트가 붕괴됨).
+                coreSlot.EquippedMinion = registry.minionDatas.Find(m => m.name == slotData.equippedMinionName);
+                if (coreSlot.EquippedMinion == null)
+                    Debug.LogWarning($"<color=orange>[InventoryManager]</color> 세이브의 미니언 '{slotData.equippedMinionName}' 을 GrowthRegistry 에서 찾지 못했습니다. 슬롯을 비웁니다.");
             }
 
             if (!string.IsNullOrEmpty(slotData.equippedThrowAbilityName))
@@ -805,11 +822,13 @@ public class InventoryManager : MonoBehaviour
             coreSlot.Quantity = slotData.quantity;
             Slots.Add(coreSlot);
         }
-        // 10개 맞추기
-        while (Slots.Count < 10)
+        // 메인/서브 2칸 보장. (예전엔 Initialize 가 3칸, 여기가 10칸으로 패딩이 어긋나 있었고,
+        //  UI 가 안 보여주는 슬롯에 미니언이 들어가는 조용한 버그가 있었다.)
+        while (Slots.Count < SLOT_COUNT)
         {
             Slots.Add(new CoreSlot());
         }
+        if (Slots.Count > SLOT_COUNT) Slots.RemoveRange(SLOT_COUNT, Slots.Count - SLOT_COUNT);
         UpdateActiveAbilities();
 
         // Treasures 로드

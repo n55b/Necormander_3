@@ -126,7 +126,8 @@ public class MinionStateUI : MonoBehaviour
             if (data.minionSkill == null || s.SkillCoolFill == null) continue;
 
             float maxCd = data.minionSkill.cooldownTime;
-            float remaining = _skillCtrl.GetMinionSkillCooldownRemaining((PlayerSkillController.SkillSlot)i);
+            // 액티브(스페이스바)는 메인 소환수만 갖는다. 서브는 패시브라 쿨타임이 없다.
+            float remaining = (i == InventoryManager.SLOT_MAIN) ? _skillCtrl.GetMainSummonCooldownRemaining() : 0f;
             bool onCd = remaining > 0.05f;
             float fill = (maxCd > 0f && onCd) ? Mathf.Clamp01(remaining / maxCd) : 0f;
 

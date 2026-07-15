@@ -5,20 +5,30 @@ public class PlayerSkillController : MonoBehaviour
 {
     public enum SkillSlot { Q = 0, E = 1, R = 2 }
 
-    [Header("Equipped Minion Data (Auto-Synced)")]
-    [SerializeField] private MinionDataSO[] equippedMinions = new MinionDataSO[3];
+    [Header("Equipped Summons (Auto-Synced) — 메인 1 + 서브 1")]
+    [SerializeField] private MinionDataSO mainSummon;
+    [SerializeField] private MinionDataSO subSummon;
 
     [Header("Equipped Player Skills (Q/E/R, 독립 장착)")]
     [SerializeField] private PlayerSkillSO[] equippedPlayerSkills = new PlayerSkillSO[3];
 
     private float[] playerSkillCooldownEnds = new float[3];
-    private float[] minionSkillCooldownEnds = new float[3];
+    private float _mainSummonCooldownEnd;
 
-    // UI에서 미니언 정보를 읽기 위한 public getter
-    public MinionDataSO GetEquippedMinion(int index)
+    /// <summary>스페이스바 액티브 + 대쉬/평타 변화를 담당하는 소환수. 없으면 null.</summary>
+    public MinionDataSO MainSummon => mainSummon;
+    /// <summary>상시 패시브만 제공하는 소환수. 실체화하지 않는다. 없으면 null.</summary>
+    public MinionDataSO SubSummon => subSummon;
+
+    /// <summary>
+    /// 슬롯 인덱스로 소환수를 읽는다 (0 = 메인, 1 = 서브). UI 가 슬롯을 순회할 때 사용.
+    /// 범위 밖은 null — 소환수는 2마리가 전부다.
+    /// </summary>
+    public MinionDataSO GetEquippedMinion(int slotIndex)
     {
-        if (index < 0 || index >= equippedMinions.Length) return null;
-        return equippedMinions[index];
+        if (slotIndex == InventoryManager.SLOT_MAIN) return mainSummon;
+        if (slotIndex == InventoryManager.SLOT_SUB) return subSummon;
+        return null;
     }
 
     public PlayerSkillSO GetEquippedPlayerSkill(int index)
@@ -41,7 +51,6 @@ public class PlayerSkillController : MonoBehaviour
     {
         // [Fix] 직렬화된 배열 길이가 3이 아니면 인덱스 예외가 발생한다. 강제로 새로 만들어서 방지한다.
         // 아래에서 바로 동기화 함수가 다시 채워주므로 값을 잃지 않는다.
-        if (equippedMinions == null || equippedMinions.Length != 3) equippedMinions = new MinionDataSO[3];
         if (equippedPlayerSkills == null || equippedPlayerSkills.Length != 3) equippedPlayerSkills = new PlayerSkillSO[3];
         // Awake에서 동기화하면, 같은 프레임 내 UI Initialize() 시점엔 이미 equippedMinions가 채워진 상태
         if (InventoryManager.Instance != null)
@@ -90,20 +99,11 @@ public class PlayerSkillController : MonoBehaviour
     {
         if (InventoryManager.Instance == null) return;
 
-        int slotIndex = 0;
-        for (int i = 0; i < 3; i++) equippedMinions[i] = null;
+        // 슬롯이 역할 고정이므로 앞에서부터 채우지 않고 역할별로 직접 읽는다.
+        mainSummon = InventoryManager.Instance.MainSummon;
+        subSummon = InventoryManager.Instance.SubSummon;
 
-        foreach (var slot in InventoryManager.Instance.Slots)
-        {
-            if (slotIndex >= 3) break;
-
-            if (!slot.IsEmpty && slot.EquippedMinion != null)
-            {
-                equippedMinions[slotIndex] = slot.GetCurrentMinionData();
-                slotIndex++;
-            }
-        }
-        Debug.Log("<color=cyan>[PlayerSkillController]</color> Sync Inventory -> Q,E,R slots complete.");
+        Debug.Log($"<color=cyan>[PlayerSkillController]</color> Sync Inventory -> Main: {(mainSummon != null ? mainSummon.minionName : "없음")}, Sub: {(subSummon != null ? subSummon.minionName : "없음")}");
     }
 
     public void ExecutePlayerSkill(SkillSlot slot, Transform playerTransform)
@@ -132,11 +132,11 @@ public class PlayerSkillController : MonoBehaviour
     /// </summary>
     public void ExecuteMinionSkill(Transform playerTransform)
     {
-        int slotIndex = FindReadyMinionSlot();
-        if (slotIndex < 0) return;
+        if (mainSummon == null || mainSummon.minionSkill == null) return;
+        if (Time.time < _mainSummonCooldownEnd) return;
 
-        var minionData = equippedMinions[slotIndex];
-        minionSkillCooldownEnds[slotIndex] = Time.time + minionData.minionSkill.cooldownTime;
+        var minionData = mainSummon;
+        _mainSummonCooldownEnd = Time.time + minionData.minionSkill.cooldownTime;
 
         // 스킬이 조준할 후보. 살아있는 적 전체를 넘기고, 실제 선별은 스킬 쪽에서 한다.
         var targets = new List<Transform>();
@@ -150,18 +150,6 @@ public class PlayerSkillController : MonoBehaviour
 
         SpawnTransientMinionAndCast(minionData, playerTransform, targets);
         Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed: {minionData.minionName}");
-    }
-
-    private int FindReadyMinionSlot()
-    {
-        for (int i = 0; i < equippedMinions.Length; i++)
-        {
-            var data = equippedMinions[i];
-            if (data == null || data.minionSkill == null) continue;
-            if (Time.time < minionSkillCooldownEnds[i]) continue;
-            return i;
-        }
-        return -1;
     }
 
     private void SpawnTransientMinionAndCast(MinionDataSO minionData, Transform playerTransform, List<Transform> targets)
@@ -213,6 +201,7 @@ public class PlayerSkillController : MonoBehaviour
     public float GetPlayerSkillCooldownRemaining(SkillSlot slot)
         => Mathf.Max(0f, playerSkillCooldownEnds[(int)slot] - Time.time);
 
-    public float GetMinionSkillCooldownRemaining(SkillSlot slot)
-        => Mathf.Max(0f, minionSkillCooldownEnds[(int)slot] - Time.time);
+    /// <summary>메인 소환수 액티브(스페이스바)의 남은 쿨타임.</summary>
+    public float GetMainSummonCooldownRemaining()
+        => Mathf.Max(0f, _mainSummonCooldownEnd - Time.time);
 }
