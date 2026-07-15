@@ -194,6 +194,10 @@ public class PlayerController : MonoBehaviour
         if (GetComponent<PlayerParryController>() == null)
             gameObject.AddComponent<PlayerParryController>();
 
+        // [서브 소환수] 상시 패시브 적용 컨트롤러
+        if (GetComponent<SubSummonPassiveController>() == null)
+            gameObject.AddComponent<SubSummonPassiveController>();
+
         // [수정] 스탯 초기화를 Awake로 이동하여 초기화 순서 보장
         if (stat != null)
         {

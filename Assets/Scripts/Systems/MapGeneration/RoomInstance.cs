@@ -337,6 +337,12 @@ public class RoomInstance : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 방이 클리어될 때마다 발화한다. 서브 소환수 패시브처럼 '방 클리어 시' 발동하는 것들이 구독한다.
+    /// IRoomEvent.OnRoomCleared 는 방 타입별 구현이라 방 밖에서는 구독할 수 없어서 별도로 둔다.
+    /// </summary>
+    public static event System.Action<RoomInstance> OnAnyRoomCleared;
+
     public void MarkCleared()
     {
         isCleared = true;
@@ -352,6 +358,8 @@ public class RoomInstance : MonoBehaviour
                 pHealth.Heal(10f);
             }
         }
+
+        OnAnyRoomCleared?.Invoke(this);
     }
 
     public void MergeTilesToGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow, Tilemap globalUnsteppable = null)

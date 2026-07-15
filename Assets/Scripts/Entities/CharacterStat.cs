@@ -32,6 +32,18 @@ public class CharacterStat : MonoBehaviour
 
     public bool IsEnemy => !_isAlly && !_isPlayer; // [추가] 적군 여부 식별
 
+    // 서브 소환수 패시브는 플레이어에게만 붙는다. 매번 GetComponent 하지 않도록 캐싱.
+    private SubSummonPassiveController _subPassive;
+    private SubSummonPassiveController SubPassive
+    {
+        get
+        {
+            if (!_isPlayer) return null;
+            if (_subPassive == null) _subPassive = GetComponentInParent<SubSummonPassiveController>();
+            return _subPassive;
+        }
+    }
+
     [Header("셋팅 이후 Action들")]
     [SerializeField] private UnityEvent setDoneActions;
 
@@ -78,7 +90,8 @@ public class CharacterStat : MonoBehaviour
             float moveSpdMult = 1f;
             StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
             
-            return (baseMaxHP + gemFlatBonus) * (1f + treasureMult) * hpMult;
+            float subBonus = SubPassive != null ? SubPassive.MaxHpBonus : 0f;
+            return (baseMaxHP + gemFlatBonus + subBonus) * (1f + treasureMult) * hpMult;
         }
     }
 
@@ -111,7 +124,10 @@ public class CharacterStat : MonoBehaviour
             // 공속은 atkSpdMult의 역수를 취해 곱함 (공격 딜레이 감소)
             float speedDivisor = (atkSpdMult != 0) ? (1f / atkSpdMult) : 1f;
 
-            return (baseAtkSpd * speedDivisor / (1f + bonusMult)) / chillMult;
+            // 서브 소환수의 공격 간격 감소는 고정값이라 마지막에 뺀다 (ATKSPD 는 간격, 낮을수록 빠름).
+            float subReduction = SubPassive != null ? SubPassive.AtkIntervalReduction : 0f;
+            float result = (baseAtkSpd * speedDivisor / (1f + bonusMult)) / chillMult;
+            return Mathf.Max(0.05f, result - subReduction);
         }
     }
 

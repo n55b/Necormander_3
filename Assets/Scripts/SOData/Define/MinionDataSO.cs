@@ -30,6 +30,10 @@ public class MinionDataSO : ScriptableObject
     [Tooltip("플레이어 평타 콤보 마지막(3타)에 이 소환수가 넣는 마무리 일격. 서브는 무시된다.")]
     public MinionFinisher finisher = new MinionFinisher();
 
+    [Header("서브 소환수: 상시 패시브")]
+    [Tooltip("장착만으로 항상 켜지는 스탯/패시브. 메인은 무시된다.")]
+    public MinionSubPassive subPassive = new MinionSubPassive();
+
     [Header("Basic Information")]
     [Tooltip("메인: 스페이스바 액티브 + 대쉬/평타 변화. 서브: 상시 패시브만 (실체화 없음).")]
     public MinionRole role = MinionRole.Main;
