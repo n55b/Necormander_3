@@ -66,8 +66,9 @@ public class CameraManager : MonoBehaviour
     {
         if (_impulseSource == null) return;
 
-        var stat = target.GetComponent<CharacterStat>();
-        if (stat != null && stat.tag == "Player") 
+        // 플레이어 판정은 반드시 '루트' 태그로. CharacterHealth는 자식 CharacterStatStuff(Untagged)에 붙어 있어서
+        // 그 오브젝트의 태그를 보면 영원히 false가 된다(= hurtShakeForce가 죽은 코드였던 원인).
+        if (target.transform.root.CompareTag("Player"))
         {
             // 플레이어가 피격당했을 때의 카메라 흔들림
             _impulseSource.GenerateImpulseWithForce(hurtShakeForce);
