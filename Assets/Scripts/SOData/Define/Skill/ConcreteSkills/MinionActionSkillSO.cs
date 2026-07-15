@@ -25,10 +25,12 @@ public class MinionActionSkillSO : MinionSkillSO
     public float forceAmount = 4f; // 넉백/끌어당김 힘
     public float forceDuration = 0.2f;
 
-public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
+    public override void Execute(Transform user, MinionDataSO data, List<Transform> validTargets)
     {
-        var ally = user.GetComponent<AllyController>();
-        if (ally == null || ally.Stats.Health.IsDead) return;
+        var caster = user.GetComponent<MinionSkillCaster>();
+        if (caster == null) return; // 코루틴을 돌릴 주체가 없으면 시전 불가
+        if (data == null) data = caster.Data;
+        if (data == null) return;
 
         Vector2 playerPos = user.position;
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -103,41 +105,39 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
         float hitDelay = animDuration * hitTimingRatio;
         if (hitDelay > 0f)
         {
-            ally.StartCoroutine(DelayedHit(hitDelay, ally, closestTarget, dirFromPlayer, teleportPos));
+            caster.StartCoroutine(DelayedHit(hitDelay, caster, data, closestTarget, dirFromPlayer, teleportPos));
         }
         else
         {
             DoHitStop();
-            DealHit(ally, closestTarget, dirFromPlayer, teleportPos);
+            DealHit(caster, data, closestTarget, dirFromPlayer, teleportPos);
         }
     }
 
-    private IEnumerator DelayedHit(float delay, AllyController ally, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos)
+    private IEnumerator DelayedHit(float delay, MinionSkillCaster caster, MinionDataSO data, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos)
     {
         yield return new WaitForSeconds(delay);
-
-        // 대기 중 미니언이 죽는 등 상황이 바뀌었을 수 있으니 재검사
-        if (ally == null || ally.Stats.Health.IsDead) yield break;
+        if (caster == null) yield break; // 대기 중 시전자가 소멸했을 수 있다
 
         DoHitStop();
-        DealHit(ally, closestTarget, dirFromPlayer, teleportPos);
+        DealHit(caster, data, closestTarget, dirFromPlayer, teleportPos);
     }
 
-    private void DealHit(AllyController ally, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos)
+    private void DealHit(MinionSkillCaster caster, MinionDataSO data, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos)
     {
-        float finalDamage = ally.Stats.ATK * damageMultiplier;
+        float finalDamage = data.attack * damageMultiplier;
 
         // 공격 실행
         if (useHitBox && hitBoxPrefab != null)
         {
             float angle = Mathf.Atan2(dirFromPlayer.y, dirFromPlayer.x) * Mathf.Rad2Deg;
-            BaseHitBox box = Instantiate(hitBoxPrefab, ally.transform.position, Quaternion.identity, ally.transform); // [수정] 월드가 아닌 시전자(미니언) 하위 자식으로 붙여 이동 동기화
+            BaseHitBox box = Instantiate(hitBoxPrefab, caster.transform.position, Quaternion.identity, caster.transform); // 시전자 하위 자식으로 붙여 이동 동기화
             box.transform.localPosition = Vector3.zero; // 시전자 중심 정렬
 
             box.transform.localRotation = Quaternion.Euler(0, 0, angle);
             box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
 
-            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, ally.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
+            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
 
             bool hasInvokedKeyword = false;
             System.Action<CharacterHealth> onHit = (health) => {
@@ -152,7 +152,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
                     Debug.Log($"<color=yellow>[MinionAction]</color> {actionType} 발동! (미니언 시전)");
                 }
 
-                ApplyActionEffect(stat, stat.transform.root, ally, dirFromPlayer, teleportPos);
+                ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
             };
             box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, onHit);
         }
@@ -166,7 +166,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
 
             if (health != null && !health.IsDead)
             {
-                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, ally.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
+                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
                 health.GetDamage(info);
 
                 var stat = health.GetComponent<CharacterStat>();
@@ -175,32 +175,32 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
 
                 if (stat != null)
                 {
-                    ApplyActionEffect(stat, stat.transform.root, ally, dirFromPlayer, teleportPos);
+                    ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
                 }
             }
         }
     }
 
-    private void ApplyActionEffect(CharacterStat stat, Transform targetTransform, AllyController ally, Vector2 dirFromPlayer, Vector2 teleportPos)
+    private void ApplyActionEffect(CharacterStat stat, Transform targetTransform, MinionSkillCaster caster, Vector2 dirFromPlayer, Vector2 teleportPos)
     {
         switch (actionType)
         {
             case MinionActionType.DamageOnly:
                 break;
             case MinionActionType.DamageAndPush:
-                ally.StartCoroutine(PushEnemy(targetTransform, dirFromPlayer));
+                caster.StartCoroutine(PushEnemy(targetTransform, dirFromPlayer));
                 break;
             case MinionActionType.DamageAndPull:
-                ally.StartCoroutine(PushEnemy(targetTransform, -dirFromPlayer));
+                caster.StartCoroutine(PushEnemy(targetTransform, -dirFromPlayer));
                 break;
             case MinionActionType.ApplyStun:
-                stat.Status.ApplyStatusEffect(SkillKeyword.Stun, ally.gameObject, false);
+                stat.Status.ApplyStatusEffect(SkillKeyword.Stun, caster.gameObject, false);
                 break;
             case MinionActionType.ApplyStrike:
-                stat.Status.ApplyStatusEffect(SkillKeyword.Strike, ally.gameObject, false);
+                stat.Status.ApplyStatusEffect(SkillKeyword.Strike, caster.gameObject, false);
                 break;
             case MinionActionType.ApplySmash:
-                stat.Status.ApplyStatusEffect(SkillKeyword.Smash, ally.gameObject, false);
+                stat.Status.ApplyStatusEffect(SkillKeyword.Smash, caster.gameObject, false);
                 break;
             case MinionActionType.StunExtension:
                 if (stat.Status.GetDebuffBool(DebuffBoolType.Stunned))
@@ -210,7 +210,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
                 break;
             case MinionActionType.ApplyCorrosion:
                 stat.Status.SetDebuffBool(DebuffBoolType.Corroded, 3f);
-                stat.Status.ApplyDebuff(DebuffType.Corrosion, ally.gameObject, false);
+                stat.Status.ApplyDebuff(DebuffType.Corrosion, caster.gameObject, false);
                 break;
         }
     }

@@ -15,10 +15,12 @@ public class MinionDebuffSynergySO : MinionSkillSO
     [Header("Damage Settings (If DamageOnly)")]
     public float damageMultiplier = 1.6f; // 기본 공격력의 160%
 
-    public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
+    public override void Execute(Transform user, MinionDataSO data, List<Transform> validTargets)
     {
-        var ally = user.GetComponent<AllyController>();
-        if (ally == null || ally.Stats.Health.IsDead) return;
+        var caster = user.GetComponent<MinionSkillCaster>();
+        if (caster == null) return;
+        if (data == null) data = caster.Data;
+        if (data == null) return;
 
         // 타겟 찾기 (디버프가 걸려있는 가장 가까운 적)
         Transform closestTarget = null;
@@ -64,7 +66,7 @@ public class MinionDebuffSynergySO : MinionSkillSO
         // 1. 데미지 입히기 옵션
         if (synergyType == DebuffSynergyType.DamageOnly)
         {
-            float finalDamage = ally.Stats.ATK * damageMultiplier;
+            float finalDamage = data.attack * damageMultiplier;
             var health = closestTarget.GetComponent<CharacterHealth>();
             if (health != null)
             {

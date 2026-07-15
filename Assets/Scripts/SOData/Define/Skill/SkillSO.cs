@@ -96,6 +96,17 @@ public abstract class PlayerSkillSO : SkillSO
 
 public abstract class MinionSkillSO : SkillSO
 {
+    /// <summary>
+    /// 미니언 스킬의 실제 진입점. SkillSO.ExecuteSkill 는 플레이어 스킬용 시그니처라
+    /// 소환수 데이터(ATK 등)를 실을 자리가 없어서 별도 오버로드를 둔다.
+    /// user 에는 MinionSkillCaster 가 붙어 있어야 코루틴(타격 지연/넉백)을 돌릴 수 있다.
+    /// </summary>
+    public abstract void Execute(Transform user, MinionDataSO data, System.Collections.Generic.List<Transform> validTargets);
+
+    /// <summary>SkillSO 계약 유지용. 데이터 없이 들어오면 스킬은 스스로 판단해 폴백한다.</summary>
+    public override void ExecuteSkill(Transform user, Transform target = null, System.Collections.Generic.List<Transform> validTargets = null)
+        => Execute(user, null, validTargets);
+
     [Header("Skill Animation")]
     [Tooltip("스킬 발동 시 시전 위치에 재생할 애니메이션 비주얼 오브젝트(도트/애니메이터 포함). 비워두면 재생하지 않습니다.")]
     public GameObject skillAnimVisual;

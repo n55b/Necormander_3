@@ -148,53 +148,19 @@ public class PlayerSkillController : MonoBehaviour
             targets.Add(enemy.transform);
         }
 
-        SpawnTransientMinionAndCast(minionData, playerTransform, targets);
+        CastMinionSkill(minionData, playerTransform, targets);
         Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed: {minionData.minionName}");
     }
 
-    private void SpawnTransientMinionAndCast(MinionDataSO minionData, Transform playerTransform, List<Transform> targets)
+    /// <summary>
+    /// 소환수를 시전 시점에만 실체화시켜 스킬을 쓰게 하고 알아서 소멸시킨다.
+    /// 실체는 MinionSkillCaster(빈 오브젝트 + 코루틴 러너)이고, 외형은 스킬의 skillAnimVisual 이
+    /// 그 자식으로 붙어서 담당한다. 필드를 돌아다니지 않으므로 AI/NavMesh/전투 스탯이 필요 없다.
+    /// </summary>
+    private void CastMinionSkill(MinionDataSO minionData, Transform playerTransform, List<Transform> targets)
     {
-        // 평소 소환되는 미니언이 없는 구조이므로, 스킬 사용 시점에 임시 미니언을 생성해 시전 후 소멸시킨다.
-        if (GameManager.Instance == null || GameManager.Instance.dataManager == null || minionData.minionType == CommandData.None)
-        {
-            // Fallback: 미니언 실체 없이 플레이어 위치에서 시전
-            minionData.minionSkill.ExecuteSkill(playerTransform, null, targets);
-            return;
-        }
-
-        GameObject obj = GameManager.Instance.dataManager.CreateUnit(minionData, playerTransform.position);
-        if (obj == null) return;
-
-        AllyController tempAlly = obj.GetComponent<AllyController>();
-        if (tempAlly == null) return;
-
-        tempAlly.player = playerTransform;
-        tempAlly.SetBattleState(true);
-
-        // 적들이 타겟팅하지 못하게 무적 + FlyingObject 레이어(투사체 통과 / AI 타겟 제외)
-        if (tempAlly.Stats != null && tempAlly.Stats.Health != null)
-            tempAlly.Stats.Health.Invincible = true;
-
-        int flyingLayer = Layers.FlyingObject;
-        if (flyingLayer != -1) SetLayerRecursive(obj, flyingLayer);
-
-        tempAlly.EnterSkillState();
-        minionData.minionSkill.ExecuteSkill(tempAlly.transform, null, targets);
-        StartCoroutine(DestroyTempMinionAfterDelay(obj, tempAlly, 1.5f));
-    }
-
-    private void SetLayerRecursive(GameObject obj, int layer)
-    {
-        obj.layer = layer;
-        foreach (Transform child in obj.transform)
-            SetLayerRecursive(child.gameObject, layer);
-    }
-
-    private System.Collections.IEnumerator DestroyTempMinionAfterDelay(GameObject obj, AllyController ally, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        if (ally != null) ally.ExitSkillState();
-        if (obj != null) Destroy(obj);
+        var caster = MinionSkillCaster.Spawn(minionData, playerTransform.position);
+        minionData.minionSkill.Execute(caster.transform, minionData, targets);
     }
 
     // --- UI 연동을 위한 외부 접근용 함수 ---
