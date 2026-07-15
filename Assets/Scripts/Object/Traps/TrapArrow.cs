@@ -119,7 +119,7 @@ public class TrapArrow : MonoBehaviour
         dir.Normalize();
 
         float maxDist = Vector2.Distance(trapPos, aimWallPoint) + wallRaycastPadding;
-        RaycastHit2D hit = Physics2D.Raycast(trapPos, dir, maxDist, Layers.WallObstacle);
+        RaycastHit2D hit = Physics2D.Raycast(trapPos, dir, maxDist, Layers.WallMask);
         if (hit.collider != null)
         {
             // 레이는 함정(내부)에서 바깥으로 나가므로 hit.point는 벽의 '안쪽 면'.

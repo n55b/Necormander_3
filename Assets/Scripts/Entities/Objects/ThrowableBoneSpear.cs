@@ -106,9 +106,8 @@ public class ThrowableBoneSpear : MonoBehaviour, IThrowable
         
         // 던져진 상태에서 충돌 발생
         int layer = collision.gameObject.layer;
-        bool isEnemyTarget = layer == Layers.Enemy || 
-                             layer == Layers.Boss || 
-                             collision.CompareTag("Boss") || 
+        bool isEnemyTarget = layer == Layers.Enemy ||
+                             collision.CompareTag("Boss") ||
                              (collision.TryGetComponent<BaseEntity>(out var entity) && entity.team == Team.Enemy);
 
         if (isEnemyTarget)
@@ -128,7 +127,7 @@ public class ThrowableBoneSpear : MonoBehaviour, IThrowable
                 BounceOff(collision.transform.position);
             }
         }
-        else if (collision.CompareTag("Wall") || collision.gameObject.layer == Layers.Obstacle)
+        else if (collision.CompareTag("Wall"))
         {
             // 벽에 꽂힘
             StickToWall();

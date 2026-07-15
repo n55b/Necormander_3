@@ -45,7 +45,7 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
         _originalDamping = _rb.linearDamping;
         _originalLayer = gameObject.layer;
 
-        _hitLayers = Layers.EnemyWallObstacle;
+        _hitLayers = Layers.EnemyWall;
         if (_hitLayers == 0)
         {
             _hitLayers = ~(Layers.PlayerMask | (1 << 2)); 

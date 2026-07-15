@@ -271,7 +271,7 @@ public int DebuffStackCount => _debuffStackCount;
 
         float knockbackSpeed = force * 2.0f;
         float elapsed = 0f;
-        int wallMask = Layers.WallObstacle;
+        int wallMask = Layers.WallMask;
 
         while (elapsed < duration)
         {
@@ -297,9 +297,8 @@ public int DebuffStackCount => _debuffStackCount;
                 foreach(var hit in hits)
                 {
                     int layerVal = hit.gameObject.layer;
-                    bool isEnemy = layerVal == Layers.Enemy || 
-                                   layerVal == Layers.Boss || 
-                                   hit.CompareTag("Boss") || 
+                    bool isEnemy = layerVal == Layers.Enemy ||
+                                   hit.CompareTag("Boss") ||
                                    (hit.TryGetComponent<BaseEntity>(out var entEnemy) && entEnemy.team == Team.Enemy);
                     if (isEnemy && hit.TryGetComponent<CharacterStat>(out var enemyStat))
                     {

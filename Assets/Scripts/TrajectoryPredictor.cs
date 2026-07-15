@@ -163,7 +163,7 @@ public class TrajectoryPredictor : MonoBehaviour
             
             float maxPredictDistance = 40f; // 충분히 긴 거리 설정
             
-            int hitMask = Layers.EnemyObjectWallObstacle;
+            int hitMask = Layers.EnemyObjectWall;
             float radius = (_throwController.ActiveCluster != null) ? _throwController.ActiveCluster.GetCurrentRadius() : 0.35f;
 
             // 경로상에 장애물이 있는지 확인

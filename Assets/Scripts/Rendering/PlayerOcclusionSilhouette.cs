@@ -40,7 +40,7 @@ private void Awake()
 
         if (autoDefaultToWallLayers && occluderLayers.value == 0)
         {
-            occluderLayers = Layers.WallObstacle;
+            occluderLayers = Layers.WallMask;
         }
 
         if (silhouetteRenderer != null)

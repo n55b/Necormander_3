@@ -174,7 +174,6 @@ public abstract class BaseEntity : MonoBehaviour
             if (team == Team.Enemy)
             {
                 opponentLayer.value &= ~(1 << Layers.Army);
-                opponentLayer.value &= ~(1 << Layers.Ally);
             }
         }
 

@@ -254,7 +254,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
         Vector2 startPos = enemy.position;
         Vector2 targetPos = startPos + pushDir * forceAmount;
         
-        int obstacleMask = Layers.WallObstacle | Layers.UnsteppableMask;
+        int obstacleMask = Layers.WallMask | Layers.UnsteppableMask;
 
         // 몬스터 콜라이더 크기 구하기
         var enemyCol = enemy.GetComponent<Collider2D>();

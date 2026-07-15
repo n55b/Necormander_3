@@ -124,7 +124,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
             else if (chargeDir.x < -0.01f) entitySR.flipX = false;
         }
 
-        LayerMask wallMask = Layers.WallObstacle;
+        LayerMask wallMask = Layers.WallMask;
         LayerMask playerMask = Layers.PlayerMask;
         LayerMask hitMask = wallMask | playerMask;
 
