@@ -20,10 +20,16 @@ public class MapGenerationDataSO : ScriptableObject
     public int shopCount = 1;
     public int rewardCount = 2;
     public int eliteCount = 1;
+    // 일반 방 보상 배분. 이 숫자들이 '어떤 풀을 어디서 파밍하는가'의 유일한 스위치다.
+    // 특정 풀을 Reward 방으로 옮기거나 로비 고정으로 돌리고 싶으면 여기 카운트를 0으로 내리면 된다.
     [Tooltip("일반 전투 방 중 플레이어 스킬 보상을 배정할 정확한 방의 수량")]
     public int playerSkillRewardRoomCount = 3;
-    [Tooltip("일반 전투 방 중 미니언 스킬 보상을 배정할 정확한 방의 수량")]
-    public int minionSkillRewardRoomCount = 3;
+    [Tooltip("일반 전투 방 중 메인 소환수 보상을 배정할 정확한 방의 수량")]
+    public int mainSummonRewardRoomCount = 3;
+    [Tooltip("일반 전투 방 중 서브 소환수 보상을 배정할 정확한 방의 수량")]
+    public int subSummonRewardRoomCount = 3;
+    [Tooltip("위 카운트를 다 채우고 남는 일반 방에도 무작위 보상을 배정할지. 끄면 남는 방은 보상 없음.")]
+    public bool fillRemainingRoomsRandomly = true;
 
     [Header("Encounter Spawning Settings")]
     [Tooltip("일반방 전투 웨이브 수 (기본 2)")]

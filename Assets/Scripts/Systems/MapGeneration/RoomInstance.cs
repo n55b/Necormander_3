@@ -5,7 +5,12 @@ using UnityEngine.Tilemaps;
 public class RoomInstance : MonoBehaviour
 {
     public RoomType roomType;
-    public enum NormalRewardType { PlayerSkill, MinionSkill }
+    /// <summary>
+    /// 일반 방이 어떤 보상을 주는지. 소환수 파밍 풀이 메인/서브로 갈리면서 3종이 됐다.
+    /// 각 타입이 몇 개 방에 배정되는지는 MapGenerationDataSO 의 카운트가 정한다 —
+    /// 나중에 특정 풀을 Reward 방으로 옮기거나 로비 고정으로 돌릴 때 숫자만 바꾸면 된다.
+    /// </summary>
+    public enum NormalRewardType { PlayerSkill, MainSummon, SubSummon }
     [Header("일반 방 보상 세부 설정")]
     public NormalRewardType normalRewardType;
     public Vector2Int roomSize;
@@ -214,7 +219,9 @@ public class RoomInstance : MonoBehaviour
             {
                 if (normalRewardType == NormalRewardType.PlayerSkill)
                     targetIcon = iconsParent.Find("PlayerSkillMinimapIcon") ?? iconsParent.Find("playerskill");
-                else if (normalRewardType == NormalRewardType.MinionSkill)
+                else
+                    // ponytail: 메인/서브 소환수가 미니맵 아이콘을 공유한다. 전용 아이콘이 생기면
+                    // 룸 프리팹에 오브젝트를 추가하고 여기서 갈라주면 된다.
                     targetIcon = iconsParent.Find("MinionSkillMinimapIcon") ?? iconsParent.Find("minionskill");
             }
             else if (roomType == RoomType.Boss)

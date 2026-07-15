@@ -63,15 +63,14 @@ public static class RewardProcessor
     }
 
     // --- 1-B. 미니언 스킬 방용: 소환수 코어 배출 ---
-    public static List<RewardCandidate> GenerateMinionSkillRewards(InventoryManager inven, DataManager data)
+    /// <summary>지정한 역할의 소환수 카드 3장을 뽑는다. 메인/서브 풀은 role 로만 갈린다.</summary>
+    public static List<RewardCandidate> GenerateSummonRewards(InventoryManager inven, DataManager data, MinionRole role)
     {
         List<RewardCandidate> results = new List<RewardCandidate>();
         var registry = data.GET_GROWTH_REGISTRY();
 
         List<RewardCandidate> combinedPool = new List<RewardCandidate>();
-        
-        // 1. 소환수 코어 풀
-        combinedPool.AddRange(GetValidCores(inven, registry.minionDatas, true));
+        combinedPool.AddRange(GetValidCores(inven, registry.minionDatas, true, role));
 
         // 랜덤하게 3개 선택 (중복 제거)
         for (int i = 0; i < 3; i++)
@@ -159,17 +158,17 @@ public static class RewardProcessor
 
         List<RewardCandidate> combinedPool = new List<RewardCandidate>();
 
-        // 미니언 계보 풀 추가
+        // 설계 4: 서브 소환수는 상점에서도 등장한다. 메인은 보상 방 전용.
         if (shopRegistry.minionPool != null)
         {
             foreach(var minion in shopRegistry.minionPool)
             {
-                if (minion == null) continue;
+                if (minion == null || minion.role != MinionRole.Sub) continue;
                 combinedPool.Add(new RewardCandidate
-                { 
-                    displayData = BuildMinionDisplayData(minion), 
-                    rawData = minion, 
-                    techIndex = 0, 
+                {
+                    displayData = BuildMinionDisplayData(minion),
+                    rawData = minion,
+                    techIndex = 0,
                     category = RewardCategory.Minion,
                     goldAmount = minion.shopCost
                 });
@@ -178,17 +177,14 @@ public static class RewardProcessor
 
         // 젬 효과가 전부 제거되어 상점 젬 풀도 내렸다. (GEM_LEGACY.md)
 
-        // 랜덤하게 5개 선택
-        for(int i = 0; i < 5; i++)
+        // 랜덤하게 최대 5개 선택. 중복 제거 — 서브 슬롯이 1칸뿐이라 같은 카드를 여러 장 팔면
+        // 사는 족족 덮어쓰기만 된다. (예전엔 RemoveAt 이 주석 처리돼 있어서 5장 전부 같은 카드가
+        // 뜰 수 있었다.)
+        for(int i = 0; i < 5 && combinedPool.Count > 0; i++)
         {
-            if(combinedPool.Count > 0)
-            {
-                int idx = Random.Range(0, combinedPool.Count);
-                results.Add(combinedPool[idx]);
-                
-                // 중복을 피하고 싶다면 아래 주석을 해제하세요.
-                // combinedPool.RemoveAt(idx); 
-            }
+            int idx = Random.Range(0, combinedPool.Count);
+            results.Add(combinedPool[idx]);
+            combinedPool.RemoveAt(idx);
         }
 
         return results;
@@ -196,11 +192,18 @@ public static class RewardProcessor
 
     // --- 세부 필터링 로직 ---
 
-    private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionDataSO> minions, bool filterOwned = true)
+    /// <summary>
+    /// 소환수 보상 후보. role 을 주면 그 역할만 걸러낸다.
+    /// ponytail: GrowthRegistry 의 리스트를 메인/서브로 쪼개지 않고 필터만 건다 —
+    /// RefreshRegistry 가 t:MinionDataSO 를 자동 스캔하는데, 리스트를 쪼개면 그 자동화가 깨진다.
+    /// </summary>
+    private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionDataSO> minions, bool filterOwned = true, MinionRole? role = null)
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();
         foreach (var m in minions)
         {
+            if (m == null) continue;
+            if (role.HasValue && m.role != role.Value) continue;
             if (!filterOwned || !inven.HasMinionInSlots(m))
                 candidates.Add(new RewardCandidate { displayData = BuildMinionDisplayData(m), rawData = m, techIndex = 0, category = RewardCategory.Minion });
         }

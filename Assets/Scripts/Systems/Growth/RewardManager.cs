@@ -35,19 +35,25 @@ public class RewardManager : MonoBehaviour
             Debug.Log($"<color=yellow>[Reward]</color> Normal Room Cleared! {goldAmount} Gold obtained. RewardType: {normalRewardType}");
 
             List<RewardCandidate> normalRewards;
-            if (normalRewardType == RoomInstance.NormalRewardType.PlayerSkill)
+            switch (normalRewardType)
             {
-                normalRewards = RewardProcessor.GeneratePlayerSkillRewards(
-                    GameManager.Instance.inventoryManager, 
-                    GameManager.Instance.dataManager
-                );
-            }
-            else
-            {
-                normalRewards = RewardProcessor.GenerateMinionSkillRewards(
-                    GameManager.Instance.inventoryManager, 
-                    GameManager.Instance.dataManager
-                );
+                case RoomInstance.NormalRewardType.PlayerSkill:
+                    normalRewards = RewardProcessor.GeneratePlayerSkillRewards(
+                        GameManager.Instance.inventoryManager,
+                        GameManager.Instance.dataManager);
+                    break;
+                case RoomInstance.NormalRewardType.SubSummon:
+                    normalRewards = RewardProcessor.GenerateSummonRewards(
+                        GameManager.Instance.inventoryManager,
+                        GameManager.Instance.dataManager,
+                        MinionRole.Sub);
+                    break;
+                default: // MainSummon
+                    normalRewards = RewardProcessor.GenerateSummonRewards(
+                        GameManager.Instance.inventoryManager,
+                        GameManager.Instance.dataManager,
+                        MinionRole.Main);
+                    break;
             }
             _rewardQueue.Enqueue(normalRewards);
 
