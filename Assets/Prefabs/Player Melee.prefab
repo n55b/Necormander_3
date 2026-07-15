@@ -1317,7 +1317,6 @@ GameObject:
   - component: {fileID: 1807700438375551738}
   - component: {fileID: 8412499594907926683}
   - component: {fileID: 924915416061419967}
-  - component: {fileID: 6829083333298408906}
   - component: {fileID: 7483555610792978852}
   - component: {fileID: 7957941004026145679}
   - component: {fileID: 1103040150316217935}
@@ -1741,18 +1740,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   viewRadius: 4
---- !u!114 &6829083333298408906
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8389716956321753658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fecc708d442b824b9a5abc8bc6dbf99, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &7483555610792978852
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1793,6 +1780,7 @@ MonoBehaviour:
   maxCharges: 2
   rechargeTime: 2
   dashEffectPrefab: {fileID: 1585796293089155853, guid: c5d0c7c91c095c74fb398f43b9bd4cf5, type: 3}
+  dashHitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
 --- !u!114 &1103040150316217935
 MonoBehaviour:
   m_ObjectHideFlags: 0

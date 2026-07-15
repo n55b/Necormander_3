@@ -13,6 +13,13 @@ public class SubSummonPassiveController : MonoBehaviour
     private PlayerController _player;
     private MinionDataSO _lastSub;
 
+    // 씬을 넘어가도 '이미 획득한 서브'를 기억한다. 플레이어는 층 이동마다 재생성되므로
+    // 인스턴스 필드에만 담으면 healOnAcquire 가 층마다 공짜로 다시 터진다.
+    private static string _acquiredSubName;
+
+    /// <summary>새 런을 시작할 때 호출. (사망/타이틀 복귀 등)</summary>
+    public static void ResetAcquiredState() => _acquiredSubName = null;
+
     /// <summary>현재 장착된 서브 소환수의 패시브. 없으면 null.</summary>
     private MinionSubPassive Passive
     {
@@ -53,11 +60,14 @@ public class SubSummonPassiveController : MonoBehaviour
         var inven = InventoryManager.Instance;
         var sub = inven != null ? inven.SubSummon : null;
         if (sub == _lastSub) return; // 같은 소환수로 재동기화된 것뿐이면 무시
-
         _lastSub = sub;
-        if (sub?.subPassive == null) return;
 
-        // MaxHP 보너스가 방금 붙었을 수 있으므로 회복 전에 스탯을 갱신시킨다.
+        if (sub?.subPassive == null) { _acquiredSubName = null; return; }
+
+        // 층을 넘어와 플레이어가 재생성된 경우엔 '이미 갖고 있던' 것이므로 획득 효과를 다시 주지 않는다.
+        if (_acquiredSubName == sub.name) return;
+        _acquiredSubName = sub.name;
+
         if (sub.subPassive.healOnAcquire > 0f)
             Heal(sub.subPassive.healOnAcquire);
     }

@@ -96,6 +96,7 @@ public class GameManager : MonoBehaviour
 
         // 게임 오버 시 세이브 데이터를 삭제하여 이전 층에서 이어서 하기 방지
         SaveSystem.DeleteSave();
+        SubSummonPassiveController.ResetAcquiredState(); // 런이 끝났으므로 '획득함' 상태도 리셋
 
         GameOverManager.Instance.TriggerGameOver();
     }

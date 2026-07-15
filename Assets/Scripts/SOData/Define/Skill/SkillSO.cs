@@ -101,7 +101,8 @@ public abstract class MinionSkillSO : SkillSO
     /// 소환수 데이터(ATK 등)를 실을 자리가 없어서 별도 오버로드를 둔다.
     /// user 에는 MinionSkillCaster 가 붙어 있어야 코루틴(타격 지연/넉백)을 돌릴 수 있다.
     /// </summary>
-    public abstract void Execute(Transform user, MinionDataSO data, System.Collections.Generic.List<Transform> validTargets);
+    /// <returns>실제로 시전했으면 true. false 면 호출자가 쿨타임을 먹이지 않아야 한다.</returns>
+    public abstract bool Execute(Transform user, MinionDataSO data, System.Collections.Generic.List<Transform> validTargets);
 
     /// <summary>SkillSO 계약 유지용. 데이터 없이 들어오면 스킬은 스스로 판단해 폴백한다.</summary>
     public override void ExecuteSkill(Transform user, Transform target = null, System.Collections.Generic.List<Transform> validTargets = null)

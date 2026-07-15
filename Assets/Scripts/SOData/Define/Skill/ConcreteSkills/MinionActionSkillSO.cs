@@ -31,12 +31,12 @@ public class MinionActionSkillSO : MinionSkillSO
     [Tooltip("타격이 유지되는 시간(초). hitCount 를 이 시간 안에 균등 배분한다.")]
     public float hitDuration = 0.2f;
 
-    public override void Execute(Transform user, MinionDataSO data, List<Transform> validTargets)
+    public override bool Execute(Transform user, MinionDataSO data, List<Transform> validTargets)
     {
         var caster = user.GetComponent<MinionSkillCaster>();
-        if (caster == null) return; // 코루틴을 돌릴 주체가 없으면 시전 불가
+        if (caster == null) return false; // 코루틴을 돌릴 주체가 없으면 시전 불가
         if (data == null) data = caster.Data;
-        if (data == null) return;
+        if (data == null) return false;
 
         Vector2 playerPos = user.position;
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -64,8 +64,9 @@ public class MinionActionSkillSO : MinionSkillSO
 
         if (closestTarget == null)
         {
-            // 칠 대상이 없으면 소환수 강제 돌진을 예방하고 동작을 완전히 차단합니다.
-            return;
+            // 칠 대상이 없으면 소환수 강제 돌진을 예방하고 동작을 완전히 차단한다.
+            // false 를 돌려 호출자가 쿨타임을 먹이지 않게 한다 (허공에 눌러 6~8초를 날리는 것 방지).
+            return false;
         }
 
         // 2. 텔레포트 및 넉백 방향 계산 (플레이어 기준)
@@ -93,7 +94,12 @@ public class MinionActionSkillSO : MinionSkillSO
 
         user.position = teleportPos;
 
-        // [수정] 텔레포트 돌진 직후, 타겟을 직접 바라보도록 미니언의 SpriteRenderer.flipX를 설정
+        PlaySkillSound();
+        ShakeCamera();
+        float animDuration = PlaySkillAnimVisual(user);
+
+        // 타겟을 바라보도록 flipX 설정. 반드시 PlaySkillAnimVisual 뒤여야 한다 —
+        // 시전자는 빈 GameObject 라서 비주얼이 자식으로 붙기 전에는 SpriteRenderer 가 없다.
         Vector2 lookDir = ((Vector2)closestTarget.position - (Vector2)user.position).normalized;
         var userSR = user.GetComponentInChildren<SpriteRenderer>();
         if (userSR != null)
@@ -101,10 +107,6 @@ public class MinionActionSkillSO : MinionSkillSO
             if (lookDir.x > 0.01f) userSR.flipX = true; // 오른쪽 바라봄
             else if (lookDir.x < -0.01f) userSR.flipX = false; // 왼쪽 바라봄
         }
-
-        PlaySkillSound();
-        ShakeCamera();
-        float animDuration = PlaySkillAnimVisual(user);
 
         Debug.Log($"<color=cyan>[Minion Skill]</color> 미니언이 '{skillName}' 스킬을 사용했습니다! (대상: {closestTarget.name})");
 
@@ -118,6 +120,8 @@ public class MinionActionSkillSO : MinionSkillSO
             DoHitStop();
             DealHit(caster, data, closestTarget, dirFromPlayer, teleportPos);
         }
+
+        return true;
     }
 
     private IEnumerator DelayedHit(float delay, MinionSkillCaster caster, MinionDataSO data, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos)

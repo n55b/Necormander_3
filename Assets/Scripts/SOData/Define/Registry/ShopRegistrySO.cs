@@ -18,10 +18,14 @@ public class ShopRegistrySO : ScriptableObject
     {
         minionPool.Clear();
 
+        // 경로로 아군 소환수만 거른다 (MinionDataSO 는 적/엘리트/보스와 공용 타입이다).
         string[] minionGuids = UnityEditor.AssetDatabase.FindAssets("t:MinionDataSO");
         foreach (var guid in minionGuids)
         {
             string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            if (!path.Contains("/Minion/MinionData/")) continue;
+            if (path.Contains("/Deprecated/")) continue;
+
             var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionDataSO>(path);
             if (asset != null) minionPool.Add(asset);
         }

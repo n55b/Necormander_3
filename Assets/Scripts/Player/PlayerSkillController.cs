@@ -136,7 +136,6 @@ public class PlayerSkillController : MonoBehaviour
         if (Time.time < _mainSummonCooldownEnd) return;
 
         var minionData = mainSummon;
-        _mainSummonCooldownEnd = Time.time + minionData.minionSkill.cooldownTime;
 
         // 스킬이 조준할 후보. 살아있는 적 전체를 넘기고, 실제 선별은 스킬 쪽에서 한다.
         var targets = new List<Transform>();
@@ -148,7 +147,11 @@ public class PlayerSkillController : MonoBehaviour
             targets.Add(enemy.transform);
         }
 
-        CastMinionSkill(minionData, playerTransform, targets);
+        // 쿨타임은 '실제로 시전됐을 때만' 먹인다. 칠 대상이 없어 스킬이 스스로 취소하면
+        // 허공에 눌러 쿨타임을 통째로 날리는 일이 없어야 한다.
+        if (!CastMinionSkill(minionData, playerTransform, targets)) return;
+
+        _mainSummonCooldownEnd = Time.time + minionData.minionSkill.cooldownTime;
         Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed: {minionData.minionName}");
     }
 
@@ -157,10 +160,13 @@ public class PlayerSkillController : MonoBehaviour
     /// 실체는 MinionSkillCaster(빈 오브젝트 + 코루틴 러너)이고, 외형은 스킬의 skillAnimVisual 이
     /// 그 자식으로 붙어서 담당한다. 필드를 돌아다니지 않으므로 AI/NavMesh/전투 스탯이 필요 없다.
     /// </summary>
-    private void CastMinionSkill(MinionDataSO minionData, Transform playerTransform, List<Transform> targets)
+    /// <returns>실제로 시전했으면 true. false 면 쿨타임을 먹이지 않는다.</returns>
+    private bool CastMinionSkill(MinionDataSO minionData, Transform playerTransform, List<Transform> targets)
     {
         var caster = MinionSkillCaster.Spawn(minionData, playerTransform.position);
-        minionData.minionSkill.Execute(caster.transform, minionData, targets);
+        bool cast = minionData.minionSkill.Execute(caster.transform, minionData, targets);
+        if (!cast && caster != null) Destroy(caster.gameObject); // 시전 실패 시 빈 시전자를 3초씩 남기지 않는다
+        return cast;
     }
 
     // --- UI 연동을 위한 외부 접근용 함수 ---

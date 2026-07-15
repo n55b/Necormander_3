@@ -34,7 +34,9 @@ public class BaseHitBox : MonoBehaviour
     private DamageInfo _damageInfo;
     private LayerMask _targetLayer;
     private bool _isInitialized = false;
-    private float _tickTimer;
+    private float _elapsed;
+    // 대상별 다음 타격 시각. 공용 타이머를 쓰면 첫 번째 적이 틱을 독점한다.
+    private readonly Dictionary<IDamageable, float> _nextTickAt = new Dictionary<IDamageable, float>();
 
     // 1회 타격 시 중복 타격 방지
     private HashSet<IDamageable> _hitTargets = new HashSet<IDamageable>();
@@ -145,7 +147,8 @@ public class BaseHitBox : MonoBehaviour
     private void ActivateHitBox()
     {
         _isInitialized = true;
-        _tickTimer = damageTickRate; // 시작하자마자 즉시 데미지가 들어가도록 세팅
+        _elapsed = 0f;
+        _nextTickAt.Clear(); // 대상별 타이머 초기화 (첫 접촉 시 즉시 1타)
     }
 
     private void Update()
@@ -154,7 +157,7 @@ public class BaseHitBox : MonoBehaviour
 
         if (isContinuousDamage)
         {
-            _tickTimer += Time.deltaTime;
+            _elapsed += Time.deltaTime;
         }
     }
 
@@ -173,13 +176,16 @@ public class BaseHitBox : MonoBehaviour
         {
             if (isContinuousDamage)
             {
-                // 지속 데미지 (장판)
-                if (_tickTimer >= damageTickRate)
+                // 지속 데미지 (장판). 틱은 '대상별'로 센다 —
+                // 예전엔 공용 타이머를 첫 번째 적이 리셋해버려서, N타짜리 장판이 범위 안 적들에게
+                // N타를 '나눠주는' 꼴이었다 (적 3명이면 각자 ~N/3타). 소환수 액티브가 "범위 내의
+                // 적에게 5번의 피해"를 표방하므로 각 적이 온전히 N타를 받아야 한다.
+                if (!_nextTickAt.TryGetValue(damageable, out float nextAt) || _elapsed >= nextAt)
                 {
                     damageable.TakeDamage(_damageInfo);
                     SpawnHitEffect(col.transform.position);
-                    _tickTimer = 0f; // 모든 적에게 동시 데미지가 들어가는 구조 (원한다면 개별 쿨타임으로 개선 가능)
-                    
+                    _nextTickAt[damageable] = _elapsed + damageTickRate;
+
                     if (damageable is CharacterHealth ch)
                     {
                         _onHitEnemy?.Invoke(ch);
