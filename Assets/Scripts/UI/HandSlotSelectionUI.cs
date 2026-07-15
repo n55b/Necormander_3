@@ -126,8 +126,6 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
         if (success)
         {
             Debug.Log($"<color=green>[HandSlotUI]</color> Equipped to slot {index}");
-            // [사용자 요청] 여기서 즉시 재소환하지 않음 (다음 전투 시작 시 소환)
-            // GameManager.Instance.squadSpawner.RefreshFullSquad();
             Hide();
 
             // 보상 시퀀스 재개 (마을 디버그 메뉴 등 RewardManager가 없는 씬에서 호출될 수 있어 null-safe)

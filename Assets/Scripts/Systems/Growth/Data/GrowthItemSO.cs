@@ -28,3 +28,20 @@ public enum ItemRarity
     Epic,
     Legendary
 }
+
+/// <summary>
+/// 모든 성장 아이템의 기본 데이터 구조 (클래스형)
+/// </summary>
+[System.Serializable]
+public class GrowthItemData
+{
+    public string itemName;
+    [TextArea] public string description;
+
+    [Header("번역 데이터")]
+    public LocalizedString localizedItemName;
+    public LocalizedString localizedDescription;
+
+    public Sprite icon;
+    public ItemRarity rarity;
+}

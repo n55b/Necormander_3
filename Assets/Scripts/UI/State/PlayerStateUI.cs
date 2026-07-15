@@ -9,26 +9,6 @@ using System.Collections.Generic;
 /// </summary>
 public class PlayerStateUI : MonoBehaviour
 {
-    // ─────────────────────────────────────────────────────────────────────
-    // 내부 클래스: 부활 타이머 아이콘
-    // ─────────────────────────────────────────────────────────────────────
-    private class ReviveIcon
-    {
-        public AllyManager.MinionInfo TargetInfo;
-        public GameObject IconObject;
-        public TextMeshProUGUI TimerText;
-        public Image ArmyImage;
-
-        public ReviveIcon(AllyManager.MinionInfo info, GameObject obj)
-        {
-            TargetInfo = info;
-            IconObject = obj;
-            TimerText  = obj.GetComponentInChildren<TextMeshProUGUI>();
-            ArmyImage  = obj.GetComponentInChildren<Image>();
-            ArmyImage.sprite = info.Data.minionIcon;
-        }
-    }
-
     /// <summary>
     /// 스킬 슬롯 1개의 UI 요소.
     /// - SkillIcon    : 스킬 아이콘 Image (Sprite 교체)
@@ -80,10 +60,8 @@ public class PlayerStateUI : MonoBehaviour
     // 런타임
     // ─────────────────────────────────────────────────────────────────────
     private CharacterHealth       _playerHealth;
-    private AllyManager           _allyManager;
     private PlayerSkillController _skillCtrl;
     private List<Image>           _hpFillImages  = new List<Image>();
-    private List<ReviveIcon>      _revivingIcons = new List<ReviveIcon>();
     private SkillSlotUI[]         _skillSlots;
     private int _lastGold = int.MinValue; // dirty 비교용
     private PlayerSkillSO _pendingSkill; // 보상으로 받아서 장착 슬롯 선택을 기다리는 중인 스킬
@@ -92,10 +70,9 @@ public class PlayerStateUI : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     // 초기화
     // ─────────────────────────────────────────────────────────────────────
-    public void Initialize(CharacterHealth playerHealth, AllyManager allyManager)
+    public void Initialize(CharacterHealth playerHealth)
     {
         _playerHealth = playerHealth;
-        _allyManager  = allyManager;
         _skillSlots   = new SkillSlotUI[] { skillSlotQ, skillSlotE, skillSlotR };
 
         // 각 슬롯의 "스킬 바꾸기" 버튼을 실제 장착 동작에 연결
@@ -111,7 +88,6 @@ public class PlayerStateUI : MonoBehaviour
         }
 
         if (_playerHealth != null) { _playerHealth.UpdateHPBar += RefreshHP; RefreshHP(); }
-        if (_allyManager  != null) { _allyManager.OnAllyRespawnStart += AddReviveIcon; _allyManager.OnAllyRespawned += RemoveReviveIcon; }
 
         RefreshGold();
 
@@ -159,18 +135,13 @@ public class PlayerStateUI : MonoBehaviour
     }
 
     #region UI State Management
-    public void PopUpStateUI() { ClearReviveIcons(); }
+    public void PopUpStateUI() { }
     public void CloseStateUI() { }
     #endregion
 
     private void OnDestroy()
     {
         if (_playerHealth != null) _playerHealth.UpdateHPBar -= RefreshHP;
-        if (_allyManager  != null)
-        {
-            _allyManager.OnAllyRespawnStart -= AddReviveIcon;
-            _allyManager.OnAllyRespawned    -= RemoveReviveIcon;
-        }
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnMinionUpdated -= RefreshSkillIcons;
         if (PlayerSkillInventoryManager.Instance != null)
@@ -181,7 +152,6 @@ public class PlayerStateUI : MonoBehaviour
     private void Update()
     {
         RefreshGold();
-        UpdateReviveTimers();
         UpdateSkillCooldowns();
     }
 
@@ -212,31 +182,6 @@ public class PlayerStateUI : MonoBehaviour
     }
     #endregion
 
-    // ─────────────────────────────────────────────────────────────────────
-    // Revive
-    // ─────────────────────────────────────────────────────────────────────
-    #region Revive
-    private void AddReviveIcon(AllyManager.MinionInfo info) { }
-
-    private void RemoveReviveIcon(AllyManager.MinionInfo info)
-    {
-        var icon = _revivingIcons.Find(r => r.TargetInfo == info);
-        if (icon != null) { Destroy(icon.IconObject); _revivingIcons.Remove(icon); }
-    }
-
-    private void ClearReviveIcons()
-    {
-        foreach (var icon in _revivingIcons) Destroy(icon.IconObject);
-        _revivingIcons.Clear();
-    }
-
-    private void UpdateReviveTimers()
-    {
-        foreach (var icon in _revivingIcons)
-            if (icon.TargetInfo != null && icon.TimerText != null)
-                icon.TimerText.text = icon.TargetInfo.RespawnTimer.ToString("F1");
-    }
-    #endregion
 
     // ─────────────────────────────────────────────────────────────────────
     // Q / E / R 스킬 아이콘 + 쿨타임

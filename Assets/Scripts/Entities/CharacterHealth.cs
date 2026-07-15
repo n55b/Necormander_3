@@ -339,12 +339,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
         BaseEntity rootEntity = GetComponentInParent<BaseEntity>();
         bool isPlayer = gameObject.layer == Layers.Player; // (추가) 여기 뭔가 긴데 Player 인식 못 하길래 현재 오브젝트 Layer로 바꿈
-        
-        if (rootEntity != null && rootEntity.team == Team.Ally && !isPlayer)
-        {
-            ReportDeathToManager(rootEntity);
-        }
-        
+
         if (!isPlayer)
         {
             GameObject targetObj = rootEntity != null ? rootEntity.gameObject : gameObject;
@@ -439,16 +434,4 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         UpdateHPBar?.Invoke();
     }
 
-    private void ReportDeathToManager(BaseEntity rootEntity)
-    {
-        var pc = GameManager.Instance.PLAYERCONTROLLER;
-        if (pc != null)
-        {
-            var allyManager = pc.GetComponentInChildren<AllyManager>() ?? FindFirstObjectByType<AllyManager>();
-            if (allyManager != null && rootEntity != null) 
-            {
-                allyManager.ReportDeath(rootEntity.gameObject.GetInstanceID());
-            }
-        }
-    }
 }

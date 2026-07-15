@@ -227,26 +227,6 @@ MonoBehaviour:
     m_Localized: Treasure that enhances all throw effects.
     m_Metadata:
       m_Items: []
-  - m_Id: 48123755859968
-    m_Localized: Base archer minion
-    m_Metadata:
-      m_Items: []
-  - m_Id: 48123760054272
-    m_Localized: Base Priest minion
-    m_Metadata:
-      m_Items: []
-  - m_Id: 48123760054273
-    m_Localized: Base Shieldbearer minion
-    m_Metadata:
-      m_Items: []
-  - m_Id: 48123760054274
-    m_Localized: Base Spearman minion
-    m_Metadata:
-      m_Items: []
-  - m_Id: 48123760054275
-    m_Localized: Base warrior minion
-    m_Metadata:
-      m_Items: []
   - m_Id: 48123772637184
     m_Localized: Increases ally attack speed by 10% per 100 total aging stacks on
       the field.

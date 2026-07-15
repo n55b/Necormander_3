@@ -39,15 +39,10 @@ public class PlayerController : MonoBehaviour
         }
     }
     [Header("아군 유닛 관련 매니저")]
-    [SerializeField] AllyManager allyManager;
     [Header("던지기 컨트롤러")]
     [SerializeField] private ThrowController throwController;
     [SerializeField] private float throwChargeTime = 1.0f;
     public float ThrowChargeTime => throwChargeTime;
-
-    [Header("액티브 스킬 매니저")]
-    [SerializeField] private ActiveSkillManager activeSkillManager;
-    public ActiveSkillManager ActiveSkillManager => activeSkillManager;
 
     [HideInInspector]
     [SerializeField] private PlayerStamina staminaSystem;
@@ -202,13 +197,6 @@ public class PlayerController : MonoBehaviour
         // [패리] 패리 컨트롤러 추가
         if (GetComponent<PlayerParryController>() == null)
             gameObject.AddComponent<PlayerParryController>();
-
-        // [액티브 스킬] 액티브 스킬 매니저 추가
-        if (activeSkillManager == null)
-        {
-            activeSkillManager = gameObject.AddComponent<ActiveSkillManager>();
-            activeSkillManager.Initialize(this);
-        }
 
         // [수정] 스탯 초기화를 Awake로 이동하여 초기화 순서 보장
         if (stat != null)
@@ -649,18 +637,6 @@ public class PlayerController : MonoBehaviour
         var parryCtrl = GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
 
-        if (activeSkillManager != null)
-        {
-            bool isAnySkillActive = (activeSkillManager.SkillSlot1 != null && activeSkillManager.SkillSlot1.IsActive) ||
-                                    (activeSkillManager.SkillSlot2 != null && activeSkillManager.SkillSlot2.IsActive);
-
-            if (isAnySkillActive)
-            {
-                if (context.started) activeSkillManager.HandleLeftClick();
-                return; // 시즈 모드 등이 켜져 있으면 투척 이벤트를 완전히 삼킴
-            }
-        }
-
         if (_inputBlocked) return;
 
         if (throwController != null)
@@ -845,7 +821,6 @@ public void OnGemTree(InputAction.CallbackContext context)
 
         if (P_State == PlayerStates.Battle)
         {
-            allyManager.SetBattleState(true);
             OnEnterBattle?.Invoke();
         }
         else if (P_State == PlayerStates.Idle)

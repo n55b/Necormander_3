@@ -82,7 +82,8 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 
         if (GemTreeUI.Instance != null && GemTreeUI.Instance.IsOpen) GemTreeUI.Instance.Toggle();
         if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
-        if (GameManager.Instance?.squadSpawner != null) GameManager.Instance.squadSpawner.RefreshFullSquad();
+        // 전투 시작 시 들고 있던 투척물을 떨군다.
+        FindFirstObjectByType<ThrowController>()?.ForceClear();
 
         // 1초 후 보스가 소환되도록 텀(Term) 연출 구현
         StartCoroutine(DelayedSpawnBoss(room));
@@ -103,11 +104,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 
     public void OnRoomCleared(RoomInstance room)
     {
-        if (GameManager.Instance?.PLAYERCONTROLLER != null)
-        {
-            var allyManager = GameManager.Instance.PLAYERCONTROLLER.GetComponent<AllyManager>();
-            allyManager?.ClearAll();
-        }
+        FindFirstObjectByType<ThrowController>()?.ForceClear();
 
         // 인스펙터에 할당된 상자를 방 정중앙에 생성
         SpawnRoomRewardBox(room);

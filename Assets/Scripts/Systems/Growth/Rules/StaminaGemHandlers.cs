@@ -71,56 +71,8 @@ public class CatchBreathHandler : IGemEffectHandler
 // 201. HarvestOfDeath (二쎌쓬???섑솗)
 // ?뚰솚?섍? 二쎌뿀???? 二쎌? ?섎쭔???먯뿰 ?뚮났??利앷?
 // ---------------------------------------------------------
-public class HarvestOfDeathHandler : IGemEffectHandler
-{
-    public GemUniqueType HandledType => GemUniqueType.HarvestOfDeath;
-    private AllyManager _allyManager;
-    private PlayerStamina _stamina;
-    private int _deadCount = 0;
-
-    public void OnEquipped()
-    {
-        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
-        _allyManager = Object.FindFirstObjectByType<AllyManager>();
-        _stamina = GameManager.Instance.PLAYERCONTROLLER.STAMINA;
-        
-        if (_allyManager != null)
-        {
-            _allyManager.OnAllyRespawnStart += HandleAllyDeath;
-            _allyManager.OnAllyRespawned += HandleAllyRespawn;
-        }
-    }
-
-    public void OnUnequipped()
-    {
-        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
-        if (_allyManager != null)
-        {
-            _allyManager.OnAllyRespawnStart -= HandleAllyDeath;
-            _allyManager.OnAllyRespawned -= HandleAllyRespawn;
-        }
-        if (_stamina != null)
-        {
-            _stamina.deadMinionRegenBonus -= _deadCount;
-        }
-        _deadCount = 0;
-    }
-
-    private void HandleAllyDeath(AllyManager.MinionInfo info)
-    {
-        _deadCount++;
-        if (_stamina != null) _stamina.deadMinionRegenBonus += 1f;
-    }
-
-    private void HandleAllyRespawn(AllyManager.MinionInfo info)
-    {
-        if (_deadCount > 0)
-        {
-            _deadCount--;
-            if (_stamina != null) _stamina.deadMinionRegenBonus -= 1f;
-        }
-    }
-}
+// 아군 미니언이 필드에 상주하지 않게 되면서 발동 조건(사망/부활)이 사라져 EmptyGemHandler로 대체됨.
+// 효과 스펙은 GEM_LEGACY.md 참조.
 
 // ---------------------------------------------------------
 // 202. BasicFitness (湲곗큹泥대젰 媛뺥솕)

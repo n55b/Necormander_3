@@ -9,33 +9,3 @@ public class EmptyGemHandler : IGemEffectHandler
     public void OnEquipped() { }
     public void OnUnequipped() { }
 }
-
-// ---------------------------------------------------------
-// 시즈 모드 액티브 스킬 장착 핸들러
-// ---------------------------------------------------------
-public class SiegeModeHandler : IGemEffectHandler
-{
-    public GemUniqueType HandledType => GemUniqueType.SiegeMode;
-    private SiegeModeSkill _skillInstance;
-
-    public void OnEquipped()
-    {
-        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
-        var activeSkillManager = GameManager.Instance.PLAYERCONTROLLER.GetComponent<ActiveSkillManager>();
-        if (activeSkillManager != null)
-        {
-            if (_skillInstance == null) _skillInstance = new SiegeModeSkill();
-            activeSkillManager.EquipSkill(_skillInstance, 1);
-        }
-    }
-
-    public void OnUnequipped()
-    {
-        if (GameManager.Instance == null || GameManager.Instance.PLAYERCONTROLLER == null) return;
-        var activeSkillManager = GameManager.Instance.PLAYERCONTROLLER.GetComponent<ActiveSkillManager>();
-        if (activeSkillManager != null && activeSkillManager.SkillSlot1 == (IActiveSkill)_skillInstance)
-        {
-            activeSkillManager.EquipSkill(null, 1);
-        }
-    }
-}

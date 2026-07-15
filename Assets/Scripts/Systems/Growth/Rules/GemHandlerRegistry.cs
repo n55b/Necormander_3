@@ -46,7 +46,7 @@ public static class GemHandlerRegistry
 
         // 스태미너 보석
         RegisterHandlerFactory(GemUniqueType.CatchBreath, () => new CatchBreathHandler());
-        RegisterHandlerFactory(GemUniqueType.HarvestOfDeath, () => new HarvestOfDeathHandler());
+        RegisterHandlerFactory(GemUniqueType.HarvestOfDeath, () => new EmptyGemHandler(GemUniqueType.HarvestOfDeath));
         RegisterHandlerFactory(GemUniqueType.BasicFitness, () => new BasicFitnessHandler());
         RegisterHandlerFactory(GemUniqueType.EndlessVitality, () => new EndlessVitalityHandler());
         RegisterHandlerFactory(GemUniqueType.OverflowingThrow, () => new OverflowingThrowHandler());
@@ -65,7 +65,7 @@ public static class GemHandlerRegistry
         RegisterHandlerFactory(GemUniqueType.ExperiencedPitcher, () => new ExperiencedPitcherHandler());
 
         // 투포환 보석
-        RegisterHandlerFactory(GemUniqueType.SiegeMode, () => new SiegeModeHandler());
+        RegisterHandlerFactory(GemUniqueType.SiegeMode, () => new EmptyGemHandler(GemUniqueType.SiegeMode));
         RegisterHandlerFactory(GemUniqueType.JustThrowIt, () => new EmptyGemHandler(GemUniqueType.JustThrowIt));
         RegisterHandlerFactory(GemUniqueType.Ballistics, () => new EmptyGemHandler(GemUniqueType.Ballistics));
         RegisterHandlerFactory(GemUniqueType.Monocle, () => new EmptyGemHandler(GemUniqueType.Monocle));

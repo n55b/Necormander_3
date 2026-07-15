@@ -1079,7 +1079,6 @@ GameObject:
   - component: {fileID: 5957193516619015013}
   - component: {fileID: 7993269466842838964}
   - component: {fileID: 7972545975472383977}
-  - component: {fileID: 6055861653884896251}
   - component: {fileID: 3671673066107762978}
   - component: {fileID: 1807700438375551738}
   - component: {fileID: 8412499594907926683}
@@ -1478,7 +1477,6 @@ MonoBehaviour:
   stat: {fileID: 5914193569906731681}
   throwRange: 5
   throwRangeBonus: 0
-  allyManager: {fileID: 6055861653884896251}
   throwController: {fileID: 5596731991387463907}
   throwChargeTime: 1
   activeSkillManager: {fileID: 0}
@@ -1508,26 +1506,6 @@ MonoBehaviour:
   dashDuration: 0.2
   dashCooldown: 1
   SpeedMultiplier: 1
---- !u!114 &6055861653884896251
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8389716956321753658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0d4c6a7280fc7541974adb8f38ee43f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  allys:
-  - {fileID: 0}
-  activeMinionInfos: []
-  isBattle: 0
-  playerLayer:
-    serializedVersion: 2
-    m_Bits: 256
-  defaultRespawnTime: 3
 --- !u!114 &3671673066107762978
 MonoBehaviour:
   m_ObjectHideFlags: 0
