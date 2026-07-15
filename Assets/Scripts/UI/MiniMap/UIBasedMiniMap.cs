@@ -33,8 +33,14 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     [SerializeField] private Sprite customTerrainDotSprite;   // 지형 도트용 스프라이트 (비워두면 사각형)
     [Tooltip("지형 도트에 곱해지는 색(틴트). 커스텀 스프라이트를 원본 색 그대로 보고 싶으면 흰색(1,1,1,1)으로 두면 됨.")]
     [SerializeField] private Color terrainDotColor = new Color(0.25f, 0.4f, 0.6f, 0.75f); // 기존 하드코딩 값이 기본
-    [Tooltip("각 지형 도트를 셀 크기보다 이 픽셀만큼 크게 그려 항상 겹치게 한다(방 크기와 무관하게 빈틈 없이). 큰 방(작은 도트)에서 격자 틈이 보이면 이 값을 키우면 됨.")]
-    [SerializeField] private float terrainDotPadding = 1.5f;
+    [Tooltip("각 지형 도트를 셀 크기의 이 '배수'로 그려 인접 도트가 겹치게 한다. 1.0=딱 맞닿음(틈 보임), 1.35=35% 겹침(빈틈 없이 꽉 참). 절대 px가 아니라 배수라 큰 방/작은 방 모두 같은 비율로 겹쳐 균일하다. 네모를 더 또렷하게 보고 싶으면 1.2 근처로, 더 꽉 채우려면 키우면 됨.")]
+    [SerializeField] private float terrainDotOverlap = 1.35f;
+
+    [Tooltip("전투 HUD 미니맵의 타일 1칸당 픽셀(고정 스케일). 방 크기와 무관하게 이 크기로 그려 빈틈이 없고, 방이 크면 미니맵 전체가 오른쪽 상단 기준으로 커진다.")]
+    [SerializeField] private float hudPixelsPerTile = 6f;
+
+    [Tooltip("전투 미니맵의 플레이어/적 마커 크기(타일 칸 수 기준). 지도가 고정 스케일로 커지므로 마커도 화면 비율이 아니라 칸 수로 잡아야 방이 커져도 마커가 같이 커지지 않는다.")]
+    [SerializeField] private float hudMarkerTiles = 3f;
     [SerializeField] private bool useTerrainShadow = true;     // 2D 입체 그림자 효과 사용 여부
     [SerializeField] private Color terrainShadowColor = new Color(0f, 0f, 0f, 0.6f);
     [SerializeField] private Vector2 terrainShadowOffset = new Vector2(1.5f, -1.5f);
@@ -43,11 +49,6 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     [SerializeField] private Sprite customPlayerIcon;         // 플레이어 마커 이미지 (비워두면 기본 얼굴)
     [SerializeField] private bool syncPlayerZRotation = true; // 플레이어 회전 각도(방향) 동기화 여부
     [SerializeField] private Sprite customEnemyIcon;          // 적 마커 이미지 (비워두면 빨간 도트)
-
-    [Header("텔레포트 연출 설정")]
-    [SerializeField] private float teleportFadeOutDuration = 0.25f;
-    [SerializeField] private float teleportFadeHoldDuration = 0.1f;
-    [SerializeField] private float teleportFadeInDuration = 0.25f;
 
     // 스프라이트 시트 로드 캐시
     private Sprite _playerIcon;
@@ -58,8 +59,11 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     private List<GameObject> _spawnedFullRooms = new List<GameObject>();
     private List<GameObject> _spawnedHudRooms = new List<GameObject>();
 
-    // 방별 실제 바닥 타일맵 로컬 좌표 캐시 (방 모양 반영용)
-    private Dictionary<string, HashSet<Vector2Int>> _roomTilemapsCache = new Dictionary<string, HashSet<Vector2Int>>();
+    // 방별 바닥 타일 '중심'의 방 중심 기준 오프셋 캐시 (방 모양 반영용). 키는 인스턴스 ID.
+    private Dictionary<int, List<Vector2>> _roomFloorCache = new Dictionary<int, List<Vector2>>();
+
+    // 전투 미니맵에서 쓸 마커 지름(px). 0이면 비전투 = 기존 방 크기 비율 방식.
+    private float _hudMarkerPx = 0f;
 
     // 몬스터 레이더 추적용 캐시
     private List<GameObject> _cachedEnemies = new List<GameObject>();
@@ -167,6 +171,16 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         if (hudMapContainer != null)
         {
             ClearContainer(ref _spawnedHudRooms);
+            // 전투 HUD는 '고정 스케일'(타일당 hudPixelsPerTile px)로 방 크기대로 그린다 → 빈틈 없고 방이 크면 미니맵도 커짐.
+            // 지도가 커져도 마커는 칸 수 기준으로 고정. 개요(비전투)는 기존대로 방 크기 비율.
+            _hudMarkerPx = isBattle ? hudPixelsPerTile * hudMarkerTiles : 0f;
+
+            // 전투 시엔 방 크기대로 프레임 밖으로 커질 수 있으니 클리핑 해제, 비전투 개요에선 프레임 안으로 유지.
+            var hudMask = hudMapContainer.GetComponent<RectMask2D>();
+            if (hudMask != null) hudMask.enabled = !isBattle;
+            var hudMaskLegacy = hudMapContainer.GetComponent<Mask>();
+            if (hudMaskLegacy != null) hudMaskLegacy.enabled = !isBattle;
+
             DrawRoomsOnContainer(hudMapContainer, _spawnedHudRooms, currentRoom, hudRoomSize, hudRoomSpacing, false, isBattle);
         }
 
@@ -225,7 +239,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             spawnedList.Add(roomObj);
 
             RectTransform rt = roomObj.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(roomUiSize, roomUiSize);
+            Vector2 drawSize = new Vector2(roomUiSize, roomUiSize);
+            rt.sizeDelta = drawSize;
 
             Vector2 gridDiff = new Vector2(
                 room.gridPosition.x - currentRoom.gridPosition.x,
@@ -245,7 +260,14 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             if (focusOnlyCurrentRoom && room == currentRoom)
             {
                 img.color = new Color(0f, 0f, 0f, 0f); // 배경 사각형 투명화
-                DrawRoomTerrainShape(roomObj, room, roomUiSize);
+
+                // [액션 미니맵] 타일당 고정 px로 방 바닥 크기 그대로 그린다 → 방이 크면 미니맵도 그만큼 커진다.
+                // 커진 만큼 화면 밖으로 나가지 않도록 피벗/앵커를 오른쪽 상단으로 잡아 왼쪽-아래로만 자라게 한다.
+                drawSize = GetFocusRoomUiSize(room);
+                rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 1f);
+                rt.anchoredPosition = Vector2.zero;
+                rt.sizeDelta = drawSize;
+                DrawRoomTerrainShape(roomObj, room, drawSize);
             }
 
             // [수정] 방 프리팹 자식 계층 중 활성화된(activeSelf) MiniMapIcon 스프라이트 정밀 추출
@@ -361,7 +383,10 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                 playerMarker.transform.SetParent(roomObj.transform, false);
                 
                 RectTransform pRt = playerMarker.GetComponent<RectTransform>();
-                pRt.sizeDelta = new Vector2(roomUiSize * 0.35f, roomUiSize * 0.35f);
+                CenterOnParent(pRt);
+                // 전투 미니맵은 지도가 커져도 마커는 칸 수 기준 고정 크기. 개요는 기존대로 방 칸 비율.
+                float pSize = (focusOnlyCurrentRoom && _hudMarkerPx > 0f) ? _hudMarkerPx : roomUiSize * 0.35f;
+                pRt.sizeDelta = new Vector2(pSize, pSize);
                 pRt.anchoredPosition = Vector2.zero;
 
                 Image pImg = playerMarker.GetComponent<Image>();
@@ -383,7 +408,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                 GameObject radarContainer = new GameObject("RadarContainer", typeof(RectTransform));
                 radarContainer.transform.SetParent(roomObj.transform, false);
                 RectTransform radarRt = radarContainer.GetComponent<RectTransform>();
-                radarRt.sizeDelta = new Vector2(roomUiSize, roomUiSize);
+                CenterOnParent(radarRt);
+                radarRt.sizeDelta = drawSize;
                 radarRt.anchoredPosition = Vector2.zero;
 
                 string containerKey = isFullMap ? "full" : "hud";
@@ -462,54 +488,27 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     }
 
     // 🌟 방의 실제 Ground 타일 배치 캐시를 읽어 미니 픽셀 도트들로 방 모양 테두리를 드로잉합니다.
-    private void DrawRoomTerrainShape(GameObject roomObj, RoomInstance room, float roomUiSize)
+    private void DrawRoomTerrainShape(GameObject roomObj, RoomInstance room, Vector2 uiSize)
     {
-        string cacheKey = room.gameObject.name;
-        if (!_roomTilemapsCache.ContainsKey(cacheKey))
-        {
-            HashSet<Vector2Int> tiles = new HashSet<Vector2Int>();
-            Tilemap[] tms = room.GetComponentsInChildren<Tilemap>(true);
-            foreach (var tm in tms)
-            {
-                if (tm == null || !tm.name.Contains("Ground")) continue;
-                
-                tm.CompressBounds();
-                BoundsInt bounds = tm.cellBounds;
-                Vector3 roomCenterWorld = room.transform.position + (Vector3)room.centerOffset;
-
-                foreach (var pos in bounds.allPositionsWithin)
-                {
-                    if (tm.HasTile(pos))
-                    {
-                        Vector3 tileWorld = tm.CellToWorld(pos);
-                        int localX = Mathf.RoundToInt(tileWorld.x - roomCenterWorld.x);
-                        int localY = Mathf.RoundToInt(tileWorld.y - roomCenterWorld.y);
-                        tiles.Add(new Vector2Int(localX, localY));
-                    }
-                }
-            }
-            _roomTilemapsCache[cacheKey] = tiles;
-        }
-
-        var terrainTiles = _roomTilemapsCache[cacheKey];
+        var terrainTiles = GetRoomFloorTiles(room);
         if (terrainTiles.Count == 0) return;
 
         GameObject terrainContainer = new GameObject("TerrainContainer", typeof(RectTransform));
         terrainContainer.transform.SetParent(roomObj.transform, false);
         RectTransform containerRt = terrainContainer.GetComponent<RectTransform>();
-        containerRt.sizeDelta = new Vector2(roomUiSize, roomUiSize);
+        CenterOnParent(containerRt);
+        containerRt.sizeDelta = uiSize;
         containerRt.anchoredPosition = Vector2.zero;
 
-        // [개선] 방 크기(벽 포함 roomSize)가 아니라 '실제 바닥 타일 범위'에 꽉 차게 그린다.
-        // (roomSize는 벽까지 포함해서 바닥이 미니맵 칸 가운데 작게 떠 빈 여백이 컸다.)
-        // 정사각 셀(가로=세로)로 방 비율을 보존하고, 인접 타일은 항상 1칸 간격이라 도트가 늘 맞닿는다.
-        ComputeFloorLayout(terrainTiles, out Vector2 floorCenter, out int floorSpan);
-        float cell = roomUiSize / floorSpan;
+        // 방 크기(벽 포함 roomSize)가 아니라 '실제 바닥 타일 범위'에 꽉 차게 그린다.
+        // uiSize = span × hudPixelsPerTile 이므로 cell은 항상 hudPixelsPerTile로 고정된다(방 크기와 무관).
+        ComputeFloorLayout(terrainTiles, out Vector2 floorCenter, out Vector2 span);
+        float cell = uiSize.x / span.x;
 
         // 그림자가 도트 사이사이에 껴서 격자처럼 보이지 않도록, 위→아래·왼→오 순서로 그린다.
         // (오른쪽/아래 이웃이 나중에(위에) 그려져 안쪽 그림자를 덮어, 실루엣 바깥 테두리에만 그림자가 남는다.)
-        List<Vector2Int> sortedTiles = new List<Vector2Int>(terrainTiles);
-        sortedTiles.Sort((a, b) => a.y != b.y ? b.y.CompareTo(a.y) : a.x.CompareTo(b.x));
+        List<Vector2> sortedTiles = new List<Vector2>(terrainTiles);
+        sortedTiles.Sort((a, b) => !Mathf.Approximately(a.y, b.y) ? b.y.CompareTo(a.y) : a.x.CompareTo(b.x));
 
         foreach (var tilePos in sortedTiles)
         {
@@ -517,9 +516,11 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             dotObj.transform.SetParent(terrainContainer.transform, false);
 
             RectTransform dRt = dotObj.GetComponent<RectTransform>();
-            dRt.sizeDelta = new Vector2(cell + terrainDotPadding, cell + terrainDotPadding);
-            // 바닥 범위 중심을 컨테이너 정중앙에 맞춰 배치 (도트 간격 = cell, 크기 = cell+padding → 항상 맞닿음).
-            dRt.anchoredPosition = new Vector2((tilePos.x - floorCenter.x) * cell, (tilePos.y - floorCenter.y) * cell);
+            CenterOnParent(dRt);
+            // 도트 크기 = 셀 크기 × 배수 → 인접 도트가 살짝 겹쳐 빈틈 없이 이어진다.
+            dRt.sizeDelta = new Vector2(cell * terrainDotOverlap, cell * terrainDotOverlap);
+            // 바닥 범위 중심을 컨테이너 정중앙에 맞춰 배치 (도트 간격 = cell).
+            dRt.anchoredPosition = (tilePos - floorCenter) * cell;
 
             Image img = dotObj.GetComponent<Image>();
             img.sprite = (customTerrainDotSprite != null) ? customTerrainDotSprite : fallbackRoomSprite;
@@ -535,17 +536,62 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         }
     }
 
-    /// <summary>타일 집합의 중심(로컬 오프셋)과 정사각 span(긴 축 칸수)을 구한다. 지형 도트와 마커가 같은 기준으로 배치되도록 공용.</summary>
-    private void ComputeFloorLayout(HashSet<Vector2Int> tiles, out Vector2 center, out int span)
+    /// <summary>방 바닥 타일 '중심'들의 방 중심 기준 월드 오프셋을 캐시해 반환.
+    /// 정수로 반올림하지 않는다. CellToWorld는 타일의 코너를, centerOffset은 벽 바운딩박스의 중심을 가리켜
+    /// 둘의 차가 항상 정확히 X.5로 떨어지는데, Mathf.RoundToInt는 .5를 짝수로 보내는 은행가 반올림이라
+    /// 인접한 두 타일 열이 같은 정수로 뭉개져 바닥의 절반이 사라지고 남은 타일 간격이 2칸으로 벌어졌다.
+    /// (벽 너비 47=홀수라 X는 항상, 벽 높이 27~32는 방마다 달라 Y는 방에 따라 붕괴 → "방마다 타일 크기가 달라 보임"의 원인)</summary>
+    private List<Vector2> GetRoomFloorTiles(RoomInstance room)
     {
-        int minX = int.MaxValue, maxX = int.MinValue, minY = int.MaxValue, maxY = int.MinValue;
+        int cacheKey = room.GetInstanceID(); // 이름은 프리팹끼리 겹칠 수 있어 인스턴스 ID로 캐시
+        if (!_roomFloorCache.TryGetValue(cacheKey, out var tiles))
+        {
+            tiles = new List<Vector2>();
+            Tilemap ground = room.groundTilemap; // RoomInstance가 이미 들고 있는 참조 (스탬프 후 비활성이어도 타일 데이터는 남음)
+            if (ground != null)
+            {
+                ground.CompressBounds();
+                Vector3 roomCenterWorld = room.transform.position + (Vector3)room.centerOffset;
+                foreach (var pos in ground.cellBounds.allPositionsWithin)
+                {
+                    if (!ground.HasTile(pos)) continue;
+                    Vector3 tileCenter = ground.GetCellCenterWorld(pos);
+                    tiles.Add(new Vector2(tileCenter.x - roomCenterWorld.x, tileCenter.y - roomCenterWorld.y));
+                }
+            }
+            _roomFloorCache[cacheKey] = tiles;
+        }
+        return tiles;
+    }
+
+    /// <summary>전투 HUD용: 타일당 hudPixelsPerTile px 고정 스케일로 잡은 UI 크기(칸수×픽셀). 방이 크면 미니맵도 그만큼 커진다.</summary>
+    private Vector2 GetFocusRoomUiSize(RoomInstance room)
+    {
+        var tiles = GetRoomFloorTiles(room);
+        if (tiles.Count == 0) return new Vector2(hudRoomSize, hudRoomSize);
+        ComputeFloorLayout(tiles, out _, out Vector2 span);
+        return span * hudPixelsPerTile;
+    }
+
+    /// <summary>타일 중심 목록의 중심과 칸 수(가로,세로)를 구한다. 지형 도트와 마커가 같은 기준으로 배치되도록 공용.</summary>
+    private void ComputeFloorLayout(List<Vector2> tiles, out Vector2 center, out Vector2 span)
+    {
+        float minX = float.MaxValue, maxX = float.MinValue, minY = float.MaxValue, maxY = float.MinValue;
         foreach (var p in tiles)
         {
             if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
             if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
         }
         center = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
-        span = Mathf.Max(1, Mathf.Max(maxX - minX + 1, maxY - minY + 1));
+        // 타일 중심 간격이 1이라 (max-min)은 '칸수-1'. +1 해야 실제 칸수가 된다.
+        span = new Vector2(Mathf.Max(1f, maxX - minX + 1f), Mathf.Max(1f, maxY - minY + 1f));
+    }
+
+    /// <summary>런타임 생성 RectTransform이 부모 정중앙 기준으로 배치되도록 앵커/피벗을 명시한다.
+    /// (이 그리기 코드는 전부 '부모 중심 기준 오프셋'으로 좌표를 계산하므로 기본값에 의존하면 안 된다.)</summary>
+    private static void CenterOnParent(RectTransform rt)
+    {
+        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
     }
 
     private void AddMarkerImage(GameObject parent, Sprite sprite, float size, Color color)
@@ -554,6 +600,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         imgObj.transform.SetParent(parent.transform, false);
 
         RectTransform rt = imgObj.GetComponent<RectTransform>();
+        CenterOnParent(rt);
         rt.sizeDelta = new Vector2(size, size);
         rt.anchoredPosition = Vector2.zero;
 
@@ -568,6 +615,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         textObj.transform.SetParent(parent.transform, false);
 
         RectTransform rt = textObj.GetComponent<RectTransform>();
+        CenterOnParent(rt);
         rt.sizeDelta = new Vector2(roomUiSize, roomUiSize);
         rt.anchoredPosition = Vector2.zero;
 
@@ -656,14 +704,23 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                     enemyMarker.transform.SetParent(parentContainer, false);
 
                     RectTransform eRt = enemyMarker.GetComponent<RectTransform>();
-                    
-                    float parentSize = parentContainer.parent.GetComponent<RectTransform>().sizeDelta.x;
-                    
+                    CenterOnParent(eRt);
+
                     // 🌟 [적 마커 스케일 분기] 보스이거나 이름에 Boss가 섞인 강한 적은 마커 크기를 1.8배 확대
                     bool isBoss = enemy.CompareTag("Boss") || enemy.name.Contains("Boss");
-                    float scaleMultiplier = isBoss ? 0.22f : 0.12f;
-                    
-                    eRt.sizeDelta = new Vector2(parentSize * scaleMultiplier, parentSize * scaleMultiplier);
+
+                    // 전투 HUD는 지도가 고정 스케일로 커지므로 마커도 칸 수 기준 고정. 개요(full)는 기존 방 크기 비율.
+                    float eSize;
+                    if (pair.Key == "hud" && _hudMarkerPx > 0f)
+                    {
+                        eSize = _hudMarkerPx * (isBoss ? 1.8f : 1f);
+                    }
+                    else
+                    {
+                        float parentSize = parentContainer.parent.GetComponent<RectTransform>().sizeDelta.x;
+                        eSize = parentSize * (isBoss ? 0.22f : 0.12f);
+                    }
+                    eRt.sizeDelta = new Vector2(eSize, eSize);
 
                     Image eImg = enemyMarker.GetComponent<Image>();
                     eImg.sprite = (customEnemyIcon != null) ? customEnemyIcon : null; // 커스텀 적 아이콘 오버라이드 지원
@@ -682,20 +739,19 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         Vector3 roomCenter = currentRoom.transform.position + (Vector3)currentRoom.centerOffset;
 
         // 지형 도트와 '같은 기준'(실제 바닥 범위)으로 마커를 얹어야 정확히 정렬된다.
-        // 지형이 그려져 타일이 캐시된 방이면 그 바닥 범위를, 아니면(캐시 없음) 방 크기를 폴백으로 사용.
-        float roomW, roomH;
+        // 바닥 타일을 못 찾은 방만 방 크기로 폴백.
+        var floorTiles = GetRoomFloorTiles(currentRoom);
         Vector2 floorCenter = Vector2.zero;
-        if (_roomTilemapsCache.TryGetValue(currentRoom.gameObject.name, out var floorTiles) && floorTiles.Count > 0)
+        Vector2 span;
+        if (floorTiles.Count > 0)
         {
-            ComputeFloorLayout(floorTiles, out floorCenter, out int floorSpan);
-            roomW = floorSpan; roomH = floorSpan; // 지형과 동일한 정사각 셀 기준
+            ComputeFloorLayout(floorTiles, out floorCenter, out span);
         }
         else
         {
-            roomW = currentRoom.roomSize.x;
-            roomH = currentRoom.roomSize.y;
-            if (roomW <= 0.1f) roomW = 25f;
-            if (roomH <= 0.1f) roomH = 25f;
+            span = new Vector2(
+                currentRoom.roomSize.x <= 0.1f ? 25f : currentRoom.roomSize.x,
+                currentRoom.roomSize.y <= 0.1f ? 25f : currentRoom.roomSize.y);
         }
 
         // 1. 플레이어 위치 및 회전 각도 실시간 동기화
@@ -704,15 +760,16 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             Vector3 playerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position;
             Vector3 pDiff = playerPos - roomCenter;
 
-            float pNormX = (pDiff.x - floorCenter.x) / roomW;
-            float pNormY = (pDiff.y - floorCenter.y) / roomH;
+            float pNormX = (pDiff.x - floorCenter.x) / span.x;
+            float pNormY = (pDiff.y - floorCenter.y) / span.y;
 
             foreach (var pRt in _playerMarkers)
             {
                 if (pRt != null && pRt.parent != null)
                 {
-                    float parentSize = pRt.parent.GetComponent<RectTransform>().sizeDelta.x;
-                    pRt.anchoredPosition = new Vector2(pNormX * parentSize, pNormY * parentSize);
+                    // 전투 HUD에선 parentSize = span × hudPixelsPerTile 이라 결과가 (월드오프셋 × 고정px) = 지형 도트 격자와 정확히 일치.
+                    Vector2 parentSize = pRt.parent.GetComponent<RectTransform>().sizeDelta;
+                    pRt.anchoredPosition = new Vector2(pNormX * parentSize.x, pNormY * parentSize.y);
 
                     // 🌟 [플레이어 360도 회전 실시간 매핑] syncPlayerZRotation이 켜져 있을 때 각도 복사
                     if (syncPlayerZRotation)
@@ -733,8 +790,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             if (enemy == null || markerList == null) continue;
 
             Vector3 eDiff = enemy.transform.position - roomCenter;
-            float eNormX = (eDiff.x - floorCenter.x) / roomW;
-            float eNormY = (eDiff.y - floorCenter.y) / roomH;
+            float eNormX = (eDiff.x - floorCenter.x) / span.x;
+            float eNormY = (eDiff.y - floorCenter.y) / span.y;
 
             // [수정] 방 전환 직후에 이전 방의 적이 잠시 계속 남아있거나 등 계산이 틀어졌을 때, 마커가 방 타일 밖으로 멀리 튀어나가지 않도록
             // 정규화된 좌표를 방 경계값(-0.5~0.5)로 강제 클램프합니다.
@@ -745,8 +802,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             {
                 if (markerRt != null && markerRt.parent != null && markerRt.parent.parent != null)
                 {
-                    float parentSize = markerRt.parent.parent.GetComponent<RectTransform>().sizeDelta.x;
-                    markerRt.anchoredPosition = new Vector2(eNormX * parentSize, eNormY * parentSize);
+                    Vector2 parentSize = markerRt.parent.parent.GetComponent<RectTransform>().sizeDelta;
+                    markerRt.anchoredPosition = new Vector2(eNormX * parentSize.x, eNormY * parentSize.y);
                 }
             }
         }
@@ -791,10 +848,12 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             if (mapUI != null) mapUI.CloseMapUI();
         };
 
-        // 화면 페이드(암전) 연출. 페이드 컨트롤러가 없으면 즉시 텔레포트로 폴백.
-        if (ScreenFadeController.Instance != null)
+        // 화면 페이드(암전) 연출. 양은 여기 박지 않는다 — 문 통과와 똑같은 '방이동'이라
+        // ScreenFadeCanvas의 Fader에서 그 줄 하나로 같이 조절된다. 페이더가 없으면 즉시 텔레포트로 폴백.
+        Fader fader = Fader.FullScreenFader;
+        if (fader != null)
         {
-            ScreenFadeController.Instance.FadeOutIn(teleportFadeOutDuration, teleportFadeHoldDuration, teleportFadeInDuration, doTeleport);
+            fader.FadeOutIn(FadeSignal.방이동, doTeleport);
         }
         else
         {

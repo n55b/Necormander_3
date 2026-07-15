@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -70,53 +69,50 @@ public class DoorController : MonoBehaviour
     {
         if (!_isEnabled || _isTeleporting) return;
 
-        if (other.CompareTag("Player"))
-        {
-            PlayerController player = other.GetComponentInParent<PlayerController>() ?? other.GetComponent<PlayerController>();
-            if (player != null && _destinationDoor != null)
-            {
-                StartCoroutine(TeleportSequence(player));
-            }
-        }
-    }
+        if (!other.CompareTag("Player")) return;
 
-    private IEnumerator TeleportSequence(PlayerController player)
-    {
+        PlayerController player = other.GetComponentInParent<PlayerController>() ?? other.GetComponent<PlayerController>();
+        if (player == null || _destinationDoor == null) return;
+
         _isTeleporting = true;
         player.SetInputBlocked(true);
 
-        // 페이드 아웃 연출
-        float fadeTime = 0.2f;
-        CanvasGroup fadeCanvas = CreateFadeCanvas();
-        if (fadeCanvas != null)
+        // 문은 양(시간/색)을 안 들고 있다. '방이동' 이라는 신호 이름만 넘기면
+        // 실제 수치는 ScreenFadeCanvas의 Fader 반응 목록에서 '방이동' 줄을 찾아 쓴다 → 기획자가 거기서 조절.
+        //
+        // 텔레포트는 '완전히 깜깜해진 순간'에 끼워넣는다 = 화면이 가려진 동안 순간이동해서 뚝 끊기는 게 안 보인다.
+        // 이 페이드는 커튼(DontDestroyOnLoad) 위에서 돌기 때문에, 이 문/방이 도중에 파괴돼도
+        // 화면이 검은 채로 굳지 않는다. (예전엔 이 코루틴이 문과 함께 죽으면 암전인 채 멈췄다.)
+        Fader fader = Fader.FullScreenFader;
+        if (fader == null)
         {
-            float elapsed = 0f;
-            while (elapsed < fadeTime)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                fadeCanvas.alpha = Mathf.Clamp01(elapsed / fadeTime);
-                yield return null;
-            }
-            fadeCanvas.alpha = 1f;
+            // 페이더를 못 구하면 연출만 생략하고 이동은 정상 수행 (검은 화면에 갇히는 것보다 낫다)
+            DoTeleport(player);
+            FinishTeleport(player);
+            return;
         }
 
-        // 플레이어 순간이동 전 위치 저장
+        fader.FadeOutIn(FadeSignal.방이동, () => DoTeleport(player), () => FinishTeleport(player));
+    }
+
+    /// <summary>암전된 동안 실행: 플레이어 순간이동 + 카메라 워프 + 미니맵 초점 이동.</summary>
+    private void DoTeleport(PlayerController player)
+    {
+        if (player == null || _destinationDoor == null) return;
+
         Vector3 prevPos = player.transform.position;
 
-        // 목적지 앵커 위치 계산 및 플레이어 텔레포트
         // 목적지 앵커 위치에서 방 안쪽 방향(_roomEntranceDirection)으로 2.5유닛 정도 띈 좌표를 목적지로 설정
         Vector3 destAnchorPos = _destinationDoor.transform.position;
         Vector3 spawnOffset = new Vector3(_roomEntranceDirection.x, _roomEntranceDirection.y, 0) * 2.5f;
         Vector3 targetWorldPos = destAnchorPos + spawnOffset;
 
-        // 플레이어 트랜스폼 순간이동
         player.transform.position = targetWorldPos;
 
         // 카메라 즉시 이동 (Warp)
         if (CameraManager.Instance != null)
         {
-            Vector3 delta = targetWorldPos - prevPos;
-            CameraManager.Instance.WarpCamera(player.transform, delta);
+            CameraManager.Instance.WarpCamera(player.transform, targetWorldPos - prevPos);
         }
 
         // 목적지 방의 촘촘한 미니맵 좌표로 카메라 초점 실시간 정렬
@@ -125,47 +121,12 @@ public class DoorController : MonoBehaviour
         {
             MapGenerator.Instance.UpdateMiniMapCameraFocus(targetRoom);
         }
-
-        yield return new WaitForSecondsRealtime(0.1f);
-
-        // 페이드 인 연출
-        if (fadeCanvas != null)
-        {
-            float elapsed = 0f;
-            while (elapsed < fadeTime)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                fadeCanvas.alpha = Mathf.Clamp01(1f - (elapsed / fadeTime));
-                yield return null;
-            }
-            Destroy(fadeCanvas.gameObject);
-        }
-
-        player.SetInputBlocked(false);
-        _isTeleporting = false;
     }
 
-    private CanvasGroup CreateFadeCanvas()
+    /// <summary>페이드 인까지 끝난 뒤: 조작 복구.</summary>
+    private void FinishTeleport(PlayerController player)
     {
-        GameObject canvasObj = new GameObject("TeleportFadeCanvas");
-        Canvas canvas = canvasObj.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 999;
-
-        canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
-        CanvasGroup group = canvasObj.AddComponent<CanvasGroup>();
-
-        GameObject panel = new GameObject("FadeImage");
-        panel.transform.SetParent(canvasObj.transform, false);
-        var image = panel.AddComponent<UnityEngine.UI.Image>();
-        image.color = Color.black;
-
-        var rect = image.rectTransform;
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.sizeDelta = Vector2.zero;
-
-        group.alpha = 0f;
-        return group;
+        if (player != null) player.SetInputBlocked(false);
+        _isTeleporting = false;
     }
 }

@@ -1,0 +1,38 @@
+흔들림 넣기
+
+부품 고르고 → UIShaker 붙이고 → Reactions에 줄 하나:
+
+Signal    플레이어피격      ← 언제
+Strength  (18, 18)         ← 얼마나 (픽셀). 가로만 흔들려면 (12, 0)
+Duration  0.3   Vibrato  25   ☑ Fade Out
+
+끝입니다. 신호는 이미 게임이 쏘고 있습니다. 다른 순간에도 흔들고 싶으면 줄을 하나 더 추가해서 적피격 고르면 됩니다.
+
+페이드 넣기 — 두 경우뿐
+
+① 게임에서 뭔 일 생길 때 같이 사라지기 (문 지날 때 이 UI도)
+
+UI에 Fader 붙이고 Reactions에 줄 하나:
+Signal    방이동
+Action    사라졌다나타나기
+Duration  0.15
+
+② UI 열고 닫을 때 스르륵
+
+Fader 붙이고:
+Reactions [0]   Signal 없음,  Duration 0.2
+☑ Fade In On Enable
+☑ Deactivate On Fade Out Complete
+그리고 닫기 버튼 OnClick의 SetActive(false)를 지우고 Fader.FadeOut()으로 바꿉니다. 여는 쪽은 손댈 것 없습니다.
+
+▎ ⚠️ 이거 안 바꾸면 페이드가 아예 안 보입니다. UI가 즉시 꺼져버려서요. 제일 흔한 실수입니다.
+
+함정 둘
+
+흔들림 — 레이아웃 자식에 붙이면 안 됩니다. 흔들렸다가 도로 돌아옵니다. 부모가 레이아웃을 잡고 있으면 그 아래 자유 노드를 찾아 붙이세요 (체력바는 Panel_HP가 아니라 BG_HPBar). Play 누르면 콘솔에 경고가 뜹니다.
+
+페이드 — 화면 전체를 어둡게 하려면 자식까지 텅 빈 오브젝트에. Fader는 붙은 자리와 그 아래 자식 전부를 뒤져서 판단합니다. 자식에 스프라이트나 UI가 하나라도 있으면 화면이 아니라 그것만 페이드되고, 경고도 안 뜹니다.
+
+확인
+
+컴포넌트 우클릭 → Test - Shake / Test - FadeOutIn. Play 중에만 됩니다.

@@ -90,6 +90,7 @@ GameObject:
   - component: {fileID: 5616928959615157270}
   - component: {fileID: 8187257019373708102}
   - component: {fileID: 4830924973396807465}
+  - component: {fileID: 8716148280877125319}
   m_Layer: 5
   m_Name: BG_HPBar
   m_TagString: Untagged
@@ -156,6 +157,25 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8716148280877125319
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 62742640410985327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8b4e46c9ada3524fa908af7e9ef5180, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  reactions:
+  - signal: 1
+    strength: {x: 18, y: 18}
+    duration: 0.3
+    vibrato: 25
+    fadeOut: 1
+  unscaledTime: 1
 --- !u!1 &133091751864329527
 GameObject:
   m_ObjectHideFlags: 0

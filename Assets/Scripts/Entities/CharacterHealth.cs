@@ -224,6 +224,14 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
             // 실제 데미지 피격 후 이벤트 트리거
             DamageEventBus.TriggerDamageReceived(this, info);
+
+            // 연출 신호. '지금 맞았다'를 아는 건 여기뿐이라 여기서 쏜다. 듣는 쪽(카메라/체력바)이 알아서 반응한다.
+            // 태그는 반드시 '루트'에서 본다 — CharacterHealth는 자식 CharacterStatStuff(Untagged)에 붙어 있어서
+            // 이 오브젝트의 태그를 보면 영원히 false가 된다.
+            if (transform.root.CompareTag("Player"))
+                Signal.Fire(ShakeSignal.플레이어피격);
+            else if (info.attacker != null && info.attacker.CompareTag("Player"))
+                Signal.Fire(ShakeSignal.적피격);
         }
 
         // [처형] 체크
