@@ -320,14 +320,14 @@ public class PlayerController : MonoBehaviour
             var parryCtrl = GetComponent<PlayerParryController>();
             bool isParrying = parryCtrl != null && parryCtrl.IsParrying;
 
-            // PlayerSkillController를 통한 연계 스킬(스페이스바) 및 상시 스킬(Q, E, R) 처리
+            // PlayerSkillController를 통한 소환수 스킬(스페이스바) 및 상시 스킬(Q, E, R) 처리
             var skillCtrl = GetComponent<PlayerSkillController>();
             if (skillCtrl != null && !_inputBlocked && !isParrying)
             {
-                // 스페이스바: 큐에 대기 중인 미니언 스킬 발동
+                // 스페이스바: 소환수 스킬 발동 (쿨타임만 확인, 조건 없음)
                 if (kb.spaceKey.wasPressedThisFrame)
                 {
-                    skillCtrl.ExecuteNextMinionSkill(transform);
+                    skillCtrl.ExecuteMinionSkill(transform);
                 }
             }
         }

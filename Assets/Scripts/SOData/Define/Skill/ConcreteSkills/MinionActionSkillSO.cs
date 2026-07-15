@@ -49,17 +49,6 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
                 if (health == null) health = vt.GetComponentInParent<CharacterHealth>();
                 if (health != null && health.IsDead) continue;
 
-                // 각 연계 스킬 키워드별 타겟 상태 유효성 실시간 체크
-                var status = vt.GetComponentInChildren<CharacterStatus>();
-                if (status == null) status = vt.GetComponentInParent<CharacterStatus>();
-
-                if (status == null) continue;
-
-                if (this.reactKeyword == SkillKeyword.Vulnerability && status.VulnerabilityStacks <= 0) continue;
-                if (this.reactKeyword == SkillKeyword.Stun && !(status.GetDebuffBool(DebuffBoolType.Stunned) || status.GetDebuffBool(DebuffBoolType.Hitstunned))) continue;
-                if ((this.reactKeyword == SkillKeyword.Strike || this.reactKeyword == SkillKeyword.Smash) && status.VulnerabilityStacks <= 0) continue;
-                if (this.reactKeyword == SkillKeyword.Debuff && status.DebuffStackCount <= 0) continue;
-
                 float dist = Vector2.Distance(playerPos, vt.position);
                 if (dist < minDist) { minDist = dist; closestTarget = vt; }
             }
@@ -67,7 +56,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
 
         if (closestTarget == null)
         {
-            // [개선] 찰나의 프레임 차이로 유효 타겟이 소멸되었을 경우, 소환수 강제 돌진을 예방하고 동작을 완전히 차단합니다.
+            // 칠 대상이 없으면 소환수 강제 돌진을 예방하고 동작을 완전히 차단합니다.
             return;
         }
 

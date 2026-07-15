@@ -126,9 +126,7 @@ private void RefreshLinkedSkillSlots(PlayerSkillController skillController)
             if (linkedSkill != null)
             {
                 Sprite icon = linkedSkill.icon != null ? linkedSkill.icon : minion.minionIcon;
-                string condition = GetKeywordDisplayName(linkedSkill.reactKeyword);
-                string rawDescription = $"[발동 조건: {condition}]\n{linkedSkill.description}";
-                string description = ApplyKeywordHighlighting(rawDescription);
+                string description = ApplyKeywordHighlighting(linkedSkill.description);
 
                 slot.SetData(icon, linkedSkill.skillName, description);
             }
@@ -140,9 +138,6 @@ private void RefreshLinkedSkillSlots(PlayerSkillController skillController)
     }
 
     /// <summary>
-    /// 연계 스킬의 발동 조건(reactKeyword)을 사람이 읽을 수 있는 문구로 변환합니다.
-    /// </summary>
-        /// <summary>
     /// 설명 문장 안에서 키워드 사전에 등록된 단어(예: "취약")를 찾아 색상 + 호버용 <link> 태그로 감싸니다.
     /// (보상 카드와 동일한 방식. 스프라이트 태그는 붙이지 않아 미설정 스프라이트로 인한 "?" 표시를 피합니다.)
     /// </summary>
@@ -172,16 +167,4 @@ private string ApplyKeywordHighlighting(string text)
         return text;
     }
 
-private string GetKeywordDisplayName(SkillKeyword keyword)
-    {
-        switch (keyword)
-        {
-            case SkillKeyword.Vulnerability: return "취약 상태의 적 존재 시";
-            case SkillKeyword.Debuff: return "디버프가 걸린 적 존재 시";
-            case SkillKeyword.Stun: return "기절한 적 존재 시";
-            case SkillKeyword.Strike: return "격파(취약) 판정 시";
-            case SkillKeyword.Smash: return "강타(취약) 판정 시";
-            default: return "조건 없음";
-        }
-    }
 }

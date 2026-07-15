@@ -44,7 +44,6 @@ public class GameManager : MonoBehaviour
     [Header("UI References")]
     [SerializeField] public PlayerStateUI playerStateUI;
     [SerializeField] public MinionStateUI minionStateUI;
-    [SerializeField] public MinionSkillQueueUI minionSkillQueueUI;
     [Header("Combat Sound")]
     [SerializeField] private PlayerAttackSoundData playerAttackSoundData;
 
@@ -225,12 +224,7 @@ public class GameManager : MonoBehaviour
                 var skillCtrl = playerController.GetComponent<PlayerSkillController>();
                 minionStateUI.Initialize(skillCtrl);
                 Debug.Log("<color=cyan>[GameManager]</color> MinionStateUI Initialized.");
-
-                if (minionSkillQueueUI != null)
-                    minionSkillQueueUI.Initialize(skillCtrl);
-
-            // DashCooldownUI는 PlayerStateUI.Initialize()에서 자체 처리
-
+                // DashCooldownUI는 PlayerStateUI.Initialize()에서 자체 처리
             }
 
             playerStateUI.Initialize(health);
