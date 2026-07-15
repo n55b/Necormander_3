@@ -11,6 +11,10 @@ public class MeleeDodgeController : MonoBehaviour
     [Header("대쉬 이펙트")]
     [SerializeField] private GameObject dashEffectPrefab; // 대쉬 이펙트 프리팹
 
+    [Header("대쉬 히트박스 (메인 소환수가 대쉬에 피해를 붙일 때 사용)")]
+    [Tooltip("BaseHitBox 가 붙은 프리팹. 미지정이면 소환수가 대쉬 피해를 갖고 있어도 발동하지 않는다.")]
+    [SerializeField] private BaseHitBox dashHitBoxPrefab;
+
     private int _currentCharges;
     private float _rechargeTimer;
 
@@ -118,11 +122,19 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
             fx.transform.localScale = fxScale;
         }
 
+        // 메인 소환수가 대쉬를 개조한다 (없으면 mod == null → 기본 대쉬 그대로).
+        var mod = GetDashModifier();
+        float lengthMult = (mod != null) ? Mathf.Max(0.01f, mod.lengthMultiplier) : 1f;
+
         // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
-        float originalDist = dashSpeed * dashDuration;
+        // 배율은 벽 클램프 '전'에 곱한다 — 클램프가 최종 도달점을 잡아야 벽을 뚫지 않는다.
+        float originalDist = dashSpeed * dashDuration * lengthMult;
         Vector2 safePos = _player.GetSafeDashPosition(transform.position, _dashDir, originalDist);
         float actualDist = Vector2.Distance(transform.position, safePos);
         _dashTimeLeft = actualDist / dashSpeed; // 동적으로 대시 시간 조절
+
+        if (mod != null && mod.DealsDamage)
+            SpawnDashHitBox(mod, transform.position, _dashDir, actualDist);
 
         if (_player.Stat != null && _player.Stat.Health != null)
         {
@@ -137,6 +149,63 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Dash", "Idle");
         OnDodgeStarted?.Invoke();
+    }
+
+    /// <summary>장착된 메인 소환수의 대쉬 개조안. 없으면 null(= 기본 대쉬).</summary>
+    private MinionDashModifier GetDashModifier()
+    {
+        var skillCtrl = _player != null ? _player.GetComponent<PlayerSkillController>() : null;
+        var main = skillCtrl != null ? skillCtrl.MainSummon : null;
+        return main != null ? main.dashModifier : null;
+    }
+
+    /// <summary>
+    /// 대쉬 경로를 덮는 히트박스를 깐다. 대쉬 자체는 원래 순수 이동이라 이 히트박스가 신규다.
+    /// 다단히트는 BaseHitBox 의 isContinuousDamage + damageTickRate 로 낸다.
+    /// </summary>
+    private void SpawnDashHitBox(MinionDashModifier mod, Vector2 origin, Vector2 dir, float dist)
+    {
+        if (dashHitBoxPrefab == null)
+        {
+            Debug.LogWarning("<color=orange>[MeleeDodge]</color> 소환수가 대쉬 피해를 갖고 있는데 dashHitBoxPrefab 이 비어 있습니다.");
+            return;
+        }
+        if (dist <= 0.01f) return;
+
+        float travelTime = dist / dashSpeed;
+
+        // 경로 중앙에 방향으로 눕힌 박스를 깐다. 길이 = 이동 거리, 폭 = 소환수 설정.
+        Vector2 center = origin + dir * (dist * 0.5f);
+        var box = Instantiate(dashHitBoxPrefab, center, Quaternion.identity);
+        box.transform.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
+        box.transform.localScale = new Vector3(dist, mod.width, 1f);
+
+        float dmg = (_player.Stat != null ? _player.Stat.ATK : 0f) * mod.damageMultiplier;
+        var info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, false, 1f, true, "Dash",
+                                  causesHitstun: true, knockbackForce: mod.pushesEnemies ? mod.pushForce : 0f);
+
+        System.Action<CharacterHealth> onHit = null;
+        if (mod.pushesEnemies)
+        {
+            onHit = (health) =>
+            {
+                var entity = health.GetComponentInParent<BaseEntity>();
+                if (entity != null) entity.ApplyKnockback(dir * mod.pushForce);
+            };
+        }
+
+        if (mod.hitCount > 1)
+        {
+            // N타를 이동 시간 안에 균등 배분한다.
+            box.isContinuousDamage = true;
+            box.damageTickRate = travelTime / mod.hitCount;
+        }
+        else
+        {
+            box.isContinuousDamage = false;
+        }
+
+        box.Init(info, Layers.EnemyMask, travelTime, 0f, true, onHit);
     }
 
 private void EndDash()

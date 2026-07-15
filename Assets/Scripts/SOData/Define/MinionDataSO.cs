@@ -20,7 +20,12 @@ public class MinionDataSO : ScriptableObject
 {
     [Header("Skill Information")]
     // playerSkill은 삭제되었습니다 (개별 관리로 분리). 플레이어 스킬은 PlayerSkillController.equippedPlayerSkills가 담당.
+    [Tooltip("메인 소환수의 스페이스바 액티브. 서브는 비워둔다.")]
     public MinionSkillSO minionSkill;
+
+    [Header("메인 소환수: 플레이어 변화")]
+    [Tooltip("이 소환수가 플레이어의 대쉬를 어떻게 바꾸는지. 서브는 무시된다.")]
+    public MinionDashModifier dashModifier = new MinionDashModifier();
 
     [Header("Basic Information")]
     [Tooltip("메인: 스페이스바 액티브 + 대쉬/평타 변화. 서브: 상시 패시브만 (실체화 없음).")]
