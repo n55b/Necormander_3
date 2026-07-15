@@ -346,9 +346,9 @@ MonoBehaviour:
   Slots: []
   useDebugStartingInventory: 1
   debugStartingMinions:
-  - {fileID: 11400000, guid: b12fdbc1ee273224f9d5fe960d6b18e2, type: 2}
-  - {fileID: 11400000, guid: 02b328c2889b4af408a588ed6baae425, type: 2}
-  debugStartingMinionQuantities: 
+  - {fileID: 11400000, guid: 1249b3e99bee40e1a4fa574ab04a2b28, type: 2}
+  - {fileID: 11400000, guid: 2ebf02073b714bd08b60e585b5172baa, type: 2}
+  debugStartingMinionQuantities:
   debugStartingGems_Data: []
   debugStartingGems_TargetJobs: 00000000
   debugStartingAbilities: []

@@ -21,9 +21,15 @@ public class MinionActionSkillSO : MinionSkillSO
     public bool useHitBox = false;
     public BaseHitBox hitBoxPrefab;
     public float hitRadius = 1.5f;
-    public float damageMultiplier = 1.2f; 
+    public float damageMultiplier = 1.2f;
     public float forceAmount = 4f; // 넉백/끌어당김 힘
     public float forceDuration = 0.2f;
+
+    [Header("다단히트 (useHitBox 일 때만)")]
+    [Tooltip("몇 번 때릴지. 1 이면 단타.")]
+    public int hitCount = 1;
+    [Tooltip("타격이 유지되는 시간(초). hitCount 를 이 시간 안에 균등 배분한다.")]
+    public float hitDuration = 0.2f;
 
     public override void Execute(Transform user, MinionDataSO data, List<Transform> validTargets)
     {
@@ -154,7 +160,20 @@ public class MinionActionSkillSO : MinionSkillSO
 
                 ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
             };
-            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, onHit);
+
+            // 다단히트는 BaseHitBox 의 틱 기능으로 낸다. hitCount 를 hitDuration 안에 균등 배분.
+            float boxDuration = Mathf.Max(0.05f, hitDuration);
+            if (hitCount > 1)
+            {
+                box.isContinuousDamage = true;
+                box.damageTickRate = boxDuration / hitCount;
+            }
+            else
+            {
+                box.isContinuousDamage = false;
+            }
+
+            box.Init(info, Layers.EnemyMask, boxDuration, 0f, true, onHit);
         }
         else
         {

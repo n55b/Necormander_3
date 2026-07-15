@@ -201,7 +201,6 @@ public class ThrowController : MonoBehaviour
             int flyingLayer = Layers.FlyingObject;
             if (hovered.layer == flyingLayer && !_heldObjects.Contains(throwable)) return;
 
-            if (throwable is AllyController ally && !_strategy.CanPickUpType(ally.MinionType, _heldObjects, MaxHoldCount)) return;
             float dist = Vector2.Distance(transform.position, hovered.transform.position);
             if (dist > GameManager.Instance.PLAYERCONTROLLER.THROWRANGE) return;
 

@@ -137,19 +137,8 @@ public class TrajectoryPredictor : MonoBehaviour
         float h_jump = jumpHeight;
         float h_straight = straightHeight;
 
-        // [핵심 로직] 현재 들고 있는 유닛이 있다면 해당 유닛의 고유 데이터를 우선적으로 사용합니다.
-        if (_throwController.HoldPoint.childCount > 0)
-        {
-            var firstChild = _throwController.HoldPoint.GetChild(0);
-            if (firstChild.TryGetComponent<AllyController>(out var ally))
-            {
-                s_min = ally.MinSpeed;
-                s_max = ally.MaxSpeed;
-                s_full = ally.FullChargeSpeed;
-                h_jump = ally.JumpHeight;
-                h_straight = ally.StraightHeight;
-            }
-        }
+        // ponytail: 예전엔 들고 있는 AllyController 의 고유 투척 물리값으로 덮어썼다. 소환수가
+        // 필드에 상주하지 않게 되면서 아군을 들 일이 없어져 기본값만 쓴다.
 
         float maxHeight;
         bool isFullCharge = chargeRatio >= 0.98f;

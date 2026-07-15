@@ -35,32 +35,8 @@ public abstract class AIPatternSO : ScriptableObject
         // 현재 상태 Entity에게 전달하여 애니메이션 재생
         entity.UpdateAnimation(entity.CurrentState);
 
-        // [Test Mode] 오토배틀러 비활성화 시, 아군(Ally)은 모든 AI 판단(공격, 타겟팅)을 중단하고 플레이어만 따라다님
-        if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
-        {
-            if (entity.team == Team.Ally)
-            {
-                var ally = entity as AllyController;
-                if (ally != null && ally.player != null)
-                {
-                    entity.Target = ally.player;
-                    float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
-                    
-                    if (dist > 2.0f) entity.CurrentState = AIState.Follow;
-                    else entity.CurrentState = AIState.Idle;
-
-                    switch (entity.CurrentState)
-                    {
-                        case AIState.Idle: OnIdle(entity); break;
-                        case AIState.Follow: OnFollow(entity); break;
-                    }
-                    
-                    entity.UpdateAnimation(entity.CurrentState);
-                    entity.LookAtTarget(entity.Target);
-                    return; // 더 이상 하위 로직(적군 탐색 등)을 실행하지 않음
-                }
-            }
-        }
+        // ponytail: 여기 있던 'testMode_DisableAutoBattle 시 아군은 플레이어만 따라다님' 분기는
+        // 아군 엔티티(AllyController)가 더 이상 스폰되지 않으면서 도달 불가가 되어 제거했다.
 
         if(entity.Target != null)
         {
