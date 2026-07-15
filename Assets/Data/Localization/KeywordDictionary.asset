@@ -33,7 +33,70 @@ MonoBehaviour:
       m_WaitForCompletion: 0
       m_LocalVariables: []
     spriteName: vulnerable
-    badgeColor: {r: 0.4433962, g: 0.4433962, b: 0.4433962, a: 0}
+    badgeColor: {r: 0.56700003, g: 0.56700003, b: 0.56700003, a: 1}
+  - id: break_stack
+    displayName:
+      m_TableReference:
+        m_TableCollectionName: GUID:0445db3d9809f9f428335fc4c031aaf6
+      m_TableEntryReference:
+        m_KeyId: 4411268486045696
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    description:
+      m_TableReference:
+        m_TableCollectionName: GUID:0445db3d9809f9f428335fc4c031aaf6
+      m_TableEntryReference:
+        m_KeyId: 4411496823955456
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    spriteName: break
+    badgeColor: {r: 0.56700003, g: 0.56700003, b: 0.56700003, a: 1}
+  - id: smash_stack
+    displayName:
+      m_TableReference:
+        m_TableCollectionName: GUID:0445db3d9809f9f428335fc4c031aaf6
+      m_TableEntryReference:
+        m_KeyId: 4412421667987456
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    description:
+      m_TableReference:
+        m_TableCollectionName: GUID:0445db3d9809f9f428335fc4c031aaf6
+      m_TableEntryReference:
+        m_KeyId: 4412423886774272
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    spriteName: smash
+    badgeColor: {r: 0.56700003, g: 0.56700003, b: 0.56700003, a: 1}
+  - id: stun_stack
+    displayName:
+      m_TableReference:
+        m_TableCollectionName: GUID:0445db3d9809f9f428335fc4c031aaf6
+      m_TableEntryReference:
+        m_KeyId: 4410816994385920
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    description:
+      m_TableReference:
+        m_TableCollectionName: GUID:0445db3d9809f9f428335fc4c031aaf6
+      m_TableEntryReference:
+        m_KeyId: 4410933583454208
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    spriteName: stun
+    badgeColor: {r: 0.56700003, g: 0.56700003, b: 0.56700003, a: 1}
   references:
     version: 2
     RefIds: []
