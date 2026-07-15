@@ -27,6 +27,9 @@ public class MinionDataSO : ScriptableObject
     [Tooltip("이 소환수가 플레이어의 대쉬를 어떻게 바꾸는지. 서브는 무시된다.")]
     public MinionDashModifier dashModifier = new MinionDashModifier();
 
+    [Tooltip("플레이어 평타 콤보 마지막(3타)에 이 소환수가 넣는 마무리 일격. 서브는 무시된다.")]
+    public MinionFinisher finisher = new MinionFinisher();
+
     [Header("Basic Information")]
     [Tooltip("메인: 스페이스바 액티브 + 대쉬/평타 변화. 서브: 상시 패시브만 (실체화 없음).")]
     public MinionRole role = MinionRole.Main;

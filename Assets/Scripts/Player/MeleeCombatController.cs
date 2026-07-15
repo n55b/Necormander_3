@@ -11,14 +11,34 @@ public class MeleeCombatController : MonoBehaviour
     [SerializeField] private Transform attackSpawnPoint;
 
     [Header("평타 대시 물리력 설정")]
-    [Tooltip("평타 1, 2타 시의 순간 돌진력(가속 배율)입니다. 기본값 1.0f")]
+    [Tooltip("평타 타격 순간의 돌진력(가속 배율)입니다. 기본값 1.0f")]
     [SerializeField] private float lightAttackDashMultiplier = 1.0f;
-    [Tooltip("평타 3타(피니시) 시의 순간 돌진력(가속 배율)입니다. 기본값 1.5f")]
-    [SerializeField] private float mediumAttackDashMultiplier = 1.5f;
 
     private PlayerController _player;
     private float _lastAttackTime;
-    private int _comboStep = 0; // 0, 1, 2
+    private int _comboStep = 0; // 0, 1 (+ 메인 소환수가 있으면 2 = 소환수 마무리)
+
+    /// <summary>플레이어 자체 평타는 2타. 메인 소환수가 있으면 3타째에 소환수 마무리가 붙는다.</summary>
+    private const int PLAYER_COMBO_LENGTH = 2;
+
+    /// <summary>장착된 메인 소환수의 마무리 일격. 없으면 null.</summary>
+    private MinionFinisher Finisher
+    {
+        get
+        {
+            // 매 공격마다 읽는다 — SyncWithInventory 가 런 도중 소환수를 갈아끼울 수 있다.
+            var skillCtrl = _player != null ? _player.GetComponent<PlayerSkillController>() : null;
+            var main = skillCtrl != null ? skillCtrl.MainSummon : null;
+            if (main == null) return null;
+            return (main.finisher != null && main.finisher.IsValid) ? main.finisher : null;
+        }
+    }
+
+    /// <summary>현재 콤보 총 타수. 메인 소환수가 있으면 +1.</summary>
+    private int ComboLength => Finisher != null ? PLAYER_COMBO_LENGTH + 1 : PLAYER_COMBO_LENGTH;
+
+    /// <summary>이번 스텝이 소환수 마무리 차례인가.</summary>
+    private bool IsFinisherStep(int step) => Finisher != null && step == PLAYER_COMBO_LENGTH;
 
     [Header("콤보 설정")]
     [SerializeField] private float comboResetTime = 1.0f;
@@ -26,9 +46,9 @@ public class MeleeCombatController : MonoBehaviour
 
     [Header("타격 범위 설정")]
     [SerializeField] private Vector2 lightHitboxSize = new Vector2(2f, 1.5f);
-    [SerializeField] private Vector2 mediumHitboxSize = new Vector2(3f, 2f);
     [SerializeField] private float lightTelegraphDuration = 0.2f;
-    [SerializeField] private float mediumTelegraphDuration = 0.4f;
+    // ponytail: medium* (옛 3타 전용) 필드들은 제거됐다. 3타는 소환수 마무리가 대신하고
+    // 그 수치는 MinionDataSO.finisher 가 갖는다.
 
     [Header("평타 범위 표시(텔레그래프) 숨김")]
     [Tooltip("평타(기본 공격)의 범위 표시용 히트박스 시각효과를 숨깁니다. 데미지 판정은 그대로 유지됩니다. (스킬/적 텔레그래프에는 영향 없음)")]
@@ -114,10 +134,17 @@ public class MeleeCombatController : MonoBehaviour
         _lastAttackTime = Time.time;
         OnAttackExecuted?.Invoke(_comboStep);
 
+        // 마무리 타이밍이면 플레이어는 아무것도 하지 않고, 소환수가 나와서 때린다.
+        if (IsFinisherStep(_comboStep))
+        {
+            ExecuteFinisher();
+            _comboStep = (_comboStep + 1) % ComboLength;
+            return;
+        }
 
-        float telegraphDuration = (_comboStep == 2) ? mediumTelegraphDuration : lightTelegraphDuration;
-        Vector2 hitboxSize = (_comboStep == 2) ? mediumHitboxSize : lightHitboxSize;
-        float damageMultiplier = (_comboStep == 2) ? 1.5f : 1.0f;
+        float telegraphDuration = lightTelegraphDuration;
+        Vector2 hitboxSize = lightHitboxSize;
+        float damageMultiplier = 1.0f;
 
         // [애니메이션 재생]
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0f); // [수정] 평타 모션 중 키보드 수동 이동 차단
@@ -128,9 +155,10 @@ public class MeleeCombatController : MonoBehaviour
         _player.LockAnimState(); // canChangeState lock with timeout safety net
         _player.ResetAnimStateCache();
 
+        // ponytail: Attack_Medium(옛 3타) 은 이제 재생하지 않는다. 3타는 소환수 마무리가 대신하고
+        // 플레이어는 Idle 로 있는다. 클립 자체는 남겨둠 — 되살릴 때 다시 연결하면 된다.
         if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
-        else if (_comboStep == 1) _player.PlayAllAnim("Attack_Light2", "Attack");
-        else _player.PlayAllAnim("Attack_Medium", "Attack");
+        else _player.PlayAllAnim("Attack_Light2", "Attack");
 
         // Higher ATKSPD (lower stat value) plays the attack animation faster.
         if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
@@ -188,14 +216,14 @@ public class MeleeCombatController : MonoBehaviour
                 go.transform.localScale = new Vector3(hitboxSize.x, hitboxSize.y, 1f);
 
                 // 플레이어 공격은 적에게 경직과 약간의 넉백을 유발
-                float saDmg = (_comboStep == 2) ? 30f : 20f; // 1,2타는 20f, 3타는 30f
+                float saDmg = 20f;
                 DamageInfo info = new DamageInfo(
                     _player.Stat.ATK * damageMultiplier,
                     DamageType.Physical,
                     this.gameObject,
                     false, 1f, true, "", false,
                     causesHitstun: true,
-                    knockbackForce: _comboStep == 2 ? 6f : 2f,
+                    knockbackForce: 2f,
                     superArmorDamage: saDmg
                 );
 
@@ -213,8 +241,8 @@ public class MeleeCombatController : MonoBehaviour
             Debug.LogError("[MeleeCombat] telegraphPrefab이 인스펙터에 할당되지 않았습니다.");
         }
 
-        // 콤보 진행
-        _comboStep = (_comboStep + 1) % 3;
+        // 콤보 진행 (메인 소환수가 있으면 3타, 없으면 2타 반복)
+        _comboStep = (_comboStep + 1) % ComboLength;
     }
 
     /// <summary>
@@ -236,16 +264,88 @@ public class MeleeCombatController : MonoBehaviour
             {
                 Vector2 dashDir = inputDir.normalized;
                 
-                // 3. 콤보 피니시(3타) 및 1/2타 타격 순간 대시 가속력 배율 적용
-                // ExecuteMeleeAttack에서 _comboStep이 이미 (스텝+1)%3 으로 갱신되어 있으므로:
-                // 1타 타격 시점: _comboStep == 1
-                // 2타 타격 시점: _comboStep == 2
-                // 3타 타격 시점: _comboStep == 0
-                float forceMultiplier = (_comboStep == 0) ? mediumAttackDashMultiplier : lightAttackDashMultiplier;
+                // 플레이어 평타는 이제 1/2타뿐이라 전부 light 배율을 쓴다.
+                // (3타 = 소환수 마무리는 플레이어가 움직이지 않으므로 이 경로를 타지 않는다)
+                float forceMultiplier = lightAttackDashMultiplier;
 
                 _player.ApplyAttackDash(dashDir, forceMultiplier);
             }
         }
+    }
+
+    /// <summary>
+    /// 콤보 마지막 타이밍: 플레이어는 아무것도 하지 않고, 메인 소환수가 실체화해 마무리 일격을 넣는다.
+    /// (설계 3.3 "마지막에 소환수의 마무리 일격이 발동" — 플레이어는 Idle)
+    /// </summary>
+    private void ExecuteFinisher()
+    {
+        var skillCtrl = _player.GetComponent<PlayerSkillController>();
+        var main = skillCtrl != null ? skillCtrl.MainSummon : null;
+        var fin = Finisher;
+        if (main == null || fin == null) return;
+
+        // 조준 방향은 평타와 동일하게 마우스 기준.
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        mousePos.z = 0;
+        Vector3 origin = attackSpawnPoint != null ? attackSpawnPoint.position : transform.position;
+        Vector2 dir = ((Vector2)(mousePos - origin)).normalized;
+        if (dir.sqrMagnitude < 0.0001f) dir = CurrentAttackDir;
+        CurrentAttackDir = dir;
+
+        // 플레이어 외형만 방향 동기화하고, 모션은 재생하지 않는다 (Idle 유지).
+        if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
+        else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
+
+        // 소환수를 시전 위치에 잠깐 세우고 그 자식으로 비주얼을 붙인다.
+        var caster = MinionSkillCaster.Spawn(main, origin);
+        if (fin.visual != null)
+        {
+            var vfx = Instantiate(fin.visual, caster.transform.position, Quaternion.identity, caster.transform);
+            vfx.transform.localPosition = Vector3.zero;
+            var vfxSr = vfx.GetComponentInChildren<SpriteRenderer>();
+            if (vfxSr != null) vfxSr.flipX = dir.x > 0.01f;
+        }
+
+        if (telegraphPrefab == null) return;
+
+        GameObject go = Instantiate(telegraphPrefab, origin, Quaternion.identity, caster.transform);
+        if (hideBasicAttackTelegraph)
+        {
+            foreach (var vis in go.GetComponentsInChildren<SpriteRenderer>(true)) vis.enabled = false;
+            foreach (var mask in go.GetComponentsInChildren<SpriteMask>(true)) mask.enabled = false;
+        }
+
+        var box = go.GetComponent<BaseHitBox>();
+        if (box == null) return;
+
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        go.transform.localRotation = Quaternion.Euler(0, 0, angle);
+        go.transform.localScale = new Vector3(fin.hitBoxSize.x, fin.hitBoxSize.y, 1f);
+        box.hitEffectAngle = angle;
+
+        // 피해는 소환수 ATK 기준 (설계: "Minion에 있는 ATK 데미지를 이용")
+        var info = new DamageInfo(
+            main.attack * fin.damageMultiplier,
+            DamageType.Physical,
+            _player.gameObject,
+            false, 1f, true,
+            !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher",
+            false,
+            causesHitstun: fin.causesHitstun,
+            knockbackForce: fin.knockbackForce,
+            superArmorDamage: fin.superArmorDamage);
+
+        if (fin.hitCount > 1)
+        {
+            box.isContinuousDamage = true;
+            box.damageTickRate = fin.duration / fin.hitCount;
+        }
+        else
+        {
+            box.isContinuousDamage = false;
+        }
+
+        box.Init(info, Layers.EnemyMask, fin.duration, 0f, true);
     }
 
     public void CancelAttack()
