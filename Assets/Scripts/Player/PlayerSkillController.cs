@@ -6,8 +6,8 @@ public class PlayerSkillController : MonoBehaviour
     public enum SkillSlot { Q = 0, E = 1, R = 2 }
 
     [Header("Equipped Summons (Auto-Synced) — 메인 1 + 서브 1")]
-    [SerializeField] private MinionDataSO mainSummon;
-    [SerializeField] private MinionDataSO subSummon;
+    [SerializeField] private MainMinionDataSO mainSummon;
+    [SerializeField] private SubMinionDataSO subSummon;
 
     [Header("Equipped Player Skills (Q/E/R, 독립 장착)")]
     [SerializeField] private PlayerSkillSO[] equippedPlayerSkills = new PlayerSkillSO[3];
@@ -16,9 +16,9 @@ public class PlayerSkillController : MonoBehaviour
     private float _mainSummonCooldownEnd;
 
     /// <summary>스페이스바 액티브 + 대쉬/평타 변화를 담당하는 소환수. 없으면 null.</summary>
-    public MinionDataSO MainSummon => mainSummon;
+    public MainMinionDataSO MainSummon => mainSummon;
     /// <summary>상시 패시브만 제공하는 소환수. 실체화하지 않는다. 없으면 null.</summary>
-    public MinionDataSO SubSummon => subSummon;
+    public SubMinionDataSO SubSummon => subSummon;
 
     /// <summary>
     /// 슬롯 인덱스로 소환수를 읽는다 (0 = 메인, 1 = 서브). UI 가 슬롯을 순회할 때 사용.
@@ -161,7 +161,7 @@ public class PlayerSkillController : MonoBehaviour
     /// 그 자식으로 붙어서 담당한다. 필드를 돌아다니지 않으므로 AI/NavMesh/전투 스탯이 필요 없다.
     /// </summary>
     /// <returns>실제로 시전했으면 true. false 면 쿨타임을 먹이지 않는다.</returns>
-    private bool CastMinionSkill(MinionDataSO minionData, Transform playerTransform, List<Transform> targets)
+    private bool CastMinionSkill(MainMinionDataSO minionData, Transform playerTransform, List<Transform> targets)
     {
         var caster = MinionSkillCaster.Spawn(minionData, playerTransform.position);
         bool cast = minionData.minionSkill.Execute(caster.transform, minionData, targets);

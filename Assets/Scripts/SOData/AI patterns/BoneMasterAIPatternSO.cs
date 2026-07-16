@@ -16,7 +16,7 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
     private BossPhaseState _currentBossState = BossPhaseState.None;
 
     [Header("Phase 2 Transition")]
-    public MinionDataSO phase2Data; // 체력 소진 시 적용될 2페이즈 스탯 및 AI 패턴 데이터
+    public EnemyMinionDataSO phase2Data; // 체력 소진 시 적용될 2페이즈 스탯 및 AI 패턴 데이터
 
     [Header("Attack Settings")]
     public float howlingRadius = 8f;

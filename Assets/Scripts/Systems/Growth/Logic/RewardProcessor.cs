@@ -63,14 +63,15 @@ public static class RewardProcessor
     }
 
     // --- 1-B. 미니언 스킬 방용: 소환수 코어 배출 ---
-    /// <summary>지정한 역할의 소환수 카드 3장을 뽑는다. 메인/서브 풀은 role 로만 갈린다.</summary>
-    public static List<RewardCandidate> GenerateSummonRewards(InventoryManager inven, DataManager data, MinionRole role)
+    /// <summary>지정한 역할의 소환수 카드 3장을 뽑는다. 메인/서브 풀은 타입으로만 갈린다.</summary>
+    /// <param name="roleType">typeof(MainMinionDataSO) 또는 typeof(SubMinionDataSO).</param>
+    public static List<RewardCandidate> GenerateSummonRewards(InventoryManager inven, DataManager data, System.Type roleType)
     {
         List<RewardCandidate> results = new List<RewardCandidate>();
         var registry = data.GET_GROWTH_REGISTRY();
 
         List<RewardCandidate> combinedPool = new List<RewardCandidate>();
-        combinedPool.AddRange(GetValidCores(inven, registry.minionDatas, true, role));
+        combinedPool.AddRange(GetValidCores(inven, registry.minionDatas, true, roleType));
 
         // 랜덤하게 3개 선택 (중복 제거)
         for (int i = 0; i < 3; i++)
@@ -163,7 +164,7 @@ public static class RewardProcessor
         {
             foreach(var minion in shopRegistry.minionPool)
             {
-                if (minion == null || minion.role != MinionRole.Sub) continue;
+                if (minion == null || minion is not SubMinionDataSO) continue;
                 combinedPool.Add(new RewardCandidate
                 {
                     displayData = BuildMinionDisplayData(minion),
@@ -193,17 +194,18 @@ public static class RewardProcessor
     // --- 세부 필터링 로직 ---
 
     /// <summary>
-    /// 소환수 보상 후보. role 을 주면 그 역할만 걸러낸다.
+    /// 소환수 보상 후보. roleType 을 주면 그 타입만 걸러낸다.
     /// ponytail: GrowthRegistry 의 리스트를 메인/서브로 쪼개지 않고 필터만 건다 —
     /// RefreshRegistry 가 t:MinionDataSO 를 자동 스캔하는데, 리스트를 쪼개면 그 자동화가 깨진다.
     /// </summary>
-    private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionDataSO> minions, bool filterOwned = true, MinionRole? role = null)
+    /// <param name="roleType">typeof(MainMinionDataSO) / typeof(SubMinionDataSO). null 이면 전부.</param>
+    private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionDataSO> minions, bool filterOwned = true, System.Type roleType = null)
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();
         foreach (var m in minions)
         {
             if (m == null) continue;
-            if (role.HasValue && m.role != role.Value) continue;
+            if (roleType != null && !roleType.IsInstanceOfType(m)) continue;
             if (!filterOwned || !inven.HasMinionInSlots(m))
                 candidates.Add(new RewardCandidate { displayData = BuildMinionDisplayData(m), rawData = m, techIndex = 0, category = RewardCategory.Minion });
         }
@@ -253,17 +255,11 @@ public static class RewardProcessor
         };
     }
 
-    // Builds the display data for a minion reward card. Uses the paired link-skill's SkillSO.description
-    // when available, falling back to the lineage's own baseItemData.description otherwise.
+    // 소환수 보상 카드의 표시 데이터. 무엇을 보여줄지는 소환수 타입이 스스로 답한다
+    // (메인=액티브 스킬 설명, 서브=패시브 수치에서 생성). MinionDataSO.ResolveDescription 참조.
     private static GrowthItemData BuildMinionDisplayData(MinionDataSO minion)
     {
         var baseData = minion.rewardItemData;
-        string skillDescription = null;
-
-        if (minion.minionSkill != null && !string.IsNullOrEmpty(minion.minionSkill.description))
-        {
-            skillDescription = minion.minionSkill.description;
-        }
 
         // [안전장치] baseData가 존재하더라도 필드가 비어있으면 에셋 기본정보로 대체(Fallback)
         string finalName = (baseData != null && !string.IsNullOrEmpty(baseData.itemName)) ? baseData.itemName : minion.minionName;
@@ -272,7 +268,7 @@ public static class RewardProcessor
         return new GrowthItemData
         {
             itemName = finalName,
-            description = skillDescription ?? (baseData != null && !string.IsNullOrEmpty(baseData.description) ? baseData.description : null),
+            description = minion.ResolveDescription(),
             localizedItemName = baseData != null ? baseData.localizedItemName : null,
             localizedDescription = baseData != null ? baseData.localizedDescription : null,
             icon = finalIcon,

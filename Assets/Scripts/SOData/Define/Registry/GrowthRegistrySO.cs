@@ -46,19 +46,18 @@ public class GrowthRegistrySO : ScriptableObject
         gems.Clear();
         treasures.Clear();
 
-        // 1. 소환수 데이터(MinionDataSO) 검색
-        // [중요] 경로로 아군 소환수만 거른다. MinionDataSO 는 적/엘리트/보스와 공용 타입이고,
-        // 그쪽 에셋들은 role 키가 없어 기본값 Main 으로 읽힌다. 필터가 없으면 이 버튼 한 번에
-        // Bone Master 나 허수아비가 메인 소환수 보상 카드로 등장한다.
-        string[] minionGuids = UnityEditor.AssetDatabase.FindAssets("t:MinionDataSO");
-        foreach (var guid in minionGuids)
+        // 1. 소환수 데이터 검색. t: 필터는 상속을 따르므로 파생 타입만 콕 집으면
+        // 적/엘리트/보스(EnemyMinionDataSO)는 애초에 걸리지 않는다 — 경로에 의존하지 않는다.
+        foreach (var typeFilter in new[] { "t:MainMinionDataSO", "t:SubMinionDataSO" })
         {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            if (!path.Contains("/Minion/MinionData/")) continue;
-            if (path.Contains("/Deprecated/")) continue;
+            foreach (var guid in UnityEditor.AssetDatabase.FindAssets(typeFilter))
+            {
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                if (path.Contains("/Deprecated/")) continue;
 
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionDataSO>(path);
-            if (asset != null) minionDatas.Add(asset);
+                var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionDataSO>(path);
+                if (asset != null) minionDatas.Add(asset);
+            }
         }
 
         // 2. 보석(Gem) 검색

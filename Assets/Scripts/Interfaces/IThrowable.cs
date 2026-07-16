@@ -4,7 +4,7 @@ public interface IThrowable
 {
     // [추가] 유닛 정보를 인터페이스 수준에서 제공
     CommandData MinionType { get; }
-    MinionDataSO MinionData { get; }
+    EnemyMinionDataSO MinionData { get; }
     Transform transform { get; }
 
     void OnPickedUp();

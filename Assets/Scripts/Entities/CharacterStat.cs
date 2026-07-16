@@ -305,7 +305,7 @@ public class CharacterStat : MonoBehaviour
     /// <summary>
     /// 데이터(SO)로부터 수치를 주입받고 각 컴포넌트를 초기화합니다.
     /// </summary>
-    public void InitializeStats(MinionDataSO data)
+    public void InitializeStats(EnemyMinionDataSO data)
     {
         Setup();
 
@@ -345,32 +345,6 @@ public void SetBaseMoveSpeed(float speed)
         baseMoveSpeed = speed;
     }
 
-
-    /// <summary>
-    /// [신규] UI(예: 핸드슬롯 툴팁)에서 보석 효과가 반영된 최종 예상 스탯을 미리 계산하여 반환합니다.
-    /// </summary>
-    public static (float hp, float atk, float spd) GetPreviewStats(MinionDataSO data)
-    {
-        float hp = data.maxHP;
-        float atk = data.attack;
-        float spd = data.moveSpeed;
-
-        var inven = InventoryManager.Instance;
-        if (inven != null)
-        {
-            float gemHp = inven.GetAggregatedGemBonus(data.minionType, StatType.Health);
-            float gemAtk = inven.GetAggregatedGemBonus(data.minionType, StatType.Attack);
-            float treasureHp = inven.GetTreasureBonus(TreasureEffectType.GlobalMinionStats);
-
-            hp = (hp + gemHp) * (1f + treasureHp);
-            atk = atk * (1f + gemAtk);
-
-            // [이벤트 버스] UI 프리뷰 스탯 계산용 이벤트 호출
-            StatEventBus.TriggerPreviewStatCalculate(data.minionType, ref hp, ref atk, ref spd);
-        }
-
-        return (hp, atk, spd);
-    }
 
     /// <summary>
     /// 분신 소환 등 특수한 경우에 스탯을 절반으로 깎는 로직

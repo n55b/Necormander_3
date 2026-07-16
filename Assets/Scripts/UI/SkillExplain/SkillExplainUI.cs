@@ -121,14 +121,11 @@ private void RefreshLinkedSkillSlots(PlayerSkillController skillController)
             if (slot == null) continue;
 
             MinionDataSO minion = skillController != null ? skillController.GetEquippedMinion(i) : null;
-            MinionSkillSO linkedSkill = minion != null ? minion.minionSkill : null;
+            string description = minion != null ? minion.ResolveDescription() : null;
 
-            if (linkedSkill != null)
+            if (!string.IsNullOrEmpty(description))
             {
-                Sprite icon = linkedSkill.icon != null ? linkedSkill.icon : minion.minionIcon;
-                string description = ApplyKeywordHighlighting(linkedSkill.description);
-
-                slot.SetData(icon, linkedSkill.skillName, description);
+                slot.SetData(minion.ResolveIcon(), minion.ResolveTitle(), ApplyKeywordHighlighting(description));
             }
             else
             {

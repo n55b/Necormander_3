@@ -68,7 +68,7 @@ public class SlimeAIPatternSO : BaseAIPatternSO
                     if (smallSlimeObj.TryGetComponent<BaseEntity>(out var smallEntity))
                     {
                         // 1. 프리팹에 오버라이드된 minionData를 기반으로 즉시 Initialize 처리
-                        MinionDataSO data = smallEntity.MinionData;
+                        var data = smallEntity.MinionData;
                         if (data != null)
                         {
                             smallEntity.Initialize(data);

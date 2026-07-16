@@ -26,8 +26,8 @@ public abstract class BaseEntity : MonoBehaviour
     [SerializeField] protected GameObject telegraphPrefab; // 공격 경고(Telegraph) 프리팹 (인스펙터 할당)
 
     [Header("데이터 참조 (직접 배치 시 필수)")]
-    [SerializeField] protected MinionDataSO minionData;
-    public MinionDataSO MinionData => minionData;
+    [SerializeField] protected EnemyMinionDataSO minionData;
+    public EnemyMinionDataSO MinionData => minionData;
     protected Animator _animator;
     [SerializeField] protected AIState _lastState = (AIState)(-1); // 이전 상태 기록
     [SerializeField] protected Transform _target = null;
@@ -291,7 +291,7 @@ public abstract class BaseEntity : MonoBehaviour
         return true;
     }
 
-    public virtual void Initialize(MinionDataSO data)
+    public virtual void Initialize(EnemyMinionDataSO data)
     {
         minionData = data;
 

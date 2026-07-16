@@ -46,13 +46,13 @@ public class RewardManager : MonoBehaviour
                     normalRewards = RewardProcessor.GenerateSummonRewards(
                         GameManager.Instance.inventoryManager,
                         GameManager.Instance.dataManager,
-                        MinionRole.Sub);
+                        typeof(SubMinionDataSO));
                     break;
                 default: // MainSummon
                     normalRewards = RewardProcessor.GenerateSummonRewards(
                         GameManager.Instance.inventoryManager,
                         GameManager.Instance.dataManager,
-                        MinionRole.Main);
+                        typeof(MainMinionDataSO));
                     break;
             }
             _rewardQueue.Enqueue(normalRewards);

@@ -22,7 +22,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
     public UnityEvent OnEliteCombatClear;
 
     private List<GameObject> _activeEnemies = new List<GameObject>();
-    private List<MinionDataSO> _eliteEnemyPool = new List<MinionDataSO>(); 
+    private List<EnemyMinionDataSO> _eliteEnemyPool = new List<EnemyMinionDataSO>(); 
     private bool _isBattleActive = false;
     private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
     private RoomInstance _cachedRoom;
@@ -205,7 +205,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
             return;
         }
 
-        MinionDataSO data = _eliteEnemyPool[Random.Range(0, _eliteEnemyPool.Count)];
+        var data = _eliteEnemyPool[Random.Range(0, _eliteEnemyPool.Count)];
         
         if (NavMesh.SamplePosition(position, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
         {

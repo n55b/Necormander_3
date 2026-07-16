@@ -57,11 +57,16 @@ public class InventoryManager : MonoBehaviour
     [Header("슬롯 시스템 (메인 1 + 서브 1 고정)")]
     public List<CoreSlot> Slots = new List<CoreSlot>(SLOT_COUNT);
 
-    /// <summary>역할에 대응하는 슬롯 인덱스.</summary>
-    public static int SlotIndexOf(MinionRole role) => role == MinionRole.Sub ? SLOT_SUB : SLOT_MAIN;
+    /// <summary>역할에 대응하는 슬롯 인덱스. 소환수가 아니면(적 데이터 등) -1.</summary>
+    public static int SlotIndexOf(MinionDataSO minion) => minion switch
+    {
+        SubMinionDataSO => SLOT_SUB,
+        MainMinionDataSO => SLOT_MAIN,
+        _ => -1,
+    };
 
-    public MinionDataSO MainSummon => GetSummon(SLOT_MAIN);
-    public MinionDataSO SubSummon => GetSummon(SLOT_SUB);
+    public MainMinionDataSO MainSummon => GetSummon(SLOT_MAIN) as MainMinionDataSO;
+    public SubMinionDataSO SubSummon => GetSummon(SLOT_SUB) as SubMinionDataSO;
 
     private MinionDataSO GetSummon(int index)
         => (index >= 0 && index < Slots.Count && !Slots[index].IsShattered) ? Slots[index].EquippedMinion : null;
@@ -636,7 +641,7 @@ public class InventoryManager : MonoBehaviour
     public bool EquipMinion(MinionDataSO minion, int amount = 1)
     {
         if (minion == null) return false;
-        return EquipMinion(SlotIndexOf(minion.role), minion, amount);
+        return EquipMinion(SlotIndexOf(minion), minion, amount);
     }
 
     public bool EquipMinion(int slotIndex, MinionDataSO minion, int amount = 1)
@@ -644,10 +649,11 @@ public class InventoryManager : MonoBehaviour
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
 
         // 역할과 슬롯이 어긋나면 역할 쪽 슬롯으로 돌려보낸다 (서브 카드가 메인 슬롯에 앉는 것을 방지).
-        if (minion != null && SlotIndexOf(minion.role) != slotIndex)
+        // 소환수가 아니면(적 데이터가 흘러들어오면) SlotIndexOf 가 -1 이라 여기서 걸러진다.
+        if (minion != null && SlotIndexOf(minion) != slotIndex)
         {
-            slotIndex = SlotIndexOf(minion.role);
-            if (slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
+            slotIndex = SlotIndexOf(minion);
+            if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
         }
 
         Slots[slotIndex].EquippedThrowAbility = null;

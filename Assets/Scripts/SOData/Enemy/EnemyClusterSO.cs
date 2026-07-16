@@ -4,7 +4,7 @@ using UnityEngine;
 [System.Serializable]
 public struct EnemyCount
 {
-    public MinionDataSO enemyData;
+    public EnemyMinionDataSO enemyData;
     public int count;
 }
 

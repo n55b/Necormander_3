@@ -78,7 +78,7 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
         if (obj.TryGetComponent<BaseEntity>(out var splitEntity))
         {
             // 1. 프리팹에 등록된 minionData를 기반으로 즉시 Initialize 처리
-            MinionDataSO data = splitEntity.MinionData;
+            var data = splitEntity.MinionData;
             if (data != null)
             {
                 splitEntity.Initialize(data);

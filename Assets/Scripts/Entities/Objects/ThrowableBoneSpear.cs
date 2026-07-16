@@ -12,7 +12,7 @@ public class ThrowableBoneSpear : MonoBehaviour, IThrowable
 
     // IThrowable 구현
     public CommandData MinionType => CommandData.None; // 특별한 타입 없음
-    public MinionDataSO MinionData => null; // 미니언 데이터 없음
+    public EnemyMinionDataSO MinionData => null; // 미니언 데이터 없음
     public float MaxSpeed => 25f;
     public float MinSpeed => 15f;
     public float FullChargeSpeed => 35f;

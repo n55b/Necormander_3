@@ -9,7 +9,7 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
 {
     // [추가] 인터페이스 구현
     public virtual CommandData MinionType => CommandData.None;
-    public virtual MinionDataSO MinionData => null;
+    public virtual EnemyMinionDataSO MinionData => null;
 
     // [추가] 물리 수치 노출
     public float MaxSpeed => maxSpeed;

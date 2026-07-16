@@ -17,7 +17,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
     public int fireballsPerCycle = 3;
 
     [Header("Summon Settings")]
-    public MinionDataSO minionToSummon; 
+    public EnemyMinionDataSO minionToSummon; 
     public int summonCount = 4;
     public float summonStationaryTime = 1.0f;
 
