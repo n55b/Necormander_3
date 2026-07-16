@@ -311,10 +311,7 @@ public class MeleeCombatController : MonoBehaviour
         float angle = faceRight ? 0f : 180f;
         Vector3 spawnPos = origin + (Vector3)(dir * fin.spawnOffset);
 
-        // 소환수를 시전 위치에 잠깐 세우고 그 자식으로 비주얼을 붙인다.
-        // 애니메이션은 castDuration 에 정확히 맞춰 재생된다 (시전이 빨라지면 애니도 같이 빨라짐).
         var caster = MinionSkillCaster.Spawn(main, spawnPos);
-        caster.AttachVisual(fin.visual, fin.animState, fin.castDuration, faceRight);
 
         // 이펙트는 같은 애니메이터의 다른 상태라 한 오브젝트로 동시 재생이 안 된다.
         // 하나 더 띄워서 겹친다 (예: DashDoll 은 Attack + Effect 가 별도 태그다).
@@ -349,21 +346,32 @@ public class MeleeCombatController : MonoBehaviour
             knockbackForce: fin.knockbackForce,
             superArmorDamage: fin.superArmorDamage);
 
-        if (fin.hitCount > 1)
-        {
-            box.isContinuousDamage = true;
-            box.damageTickRate = fin.HitWindow / fin.hitCount;
-        }
-        else
-        {
-            box.isContinuousDamage = false;
-        }
+        // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.
+        //  · damageState 를 쓰면 그 태그가 재생되는 동안만 열린다 (MeleeDoll: Slash).
+        //  · hitEvent 를 쓰면 Aseprite 셀에 심어둔 event: 프레임에 열린다 (DashDoll).
+        // 그때까지는 콜라이더를 꺼둔 채로 기다린다. 히트박스를 미리 만들어두는 이유는
+        // 텔레그래프(차오르는 바)가 '어디를 칠지'를 그동안 보여줘야 하기 때문이다.
+        var col = go.GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
 
-        // startDelay 를 줘서 '인형이 실제로 휘두르는 프레임'에 판정이 열리게 한다.
-        // 예전엔 0 이라 소환되는 프레임(t≈0.02s)에 이미 다 때리고 끝나 있었다.
-        // HitDelay/HitWindow 는 castDuration 의 비율이라 시전 속도가 바뀌어도 같이 따라온다.
-        // 텔레그래프의 차오르는 바도 이 startDelay 동안 채워지며 '언제/어디를' 치는지 보여준다.
-        box.Init(info, Layers.EnemyMask, fin.HitWindow, fin.HitDelay, true);
+        caster.PlaySequenced(
+            fin.visual, fin.animSequence, fin.damageState, fin.hitEvent,
+            fin.castDuration, fin.EventHitWindow, faceRight,
+            window =>
+            {
+                if (box == null) return;
+                if (fin.hitCount > 1)
+                {
+                    box.isContinuousDamage = true;
+                    box.damageTickRate = window / fin.hitCount;
+                }
+                else
+                {
+                    box.isContinuousDamage = false;
+                }
+                if (col != null) col.enabled = true;
+                box.Init(info, Layers.EnemyMask, window, 0f, true);
+            });
     }
 
     public void CancelAttack()

@@ -29,15 +29,9 @@ public class MinionActionSkillSO : MinionSkillSO
     [Tooltip("몇 번 때릴지. 1 이면 단타.")]
     public int hitCount = 1;
 
-    [Range(0f, 1f)]
-    [Tooltip("타격이 끝나는 지점(전체 시전 시간 대비). hitTimingRatio ~ 이 값 사이에 hitCount 가 균등 배분된다. " +
-             "예: 시전 2.0초 / hitTimingRatio 0.36 / hitEndRatio 0.70 -> 0.72초부터 1.4초까지 때린다. " +
-             "초가 아니라 비율인 이유: 나중에 시전 시간이 줄면 타격 구간도 같은 비율로 따라와야 한다.")]
-    public float hitEndRatio = 1f;
-
-    /// <summary>타격 구간의 실제 길이(초). 최소 1프레임은 살려둔다.</summary>
-    private float HitWindow(float animDuration)
-        => Mathf.Max(0.05f, animDuration * Mathf.Clamp01(hitEndRatio - hitTimingRatio));
+    // 타격 구간은 이제 damageState(태그) 나 hitEvent(Aseprite 셀 이벤트)가 정한다.
+    // 예전엔 hitDuration(초) -> hitEndRatio(비율) 였는데, 둘 다 그림과 따로 노는 숫자라
+    // 애니를 다시 타이밍할 때마다 손으로 맞춰줘야 했다. SkillSO 의 damageState/hitEvent 참조.
 
     public override bool Execute(Transform user, MinionDataSO data, List<Transform> validTargets)
     {
@@ -104,45 +98,37 @@ public class MinionActionSkillSO : MinionSkillSO
 
         PlaySkillSound();
         ShakeCamera();
-        float animDuration = PlaySkillAnimVisual(user);
 
-        // 타겟을 바라보도록 flipX 설정. 반드시 PlaySkillAnimVisual 뒤여야 한다 —
-        // 시전자는 빈 GameObject 라서 비주얼이 자식으로 붙기 전에는 SpriteRenderer 가 없다.
         Vector2 lookDir = ((Vector2)closestTarget.position - (Vector2)user.position).normalized;
-        var userSR = user.GetComponentInChildren<SpriteRenderer>();
-        if (userSR != null)
-        {
-            if (lookDir.x > 0.01f) userSR.flipX = true; // 오른쪽 바라봄
-            else if (lookDir.x < -0.01f) userSR.flipX = false; // 왼쪽 바라봄
-        }
+        bool faceRight = lookDir.x > 0f;
+
+        // 시전 시간 = skillAnimDuration. 애니메이션 전체가 여기 정확히 맞춰 스케일된다.
+        float animDuration = skillAnimDuration > 0f ? skillAnimDuration : 1f;
+
+        // 이펙트 태그는 같은 애니메이터의 다른 상태라 한 오브젝트로 동시 재생이 안 된다. 하나 더 겹친다.
+        if (!string.IsNullOrEmpty(effectState))
+            caster.AttachVisual(skillAnimVisual, effectState, animDuration, faceRight);
 
         Debug.Log($"<color=cyan>[Minion Skill]</color> 미니언이 '{skillName}' 스킬을 사용했습니다! (대상: {closestTarget.name})");
 
-        // 타격 시점은 애니메이션의 임팩트 프레임 비율로 잡혀 있다. animDuration 이 바뀌면 같이 따라온다.
-        float hitDelay = animDuration * hitTimingRatio;
-        if (hitDelay > 0f)
-        {
-            caster.StartCoroutine(DelayedHit(hitDelay, caster, data, closestTarget, dirFromPlayer, teleportPos, animDuration));
-        }
-        else
-        {
-            DoHitStop();
-            DealHit(caster, data, closestTarget, dirFromPlayer, teleportPos, animDuration);
-        }
+        // 언제 때릴지는 그림이 정한다 — damageState 태그가 재생되는 동안, 혹은 Aseprite 에 심어둔
+        // event:MinionHit 프레임에. 초로 박지 않으므로 시전 속도가 바뀌어도 알아서 따라온다.
+        float eventWindow = Mathf.Max(0.05f, animDuration * Mathf.Clamp01(hitWindowRatio));
+        caster.PlaySequenced(
+            skillAnimVisual, animSequence, damageState, hitEvent,
+            animDuration, eventWindow, faceRight,
+            window =>
+            {
+                if (caster == null) return;
+                DoHitStop();
+                DealHit(caster, data, closestTarget, dirFromPlayer, teleportPos, window);
+            });
 
         return true;
     }
 
-    private IEnumerator DelayedHit(float delay, MinionSkillCaster caster, MinionDataSO data, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos, float animDuration)
-    {
-        yield return new WaitForSeconds(delay);
-        if (caster == null) yield break; // 대기 중 시전자가 소멸했을 수 있다
-
-        DoHitStop();
-        DealHit(caster, data, closestTarget, dirFromPlayer, teleportPos, animDuration);
-    }
-
-    private void DealHit(MinionSkillCaster caster, MinionDataSO data, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos, float animDuration)
+    /// <param name="hitWindow">판정이 열려 있는 시간(초). 애니메이션이 정해준 값이다.</param>
+    private void DealHit(MinionSkillCaster caster, MinionDataSO data, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos, float hitWindow)
     {
         float finalDamage = data.attack * damageMultiplier;
 
@@ -174,8 +160,8 @@ public class MinionActionSkillSO : MinionSkillSO
                 ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
             };
 
-            // 다단히트는 BaseHitBox 의 틱 기능으로 낸다. hitCount 를 타격 구간 안에 균등 배분.
-            float boxDuration = HitWindow(animDuration);
+            // 다단히트는 BaseHitBox 의 틱 기능으로 낸다. hitCount 를 판정 구간 안에 균등 배분.
+            float boxDuration = Mathf.Max(0.05f, hitWindow);
             if (hitCount > 1)
             {
                 box.isContinuousDamage = true;

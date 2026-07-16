@@ -29,7 +29,9 @@ MonoBehaviour:
   - Slash
   - End
   effectState: 
-  hitTimingRatio: 0.361
+  damageState: Slash
+  hitEvent: 
+  hitWindowRatio: 0.15
   actionType: 0
   useHitBox: 1
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
@@ -38,4 +40,3 @@ MonoBehaviour:
   forceAmount: 4
   forceDuration: 0.2
   hitCount: 5
-  hitEndRatio: 0.699

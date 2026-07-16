@@ -26,9 +26,11 @@ MonoBehaviour:
     hitBoxSize: {x: 3.5, y: 2.5}
     spawnOffset: 1.2
     castDuration: 0.65
-    hitStartRatio: 0.654
-    hitEndRatio: 0.769
-    animState: Attack
+    animSequence:
+    - Attack
+    damageState: 
+    hitEvent: MinionHit
+    hitWindowRatio: 0.18
     effectState: Effect
     visual: {fileID: -2253911629886400664, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}
     causesHitstun: 1

@@ -26,7 +26,9 @@ MonoBehaviour:
   animSequence:
   - Attack
   effectState: Effect
-  hitTimingRatio: 0.654
+  damageState: 
+  hitEvent: MinionHit
+  hitWindowRatio: 0.18
   actionType: 1
   useHitBox: 1
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
@@ -35,4 +37,3 @@ MonoBehaviour:
   forceAmount: 4
   forceDuration: 0.2
   hitCount: 1
-  hitEndRatio: 0.769

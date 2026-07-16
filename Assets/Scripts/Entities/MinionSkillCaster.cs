@@ -35,6 +35,107 @@ public class MinionSkillCaster : MonoBehaviour
     }
 
     /// <summary>
+    /// 소환수 외형을 붙이고 태그 시퀀스를 순서대로 재생하면서, '언제 때릴지'를 알려준다.
+    ///
+    /// [타격 타이밍을 숫자로 안 박는 이유]
+    /// 태그 경계 자체가 이미 아티스트가 그림에 찍어놓은 마커다. MeleeDoll 은 Start(때리기 전) →
+    /// Slash(때리는 중) → End(때린 후) 로 나뉘어 있으므로, "Slash 태그가 재생되는 동안 판정"
+    /// 이라고만 하면 초도 비율도 필요 없다. 나중에 아티스트가 Start 길이를 바꿔도 판정이 알아서 따라온다.
+    ///
+    /// 태그로 안 나뉘는 경우(DashDoll 처럼 Attack 하나에 준비+타격이 다 들어있음)를 위해
+    /// Animation Event 도 받는다. Aseprite 셀 user data 에 `event:MinionHit` 을 적으면
+    /// 임포터가 그 프레임에 이벤트를 심어준다. 이벤트가 있으면 그게 태그보다 우선한다.
+    /// </summary>
+    /// <param name="onHitWindow">판정을 열어야 할 때 호출. 인자는 판정이 열려 있을 시간(초).</param>
+    public GameObject PlaySequenced(GameObject visual, string[] sequence, string damageState, string hitEvent,
+                                    float castDuration, float hitWindow, bool faceRight,
+                                    System.Action<float> onHitWindow)
+    {
+        if (visual == null) return null;
+
+        var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
+        vfx.transform.localPosition = Vector3.zero;
+
+        var sr = vfx.GetComponentInChildren<SpriteRenderer>();
+        if (sr != null) sr.flipX = faceRight;
+
+        var anim = vfx.GetComponentInChildren<Animator>();
+        if (anim == null || anim.runtimeAnimatorController == null)
+        {
+            onHitWindow?.Invoke(hitWindow); // 애니가 없으면 기다릴 이유가 없다
+            return vfx;
+        }
+
+        float natural = SequenceLength(anim, sequence);
+        if (natural <= 0f) natural = 1f;
+        float speed = natural / Mathf.Max(0.01f, castDuration);
+        anim.speed = speed;
+
+        // 이벤트 방식: 클립에 event:MinionHit 이 심겨 있으면 그 프레임에 판정이 열린다.
+        bool useEvent = !string.IsNullOrEmpty(hitEvent);
+        if (useEvent)
+        {
+            var relay = anim.gameObject.AddComponent<MinionAnimEventRelay>();
+            bool fired = false;
+            relay.OnHit = () => { if (!fired) { fired = true; onHitWindow?.Invoke(hitWindow); } };
+        }
+
+        StartCoroutine(SequenceRoutine(anim, sequence, damageState, speed, useEvent ? null : onHitWindow));
+        return vfx;
+    }
+
+    private System.Collections.IEnumerator SequenceRoutine(Animator anim, string[] sequence, string damageState,
+                                                           float speed, System.Action<float> onHitWindow)
+    {
+        if (sequence == null || sequence.Length == 0)
+        {
+            onHitWindow?.Invoke(0.1f);
+            yield break;
+        }
+
+        foreach (var stateName in sequence)
+        {
+            if (anim == null) yield break; // 도중에 시전자가 소멸했을 수 있다
+
+            float len = ClipLength(anim, stateName);
+            if (len <= 0f)
+            {
+                Debug.LogWarning($"<color=orange>[MinionCaster]</color> 애니메이터에 '{stateName}' 상태가 없습니다. 건너뜁니다.");
+                continue;
+            }
+
+            anim.Play(stateName, 0, 0f);
+
+            // 이 태그가 '때리는 중' 태그라면, 정확히 이 태그가 재생되는 동안만 판정을 연다.
+            if (onHitWindow != null && stateName == damageState)
+                onHitWindow.Invoke(len / speed);
+
+            yield return new WaitForSeconds(len / speed);
+        }
+    }
+
+    private static float ClipLength(Animator anim, string stateName)
+    {
+        if (anim == null || anim.runtimeAnimatorController == null) return 0f;
+        foreach (var c in anim.runtimeAnimatorController.animationClips)
+            if (c != null && c.name == stateName) return c.length;
+        return 0f;
+    }
+
+    private static float SequenceLength(Animator anim, string[] sequence)
+    {
+        if (sequence == null || sequence.Length == 0)
+        {
+            foreach (var c in anim.runtimeAnimatorController.animationClips)
+                if (c != null) return c.length; // 기본 상태 = 처음 추가된 클립
+            return 0f;
+        }
+        float sum = 0f;
+        foreach (var s in sequence) sum += ClipLength(anim, s);
+        return sum;
+    }
+
+    /// <summary>
     /// 소환수 외형을 시전자 밑에 붙이고, 지정한 애니메이터 상태를 fitDuration 에 '정확히 맞게' 재생한다.
     ///
     /// [여기가 애니메이션-시전시간 동기화의 유일한 지점이다]

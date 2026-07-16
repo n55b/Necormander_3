@@ -25,10 +25,14 @@ MonoBehaviour:
     damageMultiplier: 1
     hitBoxSize: {x: 3, y: 2}
     spawnOffset: 1
-    castDuration: 0.7
-    hitStartRatio: 0.35
-    hitEndRatio: 0.75
-    animState: Slash
+    castDuration: 0.9
+    animSequence:
+    - Start
+    - Slash
+    - End
+    damageState: Slash
+    hitEvent: 
+    hitWindowRatio: 0.15
     effectState: 
     visual: {fileID: -2253911629886400664, guid: 2f46320e320386c4b918fc29357b2532, type: 3}
     causesHitstun: 1

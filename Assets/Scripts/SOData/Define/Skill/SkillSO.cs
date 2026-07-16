@@ -126,90 +126,19 @@ public abstract class MinionSkillSO : SkillSO
     [Tooltip("위 시퀀스와 '동시에' 겹쳐 재생할 이펙트 상태 이름. 비우면 없음. (예: DashDoll 의 Effect)")]
     public string effectState = "";
 
-    [Header("Hit Timing")]
+    [Header("Damage Timing — 초 대신 그림이 정한다")]
+    [Tooltip("이 태그가 재생되는 '동안'만 판정이 열린다. 예: MeleeDoll 의 Slash / " +
+             "태그 경계는 이미 아티스트가 그림에 찍어둔 마커다. 그래서 애니를 다시 타이밍해도 " +
+             "판정이 알아서 따라온다 — 초나 비율을 손으로 맞출 필요가 없다.")]
+    public string damageState = "";
+
+    [Tooltip("태그로 준비/타격이 안 나뉠 때 쓴다(예: DashDoll 은 Attack 하나에 다 들어있음). " +
+             "Aseprite 에서 타격 프레임 셀의 user data 에 `event:MinionHit` 을 적으면 임포터가 " +
+             "그 프레임에 AnimationEvent 를 심어준다. 여기에 MinionHit 을 적으면 그 순간 판정이 열린다. " +
+             "비워두면 damageState(태그) 방식. 적으면 이쪽이 우선.")]
+    public string hitEvent = "";
+
     [Range(0f, 1f)]
-    [Tooltip("전체 시전 시간 대비 실제 타격(데미지)이 발생하는 시점 비율 (0=즉시 타격, 1=애니메이션이 끝난 뒤 타격). " +
-             "애니메이션의 임팩트 프레임에 맞추세요. 비율이라 시전 속도가 바뀌어도 알아서 따라옵니다.")]
-    public float hitTimingRatio = 0f;
-
-    /// <summary>
-    /// skillAnimVisual 을 시전자 위치에 생성해 재생하고 일정 시간 뒤 파괴합니다.
-    /// animSequence 가 있으면 그 상태들을 순서대로 재생하며, 전체가 skillAnimDuration 에 정확히 맞도록
-    /// 재생 속도를 조절합니다. 반환값은 실제 사용된 전체 재생 시간(초)이며 hitTimingRatio 와 곱해 씁니다.
-    /// </summary>
-    protected float PlaySkillAnimVisual(Transform user)
-    {
-        if (skillAnimVisual == null) return 0f;
-
-        GameObject vfx = Instantiate(skillAnimVisual, user.position, Quaternion.identity, user);
-        vfx.transform.localPosition = Vector3.zero;
-
-        var animator = vfx.GetComponentInChildren<Animator>();
-        float natural = NaturalLength(animator);
-        if (natural <= 0f) natural = 1f; // 클립을 못 찾았을 때의 안전 기본값
-
-        float duration = skillAnimDuration > 0f ? skillAnimDuration : natural;
-        float speed = natural / duration; // 클립 원본 길이 / 목표 길이
-
-        if (animator != null && animSequence != null && animSequence.Length > 0)
-        {
-            var runner = user.GetComponent<MonoBehaviour>();
-            if (runner != null) runner.StartCoroutine(PlaySequence(animator, animSequence, speed));
-        }
-        else if (animator != null)
-        {
-            animator.speed = speed;
-        }
-
-        // 이펙트는 같은 애니메이터의 다른 상태라 한 오브젝트로는 동시 재생이 안 된다. 하나 더 겹친다.
-        if (!string.IsNullOrEmpty(effectState))
-        {
-            GameObject fx = Instantiate(skillAnimVisual, user.position, Quaternion.identity, user);
-            fx.transform.localPosition = Vector3.zero;
-            MinionSkillCaster.PlayStateFitted(fx, effectState, duration);
-            Destroy(fx, duration);
-        }
-
-        Destroy(vfx, duration);
-        return duration;
-    }
-
-    /// <summary>animSequence(없으면 전체 클립)의 원본 길이 합.</summary>
-    private float NaturalLength(Animator animator)
-    {
-        if (animator == null || animator.runtimeAnimatorController == null) return 0f;
-        var clips = animator.runtimeAnimatorController.animationClips;
-        if (clips == null) return 0f;
-
-        if (animSequence == null || animSequence.Length == 0)
-        {
-            // 시퀀스가 없으면 기본 상태(= 처음 추가된 클립) 하나만 재생된다.
-            foreach (var c in clips) if (c != null) return c.length;
-            return 0f;
-        }
-
-        float sum = 0f;
-        foreach (var stateName in animSequence)
-            foreach (var c in clips)
-                if (c != null && c.name == stateName) { sum += c.length; break; }
-        return sum;
-    }
-
-    private static System.Collections.IEnumerator PlaySequence(Animator animator, string[] states, float speed)
-    {
-        animator.speed = speed;
-        foreach (var stateName in states)
-        {
-            if (animator == null) yield break; // 도중에 시전자가 소멸했을 수 있다
-            float len = 0f;
-            foreach (var c in animator.runtimeAnimatorController.animationClips)
-                if (c != null && c.name == stateName) { len = c.length; break; }
-            if (len <= 0f) continue;
-
-            animator.Play(stateName, 0, 0f);
-            yield return new WaitForSeconds(len / speed);
-        }
-    }
-
-    // 추가적인 미니언 전용 데이터
+    [Tooltip("hitEvent 방식일 때만 사용. 판정이 열려 있는 시간(전체 시전 시간 대비 비율).")]
+    public float hitWindowRatio = 0.15f;
 }
