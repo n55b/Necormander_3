@@ -36,7 +36,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] public InventoryManager inventoryManager;
     [SerializeField] public PlayerSkillInventoryManager playerSkillInventoryManager;
 
-    [SerializeField] public SquadSpawner squadSpawner;
     [SerializeField] public RewardManager rewardManager;
 
     [Header("HUD / Feedback")]
@@ -45,7 +44,6 @@ public class GameManager : MonoBehaviour
     [Header("UI References")]
     [SerializeField] public PlayerStateUI playerStateUI;
     [SerializeField] public MinionStateUI minionStateUI;
-    [SerializeField] public MinionSkillQueueUI minionSkillQueueUI;
     [Header("Combat Sound")]
     [SerializeField] private PlayerAttackSoundData playerAttackSoundData;
 
@@ -98,6 +96,7 @@ public class GameManager : MonoBehaviour
 
         // 게임 오버 시 세이브 데이터를 삭제하여 이전 층에서 이어서 하기 방지
         SaveSystem.DeleteSave();
+        SubSummonPassiveController.ResetAcquiredState(); // 런이 끝났으므로 '획득함' 상태도 리셋
 
         GameOverManager.Instance.TriggerGameOver();
     }
@@ -156,7 +155,6 @@ public class GameManager : MonoBehaviour
         if (inventoryManager == null) inventoryManager = GetComponentInChildren<InventoryManager>();
         if (playerSkillInventoryManager == null) playerSkillInventoryManager = GetComponentInChildren<PlayerSkillInventoryManager>();
 
-        if (squadSpawner == null) squadSpawner = GetComponentInChildren<SquadSpawner>();
         if (rewardManager == null) rewardManager = GetComponentInChildren<RewardManager>();
         if (offscreenEnemyArrowManager == null) offscreenEnemyArrowManager = GetComponentInChildren<OffscreenEnemyArrowManager>();
         if (globalvolume == null) globalvolume = GameObject.Find("Global Volume")?.GetComponent<Volume>();
@@ -188,7 +186,6 @@ public class GameManager : MonoBehaviour
         if (rewardManager != null) rewardManager.Initialize();
         if (offscreenEnemyArrowManager != null) offscreenEnemyArrowManager.Initialize();
 
-        // 초기화 시점에는 아직 플레이어가 없으므로 SquadSpawner의 AllyManager 연결은 미룹니다.
 
         Debug.Log("<b>[GameManager]</b> Initial Managers Loaded.");
     }
@@ -215,7 +212,6 @@ public class GameManager : MonoBehaviour
         if (playerStateUI != null && playerController != null)
         {
             var health = playerController.GetComponentInChildren<CharacterHealth>();
-            var allyManager = playerController.GetComponent<AllyManager>();
 
             // 플레이어 체력 복구
             if (_loadedSaveData != null && health != null)
@@ -229,15 +225,10 @@ public class GameManager : MonoBehaviour
                 var skillCtrl = playerController.GetComponent<PlayerSkillController>();
                 minionStateUI.Initialize(skillCtrl);
                 Debug.Log("<color=cyan>[GameManager]</color> MinionStateUI Initialized.");
-
-                if (minionSkillQueueUI != null)
-                    minionSkillQueueUI.Initialize(skillCtrl);
-
-            // DashCooldownUI는 PlayerStateUI.Initialize()에서 자체 처리
-
+                // DashCooldownUI는 PlayerStateUI.Initialize()에서 자체 처리
             }
 
-            playerStateUI.Initialize(health, allyManager);
+            playerStateUI.Initialize(health);
 
             // PlayerSkillController.Awake()가 같은 프레임에 실행됐으므로
             // equippedMinions가 이미 채워진 상태 → 아이콘 즉시 갱신
@@ -257,15 +248,6 @@ public class GameManager : MonoBehaviour
             Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");
         }
 
-        // 마을 시스템을 위해서 임시로 추가한 코드
-        if(SceneManager.GetActiveScene().name == "VillageScene")
-        {
-            if (squadSpawner != null)
-            {
-                squadSpawner.RefreshFullSquad();
-            }
-        }
-
         Debug.Log("<color=green>[GameManager]</color> All Systems Ready!");
     }
 
@@ -283,14 +265,6 @@ public class GameManager : MonoBehaviour
         if (playerController != null)
         {
             playerController.SetInputBlocked(true);
-
-            // [핵심 수정] 부대 스포너에 새로 생성된 플레이어의 AllyManager를 연결해줍니다.
-            var allyManager = playerObj.GetComponent<AllyManager>();
-            if (squadSpawner != null && allyManager != null)
-            {
-                squadSpawner.Initialize(inventoryManager, allyManager);
-                Debug.Log("<color=cyan>[GameManager]</color> SquadSpawner Re-Initialized with new AllyManager.");
-            }
         }
 
         if (mapGenerator != null)

@@ -56,7 +56,6 @@ public class PlayerCorrosionPunchSO : PlayerSkillSO
             if (stat != null && stat.Status != null && !stat.IsDead)
             {
                 stat.Status.ApplyElementalDebuff(DebuffStackType.Corrosion, 1, player.gameObject);
-                GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Debuff, health.transform);
             }
         };
 

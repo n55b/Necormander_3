@@ -11,14 +11,34 @@ public class MeleeCombatController : MonoBehaviour
     [SerializeField] private Transform attackSpawnPoint;
 
     [Header("평타 대시 물리력 설정")]
-    [Tooltip("평타 1, 2타 시의 순간 돌진력(가속 배율)입니다. 기본값 1.0f")]
+    [Tooltip("평타 타격 순간의 돌진력(가속 배율)입니다. 기본값 1.0f")]
     [SerializeField] private float lightAttackDashMultiplier = 1.0f;
-    [Tooltip("평타 3타(피니시) 시의 순간 돌진력(가속 배율)입니다. 기본값 1.5f")]
-    [SerializeField] private float mediumAttackDashMultiplier = 1.5f;
 
     private PlayerController _player;
     private float _lastAttackTime;
-    private int _comboStep = 0; // 0, 1, 2
+    private int _comboStep = 0; // 0, 1 (+ 메인 소환수가 있으면 2 = 소환수 마무리)
+
+    /// <summary>플레이어 자체 평타는 2타. 메인 소환수가 있으면 3타째에 소환수 마무리가 붙는다.</summary>
+    private const int PLAYER_COMBO_LENGTH = 2;
+
+    /// <summary>장착된 메인 소환수의 마무리 일격. 없으면 null.</summary>
+    private MinionFinisher Finisher
+    {
+        get
+        {
+            // 매 공격마다 읽는다 — SyncWithInventory 가 런 도중 소환수를 갈아끼울 수 있다.
+            var skillCtrl = _player != null ? _player.GetComponent<PlayerSkillController>() : null;
+            var main = skillCtrl != null ? skillCtrl.MainSummon : null;
+            if (main == null) return null;
+            return (main.finisher != null && main.finisher.IsValid) ? main.finisher : null;
+        }
+    }
+
+    /// <summary>현재 콤보 총 타수. 메인 소환수가 있으면 +1.</summary>
+    private int ComboLength => Finisher != null ? PLAYER_COMBO_LENGTH + 1 : PLAYER_COMBO_LENGTH;
+
+    /// <summary>이번 스텝이 소환수 마무리 차례인가.</summary>
+    private bool IsFinisherStep(int step) => Finisher != null && step == PLAYER_COMBO_LENGTH;
 
     [Header("콤보 설정")]
     [SerializeField] private float comboResetTime = 1.0f;
@@ -26,13 +46,17 @@ public class MeleeCombatController : MonoBehaviour
 
     [Header("타격 범위 설정")]
     [SerializeField] private Vector2 lightHitboxSize = new Vector2(2f, 1.5f);
-    [SerializeField] private Vector2 mediumHitboxSize = new Vector2(3f, 2f);
     [SerializeField] private float lightTelegraphDuration = 0.2f;
-    [SerializeField] private float mediumTelegraphDuration = 0.4f;
+    // ponytail: medium* (옛 3타 전용) 필드들은 제거됐다. 3타는 소환수 마무리가 대신하고
+    // 그 수치는 MinionDataSO.finisher 가 갖는다.
 
     [Header("평타 범위 표시(텔레그래프) 숨김")]
     [Tooltip("평타(기본 공격)의 범위 표시용 히트박스 시각효과를 숨깁니다. 데미지 판정은 그대로 유지됩니다. (스킬/적 텔레그래프에는 영향 없음)")]
     [SerializeField] private bool hideBasicAttackTelegraph = true;
+
+    [Tooltip("소환수 마무리 일격의 범위 표시도 숨길지. 기본은 '보임' — 마무리는 선딜(HitDelay)이 있어서 " +
+             "차오르는 바가 '어디를 언제 치는지'를 알려주는 게 평타보다 중요합니다.")]
+    [SerializeField] private bool hideFinisherTelegraph = false;
 
     private bool _isHoldingAttack = false;
     private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
@@ -114,10 +138,17 @@ public class MeleeCombatController : MonoBehaviour
         _lastAttackTime = Time.time;
         OnAttackExecuted?.Invoke(_comboStep);
 
+        // 마무리 타이밍이면 플레이어는 아무것도 하지 않고, 소환수가 나와서 때린다.
+        if (IsFinisherStep(_comboStep))
+        {
+            ExecuteFinisher();
+            _comboStep = (_comboStep + 1) % ComboLength;
+            return;
+        }
 
-        float telegraphDuration = (_comboStep == 2) ? mediumTelegraphDuration : lightTelegraphDuration;
-        Vector2 hitboxSize = (_comboStep == 2) ? mediumHitboxSize : lightHitboxSize;
-        float damageMultiplier = (_comboStep == 2) ? 1.5f : 1.0f;
+        float telegraphDuration = lightTelegraphDuration;
+        Vector2 hitboxSize = lightHitboxSize;
+        float damageMultiplier = 1.0f;
 
         // [애니메이션 재생]
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0f); // [수정] 평타 모션 중 키보드 수동 이동 차단
@@ -128,9 +159,10 @@ public class MeleeCombatController : MonoBehaviour
         _player.LockAnimState(); // canChangeState lock with timeout safety net
         _player.ResetAnimStateCache();
 
+        // ponytail: Attack_Medium(옛 3타) 은 이제 재생하지 않는다. 3타는 소환수 마무리가 대신하고
+        // 플레이어는 Idle 로 있는다. 클립 자체는 남겨둠 — 되살릴 때 다시 연결하면 된다.
         if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
-        else if (_comboStep == 1) _player.PlayAllAnim("Attack_Light2", "Attack");
-        else _player.PlayAllAnim("Attack_Medium", "Attack");
+        else _player.PlayAllAnim("Attack_Light2", "Attack");
 
         // Higher ATKSPD (lower stat value) plays the attack animation faster.
         if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
@@ -188,14 +220,18 @@ public class MeleeCombatController : MonoBehaviour
                 go.transform.localScale = new Vector3(hitboxSize.x, hitboxSize.y, 1f);
 
                 // 플레이어 공격은 적에게 경직과 약간의 넉백을 유발
-                float saDmg = (_comboStep == 2) ? 30f : 20f; // 1,2타는 20f, 3타는 30f
+                float saDmg = 20f;
+                // 서브 소환수의 평타 고정 추가 피해
+                var subPassive = _player.GetComponent<SubSummonPassiveController>();
+                float flatBonus = subPassive != null ? subPassive.BasicAttackDamageBonus : 0f;
+
                 DamageInfo info = new DamageInfo(
-                    _player.Stat.ATK * damageMultiplier,
+                    _player.Stat.ATK * damageMultiplier + flatBonus,
                     DamageType.Physical,
                     this.gameObject,
                     false, 1f, true, "", false,
                     causesHitstun: true,
-                    knockbackForce: _comboStep == 2 ? 6f : 2f,
+                    knockbackForce: 2f,
                     superArmorDamage: saDmg
                 );
 
@@ -213,8 +249,8 @@ public class MeleeCombatController : MonoBehaviour
             Debug.LogError("[MeleeCombat] telegraphPrefab이 인스펙터에 할당되지 않았습니다.");
         }
 
-        // 콤보 진행
-        _comboStep = (_comboStep + 1) % 3;
+        // 콤보 진행 (메인 소환수가 있으면 3타, 없으면 2타 반복)
+        _comboStep = (_comboStep + 1) % ComboLength;
     }
 
     /// <summary>
@@ -236,16 +272,116 @@ public class MeleeCombatController : MonoBehaviour
             {
                 Vector2 dashDir = inputDir.normalized;
                 
-                // 3. 콤보 피니시(3타) 및 1/2타 타격 순간 대시 가속력 배율 적용
-                // ExecuteMeleeAttack에서 _comboStep이 이미 (스텝+1)%3 으로 갱신되어 있으므로:
-                // 1타 타격 시점: _comboStep == 1
-                // 2타 타격 시점: _comboStep == 2
-                // 3타 타격 시점: _comboStep == 0
-                float forceMultiplier = (_comboStep == 0) ? mediumAttackDashMultiplier : lightAttackDashMultiplier;
+                // 플레이어 평타는 이제 1/2타뿐이라 전부 light 배율을 쓴다.
+                // (3타 = 소환수 마무리는 플레이어가 움직이지 않으므로 이 경로를 타지 않는다)
+                float forceMultiplier = lightAttackDashMultiplier;
 
                 _player.ApplyAttackDash(dashDir, forceMultiplier);
             }
         }
+    }
+
+    /// <summary>
+    /// 콤보 마지막 타이밍: 플레이어는 아무것도 하지 않고, 메인 소환수가 실체화해 마무리 일격을 넣는다.
+    /// (설계 3.3 "마지막에 소환수의 마무리 일격이 발동" — 플레이어는 Idle)
+    /// </summary>
+    private void ExecuteFinisher()
+    {
+        var skillCtrl = _player.GetComponent<PlayerSkillController>();
+        var main = skillCtrl != null ? skillCtrl.MainSummon : null;
+        var fin = Finisher;
+        if (main == null || fin == null) return;
+
+        // 조준 방향은 평타와 동일하게 마우스 기준.
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        mousePos.z = 0;
+        Vector3 origin = attackSpawnPoint != null ? attackSpawnPoint.position : transform.position;
+        Vector2 dir = ((Vector2)(mousePos - origin)).normalized;
+        if (dir.sqrMagnitude < 0.0001f) dir = CurrentAttackDir;
+        CurrentAttackDir = dir;
+
+        // 플레이어 외형만 방향 동기화하고, 모션은 재생하지 않는다 (Idle 유지).
+        if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
+        else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
+
+        // [대각선 처리] 소환수 스프라이트는 좌우로만 뒤집힌다. 그래서 히트박스를 조준 각도로
+        // 기울이면 그림은 수평인데 판정만 비스듬한 꼴이 된다. 대신 히트박스는 수평으로 두고
+        // 소환 위치를 조준 방향으로 밀어서, 수평으로 그어지는 판정이 조준한 쪽을 덮게 한다.
+        bool faceRight = dir.x >= 0f;
+        float angle = faceRight ? 0f : 180f;
+        Vector3 spawnPos = origin + (Vector3)(dir * fin.spawnOffset);
+
+        var caster = MinionSkillCaster.Spawn(main, spawnPos);
+
+        // 이펙트는 같은 애니메이터의 다른 상태라 한 오브젝트로 동시 재생이 안 된다.
+        // 하나 더 띄워서 겹친다 (예: DashDoll 은 Attack + Effect 가 별도 태그다).
+        if (!string.IsNullOrEmpty(fin.effectState))
+            caster.AttachVisual(fin.visual, fin.effectState, fin.castDuration, faceRight);
+
+        if (telegraphPrefab == null) return;
+
+        GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity, caster.transform);
+        if (hideFinisherTelegraph)
+        {
+            foreach (var vis in go.GetComponentsInChildren<SpriteRenderer>(true)) vis.enabled = false;
+            foreach (var mask in go.GetComponentsInChildren<SpriteMask>(true)) mask.enabled = false;
+        }
+
+        var box = go.GetComponent<BaseHitBox>();
+        if (box == null) return;
+
+        go.transform.localRotation = Quaternion.Euler(0, 0, angle);
+        go.transform.localScale = new Vector3(fin.hitBoxSize.x, fin.hitBoxSize.y, 1f);
+        box.hitEffectAngle = angle;
+
+        // 피해는 소환수 ATK 기준 (설계: "Minion에 있는 ATK 데미지를 이용")
+        var info = new DamageInfo(
+            main.attack * fin.damageMultiplier,
+            DamageType.Physical,
+            _player.gameObject,
+            false, 1f, true,
+            !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher",
+            false,
+            causesHitstun: fin.causesHitstun,
+            knockbackForce: fin.knockbackForce,
+            superArmorDamage: fin.superArmorDamage);
+
+        // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.
+        //  · damageState 를 쓰면 그 태그가 재생되는 동안만 열린다 (MeleeDoll: Slash).
+        //  · hitEvent 를 쓰면 Aseprite 셀에 심어둔 event: 프레임에 열린다 (DashDoll).
+        // 그때까지는 콜라이더를 꺼둔 채로 기다린다. 히트박스를 미리 만들어두는 이유는
+        // 텔레그래프(차오르는 바)가 '어디를 칠지'를 그동안 보여줘야 하기 때문이다.
+        var col = go.GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
+
+        bool useEvent = !string.IsNullOrEmpty(fin.hitEvent);
+
+        caster.PlaySequenced(
+            fin.visual, fin.animSequence, fin.damageState, fin.hitEvent,
+            fin.castDuration, fin.EventHitWindow, faceRight,
+            // 판정 열기
+            window =>
+            {
+                if (box == null) return;
+                if (!useEvent && fin.hitCount > 1)
+                {
+                    // 태그 방식: 타격 태그가 재생되는 동안 hitCount 를 균등 배분한다.
+                    box.isContinuousDamage = true;
+                    box.damageTickRate = window / fin.hitCount;
+                }
+                else
+                {
+                    // 이벤트 방식: OnHitEvent 하나가 타격 하나다. 배분할 게 없다.
+                    box.isContinuousDamage = false;
+                }
+                if (col != null) col.enabled = true;
+                box.Init(info, Layers.EnemyMask, window, 0f, true);
+            },
+            // OnHitEvent 마다: '이미 때린 대상' 기록을 지워서 다음 물리 스텝에 한 번 더 때린다.
+            // 적 공격 클립이 2타면 OnHitEvent 를 2번 박는 것과 같은 계약이다.
+            onHitPulse: () => { if (box != null) box.ResetHitTargets(); },
+            // OnAttackEndEvent: 후딜까지 끝났으니 판정을 닫는다.
+            onAttackEnd: () => { if (col != null) col.enabled = false; });
     }
 
     public void CancelAttack()

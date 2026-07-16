@@ -13,21 +13,10 @@ MonoBehaviour:
   m_Name: Minion Registry
   m_EditorClassIdentifier: 
   allyMinionData:
-  - {fileID: 11400000, guid: 3b8e14880e903b9428ede746311659f1, type: 2}
-  - {fileID: 11400000, guid: 02b328c2889b4af408a588ed6baae425, type: 2}
-  - {fileID: 11400000, guid: 1ec3de8ad2f991f47ad0d06d2b3d94f8, type: 2}
-  - {fileID: 11400000, guid: c7a5309733eb19d49935c67f2cab5ca1, type: 2}
-  - {fileID: 11400000, guid: 9a1e465cf7343ea4a9689df7200a82b2, type: 2}
-  - {fileID: 11400000, guid: 7e4c53f11a1595347a713edd42962fda, type: 2}
-  - {fileID: 11400000, guid: f67166d43b3c4a646b53721afbc5498b, type: 2}
-  - {fileID: 11400000, guid: fd8b01e69e7a355439653b7c0e1e867e, type: 2}
-  - {fileID: 11400000, guid: a4a75e2982d8e3144a26c48600f21685, type: 2}
-  - {fileID: 11400000, guid: 75c267d452fd4064bb3154fe9cf1be53, type: 2}
-  - {fileID: 11400000, guid: c7e0121e41f118b45b1ebcd4cdc78e8e, type: 2}
-  - {fileID: 11400000, guid: 90f4914332c90434ca11e7a7182b201f, type: 2}
-  - {fileID: 11400000, guid: b12fdbc1ee273224f9d5fe960d6b18e2, type: 2}
-  - {fileID: 11400000, guid: 3cde817d028864346bc0c0a6154641fe, type: 2}
-  - {fileID: 11400000, guid: cb0cbfe654c65244c9e4647136f954b9, type: 2}
+  - {fileID: 11400000, guid: 1249b3e99bee40e1a4fa574ab04a2b28, type: 2}
+  - {fileID: 11400000, guid: d1d81dc1227b40099e4a237dba3cb29f, type: 2}
+  - {fileID: 11400000, guid: 2ebf02073b714bd08b60e585b5172baa, type: 2}
+  - {fileID: 11400000, guid: a23a9344ad434dbda7ad70e1cf8485d7, type: 2}
   enemyMinionData:
   - {fileID: 11400000, guid: 9b9fca7c0d3c05d191796da3d846fe50, type: 2}
   - {fileID: 11400000, guid: 8a8fca7c0d3c05d191796da3d846fe49, type: 2}

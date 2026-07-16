@@ -163,7 +163,7 @@ public class VillageDebugLoadout : MonoBehaviour
         {
             var gm = GameManager.Instance;
             if (gm != null && gm.inventoryManager != null)
-                gm.inventoryManager.AddMinionOrIncreaseQuantity(minion.minionType, 1);
+                gm.inventoryManager.EquipMinion(minion); // 역할(메인/서브)에 맞는 슬롯으로 자동 장착
         }
     }
 }

@@ -46,13 +46,18 @@ public class GrowthRegistrySO : ScriptableObject
         gems.Clear();
         treasures.Clear();
 
-        // 1. 소환수 데이터(MinionDataSO) 검색
-        string[] minionGuids = UnityEditor.AssetDatabase.FindAssets("t:MinionDataSO");
-        foreach (var guid in minionGuids)
+        // 1. 소환수 데이터 검색. t: 필터는 상속을 따르므로 파생 타입만 콕 집으면
+        // 적/엘리트/보스(EnemyMinionDataSO)는 애초에 걸리지 않는다 — 경로에 의존하지 않는다.
+        foreach (var typeFilter in new[] { "t:MainMinionDataSO", "t:SubMinionDataSO" })
         {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionDataSO>(path);
-            if (asset != null) minionDatas.Add(asset);
+            foreach (var guid in UnityEditor.AssetDatabase.FindAssets(typeFilter))
+            {
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                if (path.Contains("/Deprecated/")) continue;
+
+                var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionDataSO>(path);
+                if (asset != null) minionDatas.Add(asset);
+            }
         }
 
         // 2. 보석(Gem) 검색

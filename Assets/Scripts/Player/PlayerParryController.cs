@@ -126,15 +126,6 @@ public bool IsParrying => _isParrying;
             _player.CancelActiveSkill();
         }
 
-        // 스킬 시전 중일 때도 패리 방지 (지속 시즈 모드 등 액티브스킬 매니저 판정)
-        var activeSkillCtrl = GetComponent<ActiveSkillManager>();
-        if (activeSkillCtrl != null)
-        {
-            bool isAnySkillActive = (activeSkillCtrl.SkillSlot1 != null && activeSkillCtrl.SkillSlot1.IsActive) ||
-                                    (activeSkillCtrl.SkillSlot2 != null && activeSkillCtrl.SkillSlot2.IsActive);
-            if (isAnySkillActive) return;
-        }
-
         // 마우스 조준 방향 벡터 획득
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(UnityEngine.InputSystem.Mouse.current.position.ReadValue());
         mousePos.z = 0;

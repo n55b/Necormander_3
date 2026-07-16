@@ -223,26 +223,6 @@ MonoBehaviour:
     m_Key: Throw Effect Treasure_Desc
     m_Metadata:
       m_Items: []
-  - m_Id: 48123755859968
-    m_Key: Archer Lineage_Base_Name
-    m_Metadata:
-      m_Items: []
-  - m_Id: 48123760054272
-    m_Key: Priest Lineage_Base_Name
-    m_Metadata:
-      m_Items: []
-  - m_Id: 48123760054273
-    m_Key: Shieldbearer Lineage_Base_Name
-    m_Metadata:
-      m_Items: []
-  - m_Id: 48123760054274
-    m_Key: Spearman Lineage_Base_Name
-    m_Metadata:
-      m_Items: []
-  - m_Id: 48123760054275
-    m_Key: Warrior Lineage_Base_Name
-    m_Metadata:
-      m_Items: []
   - m_Id: 48123772637184
     m_Key: UniqueEffect_AgingHunter
     m_Metadata:

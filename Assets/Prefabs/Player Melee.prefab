@@ -1313,12 +1313,10 @@ GameObject:
   - component: {fileID: 1604435047591240911}
   - component: {fileID: 7993269466842838964}
   - component: {fileID: 7972545975472383977}
-  - component: {fileID: 6055861653884896251}
   - component: {fileID: 3671673066107762978}
   - component: {fileID: 1807700438375551738}
   - component: {fileID: 8412499594907926683}
   - component: {fileID: 924915416061419967}
-  - component: {fileID: 6829083333298408906}
   - component: {fileID: 7483555610792978852}
   - component: {fileID: 7957941004026145679}
   - component: {fileID: 1103040150316217935}
@@ -1612,7 +1610,6 @@ MonoBehaviour:
   stat: {fileID: 5914193569906731681}
   throwRange: 5
   throwRangeBonus: 0
-  allyManager: {fileID: 6055861653884896251}
   throwController: {fileID: 0}
   throwChargeTime: 1
   activeSkillManager: {fileID: 0}
@@ -1644,26 +1641,6 @@ MonoBehaviour:
   dashCooldown: 1
   attackDashSpeed: 10
   attackDashDuration: 0.08
---- !u!114 &6055861653884896251
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8389716956321753658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0d4c6a7280fc7541974adb8f38ee43f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  allys:
-  - {fileID: 0}
-  activeMinionInfos: []
-  isBattle: 0
-  playerLayer:
-    serializedVersion: 2
-    m_Bits: 256
-  defaultRespawnTime: 6
 --- !u!114 &3671673066107762978
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1763,18 +1740,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   viewRadius: 4
---- !u!114 &6829083333298408906
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8389716956321753658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fecc708d442b824b9a5abc8bc6dbf99, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &7483555610792978852
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1815,6 +1780,7 @@ MonoBehaviour:
   maxCharges: 2
   rechargeTime: 2
   dashEffectPrefab: {fileID: 1585796293089155853, guid: c5d0c7c91c095c74fb398f43b9bd4cf5, type: 3}
+  dashHitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
 --- !u!114 &1103040150316217935
 MonoBehaviour:
   m_ObjectHideFlags: 0

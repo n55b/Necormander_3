@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
+  m_Script: {fileID: 11500000, guid: ac46b1fa0f0744c1a9cd4679b99eb04e, type: 3}
   m_Name: Bone Master Phase 2 Data
   m_EditorClassIdentifier: 
   minionType: 0
@@ -26,11 +26,7 @@ MonoBehaviour:
   moveSpeed: 4
   baseEvasion: 0
   baseMissChance: 0
-  cost: 0
   isElite: 0
-  canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: 9f4915f5124ef724e8a3e82295b25756, type: 2}
-  hpCostRatioPerThrow: 0
   AttackSound: {fileID: 0}
-  DeathSound: {fileID: 0}
   minionPrefab: {fileID: 3798428365419413079, guid: 5e2bb3c2b983f064e8085d46b105636a, type: 3}

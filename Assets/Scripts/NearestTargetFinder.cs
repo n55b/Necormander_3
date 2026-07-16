@@ -42,14 +42,6 @@ public class NearestTargetFinder : MonoBehaviour
         detectionRadius = distance;
         
         int currentMask = targetLayer.value;
-        if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
-        {
-            if (gameObject.layer == Layers.Enemy || gameObject.layer == Layers.Boss)
-            {
-                currentMask &= ~(1 << Layers.Ally);
-            }
-        }
-        
         filter.SetLayerMask(currentMask); // 현재 레이어 마스크 적용
 
         // 1. 범위 내 특정 레이어만 추출 (최신 비할당 API 사용)

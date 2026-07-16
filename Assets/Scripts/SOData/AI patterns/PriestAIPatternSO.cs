@@ -40,16 +40,7 @@ public class PriestAIPatternSO : BaseAIPatternSO
         else
         {
             // 힐 대상이 없으면 아군은 플레이어를, 적군은 대기
-            if (entity.team == Team.Ally)
-            {
-                var ally = entity as AllyController;
-                if (ally != null && ally.player != null) entity.Target = ally.player;
-                else entity.Target = null;
-            }
-            else
-            {
-                entity.Target = null;
-            }
+            entity.Target = null;
         }
     }
 

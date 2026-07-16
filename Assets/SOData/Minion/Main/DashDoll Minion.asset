@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a786f86611b456fbb23ecbfeacb3934, type: 3}
+  m_Name: DashDoll Minion
+  m_EditorClassIdentifier:
+  minionSkill: {fileID: 11400000, guid: 368593fef46344339a29343712cf5b05, type: 2}
+  dashModifier:
+    lengthMultiplier: 0.8
+    width: 1.4
+    hitCount: 1
+    damageMultiplier: 1
+    pushesEnemies: 1
+    pushForce: 3
+  finisher:
+    hitCount: 1
+    damageMultiplier: 2
+    hitBoxSize: {x: 3.5, y: 2.5}
+    spawnOffset: 1.2
+    castDuration: 0.65
+    animSequence:
+    - Attack
+    damageState: 
+    hitEvent: OnHitEvent
+    hitWindowRatio: 0.18
+    effectState: Effect
+    visual: {fileID: -2253911629886400664, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}
+    causesHitstun: 1
+    knockbackForce: 6
+    superArmorDamage: 30
+  subPassive:
+    maxHpBonus: 0
+    atkIntervalReduction: 0
+    basicAttackDamageBonus: 0
+    healOnAcquire: 0
+    healOnRoomClear: 0
+  minionType: 0
+  minionName: Dash Doll
+  minionIcon: {fileID: 0}
+  baseEffectValue: 10
+  maxHP: 100
+  attack: 10
+  attackSpeed: 1
+  attackRange: 2
+  detectRange: 10
+  defense: 0
+  flatDefense: 0
+  moveSpeed: 5
+  baseEvasion: 0
+  baseMissChance: 0
+  isElite: 0
+  aiPattern: {fileID: 0}
+  AttackSound: {fileID: 0}
+  minionPrefab: {fileID: 0}
+  shopCost: 150

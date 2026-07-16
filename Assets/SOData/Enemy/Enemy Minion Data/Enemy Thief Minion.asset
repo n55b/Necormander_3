@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
+  m_Script: {fileID: 11500000, guid: ac46b1fa0f0744c1a9cd4679b99eb04e, type: 3}
   m_Name: Enemy Thief Minion
   m_EditorClassIdentifier: 
   minionType: 7
@@ -26,11 +26,7 @@ MonoBehaviour:
   detectRange: 30
   defense: 0
   moveSpeed: 4
-  cost: 1
   isElite: 0
-  canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: 74df40033aa1da64486b803064027121, type: 2}
-  hpCostRatioPerThrow: 0
   AttackSound: {fileID: 0}
-  DeathSound: {fileID: 0}
   minionPrefab: {fileID: 5658053484416891064, guid: ef245dea473a8474482f9c57af041535, type: 3}

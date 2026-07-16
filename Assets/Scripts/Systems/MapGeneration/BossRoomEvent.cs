@@ -12,7 +12,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 {
     [Header("Boss Settings")]
     [Tooltip("비워두면 엘리트 풀에서 랜덤으로 보스를 소환합니다.")]
-    [SerializeField] private MinionDataSO specificBossData;
+    [SerializeField] private EnemyMinionDataSO specificBossData;
     [SerializeField] private GameObject portalObject;
 
     [Header("Reward Box Settings")]
@@ -24,7 +24,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     public UnityEvent OnBossCombatClear;
 
     private GameObject _activeBoss;
-    private List<MinionDataSO> _bossEnemyPool = new List<MinionDataSO>();
+    private List<EnemyMinionDataSO> _bossEnemyPool = new List<EnemyMinionDataSO>();
     private List<GameObject> _activeEnemies = new List<GameObject>(); // 분열 등으로 추가된 적(보스 외)
     private bool _isBattleActive = false;
     private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
@@ -82,7 +82,8 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 
         if (GemTreeUI.Instance != null && GemTreeUI.Instance.IsOpen) GemTreeUI.Instance.Toggle();
         if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
-        if (GameManager.Instance?.squadSpawner != null) GameManager.Instance.squadSpawner.RefreshFullSquad();
+        // 전투 시작 시 들고 있던 투척물을 떨군다.
+        FindFirstObjectByType<ThrowController>()?.ForceClear();
 
         // 1초 후 보스가 소환되도록 텀(Term) 연출 구현
         StartCoroutine(DelayedSpawnBoss(room));
@@ -103,11 +104,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 
     public void OnRoomCleared(RoomInstance room)
     {
-        if (GameManager.Instance?.PLAYERCONTROLLER != null)
-        {
-            var allyManager = GameManager.Instance.PLAYERCONTROLLER.GetComponent<AllyManager>();
-            allyManager?.ClearAll();
-        }
+        FindFirstObjectByType<ThrowController>()?.ForceClear();
 
         // 인스펙터에 할당된 상자를 방 정중앙에 생성
         SpawnRoomRewardBox(room);
@@ -142,7 +139,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 
     private void SpawnBoss(RoomInstance room)
     {
-        MinionDataSO dataToSpawn = specificBossData;
+        var dataToSpawn = specificBossData;
         
         // 특정 보스가 할당 안 된 경우 랜덤 풀에서 가져옴
         if (dataToSpawn == null && _bossEnemyPool.Count > 0)

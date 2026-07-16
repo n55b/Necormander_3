@@ -630,9 +630,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     {
         _cachedEnemies.Clear();
 
-        int enemyLayer = Layers.EnemyMask;
-        int bossLayer = Layers.BossMask;
-        int targetMask = enemyLayer | bossLayer;
+        int targetMask = Layers.EnemyMask;
 
         Vector3 roomCenter = currentRoom.transform.position + (Vector3)currentRoom.centerOffset;
         Vector2 boxSize = new Vector2(currentRoom.roomSize.x + 3f, currentRoom.roomSize.y + 3f);

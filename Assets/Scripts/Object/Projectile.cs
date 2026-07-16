@@ -23,10 +23,9 @@ public class Projectile : MonoBehaviour
         
         if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
         {
-            if (shooter != null && (shooter.layer == Layers.Enemy || shooter.layer == Layers.Boss))
+            if (shooter != null && shooter.layer == Layers.Enemy)
             {
                 _targetLayer.value &= ~(1 << Layers.Army);
-                _targetLayer.value &= ~(1 << Layers.Ally);
             }
         }
 
@@ -77,7 +76,7 @@ public class Projectile : MonoBehaviour
                 }
 
                 // 겹쳐 있는 것이 벽/장애물이면 안전구역 진입 전까지 임시 무시
-                if (((Layers.WallObstacle) & (1 << otherCol.gameObject.layer)) != 0)
+                if (((Layers.WallMask) & (1 << otherCol.gameObject.layer)) != 0)
                 {
                     _ignoredColliders.Add(otherCol);
                 }
@@ -100,7 +99,7 @@ public class Projectile : MonoBehaviour
     {
         if (_ignoredColliders.Contains(other)) return;
         // 1. 벽이나 장애물에 부딪히면 파괴
-        if (((Layers.WallObstacle) & (1 << other.gameObject.layer)) != 0)
+        if (((Layers.WallMask) & (1 << other.gameObject.layer)) != 0)
         {
             OnHitObstacle(other);
             return;
@@ -221,7 +220,7 @@ public class Projectile : MonoBehaviour
                 }
 
                 // 겹쳐 있는 것이 벽/장애물이면 임시 무시
-                if (((Layers.WallObstacle) & (1 << otherCol.gameObject.layer)) != 0)
+                if (((Layers.WallMask) & (1 << otherCol.gameObject.layer)) != 0)
                 {
                     _ignoredColliders.Add(otherCol);
                 }

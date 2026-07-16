@@ -21,14 +21,24 @@ public class MinionActionSkillSO : MinionSkillSO
     public bool useHitBox = false;
     public BaseHitBox hitBoxPrefab;
     public float hitRadius = 1.5f;
-    public float damageMultiplier = 1.2f; 
+    public float damageMultiplier = 1.2f;
     public float forceAmount = 4f; // 넉백/끌어당김 힘
     public float forceDuration = 0.2f;
 
-public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
+    [Header("다단히트 (useHitBox 일 때만)")]
+    [Tooltip("몇 번 때릴지. 1 이면 단타.")]
+    public int hitCount = 1;
+
+    // 타격 구간은 이제 damageState(태그) 나 hitEvent(Aseprite 셀 이벤트)가 정한다.
+    // 예전엔 hitDuration(초) -> hitEndRatio(비율) 였는데, 둘 다 그림과 따로 노는 숫자라
+    // 애니를 다시 타이밍할 때마다 손으로 맞춰줘야 했다. SkillSO 의 damageState/hitEvent 참조.
+
+    public override bool Execute(Transform user, MinionDataSO data, List<Transform> validTargets)
     {
-        var ally = user.GetComponent<AllyController>();
-        if (ally == null || ally.Stats.Health.IsDead) return;
+        var caster = user.GetComponent<MinionSkillCaster>();
+        if (caster == null) return false; // 코루틴을 돌릴 주체가 없으면 시전 불가
+        if (data == null) data = caster.Data;
+        if (data == null) return false;
 
         Vector2 playerPos = user.position;
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
@@ -49,17 +59,6 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
                 if (health == null) health = vt.GetComponentInParent<CharacterHealth>();
                 if (health != null && health.IsDead) continue;
 
-                // 각 연계 스킬 키워드별 타겟 상태 유효성 실시간 체크
-                var status = vt.GetComponentInChildren<CharacterStatus>();
-                if (status == null) status = vt.GetComponentInParent<CharacterStatus>();
-
-                if (status == null) continue;
-
-                if (this.reactKeyword == SkillKeyword.Vulnerability && status.VulnerabilityStacks <= 0) continue;
-                if (this.reactKeyword == SkillKeyword.Stun && !(status.GetDebuffBool(DebuffBoolType.Stunned) || status.GetDebuffBool(DebuffBoolType.Hitstunned))) continue;
-                if ((this.reactKeyword == SkillKeyword.Strike || this.reactKeyword == SkillKeyword.Smash) && status.VulnerabilityStacks <= 0) continue;
-                if (this.reactKeyword == SkillKeyword.Debuff && status.DebuffStackCount <= 0) continue;
-
                 float dist = Vector2.Distance(playerPos, vt.position);
                 if (dist < minDist) { minDist = dist; closestTarget = vt; }
             }
@@ -67,8 +66,9 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
 
         if (closestTarget == null)
         {
-            // [개선] 찰나의 프레임 차이로 유효 타겟이 소멸되었을 경우, 소환수 강제 돌진을 예방하고 동작을 완전히 차단합니다.
-            return;
+            // 칠 대상이 없으면 소환수 강제 돌진을 예방하고 동작을 완전히 차단한다.
+            // false 를 돌려 호출자가 쿨타임을 먹이지 않게 한다 (허공에 눌러 6~8초를 날리는 것 방지).
+            return false;
         }
 
         // 2. 텔레포트 및 넉백 방향 계산 (플레이어 기준)
@@ -96,59 +96,53 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
 
         user.position = teleportPos;
 
-        // [수정] 텔레포트 돌진 직후, 타겟을 직접 바라보도록 미니언의 SpriteRenderer.flipX를 설정
-        Vector2 lookDir = ((Vector2)closestTarget.position - (Vector2)user.position).normalized;
-        var userSR = user.GetComponentInChildren<SpriteRenderer>();
-        if (userSR != null)
-        {
-            if (lookDir.x > 0.01f) userSR.flipX = true; // 오른쪽 바라봄
-            else if (lookDir.x < -0.01f) userSR.flipX = false; // 왼쪽 바라봄
-        }
-
         PlaySkillSound();
         ShakeCamera();
-        float animDuration = PlaySkillAnimVisual(user);
+
+        Vector2 lookDir = ((Vector2)closestTarget.position - (Vector2)user.position).normalized;
+        bool faceRight = lookDir.x > 0f;
+
+        // 시전 시간 = skillAnimDuration. 애니메이션 전체가 여기 정확히 맞춰 스케일된다.
+        float animDuration = skillAnimDuration > 0f ? skillAnimDuration : 1f;
+
+        // 이펙트 태그는 같은 애니메이터의 다른 상태라 한 오브젝트로 동시 재생이 안 된다. 하나 더 겹친다.
+        if (!string.IsNullOrEmpty(effectState))
+            caster.AttachVisual(skillAnimVisual, effectState, animDuration, faceRight);
 
         Debug.Log($"<color=cyan>[Minion Skill]</color> 미니언이 '{skillName}' 스킬을 사용했습니다! (대상: {closestTarget.name})");
 
-        float hitDelay = animDuration * hitTimingRatio;
-        if (hitDelay > 0f)
-        {
-            ally.StartCoroutine(DelayedHit(hitDelay, ally, closestTarget, dirFromPlayer, teleportPos));
-        }
-        else
-        {
-            DoHitStop();
-            DealHit(ally, closestTarget, dirFromPlayer, teleportPos);
-        }
+        // 언제 때릴지는 그림이 정한다 — damageState 태그가 재생되는 동안, 혹은 Aseprite 에 심어둔
+        // event:OnHitEvent 프레임에. 초로 박지 않으므로 시전 속도가 바뀌어도 알아서 따라온다.
+        float eventWindow = Mathf.Max(0.05f, animDuration * Mathf.Clamp01(hitWindowRatio));
+        caster.PlaySequenced(
+            skillAnimVisual, animSequence, damageState, hitEvent,
+            animDuration, eventWindow, faceRight,
+            window =>
+            {
+                if (caster == null) return;
+                DoHitStop();
+                DealHit(caster, data, closestTarget, dirFromPlayer, teleportPos, window);
+            });
+
+        return true;
     }
 
-    private IEnumerator DelayedHit(float delay, AllyController ally, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos)
+    /// <param name="hitWindow">판정이 열려 있는 시간(초). 애니메이션이 정해준 값이다.</param>
+    private void DealHit(MinionSkillCaster caster, MinionDataSO data, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos, float hitWindow)
     {
-        yield return new WaitForSeconds(delay);
-
-        // 대기 중 미니언이 죽는 등 상황이 바뀌었을 수 있으니 재검사
-        if (ally == null || ally.Stats.Health.IsDead) yield break;
-
-        DoHitStop();
-        DealHit(ally, closestTarget, dirFromPlayer, teleportPos);
-    }
-
-    private void DealHit(AllyController ally, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos)
-    {
-        float finalDamage = ally.Stats.ATK * damageMultiplier;
+        float finalDamage = data.attack * damageMultiplier;
 
         // 공격 실행
         if (useHitBox && hitBoxPrefab != null)
         {
             float angle = Mathf.Atan2(dirFromPlayer.y, dirFromPlayer.x) * Mathf.Rad2Deg;
-            BaseHitBox box = Instantiate(hitBoxPrefab, ally.transform.position, Quaternion.identity, ally.transform); // [수정] 월드가 아닌 시전자(미니언) 하위 자식으로 붙여 이동 동기화
+            BaseHitBox box = Instantiate(hitBoxPrefab, caster.transform.position, Quaternion.identity, caster.transform); // 시전자 하위 자식으로 붙여 이동 동기화
             box.transform.localPosition = Vector3.zero; // 시전자 중심 정렬
 
             box.transform.localRotation = Quaternion.Euler(0, 0, angle);
             box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
 
-            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, ally.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
+            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
 
             bool hasInvokedKeyword = false;
             System.Action<CharacterHealth> onHit = (health) => {
@@ -163,9 +157,22 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
                     Debug.Log($"<color=yellow>[MinionAction]</color> {actionType} 발동! (미니언 시전)");
                 }
 
-                ApplyActionEffect(stat, stat.transform.root, ally, dirFromPlayer, teleportPos);
+                ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
             };
-            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, onHit);
+
+            // 다단히트는 BaseHitBox 의 틱 기능으로 낸다. hitCount 를 판정 구간 안에 균등 배분.
+            float boxDuration = Mathf.Max(0.05f, hitWindow);
+            if (hitCount > 1)
+            {
+                box.isContinuousDamage = true;
+                box.damageTickRate = boxDuration / hitCount;
+            }
+            else
+            {
+                box.isContinuousDamage = false;
+            }
+
+            box.Init(info, Layers.EnemyMask, boxDuration, 0f, true, onHit);
         }
         else
         {
@@ -177,7 +184,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
 
             if (health != null && !health.IsDead)
             {
-                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, ally.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
+                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
                 health.GetDamage(info);
 
                 var stat = health.GetComponent<CharacterStat>();
@@ -186,32 +193,32 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
 
                 if (stat != null)
                 {
-                    ApplyActionEffect(stat, stat.transform.root, ally, dirFromPlayer, teleportPos);
+                    ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
                 }
             }
         }
     }
 
-    private void ApplyActionEffect(CharacterStat stat, Transform targetTransform, AllyController ally, Vector2 dirFromPlayer, Vector2 teleportPos)
+    private void ApplyActionEffect(CharacterStat stat, Transform targetTransform, MinionSkillCaster caster, Vector2 dirFromPlayer, Vector2 teleportPos)
     {
         switch (actionType)
         {
             case MinionActionType.DamageOnly:
                 break;
             case MinionActionType.DamageAndPush:
-                ally.StartCoroutine(PushEnemy(targetTransform, dirFromPlayer));
+                caster.StartCoroutine(PushEnemy(targetTransform, dirFromPlayer));
                 break;
             case MinionActionType.DamageAndPull:
-                ally.StartCoroutine(PushEnemy(targetTransform, -dirFromPlayer));
+                caster.StartCoroutine(PushEnemy(targetTransform, -dirFromPlayer));
                 break;
             case MinionActionType.ApplyStun:
-                stat.Status.ApplyStatusEffect(SkillKeyword.Stun, ally.gameObject, false);
+                stat.Status.ApplyStatusEffect(SkillKeyword.Stun, caster.gameObject, false);
                 break;
             case MinionActionType.ApplyStrike:
-                stat.Status.ApplyStatusEffect(SkillKeyword.Strike, ally.gameObject, false);
+                stat.Status.ApplyStatusEffect(SkillKeyword.Strike, caster.gameObject, false);
                 break;
             case MinionActionType.ApplySmash:
-                stat.Status.ApplyStatusEffect(SkillKeyword.Smash, ally.gameObject, false);
+                stat.Status.ApplyStatusEffect(SkillKeyword.Smash, caster.gameObject, false);
                 break;
             case MinionActionType.StunExtension:
                 if (stat.Status.GetDebuffBool(DebuffBoolType.Stunned))
@@ -221,7 +228,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
                 break;
             case MinionActionType.ApplyCorrosion:
                 stat.Status.SetDebuffBool(DebuffBoolType.Corroded, 3f);
-                stat.Status.ApplyDebuff(DebuffType.Corrosion, ally.gameObject, false);
+                stat.Status.ApplyDebuff(DebuffType.Corrosion, caster.gameObject, false);
                 break;
         }
     }
@@ -254,7 +261,7 @@ public override void ExecuteSkill(Transform user, Transform target = null, List<
         Vector2 startPos = enemy.position;
         Vector2 targetPos = startPos + pushDir * forceAmount;
         
-        int obstacleMask = Layers.WallObstacle | Layers.UnsteppableMask;
+        int obstacleMask = Layers.WallMask | Layers.UnsteppableMask;
 
         // 몬스터 콜라이더 크기 구하기
         var enemyCol = enemy.GetComponent<Collider2D>();

@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
+  m_Script: {fileID: 11500000, guid: ac46b1fa0f0744c1a9cd4679b99eb04e, type: 3}
   m_Name: Monster Doll Range
   m_EditorClassIdentifier: 
   minionSkill: {fileID: 0}
@@ -27,11 +27,7 @@ MonoBehaviour:
   moveSpeed: 4
   baseEvasion: 0
   baseMissChance: 0
-  cost: 1
   isElite: 0
-  canSpawnRandomly: 1
   aiPattern: {fileID: 11400000, guid: d714e9ff20833ad43952e96569b7dd59, type: 2}
-  hpCostRatioPerThrow: 0
   AttackSound: {fileID: 0}
-  DeathSound: {fileID: 0}
   minionPrefab: {fileID: 5658053484416891064, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}

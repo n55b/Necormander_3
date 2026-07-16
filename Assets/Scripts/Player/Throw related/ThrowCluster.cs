@@ -245,9 +245,7 @@ public class ThrowCluster : MonoBehaviour
         if (_activeRecipe == null) return;
         if (!_isDirectThrow) return;
 
-        int wallLayer = Layers.Wall;
-        int obstacleLayer = Layers.Obstacle;
-        bool isWall = other.gameObject.layer == wallLayer || other.gameObject.layer == obstacleLayer;
+        bool isWall = other.gameObject.layer == Layers.Wall;
 
         int opponentMask = (_activeRecipe.info.targetTeam == Team.Enemy) ? Layers.EnemyMask : Layers.PlayerArmy;
         int objectMask = Layers.ObjectMask;
@@ -295,7 +293,7 @@ public class ThrowCluster : MonoBehaviour
         _activeRecipe.state.bounceCount++;
         Vector2 currentPos = transform.position;
         float radius = GetCurrentRadius();
-        int wallMask = Layers.WallObstacle;
+        int wallMask = Layers.WallMask;
         int opponentMask = (_activeRecipe.info.targetTeam == Team.Enemy) ? Layers.EnemyMask : Layers.PlayerArmy;
         int objectMask = Layers.ObjectMask;
         int totalMask = wallMask | opponentMask | objectMask;
@@ -350,7 +348,7 @@ public class ThrowCluster : MonoBehaviour
         bool isImpactSuccess = false;
         if (_activeRecipe != null)
         {
-            int wallMask = Layers.WallObstacle;
+            int wallMask = Layers.WallMask;
             if (!Physics2D.OverlapCircle(transform.position, GetCurrentRadius() * 0.8f, wallMask))
             {
                 if (_activeRecipe.info.targetingMode == TargetingMode.Self || _activeRecipe.info.targetingMode == TargetingMode.Area || (_activeRecipe.info.targetingMode == TargetingMode.Target && _activeRecipe.info.finalTarget != null) || _activeRecipe.state.maxPierce > 0 || _activeRecipe.state.bounceCount > 0)
@@ -371,26 +369,6 @@ public class ThrowCluster : MonoBehaviour
 
         if (_activeRecipe != null && _activeRecipe.state.isMaster)
         {
-            List<IThrowable> fusedUnits = new List<IThrowable>();
-            bool performTwinFusion = false;
-            bool performGolemFusion = false;
-
-            if (InventoryManager.Instance != null)
-            {
-                // [골레마이징] 5명 던질 때 앞 5명 합체
-                if (_units.Count >= 5 && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.Golemizing))
-                {
-                    performGolemFusion = true;
-                }
-                // [쌍둥이 연성] 2명 이상 던질 때 앞 2명 합체
-                else if (_units.Count >= 2 && InventoryManager.Instance.HasUniqueEffect(GemUniqueType.TwinFusion))
-                {
-                    performTwinFusion = true;
-                }
-            }
-
-            int fusionCount = performGolemFusion ? 5 : (performTwinFusion ? 2 : 0);
-
             for (int i = 0; i < _units.Count; i++)
             {
                 var unit = _units[i];
@@ -403,28 +381,6 @@ public class ThrowCluster : MonoBehaviour
                 {
                     unit.SetImpacted(isImpactSuccess);
                     unit.OnLanded();
-
-                    if (i < fusionCount)
-                    {
-                        fusedUnits.Add(unit);
-                    }
-                }
-            }
-
-            // 융합 실행
-            if (fusionCount > 0 && fusedUnits.Count == fusionCount)
-            {
-                var firstUnit = fusedUnits[0] as MonoBehaviour;
-                if (firstUnit != null)
-                {
-                    GameObject fusionObj = Instantiate(firstUnit.gameObject, transform.position, Quaternion.identity);
-                    var fusionController = fusionObj.AddComponent<FusionMinionController>();
-                    
-                    float scaleMult = performGolemFusion ? 2.5f : 1.5f;
-                    Color fusionColor = performGolemFusion ? Color.red : Color.blue;
-                    string popupName = performGolemFusion ? "Golem!" : "Twin!";
-                    
-                    fusionController.Setup(fusedUnits, 10f, 1f, scaleMult, fusionColor, popupName);
                 }
             }
         }

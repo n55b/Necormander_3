@@ -22,7 +22,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
     public UnityEvent OnEliteCombatClear;
 
     private List<GameObject> _activeEnemies = new List<GameObject>();
-    private List<MinionDataSO> _eliteEnemyPool = new List<MinionDataSO>(); 
+    private List<EnemyMinionDataSO> _eliteEnemyPool = new List<EnemyMinionDataSO>(); 
     private bool _isBattleActive = false;
     private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
     private RoomInstance _cachedRoom;
@@ -94,7 +94,8 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
         if (GemTreeUI.Instance != null && GemTreeUI.Instance.IsOpen) GemTreeUI.Instance.Toggle();
         if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
-        if (GameManager.Instance?.squadSpawner != null) GameManager.Instance.squadSpawner.RefreshFullSquad();
+        // 전투 시작 시 들고 있던 투척물을 떨군다.
+        FindFirstObjectByType<ThrowController>()?.ForceClear();
 
         // 1초 후 적들이 소환되도록 텀(Term) 연출 구현
         StartCoroutine(DelayedSpawnElite(room));
@@ -115,11 +116,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
     public void OnRoomCleared(RoomInstance room)
     {
-        if (GameManager.Instance?.PLAYERCONTROLLER != null)
-        {
-            var allyManager = GameManager.Instance.PLAYERCONTROLLER.GetComponent<AllyManager>();
-            allyManager?.ClearAll();
-        }
+        FindFirstObjectByType<ThrowController>()?.ForceClear();
 
         // 인스펙터에 할당된 상자를 방 정중앙에 생성
         SpawnRoomRewardBox(room);
@@ -208,7 +205,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
             return;
         }
 
-        MinionDataSO data = _eliteEnemyPool[Random.Range(0, _eliteEnemyPool.Count)];
+        var data = _eliteEnemyPool[Random.Range(0, _eliteEnemyPool.Count)];
         
         if (NavMesh.SamplePosition(position, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
         {

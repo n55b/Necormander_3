@@ -9,7 +9,7 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
 {
     // [추가] 인터페이스 구현
     public virtual CommandData MinionType => CommandData.None;
-    public virtual MinionDataSO MinionData => null;
+    public virtual EnemyMinionDataSO MinionData => null;
 
     // [추가] 물리 수치 노출
     public float MaxSpeed => maxSpeed;
@@ -45,7 +45,7 @@ public class ThrowableUnit : MonoBehaviour, IThrowable
         _originalDamping = _rb.linearDamping;
         _originalLayer = gameObject.layer;
 
-        _hitLayers = Layers.EnemyWallObstacle;
+        _hitLayers = Layers.EnemyWall;
         if (_hitLayers == 0)
         {
             _hitLayers = ~(Layers.PlayerMask | (1 << 2)); 

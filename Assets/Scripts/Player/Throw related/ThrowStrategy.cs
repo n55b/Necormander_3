@@ -211,25 +211,6 @@ public class ThrowStrategy : MonoBehaviour
             // [보석 시스템 1: 투척 강화]
             float gemBonus = InventoryManager.Instance.GetAggregatedGemBonus(type, StatType.ThrowEffect);
 
-            // [보석 시스템 2: 디버프 부여]
-            // 해당 직업(type)에게 할당된 보석들의 디버프 스택(귀수 속성)만 가져와 적용합니다.
-            var jobStats = InventoryManager.Instance.GetJobGemStats(type);
-            if (jobStats != null)
-            {
-                foreach (var kvp in jobStats.HandAttributes)
-                {
-                    DebuffStackType debuffType = kvp.Key;
-                    float aggregatedStacks = kvp.Value;
-
-                    // [사용자 요청 공식] (보석 스택 합산) * (전체 배율)
-                    float scaledStack = aggregatedStacks * totalMultiplier;
-                    if (!recipe.modifiers.debuffStacks.ContainsKey(debuffType))
-                        recipe.modifiers.debuffStacks[debuffType] = 0f;
-                    
-                    recipe.modifiers.debuffStacks[debuffType] += scaledStack;
-                }
-            }
-
             float baseVal = obj.MinionData.baseEffectValue;
 
             switch (type)

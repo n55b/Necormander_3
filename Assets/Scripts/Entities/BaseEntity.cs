@@ -26,8 +26,8 @@ public abstract class BaseEntity : MonoBehaviour
     [SerializeField] protected GameObject telegraphPrefab; // 공격 경고(Telegraph) 프리팹 (인스펙터 할당)
 
     [Header("데이터 참조 (직접 배치 시 필수)")]
-    [SerializeField] protected MinionDataSO minionData;
-    public MinionDataSO MinionData => minionData;
+    [SerializeField] protected EnemyMinionDataSO minionData;
+    public EnemyMinionDataSO MinionData => minionData;
     protected Animator _animator;
     [SerializeField] protected AIState _lastState = (AIState)(-1); // 이전 상태 기록
     [SerializeField] protected Transform _target = null;
@@ -174,7 +174,6 @@ public abstract class BaseEntity : MonoBehaviour
             if (team == Team.Enemy)
             {
                 opponentLayer.value &= ~(1 << Layers.Army);
-                opponentLayer.value &= ~(1 << Layers.Ally);
             }
         }
 
@@ -292,7 +291,7 @@ public abstract class BaseEntity : MonoBehaviour
         return true;
     }
 
-    public virtual void Initialize(MinionDataSO data)
+    public virtual void Initialize(EnemyMinionDataSO data)
     {
         minionData = data;
 
@@ -520,28 +519,6 @@ public abstract class BaseEntity : MonoBehaviour
             // [수정] 직접 Health 담당자에게 명령, isBasicAttack = true 추가
             DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true);
             targetStat.Health.GetDamage(info);
-
-            // 무기 속성 부여 (보석 효과) - 아군일 때만 적용
-            if (this.team == Team.Ally && InventoryManager.Instance != null)
-            {
-                // 스택형 속성 부여
-                foreach (var kvp in InventoryManager.Instance.GlobalGemStats.WeaponAttributes)
-                {
-                    if (kvp.Value > 0)
-                    {
-                        targetStat.Status.AddDebuffStack(kvp.Key, kvp.Value);
-                    }
-                }
-
-                // [추가] 상태형(Bool) 속성 부여 (부식 등)
-                foreach (var kvp in InventoryManager.Instance.GlobalGemStats.WeaponBoolAttributes)
-                {
-                    if (kvp.Value > 0)
-                    {
-                        targetStat.Status.SetDebuffBool(kvp.Key, kvp.Value);
-                    }
-                }
-            }
 
         }
 

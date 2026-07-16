@@ -113,36 +113,6 @@ public class ThrowImpactManager : MonoBehaviour
                     }
                 }
 
-                // 2. [신규] 귀수 속성 부여 (전역 보석 효과)
-                if (InventoryManager.Instance != null)
-                {
-                    // 스택형 속성 부여
-                    foreach (var kvp in InventoryManager.Instance.GlobalGemStats.HandAttributes)
-                    {
-                        if (kvp.Value > 0)
-                        {
-                            float amount = kvp.Value;
-                            status.AddDebuffStack(kvp.Key, amount);
-                        }
-                    }
-
-                    // [추가] 상태형(Bool) 속성 부여 (부식 등)
-                    foreach (var kvp in InventoryManager.Instance.GlobalGemStats.HandBoolAttributes)
-                    {
-                        if (kvp.Value > 0)
-                        {
-                            status.SetDebuffBool(kvp.Key, kvp.Value);
-                        }
-                    }
-
-                    // [특수] 치명적인 독: 현재 부여된 독 스택을 배로 올려줌 (GemRuleSystem에서 보너스량 계산)
-                    int current = status.GetDebuffStack(DebuffStackType.BloodPop);
-                    float bonus = GemRuleSystem.GetLethalPoisonBonus(current);
-                    if (bonus > 0)
-                    {
-                        status.AddDebuffStack(DebuffStackType.BloodPop, bonus);
-                    }
-                }
             }
         }
 

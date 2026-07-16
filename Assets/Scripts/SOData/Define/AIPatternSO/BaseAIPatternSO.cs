@@ -24,17 +24,7 @@ public class BaseAIPatternSO : AIPatternSO
         }
         else
         {
-            // 2. 적이 없을 때: 아군은 플레이어를 타겟으로 삼음
-            if (entity.team == Team.Ally)
-            {
-                var ally = entity as AllyController;
-                if (ally != null && ally.player != null) entity.Target = ally.player;
-                else entity.Target = null;
-            }
-            else
-            {
-                entity.Target = null;
-            }
+            entity.Target = null;
         }
     }
 

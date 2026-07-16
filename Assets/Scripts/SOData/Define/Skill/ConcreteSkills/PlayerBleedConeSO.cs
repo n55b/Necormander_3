@@ -48,7 +48,6 @@ public class PlayerBleedConeSO : PlayerSkillSO
             if (stat != null && stat.Status != null && !stat.IsDead)
             {
                 stat.Status.ApplyElementalDebuff(DebuffStackType.Bleed, 1, player.gameObject);
-                GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Debuff, health.transform);
             }
         };
 

@@ -69,12 +69,13 @@ public class MinionStateUI : MonoBehaviour
 
             if (s.MinionIcon != null)
             {
-                s.MinionIcon.sprite = data.minionIcon;
+                s.MinionIcon.sprite = data.ResolveIcon();
 
                 var tooltip = s.MinionIcon.GetComponent<SkillTooltipTrigger>();
                 if (tooltip == null) tooltip = s.MinionIcon.gameObject.AddComponent<SkillTooltipTrigger>();
-                if (data.minionSkill != null)
-                    tooltip.SetData(data.minionSkill.skillName, data.minionSkill.description);
+                string desc = data.ResolveDescription();
+                if (!string.IsNullOrEmpty(desc))
+                    tooltip.SetData(data.ResolveTitle(), desc);
                 else
                     tooltip.Clear();
             }
@@ -107,12 +108,13 @@ public class MinionStateUI : MonoBehaviour
             if (has && s.MinionIcon != null && data != s.LastData)
             {
                 s.LastData = data;
-                s.MinionIcon.sprite = data.minionIcon;
+                s.MinionIcon.sprite = data.ResolveIcon();
 
                 var tooltip = s.MinionIcon.GetComponent<SkillTooltipTrigger>();
                 if (tooltip == null) tooltip = s.MinionIcon.gameObject.AddComponent<SkillTooltipTrigger>();
-                if (data.minionSkill != null)
-                    tooltip.SetData(data.minionSkill.skillName, data.minionSkill.description);
+                string desc = data.ResolveDescription();
+                if (!string.IsNullOrEmpty(desc))
+                    tooltip.SetData(data.ResolveTitle(), desc);
                 else
                     tooltip.Clear();
             }
@@ -122,11 +124,13 @@ public class MinionStateUI : MonoBehaviour
             }
             if (!has) continue;
 
-            // ── 연계스킬 쿨타임 Fill (1=방금 발동, 0=쿨 완료) ──────────────
-            if (data.minionSkill == null || s.SkillCoolFill == null) continue;
+            // ── 액티브 쿨타임 Fill (1=방금 발동, 0=쿨 완료) ──────────────
+            // 액티브(스페이스바)는 메인 소환수만 갖는다. 서브는 패시브라 쿨타임 자체가 없다.
+            var mainData = data as MainMinionDataSO;
+            if (mainData == null || mainData.minionSkill == null || s.SkillCoolFill == null) continue;
 
-            float maxCd = data.minionSkill.cooldownTime;
-            float remaining = _skillCtrl.GetMinionSkillCooldownRemaining((PlayerSkillController.SkillSlot)i);
+            float maxCd = mainData.minionSkill.cooldownTime;
+            float remaining = (i == InventoryManager.SLOT_MAIN) ? _skillCtrl.GetMainSummonCooldownRemaining() : 0f;
             bool onCd = remaining > 0.05f;
             float fill = (maxCd > 0f && onCd) ? Mathf.Clamp01(remaining / maxCd) : 0f;
 

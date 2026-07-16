@@ -96,49 +96,49 @@ public abstract class PlayerSkillSO : SkillSO
 
 public abstract class MinionSkillSO : SkillSO
 {
-    [Header("Reaction")]
-    public SkillKeyword reactKeyword;
+    /// <summary>
+    /// 미니언 스킬의 실제 진입점. SkillSO.ExecuteSkill 는 플레이어 스킬용 시그니처라
+    /// 소환수 데이터(ATK 등)를 실을 자리가 없어서 별도 오버로드를 둔다.
+    /// user 에는 MinionSkillCaster 가 붙어 있어야 코루틴(타격 지연/넉백)을 돌릴 수 있다.
+    /// </summary>
+    /// <returns>실제로 시전했으면 true. false 면 호출자가 쿨타임을 먹이지 않아야 한다.</returns>
+    public abstract bool Execute(Transform user, MinionDataSO data, System.Collections.Generic.List<Transform> validTargets);
+
+    /// <summary>SkillSO 계약 유지용. 데이터 없이 들어오면 스킬은 스스로 판단해 폴백한다.</summary>
+    public override void ExecuteSkill(Transform user, Transform target = null, System.Collections.Generic.List<Transform> validTargets = null)
+        => Execute(user, null, validTargets);
 
     [Header("Skill Animation")]
     [Tooltip("스킬 발동 시 시전 위치에 재생할 애니메이션 비주얼 오브젝트(도트/애니메이터 포함). 비워두면 재생하지 않습니다.")]
     public GameObject skillAnimVisual;
-    [Tooltip("skillAnimVisual이 재생된 뒤 자동으로 파괴되기까지의 시간(초). 0이면 애니메이터 클립 길이를 자동 추정합니다.")]
+
+    [Tooltip("전체 시전 시간(초). 애니메이션 재생 속도가 이 길이에 정확히 맞도록 자동 조절됩니다. " +
+             "0 이면 클립 원본 길이를 그대로 씁니다.\n" +
+             "[중요] 나중에 공속 등으로 시전이 빨라지면 이 값만 줄이면 됩니다 — 애니메이션과 타격 시점이 " +
+             "전부 비율로 묶여 있어서 같이 따라옵니다.")]
     public float skillAnimDuration = 0f;
 
-    [Header("Hit Timing")]
+    [Tooltip("순서대로 재생할 애니메이터 상태 이름들. 비우면 기본 상태 하나만 재생됩니다.\n" +
+             "aseprite 임포터는 태그마다 상태를 만들어 놓고 트랜지션을 하나도 안 걸기 때문에, " +
+             "여기에 적지 않은 상태는 영원히 재생되지 않습니다. (예: Start, Slash, End)")]
+    public string[] animSequence;
+
+    [Tooltip("위 시퀀스와 '동시에' 겹쳐 재생할 이펙트 상태 이름. 비우면 없음. (예: DashDoll 의 Effect)")]
+    public string effectState = "";
+
+    [Header("Damage Timing — 초 대신 그림이 정한다")]
+    [Tooltip("이 태그가 재생되는 '동안'만 판정이 열린다. 예: MeleeDoll 의 Slash / " +
+             "태그 경계는 이미 아티스트가 그림에 찍어둔 마커다. 그래서 애니를 다시 타이밍해도 " +
+             "판정이 알아서 따라온다 — 초나 비율을 손으로 맞출 필요가 없다.")]
+    public string damageState = "";
+
+    [Tooltip("태그로 준비/타격이 안 나뉠 때 쓴다(예: DashDoll 은 Attack 하나에 다 들어있음). " +
+             "Aseprite 에서 타격 프레임 셀의 user data 에 `event:OnHitEvent` 을 적으면 임포터가 " +
+             "그 프레임에 AnimationEvent 를 심어준다. 여기에 OnHitEvent 를 적으면 그 순간 판정이 열린다. " +
+             "비워두면 damageState(태그) 방식. 적으면 이쪽이 우선.")]
+    public string hitEvent = "";
+
     [Range(0f, 1f)]
-    [Tooltip("skillAnimVisual 재생 시간 대비 실제 타격(데미지)이 발생해야 하는 시점 비율 (0=즉시 타격, 1=애니메이션이 끝난 뒤 타격). skillAnimVisual이 없으면 무시되고 즉시 타격됩니다.")]
-    public float hitTimingRatio = 0f;
-
-    /// <summary>
-    /// skillAnimVisual이 지정되어 있으면 시전자 위치에 생성해 재생하고, 일정 시간 뒤 자동으로 파괴합니다.
-    /// 반환값은 실제 사용된 재생 시간(초)이며, hitTimingRatio와 곱해 타격 지연 시간을 계산하는 데 씁니다.
-    /// </summary>
-    protected float PlaySkillAnimVisual(Transform user)
-    {
-        if (skillAnimVisual == null) return 0f;
-
-        GameObject vfx = Instantiate(skillAnimVisual, user.position, Quaternion.identity, user);
-        vfx.transform.localPosition = Vector3.zero;
-
-        float duration = skillAnimDuration;
-        if (duration <= 0f)
-        {
-            var animator = vfx.GetComponentInChildren<Animator>();
-            if (animator != null && animator.runtimeAnimatorController != null)
-            {
-                var clips = animator.runtimeAnimatorController.animationClips;
-                foreach (var clip in clips)
-                {
-                    if (clip != null) duration += clip.length;
-                }
-            }
-            if (duration <= 0f) duration = 1f; // 클립을 찾지 못했을 때의 안전 기본값
-        }
-
-        Destroy(vfx, duration);
-        return duration;
-    }
-
-    // 추가적인 미니언 전용 데이터
+    [Tooltip("hitEvent 방식일 때만 사용. 판정이 열려 있는 시간(전체 시전 시간 대비 비율).")]
+    public float hitWindowRatio = 0.15f;
 }

@@ -2118,39 +2118,46 @@ public class MapGenerator : MonoBehaviour
             normalRooms[randomIndex] = temp;
         }
 
-        int targetPlayerCount = generationData.playerSkillRewardRoomCount;
-        int targetMinionCount = generationData.minionSkillRewardRoomCount;
-
-        // 만약 설정값이 아예 비어있거나 극도로 이상하다면 예외 대처로 절반씩 분배
-        if (targetPlayerCount <= 0 && targetMinionCount <= 0)
+        // 타입별 목표 수량. 카운트를 0으로 두면 그 풀은 일반 방에서 아예 안 나온다
+        // (예: 플레이어 스킬을 로비 고정으로 돌리고 싶으면 playerSkillRewardRoomCount = 0).
+        var quota = new List<(RoomInstance.NormalRewardType type, int count)>
         {
-            targetPlayerCount = normalRooms.Count / 2;
-            targetMinionCount = normalRooms.Count - targetPlayerCount;
+            (RoomInstance.NormalRewardType.PlayerSkill, generationData.playerSkillRewardRoomCount),
+            (RoomInstance.NormalRewardType.MainSummon,  generationData.mainSummonRewardRoomCount),
+            (RoomInstance.NormalRewardType.SubSummon,   generationData.subSummonRewardRoomCount),
+        };
+
+        // 전부 0이면 설정 실수로 보고 균등 분배로 폴백한다 (보상이 하나도 없는 맵 방지).
+        if (quota.TrueForAll(q => q.count <= 0))
+        {
+            int each = Mathf.Max(1, normalRooms.Count / quota.Count);
+            for (int q = 0; q < quota.Count; q++) quota[q] = (quota[q].type, each);
+            Debug.LogWarning("<color=orange>[MapGenerator]</color> 일반 방 보상 카운트가 전부 0입니다. 균등 분배로 폴백합니다.");
         }
 
-        for (int i = 0; i < normalRooms.Count; i++)
+        int cursor = 0;
+        var assigned = new Dictionary<RoomInstance.NormalRewardType, int>();
+        foreach (var (type, count) in quota)
         {
-            RoomInstance room = normalRooms[i];
-            RoomInstance.NormalRewardType selectedReward;
-
-            if (i < targetPlayerCount)
-            {
-                selectedReward = RoomInstance.NormalRewardType.PlayerSkill;
-            }
-            else if (i < targetPlayerCount + targetMinionCount)
-            {
-                selectedReward = RoomInstance.NormalRewardType.MinionSkill;
-            }
-            else
-            {
-                // 설정된 할당 개수를 초과하여 남는 방들은 무작위 배정
-                selectedReward = (RoomInstance.NormalRewardType)Random.Range(0, System.Enum.GetValues(typeof(RoomInstance.NormalRewardType)).Length);
-            }
-
-            // 방의 보상 설정하고 자식 아이콘 갱신
-            room.SetRewardTypeAndSyncIcon(selectedReward);
+            int n = 0;
+            for (int i = 0; i < count && cursor < normalRooms.Count; i++, cursor++, n++)
+                normalRooms[cursor].SetRewardTypeAndSyncIcon(type);
+            assigned[type] = n;
         }
 
-        Debug.Log($"<color=green>[MapGenerator]</color> Distributed Normal Room Rewards: PlayerSkill={targetPlayerCount}, MinionSkill={targetMinionCount}. Actual Normal Rooms: {normalRooms.Count}");
+        // 남는 방 처리. 끄면 보상 없이 둔다(= 정확히 카운트만큼만 나온다).
+        int leftover = normalRooms.Count - cursor;
+        if (generationData.fillRemainingRoomsRandomly)
+        {
+            for (; cursor < normalRooms.Count; cursor++)
+            {
+                var type = quota[Random.Range(0, quota.Count)].type;
+                normalRooms[cursor].SetRewardTypeAndSyncIcon(type);
+            }
+        }
+
+        Debug.Log($"<color=green>[MapGenerator]</color> Distributed Normal Room Rewards: " +
+                  string.Join(", ", assigned.Select(kv => $"{kv.Key}={kv.Value}")) +
+                  $". Leftover={leftover} ({(generationData.fillRemainingRoomsRandomly ? "무작위 배정" : "보상 없음")}), Total Normal Rooms={normalRooms.Count}");
     }
 }

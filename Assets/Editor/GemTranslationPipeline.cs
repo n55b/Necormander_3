@@ -50,35 +50,7 @@ public class GemTranslationPipeline : MonoBehaviour
             }
         }
 
-        // 2. MinionLineageSO 검색
-        string[] lineageGuids = AssetDatabase.FindAssets("t:MinionLineageSO");
-        foreach (string guid in lineageGuids)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            if (path.Contains("Deprecated")) continue;
-
-            MinionLineageSO lSO = AssetDatabase.LoadAssetAtPath<MinionLineageSO>(path);
-            if (lSO != null)
-            {
-                if (lSO.baseItemData != null)
-                {
-                    CheckAndAdd(lSO.baseItemData.itemName, $"{lSO.name}_Base_Name", exportList, processedKeys, koTable);
-                    CheckAndAdd(lSO.baseItemData.description, $"{lSO.name}_Base_Desc", exportList, processedKeys, koTable);
-                }
-                if (lSO.techAItemData != null)
-                {
-                    CheckAndAdd(lSO.techAItemData.itemName, $"{lSO.name}_TechA_Name", exportList, processedKeys, koTable);
-                    CheckAndAdd(lSO.techAItemData.description, $"{lSO.name}_TechA_Desc", exportList, processedKeys, koTable);
-                }
-                if (lSO.techBItemData != null)
-                {
-                    CheckAndAdd(lSO.techBItemData.itemName, $"{lSO.name}_TechB_Name", exportList, processedKeys, koTable);
-                    CheckAndAdd(lSO.techBItemData.description, $"{lSO.name}_TechB_Desc", exportList, processedKeys, koTable);
-                }
-            }
-        }
-
-        // 3. Unique Effects 검색 (GemUniqueType enum 기반)
+        // 2. Unique Effects 검색 (GemUniqueType enum 기반)
         foreach (GemUniqueType type in Enum.GetValues(typeof(GemUniqueType)))
         {
             if (type == GemUniqueType.None) continue;
@@ -184,32 +156,6 @@ public class GemTranslationPipeline : MonoBehaviour
             }
         }
 
-        string[] lineageGuids = AssetDatabase.FindAssets("t:MinionLineageSO");
-        foreach (string guid in lineageGuids)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            if (path.Contains("Deprecated")) continue;
-            MinionLineageSO lSO = AssetDatabase.LoadAssetAtPath<MinionLineageSO>(path);
-            if (lSO != null)
-            {
-                if (lSO.baseItemData != null)
-                {
-                    TryLink(sharedTable, $"{lSO.name}_Base_Name", ref lSO.baseItemData.localizedItemName);
-                    TryLink(sharedTable, $"{lSO.name}_Base_Desc", ref lSO.baseItemData.localizedDescription);
-                }
-                if (lSO.techAItemData != null)
-                {
-                    TryLink(sharedTable, $"{lSO.name}_TechA_Name", ref lSO.techAItemData.localizedItemName);
-                    TryLink(sharedTable, $"{lSO.name}_TechA_Desc", ref lSO.techAItemData.localizedDescription);
-                }
-                if (lSO.techBItemData != null)
-                {
-                    TryLink(sharedTable, $"{lSO.name}_TechB_Name", ref lSO.techBItemData.localizedItemName);
-                    TryLink(sharedTable, $"{lSO.name}_TechB_Desc", ref lSO.techBItemData.localizedDescription);
-                }
-                EditorUtility.SetDirty(lSO);
-            }
-        }
     }
 
     private static void TryLink(SharedTableData sharedTable, string key, ref LocalizedString localizedString)

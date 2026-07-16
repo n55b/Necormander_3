@@ -15,7 +15,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     [Header("Phase Settings")]
     public float phase2HpThreshold = 350f;
-    public MinionDataSO phase2Data; // [추가] 2페이즈 전용 스탯 데이터 (이 값이 있으면 체력 0 도달 시 부활하며 전환)
+    public EnemyMinionDataSO phase2Data; // [추가] 2페이즈 전용 스탯 데이터 (이 값이 있으면 체력 0 도달 시 부활하며 전환)
     [SerializeField] private bool isPhase2 = false;
 
     [Header("Basic Attack Loop")]

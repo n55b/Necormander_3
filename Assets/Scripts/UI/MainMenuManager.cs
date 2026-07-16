@@ -68,6 +68,7 @@ public class MainMenuManager : MonoBehaviour
         
         // 기존 세이브 데이터 안전 삭제
         SaveSystem.DeleteSave();
+        SubSummonPassiveController.ResetAcquiredState(); // 새 런이므로 '획득함' 상태도 리셋
         
         // 지정된 게임 씬으로 이동
         sceneLoader.LoadScene(startSceneName);

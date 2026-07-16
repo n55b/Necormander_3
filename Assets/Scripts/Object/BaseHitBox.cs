@@ -37,11 +37,23 @@ public class BaseHitBox : MonoBehaviour
     private DamageInfo _damageInfo;
     private LayerMask _targetLayer;
     private bool _isInitialized = false;
-    private float _tickTimer;
+    private float _elapsed;
+    // 대상별 '지금까지 때린 횟수'. 공용 타이머를 쓰면 첫 번째 적이 틱을 독점한다.
+    // 다음 '시각'이 아니라 '횟수'를 들고 있는 게 핵심 — 아래 OnTriggerStay2D 주석 참조.
+    private readonly Dictionary<IDamageable, int> _tickCount = new Dictionary<IDamageable, int>();
 
     // 1회 타격 시 중복 타격 방지
     private HashSet<IDamageable> _hitTargets = new HashSet<IDamageable>();
     private System.Action<CharacterHealth> _onHitEnemy;
+
+    /// <summary>
+    /// '이미 때린 대상' 기록을 지운다. 다음 물리 스텝에 범위 안 대상들을 다시 한 번 때린다.
+    ///
+    /// 애니메이션의 OnHitEvent 하나 = 타격 하나로 쓰기 위한 것. 적 공격 클립이 2타면 OnHitEvent 를
+    /// 2번 박는 것과 같은 방식이라(BaseEntity 의 [애니메이션 작업자 가이드라인] 참조), 타격 시점이
+    /// 그림에 직접 박혀 있어서 시간 배분을 따로 계산할 필요가 없다.
+    /// </summary>
+    public void ResetHitTargets() => _hitTargets.Clear();
 
     public void Init(DamageInfo damageInfo, LayerMask targetLayer, float overrideDuration = -1f, float startDelay = 0f, bool isAlly = false, System.Action<CharacterHealth> onHitEnemy = null)
     {
@@ -148,7 +160,8 @@ public class BaseHitBox : MonoBehaviour
     private void ActivateHitBox()
     {
         _isInitialized = true;
-        _tickTimer = damageTickRate; // 시작하자마자 즉시 데미지가 들어가도록 세팅
+        _elapsed = 0f;
+        _tickCount.Clear(); // 대상별 타격 횟수 초기화 (첫 접촉 시 즉시 1타)
     }
 
     private void Update()
@@ -157,7 +170,7 @@ public class BaseHitBox : MonoBehaviour
 
         if (isContinuousDamage)
         {
-            _tickTimer += Time.deltaTime;
+            _elapsed += Time.deltaTime;
         }
     }
 
@@ -176,13 +189,21 @@ public class BaseHitBox : MonoBehaviour
         {
             if (isContinuousDamage)
             {
-                // 지속 데미지 (장판)
-                if (_tickTimer >= damageTickRate)
+                // 지속 데미지 (장판). 틱은 '대상별'로 센다 —
+                // 예전엔 공용 타이머를 첫 번째 적이 리셋해버려서, N타짜리 장판이 범위 안 적들에게
+                // N타를 '나눠주는' 꼴이었다 (적 3명이면 각자 ~N/3타). 소환수 액티브가 "범위 내의
+                // 적에게 5번의 피해"를 표방하므로 각 적이 온전히 N타를 받아야 한다.
+                // 마감 시각을 '관측된 _elapsed + tickRate' 로 재예약하면 매 틱의 초과분이
+                // 다음 마감에 누적돼, 5타짜리는 마지막 1타가 히트박스 수명 밖으로 밀려난다
+                // (60fps 에서 드리프트 0.083s vs 여유 0.100s — 프레임이 한 번만 튀어도 4타).
+                // 그래서 절대 격자로 센다: n 번째 타격은 항상 n * tickRate 지점.
+                _tickCount.TryGetValue(damageable, out int n);   // 없으면 0 -> _elapsed >= 0 -> 즉시 1타
+                if (_elapsed >= n * damageTickRate)
                 {
                     damageable.TakeDamage(_damageInfo);
                     SpawnHitEffect(col.transform.position);
-                    _tickTimer = 0f; // 모든 적에게 동시 데미지가 들어가는 구조 (원한다면 개별 쿨타임으로 개선 가능)
-                    
+                    _tickCount[damageable] = n + 1;
+
                     if (damageable is CharacterHealth ch)
                     {
                         _onHitEnemy?.Invoke(ch);

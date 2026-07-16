@@ -39,15 +39,10 @@ public class PlayerController : MonoBehaviour
         }
     }
     [Header("아군 유닛 관련 매니저")]
-    [SerializeField] AllyManager allyManager;
     [Header("던지기 컨트롤러")]
     [SerializeField] private ThrowController throwController;
     [SerializeField] private float throwChargeTime = 1.0f;
     public float ThrowChargeTime => throwChargeTime;
-
-    [Header("액티브 스킬 매니저")]
-    [SerializeField] private ActiveSkillManager activeSkillManager;
-    public ActiveSkillManager ActiveSkillManager => activeSkillManager;
 
     [HideInInspector]
     [SerializeField] private PlayerStamina staminaSystem;
@@ -195,20 +190,13 @@ public class PlayerController : MonoBehaviour
             if (staminaSystem == null) staminaSystem = gameObject.AddComponent<PlayerStamina>();
         }
 
-        // [유니크] 유니크 효과 전담 매니저 추가 (만약 인스펙터에서 안 달아뒀을 경우를 대비한 보험)
-        if (GetComponent<PlayerUniqueEffectManager>() == null)
-            gameObject.AddComponent<PlayerUniqueEffectManager>();
-
         // [패리] 패리 컨트롤러 추가
         if (GetComponent<PlayerParryController>() == null)
             gameObject.AddComponent<PlayerParryController>();
 
-        // [액티브 스킬] 액티브 스킬 매니저 추가
-        if (activeSkillManager == null)
-        {
-            activeSkillManager = gameObject.AddComponent<ActiveSkillManager>();
-            activeSkillManager.Initialize(this);
-        }
+        // [서브 소환수] 상시 패시브 적용 컨트롤러
+        if (GetComponent<SubSummonPassiveController>() == null)
+            gameObject.AddComponent<SubSummonPassiveController>();
 
         // [수정] 스탯 초기화를 Awake로 이동하여 초기화 순서 보장
         if (stat != null)
@@ -332,14 +320,14 @@ public class PlayerController : MonoBehaviour
             var parryCtrl = GetComponent<PlayerParryController>();
             bool isParrying = parryCtrl != null && parryCtrl.IsParrying;
 
-            // PlayerSkillController를 통한 연계 스킬(스페이스바) 및 상시 스킬(Q, E, R) 처리
+            // PlayerSkillController를 통한 소환수 스킬(스페이스바) 및 상시 스킬(Q, E, R) 처리
             var skillCtrl = GetComponent<PlayerSkillController>();
             if (skillCtrl != null && !_inputBlocked && !isParrying)
             {
-                // 스페이스바: 큐에 대기 중인 미니언 스킬 발동
+                // 스페이스바: 소환수 스킬 발동 (쿨타임만 확인, 조건 없음)
                 if (kb.spaceKey.wasPressedThisFrame)
                 {
-                    skillCtrl.ExecuteNextMinionSkill(transform);
+                    skillCtrl.ExecuteMinionSkill(transform);
                 }
             }
         }
@@ -649,18 +637,6 @@ public class PlayerController : MonoBehaviour
         var parryCtrl = GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
 
-        if (activeSkillManager != null)
-        {
-            bool isAnySkillActive = (activeSkillManager.SkillSlot1 != null && activeSkillManager.SkillSlot1.IsActive) ||
-                                    (activeSkillManager.SkillSlot2 != null && activeSkillManager.SkillSlot2.IsActive);
-
-            if (isAnySkillActive)
-            {
-                if (context.started) activeSkillManager.HandleLeftClick();
-                return; // 시즈 모드 등이 켜져 있으면 투척 이벤트를 완전히 삼킴
-            }
-        }
-
         if (_inputBlocked) return;
 
         if (throwController != null)
@@ -845,7 +821,6 @@ public void OnGemTree(InputAction.CallbackContext context)
 
         if (P_State == PlayerStates.Battle)
         {
-            allyManager.SetBattleState(true);
             OnEnterBattle?.Invoke();
         }
         else if (P_State == PlayerStates.Idle)

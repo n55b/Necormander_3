@@ -43,7 +43,7 @@ public static class SkillCombatUtil
     /// <summary>벽/장애물을 파고들지 않도록 CircleCast 로 제동한 목적지를 반환한다. (벽만, 낭떠러지 미검사)</summary>
     public static Vector2 ClampToWall(Vector2 from, Vector2 dir, float distance, float radius = 0.4f)
     {
-        RaycastHit2D hit = Physics2D.CircleCast(from, radius, dir, distance, Layers.WallObstacle);
+        RaycastHit2D hit = Physics2D.CircleCast(from, radius, dir, distance, Layers.WallMask);
         if (hit.collider != null) return hit.point + hit.normal * (radius * 1.02f);
         return from + dir * distance;
     }
@@ -67,7 +67,7 @@ public static class SkillCombatUtil
         Vector2 target = from + dir * distance;
 
         // 벽은 절대 통과 불가: 중심선이 벽을 가로지르면 벽면 직전에서 하드 정지.
-        RaycastHit2D wallHit = Physics2D.Linecast(from, target, Layers.WallObstacle);
+        RaycastHit2D wallHit = Physics2D.Linecast(from, target, Layers.WallMask);
         if (wallHit.collider != null)
             return from + dir * Mathf.Max(0f, wallHit.distance - radius);
 
@@ -115,7 +115,7 @@ public static class SkillCombatUtil
         Vector2 startPos = enemy.position;
         Vector2 targetPos = startPos + pushDir * force;
         // 벽뿐 아니라 낭떠러지(Unsteppable)도 넉백을 제동한다 — 적이 못 밟는 곳으로 밀려나지 않도록.
-        int obstacleMask = Layers.WallObstacle | Layers.UnsteppableMask;
+        int obstacleMask = Layers.WallMask | Layers.UnsteppableMask;
 
         // 몬스터 콜라이더 크기로 충돌 반지름 산정
         var enemyCol = enemy.GetComponent<Collider2D>();

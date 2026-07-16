@@ -18,7 +18,8 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
     private HandSlotSelectionUI _parentUI;
     private InventoryManager.CoreSlot _currentSlot;
 
-    public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI parent, bool isReadOnly)
+    /// <param name="accepts">지금 고른 보상이 이 칸에 들어갈 수 있는지. false 면 장착 버튼을 잠근다.</param>
+    public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI parent, bool isReadOnly, bool accepts = true)
     {
         _slotIndex = index;
         _parentUI = parent;
@@ -89,7 +90,8 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
         if (equipButton != null)
         {
             // [수정] 조회 모드에서는 상호작용 불가
-            equipButton.interactable = !slot.IsShattered && !isReadOnly;
+            // accepts: 메인 소환수는 메인 칸에만, 서브는 서브 칸에만 들어간다.
+            equipButton.interactable = accepts && !slot.IsShattered && !isReadOnly;
             
             equipButton.onClick.RemoveAllListeners();
             if (!isReadOnly)
@@ -128,11 +130,12 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
             data.type = $"<color=#FFD700>{GetUIString("UI_Minion_Prefix", minionLocalizedName)}</color>";
             data.titleColor = new Color(0.8f, 1f, 0.8f);
 
-            // [추가] 슬롯에 바인딩된 미니언 스킬의 설명을 툴팁에 표시합니다.
-            if (minion.minionSkill != null && !string.IsNullOrEmpty(minion.minionSkill.description))
+            // 메인은 액티브 스킬 설명, 서브는 패시브 수치에서 생성된 설명이 나온다.
+            string desc = minion.ResolveDescription();
+            if (!string.IsNullOrEmpty(desc))
             {
-                data.description = minion.minionSkill.description;
-                data.localizedDescription = null; // 스킬 설명은 로컬라이즈 대상이 아니므로 참조 해제
+                data.description = desc;
+                data.localizedDescription = null; // 소환수 설명은 로컬라이즈 대상이 아니므로 참조 해제
             }
 
             // [수정] 미니언 스탯 및 보유 수량은 더 이상 표시하지 않습니다 (스킬 설명만 표시).

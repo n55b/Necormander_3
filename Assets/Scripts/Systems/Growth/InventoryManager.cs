@@ -49,8 +49,27 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private int gold = 0;
     public int GOLD => gold;
 
-    [Header("슬롯 시스템 (3개 고정)")]
-    public List<CoreSlot> Slots = new List<CoreSlot>(3);
+    /// <summary>소환수 슬롯 인덱스. 메인 1 + 서브 1 고정.</summary>
+    public const int SLOT_MAIN = 0;
+    public const int SLOT_SUB = 1;
+    public const int SLOT_COUNT = 2;
+
+    [Header("슬롯 시스템 (메인 1 + 서브 1 고정)")]
+    public List<CoreSlot> Slots = new List<CoreSlot>(SLOT_COUNT);
+
+    /// <summary>역할에 대응하는 슬롯 인덱스. 소환수가 아니면(적 데이터 등) -1.</summary>
+    public static int SlotIndexOf(MinionDataSO minion) => minion switch
+    {
+        SubMinionDataSO => SLOT_SUB,
+        MainMinionDataSO => SLOT_MAIN,
+        _ => -1,
+    };
+
+    public MainMinionDataSO MainSummon => GetSummon(SLOT_MAIN) as MainMinionDataSO;
+    public SubMinionDataSO SubSummon => GetSummon(SLOT_SUB) as SubMinionDataSO;
+
+    private MinionDataSO GetSummon(int index)
+        => (index >= 0 && index < Slots.Count && !Slots[index].IsShattered) ? Slots[index].EquippedMinion : null;
 
     // ======================================================
     // [에러 방지를 위한 병렬 리스트 디버그 설정]
@@ -97,14 +116,6 @@ public class InventoryManager : MonoBehaviour
         public float ParabolicEffectMultiplierBonus = 0f;
         public float ParabolicFlightTimeMultiplierBonus = 0f;
         
-        // [신규] 속성 및 특수 효과 합산
-        public Dictionary<DebuffStackType, float> WeaponAttributes = new Dictionary<DebuffStackType, float>();
-        public Dictionary<DebuffStackType, float> HandAttributes = new Dictionary<DebuffStackType, float>();
-
-        // [추가] 상태형(Bool) 속성 합산
-        public Dictionary<DebuffBoolType, float> WeaponBoolAttributes = new Dictionary<DebuffBoolType, float>();
-        public Dictionary<DebuffBoolType, float> HandBoolAttributes = new Dictionary<DebuffBoolType, float>();
-
         public Dictionary<GemUniqueType, int> UniqueEffectCounts = new Dictionary<GemUniqueType, int>();
         
         // [신규] 시너지 그룹별 최대 인접 개수
@@ -118,10 +129,6 @@ public class InventoryManager : MonoBehaviour
             RespawnTimeBonus = 0f;
             ParabolicEffectMultiplierBonus = 0f;
             ParabolicFlightTimeMultiplierBonus = 0f;
-            WeaponAttributes.Clear();
-            HandAttributes.Clear();
-            WeaponBoolAttributes.Clear(); // [추가]
-            HandBoolAttributes.Clear();   // [추가]
             UniqueEffectCounts.Clear();
             SynergyCounts.Clear();
         }
@@ -133,29 +140,13 @@ public class InventoryManager : MonoBehaviour
     public void Initialize(bool hasSave)
     {
         Instance = this;
-        while (Slots.Count < 3)
+        while (Slots.Count < SLOT_COUNT)
         {
             Slots.Add(new CoreSlot());
         }
         UpdateActiveAbilities();
-        InitializeGemTree(); 
-        
-        // [유니크] 중독 전역 유니크(PoisonHost 등) 매니저 부착
-        if (GetComponent<PoisonUniqueManager>() == null)
-            gameObject.AddComponent<PoisonUniqueManager>();
-            
-        // [유니크] 한기 광역 유니크 (AbsoluteZero, BitingWind 등) 매니저 부착
-        if (GetComponent<ChillUniqueManager>() == null)
-            gameObject.AddComponent<ChillUniqueManager>();
+        InitializeGemTree();
 
-        // [유니크] 기력/노화 광역 매니저 (Goryeojang) 매니저 부착
-        if (GetComponent<AgingUniqueManager>() == null)
-            gameObject.AddComponent<AgingUniqueManager>();
-            
-        // [유니크] 방패병 고유 매니저 (ShieldbearerUniqueManager) 부착
-        if (GetComponent<ShieldbearerUniqueManager>() == null)
-            gameObject.AddComponent<ShieldbearerUniqueManager>();
-            
         Debug.Log("<color=cyan>[InventoryManager]</color> Initialized.");
 
         if (useDebugStartingInventory && !hasSave)
@@ -181,9 +172,7 @@ public class InventoryManager : MonoBehaviour
 
         _gemNodeIndex.Add(GemTreeRoot.Gem.InstanceId, GemTreeRoot);
 
-        GemHandlerRegistry.InitializeAllHandlers();
-
-        RecalculateGemTreeStats(); 
+        RecalculateGemTreeStats();
         Debug.Log($"<color=cyan>[InventoryManager]</color> Gem Tree Initialized with Root: {GemTreeRoot.Gem.BaseData.itemName}");
     }
 
@@ -259,33 +248,9 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        // 4. 장착된 보석 목록을 수집하여 핸들러 매니저 갱신 (핸들러 켜기/끄기)
-        List<GemUniqueType> activeUniqueGems = new List<GemUniqueType>();
-        foreach (var kvp in _globalGemStats.UniqueEffectCounts)
-        {
-            if (kvp.Value > 0) activeUniqueGems.Add(kvp.Key);
-        }
-        GemHandlerRegistry.RefreshActiveHandlers(activeUniqueGems);
-
-        // [액티브 스킬] 시즈 모드 동적 장착/해제
-        var activeSkillManager = GameManager.Instance?.PLAYERCONTROLLER?.ActiveSkillManager;
-        if (activeSkillManager != null)
-        {
-            if (HasUniqueEffect(GemUniqueType.SiegeMode))
-            {
-                if (activeSkillManager.SkillSlot1 == null || activeSkillManager.SkillSlot1.SkillName != "시즈 모드")
-                {
-                    activeSkillManager.EquipSkill(new SiegeModeSkill(), 1);
-                }
-            }
-            else
-            {
-                if (activeSkillManager.SkillSlot1 != null && activeSkillManager.SkillSlot1.SkillName == "시즈 모드")
-                {
-                    activeSkillManager.EquipSkill(null, 1);
-                }
-            }
-        }
+        // 젬 효과는 전부 제거됐다(GEM_LEGACY.md). 집계는 그대로 돌아가므로
+        // GetSynergyCount / GetUniqueEffectCount / HasUniqueEffect 는 계속 정상 동작한다.
+        // 효과를 재건할 때는 OnGemTreeUpdated 를 구독해 그 질의를 읽으면 된다.
     }
 
     private void CalculateSynergies(List<GemTreeNode> allNodes)
@@ -427,29 +392,6 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    // --- 신규 젬 효과 쿼리 메서드 ---
-
-    public float GetWeaponAttribute(DebuffStackType type)
-    {
-        return _globalGemStats.WeaponAttributes.TryGetValue(type, out float val) ? val : 0f;
-    }
-
-    public float GetHandAttribute(DebuffStackType type)
-    {
-        return _globalGemStats.HandAttributes.TryGetValue(type, out float val) ? val : 0f;
-    }
-
-    // [추가] 상태형(Bool) 보석 효과 조회 게터
-    public float GetWeaponBoolAttribute(DebuffBoolType type)
-    {
-        return _globalGemStats.WeaponBoolAttributes.TryGetValue(type, out float val) ? val : 0f;
-    }
-
-    public float GetHandBoolAttribute(DebuffBoolType type)
-    {
-        return _globalGemStats.HandBoolAttributes.TryGetValue(type, out float val) ? val : 0f;
-    }
-
     public int GetUniqueEffectCount(GemUniqueType type)
     {
         if (_globalGemStats.UniqueEffectCounts.TryGetValue(type, out int count))
@@ -565,22 +507,10 @@ public class InventoryManager : MonoBehaviour
             if (HasMinion(debugStartingMinions[i].minionType)) continue;
 
             int qty = (i < debugStartingMinionQuantities.Count) ? debugStartingMinionQuantities[i] : 1;
-            
+
             // [개선] Registry 에셋 등록 상태와 무관하게 인스펙터에 직접 지정된 미니언 데이터를 100% 꽂아 장착합니다.
-            var existingSlot = Slots.Find(s => !s.IsShattered && s.EquippedMinion != null && s.EquippedMinion.minionType == debugStartingMinions[i].minionType);
-            if (existingSlot != null)
-            {
-                existingSlot.Quantity += qty;
-            }
-            else
-            {
-                int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
-                if (emptyIdx != -1)
-                {
-                    EquipMinion(emptyIdx, debugStartingMinions[i]);
-                    Slots[emptyIdx].Quantity = qty;
-                }
-            }
+            // 슬롯은 역할당 1칸이므로 빈 칸을 찾지 않고 역할 슬롯에 바로 넣는다.
+            EquipMinion(debugStartingMinions[i], qty);
         }
 
         // 2. 보석 생성 (인벤토리나 장착창의 개수와 디버그 보석 리스트의 개수를 매칭하여 부족분만 추가)
@@ -702,18 +632,34 @@ public class InventoryManager : MonoBehaviour
         MinionDataSO targetMinion = registry.minionDatas.Find(m => m.minionType == job);
         if (targetMinion == null) return false;
 
-        int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
-        if (emptyIdx != -1) { EquipMinion(emptyIdx, targetMinion); Slots[emptyIdx].Quantity = amount; return true; }
-        return false;
+        return EquipMinion(minion: targetMinion, amount: amount);
     }
 
-    public bool EquipMinion(int slotIndex, MinionDataSO minion)
+    /// <summary>
+    /// 소환수를 자기 역할의 슬롯에 장착한다. 슬롯은 역할당 1칸이므로 기존 것을 덮어쓴다.
+    /// </summary>
+    public bool EquipMinion(MinionDataSO minion, int amount = 1)
+    {
+        if (minion == null) return false;
+        return EquipMinion(SlotIndexOf(minion), minion, amount);
+    }
+
+    public bool EquipMinion(int slotIndex, MinionDataSO minion, int amount = 1)
     {
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
+
+        // 역할과 슬롯이 어긋나면 역할 쪽 슬롯으로 돌려보낸다 (서브 카드가 메인 슬롯에 앉는 것을 방지).
+        // 소환수가 아니면(적 데이터가 흘러들어오면) SlotIndexOf 가 -1 이라 여기서 걸러진다.
+        if (minion != null && SlotIndexOf(minion) != slotIndex)
+        {
+            slotIndex = SlotIndexOf(minion);
+            if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
+        }
+
         Slots[slotIndex].EquippedThrowAbility = null;
         Slots[slotIndex].EquippedMinion = minion;
-        Slots[slotIndex].Quantity = 1;
-        
+        Slots[slotIndex].Quantity = amount;
+
         OnMinionUpdated?.Invoke();
         UpdateActiveAbilities();
         return true;
@@ -771,7 +717,7 @@ public class InventoryManager : MonoBehaviour
         {
             var slotData = new CoreSlotSaveData();
             slotData.isShattered = slot.IsShattered;
-            slotData.equippedLineageJob = slot.EquippedMinion != null ? slot.EquippedMinion.minionType.ToString() : "";
+            slotData.equippedMinionName = slot.EquippedMinion != null ? slot.EquippedMinion.name : "";
             slotData.equippedThrowAbilityName = slot.EquippedThrowAbility != null ? slot.EquippedThrowAbility.name : "";
             slotData.evolutionIndex = 0;
             slotData.quantity = slot.Quantity;
@@ -865,12 +811,12 @@ public class InventoryManager : MonoBehaviour
             var coreSlot = new CoreSlot();
             coreSlot.IsShattered = slotData.isShattered;
 
-            if (!string.IsNullOrEmpty(slotData.equippedLineageJob))
+            if (!string.IsNullOrEmpty(slotData.equippedMinionName))
             {
-                if (System.Enum.TryParse<CommandData>(slotData.equippedLineageJob, out var job))
-                {
-                    coreSlot.EquippedMinion = registry.minionDatas.Find(m => m.minionType == job);
-                }
+                // 에셋 이름으로 정확히 복원한다 (직업으로 찾으면 A/B/C 배리언트가 붕괴됨).
+                coreSlot.EquippedMinion = registry.minionDatas.Find(m => m.name == slotData.equippedMinionName);
+                if (coreSlot.EquippedMinion == null)
+                    Debug.LogWarning($"<color=orange>[InventoryManager]</color> 세이브의 미니언 '{slotData.equippedMinionName}' 을 GrowthRegistry 에서 찾지 못했습니다. 슬롯을 비웁니다.");
             }
 
             if (!string.IsNullOrEmpty(slotData.equippedThrowAbilityName))
@@ -882,11 +828,28 @@ public class InventoryManager : MonoBehaviour
             coreSlot.Quantity = slotData.quantity;
             Slots.Add(coreSlot);
         }
-        // 10개 맞추기
-        while (Slots.Count < 10)
+        // 메인/서브 2칸 보장. (예전엔 Initialize 가 3칸, 여기가 10칸으로 패딩이 어긋나 있었고,
+        //  UI 가 안 보여주는 슬롯에 미니언이 들어가는 조용한 버그가 있었다.)
+        while (Slots.Count < SLOT_COUNT)
         {
             Slots.Add(new CoreSlot());
         }
+        if (Slots.Count > SLOT_COUNT) Slots.RemoveRange(SLOT_COUNT, Slots.Count - SLOT_COUNT);
+
+        // 세이브는 슬롯 순서대로 이름만 복원할 뿐 역할을 검증하지 않는다. 슬롯이 자유 배치였던
+        // 구버전 세이브면 메인이 0/1번에 둘 다 들어앉은 채로 살아남을 수 있고, 그러면 SubSummon 이
+        // 메인을 가리켜 서브 패시브가 전부 조용히 0이 된다 (SubSummonPassiveController 는 null 을 0f 로 흘린다).
+        // 장착 경로는 EquipMinion 이 막아주지만 이 경로는 그걸 우회하므로 여기서 한 번 더 거른다.
+        for (int i = 0; i < Slots.Count; i++)
+        {
+            var m = Slots[i].EquippedMinion;
+            if (m != null && SlotIndexOf(m) != i)
+            {
+                Debug.LogWarning($"<color=orange>[InventoryManager]</color> 세이브의 '{m.name}' 이 역할과 안 맞는 슬롯 {i} 에 있습니다. 비웁니다.");
+                Slots[i].EquippedMinion = null;
+            }
+        }
+
         UpdateActiveAbilities();
 
         // Treasures 로드

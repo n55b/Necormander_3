@@ -43,8 +43,6 @@ public class PlayerMainDealSO : PlayerSkillSO
                 hasInvokedKeyword = true;
                 Debug.Log("<color=cyan>[Player Skill A]</color> 1타 적중! (호출: Strike)");
             }
-            // 적중한 개별 타겟들을 큐에 등록하기 위해 항상 호출 (내부적으로 타겟 누적)
-            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Strike, health.transform);
         };
 
         SpawnHitBox(player.gameObject, attackCenter, dir, damageRadius, player.Stat.ATK * firstHitMultiplier, onStrikeSuccess);

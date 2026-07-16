@@ -22,9 +22,9 @@ public class DataManager : MonoBehaviour
 
     // 데이터 게터
     public List<MinionDataSO> ALL_MINION_DATA => minionRegistry != null ? minionRegistry.allyMinionData : null;
-    public List<MinionDataSO> ENEMY_MINION_DATA => minionRegistry != null ? minionRegistry.enemyMinionData : null;
-    public List<MinionDataSO> ELITE_MINION_DATA => minionRegistry != null ? minionRegistry.eliteMinionData : null; // [추가] 엘리트 데이터 접근
-    public List<MinionDataSO> BOSS_MINION_DATA => minionRegistry != null ? minionRegistry.bossMinionData : null; // [추가] 보스 데이터 접근
+    public List<EnemyMinionDataSO> ENEMY_MINION_DATA => minionRegistry != null ? minionRegistry.enemyMinionData : null;
+    public List<EnemyMinionDataSO> ELITE_MINION_DATA => minionRegistry != null ? minionRegistry.eliteMinionData : null; // [추가] 엘리트 데이터 접근
+    public List<EnemyMinionDataSO> BOSS_MINION_DATA => minionRegistry != null ? minionRegistry.bossMinionData : null; // [추가] 보스 데이터 접근
     public ShopRegistrySO SHOP_REGISTRY => shopRegistry;
     public List<EnemyClusterSO> ENEMY_CLUSTERS => clusterRegistry != null ? clusterRegistry.enemyClusters : new List<EnemyClusterSO>();
 
@@ -61,7 +61,7 @@ public class DataManager : MonoBehaviour
         return null;
     }
 
-    public GameObject CreateUnit(MinionDataSO data, Vector3 position)
+    public GameObject CreateUnit(EnemyMinionDataSO data, Vector3 position)
     {
         if (data == null || data.minionPrefab == null) return null;
         GameObject unitObj = Instantiate(data.minionPrefab, position, Quaternion.identity);

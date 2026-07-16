@@ -271,7 +271,7 @@ public int DebuffStackCount => _debuffStackCount;
 
         float knockbackSpeed = force * 2.0f;
         float elapsed = 0f;
-        int wallMask = Layers.WallObstacle;
+        int wallMask = Layers.WallMask;
 
         while (elapsed < duration)
         {
@@ -297,9 +297,8 @@ public int DebuffStackCount => _debuffStackCount;
                 foreach(var hit in hits)
                 {
                     int layerVal = hit.gameObject.layer;
-                    bool isEnemy = layerVal == Layers.Enemy || 
-                                   layerVal == Layers.Boss || 
-                                   hit.CompareTag("Boss") || 
+                    bool isEnemy = layerVal == Layers.Enemy ||
+                                   hit.CompareTag("Boss") ||
                                    (hit.TryGetComponent<BaseEntity>(out var entEnemy) && entEnemy.team == Team.Enemy);
                     if (isEnemy && hit.TryGetComponent<CharacterStat>(out var enemyStat))
                     {
@@ -490,11 +489,6 @@ private void PopCurrentDebuff(GameObject attacker)
         
         _vulnerabilityTimer = TRIGGER_STACK_DURATION;
         debuffTerminal?.UpdateUI(DebuffStackType.Vulnerability, _vulnerabilityStacks);
-
-        if (isPlayerApplied && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-        {
-            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Vulnerability, transform);
-        }
     }
 
 public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker = null, bool isPlayerApplied = false)
@@ -519,18 +513,6 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
                 OnDebuffPopped?.Invoke("기절!");
 
                 if (duration > 0f) SetDebuffBool(DebuffBoolType.Stunned, duration);
-
-                bool isAllySource = isPlayerApplied || (attacker != null && (
-                    attacker.CompareTag("Player") || 
-                    attacker.gameObject.layer == Layers.Player || 
-                    attacker.gameObject.layer == Layers.Army || 
-                    attacker.gameObject.layer == Layers.FlyingObject ||
-                    (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
-                ));
-                if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-                {
-                    GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
-                }
             }
         }
         else if (consumeType == SkillKeyword.Strike)
@@ -542,18 +524,6 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
                 debuffTerminal?.RemoveIcon(DebuffStackType.Vulnerability);
 
                 OnDebuffPopped?.Invoke("격파!");
-
-                bool isAllySource = isPlayerApplied || (attacker != null && (
-                    attacker.CompareTag("Player") || 
-                    attacker.gameObject.layer == Layers.Player || 
-                    attacker.gameObject.layer == Layers.Army || 
-                    attacker.gameObject.layer == Layers.FlyingObject ||
-                    (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
-                ));
-                if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-                {
-                    GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
-                }
             }
         }
         else if (consumeType == SkillKeyword.Smash)
@@ -569,18 +539,6 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
                 debuffTerminal?.RemoveIcon(DebuffStackType.Vulnerability);
 
                 OnDebuffPopped?.Invoke("강타!");
-
-                bool isAllySource = isPlayerApplied || (attacker != null && (
-                    attacker.CompareTag("Player") || 
-                    attacker.gameObject.layer == Layers.Player || 
-                    attacker.gameObject.layer == Layers.Army || 
-                    attacker.gameObject.layer == Layers.FlyingObject ||
-                    (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
-                ));
-                if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-                {
-                    GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(consumeType, transform);
-                }
             }
         }
     }
@@ -594,21 +552,8 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
 
         if (statusType == SkillKeyword.Stun || statusType == SkillKeyword.Strike || statusType == SkillKeyword.Smash)
         {
-            // [Fix] 기절뿐 아니라 격파(Strike)/강타(Smash) 소모도 동일하게 라우팅되어야
-            // 연계 4.2/4.3 (MinionActionType.ApplyStrike / ApplySmash)이 정상 동작합니다.
+            // 기절뿐 아니라 격파(Strike)/강타(Smash) 소모도 동일하게 라우팅한다.
             ConsumeVulnerability(statusType, attacker, isPlayerApplied);
-        }
-
-        bool isAllySource = isPlayerApplied || (attacker != null && (
-            attacker.CompareTag("Player") || 
-            attacker.gameObject.layer == Layers.Player || 
-            attacker.gameObject.layer == Layers.Army || 
-            attacker.gameObject.layer == Layers.FlyingObject ||
-            (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
-        ));
-        if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-        {
-            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(statusType, transform);
         }
     }
 
@@ -623,18 +568,6 @@ public void ConsumeVulnerability(SkillKeyword consumeType, GameObject attacker =
         else if (type == DebuffType.Fracture) stackType = DebuffStackType.Fracture;
         
         ApplyElementalDebuff(stackType, 1, attacker);
-
-        bool isAllySource = isPlayerApplied || (attacker != null && (
-            attacker.CompareTag("Player") || 
-            attacker.gameObject.layer == Layers.Player || 
-            attacker.gameObject.layer == Layers.Army || 
-            attacker.gameObject.layer == Layers.FlyingObject ||
-            (attacker.TryGetComponent<BaseEntity>(out var ent) && ent.team == Team.Ally)
-        ));
-        if (isAllySource && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-        {
-            GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>()?.OnKeywordApplied(SkillKeyword.Debuff, transform);
-        }
     }
 
     // Temporary Obsolete Mappings to fix compile errors for deprecated scripts

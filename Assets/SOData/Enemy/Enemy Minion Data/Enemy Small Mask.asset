@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 191796da3d846fe49b828ca7c0d3c05d, type: 3}
+  m_Script: {fileID: 11500000, guid: ac46b1fa0f0744c1a9cd4679b99eb04e, type: 3}
   m_Name: Enemy Small Mask
   m_EditorClassIdentifier: 
   minionSkill: {fileID: 0}
@@ -27,13 +27,9 @@ MonoBehaviour:
   moveSpeed: 4
   baseEvasion: 0
   baseMissChance: 0
-  cost: 1
   isElite: 0
-  canSpawnRandomly: 0
   aiPattern: {fileID: 11400000, guid: 047a205c8279f3949b31d4d02e9122fe, type: 2}
-  hpCostRatioPerThrow: 0
   AttackSound: {fileID: 0}
-  DeathSound: {fileID: 0}
   minionPrefab: {fileID: 1190463616093019822, guid: a5a554fab7e153149a18b2c6fa30e720, type: 3}
   shopCost: 150
   rewardItemData:

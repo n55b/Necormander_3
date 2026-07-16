@@ -33,43 +33,44 @@ public class RegistryMenuTools
                     MinionDataSO minionAsset = AssetDatabase.LoadAssetAtPath<MinionDataSO>(minionPath);
                     if (minionAsset == null) continue;
 
-                    // 아군 미니언 분류 (/SOData/Minion/ 경로 존재 시)
-                    if (minionPath.Contains("/SOData/Minion/"))
+                    // 분류 기준은 타입이다. 예전엔 경로 문자열("/SOData/Minion/")로 갈랐는데,
+                    // 그러면 에셋을 폴더 밖으로 옮기는 순간 적이 아군 풀에 섞인다.
+                    if (minionAsset is MainMinionDataSO || minionAsset is SubMinionDataSO)
                     {
                         if (!minionReg.allyMinionData.Contains(minionAsset))
                         {
                             minionReg.allyMinionData.Add(minionAsset);
                         }
+                        continue;
                     }
-                    // 적군 및 보스, 엘리트 분류 (/SOData/Enemy/ 경로 존재 시)
-                    else if (minionPath.Contains("/SOData/Enemy/"))
-                    {
-                        // 보스 분류 조건: 이름에 Boss가 포함되거나 파일명에 Boss가 포함될 때
-                        bool isBossUnit = minionAsset.minionName.Contains("Boss") || 
-                                          Path.GetFileNameWithoutExtension(minionPath).Contains("Boss");
 
-                        if (isBossUnit)
+                    if (minionAsset is not EnemyMinionDataSO enemyAsset) continue;
+
+                    // 보스 분류 조건: 이름에 Boss가 포함되거나 파일명에 Boss가 포함될 때
+                    bool isBossUnit = enemyAsset.minionName.Contains("Boss") ||
+                                      Path.GetFileNameWithoutExtension(minionPath).Contains("Boss");
+
+                    if (isBossUnit)
+                    {
+                        if (!minionReg.bossMinionData.Contains(enemyAsset))
                         {
-                            if (!minionReg.bossMinionData.Contains(minionAsset))
-                            {
-                                minionReg.bossMinionData.Add(minionAsset);
-                            }
+                            minionReg.bossMinionData.Add(enemyAsset);
                         }
-                        else if (minionAsset.isElite)
+                    }
+                    else if (enemyAsset.isElite)
+                    {
+                        // 엘리트 분류 조건: 보스가 아니며 isElite가 켜진 유닛
+                        if (!minionReg.eliteMinionData.Contains(enemyAsset))
                         {
-                            // 엘리트 분류 조건: 보스가 아니며 isElite가 켜진 유닛
-                            if (!minionReg.eliteMinionData.Contains(minionAsset))
-                            {
-                                minionReg.eliteMinionData.Add(minionAsset);
-                            }
+                            minionReg.eliteMinionData.Add(enemyAsset);
                         }
-                        else
+                    }
+                    else
+                    {
+                        // 일반 적군 분류
+                        if (!minionReg.enemyMinionData.Contains(enemyAsset))
                         {
-                            // 일반 적군 분류
-                            if (!minionReg.enemyMinionData.Contains(minionAsset))
-                            {
-                                minionReg.enemyMinionData.Add(minionAsset);
-                            }
+                            minionReg.enemyMinionData.Add(enemyAsset);
                         }
                     }
                 }
