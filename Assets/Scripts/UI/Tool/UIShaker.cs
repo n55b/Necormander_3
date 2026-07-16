@@ -47,18 +47,20 @@ public class UIShaker : MonoBehaviour
     private RectTransform _rect;
     private Vector2 _origin;
     private Coroutine _running;
+    private LayoutElement _layoutElement;
+    private bool _hasLayoutParent;
 
     private void Awake()
     {
         _rect = GetComponent<RectTransform>();
-
-        // 원위치는 딱 한 번만 기억한다. 흔들리는 도중의 값을 원위치로 착각하면 부품이 영영 어긋난다.
         _origin = _rect.anchoredPosition;
 
-        if (transform.parent != null && transform.parent.GetComponent<LayoutGroup>() != null)
+        _hasLayoutParent = transform.parent != null && transform.parent.GetComponent<LayoutGroup>() != null;
+
+        if (_hasLayoutParent)
         {
-            Debug.LogWarning($"[UIShaker] '{name}'의 부모에 LayoutGroup이 있어서 흔들어도 위치가 도로 돌아간다. " +
-                             "레이아웃이 안 건드리는 자식 노드에 붙여라.", this);
+            _layoutElement = GetComponent<LayoutElement>();
+            if (_layoutElement == null) _layoutElement = gameObject.AddComponent<LayoutElement>();
         }
     }
 
@@ -75,6 +77,7 @@ public class UIShaker : MonoBehaviour
             _running = null;
         }
         if (_rect != null) _rect.anchoredPosition = _origin;
+        if (_layoutElement != null) _layoutElement.ignoreLayout = false;
     }
 
     private void OnSignal(ShakeSignal signal)
@@ -96,6 +99,9 @@ public class UIShaker : MonoBehaviour
         // 연타당할 때 오프셋이 누적돼 부품이 흘러가는 일이 없다.
         if (_running != null) StopCoroutine(_running);
         _rect.anchoredPosition = _origin;
+
+        if (_layoutElement != null) _layoutElement.ignoreLayout = true;
+
         _running = StartCoroutine(ShakeRoutine(r));
     }
 
@@ -119,6 +125,14 @@ public class UIShaker : MonoBehaviour
         }
 
         _rect.anchoredPosition = _origin;
+
+        if (_layoutElement != null)
+        {
+            _layoutElement.ignoreLayout = false;
+            if (transform.parent is RectTransform parentRt)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRt);
+        }
+
         _running = null;
     }
 

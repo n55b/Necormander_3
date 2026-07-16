@@ -15,9 +15,18 @@ public class CameraManager : MonoBehaviour
     public static CameraManager Instance;
 
     [Header("Cinemachine")]
-    private CinemachineImpulseSource _impulseSource;
+private CinemachineImpulseSource _impulseSource;
     private CinemachineCamera        _vcam;
     private float                    _defaultOrthoSize;
+
+    [Header("Shake Clamping")]
+    [Tooltip("이 시간(초) 안에 들어온 히트는 힘을 새로 쌓지 않고 최댓값만 반영한다. 여러 명 동시 타격 시 임펄스가 겹쳐 어지러워지는 것을 막는다.")]
+    [SerializeField] private float shakeWindow = 0.15f;
+    [Tooltip("한 윈도우 안에서 허용하는 최대 힘.")]
+    [SerializeField] private float maxForcePerWindow = 2.5f;
+
+    private float _windowStartTime = -999f;
+private float _windowMaxForce  = 0f;
 
     // ─── 초기화 ──────────────────────────────────────────────────────
     public void Initialize()
@@ -44,7 +53,24 @@ public class CameraManager : MonoBehaviour
     public void HitShakeCamera(float force = 1f)
     {
         if (_impulseSource == null) return;
-        _impulseSource.GenerateImpulseWithForce(force);
+
+        float now = Time.time;
+
+        // shakeWindow(초) 지난후 새 히트면 윈도우 리셋.
+        if (now - _windowStartTime > shakeWindow)
+        {
+            _windowStartTime = now;
+            _windowMaxForce  = 0f;
+        }
+
+        // 이번 힘이 이 윈도우에서 이미 낸 최대치보다 작거나 같으면 무시(추가 임펄스 발사 안 함) → 겹쳐서 증폭되는 것을 막는다.
+        if (force <= _windowMaxForce) return;
+
+        float cappedTarget = Mathf.Min(force, maxForcePerWindow);
+        float delta = cappedTarget - _windowMaxForce;
+        _windowMaxForce = cappedTarget;
+
+        _impulseSource.GenerateImpulseWithForce(delta);
     }
 
     // ─── 줌 ──────────────────────────────────────────────────────────

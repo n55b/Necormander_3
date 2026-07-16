@@ -790,6 +790,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 277e0fc5a604abe48936f35ff64731b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shakeWindow: 0.15
+  maxForcePerWindow: 2.5
 --- !u!114 &974462710
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -986,6 +988,8 @@ MonoBehaviour:
   reactions:
   - signal: 1
     force: 1.5
+  - signal: 2
+    force: 0.4
 --- !u!4 &994064351 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4442018427459876199, guid: 582213e89ac4e2d41a14ea309ee79406, type: 3}
@@ -2811,7 +2815,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5.5
+  orthographic size: 8.4375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -3361,10 +3365,6 @@ PrefabInstance:
     - target: {fileID: 8430399895524411945, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8716148280877125319, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
-      propertyPath: reactions.Array.data[0].vibrato
-      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -199,16 +199,15 @@ MonoBehaviour:
   customEliteRoomSprite: {fileID: 0}
   customTerrainDotSprite: {fileID: 926835386022057724, guid: b668ce9b0c80d2f4fa294476b08786a3, type: 3}
   terrainDotColor: {r: 0.25, g: 0.4, b: 0.6, a: 0.75}
-  terrainDotPadding: 1.5
+  terrainDotOverlap: 1.35
+  hudPixelsPerTile: 6
+  hudMarkerTiles: 3
   useTerrainShadow: 1
   terrainShadowColor: {r: 0, g: 0, b: 0, a: 0.6}
   terrainShadowOffset: {x: 1.5, y: -1.5}
   customPlayerIcon: {fileID: 0}
   syncPlayerZRotation: 1
   customEnemyIcon: {fileID: 0}
-  teleportFadeOutDuration: 0.25
-  teleportFadeHoldDuration: 0.1
-  teleportFadeInDuration: 0.25
 --- !u!1 &8241081770844231223
 GameObject:
   m_ObjectHideFlags: 0
@@ -219,6 +218,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3266777887695289512}
   - component: {fileID: 5139125612464754423}
+  - component: {fileID: 581792273860967864}
   m_Layer: 5
   m_Name: Image_MiniMap
   m_TagString: Untagged
@@ -253,3 +253,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8241081770844231223}
   m_CullTransparentMesh: 1
+--- !u!114 &581792273860967864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8241081770844231223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8b4e46c9ada3524fa908af7e9ef5180, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  reactions:
+  - signal: 1
+    strength: {x: 6, y: 6}
+    duration: 0.25
+    vibrato: 20
+    fadeOut: 1
+  unscaledTime: 1
