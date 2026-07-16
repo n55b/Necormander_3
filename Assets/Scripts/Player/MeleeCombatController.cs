@@ -304,11 +304,10 @@ public class MeleeCombatController : MonoBehaviour
         if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
         else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
 
-        // [대각선 처리] 소환수 스프라이트는 좌우로만 뒤집힌다. 그래서 히트박스를 조준 각도로
-        // 기울이면 그림은 수평인데 판정만 비스듬한 꼴이 된다. 대신 히트박스는 수평으로 두고
-        // 소환 위치를 조준 방향으로 밀어서, 수평으로 그어지는 판정이 조준한 쪽을 덮게 한다.
+        // [수정] 히트박스는 평타처럼 조준 각도(dir)에 맞춰 자유 회전시킨다.
+        // (소환수 스프라이트 자체는 좌우로만 뒤집히지만, 판정 박스는 실제 조준 방향을 그대로 따라간다.)
         bool faceRight = dir.x >= 0f;
-        float angle = faceRight ? 0f : 180f;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         Vector3 spawnPos = origin + (Vector3)(dir * fin.spawnOffset);
 
         var caster = MinionSkillCaster.Spawn(main, spawnPos);
