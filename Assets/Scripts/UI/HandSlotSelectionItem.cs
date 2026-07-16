@@ -18,7 +18,8 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
     private HandSlotSelectionUI _parentUI;
     private InventoryManager.CoreSlot _currentSlot;
 
-    public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI parent, bool isReadOnly)
+    /// <param name="accepts">지금 고른 보상이 이 칸에 들어갈 수 있는지. false 면 장착 버튼을 잠근다.</param>
+    public void Setup(int index, InventoryManager.CoreSlot slot, HandSlotSelectionUI parent, bool isReadOnly, bool accepts = true)
     {
         _slotIndex = index;
         _parentUI = parent;
@@ -89,7 +90,8 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
         if (equipButton != null)
         {
             // [수정] 조회 모드에서는 상호작용 불가
-            equipButton.interactable = !slot.IsShattered && !isReadOnly;
+            // accepts: 메인 소환수는 메인 칸에만, 서브는 서브 칸에만 들어간다.
+            equipButton.interactable = accepts && !slot.IsShattered && !isReadOnly;
             
             equipButton.onClick.RemoveAllListeners();
             if (!isReadOnly)

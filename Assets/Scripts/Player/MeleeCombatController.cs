@@ -54,6 +54,10 @@ public class MeleeCombatController : MonoBehaviour
     [Tooltip("평타(기본 공격)의 범위 표시용 히트박스 시각효과를 숨깁니다. 데미지 판정은 그대로 유지됩니다. (스킬/적 텔레그래프에는 영향 없음)")]
     [SerializeField] private bool hideBasicAttackTelegraph = true;
 
+    [Tooltip("소환수 마무리 일격의 범위 표시도 숨길지. 기본은 '보임' — 마무리는 선딜(HitDelay)이 있어서 " +
+             "차오르는 바가 '어디를 언제 치는지'를 알려주는 게 평타보다 중요합니다.")]
+    [SerializeField] private bool hideFinisherTelegraph = false;
+
     private bool _isHoldingAttack = false;
     private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
 
@@ -300,20 +304,27 @@ public class MeleeCombatController : MonoBehaviour
         if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
         else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
 
+        // [대각선 처리] 소환수 스프라이트는 좌우로만 뒤집힌다. 그래서 히트박스를 조준 각도로
+        // 기울이면 그림은 수평인데 판정만 비스듬한 꼴이 된다. 대신 히트박스는 수평으로 두고
+        // 소환 위치를 조준 방향으로 밀어서, 수평으로 그어지는 판정이 조준한 쪽을 덮게 한다.
+        bool faceRight = dir.x >= 0f;
+        float angle = faceRight ? 0f : 180f;
+        Vector3 spawnPos = origin + (Vector3)(dir * fin.spawnOffset);
+
         // 소환수를 시전 위치에 잠깐 세우고 그 자식으로 비주얼을 붙인다.
-        var caster = MinionSkillCaster.Spawn(main, origin);
-        if (fin.visual != null)
-        {
-            var vfx = Instantiate(fin.visual, caster.transform.position, Quaternion.identity, caster.transform);
-            vfx.transform.localPosition = Vector3.zero;
-            var vfxSr = vfx.GetComponentInChildren<SpriteRenderer>();
-            if (vfxSr != null) vfxSr.flipX = dir.x > 0.01f;
-        }
+        // 애니메이션은 castDuration 에 정확히 맞춰 재생된다 (시전이 빨라지면 애니도 같이 빨라짐).
+        var caster = MinionSkillCaster.Spawn(main, spawnPos);
+        caster.AttachVisual(fin.visual, fin.animState, fin.castDuration, faceRight);
+
+        // 이펙트는 같은 애니메이터의 다른 상태라 한 오브젝트로 동시 재생이 안 된다.
+        // 하나 더 띄워서 겹친다 (예: DashDoll 은 Attack + Effect 가 별도 태그다).
+        if (!string.IsNullOrEmpty(fin.effectState))
+            caster.AttachVisual(fin.visual, fin.effectState, fin.castDuration, faceRight);
 
         if (telegraphPrefab == null) return;
 
-        GameObject go = Instantiate(telegraphPrefab, origin, Quaternion.identity, caster.transform);
-        if (hideBasicAttackTelegraph)
+        GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity, caster.transform);
+        if (hideFinisherTelegraph)
         {
             foreach (var vis in go.GetComponentsInChildren<SpriteRenderer>(true)) vis.enabled = false;
             foreach (var mask in go.GetComponentsInChildren<SpriteMask>(true)) mask.enabled = false;
@@ -322,7 +333,6 @@ public class MeleeCombatController : MonoBehaviour
         var box = go.GetComponent<BaseHitBox>();
         if (box == null) return;
 
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         go.transform.localRotation = Quaternion.Euler(0, 0, angle);
         go.transform.localScale = new Vector3(fin.hitBoxSize.x, fin.hitBoxSize.y, 1f);
         box.hitEffectAngle = angle;
@@ -342,14 +352,18 @@ public class MeleeCombatController : MonoBehaviour
         if (fin.hitCount > 1)
         {
             box.isContinuousDamage = true;
-            box.damageTickRate = fin.duration / fin.hitCount;
+            box.damageTickRate = fin.HitWindow / fin.hitCount;
         }
         else
         {
             box.isContinuousDamage = false;
         }
 
-        box.Init(info, Layers.EnemyMask, fin.duration, 0f, true);
+        // startDelay 를 줘서 '인형이 실제로 휘두르는 프레임'에 판정이 열리게 한다.
+        // 예전엔 0 이라 소환되는 프레임(t≈0.02s)에 이미 다 때리고 끝나 있었다.
+        // HitDelay/HitWindow 는 castDuration 의 비율이라 시전 속도가 바뀌어도 같이 따라온다.
+        // 텔레그래프의 차오르는 바도 이 startDelay 동안 채워지며 '언제/어디를' 치는지 보여준다.
+        box.Init(info, Layers.EnemyMask, fin.HitWindow, fin.HitDelay, true);
     }
 
     public void CancelAttack()

@@ -174,11 +174,17 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
 
         float travelTime = dist / dashSpeed;
 
-        // 경로 중앙에 방향으로 눕힌 박스를 깐다. 길이 = 이동 거리, 폭 = 소환수 설정.
-        Vector2 center = origin + dir * (dist * 0.5f);
-        var box = Instantiate(dashHitBoxPrefab, center, Quaternion.identity);
-        box.transform.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
+        // 이 프리팹의 콜라이더는 '전방 기준'이다 (m_Offset.x = 0.5, m_Size.x = 1 -> 로컬 x [0,1]).
+        // 즉 자기 원점에서 앞으로 자란다. 그래서 대쉬 시작점에 그대로 깔면 [0, dist] 를
+        // 정확히 덮는다. ChargerAIPatternSO 도 같은 프리팹을 이렇게 쓴다.
+        //
+        // 예전엔 여기서 경로 '중앙'에 놓았는데, 그러면 로컬 오프셋 0.5 가 회전+스케일(dist)까지
+        // 먹어서 박스가 [0.5d, 1.5d] 로 통째로 밀렸다 — 시작 지점의 적은 안 맞고, 멈춘 자리보다
+        // 0.5d 앞까지 때렸다 ("히트박스가 너무 앞에 길게").
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        var box = Instantiate(dashHitBoxPrefab, origin, Quaternion.Euler(0, 0, angle));
         box.transform.localScale = new Vector3(dist, mod.width, 1f);
+        box.hitEffectAngle = angle; // 누락돼 있었다 — 없으면 히트 이펙트가 대쉬 방향과 무관하게 오른쪽으로 튄다
 
         float dmg = (_player.Stat != null ? _player.Stat.ATK : 0f) * mod.damageMultiplier;
         var info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, false, 1f, true, "Dash",

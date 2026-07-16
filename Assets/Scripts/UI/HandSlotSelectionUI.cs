@@ -100,8 +100,35 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
         {
             if (i < inven.Slots.Count)
             {
-                _spawnedItems[i].Setup(i, inven.Slots[i], this, _isReadOnly);
+                _spawnedItems[i].Setup(i, inven.Slots[i], this, _isReadOnly, SlotAccepts(i));
             }
+        }
+    }
+
+    /// <summary>
+    /// 지금 고른 보상이 이 슬롯에 들어갈 수 있는가.
+    ///
+    /// 모델(InventoryManager.EquipMinion)은 이미 역할에 맞는 슬롯으로 되돌려보내고 있었다.
+    /// 문제는 UI 가 두 칸을 똑같이 눌리게 해놓고, 심지어 되돌려보내기 *전* 인덱스로 로그를 찍어서
+    /// "메인을 두 칸에 낄 수 있다"는 잘못된 그림을 보여준 것이다. 실제로는 늘 같은 칸에
+    /// 덮어써지고 있었다. 그래서 여기서 못 누르게 막는다 — 모델은 그대로 둔다.
+    /// </summary>
+    private bool SlotAccepts(int slotIndex)
+    {
+        if (_isReadOnly) return false;
+
+        switch (_pendingCandidate.category)
+        {
+            case RewardCategory.Minion:
+                // 소환수는 자기 역할 슬롯에만. 타입이 곧 역할이다.
+                return InventoryManager.SlotIndexOf(_pendingCandidate.rawData as MinionDataSO) == slotIndex;
+            case RewardCategory.Ability:
+                // 투척 능력은 아직 슬롯 규칙이 없다. 다만 EquipThrowAbility 가 그 칸의 소환수를
+                // 통째로 날리므로(InventoryManager: EquippedMinion = null), 비어 있는 칸만 허용한다.
+                return slotIndex < GameManager.Instance.inventoryManager.Slots.Count
+                       && GameManager.Instance.inventoryManager.Slots[slotIndex].EquippedMinion == null;
+            default:
+                return true;
         }
     }
 
@@ -125,7 +152,10 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
 
         if (success)
         {
-            Debug.Log($"<color=green>[HandSlotUI]</color> Equipped to slot {index}");
+            // 모델이 역할 슬롯으로 되돌려보낼 수 있으므로, 요청한 index 가 아니라 실제로 들어간 칸을 찍는다.
+            var equipped = _pendingCandidate.rawData as MinionDataSO;
+            int actual = equipped != null ? InventoryManager.SlotIndexOf(equipped) : index;
+            Debug.Log($"<color=green>[HandSlotUI]</color> Equipped to slot {actual}");
             Hide();
 
             // 보상 시퀀스 재개 (마을 디버그 메뉴 등 RewardManager가 없는 씬에서 호출될 수 있어 null-safe)

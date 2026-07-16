@@ -111,17 +111,31 @@ public abstract class MinionSkillSO : SkillSO
     [Header("Skill Animation")]
     [Tooltip("스킬 발동 시 시전 위치에 재생할 애니메이션 비주얼 오브젝트(도트/애니메이터 포함). 비워두면 재생하지 않습니다.")]
     public GameObject skillAnimVisual;
-    [Tooltip("skillAnimVisual이 재생된 뒤 자동으로 파괴되기까지의 시간(초). 0이면 애니메이터 클립 길이를 자동 추정합니다.")]
+
+    [Tooltip("전체 시전 시간(초). 애니메이션 재생 속도가 이 길이에 정확히 맞도록 자동 조절됩니다. " +
+             "0 이면 클립 원본 길이를 그대로 씁니다.\n" +
+             "[중요] 나중에 공속 등으로 시전이 빨라지면 이 값만 줄이면 됩니다 — 애니메이션과 타격 시점이 " +
+             "전부 비율로 묶여 있어서 같이 따라옵니다.")]
     public float skillAnimDuration = 0f;
+
+    [Tooltip("순서대로 재생할 애니메이터 상태 이름들. 비우면 기본 상태 하나만 재생됩니다.\n" +
+             "aseprite 임포터는 태그마다 상태를 만들어 놓고 트랜지션을 하나도 안 걸기 때문에, " +
+             "여기에 적지 않은 상태는 영원히 재생되지 않습니다. (예: Start, Slash, End)")]
+    public string[] animSequence;
+
+    [Tooltip("위 시퀀스와 '동시에' 겹쳐 재생할 이펙트 상태 이름. 비우면 없음. (예: DashDoll 의 Effect)")]
+    public string effectState = "";
 
     [Header("Hit Timing")]
     [Range(0f, 1f)]
-    [Tooltip("skillAnimVisual 재생 시간 대비 실제 타격(데미지)이 발생해야 하는 시점 비율 (0=즉시 타격, 1=애니메이션이 끝난 뒤 타격). skillAnimVisual이 없으면 무시되고 즉시 타격됩니다.")]
+    [Tooltip("전체 시전 시간 대비 실제 타격(데미지)이 발생하는 시점 비율 (0=즉시 타격, 1=애니메이션이 끝난 뒤 타격). " +
+             "애니메이션의 임팩트 프레임에 맞추세요. 비율이라 시전 속도가 바뀌어도 알아서 따라옵니다.")]
     public float hitTimingRatio = 0f;
 
     /// <summary>
-    /// skillAnimVisual이 지정되어 있으면 시전자 위치에 생성해 재생하고, 일정 시간 뒤 자동으로 파괴합니다.
-    /// 반환값은 실제 사용된 재생 시간(초)이며, hitTimingRatio와 곱해 타격 지연 시간을 계산하는 데 씁니다.
+    /// skillAnimVisual 을 시전자 위치에 생성해 재생하고 일정 시간 뒤 파괴합니다.
+    /// animSequence 가 있으면 그 상태들을 순서대로 재생하며, 전체가 skillAnimDuration 에 정확히 맞도록
+    /// 재생 속도를 조절합니다. 반환값은 실제 사용된 전체 재생 시간(초)이며 hitTimingRatio 와 곱해 씁니다.
     /// </summary>
     protected float PlaySkillAnimVisual(Transform user)
     {
@@ -130,23 +144,71 @@ public abstract class MinionSkillSO : SkillSO
         GameObject vfx = Instantiate(skillAnimVisual, user.position, Quaternion.identity, user);
         vfx.transform.localPosition = Vector3.zero;
 
-        float duration = skillAnimDuration;
-        if (duration <= 0f)
+        var animator = vfx.GetComponentInChildren<Animator>();
+        float natural = NaturalLength(animator);
+        if (natural <= 0f) natural = 1f; // 클립을 못 찾았을 때의 안전 기본값
+
+        float duration = skillAnimDuration > 0f ? skillAnimDuration : natural;
+        float speed = natural / duration; // 클립 원본 길이 / 목표 길이
+
+        if (animator != null && animSequence != null && animSequence.Length > 0)
         {
-            var animator = vfx.GetComponentInChildren<Animator>();
-            if (animator != null && animator.runtimeAnimatorController != null)
-            {
-                var clips = animator.runtimeAnimatorController.animationClips;
-                foreach (var clip in clips)
-                {
-                    if (clip != null) duration += clip.length;
-                }
-            }
-            if (duration <= 0f) duration = 1f; // 클립을 찾지 못했을 때의 안전 기본값
+            var runner = user.GetComponent<MonoBehaviour>();
+            if (runner != null) runner.StartCoroutine(PlaySequence(animator, animSequence, speed));
+        }
+        else if (animator != null)
+        {
+            animator.speed = speed;
+        }
+
+        // 이펙트는 같은 애니메이터의 다른 상태라 한 오브젝트로는 동시 재생이 안 된다. 하나 더 겹친다.
+        if (!string.IsNullOrEmpty(effectState))
+        {
+            GameObject fx = Instantiate(skillAnimVisual, user.position, Quaternion.identity, user);
+            fx.transform.localPosition = Vector3.zero;
+            MinionSkillCaster.PlayStateFitted(fx, effectState, duration);
+            Destroy(fx, duration);
         }
 
         Destroy(vfx, duration);
         return duration;
+    }
+
+    /// <summary>animSequence(없으면 전체 클립)의 원본 길이 합.</summary>
+    private float NaturalLength(Animator animator)
+    {
+        if (animator == null || animator.runtimeAnimatorController == null) return 0f;
+        var clips = animator.runtimeAnimatorController.animationClips;
+        if (clips == null) return 0f;
+
+        if (animSequence == null || animSequence.Length == 0)
+        {
+            // 시퀀스가 없으면 기본 상태(= 처음 추가된 클립) 하나만 재생된다.
+            foreach (var c in clips) if (c != null) return c.length;
+            return 0f;
+        }
+
+        float sum = 0f;
+        foreach (var stateName in animSequence)
+            foreach (var c in clips)
+                if (c != null && c.name == stateName) { sum += c.length; break; }
+        return sum;
+    }
+
+    private static System.Collections.IEnumerator PlaySequence(Animator animator, string[] states, float speed)
+    {
+        animator.speed = speed;
+        foreach (var stateName in states)
+        {
+            if (animator == null) yield break; // 도중에 시전자가 소멸했을 수 있다
+            float len = 0f;
+            foreach (var c in animator.runtimeAnimatorController.animationClips)
+                if (c != null && c.name == stateName) { len = c.length; break; }
+            if (len <= 0f) continue;
+
+            animator.Play(stateName, 0, 0f);
+            yield return new WaitForSeconds(len / speed);
+        }
     }
 
     // 추가적인 미니언 전용 데이터

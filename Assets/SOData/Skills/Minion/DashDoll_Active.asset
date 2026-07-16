@@ -22,8 +22,11 @@ MonoBehaviour:
   shakeForce: 1
   hitStopDuration: 0.08
   skillAnimVisual: {fileID: -2253911629886400664, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}
-  skillAnimDuration: 0
-  hitTimingRatio: 0
+  skillAnimDuration: 0.65
+  animSequence:
+  - Attack
+  effectState: Effect
+  hitTimingRatio: 0.654
   actionType: 1
   useHitBox: 1
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
@@ -32,4 +35,4 @@ MonoBehaviour:
   forceAmount: 4
   forceDuration: 0.2
   hitCount: 1
-  hitDuration: 0.2
+  hitEndRatio: 0.769

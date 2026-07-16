@@ -835,6 +835,21 @@ public class InventoryManager : MonoBehaviour
             Slots.Add(new CoreSlot());
         }
         if (Slots.Count > SLOT_COUNT) Slots.RemoveRange(SLOT_COUNT, Slots.Count - SLOT_COUNT);
+
+        // 세이브는 슬롯 순서대로 이름만 복원할 뿐 역할을 검증하지 않는다. 슬롯이 자유 배치였던
+        // 구버전 세이브면 메인이 0/1번에 둘 다 들어앉은 채로 살아남을 수 있고, 그러면 SubSummon 이
+        // 메인을 가리켜 서브 패시브가 전부 조용히 0이 된다 (SubSummonPassiveController 는 null 을 0f 로 흘린다).
+        // 장착 경로는 EquipMinion 이 막아주지만 이 경로는 그걸 우회하므로 여기서 한 번 더 거른다.
+        for (int i = 0; i < Slots.Count; i++)
+        {
+            var m = Slots[i].EquippedMinion;
+            if (m != null && SlotIndexOf(m) != i)
+            {
+                Debug.LogWarning($"<color=orange>[InventoryManager]</color> 세이브의 '{m.name}' 이 역할과 안 맞는 슬롯 {i} 에 있습니다. 비웁니다.");
+                Slots[i].EquippedMinion = null;
+            }
+        }
+
         UpdateActiveAbilities();
 
         // Treasures 로드

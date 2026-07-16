@@ -35,8 +35,9 @@ public class BaseHitBox : MonoBehaviour
     private LayerMask _targetLayer;
     private bool _isInitialized = false;
     private float _elapsed;
-    // 대상별 다음 타격 시각. 공용 타이머를 쓰면 첫 번째 적이 틱을 독점한다.
-    private readonly Dictionary<IDamageable, float> _nextTickAt = new Dictionary<IDamageable, float>();
+    // 대상별 '지금까지 때린 횟수'. 공용 타이머를 쓰면 첫 번째 적이 틱을 독점한다.
+    // 다음 '시각'이 아니라 '횟수'를 들고 있는 게 핵심 — 아래 OnTriggerStay2D 주석 참조.
+    private readonly Dictionary<IDamageable, int> _tickCount = new Dictionary<IDamageable, int>();
 
     // 1회 타격 시 중복 타격 방지
     private HashSet<IDamageable> _hitTargets = new HashSet<IDamageable>();
@@ -148,7 +149,7 @@ public class BaseHitBox : MonoBehaviour
     {
         _isInitialized = true;
         _elapsed = 0f;
-        _nextTickAt.Clear(); // 대상별 타이머 초기화 (첫 접촉 시 즉시 1타)
+        _tickCount.Clear(); // 대상별 타격 횟수 초기화 (첫 접촉 시 즉시 1타)
     }
 
     private void Update()
@@ -180,11 +181,16 @@ public class BaseHitBox : MonoBehaviour
                 // 예전엔 공용 타이머를 첫 번째 적이 리셋해버려서, N타짜리 장판이 범위 안 적들에게
                 // N타를 '나눠주는' 꼴이었다 (적 3명이면 각자 ~N/3타). 소환수 액티브가 "범위 내의
                 // 적에게 5번의 피해"를 표방하므로 각 적이 온전히 N타를 받아야 한다.
-                if (!_nextTickAt.TryGetValue(damageable, out float nextAt) || _elapsed >= nextAt)
+                // 마감 시각을 '관측된 _elapsed + tickRate' 로 재예약하면 매 틱의 초과분이
+                // 다음 마감에 누적돼, 5타짜리는 마지막 1타가 히트박스 수명 밖으로 밀려난다
+                // (60fps 에서 드리프트 0.083s vs 여유 0.100s — 프레임이 한 번만 튀어도 4타).
+                // 그래서 절대 격자로 센다: n 번째 타격은 항상 n * tickRate 지점.
+                _tickCount.TryGetValue(damageable, out int n);   // 없으면 0 -> _elapsed >= 0 -> 즉시 1타
+                if (_elapsed >= n * damageTickRate)
                 {
                     damageable.TakeDamage(_damageInfo);
                     SpawnHitEffect(col.transform.position);
-                    _nextTickAt[damageable] = _elapsed + damageTickRate;
+                    _tickCount[damageable] = n + 1;
 
                     if (damageable is CharacterHealth ch)
                     {

@@ -33,4 +33,63 @@ public class MinionSkillCaster : MonoBehaviour
         Destroy(go, DEFAULT_LIFETIME);
         return caster;
     }
+
+    /// <summary>
+    /// 소환수 외형을 시전자 밑에 붙이고, 지정한 애니메이터 상태를 fitDuration 에 '정확히 맞게' 재생한다.
+    ///
+    /// [여기가 애니메이션-시전시간 동기화의 유일한 지점이다]
+    /// 재생 속도를 클립길이/시전시간 으로 잡기 때문에, 나중에 공속 등으로 시전이 빨라져
+    /// fitDuration 이 줄면 애니메이션도 정확히 같은 비율로 빨라진다. 타격 시점은 비율로 잡혀 있으므로
+    /// 둘이 절대 어긋나지 않는다.
+    ///
+    /// aseprite 임포터가 만들어주는 컨트롤러는 태그마다 상태를 하나씩 만들어 놓고 트랜지션을
+    /// 하나도 안 건다(AnimatorControllerGeneration 은 AddMotion 만 호출한다). 그래서 기본 상태
+    /// 외의 상태는 Play() 로 직접 지정하지 않으면 영원히 재생되지 않는다.
+    /// </summary>
+    /// <param name="stateName">재생할 상태 이름. 비우면 기본 상태를 그대로 둔다.</param>
+    /// <returns>생성된 비주얼 인스턴스. visual 이 null 이면 null.</returns>
+    public GameObject AttachVisual(GameObject visual, string stateName, float fitDuration, bool faceRight)
+    {
+        if (visual == null) return null;
+
+        var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
+        vfx.transform.localPosition = Vector3.zero;
+
+        var sr = vfx.GetComponentInChildren<SpriteRenderer>();
+        if (sr != null) sr.flipX = faceRight;
+
+        PlayStateFitted(vfx, stateName, fitDuration);
+        return vfx;
+    }
+
+    /// <summary>지정 상태를 fitDuration 길이에 맞춰 재생한다. 상태를 못 찾으면 속도만 두고 넘어간다.</summary>
+    public static void PlayStateFitted(GameObject vfx, string stateName, float fitDuration)
+    {
+        if (vfx == null || fitDuration <= 0f) return;
+
+        var anim = vfx.GetComponentInChildren<Animator>();
+        if (anim == null || anim.runtimeAnimatorController == null) return;
+
+        var clips = anim.runtimeAnimatorController.animationClips;
+        if (clips == null || clips.Length == 0) return;
+
+        // 상태 이름 = 클립 이름 (AddMotion 이 클립 이름으로 상태를 만든다).
+        // 이름이 비어 있으면 기본 상태 = 첫 번째로 추가된 클립.
+        float clipLen = 0f;
+        foreach (var c in clips)
+        {
+            if (c == null) continue;
+            if (string.IsNullOrEmpty(stateName)) { clipLen = c.length; break; }
+            if (c.name == stateName) { clipLen = c.length; break; }
+        }
+
+        if (clipLen <= 0f)
+        {
+            Debug.LogWarning($"<color=orange>[MinionCaster]</color> '{vfx.name}' 애니메이터에 '{stateName}' 상태가 없습니다. 기본 상태로 재생합니다.");
+            return;
+        }
+
+        anim.speed = clipLen / fitDuration;
+        if (!string.IsNullOrEmpty(stateName)) anim.Play(stateName, 0, 0f);
+    }
 }
