@@ -23,8 +23,8 @@ MonoBehaviour:
   finisher:
     hitCount: 2
     damageMultiplier: 1
-    hitBoxSize: {x: 3, y: 2}
-    spawnOffset: 1
+    hitBoxSize: {x: 3, y: 2.8}
+    spawnOffset: 1.6
     castDuration: 1.4
     animSequence:
     - Start
