@@ -3817,6 +3817,14 @@ PrefabInstance:
       propertyPath: playerStateUI
       value: 
       objectReference: {fileID: 320471397}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingMinions.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
+      propertyPath: debugStartingGems_TargetJobs.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
