@@ -60,6 +60,7 @@ public class MeleeCombatController : MonoBehaviour
 
     private bool _isHoldingAttack = false;
     private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
+    private MinionSkillCaster _activeCaster; // 마무리 타격 소환수 추적 — 연속 공격 시 중복 스폰 방지용
 
     // 콤보 스텝을 함께 전달하는 공격 시작 이벤트 (int = comboStep 0/1/2)
     public event System.Action<int> OnAttackExecuted;
@@ -310,7 +311,15 @@ public class MeleeCombatController : MonoBehaviour
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         Vector3 spawnPos = origin + (Vector3)(dir * fin.spawnOffset);
 
+        // 이전 마무리 소환수가 아직 안 사라졌으면 먼저 정리 (연속 공격 시 여러 마리 남는 문제 방지)
+        if (_activeCaster != null)
+        {
+            Destroy(_activeCaster.gameObject);
+            _activeCaster = null;
+        }
+
         var caster = MinionSkillCaster.Spawn(main, spawnPos);
+        _activeCaster = caster;
 
         // 이펙트는 같은 애니메이터의 다른 상태라 한 오브젝트로 동시 재생이 안 된다.
         // 하나 더 띄워서 겹친다 (예: DashDoll 은 Attack + Effect 가 별도 태그다).
@@ -389,6 +398,11 @@ public class MeleeCombatController : MonoBehaviour
         {
             Destroy(_activeHitbox.gameObject);
             _activeHitbox = null;
+        }
+        if (_activeCaster != null)
+        {
+            Destroy(_activeCaster.gameObject);
+            _activeCaster = null;
         }
         _comboStep = 0;
         // _isHoldingAttack = false; // 대시/패리 후에도 꾹 누르고 있으면 이어서 공격하도록 주석 처리
