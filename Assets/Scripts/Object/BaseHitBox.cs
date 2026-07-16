@@ -25,6 +25,9 @@ public class BaseHitBox : MonoBehaviour
     [Header("Hit Effect")]
     [Tooltip("적중 시 생성할 타격 이펙트 프리팹 (HitEffect)")]
     public GameObject hitEffectPrefab;
+    [Tooltip("적중 시 함께 생성할 파티클 이펙트 프리팹 (예: MeleeHitSparkEffect)")]
+    public GameObject hitParticlePrefab;
+
     [HideInInspector] public float hitEffectAngle = 0f; // [추가] 히트 이펙트 전용 실제(월드) 방향 각도. 부모(공격자) 미러링 보정과는 무관하게 실제 타격 방향을 그대로 담습니다.
 
     public enum FillStyle { Uniform, Horizontal }
@@ -211,11 +214,16 @@ public class BaseHitBox : MonoBehaviour
     /// </summary>
 private void SpawnHitEffect(Vector3 position)
     {
-        if (hitEffectPrefab == null) return;
+        if (hitEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(hitEffectPrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
+            Destroy(effect, 1.0f);
+        }
 
-        // 타격 방향(히트박스 자신의 회전값)을 이펙트에 그대로 전도합니다.
-        // [수정] transform.rotation은 부모(플레이어) 미러링을 상쇄하기 위한 보정값이라 부모 없이 스폰되는 이펙트에는 그대로 쓰면 안 됨 -> 실제 타격 방향(hitEffectAngle) 사용
-        GameObject effect = Instantiate(hitEffectPrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
-        Destroy(effect, 1.0f);
+        if (hitParticlePrefab != null)
+        {
+            GameObject particle = Instantiate(hitParticlePrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
+            Destroy(particle, 1.0f);
+        }
     }
 }
