@@ -13,6 +13,7 @@ public class TextFloating : MonoBehaviour
 
     // Text Location
     private Transform target;
+    private Vector3 spawnWorldPosition;
     private Vector3 offSet;
 
     [Header("[ Text Setting ]")]
@@ -48,6 +49,7 @@ public void SetUp(string _text, Color _color, Transform _target, bool isCritical
         textMesh.text = parsedText;
         textMesh.color = _color;
         target = _target;
+        spawnWorldPosition = _target != null ? _target.position : transform.position;
 
         offSet = new Vector3(Random.Range(-0.5f, 0.5f), 0);
 
@@ -124,7 +126,7 @@ public void SetUp(string _text, Color _color, Transform _target, bool isCritical
             if (cam == null) return;
         }
 
-        Vector3 worldPosition = target.position + offSet;
+        Vector3 worldPosition = spawnWorldPosition + offSet;
         Vector3 screenPos = cam.WorldToScreenPoint(worldPosition);
 
         if (parentCanvas == null)
