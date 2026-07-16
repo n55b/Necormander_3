@@ -28,7 +28,7 @@ MonoBehaviour:
     castDuration: 0.65
     animSequence:
     - Attack
-    damageState: 
+    damageState: Attack
     hitEvent: OnHitEvent
     hitWindowRatio: 0.18
     effectState: Effect
