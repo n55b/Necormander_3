@@ -171,9 +171,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   reactions:
   - signal: 1
-    strength: {x: 18, y: 18}
+    strength: {x: 12, y: 12}
     duration: 0.3
-    vibrato: 25
+    vibrato: 10
     fadeOut: 1
   unscaledTime: 1
 --- !u!1 &133091751864329527
@@ -1158,6 +1158,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4229714288024297681}
   - component: {fileID: 6308219823838433522}
+  - component: {fileID: 3705380794887587482}
   m_Layer: 5
   m_Name: Panel_Skill
   m_TagString: Untagged
@@ -1214,6 +1215,25 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &3705380794887587482
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2104375699089287810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8b4e46c9ada3524fa908af7e9ef5180, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  reactions:
+  - signal: 1
+    strength: {x: 6, y: 6}
+    duration: 0.25
+    vibrato: 20
+    fadeOut: 1
+  unscaledTime: 1
 --- !u!1 &2187254203988060365
 GameObject:
   m_ObjectHideFlags: 0
