@@ -112,7 +112,7 @@ public class MinionActionSkillSO : MinionSkillSO
         Debug.Log($"<color=cyan>[Minion Skill]</color> 미니언이 '{skillName}' 스킬을 사용했습니다! (대상: {closestTarget.name})");
 
         // 언제 때릴지는 그림이 정한다 — damageState 태그가 재생되는 동안, 혹은 Aseprite 에 심어둔
-        // event:MinionHit 프레임에. 초로 박지 않으므로 시전 속도가 바뀌어도 알아서 따라온다.
+        // event:OnHitEvent 프레임에. 초로 박지 않으므로 시전 속도가 바뀌어도 알아서 따라온다.
         float eventWindow = Mathf.Max(0.05f, animDuration * Mathf.Clamp01(hitWindowRatio));
         caster.PlaySequenced(
             skillAnimVisual, animSequence, damageState, hitEvent,

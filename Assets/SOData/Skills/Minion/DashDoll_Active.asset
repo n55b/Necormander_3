@@ -27,7 +27,7 @@ MonoBehaviour:
   - Attack
   effectState: Effect
   damageState: 
-  hitEvent: MinionHit
+  hitEvent: OnHitEvent
   hitWindowRatio: 0.18
   actionType: 1
   useHitBox: 1

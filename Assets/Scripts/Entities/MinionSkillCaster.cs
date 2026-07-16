@@ -37,19 +37,26 @@ public class MinionSkillCaster : MonoBehaviour
     /// <summary>
     /// 소환수 외형을 붙이고 태그 시퀀스를 순서대로 재생하면서, '언제 때릴지'를 알려준다.
     ///
-    /// [타격 타이밍을 숫자로 안 박는 이유]
-    /// 태그 경계 자체가 이미 아티스트가 그림에 찍어놓은 마커다. MeleeDoll 은 Start(때리기 전) →
-    /// Slash(때리는 중) → End(때린 후) 로 나뉘어 있으므로, "Slash 태그가 재생되는 동안 판정"
-    /// 이라고만 하면 초도 비율도 필요 없다. 나중에 아티스트가 Start 길이를 바꿔도 판정이 알아서 따라온다.
+    /// [타격 타이밍을 숫자로 안 박는다 — 그림이 정한다]
+    /// 두 가지 방식을 지원하고, 이벤트가 있으면 이벤트가 이긴다.
     ///
-    /// 태그로 안 나뉘는 경우(DashDoll 처럼 Attack 하나에 준비+타격이 다 들어있음)를 위해
-    /// Animation Event 도 받는다. Aseprite 셀 user data 에 `event:MinionHit` 을 적으면
-    /// 임포터가 그 프레임에 이벤트를 심어준다. 이벤트가 있으면 그게 태그보다 우선한다.
+    /// 1) OnHitEvent (권장 — 적 공격 클립과 같은 방식)
+    ///    클립에 박힌 OnHitEvent 하나가 타격 하나다. 2타면 2번 박으면 된다.
+    ///    OnAttackEndEvent 가 오면 판정을 닫는다. BaseEntity 의 [애니메이션 작업자 가이드라인] 참조.
+    ///    Aseprite 에서는 해당 프레임 셀의 user data 에 `event:OnHitEvent` 라고 적으면
+    ///    임포터가 자동으로 심어준다 (재임포트해도 유지된다).
+    ///
+    /// 2) damageState (태그 경계)
+    ///    이벤트를 아직 안 박았을 때의 폴백. MeleeDoll 은 Start(때리기 전)/Slash(때리는 중)/
+    ///    End(때린 후) 로 이미 나뉘어 있어서 "Slash 동안 판정"이라고만 하면 된다.
     /// </summary>
-    /// <param name="onHitWindow">판정을 열어야 할 때 호출. 인자는 판정이 열려 있을 시간(초).</param>
+    /// <param name="onHitWindow">판정을 열 때 호출. 인자는 판정이 열려 있을 시간(초).</param>
+    /// <param name="onHitPulse">OnHitEvent 가 올 때마다 호출(2타면 2번). 이벤트 방식일 때만.</param>
+    /// <param name="onAttackEnd">OnAttackEndEvent 가 오면 호출. 판정을 닫으라는 뜻.</param>
     public GameObject PlaySequenced(GameObject visual, string[] sequence, string damageState, string hitEvent,
                                     float castDuration, float hitWindow, bool faceRight,
-                                    System.Action<float> onHitWindow)
+                                    System.Action<float> onHitWindow,
+                                    System.Action onHitPulse = null, System.Action onAttackEnd = null)
     {
         if (visual == null) return null;
 
@@ -71,13 +78,23 @@ public class MinionSkillCaster : MonoBehaviour
         float speed = natural / Mathf.Max(0.01f, castDuration);
         anim.speed = speed;
 
-        // 이벤트 방식: 클립에 event:MinionHit 이 심겨 있으면 그 프레임에 판정이 열린다.
+        // 이벤트 방식: 클립에 OnHitEvent 가 심겨 있으면 그 프레임마다 타격.
         bool useEvent = !string.IsNullOrEmpty(hitEvent);
         if (useEvent)
         {
             var relay = anim.gameObject.AddComponent<MinionAnimEventRelay>();
-            bool fired = false;
-            relay.OnHit = () => { if (!fired) { fired = true; onHitWindow?.Invoke(hitWindow); } };
+            bool opened = false;
+            relay.OnHit = () =>
+            {
+                if (!opened)
+                {
+                    opened = true;
+                    // 첫 타격에 판정을 연다. 남은 시간 전체를 주고, 실제 타격 시점은 아래 pulse 가 정한다.
+                    onHitWindow?.Invoke(castDuration);
+                }
+                onHitPulse?.Invoke();
+            };
+            relay.OnAttackEnd = () => onAttackEnd?.Invoke();
         }
 
         StartCoroutine(SequenceRoutine(anim, sequence, damageState, speed, useEvent ? null : onHitWindow));

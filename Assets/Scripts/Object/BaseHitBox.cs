@@ -43,6 +43,15 @@ public class BaseHitBox : MonoBehaviour
     private HashSet<IDamageable> _hitTargets = new HashSet<IDamageable>();
     private System.Action<CharacterHealth> _onHitEnemy;
 
+    /// <summary>
+    /// '이미 때린 대상' 기록을 지운다. 다음 물리 스텝에 범위 안 대상들을 다시 한 번 때린다.
+    ///
+    /// 애니메이션의 OnHitEvent 하나 = 타격 하나로 쓰기 위한 것. 적 공격 클립이 2타면 OnHitEvent 를
+    /// 2번 박는 것과 같은 방식이라(BaseEntity 의 [애니메이션 작업자 가이드라인] 참조), 타격 시점이
+    /// 그림에 직접 박혀 있어서 시간 배분을 따로 계산할 필요가 없다.
+    /// </summary>
+    public void ResetHitTargets() => _hitTargets.Clear();
+
     public void Init(DamageInfo damageInfo, LayerMask targetLayer, float overrideDuration = -1f, float startDelay = 0f, bool isAlly = false, System.Action<CharacterHealth> onHitEnemy = null)
     {
         _onHitEnemy = onHitEnemy;

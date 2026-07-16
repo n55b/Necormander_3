@@ -354,24 +354,34 @@ public class MeleeCombatController : MonoBehaviour
         var col = go.GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
 
+        bool useEvent = !string.IsNullOrEmpty(fin.hitEvent);
+
         caster.PlaySequenced(
             fin.visual, fin.animSequence, fin.damageState, fin.hitEvent,
             fin.castDuration, fin.EventHitWindow, faceRight,
+            // 판정 열기
             window =>
             {
                 if (box == null) return;
-                if (fin.hitCount > 1)
+                if (!useEvent && fin.hitCount > 1)
                 {
+                    // 태그 방식: 타격 태그가 재생되는 동안 hitCount 를 균등 배분한다.
                     box.isContinuousDamage = true;
                     box.damageTickRate = window / fin.hitCount;
                 }
                 else
                 {
+                    // 이벤트 방식: OnHitEvent 하나가 타격 하나다. 배분할 게 없다.
                     box.isContinuousDamage = false;
                 }
                 if (col != null) col.enabled = true;
                 box.Init(info, Layers.EnemyMask, window, 0f, true);
-            });
+            },
+            // OnHitEvent 마다: '이미 때린 대상' 기록을 지워서 다음 물리 스텝에 한 번 더 때린다.
+            // 적 공격 클립이 2타면 OnHitEvent 를 2번 박는 것과 같은 계약이다.
+            onHitPulse: () => { if (box != null) box.ResetHitTargets(); },
+            // OnAttackEndEvent: 후딜까지 끝났으니 판정을 닫는다.
+            onAttackEnd: () => { if (col != null) col.enabled = false; });
     }
 
     public void CancelAttack()

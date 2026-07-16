@@ -133,8 +133,8 @@ public abstract class MinionSkillSO : SkillSO
     public string damageState = "";
 
     [Tooltip("태그로 준비/타격이 안 나뉠 때 쓴다(예: DashDoll 은 Attack 하나에 다 들어있음). " +
-             "Aseprite 에서 타격 프레임 셀의 user data 에 `event:MinionHit` 을 적으면 임포터가 " +
-             "그 프레임에 AnimationEvent 를 심어준다. 여기에 MinionHit 을 적으면 그 순간 판정이 열린다. " +
+             "Aseprite 에서 타격 프레임 셀의 user data 에 `event:OnHitEvent` 을 적으면 임포터가 " +
+             "그 프레임에 AnimationEvent 를 심어준다. 여기에 OnHitEvent 를 적으면 그 순간 판정이 열린다. " +
              "비워두면 damageState(태그) 방식. 적으면 이쪽이 우선.")]
     public string hitEvent = "";
 
