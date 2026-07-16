@@ -26,7 +26,7 @@ MonoBehaviour:
   animSequence:
   - Attack
   effectState: Effect
-  damageState: 
+  damageState: Attack
   hitEvent: OnHitEvent
   hitWindowRatio: 0.18
   actionType: 1

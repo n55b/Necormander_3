@@ -108,6 +108,7 @@ public abstract class MinionSkillSO : SkillSO
     public override void ExecuteSkill(Transform user, Transform target = null, System.Collections.Generic.List<Transform> validTargets = null)
         => Execute(user, null, validTargets);
 
+    // ▶ 애니메이션 연결 방법 / 이벤트 vs 태그 / 속도 조절은 repo 루트의 MINION_ANIMATION_GUIDE.md 참조.
     [Header("Skill Animation")]
     [Tooltip("스킬 발동 시 시전 위치에 재생할 애니메이션 비주얼 오브젝트(도트/애니메이터 포함). 비워두면 재생하지 않습니다.")]
     public GameObject skillAnimVisual;

@@ -18,9 +18,13 @@ public class MinionSkillCaster : MonoBehaviour
     /// <summary>시전 주체인 소환수의 데이터. 스킬이 ATK 등을 여기서 읽는다.</summary>
     public MinionDataSO Data { get; private set; }
 
-    // ponytail: 수명 고정값. 애니메이션 + 타격 지연 + 넉백(0.2s)을 덮는 넉넉한 상한.
-    // 스킬별로 정밀하게 맞춰야 할 만큼 길어지면 MinionSkillSO 에 lifetime 필드를 빼면 된다.
+    // 아무도 수명을 안 정해줬을 때만 쓰는 상한. 실제로는 PlaySequenced 가 시전 시간에 맞춰 다시 잡는다.
     private const float DEFAULT_LIFETIME = 3f;
+
+    // 넉백 코루틴(0.2s)이나 마지막 타격 판정이 아직 돌고 있을 수 있으므로 약간 여유를 준다.
+    private const float DESPAWN_TAIL = 0.25f;
+
+    private Coroutine _despawn;
 
     public static MinionSkillCaster Spawn(MinionDataSO data, Vector3 position)
     {
@@ -29,9 +33,24 @@ public class MinionSkillCaster : MonoBehaviour
 
         var caster = go.AddComponent<MinionSkillCaster>();
         caster.Data = data;
-
-        Destroy(go, DEFAULT_LIFETIME);
+        caster.SetLifetime(DEFAULT_LIFETIME);
         return caster;
+    }
+
+    /// <summary>
+    /// 남은 수명을 다시 잡는다. 예전엔 Destroy(go, 3f) 로 고정이라, 0.9초짜리 마무리 일격을 써도
+    /// 인형이 마지막 프레임을 물고 2초 넘게 화면에 서 있었다.
+    /// </summary>
+    public void SetLifetime(float seconds)
+    {
+        if (_despawn != null) StopCoroutine(_despawn);
+        _despawn = StartCoroutine(DespawnRoutine(seconds));
+    }
+
+    private System.Collections.IEnumerator DespawnRoutine(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        if (this != null) Destroy(gameObject);
     }
 
     /// <summary>
@@ -78,8 +97,21 @@ public class MinionSkillCaster : MonoBehaviour
         float speed = natural / Mathf.Max(0.01f, castDuration);
         anim.speed = speed;
 
-        // 이벤트 방식: 클립에 OnHitEvent 가 심겨 있으면 그 프레임마다 타격.
-        bool useEvent = !string.IsNullOrEmpty(hitEvent);
+        // 애니메이션이 끝나면 곧바로 사라진다. 고정 3초를 물고 서 있지 않는다.
+        SetLifetime(castDuration + DESPAWN_TAIL);
+
+        // [이벤트 유무를 실제로 검사한다]
+        // hitEvent 를 적어놨어도 클립에 실제로 안 박혀 있으면 판정이 영영 안 열린다(조용히 데미지 0).
+        // 적 쪽도 같은 문제를 같은 방식으로 푼다 — BaseAIPatternSO 가 HasAnimationEvent 로 확인하고
+        // 없으면 임시 타이머로 폴백한다. 여기도 똑같이 태그 방식으로 되돌린다.
+        bool useEvent = !string.IsNullOrEmpty(hitEvent) && HasEvent(anim, sequence, hitEvent);
+        if (!useEvent && !string.IsNullOrEmpty(hitEvent))
+        {
+            Debug.LogWarning($"<color=orange>[MinionCaster]</color> '{visual.name}' 클립에 '{hitEvent}' 이벤트가 없습니다. " +
+                             $"태그(damageState='{damageState}') 방식으로 폴백합니다. " +
+                             $"Aseprite 에서 타격 프레임 셀의 user data 에 `event:{hitEvent}` 를 넣으면 정확해집니다.");
+        }
+
         if (useEvent)
         {
             var relay = anim.gameObject.AddComponent<MinionAnimEventRelay>();
@@ -137,6 +169,21 @@ public class MinionSkillCaster : MonoBehaviour
         foreach (var c in anim.runtimeAnimatorController.animationClips)
             if (c != null && c.name == stateName) return c.length;
         return 0f;
+    }
+
+    /// <summary>재생할 클립들 중 하나라도 이 이벤트를 갖고 있는가. BaseEntity.HasAnimationEvent 와 같은 검사.</summary>
+    private static bool HasEvent(Animator anim, string[] sequence, string eventName)
+    {
+        if (anim == null || anim.runtimeAnimatorController == null) return false;
+        foreach (var c in anim.runtimeAnimatorController.animationClips)
+        {
+            if (c == null) continue;
+            // 시퀀스를 지정했으면 거기 속한 클립만 본다.
+            if (sequence != null && sequence.Length > 0 && System.Array.IndexOf(sequence, c.name) < 0) continue;
+            foreach (var ev in c.events)
+                if (ev.functionName == eventName) return true;
+        }
+        return false;
     }
 
     private static float SequenceLength(Animator anim, string[] sequence)
