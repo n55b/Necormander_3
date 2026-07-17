@@ -15,35 +15,6 @@ public class PlayerController : MonoBehaviour
     [Header("플레이어 스탯")]
     [SerializeField] CharacterStat stat;
     public CharacterStat Stat => stat;
-    [SerializeField] float throwRange;
-    [HideInInspector] public float throwRangeBonus = 0f;
-    public float THROWRANGE
-    {
-        get
-        {
-            float range = throwRange + throwRangeBonus;
-            if (InventoryManager.Instance != null)
-            {
-                // [귀수의 힘] 0.5칸 증가 (스택 비례)
-                range += InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.DemonHandPower) * 0.5f;
-                // [다 내꺼야] 집어든 소환수 1마리당 기본 1칸 증가, 추가 노드당 0.4칸씩 추가 증가
-                int allMineLevel = InventoryManager.Instance.GetUniqueEffectCount(GemUniqueType.AllMine);
-                if (allMineLevel > 0)
-                {
-                    float multiplierPerHeld = 1.0f + (allMineLevel - 1) * 0.4f;
-                    int heldCount = (throwController != null) ? throwController.HeldObjectsCount : 0;
-                    range += heldCount * multiplierPerHeld;
-                }
-            }
-            return range;
-        }
-    }
-    [Header("아군 유닛 관련 매니저")]
-    [Header("던지기 컨트롤러")]
-    [SerializeField] private ThrowController throwController;
-    [SerializeField] private float throwChargeTime = 1.0f;
-    public float ThrowChargeTime => throwChargeTime;
-
     [HideInInspector]
     [SerializeField] private PlayerStamina staminaSystem;
     public PlayerStamina STAMINA => staminaSystem;
@@ -62,19 +33,6 @@ public class PlayerController : MonoBehaviour
     // 상태에 따른 Action 이벤트
     public event Action OnEnterIdle;
     public event Action OnEnterBattle;
-
-    [Header("던지기 배율 설정")]
-    [SerializeField] private float minThrowChargeMultiplier = 1.0f;
-    [SerializeField] private float maxThrowChargeMultiplier = 2.0f;
-
-    [Header("투척 및 차징 모디파이어 (보석/시너지용)")]
-    public float bonusThrowChargeTime = 0f;
-    public float chargeEfficiencyMultiplier = 0f; // 기본 0 (보너스 퍼센트 합산, 예: +50% = 0.5f)
-
-    [Header("Overcharge System (Closer Gem)")]
-    public float overchargeTimeLimit = 0f; // 오버차지 허용 시간 (기본 0, 클로저 장착시 증가)
-    public float bonusThrowEffectMultiplier = 0f; // 기본 0 (예: +25% = 0.25f)
-    public float chargeMoveSpeedMultiplier = 0.5f; // 차징 중 이동속도 배율 (기본 0.5 = 50% 감소)
 
     // 비전투 상태 추적
     private float lastCombatTime = 0f;
@@ -133,17 +91,6 @@ public class PlayerController : MonoBehaviour
         Debug.Log($"<color=yellow>[Player]</color> Input Blocked: {blocked}");
     }
 
-    public float GetThrowChargeMultiplier(float ratio)
-    {
-        return Mathf.Lerp(minThrowChargeMultiplier, maxThrowChargeMultiplier, ratio);
-    }
-
-    public void IncreaseMaxChargeMultiplier(float amount)
-    {
-        maxThrowChargeMultiplier += amount;
-        Debug.Log($"<color=yellow>[Growth]</color> 최대 투척 배율 증가! 현재: {maxThrowChargeMultiplier}");
-    }
-
     [Header("이동 변수")]
     [SerializeField] Vector3 MoveDirection = Vector3.zero;
     [SerializeField] Vector2 moveInput = Vector2.zero;
@@ -198,11 +145,6 @@ public class PlayerController : MonoBehaviour
         {
             Debug.LogWarning("[PlayerController] 'Player_Dash' 레이어가 설정되어 있지 않습니다! 레이어 세팅 가이드를 확인해주세요.");
             _dashLayer = _originalLayer;
-        }
-
-        if (throwController == null)
-        {
-            throwController = GetComponentInChildren<ThrowController>();
         }
 
         if (staminaSystem == null)
@@ -265,23 +207,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleDamageTaken(float damage)
     {
-        // 데미지가 0보다 클 경우(실제 피해를 입었을 경우)에만 낙하
-        if (damage > 0 && throwController != null)
-        {
-            RecordCombatAction(); // 피격 시 전투 상태 갱신
-
-            // [시너지] 큰손 (BigHand) 3세트 이상일 경우 드롭 면역
-            bool preventDrop = false;
-            if (InventoryManager.Instance != null && InventoryManager.Instance.GetSynergyCount(GemSynergyGroup.BigHand) >= 3)
-            {
-                preventDrop = true;
-            }
-
-            if (!preventDrop)
-            {
-                throwController.DropAll();
-            }
-        }
+        if (damage > 0) RecordCombatAction(); // 피격 시 전투 상태 갱신
 
         // 데미지를 받았을 때 1초 무적 & 깜빡임 처리
         if (damage > 0)
@@ -431,7 +357,6 @@ public class PlayerController : MonoBehaviour
     {
         MeleeAttack,
         Parry,
-        ThrowCharge,
         Skill,
         Debuff
     }
@@ -467,15 +392,6 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         if (_inputBlocked || (stat != null && stat.Health.IsDead)) return;
-
-        if (throwController != null && throwController.IsCharging)
-        {
-            SetSpeedModifier(SpeedModifierSource.ThrowCharge, chargeMoveSpeedMultiplier);
-        }
-        else
-        {
-            RemoveSpeedModifier(SpeedModifierSource.ThrowCharge);
-        }
 
         float currentSpeed = stat.MOVESPEED * SpeedMultiplier;
 
@@ -570,10 +486,6 @@ public class PlayerController : MonoBehaviour
         {
             meleeCtrl.CancelAttack();
         }
-        if (throwController != null && throwController.IsCharging)
-        {
-            throwController.InputHandler.ResetCharging();
-        }
         // [추가] 시전 중인 액티브 스킬 취소
         CancelActiveSkill();
 
@@ -644,25 +556,6 @@ public class PlayerController : MonoBehaviour
             {
                 parryCtrl.TryStartParry();
             }
-        }
-    }
-
-    public void OnThrow(InputAction.CallbackContext context)
-    {
-        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
-        if (stat.Health.IsDead) return;
-
-        // [추가] 스킬 시전 중 투척 차단
-        if (IsCastingSkill) return;
-
-        var parryCtrl = GetComponent<PlayerParryController>();
-        if (parryCtrl != null && parryCtrl.IsParrying) return;
-
-        if (_inputBlocked) return;
-
-        if (throwController != null)
-        {
-            throwController.OnThrow(context);
         }
     }
 

@@ -67,7 +67,6 @@ public class RewardManager : MonoBehaviour
                 GameManager.Instance.inventoryManager, 
                 GameManager.Instance.dataManager, 
                 new List<RewardCategory> { 
-                    RewardCategory.Ability,
                     RewardCategory.Metamorphosis 
                 }
             );
@@ -151,25 +150,6 @@ public class RewardManager : MonoBehaviour
                 }
                 break;
 
-            case RewardCategory.Ability:
-                if (handSlotUI != null)
-                {
-                    // [추가] 장착 UI가 뜨면 시간 정지
-                    if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
-
-                    if (selectionUI != null) selectionUI.Hide();
-                    handSlotUI.Show(candidate);
-                }
-                else
-                {
-                    int emptyIdx = inven.Slots.FindIndex(s => s.IsEmpty);
-                    if (emptyIdx != -1)
-                    {
-                        inven.EquipThrowAbility(emptyIdx, (ThrowAbilitySO)candidate.rawData);
-                    }
-                    ProcessNextReward();
-                }
-                break;
 
             case RewardCategory.Metamorphosis:
                 // 변이/진화 시스템 폐지로 동작 생략

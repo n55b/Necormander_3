@@ -45,7 +45,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
     public void GetDamage(DamageInfo info)
     {
-        OnDamageReceived?.Invoke(info); // [추가] AI 측에서 피격 상세 정보(Throw 여부 등)를 파악하기 위함
+        OnDamageReceived?.Invoke(info); // [추가] AI 측에서 피격 상세 정보를 파악하기 위함
 
         if (isDead || invincible) return;
 

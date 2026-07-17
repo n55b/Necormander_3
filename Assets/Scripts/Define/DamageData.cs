@@ -60,7 +60,6 @@ public struct DamageInfo
     public float amount;
     public DamageType type;
     public GameObject attacker;
-    public bool isThrowDamage;
     public float debuffMultiplier;
     public bool isBasicAttack;
     public string popupText;
@@ -69,12 +68,14 @@ public struct DamageInfo
     public float knockbackForce;
     public float superArmorDamage; // [추가] 슈퍼아머 깎는 수치
 
-    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, bool isThrowDamage = false, float debuffMultiplier = 1f, bool isBasicAttack = false, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f)
+    // [26/07/17] isThrowDamage 인자는 삭제됐지만 위치는 비워뒀다. 호출부가 50곳이 넘고
+    // 전부 위치 인자로 넘기고 있어서, 인자를 빼면 뒤의 값들이 통째로 한 칸씩 밀린다.
+    // (예: debuffMultiplier 자리에 isBasicAttack 이 들어감) 이름을 바꿔 자리만 유지한다.
+    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, bool _unusedWasThrow = false, float debuffMultiplier = 1f, bool isBasicAttack = false, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f)
     {
         this.amount = amount;
         this.type = type;
         this.attacker = attacker;
-        this.isThrowDamage = isThrowDamage;
         this.debuffMultiplier = debuffMultiplier;
         this.isBasicAttack = isBasicAttack;
         this.popupText = popupText;

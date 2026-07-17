@@ -3,17 +3,19 @@ using UnityEngine;
 
 /// <summary>
 /// 플레이어 스태미나를 관리하는 컴포넌트입니다.
+///
+/// [26/07/17] 투척 철거로 '소비처가 없는 자원'이 됐다. 유일한 소비자가 투척이었다.
+/// 클래스를 남긴 건 Q/E 스킬이 나중에 쓸 수 있어서다 — 쓸 땐 ConsumeRawStamina 를 부르면 된다.
+/// 지금은 최대치까지 차오른 채로 가만히 있는다(현재 Player Melee 구조에선 UI 에도 안 뜬다).
 /// </summary>
 public class PlayerStamina : MonoBehaviour
 {
     [Header("Base Settings")]
     [SerializeField] private float defaultMaxStamina = 100f;
-    [SerializeField] private float defaultThrowCost = 15f;
     [SerializeField] private float defaultRegenRate = 3f; // 초당 회복량
 
     // 모디파이어(보너스) 값들
     [HideInInspector] public float maxStaminaBonus = 0f;
-    [HideInInspector] public float throwCostBonus = 0f;
     [HideInInspector] public float regenRateBonus = 0f;
     [HideInInspector] public float outOfCombatRegenBonus = 0f;
     [HideInInspector] public float deadMinionRegenBonus = 0f;
@@ -27,36 +29,6 @@ public class PlayerStamina : MonoBehaviour
     // 계산된 최종 스탯 프로퍼티
     public float MaxStamina => defaultMaxStamina + maxStaminaBonus; 
     
-    public float GetThrowCost(int minionCount, CommandData predictedType = CommandData.None)
-    {
-        if (GameManager.Instance != null && GameManager.Instance.testMode_InfiniteStamina) return 0f;
-
-        int count = Mathf.Max(1, minionCount);
-        float dynamicCost = defaultThrowCost + ((count - 1) * 5f);
-        float finalCost = Mathf.Max(0f, dynamicCost + throwCostBonus);
-
-        if (InventoryManager.Instance != null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-        {
-            var tc = GameManager.Instance.PLAYERCONTROLLER.GetComponentInChildren<ThrowController>();
-            if (tc != null)
-            {
-                // 예상되는 타겟팅 모드를 계산
-                TargetingMode currentMode = tc.GetCurrentTargetingMode();
-                if (predictedType == CommandData.SkeletonArcher) currentMode = TargetingMode.Area;
-                else if (predictedType != CommandData.None && currentMode == TargetingMode.Self) currentMode = TargetingMode.Target;
-
-                foreach (var ability in InventoryManager.Instance.ActiveAbilities)
-                {
-                    if (ability != null)
-                    {
-                        finalCost = ability.ModifyStaminaCost(finalCost, currentMode, count);
-                    }
-                }
-            }
-        }
-        
-        return finalCost;
-    }
 
     public float RegenRate
     {
@@ -105,17 +77,6 @@ public class PlayerStamina : MonoBehaviour
             }
             NotifyStaminaChanged();
         }
-    }
-
-    public bool CanThrow(int minionCount = 1, CommandData predictedType = CommandData.None)
-    {
-        return _currentStamina - GetThrowCost(minionCount, predictedType) >= -negativeLimit;
-    }
-
-    public void ConsumeStamina(int minionCount = 1, CommandData predictedType = CommandData.None)
-    {
-        _currentStamina -= GetThrowCost(minionCount, predictedType);
-        NotifyStaminaChanged();
     }
 
     // [추가] 능력이 스태미너를 직접 차감할 때 사용

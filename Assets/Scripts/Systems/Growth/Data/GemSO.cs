@@ -16,9 +16,8 @@ public enum StatType
     Health = 1,         // 최대 체력
     AttackSpeed = 2,    // 공격 속도 (회/초)
     // 3 = 구 RespawnTime (삭제됨 — 재사용 금지)
-    ThrowEffect = 4,                  // 던지기 능력 강화
-    ParabolicEffectMultiplier = 5,    // 포물선 투척 효율 추가 배율
-    ParabolicFlightTimeMultiplier = 6, // 포물선 체공 시간 보정치
+    // 4, 5, 6 = 구 투척 스탯 (ThrowEffect / ParabolicEffectMultiplier /
+    //           ParabolicFlightTimeMultiplier). 투척 철거와 함께 삭제 — 재사용 금지.
 
     // ── 26/07/17 스탯 재설계 ──────────────────────────────────────
     Magic = 10,                    // 마법 공격력

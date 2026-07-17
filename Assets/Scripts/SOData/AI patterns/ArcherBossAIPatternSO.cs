@@ -22,7 +22,6 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     public float baseAttackInterval = 1.0f;
     public float maxAttackSpeedMultiplier = 1.4f;
     public float attackSpeedRampTime = 5.0f; // 8초에서 5초로 단축하여 패턴을 더 자주 보게 함
-    public int throwHitsRequired = 2;
     public GameObject normalArrowPrefab;
     public float projectileSpeed = 10f;
 
@@ -38,14 +37,12 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     [Header("Stun & Drop")]
     public float stunDuration = 3.0f;
-    public GameObject throwableBoxPrefab;
 
     [Header("Runtime")]
     [SerializeField] private ArcherState archerCurrentState = ArcherState.P1_Loop;
     [SerializeField] private float stateTimer = 0f;
     [SerializeField] private float attackTimer = 0f;
     [SerializeField] private float loopDuration = 0f;
-    [SerializeField] private int throwHitCount = 0;
     
     // Pattern 2 internal states
     private int p2SubState = 0; 
@@ -64,14 +61,11 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         isPhase2 = false;
         archerCurrentState = ArcherState.P1_Loop;
         loopDuration = 0f;
-        throwHitCount = 0;
         attackTimer = baseAttackInterval;
 
         // Phase 1 MoveSpeed is 0
         entity.Stats.SetBaseMoveSpeed(0f);
 
-        entity.Stats.Health.OnDamageReceived -= HandleDamageTaken;
-        entity.Stats.Health.OnDamageReceived += HandleDamageTaken;
 
         entity.Stats.Health.OnBeforeDeath -= HandleBeforeDeath;
         entity.Stats.Health.OnBeforeDeath += HandleBeforeDeath;
@@ -111,25 +105,10 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         return false;
     }
 
-    private void HandleDamageTaken(DamageInfo info)
-    {
-        if (info.isThrowDamage)
-        {
-            throwHitCount++;
-            Debug.Log($"<color=green>[ArcherBoss]</color> Hit by Throw Attack! Count: {throwHitCount}");
-            
-            // 1페이즈에서 투척 맞으면 상자 하나 드랍
-            if (!isPhase2 && throwableBoxPrefab != null && _cachedEntity != null)
-            {
-                SpawnBox(info.attacker != null ? info.attacker.transform.position : _cachedEntity.Target.position);
-            }
-        }
-    }
-
     public override void Execute(BaseEntity entity)
     {
         UpdatePhase(entity); // 타겟 갱신 등
-        if (this.archerCurrentState == ArcherState.Transitioning || entity.CurrentState == AIState.Thrown || entity.CurrentState == AIState.Caught) return;
+        if (this.archerCurrentState == ArcherState.Transitioning) return;
 
         if (entity.Target == null)
         {
@@ -189,7 +168,6 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             // 데이터가 없다면 임시로 이속만 5로 변경
             entity.Stats.SetBaseMoveSpeed(5f); 
         }
-        throwHitCount = 0;
         loopDuration = 0f;
         archerCurrentState = ArcherState.P2_Loop;
         if (bombardmentCoroutine != null) entity.StopCoroutine(bombardmentCoroutine);
@@ -215,9 +193,9 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         }
 
         // 패턴 전환 조건 검사
-        if (loopDuration >= attackSpeedRampTime || throwHitCount >= throwHitsRequired)
+        // [26/07/17] 투척 히트 카운트 조건 삭제 — 플레이어가 상자를 던질 수 없게 됐다.
+        if (loopDuration >= attackSpeedRampTime)
         {
-            throwHitCount = 0;
             if (Random.value < 0.5f) EnterP1Pattern1(entity);
             else EnterP1Pattern2(entity);
         }
@@ -289,15 +267,6 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             bombardmentCoroutine = null;
         }
         
-        if (dropBox && throwableBoxPrefab != null)
-        {
-            // 상자 여러 개 드랍 (예: 3개)
-            for (int i = 0; i < 3; i++)
-            {
-                Vector2 spawnPos = (Vector2)entity.transform.position + Random.insideUnitCircle * 3f;
-                SpawnBox(spawnPos);
-            }
-        }
         Debug.Log($"<color=green>[ArcherBoss]</color> Stunned for {stunDuration}s. DropBox: {dropBox}");
     }
 
@@ -309,7 +278,6 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             // 초기화 후 루프 복귀
             loopDuration = 0f;
             attackTimer = baseAttackInterval;
-            throwHitCount = 0;
             archerCurrentState = isPhase2 ? ArcherState.P2_Loop : ArcherState.P1_Loop;
         }
     }
@@ -333,9 +301,9 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         // 거리 유지 (카이팅)
         KitePlayer(entity);
 
-        if (loopDuration >= attackSpeedRampTime || throwHitCount >= throwHitsRequired)
+        // [26/07/17] 투척 히트 카운트 조건 삭제 — 플레이어가 상자를 던질 수 없게 됐다.
+        if (loopDuration >= attackSpeedRampTime)
         {
-            throwHitCount = 0;
             StopNavAgent(entity);
             if (Random.value < 0.5f) EnterP2Pattern1(entity);
             else EnterP2Pattern2(entity);
@@ -549,13 +517,6 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         }
     }
 
-    private void SpawnBox(Vector2 position)
-    {
-        if (throwableBoxPrefab != null)
-        {
-            Instantiate(throwableBoxPrefab, position, Quaternion.identity);
-        }
-    }
 }
 
 

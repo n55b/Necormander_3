@@ -120,19 +120,10 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         bool canPattern2 = (time - _lastPattern2Time >= pattern2Cooldown);
         bool canPattern3 = (time - _lastPattern3Time >= pattern3Cooldown);
 
-        // 우선순위 판별 및 분기
-        // 패턴 1: 쿨 돌았고 맵에 창이 있을 때 (가장 우선순위 높게 처리해볼 수 있음, 혹은 거리 관계없이)
-        ThrowableBoneSpear nearestSpear = null;
-        if (canPattern1)
-        {
-            nearestSpear = GetNearestSpear(entity.transform.position);
-        }
-
-        if (canPattern1 && nearestSpear != null)
-        {
-            _currentPatternCoroutine = entity.StartCoroutine(Pattern1_SpearRoutine(entity, nearestSpear));
-        }
-        else if (canPattern2 && dist >= 8f) // 멀리 있을 때
+        // [26/07/17] 패턴 1(창 훔치기) 분기 삭제. 투척 시스템을 철거하면서 플레이어가 뼈창을
+        // 주워 던질 수 없게 됐고, 맵에 창이 생기지 않으니 이 패턴은 영원히 조건을 못 만족한다.
+        // 보스 기믹을 다시 짤 때 이 자리에 새 패턴을 넣으면 된다 (canPattern1/pattern1Cooldown 은 남겨둠).
+        if (canPattern2 && dist >= 8f) // 멀리 있을 때
         {
             _currentPatternCoroutine = entity.StartCoroutine(Pattern2_ChargeRoutine(entity));
         }
@@ -161,91 +152,7 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         }
     }
 
-    private ThrowableBoneSpear GetNearestSpear(Vector3 pos)
-    {
-        ThrowableBoneSpear[] spears = Object.FindObjectsByType<ThrowableBoneSpear>(FindObjectsSortMode.None);
-        ThrowableBoneSpear best = null;
-        float minDist = Mathf.Infinity;
-        foreach(var s in spears)
-        {
-            // 아직 누군가 잡고있지 않은 창만
-            if (s.transform.parent != null) continue; // 들려있는 창 제외 (단순 판정)
-            float d = Vector2.Distance(pos, s.transform.position);
-            if(d < minDist)
-            {
-                minDist = d;
-                best = s;
-            }
-        }
-        return best;
-    }
 
-    #region Pattern 1: Spear Steal
-    private IEnumerator Pattern1_SpearRoutine(BaseEntity entity, ThrowableBoneSpear targetSpear)
-    {
-        _isActionLocked = true;
-        _lastPattern1Time = Time.time;
-        _currentState = BossPhase2State.Pattern1_Spear;
-        
-        if (_bossController != null) _bossController.SetStateText("창으로 돌진!", Color.magenta);
-
-        var agent = entity.GetComponent<UnityEngine.AI.NavMeshAgent>();
-        if (agent != null)
-        {
-            agent.isStopped = false;
-            agent.speed = entity.Stats.MOVESPEED * 1.5f; // 돌진이라 조금 빠르게
-        }
-
-        bool isStolen = false;
-
-        // 창이 존재하는 동안 거리를 좁힘
-        while (targetSpear != null && targetSpear.gameObject.activeInHierarchy)
-        {
-            // 플레이어가 먼저 주웠는지 체크 (부모가 바뀌었다면 플레이어가 주운 것으로 간주)
-            if (targetSpear.transform.parent != null)
-            {
-                isStolen = true;
-                break;
-            }
-
-            if (agent != null) agent.SetDestination(targetSpear.transform.position);
-
-            float distToSpear = Vector2.Distance(entity.transform.position, targetSpear.transform.position);
-            if (distToSpear < 1.5f)
-            {
-                break; // 창에 도달!
-            }
-
-            yield return null;
-        }
-
-        StopNavAgent(entity);
-
-        if (isStolen)
-        {
-            // 뺏김! 2초 스턴
-            if (_bossController != null) _bossController.SetStateText("창 뺏김! (기절)", Color.yellow);
-            yield return new WaitForSeconds(spearStealStunTime);
-        }
-        else if (targetSpear != null && targetSpear.gameObject.activeInHierarchy)
-        {
-            // 성공적으로 주움
-            Destroy(targetSpear.gameObject);
-            if (_bossController != null) _bossController.SetStateText("창 투척!", Color.red);
-            
-            // 타겟 방향으로 강한 데미지의 직선 공격
-            yield return new WaitForSeconds(0.5f);
-            if (entity.Target != null)
-            {
-                ApplyLineDamage(entity, entity.Target.position, 15f, 1.5f, spearLaserPrefab); // 사거리 15 직선 광선(투척 대체)
-            }
-            yield return new WaitForSeconds(0.5f);
-        }
-
-        _isActionLocked = false;
-        _currentState = BossPhase2State.None;
-    }
-    #endregion
 
     #region Pattern 2: Charge / Counter
     private bool _p2Interrupted = false;

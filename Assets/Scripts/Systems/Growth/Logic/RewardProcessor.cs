@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss }
-public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold, Ability, PlayerSkill }
+// [26/07/17] Ability 는 투척 능력 전용이라 투척 철거와 함께 사라졌다.
+public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold, PlayerSkill }
 
 /// <summary>
 /// 보상으로 제안될 아이템 정보를 담는 구조체입니다.
@@ -116,9 +117,6 @@ public static class RewardProcessor
             case RewardCategory.Treasure:
                 // [참고] 보물은 다른 방식으로 획득할 예정이므로 여기서 제안하지 않을 수 있음
                 allPossible.AddRange(GetValidTreasures(registry.treasures));
-                break;
-            case RewardCategory.Ability:
-                allPossible.AddRange(GetValidAbilities(inven, registry));
                 break;
             case RewardCategory.PlayerSkill:
                 allPossible.AddRange(GetValidPlayerSkills(registry.playerSkills));
@@ -321,7 +319,7 @@ public static class RewardProcessor
         return candidates;
     }
 
-    // --- 3. 엘리트 방용: 여러 카테고리를 섞어서 후보 생성 (예: Minion + Ability) ---
+    // --- 3. 엘리트 방용: 여러 카테고리를 섞어서 후보 생성 ---
     public static List<RewardCandidate> GenerateMixedCandidates(InventoryManager inven, DataManager data, List<RewardCategory> categories, int count = 3)
     {
         List<RewardCandidate> allPossible = new List<RewardCandidate>();
@@ -333,9 +331,6 @@ public static class RewardProcessor
             {
                 case RewardCategory.Minion:
                     allPossible.AddRange(GetValidCores(inven, registry.minionDatas));
-                    break;
-                case RewardCategory.Ability:
-                    allPossible.AddRange(GetValidAbilities(inven, registry));
                     break;
                 case RewardCategory.PlayerSkill:
                     allPossible.AddRange(GetValidPlayerSkills(registry.playerSkills));
@@ -378,25 +373,4 @@ public static class RewardProcessor
         return candidates;
     }
 
-    private static List<RewardCandidate> GetValidAbilities(InventoryManager inven, GrowthRegistrySO registry)
-    {
-        List<RewardCandidate> candidates = new List<RewardCandidate>();
-        if (registry == null) return candidates;
-
-        foreach (var item in registry.specialAbilities)
-        {
-            if (item is ThrowAbilitySO ability)
-            {
-                // 이미 장착 중인 능력은 제외 (중복 장착 방지)
-                if (inven.ActiveAbilities.Exists(a => a.GetType() == ability.GetType())) continue;
-
-                candidates.Add(new RewardCandidate { 
-                    displayData = new GrowthItemData { itemName = ability.itemName, description = ability.description, icon = ability.icon, rarity = ability.rarity, localizedItemName = ability.localizedItemName, localizedDescription = ability.localizedDescription }, 
-                    rawData = ability, 
-                    category = RewardCategory.Ability 
-                });
-            }
-        }
-        return candidates;
-    }
 }

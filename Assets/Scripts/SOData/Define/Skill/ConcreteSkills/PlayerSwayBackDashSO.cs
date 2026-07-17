@@ -49,7 +49,6 @@ public class PlayerSwayBackDashSO : PlayerSkillSO
         if (aimDir == Vector2.zero) aimDir = Vector2.right;
 
         // 공유 SO 가 상태를 갖지 않도록 1회 시전 상태는 런타임 헬퍼가 관리한다.
-        // (ThrowAbilityStateManager / JugglingCatchZone 과 동일한 패턴)
         var runtime = player.gameObject.GetComponent<SwayBackDashRuntime>();
         if (runtime == null) runtime = player.gameObject.AddComponent<SwayBackDashRuntime>();
         runtime.Begin(this, player, aimDir);

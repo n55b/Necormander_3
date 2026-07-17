@@ -1410,7 +1410,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: f8a0b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c
-    m_ActionName: 'Player/Throw[/Mouse/leftButton]'
+    m_ActionName: 'Player/Attack[/Mouse/leftButton]'
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7972545975472383977}
@@ -1427,22 +1427,6 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: a1ac0817-f9d7-416f-a844-6365fcc7db01
     m_ActionName: 'Player/Parry[/Mouse/rightButton]'
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 80df8f4c-e0fc-45f2-ac0e-0fe291921066
-    m_ActionName: 'Player/SummonButton1[/Keyboard/1]'
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 28b41909-b601-4064-8c96-5c25b80f87eb
-    m_ActionName: 'Player/SummonButton2[/Keyboard/2]'
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 5f032689-968c-44fc-af31-2f96bac13494
-    m_ActionName: 'Player/SummonButton3[/Keyboard/3]'
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: ce72f643-6360-4e39-abab-6f4374f335f8
-    m_ActionName: 'Player/SummonButton4[/Keyboard/4]'
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7972545975472383977}

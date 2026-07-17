@@ -404,7 +404,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
     public override void Execute(BaseEntity entity)
     {
-        if (entity.CurrentState == AIState.Thrown || entity.CurrentState == AIState.Caught) return;
 
         if (entity.Target == null)
         {

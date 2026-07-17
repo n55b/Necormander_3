@@ -48,9 +48,6 @@ public class CharacterStat : MonoBehaviour
     [Tooltip("평타 1·2타 배율. 기본 1.0 = ATK 그대로. 3타(소환수 마무리)는 소환수 배율을 쓴다.")]
     [SerializeField] private float baseBasicAtkMult = 1f;
 
-    [Tooltip("[레거시] 투척 기본 피해. 투척은 Phase 7 에서 통째로 철거 예정.")]
-    [SerializeField] private float baseThrowDamage = 5f;
-
     // 하위 컴포넌트 직접 노출 (Read-only Accessors)
     public CharacterStatus Status { get; private set; }
     public CharacterHealth Health { get; private set; }
@@ -162,8 +159,6 @@ public class CharacterStat : MonoBehaviour
 
     /// <summary>적중률(0~1). 1 = 무조건 맞힘.</summary>
     public float ACCURACY => Mathf.Clamp01(baseAccuracy + Mods.Flat(StatType.Accuracy));
-
-    public float BASE_THROW_DAMAGE => baseThrowDamage;
 
     public float MOVESPEED
     {

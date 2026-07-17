@@ -28,7 +28,6 @@ public static class Layers
     public static readonly int Room           = LayerMask.NameToLayer("Room");
     public static readonly int MiniMap        = LayerMask.NameToLayer("MiniMap");
     public static readonly int Interactable   = LayerMask.NameToLayer("Interactable");
-    public static readonly int ThrowableObject = LayerMask.NameToLayer("ThrowableObject");
 
     // ── 사전 계산 마스크 (반복되던 조합들) ──
     public static readonly int EnemyMask            = LayerMask.GetMask("Enemy");
@@ -37,7 +36,6 @@ public static class Layers
     public static readonly int ObjectMask           = LayerMask.GetMask("Object");
     public static readonly int WallMask             = LayerMask.GetMask("Wall");
     public static readonly int UnsteppableMask      = LayerMask.GetMask("Unsteppable");
-    public static readonly int ThrowableObjectMask  = LayerMask.GetMask("ThrowableObject");
     public static readonly int RoomMask             = LayerMask.GetMask("Room");
     public static readonly int PlayerArmy           = LayerMask.GetMask("Army", "Player");
     public static readonly int PlayerArmyEnemy      = LayerMask.GetMask("Player", "Army", "Enemy");

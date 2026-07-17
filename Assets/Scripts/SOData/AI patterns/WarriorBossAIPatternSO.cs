@@ -37,7 +37,6 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
     public override void Execute(BaseEntity entity)
     {
         UpdatePhase(entity);
-        if (entity.CurrentState == AIState.Thrown || entity.CurrentState == AIState.Caught) return;
 
         if (entity.Target == null)
         {
