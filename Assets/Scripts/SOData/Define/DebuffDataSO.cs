@@ -15,19 +15,15 @@ public class DebuffDataSO : ScriptableObject
     [Tooltip("경직 — 평타에 묻는 짧은 행동 불가. 기절과 별개다")]
     public Sprite hitstunnedIcon;
 
-    public Sprite GetSprite(DebuffBoolType type)
+    /// <summary>
+    /// 비어 있으면 그냥 null 을 준다 — 경고를 찍지 않는다.
+    /// 여기는 피격마다 도는 핫패스(BaseHitBox -> 넉백 -> 경직 부여)라 한 번 비면 콘솔이 잠긴다.
+    /// 게다가 아이콘이 없으면 흰 사각형으로 눈에 그대로 보이므로 경고가 알려줄 게 없다.
+    /// </summary>
+    public Sprite GetSprite(DebuffBoolType type) => type switch
     {
-        Sprite sprite = type switch
-        {
-            DebuffBoolType.Stunned => stunnedIcon,
-            DebuffBoolType.Hitstunned => hitstunnedIcon,
-            _ => null
-        };
-
-        if (sprite == null)
-        {
-            Debug.LogWarning($"<color=red>[DebuffData]</color> {type} 아이콘이 비어 있습니다. DebuffData.asset 을 확인하세요.");
-        }
-        return sprite;
-    }
+        DebuffBoolType.Stunned => stunnedIcon,
+        DebuffBoolType.Hitstunned => hitstunnedIcon,
+        _ => null
+    };
 }
