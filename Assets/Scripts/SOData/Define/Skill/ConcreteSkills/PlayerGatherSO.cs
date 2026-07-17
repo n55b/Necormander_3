@@ -45,8 +45,8 @@ public class PlayerGatherSO : PlayerSkillSO
             BaseHitBox box = Instantiate(hitBoxPrefab, center, Quaternion.Euler(0, 0, angle));
             box.transform.localScale = new Vector3(gatherRadius * 2f, gatherRadius * 2f, 1f);
             
-            float finalDamage = player.Stat.ATK * damageMultiplier;
-            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Gather!");
+            float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
+            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Gather!");
             
             box.Init(info, Layers.EnemyMask, 0.1f, 0f, true);
         }

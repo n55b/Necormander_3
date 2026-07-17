@@ -55,8 +55,8 @@ public class PlayerFlickerJabSO : PlayerSkillSO
         BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
         box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
 
-        float finalDamage = player.Stat.ATK * finalMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Flicker Jab!");
+        float finalDamage = GetBaseDamage(player.Stat) * finalMultiplier;
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Flicker Jab!");
 
         List<Transform> pushedRoots = new List<Transform>();
         System.Action<CharacterHealth> onHit = (health) =>

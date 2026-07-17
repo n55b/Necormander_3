@@ -434,7 +434,7 @@ public abstract class BaseEntity : MonoBehaviour
                 float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
                 go.transform.localRotation = Quaternion.Euler(0, 0, angle);
 
-                DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true, "", false, false, 0f); 
+                DamageInfo info = new DamageInfo(_stats.ATK, DamageRules.FromAttackType(_stats.ATTACK_TYPE), this.gameObject, false, 1f, true, "", false, false, 0f); 
                 
                 // [수정] 몬스터는 localScale.x가 상시 양수이므로 스케일 X를 음수로 뒤집을 필요 없이 상시 양수 유지
                 go.transform.localScale = new Vector3(_stats.ATKRANGE, _stats.ATKRANGE, 1f);
@@ -496,7 +496,7 @@ public abstract class BaseEntity : MonoBehaviour
         if (targetStat != null)
         {
             // [수정] 직접 Health 담당자에게 명령, isBasicAttack = true 추가
-            DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true);
+            DamageInfo info = new DamageInfo(_stats.ATK, DamageRules.FromAttackType(_stats.ATTACK_TYPE), this.gameObject, false, 1f, true);
             targetStat.Health.GetDamage(info);
 
         }

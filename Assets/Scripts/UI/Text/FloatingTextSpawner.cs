@@ -123,7 +123,10 @@ private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool
         switch (dmgType)
         {
             case DamageType.Physical: return Color.white;
+            case DamageType.Magic: return new Color(0.6f, 0.4f, 1f);
             case DamageType.Fixed: return Color.cyan;
+            case DamageType.Freeze: return new Color(0.4f, 0.85f, 1f);
+            case DamageType.Poison: return Color.green;
             case DamageType.BloodPop: return Color.yellow;
             case DamageType.Bleed: return Color.red;
             default: return Color.white;

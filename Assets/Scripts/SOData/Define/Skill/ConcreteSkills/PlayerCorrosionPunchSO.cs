@@ -48,8 +48,8 @@ public class PlayerCorrosionPunchSO : PlayerSkillSO
         BaseHitBox box = Instantiate(hitBoxPrefab, startPos, Quaternion.Euler(0, 0, angle));
         box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
         
-        float finalDamage = player.Stat.ATK * damageMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Corrosion Punch");
+        float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Corrosion Punch");
         
 
         box.Init(info, Layers.EnemyMask, 0.15f, 0f, true);

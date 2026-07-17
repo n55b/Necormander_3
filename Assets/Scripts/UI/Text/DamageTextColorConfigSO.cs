@@ -8,10 +8,16 @@ using UnityEngine;
 public class DamageTextColorConfigSO : ScriptableObject
 {
     [Header("데미지 타입별 색상")]
-    [Tooltip("일반 물리 공격 데미지 (평타 등 대부분의 기본 공격)")]
+    [Tooltip("물리 공격 데미지 (평타 등 대부분의 기본 공격). ATK 기반")]
     public Color physicalColor = Color.white;
+    [Tooltip("마법 공격 데미지. MAGIC 기반. 적은 마법사 계열이 이 색으로 뜬다")]
+    public Color magicColor = new Color(0.6f, 0.4f, 1f);
     [Tooltip("어느 상태이상에도 속하지 않는 고정 피해. 방어력을 무시합니다(쉴드는 못 뚫습니다)")]
     public Color fixedColor = Color.cyan;
+    [Tooltip("빙결이 깨질 때 터지는 고정 피해의 색상")]
+    public Color freezeColor = new Color(0.4f, 0.85f, 1f);
+    [Tooltip("중독 틱(초당) 고정 피해의 색상")]
+    public Color poisonColor = Color.green;
     [Tooltip("비폭(BloodPop) 10스택이 터질 때의 폭발 데미지 색상")]
     public Color bloodPopColor = Color.yellow;
     [Tooltip("출혈(Bleed) 상태에서 피격 시 추가로 들어가는 고정 피해의 색상")]
@@ -58,7 +64,10 @@ public class DamageTextColorConfigSO : ScriptableObject
         switch (type)
         {
             case DamageType.Physical: return physicalColor;
+            case DamageType.Magic: return magicColor;
             case DamageType.Fixed: return fixedColor;
+            case DamageType.Freeze: return freezeColor;
+            case DamageType.Poison: return poisonColor;
             case DamageType.BloodPop: return bloodPopColor;
             case DamageType.Bleed: return bleedColor;
             default: return physicalColor;

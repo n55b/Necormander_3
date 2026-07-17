@@ -28,8 +28,8 @@ public class PlayerWoundPunchSO : PlayerSkillSO
         BaseHitBox box = Instantiate(hitBoxPrefab, startPos, Quaternion.Euler(0, 0, angle));
         box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
         
-        float finalDamage = player.Stat.ATK * damageMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Wound Punch");
+        float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Wound Punch");
         
 
         box.Init(info, Layers.EnemyMask, 0.1f, 0f, true);

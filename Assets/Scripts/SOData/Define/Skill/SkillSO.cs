@@ -68,6 +68,23 @@ public abstract class PlayerSkillSO : SkillSO
 {
     // 추가적인 플레이어 전용 데이터 (스테미나 소모량 등)
 
+    [Header("Damage Type")]
+    [Tooltip("이 스킬이 물리인지 마법인지.\n" +
+             "물리 = 플레이어의 ATK * 스킬 계수, 마법 = MAGIC * 스킬 계수.\n" +
+             "지금 22개 스킬은 전부 물리(무투파)다. 마법 스킬은 아직 없다.")]
+    public AttackType skillDamageType = AttackType.Physical;
+
+    /// <summary>이 스킬의 피해 베이스값. 물리면 ATK, 마법이면 MAGIC 을 가져온다.</summary>
+    public float GetBaseDamage(CharacterStat stat)
+    {
+        if (stat == null) return 0f;
+        return skillDamageType == AttackType.Magic ? stat.MAGIC : stat.ATK;
+    }
+
+    /// <summary>이 스킬의 피해 표시 타입. 팝업 색과 향후 속성별 증감의 기준.</summary>
+    public DamageType ResolveDamageType()
+        => skillDamageType == AttackType.Magic ? DamageType.Magic : DamageType.Physical;
+
     [Header("Hand Skill Animation")]
     [Tooltip("Hand 오브젝트의 HandSkillAnimator에서 재생할 State/Clip 이름 (예: \"020_Physics_Leap\"). 비워두면 손 모션 없이 스킬만 발동됩니다.")]
     public string handSkillAnimName;

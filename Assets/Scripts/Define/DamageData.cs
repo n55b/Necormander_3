@@ -48,6 +48,10 @@ public static class DamageRules
 
     /// <summary>이 피해가 출혈의 추가 피해를 트리거하는가.</summary>
     public static bool TriggersBleed(DamageType t) => !IsStatusDamage(t);
+
+    /// <summary>유닛의 공격 속성을 직접 피해의 DamageType 으로 옮긴다.</summary>
+    public static DamageType FromAttackType(AttackType t)
+        => t == AttackType.Magic ? DamageType.Magic : DamageType.Physical;
 }
 
 [System.Serializable]

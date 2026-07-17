@@ -69,7 +69,7 @@ public class PlayerLeapSO : PlayerSkillSO
 
         // 착지 / 충돌 지점에서 폭발형 임팩트
         Collider2D[] impactHits = Physics2D.OverlapCircleAll(landedPos, impactRadius, enemyMask);
-        float finalDamage = player.Stat.ATK * damageMultiplier;
+        float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
         List<Transform> pushedRoots = new List<Transform>();
 
         foreach (var col in impactHits)
@@ -78,7 +78,7 @@ public class PlayerLeapSO : PlayerSkillSO
             if (health == null) health = col.GetComponentInParent<CharacterHealth>();
             if (health == null || health.IsDead) continue;
 
-            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Leap Impact!");
+            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Leap Impact!");
             health.GetDamage(info);
 
             var stat = health.GetComponent<CharacterStat>();

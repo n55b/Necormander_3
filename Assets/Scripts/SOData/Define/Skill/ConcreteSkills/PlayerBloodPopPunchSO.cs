@@ -25,8 +25,8 @@ public class PlayerBloodPopPunchSO : PlayerSkillSO
         // 원형이므로 X, Y 스케일을 동일하게 hitRadius 2배로 설정 (반지름이므로 직경은 2배)
         box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
 
-        float finalDamage = player.Stat.ATK * damageMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "BloodPop Punch");
+        float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "BloodPop Punch");
 
 
         // 0.1초 딜레이 후 타격

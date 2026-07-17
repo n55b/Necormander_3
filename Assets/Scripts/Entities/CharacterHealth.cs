@@ -128,6 +128,21 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
         float remainingDamage = info.amount;
 
+        // [치명타] 방어력보다 먼저 굴린다 — 기획: "치명타 판정 끝난 최종 데미지에서 방어력 감소율을 뺀다".
+        // 상태이상 고정 피해(출혈/중독/빙결/비폭)엔 안 붙는다. '고정'이니까.
+        bool isCritical = false;
+        if (DamageRules.CanCrit(info.type) && info.attacker != null)
+        {
+            var attackerStat = info.attacker.GetComponent<CharacterStat>();
+            if (attackerStat == null) attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
+            if (attackerStat != null && attackerStat.CRIT_CHANCE > 0f
+                && UnityEngine.Random.value * 100f < attackerStat.CRIT_CHANCE)
+            {
+                isCritical = true;
+                remainingDamage *= attackerStat.CRIT_DAMAGE / 100f;
+            }
+        }
+
         // [쉴드] 적용.
         // Fixed(고정 피해)도 쉴드는 막는다. 쉴드는 임시 체력에 가까운 물건이라 '방어력 무시'와
         // 같은 취급을 하면 안 된다. Fixed 가 무시하는 건 아래의 방어력뿐이다.
@@ -158,7 +173,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             if (!string.IsNullOrEmpty(info.popupText))
                 popupStr = info.popupText;
 
-            TakeDamageEvent?.Invoke((int)finalDamage, info.type, popupStr, false);
+            TakeDamageEvent?.Invoke((int)finalDamage, info.type, popupStr, isCritical);
 
             // 실제 데미지 피격 후 이벤트 트리거
             DamageEventBus.TriggerDamageReceived(this, info);
