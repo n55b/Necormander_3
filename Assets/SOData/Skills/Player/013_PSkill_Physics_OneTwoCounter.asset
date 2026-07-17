@@ -13,12 +13,7 @@ MonoBehaviour:
   m_Name: 013_PSkill_Physics_OneTwoCounter
   m_EditorClassIdentifier: 
   skillName: "\uC6D0 \uD22C \uCE74\uC6B4\uD130"
-  description: "\uC81C\uC790\uB9AC\uC5D0\uC11C \uAC00\uBCBC\uC6B4 \uC7BD\uC744 2\uBC88
-    \uC9C0\uB985\uB2C8\uB2E4(\uAC01 \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758 70%). \uC2DC\uC804
-    \uC911 \uC801\uC5D0\uAC8C \uD53C\uACA9\uB2F9\uD558\uBA74 \uADF8 \uD53C\uD574\uB97C
-    \uBB34\uC2DC\uD558\uACE0 \uC989\uC2DC \uC801\uC758 \uD488\uC73C\uB85C \uD30C\uACE0\uB4E4\uC5B4
-    \uCE74\uC6B4\uD130 \uD6C5\uC744 \uAF42\uC544 \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758
-    300% \uD53C\uD574\uB97C \uC8FC\uACE0 \uAC15\uD0C0\uD569\uB2C8\uB2E4."
+  description: "제자리에서 가벼운 잽을 2번 지릅니다(각 기본 공격력의 70%). 시전 중 적에게 피격당하면 그 피해를 무시하고 즉시 적의 품으로 파고들어 카운터 훅을 꽂아 기본 공격력의 300% 피해를 입힙니다."
   icon: {fileID: 3200735900723754865, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 3
   skillSound: {fileID: 0}

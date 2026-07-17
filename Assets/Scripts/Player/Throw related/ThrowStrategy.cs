@@ -138,7 +138,7 @@ public class ThrowStrategy : MonoBehaviour
                                 
         if (!isDirect && InventoryManager.Instance != null)
         {
-            gemEffectBonus += InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicEffectMultiplier);
+            gemEffectBonus += InventoryManager.Instance.GetAggregatedGemBonus(StatType.ParabolicEffectMultiplier);
             Vector2 playerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position;
             float dist = Vector2.Distance(playerPos, targetPos);
             
@@ -209,7 +209,7 @@ public class ThrowStrategy : MonoBehaviour
             }
 
             // [보석 시스템 1: 투척 강화]
-            float gemBonus = InventoryManager.Instance.GetAggregatedGemBonus(type, StatType.ThrowEffect);
+            float gemBonus = InventoryManager.Instance.GetAggregatedGemBonus(StatType.ThrowEffect);
 
             float baseVal = obj.MinionData.baseEffectValue;
 

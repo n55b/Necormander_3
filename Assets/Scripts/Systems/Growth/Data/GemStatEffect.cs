@@ -21,7 +21,6 @@ public class GemStatEffect : GemEffect
             case StatType.Attack: targetStats.AttackBonus += value; break;
             case StatType.Health: targetStats.HealthBonus += value; break;
             case StatType.AttackSpeed: targetStats.AttackSpeedBonus += value; break;
-            case StatType.RespawnTime: targetStats.RespawnTimeBonus += value; break;
         }
     }
 }

@@ -28,15 +28,8 @@ public class PlayerBloodPopPunchSO : PlayerSkillSO
         float finalDamage = player.Stat.ATK * damageMultiplier;
         DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "BloodPop Punch");
 
-        System.Action<CharacterHealth> onHit = (health) => {
-            var stat = health.GetComponent<CharacterStat>();
-            if (stat != null && stat.Status != null && !stat.IsDead)
-            {
-                stat.Status.ApplyElementalDebuff(DebuffStackType.BloodPop, 1, player.gameObject);
-            }
-        };
 
         // 0.1초 딜레이 후 타격
-        box.Init(info, Layers.EnemyMask, 0.1f, 0f, true, onHit);
+        box.Init(info, Layers.EnemyMask, 0.1f, 0f, true);
     }
 }

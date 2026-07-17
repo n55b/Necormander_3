@@ -112,7 +112,6 @@ public class InventoryManager : MonoBehaviour
         public float AttackBonus = 0f;
         public float HealthBonus = 0f;
         public float AttackSpeedBonus = 0f;
-        public float RespawnTimeBonus = 0f;
         public float ParabolicEffectMultiplierBonus = 0f;
         public float ParabolicFlightTimeMultiplierBonus = 0f;
         
@@ -126,7 +125,6 @@ public class InventoryManager : MonoBehaviour
             AttackBonus = 0f;
             HealthBonus = 0f;
             AttackSpeedBonus = 0f;
-            RespawnTimeBonus = 0f;
             ParabolicEffectMultiplierBonus = 0f;
             ParabolicFlightTimeMultiplierBonus = 0f;
             UniqueEffectCounts.Clear();
@@ -385,7 +383,6 @@ public class InventoryManager : MonoBehaviour
             case StatType.Attack: targetStats.AttackBonus += modifier.Value; break;
             case StatType.Health: targetStats.HealthBonus += modifier.Value; break;
             case StatType.AttackSpeed: targetStats.AttackSpeedBonus += modifier.Value; break;
-            case StatType.RespawnTime: targetStats.RespawnTimeBonus += modifier.Value; break;
             case StatType.ParabolicEffectMultiplier: targetStats.ParabolicEffectMultiplierBonus += modifier.Value; break;
             case StatType.ParabolicFlightTimeMultiplier: targetStats.ParabolicFlightTimeMultiplierBonus += modifier.Value; break;
             default: break;
@@ -406,7 +403,7 @@ public class InventoryManager : MonoBehaviour
         return GetUniqueEffectCount(type) > 0;
     }
 
-    public float GetAggregatedGemBonus(CommandData job, StatType type)
+    public float GetAggregatedGemBonus(StatType type)
     {
         // [수정] job 파라미터를 무시하고 전역 합산 스탯을 반환하여 모든 미니언에게 동일 적용
         switch (type)
@@ -414,7 +411,6 @@ public class InventoryManager : MonoBehaviour
             case StatType.Attack: return _globalGemStats.AttackBonus;
             case StatType.Health: return _globalGemStats.HealthBonus;
             case StatType.AttackSpeed: return _globalGemStats.AttackSpeedBonus;
-            case StatType.RespawnTime: return _globalGemStats.RespawnTimeBonus;
             case StatType.ParabolicEffectMultiplier: return _globalGemStats.ParabolicEffectMultiplierBonus;
             case StatType.ParabolicFlightTimeMultiplier: return _globalGemStats.ParabolicFlightTimeMultiplierBonus;
             default: return 0f;

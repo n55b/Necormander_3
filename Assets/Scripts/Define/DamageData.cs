@@ -5,9 +5,6 @@ public enum DamageType
     Physical,
     BloodPop,
     Bleed,
-    Wound,
-    Corrosion,
-    Fracture,
     Fixed
 }
 [System.Serializable]

@@ -46,16 +46,8 @@ public class PlayerStunSmashSO : PlayerSkillSO
             float finalDamage = player.Stat.ATK * damageMultiplier;
             DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Kkong!");
 
-            System.Action<CharacterHealth> onHit = (health) => {
-                var stat = health.GetComponent<CharacterStat>();
-                if (stat != null && stat.Status != null)
-                {
-                    Debug.Log("<color=red>[Physical]</color> 꽁! 적중! (호출: Consume Stun)");
-                    stat.Status.ConsumeVulnerability(SkillKeyword.Stun, player.gameObject, true);
-                }
-            };
 
-            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, onHit);
+            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true);
         }
     }
 }

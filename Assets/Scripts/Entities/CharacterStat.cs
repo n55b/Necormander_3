@@ -26,7 +26,6 @@ public class CharacterStat : MonoBehaviour
     public CharacterVisualFeedback Visual { get; private set; }
 
     [Header("런타임 정보")]
-    public CommandData jobType; // 보석 계산을 위해 필요
     private bool _isAlly = false; // [추가] 아군 여부 캐싱
     private bool _isPlayer = false; // [추가] 플레이어 여부 캐싱
 
@@ -51,27 +50,21 @@ public class CharacterStat : MonoBehaviour
 
     // --- 외부 참조용 단축 프로퍼티 (데이터 중심 + 보석 보너스 합산) ---
 
-    // 공격력: (기본 공격력) * (1 + 보물 배율) * 노화 감소 * 부식 감소 * 기타
+    // 공격력: (기본 공격력) * (1 + 보물 배율) * 기타
     public float ATK
     {
         get
         {
-            float agingReduction = (Status != null) ? DebuffRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy) : 0f;
-            float agingMult = Mathf.Max(0.1f, 1f - agingReduction);
-
-            float corrosionAtkReduction = 0f;
-            float corrosionMult = Mathf.Max(0f, 1f - corrosionAtkReduction);
-
             // 플레이어는 보물(미니언용) 보너스를 받지 않음
             float bonusMult = _isPlayer ? 0f : (GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
-            
+
             float atkMult = 1f;
             float hpMult = 1f;
             float atkSpdMult = 1f;
             float moveSpdMult = 1f;
             StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
 
-            return baseAtk * (1f + bonusMult) * agingMult * corrosionMult * atkMult;
+            return baseAtk * (1f + bonusMult) * atkMult;
         }
     }
 
@@ -97,22 +90,11 @@ public class CharacterStat : MonoBehaviour
 
     public float CURHP => (Health != null) ? Health.CurHP : MAXHP;
 
-    // 공격 속도: (기본 주기 / 보너스) / 한기 감소 -> 주기가 길어질수록 느려짐
+    // 공격 속도: (기본 주기 / 보너스) -> 주기가 길어질수록 느려짐
     public float ATKSPD
     {
         get
         {
-            float chillReduction = (Status != null) ? DebuffRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy) : 0f;
-            
-            if (Status != null && Status.GetDebuffBool(DebuffBoolType.Fractured))
-            {
-                int fracTier = Status.GetDebuffTier(DebuffBoolType.Fractured);
-                float fracReduction = fracTier == 1 ? 0.15f : fracTier == 2 ? 0.30f : 0.45f;
-                chillReduction += fracReduction;
-            }
-
-            float chillMult = Mathf.Max(0.1f, 1f - chillReduction);
-            
             float bonusMult = _isPlayer ? 0f : GetGemBonus(StatType.AttackSpeed);
 
             float atkMult = 1f;
@@ -126,7 +108,7 @@ public class CharacterStat : MonoBehaviour
 
             // 서브 소환수의 공격 간격 감소는 고정값이라 마지막에 뺀다 (ATKSPD 는 간격, 낮을수록 빠름).
             float subReduction = SubPassive != null ? SubPassive.AtkIntervalReduction : 0f;
-            float result = (baseAtkSpd * speedDivisor / (1f + bonusMult)) / chillMult;
+            float result = baseAtkSpd * speedDivisor / (1f + bonusMult);
             return Mathf.Max(0.05f, result - subReduction);
         }
     }
@@ -142,20 +124,8 @@ public class CharacterStat : MonoBehaviour
             return finalDef;
         }
     }
-    public float FLAT_DEF
-    {
-        get
-        {
-            float finalFlatDef = baseFlatDef;
-            if (Status != null && Status.GetDebuffBool(DebuffBoolType.Corroded))
-            {
-                int corrodedTier = Status.GetDebuffTier(DebuffBoolType.Corroded);
-                float corrodedReduction = corrodedTier == 1 ? 12f : corrodedTier == 2 ? 16f : 20f;
-                finalFlatDef -= corrodedReduction;
-            }
-            return finalFlatDef;
-        }
-    }
+    // [Phase 2 에서 삭제 예정] 방어력은 % 하나로 일원화한다.
+    public float FLAT_DEF => baseFlatDef;
 
     public float EVASION => baseEvasion;
 
@@ -171,18 +141,7 @@ public class CharacterStat : MonoBehaviour
             if (Status == null) return baseMoveSpeed;
             if (Status.GetDebuffBool(DebuffBoolType.Stunned) || Status.GetDebuffBool(DebuffBoolType.Hitstunned)) return 0f;
 
-            float chillReduction = DebuffRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy);
-            float agingReduction = DebuffRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy);
-
-            if (Status.GetDebuffBool(DebuffBoolType.Fractured))
-            {
-                int fracTier = Status.GetDebuffTier(DebuffBoolType.Fractured);
-                float fracReduction = fracTier == 1 ? 0.15f : fracTier == 2 ? 0.30f : 0.45f;
-                chillReduction += fracReduction;
-            }
-
-            float reductionMult = Mathf.Max(0.1f, 1f - (chillReduction + agingReduction));
-            float finalSpeed = (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
+            float finalSpeed = baseMoveSpeed * Status.MoveSpeedMultiplier;
 
             float atkMult = 1f;
             float hpMult = 1f;
@@ -193,9 +152,6 @@ public class CharacterStat : MonoBehaviour
             return finalSpeed * moveSpdMult;
         }
     }
-
-    // 부활 시간 보너스 (필요 시 외부에서 참조)
-    public float RESPAWN_BONUS => _isPlayer ? 0f : GetGemBonus(StatType.RespawnTime);
 
     public bool IsDead => Health != null && Health.IsDead;
 
@@ -237,7 +193,7 @@ public class CharacterStat : MonoBehaviour
     private float GetGemBonus(StatType type)
     {
         if (InventoryManager.Instance == null || !_isAlly || _isPlayer) return 0f;
-        return InventoryManager.Instance.GetAggregatedGemBonus(jobType, type); // [수정] jobType 전달
+        return InventoryManager.Instance.GetAggregatedGemBonus(type);
     }
 
     private float GetTreasureBonus(TreasureEffectType type)
@@ -311,8 +267,6 @@ public class CharacterStat : MonoBehaviour
 
         if (data != null)
         {
-            jobType = data.minionType; // 직업 정보 캐싱 (보석 계산용)
-
             baseMaxHP = data.maxHP;
             baseAtk = data.attack;
             baseAtkSpd = data.attackSpeed; // 공격속도는 간격(주기)이므로 작아질수록 좋음
@@ -345,16 +299,6 @@ public void SetBaseMoveSpeed(float speed)
         baseMoveSpeed = speed;
     }
 
-
-    /// <summary>
-    /// 분신 소환 등 특수한 경우에 스탯을 절반으로 깎는 로직
-    /// </summary>
-    public void ApplySplitStats()
-    {
-        baseMaxHP *= 0.5f;
-        baseAtk *= 0.5f;
-        if (Health != null) Health.ResetHP();
-    }
 
     /// <summary>
     /// 런타임에 현재 일반 방어력(퍼센트)을 수정합니다. (본 마스터 기믹 등에서 사용)

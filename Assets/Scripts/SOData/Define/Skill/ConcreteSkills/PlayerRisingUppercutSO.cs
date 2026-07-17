@@ -60,8 +60,6 @@ public class PlayerRisingUppercutSO : PlayerSkillSO
                 return;
             }
 
-            stat.Status.ApplyVulnerability(true);
-
             player.StartCoroutine(LaunchVisual(stat.transform.root));
         };
 

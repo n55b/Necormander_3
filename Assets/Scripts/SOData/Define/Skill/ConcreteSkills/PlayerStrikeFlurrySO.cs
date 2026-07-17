@@ -49,19 +49,8 @@ public class PlayerStrikeFlurrySO : PlayerSkillSO
                 float finalDamage = player.Stat.ATK * damageMultiplier;
                 DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, $"Flurry {i+1}!");
 
-                System.Action<CharacterHealth> onHit = (health) => {
-                    var stat = health.GetComponent<CharacterStat>();
-                    if (stat != null && stat.Status != null)
-                    {
-                        if (i == hitCount - 1)
-                        {
-                            Debug.Log("<color=red>[Physical]</color> 총난타 적중! (호출: Consume Strike)");
-                        }
-                        stat.Status.ConsumeVulnerability(SkillKeyword.Strike, player.gameObject, true);
-                    }
-                };
 
-                box.Init(info, Layers.EnemyMask, 0.05f, 0f, true, onHit);
+                box.Init(info, Layers.EnemyMask, 0.05f, 0f, true);
             }
 
             yield return new WaitForSeconds(timeBetweenHits);

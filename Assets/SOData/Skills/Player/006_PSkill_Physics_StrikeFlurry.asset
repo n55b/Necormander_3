@@ -13,10 +13,7 @@ MonoBehaviour:
   m_Name: 006_PSkill_Physics_StrikeFlurry
   m_EditorClassIdentifier: 
   skillName: "\uCD1D\uB09C\uD0C0"
-  description: "\uCDE8\uC57D \uC0C1\uD0DC\uC778 \uC801\uC744 \uD0C0\uACA9\uD558\uC5EC
-    \uCDE8\uC57D\uC744 \uC18C\uBAA8\uD574 \uACA9\uD30C\uB97C \uBD80\uC5EC\uD558\uBA70
-    6\uBC88 \uC5F0\uC18D\uC73C\uB85C \uAE30\uBCF8 \uACF5\uACA9\uB825\uC758 30% \uD53C\uD574\uB97C
-    \uC785\uD799\uB2C8\uB2E4."
+  description: "6번 연속으로 타격하여 매번 기본 공격력의 30% 피해를 입힙니다."
   icon: {fileID: -9013706090002519606, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 5
   skillSound: {fileID: 0}

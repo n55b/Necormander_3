@@ -107,7 +107,6 @@ private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool
 
         // 특수한 팝업 스트링이 있을 경우 강제 덮어쓰기
         if (typeStr == "Shield") color = colorConfig != null ? colorConfig.shieldColor : Color.grey;           // 쉴드
-        else if (typeStr == "Execution") color = colorConfig != null ? colorConfig.executionColor : Color.yellow; // 처형
         else if (typeStr == "MISS") color = colorConfig != null ? colorConfig.missColor : Color.gray;             // 회피
 
         if (FloatingTextManager.Instance == null) return;
@@ -127,9 +126,6 @@ private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool
             case DamageType.Fixed: return Color.cyan;
             case DamageType.BloodPop: return Color.yellow;
             case DamageType.Bleed: return Color.red;
-            case DamageType.Wound: return new Color(1f, 0.5f, 0f);
-            case DamageType.Corrosion: return Color.green;
-            case DamageType.Fracture: return new Color(0.5f, 0f, 0.5f);
             default: return Color.white;
         }
     }
@@ -149,11 +145,11 @@ private void ShowStatusText(string statusName)
     {
         Color color = colorConfig != null ? colorConfig.GetStatusPopColor(statusName) : Color.gray;
 
-        // [추가] 기절/격파/강타처럼 취약을 소모하는 팝업은 더 눈에 띄게 크게 표시
-        bool isVulnerabilityPop = colorConfig != null
-            ? colorConfig.IsVulnerabilityPop(statusName)
-            : (!string.IsNullOrEmpty(statusName) && (statusName.Contains("기절") || statusName.Contains("격파") || statusName.Contains("강타")));
-        float scale = isVulnerabilityPop ? (colorConfig != null ? colorConfig.vulnerabilityPopScale : 1.4f) : 1f;
+        // 기절 같은 강조 상태이상은 더 눈에 띄게 크게 표시
+        bool isStatusPop = colorConfig != null
+            ? colorConfig.IsStatusPop(statusName)
+            : (!string.IsNullOrEmpty(statusName) && statusName.Contains("기절"));
+        float scale = isStatusPop ? (colorConfig != null ? colorConfig.statusPopScale : 1.4f) : 1f;
 
         TextFloating textObj = FloatingTextManager.Instance.GetFromPool();
 

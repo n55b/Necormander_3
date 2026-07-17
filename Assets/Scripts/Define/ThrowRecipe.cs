@@ -46,7 +46,6 @@ public class ThrowRecipe
         public float bonusDamage = 0f;
 
         // [추가] 보석 등으로 인한 디버프 부여 데이터 (스택형)
-        public Dictionary<DebuffStackType, float> debuffStacks = new Dictionary<DebuffStackType, float>();
 
         public void CopyFrom(Modifiers other)
         {
@@ -58,7 +57,6 @@ public class ThrowRecipe
             treasureRepeatBonus = other.treasureRepeatBonus;
             baseDamage = other.baseDamage;
             bonusDamage = other.bonusDamage;
-            debuffStacks = new Dictionary<DebuffStackType, float>(other.debuffStacks);
         }
     }
 

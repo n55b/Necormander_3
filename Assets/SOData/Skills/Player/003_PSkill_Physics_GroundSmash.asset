@@ -13,9 +13,7 @@ MonoBehaviour:
   m_Name: 003_PSkill_Physics_GroundSmash
   m_EditorClassIdentifier: 
   skillName: "\uBC14\uB2E5 \uBD80\uC218\uAE30"
-  description: "\uD50C\uB808\uC774\uC5B4\uAC00 \uBC14\uB2E5\uC744 \uB0B4\uB9AC\uCCD0,
-    2\uCE78 \uC8FC\uBCC0\uC758 \uC801\uC744 \uB04C\uC5B4\uB2F9\uAE30\uACE0 \uCDE8\uC57D
-    1\uC2A4\uD0DD\uC744 \uBD80\uC5EC\uD569\uB2C8\uB2E4."
+  description: "플레이어가 바닥을 내리쳐, 2칸 주변의 적을 끌어당기고 기본 공격력의 100% 피해를 입힙니다."
   icon: {fileID: 5560125120997645518, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 5
   skillSound: {fileID: 0}
@@ -27,4 +25,4 @@ MonoBehaviour:
   hitBoxPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   gatherRadius: 4
   gatherDuration: 0.2
-  damageMultiplier: 0
+  damageMultiplier: 1

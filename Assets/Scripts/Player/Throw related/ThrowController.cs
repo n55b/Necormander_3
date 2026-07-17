@@ -402,7 +402,7 @@ public class ThrowController : MonoBehaviour
             // 곡선 던지기 시 거리에 따른 데미지/효과 보너스 계산 (ThrowStrategy와 동일 로직 적용)
             if (InventoryManager.Instance != null)
             {
-                float flightTimeBonus = InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicFlightTimeMultiplier);
+                float flightTimeBonus = InventoryManager.Instance.GetAggregatedGemBonus(StatType.ParabolicFlightTimeMultiplier);
                 duration *= (1f - Mathf.Clamp(flightTimeBonus, 0f, 0.9f));
             }
         }
@@ -482,7 +482,7 @@ public class ThrowController : MonoBehaviour
 
             if (!isDirect && InventoryManager.Instance != null)
             {
-                float flightTimeBonus = InventoryManager.Instance.GetAggregatedGemBonus(CommandData.None, StatType.ParabolicFlightTimeMultiplier);
+                float flightTimeBonus = InventoryManager.Instance.GetAggregatedGemBonus(StatType.ParabolicFlightTimeMultiplier);
 
                 // 20% 증가 시 => duration * 0.8 (최대 90% 감소로 제한)
                 duration *= (1f - Mathf.Clamp(flightTimeBonus, 0f, 0.9f));

@@ -37,21 +37,6 @@ public class PlayerGatherSO : PlayerSkillSO
         // 최대 범위 제한 적용 (평타처럼)
         Vector2 center = (Vector2)player.transform.position + Vector2.ClampMagnitude(offset, maxRange);
 
-        bool hasInvokedKeyword = false;
-        System.Action<CharacterHealth> onGatherSuccess = (health) => {
-            if (!hasInvokedKeyword) {
-                hasInvokedKeyword = true;
-                Debug.Log($"<color=cyan>[Player Skill]</color> '{skillName}' 적중! (호출: Vulnerability)");
-            }
-            var stat = health.GetComponent<CharacterStat>();
-            if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
-            if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
-
-            if (stat != null)
-            {
-                stat.Status.ApplyVulnerability(true);
-            }
-        };
 
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
@@ -63,7 +48,7 @@ public class PlayerGatherSO : PlayerSkillSO
             float finalDamage = player.Stat.ATK * damageMultiplier;
             DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Gather!");
             
-            box.Init(info, Layers.EnemyMask, 0.1f, 0f, true, onGatherSuccess);
+            box.Init(info, Layers.EnemyMask, 0.1f, 0f, true);
         }
 
         // 시각 및 데미지는 HitBox가 주지만, 물리적으로 끌어당기는 것은 직접 수행

@@ -20,33 +20,7 @@ public class PriestAction : ImpactAction
             float duration = 5.0f;
             entity.Stats.Status.ApplySlow("ThrowCC", slowAmount, duration);
 
-            // [추가] 사제 전용 직업 시너지 (한기, 노화, 부식)
-            InventoryManager inven = InventoryManager.Instance;
-            if (inven != null)
-            {
-                // 기본 1스택에 대해 풀차지/조합(multiplierBonus 등) 배율 적용
-                float scaledStacks = recipe.GetScaledEffectValue(1.0f);
-
-                // 2개 시너지 (Level 1) 이상일 때 사제 발현
-                if (GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Priest_Chill)) >= 1)
-                {
-                    entity.Stats.Status.AddDebuffStack(DebuffStackType.Fracture, scaledStacks);
-                }
-                
-                if (GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Priest_Aging)) >= 1)
-                {
-                    entity.Stats.Status.AddDebuffStack(DebuffStackType.Corrosion, scaledStacks);
-                }
-
-                if (GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Priest_Corrosion)) >= 1)
-                {
-                    // 부식은 Bool 타입이므로 지속시간(예: 5초) 부여
-                    entity.Stats.Status.SetDebuffBool(DebuffBoolType.Corroded, 5.0f);
-                }
-            }
-
-            // [추가] 공용 시너지 디버프 (독, 비폭, 처형) 연동
-            ApplyCommonSynergyDebuffs(target, recipe);
+            // [26/07/17] 사제 시너지의 한기/노화/부식 부여는 구 디버프와 함께 삭제됐다. 슬로우만 남는다.
 
             if (registry != null && registry.ccAttachVFX != null)
             {

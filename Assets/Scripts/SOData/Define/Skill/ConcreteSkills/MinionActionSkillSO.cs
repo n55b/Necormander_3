@@ -4,14 +4,12 @@ using System.Collections.Generic;
 
 public enum MinionActionType
 {
+    // [26/07/17] 상태이상 부여 타입(ApplyStun/Strike/Smash/StunExtension/ApplyCorrosion)은 삭제됐다.
+    // 스킬은 상태이상을 걸지 않는다 — 부여 수단은 유물/아이템 전용이다.
+    // 값 순서는 그대로 두었다(0/1/2). 에셋이 인덱스로 직렬화돼 있어서 바꾸면 데이터가 어긋난다.
     DamageOnly,             // 데미지만 입힘
     DamageAndPush,          // 데미지 + 밀치기
     DamageAndPull,          // 데미지 + 당기기
-    ApplyStun,              // 기절 부여
-    ApplyStrike,            // 격파 부여
-    ApplySmash,             // 강타 부여
-    StunExtension,          // 기절 시간 연장
-    ApplyCorrosion          // 부식 부여 (전사 미니언 통합용)
 }
 
 [CreateAssetMenu(fileName = "MinionActionSkill", menuName = "Necromancer/Skills/Minion/ActionSkill")]
@@ -211,25 +209,6 @@ public class MinionActionSkillSO : MinionSkillSO
             case MinionActionType.DamageAndPull:
                 caster.StartCoroutine(PushEnemy(targetTransform, -dirFromPlayer));
                 break;
-            case MinionActionType.ApplyStun:
-                stat.Status.ApplyStatusEffect(SkillKeyword.Stun, caster.gameObject, false);
-                break;
-            case MinionActionType.ApplyStrike:
-                stat.Status.ApplyStatusEffect(SkillKeyword.Strike, caster.gameObject, false);
-                break;
-            case MinionActionType.ApplySmash:
-                stat.Status.ApplyStatusEffect(SkillKeyword.Smash, caster.gameObject, false);
-                break;
-            case MinionActionType.StunExtension:
-                if (stat.Status.GetDebuffBool(DebuffBoolType.Stunned))
-                {
-                    stat.Status.SetDebuffBool(DebuffBoolType.Stunned, 1f); // 기절 시간 1초 추가
-                }
-                break;
-            case MinionActionType.ApplyCorrosion:
-                stat.Status.SetDebuffBool(DebuffBoolType.Corroded, 3f);
-                stat.Status.ApplyDebuff(DebuffType.Corrosion, caster.gameObject, false);
-                break;
         }
     }
 
@@ -253,8 +232,6 @@ public class MinionActionSkillSO : MinionSkillSO
                 status.DamageSuperArmor(30f);
                 yield break;
             }
-            // 미니언 공격이므로 isPlayerApplied = false로 취약 부여
-            status.ApplyVulnerability(false);
         }
 
         float elapsed = 0f;
@@ -331,8 +308,6 @@ public class MinionActionSkillSO : MinionSkillSO
                 status.DamageSuperArmor(30f);
                 yield break;
             }
-            // 미니언 공격이므로 isPlayerApplied = false로 취약 부여
-            status.ApplyVulnerability(false);
         }
 
         float elapsed = 0f;

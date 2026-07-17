@@ -1,24 +1,8 @@
 using UnityEngine;
 
-public enum SkillKeyword
-{
-    None = 0,
-    Vulnerability = 1, // 취약 (파괴, 밀치기, 끌어당김 등)
-    Debuff = 2,        // 디버프 (비폭, 출혈, 상처, 부식, 골절 등)
-    Strike = 3,        // 격파
-    Stun = 4,          // 기절
-    Smash = 5          // 강타
-}
-
-public enum DebuffType
-{
-    None = 0,
-    BloodPop,    // 비폭
-    Bleed,       // 출혈
-    Wound,       // 상처
-    Corrosion,   // 부식
-    Fracture     // 골절
-}
+// [26/07/17] SkillKeyword(취약/격파/강타)와 DebuffType 은 삭제됐다.
+// 스킬은 더 이상 상태이상을 부여하지 않는다 — 부여 수단은 유물/아이템 전용이다.
+// 스킬은 피해와 넉백/끌어당김만 담당한다.
 
 public abstract class SkillSO : ScriptableObject
 {

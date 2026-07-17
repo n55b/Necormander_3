@@ -32,16 +32,7 @@ public static class DamageEventBus
     /// </summary>
     public static event Action<CharacterHealth, DamageInfo> OnEntityDied;
 
-    /// <summary>
-    /// 처형 임계치를 계산하기 직전 (단두대 등이 임계치 증폭)
-    /// </summary>
-    public delegate void ExecutionCalculationHandler(CharacterHealth target, ref float executeThreshold);
-    public static event ExecutionCalculationHandler OnBeforeExecutionCalculated;
-
-    /// <summary>
-    /// 처형이 발동하여 사망했을 때 (공포 등 발동)
-    /// </summary>
-    public static event Action<CharacterHealth> OnEntityExecuted;
+    // [26/07/17] 처형(Execution) 관련 이벤트 2종은 삭제됐다 — 처형 시스템 자체가 없어졌다.
 
     /// <summary>
     /// 체력 회복 전 힐량 증폭 계산을 위한 이벤트
@@ -71,15 +62,6 @@ public static class DamageEventBus
         OnEntityDied?.Invoke(target, info);
     }
 
-    public static void TriggerBeforeExecutionCalculated(CharacterHealth target, ref float threshold)
-    {
-        OnBeforeExecutionCalculated?.Invoke(target, ref threshold);
-    }
-
-    public static void TriggerEntityExecuted(CharacterHealth target)
-    {
-        OnEntityExecuted?.Invoke(target);
-    }
 
     public static void TriggerBeforeHealCalculated(CharacterHealth target, ref float healAmount)
     {

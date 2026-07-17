@@ -101,19 +101,8 @@ public class ThrowImpactManager : MonoBehaviour
         var status = target.GetComponentInChildren<CharacterStatus>();
         if (status != null)
         {
-            // 1 & 2. 디버프 보석 효과 및 귀수 속성 부여 (팀이 일치할 때만 적대적 효과 적용)
-            if (isHostileMatch)
-            {
-                // 1. 디버프 보석 효과 적용 (레시피 기반 - 기존 로직)
-                if (recipe.modifiers.debuffStacks.Count > 0)
-                {
-                    foreach (var kvp in recipe.modifiers.debuffStacks)
-                    {
-                        status.AddDebuffStack(kvp.Key, kvp.Value);
-                    }
-                }
-
-            }
+            // [26/07/17] 레시피의 디버프 스택 부여는 구 디버프와 함께 삭제됐다
+            // (ThrowRecipe.modifiers.debuffStacks 도 같이 사라짐).
         }
 
         // 3. 기존 액션들 실행 (액션들은 내부에서 팀 필터링을 직접 수행함)

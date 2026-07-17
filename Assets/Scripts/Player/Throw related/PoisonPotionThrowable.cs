@@ -99,7 +99,7 @@ public class PoisonPotionThrowable : ThrowableUnit
                 var status = col.GetComponentInChildren<CharacterStatus>();
                 if (status != null)
                 {
-                    status.AddDebuffStack(DebuffStackType.BloodPop, poisonStacks);
+                    // [26/07/17] 비폭 스택 부여 삭제 — 스택은 유물 발동 시에만 쌓인다.
                 }
             }
         }

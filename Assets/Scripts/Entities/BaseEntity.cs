@@ -230,33 +230,12 @@ public abstract class BaseEntity : MonoBehaviour
             _agent.isStopped = false;
         }
 
-        // [유니크] 공포 상태 처리
-        if (_stats != null && _stats.Status != null && _stats.Status.GetDebuffBool(DebuffBoolType.Feared))
-        {
-            ExecuteFearAI();
-            return;
-        }
+        // [26/07/17] 공포(Feared) 분기 삭제. 처형 시스템이 부여하던 건데 처형과 함께 없어졌다.
+        //            (실은 그 전부터 GetDebuffStack 스텁 때문에 한 번도 발동한 적이 없었다.)
 
         if (_runtimeBrain != null)
         {
             _runtimeBrain.Execute(this);
-        }
-    }
-
-    private void ExecuteFearAI()
-    {
-        // 공포 상태일 땐 플레이어로부터 멀어지는 방향으로 이동
-        UpdateAnimation(AIState.Follow);
-        var pc = GameManager.Instance.PLAYERCONTROLLER;
-        if (pc != null && _agent != null)
-        {
-            if (_agent.isActiveAndEnabled)
-            {
-                _agent.isStopped = false;
-                Vector3 dirAwayFromPlayer = (transform.position - pc.transform.position).normalized;
-                Vector3 fleeTarget = transform.position + dirAwayFromPlayer * 5f;
-                _agent.SetDestination(fleeTarget);
-            }
         }
     }
 
