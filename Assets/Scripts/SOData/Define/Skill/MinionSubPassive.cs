@@ -3,9 +3,10 @@ using UnityEngine;
 /// <summary>
 /// 서브 소환수가 상시 제공하는 스탯 보너스 + 패시브.
 ///
-/// 설계 3.4: 서브는 실체화하지 않고 Space 와도 무관하다. 장착만으로 항상 켜져 있다.
-/// 값은 전부 '고정값'이다 (배율 아님) — ATKSPD 는 이 코드베이스에서 '공격 간격(초)'이라
-/// 값이 낮을수록 빨라진다는 점에 주의.
+/// 설계 3.4: 서브는 실체화하지 않고 R 키와도 무관하다. 장착만으로 항상 켜져 있다.
+///
+/// [주의] 서브는 플레이어의 스탯을 올린다. 메인 소환수 피해가 같이 올라가는 건 메인이
+/// 플레이어 ATK 를 참조하기 때문이지, 서브가 메인에 직접 손대는 게 아니다.
 /// </summary>
 [System.Serializable]
 public class MinionSubPassive
@@ -14,8 +15,15 @@ public class MinionSubPassive
     [Tooltip("최대 체력 고정 증가.")]
     public float maxHpBonus = 0f;
 
-    [Tooltip("공격 간격 감소량(초). 값이 클수록 공격이 빨라진다. 예: 0.1 = 간격 1.0 -> 0.9")]
-    public float atkIntervalReduction = 0f;
+    // [26/07/17] atkIntervalReduction(초 차감) -> atkSpeedBonus(%) 로 전환.
+    // 초를 그냥 빼는 방식은 %와 안 섞였고, 간격이 이미 작을 때 -0.5초 같은 값이 들어오면
+    // 공속이 무한대로 튀었다. 이제 공속이 '회/초'라 비율로 얹는 게 자연스럽다.
+    //
+    // FormerlySerializedAs 를 일부러 안 걸었다. 뜻이 '초'에서 '비율'로 바뀌어서 숫자를 그대로
+    // 물려받으면 조용히 틀린 값이 된다(예: 0.5초 차감 = +100% 인데 +50% 로 들어옴).
+    // 해당 에셋 2개는 손으로 환산해서 넣었다.
+    [Tooltip("공격 속도 증가 비율. 0.2 = +20%. 값이 클수록 빨라진다.")]
+    public float atkSpeedBonus = 0f;
 
     [Header("패시브")]
     [Tooltip("평타 1타당 추가되는 고정 피해.")]

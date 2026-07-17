@@ -23,10 +23,10 @@ MonoBehaviour:
   attackRange: 2
   detectRange: 10
   defense: 0
-  flatDefense: 0
   moveSpeed: 3
   baseEvasion: 0
-  baseMissChance: 0
+  baseAccuracy: 1
+  attackType: 0
   isElite: 0
   aiPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   AttackSound: {fileID: 0}

@@ -19,13 +19,28 @@ public class CharacterStatEditor : Editor
             
             EditorGUILayout.FloatField("CUR HP", stat.CURHP);
             EditorGUILayout.FloatField("MAX HP", stat.MAXHP);
-            EditorGUILayout.FloatField("ATK", stat.ATK);
-            EditorGUILayout.FloatField("ATK SPD", stat.ATKSPD);
-            EditorGUILayout.FloatField("ATK RANGE", stat.ATKRANGE);
-            EditorGUILayout.FloatField("DEF", stat.DEF);
+            EditorGUILayout.FloatField("ATK (물리)", stat.ATK);
+            EditorGUILayout.FloatField("MAGIC (마법)", stat.MAGIC);
+            EditorGUILayout.FloatField("ATK SPD (회/초)", stat.ATKSPD);
+            EditorGUILayout.FloatField("ATK INTERVAL (초)", stat.AttackInterval);
+            EditorGUILayout.FloatField("DEF % (상한 75)", stat.DEF);
             EditorGUILayout.FloatField("MOVE SPEED", stat.MOVESPEED);
+            EditorGUILayout.FloatField("CRIT CHANCE %", stat.CRIT_CHANCE);
+            EditorGUILayout.FloatField("CRIT DAMAGE %", stat.CRIT_DAMAGE);
             EditorGUILayout.FloatField("EVASION", stat.EVASION);
-            EditorGUILayout.FloatField("MISS CHANCE", stat.MISS_CHANCE);
+            EditorGUILayout.FloatField("ACCURACY", stat.ACCURACY);
+
+            if (stat.IsPlayer)
+            {
+                EditorGUILayout.FloatField("SKILL CDR", stat.SKILL_CDR);
+                EditorGUILayout.FloatField("DASH CDR", stat.DASH_CDR);
+                EditorGUILayout.FloatField("BASIC ATK MULT", stat.BASIC_ATK_MULT);
+            }
+            else
+            {
+                EditorGUILayout.FloatField("ATK RANGE", stat.ATKRANGE);
+                EditorGUILayout.EnumPopup("ATTACK TYPE", stat.ATTACK_TYPE);
+            }
 
             EditorGUI.EndDisabledGroup();
             

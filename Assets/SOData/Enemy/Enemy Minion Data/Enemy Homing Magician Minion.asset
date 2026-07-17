@@ -19,14 +19,14 @@ MonoBehaviour:
   baseEffectValue: 0
   maxHP: 70
   attack: 10
-  attackSpeed: 3
+  attackSpeed: 0.3333
   attackRange: 10000
   detectRange: 10000
   defense: 0
-  flatDefense: 0
   moveSpeed: 3
   baseEvasion: 0
-  baseMissChance: 0
+  baseAccuracy: 1
+  attackType: 1
   isElite: 0
   aiPattern: {fileID: 11400000, guid: 076affd7e1a833b43a7d73a6c2b08615, type: 2}
   AttackSound: {fileID: 0}

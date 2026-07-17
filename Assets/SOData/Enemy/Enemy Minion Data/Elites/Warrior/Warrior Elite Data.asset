@@ -21,7 +21,7 @@ MonoBehaviour:
   baseAreaRadius: 3
   maxHP: 600
   attack: 33
-  attackSpeed: 1.5
+  attackSpeed: 0.6667
   attackRange: 4
   detectRange: 100
   defense: 0

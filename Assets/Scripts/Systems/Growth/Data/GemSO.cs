@@ -2,14 +2,35 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 런타임에 보정할 수 있는 스탯의 종류. 젬/보물/유물/서브 소환수가 전부 이 키로 보정치를 건다.
+///
+/// [중요] 값을 반드시 명시적으로 박는다. 예전엔 암묵적 인덱스였는데, 중간의 RespawnTime(3)을
+/// 지웠더니 뒤 항목이 전부 하나씩 밀려서 젬 에셋 2개가 조용히 다른 스탯을 가리켰다
+/// (Gem_Shotput_Protractor: 5, Gem_Shotput_EfficientCurve: 6). 에셋은 이 숫자를 그대로
+/// 직렬화하므로, 항목을 지울 땐 번호를 비워두고 재사용하지 않는다.
+/// </summary>
 public enum StatType
 {
-    Attack,         // 공격력 강화 (배율: 0.1 = 10% 증가)
-    Health,         // 체력 강화 (배율: 0.1 = 10% 증가)
-    AttackSpeed,    // 공격 속도 강화 (배율: 1.0 = 공격 빈도 100% 증가)
-    ThrowEffect,    // 던지기 능력 강화 (전사:데미지+, 궁수:범위+, 법사:횟수+, 기타:배율+)
-    ParabolicEffectMultiplier,    // 포물선 투척 효율 추가 배율
-    ParabolicFlightTimeMultiplier // 포물선 체공 시간 보정치
+    Attack = 0,         // 물리 공격력 (배율: 0.1 = 10% 증가)
+    Health = 1,         // 최대 체력
+    AttackSpeed = 2,    // 공격 속도 (회/초)
+    // 3 = 구 RespawnTime (삭제됨 — 재사용 금지)
+    ThrowEffect = 4,                  // 던지기 능력 강화
+    ParabolicEffectMultiplier = 5,    // 포물선 투척 효율 추가 배율
+    ParabolicFlightTimeMultiplier = 6, // 포물선 체공 시간 보정치
+
+    // ── 26/07/17 스탯 재설계 ──────────────────────────────────────
+    Magic = 10,                    // 마법 공격력
+    Defense = 11,                  // 방어력(%). 감소율 상한 75%
+    MoveSpeed = 12,
+    CritChance = 13,               // 치명타 확률(%)
+    CritDamage = 14,               // 치명타 피해량(%)
+    Evasion = 15,                  // 회피율 (0~1)
+    Accuracy = 16,                 // 적중률 (0~1). 기본 1 = 100%
+    SkillCooldownReduction = 17,   // 스킬 쿨감(%) — 플레이어 전용. 합연산, 상한 없음
+    DashCooldownReduction = 18,    // 대쉬 쿨감(%) — 플레이어 전용
+    BasicAttackMultiplier = 19,    // 평타 1·2타 배율 — 플레이어 전용
 }
 
 public enum GemUniqueType

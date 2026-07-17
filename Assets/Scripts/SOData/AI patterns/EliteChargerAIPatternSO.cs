@@ -499,7 +499,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
                 var agent = entity.GetComponent<NavMeshAgent>();
 
-                if (dist <= entity.Stats.ATKRANGE && entity.AtkTimer >= entity.Stats.ATKSPD)
+                if (dist <= entity.Stats.ATKRANGE && entity.AtkTimer >= entity.Stats.AttackInterval)
                 {
                     entity.CurrentState = AIState.Attack;
                     StopPursuitBurst(entity);

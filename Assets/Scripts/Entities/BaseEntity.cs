@@ -535,7 +535,7 @@ public abstract class BaseEntity : MonoBehaviour
             if (!HasFiredHitEvent)
             {
                 // 타격 수행 전이므로 쿨타임을 채워두어 경직 해제 시 즉시 재시도하게 함
-                AtkTimer = _stats != null ? _stats.ATKSPD : 0f;
+                AtkTimer = _stats != null ? _stats.AttackInterval : 0f;
             }
             else
             {

@@ -128,7 +128,15 @@ public class MinionActionSkillSO : MinionSkillSO
     /// <param name="hitWindow">판정이 열려 있는 시간(초). 애니메이션이 정해준 값이다.</param>
     private void DealHit(MinionSkillCaster caster, MinionDataSO data, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos, float hitWindow)
     {
-        float finalDamage = data.attack * damageMultiplier;
+        // 피해는 '플레이어의 ATK * 소환수 고유 배율'.
+        // [26/07/17] 예전엔 소환수 SO 자신의 attack 을 썼다. 이제 베이스 ATK 를 공유하므로
+        // 플레이어에게 걸린 공격력 버프가 소환수 스킬에도 그대로 따라온다.
+        // 소환수는 필드에 존재하지 않는 영혼이라 자기 스탯이 없다 — 시전자의 힘을 빌리는 셈.
+        var playerStat = GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null
+            ? GameManager.Instance.PLAYERCONTROLLER.Stat
+            : null;
+        float baseAtk = playerStat != null ? playerStat.ATK : 0f;
+        float finalDamage = baseAtk * damageMultiplier;
 
         // 공격 실행
         if (useHitBox && hitBoxPrefab != null)

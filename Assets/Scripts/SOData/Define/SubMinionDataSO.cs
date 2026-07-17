@@ -26,7 +26,7 @@ public class SubMinionDataSO : MinionDataSO
         void Add(float v, string fmt) { if (v > 0f) lines.Add(string.Format(fmt, v.ToString("0.##"))); }
 
         Add(subPassive.maxHpBonus, "최대 체력 +{0}");
-        Add(subPassive.atkIntervalReduction, "공격 간격 -{0}초");   // 간격이라 낮을수록 빠름
+        Add(subPassive.atkSpeedBonus * 100f, "공격 속도 +{0}%");
         Add(subPassive.basicAttackDamageBonus, "평타 피해 +{0}");
         Add(subPassive.healOnAcquire, "획득 시 체력 {0} 회복");
         Add(subPassive.healOnRoomClear, "방 클리어마다 체력 {0} 회복");

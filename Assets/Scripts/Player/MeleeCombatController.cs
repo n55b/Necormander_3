@@ -165,10 +165,10 @@ public class MeleeCombatController : MonoBehaviour
         if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
         else _player.PlayAllAnim("Attack_Light2", "Attack");
 
-        // Higher ATKSPD (lower stat value) plays the attack animation faster.
-        if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
+        // 공속(회/초)이 곧 애니 배속이다. 1회/초 = 1배속, 2회/초 = 2배속.
+        if (_player.Stat != null)
         {
-            float atkAnimSpeed = Mathf.Clamp(1f / _player.Stat.ATKSPD, 0.5f, 3f);
+            float atkAnimSpeed = Mathf.Clamp(_player.Stat.ATKSPD, 0.5f, 3f);
             _player.SetAttackAnimSpeed(atkAnimSpeed);
         }
 
@@ -342,9 +342,12 @@ public class MeleeCombatController : MonoBehaviour
         go.transform.localScale = new Vector3(fin.hitBoxSize.x, fin.hitBoxSize.y, 1f);
         box.hitEffectAngle = angle;
 
-        // 피해는 소환수 ATK 기준 (설계: "Minion에 있는 ATK 데미지를 이용")
+        // 피해는 '플레이어의 ATK * 소환수 고유 배율'.
+        // [26/07/17] 예전엔 소환수 SO 자신의 attack 을 썼는데, 이제 베이스 ATK 를 공유한다.
+        // 그래야 "아군 공격력 증가" 같은 버프를 플레이어 ATK 하나에만 걸어도
+        // 주먹과 소환수 마무리에 동시에 먹는다. 소환수의 개성은 배율이 유지한다.
         var info = new DamageInfo(
-            main.attack * fin.damageMultiplier,
+            _player.Stat.ATK * fin.damageMultiplier,
             DamageType.Physical,
             _player.gameObject,
             false, 1f, true,

@@ -49,14 +49,16 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
         if (isDead || invincible) return;
 
-        // [추가] 회피 / 미스 판정 (평타인 경우에만 적용)
+        // [추가] 회피 / 명중 판정 (평타인 경우에만 적용)
+        // 기본값(적중률 1, 회피 0)이면 명중률 1.0 이라 Random.value(<1.0)가 절대 못 넘는다 = 무조건 명중.
+        // 예전엔 '빗나갈 확률 <= Random.value' 라 회피 0% 여도 0.0 이 뜨면 빗나갔다. 뒤집으면서 같이 해결됨.
         if (info.isBasicAttack && info.attacker != null)
         {
             var attackerStat = info.attacker.GetComponent<CharacterStat>();
             if (attackerStat != null && _stat != null)
             {
-                float totalMissChance = attackerStat.MISS_CHANCE + _stat.EVASION;
-                if (UnityEngine.Random.value <= totalMissChance)
+                float hitChance = attackerStat.ACCURACY - _stat.EVASION;
+                if (UnityEngine.Random.value >= hitChance)
                 {
                     // 회피 이벤트 트리거
                     DamageEventBus.TriggerEvasionOccurred(this, attackerStat);
@@ -142,12 +144,11 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         if (remainingDamage > 0)
         {
             float finalDamage = remainingDamage;
-            if (info.type != DamageType.Fixed)
+            if (!DamageRules.IgnoresDefense(info.type))
             {
-                // [신규 방어력 로직 적용]
-                // 최종 데미지 = (총 데미지 * (100 - 일반 방어력) / 100) - 고정 수치 방어력
-                float dmgAfterPercentDef = remainingDamage * ((100f - _stat.DEF) / 100f);
-                finalDamage = Mathf.Max(dmgAfterPercentDef - _stat.FLAT_DEF, 1f);
+                // 방어력 % 차감형. DEF 자체가 감소율이고, 상한 75% 는 게터에서 이미 잘려서 온다.
+                // [26/07/17] 고정 방어력(FLAT_DEF)은 삭제 — 방어력은 % 하나로 일원화했다.
+                finalDamage = Mathf.Max(remainingDamage * ((100f - _stat.DEF) / 100f), 1f);
             }
 
             curHP -= finalDamage;
