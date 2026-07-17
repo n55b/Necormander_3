@@ -149,7 +149,10 @@ public class MeleeCombatController : MonoBehaviour
 
         float telegraphDuration = lightTelegraphDuration;
         Vector2 hitboxSize = lightHitboxSize;
-        float damageMultiplier = 1.0f;
+        // 평타 1·2타 배율. 예전엔 1.0 하드코딩이었는데, "평타 데미지만 높이는 증감 요소"를
+        // 나중에 넣을 수 있게 스탯으로 뺐다. 기본값은 그대로 1.0 이라 동작은 같다.
+        // (3타는 소환수 마무리라 여기 안 온다 — 소환수 고유 배율을 쓴다.)
+        float damageMultiplier = _player.Stat != null ? _player.Stat.BASIC_ATK_MULT : 1.0f;
 
         // [애니메이션 재생]
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0f); // [수정] 평타 모션 중 키보드 수동 이동 차단
@@ -293,6 +296,20 @@ public class MeleeCombatController : MonoBehaviour
         var fin = Finisher;
         if (main == null || fin == null) return;
 
+        // ── 마무리 일격의 시전 시간은 공속을 따라간다 ───────────────────────────────
+        // 마무리는 '평타 콤보의 3타'다. 1·2타만 공속으로 빨라지고 3타가 원래 속도로 남으면
+        // 콤보 중간에 속도가 뚝 떨어진다. 그래서 여기만 공속을 먹인다.
+        //
+        // [유의사항 — 나중에 물어볼 것]
+        // 소환수 R 액티브(MinionSkillSO.skillAnimDuration)는 일부러 공속을 '안' 받는다.
+        // R 은 평타 콤보의 일부가 아니라 독립 스킬이라 분리해 둔 것이다(기획 확정, 26/07/17).
+        // 로직상 마음에 안 드는 결정이라고 하셨으니, 연결하고 싶어지면 MinionActionSkillSO 의
+        // animDuration 계산에 같은 나눗셈만 얹으면 된다 — 애니와 타격 시점이 전부 비율로
+        // 묶여 있어서 castDuration/skillAnimDuration 하나만 줄이면 나머지가 알아서 따라온다.
+        float atkSpd = (_player.Stat != null) ? Mathf.Max(0.05f, _player.Stat.ATKSPD) : 1f;
+        float castDuration = fin.castDuration / atkSpd;
+        float hitWindow = fin.EventHitWindow / atkSpd;
+
         // 조준 방향은 평타와 동일하게 마우스 기준.
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
         mousePos.z = 0;
@@ -324,7 +341,7 @@ public class MeleeCombatController : MonoBehaviour
         // 이펙트는 같은 애니메이터의 다른 상태라 한 오브젝트로 동시 재생이 안 된다.
         // 하나 더 띄워서 겹친다 (예: DashDoll 은 Attack + Effect 가 별도 태그다).
         if (!string.IsNullOrEmpty(fin.effectState))
-            caster.AttachVisual(fin.visual, fin.effectState, fin.castDuration, faceRight);
+            caster.AttachVisual(fin.visual, fin.effectState, castDuration, faceRight);
 
         if (telegraphPrefab == null) return;
 
@@ -369,7 +386,7 @@ public class MeleeCombatController : MonoBehaviour
 
         caster.PlaySequenced(
             fin.visual, fin.animSequence, fin.damageState, fin.hitEvent,
-            fin.castDuration, fin.EventHitWindow, faceRight,
+            castDuration, hitWindow, faceRight,
             // 판정 열기
             window =>
             {

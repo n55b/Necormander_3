@@ -162,8 +162,17 @@ public class PlayerController : MonoBehaviour
     private float _attackDashSpeedVal = 10f;
 
     public bool IsDashing => _isDashing;
-    public float DashCooldown => dashCooldown;
-    public float DashCooldownProgress => dashCooldown > 0f ? Mathf.Clamp01((Time.time - _lastDashTime) / dashCooldown) : 1f;
+
+    /// <summary>대쉬 쿨감을 먹인 최종 쿨타임(초). 대쉬 쿨감은 스킬 쿨감과 별개 스탯이다.</summary>
+    public float DashCooldown => stat != null ? stat.ApplyDashCooldown(dashCooldown) : dashCooldown;
+    public float DashCooldownProgress
+    {
+        get
+        {
+            float cd = DashCooldown;
+            return cd > 0f ? Mathf.Clamp01((Time.time - _lastDashTime) / cd) : 1f;
+        }
+    }
 
     private Rigidbody2D _rb;
 
@@ -664,7 +673,7 @@ public class PlayerController : MonoBehaviour
             }
 
             // 없다면 기존 1스택 기본 구르기 사용
-            if (!_isDashing && Time.time >= _lastDashTime + dashCooldown)
+            if (!_isDashing && Time.time >= _lastDashTime + DashCooldown)
             {
                 StartDash();
             }

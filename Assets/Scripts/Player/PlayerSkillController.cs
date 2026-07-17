@@ -121,7 +121,11 @@ public class PlayerSkillController : MonoBehaviour
             return;
         }
 
-        playerSkillCooldownEnds[(int)slot] = Time.time + skill.cooldownTime;
+        // 쿨감은 Q/E/R/대쉬에 전부 먹는다. 합연산이고 상한이 없다(기획 확정) —
+        // 100% 를 찍으면 이론상 즉시 재사용이 된다.
+        var pStat = playerTransform != null ? playerTransform.GetComponent<CharacterStat>() : null;
+        float cd = pStat != null ? pStat.ApplySkillCooldown(skill.cooldownTime) : skill.cooldownTime;
+        playerSkillCooldownEnds[(int)slot] = Time.time + cd;
         Debug.Log($"<color=green>[Player Skill]</color> 플레이어가 '{skill.skillName}' 스킬을 사용했습니다! (슬롯: {slot})");
         skill.ExecuteSkill(playerTransform);
     }
@@ -151,7 +155,11 @@ public class PlayerSkillController : MonoBehaviour
         // 허공에 눌러 쿨타임을 통째로 날리는 일이 없어야 한다.
         if (!CastMinionSkill(minionData, playerTransform, targets)) return;
 
-        _mainSummonCooldownEnd = Time.time + minionData.minionSkill.cooldownTime;
+        var casterStat = playerTransform != null ? playerTransform.GetComponent<CharacterStat>() : null;
+        float minionCd = casterStat != null
+            ? casterStat.ApplySkillCooldown(minionData.minionSkill.cooldownTime)
+            : minionData.minionSkill.cooldownTime;
+        _mainSummonCooldownEnd = Time.time + minionCd;
         Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed: {minionData.minionName}");
     }
 
