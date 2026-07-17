@@ -194,7 +194,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         // 충돌했다면 1.5초간 기절 처리
         if (hasHitObstacle && entity.Stats != null && entity.Stats.Status != null)
         {
-            entity.Stats.Status.SetDebuffBool(DebuffBoolType.Stunned, 1.5f);
+            entity.Stats.Status.ApplyStatus(StatusType.Stun, 1.5f);
         }
     }
 }

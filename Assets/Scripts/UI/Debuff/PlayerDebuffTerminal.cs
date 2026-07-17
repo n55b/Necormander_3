@@ -4,7 +4,7 @@
 /// </summary>
 public class PlayerDebuffTerminal : Base_DebuffUITerminal
 {
-    public override void UpdateUI(DebuffBoolType type, float value) { }
-    public override void RemoveIcon(DebuffBoolType type) { }
+    public override void UpdateUI(StatusType type, float value) { }
+    public override void RemoveIcon(StatusType type) { }
     public override void RemoveAll() { }
 }

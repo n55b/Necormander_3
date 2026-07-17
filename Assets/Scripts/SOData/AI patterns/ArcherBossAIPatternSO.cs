@@ -280,7 +280,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
         if (entity.Stats != null && entity.Stats.Status != null)
         {
-            entity.Stats.Status.SetDebuffBool(DebuffBoolType.Stunned, stunDuration);
+            entity.Stats.Status.ApplyStatus(StatusType.Stun, stunDuration);
         }
 
         if (bombardmentCoroutine != null)

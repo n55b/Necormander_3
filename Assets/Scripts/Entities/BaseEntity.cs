@@ -194,7 +194,7 @@ public abstract class BaseEntity : MonoBehaviour
         if (!CanExecuteAI())
         {
             // [경직/기절 제동] 관성으로 인해 스르륵 미끄러지는 현상을 방지하기 위해 정지 처리
-            if (_stats != null && _stats.Status != null && (_stats.Status.GetDebuffBool(DebuffBoolType.Stunned) || _stats.Status.GetDebuffBool(DebuffBoolType.Hitstunned)))
+            if (_stats != null && _stats.Status != null && (_stats.Status.HasStatus(StatusType.Stun) || _stats.Status.HasStatus(StatusType.Hitstun)))
             {
                 if (_agent != null && _agent.isActiveAndEnabled)
                 {
@@ -263,7 +263,7 @@ public abstract class BaseEntity : MonoBehaviour
         // [추가] 기절 상태라면 AI 중단
         if (_stats != null && _stats.Status != null)
         {
-            if (_stats.Status.GetDebuffBool(DebuffBoolType.Stunned) || _stats.Status.GetDebuffBool(DebuffBoolType.Hitstunned))
+            if (_stats.Status.HasStatus(StatusType.Stun) || _stats.Status.HasStatus(StatusType.Hitstun))
                 return false;
         }
 
@@ -554,7 +554,7 @@ public abstract class BaseEntity : MonoBehaviour
         CancelAttack();
         if (_stats != null && _stats.Status != null)
         {
-            _stats.Status.SetDebuffBool(DebuffBoolType.Hitstunned, 0.25f);
+            _stats.Status.ApplyStatus(StatusType.Hitstun, 0.25f);
         }
 
         if (_rb != null)

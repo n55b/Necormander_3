@@ -130,7 +130,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
                 
                 if (entity.Stats != null && entity.Stats.Status != null)
                 {
-                    entity.Stats.Status.SetDebuffBool(DebuffBoolType.Stunned, stunTime);
+                    entity.Stats.Status.ApplyStatus(StatusType.Stun, stunTime);
                 }
                 
                 // 보스 모델 자체를 반대편으로 빠르게 순간이동 시키거나 연출

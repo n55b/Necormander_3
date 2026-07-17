@@ -95,7 +95,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
                     // Status(디버프)에 Hitstunned 등을 0.2초 정도 추가해 경직을 줄 수도 있습니다.
                     if (_status != null)
                     {
-                        _status.SetDebuffBool(DebuffBoolType.Hitstunned, 0.2f); // 0.2초 경직
+                        _status.ApplyStatus(StatusType.Hitstun, 0.2f); // 0.2초 경직
                     }
                 }
 
@@ -174,6 +174,14 @@ public class CharacterHealth : MonoBehaviour, IDamageable
                 popupStr = info.popupText;
 
             TakeDamageEvent?.Invoke((int)finalDamage, info.type, popupStr, isCritical);
+
+            // 상태이상 반응: 빙결 해제(+고정 피해), 출혈 추가 피해.
+            // 상태이상 피해는 여기 못 들어온다 — 그래야 출혈의 +2 가 스스로를 트리거하는
+            // 무한 재귀가 안 난다. 판정은 DamageRules.TriggersBleed 하나가 쥔다.
+            if (_status != null && !isDead && DamageRules.TriggersBleed(info.type))
+            {
+                _status.OnDirectDamageTaken();
+            }
 
             // 실제 데미지 피격 후 이벤트 트리거
             DamageEventBus.TriggerDamageReceived(this, info);

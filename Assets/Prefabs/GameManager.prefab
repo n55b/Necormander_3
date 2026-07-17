@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 811033102870602545}
   - component: {fileID: 7329560079857529190}
   - component: {fileID: 1655115704022100467}
+  - component: {fileID: 8814402771336590114}
   m_Layer: 5
   m_Name: FloatingTextPool
   m_TagString: Untagged
@@ -1097,3 +1098,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isOptionOpen: 0
+--- !u!114 &8814402771336590114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2127005892598480425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c9891d4c6bd73e41867e62ac3b2b273, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  enableDebugKeys: 1

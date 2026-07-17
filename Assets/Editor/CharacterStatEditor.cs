@@ -52,9 +52,9 @@ public class CharacterStatEditor : Editor
             EditorGUILayout.BeginVertical("box");
             if (stat.Status != null)
             {
-                if (stat.Status.GetDebuffBool(DebuffBoolType.Stunned))
+                if (stat.Status.HasStatus(StatusType.Stun))
                     EditorGUILayout.LabelField("- Stunned (기절)");
-                if (stat.Status.GetDebuffBool(DebuffBoolType.Hitstunned))
+                if (stat.Status.HasStatus(StatusType.Hitstun))
                     EditorGUILayout.LabelField("- Hitstunned (경직)");
 
                 EditorGUILayout.Space(5);

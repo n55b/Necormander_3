@@ -170,7 +170,7 @@ public class CharacterStat : MonoBehaviour
         get
         {
             if (Status == null) return baseMoveSpeed;
-            if (Status.GetDebuffBool(DebuffBoolType.Stunned) || Status.GetDebuffBool(DebuffBoolType.Hitstunned)) return 0f;
+            if (Status.HasStatus(StatusType.Stun) || Status.HasStatus(StatusType.Hitstun)) return 0f;
 
             float bonus = Mods.Percent(StatType.MoveSpeed);
             return (baseMoveSpeed + Mods.Flat(StatType.MoveSpeed)) * (1f + bonus) * Status.MoveSpeedMultiplier;

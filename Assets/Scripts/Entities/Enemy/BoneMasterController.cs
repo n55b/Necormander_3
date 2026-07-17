@@ -162,7 +162,7 @@ public class BoneMasterController : EnemyController
         SetStateText("기절! (방어력 0)", Color.yellow);
         
         // 애니메이션 등에 스턴 신호 전달
-        if (Stats != null && Stats.Status != null) Stats.Status.SetDebuffBool(DebuffBoolType.Stunned, 4f);
+        if (Stats != null && Stats.Status != null) Stats.Status.ApplyStatus(StatusType.Stun, 4f);
         
         yield return new WaitForSeconds(4f);
 

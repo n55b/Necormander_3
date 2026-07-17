@@ -99,6 +99,18 @@ public class PlayerController : MonoBehaviour
     private bool _inputBlocked = false; // [추가] 맵 생성 중 입력 차단용
 
     /// <summary>
+    /// 기절/빙결/경직으로 행동이 막혀 있는가.
+    ///
+    /// [26/07/17 신설] 예전엔 플레이어에게 CC 경로가 아예 없었다. MOVESPEED 가 0 이 되면서
+    /// 이동만 간접적으로 멈췄고, 평타/스킬/대쉬는 그대로 나갔다(특히 대쉬는 linearVelocity 를
+    /// 직접 써서 MOVESPEED 조차 우회했다). 이제 이동/평타/Q·E/R/대쉬를 전부 막는다.
+    ///
+    /// 지금은 실제로 걸릴 일이 없다 — 상태이상 부여 수단이 유물 전용이고 유물이 아직 없다.
+    /// 경직(Hitstun)도 플레이어엔 안 붙는다(BaseEntity 가 있는 유닛에만 부여됨). 미리 뚫어둔 배선이다.
+    /// </summary>
+    public bool IsCCed => stat != null && stat.Status != null && stat.Status.IsActionBlocked;
+
+    /// <summary>
     /// 애니메이션 캐싱 변수
     /// </summary>
     public IdleState idleState;
@@ -611,7 +623,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        if (_inputBlocked || stat.Health.IsDead) { moveInput = Vector2.zero; return; }
+        if (_inputBlocked || stat.Health.IsDead || IsCCed) { moveInput = Vector2.zero; return; }
 
         if (context.performed || context.canceled)
         {
@@ -657,7 +669,7 @@ public class PlayerController : MonoBehaviour
     public void OnDash(InputAction.CallbackContext context)
     {
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
-        if (_inputBlocked || stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead || IsCCed) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
@@ -683,7 +695,7 @@ public class PlayerController : MonoBehaviour
     public void OnSkillQ(InputAction.CallbackContext context)
     {
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
-        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill) return;
+        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill || IsCCed) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
@@ -701,7 +713,7 @@ public class PlayerController : MonoBehaviour
     public void OnSkillE(InputAction.CallbackContext context)
     {
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
-        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill) return;
+        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill || IsCCed) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
@@ -719,7 +731,7 @@ public class PlayerController : MonoBehaviour
     public void OnSkillR(InputAction.CallbackContext context)
     {
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
-        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill) return;
+        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill || IsCCed) return;
 
         var parryCtrl = GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;

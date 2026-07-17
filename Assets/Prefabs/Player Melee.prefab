@@ -499,6 +499,7 @@ MonoBehaviour:
   _hasSuperArmor: 0
   _superArmorGauge: 0
   _maxSuperArmorGauge: 100
+  bloodPopExplosionPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   debuffTerminal: {fileID: 1667872381858726077}
 --- !u!114 &8147807942231057785
 MonoBehaviour:

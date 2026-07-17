@@ -49,17 +49,24 @@ public class CharacterStatus : MonoBehaviour
         }
     }
 
-    private Dictionary<DebuffBoolType, float> _boolTimers = new Dictionary<DebuffBoolType, float>();
-    private Dictionary<DebuffBoolType, int> _boolTiers = new Dictionary<DebuffBoolType, int>();
+    // ── 상태이상 컨테이너 ─────────────────────────────────────────────
+    // 5종이 독립적으로 동시 존재한다. 구 구조는 슬롯이 하나(_currentDebuffType)라 다른 걸
+    // 걸면 기존 게 터지고 새 건 증발했는데, 그 규칙이 통째로 사라졌다.
+    private class StatusInstance
+    {
+        public float EndTime;       // 만료 시각. 재적중하면 갱신된다.
+        public int Stacks;          // 비폭만 쓴다.
+        public float NextTickTime;  // 중독 전용. '절대 격자' — 아래 UpdateStatuses 주석 참조.
+    }
+    private readonly Dictionary<StatusType, StatusInstance> _statuses = new Dictionary<StatusType, StatusInstance>();
 
-    /// <summary>
-    /// 상태이상이 터졌을 때 띄울 한글 라벨. FloatingTextSpawner 가 듣는다.
-    ///
-    /// [주의] 지금은 쏘는 쪽이 없어서 CS0067 경고가 뜬다 — 구 취약 소모("기절!"/"격파!"/"강타!")가
-    /// 유일한 발신처였는데 같이 지워졌다. Phase 5 에서 신규 상태이상이 다시 쏘면 경고가 사라진다.
-    /// 듣는 쪽(FloatingTextSpawner)은 그대로 살아 있으니 연결만 하면 된다.
-    /// </summary>
+    /// <summary>상태이상이 터졌을 때 띄울 한글 라벨. FloatingTextSpawner 가 듣는다.</summary>
     public event System.Action<string> OnDebuffPopped;
+
+    [Header("비폭 폭발")]
+    [Tooltip("비폭이 터질 때 쓸 원형 히트박스. 비우면 폭발이 피해를 못 준다. " +
+             "(Center Skill Hitbox Circle Prefab — 콜라이더 반지름 0.5 전제)")]
+    [SerializeField] private BaseHitBox bloodPopExplosionPrefab;
 
     [SerializeField] private Base_DebuffUITerminal debuffTerminal;
 
@@ -97,7 +104,7 @@ public class CharacterStatus : MonoBehaviour
     private void Update()
     {
         UpdateInstances();
-        UpdateDebuffs();
+        UpdateStatuses();
     }
 
     private void UpdateInstances()
@@ -133,24 +140,42 @@ public class CharacterStatus : MonoBehaviour
         _cachedTotalShield = sum;
     }
 
-    private void UpdateDebuffs()
-    {
-        float dt = Time.deltaTime;
+    private static readonly List<StatusType> _statusScratch = new List<StatusType>();
 
-        List<DebuffBoolType> boolKeys = new List<DebuffBoolType>(_boolTimers.Keys);
-        foreach (var key in boolKeys)
+    private void UpdateStatuses()
+    {
+        if (_statuses.Count == 0) return;
+
+        _statusScratch.Clear();
+        _statusScratch.AddRange(_statuses.Keys); // 순회 중 제거하므로 키를 복사해서 돈다
+
+        foreach (var type in _statusScratch)
         {
-            if (_boolTimers[key] > 0)
+            if (!_statuses.TryGetValue(type, out var inst)) continue;
+
+            // 중독 틱. '절대 격자'라 재적중해도 다음 틱이 밀리지 않는다.
+            // 예약 시각을 '지금 + 주기'로 다시 잡으면, 다단히트가 1초에 5번 갱신할 때
+            // 틱이 계속 뒤로 밀려서 중독 피해가 하나도 안 들어간다. (BaseHitBox 에서 똑같은
+            // 드리프트 버그를 이미 한 번 잡았다 — 같은 함정이다.)
+            if (type == StatusType.Poison && Time.time >= inst.NextTickTime)
             {
-                _boolTimers[key] -= dt;
-                if (_boolTimers[key] <= 0)
-                {
-                    _boolTimers[key] = 0f;
-                    _boolTiers[key] = 0;
-                    debuffTerminal?.RemoveIcon(key);
-                }
+                inst.NextTickTime += StatusRules.POISON_TICK_INTERVAL;
+                DealSelfDamage(StatusRules.POISON_TICK_DAMAGE, DamageType.Poison, "중독");
+            }
+
+            if (Time.time >= inst.EndTime)
+            {
+                RemoveStatus(type);
             }
         }
+    }
+
+    /// <summary>자기 자신에게 상태이상 피해를 넣는다. 공격자는 없다(도트라 귀속이 애매함).</summary>
+    private void DealSelfDamage(float amount, DamageType type, string popup)
+    {
+        var health = GetComponent<CharacterHealth>() ?? GetComponentInChildren<CharacterHealth>();
+        if (health != null && !health.IsDead)
+            health.GetDamage(new DamageInfo(amount, type, null, false, 1f, false, popup));
     }
 
     public void ApplySlow(string id, float reduction, float duration)
@@ -263,23 +288,117 @@ public class CharacterStatus : MonoBehaviour
         if (rb != null) rb.linearVelocity = Vector2.zero;
     }
 
-    public void SetDebuffBool(DebuffBoolType type, float duration, int tier = 0)
-    {
-        if (!_boolTimers.ContainsKey(type)) _boolTimers[type] = 0f;
-        _boolTimers[type] = Mathf.Max(_boolTimers[type], duration);
-        _boolTiers[type] = tier;
+    // ── 상태이상 API ─────────────────────────────────────────────────
 
-        debuffTerminal?.UpdateUI(type, tier); 
+    /// <summary>
+    /// 상태이상을 건다. 이미 걸려 있으면 지속시간이 갱신되고, 스택형(비폭)이면 스택이 쌓인다.
+    /// 슈퍼아머가 있으면 이동 방해 계열(기절/빙결)은 씹힌다 — 저장되지 않으므로 나중에 다시 걸어야 한다.
+    /// </summary>
+    /// <param name="duration">0 이하면 StatusRules.DURATION(5초)을 쓴다. 경직처럼 짧은 건 직접 넘긴다.</param>
+    public void ApplyStatus(StatusType type, float duration = 0f, int stacks = 1)
+    {
+        if (_stat != null && _stat.IsDead) return;
+        if (_hasSuperArmor && StatusRules.BlockedBySuperArmor(type)) return;
+
+        if (duration <= 0f) duration = StatusRules.DURATION;
+
+        if (!_statuses.TryGetValue(type, out var inst))
+        {
+            inst = new StatusInstance();
+            _statuses[type] = inst;
+            // 중독의 첫 틱은 '건 시점 + 주기'다. 여기서만 잡고, 갱신 때는 절대 안 건드린다.
+            inst.NextTickTime = Time.time + StatusRules.POISON_TICK_INTERVAL;
+        }
+
+        inst.EndTime = Time.time + duration; // 재적중 = 지속시간만 갱신
+
+        if (StatusRules.IsStacking(type))
+        {
+            inst.Stacks += stacks;
+            if (inst.Stacks >= StatusRules.BLOODPOP_THRESHOLD)
+            {
+                DetonateBloodPop();
+                return;
+            }
+        }
+
+        debuffTerminal?.UpdateUI(type, inst.Stacks);
     }
 
-    public bool GetDebuffBool(DebuffBoolType type)
+    public bool HasStatus(StatusType type) => _statuses.ContainsKey(type);
+
+    public int GetStacks(StatusType type)
+        => _statuses.TryGetValue(type, out var inst) ? inst.Stacks : 0;
+
+    public void RemoveStatus(StatusType type)
     {
-        return _boolTimers.ContainsKey(type) && _boolTimers[type] > 0;
+        if (!_statuses.Remove(type)) return;
+        debuffTerminal?.RemoveIcon(type);
     }
 
-    public int GetDebuffTier(DebuffBoolType type)
+    /// <summary>행동이 막혀 있는가. 기절/빙결/경직 중 하나라도 걸려 있으면 true.</summary>
+    public bool IsActionBlocked
     {
-        return _boolTiers.ContainsKey(type) ? _boolTiers[type] : 0;
+        get
+        {
+            foreach (var kv in _statuses)
+                if (StatusRules.PreventsAction(kv.Key)) return true;
+            return false;
+        }
+    }
+
+    // ── 피격 훅 (CharacterHealth 가 부른다) ───────────────────────────
+
+    /// <summary>
+    /// 직접 피해를 받았을 때 상태이상이 반응하는 지점. 빙결 해제와 출혈 추가 피해가 여기서 나간다.
+    ///
+    /// [철칙] 상태이상 피해(Fixed 계열)는 여기 못 들어온다 — DamageRules.TriggersBleed 가 막는다.
+    /// 안 그러면 출혈의 +2 가 스스로를 트리거해서 무한 재귀가 난다.
+    /// 같은 이유로 중독 틱이 빙결을 깨지도 않는다(얼려놓자마자 도트가 깨버리면 이상하다).
+    /// </summary>
+    public void OnDirectDamageTaken()
+    {
+        // 빙결: 맞으면 고정 피해를 터뜨리고 즉시 풀린다.
+        if (HasStatus(StatusType.Freeze))
+        {
+            RemoveStatus(StatusType.Freeze);
+            OnDebuffPopped?.Invoke("빙결 파괴!");
+            DealSelfDamage(StatusRules.FREEZE_BREAK_DAMAGE, DamageType.Freeze, "빙결");
+        }
+
+        // 출혈: 맞을 때마다 추가 고정 피해. 한 방에 여러 피해가 겹쳐도 1회다.
+        if (HasStatus(StatusType.Bleed))
+        {
+            DealSelfDamage(StatusRules.BLEED_HIT_DAMAGE, DamageType.Bleed, "출혈");
+        }
+    }
+
+    /// <summary>
+    /// 비폭 폭발. 자신과 주변에 고정 피해를 주고 스택을 0 으로 되돌린다.
+    /// [철칙] 폭발 피해는 DamageType.BloodPop 이라 다른 적의 비폭 스택을 쌓지 않는다 —
+    /// 안 그러면 연쇄 폭발이 무한히 번진다.
+    /// </summary>
+    private void DetonateBloodPop()
+    {
+        RemoveStatus(StatusType.BloodPop);
+        OnDebuffPopped?.Invoke("비폭!");
+
+        if (bloodPopExplosionPrefab == null)
+        {
+            Debug.LogWarning($"[비폭] {gameObject.name}: bloodPopExplosionPrefab 이 비어 있어 폭발이 피해를 못 줍니다.");
+            return;
+        }
+
+        // 함정(TrapBombBarrel)과 같은 방식: 히트박스를 미리 띄우고 startDelay 동안 빨간 원이
+        // 차오르게 해서 예고한다. 프리팹 콜라이더 반지름이 0.5 인 걸 전제로 스케일을 잡는다.
+        var box = Instantiate(bloodPopExplosionPrefab, transform.position, Quaternion.identity);
+        box.transform.localScale = new Vector3(StatusRules.BLOODPOP_RADIUS * 2f, StatusRules.BLOODPOP_RADIUS * 2f, 1f);
+
+        // 폭발은 '터진 유닛이 속한 진영의 반대'가 아니라 그 유닛과 같은 진영을 친다 —
+        // 적에게 걸린 비폭이니 적을 때린다. 자신도 범위에 들어가므로 같이 맞는다.
+        LayerMask mask = IsEnemyTarget ? Layers.EnemyMask : Layers.PlayerArmy;
+        var info = new DamageInfo(StatusRules.BLOODPOP_DAMAGE, DamageType.BloodPop, null, false, 1f, false, "비폭");
+        box.Init(info, mask, 0.2f, StatusRules.BLOODPOP_FUSE, isAlly: !IsEnemyTarget);
     }
 
 
@@ -287,7 +406,7 @@ public class CharacterStatus : MonoBehaviour
     public void ClearStatus()
     {
         _activeSlows.Clear(); _activeSpeedBuffs.Clear(); _shieldInstances.Clear();
-        _boolTimers.Clear(); _boolTiers.Clear();
+        _statuses.Clear();
         _cachedMoveSpeedMultiplier = 1f; _cachedTotalShield = 0f;
 
         // 슈퍼아머도 여기서 지운다. 예전엔 안 지워서, 오브젝트가 재사용되면 이전 유닛의

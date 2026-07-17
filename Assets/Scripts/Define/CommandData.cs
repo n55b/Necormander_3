@@ -19,14 +19,63 @@ public enum CommandData
 /// DebuffStackType, DebuffCategory)는 전부 폐기했다. 그 구조는 소환수 여러 마리가 각자
 /// 다른 트리거에 응답하는 전제였는데 메인 소환수가 1개로 고정되면서 안 맞게 됐다.
 ///
-/// 신규 5종(기절/빙결/출혈/중독/비폭)은 Phase 5 에서 들어온다. 지금은 철거만 끝난 상태라
-/// 행동불가에 필요한 두 개만 남아 있다.
+/// 5종은 전부 '독립적으로 동시 존재'한다. 구 구조는 슬롯이 하나라 다른 걸 걸면 기존 게
+/// 터지고 새 건 증발했는데, 그 규칙이 통째로 사라졌다.
+///
+/// 부여 수단은 유물/아이템 전용이다 — 스킬은 상태이상을 걸지 않는다.
+/// 유물 시스템이 아직 없으므로 지금은 디버그 키(1~5)로만 걸린다.
 /// </summary>
-public enum DebuffBoolType
+public enum StatusType
 {
-    Stunned,       // 기절 — 행동 완전 불가
-    Hitstunned     // 경직 — 평타에 묻는 짧은 행동 불가. 기절과 '별개'로 둔 이유는
-                   // '기절 시간 증가' 같은 증감 요소가 여기에 묻지 않게 하기 위함이다.
+    Stun,      // 기절 — 행동 완전 불가. 피해 없음
+    Freeze,    // 빙결 — 행동 불가. 직접 피해를 맞으면 고정 피해 + 즉시 해제
+    Bleed,     // 출혈 — 직접 피해를 받을 때마다 추가 고정 피해
+    Poison,    // 중독 — 초당 고정 피해
+    BloodPop,  // 비폭 — 스택형. 임계치에 닿으면 자신과 주변에 폭발
+    Hitstun,   // 경직 — 평타에 묻는 짧은 행동 불가. 기절과 '별개'로 둔 이유는
+               // '기절 시간 증가' 같은 증감 요소가 여기에 묻지 않게 하기 위함이다.
+}
+
+/// <summary>
+/// 상태이상 수치와 규칙. 전부 기획 임시값이라 밸런싱 때 여기만 고치면 된다.
+/// (SO 로 빼는 건 실제로 튜닝을 시작할 때 — 지금 만들면 인스펙터만 늘고 쓸 일이 없다.)
+/// </summary>
+public static class StatusRules
+{
+    /// <summary>5종 공통 지속시간(초). 재적중하면 갱신된다.</summary>
+    public const float DURATION = 5f;
+
+    /// <summary>빙결이 깨질 때 터지는 고정 피해.</summary>
+    public const float FREEZE_BREAK_DAMAGE = 20f;
+
+    /// <summary>출혈 중 피격 1회당 추가되는 고정 피해.</summary>
+    public const float BLEED_HIT_DAMAGE = 2f;
+
+    /// <summary>중독 틱 피해와 주기(초).</summary>
+    public const float POISON_TICK_DAMAGE = 5f;
+    public const float POISON_TICK_INTERVAL = 1f;
+
+    /// <summary>비폭: 이 스택에 닿으면 터지고 스택이 0 으로 돌아간다.</summary>
+    public const int BLOODPOP_THRESHOLD = 10;
+    public const float BLOODPOP_DAMAGE = 20f;
+    public const float BLOODPOP_RADIUS = 2.5f;
+    /// <summary>폭발 예고 시간(초). 보이긴 하되 못 피할 정도.</summary>
+    public const float BLOODPOP_FUSE = 0.5f;
+
+    /// <summary>
+    /// 슈퍼아머가 막는 상태이상인가. 슈퍼아머 = 강인함이라, 있는 동안은 이동 방해 계열이
+    /// 통째로 씹힌다(밀치기 포함). 씹힌 CC 는 저장되지 않는다 — 깨진 뒤 다시 걸어야 한다.
+    /// 출혈/중독/비폭은 이동을 방해하지 않으므로 그대로 통과한다.
+    /// </summary>
+    public static bool BlockedBySuperArmor(StatusType t)
+        => t == StatusType.Stun || t == StatusType.Freeze;
+
+    /// <summary>행동을 막는 상태이상인가.</summary>
+    public static bool PreventsAction(StatusType t)
+        => t == StatusType.Stun || t == StatusType.Freeze || t == StatusType.Hitstun;
+
+    /// <summary>스택을 쌓는 상태이상인가.</summary>
+    public static bool IsStacking(StatusType t) => t == StatusType.BloodPop;
 }
 
 [System.Flags]
