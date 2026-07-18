@@ -383,8 +383,6 @@ public class MeleeCombatController : MonoBehaviour
         var col = go.GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
 
-        bool useEvent = !string.IsNullOrEmpty(fin.hitEvent);
-
         caster.PlaySequenced(
             fin.visual, fin.animSequence, fin.damageState, fin.hitEvent,
             castDuration, hitWindow, faceRight,
@@ -392,15 +390,16 @@ public class MeleeCombatController : MonoBehaviour
             window =>
             {
                 if (box == null) return;
-                if (!useEvent && fin.hitCount > 1)
+                if (fin.hitCount > 1)
                 {
-                    // 태그 방식: 타격 태그가 재생되는 동안 hitCount 를 균등 배분한다.
+                    // 다단히트: 판정창(window) 동안 hitCount 를 균등 배분한다. window 는 PlaySequenced 가
+                    // 방식에 따라 정해준다 — 이벤트 창(OnHit~OnAttackEnd) / 태그 길이 / 시퀀스 전체.
                     box.isContinuousDamage = true;
                     box.damageTickRate = window / fin.hitCount;
                 }
                 else
                 {
-                    // 이벤트 방식: OnHitEvent 하나가 타격 하나다. 배분할 게 없다.
+                    // 단타: 판정이 열리는 순간 1회.
                     box.isContinuousDamage = false;
                 }
                 if (col != null) col.enabled = true;

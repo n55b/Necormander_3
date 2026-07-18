@@ -22,6 +22,10 @@ public class DashCooldownUI : MonoBehaviour
     [Header("쿨타임/회복 Fill Image (1→0 줄어듦)")]
     [SerializeField] private Image cooldownFill;
 
+    [Header("대쉬 아이콘 (대쉬 종류별 교체용)")]
+    [Tooltip("기본 아이콘(Dash.png)은 프리팹에 박아둔다. 나중에 대쉬 종류가 생기면 SetDashIcon 으로 교체.")]
+    [SerializeField] private Image dashIcon;
+
     // ─── 런타임 ──────────────────────────────────────────────────────
     private PlayerController     _player;
     private MeleeDodgeController _dodge;
@@ -57,6 +61,16 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
         ForceRefresh();
 
         Debug.Log("<color=yellow>[DashCooldownUI]</color> Initialized.");
+    }
+
+    /// <summary>
+    /// 대쉬 아이콘 스프라이트를 교체한다. 지금은 프리팹에 박힌 기본 아이콘(Dash.png)이 그대로 뜨고,
+    /// 나중에 대쉬 종류(기본 구르기 / 2스택 구르기 / 유물 대쉬 등)가 생기면 그 종류를 정하는 쪽에서
+    /// 이걸 호출해 갈아끼우면 된다. null 이면 무시(현재 아이콘 유지).
+    /// </summary>
+    public void SetDashIcon(Sprite icon)
+    {
+        if (dashIcon != null && icon != null) dashIcon.sprite = icon;
     }
 
     // ─────────────────────────────────────────────────────────────────
