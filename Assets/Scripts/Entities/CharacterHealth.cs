@@ -154,7 +154,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // [치명타] 방어력보다 먼저 굴린다 — 기획: "치명타 판정 끝난 최종 데미지에서 방어력 감소율을 뺀다".
         // 상태이상 고정 피해(출혈/중독/빙결/비폭)엔 안 붙는다. '고정'이니까.
         bool isCritical = false;
-        if (DamageRules.CanCrit(info.type) && info.attacker != null)
+        if (DamageRules.CanCrit(info) && info.attacker != null)
         {
             var attackerStat = info.attacker.GetComponent<CharacterStat>();
             if (attackerStat == null) attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
@@ -182,7 +182,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         if (remainingDamage > 0)
         {
             float finalDamage = remainingDamage;
-            if (!DamageRules.IgnoresDefense(info.type))
+            if (!DamageRules.IgnoresDefense(info))
             {
                 // 방어력 % 차감형. DEF 자체가 감소율이고, 상한 75% 는 게터에서 이미 잘려서 온다.
                 // [26/07/17] 고정 방어력(FLAT_DEF)은 삭제 — 방어력은 % 하나로 일원화했다.
@@ -201,7 +201,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             // 상태이상 반응: 빙결 해제(+고정 피해), 출혈 추가 피해.
             // 상태이상 피해는 여기 못 들어온다 — 그래야 출혈의 +2 가 스스로를 트리거하는
             // 무한 재귀가 안 난다. 판정은 DamageRules.TriggersBleed 하나가 쥔다.
-            if (_status != null && !isDead && DamageRules.TriggersBleed(info.type))
+            if (_status != null && !isDead && DamageRules.TriggersBleed(info))
             {
                 _status.OnDirectDamageTaken();
             }

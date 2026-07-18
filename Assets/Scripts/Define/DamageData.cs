@@ -12,8 +12,8 @@ public enum AttackType
 }
 
 /// <summary>
-/// [축1 = 속성] 피해의 종류. 팝업 색을 가르고, 아래 DamageRules 가 이걸로 파이프라인 규칙
-/// (방무/크리/출혈 트리거)을 판정한다. 앞의 둘(Physical/Magic)이 '직접 피해', 나머지가 '상태이상 피해'다.
+/// [축1 = 속성] 피해의 종류. 이제 팝업 색/식별 전용이다 — 방무/크리/출혈 트리거 규칙은
+/// 갈래(축2, DamageCategory)가 판정한다. Freeze/Poison/Bleed/BloodPop/Fixed 는 상태이상 팝업 색을 가른다.
 /// </summary>
 public enum DamageType
 {
@@ -59,19 +59,23 @@ public enum DamageCategory
 /// </summary>
 public static class DamageRules
 {
-    /// <summary>상태이상이 주는 피해인가.</summary>
-    public static bool IsStatusDamage(DamageType t)
-        => t == DamageType.Freeze || t == DamageType.Poison || t == DamageType.Bleed
-        || t == DamageType.BloodPop || t == DamageType.Fixed;
+    /// <summary>
+    /// 방어력을 무시하는가 = '고정피해 성격'인가. 세 경우를 OR 로 묶는다:
+    ///   · 속성이 Fixed(순수 고정피해)  · 갈래가 Debuff(아군 상태이상)  · 갈래가 EnemyDebuff(적 상태이상)
+    /// Fixed 는 속성 축, Debuff/EnemyDebuff 는 갈래 축이라 두 축을 같이 본다.
+    /// 크리·출혈트리거도 이 하나가 같이 가른다(고정피해는 크리 안 뜨고, 출혈도 안 얹는다 — 무한 재귀 방지).
+    /// (쉴드는 별개 — 고정피해도 쉴드는 못 뚫는다.)
+    /// </summary>
+    public static bool IgnoresDefense(DamageInfo info)
+        => info.type == DamageType.Fixed
+        || info.category == DamageCategory.Debuff
+        || info.category == DamageCategory.EnemyDebuff;
 
-    /// <summary>방어력을 무시하는가. (쉴드는 무시하지 못한다 — 쉴드는 임시 체력에 가깝다)</summary>
-    public static bool IgnoresDefense(DamageType t) => IsStatusDamage(t);
+    /// <summary>치명타가 터질 수 있는가. 고정피해엔 안 붙는다.</summary>
+    public static bool CanCrit(DamageInfo info) => !IgnoresDefense(info);
 
-    /// <summary>치명타가 터질 수 있는가. 상태이상 고정 피해엔 안 붙는다.</summary>
-    public static bool CanCrit(DamageType t) => !IsStatusDamage(t);
-
-    /// <summary>이 피해가 출혈의 추가 피해를 트리거하는가.</summary>
-    public static bool TriggersBleed(DamageType t) => !IsStatusDamage(t);
+    /// <summary>출혈의 추가 피해를 트리거하는가. 고정피해가 스스로를 트리거하면 무한 재귀라 막는다.</summary>
+    public static bool TriggersBleed(DamageInfo info) => !IgnoresDefense(info);
 
     /// <summary>유닛의 공격 속성을 직접 피해의 DamageType 으로 옮긴다.</summary>
     public static DamageType FromAttackType(AttackType t)

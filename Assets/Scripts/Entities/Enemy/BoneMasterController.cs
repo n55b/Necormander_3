@@ -148,7 +148,7 @@ public class BoneMasterController : EnemyController
                 
                 if (hp != null)
                 {
-                    DamageInfo dInfo = new DamageInfo(1f, DamageType.Fixed, gameObject);
+                    DamageInfo dInfo = new DamageInfo(1f, DamageType.Physical, gameObject, category: DamageCategory.EnemyBoss);
                     hp.GetDamage(dInfo); // 무조건 1 데미지
                 }
             }

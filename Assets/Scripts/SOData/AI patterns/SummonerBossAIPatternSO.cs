@@ -105,7 +105,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
                 {
                     var health = m.GetComponentInChildren<CharacterHealth>();
                     if (health != null && !health.IsDead)
-                        health.GetDamage(new DamageInfo(9999f, DamageType.Fixed, null));
+                        health.GetDamage(new DamageInfo(9999f, DamageType.Physical, null, category: DamageCategory.EnemyBoss));
                     else
                         Destroy(m);
                 }
