@@ -43,8 +43,31 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         GetDamage(info);
     }
 
+    /// <summary>
+    /// 갈래가 안 붙은(None) 피해를 공격자를 보고 자동 분류한다.
+    ///  · 적 공격 → 티어(보스/엘리트/미니언)   · 플레이어 공격 → 스킬
+    /// 평타/대쉬/패링/디버프/함정은 소스에서 명시 태그되므로 여기로 안 온다.
+    /// </summary>
+    private static DamageCategory ResolveCategoryFromAttacker(GameObject attacker)
+    {
+        if (attacker == null) return DamageCategory.None;
+
+        if (attacker.CompareTag("Boss") || attacker.name.Contains("Boss")) return DamageCategory.EnemyBoss;
+        var status = attacker.GetComponentInParent<CharacterStatus>();
+        if (status != null && status.IsElite) return DamageCategory.EnemyElite;
+        if (attacker.layer == Layers.Enemy) return DamageCategory.EnemyMinion;
+
+        if (attacker.layer == Layers.Player || attacker.layer == Layers.PlayerDash) return DamageCategory.Skill;
+
+        return DamageCategory.None;
+    }
+
     public void GetDamage(DamageInfo info)
     {
+        // 갈래가 안 붙은 피해는 공격자를 보고 자동 분류(적 티어 / 플레이어=스킬).
+        if (info.category == DamageCategory.None)
+            info.category = ResolveCategoryFromAttacker(info.attacker);
+
         OnDamageReceived?.Invoke(info); // [추가] AI 측에서 피격 상세 정보를 파악하기 위함
 
         if (isDead || invincible) return;
@@ -52,7 +75,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // [추가] 회피 / 명중 판정 (평타인 경우에만 적용)
         // 기본값(적중률 1, 회피 0)이면 명중률 1.0 이라 Random.value(<1.0)가 절대 못 넘는다 = 무조건 명중.
         // 예전엔 '빗나갈 확률 <= Random.value' 라 회피 0% 여도 0.0 이 뜨면 빗나갔다. 뒤집으면서 같이 해결됨.
-        if (info.isBasicAttack && info.attacker != null)
+        if ((info.category == DamageCategory.BasicAttack || DamageRules.IsEnemyTier(info.category)) && info.attacker != null)
         {
             var attackerStat = info.attacker.GetComponent<CharacterStat>();
             if (attackerStat != null && _stat != null)

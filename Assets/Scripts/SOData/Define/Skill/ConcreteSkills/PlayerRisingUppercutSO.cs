@@ -45,7 +45,7 @@ public class PlayerRisingUppercutSO : PlayerSkillSO
         box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
 
         float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Rising Uppercut!");
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Rising Uppercut!");
 
         System.Action<CharacterHealth> onHit = (health) =>
         {

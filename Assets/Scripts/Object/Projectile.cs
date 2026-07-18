@@ -15,6 +15,7 @@ public class Projectile : MonoBehaviour
     protected LayerMask _targetLayer;
     protected GameObject _shooter;
     protected Vector2 _direction;
+    protected bool _isDeflected; // 패리로 반사된 투사체인가. 반사 데미지는 갈래=Parry 로 태그한다.
     protected System.Collections.Generic.HashSet<Collider2D> _ignoredColliders = new System.Collections.Generic.HashSet<Collider2D>();
 
     public virtual void Init(Vector2 targetPos, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
@@ -114,7 +115,7 @@ public class Projectile : MonoBehaviour
 
             if (damageable != null && !damageable.IsDead)
             {
-                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, false, 1f, true);
+                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None);
                 damageable.TakeDamage(info);
                 Destroy(gameObject);
                 return;
@@ -157,7 +158,7 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnHitTarget(CharacterStat targetStat)
     {
-        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, false, 1f, true);
+        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None);
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
     }
@@ -175,6 +176,7 @@ public class Projectile : MonoBehaviour
         _targetLayer = targetLayer;
         _damage = damage;
         _shooter = shooter;
+        _isDeflected = true; // 반사된 순간부터 이 투사체의 피해는 패링 갈래다.
         speed = customSpeed;
         lifeTime = customLifeTime;
 

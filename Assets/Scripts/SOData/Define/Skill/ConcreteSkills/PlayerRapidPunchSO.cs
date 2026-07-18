@@ -56,7 +56,7 @@ public class PlayerRapidPunchSO : PlayerSkillSO
 
                 float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
                 // isBasicAttack = true 로 설정
-                DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, true, $"Rapid Punch {i+1}!");
+                DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, $"Rapid Punch {i+1}!");
 
                 System.Action<CharacterHealth> onHit = (health) => {
                     Debug.Log($"<color=yellow>[Physical]</color> 둥둥타 {i+1}타 적중! (기본 공격 판정)");

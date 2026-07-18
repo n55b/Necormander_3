@@ -55,7 +55,7 @@ public class PlayerFlickerJabSO : PlayerSkillSO
         box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
 
         float finalDamage = GetBaseDamage(player.Stat) * finalMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Flicker Jab!");
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Flicker Jab!");
 
         List<Transform> pushedRoots = new List<Transform>();
         System.Action<CharacterHealth> onHit = (health) =>

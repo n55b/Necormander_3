@@ -148,7 +148,7 @@ public class MinionActionSkillSO : MinionSkillSO
             box.transform.localRotation = Quaternion.Euler(0, 0, angle);
             box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
 
-            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
+            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, 1f, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill);
 
             bool hasInvokedKeyword = false;
             System.Action<CharacterHealth> onHit = (health) => {
@@ -190,7 +190,7 @@ public class MinionActionSkillSO : MinionSkillSO
 
             if (health != null && !health.IsDead)
             {
-                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, false, 1f, false, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}");
+                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, 1f, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill);
                 health.GetDamage(info);
 
                 var stat = health.GetComponent<CharacterStat>();

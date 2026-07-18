@@ -138,7 +138,7 @@ public class SwayBackDashRuntime : MonoBehaviour
         box.transform.localScale = new Vector3(length, _so.hitWidth, 1f);
 
         float dmg = _so.GetBaseDamage(_player.Stat) * _so.damageMultiplier;
-        DamageInfo info = new DamageInfo(dmg, _so.ResolveDamageType(), _player.gameObject, false, 1f, false, "Dash Straight!");
+        DamageInfo info = new DamageInfo(dmg, _so.ResolveDamageType(), _player.gameObject, 1f, "Dash Straight!");
         box.Init(info, Layers.EnemyMask, 0.2f, 0f, true);
     }
 

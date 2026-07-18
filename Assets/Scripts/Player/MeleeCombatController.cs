@@ -230,15 +230,7 @@ public class MeleeCombatController : MonoBehaviour
                 var subPassive = _player.GetComponent<SubSummonPassiveController>();
                 float flatBonus = subPassive != null ? subPassive.BasicAttackDamageBonus : 0f;
 
-                DamageInfo info = new DamageInfo(
-                    _player.Stat.ATK * damageMultiplier + flatBonus,
-                    DamageType.Physical,
-                    this.gameObject,
-                    false, 1f, true, "", false,
-                    causesHitstun: true,
-                    knockbackForce: 2f,
-                    superArmorDamage: saDmg
-                );
+                DamageInfo info = new DamageInfo(_player.Stat.ATK * damageMultiplier + flatBonus, DamageType.Physical, this.gameObject, 1f, "", false, causesHitstun: true, knockbackForce: 2f, superArmorDamage: saDmg, category: DamageCategory.BasicAttack);
 
                 LayerMask enemyLayer = Layers.EnemyMask;
                 // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
@@ -364,16 +356,7 @@ public class MeleeCombatController : MonoBehaviour
         // [26/07/17] 예전엔 소환수 SO 자신의 attack 을 썼는데, 이제 베이스 ATK 를 공유한다.
         // 그래야 "아군 공격력 증가" 같은 버프를 플레이어 ATK 하나에만 걸어도
         // 주먹과 소환수 마무리에 동시에 먹는다. 소환수의 개성은 배율이 유지한다.
-        var info = new DamageInfo(
-            _player.Stat.ATK * fin.damageMultiplier,
-            DamageType.Physical,
-            _player.gameObject,
-            false, 1f, true,
-            !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher",
-            false,
-            causesHitstun: fin.causesHitstun,
-            knockbackForce: fin.knockbackForce,
-            superArmorDamage: fin.superArmorDamage);
+        var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier, DamageType.Physical, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack); // 소환수 마무리 일격도 평타 갈래
 
         // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.
         //  · damageState 를 쓰면 그 태그가 재생되는 동안만 열린다 (MeleeDoll: Slash).

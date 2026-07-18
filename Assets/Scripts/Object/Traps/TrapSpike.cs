@@ -112,7 +112,7 @@ public class TrapSpike : MonoBehaviour
             if (!_hitTargets.Contains(health))
             {
                 _hitTargets.Add(health);
-                DamageInfo info = new DamageInfo(damage, DamageType.Physical, gameObject);
+                DamageInfo info = new DamageInfo(damage, DamageType.Physical, gameObject, category: DamageCategory.Trap);
                 health.GetDamage(info);
             }
         }

@@ -175,7 +175,7 @@ public class CharacterStatus : MonoBehaviour
     {
         var health = GetComponent<CharacterHealth>() ?? GetComponentInChildren<CharacterHealth>();
         if (health != null && !health.IsDead)
-            health.GetDamage(new DamageInfo(amount, type, null, false, 1f, false, popup));
+            health.GetDamage(new DamageInfo(amount, type, null, 1f, popup, category: DamageCategory.Debuff));
     }
 
     public void ApplySlow(string id, float reduction, float duration)
@@ -246,7 +246,7 @@ public class CharacterStatus : MonoBehaviour
                 {
                     float damagePercent = IsElite ? 0.06f : 0.12f;
                     var health = GetComponentInChildren<CharacterHealth>();
-                    if (health != null) health.GetDamage(new DamageInfo(health.CurHP * damagePercent, DamageType.Fixed, null));
+                    if (health != null) health.GetDamage(new DamageInfo(health.CurHP * damagePercent, DamageType.Fixed, null, category: DamageCategory.Debuff));
                     break;
                 }
             }
@@ -269,7 +269,7 @@ public class CharacterStatus : MonoBehaviour
                             var pcStat = pc.GetComponent<CharacterStat>();
                             if (pcStat != null) damage = pcStat.ATK * 1.5f;
                         }
-                        enemyStat.Health.GetDamage(new DamageInfo(damage, DamageType.Physical, gameObject));
+                        enemyStat.Health.GetDamage(new DamageInfo(damage, DamageType.Physical, gameObject, category: DamageCategory.Debuff));
                     }
                     bool isAlly = layerVal == Layers.Player || 
                                   layerVal == Layers.Army || 
@@ -397,7 +397,7 @@ public class CharacterStatus : MonoBehaviour
         // 폭발은 '터진 유닛이 속한 진영의 반대'가 아니라 그 유닛과 같은 진영을 친다 —
         // 적에게 걸린 비폭이니 적을 때린다. 자신도 범위에 들어가므로 같이 맞는다.
         LayerMask mask = IsEnemyTarget ? Layers.EnemyMask : Layers.PlayerArmy;
-        var info = new DamageInfo(StatusRules.BLOODPOP_DAMAGE, DamageType.BloodPop, null, false, 1f, false, "비폭");
+        var info = new DamageInfo(StatusRules.BLOODPOP_DAMAGE, DamageType.BloodPop, null, 1f, "비폭", category: DamageCategory.Debuff);
         box.Init(info, mask, 0.2f, StatusRules.BLOODPOP_FUSE, isAlly: !IsEnemyTarget);
     }
 

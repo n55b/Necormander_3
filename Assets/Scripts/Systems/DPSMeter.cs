@@ -69,7 +69,7 @@ public class DPSMeter : MonoBehaviour
             sourceName = info.type.ToString() + " Damage";
         }
 
-        string skillName = string.IsNullOrEmpty(info.popupText) ? (info.isBasicAttack ? "Basic Attack" : "Unknown Skill") : info.popupText;
+        string skillName = string.IsNullOrEmpty(info.popupText) ? (info.category == DamageCategory.BasicAttack ? "Basic Attack" : "Unknown Skill") : info.popupText;
 
         if (!_damageBySource.ContainsKey(sourceName))
         {

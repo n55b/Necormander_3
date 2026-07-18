@@ -305,7 +305,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             if (hitbox != null)
             {
                 // 데미지 0짜리 가짜 판정 전달, 0.05초 유지, duration(1초) 선딜레이 대기
-                DamageInfo dummyInfo = new DamageInfo(0f, DamageType.Physical, this.gameObject, false, 0f, false);
+                DamageInfo dummyInfo = new DamageInfo(0f, DamageType.Physical, this.gameObject, 0f);
                 hitbox.Init(dummyInfo, 0, 0.05f, duration, false);
                 
                 // 프리팹 스케일 조절 (기본 원 크기가 1.0이므로 2.5f정도로 키움)

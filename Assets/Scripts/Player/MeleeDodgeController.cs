@@ -182,8 +182,7 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         box.hitEffectAngle = angle; // 누락돼 있었다 — 없으면 히트 이펙트가 대쉬 방향과 무관하게 오른쪽으로 튄다
 
         float dmg = (_player.Stat != null ? _player.Stat.ATK : 0f) * mod.damageMultiplier;
-        var info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, false, 1f, true, "Dash",
-                                  causesHitstun: true, knockbackForce: mod.pushesEnemies ? mod.pushForce : 0f);
+        var info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, 1f, "Dash", causesHitstun: true, knockbackForce: mod.pushesEnemies ? mod.pushForce : 0f, category: DamageCategory.DashAttack);
 
         System.Action<CharacterHealth> onHit = null;
         if (mod.pushesEnemies)

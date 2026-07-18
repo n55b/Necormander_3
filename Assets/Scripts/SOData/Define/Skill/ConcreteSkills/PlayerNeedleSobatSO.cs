@@ -45,7 +45,7 @@ public class PlayerNeedleSobatSO : PlayerSkillSO
         box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
 
         float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Needle Sobat!");
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Needle Sobat!");
 
         List<Transform> pushedRoots = new List<Transform>();
         System.Action<CharacterHealth> onHit = (health) =>

@@ -53,7 +53,7 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
             box.transform.localScale = new Vector3(dashDistance, hitWidth, 1f);
             box.hitEffectAngle = angle;
 
-            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Tetsuzanko!");
+            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Tetsuzanko!");
 
             // 적중한 적을 돌진 방향으로 넉백(PushEnemy 가 취약 1스택도 부여) — 루트 기준 1회만, 코루틴은 히트박스보다
             // 오래 사는 player 에서 돌린다(히트박스가 먼저 파괴돼도 넉백이 끊기지 않도록).

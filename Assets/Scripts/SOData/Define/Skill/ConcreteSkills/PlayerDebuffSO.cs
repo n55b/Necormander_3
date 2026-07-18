@@ -29,7 +29,7 @@ public class PlayerDebuffSO : PlayerSkillSO
             BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
             box.transform.localScale = new Vector3(damageRadius * 2f, damageRadius * 2f, 1f);
             
-            DamageInfo info = new DamageInfo(baseDamage, ResolveDamageType(), user.gameObject, false, 1f, false, "Player Debuff", false, true, 2f);
+            DamageInfo info = new DamageInfo(baseDamage, ResolveDamageType(), user.gameObject, 1f, "Player Debuff", false, true, 2f);
             box.Init(info, Layers.EnemyMask, 0.5f, 0f, true);
         }
     }
