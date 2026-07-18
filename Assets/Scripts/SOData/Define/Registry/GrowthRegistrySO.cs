@@ -80,15 +80,6 @@ public class GrowthRegistrySO : ScriptableObject
             if (asset != null) treasures.Add(asset);
         }
 
-        // 4. 던지기 능력(ThrowAbilitySO) 검색 [추가]
-        specialAbilities.Clear();
-        string[] abilityGuids = UnityEditor.AssetDatabase.FindAssets("t:ThrowAbilitySO");
-        foreach (var guid in abilityGuids)
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<ThrowAbilitySO>(path);
-            if (asset != null) specialAbilities.Add(asset);
-        }
 
         // 5. 플레이어 스킬(PlayerSkillSO) 검색 [추가]
         playerSkills.Clear();

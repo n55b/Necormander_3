@@ -28,7 +28,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] public CameraManager cameraManager;
     [SerializeField] public HitStopManager hitStopManager;
 
-    [SerializeField] public ThrowImpactManager throwImpactManager;
     [SerializeField] public MouseManager mouseManager;
     [SerializeField] public MouseCursorManager mouseCursorManager;
 
@@ -149,7 +148,6 @@ public class GameManager : MonoBehaviour
         if (cameraManager == null) cameraManager = GetComponentInChildren<CameraManager>();
         if (hitStopManager == null) hitStopManager = GetComponentInChildren<HitStopManager>();
 
-        if (throwImpactManager == null) throwImpactManager = GetComponentInChildren<ThrowImpactManager>();
         if (mouseManager == null) mouseManager = GetComponentInChildren<MouseManager>();
         if (mouseCursorManager == null) mouseCursorManager = GetComponentInChildren<MouseCursorManager>();
         if (inventoryManager == null) inventoryManager = GetComponentInChildren<InventoryManager>();
@@ -182,7 +180,6 @@ public class GameManager : MonoBehaviour
         if (cameraManager != null) cameraManager.Initialize();
         if (hitStopManager != null) hitStopManager.Initialize();
 
-        if (throwImpactManager != null) throwImpactManager.Initialize();
         if (rewardManager != null) rewardManager.Initialize();
         if (offscreenEnemyArrowManager != null) offscreenEnemyArrowManager.Initialize();
 

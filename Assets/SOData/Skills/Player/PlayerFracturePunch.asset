@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PlayerFracturePunch
   m_EditorClassIdentifier: 
   skillName: 다리 부수기
-  description: 전방의 적에게 주먹을 내리쳐 골절 스택을 부여합니다.
+  description: "전방의 적에게 주먹을 내리쳐 기본 공격력의 130% 피해를 입힙니다."
   icon: {fileID: 0}
   cooldownTime: 5
   skillSound: {fileID: 0}

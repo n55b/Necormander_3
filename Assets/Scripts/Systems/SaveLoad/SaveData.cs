@@ -23,7 +23,9 @@ public class CoreSlotSaveData
     // 전부 같은 minionType 을 공유해서 로드 시 레지스트리의 첫 번째 항목으로 붕괴됐다.
     // 플레이어 스킬(equippedPlayerSkillNames)이 이미 쓰던 방식과 동일.
     public string equippedMinionName;
-    public string equippedThrowAbilityName; // ThrowAbilitySO name or itemName
+    // [26/07/17] 투척 철거 후에도 이 필드는 남긴다 — 지우면 기존 세이브가 깨진다.
+    // 읽는 쪽도 쓰는 쪽도 없는 죽은 필드다. 세이브 포맷을 갈아엎을 때 같이 지우면 된다.
+    public string equippedThrowAbilityName;
     public int evolutionIndex;
     public int quantity;
 }

@@ -92,11 +92,14 @@ public static class SkillCombatUtil
 
     /// <summary>
     /// 적을 pushDir 로 force 만큼 duration 동안 밀어낸다.
-    /// 슈퍼아머면 아머만 깎고 종료, 아니면 (옵션) 취약 부여 후 벽에 클램프하며 이동.
+    /// 슈퍼아머면 아머만 깎고 종료, 아니면 벽에 클램프하며 이동.
     /// 기존 5개 스킬(Tetsuzanko/FlickerJab/GuardBreak/NeedleSobat/Leap)에 복붙돼 있던 로직을 통합한 것.
+    ///
+    /// [26/07/17] applyVulnerability 인자는 삭제됐다 — 취약 시스템 자체가 없어졌다.
+    /// 슈퍼아머는 여전히 밀기를 막는다(= 강인함).
     /// </summary>
     public static IEnumerator PushEnemy(Transform enemy, Vector2 pushDir, float force, float duration,
-                                        bool applyVulnerability = true, float superArmorDamage = 30f)
+                                        float superArmorDamage = 30f)
     {
         if (enemy == null) yield break;
 
@@ -108,7 +111,6 @@ public static class SkillCombatUtil
         if (status != null)
         {
             if (status.HasSuperArmor) { status.DamageSuperArmor(superArmorDamage); yield break; }
-            if (applyVulnerability) status.ApplyVulnerability(true); // 실제로 밀려나므로 밀기에 묶인 취약 부여 작동
         }
 
         float elapsed = 0f;

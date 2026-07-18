@@ -1,24 +1,8 @@
 using UnityEngine;
 
-public enum SkillKeyword
-{
-    None = 0,
-    Vulnerability = 1, // 취약 (파괴, 밀치기, 끌어당김 등)
-    Debuff = 2,        // 디버프 (비폭, 출혈, 상처, 부식, 골절 등)
-    Strike = 3,        // 격파
-    Stun = 4,          // 기절
-    Smash = 5          // 강타
-}
-
-public enum DebuffType
-{
-    None = 0,
-    BloodPop,    // 비폭
-    Bleed,       // 출혈
-    Wound,       // 상처
-    Corrosion,   // 부식
-    Fracture     // 골절
-}
+// [26/07/17] SkillKeyword(취약/격파/강타)와 DebuffType 은 삭제됐다.
+// 스킬은 더 이상 상태이상을 부여하지 않는다 — 부여 수단은 유물/아이템 전용이다.
+// 스킬은 피해와 넉백/끌어당김만 담당한다.
 
 public abstract class SkillSO : ScriptableObject
 {
@@ -83,6 +67,23 @@ public abstract class SkillSO : ScriptableObject
 public abstract class PlayerSkillSO : SkillSO
 {
     // 추가적인 플레이어 전용 데이터 (스테미나 소모량 등)
+
+    [Header("Damage Type")]
+    [Tooltip("이 스킬이 물리인지 마법인지.\n" +
+             "물리 = 플레이어의 ATK * 스킬 계수, 마법 = MAGIC * 스킬 계수.\n" +
+             "지금 22개 스킬은 전부 물리(무투파)다. 마법 스킬은 아직 없다.")]
+    public AttackType skillDamageType = AttackType.Physical;
+
+    /// <summary>이 스킬의 피해 베이스값. 물리면 ATK, 마법이면 MAGIC 을 가져온다.</summary>
+    public float GetBaseDamage(CharacterStat stat)
+    {
+        if (stat == null) return 0f;
+        return skillDamageType == AttackType.Magic ? stat.MAGIC : stat.ATK;
+    }
+
+    /// <summary>이 스킬의 피해 표시 타입. 팝업 색과 향후 속성별 증감의 기준.</summary>
+    public DamageType ResolveDamageType()
+        => skillDamageType == AttackType.Magic ? DamageType.Magic : DamageType.Physical;
 
     [Header("Hand Skill Animation")]
     [Tooltip("Hand 오브젝트의 HandSkillAnimator에서 재생할 State/Clip 이름 (예: \"020_Physics_Leap\"). 비워두면 손 모션 없이 스킬만 발동됩니다.")]

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // 던질 때 빼고 마우스 커서는 동일
-public enum CursorType { Default, Targeting, Throw }
+public enum CursorType { Default, Targeting }
 
 public class MouseManager : MonoBehaviour
 {
@@ -35,7 +35,7 @@ public class MouseManager : MonoBehaviour
 
         // 2. 2D 마우스 위치 레이캐스트
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            LayerMask searchMask = allyLayer | Layers.ThrowableObjectMask;
+            LayerMask searchMask = allyLayer;
             RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, 0f, searchMask);
 
         if (hit.collider != null)

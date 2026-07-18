@@ -104,32 +104,64 @@ public class MinionSkillCaster : MonoBehaviour
         // hitEvent 를 적어놨어도 클립에 실제로 안 박혀 있으면 판정이 영영 안 열린다(조용히 데미지 0).
         // 적 쪽도 같은 문제를 같은 방식으로 푼다 — BaseAIPatternSO 가 HasAnimationEvent 로 확인하고
         // 없으면 임시 타이머로 폴백한다. 여기도 똑같이 태그 방식으로 되돌린다.
-        bool useEvent = !string.IsNullOrEmpty(hitEvent) && HasEvent(anim, sequence, hitEvent);
-        if (!useEvent && !string.IsNullOrEmpty(hitEvent))
+        // ── 판정창을 '언제 / 얼마나' 열지 결정한다. 우선순위 ─────────────────────────
+        //  (1) OnHitEvent + OnAttackEndEvent 둘 다 박힘 = 시간형 다단히트 규약.
+        //      OnHitEvent 에 열고, 창 길이 = 두 이벤트의 '실시간' 간격. 재생 속도가 바뀌면 간격도
+        //      같이 줄어들어(공속 자동 반영) hitCount 가 그 창 안에 균등 배분된다.
+        //  (2) SO 의 hitEvent 필드(예: DashDoll 단타) → OnHitEvent 순간에 연다.
+        //  (3) damageState 태그(예: MeleeDoll Slash) → 그 태그가 재생되는 '동안' 연다.
+        //  (4) 아무것도 없으면 → 시퀀스 전체를 판정창으로 가정(아트가 안 박은 폴백). 경고를 남긴다.
+        bool clipHasHit  = HasEvent(anim, sequence, "OnHitEvent");
+        bool clipHasEnd  = HasEvent(anim, sequence, "OnAttackEndEvent");
+        bool eventWindow = clipHasHit && clipHasEnd;                                    // (1)
+        bool useEvent    = !eventWindow && !string.IsNullOrEmpty(hitEvent)
+                           && HasEvent(anim, sequence, hitEvent);                       // (2)
+        bool tagMode     = !eventWindow && !useEvent && !string.IsNullOrEmpty(damageState); // (3)
+
+        if (!eventWindow && !useEvent && !string.IsNullOrEmpty(hitEvent))
         {
             Debug.LogWarning($"<color=orange>[MinionCaster]</color> '{visual.name}' 클립에 '{hitEvent}' 이벤트가 없습니다. " +
                              $"태그(damageState='{damageState}') 방식으로 폴백합니다. " +
                              $"Aseprite 에서 타격 프레임 셀의 user data 에 `event:{hitEvent}` 를 넣으면 정확해집니다.");
         }
 
-        if (useEvent)
+        // 클립에 이벤트가 하나라도 박혀 있으면 항상 relay 를 붙인다 — 없으면 Unity 가 "has no receiver!"
+        // 경고를 낸다. 창을 이벤트로 여는 (1)(2) 에서만 실제 핸들러를 연결하고, 그 외엔 조용히 흡수만 한다.
+        if (clipHasHit || clipHasEnd)
         {
             var relay = anim.gameObject.AddComponent<MinionAnimEventRelay>();
-            bool opened = false;
-            relay.OnHit = () =>
+            if (eventWindow)
             {
-                if (!opened)
+                // (1) 두 이벤트 사이가 판정창. 미리 계산해서 OnHit 순간 그 길이로 연다.
+                float span = ComputeEventSpan(anim, sequence, speed, hitWindow);
+                bool opened = false;
+                relay.OnHit = () => { if (!opened) { opened = true; onHitWindow?.Invoke(span); } };
+                relay.OnAttackEnd = () => onAttackEnd?.Invoke(); // 창 길이로도 닫히지만 이중 안전
+            }
+            else if (useEvent)
+            {
+                // (2) OnHitEvent 순간에 연다. 다단히트는 pulse 마다 재타격(적 공격 클립과 같은 계약).
+                bool opened = false;
+                relay.OnHit = () =>
                 {
-                    opened = true;
-                    // 첫 타격에 판정을 연다. 남은 시간 전체를 주고, 실제 타격 시점은 아래 pulse 가 정한다.
-                    onHitWindow?.Invoke(castDuration);
-                }
-                onHitPulse?.Invoke();
-            };
-            relay.OnAttackEnd = () => onAttackEnd?.Invoke();
+                    if (!opened) { opened = true; onHitWindow?.Invoke(castDuration); }
+                    onHitPulse?.Invoke();
+                };
+                relay.OnAttackEnd = () => onAttackEnd?.Invoke();
+            }
         }
 
-        StartCoroutine(SequenceRoutine(anim, sequence, damageState, speed, useEvent ? null : onHitWindow));
+        // (4) 이벤트도 태그도 없으면 시퀀스 전체를 창으로 가정하고 즉시 연다.
+        if (!eventWindow && !useEvent && !tagMode)
+        {
+            Debug.LogWarning($"<color=orange>[MinionCaster]</color> '{visual.name}' 에 OnHitEvent/OnAttackEndEvent 도, " +
+                             $"damageState 태그도 없습니다. 시퀀스 전체({castDuration:0.00}s)를 판정창으로 가정합니다. " +
+                             $"정확히 하려면 Aseprite 에 OnHitEvent(긴 판정이면 +OnAttackEndEvent)를 박으세요.");
+            onHitWindow?.Invoke(castDuration);
+        }
+
+        // (3) 태그 방식일 때만 SequenceRoutine 이 태그 경계에서 창을 연다. 나머지는 위에서 이미 처리됨.
+        StartCoroutine(SequenceRoutine(anim, sequence, damageState, speed, tagMode ? onHitWindow : null));
         return vfx;
     }
 
@@ -184,6 +216,38 @@ public class MinionSkillCaster : MonoBehaviour
                 if (ev.functionName == eventName) return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// 시퀀스에 박힌 첫 OnHitEvent → 첫 OnAttackEndEvent 사이의 '실시간' 길이(초)를 구한다.
+    /// 클립은 speed 배속으로 재생되므로 이벤트 간격도 그만큼 줄어든다(=공속이 자동 반영된다).
+    /// 이벤트가 여러 클립에 흩어져 있어도 앞 클립들의 재생시간을 누적해 정확히 계산한다.
+    /// 못 찾거나 순서가 뒤집혔으면 fallback(초)을 돌려준다.
+    /// </summary>
+    private static float ComputeEventSpan(Animator anim, string[] sequence, float speed, float fallback)
+    {
+        if (anim == null || anim.runtimeAnimatorController == null || sequence == null) return fallback;
+
+        float inv = 1f / Mathf.Max(0.01f, speed);
+        float cursor = 0f, hitAt = -1f, endAt = -1f;
+
+        foreach (var state in sequence)
+        {
+            AnimationClip clip = null;
+            foreach (var c in anim.runtimeAnimatorController.animationClips)
+                if (c != null && c.name == state) { clip = c; break; }
+            if (clip == null) continue;
+
+            foreach (var ev in clip.events)
+            {
+                float t = cursor + ev.time * inv;
+                if (ev.functionName == "OnHitEvent" && hitAt < 0f) hitAt = t;
+                else if (ev.functionName == "OnAttackEndEvent" && endAt < 0f) endAt = t;
+            }
+            cursor += clip.length * inv;
+        }
+
+        return (hitAt >= 0f && endAt > hitAt) ? endAt - hitAt : fallback;
     }
 
     private static float SequenceLength(Animator anim, string[] sequence)

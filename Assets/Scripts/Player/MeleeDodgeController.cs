@@ -91,16 +91,11 @@ public class MeleeDodgeController : MonoBehaviour
 
 private void StartDash(Vector2 moveInput, float currentFacingSign)
     {
-        // Cancel ongoing melee attack, throw charge, and active skill cast
+        // Cancel ongoing melee attack and active skill cast
         var meleeCtrl = _player.GetComponent<MeleeCombatController>();
         if (meleeCtrl != null && meleeCtrl.IsAttacking)
         {
             meleeCtrl.CancelAttack();
-        }
-        var throwCtrl = _player.GetComponentInChildren<ThrowController>();
-        if (throwCtrl != null && throwCtrl.IsCharging)
-        {
-            throwCtrl.InputHandler.ResetCharging();
         }
         _player.CancelActiveSkill();
 

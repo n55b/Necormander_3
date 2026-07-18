@@ -54,9 +54,9 @@ public class PlayerRapidPunchSO : PlayerSkillSO
                 BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
                 box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
 
-                float finalDamage = player.Stat.ATK * damageMultiplier;
+                float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
                 // isBasicAttack = true 로 설정
-                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, true, $"Rapid Punch {i+1}!");
+                DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, true, $"Rapid Punch {i+1}!");
 
                 System.Action<CharacterHealth> onHit = (health) => {
                     Debug.Log($"<color=yellow>[Physical]</color> 둥둥타 {i+1}타 적중! (기본 공격 판정)");

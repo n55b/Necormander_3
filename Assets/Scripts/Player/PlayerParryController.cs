@@ -114,11 +114,6 @@ public bool IsParrying => _isParrying;
         }
 
         // 투척 충전(차징) 중일 때도 캔슬하고 패리 시도
-        var throwCtrl = GetComponentInChildren<ThrowController>();
-        if (throwCtrl != null && throwCtrl.IsCharging)
-        {
-            throwCtrl.InputHandler.ResetCharging();
-        }
 
         // 플레이어 액티브 스킬 시전 중일 때도 캔슬하고 패리 시도
         if (_player.IsCastingSkill)

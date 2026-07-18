@@ -20,15 +20,15 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
 
         if (isSuperEliteBox)
         {
-            // 모든 좋은 보상(능력, 환골탈태, 보석) 풀에서 3개 추첨
+            // 모든 좋은 보상 풀에서 3개 추첨 (Ability 는 투척 철거와 함께 삭제됨)
             rewards = RewardProcessor.GenerateMixedCandidates(inven, data,
-                new List<RewardCategory> { RewardCategory.Ability, RewardCategory.Metamorphosis, RewardCategory.Gem });
+                new List<RewardCategory> { RewardCategory.Metamorphosis, RewardCategory.Gem });
         }
         else
         {
-            // [수정] 보스 보상과 동일하게 능력과 환골탈태를 섞어서 3개 추첨 (보석 제외)
+            // [수정] 보스 보상과 동일 (보석 제외). Ability 는 투척 철거와 함께 삭제됨
             rewards = RewardProcessor.GenerateMixedCandidates(inven, data,
-                new List<RewardCategory> { RewardCategory.Ability, RewardCategory.Metamorphosis });
+                new List<RewardCategory> { RewardCategory.Metamorphosis });
         }
 
         if (rewards.Count > 0)

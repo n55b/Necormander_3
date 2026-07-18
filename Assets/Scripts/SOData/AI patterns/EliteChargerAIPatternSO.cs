@@ -404,7 +404,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
     public override void Execute(BaseEntity entity)
     {
-        if (entity.CurrentState == AIState.Thrown || entity.CurrentState == AIState.Caught) return;
 
         if (entity.Target == null)
         {
@@ -499,7 +498,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
                 var agent = entity.GetComponent<NavMeshAgent>();
 
-                if (dist <= entity.Stats.ATKRANGE && entity.AtkTimer >= entity.Stats.ATKSPD)
+                if (dist <= entity.Stats.ATKRANGE && entity.AtkTimer >= entity.Stats.AttackInterval)
                 {
                     entity.CurrentState = AIState.Attack;
                     StopPursuitBurst(entity);
@@ -1142,7 +1141,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 if (status != null)
                 {
                     status.ApplyKnockback(pushDir, howlKnockbackForce, howlKnockbackDuration);
-                    status.SetDebuffBool(DebuffBoolType.Hitstunned, howlHitstunDuration);
+                    status.ApplyStatus(StatusType.Hitstun, howlHitstunDuration);
                 }
 
                 if (hit.gameObject.layer == LayerMask.NameToLayer("Player") && CameraManager.Instance != null)
@@ -1293,7 +1292,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             hitPillar.CollapseInstantly();
             if (entity.Stats != null && entity.Stats.Status != null)
             {
-                entity.Stats.Status.SetDebuffBool(DebuffBoolType.Stunned, pillarChargeStunDuration);
+                entity.Stats.Status.ApplyStatus(StatusType.Stun, pillarChargeStunDuration);
             }
         }
         else if (hitSomething)
@@ -1301,7 +1300,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             // 벽 혹은 기둥이 없는 상태에서의 충돌: 짧은 기절만 부여
             if (entity.Stats != null && entity.Stats.Status != null)
             {
-                entity.Stats.Status.SetDebuffBool(DebuffBoolType.Stunned, wallChargeStunDuration);
+                entity.Stats.Status.ApplyStatus(StatusType.Stun, wallChargeStunDuration);
             }
         }
     }

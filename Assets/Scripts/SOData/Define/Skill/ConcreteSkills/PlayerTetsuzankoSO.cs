@@ -40,7 +40,7 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
         Vector2 targetPos = SkillCombatUtil.GetSafeDestination(startPos, dir, dashDistance);
 
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        float finalDamage = player.Stat.ATK * damageMultiplier;
+        float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
 
         // [변경] 기존엔 시전 순간 1프레임짜리 OverlapBox 를 '플레이어 중심'으로 깔아(전방 도달거리 = dashDistance/2 뿐)
         // 판정이 빡빡했다. 이제 돌진 복도 전체(길이 = dashDistance)를 덮는 히트박스를 깔아, 돌진하는 동안 그 안에
@@ -53,7 +53,7 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
             box.transform.localScale = new Vector3(dashDistance, hitWidth, 1f);
             box.hitEffectAngle = angle;
 
-            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Tetsuzanko!");
+            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Tetsuzanko!");
 
             // 적중한 적을 돌진 방향으로 넉백(PushEnemy 가 취약 1스택도 부여) — 루트 기준 1회만, 코루틴은 히트박스보다
             // 오래 사는 player 에서 돌린다(히트박스가 먼저 파괴돼도 넉백이 끊기지 않도록).

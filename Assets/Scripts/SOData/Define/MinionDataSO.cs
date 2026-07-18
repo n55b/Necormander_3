@@ -12,9 +12,9 @@ public abstract class MinionDataSO : ScriptableObject
     public string minionName;
     public Sprite minionIcon;   // 대가리만 달린 이미지
 
-    [Header("기본 능력치")]
-    [Tooltip("소환수는 이 값에 스킬 배수를 곱해 피해를 낸다. 적은 CharacterStat 이 그대로 쓴다.")]
-    public float attack = 10f;
+    // [26/07/17] attack 필드는 EnemyMinionDataSO 로 내려갔다.
+    // 소환수(메인/서브)는 이제 플레이어의 ATK 를 그대로 가져다 쓰므로 자기 공격력이 없다.
+    // 적만 자기 공격력이 필요해서 적 전용 데이터로 이사시켰다.
 
     [Header("UI & Reward Settings")]
     public int shopCost = 150;

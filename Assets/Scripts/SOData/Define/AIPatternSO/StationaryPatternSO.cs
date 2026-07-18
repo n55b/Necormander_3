@@ -16,8 +16,6 @@ public class StationaryPatternSO : AIPatternSO
     public override void Execute(BaseEntity entity)
     {
         // 아무것도 하지 않음 (타겟팅, 상태 전환, 물리 밀치기 모두 배제)
-        // 오직 던져진 상태(Thrown)일 때만 기본 동작(중단)을 따릅니다.
-        if (entity.CurrentState == AIState.Thrown) return;
     }
 
     protected override void UpdateTargeting(BaseEntity entity) { }

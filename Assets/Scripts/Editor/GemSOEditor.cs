@@ -72,44 +72,23 @@ public class GemSOEditor : Editor
     }
 
     /// <summary>
-    /// 카테고리(Stack/Bool) 선택에 따라 필요한 필드만 인스펙터에 그립니다.
+    /// 효과의 필드들을 인스펙터에 그립니다.
+    ///
+    /// [26/07/17] 원래 여기에 DebuffCategory(Stack/Bool) 에 따라 debuffType/boolType 을 갈라 그리는
+    /// 분기가 있었는데, GemEffect 하위 클래스 중 'category' 필드를 가진 게 하나도 없어서
+    /// 그 분기는 한 번도 도달한 적이 없었다. 구 디버프 철거와 함께 같이 지웠다.
     /// </summary>
     private void DrawConditionalProperties(SerializedProperty element)
     {
-        // 1. 카테고리 필드 찾기
-        SerializedProperty categoryProp = element.FindPropertyRelative("category");
-        
-        // 카테고리 필드가 없는 일반 효과(GemStatEffect 등)는 기본 방식으로 그림
-        if (categoryProp == null)
+        // 상속된 필드들을 순회하며 그림 (m_Script 제외)
+        SerializedProperty iterator = element.Copy();
+        SerializedProperty endProperty = iterator.GetEndProperty();
+        bool enterChildren = true;
+        while (iterator.NextVisible(enterChildren) && !SerializedProperty.EqualContents(iterator, endProperty))
         {
-            // 상속된 필드들을 순회하며 그림 (m_Script 제외)
-            SerializedProperty iterator = element.Copy();
-            SerializedProperty endProperty = iterator.GetEndProperty();
-            bool enterChildren = true;
-            while (iterator.NextVisible(enterChildren) && !SerializedProperty.EqualContents(iterator, endProperty))
-            {
-                if (iterator.name == "m_Script") continue;
-                EditorGUILayout.PropertyField(iterator, true);
-                enterChildren = false;
-            }
-            return;
-        }
-
-        // 2. 카테고리 필드 먼저 그리기
-        EditorGUILayout.PropertyField(categoryProp);
-
-        // 3. 값에 따라 조건부 그리기
-        DebuffCategory category = (DebuffCategory)categoryProp.enumValueIndex;
-
-        if (category == DebuffCategory.Stack)
-        {
-            EditorGUILayout.PropertyField(element.FindPropertyRelative("debuffType"));
-            EditorGUILayout.PropertyField(element.FindPropertyRelative("stackAmount"));
-        }
-        else
-        {
-            EditorGUILayout.PropertyField(element.FindPropertyRelative("boolType"));
-            EditorGUILayout.PropertyField(element.FindPropertyRelative("duration"));
+            if (iterator.name == "m_Script") continue;
+            EditorGUILayout.PropertyField(iterator, true);
+            enterChildren = false;
         }
     }
 

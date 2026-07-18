@@ -160,8 +160,8 @@ public class OneTwoCounterRuntime : MonoBehaviour
         BaseHitBox box = Instantiate(_so.hitBoxPrefab, pos, Quaternion.Euler(0, 0, angle));
         box.transform.localScale = new Vector3(_so.jabDistance, _so.jabWidth, 1f);
 
-        float dmg = _player.Stat.ATK * _so.jabMultiplier;
-        DamageInfo info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, false, 1f, false, $"Jab {index}!");
+        float dmg = _so.GetBaseDamage(_player.Stat) * _so.jabMultiplier;
+        DamageInfo info = new DamageInfo(dmg, _so.ResolveDamageType(), _player.gameObject, false, 1f, false, $"Jab {index}!");
         box.Init(info, Layers.EnemyMask, 0.15f, 0f, true, null);
     }
 
@@ -190,15 +190,9 @@ public class OneTwoCounterRuntime : MonoBehaviour
             BaseHitBox box = Instantiate(_so.hitBoxPrefab, pos, Quaternion.Euler(0, 0, angle));
             box.transform.localScale = new Vector3(_so.uppercutDistance, _so.uppercutWidth, 1f);
 
-            float dmg = _player.Stat.ATK * _so.uppercutMultiplier;
-            DamageInfo info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, false, 1f, false, "Counter Hook!");
-            GameObject attacker = _player.gameObject;
-            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, (health) =>
-            {
-                var stat = health.GetComponent<CharacterStat>() ?? health.GetComponentInParent<CharacterStat>();
-                if (stat != null && stat.Status != null)
-                    stat.Status.ConsumeVulnerability(SkillKeyword.Smash, attacker, true); // 소모(강타)
-            });
+            float dmg = _so.GetBaseDamage(_player.Stat) * _so.uppercutMultiplier;
+            DamageInfo info = new DamageInfo(dmg, _so.ResolveDamageType(), _player.gameObject, false, 1f, false, "Counter Hook!");
+            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true);
         }
 
         // 카운터 타격감

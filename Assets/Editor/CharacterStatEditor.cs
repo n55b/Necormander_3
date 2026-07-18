@@ -19,56 +19,48 @@ public class CharacterStatEditor : Editor
             
             EditorGUILayout.FloatField("CUR HP", stat.CURHP);
             EditorGUILayout.FloatField("MAX HP", stat.MAXHP);
-            EditorGUILayout.FloatField("ATK", stat.ATK);
-            EditorGUILayout.FloatField("ATK SPD", stat.ATKSPD);
-            EditorGUILayout.FloatField("ATK RANGE", stat.ATKRANGE);
-            EditorGUILayout.FloatField("DEF", stat.DEF);
+            EditorGUILayout.FloatField("ATK (물리)", stat.ATK);
+            EditorGUILayout.FloatField("MAGIC (마법)", stat.MAGIC);
+            EditorGUILayout.FloatField("ATK SPD (회/초)", stat.ATKSPD);
+            EditorGUILayout.FloatField("ATK INTERVAL (초)", stat.AttackInterval);
+            EditorGUILayout.FloatField("DEF % (상한 75)", stat.DEF);
             EditorGUILayout.FloatField("MOVE SPEED", stat.MOVESPEED);
+            EditorGUILayout.FloatField("CRIT CHANCE %", stat.CRIT_CHANCE);
+            EditorGUILayout.FloatField("CRIT DAMAGE %", stat.CRIT_DAMAGE);
             EditorGUILayout.FloatField("EVASION", stat.EVASION);
-            EditorGUILayout.FloatField("MISS CHANCE", stat.MISS_CHANCE);
-            EditorGUILayout.FloatField("RESPAWN BONUS", stat.RESPAWN_BONUS);
-            
+            EditorGUILayout.FloatField("ACCURACY", stat.ACCURACY);
+
+            if (stat.IsPlayer)
+            {
+                EditorGUILayout.FloatField("SKILL CDR", stat.SKILL_CDR);
+                EditorGUILayout.FloatField("DASH CDR", stat.DASH_CDR);
+                EditorGUILayout.FloatField("BASIC ATK MULT", stat.BASIC_ATK_MULT);
+            }
+            else
+            {
+                EditorGUILayout.FloatField("ATK RANGE", stat.ATKRANGE);
+                EditorGUILayout.EnumPopup("ATTACK TYPE", stat.ATTACK_TYPE);
+            }
+
             EditorGUI.EndDisabledGroup();
             
-            // --- [추가된 디버프/특수 상태 모니터링] ---
+            // --- [상태이상/쉴드 모니터링] ---
+            // Phase 5 에서 상태이상 5종이 들어오면 여기에 줄을 추가하면 된다.
             EditorGUILayout.Space(10);
-            EditorGUILayout.LabelField("🩸 Debuff & Shield Status", EditorStyles.boldLabel);
-            
+            EditorGUILayout.LabelField("🩸 Status & Shield", EditorStyles.boldLabel);
+
             EditorGUILayout.BeginVertical("box");
             if (stat.Status != null)
             {
-                EditorGUILayout.LabelField($"FLAT DEF (고정 방어력): {stat.FLAT_DEF:F2}");
+                if (stat.Status.HasStatus(StatusType.Stun))
+                    EditorGUILayout.LabelField("- Stunned (기절)");
+                if (stat.Status.HasStatus(StatusType.Hitstun))
+                    EditorGUILayout.LabelField("- Hitstunned (경직)");
+
                 EditorGUILayout.Space(5);
-                
-                if (stat.Status.GetDebuffBool(DebuffBoolType.Bleeding))
-                    EditorGUILayout.LabelField($"- Bleeding (Tier: {stat.Status.GetDebuffTier(DebuffBoolType.Bleeding)}) -> Taking Bleed DOT");
-                
-                if (stat.Status.GetDebuffBool(DebuffBoolType.Wounded))
-                {
-                    int t = stat.Status.GetDebuffTier(DebuffBoolType.Wounded);
-                    float amp = t == 1 ? 15f : t == 2 ? 30f : 45f;
-                    EditorGUILayout.LabelField($"- Wounded (Tier: {t}) -> Damage Amp: +{amp}%");
-                }
-                
-                if (stat.Status.GetDebuffBool(DebuffBoolType.Corroded))
-                {
-                    int t = stat.Status.GetDebuffTier(DebuffBoolType.Corroded);
-                    float red = t == 1 ? 12f : t == 2 ? 16f : 20f;
-                    EditorGUILayout.LabelField($"- Corroded (Tier: {t}) -> Flat Def Reduction: -{red}");
-                }
-                
-                if (stat.Status.GetDebuffBool(DebuffBoolType.Fractured))
-                {
-                    int t = stat.Status.GetDebuffTier(DebuffBoolType.Fractured);
-                    float slow = t == 1 ? 15f : t == 2 ? 30f : 45f;
-                    EditorGUILayout.LabelField($"- Fractured (Tier: {t}) -> Move/Atk Speed: -{slow}%");
-                }
-                if (stat.Status.GetDebuffBool(DebuffBoolType.Stunned))
-                    EditorGUILayout.LabelField("- Stunned");
-                    
-                EditorGUILayout.Space(5);
+                EditorGUILayout.LabelField($"Super Armor: {stat.Status.SuperArmorGauge:F0} / {stat.Status.MaxSuperArmorGauge:F0}" +
+                                           (stat.Status.HasSuperArmor ? "" : "  (파괴됨)"));
                 EditorGUILayout.LabelField($"Total Shield: {stat.Status.TotalShield:F2}");
-                EditorGUILayout.LabelField($"Vulnerability Stacks: {stat.Status.VulnerabilityStacks}");
             }
             EditorGUILayout.EndVertical();
             

@@ -20,6 +20,8 @@ public class TextFloating : MonoBehaviour
     [SerializeField] private float moveSpeed;
     [SerializeField] private float fadeTime;
     [SerializeField] private float displaytime;
+    [SerializeField] private float punchDuration;
+    [SerializeField] private float CiriPunchDuration;
     private float timer;
     private TMPTextEffectPlayer effectPlayer;
     private static readonly List<TextEffectRange> tempEffectRanges = new List<TextEffectRange>();
@@ -35,14 +37,14 @@ public class TextFloating : MonoBehaviour
         if (effectPlayer == null) effectPlayer = gameObject.AddComponent<TMPTextEffectPlayer>();
     }
 
-public void SetUp(string _text, Color _color, Transform _target, bool isCritical = false, float scaleMultiplier = 1f)
+    public void SetUp(string _text, Color _color, Transform _target, bool isCritical = false, float scaleMultiplier = 1f)
     {
         DOTween.Kill(textMesh); // Kill previous tween
         DOTween.Kill(rectTransform);
 
         timer = displaytime;
 
-        if(textMesh == null)
+        if (textMesh == null)
             textMesh = GetComponent<TextMeshProUGUI>();
 
         string parsedText = TextEffectParser.Parse(_text, tempEffectRanges);
@@ -68,7 +70,7 @@ public void SetUp(string _text, Color _color, Transform _target, bool isCritical
 
             // 2. Powerful Animation Combo
             // Scale Punch ("Pop" effect)
-            rectTransform.DOPunchScale(Vector3.one * 1.2f, 0.3f, 10, 1);
+            rectTransform.DOPunchScale(Vector3.one * CiriPunchDuration, 0.3f, 10, 1);
             // Rotation Shake ("Impact" effect)
             rectTransform.DOShakeRotation(0.3f, 30f, 20, 90f);
 
@@ -84,7 +86,7 @@ public void SetUp(string _text, Color _color, Transform _target, bool isCritical
 
             // Normal Punch
             rectTransform.DOPunchPosition(new Vector3(1f, 1f, 1f), 0.5f, 10, 1);
-            rectTransform.DOPunchScale(Vector3.one * 0.2f, 0.25f, 8, 0.6f);
+            rectTransform.DOPunchScale(Vector3.one * punchDuration, 0.25f, 8, 0.6f);
         }
         effectPlayer.ApplyEffects(tempEffectRanges);
     }

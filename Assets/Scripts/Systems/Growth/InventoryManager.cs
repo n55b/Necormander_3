@@ -13,10 +13,9 @@ public class InventoryManager : MonoBehaviour
     {
         public bool IsShattered; 
         public MinionDataSO EquippedMinion; 
-        public ThrowAbilitySO EquippedThrowAbility;
         public int Quantity;                // 미니언 마리수
         
-        public bool IsEmpty => !IsShattered && EquippedMinion == null && EquippedThrowAbility == null;
+        public bool IsEmpty => !IsShattered && EquippedMinion == null;
 
         public MinionDataSO GetCurrentMinionData() => EquippedMinion;
 
@@ -40,7 +39,6 @@ public class InventoryManager : MonoBehaviour
                     localizedDescription = baseData != null ? baseData.localizedDescription : null
                 };
             }
-            if (EquippedThrowAbility != null) return new GrowthItemData { itemName = EquippedThrowAbility.itemName, description = EquippedThrowAbility.description, icon = EquippedThrowAbility.icon, rarity = EquippedThrowAbility.rarity, localizedItemName = EquippedThrowAbility.localizedItemName, localizedDescription = EquippedThrowAbility.localizedDescription };
             return null;
         }
     }
@@ -88,9 +86,6 @@ public class InventoryManager : MonoBehaviour
     [Tooltip("위 보석들의 대상 직업 (순서대로 매칭)")]
     [SerializeField] private List<CommandData> debugStartingGems_TargetJobs = new List<CommandData>();
 
-    [Space(10)]
-    [Tooltip("시작 시 장착할 투척 능력 리스트")]
-    [SerializeField] private List<ThrowAbilitySO> debugStartingAbilities = new List<ThrowAbilitySO>();
     // ======================================================
 
     public System.Action OnGemTreeUpdated;
@@ -112,9 +107,6 @@ public class InventoryManager : MonoBehaviour
         public float AttackBonus = 0f;
         public float HealthBonus = 0f;
         public float AttackSpeedBonus = 0f;
-        public float RespawnTimeBonus = 0f;
-        public float ParabolicEffectMultiplierBonus = 0f;
-        public float ParabolicFlightTimeMultiplierBonus = 0f;
         
         public Dictionary<GemUniqueType, int> UniqueEffectCounts = new Dictionary<GemUniqueType, int>();
         
@@ -126,16 +118,11 @@ public class InventoryManager : MonoBehaviour
             AttackBonus = 0f;
             HealthBonus = 0f;
             AttackSpeedBonus = 0f;
-            RespawnTimeBonus = 0f;
-            ParabolicEffectMultiplierBonus = 0f;
-            ParabolicFlightTimeMultiplierBonus = 0f;
             UniqueEffectCounts.Clear();
             SynergyCounts.Clear();
         }
     }
 
-    private List<ThrowAbilitySO> _activeAbilities = new List<ThrowAbilitySO>();
-    public List<ThrowAbilitySO> ActiveAbilities => _activeAbilities;
 
     public void Initialize(bool hasSave)
     {
@@ -144,7 +131,6 @@ public class InventoryManager : MonoBehaviour
         {
             Slots.Add(new CoreSlot());
         }
-        UpdateActiveAbilities();
         InitializeGemTree();
 
         Debug.Log("<color=cyan>[InventoryManager]</color> Initialized.");
@@ -385,9 +371,6 @@ public class InventoryManager : MonoBehaviour
             case StatType.Attack: targetStats.AttackBonus += modifier.Value; break;
             case StatType.Health: targetStats.HealthBonus += modifier.Value; break;
             case StatType.AttackSpeed: targetStats.AttackSpeedBonus += modifier.Value; break;
-            case StatType.RespawnTime: targetStats.RespawnTimeBonus += modifier.Value; break;
-            case StatType.ParabolicEffectMultiplier: targetStats.ParabolicEffectMultiplierBonus += modifier.Value; break;
-            case StatType.ParabolicFlightTimeMultiplier: targetStats.ParabolicFlightTimeMultiplierBonus += modifier.Value; break;
             default: break;
         }
     }
@@ -406,7 +389,7 @@ public class InventoryManager : MonoBehaviour
         return GetUniqueEffectCount(type) > 0;
     }
 
-    public float GetAggregatedGemBonus(CommandData job, StatType type)
+    public float GetAggregatedGemBonus(StatType type)
     {
         // [수정] job 파라미터를 무시하고 전역 합산 스탯을 반환하여 모든 미니언에게 동일 적용
         switch (type)
@@ -414,9 +397,6 @@ public class InventoryManager : MonoBehaviour
             case StatType.Attack: return _globalGemStats.AttackBonus;
             case StatType.Health: return _globalGemStats.HealthBonus;
             case StatType.AttackSpeed: return _globalGemStats.AttackSpeedBonus;
-            case StatType.RespawnTime: return _globalGemStats.RespawnTimeBonus;
-            case StatType.ParabolicEffectMultiplier: return _globalGemStats.ParabolicEffectMultiplierBonus;
-            case StatType.ParabolicFlightTimeMultiplier: return _globalGemStats.ParabolicFlightTimeMultiplierBonus;
             default: return 0f;
         }
     }
@@ -565,19 +545,6 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        // 3. 투척 능력 자동 장착 (장착되지 않은 능력만 추가)
-        foreach (var ability in debugStartingAbilities)
-        {
-            if (ability == null) continue;
-            if (IsAbilityAlreadyEquipped(ability)) continue;
-
-            int emptyIdx = Slots.FindIndex(s => s.IsEmpty);
-            if (emptyIdx != -1)
-            {
-                EquipThrowAbility(emptyIdx, ability);
-            }
-        }
-
         // [수정] 유저 요청에 의해 미니언이 없을 때 기본 전사 1마리를 추가하는 로직을 제거(주석 처리)합니다.
         // if (!Slots.Exists(s => s.EquippedMinion != null)) AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
 
@@ -600,15 +567,6 @@ public class InventoryManager : MonoBehaviour
         }
         // 찾지 못했다면 기본값 반환
         return CommandData.SkeletonWarrior;
-    }
-
-    public void UpdateActiveAbilities()
-    {
-        _activeAbilities.Clear();
-        foreach (var slot in Slots)
-        {
-            if (slot.EquippedThrowAbility != null) _activeAbilities.Add(slot.EquippedThrowAbility);
-        }
     }
 
     #region Gold System
@@ -656,23 +614,10 @@ public class InventoryManager : MonoBehaviour
             if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
         }
 
-        Slots[slotIndex].EquippedThrowAbility = null;
         Slots[slotIndex].EquippedMinion = minion;
         Slots[slotIndex].Quantity = amount;
 
         OnMinionUpdated?.Invoke();
-        UpdateActiveAbilities();
-        return true;
-    }
-
-    public bool EquipThrowAbility(int slotIndex, ThrowAbilitySO ability)
-    {
-        if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
-        if (ActiveAbilities.Exists(a => a.GetType() == ability.GetType())) return false;
-        Slots[slotIndex].EquippedMinion = null;
-        Slots[slotIndex].Quantity = 0;
-        Slots[slotIndex].EquippedThrowAbility = ability;
-        UpdateActiveAbilities();
         return true;
     }
 
@@ -682,7 +627,6 @@ public class InventoryManager : MonoBehaviour
         {
             Slots[slotIndex].IsShattered = true;
             Slots[slotIndex].EquippedMinion = null;
-            Slots[slotIndex].EquippedThrowAbility = null;
         }
     }
     #endregion
@@ -718,7 +662,6 @@ public class InventoryManager : MonoBehaviour
             var slotData = new CoreSlotSaveData();
             slotData.isShattered = slot.IsShattered;
             slotData.equippedMinionName = slot.EquippedMinion != null ? slot.EquippedMinion.name : "";
-            slotData.equippedThrowAbilityName = slot.EquippedThrowAbility != null ? slot.EquippedThrowAbility.name : "";
             slotData.evolutionIndex = 0;
             slotData.quantity = slot.Quantity;
             data.slots.Add(slotData);
@@ -819,11 +762,6 @@ public class InventoryManager : MonoBehaviour
                     Debug.LogWarning($"<color=orange>[InventoryManager]</color> 세이브의 미니언 '{slotData.equippedMinionName}' 을 GrowthRegistry 에서 찾지 못했습니다. 슬롯을 비웁니다.");
             }
 
-            if (!string.IsNullOrEmpty(slotData.equippedThrowAbilityName))
-            {
-                var ability = registry.specialAbilities.Find(a => a.name == slotData.equippedThrowAbilityName || a.itemName == slotData.equippedThrowAbilityName);
-                coreSlot.EquippedThrowAbility = ability as ThrowAbilitySO;
-            }
 
             coreSlot.Quantity = slotData.quantity;
             Slots.Add(coreSlot);
@@ -850,7 +788,6 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        UpdateActiveAbilities();
 
         // Treasures 로드
         TreasureStacks.Clear();
@@ -1027,12 +964,6 @@ public class InventoryManager : MonoBehaviour
             }
         }
         return count;
-    }
-
-    private bool IsAbilityAlreadyEquipped(ThrowAbilitySO ability)
-    {
-        if (ability == null) return false;
-        return Slots.Exists(s => s.EquippedThrowAbility == ability);
     }
 
     private bool HasMinion(CommandData jobType)

@@ -12,12 +12,10 @@ public class DataManager : MonoBehaviour
     public GrowthRegistrySO GET_GROWTH_REGISTRY() => growthRegistry;
     public List<GrowthItemSO> GET_ALL_GROWTH_ITEMS() => growthRegistry != null ? growthRegistry.GetAllItems() : new List<GrowthItemSO>();
     [SerializeField] private MinionRegistrySO minionRegistry;
-    [SerializeField] private ThrowEffectRegistrySO throwEffectRegistry;
     [SerializeField] private AIPatternSO defaultAIPattern; 
     [SerializeField] private ShopRegistrySO shopRegistry;
     [SerializeField] private EnemyClusterRegistrySO clusterRegistry;
 
-    public ThrowEffectRegistrySO THROW_EFFECT_REGISTRY => throwEffectRegistry;
     public AIPatternSO DEFAULT_AI_PATTERN => defaultAIPattern;
 
     // 데이터 게터
