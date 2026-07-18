@@ -177,7 +177,6 @@ GameObject:
   - component: {fileID: 676782083931588705}
   - component: {fileID: 4720239195125410995}
   - component: {fileID: 3049197156839325123}
-  - component: {fileID: 3479654497626501506}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -269,23 +268,6 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &3479654497626501506
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1757526723192270232}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0362a3df535a0fe448862acb542eae1c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  persistAcrossScenes: 0
-  visualPanel: {fileID: 1757526723192270232}
-  fillImage: {fileID: 7591692039072866238}
-  normalColor: {r: 0.2, g: 0.6, b: 1, a: 1}
-  fullChargeColor: {r: 0.6, g: 0.9, b: 1, a: 1}
 --- !u!1 &2218425221562843783
 GameObject:
   m_ObjectHideFlags: 0
@@ -542,15 +524,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseMaxHP: 100
   baseAtk: 10
+  baseMagic: 0
   baseAtkSpd: 1
-  baseAtkRange: 2
   baseDef: 0
-  baseFlatDef: 0
   baseMoveSpeed: 5
+  baseCritChance: 0
+  baseCritDamage: 150
   baseEvasion: 0
-  baseMissChance: 0
-  baseThrowDamage: 5
-  jobType: 0
+  baseAccuracy: 1
+  baseAtkRange: 2
+  baseAttackType: 0
+  baseSkillCdr: 0
+  baseDashCdr: 0
+  baseBasicAtkMult: 1
   setDoneActions:
     m_PersistentCalls:
       m_Calls: []
@@ -663,7 +649,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8779702235576999204}
   - component: {fileID: 3500957619099795533}
-  - component: {fileID: 1950478616291504012}
   m_Layer: 0
   m_Name: TrajectoryGuide
   m_TagString: Untagged
@@ -794,31 +779,6 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
---- !u!114 &1950478616291504012
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4607958101720925461}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 434c4ebb0db2531489c84964e01265b1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  numPoints: 50
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  fullChargeColor: {r: 0, g: 1, b: 0, a: 1}
-  overchargeColor: {r: 1, g: 0.2, b: 0.2, a: 1}
-  fullOverchargeColor: {r: 1, g: 0.8, b: 0, a: 1}
-  rangeLineRenderer: {fileID: 6713288937476526914}
-  rangeColor: {r: 0.5, g: 0.8, b: 1, a: 0.5}
-  rangeCirclePoints: 60
-  jumpHeight: 1.5
-  straightHeight: 0.1
-  minSpeed: 2
-  maxSpeed: 18
-  fullChargeSpeed: 25
 --- !u!1 &5667133705545565858
 GameObject:
   m_ObjectHideFlags: 0
@@ -1593,24 +1553,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stat: {fileID: 5914193569906731681}
-  throwRange: 5
-  throwRangeBonus: 0
-  throwController: {fileID: 0}
-  throwChargeTime: 1
-  activeSkillManager: {fileID: 0}
   staminaSystem: {fileID: 0}
   summonNum: 3
   summonRange: 5
   invincibilityDuration: 1
   invincibilityBlinkInterval: 0.1
   P_State: 0
-  minThrowChargeMultiplier: 1
-  maxThrowChargeMultiplier: 2
-  bonusThrowChargeTime: 0
-  chargeEfficiencyMultiplier: 0
-  overchargeTimeLimit: 0
-  bonusThrowEffectMultiplier: 0
-  chargeMoveSpeedMultiplier: 0.5
   interactRange: 1.5
   interactableLayer:
     serializedVersion: 2
@@ -1740,14 +1688,12 @@ MonoBehaviour:
   telegraphPrefab: {fileID: 4280725952711924581, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
   attackSpawnPoint: {fileID: 6148272567664776443}
   lightAttackDashMultiplier: 1
-  mediumAttackDashMultiplier: 1.5
   comboResetTime: 1
   attackCooldown: 0.3
   lightHitboxSize: {x: 2.7, y: 1.7}
-  mediumHitboxSize: {x: 3, y: 1.7}
   lightTelegraphDuration: 0.2
-  mediumTelegraphDuration: 0.4
   hideBasicAttackTelegraph: 1
+  hideFinisherTelegraph: 0
 --- !u!114 &7957941004026145679
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1778,9 +1724,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5701508bce8e7a44b98dbba1ef83d3b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  equippedMinions: []
+  mainSummon: {fileID: 0}
+  subSummon: {fileID: 0}
   equippedPlayerSkills: []
-  skillTimeout: 8
 --- !u!114 &3445112678206032524
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -15,7 +15,7 @@ public class PlayerSkillController : MonoBehaviour
     private float[] playerSkillCooldownEnds = new float[3];
     private float _mainSummonCooldownEnd;
 
-    /// <summary>스페이스바 액티브 + 대쉬/평타 변화를 담당하는 소환수. 없으면 null.</summary>
+    /// <summary>R키 액티브 + 대쉬/평타 변화를 담당하는 소환수. 없으면 null.</summary>
     public MainMinionDataSO MainSummon => mainSummon;
     /// <summary>상시 패시브만 제공하는 소환수. 실체화하지 않는다. 없으면 null.</summary>
     public SubMinionDataSO SubSummon => subSummon;
@@ -131,7 +131,7 @@ public class PlayerSkillController : MonoBehaviour
     }
 
     /// <summary>
-    /// 스페이스바: 장착된 소환수의 스킬을 조건 없이 발동한다. 쿨타임만 본다.
+    /// R키: 장착된 소환수의 스킬을 조건 없이 발동한다. 쿨타임만 본다.
     /// 소환수는 필드에 상주하지 않으므로 시전 시점에 임시로 실체화했다가 소멸시킨다.
     /// </summary>
     public void ExecuteMinionSkill(Transform playerTransform)
@@ -181,7 +181,7 @@ public class PlayerSkillController : MonoBehaviour
     public float GetPlayerSkillCooldownRemaining(SkillSlot slot)
         => Mathf.Max(0f, playerSkillCooldownEnds[(int)slot] - Time.time);
 
-    /// <summary>메인 소환수 액티브(스페이스바)의 남은 쿨타임.</summary>
+    /// <summary>메인 소환수 액티브(R키)의 남은 쿨타임.</summary>
     public float GetMainSummonCooldownRemaining()
         => Mathf.Max(0f, _mainSummonCooldownEnd - Time.time);
 }

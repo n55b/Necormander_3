@@ -260,24 +260,7 @@ public class PlayerController : MonoBehaviour
     {
         if (stat != null && stat.Health != null && stat.Health.IsDead) return;
 
-        if (UnityEngine.InputSystem.Keyboard.current != null)
-        {
-            var kb = UnityEngine.InputSystem.Keyboard.current;
-
-            var parryCtrl = GetComponent<PlayerParryController>();
-            bool isParrying = parryCtrl != null && parryCtrl.IsParrying;
-
-            // PlayerSkillController를 통한 소환수 스킬(스페이스바) 및 상시 스킬(Q, E, R) 처리
-            var skillCtrl = GetComponent<PlayerSkillController>();
-            if (skillCtrl != null && !_inputBlocked && !isParrying)
-            {
-                // 스페이스바: 소환수 스킬 발동 (쿨타임만 확인, 조건 없음)
-                if (kb.spaceKey.wasPressedThisFrame)
-                {
-                    skillCtrl.ExecuteMinionSkill(transform);
-                }
-            }
-        }
+        // 소환수 액티브는 이제 R키(OnSkillR)가 담당한다. 스페이스바 바인딩은 철거됨.
 
         if (_inputBlocked) return;
 
@@ -634,7 +617,8 @@ public class PlayerController : MonoBehaviour
             var skillCtrl = GetComponent<PlayerSkillController>();
             if (skillCtrl != null)
             {
-                skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.R, transform);
+                // R = 소환수 액티브(구 스페이스바). Q/E 는 플레이어 스킬, R 은 소환 스킬 전용.
+                skillCtrl.ExecuteMinionSkill(transform);
             }
         }
     }

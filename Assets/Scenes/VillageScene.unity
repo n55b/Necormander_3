@@ -4020,7 +4020,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1214983550}
-  - component: {fileID: 1214983551}
   m_Layer: 0
   m_Name: Map
   m_TagString: Untagged
@@ -4047,18 +4046,6 @@ Transform:
   - {fileID: 166074468}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1214983551
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1214983549}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c215d6a4e714afb48b34f6026aca975e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1349393971
 GameObject:
   m_ObjectHideFlags: 0
@@ -5274,7 +5261,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 8.4375
+  orthographic size: 5.65625
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
