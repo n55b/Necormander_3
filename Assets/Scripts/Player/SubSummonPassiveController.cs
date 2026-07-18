@@ -34,7 +34,7 @@ public class SubSummonPassiveController : MonoBehaviour
     // --- CharacterStat / MeleeCombatController 가 읽어가는 값 ---
 
     public float MaxHpBonus => Passive?.maxHpBonus ?? 0f;
-    public float AtkIntervalReduction => Passive?.atkIntervalReduction ?? 0f;
+    public float AtkSpeedBonus => Passive?.atkSpeedBonus ?? 0f;
     public float BasicAttackDamageBonus => Passive?.basicAttackDamageBonus ?? 0f;
 
     private void Awake() => _player = GetComponent<PlayerController>();

@@ -13,5 +13,5 @@ public class TreasureSO : GrowthItemSO
 public enum TreasureEffectType
 {
     GlobalMinionStats, // 소환수 능력치 전체 뻥튀기 (공격력, 체력 등)
-    GlobalThrowEffect  // 던지기 효과 뻥튀기
+    // GlobalThrowEffect 는 투척 철거와 함께 삭제됨
 }

@@ -15,7 +15,7 @@ public class PlayerSkillController : MonoBehaviour
     private float[] playerSkillCooldownEnds = new float[3];
     private float _mainSummonCooldownEnd;
 
-    /// <summary>스페이스바 액티브 + 대쉬/평타 변화를 담당하는 소환수. 없으면 null.</summary>
+    /// <summary>R키 액티브 + 대쉬/평타 변화를 담당하는 소환수. 없으면 null.</summary>
     public MainMinionDataSO MainSummon => mainSummon;
     /// <summary>상시 패시브만 제공하는 소환수. 실체화하지 않는다. 없으면 null.</summary>
     public SubMinionDataSO SubSummon => subSummon;
@@ -121,13 +121,17 @@ public class PlayerSkillController : MonoBehaviour
             return;
         }
 
-        playerSkillCooldownEnds[(int)slot] = Time.time + skill.cooldownTime;
+        // 쿨감은 Q/E/R/대쉬에 전부 먹는다. 합연산이고 상한이 없다(기획 확정) —
+        // 100% 를 찍으면 이론상 즉시 재사용이 된다.
+        var pStat = playerTransform != null ? playerTransform.GetComponent<CharacterStat>() : null;
+        float cd = pStat != null ? pStat.ApplySkillCooldown(skill.cooldownTime) : skill.cooldownTime;
+        playerSkillCooldownEnds[(int)slot] = Time.time + cd;
         Debug.Log($"<color=green>[Player Skill]</color> 플레이어가 '{skill.skillName}' 스킬을 사용했습니다! (슬롯: {slot})");
         skill.ExecuteSkill(playerTransform);
     }
 
     /// <summary>
-    /// 스페이스바: 장착된 소환수의 스킬을 조건 없이 발동한다. 쿨타임만 본다.
+    /// R키: 장착된 소환수의 스킬을 조건 없이 발동한다. 쿨타임만 본다.
     /// 소환수는 필드에 상주하지 않으므로 시전 시점에 임시로 실체화했다가 소멸시킨다.
     /// </summary>
     public void ExecuteMinionSkill(Transform playerTransform)
@@ -151,7 +155,11 @@ public class PlayerSkillController : MonoBehaviour
         // 허공에 눌러 쿨타임을 통째로 날리는 일이 없어야 한다.
         if (!CastMinionSkill(minionData, playerTransform, targets)) return;
 
-        _mainSummonCooldownEnd = Time.time + minionData.minionSkill.cooldownTime;
+        var casterStat = playerTransform != null ? playerTransform.GetComponent<CharacterStat>() : null;
+        float minionCd = casterStat != null
+            ? casterStat.ApplySkillCooldown(minionData.minionSkill.cooldownTime)
+            : minionData.minionSkill.cooldownTime;
+        _mainSummonCooldownEnd = Time.time + minionCd;
         Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed: {minionData.minionName}");
     }
 
@@ -173,7 +181,7 @@ public class PlayerSkillController : MonoBehaviour
     public float GetPlayerSkillCooldownRemaining(SkillSlot slot)
         => Mathf.Max(0f, playerSkillCooldownEnds[(int)slot] - Time.time);
 
-    /// <summary>메인 소환수 액티브(스페이스바)의 남은 쿨타임.</summary>
+    /// <summary>메인 소환수 액티브(R키)의 남은 쿨타임.</summary>
     public float GetMainSummonCooldownRemaining()
         => Mathf.Max(0f, _mainSummonCooldownEnd - Time.time);
 }

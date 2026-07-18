@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 811033102870602545}
   - component: {fileID: 7329560079857529190}
   - component: {fileID: 1655115704022100467}
+  - component: {fileID: 8814402771336590114}
   m_Layer: 5
   m_Name: FloatingTextPool
   m_TagString: Untagged
@@ -61,6 +62,19 @@ MonoBehaviour:
   textPrefab: {fileID: 717604425048194122, guid: ad279bdf08f980742b70fceeaa100b90, type: 3}
   poolSize: 20
   showDamageNumbers: 1
+--- !u!114 &8814402771336590114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2127005892598480425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c9891d4c6bd73e41867e62ac3b2b273, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableDebugKeys: 1
 --- !u!1 &2670220591623535792
 GameObject:
   m_ObjectHideFlags: 0
@@ -182,7 +196,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultCursorSO: {fileID: 11400000, guid: 48323580c6b127a489c12138667c3894, type: 2}
   TargetCursorSO: {fileID: 11400000, guid: 711db87a09f5853488d77e0a4f93d9b6, type: 2}
-  ThrowCursorSO: {fileID: 11400000, guid: 2343e2fe8fa04f043a0a52267ebd49fb, type: 2}
   currentCursorSO: {fileID: 0}
 --- !u!1 &3878380797755390178
 GameObject:
@@ -241,7 +254,6 @@ MonoBehaviour:
   economyManager: {fileID: 4452764349617943537}
   cameraManager: {fileID: 0}
   hitStopManager: {fileID: 0}
-  throwImpactManager: {fileID: 4376407718605823702}
   mouseManager: {fileID: 1447154648404685013}
   mouseCursorManager: {fileID: 7293194052441138037}
   inventoryManager: {fileID: 3438047193681337848}
@@ -250,7 +262,6 @@ MonoBehaviour:
   offscreenEnemyArrowManager: {fileID: 0}
   playerStateUI: {fileID: 0}
   minionStateUI: {fileID: 0}
-  minionSkillQueueUI: {fileID: 0}
   playerAttackSoundData: {fileID: 11400000, guid: abdae526f219dc04dbee902382943a37, type: 2}
   mapGenerator: {fileID: 6139375127595461034}
   currentStageMapData: {fileID: 11400000, guid: 1aced7d90958fe444941591d79d29124, type: 2}
@@ -326,7 +337,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   growthRegistry: {fileID: 11400000, guid: 96b7a19244abf1e489d06e805af3e5bf, type: 2}
   minionRegistry: {fileID: 11400000, guid: 752586a47e053ee4a9db401ff13044fc, type: 2}
-  throwEffectRegistry: {fileID: 11400000, guid: 3814eaa3076ff6d468ed15dbf6620499, type: 2}
   defaultAIPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   shopRegistry: {fileID: 11400000, guid: 4930ca0a9c595b6408f83c0719490716, type: 2}
   clusterRegistry: {fileID: 11400000, guid: 4a525318270344540ae65dd9032dcb3d, type: 2}
@@ -348,10 +358,9 @@ MonoBehaviour:
   debugStartingMinions:
   - {fileID: 11400000, guid: 1249b3e99bee40e1a4fa574ab04a2b28, type: 2}
   - {fileID: 11400000, guid: 2ebf02073b714bd08b60e585b5172baa, type: 2}
-  debugStartingMinionQuantities:
+  debugStartingMinionQuantities: 
   debugStartingGems_Data: []
   debugStartingGems_TargetJobs: 00000000
-  debugStartingAbilities: []
   _defaultRootGemSO: {fileID: 11400000, guid: 87e7260bead92f545aa299410bef22e8, type: 2}
 --- !u!114 &6139375127595461034
 MonoBehaviour:
@@ -951,7 +960,6 @@ GameObject:
   m_Component:
   - component: {fileID: 5289285833282590543}
   - component: {fileID: 4452764349617943537}
-  - component: {fileID: 4376407718605823702}
   - component: {fileID: 7453844490307090777}
   - component: {fileID: 1557044542994201147}
   - component: {fileID: 3823117376901426705}
@@ -987,18 +995,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c89fcb656c1a58f49a0d325857a0f497, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &4376407718605823702
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7727511665536608322}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f1d6d6d1e6b9aa4290ee809805c0052, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &7453844490307090777

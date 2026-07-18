@@ -131,6 +131,7 @@ public class MeleeCombatController : MonoBehaviour
     {
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 공격 차단
         if (_player == null || _player.Stat.Health.IsDead) return;
+        if (_player.IsCCed) return; // [26/07/17] 기절/빙결 중에는 평타 차단
         if (_player.IsCastingSkill || _player.IsUsingHandSkill) return; // [추가] 스킬 사용 중에는 평타 차단
 
         var parryCtrl = _player.GetComponent<PlayerParryController>();
@@ -149,7 +150,10 @@ public class MeleeCombatController : MonoBehaviour
 
         float telegraphDuration = lightTelegraphDuration;
         Vector2 hitboxSize = lightHitboxSize;
-        float damageMultiplier = 1.0f;
+        // 평타 1·2타 배율. 예전엔 1.0 하드코딩이었는데, "평타 데미지만 높이는 증감 요소"를
+        // 나중에 넣을 수 있게 스탯으로 뺐다. 기본값은 그대로 1.0 이라 동작은 같다.
+        // (3타는 소환수 마무리라 여기 안 온다 — 소환수 고유 배율을 쓴다.)
+        float damageMultiplier = _player.Stat != null ? _player.Stat.BASIC_ATK_MULT : 1.0f;
 
         // [애니메이션 재생]
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0f); // [수정] 평타 모션 중 키보드 수동 이동 차단
@@ -165,10 +169,10 @@ public class MeleeCombatController : MonoBehaviour
         if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
         else _player.PlayAllAnim("Attack_Light2", "Attack");
 
-        // Higher ATKSPD (lower stat value) plays the attack animation faster.
-        if (_player.Stat != null && _player.Stat.ATKSPD > 0.0001f)
+        // 공속(회/초)이 곧 애니 배속이다. 1회/초 = 1배속, 2회/초 = 2배속.
+        if (_player.Stat != null)
         {
-            float atkAnimSpeed = Mathf.Clamp(1f / _player.Stat.ATKSPD, 0.5f, 3f);
+            float atkAnimSpeed = Mathf.Clamp(_player.Stat.ATKSPD, 0.5f, 3f);
             _player.SetAttackAnimSpeed(atkAnimSpeed);
         }
 
@@ -293,6 +297,20 @@ public class MeleeCombatController : MonoBehaviour
         var fin = Finisher;
         if (main == null || fin == null) return;
 
+        // ── 마무리 일격의 시전 시간은 공속을 따라간다 ───────────────────────────────
+        // 마무리는 '평타 콤보의 3타'다. 1·2타만 공속으로 빨라지고 3타가 원래 속도로 남으면
+        // 콤보 중간에 속도가 뚝 떨어진다. 그래서 여기만 공속을 먹인다.
+        //
+        // [유의사항 — 나중에 물어볼 것]
+        // 소환수 R 액티브(MinionSkillSO.skillAnimDuration)는 일부러 공속을 '안' 받는다.
+        // R 은 평타 콤보의 일부가 아니라 독립 스킬이라 분리해 둔 것이다(기획 확정, 26/07/17).
+        // 로직상 마음에 안 드는 결정이라고 하셨으니, 연결하고 싶어지면 MinionActionSkillSO 의
+        // animDuration 계산에 같은 나눗셈만 얹으면 된다 — 애니와 타격 시점이 전부 비율로
+        // 묶여 있어서 castDuration/skillAnimDuration 하나만 줄이면 나머지가 알아서 따라온다.
+        float atkSpd = (_player.Stat != null) ? Mathf.Max(0.05f, _player.Stat.ATKSPD) : 1f;
+        float castDuration = fin.castDuration / atkSpd;
+        float hitWindow = fin.EventHitWindow / atkSpd;
+
         // 조준 방향은 평타와 동일하게 마우스 기준.
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
         mousePos.z = 0;
@@ -324,7 +342,7 @@ public class MeleeCombatController : MonoBehaviour
         // 이펙트는 같은 애니메이터의 다른 상태라 한 오브젝트로 동시 재생이 안 된다.
         // 하나 더 띄워서 겹친다 (예: DashDoll 은 Attack + Effect 가 별도 태그다).
         if (!string.IsNullOrEmpty(fin.effectState))
-            caster.AttachVisual(fin.visual, fin.effectState, fin.castDuration, faceRight);
+            caster.AttachVisual(fin.visual, fin.effectState, castDuration, faceRight);
 
         if (telegraphPrefab == null) return;
 
@@ -342,9 +360,12 @@ public class MeleeCombatController : MonoBehaviour
         go.transform.localScale = new Vector3(fin.hitBoxSize.x, fin.hitBoxSize.y, 1f);
         box.hitEffectAngle = angle;
 
-        // 피해는 소환수 ATK 기준 (설계: "Minion에 있는 ATK 데미지를 이용")
+        // 피해는 '플레이어의 ATK * 소환수 고유 배율'.
+        // [26/07/17] 예전엔 소환수 SO 자신의 attack 을 썼는데, 이제 베이스 ATK 를 공유한다.
+        // 그래야 "아군 공격력 증가" 같은 버프를 플레이어 ATK 하나에만 걸어도
+        // 주먹과 소환수 마무리에 동시에 먹는다. 소환수의 개성은 배율이 유지한다.
         var info = new DamageInfo(
-            main.attack * fin.damageMultiplier,
+            _player.Stat.ATK * fin.damageMultiplier,
             DamageType.Physical,
             _player.gameObject,
             false, 1f, true,
@@ -362,24 +383,23 @@ public class MeleeCombatController : MonoBehaviour
         var col = go.GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
 
-        bool useEvent = !string.IsNullOrEmpty(fin.hitEvent);
-
         caster.PlaySequenced(
             fin.visual, fin.animSequence, fin.damageState, fin.hitEvent,
-            fin.castDuration, fin.EventHitWindow, faceRight,
+            castDuration, hitWindow, faceRight,
             // 판정 열기
             window =>
             {
                 if (box == null) return;
-                if (!useEvent && fin.hitCount > 1)
+                if (fin.hitCount > 1)
                 {
-                    // 태그 방식: 타격 태그가 재생되는 동안 hitCount 를 균등 배분한다.
+                    // 다단히트: 판정창(window) 동안 hitCount 를 균등 배분한다. window 는 PlaySequenced 가
+                    // 방식에 따라 정해준다 — 이벤트 창(OnHit~OnAttackEnd) / 태그 길이 / 시퀀스 전체.
                     box.isContinuousDamage = true;
                     box.damageTickRate = window / fin.hitCount;
                 }
                 else
                 {
-                    // 이벤트 방식: OnHitEvent 하나가 타격 하나다. 배분할 게 없다.
+                    // 단타: 판정이 열리는 순간 1회.
                     box.isContinuousDamage = false;
                 }
                 if (col != null) col.enabled = true;

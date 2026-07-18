@@ -194,7 +194,7 @@ public abstract class BaseEntity : MonoBehaviour
         if (!CanExecuteAI())
         {
             // [경직/기절 제동] 관성으로 인해 스르륵 미끄러지는 현상을 방지하기 위해 정지 처리
-            if (_stats != null && _stats.Status != null && (_stats.Status.GetDebuffBool(DebuffBoolType.Stunned) || _stats.Status.GetDebuffBool(DebuffBoolType.Hitstunned)))
+            if (_stats != null && _stats.Status != null && (_stats.Status.HasStatus(StatusType.Stun) || _stats.Status.HasStatus(StatusType.Hitstun)))
             {
                 if (_agent != null && _agent.isActiveAndEnabled)
                 {
@@ -230,33 +230,12 @@ public abstract class BaseEntity : MonoBehaviour
             _agent.isStopped = false;
         }
 
-        // [유니크] 공포 상태 처리
-        if (_stats != null && _stats.Status != null && _stats.Status.GetDebuffBool(DebuffBoolType.Feared))
-        {
-            ExecuteFearAI();
-            return;
-        }
+        // [26/07/17] 공포(Feared) 분기 삭제. 처형 시스템이 부여하던 건데 처형과 함께 없어졌다.
+        //            (실은 그 전부터 GetDebuffStack 스텁 때문에 한 번도 발동한 적이 없었다.)
 
         if (_runtimeBrain != null)
         {
             _runtimeBrain.Execute(this);
-        }
-    }
-
-    private void ExecuteFearAI()
-    {
-        // 공포 상태일 땐 플레이어로부터 멀어지는 방향으로 이동
-        UpdateAnimation(AIState.Follow);
-        var pc = GameManager.Instance.PLAYERCONTROLLER;
-        if (pc != null && _agent != null)
-        {
-            if (_agent.isActiveAndEnabled)
-            {
-                _agent.isStopped = false;
-                Vector3 dirAwayFromPlayer = (transform.position - pc.transform.position).normalized;
-                Vector3 fleeTarget = transform.position + dirAwayFromPlayer * 5f;
-                _agent.SetDestination(fleeTarget);
-            }
         }
     }
 
@@ -284,7 +263,7 @@ public abstract class BaseEntity : MonoBehaviour
         // [추가] 기절 상태라면 AI 중단
         if (_stats != null && _stats.Status != null)
         {
-            if (_stats.Status.GetDebuffBool(DebuffBoolType.Stunned) || _stats.Status.GetDebuffBool(DebuffBoolType.Hitstunned))
+            if (_stats.Status.HasStatus(StatusType.Stun) || _stats.Status.HasStatus(StatusType.Hitstun))
                 return false;
         }
 
@@ -455,7 +434,7 @@ public abstract class BaseEntity : MonoBehaviour
                 float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
                 go.transform.localRotation = Quaternion.Euler(0, 0, angle);
 
-                DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true, "", false, false, 0f); 
+                DamageInfo info = new DamageInfo(_stats.ATK, DamageRules.FromAttackType(_stats.ATTACK_TYPE), this.gameObject, false, 1f, true, "", false, false, 0f); 
                 
                 // [수정] 몬스터는 localScale.x가 상시 양수이므로 스케일 X를 음수로 뒤집을 필요 없이 상시 양수 유지
                 go.transform.localScale = new Vector3(_stats.ATKRANGE, _stats.ATKRANGE, 1f);
@@ -517,7 +496,7 @@ public abstract class BaseEntity : MonoBehaviour
         if (targetStat != null)
         {
             // [수정] 직접 Health 담당자에게 명령, isBasicAttack = true 추가
-            DamageInfo info = new DamageInfo(_stats.ATK, DamageType.Physical, this.gameObject, false, 1f, true);
+            DamageInfo info = new DamageInfo(_stats.ATK, DamageRules.FromAttackType(_stats.ATTACK_TYPE), this.gameObject, false, 1f, true);
             targetStat.Health.GetDamage(info);
 
         }
@@ -556,7 +535,7 @@ public abstract class BaseEntity : MonoBehaviour
             if (!HasFiredHitEvent)
             {
                 // 타격 수행 전이므로 쿨타임을 채워두어 경직 해제 시 즉시 재시도하게 함
-                AtkTimer = _stats != null ? _stats.ATKSPD : 0f;
+                AtkTimer = _stats != null ? _stats.AttackInterval : 0f;
             }
             else
             {
@@ -575,7 +554,7 @@ public abstract class BaseEntity : MonoBehaviour
         CancelAttack();
         if (_stats != null && _stats.Status != null)
         {
-            _stats.Status.SetDebuffBool(DebuffBoolType.Hitstunned, 0.25f);
+            _stats.Status.ApplyStatus(StatusType.Hitstun, 0.25f);
         }
 
         if (_rb != null)

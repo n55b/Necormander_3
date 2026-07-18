@@ -49,7 +49,7 @@ public class BaseAIPatternSO : AIPatternSO
             {
                 // 적인 경우(플레이어 포함) 사거리에 따라 결정
                 // 공격 쿨타임이 찼고, 사거리 내에 있을 때만 공격 상태로 전환
-                if (dist <= entity.Stats.ATKRANGE - 0.2f && entity.AtkTimer >= entity.Stats.ATKSPD) nextState = AIState.Attack;
+                if (dist <= entity.Stats.ATKRANGE - 0.2f && entity.AtkTimer >= entity.Stats.AttackInterval) nextState = AIState.Attack;
                 else nextState = AIState.Follow;
             }
         }
@@ -75,7 +75,7 @@ public class BaseAIPatternSO : AIPatternSO
 
             // 원거리 적(사거리 3.0f 이상, 단 돌진 몬스터 제외)이고 공격 쿨타임이 아직 차지 않은 경우
             bool isCharger = entity.Brain is ChargerAIPatternSO;
-            if (!isCharger && entity.Stats.ATKRANGE >= 3.0f && entity.AtkTimer < entity.Stats.ATKSPD)
+            if (!isCharger && entity.Stats.ATKRANGE >= 3.0f && entity.AtkTimer < entity.Stats.AttackInterval)
             {
                 // 플레이어가 평타 사거리의 약 2배(거리 7f) 내에 접근했을 때만 도망침
                 float fleeTriggerRange = 7.0f;
@@ -109,7 +109,7 @@ public class BaseAIPatternSO : AIPatternSO
         // 단, 이미 공격을 실행 중(애니메이션 재생 중)이라면 중복 실행하지 않습니다.
         if (entity.IsAttacking) return;
 
-        if (entity.AtkTimer >= entity.Stats.ATKSPD)
+        if (entity.AtkTimer >= entity.Stats.AttackInterval)
         {
             entity.AtkTimer = 0f;
             entity.IsAttacking = true; // 코루틴 대기 전 상태 잠금을 위해 선제적 true 처리!
@@ -140,8 +140,8 @@ public class BaseAIPatternSO : AIPatternSO
                 }
             }
 
-            // 여유를 위해 ATKSPD의 90% 시간 안에 애니메이션이 끝나도록 배속을 조절합니다.
-            float targetDuration = entity.Stats.ATKSPD * 0.9f;
+            // 여유를 위해 공격 간격의 90% 시간 안에 애니메이션이 끝나도록 배속을 조절합니다.
+            float targetDuration = entity.Stats.AttackInterval * 0.9f;
             if (animLength > targetDuration && targetDuration > 0)
             {
                 entity.Animator.speed = animLength / targetDuration;

@@ -1227,7 +1227,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: f8a0b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c
-    m_ActionName: 'Player/Throw[/Mouse/leftButton]'
+    m_ActionName: 'Player/Attack[/Mouse/leftButton]'
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7972545975472383977}

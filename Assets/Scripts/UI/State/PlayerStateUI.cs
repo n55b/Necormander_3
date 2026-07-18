@@ -75,9 +75,11 @@ public class PlayerStateUI : MonoBehaviour
         _playerHealth = playerHealth;
         _skillSlots   = new SkillSlotUI[] { skillSlotQ, skillSlotE, skillSlotR };
 
-        // 각 슬롯의 "스킬 바꾸기" 버튼을 실제 장착 동작에 연결
+        // 각 슬롯의 "스킬 바꾸기" 버튼을 실제 장착 동작에 연결.
+        // R 슬롯은 소환수 액티브 전용이라 플레이어 스킬 교체 대상이 아니다 — 건너뛴다.
         for (int i = 0; i < _skillSlots.Length; i++)
         {
+            if (i == (int)PlayerSkillController.SkillSlot.R) continue;
             int slotIndex = i; // 클로저 캡처용 로컬 변수
             var slot = _skillSlots[i];
             if (slot == null || slot.SkillChangeButton == null) continue;
@@ -206,6 +208,9 @@ public class PlayerStateUI : MonoBehaviour
             var slot = _skillSlots[i];
             if (slot == null) continue;
 
+            // R 슬롯은 플레이어 스킬이 아니라 메인 소환수 액티브(구 스페이스바)를 표시한다.
+            if (i == (int)PlayerSkillController.SkillSlot.R) { RefreshMinionSlot(slot); continue; }
+
             MinionDataSO data = _skillCtrl.GetEquippedMinion(i);
             var pSkill = _skillCtrl.GetEquippedPlayerSkill(i);
             bool has = pSkill != null;
@@ -250,6 +255,10 @@ public class PlayerStateUI : MonoBehaviour
             var slot = _skillSlots[i];
             if (slot == null) continue;
 
+            // R 슬롯은 메인 소환수 액티브의 쿨타임을 표시한다. 아이콘 자체는 RefreshSkillIcons(이벤트)가
+            // 맞추고, 여기선 쿨타임 카운트다운만 매 프레임 갱신한다(Q/E 와 동일).
+            if (i == (int)PlayerSkillController.SkillSlot.R) { UpdateMinionCooldown(slot); continue; }
+
             var pSkill = _skillCtrl.GetEquippedPlayerSkill(i);
             if (pSkill == null) continue;
 
@@ -282,6 +291,83 @@ public class PlayerStateUI : MonoBehaviour
             }
         }
     }
+
+    // ── R 슬롯 = 메인 소환수 액티브 ─────────────────────────────────────
+    // R 은 플레이어 스킬이 아니라 소환수 스킬(구 스페이스바)이다. 장착 경로도(InventoryManager),
+    // 쿨타임 소스도(GetMainSummonCooldownRemaining) 플레이어 스킬과 다르므로 별도로 그린다.
+    //
+    // 소환수는 PlayerSkillController 의 캐시가 아니라 원본(InventoryManager)에서 직접 읽는다.
+    // 캐시를 읽으면, 같은 OnMinionUpdated 이벤트를 받는 두 핸들러(여기 RefreshSkillIcons 와
+    // PlayerSkillController.SyncWithInventory)의 실행 순서에 결과가 갈린다 — 우리가 먼저 돌면 아직
+    // 동기화 안 된 옛 값을 그린다. InventoryManager 는 슬롯을 채운 뒤 이벤트를 쏘므로(EquipMinion),
+    // 원본을 읽으면 순서와 무관하게 항상 최신이다. 그래서 매 프레임 폴링이 필요 없다.
+    private MainMinionDataSO EquippedMainSummon =>
+        InventoryManager.Instance != null ? InventoryManager.Instance.MainSummon : null;
+
+    private void RefreshMinionSlot(SkillSlotUI slot)
+    {
+        MainMinionDataSO main = EquippedMainSummon;
+        bool has = main != null;
+
+        if (slot.SkillIcon != null)
+        {
+            if (has)
+            {
+                slot.SkillIcon.sprite = main.ResolveIcon(); // MainMinionDataSO 는 소환수 스킬 아이콘을 반환
+                slot.SkillIcon.color  = Color.white;
+                slot.SkillIcon.type   = Image.Type.Simple;
+
+                var tooltip = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
+                if (tooltip == null) tooltip = slot.SkillIcon.gameObject.AddComponent<SkillTooltipTrigger>();
+                string desc = main.ResolveDescription();
+                if (!string.IsNullOrEmpty(desc)) tooltip.SetData(main.ResolveTitle(), desc);
+                else tooltip.Clear();
+            }
+            else
+            {
+                slot.SkillIcon.sprite = null;
+                var tooltipEmpty = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
+                if (tooltipEmpty != null) tooltipEmpty.Clear();
+                slot.SkillIcon.color = new Color(1f, 1f, 1f, 0.2f);
+            }
+        }
+
+        if (slot.CooldownFill != null) { slot.CooldownFill.fillAmount = 0f; slot.CooldownFill.gameObject.SetActive(false); }
+        if (slot.CooldownText != null) slot.CooldownText.text = "";
+    }
+
+    private void UpdateMinionCooldown(SkillSlotUI slot)
+    {
+        var main = EquippedMainSummon;
+        if (main == null || main.minionSkill == null) return;
+
+        float maxCd     = main.minionSkill.cooldownTime;
+        float remaining = _skillCtrl.GetMainSummonCooldownRemaining();
+        bool  onCd      = remaining > 0.05f;
+        float fill      = (maxCd > 0f && onCd) ? Mathf.Clamp01(remaining / maxCd) : 0f;
+
+        if (slot.CooldownFill != null)
+        {
+            bool isActive = slot.CooldownFill.gameObject.activeSelf;
+            if (isActive != onCd) slot.CooldownFill.gameObject.SetActive(onCd);
+            if (onCd) slot.CooldownFill.fillAmount = fill;
+        }
+        else if (slot.SkillIcon != null)
+        {
+            slot.SkillIcon.type          = Image.Type.Filled;
+            slot.SkillIcon.fillMethod    = Image.FillMethod.Radial360;
+            slot.SkillIcon.fillClockwise = false;
+            slot.SkillIcon.fillAmount    = onCd ? fill : 1f;
+        }
+
+        if (slot.CooldownText != null)
+        {
+            if (onCd)
+                slot.CooldownText.SetText("{0:1}", remaining);
+            else if (slot.CooldownText.text.Length > 0)
+                slot.CooldownText.text = "";
+        }
+    }
     #endregion
 
     #region Skill Change
@@ -293,11 +379,14 @@ public class PlayerStateUI : MonoBehaviour
     {
         _pendingSkill = pendingSkill;
 
-        foreach(var slot in _skillSlots)
+        // R 슬롯은 소환수 전용이라 플레이어 스킬 교체 대상에서 제외한다.
+        for (int i = 0; i < _skillSlots.Length; i++)
         {
-            slot.ArrowImage.SetActive(true);
-            slot.SkillChangeButton.enabled = true;
-            slot.SkillChangeButton.interactable = true;
+            if (i == (int)PlayerSkillController.SkillSlot.R) continue;
+            var slot = _skillSlots[i];
+            if (slot == null) continue;
+            if (slot.ArrowImage != null) slot.ArrowImage.SetActive(true);
+            if (slot.SkillChangeButton != null) { slot.SkillChangeButton.enabled = true; slot.SkillChangeButton.interactable = true; }
         }
 
         // Stop time so the player can't act while picking a slot.
@@ -307,9 +396,9 @@ public class PlayerStateUI : MonoBehaviour
     {
         foreach(var slot in _skillSlots)
         {
-            slot.ArrowImage.SetActive(false);
-            slot.SkillChangeButton.enabled = false;
-            slot.SkillChangeButton.interactable = false;
+            if (slot == null) continue;
+            if (slot.ArrowImage != null) slot.ArrowImage.SetActive(false);
+            if (slot.SkillChangeButton != null) { slot.SkillChangeButton.enabled = false; slot.SkillChangeButton.interactable = false; }
         }
 
         // Resume time once a slot has been chosen (or the UI is closed).

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PlayerCorrosionPunch
   m_EditorClassIdentifier: 
   skillName: 산성 주먹
-  description: 1초 동안 충전한 뒤 전방에 주먹을 질러 부식 스택을 부여합니다.
+  description: "1초 동안 충전한 뒤 전방에 주먹을 질러 기본 공격력의 180% 피해를 입힙니다."
   icon: {fileID: 0}
   cooldownTime: 5
   skillSound: {fileID: 0}

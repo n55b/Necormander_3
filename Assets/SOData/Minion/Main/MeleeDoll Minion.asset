@@ -40,7 +40,7 @@ MonoBehaviour:
     superArmorDamage: 30
   subPassive:
     maxHpBonus: 0
-    atkIntervalReduction: 0
+    atkSpeedBonus: 0
     basicAttackDamageBonus: 0
     healOnAcquire: 0
     healOnRoomClear: 0
@@ -49,7 +49,6 @@ MonoBehaviour:
   minionIcon: {fileID: 0}
   baseEffectValue: 10
   maxHP: 100
-  attack: 10
   attackSpeed: 1
   attackRange: 2
   detectRange: 10

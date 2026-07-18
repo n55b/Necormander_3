@@ -383,7 +383,7 @@ public void OnCounterHit()
                 BaseEntity ownerEntity = Owner.GetComponent<BaseEntity>();
                 if (ownerEntity != null && ownerEntity.Stats != null && ownerEntity.Stats.Status != null)
                 {
-                    ownerEntity.Stats.Status.SetDebuffBool(DebuffBoolType.Stunned, regenCounterGroggyDuration);
+                    ownerEntity.Stats.Status.ApplyStatus(StatusType.Stun, regenCounterGroggyDuration);
                 }
 
                 CharacterStat ownerStat = Owner.GetComponent<CharacterStat>();

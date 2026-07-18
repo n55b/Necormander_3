@@ -122,11 +122,6 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
             case RewardCategory.Minion:
                 // 소환수는 자기 역할 슬롯에만. 타입이 곧 역할이다.
                 return InventoryManager.SlotIndexOf(_pendingCandidate.rawData as MinionDataSO) == slotIndex;
-            case RewardCategory.Ability:
-                // 투척 능력은 아직 슬롯 규칙이 없다. 다만 EquipThrowAbility 가 그 칸의 소환수를
-                // 통째로 날리므로(InventoryManager: EquippedMinion = null), 비어 있는 칸만 허용한다.
-                return slotIndex < GameManager.Instance.inventoryManager.Slots.Count
-                       && GameManager.Instance.inventoryManager.Slots[slotIndex].EquippedMinion == null;
             default:
                 return true;
         }
@@ -144,9 +139,6 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
         {
             case RewardCategory.Minion:
                 success = inven.EquipMinion(index, (MinionDataSO)_pendingCandidate.rawData);
-                break;
-            case RewardCategory.Ability:
-                success = inven.EquipThrowAbility(index, (ThrowAbilitySO)_pendingCandidate.rawData);
                 break;
         }
 

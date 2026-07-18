@@ -49,7 +49,6 @@ public class PlayerSwayBackDashSO : PlayerSkillSO
         if (aimDir == Vector2.zero) aimDir = Vector2.right;
 
         // 공유 SO 가 상태를 갖지 않도록 1회 시전 상태는 런타임 헬퍼가 관리한다.
-        // (ThrowAbilityStateManager / JugglingCatchZone 과 동일한 패턴)
         var runtime = player.gameObject.GetComponent<SwayBackDashRuntime>();
         if (runtime == null) runtime = player.gameObject.AddComponent<SwayBackDashRuntime>();
         runtime.Begin(this, player, aimDir);
@@ -138,15 +137,9 @@ public class SwayBackDashRuntime : MonoBehaviour
         float length = _so.dashDistance + _so.punchReach;
         box.transform.localScale = new Vector3(length, _so.hitWidth, 1f);
 
-        float dmg = _player.Stat.ATK * _so.damageMultiplier;
-        DamageInfo info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, false, 1f, false, "Dash Straight!");
-        GameObject attacker = _player.gameObject;
-        box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, (health) =>
-        {
-            var stat = health.GetComponent<CharacterStat>() ?? health.GetComponentInParent<CharacterStat>();
-            if (stat != null && stat.Status != null)
-                stat.Status.ConsumeVulnerability(SkillKeyword.Stun, attacker, true); // 소모(기절)
-        });
+        float dmg = _so.GetBaseDamage(_player.Stat) * _so.damageMultiplier;
+        DamageInfo info = new DamageInfo(dmg, _so.ResolveDamageType(), _player.gameObject, false, 1f, false, "Dash Straight!");
+        box.Init(info, Layers.EnemyMask, 0.2f, 0f, true);
     }
 
     // 무적 상태라 실제 피해는 무효화되지만, OnDamageReceived 는 무적 게이트보다 먼저 발생한다.

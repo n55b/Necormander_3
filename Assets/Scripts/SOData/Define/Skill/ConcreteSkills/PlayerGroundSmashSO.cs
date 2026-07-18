@@ -8,7 +8,10 @@ public class PlayerGroundSmashSO : PlayerSkillSO
     public BaseHitBox hitBoxPrefab;
     public float gatherRadius = 4f; // 2칸 정도
     public float gatherDuration = 0.2f;
-    public float damageMultiplier = 0f; // 기본 데미지는 없음 (기획서: 바닥 부수기 = 끌어당김 + 취약 1 부여)
+    // [26/07/17] 원래 0f 였다 — 이 스킬의 페이로드가 '취약 1 부여'뿐이었기 때문이다.
+    // 취약이 사라지면서 아무것도 안 하는 스킬이 돼버려 피해를 넣어줬다.
+    // 끌어당김이 붙어 있으니 순수 딜링기보다는 낮게 잡는다.
+    public float damageMultiplier = 1.0f;
     
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
@@ -44,8 +47,8 @@ public class PlayerGroundSmashSO : PlayerSkillSO
             BaseHitBox box = Instantiate(hitBoxPrefab, center, Quaternion.Euler(0, 0, angle));
             box.transform.localScale = new Vector3(gatherRadius * 2f, gatherRadius * 2f, 1f);
 
-            float finalDamage = player.Stat.ATK * damageMultiplier;
-            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Ground Smash!");
+            float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
+            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Ground Smash!");
             box.Init(info, Layers.EnemyMask, 0.1f, 0f, true, onSmashHit);
         }
 
@@ -112,8 +115,6 @@ public class PlayerGroundSmashSO : PlayerSkillSO
                 status.DamageSuperArmor(30f);
                 yield break;
             }
-            // [추가] 실제로 당겨지므로 당기기(Pull)에 묶여있는 취약 부여 작동!
-            status.ApplyVulnerability(true);
         }
 
         float elapsed = 0f;

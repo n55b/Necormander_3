@@ -4,33 +4,63 @@ using UnityEngine.Events;
 /// <summary>
 /// 유닛의 모든 주요 스탯 컴포넌트들을 한곳에 모아주는 허브 클래스입니다.
 /// 외부에서는 이 클래스를 통해 Health, Status, Visual 컴포넌트에 직접 접근합니다.
+///
+/// [26/07/17 스탯 재설계]
+///  - 공용 스탯(플레이어+적) / 플레이어 전용 / 적 전용으로 나눴다.
+///  - 소환수는 필드에 존재하지 않으므로 CharacterStat 을 갖지 않는다. 소환수 피해는
+///    플레이어의 ATK/MAGIC 을 그대로 가져다 배율을 곱한다(Phase 4).
+///  - 런타임 보정은 전부 Mods(StatModifierRegistry) 로 간다. 구 StatEventBus 는 삭제.
 /// </summary>
 [RequireComponent(typeof(CharacterStatus), typeof(CharacterHealth), typeof(CharacterVisualFeedback))]
 public class CharacterStat : MonoBehaviour
 {
-    [Header("캐릭터 기본 스탯 데이터")]
+    [Header("공용 스탯 (플레이어 + 적)")]
     [SerializeField] private float baseMaxHP = 100f;
+    [Tooltip("물리 공격력. 플레이어 주먹과 소환수 피해가 공유하는 베이스값이다.")]
     [SerializeField] private float baseAtk = 10f;
+    [Tooltip("마법 공격력. 마법 스킬이 이 값에 계수를 곱한다. 무투파라 기본은 0.")]
+    [SerializeField] private float baseMagic = 0f;
+    [Tooltip("공격 속도(회/초). 높을수록 빠르다. 실제 공격 간격이 필요하면 AttackInterval 을 쓸 것.")]
     [SerializeField] private float baseAtkSpd = 1f;
-    [SerializeField] private float baseAtkRange = 2f;
+    [Tooltip("방어력(%). 그 자체가 감소율이다. 20 = 20% 감소. 게터에서 75% 로 잘린다.")]
     [SerializeField] private float baseDef = 0f;
-    [SerializeField] private float baseFlatDef = 0f;
     [SerializeField] private float baseMoveSpeed = 5f;
-    [SerializeField] private float baseEvasion = 0f;
-    [SerializeField] private float baseMissChance = 0f;
-    [SerializeField] private float baseThrowDamage = 5f; // [추가] 플레이어 기본 투척 데미지
+    [Tooltip("치명타 확률(%). 0 = 안 터짐.")]
+    [SerializeField] private float baseCritChance = 0f;
+    [Tooltip("치명타 피해량(%). 150 = 1.5배.")]
+    [SerializeField] private float baseCritDamage = 150f;
+    [Tooltip("회피율(0~1). 기본 0 = 절대 회피 안 함.")]
+    [Range(0f, 1f)][SerializeField] private float baseEvasion = 0f;
+    [Tooltip("적중률(0~1). 기본 1 = 무조건 맞힘. 지금은 이 두 값을 건드리는 게 없다 — 나중을 위한 자리.")]
+    [Range(0f, 1f)][SerializeField] private float baseAccuracy = 1f;
+
+    [Header("적 전용")]
+    [Tooltip("공격 사거리. 플레이어는 안 쓴다(평타 히트박스가 따로 있음).")]
+    [SerializeField] private float baseAtkRange = 2f;
+    [Tooltip("이 유닛의 공격이 물리인지 마법인지. 적은 magic 스탯 없이 atk 으로 계산하고 태그만 단다.")]
+    [SerializeField] private AttackType baseAttackType = AttackType.Physical;
+
+    [Header("플레이어 전용")]
+    [Tooltip("Q/E/R 스킬 쿨타임 감소율(%). 합연산, 상한 없음. 100 이면 이론상 즉시 재사용.")]
+    [SerializeField] private float baseSkillCdr = 0f;
+    [Tooltip("대쉬 쿨타임 감소율(%). 스킬 쿨감과 별개다.")]
+    [SerializeField] private float baseDashCdr = 0f;
+    [Tooltip("평타 1·2타 배율. 기본 1.0 = ATK 그대로. 3타(소환수 마무리)는 소환수 배율을 쓴다.")]
+    [SerializeField] private float baseBasicAtkMult = 1f;
 
     // 하위 컴포넌트 직접 노출 (Read-only Accessors)
     public CharacterStatus Status { get; private set; }
     public CharacterHealth Health { get; private set; }
     public CharacterVisualFeedback Visual { get; private set; }
 
-    [Header("런타임 정보")]
-    public CommandData jobType; // 보석 계산을 위해 필요
-    private bool _isAlly = false; // [추가] 아군 여부 캐싱
+    /// <summary>런타임 스탯 보정치(유물/아이템/서브 소환수). 여기에 걸면 아래 게터들이 알아서 반영한다.</summary>
+    public StatModifierRegistry Mods { get; } = new StatModifierRegistry();
+
+    private bool _isAlly = false;  // [추가] 아군 여부 캐싱
     private bool _isPlayer = false; // [추가] 플레이어 여부 캐싱
 
     public bool IsEnemy => !_isAlly && !_isPlayer; // [추가] 적군 여부 식별
+    public bool IsPlayer => _isPlayer;
 
     // 서브 소환수 패시브는 플레이어에게만 붙는다. 매번 GetComponent 하지 않도록 캐싱.
     private SubSummonPassiveController _subPassive;
@@ -49,154 +79,128 @@ public class CharacterStat : MonoBehaviour
 
     private bool _isInitialized = false;
 
-    // --- 외부 참조용 단축 프로퍼티 (데이터 중심 + 보석 보너스 합산) ---
+    /// <summary>방어력 감소율 상한. 유물이 겹쳐도 여기서 잘린다.</summary>
+    public const float MAX_DEF_PERCENT = 75f;
 
-    // 공격력: (기본 공격력) * (1 + 보물 배율) * 노화 감소 * 부식 감소 * 기타
+    // ── 공용 스탯 ─────────────────────────────────────────────────────
+
+    /// <summary>물리 공격력. 플레이어 주먹 + 소환수 피해의 공통 베이스.</summary>
     public float ATK
     {
         get
         {
-            float agingReduction = (Status != null) ? DebuffRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy) : 0f;
-            float agingMult = Mathf.Max(0.1f, 1f - agingReduction);
-
-            float corrosionAtkReduction = 0f;
-            float corrosionMult = Mathf.Max(0f, 1f - corrosionAtkReduction);
-
-            // 플레이어는 보물(미니언용) 보너스를 받지 않음
-            float bonusMult = _isPlayer ? 0f : (GetGemBonus(StatType.Attack) + GetTreasureBonus(TreasureEffectType.GlobalMinionStats));
-            
-            float atkMult = 1f;
-            float hpMult = 1f;
-            float atkSpdMult = 1f;
-            float moveSpdMult = 1f;
-            StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
-
-            return baseAtk * (1f + bonusMult) * agingMult * corrosionMult * atkMult;
+            float bonus = GetGemBonus(StatType.Attack)
+                        + GetTreasureBonus(TreasureEffectType.GlobalMinionStats)
+                        + Mods.Percent(StatType.Attack);
+            return (baseAtk + Mods.Flat(StatType.Attack)) * (1f + bonus);
         }
     }
 
+    /// <summary>마법 공격력. 마법 스킬 전용.</summary>
+    public float MAGIC => (baseMagic + Mods.Flat(StatType.Magic)) * (1f + Mods.Percent(StatType.Magic));
 
-    // 최대 체력: (기본 체력 + 보석 고정치) * (1 + 보물 배율)
-    public float MAXHP 
+    public float MAXHP
     {
         get
         {
-            float gemFlatBonus = _isPlayer ? 0f : GetGemBonus(StatType.Health);
-            float treasureMult = _isPlayer ? 0f : GetTreasureBonus(TreasureEffectType.GlobalMinionStats);
-            
-            float atkMult = 1f;
-            float hpMult = 1f;
-            float atkSpdMult = 1f;
-            float moveSpdMult = 1f;
-            StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
-            
-            float subBonus = SubPassive != null ? SubPassive.MaxHpBonus : 0f;
-            return (baseMaxHP + gemFlatBonus + subBonus) * (1f + treasureMult) * hpMult;
+            float flat = GetGemBonus(StatType.Health)
+                       + Mods.Flat(StatType.Health)
+                       + (SubPassive != null ? SubPassive.MaxHpBonus : 0f);
+            float bonus = GetTreasureBonus(TreasureEffectType.GlobalMinionStats)
+                        + Mods.Percent(StatType.Health);
+            return (baseMaxHP + flat) * (1f + bonus);
         }
     }
 
     public float CURHP => (Health != null) ? Health.CurHP : MAXHP;
 
-    // 공격 속도: (기본 주기 / 보너스) / 한기 감소 -> 주기가 길어질수록 느려짐
+    /// <summary>
+    /// 공격 속도(회/초). 높을수록 빠르다.
+    /// [26/07/17] 예전엔 '공격 간격(초)'이라 낮을수록 빨랐다 — 스탯으로 올릴 때 방향이 반대여서
+    /// 뒤집었다. 타이머용 '초'가 필요하면 AttackInterval 을 쓸 것.
+    /// </summary>
     public float ATKSPD
     {
         get
         {
-            float chillReduction = (Status != null) ? DebuffRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy) : 0f;
-            
-            if (Status != null && Status.GetDebuffBool(DebuffBoolType.Fractured))
-            {
-                int fracTier = Status.GetDebuffTier(DebuffBoolType.Fractured);
-                float fracReduction = fracTier == 1 ? 0.15f : fracTier == 2 ? 0.30f : 0.45f;
-                chillReduction += fracReduction;
-            }
-
-            float chillMult = Mathf.Max(0.1f, 1f - chillReduction);
-            
-            float bonusMult = _isPlayer ? 0f : GetGemBonus(StatType.AttackSpeed);
-
-            float atkMult = 1f;
-            float hpMult = 1f;
-            float atkSpdMult = 1f;
-            float moveSpdMult = 1f;
-            StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
-
-            // 공속은 atkSpdMult의 역수를 취해 곱함 (공격 딜레이 감소)
-            float speedDivisor = (atkSpdMult != 0) ? (1f / atkSpdMult) : 1f;
-
-            // 서브 소환수의 공격 간격 감소는 고정값이라 마지막에 뺀다 (ATKSPD 는 간격, 낮을수록 빠름).
-            float subReduction = SubPassive != null ? SubPassive.AtkIntervalReduction : 0f;
-            float result = (baseAtkSpd * speedDivisor / (1f + bonusMult)) / chillMult;
-            return Mathf.Max(0.05f, result - subReduction);
+            float bonus = GetGemBonus(StatType.AttackSpeed)
+                        + Mods.Percent(StatType.AttackSpeed)
+                        + (SubPassive != null ? SubPassive.AtkSpeedBonus : 0f);
+            float result = (baseAtkSpd + Mods.Flat(StatType.AttackSpeed)) * (1f + bonus);
+            return Mathf.Max(0.05f, result);
         }
     }
 
-    public float BaseMaxHP => baseMaxHP;
-    public float BaseAtk => baseAtk;
-    public float ATKRANGE => baseAtkRange;
-    public float DEF 
-    { 
-        get
-        {
-            float finalDef = baseDef;
-            return finalDef;
-        }
-    }
-    public float FLAT_DEF
+    /// <summary>공격 간격(초). AI 쿨타임 타이머가 쓰는 값. ATKSPD 의 역수다.</summary>
+    public float AttackInterval => 1f / Mathf.Max(0.05f, ATKSPD);
+
+    /// <summary>
+    /// 방어력(%). 그 자체가 감소율이다 — 20 이면 20% 감소.
+    /// 상한 75% 는 여기서 자른다. 계산식이 아니라 게터에서 자르는 이유: UI 에도 75 로 보여야 하고,
+    /// 상한을 넘긴 방어력이 어딘가에서 음수 피해로 뒤집히는 걸 원천 차단하려고.
+    /// </summary>
+    public float DEF
     {
         get
         {
-            float finalFlatDef = baseFlatDef;
-            if (Status != null && Status.GetDebuffBool(DebuffBoolType.Corroded))
-            {
-                int corrodedTier = Status.GetDebuffTier(DebuffBoolType.Corroded);
-                float corrodedReduction = corrodedTier == 1 ? 12f : corrodedTier == 2 ? 16f : 20f;
-                finalFlatDef -= corrodedReduction;
-            }
-            return finalFlatDef;
+            float def = (baseDef + Mods.Flat(StatType.Defense)) * (1f + Mods.Percent(StatType.Defense));
+            return Mathf.Clamp(def, 0f, MAX_DEF_PERCENT);
         }
     }
 
-    public float EVASION => baseEvasion;
+    /// <summary>치명타 확률(%).</summary>
+    public float CRIT_CHANCE => Mathf.Max(0f, baseCritChance + Mods.Flat(StatType.CritChance));
 
-    public float MISS_CHANCE => baseMissChance;
-    
-    public float BASE_THROW_DAMAGE => baseThrowDamage;
+    /// <summary>치명타 피해량(%). 150 = 1.5배. 하향도 가능하되 100% 밑으로는 안 내려간다(크리가 손해면 이상하므로).</summary>
+    public float CRIT_DAMAGE => Mathf.Max(100f, baseCritDamage + Mods.Flat(StatType.CritDamage));
 
-    // 이동 속도: 기본 속도 * 상태이상 배율 * (한기+노화 감소)
+    /// <summary>회피율(0~1).</summary>
+    public float EVASION => Mathf.Clamp01(baseEvasion + Mods.Flat(StatType.Evasion));
+
+    /// <summary>적중률(0~1). 1 = 무조건 맞힘.</summary>
+    public float ACCURACY => Mathf.Clamp01(baseAccuracy + Mods.Flat(StatType.Accuracy));
+
     public float MOVESPEED
     {
         get
         {
             if (Status == null) return baseMoveSpeed;
-            if (Status.GetDebuffBool(DebuffBoolType.Stunned) || Status.GetDebuffBool(DebuffBoolType.Hitstunned)) return 0f;
+            if (Status.HasStatus(StatusType.Stun) || Status.HasStatus(StatusType.Hitstun)) return 0f;
 
-            float chillReduction = DebuffRuleSystem.GetChillSlowReduction(Status.GetDebuffStack(DebuffStackType.Fracture), IsEnemy);
-            float agingReduction = DebuffRuleSystem.GetAgingSlowReduction(Status.GetDebuffStack(DebuffStackType.Corrosion), IsEnemy);
-
-            if (Status.GetDebuffBool(DebuffBoolType.Fractured))
-            {
-                int fracTier = Status.GetDebuffTier(DebuffBoolType.Fractured);
-                float fracReduction = fracTier == 1 ? 0.15f : fracTier == 2 ? 0.30f : 0.45f;
-                chillReduction += fracReduction;
-            }
-
-            float reductionMult = Mathf.Max(0.1f, 1f - (chillReduction + agingReduction));
-            float finalSpeed = (baseMoveSpeed * Status.MoveSpeedMultiplier) * reductionMult;
-
-            float atkMult = 1f;
-            float hpMult = 1f;
-            float atkSpdMult = 1f;
-            float moveSpdMult = 1f;
-            StatEventBus.TriggerStatCalculate(this, ref atkMult, ref hpMult, ref atkSpdMult, ref moveSpdMult);
-
-            return finalSpeed * moveSpdMult;
+            float bonus = Mods.Percent(StatType.MoveSpeed);
+            return (baseMoveSpeed + Mods.Flat(StatType.MoveSpeed)) * (1f + bonus) * Status.MoveSpeedMultiplier;
         }
     }
 
-    // 부활 시간 보너스 (필요 시 외부에서 참조)
-    public float RESPAWN_BONUS => _isPlayer ? 0f : GetGemBonus(StatType.RespawnTime);
+    // ── 적 전용 ───────────────────────────────────────────────────────
 
+    public float ATKRANGE => baseAtkRange;
+
+    /// <summary>이 유닛의 공격이 물리인지 마법인지. 데미지 팝업 색과 향후 속성별 증감의 기준.</summary>
+    public AttackType ATTACK_TYPE => baseAttackType;
+
+    // ── 플레이어 전용 ─────────────────────────────────────────────────
+
+    /// <summary>스킬 쿨감 비율(0~1 이상). 합연산이고 상한이 없다 — 1 이면 쿨타임 0.</summary>
+    public float SKILL_CDR => (baseSkillCdr + Mods.Flat(StatType.SkillCooldownReduction)) / 100f;
+
+    /// <summary>대쉬 쿨감 비율(0~1 이상).</summary>
+    public float DASH_CDR => (baseDashCdr + Mods.Flat(StatType.DashCooldownReduction)) / 100f;
+
+    /// <summary>평타 1·2타 배율.</summary>
+    public float BASIC_ATK_MULT => baseBasicAtkMult + Mods.Flat(StatType.BasicAttackMultiplier);
+
+    /// <summary>스킬 쿨타임에 쿨감을 먹인 최종 초. 쿨감 100%면 0 이 된다(상한 없음 — 기획 확정).</summary>
+    public float ApplySkillCooldown(float baseCooldown) => Mathf.Max(0f, baseCooldown * (1f - SKILL_CDR));
+
+    /// <summary>대쉬 쿨타임에 쿨감을 먹인 최종 초.</summary>
+    public float ApplyDashCooldown(float baseCooldown) => Mathf.Max(0f, baseCooldown * (1f - DASH_CDR));
+
+    // ── 기타 ──────────────────────────────────────────────────────────
+
+    public float BaseMaxHP => baseMaxHP;
+    public float BaseAtk => baseAtk;
+    public float BaseMoveSpeed => baseMoveSpeed;
     public bool IsDead => Health != null && Health.IsDead;
 
     private void OnEnable()
@@ -222,27 +226,25 @@ public class CharacterStat : MonoBehaviour
     {
         if (!_isInitialized) return;
 
-        // 플레이어는 보석 트리의 영향을 받지 않으므로 갱신 스킵 (필요 시 주석 해제)
-        // if (_isPlayer) return;
-
         // 최대 체력 변화를 Health 담당자에게 알림 (체력바 UI 갱신 등)
         if (Health != null)
         {
-            Health.ResetHP(); // 또는 현재 체력 비율을 유지하며 최대 체력만 변경하는 로직 필요 시 추가
+            Health.ResetHP();
         }
-
-        // Debug.Log($"<color=white>[Stat]</color> {gameObject.name} stats refreshed by Gem Tree update.");
     }
 
+    // [26/07/17] _isPlayer 게이트를 걷어냈다. 예전엔 플레이어를 젬/보물 보너스에서 명시적으로
+    // 제외했는데, 이제 소환수가 플레이어의 ATK 를 공유하므로 버프 경로가 하나여야 한다.
+    // "아군 공격력 증가"를 베이스 ATK 하나에만 걸면 주먹과 소환수 피해에 동시에 먹는다.
     private float GetGemBonus(StatType type)
     {
-        if (InventoryManager.Instance == null || !_isAlly || _isPlayer) return 0f;
-        return InventoryManager.Instance.GetAggregatedGemBonus(jobType, type); // [수정] jobType 전달
+        if (InventoryManager.Instance == null || !_isAlly) return 0f;
+        return InventoryManager.Instance.GetAggregatedGemBonus(type);
     }
 
     private float GetTreasureBonus(TreasureEffectType type)
     {
-        if (InventoryManager.Instance == null || !_isAlly || _isPlayer) return 0f;
+        if (InventoryManager.Instance == null || !_isAlly) return 0f;
         return InventoryManager.Instance.GetTreasureBonus(type);
     }
 
@@ -265,12 +267,12 @@ public class CharacterStat : MonoBehaviour
             return;
         }
 
-        // 2. 플레이어 본체거나 군대(미니언) 태그/레이어인지 체크 (자식 오브젝트일 수 있으므로 root 태그도 확인)
+        // 3. 플레이어 본체거나 군대(미니언) 태그/레이어인지 체크 (자식 오브젝트일 수 있으므로 root 태그도 확인)
         _isPlayer = CompareTag("Player") || gameObject.layer == Layers.Player || transform.root.CompareTag("Player");
         _isAlly = _isPlayer || tag == "Army" || gameObject.layer == Layers.Army || transform.root.tag == "Army";
     }
 
-    // [중앙집집중형 초기화]
+    // [중앙집중형 초기화]
     public void Setup()
     {
         if (_isInitialized)
@@ -298,7 +300,7 @@ public class CharacterStat : MonoBehaviour
         {
             spawner.Initialize(this); // 직접 만든 초기화 함수 호출
         }
-        
+
         _isInitialized = true;
     }
 
@@ -311,17 +313,18 @@ public class CharacterStat : MonoBehaviour
 
         if (data != null)
         {
-            jobType = data.minionType; // 직업 정보 캐싱 (보석 계산용)
-
             baseMaxHP = data.maxHP;
             baseAtk = data.attack;
-            baseAtkSpd = data.attackSpeed; // 공격속도는 간격(주기)이므로 작아질수록 좋음
+            baseAtkSpd = data.attackSpeed; // 회/초 (높을수록 빠름)
             baseAtkRange = data.attackRange;
             baseDef = data.defense;
-            baseFlatDef = data.flatDefense;
             baseMoveSpeed = data.moveSpeed;
             baseEvasion = data.baseEvasion;
-            baseMissChance = data.baseMissChance;
+            baseAccuracy = data.baseAccuracy;
+            baseAttackType = data.attackType;
+
+            // 적은 치명타를 굴리지 않는다(기본값 0). 필요해지면 EnemyMinionDataSO 에 필드를 열면 된다.
+            baseCritChance = 0f;
 
             // [추가] 보스 여부 전달
             if (Status != null) Status.IsElite = data.isElite;
@@ -329,6 +332,7 @@ public class CharacterStat : MonoBehaviour
 
         UpdateTeamStatus(); // 데이터 주입 시점에 팀 정보 다시 확인
 
+        Mods.Clear(); // 오브젝트 재사용 시 이전 유닛의 보정치를 물려받지 않도록
         if (Health != null) Health.ResetHP();
         if (Status != null) Status.ClearStatus();
         if (Visual != null) Visual.ResetVisuals();
@@ -337,23 +341,9 @@ public class CharacterStat : MonoBehaviour
     /// <summary>
     /// AI 패턴 등에서 동적으로 기본 이동 속도를 변경할 때 사용합니다.
     /// </summary>
-    public float BaseMoveSpeed => baseMoveSpeed;
-
-    
-public void SetBaseMoveSpeed(float speed)
+    public void SetBaseMoveSpeed(float speed)
     {
         baseMoveSpeed = speed;
-    }
-
-
-    /// <summary>
-    /// 분신 소환 등 특수한 경우에 스탯을 절반으로 깎는 로직
-    /// </summary>
-    public void ApplySplitStats()
-    {
-        baseMaxHP *= 0.5f;
-        baseAtk *= 0.5f;
-        if (Health != null) Health.ResetHP();
     }
 
     /// <summary>
@@ -362,13 +352,5 @@ public void SetBaseMoveSpeed(float speed)
     public void SetCurrentDef(float newDef)
     {
         baseDef = Mathf.Max(0f, newDef);
-    }
-
-    /// <summary>
-    /// 런타임에 현재 고정 방어력을 수정합니다.
-    /// </summary>
-    public void SetCurrentFlatDef(float newFlatDef)
-    {
-        baseFlatDef = Mathf.Max(0f, newFlatDef);
     }
 }

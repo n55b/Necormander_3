@@ -5,7 +5,6 @@ public class MouseCursorManager : MonoBehaviour
     [Header(" [ Cursor SO ] ")]
     [SerializeField] MouseCursorSO defaultCursorSO;
     [SerializeField] MouseCursorSO TargetCursorSO;
-    [SerializeField] MouseCursorSO ThrowCursorSO;
     [SerializeField] MouseCursorSO currentCursorSO;
 
     private void Awake()
@@ -23,8 +22,6 @@ public class MouseCursorManager : MonoBehaviour
             case CursorType.Targeting:
                 ChangeCursorSO(TargetCursorSO, obj);
                 break;
-            case CursorType.Throw:
-                ChangeCursorSO(ThrowCursorSO, obj);
                 break;
         }
     }

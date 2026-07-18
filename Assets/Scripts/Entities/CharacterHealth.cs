@@ -45,18 +45,20 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
     public void GetDamage(DamageInfo info)
     {
-        OnDamageReceived?.Invoke(info); // [추가] AI 측에서 피격 상세 정보(Throw 여부 등)를 파악하기 위함
+        OnDamageReceived?.Invoke(info); // [추가] AI 측에서 피격 상세 정보를 파악하기 위함
 
         if (isDead || invincible) return;
 
-        // [추가] 회피 / 미스 판정 (평타인 경우에만 적용)
+        // [추가] 회피 / 명중 판정 (평타인 경우에만 적용)
+        // 기본값(적중률 1, 회피 0)이면 명중률 1.0 이라 Random.value(<1.0)가 절대 못 넘는다 = 무조건 명중.
+        // 예전엔 '빗나갈 확률 <= Random.value' 라 회피 0% 여도 0.0 이 뜨면 빗나갔다. 뒤집으면서 같이 해결됨.
         if (info.isBasicAttack && info.attacker != null)
         {
             var attackerStat = info.attacker.GetComponent<CharacterStat>();
             if (attackerStat != null && _stat != null)
             {
-                float totalMissChance = attackerStat.MISS_CHANCE + _stat.EVASION;
-                if (UnityEngine.Random.value <= totalMissChance)
+                float hitChance = attackerStat.ACCURACY - _stat.EVASION;
+                if (UnityEngine.Random.value >= hitChance)
                 {
                     // 회피 이벤트 트리거
                     DamageEventBus.TriggerEvasionOccurred(this, attackerStat);
@@ -69,14 +71,19 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             }
         }
 
+        // 슈퍼아머 여부는 '깎기 전'에 읽는다. 이 순서가 중요하다 —
+        // 예전엔 깎은 뒤에 읽어서, 슈퍼아머를 부순 바로 그 일격이 넉백/경직까지 같이 넣었다.
+        // (게이지가 0이 되는 순간 _hasSuperArmor 가 false 로 바뀌므로)
+        // 슈퍼아머는 '부서지기 전까지' 막아주는 것이니, 부순 타격 자체는 아직 막혀야 한다.
+        bool hasSuperArmor = (_status != null && _status.HasSuperArmor);
+
         // [추가] 슈퍼아머 게이지 차감 처리
-        if (_status != null && _status.HasSuperArmor && info.superArmorDamage > 0f)
+        if (hasSuperArmor && info.superArmorDamage > 0f)
         {
             _status.DamageSuperArmor(info.superArmorDamage);
         }
 
         // [추가] 경직(Hitstun) 및 넉백(Knockback) 처리
-        bool hasSuperArmor = (_status != null && _status.HasSuperArmor);
         if ((info.causesHitstun || info.knockbackForce > 0f) && !hasSuperArmor)
         {
             var rootEntity = GetComponentInParent<BaseEntity>();
@@ -88,7 +95,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
                     // Status(디버프)에 Hitstunned 등을 0.2초 정도 추가해 경직을 줄 수도 있습니다.
                     if (_status != null)
                     {
-                        _status.SetDebuffBool(DebuffBoolType.Hitstunned, 0.2f); // 0.2초 경직
+                        _status.ApplyStatus(StatusType.Hitstun, 0.2f); // 0.2초 경직
                     }
                 }
 
@@ -119,80 +126,27 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // 데미지 파이프라인: 계산 전 증폭/변형 이벤트
         DamageEventBus.TriggerBeforeDamageCalculated(this, ref info);
 
-        // [추가] 상처(Wounded) 부여 시 받피증 (Damage Amp) 적용
-        if (_status != null && _status.GetDebuffBool(DebuffBoolType.Wounded))
-        {
-            int woundTier = _status.GetDebuffTier(DebuffBoolType.Wounded);
-            float damageAmp = woundTier == 1 ? 0.15f : woundTier == 2 ? 0.30f : 0.45f; // 15%, 30%, 45%
-            info.amount *= (1f + damageAmp);
-        }
-
         float remainingDamage = info.amount;
 
-        // [기초 개선안] 방패병 데미지 대신 받기 (15%)
-        // 아군 타겟(플레이어 포함), 리다이렉트된 데미지가 아닐 때
-        if (_stat != null && !_stat.IsEnemy && !info.isRedirected && remainingDamage > 0)
+        // [치명타] 방어력보다 먼저 굴린다 — 기획: "치명타 판정 끝난 최종 데미지에서 방어력 감소율을 뺀다".
+        // 상태이상 고정 피해(출혈/중독/빙결/비폭)엔 안 붙는다. '고정'이니까.
+        bool isCritical = false;
+        if (DamageRules.CanCrit(info.type) && info.attacker != null)
         {
-            // 본인이 방패병이 아닐 경우에만 주변 2반경 내의 방패병 탐색
-            if (_stat.jobType != CommandData.SkeletonShieldbearer)
+            var attackerStat = info.attacker.GetComponent<CharacterStat>();
+            if (attackerStat == null) attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
+            if (attackerStat != null && attackerStat.CRIT_CHANCE > 0f
+                && UnityEngine.Random.value * 100f < attackerStat.CRIT_CHANCE)
             {
-                Collider2D[] allies = Physics2D.OverlapCircleAll(transform.position, 2f, Layers.ArmyMask);
-                CharacterHealth bestShieldbearer = null;
-                float minDist = float.MaxValue;
-
-                foreach (var allyCol in allies)
-                {
-                    var allyStat = allyCol.GetComponent<CharacterStat>();
-                    var allyHealth = allyCol.GetComponent<CharacterHealth>();
-                    if (allyStat != null && allyHealth != null && !allyHealth.isDead && allyStat.jobType == CommandData.SkeletonShieldbearer)
-                    {
-                        float d = Vector2.Distance(transform.position, allyCol.transform.position);
-                        if (d < minDist) { minDist = d; bestShieldbearer = allyHealth; }
-                    }
-                }
-
-                if (bestShieldbearer != null)
-                {
-                    float redirectAmount = remainingDamage * 0.15f;
-                    remainingDamage -= redirectAmount;
-
-                    DamageInfo redirectInfo = info;
-                    redirectInfo.amount = redirectAmount;
-                    redirectInfo.isRedirected = true;
-                    redirectInfo.popupText = "Guard";
-                    bestShieldbearer.GetDamage(redirectInfo);
-                }
+                isCritical = true;
+                remainingDamage *= attackerStat.CRIT_DAMAGE / 100f;
             }
         }
 
-        // [공용 시너지 연산 (미니언 물리 피해(평타 전용) && 적군 타겟 && 공격자가 아군)]
-        bool isEnemyTarget = (_stat != null && _stat.IsEnemy);
-        if (info.type == DamageType.Physical && isEnemyTarget && info.attacker != null && !info.isThrowDamage)
-        {
-            var attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
-            if (attackerStat == null) attackerStat = info.attacker.GetComponentInChildren<CharacterStat>();
-            
-            if (attackerStat != null && !attackerStat.IsEnemy)
-            {
-                var inven = InventoryManager.Instance;
-                if (inven != null)
-                {
-                    int poisonSynergy = inven.GetSynergyCount(GemSynergyGroup.Poison);
-                    int bloodPopSynergy = inven.GetSynergyCount(GemSynergyGroup.BloodPop);
-                    int executionSynergy = inven.GetSynergyCount(GemSynergyGroup.Execution);
-
-                    // Obsolete Poison synergy removed
-                        
-                    // Obsolete BloodPop synergy removed
-                        
-                    if (executionSynergy >= 2)
-                        _status.AddDebuffStack(DebuffStackType.Wound, 1f);
-                }
-            }
-        }
-
-        // [쉴드] 적용
-        if (info.type != DamageType.Fixed && _status != null && _status.TotalShield > 0)
+        // [쉴드] 적용.
+        // Fixed(고정 피해)도 쉴드는 막는다. 쉴드는 임시 체력에 가까운 물건이라 '방어력 무시'와
+        // 같은 취급을 하면 안 된다. Fixed 가 무시하는 건 아래의 방어력뿐이다.
+        if (_status != null && _status.TotalShield > 0)
         {
             float absorbed = _status.ConsumeShield(remainingDamage);
             remainingDamage -= absorbed;
@@ -205,12 +159,11 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         if (remainingDamage > 0)
         {
             float finalDamage = remainingDamage;
-            if (info.type != DamageType.Fixed)
+            if (!DamageRules.IgnoresDefense(info.type))
             {
-                // [신규 방어력 로직 적용]
-                // 최종 데미지 = (총 데미지 * (100 - 일반 방어력) / 100) - 고정 수치 방어력
-                float dmgAfterPercentDef = remainingDamage * ((100f - _stat.DEF) / 100f);
-                finalDamage = Mathf.Max(dmgAfterPercentDef - _stat.FLAT_DEF, 1f);
+                // 방어력 % 차감형. DEF 자체가 감소율이고, 상한 75% 는 게터에서 이미 잘려서 온다.
+                // [26/07/17] 고정 방어력(FLAT_DEF)은 삭제 — 방어력은 % 하나로 일원화했다.
+                finalDamage = Mathf.Max(remainingDamage * ((100f - _stat.DEF) / 100f), 1f);
             }
 
             curHP -= finalDamage;
@@ -220,7 +173,15 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             if (!string.IsNullOrEmpty(info.popupText))
                 popupStr = info.popupText;
 
-            TakeDamageEvent?.Invoke((int)finalDamage, info.type, popupStr, false);
+            TakeDamageEvent?.Invoke((int)finalDamage, info.type, popupStr, isCritical);
+
+            // 상태이상 반응: 빙결 해제(+고정 피해), 출혈 추가 피해.
+            // 상태이상 피해는 여기 못 들어온다 — 그래야 출혈의 +2 가 스스로를 트리거하는
+            // 무한 재귀가 안 난다. 판정은 DamageRules.TriggersBleed 하나가 쥔다.
+            if (_status != null && !isDead && DamageRules.TriggersBleed(info.type))
+            {
+                _status.OnDirectDamageTaken();
+            }
 
             // 실제 데미지 피격 후 이벤트 트리거
             DamageEventBus.TriggerDamageReceived(this, info);
@@ -232,32 +193,6 @@ public class CharacterHealth : MonoBehaviour, IDamageable
                 Signal.Fire(ShakeSignal.플레이어피격);
             else if (info.attacker != null && info.attacker.CompareTag("Player"))
                 Signal.Fire(ShakeSignal.적피격);
-        }
-
-        // [처형] 체크
-        if (_status != null && !isDead)
-        {
-            float executeThreshold = _status.GetDebuffStack(DebuffStackType.Wound);
-
-            // 처형 계산 전 이벤트 트리거 (단두대 등에서 Threshold 증폭)
-            if (executeThreshold > 0)
-            {
-                DamageEventBus.TriggerBeforeExecutionCalculated(this, ref executeThreshold);
-            }
-
-            if (executeThreshold > 0 && curHP > 0 && curHP <= executeThreshold)
-            {
-                TakeDamageEvent?.Invoke((int)executeThreshold, DamageType.Fixed, "Execution", false);
-
-                // Execute-trigger hit stop (same idea as Smash, but called directly here instead of via a skill asset)
-                if (HitStopManager.Instance != null)
-                    HitStopManager.Instance.DoHitStop(0.1f);
-
-                curHP = 0;
-
-                // 처형 완료 이벤트 트리거 (공포 등 발동)
-                DamageEventBus.TriggerEntityExecuted(this);
-            }
         }
 
         // [사망] 체크
@@ -326,15 +261,6 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         isDead = true;
 
         // [비폭] 사망 시 최우선 발동
-        if (_status != null)
-        {
-            int bloodPopStack = _status.GetDebuffStack(DebuffStackType.BloodPop);
-            if (bloodPopStack > 0)
-            {
-                TriggerBloodPopExplosion(bloodPopStack);
-            }
-        }
-
         OnDeath?.Invoke();
 
         BaseEntity rootEntity = GetComponentInParent<BaseEntity>();
@@ -360,65 +286,9 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         }
     }
 
-    public void TriggerBloodPopExplosion(float stacks)
-    {
-        float explosionRadius = 2.5f;
-        float baseDamage = stacks * 10f; // 비폭 1스택당 10의 데미지로 가정
-        float finalDamage = baseDamage;
-
-        // [이벤트 버스] 폭발 전 이벤트: 폭발 반경 증폭, 당기기, 기본 데미지 증폭 등 적용 가능
-        StatusEventBus.TriggerBloodPopExplodeBeforeDamage(this, ref finalDamage, ref explosionRadius);
-
-        // Bloodpop은 무조건 'Enemy' 레이어의 유닛에게만 데미지를 줍니다. (아군과 플레이어 제외)
-        var registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
-        if (registry != null && registry.bloodPopVFX != null)
-        {
-            GameObject vfx = Instantiate(registry.bloodPopVFX, transform.position, Quaternion.identity);
-            vfx.transform.localScale = Vector3.one * (explosionRadius * 2f);
-            Destroy(vfx, 1.0f);
-        }
-
-        LayerMask enemyLayer = Layers.EnemyMask;
-        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, explosionRadius, enemyLayer); 
-
-        foreach (var col in colls)
-        {
-            var targetHealth = col.GetComponentInChildren<CharacterHealth>();
-            if (targetHealth != null && !targetHealth.isDead)
-            {
-                float damageToApply = finalDamage;
-                var targetStatus = col.GetComponentInChildren<CharacterStatus>();
-
-                // 타겟 종속 데미지 증폭 등은 향후 핸들러 내에서 colls를 루프돌며 개별 처리하거나 OnBloodPopTargetImpact 같은 세분화된 이벤트로 분리 가능.
-                // 현재는 폭발 자체 이벤트에서 통합 처리하도록 권장합니다.
-
-                // 데미지 팝업 등을 위해 이벤트 호출 (GetDamage 내부에서 팝업을 띄우므로 여기서는 직접 호출 생략)
-                targetHealth.GetDamage(new DamageInfo(damageToApply, DamageType.Fixed, this.gameObject, false, 1f, false, "BloodPop"));
-            }
-        }
-
-        // [이벤트 버스] 폭발 후 이벤트: 아군 쉴드 부여, 장판 생성 등 사후 처리
-        StatusEventBus.TriggerBloodPopExplodeAfterDamage(this, finalDamage, explosionRadius, colls);
-    }
-
     public void TriggerDamagePopup(int amount, DamageType dmgType, string type, bool isCritical)
     {
         TakeDamageEvent?.Invoke(amount, dmgType, type, isCritical);
-    }
-
-    public void ApplyFearToSurroundingEnemies()
-    {
-        LayerMask enemyLayer = Layers.EnemyMask;
-        Collider2D[] colls = Physics2D.OverlapCircleAll(transform.position, 5f, enemyLayer);
-        foreach (var col in colls)
-        {
-            var targetStatus = col.GetComponentInChildren<CharacterStatus>();
-            if (targetStatus != null && targetStatus != _status && !targetStatus.IsElite)
-            {
-                // 주변 일반 적에게만 공포 1초 부여
-                // targetStatus.SetDebuffBool(DebuffBoolType.Wounded, 1.0f);
-            }
-        }
     }
 
     public void ResetHP()

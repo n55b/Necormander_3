@@ -76,7 +76,12 @@ public class EnemyMagicianCircleAttack : MonoBehaviour
 
             if (stat != null && stat.Health != null)
             {
-                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _attacker);
+                // 마법진은 마법사가 쏜 것이니 시전자의 공격 속성을 따른다.
+                var casterStat = _attacker != null ? _attacker.GetComponentInChildren<CharacterStat>() : null;
+                var dmgType = casterStat != null
+                    ? DamageRules.FromAttackType(casterStat.ATTACK_TYPE)
+                    : DamageType.Magic;
+                DamageInfo info = new DamageInfo(_damage, dmgType, _attacker);
                 try
                 {
                     stat.Health.GetDamage(info);

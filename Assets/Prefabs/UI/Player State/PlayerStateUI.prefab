@@ -1292,6 +1292,7 @@ MonoBehaviour:
   - {fileID: 1750287689633259190}
   - {fileID: 2768444475029455128}
   cooldownFill: {fileID: 7781272231092814026}
+  dashIcon: {fileID: 4355247330410520386}
 --- !u!222 &4049797955707940456
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1829,8 +1830,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
@@ -1839,7 +1840,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -7848039375673857549, guid: 2194b2a070b59114a8e19b4375cc961c, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

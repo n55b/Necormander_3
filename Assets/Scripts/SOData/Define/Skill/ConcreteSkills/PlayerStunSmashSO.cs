@@ -43,19 +43,11 @@ public class PlayerStunSmashSO : PlayerSkillSO
             BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
             box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
 
-            float finalDamage = player.Stat.ATK * damageMultiplier;
-            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, player.gameObject, false, 1f, false, "Kkong!");
+            float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
+            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Kkong!");
 
-            System.Action<CharacterHealth> onHit = (health) => {
-                var stat = health.GetComponent<CharacterStat>();
-                if (stat != null && stat.Status != null)
-                {
-                    Debug.Log("<color=red>[Physical]</color> 꽁! 적중! (호출: Consume Stun)");
-                    stat.Status.ConsumeVulnerability(SkillKeyword.Stun, player.gameObject, true);
-                }
-            };
 
-            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true, onHit);
+            box.Init(info, Layers.EnemyMask, 0.2f, 0f, true);
         }
     }
 }

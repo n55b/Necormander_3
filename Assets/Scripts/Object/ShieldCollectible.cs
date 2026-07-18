@@ -15,6 +15,11 @@ public class ShieldCollectible : MonoBehaviour
     [SerializeField] private float bounceHeight = 0.5f;
     [SerializeField] private float bounceDuration = 0.6f;
 
+    // [26/07/17] 예전엔 이 VFX 를 투척 이펙트 레지스트리(THROW_EFFECT_REGISTRY)에서 빌려 왔다.
+    // 투척과 아무 상관 없는 기능이 투척 배선에 얹혀 있던 것 — 투척을 지우면서 자기 참조로 바꿨다.
+    [Tooltip("획득 시 재생할 이펙트. 비우면 이펙트 없이 보호막만 붙는다.")]
+    [SerializeField] private GameObject pickupVFX;
+
     private bool _isCollected = false;
 
     public void Init(float amount, float shieldDuration)
@@ -72,11 +77,9 @@ public class ShieldCollectible : MonoBehaviour
             stat.Status.AddShield(shieldAmount, duration);
             Debug.Log($"<color=cyan>[Collectible]</color> {collector.name}가 보호막 {shieldAmount:F1}을 획득했습니다!");
             
-            // 시각 효과 재생 (레지스트리에서 이펙트를 가져와서 재생 가능)
-            ThrowEffectRegistrySO registry = GameManager.Instance.dataManager.THROW_EFFECT_REGISTRY;
-            if (registry != null && registry.shieldAttachVFX != null)
+            if (pickupVFX != null)
             {
-                Instantiate(registry.shieldAttachVFX, collector.transform.position, Quaternion.identity, collector.transform);
+                Instantiate(pickupVFX, collector.transform.position, Quaternion.identity, collector.transform);
             }
         }
 

@@ -152,3 +152,5 @@ MonoBehaviour:
   moveSpeed: 0.5
   fadeTime: 1.5
   displaytime: 1.5
+  punchDuration: 1.5
+  CiriPunchDuration: 2

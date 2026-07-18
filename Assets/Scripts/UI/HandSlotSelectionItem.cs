@@ -141,18 +141,6 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
             // [수정] 미니언 스탯 및 보유 수량은 더 이상 표시하지 않습니다 (스킬 설명만 표시).
             data.effects = null;
         }
-        else if (_currentSlot.EquippedThrowAbility != null)
-        {
-            // 능력 정보 구성
-            var ability = _currentSlot.EquippedThrowAbility;
-            data.type = $"<color=#00BFFF>{GetUIString("UI_ThrowAbility_Prefix", ability.rarity)}</color>";
-            data.titleColor = new Color(0.8f, 0.9f, 1f);
-            
-            // 능력은 설명에 상세 수치가 포함되어 있는 경우가 많으므로 기본 정보만 표시
-            data.effects = new List<string> {
-                $"<color=#FF7F50>{GetUIString("UI_Equipped_Capability")}</color>"
-            };
-        }
         else return;
 
         CommonTooltipUI.Instance.Show(data);
