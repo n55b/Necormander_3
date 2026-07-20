@@ -30,6 +30,8 @@ public enum StatType
     SkillCooldownReduction = 17,   // 스킬 쿨감(%) — 플레이어 전용. 합연산, 상한 없음
     DashCooldownReduction = 18,    // 대쉬 쿨감(%) — 플레이어 전용
     BasicAttackMultiplier = 19,    // 평타 1·2타 배율 — 플레이어 전용
+    PhysDamageAmp = 20,            // 물리 피해 증폭 (0.1 = +10%). 유물로만 오른다
+    MagicDamageAmp = 21,           // 마법 피해 증폭
 }
 
 public enum GemUniqueType

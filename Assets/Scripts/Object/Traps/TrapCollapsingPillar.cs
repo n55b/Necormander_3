@@ -138,7 +138,7 @@ public class TrapCollapsingPillar : MonoBehaviour, IDamageable
         BaseHitBox hitbox = telegraphObj.GetComponent<BaseHitBox>();
         if (hitbox != null)
         {
-            DamageInfo dmgInfo = new DamageInfo(collapseDamage, DamageType.Physical, gameObject);
+            DamageInfo dmgInfo = new DamageInfo(collapseDamage, DamageType.Physical, gameObject, category: DamageCategory.Trap);
             // 선딜레이 1초로 기둥 무너짐 지연(1초)과 매칭하고, 0.2초 동안 타격 판정 유지
             hitbox.Init(dmgInfo, targetLayer, 0.2f, startDelay: 1f, isAlly: false);
         }

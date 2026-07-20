@@ -12,8 +12,8 @@ public enum AttackType
 }
 
 /// <summary>
-/// 피해의 종류. 팝업 색을 가르고, 아래 DamageRules 가 이걸로 규칙을 판정한다.
-/// 앞의 둘(Physical/Magic)이 '직접 피해', 나머지가 '상태이상 피해'다.
+/// [축1 = 속성] 피해의 종류. 이제 팝업 색/식별 전용이다 — 방무/크리/출혈 트리거 규칙은
+/// 갈래(축2, DamageCategory)가 판정한다. Freeze/Poison/Bleed/BloodPop/Fixed 는 상태이상 팝업 색을 가른다.
 /// </summary>
 public enum DamageType
 {
@@ -27,6 +27,30 @@ public enum DamageType
 }
 
 /// <summary>
+/// [축2 = 갈래] 피해가 '어디서 나왔는가'. 속성(DamageType)과 직교하는 두 번째 축이다.
+/// 유물/아이템 효과가 갈래별로 데미지를 증감할 때 이걸로 필터한다
+/// (예: "평타 데미지 +10%" → 평타 갈래 전체에 적용).
+///
+/// 플레이어발(1~5)은 '행동'으로, 적발(7~10)은 '티어'로 나뉜다.
+/// 적 티어(EnemyMinion/Elite/Boss)는 사이트마다 태그하지 않고 피격 시점에 공격자에서 자동 유도한다.
+/// 값 순서는 직렬화에 영향 없으니(런타임 struct) 그냥 읽기 좋게 둔다.
+/// </summary>
+public enum DamageCategory
+{
+    None = 0,       // 미분류(기본값). 어떤 갈래 효과도 안 받는다.
+    BasicAttack,    // 평타 (플레이어 3타 + 소환수 마무리 일격)
+    Skill,          // 스킬 (Q/E + R 소환수 액티브)
+    DashAttack,     // 대쉬 공격
+    Parry,          // 패링으로 반사한 투사체
+    Debuff,         // 아군발 상태이상 피해(중독/출혈/비폭/빙결해제 등)
+    Trap,           // 함정/환경 피해
+    EnemyMinion,    // 적 일반
+    EnemyElite,     // 적 엘리트
+    EnemyBoss,      // 적 보스
+    EnemyDebuff     // 적발 상태이상 (지금은 없지만 예약)
+}
+
+/// <summary>
 /// 상태이상 피해의 철칙을 한곳에 모아둔다. 여기저기 흩어놓으면 반드시 어긋난다.
 ///
 /// 특히 '출혈을 트리거하지 않는다'가 중요하다 — 출혈은 "피격할 때마다 +2 고정 피해"인데,
@@ -35,49 +59,63 @@ public enum DamageType
 /// </summary>
 public static class DamageRules
 {
-    /// <summary>상태이상이 주는 피해인가.</summary>
-    public static bool IsStatusDamage(DamageType t)
-        => t == DamageType.Freeze || t == DamageType.Poison || t == DamageType.Bleed
-        || t == DamageType.BloodPop || t == DamageType.Fixed;
+    /// <summary>
+    /// 방어력을 무시하는가 = '고정피해 성격'인가. 세 경우를 OR 로 묶는다:
+    ///   · 속성이 Fixed(순수 고정피해)  · 갈래가 Debuff(아군 상태이상)  · 갈래가 EnemyDebuff(적 상태이상)
+    /// Fixed 는 속성 축, Debuff/EnemyDebuff 는 갈래 축이라 두 축을 같이 본다.
+    /// 크리·출혈트리거도 이 하나가 같이 가른다(고정피해는 크리 안 뜨고, 출혈도 안 얹는다 — 무한 재귀 방지).
+    /// (쉴드는 별개 — 고정피해도 쉴드는 못 뚫는다.)
+    /// </summary>
+    public static bool IgnoresDefense(DamageInfo info)
+        => info.type == DamageType.Fixed
+        || info.category == DamageCategory.Debuff
+        || info.category == DamageCategory.EnemyDebuff;
 
-    /// <summary>방어력을 무시하는가. (쉴드는 무시하지 못한다 — 쉴드는 임시 체력에 가깝다)</summary>
-    public static bool IgnoresDefense(DamageType t) => IsStatusDamage(t);
+    /// <summary>치명타가 터질 수 있는가. 고정피해엔 안 붙는다.</summary>
+    public static bool CanCrit(DamageInfo info) => !IgnoresDefense(info);
 
-    /// <summary>치명타가 터질 수 있는가. 상태이상 고정 피해엔 안 붙는다.</summary>
-    public static bool CanCrit(DamageType t) => !IsStatusDamage(t);
-
-    /// <summary>이 피해가 출혈의 추가 피해를 트리거하는가.</summary>
-    public static bool TriggersBleed(DamageType t) => !IsStatusDamage(t);
+    /// <summary>출혈의 추가 피해를 트리거하는가. 고정피해가 스스로를 트리거하면 무한 재귀라 막는다.</summary>
+    public static bool TriggersBleed(DamageInfo info) => !IgnoresDefense(info);
 
     /// <summary>유닛의 공격 속성을 직접 피해의 DamageType 으로 옮긴다.</summary>
     public static DamageType FromAttackType(AttackType t)
         => t == AttackType.Magic ? DamageType.Magic : DamageType.Physical;
+
+    /// <summary>적발 피해 갈래(티어)인가. 명중/회피 판정과 피격 방향 효과가 이걸로 갈린다.</summary>
+    public static bool IsEnemyTier(DamageCategory c)
+        => c == DamageCategory.EnemyMinion || c == DamageCategory.EnemyElite
+        || c == DamageCategory.EnemyBoss || c == DamageCategory.EnemyDebuff;
+
+    /// <summary>플레이어 진영이 낸 피해 갈래인가. 시전자에 스탯이 없을 때(미니언 스킬 등)
+    /// 크리·증폭 스탯을 플레이어에서 빌려도 되는지를 이걸로 가른다.</summary>
+    public static bool IsPlayerSourced(DamageCategory c)
+        => c == DamageCategory.BasicAttack || c == DamageCategory.Skill
+        || c == DamageCategory.DashAttack || c == DamageCategory.Parry;
 }
 
 [System.Serializable]
-public struct DamageInfo 
+public struct DamageInfo
 {
     public float amount;
-    public DamageType type;
+    public DamageType type;          // 축1: 속성
+    public DamageCategory category;   // 축2: 갈래(유물 효과 필터용). None 이면 피격 시점에 자동 유도.
     public GameObject attacker;
     public float debuffMultiplier;
-    public bool isBasicAttack;
     public string popupText;
     public bool isRedirected;
     public bool causesHitstun;
     public float knockbackForce;
     public float superArmorDamage; // [추가] 슈퍼아머 깎는 수치
 
-    // [26/07/17] isThrowDamage 인자는 삭제됐지만 위치는 비워뒀다. 호출부가 50곳이 넘고
-    // 전부 위치 인자로 넘기고 있어서, 인자를 빼면 뒤의 값들이 통째로 한 칸씩 밀린다.
-    // (예: debuffMultiplier 자리에 isBasicAttack 이 들어감) 이름을 바꿔 자리만 유지한다.
-    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, bool _unusedWasThrow = false, float debuffMultiplier = 1f, bool isBasicAttack = false, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f)
+    // [26/07/18] 옛 isThrowDamage / isBasicAttack 위치 인자는 완전히 제거했다(각각 투척 철거·갈래 도입으로 의미 상실).
+    // 위치 인자 50+곳을 스크립트로 일괄 이관했다. category 는 갈래(축2) — 태그할 곳에서만 `category:` 로 넘긴다.
+    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, float debuffMultiplier = 1f, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f, DamageCategory category = DamageCategory.None)
     {
         this.amount = amount;
         this.type = type;
+        this.category = category;
         this.attacker = attacker;
         this.debuffMultiplier = debuffMultiplier;
-        this.isBasicAttack = isBasicAttack;
         this.popupText = popupText;
         this.isRedirected = isRedirected;
         this.causesHitstun = causesHitstun;

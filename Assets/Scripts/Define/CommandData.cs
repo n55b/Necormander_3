@@ -42,8 +42,27 @@ public enum StatusType
 /// </summary>
 public static class StatusRules
 {
-    /// <summary>5종 공통 지속시간(초). 재적중하면 갱신된다.</summary>
+    /// <summary>출혈·중독·비폭 기본 지속시간(초). 소스가 더 길게 명시할 수 있다. 재적중하면 갱신된다.</summary>
     public const float DURATION = 5f;
+
+    /// <summary>기절 기본 1초. 소스가 명시하면 0.5~2초로 clamp 된다.</summary>
+    public const float STUN_DURATION = 1f;
+    public const float STUN_MIN = 0.5f;
+    public const float STUN_MAX = 2f;
+
+    /// <summary>빙결 기본 2.5초. 재적중하면 갱신된다.</summary>
+    public const float FREEZE_DURATION = 2.5f;
+
+    /// <summary>기절이 '자연 종료'된 뒤 다시 안 걸리는 내성 시간(초).</summary>
+    public const float STUN_IMMUNITY = 3f;
+    /// <summary>빙결이 '피해로 깨진' 뒤 다시 안 걸리는 내성 시간(초). 자연 만료엔 안 생긴다.</summary>
+    public const float FREEZE_IMMUNITY = 1f;
+
+    /// <summary>타입별 기본 지속시간. duration 을 안 넘겼을(0 이하) 때 쓴다.</summary>
+    public static float DefaultDuration(StatusType t)
+        => t == StatusType.Stun ? STUN_DURATION
+         : t == StatusType.Freeze ? FREEZE_DURATION
+         : DURATION;
 
     /// <summary>빙결이 깨질 때 터지는 고정 피해.</summary>
     public const float FREEZE_BREAK_DAMAGE = 20f;

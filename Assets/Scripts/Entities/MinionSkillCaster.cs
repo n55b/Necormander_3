@@ -69,12 +69,16 @@ public class MinionSkillCaster : MonoBehaviour
     ///    이벤트를 아직 안 박았을 때의 폴백. MeleeDoll 은 Start(때리기 전)/Slash(때리는 중)/
     ///    End(때린 후) 로 이미 나뉘어 있어서 "Slash 동안 판정"이라고만 하면 된다.
     /// </summary>
-    /// <param name="onHitWindow">판정을 열 때 호출. 인자는 판정이 열려 있을 시간(초).</param>
-    /// <param name="onHitPulse">OnHitEvent 가 올 때마다 호출(2타면 2번). 이벤트 방식일 때만.</param>
+    /// <param name="hitCount">이 스킬이 낼 '타수'의 단일 진실. 애니 이벤트는 '타이밍'만 준다.
+    ///   OnAttackEnd 있으면 창에 hitCount 를 균등 배분, 없으면 OnHitEvent 마다 1타
+    ///   (E==N 1:1 / E&gt;N 초과 무시 / E&lt;N 마지막 이벤트에서 몰아치기).</param>
+    /// <param name="onHitWindow">판정을 열 때 호출. (열려 있을 시간(초), 지속틱을 쓸지 여부).
+    ///   true = 창 동안 hitCount 균등 틱, false = 이벤트당 단발(펄스가 타수를 만든다).</param>
+    /// <param name="onHitPulse">OnHitEvent 마다 1타(ResetHitTargets). 이벤트당 모드에서만.</param>
     /// <param name="onAttackEnd">OnAttackEndEvent 가 오면 호출. 판정을 닫으라는 뜻.</param>
     public GameObject PlaySequenced(GameObject visual, string[] sequence, string damageState, string hitEvent,
-                                    float castDuration, float hitWindow, bool faceRight,
-                                    System.Action<float> onHitWindow,
+                                    float castDuration, float hitWindow, int hitCount, bool faceRight,
+                                    System.Action<float, bool> onHitWindow,
                                     System.Action onHitPulse = null, System.Action onAttackEnd = null)
     {
         if (visual == null) return null;
@@ -88,7 +92,7 @@ public class MinionSkillCaster : MonoBehaviour
         var anim = vfx.GetComponentInChildren<Animator>();
         if (anim == null || anim.runtimeAnimatorController == null)
         {
-            onHitWindow?.Invoke(hitWindow); // 애니가 없으면 기다릴 이유가 없다
+            onHitWindow?.Invoke(hitWindow, true); // 애니가 없으면 기다릴 이유가 없다(창=지속)
             return vfx;
         }
 
@@ -132,32 +136,44 @@ public class MinionSkillCaster : MonoBehaviour
             var relay = anim.gameObject.AddComponent<MinionAnimEventRelay>();
             if (eventWindow)
             {
-                // (1) 두 이벤트 사이가 판정창. 미리 계산해서 OnHit 순간 그 길이로 연다.
+                // (1) OnHit~OnAttackEnd 사이가 판정창. hitCount 타를 그 창에 균등 배분(지속틱).
                 float span = ComputeEventSpan(anim, sequence, speed, hitWindow);
                 bool opened = false;
-                relay.OnHit = () => { if (!opened) { opened = true; onHitWindow?.Invoke(span); } };
+                relay.OnHit = () => { if (!opened) { opened = true; onHitWindow?.Invoke(span, true); } };
                 relay.OnAttackEnd = () => onAttackEnd?.Invoke(); // 창 길이로도 닫히지만 이중 안전
             }
             else if (useEvent)
             {
-                // (2) OnHitEvent 순간에 연다. 다단히트는 pulse 마다 재타격(적 공격 클립과 같은 계약).
+                // (2) OnHitEvent 마다 1타(박스 단발, 펄스가 타수를 만든다).
+                //     hitCount(N)=타수 진실, 이벤트(E)=타이밍. E==N 1:1 / E>N 초과 무시 / E<N 마지막에 몰아치기.
+                int e = CountEvents(anim, sequence, "OnHitEvent");
+                int n = Mathf.Max(1, hitCount);
+                if (e != n)
+                    Debug.LogWarning($"<color=orange>[MinionCaster]</color> '{visual.name}': 선언 타수(hitCount={n})와 OnHitEvent 수({e})가 다릅니다. " +
+                                     (e > n ? $"뒤 {e - n}개 이벤트를 무시합니다." : $"마지막 이벤트에서 {n - e}타를 몰아칩니다."));
+
                 bool opened = false;
+                int fired = 0;
                 relay.OnHit = () =>
                 {
-                    if (!opened) { opened = true; onHitWindow?.Invoke(castDuration); }
-                    onHitPulse?.Invoke();
+                    if (!opened) { opened = true; onHitWindow?.Invoke(castDuration, false); } // 이벤트당 = 박스 단발
+                    fired++;
+                    if (fired > n) return;                     // E>N: 초과 이벤트 무시
+                    onHitPulse?.Invoke();                      // 이 이벤트 = 1타
+                    if (fired == e && n > e)                   // E<N: 마지막 이벤트 뒤로 나머지 몰아치기
+                        StartCoroutine(BurstExtraPulses(onHitPulse, n - e));
                 };
                 relay.OnAttackEnd = () => onAttackEnd?.Invoke();
             }
         }
 
-        // (4) 이벤트도 태그도 없으면 시퀀스 전체를 창으로 가정하고 즉시 연다.
+        // (4) 이벤트도 태그도 없으면 시퀀스 전체를 창으로 가정하고 즉시 연다(지속).
         if (!eventWindow && !useEvent && !tagMode)
         {
             Debug.LogWarning($"<color=orange>[MinionCaster]</color> '{visual.name}' 에 OnHitEvent/OnAttackEndEvent 도, " +
                              $"damageState 태그도 없습니다. 시퀀스 전체({castDuration:0.00}s)를 판정창으로 가정합니다. " +
                              $"정확히 하려면 Aseprite 에 OnHitEvent(긴 판정이면 +OnAttackEndEvent)를 박으세요.");
-            onHitWindow?.Invoke(castDuration);
+            onHitWindow?.Invoke(castDuration, true);
         }
 
         // (3) 태그 방식일 때만 SequenceRoutine 이 태그 경계에서 창을 연다. 나머지는 위에서 이미 처리됨.
@@ -166,11 +182,11 @@ public class MinionSkillCaster : MonoBehaviour
     }
 
     private System.Collections.IEnumerator SequenceRoutine(Animator anim, string[] sequence, string damageState,
-                                                           float speed, System.Action<float> onHitWindow)
+                                                           float speed, System.Action<float, bool> onHitWindow)
     {
         if (sequence == null || sequence.Length == 0)
         {
-            onHitWindow?.Invoke(0.1f);
+            onHitWindow?.Invoke(0.1f, true);
             yield break;
         }
 
@@ -187,9 +203,9 @@ public class MinionSkillCaster : MonoBehaviour
 
             anim.Play(stateName, 0, 0f);
 
-            // 이 태그가 '때리는 중' 태그라면, 정확히 이 태그가 재생되는 동안만 판정을 연다.
+            // 이 태그가 '때리는 중' 태그라면, 정확히 이 태그가 재생되는 동안만 판정을 연다(지속틱).
             if (onHitWindow != null && stateName == damageState)
-                onHitWindow.Invoke(len / speed);
+                onHitWindow.Invoke(len / speed, true);
 
             yield return new WaitForSeconds(len / speed);
         }
@@ -201,6 +217,36 @@ public class MinionSkillCaster : MonoBehaviour
         foreach (var c in anim.runtimeAnimatorController.animationClips)
             if (c != null && c.name == stateName) return c.length;
         return 0f;
+    }
+
+    /// <summary>시퀀스 클립들에 박힌 특정 이벤트의 총 개수. HasEvent 의 세는 버전(이벤트당 타수 판정용).</summary>
+    private static int CountEvents(Animator anim, string[] sequence, string eventName)
+    {
+        if (anim == null || anim.runtimeAnimatorController == null) return 0;
+        int n = 0;
+        foreach (var c in anim.runtimeAnimatorController.animationClips)
+        {
+            if (c == null) continue;
+            if (sequence != null && sequence.Length > 0 && System.Array.IndexOf(sequence, c.name) < 0) continue;
+            foreach (var ev in c.events)
+                if (ev.functionName == eventName) n++;
+        }
+        return n;
+    }
+
+    /// <summary>
+    /// E&lt;N 보정: 이벤트가 선언 타수보다 적을 때, 마지막 이벤트 뒤로 남은 타를 물리 스텝마다 하나씩 몰아친다.
+    /// 각 펄스(ResetHitTargets) 다음 FixedUpdate 에서 박스가 한 번씩 재타격한다.
+    /// ponytail: 마지막 OnHitEvent 가 클립 맨 끝 프레임이고 N이 E보다 훨씬 크면, 뒷 몇 타가 박스 수명 밖으로
+    ///           밀릴 수 있다. 그럴 땐 "이벤트를 더 박으라"는 경고가 이미 떠 있으니 상한만 인지하고 둔다.
+    /// </summary>
+    private System.Collections.IEnumerator BurstExtraPulses(System.Action pulse, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            yield return new WaitForFixedUpdate();
+            pulse?.Invoke();
+        }
     }
 
     /// <summary>재생할 클립들 중 하나라도 이 이벤트를 갖고 있는가. BaseEntity.HasAnimationEvent 와 같은 검사.</summary>

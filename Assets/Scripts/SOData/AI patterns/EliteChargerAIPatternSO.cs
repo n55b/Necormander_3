@@ -800,7 +800,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             BaseHitBox hb = hitboxObj.GetComponent<BaseHitBox>();
             if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
 
-            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, true);
+            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f);
             hb.Init(info, entity.opponentLayer, 0.25f, windup, entity.team == Team.Ally);
 
             float t = 0f;
@@ -850,7 +850,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         BaseHitBox hb = hitboxObj.GetComponent<BaseHitBox>();
         if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
 
-        DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, false, 1f, true);
+        DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f);
         hb.Init(info, entity.opponentLayer, 0.25f, 0.05f, entity.team == Team.Ally);
 
         // v1.3: 최종 전방 원형 판정(spawnPos, radius) 안에 있는 살아있는 기둥에게만 내구도 피해.

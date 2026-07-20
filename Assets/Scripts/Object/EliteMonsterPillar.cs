@@ -321,7 +321,7 @@ public void OnCounterHit()
         BaseEntity ownerEntity = target.GetComponent<BaseEntity>();
         if (ownerEntity != null && ownerEntity.Stats != null && ownerEntity.Stats.Health != null && !ownerEntity.Stats.Health.IsDead)
         {
-            ownerEntity.Stats.Health.GetDamage(new DamageInfo(counterHitDamage, DamageType.Physical, gameObject, false, 1f, false));
+            ownerEntity.Stats.Health.GetDamage(new DamageInfo(counterHitDamage, DamageType.Physical, gameObject, 1f));
 
             // v1.4 A1: 균열 카운터 성공 연출 강화 (화면 흔들림 + 히트스탑). 게임적 효과(경직/그로기)는 여전히 없음, 순수 피드백용.
             if (CameraManager.Instance != null) CameraManager.Instance.HitShakeCamera(2.2f);
@@ -389,7 +389,7 @@ public void OnCounterHit()
                 CharacterStat ownerStat = Owner.GetComponent<CharacterStat>();
                 if (ownerStat != null && ownerStat.Health != null && !ownerStat.Health.IsDead)
                 {
-                    ownerStat.Health.GetDamage(new DamageInfo(regenCounterDamage, DamageType.Physical, gameObject, false, 1f, false));
+                    ownerStat.Health.GetDamage(new DamageInfo(regenCounterDamage, DamageType.Physical, gameObject, 1f));
                 }
 
                 // v1.4 B2: 재생성 유도 성공 - 누적 강화 스택 부여
@@ -442,7 +442,7 @@ public void OnCounterHit()
         public void TakeDamage(DamageInfo info)
         {
             if (_consumed || pillar == null) return;
-            if (!info.isBasicAttack) return; // 평타(기본 공격) 막타만 카운터로 인정합니다.
+            if (info.category != DamageCategory.BasicAttack) return; // 평타(기본 공격) 막타만 카운터로 인정합니다.
             if (info.attacker != null && info.attacker == pillar.Owner) return; // 보스 자신의 공격은 무시
 
             _consumed = true;
@@ -481,7 +481,7 @@ public void OnCounterHit()
         public void TakeDamage(DamageInfo info)
         {
             if (pillar == null) return;
-            if (!info.isBasicAttack) return; // 평타(기본 공격)만 인정합니다.
+            if (info.category != DamageCategory.BasicAttack) return; // 평타(기본 공격)만 인정합니다.
             if (info.attacker != null && info.attacker == pillar.Owner) return; // 보스 자신의 공격은 무시
 
             pillar.DamageByPlayerBasicAttack();
@@ -583,7 +583,7 @@ public void OnCounterHit()
             if (stat == null) stat = hit.GetComponentInChildren<CharacterStat>();
             if (stat != null && stat.Health != null && !stat.Health.IsDead)
             {
-                DamageInfo info = new DamageInfo(damage, DamageType.Physical, Owner, false, 1f, false);
+                DamageInfo info = new DamageInfo(damage, DamageType.Physical, Owner, 1f);
                 stat.Health.GetDamage(info);
             }
         }

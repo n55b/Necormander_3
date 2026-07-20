@@ -78,7 +78,7 @@ public class PlayerLeapSO : PlayerSkillSO
             if (health == null) health = col.GetComponentInParent<CharacterHealth>();
             if (health == null || health.IsDead) continue;
 
-            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Leap Impact!");
+            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Leap Impact!");
             health.GetDamage(info);
 
             var stat = health.GetComponent<CharacterStat>();

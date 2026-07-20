@@ -91,11 +91,11 @@ public class MeleeDodgeController : MonoBehaviour
 
 private void StartDash(Vector2 moveInput, float currentFacingSign)
     {
-        // Cancel ongoing melee attack and active skill cast
+        // 플레이어 평타만 캔슬한다 — 미니언 마무리는 남긴다(미니언은 R끼리만 회수). 스킬 시전도 취소.
         var meleeCtrl = _player.GetComponent<MeleeCombatController>();
         if (meleeCtrl != null && meleeCtrl.IsAttacking)
         {
-            meleeCtrl.CancelAttack();
+            meleeCtrl.CancelPlayerAttack();
         }
         _player.CancelActiveSkill();
 
@@ -182,8 +182,7 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         box.hitEffectAngle = angle; // 누락돼 있었다 — 없으면 히트 이펙트가 대쉬 방향과 무관하게 오른쪽으로 튄다
 
         float dmg = (_player.Stat != null ? _player.Stat.ATK : 0f) * mod.damageMultiplier;
-        var info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, false, 1f, true, "Dash",
-                                  causesHitstun: true, knockbackForce: mod.pushesEnemies ? mod.pushForce : 0f);
+        var info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, 1f, "Dash", causesHitstun: true, knockbackForce: mod.pushesEnemies ? mod.pushForce : 0f, category: DamageCategory.DashAttack);
 
         System.Action<CharacterHealth> onHit = null;
         if (mod.pushesEnemies)
