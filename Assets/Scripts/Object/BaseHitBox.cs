@@ -46,6 +46,15 @@ public class BaseHitBox : MonoBehaviour
     private HashSet<IDamageable> _hitTargets = new HashSet<IDamageable>();
     private System.Action<CharacterHealth> _onHitEnemy;
 
+    // 이벤트 펄스로만 타격하는 모드(넉백 없는 다단히트용). true 면 OnTriggerStay2D 자동타격을 끄고,
+    // PulseDamageOverlapping() 호출 때마다 겹친 대상을 1회씩 때린다 — OnTriggerStay 재호출(대상이 안 움직여
+    // 리지드바디가 잠들면 안 옴)에 의존하지 않아, 넉백 없는 스킬도 다단히트가 온전히 들어간다.
+    private bool _manualHitOnly;
+    private static readonly List<Collider2D> _overlapScratch = new List<Collider2D>();
+
+    /// <summary>이벤트 펄스 전용 타격 모드 on/off. 이벤트당 다단히트(useEvent) 경로에서 켠다.</summary>
+    public void SetManualHitOnly(bool value) => _manualHitOnly = value;
+
     /// <summary>
     /// '이미 때린 대상' 기록을 지운다. 다음 물리 스텝에 범위 안 대상들을 다시 한 번 때린다.
     ///
@@ -54,6 +63,35 @@ public class BaseHitBox : MonoBehaviour
     /// 그림에 직접 박혀 있어서 시간 배분을 따로 계산할 필요가 없다.
     /// </summary>
     public void ResetHitTargets() => _hitTargets.Clear();
+
+    /// <summary>
+    /// 지금 이 히트박스와 겹친 대상들을 즉시 1회씩 때린다(이 호출 = 1타).
+    /// OnTriggerStay2D 의 매 프레임 재호출에 기대지 않는 '확정 타격'이라, 대상이 안 움직여
+    /// 리지드바디가 잠들어도(넉백 없는 다단히트 등) 타격이 씹히지 않는다. 이벤트당 다단히트가 이걸 쓴다.
+    /// </summary>
+    public void PulseDamageOverlapping()
+    {
+        if (!_isInitialized) return;
+        var col = GetComponent<Collider2D>();
+        if (col == null || !col.enabled) return;
+
+        ContactFilter2D filter = new ContactFilter2D { useTriggers = true };
+        filter.SetLayerMask(_targetLayer);
+        _overlapScratch.Clear();
+        col.Overlap(filter, _overlapScratch);
+
+        foreach (var hit in _overlapScratch)
+        {
+            if (hit == null) continue;
+            var damageable = hit.GetComponent<IDamageable>()
+                ?? hit.GetComponentInParent<IDamageable>()
+                ?? hit.GetComponentInChildren<IDamageable>();
+            if (damageable == null || damageable.IsDead) continue;
+            damageable.TakeDamage(_damageInfo);
+            SpawnHitEffect(hit.transform.position);
+            if (damageable is CharacterHealth ch) _onHitEnemy?.Invoke(ch);
+        }
+    }
 
     public void Init(DamageInfo damageInfo, LayerMask targetLayer, float overrideDuration = -1f, float startDelay = 0f, bool isAlly = false, System.Action<CharacterHealth> onHitEnemy = null)
     {
@@ -177,6 +215,7 @@ public class BaseHitBox : MonoBehaviour
     private void OnTriggerStay2D(Collider2D col)
     {
         if (!_isInitialized) return;
+        if (_manualHitOnly) return; // 이벤트 펄스 전용 모드 — 자동타격 안 함(PulseDamageOverlapping 로만 때린다)
 
         // 타겟 레이어 검사
         if (((1 << col.gameObject.layer) & _targetLayer) == 0) return;

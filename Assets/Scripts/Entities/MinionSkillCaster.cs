@@ -96,6 +96,16 @@ public class MinionSkillCaster : MonoBehaviour
             return vfx;
         }
 
+        // animSequence 를 안 적었으면(단일 클립 애니) 재생할 클립을 자동으로 고른다.
+        // aseprite 임포터가 만든 컨트롤러는 상태 간 트랜지션이 하나도 없어서, 명시적으로 Play 하지 않으면
+        // 그 상태는 영원히 재생되지 않는다 — '기본 상태 자동재생'에 기대면 아무것도 안 뜬다(공격 무반응).
+        // OnHitEvent 를 가진 클립(= 타격 클립)을 우선 고르고, 없으면 첫 클립을 쓴다.
+        if (sequence == null || sequence.Length == 0)
+        {
+            string autoClip = FirstClipName(anim, "OnHitEvent");
+            if (!string.IsNullOrEmpty(autoClip)) sequence = new[] { autoClip };
+        }
+
         float natural = SequenceLength(anim, sequence);
         if (natural <= 0f) natural = 1f;
         float speed = natural / Mathf.Max(0.01f, castDuration);
@@ -148,9 +158,11 @@ public class MinionSkillCaster : MonoBehaviour
                 //     hitCount(N)=타수 진실, 이벤트(E)=타이밍. E==N 1:1 / E>N 초과 무시 / E<N 마지막에 몰아치기.
                 int e = CountEvents(anim, sequence, "OnHitEvent");
                 int n = Mathf.Max(1, hitCount);
-                if (e != n)
-                    Debug.LogWarning($"<color=orange>[MinionCaster]</color> '{visual.name}': 선언 타수(hitCount={n})와 OnHitEvent 수({e})가 다릅니다. " +
-                                     (e > n ? $"뒤 {e - n}개 이벤트를 무시합니다." : $"마지막 이벤트에서 {n - e}타를 몰아칩니다."));
+                // E>N 은 이벤트가 남아 무시되므로 실수일 확률이 높다 → 경고.
+                // E<N(이벤트보다 타수가 많음)은 '마지막 이벤트에 몰아치기'라는 정상 패턴이라(예: MeleeDoll 2이벤트/5타)
+                // 매 시전마다 스팸 안 내고 조용히 넘어간다.
+                if (e > n)
+                    Debug.LogWarning($"<color=orange>[MinionCaster]</color> '{visual.name}': OnHitEvent({e})가 선언 타수(hitCount={n})보다 많습니다. 뒤 {e - n}개 이벤트를 무시합니다.");
 
                 bool opened = false;
                 int fired = 0;
@@ -217,6 +229,27 @@ public class MinionSkillCaster : MonoBehaviour
         foreach (var c in anim.runtimeAnimatorController.animationClips)
             if (c != null && c.name == stateName) return c.length;
         return 0f;
+    }
+
+    /// <summary>
+    /// 재생할 단일 클립 이름을 고른다: preferEventName 을 가진 첫 클립, 없으면 그냥 첫 클립.
+    /// animSequence 를 비운 단일 클립 애니에서, 태그 이름을 SO 에 안 적어도 그 클립을 Play 하게 해준다.
+    /// </summary>
+    private static string FirstClipName(Animator anim, string preferEventName)
+    {
+        if (anim == null || anim.runtimeAnimatorController == null) return null;
+        var clips = anim.runtimeAnimatorController.animationClips;
+        if (!string.IsNullOrEmpty(preferEventName))
+        {
+            foreach (var c in clips)
+            {
+                if (c == null) continue;
+                foreach (var ev in c.events)
+                    if (ev.functionName == preferEventName) return c.name;
+            }
+        }
+        foreach (var c in clips) if (c != null) return c.name;
+        return null;
     }
 
     /// <summary>시퀀스 클립들에 박힌 특정 이벤트의 총 개수. HasEvent 의 세는 버전(이벤트당 타수 판정용).</summary>

@@ -112,100 +112,91 @@ public class MinionActionSkillSO : MinionSkillSO
         // 언제 때릴지는 그림이 정한다 — damageState 태그가 재생되는 동안, 혹은 Aseprite 에 심어둔
         // event:OnHitEvent 프레임에. 초로 박지 않으므로 시전 속도가 바뀌어도 알아서 따라온다.
         float eventWindow = Mathf.Max(0.05f, animDuration * Mathf.Clamp01(hitWindowRatio));
-        // R 은 다단히트를 BaseHitBox 지속틱으로 낸다(펄스를 안 넘긴다). 그래서 이벤트당/균등 모드 구분이
-        // 필요 없어 useContinuous 플래그는 무시하고 DealHit 이 hitCount 로 알아서 틱을 잡는다.
-        // (이벤트당 개별 타이밍 다단히트가 필요해지면 finisher 처럼 onHitPulse 를 넘기도록 통합하면 된다.)
-        caster.PlaySequenced(
-            skillAnimVisual, animSequence, damageState, hitEvent,
-            animDuration, eventWindow, hitCount, faceRight,
-            (window, _) =>
-            {
-                if (caster == null) return;
-                DoHitStop();
-                DealHit(caster, data, closestTarget, dirFromPlayer, teleportPos, window);
-            });
 
-        return true;
-    }
-
-    /// <param name="hitWindow">판정이 열려 있는 시간(초). 애니메이션이 정해준 값이다.</param>
-    private void DealHit(MinionSkillCaster caster, MinionDataSO data, Transform closestTarget, Vector2 dirFromPlayer, Vector2 teleportPos, float hitWindow)
-    {
-        // 피해는 '플레이어의 ATK * 소환수 고유 배율'.
-        // [26/07/17] 예전엔 소환수 SO 자신의 attack 을 썼다. 이제 베이스 ATK 를 공유하므로
-        // 플레이어에게 걸린 공격력 버프가 소환수 스킬에도 그대로 따라온다.
-        // 소환수는 필드에 존재하지 않는 영혼이라 자기 스탯이 없다 — 시전자의 힘을 빌리는 셈.
+        // 피해 정보 — 미니언은 자기 스탯이 없어 플레이어의 ATK 를 빌린다. 여기에 소환수 고유 배율을 곱한다.
         var playerStat = GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null
             ? GameManager.Instance.PLAYERCONTROLLER.Stat
             : null;
-        float baseAtk = playerStat != null ? playerStat.ATK : 0f;
-        float finalDamage = baseAtk * damageMultiplier;
+        float finalDamage = (playerStat != null ? playerStat.ATK : 0f) * damageMultiplier;
+        var info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, 1f,
+            !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill);
 
-        // 공격 실행
         if (useHitBox && hitBoxPrefab != null)
         {
+            // 히트박스를 미리 만들고 판정창이 열릴 때 Init 한다. 다단히트 규약은 finisher 와 동일:
+            // OnAttackEnd 있으면 창에 hitCount 균등 배분, 없으면 OnHitEvent 마다 1타
+            // (hitCount=타수 진실, 이벤트=타이밍, 이벤트가 모자라면 마지막 이벤트 뒤로 몰아치기).
             float angle = Mathf.Atan2(dirFromPlayer.y, dirFromPlayer.x) * Mathf.Rad2Deg;
-            BaseHitBox box = Instantiate(hitBoxPrefab, caster.transform.position, Quaternion.identity, caster.transform); // 시전자 하위 자식으로 붙여 이동 동기화
-            box.transform.localPosition = Vector3.zero; // 시전자 중심 정렬
-
+            BaseHitBox box = Instantiate(hitBoxPrefab, caster.transform.position, Quaternion.identity, caster.transform);
+            box.transform.localPosition = Vector3.zero;
             box.transform.localRotation = Quaternion.Euler(0, 0, angle);
             box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
 
-            DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, 1f, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill);
+            var col = box.GetComponent<Collider2D>();
+            if (col != null) col.enabled = false; // 판정창 열릴 때까지 꺼둔다
 
             bool hasInvokedKeyword = false;
-            System.Action<CharacterHealth> onHit = (health) => {
-                var stat = health.GetComponent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
+            System.Action<CharacterHealth> onHit = (health) =>
+            {
+                var stat = health.GetComponent<CharacterStat>()
+                    ?? health.GetComponentInParent<CharacterStat>()
+                    ?? health.GetComponentInChildren<CharacterStat>();
                 if (stat == null) return;
-
                 if (!hasInvokedKeyword)
                 {
                     hasInvokedKeyword = true;
                     Debug.Log($"<color=yellow>[MinionAction]</color> {actionType} 발동! (미니언 시전)");
                 }
-
                 ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
             };
 
-            // 다단히트는 BaseHitBox 의 틱 기능으로 낸다. hitCount 를 판정 구간 안에 균등 배분.
-            float boxDuration = Mathf.Max(0.05f, hitWindow);
-            if (hitCount > 1)
-            {
-                box.isContinuousDamage = true;
-                box.damageTickRate = boxDuration / hitCount;
-            }
-            else
-            {
-                box.isContinuousDamage = false;
-            }
-
-            box.Init(info, Layers.EnemyMask, boxDuration, 0f, true, onHit);
+            caster.PlaySequenced(
+                skillAnimVisual, animSequence, damageState, hitEvent,
+                animDuration, eventWindow, hitCount, faceRight,
+                // 판정 열기. useContinuous=true 면 창 동안 hitCount 균등 틱, false(이벤트당)면 단발+펄스.
+                (window, useContinuous) =>
+                {
+                    if (box == null) return;
+                    DoHitStop();
+                    float w = Mathf.Max(0.05f, window);
+                    if (useContinuous && hitCount > 1)
+                    {
+                        box.isContinuousDamage = true;
+                        box.damageTickRate = w / hitCount;
+                    }
+                    else
+                    {
+                        box.isContinuousDamage = false;
+                    }
+                    box.SetManualHitOnly(!useContinuous); // 이벤트당 모드면 펄스로만 타격(OnTriggerStay/sleep 비의존)
+                    if (col != null) col.enabled = true;
+                    box.Init(info, Layers.EnemyMask, w, 0f, true, onHit);
+                },
+                onHitPulse: () => { if (box != null) box.PulseDamageOverlapping(); },
+                onAttackEnd: () => { if (col != null) col.enabled = false; });
         }
         else
         {
-            // 히트박스 없이 즉시 타격
-            if (closestTarget == null) return;
-
-            var health = closestTarget.GetComponentInChildren<CharacterHealth>();
-            if (health == null) health = closestTarget.GetComponentInParent<CharacterHealth>();
-
-            if (health != null && !health.IsDead)
-            {
-                DamageInfo info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, 1f, !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill);
-                health.GetDamage(info);
-
-                var stat = health.GetComponent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
-
-                if (stat != null)
+            // 히트박스 없는 즉시 타격: 판정창이 열리는 순간 1회.
+            caster.PlaySequenced(
+                skillAnimVisual, animSequence, damageState, hitEvent,
+                animDuration, eventWindow, hitCount, faceRight,
+                (window, useContinuous) =>
                 {
-                    ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
-                }
-            }
+                    if (caster == null || closestTarget == null) return;
+                    DoHitStop();
+                    var health = closestTarget.GetComponentInChildren<CharacterHealth>()
+                        ?? closestTarget.GetComponentInParent<CharacterHealth>();
+                    if (health == null || health.IsDead) return;
+                    health.GetDamage(info);
+                    var stat = health.GetComponent<CharacterStat>()
+                        ?? health.GetComponentInParent<CharacterStat>()
+                        ?? health.GetComponentInChildren<CharacterStat>();
+                    if (stat != null) ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
+                });
         }
+
+        return true;
     }
 
     private void ApplyActionEffect(CharacterStat stat, Transform targetTransform, MinionSkillCaster caster, Vector2 dirFromPlayer, Vector2 teleportPos)

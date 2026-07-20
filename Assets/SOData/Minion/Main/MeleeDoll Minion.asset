@@ -22,16 +22,13 @@ MonoBehaviour:
     pushForce: 3
   finisher:
     hitCount: 2
-    damageMultiplier: 1
+    damageMultiplier: 0.5
     hitBoxSize: {x: 3, y: 2.8}
     spawnOffset: 1.6
     castDuration: 1.4
-    animSequence:
-    - Start
-    - Slash
-    - End
-    damageState: Slash
-    hitEvent: 
+    animSequence: []
+    damageState:
+    hitEvent: OnHitEvent
     hitWindowRatio: 0.15
     effectState: 
     visual: {fileID: -2253911629886400664, guid: 2f46320e320386c4b918fc29357b2532, type: 3}

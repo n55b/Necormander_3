@@ -408,15 +408,15 @@ public class MeleeCombatController : MonoBehaviour
                 }
                 else
                 {
-                    // 단발: 창이 열리는 순간 1회. 다단이면 OnHitEvent 펄스가 재타격을 만든다.
+                    // 단발/이벤트당: 창이 열리는 순간부터 OnHitEvent 펄스가 타격을 만든다.
                     box.isContinuousDamage = false;
                 }
+                box.SetManualHitOnly(!useContinuous); // 이벤트당 모드면 펄스로만 타격(OnTriggerStay/sleep 비의존)
                 if (col != null) col.enabled = true;
                 box.Init(info, Layers.EnemyMask, window, 0f, true);
             },
-            // OnHitEvent 마다: '이미 때린 대상' 기록을 지워서 다음 물리 스텝에 한 번 더 때린다.
-            // 적 공격 클립이 2타면 OnHitEvent 를 2번 박는 것과 같은 계약이다.
-            onHitPulse: () => { if (box != null) box.ResetHitTargets(); },
+            // OnHitEvent 마다 겹친 대상을 확정 1타. 적 공격 클립이 2타면 OnHitEvent 를 2번 박는 것과 같은 계약.
+            onHitPulse: () => { if (box != null) box.PulseDamageOverlapping(); },
             // OnAttackEndEvent: 후딜까지 끝났으니 판정을 닫는다.
             onAttackEnd: () => { if (col != null) col.enabled = false; });
     }
