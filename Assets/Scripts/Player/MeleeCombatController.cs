@@ -34,11 +34,25 @@ public class MeleeCombatController : MonoBehaviour
         }
     }
 
-    /// <summary>현재 콤보 총 타수. 메인 소환수가 있으면 +1.</summary>
-    private int ComboLength => Finisher != null ? PLAYER_COMBO_LENGTH + 1 : PLAYER_COMBO_LENGTH;
+    /// <summary>
+    /// 메인 소환수가 R 스킬로 실체화해 바쁜가. 미니언은 한 마리뿐이라, R 로 날아가 있는 동안은
+    /// 같은 미니언을 쓰는 3타(마무리)를 못 낸다 → 콤보가 2타로 줄어 반복된다. R 애니가 끝나
+    /// 시전자가 사라지면 자동으로 3타가 복귀한다. (마무리 자신은 예외 — 짧은 애니로 알아서 처리)
+    /// </summary>
+    private bool MinionBusy
+    {
+        get
+        {
+            var skillCtrl = _player != null ? _player.GetComponent<PlayerSkillController>() : null;
+            return skillCtrl != null && skillCtrl.IsMainSummonBusy;
+        }
+    }
 
-    /// <summary>이번 스텝이 소환수 마무리 차례인가.</summary>
-    private bool IsFinisherStep(int step) => Finisher != null && step == PLAYER_COMBO_LENGTH;
+    /// <summary>현재 콤보 총 타수. 메인 소환수가 있고 안 바쁘면 +1(3타). 바쁘면 2타만 반복.</summary>
+    private int ComboLength => (Finisher != null && !MinionBusy) ? PLAYER_COMBO_LENGTH + 1 : PLAYER_COMBO_LENGTH;
+
+    /// <summary>이번 스텝이 소환수 마무리 차례인가. 미니언이 R로 바쁘면 마무리는 안 나간다.</summary>
+    private bool IsFinisherStep(int step) => Finisher != null && !MinionBusy && step == PLAYER_COMBO_LENGTH;
 
     [Header("콤보 설정")]
     [SerializeField] private float comboResetTime = 1.0f;
@@ -66,6 +80,16 @@ public class MeleeCombatController : MonoBehaviour
     public event System.Action<int> OnAttackExecuted;
 
     public bool IsAttacking => _activeHitbox != null || (Time.time - _lastAttackTime) < attackCooldown;
+
+    /// <summary>
+    /// 취소해야 할 '진행 중 공격'이 있는가 — 평캔/대쉬/패링의 캔슬 게이트 전용.
+    /// IsAttacking(히트박스 or 0.3s 쿨다운 창)에 마무리 소환수 생존(_activeCaster)을 더한다.
+    /// 마무리는 castDuration(기본 ~0.9s)이 쿨다운보다 길어서, IsAttacking 만으론 마무리 애니 도중을
+    /// 못 잡아 스킬/대쉬가 마무리를 못 끊었다(같은 미니언 두 마리 공존·마무리 미취소). 이걸로 마무리
+    /// 전 구간을 캔슬 대상에 포함한다. (콤보 진행 타이밍은 IsAttacking 그대로 — 여긴 캔슬 게이트 전용.)
+    /// </summary>
+    public bool IsInAttackAction => IsAttacking || _activeCaster != null;
+
     public Vector2 CurrentAttackDir { get; private set; } = Vector2.right;
 
     private void Awake()
@@ -136,6 +160,9 @@ public class MeleeCombatController : MonoBehaviour
 
         var parryCtrl = _player.GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;
+
+        // 콤보 길이가 줄었는데(미니언이 R로 바빠져 마무리 제외) 스텝이 범위를 벗어났으면 0으로 되돌린다.
+        if (_comboStep >= ComboLength) _comboStep = 0;
 
         _lastAttackTime = Time.time;
         OnAttackExecuted?.Invoke(_comboStep);
@@ -368,21 +395,20 @@ public class MeleeCombatController : MonoBehaviour
 
         caster.PlaySequenced(
             fin.visual, fin.animSequence, fin.damageState, fin.hitEvent,
-            castDuration, hitWindow, faceRight,
-            // 판정 열기
-            window =>
+            castDuration, hitWindow, fin.hitCount, faceRight,
+            // 판정 열기. useContinuous=true 면 창 동안 hitCount 균등 틱, false(이벤트당 모드)면 단발+펄스.
+            (window, useContinuous) =>
             {
                 if (box == null) return;
-                if (fin.hitCount > 1)
+                if (useContinuous && fin.hitCount > 1)
                 {
-                    // 다단히트: 판정창(window) 동안 hitCount 를 균등 배분한다. window 는 PlaySequenced 가
-                    // 방식에 따라 정해준다 — 이벤트 창(OnHit~OnAttackEnd) / 태그 길이 / 시퀀스 전체.
+                    // 균등 지속: 판정창(window) 동안 hitCount 를 균등 배분(OnHit~OnAttackEnd / 태그 / 시퀀스 전체).
                     box.isContinuousDamage = true;
                     box.damageTickRate = window / fin.hitCount;
                 }
                 else
                 {
-                    // 단타: 판정이 열리는 순간 1회.
+                    // 단발: 창이 열리는 순간 1회. 다단이면 OnHitEvent 펄스가 재타격을 만든다.
                     box.isContinuousDamage = false;
                 }
                 if (col != null) col.enabled = true;
@@ -395,17 +421,31 @@ public class MeleeCombatController : MonoBehaviour
             onAttackEnd: () => { if (col != null) col.enabled = false; });
     }
 
+    /// <summary>
+    /// 풀 캔슬: 플레이어 평타 + 마무리 소환수(_activeCaster)까지 회수한다.
+    /// 미니언을 재사용하는 R(미니언 스킬)만 이걸 쓴다 — "미니언은 자기들끼리만 캔슬".
+    /// 대쉬/패링/Q·E 는 미니언을 남겨야 하므로 CancelPlayerAttack 을 쓴다.
+    /// </summary>
     public void CancelAttack()
+    {
+        if (_activeCaster != null)
+        {
+            Destroy(_activeCaster.gameObject);
+            _activeCaster = null;
+        }
+        CancelPlayerAttack(); // 나머지(평타 히트박스·콤보 리셋·Idle 복귀)는 공통
+    }
+
+    /// <summary>
+    /// 플레이어 평타(1·2타)만 취소한다. 마무리 소환수(_activeCaster)는 건드리지 않아,
+    /// 3타 도중 대쉬/패링/Q·E 를 써도 미니언은 남아서 마무리를 끝낸다.
+    /// </summary>
+    public void CancelPlayerAttack()
     {
         if (_activeHitbox != null)
         {
             Destroy(_activeHitbox.gameObject);
             _activeHitbox = null;
-        }
-        if (_activeCaster != null)
-        {
-            Destroy(_activeCaster.gameObject);
-            _activeCaster = null;
         }
         _comboStep = 0;
         // _isHoldingAttack = false; // 대시/패리 후에도 꾹 누르고 있으면 이어서 공격하도록 주석 처리

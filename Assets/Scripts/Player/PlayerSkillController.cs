@@ -15,6 +15,13 @@ public class PlayerSkillController : MonoBehaviour
     private float[] playerSkillCooldownEnds = new float[3];
     private float _mainSummonCooldownEnd;
 
+    // R 로 실체화한 미니언의 시전자. 살아있는 동안 "미니언 바쁨" → 평타 3타(마무리)가 밴된다.
+    // Destroy(애니 종료) 되면 Unity fake-null 로 이 참조도 == null 이 되므로 별도 초기화가 필요 없다.
+    private MinionSkillCaster _activeMinionCaster;
+
+    /// <summary>메인 소환수가 R 스킬로 실체화해 시전 중인가. MeleeCombatController 가 3타 밴 판정에 쓴다.</summary>
+    public bool IsMainSummonBusy => _activeMinionCaster != null;
+
     /// <summary>R키 액티브 + 대쉬/평타 변화를 담당하는 소환수. 없으면 null.</summary>
     public MainMinionDataSO MainSummon => mainSummon;
     /// <summary>상시 패시브만 제공하는 소환수. 실체화하지 않는다. 없으면 null.</summary>
@@ -127,7 +134,23 @@ public class PlayerSkillController : MonoBehaviour
         float cd = pStat != null ? pStat.ApplySkillCooldown(skill.cooldownTime) : skill.cooldownTime;
         playerSkillCooldownEnds[(int)slot] = Time.time + cd;
         Debug.Log($"<color=green>[Player Skill]</color> 플레이어가 '{skill.skillName}' 스킬을 사용했습니다! (슬롯: {slot})");
+        CancelPlayerMelee(); // 평캔: Q/E 는 플레이어 평타만 끊고 미니언 마무리는 남긴다
         skill.ExecuteSkill(playerTransform);
+    }
+
+    /// <summary>평캔(Q/E·플레이어 스킬용): 진행 중이던 플레이어 평타(1·2타)만 취소한다. 미니언 마무리는
+    /// 남긴다 — 미니언은 자기들끼리(R)만 회수한다. 스킬이 실제로 발동될 때만 부른다(쿨/무효타는 캔슬 안 함).</summary>
+    private void CancelPlayerMelee()
+    {
+        var melee = GetComponent<MeleeCombatController>();
+        if (melee != null && melee.IsAttacking) melee.CancelPlayerAttack();
+    }
+
+    /// <summary>R(미니언 스킬)용: 같은 미니언을 재사용하므로 평타 + 진행 중이던 마무리 소환수까지 회수(한 마리 유지).</summary>
+    private void CancelForMinionSkill()
+    {
+        var melee = GetComponent<MeleeCombatController>();
+        if (melee != null && melee.IsInAttackAction) melee.CancelAttack();
     }
 
     /// <summary>
@@ -173,8 +196,12 @@ public class PlayerSkillController : MonoBehaviour
     {
         var caster = MinionSkillCaster.Spawn(minionData, playerTransform.position);
         bool cast = minionData.minionSkill.Execute(caster.transform, minionData, targets);
-        if (!cast && caster != null) Destroy(caster.gameObject); // 시전 실패 시 빈 시전자를 3초씩 남기지 않는다
-        return cast;
+        if (!cast && caster != null) { Destroy(caster.gameObject); return false; } // 시전 실패 시 빈 시전자를 3초씩 남기지 않는다
+
+        // 시전 성공 → 이 시전자가 살아있는 동안 "미니언 바쁨"(평타 3타 밴). 애니 끝나 Destroy 되면 자동 해제.
+        _activeMinionCaster = caster;
+        CancelForMinionSkill(); // R 은 같은 미니언을 쓰니 평타 + 진행 중이던 마무리까지 회수(한 마리 유지)
+        return true;
     }
 
     // --- UI 연동을 위한 외부 접근용 함수 ---

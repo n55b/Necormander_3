@@ -463,11 +463,11 @@ public class PlayerController : MonoBehaviour
 
     private void StartDash()
     {
-        // [추가] 진행 중인 근접 공격 및 투척 차징 캔슬
+        // [추가] 플레이어 평타만 캔슬(미니언 마무리는 남김 — R끼리만 회수)
         var meleeCtrl = GetComponent<MeleeCombatController>();
         if (meleeCtrl != null && meleeCtrl.IsAttacking)
         {
-            meleeCtrl.CancelAttack();
+            meleeCtrl.CancelPlayerAttack();
         }
         // [추가] 시전 중인 액티브 스킬 취소
         CancelActiveSkill();

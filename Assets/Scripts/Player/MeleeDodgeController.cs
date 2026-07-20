@@ -91,11 +91,11 @@ public class MeleeDodgeController : MonoBehaviour
 
 private void StartDash(Vector2 moveInput, float currentFacingSign)
     {
-        // Cancel ongoing melee attack and active skill cast
+        // 플레이어 평타만 캔슬한다 — 미니언 마무리는 남긴다(미니언은 R끼리만 회수). 스킬 시전도 취소.
         var meleeCtrl = _player.GetComponent<MeleeCombatController>();
         if (meleeCtrl != null && meleeCtrl.IsAttacking)
         {
-            meleeCtrl.CancelAttack();
+            meleeCtrl.CancelPlayerAttack();
         }
         _player.CancelActiveSkill();
 

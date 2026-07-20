@@ -112,10 +112,13 @@ public class MinionActionSkillSO : MinionSkillSO
         // 언제 때릴지는 그림이 정한다 — damageState 태그가 재생되는 동안, 혹은 Aseprite 에 심어둔
         // event:OnHitEvent 프레임에. 초로 박지 않으므로 시전 속도가 바뀌어도 알아서 따라온다.
         float eventWindow = Mathf.Max(0.05f, animDuration * Mathf.Clamp01(hitWindowRatio));
+        // R 은 다단히트를 BaseHitBox 지속틱으로 낸다(펄스를 안 넘긴다). 그래서 이벤트당/균등 모드 구분이
+        // 필요 없어 useContinuous 플래그는 무시하고 DealHit 이 hitCount 로 알아서 틱을 잡는다.
+        // (이벤트당 개별 타이밍 다단히트가 필요해지면 finisher 처럼 onHitPulse 를 넘기도록 통합하면 된다.)
         caster.PlaySequenced(
             skillAnimVisual, animSequence, damageState, hitEvent,
-            animDuration, eventWindow, faceRight,
-            window =>
+            animDuration, eventWindow, hitCount, faceRight,
+            (window, _) =>
             {
                 if (caster == null) return;
                 DoHitStop();
