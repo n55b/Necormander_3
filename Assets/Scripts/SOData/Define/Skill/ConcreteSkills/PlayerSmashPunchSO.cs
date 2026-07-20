@@ -43,7 +43,7 @@ public class PlayerSmashPunchSO : PlayerSkillSO
             box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
 
             float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
-            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Rokuogan!");
+            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Rokuogan!");
 
 
             box.Init(info, Layers.EnemyMask, 0.2f, 0f, true);

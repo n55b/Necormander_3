@@ -29,7 +29,7 @@ public class PlayerFracturePunchSO : PlayerSkillSO
         box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
         
         float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Fracture Punch");
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Fracture Punch");
         
 
         box.Init(info, Layers.EnemyMask, 0.1f, 0f, true);

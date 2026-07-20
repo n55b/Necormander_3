@@ -95,7 +95,7 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
         BaseHitBox hitbox = explosionObj.GetComponent<BaseHitBox>();
         if (hitbox != null)
         {
-            DamageInfo dmgInfo = new DamageInfo(explosionDamage, DamageType.Physical, gameObject);
+            DamageInfo dmgInfo = new DamageInfo(explosionDamage, DamageType.Physical, gameObject, category: DamageCategory.Trap);
             // 1.5초(fuseTime) 선딜레이 동안 원형 장판이 차오르도록 설정하고, 1.5초 후 0.2초 동안 타격 판정 적용
             hitbox.Init(dmgInfo, targetLayer, 0.2f, startDelay: fuseTime, isAlly: false);
         }

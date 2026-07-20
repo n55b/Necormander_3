@@ -41,7 +41,7 @@ public class PlayerBleedConeSO : PlayerSkillSO
         box.transform.localScale = new Vector3(distance, width, 1f);
         
         float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Bleed Cone");
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Bleed Cone");
         
 
         box.Init(info, Layers.EnemyMask, 0.1f, 0f, true);

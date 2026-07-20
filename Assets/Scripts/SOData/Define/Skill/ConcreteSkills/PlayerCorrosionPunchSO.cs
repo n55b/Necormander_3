@@ -49,7 +49,7 @@ public class PlayerCorrosionPunchSO : PlayerSkillSO
         box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
         
         float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "Corrosion Punch");
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Corrosion Punch");
         
 
         box.Init(info, Layers.EnemyMask, 0.15f, 0f, true);

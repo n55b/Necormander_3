@@ -60,6 +60,9 @@ public class CharacterStatus : MonoBehaviour
     }
     private readonly Dictionary<StatusType, StatusInstance> _statuses = new Dictionary<StatusType, StatusInstance>();
 
+    // 상태이상별 '이 시각까지 다시 안 걸림' 내성. 기절은 자연 종료 후, 빙결은 피해로 깨진 후에만 채워진다.
+    private readonly Dictionary<StatusType, float> _immuneUntil = new Dictionary<StatusType, float>();
+
     /// <summary>상태이상이 터졌을 때 띄울 한글 라벨. FloatingTextSpawner 가 듣는다.</summary>
     public event System.Action<string> OnDebuffPopped;
 
@@ -165,6 +168,10 @@ public class CharacterStatus : MonoBehaviour
 
             if (Time.time >= inst.EndTime)
             {
+                // 기절이 자연 종료되면 3초 내성이 붙는다. 빙결은 자연 만료엔 안 붙는다
+                // (피해로 깨졌을 때만 — OnDirectDamageTaken 참조).
+                if (type == StatusType.Stun)
+                    _immuneUntil[StatusType.Stun] = Time.time + StatusRules.STUN_IMMUNITY;
                 RemoveStatus(type);
             }
         }
@@ -175,7 +182,7 @@ public class CharacterStatus : MonoBehaviour
     {
         var health = GetComponent<CharacterHealth>() ?? GetComponentInChildren<CharacterHealth>();
         if (health != null && !health.IsDead)
-            health.GetDamage(new DamageInfo(amount, type, null, false, 1f, false, popup));
+            health.GetDamage(new DamageInfo(amount, type, null, 1f, popup, category: DamageCategory.Debuff));
     }
 
     public void ApplySlow(string id, float reduction, float duration)
@@ -246,7 +253,7 @@ public class CharacterStatus : MonoBehaviour
                 {
                     float damagePercent = IsElite ? 0.06f : 0.12f;
                     var health = GetComponentInChildren<CharacterHealth>();
-                    if (health != null) health.GetDamage(new DamageInfo(health.CurHP * damagePercent, DamageType.Fixed, null));
+                    if (health != null) health.GetDamage(new DamageInfo(health.CurHP * damagePercent, DamageType.Fixed, null, category: DamageCategory.Debuff));
                     break;
                 }
             }
@@ -269,7 +276,7 @@ public class CharacterStatus : MonoBehaviour
                             var pcStat = pc.GetComponent<CharacterStat>();
                             if (pcStat != null) damage = pcStat.ATK * 1.5f;
                         }
-                        enemyStat.Health.GetDamage(new DamageInfo(damage, DamageType.Physical, gameObject));
+                        enemyStat.Health.GetDamage(new DamageInfo(damage, DamageType.Physical, gameObject, category: DamageCategory.Debuff));
                     }
                     bool isAlly = layerVal == Layers.Player || 
                                   layerVal == Layers.Army || 
@@ -299,8 +306,12 @@ public class CharacterStatus : MonoBehaviour
     {
         if (_stat != null && _stat.IsDead) return;
         if (_hasSuperArmor && StatusRules.BlockedBySuperArmor(type)) return;
+        // 내성: 기절 종료 후 3초 / 빙결이 피해로 깨진 후 1초 동안은 다시 안 걸린다.
+        if (_immuneUntil.TryGetValue(type, out var immuneEnd) && Time.time < immuneEnd) return;
 
-        if (duration <= 0f) duration = StatusRules.DURATION;
+        // 타입별 기본 지속시간. 기절만, 소스가 명시한 값을 0.5~2초로 clamp 한다.
+        if (duration <= 0f) duration = StatusRules.DefaultDuration(type);
+        else if (type == StatusType.Stun) duration = Mathf.Clamp(duration, StatusRules.STUN_MIN, StatusRules.STUN_MAX);
 
         if (!_statuses.TryGetValue(type, out var inst))
         {
@@ -362,6 +373,8 @@ public class CharacterStatus : MonoBehaviour
         if (HasStatus(StatusType.Freeze))
         {
             RemoveStatus(StatusType.Freeze);
+            // 피해로 깨진 경우에만 1초 내성. 자연 만료(리힛 없이 2.5초)엔 안 붙는다.
+            _immuneUntil[StatusType.Freeze] = Time.time + StatusRules.FREEZE_IMMUNITY;
             OnDebuffPopped?.Invoke("빙결 파괴!");
             DealSelfDamage(StatusRules.FREEZE_BREAK_DAMAGE, DamageType.Freeze, "빙결");
         }
@@ -397,7 +410,7 @@ public class CharacterStatus : MonoBehaviour
         // 폭발은 '터진 유닛이 속한 진영의 반대'가 아니라 그 유닛과 같은 진영을 친다 —
         // 적에게 걸린 비폭이니 적을 때린다. 자신도 범위에 들어가므로 같이 맞는다.
         LayerMask mask = IsEnemyTarget ? Layers.EnemyMask : Layers.PlayerArmy;
-        var info = new DamageInfo(StatusRules.BLOODPOP_DAMAGE, DamageType.BloodPop, null, false, 1f, false, "비폭");
+        var info = new DamageInfo(StatusRules.BLOODPOP_DAMAGE, DamageType.BloodPop, null, 1f, "비폭", category: DamageCategory.Debuff);
         box.Init(info, mask, 0.2f, StatusRules.BLOODPOP_FUSE, isAlly: !IsEnemyTarget);
     }
 
@@ -407,6 +420,7 @@ public class CharacterStatus : MonoBehaviour
     {
         _activeSlows.Clear(); _activeSpeedBuffs.Clear(); _shieldInstances.Clear();
         _statuses.Clear();
+        _immuneUntil.Clear(); // 오브젝트 재사용 시 이전 유닛의 내성을 물려받지 않도록
         _cachedMoveSpeedMultiplier = 1f; _cachedTotalShield = 0f;
 
         // 슈퍼아머도 여기서 지운다. 예전엔 안 지워서, 오브젝트가 재사용되면 이전 유닛의

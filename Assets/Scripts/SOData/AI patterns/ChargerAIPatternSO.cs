@@ -56,7 +56,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
             aimHitbox = aimLine.GetComponent<BaseHitBox>();
             if (aimHitbox != null)
             {
-                DamageInfo dummyInfo = new DamageInfo(0f, DamageType.Physical, entity.gameObject, false, 0f, false);
+                DamageInfo dummyInfo = new DamageInfo(0f, DamageType.Physical, entity.gameObject, 0f);
                 aimHitbox.Init(dummyInfo, 0, 0.1f, windupTime);
                 entity.SetActiveHitbox(aimHitbox);
             }

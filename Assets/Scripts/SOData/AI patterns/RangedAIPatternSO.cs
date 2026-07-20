@@ -34,7 +34,7 @@ public class RangedAIPatternSO : BaseAIPatternSO
             if (hitbox != null)
             {
                 // 데미지 0짜리 가짜 페이로드 (시각적 표시 용도)
-                DamageInfo dummyInfo = new DamageInfo(0f, DamageType.Physical, entity.gameObject, false, 0f, false);
+                DamageInfo dummyInfo = new DamageInfo(0f, DamageType.Physical, entity.gameObject, 0f);
                 
                 // windupTime 동안 차오르도록 설정
                 // 발사 즉시 사라져야 하므로 duration을 매우 짧게 주거나 0으로 설정

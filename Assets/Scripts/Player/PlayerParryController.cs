@@ -106,11 +106,11 @@ public bool IsParrying => _isParrying;
         // 대시 중일 때는 패리 방지
         if (_player.IsDashing) return;
 
-        // 공격 중일 때는 기존 공격을 캔슬하고 패리 시도
+        // 공격 중일 때는 플레이어 평타만 캔슬하고 패리 시도(미니언 마무리는 남김 — R끼리만 회수)
         var meleeCtrl = GetComponent<MeleeCombatController>();
         if (meleeCtrl != null && meleeCtrl.IsAttacking)
         {
-            meleeCtrl.CancelAttack();
+            meleeCtrl.CancelPlayerAttack();
         }
 
         // 투척 충전(차징) 중일 때도 캔슬하고 패리 시도

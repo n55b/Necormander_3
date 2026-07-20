@@ -99,6 +99,13 @@ public class CharacterStat : MonoBehaviour
     /// <summary>마법 공격력. 마법 스킬 전용.</summary>
     public float MAGIC => (baseMagic + Mods.Flat(StatType.Magic)) * (1f + Mods.Percent(StatType.Magic));
 
+    /// <summary>물리 피해 증폭률. 데미지 계산에서 (1 + 이 값)이 곱해진다. 0.1 = +10%. 유물로만 오른다.
+    /// -1 로 바닥을 깔아 (1+증폭)이 음수로 뒤집히지 않게 한다.</summary>
+    public float PHYS_AMP => Mathf.Max(-1f, Mods.Flat(StatType.PhysDamageAmp));
+
+    /// <summary>마법 피해 증폭률. 물리와 동일한 규칙.</summary>
+    public float MAGIC_AMP => Mathf.Max(-1f, Mods.Flat(StatType.MagicDamageAmp));
+
     public float MAXHP
     {
         get

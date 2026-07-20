@@ -43,8 +43,50 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         GetDamage(info);
     }
 
+    /// <summary>
+    /// 갈래가 안 붙은(None) 피해를 공격자를 보고 자동 분류한다.
+    ///  · 적 공격 → 티어(보스/엘리트/미니언)   · 플레이어 공격 → 스킬
+    /// 평타/대쉬/패링/디버프/함정은 소스에서 명시 태그되므로 여기로 안 온다.
+    /// </summary>
+    private static DamageCategory ResolveCategoryFromAttacker(GameObject attacker)
+    {
+        if (attacker == null) return DamageCategory.None;
+
+        if (attacker.CompareTag("Boss") || attacker.name.Contains("Boss")) return DamageCategory.EnemyBoss;
+        var status = attacker.GetComponentInParent<CharacterStatus>();
+        if (status != null && status.IsElite) return DamageCategory.EnemyElite;
+        if (attacker.layer == Layers.Enemy) return DamageCategory.EnemyMinion;
+
+        if (attacker.layer == Layers.Player || attacker.layer == Layers.PlayerDash) return DamageCategory.Skill;
+
+        return DamageCategory.None;
+    }
+
+    /// <summary>
+    /// 이 피해의 '공격 스탯' 주인을 찾는다 — 크리 확률/피해량, 물리·마법 증폭이 여기서 나온다.
+    /// 보통은 공격자(또는 그 부모)의 CharacterStat 이지만, 미니언 스킬은 시전자(caster)가
+    /// 필드에 스탯 없는 임시 오브젝트라 못 찾는다. 그럴 땐 플레이어 진영 피해에 한해
+    /// 플레이어 스탯을 빌린다 — ATK 를 플레이어에서 빌리는 소환수 설계와 같은 이유다.
+    /// </summary>
+    private CharacterStat ResolveAttackerStat(DamageInfo info)
+    {
+        if (info.attacker != null)
+        {
+            var s = info.attacker.GetComponent<CharacterStat>() ?? info.attacker.GetComponentInParent<CharacterStat>();
+            if (s != null) return s;
+        }
+        if (DamageRules.IsPlayerSourced(info.category)
+            && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+            return GameManager.Instance.PLAYERCONTROLLER.Stat;
+        return null;
+    }
+
     public void GetDamage(DamageInfo info)
     {
+        // 갈래가 안 붙은 피해는 공격자를 보고 자동 분류(적 티어 / 플레이어=스킬).
+        if (info.category == DamageCategory.None)
+            info.category = ResolveCategoryFromAttacker(info.attacker);
+
         OnDamageReceived?.Invoke(info); // [추가] AI 측에서 피격 상세 정보를 파악하기 위함
 
         if (isDead || invincible) return;
@@ -52,7 +94,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // [추가] 회피 / 명중 판정 (평타인 경우에만 적용)
         // 기본값(적중률 1, 회피 0)이면 명중률 1.0 이라 Random.value(<1.0)가 절대 못 넘는다 = 무조건 명중.
         // 예전엔 '빗나갈 확률 <= Random.value' 라 회피 0% 여도 0.0 이 뜨면 빗나갔다. 뒤집으면서 같이 해결됨.
-        if (info.isBasicAttack && info.attacker != null)
+        if ((info.category == DamageCategory.BasicAttack || DamageRules.IsEnemyTier(info.category)) && info.attacker != null)
         {
             var attackerStat = info.attacker.GetComponent<CharacterStat>();
             if (attackerStat != null && _stat != null)
@@ -128,19 +170,30 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
         float remainingDamage = info.amount;
 
+        // 공격 스탯 주인(플레이어/적/미니언→플레이어). 증폭·크리가 전부 이 하나에서 나온다.
+        // 예전엔 크리만 여기서 info.attacker 를 직접 뒤졌는데, 미니언 시전자엔 스탯이 없어
+        // 크리가 안 떴다. ResolveAttackerStat 이 플레이어 스탯을 빌려와 그 구멍을 메운다.
+        var atkStat = ResolveAttackerStat(info);
+
+        // [속성 증폭] (1 + 물리/마법 증폭)을 방어력 전에 곱한다. 최종식의 대괄호 안쪽이다.
+        // 물리/마법 직접 피해만 붙는다 — 고정/디버프/함정은 속성이 물리·마법이 아니라 자동 제외.
+        if (atkStat != null)
+        {
+            float amp = info.type == DamageType.Physical ? atkStat.PHYS_AMP
+                      : info.type == DamageType.Magic    ? atkStat.MAGIC_AMP
+                      : 0f;
+            if (amp != 0f) remainingDamage *= (1f + amp);
+        }
+
         // [치명타] 방어력보다 먼저 굴린다 — 기획: "치명타 판정 끝난 최종 데미지에서 방어력 감소율을 뺀다".
         // 상태이상 고정 피해(출혈/중독/빙결/비폭)엔 안 붙는다. '고정'이니까.
         bool isCritical = false;
-        if (DamageRules.CanCrit(info.type) && info.attacker != null)
+        if (atkStat != null && DamageRules.CanCrit(info)
+            && atkStat.CRIT_CHANCE > 0f
+            && UnityEngine.Random.value * 100f < atkStat.CRIT_CHANCE)
         {
-            var attackerStat = info.attacker.GetComponent<CharacterStat>();
-            if (attackerStat == null) attackerStat = info.attacker.GetComponentInParent<CharacterStat>();
-            if (attackerStat != null && attackerStat.CRIT_CHANCE > 0f
-                && UnityEngine.Random.value * 100f < attackerStat.CRIT_CHANCE)
-            {
-                isCritical = true;
-                remainingDamage *= attackerStat.CRIT_DAMAGE / 100f;
-            }
+            isCritical = true;
+            remainingDamage *= atkStat.CRIT_DAMAGE / 100f;
         }
 
         // [쉴드] 적용.
@@ -159,7 +212,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         if (remainingDamage > 0)
         {
             float finalDamage = remainingDamage;
-            if (!DamageRules.IgnoresDefense(info.type))
+            if (!DamageRules.IgnoresDefense(info))
             {
                 // 방어력 % 차감형. DEF 자체가 감소율이고, 상한 75% 는 게터에서 이미 잘려서 온다.
                 // [26/07/17] 고정 방어력(FLAT_DEF)은 삭제 — 방어력은 % 하나로 일원화했다.
@@ -178,7 +231,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             // 상태이상 반응: 빙결 해제(+고정 피해), 출혈 추가 피해.
             // 상태이상 피해는 여기 못 들어온다 — 그래야 출혈의 +2 가 스스로를 트리거하는
             // 무한 재귀가 안 난다. 판정은 DamageRules.TriggersBleed 하나가 쥔다.
-            if (_status != null && !isDead && DamageRules.TriggersBleed(info.type))
+            if (_status != null && !isDead && DamageRules.TriggersBleed(info))
             {
                 _status.OnDirectDamageTaken();
             }

@@ -26,7 +26,7 @@ public class PlayerBloodPopPunchSO : PlayerSkillSO
         box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
 
         float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
-        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, false, 1f, false, "BloodPop Punch");
+        DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "BloodPop Punch");
 
 
         // 0.1초 딜레이 후 타격
