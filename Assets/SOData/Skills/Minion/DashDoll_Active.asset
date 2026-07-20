@@ -24,9 +24,9 @@ MonoBehaviour:
   skillAnimVisual: {fileID: -2253911629886400664, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}
   skillAnimDuration: 0.65
   animSequence:
-  - Attack
-  effectState: Effect
-  damageState: Attack
+  - Skill_Attack
+  effectState: Skill_Attack_Effect
+  damageState:
   hitEvent: OnHitEvent
   hitWindowRatio: 0.18
   actionType: 1

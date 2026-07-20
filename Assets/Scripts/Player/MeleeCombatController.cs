@@ -358,10 +358,8 @@ public class MeleeCombatController : MonoBehaviour
         var caster = MinionSkillCaster.Spawn(main, spawnPos);
         _activeCaster = caster;
 
-        // 이펙트는 같은 애니메이터의 다른 상태라 한 오브젝트로 동시 재생이 안 된다.
-        // 하나 더 띄워서 겹친다 (예: DashDoll 은 Attack + Effect 가 별도 태그다).
-        if (!string.IsNullOrEmpty(fin.effectState))
-            caster.AttachVisual(fin.visual, fin.effectState, castDuration, faceRight);
+        // 이펙트 오버레이(예: DashDoll 의 Skill_Attack_Effect)는 이제 PlaySequenced 가 effectState 로 직접
+        // 겹쳐 재생한다 — 타격 이벤트가 이펙트 클립에 박힌 경우 그쪽에 relay 를 붙여야 하기 때문이다.
 
         if (telegraphPrefab == null) return;
 
@@ -394,7 +392,7 @@ public class MeleeCombatController : MonoBehaviour
         if (col != null) col.enabled = false;
 
         caster.PlaySequenced(
-            fin.visual, fin.animSequence, fin.damageState, fin.hitEvent,
+            fin.visual, fin.animSequence, fin.damageState, fin.hitEvent, fin.effectState,
             castDuration, hitWindow, fin.hitCount, faceRight,
             // 판정 열기. useContinuous=true 면 창 동안 hitCount 균등 틱, false(이벤트당 모드)면 단발+펄스.
             (window, useContinuous) =>

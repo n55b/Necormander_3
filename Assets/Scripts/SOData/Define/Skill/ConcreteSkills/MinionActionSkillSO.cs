@@ -103,9 +103,8 @@ public class MinionActionSkillSO : MinionSkillSO
         // 시전 시간 = skillAnimDuration. 애니메이션 전체가 여기 정확히 맞춰 스케일된다.
         float animDuration = skillAnimDuration > 0f ? skillAnimDuration : 1f;
 
-        // 이펙트 태그는 같은 애니메이터의 다른 상태라 한 오브젝트로 동시 재생이 안 된다. 하나 더 겹친다.
-        if (!string.IsNullOrEmpty(effectState))
-            caster.AttachVisual(skillAnimVisual, effectState, animDuration, faceRight);
+        // 이펙트 오버레이(예: DashDoll 의 Skill_Attack_Effect)는 이제 PlaySequenced 가 effectState 로 직접
+        // 겹쳐 재생한다 — 타격 이벤트가 이펙트 클립에 박힌 경우 그쪽 애니메이터에 relay 를 붙여야 하기 때문.
 
         Debug.Log($"<color=cyan>[Minion Skill]</color> 미니언이 '{skillName}' 스킬을 사용했습니다! (대상: {closestTarget.name})");
 
@@ -151,7 +150,7 @@ public class MinionActionSkillSO : MinionSkillSO
             };
 
             caster.PlaySequenced(
-                skillAnimVisual, animSequence, damageState, hitEvent,
+                skillAnimVisual, animSequence, damageState, hitEvent, effectState,
                 animDuration, eventWindow, hitCount, faceRight,
                 // 판정 열기. useContinuous=true 면 창 동안 hitCount 균등 틱, false(이벤트당)면 단발+펄스.
                 (window, useContinuous) =>
@@ -179,7 +178,7 @@ public class MinionActionSkillSO : MinionSkillSO
         {
             // 히트박스 없는 즉시 타격: 판정창이 열리는 순간 1회.
             caster.PlaySequenced(
-                skillAnimVisual, animSequence, damageState, hitEvent,
+                skillAnimVisual, animSequence, damageState, hitEvent, effectState,
                 animDuration, eventWindow, hitCount, faceRight,
                 (window, useContinuous) =>
                 {

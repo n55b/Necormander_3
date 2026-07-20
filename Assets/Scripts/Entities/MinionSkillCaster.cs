@@ -76,12 +76,34 @@ public class MinionSkillCaster : MonoBehaviour
     ///   true = 창 동안 hitCount 균등 틱, false = 이벤트당 단발(펄스가 타수를 만든다).</param>
     /// <param name="onHitPulse">OnHitEvent 마다 1타(ResetHitTargets). 이벤트당 모드에서만.</param>
     /// <param name="onAttackEnd">OnAttackEndEvent 가 오면 호출. 판정을 닫으라는 뜻.</param>
-    public GameObject PlaySequenced(GameObject visual, string[] sequence, string damageState, string hitEvent,
+    public GameObject PlaySequenced(GameObject visual, string[] sequence, string damageState, string hitEvent, string effectState,
                                     float castDuration, float hitWindow, int hitCount, bool faceRight,
                                     System.Action<float, bool> onHitWindow,
                                     System.Action onHitPulse = null, System.Action onAttackEnd = null)
     {
         if (visual == null) return null;
+
+        // 이펙트 오버레이를 본체보다 먼저 깐다(렌더 순서: 이펙트 뒤 · 본체 앞 = 기존 AttachVisual→PlaySequenced 순서와 동일).
+        // 타격 이벤트(OnHitEvent)가 본체가 아니라 이펙트 클립에 박혀 있을 수 있어서(예: DashDoll 의 Skill_Attack_Effect)
+        // 애니메이터를 잡아둔다. 아래에서 본체·이펙트 중 이벤트가 있는 쪽을 이벤트 소스로 고른다.
+        Animator effectAnim = null;
+        float effectSpeed = 1f;
+        if (!string.IsNullOrEmpty(effectState))
+        {
+            var fx = Instantiate(visual, transform.position, Quaternion.identity, transform);
+            fx.transform.localPosition = Vector3.zero;
+            var fxsr = fx.GetComponentInChildren<SpriteRenderer>();
+            if (fxsr != null) fxsr.flipX = faceRight;
+            effectAnim = fx.GetComponentInChildren<Animator>();
+            if (effectAnim != null && effectAnim.runtimeAnimatorController != null)
+            {
+                float effNat = ClipLength(effectAnim, effectState);
+                if (effNat <= 0f) effNat = 1f;
+                effectSpeed = effNat / Mathf.Max(0.01f, castDuration);
+                effectAnim.speed = effectSpeed;
+                effectAnim.Play(effectState, 0, 0f);
+            }
+        }
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
         vfx.transform.localPosition = Vector3.zero;
@@ -114,6 +136,19 @@ public class MinionSkillCaster : MonoBehaviour
         // 애니메이션이 끝나면 곧바로 사라진다. 고정 3초를 물고 서 있지 않는다.
         SetLifetime(castDuration + DESPAWN_TAIL);
 
+        // 타격 타이밍(이벤트) 애니메이터 결정: 보통은 본체(anim)지만, 본체에 이벤트가 없고 이펙트 클립에 있으면
+        // (DashDoll 처럼 OnHitEvent 가 Skill_Attack_Effect 에 박힌 경우) 이펙트를 이벤트 소스로 쓴다.
+        // 재생·수명은 본체 기준 그대로. 두 클립은 같은 castDuration 에 맞춰 스케일돼 이벤트 시점이 정렬된다.
+        Animator evtAnim = anim; string[] evtSeq = sequence; float evtSpeed = speed;
+        if (!(HasEvent(anim, sequence, "OnHitEvent") || HasEvent(anim, sequence, "OnAttackEndEvent")) && effectAnim != null)
+        {
+            string[] effSeq = new[] { effectState };
+            if (HasEvent(effectAnim, effSeq, "OnHitEvent") || HasEvent(effectAnim, effSeq, "OnAttackEndEvent"))
+            {
+                evtAnim = effectAnim; evtSeq = effSeq; evtSpeed = effectSpeed;
+            }
+        }
+
         // [이벤트 유무를 실제로 검사한다]
         // hitEvent 를 적어놨어도 클립에 실제로 안 박혀 있으면 판정이 영영 안 열린다(조용히 데미지 0).
         // 적 쪽도 같은 문제를 같은 방식으로 푼다 — BaseAIPatternSO 가 HasAnimationEvent 로 확인하고
@@ -125,11 +160,11 @@ public class MinionSkillCaster : MonoBehaviour
         //  (2) SO 의 hitEvent 필드(예: DashDoll 단타) → OnHitEvent 순간에 연다.
         //  (3) damageState 태그(예: MeleeDoll Slash) → 그 태그가 재생되는 '동안' 연다.
         //  (4) 아무것도 없으면 → 시퀀스 전체를 판정창으로 가정(아트가 안 박은 폴백). 경고를 남긴다.
-        bool clipHasHit  = HasEvent(anim, sequence, "OnHitEvent");
-        bool clipHasEnd  = HasEvent(anim, sequence, "OnAttackEndEvent");
+        bool clipHasHit  = HasEvent(evtAnim, evtSeq, "OnHitEvent");
+        bool clipHasEnd  = HasEvent(evtAnim, evtSeq, "OnAttackEndEvent");
         bool eventWindow = clipHasHit && clipHasEnd;                                    // (1)
         bool useEvent    = !eventWindow && !string.IsNullOrEmpty(hitEvent)
-                           && HasEvent(anim, sequence, hitEvent);                       // (2)
+                           && HasEvent(evtAnim, evtSeq, hitEvent);                      // (2)
         bool tagMode     = !eventWindow && !useEvent && !string.IsNullOrEmpty(damageState); // (3)
 
         if (!eventWindow && !useEvent && !string.IsNullOrEmpty(hitEvent))
@@ -143,11 +178,11 @@ public class MinionSkillCaster : MonoBehaviour
         // 경고를 낸다. 창을 이벤트로 여는 (1)(2) 에서만 실제 핸들러를 연결하고, 그 외엔 조용히 흡수만 한다.
         if (clipHasHit || clipHasEnd)
         {
-            var relay = anim.gameObject.AddComponent<MinionAnimEventRelay>();
+            var relay = evtAnim.gameObject.AddComponent<MinionAnimEventRelay>();
             if (eventWindow)
             {
                 // (1) OnHit~OnAttackEnd 사이가 판정창. hitCount 타를 그 창에 균등 배분(지속틱).
-                float span = ComputeEventSpan(anim, sequence, speed, hitWindow);
+                float span = ComputeEventSpan(evtAnim, evtSeq, evtSpeed, hitWindow);
                 bool opened = false;
                 relay.OnHit = () => { if (!opened) { opened = true; onHitWindow?.Invoke(span, true); } };
                 relay.OnAttackEnd = () => onAttackEnd?.Invoke(); // 창 길이로도 닫히지만 이중 안전
@@ -156,7 +191,7 @@ public class MinionSkillCaster : MonoBehaviour
             {
                 // (2) OnHitEvent 마다 1타(박스 단발, 펄스가 타수를 만든다).
                 //     hitCount(N)=타수 진실, 이벤트(E)=타이밍. E==N 1:1 / E>N 초과 무시 / E<N 마지막에 몰아치기.
-                int e = CountEvents(anim, sequence, "OnHitEvent");
+                int e = CountEvents(evtAnim, evtSeq, "OnHitEvent");
                 int n = Mathf.Max(1, hitCount);
                 // E>N 은 이벤트가 남아 무시되므로 실수일 확률이 높다 → 경고.
                 // E<N(이벤트보다 타수가 많음)은 '마지막 이벤트에 몰아치기'라는 정상 패턴이라(예: MeleeDoll 2이벤트/5타)
