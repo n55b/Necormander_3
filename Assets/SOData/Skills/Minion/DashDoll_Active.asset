@@ -11,10 +11,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b903e5195d425944aa1c1677ca0f7b79, type: 3}
   m_Name: DashDoll_Active
-  m_EditorClassIdentifier:
-  skillName: "돌진 강타"
-  description: "앞쪽 넓은 구간의 적에게
-    큰 피해를 1회 입히고 밀쳐냅니다."
+  m_EditorClassIdentifier: 
+  skillName: "\uB3CC\uC9C4 \uAC15\uD0C0"
+  description: "\uC55E\uCABD \uB113\uC740 \uAD6C\uAC04\uC758 \uC801\uC5D0\uAC8C \uD070
+    \uD53C\uD574\uB97C 1\uD68C \uC785\uD788\uACE0 \uBC00\uCCD0\uB0C5\uB2C8\uB2E4."
   icon: {fileID: 0}
   cooldownTime: 8
   skillSound: {fileID: 0}
@@ -22,11 +22,11 @@ MonoBehaviour:
   shakeForce: 1
   hitStopDuration: 0.08
   skillAnimVisual: {fileID: -2253911629886400664, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}
-  skillAnimDuration: 0.65
+  skillAnimDuration: 1.27
   animSequence:
   - Skill_Attack
   effectState: Skill_Attack_Effect
-  damageState:
+  damageState: 
   hitEvent: OnHitEvent
   hitWindowRatio: 0.18
   actionType: 1
