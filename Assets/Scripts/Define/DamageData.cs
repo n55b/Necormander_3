@@ -85,6 +85,12 @@ public static class DamageRules
     public static bool IsEnemyTier(DamageCategory c)
         => c == DamageCategory.EnemyMinion || c == DamageCategory.EnemyElite
         || c == DamageCategory.EnemyBoss || c == DamageCategory.EnemyDebuff;
+
+    /// <summary>플레이어 진영이 낸 피해 갈래인가. 시전자에 스탯이 없을 때(미니언 스킬 등)
+    /// 크리·증폭 스탯을 플레이어에서 빌려도 되는지를 이걸로 가른다.</summary>
+    public static bool IsPlayerSourced(DamageCategory c)
+        => c == DamageCategory.BasicAttack || c == DamageCategory.Skill
+        || c == DamageCategory.DashAttack || c == DamageCategory.Parry;
 }
 
 [System.Serializable]
