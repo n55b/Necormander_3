@@ -460,6 +460,48 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
+  - name: Minion_MeleeDoll
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 84
+      y: 124
+      width: 32
+      height: 32
+    spriteID: 53c777b62d3079e4ea1e89bb0754bcd0
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
+  - name: Minion_DashDoll
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 84
+      y: 164
+      width: 32
+      height: 32
+    spriteID: dac4fee3a4ba7e543b13881ec0e0c6ae
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
   asepriteLayers:
   - layerIndex: 0
     uuid:
@@ -808,17 +850,17 @@ ScriptedImporter:
     parentIndex: -1
   - layerIndex: 15
     uuid:
-      value0: 3154614793
+      value0: 1319493937
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: Frame
+    name: Melee_Minion
     layerFlags: 2
     layerType: 0
     blendMode: 0
     cells:
-    - name: Frame
+    - name: Melee_Minion
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
@@ -826,7 +868,30 @@ ScriptedImporter:
         y: 0
         width: 32
         height: 32
-      spriteId: 5c1beec0835450d4ea5b08c1edcf90c4
+      spriteId: 4de95cdb264671045adfea5d23de501f
+    linkedCells: []
+    parentIndex: -1
+  - layerIndex: 16
+    uuid:
+      value0: 4282941283
+      value1: 0
+      value2: 0
+      value3: 0
+    guid: 0
+    name: Dash_Minion
+    layerFlags: 3
+    layerType: 0
+    blendMode: 0
+    cells:
+    - name: Dash_Minion
+      frameIndex: 0
+      additiveSortOrder: 0
+      cellRect:
+        x: 0
+        y: 0
+        width: 32
+        height: 32
+      spriteId: 7136bd0e87c654241a72289215bfcf02
     linkedCells: []
     parentIndex: -1
   platformSettings:
