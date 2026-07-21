@@ -16,9 +16,22 @@ public enum MinionActionType
 public class MinionActionSkillSO : MinionSkillSO
 {
     public MinionActionType actionType;
+
+    [Header("속성/상태이상")]
+    [Tooltip("이 스킬 타격의 속성. 마법이면 플레이어의 마법 피해 증폭을 탄다.")]
+    public DamageType element = DamageType.Physical;
+
+    [Tooltip("타격 시 부여할 상태이상. None 이면 안 검(지속은 기본값). 예: 네크 부채꼴 = Freeze.")]
+    public StatusType onHitStatus = StatusType.None;
+
+    [Header("판정")]
     public bool useHitBox = false;
     public BaseHitBox hitBoxPrefab;
+    [Tooltip("원형 판정 반지름(유닛). hitBoxSize 가 0,0 일 때 이 값으로 균등 스케일(예: MeleeDoll 원형).")]
     public float hitRadius = 1.5f;
+    [Tooltip("박스 판정 크기(유닛). x=가로, y=세로. 둘 다 > 0 이면 hitRadius 대신 이 비율로 비균등 스케일 " +
+             "(예: 사다리꼴/부채꼴 = 납작한 박스). 0,0 이면 hitRadius 원형을 쓴다.")]
+    public Vector2 hitBoxSize = Vector2.zero;
     public float damageMultiplier = 1.2f;
     public float forceAmount = 4f; // 넉백/끌어당김 힘
     public float forceDuration = 0.2f;
@@ -117,8 +130,9 @@ public class MinionActionSkillSO : MinionSkillSO
             ? GameManager.Instance.PLAYERCONTROLLER.Stat
             : null;
         float finalDamage = (playerStat != null ? playerStat.ATK : 0f) * damageMultiplier;
-        var info = new DamageInfo(finalDamage, DamageType.Physical, caster.gameObject, 1f,
-            !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill);
+        var info = new DamageInfo(finalDamage, element, caster.gameObject, 1f,
+            !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill,
+            applyStatus: onHitStatus == StatusType.None ? (StatusType?)null : onHitStatus);
 
         if (useHitBox && hitBoxPrefab != null)
         {
@@ -129,7 +143,10 @@ public class MinionActionSkillSO : MinionSkillSO
             BaseHitBox box = Instantiate(hitBoxPrefab, caster.transform.position, Quaternion.identity, caster.transform);
             box.transform.localPosition = Vector3.zero;
             box.transform.localRotation = Quaternion.Euler(0, 0, angle);
-            box.transform.localScale = new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
+            // 크기: hitBoxSize(가로*세로)가 둘 다 양수면 박스로 비균등 스케일(사다리꼴/부채꼴), 아니면 hitRadius 원형 균등.
+            box.transform.localScale = (hitBoxSize.x > 0f && hitBoxSize.y > 0f)
+                ? new Vector3(hitBoxSize.x, hitBoxSize.y, 1f)
+                : new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
 
             var col = box.GetComponent<Collider2D>();
             if (col != null) col.enabled = false; // 판정창 열릴 때까지 꺼둔다

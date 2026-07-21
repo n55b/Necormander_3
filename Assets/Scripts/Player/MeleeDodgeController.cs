@@ -12,8 +12,10 @@ public class MeleeDodgeController : MonoBehaviour
     [SerializeField] private GameObject dashEffectPrefab; // 대쉬 이펙트 프리팹
 
     [Header("대쉬 히트박스 (메인 소환수가 대쉬에 피해를 붙일 때 사용)")]
-    [Tooltip("BaseHitBox 가 붙은 프리팹. 미지정이면 소환수가 대쉬 피해를 갖고 있어도 발동하지 않는다.")]
+    [Tooltip("경로를 훑는 박스 프리팹(전방 기준). 미지정이면 소환수가 대쉬 피해를 갖고 있어도 발동하지 않는다.")]
     [SerializeField] private BaseHitBox dashHitBoxPrefab;
+    [Tooltip("dashModifier.hitAtOrigin(출발점 원형) 일 때 쓰는 원형 콜라이더 프리팹. 예: 네크 인형. 미지정이면 발동 안 함.")]
+    [SerializeField] private BaseHitBox originHitBoxPrefab;
 
     private int _currentCharges;
     private float _rechargeTimer;
@@ -160,29 +162,14 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
     /// </summary>
     private void SpawnDashHitBox(MinionDashModifier mod, Vector2 origin, Vector2 dir, float dist)
     {
-        if (dashHitBoxPrefab == null)
-        {
-            Debug.LogWarning("<color=orange>[MeleeDodge]</color> 소환수가 대쉬 피해를 갖고 있는데 dashHitBoxPrefab 이 비어 있습니다.");
-            return;
-        }
-        if (dist <= 0.01f) return;
-
-        float travelTime = dist / dashSpeed;
-
-        // 이 프리팹의 콜라이더는 '전방 기준'이다 (m_Offset.x = 0.5, m_Size.x = 1 -> 로컬 x [0,1]).
-        // 즉 자기 원점에서 앞으로 자란다. 그래서 대쉬 시작점에 그대로 깔면 [0, dist] 를
-        // 정확히 덮는다. ChargerAIPatternSO 도 같은 프리팹을 이렇게 쓴다.
-        //
-        // 예전엔 여기서 경로 '중앙'에 놓았는데, 그러면 로컬 오프셋 0.5 가 회전+스케일(dist)까지
-        // 먹어서 박스가 [0.5d, 1.5d] 로 통째로 밀렸다 — 시작 지점의 적은 안 맞고, 멈춘 자리보다
-        // 0.5d 앞까지 때렸다 ("히트박스가 너무 앞에 길게").
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        var box = Instantiate(dashHitBoxPrefab, origin, Quaternion.Euler(0, 0, angle));
-        box.transform.localScale = new Vector3(dist, mod.width, 1f);
-        box.hitEffectAngle = angle; // 누락돼 있었다 — 없으면 히트 이펙트가 대쉬 방향과 무관하게 오른쪽으로 튄다
 
+        // 피해 정보 — 속성/상태이상은 소환수 대쉬 개조안에서 온다. 마법이면 CharacterHealth 가 플레이어 마법증폭을 태운다.
         float dmg = (_player.Stat != null ? _player.Stat.ATK : 0f) * mod.damageMultiplier;
-        var info = new DamageInfo(dmg, DamageType.Physical, _player.gameObject, 1f, "Dash", causesHitstun: true, knockbackForce: mod.pushesEnemies ? mod.pushForce : 0f, category: DamageCategory.DashAttack);
+        StatusType? status = mod.onHitStatus == StatusType.None ? (StatusType?)null : mod.onHitStatus;
+        var info = new DamageInfo(dmg, mod.element, _player.gameObject, 1f, "Dash",
+            causesHitstun: true, knockbackForce: mod.pushesEnemies ? mod.pushForce : 0f,
+            category: DamageCategory.DashAttack, applyStatus: status);
 
         System.Action<CharacterHealth> onHit = null;
         if (mod.pushesEnemies)
@@ -194,18 +181,56 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
             };
         }
 
+        BaseHitBox box;
+        float life;
+
+        if (mod.hitAtOrigin)
+        {
+            // [출발점 원형] 경로를 훑는 대신 대쉬 시작 자리에 원 하나를 잠깐 깐다(네크 인형).
+            // 이동과 무관하므로 dist 가짜여도 발동한다. 원형 콜라이더 프리팹이 따로 필요하다.
+            // 프리팹: 소환수 SO 가 자기 것을 지정했으면 그걸, 아니면 컨트롤러의 출발점 기본 프리팹으로 폴백.
+            var prefab = mod.hitBoxPrefab != null ? mod.hitBoxPrefab : originHitBoxPrefab;
+            if (prefab == null)
+            {
+                Debug.LogWarning("<color=orange>[MeleeDodge]</color> hitAtOrigin 대쉬인데 히트박스 프리팹이 없습니다 (dashModifier.hitBoxPrefab / originHitBoxPrefab 둘 다 빔).");
+                return;
+            }
+            box = Instantiate(prefab, origin, Quaternion.identity);
+            box.transform.localScale = new Vector3(mod.originRadius * 2f, mod.originRadius * 2f, 1f);
+            box.hitEffectAngle = angle;
+            life = 0.15f; // 원이 겹친 적을 잡는 데 필요한 짧은 수명. 반지름이 크기 축이고 이건 튜닝 대상 아님.
+        }
+        else
+        {
+            // [경로 박스] 이 프리팹의 콜라이더는 '전방 기준'이다 (m_Offset.x = 0.5, m_Size.x = 1 -> 로컬 x [0,1]).
+            // 즉 자기 원점에서 앞으로 자란다. 대쉬 시작점에 그대로 깔면 [0, dist] 를 정확히 덮는다.
+            // (예전엔 경로 '중앙'에 놨다가 오프셋 0.5 가 스케일까지 먹어 [0.5d, 1.5d] 로 밀렸었다.)
+            // 프리팹: 소환수 SO 가 자기 것을 지정했으면 그걸, 아니면 컨트롤러의 경로 기본 프리팹으로 폴백.
+            var prefab = mod.hitBoxPrefab != null ? mod.hitBoxPrefab : dashHitBoxPrefab;
+            if (prefab == null)
+            {
+                Debug.LogWarning("<color=orange>[MeleeDodge]</color> 소환수가 대쉬 피해를 갖고 있는데 히트박스 프리팹이 없습니다 (dashModifier.hitBoxPrefab / dashHitBoxPrefab 둘 다 빔).");
+                return;
+            }
+            if (dist <= 0.01f) return;
+            box = Instantiate(prefab, origin, Quaternion.Euler(0, 0, angle));
+            box.transform.localScale = new Vector3(dist, mod.width, 1f);
+            box.hitEffectAngle = angle; // 없으면 히트 이펙트가 대쉬 방향과 무관하게 오른쪽으로 튄다
+            life = dist / dashSpeed;    // 경로를 지나는 시간
+        }
+
         if (mod.hitCount > 1)
         {
-            // N타를 이동 시간 안에 균등 배분한다.
+            // N타를 수명 안에 균등 배분한다.
             box.isContinuousDamage = true;
-            box.damageTickRate = travelTime / mod.hitCount;
+            box.damageTickRate = life / mod.hitCount;
         }
         else
         {
             box.isContinuousDamage = false;
         }
 
-        box.Init(info, Layers.EnemyMask, travelTime, 0f, true, onHit);
+        box.Init(info, Layers.EnemyMask, life, 0f, true, onHit);
     }
 
 private void EndDash()

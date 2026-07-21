@@ -81,7 +81,15 @@ public class MinionSkillCaster : MonoBehaviour
                                     System.Action<float, bool> onHitWindow,
                                     System.Action onHitPulse = null, System.Action onAttackEnd = null)
     {
-        if (visual == null) return null;
+        if (visual == null)
+        {
+            // [폴백] 스프라이트가 없는 소환수(예: 아직 아트가 안 나온 임시 소환수): 인형·애니를 붙이지 않고
+            // 히트박스만 낸다. 타격 타이밍을 그림(애니 이벤트)이 못 주므로, 시전 시간 전체를 지속창으로 열어
+            // hitCount 를 시간 균등 배분한다(아래 '애니메이터 없음' 폴백과 같은 취급). 판정/데미지는 그대로 나간다.
+            onHitWindow?.Invoke(castDuration, true);
+            SetLifetime(castDuration + DESPAWN_TAIL);
+            return null;
+        }
 
         // 이펙트 오버레이를 본체보다 먼저 깐다(렌더 순서: 이펙트 뒤 · 본체 앞 = 기존 AttachVisual→PlaySequenced 순서와 동일).
         // 타격 이벤트(OnHitEvent)가 본체가 아니라 이펙트 클립에 박혀 있을 수 있어서(예: DashDoll 의 Skill_Attack_Effect)

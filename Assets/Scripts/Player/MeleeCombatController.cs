@@ -361,9 +361,11 @@ public class MeleeCombatController : MonoBehaviour
         // 이펙트 오버레이(예: DashDoll 의 Skill_Attack_Effect)는 이제 PlaySequenced 가 effectState 로 직접
         // 겹쳐 재생한다 — 타격 이벤트가 이펙트 클립에 박힌 경우 그쪽에 relay 를 붙여야 하기 때문이다.
 
-        if (telegraphPrefab == null) return;
+        // 프리팹: 소환수 SO(finisher)가 자기 것을 지정했으면 그걸, 아니면 컨트롤러의 Telegraph Prefab 으로 폴백.
+        var finBoxPrefab = fin.hitBoxPrefab != null ? fin.hitBoxPrefab : telegraphPrefab;
+        if (finBoxPrefab == null) return;
 
-        GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity, caster.transform);
+        GameObject go = Instantiate(finBoxPrefab, spawnPos, Quaternion.identity, caster.transform);
         if (hideFinisherTelegraph)
         {
             foreach (var vis in go.GetComponentsInChildren<SpriteRenderer>(true)) vis.enabled = false;
@@ -381,7 +383,7 @@ public class MeleeCombatController : MonoBehaviour
         // [26/07/17] 예전엔 소환수 SO 자신의 attack 을 썼는데, 이제 베이스 ATK 를 공유한다.
         // 그래야 "아군 공격력 증가" 같은 버프를 플레이어 ATK 하나에만 걸어도
         // 주먹과 소환수 마무리에 동시에 먹는다. 소환수의 개성은 배율이 유지한다.
-        var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier, DamageType.Physical, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack); // 소환수 마무리 일격도 평타 갈래
+        var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
 
         // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.
         //  · damageState 를 쓰면 그 태그가 재생되는 동안만 열린다 (MeleeDoll: Slash).
