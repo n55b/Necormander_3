@@ -248,6 +248,18 @@ public class CharacterHealth : MonoBehaviour, IDamageable
                 Signal.Fire(ShakeSignal.적피격);
         }
 
+        // [상태이상 부여] 소환수 대쉬/피니셔/R 이 onHitStatus 를 DamageInfo.applyStatus 로 실어 보내면 여기서 건다.
+        // ⚠ 반드시 위 데미지 반응(OnDirectDamageTaken) '뒤'다 — 앞에 두면 방금 건 빙결을 같은 타격이 곧바로
+        // 깨버린다(적용 히트가 자기 빙결을 산산조각). 여기 오면: 이전 타격의 빙결은 위에서 정상 shatter 되고,
+        // 이번에 새로 거는 빙결만 남는다. 슈퍼아머는 이동방해 CC(기절/빙결) 차단, 출혈/중독은 통과.
+        // curHP>0: 이 타격에 죽은 대상은 안 건다. 내성 중이면 ApplyStatus 내부에서 씹힌다.
+        if (info.applyStatus.HasValue && _status != null && curHP > 0f)
+        {
+            StatusType st = info.applyStatus.Value;
+            if (st != StatusType.None && !(hasSuperArmor && StatusRules.BlockedBySuperArmor(st)))
+                _status.ApplyStatus(st, info.statusDuration);
+        }
+
         // [사망] 체크
         if (curHP <= 0.0f && !isDead) // isDead 체크로 중복 호출 방지
         {
