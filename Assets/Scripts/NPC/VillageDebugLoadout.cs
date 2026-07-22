@@ -22,6 +22,7 @@ public class VillageDebugLoadout : MonoBehaviour
     [SerializeField] private Button itemButtonTemplate;
     [SerializeField] private bool includePlayerSkills = true;
     [SerializeField] private bool includeMinions = true;
+    [SerializeField] private bool includeEquipments = true;
 
     private readonly List<GameObject> _spawned = new List<GameObject>();
 
@@ -60,6 +61,16 @@ public class VillageDebugLoadout : MonoBehaviour
                 if (minion == null) continue;
                 var m = minion;
                 AddButton($"[미니언] {(string.IsNullOrEmpty(m.minionName) ? m.name : m.minionName)}", m.minionIcon, $"미니언 · {m.minionType}", () => EquipMinion(m));
+            }
+        }
+
+        if (includeEquipments && registry.equipments != null)
+        {
+            foreach (var equip in registry.equipments)
+            {
+                if (equip == null) continue;
+                var e = equip;
+                AddButton($"[장비] {(string.IsNullOrEmpty(e.equipmentName) ? e.name : e.equipmentName)}", e.icon, e.description, () => EquipEquipmentItem(e));
             }
         }
     }
@@ -143,6 +154,14 @@ public class VillageDebugLoadout : MonoBehaviour
             gm.playerStateUI.OpenChangeSkillUI(skill); // 여기서 시간 정지 + 슬롯 픽커, 슬롯 클릭 시 CloseChangeSkillUI가 시간 재개
         else if (PlayerSkillInventoryManager.Instance != null)
             PlayerSkillInventoryManager.Instance.Equip(0, skill); // 픽커가 없으면 Q에 바로 장착
+    }
+
+    /// <summary>장비 선택 = 즉시 착용(한 자루 원칙). 스킬을 그 자리에서 굴려 Q/E 에 넣고 패시브까지 적용. 슬롯 픽커 없음.</summary>
+    private void EquipEquipmentItem(EquipmentSO so)
+    {
+        if (PlayerSkillInventoryManager.Instance != null && so != null)
+            PlayerSkillInventoryManager.Instance.EquipEquipment(EquipmentInstance.Roll(so));
+        CloseWindow();
     }
 
     /// <summary>보상에서 미니언을 골랐을 때와 동일: 핸드 슬롯 선택 UI를 띄운다. 없으면 빈 슬롯에 자동 장착.</summary>
