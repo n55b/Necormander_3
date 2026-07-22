@@ -158,6 +158,11 @@ public abstract class MinionSkillSO : SkillSO
              "여기에 적지 않은 상태는 영원히 재생되지 않습니다. (예: Start, Slash, End)")]
     public string[] animSequence;
 
+    [Tooltip("(선택) 애니 도중 인형 위치 이동. 태그별로 offset 을 주면 그 태그가 재생되는 '동안' 그 위치로 이동한다 " +
+             "(이전 위치→offset lerp, snap 체크 시 즉시). animSequence 에 있는 태그 이름을 써야 발동. " +
+             "비우면 이동 없음(=기존 동작). 여러 개면 스폰→o1→o2 로 연쇄. 이동하는 건 인형 본체다(이펙트 오버레이는 제자리).")]
+    public System.Collections.Generic.List<AnimPhase> movePhases = new System.Collections.Generic.List<AnimPhase>();
+
     [Tooltip("위 시퀀스와 '동시에' 겹쳐 재생할 이펙트 상태 이름. 비우면 없음. (예: DashDoll 의 Effect)")]
     public string effectState = "";
 

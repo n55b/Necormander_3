@@ -189,7 +189,8 @@ public class MinionActionSkillSO : MinionSkillSO
                     box.Init(info, Layers.EnemyMask, w, 0f, true, onHit);
                 },
                 onHitPulse: () => { if (box != null) box.PulseDamageOverlapping(); },
-                onAttackEnd: () => { if (col != null) col.enabled = false; });
+                onAttackEnd: () => { if (col != null) col.enabled = false; },
+                movePhases: movePhases);
         }
         else
         {
@@ -209,7 +210,8 @@ public class MinionActionSkillSO : MinionSkillSO
                         ?? health.GetComponentInParent<CharacterStat>()
                         ?? health.GetComponentInChildren<CharacterStat>();
                     if (stat != null) ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
-                });
+                },
+                movePhases: movePhases);
         }
 
         return true;

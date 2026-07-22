@@ -418,7 +418,8 @@ public class MeleeCombatController : MonoBehaviour
             // OnHitEvent 마다 겹친 대상을 확정 1타. 적 공격 클립이 2타면 OnHitEvent 를 2번 박는 것과 같은 계약.
             onHitPulse: () => { if (box != null) box.PulseDamageOverlapping(); },
             // OnAttackEndEvent: 후딜까지 끝났으니 판정을 닫는다.
-            onAttackEnd: () => { if (col != null) col.enabled = false; });
+            onAttackEnd: () => { if (col != null) col.enabled = false; },
+            movePhases: fin.movePhases);
     }
 
     /// <summary>

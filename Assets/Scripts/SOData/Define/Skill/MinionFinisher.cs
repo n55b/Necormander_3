@@ -53,6 +53,11 @@ public class MinionFinisher
              "여기 적지 않은 태그는 영원히 재생되지 않는다.")]
     public string[] animSequence;
 
+    [Tooltip("(선택) 애니 도중 인형 위치 이동. 태그별로 offset 을 주면 그 태그가 재생되는 '동안' 그 위치로 이동한다 " +
+             "(이전 위치→offset lerp, snap 체크 시 즉시). animSequence 에 있는 태그 이름을 써야 발동. " +
+             "비우면 이동 없음(=기존 동작). 여러 개면 스폰→o1→o2 로 연쇄. 이동하는 건 인형 본체다(이펙트 오버레이는 제자리).")]
+    public System.Collections.Generic.List<AnimPhase> movePhases = new System.Collections.Generic.List<AnimPhase>();
+
     [Tooltip("이 태그가 재생되는 '동안'만 판정이 열린다. 예: Slash / " +
              "타격 타이밍을 초나 비율로 박지 않는 이유 — 태그 경계가 이미 그림에 찍힌 마커다. " +
              "아티스트가 Start 길이를 바꿔도 판정이 알아서 따라온다.")]
