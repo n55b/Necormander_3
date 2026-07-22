@@ -12,6 +12,8 @@ public class ChargerAIPatternSO : BaseAIPatternSO
     [SerializeField] private GameObject aimLinePrefab; // 궁수용 aimLinePrefab 재사용
     [SerializeField] private float launchOffset = 0.5f;
     [SerializeField] private float windupTime = 1.0f; // 돌진 준비 시간 (락온 유지 시간)
+    [SerializeField] private float telegraphFlashLeadTime = 0.35f; // [예고 문법] 돌진 개시 몇 초 전에 예고 플래시를 터뜨릴지 (전 몬스터 공통 반응 시간)
+
     [SerializeField] private float chargeSpeedMultiplier = 3.0f; // 기본 이속 대비 돌진 배수
     [SerializeField, Range(0.1f, 1.5f)] private float wallStopRadiusRatio = 0.55f; // [추가] 돌진 중 벽/장애물 감지용 CircleCast 반지름. 값을 낮추면 벽에 더 가까이 붙은 뒤에 멈춤
     [SerializeField, Range(0f, 0.3f)] private float wallCheckDistanceBuffer = 0.15f; // [추가] 벽 감지 거리에 매 프레임 고정으로 더해지는 여유값. 낮추면 벽에 더 붙어서 멈춤
@@ -65,6 +67,9 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         // [2] 선딜레이 대기 (플레이어를 실시간으로 조준 록온)
         float timeout = windupTime;
         Vector2 chargeDir = Vector2.right;
+        var telegraphVfb = entity.GetComponentInChildren<CharacterVisualFeedback>();
+        bool telegraphFlashFired = false;
+
 
         // 방향 인디케이터: 돌진 충전 중엔 멈춰 있어도(이동 velocity≈0) 실시간 재조준 방향을 가리키게 오버라이드.
         var dirIndicator = entity.GetComponentInChildren<EntityDirectionIndicator>();
@@ -73,6 +78,14 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         {
             if (entity.Target == null) break;
             timeout -= Time.deltaTime;
+
+            // [예고 플래시] 돌진 개시 leadTime초 전, 하데스식 흰색 번쩍으로 타이밍 신호 (일반 몬스터 = 1펄스)
+            if (!telegraphFlashFired && timeout <= telegraphFlashLeadTime)
+            {
+                telegraphFlashFired = true;
+                telegraphVfb?.PlayTelegraphFlash(1);
+            }
+
 
             Vector2 spawnPos = aimHitbox != null ? (Vector2)aimHitbox.transform.position : (Vector2)entity.transform.position + (Vector2.up * launchOffset);
             chargeDir = ((Vector2)entity.Target.position - spawnPos).normalized;
