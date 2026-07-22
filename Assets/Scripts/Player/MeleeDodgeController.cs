@@ -51,7 +51,7 @@ public class MeleeDodgeController : MonoBehaviour
                 _currentCharges++;
                 if (_currentCharges < maxCharges)
                 {
-                    _rechargeTimer = rechargeTime;
+                    _rechargeTimer = EffectiveRechargeTime;
                 }
             }
         }
@@ -83,7 +83,7 @@ public class MeleeDodgeController : MonoBehaviour
         // 스택 차감 및 타이머 시작
         if (_currentCharges == maxCharges)
         {
-            _rechargeTimer = rechargeTime;
+            _rechargeTimer = EffectiveRechargeTime;
         }
         _currentCharges--;
 
@@ -257,8 +257,19 @@ private void EndDash()
 
 public int   MaxCharges      => maxCharges;
     public float RechargeTime    => rechargeTime;
+
+    /// <summary>대쉬 쿨감(DASH_CDR)이 반영된 실제 재충전 시간. 스탯 없으면 원본 rechargeTime.</summary>
+    private float EffectiveRechargeTime
+        => (_player != null && _player.Stat != null) ? _player.Stat.ApplyDashCooldown(rechargeTime) : rechargeTime;
+
     public float RechargeProgress
-        => (_currentCharges < maxCharges && rechargeTime > 0f)
-            ? 1f - Mathf.Clamp01(_rechargeTimer / rechargeTime)
-            : 1f;
+    {
+        get
+        {
+            float rt = EffectiveRechargeTime;
+            return (_currentCharges < maxCharges && rt > 0f)
+                ? 1f - Mathf.Clamp01(_rechargeTimer / rt)
+                : 1f;
+        }
+    }
 }

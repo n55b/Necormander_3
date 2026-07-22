@@ -98,8 +98,13 @@ public static class SkillCombatUtil
     /// [26/07/17] applyVulnerability 인자는 삭제됐다 — 취약 시스템 자체가 없어졌다.
     /// 슈퍼아머는 여전히 밀기를 막는다(= 강인함).
     /// </summary>
+    /// <summary>플레이어 진영이 적을 밀치거나 끌어당길 때 발생. 발동형 버프(투지) 등이 구독한다.</summary>
+    public static event System.Action OnEnemyDisplaced;
+    /// <summary>밀침/끌기가 실제로 일어났음을 알린다. 자체 이동 로직(Gather/GroundSmash)은 직접 호출한다.</summary>
+    public static void NotifyEnemyDisplaced() => OnEnemyDisplaced?.Invoke();
+
     public static IEnumerator PushEnemy(Transform enemy, Vector2 pushDir, float force, float duration,
-                                        float superArmorDamage = 30f)
+                                        float superArmorDamage = 30f, System.Action onWallHit = null)
     {
         if (enemy == null) yield break;
 
@@ -112,6 +117,8 @@ public static class SkillCombatUtil
         {
             if (status.HasSuperArmor) { status.DamageSuperArmor(superArmorDamage); yield break; }
         }
+
+        NotifyEnemyDisplaced(); // 밀침 성공(슈퍼아머 제외) → 발동형 버프 트리거
 
         float elapsed = 0f;
         Vector2 startPos = enemy.position;
@@ -145,6 +152,7 @@ public static class SkillCombatUtil
                 {
                     // 충돌 지점에서 벽 바깥 법선 방향으로 반지름+안전오차만큼 밀착
                     enemy.position = hit.point + hit.normal * (checkRadius * 1.02f);
+                    onWallHit?.Invoke(); // 벽에 처박힘 → 철산고 등 추가 효과
                     yield break;
                 }
                 enemy.position = nextPos;

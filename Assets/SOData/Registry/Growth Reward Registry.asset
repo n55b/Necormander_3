@@ -13,12 +13,38 @@ MonoBehaviour:
   m_Name: Growth Reward Registry
   m_EditorClassIdentifier: 
   minionDatas:
-  - {fileID: 11400000, guid: 1249b3e99bee40e1a4fa574ab04a2b28, type: 2}
   - {fileID: 11400000, guid: d1d81dc1227b40099e4a237dba3cb29f, type: 2}
+  - {fileID: 11400000, guid: 1249b3e99bee40e1a4fa574ab04a2b28, type: 2}
   - {fileID: 11400000, guid: 2ebf02073b714bd08b60e585b5172baa, type: 2}
   - {fileID: 11400000, guid: a23a9344ad434dbda7ad70e1cf8485d7, type: 2}
-  gems: []
-  treasures: []
+  gems:
+  - {fileID: 11400000, guid: 87e7260bead92f545aa299410bef22e8, type: 2}
+  - {fileID: 11400000, guid: 0dce102235d8f134ab74ae4f34ba7640, type: 2}
+  - {fileID: 11400000, guid: fe6621571d0651d40b024e0286fada2b, type: 2}
+  - {fileID: 11400000, guid: 4d2add4bdd67c7941b93171d2f8ffa74, type: 2}
+  - {fileID: 11400000, guid: b17690efd00a3844a809a636fa581bf1, type: 2}
+  - {fileID: 11400000, guid: a7f5788b251915049a096703145b8470, type: 2}
+  - {fileID: 11400000, guid: 4e5034a8d64e37445a5667958202ed00, type: 2}
+  - {fileID: 11400000, guid: aa35a5023b16fce4f8466aead7a8a1f2, type: 2}
+  - {fileID: 11400000, guid: e9d2b0e964c50fa419bb8a37f4cbea24, type: 2}
+  - {fileID: 11400000, guid: 105928107c038ac46b8d02a1f7265365, type: 2}
+  - {fileID: 11400000, guid: 15a9caccb80772b4f8155343fd5ba2bc, type: 2}
+  - {fileID: 11400000, guid: ff530fc8f0709d942a426d515c67fc01, type: 2}
+  - {fileID: 11400000, guid: a75a6e7db2b470e46b72fffa5cbf777b, type: 2}
+  - {fileID: 11400000, guid: 18d015bd3b4493340980a5dbba36eef0, type: 2}
+  - {fileID: 11400000, guid: 09cd199554ad6b94897f71acb10a4681, type: 2}
+  - {fileID: 11400000, guid: bc2802b5647804a4bba31e9c5c7a36b1, type: 2}
+  - {fileID: 11400000, guid: c6e00796a2c822848943353865d8ba80, type: 2}
+  - {fileID: 11400000, guid: e639124e91b7f8546a9ddd07745e7ccb, type: 2}
+  - {fileID: 11400000, guid: a4109e81b625af740b96d3ca9a1362d1, type: 2}
+  - {fileID: 11400000, guid: 86f6c2ba1e48a5641994dec4a848cad3, type: 2}
+  - {fileID: 11400000, guid: b0a5c85710b3fe54da6d0affc213207a, type: 2}
+  - {fileID: 11400000, guid: e425c38957e581740aa006a470645d74, type: 2}
+  - {fileID: 11400000, guid: b65e730ec45424d45bba28323d55f054, type: 2}
+  - {fileID: 11400000, guid: 0e9b5be9bcca5c144add9eb2bb3cce82, type: 2}
+  - {fileID: 11400000, guid: 195613f57fc28da4d97643c05e99376d, type: 2}
+  treasures:
+  - {fileID: 11400000, guid: 4eaa41374a0592a43a6926f9626fc7db, type: 2}
   specialAbilities: []
   playerSkills:
   - {fileID: 11400000, guid: 0088919065887b84399dce4d642c50e2, type: 2}
@@ -29,10 +55,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 47b190d18ba4dc94994de988c0689e1c, type: 2}
   - {fileID: 11400000, guid: dd0f9af07b521f144acaa410d1b7afd0, type: 2}
   - {fileID: 11400000, guid: ccf0ffcea70d44d4195870544a453f42, type: 2}
-  - {fileID: 11400000, guid: 8ffba0baff747c3418d4261959da8854, type: 2}
-  - {fileID: 11400000, guid: d2a87b3e1c0773141a161772c0f7914c, type: 2}
-  - {fileID: 11400000, guid: 70e1cb204c469be4ea44b5519dcc0a1e, type: 2}
   - {fileID: 11400000, guid: 7f02ed511782c5748ba16d1768bf0e65, type: 2}
+  - {fileID: 11400000, guid: d2a87b3e1c0773141a161772c0f7914c, type: 2}
+  - {fileID: 11400000, guid: d5e9f1a3b7c2408d9e6f1a2b3c4d5e6f, type: 2}
+  - {fileID: 11400000, guid: e6f0a2b4c8d3519e0f7a2b3c4d5e6f70, type: 2}
+  - {fileID: 11400000, guid: 70e1cb204c469be4ea44b5519dcc0a1e, type: 2}
+  - {fileID: 11400000, guid: 8ffba0baff747c3418d4261959da8854, type: 2}
   - {fileID: 11400000, guid: fc7d035727287434eb161f6e6dc69e35, type: 2}
   - {fileID: 11400000, guid: 16edda5eb0a7e9540b3a34f47ad37110, type: 2}
   - {fileID: 11400000, guid: 26cc89957856bf74687e1b1d59abdec4, type: 2}
@@ -41,5 +69,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4b258438faf520343a9f55051223e755, type: 2}
   - {fileID: 11400000, guid: bb8698258114ac744927db101e024dcb, type: 2}
   - {fileID: 11400000, guid: 0ccd25972481aa743a170a71266c0d6f, type: 2}
-  - {fileID: 11400000, guid: d5e9f1a3b7c2408d9e6f1a2b3c4d5e6f, type: 2}
-  - {fileID: 11400000, guid: e6f0a2b4c8d3519e0f7a2b3c4d5e6f70, type: 2}
+  equipments:
+  - {fileID: 11400000, guid: ce696d1b192c8b740a95face81051be4, type: 2}
+  - {fileID: 11400000, guid: f3a75dc651483514287ad726b9ac670c, type: 2}
+  - {fileID: 11400000, guid: bc110321650c07a4e963feceea3b7dd6, type: 2}

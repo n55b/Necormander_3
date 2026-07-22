@@ -44,7 +44,9 @@ public class PlayerStunSmashSO : PlayerSkillSO
             box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
 
             float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
-            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Kkong!");
+            // 꽁! = 180% + 기절(표/이름대로). category:Skill 이라 빙결 건틀릿 확률도 여기서 굴러간다.
+            DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Kkong!",
+                category: DamageCategory.Skill, applyStatus: StatusType.Stun);
 
 
             box.Init(info, Layers.EnemyMask, 0.2f, 0f, true);

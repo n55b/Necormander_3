@@ -138,7 +138,10 @@ public class SwayBackDashRuntime : MonoBehaviour
         box.transform.localScale = new Vector3(length, _so.hitWidth, 1f);
 
         float dmg = _so.GetBaseDamage(_player.Stat) * _so.damageMultiplier;
-        DamageInfo info = new DamageInfo(dmg, _so.ResolveDamageType(), _player.gameObject, 1f, "Dash Straight!");
+        // 표/설계대로 회피 성공 카운터에 기절 부여(예전 '취약 소모'는 삭제됐고 기절만 남긴다).
+        // 슈퍼아머 대상은 CharacterHealth 가 BlockedBySuperArmor 로 알아서 막는다.
+        DamageInfo info = new DamageInfo(dmg, _so.ResolveDamageType(), _player.gameObject, 1f, "Dash Straight!",
+            category: DamageCategory.Skill, applyStatus: StatusType.Stun);
         box.Init(info, Layers.EnemyMask, 0.2f, 0f, true);
     }
 

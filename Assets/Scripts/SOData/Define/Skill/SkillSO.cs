@@ -93,6 +93,39 @@ public abstract class PlayerSkillSO : SkillSO
     [Range(0f, 1f)]
     [Tooltip("HandSkill 클립 길이 중 실제 타격(데미지/히트박스)이 발생해야 하는 시점 비율 (0=시작, 1=끝). Animation Event 대신 이 비율로 타이밍을 맞췄니다.")]
     public float hitTimingRatio = 0.4f;
+
+    [Header("강화 (장착 장비의 강화레벨에 따라 세짐 — 경로만, 수치 미정)")]
+    [Tooltip("이 스킬이 강화될 때 어떻게 세지는지. [SerializeReference] 라 종류를 자유롭게 늘릴 수 있다.\n" +
+             "비우면 강화 영향 없음. 데미지는 DamageEnhanceEffect, 타수 손볼 스킬은 HitCountEnhanceEffect 추가.\n" +
+             "스킬별로 다르게 잡으려면 각 스킬 에셋에서 이 리스트를 다르게 채운다.")]
+    [SerializeReference] public System.Collections.Generic.List<EnhanceEffect> enhanceEffects
+        = new System.Collections.Generic.List<EnhanceEffect>();
+
+    /// <summary>현재 장착 장비의 강화레벨. 장비가 없으면 0.</summary>
+    public static int CurrentEnhanceLevel
+        => PlayerSkillInventoryManager.Instance != null
+           && PlayerSkillInventoryManager.Instance.EquippedEquipment != null
+            ? PlayerSkillInventoryManager.Instance.EquippedEquipment.enhanceLevel : 0;
+
+    /// <summary>강화까지 반영한 최종 스킬 피해. 각 스킬은 GetBaseDamage(stat)*배율 대신 이걸 쓰면 강화가 자동 반영된다.</summary>
+    public float ResolveDamage(CharacterStat stat, float skillMultiplier)
+    {
+        float dmg = GetBaseDamage(stat) * skillMultiplier;
+        int lvl = CurrentEnhanceLevel;
+        if (enhanceEffects != null)
+            foreach (var e in enhanceEffects) if (e != null) dmg *= e.DamageMultiplier(lvl);
+        return dmg;
+    }
+
+    /// <summary>강화까지 반영한 최종 타수. baseCount 에 강화 추가타를 더한다.</summary>
+    public int ResolveHitCount(int baseCount)
+    {
+        int lvl = CurrentEnhanceLevel;
+        int bonus = 0;
+        if (enhanceEffects != null)
+            foreach (var e in enhanceEffects) if (e != null) bonus += e.BonusHitCount(lvl);
+        return baseCount + bonus;
+    }
 }
 
 public abstract class MinionSkillSO : SkillSO
@@ -124,6 +157,11 @@ public abstract class MinionSkillSO : SkillSO
              "aseprite 임포터는 태그마다 상태를 만들어 놓고 트랜지션을 하나도 안 걸기 때문에, " +
              "여기에 적지 않은 상태는 영원히 재생되지 않습니다. (예: Start, Slash, End)")]
     public string[] animSequence;
+
+    [Tooltip("(선택) 애니 도중 인형 위치 이동. 태그별로 offset 을 주면 그 태그가 재생되는 '동안' 그 위치로 이동한다 " +
+             "(이전 위치→offset lerp, snap 체크 시 즉시). animSequence 에 있는 태그 이름을 써야 발동. " +
+             "비우면 이동 없음(=기존 동작). 여러 개면 스폰→o1→o2 로 연쇄. 이동하는 건 인형 본체다(이펙트 오버레이는 제자리).")]
+    public System.Collections.Generic.List<AnimPhase> movePhases = new System.Collections.Generic.List<AnimPhase>();
 
     [Tooltip("위 시퀀스와 '동시에' 겹쳐 재생할 이펙트 상태 이름. 비우면 없음. (예: DashDoll 의 Effect)")]
     public string effectState = "";

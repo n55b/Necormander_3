@@ -96,6 +96,8 @@ public class PlayerGroundSmashSO : PlayerSkillSO
             }
         }
 
+        if (pulledRoots.Count > 0) SkillCombatUtil.NotifyEnemyDisplaced(); // 끌기 성공 → 발동형 버프 트리거
+
         foreach (var c in pullCoroutines)
         {
             yield return c;

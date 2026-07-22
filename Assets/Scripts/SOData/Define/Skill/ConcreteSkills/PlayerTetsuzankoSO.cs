@@ -12,6 +12,8 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
     public float damageMultiplier = 0.8f; // 기본 공격력의 80%
     public float knockbackForce = 5f;
     public float knockbackDuration = 0.2f;
+    [Tooltip("벽에 처박혔을 때 추가 피해(ATK x 이 값). 예전 '취약 부여' 대체. 0 이면 없음.")]
+    public float wallSlamMultiplier = 0.8f;
     
     public override void ExecuteSkill(Transform user, Transform target = null, List<Transform> validTargets = null)
     {
@@ -67,7 +69,16 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
                 Transform root = (stat != null) ? stat.transform.root : health.transform.root;
                 if (root == null || !pushedRoots.Add(root)) return;
                 if (player != null)
-                    player.StartCoroutine(SkillCombatUtil.PushEnemy(root, dir, knockbackForce, knockbackDuration));
+                    player.StartCoroutine(SkillCombatUtil.PushEnemy(root, dir, knockbackForce, knockbackDuration,
+                        onWallHit: () =>
+                        {
+                            // 벽에 처박히면 추가 피해(취약 대체). 스킬 갈래로 태그.
+                            if (root == null || wallSlamMultiplier <= 0f) return;
+                            var h = root.GetComponentInChildren<CharacterHealth>() ?? root.GetComponentInParent<CharacterHealth>();
+                            if (h != null && !h.IsDead)
+                                h.GetDamage(new DamageInfo(GetBaseDamage(player.Stat) * wallSlamMultiplier,
+                                    ResolveDamageType(), player.gameObject, 1f, "벽꽝!", category: DamageCategory.Skill));
+                        }));
             };
 
             // 돌진 시간 동안 판정 유지(짧은 최소창 보장) → 스쳐 지나가는 적도 놓치지 않는다.

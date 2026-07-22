@@ -79,7 +79,8 @@ public class MinionSkillCaster : MonoBehaviour
     public GameObject PlaySequenced(GameObject visual, string[] sequence, string damageState, string hitEvent, string effectState,
                                     float castDuration, float hitWindow, int hitCount, bool faceRight,
                                     System.Action<float, bool> onHitWindow,
-                                    System.Action onHitPulse = null, System.Action onAttackEnd = null)
+                                    System.Action onHitPulse = null, System.Action onAttackEnd = null,
+                                    System.Collections.Generic.List<AnimPhase> movePhases = null)
     {
         if (visual == null)
         {
@@ -232,18 +233,23 @@ public class MinionSkillCaster : MonoBehaviour
         }
 
         // (3) 태그 방식일 때만 SequenceRoutine 이 태그 경계에서 창을 연다. 나머지는 위에서 이미 처리됨.
-        StartCoroutine(SequenceRoutine(anim, sequence, damageState, speed, tagMode ? onHitWindow : null));
+        StartCoroutine(SequenceRoutine(anim, vfx.transform, sequence, damageState, speed, faceRight, movePhases, tagMode ? onHitWindow : null));
         return vfx;
     }
 
-    private System.Collections.IEnumerator SequenceRoutine(Animator anim, string[] sequence, string damageState,
-                                                           float speed, System.Action<float, bool> onHitWindow)
+    private System.Collections.IEnumerator SequenceRoutine(Animator anim, Transform visualTf, string[] sequence,
+                                                           string damageState, float speed, bool faceRight,
+                                                           System.Collections.Generic.List<AnimPhase> movePhases,
+                                                           System.Action<float, bool> onHitWindow)
     {
         if (sequence == null || sequence.Length == 0)
         {
             onHitWindow?.Invoke(0.1f, true);
             yield break;
         }
+
+        // 인형 이동은 스폰 지점(현재 localPosition)에서 시작해 페이즈마다 offset 으로 누적 이동한다.
+        Vector3 curPos = visualTf != null ? visualTf.localPosition : Vector3.zero;
 
         foreach (var stateName in sequence)
         {
@@ -262,8 +268,49 @@ public class MinionSkillCaster : MonoBehaviour
             if (onHitWindow != null && stateName == damageState)
                 onHitWindow.Invoke(len / speed, true);
 
-            yield return new WaitForSeconds(len / speed);
+            float dur = len / speed;
+
+            // 이 태그에 이동이 걸려 있으면 재생 시간 동안 offset 으로 이동한다(없으면 그냥 대기).
+            // x 는 바라보는 방향(faceRight)에 맞춰 반전 — offset 은 '오른쪽을 볼 때' 기준으로 적으면 된다.
+            AnimPhase phase = FindPhase(movePhases, stateName);
+            if (phase != null && visualTf != null)
+            {
+                Vector3 target = new Vector3(faceRight ? phase.offset.x : -phase.offset.x, phase.offset.y, curPos.z);
+                if (phase.snap)
+                {
+                    visualTf.localPosition = target;
+                    curPos = target;
+                    yield return new WaitForSeconds(dur);
+                }
+                else
+                {
+                    Vector3 from = curPos;
+                    float t = 0f;
+                    while (t < dur)
+                    {
+                        if (visualTf == null) yield break;
+                        t += Time.deltaTime;
+                        visualTf.localPosition = Vector3.Lerp(from, target, dur > 0f ? Mathf.Clamp01(t / dur) : 1f);
+                        yield return null;
+                    }
+                    visualTf.localPosition = target;
+                    curPos = target;
+                }
+            }
+            else
+            {
+                yield return new WaitForSeconds(dur);
+            }
         }
+    }
+
+    /// <summary>movePhases 에서 해당 태그의 이동 정보를 찾는다. 없으면 null(= 이동 없음).</summary>
+    private static AnimPhase FindPhase(System.Collections.Generic.List<AnimPhase> phases, string tag)
+    {
+        if (phases == null) return null;
+        foreach (var p in phases)
+            if (p != null && p.tag == tag) return p;
+        return null;
     }
 
     private static float ClipLength(Animator anim, string stateName)

@@ -38,7 +38,8 @@ public class RewardManager : MonoBehaviour
             switch (normalRewardType)
             {
                 case RoomInstance.NormalRewardType.PlayerSkill:
-                    normalRewards = RewardProcessor.GeneratePlayerSkillRewards(
+                    // [장비 전환] 스킬 단독 획득 폐지 — 이 방은 이제 '장비'를 배출한다(스킬은 장비가 굴려서 줌).
+                    normalRewards = RewardProcessor.GenerateEquipmentRewards(
                         GameManager.Instance.inventoryManager,
                         GameManager.Instance.dataManager);
                     break;
@@ -166,6 +167,14 @@ public class RewardManager : MonoBehaviour
                 ProcessNextReward();
                 break;
 
+            case RewardCategory.Equipment:
+                // 장비를 착용한다(한 자루 원칙 → 기존 장비 교체). 후보는 뜰 때 이미 스킬이 굴려진 인스턴스다.
+                var equipInst = (EquipmentInstance)candidate.rawData;
+                PlayerSkillInventoryManager.Instance?.EquipEquipment(equipInst);
+                ProcessNextReward();
+                break;
+
+            // [폐지] 스킬 단독 획득 → 장비(Equipment)로 대체. 생성되지 않지만 구 경로 호환을 위해 남겨둔다.
             case RewardCategory.PlayerSkill:
                 var skill = (PlayerSkillSO)candidate.rawData;
                 PlayerSkillInventoryManager.Instance?.AddOwnedSkill(skill);
