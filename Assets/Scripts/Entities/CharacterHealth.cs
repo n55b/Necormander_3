@@ -185,6 +185,12 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             if (amp != 0f) remainingDamage *= (1f + amp);
         }
 
+        // [디버프 증폭] 아군발 상태이상 피해(중독/출혈/비폭/빙결해제)는 속성이 물리·마법이 아니라 위 증폭을 못 탄다.
+        // debuffMultiplier(기본 1)를 여기서 따로 곱한다 — 장비 패시브 EquipmentAbilityType.DebuffDamageUp 가
+        // 채우는 소스 자리(경로 예약). 1 이면 무변화라 지금은 사실상 no-op.
+        if (info.category == DamageCategory.Debuff && info.debuffMultiplier != 1f)
+            remainingDamage *= info.debuffMultiplier;
+
         // [치명타] 방어력보다 먼저 굴린다 — 기획: "치명타 판정 끝난 최종 데미지에서 방어력 감소율을 뺀다".
         // 상태이상 고정 피해(출혈/중독/빙결/비폭)엔 안 붙는다. '고정'이니까.
         bool isCritical = false;

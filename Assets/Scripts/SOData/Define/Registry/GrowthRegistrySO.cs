@@ -19,8 +19,11 @@ public class GrowthRegistrySO : ScriptableObject
     [Header("특수 능력 (추후 확장용)")]
     public List<GrowthItemSO> specialAbilities = new List<GrowthItemSO>();
 
-    [Header("플레이어 스킬 (Q/E/R 장착용)")]
+    [Header("플레이어 스킬 (장비 풀 구성 + 로드 시 이름→SO 해석용)")]
     public List<PlayerSkillSO> playerSkills = new List<PlayerSkillSO>();
+
+    [Header("장비 (플레이어 스킬은 이제 장비로만 획득)")]
+    public List<EquipmentSO> equipments = new List<EquipmentSO>();
 
 
     /// <summary>
@@ -91,10 +94,21 @@ public class GrowthRegistrySO : ScriptableObject
             if (asset2 != null) playerSkills.Add(asset2);
         }
 
+        // 6. 장비(EquipmentSO) 검색
+        equipments.Clear();
+        string[] equipmentGuids = UnityEditor.AssetDatabase.FindAssets("t:EquipmentSO");
+        foreach (var guid in equipmentGuids)
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            if (path.Contains("/Deprecated/")) continue;
+            var asset3 = UnityEditor.AssetDatabase.LoadAssetAtPath<EquipmentSO>(path);
+            if (asset3 != null) equipments.Add(asset3);
+        }
+
         UnityEditor.EditorUtility.SetDirty(this);
         UnityEditor.AssetDatabase.SaveAssets();
-        
-        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 소환수({minionDatas.Count}), 보석({gems.Count}), 보물({treasures.Count}), 능력({specialAbilities.Count})");
+
+        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 소환수({minionDatas.Count}), 보석({gems.Count}), 보물({treasures.Count}), 능력({specialAbilities.Count}), 스킬({playerSkills.Count}), 장비({equipments.Count})");
     }
 #endif
 }

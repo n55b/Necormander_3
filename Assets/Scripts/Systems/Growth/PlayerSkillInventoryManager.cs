@@ -24,6 +24,10 @@ public class PlayerSkillInventoryManager : MonoBehaviour
 
     public System.Action OnPlayerSkillUpdated;
 
+    // [장비] 착용 중인 한 자루(런타임 전용, Unity 직렬화 안 함 → 없으면 null). 저장은 EquipmentSaveData 로.
+    private EquipmentInstance _equipped;
+    public EquipmentInstance EquippedEquipment => _equipped;
+
     /// <summary>
     /// Called directly by GameManager during its init sequence (same timing as InventoryManager.Initialize()).
     /// Relying on Awake() would leave script execution order undefined, so Instance could still be null
@@ -77,6 +81,69 @@ public class PlayerSkillInventoryManager : MonoBehaviour
 
     public List<PlayerSkillSO> GetOwnedSkills() => ownedSkills;
 
+    // ── 장비 ─────────────────────────────────────────────────────────
+    private static CharacterStat PlayerStat()
+        => GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null
+            ? GameManager.Instance.PLAYERCONTROLLER.Stat : null;
+
+    /// <summary>
+    /// 장비 한 자루를 착용한다. 기존 장비는 버려진다(한 자루 원칙).
+    /// 굴려나온 스킬 2개가 각각 Q(0)/E(1) 로 들어가고, 패시브가 적용된다.
+    /// </summary>
+    public void EquipEquipment(EquipmentInstance inst)
+    {
+        var stat = PlayerStat();
+
+        // 이전 장비 패시브 회수 (스탯 보정은 소스 키로 통째로 걷어낸다).
+        if (_equipped != null && stat != null)
+        {
+            stat.Mods.RemoveSource(_equipped);
+            if (_equipped.baseData != null && _equipped.baseData.passives != null)
+                foreach (var p in _equipped.baseData.passives) p?.Remove(stat, _equipped);
+        }
+
+        _equipped = inst;
+
+        // 굴린 스킬 → Q/E. 부족하면 그 슬롯은 비운다.
+        Equip(0, inst != null && inst.rolledSkills.Count > 0 ? inst.rolledSkills[0] : null);
+        Equip(1, inst != null && inst.rolledSkills.Count > 1 ? inst.rolledSkills[1] : null);
+
+        // 새 장비 패시브 적용 (플레이어 스탯이 아직 없으면 스탯형은 스킵됨 — 로드 순서 대비 가드).
+        if (inst != null && stat != null && inst.baseData != null && inst.baseData.passives != null)
+            foreach (var p in inst.baseData.passives) p?.Apply(stat, inst, inst.enhanceLevel);
+    }
+
+    /// <summary>
+    /// 착용 장비의 스탯 패시브를 현재 플레이어에게 (다시) 적용한다.
+    /// 로드/씬 전환 때 EquipEquipment 는 플레이어가 아직 스폰 전이라 스탯 패시브를 못 붙인다
+    /// (EquipEquipment 의 stat==null 가드로 스킵됨). 그래서 플레이어 스폰 '직후'(GameManager.SpawnPlayer)
+    /// 이걸 불러 재적용한다. RemoveSource 를 먼저 해서 중복 호출에도 안전(멱등)하다.
+    /// </summary>
+    public void ReapplyEquipmentPassives()
+    {
+        var stat = PlayerStat();
+        if (stat == null || _equipped == null || _equipped.baseData == null
+            || _equipped.baseData.passives == null) return;
+
+        stat.Mods.RemoveSource(_equipped); // 혹시 이미 붙어 있으면 걷어내고 다시(멱등)
+        foreach (var p in _equipped.baseData.passives)
+            p?.Apply(stat, _equipped, _equipped.enhanceLevel);
+    }
+
+    /// <summary>착용 장비가 해당 추가능력을 가졌는가(추가능력형 패시브 질의).</summary>
+    public bool HasEquippedAbility(EquipmentAbilityType ability)
+        => GetEquippedAbilityMagnitude(ability) != 0f;
+
+    /// <summary>착용 장비의 해당 추가능력 세기 합. 없으면 0. (디버프 데미지↑ 등 소비처가 질의.)</summary>
+    public float GetEquippedAbilityMagnitude(EquipmentAbilityType ability)
+    {
+        if (_equipped == null || _equipped.baseData == null || _equipped.baseData.passives == null) return 0f;
+        float sum = 0f;
+        foreach (var p in _equipped.baseData.passives)
+            if (p is EquipmentAbilityPassive ap && ap.ability == ability) sum += ap.magnitude;
+        return sum;
+    }
+
     public void SaveToData(SaveData data)
     {
         data.equippedPlayerSkillNames = new List<string>();
@@ -86,6 +153,20 @@ public class PlayerSkillInventoryManager : MonoBehaviour
         data.ownedPlayerSkillNames = new List<string>();
         foreach (var s in ownedSkills)
             if (s != null) data.ownedPlayerSkillNames.Add(s.name);
+
+        // [장비] 착용 중인 한 자루. 굴린 스킬 이름까지 저장 — 같은 SO 라도 조합이 다를 수 있어 SO 이름만으론 부족.
+        if (_equipped != null && _equipped.baseData != null)
+        {
+            data.equipment = new EquipmentSaveData
+            {
+                equipmentSOName = _equipped.baseData.name,
+                enhanceLevel = _equipped.enhanceLevel,
+                rolledSkillNames = new List<string>()
+            };
+            foreach (var s in _equipped.rolledSkills)
+                if (s != null) data.equipment.rolledSkillNames.Add(s.name);
+        }
+        else data.equipment = null;
     }
 
     public void LoadFromData(SaveData data)
@@ -102,7 +183,30 @@ public class PlayerSkillInventoryManager : MonoBehaviour
             return;
         }
 
-        if (data.equippedPlayerSkillNames != null)
+        _equipped = null;
+
+        // [장비] 있으면 그게 Q/E 의 소스다. 굴린 스킬 이름을 되살려 재장착(패시브 포함).
+        bool equipmentLoaded = false;
+        if (data.equipment != null && !string.IsNullOrEmpty(data.equipment.equipmentSOName)
+            && registry.equipments != null)
+        {
+            var so = registry.equipments.Find(e => e != null && e.name == data.equipment.equipmentSOName);
+            if (so != null)
+            {
+                var inst = new EquipmentInstance { baseData = so, enhanceLevel = data.equipment.enhanceLevel };
+                if (data.equipment.rolledSkillNames != null)
+                    foreach (var n in data.equipment.rolledSkillNames)
+                    {
+                        var sk = registry.playerSkills.Find(s => s != null && s.name == n);
+                        if (sk != null) inst.rolledSkills.Add(sk);
+                    }
+                EquipEquipment(inst); // Q/E 세팅 + 패시브
+                equipmentLoaded = true;
+            }
+        }
+
+        // 구 세이브 폴백: 장비 데이터가 없으면 옛 방식(equippedPlayerSkillNames)으로 Q/E 복원.
+        if (!equipmentLoaded && data.equippedPlayerSkillNames != null)
         {
             for (int i = 0; i < equippedSkills.Length; i++)
             {

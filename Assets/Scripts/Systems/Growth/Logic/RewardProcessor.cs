@@ -3,7 +3,7 @@ using UnityEngine;
 
 public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss }
 // [26/07/17] Ability 는 투척 능력 전용이라 투척 철거와 함께 사라졌다.
-public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold, PlayerSkill }
+public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold, PlayerSkill, Equipment }
 
 /// <summary>
 /// 보상으로 제안될 아이템 정보를 담는 구조체입니다.
@@ -61,6 +61,62 @@ public static class RewardProcessor
         }
 
         return results;
+    }
+
+    // --- 1-A'. 장비 방용: 장비 배출 (각 후보는 뜨는 순간 스킬을 굴려 굳힌다) ---
+    /// <summary>서로 다른 장비 최대 3개를 뽑는다. 각 후보는 그 자리에서 skillPool 을 굴려 EquipmentInstance 로 확정된다("장비 뜰 때 고정").</summary>
+    public static List<RewardCandidate> GenerateEquipmentRewards(InventoryManager inven, DataManager data)
+    {
+        List<RewardCandidate> results = new List<RewardCandidate>();
+        var registry = data.GET_GROWTH_REGISTRY();
+
+        List<EquipmentSO> pool = new List<EquipmentSO>();
+        if (registry != null && registry.equipments != null)
+            foreach (var e in registry.equipments) if (e != null) pool.Add(e);
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (pool.Count > 0)
+            {
+                int idx = Random.Range(0, pool.Count);
+                var so = pool[idx];
+                pool.RemoveAt(idx); // 같은 장비 중복 노출 방지
+                var inst = EquipmentInstance.Roll(so); // 뜨는 순간 스킬 고정
+                results.Add(new RewardCandidate
+                {
+                    displayData = BuildEquipmentDisplayData(so, inst),
+                    rawData = inst,
+                    category = RewardCategory.Equipment
+                });
+            }
+            else
+            {
+                results.Add(new RewardCandidate {
+                    category = RewardCategory.Equipment,
+                    displayData = new GrowthItemData { itemName = "None", description = "No more equipment available." },
+                    rawData = null
+                });
+            }
+        }
+        return results;
+    }
+
+    private static GrowthItemData BuildEquipmentDisplayData(EquipmentSO so, EquipmentInstance inst)
+    {
+        string skills = "";
+        if (inst != null && inst.rolledSkills.Count > 0)
+        {
+            var names = new List<string>();
+            foreach (var s in inst.rolledSkills)
+                if (s != null) names.Add(string.IsNullOrEmpty(s.skillName) ? s.name : s.skillName);
+            if (names.Count > 0) skills = "\n[" + string.Join(" / ", names) + "]";
+        }
+        return new GrowthItemData
+        {
+            itemName = string.IsNullOrEmpty(so.equipmentName) ? so.name : so.equipmentName,
+            description = so.description + skills,
+            icon = so.icon
+        };
     }
 
     // --- 1-B. 미니언 스킬 방용: 소환수 코어 배출 ---

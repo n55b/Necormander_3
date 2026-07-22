@@ -262,6 +262,10 @@ public class GameManager : MonoBehaviour
         if (playerController != null)
         {
             playerController.SetInputBlocked(true);
+
+            // [장비] 로드 시엔 플레이어가 아직 없어서 장비 스탯 패시브가 스킵됐다. 이제 스폰됐으니 재적용.
+            if (playerSkillInventoryManager != null)
+                playerSkillInventoryManager.ReapplyEquipmentPassives();
         }
 
         if (mapGenerator != null)
