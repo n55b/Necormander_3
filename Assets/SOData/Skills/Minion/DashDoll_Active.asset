@@ -15,7 +15,7 @@ MonoBehaviour:
   skillName: "\uB3CC\uC9C4 \uAC15\uD0C0"
   description: "\uC55E\uCABD \uB113\uC740 \uAD6C\uAC04\uC758 \uC801\uC5D0\uAC8C \uD070
     \uD53C\uD574\uB97C 1\uD68C \uC785\uD788\uACE0 \uBC00\uCCD0\uB0C5\uB2C8\uB2E4."
-  icon: {fileID: 0}
+  icon: {fileID: 5774687227516279969, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 8
   skillSound: {fileID: 0}
   skillSoundVolume: 0.85
@@ -30,9 +30,12 @@ MonoBehaviour:
   hitEvent: OnHitEvent
   hitWindowRatio: 0.18
   actionType: 1
+  element: 0
+  onHitStatus: 6
   useHitBox: 1
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
   hitRadius: 2
+  hitBoxSize: {x: 0, y: 0}
   damageMultiplier: 2
   forceAmount: 4
   forceDuration: 0.2
