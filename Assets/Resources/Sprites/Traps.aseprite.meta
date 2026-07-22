@@ -145,7 +145,7 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 4, y: 4}
   spriteSheetImportData:
-  - name: Traps_0
+  - name: spike_none
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -166,7 +166,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_1
+  - name: spike_active_01
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -187,7 +187,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_2
+  - name: spike_active_02
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -208,7 +208,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_3
+  - name: spike_active_03
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -229,7 +229,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_4
+  - name: spike_active_04
     originalName: 
     pivot: {x: 0.5, y: 0.2962963}
     alignment: 9
@@ -250,7 +250,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_5
+  - name: spike_active_05
     originalName: 
     pivot: {x: 0.5, y: 0.2962963}
     alignment: 9
@@ -271,7 +271,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_6
+  - name: spike_active_06
     originalName: 
     pivot: {x: 0.5, y: 0.2962963}
     alignment: 9
@@ -292,7 +292,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_7
+  - name: spike_active_07
     originalName: 
     pivot: {x: 0.5, y: 0.47058824}
     alignment: 9
@@ -313,7 +313,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_8
+  - name: ArrowTrap_none
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -334,7 +334,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_9
+  - name: ArrowTrap_Active_01
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -355,7 +355,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_10
+  - name: ArrowTrap_Active_02
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -376,70 +376,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_11
-    originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
-    border: {x: 0, y: 0, z: 0, w: 0}
-    customData: 
-    rect:
-      serializedVersion: 2
-      x: 148
-      y: 147
-      width: 16
-      height: 16
-    spriteID: cb49810ed488a284abc2443401023334
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 0, y: 0}
-  - name: Traps_12
-    originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
-    border: {x: 0, y: 0, z: 0, w: 0}
-    customData: 
-    rect:
-      serializedVersion: 2
-      x: 164
-      y: 147
-      width: 16
-      height: 16
-    spriteID: 41718531dd301a64dbd584ddc5332eb2
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 0, y: 0}
-  - name: Traps_13
-    originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
-    border: {x: 0, y: 0, z: 0, w: 0}
-    customData: 
-    rect:
-      serializedVersion: 2
-      x: 180
-      y: 147
-      width: 16
-      height: 16
-    spriteID: 71c4fb9cd81bc774f8891806c8f2bf27
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 0, y: 0}
-  - name: Traps_14
+  - name: Pillar_top
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -460,7 +397,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_15
+  - name: Pillar_middle_01
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -481,7 +418,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_16
+  - name: Pillar_middle_02
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -502,7 +439,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_17
+  - name: Pillar_bottom
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -523,7 +460,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_18
+  - name: BrokenPillar_top
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -544,7 +481,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_19
+  - name: BrokenPillar_middle_01
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -565,7 +502,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_20
+  - name: BrokenPillar_middle_02
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -586,7 +523,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_21
+  - name: BrokenPillar_bottom
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -607,7 +544,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_22
+  - name: BorkenPillar_Effect_05
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -628,7 +565,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_23
+  - name: BorkenPillar_Effect_04
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -649,7 +586,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_24
+  - name: BorkenPillar_Effect_03
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -670,7 +607,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_25
+  - name: BorkenPillar_Effect_01
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -691,7 +628,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_26
+  - name: BorkenPillar_Effect_02
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
@@ -712,7 +649,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
-  - name: Traps_27
+  - name: BoomJar
     originalName: 
     pivot: {x: 0.5, y: 0.5}
     alignment: 0
