@@ -110,6 +110,8 @@ public class PlayerGatherSO : PlayerSkillSO
             }
         }
 
+        if (targetsToMove.Count > 0) SkillCombatUtil.NotifyEnemyDisplaced(); // 끌기 성공 → 발동형 버프 트리거
+
         float elapsed = 0f;
         Vector2 lineOrigin = player.transform.position;
         Vector2 lineDir = dir;

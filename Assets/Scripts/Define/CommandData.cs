@@ -68,6 +68,10 @@ public static class StatusRules
     /// <summary>빙결이 깨질 때 터지는 고정 피해.</summary>
     public const float FREEZE_BREAK_DAMAGE = 20f;
 
+    /// <summary>[재빙결 경로] 이미 빙결된 적에게 빙결을 다시 걸었을 때의 추가 효과 피해(고정).
+    /// 0 이면 효과 없음(순수 경로). 내용/수치 미정 — 예: 더 큰 피해로 빙결을 깨트림.</summary>
+    public const float REFREEZE_BONUS_DAMAGE = 0f;
+
     /// <summary>출혈 중 피격 1회당 추가되는 고정 피해.</summary>
     public const float BLEED_HIT_DAMAGE = 2f;
 

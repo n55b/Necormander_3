@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dafda816e2e708244ac4ae54264b5a3e, type: 3}
+  m_Name: GauntletOfFighting
+  m_EditorClassIdentifier:
+  equipmentName: 투지의 건틀렛
+  description: 적을 끌고, 밀고, 강력하게 몰아붙이는 장비
+  icon: {fileID: 0}
+  rarity: 0
+  shopCost: 150
+  skillPool:
+  - {fileID: 11400000, guid: ccf0ffcea70d44d4195870544a453f42, type: 2}
+  - {fileID: 11400000, guid: 7f02ed511782c5748ba16d1768bf0e65, type: 2}
+  - {fileID: 11400000, guid: 0dca2cff1570712469fda810400fad17, type: 2}
+  - {fileID: 11400000, guid: 138d38128c227d744b24a5ad22a6c034, type: 2}
+  skillsToRoll: 2
+  passives:
+  - rid: 2000000000000000002
+  maxEnhanceLevel: 5
+  references:
+    version: 2
+    RefIds:
+    - rid: 2000000000000000002
+      type: {class: EquipmentTriggerBuffPassive, ns: , asm: Assembly-CSharp}
+      data:
+        label: 투지
+        trigger: 0
+        buffDuration: 3
+        damageBonus: 0.2
+        damageBonusPerLevel: 0.02

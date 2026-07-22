@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dafda816e2e708244ac4ae54264b5a3e, type: 3}
+  m_Name: IceGauntlet
+  m_EditorClassIdentifier:
+  equipmentName: 얼음 건틀릿
+  description: 스킬 적중 시 낮은 확률로 빙결을 부여하는 건틀렛
+  icon: {fileID: 0}
+  rarity: 0
+  shopCost: 150
+  skillPool:
+  - {fileID: 11400000, guid: fc7d035727287434eb161f6e6dc69e35, type: 2}
+  - {fileID: 11400000, guid: 083258dd8e5cca04b953dc235db497e5, type: 2}
+  - {fileID: 11400000, guid: 0088919065887b84399dce4d642c50e2, type: 2}
+  - {fileID: 11400000, guid: 10703c0388fbae847a896a3d4c38a1e5, type: 2}
+  skillsToRoll: 2
+  passives:
+  - rid: 2000000000000000003
+  maxEnhanceLevel: 5
+  references:
+    version: 2
+    RefIds:
+    - rid: 2000000000000000003
+      type: {class: EquipmentStatusPassive, ns: , asm: Assembly-CSharp}
+      data:
+        label: 빙결 부여
+        status: 1
+        applyChanceBonus: 0.15
+        applyChancePerLevel: 0.015
+        strengthBonus: 0
+        strengthPerLevel: 0

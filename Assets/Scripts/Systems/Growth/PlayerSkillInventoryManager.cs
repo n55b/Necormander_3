@@ -28,6 +28,15 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     private EquipmentInstance _equipped;
     public EquipmentInstance EquippedEquipment => _equipped;
 
+    // [조건형 버프] 착용 장비의 EquipmentConditionBuffPassive 상태 추적 + 플레이어 피격 훅.
+    private class BuffState { public EquipmentConditionBuffPassive passive; public float noHitTimer; public bool active; }
+    private readonly List<BuffState> _buffs = new List<BuffState>();
+    private CharacterHealth _hookedHealth;
+
+    // [발동형 버프] 이벤트 트리거(밀침/끌기) → 다음 타격 소비.
+    private class TriggerState { public EquipmentTriggerBuffPassive passive; public float timer; public bool active; }
+    private readonly List<TriggerState> _triggers = new List<TriggerState>();
+
     /// <summary>
     /// Called directly by GameManager during its init sequence (same timing as InventoryManager.Initialize()).
     /// Relying on Awake() would leave script execution order undefined, so Instance could still be null
@@ -111,6 +120,9 @@ public class PlayerSkillInventoryManager : MonoBehaviour
         // 새 장비 패시브 적용 (플레이어 스탯이 아직 없으면 스탯형은 스킵됨 — 로드 순서 대비 가드).
         if (inst != null && stat != null && inst.baseData != null && inst.baseData.passives != null)
             foreach (var p in inst.baseData.passives) p?.Apply(stat, inst, inst.enhanceLevel);
+
+        RebuildBuffs();  // 옛 버프 스탯 회수 + 새 장비 버프 트래커 구성
+        HookPlayerHit(); // 현재 플레이어 피격 이벤트로 (재)구독
     }
 
     /// <summary>
@@ -122,25 +134,181 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     public void ReapplyEquipmentPassives()
     {
         var stat = PlayerStat();
-        if (stat == null || _equipped == null || _equipped.baseData == null
-            || _equipped.baseData.passives == null) return;
+        if (stat == null || _equipped == null || _equipped.baseData == null) return;
 
         stat.Mods.RemoveSource(_equipped); // 혹시 이미 붙어 있으면 걷어내고 다시(멱등)
-        foreach (var p in _equipped.baseData.passives)
-            p?.Apply(stat, _equipped, _equipped.enhanceLevel);
+        if (_equipped.baseData.passives != null)
+            foreach (var p in _equipped.baseData.passives)
+                p?.Apply(stat, _equipped, _equipped.enhanceLevel);
+
+        RebuildBuffs();  // 새 플레이어라 버프 스탯이 사라졌으니 트래커 리셋(드라이버가 조건 맞으면 재적용)
+        HookPlayerHit(); // 새 플레이어 피격 이벤트로 재구독
     }
 
-    /// <summary>착용 장비가 해당 추가능력을 가졌는가(추가능력형 패시브 질의).</summary>
-    public bool HasEquippedAbility(EquipmentAbilityType ability)
-        => GetEquippedAbilityMagnitude(ability) != 0f;
+    // ── 조건부 버프 드라이버 ───────────────────────────────────────────
+    private void Update()
+    {
+        if (_equipped == null) return;
 
-    /// <summary>착용 장비의 해당 추가능력 세기 합. 없으면 0. (디버프 데미지↑ 등 소비처가 질의.)</summary>
-    public float GetEquippedAbilityMagnitude(EquipmentAbilityType ability)
+        // 발동형 버프 타이머(스탯 불필요 — 이벤트로 켜지고 다음 타격 or 만료로 꺼진다).
+        for (int i = 0; i < _triggers.Count; i++)
+        {
+            var tr = _triggers[i];
+            if (tr.active) { tr.timer -= Time.deltaTime; if (tr.timer <= 0f) tr.active = false; }
+        }
+
+        if (_buffs.Count == 0) return;
+        var stat = PlayerStat();
+        if (stat == null) return;
+
+        int level = _equipped.enhanceLevel;
+        bool inCombat = LiveEnemyExists();
+
+        foreach (var b in _buffs)
+        {
+            if (b.passive == null) continue;
+
+            if (!inCombat)
+            {
+                if (b.active) { stat.Mods.RemoveSource(b.passive); b.active = false; }
+                b.noHitTimer = 0f;
+                continue;
+            }
+
+            b.noHitTimer += Time.deltaTime;
+            if (!b.active && b.noHitTimer >= b.passive.EffectiveDelay(level))
+            {
+                if (b.passive.effects != null)
+                    foreach (var e in b.passive.effects) e?.Apply(stat, b.passive, level);
+                b.active = true;
+            }
+        }
+    }
+
+    /// <summary>플레이어가 실제 피해를 입으면 모든 조건부 버프 해제 + 재부여 타이머 리셋.</summary>
+    private void OnPlayerDamaged(float amount)
+    {
+        if (amount <= 0f) return;
+        var stat = PlayerStat();
+        foreach (var b in _buffs)
+        {
+            if (b.active && stat != null) stat.Mods.RemoveSource(b.passive);
+            b.active = false;
+            b.noHitTimer = 0f;
+        }
+    }
+
+    /// <summary>착용 장비의 버프 트래커를 새로 구성한다(옛 활성 버프 스탯은 먼저 회수).</summary>
+    private void RebuildBuffs()
+    {
+        var stat = PlayerStat();
+        foreach (var b in _buffs)
+            if (b.active && stat != null) stat.Mods.RemoveSource(b.passive);
+        _buffs.Clear();
+        _triggers.Clear(); // 발동형은 스탯 모드가 아니라(데미지 소비형) 그냥 리셋
+
+        if (_equipped == null || _equipped.baseData == null || _equipped.baseData.passives == null) return;
+        foreach (var p in _equipped.baseData.passives)
+        {
+            if (p is EquipmentConditionBuffPassive bp) _buffs.Add(new BuffState { passive = bp });
+            else if (p is EquipmentTriggerBuffPassive tp) _triggers.Add(new TriggerState { passive = tp });
+        }
+    }
+
+    /// <summary>현재 플레이어의 피격 이벤트로 (재)구독. 층 이동 시 플레이어가 새로 생겨 매번 다시 걸어야 한다.</summary>
+    private void HookPlayerHit()
+    {
+        var stat = PlayerStat();
+        var health = stat != null ? stat.Health : null;
+        if (_hookedHealth == health) return;
+        if (_hookedHealth != null) _hookedHealth.OnDamageTaken -= OnPlayerDamaged;
+        _hookedHealth = health;
+        if (_hookedHealth != null) _hookedHealth.OnDamageTaken += OnPlayerDamaged;
+    }
+
+    private void OnDisable()
+    {
+        if (_hookedHealth != null) { _hookedHealth.OnDamageTaken -= OnPlayerDamaged; _hookedHealth = null; }
+        SkillCombatUtil.OnEnemyDisplaced -= OnEnemyDisplaced;
+        DamageEventBus.OnBeforeDamageCalculated -= HandleTriggerBeforeDamage;
+    }
+
+    /// <summary>"전투 중" 판정 = 살아있는 적이 하나라도 있는가(방에 적 있으면).</summary>
+    private static bool LiveEnemyExists()
+    {
+        var list = CharacterStatus.ActiveEnemies;
+        if (list == null) return false;
+        for (int i = 0; i < list.Count; i++) if (list[i] != null) return true;
+        return false;
+    }
+
+    // ── 발동형 버프(투지) + 상태이상 발동(얼음) ─────────────────────────
+    private void OnEnable()
+    {
+        SkillCombatUtil.OnEnemyDisplaced += OnEnemyDisplaced;
+        DamageEventBus.OnBeforeDamageCalculated += HandleTriggerBeforeDamage;
+    }
+
+    private static bool IsPlayerObject(GameObject go)
+        => go != null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null
+           && go == GameManager.Instance.PLAYERCONTROLLER.gameObject;
+
+    /// <summary>밀침/끌기 발생 → 착용 장비의 발동형 버프를 켠다(비중첩, 지속만 갱신).</summary>
+    private void OnEnemyDisplaced()
+    {
+        for (int i = 0; i < _triggers.Count; i++)
+        {
+            _triggers[i].active = true;
+            _triggers[i].timer = _triggers[i].passive.buffDuration;
+        }
+    }
+
+    /// <summary>다음 플레이어 기본/스킬 타격에 발동형 버프 데미지 보너스를 태우고 소비한다(대쉬 제외).</summary>
+    private void HandleTriggerBeforeDamage(CharacterHealth target, ref DamageInfo info)
+    {
+        if (_triggers.Count == 0 || info.category == DamageCategory.DashAttack) return;
+        if (!IsPlayerObject(info.attacker)) return;
+        int level = _equipped != null ? _equipped.enhanceLevel : 0;
+        for (int i = 0; i < _triggers.Count; i++)
+        {
+            var t = _triggers[i];
+            if (!t.active) continue;
+            info.amount *= (1f + t.passive.EffectiveBonus(level));
+            t.active = false;
+            t.timer = 0f;
+        }
+    }
+
+    /// <summary>플레이어 Q/E 스킬 타격 시 착용 장비의 상태이상 확률을 굴려 target 에 부여(얼음 건틀릿 등).
+    /// CharacterHealth 가 '데미지 뒤'에 호출 → 빙결 자가붕괴 없음. 슈퍼아머/내성은 ApplyStatus 가 알아서 막는다.</summary>
+    public void TryProcEquipmentStatus(CharacterStatus targetStatus)
+    {
+        if (targetStatus == null || _equipped == null || _equipped.baseData == null
+            || _equipped.baseData.passives == null) return;
+        int level = _equipped.enhanceLevel;
+        foreach (var p in _equipped.baseData.passives)
+            if (p is EquipmentStatusPassive sp && sp.status != StatusType.None)
+            {
+                float chance = sp.EffectiveChance(level);
+                if (chance > 0f && Random.value < chance)
+                    targetStatus.ApplyStatus(sp.status);
+            }
+    }
+
+    /// <summary>Q/E 스킬 타격이 해당 상태이상을 부여할 확률 보너스 합(강화 반영). 스킬이 굴릴 때 질의.</summary>
+    public float GetStatusApplyChanceBonus(StatusType status) => SumStatus(status, true);
+
+    /// <summary>해당 상태이상의 강도 보너스 합(강화 반영). DoT/지속 계산이 질의.</summary>
+    public float GetStatusStrengthBonus(StatusType status) => SumStatus(status, false);
+
+    private float SumStatus(StatusType status, bool chance)
     {
         if (_equipped == null || _equipped.baseData == null || _equipped.baseData.passives == null) return 0f;
+        int level = _equipped.enhanceLevel;
         float sum = 0f;
         foreach (var p in _equipped.baseData.passives)
-            if (p is EquipmentAbilityPassive ap && ap.ability == ability) sum += ap.magnitude;
+            if (p is EquipmentStatusPassive sp && sp.status == status)
+                sum += chance ? sp.EffectiveChance(level) : sp.EffectiveStrength(level);
         return sum;
     }
 
