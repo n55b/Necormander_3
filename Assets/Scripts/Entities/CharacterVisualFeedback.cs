@@ -227,4 +227,50 @@ if (HitStopManager.Instance != null) HitStopManager.Instance.DoHitStop(0.05f);
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
         if (_sr != null) _sr.color = _originalColor;
     }
+
+    private Coroutine _telegraphCoroutine;
+
+    /// <summary>
+    /// 공격 예고 플래시 (하데스식). 돌진/공격 윈드업 중 호출하면 스프라이트가 흰색으로 번쩍입니다.
+    /// 피격 플래시(_HitFlash)와 같은 셰이더 프로퍼티를 재사용하므로 별도 셰이더가 필요 없습니다.
+    /// </summary>
+    /// <param name="pulses">번쩍임 횟수 (일반 1, 엘리트 2 권장)</param>
+    /// <param name="onTime">1회 점등 시간</param>
+    /// <param name="offTime">펄스 사이 소등 시간</param>
+    /// <param name="intensity">플래시 강도 (0~1)</param>
+    /// <summary>
+    /// 공격 예고 플래시 (하데스식). 돌진/공격 윈드업 중 호출하면 스프라이트가 지정 색(기본 빨강)으로 번쩍입니다.
+    /// </summary>
+    /// <param name="pulses">번쩍임 횟수 (일반 1, 엘리트 2 권장)</param>
+    public void PlayTelegraphFlash(int pulses = 1, float onTime = 0.09f, float offTime = 0.07f, float intensity = 1f)
+    {
+        PlayTelegraphFlash(new Color(1f, 0.2f, 0.2f), pulses, onTime, offTime);
+    }
+
+    /// <summary>색상 지정 버전. 피격 플래시와 동일하게 SpriteRenderer.color 펄스 방식이라 셰이더 무관하게 동작합니다.</summary>
+    public void PlayTelegraphFlash(Color flashColor, int pulses, float onTime = 0.09f, float offTime = 0.07f)
+    {
+        if (_sr == null) return;
+        if (_telegraphCoroutine != null)
+        {
+            StopCoroutine(_telegraphCoroutine);
+            _sr.color = _originalColor; // 강제 종료 시 원상복구 보장 (StartFlash와 동일 규약)
+        }
+        _telegraphCoroutine = StartCoroutine(TelegraphFlashRoutine(flashColor, pulses, onTime, offTime));
+    }
+
+    private IEnumerator TelegraphFlashRoutine(Color flashColor, int pulses, float onTime, float offTime)
+    {
+        for (int i = 0; i < pulses; i++)
+        {
+            if (_sr == null) yield break;
+            _sr.color = flashColor;
+            yield return new WaitForSeconds(onTime);
+            if (_sr == null) yield break;
+            _sr.color = _originalColor;
+            if (i < pulses - 1) yield return new WaitForSeconds(offTime);
+        }
+        _telegraphCoroutine = null;
+    }
+
 }

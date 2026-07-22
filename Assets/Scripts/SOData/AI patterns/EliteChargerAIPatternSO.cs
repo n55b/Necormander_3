@@ -98,6 +98,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     [Header("공통 설정 (4종 전체 공통 적용)")]
     [Tooltip("모든 기본 공격 후 공통으로 부여되는 후딜레이")]
     public float basicAttackPostDelay = 1.0f;
+    [Tooltip("돌진 개시 몇 초 전에 예고 플래시(하데스식 흰색 번쩍)를 터뜨릴지. 전 몬스터 공통 반응 시간 문법. 엘리트는 2펄스")]
+    public float telegraphFlashLeadTime = 0.35f;
+
 
     [Header("① 미니 돌진 찍기 (약한 돌진)")]
     [Tooltip("비워두면 기본 원형 히트박스로 대체됩니다")]
@@ -909,6 +912,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         // 확실한 돌진 느낌을 위해, 윈드업 동안 웅크렸다가 돌진 시작 순간 크게 튀어나가는 스쿼시/스트레치 연출입니다.
         entity.StartCoroutine(ScaleCoroutine(entity, windup, normalChargeSquashScale, 0.2f, normalChargeStretchScale));
         float estimatedLength = entity.Stats.MOVESPEED * normalChargeSpeedMultiplier * normalChargeMaxDuration;
+        var ncVfb = entity.GetComponentInChildren<CharacterVisualFeedback>();
+        bool ncFlashFired = false;
+
 
         var dirIndicator = entity.GetComponentInChildren<EntityDirectionIndicator>();
         float wt = 0f;
@@ -918,6 +924,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             if (entity.Target != null) dir = GetAimDir(entity);
             dirIndicator?.SetAimOverride(dir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
             UpdateChargeTelegraph(telegraph, entity.transform.position, dir, estimatedLength, normalChargeHitRadius * 2f);
+            // [예고 플래시] 돌진 개시 직전 하데스식 번쩍 (엘리트 = 2펄스)
+            if (!ncFlashFired && windup - wt <= telegraphFlashLeadTime)
+            {
+                ncFlashFired = true;
+                ncVfb?.PlayTelegraphFlash(2);
+            }
+
             yield return null;
         }
         if (telegraph != null) GameObject.Destroy(telegraph);
@@ -1166,6 +1179,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         Vector2 chargeDir = GetAimDir(entity);
         GameObject telegraph = null;
         float scaledChargeWindup = ScaleDuration(chargeWindup); // v1.4 D1
+        var p1Vfb = entity.GetComponentInChildren<CharacterVisualFeedback>();
+        bool p1FlashFired = false;
+
         var dirIndicator = entity.GetComponentInChildren<EntityDirectionIndicator>();
 
         // 3초 조준: 플레이어 방향을 실시간으로 주시하며, 바닥에 돌진 경로를 빨간 직사각형으로 표시합니다.
@@ -1197,6 +1213,14 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
             UpdateChargeTelegraph(telegraph, entity.transform.position, chargeDir, length, chargeHitRadius * 2f);
             dirIndicator?.SetAimOverride(chargeDir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
+
+            // [예고 플래시] 강한 돌진 개시 직전 하데스식 번쩍 (엘리트 = 2펄스)
+            if (!p1FlashFired && scaledChargeWindup - t <= telegraphFlashLeadTime)
+            {
+                p1FlashFired = true;
+                p1Vfb?.PlayTelegraphFlash(2);
+            }
+
 
             yield return null;
         }
