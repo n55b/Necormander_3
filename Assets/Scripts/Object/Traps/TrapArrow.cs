@@ -25,6 +25,10 @@ public class TrapArrow : MonoBehaviour
     [SerializeField] private GameObject arrowPrefab; // Projectile 컴포넌트가 붙어 있는 프리팹
     [SerializeField] private Transform firePoint;     // 화살 스폰 기본 위치 (방을 못 찾을 때의 폴백용)
     [SerializeField] private LayerMask targetLayer;
+    [SerializeField] private Animator plateAnimator; // PlateVisual의 Animator (미지정 시 자식에서 자동 탐색)
+
+    private const string StateOn = "TrapOn";
+    private const string StateOff = "TrapOff";
 
     private bool _isCooldown = false;
 
@@ -35,6 +39,16 @@ public class TrapArrow : MonoBehaviour
             firePoint = transform;
         }
 
+
+        // PlateVisual의 Animator 자동 탐색 후 Off 상태(마지막 프레임)로 초기화
+        if (plateAnimator == null)
+        {
+            plateAnimator = GetComponentInChildren<Animator>();
+        }
+        if (plateAnimator != null)
+        {
+            plateAnimator.Play(StateOff, 0, 1f);
+        }
         // 기본적으로 targetLayer가 설정되어 있지 않다면 Player, Enemy, Ally 등을 포함
         if (targetLayer == 0)
         {
@@ -61,6 +75,12 @@ public class TrapArrow : MonoBehaviour
     {
         _isCooldown = true;
 
+
+        // 발판이 눌리며 함정 작동(On) 애니메이션 재생
+        if (plateAnimator != null)
+        {
+            plateAnimator.Play(StateOn, 0, 0f);
+        }
         // 밟은 후 설정된 지연 시간 대기
         yield return new WaitForSeconds(fireDelay);
 
@@ -77,6 +97,12 @@ public class TrapArrow : MonoBehaviour
         yield return new WaitForSeconds(cooldown);
 
         _isCooldown = false;
+        // 발판 복귀(Off) 애니메이션 재생
+        if (plateAnimator != null)
+        {
+            plateAnimator.Play(StateOff, 0, 0f);
+        }
+
     }
 
     private Vector2 GetArrowSpawnPosition(RoomInstance room)

@@ -64,6 +64,26 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 22100000, guid: bcf6614629ec07344b5bd64de34b36a4, type: 2}
+    - target: {fileID: 4098996742743280423, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4098996742743280423, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4098996742743280423, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4098996742743280423, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4098996742743280423, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4852760606132103031, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Mass
       value: 9999

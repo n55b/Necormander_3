@@ -16,6 +16,10 @@ public class TrapSpike : MonoBehaviour
 
     [Header("Visual References")]
     [SerializeField] private GameObject spikeVisual; // 솟아오르는 가시 오브젝트
+    [SerializeField] private Animator plateAnimator; // PlateVisual의 Animator (미지정 시 자식에서 자동 탐색)
+
+    private const string StateOn = "TrapOn";
+    private const string StateOff = "TrapOff";
 
     private bool _isTriggered = false;
     private bool _isActive = false;
@@ -23,6 +27,16 @@ public class TrapSpike : MonoBehaviour
 
     private void Start()
     {
+        // PlateVisual의 Animator 자동 탐색 후 Off 상태(마지막 프레임)로 초기화
+        if (plateAnimator == null)
+        {
+            plateAnimator = GetComponentInChildren<Animator>();
+        }
+        if (plateAnimator != null)
+        {
+            plateAnimator.Play(StateOff, 0, 1f);
+        }
+
         if (spikeVisual != null)
         {
             spikeVisual.SetActive(false);
@@ -69,6 +83,12 @@ public class TrapSpike : MonoBehaviour
     {
         _isTriggered = true;
 
+        // 발판이 눌리는 즉시 함정 작동(On) 애니메이션 재생
+        if (plateAnimator != null)
+        {
+            plateAnimator.Play(StateOn, 0, 0f);
+        }
+
         // 1초 대기
         yield return new WaitForSeconds(activationDelay);
 
@@ -94,6 +114,10 @@ public class TrapSpike : MonoBehaviour
         if (spikeVisual != null)
         {
             spikeVisual.SetActive(false);
+        }
+        if (plateAnimator != null)
+        {
+            plateAnimator.Play(StateOff, 0, 0f);
         }
 
         // 상태 초기화
