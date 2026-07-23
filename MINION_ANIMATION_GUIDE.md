@@ -90,24 +90,35 @@ AnimationEvent 를 자동으로 심어준다. (`AsepriteImporter.ExtractEventStr
 
 이벤트/태그를 정한 뒤 인스펙터에서 채우는 값. 손으로 YAML 을 만질 필요 없이 인스펙터에서 하면 된다.
 
-### 메인 소환수 (`MainMinionDataSO`) — `finisher` 섹션
+> **[26/07/23 이사]** 애니메이션 필드(비주얼/시퀀스/타이밍)는 이제 **미니언 에셋
+> (`MainMinionDataSO`) 한 곳**에 모여 있다. finisher/스킬 에셋에는 더 이상 없다(게임플레이 수치만 남음).
+> - 평타 마무리 연출 → 미니언의 **`basicAnim`** (`MinionAnimSet`)
+> - 스페이스바 액티브 연출 → 미니언의 **`skillAnim`** (`MinionAnimSet`)
+>
+> 필드명 매핑: `castDuration`/`skillAnimDuration` → **`duration`**,
+> `animSequence`(태그 리스트) + `movePhases`(위치) → **`sequence`** (한 리스트로 통합 — 항목마다
+> 태그 + offset + snap. offset 0 이면 안 움직임). `damageState`/`hitEvent`/`effectState`/`hitWindowRatio` 는 이름 그대로.
+
+### 평타 마무리 연출 — 미니언의 `basicAnim` (`MinionAnimSet`)
 | 필드 | 뜻 |
 |---|---|
-| `castDuration` | **전체 재생 시간(초). 여기가 속도 손잡이.** 올리면 느려지고 내리면 빨라진다. |
-| `animSequence` | 순서대로 재생할 태그. 예: `[Start, Slash, End]` 또는 `[Attack]` |
+| `duration` | **전체 재생 시간(초). 여기가 속도 손잡이.** 올리면 느려지고 내리면 빨라진다. 0 이면 1초로 침. |
+| `sequence` | 순서대로 재생할 태그(+태그별 offset). 예: `[Start, Slash, End]` 또는 `[Attack]` |
 | `damageState` | (태그 방식) 이 태그가 재생되는 동안 판정. 이벤트 쓰면 비워도 됨 |
 | `hitEvent` | (이벤트 방식) 보통 `OnHitEvent`. 클립에 실제로 박혀 있어야 동작 |
-| `effectState` | 동시에 겹쳐 재생할 이펙트 태그. 예: DashDoll 의 `Effect`. 없으면 비움 |
-| `hitCount` | 태그 방식일 때만 의미 있음(구간에 배분). 이벤트 방식은 이벤트 수가 곧 타수 |
-| `spawnOffset` | 대각선 조준 시 소환수를 조준 방향으로 미는 거리 |
-| `hitBoxSize` | 판정 크기 (x=사거리, y=폭) |
+| `effectState` | 동시에 겹쳐 재생할 이펙트 태그. 예: DashDoll 의 `Skill_Attack_Effect`. 없으면 비움 |
 
-### 스페이스바 액티브 (`MinionActionSkillSO` 에셋) — `Skills/Minion/*.asset`
+**게임플레이 수치는 여전히 `finisher` 섹션**: `hitCount`(타수), `damageMultiplier`, `element`,
+`onHitStatus`, `hitBoxSize`(x=사거리 y=폭), `hitBoxPrefab`, `spawnOffset`(대각선 조준 보정), `knockbackForce` 등.
+
+### 스페이스바 액티브 연출 — 미니언의 `skillAnim` (`MinionAnimSet`)
 | 필드 | 뜻 |
 |---|---|
-| `skillAnimDuration` | **전체 재생 시간(초). 속도 손잡이.** 0 이면 클립 원본 길이 |
-| `animSequence` / `damageState` / `hitEvent` / `effectState` | finisher 와 동일 |
-| `hitCount` | 태그 방식일 때 구간에 배분할 타수 |
+| `duration` | **전체 재생 시간(초). 속도 손잡이.** 0 이면 1초 |
+| `sequence` / `damageState` / `hitEvent` / `effectState` | basicAnim 과 동일 |
+
+**게임플레이 수치는 스킬 에셋(`MinionActionSkillSO`, `Skills/Minion/*.asset`)**: `hitCount`,
+`damageMultiplier`, `actionType`, `element`, `onHitStatus`, `useHitBox`, `hitBoxPrefab` 등.
 
 ---
 

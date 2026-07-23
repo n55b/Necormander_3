@@ -327,8 +327,9 @@ public class MeleeCombatController : MonoBehaviour
         // animDuration 계산에 같은 나눗셈만 얹으면 된다 — 애니와 타격 시점이 전부 비율로
         // 묶여 있어서 castDuration/skillAnimDuration 하나만 줄이면 나머지가 알아서 따라온다.
         float atkSpd = (_player.Stat != null) ? Mathf.Max(0.05f, _player.Stat.ATKSPD) : 1f;
-        float castDuration = fin.castDuration / atkSpd;
-        float hitWindow = fin.EventHitWindow / atkSpd;
+        var animSet = main.basicAnim;                       // 애니메이션은 미니언이 갖는다(basicAnim). finisher 는 로직만.
+        float castDuration = animSet.ResolvedDuration / atkSpd;
+        float hitWindow = animSet.EventHitWindow / atkSpd;
 
         // 조준 방향은 평타와 동일하게 마우스 기준.
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
@@ -394,8 +395,7 @@ public class MeleeCombatController : MonoBehaviour
         if (col != null) col.enabled = false;
 
         caster.PlaySequenced(
-            fin.visual, fin.animSequence, fin.damageState, fin.hitEvent, fin.effectState,
-            castDuration, hitWindow, fin.hitCount, faceRight,
+            animSet, castDuration, hitWindow, fin.hitCount, faceRight,
             // 판정 열기. useContinuous=true 면 창 동안 hitCount 균등 틱, false(이벤트당 모드)면 단발+펄스.
             (window, useContinuous) =>
             {
@@ -418,8 +418,7 @@ public class MeleeCombatController : MonoBehaviour
             // OnHitEvent 마다 겹친 대상을 확정 1타. 적 공격 클립이 2타면 OnHitEvent 를 2번 박는 것과 같은 계약.
             onHitPulse: () => { if (box != null) box.PulseDamageOverlapping(); },
             // OnAttackEndEvent: 후딜까지 끝났으니 판정을 닫는다.
-            onAttackEnd: () => { if (col != null) col.enabled = false; },
-            movePhases: fin.movePhases);
+            onAttackEnd: () => { if (col != null) col.enabled = false; });
     }
 
     /// <summary>

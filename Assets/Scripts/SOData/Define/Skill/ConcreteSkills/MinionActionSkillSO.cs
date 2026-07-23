@@ -113,8 +113,12 @@ public class MinionActionSkillSO : MinionSkillSO
         Vector2 lookDir = ((Vector2)closestTarget.position - (Vector2)user.position).normalized;
         bool faceRight = lookDir.x > 0f;
 
-        // 시전 시간 = skillAnimDuration. 애니메이션 전체가 여기 정확히 맞춰 스케일된다.
-        float animDuration = skillAnimDuration > 0f ? skillAnimDuration : 1f;
+        // 애니메이션은 미니언이 갖는다(MainMinionDataSO.skillAnim). 스킬은 로직만 갖고 연출은 여기서 읽는다.
+        var mainData = data as MainMinionDataSO;
+        var animSet = mainData != null ? mainData.skillAnim : null;
+
+        // 시전 시간 = skillAnim.duration. 애니메이션 전체가 여기 정확히 맞춰 스케일된다.
+        float animDuration = animSet != null ? animSet.ResolvedDuration : 1f;
 
         // 이펙트 오버레이(예: DashDoll 의 Skill_Attack_Effect)는 이제 PlaySequenced 가 effectState 로 직접
         // 겹쳐 재생한다 — 타격 이벤트가 이펙트 클립에 박힌 경우 그쪽 애니메이터에 relay 를 붙여야 하기 때문.
@@ -123,7 +127,7 @@ public class MinionActionSkillSO : MinionSkillSO
 
         // 언제 때릴지는 그림이 정한다 — damageState 태그가 재생되는 동안, 혹은 Aseprite 에 심어둔
         // event:OnHitEvent 프레임에. 초로 박지 않으므로 시전 속도가 바뀌어도 알아서 따라온다.
-        float eventWindow = Mathf.Max(0.05f, animDuration * Mathf.Clamp01(hitWindowRatio));
+        float eventWindow = animSet != null ? animSet.EventHitWindow : Mathf.Max(0.05f, animDuration * 0.15f);
 
         // 피해 정보 — 미니언은 자기 스탯이 없어 플레이어의 ATK 를 빌린다. 여기에 소환수 고유 배율을 곱한다.
         var playerStat = GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null
@@ -167,8 +171,7 @@ public class MinionActionSkillSO : MinionSkillSO
             };
 
             caster.PlaySequenced(
-                skillAnimVisual, animSequence, damageState, hitEvent, effectState,
-                animDuration, eventWindow, hitCount, faceRight,
+                animSet, animDuration, eventWindow, hitCount, faceRight,
                 // 판정 열기. useContinuous=true 면 창 동안 hitCount 균등 틱, false(이벤트당)면 단발+펄스.
                 (window, useContinuous) =>
                 {
@@ -189,15 +192,13 @@ public class MinionActionSkillSO : MinionSkillSO
                     box.Init(info, Layers.EnemyMask, w, 0f, true, onHit);
                 },
                 onHitPulse: () => { if (box != null) box.PulseDamageOverlapping(); },
-                onAttackEnd: () => { if (col != null) col.enabled = false; },
-                movePhases: movePhases);
+                onAttackEnd: () => { if (col != null) col.enabled = false; });
         }
         else
         {
             // 히트박스 없는 즉시 타격: 판정창이 열리는 순간 1회.
             caster.PlaySequenced(
-                skillAnimVisual, animSequence, damageState, hitEvent, effectState,
-                animDuration, eventWindow, hitCount, faceRight,
+                animSet, animDuration, eventWindow, hitCount, faceRight,
                 (window, useContinuous) =>
                 {
                     if (caster == null || closestTarget == null) return;
@@ -210,8 +211,7 @@ public class MinionActionSkillSO : MinionSkillSO
                         ?? health.GetComponentInParent<CharacterStat>()
                         ?? health.GetComponentInChildren<CharacterStat>();
                     if (stat != null) ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
-                },
-                movePhases: movePhases);
+                });
         }
 
         return true;

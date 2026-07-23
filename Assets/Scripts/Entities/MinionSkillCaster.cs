@@ -11,7 +11,7 @@ using UnityEngine;
 /// 여기 남은 것은 딱 두 가지다:
 ///  1) 스킬이 위치를 옮길 수 있는 Transform
 ///  2) 스킬이 코루틴(타격 지연, 넉백)을 돌릴 수 있는 MonoBehaviour
-/// 외형은 MinionSkillSO.skillAnimVisual 이 이 오브젝트의 자식으로 붙어서 담당한다.
+/// 외형은 미니언의 MinionAnimSet.visual 이 이 오브젝트의 자식으로 붙어서 담당한다.
 /// </summary>
 public class MinionSkillCaster : MonoBehaviour
 {
@@ -76,12 +76,20 @@ public class MinionSkillCaster : MonoBehaviour
     ///   true = 창 동안 hitCount 균등 틱, false = 이벤트당 단발(펄스가 타수를 만든다).</param>
     /// <param name="onHitPulse">OnHitEvent 마다 1타(ResetHitTargets). 이벤트당 모드에서만.</param>
     /// <param name="onAttackEnd">OnAttackEndEvent 가 오면 호출. 판정을 닫으라는 뜻.</param>
-    public GameObject PlaySequenced(GameObject visual, string[] sequence, string damageState, string hitEvent, string effectState,
+    public GameObject PlaySequenced(MinionAnimSet animSet,
                                     float castDuration, float hitWindow, int hitCount, bool faceRight,
                                     System.Action<float, bool> onHitWindow,
-                                    System.Action onHitPulse = null, System.Action onAttackEnd = null,
-                                    System.Collections.Generic.List<AnimPhase> movePhases = null)
+                                    System.Action onHitPulse = null, System.Action onAttackEnd = null)
     {
+        // 애니메이션 설정은 이제 미니언(MinionAnimSet)에서 통째로 온다. 내부 로직은 예전처럼 개별
+        // 변수로 풀어서 쓴다 — 아래 본문은 손대지 않는다. sequence(태그)와 movePhases(태그+offset)는 같은 리스트다.
+        GameObject visual = animSet != null ? animSet.visual : null;
+        string[] sequence = animSet != null ? animSet.SequenceTags() : System.Array.Empty<string>();
+        string damageState = animSet != null ? animSet.damageState : "";
+        string hitEvent = animSet != null ? animSet.hitEvent : "";
+        string effectState = animSet != null ? animSet.effectState : "";
+        System.Collections.Generic.List<AnimPhase> movePhases = animSet != null ? animSet.sequence : null;
+
         if (visual == null)
         {
             // [폴백] 스프라이트가 없는 소환수(예: 아직 아트가 안 나온 임시 소환수): 인형·애니를 붙이지 않고

@@ -142,43 +142,8 @@ public abstract class MinionSkillSO : SkillSO
     public override void ExecuteSkill(Transform user, Transform target = null, System.Collections.Generic.List<Transform> validTargets = null)
         => Execute(user, null, validTargets);
 
-    // ▶ 애니메이션 연결 방법 / 이벤트 vs 태그 / 속도 조절은 repo 루트의 MINION_ANIMATION_GUIDE.md 참조.
-    [Header("Skill Animation")]
-    [Tooltip("스킬 발동 시 시전 위치에 재생할 애니메이션 비주얼 오브젝트(도트/애니메이터 포함). 비워두면 재생하지 않습니다.")]
-    public GameObject skillAnimVisual;
-
-    [Tooltip("전체 시전 시간(초). 애니메이션 재생 속도가 이 길이에 정확히 맞도록 자동 조절됩니다. " +
-             "0 이면 클립 원본 길이를 그대로 씁니다.\n" +
-             "[중요] 나중에 공속 등으로 시전이 빨라지면 이 값만 줄이면 됩니다 — 애니메이션과 타격 시점이 " +
-             "전부 비율로 묶여 있어서 같이 따라옵니다.")]
-    public float skillAnimDuration = 0f;
-
-    [Tooltip("순서대로 재생할 애니메이터 상태 이름들. 비우면 기본 상태 하나만 재생됩니다.\n" +
-             "aseprite 임포터는 태그마다 상태를 만들어 놓고 트랜지션을 하나도 안 걸기 때문에, " +
-             "여기에 적지 않은 상태는 영원히 재생되지 않습니다. (예: Start, Slash, End)")]
-    public string[] animSequence;
-
-    [Tooltip("(선택) 애니 도중 인형 위치 이동. 태그별로 offset 을 주면 그 태그가 재생되는 '동안' 그 위치로 이동한다 " +
-             "(이전 위치→offset lerp, snap 체크 시 즉시). animSequence 에 있는 태그 이름을 써야 발동. " +
-             "비우면 이동 없음(=기존 동작). 여러 개면 스폰→o1→o2 로 연쇄. 이동하는 건 인형 본체다(이펙트 오버레이는 제자리).")]
-    public System.Collections.Generic.List<AnimPhase> movePhases = new System.Collections.Generic.List<AnimPhase>();
-
-    [Tooltip("위 시퀀스와 '동시에' 겹쳐 재생할 이펙트 상태 이름. 비우면 없음. (예: DashDoll 의 Effect)")]
-    public string effectState = "";
-
-    [Header("Damage Timing — 초 대신 그림이 정한다")]
-    [Tooltip("이 태그가 재생되는 '동안'만 판정이 열린다. 예: MeleeDoll 의 Slash / " +
-             "태그 경계는 이미 아티스트가 그림에 찍어둔 마커다. 그래서 애니를 다시 타이밍해도 " +
-             "판정이 알아서 따라온다 — 초나 비율을 손으로 맞출 필요가 없다.")]
-    public string damageState = "";
-
-    [Tooltip("태그로 준비/타격이 안 나뉠 때 쓴다(예: DashDoll 은 Attack 하나에 다 들어있음). " +
-             "Aseprite 에서 타격 프레임 셀의 user data 에 `event:OnHitEvent` 을 적으면 임포터가 " +
-             "그 프레임에 AnimationEvent 를 심어준다. 여기에 OnHitEvent 를 적으면 그 순간 판정이 열린다. " +
-             "비워두면 damageState(태그) 방식. 적으면 이쪽이 우선.")]
-    public string hitEvent = "";
-
-    [Range(0f, 1f)]
-    [Tooltip("hitEvent 방식일 때만 사용. 판정이 열려 있는 시간(전체 시전 시간 대비 비율).")]
-    public float hitWindowRatio = 0.15f;
+    // [26/07/23] 애니메이션 설정(비주얼/시퀀스/타이밍)은 여기서 미니언(MainMinionDataSO.skillAnim)으로 이사했다.
+    // 스킬은 로직(데미지/판정/넉백)만 갖고, 연출은 시전한 미니언 데이터에서 읽는다.
+    // → 기획자는 애니메이션을 미니언 한 곳(MinionAnimSet)에서 전부 설정한다.
+    // 연결 방법 / 이벤트 vs 태그 / 속도 조절은 repo 루트의 MINION_ANIMATION_GUIDE.md 참조.
 }
