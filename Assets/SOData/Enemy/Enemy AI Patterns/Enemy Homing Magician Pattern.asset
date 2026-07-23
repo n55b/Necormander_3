@@ -16,6 +16,6 @@ MonoBehaviour:
   pushStrength: 2
   spawnTelegraph: 0
   projectilePrefab: {fileID: 4462788868339787736, guid: 7ca574d92ecb4bc4987994c0cdb199a5, type: 3}
-  projectileSpeed: 2
+  projectileSpeed: 5
   lifeTime: 5
   launchOffset: 0.5

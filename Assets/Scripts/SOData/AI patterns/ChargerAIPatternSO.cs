@@ -137,7 +137,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
             else if (chargeDir.x < -0.01f) entitySR.flipX = false;
         }
 
-        LayerMask wallMask = Layers.WallMask;
+        LayerMask wallMask = LayerMask.GetMask("Wall", "Object"); // [수정] 장애물(기둥 등)은 "Object" 레이어 — 엘리트 차저와 동일하게 벽+장애물 모두 감지
         LayerMask playerMask = Layers.PlayerMask;
         LayerMask hitMask = wallMask | playerMask;
 

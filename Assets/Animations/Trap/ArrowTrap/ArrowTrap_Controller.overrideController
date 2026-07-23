@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ArrowTrap_Controller
+  m_Controller: {fileID: 9100000, guid: efec9d2762f91a64689246149d162e27, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: f49418c6ef0002c48b42bbb18a2daacc, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 6b536e42a6fd9c64cb2ec02b3a1e12c0, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 2e4a3bc7e4ba38d49ab1d4c120c4881b, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: e8848574a52e82f4d825479e9ed2cdaa, type: 2}
