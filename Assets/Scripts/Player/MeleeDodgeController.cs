@@ -17,6 +17,12 @@ public class MeleeDodgeController : MonoBehaviour
     [Tooltip("dashModifier.hitAtOrigin(출발점 원형) 일 때 쓰는 원형 콜라이더 프리팹. 예: 네크 인형. 미지정이면 발동 안 함.")]
     [SerializeField] private BaseHitBox originHitBoxPrefab;
 
+    [Header("대쉬 범위 표시(텔레그래프) 숨김")]
+    [Tooltip("소환수 대쉬 공격의 범위 표시용 시각효과(SpriteRenderer/SpriteMask)를 숨깁니다. " +
+             "데미지 판정은 그대로 유지됩니다. (스킬/적 텔레그래프에는 영향 없음)")]
+    [SerializeField] private bool hideDashTelegraph = true;
+
+
     private int _currentCharges;
     private float _rechargeTimer;
 
@@ -220,6 +226,16 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
             box.transform.localScale = new Vector3(dist, mod.width, 1f);
             box.hitEffectAngle = angle; // 없으면 히트 이펙트가 대쉬 방향과 무관하게 오른쪽으로 튄다
             life = dist / dashSpeed;    // 경로를 지나는 시간
+        }
+
+        // [대쉬 텔레그래프 숨김] 범위 표시용 시각(SpriteRenderer/SpriteMask)만 끄고 콜라이더/데미지 판정은 그대로 둔다.
+        // 경로 모드/출발점 모드 둘 다 여기로 합류하므로 한 곳에서 처리한다.
+        // SpriteMask 도 함께 꺼야 한다 — 렌더러만 끄면 마스크가 살아남아 겹치는 적 텔레그래프의
+        // 외곽선을 잘라내(덮어써) 경계선이 사라진다. (MeleeCombatController 의 평타 숨김과 동일 규약)
+        if (hideDashTelegraph && box != null)
+        {
+            foreach (var vis in box.GetComponentsInChildren<SpriteRenderer>(true)) vis.enabled = false;
+            foreach (var mask in box.GetComponentsInChildren<SpriteMask>(true)) mask.enabled = false;
         }
 
         if (mod.hitCount > 1)

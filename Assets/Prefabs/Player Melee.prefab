@@ -1642,7 +1642,7 @@ MonoBehaviour:
   lightHitboxSize: {x: 2.7, y: 1.7}
   lightTelegraphDuration: 0.2
   hideBasicAttackTelegraph: 1
-  hideFinisherTelegraph: 0
+  hideFinisherTelegraph: 1
 --- !u!114 &7957941004026145679
 MonoBehaviour:
   m_ObjectHideFlags: 0

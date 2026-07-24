@@ -25,6 +25,10 @@ public class MinionActionSkillSO : MinionSkillSO
     public StatusType onHitStatus = StatusType.None;
 
     [Header("판정")]
+    [Tooltip("이 스킬의 범위 표시용 시각효과(SpriteRenderer/SpriteMask)를 숨깁니다. " +
+             "데미지 판정은 그대로 유지됩니다. (적 텔레그래프에는 영향 없음)")]
+    public bool hideSkillTelegraph = true;
+
     public bool useHitBox = false;
     public BaseHitBox hitBoxPrefab;
     [Tooltip("원형 판정 반지름(유닛). hitBoxSize 가 0,0 일 때 이 값으로 균등 스케일(예: MeleeDoll 원형).")]
@@ -177,6 +181,15 @@ public class MinionActionSkillSO : MinionSkillSO
             box.transform.localScale = (hitBoxSize.x > 0f && hitBoxSize.y > 0f)
                 ? new Vector3(hitBoxSize.x, hitBoxSize.y, 1f)
                 : new Vector3(hitRadius * 2f, hitRadius * 2f, 1f);
+
+            // [스킬 텔레그래프 숨김] 범위 표시용 시각(SpriteRenderer/SpriteMask)만 끄고 콜라이더/데미지 판정은 그대로 둔다.
+            // SpriteMask 도 함께 꺼야 한다 — 렌더러만 끄면 마스크가 살아남아 겹치는 적 텔레그래프의
+            // 외곽선을 잘라내(덮어써) 경계선이 사라진다. (MeleeCombatController 의 평타 숨김과 동일 규약)
+            if (hideSkillTelegraph)
+            {
+                foreach (var vis in box.GetComponentsInChildren<SpriteRenderer>(true)) vis.enabled = false;
+                foreach (var mask in box.GetComponentsInChildren<SpriteMask>(true)) mask.enabled = false;
+            }
 
             var col = box.GetComponent<Collider2D>();
             if (col != null) col.enabled = false; // 판정창 열릴 때까지 꺼둔다
