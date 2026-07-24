@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Localization.Components;
 
-public class SellItem : MonoBehaviour
+public class SellItem : MonoBehaviour, IInteractable
 {
     public RewardCandidate item;
     [SerializeField] private GameObject Canvas;
@@ -55,6 +55,11 @@ public class SellItem : MonoBehaviour
             return false;
         }
     }
+
+    // IInteractable — 이게 있어야 PlayerController.CheckForInteractable 가 이 상점 아이템을 감지해 F 로 Interact 를 부른다.
+    // (포커스 콜백은 툴팁을 OnTriggerEnter2D 에서 이미 처리하므로 비워둔다.)
+    public void OnFocused(GameObject interactor) { }
+    public void OnLostFocus(GameObject interactor) { }
 
     void OnTriggerEnter2D(Collider2D collision)
     {

@@ -154,6 +154,10 @@ public class PlayerSkillInventoryManager : MonoBehaviour
         _equipped.enhanceLevel++;
         ReapplyEquipmentPassives();      // 새 강화레벨로 패시브 다시 붙임(RemoveSource 후 재적용)
         OnPlayerSkillUpdated?.Invoke();  // HUD 강화표시 등 갱신
+        string eqName = _equipped.baseData != null && !string.IsNullOrEmpty(_equipped.baseData.equipmentName)
+            ? _equipped.baseData.equipmentName : (_equipped.baseData != null ? _equipped.baseData.name : "?");
+        Debug.Log($"<color=cyan>[Enhance]</color> '{eqName}' 강화레벨 → {_equipped.enhanceLevel}/{(_equipped.baseData != null ? _equipped.baseData.maxEnhanceLevel : 0)}. " +
+                  $"(장비 패시브 *PerLevel 은 소비 시 enhanceLevel 을 실시간으로 읽어 자동 반영. 스킬 자체 데미지/타수는 그 스킬 enhanceEffects 를 채운 것만 변함)");
         return true;
     }
 
