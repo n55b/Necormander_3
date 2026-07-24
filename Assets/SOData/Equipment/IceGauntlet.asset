@@ -11,10 +11,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dafda816e2e708244ac4ae54264b5a3e, type: 3}
   m_Name: IceGauntlet
-  m_EditorClassIdentifier:
-  equipmentName: 얼음 건틀릿
-  description: 스킬 적중 시 낮은 확률로 빙결을 부여하는 건틀렛
-  icon: {fileID: 0}
+  m_EditorClassIdentifier: 
+  equipmentName: "\uC5BC\uC74C \uAC74\uD2C0\uB9BF"
+  description: "\uC2A4\uD0AC \uC801\uC911 \uC2DC \uB0AE\uC740 \uD655\uB960\uB85C
+    \uBE59\uACB0\uC744 \uBD80\uC5EC\uD558\uB294 \uAC74\uD2C0\uB81B"
+  icon: {fileID: -5459457028457625335, guid: 1ab9deb8cc0a79f4a8df904cbb5de4f7, type: 3}
   rarity: 0
   shopCost: 150
   skillPool:
@@ -32,7 +33,7 @@ MonoBehaviour:
     - rid: 2000000000000000003
       type: {class: EquipmentStatusPassive, ns: , asm: Assembly-CSharp}
       data:
-        label: 빙결 부여
+        label: "\uBE59\uACB0 \uBD80\uC5EC"
         status: 1
         applyChanceBonus: 0.15
         applyChancePerLevel: 0.015

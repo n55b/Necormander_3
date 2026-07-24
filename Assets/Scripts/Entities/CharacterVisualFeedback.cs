@@ -15,6 +15,16 @@ public class CharacterVisualFeedback : MonoBehaviour
     private bool _hasSavedOriginalBaseColor = false;
     private Coroutine _hitFlashCoroutine;
 
+    [Header("빙결 VFX")]
+    [Tooltip("빙결(Freeze) 상태인 동안 유닛에 붙여둘 이펙트 프리팹 (Assets/Prefabs/Effect/Effect_Freezing.prefab). " +
+             "비워두면 Resources/Effects/Effect_Freezing 에서 자동 로드를 시도합니다.")]
+    [SerializeField] private GameObject freezingVFXPrefab;
+    [Tooltip("빙결 이펙트를 붙일 위치 오프셋 (유닛 로컬 기준)")]
+    [SerializeField] private Vector3 freezingVFXOffset = Vector3.zero;
+
+    private GameObject _freezingVFXInstance;
+    private bool _freezingPrefabResolved;
+
     private GameObject _shieldVFXInstance;
     private GameObject _ccVFXInstance;
 
@@ -143,6 +153,91 @@ public class CharacterVisualFeedback : MonoBehaviour
             Destroy(_shieldVFXInstance);
             _shieldVFXInstance = null;
         }
+
+        // 빙결 VFX 관리: 빙결이 걸려 있는 동안만 유닛에 붙어 있고, 풀리면(피격 파괴/자연 만료/사망) 사라진다.
+        // ApplyStatus/RemoveStatus 양쪽에 훅을 거는 대신 여기서 상태를 폴링하는 이유는,
+        // 빙결이 풀리는 경로가 여러 개(OnDirectDamageTaken, UpdateStatuses 만료, ClearStatus)라
+        // 한 곳이라도 빠뜨리면 이펙트가 켜진 채 남기 때문이다.
+        bool frozen = _status.HasStatus(StatusType.Freeze);
+
+        if (frozen && _freezingVFXInstance == null)
+        {
+            SpawnFreezingVFX();
+        }
+        else if (!frozen && _freezingVFXInstance != null)
+        {
+            Destroy(_freezingVFXInstance);
+            _freezingVFXInstance = null;
+        }
+    }
+
+    /// <summary>
+    /// 빙결 이펙트를 생성해 유닛에 붙인다.
+    ///
+    /// [왜 정렬을 코드에서 강제하는가]
+    /// 적 스프라이트는 YSortableObject 가 매 프레임 sortingOrder = -(Y * 100) 로 덮어쓴다.
+    /// 즉 Y=3 인 적의 order 는 약 -300 인데, 프리팹의 파티클은 고정 order 4 + 존재하지 않는
+    /// 소팅 레이어를 들고 있어서, 레이어가 다르면 엉뚱한 깊이에 그려지고 레이어가 같아도
+    /// 숫자만으로는 적과의 앞뒤가 매 프레임 뒤집힌다. 그래서 스폰 시점에 대상 스프라이트와
+    /// '같은 레이어'로 맞추고 order 만 +1 해서 항상 본체 바로 앞에 오도록 고정한다.
+    /// (본체가 움직여 order 가 바뀌어도 아래 LateUpdate 에서 계속 따라간다.)
+    /// </summary>
+    private void SpawnFreezingVFX()
+    {
+        GameObject prefab = ResolveFreezingPrefab();
+        if (prefab == null) return;
+
+        Transform anchor = _sr != null ? _sr.transform : transform;
+        _freezingVFXInstance = Instantiate(prefab, anchor.position + freezingVFXOffset, prefab.transform.rotation, anchor);
+
+        SyncFreezingVFXSorting();
+
+        // 프리팹이 Play On Awake 가 꺼진 채 저장돼 있어도 확실히 재생시킨다.
+        foreach (var ps in _freezingVFXInstance.GetComponentsInChildren<ParticleSystem>(true))
+        {
+            ps.Clear(true);
+            ps.Play(true);
+        }
+    }
+
+    /// <summary>
+    /// 빙결 이펙트의 소팅을 본체 스프라이트에 맞춘다. 본체는 Y 정렬로 order 가 매 프레임 바뀌므로
+    /// 한 번만 맞추면 곧 어긋난다 — LateUpdate 에서 계속 동기화한다.
+    /// </summary>
+    private void SyncFreezingVFXSorting()
+    {
+        if (_freezingVFXInstance == null || _sr == null) return;
+
+        foreach (var r in _freezingVFXInstance.GetComponentsInChildren<Renderer>(true))
+        {
+            r.sortingLayerID = _sr.sortingLayerID;
+            r.sortingOrder = _sr.sortingOrder + 1; // 본체 바로 앞
+        }
+    }
+
+    private void LateUpdate()
+    {
+        // 본체의 sortingOrder 는 YSortableObject 가 LateUpdate 에서 갱신하므로 여기서 뒤따라 맞춘다.
+        if (_freezingVFXInstance != null) SyncFreezingVFXSorting();
+    }
+
+    /// <summary>
+    /// 빙결 이펙트 프리팹을 얻는다. 인스펙터 할당이 우선이고, 비어 있으면 Resources 경로를 한 번만 시도한 뒤
+    /// 결과를 캐시한다(실패해도 매 프레임 재시도하지 않도록 _freezingPrefabResolved 로 잠근다).
+    /// </summary>
+    private GameObject ResolveFreezingPrefab()
+    {
+        if (freezingVFXPrefab != null) return freezingVFXPrefab;
+        if (_freezingPrefabResolved) return null;
+
+        _freezingPrefabResolved = true;
+        freezingVFXPrefab = Resources.Load<GameObject>("Effects/Effect_Freezing");
+        if (freezingVFXPrefab == null)
+        {
+            Debug.LogWarning($"<color=cyan>[VisualFeedback]</color> {gameObject.name}: 빙결 이펙트 프리팹이 비어 있습니다. " +
+                             "프리팹의 CharacterVisualFeedback > Freezing VFX Prefab 에 Effect_Freezing 을 넣어주세요.");
+        }
+        return freezingVFXPrefab;
     }
 
     public void SetShieldVFX(GameObject vfx)

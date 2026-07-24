@@ -358,7 +358,7 @@ MonoBehaviour:
   debugStartingMinions: []
   debugStartingMinionQuantities:
   debugStartingGems_Data: []
-  debugStartingGems_TargetJobs: 00000000
+  debugStartingGems_TargetJobs: 
   _defaultRootGemSO: {fileID: 11400000, guid: 87e7260bead92f545aa299410bef22e8, type: 2}
 --- !u!114 &6139375127595461034
 MonoBehaviour:

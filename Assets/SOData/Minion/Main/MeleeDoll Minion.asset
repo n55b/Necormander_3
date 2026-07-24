@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 0
   minionName: Melee Doll
-  minionIcon: {fileID: 0}
+  minionIcon: {fileID: -3223804000719093753, guid: 36208386774834c4ba2d366cd31db059, type: 3}
   shopCost: 150
   rewardItemData:
     itemName: 
