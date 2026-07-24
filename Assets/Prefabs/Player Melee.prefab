@@ -510,6 +510,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7c55176e5d5b1a4c893a01543dd4ac6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  freezingVFXPrefab: {fileID: 0}
+  freezingVFXOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &5914193569906731681
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -738,7 +740,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6410159205543291807
 RectTransform:
   m_ObjectHideFlags: 0
@@ -826,7 +828,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &143325771251014441
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1659,6 +1661,7 @@ MonoBehaviour:
   rechargeTime: 2
   dashEffectPrefab: {fileID: 1585796293089155853, guid: c5d0c7c91c095c74fb398f43b9bd4cf5, type: 3}
   dashHitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
+  originHitBoxPrefab: {fileID: 0}
 --- !u!114 &1103040150316217935
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -28,7 +28,7 @@ public class BaseHitBox : MonoBehaviour
     [Tooltip("적중 시 함께 생성할 파티클 이펙트 프리팹 (예: MeleeHitSparkEffect)")]
     public GameObject hitParticlePrefab;
     [Tooltip("빙결(Freeze) 상태인 대상을 때렸을 때 타격 이펙트에 입힐 색상")]
-    public Color frozenHitEffectColor = new Color(0.35f, 0.75f, 1f, 1f);
+    public Color frozenHitEffectColor = Color.blue;
 
 
     [HideInInspector] public float hitEffectAngle = 0f; // [추가] 히트 이펙트 전용 실제(월드) 방향 각도. 부모(공격자) 미러링 보정과는 무관하게 실제 타격 방향을 그대로 담습니다.
