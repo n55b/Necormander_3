@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 36208386774834c4ba2d366cd31db059
+guid: 1ab9deb8cc0a79f4a8df904cbb5de4f7
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -36,7 +36,7 @@ ScriptedImporter:
     spriteMeshType: 1
     alignment: 0
     spritePivot: {x: 0.5, y: 0.5}
-    spritePixelsToUnits: 32
+    spritePixelsToUnits: 16
     spriteBorder: {x: 0, y: 0, z: 0, w: 0}
     spriteGenerateFallbackPhysicsShape: 0
     generateCubemap: 6
@@ -72,11 +72,11 @@ ScriptedImporter:
     textureFormatSet: 0
     applyGammaDecoding: 0
   previousAsepriteImporterSettings:
-    fileImportMode: 1
-    importHiddenLayers: 0
+    fileImportMode: 0
+    importHiddenLayers: 1
     layerImportMode: 0
     defaultPivotSpace: 0
-    defaultPivotAlignment: 0
+    defaultPivotAlignment: 7
     customPivotPosition: {x: 0.5, y: 0.5}
     mosaicPadding: 4
     spritePadding: 0
@@ -85,11 +85,11 @@ ScriptedImporter:
     addSortingGroup: 1
     addShadowCasters: 0
   asepriteImporterSettings:
-    fileImportMode: 1
-    importHiddenLayers: 0
+    fileImportMode: 0
+    importHiddenLayers: 1
     layerImportMode: 0
     defaultPivotSpace: 0
-    defaultPivotAlignment: 0
+    defaultPivotAlignment: 7
     customPivotPosition: {x: 0.5, y: 0.5}
     mosaicPadding: 4
     spritePadding: 0
@@ -98,7 +98,7 @@ ScriptedImporter:
     addSortingGroup: 1
     addShadowCasters: 0
   importFileNodeState: 1
-  platformSettingsDirtyTick: 639203252371262459
+  platformSettingsDirtyTick: 639205003571913541
   textureAssetName: 
   singleSpriteImportData:
   - name: 
@@ -123,51 +123,9 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: MeleeDoll_Icon
+  - name: Gauntlet
     originalName: 
-    pivot: {x: 0.5, y: 0.5294118}
-    alignment: 9
-    border: {x: 0, y: 0, z: 0, w: 0}
-    customData: 
-    rect:
-      serializedVersion: 2
-      x: 4
-      y: 61
-      width: 24
-      height: 17
-    spriteID: f1e5ae0a491e40a478e1af124763bd71
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 4, y: 61}
-  - name: DashDoll_Icon
-    originalName: 
-    pivot: {x: 0.44, y: 0.5294118}
-    alignment: 9
-    border: {x: 0, y: 0, z: 0, w: 0}
-    customData: 
-    rect:
-      serializedVersion: 2
-      x: 4
-      y: 36
-      width: 25
-      height: 17
-    spriteID: 39231bd43c7d77c40b041704a8d734f9
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 4, y: 36}
-  - name: IceMage_Icon
-    originalName: 
-    pivot: {x: 0.5, y: 0.5833334}
+    pivot: {x: 0.42857146, y: -0.23809524}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -175,9 +133,9 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 28
-      height: 24
-    spriteID: 7e3ab6f868fa7504caa5f3eafa99d752
+      width: 14
+      height: 21
+    spriteID: f6ed13dc195428e4fb3a60ff75153a1c
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -186,75 +144,138 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 4}
-  spriteSheetImportData: []
+  spriteSheetImportData:
+  - name: Gauntlet_0
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 32
+      width: 14
+      height: 21
+    spriteID: d2a7010f4068d2f478b6a8f4df8ddcde
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
+  - name: Gauntlet_1
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 4
+      width: 17
+      height: 20
+    spriteID: b5e7e447ff6e18748a265f37b0fe47bc
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
+  - name: Gauntlet_2
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 29
+      y: 4
+      width: 17
+      height: 19
+    spriteID: fb68f5ce8f9f27946be097a0fd088900
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 0, y: 0}
   asepriteLayers:
-  - layerIndex: 1
-    uuid:
-      value0: 1773198271
-      value1: 0
-      value2: 0
-      value3: 0
-    guid: 0
-    name: MeleeDoll_Icon
-    layerFlags: 3
-    layerType: 0
-    blendMode: 0
-    cells:
-    - name: MeleeDoll_Icon
-      frameIndex: 0
-      additiveSortOrder: 0
-      cellRect:
-        x: 4
-        y: 7
-        width: 24
-        height: 17
-      spriteId: f1e5ae0a491e40a478e1af124763bd71
-    linkedCells: []
-    parentIndex: -1
   - layerIndex: 0
     uuid:
-      value0: 2905842421
+      value0: 372029325
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: DashDoll_Icon
-    layerFlags: 3
+    name: 1
+    layerFlags: 2
     layerType: 0
     blendMode: 0
     cells:
-    - name: DashDoll_Icon
+    - name: 1
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 5
-        y: 7
-        width: 25
-        height: 17
-      spriteId: 39231bd43c7d77c40b041704a8d734f9
+        x: 7
+        y: 8
+        width: 17
+        height: 20
+      spriteId: 90ee0be0624ee5843afb8c221923da73
+    linkedCells: []
+    parentIndex: -1
+  - layerIndex: 1
+    uuid:
+      value0: 372029328
+      value1: 0
+      value2: 0
+      value3: 0
+    guid: 0
+    name: 2
+    layerFlags: 2
+    layerType: 0
+    blendMode: 0
+    cells:
+    - name: 2
+      frameIndex: 0
+      additiveSortOrder: 0
+      cellRect:
+        x: 7
+        y: 8
+        width: 17
+        height: 19
+      spriteId: 4646fdb9e3000c249b55d67bd03e3473
     linkedCells: []
     parentIndex: -1
   - layerIndex: 2
     uuid:
-      value0: 478300833
+      value0: 372029327
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: IceMage_Icon
+    name: 3
     layerFlags: 3
     layerType: 0
     blendMode: 0
     cells:
-    - name: IceMage_Icon
+    - name: 3
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 2
-        y: 2
-        width: 28
-        height: 24
-      spriteId: 7e3ab6f868fa7504caa5f3eafa99d752
+        x: 10
+        y: 5
+        width: 14
+        height: 21
+      spriteId: af02fd6d211310d4fb1d5f7c5fab2ab9
     linkedCells: []
     parentIndex: -1
   platformSettings:
@@ -273,7 +294,7 @@ ScriptedImporter:
   - name: DefaultTexturePlatform
     overridden: 0
     ignorePlatformSupport: 0
-    maxTextureSize: 2048
+    maxTextureSize: 16384
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -298,4 +319,4 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 32, y: 32}
-  previousTextureSize: {x: 64, y: 128}
+  previousTextureSize: {x: 64, y: 64}
