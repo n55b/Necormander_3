@@ -11,10 +11,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dafda816e2e708244ac4ae54264b5a3e, type: 3}
   m_Name: WindBreaker
-  m_EditorClassIdentifier:
-  equipmentName: 윈드 브레이커
-  description: 회피와 반격에 특화된 장비.
-  icon: {fileID: 0}
+  m_EditorClassIdentifier: 
+  equipmentName: "\uC708\uB4DC \uBE0C\uB808\uC774\uCEE4"
+  description: "\uD68C\uD53C\uC640 \uBC18\uACA9\uC5D0 \uD2B9\uD654\uB41C \uC7A5\uBE44."
+  icon: {fileID: 213732993119495749, guid: 1ab9deb8cc0a79f4a8df904cbb5de4f7, type: 3}
   rarity: 0
   shopCost: 150
   skillPool:
@@ -32,7 +32,7 @@ MonoBehaviour:
     - rid: 2000000000000000001
       type: {class: EquipmentConditionBuffPassive, ns: , asm: Assembly-CSharp}
       data:
-        label: 전투 고양
+        label: "\uC804\uD22C \uACE0\uC591"
         condition: 0
         reapplyDelay: 5
         reapplyDelayPerLevel: -0.1

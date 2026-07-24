@@ -11,10 +11,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dafda816e2e708244ac4ae54264b5a3e, type: 3}
   m_Name: GauntletOfFighting
-  m_EditorClassIdentifier:
-  equipmentName: 투지의 건틀렛
-  description: 적을 끌고, 밀고, 강력하게 몰아붙이는 장비
-  icon: {fileID: 0}
+  m_EditorClassIdentifier: 
+  equipmentName: "\uD22C\uC9C0\uC758 \uAC74\uD2C0\uB81B"
+  description: "\uC801\uC744 \uB04C\uACE0, \uBC00\uACE0, \uAC15\uB825\uD558\uAC8C
+    \uBAB0\uC544\uBD99\uC774\uB294 \uC7A5\uBE44"
+  icon: {fileID: 7214652476106930508, guid: 1ab9deb8cc0a79f4a8df904cbb5de4f7, type: 3}
   rarity: 0
   shopCost: 150
   skillPool:
@@ -32,7 +33,7 @@ MonoBehaviour:
     - rid: 2000000000000000002
       type: {class: EquipmentTriggerBuffPassive, ns: , asm: Assembly-CSharp}
       data:
-        label: 투지
+        label: "\uD22C\uC9C0"
         trigger: 0
         buffDuration: 3
         damageBonus: 0.2
