@@ -127,6 +127,12 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         var rb = entity.GetComponent<Rigidbody2D>();
         float chargeSpeed = entity.Stats.MOVESPEED * chargeSpeedMultiplier;
         float maxChargeDuration = 3.0f; // 안전 타임아웃
+
+        // [잔상] 돌진 구간에서만 잔상 방출 윈도우를 엽니다 (평타 넉백 등에는 잔상이 안 나오도록 명시적 제어).
+        // 코루틴이 스턴/사망으로 끊겨도 윈도우가 자동 만료되므로 잔상이 켜진 채 남지 않습니다.
+        var afterimage = entity.GetComponent<DashAfterimage>();
+        afterimage?.BeginDash(maxChargeDuration + 0.5f);
+
         float chargeElapsed = 0f;
 
         // [수정] 물리 scale.x를 뒤흔들지 않고, 스프라이트 flipX만 돌진 물리 진행 방향에 정확히 동기화
@@ -188,6 +194,8 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         }
 
         // 돌진 정지
+        afterimage?.EndDash(); // [잔상] 돌진 종료와 함께 잔상 방출 윈도우 닫기
+
         if (rb != null) rb.linearVelocity = Vector2.zero;
         
         if (wasAgentEnabled && agent != null)

@@ -870,6 +870,10 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         LayerMask wallMask = LayerMask.GetMask("Wall", "Object");
         float clampedDistance = distance;
 
+        // [잔상] 미니 돌진(짧은 전진) 동안만 잔상 방출 윈도우 오픈 (창은 자동 만료 — 슈퍼아머라 넉백 오발동 없음)
+        entity.GetComponent<DashAfterimage>()?.BeginDash(duration + 0.3f);
+
+
         RaycastHit2D obstacleHit = Physics2D.CircleCast(entity.transform.position, miniChargeCheckRadius, dir, distance, wallMask);
         if (obstacleHit.collider != null)
         {
@@ -946,6 +950,10 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         var rb = entity.GetComponent<Rigidbody2D>();
         float chargeSpeed = entity.Stats.MOVESPEED * normalChargeSpeedMultiplier;
+
+        // [잔상] 일반 돌진 동안만 잔상 방출 윈도우 오픈
+        entity.GetComponent<DashAfterimage>()?.BeginDash(normalChargeMaxDuration + 0.5f);
+
         float elapsed = 0f;
 
         LayerMask playerMask = LayerMask.GetMask("Player", "Player_Dash");
@@ -1245,6 +1253,10 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         var rb = entity.GetComponent<Rigidbody2D>();
         float chargeSpeed = entity.Stats.MOVESPEED * chargeSpeedMultiplier;
         float maxDuration = 3f;
+
+        // [잔상] 패턴1 강한 돌진 동안만 잔상 방출 윈도우 오픈
+        entity.GetComponent<DashAfterimage>()?.BeginDash(maxDuration + 0.5f);
+
         float elapsed = 0f;
 
         LayerMask playerMask = LayerMask.GetMask("Player", "Player_Dash");
