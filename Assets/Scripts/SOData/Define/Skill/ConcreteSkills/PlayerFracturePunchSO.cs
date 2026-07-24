@@ -28,7 +28,7 @@ public class PlayerFracturePunchSO : PlayerSkillSO
         BaseHitBox box = Instantiate(hitBoxPrefab, startPos, Quaternion.Euler(0, 0, angle));
         box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
         
-        float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
+        float finalDamage = ResolveDamage(player.Stat, damageMultiplier);
         DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Fracture Punch");
         
 

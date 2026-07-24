@@ -26,7 +26,8 @@ public class PlayerStrikeFlurrySO : PlayerSkillSO
         float hitDelay = player.GetHandSkillClipLength(handSkillAnimName) * hitTimingRatio;
         if (hitDelay > 0f) yield return new WaitForSeconds(hitDelay);
 
-        for (int i = 0; i < hitCount; i++)
+        int totalHits = ResolveHitCount(hitCount);
+        for (int i = 0; i < totalHits; i++)
         {
             if (player == null) yield break;
 
@@ -46,7 +47,7 @@ public class PlayerStrikeFlurrySO : PlayerSkillSO
                 BaseHitBox box = Instantiate(hitBoxPrefab, attackCenter, Quaternion.Euler(0, 0, angle));
                 box.transform.localScale = new Vector3(hitDistance, hitWidth, 1f);
 
-                float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
+                float finalDamage = ResolveDamage(player.Stat, damageMultiplier);
                 DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, $"Flurry {i+1}!");
 
 

@@ -42,7 +42,7 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
         Vector2 targetPos = SkillCombatUtil.GetSafeDestination(startPos, dir, dashDistance);
 
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
+        float finalDamage = ResolveDamage(player.Stat, damageMultiplier);
 
         // [변경] 기존엔 시전 순간 1프레임짜리 OverlapBox 를 '플레이어 중심'으로 깔아(전방 도달거리 = dashDistance/2 뿐)
         // 판정이 빡빡했다. 이제 돌진 복도 전체(길이 = dashDistance)를 덮는 히트박스를 깔아, 돌진하는 동안 그 안에
@@ -76,7 +76,7 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
                             if (root == null || wallSlamMultiplier <= 0f) return;
                             var h = root.GetComponentInChildren<CharacterHealth>() ?? root.GetComponentInParent<CharacterHealth>();
                             if (h != null && !h.IsDead)
-                                h.GetDamage(new DamageInfo(GetBaseDamage(player.Stat) * wallSlamMultiplier,
+                                h.GetDamage(new DamageInfo(ResolveDamage(player.Stat, wallSlamMultiplier),
                                     ResolveDamageType(), player.gameObject, 1f, "벽꽝!", category: DamageCategory.Skill));
                         }));
             };

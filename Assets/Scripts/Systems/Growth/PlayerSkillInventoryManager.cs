@@ -145,6 +145,23 @@ public class PlayerSkillInventoryManager : MonoBehaviour
         HookPlayerHit(); // 새 플레이어 피격 이벤트로 재구독
     }
 
+    // ── 장비 강화 ─────────────────────────────────────────────────────
+    /// <summary>착용 장비를 1강 올린다(상점 강화 아이템 구매 시). 미착용이거나 최대치면 false.
+    /// 패시브는 새 강화레벨로 재적용하고(멱등), 스킬 데미지/타수는 매 시전 CurrentEnhanceLevel 을 읽어 자동 반영된다.</summary>
+    public bool EnhanceEquipped()
+    {
+        if (!CanEnhanceEquipped()) return false;
+        _equipped.enhanceLevel++;
+        ReapplyEquipmentPassives();      // 새 강화레벨로 패시브 다시 붙임(RemoveSource 후 재적용)
+        OnPlayerSkillUpdated?.Invoke();  // HUD 강화표시 등 갱신
+        return true;
+    }
+
+    /// <summary>강화 가능 여부: 장비를 끼고 있고 아직 최대 강화레벨(EquipmentSO.maxEnhanceLevel) 미만.</summary>
+    public bool CanEnhanceEquipped()
+        => _equipped != null && _equipped.baseData != null
+           && _equipped.enhanceLevel < _equipped.baseData.maxEnhanceLevel;
+
     // ── 조건부 버프 드라이버 ───────────────────────────────────────────
     private void Update()
     {

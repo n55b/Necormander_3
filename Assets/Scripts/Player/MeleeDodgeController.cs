@@ -140,9 +140,12 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
 
         _player.SetDashLayer(true); // set dash layer
 
-        // Lock the Idle/Walk auto-transition for the dash duration, otherwise
+        // Lock the Idle/Walk auto-transition for the ACTUAL dash duration, otherwise
         // PlayerController.Update() overwrites the Dash pose one frame later.
-        _player.LockAnimState(dashDuration);
+        // (안전망 타임아웃을 실제 대쉬 길이 _dashTimeLeft 로 건다 — 예전엔 고정 dashDuration 0.2s 였는데
+        //  소환수 lengthMultiplier>1(예: 네크 1.2 → 0.24s)이면 대쉬가 끝나기 전에 타임아웃이 터져
+        //  "canChangeState force-reset" 경고가 났다. EndDash 가 정상 해제하니 이건 여유 상한일 뿐.)
+        _player.LockAnimState(_dashTimeLeft + 0.1f);
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Dash", "Idle");
         OnDodgeStarted?.Invoke();

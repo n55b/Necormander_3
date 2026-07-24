@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a786f86611b456fbb23ecbfeacb3934, type: 3}
+  m_Name: IceMage Minion
+  m_EditorClassIdentifier: 
+  minionType: 6
+  minionName: Ice Mage
+  minionIcon: {fileID: 0}
+  shopCost: 150
+  rewardItemData:
+    itemName: 
+    description: 
+    localizedItemName:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    icon: {fileID: 0}
+    rarity: 0
+  minionSkill: {fileID: 11400000, guid: b7d3e1a9c2f04b8e91a6d5c30e2f7a41, type: 2}
+  dashModifier:
+    lengthMultiplier: 1.2
+    width: 1
+    hitAtOrigin: 1
+    originRadius: 2
+    hitBoxPrefab: {fileID: 0}
+    hitCount: 1
+    damageMultiplier: 0.8
+    element: 1
+    onHitStatus: 1
+    pushesEnemies: 0
+    pushForce: 3
+  finisher:
+    hitCount: 1
+    damageMultiplier: 1
+    element: 1
+    onHitStatus: 6
+    hitBoxSize: {x: 3, y: 2.8}
+    hitBoxPrefab: {fileID: 0}
+    spawnOffset: 1.6
+    minionOffsetFromHitBox: 1
+    causesHitstun: 1
+    knockbackForce: 4
+    superArmorDamage: 30
+  basicAnim:
+    visual: {fileID: -2253911629886400664, guid: 36cddf8ebd6ba864fbcb672d9e5a6723, type: 3}
+    duration: 0.95
+    sequence:
+    - tag: Basic
+      offset: {x: 0, y: 0}
+      snap: 0
+    effectState: 
+    damageState: 
+    hitEvent: OnHitEvent
+    hitWindowRatio: 0.15
+  skillAnim:
+    visual: {fileID: -2253911629886400664, guid: 36cddf8ebd6ba864fbcb672d9e5a6723, type: 3}
+    duration: 1.7
+    sequence:
+    - tag: Skill
+      offset: {x: 0, y: 0}
+      snap: 0
+    effectState: 
+    damageState: 
+    hitEvent: OnHitEvent
+    hitWindowRatio: 0.15
+  references:
+    version: 2
+    RefIds: []
