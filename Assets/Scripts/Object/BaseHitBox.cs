@@ -27,6 +27,9 @@ public class BaseHitBox : MonoBehaviour
     public GameObject hitEffectPrefab;
     [Tooltip("적중 시 함께 생성할 파티클 이펙트 프리팹 (예: MeleeHitSparkEffect)")]
     public GameObject hitParticlePrefab;
+    [Tooltip("빙결(Freeze) 상태인 대상을 때렸을 때 타격 이펙트에 입힐 색상")]
+    public Color frozenHitEffectColor = new Color(0.35f, 0.75f, 1f, 1f);
+
 
     [HideInInspector] public float hitEffectAngle = 0f; // [추가] 히트 이펙트 전용 실제(월드) 방향 각도. 부모(공격자) 미러링 보정과는 무관하게 실제 타격 방향을 그대로 담습니다.
 
@@ -87,8 +90,9 @@ public class BaseHitBox : MonoBehaviour
                 ?? hit.GetComponentInParent<IDamageable>()
                 ?? hit.GetComponentInChildren<IDamageable>();
             if (damageable == null || damageable.IsDead) continue;
+            bool wasFrozen = IsTargetFrozen(hit); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
             damageable.TakeDamage(_damageInfo);
-            SpawnHitEffect(hit.transform.position);
+            SpawnHitEffect(hit.transform.position, wasFrozen);
             if (damageable is CharacterHealth ch) _onHitEnemy?.Invoke(ch);
         }
     }
@@ -239,8 +243,9 @@ public class BaseHitBox : MonoBehaviour
                 _tickCount.TryGetValue(damageable, out int n);   // 없으면 0 -> _elapsed >= 0 -> 즉시 1타
                 if (_elapsed >= n * damageTickRate)
                 {
+                    bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
                     damageable.TakeDamage(_damageInfo);
-                    SpawnHitEffect(col.transform.position);
+                    SpawnHitEffect(col.transform.position, wasFrozen);
                     _tickCount[damageable] = n + 1;
 
                     if (damageable is CharacterHealth ch)
@@ -255,8 +260,9 @@ public class BaseHitBox : MonoBehaviour
                 if (!_hitTargets.Contains(damageable))
                 {
                     _hitTargets.Add(damageable);
+                    bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
                     damageable.TakeDamage(_damageInfo);
-                    SpawnHitEffect(col.transform.position);
+                    SpawnHitEffect(col.transform.position, wasFrozen);
                     
                     if (damageable is CharacterHealth ch)
                     {
@@ -272,18 +278,55 @@ public class BaseHitBox : MonoBehaviour
     /// <summary>
     /// 적중 위치에 타격 이펙트(HitEffect)를 생성합니다.
     /// </summary>
-private void SpawnHitEffect(Vector3 position)
+    private void SpawnHitEffect(Vector3 position, bool frozenTarget = false)
     {
         if (hitEffectPrefab != null)
         {
             GameObject effect = Instantiate(hitEffectPrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
+            if (frozenTarget) TintEffect(effect, frozenHitEffectColor);
             Destroy(effect, 1.0f);
         }
 
         if (hitParticlePrefab != null)
         {
             GameObject particle = Instantiate(hitParticlePrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
+            if (frozenTarget) TintEffect(particle, frozenHitEffectColor);
             Destroy(particle, 1.0f);
         }
+    }
+
+    /// <summary>
+    /// 이펙트 인스턴스를 지정 색으로 물들인다. HitEffect 는 SpriteRenderer, 파티클 계열은 ParticleSystem 이라
+    /// 둘 다 처리한다(자식까지 포함). 알파는 원본 값을 유지해 페이드 연출을 깨지 않는다.
+    /// </summary>
+    private static void TintEffect(GameObject effect, Color tint)
+    {
+        if (effect == null) return;
+
+        foreach (var sr in effect.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            sr.color = new Color(tint.r, tint.g, tint.b, sr.color.a);
+        }
+
+        foreach (var ps in effect.GetComponentsInChildren<ParticleSystem>(true))
+        {
+            var main = ps.main;
+            Color baseColor = main.startColor.color;
+            main.startColor = new Color(tint.r, tint.g, tint.b, baseColor.a);
+        }
+    }
+
+    /// <summary>
+    /// 타격 대상이 지금 빙결 상태인지. 반드시 TakeDamage '전'에 읽어야 한다 —
+    /// 피해가 들어가면 CharacterStatus.OnDirectDamageTaken 이 빙결을 즉시 해제하므로,
+    /// 때린 뒤에 물으면 항상 false 가 되어 푸른 이펙트가 절대 안 나온다.
+    /// </summary>
+    private static bool IsTargetFrozen(Component target)
+    {
+        if (target == null) return false;
+        var status = target.GetComponent<CharacterStatus>()
+            ?? target.GetComponentInParent<CharacterStatus>()
+            ?? target.GetComponentInChildren<CharacterStatus>();
+        return status != null && status.HasStatus(StatusType.Freeze);
     }
 }
