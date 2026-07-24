@@ -27,6 +27,17 @@ public class TrapArrow : MonoBehaviour
     [SerializeField] private LayerMask targetLayer;
     [SerializeField] private Animator plateAnimator; // PlateVisual의 Animator (미지정 시 자식에서 자동 탐색)
 
+    [Header("Sound")]
+    [Tooltip("압력판 작동 사운드")]
+    [SerializeField] private AudioClip plateSound;
+    [Range(0f, 1f)]
+    [SerializeField] private float plateVolume = 1f;
+    [Tooltip("화살 발사 사운드")]
+    [SerializeField] private AudioClip arrowFireSound;
+    [Range(0f, 1f)]
+    [SerializeField] private float arrowFireVolume = 1f;
+
+
     private const string StateOn = "TrapOn";
     private const string StateOff = "TrapOff";
 
@@ -80,6 +91,13 @@ public class TrapArrow : MonoBehaviour
         if (plateAnimator != null)
         {
             plateAnimator.Play(StateOn, 0, 0f);
+        }
+
+        // 압력판 작동 사운드 재생
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(plateSound, plateVolume);
+
         }
         // 밟은 후 설정된 지연 시간 대기
         yield return new WaitForSeconds(fireDelay);
@@ -172,6 +190,12 @@ public class TrapArrow : MonoBehaviour
             // 화살의 목적지는 발판(현재 함정의 위치)으로 조준하여 저격 발사
             Vector2 targetPos = (Vector2)transform.position;
             projectile.Init(targetPos, damage, targetLayer, gameObject, arrowSpeed, arrowLifeTime);
+            // 화살 발사 사운드 재생
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.PlaySFX(arrowFireSound, arrowFireVolume);
+            }
+
         }
         else
         {
