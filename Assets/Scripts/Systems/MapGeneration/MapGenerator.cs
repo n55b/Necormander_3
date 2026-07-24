@@ -1657,9 +1657,13 @@ public class MapGenerator : MonoBehaviour
         Debug.Log("<color=green>[MapGenerator]</color> Isaac-style Map Generation Completed Successfully.");
     }
 
-    private RoomInstance CreateRoomAtGrid(RoomType type, Vector2Int gridPos)
+    private RoomInstance CreateRoomAtGrid(RoomType type, Vector2Int gridPos, GameObject prefabOverride = null)
     {
-        GameObject prefab = prefabData.GetRandomPrefab(type);
+        // [26/07/23 수정] 예전엔 항상 GetRandomPrefab 으로 재추첨해서, 호출부가 '부모 방향 앵커를 가진'
+        // 프리팹을 골라놔도(selectedPrefab) 그걸 버리고 랜덤으로 다시 뽑았다. 그 결과 부모 쪽 앵커가 없는
+        // 방이 배치돼 문 생성 때 트리 엣지가 죽고(방 고립 / 엘리트 외길), 앵커 검증 자체가 무의미했다.
+        // 이제 넘겨받은 프리팹을 그대로 쓴다(없을 때만 랜덤 폴백 — 스폰/보스처럼 선택이 필요 없는 경우).
+        GameObject prefab = prefabOverride != null ? prefabOverride : prefabData.GetRandomPrefab(type);
         if (prefab == null) return null;
 
         // 처음부터 최종 배치 간격을 곱한 물리적 위치에 생성하여 물리 겹침 반발 자체를 사전에 예방
@@ -1775,7 +1779,7 @@ public class MapGenerator : MonoBehaviour
 
                     if (selectedPrefab != null)
                     {
-                        RoomInstance newRoom = CreateRoomAtGrid(RoomType.Normal, targetPos);
+                        RoomInstance newRoom = CreateRoomAtGrid(RoomType.Normal, targetPos, selectedPrefab);
                         if (newRoom == null) continue;
 
                         gridMap[targetPos] = newRoom;
@@ -1879,7 +1883,7 @@ public class MapGenerator : MonoBehaviour
 
                 if (selectedPrefab != null)
                 {
-                    RoomInstance newRoom = CreateRoomAtGrid(specType, targetPos);
+                    RoomInstance newRoom = CreateRoomAtGrid(specType, targetPos, selectedPrefab);
                     if (newRoom == null) continue;
 
                     gridMap[targetPos] = newRoom;
@@ -1906,9 +1910,82 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
+        // 엘리트 외길 방지: 최종 문 그래프에서 스폰 → (엘리트 미통과) → 모든 Shop/Reward 가 닿아야 한다.
+        // 못 닿으면 그 특수방은 엘리트를 반드시 지나야만 갈 수 있는 배치 → 이 시도를 버리고 재생성한다.
+        // (여기는 기존 재생성 루프 안이라 return false 하나로 재배치가 걸린다. 실제 문은 아직 없어서
+        //  SetupIsaacDoorsAndTeleporters 와 '동일한 규칙'으로 문 그래프를 시뮬레이션해 검사한다.)
+        if (!ValidateNoSpecialBehindElite()) return false;
+
         // BFS 깊이(debugDepth) 계산 갱신
         UpdateAllRoomDepths();
 
+        return true;
+    }
+
+    /// <summary>
+    /// 상점/보상방이 '엘리트를 반드시 통과해야만' 도달 가능한 배치인지 검사한다. true = 정상(통과 없음).
+    ///
+    /// 이 시점(배치 직후)엔 실제 문이 아직 없으므로, SetupIsaacDoorsAndTeleporters 와 '같은 규칙'으로
+    /// 문 그래프를 시뮬레이션한다: 격자 맨해튼 dist==1 이고 양쪽에 서로 마주보는 앵커가 있는 쌍만 연결.
+    /// (문 생성은 앵커를 isUsed 로 소진하지만, 한 방향 = 한 이웃 칸이라 앵커 경쟁이 없어 isUsed 를 무시해도
+    ///  같은 엣지 집합이 나온다 — 순서 무관.)
+    ///
+    /// 그 다음 스폰에서 BFS 하되 '엘리트는 통과하지 않는다'(엘리트 자체엔 도달 가능으로 치되 그 너머로 안 뻗음).
+    /// 이렇게 도달한 집합에 모든 Shop/Reward 가 들어 있지 않으면 = 엘리트 외길 뒤에 있는 것 → false.
+    /// (엘리트가 상점의 '이웃'인 것 자체는 괜찮다. 상점을 비-엘리트 경로로만 갈 수 있으면 된다.)
+    /// </summary>
+    private bool ValidateNoSpecialBehindElite()
+    {
+        // 1) 문 규칙과 동일한 인접 그래프 시뮬레이션.
+        var sim = new Dictionary<RoomInstance, List<RoomInstance>>();
+        foreach (var r in _allRooms) if (r != null) sim[r] = new List<RoomInstance>();
+
+        for (int i = 0; i < _allRooms.Count; i++)
+        {
+            for (int j = i + 1; j < _allRooms.Count; j++)
+            {
+                RoomInstance rA = _allRooms[i], rB = _allRooms[j];
+                if (rA == null || rB == null) continue;
+
+                int dist = Mathf.Abs(rA.gridPosition.x - rB.gridPosition.x) + Mathf.Abs(rA.gridPosition.y - rB.gridPosition.y);
+                if (dist != 1) continue;
+
+                Vector2Int dirAToB = rB.gridPosition - rA.gridPosition;
+                bool aFaces = rA.anchors.Any(a => a != null && a.direction == dirAToB);
+                bool bFaces = rB.anchors.Any(a => a != null && a.direction == -dirAToB);
+                if (!aFaces || !bFaces) continue; // 한쪽이라도 마주보는 앵커가 없으면 문이 안 생김(= 엣지 없음)
+
+                sim[rA].Add(rB);
+                sim[rB].Add(rA);
+            }
+        }
+
+        // 2) 스폰에서 BFS — 엘리트는 방문 표시만 하고 그 너머로는 뻗지 않는다(= 통과 불가).
+        RoomInstance spawn = _allRooms.Find(r => r != null && r.roomType == RoomType.Spawn);
+        if (spawn == null) return true; // 스폰이 없으면 검사 대상 아님
+
+        var visited = new HashSet<RoomInstance> { spawn };
+        var queue = new Queue<RoomInstance>();
+        queue.Enqueue(spawn);
+        while (queue.Count > 0)
+        {
+            var cur = queue.Dequeue();
+            foreach (var nb in sim[cur])
+            {
+                if (nb == null || visited.Contains(nb)) continue;
+                visited.Add(nb);                          // 그 방 자체엔 도달 가능
+                if (nb.roomType == RoomType.Elite) continue; // 엘리트 '너머'로는 안 뻗음(통과 금지)
+                queue.Enqueue(nb);
+            }
+        }
+
+        // 3) 모든 Shop/Reward 가 엘리트 안 거치고 도달 가능해야 한다.
+        foreach (var r in _allRooms)
+        {
+            if (r == null) continue;
+            if ((r.roomType == RoomType.Shop || r.roomType == RoomType.Reward) && !visited.Contains(r))
+                return false; // 이 특수방은 엘리트를 반드시 지나야만 도달 → 위반
+        }
         return true;
     }
 
