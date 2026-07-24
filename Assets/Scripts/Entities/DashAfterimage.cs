@@ -4,8 +4,8 @@ using UnityEngine;
 
 /// <summary>
 /// 돌진(고속 이동) 중 스프라이트 잔상(고스트)을 남기는 컴포넌트입니다.
-/// Rigidbody2D 속도 또는 프레임 간 실제 이동 속도가 speedThreshold를 넘으면 자동으로 잔상을 방출하므로,
-/// AI 패턴 코드 수정 없이 프리팹에 붙이기만 하면 동작합니다.
+/// [수정] 평타 넉백 등 돌진이 아닌 고속 이동에도 잔상이 남는 문제가 있어, AI 패턴이 BeginDash/EndDash로
+/// 명시적으로 연 "돌진 윈도우" 동안 + speedThreshold 이상 실제 이동 중일 때만 방출하도록 변경했습니다.
 /// (TrailRenderer 대신 스프라이트 고스팅을 쓰는 이유: 캐릭터 실루엣이 남아야 "빠름"으로 읽히고,
 ///  개별 SpriteRenderer라 Y-sort 정렬과도 충돌하지 않습니다.)
 /// </summary>
@@ -30,6 +30,8 @@ public class DashAfterimage : MonoBehaviour
     private Rigidbody2D _rb;
     private Vector3 _lastPos;
     private float _timer;
+    private float _dashWindowUntil; // BeginDash로 열린 잔상 방출 윈도우의 만료 시각 (Time.time 기준)
+
     private readonly Queue<SpriteRenderer> _pool = new Queue<SpriteRenderer>();
     private readonly List<SpriteRenderer> _spawned = new List<SpriteRenderer>();
 
@@ -46,11 +48,16 @@ public class DashAfterimage : MonoBehaviour
         float dt = Time.deltaTime;
         if (dt <= 0f || _source == null) return;
 
-        // Rigidbody 속도(돌진 코드가 linearVelocity를 직접 설정)와 실제 좌표 이동 속도(transform 직접 이동형 대쉬) 둘 다 감지
+        // 실제 이동 속도 계산 (돌진 윈도우 안에서도 윈드업 등 정지 구간엔 잔상이 안 나오게 하기 위함)
         float posSpeed = ((transform.position - _lastPos) / dt).magnitude;
         _lastPos = transform.position;
         float rbSpeed = _rb != null ? _rb.linearVelocity.magnitude : 0f;
-        bool emitting = ForceEmit || Mathf.Max(posSpeed, rbSpeed) >= speedThreshold;
+
+        // [수정] 속도만으로 자동 발동하던 기존 방식은 평타 넉백 등 돌진이 아닌 고속 이동에도
+        // 잔상이 남는 문제가 있어, "돌진 윈도우(BeginDash~EndDash)가 열려 있는 동안" +
+        // "실제로 빠르게 움직이는 중"일 때만 방출하도록 변경했습니다.
+        bool inDashWindow = Time.time < _dashWindowUntil;
+        bool emitting = ForceEmit || (inDashWindow && Mathf.Max(posSpeed, rbSpeed) >= speedThreshold);
 
         if (!emitting)
         {
@@ -117,5 +124,22 @@ public class DashAfterimage : MonoBehaviour
         }
         _spawned.Clear();
         _pool.Clear();
+    }
+
+
+    /// <summary>
+    /// 돌진 패턴 시작 시 호출: maxDuration초 동안 잔상 방출 윈도우를 엽니다.
+    /// 코루틴이 스턴/사망 등으로 중간에 끊겨도 윈도우가 자동 만료되므로 잔상이 켜진 채 방치되지 않습니다.
+    /// 윈도우가 열려 있어도 speedThreshold 이상으로 실제 이동 중일 때만 잔상이 나옵니다.
+    /// </summary>
+    public void BeginDash(float maxDuration)
+    {
+        _dashWindowUntil = Time.time + maxDuration;
+    }
+
+    /// <summary>돌진 패턴 종료 시 호출: 잔상 방출 윈도우를 즉시 닫습니다.</summary>
+    public void EndDash()
+    {
+        _dashWindowUntil = 0f;
     }
 }

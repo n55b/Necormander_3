@@ -13,7 +13,12 @@ MonoBehaviour:
   m_Name: Shop Registry
   m_EditorClassIdentifier: 
   minionPool:
-  - {fileID: 11400000, guid: 1249b3e99bee40e1a4fa574ab04a2b28, type: 2}
-  - {fileID: 11400000, guid: d1d81dc1227b40099e4a237dba3cb29f, type: 2}
   - {fileID: 11400000, guid: 2ebf02073b714bd08b60e585b5172baa, type: 2}
   - {fileID: 11400000, guid: a23a9344ad434dbda7ad70e1cf8485d7, type: 2}
+  equipmentPool:
+  - {fileID: 11400000, guid: ce696d1b192c8b740a95face81051be4, type: 2}
+  - {fileID: 11400000, guid: f3a75dc651483514287ad726b9ac670c, type: 2}
+  - {fileID: 11400000, guid: bc110321650c07a4e963feceea3b7dd6, type: 2}
+  enhanceCost: 250
+  enhanceStock: 3
+  enhanceIcon: {fileID: 0}

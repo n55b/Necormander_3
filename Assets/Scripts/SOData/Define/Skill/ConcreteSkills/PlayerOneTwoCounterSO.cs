@@ -101,7 +101,7 @@ public class OneTwoCounterRuntime : MonoBehaviour
         _subscribed = true;
 
         // === 원 투: 잽 2회, 판정 창 동안 피격 감지 ===
-        const int totalJabs = 2;
+        int totalJabs = _so.ResolveHitCount(2);
         float elapsed = 0f;
         int jabsThrown = 0;
         float nextJabAt = 0f;
@@ -160,7 +160,7 @@ public class OneTwoCounterRuntime : MonoBehaviour
         BaseHitBox box = Instantiate(_so.hitBoxPrefab, pos, Quaternion.Euler(0, 0, angle));
         box.transform.localScale = new Vector3(_so.jabDistance, _so.jabWidth, 1f);
 
-        float dmg = _so.GetBaseDamage(_player.Stat) * _so.jabMultiplier;
+        float dmg = _so.ResolveDamage(_player.Stat, _so.jabMultiplier);
         DamageInfo info = new DamageInfo(dmg, _so.ResolveDamageType(), _player.gameObject, 1f, $"Jab {index}!");
         box.Init(info, Layers.EnemyMask, 0.15f, 0f, true, null);
     }
@@ -190,7 +190,7 @@ public class OneTwoCounterRuntime : MonoBehaviour
             BaseHitBox box = Instantiate(_so.hitBoxPrefab, pos, Quaternion.Euler(0, 0, angle));
             box.transform.localScale = new Vector3(_so.uppercutDistance, _so.uppercutWidth, 1f);
 
-            float dmg = _so.GetBaseDamage(_player.Stat) * _so.uppercutMultiplier;
+            float dmg = _so.ResolveDamage(_player.Stat, _so.uppercutMultiplier);
             DamageInfo info = new DamageInfo(dmg, _so.ResolveDamageType(), _player.gameObject, 1f, "Counter Hook!");
             box.Init(info, Layers.EnemyMask, 0.2f, 0f, true);
         }

@@ -947,6 +947,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7c55176e5d5b1a4c893a01543dd4ac6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  freezingVFXPrefab: {fileID: 2839721534096716484, guid: e10b7331cfa745940942def5a0cd4450, type: 3}
+  freezingVFXOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &6540714341632788058
 MonoBehaviour:
   m_ObjectHideFlags: 0

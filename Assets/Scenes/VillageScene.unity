@@ -5662,6 +5662,7 @@ MonoBehaviour:
   itemButtonTemplate: {fileID: 306033613}
   includePlayerSkills: 1
   includeMinions: 1
+  includeEquipments: 1
 --- !u!1 &2096842257
 GameObject:
   m_ObjectHideFlags: 0

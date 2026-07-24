@@ -113,7 +113,10 @@ public abstract class PlayerSkillSO : SkillSO
         float dmg = GetBaseDamage(stat) * skillMultiplier;
         int lvl = CurrentEnhanceLevel;
         if (enhanceEffects != null)
+        {
             foreach (var e in enhanceEffects) if (e != null) dmg *= e.DamageMultiplier(lvl);
+            foreach (var e in enhanceEffects) if (e != null) dmg += e.FlatDamageBonus(lvl); // 깡딜은 배수 적용 뒤 합산
+        }
         return dmg;
     }
 

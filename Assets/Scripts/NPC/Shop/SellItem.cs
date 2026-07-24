@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Localization.Components;
 
-public class SellItem : MonoBehaviour
+public class SellItem : MonoBehaviour, IInteractable
 {
     public RewardCandidate item;
     [SerializeField] private GameObject Canvas;
@@ -32,6 +32,17 @@ public class SellItem : MonoBehaviour
     {
         if (item.rawData == null) return false;
 
+        // [강화 아이템] 착용 장비가 없거나 이미 최대 강화면 구매 불가 — 골드 안 쓰고 아이템도 유지.
+        if (item.category == RewardCategory.EquipmentEnhance)
+        {
+            var psi = PlayerSkillInventoryManager.Instance;
+            if (psi == null || !psi.CanEnhanceEquipped())
+            {
+                Debug.Log("[Shop] 강화할 장비가 없거나 이미 최대 강화 레벨입니다.");
+                return false;
+            }
+        }
+
         if (GameManager.Instance.inventoryManager.SpendGold(item.goldAmount))
         {
             RewardManager.Instance.ApplyReward(item);
@@ -44,6 +55,11 @@ public class SellItem : MonoBehaviour
             return false;
         }
     }
+
+    // IInteractable — 이게 있어야 PlayerController.CheckForInteractable 가 이 상점 아이템을 감지해 F 로 Interact 를 부른다.
+    // (포커스 콜백은 툴팁을 OnTriggerEnter2D 에서 이미 처리하므로 비워둔다.)
+    public void OnFocused(GameObject interactor) { }
+    public void OnLostFocus(GameObject interactor) { }
 
     void OnTriggerEnter2D(Collider2D collision)
     {

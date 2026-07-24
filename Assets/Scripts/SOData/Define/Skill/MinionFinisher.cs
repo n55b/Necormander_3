@@ -40,6 +40,10 @@ public class MinionFinisher
              "대각선 조준은 히트박스를 기울이는 대신 소환 위치를 그쪽으로 밀어서 맞춘다.")]
     public float spawnOffset = 1f;
 
+    [Tooltip("소환수(비주얼)를 히트박스 중심에서 '플레이어 쪽'으로 이만큼 뒤로 물린다. 0=히트박스 자리에 그대로.\n" +
+             "히트박스와 안 겹치게 바깥에서 때리는 느낌을 줄 때 키운다(히트박스는 조준 위치 그대로 유지).")]
+    public float minionOffsetFromHitBox = 0f;
+
     [Header("연출(넉백/경직)")]
     [Tooltip("적에게 경직을 주는지.")]
     public bool causesHitstun = true;

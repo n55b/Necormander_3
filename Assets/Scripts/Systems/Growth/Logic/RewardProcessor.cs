@@ -3,7 +3,7 @@ using UnityEngine;
 
 public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss }
 // [26/07/17] Ability 는 투척 능력 전용이라 투척 철거와 함께 사라졌다.
-public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold, PlayerSkill, Equipment }
+public enum RewardCategory { Minion, Metamorphosis, Gem, Treasure, Gold, PlayerSkill, Equipment, EquipmentEnhance }
 
 /// <summary>
 /// 보상으로 제안될 아이템 정보를 담는 구조체입니다.
@@ -26,6 +26,9 @@ public struct RewardCandidate
 /// </summary>
 public static class RewardProcessor
 {
+    /// <summary>강화 아이템의 rawData 센티넬(비-null 이어야 빈 슬롯 취급을 피한다). ApplyReward 는 category 로 분기하니 값 자체는 안 쓴다.</summary>
+    public static readonly object EnhanceMarker = new object();
+
     // --- 1-A. 플레이어 스킬 방용: 플레이어 스킬 + 보석 배출 ---
     public static List<RewardCandidate> GeneratePlayerSkillRewards(InventoryManager inven, DataManager data)
     {
@@ -122,7 +125,7 @@ public static class RewardProcessor
     // --- 1-B. 미니언 스킬 방용: 소환수 코어 배출 ---
     /// <summary>지정한 역할의 소환수 카드 3장을 뽑는다. 메인/서브 풀은 타입으로만 갈린다.</summary>
     /// <param name="roleType">typeof(MainMinionDataSO) 또는 typeof(SubMinionDataSO).</param>
-    public static List<RewardCandidate> GenerateSummonRewards(InventoryManager inven, DataManager data, System.Type roleType)
+    public static List<RewardCandidate> GenerateSummonRewards(InventoryManager inven, DataManager data, System.Type roleType, int count = 3)
     {
         List<RewardCandidate> results = new List<RewardCandidate>();
         var registry = data.GET_GROWTH_REGISTRY();
@@ -130,8 +133,8 @@ public static class RewardProcessor
         List<RewardCandidate> combinedPool = new List<RewardCandidate>();
         combinedPool.AddRange(GetValidCores(inven, registry.minionDatas, true, roleType));
 
-        // 랜덤하게 3개 선택 (중복 제거)
-        for (int i = 0; i < 3; i++)
+        // 랜덤하게 count 개 선택 (중복 제거)
+        for (int i = 0; i < count; i++)
         {
             if (combinedPool.Count > 0)
             {
@@ -228,6 +231,40 @@ public static class RewardProcessor
                     goldAmount = minion.shopCost
                 });
             }
+        }
+
+        // [장비] 상점에서 장비 구매 = 현재 장비 교체(구매 시 스킬 2개 새로 리롤). 뜰 때 인스턴스로 굳힌다.
+        if (shopRegistry.equipmentPool != null)
+        {
+            foreach (var so in shopRegistry.equipmentPool)
+            {
+                if (so == null) continue;
+                var inst = EquipmentInstance.Roll(so);
+                combinedPool.Add(new RewardCandidate
+                {
+                    displayData = BuildEquipmentDisplayData(so, inst),
+                    rawData = inst,
+                    category = RewardCategory.Equipment,
+                    goldAmount = so.shopCost
+                });
+            }
+        }
+
+        // [강화] 소모성 강화 아이템 — 사면 착용 장비 +1강. enhanceStock 개를 풀에 넣어 랜덤으로 0~N개 진열된다.
+        for (int e = 0; e < shopRegistry.enhanceStock; e++)
+        {
+            combinedPool.Add(new RewardCandidate
+            {
+                displayData = new GrowthItemData
+                {
+                    itemName = "장비 강화 +1",
+                    description = "착용한 장비의 강화 레벨을 1 올린다(스킬·패시브 강화). 장비가 없으면 살 수 없다.",
+                    icon = shopRegistry.enhanceIcon
+                },
+                rawData = EnhanceMarker,       // 비-null 센티넬(빈 슬롯 취급 방지). 실제 동작은 category 로 분기.
+                category = RewardCategory.EquipmentEnhance,
+                goldAmount = shopRegistry.enhanceCost
+            });
         }
 
         // 젬 효과가 전부 제거되어 상점 젬 풀도 내렸다. (GEM_LEGACY.md)

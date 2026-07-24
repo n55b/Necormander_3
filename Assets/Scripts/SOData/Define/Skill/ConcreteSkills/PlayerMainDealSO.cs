@@ -45,13 +45,13 @@ public class PlayerMainDealSO : PlayerSkillSO
             }
         };
 
-        SpawnHitBox(player.gameObject, attackCenter, dir, damageRadius, GetBaseDamage(player.Stat) * firstHitMultiplier, onStrikeSuccess);
+        SpawnHitBox(player.gameObject, attackCenter, dir, damageRadius, ResolveDamage(player.Stat, firstHitMultiplier), onStrikeSuccess);
 
         yield return new WaitForSeconds(hitDelay);
 
         Debug.Log("<color=cyan>[Player Skill A]</color> 2타 추가 공격!");
         Vector2 secondAttackCenter = attackCenter + dir * 1.5f; // 2타는 1타 위치에서 약간 더 앞쪽
-        SpawnHitBox(player.gameObject, secondAttackCenter, dir, damageRadius * 1.5f, GetBaseDamage(player.Stat) * secondHitMultiplier, null);
+        SpawnHitBox(player.gameObject, secondAttackCenter, dir, damageRadius * 1.5f, ResolveDamage(player.Stat, secondHitMultiplier), null);
     }
 
     private void SpawnHitBox(GameObject attacker, Vector2 center, Vector2 dir, float radius, float damage, System.Action<CharacterHealth> onHit)

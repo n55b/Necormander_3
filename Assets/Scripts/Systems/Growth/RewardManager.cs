@@ -30,35 +30,10 @@ public class RewardManager : MonoBehaviour
 
         if (type == RoomType.Normal)
         {
-            int goldAmount = 200;
+            // [보상 개편 26/07/24] 일반방은 골드만 드랍한다(장비=상점, 메인=보상방). 카드/시간정지 없음.
+            int goldAmount = 200; // ponytail: 고정값, 밸런싱 시 조정
             GameManager.Instance.inventoryManager.AddGold(goldAmount);
-            Debug.Log($"<color=yellow>[Reward]</color> Normal Room Cleared! {goldAmount} Gold obtained. RewardType: {normalRewardType}");
-
-            List<RewardCandidate> normalRewards;
-            switch (normalRewardType)
-            {
-                case RoomInstance.NormalRewardType.PlayerSkill:
-                    // [장비 전환] 스킬 단독 획득 폐지 — 이 방은 이제 '장비'를 배출한다(스킬은 장비가 굴려서 줌).
-                    normalRewards = RewardProcessor.GenerateEquipmentRewards(
-                        GameManager.Instance.inventoryManager,
-                        GameManager.Instance.dataManager);
-                    break;
-                case RoomInstance.NormalRewardType.SubSummon:
-                    normalRewards = RewardProcessor.GenerateSummonRewards(
-                        GameManager.Instance.inventoryManager,
-                        GameManager.Instance.dataManager,
-                        typeof(SubMinionDataSO));
-                    break;
-                default: // MainSummon
-                    normalRewards = RewardProcessor.GenerateSummonRewards(
-                        GameManager.Instance.inventoryManager,
-                        GameManager.Instance.dataManager,
-                        typeof(MainMinionDataSO));
-                    break;
-            }
-            _rewardQueue.Enqueue(normalRewards);
-
-            ProcessNextReward();
+            Debug.Log($"<color=yellow>[Reward]</color> Normal Room Cleared! {goldAmount} Gold obtained (gold-only).");
         }
         else
         {
@@ -171,6 +146,12 @@ public class RewardManager : MonoBehaviour
                 // 장비를 착용한다(한 자루 원칙 → 기존 장비 교체). 후보는 뜰 때 이미 스킬이 굴려진 인스턴스다.
                 var equipInst = (EquipmentInstance)candidate.rawData;
                 PlayerSkillInventoryManager.Instance?.EquipEquipment(equipInst);
+                ProcessNextReward();
+                break;
+
+            case RewardCategory.EquipmentEnhance:
+                // 소모성 강화 아이템 구매 → 착용 장비 +1강(SellItem 이 CanEnhanceEquipped 를 이미 확인함).
+                PlayerSkillInventoryManager.Instance?.EnhanceEquipped();
                 ProcessNextReward();
                 break;
 

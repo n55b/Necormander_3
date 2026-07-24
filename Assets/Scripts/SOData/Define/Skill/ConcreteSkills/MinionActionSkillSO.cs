@@ -36,6 +36,15 @@ public class MinionActionSkillSO : MinionSkillSO
     public float forceAmount = 4f; // 넉백/끌어당김 힘
     public float forceDuration = 0.2f;
 
+    [Header("시전 위치")]
+    [Tooltip("음수(-1)=기존 근접형: 타겟 근처로 순간이동, 히트박스는 미니언 위치, 조준=타겟.\n" +
+             "0 이상=원거리형(부채꼴 등): 히트박스를 '플레이어 + 마우스조준 * 이 거리'에 깐다(마우스 기준, 미니언과 분리).")]
+    public float hitBoxForwardOffset = -1f;
+
+    [Tooltip("(원거리형 전용) 미니언을 히트박스 중심에서 '플레이어 쪽'으로 이만큼 뒤로 물린다(미니언↔히트박스 거리).\n" +
+             "0=히트박스 자리에 그대로. 히트박스와 안 겹치게 바깥에서 시전하는 느낌을 줄 때 키운다.")]
+    public float minionOffsetFromHitBox = 0f;
+
     [Header("다단히트 (useHitBox 일 때만)")]
     [Tooltip("몇 번 때릴지. 1 이면 단타.")]
     public int hitCount = 1;
@@ -86,8 +95,22 @@ public class MinionActionSkillSO : MinionSkillSO
         Vector2 dirFromPlayer = ((Vector2)closestTarget.position - playerPos).normalized;
         if (dirFromPlayer == Vector2.zero) dirFromPlayer = Vector2.right;
 
+        // 조준은 평타·마무리와 동일하게 마우스 기준. 원거리형(hitBoxForwardOffset>=0)에서만 쓴다.
+        // 마우스가 플레이어 위면 타겟 방향으로 폴백.
+        Vector2 aimDir = SkillCombatUtil.GetAimDir(playerPos);
+        if (aimDir.sqrMagnitude < 0.0001f) aimDir = dirFromPlayer;
+
+        bool rangedMode = hitBoxForwardOffset >= 0f;
+        // 원거리형 히트박스 중심: '플레이어 + 마우스조준 * hitBoxForwardOffset' (미니언과 무관, 마우스에서 안 벗어남).
+        Vector2 hitBoxCenter = playerPos + aimDir * hitBoxForwardOffset;
+
         Vector2 teleportPos;
-        if (actionType == MinionActionType.DamageAndPull)
+        if (rangedMode)
+        {
+            // [원거리형] 히트박스는 hitBoxCenter 에 고정. 미니언(비주얼)만 거기서 '플레이어 쪽'으로 minionOffsetFromHitBox 만큼 뒤로.
+            teleportPos = hitBoxCenter - aimDir * minionOffsetFromHitBox;
+        }
+        else if (actionType == MinionActionType.DamageAndPull)
         {
             // 당기기의 경우 타겟 등 뒤로 이동
             teleportPos = (Vector2)closestTarget.position + dirFromPlayer * 0.5f;
@@ -110,8 +133,9 @@ public class MinionActionSkillSO : MinionSkillSO
         PlaySkillSound();
         ShakeCamera();
 
-        Vector2 lookDir = ((Vector2)closestTarget.position - (Vector2)user.position).normalized;
-        bool faceRight = lookDir.x > 0f;
+        // 미니언 바라보는 방향 + 히트박스 방향. 원거리형이면 마우스 조준, 아니면 기존 타겟 방향.
+        Vector2 skillDir = rangedMode ? aimDir : dirFromPlayer;
+        bool faceRight = skillDir.x >= 0f;
 
         // 애니메이션은 미니언이 갖는다(MainMinionDataSO.skillAnim). 스킬은 로직만 갖고 연출은 여기서 읽는다.
         var mainData = data as MainMinionDataSO;
@@ -143,10 +167,12 @@ public class MinionActionSkillSO : MinionSkillSO
             // 히트박스를 미리 만들고 판정창이 열릴 때 Init 한다. 다단히트 규약은 finisher 와 동일:
             // OnAttackEnd 있으면 창에 hitCount 균등 배분, 없으면 OnHitEvent 마다 1타
             // (hitCount=타수 진실, 이벤트=타이밍, 이벤트가 모자라면 마지막 이벤트 뒤로 몰아치기).
-            float angle = Mathf.Atan2(dirFromPlayer.y, dirFromPlayer.x) * Mathf.Rad2Deg;
-            BaseHitBox box = Instantiate(hitBoxPrefab, caster.transform.position, Quaternion.identity, caster.transform);
-            box.transform.localPosition = Vector3.zero;
-            box.transform.localRotation = Quaternion.Euler(0, 0, angle);
+            float angle = Mathf.Atan2(skillDir.y, skillDir.x) * Mathf.Rad2Deg;
+            // 히트박스 위치: 원거리형이면 hitBoxCenter(플레이어+마우스 기준, 미니언과 무관), 아니면 시전한 미니언 위치.
+            Vector2 boxPos = rangedMode ? hitBoxCenter : (Vector2)caster.transform.position;
+            BaseHitBox box = Instantiate(hitBoxPrefab, (Vector3)boxPos, Quaternion.Euler(0f, 0f, angle), caster.transform);
+            box.transform.position = (Vector3)boxPos;
+            box.transform.rotation = Quaternion.Euler(0f, 0f, angle);
             // 크기: hitBoxSize(가로*세로)가 둘 다 양수면 박스로 비균등 스케일(사다리꼴/부채꼴), 아니면 hitRadius 원형 균등.
             box.transform.localScale = (hitBoxSize.x > 0f && hitBoxSize.y > 0f)
                 ? new Vector3(hitBoxSize.x, hitBoxSize.y, 1f)

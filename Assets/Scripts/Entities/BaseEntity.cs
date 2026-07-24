@@ -193,8 +193,8 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (!CanExecuteAI())
         {
-            // [경직/기절 제동] 관성으로 인해 스르륵 미끄러지는 현상을 방지하기 위해 정지 처리
-            if (_stats != null && _stats.Status != null && (_stats.Status.HasStatus(StatusType.Stun) || _stats.Status.HasStatus(StatusType.Hitstun)))
+            // [경직/기절/빙결 제동] 관성으로 인해 스르륵 미끄러지는 현상을 방지하기 위해 정지 처리
+            if (_stats != null && _stats.Status != null && _stats.Status.IsActionBlocked)
             {
                 if (_agent != null && _agent.isActiveAndEnabled)
                 {
@@ -260,10 +260,10 @@ public abstract class BaseEntity : MonoBehaviour
         // [추가] 공격 중(Telegraph 차오르는 중)일 때는 다른 행동 불가
         if (IsAttacking) return false;
 
-        // [추가] 기절 상태라면 AI 중단
+        // [추가] 행동불가(기절/빙결/경직)면 AI 중단 — 플레이어 IsCCed 와 같은 단일 소스(IsActionBlocked).
         if (_stats != null && _stats.Status != null)
         {
-            if (_stats.Status.HasStatus(StatusType.Stun) || _stats.Status.HasStatus(StatusType.Hitstun))
+            if (_stats.Status.IsActionBlocked)
                 return false;
         }
 

@@ -16,20 +16,12 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
     {
         var inven = InventoryManager.Instance;
         var data = GameManager.Instance.dataManager;
-        List<RewardCandidate> rewards;
 
-        if (isSuperEliteBox)
-        {
-            // 모든 좋은 보상 풀에서 3개 추첨 (Ability 는 투척 철거와 함께 삭제됨)
-            rewards = RewardProcessor.GenerateMixedCandidates(inven, data,
-                new List<RewardCategory> { RewardCategory.Metamorphosis, RewardCategory.Gem });
-        }
-        else
-        {
-            // [수정] 보스 보상과 동일 (보석 제외). Ability 는 투척 철거와 함께 삭제됨
-            rewards = RewardProcessor.GenerateMixedCandidates(inven, data,
-                new List<RewardCategory> { RewardCategory.Metamorphosis });
-        }
+        // [보상 개편 26/07/24] 보상방 = 메인 소환수 획득. 1장 택1 + 스킵(RewardSelectionUI 의 skip 버튼).
+        // 메인 슬롯 1개라 이미 있으면 HandSlot 픽에서 교체된다. 슈퍼 상자는 2장 중 택1(카드 수만 다름).
+        int cardCount = isSuperEliteBox ? 2 : 1;
+        List<RewardCandidate> rewards = RewardProcessor.GenerateSummonRewards(
+            inven, data, typeof(MainMinionDataSO), cardCount);
 
         if (rewards.Count > 0)
         {

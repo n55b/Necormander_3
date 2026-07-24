@@ -348,6 +348,9 @@ public class MeleeCombatController : MonoBehaviour
         bool faceRight = dir.x >= 0f;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         Vector3 spawnPos = origin + (Vector3)(dir * fin.spawnOffset);
+        // 소환수(비주얼)는 히트박스 중심(spawnPos)에서 플레이어 쪽으로 minionOffsetFromHitBox 만큼 뒤로 물린다.
+        // 히트박스 자체는 아래에서 spawnPos 에 그대로 깔린다(조준 위치 유지, 소환수와 안 겹침).
+        Vector3 casterPos = spawnPos - (Vector3)(dir * fin.minionOffsetFromHitBox);
 
         // 이전 마무리 소환수가 아직 안 사라졌으면 먼저 정리 (연속 공격 시 여러 마리 남는 문제 방지)
         if (_activeCaster != null)
@@ -356,7 +359,7 @@ public class MeleeCombatController : MonoBehaviour
             _activeCaster = null;
         }
 
-        var caster = MinionSkillCaster.Spawn(main, spawnPos);
+        var caster = MinionSkillCaster.Spawn(main, casterPos);
         _activeCaster = caster;
 
         // 이펙트 오버레이(예: DashDoll 의 Skill_Attack_Effect)는 이제 PlaySequenced 가 effectState 로 직접

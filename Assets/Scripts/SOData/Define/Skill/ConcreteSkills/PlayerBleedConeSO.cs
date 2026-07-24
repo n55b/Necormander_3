@@ -40,7 +40,7 @@ public class PlayerBleedConeSO : PlayerSkillSO
         // 부채꼴(삼각형)의 크기를 distance와 width로 조절합니다.
         box.transform.localScale = new Vector3(distance, width, 1f);
         
-        float finalDamage = GetBaseDamage(player.Stat) * damageMultiplier;
+        float finalDamage = ResolveDamage(player.Stat, damageMultiplier);
         DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Bleed Cone");
         
 
