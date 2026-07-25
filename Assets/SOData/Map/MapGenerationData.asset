@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db48b1237efcd2b49bc8992f2d0fd8d3, type: 3}
   m_Name: MapGenerationData
   m_EditorClassIdentifier: 
-  totalRoomCount: 14
+  totalRoomCount: 10
   gridUnit: 1
   useIsaacStylePlacement: 1
   gridSpacing: 160
-  minNormalRooms: 10
+  minNormalRooms: 5
   shopCount: 1
   rewardCount: 2
   eliteCount: 1
