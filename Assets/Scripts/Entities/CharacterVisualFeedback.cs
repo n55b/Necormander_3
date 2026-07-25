@@ -107,12 +107,41 @@ public class CharacterVisualFeedback : MonoBehaviour
     private void Update()
     {
         UpdateStatusVFX();
-        UpdateSuperArmorColor();
+        UpdateBaseTint();
     }
 
-    private void UpdateSuperArmorColor()
+    /// <summary>찐한 파란색(Deep Blue). 슈퍼아머 게이지가 가득일 때의 색.</summary>
+    private static readonly Color SuperArmorColor = new Color(0.1f, 0.3f, 1f, 1f);
+
+    /// <summary>
+    /// 틴트를 볼 상태이상의 우선순위. 여러 개가 동시에 걸려 있어도 '하나만' 칠한다 —
+    /// 중독(초록)과 출혈(빨강)을 겹쳐 곱하면 탁한 갈색이 되어 둘 다 안 읽히기 때문이다.
+    /// 행동 불가(빙결/기절)가 가장 급한 정보라 앞에 둔다.
+    /// </summary>
+    private static readonly StatusType[] TintPriority =
     {
-        if (_status == null || _sr == null) return;
+        StatusType.Freeze, StatusType.Stun, StatusType.Poison, StatusType.Bleed, StatusType.BloodPop,
+    };
+
+    /// <summary>
+    /// 스프라이트의 '기본색'을 매 프레임 한 번에 결정한다. 슈퍼아머와 상태이상 틴트가 각자
+    /// _sr.color 를 건드리면 서로 덮어써서 깜빡이므로, 레이어를 순서대로 겹쳐 한 번만 쓴다.
+    ///
+    /// 겹치는 순서: 원래색 → 슈퍼아머 → 상태이상 틴트.
+    /// 슈퍼아머는 빙결을 애초에 막으므로(StatusRules.BlockedBySuperArmor) 둘이 동시에 켜지는 건
+    /// '이미 빙결된 유닛이 슈퍼아머를 얻는' 경로뿐이다. 그때는 나중에 얹는 빙결이 이긴다 —
+    /// 행동 불가라는 정보가 더 급하기 때문이다.
+    ///
+    /// 피격 플래시 중(_flashCoroutine != null)에는 SetBaseColor 가 _sr.color 를 안 건드리고
+    /// 값만 갱신해두므로, 플래시가 끝나면 여기서 정한 색으로 복귀한다.
+    /// 상태이상이 풀리면 result 가 다시 _originalBaseColor 가 되어 원래 색으로 돌아온다.
+    /// </summary>
+    private void UpdateBaseTint()
+    {
+        if (_sr == null) return;
+
+        // 사망 연출(PlayDeathVisual)이 칠해둔 색을 매 프레임 덮어쓰지 않도록 여기서 손을 뗀다.
+        if (_health != null && _health.IsDead) return;
 
         if (!_hasSavedOriginalBaseColor)
         {
@@ -120,27 +149,48 @@ public class CharacterVisualFeedback : MonoBehaviour
             _hasSavedOriginalBaseColor = true;
         }
 
-        if (_status.HasSuperArmor)
+        Color result = _originalBaseColor;
+
+        if (_status != null && _status.HasSuperArmor)
         {
             float maxSA = _status.MaxSuperArmorGauge;
-            float currentSA = _status.SuperArmorGauge;
-            float ratio = maxSA > 0f ? (currentSA / maxSA) : 0f;
+            float ratio = maxSA > 0f ? (_status.SuperArmorGauge / maxSA) : 0f;
+            result = Color.Lerp(result, SuperArmorColor, ratio);
+        }
 
-            // 찐한 파란색 정의 (Deep Blue)
-            Color superArmorColor = new Color(0.1f, 0.3f, 1f, 1f);
-            
-            // 원래 베이스 색상과 찐한 파란색을 비율에 따라 Lerp
-            Color lerpedColor = Color.Lerp(_originalBaseColor, superArmorColor, ratio);
-            
-            SetBaseColor(lerpedColor);
-        }
-        else
+        result = ApplyStatusTint(result);
+
+        // 바뀐 게 없으면 건드리지 않는다 — 매 프레임 SetBaseColor 를 때리면 사망색 같은
+        // '외부에서 칠한 색'을 눈치 없이 지운다.
+        if (result != _originalColor) SetBaseColor(result);
+    }
+
+    /// <summary>
+    /// 걸려 있는 상태이상의 틴트를 곱연산으로 얹는다. Lerp 가 아니라 곱인 이유는,
+    /// Lerp 는 스프라이트의 명암을 틴트색 쪽으로 뭉개서 도트가 납작해 보이기 때문이다.
+    /// 곱은 원래 음영을 유지한 채 색만 물든다.
+    ///
+    /// 틴트 색의 알파를 '세기'로 쓴다 — 알파 0 이면 그 상태는 틴트를 안 쓴다는 뜻이라 그냥 지나간다.
+    /// 색값은 전부 StatusEffectPalette 에서 오므로 여기엔 상태이상 색이 하드코딩되지 않는다.
+    /// </summary>
+    private Color ApplyStatusTint(Color baseColor)
+    {
+        if (_status == null) return baseColor;
+
+        var palette = StatusEffectPalette.Shared;
+        if (palette == null) return baseColor;
+
+        for (int i = 0; i < TintPriority.Length; i++)
         {
-            if (_originalColor != _originalBaseColor)
-            {
-                SetBaseColor(_originalBaseColor);
-            }
+            StatusType type = TintPriority[i];
+            if (!_status.HasStatus(type)) continue;
+            if (!palette.TryGetTint(StatusEffectPalette.FromStatus(type), out Color tint)) continue;
+
+            Color multiplied = new Color(baseColor.r * tint.r, baseColor.g * tint.g, baseColor.b * tint.b, baseColor.a);
+            return Color.Lerp(baseColor, multiplied, tint.a);
         }
+
+        return baseColor;
     }
 
     private void UpdateStatusVFX()
