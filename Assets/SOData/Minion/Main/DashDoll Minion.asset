@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 0
   minionName: Dash Doll
-  minionIcon: {fileID: 4470197321445279616, guid: 36208386774834c4ba2d366cd31db059, type: 3}
+  minionIcon: {fileID: -5783352143196586617, guid: 36208386774834c4ba2d366cd31db059, type: 3}
   shopCost: 150
   rewardItemData:
     itemName: 
@@ -91,6 +91,7 @@ MonoBehaviour:
     clipDuration: 0
     startClip: 
     hitBoxClip: Dash
+    rotateHitBoxClipToDir: 0
     endClip: Dash_End
   references:
     version: 2
