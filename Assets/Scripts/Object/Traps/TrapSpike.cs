@@ -100,6 +100,13 @@ public class TrapSpike : MonoBehaviour
             plateAnimator.Play(StateOn, 0, 0f);
         }
 
+        // 가시 발동 사운드 재생
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(spikeSound, spikeVolume);
+
+        }
+
         // 1초 대기
         yield return new WaitForSeconds(activationDelay);
 
@@ -108,13 +115,6 @@ public class TrapSpike : MonoBehaviour
         if (spikeVisual != null)
         {
             spikeVisual.SetActive(true);
-        }
-
-        // 가시 발동 사운드 재생
-        if (SoundManager.Instance != null)
-        {
-            SoundManager.Instance.PlaySFX(spikeSound, spikeVolume);
-
         }
 
         // 솟아오르는 즉시 영역 내 모든 캐릭터에게 1회 데미지 가함

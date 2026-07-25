@@ -101,7 +101,7 @@ MonoBehaviour:
     m_Bits: 0
   spikeVisual: {fileID: 0}
   plateAnimator: {fileID: 6561663032713383918}
-  spikeSound: {fileID: 8300000, guid: 01d47e036565628419fffcf2610149b3, type: 3}
+  spikeSound: {fileID: 8300000, guid: 9166fd2c016724648a2084a8eb7deb04, type: 3}
   spikeVolume: 1
   spikeDownSound: {fileID: 8300000, guid: 9166fd2c016724648a2084a8eb7deb04, type: 3}
   spikeDownVolume: 1
