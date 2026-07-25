@@ -36,6 +36,44 @@ public static class BossTelegraph
         rect.transform.localScale = new Vector3(length, width, 1f);
     }
 
+/// <summary>
+    /// origin에서 dir 방향으로 뻗는 직사각 전조를, 두께 방향으로 차오르는 게이지와 함께 갱신한다.
+    /// 길이는 대상과의 거리라서 매번 달라지므로 길이축으로 채우면 채울 거리가 달라져 체감 속도가 들쭉날쭉해진다.
+    /// 폭은 항상 상수이므로 두께로 채워야 "얼마나 남았는지"가 일정한 속도로 읽히고 학습이 가능해진다.
+    /// 게이지는 중심 정렬이라 레인이 어느 방향으로 회전해도 좌우 대칭으로 벌어진다.
+    /// </summary>
+    public static void UpdateRectWithFill(GameObject rect, Vector2 origin, Vector2 dir, float length, float width, float progress01, Color fillColor)
+    {
+        if (rect == null) return;
+
+        UpdateRect(rect, origin, dir, length, width);
+
+        Transform fill = rect.transform.childCount > 0 ? rect.transform.GetChild(0) : null;
+        if (fill == null)
+        {
+            GameObject fillObj = new GameObject("Boss_Telegraph_Rect_Fill");
+            var fillSr = fillObj.AddComponent<SpriteRenderer>();
+            fillSr.sprite = GetSquareSprite();
+            fillSr.color = fillColor;
+
+            var baseSr = rect.GetComponent<SpriteRenderer>();
+            if (baseSr != null)
+            {
+                fillSr.sortingLayerID = baseSr.sortingLayerID;
+                fillSr.sortingOrder = baseSr.sortingOrder + 1; // 배경 레인 바로 위
+            }
+
+            fill = fillObj.transform;
+            fill.SetParent(rect.transform, false);
+        }
+
+        fill.localPosition = Vector3.zero;
+        fill.localRotation = Quaternion.identity;
+        // 부모가 이미 (length, width)로 스케일돼 있으므로 자식은 비율만 지정하면 된다.
+        fill.localScale = new Vector3(1f, Mathf.Clamp01(progress01), 1f);
+    }
+
+
     private static GameObject Spawn(string name, Sprite sprite, Vector2 pos, float diameter, Color color, int order)
     {
         GameObject obj = new GameObject(name);

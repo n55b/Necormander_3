@@ -515,6 +515,10 @@ public abstract class BaseEntity : MonoBehaviour
             ActiveAttackCoroutine = null;
         }
 
+        // 예고 표시처럼 공격 루틴이 만든 월드 오브젝트를 브레인이 직접 치우게 한다.
+        // StopCoroutine 으로 끊긴 루틴은 자체 정리 코드가 실행되지 않는다.
+        if (_runtimeBrain != null) _runtimeBrain.OnAttackCancelled(this);
+
         IsAttacking = false;
 
         if (_activeHitbox != null)

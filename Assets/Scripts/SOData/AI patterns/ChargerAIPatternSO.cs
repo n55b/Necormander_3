@@ -10,9 +10,49 @@ public class ChargerAIPatternSO : BaseAIPatternSO
 {
     [Header("돌진 설정")]
     [SerializeField] private GameObject aimLinePrefab; // 궁수용 aimLinePrefab 재사용
+    [Tooltip("기존 조준선(락온 연출). 예고 레인이 같은 역할을 더 잘 하므로 기본 꺼짐. 0 데미지 더미 히트박스라 꺼도 판정에는 영향 없다.")]
+    [SerializeField] private bool showAimLine = false;
+
     [SerializeField] private float launchOffset = 0.5f;
     [SerializeField] private float windupTime = 1.0f; // 돌진 준비 시간 (락온 유지 시간)
-    [SerializeField] private float telegraphFlashLeadTime = 0.35f; // [예고 문법] 돌진 개시 몇 초 전에 예고 플래시를 터뜨릴지 (전 몬스터 공통 반응 시간)
+    [SerializeField] private float telegraphFlashLeadTime = 0.35f;
+    [Header("돌진 예고 레인")]
+    [Tooltip("돌진 경로를 바닥에 깔고, 두께가 차오르며 개시 타이밍을 알린다. 끄면 기존처럼 플래시만 사용.")]
+    [SerializeField] private bool showChargeTelegraph = true;
+    [Tooltip("배경 레인 색. '어디로 올지'를 알린다.")]
+    [SerializeField] private Color chargeTelegraphColor = new Color(1f, 0f, 0f, 0.22f);
+    [Tooltip("두께로 차오르는 게이지 색. '언제 올지'를 알린다. 배경보다 진해야 읽힌다.")]
+    [SerializeField] private Color chargeTelegraphFillColor = new Color(1f, 0.3f, 0.1f, 0.7f);
+    [Tooltip("레인 두께(월드 단위). 돌진 히트 판정 폭에 맞추면 예고가 정직해진다.")]
+    [SerializeField] private float chargeTelegraphWidth = 0.9f;
+    [Tooltip("돌진 안전 타임아웃. 최대 돌진 거리(= 돌진속도 x 이 시간) 계산에도 쓰인다.")]
+    [SerializeField] private float maxChargeDuration = 3.0f;
+    private GameObject _chargeTelegraph;
+
+    /// <summary>돌진 예고 레인 제거. 정상 종료/취소 양쪽에서 호출된다.</summary>
+    private void ClearChargeTelegraph()
+    {
+        if (_chargeTelegraph != null)
+        {
+            Destroy(_chargeTelegraph);
+            _chargeTelegraph = null;
+        }
+    }
+
+    // 피격/스턴으로 공격이 끊길 때. StopCoroutine 은 루틴 뒷정리를 실행하지 않는다.
+    public override void OnAttackCancelled(BaseEntity entity)
+    {
+        base.OnAttackCancelled(entity);
+        ClearChargeTelegraph();
+    }
+
+    // 엔티티 사망/씬 언로드로 브레인 클론이 파괴될 때.
+    private void OnDisable()
+    {
+        ClearChargeTelegraph();
+    }
+
+ // [예고 문법] 돌진 개시 몇 초 전에 예고 플래시를 터뜨릴지 (전 몬스터 공통 반응 시간)
 
     [SerializeField] private float chargeSpeedMultiplier = 3.0f; // 기본 이속 대비 돌진 배수
     [SerializeField, Range(0.1f, 1.5f)] private float wallStopRadiusRatio = 0.55f; // [추가] 돌진 중 벽/장애물 감지용 CircleCast 반지름. 값을 낮추면 벽에 더 가까이 붙은 뒤에 멈춤
@@ -49,7 +89,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         BaseHitBox aimHitbox = null;
 
         // [1] 돌진 방향 조준선 생성 (락온 연출)
-        if (aimLinePrefab != null && entity.Target != null)
+        if (showAimLine && aimLinePrefab != null && entity.Target != null)
         {
             // [수정] 월드가 아닌 시전자(entity) 자식으로 매달아 몬스터가 이동/넉백되어도 오프셋 지점에 조준선이 따라붙도록 처리
             aimLine = Instantiate(aimLinePrefab, entity.transform.position, Quaternion.identity, entity.transform);
@@ -69,6 +109,9 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         Vector2 chargeDir = Vector2.right;
         var telegraphVfb = entity.GetComponentInChildren<CharacterVisualFeedback>();
         bool telegraphFlashFired = false;
+        // 스턴 등으로 코루틴이 끊겨도 OnAttackCancelled 에서 치울 수 있도록 인스턴스 필드에 보관.
+        // (엔티티별 클론이라 몹끼리 섞이지 않는다 — BaseEntity._runtimeBrain)
+        ClearChargeTelegraph(); // 이전 시도가 남긴 게 있으면 먼저 정리
 
 
         // 방향 인디케이터: 돌진 충전 중엔 멈춰 있어도(이동 velocity≈0) 실시간 재조준 방향을 가리키게 오버라이드.
@@ -94,6 +137,31 @@ public class ChargerAIPatternSO : BaseAIPatternSO
             entity.LookAtTarget(entity.Target);
             dirIndicator?.SetAimOverride(chargeDir); // 인디케이터도 실시간 조준 방향으로 (돌진 개시 후엔 자동 만료 → 이동 방향 복귀)
 
+            // [추가] 돌진 예고 레인: 경로는 배경으로 계속 보여주고, 개시 타이밍은 두께 게이지로 알린다.
+            // 조준선(aimHitbox)은 길이가 대상과의 거리라 타이밍을 읽을 수 없었다.
+            // 폭은 상수라 게이지가 항상 같은 속도로 차오르므로 회피 타이밍이 학습된다.
+            if (showChargeTelegraph)
+            {
+                if (_chargeTelegraph == null)
+                    _chargeTelegraph = BossTelegraph.SpawnRect(chargeTelegraphColor);
+
+                // [수정] 레인은 플레이어에서 끊지 않고 통과시킨다.
+                // 어디까지 위험한지 다 보여야 '어느 쪽으로 피할지'를 판단할 수 있다.
+                // 벽/장애물에 막히는 지점까지, 막는 게 없으면 최대 돌진 거리까지.
+                // (돌진 루프와 동일한 마스크·반지름이라 예고와 실제 정지 지점이 항상 일치한다)
+                float laneLength = entity.Stats.MOVESPEED * chargeSpeedMultiplier * maxChargeDuration;
+                RaycastHit2D laneBlock = Physics2D.CircleCast(
+                    entity.transform.position,
+                    wallStopRadiusRatio,
+                    chargeDir,
+                    laneLength,
+                    LayerMask.GetMask("Wall", "Object"));
+                if (laneBlock.collider != null)
+                    laneLength = laneBlock.distance;
+                float chargeProgress = windupTime > 0f ? 1f - Mathf.Clamp01(timeout / windupTime) : 1f;
+                BossTelegraph.UpdateRectWithFill(_chargeTelegraph, spawnPos, chargeDir, laneLength, chargeTelegraphWidth, chargeProgress, chargeTelegraphFillColor);
+            }
+
             if (aimHitbox != null)
             {
                 // 1. 회전 업데이트 (타겟 추적 회전)
@@ -110,6 +178,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
 
         // 조준 종료 후 조준선 정리
         if (aimLine != null) Destroy(aimLine);
+        ClearChargeTelegraph();
         entity.SetActiveHitbox(null);
 
         // [3] 돌진 돌입
@@ -126,7 +195,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         var chargerCollider = entity.GetComponent<Collider2D>();
         var rb = entity.GetComponent<Rigidbody2D>();
         float chargeSpeed = entity.Stats.MOVESPEED * chargeSpeedMultiplier;
-        float maxChargeDuration = 3.0f; // 안전 타임아웃
+        // maxChargeDuration 은 예고 레인 길이 계산과 공유하기 위해 필드로 올렸다.
 
         // [잔상] 돌진 구간에서만 잔상 방출 윈도우를 엽니다 (평타 넉백 등에는 잔상이 안 나오도록 명시적 제어).
         // 코루틴이 스턴/사망으로 끊겨도 윈도우가 자동 만료되므로 잔상이 켜진 채 남지 않습니다.

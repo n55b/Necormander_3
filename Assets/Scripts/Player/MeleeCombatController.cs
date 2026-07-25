@@ -284,7 +284,7 @@ public class MeleeCombatController : MonoBehaviour
     /// </summary>
     public void OnAttackHitFrame()
     {
-        _activeHitbox?.ForceActivate();
+        if (_activeHitbox != null) _activeHitbox.ForceActivate(); // ?. 는 Unity의 == 오버로드를 안 타서 파괴된 오브젝트를 못 거른다
 
         if (_player != null)
         {
