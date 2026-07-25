@@ -60,6 +60,7 @@ MonoBehaviour:
     hitBoxSize: {x: 3.5, y: 3.2}
     hitBoxPrefab: {fileID: 0}
     spawnOffset: 1.7
+    minionOffsetFromHitBox: 0
     causesHitstun: 1
     knockbackForce: 6
     superArmorDamage: 30
@@ -85,6 +86,12 @@ MonoBehaviour:
     damageState: 
     hitEvent: OnHitEvent
     hitWindowRatio: 0.18
+  dashAnim:
+    visual: {fileID: -2253911629886400664, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}
+    clipDuration: 0
+    startClip: 
+    hitBoxClip: Dash
+    endClip: Dash_End
   references:
     version: 2
     RefIds: []

@@ -209,7 +209,7 @@ public abstract class BaseEntity : MonoBehaviour
                 }
 
                 // 기절 애니메이션은 시작될 때 한 번만 재생 (매 프레임 재시작 방지)
-                if (!_isPlayingStunAnim && _animator != null)
+                if (!_isPlayingStunAnim && _animator != null && _animator.runtimeAnimatorController != null)
                 {
                     _animator.Play("Stun");
                     _isPlayingStunAnim = true;
@@ -369,7 +369,7 @@ public abstract class BaseEntity : MonoBehaviour
     // 매 프레임 혹은 상태 변경 시 호출 할 함수
     public virtual void UpdateAnimation(AIState state)
     {
-        if (_animator == null) return;
+        if (_animator == null || _animator.runtimeAnimatorController == null) return;
 
         // [수정] 공격 애니메이션 재생 중(IsAttacking)에는 AttackRoutine이 애니메이터를 직접 제어하므로
         // 여기서 간섭하면 안 됩니다. (기존에는 공격 시작 다음 프레임에 상태 변경이 뒤늦게 감지되어
@@ -523,7 +523,7 @@ public abstract class BaseEntity : MonoBehaviour
             _activeHitbox = null;
         }
 
-        if (_animator != null)
+        if (_animator != null && _animator.runtimeAnimatorController != null)
         {
             _animator.Play("Idle"); // 애니메이션 강제 초기화
             _animator.speed = 1f; // 공격 취소 시 배속 강제 원복
