@@ -133,6 +133,9 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         if (mod != null && mod.DealsDamage)
             SpawnDashHitBox(mod, transform.position, _dashDir, actualDist);
 
+        // 대쉬 연출: 미니언이 자기 대쉬 애니를 '위치별'로 재생한다(히트박스와 무관한 순수 비주얼).
+        SpawnDashVisual(GetMainMinion(), mod, transform.position, _dashDir, actualDist);
+
         if (_player.Stat != null && _player.Stat.Health != null)
         {
             _player.Stat.Health.Invincible = true; // 대쉬 무적
@@ -151,12 +154,58 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         OnDodgeStarted?.Invoke();
     }
 
+    /// <summary>장착된 메인 소환수. 없으면 null.</summary>
+    private MainMinionDataSO GetMainMinion()
+    {
+        var skillCtrl = _player != null ? _player.GetComponent<PlayerSkillController>() : null;
+        return skillCtrl != null ? skillCtrl.MainSummon : null;
+    }
+
     /// <summary>장착된 메인 소환수의 대쉬 개조안. 없으면 null(= 기본 대쉬).</summary>
     private MinionDashModifier GetDashModifier()
     {
-        var skillCtrl = _player != null ? _player.GetComponent<PlayerSkillController>() : null;
-        var main = skillCtrl != null ? skillCtrl.MainSummon : null;
+        var main = GetMainMinion();
         return main != null ? main.dashModifier : null;
+    }
+
+    /// <summary>
+    /// 대쉬 '연출'을 깐다 — 히트박스/데미지와 무관한 순수 비주얼(대쉬 판정은 SpawnDashHitBox 가 낸다).
+    ///  · hitAtOrigin(네크 인형): 출발 지점에 클립 하나(startClip 우선).
+    ///  · 경로형: 출발 / 히트박스중앙 / 종료 세 지점에 채워진 클립을 순서대로.
+    /// </summary>
+    private void SpawnDashVisual(MainMinionDataSO main, MinionDashModifier mod, Vector2 origin, Vector2 dir, float dist)
+    {
+        if (main == null) return;
+        var da = main.dashAnim;
+        if (da == null || !da.HasVisual) return;
+
+        Vector2 end = origin + dir * dist;
+        Vector2 center = origin + dir * (dist * 0.5f);
+        bool faceRight = dir.x >= 0f;
+        // 히트박스 회전각 — hitBoxClip 회전 옵션이 켜졌을 때 이 각도로 스프라이트를 통째 회전(경로 히트박스와 동일).
+        float? hitBoxRot = da.rotateHitBoxClipToDir ? (float?)(Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg) : null;
+
+        var steps = new System.Collections.Generic.List<(string clip, Vector3 pos, float? rotZ)>();
+        if (mod != null && mod.hitAtOrigin)
+        {
+            // 출발점 판정형: 출발 자리에 클립 하나. startClip 우선, 비었으면 채워진 첫 클립으로 폴백.
+            string clip = !string.IsNullOrWhiteSpace(da.startClip) ? da.startClip
+                        : !string.IsNullOrWhiteSpace(da.hitBoxClip) ? da.hitBoxClip
+                        : da.endClip;
+            if (!string.IsNullOrWhiteSpace(clip)) steps.Add((clip, (Vector3)origin, null));
+        }
+        else
+        {
+            // 경로 판정형: 채워진 것만 순서대로(출발 → 히트박스중앙 → 종료). hitBoxClip 만 회전 옵션 적용.
+            if (!string.IsNullOrWhiteSpace(da.startClip))  steps.Add((da.startClip,  (Vector3)origin, null));
+            if (!string.IsNullOrWhiteSpace(da.hitBoxClip)) steps.Add((da.hitBoxClip, (Vector3)center, hitBoxRot));
+            if (!string.IsNullOrWhiteSpace(da.endClip))    steps.Add((da.endClip,    (Vector3)end,    null));
+        }
+
+        if (steps.Count == 0) return;
+
+        var caster = MinionSkillCaster.Spawn(main, origin);
+        caster.PlayDashSequence(da.visual, steps, da.clipDuration, faceRight);
     }
 
     /// <summary>
