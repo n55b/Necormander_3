@@ -92,3 +92,38 @@ public class MinionAnimSet
         return list.ToArray();
     }
 }
+
+/// <summary>
+/// 메인 소환수의 '대쉬' 연출. 대쉬 판정/히트박스와 무관한 순수 비주얼이다
+/// (대쉬 데미지는 MinionDashModifier + MeleeDodgeController 가 따로 낸다).
+///
+/// 두 종류의 대쉬를 한 구조로 다룬다:
+///  · 출발점 판정형(hitAtOrigin, 네크 인형): 히트박스가 출발 지점에 생기므로 그 자리에 클립 하나만 재생한다 → startClip 만 채운다.
+///  · 경로 판정형: 히트박스가 대쉬 영역을 훑으므로 출발 / 히트박스중앙 / 종료 세 지점에 각각 클립을 재생한다 → 세 칸을 채운다.
+/// 빈 칸은 건너뛰고, 채워진 것만 '하나 끝나면 다음' 순서로 재생한다(대쉬보다 길어질 수 있어 인형이 늦게까지 남는다).
+/// </summary>
+[System.Serializable]
+public class MinionDashAnim
+{
+    [Tooltip("재생할 aseprite 프리팹(애니메이터 포함). 비우면 대쉬 연출 없음(히트박스만 — 기존 동작).")]
+    public GameObject visual;
+
+    [Tooltip("각 클립 재생 시간(초). 0 이면 클립의 자연 길이 그대로 재생한다. 속도 손잡이.")]
+    public float clipDuration = 0f;
+
+    [Header("클립 (빈 칸은 건너뜀)")]
+    [Tooltip("대쉬 '출발 지점'에서 재생할 클립. hitAtOrigin(네크 인형)은 이것만 쓰면 된다(출발점=히트박스).")]
+    public string startClip = "";
+
+    [Tooltip("대쉬 '히트박스 위치'(경로 박스 중앙)에서 재생할 클립. hitAtOrigin 대쉬에서는 무시된다.")]
+    public string hitBoxClip = "";
+
+    [Tooltip("hitBoxClip 을 대쉬 방향(= 히트박스 회전)에 맞춰 통째로 회전시킨다. 직선형 대쉬 연출(빔/궤적)이 " +
+             "대각선·위 대쉬에서 그 방향으로 눕도록. 끄면 좌우 반전만(기존).")]
+    public bool rotateHitBoxClipToDir = false;
+
+    [Tooltip("대쉬 '종료 지점'에서 재생할 클립. hitAtOrigin 대쉬에서는 무시된다.")]
+    public string endClip = "";
+
+    public bool HasVisual => visual != null;
+}

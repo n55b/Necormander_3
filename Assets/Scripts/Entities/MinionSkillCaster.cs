@@ -245,6 +245,93 @@ public class MinionSkillCaster : MonoBehaviour
         return vfx;
     }
 
+    /// <summary>
+    /// [대쉬 연출 전용] 위치별 클립을 '하나 끝나면 다음' 순서로 재생하는 순수 비주얼.
+    /// 데미지·판정과 무관하다(대쉬 히트박스는 MeleeDodgeController 가 따로 낸다) — 그래서 PlaySequenced 의
+    /// 히트 이벤트/경고 로직을 안 타려고 별도 경로로 둔다. 빈 클립 스텝은 호출 전에 걸러서 넘긴다.
+    /// 캐스터(자기 Transform)를 스텝마다 그 월드 위치로 스냅하면 자식 비주얼이 같이 따라간다.
+    /// </summary>
+    /// <param name="visual">재생할 aseprite 프리팹.</param>
+    /// <param name="steps">(클립 이름, 월드 위치, 회전각) 순서 목록 — 채워진 스텝만.
+    ///   rotZ 가 null 이면 좌우 반전(faceRight) 모드, 값이 있으면 그 각도로 통째 회전(반전 안 함).</param>
+    /// <param name="clipDuration">각 클립 재생 시간(초). 0 이면 클립 자연 길이.</param>
+    /// <param name="faceRight">rotZ 가 null 인 스텝의 스프라이트 좌우 반전(대쉬 x 방향).</param>
+    public void PlayDashSequence(GameObject visual,
+        System.Collections.Generic.List<(string clip, Vector3 pos, float? rotZ)> steps,
+        float clipDuration, bool faceRight)
+    {
+        if (visual == null || steps == null || steps.Count == 0)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
+        vfx.transform.localPosition = Vector3.zero;
+
+        var anim = vfx.GetComponentInChildren<Animator>();
+
+        // 클립에 OnHitEvent/OnAttackEndEvent 가 박혀 있을 수 있다(aseprite cel user data). 대쉬 데미지는
+        // 히트박스가 따로 내므로 여기선 안 쓰지만, 리시버가 없으면 Unity 가 "has no receiver!" 경고를 낸다.
+        // PlaySequenced 와 같은 방식으로 무핸들러 relay 를 붙여 조용히 흡수한다.
+        if (anim != null) anim.gameObject.AddComponent<MinionAnimEventRelay>();
+
+        // 시퀀스가 하드행어처럼 늘어져도 알아서 정리되도록 상한 수명을 잡아둔다(코루틴이 정상이면 먼저 Destroy).
+        float total = 0f;
+        foreach (var s in steps)
+        {
+            float len = ClipLength(anim, s.clip);
+            float d = clipDuration > 0f ? clipDuration : (len > 0f ? len : 0.15f);
+            total += d;
+        }
+        SetLifetime(total + DESPAWN_TAIL);
+
+        StartCoroutine(DashSequenceRoutine(vfx, anim, steps, clipDuration, faceRight));
+    }
+
+    private System.Collections.IEnumerator DashSequenceRoutine(GameObject vfx, Animator anim,
+        System.Collections.Generic.List<(string clip, Vector3 pos, float? rotZ)> steps, float clipDuration, bool faceRight)
+    {
+        bool hasAnim = anim != null && anim.runtimeAnimatorController != null;
+        var sr = vfx != null ? vfx.GetComponentInChildren<SpriteRenderer>() : null;
+        foreach (var s in steps)
+        {
+            if (this == null || vfx == null) yield break;
+            transform.position = s.pos; // 캐스터를 이 스텝 위치로 스냅 → 자식 비주얼도 이동
+
+            // 회전/반전: rotZ 있으면 그 각도로 통째 회전(히트박스와 동일), 없으면 좌우 반전만(기존).
+            if (s.rotZ.HasValue)
+            {
+                vfx.transform.localRotation = Quaternion.Euler(0f, 0f, s.rotZ.Value);
+                if (sr != null) sr.flipX = false;
+            }
+            else
+            {
+                vfx.transform.localRotation = Quaternion.identity;
+                if (sr != null) sr.flipX = faceRight;
+            }
+
+            float dur;
+            if (hasAnim && !string.IsNullOrEmpty(s.clip))
+            {
+                float len = ClipLength(anim, s.clip);
+                dur = clipDuration > 0f ? clipDuration : (len > 0f ? len : 0.15f);
+                if (len > 0f)
+                {
+                    anim.speed = len / dur;      // 클립을 dur 에 정확히 맞춰 재생(속도 손잡이)
+                    anim.Play(s.clip, 0, 0f);
+                }
+                else
+                    Debug.LogWarning($"<color=orange>[MinionCaster]</color> 대쉬 연출 클립 '{s.clip}' 이(가) '{vfx.name}' 애니메이터에 없습니다. 위치만 잡고 넘어갑니다.");
+            }
+            else
+                dur = clipDuration > 0f ? clipDuration : 0.15f;
+
+            yield return new WaitForSeconds(dur);
+        }
+        if (this != null) Destroy(gameObject);
+    }
+
     private System.Collections.IEnumerator SequenceRoutine(Animator anim, Transform visualTf, string[] sequence,
                                                            string damageState, float speed, bool faceRight,
                                                            System.Collections.Generic.List<AnimPhase> movePhases,
