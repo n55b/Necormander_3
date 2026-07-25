@@ -711,7 +711,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                     float eSize;
                     if (pair.Key == "hud" && _hudMarkerPx > 0f)
                     {
-                        eSize = _hudMarkerPx * (isBoss ? 1.8f : 1f);
+                        eSize = _hudMarkerPx * (isBoss ? 1.0f : 0.5f);
                     }
                     else
                     {
