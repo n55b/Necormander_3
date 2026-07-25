@@ -319,10 +319,10 @@ public class CharacterStatus : MonoBehaviour
 
         // 이번 호출로 '새로' 걸린 것인지. 재적중(지속시간 갱신)에는 텍스트를 안 띄운다 —
         // 다단히트 스킬이 1초에 다섯 번 갱신하면 "빙결!"이 다섯 번 겹쳐 뜬다.
-        bool isNewlyApplied = !_statuses.ContainsKey(type);
+        bool isNewlyApplied = !_statuses.TryGetValue(type, out var inst); // 조회 한 번으로 겸함
 
         
-if (!_statuses.TryGetValue(type, out var inst))
+if (isNewlyApplied)
         {
             inst = new StatusInstance();
             _statuses[type] = inst;
@@ -360,6 +360,12 @@ if (!_statuses.TryGetValue(type, out var inst))
     }
 
     public bool HasStatus(StatusType type) => _statuses.ContainsKey(type);
+
+    /// <summary>
+    /// 상태이상이 하나라도 걸려 있는가. 매 프레임 도는 시각 효과(CharacterVisualFeedback)가
+    /// 아무것도 안 걸린 흔한 경우를 int 비교 한 번으로 빠져나가기 위한 통로다.
+    /// </summary>
+    public bool HasAnyStatus => _statuses.Count > 0;
 
     public int GetStacks(StatusType type)
         => _statuses.TryGetValue(type, out var inst) ? inst.Stacks : 0;

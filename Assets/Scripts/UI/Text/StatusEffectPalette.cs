@@ -109,9 +109,24 @@ public class StatusEffectPalette : ScriptableObject
     [Tooltip("회복(힐)을 받았을 때 '+숫자' 형태로 표시되는 색상")]
     public Color healColor = Color.green;
 
+    [Header("슈퍼아머 오버레이")]
+    [Tooltip("슈퍼아머가 켜진 동안 유닛 위에 겹쳐 그릴 아웃라인 머티리얼(Pixel_SuperArmor_Shader). " +
+             "비우면 오버레이를 아예 만들지 않는다 — 즉 이 칸이 효과 On/Off 스위치다")]
+    public Material superArmorOverlayMaterial;
+
+    [Tooltip("오버레이 머티리얼에서 색을 담당하는 프로퍼티 이름. PickUpOutline 계열은 _Color")]
+    public string superArmorColorProperty = "_Color";
+
+    [Tooltip("게이지가 가득일 때 오버레이 색의 밝기 배율")]
+    public float superArmorMaxBrightness = 1f;
+
+    [Tooltip("게이지가 거의 0일 때의 밝기 배율. 깎일수록 여기까지 어두워져서 '닳고 있음'이 보인다")]
+    public float superArmorMinBrightness = 0.25f;
+
     // ── 공용 인스턴스 ──────────────────────────────────────────────
 
     private static StatusEffectPalette _shared;
+    private static bool _sharedResolved;
 
     /// <summary>
     /// 프리팹마다 배선하지 않고 코드에서 바로 집는 공용 팔레트. HitBoxColorConfigSO 와 같은 방식이다 —
@@ -127,7 +142,18 @@ public class StatusEffectPalette : ScriptableObject
     {
         get
         {
-            if (_shared == null) _shared = Resources.Load<StatusEffectPalette>("StatusEffectPalette");
+            if (_shared != null) return _shared;
+
+            // 한 번 실패하면 다시 시도하지 않는다. 이 가드가 없으면 에셋이 없을 때
+            // '유닛 수 × 매 프레임'만큼 Resources.Load 가 돈다 — 없을 때 제일 느려지는 최악의 형태다.
+            // (CharacterVisualFeedback 의 _freezingPrefabResolved 와 같은 장치.)
+            if (_sharedResolved) return null;
+            _sharedResolved = true;
+
+            _shared = Resources.Load<StatusEffectPalette>("StatusEffectPalette");
+            if (_shared == null)
+                Debug.LogWarning("[StatusEffectPalette] Resources 아래에서 'StatusEffectPalette' 를 못 찾았습니다. " +
+                                 "상태이상 스프라이트 틴트와 슈퍼아머 오버레이가 꺼집니다.");
             return _shared;
         }
     }
@@ -146,12 +172,36 @@ public class StatusEffectPalette : ScriptableObject
     };
 
     /// <summary>못 찾으면 null. 인스펙터에서 항목을 지웠을 때 조용히 기본값으로 폴백하기 위함이다.</summary>
+    // StatusVisual 로 바로 꽂아 쓰는 조회 배열. entries 를 매번 선형 탐색하면
+    // '유닛 수 × 매 프레임 × 우선순위 개수'만큼 돌게 되므로 한 번만 만들어 재사용한다.
+    [System.NonSerialized] private Entry[] _byVisual;
+
+    private void BuildLookup()
+    {
+        int count = System.Enum.GetValues(typeof(StatusVisual)).Length;
+        _byVisual = new Entry[count];
+        if (entries == null) return;
+
+        for (int i = 0; i < entries.Length; i++)
+        {
+            var e = entries[i];
+            if (e == null) continue;
+            int idx = (int)e.visual;
+            // 같은 visual 이 중복이면 먼저 온 항목이 이긴다(기존 선형 탐색과 같은 규칙).
+            if (idx >= 0 && idx < count && _byVisual[idx] == null) _byVisual[idx] = e;
+        }
+    }
+
+    // 인스펙터에서 항목을 고치면 캐시를 버린다. 안 하면 에디터에서 색을 바꿔도 안 먹는다.
+    private void OnEnable() => _byVisual = null;
+    private void OnValidate() => _byVisual = null;
+
+    /// <summary>못 찾으면 null. 인스펙터에서 항목을 지웠을 때 조용히 기본값으로 폴백하기 위함이다.</summary>
     public Entry Find(StatusVisual visual)
     {
-        if (entries == null) return null;
-        for (int i = 0; i < entries.Length; i++)
-            if (entries[i] != null && entries[i].visual == visual) return entries[i];
-        return null;
+        if (_byVisual == null) BuildLookup();
+        int idx = (int)visual;
+        return (idx >= 0 && idx < _byVisual.Length) ? _byVisual[idx] : null;
     }
 
     public Color GetTextColor(StatusVisual visual)
