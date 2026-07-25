@@ -102,9 +102,9 @@ MonoBehaviour:
   spikeVisual: {fileID: 0}
   plateAnimator: {fileID: 6561663032713383918}
   spikeSound: {fileID: 8300000, guid: 9166fd2c016724648a2084a8eb7deb04, type: 3}
-  spikeVolume: 1
+  spikeVolume: 0.5
   spikeDownSound: {fileID: 8300000, guid: 9166fd2c016724648a2084a8eb7deb04, type: 3}
-  spikeDownVolume: 1
+  spikeDownVolume: 0.5
 --- !u!1 &7987875047821953546
 GameObject:
   m_ObjectHideFlags: 0
