@@ -17,6 +17,14 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
     [SerializeField] private GameObject explosionEffectPrefab; // Center Skill Hitbox Circle Prefab 연결 권장
     [SerializeField] private SpriteRenderer spriteRenderer;
 
+    [Header("Sound")]
+
+    [Tooltip("최종 폭발 사운드")]
+    [SerializeField] private AudioClip explosionSound;
+    [Range(0f, 1f)]
+    [SerializeField] private float explosionVolume = 1f;
+
+
     private bool _isDead = false;
     private bool _isTriggered = false;
 
@@ -56,7 +64,6 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
 
         // 타격을 받는 순간 바닥에 시각 장판(Telegraph) 생성 및 1.5초 예약 작동
         SpawnExplosionTelegraph();
-
         float timer = 0f;
         Color originalColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
         float blinkInterval = 0.15f;
@@ -101,12 +108,12 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
         }
     }
 
-    private void Explode()
+private void Explode()
     {
-        // 사운드 재생
+        // 폭발 사운드 재생
         if (SoundManager.Instance != null)
         {
-            SoundManager.Instance.HITSoundPlay(false);
+            SoundManager.Instance.PlaySFX(explosionSound, explosionVolume);
         }
 
         // 이펙트는 장판 프리팹 내부의 BaseHitBox가 타격 시간에 맞춰 자체 처리하므로
