@@ -7,6 +7,28 @@ using System.Collections.Generic;
 /// </summary>
 public class BaseHitBox : MonoBehaviour
 {
+    // 아군/적 히트박스 색·투명도 팔레트. 전용 에셋을 Resources.Load 로 한 번 읽어 캐시한다
+    // (DamageTextColorConfigSO 와 같은 '공용 색 config' 패턴 — GameManager 커플링 없음).
+    // 에셋은 이름이 'Resources' 인 폴더 아래면 아무데나 OK(중첩 가능 — 예: Assets/SOData/UI/Resources/HitBoxColorConfig.asset).
+    // Unity 는 프로젝트 내 모든 'Resources' 폴더를 하나로 합쳐 보므로 스프라이트용 Assets/Resources 와 안 섞여도 된다.
+    // 못 찾으면 하드코딩 색으로 폴백한다.
+    private static HitBoxColorConfigSO _colorConfig;
+    private static bool _colorConfigLoaded;
+    private static HitBoxColorConfigSO ColorConfig
+    {
+        get
+        {
+            if (!_colorConfigLoaded)
+            {
+                _colorConfig = Resources.Load<HitBoxColorConfigSO>("HitBoxColorConfig");
+                _colorConfigLoaded = true;
+                if (_colorConfig == null)
+                    Debug.LogWarning("<color=orange>[BaseHitBox]</color> Resources 에서 'HitBoxColorConfig' 를 못 찾았습니다 — 하드코딩 색(아군 파랑/적 빨강)으로 폴백합니다. " +
+                                     "에셋을 이름이 'Resources' 인 폴더 아래(예: Assets/SOData/UI/Resources/)에 이름 'HitBoxColorConfig' 로 두세요.");
+            }
+            return _colorConfig;
+        }
+    }
     [Header("Settings")]
     [Tooltip("장판이 유지되는 시간 (0이면 무한유지)")]
     public float duration = 0.5f; 
@@ -106,17 +128,8 @@ public class BaseHitBox : MonoBehaviour
         if (overrideDuration > 0)
             duration = overrideDuration;
 
-        // [추가] 아군/적군에 따른 장판 색상 자동 변경 (파란색 / 빨간색)
-        if (fillingTransform != null)
-        {
-            var sr = fillingTransform.GetComponentInChildren<SpriteRenderer>();
-            if (sr != null)
-            {
-                // 투명도(Alpha)를 유지하면서 색상만 변경
-                float alpha = sr.color.a;
-                sr.color = isAlly ? new Color(0.2f, 0.6f, 1f, alpha) : new Color(1f, 0.2f, 0.2f, alpha);
-            }
-        }
+        // [아군/적 히트박스 색·투명도] 외곽선+채움 스프라이트를 팔레트 색으로 물들인다(알파=투명도).
+        ApplyTeamColor(isAlly);
 
         // 선딜레이가 끝날 때까지 콜라이더 비활성화
         var col = GetComponent<Collider2D>();
@@ -144,6 +157,44 @@ public class BaseHitBox : MonoBehaviour
         {
             // startDelay가 있으므로 파괴 시간도 늦춰야 함
             Destroy(gameObject, duration + startDelay);
+        }
+    }
+
+    /// <summary>
+    /// 아군/적에 따라 히트박스의 외곽선·채움 스프라이트를 팔레트 색으로 물들인다. 색의 알파가 곧 투명도다.
+    /// 채움 = fillingTransform 밑 스프라이트, 나머지 = 외곽선으로 취급한다(마스크는 SpriteRenderer 가 아니라 안 건드림).
+    ///
+    /// Init 이 이걸 부르지만, 텔레그래프(윈드업)가 Init 보다 '먼저' 뜨는 히트박스(미니언 스킬/마무리는 Init 을
+    /// OnHit 판정창에서 늦게 호출한다)는 스폰 직후 이 메서드를 직접 불러야 윈드업부터 팀 색이 나온다 — 그래서 public.
+    /// 설정 에셋(Resources/HitBoxColorConfig)이 없으면 하드코딩 파랑/빨강으로 폴백한다(그때도 외곽선+채움 둘 다).
+    /// </summary>
+    public void ApplyTeamColor(bool isAlly)
+    {
+        var cfg = ColorConfig;
+        Color fill, outline;
+        if (cfg != null)
+        {
+            fill    = isAlly ? cfg.allyFill    : cfg.enemyFill;
+            outline = isAlly ? cfg.allyOutline : cfg.enemyOutline;
+        }
+        else
+        {
+            // 폴백(설정 에셋 없음): 하드코딩 파랑/빨강. 외곽선 불투명 + 채움 반투명.
+            outline = isAlly ? new Color(0.2f, 0.6f, 1f, 1f)    : new Color(1f, 0.2f, 0.2f, 1f);
+            fill    = isAlly ? new Color(0.2f, 0.6f, 1f, 0.35f) : new Color(1f, 0.2f, 0.2f, 0.35f);
+        }
+
+        foreach (var sr in GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (sr == null) continue;
+            bool isFill = fillingTransform != null &&
+                          (sr.transform == fillingTransform || sr.transform.IsChildOf(fillingTransform));
+            Color c = isFill ? fill : outline;
+            // 적 히트박스는 '투명도(알파)'를 프리팹 값 그대로 두고 색조(RGB)만 바꾼다. 조준선 텔레그래프처럼
+            // 의도적으로 거의 투명한 '전체 배경' 스프라이트를 불투명하게 덮어, 차오름 연출을 가려버리는 회귀 방지.
+            // 아군 히트박스는 설정한 투명도를 그대로 반영한다(요청 기능 — 외곽선/채움/전체 투명도 제어).
+            if (!isAlly) c.a = sr.color.a;
+            sr.color = c;
         }
     }
 

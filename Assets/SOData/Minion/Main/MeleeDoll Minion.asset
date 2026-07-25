@@ -97,6 +97,7 @@ MonoBehaviour:
     clipDuration: 0
     startClip: Dash_Start
     hitBoxClip: Dash_During
+    rotateHitBoxClipToDir: 1
     endClip: Dash_End
   references:
     version: 2
