@@ -266,6 +266,7 @@ MonoBehaviour:
   spriteRenderer: {fileID: 0}
   explosionSound: {fileID: 8300000, guid: 58b617c66852007488f5c5fb9e3e0213, type: 3}
   explosionVolume: 0.2
+  explosionShakeForce: 2.5
 --- !u!208 &8715005498025257399
 NavMeshObstacle:
   m_ObjectHideFlags: 0

@@ -23,7 +23,8 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
     [SerializeField] private AudioClip explosionSound;
     [Range(0f, 1f)]
     [SerializeField] private float explosionVolume = 1f;
-
+    [Tooltip("폭발 시 카메라 흔들림 강도")]
+    [SerializeField] private float explosionShakeForce;
 
     private bool _isDead = false;
     private bool _isTriggered = false;
@@ -114,6 +115,12 @@ private void Explode()
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlaySFX(explosionSound, explosionVolume);
+        }
+
+        // 폭발 시 카메라 흔들림
+        if (CameraManager.Instance != null)
+        {
+            CameraManager.Instance.HitShakeCamera(explosionShakeForce);
         }
 
         // 이펙트는 장판 프리팹 내부의 BaseHitBox가 타격 시간에 맞춰 자체 처리하므로
