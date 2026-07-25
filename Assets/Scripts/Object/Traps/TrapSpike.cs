@@ -94,6 +94,9 @@ public class TrapSpike : MonoBehaviour
     {
         _isTriggered = true;
 
+        // 1초 대기
+        yield return new WaitForSeconds(activationDelay);
+
         // 발판이 눌리는 즉시 함정 작동(On) 애니메이션 재생
         if (plateAnimator != null)
         {
@@ -106,9 +109,6 @@ public class TrapSpike : MonoBehaviour
             SoundManager.Instance.PlaySFX(spikeSound, spikeVolume);
 
         }
-
-        // 1초 대기
-        yield return new WaitForSeconds(activationDelay);
 
         // 가시 활성화
         _isActive = true;
