@@ -19,10 +19,6 @@ public class TrapSpike : MonoBehaviour
     [SerializeField] private Animator plateAnimator; // PlateVisual의 Animator (미지정 시 자식에서 자동 탐색)
 
     [Header("Sound")]
-    [Tooltip("압력판을 밟았을 때 나는 '띵' 사운드")]
-    [SerializeField] private AudioClip plateSound;
-    [Range(0f, 1f)]
-    [SerializeField] private float plateVolume = 1f;
     [Tooltip("가시가 솟아올라 피해를 줄 때 사운드")]
     [SerializeField] private AudioClip spikeSound;
     [Range(0f, 1f)]
@@ -102,13 +98,6 @@ public class TrapSpike : MonoBehaviour
         if (plateAnimator != null)
         {
             plateAnimator.Play(StateOn, 0, 0f);
-        }
-
-        // 압력판 작동 사운드 재생
-        if (SoundManager.Instance != null)
-        {
-            SoundManager.Instance.PlaySFX(plateSound, plateVolume);
-
         }
 
         // 1초 대기

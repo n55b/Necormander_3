@@ -264,9 +264,7 @@ MonoBehaviour:
     m_Bits: 0
   explosionEffectPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   spriteRenderer: {fileID: 0}
-  igniteSound: {fileID: 8300000, guid: 352a784edf67a4c4b988e55cbe70a98f, type: 3}
-  igniteVolume: 0.5
-  explosionSound: {fileID: 8300000, guid: 40a097b7493ddba4cb731c1da55cf993, type: 3}
+  explosionSound: {fileID: 8300000, guid: 58b617c66852007488f5c5fb9e3e0213, type: 3}
   explosionVolume: 0.2
 --- !u!208 &8715005498025257399
 NavMeshObstacle:

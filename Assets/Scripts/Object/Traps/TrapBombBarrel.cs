@@ -18,10 +18,7 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
     [SerializeField] private SpriteRenderer spriteRenderer;
 
     [Header("Sound")]
-    [Tooltip("피격 순간(점화) 및 카운트다운 시작 사운드")]
-    [SerializeField] private AudioClip igniteSound;
-    [Range(0f, 1f)]
-    [SerializeField] private float igniteVolume = 1f;
+
     [Tooltip("최종 폭발 사운드")]
     [SerializeField] private AudioClip explosionSound;
     [Range(0f, 1f)]
@@ -67,14 +64,6 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
 
         // 타격을 받는 순간 바닥에 시각 장판(Telegraph) 생성 및 1.5초 예약 작동
         SpawnExplosionTelegraph();
-
-        // 점화(카운트다운 시작) 사운드 재생
-        if (SoundManager.Instance != null)
-        {
-            SoundManager.Instance.PlaySFX(igniteSound, igniteVolume);
-        }
-
-
         float timer = 0f;
         Color originalColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
         float blinkInterval = 0.15f;
