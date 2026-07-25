@@ -349,6 +349,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     private void OnDestroy()
     {
         _pillarField?.DestroyAll();
+        ClearChargeTelegraph(); // 엔티티 사망/씬 언로드로 브레인 클론이 파괴될 때
     }
 
     public override void Init(BaseEntity entity)
@@ -914,7 +915,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     private IEnumerator NormalChargeRoutine(BaseEntity entity, Vector2 dir, float windup)
     {
         // 다른 기본 공격들과 통일된 예비동작: 짧은 직선 전조를 표시합니다.
-        GameObject telegraph = CreateFallbackRect(new Color(1f, 0.55f, 0f, 0.3f));
+        ClearChargeTelegraph(); // 이전 시도가 남긴 게 있으면 먼저 정리
+        _chargeTelegraph = CreateFallbackRect(new Color(1f, 0.55f, 0f, 0.3f));
 
         // 확실한 돌진 느낌을 위해, 윈드업 동안 웅크렸다가 돌진 시작 순간 크게 튀어나가는 스쿼시/스트레치 연출입니다.
         entity.StartCoroutine(ScaleCoroutine(entity, windup, normalChargeSquashScale, 0.2f, normalChargeStretchScale));
@@ -930,7 +932,19 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             wt += Time.deltaTime;
             if (entity.Target != null) dir = GetAimDir(entity);
             dirIndicator?.SetAimOverride(dir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
-            UpdateChargeTelegraph(telegraph, entity.transform.position, dir, estimatedLength, normalChargeHitRadius * 2f, windup > 0f ? wt / windup : 1f);
+            // 레인은 플레이어를 통과시키되, 벽/장애물에 막히는 지점까지만 그린다.
+            // (아래 돌진 루프와 동일한 마스크·반지름이라 예고와 실제 정지 지점이 일치)
+            float ncLength = estimatedLength;
+            RaycastHit2D ncBlock = Physics2D.CircleCast(
+                entity.transform.position,
+                normalChargeHitRadius,
+                dir,
+                ncLength,
+                LayerMask.GetMask("Wall", "Object"));
+            if (ncBlock.collider != null)
+                ncLength = ncBlock.distance;
+
+            UpdateChargeTelegraph(_chargeTelegraph, entity.transform.position, dir, ncLength, normalChargeHitRadius * 2f, windup > 0f ? wt / windup : 1f);
             // [예고 플래시] 돌진 개시 직전 하데스식 번쩍 (엘리트 = 2펄스)
             if (!ncFlashFired && windup - wt <= telegraphFlashLeadTime)
             {
@@ -940,7 +954,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
             yield return null;
         }
-        if (telegraph != null) GameObject.Destroy(telegraph);
+        ClearChargeTelegraph();
 
         var agent = entity.GetComponent<NavMeshAgent>();
         bool wasAgentEnabled = agent != null && agent.enabled;
@@ -1188,7 +1202,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         float t = 0f;
         Vector2 chargeDir = GetAimDir(entity);
-        GameObject telegraph = null;
+        // 스턴 등으로 코루틴이 끊겨도 OnAttackCancelled 에서 치울 수 있도록 인스턴스 필드에 보관.
+        ClearChargeTelegraph(); // 이전 시도가 남긴 게 있으면 먼저 정리
         float scaledChargeWindup = ScaleDuration(chargeWindup); // v1.4 D1
         var p1Vfb = entity.GetComponentInChildren<CharacterVisualFeedback>();
         bool p1FlashFired = false;
@@ -1206,10 +1221,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 entity.LookAtTarget(entity.Target);
             }
 
+            // [수정] 레인은 플레이어에서 끊지 않고 통과시킨다. 어디까지 위험한지 다 보여야
+            // 어느 쪽으로 피할지 판단이 된다. 대신 돌진 루프와 동일한 마스크·반지름으로
+            // CircleCast 해서 실제로 막히는 지점까지만 그린다.
             float length = chargeTelegraphLength;
             if (entity.Target != null)
             {
-                length = Vector2.Distance(entity.transform.position, entity.Target.position) + chargeTelegraphOvershoot;
+                length = chargeTelegraphLength;
             }
             if (room.found)
             {
@@ -1218,11 +1236,20 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
             length = Mathf.Min(length, chargeTelegraphLength);
 
-            if (telegraph == null)
+            RaycastHit2D laneBlock = Physics2D.CircleCast(
+                entity.transform.position,
+                chargeHitRadius,
+                chargeDir,
+                length,
+                LayerMask.GetMask("Wall", "Object"));
+            if (laneBlock.collider != null)
+                length = laneBlock.distance;
+
+            if (_chargeTelegraph == null)
             {
-                telegraph = CreateFallbackRect(chargeTelegraphColor);
+                _chargeTelegraph = CreateFallbackRect(chargeTelegraphColor);
             }
-            UpdateChargeTelegraph(telegraph, entity.transform.position, chargeDir, length, chargeHitRadius * 2f, scaledChargeWindup > 0f ? t / scaledChargeWindup : 1f);
+            UpdateChargeTelegraph(_chargeTelegraph, entity.transform.position, chargeDir, length, chargeHitRadius * 2f, scaledChargeWindup > 0f ? t / scaledChargeWindup : 1f);
             dirIndicator?.SetAimOverride(chargeDir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
 
             // [예고 플래시] 강한 돌진 개시 직전 하데스식 번쩍 (엘리트 = 2펄스)
@@ -1236,7 +1263,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             yield return null;
         }
 
-        if (telegraph != null) GameObject.Destroy(telegraph);
+        ClearChargeTelegraph();
 
         ShowLabel(label_Pattern1);
 
@@ -1382,6 +1409,26 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         fill.localRotation = Quaternion.identity;
         fill.localScale = new Vector3(1f, Mathf.Clamp01(progress01), 1f);
     }
+
+private GameObject _chargeTelegraph;
+
+    /// <summary>돌진 예고 레인 제거. 정상 종료/취소/파괴 모두에서 호출된다.</summary>
+    private void ClearChargeTelegraph()
+    {
+        if (_chargeTelegraph != null)
+        {
+            GameObject.Destroy(_chargeTelegraph);
+            _chargeTelegraph = null;
+        }
+    }
+
+    // 피격/스턴으로 공격이 끊길 때. StopCoroutine 은 루틴 뒷정리를 실행하지 않는다.
+    public override void OnAttackCancelled(BaseEntity entity)
+    {
+        base.OnAttackCancelled(entity);
+        ClearChargeTelegraph();
+    }
+
 
     // --- 패턴 2: 중력 도넛 폭발 (v1.3, 기존 안/팎 도넛 완전 대체) ---
     private IEnumerator Pattern2_GravityDonut(BaseEntity entity)
