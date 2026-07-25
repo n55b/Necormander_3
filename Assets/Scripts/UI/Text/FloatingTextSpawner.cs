@@ -3,9 +3,9 @@ using UnityEngine.UI;
 
 public class FloatingTextSpawner : MonoBehaviour
 {
-    
+
     private CharacterStatus status;
-private CharacterStat stats;
+    private CharacterStat stats;
 
     [SerializeField] private Transform vec_float;
 
@@ -16,14 +16,14 @@ private CharacterStat stats;
     [SerializeField] private bool isSubscribed = false;
 
     // CharacterStat에서 호출해줄 초기화 함수
-public void Initialize(CharacterStat characterStat)
+    public void Initialize(CharacterStat characterStat)
     {
         if (isSubscribed) return;
 
         this.stats = characterStat;
 
-        if(stats == null) Debug.Log("stats가 null임");
-        if(stats.Health == null) Debug.Log("health가 null");
+        if (stats == null) Debug.Log("stats가 null임");
+        if (stats.Health == null) Debug.Log("health가 null");
 
         if (stats != null && stats.Health != null)
         {
@@ -41,7 +41,7 @@ public void Initialize(CharacterStat characterStat)
         }
     }
 
-private void OnEnable()
+    private void OnEnable()
     {
         if (stats != null && stats.Health != null && !isSubscribed)
         {
@@ -58,7 +58,7 @@ private void OnEnable()
         }
     }
 
-private void OnDisable()
+    private void OnDisable()
     {
         // stats가 null인지 먼저 확인 (매우 중요!)
         if (stats != null)
@@ -79,7 +79,7 @@ private void OnDisable()
     }
 
     // OnDestroy도 동일하게 방어 코드를 작성합니다.
-private void OnDestroy()
+    private void OnDestroy()
     {
         if (stats != null && stats.Health != null)
         {
@@ -93,7 +93,7 @@ private void OnDestroy()
         }
     }
 
-private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool isCritical)
+    private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool isCritical)
     {
         if (FloatingTextManager.Instance != null && !FloatingTextManager.Instance.ShowDamageNumbers) return; // [추가] 데미지 텍스트 켜기/끄기 스위치
 
@@ -133,7 +133,7 @@ private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool
         }
     }
 
-private void ShowHealText(float amount)
+    private void ShowHealText(float amount)
     {
         if (amount <= 0.001f) return;
         string text = $"+{amount:F1}"; // 소수점 첫째자리까지 힐량 표시
@@ -144,7 +144,7 @@ private void ShowHealText(float amount)
         textObj.SetUp(text, color, vec_float, false);
     }
 
-private void ShowStatusText(string statusName)
+    private void ShowStatusText(string statusName)
     {
         Color color = colorConfig != null ? colorConfig.GetStatusPopColor(statusName) : Color.gray;
 

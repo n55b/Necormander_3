@@ -42,6 +42,8 @@ public class DamageTextColorConfigSO : ScriptableObject
     [Tooltip("'기절!' 같은 강조할 상태이상 텍스트의 색상")]
     [UnityEngine.Serialization.FormerlySerializedAs("vulnerabilityPopColor")]
     public Color statusPopColor = Color.gray;
+    [Tooltip("'빙결'과 관련된 상태이상 텍스트의 색상")]
+    public Color freezeTextColor = Color.blue;
 
     [Tooltip("강조 상태이상 텍스트의 팝업 크기 배율. 1보다 크게 하면 더 눈에 띄게 표시됩니다")]
     [UnityEngine.Serialization.FormerlySerializedAs("vulnerabilityPopScale")]
