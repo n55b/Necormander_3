@@ -383,6 +383,10 @@ public class MeleeCombatController : MonoBehaviour
         go.transform.localScale = new Vector3(fin.hitBoxSize.x, fin.hitBoxSize.y, 1f);
         box.hitEffectAngle = angle;
 
+        // Init(팀 색 포함)은 OnHit 판정창에서 늦게 불린다 → 윈드업 동안 프리팹 기본색이 뜬다.
+        // 스폰 직후 직접 물들여 처음부터 아군 색이 나오게 한다.
+        box.ApplyTeamColor(true);
+
         // 피해는 '플레이어의 ATK * 소환수 고유 배율'.
         // [26/07/17] 예전엔 소환수 SO 자신의 attack 을 썼는데, 이제 베이스 ATK 를 공유한다.
         // 그래야 "아군 공격력 증가" 같은 버프를 플레이어 ATK 하나에만 걸어도

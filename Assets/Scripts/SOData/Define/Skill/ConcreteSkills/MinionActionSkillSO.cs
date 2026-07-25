@@ -181,6 +181,10 @@ public class MinionActionSkillSO : MinionSkillSO
             var col = box.GetComponent<Collider2D>();
             if (col != null) col.enabled = false; // 판정창 열릴 때까지 꺼둔다
 
+            // Init(팀 색 포함)은 OnHit 판정창에서 늦게 불린다 → 윈드업 동안엔 프리팹 기본색(빨강)이 뜬다.
+            // 스폰 직후 직접 물들여 처음부터 아군 색이 나오게 한다.
+            box.ApplyTeamColor(true);
+
             bool hasInvokedKeyword = false;
             System.Action<CharacterHealth> onHit = (health) =>
             {

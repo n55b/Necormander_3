@@ -18,6 +18,17 @@ public class TrapSpike : MonoBehaviour
     [SerializeField] private GameObject spikeVisual; // 솟아오르는 가시 오브젝트
     [SerializeField] private Animator plateAnimator; // PlateVisual의 Animator (미지정 시 자식에서 자동 탐색)
 
+    [Header("Sound")]
+    [Tooltip("가시가 솟아올라 피해를 줄 때 사운드")]
+    [SerializeField] private AudioClip spikeSound;
+    [Range(0f, 1f)]
+    [SerializeField] private float spikeVolume = 1f;
+    [Tooltip("가시가 내려가며 함정이 종료될 때 사운드")]
+    [SerializeField] private AudioClip spikeDownSound;
+    [Range(0f, 1f)]
+    [SerializeField] private float spikeDownVolume = 1f;
+
+
     private const string StateOn = "TrapOn";
     private const string StateOff = "TrapOff";
 
@@ -89,6 +100,13 @@ public class TrapSpike : MonoBehaviour
             plateAnimator.Play(StateOn, 0, 0f);
         }
 
+        // 가시 발동 사운드 재생
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(spikeSound, spikeVolume);
+
+        }
+
         // 1초 대기
         yield return new WaitForSeconds(activationDelay);
 
@@ -114,6 +132,12 @@ public class TrapSpike : MonoBehaviour
         if (spikeVisual != null)
         {
             spikeVisual.SetActive(false);
+        }
+
+        // 가시 하강(종료) 사운드 재생
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(spikeDownSound, spikeDownVolume);
         }
         if (plateAnimator != null)
         {
