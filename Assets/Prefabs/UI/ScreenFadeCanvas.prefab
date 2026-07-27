@@ -146,8 +146,8 @@ MonoBehaviour:
   reactions:
   - signal: 1
     action: 0
-    duration: 0.2
-    holdDuration: 0.1
+    duration: 0.5
+    holdDuration: 0.2
     curve:
       serializedVersion: 2
       m_Curve:

@@ -73,7 +73,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     public void OnPlayerEnter(RoomInstance room)
     {
         if (_isBattleActive) return;
-        
+
         _cachedRoom = room;
         _isBattleActive = true;
         _isSpawnPending = true; // 스폰 진행 예정 상태 설정
@@ -88,7 +88,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         StartCoroutine(DelayedSpawnBoss(room));
 
         // 플레이어 상태 업데이트 (전투 중)
-        if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Battle);
+        if (GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Battle);
 
         OnBossCombatStart?.Invoke();
         Debug.Log($"<color=red>[BossRoom]</color> Warning! Boss Encounter in {room.gameObject.name}");
@@ -129,7 +129,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         }
 
         // 플레이어 상태 업데이트 (대기)
-        if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Idle);
+        if (GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Idle);
 
         OnBossCombatClear?.Invoke();
         Debug.Log($"<color=red>[BossRoom]</color> Boss Defeated!");
@@ -138,7 +138,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     private void SpawnBoss(RoomInstance room)
     {
         var dataToSpawn = specificBossData;
-        
+
         // 특정 보스가 할당 안 된 경우 랜덤 풀에서 가져옴
         if (dataToSpawn == null && _bossEnemyPool.Count > 0)
         {
@@ -152,7 +152,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         }
 
         Vector3 spawnPos = room.transform.position + (Vector3)room.centerOffset;
-        
+
         if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
         {
             _activeBoss = GameManager.Instance.dataManager.CreateUnit(dataToSpawn, hit.position);
@@ -162,6 +162,26 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
             // 네비메쉬 위가 아니더라도 강제 소환 (중앙)
             _activeBoss = GameManager.Instance.dataManager.CreateUnit(dataToSpawn, spawnPos);
         }
+
+        BindBossHPBar(dataToSpawn);   // ← 추가
+    }
+
+    private void BindBossHPBar(EnemyMinionDataSO data)
+    {
+        if (_activeBoss == null || BossHPBarUI.Instance == null) return;
+
+        // WorldHPBar 와 동일한 경로. CharacterHealth 는 자식 CharacterStatStuff 에 붙어 있다.
+        var stat = _activeBoss.GetComponent<CharacterStat>()
+                ?? _activeBoss.GetComponentInChildren<CharacterStat>(true);
+        if (stat == null) return;
+
+        if (stat.Health == null) stat.Setup();   // 스폰 직후 아직 Init 전일 수 있음
+        if (stat.Health == null) return;
+
+        string bossName = (data != null && !string.IsNullOrEmpty(data.minionName))
+            ? data.minionName : _activeBoss.name;
+
+        BossHPBarUI.Instance.Show(stat.Health, bossName);
     }
 
     private void SpawnRoomRewardBox(RoomInstance room)

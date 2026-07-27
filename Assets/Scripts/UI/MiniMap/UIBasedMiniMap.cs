@@ -289,6 +289,10 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                 }
             }
 
+            // 일반 방은 보상 아이콘(normalRewardType 동기화 스프라이트)을 미니맵에 노출하지 않는다.
+            // 여기서 비우면 아래 폴백도 Normal 케이스가 없어 그대로 null 로 남고, 아이콘 그리기 자체가 스킵된다.
+            if (room.roomType == RoomType.Normal) roomIconSprite = null;
+
             if (roomIconSprite == null)
             {
                 if (room.roomType == RoomType.Shop) roomIconSprite = _shopIcon;

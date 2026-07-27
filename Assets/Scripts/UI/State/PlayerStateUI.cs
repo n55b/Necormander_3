@@ -212,7 +212,14 @@ public class PlayerStateUI : MonoBehaviour
             if (i == (int)PlayerSkillController.SkillSlot.R) { RefreshMinionSlot(slot); continue; }
 
             MinionDataSO data = _skillCtrl.GetEquippedMinion(i);
-            var pSkill = _skillCtrl.GetEquippedPlayerSkill(i);
+                        // 원본(PlayerSkillInventoryManager)을 직접 읽는다. _skillCtrl 캐시를 읽으면
+            // 같은 OnPlayerSkillUpdated 를 듣는 두 핸들러(여기와 PlayerSkillController.SyncPlayerSkillsFromInventory)의
+            // 호출 순서에 결과가 갈린다 — 우리가 먼저 돌면 아직 동기화 안 된 한 박자 전 값을 그리게 된다.
+            // (장비 착용은 Equip(0)/Equip(1) 로 이벤트를 두 번 쓰므로, 마지막인 E 가 항상 빈 채로 그려졌다.)
+            // 아래 R 슬롯(소환수)이 InventoryManager 원본을 읽는 것과 같은 이유다.
+            var pSkill = PlayerSkillInventoryManager.Instance != null
+                ? PlayerSkillInventoryManager.Instance.GetEquipped(i)
+                : _skillCtrl.GetEquippedPlayerSkill(i);
             bool has = pSkill != null;
 
             if (slot.SkillIcon != null)
@@ -258,8 +265,11 @@ public class PlayerStateUI : MonoBehaviour
             // R 슬롯은 메인 소환수 액티브의 쿨타임을 표시한다. 아이콘 자체는 RefreshSkillIcons(이벤트)가
             // 맞추고, 여기선 쿨타임 카운트다운만 매 프레임 갱신한다(Q/E 와 동일).
             if (i == (int)PlayerSkillController.SkillSlot.R) { UpdateMinionCooldown(slot); continue; }
-
-            var pSkill = _skillCtrl.GetEquippedPlayerSkill(i);
+            // RefreshSkillIcons 와 같은 이유로 원본을 직접 읽는다(캐시는 이벤트 순서에 한 박자 밀릴 수 있음).
+            // 쿨타임 잔여시간은 타이머를 소유한 컨트롤러에서 그대로 가져온다.
+            var pSkill = PlayerSkillInventoryManager.Instance != null
+                ? PlayerSkillInventoryManager.Instance.GetEquipped(i)
+                : _skillCtrl.GetEquippedPlayerSkill(i);
             if (pSkill == null) continue;
 
             float maxCd     = pSkill.cooldownTime;
