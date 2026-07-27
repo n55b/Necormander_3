@@ -107,12 +107,50 @@ public class CharacterVisualFeedback : MonoBehaviour
     private void Update()
     {
         UpdateStatusVFX();
-        UpdateSuperArmorColor();
+        UpdateBaseTint();
     }
 
-    private void UpdateSuperArmorColor()
+
+
+    /// <summary>
+    /// 틴트를 볼 상태이상의 우선순위. 여러 개가 동시에 걸려 있어도 '하나만' 칠한다 —
+    /// 중독(초록)과 출혈(빨강)을 겹쳐 곱하면 탁한 갈색이 되어 둘 다 안 읽히기 때문이다.
+    /// 행동 불가(빙결/기절)가 가장 급한 정보라 앞에 둔다.
+    /// </summary>
+    private static readonly StatusType[] TintPriority =
     {
-        if (_status == null || _sr == null) return;
+        StatusType.Freeze, StatusType.Stun, StatusType.Poison, StatusType.Bleed, StatusType.BloodPop,
+    };
+
+    /// <summary>
+    /// 스프라이트의 '기본색'을 매 프레임 한 번에 결정한다. 슈퍼아머와 상태이상 틴트가 각자
+    /// _sr.color 를 건드리면 서로 덮어써서 깜빡이므로, 레이어를 순서대로 겹쳐 한 번만 쓴다.
+    ///
+    /// 겹치는 순서: 원래색 → 슈퍼아머 → 상태이상 틴트.
+    /// 슈퍼아머는 빙결을 애초에 막으므로(StatusRules.BlockedBySuperArmor) 둘이 동시에 켜지는 건
+    /// '이미 빙결된 유닛이 슈퍼아머를 얻는' 경로뿐이다. 그때는 나중에 얹는 빙결이 이긴다 —
+    /// 행동 불가라는 정보가 더 급하기 때문이다.
+    ///
+    /// 피격 플래시 중(_flashCoroutine != null)에는 SetBaseColor 가 _sr.color 를 안 건드리고
+    /// 값만 갱신해두므로, 플래시가 끝나면 여기서 정한 색으로 복귀한다.
+    /// 상태이상이 풀리면 result 가 다시 _originalBaseColor 가 되어 원래 색으로 돌아온다.
+    /// </summary>
+    /// <summary>
+    /// 스프라이트의 '기본색'을 매 프레임 한 번에 결정한다. 여러 곳이 각자 _sr.color 를 건드리면
+    /// 서로 덮어써서 깜빡이므로, 색을 쓰는 창구를 여기 하나로 둔다.
+    ///
+    /// [26/07/25] 슈퍼아머는 여기서 빠졌다. 스프라이트를 파랗게 물들이는 대신 아웃라인 셰이더를
+    /// 겹쳐 그리는 방식(UpdateSuperArmorOverlay)으로 옮겼다. 지금 남은 건 상태이상 틴트뿐이다.
+    ///
+    /// 피격 플래시 중에는 SetBaseColor 가 _sr.color 를 안 건드리고 값만 갱신해두므로,
+    /// 플래시가 끝나면 여기서 정한 색으로 복귀한다.
+    /// </summary>
+    private void UpdateBaseTint()
+    {
+        if (_sr == null) return;
+
+        // 사망 연출(PlayDeathVisual)이 칠해둔 색을 매 프레임 덮어쓰지 않도록 여기서 손을 뗀다.
+        if (_health != null && _health.IsDead) return;
 
         if (!_hasSavedOriginalBaseColor)
         {
@@ -120,28 +158,143 @@ public class CharacterVisualFeedback : MonoBehaviour
             _hasSavedOriginalBaseColor = true;
         }
 
-        if (_status.HasSuperArmor)
-        {
-            float maxSA = _status.MaxSuperArmorGauge;
-            float currentSA = _status.SuperArmorGauge;
-            float ratio = maxSA > 0f ? (currentSA / maxSA) : 0f;
+        // 대부분의 유닛은 대부분의 프레임에 상태이상이 없다. 그 경우 팔레트 조회와 우선순위
+        // 순회를 통째로 건너뛴다 — Dictionary.Count 비교 한 번으로 끝난다.
+        Color result = (_status != null && _status.HasAnyStatus)
+            ? ApplyStatusTint(_originalBaseColor)
+            : _originalBaseColor;
 
-            // 찐한 파란색 정의 (Deep Blue)
-            Color superArmorColor = new Color(0.1f, 0.3f, 1f, 1f);
-            
-            // 원래 베이스 색상과 찐한 파란색을 비율에 따라 Lerp
-            Color lerpedColor = Color.Lerp(_originalBaseColor, superArmorColor, ratio);
-            
-            SetBaseColor(lerpedColor);
-        }
-        else
-        {
-            if (_originalColor != _originalBaseColor)
-            {
-                SetBaseColor(_originalBaseColor);
-            }
-        }
+        // 바뀐 게 없으면 건드리지 않는다 — 매 프레임 SetBaseColor 를 때리면 사망색 같은
+        // '외부에서 칠한 색'을 눈치 없이 지운다.
+        if (result != _originalColor) SetBaseColor(result);
     }
+
+    /// <summary>
+    /// 걸려 있는 상태이상의 틴트를 곱연산으로 얹는다. Lerp 가 아니라 곱인 이유는,
+    /// Lerp 는 스프라이트의 명암을 틴트색 쪽으로 뭉개서 도트가 납작해 보이기 때문이다.
+    /// 곱은 원래 음영을 유지한 채 색만 물든다.
+    ///
+    /// 틴트 색의 알파를 '세기'로 쓴다 — 알파 0 이면 그 상태는 틴트를 안 쓴다는 뜻이라 그냥 지나간다.
+    /// 색값은 전부 StatusEffectPalette 에서 오므로 여기엔 상태이상 색이 하드코딩되지 않는다.
+    /// </summary>
+    private Color ApplyStatusTint(Color baseColor)
+    {
+        if (_status == null) return baseColor;
+
+        var palette = StatusEffectPalette.Shared;
+        if (palette == null) return baseColor;
+
+        for (int i = 0; i < TintPriority.Length; i++)
+        {
+            StatusType type = TintPriority[i];
+            if (!_status.HasStatus(type)) continue;
+            if (!palette.TryGetTint(StatusEffectPalette.FromStatus(type), out Color tint)) continue;
+
+            Color multiplied = new Color(baseColor.r * tint.r, baseColor.g * tint.g, baseColor.b * tint.b, baseColor.a);
+            return Color.Lerp(baseColor, multiplied, tint.a);
+        }
+
+        return baseColor;
+    }
+
+    // ── 슈퍼아머 오버레이 ────────────────────────────────────────────
+    //
+    // 본체 머티리얼을 갈아끼우지 않고, 같은 스프라이트를 아웃라인 머티리얼로 한 번 더 겹쳐 그린다.
+    // 본체를 안 건드리므로 피격 플래시(_HitFlash)·상태이상 틴트·2D 라이팅이 전부 그대로 산다.
+    // 아웃라인 셰이더(PickUpOutline)에는 _HitFlash 가 없어서, 본체를 통째로 교체하면
+    // 슈퍼아머가 켜진 동안 피격 플래시가 '에러 없이 조용히' 죽는다. 그래서 겹쳐 그리는 쪽을 택했다.
+
+    private SpriteRenderer _superArmorOverlay;
+    private MaterialPropertyBlock _superArmorMpb;
+    private Color _superArmorBaseColor = Color.white;
+    private int _superArmorColorId;
+    private float _lastOverlayBrightness = -1f;
+
+    /// <summary>
+    /// 슈퍼아머 상태에 맞춰 오버레이를 만들고/지우고/따라붙인다.
+    /// LateUpdate 에서 부르는 이유는 본체 sortingOrder 를 YSortableObject 가 LateUpdate 에서
+    /// 갱신하기 때문이다 — 빙결 VFX 도 같은 이유로 같은 자리에서 동기화한다.
+    /// </summary>
+    private void UpdateSuperArmorOverlay()
+    {
+        bool active = _sr != null
+                   && _status != null && _status.HasSuperArmor
+                   && !(_health != null && _health.IsDead);
+
+        if (!active)
+        {
+            if (_superArmorOverlay != null)
+            {
+                Destroy(_superArmorOverlay.gameObject);
+                _superArmorOverlay = null;
+            }
+            return;
+        }
+
+        var palette = StatusEffectPalette.Shared;
+        // 머티리얼 칸이 비어 있으면 효과를 끈 것으로 본다.
+        if (palette == null || palette.superArmorOverlayMaterial == null) return;
+
+        if (_superArmorOverlay == null) SpawnSuperArmorOverlay(palette);
+        if (_superArmorOverlay == null) return;
+
+        SyncSuperArmorOverlay(palette);
+    }
+
+    private void SpawnSuperArmorOverlay(StatusEffectPalette palette)
+    {
+        var go = new GameObject("SuperArmorOverlay");
+        go.transform.SetParent(_sr.transform, false);
+        go.layer = _sr.gameObject.layer;
+
+        _superArmorOverlay = go.AddComponent<SpriteRenderer>();
+        _superArmorOverlay.sharedMaterial = palette.superArmorOverlayMaterial;
+        _lastOverlayBrightness = -1f; // 새로 만들었으니 다음 Sync 에서 반드시 한 번은 쓰게 한다
+
+        // 색은 머티리얼에 저장된 값을 그대로 읽어 쓴다. 팔레트에 색을 또 적어두면 둘이 어긋난다.
+        _superArmorColorId = Shader.PropertyToID(palette.superArmorColorProperty);
+        _superArmorBaseColor = palette.superArmorOverlayMaterial.HasProperty(_superArmorColorId)
+            ? palette.superArmorOverlayMaterial.GetColor(_superArmorColorId)
+            : Color.white;
+    }
+
+    private void SyncSuperArmorOverlay(StatusEffectPalette palette)
+    {
+        var o = _superArmorOverlay;
+
+        // 애니메이션으로 매 프레임 스프라이트가 바뀌므로 계속 따라간다.
+        // SpriteRenderer.sprite 대입은 공짜가 아니라 내부에서 메시/UV 를 다시 만든다.
+        // 애니메이션 프레임이 그대로인 프레임에는 건너뛴다.
+        if (!ReferenceEquals(o.sprite, _sr.sprite)) o.sprite = _sr.sprite;
+        o.flipX = _sr.flipX;
+        o.flipY = _sr.flipY;
+        o.enabled = _sr.enabled;
+        o.sortingLayerID = _sr.sortingLayerID;
+        o.sortingOrder = _sr.sortingOrder + 1; // 본체 바로 앞
+
+        // 게이지가 깎일수록 어두워져서 '닳고 있다'가 보인다.
+        float maxSA = _status.MaxSuperArmorGauge;
+        float ratio = maxSA > 0f ? Mathf.Clamp01(_status.SuperArmorGauge / maxSA) : 0f;
+        float brightness = Mathf.Lerp(palette.superArmorMinBrightness, palette.superArmorMaxBrightness, ratio);
+
+        // MaterialPropertyBlock 을 쓰는 이유: o.material 로 건드리면 유닛마다 머티리얼 인스턴스가
+        // 하나씩 새로 생겨 배칭이 깨진다. MPB 는 인스턴스를 만들지 않는다.
+        // 알파는 원본 값을 유지한다 — 밝기만 곱하려는 것이지 투명도를 건드리려는 게 아니다.
+        // 게이지가 안 변한 프레임에는 MPB 왕복을 통째로 생략한다. 슈퍼아머는 맞을 때만
+        // 깎이므로 대부분의 프레임에서 밝기가 그대로다.
+        if (Mathf.Abs(brightness - _lastOverlayBrightness) <= 0.002f) return;
+        _lastOverlayBrightness = brightness;
+
+        if (_superArmorMpb == null) _superArmorMpb = new MaterialPropertyBlock();
+        o.GetPropertyBlock(_superArmorMpb);
+        _superArmorMpb.SetColor(_superArmorColorId, new Color(
+            _superArmorBaseColor.r * brightness,
+            _superArmorBaseColor.g * brightness,
+            _superArmorBaseColor.b * brightness,
+            _superArmorBaseColor.a));
+        o.SetPropertyBlock(_superArmorMpb);
+    }
+
 
     private void UpdateStatusVFX()
     {
@@ -219,6 +372,8 @@ public class CharacterVisualFeedback : MonoBehaviour
     {
         // 본체의 sortingOrder 는 YSortableObject 가 LateUpdate 에서 갱신하므로 여기서 뒤따라 맞춘다.
         if (_freezingVFXInstance != null) SyncFreezingVFXSorting();
+
+        UpdateSuperArmorOverlay();
     }
 
     /// <summary>

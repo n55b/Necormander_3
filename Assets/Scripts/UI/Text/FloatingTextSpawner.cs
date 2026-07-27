@@ -3,27 +3,27 @@ using UnityEngine.UI;
 
 public class FloatingTextSpawner : MonoBehaviour
 {
-    
+
     private CharacterStatus status;
-private CharacterStat stats;
+    private CharacterStat stats;
 
     [SerializeField] private Transform vec_float;
 
     [Header("색상 설정 (공용)")]
-    [Tooltip("비워두면 기본 색상(코드에 내장된 기존 값)을 그대로 사용합니다.")]
-    [SerializeField] private DamageTextColorConfigSO colorConfig;
+    [Tooltip("상태이상/데미지 텍스트 색을 모아둔 팔레트(StatusEffectPalette). 데미지 숫자는 비워두면 코드 내장 기본값으로 폴백하지만, 상태이상 텍스트는 비우면 아예 뜨지 않습니다.")]
+    [SerializeField] private StatusEffectPalette colorConfig;
 
     [SerializeField] private bool isSubscribed = false;
 
     // CharacterStat에서 호출해줄 초기화 함수
-public void Initialize(CharacterStat characterStat)
+    public void Initialize(CharacterStat characterStat)
     {
         if (isSubscribed) return;
 
         this.stats = characterStat;
 
-        if(stats == null) Debug.Log("stats가 null임");
-        if(stats.Health == null) Debug.Log("health가 null");
+        if (stats == null) Debug.Log("stats가 null임");
+        if (stats.Health == null) Debug.Log("health가 null");
 
         if (stats != null && stats.Health != null)
         {
@@ -41,7 +41,7 @@ public void Initialize(CharacterStat characterStat)
         }
     }
 
-private void OnEnable()
+    private void OnEnable()
     {
         if (stats != null && stats.Health != null && !isSubscribed)
         {
@@ -58,7 +58,7 @@ private void OnEnable()
         }
     }
 
-private void OnDisable()
+    private void OnDisable()
     {
         // stats가 null인지 먼저 확인 (매우 중요!)
         if (stats != null)
@@ -79,7 +79,7 @@ private void OnDisable()
     }
 
     // OnDestroy도 동일하게 방어 코드를 작성합니다.
-private void OnDestroy()
+    private void OnDestroy()
     {
         if (stats != null && stats.Health != null)
         {
@@ -93,7 +93,7 @@ private void OnDestroy()
         }
     }
 
-private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool isCritical)
+    private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool isCritical)
     {
         if (FloatingTextManager.Instance != null && !FloatingTextManager.Instance.ShowDamageNumbers) return; // [추가] 데미지 텍스트 켜기/끄기 스위치
 
@@ -133,7 +133,7 @@ private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool
         }
     }
 
-private void ShowHealText(float amount)
+    private void ShowHealText(float amount)
     {
         if (amount <= 0.001f) return;
         string text = $"+{amount:F1}"; // 소수점 첫째자리까지 힐량 표시
@@ -144,18 +144,23 @@ private void ShowHealText(float amount)
         textObj.SetUp(text, color, vec_float, false);
     }
 
-private void ShowStatusText(string statusName)
+    private void ShowStatusText(StatusVisual visual)
     {
-        Color color = colorConfig != null ? colorConfig.GetStatusPopColor(statusName) : Color.gray;
+        if (FloatingTextManager.Instance == null) return;
 
-        // 기절 같은 강조 상태이상은 더 눈에 띄게 크게 표시
-        bool isStatusPop = colorConfig != null
-            ? colorConfig.IsStatusPop(statusName)
-            : (!string.IsNullOrEmpty(statusName) && statusName.Contains("기절"));
-        float scale = isStatusPop ? (colorConfig != null ? colorConfig.statusPopScale : 1.4f) : 1f;
+        // 팔레트가 없으면 조용히 넘긴다. 여기에 색을 다시 하드코딩해두면 팔레트를 안 꽂은
+        // 프리팹이 '그럭저럭 동작'해버려서 배선 누락을 아무도 눈치채지 못한다.
+        if (colorConfig == null)
+        {
+            Debug.LogWarning($"{gameObject.name}: StatusEffectPalette 이 비어 있어 상태이상 텍스트를 띄우지 못했습니다.");
+            return;
+        }
+
+        // 라벨이 비어 있으면 '이 상태는 텍스트를 안 띄운다'는 뜻이다(예: 경직).
+        string label = colorConfig.GetLabel(visual);
+        if (string.IsNullOrEmpty(label)) return;
 
         TextFloating textObj = FloatingTextManager.Instance.GetFromPool();
-
-        textObj.SetUp(statusName, color, vec_float, false, scale);
+        textObj.SetUp(label, colorConfig.GetTextColor(visual), vec_float, false, colorConfig.GetPopScale(visual));
     }
 }

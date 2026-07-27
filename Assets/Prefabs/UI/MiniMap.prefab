@@ -205,9 +205,9 @@ MonoBehaviour:
   useTerrainShadow: 1
   terrainShadowColor: {r: 0, g: 0, b: 0, a: 0.6}
   terrainShadowOffset: {x: 1.5, y: -1.5}
-  customPlayerIcon: {fileID: 0}
+  customPlayerIcon: {fileID: 9041486493262411815, guid: f2c426ad7e5dc0b4e834980ffcf597ef, type: 3}
   syncPlayerZRotation: 1
-  customEnemyIcon: {fileID: 0}
+  customEnemyIcon: {fileID: 21300000, guid: 22f60cfe898e7f242a9f8e62a726d94a, type: 3}
 --- !u!1 &8241081770844231223
 GameObject:
   m_ObjectHideFlags: 0

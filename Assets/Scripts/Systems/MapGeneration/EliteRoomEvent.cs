@@ -26,6 +26,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
     private bool _isBattleActive = false;
     private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
     private RoomInstance _cachedRoom;
+    private EnemyMinionDataSO _hpBarTargetData; // 상단 체력바에 이름을 띄울 엘리트
 
     private void Start()
     {
@@ -148,6 +149,8 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
         OnEliteCombatClear?.Invoke();
         Debug.Log($"<color=red>[EliteRoom]</color> Elite Defeated!");
+
+        BossHPBarUI.Instance?.Hide();
     }
 
     private void SpawnEliteOnly(RoomInstance room)
@@ -168,6 +171,29 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
         // [추가] 생성된 엘리트 중 무작위 2명에게 슈퍼아머 부여
         ApplySuperArmorToRandomEnemies(2);
+
+        BindBossHPBar(_hpBarTargetData);   // GetComponent 제거
+    }
+
+    private void BindBossHPBar(EnemyMinionDataSO data)
+    {
+        if (BossHPBarUI.Instance == null) return;
+        if (_activeEnemies == null || _activeEnemies.Count == 0) return;   // ← 이게 없으면 [0] 에서 또 터짐
+
+        GameObject target = _activeEnemies[0];
+        if (target == null) return;
+
+        var stat = target.GetComponent<CharacterStat>()
+                ?? target.GetComponentInChildren<CharacterStat>(true);
+        if (stat == null) return;
+
+        if (stat.Health == null) stat.Setup();
+        if (stat.Health == null) return;
+
+        string bossName = (data != null && !string.IsNullOrEmpty(data.minionName))
+            ? data.minionName : target.name;
+
+        BossHPBarUI.Instance.Show(stat.Health, bossName);
     }
 
     private void ApplySuperArmorToRandomEnemies(int count)
@@ -204,10 +230,15 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         }
 
         var data = _eliteEnemyPool[Random.Range(0, _eliteEnemyPool.Count)];
-        
+
         if (NavMesh.SamplePosition(position, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
         {
             GameObject eliteObj = GameManager.Instance.dataManager.CreateUnit(data, hit.position);
+            if (eliteObj != null)
+            {
+                _activeEnemies.Add(eliteObj);
+                if (_hpBarTargetData == null) _hpBarTargetData = data; // 첫 엘리트 = 체력바 주인
+            }
             if (eliteObj != null) _activeEnemies.Add(eliteObj);
         }
         else

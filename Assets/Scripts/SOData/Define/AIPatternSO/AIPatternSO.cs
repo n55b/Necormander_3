@@ -67,6 +67,14 @@ public abstract class AIPatternSO : ScriptableObject
         //ApplySoftPush(entity);
     }
 
+/// <summary>
+    /// 피격/스턴 등으로 공격이 중단될 때 호출된다(BaseEntity.CancelAttack).
+    /// 코루틴이 StopCoroutine 으로 끊기면 루틴 내부의 정리 코드는 실행되지 않으므로,
+    /// 예고 표시처럼 루틴이 만든 월드 오브젝트는 여기서 치워야 씬에 남지 않는다.
+    /// </summary>
+    public virtual void OnAttackCancelled(BaseEntity entity) { }
+
+
     // 외부에서 강제로 상태를 변경할 때 사용
     public void SetState(BaseEntity entity, AIState newState)
     {

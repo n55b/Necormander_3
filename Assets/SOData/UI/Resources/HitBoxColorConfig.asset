@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d07c30c5b85a8874a9cae9215d2b36c3, type: 3}
   m_Name: HitBoxColorConfig
   m_EditorClassIdentifier: 
-  allyOutline: {r: 0.2, g: 0.6, b: 1, a: 1}
-  allyFill: {r: 0.2, g: 0.6, b: 1, a: 0.6156863}
-  enemyOutline: {r: 1, g: 0.2, b: 0.2, a: 1}
-  enemyFill: {r: 1, g: 0.2, b: 0.2, a: 0.35}
+  allyOutline: {r: 0.4764151, g: 0.7382076, b: 1, a: 0.5019608}
+  allyFill: {r: 0.2, g: 0.6, b: 1, a: 0.12156863}
+  enemyOutline: {r: 1, g: 0.4764151, b: 0.4764151, a: 0.5019608}
+  enemyFill: {r: 1, g: 0.2, b: 0.2, a: 0.12156863}

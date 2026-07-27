@@ -64,7 +64,7 @@ public class CharacterStatus : MonoBehaviour
     private readonly Dictionary<StatusType, float> _immuneUntil = new Dictionary<StatusType, float>();
 
     /// <summary>상태이상이 터졌을 때 띄울 한글 라벨. FloatingTextSpawner 가 듣는다.</summary>
-    public event System.Action<string> OnDebuffPopped;
+    public event System.Action<StatusVisual> OnDebuffPopped;
 
     [Header("비폭 폭발")]
     [Tooltip("비폭이 터질 때 쓸 원형 히트박스. 비우면 폭발이 피해를 못 준다. " +
@@ -317,7 +317,12 @@ public class CharacterStatus : MonoBehaviour
         if (duration <= 0f) duration = StatusRules.DefaultDuration(type);
         else if (type == StatusType.Stun) duration = Mathf.Clamp(duration, StatusRules.STUN_MIN, StatusRules.STUN_MAX);
 
-        if (!_statuses.TryGetValue(type, out var inst))
+        // 이번 호출로 '새로' 걸린 것인지. 재적중(지속시간 갱신)에는 텍스트를 안 띄운다 —
+        // 다단히트 스킬이 1초에 다섯 번 갱신하면 "빙결!"이 다섯 번 겹쳐 뜬다.
+        bool isNewlyApplied = !_statuses.TryGetValue(type, out var inst); // 조회 한 번으로 겸함
+
+        
+if (isNewlyApplied)
         {
             inst = new StatusInstance();
             _statuses[type] = inst;
@@ -338,6 +343,11 @@ public class CharacterStatus : MonoBehaviour
         }
 
         debuffTerminal?.UpdateUI(type, inst.Stacks);
+
+        // 걸린 순간의 알림 텍스트. 비폭은 여기 못 온다 — 위 임계치 분기에서 return 되고,
+        // 터질 때 DetonateBloodPop 이 따로 띄운다.
+        if (isNewlyApplied && StatusRules.AnnouncesOnApply(type))
+            OnDebuffPopped?.Invoke(StatusEffectPalette.FromStatus(type));
     }
 
     /// <summary>[재빙결 경로] 이미 빙결된 대상에 빙결이 또 들어왔을 때. 내용/수치 미정 → 지금은 REFREEZE_BONUS_DAMAGE(기본 0)만.</summary>
@@ -350,6 +360,12 @@ public class CharacterStatus : MonoBehaviour
     }
 
     public bool HasStatus(StatusType type) => _statuses.ContainsKey(type);
+
+    /// <summary>
+    /// 상태이상이 하나라도 걸려 있는가. 매 프레임 도는 시각 효과(CharacterVisualFeedback)가
+    /// 아무것도 안 걸린 흔한 경우를 int 비교 한 번으로 빠져나가기 위한 통로다.
+    /// </summary>
+    public bool HasAnyStatus => _statuses.Count > 0;
 
     public int GetStacks(StatusType type)
         => _statuses.TryGetValue(type, out var inst) ? inst.Stacks : 0;
@@ -388,7 +404,7 @@ public class CharacterStatus : MonoBehaviour
             RemoveStatus(StatusType.Freeze);
             // 피해로 깨진 경우에만 1초 내성. 자연 만료(리힛 없이 2.5초)엔 안 붙는다.
             _immuneUntil[StatusType.Freeze] = Time.time + StatusRules.FREEZE_IMMUNITY;
-            OnDebuffPopped?.Invoke("빙결 파괴!");
+            OnDebuffPopped?.Invoke(StatusVisual.FreezeBreak);
             DealSelfDamage(StatusRules.FREEZE_BREAK_DAMAGE, DamageType.Freeze, "빙결");
         }
 
@@ -407,7 +423,7 @@ public class CharacterStatus : MonoBehaviour
     private void DetonateBloodPop()
     {
         RemoveStatus(StatusType.BloodPop);
-        OnDebuffPopped?.Invoke("비폭!");
+        OnDebuffPopped?.Invoke(StatusVisual.BloodPop);
 
         if (bloodPopExplosionPrefab == null)
         {

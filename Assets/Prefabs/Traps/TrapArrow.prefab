@@ -108,6 +108,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   plateAnimator: {fileID: 3140560002721007599}
+  plateSound: {fileID: 8300000, guid: 7df7f4750b0c3d14085713e886241b93, type: 3}
+  plateVolume: 0.2
+  arrowFireSound: {fileID: 8300000, guid: 5935e286fd637514ba3821bf0ae8aae3, type: 3}
+  arrowFireVolume: 0.1
 --- !u!1 &3026181158092019469
 GameObject:
   m_ObjectHideFlags: 0

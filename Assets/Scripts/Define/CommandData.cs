@@ -100,6 +100,16 @@ public static class StatusRules
 
     /// <summary>스택을 쌓는 상태이상인가.</summary>
     public static bool IsStacking(StatusType t) => t == StatusType.BloodPop;
+    /// <summary>
+    /// 걸리는 '순간' 팝업 텍스트를 띄우는 상태이상인가.
+    ///
+    /// 경직(Hitstun)은 절대 넣지 말 것 — 평타 한 대마다 묻으므로 화면이 텍스트로 덮인다.
+    /// 비폭(BloodPop)도 없다. 걸릴 때가 아니라 10스택에서 '터질 때' DetonateBloodPop 이 따로 띄운다.
+    /// 지금은 빙결만 띄운다. 다른 상태이상도 알리고 싶으면 여기에 || 로 한 줄 붙이면 되고,
+    /// 라벨과 색은 StatusEffectPalette 항목이 들고 있으므로 이 파일은 더 안 건드려도 된다.
+    /// </summary>
+    public static bool AnnouncesOnApply(StatusType t) => t == StatusType.Freeze;
+
 }
 
 [System.Flags]
