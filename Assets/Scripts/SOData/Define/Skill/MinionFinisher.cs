@@ -14,6 +14,14 @@ using UnityEngine;
 [System.Serializable]
 public class MinionFinisher
 {
+    [Header("설명(스킬 설명창 V)")]
+    [Tooltip("스킬 설명창에 표시할 이름. 비우면 '기본 공격'으로 표시.")]
+    public string uiTitle;
+    [Tooltip("스킬 설명창에 표시할 설명 문구.")]
+    [TextArea] public string uiDescription;
+    [Tooltip("스킬 설명창 아이콘(선택). 비우면 아이콘 숨김.")]
+    public Sprite uiIcon;
+
     [Header("피해")]
     [Tooltip("몇 번 때릴지. 0 이면 마무리 일격이 없는 것으로 치고 콤보가 2타로 끝난다.")]
     public int hitCount = 1;

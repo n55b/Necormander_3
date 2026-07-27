@@ -10,6 +10,14 @@ using UnityEngine;
 [System.Serializable]
 public class MinionDashModifier
 {
+    [Header("설명(스킬 설명창 V)")]
+    [Tooltip("스킬 설명창에 표시할 이름. 비우면 '대쉬 공격'으로 표시.")]
+    public string uiTitle;
+    [Tooltip("스킬 설명창에 표시할 설명 문구.")]
+    [TextArea] public string uiDescription;
+    [Tooltip("스킬 설명창 아이콘(선택). 비우면 아이콘 숨김.")]
+    public Sprite uiIcon;
+
     [Header("형태")]
     [Tooltip("대쉬 거리 배율. 1 = 기본(3유닛).")]
     public float lengthMultiplier = 1f;
