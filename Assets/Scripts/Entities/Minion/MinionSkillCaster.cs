@@ -30,6 +30,10 @@ public class MinionSkillCaster : MonoBehaviour
     {
         var go = new GameObject($"MinionCaster_{(data != null ? data.minionName : "?")}");
         go.transform.position = position;
+        if(go.TryGetComponent<SpriteRenderer>(out var sr))
+        {
+            sr.sortingLayerName = "Default";
+        }
 
         var caster = go.AddComponent<MinionSkillCaster>();
         caster.Data = data;
