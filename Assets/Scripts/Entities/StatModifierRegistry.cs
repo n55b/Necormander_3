@@ -1,6 +1,52 @@
 using System.Collections.Generic;
 
 /// <summary>
+/// 런타임에 보정할 수 있는 스탯의 종류. 보물/유물/장비/서브 소환수가 전부 이 키로 보정치를 건다.
+///
+/// [중요] 값을 반드시 명시적으로 박는다. 예전엔 암묵적 인덱스였는데, 중간의 RespawnTime(3)을
+/// 지웠더니 뒤 항목이 전부 하나씩 밀려서 에셋 2개가 조용히 다른 스탯을 가리켰다.
+/// 에셋은 이 숫자를 그대로 직렬화하므로, 항목을 지울 땐 번호를 비워두고 재사용하지 않는다.
+///
+/// [26/07/29] 원래 GemSO.cs 에 있었는데 젬 시스템을 철거하면서 이리로 옮겼다.
+/// </summary>
+public enum StatType
+{
+    Attack = 0,         // 물리 공격력 (배율: 0.1 = 10% 증가)
+    Health = 1,         // 최대 체력
+    AttackSpeed = 2,    // 공격 속도 (회/초)
+    // 3 = 구 RespawnTime (삭제됨 — 재사용 금지)
+    // 4, 5, 6 = 구 투척 스탯. 투척 철거와 함께 삭제 — 재사용 금지.
+
+    // ── 26/07/17 스탯 재설계 ──────────────────────────────────────
+    Magic = 10,                    // 마법 공격력
+    Defense = 11,                  // 방어력(%). 감소율 상한 75%
+    MoveSpeed = 12,
+    CritChance = 13,               // 치명타 확률(%)
+    CritDamage = 14,               // 치명타 피해량(%)
+    Evasion = 15,                  // 회피율 (0~1)
+    Accuracy = 16,                 // 적중률 (0~1). 기본 1 = 100%
+    SkillCooldownReduction = 17,   // 스킬 쿨감(%) — 플레이어 전용. 합연산, 상한 없음
+    DashCooldownReduction = 18,    // 대쉬 쿨감(%) — 플레이어 전용
+    BasicAttackMultiplier = 19,    // 평타 1·2타 배율 — 플레이어 전용
+    PhysDamageAmp = 20,            // 물리 피해 증폭 (0.1 = +10%). 유물로만 오른다
+    MagicDamageAmp = 21,           // 마법 피해 증폭
+}
+
+/// <summary>스탯 변화 한 건. (원래 GemInstance.cs 에 있었다.)</summary>
+[System.Serializable]
+public class StatModifier
+{
+    public StatType Type;
+    public float Value;
+
+    public StatModifier(StatType type, float value)
+    {
+        Type = type;
+        Value = value;
+    }
+}
+
+/// <summary>
 /// 한 유닛의 런타임 스탯 보정치 저장소. CharacterStat 하나당 하나씩 들고 있다.
 ///
 /// 예전엔 StatEventBus 가 ref 파라미터 4개(atk/hp/atkSpd/moveSpd)를 넘기는 방식이었는데,

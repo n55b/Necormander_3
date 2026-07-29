@@ -22,7 +22,6 @@ public class MouseCursorManager : MonoBehaviour
             case CursorType.Targeting:
                 ChangeCursorSO(TargetCursorSO, obj);
                 break;
-                break;
         }
     }
 

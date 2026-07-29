@@ -10,9 +10,6 @@ public class GrowthRegistrySO : ScriptableObject
     [Header("소환수 데이터")]
     public List<MinionDataSO> minionDatas = new List<MinionDataSO>();
 
-    [Header("강화 보석")]
-    public List<GemSO> gems = new List<GemSO>();
-
     [Header("중첩 보물")]
     public List<TreasureSO> treasures = new List<TreasureSO>();
 
@@ -33,7 +30,6 @@ public class GrowthRegistrySO : ScriptableObject
     {
         List<GrowthItemSO> allItems = new List<GrowthItemSO>();
         // 계보는 직접 아이템이 아니므로 제외하거나, 필요시 변환 로직 추가
-        allItems.AddRange(gems);
         allItems.AddRange(treasures);
         allItems.AddRange(specialAbilities);
         return allItems;
@@ -46,7 +42,6 @@ public class GrowthRegistrySO : ScriptableObject
     public void RefreshRegistry()
     {
         minionDatas.Clear();
-        gems.Clear();
         treasures.Clear();
 
         // 1. 소환수 데이터 검색. t: 필터는 상속을 따르므로 파생 타입만 콕 집으면
@@ -63,18 +58,7 @@ public class GrowthRegistrySO : ScriptableObject
             }
         }
 
-        // 2. 보석(Gem) 검색
-        string[] gemGuids = UnityEditor.AssetDatabase.FindAssets("t:GemSO");
-        foreach (var guid in gemGuids)
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            if (path.Contains("/Deprecated/")) continue; // [추가] Deprecated 보석 제외
-            
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<GemSO>(path);
-            if (asset != null) gems.Add(asset);
-        }
-
-        // 3. 보물(Treasure) 검색
+        // 2. 보물(Treasure) 검색
         string[] treasureGuids = UnityEditor.AssetDatabase.FindAssets("t:TreasureSO");
         foreach (var guid in treasureGuids)
         {
@@ -108,7 +92,7 @@ public class GrowthRegistrySO : ScriptableObject
         UnityEditor.EditorUtility.SetDirty(this);
         UnityEditor.AssetDatabase.SaveAssets();
 
-        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 소환수({minionDatas.Count}), 보석({gems.Count}), 보물({treasures.Count}), 능력({specialAbilities.Count}), 스킬({playerSkills.Count}), 장비({equipments.Count})");
+        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 소환수({minionDatas.Count}), 보물({treasures.Count}), 능력({specialAbilities.Count}), 스킬({playerSkills.Count}), 장비({equipments.Count})");
     }
 #endif
 }

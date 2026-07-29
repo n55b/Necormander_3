@@ -302,34 +302,8 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         DamageEventBus.TriggerBeforeHealCalculated(this, ref healAmount);
 
         float oldHP = curHP;
-        float excessHeal = (curHP + healAmount) - _stat.MAXHP;
-        
-        curHP = Mathf.Min(curHP + healAmount, _stat.MAXHP);
 
-        // [시너지] 수호신(Shield_Guardian) (6) 스택: 체력 회복 초과양 15%가 보호막으로 전환 (최대 체력의 15% 제한)
-        if (excessHeal > 0 && _stat != null)
-        {
-            var inven = InventoryManager.Instance;
-            if (inven != null)
-            {
-                int guardianLevel = GemSynergyLogic.GetLevel(inven.GetSynergyCount(GemSynergyGroup.Shield_Guardian));
-                if (guardianLevel >= 3 && _status != null) // (6) 스택
-                {
-                    float shieldToAdd = excessHeal * 0.15f;
-                    float maxShieldLimit = _stat.MAXHP * 0.15f;
-                    
-                    // 기존 보호막이 최대 한도를 넘지 않도록 제한적으로 추가
-                    if (_status.TotalShield < maxShieldLimit)
-                    {
-                        float allowedToAdd = Mathf.Min(shieldToAdd, maxShieldLimit - _status.TotalShield);
-                        if (allowedToAdd > 0)
-                        {
-                            _status.AddShield(allowedToAdd, 10.0f); // 임시 10초
-                        }
-                    }
-                }
-            }
-        }
+        curHP = Mathf.Min(curHP + healAmount, _stat.MAXHP);
 
         Debug.Log($"{gameObject.name} healed for {healAmount}. HP: {oldHP} -> {curHP}");
         TakeHealEvent?.Invoke(healAmount); // [추가] 힐 텍스트 띄우기

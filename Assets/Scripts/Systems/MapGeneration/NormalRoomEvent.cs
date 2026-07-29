@@ -78,7 +78,6 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         _isSpawnPending = true; // 스폰 진행 예정 상태 설정 (스폰이 끝날 때까지 대기)
         _currentWave = 1;
 
-        if (GemTreeUI.Instance != null && GemTreeUI.Instance.IsOpen) GemTreeUI.Instance.Toggle();
         if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
         // 전투 시작 시 들고 있던 투척물을 떨군다.
 

@@ -1,8 +1,24 @@
-# GEM_LEGACY — 젬 효과 제거 기록
+# GEM_LEGACY — 젬 시스템 제거 기록
+
+> ## ⚠️ 2026-07-29 정정 — 통로도 전부 삭제됨
+> 이 문서는 원래 "효과만 지우고 구조는 남겼다"는 기록이었으나, **2026-07-29 젬 시스템을 통째로
+> 삭제**했습니다(사용자 판단: 되살릴 계획 없음). 아래 2장의 "남아 있는 통로" 목록은 **더 이상
+> 존재하지 않습니다** — 재건하려면 삭제 직전 커밋의 소스를 같이 봐야 합니다.
+>
+> 이번에 함께 사라진 것: `GemSO`/`GemEffect`/`GemStatEffect`/`GemUniqueEffect`/`GemInstance`/
+> `GemTreeNode`/`GemTreeDebugger`/`GemSynergyLogic`/`UI/GemTree/*`/`GemSlotSelection*`/
+> `GemSOEditor`/`GemTranslationPipeline`, 젬 에셋 25개, `SOData/Deprecated/` 66개,
+> `Prefabs/UI/Gem Tree`·`Gem Slot Selection`, `InventoryManager` 의 젬 영역 전부(974→320줄),
+> `SaveData` 의 `availableGems`/`flatGemTree`, `RewardCategory.Gem`, `MinionJobFlags`.
+>
+> **살아남아 이사한 것**: `StatType` 과 `StatModifier` 는 젬 전용이 아니라 전역 스탯 키였습니다.
+> `GemSO.cs`/`GemInstance.cs` → **`Scripts/Entities/StatModifierRegistry.cs`** 로 옮겼습니다.
+> `InventoryManager.OnGemTreeUpdated` 구독은 `OnMinionUpdated` 로 갈아탔습니다.
+
+> **아래는 2026-07-16 당시의 원본 기록입니다 (역사 자료).**
 
 > **이 문서의 목적**: 2026-07-16 젬 **효과**를 전부 걷어내면서, 나중에 재건할 수 있도록 스펙을 박제한 기록.
 > 제거 직전 커밋: `ebbc612` (Phase 2). 삭제는 Phase 3에서 수행.
-> **젬 구조(통로)는 그대로 살아 있습니다** — 지운 것은 효과뿐입니다.
 
 ## 0. 왜 지웠나
 

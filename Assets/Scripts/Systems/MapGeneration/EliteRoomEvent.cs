@@ -93,7 +93,6 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
         room.SetDoorsOpen(false); // 문 폐쇄
 
-        if (GemTreeUI.Instance != null && GemTreeUI.Instance.IsOpen) GemTreeUI.Instance.Toggle();
         if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
         // 전투 시작 시 들고 있던 투척물을 떨군다.
 

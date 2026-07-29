@@ -132,11 +132,6 @@ public class RewardManager : MonoBehaviour
                 ProcessNextReward();
                 break;
 
-            case RewardCategory.Gem:
-                inven.AddGemToAvailable((GemSO)candidate.rawData, candidate.targetJob);
-                ProcessNextReward();
-                break;
-
             case RewardCategory.Treasure:
                 inven.AddTreasure((TreasureSO)candidate.rawData);
                 ProcessNextReward();

@@ -633,9 +633,9 @@ public class PlayerController : MonoBehaviour
 
 public void OnGemTree(InputAction.CallbackContext context)
     {
-        // [수정] V키(Input Actions의 "GemTree" 액션)를 더 이상 GemTreeUI가 아닌
-        // SkillExplainUI 토글용으로 재사용합니다. 메서드 이름은 PlayerInput 이벤트 바인딩이
-        // 끊어지지 않도록 그대로 유지합니다. GemTreeUI는 별도의 키가 없는 상태로 남겨둡니다.
+        // V키. Input Actions 의 액션 이름이 아직 "GemTree" 라서 메서드 이름도 그대로 두었다
+        // (프리팹의 PlayerInput 이벤트 바인딩이 메서드 이름 문자열로 걸려 있어 바꾸면 끊긴다).
+        // 젬 시스템은 삭제됐고 이 키는 SkillExplainUI 전용이다.
         if (_inputBlocked || stat.Health.IsDead) return;
 
         if (context.performed)
@@ -860,7 +860,6 @@ public void OnGemTree(InputAction.CallbackContext context)
 
     private SpriteRenderer _handSpriteRenderer;
     private Sprite _defaultHandSprite;
-    private bool _handSpriteCached = false;
     private Coroutine _handSkillDisableCoroutine;
 
     /// <summary>
@@ -886,7 +885,6 @@ public void OnGemTree(InputAction.CallbackContext context)
         }
         // [Fix] 스킬 시작 시점에도 렌더러가 꺼져있을 수 있으므로 방어적으로 켜줍니다.
         if (_handSpriteRenderer != null) _handSpriteRenderer.enabled = true;
-        _handSpriteCached = true;
 
         // 평타(MeleeCombatController.ExecuteMeleeAttack)와 동일한 방식으로 마우스 방향을 조준 방향으로 계산하고,
         // 같은 부호로 플레이어 본체(Body) 반전도 맞춥니다.

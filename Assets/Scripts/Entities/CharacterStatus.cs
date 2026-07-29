@@ -309,9 +309,11 @@ public class CharacterStatus : MonoBehaviour
         // 내성: 기절 종료 후 3초 / 빙결이 피해로 깨진 후 1초 동안은 다시 안 걸린다.
         if (_immuneUntil.TryGetValue(type, out var immuneEnd) && Time.time < immuneEnd) return;
 
-        // [재빙결 경로] 이미 빙결된 적에 빙결을 또 거는 경우의 부가 효과 훅(내용 미정 → 지금은 경로만).
-        if (type == StatusType.Freeze && HasStatus(StatusType.Freeze))
-            OnRefreezeWhileFrozen();
+        // [재빙결] 이미 빙결된 적에게 빙결이 '또 부여'되면 아래에서 지속시간만 갱신된다. 부가 효과는 없다.
+        //   (혼동 주의: 얼린 적을 '때려서' 깨는 건 별개로 살아 있다 — OnDirectDamageTaken 의
+        //    FREEZE_BREAK_DAMAGE 경로. 여기는 피해가 아니라 '부여 중복' 경로다.)
+        // ⚠ 여기에 재빙결 시 추가 피해를 넣을 거면 주의: 자해 피해 → OnDirectDamageTaken 이 빙결을
+        //   해제/내성부여하고, 이어서 이 ApplyStatus 가 다시 빙결을 재적용하는 재진입이 생긴다.
 
         // 타입별 기본 지속시간. 기절만, 소스가 명시한 값을 0.5~2초로 clamp 한다.
         if (duration <= 0f) duration = StatusRules.DefaultDuration(type);
@@ -348,15 +350,6 @@ if (isNewlyApplied)
         // 터질 때 DetonateBloodPop 이 따로 띄운다.
         if (isNewlyApplied && StatusRules.AnnouncesOnApply(type))
             OnDebuffPopped?.Invoke(StatusEffectPalette.FromStatus(type));
-    }
-
-    /// <summary>[재빙결 경로] 이미 빙결된 대상에 빙결이 또 들어왔을 때. 내용/수치 미정 → 지금은 REFREEZE_BONUS_DAMAGE(기본 0)만.</summary>
-    private void OnRefreezeWhileFrozen()
-    {
-        // ⚠ 나중에 여기서 '빙결을 깨트리는' 로직을 넣을 때 주의: DealSelfDamage→OnDirectDamageTaken 이 빙결을
-        //   해제/내성부여하고, 바깥 ApplyStatus 가 이어서 다시 빙결을 재적용하는 재진입이 있다. 원하는 규칙대로 순서를 잡을 것.
-        if (StatusRules.REFREEZE_BONUS_DAMAGE > 0f)
-            DealSelfDamage(StatusRules.REFREEZE_BONUS_DAMAGE, DamageType.Freeze, "재빙결");
     }
 
     public bool HasStatus(StatusType type) => _statuses.ContainsKey(type);

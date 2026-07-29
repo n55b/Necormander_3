@@ -89,8 +89,7 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float bonus = GetGemBonus(StatType.Attack)
-                        + GetTreasureBonus(TreasureEffectType.GlobalMinionStats)
+            float bonus = GetTreasureBonus(TreasureEffectType.GlobalMinionStats)
                         + Mods.Percent(StatType.Attack);
             return (baseAtk + Mods.Flat(StatType.Attack)) * (1f + bonus);
         }
@@ -110,8 +109,7 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float flat = GetGemBonus(StatType.Health)
-                       + Mods.Flat(StatType.Health)
+            float flat = Mods.Flat(StatType.Health)
                        + (SubPassive != null ? SubPassive.MaxHpBonus : 0f);
             float bonus = GetTreasureBonus(TreasureEffectType.GlobalMinionStats)
                         + Mods.Percent(StatType.Health);
@@ -130,8 +128,7 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float bonus = GetGemBonus(StatType.AttackSpeed)
-                        + Mods.Percent(StatType.AttackSpeed)
+            float bonus = Mods.Percent(StatType.AttackSpeed)
                         + (SubPassive != null ? SubPassive.AtkSpeedBonus : 0f);
             float result = (baseAtkSpd + Mods.Flat(StatType.AttackSpeed)) * (1f + bonus);
             return Mathf.Max(0.05f, result);
@@ -214,7 +211,7 @@ public class CharacterStat : MonoBehaviour
     {
         if (InventoryManager.Instance != null)
         {
-            InventoryManager.Instance.OnGemTreeUpdated += RefreshFinalStats;
+            InventoryManager.Instance.OnMinionUpdated += RefreshFinalStats;
         }
     }
 
@@ -222,12 +219,12 @@ public class CharacterStat : MonoBehaviour
     {
         if (InventoryManager.Instance != null)
         {
-            InventoryManager.Instance.OnGemTreeUpdated -= RefreshFinalStats;
+            InventoryManager.Instance.OnMinionUpdated -= RefreshFinalStats;
         }
     }
 
     /// <summary>
-    /// 보석 트리 업데이트 등 전역 스탯 변화가 생겼을 때 호출되어 하위 컴포넌트들을 갱신합니다.
+    /// 인벤토리(소환수 장착/세이브 로드) 등 전역 스탯 변화가 생겼을 때 호출되어 하위 컴포넌트들을 갱신합니다.
     /// </summary>
     private void RefreshFinalStats()
     {
@@ -240,15 +237,9 @@ public class CharacterStat : MonoBehaviour
         }
     }
 
-    // [26/07/17] _isPlayer 게이트를 걷어냈다. 예전엔 플레이어를 젬/보물 보너스에서 명시적으로
+    // [26/07/17] _isPlayer 게이트를 걷어냈다. 예전엔 플레이어를 보물 보너스에서 명시적으로
     // 제외했는데, 이제 소환수가 플레이어의 ATK 를 공유하므로 버프 경로가 하나여야 한다.
     // "아군 공격력 증가"를 베이스 ATK 하나에만 걸면 주먹과 소환수 피해에 동시에 먹는다.
-    private float GetGemBonus(StatType type)
-    {
-        if (InventoryManager.Instance == null || !_isAlly) return 0f;
-        return InventoryManager.Instance.GetAggregatedGemBonus(type);
-    }
-
     private float GetTreasureBonus(TreasureEffectType type)
     {
         if (InventoryManager.Instance == null || !_isAlly) return 0f;
