@@ -17,6 +17,11 @@ public class ShopRegistrySO : ScriptableObject
     [Tooltip("상점에서 살 수 있는 장비. 구매 시 현재 장비를 교체하고 스킬 2개를 새로 굴린다.")]
     public List<EquipmentSO> equipmentPool = new List<EquipmentSO>();
 
+    [Header("상점에 등장할 아이템 목록(주머니)")]
+    [Tooltip("장비와 별개 시스템. 가격은 티어에서 자동으로 나오므로(ItemTierRules) 따로 적을 게 없다.\n" +
+             "구매하면 즉시 장착되지 않고 바닥에 떨어진다.")]
+    public List<ItemSO> itemPool = new List<ItemSO>();
+
     [Header("장비 강화 아이템(소모성)")]
     [Tooltip("강화 아이템 1개 가격(골드). 전역 고정값.")]
     public int enhanceCost = 250;
@@ -31,6 +36,7 @@ public class ShopRegistrySO : ScriptableObject
     {
         minionPool.Clear();
         equipmentPool.Clear();
+        itemPool.Clear();
 
         // 설계 4: 상점에 서는 건 서브 소환수뿐이다. 타입으로 직접 거른다.
         foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:SubMinionDataSO"))
@@ -52,10 +58,20 @@ public class ShopRegistrySO : ScriptableObject
             if (asset != null) equipmentPool.Add(asset);
         }
 
+        // 아이템: 전부 스캔(Deprecated 제외).
+        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:ItemSO"))
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            if (path.Contains("/Deprecated/")) continue;
+
+            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemSO>(path);
+            if (asset != null) itemPool.Add(asset);
+        }
+
         UnityEditor.EditorUtility.SetDirty(this);
         UnityEditor.AssetDatabase.SaveAssets();
 
-        Debug.Log($"<color=yellow>[ShopRegistry]</color> 자동 갱신 완료: 미니언({minionPool.Count}), 장비({equipmentPool.Count})");
+        Debug.Log($"<color=yellow>[ShopRegistry]</color> 자동 갱신 완료: 미니언({minionPool.Count}), 장비({equipmentPool.Count}), 아이템({itemPool.Count})");
     }
 #endif
 }

@@ -24,6 +24,9 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
     public float CurHP => curHP;
     public float MaxHP => (_stat != null) ? _stat.MAXHP : 0f; // [추가] 최대 체력 정보 노출
+    /// <summary>이 유닛의 스탯. 데미지 훅에서 "이 대상이 적인가"를 물어보려고 노출한다(ItemPouch 등).
+    /// GetComponent 를 매 피해마다 돌리는 걸 피하려는 목적이니, 쓰기는 Init 을 통해서만 한다.</summary>
+    public CharacterStat Stat => _stat;
     public bool IsDead => isDead;
     public bool Invincible { get { return invincible; } set { invincible = value; } }
 

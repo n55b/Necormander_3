@@ -12,6 +12,12 @@ public class SaveData
     public List<string> ownedPlayerSkillNames = new List<string>();
 
     public EquipmentSaveData equipment; // [신규] 착용 장비 한 자루. null = 없음(스킬은 장비로만 얻으므로 초반엔 null).
+
+    // [아이템 주머니] 장비와 무관한 별개 시스템. 칸 순서를 유지해야 하므로 빈 칸은 "" 로 채운다.
+    // 바닥에 떨어져 있던 아이템은 저장하지 않는다 — 층을 넘기면 사라진다.
+    // pouchSlotCount 가 0 이면 주머니 도입 전 세이브 → ItemPouch 인스펙터 기본값을 쓴다.
+    public int pouchSlotCount;
+    public List<string> pouchItemNames = new List<string>();
 }
 
 [System.Serializable]

@@ -22,6 +22,10 @@ public class GrowthRegistrySO : ScriptableObject
     [Header("장비 (플레이어 스킬은 이제 장비로만 획득)")]
     public List<EquipmentSO> equipments = new List<EquipmentSO>();
 
+    [Header("아이템 (주머니. 장비와 별개 시스템)")]
+    [Tooltip("세이브에 이름으로 저장되므로 로드 시 이름→SO 해석에 이 목록이 필요하다.")]
+    public List<ItemSO> items = new List<ItemSO>();
+
 
     /// <summary>
     /// 모든 아이템을 하나의 리스트로 합쳐서 반환합니다. (보상 생성용)
@@ -89,10 +93,20 @@ public class GrowthRegistrySO : ScriptableObject
             if (asset3 != null) equipments.Add(asset3);
         }
 
+        // 7. 아이템(ItemSO) 검색 — 주머니. 장비와 별개.
+        items.Clear();
+        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:ItemSO"))
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            if (path.Contains("/Deprecated/")) continue;
+            var asset4 = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemSO>(path);
+            if (asset4 != null) items.Add(asset4);
+        }
+
         UnityEditor.EditorUtility.SetDirty(this);
         UnityEditor.AssetDatabase.SaveAssets();
 
-        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 소환수({minionDatas.Count}), 보물({treasures.Count}), 능력({specialAbilities.Count}), 스킬({playerSkills.Count}), 장비({equipments.Count})");
+        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 소환수({minionDatas.Count}), 보물({treasures.Count}), 능력({specialAbilities.Count}), 스킬({playerSkills.Count}), 장비({equipments.Count}), 아이템({items.Count})");
     }
 #endif
 }

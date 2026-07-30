@@ -137,6 +137,10 @@ public class MeleeCombatController : MonoBehaviour
 
     public void OnAttackInput(InputAction.CallbackContext context)
     {
+        // 주머니(B 홀드)를 열고 마우스로 아이템을 끌고 있는 중엔 평타가 나가면 안 된다.
+        // 시간이 멈추지 않는 UI라 안 막으면 정리하는 내내 주먹을 휘두른다.
+        if (PouchUI.IsOpen) { _isHoldingAttack = false; return; }
+
         if (context.started)
         {
             _isHoldingAttack = true;

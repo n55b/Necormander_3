@@ -34,6 +34,8 @@ public class GameManager : MonoBehaviour
     [Header("Growth System")]
     [SerializeField] public InventoryManager inventoryManager;
     [SerializeField] public PlayerSkillInventoryManager playerSkillInventoryManager;
+    [Tooltip("아이템 주머니. 장비(playerSkillInventoryManager)와 별개 시스템이다.")]
+    [SerializeField] public ItemPouch itemPouch;
 
     [SerializeField] public RewardManager rewardManager;
 
@@ -151,6 +153,7 @@ public class GameManager : MonoBehaviour
         if (mouseCursorManager == null) mouseCursorManager = GetComponentInChildren<MouseCursorManager>();
         if (inventoryManager == null) inventoryManager = GetComponentInChildren<InventoryManager>();
         if (playerSkillInventoryManager == null) playerSkillInventoryManager = GetComponentInChildren<PlayerSkillInventoryManager>();
+        if (itemPouch == null) itemPouch = GetComponentInChildren<ItemPouch>();
 
         if (rewardManager == null) rewardManager = GetComponentInChildren<RewardManager>();
         if (offscreenEnemyArrowManager == null) offscreenEnemyArrowManager = GetComponentInChildren<OffscreenEnemyArrowManager>();
@@ -173,6 +176,14 @@ public class GameManager : MonoBehaviour
                 playerSkillInventoryManager.LoadFromData(_loadedSaveData);
 
             }
+        }
+
+        // [아이템 주머니] 장비와 별개 시스템이라 inventoryManager 블록 밖에 둔다.
+        // dataManager.Initialize() 뒤여야 한다 — 로드할 때 레지스트리로 이름→SO 를 해석한다.
+        if (itemPouch != null)
+        {
+            itemPouch.Initialize(_loadedSaveData != null);
+            if (_loadedSaveData != null) itemPouch.LoadFromData(_loadedSaveData);
         }
 
         if (economyManager != null) economyManager.Initialize();
@@ -257,6 +268,9 @@ public class GameManager : MonoBehaviour
             // [장비] 로드 시엔 플레이어가 아직 없어서 장비 스탯 패시브가 스킵됐다. 이제 스폰됐으니 재적용.
             if (playerSkillInventoryManager != null)
                 playerSkillInventoryManager.ReapplyEquipmentPassives();
+
+            // [아이템] 같은 이유. 새 플레이어에 주머니 스탯 효과를 다시 붙인다(멱등).
+            if (itemPouch != null) itemPouch.Refresh();
         }
 
         if (mapGenerator != null)
@@ -327,6 +341,8 @@ public void GoToNextFloor()
                 playerSkillInventoryManager.SaveToData(data);
         }
 
+        if (itemPouch != null) itemPouch.SaveToData(data);
+
         SaveSystem.Save(data);
 
         Debug.Log($"<color=green>[GameManager]</color> Floor Cleared! Transitioning to Floor {data.currentFloor}...");
@@ -373,6 +389,8 @@ public void GoToNextFloor()
             if (playerSkillInventoryManager != null)
                 playerSkillInventoryManager.SaveToData(data);
         }
+
+        if (itemPouch != null) itemPouch.SaveToData(data);
 
         SaveSystem.Save(data);
         Debug.Log("<color=green>[GameManager]</color> 현재 상태 저장 완료 (씬 이동 전).");

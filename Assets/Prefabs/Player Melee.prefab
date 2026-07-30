@@ -1396,6 +1396,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: e7b0b0c3-d2e3-4f5a-6b7c-8d9e0f1a2b3c
     m_ActionName: 'Player/SkillR[/Keyboard/r]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7972545975472383977}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnPouch
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: e7b0b0c4-d2e3-4f5a-6b7c-8d9e0f1a2b3c
+    m_ActionName: 'Player/Pouch[/Keyboard/b]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player

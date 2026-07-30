@@ -10,6 +10,9 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
     [Tooltip("체크 시 던지기 능력/환골탈태/보석이 모두 나옵니다.")]
     [SerializeField] private bool isSuperEliteBox = false;
 
+    // [26/07/30] 아이템 드랍은 여기가 아니다 — 이 상자는 이름과 달리 '보상방'(RewardRoomEvent)의
+    // 메인 소환수 상자다. 엘리트 방 아이템 드랍은 RewardManager.RequestClearReward(RoomType.Elite) 가 한다.
+
     public string InteractionPrompt => "Open Elite Reward";
 
     public bool Interact(GameObject interactor)
@@ -28,7 +31,7 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
             // RewardSelectionUI를 통해 보상 선택 창 표시
             RewardManager.Instance.ShowRewardSelection(rewards);
             Debug.Log($"<color=magenta>[EliteRewardBox]</color> Opened, presenting {rewards.Count} rewards.");
-            
+
             // 상호작용 후 자기 자신을 파괴
             Destroy(gameObject);
             return true;

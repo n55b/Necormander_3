@@ -19,6 +19,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ce696d1b192c8b740a95face81051be4, type: 2}
   - {fileID: 11400000, guid: f3a75dc651483514287ad726b9ac670c, type: 2}
   - {fileID: 11400000, guid: bc110321650c07a4e963feceea3b7dd6, type: 2}
+  itemPool:
+  - {fileID: 11400000, guid: 9c1e4b7a2f5d40e4a83b6c1d7e9f2a34, type: 2}
+  - {fileID: 11400000, guid: 4d8a3f6b1c2e59f4b7a2d8e3f1c6b5a9, type: 2}
   enhanceCost: 250
   enhanceStock: 3
   enhanceIcon: {fileID: 0}

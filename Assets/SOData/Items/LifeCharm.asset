@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f711bf1e2ceee742b68a340fd65898e, type: 3}
+  m_Name: LifeCharm
+  m_EditorClassIdentifier:
+  itemName: 생명의 부적
+  description: 최대 체력이 10 늘어난다. 체력이 가득 찬 적에게 주는 피해가 10% 늘어난다.
+  icon: {fileID: 0}
+  tier: 4
+  effects:
+  - rid: 2000000000000000001
+  - rid: 2000000000000000002
+  references:
+    version: 2
+    RefIds:
+    - rid: 2000000000000000001
+      type: {class: ItemStatEffect, ns: , asm: Assembly-CSharp}
+      data:
+        label: 최대 체력 +10
+        statType: 1
+        value: 10
+        isPercent: 0
+    - rid: 2000000000000000002
+      type: {class: ItemDamageBonusEffect, ns: , asm: Assembly-CSharp}
+      data:
+        label: 만피 대상 피해 +10%
+        condition: 1
+        requiredStatus: 1
+        filterByDamageType: 0
+        damageType: 0
+        filterByCategory: 0
+        category: 1
+        flatBonus: 0
+        percentBonus: 0.1

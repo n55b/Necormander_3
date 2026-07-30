@@ -258,10 +258,10 @@ MonoBehaviour:
   mouseCursorManager: {fileID: 7293194052441138037}
   inventoryManager: {fileID: 3438047193681337848}
   playerSkillInventoryManager: {fileID: 0}
+  itemPouch: {fileID: 0}
   rewardManager: {fileID: 7453844490307090777}
   offscreenEnemyArrowManager: {fileID: 0}
   playerStateUI: {fileID: 0}
-  minionStateUI: {fileID: 0}
   playerAttackSoundData: {fileID: 11400000, guid: abdae526f219dc04dbee902382943a37, type: 2}
   mapGenerator: {fileID: 6139375127595461034}
   currentStageMapData: {fileID: 11400000, guid: 1aced7d90958fe444941591d79d29124, type: 2}
@@ -301,6 +301,7 @@ GameObject:
   - component: {fileID: 6139375127595461034}
   - component: {fileID: 5933129654467836410}
   - component: {fileID: 7749112568104373486}
+  - component: {fileID: 1814791183869204076}
   m_Layer: 0
   m_Name: Data Systems
   m_TagString: Untagged
@@ -356,10 +357,7 @@ MonoBehaviour:
   Slots: []
   useDebugStartingInventory: 1
   debugStartingMinions: []
-  debugStartingMinionQuantities:
-  debugStartingGems_Data: []
-  debugStartingGems_TargetJobs: 
-  _defaultRootGemSO: {fileID: 11400000, guid: 87e7260bead92f545aa299410bef22e8, type: 2}
+  debugStartingMinionQuantities: 
 --- !u!114 &6139375127595461034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -408,6 +406,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   equippedSkills: []
   ownedSkills: []
+--- !u!114 &1814791183869204076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4057087256918008588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 834c9549d2c274c4a894a8c13e39cad5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  slotCount: 4
+  debugStartingItems:
+  - {fileID: 11400000, guid: 9c1e4b7a2f5d40e4a83b6c1d7e9f2a34, type: 2}
+  - {fileID: 11400000, guid: 4d8a3f6b1c2e59f4b7a2d8e3f1c6b5a9, type: 2}
 --- !u!1 &4851146966962830542
 GameObject:
   m_ObjectHideFlags: 0
@@ -1010,6 +1024,7 @@ MonoBehaviour:
   selectionUI: {fileID: 0}
   handSlotUI: {fileID: 0}
   skipRewardHealAmount: 10
+  eliteItemDropCount: 1
 --- !u!114 &1557044542994201147
 MonoBehaviour:
   m_ObjectHideFlags: 0

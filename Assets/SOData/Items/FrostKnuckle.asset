@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f711bf1e2ceee742b68a340fd65898e, type: 3}
+  m_Name: FrostKnuckle
+  m_EditorClassIdentifier:
+  itemName: 서리 강타 장갑
+  description: 빙결된 적을 깨뜨릴 때 주는 피해가 5 늘어난다.
+  icon: {fileID: 0}
+  tier: 3
+  effects:
+  - rid: 2000000000000000001
+  references:
+    version: 2
+    RefIds:
+    - rid: 2000000000000000001
+      type: {class: ItemDamageBonusEffect, ns: , asm: Assembly-CSharp}
+      data:
+        label: 빙결 파괴 피해 +5
+        condition: 0
+        requiredStatus: 1
+        filterByDamageType: 1
+        damageType: 2
+        filterByCategory: 0
+        category: 1
+        flatBonus: 5
+        percentBonus: 0

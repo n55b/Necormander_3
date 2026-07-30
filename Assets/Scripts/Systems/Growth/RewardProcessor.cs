@@ -3,7 +3,8 @@ using UnityEngine;
 
 public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss }
 // [26/07/17] Ability 는 투척 능력 전용이라 투척 철거와 함께 사라졌다.
-public enum RewardCategory { Minion, Metamorphosis, Treasure, Gold, PlayerSkill, Equipment, EquipmentEnhance }
+// [26/07/30] Item = 주머니 아이템. 장비(Equipment)와 별개 시스템이다. 새 항목은 반드시 맨 끝에 붙인다.
+public enum RewardCategory { Minion, Metamorphosis, Treasure, Gold, PlayerSkill, Equipment, EquipmentEnhance, Item }
 
 /// <summary>
 /// 보상으로 제안될 아이템 정보를 담는 구조체입니다.
@@ -116,6 +117,26 @@ public static class RewardProcessor
             description = so.description + skills,
             icon = so.icon
         };
+    }
+
+    /// <summary>주머니 아이템의 상점 카드 표시 데이터. 등급 표기가 설명 앞에 붙는다.</summary>
+    public static GrowthItemData BuildItemDisplayData(ItemSO so)
+        => new GrowthItemData
+        {
+            itemName = so.DisplayName,
+            description = so.TooltipBody,
+            icon = so.icon
+        };
+
+    /// <summary>레지스트리 전체에서 아이템 하나를 랜덤으로. 엘리트 드랍용. 없으면 null.</summary>
+    public static ItemSO PickRandomItem(DataManager data)
+    {
+        var registry = data != null ? data.GET_GROWTH_REGISTRY() : null;
+        if (registry == null || registry.items == null) return null;
+
+        var pool = new List<ItemSO>();
+        foreach (var it in registry.items) if (it != null) pool.Add(it);
+        return pool.Count == 0 ? null : pool[Random.Range(0, pool.Count)];
     }
 
     // --- 1-B. 미니언 스킬 방용: 소환수 코어 배출 ---
@@ -258,6 +279,24 @@ public static class RewardProcessor
                 category = RewardCategory.EquipmentEnhance,
                 goldAmount = shopRegistry.enhanceCost
             });
+        }
+
+        // [아이템] 주머니 아이템. 가격은 티어에서 자동으로 나온다(ItemTierRules).
+        // 사면 즉시 장착되지 않고 바닥에 떨어진다 — RewardManager 의 Item 분기 참조.
+        // ponytail: 티어별 등장 확률 가중치는 없다(전 티어 동일 확률). 필요해지면 여기에 가중치를 건다.
+        if (shopRegistry.itemPool != null)
+        {
+            foreach (var so in shopRegistry.itemPool)
+            {
+                if (so == null) continue;
+                combinedPool.Add(new RewardCandidate
+                {
+                    displayData = BuildItemDisplayData(so),
+                    rawData = so,
+                    category = RewardCategory.Item,
+                    goldAmount = so.Price
+                });
+            }
         }
 
         // 젬 효과가 전부 제거되어 상점 젬 풀도 내렸다. (GEM_LEGACY.md)

@@ -48,6 +48,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask interactableLayer;
     private IInteractable _closestInteractable;
 
+    // [F 홀드] IHoldInteractable 을 구현한 대상만 '떼는 순간' 판정으로 바뀐다.
+    // 홀드가 끝까지 찼으면 _holdConsumed 가 켜져서 손을 떼도 Interact 가 안 불린다.
+    private IHoldInteractable _holdTarget;
+    private float _holdTimer;
+    private bool _holdConsumed;
+
     [Header("플레이어 애니메이터")]
     [SerializeField] Animator BodyAnimator;
     [Header("스킬 손 모션 애니메이터 (Hand 오브젝트)")]
@@ -284,6 +290,7 @@ public class PlayerController : MonoBehaviour
         }
 
         CheckForInteractable(); // [추가]
+        TickInteractHold();
 
         // --- 구르기(대쉬) 입력 처리 (하드코딩 제거) ---
         // OnDash(InputAction.CallbackContext context) 콜백에서 처리합니다.
@@ -333,7 +340,41 @@ public class PlayerController : MonoBehaviour
             _closestInteractable?.OnLostFocus(gameObject);
             nearest?.OnFocused(gameObject);
             _closestInteractable = nearest;
+
+            // 누르고 있는 채로 대상에서 멀어졌으면 홀드는 취소된다.
+            if (_holdTarget != null && !ReferenceEquals(nearest, _holdTarget)) CancelInteractHold();
         }
+    }
+
+    // ── F 홀드 ────────────────────────────────────────────────────────
+    /// <summary>홀드 타이머를 굴린다. 다 차면 OnHoldComplete 를 부르고 그 입력을 소모 처리한다.</summary>
+    private void TickInteractHold()
+    {
+        if (_holdTarget == null || _holdConsumed) return;
+
+        float need = _holdTarget.HoldSeconds;
+        if (need <= 0f) { CancelInteractHold(); return; }
+
+        _holdTimer += Time.deltaTime;
+        _holdTarget.OnHoldProgress(Mathf.Clamp01(_holdTimer / need));
+
+        if (_holdTimer >= need)
+        {
+            _holdConsumed = true;              // 손을 떼도 Interact 가 안 불리게
+            var target = _holdTarget;
+            _holdTarget = null;
+            _holdTimer = 0f;
+            target.OnHoldProgress(0f);
+            target.OnHoldComplete(gameObject);
+        }
+    }
+
+    /// <summary>진행 중인 홀드를 취소하고 게이지를 되돌린다.</summary>
+    private void CancelInteractHold()
+    {
+        _holdTarget?.OnHoldProgress(0f);
+        _holdTarget = null;
+        _holdTimer = 0f;
     }
 
     public enum SpeedModifierSource
@@ -623,12 +664,47 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// F 키. 짧게 누르면 Interact, IHoldInteractable 대상을 길게 누르면 OnHoldComplete.
+    ///
+    /// [버그 수정] 예전엔 조건이 `_inputBlocked || context.performed && ...` 였다. || 가 &amp;&amp; 보다
+    /// 늦게 묶여서, 입력이 차단된 상태(컷신/보상창 등)면 무조건 본문에 들어가 상호작용이 되고
+    /// _closestInteractable 이 null 이면 NullReference 까지 났다. 의도는 `!차단 && performed` 였다.
+    /// </summary>
     public void OnInteract(InputAction.CallbackContext context) // [추가]
     {
-        if (_inputBlocked || context.performed && _closestInteractable != null)
+        if (_inputBlocked) { CancelInteractHold(); return; }
+
+        if (context.performed)
         {
-            _closestInteractable.Interact(gameObject);
+            // 누른 순간: 홀드 가능한 대상이면 타이머를 돌리기 시작한다.
+            _holdConsumed = false;
+            _holdTimer = 0f;
+            _holdTarget = (_closestInteractable is IHoldInteractable h && h.HoldSeconds > 0f) ? h : null;
+
+            // 홀드 대상이 아니면 예전처럼 누른 즉시 실행한다(상점 NPC·문 등 반응이 밀리면 안 되는 것들).
+            if (_holdTarget == null) _closestInteractable?.Interact(gameObject);
         }
+        else if (context.canceled)
+        {
+            // 뗀 순간: 홀드가 끝까지 안 찼으면 '짧게 누름' = 평소 Interact.
+            bool wasHolding = _holdTarget != null;
+            CancelInteractHold();
+            if (wasHolding && !_holdConsumed) _closestInteractable?.Interact(gameObject);
+            _holdConsumed = false;
+        }
+    }
+
+    /// <summary>
+    /// B 키. 누르고 있는 동안만 아이템 주머니가 떠 있다(시간 정지 없음).
+    /// 죽었거나 입력이 차단된 상태에선 강제로 닫는다 — 누른 채로 죽으면 패널이 남는다.
+    /// </summary>
+    public void OnPouch(InputAction.CallbackContext context)
+    {
+        if (PouchUI.Instance == null) return;
+
+        bool blocked = _inputBlocked || (stat != null && stat.Health != null && stat.Health.IsDead);
+        PouchUI.Instance.SetOpen(!blocked && context.performed);
     }
 
 public void OnGemTree(InputAction.CallbackContext context)
