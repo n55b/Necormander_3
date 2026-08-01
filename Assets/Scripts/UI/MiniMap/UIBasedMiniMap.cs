@@ -28,6 +28,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     [SerializeField] private Sprite customShopRoomSprite;     // 상점 방 전용 오버라이드 스킨
     [SerializeField] private Sprite customRewardRoomSprite;   // 보상 방 전용 오버라이드 스킨
     [SerializeField] private Sprite customEliteRoomSprite;    // 엘리트 방 전용 오버라이드 스킨
+    [Tooltip("증강 선택 방 전용 스킨. 비워두면 일반 방과 같은 네모 위에 빨간 아이콘만 얹힌다.")]
+    [SerializeField] private Sprite customAugmentRoomSprite;
 
     [Header("🌟 2. 지형 도트 커스텀 연출")]
     [SerializeField] private Sprite customTerrainDotSprite;   // 지형 도트용 스프라이트 (비워두면 사각형)
@@ -333,6 +335,9 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                             case RoomType.Elite:
                                 img.color = new Color(0.8f, 0.3f, 0.9f, 1.0f);
                                 break;
+                            // 증강 선택 방은 방 색을 안 바꾼다 — 구분은 MiniMapIcons 의
+                            // AugmentMiniMapIcon(빨간 네모)이 한다. 여기까지 빨갛게 칠하면
+                            // 보스 방(같은 빨강)과 구분이 안 된다.
                             default:
                                 img.color = new Color(0.35f, 0.45f, 0.65f, 1.0f);
                                 break;
@@ -487,6 +492,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             case RoomType.Reward: return customRewardRoomSprite;
             case RoomType.Boss: return customBossRoomSprite;
             case RoomType.Elite: return customEliteRoomSprite;
+            case RoomType.Augment: return customAugmentRoomSprite;
             default: return customNormalRoomSprite;
         }
     }

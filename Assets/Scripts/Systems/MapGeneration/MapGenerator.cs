@@ -136,7 +136,7 @@ public class MapGenerator : MonoBehaviour
             }
             else
             {
-                int totalSpecials = generationData.shopCount + generationData.rewardCount + generationData.eliteCount;
+                int totalSpecials = generationData.shopCount + generationData.rewardCount + generationData.eliteCount + generationData.augmentRoomCount;
                 int normalCount = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - 1 - totalSpecials);
 
                 int initialBranchCount = Random.Range(1, 5);
@@ -160,6 +160,8 @@ public class MapGenerator : MonoBehaviour
                 List<RoomType> phase3 = new List<RoomType>();
                 int eliteRest = generationData.eliteCount - eliteHalf;
                 for (int i = 0; i < eliteRest; i++) phase3.Add(RoomType.Elite);
+                // 증강 방은 중반에 둔다. 스폰 바로 옆이면 아직 아무것도 없는 상태로 가혹 페널티를 고르게 된다.
+                for (int i = 0; i < generationData.augmentRoomCount; i++) phase3.Add(RoomType.Augment);
                 for (int i = 0; i < remainingNormal; i++) phase3.Add(RoomType.Normal);
                 if (phase3.Count > 0) yield return StartCoroutine(RunPhase(phase3));
 
@@ -1823,6 +1825,7 @@ public class MapGenerator : MonoBehaviour
         for (int i = 0; i < generationData.shopCount; i++) specialTypes.Add(RoomType.Shop);
         for (int i = 0; i < generationData.eliteCount; i++) specialTypes.Add(RoomType.Elite);
         for (int i = 0; i < generationData.rewardCount; i++) specialTypes.Add(RoomType.Reward);
+        for (int i = 0; i < generationData.augmentRoomCount; i++) specialTypes.Add(RoomType.Augment);
         // [제거] 보스는 4층 전용(isBossFloor → PlaceIsaacRoomsBossFloor)이라 일반 층(1~3)엔 넣지 않는다.
         // 예전엔 여기서 매 층 보스방을 추가했는데, 배치할 자리를 못 찾으면 "보스 방 배치에 실패..." 경고만 뜨고
         // 실제로 보스도 안 생겨서(원래 의도대로) 경고만 노이즈였음.
@@ -1867,7 +1870,7 @@ public class MapGenerator : MonoBehaviour
                 Vector2Int neededDir = -parentAnchor.direction;
 
                 GameObject selectedPrefab = null;
-                var entries = prefabData.roomEntries.Find(e => e.roomType == specType);
+                var entries = prefabData.GetEntry(specType); // Event 방은 전용 프리팹이 없으면 일반 방으로 폴백
                 if (entries == null || entries.prefabs.Count == 0) continue;
 
                 var shuffledPrefabs = entries.prefabs.OrderBy(x => Random.value).ToList();

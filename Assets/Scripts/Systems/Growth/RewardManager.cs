@@ -39,6 +39,12 @@ public class RewardManager : MonoBehaviour
             GameManager.Instance.inventoryManager.AddGold(goldAmount);
             Debug.Log($"<color=yellow>[Reward]</color> Normal Room Cleared! {goldAmount} Gold obtained (gold-only).");
         }
+        else if (type == RoomType.Augment)
+        {
+            // [증강 방 26/08/01] 전투 시작 전에 고른 카드에 딸린 보상을 그대로 준다.
+            // 카드 UI 는 이미 닫혔고, 여기서는 상자를 연 시점에 지급만 한다.
+            ActiveAugment.GrantPendingReward();
+        }
         else if (type == RoomType.Elite)
         {
             // [엘리트 보상 26/07/30] 아이템을 바닥에 떨어뜨린다. 카드 UI 는 띄우지 않는다 —

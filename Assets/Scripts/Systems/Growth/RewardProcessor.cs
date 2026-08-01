@@ -1,7 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss }
+// [26/08/01] Augment = 증강 선택 방. 전투는 일반 방과 똑같이 굴리되 시작 전에 페널티 카드를 고르고,
+// 클리어 보상이 그 카드에 딸린 보상으로 바뀐다.
+// 이름을 Event 로 두지 않는다 — '이벤트 방'은 앞으로 여러 종류가 생길 자리라서, 이 방은
+// 자기가 하는 일(증강 선택)로 부른다. 다른 이벤트 방이 필요해지면 그때 각자 이름으로 추가하면 된다.
+// 새 항목은 반드시 맨 끝에 붙인다 — RoomPrefabDataSO 에셋과 룸 프리팹이 이 숫자를 그대로 직렬화하고 있다.
+public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss, Augment }
 // [26/07/17] Ability 는 투척 능력 전용이라 투척 철거와 함께 사라졌다.
 // [26/07/30] Item = 주머니 아이템. 장비(Equipment)와 별개 시스템이다. 새 항목은 반드시 맨 끝에 붙인다.
 public enum RewardCategory { Minion, Metamorphosis, Treasure, Gold, PlayerSkill, Equipment, EquipmentEnhance, Item }

@@ -6,6 +6,10 @@ using UnityEngine.Events;
 
 /// <summary>
 /// 일반 전투 방의 이벤트를 담당합니다.
+///
+/// [26/08/01] 증강 선택 방(RoomType.Augment)도 이 컴포넌트가 굴린다 — 전투 자체는 일반 방과
+/// 완전히 같고, 시작 전에 카드를 한 장 고르는 단계와 클리어 시 페널티 해제만 다르다.
+/// 방 프리팹도 일반 방 것을 그대로 쓴다(RoomPrefabDataSO.GetEntry 의 폴백).
 /// </summary>
 public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 {
@@ -30,6 +34,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     private RoomInstance _cachedRoom;
     private int _currentWave = 1;
     private List<Vector3> _spawnedEnemyPositions = new List<Vector3>();
+    private bool _augmentChosen = false; // 증강 방에서 카드를 이미 골랐는지(방 하나당 한 번)
 
     private void Start()
     {
@@ -72,7 +77,16 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     public void OnPlayerEnter(RoomInstance room)
     {
         if (_isBattleActive) return;
-        
+
+        // [증강 방] 전투를 시작하기 전에 페널티 카드부터 고르게 한다.
+        // 고르는 동안 시간이 멈추고(AugmentSelectionUI), 고른 뒤 콜백에서 이 함수로 다시 들어온다.
+        if (room.roomType == RoomType.Augment && !_augmentChosen)
+        {
+            _cachedRoom = room;
+            if (TryOpenAugmentSelection(room)) return;
+            _augmentChosen = true; // 테이블/UI 가 없으면 그냥 일반 전투로 진행
+        }
+
         _cachedRoom = room;
         _isBattleActive = true;
         _isSpawnPending = true; // 스폰 진행 예정 상태 설정 (스폰이 끝날 때까지 대기)
@@ -97,8 +111,42 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         SpawnWaves(room);
     }
 
+    /// <summary>
+    /// 증강 선택 창을 띄운다. 띄웠으면 true — 호출부는 여기서 리턴하고, 선택이 끝나면
+    /// 콜백이 OnPlayerEnter 를 다시 불러 전투가 시작된다.
+    /// 테이블이나 UI 가 없으면 false 를 돌려 그냥 일반 전투로 흘려보낸다(방이 잠기면 안 되므로).
+    /// </summary>
+    private bool TryOpenAugmentSelection(RoomInstance room)
+    {
+        var table = GameManager.Instance != null && GameManager.Instance.dataManager != null
+            ? GameManager.Instance.dataManager.AUGMENT_TABLE : null;
+
+        if (table == null || AugmentSelectionUI.Instance == null)
+        {
+            Debug.LogWarning("[NormalRoomEvent] 증강 테이블 또는 AugmentSelectionUI 가 없어 카드를 못 띄운다. 일반 전투로 진행한다.");
+            return false;
+        }
+
+        var offers = table.RollOffers();
+        if (offers.Count == 0)
+        {
+            Debug.LogWarning("[NormalRoomEvent] 증강 테이블에 페널티가 하나도 없다. 일반 전투로 진행한다.");
+            return false;
+        }
+
+        AugmentSelectionUI.Instance.Show(offers, table.RollNoRiskOffer(), picked =>
+        {
+            _augmentChosen = true;
+            ActiveAugment.Apply(picked);
+            OnPlayerEnter(room); // 이제 진짜 전투 시작
+        });
+        return true;
+    }
+
     public void OnRoomCleared(RoomInstance room)
     {
+        // [증강 방] 페널티는 이 방 전투까지만이다. 보상은 상자를 열 때 지급되므로 여기서 안 건드린다.
+        if (room.roomType == RoomType.Augment) ActiveAugment.ClearPenalty();
 
         // 인스펙터에 할당된 상자를 방 정중앙에 생성
         SpawnRoomRewardBox(room);
@@ -197,71 +245,24 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         List<Vector3> targetSpawnPoints = new List<Vector3>();
         List<EnemyCount> targetEnemyCounts = new List<EnemyCount>();
 
+        // 이번 웨이브에 실제로 뽑을 적 목록. 군집을 한 줄로 펼친 다음,
+        // 증강 페널티('웨이브당 적 수 +N')가 걸려 있으면 그만큼 뒤에 더 붙인다.
+        List<EnemyCount> toSpawn = new List<EnemyCount>();
         foreach (var enemyCount in cluster.enemies)
         {
             if (enemyCount.enemyData == null) continue;
+            for (int i = 0; i < enemyCount.count; i++) toSpawn.Add(enemyCount);
+        }
 
-            for (int i = 0; i < enemyCount.count; i++)
-            {
-                Vector3 bestPos = room.transform.position + (Vector3)room.centerOffset;
-                float bestDist = -1f;
+        int extra = ActiveAugment.ExtraEnemiesForWave(_currentWave);
+        int baseCount = toSpawn.Count;
+        for (int i = 0; i < extra && baseCount > 0; i++)
+            toSpawn.Add(toSpawn[Random.Range(0, baseCount)]); // 원래 군집에 있던 적 중 하나를 복제
 
-                for (int attempt = 0; attempt < mapGenerationData.maxSpawnAttempts; attempt++)
-                {
-                    Vector3 randPos = new Vector3(
-                        Random.Range(-rangeX, rangeX),
-                        Random.Range(-rangeY, rangeY),
-                        0
-                    );
-                    Vector3 candidatePos = room.transform.position + (Vector3)room.centerOffset + randPos;
-
-                    // [추가] 후보 좌표가 실제 구워진 NavMesh(이동 가능 구역) 위에 존재하는지 사전 엄격 검증
-                    // 타일맵뿐만 아니라 씬 내 모든 벽(Wall), 기둥, 장애물 오브젝트를 100% 한 번에 완벽 우회합니다.
-                    if (UnityEngine.AI.NavMesh.SamplePosition(candidatePos, out UnityEngine.AI.NavMeshHit hit, 1.5f, UnityEngine.AI.NavMesh.AllAreas))
-                    {
-                        // 벽 너머나 너무 먼 곳으로 NavMesh가 당겨져 왜곡 스폰되는 것을 철저히 차단
-                        if (Vector3.Distance(candidatePos, hit.position) > 1.2f)
-                        {
-                            continue;
-                        }
-                        
-                        // 검증이 완료된 NavMesh 상의 실제 유효 위치로 좌표 즉각 갱신 고정
-                        candidatePos = hit.position;
-                    }
-                    else
-                    {
-                        // NavMesh가 깔려 있지 않은 벽 속이거나 공백 구역이므로 탈락 처리
-                        continue;
-                    }
-
-                    float minDist = float.MaxValue;
-                    foreach (var center in _spawnedEnemyPositions)
-                    {
-                        float dist = Vector3.Distance(candidatePos, center);
-                        if (dist < minDist) minDist = dist;
-                    }
-                    foreach (var center in targetSpawnPoints)
-                    {
-                        float dist = Vector3.Distance(candidatePos, center);
-                        if (dist < minDist) minDist = dist;
-                    }
-
-                    if ((_spawnedEnemyPositions.Count == 0 && targetSpawnPoints.Count == 0) || minDist >= mapGenerationData.minDistanceBetweenEnemies)
-                    {
-                        bestPos = candidatePos;
-                        break;
-                    }
-
-                    if (minDist > bestDist)
-                    {
-                        bestDist = minDist;
-                        bestPos = candidatePos;
-                    }
-                }
-
-                targetSpawnPoints.Add(bestPos);
-                targetEnemyCounts.Add(enemyCount);
-            }
+        foreach (var enemyCount in toSpawn)
+        {
+            targetSpawnPoints.Add(FindSpawnPoint(room, rangeX, rangeY, targetSpawnPoints));
+            targetEnemyCounts.Add(enemyCount);
         }
 
         float spawnDelay = 1.0f; // 장판이 가득 차오르는 선딜 시간
@@ -282,6 +283,58 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         _isSpawnPending = false;
         
         Debug.Log($"<color=cyan>[NormalRoomEvent]</color> Finished spawning cluster '{cluster.name}'. Active count: {_activeEnemies.Count}");
+    }
+
+    /// <summary>
+    /// 이미 잡아둔 자리들과 최대한 떨어진, NavMesh 위의 스폰 좌표를 찾는다.
+    /// maxSpawnAttempts 번 안에 조건을 못 맞추면 그중 제일 나은 자리를 쓴다.
+    /// </summary>
+    private Vector3 FindSpawnPoint(RoomInstance room, float rangeX, float rangeY, List<Vector3> pending)
+    {
+        Vector3 bestPos = room.transform.position + (Vector3)room.centerOffset;
+        float bestDist = -1f;
+
+        for (int attempt = 0; attempt < mapGenerationData.maxSpawnAttempts; attempt++)
+        {
+            Vector3 randPos = new Vector3(Random.Range(-rangeX, rangeX), Random.Range(-rangeY, rangeY), 0);
+            Vector3 candidatePos = room.transform.position + (Vector3)room.centerOffset + randPos;
+
+            // 후보 좌표가 실제로 구워진 NavMesh(이동 가능 구역) 위인지 검증한다.
+            // 타일맵뿐 아니라 씬의 벽/기둥/장애물까지 한 번에 우회된다.
+            if (NavMesh.SamplePosition(candidatePos, out NavMeshHit hit, 1.5f, NavMesh.AllAreas))
+            {
+                // 벽 너머나 너무 먼 곳으로 NavMesh가 당겨져 왜곡 스폰되는 것을 차단
+                if (Vector3.Distance(candidatePos, hit.position) > 1.2f) continue;
+                candidatePos = hit.position;
+            }
+            else
+            {
+                continue; // NavMesh가 없는 벽 속/공백 구역
+            }
+
+            float minDist = float.MaxValue;
+            foreach (var center in _spawnedEnemyPositions)
+            {
+                float dist = Vector3.Distance(candidatePos, center);
+                if (dist < minDist) minDist = dist;
+            }
+            foreach (var center in pending)
+            {
+                float dist = Vector3.Distance(candidatePos, center);
+                if (dist < minDist) minDist = dist;
+            }
+
+            if ((_spawnedEnemyPositions.Count == 0 && pending.Count == 0) || minDist >= mapGenerationData.minDistanceBetweenEnemies)
+                return candidatePos;
+
+            if (minDist > bestDist)
+            {
+                bestDist = minDist;
+                bestPos = candidatePos;
+            }
+        }
+
+        return bestPos;
     }
 
     private IEnumerator DelayedSpawnEnemyWithVFX(EnemyCount enemyCount, Vector3 spawnPos, float duration)

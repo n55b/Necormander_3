@@ -47,6 +47,13 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private int gold = 0;
     public int GOLD => gold;
 
+    [Tooltip("증강 방 보상으로 누적된 최대 체력. 런 영구이며 세이브에 같이 들어간다.")]
+    [SerializeField] private float augmentMaxHpBonus = 0f;
+    /// <summary>증강 보상으로 얻은 최대 체력 합계. CharacterStat.MAXHP 가 매 프레임 읽어 간다 —
+    /// 보물 보너스와 같은 방식이라 층을 넘어가 플레이어가 새로 생겨도 재적용이 필요 없다.</summary>
+    public float AugmentMaxHpBonus => augmentMaxHpBonus;
+    public void AddAugmentMaxHp(float amount) => augmentMaxHpBonus += amount;
+
     /// <summary>소환수 슬롯 인덱스. 메인 1 + 서브 1 고정.</summary>
     public const int SLOT_MAIN = 0;
     public const int SLOT_SUB = 1;
@@ -212,6 +219,7 @@ public class InventoryManager : MonoBehaviour
     public void SaveToData(SaveData data)
     {
         data.gold = gold;
+        data.augmentMaxHpBonus = augmentMaxHpBonus;
 
         // Slots 저장
         data.slots.Clear();
@@ -241,6 +249,7 @@ public class InventoryManager : MonoBehaviour
     public void LoadFromData(SaveData data)
     {
         gold = data.gold;
+        augmentMaxHpBonus = data.augmentMaxHpBonus; // 증강 도입 전 세이브는 0 → 보정 없음
 
         var registry = GameManager.Instance.dataManager.GET_GROWTH_REGISTRY();
         if (registry == null)

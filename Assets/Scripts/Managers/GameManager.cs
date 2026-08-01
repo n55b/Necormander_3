@@ -186,6 +186,10 @@ public class GameManager : MonoBehaviour
             if (_loadedSaveData != null) itemPouch.LoadFromData(_loadedSaveData);
         }
 
+        // [증강] static 상태라 씬을 다시 로드해도 안 죽는다. 새 씬을 시작할 때마다 반드시 비운다 —
+        // 안 그러면 지난 층의 페널티가 그대로 남고, DamageEventBus 구독까지 중복으로 쌓인다.
+        ActiveAugment.ResetAll();
+
         if (economyManager != null) economyManager.Initialize();
         if (cameraManager != null) cameraManager.Initialize();
         if (hitStopManager != null) hitStopManager.Initialize();

@@ -182,6 +182,9 @@ public class PlayerSkillController : MonoBehaviour
         float minionCd = casterStat != null
             ? casterStat.ApplySkillCooldown(minionData.minionSkill.cooldownTime)
             : minionData.minionSkill.cooldownTime;
+        // [증강 페널티] '소환수 쿨다운 +N%'. 스탯(SKILL_CDR)은 Q/E 와 공유라 여기서만 따로 곱한다 —
+        // 스탯으로 넣으면 소환수만 느려져야 할 페널티가 플레이어 스킬까지 같이 늦춘다.
+        minionCd *= ActiveAugment.MinionCooldownMult;
         _mainSummonCooldownEnd = Time.time + minionCd;
         Debug.Log($"<color=green>[PSC]</color> Minion Skill Executed: {minionData.minionName}");
     }

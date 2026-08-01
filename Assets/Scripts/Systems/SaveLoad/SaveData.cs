@@ -18,6 +18,9 @@ public class SaveData
     // pouchSlotCount 가 0 이면 주머니 도입 전 세이브 → ItemPouch 인스펙터 기본값을 쓴다.
     public int pouchSlotCount;
     public List<string> pouchItemNames = new List<string>();
+
+    // [증강] 증강 방 보상으로 누적된 최대 체력. 페널티는 방 하나짜리라 저장할 게 없다.
+    public float augmentMaxHpBonus;
 }
 
 [System.Serializable]

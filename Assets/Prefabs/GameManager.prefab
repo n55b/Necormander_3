@@ -341,6 +341,7 @@ MonoBehaviour:
   defaultAIPattern: {fileID: 11400000, guid: 87dce675a86e17b45b233909dcf186d3, type: 2}
   shopRegistry: {fileID: 11400000, guid: 4930ca0a9c595b6408f83c0719490716, type: 2}
   clusterRegistry: {fileID: 11400000, guid: 4a525318270344540ae65dd9032dcb3d, type: 2}
+  augmentTable: {fileID: 11400000, guid: 2f9b4c81e6a37d5498c1b0f27a3d5e64, type: 2}
 --- !u!114 &3438047193681337848
 MonoBehaviour:
   m_ObjectHideFlags: 0

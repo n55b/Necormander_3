@@ -109,8 +109,13 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
+            // 증강 보상(최대 체력 +N)은 InventoryManager 가 런 내내 들고 있고 여기서 매번 읽어 간다.
+            // 보물 보너스와 같은 방식이라, 층을 넘어 플레이어가 새로 스폰돼도 재적용이 필요 없다.
+            float augment = (_isPlayer && InventoryManager.Instance != null)
+                ? InventoryManager.Instance.AugmentMaxHpBonus : 0f;
             float flat = Mods.Flat(StatType.Health)
-                       + (SubPassive != null ? SubPassive.MaxHpBonus : 0f);
+                       + (SubPassive != null ? SubPassive.MaxHpBonus : 0f)
+                       + augment;
             float bonus = GetTreasureBonus(TreasureEffectType.GlobalMinionStats)
                         + Mods.Percent(StatType.Health);
             return (baseMaxHP + flat) * (1f + bonus);

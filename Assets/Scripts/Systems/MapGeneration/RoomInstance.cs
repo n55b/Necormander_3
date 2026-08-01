@@ -166,7 +166,8 @@ public class RoomInstance : MonoBehaviour
         SetRewardTypeAndSyncIcon(normalRewardType);
 
         // [수정] 방 한가운데 감지용 콜라이더(CombatCenterTrigger) 프리팹 바인딩 및 누락 시 Fallback 안전 자동 셋업
-        if (roomType == RoomType.Normal || roomType == RoomType.Elite || roomType == RoomType.Boss)
+        // Augment(증강 선택) 방도 전투 방이다 — 한가운데 도달하면 카드가 뜨고 그 뒤에 전투가 시작된다.
+        if (roomType == RoomType.Normal || roomType == RoomType.Elite || roomType == RoomType.Boss || roomType == RoomType.Augment)
         {
             Transform centerTriggerTrans = transform.Find("CombatCenterTrigger");
             GameObject centerTriggerObj = null;
@@ -243,6 +244,12 @@ public class RoomInstance : MonoBehaviour
             else if (roomType == RoomType.Elite)
             {
                 targetIcon = iconsParent.Find("EliteMiniMapIcon") ?? iconsParent.Find("elite");
+            }
+            else if (roomType == RoomType.Augment)
+            {
+                // 아직 전용 아트가 없어서 유니티 기본 스프라이트를 빨갛게 물들인 네모다.
+                // 진짜 아이콘이 생기면 MiniMapIcons 프리팹의 이 오브젝트 스프라이트만 갈아 끼우면 된다.
+                targetIcon = iconsParent.Find("AugmentMiniMapIcon") ?? iconsParent.Find("augment");
             }
 
             if (targetIcon != null)

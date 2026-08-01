@@ -1,0 +1,168 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 455ef340a5fedad4ba40d92f4ee90d28, type: 3}
+  m_Name: AugmentTable
+  m_EditorClassIdentifier:
+  cardCount: 4
+  guaranteeP3: 1
+  allowItemRewards: 0
+  penalties:
+  - id: P1-01
+    displayName: 저린 육신
+    tier: 1
+    kind: 0
+    value: 25
+    waveLimit: 2
+    flavor: 상처가 조금 깊다
+  - id: P1-02
+    displayName: 영혼의 지체
+    tier: 1
+    kind: 1
+    value: 15
+    waveLimit: 2
+    flavor: 소환수가 조금 늦다
+  - id: P1-03
+    displayName: 굼뜬 발
+    tier: 1
+    kind: 2
+    value: -10
+    waveLimit: 2
+    flavor: 발이 조금 무겁다
+  - id: P1-04
+    displayName: 설익은 주먹
+    tier: 1
+    kind: 3
+    value: -10
+    waveLimit: 2
+    flavor: 주먹이 조금 가볍다
+  - id: P1-05
+    displayName: 단단한 껍질
+    tier: 1
+    kind: 5
+    value: 15
+    waveLimit: 2
+    flavor: 적이 조금 단단하다
+  - id: P1-06
+    displayName: 벼려진 발톱
+    tier: 1
+    kind: 6
+    value: 15
+    waveLimit: 2
+    flavor: 적의 공격이 조금 날카롭다
+  - id: P2-01
+    displayName: 흐릿한 육신
+    tier: 2
+    kind: 0
+    value: 50
+    waveLimit: 2
+    flavor: 받는 피해가 늘어난다
+  - id: P2-02
+    displayName: 영혼의 지연
+    tier: 2
+    kind: 1
+    value: 25
+    waveLimit: 2
+    flavor: 소환수의 반응이 느리다
+  - id: P2-03
+    displayName: 무거운 발걸음
+    tier: 2
+    kind: 2
+    value: -20
+    waveLimit: 2
+    flavor: 발이 무겁다
+  - id: P2-04
+    displayName: 무뎌진 주먹
+    tier: 2
+    kind: 3
+    value: -20
+    waveLimit: 2
+    flavor: 주먹에 힘이 실리지 않는다
+  - id: P2-05
+    displayName: 강인한 적
+    tier: 2
+    kind: 5
+    value: 30
+    waveLimit: 2
+    flavor: 적이 단단하다
+  - id: P2-06
+    displayName: 원군
+    tier: 2
+    kind: 7
+    value: 2
+    waveLimit: 2
+    flavor: 적의 수가 늘어난다
+  - id: P2-08
+    displayName: 첨병
+    tier: 2
+    kind: 8
+    value: 1
+    waveLimit: 2
+    flavor: 선발대가 기다리고 있다
+  - id: P3-01
+    displayName: 결손된 육신
+    tier: 3
+    kind: 0
+    value: 100
+    waveLimit: 2
+    flavor: 받는 피해가 두 배가 된다
+  - id: P3-02
+    displayName: 영혼의 침묵
+    tier: 3
+    kind: 1
+    value: 50
+    waveLimit: 2
+    flavor: 소환수가 좀처럼 응답하지 않는다
+  - id: P3-03
+    displayName: 굳은 다리
+    tier: 3
+    kind: 4
+    value: 100
+    waveLimit: 2
+    flavor: 몸이 무겁다
+  - id: P3-04
+    displayName: 광폭
+    tier: 3
+    kind: 6
+    value: 40
+    waveLimit: 2
+    flavor: 적이 광기에 사로잡혀 있다
+  rewards:
+  - tier: 0
+    kind: 0
+    value: 5
+  - tier: 1
+    kind: 0
+    value: 15
+  - tier: 1
+    kind: 1
+    value: 10
+  - tier: 1
+    kind: 2
+    value: 3
+  - tier: 2
+    kind: 0
+    value: 20
+  - tier: 2
+    kind: 1
+    value: 15
+  - tier: 2
+    kind: 2
+    value: 5
+  - tier: 3
+    kind: 0
+    value: 40
+  - tier: 3
+    kind: 1
+    value: 35
+  - tier: 3
+    kind: 2
+    value: 10

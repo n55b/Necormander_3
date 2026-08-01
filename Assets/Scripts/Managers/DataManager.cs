@@ -15,6 +15,8 @@ public class DataManager : MonoBehaviour
     [SerializeField] private AIPatternSO defaultAIPattern; 
     [SerializeField] private ShopRegistrySO shopRegistry;
     [SerializeField] private EnemyClusterRegistrySO clusterRegistry;
+    [Tooltip("증강 선택 방의 페널티/보상 테이블.")]
+    [SerializeField] private AugmentTableSO augmentTable;
 
     public AIPatternSO DEFAULT_AI_PATTERN => defaultAIPattern;
 
@@ -25,6 +27,7 @@ public class DataManager : MonoBehaviour
     public List<EnemyMinionDataSO> BOSS_MINION_DATA => minionRegistry != null ? minionRegistry.bossMinionData : null; // [추가] 보스 데이터 접근
     public ShopRegistrySO SHOP_REGISTRY => shopRegistry;
     public List<EnemyClusterSO> ENEMY_CLUSTERS => clusterRegistry != null ? clusterRegistry.enemyClusters : new List<EnemyClusterSO>();
+    public AugmentTableSO AUGMENT_TABLE => augmentTable;
 
     /// <summary>
     /// 다른 매니저들이 준비되기 전에 가장 먼저 초기화되어야 합니다.
@@ -64,6 +67,10 @@ public class DataManager : MonoBehaviour
         if (data == null || data.minionPrefab == null) return null;
         GameObject unitObj = Instantiate(data.minionPrefab, position, Quaternion.identity);
         if (unitObj.TryGetComponent<BaseEntity>(out var entity)) entity.Initialize(data);
+
+        // [증강 페널티] '적 체력/공격력 +N%'. 적이 태어나는 길목이 여기 하나뿐이라
+        // 분열로 생긴 적까지 전부 걸린다. Initialize 가 Mods.Clear() 를 하므로 반드시 그 뒤여야 한다.
+        ActiveAugment.ApplyToSpawnedEnemy(unitObj);
         return unitObj;
     }
 }
