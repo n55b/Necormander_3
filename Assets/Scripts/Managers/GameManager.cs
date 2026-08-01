@@ -111,6 +111,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] public int currentFloor = 1;
     [SerializeField] public bool debugStartAtBoss = false; // [추가] 보스방 직행 디버그 옵션
     [SerializeField] public int debugStartFloor = 4;       // [추가] 보스방 기준 층
+
+    [Header("엘리트 아레나 (EliteTestScene 용 — 배포 빌드에선 반드시 꺼둘 것)")]
+    [Tooltip("켜면 맵을 '스폰 방 + 엘리트 방' 두 칸짜리로만 만들고, 플레이어를 엘리트 방 입구에 바로 놓는다.")]
+    [SerializeField] public bool debugEliteArena = false;
+    [Tooltip("아레나에서 싸울 엘리트. 비워두면 엘리트 풀에서 무작위로 하나 뽑는다. " +
+             "엘리트에 전용 방 프리팹이 지정돼 있으면 그 방이 배치된다.")]
+    [SerializeField] public EnemyMinionDataSO debugForcedElite;
     [System.NonSerialized] private SaveData _loadedSaveData = null;
 
     private void Awake()

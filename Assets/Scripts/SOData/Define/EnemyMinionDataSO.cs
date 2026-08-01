@@ -39,4 +39,9 @@ public class EnemyMinionDataSO : MinionDataSO
 
     [Header("프리팹 설정")]
     public GameObject minionPrefab;
+
+    [Header("엘리트/보스 전용 방")]
+    [Tooltip("이 엘리트가 나오는 방 프리팹. 맵 생성 때 이 층의 엘리트로 뽑히면 이 방이 배치된다.\n" +
+             "비워두면 RoomPrefabData 에 등록된 일반 Elite 방으로 폴백한다. 일반 적은 안 쓰는 칸.")]
+    public GameObject dedicatedRoomPrefab;
 }

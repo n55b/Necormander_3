@@ -11,6 +11,9 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 {
     [Header("Elite Settings")]
     [SerializeField] private int eliteCount = 1;
+    [Tooltip("이 방에 나올 엘리트를 못박는다. 전용 방 프리팹에 미리 꽂아두는 용도.\n" +
+             "비워두면 MapGenerator 가 이 층에 정한 엘리트를 쓰고, 그것도 없으면 풀에서 무작위로 뽑는다.")]
+    [SerializeField] private EnemyMinionDataSO forcedElite;
     [SerializeField] private GameObject portalObject;
 
     [Header("Reward Box Settings")]
@@ -220,25 +223,41 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         }
     }
 
+    /// <summary>
+    /// 이 방에 나올 엘리트를 정한다. 우선순위:
+    ///   1) forcedElite — 이 방 프리팹이 특정 엘리트 전용일 때
+    ///   2) MapGenerator.FloorElite — 맵 생성 때 이 층에 확정된 엘리트 (방 프리팹도 그 기준으로 골라졌다)
+    ///   3) 풀에서 무작위 — 위 둘이 다 없을 때의 옛 동작
+    /// </summary>
+    private EnemyMinionDataSO ResolveEliteData()
+    {
+        if (forcedElite != null) return forcedElite;
+
+        var floorElite = MapGenerator.Instance != null ? MapGenerator.Instance.FloorElite : null;
+        if (floorElite != null) return floorElite;
+
+        if (_eliteEnemyPool.Count == 0) return null;
+        return _eliteEnemyPool[Random.Range(0, _eliteEnemyPool.Count)];
+    }
+
     private void SpawnEliteUnit(Vector3 position)
     {
-        if (_eliteEnemyPool.Count == 0) 
+        var data = ResolveEliteData();
+        if (data == null)
         {
-            Debug.LogWarning("[EliteRoom] Elite Enemy Pool is empty!");
+            Debug.LogWarning("[EliteRoom] 스폰할 엘리트를 못 정했다. (forcedElite / MapGenerator.FloorElite / 엘리트 풀이 전부 비어 있음)");
             return;
         }
-
-        var data = _eliteEnemyPool[Random.Range(0, _eliteEnemyPool.Count)];
 
         if (NavMesh.SamplePosition(position, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
         {
             GameObject eliteObj = GameManager.Instance.dataManager.CreateUnit(data, hit.position);
             if (eliteObj != null)
             {
+                // [버그 수정] 예전엔 여기서 같은 오브젝트를 두 번 Add 해서 활성 적 수가 실제의 2배로 잡혔다.
                 _activeEnemies.Add(eliteObj);
                 if (_hpBarTargetData == null) _hpBarTargetData = data; // 첫 엘리트 = 체력바 주인
             }
-            if (eliteObj != null) _activeEnemies.Add(eliteObj);
         }
         else
         {
