@@ -105,8 +105,51 @@ public class MapGenerator : MonoBehaviour
         yield return StartCoroutine(GenerationSequence());
     }
 
+    // ==============================================================
+    // 이 층의 엘리트 (맵을 만들기 전에 딱 한 번 정한다)
+    // ==============================================================
+    /// <summary>
+    /// 이번 층에 나올 엘리트. 맵 생성 시작 시점에 정해지고, 두 곳이 이 값을 읽는다:
+    ///   · 엘리트 방 프리팹 선택 (dedicatedRoomPrefab 이 있으면 그 방을 배치)
+    ///   · EliteRoomEvent 의 실제 스폰 (같은 놈이 나와야 방과 몹이 안 어긋난다)
+    /// 못 정했으면 null 이고, 그러면 양쪽 다 기존 방식(무작위 + 일반 Elite 방)으로 폴백한다.
+    /// </summary>
+    public EnemyMinionDataSO FloorElite { get; private set; }
+
+    /// <summary>
+    /// 이 층의 엘리트를 뽑는다. 디버그 강제값이 있으면 그걸 쓰고, 없으면 엘리트 풀에서 무작위.
+    /// 풀은 EliteRoomEvent 가 쓰던 것과 같다(ELITE_MINION_DATA + ENEMY_MINION_DATA 중 isElite).
+    /// </summary>
+    private void PickFloorElite()
+    {
+        var gm = GameManager.Instance;
+        if (gm != null && gm.debugForcedElite != null)
+        {
+            FloorElite = gm.debugForcedElite;
+            Debug.Log($"<color=yellow>[MapGenerator]</color> 이 층 엘리트 = '{FloorElite.minionName}' (디버그 강제 지정)");
+            return;
+        }
+
+        var data = gm != null ? gm.dataManager : null;
+        if (data == null) { FloorElite = null; return; }
+
+        var pool = new List<EnemyMinionDataSO>();
+        if (data.ELITE_MINION_DATA != null)
+            foreach (var e in data.ELITE_MINION_DATA) if (e != null && e.isElite) pool.Add(e);
+        if (data.ENEMY_MINION_DATA != null)
+            foreach (var e in data.ENEMY_MINION_DATA) if (e != null && e.isElite && !pool.Contains(e)) pool.Add(e);
+
+        FloorElite = pool.Count > 0 ? pool[Random.Range(0, pool.Count)] : null;
+        Debug.Log(FloorElite != null
+            ? $"<color=cyan>[MapGenerator]</color> 이 층 엘리트 = '{FloorElite.minionName}'"
+            : "<color=orange>[MapGenerator]</color> 엘리트 풀이 비어 있어 이 층 엘리트를 정하지 못했다.");
+    }
+
     private IEnumerator GenerationSequence()
     {
+        // 방을 하나라도 만들기 전에 이 층의 엘리트를 확정한다 — 엘리트 방 프리팹 선택이 이 값을 본다.
+        PickFloorElite();
+
         if (generationData != null && generationData.useIsaacStylePlacement)
         {
             yield return StartCoroutine(IsaacStyleGenerationSequence());
@@ -127,7 +170,8 @@ public class MapGenerator : MonoBehaviour
             SetupTilemapLayers();
             ClearExistingMap();
 
-            bool isBossFloor = GameManager.Instance != null && (GameManager.Instance.currentFloor == 4 || (GameManager.Instance.debugStartAtBoss && GameManager.Instance.currentFloor == GameManager.Instance.debugStartFloor));
+            bool isEliteArena = GameManager.Instance != null && GameManager.Instance.debugEliteArena;
+            bool isBossFloor = !isEliteArena && GameManager.Instance != null && (GameManager.Instance.currentFloor == 4 || (GameManager.Instance.debugStartAtBoss && GameManager.Instance.currentFloor == GameManager.Instance.debugStartFloor));
 
             if (isBossFloor)
             {
@@ -276,6 +320,27 @@ public class MapGenerator : MonoBehaviour
 
     public void PlacePlayerAtSpawn()
     {
+        // [아레나 모드] 스폰 방 대신 엘리트 방 안에 바로 떨어뜨린다. 씬을 재생하자마자 싸우기 위한 것.
+        if (GameManager.Instance != null && GameManager.Instance.debugEliteArena
+            && GameManager.Instance.PLAYERCONTROLLER != null)
+        {
+            RoomInstance arena = _allRooms.Find(r => r.roomType == RoomType.Elite);
+            if (arena != null)
+            {
+                // 정중앙이 아니라 아래쪽으로 비켜 놓는다. 한가운데면 착지하는 프레임에 전투 트리거가 터져
+                // 카메라가 아직 못 따라온 상태로 몹이 쏟아진다.
+                Vector3 center = arena.transform.position + (Vector3)arena.centerOffset;
+                Vector3 pos = center + Vector3.down * Mathf.Clamp(arena.roomSize.y * 0.3f, 2f, 6f);
+                if (NavMesh.SamplePosition(pos, out NavMeshHit arenaHit, 5f, NavMesh.AllAreas)) pos = arenaHit.position;
+
+                GameManager.Instance.PLAYERCONTROLLER.transform.position = pos;
+                SetCurrentRoom(arena);
+                arena.ForceEnter();
+                Debug.Log("<color=yellow>[MapGenerator]</color> 아레나 모드: 플레이어를 엘리트 방 안에 배치했다.");
+                return;
+            }
+        }
+
         RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
         if (spawnRoom == null) return;
         var spawnEvent = spawnRoom.GetComponent<SpawnRoomEvent>();
@@ -1554,10 +1619,15 @@ public class MapGenerator : MonoBehaviour
 
             gridMap = new Dictionary<Vector2Int, RoomInstance>();
 
-            bool isBossFloor = GameManager.Instance != null && (GameManager.Instance.currentFloor == 4 || (GameManager.Instance.debugStartAtBoss && GameManager.Instance.currentFloor == GameManager.Instance.debugStartFloor));
+            bool isEliteArena = GameManager.Instance != null && GameManager.Instance.debugEliteArena;
+            bool isBossFloor = !isEliteArena && GameManager.Instance != null && (GameManager.Instance.currentFloor == 4 || (GameManager.Instance.debugStartAtBoss && GameManager.Instance.currentFloor == GameManager.Instance.debugStartFloor));
 
             bool placementSuccess = false;
-            if (isBossFloor)
+            if (isEliteArena)
+            {
+                placementSuccess = PlaceIsaacRoomsArena(gridMap, RoomType.Elite);
+            }
+            else if (isBossFloor)
             {
                 placementSuccess = PlaceIsaacRoomsBossFloor(gridMap);
             }
@@ -1691,6 +1761,52 @@ public class MapGenerator : MonoBehaviour
         }
 
         return room;
+    }
+
+    /// <summary>
+    /// [테스트용 아레나] 스폰 방 (0,0) + 목표 방 (0,1) 두 칸짜리 맵. 보스층 배치와 같은 모양인데
+    /// 방 타입만 파라미터로 받는다. 엘리트 방이면 이 층 엘리트의 전용 방 프리팹을 먼저 시도한다.
+    /// </summary>
+    private bool PlaceIsaacRoomsArena(Dictionary<Vector2Int, RoomInstance> gridMap, RoomType targetType)
+    {
+        RoomInstance spawn = CreateRoomAtGrid(RoomType.Spawn, Vector2Int.zero);
+        if (spawn == null) return false;
+        gridMap[Vector2Int.zero] = spawn;
+        _allRooms.Add(spawn);
+
+        if (!spawn.anchors.Any(a => a.direction == Vector2Int.up))
+        {
+            Debug.LogError("[MapGenerator] 스폰 방에 위쪽 앵커가 없어 아레나를 만들 수 없다.");
+            return false;
+        }
+
+        // 전용 방 → 없거나 앵커가 안 맞으면 일반 목록으로 폴백.
+        GameObject prefabOverride = null;
+        if (targetType == RoomType.Elite && FloorElite != null && FloorElite.dedicatedRoomPrefab != null
+            && FloorElite.dedicatedRoomPrefab.GetComponentsInChildren<RoomAnchor>().Any(a => a.direction == Vector2Int.down))
+        {
+            prefabOverride = FloorElite.dedicatedRoomPrefab;
+        }
+
+        RoomInstance target = CreateRoomAtGrid(targetType, Vector2Int.up, prefabOverride);
+        if (target == null) return false;
+        if (!target.anchors.Any(a => a.direction == Vector2Int.down))
+        {
+            Debug.LogError($"[MapGenerator] {targetType} 방에 아래쪽 앵커가 없어 아레나를 만들 수 없다.");
+            SafeDestroy(target.gameObject);
+            return false;
+        }
+
+        gridMap[Vector2Int.up] = target;
+        _allRooms.Add(target);
+        _reachedRooms.Add(target);
+
+        _masterAdjacency[spawn].Add(target);
+        _masterAdjacency[target].Add(spawn);
+
+        Debug.Log($"<color=yellow>[MapGenerator]</color> 아레나 모드: 스폰 + {targetType} 두 칸짜리 맵 생성" +
+                  (prefabOverride != null ? $" (전용 방 '{prefabOverride.name}')" : " (일반 방으로 폴백)"));
+        return true;
     }
 
     private bool PlaceIsaacRoomsBossFloor(Dictionary<Vector2Int, RoomInstance> gridMap)
@@ -1870,10 +1986,17 @@ public class MapGenerator : MonoBehaviour
                 Vector2Int neededDir = -parentAnchor.direction;
 
                 GameObject selectedPrefab = null;
-                var entries = prefabData.GetEntry(specType); // Event 방은 전용 프리팹이 없으면 일반 방으로 폴백
-                if (entries == null || entries.prefabs.Count == 0) continue;
+                var entries = prefabData.GetEntry(specType); // Augment 방은 전용 프리팹이 없으면 일반 방으로 폴백
 
-                var shuffledPrefabs = entries.prefabs.OrderBy(x => Random.value).ToList();
+                // [엘리트 전용 방] 이 층 엘리트에 dedicatedRoomPrefab 이 있으면 그 방을 1순위로 시도한다.
+                // 그 프리팹에 필요한 방향의 앵커가 없으면 아래 일반 목록으로 자연스럽게 폴백된다.
+                var shuffledPrefabs = new List<GameObject>();
+                if (specType == RoomType.Elite && FloorElite != null && FloorElite.dedicatedRoomPrefab != null)
+                    shuffledPrefabs.Add(FloorElite.dedicatedRoomPrefab);
+                if (entries != null && entries.prefabs != null)
+                    shuffledPrefabs.AddRange(entries.prefabs.OrderBy(x => Random.value));
+                if (shuffledPrefabs.Count == 0) continue;
+
                 foreach (var p in shuffledPrefabs)
                 {
                     bool hasAnchor = p.GetComponentsInChildren<RoomAnchor>().Any(a => a.direction == neededDir);

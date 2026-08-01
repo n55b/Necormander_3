@@ -551,16 +551,17 @@ public void OnCounterHit()
     }
 
     /// <summary>
-    /// v1.4 B2: 기둥 파편 카운터/재생성 유도가 성공했을 때, 보스의 AI 브레인(EliteChargerAIPatternSO)에게
-    /// 알려 누적 강화 스택을 쌓게 합니다. 다른 보스 AI 패턴에 붙어있는 경우 조용히 무시됩니다.
+    /// 기둥 파편 카운터/재생성 유도가 성공했을 때 주인 보스에게 알리는 자리입니다.
+    ///
+    /// [26/08/01] 차저 v1.5 에서 기둥이 빠지면서, 이 알림을 받아 '누적 강화 스택'을 쌓던
+    /// EliteChargerAIPatternSO.AddPillarDamageStack() 이 사라졌습니다. 그래서 지금은 아무 데도
+    /// 연결되어 있지 않습니다. 이 파일 자체는 다음 보스가 기둥을 다시 쓸 수 있어 남겨둔 것이라,
+    /// 호출부(CollapseRoutine 등)를 지우지 않고 훅만 비워 뒀습니다.
+    /// 새 보스가 이 신호를 쓰려면 여기서 그 보스의 브레인으로 분기하면 됩니다.
     /// </summary>
     private void NotifyPillarStackToBrain(BaseEntity ownerEntity)
     {
-        if (ownerEntity == null) return;
-        if (ownerEntity.Brain is EliteChargerAIPatternSO chargerBrain)
-        {
-            chargerBrain.AddPillarDamageStack();
-        }
+        // ponytail: 지금은 받는 쪽이 없다. 받을 보스가 생기면 여기에 한 줄 추가.
     }
 
     /// <summary>

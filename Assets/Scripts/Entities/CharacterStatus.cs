@@ -302,10 +302,30 @@ public class CharacterStatus : MonoBehaviour
     /// 슈퍼아머가 있으면 이동 방해 계열(기절/빙결)은 씹힌다 — 저장되지 않으므로 나중에 다시 걸어야 한다.
     /// </summary>
     /// <param name="duration">0 이하면 StatusRules.DURATION(5초)을 쓴다. 경직처럼 짧은 건 직접 넘긴다.</param>
-    public void ApplyStatus(StatusType type, float duration = 0f, int stacks = 1)
+    /// <summary>
+    /// 고정 스턴(그로기). 슈퍼아머를 무시하고 반드시 들어간다.
+    ///
+    /// 일반 CC 와 구분해서 쓴다: 이건 <b>남이 거는 CC 가 아니라 유닛이 스스로 자초한 경직</b>이다.
+    /// 엘리트 차저가 돌진하다 벽에 처박는 게 대표적인데, 그건 플레이어가 회피에 성공해서 얻어낸
+    /// 보상이라 슈퍼아머(엘리트는 게이지 999999 = 사실상 무한)로 씹히면 패턴 자체가 성립하지 않는다.
+    ///
+    /// StatusType 을 새로 만들지 않고 Stun 을 그대로 쓰는 이유: 아이콘/타이머/행동불가 판정/내성이
+    /// 전부 이미 Stun 에 붙어 있고, 플레이어 입장에서 보이는 것도 똑같은 '기절'이다.
+    /// 다른 건 "슈퍼아머가 막느냐" 하나뿐이라 타입이 아니라 경로를 나누는 게 맞다.
+    /// </summary>
+    public void ApplyFixedStun(float duration)
+        => ApplyStatus(StatusType.Stun, duration, 1, bypassSuperArmor: true);
+
+    /// <param name="bypassSuperArmor">
+    /// 슈퍼아머를 무시하고 건다. '남이 거는 CC'가 아니라 <b>자기가 자초한 그로기</b>에만 쓴다 —
+    /// 엘리트 차저가 돌진하다 벽에 처박았을 때가 그렇다. 그건 플레이어가 회피에 성공해서 얻어낸
+    /// 보상이지 CC 가 아닌데, 슈퍼아머(엘리트는 게이지 999999)가 통째로 씹어버려서 회피 보상이
+    /// 아예 발생하지 않았다.
+    /// </param>
+    public void ApplyStatus(StatusType type, float duration = 0f, int stacks = 1, bool bypassSuperArmor = false)
     {
         if (_stat != null && _stat.IsDead) return;
-        if (_hasSuperArmor && StatusRules.BlockedBySuperArmor(type)) return;
+        if (!bypassSuperArmor && _hasSuperArmor && StatusRules.BlockedBySuperArmor(type)) return;
         // 내성: 기절 종료 후 3초 / 빙결이 피해로 깨진 후 1초 동안은 다시 안 걸린다.
         if (_immuneUntil.TryGetValue(type, out var immuneEnd) && Time.time < immuneEnd) return;
 
