@@ -196,7 +196,9 @@ public static class ActiveAugment
             case AugmentRewardKind.Item:
                 var itemSO = RewardProcessor.PickRandomItem(
                     GameManager.Instance != null ? GameManager.Instance.dataManager : null);
-                if (itemSO != null && player != null) GroundItem.Drop(itemSO, player.transform.position);
+                // 상점 구매와 같은 규칙 — 이미 받은 보상이니 빈 칸이 있으면 곧장 주머니로, 꽉 찼을 때만 바닥으로.
+                if (itemSO != null && (ItemPouch.Instance == null || !ItemPouch.Instance.TryAdd(itemSO)))
+                    GroundItem.Drop(itemSO, player != null ? player.transform.position : (Vector3?)null);
                 break;
         }
 

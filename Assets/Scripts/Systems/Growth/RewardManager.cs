@@ -175,10 +175,14 @@ public class RewardManager : MonoBehaviour
                 break;
 
             case RewardCategory.Item:
-                // [아이템] 절대 즉시 장착하지 않는다 — 플레이어 발밑 바닥에 떨어뜨린다.
-                // 거기서 F 짧게 누르면 습득, 길게 누르면 분해다(GroundItem).
-                // 상점 구매(SellItem)도 이 경로를 타므로 SellItem 은 따로 손댈 게 없다.
-                GroundItem.Drop((ItemSO)candidate.rawData, PlayerPosition());
+                // [아이템 26/08/03] 여기까지 온 건 이미 내 것이 된 아이템이다(상점에서 골드를 냈거나
+                // 보상 카드를 골랐거나). 그러니 빈 칸이 있으면 곧장 주머니로 들어간다 —
+                // 돈을 내고도 발밑에 떨어진 걸 F 로 한 번 더 주워야 하는 건 그냥 손이 하나 더 가는 거였다.
+                // 꽉 찼을 때만 바닥으로 떨어뜨린다. 그때는 F 짧게 습득 / 길게 분해로 정리하면 된다.
+                // (엘리트 방 바닥 드랍은 '아직 내 것이 아닌 전리품'이라 이 규칙을 안 탄다 — 위 Elite 분기.)
+                var boughtItem = (ItemSO)candidate.rawData;
+                if (ItemPouch.Instance == null || !ItemPouch.Instance.TryAdd(boughtItem))
+                    GroundItem.Drop(boughtItem, PlayerPosition());
                 ProcessNextReward();
                 break;
 
