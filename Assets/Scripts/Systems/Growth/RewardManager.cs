@@ -32,18 +32,22 @@ public class RewardManager : MonoBehaviour
     {
         _rewardQueue.Clear();
 
-        if (type == RoomType.Normal)
+        // 증강 방은 '일반 전투 방 + 증강'이다. 그래서 기본 보상(골드)을 일반 방과 똑같이 받고,
+        // 그 위에 전투 시작 전에 고른 카드의 보상이 얹힌다 — 둘 중 하나가 아니라 둘 다다.
+        // [버그 26/08/03] 예전엔 여기가 else if 라서 증강 방이 기본 골드를 통째로 못 받았다.
+        if (type == RoomType.Normal || type == RoomType.Augment)
         {
             // [보상 개편 26/07/24] 일반방은 골드만 드랍한다(장비=상점, 메인=보상방). 카드/시간정지 없음.
             int goldAmount = 200; // ponytail: 고정값, 밸런싱 시 조정
             GameManager.Instance.inventoryManager.AddGold(goldAmount);
-            Debug.Log($"<color=yellow>[Reward]</color> Normal Room Cleared! {goldAmount} Gold obtained (gold-only).");
-        }
-        else if (type == RoomType.Augment)
-        {
-            // [증강 방 26/08/01] 전투 시작 전에 고른 카드에 딸린 보상을 그대로 준다.
-            // 카드 UI 는 이미 닫혔고, 여기서는 상자를 연 시점에 지급만 한다.
-            ActiveAugment.GrantPendingReward();
+            Debug.Log($"<color=yellow>[Reward]</color> {type} Room Cleared! {goldAmount} Gold obtained (기본 보상).");
+
+            if (type == RoomType.Augment)
+            {
+                // [증강 방 26/08/01] 전투 시작 전에 고른 카드에 딸린 보상을 그대로 준다.
+                // 카드 UI 는 이미 닫혔고, 여기서는 상자를 연 시점에 지급만 한다.
+                ActiveAugment.GrantPendingReward();
+            }
         }
         else if (type == RoomType.Elite)
         {
@@ -178,11 +182,8 @@ public class RewardManager : MonoBehaviour
                 ProcessNextReward();
                 break;
 
-            case RewardCategory.EquipmentEnhance:
-                // 소모성 강화 아이템 구매 → 착용 장비 +1강(SellItem 이 CanEnhanceEquipped 를 이미 확인함).
-                PlayerSkillInventoryManager.Instance?.EnhanceEquipped();
-                ProcessNextReward();
-                break;
+            // [26/08/03 폐지] EquipmentEnhance — 강화는 전용 상점 NPC(EnhanceShopNPC)가
+            // PlayerSkillInventoryManager.EnhanceEquipped() 를 직접 부른다. 보상 파이프라인을 안 탄다.
 
             // [폐지] 스킬 단독 획득 → 장비(Equipment)로 대체. 생성되지 않지만 구 경로 호환을 위해 남겨둔다.
             case RewardCategory.PlayerSkill:

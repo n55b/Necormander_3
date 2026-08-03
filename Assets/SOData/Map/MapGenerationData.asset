@@ -18,6 +18,7 @@ MonoBehaviour:
   gridSpacing: 160
   minNormalRooms: 5
   shopCount: 1
+  enhanceShopCount: 1
   rewardCount: 2
   eliteCount: 1
   augmentRoomCount: 1

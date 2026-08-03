@@ -6,10 +6,16 @@ using UnityEngine;
 // 이름을 Event 로 두지 않는다 — '이벤트 방'은 앞으로 여러 종류가 생길 자리라서, 이 방은
 // 자기가 하는 일(증강 선택)로 부른다. 다른 이벤트 방이 필요해지면 그때 각자 이름으로 추가하면 된다.
 // 새 항목은 반드시 맨 끝에 붙인다 — RoomPrefabDataSO 에셋과 룸 프리팹이 이 숫자를 그대로 직렬화하고 있다.
-public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss, Augment }
+// [26/08/03] EnhanceShop = 장비 강화 전용 상점. 진열품 없이 NPC 에게 F 만 누르면 되는 방이라
+// 일반 Shop 과 지형만 같고 하는 일이 다르다. Shop 을 재사용하지 않고 타입을 나눈 이유는
+// '층당 몇 개' 를 따로 잡아야 해서다(안 그러면 같은 상점 두 개가 뜰 수 있다).
+public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss, Augment, EnhanceShop }
 // [26/07/17] Ability 는 투척 능력 전용이라 투척 철거와 함께 사라졌다.
 // [26/07/30] Item = 주머니 아이템. 장비(Equipment)와 별개 시스템이다. 새 항목은 반드시 맨 끝에 붙인다.
-public enum RewardCategory { Minion, Metamorphosis, Treasure, Gold, PlayerSkill, Equipment, EquipmentEnhance, Item }
+// [26/08/03] EquipmentEnhance 제거 — 강화는 전용 상점(EnhanceShopNPC)에서 NPC 에게 F 로만 한다.
+//            일반 상점에 소모성 강화 카드를 같이 진열하니 역할이 겹치고, 심지어 그쪽이 고정가라 더 쌌다.
+//            (이 enum 은 런타임 전용이라 — RewardCandidate 가 [Serializable] 이 아니다 — 값을 빼도 에셋이 안 깨진다.)
+public enum RewardCategory { Minion, Metamorphosis, Treasure, Gold, PlayerSkill, Equipment, Item }
 
 /// <summary>
 /// 보상으로 제안될 아이템 정보를 담는 구조체입니다.
@@ -31,9 +37,6 @@ public struct RewardCandidate
 /// </summary>
 public static class RewardProcessor
 {
-    /// <summary>강화 아이템의 rawData 센티넬(비-null 이어야 빈 슬롯 취급을 피한다). ApplyReward 는 category 로 분기하니 값 자체는 안 쓴다.</summary>
-    public static readonly object EnhanceMarker = new object();
-
     // --- 1-A. 플레이어 스킬 방용: 플레이어 스킬 배출 ---
     public static List<RewardCandidate> GeneratePlayerSkillRewards(InventoryManager inven, DataManager data)
     {
@@ -269,22 +272,7 @@ public static class RewardProcessor
             }
         }
 
-        // [강화] 소모성 강화 아이템 — 사면 착용 장비 +1강. enhanceStock 개를 풀에 넣어 랜덤으로 0~N개 진열된다.
-        for (int e = 0; e < shopRegistry.enhanceStock; e++)
-        {
-            combinedPool.Add(new RewardCandidate
-            {
-                displayData = new GrowthItemData
-                {
-                    itemName = "장비 강화 +1",
-                    description = "착용한 장비의 강화 레벨을 1 올린다(스킬·패시브 강화). 장비가 없으면 살 수 없다.",
-                    icon = shopRegistry.enhanceIcon
-                },
-                rawData = EnhanceMarker,       // 비-null 센티넬(빈 슬롯 취급 방지). 실제 동작은 category 로 분기.
-                category = RewardCategory.EquipmentEnhance,
-                goldAmount = shopRegistry.enhanceCost
-            });
-        }
+        // [강화] 여기엔 없다. 강화는 전용 상점(Room_ShopEnhance) NPC 에게 F 로만 한다.
 
         // [아이템] 주머니 아이템. 가격은 티어에서 자동으로 나온다(ItemTierRules).
         // 사면 즉시 장착되지 않고 바닥에 떨어진다 — RewardManager 의 Item 분기 참조.
