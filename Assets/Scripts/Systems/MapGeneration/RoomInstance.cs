@@ -233,13 +233,6 @@ public class RoomInstance : MonoBehaviour
             {
                 targetIcon = iconsParent.Find("ShopMiniMapIcon") ?? iconsParent.Find("shop") ?? iconsParent.Find("ShopMinimapIcon");
             }
-            else if (roomType == RoomType.EnhanceShop)
-            {
-                // 전용 아트가 생기기 전까지는 유니티 기본 스프라이트를 주황색으로 물들인 네모다.
-                // (일반 상점의 노랑과 안 겹치면서 보스 빨강/엘리트 보라와도 구분되는 색.)
-                // 진짜 아이콘이 생기면 MiniMapIcons 프리팹의 이 오브젝트 스프라이트만 갈아 끼우면 된다.
-                targetIcon = iconsParent.Find("EnhanceShopMiniMapIcon") ?? iconsParent.Find("enhanceshop");
-            }
             else if (roomType == RoomType.Spawn)
             {
                 targetIcon = iconsParent.Find("spawn") ?? iconsParent.Find("SpawnMinimapIcon");
@@ -300,8 +293,8 @@ public class RoomInstance : MonoBehaviour
             // [추가] 방 입장 전역 이벤트 발생
             OnPlayerEnteredRoom?.Invoke(this);
 
-            // [수정] 전투를 시작하지 않는 예외적인 방(스폰, 상점, 강화 상점, 보상방 등)에만 입장 즉시 BGM 및 이벤트 격발
-            if (roomType == RoomType.Spawn || roomType == RoomType.Shop || roomType == RoomType.EnhanceShop || roomType == RoomType.Reward)
+            // [수정] 전투를 시작하지 않는 예외적인 방(스폰, 상점, 보상방 등)에만 입장 즉시 BGM 및 이벤트 격발
+            if (roomType == RoomType.Spawn || roomType == RoomType.Shop || roomType == RoomType.Reward)
             {
                 if (roomBGM != null && SoundManager.Instance != null)
                 {
@@ -317,7 +310,7 @@ public class RoomInstance : MonoBehaviour
     /// </summary>
     public void StartCombatEvent()
     {
-        if (isCleared || roomType == RoomType.Spawn || roomType == RoomType.Shop || roomType == RoomType.EnhanceShop || roomType == RoomType.Reward) return;
+        if (isCleared || roomType == RoomType.Spawn || roomType == RoomType.Shop || roomType == RoomType.Reward) return;
 
         // 문 닫음
         SetDoorsOpen(false);

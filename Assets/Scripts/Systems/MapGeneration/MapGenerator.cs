@@ -180,7 +180,7 @@ public class MapGenerator : MonoBehaviour
             }
             else
             {
-                int totalSpecials = generationData.shopCount + generationData.enhanceShopCount + generationData.rewardCount + generationData.eliteCount + generationData.augmentRoomCount;
+                int totalSpecials = generationData.shopCount + generationData.rewardCount + generationData.eliteCount + generationData.augmentRoomCount;
                 int normalCount = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - 1 - totalSpecials);
 
                 int initialBranchCount = Random.Range(1, 5);
@@ -193,7 +193,6 @@ public class MapGenerator : MonoBehaviour
                 _currentPhaseIndex++;
                 List<RoomType> phase2 = new List<RoomType>();
                 for (int i = 0; i < generationData.shopCount; i++) phase2.Add(RoomType.Shop);
-                for (int i = 0; i < generationData.enhanceShopCount; i++) phase2.Add(RoomType.EnhanceShop);
                 int eliteHalf = generationData.eliteCount / 2;
                 for (int i = 0; i < eliteHalf; i++) phase2.Add(RoomType.Elite);
                 int p2Normal = remainingNormal > 0 ? Random.Range(1, remainingNormal / 2 + 2) : 0;
@@ -583,7 +582,7 @@ public class MapGenerator : MonoBehaviour
                         for (int uIndex = 0; uIndex < phaseUnreached.Count; uIndex++)
                         {
                             var u = phaseUnreached[uIndex];
-                            if ((u.roomType == RoomType.Shop || u.roomType == RoomType.EnhanceShop || u.roomType == RoomType.Elite) && r.roomType == RoomType.Spawn)
+                            if ((u.roomType == RoomType.Shop || u.roomType == RoomType.Elite) && r.roomType == RoomType.Spawn)
                                 continue;
 
                             // 직선거리를 복도 길이 예상치로 사용
@@ -726,10 +725,10 @@ public class MapGenerator : MonoBehaviour
                         }
                     }
 
-                    // 조건 B: 모든 특수방(Shop, EnhanceShop, Elite)의 깊이가 스폰 방 기준 2 이상이어야 함. (스폰방 바로 옆 직접 연결 방지)
+                    // 조건 B: 모든 특수방(Shop, Elite)의 깊이가 스폰 방 기준 2 이상이어야 함. (스폰방 바로 옆 직접 연결 방지)
                     foreach (var room in _allRooms)
                     {
-                        if ((room.roomType == RoomType.Shop || room.roomType == RoomType.EnhanceShop || room.roomType == RoomType.Elite) && room.debugDepth < 2)
+                        if ((room.roomType == RoomType.Shop || room.roomType == RoomType.Elite) && room.debugDepth < 2)
                         {
                             isValidMap = false;
                             break;
@@ -1940,7 +1939,6 @@ public class MapGenerator : MonoBehaviour
 
         List<RoomType> specialTypes = new List<RoomType>();
         for (int i = 0; i < generationData.shopCount; i++) specialTypes.Add(RoomType.Shop);
-        for (int i = 0; i < generationData.enhanceShopCount; i++) specialTypes.Add(RoomType.EnhanceShop);
         for (int i = 0; i < generationData.eliteCount; i++) specialTypes.Add(RoomType.Elite);
         for (int i = 0; i < generationData.rewardCount; i++) specialTypes.Add(RoomType.Reward);
         for (int i = 0; i < generationData.augmentRoomCount; i++) specialTypes.Add(RoomType.Augment);
@@ -2107,11 +2105,11 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
-        // 3) 모든 Shop/EnhanceShop/Reward 가 엘리트 안 거치고 도달 가능해야 한다.
+        // 3) 모든 Shop/Reward 가 엘리트 안 거치고 도달 가능해야 한다.
         foreach (var r in _allRooms)
         {
             if (r == null) continue;
-            if ((r.roomType == RoomType.Shop || r.roomType == RoomType.EnhanceShop || r.roomType == RoomType.Reward) && !visited.Contains(r))
+            if ((r.roomType == RoomType.Shop || r.roomType == RoomType.Reward) && !visited.Contains(r))
                 return false; // 이 특수방은 엘리트를 반드시 지나야만 도달 → 위반
         }
         return true;

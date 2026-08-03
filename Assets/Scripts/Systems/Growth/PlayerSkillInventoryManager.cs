@@ -96,10 +96,13 @@ public class PlayerSkillInventoryManager : MonoBehaviour
             ? GameManager.Instance.PLAYERCONTROLLER.Stat : null;
 
     /// <summary>
-    /// 장비 한 자루를 착용한다. 기존 장비는 버려진다(한 자루 원칙).
+    /// 장비 한 자루를 착용한다. 기존 장비는 바닥에 떨어진다(한 자루 원칙).
     /// 굴려나온 스킬 2개가 각각 Q(0)/E(1) 로 들어가고, 패시브가 적용된다.
     /// </summary>
-    public void EquipEquipment(EquipmentInstance inst)
+    /// <param name="dropReplaced">
+    /// 밀려난 장비를 바닥에 뱉을지. 세이브 로드처럼 '교체가 아니라 복원'인 자리에서만 false 로 끈다.
+    /// </param>
+    public void EquipEquipment(EquipmentInstance inst, bool dropReplaced = true)
     {
         var stat = PlayerStat();
 
@@ -110,6 +113,10 @@ public class PlayerSkillInventoryManager : MonoBehaviour
             if (_equipped.baseData != null && _equipped.baseData.passives != null)
                 foreach (var p in _equipped.baseData.passives) p?.Remove(stat, _equipped);
         }
+
+        // [26/08/03] 밀려난 장비를 증발시키지 않는다. 인스턴스째 바닥에 뱉으므로 굴린 스킬과
+        // 강화레벨이 그대로 보존되고, 다시 주우면 원래 상태로 착용된다.
+        if (dropReplaced && _equipped != null && _equipped != inst) GroundItem.Drop(_equipped);
 
         _equipped = inst;
 
@@ -389,7 +396,8 @@ public class PlayerSkillInventoryManager : MonoBehaviour
                         var sk = registry.playerSkills.Find(s => s != null && s.name == n);
                         if (sk != null) inst.rolledSkills.Add(sk);
                     }
-                EquipEquipment(inst); // Q/E 세팅 + 패시브
+                // 로드는 '복원'이지 '교체'가 아니다 — dropReplaced 를 켜두면 불러오기만 해도 바닥에 장비가 떨어진다.
+                EquipEquipment(inst, dropReplaced: false); // Q/E 세팅 + 패시브
                 equipmentLoaded = true;
             }
         }

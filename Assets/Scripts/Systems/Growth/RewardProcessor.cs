@@ -6,10 +6,10 @@ using UnityEngine;
 // 이름을 Event 로 두지 않는다 — '이벤트 방'은 앞으로 여러 종류가 생길 자리라서, 이 방은
 // 자기가 하는 일(증강 선택)로 부른다. 다른 이벤트 방이 필요해지면 그때 각자 이름으로 추가하면 된다.
 // 새 항목은 반드시 맨 끝에 붙인다 — RoomPrefabDataSO 에셋과 룸 프리팹이 이 숫자를 그대로 직렬화하고 있다.
-// [26/08/03] EnhanceShop = 장비 강화 전용 상점. 진열품 없이 NPC 에게 F 만 누르면 되는 방이라
-// 일반 Shop 과 지형만 같고 하는 일이 다르다. Shop 을 재사용하지 않고 타입을 나눈 이유는
-// '층당 몇 개' 를 따로 잡아야 해서다(안 그러면 같은 상점 두 개가 뜰 수 있다).
-public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss, Augment, EnhanceShop }
+// [26/08/03] 강화 상점은 방 타입을 안 나눈다 — Shop 방 안에 EnhanceShopNPC 를 같이 세워둔다.
+// (전용 방 타입 EnhanceShop 을 잠깐 만들었다가 접었다. 지형이 상점과 똑같은데 방만 하나 더
+//  차지하고, 특수방이 5개로 늘어 15방 맵의 배치 제약만 빡빡해졌다.)
+public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss, Augment }
 // [26/07/17] Ability 는 투척 능력 전용이라 투척 철거와 함께 사라졌다.
 // [26/07/30] Item = 주머니 아이템. 장비(Equipment)와 별개 시스템이다. 새 항목은 반드시 맨 끝에 붙인다.
 // [26/08/03] EquipmentEnhance 제거 — 강화는 전용 상점(EnhanceShopNPC)에서 NPC 에게 F 로만 한다.

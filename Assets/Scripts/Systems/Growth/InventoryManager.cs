@@ -159,15 +159,19 @@ public class InventoryManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 소환수를 자기 역할의 슬롯에 장착한다. 슬롯은 역할당 1칸이므로 기존 것을 덮어쓴다.
+    /// 소환수를 자기 역할의 슬롯에 장착한다. 슬롯은 역할당 1칸이라 기존 것이 밀려난다.
     /// </summary>
-    public bool EquipMinion(MinionDataSO minion, int amount = 1)
+    public bool EquipMinion(MinionDataSO minion, int amount = 1, bool dropReplaced = true)
     {
         if (minion == null) return false;
-        return EquipMinion(SlotIndexOf(minion), minion, amount);
+        return EquipMinion(SlotIndexOf(minion), minion, amount, dropReplaced);
     }
 
-    public bool EquipMinion(int slotIndex, MinionDataSO minion, int amount = 1)
+    /// <param name="dropReplaced">
+    /// 밀려난 소환수를 바닥에 뱉을지. 세이브 로드처럼 '교체가 아니라 복원'인 자리에서만 false 로 끈다 —
+    /// 안 그러면 불러오기만 해도 바닥에 카드가 떨어진다.
+    /// </param>
+    public bool EquipMinion(int slotIndex, MinionDataSO minion, int amount = 1, bool dropReplaced = true)
     {
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
 
@@ -179,8 +183,14 @@ public class InventoryManager : MonoBehaviour
             if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
         }
 
+        // [26/08/03] 밀려난 소환수를 증발시키지 않는다. 바닥에 뱉어서 다시 줍거나(맞교환)
+        // F 를 길게 눌러 골드로 갈 수 있게 한다 — 갈아버릴 값어치는 shopCost 에서 나온다.
+        var replaced = Slots[slotIndex].EquippedMinion;
+
         Slots[slotIndex].EquippedMinion = minion;
         Slots[slotIndex].Quantity = amount;
+
+        if (dropReplaced && replaced != null && replaced != minion) GroundItem.Drop(replaced);
 
         OnMinionUpdated?.Invoke();
         return true;

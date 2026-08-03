@@ -24,18 +24,15 @@ public class RoomPrefabDataSO : ScriptableObject
     }
 
     /// <summary>
-    /// 그 타입의 프리팹 목록. 전용 프리팹이 등록돼 있으면 그걸 쓰고, 비어 있으면 지형이 같은
-    /// 사촌 타입으로 떨어진다 — 새 방 프리팹을 만들기 전에도 맵 생성이 절대 실패하지 않게.
-    ///   Augment(증강 선택)   → Normal (지형이 일반 전투 방과 같고 미니맵 표시만 다름)
-    ///   EnhanceShop(강화 상점) → Shop  (지형이 상점과 같고 NPC 만 다름)
+    /// 그 타입의 프리팹 목록. Augment(증강 선택) 방은 전용 프리팹이 등록돼 있으면 그걸 쓰고,
+    /// 없으면 일반 방 프리팹을 그대로 쓴다 — 증강 방은 지형이 일반 전투 방과 같고
+    /// 미니맵 표시만 다르기 때문에, 새 방을 만들기 전까지 이 폴백으로 굴러간다.
     /// </summary>
     public RoomPrefabEntry GetEntry(RoomType type)
     {
         var entry = roomEntries.Find(e => e.roomType == type);
-        if (entry != null && entry.prefabs != null && entry.prefabs.Count > 0) return entry;
-
-        if (type == RoomType.Augment) return roomEntries.Find(e => e.roomType == RoomType.Normal);
-        if (type == RoomType.EnhanceShop) return roomEntries.Find(e => e.roomType == RoomType.Shop);
+        if ((entry == null || entry.prefabs == null || entry.prefabs.Count == 0) && type == RoomType.Augment)
+            entry = roomEntries.Find(e => e.roomType == RoomType.Normal);
         return entry;
     }
 }

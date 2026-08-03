@@ -4,15 +4,13 @@ using UnityEngine;
 /// 상점 방의 이벤트를 담당합니다.
 /// 인스펙터에서 연결된 ShopNPC의 아이템을 입장 시점에 갱신합니다.
 ///
-/// 강화 상점(Room_ShopEnhance)도 이 컴포넌트를 그대로 쓴다 — 거기서 이게 하는 일은
-/// MarkCleared() 하나뿐이다(문이 안 닫히게). EnhanceShopNPC 는 재고 개념이 없어서
-/// 입장 시점에 굴릴 게 없고, F 상호작용만으로 자기 완결이라 여기서 건드릴 게 없다.
+/// 같은 방에 서 있는 EnhanceShopNPC(장비 강화)는 여기서 건드릴 게 없다 — 재고 개념이 없어서
+/// 입장 시점에 굴릴 것도 없고, F 상호작용만으로 자기 완결이다.
 /// </summary>
 public class ShopRoomEvent : MonoBehaviour, IRoomEvent
 {
     [Header("Shop References")]
-    [Tooltip("방 프리팹 내부에 있는 ShopNPC 오브젝트를 여기에 연결해주세요.\n" +
-             "강화 상점 방이라면 비워두면 됩니다(EnhanceShopNPC 는 갱신할 재고가 없음).")]
+    [Tooltip("방 프리팹 내부에 있는 ShopNPC 오브젝트를 여기에 연결해주세요.")]
     [SerializeField] private ShopNPC shopNPC;
 
     public void OnPlayerEnter(RoomInstance room)
@@ -24,8 +22,7 @@ public class ShopRoomEvent : MonoBehaviour, IRoomEvent
         if (shopNPC == null) shopNPC = GetComponentInChildren<ShopNPC>();
 
         if (shopNPC != null) shopNPC.Initialize();
-        else if (GetComponentInChildren<EnhanceShopNPC>() == null)
-            Debug.LogWarning($"[ShopRoomEvent] {gameObject.name}: 상점 NPC가 하나도 없습니다!");
+        else Debug.LogWarning($"[ShopRoomEvent] {gameObject.name}: ShopNPC가 연결되지 않았고 자식 중에도 없습니다!");
 
         // 상점 진입 시 클리어 처리 (문이 닫히지 않도록)
         room.MarkCleared();
