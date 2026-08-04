@@ -155,20 +155,33 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         BossHPBarUI.Instance?.Hide();
     }
 
-    private void SpawnEliteOnly(RoomInstance room)
+private void SpawnEliteOnly(RoomInstance room)
     {
-        float margin = 1.5f;
-        float rangeX = (room.roomSize.x / 2f) - margin;
-        float rangeY = (room.roomSize.y / 2f) - margin;
+        Vector3 roomCenter = room.transform.position + (Vector3)room.centerOffset;
 
-        for (int i = 0; i < eliteCount; i++)
+        // [버그 수정] 엘리트가 1마리(보스 등)인 경우 방 정중앙에 고정 스폰한다.
+        // 예전엔 항상 방 안 무작위 위치에 스폰해서, 가끔 장식 지형이나 투기장 벽 바로 옆에 스폰되는
+        // 바람에 스폰 직후 돌진 패턴이 뽑히면 코앞이 바로 벽이라 순식간에 경직까지 가버리는 문제가 있었다.
+        // 엘리트가 여러 마리인 방(무리형)은 기존처럼 무작위 배치를 유지한다.
+        if (eliteCount == 1)
         {
-            Vector3 randPos = new Vector3(
-                Random.Range(-rangeX, rangeX),
-                Random.Range(-rangeY, rangeY),
-                0
-            );
-            SpawnEliteUnit(room.transform.position + (Vector3)room.centerOffset + randPos);
+            SpawnEliteUnit(roomCenter);
+        }
+        else
+        {
+            float margin = 1.5f;
+            float rangeX = (room.roomSize.x / 2f) - margin;
+            float rangeY = (room.roomSize.y / 2f) - margin;
+
+            for (int i = 0; i < eliteCount; i++)
+            {
+                Vector3 randPos = new Vector3(
+                    Random.Range(-rangeX, rangeX),
+                    Random.Range(-rangeY, rangeY),
+                    0
+                );
+                SpawnEliteUnit(roomCenter + randPos);
+            }
         }
 
         // [추가] 생성된 엘리트 중 무작위 2명에게 슈퍼아머 부여

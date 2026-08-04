@@ -41,6 +41,8 @@ public class BoneMasterController : EnemyController
     [Header("페이즈 전환")]
     public EnemyMinionDataSO phase2Data;
     [SerializeField] private float phase2HealFillDuration = 1f;
+    [Tooltip("페이즈2 시작 시 방 중앙으로 이동 후 무적 상태로 대기하는 시간(초). 이 동안 어떤 패턴도 시전하지 않는다.")]
+    [SerializeField] private float phase2InvincibleDuration = 2f;
 
     [Header("UI 참조")]
     [SerializeField] private EliteBossPatternLabel patternLabel;
@@ -53,13 +55,21 @@ public class BoneMasterController : EnemyController
     [Tooltip("방 크기 대비 타원 비율(1에 가까울수록 방을 거의 꽉 채움)")]
     [Range(0.5f, 1f)]
     [SerializeField] private float thornRingPhase1MarginRatio = 0.95f;
-    [Tooltip("페이즈2에서 좁아지는 비율(페이즈1 크기 대비)")]
+    [Tooltip("페이즈2 투기장 크기 비율(페이즈1 크기 대비). 1보다 크면 페이즈1보다 더 넓어진다.")]
     [Range(0.3f, 1f)]
-    [SerializeField] private float thornRingPhase2ShrinkRatio = 0.95f;
+    [SerializeField] private float thornRingPhase2ShrinkRatio = 0.85f; // [수정] 0.99는 페이즈1과 거의 차이가 없어(1%) "안 줄어드는 것처럼" 보이는 문제가 있었다. 경계 자체는 눈에 띄게 줄어들되(15%), 안쪽 이동 공간은 아래 thornRingPhase2BandRatio로 별도 보정한다.
     [SerializeField] private Vector2 thornRingFallbackSize = new Vector2(16f, 16f);
     [SerializeField] private Color thornRingColor = new Color(1f, 0.05f, 0.05f, 1f);
     [SerializeField] private int thornRingSortingOrder = 5000;
     [SerializeField] private float thornRingBandRatio = 0.12f;
+    [Tooltip("페이즈2 전용 가시 띠 두께(바깥 반지름 대비). 페이즈1보다 얇게 잡아서, 경계는 줄어들어도 실제 이동 가능한 안쪽 공간은 덜 좁아지게 한다.")]
+    [Range(0.02f, 0.3f)]
+    [SerializeField] private float thornRingPhase2BandRatio = 0.06f;
+    [Header("뼈 투기장 바깥 차단 영역")]
+    [SerializeField] private float voidBarrierMargin = 60f;
+    [SerializeField] private Color voidBarrierColor = Color.black;
+    [SerializeField] private int voidBarrierSortingOrder = 4990;
+
 
     public int PartsDestroyed { get; private set; } = 0;
     public int CurrentPhase { get; private set; } = 1;
@@ -189,18 +199,40 @@ public class BoneMasterController : EnemyController
                 Debug.Log("<color=red>[BoneMaster]</color> 흉갑 파괴! 받는피해 +15%(누적 45%), 이동속도 +15%. 페이즈2 진입.");
 
                 StopAllCoroutines();
+                // [버그 수정 — 전환 순간 잔여물] StopAllCoroutines()로 죽는 코루틴은 자기가 만든
+                // 오브젝트(텔레그래프)를 못 지우고, 열어둔 카운터 게이지도 못 닫는다. 여기서 대신 정리한다.
+                CleanupDanglingTelegraphs();
+                CounterGauge?.CloseWindow();
                 StartCoroutine(Phase2TransitionRoutine());
                 break;
         }
     }
 
-    private IEnumerator Phase2TransitionRoutine()
+private IEnumerator Phase2TransitionRoutine()
     {
+        // [버그 수정 — 전환 연출 중 이전 페이즈 AI가 새 패턴을 뽑아버리는 문제] CurrentState를 Skill로
+        // 강제 고정해서 AIPatternSO.Execute()가 매 프레임 즉시 return하게 만든다(패턴 코루틴이 시작될
+        // 때와 동일한 방식). 안 그러면 이 코루틴이 WaitForSeconds로 대기하는 동안에도 아직 안 바뀐
+        // 페이즈1 브레인이 계속 매 프레임 돌면서 돌진 등 새 패턴을 뽑아, 중앙 연출 도중 보스가 딴 데로
+        // 움직여버리는 문제가 실제로 있었다. 페이즈2 브레인으로 교체되고 체력 차오르는 연출이 끝날
+        // 때까지 계속 Skill 상태를 유지해서, 그 사이엔 어떤 브레인도 패턴을 시전할 수 없게 한다.
+        CurrentState = AIState.Skill;
+
         IsGroggy = false;
+        ClearVisualFlash();
         HardStopMovement();
         if (Health != null) Health.Invincible = true;
 
-        yield return new WaitForSeconds(1.5f);
+        // [추가] 페이즈2 시작 연출: 방(맵) 정중앙으로 즉시 이동시킨다. 흉갑이 깨진 위치가 투기장 벽
+        // 근처 등 애매한 곳일 수 있어서, 페이즈2는 항상 중앙에서 시작하도록 고정한다.
+        RoomInstance room = FindContainingRoom();
+        if (room != null)
+        {
+            Vector3 center = (Vector3)((Vector2)room.transform.position + room.centerOffset);
+            WarpTo(center);
+        }
+
+        yield return new WaitForSeconds(phase2InvincibleDuration);
 
         CurrentPhase = 2;
         ShrinkThornArenaRing();
@@ -216,10 +248,12 @@ public class BoneMasterController : EnemyController
             {
                 var newAi = ScriptableObject.Instantiate(phase2Data.aiPattern);
                 var oldBrain = Brain;
-                newAi.Init(this);
+                newAi.Init(this); // Init()이 CurrentState를 Idle로 되돌리므로, 바로 아래에서 다시 Skill로 잠근다.
                 SetRuntimeBrain(newAi);
                 if (oldBrain != null) Destroy(oldBrain);
             }
+
+            CurrentState = AIState.Skill; // 체력이 다 차오를 때까지는 새 브레인도 아직 움직이지 않게 계속 잠가둔다.
 
             if (Health != null)
             {
@@ -234,6 +268,7 @@ public class BoneMasterController : EnemyController
         }
 
         if (Health != null) Health.Invincible = false;
+        CurrentState = AIState.Idle; // 연출 종료 — 이제부터 정상적으로 AI 판단 재개
         Debug.Log("<color=red>[BoneMaster]</color> 페이즈 2 전투 시작!");
     }
 
@@ -391,7 +426,7 @@ public class BoneMasterController : EnemyController
         return labelObj.AddComponent<EliteBossPatternLabel>();
     }
 
-    private void SetupThornArenaRing()
+private void SetupThornArenaRing()
     {
         RoomInstance room = FindContainingRoom();
         Vector3 center;
@@ -416,14 +451,18 @@ public class BoneMasterController : EnemyController
         ringObj.transform.position = center;
         _thornRing = ringObj.AddComponent<ThornArenaHazard>();
         _thornRing.SetupAsRing(size, thornRingColor, thornRingSortingOrder, thornRingBandRatio, this);
+        _thornRing.SetupVoidBarrier(voidBarrierMargin, voidBarrierColor, voidBarrierSortingOrder);
         Debug.Log($"<color=cyan>[BoneMaster]</color> 뼈 투기장 생성 완료: {ringObj.name} at {ringObj.transform.position}, size={size}");
     }
 
-    private void ShrinkThornArenaRing()
+private void ShrinkThornArenaRing()
     {
         if (_thornRing == null || _thornRingPhase1Size == Vector2.zero) return;
         Vector2 newSize = _thornRingPhase1Size * thornRingPhase2ShrinkRatio;
-        _thornRing.SetupAsRing(newSize, thornRingColor, thornRingSortingOrder, thornRingBandRatio, this);
+        // [수정] 페이즈2는 가시 띠를 더 얇게(thornRingPhase2BandRatio) 그려서, 경계 자체는 눈에 띄게
+        // 줄어들어도 실제 이동 가능한 안쪽 공간은 덜 좁아지게 보정한다.
+        _thornRing.SetupAsRing(newSize, thornRingColor, thornRingSortingOrder, thornRingPhase2BandRatio, this);
+        _thornRing.SetupVoidBarrier(voidBarrierMargin, voidBarrierColor, voidBarrierSortingOrder);
     }
 
     private void HideDanglingDoorPlaceholders()
@@ -442,6 +481,32 @@ public class BoneMasterController : EnemyController
             }
         }
     }
+
+
+    /// <summary>
+    /// [버그 수정 — 페이즈 전환 시 텔레그래프 잔여물] StopAllCoroutines()로 패턴 코루틴을 강제 종료하면
+    /// 그 코루틴이 만든 텔레그래프(BoneMasterTelegraphUtil.SpawnXXX)를 지우는 Object.Destroy() 코드가
+    /// 실행되지 못하고 그대로 씬에 남는다(예: 견갑 찌르기 3타 도중 흉갑이 깨지면 노란 텔레그래프가 영원히
+    /// 남음). BoneMasterTelegraphUtil이 만드는 모든 텔레그래프는 "BoneMaster_Telegraph_" 접두사를 쓰므로,
+    /// 페이즈 전환 시작 시점에 이름으로 찾아 전부 정리한다.
+    /// </summary>
+    private void CleanupDanglingTelegraphs()
+    {
+        var allTransforms = FindObjectsByType<Transform>(FindObjectsSortMode.None);
+        int count = 0;
+        foreach (var t in allTransforms)
+        {
+            if (t == null) continue;
+            if (!t.name.StartsWith("BoneMaster_Telegraph_")) continue;
+            Destroy(t.gameObject);
+            count++;
+        }
+        if (count > 0)
+        {
+            Debug.Log($"<color=cyan>[BoneMaster]</color> 중단된 패턴이 남긴 텔레그래프 {count}개 정리함.");
+        }
+    }
+
 
     private RoomInstance FindContainingRoom()
     {

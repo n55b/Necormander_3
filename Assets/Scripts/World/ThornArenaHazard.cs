@@ -125,6 +125,103 @@ public class ThornArenaHazard : MonoBehaviour
         transform.localScale = Vector3.one;
     }
 
+
+    private GameObject _voidBarrierObj;
+
+    /// <summary>
+    /// 뼈 투기장 바깥 전체를 검은색으로 칠하고, 물리적으로도 못 지나가게 막는다.
+    /// SetupAsRing() 이후(OuterRadiusX/Y가 계산된 뒤) 호출해야 하며, 링이 리사이즈될 때마다
+    /// (페이즈2 축소 등) 다시 호출해서 갱신한다. 링과 마찬가지로 이 오브젝트의 로컬 좌표계 기준.
+    /// </summary>
+    public void SetupVoidBarrier(float outerMargin, Color color, int sortingOrder)
+    {
+        float bigX = OuterRadiusX + Mathf.Max(1f, outerMargin);
+        float bigY = OuterRadiusY + Mathf.Max(1f, outerMargin);
+        const int segments = 96;
+
+        if (_voidBarrierObj == null)
+        {
+            _voidBarrierObj = new GameObject("ThornArenaVoidBarrier");
+            _voidBarrierObj.transform.SetParent(transform, false);
+            _voidBarrierObj.transform.localPosition = Vector3.zero;
+            _voidBarrierObj.transform.localRotation = Quaternion.identity;
+            _voidBarrierObj.transform.localScale = Vector3.one;
+        }
+
+        // ── 물리적 차단: 링 바깥 경계(OuterRadius)부터 훨씬 큰 바깥 경계까지를 고리 모양의
+        // "막힌"(트리거 아님) 콜라이더로 채운다. 안쪽(OuterRadius 이내)은 뚫려 있어 자유롭게 다닌다.
+        var blockCol = _voidBarrierObj.GetComponent<PolygonCollider2D>();
+        if (blockCol == null) blockCol = _voidBarrierObj.AddComponent<PolygonCollider2D>();
+        blockCol.isTrigger = false;
+
+        Vector2[] bigPoints = new Vector2[segments];
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = i * Mathf.PI * 2f / segments;
+            bigPoints[i] = new Vector2(Mathf.Cos(angle) * bigX, Mathf.Sin(angle) * bigY);
+        }
+        Vector2[] holePoints = new Vector2[segments];
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = (segments - 1 - i) * Mathf.PI * 2f / segments;
+            holePoints[i] = new Vector2(Mathf.Cos(angle) * OuterRadiusX, Mathf.Sin(angle) * OuterRadiusY);
+        }
+        blockCol.pathCount = 2;
+        blockCol.SetPath(0, bigPoints);
+        blockCol.SetPath(1, holePoints);
+
+        // ── 시각: 같은 모양(OuterRadius ~ bigBound)을 검은색 메쉬로 채워서 "바깥은 갈 수 없는 곳"임을 보여준다.
+        var mf = _voidBarrierObj.GetComponent<MeshFilter>();
+        if (mf == null) mf = _voidBarrierObj.AddComponent<MeshFilter>();
+        var mr = _voidBarrierObj.GetComponent<MeshRenderer>();
+        if (mr == null) mr = _voidBarrierObj.AddComponent<MeshRenderer>();
+
+        Mesh mesh = mf.sharedMesh;
+        if (mesh == null)
+        {
+            mesh = new Mesh { name = "ThornArenaVoidMesh" };
+            mf.sharedMesh = mesh;
+        }
+        mesh.Clear();
+
+        Vector3[] verts = new Vector3[segments * 2];
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = i * Mathf.PI * 2f / segments;
+            float cos = Mathf.Cos(angle), sin = Mathf.Sin(angle);
+            verts[i * 2] = new Vector3(cos * OuterRadiusX, sin * OuterRadiusY, 0f);
+            verts[i * 2 + 1] = new Vector3(cos * bigX, sin * bigY, 0f);
+        }
+        int[] tris = new int[segments * 6];
+        for (int i = 0; i < segments; i++)
+        {
+            int next = (i + 1) % segments;
+            int i0 = i * 2, i1 = i * 2 + 1, i2 = next * 2, i3 = next * 2 + 1;
+            int t = i * 6;
+            tris[t + 0] = i0; tris[t + 1] = i2; tris[t + 2] = i1;
+            tris[t + 3] = i1; tris[t + 4] = i2; tris[t + 5] = i3;
+        }
+        mesh.vertices = verts;
+        mesh.triangles = tris;
+        mesh.RecalculateBounds();
+
+        Shader shader = Shader.Find("Sprites/Default");
+        if (shader == null) shader = Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
+        if (shader == null) shader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (shader == null) shader = Shader.Find("Unlit/Color");
+
+        if (mr.sharedMaterial == null)
+        {
+            mr.sharedMaterial = new Material(shader != null ? shader : Shader.Find("Sprites/Default"));
+        }
+        mr.sharedMaterial.color = color;
+
+        var lr = GetComponent<LineRenderer>();
+        mr.sortingLayerID = lr != null ? lr.sortingLayerID : 0;
+        mr.sortingOrder = sortingOrder;
+    }
+
+
     /// <summary>
     /// origin에서 dir 방향으로 나아갈 때 이 링의 "안쪽 경계"(=가시 판정이 시작되는 지점)까지의 거리.
     /// 타원 방정식에 직선을 대입해 t를 구하는 정확한 계산(레이캐스트에 의존하지 않음).

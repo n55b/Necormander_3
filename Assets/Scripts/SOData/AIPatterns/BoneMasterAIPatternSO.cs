@@ -46,16 +46,16 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
     public float basicAttackRecovery = 0.4f;
 
     [Header("패턴 쿨타임 (인스펙터에서 조절)")]
-    public float chargeCooldown = 8f;
+    public float chargeCooldown = 12f;
     public float thrustCooldown = 6f;
     public float counterCooldown = 10f;
 
     [Header("가중치 - 체력 100~80%")]
-    public Vector3 weightsAbove80 = new Vector3(33f, 33f, 34f);
+    public Vector3 weightsAbove80 = new Vector3(18f, 38f, 44f);
     [Header("가중치 - 체력 80~60%")]
-    public Vector3 weights80To60 = new Vector3(25f, 37f, 38f);
+    public Vector3 weights80To60 = new Vector3(14f, 40f, 46f);
     [Header("가중치 - 체력 60% 이하")]
-    public Vector3 weightsBelow60 = new Vector3(21f, 39f, 40f);
+    public Vector3 weightsBelow60 = new Vector3(10f, 42f, 48f);
 
     [Header("텔레그래프(피해범위 인디케이터) 색상")]
     public Color telegraphWarnColor = new Color(1f, 0.1f, 0.1f, 0.9f);
@@ -70,19 +70,32 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
     public float chargeSpeed = 22f;
     public float chargeMaxDurationFallback = 1.2f;
     [Range(1.0f, 1.5f)]
-    public float chargeSafetyTimeMultiplier = 1.15f;
-    public float wallCheckRadius = 0.6f;
+    public float chargeSafetyTimeMultiplier = 1.3f;
+    public float wallCheckRadius = 0.85f;
     public float chargeTelegraphWidth = 2f;
 
     [Header("패턴 2번: 견갑 찌르기")]
     public float thrustRange = 6.5f;
     public float thrustWidth = 1.3f;
-    public float thrustTelegraphLead = 0.35f;
+    public float thrustTelegraphLead = 0.45f; // [수정] 대시가 추가되어 반응 시간을 조금 더 준다.
+    [Tooltip("찌르기 시전 시 짧게 파고드는 대시 거리(1,2타). 총 사거리(thrustRange) 중 이 거리만큼은 실제 이동으로 커버한다.")]
+    public float thrustDashDistance = 3f;
+    public float thrustDashDuration = 0.15f;
     public float thrustPauseBeforeFirst = 0.75f;
-    public float thrustPauseAfterFirst = 0.5f;
-    public float thrustPauseAfterSecond = 0.22f;
+    public float thrustPauseAfterFirst = 0.3f; // [수정] 후딜이 너무 길다는 피드백 — 구간1(1->2타) 총합 0.75초(후딜0.3+조준0.45)로 단축.
+    public float thrustPauseAfterSecond = 0f; // [수정] 후딜이 너무 길다는 피드백 — 구간2(2->3타) 총합 1.0초(후딜0+조준1.0)로 단축.
     public float thrustCounterGaugeAmount = 25f;
-    public float thrustCounterGroggyDuration = 5f;
+    public float thrustCounterGroggyDuration = 4f; // [수정] 그로기가 너무 길다는 피드백으로 5->4초.
+    [Header("패턴 2번: 마지막(3번째) 타격 전용 - 카운터 찬스")]
+    [Tooltip("3타의 데미지 배율(ATK 대비). 기본 15뎀 기준 20뎀이 되도록 20/15로 설정.")]
+    public float thrustFinalDamageMultiplier = 20f / 15f;
+    public float thrustFinalRange = 7.5f;
+    public float thrustFinalWidth = 1.6f;
+    public float thrustFinalTelegraphLead = 1f;
+    [Tooltip("3타를 실제로 찌른 후에도 이 시간(초) 동안은 카운터 판정이 계속 유효하다.")]
+    public float thrustFinalCounterTail = 0.45f;
+    public float thrustFinalDashDistance = 4f;
+    public float thrustFinalDashDuration = 0.2f;
 
     [Header("패턴 3번: 카운터 & 페이크 카운터")]
     public Vector2 counterReactionWindowRange = new Vector2(1f, 1.5f);
@@ -99,8 +112,12 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
     private float _lastThrustTime = -100f;
     private float _lastCounterTime = -100f;
     private float _lastDiagLogTime = -100f;
+    [Header("스폰 연출")]
+    public float startupDelay = 2f;
+    private float _activationTime = -100f;
 
-    public override void Init(BaseEntity entity)
+
+public override void Init(BaseEntity entity)
     {
         base.Init(entity);
         _controller = entity as BoneMasterController;
@@ -111,6 +128,12 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
         _lastChargeTime = -100f;
         _lastThrustTime = -100f;
         _lastCounterTime = -100f;
+
+        // [추가] 스폰 직후 startupDelay(기본 2초) 동안은 아무 패턴도 뽑지 않고 가만히 대기한다.
+        // 예전엔 스폰과 동시에 바로 돌진이 뽑힐 수 있어서, 플레이어가 상황을 인지하기도 전에
+        // 돌진 -> 경직까지 순식간에 지나가버리는 문제가 있었다.
+        _activationTime = Time.time + startupDelay;
+        _controller?.SetStateText("...", Color.gray);
     }
 
     protected override void UpdateTargeting(BaseEntity entity)
@@ -147,7 +170,25 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
             return;
         }
 
-        float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
+        // [버그 수정 — 경직 끝나기도 전에 다음 패턴이 시작되는 문제] AIPatternSO.Execute()는
+        // CurrentState==Skill 일 때만 AI 판단을 멈추고, IsGroggy(경직) 여부는 보지 않는다. 패턴이
+        // 끝나며 CurrentState가 Follow로 바뀌자마자 다음 프레임에 여기서 바로 새 패턴을 뽑을 수 있어서,
+        // 보스가 아직 경직 중인데도(연출/스턴이 안 끝났는데도) 새 패턴이 시작돼버리는 문제가 있었다.
+        if (_controller != null && _controller.IsGroggy)
+        {
+            entity.CurrentState = AIState.Idle;
+            return;
+        }
+
+
+                // [추가] 스폰 직후 startupDelay 동안은 어떤 패턴도 뽑지 않고 가만히 대기한다.
+        if (Time.time < _activationTime)
+        {
+            entity.CurrentState = AIState.Idle;
+            return;
+        }
+
+float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
         float rangeBonus = _controller != null ? _controller.AttackRangeBonus : 0f;
         float effectiveEngageRange = engageRange * (1f + rangeBonus);
 
@@ -356,7 +397,7 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
     }
 
     #region 패턴 1번: 박치기 돌격
-    private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
+private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
     {
         StopNavAgent(entity);
         _controller?.HardStopMovement();
@@ -437,6 +478,7 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
 
             float elapsed = 0f;
             bool hitWall = false;
+            Vector3 prevPos = entity.transform.position;
             while (elapsed < chargeDuration)
             {
                 if (entity.CurrentState != AIState.Skill)
@@ -449,12 +491,13 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
                 Vector3 nextPos = entity.transform.position + (Vector3)(lockedDir * chargeSpeed * Time.deltaTime);
                 elapsed += Time.deltaTime;
 
-                if (IsTouchingThornWall(nextPos))
+                if (IsTouchingThornWallSwept(prevPos, nextPos))
                 {
                     hitWall = true;
                     Debug.Log($"<color=cyan>[BoneMaster]</color> 돌진 중 뼈 투기장 접촉 감지! pos={nextPos} elapsed={elapsed:F2}/{chargeDuration:F2}");
                     break; // 벽에 닿기 "직전"에서 멈춘다(안으로 파고들지 않음).
                 }
+                prevPos = nextPos;
                 Warp(entity, nextPos);
                 yield return null;
             }
@@ -467,16 +510,20 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
                 yield break;
             }
 
-            if (hitWall)
+            // [버그 수정 4 — 가끔 경직이 안 걸리는 문제] chargeDuration은 벽까지 거리보다
+            // chargeSafetyTimeMultiplier(>1)배만큼 넉넉하게 잡혀 있으므로, 시간이 다 될 때까지
+            // IsTouchingThornWallSwept이 한 번도 안 걸렸어도 기하학적으로는 이미 벽을 지나쳤어야
+            // 한다(프레임 드랍으로 얇은 가시 링을 건너뛴 경우 등). 이 경우도 "벽에 닿음"으로 간주해
+            // 경직을 보장한다 — 안 그러면 가끔 경직이 통째로 씹히는 현상이 재발한다.
+            if (!hitWall)
             {
-                _controller?.SetStateText($"{Pattern1Label} - 가시 충돌! 경직!", Color.cyan);
-                _controller?.ApplyGroggy(chargeWallStaggerDuration);
-                Debug.Log($"<color=cyan>[BoneMaster]</color> 경직 적용 완료. IsGroggy={_controller?.IsGroggy}");
+                Debug.LogWarning($"[BoneMaster] 돌진 시간 예산 소진까지 벽 접촉이 감지되지 않음(프레임 드랍 추정) — 안전 폴백으로 경직을 적용합니다. finalPos={entity.transform.position}");
+                hitWall = true;
             }
-            else
-            {
-                yield return new WaitForSeconds(0.5f);
-            }
+
+            _controller?.SetStateText($"{Pattern1Label} - 가시 충돌! 경직!", Color.cyan);
+            _controller?.ApplyGroggy(chargeWallStaggerDuration);
+            Debug.Log($"<color=cyan>[BoneMaster]</color> 경직 적용 완료. IsGroggy={_controller?.IsGroggy}");
         }
 
         EndPattern(entity);
@@ -491,34 +538,46 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
         }
         return false;
     }
+
+
+    /// <summary>
+    /// [버그 수정 4 — 가끔 경직이 안 걸리는 문제] 프레임이 잠깐 튀어(GC, 오브젝트 파괴 등) 한 프레임에
+    /// 크게 이동하면 이전 위치와 다음 위치 사이의 얇은 가시 링을 통째로 건너뛰어 접촉 판정을 한 번도
+    /// 못 잡는 경우가 있었다. prev→next 구간을 wallCheckRadius 간격으로 여러 지점 샘플링해서 검사한다.
+    /// </summary>
+    private bool IsTouchingThornWallSwept(Vector2 prevPos, Vector2 nextPos)
+    {
+        float dist = Vector2.Distance(prevPos, nextPos);
+        int steps = Mathf.Max(1, Mathf.CeilToInt(dist / Mathf.Max(0.05f, wallCheckRadius)));
+        for (int i = 0; i <= steps; i++)
+        {
+            Vector2 sample = Vector2.Lerp(prevPos, nextPos, steps == 0 ? 0f : (float)i / steps);
+            if (IsTouchingThornWall(sample)) return true;
+        }
+        return false;
+    }
+
     #endregion
 
     #region 패턴 2번: 견갑 찌르기
-    private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
+private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
     {
         StopNavAgent(entity);
         _controller?.HardStopMovement();
         _controller?.SetStateText($"{Pattern2Label}", Color.yellow);
 
-        Vector2 origin = entity.transform.position;
-
         var gauge = _controller != null ? _controller.CounterGauge : null;
         bool broken = false;
         void OnBroken() => broken = true;
-        if (gauge != null)
-        {
-            gauge.OnGaugeBroken += OnBroken;
-            gauge.OpenWindow(thrustCounterGaugeAmount);
-        }
 
         bool hijacked = false;
 
+        Vector2 holdPos = entity.transform.position;
         float preFirst = 0f;
         while (preFirst < thrustPauseBeforeFirst)
         {
-            if (broken) break;
             if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
-            Warp(entity, origin);
+            Warp(entity, holdPos);
             preFirst += Time.deltaTime;
             yield return null;
         }
@@ -527,13 +586,35 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
 
         for (int i = 0; i < 3 && !broken && !hijacked; i++)
         {
+            bool isFinal = (i == 2);
+            float dashDist = isFinal ? thrustFinalDashDistance : thrustDashDistance;
+            // [수정] 돌진 거리만큼 사거리가 "추가로" 늘어난다(기존 정지 판정 길이 + 돌진 거리).
+            float totalLen = (isFinal ? thrustFinalRange : thrustRange) + dashDist;
+            float width = isFinal ? thrustFinalWidth : thrustWidth;
+            float lead = isFinal ? thrustFinalTelegraphLead : thrustTelegraphLead;
+            Color telegraphColor = isFinal ? Color.yellow : telegraphWarnColor;
+            float dmgMul = isFinal ? thrustFinalDamageMultiplier : 1f;
+            float dashDur = isFinal ? thrustFinalDashDuration : thrustDashDuration;
+
+            // [설계 변경 - 제자리 찌르기가 심심하다는 피드백] 매 타격마다 "현재" 위치에서 다시 조준한다.
+            // 이전 타격의 대시로 이동한 지점이 다음 타격의 시작점이 되므로, 3연타를 거치며 보스가
+            // 실제로 플레이어 쪽으로 파고드는 느낌을 만든다.
+            Vector2 origin = entity.transform.position;
             if (entity.Target != null) entity.LookAtTarget(entity.Target);
             Vector2 dir = SafeDirTo(entity, origin, entity.Target);
 
             GameObject strikeTelegraph = BoneMasterTelegraphUtil.SpawnLane(
-                entity, origin, dir, thrustRange, thrustWidth, telegraphWarnColor);
+                entity, origin, dir, totalLen, width, telegraphColor);
+
+            if (isFinal && gauge != null)
+            {
+                _controller?.SetStateText($"{Pattern2Label} - 마지막 일격! (카운터 찬스)", Color.yellow);
+                gauge.OnGaugeBroken += OnBroken;
+                gauge.OpenWindow(thrustCounterGaugeAmount);
+            }
+
             float leadTimer = 0f;
-            while (leadTimer < thrustTelegraphLead)
+            while (leadTimer < lead)
             {
                 if (broken) break;
                 if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
@@ -544,25 +625,53 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
             if (strikeTelegraph != null) Object.Destroy(strikeTelegraph);
             if (broken || hijacked) break;
 
+            // [추가] 짧게 파고드는 대시 — 제자리에서 판정만 뻗던 것을 실제 이동으로 바꿔서 위협감을 준다.
+            Vector2 dashEnd = origin + dir * dashDist;
+            float dashT = 0f;
+            while (dashT < dashDur)
+            {
+                dashT += Time.deltaTime;
+                Warp(entity, Vector2.Lerp(origin, dashEnd, Mathf.Clamp01(dashT / dashDur)));
+                yield return null;
+            }
+            Warp(entity, dashEnd);
+
             bool applyBleed = Random.value <= 0.25f;
             var info = new DamageInfo(
-                entity.Stats.ATK,
+                entity.Stats.ATK * dmgMul,
                 DamageType.Physical,
                 entity.gameObject,
                 category: DamageCategory.EnemyBoss,
                 applyStatus: applyBleed ? StatusType.Bleed : (StatusType?)null
             );
-            BossCombat.DealLane(origin, dir, thrustRange, thrustWidth, entity.opponentLayer, info);
+            // 판정은 텔레그래프와 동일하게 대시 "이전" origin 기준 전체 길이로 적용한다
+            // (텔레그래프가 보여준 범위와 실제 피해 범위를 항상 일치시키기 위함).
+            BossCombat.DealLane(origin, dir, totalLen, width, entity.opponentLayer, info);
 
-            float pause = pauseAfterStrike[i];
-            float pt = 0f;
-            while (pt < pause)
+            if (isFinal)
             {
-                if (broken) break;
-                if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
-                Warp(entity, origin);
-                pt += Time.deltaTime;
-                yield return null;
+                float tailT = 0f;
+                while (tailT < thrustFinalCounterTail)
+                {
+                    if (broken) break;
+                    if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+                    Warp(entity, dashEnd);
+                    tailT += Time.deltaTime;
+                    yield return null;
+                }
+            }
+            else
+            {
+                float pause = pauseAfterStrike[i];
+                float pt = 0f;
+                while (pt < pause)
+                {
+                    if (broken) break;
+                    if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+                    Warp(entity, dashEnd);
+                    pt += Time.deltaTime;
+                    yield return null;
+                }
             }
         }
 

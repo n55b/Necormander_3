@@ -34,7 +34,8 @@ MonoBehaviour:
   slamTelegraphTime: 1.2
   slamCounterGaugeAmount: 25
   slamCounterStaggerDuration: 1.5
-  slamRange: 2.5
+  slamRange: 6.5
+  slamWidth: 2
   spinToSlamPause: 0.8
   pivotBodySlamRadius: 2
   pivotSafeRadius: 1.2

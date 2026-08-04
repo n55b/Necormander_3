@@ -52,7 +52,8 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
     public float slamTelegraphTime = 1.2f;
     public float slamCounterGaugeAmount = 25f;
     public float slamCounterStaggerDuration = 1.5f;
-    public float slamRange = 2.5f;
+    public float slamRange = 6.5f; // [수정] 원형 반경 -> 보스 기준 뻗는 직사각형의 길이로 의미가 바뀜
+    public float slamWidth = 2f; // [추가] 직사각형 내려찍기의 폭
     public float spinToSlamPause = 0.8f;
 
     [Header("패턴 2번: 검을 축으로 삼아")]
@@ -124,6 +125,17 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
             entity.CurrentState = AIState.Idle;
             return;
         }
+
+        // [버그 수정 — 경직 끝나기도 전에 다음 패턴이 시작되는 문제] AIPatternSO.Execute()는
+        // CurrentState==Skill 일 때만 AI 판단을 멈추고, IsGroggy(경직) 여부는 보지 않는다. 패턴이
+        // 끝나며 CurrentState가 Follow로 바뀌자마자 다음 프레임에 여기서 바로 새 패턴을 뽑을 수 있어서,
+        // 보스가 아직 경직 중인데도(연출/스턴이 안 끝났는데도) 새 패턴이 시작돼버리는 문제가 있었다.
+        if (_controller != null && _controller.IsGroggy)
+        {
+            entity.CurrentState = AIState.Idle;
+            return;
+        }
+
 
         float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
 
@@ -273,7 +285,7 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
     }
 
     #region 패턴 1번: 회전 베기 & 내려찍기
-    private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
+private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
     {
         StopNavAgent(entity);
         _controller?.HardStopMovement();
@@ -303,9 +315,13 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         yield return new WaitForSeconds(spinToSlamPause);
         Warp(entity, origin);
 
+        // [수정 — 내려찍기 회피 불가 문제] 예전엔 내려찍기가 "플레이어 위치를 텔레그래프 내내 계속
+        // 추적하는 원형" 판정이라, 플레이어가 어디로 움직이든 그 자리로 계속 따라와서 사실상 피할 수
+        // 없었다. 이제는 돌진/찌르기와 같은 방식으로 예고 시작 시점에 방향을 한 번만 고정하고, 보스
+        // 기준 그 방향으로 뻗는 긴 직사각형(검을 내려찍는 궤적)으로 바꿔서 옆/뒤로 피할 수 있게 한다.
         _controller?.SetStateText($"{Pattern1Label} - 내려찍기 예고!", Color.yellow);
-        Vector2 slamCenter = entity.Target != null ? (Vector2)entity.Target.position : origin;
-        GameObject slamTelegraph = BoneMasterTelegraphUtil.SpawnCircle(entity, slamCenter, slamRange, telegraphWarnColor);
+        Vector2 slamDir = SafeDirTo(entity, origin, entity.Target);
+        GameObject slamTelegraph = BoneMasterTelegraphUtil.SpawnLane(entity, origin, slamDir, slamRange, slamWidth, telegraphWarnColor);
 
         var gauge = _controller != null ? _controller.CounterGauge : null;
         bool broken = false;
@@ -323,11 +339,6 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
             if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
             Warp(entity, origin);
             t += Time.deltaTime;
-            if (entity.Target != null && slamTelegraph != null)
-            {
-                slamCenter = entity.Target.position;
-                slamTelegraph.transform.position = slamCenter;
-            }
             yield return null;
         }
         if (gauge != null) gauge.OnGaugeBroken -= OnBroken;
@@ -351,7 +362,7 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
             gauge?.CloseWindow();
             _controller?.SetStateText($"{Pattern1Label} - 내려찍기!", Color.white);
             var slamInfo = new DamageInfo(entity.Stats.ATK * 1.15f, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true);
-            BossCombat.DealCircle(slamCenter, slamRange, entity.opponentLayer, slamInfo);
+            BossCombat.DealLane(origin, slamDir, slamRange, slamWidth, entity.opponentLayer, slamInfo);
             yield return new WaitForSeconds(0.8f);
         }
 

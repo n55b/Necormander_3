@@ -135,16 +135,12 @@ public static class BoneMasterTelegraphUtil
     /// halfAngleDegrees=90이면 반달(180도) 모양. 중심점 → 부채꼴 호 → 중심점으로 돌아오는 외곽선(두 직선 변 + 호)이라
     /// "반달로 휩쓰는 범위"가 한눈에 보인다.
     /// </summary>
-    public static GameObject SpawnCone(BaseEntity entity, Vector2 pos, Vector2 facingDir, float radius, float halfAngleDegrees, Color color, int sortingOrder = 5000, float lineWidth = 0.18f)
+public static GameObject SpawnCone(BaseEntity entity, Vector2 pos, Vector2 facingDir, float radius, float halfAngleDegrees, Color color, int sortingOrder = 5000, float lineWidth = 0.18f, float fillAlpha = 0.35f)
     {
         GameObject go = new GameObject("BoneMaster_Telegraph_Cone");
         go.transform.position = pos;
 
-        var lr = go.AddComponent<LineRenderer>();
         const int arcSegments = 20;
-        lr.loop = true; // 마지막 점에서 첫 점(중심)으로 자동으로 닫힌다.
-        lr.positionCount = arcSegments + 1; // 중심 1개 + 호 위의 점들
-
         Vector2 dir = facingDir.sqrMagnitude > 0.0001f ? facingDir.normalized : Vector2.right;
         float baseAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
@@ -157,6 +153,41 @@ public static class BoneMasterTelegraphUtil
             float rad = angleDeg * Mathf.Deg2Rad;
             points[i + 1] = new Vector3(Mathf.Cos(rad) * radius, Mathf.Sin(rad) * radius, 0f);
         }
+
+        // [추가 — 내부 채움] 예전엔 외곽선(LineRenderer)만 그려서 부채꼴 안이 텅 비어 어색해 보였다.
+        // 같은 점들로 중심에서 부채꼴을 이루는 삼각형 팬(fan) 메쉬를 만들어 반투명하게 채운다.
+        var mf = go.AddComponent<MeshFilter>();
+        var mr = go.AddComponent<MeshRenderer>();
+        Mesh fillMesh = new Mesh { name = "BoneMaster_Telegraph_Cone_Fill" };
+        fillMesh.vertices = points;
+        int triCount = arcSegments - 1;
+        int[] tris = new int[triCount * 3];
+        for (int i = 0; i < triCount; i++)
+        {
+            tris[i * 3 + 0] = 0;
+            tris[i * 3 + 1] = i + 1;
+            tris[i * 3 + 2] = i + 2;
+        }
+        fillMesh.triangles = tris;
+        fillMesh.RecalculateBounds();
+        mf.sharedMesh = fillMesh;
+
+        var baseMat = GetSafeMaterial();
+        if (baseMat != null)
+        {
+            var fillMat = new Material(baseMat); // 텔레그래프마다 알파가 달라질 수 있어 공유 캐시 재질을 복제해서 쓴다.
+            Color fillColor = color;
+            fillColor.a *= fillAlpha;
+            fillMat.color = fillColor;
+            mr.sharedMaterial = fillMat;
+        }
+        mr.sortingLayerID = entity != null && entity.SpriteRenderer != null ? entity.SpriteRenderer.sortingLayerID : 0;
+        mr.sortingOrder = sortingOrder - 1; // 외곽선보다 한 단계 아래에 채워서 테두리가 위에 선명하게 보이게 한다.
+
+        // ── 외곽선(기존과 동일) ──
+        var lr = go.AddComponent<LineRenderer>();
+        lr.loop = true; // 마지막 점에서 첫 점(중심)으로 자동으로 닫힌다.
+        lr.positionCount = arcSegments + 1;
         lr.SetPositions(points);
 
         ApplyCommon(lr, entity, color, sortingOrder, lineWidth);
