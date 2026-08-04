@@ -11,18 +11,12 @@ using UnityEngine;
 /// </summary>
 public static class BossCombat
 {
-    // 대상 마스크는 호출측이 넘긴다: 보스는 항상 entity.opponentLayer 를 사용한다.
-    // opponentLayer 는 BaseEntity.SetupLayers()가 team 기준으로 세팅한 값이라(적팀→PlayerArmy, 아군팀→EnemyMask)
-    // 하드코딩 문자열/존재하지 않는 "Ally" 레이어 없이 team-정확하게 타겟팅된다.
     private static readonly int DashLayer = LayerMask.NameToLayer("Player_Dash");
 
-    /// <summary>
-    /// 콜라이더가 유효 피격 대상이면 피해를 주고 true. 대쉬 무적(Player_Dash 레이어)·무적·사망은 회피로 처리(false).
-    /// </summary>
     public static bool TryDamage(Collider2D col, DamageInfo info)
     {
         if (col == null) return false;
-        if (col.gameObject.layer == DashLayer) return false; // 대쉬 무적으로 완전 회피 (마스크가 놓쳐도 방어)
+        if (col.gameObject.layer == DashLayer) return false;
         CharacterHealth health = col.GetComponentInChildren<CharacterHealth>();
         if (health == null) health = col.GetComponentInParent<CharacterHealth>();
         if (health == null || health.IsDead || health.Invincible) return false;
@@ -41,6 +35,56 @@ public static class BossCombat
         }
     }
 
+    /// <summary>origin에서 dir 방향으로 length만큼 뻗는 직사각(레인) 범위 안의 대상(targetMask)에게 1회 피해. width는 레인의 폭.</summary>
+    public static void DealLane(Vector2 origin, Vector2 dir, float length, float width, LayerMask targetMask, DamageInfo info)
+    {
+        Vector2 d = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector2.right;
+        float angle = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
+        Vector2 center = origin + d * (length * 0.5f);
+        Collider2D[] hits = Physics2D.OverlapBoxAll(center, new Vector2(length, width), angle, targetMask);
+        foreach (var hit in hits)
+        {
+            TryDamage(hit, info);
+        }
+    }
+
+    /// <summary>
+    /// center를 중심으로 반지름(radiusX, radiusY)인 타원 범위 안의 대상(targetMask)에게 1회 피해.
+    /// (도약 & 내려찍기 착지 지점 등 원형이 아닌 타원 범위가 필요할 때 쓴다.)
+    /// </summary>
+    public static void DealEllipse(Vector2 center, float radiusX, float radiusY, LayerMask targetMask, DamageInfo info)
+    {
+        float maxRadius = Mathf.Max(radiusX, radiusY);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(center, maxRadius, targetMask);
+        foreach (var hit in hits)
+        {
+            Vector2 local = (Vector2)hit.transform.position - center;
+            float nx = radiusX > 0.001f ? local.x / radiusX : 0f;
+            float ny = radiusY > 0.001f ? local.y / radiusY : 0f;
+            if (nx * nx + ny * ny > 1f) continue;
+            TryDamage(hit, info);
+        }
+    }
+
+    /// <summary>
+    /// center에서 facingDir 방향을 중심으로 halfAngleDegrees(반각) 이내, 반경 radius인 부채꼴(콘) 범위 안의
+    /// 대상(targetMask)에게 1회 피해. halfAngleDegrees=90이면 반달(180도) 모양이 된다.
+    /// (창 휩쓸기를 전방위 원이 아니라 정면 반달로 만들 때 쓴다.)
+    /// </summary>
+    public static void DealCone(Vector2 center, Vector2 facingDir, float radius, float halfAngleDegrees, LayerMask targetMask, DamageInfo info)
+    {
+        Vector2 dir = facingDir.sqrMagnitude > 0.0001f ? facingDir.normalized : Vector2.right;
+        Collider2D[] hits = Physics2D.OverlapCircleAll(center, radius, targetMask);
+        foreach (var hit in hits)
+        {
+            Vector2 toHit = (Vector2)hit.transform.position - center;
+            if (toHit.sqrMagnitude < 0.0001f) { TryDamage(hit, info); continue; } // 정중앙(거의 겹침)은 항상 포함
+            float angle = Vector2.Angle(dir, toHit);
+            if (angle > halfAngleDegrees) continue;
+            TryDamage(hit, info);
+        }
+    }
+
     /// <summary>
     /// 중심에서 maxRadius까지 duration에 걸쳐 퍼지는 링. 각 대상은 링 두께에 스치는 순간 1회만 onHit 콜백.
     /// (바닥 충격파 / 하울 링 등에서 공용. 시각 링은 호출측이 <see cref="BossTelegraph"/>로 그린다.)
@@ -55,7 +99,7 @@ public static class BossCombat
         {
             t += Time.deltaTime;
             float cur = Mathf.Lerp(0f, maxRadius, Mathf.Clamp01(t / duration));
-            onExpand?.Invoke(cur); // 시각 링 확장 등 매 프레임 콜백 (판정 전에 호출 — 원본 순서 유지)
+            onExpand?.Invoke(cur);
             Collider2D[] hits = Physics2D.OverlapCircleAll(center, cur + thickness, targetMask);
             foreach (var hit in hits)
             {

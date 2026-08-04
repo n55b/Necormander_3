@@ -12,12 +12,49 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a87578033eff198419e9953c92021dfe, type: 3}
   m_Name: Bone Master AI Pattern
   m_EditorClassIdentifier: 
-  currentState: 0
   pushRadius: 0.8
   pushStrength: 2
-  target: {fileID: 0}
-  atkTimer: 0
-  phase2Data: {fileID: 11400000, guid: c3dac0bf2a19e2842b2040428baf4c03, type: 2}
-  pattern1Cooldown: 10
-  pattern2Cooldown: 6
-  pattern3Cooldown: 8
+  spawnTelegraph: 1
+  engageRange: 6
+  sweepRange: 2.5
+  basicThrustRange: 4.5
+  sweepRadius: 3.2
+  sweepHalfAngle: 90
+  basicThrustLength: 4.5
+  basicThrustWidth: 1.4
+  leapSlamRadiusX: 2.2
+  leapSlamRadiusY: 1.6
+  leapWindup: 0.4
+  leapDuration: 0.35
+  basicAttackWindup: 0.85
+  basicAttackRecovery: 0.4
+  chargeCooldown: 8
+  thrustCooldown: 6
+  counterCooldown: 10
+  weightsAbove80: {x: 33, y: 33, z: 34}
+  weights80To60: {x: 25, y: 37, z: 38}
+  weightsBelow60: {x: 21, y: 39, z: 40}
+  telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
+  howlPushRadius: 2.5
+  howlPushForce: 4
+  chargeTelegraphTime: 1.5
+  chargeCounterGaugeAmount: 30
+  chargeCounterGroggyDuration: 5
+  chargeWallStaggerDuration: 1.5
+  chargeSpeed: 22
+  chargeMaxDurationFallback: 1.2
+  chargeWallReachRatio: 0.95
+  wallCheckRadius: 0.6
+  chargeTelegraphWidth: 2
+  thrustRange: 6.5
+  thrustWidth: 1.3
+  thrustTelegraphLead: 0.35
+  thrustPauseBeforeFirst: 0.75
+  thrustPauseAfterFirst: 0.5
+  thrustPauseAfterSecond: 0.22
+  thrustCounterGaugeAmount: 25
+  thrustCounterGroggyDuration: 5
+  counterReactionWindowRange: {x: 1, y: 1.5}
+  counterSuccessGroggyDuration: 2.5
+  fakeCounterPlayerStun: 0.75
+  fakeCounterPunishDamage: 3

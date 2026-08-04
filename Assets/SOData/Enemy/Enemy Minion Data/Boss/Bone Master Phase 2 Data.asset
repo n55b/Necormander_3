@@ -13,20 +13,48 @@ MonoBehaviour:
   m_Name: Bone Master Phase 2 Data
   m_EditorClassIdentifier: 
   minionType: 0
-  minionName: 'Boss Bone Master '
+  minionName: "\uBCF8 \uB9C8\uC2A4\uD130 (2\uD398\uC774\uC988)"
   minionIcon: {fileID: 0}
+  shopCost: 150
+  rewardItemData:
+    itemName: 
+    description: 
+    localizedItemName:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    icon: {fileID: 0}
+    rarity: 0
   baseEffectValue: 0
-  maxHP: 700
-  attack: 20
-  attackSpeed: 1.25
-  attackRange: 2
-  detectRange: 500
-  defense: 50
-  moveSpeed: 4
+  attack: 17
+  maxHP: 480
+  attackSpeed: 1.1
+  attackRange: 2.8
+  detectRange: 1000
+  defense: 0
+  moveSpeed: 6
   baseEvasion: 0
   baseAccuracy: 1
   attackType: 0
-  isElite: 0
+  isElite: 1
   aiPattern: {fileID: 11400000, guid: 9f4915f5124ef724e8a3e82295b25756, type: 2}
   AttackSound: {fileID: 0}
   minionPrefab: {fileID: 3798428365419413079, guid: 5e2bb3c2b983f064e8085d46b105636a, type: 3}
+  dedicatedRoomPrefab: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []

@@ -1,254 +1,463 @@
-using UnityEngine;
 using System.Collections;
-using TMPro;
+using UnityEngine;
+using UnityEngine.AI;
 
 /// <summary>
-/// 본 마스터 보스 전용 컨트롤러입니다. 
-/// 뼈 갑옷 스택, 페이즈 전환, 뼈 창 피격 상호작용 및 UI 상태 표시를 담당합니다.
+/// 본 마스터 보스 전용 컨트롤러.
+/// - 부위(투구/견갑/흉갑) 파괴에 따른 받는피해 증가 + 페이즈2 진입을 관리한다.
+/// - 카운터 게이지(BossCounterGauge), 머리 위 상태 텍스트(EliteBossPatternLabel)를 배선한다.
+/// - 뼈 투기장(타원형 가시 경계)은 보스를 따라다니지 않고, 보스가 스폰된 RoomInstance 중심에 고정되며
+///   방의 실제 가로/세로 비율(roomSize)에 맞춰 타원으로 그려진다.
+/// - Charger Elite와 동일하게 상시 슈퍼아머를 부여해 플레이어 평타에 경직/넉백되지 않는다.
+///
+/// [버그 수정] NavMeshAgent 위치는 항상 WarpTo()로 옮긴다(직접 대입 시 에이전트 내부 상태와 어긋나
+/// 나중에 "튕기는" 문제가 있었다). WarpTo()는 이제 대상 지점이 NavMesh 위가 아니면(예: 장식 바위 등
+/// 걷기 불가능한 지형 근처) 가장 가까운 유효한 지점으로 보정해서 워프한다 — 안 그러면 Warp가 조용히
+/// 실패하면서 보스가 그 자리에 "낑겨서" 아무것도 못 하는 것처럼 멈추는 문제가 있었다.
+///
+/// [버그 수정 — 페이즈 전환 시 이전 패턴이 안 끊기던 문제] 흉갑 파괴 즉시 StopAllCoroutines()로
+/// 강제 정리한 뒤 페이즈2 전환을 시작한다.
+///
+/// [개선] 페이즈2 진입 시 체력이 새 최대치까지 서서히 차오르는 연출을 추가했다.
+///
+/// [버그 수정 — 흰 사각형] 아레나 테스트 모드에서 실제로 이어지는 방이 없는 "문 자리" 마커가
+/// 기본 흰색 Square 스프라이트로 노출되는 문제를 막는다.
 /// </summary>
 public class BoneMasterController : EnemyController
 {
-    [HideInInspector] public float maxBoneArmor = 10f;
-    private float _currentBoneArmor;
+    [Header("부위 파괴 설정")]
+    [SerializeField] private float[] partBreakHpRatios = { 0.8f, 0.6f, 0.4f };
+    [SerializeField] private float perPartIncomingDamageBonus = 0.15f;
+    [SerializeField] private float baseArmorReduction = 0.2f;
 
-    public bool IsStunned => _isStunned;
-    private bool _isStunned = false;
+    [SerializeField] private float helmetBreakRangeBonus = 0.15f;
+    [SerializeField] private float pauldronBreakCastSpeedBonus = 0.15f;
+    [SerializeField] private float chestBreakMoveSpeedBonus = 0.15f;
+    [SerializeField] private float partBreakTextDuration = 1.5f;
 
-    public bool IsVulnerable => _isVulnerable;
-    private bool _isVulnerable = false;
+    [Header("슈퍼아머")]
+    public float superArmorGauge = 999999f;
 
-    [Header("UI Reference")]
-    [SerializeField] private TextMeshPro stateText; // 인스펙터나 런타임에 동적으로 부착
-    
+    [Header("페이즈 전환")]
+    public EnemyMinionDataSO phase2Data;
+    [SerializeField] private float phase2HealFillDuration = 1f;
+
+    [Header("UI 참조")]
+    [SerializeField] private EliteBossPatternLabel patternLabel;
+    [SerializeField] private Vector3 patternLabelOffset = new Vector3(0f, 1.6f, 0f);
+
+    [Header("그로기(경직) 시각 피드백")]
+    [SerializeField] private Color groggyFlashColor = new Color(0.4f, 0.85f, 1f, 1f);
+
+    [Header("뼈 투기장 (방 경계 타원형, 링 판정)")]
+    [Tooltip("방 크기 대비 타원 비율(1에 가까울수록 방을 거의 꽉 채움)")]
+    [Range(0.5f, 1f)]
+    [SerializeField] private float thornRingPhase1MarginRatio = 0.95f;
+    [Tooltip("페이즈2에서 좁아지는 비율(페이즈1 크기 대비)")]
+    [Range(0.3f, 1f)]
+    [SerializeField] private float thornRingPhase2ShrinkRatio = 0.95f;
+    [SerializeField] private Vector2 thornRingFallbackSize = new Vector2(16f, 16f);
+    [SerializeField] private Color thornRingColor = new Color(1f, 0.05f, 0.05f, 1f);
+    [SerializeField] private int thornRingSortingOrder = 5000;
+    [SerializeField] private float thornRingBandRatio = 0.12f;
+
+    public int PartsDestroyed { get; private set; } = 0;
     public int CurrentPhase { get; private set; } = 1;
+    public bool IsGroggy { get; private set; } = false;
+
+    public BossCounterGauge CounterGauge { get; private set; }
+    public CharacterHealth Health => Stats != null ? Stats.Health : null;
+
+    public float AttackRangeBonus { get; private set; } = 0f;
+    public float PatternCastSpeedBonus { get; private set; } = 0f;
+
+    private float _baseMoveSpeedCached = -1f;
+    private SpriteRenderer[] _bodyRenderers;
+    private Color[] _bodyOriginalColors;
+
+    private ThornArenaHazard _thornRing;
+    private Vector2 _thornRingPhase1Size = Vector2.zero;
+    private Coroutine _stateTextClearRoutine;
+    private Coroutine _groggyFlashRoutine;
+    private float _lastControllerDiagTime = -100f;
+    private NavMeshAgent _navAgent;
+    private RoomInstance _cachedRoom;
 
     protected override void Start()
     {
         base.Start();
 
-        if (Stats != null && Stats.DEF > 0)
-        {
-            maxBoneArmor = Stats.DEF; // MinionData에서 지정된 방어력으로 동기화
-        }
-        
-        _currentBoneArmor = maxBoneArmor;
+        _navAgent = GetComponent<NavMeshAgent>();
 
-        // UI 텍스트가 안 달려있으면 임시로 하나 생성
-        if (stateText == null)
+        CounterGauge = GetComponentInChildren<BossCounterGauge>();
+        if (CounterGauge == null)
         {
-            GameObject textObj = new GameObject("StateText");
-            textObj.transform.SetParent(transform);
-            textObj.transform.localPosition = new Vector3(0, 3f, 0); // 머리 위
-            stateText = textObj.AddComponent<TextMeshPro>();
-            stateText.alignment = TextAlignmentOptions.Center;
-            stateText.fontSize = 4;
-            stateText.color = Color.white;
-            stateText.outlineWidth = 0.2f;
+            Debug.LogWarning($"[BoneMaster] {gameObject.name}: BossCounterGauge 컴포넌트가 없습니다.");
         }
+
+        if (patternLabel == null) patternLabel = GetComponentInChildren<EliteBossPatternLabel>();
+        if (patternLabel == null) patternLabel = CreatePatternLabel();
+
+        _bodyRenderers = GetComponentsInChildren<SpriteRenderer>();
+        _bodyOriginalColors = new Color[_bodyRenderers.Length];
+        for (int i = 0; i < _bodyRenderers.Length; i++) _bodyOriginalColors[i] = _bodyRenderers[i].color;
+
+        if (Stats != null) _baseMoveSpeedCached = Stats.BaseMoveSpeed;
+
+        if (Stats != null && Stats.Status != null)
+        {
+            Stats.Status.ApplySuperArmor(superArmorGauge);
+        }
+
+        if (Health != null) Health.UpdateHPBar += CheckPartBreak;
 
         SetStateText("추격 중...");
+        DamageEventBus.OnBeforeDamageCalculated += HandleIncomingDamageAmp;
 
-        if (Stats != null && Stats.Health != null)
+        SetupThornArenaRing();
+        HideDanglingDoorPlaceholders();
+    }
+
+    protected override void Update()
+    {
+        base.Update();
+
+        if (Time.time - _lastControllerDiagTime > 2f)
         {
-            Stats.Health.OnBeforeDeath += HandlePhaseTransition;
+            _lastControllerDiagTime = Time.time;
+            string brainType = Brain != null ? Brain.GetType().Name : "NULL";
+            string targetName = Target != null ? Target.name : "NULL";
+            bool onMesh = _navAgent != null && _navAgent.isOnNavMesh;
+            Debug.Log($"<color=magenta>[BoneMaster-CTRL-Diag]</color> enabled={enabled} CurrentState={CurrentState} IsAttacking={IsAttacking} Target={targetName} Brain={brainType} Phase={CurrentPhase} IsGroggy={IsGroggy} OnNavMesh={onMesh} Pos={transform.position}");
         }
     }
 
-    public void SetStateText(string text, Color? color = null)
+    protected override void OnDestroy()
     {
-        if (stateText != null)
+        base.OnDestroy();
+        if (Health != null) Health.UpdateHPBar -= CheckPartBreak;
+        DamageEventBus.OnBeforeDamageCalculated -= HandleIncomingDamageAmp;
+        if (_thornRing != null) Destroy(_thornRing.gameObject);
+    }
+
+    private void HandleIncomingDamageAmp(CharacterHealth target, ref DamageInfo info)
+    {
+        if (target != Health) return;
+        if (info.amount <= 0f) return;
+
+        float multiplier = (1f - baseArmorReduction) + perPartIncomingDamageBonus * PartsDestroyed;
+        info.amount *= Mathf.Max(0f, multiplier);
+    }
+
+    private void CheckPartBreak()
+    {
+        if (Stats == null || Health == null) return;
+        if (PartsDestroyed >= partBreakHpRatios.Length) return;
+
+        float ratio = Health.MaxHP > 0f ? Health.CurHP / Health.MaxHP : 1f;
+        float nextThreshold = partBreakHpRatios[PartsDestroyed];
+
+        if (ratio <= nextThreshold)
         {
-            stateText.text = text;
-            if (color.HasValue) stateText.color = color.Value;
+            BreakNextPart();
         }
     }
 
-    /// <summary>
-    /// 플레이어가 뼈 창을 주워 던져서 보스에게 적중했을 때 호출됩니다.
-    /// </summary>
-    public void OnSpearHit(Vector3 attackerPos)
+    private void BreakNextPart()
     {
-        if (_isStunned || _isVulnerable) return;
-        if (CheckProjectileBlocked(attackerPos)) return;
+        int partIndex = PartsDestroyed;
+        PartsDestroyed++;
 
-        // [수정] 뼈 갑옷 스택이 부서질 때마다 최대치의 절반(50%)씩 깎임
-        _currentBoneArmor -= (maxBoneArmor / 2f);
-        if (Stats != null) Stats.SetCurrentDef(_currentBoneArmor);
-
-        Debug.Log($"<color=cyan>[BoneMaster]</color> 뼈 창 적중! 현재 방어력: {_currentBoneArmor}");
-
-        // 방어력이 0 이하가 되면 4초 기절 -> 12초 회복 대기 루프 실행
-        if (_currentBoneArmor <= 0)
+        switch (partIndex)
         {
-            StartCoroutine(StunAndVulnerableRoutine());
-        }
-        else
-        {
-            // 방어력이 깎였을 뿐, 아직 기절하지 않음
-            // (AIPattern에서 페이크 차징 반격을 처리하기 위해 뼈 창 피격 이벤트를 체크할 수 있게 변수를 열어둘 수도 있음)
-            // 이를 AIPattern에 알리려면 public Action OnSpearHitEvent; 등을 쓸 수 있습니다.
-            OnSpearHitEvent?.Invoke();
-        }
-    }
-
-    public System.Action OnSpearHitEvent; // 차징 캔슬 등을 위해 이벤트 발송
-
-    /// <summary>
-    /// 플레이어가 풀차지 소환수(isDirect)를 던져서 맞췄을 때 AI에게 알려주기 위한 함수
-    /// CharacterStatus의 OnHit 등으로 우회 호출될 수 있지만, 편의상 여기에 직접 호출 함수 추가
-    /// </summary>
-    public void OnFullChargeMinionHit(Vector3 attackerPos)
-    {
-        if (_isStunned) return;
-        if (CheckProjectileBlocked(attackerPos)) return;
-        OnFullChargeHitEvent?.Invoke();
-    }
-
-    public System.Action OnFullChargeHitEvent;
-
-    // [추가] 2페이즈 원거리 쉴드 판정
-    private bool IsOutsideRangedBarrier(Vector3 attackerPos)
-    {
-        if (CurrentPhase < 2) return false;
-        
-        float currentRadius = 15f;
-        if (_runtimeBrain is BoneMasterPhase2AIPatternSO p2Brain)
-        {
-            currentRadius = p2Brain.rangedBarrierRadius;
-        }
-
-        float dist = Vector2.Distance(transform.position, attackerPos);
-        return dist > currentRadius;
-    }
-
-    /// <summary>
-    /// 플레이어가 투척한 뼈 창 또는 투사체가 보스에게 적중했을 때, 
-    /// 2페이즈 방어막에 의해 막혔는지 여부를 반환합니다.
-    /// </summary>
-    public bool CheckProjectileBlocked(Vector3 attackerPos)
-    {
-        if (IsOutsideRangedBarrier(attackerPos))
-        {
-            Debug.Log("<color=grey>[BoneMaster]</color> 원거리 투사체를 튕겨냄! (거리 15 밖)");
-            SetStateText("튕겨냄!", Color.grey);
-            return true;
-        }
-        return false;
-    }
-
-    private void OnTriggerStay2D(Collider2D collision)
-    {
-        // 2페이즈 기본 방어 상태 가시 데미지 (플레이어 전용)
-        if (CurrentPhase == 2 && !_isStunned && !_isVulnerable)
-        {
-            if (collision.CompareTag("Player") || collision.gameObject.layer == Layers.Player)
-            {
-                var hp = collision.GetComponentInParent<CharacterHealth>();
-                if (hp == null) hp = collision.GetComponentInChildren<CharacterHealth>();
-                
-                if (hp != null)
+            case 0:
+                AttackRangeBonus += helmetBreakRangeBonus;
+                SetStateTextTemporary("투구 파괴!", Color.red, partBreakTextDuration);
+                Debug.Log("<color=orange>[BoneMaster]</color> 투구 파괴! 받는피해 +15%, 공격범위 +15%");
+                break;
+            case 1:
+                PatternCastSpeedBonus += pauldronBreakCastSpeedBonus;
+                SetStateTextTemporary("견갑 파괴!", Color.red, partBreakTextDuration);
+                Debug.Log("<color=orange>[BoneMaster]</color> 견갑 파괴! 받는피해 +15%(누적 30%), 패턴 시전속도 +15%");
+                break;
+            case 2:
+                if (Stats != null && _baseMoveSpeedCached > 0f)
                 {
-                    DamageInfo dInfo = new DamageInfo(1f, DamageType.Physical, gameObject, category: DamageCategory.EnemyBoss);
-                    hp.GetDamage(dInfo); // 무조건 1 데미지
+                    Stats.SetBaseMoveSpeed(_baseMoveSpeedCached * (1f + chestBreakMoveSpeedBonus));
                 }
-            }
+                SetStateTextTemporary("흉갑 파괴! 페이즈 2 돌입!", Color.red, partBreakTextDuration);
+                Debug.Log("<color=red>[BoneMaster]</color> 흉갑 파괴! 받는피해 +15%(누적 45%), 이동속도 +15%. 페이즈2 진입.");
+
+                StopAllCoroutines();
+                StartCoroutine(Phase2TransitionRoutine());
+                break;
         }
-    }
-
-    private IEnumerator StunAndVulnerableRoutine()
-    {
-        // 1. 즉시 4초 기절
-        _isStunned = true;
-        SetStateText("기절! (방어력 0)", Color.yellow);
-        
-        // 애니메이션 등에 스턴 신호 전달
-        if (Stats != null && Stats.Status != null) Stats.Status.ApplyStatus(StatusType.Stun, 4f);
-        
-        yield return new WaitForSeconds(4f);
-
-        // 2. 기절 끝, 12초간 취약(회복 대기) 상태
-        _isStunned = false;
-        _isVulnerable = true;
-        SetStateText("취약 (회복 대기 중...)", Color.gray);
-        yield return new WaitForSeconds(12f);
-
-        // 3. 12초 후 뼈 갑옷 원상 복구 및 루프 리셋
-        _isVulnerable = false;
-        _currentBoneArmor = maxBoneArmor;
-        if (Stats != null) Stats.SetCurrentDef(_currentBoneArmor);
-        
-        SetStateText("뼈 갑옷 재생!", Color.white);
-        Debug.Log("<color=cyan>[BoneMaster]</color> 뼈 갑옷 재생 완료.");
-    }
-
-    private bool HandlePhaseTransition(CharacterHealth hp)
-    {
-        if (CurrentPhase == 1)
-        {
-            // 1페이즈 체력이 다 떨어졌을 때 호출됨 -> 2페이즈 진입
-            Debug.Log("<color=red>[BoneMaster]</color> 페이즈 1 종료! 페이즈 2 진입...");
-            SetStateText("양손검 각성! (페이즈 2)", Color.red);
-            
-            CurrentPhase = 2;
-            
-            // OnBeforeDeath를 한 번만 처리하도록 구독 해제 (2페이즈에선 죽게 냅둠)
-            if (Stats != null && Stats.Health != null) Stats.Health.OnBeforeDeath -= HandlePhaseTransition;
-
-            StartCoroutine(Phase2TransitionRoutine());
-            
-            return true; // 죽음을 취소함
-        }
-        return false;
     }
 
     private IEnumerator Phase2TransitionRoutine()
     {
-        // 1초 무적 및 연출 대기
-        _isStunned = true; // 잠시 행동 불가
-        if (Stats != null && Stats.Health != null) Stats.Health.Invincible = true;
+        IsGroggy = false;
+        HardStopMovement();
+        if (Health != null) Health.Invincible = true;
 
         yield return new WaitForSeconds(1.5f);
 
-        // 2페이즈 스탯 및 AI 패턴 교체 (1페이즈 뇌에서 2페이즈 데이터 정보를 가져옴)
-        BoneMasterAIPatternSO p1Brain = Brain as BoneMasterAIPatternSO;
-        if (p1Brain != null && p1Brain.phase2Data != null)
-        {
-            // 1. 미니언 데이터로 스탯 전체 덮어씌우기 (HP 700, DEF 50 등)
-            Stats.InitializeStats(p1Brain.phase2Data);
-            
-            // 2. 뼈 갑옷 컨트롤러 변수 동기화
-            maxBoneArmor = p1Brain.phase2Data.defense;
-            _currentBoneArmor = maxBoneArmor;
+        CurrentPhase = 2;
+        ShrinkThornArenaRing();
 
-            // 3. 미니언 데이터에 연결된 2페이즈 AI 패턴 교체
-            if (p1Brain.phase2Data.aiPattern != null)
+        if (phase2Data != null)
+        {
+            Stats.InitializeStats(phase2Data);
+            _baseMoveSpeedCached = Stats.BaseMoveSpeed;
+
+            if (Stats.Status != null) Stats.Status.ApplySuperArmor(superArmorGauge);
+
+            if (phase2Data.aiPattern != null)
             {
-                var newAi = ScriptableObject.Instantiate(p1Brain.phase2Data.aiPattern);
+                var newAi = ScriptableObject.Instantiate(phase2Data.aiPattern);
+                var oldBrain = Brain;
                 newAi.Init(this);
-                if (_runtimeBrain != null) Destroy(_runtimeBrain); // 기존 P1 클론 정리
-                _runtimeBrain = newAi; // 상위 클래스(BaseEntity)의 런타임 뇌 교체
+                SetRuntimeBrain(newAi);
+                if (oldBrain != null) Destroy(oldBrain);
+            }
+
+            if (Health != null)
+            {
+                float newMax = Health.MaxHP;
+                Health.SetHP(0f);
+                yield return StartCoroutine(AnimateHealthFillUp(newMax, phase2HealFillDuration));
             }
         }
+        else
+        {
+            Debug.LogWarning("[BoneMaster] phase2Data가 비어 있어 페이즈2 스탯/AI 전환을 건너뜁니다.");
+        }
 
-        if (Stats != null && Stats.Health != null) Stats.Health.Invincible = false;
-        _isStunned = false;
-
+        if (Health != null) Health.Invincible = false;
         Debug.Log("<color=red>[BoneMaster]</color> 페이즈 2 전투 시작!");
     }
 
-    private void OnDrawGizmosSelected()
+    private IEnumerator AnimateHealthFillUp(float targetMax, float duration)
     {
-        // 2페이즈 투사체 방어막 반경 표시 (기즈모)
-        if (CurrentPhase == 2)
+        if (Health == null || duration <= 0f)
         {
-            float currentRadius = 15f;
-            if (_runtimeBrain is BoneMasterPhase2AIPatternSO p2Brain)
-            {
-                currentRadius = p2Brain.rangedBarrierRadius;
-            }
-
-            Gizmos.color = new Color(0.5f, 0.5f, 1f, 0.3f);
-            Gizmos.DrawWireSphere(transform.position, currentRadius);
+            Health?.SetHP(targetMax);
+            yield break;
         }
+
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            Health.SetHP(Mathf.Lerp(0f, targetMax, t / duration));
+            yield return null;
+        }
+        Health.SetHP(targetMax);
+    }
+
+    private void SetRuntimeBrain(AIPatternSO brain)
+    {
+        _runtimeBrain = brain;
+    }
+
+    public void ApplyGroggy(float duration)
+    {
+        if (Stats != null && Stats.Status != null)
+        {
+            IsGroggy = true;
+            Stats.Status.ApplyFixedStun(duration);
+
+            if (_groggyFlashRoutine != null) StopCoroutine(_groggyFlashRoutine);
+            _groggyFlashRoutine = StartCoroutine(GroggyFlashRoutine(duration));
+
+            StartCoroutine(ClearGroggyFlagAfter(duration));
+        }
+    }
+
+    private IEnumerator GroggyFlashRoutine(float duration)
+    {
+        SetVisualFlash(groggyFlashColor);
+        yield return new WaitForSeconds(duration);
+        ClearVisualFlash();
+        _groggyFlashRoutine = null;
+    }
+
+    private IEnumerator ClearGroggyFlagAfter(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        IsGroggy = false;
+    }
+
+    public void SetStateText(string text, Color? color = null)
+    {
+        if (_stateTextClearRoutine != null)
+        {
+            StopCoroutine(_stateTextClearRoutine);
+            _stateTextClearRoutine = null;
+        }
+        patternLabel?.SetText(text, color);
+    }
+
+    public void SetStateTextTemporary(string text, Color color, float duration)
+    {
+        patternLabel?.SetText(text, color);
+        if (_stateTextClearRoutine != null) StopCoroutine(_stateTextClearRoutine);
+        _stateTextClearRoutine = StartCoroutine(ClearStateTextAfter(duration));
+    }
+
+    private IEnumerator ClearStateTextAfter(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        patternLabel?.Clear();
+        _stateTextClearRoutine = null;
+    }
+
+    public void SetVisualFlash(Color color)
+    {
+        if (_bodyRenderers == null) return;
+        foreach (var sr in _bodyRenderers)
+        {
+            if (sr == null) continue;
+            sr.color = color;
+        }
+    }
+
+    public void ClearVisualFlash()
+    {
+        if (_bodyRenderers == null) return;
+        for (int i = 0; i < _bodyRenderers.Length; i++)
+        {
+            if (_bodyRenderers[i] == null) continue;
+            _bodyRenderers[i].color = _bodyOriginalColors[i];
+        }
+    }
+
+    public void HardStopMovement()
+    {
+        var rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
+        if (_navAgent != null && _navAgent.isOnNavMesh)
+        {
+            _navAgent.velocity = Vector3.zero;
+        }
+    }
+
+    /// <summary>NavMeshAgent가 있으면 Warp()로, 없으면 그냥 Transform으로 위치를 옮긴다.
+    /// 목표 지점이 NavMesh 위가 아니면(장식 바위 등 걷기 불가능한 지형 근처) 가장 가까운 유효한
+    /// 지점으로 보정해서 워프한다 — 안 그러면 Warp가 조용히 실패하면서 보스가 그 자리에 멈춰버린다.</summary>
+    public void WarpTo(Vector3 pos)
+    {
+        if (_navAgent != null)
+        {
+            Vector3 target = pos;
+            if (NavMesh.SamplePosition(pos, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+            {
+                target = hit.position;
+            }
+            else
+            {
+                Debug.LogWarning($"[BoneMaster] WarpTo({pos})가 NavMesh 근처(3유닛 이내)에서 유효한 지점을 못 찾았습니다. 원래 좌표로 그대로 이동합니다.");
+            }
+            _navAgent.Warp(target);
+        }
+        else
+        {
+            transform.position = pos;
+        }
+    }
+
+    public float GetChargeDistance(Vector2 origin, Vector2 dir)
+    {
+        return _thornRing != null ? _thornRing.GetDistanceToInnerEdge(origin, dir) : -1f;
+    }
+
+    public const string ThornWallTag = "BoneSpikeWall";
+
+    private EliteBossPatternLabel CreatePatternLabel()
+    {
+        GameObject labelObj = new GameObject("PatternLabel");
+        labelObj.transform.SetParent(transform, false);
+        labelObj.transform.localPosition = patternLabelOffset;
+
+        Vector3 lossy = transform.lossyScale;
+        float invX = lossy.x != 0f ? 1f / lossy.x : 1f;
+        float invY = lossy.y != 0f ? 1f / lossy.y : 1f;
+        labelObj.transform.localScale = new Vector3(invX, invY, 1f);
+
+        return labelObj.AddComponent<EliteBossPatternLabel>();
+    }
+
+    private void SetupThornArenaRing()
+    {
+        RoomInstance room = FindContainingRoom();
+        Vector3 center;
+        Vector2 size;
+
+        if (room != null)
+        {
+            center = (Vector3)((Vector2)room.transform.position + room.centerOffset);
+            size = new Vector2(room.roomSize.x, room.roomSize.y) * thornRingPhase1MarginRatio;
+            Debug.Log($"<color=cyan>[BoneMaster]</color> 뼈 투기장: 방 발견 (center={center}, roomSize={room.roomSize}, size={size})");
+        }
+        else
+        {
+            center = transform.position;
+            size = thornRingFallbackSize;
+            Debug.LogWarning($"[BoneMaster] 보스가 속해 있는 RoomInstance를 찾지 못해, 보스 위치({center}) 기준 기본 크기({size})로 뼈 투기장을 배치합니다.");
+        }
+
+        _thornRingPhase1Size = size;
+
+        GameObject ringObj = new GameObject("ThornArenaRingHazard");
+        ringObj.transform.position = center;
+        _thornRing = ringObj.AddComponent<ThornArenaHazard>();
+        _thornRing.SetupAsRing(size, thornRingColor, thornRingSortingOrder, thornRingBandRatio, this);
+        Debug.Log($"<color=cyan>[BoneMaster]</color> 뼈 투기장 생성 완료: {ringObj.name} at {ringObj.transform.position}, size={size}");
+    }
+
+    private void ShrinkThornArenaRing()
+    {
+        if (_thornRing == null || _thornRingPhase1Size == Vector2.zero) return;
+        Vector2 newSize = _thornRingPhase1Size * thornRingPhase2ShrinkRatio;
+        _thornRing.SetupAsRing(newSize, thornRingColor, thornRingSortingOrder, thornRingBandRatio, this);
+    }
+
+    private void HideDanglingDoorPlaceholders()
+    {
+        var allTransforms = FindObjectsByType<Transform>(FindObjectsSortMode.None);
+        foreach (var t in allTransforms)
+        {
+            if (!t.name.StartsWith("Door_")) continue;
+            if (!t.name.Contains("Room_")) continue;
+
+            var sr = t.GetComponent<SpriteRenderer>();
+            if (sr != null && sr.enabled)
+            {
+                sr.enabled = false;
+                Debug.Log($"<color=cyan>[BoneMaster]</color> 막다른 문 마커 시각 표시 숨김: {t.name}");
+            }
+        }
+    }
+
+    private RoomInstance FindContainingRoom()
+    {
+        if (_cachedRoom != null) return _cachedRoom;
+
+        foreach (var room in FindObjectsByType<RoomInstance>(FindObjectsSortMode.None))
+        {
+            Bounds bounds = new Bounds(
+                (Vector2)room.transform.position + room.centerOffset,
+                new Vector3(room.roomSize.x, room.roomSize.y, 100f));
+            if (bounds.Contains(transform.position))
+            {
+                _cachedRoom = room;
+                return room;
+            }
+        }
+        return null;
     }
 }

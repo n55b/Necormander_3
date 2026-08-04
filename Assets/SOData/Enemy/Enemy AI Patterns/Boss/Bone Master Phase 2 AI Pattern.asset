@@ -12,11 +12,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea9f033d5fd2c0d44a702d73d8eb91cd, type: 3}
   m_Name: Bone Master Phase 2 AI Pattern
   m_EditorClassIdentifier: 
-  currentState: 0
   pushRadius: 0.8
   pushStrength: 2
-  target: {fileID: 0}
-  atkTimer: 0
-  pattern1Cooldown: 12
-  pattern2Cooldown: 10
-  pattern3Cooldown: 9
+  spawnTelegraph: 1
+  engageRange: 5
+  sweepRange: 2.2
+  sweepRadius: 2.8
+  sweepHalfAngle: 90
+  basicThrustLength: 4
+  basicThrustWidth: 1.4
+  basicAttackWindup: 0.7
+  basicAttackRecovery: 0.35
+  spinSlamCooldown: 7
+  pivotSpinCooldown: 7
+  counterCooldown: 9
+  weights: {x: 33, y: 33, z: 34}
+  telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
+  spinRadius: 4
+  spinSafeRadius: 1.5
+  spinTelegraphLead: 0.4
+  slamTelegraphTime: 1.2
+  slamCounterGaugeAmount: 25
+  slamCounterStaggerDuration: 1.5
+  slamRange: 2.5
+  spinToSlamPause: 0.8
+  pivotBodySlamRadius: 2
+  pivotSafeRadius: 1.2
+  pivotBodyTelegraphLead: 0.3
+  pivotCounterWindow: 1
+  pivotCounterGaugeAmount: 25
+  pivotCounterStaggerDuration: 2.5
+  pivotFinishRadius: 4
+  pivotFinishSafeRadius: 1.5
+  pivotFinishTelegraphLead: 0.3
+  counterReactionWindow: 1
+  counterSuccessStaggerDuration: 2.5
+  fakeCounterPlayerStun: 0.75
+  fakeCounterPunishDamage: 4

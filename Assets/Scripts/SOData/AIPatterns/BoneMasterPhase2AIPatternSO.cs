@@ -1,84 +1,98 @@
-using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
+using UnityEngine;
 
-[CreateAssetMenu(fileName = "BoneMasterPhase2AIPattern", menuName = "Necromancer/AI/BoneMasterPhase2AIPattern")]
+/// <summary>
+/// 본 마스터 페이즈 2 AI. 갑옷/랜스가 무너지고 양손검으로 전환된 이후의 전투.
+///   기본 공격 - 거리별 분기 2종 (도약&내려찍기는 페이즈2에서 쓰지 않는다). 텍스트: "기본 공격: OOO"
+///     근접(sweepRange 이내) → 양손검 휩쓸기
+///     그 외(engageRange 이내) → 양손검 찌르기
+///   패턴 1번: 회전 베기 & 내려찍기
+///   패턴 2번: 검을 축으로 삼아 (몸통 박치기 -> 회전 마무리 베기)
+///   패턴 3번: 카운터 & 페이크 카운터 (반응 시간이 페이즈1보다 짧은 1초)
+/// (텍스트: "패턴 N번: OOO" 형식으로 기본 공격과 명확히 구분한다.)
+///
+/// [밸런스 조정] 좁아진 페이즈2 투기장에 맞춰 광역 패턴 반경을 줄이고 안전지대를 넓혔으며,
+/// 짧았던 예고 시간들을 반응 가능한 수준으로 늘렸다. 큰 피해 배율도 소폭 완화했다.
+///
+/// [버그 수정] NavMeshAgent 위치는 항상 WarpTo()로 옮긴다.
+/// [버그 수정 — 패턴 도중 멈춤 방지] 페이즈1 패턴에만 있던 "패턴 도중 CurrentState가 외부에서
+/// 바뀌면 즉시 중단" 방어 코드를 페이즈2 패턴에도 동일하게 추가했다 — 안 그러면 레이스 컨디션으로
+/// 코루틴이 영원히 안 끝나는 채로 남아 보스가 "낑겨서" 아무것도 못 하는 것처럼 멈출 수 있다.
+/// </summary>
+[CreateAssetMenu(fileName = "BoneMasterPhase2AIPattern", menuName = "Necromancer/AI/BoneMasterPhase2Pattern")]
 public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
 {
-    private enum BossPhase2State 
-    { 
-        None, 
-        Pattern1_Spear, 
-        Pattern2_Charge, 
-        Pattern3_SwordWave, 
-        Basic_Attack 
-    }
+    [Header("교전 거리")]
+    public float engageRange = 5f;
 
-    private BossPhase2State _currentState = BossPhase2State.None;
+    [Header("기본 공격 - 거리별 분기 (도약&내려찍기 없음)")]
+    public float sweepRange = 2.4f;
+    public float sweepRadius = 2.8f;
+    public float sweepHalfAngle = 90f;
+    public float basicThrustLength = 4.5f;
+    public float basicThrustWidth = 1.4f;
+    public float basicAttackWindup = 0.8f;
+    public float basicAttackRecovery = 0.5f;
 
-    [Header("Phase 2 Defense")]
-    public float rangedBarrierRadius = 15f; // [추가] 원거리 투사체 방어 반경
-    public float pattern1Cooldown = 12f;
-    public float pattern2Cooldown = 10f;
-    public float pattern3Cooldown = 9f;
+    [Header("패턴 쿨타임 (인스펙터에서 조절)")]
+    public float spinSlamCooldown = 9f;
+    public float pivotSpinCooldown = 9f;
+    public float counterCooldown = 10f;
 
-    [Header("Pattern 1 Settings (Spear)")]
-    public float spearStealStunTime = 2f;
+    [Header("가중치 (페이즈2는 체력 구간 없이 고정 33/33/34)")]
+    public Vector3 weights = new Vector3(33f, 33f, 34f);
 
-    [Header("Pattern 2 Settings (Charge)")]
-    public float chargeTime = 3f;
-    public float chargeStunTime = 3f;
-    public float chargeHitRadius = 3f;
-    [Range(0f, 1f)] public float chargeFakeChance = 0.25f;
+    [Header("텔레그래프(피해범위 인디케이터) 색상")]
+    public Color telegraphWarnColor = new Color(1f, 0.1f, 0.1f, 0.9f);
 
-    [Header("Pattern 3 Settings (Sword Wave)")]
-    public int swordWaveCount = 3;
-    public float swordWaveDelay = 0.3f;
-    public float coneWaveDelay = 0.5f;
+    [Header("패턴 1번: 회전 베기 & 내려찍기")]
+    public float spinRadius = 4f;
+    public float spinSafeRadius = 2.2f;
+    public float spinTelegraphLead = 0.6f;
+    public float slamTelegraphTime = 1.2f;
+    public float slamCounterGaugeAmount = 25f;
+    public float slamCounterStaggerDuration = 1.5f;
+    public float slamRange = 2.5f;
+    public float spinToSlamPause = 0.8f;
 
-    [Header("Basic Attack Settings")]
-    public float basicThrustRadius = 2.5f;
-    public float basicSwingRadius = 3.5f;
+    [Header("패턴 2번: 검을 축으로 삼아")]
+    public float pivotBodySlamRadius = 2f;
+    public float pivotSafeRadius = 1.8f;
+    public float pivotBodyTelegraphLead = 0.5f;
+    public float pivotCounterWindow = 1f;
+    public float pivotCounterGaugeAmount = 25f;
+    public float pivotCounterStaggerDuration = 2.5f;
+    public float pivotFinishRadius = 4f;
+    public float pivotFinishSafeRadius = 2.2f;
+    public float pivotFinishTelegraphLead = 0.6f;
 
-    [Header("VFX Prefabs (Optional)")]
-    public GameObject spearLaserPrefab;      // 창 투척 직선 광선 이펙트
-    public GameObject chargeCounterPrefab;   // 페이크 차지 전범위 이펙트
-    public GameObject chargeSweepPrefab;     // 돌진 휩쓸기 이펙트
-    public GameObject swordWavePrefab;       // 검기 발사 (직선) 이펙트
-    public GameObject basicThrustPrefab;     // 기본 찌르기 이펙트
-    public GameObject basicSwingPrefab;      // 기본 휘두르기 이펙트
+    [Header("패턴 3번: 카운터 & 페이크 카운터")]
+    public float counterReactionWindow = 1f;
+    public float counterSuccessStaggerDuration = 2.5f;
+    public float fakeCounterPlayerStun = 0.75f;
+    public float fakeCounterPunishDamage = 4f;
 
-    private float _lastPattern1Time = -100f;
-    private float _lastPattern2Time = -100f;
-    private float _lastPattern3Time = -100f;
+    private const string Pattern1Label = "패턴 1번: 회전 베기 & 내려찍기";
+    private const string Pattern2Label = "패턴 2번: 검을 축으로 삼아";
+    private const string Pattern3Label = "패턴 3번: 카운터 & 페이크 카운터";
 
-    private bool _isActionLocked = false;
-    private BoneMasterController _bossController;
-
-    private Coroutine _currentPatternCoroutine;
+    private BoneMasterController _controller;
+    private float _lastSpinTime = -100f;
+    private float _lastPivotTime = -100f;
+    private float _lastCounterTime = -100f;
+    private float _lastDiagLogTime = -100f;
 
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);
-        _currentState = BossPhase2State.None;
-        _isActionLocked = false;
-        
-        _lastPattern1Time = -100f;
-        _lastPattern2Time = -100f;
-        _lastPattern3Time = -100f;
-
-        _bossController = entity.GetComponent<BoneMasterController>();
-        if (_bossController != null)
-        {
-            // 페이즈 2 전용 인터럽트는 OnFullChargeHitEvent 등을 재활용
-            _bossController.OnFullChargeHitEvent += HandleInterrupt;
-            _bossController.OnSpearHitEvent += HandleInterrupt;
-        }
+        _controller = entity as BoneMasterController;
+        _lastSpinTime = -100f;
+        _lastPivotTime = -100f;
+        _lastCounterTime = -100f;
     }
 
     protected override void UpdateTargeting(BaseEntity entity)
     {
-        // 유저 요청: 패턴을 보기 위해 무조건 플레이어만 타겟팅하도록 고정
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             entity.Target = GameManager.Instance.PLAYERCONTROLLER.transform;
@@ -89,317 +103,366 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         }
     }
 
-    public override void Execute(BaseEntity entity)
+    private static Vector2 SafeDirTo(BaseEntity entity, Vector2 origin, Transform target)
     {
-        if (_bossController != null && _bossController.IsStunned)
-        {
-            if (_isActionLocked && _currentPatternCoroutine != null)
-            {
-                entity.StopCoroutine(_currentPatternCoroutine);
-                _isActionLocked = false;
-                _currentState = BossPhase2State.None;
-                _bossController.SetStateText("기절! (패턴 캔슬됨)", Color.yellow);
-            }
-            StopNavAgent(entity);
-            return;
-        }
+        if (target == null) return (Vector2)entity.transform.right;
+        Vector2 raw = (Vector2)target.position - origin;
+        if (raw.sqrMagnitude < 0.01f) return (Vector2)entity.transform.right;
+        return raw.normalized;
+    }
 
-        if (_isActionLocked) return; 
-
-        base.Execute(entity);
+    private void Warp(BaseEntity entity, Vector3 pos)
+    {
+        if (_controller != null) _controller.WarpTo(pos);
+        else entity.transform.position = pos;
     }
 
     protected override void UpdateStateTransitions(BaseEntity entity)
     {
-        if (entity.Target == null) return;
+        if (entity.Target == null)
+        {
+            entity.CurrentState = AIState.Idle;
+            return;
+        }
 
         float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
-        float time = Time.time;
 
-        bool canPattern1 = (time - _lastPattern1Time >= pattern1Cooldown);
-        bool canPattern2 = (time - _lastPattern2Time >= pattern2Cooldown);
-        bool canPattern3 = (time - _lastPattern3Time >= pattern3Cooldown);
+        if (Time.time - _lastDiagLogTime > 2f)
+        {
+            _lastDiagLogTime = Time.time;
+            Debug.Log($"[BoneMaster-Diag-P2] dist={dist:F1} engageRange={engageRange:F1} CurrentState={entity.CurrentState} IsAttacking={entity.IsAttacking}");
+        }
 
-        // [26/07/17] 패턴 1(창 훔치기) 분기 삭제. 투척 시스템을 철거하면서 플레이어가 뼈창을
-        // 주워 던질 수 없게 됐고, 맵에 창이 생기지 않으니 이 패턴은 영원히 조건을 못 만족한다.
-        // 보스 기믹을 다시 짤 때 이 자리에 새 패턴을 넣으면 된다 (canPattern1/pattern1Cooldown 은 남겨둠).
-        if (canPattern2 && dist >= 8f) // 멀리 있을 때
+        if (dist > engageRange)
         {
-            _currentPatternCoroutine = entity.StartCoroutine(Pattern2_ChargeRoutine(entity));
+            entity.CurrentState = AIState.Follow;
+            _controller?.SetStateText("추격 중... (페이즈2)");
+            return;
         }
-        else if (canPattern3 && dist >= 4f && dist < 12f) // 중거리
+
+        bool canSpin = Time.time - _lastSpinTime >= spinSlamCooldown;
+        bool canPivot = Time.time - _lastPivotTime >= pivotSpinCooldown;
+        bool canCounter = Time.time - _lastCounterTime >= counterCooldown;
+
+        if (!canSpin && !canPivot && !canCounter)
         {
-            _currentPatternCoroutine = entity.StartCoroutine(Pattern3_SwordWaveRoutine(entity));
-        }
-        else if (dist < 4f) // 근거리 기본 공격
-        {
-            // 실제 공격 범위(최대 3.5f) 안에 있을 때만 공격 시전
-            if (dist <= Mathf.Max(basicThrustRadius, basicSwingRadius))
+            if (entity.AtkTimer >= entity.Stats.AttackInterval)
             {
-                _currentPatternCoroutine = entity.StartCoroutine(Basic_AttackRoutine(entity));
+                entity.CurrentState = AIState.Attack;
             }
             else
             {
                 entity.CurrentState = AIState.Follow;
-                if (_bossController != null) _bossController.SetStateText("추격 중...");
+                _controller?.SetStateText("추격 중... (페이즈2)");
             }
+            return;
+        }
+
+        float wSpin = canSpin ? weights.x : 0f;
+        float wPivot = canPivot ? weights.y : 0f;
+        float wCounter = canCounter ? weights.z : 0f;
+        float total = wSpin + wPivot + wCounter;
+        if (total <= 0f) return;
+
+        float roll = Random.value * total;
+        entity.CurrentState = AIState.Skill;
+
+        if (roll < wSpin)
+        {
+            _lastSpinTime = Time.time;
+            entity.StartCoroutine(Pattern1_SpinSlamRoutine(entity));
+        }
+        else if (roll < wSpin + wPivot)
+        {
+            _lastPivotTime = Time.time;
+            entity.StartCoroutine(Pattern2_PivotSpinRoutine(entity));
         }
         else
         {
-            // 아무 조건도 안 맞으면 상시 추격
-            entity.CurrentState = AIState.Follow;
-            if (_bossController != null) _bossController.SetStateText("추격 중...");
+            _lastCounterTime = Time.time;
+            entity.StartCoroutine(Pattern3_CounterRoutine(entity));
         }
     }
 
-
-
-    #region Pattern 2: Charge / Counter
-    private bool _p2Interrupted = false;
-
-    private IEnumerator Pattern2_ChargeRoutine(BaseEntity entity)
+    // ── 기본 공격: 거리별 분기 2종 (도약&내려찍기 없음) ────────────────
+    protected override void OnAttack(BaseEntity entity)
     {
-        _isActionLocked = true;
-        _lastPattern2Time = Time.time;
-        _currentState = BossPhase2State.Pattern2_Charge;
         StopNavAgent(entity);
+        if (entity.IsAttacking) return;
+        if (entity.AtkTimer < entity.Stats.AttackInterval) return;
 
-        _p2Interrupted = false;
-        bool isFake = Random.value <= chargeFakeChance; // 페이크 확률
+        entity.AtkTimer = 0f;
+        entity.IsAttacking = true;
 
-        if (_bossController != null)
+        float dist = entity.Target != null ? Vector2.Distance(entity.transform.position, entity.Target.position) : 0f;
+        IEnumerator routine = dist <= sweepRange ? BasicAttack_Sweep(entity) : BasicAttack_Thrust(entity);
+        entity.ActiveAttackCoroutine = entity.StartCoroutine(routine);
+    }
+
+    private void FinishBasicAttack(BaseEntity entity)
+    {
+        entity.IsAttacking = false;
+        entity.ActiveAttackCoroutine = null;
+        entity.ResetAnimationState();
+    }
+
+    private IEnumerator BasicAttack_Sweep(BaseEntity entity)
+    {
+        StopNavAgent(entity);
+        _controller?.HardStopMovement();
+        _controller?.SetStateText("기본 공격: 양손검 휩쓸기", Color.white);
+
+        if (entity.Target != null) entity.LookAtTarget(entity.Target);
+        Vector2 origin = entity.transform.position;
+        Vector2 dir = SafeDirTo(entity, origin, entity.Target);
+
+        GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, origin, dir, sweepRadius, sweepHalfAngle, telegraphWarnColor);
+
+        float t = 0f;
+        while (t < basicAttackWindup)
         {
-            if (isFake)
-                _bossController.SetStateText("집중... (붉은 빛)", Color.red);
-            else
-                _bossController.SetStateText("집중... (하얀 빛)", Color.white);
-        }
-
-        float timer = 0f;
-        while (timer < chargeTime)
-        {
-            if (_p2Interrupted) break;
-            timer += Time.deltaTime;
+            Warp(entity, origin);
+            t += Time.deltaTime;
             yield return null;
         }
+        if (telegraph != null) Object.Destroy(telegraph);
 
-        if (_p2Interrupted)
+        var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
+        BossCombat.DealCone(origin, dir, sweepRadius, sweepHalfAngle, entity.opponentLayer, info);
+
+        yield return new WaitForSeconds(basicAttackRecovery);
+        FinishBasicAttack(entity);
+    }
+
+    private IEnumerator BasicAttack_Thrust(BaseEntity entity)
+    {
+        StopNavAgent(entity);
+        _controller?.HardStopMovement();
+        _controller?.SetStateText("기본 공격: 양손검 찌르기", Color.white);
+        if (entity.Target != null) entity.LookAtTarget(entity.Target);
+        Vector2 origin = entity.transform.position;
+        Vector2 dir = SafeDirTo(entity, origin, entity.Target);
+
+        GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
+            entity, origin, dir, basicThrustLength, basicThrustWidth, telegraphWarnColor);
+
+        float t = 0f;
+        while (t < basicAttackWindup)
         {
-            if (isFake)
+            Warp(entity, origin);
+            t += Time.deltaTime;
+            yield return null;
+        }
+        if (telegraph != null) Object.Destroy(telegraph);
+
+        var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
+        BossCombat.DealLane(origin, dir, basicThrustLength, basicThrustWidth, entity.opponentLayer, info);
+
+        yield return new WaitForSeconds(basicAttackRecovery);
+        FinishBasicAttack(entity);
+    }
+
+    public override void OnAttackCancelled(BaseEntity entity)
+    {
+        base.OnAttackCancelled(entity);
+    }
+
+    private void EndPattern(BaseEntity entity)
+    {
+        entity.CurrentState = AIState.Follow;
+    }
+
+    #region 패턴 1번: 회전 베기 & 내려찍기
+    private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
+    {
+        StopNavAgent(entity);
+        _controller?.HardStopMovement();
+        _controller?.SetStateText($"{Pattern1Label} - 광역 회전 베기!", Color.yellow);
+
+        Vector2 origin = entity.transform.position;
+        bool hijacked = false;
+
+        GameObject spinTelegraph = BoneMasterTelegraphUtil.SpawnRing(entity, origin, spinRadius, telegraphWarnColor);
+        float leadT = 0f;
+        while (leadT < spinTelegraphLead)
+        {
+            if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+            Warp(entity, origin);
+            leadT += Time.deltaTime;
+            yield return null;
+        }
+        if (spinTelegraph != null) Object.Destroy(spinTelegraph);
+        if (hijacked)
+        {
+            Debug.LogWarning("[BoneMaster] 페이즈2 패턴 1번이 회전베기 예고 중 외부 요인으로 중단됨.");
+            yield break;
+        }
+
+        var spinInfo = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
+        BossCombat.DealCircle(origin, spinRadius, entity.opponentLayer, spinInfo, excludeRadius: spinSafeRadius);
+        yield return new WaitForSeconds(spinToSlamPause);
+        Warp(entity, origin);
+
+        _controller?.SetStateText($"{Pattern1Label} - 내려찍기 예고!", Color.yellow);
+        Vector2 slamCenter = entity.Target != null ? (Vector2)entity.Target.position : origin;
+        GameObject slamTelegraph = BoneMasterTelegraphUtil.SpawnCircle(entity, slamCenter, slamRange, telegraphWarnColor);
+
+        var gauge = _controller != null ? _controller.CounterGauge : null;
+        bool broken = false;
+        void OnBroken() => broken = true;
+        if (gauge != null)
+        {
+            gauge.OnGaugeBroken += OnBroken;
+            gauge.OpenWindow(slamCounterGaugeAmount);
+        }
+
+        float t = 0f;
+        while (t < slamTelegraphTime)
+        {
+            if (broken) break;
+            if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+            Warp(entity, origin);
+            t += Time.deltaTime;
+            if (entity.Target != null && slamTelegraph != null)
             {
-                if (_bossController != null) _bossController.SetStateText("전범위 카운터 발도!", Color.red);
-                yield return new WaitForSeconds(0.5f);
-                ExecuteMeleeAttack(entity, 20f, 2.0f, chargeCounterPrefab); // 전범위 2배 데미지
-                yield return new WaitForSeconds(0.5f);
+                slamCenter = entity.Target.position;
+                slamTelegraph.transform.position = slamCenter;
             }
-            else
-            {
-                if (_bossController != null) _bossController.SetStateText("집중 캔슬됨! (기절)", Color.yellow);
-                yield return new WaitForSeconds(chargeStunTime);
-            }
+            yield return null;
+        }
+        if (gauge != null) gauge.OnGaugeBroken -= OnBroken;
+        if (slamTelegraph != null) Object.Destroy(slamTelegraph);
+
+        if (hijacked)
+        {
+            gauge?.CloseWindow();
+            Debug.LogWarning("[BoneMaster] 페이즈2 패턴 1번이 내려찍기 예고 중 외부 요인으로 중단됨.");
+            yield break;
+        }
+
+        if (broken)
+        {
+            gauge.CloseWindow();
+            _controller?.SetStateText($"{Pattern1Label} - 내려찍기 파훼! 경직!", Color.cyan);
+            _controller?.ApplyGroggy(slamCounterStaggerDuration);
         }
         else
         {
-            if (isFake)
-            {
-                if (_bossController != null) _bossController.SetStateText("허탕... (그로기)", Color.gray);
-                yield return new WaitForSeconds(3f);
-            }
-            else
-            {
-                if (_bossController != null) _bossController.SetStateText("돌진 휩쓸기!", Color.yellow);
-                
-                if (entity.Target != null)
-                {
-                    Vector3 dashTarget = entity.Target.position;
-                    float dashTime = 0.4f;
-                    float elapsed = 0f;
-                    Vector3 startPos = entity.transform.position;
-                    while (elapsed < dashTime)
-                    {
-                        entity.transform.position = Vector3.Lerp(startPos, dashTarget, elapsed / dashTime);
-                        elapsed += Time.deltaTime;
-                        yield return null;
-                    }
-                }
-
-                ExecuteMeleeAttack(entity, chargeHitRadius, 1.5f, chargeSweepPrefab);
-                yield return new WaitForSeconds(2f);
-            }
+            gauge?.CloseWindow();
+            _controller?.SetStateText($"{Pattern1Label} - 내려찍기!", Color.white);
+            var slamInfo = new DamageInfo(entity.Stats.ATK * 1.15f, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true);
+            BossCombat.DealCircle(slamCenter, slamRange, entity.opponentLayer, slamInfo);
+            yield return new WaitForSeconds(0.8f);
         }
 
-        _isActionLocked = false;
-        _currentState = BossPhase2State.None;
-    }
-
-    private void HandleInterrupt()
-    {
-        if (_currentState == BossPhase2State.Pattern2_Charge && !_p2Interrupted)
-        {
-            _p2Interrupted = true;
-        }
+        EndPattern(entity);
     }
     #endregion
 
-    #region Pattern 3: Sword Wave
-    private IEnumerator Pattern3_SwordWaveRoutine(BaseEntity entity)
+    #region 패턴 2번: 검을 축으로 삼아
+    private IEnumerator Pattern2_PivotSpinRoutine(BaseEntity entity)
     {
-        _isActionLocked = true;
-        _lastPattern3Time = Time.time;
-        _currentState = BossPhase2State.Pattern3_SwordWave;
         StopNavAgent(entity);
+        _controller?.HardStopMovement();
+        _controller?.SetStateText($"{Pattern2Label} - 검을 지면에...", Color.yellow);
 
-        if (_bossController != null) _bossController.SetStateText("연속 검기 발사!", Color.cyan);
-        
-        // 직선 발사 (투사체 대신 즉발 선형 판정)
-        for (int i = 0; i < swordWaveCount; i++)
+        Vector2 origin = entity.transform.position;
+        bool hijacked = false;
+
+        GameObject bodyTelegraph = BoneMasterTelegraphUtil.SpawnRing(entity, origin, pivotBodySlamRadius, telegraphWarnColor);
+        float bt = 0f;
+        while (bt < pivotBodyTelegraphLead)
         {
-            yield return new WaitForSeconds(swordWaveDelay);
-            if (entity.Target != null) ApplyLineDamage(entity, entity.Target.position, 12f, 0.8f, swordWavePrefab);
+            if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+            Warp(entity, origin);
+            bt += Time.deltaTime;
+            yield return null;
         }
-        
-        yield return new WaitForSeconds(coneWaveDelay);
-        if (_bossController != null) _bossController.SetStateText("3갈래 확산 검기!", Color.cyan);
-        
-        if (entity.Target != null)
+        if (bodyTelegraph != null) Object.Destroy(bodyTelegraph);
+        if (hijacked)
         {
-            Vector3 centerDir = (entity.Target.position - entity.transform.position).normalized;
-            Vector3 leftDir = Quaternion.Euler(0, 0, 30) * centerDir;
-            Vector3 rightDir = Quaternion.Euler(0, 0, -30) * centerDir;
-
-            ApplyLineDamage(entity, entity.transform.position + centerDir * 12f, 12f, 1.0f, swordWavePrefab);
-            ApplyLineDamage(entity, entity.transform.position + leftDir * 12f, 12f, 1.0f, swordWavePrefab);
-            ApplyLineDamage(entity, entity.transform.position + rightDir * 12f, 12f, 1.0f, swordWavePrefab);
+            Debug.LogWarning("[BoneMaster] 페이즈2 패턴 2번이 몸통박치기 예고 중 외부 요인으로 중단됨.");
+            yield break;
         }
-        yield return new WaitForSeconds(1f);
 
-        _isActionLocked = false;
-        _currentState = BossPhase2State.None;
+        var gauge = _controller != null ? _controller.CounterGauge : null;
+        bool broken = false;
+        void OnBroken() => broken = true;
+        if (gauge != null)
+        {
+            gauge.OnGaugeBroken += OnBroken;
+            gauge.OpenWindow(pivotCounterGaugeAmount);
+        }
+
+        var bodyInfo = new DamageInfo(entity.Stats.ATK * 0.7f, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
+        BossCombat.DealCircle(origin, pivotBodySlamRadius, entity.opponentLayer, bodyInfo, excludeRadius: pivotSafeRadius);
+
+        float t = 0f;
+        while (t < pivotCounterWindow)
+        {
+            if (broken) break;
+            if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+            Warp(entity, origin);
+            t += Time.deltaTime;
+            yield return null;
+        }
+        if (gauge != null) gauge.OnGaugeBroken -= OnBroken;
+
+        if (hijacked)
+        {
+            gauge?.CloseWindow();
+            Debug.LogWarning("[BoneMaster] 페이즈2 패턴 2번이 카운터 창 중 외부 요인으로 중단됨.");
+            yield break;
+        }
+
+        if (broken)
+        {
+            gauge.CloseWindow();
+            _controller?.SetStateText($"{Pattern2Label} - 균형 붕괴! 경직!", Color.cyan);
+            _controller?.ApplyGroggy(pivotCounterStaggerDuration);
+        }
+        else
+        {
+            gauge?.CloseWindow();
+            _controller?.SetStateText($"{Pattern2Label} - 마무리 베기 예고!", Color.yellow);
+            GameObject finishTelegraph = BoneMasterTelegraphUtil.SpawnRing(entity, origin, pivotFinishRadius, telegraphWarnColor);
+            float ft = 0f;
+            bool finishHijacked = false;
+            while (ft < pivotFinishTelegraphLead)
+            {
+                if (entity.CurrentState != AIState.Skill) { finishHijacked = true; break; }
+                Warp(entity, origin);
+                ft += Time.deltaTime;
+                yield return null;
+            }
+            if (finishTelegraph != null) Object.Destroy(finishTelegraph);
+
+            if (finishHijacked)
+            {
+                Debug.LogWarning("[BoneMaster] 페이즈2 패턴 2번이 마무리베기 예고 중 외부 요인으로 중단됨.");
+                yield break;
+            }
+
+            _controller?.SetStateText($"{Pattern2Label} - 마무리 베기!", Color.white);
+            var finishInfo = new DamageInfo(entity.Stats.ATK * 1.1f, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
+            BossCombat.DealCircle(origin, pivotFinishRadius, entity.opponentLayer, finishInfo, excludeRadius: pivotFinishSafeRadius);
+            yield return new WaitForSeconds(0.6f);
+        }
+
+        EndPattern(entity);
     }
     #endregion
 
-    #region Basic Attack
-    private IEnumerator Basic_AttackRoutine(BaseEntity entity)
+    #region 패턴 3번: 카운터 & 페이크 카운터
+    private IEnumerator Pattern3_CounterRoutine(BaseEntity entity)
     {
-        _isActionLocked = true;
-        _currentState = BossPhase2State.Basic_Attack;
         StopNavAgent(entity);
+        _controller?.HardStopMovement();
+        yield return BoneMasterCounterUtil.Run(
+            entity, _controller, counterReactionWindow,
+            counterSuccessStaggerDuration, fakeCounterPlayerStun, fakeCounterPunishDamage, Pattern3Label);
 
-        bool isThrust = Random.value > 0.5f;
-
-        if (isThrust)
-        {
-            if (_bossController != null) _bossController.SetStateText("양손검 찌르기!", Color.white);
-            yield return new WaitForSeconds(0.3f); // 선딜
-            ExecuteMeleeAttack(entity, basicThrustRadius, 1f, basicThrustPrefab);
-            yield return new WaitForSeconds(0.7f); // 후딜
-        }
-        else
-        {
-            if (_bossController != null) _bossController.SetStateText("양손검 휘두르기!", Color.white);
-            yield return new WaitForSeconds(0.4f); // 선딜
-            ExecuteMeleeAttack(entity, basicSwingRadius, 1f, basicSwingPrefab);
-            yield return new WaitForSeconds(0.8f); // 후딜
-        }
-
-        _isActionLocked = false;
-        _currentState = BossPhase2State.None;
-    }
-
-    private void ExecuteMeleeAttack(BaseEntity entity, float radius, float damageMultiplier = 1f, GameObject vfxPrefab = null)
-    {
-        if (vfxPrefab != null)
-        {
-            Instantiate(vfxPrefab, entity.transform.position, Quaternion.identity);
-        }
-        else
-        {
-            SpawnDebugCircle(entity.transform.position, radius, Color.red, 0.5f);
-        }
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(entity.transform.position, radius, entity.opponentLayer);
-        foreach (var hit in hits)
-        {
-            var hp = hit.GetComponentInParent<CharacterHealth>();
-            if (hp == null) hp = hit.GetComponentInChildren<CharacterHealth>();
-            if (hp != null)
-            {
-                DamageInfo info = new DamageInfo(entity.Stats.BaseAtk * damageMultiplier, DamageType.Physical, entity.gameObject);
-                hp.GetDamage(info);
-            }
-        }
-    }
-
-    private void ApplyLineDamage(BaseEntity entity, Vector3 targetPos, float length, float damageMultiplier = 1f, GameObject vfxPrefab = null)
-    {
-        Vector2 dir = (targetPos - entity.transform.position).normalized;
-        
-        if (vfxPrefab != null)
-        {
-            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            Instantiate(vfxPrefab, entity.transform.position, Quaternion.Euler(0, 0, angle));
-        }
-        else
-        {
-            SpawnDebugLine(entity.transform.position, entity.transform.position + (Vector3)dir * length, 2f, Color.cyan, 0.5f);
-        }
-
-        RaycastHit2D[] hits = Physics2D.BoxCastAll(entity.transform.position, new Vector2(2f, length), Vector2.SignedAngle(Vector2.up, dir), dir, length, entity.opponentLayer);
-        foreach(var hit in hits)
-        {
-            var hp = hit.collider.GetComponentInParent<CharacterHealth>();
-            if (hp == null) hp = hit.collider.GetComponentInChildren<CharacterHealth>();
-            if (hp != null)
-            {
-                DamageInfo info = new DamageInfo(entity.Stats.BaseAtk * damageMultiplier, DamageType.Physical, entity.gameObject);
-                hp.GetDamage(info);
-            }
-        }
-    }
-
-    private void SpawnDebugCircle(Vector2 pos, float radius, Color color, float duration)
-    {
-        GameObject go = new GameObject("DebugCircle");
-        go.transform.position = pos;
-        LineRenderer lr = go.AddComponent<LineRenderer>();
-        lr.startWidth = 0.1f;
-        lr.endWidth = 0.1f;
-        lr.startColor = color;
-        lr.endColor = color;
-        lr.material = new Material(Shader.Find("Sprites/Default"));
-        lr.positionCount = 36;
-        lr.useWorldSpace = false;
-        for (int i = 0; i < 36; i++)
-        {
-            float angle = i * Mathf.PI * 2 / 36;
-            lr.SetPosition(i, new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0));
-        }
-        lr.loop = true;
-        lr.sortingLayerName = "Default";
-        lr.sortingOrder = 100;
-        Destroy(go, duration);
-    }
-
-    private void SpawnDebugLine(Vector3 start, Vector3 end, float width, Color color, float duration)
-    {
-        GameObject go = new GameObject("DebugLine");
-        LineRenderer lr = go.AddComponent<LineRenderer>();
-        lr.startWidth = width;
-        lr.endWidth = width;
-        lr.startColor = color;
-        lr.endColor = color;
-        lr.material = new Material(Shader.Find("Sprites/Default"));
-        
-        // 투명도 조절
-        color.a = 0.5f;
-        lr.startColor = color;
-        lr.endColor = color;
-
-        lr.SetPosition(0, start);
-        lr.SetPosition(1, end);
-        lr.sortingLayerName = "Default";
-        lr.sortingOrder = 100;
-        Destroy(go, duration);
+        EndPattern(entity);
     }
     #endregion
 }

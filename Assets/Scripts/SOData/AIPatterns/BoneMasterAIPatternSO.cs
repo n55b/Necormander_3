@@ -1,71 +1,120 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
+/// <summary>
+/// 본 마스터 페이즈 1 AI. 기획서(0802 기준) 반영:
+///   기본 공격 - 거리별 분기 3종 (텍스트: "기본 공격: OOO")
+///     근접(sweepRange 이내) → 창 휩쓸기 (정면 반달 부채꼴)
+///     중거리(basicThrustRange 이내) → 창 찌르기 (전방 직사각형)
+///     원거리(engageRange 이내) → 도약 & 내려찍기 (착지 지점 타원)
+///   패턴 1번: 박치기 돌격 (뼈 투기장 벽까지 최대한 돌진)
+///   패턴 2번: 견갑 찌르기 (3연속, 위치 고정 + 매 타격 재조준, 완급이 있는 리듬)
+///   패턴 3번: 카운터 & 페이크 카운터 (보스 위치 고정)
+/// (텍스트: "패턴 N번: OOO" 형식으로 기본 공격과 명확히 구분한다.)
+///
+/// [핵심 버그 수정 1] NavMeshAgent가 붙어있는 상태에서 entity.transform.position을 직접 대입하면
+/// 에이전트 내부 상태와 어긋나 나중에 "튕기는" 버그가 생긴다. WarpTo()로 통일했다.
+///
+/// [핵심 버그 수정 2] 돌진 이동 시간을 "벽까지 거리 × 0.95"로 계산해서 벽에 닿기 직전에 멈추도록
+/// 했었는데, 이러면 애초에 "벽에 닿았다"는 판정(IsTouchingThornWall)이 걸릴 기회 자체가 거의 없다.
+/// 이제 이동 "시간 예산"은 벽까지 거리보다 넉넉하게(chargeSafetyTimeMultiplier > 1) 잡고, 정지는
+/// 오직 실제 벽 접촉 판정으로만 결정한다.
+///
+/// [핵심 버그 수정 3] 견갑 찌르기(패턴2)에만 있던 "패턴 도중 CurrentState가 외부에서 바뀌면 즉시
+/// 중단" 방어 코드를 박치기 돌격(패턴1)에도 동일하게 추가했다 — 벽에 닿았는데도 경직이 안 걸리고
+/// 바로 다음 행동으로 넘어가는 현상이 같은 레이스 컨디션일 가능성이 높다. 벽 충돌 감지/경직 적용
+/// 시점에도 진단 로그를 남겨서, 다음에 재현되면 정확히 어디서 끊기는지 확인할 수 있게 했다.
+/// </summary>
 [CreateAssetMenu(fileName = "BoneMasterAIPattern", menuName = "Necromancer/AI/BoneMasterPattern")]
 public class BoneMasterAIPatternSO : BaseAIPatternSO
 {
-    private enum BossPhaseState 
-    { 
-        None, 
-        Pattern1_Charge, 
-        Pattern2_Swing, 
-        Pattern3_Thrust, 
-        Basic_Push 
-    }
+    [Header("교전 거리")]
+    public float engageRange = 6f;
 
-    private BossPhaseState _currentBossState = BossPhaseState.None;
+    [Header("기본 공격 - 거리별 분기")]
+    public float sweepRange = 2.8f;
+    public float basicThrustRange = 4.5f;
+    public float sweepRadius = 3.2f;
+    public float sweepHalfAngle = 90f;
+    public float basicThrustLength = 4.5f;
+    public float basicThrustWidth = 1.4f;
+    public float leapSlamRadiusX = 2.2f;
+    public float leapSlamRadiusY = 1.6f;
+    public float leapWindup = 0.4f;
+    public float leapDuration = 0.35f;
+    public float basicAttackWindup = 0.85f;
+    public float basicAttackRecovery = 0.4f;
 
-    [Header("Phase 2 Transition")]
-    public EnemyMinionDataSO phase2Data; // 체력 소진 시 적용될 2페이즈 스탯 및 AI 패턴 데이터
+    [Header("패턴 쿨타임 (인스펙터에서 조절)")]
+    public float chargeCooldown = 8f;
+    public float thrustCooldown = 6f;
+    public float counterCooldown = 10f;
 
-    [Header("Attack Settings")]
-    public float howlingRadius = 8f;
-    public float swingRadius = 6f;
-    public float thrustRange = 4f;
-    public float shieldPushRadius = 3f;
+    [Header("가중치 - 체력 100~80%")]
+    public Vector3 weightsAbove80 = new Vector3(33f, 33f, 34f);
+    [Header("가중치 - 체력 80~60%")]
+    public Vector3 weights80To60 = new Vector3(25f, 37f, 38f);
+    [Header("가중치 - 체력 60% 이하")]
+    public Vector3 weightsBelow60 = new Vector3(21f, 39f, 40f);
 
-    [Header("VFX Prefabs (Optional)")]
-    public GameObject chargeIndicatorPrefab; // 돌진 범위 표시
-    public GameObject howlingEffectPrefab;   // 하울링 반격 이펙트
-    public GameObject swingEffectPrefab;     // 휩쓸기 (부채꼴) 이펙트
-    public GameObject thrustEffectPrefab;    // 찌르기 이펙트
-    public GameObject pushEffectPrefab;      // 방패 밀치기 이펙트
+    [Header("텔레그래프(피해범위 인디케이터) 색상")]
+    public Color telegraphWarnColor = new Color(1f, 0.1f, 0.1f, 0.9f);
 
-    [Header("Cooldowns")]
-    public float pattern1Cooldown = 10f;
-    public float pattern2Cooldown = 6f;
-    public float pattern3Cooldown = 8f;
+    [Header("패턴 1번: 박치기 돌격")]
+    public float howlPushRadius = 2.5f;
+    public float howlPushForce = 4f;
+    public float chargeTelegraphTime = 1.5f;
+    public float chargeCounterGaugeAmount = 30f;
+    public float chargeCounterGroggyDuration = 5f;
+    public float chargeWallStaggerDuration = 1.5f;
+    public float chargeSpeed = 22f;
+    public float chargeMaxDurationFallback = 1.2f;
+    [Range(1.0f, 1.5f)]
+    public float chargeSafetyTimeMultiplier = 1.15f;
+    public float wallCheckRadius = 0.6f;
+    public float chargeTelegraphWidth = 2f;
 
-    private float _lastPattern1Time = -100f;
-    private float _lastPattern2Time = -100f;
-    private float _lastPattern3Time = -100f;
+    [Header("패턴 2번: 견갑 찌르기")]
+    public float thrustRange = 6.5f;
+    public float thrustWidth = 1.3f;
+    public float thrustTelegraphLead = 0.35f;
+    public float thrustPauseBeforeFirst = 0.75f;
+    public float thrustPauseAfterFirst = 0.5f;
+    public float thrustPauseAfterSecond = 0.22f;
+    public float thrustCounterGaugeAmount = 25f;
+    public float thrustCounterGroggyDuration = 5f;
 
-    private bool _isActionLocked = false; // 패턴 시전 중 다른 판단을 막기 위함
-    private BoneMasterController _bossController;
+    [Header("패턴 3번: 카운터 & 페이크 카운터")]
+    public Vector2 counterReactionWindowRange = new Vector2(1f, 1.5f);
+    public float counterSuccessGroggyDuration = 2.5f;
+    public float fakeCounterPlayerStun = 0.75f;
+    public float fakeCounterPunishDamage = 3f;
 
-    private Coroutine _currentPatternCoroutine;
+    private const string Pattern1Label = "패턴 1번: 박치기 돌격";
+    private const string Pattern2Label = "패턴 2번: 견갑 찌르기";
+    private const string Pattern3Label = "패턴 3번: 카운터 & 페이크 카운터";
+
+    private BoneMasterController _controller;
+    private float _lastChargeTime = -100f;
+    private float _lastThrustTime = -100f;
+    private float _lastCounterTime = -100f;
+    private float _lastDiagLogTime = -100f;
 
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);
-        _currentBossState = BossPhaseState.None;
-        _isActionLocked = false;
-        
-        _lastPattern1Time = -100f;
-        _lastPattern2Time = -100f;
-        _lastPattern3Time = -100f;
-
-        _bossController = entity.GetComponent<BoneMasterController>();
-        if (_bossController != null)
+        _controller = entity as BoneMasterController;
+        if (_controller == null)
         {
-            _bossController.OnSpearHitEvent += HandleSpearHitInterrupt;
-            _bossController.OnFullChargeHitEvent += HandleFullChargeInterrupt;
+            Debug.LogError($"[BoneMaster] Init: entity({entity?.gameObject?.name})를 BoneMasterController로 캐스팅하지 못했습니다!");
         }
+        _lastChargeTime = -100f;
+        _lastThrustTime = -100f;
+        _lastCounterTime = -100f;
     }
 
     protected override void UpdateTargeting(BaseEntity entity)
     {
-        // 유저 요청: 패턴을 보기 위해 무조건 플레이어만 타겟팅하도록 고정
         if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
         {
             entity.Target = GameManager.Instance.PLAYERCONTROLLER.transform;
@@ -76,407 +125,483 @@ public class BoneMasterAIPatternSO : BaseAIPatternSO
         }
     }
 
-    public override void Execute(BaseEntity entity)
+    private static Vector2 SafeDirTo(BaseEntity entity, Vector2 origin, Transform target)
     {
-        // 보스가 기절 상태면 아무것도 하지 않음
-        if (_bossController != null && _bossController.IsStunned)
-        {
-            if (_isActionLocked && _currentPatternCoroutine != null)
-            {
-                // 기절이 걸리면 돌진 차징 등이 무조건 취소됨
-                entity.StopCoroutine(_currentPatternCoroutine);
-                _isActionLocked = false;
-                _currentBossState = BossPhaseState.None;
-                _bossController.SetStateText("기절! (패턴 캔슬됨)", Color.yellow);
-            }
-            StopNavAgent(entity);
-            return;
-        }
+        if (target == null) return (Vector2)entity.transform.right;
+        Vector2 raw = (Vector2)target.position - origin;
+        if (raw.sqrMagnitude < 0.01f) return (Vector2)entity.transform.right;
+        return raw.normalized;
+    }
 
-        // 패턴 시전 중이면 상태 전이(추적 등) 로직을 스킵함
-        if (_isActionLocked)
-        {
-            return; 
-        }
-
-        base.Execute(entity);
+    private void Warp(BaseEntity entity, Vector3 pos)
+    {
+        if (_controller != null) _controller.WarpTo(pos);
+        else entity.transform.position = pos;
     }
 
     protected override void UpdateStateTransitions(BaseEntity entity)
     {
-        if (entity.Target == null) return;
+        if (entity.Target == null)
+        {
+            entity.CurrentState = AIState.Idle;
+            return;
+        }
 
         float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
-        float time = Time.time;
+        float rangeBonus = _controller != null ? _controller.AttackRangeBonus : 0f;
+        float effectiveEngageRange = engageRange * (1f + rangeBonus);
 
-        bool canPattern1 = (time - _lastPattern1Time >= pattern1Cooldown);
-        bool canPattern2 = (time - _lastPattern2Time >= pattern2Cooldown);
-        bool canPattern3 = (time - _lastPattern3Time >= pattern3Cooldown);
-
-        // 유저 요청 로직:
-        // 패턴 1은 20 이상일때만
-        // 패턴 3은 20이하 10 이상일때만
-        // 패턴 2는 10 미만 (기본공격 판정 거리)일때 쿨이 돌아있으면 시전.
-        // 모두 아니면 추적(Follow) 또는 10 미만 시 기본 공격(Push)
-
-        if (dist >= 10f)
+        if (Time.time - _lastDiagLogTime > 2f)
         {
-            if (canPattern1)
-            {
-                _currentPatternCoroutine = entity.StartCoroutine(Pattern1_ChargeRoutine(entity));
-            }
-            else
-            {
-                entity.CurrentState = AIState.Follow;
-                if (_bossController != null) _bossController.SetStateText("추격 중...");
-            }
+            _lastDiagLogTime = Time.time;
+            Debug.Log($"[BoneMaster-Diag] dist={dist:F1} engageRange={effectiveEngageRange:F1} AtkTimer={entity.AtkTimer:F2}/{entity.Stats.AttackInterval:F2} CurrentState={entity.CurrentState} IsAttacking={entity.IsAttacking}");
         }
-        else if (dist >= 5f && dist < 10f)
+
+        if (dist > effectiveEngageRange)
         {
-            if (canPattern3)
-            {
-                _currentPatternCoroutine = entity.StartCoroutine(Pattern3_ThrustRoutine(entity));
-            }
-            else
-            {
-                entity.CurrentState = AIState.Follow;
-                if (_bossController != null) _bossController.SetStateText("추격 중...");
-            }
+            entity.CurrentState = AIState.Follow;
+            _controller?.SetStateText("추격 중...");
+            return;
         }
-        else // dist < 5f
+
+        float castSpeedBonus = _controller != null ? _controller.PatternCastSpeedBonus : 0f;
+        float cdMul = 1f / (1f + castSpeedBonus);
+
+        bool canCharge = Time.time - _lastChargeTime >= chargeCooldown * cdMul;
+        bool canThrust = Time.time - _lastThrustTime >= thrustCooldown * cdMul;
+        bool canCounter = Time.time - _lastCounterTime >= counterCooldown * cdMul;
+
+        if (!canCharge && !canThrust && !canCounter)
         {
-            // 쿨타임이 차있고 사거리(swingRadius) 안에 들어오면 부채꼴 공격
-            if (canPattern2 && dist <= swingRadius)
+            if (entity.AtkTimer >= entity.Stats.AttackInterval)
             {
-                _currentPatternCoroutine = entity.StartCoroutine(Pattern2_SwingRoutine(entity));
+                entity.CurrentState = AIState.Attack;
             }
-            // 쿨타임이 안 찼거나 패턴2 사거리가 아닐 때, 기본 공격 사거리(shieldPushRadius) 안에 있으면 방밀
-            else if (dist <= shieldPushRadius)
-            {
-                _currentPatternCoroutine = entity.StartCoroutine(Basic_PushRoutine(entity));
-            }
-            // 둘 다 사거리가 안 닿으면 다가감
             else
             {
                 entity.CurrentState = AIState.Follow;
-                if (_bossController != null) _bossController.SetStateText("추격 중...");
+                _controller?.SetStateText("추격 중...");
             }
+            return;
+        }
+
+        Vector3 hpWeights = GetWeights(entity);
+        float wCharge = canCharge ? hpWeights.x : 0f;
+        float wThrust = canThrust ? hpWeights.y : 0f;
+        float wCounter = canCounter ? hpWeights.z : 0f;
+        float total = wCharge + wThrust + wCounter;
+        if (total <= 0f) return;
+
+        float roll = Random.value * total;
+        entity.CurrentState = AIState.Skill;
+
+        if (roll < wCharge)
+        {
+            _lastChargeTime = Time.time;
+            entity.StartCoroutine(Pattern1_ChargeRoutine(entity));
+        }
+        else if (roll < wCharge + wThrust)
+        {
+            _lastThrustTime = Time.time;
+            entity.StartCoroutine(Pattern2_ThrustRoutine(entity));
+        }
+        else
+        {
+            _lastCounterTime = Time.time;
+            entity.StartCoroutine(Pattern3_CounterRoutine(entity));
         }
     }
 
-    #region Pattern 1: Charge
-    private bool _p1Interrupted = false;
-    private bool _isFakeCharge = false;
-
-    private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
+    // ── 기본 공격: 거리별 분기 3종 ──────────────────────────────────
+    protected override void OnAttack(BaseEntity entity)
     {
-        _isActionLocked = true;
-        _lastPattern1Time = Time.time;
-        _currentBossState = BossPhaseState.Pattern1_Charge;
         StopNavAgent(entity);
+        if (entity.IsAttacking) return;
+        if (entity.AtkTimer < entity.Stats.AttackInterval) return;
 
-        _p1Interrupted = false;
-        _isFakeCharge = Random.value <= 0.25f; // 25% 확률로 페이크
+        entity.AtkTimer = 0f;
+        entity.IsAttacking = true;
 
-        if (_bossController != null)
+        float dist = entity.Target != null ? Vector2.Distance(entity.transform.position, entity.Target.position) : 0f;
+
+        IEnumerator routine;
+        if (dist <= sweepRange) routine = BasicAttack_Sweep(entity);
+        else if (dist <= basicThrustRange) routine = BasicAttack_Thrust(entity);
+        else routine = BasicAttack_LeapSlam(entity);
+
+        entity.ActiveAttackCoroutine = entity.StartCoroutine(routine);
+    }
+
+    private void FinishBasicAttack(BaseEntity entity)
+    {
+        entity.IsAttacking = false;
+        entity.ActiveAttackCoroutine = null;
+        entity.ResetAnimationState();
+    }
+
+    private IEnumerator BasicAttack_Sweep(BaseEntity entity)
+    {
+        StopNavAgent(entity);
+        _controller?.HardStopMovement();
+        _controller?.SetStateText("기본 공격: 창 휩쓸기", Color.white);
+
+        if (entity.Target != null) entity.LookAtTarget(entity.Target);
+        Vector2 origin = entity.transform.position;
+        Vector2 dir = SafeDirTo(entity, origin, entity.Target);
+
+        GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, origin, dir, sweepRadius, sweepHalfAngle, telegraphWarnColor);
+
+        float t = 0f;
+        while (t < basicAttackWindup)
         {
-            if (_isFakeCharge)
-                _bossController.SetStateText("차징 중... (페이크/붉은 빛)", Color.red);
-            else
-                _bossController.SetStateText("차징 중... (정상/하얀 빛)", Color.white);
+            Warp(entity, origin);
+            t += Time.deltaTime;
+            yield return null;
         }
+        if (telegraph != null) Object.Destroy(telegraph);
 
-        // 4초 대기 (이 동안 인터럽트 이벤트를 기다림)
-        float timer = 0f;
-        while (timer < 4f)
+        var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
+        BossCombat.DealCone(origin, dir, sweepRadius, sweepHalfAngle, entity.opponentLayer, info);
+
+        yield return new WaitForSeconds(basicAttackRecovery);
+        FinishBasicAttack(entity);
+    }
+
+    private IEnumerator BasicAttack_Thrust(BaseEntity entity)
+    {
+        StopNavAgent(entity);
+        _controller?.HardStopMovement();
+        _controller?.SetStateText("기본 공격: 창 찌르기", Color.white);
+        if (entity.Target != null) entity.LookAtTarget(entity.Target);
+        Vector2 origin = entity.transform.position;
+        Vector2 dir = SafeDirTo(entity, origin, entity.Target);
+
+        GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
+            entity, origin, dir, basicThrustLength, basicThrustWidth, telegraphWarnColor);
+
+        float t = 0f;
+        while (t < basicAttackWindup)
         {
-            if (_p1Interrupted) break;
-            timer += Time.deltaTime;
+            Warp(entity, origin);
+            t += Time.deltaTime;
+            yield return null;
+        }
+        if (telegraph != null) Object.Destroy(telegraph);
+
+        var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
+        BossCombat.DealLane(origin, dir, basicThrustLength, basicThrustWidth, entity.opponentLayer, info);
+
+        yield return new WaitForSeconds(basicAttackRecovery);
+        FinishBasicAttack(entity);
+    }
+
+    private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
+    {
+        StopNavAgent(entity);
+        _controller?.SetStateText("기본 공격: 도약 준비", Color.yellow);
+
+        Vector2 landPos = entity.Target != null ? (Vector2)entity.Target.position : (Vector2)entity.transform.position;
+        GameObject telegraph = BoneMasterTelegraphUtil.SpawnEllipse(entity, landPos, leapSlamRadiusX, leapSlamRadiusY, telegraphWarnColor);
+
+        float t = 0f;
+        while (t < leapWindup + basicAttackWindup * 0.3f)
+        {
+            t += Time.deltaTime;
+            if (entity.Target != null)
+            {
+                landPos = entity.Target.position;
+                BoneMasterTelegraphUtil.UpdatePosition(telegraph, landPos);
+            }
             yield return null;
         }
 
-        if (_p1Interrupted)
+        _controller?.SetStateText("기본 공격: 도약 & 내려찍기", Color.white);
+        Vector3 startPos = entity.transform.position;
+        float elapsed = 0f;
+        while (elapsed < leapDuration)
         {
-            if (_isFakeCharge)
+            elapsed += Time.deltaTime;
+            Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, elapsed / leapDuration));
+            yield return null;
+        }
+        Warp(entity, landPos);
+        _controller?.HardStopMovement();
+
+        if (telegraph != null) Object.Destroy(telegraph);
+
+        var info = new DamageInfo(entity.Stats.ATK * 1.2f, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true);
+        BossCombat.DealEllipse(landPos, leapSlamRadiusX, leapSlamRadiusY, entity.opponentLayer, info);
+
+        yield return new WaitForSeconds(basicAttackRecovery);
+        FinishBasicAttack(entity);
+    }
+
+    public override void OnAttackCancelled(BaseEntity entity)
+    {
+        base.OnAttackCancelled(entity);
+    }
+
+    private Vector3 GetWeights(BaseEntity entity)
+    {
+        if (entity.Stats == null || entity.Stats.Health == null) return weightsAbove80;
+        float ratio = entity.Stats.Health.CurHP / entity.Stats.Health.MaxHP;
+        if (ratio > 0.8f) return weightsAbove80;
+        if (ratio > 0.6f) return weights80To60;
+        return weightsBelow60;
+    }
+
+    private void EndPattern(BaseEntity entity)
+    {
+        entity.CurrentState = AIState.Follow;
+    }
+
+    #region 패턴 1번: 박치기 돌격
+    private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
+    {
+        StopNavAgent(entity);
+        _controller?.HardStopMovement();
+        _controller?.SetStateText($"{Pattern1Label} - 포효... (돌진 예고)", Color.yellow);
+
+        if (entity.Target != null)
+        {
+            float d = Vector2.Distance(entity.transform.position, entity.Target.position);
+            if (d <= howlPushRadius)
             {
-                if (_bossController != null) _bossController.SetStateText("하울링 반격!", Color.magenta);
-                Debug.Log("<color=magenta>[BoneMaster]</color> 페이크 차지 중 피격! 하울링 반격 발동!");
-                yield return new WaitForSeconds(0.5f); // 딜레이
-                ApplyAreaDamage(entity, Vector2.zero, howlingRadius, 1.5f, false, howlingEffectPrefab); // 1.5배 데미지, 이펙트 생성
-                yield return new WaitForSeconds(1.0f); // 반격 모션 시간
+                var status = entity.Target.GetComponentInParent<CharacterStatus>();
+                if (status == null) status = entity.Target.GetComponentInChildren<CharacterStatus>();
+                Vector2 dir0 = SafeDirTo(entity, entity.transform.position, entity.Target);
+                status?.ApplyKnockback(dir0, howlPushForce, 0.2f);
             }
-            else
-            {
-                if (_bossController != null) _bossController.SetStateText("차지 캔슬됨!", Color.gray);
-                Debug.Log("<color=gray>[BoneMaster]</color> 정상 차지 중 피격! 패턴 캔슬.");
-                yield return new WaitForSeconds(1f); // 캔슬 후딜레이
-            }
+        }
+
+        Vector2 origin = entity.transform.position;
+        Vector2 lockedDir = SafeDirTo(entity, origin, entity.Target);
+
+        float wallDist = _controller != null ? _controller.GetChargeDistance(origin, lockedDir) : -1f;
+        float chargeDistance;
+        float chargeDuration;
+        if (wallDist > 0f)
+        {
+            chargeDistance = wallDist;
+            chargeDuration = (wallDist * chargeSafetyTimeMultiplier) / Mathf.Max(0.01f, chargeSpeed);
         }
         else
         {
-            if (_isFakeCharge)
+            chargeDuration = chargeMaxDurationFallback;
+            chargeDistance = chargeSpeed * chargeDuration;
+        }
+
+        GameObject laneTelegraph = BoneMasterTelegraphUtil.SpawnLane(
+            entity, origin, lockedDir, chargeDistance, chargeTelegraphWidth, telegraphWarnColor);
+
+        var gauge = _controller != null ? _controller.CounterGauge : null;
+        bool broken = false;
+        void OnBroken() => broken = true;
+        if (gauge != null)
+        {
+            gauge.OnGaugeBroken += OnBroken;
+            gauge.OpenWindow(chargeCounterGaugeAmount);
+        }
+
+        bool hijacked = false;
+
+        float t = 0f;
+        while (t < chargeTelegraphTime)
+        {
+            if (broken) break;
+            if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+            Warp(entity, origin); // 돌진 예고 중엔 절대 안 움직인다.
+            t += Time.deltaTime;
+            yield return null;
+        }
+        if (gauge != null) gauge.OnGaugeBroken -= OnBroken;
+        if (laneTelegraph != null) Object.Destroy(laneTelegraph);
+
+        if (hijacked)
+        {
+            gauge?.CloseWindow();
+            Debug.LogWarning("[BoneMaster] 패턴 1번(박치기 돌격)이 예고 단계에서 외부 요인으로 중단됨(CurrentState 변경 감지).");
+            yield break;
+        }
+
+        if (broken)
+        {
+            gauge.CloseWindow();
+            _controller?.SetStateText($"{Pattern1Label} - 정면딜 파훼! 그로기!", Color.cyan);
+            _controller?.ApplyGroggy(chargeCounterGroggyDuration);
+        }
+        else
+        {
+            gauge?.CloseWindow();
+            _controller?.SetStateText($"{Pattern1Label} - 돌진!", Color.white);
+
+            float elapsed = 0f;
+            bool hitWall = false;
+            while (elapsed < chargeDuration)
             {
-                if (_bossController != null) _bossController.SetStateText("허탕... (그로기)", Color.gray);
-                Debug.Log("<color=gray>[BoneMaster]</color> 4초 경과. 페이크 차지 허탕! 그로기 상태 돌입.");
-                yield return new WaitForSeconds(3f); // 3초간 기절(그로기)
+                if (entity.CurrentState != AIState.Skill)
+                {
+                    hijacked = true;
+                    Debug.LogWarning($"[BoneMaster] 패턴 1번(박치기 돌격)이 돌진 도중 외부 요인으로 중단됨(CurrentState={entity.CurrentState}, elapsed={elapsed:F2}/{chargeDuration:F2}).");
+                    break;
+                }
+
+                Vector3 nextPos = entity.transform.position + (Vector3)(lockedDir * chargeSpeed * Time.deltaTime);
+                elapsed += Time.deltaTime;
+
+                if (IsTouchingThornWall(nextPos))
+                {
+                    hitWall = true;
+                    Debug.Log($"<color=cyan>[BoneMaster]</color> 돌진 중 뼈 투기장 접촉 감지! pos={nextPos} elapsed={elapsed:F2}/{chargeDuration:F2}");
+                    break; // 벽에 닿기 "직전"에서 멈춘다(안으로 파고들지 않음).
+                }
+                Warp(entity, nextPos);
+                yield return null;
+            }
+
+            _controller?.HardStopMovement();
+
+            if (hijacked)
+            {
+                Debug.LogWarning("[BoneMaster] 돌진이 중단되어(hijacked) 벽 충돌 판정을 확인하지 못했습니다. 경직도 적용되지 않습니다.");
+                yield break;
+            }
+
+            if (hitWall)
+            {
+                _controller?.SetStateText($"{Pattern1Label} - 가시 충돌! 경직!", Color.cyan);
+                _controller?.ApplyGroggy(chargeWallStaggerDuration);
+                Debug.Log($"<color=cyan>[BoneMaster]</color> 경직 적용 완료. IsGroggy={_controller?.IsGroggy}");
             }
             else
             {
-                if (_bossController != null) _bossController.SetStateText("돌진 휩쓸기!", Color.yellow);
-                Debug.Log("<color=yellow>[BoneMaster]</color> 4초 경과. 돌진 후 휩쓸기 발동!");
-                
-                // 타겟 방향으로 돌진
-                if (entity.Target != null)
-                {
-                    Vector3 dashTarget = entity.Target.position;
-                    float dashTime = 0.5f;
-                    float elapsed = 0f;
-                    Vector3 startPos = entity.transform.position;
-                    while(elapsed < dashTime)
-                    {
-                        entity.transform.position = Vector3.Lerp(startPos, dashTarget, elapsed / dashTime);
-                        elapsed += Time.deltaTime;
-                        yield return null;
-                    }
-                }
-
-                // 돌진 후 주변 휩쓸기 데미지
-                ApplyAreaDamage(entity, Vector2.zero, swingRadius, 2.0f, false, swingEffectPrefab); // 2배 데미지
-                yield return new WaitForSeconds(1.5f); // 공격 후 모션 대기
+                yield return new WaitForSeconds(0.5f);
             }
         }
 
-        _isActionLocked = false;
-        _currentBossState = BossPhaseState.None;
+        EndPattern(entity);
     }
 
-    private void HandleSpearHitInterrupt()
+    private bool IsTouchingThornWall(Vector2 pos)
     {
-        // 창 투척은 돌진 패턴을 취소시키지 않지만, 페이크 차지의 반격을 유도합니다. (유저 기획: 뼈 창이나 소환수 명중 시)
-        // 만약 창으로도 정상 차지를 취소하고 싶다면 아래 주석을 풀면 됩니다.
-        if (_currentBossState == BossPhaseState.Pattern1_Charge && !_p1Interrupted)
+        Collider2D[] hits = Physics2D.OverlapCircleAll(pos, wallCheckRadius);
+        foreach (var h in hits)
         {
-            _p1Interrupted = true;
+            if (h.CompareTag(BoneMasterController.ThornWallTag)) return true;
         }
-    }
-
-    private void HandleFullChargeInterrupt()
-    {
-        if (_currentBossState == BossPhaseState.Pattern1_Charge && !_p1Interrupted)
-        {
-            _p1Interrupted = true;
-        }
+        return false;
     }
     #endregion
 
-    #region Pattern 2: Swing
-    private IEnumerator Pattern2_SwingRoutine(BaseEntity entity)
+    #region 패턴 2번: 견갑 찌르기
+    private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
     {
-        _isActionLocked = true;
-        _lastPattern2Time = Time.time;
-        _currentBossState = BossPhaseState.Pattern2_Swing;
         StopNavAgent(entity);
+        _controller?.HardStopMovement();
+        _controller?.SetStateText($"{Pattern2Label}", Color.yellow);
 
-        if (_bossController != null) _bossController.SetStateText("부채꼴 베기!", Color.red);
-        Debug.Log("<color=red>[BoneMaster]</color> 랜스 휘두르기 시전 완료");
-        
-        yield return new WaitForSeconds(0.5f); // 선딜레이
-        ApplyConeDamage(entity, swingRadius, 90f, 1.2f, swingEffectPrefab); // 90도 부채꼴 1.2배 데미지
-        yield return new WaitForSeconds(1.0f); // 스킬 모션 시간
+        Vector2 origin = entity.transform.position;
 
-        _isActionLocked = false;
-        _currentBossState = BossPhaseState.None;
-    }
-    #endregion
-
-    #region Pattern 3: Thrust
-    private IEnumerator Pattern3_ThrustRoutine(BaseEntity entity)
-    {
-        _isActionLocked = true;
-        _lastPattern3Time = Time.time;
-        _currentBossState = BossPhaseState.Pattern3_Thrust;
-        StopNavAgent(entity);
-
-        if (_bossController != null) _bossController.SetStateText("단거리 돌진 & 찌르기!", Color.blue);
-        Debug.Log("<color=blue>[BoneMaster]</color> 전방 2회 연속 찌르기 시전 완료");
-        
-        // 짧은 돌진 (부드럽게 이동)
-        if (entity.Target != null)
+        var gauge = _controller != null ? _controller.CounterGauge : null;
+        bool broken = false;
+        void OnBroken() => broken = true;
+        if (gauge != null)
         {
-            Vector3 startPos = entity.transform.position;
-            Vector3 dir = (entity.Target.position - startPos).normalized;
-            Vector3 dashTarget = startPos + dir * 2f; // 2 유닛 앞으로
-            float dashTime = 0.15f; // 0.15초 동안 빠르게 돌진
-            float elapsed = 0f;
+            gauge.OnGaugeBroken += OnBroken;
+            gauge.OpenWindow(thrustCounterGaugeAmount);
+        }
 
-            while (elapsed < dashTime)
+        bool hijacked = false;
+
+        float preFirst = 0f;
+        while (preFirst < thrustPauseBeforeFirst)
+        {
+            if (broken) break;
+            if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+            Warp(entity, origin);
+            preFirst += Time.deltaTime;
+            yield return null;
+        }
+
+        float[] pauseAfterStrike = { thrustPauseAfterFirst, thrustPauseAfterSecond, 0f };
+
+        for (int i = 0; i < 3 && !broken && !hijacked; i++)
+        {
+            if (entity.Target != null) entity.LookAtTarget(entity.Target);
+            Vector2 dir = SafeDirTo(entity, origin, entity.Target);
+
+            GameObject strikeTelegraph = BoneMasterTelegraphUtil.SpawnLane(
+                entity, origin, dir, thrustRange, thrustWidth, telegraphWarnColor);
+            float leadTimer = 0f;
+            while (leadTimer < thrustTelegraphLead)
             {
-                entity.transform.position = Vector3.Lerp(startPos, dashTarget, elapsed / dashTime);
-                elapsed += Time.deltaTime;
+                if (broken) break;
+                if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+                Warp(entity, origin);
+                leadTimer += Time.deltaTime;
+                yield return null;
+            }
+            if (strikeTelegraph != null) Object.Destroy(strikeTelegraph);
+            if (broken || hijacked) break;
+
+            bool applyBleed = Random.value <= 0.25f;
+            var info = new DamageInfo(
+                entity.Stats.ATK,
+                DamageType.Physical,
+                entity.gameObject,
+                category: DamageCategory.EnemyBoss,
+                applyStatus: applyBleed ? StatusType.Bleed : (StatusType?)null
+            );
+            BossCombat.DealLane(origin, dir, thrustRange, thrustWidth, entity.opponentLayer, info);
+
+            float pause = pauseAfterStrike[i];
+            float pt = 0f;
+            while (pt < pause)
+            {
+                if (broken) break;
+                if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+                Warp(entity, origin);
+                pt += Time.deltaTime;
                 yield return null;
             }
         }
+
+        if (gauge != null) gauge.OnGaugeBroken -= OnBroken;
+
+        if (hijacked)
+        {
+            gauge?.CloseWindow();
+            Debug.LogWarning("[BoneMaster] 패턴 2번(견갑 찌르기)이 외부 요인으로 중단됨(CurrentState 변경 감지).");
+            yield break;
+        }
+
+        if (broken)
+        {
+            gauge.CloseWindow();
+            _controller?.SetStateText($"{Pattern2Label} - 카운터 성공!", Color.cyan);
+            _controller?.ApplyGroggy(thrustCounterGroggyDuration);
+        }
         else
         {
-            yield return new WaitForSeconds(0.15f);
+            gauge?.CloseWindow();
+            yield return new WaitForSeconds(0.3f);
         }
-        ApplyAreaDamage(entity, Vector2.zero, thrustRange, 0.8f, false, thrustEffectPrefab); // 1타
-        yield return new WaitForSeconds(0.4f);
-        ApplyAreaDamage(entity, Vector2.zero, thrustRange, 0.8f, false, thrustEffectPrefab); // 2타
-        
-        yield return new WaitForSeconds(0.9f); // 스킬 모션 시간
 
-        _isActionLocked = false;
-        _currentBossState = BossPhaseState.None;
+        EndPattern(entity);
     }
     #endregion
 
-    #region Basic Attack: Push
-    private IEnumerator Basic_PushRoutine(BaseEntity entity)
+    #region 패턴 3번: 카운터 & 페이크 카운터
+    private IEnumerator Pattern3_CounterRoutine(BaseEntity entity)
     {
-        _isActionLocked = true;
-        _currentBossState = BossPhaseState.Basic_Push;
         StopNavAgent(entity);
+        _controller?.HardStopMovement();
+        float reactionWindow = Random.Range(counterReactionWindowRange.x, counterReactionWindowRange.y);
+        yield return BoneMasterCounterUtil.Run(
+            entity, _controller, reactionWindow,
+            counterSuccessGroggyDuration, fakeCounterPlayerStun, fakeCounterPunishDamage, Pattern3Label);
 
-        if (_bossController != null) _bossController.SetStateText("방패 밀쳐내기!", Color.white);
-        Debug.Log("<color=white>[BoneMaster]</color> 주변 방패 밀쳐내기");
-        
-        yield return new WaitForSeconds(0.3f);
-        ApplyAreaDamage(entity, Vector2.zero, shieldPushRadius, 0.5f, true, pushEffectPrefab); // 0.5배 데미지, 넉백 효과
-        yield return new WaitForSeconds(0.7f); // 스킬 모션 시간
-
-        _isActionLocked = false;
-        _currentBossState = BossPhaseState.None;
-    }
-    #endregion
-
-    #region Damage Utilities
-    private void ApplyAreaDamage(BaseEntity entity, Vector2 offset, float radius, float damageMultiplier = 1f, bool pushBack = false, GameObject vfxPrefab = null)
-    {
-        Vector2 center = (Vector2)entity.transform.position + offset;
-        
-        // 이펙트 생성 또는 디버그 시각화
-        if (vfxPrefab != null)
-        {
-            Instantiate(vfxPrefab, center, Quaternion.identity);
-        }
-        else
-        {
-            SpawnDebugCircle(center, radius, Color.red, 0.5f);
-        }
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(center, radius, entity.opponentLayer);
-        foreach (var col in hits)
-        {
-            var hp = col.GetComponentInParent<CharacterHealth>();
-            if (hp == null) hp = col.GetComponentInChildren<CharacterHealth>();
-            if (hp != null)
-            {
-                float dmg = entity.Stats.ATK * damageMultiplier;
-                hp.GetDamage(new DamageInfo(dmg, DamageType.Physical, entity.gameObject));
-
-                if (pushBack)
-                {
-                    Vector2 pushDir = (col.transform.position - entity.transform.position).normalized;
-                    var status = col.GetComponentInParent<CharacterStatus>();
-                    if (status == null) status = col.GetComponentInChildren<CharacterStatus>();
-                    if (status != null)
-                    {
-                        status.ApplyKnockback(pushDir, 5f, 0.15f);
-                    }
-                    else if (col.attachedRigidbody != null)
-                    {
-                        // Player/Enemy가 아닌 일반 물리 객체 대비
-                        col.attachedRigidbody.AddForce(pushDir * 5f, ForceMode2D.Impulse);
-                    }
-                }
-            }
-        }
-    }
-
-    private void ApplyConeDamage(BaseEntity entity, float radius, float angleDegree, float damageMultiplier = 1f, GameObject vfxPrefab = null)
-    {
-        if (entity.Target == null) return;
-        Vector2 dirToTarget = (entity.Target.position - entity.transform.position).normalized;
-        
-        if (vfxPrefab != null)
-        {
-            float angle = Mathf.Atan2(dirToTarget.y, dirToTarget.x) * Mathf.Rad2Deg;
-            Instantiate(vfxPrefab, entity.transform.position, Quaternion.Euler(0, 0, angle));
-        }
-        else
-        {
-            SpawnDebugCone(entity.transform.position, dirToTarget, radius, angleDegree, Color.yellow, 0.5f);
-        }
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(entity.transform.position, radius, entity.opponentLayer);
-        foreach (var col in hits)
-        {
-            Vector2 dirToCol = (col.transform.position - entity.transform.position).normalized;
-            if (Vector2.Angle(dirToTarget, dirToCol) <= angleDegree / 2f)
-            {
-                var hp = col.GetComponentInParent<CharacterHealth>();
-                if (hp == null) hp = col.GetComponentInChildren<CharacterHealth>();
-                if (hp != null)
-                {
-                    float dmg = entity.Stats.ATK * damageMultiplier;
-                    hp.GetDamage(new DamageInfo(dmg, DamageType.Physical, entity.gameObject));
-                }
-            }
-        }
-    }
-
-    private void SpawnDebugCircle(Vector2 pos, float radius, Color color, float duration)
-    {
-        GameObject go = new GameObject("DebugCircle");
-        go.transform.position = pos;
-        LineRenderer lr = go.AddComponent<LineRenderer>();
-        lr.startWidth = 0.1f;
-        lr.endWidth = 0.1f;
-        lr.startColor = color;
-        lr.endColor = color;
-        lr.material = new Material(Shader.Find("Sprites/Default"));
-        lr.positionCount = 36;
-        lr.useWorldSpace = false;
-        for (int i = 0; i < 36; i++)
-        {
-            float angle = i * Mathf.PI * 2 / 36;
-            lr.SetPosition(i, new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0));
-        }
-        lr.loop = true;
-        lr.sortingLayerName = "Default";
-        lr.sortingOrder = 100;
-        Destroy(go, duration);
-    }
-
-    private void SpawnDebugCone(Vector2 pos, Vector2 dir, float radius, float angleDegree, Color color, float duration)
-    {
-        GameObject go = new GameObject("DebugCone");
-        go.transform.position = pos;
-        LineRenderer lr = go.AddComponent<LineRenderer>();
-        lr.startWidth = 0.1f;
-        lr.endWidth = 0.1f;
-        lr.startColor = color;
-        lr.endColor = color;
-        lr.material = new Material(Shader.Find("Sprites/Default"));
-        
-        int segments = 20;
-        lr.positionCount = segments + 2;
-        lr.useWorldSpace = false;
-        
-        lr.SetPosition(0, Vector3.zero);
-        float baseAngle = Mathf.Atan2(dir.y, dir.x);
-        float halfAngle = (angleDegree / 2f) * Mathf.Deg2Rad;
-        
-        for (int i = 0; i <= segments; i++)
-        {
-            float currentAngle = baseAngle - halfAngle + (halfAngle * 2f * i / segments);
-            lr.SetPosition(i + 1, new Vector3(Mathf.Cos(currentAngle) * radius, Mathf.Sin(currentAngle) * radius, 0));
-        }
-        lr.loop = true;
-        lr.sortingLayerName = "Default";
-        lr.sortingOrder = 100;
-        Destroy(go, duration);
+        EndPattern(entity);
     }
     #endregion
 }
