@@ -67,4 +67,28 @@ public class MapGenerationDataSO : ScriptableObject
     public int corridorStraightLength = 3;
     [Tooltip("통로가 다른 방의 벽을 피해가는 최소 거리 (통로 벽 두께 감안)")]
     public int corridorAvoidMargin = 2;
+
+    [Header("Boss Settings")]
+    [Tooltip("층수별 고정 보스. '몇 층에 누가 나오는가'의 유일한 스위치다 — 여기 없는 층은 " +
+             "보스 층이 아니라서 보스 방 자체가 생성되지 않고, 있는 층은 항상 지정된 보스가 나온다.")]
+    public List<FloorBossEntry> floorBosses = new List<FloorBossEntry>();
+
+    [System.Serializable]
+    public class FloorBossEntry
+    {
+        [Tooltip("GameManager.currentFloor 와 비교할 층수 (1부터)")]
+        public int floor = 4;
+        public EnemyMinionDataSO boss;
+    }
+
+    /// <summary>해당 층에 배정된 보스를 반환한다. 배정이 없으면 null(= 보스 층이 아님).</summary>
+    public EnemyMinionDataSO GetBossForFloor(int floor)
+    {
+        if (floorBosses == null) return null;
+        foreach (var entry in floorBosses)
+        {
+            if (entry != null && entry.floor == floor) return entry.boss;
+        }
+        return null;
+    }
 }

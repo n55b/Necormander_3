@@ -86,6 +86,22 @@ public class MapGenerator : MonoBehaviour
         if (prefData != null) prefabData = prefData;
     }
 
+    /// <summary>
+    /// 이번 층이 보스 층인가. 층수는 MapGenerationDataSO.floorBosses 하나만 보고 판단한다 —
+    /// 여기서 "보스 방을 만들까"와 BossRoomEvent 의 "누구를 소환할까"가 같은 표를 읽어야
+    /// 보스 없는 보스 방이나 보스 방 없는 보스가 생기지 않는다. (예전엔 여기만 4층으로 하드코딩)
+    /// </summary>
+    private bool IsBossFloor()
+    {
+        // BossRoomEvent.ResolveBossData 와 **글자 그대로 같은 조회**여야 한다. 여기만 true 가 되면
+        // 보스가 안 나오는 보스 방이 생기고, 그 방은 적이 0마리라 진입 즉시 자동 클리어된다.
+        // (디버그 시작 층은 GameManager.Awake 가 currentFloor 를 debugStartFloor 로 강제하므로
+        //  여기서 따로 볼 필요가 없다 — 그 층이 표에 있으면 자동으로 보스 층이 된다.)
+        var gm = GameManager.Instance;
+        if (gm == null || gm.CurrentStageMapData == null) return false;
+        return gm.CurrentStageMapData.GetBossForFloor(gm.currentFloor) != null;
+    }
+
     private void Awake()
     {
         Instance = this;
@@ -171,7 +187,7 @@ public class MapGenerator : MonoBehaviour
             ClearExistingMap();
 
             bool isEliteArena = GameManager.Instance != null && GameManager.Instance.debugEliteArena;
-            bool isBossFloor = !isEliteArena && GameManager.Instance != null && (GameManager.Instance.currentFloor == 4 || (GameManager.Instance.debugStartAtBoss && GameManager.Instance.currentFloor == GameManager.Instance.debugStartFloor));
+            bool isBossFloor = !isEliteArena && IsBossFloor();
 
             if (isBossFloor)
             {
@@ -1621,7 +1637,7 @@ public class MapGenerator : MonoBehaviour
             gridMap = new Dictionary<Vector2Int, RoomInstance>();
 
             bool isEliteArena = GameManager.Instance != null && GameManager.Instance.debugEliteArena;
-            bool isBossFloor = !isEliteArena && GameManager.Instance != null && (GameManager.Instance.currentFloor == 4 || (GameManager.Instance.debugStartAtBoss && GameManager.Instance.currentFloor == GameManager.Instance.debugStartFloor));
+            bool isBossFloor = !isEliteArena && IsBossFloor();
 
             bool placementSuccess = false;
             if (isEliteArena)

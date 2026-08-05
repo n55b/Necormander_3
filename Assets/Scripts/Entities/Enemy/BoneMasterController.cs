@@ -89,7 +89,6 @@ public class BoneMasterController : EnemyController
     private Vector2 _thornRingPhase1Size = Vector2.zero;
     private Coroutine _stateTextClearRoutine;
     private Coroutine _groggyFlashRoutine;
-    private float _lastControllerDiagTime = -100f;
     private NavMeshAgent _navAgent;
     private RoomInstance _cachedRoom;
 
@@ -125,21 +124,6 @@ public class BoneMasterController : EnemyController
         DamageEventBus.OnBeforeDamageCalculated += HandleIncomingDamageAmp;
 
         SetupThornArenaRing();
-        HideDanglingDoorPlaceholders();
-    }
-
-    protected override void Update()
-    {
-        base.Update();
-
-        if (Time.time - _lastControllerDiagTime > 2f)
-        {
-            _lastControllerDiagTime = Time.time;
-            string brainType = Brain != null ? Brain.GetType().Name : "NULL";
-            string targetName = Target != null ? Target.name : "NULL";
-            bool onMesh = _navAgent != null && _navAgent.isOnNavMesh;
-            Debug.Log($"<color=magenta>[BoneMaster-CTRL-Diag]</color> enabled={enabled} CurrentState={CurrentState} IsAttacking={IsAttacking} Target={targetName} Brain={brainType} Phase={CurrentPhase} IsGroggy={IsGroggy} OnNavMesh={onMesh} Pos={transform.position}");
-        }
     }
 
     protected override void OnDestroy()
@@ -148,6 +132,10 @@ public class BoneMasterController : EnemyController
         if (Health != null) Health.UpdateHPBar -= CheckPartBreak;
         DamageEventBus.OnBeforeDamageCalculated -= HandleIncomingDamageAmp;
         if (_thornRing != null) Destroy(_thornRing.gameObject);
+        // 예고 중에 보스가 죽으면 패턴 코루틴이 통째로 끊겨서, 그 코루틴이 만든 텔레그래프를
+        // 지우는 Destroy 가 실행되지 않는다. 텔레그래프는 보스의 자식이 아니라 월드 루트
+        // 오브젝트라 보스와 같이 사라지지도 않으므로 여기서 치운다.
+        CleanupDanglingTelegraphs();
     }
 
     private void HandleIncomingDamageAmp(CharacterHealth target, ref DamageInfo info)
@@ -198,6 +186,12 @@ public class BoneMasterController : EnemyController
                 SetStateTextTemporary("흉갑 파괴! 페이즈 2 돌입!", Color.red, partBreakTextDuration);
                 Debug.Log("<color=red>[BoneMaster]</color> 흉갑 파괴! 받는피해 +15%(누적 45%), 이동속도 +15%. 페이즈2 진입.");
 
+                // CancelAttack() 을 먼저 부른다. StopAllCoroutines() 만 쓰면 공격 루틴이 끝에서
+                // 되돌리는 IsAttacking 이 true 로 굳고, BaseEntity.CanExecuteAI 가 그걸 보고 막아서
+                // 페이즈2 브레인의 Execute() 가 영영 호출되지 않는다(= 보스가 통째로 얼어붙는다).
+                // IsAttacking 을 false 로 되돌리는 곳은 공격 루틴 끝과 CancelAttack() 둘뿐인데,
+                // 흉갑 파괴는 플레이어 타격 순간에 터지므로 공격 도중일 확률이 높다.
+                CancelAttack();
                 StopAllCoroutines();
                 // [버그 수정 — 전환 순간 잔여물] StopAllCoroutines()로 죽는 코루틴은 자기가 만든
                 // 오브젝트(텔레그래프)를 못 지우고, 열어둔 카운터 게이지도 못 닫는다. 여기서 대신 정리한다.
@@ -419,8 +413,6 @@ public void WarpTo(Vector3 pos)
         return _thornRing != null ? _thornRing.GetDistanceToInnerEdge(origin, dir) : -1f;
     }
 
-    public const string ThornWallTag = "BoneSpikeWall";
-
     private EliteBossPatternLabel CreatePatternLabel()
     {
         GameObject labelObj = new GameObject("PatternLabel");
@@ -473,24 +465,6 @@ private void ShrinkThornArenaRing()
         _thornRing.SetupAsRing(newSize, thornRingColor, thornRingSortingOrder, thornRingPhase2BandRatio, this);
         _thornRing.SetupVoidBarrier(voidBarrierMargin, voidBarrierColor, voidBarrierSortingOrder);
     }
-
-    private void HideDanglingDoorPlaceholders()
-    {
-        var allTransforms = FindObjectsByType<Transform>(FindObjectsSortMode.None);
-        foreach (var t in allTransforms)
-        {
-            if (!t.name.StartsWith("Door_")) continue;
-            if (!t.name.Contains("Room_")) continue;
-
-            var sr = t.GetComponent<SpriteRenderer>();
-            if (sr != null && sr.enabled)
-            {
-                sr.enabled = false;
-                Debug.Log($"<color=cyan>[BoneMaster]</color> 막다른 문 마커 시각 표시 숨김: {t.name}");
-            }
-        }
-    }
-
 
     /// <summary>
     /// [버그 수정 — 페이즈 전환 시 텔레그래프 잔여물] StopAllCoroutines()로 패턴 코루틴을 강제 종료하면

@@ -109,8 +109,10 @@ public class GameManager : MonoBehaviour
 
     [Header("Floor Info")]
     [SerializeField] public int currentFloor = 1;
-    [SerializeField] public bool debugStartAtBoss = false; // [추가] 보스방 직행 디버그 옵션
-    [SerializeField] public int debugStartFloor = 4;       // [추가] 보스방 기준 층
+    [Tooltip("0이면 꺼짐. 1 이상이면 세이브를 무시하고 그 층에서 시작한다. " +
+             "보스 층인지 아닌지는 MapGenerationData 의 Floor Bosses 표가 정하므로, " +
+             "표에 있는 층(현재 4)을 넣으면 스폰방+보스방 2칸짜리 맵으로 시작한다.")]
+    [SerializeField] public int debugStartFloor = 0;
 
     [Header("엘리트 아레나 (EliteTestScene 용 — 배포 빌드에선 반드시 꺼둘 것)")]
     [Tooltip("켜면 맵을 '스폰 방 + 엘리트 방' 두 칸짜리로만 만들고, 플레이어를 엘리트 방 입구에 바로 놓는다.")]
@@ -138,10 +140,10 @@ public class GameManager : MonoBehaviour
             Debug.Log("<b>[GameManager]</b> No save data found. Starting from Floor 1.");
         }
 
-        if (debugStartAtBoss)
+        if (debugStartFloor > 0)
         {
             currentFloor = debugStartFloor;
-            Debug.Log($"<color=yellow>[GameManager]</color> Debug Start at Boss enabled! Forcing Floor {currentFloor}");
+            Debug.Log($"<color=yellow>[GameManager]</color> Debug Start Floor 설정됨 — 세이브를 무시하고 {currentFloor}층에서 시작합니다.");
         }
 
         InitializeGame();

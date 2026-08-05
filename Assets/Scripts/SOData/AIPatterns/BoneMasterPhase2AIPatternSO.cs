@@ -20,7 +20,7 @@ using UnityEngine;
 /// 코루틴이 영원히 안 끝나는 채로 남아 보스가 "낑겨서" 아무것도 못 하는 것처럼 멈출 수 있다.
 /// </summary>
 [CreateAssetMenu(fileName = "BoneMasterPhase2AIPattern", menuName = "Necromancer/AI/BoneMasterPhase2Pattern")]
-public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
+public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
 {
     [Header("교전 거리")]
     public float engageRange = 5f;

@@ -3,8 +3,14 @@ using UnityEngine;
 /// <summary>
 /// 모든 보스 AI 패턴의 기반이 되는 클래스입니다.
 /// 페이즈 전환 등 보스 공통 로직을 관리합니다.
+///
+/// BaseAIPatternSO 를 상속한다 — AIPatternSO 의 훅(UpdateTargeting/UpdateStateTransitions/OnIdle/
+/// OnFollow/OnAttack)은 전부 빈 몸통이라, 여기서 AIPatternSO 를 직접 상속하면 보스는 Execute() 를
+/// 통째로 override 하고 NavMesh 추격·공격 루틴을 각자 복붙하는 것 말고는 선택지가 없다(차저/워리어/
+/// 아처/서머너가 실제로 그렇다). BaseAIPatternSO 를 끼워 두면 새 보스는 필요한 훅만 골라 덮어쓸 수
+/// 있고, Execute() 를 override 하는 기존 보스들은 이 훅이 아예 호출되지 않으므로 동작이 바뀌지 않는다.
 /// </summary>
-public abstract class BossAIPatternSO : AIPatternSO
+public abstract class BossAIPatternSO : BaseAIPatternSO
 {
     [Header("Boss Phase Settings")]
     public float phase2Threshold = 0.5f; // 페이즈 2 전환 체력 비율

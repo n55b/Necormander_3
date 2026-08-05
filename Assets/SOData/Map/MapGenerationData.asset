@@ -43,3 +43,6 @@ MonoBehaviour:
   doorRight: {fileID: 0}
   corridorStraightLength: 3
   corridorAvoidMargin: 2
+  floorBosses:
+  - floor: 4
+    boss: {fileID: 11400000, guid: 67023cf1463b1d54aa99893ef5ba12ab, type: 2}

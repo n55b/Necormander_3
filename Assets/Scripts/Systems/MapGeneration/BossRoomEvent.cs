@@ -11,7 +11,9 @@ using UnityEngine.Events;
 public class BossRoomEvent : MonoBehaviour, IRoomEvent
 {
     [Header("Boss Settings")]
-    [Tooltip("비워두면 엘리트 풀에서 랜덤으로 보스를 소환합니다.")]
+    [Tooltip("이 방에서만 강제로 소환할 보스. 보스 테스트 씬처럼 층수와 무관하게 특정 보스를 " +
+             "띄우고 싶을 때만 채운다. 비워두면 층수에 배정된 보스가 나온다 " +
+             "(MapGenerationDataSO.floorBosses).")]
     [SerializeField] private EnemyMinionDataSO specificBossData;
     [SerializeField] private GameObject portalObject;
 
@@ -24,7 +26,6 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     public UnityEvent OnBossCombatClear;
 
     private GameObject _activeBoss;
-    private List<EnemyMinionDataSO> _bossEnemyPool = new List<EnemyMinionDataSO>();
     private List<GameObject> _activeEnemies = new List<GameObject>(); // 분열 등으로 추가된 적(보스 외)
     private bool _isBattleActive = false;
     private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
@@ -36,18 +37,6 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         if (portalObject != null && portalObject.scene.IsValid())
         {
             portalObject.SetActive(false);
-        }
-
-        if (specificBossData == null && GameManager.Instance != null && GameManager.Instance.dataManager != null)
-        {
-            var rawList = GameManager.Instance.dataManager.BOSS_MINION_DATA;
-            if (rawList != null)
-            {
-                foreach (var data in rawList)
-                {
-                    _bossEnemyPool.Add(data);
-                }
-            }
         }
     }
 
@@ -134,19 +123,31 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         Debug.Log($"<color=red>[BossRoom]</color> Boss Defeated!");
     }
 
+    /// <summary>
+    /// 이 방에 소환할 보스를 결정한다. 우선순위는 방 지정 → 층수 배정 두 단계뿐이고,
+    /// 무작위 폴백은 없다 — 몇 층에서 누구를 만나는지는 항상 고정이어야 한다.
+    /// (예전엔 보스 레지스트리에서 랜덤으로 뽑았고, 그 풀에 페이즈2 데이터까지 들어 있어서
+    ///  4층 보스가 절반의 확률로 페이즈2 개체로 시작하곤 했다.)
+    /// </summary>
+    private EnemyMinionDataSO ResolveBossData()
+    {
+        if (specificBossData != null) return specificBossData;
+
+        var gm = GameManager.Instance;
+        if (gm == null || gm.CurrentStageMapData == null) return null;
+        return gm.CurrentStageMapData.GetBossForFloor(gm.currentFloor);
+    }
+
     private void SpawnBoss(RoomInstance room)
     {
-        var dataToSpawn = specificBossData;
-
-        // 특정 보스가 할당 안 된 경우 랜덤 풀에서 가져옴
-        if (dataToSpawn == null && _bossEnemyPool.Count > 0)
-        {
-            dataToSpawn = _bossEnemyPool[Random.Range(0, _bossEnemyPool.Count)];
-        }
+        var dataToSpawn = ResolveBossData();
 
         if (dataToSpawn == null)
         {
-            Debug.LogError("[BossRoom] Spawn failed: No Boss Data assigned or found in pool!");
+            int floor = GameManager.Instance != null ? GameManager.Instance.currentFloor : -1;
+            Debug.LogError($"[BossRoom] Spawn failed: {floor}층에 배정된 보스가 없습니다. " +
+                           "MapGenerationData 의 Floor Bosses 에 이 층을 추가하거나, " +
+                           "이 방의 Specific Boss Data 를 채워주세요.");
             return;
         }
 

@@ -269,8 +269,7 @@ MonoBehaviour:
   testMode_InfiniteStamina: 1
   testMode_DisableAutoBattle: 0
   currentFloor: 1
-  debugStartAtBoss: 0
-  debugStartFloor: 4
+  debugStartFloor: 0
 --- !u!114 &1051151079312591265
 MonoBehaviour:
   m_ObjectHideFlags: 0

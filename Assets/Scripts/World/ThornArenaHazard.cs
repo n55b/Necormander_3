@@ -37,7 +37,6 @@ public class ThornArenaHazard : MonoBehaviour
     {
         var col = GetComponent<Collider2D>();
         col.isTrigger = true;
-        gameObject.tag = "BoneSpikeWall";
     }
 
     private void OnTriggerEnter2D(Collider2D other) => TryDamage(other);

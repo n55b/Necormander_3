@@ -26,7 +26,7 @@ using UnityEngine;
 /// 시점에도 진단 로그를 남겨서, 다음에 재현되면 정확히 어디서 끊기는지 확인할 수 있게 했다.
 /// </summary>
 [CreateAssetMenu(fileName = "BoneMasterAIPattern", menuName = "Necromancer/AI/BoneMasterPattern")]
-public class BoneMasterAIPatternSO : BaseAIPatternSO
+public class BoneMasterAIPatternSO : BossAIPatternSO
 {
     [Header("교전 거리")]
     public float engageRange = 6f;
@@ -548,7 +548,9 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
         Collider2D[] hits = Physics2D.OverlapCircleAll(pos, wallCheckRadius);
         foreach (var h in hits)
         {
-            if (h.CompareTag(BoneMasterController.ThornWallTag)) return true;
+            // 태그가 아니라 컴포넌트로 판정한다. 예전엔 "BoneSpikeWall" 태그를 썼는데 그 태그가
+            // TagManager 에 등록돼 있지 않아서, 태그를 다는 쪽은 예외로 죽고 이 검사는 영원히 false 였다.
+            if (h.GetComponent<ThornArenaHazard>() != null) return true;
         }
         return false;
     }
@@ -563,7 +565,10 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
     {
         float dist = Vector2.Distance(prevPos, nextPos);
         int steps = Mathf.Max(1, Mathf.CeilToInt(dist / Mathf.Max(0.05f, wallCheckRadius)));
-        for (int i = 0; i <= steps; i++)
+        // i는 1부터 — i=0은 prevPos(= 이번 프레임 시작 위치)라 "이미 서 있던 자리"를 다시 검사한다.
+        // 돌진은 항상 벽 직전에서 멈추므로 다음 돌진의 시작 위치는 벽에서 wallCheckRadius 안쪽인
+        // 경우가 많고, 그러면 첫 검사에서 즉시 걸려 한 칸도 못 가고 자해 경직에 빠진다.
+        for (int i = 1; i <= steps; i++)
         {
             Vector2 sample = Vector2.Lerp(prevPos, nextPos, steps == 0 ? 0f : (float)i / steps);
             if (IsTouchingThornWall(sample)) return true;

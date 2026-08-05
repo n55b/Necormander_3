@@ -52,24 +52,31 @@ public static class BoneMasterCounterUtil
             DamageEventBus.OnBeforeDamageCalculated += RedPunishHandler;
         }
 
-        float timer = 0f;
-        while (timer < reactionWindow)
+        try
         {
-            if (!isFake && brokenByPlayer) break;
-            if (controller != null) controller.WarpTo(origin);
-            else entity.transform.position = origin;
-            timer += Time.deltaTime;
-            yield return null;
+            float timer = 0f;
+            while (timer < reactionWindow)
+            {
+                if (!isFake && brokenByPlayer) break;
+                if (controller != null) controller.WarpTo(origin);
+                else entity.transform.position = origin;
+                timer += Time.deltaTime;
+                yield return null;
+            }
+        }
+        finally
+        {
+            // 이 코루틴은 창이 열린 채로 끊길 수 있다 — 부위 파괴(BoneMasterController.BreakNextPart)가
+            // StopAllCoroutines() 를 부르고, 창 도중에도 도트 피해 같은 비(非)플레이어 피해는
+            // 무효화를 안 거치고 들어가 부위 파괴선을 넘길 수 있다. 그때 구독이 남으면 핸들러가
+            // 영원히 살아서 보스가 받는 모든 플레이어 피해를 0으로 만든다(= 보스가 불사신이 된다).
+            if (isFake) DamageEventBus.OnBeforeDamageCalculated -= RedPunishHandler;
+            else if (gauge != null) gauge.OnGaugeBroken -= OnBroken;
         }
 
         if (!isFake && gauge != null)
         {
-            gauge.OnGaugeBroken -= OnBroken;
             gauge.CloseWindow();
-        }
-        if (isFake)
-        {
-            DamageEventBus.OnBeforeDamageCalculated -= RedPunishHandler;
         }
 
         controller?.ClearVisualFlash();
@@ -96,8 +103,15 @@ public static class BoneMasterCounterUtil
             if (!DamageRules.IsPlayerSourced(info.category)) return;
             if (info.amount <= 0f) return;
 
+            // 페이크 카운터(빨간 창)는 "치면 안 되는 창"이므로 피해 무효화는 무조건 먼저 한다.
             redPunishTriggered = true;
             info.amount = 0f;
+
+            // 다만 역공은 대쉬 무적 중인 공격에는 걸지 않는다. BossCombat.TryDamage 가 모든 보스
+            // 피해에 걸어 두는 Player_Dash 가드와 같은 규칙인데, 여기는 GetDamage 를 직접 부르는
+            // 유일한 경로라 그 가드를 못 탄다. 역공 피해는 CharacterHealth 가 막아 주지만
+            // Hitstun 은 아무 가드도 안 거쳐서, 대쉬로 파고들면 0.75초 완전 락아웃이 걸렸다.
+            if (info.attacker != null && info.attacker.layer == Layers.PlayerDash) return;
 
             if (info.attacker != null)
             {
