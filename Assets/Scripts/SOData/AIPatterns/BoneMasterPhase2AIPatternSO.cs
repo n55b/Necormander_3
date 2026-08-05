@@ -45,6 +45,10 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     [Header("텔레그래프(피해범위 인디케이터) 색상")]
     public Color telegraphWarnColor = new Color(1f, 0.1f, 0.1f, 0.9f);
 
+    [Tooltip("직선(레인) 전조 프리팹. Assets/Prefabs/Skill Visual Effects/Telegraph Line Hitbox Prefab. " +
+             "시각 전용으로만 쓰며 피해는 BossCombat 이 준다(콜라이더가 없는 프리팹).")]
+    public BaseHitBox laneTelegraphPrefab;
+
     [Header("패턴 1번: 회전 베기 & 내려찍기")]
     public float spinRadius = 4f;
     public float spinSafeRadius = 2.2f;
@@ -264,7 +268,7 @@ private IEnumerator BasicAttack_Thrust(BaseEntity entity)
         float width = basicThrustWidth * rangeMul;
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
-            entity, origin, dir, length, width, telegraphWarnColor);
+            entity, origin, dir, length, width, telegraphWarnColor, laneTelegraphPrefab, basicAttackWindup);
 
         float t = 0f;
         while (t < basicAttackWindup)
@@ -331,7 +335,9 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
         // 기준 그 방향으로 뻗는 긴 직사각형(검을 내려찍는 궤적)으로 바꿔서 옆/뒤로 피할 수 있게 한다.
         _controller?.SetStateText($"{Pattern1Label} - 내려찍기 예고!", Color.yellow);
         Vector2 slamDir = SafeDirTo(entity, origin, entity.Target);
-        GameObject slamTelegraph = BoneMasterTelegraphUtil.SpawnLane(entity, origin, slamDir, slamRange, slamWidth, telegraphWarnColor);
+        GameObject slamTelegraph = BoneMasterTelegraphUtil.SpawnLane(
+            entity, origin, slamDir, slamRange, slamWidth, telegraphWarnColor,
+            laneTelegraphPrefab, slamTelegraphTime * csMul);
 
         var gauge = _controller != null ? _controller.CounterGauge : null;
         bool broken = false;

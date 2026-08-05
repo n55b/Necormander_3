@@ -28,6 +28,8 @@ MonoBehaviour:
   counterCooldown: 9
   weights: {x: 33, y: 33, z: 34}
   telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
+  laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3,
+    type: 3}
   spinRadius: 4
   spinSafeRadius: 1.5
   spinTelegraphLead: 0.4

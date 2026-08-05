@@ -77,57 +77,79 @@ public static class BoneMasterTelegraphUtil
         return SpawnCircle(entity, pos, radius, color, bandRatio, sortingOrder);
     }
 
-    /// <summary>origin에서 dir 방향으로 length만큼 뻗는 두꺼운 직선(레인) 경고를 그린다. 폭은 width. (창 찌르기 등 직선형 공격용)</summary>
-    public static GameObject SpawnLane(BaseEntity entity, Vector2 origin, Vector2 dir, float length, float width, Color color, int sortingOrder = 5000)
+    /// <summary>
+    /// 전조 프리팹을 "시각 전용"으로 가동한다.
+    /// targetLayer 를 0 으로 넘겨 BaseHitBox 의 자동 타격을 끈다(OnTriggerStay2D 의 레이어 검사가 항상 걸러낸다).
+    /// 피해는 오직 BossCombat.DealXXX 가 준다 — 보스의 단일 데미지 경로는 그대로다.
+    /// Init 이 ApplyTeamColor 로 RGB 를 공용 팔레트 색으로 덮으므로, 보스 고유 경고색(3연타 마지막 노랑 등)은
+    /// 그 뒤에 다시 칠한다. 알파는 프리팹 값을 유지해야 차오름 연출이 안 가려진다.
+    /// </summary>
+    private static void InitAsVisualOnly(BaseHitBox box, BaseEntity entity, float windup, float life, Color color)
     {
-        GameObject go = new GameObject("BoneMaster_Telegraph_Lane");
-        go.transform.position = origin;
+        box.Init(new DamageInfo(0f, DamageType.Physical, entity != null ? entity.gameObject : null), 0, life, windup);
 
-        var lr = go.AddComponent<LineRenderer>();
-        lr.loop = false;
-        lr.positionCount = 2;
-        Vector2 d = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector2.right;
-        lr.SetPosition(0, Vector3.zero);
-        lr.SetPosition(1, (Vector3)(d * length));
-
-        ApplyCommon(lr, entity, color, sortingOrder, width);
-        return go;
-    }
-
-    /// <summary>SpawnLane으로 만든 오브젝트의 시작점/방향/길이를 갱신한다(보스가 움직이며 조준할 때).</summary>
-    public static void UpdateLane(GameObject lane, Vector2 origin, Vector2 dir, float length)
-    {
-        if (lane == null) return;
-        var lr = lane.GetComponent<LineRenderer>();
-        if (lr == null) return;
-        lane.transform.position = origin;
-        Vector2 d = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector2.right;
-        lr.SetPosition(0, Vector3.zero);
-        lr.SetPosition(1, (Vector3)(d * length));
-    }
-
-    /// <summary>중심(pos)에 타원(가로 radiusX, 세로 radiusY)의 두꺼운 경고를 그린다. (도약 & 내려찍기 착지 지점용)</summary>
-    public static GameObject SpawnEllipse(BaseEntity entity, Vector2 pos, float radiusX, float radiusY, Color color, float bandRatio = 0.9f, int sortingOrder = 5000)
-    {
-        GameObject go = new GameObject("BoneMaster_Telegraph_Ellipse");
-        go.transform.position = pos;
-
-        var lr = go.AddComponent<LineRenderer>();
-        const int segments = 48;
-        lr.loop = true;
-        lr.positionCount = segments;
-
-        float minRadius = Mathf.Min(radiusX, radiusY);
-        float width = Mathf.Max(0.05f, minRadius * bandRatio);
-        float drawRatio = 1f - (width * 0.5f) / Mathf.Max(0.001f, minRadius);
-        for (int i = 0; i < segments; i++)
+        foreach (var sr in box.GetComponentsInChildren<SpriteRenderer>(true))
         {
-            float angle = i * Mathf.PI * 2f / segments;
-            lr.SetPosition(i, new Vector3(Mathf.Cos(angle) * radiusX * drawRatio, Mathf.Sin(angle) * radiusY * drawRatio, 0f));
+            if (sr == null) continue;
+            sr.color = new Color(color.r, color.g, color.b, sr.color.a);
+        }
+    }
+
+    /// <summary>
+    /// origin 에서 dir 방향으로 length 만큼 뻗는 직사각 레인 경고. 폭은 width. (창 찌르기/내려찍기/돌진 예고용)
+    ///
+    /// 절차적 LineRenderer 대신 공용 전조 프리팹(Telegraph Line Hitbox)을 쓴다:
+    /// (1) LineRenderer 는 numCapVertices 때문에 양 끝에 width/2 씩 둥근 캡을 덧그려서, 그림이
+    ///     BossCombat.DealLane 의 판정 박스(정확히 length×width)보다 앞뒤로 길었다 —
+    ///     "그림 끝에 서 있는데 안 맞는" 현상의 원인.
+    /// (2) 이 프리팹은 콜라이더가 하나도 없어서 Init 을 불러도 데미지가 나갈 물리적 경로 자체가 없다.
+    /// (3) 자식 앵커가 로컬 x∈[0,1] 이라 DealLane 의 origin 기준 박스와 좌표계가 그대로 일치한다.
+    /// (4) windup 동안 차오르는 게이지 연출이 프리팹에 딸려 있어 런타임 코드가 0줄이다.
+    /// </summary>
+    public static GameObject SpawnLane(BaseEntity entity, Vector2 origin, Vector2 dir, float length, float width,
+                                       Color color, BaseHitBox prefab, float windup, float life = 0.1f)
+    {
+        if (prefab == null)
+        {
+            Debug.LogError("[BoneMaster] laneTelegraphPrefab 이 비어 있습니다 — AI Pattern 에셋에 " +
+                           "'Telegraph Line Hitbox Prefab' 을 넣어주세요. 전조 없이 진행합니다.");
+            return null;
         }
 
-        ApplyCommon(lr, entity, color, sortingOrder, width);
-        return go;
+        Vector2 d = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector2.right;
+        BaseHitBox box = Object.Instantiate(prefab, origin,
+                                            Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg));
+        // 이름 접두사로 찾아서 정리하므로(BoneMasterController.CleanupDanglingTelegraphs) 반드시 맞춘다.
+        box.name = "BoneMaster_Telegraph_Lane";
+        box.transform.localScale = new Vector3(length, width, 1f);
+        InitAsVisualOnly(box, entity, windup, life, color);
+        return box.gameObject;
+    }
+
+    /// <summary>
+    /// 중심(pos)에 가로 radiusX / 세로 radiusY 인 타원 경고. (도약 & 내려찍기 착지 지점용)
+    ///
+    /// 프리팹은 CircleCollider2D 를 갖고 있으므로 InitAsVisualOnly 의 targetLayer 0 이 필수다 —
+    /// 안 그러면 DealEllipse 와 이중 판정이 난다. (비균등 스케일에서 CircleCollider2D 는 큰 축 기준
+    /// 원으로 뭉개지므로, 콜라이더로 타원 판정을 내는 선택지는 애초에 없다.)
+    /// 예전 LineRenderer 방식은 띠 두께를 min(rx, ry) 공통으로 잡아서 rx > ry 일 때 가로 외곽을
+    /// 짧게 그렸다(판정 2.2 → 그림 1.93). x/y 스케일이 독립인 프리팹은 그 오차가 없다.
+    /// </summary>
+    public static GameObject SpawnEllipse(BaseEntity entity, Vector2 pos, float radiusX, float radiusY,
+                                          Color color, BaseHitBox prefab, float windup, float life = 0.1f)
+    {
+        if (prefab == null)
+        {
+            Debug.LogError("[BoneMaster] circleTelegraphPrefab 이 비어 있습니다 — AI Pattern 에셋에 " +
+                           "'Center Skill Hitbox Circle Prefab' 을 넣어주세요. 전조 없이 진행합니다.");
+            return null;
+        }
+
+        BaseHitBox box = Object.Instantiate(prefab, pos, Quaternion.identity);
+        box.name = "BoneMaster_Telegraph_Ellipse";
+        box.transform.localScale = new Vector3(radiusX * 2f, radiusY * 2f, 1f);
+        InitAsVisualOnly(box, entity, windup, life, color);
+        return box.gameObject;
     }
 
     /// <summary>

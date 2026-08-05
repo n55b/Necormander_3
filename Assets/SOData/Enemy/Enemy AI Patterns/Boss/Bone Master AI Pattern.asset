@@ -35,6 +35,10 @@ MonoBehaviour:
   weights80To60: {x: 14, y: 40, z: 46}
   weightsBelow60: {x: 10, y: 42, z: 48}
   telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
+  laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3,
+    type: 3}
+  circleTelegraphPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8,
+    type: 3}
   howlPushRadius: 2.5
   howlPushForce: 4
   chargeTelegraphTime: 1.5

@@ -60,6 +60,12 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
     [Header("텔레그래프(피해범위 인디케이터) 색상")]
     public Color telegraphWarnColor = new Color(1f, 0.1f, 0.1f, 0.9f);
 
+    [Tooltip("직선(레인) 전조 프리팹. Assets/Prefabs/Skill Visual Effects/Telegraph Line Hitbox Prefab. " +
+             "시각 전용으로만 쓰며 피해는 BossCombat 이 준다(콜라이더가 없는 프리팹).")]
+    public BaseHitBox laneTelegraphPrefab;
+    [Tooltip("원/타원 전조 프리팹. Assets/Prefabs/Skill Visual Effects/Center Skill Hitbox Circle Prefab.")]
+    public BaseHitBox circleTelegraphPrefab;
+
     [Header("패턴 1번: 박치기 돌격")]
     public float howlPushRadius = 2.5f;
     public float howlPushForce = 4f;
@@ -326,7 +332,7 @@ private IEnumerator BasicAttack_Thrust(BaseEntity entity)
         float width = basicThrustWidth * rangeMul;
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
-            entity, origin, dir, length, width, telegraphWarnColor);
+            entity, origin, dir, length, width, telegraphWarnColor, laneTelegraphPrefab, basicAttackWindup);
 
         float t = 0f;
         while (t < basicAttackWindup)
@@ -353,7 +359,10 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         float radiusY = leapSlamRadiusY * rangeMul;
 
         Vector2 landPos = entity.Target != null ? (Vector2)entity.Target.position : (Vector2)entity.transform.position;
-        GameObject telegraph = BoneMasterTelegraphUtil.SpawnEllipse(entity, landPos, radiusX, radiusY, telegraphWarnColor);
+        // life 가 도약 시간까지 덮어야 한다 — 예고가 끝나도 착지(:Destroy)까지는 장판이 떠 있어야 하니까.
+        GameObject telegraph = BoneMasterTelegraphUtil.SpawnEllipse(
+            entity, landPos, radiusX, radiusY, telegraphWarnColor, circleTelegraphPrefab,
+            leapWindup + basicAttackWindup * 0.3f, leapDuration + 0.2f);
 
         float t = 0f;
         while (t < leapWindup + basicAttackWindup * 0.3f)
@@ -447,7 +456,8 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
         }
 
         GameObject laneTelegraph = BoneMasterTelegraphUtil.SpawnLane(
-            entity, origin, lockedDir, chargeDistance, chargeTelegraphWidth, telegraphWarnColor);
+            entity, origin, lockedDir, chargeDistance, chargeTelegraphWidth, telegraphWarnColor,
+            laneTelegraphPrefab, chargeTelegraphTime * csMul);
 
         var gauge = _controller != null ? _controller.CounterGauge : null;
         bool broken = false;
@@ -627,7 +637,7 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
             Vector2 dir = SafeDirTo(entity, origin, entity.Target);
 
             GameObject strikeTelegraph = BoneMasterTelegraphUtil.SpawnLane(
-                entity, origin, dir, totalLen, width, telegraphColor);
+                entity, origin, dir, totalLen, width, telegraphColor, laneTelegraphPrefab, lead * csMul);
 
             if (isFinal && gauge != null)
             {
