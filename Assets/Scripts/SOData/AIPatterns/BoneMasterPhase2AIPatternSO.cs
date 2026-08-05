@@ -197,7 +197,7 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
     }
 
     // ── 기본 공격: 거리별 분기 2종 (도약&내려찍기 없음) ────────────────
-    protected override void OnAttack(BaseEntity entity)
+protected override void OnAttack(BaseEntity entity)
     {
         StopNavAgent(entity);
         if (entity.IsAttacking) return;
@@ -207,7 +207,10 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         entity.IsAttacking = true;
 
         float dist = entity.Target != null ? Vector2.Distance(entity.transform.position, entity.Target.position) : 0f;
-        IEnumerator routine = dist <= sweepRange ? BasicAttack_Sweep(entity) : BasicAttack_Thrust(entity);
+        // [버그 수정 — 투구 파괴 효과 미적용] 페이즈2에서도 AttackRangeBonus가 전혀 적용되지 않고 있었다.
+        // 부위파괴 보너스는 페이즈 전환 후에도 누적 유지되는 설계이므로 여기서도 반영해야 한다.
+        float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
+        IEnumerator routine = dist <= sweepRange * rangeMul ? BasicAttack_Sweep(entity) : BasicAttack_Thrust(entity);
         entity.ActiveAttackCoroutine = entity.StartCoroutine(routine);
     }
 
@@ -218,7 +221,7 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         entity.ResetAnimationState();
     }
 
-    private IEnumerator BasicAttack_Sweep(BaseEntity entity)
+private IEnumerator BasicAttack_Sweep(BaseEntity entity)
     {
         StopNavAgent(entity);
         _controller?.HardStopMovement();
@@ -227,8 +230,10 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         if (entity.Target != null) entity.LookAtTarget(entity.Target);
         Vector2 origin = entity.transform.position;
         Vector2 dir = SafeDirTo(entity, origin, entity.Target);
+        float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
+        float radius = sweepRadius * rangeMul;
 
-        GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, origin, dir, sweepRadius, sweepHalfAngle, telegraphWarnColor);
+        GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, origin, dir, radius, sweepHalfAngle, telegraphWarnColor);
 
         float t = 0f;
         while (t < basicAttackWindup)
@@ -240,13 +245,13 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         if (telegraph != null) Object.Destroy(telegraph);
 
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
-        BossCombat.DealCone(origin, dir, sweepRadius, sweepHalfAngle, entity.opponentLayer, info);
+        BossCombat.DealCone(origin, dir, radius, sweepHalfAngle, entity.opponentLayer, info);
 
         yield return new WaitForSeconds(basicAttackRecovery);
         FinishBasicAttack(entity);
     }
 
-    private IEnumerator BasicAttack_Thrust(BaseEntity entity)
+private IEnumerator BasicAttack_Thrust(BaseEntity entity)
     {
         StopNavAgent(entity);
         _controller?.HardStopMovement();
@@ -254,9 +259,12 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         if (entity.Target != null) entity.LookAtTarget(entity.Target);
         Vector2 origin = entity.transform.position;
         Vector2 dir = SafeDirTo(entity, origin, entity.Target);
+        float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
+        float length = basicThrustLength * rangeMul;
+        float width = basicThrustWidth * rangeMul;
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
-            entity, origin, dir, basicThrustLength, basicThrustWidth, telegraphWarnColor);
+            entity, origin, dir, length, width, telegraphWarnColor);
 
         float t = 0f;
         while (t < basicAttackWindup)
@@ -268,7 +276,7 @@ public class BoneMasterPhase2AIPatternSO : BaseAIPatternSO
         if (telegraph != null) Object.Destroy(telegraph);
 
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
-        BossCombat.DealLane(origin, dir, basicThrustLength, basicThrustWidth, entity.opponentLayer, info);
+        BossCombat.DealLane(origin, dir, length, width, entity.opponentLayer, info);
 
         yield return new WaitForSeconds(basicAttackRecovery);
         FinishBasicAttack(entity);
@@ -293,10 +301,12 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
 
         Vector2 origin = entity.transform.position;
         bool hijacked = false;
+        // [버그 수정 — 견갑 파괴 효과 미적용] 페이즈1에서 넘어온 PatternCastSpeedBonus를 예고 시간에 반영한다.
+        float csMul = 1f / (1f + (_controller != null ? _controller.PatternCastSpeedBonus : 0f));
 
         GameObject spinTelegraph = BoneMasterTelegraphUtil.SpawnRing(entity, origin, spinRadius, telegraphWarnColor);
         float leadT = 0f;
-        while (leadT < spinTelegraphLead)
+        while (leadT < spinTelegraphLead * csMul)
         {
             if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
             Warp(entity, origin);
@@ -312,7 +322,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
 
         var spinInfo = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
         BossCombat.DealCircle(origin, spinRadius, entity.opponentLayer, spinInfo, excludeRadius: spinSafeRadius);
-        yield return new WaitForSeconds(spinToSlamPause);
+        yield return new WaitForSeconds(spinToSlamPause * csMul);
         Warp(entity, origin);
 
         // [수정 — 내려찍기 회피 불가 문제] 예전엔 내려찍기가 "플레이어 위치를 텔레그래프 내내 계속
@@ -333,7 +343,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
         }
 
         float t = 0f;
-        while (t < slamTelegraphTime)
+        while (t < slamTelegraphTime * csMul)
         {
             if (broken) break;
             if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
@@ -379,10 +389,11 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
 
         Vector2 origin = entity.transform.position;
         bool hijacked = false;
+        float csMul = 1f / (1f + (_controller != null ? _controller.PatternCastSpeedBonus : 0f));
 
         GameObject bodyTelegraph = BoneMasterTelegraphUtil.SpawnRing(entity, origin, pivotBodySlamRadius, telegraphWarnColor);
         float bt = 0f;
-        while (bt < pivotBodyTelegraphLead)
+        while (bt < pivotBodyTelegraphLead * csMul)
         {
             if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
             Warp(entity, origin);
@@ -409,7 +420,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
         BossCombat.DealCircle(origin, pivotBodySlamRadius, entity.opponentLayer, bodyInfo, excludeRadius: pivotSafeRadius);
 
         float t = 0f;
-        while (t < pivotCounterWindow)
+        while (t < pivotCounterWindow * csMul)
         {
             if (broken) break;
             if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
@@ -439,7 +450,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
             GameObject finishTelegraph = BoneMasterTelegraphUtil.SpawnRing(entity, origin, pivotFinishRadius, telegraphWarnColor);
             float ft = 0f;
             bool finishHijacked = false;
-            while (ft < pivotFinishTelegraphLead)
+            while (ft < pivotFinishTelegraphLead * csMul)
             {
                 if (entity.CurrentState != AIState.Skill) { finishHijacked = true; break; }
                 Warp(entity, origin);

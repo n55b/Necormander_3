@@ -99,9 +99,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 399604117895053826, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 507259436833774323, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: 'behavioursToDisable.Array.data[0]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1098138835551681385, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1578376785222923104, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_WalkableMask
@@ -119,6 +127,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 22100000, guid: d09461136b43a684ebf192dd3ca0ba4f, type: 2}
+    - target: {fileID: 5849399955646985582, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6529688652472716852, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

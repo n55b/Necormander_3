@@ -384,8 +384,17 @@ private IEnumerator Phase2TransitionRoutine()
     /// <summary>NavMeshAgent가 있으면 Warp()로, 없으면 그냥 Transform으로 위치를 옮긴다.
     /// 목표 지점이 NavMesh 위가 아니면(장식 바위 등 걷기 불가능한 지형 근처) 가장 가까운 유효한
     /// 지점으로 보정해서 워프한다 — 안 그러면 Warp가 조용히 실패하면서 보스가 그 자리에 멈춰버린다.</summary>
-    public void WarpTo(Vector3 pos)
+public void WarpTo(Vector3 pos)
     {
+        // [버그 수정 — 뼈 투기장을 뚫는 문제] Warp()는 물리 충돌을 거치지 않는 순간이동이라, 개별
+        // 패턴이 벽 체크를 깜빡하면 그대로 경계를 뚫고 나갈 수 있었다(예: 견갑 찌르기의 재조준+대시엔
+        // 벽 체크가 아예 없었음). 모든 이동이 최종적으로 이 함수를 거치므로, 여기서 한 번에
+        // 뼈 투기장 바깥 경계 안쪽으로 clamp해서 원천 차단한다.
+        if (_thornRing != null)
+        {
+            pos = _thornRing.ClampInsideArena(pos);
+        }
+
         if (_navAgent != null)
         {
             Vector3 target = pos;

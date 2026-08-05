@@ -254,7 +254,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
     }
 
     // ── 기본 공격: 거리별 분기 3종 ──────────────────────────────────
-    protected override void OnAttack(BaseEntity entity)
+protected override void OnAttack(BaseEntity entity)
     {
         StopNavAgent(entity);
         if (entity.IsAttacking) return;
@@ -264,10 +264,13 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         entity.IsAttacking = true;
 
         float dist = entity.Target != null ? Vector2.Distance(entity.transform.position, entity.Target.position) : 0f;
+        // [버그 수정 — 투구 파괴 효과 미적용] AttackRangeBonus가 교전거리(engageRange)에만 쓰이고
+        // 정작 기본 공격 판정 자체(부채꼴/직사각형/타원 크기)에는 전혀 반영되지 않고 있었다.
+        float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
 
         IEnumerator routine;
-        if (dist <= sweepRange) routine = BasicAttack_Sweep(entity);
-        else if (dist <= basicThrustRange) routine = BasicAttack_Thrust(entity);
+        if (dist <= sweepRange * rangeMul) routine = BasicAttack_Sweep(entity);
+        else if (dist <= basicThrustRange * rangeMul) routine = BasicAttack_Thrust(entity);
         else routine = BasicAttack_LeapSlam(entity);
 
         entity.ActiveAttackCoroutine = entity.StartCoroutine(routine);
@@ -280,7 +283,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         entity.ResetAnimationState();
     }
 
-    private IEnumerator BasicAttack_Sweep(BaseEntity entity)
+private IEnumerator BasicAttack_Sweep(BaseEntity entity)
     {
         StopNavAgent(entity);
         _controller?.HardStopMovement();
@@ -289,8 +292,10 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         if (entity.Target != null) entity.LookAtTarget(entity.Target);
         Vector2 origin = entity.transform.position;
         Vector2 dir = SafeDirTo(entity, origin, entity.Target);
+        float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
+        float radius = sweepRadius * rangeMul;
 
-        GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, origin, dir, sweepRadius, sweepHalfAngle, telegraphWarnColor);
+        GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, origin, dir, radius, sweepHalfAngle, telegraphWarnColor);
 
         float t = 0f;
         while (t < basicAttackWindup)
@@ -302,13 +307,13 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         if (telegraph != null) Object.Destroy(telegraph);
 
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
-        BossCombat.DealCone(origin, dir, sweepRadius, sweepHalfAngle, entity.opponentLayer, info);
+        BossCombat.DealCone(origin, dir, radius, sweepHalfAngle, entity.opponentLayer, info);
 
         yield return new WaitForSeconds(basicAttackRecovery);
         FinishBasicAttack(entity);
     }
 
-    private IEnumerator BasicAttack_Thrust(BaseEntity entity)
+private IEnumerator BasicAttack_Thrust(BaseEntity entity)
     {
         StopNavAgent(entity);
         _controller?.HardStopMovement();
@@ -316,9 +321,12 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         if (entity.Target != null) entity.LookAtTarget(entity.Target);
         Vector2 origin = entity.transform.position;
         Vector2 dir = SafeDirTo(entity, origin, entity.Target);
+        float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
+        float length = basicThrustLength * rangeMul;
+        float width = basicThrustWidth * rangeMul;
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
-            entity, origin, dir, basicThrustLength, basicThrustWidth, telegraphWarnColor);
+            entity, origin, dir, length, width, telegraphWarnColor);
 
         float t = 0f;
         while (t < basicAttackWindup)
@@ -330,19 +338,22 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         if (telegraph != null) Object.Destroy(telegraph);
 
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
-        BossCombat.DealLane(origin, dir, basicThrustLength, basicThrustWidth, entity.opponentLayer, info);
+        BossCombat.DealLane(origin, dir, length, width, entity.opponentLayer, info);
 
         yield return new WaitForSeconds(basicAttackRecovery);
         FinishBasicAttack(entity);
     }
 
-    private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
+private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
     {
         StopNavAgent(entity);
         _controller?.SetStateText("기본 공격: 도약 준비", Color.yellow);
+        float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
+        float radiusX = leapSlamRadiusX * rangeMul;
+        float radiusY = leapSlamRadiusY * rangeMul;
 
         Vector2 landPos = entity.Target != null ? (Vector2)entity.Target.position : (Vector2)entity.transform.position;
-        GameObject telegraph = BoneMasterTelegraphUtil.SpawnEllipse(entity, landPos, leapSlamRadiusX, leapSlamRadiusY, telegraphWarnColor);
+        GameObject telegraph = BoneMasterTelegraphUtil.SpawnEllipse(entity, landPos, radiusX, radiusY, telegraphWarnColor);
 
         float t = 0f;
         while (t < leapWindup + basicAttackWindup * 0.3f)
@@ -371,7 +382,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         if (telegraph != null) Object.Destroy(telegraph);
 
         var info = new DamageInfo(entity.Stats.ATK * 1.2f, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true);
-        BossCombat.DealEllipse(landPos, leapSlamRadiusX, leapSlamRadiusY, entity.opponentLayer, info);
+        BossCombat.DealEllipse(landPos, radiusX, radiusY, entity.opponentLayer, info);
 
         yield return new WaitForSeconds(basicAttackRecovery);
         FinishBasicAttack(entity);
@@ -417,6 +428,9 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
 
         Vector2 origin = entity.transform.position;
         Vector2 lockedDir = SafeDirTo(entity, origin, entity.Target);
+        // [버그 수정 — 견갑 파괴 효과 미적용] PatternCastSpeedBonus가 패턴 쿨타임 단축에만 쓰이고
+        // 정작 패턴 자체의 시전(예고) 속도에는 전혀 반영되지 않고 있었다.
+        float csMul = 1f / (1f + (_controller != null ? _controller.PatternCastSpeedBonus : 0f));
 
         float wallDist = _controller != null ? _controller.GetChargeDistance(origin, lockedDir) : -1f;
         float chargeDistance;
@@ -447,7 +461,7 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
         bool hijacked = false;
 
         float t = 0f;
-        while (t < chargeTelegraphTime)
+        while (t < chargeTelegraphTime * csMul)
         {
             if (broken) break;
             if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
@@ -566,6 +580,10 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
         _controller?.HardStopMovement();
         _controller?.SetStateText($"{Pattern2Label}", Color.yellow);
 
+        // [버그 수정 — 견갑 파괴 효과 미적용] 견갑 파괴로 얻는 PatternCastSpeedBonus를 예고/대시/후딜
+        // 전체 타이밍에 반영한다(쿨타임 단축은 기존 UpdateStateTransitions에서 이미 처리 중).
+        float csMul = 1f / (1f + (_controller != null ? _controller.PatternCastSpeedBonus : 0f));
+
         var gauge = _controller != null ? _controller.CounterGauge : null;
         bool broken = false;
         void OnBroken() => broken = true;
@@ -574,7 +592,7 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
 
         Vector2 holdPos = entity.transform.position;
         float preFirst = 0f;
-        while (preFirst < thrustPauseBeforeFirst)
+        while (preFirst < thrustPauseBeforeFirst * csMul)
         {
             if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
             Warp(entity, holdPos);
@@ -614,7 +632,7 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
             }
 
             float leadTimer = 0f;
-            while (leadTimer < lead)
+            while (leadTimer < lead * csMul)
             {
                 if (broken) break;
                 if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
@@ -628,10 +646,11 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
             // [추가] 짧게 파고드는 대시 — 제자리에서 판정만 뻗던 것을 실제 이동으로 바꿔서 위협감을 준다.
             Vector2 dashEnd = origin + dir * dashDist;
             float dashT = 0f;
-            while (dashT < dashDur)
+            float scaledDashDur = dashDur * csMul;
+            while (dashT < scaledDashDur)
             {
                 dashT += Time.deltaTime;
-                Warp(entity, Vector2.Lerp(origin, dashEnd, Mathf.Clamp01(dashT / dashDur)));
+                Warp(entity, Vector2.Lerp(origin, dashEnd, Mathf.Clamp01(dashT / scaledDashDur)));
                 yield return null;
             }
             Warp(entity, dashEnd);
@@ -651,7 +670,7 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
             if (isFinal)
             {
                 float tailT = 0f;
-                while (tailT < thrustFinalCounterTail)
+                while (tailT < thrustFinalCounterTail * csMul)
                 {
                     if (broken) break;
                     if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
@@ -664,7 +683,7 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
             {
                 float pause = pauseAfterStrike[i];
                 float pt = 0f;
-                while (pt < pause)
+                while (pt < pause * csMul)
                 {
                     if (broken) break;
                     if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }

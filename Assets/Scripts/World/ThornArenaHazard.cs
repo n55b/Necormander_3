@@ -249,4 +249,28 @@ public class ThornArenaHazard : MonoBehaviour
 
         return t > 0f ? t : -1f;
     }
+
+
+    /// <summary>
+    /// [버그 수정 — 뼈 투기장을 뚫는 문제] WarpTo()는 물리 충돌을 거치지 않는 순간이동이라, 개별
+    /// 패턴이 벽 체크를 깜빡하면(예: 견갑 찌르기의 재조준+대시) 경계를 그대로 뚫고 나갈 수 있다.
+    /// 안쪽 경계(InnerRadius)가 아니라 "바깥 경계"(OuterRadius, 뼈 투기장의 맨 끝)를 기준으로 clamp
+    /// 한다 — 안쪽 경계로 막으면 돌진 패턴이 의도적으로 가시 띠까지 파고들어 벽 접촉을 감지하는
+    /// 로직과 충돌하기 때문이다. 이렇게 하면 가시 띠 안까지는 들어갈 수 있어도(무해함 — 가시는
+    /// 플레이어만 판정), 검은 차단 영역 쪽으로는 절대 못 나간다.
+    /// </summary>
+    public Vector2 ClampInsideArena(Vector2 worldPos, float safetyMargin = 0.98f)
+    {
+        Vector2 rel = worldPos - (Vector2)transform.position;
+        float rx = OuterRadiusX * safetyMargin;
+        float ry = OuterRadiusY * safetyMargin;
+        if (rx < 0.01f || ry < 0.01f) return worldPos;
+
+        float norm = (rel.x * rel.x) / (rx * rx) + (rel.y * rel.y) / (ry * ry);
+        if (norm <= 1f) return worldPos; // 이미 안쪽
+
+        float scale = 1f / Mathf.Sqrt(norm);
+        return (Vector2)transform.position + rel * scale;
+    }
+
 }
