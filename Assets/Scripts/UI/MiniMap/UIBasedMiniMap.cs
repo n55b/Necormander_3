@@ -297,7 +297,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
 
             if (roomIconSprite == null)
             {
-                if (room.roomType == RoomType.Shop) roomIconSprite = _shopIcon;
+                // 강화 상점도 상점 아이콘을 그대로 쓴다 — 구분은 아래 방 색(주황)이 한다.
+                if (room.roomType == RoomType.Shop || room.roomType == RoomType.EnhanceShop) roomIconSprite = _shopIcon;
                 else if (room.roomType == RoomType.Reward) roomIconSprite = _rewardIcon;
                 else if (room.roomType == RoomType.Spawn) roomIconSprite = _stairIcon;
             }
@@ -325,6 +326,10 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                                 break;
                             case RoomType.Shop:
                                 img.color = new Color(1f, 0.85f, 0.2f, 1.0f);
+                                break;
+                            case RoomType.EnhanceShop:
+                                // 일반 상점(노랑)과 같은 계열이되 한눈에 갈리는 주황.
+                                img.color = new Color(1f, 0.55f, 0.15f, 1.0f);
                                 break;
                             case RoomType.Reward:
                                 img.color = new Color(0.2f, 0.85f, 0.4f, 1.0f);
@@ -489,6 +494,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         {
             case RoomType.Spawn: return customNormalRoomSprite; // 스폰 방도 기본 일반 형태 활용
             case RoomType.Shop: return customShopRoomSprite;
+            // 강화 상점은 지형도 상점과 같아서 스킨을 공유한다. 따로 뜯고 싶으면 필드를 하나 더 만들면 됨.
+            case RoomType.EnhanceShop: return customShopRoomSprite;
             case RoomType.Reward: return customRewardRoomSprite;
             case RoomType.Boss: return customBossRoomSprite;
             case RoomType.Elite: return customEliteRoomSprite;

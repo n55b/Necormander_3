@@ -32,17 +32,6 @@ public class SellItem : MonoBehaviour, IInteractable
     {
         if (item.rawData == null) return false;
 
-        // [강화 아이템] 착용 장비가 없거나 이미 최대 강화면 구매 불가 — 골드 안 쓰고 아이템도 유지.
-        if (item.category == RewardCategory.EquipmentEnhance)
-        {
-            var psi = PlayerSkillInventoryManager.Instance;
-            if (psi == null || !psi.CanEnhanceEquipped())
-            {
-                Debug.Log("[Shop] 강화할 장비가 없거나 이미 최대 강화 레벨입니다.");
-                return false;
-            }
-        }
-
         if (GameManager.Instance.inventoryManager.SpendGold(item.goldAmount))
         {
             RewardManager.Instance.ApplyReward(item);

@@ -22,13 +22,15 @@ public class ShopRegistrySO : ScriptableObject
              "구매하면 즉시 장착되지 않고 바닥에 떨어진다.")]
     public List<ItemSO> itemPool = new List<ItemSO>();
 
-    [Header("장비 강화 아이템(소모성)")]
-    [Tooltip("강화 아이템 1개 가격(골드). 전역 고정값.")]
+    // [26/08/03] 강화는 전용 상점(Room_ShopEnhance)의 EnhanceShopNPC 에게 F 로만 한다.
+    // 일반 상점에 소모성 강화 카드를 같이 진열하던 건 걷어냈다(역할 중복 + 그쪽이 고정가라 더 쌌음).
+    // 그래서 남은 두 값은 전부 강화 상점 전용이다.
+    [Header("장비 강화 (강화 상점 전용)")]
+    [Tooltip("0강에서 1강으로 올릴 때의 가격(골드).")]
     public int enhanceCost = 250;
-    [Tooltip("상점 풀에 넣을 강화 아이템 개수. 랜덤 진열이라 실제 노출 수는 이보다 적을 수 있다.")]
-    public int enhanceStock = 3;
-    [Tooltip("강화 아이템 아이콘(없으면 비움).")]
-    public Sprite enhanceIcon;
+    [Tooltip("현재 강화레벨 1당 이만큼 비싸진다. 예: 250 + 25/레벨 → 250 / 275 / 300 / 325 / 350.\n" +
+             "강화 상점은 재고가 없어서 골드가 유일한 제동장치라 여기서 곡선을 잡는다.")]
+    public int enhanceCostPerLevel = 25;
 
 #if UNITY_EDITOR
     [ContextMenu("Refresh Registry (Load All Active Items)")]

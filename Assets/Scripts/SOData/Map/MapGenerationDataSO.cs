@@ -18,6 +18,9 @@ public class MapGenerationDataSO : ScriptableObject
     [Header("Room Distribution")]
     public int minNormalRooms = 5;
     public int shopCount = 1;
+    [Tooltip("장비 강화 전용 상점의 수. 진열품 없이 NPC 에게 F 를 눌러 착용 장비를 강화하는 방. " +
+             "층당 1개가 기본. 0 이면 그 층엔 안 나온다.")]
+    public int enhanceShopCount = 1;
     public int rewardCount = 2;
     public int eliteCount = 1;
     [Tooltip("증강 선택 방의 수. 전투 시작 전 페널티 카드를 고르고, 클리어 보상이 그 카드로 정해지는 방. " +
