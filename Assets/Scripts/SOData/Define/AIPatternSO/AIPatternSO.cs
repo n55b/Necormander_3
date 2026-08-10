@@ -156,7 +156,13 @@ public abstract class AIPatternSO : ScriptableObject
 
         if (stat != null)
         {
-            return stat.Health.IsDead || stat.Health.Invincible;
+            // 무적은 '플레이어에 한해' 타겟 해제 사유가 아니다. 예전엔 무적이면 무조건 타겟을 놓아서,
+            // 피격 무적 1초 동안 몹이 Idle 로 돌아가고 공격 자체를 안 했다(StartTelegraph 가 target null
+            // 이면 히트박스를 안 만든다) — 우클릭 카운터/가드를 연습할 기회가 구조적으로 없었다.
+            // 이제 몹은 계속 때리고, 무적이면 피해만 안 들어간다.
+            // 적 무적(보스 페이즈 전환 등)은 그대로 걸러야 하므로 검사를 통째로 지우진 않는다.
+            if (stat.Health.IsDead) return true;
+            return stat.Health.Invincible && !stat.transform.root.CompareTag("Player");
         }
         return false;
     }

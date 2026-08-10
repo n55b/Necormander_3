@@ -115,7 +115,9 @@ public class Projectile : MonoBehaviour
 
             if (damageable != null && !damageable.IsDead)
             {
-                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None);
+                // isRanged: 투사체는 attacker 로 '쏜 본체'를 넘기기 때문에, 이 표식이 없으면 맞은 쪽에서
+                // 화살인지 주먹인지 구분할 방법이 없다(우클릭 카운터/가드가 근접만 받아친다).
+                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true);
                 damageable.TakeDamage(info);
                 Destroy(gameObject);
                 return;
@@ -158,7 +160,7 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnHitTarget(CharacterStat targetStat)
     {
-        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None);
+        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true);
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
     }

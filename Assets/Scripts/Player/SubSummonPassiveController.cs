@@ -36,12 +36,16 @@ public class SubSummonPassiveController : MonoBehaviour
     public float MaxHpBonus => Passive?.maxHpBonus ?? 0f;
     public float AtkSpeedBonus => Passive?.atkSpeedBonus ?? 0f;
     public float BasicAttackDamageBonus => Passive?.basicAttackDamageBonus ?? 0f;
+    public float SkillCooldownReduction => Passive?.skillCooldownReduction ?? 0f;
+
+    private float _nextSkillHealTime;
 
     private void Awake() => _player = GetComponent<PlayerController>();
 
     private void OnEnable()
     {
         RoomInstance.OnAnyRoomCleared += HandleRoomCleared;
+        DamageEventBus.OnDamageReceived += HandleDamageDealt;
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnMinionUpdated += HandleSubChanged;
         HandleSubChanged(); // 이미 장착된 상태로 시작할 수 있다
@@ -50,8 +54,25 @@ public class SubSummonPassiveController : MonoBehaviour
     private void OnDisable()
     {
         RoomInstance.OnAnyRoomCleared -= HandleRoomCleared;
+        DamageEventBus.OnDamageReceived -= HandleDamageDealt;
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnMinionUpdated -= HandleSubChanged;
+    }
+
+    /// <summary>
+    /// 스킬 적중 시 회복. 버스는 '누가 맞았는지'만 알려주므로 내가 때린 게 맞는지를 여기서 가른다.
+    /// 다단히트 스킬(연타/장판)이 한 번에 수십 번 터지므로 내부 쿨타임이 필수다.
+    /// </summary>
+    private void HandleDamageDealt(CharacterHealth target, DamageInfo info)
+    {
+        float amount = Passive?.healOnSkillHit ?? 0f;
+        if (amount <= 0f) return;
+        if (info.category != DamageCategory.Skill) return;
+        if (target == null || target.transform.root == transform.root) return; // 내가 맞은 건 제외
+        if (Time.time < _nextSkillHealTime) return;
+
+        _nextSkillHealTime = Time.time + Mathf.Max(0f, Passive.healOnSkillHitCooldown);
+        Heal(amount);
     }
 
     /// <summary>서브 소환수가 새로 장착됐을 때 1회성 효과(획득 시 회복)를 쏜다.</summary>

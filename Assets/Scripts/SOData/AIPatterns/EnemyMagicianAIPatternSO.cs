@@ -41,8 +41,10 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
             // 크기 적용
             circleObj.transform.localScale = new Vector3(explosionRadius, explosionRadius, 1f);
 
-            // 마법사 장판은 마법 데미지로 취급
-            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageRules.FromAttackType(entity.Stats.ATTACK_TYPE), entity.gameObject, 1f, "", false, false, 0f);
+            // 마법사 장판은 마법 데미지로 취급.
+            // isRanged: 투사체는 아니지만 멀리서 쏘는 원거리 공격이다. 이게 없으면 근접 취급이 돼서
+            // 우클릭 카운터/가드로 받아쳐지고, 반사 피해가 10칸 밖 마법사한테 날아간다.
+            DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageRules.FromAttackType(entity.Stats.ATTACK_TYPE), entity.gameObject, 1f, "", false, false, 0f, isRanged: true);
             
             // 단발성 공격이므로 타격 판정은 0.2초간만 유지하고, waitTime 만큼 선딜레이(startDelay)를 줍니다.
             magicCircle.Init(info, entity.opponentLayer, 0.2f, waitTime);

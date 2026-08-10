@@ -191,7 +191,9 @@ public class CharacterStat : MonoBehaviour
     // ── 플레이어 전용 ─────────────────────────────────────────────────
 
     /// <summary>스킬 쿨감 비율(0~1 이상). 합연산이고 상한이 없다 — 1 이면 쿨타임 0.</summary>
-    public float SKILL_CDR => (baseSkillCdr + Mods.Flat(StatType.SkillCooldownReduction)) / 100f;
+    // 서브 소환수 항은 비율(0.2)로 들고 있고 이 식은 퍼센트 단위라 100 을 곱해서 넣는다.
+    public float SKILL_CDR => (baseSkillCdr + Mods.Flat(StatType.SkillCooldownReduction)
+                               + (SubPassive != null ? SubPassive.SkillCooldownReduction * 100f : 0f)) / 100f;
 
     /// <summary>대쉬 쿨감 비율(0~1 이상).</summary>
     public float DASH_CDR => (baseDashCdr + Mods.Flat(StatType.DashCooldownReduction)) / 100f;

@@ -112,10 +112,24 @@ public struct DamageInfo
     public StatusType? applyStatus;
     public float statusDuration;   // 0 이면 StatusRules.DefaultDuration 을 쓴다.
 
+    /// <summary>
+    /// [축3 = 사거리] 원거리(투사체)에서 온 피해인가. 기본 false = 근접.
+    ///
+    /// 갈래(축2)로 표현할 수 없어서 별도 축으로 뒀다 — 적 피해의 갈래 칸은 이미 '티어'
+    /// (EnemyMinion/Elite/Boss)가 쓰고 있고, 그것도 소스가 아니라 CharacterHealth 가 피격 순간에
+    /// 자동으로 채운다. EnemyRanged 를 갈래에 넣으면 "보스가 쏜 화살"이 티어와 사거리 중 하나만
+    /// 될 수 있어서 티어가 증발한다.
+    ///
+    /// 지금 이걸 읽는 건 우클릭 카운터/가드 하나뿐이다(근접만 받아친다).
+    /// 태그하는 쪽도 Projectile 뿐이라, 투사체가 아닌 적 피해(보스 장판 등)는 전부 '근접'이 된다.
+    /// </summary>
+    public bool isRanged;
+
     // [26/07/18] 옛 isThrowDamage / isBasicAttack 위치 인자는 완전히 제거했다(각각 투척 철거·갈래 도입으로 의미 상실).
     // 위치 인자 50+곳을 스크립트로 일괄 이관했다. category 는 갈래(축2) — 태그할 곳에서만 `category:` 로 넘긴다.
-    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, float debuffMultiplier = 1f, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f, DamageCategory category = DamageCategory.None, StatusType? applyStatus = null, float statusDuration = 0f)
+    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, float debuffMultiplier = 1f, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f, DamageCategory category = DamageCategory.None, StatusType? applyStatus = null, float statusDuration = 0f, bool isRanged = false)
     {
+        this.isRanged = isRanged;
         this.amount = amount;
         this.type = type;
         this.category = category;

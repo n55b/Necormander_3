@@ -80,6 +80,19 @@ public class BaseHitBox : MonoBehaviour
     /// <summary>이벤트 펄스 전용 타격 모드 on/off. 이벤트당 다단히트(useEvent) 경로에서 켠다.</summary>
     public void SetManualHitOnly(bool value) => _manualHitOnly = value;
 
+    // ── 바깥에서 '이 히트박스가 뭘 때리려는지' 읽기 위한 창구 ──────────────
+    // 우클릭 카운터/가드가 쓴다: 판정 영역에 들어온 적 히트박스를, 그게 나를 때리기 '전에' 되받아치려면
+    // 실려 있는 피해량과 공격자를 알아야 한다. 읽기 전용이라 판정 경로에는 영향이 없다.
+
+    /// <summary>이 히트박스가 실어 나르는 피해 정보.</summary>
+    public DamageInfo Info => _damageInfo;
+
+    /// <summary>선딜이 끝나 실제로 때릴 수 있는 상태인가. 윈드업(콜라이더 꺼짐) 중이면 false.</summary>
+    public bool IsLive => _isInitialized && TryGetComponent<Collider2D>(out var c) && c.enabled;
+
+    /// <summary>대상 레이어에 이 레이어가 포함되는가.</summary>
+    public bool Targets(int layer) => (_targetLayer.value & (1 << layer)) != 0;
+
     /// <summary>
     /// '이미 때린 대상' 기록을 지운다. 다음 물리 스텝에 범위 안 대상들을 다시 한 번 때린다.
     ///

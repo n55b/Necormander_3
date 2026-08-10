@@ -42,6 +42,11 @@ public class PlayerStateUI : MonoBehaviour
 
     [Header("HP Settings")]
     [SerializeField] private Image hpSprite;
+    [Tooltip("보호막 게이지. 체력바와 같은 자리에 '뒤쪽'으로 깔린다 — 앞의 체력바가 왼쪽을 덮으므로 " +
+             "체력이 끝나는 지점부터 보호막 색이 이어져 보인다.\n" +
+             "보호막이 최대 체력을 넘기면 바의 눈금 자체가 늘어나 빨간 부분이 비율상 줄어든다(롤 방식).\n" +
+             "무채색 스프라이트(UI_HpbarWhite)라 Image 의 Color 로 원하는 색을 낼 수 있다.")]
+    [SerializeField] private Image shieldSprite;
     [SerializeField] private TextMeshProUGUI hpText;
 
     [Header("Gold Settings")]
@@ -60,6 +65,7 @@ public class PlayerStateUI : MonoBehaviour
     // 런타임
     // ─────────────────────────────────────────────────────────────────────
     private CharacterHealth       _playerHealth;
+    private CharacterStatus       _playerStatus;   // 보호막 잔량 소스
     private PlayerSkillController _skillCtrl;
     private List<Image>           _hpFillImages  = new List<Image>();
     private SkillSlotUI[]         _skillSlots;
@@ -88,6 +94,9 @@ public class PlayerStateUI : MonoBehaviour
             slot.SkillChangeButton.onClick.RemoveAllListeners();
             slot.SkillChangeButton.onClick.AddListener(() => OnSkillSlotChangeClicked(slotIndex));
         }
+
+        // 보호막은 CharacterHealth 가 아니라 같은 오브젝트의 CharacterStatus 가 들고 있다.
+        _playerStatus = _playerHealth != null ? _playerHealth.GetComponent<CharacterStatus>() : null;
 
         if (_playerHealth != null) { _playerHealth.UpdateHPBar += RefreshHP; RefreshHP(); }
 
@@ -154,6 +163,7 @@ public class PlayerStateUI : MonoBehaviour
     private void Update()
     {
         RefreshGold();
+        RefreshBars();   // 보호막은 피해/회복 이벤트 없이도 변한다 → 폴링
         UpdateSkillCooldowns();
     }
 
@@ -161,12 +171,49 @@ public class PlayerStateUI : MonoBehaviour
     // HP
     // ─────────────────────────────────────────────────────────────────────
     #region HP
+    /// <summary>피해/회복 이벤트용. 바 두 개는 공용 함수가 그리고, 여기선 숫자 텍스트만 추가로 갱신한다.</summary>
     public void RefreshHP()
     {
-        if (hpSprite == null || _playerHealth == null) return;
-        float ratio = _playerHealth.MaxHP > 0f ? _playerHealth.CurHP / _playerHealth.MaxHP : 0f;
-        hpSprite.fillAmount = ratio;
+        if (_playerHealth == null) return;
+        RefreshBars();
         if (hpText != null) hpText.text = $"{(int)_playerHealth.CurHP} / {(int)_playerHealth.MaxHP}";
+    }
+
+    /// <summary>
+    /// 체력바 + 보호막바를 함께 그린다. 둘을 한 함수에 묶은 이유는 <b>서로의 눈금을 공유</b>하기 때문이다.
+    ///
+    /// [롤 방식 — 바 길이는 고정, 눈금이 늘어난다]
+    /// 바 전체가 나타내는 양은 최대 체력이 아니라 max(최대 체력, 현재 체력 + 보호막) 이다.
+    /// 보호막이 최대 체력을 밀어내면 눈금이 그만큼 늘어나므로, 빨간 부분이 비율상 줄어들고 그 자리를
+    /// 흰색이 차지한다. 보호막이 사라지면 눈금이 원래대로 줄어 빨간 바가 다시 꽉 찬다.
+    /// (바가 배경 프레임 밖으로 삐져나가는 게 아니다 — 전체 길이는 그대로다.)
+    ///
+    /// 매 프레임 도는 이유: 보호막은 '피해/회복' 이벤트 없이도 변한다(가드 성공으로 생기고 5초 뒤 만료).
+    /// UpdateHPBar 에만 묶으면 그 순간들을 통째로 놓친다. 텍스트만 이벤트 쪽에 남겨 매 프레임
+    /// 문자열을 새로 만들지 않게 했다.
+    /// </summary>
+    private void RefreshBars()
+    {
+        if (hpSprite == null || _playerHealth == null || _playerHealth.MaxHP <= 0f) return;
+
+        float shield = _playerStatus != null ? _playerStatus.TotalShield : 0f;
+        float denom = Mathf.Max(_playerHealth.MaxHP, _playerHealth.CurHP + shield);
+
+        SetFill(hpSprite, _playerHealth.CurHP / denom);
+
+        if (shieldSprite == null) return;
+        // 보호막이 없으면 두 바의 폭이 같아져 가장자리가 1픽셀 삐져나올 수 있다. 아예 끈다.
+        bool show = shield > 0.01f;
+        if (shieldSprite.enabled != show) shieldSprite.enabled = show;
+        // 보호막바는 '보호막만큼'이 아니라 '체력+보호막'까지 채운다. 체력바 뒤에 깔려 있어서
+        // 앞의 빨간 바가 왼쪽을 가리고 그 오른쪽만 흰색으로 보인다 = 오프셋 계산이 필요 없다.
+        if (show) SetFill(shieldSprite, (_playerHealth.CurHP + shield) / denom);
+    }
+
+    private static void SetFill(Image img, float value)
+    {
+        value = Mathf.Clamp01(value);
+        if (Mathf.Abs(img.fillAmount - value) > 0.0005f) img.fillAmount = value;
     }
     #endregion
 

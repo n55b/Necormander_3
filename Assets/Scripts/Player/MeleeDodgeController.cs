@@ -14,7 +14,7 @@ public class MeleeDodgeController : MonoBehaviour
     [Header("대쉬 히트박스 (메인 소환수가 대쉬에 피해를 붙일 때 사용)")]
     [Tooltip("경로를 훑는 박스 프리팹(전방 기준). 미지정이면 소환수가 대쉬 피해를 갖고 있어도 발동하지 않는다.")]
     [SerializeField] private BaseHitBox dashHitBoxPrefab;
-    [Tooltip("dashModifier.hitAtOrigin(출발점 원형) 일 때 쓰는 원형 콜라이더 프리팹. 예: 네크 인형. 미지정이면 발동 안 함.")]
+    [Tooltip("dashModifier.hitAtOrigin(출발점 원형) 일 때 쓰는 원형 콜라이더 프리팹. 예: 얼음 마법사. 미지정이면 발동 안 함.")]
     [SerializeField] private BaseHitBox originHitBoxPrefab;
 
     private int _currentCharges;

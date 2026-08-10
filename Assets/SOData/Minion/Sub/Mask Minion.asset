@@ -11,45 +11,54 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 30cd626a3cbf4c37b2fe4fedd3ea720d, type: 3}
   m_Name: Mask Minion
-  m_EditorClassIdentifier:
-  minionSkill: {fileID: 0}
-  dashModifier:
-    lengthMultiplier: 1
-    width: 0
-    hitCount: 0
-    damageMultiplier: 0.5
-    pushesEnemies: 0
-    pushForce: 3
-  finisher:
-    hitCount: 0
-    damageMultiplier: 1
-    hitBoxSize: {x: 3, y: 2}
-    duration: 0.25
-    visual: {fileID: 0}
-    causesHitstun: 1
-    knockbackForce: 4
-    superArmorDamage: 30
-  subPassive:
-    maxHpBonus: 15
-    atkSpeedBonus: 0
-    basicAttackDamageBonus: 0
-    healOnAcquire: 15
-    healOnRoomClear: 2
+  m_EditorClassIdentifier: 
   minionType: 100
   minionName: Mask
   minionIcon: {fileID: 0}
-  baseEffectValue: 0
-  maxHP: 100
-  attackSpeed: 1
-  attackRange: 2
-  detectRange: 10
-  defense: 0
-  flatDefense: 0
-  moveSpeed: 5
-  baseEvasion: 0
-  baseMissChance: 0
-  isElite: 0
-  aiPattern: {fileID: 0}
-  AttackSound: {fileID: 0}
-  minionPrefab: {fileID: 0}
   shopCost: 150
+  rewardItemData:
+    itemName: 
+    description: 
+    localizedItemName:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    icon: {fileID: 0}
+    rarity: 0
+  subPassive:
+    maxHpBonus: 15
+    atkSpeedBonus: 0
+    skillCooldownReduction: 0
+    basicAttackDamageBonus: 0
+    healOnSkillHit: 0
+    healOnSkillHitCooldown: 5
+    healOnAcquire: 15
+    healOnRoomClear: 2
+  rightClick:
+    type: 3
+    activeDuration: 0.4
+    recoveryDuration: 0.3
+    moveSpeedMultiplier: 0.3
+    radius: 2.5
+    angle: 360
+    sectorColor: {r: 0.4, g: 0.9, b: 0.5, a: 1}
+    reflectMultiplier: 1
+    shieldDuration: 5
+    shieldMaxHpRatio: 0.5
+  references:
+    version: 2
+    RefIds: []

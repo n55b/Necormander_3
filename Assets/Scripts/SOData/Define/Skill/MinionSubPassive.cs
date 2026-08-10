@@ -25,9 +25,18 @@ public class MinionSubPassive
     [Tooltip("공격 속도 증가 비율. 0.2 = +20%. 값이 클수록 빨라진다.")]
     public float atkSpeedBonus = 0f;
 
+    [Tooltip("스킬 쿨타임 감소 비율. 0.2 = -20%. CharacterStat.SKILL_CDR 에 합산되므로 Q/E/R 에 전부 먹는다.")]
+    public float skillCooldownReduction = 0f;
+
     [Header("패시브")]
     [Tooltip("평타 1타당 추가되는 고정 피해.")]
     public float basicAttackDamageBonus = 0f;
+
+    [Tooltip("내 스킬(Q/E/R)이 적을 때릴 때마다 회복하는 체력. 아래 내부 쿨타임이 있어 다단히트로 도배되지 않는다.")]
+    public float healOnSkillHit = 0f;
+
+    [Tooltip("healOnSkillHit 의 내부 쿨타임(초).")]
+    public float healOnSkillHitCooldown = 5f;
 
     [Tooltip("이 소환수를 획득/장착한 순간 회복하는 체력.")]
     public float healOnAcquire = 0f;

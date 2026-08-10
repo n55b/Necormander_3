@@ -65,7 +65,10 @@ public class NearestTargetFinder : MonoBehaviour
             // 1. 유효성 검사 (무적 상태나 죽은 대상 제외)
             if (results[i].TryGetComponent<CharacterStat>(out var stat))
             {
-                if (stat.Health.IsDead || stat.Health.Invincible) continue;
+                // 무적 제외는 플레이어에게만 적용하지 않는다 — AIPatternSO.IsTargetInvalid 와 같은 이유
+                // (피격 무적 동안 몹이 플레이어를 놓아버리면 카운터/가드를 쓸 대상이 사라진다).
+                if (stat.Health.IsDead) continue;
+                if (stat.Health.Invincible && !stat.transform.root.CompareTag("Player")) continue;
             }
 
             // 2. sqrMagnitude 사용 (루트 연산을 생략해 성능 최적화)

@@ -51,7 +51,9 @@ public class CharacterHealth : MonoBehaviour, IDamageable
     ///  · 적 공격 → 티어(보스/엘리트/미니언)   · 플레이어 공격 → 스킬
     /// 평타/대쉬/패링/디버프/함정은 소스에서 명시 태그되므로 여기로 안 온다.
     /// </summary>
-    private static DamageCategory ResolveCategoryFromAttacker(GameObject attacker)
+    /// (public 인 이유: 우클릭 카운터/가드가 아직 GetDamage 에 들어오지 않은 히트박스의 갈래를
+    ///  미리 알아야 한다. 판정 규칙이 두 벌로 갈리지 않게 반드시 이 함수를 쓴다.)
+    public static DamageCategory ResolveCategoryFromAttacker(GameObject attacker)
     {
         if (attacker == null) return DamageCategory.None;
 
@@ -91,6 +93,12 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             info.category = ResolveCategoryFromAttacker(info.attacker);
 
         OnDamageReceived?.Invoke(info); // [추가] AI 측에서 피격 상세 정보를 파악하기 위함
+
+        // [우클릭 카운터/가드] 무적 검사보다 '먼저' 본다. DamageEventBus 로 하지 않는 이유가 이것이다 —
+        // 버스 발화는 아래 무적 조기 리턴보다 한참 뒤라, 피격 무적 1초 동안 들어온 공격을 아예 못 본다.
+        // 그러면 한 대 맞을 때마다 1초씩 카운터가 죽는다.
+        // 받아내면 이 피격은 통째로 없던 일이 된다 — 피해뿐 아니라 경직·넉백·슬로우·상태이상까지 스킵.
+        if (!isDead && PlayerParryController.TryBlock(this, info)) return;
 
         if (isDead || invincible) return;
 

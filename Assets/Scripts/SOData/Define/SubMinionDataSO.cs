@@ -12,6 +12,11 @@ public class SubMinionDataSO : MinionDataSO
     [Tooltip("장착만으로 항상 켜지는 스탯/패시브.")]
     public MinionSubPassive subPassive = new MinionSubPassive();
 
+    [Header("우클릭")]
+    [Tooltip("이 소환수가 플레이어의 우클릭에 부여하는 행동(패링/카운터/가드). " +
+             "None 이면 우클릭이 아무것도 하지 않는다 — 서브를 안 낀 것과 같다.")]
+    public MinionRightClick rightClick = new MinionRightClick();
+
     // ── 카드/툴팁 ────────────────────────────────────────────────────
     // 서브는 액티브가 없어서 내세울 스킬 설명이 없다. 그래서 패시브 수치에서 직접 만들어낸다.
     // 손으로 쓴 문구를 쓰면 밸런스를 만질 때마다 카드가 거짓말을 하게 된다.
@@ -28,8 +33,13 @@ public class SubMinionDataSO : MinionDataSO
         Add(subPassive.maxHpBonus, "최대 체력 +{0}");
         Add(subPassive.atkSpeedBonus * 100f, "공격 속도 +{0}%");
         Add(subPassive.basicAttackDamageBonus, "평타 피해 +{0}");
+        Add(subPassive.skillCooldownReduction * 100f, "스킬 쿨타임 감소 +{0}%");
+        Add(subPassive.healOnSkillHit, "스킬 적중 시 체력 {0} 회복");
         Add(subPassive.healOnAcquire, "획득 시 체력 {0} 회복");
         Add(subPassive.healOnRoomClear, "방 클리어마다 체력 {0} 회복");
+
+        string rc = rightClick != null ? rightClick.Describe() : null;
+        if (!string.IsNullOrEmpty(rc)) lines.Add(rc);
 
         return lines.Count > 0 ? string.Join("\n", lines) : null;
     }

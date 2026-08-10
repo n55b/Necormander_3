@@ -26,7 +26,9 @@ public class MinionDashModifier
     public float width = 0f;
 
     [Header("판정 방식")]
-    [Tooltip("true 면 대쉬 경로를 훑는 대신, 대쉬 '출발 지점'에 원형 판정 1발을 남긴다(네크 인형). " +
+    // 이 모드를 쓰는 건 메인 소환수 '얼음 마법사'(IceMage Minion.asset)다. 예전 주석은 이걸 '네크 인형'
+    // 이라고 불렀는데, 네크 인형은 서브 소환수(패링 우클릭)로 따로 생겨서 이름이 겹친다 — 갈아뒀다.
+    [Tooltip("true 면 대쉬 경로를 훑는 대신, 대쉬 '출발 지점'에 원형 판정 1발을 남긴다(얼음 마법사). " +
              "이동 자체는 그대로 하되 출발 자리에 원이 깔린다.")]
     public bool hitAtOrigin = false;
 

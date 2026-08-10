@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: IceMage Minion
   m_EditorClassIdentifier: 
   minionType: 6
-  minionName: Ice Mage
+  minionName: 얼음 마법사
   minionIcon: {fileID: -4830399090049477561, guid: 36208386774834c4ba2d366cd31db059, type: 3}
   shopCost: 150
   rewardItemData:
