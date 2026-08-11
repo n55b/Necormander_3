@@ -125,11 +125,21 @@ public struct DamageInfo
     /// </summary>
     public bool isRanged;
 
+    /// <summary>
+    /// 피해가 '날아온 지점'(월드 좌표). 투사체만 채우고 나머지는 null 이다.
+    ///
+    /// attacker 로 대신할 수 없어서 따로 둔다 — 투사체는 attacker 에 '쏜 본체'를 싣기 때문에,
+    /// 유도탄처럼 발사체와 시전자가 갈라지면 방향이 전혀 달라진다(마법사는 오른쪽에 있는데
+    /// 파이어볼은 왼쪽에서 날아오는 상황). 우클릭 가드의 방어 부채꼴이 이걸 본다.
+    /// </summary>
+    public Vector2? hitFrom;
+
     // [26/07/18] 옛 isThrowDamage / isBasicAttack 위치 인자는 완전히 제거했다(각각 투척 철거·갈래 도입으로 의미 상실).
     // 위치 인자 50+곳을 스크립트로 일괄 이관했다. category 는 갈래(축2) — 태그할 곳에서만 `category:` 로 넘긴다.
-    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, float debuffMultiplier = 1f, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f, DamageCategory category = DamageCategory.None, StatusType? applyStatus = null, float statusDuration = 0f, bool isRanged = false)
+    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, float debuffMultiplier = 1f, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f, DamageCategory category = DamageCategory.None, StatusType? applyStatus = null, float statusDuration = 0f, bool isRanged = false, Vector2? hitFrom = null)
     {
         this.isRanged = isRanged;
+        this.hitFrom = hitFrom;
         this.amount = amount;
         this.type = type;
         this.category = category;

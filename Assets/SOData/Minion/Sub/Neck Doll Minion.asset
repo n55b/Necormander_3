@@ -57,8 +57,8 @@ MonoBehaviour:
     angle: 160
     sectorColor: {r: 0.2, g: 0.6, b: 1, a: 1}
     reflectMultiplier: 1
-    shieldDuration: 5
-    shieldMaxHpRatio: 0.5
+    stunDuration: 0
+    damageReduction: 0.5
   references:
     version: 2
     RefIds: []

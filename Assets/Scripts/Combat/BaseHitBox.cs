@@ -94,6 +94,13 @@ public class BaseHitBox : MonoBehaviour
     public bool Targets(int layer) => (_targetLayer.value & (1 << layer)) != 0;
 
     /// <summary>
+    /// 이미 누군가를 때렸는가. 히트박스는 타격 후에도 duration 이 끝날 때까지 콜라이더를 켠 채로
+    /// 남아 있어서, 이걸 안 보면 '맞고 지나간 잔해'를 아직 살아있는 공격으로 착각한다
+    /// (우클릭 카운터가 맞은 뒤에 눌러도 성공해버렸다).
+    /// </summary>
+    public bool HasHitAnyone => _hitTargets.Count > 0 || _tickCount.Count > 0;
+
+    /// <summary>
     /// '이미 때린 대상' 기록을 지운다. 다음 물리 스텝에 범위 안 대상들을 다시 한 번 때린다.
     ///
     /// 애니메이션의 OnHitEvent 하나 = 타격 하나로 쓰기 위한 것. 적 공격 클립이 2타면 OnHitEvent 를

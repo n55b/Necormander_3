@@ -144,6 +144,13 @@ public class MeleeCombatController : MonoBehaviour
         if (context.started)
         {
             _isHoldingAttack = true;
+
+            // 가드(홀드) 중이면 가드를 끊고 때린다. 패링/카운터의 짧은 판정창은 못 끊는다.
+            // '새로 누른' 이 경로에서만 끊는다 — 아래 Update 의 홀드 자동연타까지 끊게 하면
+            // 좌클릭을 누르고 있는 동안 가드를 아예 못 켠다.
+            var parryCtrl = _player != null ? _player.GetComponent<PlayerParryController>() : null;
+            if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
+
             if (!IsAttacking)
             {
                 ExecuteMeleeAttack();

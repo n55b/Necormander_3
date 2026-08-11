@@ -117,7 +117,9 @@ public class Projectile : MonoBehaviour
             {
                 // isRanged: 투사체는 attacker 로 '쏜 본체'를 넘기기 때문에, 이 표식이 없으면 맞은 쪽에서
                 // 화살인지 주먹인지 구분할 방법이 없다(우클릭 카운터/가드가 근접만 받아친다).
-                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true);
+                // hitFrom: 맞은 쪽이 '어디서 날아왔는지'를 알아야 방향 판정을 할 수 있다.
+                // attacker 는 쏜 본체라, 유도탄이면 실제 비행 방향과 전혀 다른 곳을 가리킨다.
+                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: (Vector2)transform.position);
                 damageable.TakeDamage(info);
                 Destroy(gameObject);
                 return;
@@ -160,7 +162,7 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnHitTarget(CharacterStat targetStat)
     {
-        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true);
+        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: (Vector2)transform.position);
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
     }

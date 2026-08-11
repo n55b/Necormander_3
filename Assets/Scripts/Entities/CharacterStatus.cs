@@ -201,28 +201,6 @@ public class CharacterStatus : MonoBehaviour
 
     public void AddShield(float amount, float duration) { _shieldInstances.Add(new ShieldInstance(amount, duration)); UpdateInstances(); }
 
-    /// <summary>
-    /// 상한이 있는 보호막 부여 (우클릭 가드). AddShield 와 두 가지가 다르다:
-    ///  · 총량이 cap 을 못 넘는다. 넘치는 만큼은 버린다.
-    ///  · 기존 보호막들의 남은 시간도 duration 으로 늘려준다(줄이지는 않는다).
-    /// 그래서 "상한을 이미 채운 상태에서 가드에 성공하면 지속시간만 갱신된다"가 자연히 성립한다.
-    /// </summary>
-    /// <returns>실제로 추가된 양. 상한이 꽉 찼으면 0(시간 갱신은 그래도 일어난다).</returns>
-    public float AddShieldCapped(float amount, float duration, float cap)
-    {
-        UpdateInstances(); // 만료분을 먼저 걷어내야 상한 계산이 실제 잔량과 맞는다
-
-        float end = Time.time + duration;
-        for (int i = 0; i < _shieldInstances.Count; i++)
-            if (_shieldInstances[i].EndTime < end) _shieldInstances[i].EndTime = end;
-
-        float add = Mathf.Min(Mathf.Max(0f, amount), Mathf.Max(0f, cap - _cachedTotalShield));
-        if (add > 0f) _shieldInstances.Add(new ShieldInstance(add, duration));
-
-        UpdateInstances();
-        return add;
-    }
-
     private void ExplodeExpiredShield(float amount)
     {
         if (IsEnemyTarget || InventoryManager.Instance == null) return;

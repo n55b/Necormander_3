@@ -9,9 +9,9 @@ public enum MinionRightClickType
     None = 0,
     /// <summary>패링 — 날아오는 '원거리' 투사체를 반사한다. 반사체는 적을 때린다.</summary>
     Parry,
-    /// <summary>카운터 — '근접' 공격을 무효화하고, 그 피해량만큼 때린 적에게 되돌린다.</summary>
+    /// <summary>카운터 — '근접' 공격을 무효화하고, 그 피해량만큼 때린 적에게 되돌린다. 범위 내 적은 경직.</summary>
     Counter,
-    /// <summary>가드 — '근접' 공격을 무효화하고, 그 피해량만큼 보호막을 얻는다.</summary>
+    /// <summary>가드 — 꾹 누르는 방어 자세. 바라보는 방향에서 오는 피해를 근/원 가리지 않고 감소시킨다.</summary>
     Guard,
 }
 
@@ -62,25 +62,28 @@ public class MinionRightClick
              "플레이어의 치명타·물리 증폭을 그대로 탄다.")]
     public float reflectMultiplier = 1f;
 
-    [Header("가드 전용")]
-    [Tooltip("얻는 보호막 지속시간(초). 이미 보호막이 있으면 그것들의 남은 시간도 여기에 맞춰 갱신된다.")]
-    public float shieldDuration = 5f;
+    [Tooltip("성공 시 판정 반경 안의 모든 적에게 거는 기절 시간(초). 0 이면 안 건다.\n" +
+             "되받아친 그 적뿐 아니라 범위 전체가 대상이다.")]
+    public float stunDuration = 0f;
 
-    [Tooltip("보호막 총량 상한 = 최대 체력 x 이 비율. 상한을 넘긴 상태에서 성공하면 시간만 갱신된다.")]
-    public float shieldMaxHpRatio = 0.5f;
+    [Header("가드 전용")]
+    [Tooltip("바라보는 방향에서 오는 피해 감소율. 0.5 = 50% 감소. 근거리/원거리를 가리지 않는다.\n" +
+             "가드는 판정창이 아니라 '꾹 누르고 있는 동안' 유지되는 자세다 — activeDuration/" +
+             "recoveryDuration 은 가드에선 쓰이지 않는다.")]
+    [Range(0f, 1f)] public float damageReduction = 0.5f;
 
     /// <summary>실제로 발동할 내용이 있는가.</summary>
     public bool IsValid => type != MinionRightClickType.None;
 
-    /// <summary>이 종류가 '맞아주는' 쪽인가(수동 판정). 패링만 능동이다.</summary>
-    public bool IsReactive => type == MinionRightClickType.Counter || type == MinionRightClickType.Guard;
+    /// <summary>꾹 눌러서 유지하는 자세인가(가드). 나머지 둘은 한 번 누르면 끝나는 판정창이다.</summary>
+    public bool IsHold => type == MinionRightClickType.Guard;
 
     /// <summary>카드/툴팁 한 줄. 없으면 null.</summary>
     public string Describe() => type switch
     {
         MinionRightClickType.Parry   => "우클릭: 패링 — 원거리 공격을 반사",
         MinionRightClickType.Counter => "우클릭: 카운터 — 근접 공격을 무효화하고 되돌려줌",
-        MinionRightClickType.Guard   => "우클릭: 가드 — 근접 공격을 무효화하고 보호막 획득",
+        MinionRightClickType.Guard   => $"우클릭(홀드): 가드 — 바라보는 방향의 피해 {damageReduction * 100f:0}% 감소",
         _ => null,
     };
 }

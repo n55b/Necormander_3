@@ -588,11 +588,13 @@ public class PlayerController : MonoBehaviour
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (_inputBlocked || stat.Health.IsDead || IsCCed) return;
 
-        var parryCtrl = GetComponent<PlayerParryController>();
-        if (parryCtrl != null && parryCtrl.IsParrying) return;
-
         if (context.performed)
         {
+            // 가드(홀드) 중이면 가드를 끊고 대쉬한다. 패링/카운터의 짧은 판정창은 지켜야 하므로 못 끊는다.
+            // 검사를 performed 안으로 넣은 이유: 밖에 두면 버튼을 뗄 때(canceled)도 불려서 가드가 취소된다.
+            var parryCtrl = GetComponent<PlayerParryController>();
+            if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
+
             // 근접 구르기 컨트롤러가 있다면 우선적으로 사용 (2스택 구르기 등)
             MeleeDodgeController dodgeController = GetComponent<MeleeDodgeController>();
             if (dodgeController != null)
@@ -614,11 +616,12 @@ public class PlayerController : MonoBehaviour
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (_inputBlocked || stat.Health.IsDead || IsCastingSkill || IsCCed) return;
 
-        var parryCtrl = GetComponent<PlayerParryController>();
-        if (parryCtrl != null && parryCtrl.IsParrying) return;
-
         if (context.performed)
         {
+            // 가드(홀드)는 끊고 발동. 패링/카운터 판정창 중이면 막는다. (OnDash 와 같은 규칙)
+            var parryCtrl = GetComponent<PlayerParryController>();
+            if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
+
             var skillCtrl = GetComponent<PlayerSkillController>();
             if (skillCtrl != null)
             {
@@ -632,11 +635,12 @@ public class PlayerController : MonoBehaviour
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (_inputBlocked || stat.Health.IsDead || IsCastingSkill || IsCCed) return;
 
-        var parryCtrl = GetComponent<PlayerParryController>();
-        if (parryCtrl != null && parryCtrl.IsParrying) return;
-
         if (context.performed)
         {
+            // 가드(홀드)는 끊고 발동. 패링/카운터 판정창 중이면 막는다. (OnDash 와 같은 규칙)
+            var parryCtrl = GetComponent<PlayerParryController>();
+            if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
+
             var skillCtrl = GetComponent<PlayerSkillController>();
             if (skillCtrl != null)
             {
@@ -650,11 +654,12 @@ public class PlayerController : MonoBehaviour
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (_inputBlocked || stat.Health.IsDead || IsCastingSkill || IsCCed) return;
 
-        var parryCtrl = GetComponent<PlayerParryController>();
-        if (parryCtrl != null && parryCtrl.IsParrying) return;
-
         if (context.performed)
         {
+            // 가드(홀드)는 끊고 발동. 패링/카운터 판정창 중이면 막는다. (OnDash 와 같은 규칙)
+            var parryCtrl = GetComponent<PlayerParryController>();
+            if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
+
             var skillCtrl = GetComponent<PlayerSkillController>();
             if (skillCtrl != null)
             {

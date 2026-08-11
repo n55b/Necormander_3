@@ -54,11 +54,11 @@ MonoBehaviour:
     recoveryDuration: 0.3
     moveSpeedMultiplier: 0.3
     radius: 2.5
-    angle: 360
+    angle: 160
     sectorColor: {r: 0.4, g: 0.9, b: 0.5, a: 1}
     reflectMultiplier: 1
-    shieldDuration: 5
-    shieldMaxHpRatio: 0.5
+    stunDuration: 0
+    damageReduction: 0.5
   references:
     version: 2
     RefIds: []
