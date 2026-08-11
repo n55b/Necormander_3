@@ -313,8 +313,17 @@ public class CharacterStatus : MonoBehaviour
     /// 전부 이미 Stun 에 붙어 있고, 플레이어 입장에서 보이는 것도 똑같은 '기절'이다.
     /// 다른 건 "슈퍼아머가 막느냐" 하나뿐이라 타입이 아니라 경로를 나누는 게 맞다.
     /// </summary>
+    /// <remarks>
+    /// [수정 — 보스 그로기가 조용히 2초로 잘리던 문제] 기절의 0.5~2초 clamp(STUN_MIN/STUN_MAX)와
+    /// 종료 후 3초 내성(STUN_IMMUNITY)은 둘 다 <b>'플레이어가 거는 CC'를 위한 밸런스 장치</b>다.
+    /// 자초한 그로기는 그 규칙의 대상이 아닌데도 같은 경로를 타는 바람에,
+    ///   · 본 마스터 카운터 파훼 5초 / 4초 / 2.5초 → 전부 2초로 잘렸고,
+    ///   · 카운터를 연속 성공시키면 두 번째 그로기가 내성에 막혀 통째로 씹혔다.
+    /// (경직 연출은 IsGroggy 플래그로 계속 돌아서 "스턴 애니메이션 없이 멈춰만 있는" 상태가 됐다.)
+    /// bypassLimits 로 두 장치를 함께 우회한다 — 슈퍼아머 우회와 정확히 같은 이유다.
+    /// </remarks>
     public void ApplyFixedStun(float duration)
-        => ApplyStatus(StatusType.Stun, duration, 1, bypassSuperArmor: true);
+        => ApplyStatus(StatusType.Stun, duration, 1, bypassSuperArmor: true, bypassLimits: true);
 
     /// <param name="bypassSuperArmor">
     /// 슈퍼아머를 무시하고 건다. '남이 거는 CC'가 아니라 <b>자기가 자초한 그로기</b>에만 쓴다 —
@@ -322,12 +331,16 @@ public class CharacterStatus : MonoBehaviour
     /// 보상이지 CC 가 아닌데, 슈퍼아머(엘리트는 게이지 999999)가 통째로 씹어버려서 회피 보상이
     /// 아예 발생하지 않았다.
     /// </param>
-    public void ApplyStatus(StatusType type, float duration = 0f, int stacks = 1, bool bypassSuperArmor = false)
+    /// <param name="bypassLimits">
+    /// 기절 지속시간 clamp(0.5~2초)와 종료 후 내성을 함께 무시한다. 둘 다 '플레이어가 거는 CC'를
+    /// 겨냥한 밸런스 장치라, 자초한 그로기(<see cref="ApplyFixedStun"/>)에는 적용되면 안 된다.
+    /// </param>
+    public void ApplyStatus(StatusType type, float duration = 0f, int stacks = 1, bool bypassSuperArmor = false, bool bypassLimits = false)
     {
         if (_stat != null && _stat.IsDead) return;
         if (!bypassSuperArmor && _hasSuperArmor && StatusRules.BlockedBySuperArmor(type)) return;
         // 내성: 기절 종료 후 3초 / 빙결이 피해로 깨진 후 1초 동안은 다시 안 걸린다.
-        if (_immuneUntil.TryGetValue(type, out var immuneEnd) && Time.time < immuneEnd) return;
+        if (!bypassLimits && _immuneUntil.TryGetValue(type, out var immuneEnd) && Time.time < immuneEnd) return;
 
         // [재빙결] 이미 빙결된 적에게 빙결이 '또 부여'되면 아래에서 지속시간만 갱신된다. 부가 효과는 없다.
         //   (혼동 주의: 얼린 적을 '때려서' 깨는 건 별개로 살아 있다 — OnDirectDamageTaken 의
@@ -336,8 +349,9 @@ public class CharacterStatus : MonoBehaviour
         //   해제/내성부여하고, 이어서 이 ApplyStatus 가 다시 빙결을 재적용하는 재진입이 생긴다.
 
         // 타입별 기본 지속시간. 기절만, 소스가 명시한 값을 0.5~2초로 clamp 한다.
+        // (bypassLimits = 자초한 그로기는 clamp 대상이 아니다 — ApplyFixedStun 주석 참조)
         if (duration <= 0f) duration = StatusRules.DefaultDuration(type);
-        else if (type == StatusType.Stun) duration = Mathf.Clamp(duration, StatusRules.STUN_MIN, StatusRules.STUN_MAX);
+        else if (type == StatusType.Stun && !bypassLimits) duration = Mathf.Clamp(duration, StatusRules.STUN_MIN, StatusRules.STUN_MAX);
 
         // 이번 호출로 '새로' 걸린 것인지. 재적중(지속시간 갱신)에는 텍스트를 안 띄운다 —
         // 다단히트 스킬이 1초에 다섯 번 갱신하면 "빙결!"이 다섯 번 겹쳐 뜬다.

@@ -29,6 +29,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     private List<GameObject> _activeEnemies = new List<GameObject>(); // 분열 등으로 추가된 적(보스 외)
     private bool _isBattleActive = false;
     private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
+    private bool _spawnFailed = false;    // 보스 소환 실패 — 재진입해도 다시 시도하지 않는다
     private RoomInstance _cachedRoom;
 
     private void Start()
@@ -49,7 +50,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         if (_activeBoss == null && _activeEnemies.Count == 0)
         {
             _isBattleActive = false;
-            _cachedRoom.MarkCleared();
+            _cachedRoom?.MarkCleared(); // 전투가 코드로 강제 시작된 경로에선 _cachedRoom 이 비어 있을 수 있다
         }
     }
 
@@ -62,6 +63,11 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     public void OnPlayerEnter(RoomInstance room)
     {
         if (_isBattleActive) return;
+
+        // 스폰이 한 번 실패한 방은 다시 시도하지 않는다. 실패 시 방을 클리어 처리하지 않으므로
+        // (보상/포탈이 그냥 나가면 안 되니까) 트리거가 계속 살아 있어, 안 막으면 플레이어가 밟을 때마다
+        // "문 닫힘 → 0.5초 → 소환 실패 → 문 열림" 이 반복된다.
+        if (_spawnFailed) return;
 
         _cachedRoom = room;
         _isBattleActive = true;
@@ -85,8 +91,33 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     private IEnumerator DelayedSpawnBoss(RoomInstance room)
     {
         yield return new WaitForSeconds(0.5f); // 카메라 워프가 안착하는 약 0.5초 동안만 대기 후 스폰
-        _isSpawnPending = false; // 지연 해제, 이제부터 Update 감지 가능
+
+        // [버그 수정 — "보스 없는 보스방"이 즉시 클리어되던 문제] 예전엔 _isSpawnPending 을 먼저
+        // 풀고 스폰했다. 스폰이 실패하면(층에 배정된 보스가 없음 등) _activeBoss 가 null 인 채로
+        // 감지가 열려서, 바로 다음 Update 가 "보스도 잡몹도 없음 = 클리어"로 판정하고 보상 상자와
+        // 다음 층 포탈을 그냥 내줬다. 스폰 결과를 확인한 뒤에 감지를 연다.
         SpawnBoss(room);
+
+        if (_activeBoss == null)
+        {
+            Debug.LogError("[BossRoom] 보스 소환에 실패해 전투를 시작하지 않습니다. " +
+                           "MapGenerationData 의 Floor Bosses 또는 이 방의 Specific Boss Data 를 확인하세요.");
+
+            // 전투 상태만 되돌리고 MarkCleared() 는 부르지 않는다 — 클리어로 처리하면 보스를 잡지도
+            // 않았는데 보상 상자와 다음 층 포탈이 그냥 나간다. 대신 문은 다시 열어서 플레이어가
+            // 방에 갇히지 않게 한다(문이 닫힌 채로 두면 나갈 방법이 아예 없어 런이 끝난다).
+            _isBattleActive = false;
+            _isSpawnPending = false;
+            _spawnFailed = true;
+            room.SetDoorsOpen(true);
+            if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
+            {
+                GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Idle);
+            }
+            yield break;
+        }
+
+        _isSpawnPending = false; // 지연 해제, 이제부터 Update 감지 가능
     }
 
     public void OnRoomCleared(RoomInstance room)

@@ -49,6 +49,44 @@ public static class BossCombat
     }
 
     /// <summary>
+    /// <see cref="DealLane"/>과 같은 레인 판정이지만, <paramref name="already"/>에 기록된 대상은 건너뛰고
+    /// 새로 맞은 대상만 그 집합에 추가한다. <b>여러 프레임에 걸쳐 이동하는 판정</b>(박치기 돌격 등)이
+    /// 매 프레임 호출돼도 같은 대상을 두 번 때리지 않게 하기 위한 것.
+    ///
+    /// 돌진은 "지나간 자리"가 판정이라 정지 패턴처럼 끝에서 한 번만 때리면 몸을 관통당해도 안 맞는다.
+    /// 그래서 매 프레임 prev→next 구간을 이걸로 훑고, 중복만 이 집합으로 막는다.
+    /// (같은 이유로 벽 접촉 검사도 IsTouchingThornWallSwept 로 구간을 훑는다 — 동일한 문법이다.)
+    /// </summary>
+    /// <returns>이번 호출로 새로 피해를 입은 대상 수.</returns>
+    public static int DealLaneOnce(Vector2 origin, Vector2 dir, float length, float width,
+                                   LayerMask targetMask, DamageInfo info, HashSet<GameObject> already)
+    {
+        if (length <= 0.0001f) return 0;
+
+        Vector2 d = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector2.right;
+        float angle = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
+        Vector2 center = origin + d * (length * 0.5f);
+
+        int hitCount = 0;
+        Collider2D[] hits = Physics2D.OverlapBoxAll(center, new Vector2(length, width), angle, targetMask);
+        foreach (var hit in hits)
+        {
+            if (hit == null) continue;
+
+            // 중복 판정은 콜라이더가 아니라 '루트 게임오브젝트' 기준이다. 플레이어는 본체/대쉬용 등
+            // 콜라이더가 여러 개라, 콜라이더로 기억하면 같은 대상을 두 번 때릴 수 있다.
+            GameObject key = hit.transform.root.gameObject;
+            if (already != null && already.Contains(key)) continue;
+
+            if (!TryDamage(hit, info)) continue;
+
+            already?.Add(key);
+            hitCount++;
+        }
+        return hitCount;
+    }
+
+    /// <summary>
     /// center를 중심으로 반지름(radiusX, radiusY)인 타원 범위 안의 대상(targetMask)에게 1회 피해.
     /// (도약 & 내려찍기 착지 지점 등 원형이 아닌 타원 범위가 필요할 때 쓴다.)
     /// </summary>

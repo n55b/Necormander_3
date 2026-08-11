@@ -25,15 +25,21 @@ MonoBehaviour:
   leapSlamRadiusX: 2.2
   leapSlamRadiusY: 1.6
   leapWindup: 0.4
+  leapSlamLockTime: 0.65
   leapDuration: 0.35
   basicAttackWindup: 0.85
   basicAttackRecovery: 0.4
+  leapSlamDamageMultiplier: 1.2
   chargeCooldown: 12
   thrustCooldown: 6
   counterCooldown: 10
+  postPatternRecovery: 1.5
+  postGroggyRecovery: 1.5
   weightsAbove80: {x: 18, y: 38, z: 44}
   weights80To60: {x: 14, y: 40, z: 46}
   weightsBelow60: {x: 10, y: 42, z: 48}
+  weightThresholdHigh: 0.8
+  weightThresholdMid: 0.6
   telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
   laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3,
     type: 3}
@@ -41,10 +47,12 @@ MonoBehaviour:
     type: 3}
   howlPushRadius: 2.5
   howlPushForce: 4
+  howlPushDuration: 0.2
   chargeTelegraphTime: 1.5
   chargeCounterGaugeAmount: 30
   chargeCounterGroggyDuration: 5
   chargeWallStaggerDuration: 1.5
+  chargeDamageMultiplier: 1.4
   chargeSpeed: 22
   chargeMaxDurationFallback: 1.2
   chargeSafetyTimeMultiplier: 1.3
@@ -55,11 +63,16 @@ MonoBehaviour:
   thrustTelegraphLead: 0.45
   thrustDashDistance: 3
   thrustDashDuration: 0.15
+  thrustStrikeCount: 3
   thrustPauseBeforeFirst: 0.75
   thrustPauseAfterFirst: 0.3
   thrustPauseAfterSecond: 0
+  thrustPauseAfterExtra: 0.3
+  thrustDamageMultiplier: 1
+  thrustFinalTelegraphColor: {r: 1, g: 0.92, b: 0.016, a: 1}
   thrustCounterGaugeAmount: 25
   thrustCounterGroggyDuration: 4
+  thrustBleedChance: 0.25
   thrustFinalDamageMultiplier: 1.3333
   thrustFinalRange: 7.5
   thrustFinalWidth: 1.6
@@ -67,7 +80,13 @@ MonoBehaviour:
   thrustFinalCounterTail: 0.45
   thrustFinalDashDistance: 4
   thrustFinalDashDuration: 0.2
+  thrustFinishRecovery: 0.3
+  counterGraceTime: 1
   counterReactionWindowRange: {x: 1, y: 1.5}
+  fakeCounterChance: 0.5
+  counterGaugeAmount: 1
+  counterRealColor: {r: 0.2, g: 1, b: 0.3, a: 1}
+  counterFakeColor: {r: 1, g: 0.1, b: 0.1, a: 1}
   counterSuccessGroggyDuration: 2.5
   fakeCounterPlayerStun: 0.75
   fakeCounterPunishDamage: 3

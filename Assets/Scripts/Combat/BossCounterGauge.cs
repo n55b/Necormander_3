@@ -81,6 +81,13 @@ public class BossCounterGauge : MonoBehaviour
         {
             CurrentGauge = 0f;
             IsOpen = false;
+
+            // [버그 수정 — 파훼 직후 게이지 바가 화면에 남던 문제]
+            // IsOpen 이 false 로 바뀌는 이 순간에도 변경 알림을 쏴야 UI 가 숨을 수 있다.
+            // 위쪽 Invoke 는 아직 IsOpen == true 일 때 나갔고, 뒤이어 패턴이 부르는 CloseWindow() 는
+            // "이미 닫혔고 게이지도 0" 이라는 이유로 조기 return 해서 이벤트를 쏘지 않는다.
+            // 그래서 파훼로 끝난 패턴에서는 UI 갱신 알림이 한 번도 안 가는 구멍이 있었다.
+            OnGaugeChanged?.Invoke();
             OnGaugeBroken?.Invoke();
         }
     }

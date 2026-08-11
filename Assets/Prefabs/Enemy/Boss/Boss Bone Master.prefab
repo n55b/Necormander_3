@@ -234,6 +234,11 @@ MonoBehaviour:
   patternLabel: {fileID: 0}
   patternLabelOffset: {x: 0, y: 1.6, z: 0}
   groggyFlashColor: {r: 0.4, g: 0.85, b: 1, a: 1}
+  counterOutlineMaterial: {fileID: 2100000, guid: 75b59c2c0b542d74d815cf3b50111d24, type: 2}
+  counterOutlineColorProperty: _Color
+  counterOutlineIntensity: 2.5
+  counterOutlinePulseSpeed: 3
+  counterOutlinePulseFloor: 0.25
   thornRingPhase1MarginRatio: 0.92
   thornRingPhase2ShrinkRatio: 0.85
   thornRingFallbackSize: {x: 16, y: 16}

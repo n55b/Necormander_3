@@ -51,6 +51,22 @@ public class BoneMasterController : EnemyController
     [Header("그로기(경직) 시각 피드백")]
     [SerializeField] private Color groggyFlashColor = new Color(0.4f, 0.85f, 1f, 1f);
 
+    [Header("카운터 아웃라인 발광")]
+    [Tooltip("스프라이트 외곽선을 따라 빛나게 할 아웃라인 머티리얼. " +
+             "Assets/Material/Pixel_SuperArmor_Shader.mat 과 같은 PickUpOutline 계열 셰이더(_Color 노출)를 쓴다.\n" +
+             "★ 비워두면 예전처럼 몸통 전체를 단색으로 칠하는 방식으로 자동 폴백한다(연출만 투박해지고 동작은 같다).")]
+    [SerializeField] private Material counterOutlineMaterial;
+    [Tooltip("아웃라인 머티리얼에서 색을 받는 셰이더 프로퍼티 이름. PickUpOutline 계열은 _Color 다.")]
+    [SerializeField] private string counterOutlineColorProperty = "_Color";
+    [Tooltip("아웃라인 발광 세기. 1보다 크면 HDR 범위로 올라가 블룸(Bloom)이 먹는다.")]
+    [SerializeField] private float counterOutlineIntensity = 2.5f;
+    [Tooltip("판정이 열리기 전 '유예' 구간에서 아웃라인이 깜빡이는 속도(초당 왕복 횟수). " +
+             "깜빡이는 동안은 아직 판정이 없고, 깜빡임이 멈추고 꽉 차는 순간부터 판정이 시작된다.")]
+    [SerializeField] private float counterOutlinePulseSpeed = 3f;
+    [Tooltip("유예 구간 깜빡임의 최저 밝기(0~1). 0이면 완전히 꺼졌다 켜지고, 높을수록 은은하게 맥동한다.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float counterOutlinePulseFloor = 0.25f;
+
     [Header("뼈 투기장 (방 경계 타원형, 링 판정)")]
     [Tooltip("방 크기 대비 타원 비율(1에 가까울수록 방을 거의 꽉 채움)")]
     [Range(0.5f, 1f)]
@@ -89,8 +105,112 @@ public class BoneMasterController : EnemyController
     private Vector2 _thornRingPhase1Size = Vector2.zero;
     private Coroutine _stateTextClearRoutine;
     private Coroutine _groggyFlashRoutine;
+    private Coroutine _groggyClearRoutine;
+    private Coroutine _activePattern;
+    private BossOutlineGlow _outlineGlow;
     private NavMeshAgent _navAgent;
     private RoomInstance _cachedRoom;
+
+    // ── 특수 패턴 코루틴 수명 관리 ────────────────────────────────────
+    //
+    // [버그 수정 — 죽은 보스가 1초 동안 계속 때리던 문제]
+    // 브레인은 특수 패턴을 entity.StartCoroutine(...) 으로 돌리면서 반환된 Coroutine 핸들을
+    // 어디에도 저장하지 않았다. BaseEntity.CancelAttack() 은 ActiveAttackCoroutine(=기본 공격)만
+    // StopCoroutine 하므로 특수 패턴은 어떤 수단으로도 멈출 수 없었고, MonsterDeathHandler.Die() 가
+    // CancelAttack() 만 부른 뒤 fallbackDelay(1초) 후에야 오브젝트를 파괴하기 때문에
+    // 그 1초 동안 시체가 WarpTo 로 움직이며 BossCombat.DealLane 으로 실제 피해를 줬다
+    // (BossCombat.TryDamage 는 대상의 생사만 보고 '공격자'의 생사는 검사하지 않는다).
+    //
+    // 여기로 핸들을 모아서, 사망·부위파괴·페이즈 전환 어느 경로로도 확실히 끊을 수 있게 한다.
+
+    /// <summary>특수 패턴 코루틴을 컨트롤러가 추적하며 실행한다. 브레인은 이걸 통해서만 패턴을 돌린다.</summary>
+    public void RunPattern(IEnumerator routine)
+    {
+        if (routine == null) return;
+        StopActivePattern();
+        _activePattern = StartCoroutine(TrackPattern(routine));
+    }
+
+    // inner 를 StartCoroutine 이 아니라 'yield return inner' 로 중첩하는 것이 핵심이다.
+    // StartCoroutine 으로 돌리면 별개의 코루틴이 되어, 바깥을 StopCoroutine 해도 안쪽은 계속 산다.
+    private IEnumerator TrackPattern(IEnumerator inner)
+    {
+        // finally 로 감싸야 패턴이 예외로 죽어도 핸들이 남지 않는다. 죽은 핸들이 남으면
+        // 다음 CancelAttack 이 hadPattern 을 true 로 잘못 계산해 CurrentState 를 건드린다.
+        // (C# 이터레이터에서 try/finally 는 허용된다 — BoneMasterCounterUtil.Run 도 같은 방식.)
+        try
+        {
+            yield return inner;
+        }
+        finally
+        {
+            _activePattern = null;
+        }
+    }
+
+    /// <summary>진행 중인 특수 패턴을 즉시 중단하고, 그 패턴이 남긴 전조·카운터 창을 정리한다.</summary>
+    public void StopActivePattern()
+    {
+        if (_activePattern == null) return;
+
+        StopCoroutine(_activePattern);
+        _activePattern = null;
+
+        // StopCoroutine 으로 끊긴 루틴은 자기 정리 코드를 실행하지 못한다.
+        // 열어둔 카운터 창(= 안 닫으면 다음 패턴까지 파훼 판정이 새어 나감), 월드에 남은 전조,
+        // 켜 둔 카운터 아웃라인을 대신 치운다.
+        CounterGauge?.CloseWindow();
+        CleanupDanglingTelegraphs();
+        ClearCounterOutline();
+    }
+
+    /// <summary>
+    /// 기본 공격만 끊던 것을 특수 패턴까지 끊도록 확장한다.
+    /// 보스에게 이게 실제로 불리는 경로는 사망(MonsterDeathHandler.Die)과 페이즈 전환
+    /// (BreakNextPart) 둘뿐이다 — 피격 경직/넉백 경로는 CharacterHealth 와 ApplyKnockback 이
+    /// 모두 슈퍼아머(보스는 게이지 999999)에서 걸러내기 때문이다.
+    ///
+    /// 다만 실패했을 때의 대가가 크다: 패턴 코루틴이 CurrentState = Skill 을 걸어 둔 채로 끊기면
+    /// AIPatternSO.Execute() 가 매 프레임 즉시 return 해서 보스가 영구히 얼어붙는다. 그래서
+    /// 슈퍼아머가 어떤 이유로든 사라져 이 경로가 열리더라도 안전하도록 상태를 되돌려 놓는다.
+    /// </summary>
+    public override void CancelAttack()
+    {
+        bool hadPattern = _activePattern != null;
+
+        base.CancelAttack();
+        StopActivePattern();
+
+        // ★ 죽었을 때는 절대 풀지 않는다.
+        // MonsterDeathHandler.Die() 도 CancelAttack() 을 부르는데, 여기서 Skill 잠금을 풀어 버리면
+        // 시체가 파괴되기까지의 fallbackDelay(프리팹 값 1초) 동안 브레인이 다시 돌면서
+        // '새' 패턴과 기본 공격을 시작한다. 이 프리팹은 사망 시 스크립트를 하나도 비활성화하지 못하고
+        // (behavioursToDisable 의 유일한 항목이 제거된 EnemyController 를 가리켜 null 이다),
+        // BaseEntity.CanExecuteAI() 도 IsDead 를 보지 않기 때문에 막아 주는 게 아무것도 없다.
+        // 잠금 해제는 '살아 있는데 패턴만 끊긴' 경우(슈퍼아머가 사라져 피격 경직이 들어오는 등)에만 필요하다.
+        if (hadPattern && CurrentState == AIState.Skill && (Health == null || !Health.IsDead))
+        {
+            // Idle 로 두면 다음 프레임에 브레인이 UpdateStateTransitions 로 정상 재판단한다.
+            // (페이즈 전환 경로에서는 곧바로 Phase2TransitionRoutine 이 다시 Skill 로 잠그므로 무해하다.)
+            CurrentState = AIState.Idle;
+        }
+    }
+
+    /// <summary>
+    /// [버그 수정 — 죽은 보스가 계속 행동하던 문제]
+    /// BaseEntity.CanExecuteAI() 는 enabled / IsAttacking / 행동불가 상태만 보고 <b>IsDead 는 안 본다</b>.
+    /// 보스 프리팹은 사망 시 스크립트를 비활성화하지 못하고(MonsterDeathHandler.behavioursToDisable 의
+    /// 유일한 항목이 이 프리팹에서 제거된 EnemyController 라 null 이다), 콜라이더를 꺼도 보스 피해는
+    /// BossCombat 의 Physics2D.Overlap* 로 나가므로 소용이 없다. 결과적으로 사망 후 시체가 파괴되기까지
+    /// 1초 동안 브레인이 계속 돌며 텔레그래프를 띄우고 실제 피해까지 줬다
+    /// (BossCombat.TryDamage 는 대상의 생사만 검사하고 공격자의 생사는 보지 않는다).
+    /// 브레인 자체를 여기서 끊는 것이 가장 근본적인 차단이다.
+    /// </summary>
+    protected override bool CanExecuteAI()
+    {
+        if (Health != null && Health.IsDead) return false;
+        return base.CanExecuteAI();
+    }
 
     protected override void Start()
     {
@@ -103,6 +223,14 @@ public class BoneMasterController : EnemyController
         {
             Debug.LogWarning($"[BoneMaster] {gameObject.name}: BossCounterGauge 컴포넌트가 없습니다.");
         }
+        else
+        {
+            // [파훼 가능 신호의 단일 소유자]
+            // 카운터 창은 패턴마다 따로 열고 닫는다(돌진 예고 / 3연타 마지막 / P2 광역 2종 / 패턴3).
+            // 그 12개 지점에서 아웃라인을 일일이 켜고 끄면 한 곳만 빠져도 발광이 켜진 채 남는다.
+            // 게이지 상태가 곧 "지금 때리면 파훼된다"이므로, 게이지에 직접 물려서 어긋날 수 없게 한다.
+            CounterGauge.OnGaugeChanged += HandleCounterGaugeChanged;
+        }
 
         if (patternLabel == null) patternLabel = GetComponentInChildren<EliteBossPatternLabel>();
         if (patternLabel == null) patternLabel = CreatePatternLabel();
@@ -111,6 +239,17 @@ public class BoneMasterController : EnemyController
         _bodyOriginalColors = new Color[_bodyRenderers.Length];
         for (int i = 0; i < _bodyRenderers.Length; i++) _bodyOriginalColors[i] = _bodyRenderers[i].color;
 
+        // 아웃라인 발광 오버레이. 머티리얼이 비어 있으면 IsUsable 이 false 로 남고,
+        // 호출측(PulseCounterOutline/ShowCounterOutline)이 예전 몸통 단색 방식으로 폴백한다.
+        _outlineGlow = gameObject.AddComponent<BossOutlineGlow>();
+        _outlineGlow.Init(SpriteRenderer, counterOutlineMaterial, counterOutlineColorProperty, counterOutlineIntensity);
+        if (counterOutlineMaterial == null)
+        {
+            Debug.LogWarning($"[BoneMaster] {gameObject.name}: Counter Outline Material 이 비어 있습니다. " +
+                             "카운터 연출이 예전 방식(몸통 전체 단색)으로 나갑니다 — " +
+                             "프리팹에 Assets/Material/Pixel_SuperArmor_Shader.mat 같은 아웃라인 머티리얼을 꽂아 주세요.");
+        }
+
         if (Stats != null) _baseMoveSpeedCached = Stats.BaseMoveSpeed;
 
         if (Stats != null && Stats.Status != null)
@@ -118,7 +257,11 @@ public class BoneMasterController : EnemyController
             Stats.Status.ApplySuperArmor(superArmorGauge);
         }
 
-        if (Health != null) Health.UpdateHPBar += CheckPartBreak;
+        if (Health != null)
+        {
+            Health.UpdateHPBar += CheckPartBreak;
+            Health.OnBeforeDeath += HandleBeforeDeath;
+        }
 
         SetStateText("추격 중...");
         DamageEventBus.OnBeforeDamageCalculated += HandleIncomingDamageAmp;
@@ -129,7 +272,12 @@ public class BoneMasterController : EnemyController
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        if (Health != null) Health.UpdateHPBar -= CheckPartBreak;
+        if (Health != null)
+        {
+            Health.UpdateHPBar -= CheckPartBreak;
+            Health.OnBeforeDeath -= HandleBeforeDeath;
+        }
+        if (CounterGauge != null) CounterGauge.OnGaugeChanged -= HandleCounterGaugeChanged;
         DamageEventBus.OnBeforeDamageCalculated -= HandleIncomingDamageAmp;
         if (_thornRing != null) Destroy(_thornRing.gameObject);
         // 예고 중에 보스가 죽으면 패턴 코루틴이 통째로 끊겨서, 그 코루틴이 만든 텔레그래프를
@@ -147,18 +295,50 @@ public class BoneMasterController : EnemyController
         info.amount *= Mathf.Max(0f, multiplier);
     }
 
+    /// <summary>
+    /// [버그 수정 — 한 방에 임계치를 두 개 넘으면 하나가 씹히던 문제]
+    /// 예전엔 if 한 번이라 호출당 최대 1개만 부서졌다. HP 1200 기준 한 타에 240(20%) 이상 깎으면
+    /// 0.8과 0.6을 동시에 넘는데 투구만 부서지고 견갑은 다음 피격까지 밀렸고, 강한 빌드에서는
+    /// 페이즈2 진입까지 '피격 횟수'가 부족해 계속 지연됐다. 넘긴 임계치는 전부 소진할 때까지 돈다.
+    ///
+    /// 흉갑(마지막)이 부서지면 BreakNextPart 안에서 StopAllCoroutines + 페이즈2 전환이 시작되므로,
+    /// 루프 조건이 PartsDestroyed 를 다시 읽어 자연스럽게 끝난다(중복 진입 없음).
+    /// </summary>
     private void CheckPartBreak()
     {
         if (Stats == null || Health == null) return;
-        if (PartsDestroyed >= partBreakHpRatios.Length) return;
 
-        float ratio = Health.MaxHP > 0f ? Health.CurHP / Health.MaxHP : 1f;
-        float nextThreshold = partBreakHpRatios[PartsDestroyed];
-
-        if (ratio <= nextThreshold)
+        while (PartsDestroyed < partBreakHpRatios.Length)
         {
+            float ratio = Health.MaxHP > 0f ? Health.CurHP / Health.MaxHP : 1f;
+            if (ratio > partBreakHpRatios[PartsDestroyed]) break;
             BreakNextPart();
         }
+    }
+
+    /// <summary>
+    /// [버그 수정 — 오버킬 한 방에 페이즈2가 통째로 스킵되던 문제]
+    /// 부위 파괴 검사는 <c>Health.UpdateHPBar</c> 이벤트에만 실려 있는데, CharacterHealth 는
+    /// 사망 처리(Die)를 그보다 <b>먼저</b> 한다(CharacterHealth.cs:293-304 — Die 가 :301, UpdateHPBar 가 :304).
+    /// 그래서 HP 40% 선 위에서 0 이하로 떨어뜨리는 일격이 나오면, 흉갑이 깨지기도 전에 보스가
+    /// 그냥 죽어버리고 페이즈2가 영영 일어나지 않았다.
+    ///
+    /// 아직 부술 부위가 남아 있으면 죽음을 취소하고 HP 1로 붙잡는다. SetHP 가 그 자리에서
+    /// UpdateHPBar 를 다시 쏘므로, 위 CheckPartBreak 루프가 남은 부위를 전부 부수고
+    /// 흉갑 파괴 → 페이즈2 전환까지 정상적으로 이어진다.
+    /// </summary>
+    private bool HandleBeforeDeath(CharacterHealth health)
+    {
+        if (health == null) return false;
+        if (CurrentPhase >= 2) return false;                        // 페이즈2에서의 죽음은 진짜 죽음이다
+        if (phase2Data == null) return false;                       // 전환할 곳이 없으면 그냥 죽는다
+        if (PartsDestroyed >= partBreakHpRatios.Length) return false;
+
+        Debug.Log($"<color=red>[BoneMaster]</color> 오버킬 감지 — 부위 파괴가 {PartsDestroyed}/{partBreakHpRatios.Length}뿐이라 " +
+                  "사망을 취소하고 페이즈2로 넘긴다.");
+
+        health.SetHP(1f); // 이 안에서 UpdateHPBar -> CheckPartBreak 가 다시 돈다
+        return true;      // 사망 취소
     }
 
     private void BreakNextPart()
@@ -212,7 +392,16 @@ private IEnumerator Phase2TransitionRoutine()
         // 때까지 계속 Skill 상태를 유지해서, 그 사이엔 어떤 브레인도 패턴을 시전할 수 없게 한다.
         CurrentState = AIState.Skill;
 
+        // [버그 수정 — 전환 후에도 경직이 남아 페이즈2 브레인이 안 도는 문제]
+        // IsGroggy 는 이 컨트롤러의 플래그지만, 실제 행동불가는 CharacterStatus 의 Stun 상태다.
+        // 그건 코루틴이 아니라 자체 타이머로 도는 값이라 위쪽 StopAllCoroutines() 로 안 사라진다.
+        // 카운터 파훼 그로기(최대 5초) 도중에 흉갑이 깨지면 페이즈2에 들어가고도
+        // CanExecuteAI() 가 남은 시간만큼 false 여서 보스가 그대로 얼어 있었다. 둘 다 확실히 푼다.
         IsGroggy = false;
+        if (_groggyClearRoutine != null) { StopCoroutine(_groggyClearRoutine); _groggyClearRoutine = null; }
+        if (_groggyFlashRoutine != null) { StopCoroutine(_groggyFlashRoutine); _groggyFlashRoutine = null; }
+        if (Stats != null && Stats.Status != null) Stats.Status.RemoveStatus(StatusType.Stun);
+
         ClearVisualFlash();
         HardStopMovement();
         if (Health != null) Health.Invincible = true;
@@ -236,6 +425,16 @@ private IEnumerator Phase2TransitionRoutine()
             Stats.InitializeStats(phase2Data);
             _baseMoveSpeedCached = Stats.BaseMoveSpeed;
 
+            // [버그 수정 — 흉갑 파괴의 이동속도 +15% 가 페이즈2에서 증발하던 문제]
+            // 투구/견갑 보너스는 컨트롤러 프로퍼티(AttackRangeBonus/PatternCastSpeedBonus)라 전환 후에도
+            // 그대로 살아 있는데, 흉갑 보너스만 Stats.SetBaseMoveSpeed 로 스탯에 직접 써 넣는 방식이었다.
+            // 바로 위 InitializeStats(phase2Data) 가 스탯을 통째로 갈아엎으므로 그 보너스만 사라졌다
+            // ("부위파괴 보너스는 페이즈2에서도 누적 유지" 설계와 어긋난다). 새 기준값 위에 다시 얹는다.
+            if (PartsDestroyed >= partBreakHpRatios.Length && _baseMoveSpeedCached > 0f)
+            {
+                Stats.SetBaseMoveSpeed(_baseMoveSpeedCached * (1f + chestBreakMoveSpeedBonus));
+            }
+
             if (Stats.Status != null) Stats.Status.ApplySuperArmor(superArmorGauge);
 
             if (phase2Data.aiPattern != null)
@@ -252,7 +451,11 @@ private IEnumerator Phase2TransitionRoutine()
             if (Health != null)
             {
                 float newMax = Health.MaxHP;
-                Health.SetHP(0f);
+                // [버그 수정 — 전환 연출 중 1프레임 '사망' 판정] CharacterHealth.SetHP 는
+                // isDead = curHP <= 0f 를 그대로 대입한다. 정확히 0을 넣으면 Die() 는 안 불리지만
+                // isDead 플래그만 켜져서, 그 프레임에 BossCombat.TryDamage / IsTargetInvalid 가
+                // 보스를 '죽은 것'으로 취급한다. 0 대신 아주 작은 양수에서 차오르게 한다.
+                Health.SetHP(Mathf.Min(0.01f, newMax));
                 yield return StartCoroutine(AnimateHealthFillUp(newMax, phase2HealFillDuration));
             }
         }
@@ -274,11 +477,14 @@ private IEnumerator Phase2TransitionRoutine()
             yield break;
         }
 
+        // 0 에서 시작하면 첫 프레임의 Lerp 결과가 0이라 isDead 가 다시 켜진다(SetHP 주석 참조).
+        float from = Mathf.Min(0.01f, targetMax);
+
         float t = 0f;
         while (t < duration)
         {
             t += Time.deltaTime;
-            Health.SetHP(Mathf.Lerp(0f, targetMax, t / duration));
+            Health.SetHP(Mathf.Lerp(from, targetMax, t / duration));
             yield return null;
         }
         Health.SetHP(targetMax);
@@ -289,18 +495,24 @@ private IEnumerator Phase2TransitionRoutine()
         _runtimeBrain = brain;
     }
 
+    /// <summary>
+    /// 자초한 경직(그로기)을 건다. ApplyFixedStun 은 슈퍼아머·기절 clamp·기절 내성을 전부 우회하므로
+    /// 여기 넘긴 duration 이 그대로 행동불가 시간이 된다(CharacterStatus.ApplyFixedStun 주석 참조).
+    /// </summary>
     public void ApplyGroggy(float duration)
     {
-        if (Stats != null && Stats.Status != null)
-        {
-            IsGroggy = true;
-            Stats.Status.ApplyFixedStun(duration);
+        if (Stats == null || Stats.Status == null) return;
 
-            if (_groggyFlashRoutine != null) StopCoroutine(_groggyFlashRoutine);
-            _groggyFlashRoutine = StartCoroutine(GroggyFlashRoutine(duration));
+        IsGroggy = true;
+        Stats.Status.ApplyFixedStun(duration);
 
-            StartCoroutine(ClearGroggyFlagAfter(duration));
-        }
+        if (_groggyFlashRoutine != null) StopCoroutine(_groggyFlashRoutine);
+        _groggyFlashRoutine = StartCoroutine(GroggyFlashRoutine(duration));
+
+        // [버그 수정] 예전엔 이 핸들을 안 잡아서, 그로기가 겹치면 먼저 끝나는 쪽(짧은 것)이
+        // IsGroggy = false 를 써버려 긴 그로기가 조기 해제됐다. 항상 마지막 것만 살린다.
+        if (_groggyClearRoutine != null) StopCoroutine(_groggyClearRoutine);
+        _groggyClearRoutine = StartCoroutine(ClearGroggyFlagAfter(duration));
     }
 
     private IEnumerator GroggyFlashRoutine(float duration)
@@ -315,6 +527,7 @@ private IEnumerator Phase2TransitionRoutine()
     {
         yield return new WaitForSeconds(duration);
         IsGroggy = false;
+        _groggyClearRoutine = null;
     }
 
     public void SetStateText(string text, Color? color = null)
@@ -339,6 +552,66 @@ private IEnumerator Phase2TransitionRoutine()
         yield return new WaitForSeconds(duration);
         patternLabel?.Clear();
         _stateTextClearRoutine = null;
+    }
+
+    // ── 카운터 아웃라인 발광 ──────────────────────────────────────────
+    //
+    // 판정이 열리기 전까지는 "깜빡이는 아웃라인"으로 색만 알려주고(= 아직 아무 판정도 없다),
+    // 판정이 열리는 순간 깜빡임을 멈추고 꽉 찬 발광으로 바꾼다. 플레이어는 색으로 진짜/가짜를,
+    // 깜빡임 여부로 "지금부터 유효하다"를 읽는다.
+
+    // 파훼 가능(카운터 창이 열림) 신호에 쓸 색. 페이즈마다 다를 수 있어 패턴 SO 가 Init 에서 밀어 넣는다
+    // (색을 프리팹에도 두면 SO 의 counterRealColor 와 두 소스가 갈려 반드시 어긋난다).
+    private Color _counterChanceColor = new Color(0.2f, 1f, 0.3f);
+
+    /// <summary>패턴 SO 가 자기 counterRealColor 를 알려준다. 게이지가 열릴 때 이 색으로 빛난다.</summary>
+    public void SetCounterChanceColor(Color color) => _counterChanceColor = color;
+
+    /// <summary>
+    /// 카운터 게이지가 열리고 닫히는 것을 그대로 아웃라인에 반영한다.
+    /// 게이지가 열려 있다 = 지금 때리면 파훼된다 = 초록 발광, 이라는 규칙을 여기 한 곳에서만 지킨다.
+    /// </summary>
+    private void HandleCounterGaugeChanged()
+    {
+        if (CounterGauge == null) return;
+
+        if (CounterGauge.IsOpen) ShowCounterOutline(_counterChanceColor);
+        else ClearCounterOutline();
+    }
+
+    /// <summary>유예 구간용. 아웃라인을 지정 색으로 켜고 깜빡이게 한다(판정 전).</summary>
+    public void PulseCounterOutline(Color color, float elapsed)
+    {
+        if (_outlineGlow == null || !_outlineGlow.IsUsable)
+        {
+            // 폴백: 머티리얼 미배선 — 예전 방식(몸통 단색)으로라도 색은 알려준다.
+            SetVisualFlash(color);
+            return;
+        }
+
+        if (!_outlineGlow.IsVisible) _outlineGlow.Show(color);
+
+        float wave = Mathf.Abs(Mathf.Sin(elapsed * Mathf.PI * Mathf.Max(0.01f, counterOutlinePulseSpeed)));
+        _outlineGlow.SetBrightness(Mathf.Lerp(counterOutlinePulseFloor, 1f, wave));
+    }
+
+    /// <summary>판정 개시. 깜빡임을 멈추고 아웃라인을 꽉 채운다.</summary>
+    public void ShowCounterOutline(Color color)
+    {
+        if (_outlineGlow == null || !_outlineGlow.IsUsable)
+        {
+            SetVisualFlash(color);
+            return;
+        }
+
+        _outlineGlow.Show(color);
+        _outlineGlow.SetBrightness(1f);
+    }
+
+    public void ClearCounterOutline()
+    {
+        _outlineGlow?.Hide();
+        ClearVisualFlash(); // 폴백 경로로 몸통을 칠했을 수도 있으니 항상 같이 되돌린다
     }
 
     public void SetVisualFlash(Color color)
@@ -473,8 +746,16 @@ private void ShrinkThornArenaRing()
     /// 남음). BoneMasterTelegraphUtil이 만드는 모든 텔레그래프는 "BoneMaster_Telegraph_" 접두사를 쓰므로,
     /// 페이즈 전환 시작 시점에 이름으로 찾아 전부 정리한다.
     /// </summary>
-    private void CleanupDanglingTelegraphs()
+    private int _lastTelegraphCleanupFrame = -1;
+
+    public void CleanupDanglingTelegraphs()
     {
+        // 한 프레임에 두 번 이상 부를 이유가 없다. 정리 경로가 두 갈래(브레인의 OnAttackCancelled 훅과
+        // 컨트롤러의 StopActivePattern)라 CancelAttack 한 번에 씬 전수 스캔이 두 번 돌았다.
+        // 이 함수는 멱등이고 씬 전체를 훑으므로, 프레임당 1회면 충분하다.
+        if (_lastTelegraphCleanupFrame == Time.frameCount) return;
+        _lastTelegraphCleanupFrame = Time.frameCount;
+
         var allTransforms = FindObjectsByType<Transform>(FindObjectsSortMode.None);
         int count = 0;
         foreach (var t in allTransforms)

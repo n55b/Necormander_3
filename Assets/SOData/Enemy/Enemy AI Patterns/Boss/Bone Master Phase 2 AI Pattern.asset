@@ -19,36 +19,49 @@ MonoBehaviour:
   sweepRange: 2.2
   sweepRadius: 2.8
   sweepHalfAngle: 90
-  basicThrustLength: 4
+  basicThrustLength: 5.2
   basicThrustWidth: 1.4
   basicAttackWindup: 0.7
   basicAttackRecovery: 0.35
   spinSlamCooldown: 7
   pivotSpinCooldown: 7
   counterCooldown: 9
+  postPatternRecovery: 1.5
+  postGroggyRecovery: 1.5
   weights: {x: 33, y: 33, z: 34}
   telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
   laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3,
     type: 3}
+  minRingTelegraphLead: 1
   spinRadius: 4
   spinSafeRadius: 1.5
-  spinTelegraphLead: 0.4
+  spinTelegraphLead: 1
   slamTelegraphTime: 1.2
   slamCounterGaugeAmount: 25
   slamCounterStaggerDuration: 1.5
   slamRange: 6.5
   slamWidth: 2
   spinToSlamPause: 0.8
+  slamFinishRecovery: 0.8
+  slamDamageMultiplier: 1.15
   pivotBodySlamRadius: 2
   pivotSafeRadius: 1.2
-  pivotBodyTelegraphLead: 0.3
+  pivotBodyTelegraphLead: 1
   pivotCounterWindow: 1
   pivotCounterGaugeAmount: 25
   pivotCounterStaggerDuration: 2.5
   pivotFinishRadius: 4
   pivotFinishSafeRadius: 1.5
-  pivotFinishTelegraphLead: 0.3
+  pivotFinishTelegraphLead: 1
+  pivotFinishRecovery: 0.6
+  pivotBodyDamageMultiplier: 0.7
+  pivotFinishDamageMultiplier: 1.1
+  counterGraceTime: 1
   counterReactionWindow: 1
+  fakeCounterChance: 0.5
+  counterGaugeAmount: 1
+  counterRealColor: {r: 0.2, g: 1, b: 0.3, a: 1}
+  counterFakeColor: {r: 1, g: 0.1, b: 0.1, a: 1}
   counterSuccessStaggerDuration: 2.5
   fakeCounterPlayerStun: 0.75
   fakeCounterPunishDamage: 4

@@ -77,6 +77,112 @@ public static class BoneMasterTelegraphUtil
         return SpawnCircle(entity, pos, radius, color, bandRatio, sortingOrder);
     }
 
+    // ── 차오르는 원형 전조 ───────────────────────────────────────────
+    //
+    // [추가 — "외곽선이 뜨자마자 터진다"는 억까 피드백]
+    // SpawnRing/SpawnCircle 은 굵기만 다른 정지 원이라 "언제 터지는지"를 담고 있지 않다.
+    // 레인/타원 전조는 프리팹에 차오름 게이지가 딸려 있어 남은 시간이 읽히는데, 페이즈2의
+    // 광역기 3종(회전베기·몸통박치기·마무리베기)만 이 정지 링을 써서, 예고 시간을 늘려도
+    // 플레이어 입장에선 여전히 "빨간 원이 떴다 → 맞았다"로만 보였다.
+    //
+    // 안전지대(safeRadius)에서 바깥(radius)으로 띠가 차오르게 만들면 두 가지가 동시에 읽힌다:
+    //   · 얼마나 남았는지 (띠가 외곽선에 닿는 순간 = 발동)
+    //   · 어디가 안전한지 (띠가 시작되는 안쪽이 곧 excludeRadius)
+    // 즉 판정(DealCircle 의 radius/excludeRadius)과 그림이 같은 두 값으로 그려져 어긋날 수 없다.
+
+    /// <summary>
+    /// 안전지대(safeRadius)에서 바깥(radius)으로 <b>차오르는</b> 도넛형 전조를 만든다.
+    /// 매 프레임 <see cref="UpdateRingCountdown"/>로 진행도를 갱신해야 실제로 차오른다.
+    /// safeRadius 를 0으로 주면 중심에서 퍼지는 원판이 된다.
+    /// </summary>
+    public static GameObject SpawnRingCountdown(BaseEntity entity, Vector2 pos, float radius, float safeRadius,
+                                                Color color, int sortingOrder = 5000)
+    {
+        GameObject go = new GameObject("BoneMaster_Telegraph_RingCountdown");
+        go.transform.position = pos;
+
+        float safe = Mathf.Max(0f, safeRadius);
+
+        // 최종 위험 범위 외곽선(정지) — "여기까지 온다"
+        MakeUnitCircleChild(go, "Outline", entity, color, sortingOrder, radius, Mathf.Max(0.06f, radius * 0.04f));
+
+        // 안전지대 경계(정지, 옅게) — "여기 안쪽은 안 맞는다"
+        if (safe > 0.01f)
+        {
+            Color safeColor = new Color(color.r, color.g, color.b, color.a * 0.45f);
+            MakeUnitCircleChild(go, "SafeEdge", entity, safeColor, sortingOrder, safe, Mathf.Max(0.05f, safe * 0.06f));
+        }
+
+        // 차오르는 띠 — 외곽선보다 한 단계 아래에 깔아서 테두리가 위에 선명하게 남게 한다.
+        Color fillColor = new Color(color.r, color.g, color.b, color.a * 0.55f);
+        MakeUnitCircleChild(go, "Fill", entity, fillColor, sortingOrder - 1, Mathf.Max(0.01f, safe), 0.02f);
+
+        UpdateRingCountdown(go, radius, safe, 0f);
+        return go;
+    }
+
+    /// <summary>
+    /// <see cref="SpawnRingCountdown"/>이 만든 전조의 차오름 진행도를 갱신한다(progress01: 0=시작, 1=발동).
+    /// 반지름을 인자로 다시 받는 것은 이 유틸이 상태를 안 들고 있기 때문이다 — 호출측(패턴 코루틴)이
+    /// 이미 두 값을 갖고 있으므로, 그림과 판정이 같은 변수에서 나오는 편이 어긋날 여지가 없다.
+    /// </summary>
+    public static void UpdateRingCountdown(GameObject telegraph, float radius, float safeRadius, float progress01)
+    {
+        if (telegraph == null) return;
+
+        Transform fill = telegraph.transform.Find("Fill");
+        if (fill == null) return;
+
+        var lr = fill.GetComponent<LineRenderer>();
+        if (lr == null) return;
+
+        float safe = Mathf.Max(0f, safeRadius);
+        float cur = Mathf.Lerp(safe, radius, Mathf.Clamp01(progress01));
+
+        // 띠의 '가운데 반지름'은 정점 위치로, '두께'는 LineRenderer 폭으로 준다.
+        // transform 스케일은 쓰지 않는다 — LineRenderer 의 폭이 스케일을 타는지 여부는 Unity
+        // 버전/설정에 따라 헷갈리는 지점이라, 스케일에 의존하면 전조 크기가 판정과 어긋날 수 있다.
+        // 정점을 매 프레임 다시 쓰는 비용은 48개 × 전조 1개라 무시할 수 있다.
+        float band = Mathf.Max(0.02f, cur - safe);
+        float drawRadius = Mathf.Max(0.01f, (cur + safe) * 0.5f);
+
+        WriteCirclePoints(lr, drawRadius);
+        lr.startWidth = band;
+        lr.endWidth = band;
+    }
+
+    // 원 정점 버퍼(재사용). 전조는 한 번에 몇 개 안 뜨므로 정적 하나로 충분하다.
+    private const int RingSegments = 48;
+    private static readonly Vector3[] _ringPoints = new Vector3[RingSegments];
+
+    private static void WriteCirclePoints(LineRenderer lr, float radius)
+    {
+        for (int i = 0; i < RingSegments; i++)
+        {
+            float a = i * Mathf.PI * 2f / RingSegments;
+            _ringPoints[i] = new Vector3(Mathf.Cos(a) * radius, Mathf.Sin(a) * radius, 0f);
+        }
+        lr.positionCount = RingSegments;
+        lr.SetPositions(_ringPoints);
+    }
+
+    /// <summary>지정한 반지름의 원을 그리는 LineRenderer 자식을 만든다(스케일은 항상 1로 둔다).</summary>
+    private static Transform MakeUnitCircleChild(GameObject parent, string name, BaseEntity entity,
+                                                 Color color, int sortingOrder, float radius, float width)
+    {
+        GameObject child = new GameObject(name);
+        child.transform.SetParent(parent.transform, false);
+        child.transform.localPosition = Vector3.zero;
+        child.transform.localScale = Vector3.one;
+
+        var lr = child.AddComponent<LineRenderer>();
+        lr.loop = true;
+        WriteCirclePoints(lr, Mathf.Max(0.01f, radius));
+
+        ApplyCommon(lr, entity, color, sortingOrder, width);
+        return child.transform;
+    }
+
     /// <summary>
     /// 전조 프리팹을 "시각 전용"으로 가동한다.
     /// targetLayer 를 0 으로 넘겨 BaseHitBox 의 자동 타격을 끈다(OnTriggerStay2D 의 레이어 검사가 항상 걸러낸다).
@@ -194,15 +300,21 @@ public static GameObject SpawnCone(BaseEntity entity, Vector2 pos, Vector2 facin
         fillMesh.RecalculateBounds();
         mf.sharedMesh = fillMesh;
 
+        Material coneMat = null;
         var baseMat = GetSafeMaterial();
         if (baseMat != null)
         {
-            var fillMat = new Material(baseMat); // 텔레그래프마다 알파가 달라질 수 있어 공유 캐시 재질을 복제해서 쓴다.
+            coneMat = new Material(baseMat); // 텔레그래프마다 알파가 달라질 수 있어 공유 캐시 재질을 복제해서 쓴다.
             Color fillColor = color;
             fillColor.a *= fillAlpha;
-            fillMat.color = fillColor;
-            mr.sharedMaterial = fillMat;
+            coneMat.color = fillColor;
+            mr.sharedMaterial = coneMat;
         }
+
+        // [버그 수정 — Mesh/Material 누수] 코드로 만든 Mesh 와 복제 Material 은 GameObject 를 Destroy 해도
+        // 같이 사라지지 않는다. 부채꼴 전조는 근접 기본 공격마다 하나씩 생기므로 전투가 길어질수록
+        // 계속 쌓였다. 어느 경로로 파괴되든 OnDestroy 는 지나가므로 꼬리표를 붙여 함께 정리한다.
+        go.AddComponent<TelegraphResourceCleanup>().Track(fillMesh, coneMat);
         mr.sortingLayerID = entity != null && entity.SpriteRenderer != null ? entity.SpriteRenderer.sortingLayerID : 0;
         mr.sortingOrder = sortingOrder - 1; // 외곽선보다 한 단계 아래에 채워서 테두리가 위에 선명하게 보이게 한다.
 
