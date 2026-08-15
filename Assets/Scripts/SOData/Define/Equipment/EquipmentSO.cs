@@ -30,7 +30,7 @@ public class EquipmentSO : ScriptableObject
     [Tooltip("획득 시 풀에서 몇 개를 뽑아 바인딩할지. 기본 2(Q/E).")]
     public int skillsToRoll = 2;
 
-    [Header("패시브 (공격 관련. 유틸은 서브 소환수 담당)")]
+    [Header("패시브 (공격 관련. 유틸은 주머니 아이템 담당)")]
     [Tooltip("장비가 주는 패시브들(1개 이상). 스탯형/상태이상형을 원하는 만큼 담을 수 있다.\n" +
              "인스펙터에서 + 로 종류를 골라 추가한다([SerializeReference]).")]
     [SerializeReference] public List<EquipmentPassive> passives = new List<EquipmentPassive>();

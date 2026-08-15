@@ -148,8 +148,8 @@ public static class RewardProcessor
     }
 
     // --- 1-B. 미니언 스킬 방용: 소환수 코어 배출 ---
-    /// <summary>지정한 역할의 소환수 카드 3장을 뽑는다. 메인/서브 풀은 타입으로만 갈린다.</summary>
-    /// <param name="roleType">typeof(MainMinionDataSO) 또는 typeof(SubMinionDataSO).</param>
+    /// <summary>지정한 역할의 소환수 카드 3장을 뽑는다. 풀은 타입으로만 갈린다.</summary>
+    /// <param name="roleType">typeof(MainMinionDataSO). null 이면 전부. (서브 삭제 후 사실상 메인뿐)</param>
     public static List<RewardCandidate> GenerateSummonRewards(InventoryManager inven, DataManager data, System.Type roleType, int count = 3)
     {
         List<RewardCandidate> results = new List<RewardCandidate>();
@@ -238,22 +238,10 @@ public static class RewardProcessor
 
         List<RewardCandidate> combinedPool = new List<RewardCandidate>();
 
-        // 설계 4: 서브 소환수는 상점에서도 등장한다. 메인은 보상 방 전용.
-        if (shopRegistry.minionPool != null)
-        {
-            foreach(var minion in shopRegistry.minionPool)
-            {
-                if (minion == null || minion is not SubMinionDataSO) continue;
-                combinedPool.Add(new RewardCandidate
-                {
-                    displayData = BuildMinionDisplayData(minion),
-                    rawData = minion,
-                    techIndex = 0,
-                    category = RewardCategory.Minion,
-                    goldAmount = minion.shopCost
-                });
-            }
-        }
+        // [26/08/15] 서브 소환수 삭제로 상점 소환수 진열이 사라졌다.
+        // minionPool 은 '서브만 통과'라는 필터로 돌아가고 있었고, 서브가 전부라서 지금은 빈 풀이다.
+        // 메인 소환수는 보상 방 전용이라 여기에 올리지 않는다(그 설계를 바꾸려면 별도 판단이 필요).
+        // ⚠ 그 결과 상점 풀이 장비 + 아이템만 남아 진열이 고정에 가까워졌다 — 아이템 에셋을 늘려야 한다.
 
         // [장비] 상점에서 장비 구매 = 현재 장비 교체(구매 시 스킬 2개 새로 리롤). 뜰 때 인스턴스로 굳힌다.
         if (shopRegistry.equipmentPool != null)
@@ -294,9 +282,8 @@ public static class RewardProcessor
 
         // 젬 효과가 전부 제거되어 상점 젬 풀도 내렸다. (GEM_LEGACY.md)
 
-        // 랜덤하게 최대 5개 선택. 중복 제거 — 서브 슬롯이 1칸뿐이라 같은 카드를 여러 장 팔면
-        // 사는 족족 덮어쓰기만 된다. (예전엔 RemoveAt 이 주석 처리돼 있어서 5장 전부 같은 카드가
-        // 뜰 수 있었다.)
+        // 랜덤하게 최대 5개 선택. 중복 제거 — 같은 카드를 여러 장 팔면 사는 족족 덮어쓰기만 되는
+        // 항목이 있다. (예전엔 RemoveAt 이 주석 처리돼 있어서 5장 전부 같은 카드가 뜰 수 있었다.)
         for(int i = 0; i < 5 && combinedPool.Count > 0; i++)
         {
             int idx = Random.Range(0, combinedPool.Count);
@@ -311,10 +298,10 @@ public static class RewardProcessor
 
     /// <summary>
     /// 소환수 보상 후보. roleType 을 주면 그 타입만 걸러낸다.
-    /// ponytail: GrowthRegistry 의 리스트를 메인/서브로 쪼개지 않고 필터만 건다 —
-    /// RefreshRegistry 가 t:MinionDataSO 를 자동 스캔하는데, 리스트를 쪼개면 그 자동화가 깨진다.
+    /// GrowthRegistry 의 리스트를 역할별로 쪼개지 않고 필터만 건다 —
+    /// RefreshRegistry 가 타입으로 자동 스캔하는데, 리스트를 쪼개면 그 자동화가 깨진다.
     /// </summary>
-    /// <param name="roleType">typeof(MainMinionDataSO) / typeof(SubMinionDataSO). null 이면 전부.</param>
+    /// <param name="roleType">typeof(MainMinionDataSO). null 이면 전부. (서브 삭제 후 사실상 메인뿐)</param>
     private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionDataSO> minions, bool filterOwned = true, System.Type roleType = null)
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();

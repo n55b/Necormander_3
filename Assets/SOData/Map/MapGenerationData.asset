@@ -24,7 +24,7 @@ MonoBehaviour:
   augmentRoomCount: 1
   playerSkillRewardRoomCount: 3
   mainSummonRewardRoomCount: 3
-  subSummonRewardRoomCount: 3
+  itemRewardRoomCount: 4
   fillRemainingRoomsRandomly: 1
   wavesCount: 2
   minDistanceBetweenEnemies: 2

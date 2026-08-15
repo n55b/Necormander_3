@@ -32,8 +32,11 @@ public class MapGenerationDataSO : ScriptableObject
     public int playerSkillRewardRoomCount = 3;
     [Tooltip("일반 전투 방 중 메인 소환수 보상을 배정할 정확한 방의 수량")]
     public int mainSummonRewardRoomCount = 3;
-    [Tooltip("일반 전투 방 중 서브 소환수 보상을 배정할 정확한 방의 수량")]
-    public int subSummonRewardRoomCount = 3;
+    [Tooltip("일반 전투 방 중 아이템 보상을 배정할 정확한 방의 수량.\n" +
+             "[26/08/15] 서브 소환수 보상 방을 아이템 보상 방으로 전환했다. 필드 이름만 바뀌었고 " +
+             "직렬화 값은 FormerlySerializedAs 로 그대로 이어받는다.")]
+    [UnityEngine.Serialization.FormerlySerializedAs("subSummonRewardRoomCount")]
+    public int itemRewardRoomCount = 4;
     [Tooltip("위 카운트를 다 채우고 남는 일반 방에도 무작위 보상을 배정할지. 끄면 남는 방은 보상 없음.")]
     public bool fillRemainingRoomsRandomly = true;
 

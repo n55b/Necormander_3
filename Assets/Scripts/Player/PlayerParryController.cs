@@ -4,17 +4,18 @@ using System.Collections;
 /// <summary>
 /// 플레이어의 우클릭을 담당하는 컨트롤러.
 ///
-/// [26/08/10] 패링 전용에서 3종으로 확장됐다. 무엇이 나갈지는 장착된 서브 소환수
-/// (SubMinionDataSO.rightClick)가 정하고, 아무것도 안 꼈으면 우클릭은 안내 문구만 띄운다.
-/// 클래스 이름은 그대로 둔다 — PlayerController/MeleeCombatController/사운드가 이름으로 참조하고
-/// 프리팹도 이 스크립트를 물고 있어서, 이름을 바꿔봐야 기능은 그대로인데 배선만 흔들린다.
+/// [26/08/10] 패링 전용에서 3종으로 확장됐다.
+/// [26/08/15] 서브 소환수가 삭제되면서 우클릭이 <b>플레이어 본인의 영구 능력</b>이 됐다.
+/// 무엇이 나갈지는 InventoryManager 의 우클릭 슬롯(SLOT_RIGHTCLICK)이 정하고, 그 슬롯은 마을
+/// NPC 에서만 바꾼다. 클래스 이름은 그대로 둔다 — PlayerController/MeleeCombatController/사운드가
+/// 이름으로 참조하고 프리팹도 이 스크립트를 물고 있어서, 바꿔봐야 기능은 그대로인데 배선만 흔들린다.
 ///
 /// 세 종류가 성격이 전부 다르다:
 ///  · 패링   [탭] 판정창 동안 주변 Projectile 을 찾아 반사한다.            (능동 스캔)
 ///  · 카운터 [탭] 판정창 동안 근접 공격을 받아내 무효화 + 반사 + 범위 경직. (수동 + 영역 스캔)
 ///  · 가드   [홀드] 누르고 있는 동안 바라보는 방향의 피해를 감소시킨다.     (판정창 없음)
 ///
-/// 수치는 전부 MinionRightClick(SO)에서 온다. 여기 인스펙터에 같은 값을 또 두면 두 소스가 갈려서
+/// 수치는 전부 RightClickDataSO 에셋에서 온다. 여기 인스펙터에 같은 값을 또 두면 두 소스가 갈려서
 /// 반드시 어긋난다 — 그래서 옛 parryRadius/parryAngle/parryActiveDuration 등은 전부 지웠다.
 /// </summary>
 public class PlayerParryController : MonoBehaviour
@@ -22,8 +23,10 @@ public class PlayerParryController : MonoBehaviour
     [Header("텔레그래프 (미지정 시 코드로 부채꼴 메쉬 생성)")]
     [SerializeField] private GameObject parryTelegraphPrefab;
 
-    [Header("서브 소환수 미장착 안내")]
-    [SerializeField] private string emptyMessage = "장착 항목 없음!";
+    [Header("우클릭 없음 안내")]
+    [Tooltip("우클릭이 하나도 해석되지 않을 때만 뜬다. 기본 패링 폴백이 있어서 정상 상태에선 안 뜬다 — " +
+             "이게 보이면 GrowthRegistry 에 우클릭 에셋이 없거나 배선이 빠졌다는 신호다.")]
+    [SerializeField] private string emptyMessage = "우클릭 없음!";
 
     private PlayerController _player;
     private bool _isParrying;
@@ -44,7 +47,7 @@ public class PlayerParryController : MonoBehaviour
     // '뒤'라서, 버스로는 피격 무적 1초 동안 들어온 공격을 아예 볼 수 없다. 그 1초 동안 카운터가
     // 통째로 죽어버리므로, CharacterHealth 가 무적을 보기 '전'에 여기로 직접 물어보게 했다.
     private static PlayerParryController _active;
-    private MinionRightClick _activeConfig;
+    private RightClickConfig _activeConfig;
     private CharacterHealth _activeSelf;
     private Vector2 _activeAimDir;
 
@@ -67,7 +70,7 @@ public class PlayerParryController : MonoBehaviour
         Vector2 srcPos = info.hitFrom ?? (Vector2)info.attacker.transform.position;
         if (!IsInAimCone(srcPos, _activeAimDir, _activeConfig.angle)) return false;
 
-        if (_activeConfig.type == MinionRightClickType.Guard)
+        if (_activeConfig.type == RightClickType.Guard)
         {
             // 가드는 근/원을 안 가리고, 적이 준 피해면 전부 깎는다(함정·자해는 제외 — IsEnemyTier).
             if (!IsEnemyDamage(info)) return false;
@@ -106,7 +109,7 @@ public class PlayerParryController : MonoBehaviour
         _reactAmount = amount;
     }
 
-    private void OpenWindow(MinionRightClick rc, Vector2 aimDir)
+    private void OpenWindow(RightClickConfig rc, Vector2 aimDir)
     {
         _activeConfig = rc;
         _activeSelf = _player.Stat.Health;
@@ -169,13 +172,29 @@ public class PlayerParryController : MonoBehaviour
         DestroyHoldTelegraph();
     }
 
-    /// <summary>장착된 서브 소환수가 부여한 우클릭. 없으면 null.</summary>
-    private static MinionRightClick EquippedRightClick
+    /// <summary>
+    /// 현재 장착된 우클릭의 수치. 슬롯이 비어 있으면 레지스트리 기본값(패링)으로 떨어진다.
+    ///
+    /// 폴백이 있는 이유: 설계상 <b>플레이어는 항상 최소한 패링을 들고 있다.</b> 슬롯이 비는 경로가
+    /// 몇 개 있는데(슬롯 파괴, 레지스트리 배선 누락, 씬을 직접 열어 테스트) 그때 우클릭이 통째로
+    /// 죽어버리면 원인을 찾기 어려운 '가끔 우클릭이 안 먹는' 버그가 된다. 조용히 기본값으로 간다.
+    /// </summary>
+    private static RightClickConfig EquippedRightClick
     {
         get
         {
-            var sub = InventoryManager.Instance != null ? InventoryManager.Instance.SubSummon : null;
-            var rc = sub != null ? sub.rightClick : null;
+            var inven = InventoryManager.Instance;
+            var so = inven != null ? inven.EquippedRightClick : null;
+
+            if (so == null)
+            {
+                var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null
+                    ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY()
+                    : null;
+                so = registry != null ? registry.ResolveDefaultRightClick() : null;
+            }
+
+            var rc = so != null ? so.config : null;
             return (rc != null && rc.IsValid) ? rc : null;
         }
     }
@@ -211,7 +230,7 @@ public class PlayerParryController : MonoBehaviour
         var rc = EquippedRightClick;
         if (rc == null)
         {
-            // 서브를 안 꼈으면 우클릭은 아무 일도 안 한다. 나중에 여기에 '빈손' 모션을 붙이면 된다.
+            // 기본 패링 폴백까지 실패했다 = 데이터 배선 문제다. 조용히 씹지 않고 눈에 보이게 알린다.
             Announce(emptyMessage);
             return;
         }
@@ -234,7 +253,7 @@ public class PlayerParryController : MonoBehaviour
     // ──────────────────────────────────────────────────────────────────────
     // 패링 / 카운터 — 한 번 누르면 끝나는 판정창
     // ──────────────────────────────────────────────────────────────────────
-    private IEnumerator WindowRoutine(MinionRightClick rc, Vector2 aimDir)
+    private IEnumerator WindowRoutine(RightClickConfig rc, Vector2 aimDir)
     {
         BeginStance(rc);
         var telegraph = CreateTelegraphSector(aimDir, rc, rc.activeDuration);
@@ -244,7 +263,7 @@ public class PlayerParryController : MonoBehaviour
         _reactAttacker = null;
         _reactAmount = 0f;
 
-        if (rc.type == MinionRightClickType.Counter) OpenWindow(rc, aimDir);
+        if (rc.type == RightClickType.Counter) OpenWindow(rc, aimDir);
 
         // 준비 자세가 통째로 스킵되지 않도록 한 프레임을 보장한다. 반드시 '창을 연 뒤'다 —
         // 앞에 두면 우클릭을 누른 그 프레임에 도착한 피해를 놓친다. 패링은 투사체가 반경 안에
@@ -257,7 +276,7 @@ public class PlayerParryController : MonoBehaviour
             float elapsed = 0f;
             while (elapsed < rc.activeDuration)
             {
-                if (rc.type == MinionRightClickType.Parry)
+                if (rc.type == RightClickType.Parry)
                 {
                     if (CheckAndDeflectProjectiles(aimDir, rc)) { success = true; break; }
                 }
@@ -294,7 +313,7 @@ public class PlayerParryController : MonoBehaviour
         }
 
         // ── 성공 ──────────────────────────────────────────────────────────
-        if (rc.type == MinionRightClickType.Counter)
+        if (rc.type == RightClickType.Counter)
         {
             ApplyCounter(rc);
             StunNearbyEnemies(rc);
@@ -337,7 +356,7 @@ public class PlayerParryController : MonoBehaviour
     /// 입력 차단 상태에서 조기 return 하기 때문에, 그때 손을 떼면 '뗐다'는 이벤트가 통째로 증발해
     /// 가드가 영원히 켜진 채로 남는다. 폴링은 그 구멍이 없고 입력 배선도 안 건드린다.
     /// </summary>
-    private IEnumerator GuardHoldRoutine(MinionRightClick rc)
+    private IEnumerator GuardHoldRoutine(RightClickConfig rc)
     {
         BeginStance(rc);
         // 가드는 지속형이라 BeginStance 의 기본 3초 안전망이 자세를 풀어버린다(3초 넘게 누르면
@@ -391,7 +410,7 @@ public class PlayerParryController : MonoBehaviour
     }
 
     // ──────────────────────────────────────────────────────────────────────
-    private void BeginStance(MinionRightClick rc)
+    private void BeginStance(RightClickConfig rc)
     {
         _isParrying = true;
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, rc.moveSpeedMultiplier);
@@ -417,7 +436,7 @@ public class PlayerParryController : MonoBehaviour
     }
 
     /// <summary>카운터: 막아낸 피해량만큼 때린 그 적에게만 되돌린다.</summary>
-    private void ApplyCounter(MinionRightClick rc)
+    private void ApplyCounter(RightClickConfig rc)
     {
         if (_reactAttacker == null) return;
 
@@ -433,7 +452,7 @@ public class PlayerParryController : MonoBehaviour
     }
 
     /// <summary>카운터 성공 시 판정 반경 안의 적 전체를 경직시킨다(되받아친 그 적만이 아니다).</summary>
-    private void StunNearbyEnemies(MinionRightClick rc)
+    private void StunNearbyEnemies(RightClickConfig rc)
     {
         if (rc.stunDuration <= 0f) return;
 
@@ -457,7 +476,7 @@ public class PlayerParryController : MonoBehaviour
         return Vector2.Angle(aimDir, to.normalized) <= angle / 2f;
     }
 
-    private bool CheckAndDeflectProjectiles(Vector2 aimDir, MinionRightClick rc)
+    private bool CheckAndDeflectProjectiles(Vector2 aimDir, RightClickConfig rc)
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, rc.radius);
         bool deflectedAny = false;
@@ -488,7 +507,7 @@ public class PlayerParryController : MonoBehaviour
     /// 사실상 없어진다. 되받아친 히트박스는 파괴한다(= 튕겨냈으니 이 공격은 사라진다).
     /// 접촉 피해처럼 히트박스를 안 쓰는 공격(차저 돌진)은 그대로 피해 경로가 잡는다.
     /// </summary>
-    private bool CheckAndBlockEnemyHitBoxes(Vector2 aimDir, MinionRightClick rc)
+    private bool CheckAndBlockEnemyHitBoxes(Vector2 aimDir, RightClickConfig rc)
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, rc.radius);
 
@@ -546,7 +565,7 @@ public class PlayerParryController : MonoBehaviour
     /// 메쉬를 다시 만들어야 한다.
     /// </summary>
     /// <param name="lifetime">초 뒤 자동 파괴. 0 이하면 파괴하지 않는다(호출한 쪽이 책임진다).</param>
-    private GameObject CreateTelegraphSector(Vector2 dir, MinionRightClick rc, float lifetime)
+    private GameObject CreateTelegraphSector(Vector2 dir, RightClickConfig rc, float lifetime)
     {
         float radius = rc.radius;
         float angleSpan = Mathf.Min(360f, rc.angle);

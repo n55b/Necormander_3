@@ -66,10 +66,11 @@ public class MainMenuManager : MonoBehaviour
     {
         Debug.Log("<color=cyan>[MainMenuManager]</color> New Game 시작! 기존 세이브 파일을 삭제합니다.");
         
-        // 기존 세이브 데이터 안전 삭제
+        // 기존 세이브 데이터 안전 삭제.
+        // 우클릭 해금은 영구 성장요소라 여기서 안 지운다 — '새 게임'은 런을 새로 시작하는 것이지
+        // 그동안 쌓은 영구 해금을 되돌리는 게 아니다.
         SaveSystem.DeleteSave();
-        SubSummonPassiveController.ResetAcquiredState(); // 새 런이므로 '획득함' 상태도 리셋
-        
+
         // 지정된 게임 씬으로 이동
         sceneLoader.LoadScene(startSceneName);
     }

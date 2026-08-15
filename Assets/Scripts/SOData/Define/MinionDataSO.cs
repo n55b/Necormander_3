@@ -2,7 +2,8 @@ using UnityEngine;
 
 /// <summary>
 /// 미니언(소환수/적 공용)의 공통 마스터 데이터.
-/// 직접 만들 수 없다 — 반드시 MainMinionDataSO / SubMinionDataSO / EnemyMinionDataSO 중 하나여야 한다.
+/// 직접 만들 수 없다 — 반드시 MainMinionDataSO / EnemyMinionDataSO 중 하나여야 한다.
+/// ([26/08/15] SubMinionDataSO 는 서브 소환수 삭제와 함께 제거됐다.)
 /// 역할은 타입이 곧 역할이므로 role 필드는 없다.
 /// </summary>
 public abstract class MinionDataSO : ScriptableObject

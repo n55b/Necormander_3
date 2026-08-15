@@ -5,9 +5,10 @@ public class PlayerSkillController : MonoBehaviour
 {
     public enum SkillSlot { Q = 0, E = 1, R = 2 }
 
-    [Header("Equipped Summons (Auto-Synced) — 메인 1 + 서브 1")]
+    [Header("Equipped Summon (Auto-Synced) — 메인 1")]
     [SerializeField] private MainMinionDataSO mainSummon;
-    [SerializeField] private SubMinionDataSO subSummon;
+    // [26/08/15] 서브 소환수 삭제. 1번 슬롯은 우클릭 칸이 됐고, 우클릭은 소환수가 아니라
+    // PlayerParryController 가 InventoryManager 에서 직접 읽으므로 여기서 캐시할 게 없다.
 
     [Header("Equipped Player Skills (Q/E/R, 독립 장착)")]
     [SerializeField] private PlayerSkillSO[] equippedPlayerSkills = new PlayerSkillSO[3];
@@ -24,17 +25,15 @@ public class PlayerSkillController : MonoBehaviour
 
     /// <summary>R키 액티브 + 대쉬/평타 변화를 담당하는 소환수. 없으면 null.</summary>
     public MainMinionDataSO MainSummon => mainSummon;
-    /// <summary>상시 패시브만 제공하는 소환수. 실체화하지 않는다. 없으면 null.</summary>
-    public SubMinionDataSO SubSummon => subSummon;
 
     /// <summary>
-    /// 슬롯 인덱스로 소환수를 읽는다 (0 = 메인, 1 = 서브). UI 가 슬롯을 순회할 때 사용.
-    /// 범위 밖은 null — 소환수는 2마리가 전부다.
+    /// 슬롯 인덱스로 소환수를 읽는다. UI 가 슬롯을 순회할 때 사용.
+    /// 소환수는 이제 메인 1마리뿐이라 0번 외에는 전부 null 이다
+    /// (1번은 우클릭 칸이고, 그건 소환수가 아니라 InventoryManager.EquippedRightClick 으로 읽는다).
     /// </summary>
     public MinionDataSO GetEquippedMinion(int slotIndex)
     {
         if (slotIndex == InventoryManager.SLOT_MAIN) return mainSummon;
-        if (slotIndex == InventoryManager.SLOT_SUB) return subSummon;
         return null;
     }
 
@@ -108,9 +107,9 @@ public class PlayerSkillController : MonoBehaviour
 
         // 슬롯이 역할 고정이므로 앞에서부터 채우지 않고 역할별로 직접 읽는다.
         mainSummon = InventoryManager.Instance.MainSummon;
-        subSummon = InventoryManager.Instance.SubSummon;
 
-        Debug.Log($"<color=cyan>[PlayerSkillController]</color> Sync Inventory -> Main: {(mainSummon != null ? mainSummon.minionName : "없음")}, Sub: {(subSummon != null ? subSummon.minionName : "없음")}");
+        var rc = InventoryManager.Instance.EquippedRightClick;
+        Debug.Log($"<color=cyan>[PlayerSkillController]</color> Sync Inventory -> Main: {(mainSummon != null ? mainSummon.minionName : "없음")}, 우클릭: {(rc != null ? rc.ResolveTitle() : "없음")}");
     }
 
     public void ExecutePlayerSkill(SkillSlot slot, Transform playerTransform)

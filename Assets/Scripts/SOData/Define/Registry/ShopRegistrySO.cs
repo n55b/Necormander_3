@@ -3,14 +3,17 @@ using UnityEngine;
 
 /// <summary>
 /// 게임 내 상점에서 등장할 수 있는 모든 아이템 풀을 관리하는 레지스트리입니다.
-/// 상점 아이템은 전부 여기(SOData)에서 관리한다: 서브 소환수 + 장비 + 강화 아이템.
+/// 상점 아이템은 전부 여기(SOData)에서 관리한다: 장비 + 주머니 아이템 + 강화.
+/// ([26/08/15] 서브 소환수 삭제로 소환수 진열이 빠졌다 — 그만큼 아이템 에셋을 늘려야 한다.)
 /// (젬 효과가 전부 제거되면서 gemPool 도 함께 내렸습니다 — GEM_LEGACY.md 참조.
 ///  젬 에셋 자체는 SOData/Rewards/Gems 에 그대로 남아 있고, 소켓 배관도 살아 있습니다.)
 /// </summary>
 [CreateAssetMenu(fileName = "ShopRegistry", menuName = "Necromancer/Registry/ShopRegistry")]
 public class ShopRegistrySO : ScriptableObject
 {
-    [Header("상점에 등장할 미니언 목록(서브 소환수)")]
+    [Header("상점에 등장할 미니언 목록")]
+    [Tooltip("[26/08/15] 서브 소환수 삭제로 지금은 비어 있다. Refresh 해도 안 채워진다 — " +
+             "메인 소환수는 보상 방 전용이라 상점에 올리지 않기 때문. 수동으로 넣으면 동작은 한다.")]
     public List<MinionDataSO> minionPool = new List<MinionDataSO>();
 
     [Header("상점에 등장할 장비 목록")]
@@ -40,15 +43,9 @@ public class ShopRegistrySO : ScriptableObject
         equipmentPool.Clear();
         itemPool.Clear();
 
-        // 설계 4: 상점에 서는 건 서브 소환수뿐이다. 타입으로 직접 거른다.
-        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:SubMinionDataSO"))
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            if (path.Contains("/Deprecated/")) continue;
-
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionDataSO>(path);
-            if (asset != null) minionPool.Add(asset);
-        }
+        // [26/08/15] 상점에 서던 건 서브 소환수뿐이었고, 서브가 삭제되면서 이 스캔이 통째로 없어졌다.
+        // minionPool 필드 자체는 남긴다 — 나중에 메인 소환수를 상점에 올릴 여지가 있고,
+        // 지우면 이 SO 를 참조하는 에셋의 직렬화가 흔들린다.
 
         // 장비: 전부 스캔(Deprecated 제외). GrowthRegistry.equipments 와 동일 규칙.
         foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:EquipmentSO"))

@@ -33,7 +33,9 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
             Instantiate(tooltipPrefab, transform.parent); // Canvas 하위에 생성
         }
 
-        // [자동 생성] 소환수 슬롯 수(메인 1 + 서브 1)만큼 미리 생성해둡니다.
+        // [자동 생성] 슬롯 수(메인 소환수 1 + 우클릭 1)만큼 미리 생성해둡니다.
+        // 우클릭 칸은 여기서 '보여주기'만 한다 — 교체는 마을 NPC 에서만 하므로 SlotAccepts 가
+        // 소환수 보상에 대해 false 를 돌려줘서 눌리지 않는다.
         if (slotItemPrefab != null && slotContainer != null && _spawnedItems.Count == 0)
         {
             for (int i = 0; i < InventoryManager.SLOT_COUNT; i++)

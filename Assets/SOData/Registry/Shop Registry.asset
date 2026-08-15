@@ -12,10 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4ff914f023d5474da888bc038f2a784, type: 3}
   m_Name: Shop Registry
   m_EditorClassIdentifier: 
-  minionPool:
-  - {fileID: 11400000, guid: 2ebf02073b714bd08b60e585b5172baa, type: 2}
-  - {fileID: 11400000, guid: a23a9344ad434dbda7ad70e1cf8485d7, type: 2}
-  - {fileID: 11400000, guid: 7c4b1e93a5d6f0a4b81c2d3e4f5a6b70, type: 2}
+  minionPool: []
   equipmentPool:
   - {fileID: 11400000, guid: ce696d1b192c8b740a95face81051be4, type: 2}
   - {fileID: 11400000, guid: f3a75dc651483514287ad726b9ac670c, type: 2}

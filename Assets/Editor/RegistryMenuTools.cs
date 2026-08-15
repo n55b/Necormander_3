@@ -35,7 +35,8 @@ public class RegistryMenuTools
 
                     // 분류 기준은 타입이다. 예전엔 경로 문자열("/SOData/Minion/")로 갈랐는데,
                     // 그러면 에셋을 폴더 밖으로 옮기는 순간 적이 아군 풀에 섞인다.
-                    if (minionAsset is MainMinionDataSO || minionAsset is SubMinionDataSO)
+                    // [26/08/15] 서브 소환수 삭제로 아군은 메인만 남았다.
+                    if (minionAsset is MainMinionDataSO)
                     {
                         if (!minionReg.allyMinionData.Contains(minionAsset))
                         {

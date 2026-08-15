@@ -8,19 +8,39 @@ public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance;
 
+    /// <summary>
+    /// 슬롯 하나. 0번은 메인 소환수, 1번은 우클릭이 들어간다.
+    ///
+    /// [26/08/15] 1번은 원래 서브 소환수 칸이었다. 서브가 삭제되면서 칸 자체는 살리고 페이로드만
+    /// 우클릭으로 바꿨다 — UI(슬롯 2칸)와 세이브 구조를 그대로 두기 위해서다.
+    /// 그래서 한 슬롯이 소환수 또는 우클릭 <b>둘 중 하나</b>를 든다. 둘 다 드는 슬롯은 없다.
+    /// </summary>
     [System.Serializable]
     public class CoreSlot
     {
-        public bool IsShattered; 
-        public MinionDataSO EquippedMinion; 
+        public bool IsShattered;
+        public MinionDataSO EquippedMinion;
+        public RightClickDataSO EquippedRightClick;
         public int Quantity;                // 미니언 마리수
-        
-        public bool IsEmpty => !IsShattered && EquippedMinion == null;
+
+        public bool IsEmpty => !IsShattered && EquippedMinion == null && EquippedRightClick == null;
 
         public MinionDataSO GetCurrentMinionData() => EquippedMinion;
 
         public GrowthItemData GetCurrentItemData()
         {
+            // 우클릭 칸. 아이콘은 스프라이트가 없으면 색 아이콘으로 자동 폴백된다(ResolveIcon).
+            if (EquippedRightClick != null)
+            {
+                return new GrowthItemData
+                {
+                    itemName = EquippedRightClick.ResolveTitle(),
+                    description = EquippedRightClick.ResolveDescription(),
+                    icon = EquippedRightClick.ResolveIcon(),
+                    rarity = default,
+                };
+            }
+
             if (EquippedMinion != null)
             {
                 // [수정] rewardItemData가 비어있어도(미할당) 미니언 자체 정보(minionName/minionIcon)로 대체하여
@@ -54,24 +74,29 @@ public class InventoryManager : MonoBehaviour
     public float AugmentMaxHpBonus => augmentMaxHpBonus;
     public void AddAugmentMaxHp(float amount) => augmentMaxHpBonus += amount;
 
-    /// <summary>소환수 슬롯 인덱스. 메인 1 + 서브 1 고정.</summary>
+    /// <summary>슬롯 인덱스. 메인 소환수 1 + 우클릭 1 고정.</summary>
     public const int SLOT_MAIN = 0;
-    public const int SLOT_SUB = 1;
+    /// <summary>[26/08/15] 옛 SLOT_SUB. 서브 소환수 삭제 후 우클릭 칸으로 재활용했다.</summary>
+    public const int SLOT_RIGHTCLICK = 1;
     public const int SLOT_COUNT = 2;
 
-    [Header("슬롯 시스템 (메인 1 + 서브 1 고정)")]
+    [Header("슬롯 시스템 (메인 소환수 1 + 우클릭 1 고정)")]
     public List<CoreSlot> Slots = new List<CoreSlot>(SLOT_COUNT);
 
     /// <summary>역할에 대응하는 슬롯 인덱스. 소환수가 아니면(적 데이터 등) -1.</summary>
     public static int SlotIndexOf(MinionDataSO minion) => minion switch
     {
-        SubMinionDataSO => SLOT_SUB,
         MainMinionDataSO => SLOT_MAIN,
         _ => -1,
     };
 
     public MainMinionDataSO MainSummon => GetSummon(SLOT_MAIN) as MainMinionDataSO;
-    public SubMinionDataSO SubSummon => GetSummon(SLOT_SUB) as SubMinionDataSO;
+
+    /// <summary>현재 장착된 우클릭. PlayerParryController 가 입력 때마다 여기를 본다.</summary>
+    public RightClickDataSO EquippedRightClick
+        => (SLOT_RIGHTCLICK < Slots.Count && !Slots[SLOT_RIGHTCLICK].IsShattered)
+            ? Slots[SLOT_RIGHTCLICK].EquippedRightClick
+            : null;
 
     private MinionDataSO GetSummon(int index)
         => (index >= 0 && index < Slots.Count && !Slots[index].IsShattered) ? Slots[index].EquippedMinion : null;
@@ -108,6 +133,36 @@ public class InventoryManager : MonoBehaviour
         {
             Debug_InitializeInventory();
         }
+
+        // 우클릭은 '없는 상태'를 만들지 않는다 — 세이브가 있든 없든 마지막 선택(없으면 기본 패링)을 물린다.
+        // 런 세이브에는 우클릭을 저장하지 않는다(영구 저장소가 진실 공급원). 그래서 여기서 항상 복원한다.
+        RestoreRightClickFromMeta();
+    }
+
+    /// <summary>
+    /// 영구 저장소에 적힌 선택을 우클릭 슬롯에 물린다. 저장이 없으면 레지스트리 기본값(패링).
+    /// 마을 NPC 가 교체할 때도 같은 슬롯을 쓰므로, 여기가 유일한 '런 시작 시 배선' 지점이다.
+    /// </summary>
+    private void RestoreRightClickFromMeta()
+    {
+        var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null
+            ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY()
+            : null;
+        if (registry == null)
+        {
+            Debug.LogWarning("<color=orange>[InventoryManager]</color> GrowthRegistry 가 없어 우클릭을 복원하지 못했습니다.");
+            return;
+        }
+
+        var rc = RightClickUnlockState.ResolveSelected(registry);
+        if (rc == null)
+        {
+            Debug.LogWarning("<color=orange>[InventoryManager]</color> 레지스트리에 우클릭 에셋이 하나도 없습니다. " +
+                             "GrowthRegistry 를 Refresh 하거나 defaultRightClick 을 배선하세요.");
+            return;
+        }
+
+        EquipRightClick(rc, persist: false); // 복원이지 새 선택이 아니다 — 저장을 되쓰지 않는다
     }
 
     private void Debug_InitializeInventory()
@@ -186,12 +241,36 @@ public class InventoryManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// 우클릭을 장착한다. 슬롯은 1칸이라 기존 것을 덮어쓴다.
+    /// </summary>
+    /// <param name="persist">
+    /// true 면 영구 저장소에도 기록한다(= 플레이어가 NPC 에서 직접 고른 경우).
+    /// 런 시작 시 복원처럼 '이미 저장된 값을 되읽는' 경로는 false 로 불러야 한다 — 안 그러면
+    /// 저장을 자기 자신으로 덮어쓰는 왕복이 생긴다.
+    /// </param>
+    public bool EquipRightClick(RightClickDataSO rightClick, bool persist = true)
+    {
+        if (rightClick == null || !rightClick.IsValid) return false;
+        if (SLOT_RIGHTCLICK >= Slots.Count || Slots[SLOT_RIGHTCLICK].IsShattered) return false;
+        if (!RightClickUnlockState.IsUnlocked(rightClick)) return false;
+
+        Slots[SLOT_RIGHTCLICK].EquippedRightClick = rightClick;
+        Slots[SLOT_RIGHTCLICK].EquippedMinion = null; // 이 칸은 우클릭 전용이다. 소환수가 섞여 앉지 않게.
+
+        if (persist) RightClickUnlockState.SetSelected(rightClick);
+
+        OnMinionUpdated?.Invoke();
+        return true;
+    }
+
     public void ShatterSlot(int slotIndex)
     {
         if (slotIndex >= 0 && slotIndex < Slots.Count)
         {
             Slots[slotIndex].IsShattered = true;
             Slots[slotIndex].EquippedMinion = null;
+            Slots[slotIndex].EquippedRightClick = null;
         }
     }
     #endregion
@@ -278,7 +357,7 @@ public class InventoryManager : MonoBehaviour
             coreSlot.Quantity = slotData.quantity;
             Slots.Add(coreSlot);
         }
-        // 메인/서브 2칸 보장. (예전엔 Initialize 가 3칸, 여기가 10칸으로 패딩이 어긋나 있었고,
+        // 메인/우클릭 2칸 보장. (예전엔 Initialize 가 3칸, 여기가 10칸으로 패딩이 어긋나 있었고,
         //  UI 가 안 보여주는 슬롯에 미니언이 들어가는 조용한 버그가 있었다.)
         while (Slots.Count < SLOT_COUNT)
         {
@@ -287,8 +366,7 @@ public class InventoryManager : MonoBehaviour
         if (Slots.Count > SLOT_COUNT) Slots.RemoveRange(SLOT_COUNT, Slots.Count - SLOT_COUNT);
 
         // 세이브는 슬롯 순서대로 이름만 복원할 뿐 역할을 검증하지 않는다. 슬롯이 자유 배치였던
-        // 구버전 세이브면 메인이 0/1번에 둘 다 들어앉은 채로 살아남을 수 있고, 그러면 SubSummon 이
-        // 메인을 가리켜 서브 패시브가 전부 조용히 0이 된다 (SubSummonPassiveController 는 null 을 0f 로 흘린다).
+        // 구버전 세이브면 소환수가 1번 칸(지금은 우클릭 전용)에 들어앉은 채로 살아남을 수 있다.
         // 장착 경로는 EquipMinion 이 막아주지만 이 경로는 그걸 우회하므로 여기서 한 번 더 거른다.
         for (int i = 0; i < Slots.Count; i++)
         {
@@ -317,6 +395,10 @@ public class InventoryManager : MonoBehaviour
         {
             Debug_InitializeInventory();
         }
+
+        // 우클릭은 런 세이브가 아니라 영구 저장소가 진실 공급원이다. 위에서 Slots 를 통째로
+        // 다시 만들었으므로 Initialize 가 물려놨던 우클릭이 날아간 상태다 — 여기서 다시 물린다.
+        RestoreRightClickFromMeta();
 
         OnMinionUpdated?.Invoke();
     }

@@ -3,6 +3,20 @@ using System.Collections.Generic;
 [System.Serializable]
 public class SaveData
 {
+    /// <summary>
+    /// 세이브 포맷 버전. <b>포맷이 호환 안 되게 바뀔 때마다 올린다.</b>
+    ///
+    /// [26/08/15 · v2] 서브 소환수 삭제. 슬롯 1번의 의미가 '서브 소환수'에서 '우클릭'으로 바뀌었고,
+    /// 서브 미니언 에셋 3종이 지워졌다. v1 세이브를 그대로 읽으면 슬롯 1번에 이제 없는 에셋
+    /// 이름이 들어 있어 조용히 빈 칸이 되거나, 최악의 경우 역할 검증에 걸려 경고를 뿜는다.
+    /// 값을 못 살리는 변경이라 이어하기를 막고 새로 시작하게 한다.
+    ///
+    /// 구버전 세이브에는 이 필드가 아예 없다 → JsonUtility 가 0 을 넣는다 → 불일치로 걸린다.
+    /// </summary>
+    public const int CURRENT_VERSION = 2;
+
+    public int saveVersion = CURRENT_VERSION;
+
     public int currentFloor;
     public float playerHP;
     public int gold;

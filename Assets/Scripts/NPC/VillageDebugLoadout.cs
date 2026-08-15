@@ -23,6 +23,9 @@ public class VillageDebugLoadout : MonoBehaviour
     [SerializeField] private bool includePlayerSkills = true;
     [SerializeField] private bool includeMinions = true;
     [SerializeField] private bool includeEquipments = true;
+    [Tooltip("[26/08/15] 우클릭(패링/카운터/가드) 교체. 서브 소환수 삭제로 우클릭이 플레이어 영구 능력이 " +
+             "되면서, 이 NPC 가 그 교체 창구를 겸한다. 디버그 항목이 아니라 정식 기능이다.")]
+    [SerializeField] private bool includeRightClicks = true;
 
     private readonly List<GameObject> _spawned = new List<GameObject>();
 
@@ -73,9 +76,35 @@ public class VillageDebugLoadout : MonoBehaviour
                 AddButton($"[장비] {(string.IsNullOrEmpty(e.equipmentName) ? e.name : e.equipmentName)}", e.icon, e.description, () => EquipEquipmentItem(e));
             }
         }
+
+        // [우클릭] 한 번에 하나만 든다. 마을에서만 바꿀 수 있고, 고른 값은 런을 넘어 유지된다.
+        // 잠긴 항목도 목록에는 띄운다 — 뭘 딸 수 있는지 보이는 편이 동기가 된다.
+        // (해금 조건이 정해지기 전까지 RightClickUnlockState.UnlockAllForNow 때문에 전부 해금 상태다.)
+        if (includeRightClicks && registry.rightClicks != null)
+        {
+            var equipped = (GameManager.Instance != null && GameManager.Instance.inventoryManager != null)
+                ? GameManager.Instance.inventoryManager.EquippedRightClick
+                : null;
+
+            foreach (var rightClick in registry.rightClicks)
+            {
+                if (rightClick == null || !rightClick.IsValid) continue;
+                var rc = rightClick; // 클로저 캡처 고정
+
+                bool unlocked = RightClickUnlockState.IsUnlocked(rc);
+                string mark = rc == equipped ? "● " : "";
+                string suffix = unlocked ? "" : "  (잠김)";
+
+                AddButton($"[우클릭] {mark}{rc.ResolveTitle()}{suffix}",
+                          rc.ResolveIcon(),
+                          rc.ResolveDescription(),
+                          () => EquipRightClick(rc),
+                          interactable: unlocked);
+            }
+        }
     }
 
-    private void AddButton(string label, Sprite icon, string tooltipDesc, UnityAction onClick)
+    private void AddButton(string label, Sprite icon, string tooltipDesc, UnityAction onClick, bool interactable = true)
     {
         GameObject go = Instantiate(itemButtonTemplate.gameObject, contentParent);
         go.SetActive(true);
@@ -98,8 +127,10 @@ public class VillageDebugLoadout : MonoBehaviour
             for (int i = btn.onClick.GetPersistentEventCount() - 1; i >= 0; i--)
                 btn.onClick.SetPersistentListenerState(i, UnityEventCallState.Off);
             btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(onClick);
-            btn.interactable = true;
+            // 잠긴 항목은 리스너 자체를 안 건다. interactable=false 만으로도 클릭은 막히지만,
+            // 나중에 버튼을 커스텀 입력으로 바꿨을 때 조용히 장착돼 버리는 걸 방지한다.
+            if (interactable) btn.onClick.AddListener(onClick);
+            btn.interactable = interactable;
         }
     }
 
@@ -161,6 +192,21 @@ public class VillageDebugLoadout : MonoBehaviour
     {
         if (PlayerSkillInventoryManager.Instance != null && so != null)
             PlayerSkillInventoryManager.Instance.EquipEquipment(EquipmentInstance.Roll(so));
+        CloseWindow();
+    }
+
+    /// <summary>
+    /// 우클릭 교체. 슬롯이 1칸이라 픽커 없이 바로 덮어쓴다.
+    /// EquipRightClick 이 영구 저장까지 같이 해주므로(persist 기본값 true) 다음 런에도 이 선택이 유지된다.
+    /// </summary>
+    private void EquipRightClick(RightClickDataSO rc)
+    {
+        var gm = GameManager.Instance;
+        if (gm != null && gm.inventoryManager != null && gm.inventoryManager.EquipRightClick(rc))
+            Debug.Log($"<color=cyan>[VillageLoadout]</color> 우클릭 교체: {rc.ResolveTitle()}");
+        else
+            Debug.LogWarning($"<color=orange>[VillageLoadout]</color> 우클릭 교체 실패: {(rc != null ? rc.name : "null")}");
+
         CloseWindow();
     }
 

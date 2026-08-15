@@ -95,8 +95,9 @@ public class GameManager : MonoBehaviour
         SetTimeStop(true); // 게임 시간 정지
 
         // 게임 오버 시 세이브 데이터를 삭제하여 이전 층에서 이어서 하기 방지
+        // 주의: 우클릭 해금/선택은 여기서 지워지지 않는다. 영구 성장요소라 PlayerPrefs 쪽에
+        // 따로 산다(RightClickUnlockState). 런 세이브만 지우는 게 맞다.
         SaveSystem.DeleteSave();
-        SubSummonPassiveController.ResetAcquiredState(); // 런이 끝났으므로 '획득함' 상태도 리셋
 
         GameOverManager.Instance.TriggerGameOver();
     }

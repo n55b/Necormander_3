@@ -16,9 +16,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d1d81dc1227b40099e4a237dba3cb29f, type: 2}
   - {fileID: 11400000, guid: e9c7a1f3b2d84e6690a5c3d17f4b2e08, type: 2}
   - {fileID: 11400000, guid: 1249b3e99bee40e1a4fa574ab04a2b28, type: 2}
-  - {fileID: 11400000, guid: 2ebf02073b714bd08b60e585b5172baa, type: 2}
-  - {fileID: 11400000, guid: a23a9344ad434dbda7ad70e1cf8485d7, type: 2}
-  - {fileID: 11400000, guid: 7c4b1e93a5d6f0a4b81c2d3e4f5a6b70, type: 2}
   treasures:
   - {fileID: 11400000, guid: 4eaa41374a0592a43a6926f9626fc7db, type: 2}
   specialAbilities: []
@@ -52,3 +49,8 @@ MonoBehaviour:
   items:
   - {fileID: 11400000, guid: 9c1e4b7a2f5d40e4a83b6c1d7e9f2a34, type: 2}
   - {fileID: 11400000, guid: 4d8a3f6b1c2e59f4b7a2d8e3f1c6b5a9, type: 2}
+  rightClicks:
+  - {fileID: 11400000, guid: 1b7e4a90c3d25f648a06b91e7d4c2f38, type: 2}
+  - {fileID: 11400000, guid: 2c8f5b01d4e36a759b17ca2f8e5d3049, type: 2}
+  - {fileID: 11400000, guid: 4d9a6c12e5f47b860c28db3a9f6e415a, type: 2}
+  defaultRightClick: {fileID: 11400000, guid: 1b7e4a90c3d25f648a06b91e7d4c2f38, type: 2}

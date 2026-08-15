@@ -264,11 +264,10 @@ public class MeleeCombatController : MonoBehaviour
 
                 // 플레이어 공격은 적에게 경직과 약간의 넉백을 유발
                 float saDmg = 20f;
-                // 서브 소환수의 평타 고정 추가 피해
-                var subPassive = _player.GetComponent<SubSummonPassiveController>();
-                float flatBonus = subPassive != null ? subPassive.BasicAttackDamageBonus : 0f;
-
-                DamageInfo info = new DamageInfo(_player.Stat.ATK * damageMultiplier + flatBonus, DamageType.Physical, this.gameObject, 1f, "", false, causesHitstun: true, knockbackForce: 2f, superArmorDamage: saDmg, category: DamageCategory.BasicAttack);
+                // [26/08/15] 서브 소환수가 주던 평타 고정 추가 피해(flatBonus)를 걷어냈다.
+                // 같은 효과는 아이템(ItemDamageBonusEffect)으로 다시 만들 예정이며, 그쪽은
+                // DamageInfo 를 만든 뒤 파이프라인에서 얹히므로 여기서 더할 게 없다.
+                DamageInfo info = new DamageInfo(_player.Stat.ATK * damageMultiplier, DamageType.Physical, this.gameObject, 1f, "", false, causesHitstun: true, knockbackForce: 2f, superArmorDamage: saDmg, category: DamageCategory.BasicAttack);
 
                 LayerMask enemyLayer = Layers.EnemyMask;
                 // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)

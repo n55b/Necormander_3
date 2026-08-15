@@ -1,11 +1,12 @@
 using UnityEngine;
 
 /// <summary>
-/// 서브 소환수가 플레이어의 우클릭에 부여하는 행동. 서브 1마리당 1종.
+/// 플레이어 우클릭의 종류. 한 번에 하나만 장착한다.
 /// </summary>
-public enum MinionRightClickType
+public enum RightClickType
 {
-    /// <summary>장착된 서브가 없거나 아직 우클릭을 안 정한 상태. 우클릭이 아무것도 안 한다.</summary>
+    /// <summary>우클릭이 아무것도 안 한다. 정상 플레이에선 나오지 않는다(기본값이 패링) —
+    /// 나중에 '우클릭 봉인' 같은 디버프를 넣을 자리로 남겨둔다.</summary>
     None = 0,
     /// <summary>패링 — 날아오는 '원거리' 투사체를 반사한다. 반사체는 적을 때린다.</summary>
     Parry,
@@ -16,21 +17,24 @@ public enum MinionRightClickType
 }
 
 /// <summary>
-/// 서브 소환수가 우클릭을 어떻게 바꾸는지 — 게임플레이 부분만.
+/// 우클릭 하나의 게임플레이 수치. <see cref="RightClickDataSO"/> 에셋 안에 인라인으로 저작한다.
+///
+/// [26/08/15] 원래 이름은 MinionRightClick 이었다. 서브 소환수가 우클릭을 '부여'하는 구조였기
+/// 때문인데, 서브 소환수가 삭제되면서 우클릭이 플레이어 본인의 영구 능력이 됐다. 소환수와 아무
+/// 관계가 없어져서 이름에서 Minion 을 뺐다.
 ///
 /// 애니메이션은 여기 없다. 세 종류 모두 플레이어의 기존 Parry / Parry_Success 모션을 그대로 쓰고,
-/// 종류를 구분하는 건 텔레그래프 부채꼴의 색(sectorColor)뿐이다. 서브 소환수는 실체화 경로가
-/// 아예 없어서(필드에 나올 방법이 없다) 소환수 모션을 붙이려면 별도 작업이 필요하다.
+/// 종류를 구분하는 건 텔레그래프 부채꼴의 색(sectorColor)뿐이다.
 ///
 /// 판정은 두 방향으로 갈린다:
 ///  · 패링       = 능동. 창이 열린 동안 매 프레임 주변에서 Projectile 을 찾는다.
 ///  · 카운터/가드 = 수동. 창이 열린 동안 나에게 들어오는 근접 피해를 기다린다.
 /// </summary>
 [System.Serializable]
-public class MinionRightClick
+public class RightClickConfig
 {
     [Header("종류")]
-    public MinionRightClickType type = MinionRightClickType.None;
+    public RightClickType type = RightClickType.None;
 
     [Header("타이밍")]
     [Tooltip("판정이 열려 있는 시간(초). 이 안에 조건이 맞아야 성공. 밸런스 조정 대상.\n" +
@@ -54,7 +58,8 @@ public class MinionRightClick
 
     [Header("연출")]
     [Tooltip("텔레그래프 부채꼴 색. 테두리는 이 색에서 알파만 올려 파생한다. " +
-             "이 부채꼴은 BaseHitBox 가 아니라서 중앙 팔레트(HitBoxColorConfigSO)를 타지 않는다 — 여기가 최종.")]
+             "이 부채꼴은 BaseHitBox 가 아니라서 중앙 팔레트(HitBoxColorConfigSO)를 타지 않는다 — 여기가 최종.\n" +
+             "아이콘 스프라이트를 안 지정하면 이 색으로 임시 아이콘을 만들어 쓴다(RightClickIconFactory).")]
     public Color sectorColor = new Color(0.2f, 0.6f, 1f);
 
     [Header("카운터 전용")]
@@ -73,17 +78,17 @@ public class MinionRightClick
     [Range(0f, 1f)] public float damageReduction = 0.5f;
 
     /// <summary>실제로 발동할 내용이 있는가.</summary>
-    public bool IsValid => type != MinionRightClickType.None;
+    public bool IsValid => type != RightClickType.None;
 
     /// <summary>꾹 눌러서 유지하는 자세인가(가드). 나머지 둘은 한 번 누르면 끝나는 판정창이다.</summary>
-    public bool IsHold => type == MinionRightClickType.Guard;
+    public bool IsHold => type == RightClickType.Guard;
 
     /// <summary>카드/툴팁 한 줄. 없으면 null.</summary>
     public string Describe() => type switch
     {
-        MinionRightClickType.Parry   => "우클릭: 패링 — 원거리 공격을 반사",
-        MinionRightClickType.Counter => "우클릭: 카운터 — 근접 공격을 무효화하고 되돌려줌",
-        MinionRightClickType.Guard   => $"우클릭(홀드): 가드 — 바라보는 방향의 피해 {damageReduction * 100f:0}% 감소",
+        RightClickType.Parry   => "우클릭: 패링 — 원거리 공격을 반사",
+        RightClickType.Counter => "우클릭: 카운터 — 근접 공격을 무효화하고 되돌려줌",
+        RightClickType.Guard   => $"우클릭(홀드): 가드 — 바라보는 방향의 피해 {damageReduction * 100f:0}% 감소",
         _ => null,
     };
 }

@@ -62,17 +62,9 @@ public class CharacterStat : MonoBehaviour
     public bool IsEnemy => !_isAlly && !_isPlayer; // [추가] 적군 여부 식별
     public bool IsPlayer => _isPlayer;
 
-    // 서브 소환수 패시브는 플레이어에게만 붙는다. 매번 GetComponent 하지 않도록 캐싱.
-    private SubSummonPassiveController _subPassive;
-    private SubSummonPassiveController SubPassive
-    {
-        get
-        {
-            if (!_isPlayer) return null;
-            if (_subPassive == null) _subPassive = GetComponentInParent<SubSummonPassiveController>();
-            return _subPassive;
-        }
-    }
+    // [26/08/15] 서브 소환수 삭제로 SubSummonPassiveController 캐시를 걷어냈다.
+    // 서브가 주던 상시 패시브(최대체력/공속/쿨감/평타추가피해)는 아이템으로 다시 만들 예정이며,
+    // 아이템 쪽은 이미 StatModifierRegistry / ItemPouch 라는 별도 경로를 쓴다.
 
     [Header("셋팅 이후 Action들")]
     [SerializeField] private UnityEvent setDoneActions;
@@ -113,9 +105,8 @@ public class CharacterStat : MonoBehaviour
             // 보물 보너스와 같은 방식이라, 층을 넘어 플레이어가 새로 스폰돼도 재적용이 필요 없다.
             float augment = (_isPlayer && InventoryManager.Instance != null)
                 ? InventoryManager.Instance.AugmentMaxHpBonus : 0f;
-            float flat = Mods.Flat(StatType.Health)
-                       + (SubPassive != null ? SubPassive.MaxHpBonus : 0f)
-                       + augment;
+            // [26/08/15] 서브 소환수 항 제거. 같은 보너스는 아이템이 Mods(StatType.Health) 로 넣는다.
+            float flat = Mods.Flat(StatType.Health) + augment;
             float bonus = GetTreasureBonus(TreasureEffectType.GlobalMinionStats)
                         + Mods.Percent(StatType.Health);
             return (baseMaxHP + flat) * (1f + bonus);
@@ -133,8 +124,8 @@ public class CharacterStat : MonoBehaviour
     {
         get
         {
-            float bonus = Mods.Percent(StatType.AttackSpeed)
-                        + (SubPassive != null ? SubPassive.AtkSpeedBonus : 0f);
+            // [26/08/15] 서브 소환수 항 제거. 아이템은 Mods(StatType.AttackSpeed) 로 들어온다.
+            float bonus = Mods.Percent(StatType.AttackSpeed);
             float result = (baseAtkSpd + Mods.Flat(StatType.AttackSpeed)) * (1f + bonus);
             return Mathf.Max(0.05f, result);
         }
@@ -190,10 +181,13 @@ public class CharacterStat : MonoBehaviour
 
     // ── 플레이어 전용 ─────────────────────────────────────────────────
 
-    /// <summary>스킬 쿨감 비율(0~1 이상). 합연산이고 상한이 없다 — 1 이면 쿨타임 0.</summary>
-    // 서브 소환수 항은 비율(0.2)로 들고 있고 이 식은 퍼센트 단위라 100 을 곱해서 넣는다.
-    public float SKILL_CDR => (baseSkillCdr + Mods.Flat(StatType.SkillCooldownReduction)
-                               + (SubPassive != null ? SubPassive.SkillCooldownReduction * 100f : 0f)) / 100f;
+    /// <summary>
+    /// 스킬 쿨감 비율(0~1 이상). 합연산이고 상한이 없다 — 1 이면 쿨타임 0.
+    /// ⚠ 이 식은 <b>퍼센트 단위</b>다(20 = 20%). 나중에 아이템으로 쿨감을 붙일 때 비율(0.2)을
+    /// 그대로 넣으면 조용히 1/100 값이 된다.
+    /// </summary>
+    // [26/08/15] 서브 소환수 항 제거. 아이템은 Mods(StatType.SkillCooldownReduction) 로 들어온다.
+    public float SKILL_CDR => (baseSkillCdr + Mods.Flat(StatType.SkillCooldownReduction)) / 100f;
 
     /// <summary>대쉬 쿨감 비율(0~1 이상).</summary>
     public float DASH_CDR => (baseDashCdr + Mods.Flat(StatType.DashCooldownReduction)) / 100f;

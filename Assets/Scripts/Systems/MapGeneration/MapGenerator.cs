@@ -2345,7 +2345,7 @@ public class MapGenerator : MonoBehaviour
         {
             (RoomInstance.NormalRewardType.PlayerSkill, generationData.playerSkillRewardRoomCount),
             (RoomInstance.NormalRewardType.MainSummon,  generationData.mainSummonRewardRoomCount),
-            (RoomInstance.NormalRewardType.SubSummon,   generationData.subSummonRewardRoomCount),
+            (RoomInstance.NormalRewardType.Item,        generationData.itemRewardRoomCount),
         };
 
         // 전부 0이면 설정 실수로 보고 균등 분배로 폴백한다 (보상이 하나도 없는 맵 방지).

@@ -6,11 +6,15 @@ public class RoomInstance : MonoBehaviour
 {
     public RoomType roomType;
     /// <summary>
-    /// 일반 방이 어떤 보상을 주는지. 소환수 파밍 풀이 메인/서브로 갈리면서 3종이 됐다.
+    /// 일반 방이 어떤 보상을 주는지.
     /// 각 타입이 몇 개 방에 배정되는지는 MapGenerationDataSO 의 카운트가 정한다 —
     /// 나중에 특정 풀을 Reward 방으로 옮기거나 로비 고정으로 돌릴 때 숫자만 바꾸면 된다.
+    ///
+    /// [26/08/15] 2번은 원래 SubSummon 이었다. 서브 소환수 삭제로 Item 이 됐다.
+    /// <b>값(2)은 그대로 둔다</b> — enum 은 정수로 직렬화되므로, 중간 값을 지우거나 순서를 바꾸면
+    /// 이미 저작된 방 프리팹들의 보상 타입이 통째로 밀린다.
     /// </summary>
-    public enum NormalRewardType { PlayerSkill, MainSummon, SubSummon }
+    public enum NormalRewardType { PlayerSkill, MainSummon, Item }
     [Header("일반 방 보상 세부 설정")]
     public NormalRewardType normalRewardType;
     public Vector2Int roomSize;
