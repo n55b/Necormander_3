@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pushRadius: 0.8
   pushStrength: 2
+  spawnTelegraph: 1
   phase2Threshold: 0
   basicAttackPostDelay: 1
   telegraphFlashLeadTime: 0.35
@@ -43,7 +44,7 @@ MonoBehaviour:
   superArmorGauge: 999999
   showPatternLabel: 1
   patternLabelFont: {fileID: 11400000, guid: 67c80a13426f71f4a97281daae4e471e, type: 2}
-  patternLabelOffset: {x: 0, y: 1.3, z: 0}
+  patternLabelOffset: {x: 0, y: 2.6, z: 0}
   label_Stab: "\uBBF8\uB2C8 \uB3CC\uC9C4 \uCC0D\uAE30"
   label_NormalCharge: "\uB3CC\uC9C4"
   label_Sweep: "\uD729\uC4F8\uAE30"
@@ -51,6 +52,12 @@ MonoBehaviour:
   label_Pattern1: "\uB3CC\uC9C4!"
   label_Pattern3Windup: "\uBC14\uB2E5 \uCDA9\uACA9\uD30C \uC900\uBE44"
   label_Pattern3: "\uBC14\uB2E5 \uCDA9\uACA9\uD30C"
+  animState_Stab: Jump_Attack
+  animState_ChargeReady: Dash_Ready
+  animState_Charge: Dash_Attack
+  animState_Sweep: Slash_Attack
+  animState_Slam: ShockWave
+  matchAnimSpeedToWindup: 1
   specialPatternInterval: 8
   chargeWindup: 3
   chargeSpeedMultiplier: 9

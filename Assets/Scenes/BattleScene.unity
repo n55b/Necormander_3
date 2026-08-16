@@ -1476,7 +1476,7 @@ PrefabInstance:
       objectReference: {fileID: 974462716}
     - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: debugStartFloor
-      value: 4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3438047193681337848, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: useDebugStartingInventory

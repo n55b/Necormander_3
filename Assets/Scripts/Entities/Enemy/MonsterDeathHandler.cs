@@ -80,7 +80,13 @@ namespace AstroNuts.Monsters
                 _hpCanvas.gameObject.SetActive(false);
 
             if (_animator != null)
+            {
+                // [26/08/16] 배속으로 공격 모션을 재생하던 중에 죽으면 그 배속이 사망 클립까지 따라온다.
+                // (엘리트 차저처럼 클립 길이를 예비동작에 맞추려고 Animator.speed 를 건드리는 패턴이 있다.)
+                // 느려진 채로 재생되면 fallbackDelay 안에 페이드아웃이 못 끝나고 뚝 끊긴다.
+                _animator.speed = 1f;
                 _animator.Play(deathStateName);
+            }
 
             // 죽음 클립에 Animation Event를 안 걸어뒀을 경우를 대비한 fallback
             Invoke(nameof(OnDeathAnimationFinished), fallbackDelay);

@@ -170,6 +170,32 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public string label_Pattern3 = "바닥 충격파";
 
     // ==============================================================
+    // 애니메이션 스테이트 이름
+    // ==============================================================
+    // [26/08/16] 해태(Enemy_10_HaeTae) 아트가 들어오면서 공격마다 전용 모션이 생겼다.
+    // 예전엔 공격 종류와 무관하게 Animator.Play("Attack") 하나만 불렀는데,
+    // 공용 CharacterBase_Animator 의 실사용 슬롯이 Idle/Follow/Attack/Die/Stun 5개뿐이라
+    // 공격 5종을 담을 수 없었기 때문이다(AnimatorOverrideController 는 스테이트 추가가 안 된다).
+    // 그래서 해태는 전용 AnimController_HaeTae 를 쓰고, 여기서 스테이트를 이름으로 지정한다.
+    // 이름을 인스펙터로 뺀 이유는 다음 보스가 자기 태그 이름만 적으면 되게 하기 위해서다.
+    // 비워두면 공용 "Attack" 스테이트로 폴백하므로, 아트가 없는 보스도 그대로 굴러간다.
+    [Header("애니메이션 스테이트 이름 (비우면 공용 Attack 으로 폴백)")]
+    [Tooltip("① 미니 돌진 찍기. 해태 기준 도약 후 착지 내려찍기 모션.")]
+    public string animState_Stab = "Jump_Attack";
+    [Tooltip("② 일반 돌진 / 패턴1 강한 돌진의 예비동작(웅크려 조준). 1프레임 포즈라 windup 동안 정지 홀드된다.")]
+    public string animState_ChargeReady = "Dash_Ready";
+    [Tooltip("② 일반 돌진 / 패턴1 강한 돌진의 질주 중. 루프 클립이라 돌진이 길어져도 계속 굴러간다.")]
+    public string animState_Charge = "Dash_Attack";
+    [Tooltip("③ 휩쓸기. 해태 기준 꼬리 후리기 모션.")]
+    public string animState_Sweep = "Slash_Attack";
+    [Tooltip("패턴3 바닥 충격파. 해태 기준 뒷발로 일어섰다 내려찍는 모션.")]
+    public string animState_Slam = "ShockWave";
+    [Tooltip("클립 길이를 예비동작 시간에 맞춰 Animator.speed 를 자동 조절한다. " +
+             "예: Jump_Attack(0.775초) 클립을 stabWindup(1.0초)에 맞추면 speed 0.775 로 느리게 늘린다. " +
+             "끄면 클립이 원래 속도로 재생되고 남는 시간 동안 마지막 프레임에서 멈춰 있는다.")]
+    public bool matchAnimSpeedToWindup = true;
+
+    // ==============================================================
     // 특수 패턴 공통 설정
     // ==============================================================
     [Header("특수 패턴 공통 설정 (기본 공격 8초 -> 패턴 1회 -> 기본 공격 8초 -> ...)")]
@@ -411,6 +437,57 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         return _lastAimDir;
     }
 
+    // ==============================================================
+    // 애니메이션 재생 헬퍼
+    // ==============================================================
+    /// <summary>
+    /// 스테이트를 처음부터 재생한다. duration 을 주고 matchSpeed 가 켜져 있으면 클립 길이가
+    /// 그 시간에 정확히 맞도록 Animator.speed 를 조절한다(BaseAIPatternSO.AttackRoutine 과 동일한 공식).
+    ///
+    /// stateName 이 비어 있으면 공용 "Attack" 으로 폴백한다 — 전용 아트가 없는 보스도 죽지 않게.
+    /// speed 는 전역 상태라 공격이 끝나면 반드시 1 로 되돌려야 한다(BasicAttackRoutine / RunSpecialPattern 말미).
+    /// </summary>
+    private static void PlayState(BaseEntity entity, string stateName, float duration = 0f, bool matchSpeed = false)
+    {
+        var anim = entity != null ? entity.Animator : null;
+        if (anim == null || anim.runtimeAnimatorController == null) return;
+
+        // [죽은 뒤 재생 금지] 돌진 계열은 windup 이 끝난 '뒤'에 질주 스테이트를 트는데(0.8초 / 조준 3초),
+        // 그 사이에 죽으면 이 호출이 사망 처리 이후에 도착한다. 이 패턴은 entity.ActiveAttackCoroutine 을
+        // 등록하지 않아서 BaseEntity.CancelAttack 이 루틴을 멈추지 못하고, MonsterDeathHandler 가
+        // 컴포넌트를 꺼도 이미 돌던 코루틴은 계속 흐른다(MonsterDeathHandler.cs 주석 참조).
+        // 막지 않으면 방금 튼 "Die" 를 루프 클립(Dash_Attack)이 덮어써서 시체가 제자리 질주한다.
+        var health = entity.Stats != null ? entity.Stats.Health : null;
+        if (health != null && health.IsDead) return;
+
+        if (string.IsNullOrWhiteSpace(stateName)) stateName = "Attack";
+
+        float speed = 1f;
+        if (matchSpeed && duration > 0.0001f)
+        {
+            float len = StateClipLength(anim, stateName);
+            // 1프레임짜리 홀드 포즈(Dash_Ready/Stun)는 늘려봐야 정지 화면이라 배속을 건드리지 않는다.
+            if (len > 0.0001f) speed = Mathf.Clamp(len / duration, 0.05f, 20f);
+        }
+
+        anim.speed = speed;
+        anim.Play(stateName, -1, 0f);
+    }
+
+    /// <summary>
+    /// 스테이트에 물린 클립의 길이(초). aseprite 임포터가 태그 이름 그대로 클립을 만들고
+    /// 컨트롤러도 같은 이름의 스테이트를 쓰므로 이름 매칭으로 찾는다
+    /// (MinionSkillCaster.ClipLength 와 동일한 방식). 못 찾으면 0.
+    /// </summary>
+    private static float StateClipLength(Animator anim, string stateName)
+    {
+        var rac = anim.runtimeAnimatorController;
+        if (rac == null) return 0f;
+        foreach (var c in rac.animationClips)
+            if (c != null && c.name == stateName) return c.length;
+        return 0f;
+    }
+
 
     // ==============================================================
     // 방 정보 헬퍼
@@ -561,12 +638,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         entity.HasFiredHitEvent = false;
         entity.HasFiredAttackEndEvent = false;
 
-        if (entity.Animator != null && entity.Animator.runtimeAnimatorController != null)
-        {
-            entity.Animator.speed = 1f;
-            entity.Animator.Play("Attack", -1, 0f);
-        }
-
+        // [26/08/16] 예전엔 여기서 곧바로 Play("Attack") 을 불렀다. 이제 공격마다 전용 모션이 있으므로
+        // '어떤 공격인지 정해진 뒤'에 재생해야 한다 — 그래서 스테이트 재생을 아래 분기로 내렸다.
         int atkIndex = _scheduler.NextBasic(); // 0: 미니 돌진 찍기, 1: 일반 돌진, 2: 휩쓸기
 
         float windup = atkIndex == 0 ? stabWindup : atkIndex == 1 ? normalChargeWindup : sweepWindup;
@@ -581,6 +654,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         if (atkIndex == 0)
         {
             // ① 약한 돌진 (v1.2): 제자리 판정 대신 실제로 짧은 거리를 전진하며 찍습니다.
+            // 도약(웅크림) → 착지 찍기가 windup 안에 다 들어가도록 클립을 windup 길이에 맞춰 늘립니다.
+            PlayState(entity, animState_Stab, windup, matchAnimSpeedToWindup);
             yield return MiniChargeStabRoutine(entity, dir, radius, windup);
         }
         else if (atkIndex == 1)
@@ -592,6 +667,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         else
         {
             // ③ 휩쓸기: 보스 자신을 중심으로 원형 범위
+            PlayState(entity, animState_Sweep, windup, matchAnimSpeedToWindup);
+
             Vector2 spawnPos = entity.transform.position;
 
             GameObject hitboxObj = sweepHitboxPrefab != null
@@ -624,6 +701,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         // 후딜레이 자체는 '연속 즉시 시전 방지'용이므로 IsAttacking 만 붙잡고 있으면 된다.
         if (entity.Animator != null) entity.Animator.speed = 1f;
         entity.ResetAnimationState();
+
+        // [26/08/16] ResetAnimationState 는 _lastState 만 비운다 — 실제 Play 는 UpdateAnimation 이 하는데
+        // 그건 IsAttacking 동안 early-return 이고, 애초에 CanExecuteAI 가 막아서 호출조차 안 된다.
+        // 즉 아래 후딜레이(1초) 내내 마지막 공격 클립이 그대로 남는다. 돌진 클립(Dash_Attack)은 '루프'라
+        // 그동안 멈춰 선 채로 제자리 질주하는 그림이 된다. 그래서 여기서 직접 Idle 로 되돌린다.
+        PlayState(entity, "Idle");
+
         ClearLabel();
 
         // 모든 기본 공격 후 후딜레이 (연속 즉시 시전 방지)
@@ -718,6 +802,10 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         ClearChargeTelegraph(); // 이전 시도가 남긴 게 있으면 먼저 정리
         _chargeTelegraph = CreateFallbackRect(new Color(1f, 0.55f, 0f, 0.3f));
 
+        // 예비동작 = 웅크려 조준하는 1프레임 포즈. 정지 화면이라 배속은 건드리지 않는다
+        // (부족한 연출은 아래 스쿼시/스트레치 + 바닥 전조 게이지가 메운다).
+        PlayState(entity, animState_ChargeReady);
+
         // 확실한 돌진 느낌을 위해, 윈드업 동안 웅크렸다가 돌진 시작 순간 크게 튀어나가는 스쿼시/스트레치 연출입니다.
         entity.StartCoroutine(ScaleCoroutine(entity, windup, normalChargeSquashScale, 0.2f, normalChargeStretchScale));
         float estimatedLength = entity.Stats.MOVESPEED * normalChargeSpeedMultiplier * normalChargeMaxDuration;
@@ -755,6 +843,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             yield return null;
         }
         ClearChargeTelegraph();
+
+        // 질주 개시. 루프 클립이라 돌진이 얼마나 길어지든 계속 굴러간다.
+        PlayState(entity, animState_Charge);
 
         var agent = entity.GetComponent<NavMeshAgent>();
         bool wasAgentEnabled = agent != null && agent.enabled;
@@ -918,6 +1009,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         }
 
         ClearLabel();
+        // 배속은 전역 상태다. 특수 패턴에서 늘려둔 채로 나가면 이후 Idle/Move 까지 느려진다.
+        if (entity.Animator != null) entity.Animator.speed = 1f;
         entity.IsAttacking = false;
         entity.ResetAnimationState();
         _isBusy = false;
@@ -930,6 +1023,10 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     private IEnumerator Pattern1_AimedCharge(BaseEntity entity)
     {
         ShowLabel(label_Pattern1Windup);
+
+        // 3초 조준 내내 웅크린 포즈로 홀드한다. 1프레임이라 정지 화면이지만,
+        // 방향 인디케이터 + 바닥 전조 게이지가 "언제/어디로"를 알려주므로 정보는 충분하다.
+        PlayState(entity, animState_ChargeReady);
 
         RoomMetrics room = GetRoomMetrics(entity);
 
@@ -999,6 +1096,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         ClearChargeTelegraph();
 
         ShowLabel(label_Pattern1);
+
+        // 강한 돌진 개시. ②일반 돌진과 같은 루프 클립을 공유한다(둘 다 '질주 중'이라 그림이 같다).
+        PlayState(entity, animState_Charge);
 
         var agent = entity.GetComponent<NavMeshAgent>();
         bool wasAgentEnabled = agent != null && agent.enabled;
@@ -1155,6 +1255,10 @@ private GameObject _chargeTelegraph;
         ShowLabel(label_Pattern3Windup);
         StopNavAgent(entity);
 
+        // 뒷발로 일어섰다(프레임 39~40, 0.5초) 내려찍는(41~44, 0.425초) 모션을 예비동작 시간에 맞춰 늘린다.
+        // 클립이 끝나는 순간 = 예비동작이 끝나고 첫 파동이 나가는 순간이라, 내려찍기와 파동이 맞물린다.
+        PlayState(entity, animState_Slam, slamPreCastDelay, matchAnimSpeedToWindup);
+
         Vector2 preCenter = entity.transform.position;
 
         // 애니메이션이 없는 것을 보완하는 사전 예비동작: 발밑에 경고 원이 서서히 채워집니다. (이 동안은 무피해)
@@ -1202,9 +1306,18 @@ private GameObject _chargeTelegraph;
 
             if (wave < slamWaveCount - 1)
             {
+                // [26/08/17] 파동 1회 = 내려찍기 1회. 예전엔 예비동작 때 한 번만 재생하고 나머지 파동이
+                // 도는 내내(파동당 slamWaveExpandTime) 마지막 프레임에서 굳어 있었다 — 두 번째 파동은
+                // 아무 동작 없이 링만 튀어나왔다. 파동 사이 간격에 맞춰 클립을 다시 늘려 재생하면
+                // '다시 일어섰다 내려찍는' 순간과 다음 파동 발사가 맞물린다.
+                PlayState(entity, animState_Slam, slamWaveInterval, matchAnimSpeedToWindup);
                 yield return new WaitForSeconds(slamWaveInterval);
             }
         }
+
+        // 마지막 파동이 퍼지는 동안은 내려찍은 자세로 굳어 있는 게 맞다(연출상 '여파').
+        // 배속만 원복해 둔다 — RunSpecialPattern 말미에서도 하지만, 그 사이 스턴 등으로 끊길 수 있다.
+        if (entity.Animator != null) entity.Animator.speed = 1f;
     }
 
     /// <summary>
