@@ -18,6 +18,16 @@ public class Projectile : MonoBehaviour
     protected bool _isDeflected; // 패리로 반사된 투사체인가. 반사 데미지는 갈래=Parry 로 태그한다.
     protected System.Collections.Generic.HashSet<Collider2D> _ignoredColliders = new System.Collections.Generic.HashSet<Collider2D>();
 
+    /// <summary>
+    /// 피격자에게 넘겨줄 '날아온 지점'. 충돌 지점(transform.position)을 그대로 주면 안 된다 —
+    /// 그 점은 맞은 사람 몸 위라서, 거기서 뽑은 방향은 '발사자가 어디 있나'가 아니라
+    /// '콜라이더의 어느 면을 스쳤나'가 된다. 플레이어 피격 박스는 발밑 1.0 x 0.2 짜리 납작한
+    /// 슬래브라, 위/아래에서 날아온 투사체가 거의 수평(0/180도)으로 읽혀 우클릭 가드의
+    /// 부채꼴(반각 80도)에서 통째로 탈락했다 — 근접만 뎀감이 먹던 원인이 이것이다.
+    /// 그래서 비행 경로를 2유닛 되짚은 점을 준다. 각도 판정에만 쓰이므로 거리 값 자체는 의미 없다.
+    /// </summary>
+    protected Vector2 HitFromPoint => (Vector2)transform.position - _direction * 2f;
+
     public virtual void Init(Vector2 targetPos, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
     {
         _targetLayer = targetLayer;
@@ -119,7 +129,7 @@ public class Projectile : MonoBehaviour
                 // 화살인지 주먹인지 구분할 방법이 없다(우클릭 카운터/가드가 근접만 받아친다).
                 // hitFrom: 맞은 쪽이 '어디서 날아왔는지'를 알아야 방향 판정을 할 수 있다.
                 // attacker 는 쏜 본체라, 유도탄이면 실제 비행 방향과 전혀 다른 곳을 가리킨다.
-                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: (Vector2)transform.position);
+                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: HitFromPoint);
                 damageable.TakeDamage(info);
                 Destroy(gameObject);
                 return;
@@ -162,7 +172,7 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnHitTarget(CharacterStat targetStat)
     {
-        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: (Vector2)transform.position);
+        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: HitFromPoint);
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
     }

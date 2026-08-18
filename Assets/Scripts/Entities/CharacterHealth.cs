@@ -48,7 +48,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
     /// <summary>
     /// 갈래가 안 붙은(None) 피해를 공격자를 보고 자동 분류한다.
-    ///  · 적 공격 → 티어(보스/엘리트/미니언)   · 플레이어 공격 → 스킬
+    ///  · 적 공격 → 등급(EnemyMinionDataSO.tier)   · 플레이어 공격 → 스킬
     /// 평타/대쉬/패링/디버프/함정은 소스에서 명시 태그되므로 여기로 안 온다.
     /// </summary>
     /// (public 인 이유: 우클릭 카운터/가드가 아직 GetDamage 에 들어오지 않은 히트박스의 갈래를
@@ -57,15 +57,36 @@ public class CharacterHealth : MonoBehaviour, IDamageable
     {
         if (attacker == null) return DamageCategory.None;
 
-        if (attacker.CompareTag("Boss") || attacker.name.Contains("Boss")) return DamageCategory.EnemyBoss;
-        var status = attacker.GetComponentInParent<CharacterStatus>();
-        if (status != null && status.IsElite) return DamageCategory.EnemyElite;
-        if (attacker.layer == Layers.Enemy) return DamageCategory.EnemyMinion;
-
+        // 플레이어 진영을 먼저 걸러낸다 — 플레이어에게도 CharacterStatus 가 붙어 있어서,
+        // 등급부터 보면 플레이어 피해가 적 갈래로 새어 들어간다.
         if (attacker.layer == Layers.Player || attacker.layer == Layers.PlayerDash) return DamageCategory.Skill;
+
+        // [26/08/18] 태그 "Boss" / 이름에 "Boss" 포함 판정을 걷어내고 데이터의 등급(EnemyTier)만 본다.
+        // 옛 방식은 두 군데가 동시에 틀렸다:
+        //  · 'Summoner Boss Minions'(사실상 일반 몹)가 이름 때문에 보스가 돼서 카운터로 못 막았다.
+        //  · 엘리트 4종이 전부 Boss 태그라 EnemyElite 는 아예 도달 불가였다(태그 검사가 먼저였다).
+        var status = ResolveStatus(attacker);
+        if (status != null)
+        {
+            if (status.Tier == EnemyTier.Boss) return DamageCategory.EnemyBoss;
+            if (status.Tier == EnemyTier.Elite) return DamageCategory.EnemyElite;
+        }
+
+        if (attacker.layer == Layers.Enemy) return DamageCategory.EnemyMinion;
 
         return DamageCategory.None;
     }
+
+    /// <summary>
+    /// 공격자 오브젝트에서 CharacterStatus 를 찾는다. 적 프리팹은 스탯 3종을 루트가 아니라 자식
+    /// 'CharacterStatStuff' 에 달고 있는데 공격자로 넘어오는 건 루트라서, GetComponentInParent
+    /// 하나만으로는 <b>항상 null</b> 이었다 — 등급 판정이 죽어 있던 진짜 이유가 이것이다.
+    /// 부모·자식 양방향으로 찾는다(프로젝트의 IDamageable 탐색과 같은 순서).
+    /// </summary>
+    private static CharacterStatus ResolveStatus(GameObject attacker)
+        => attacker.GetComponent<CharacterStatus>()
+        ?? attacker.GetComponentInParent<CharacterStatus>()
+        ?? attacker.GetComponentInChildren<CharacterStatus>(true);
 
     /// <summary>
     /// 이 피해의 '공격 스탯' 주인을 찾는다 — 크리 확률/피해량, 물리·마법 증폭이 여기서 나온다.

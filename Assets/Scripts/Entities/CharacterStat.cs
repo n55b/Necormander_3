@@ -325,8 +325,8 @@ public class CharacterStat : MonoBehaviour
             // 적은 치명타를 굴리지 않는다(기본값 0). 필요해지면 EnemyMinionDataSO 에 필드를 열면 된다.
             baseCritChance = 0f;
 
-            // [추가] 보스 여부 전달
-            if (Status != null) Status.IsElite = data.isElite;
+            // 등급 전달(일반/엘리트/보스). 피해 갈래·미니맵 마커가 이 값을 본다.
+            if (Status != null) Status.Tier = data.tier;
         }
 
         UpdateTeamStatus(); // 데이터 주입 시점에 팀 정보 다시 확인

@@ -16,7 +16,9 @@ public class CharacterStatus : MonoBehaviour
     public bool LastAttackMissed = false; // [추가] 궁수 발이부중 기믹용 (이전 기본 공격이 빗나갔는지 여부)
     public float MoveSpeedMultiplier => _cachedMoveSpeedMultiplier;
     public float TotalShield => _cachedTotalShield;
-    public bool IsElite { get; set; } // [추가] 엘리트 유닛 여부
+    /// <summary>유닛 등급. EnemyMinionDataSO.tier 에서 주입되고, 데이터가 없는 유닛은 Normal 로 남는다.
+    /// 피해 갈래 판정(CharacterHealth.ResolveCategoryFromAttacker)의 단일 소스다.</summary>
+    public EnemyTier Tier { get; set; } = EnemyTier.Normal;
 
     [Header("Super Armor Settings")]
     [SerializeField] private bool _hasSuperArmor = false;
@@ -251,7 +253,7 @@ public class CharacterStatus : MonoBehaviour
                 Collider2D wallHit = Physics2D.OverlapCircle(transform.position, 0.4f, wallMask);
                 if (wallHit != null)
                 {
-                    float damagePercent = IsElite ? 0.06f : 0.12f;
+                    float damagePercent = Tier != EnemyTier.Normal ? 0.06f : 0.12f;
                     var health = GetComponentInChildren<CharacterHealth>();
                     if (health != null) health.GetDamage(new DamageInfo(health.CurHP * damagePercent, DamageType.Fixed, null, category: DamageCategory.Debuff));
                     break;

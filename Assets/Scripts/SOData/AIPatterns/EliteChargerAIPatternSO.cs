@@ -69,7 +69,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     //        - 텔레그래프 생성   → BossTelegraph (원/사각/링). CreateFallbackRect/Circle/Ring도 여기로 흡수
     //        - 데미지/링 판정    → BossCombat.TryDamage / DealCircle / ExpandingRing (이미 링·데미지는 이걸 씀)
     //        - 기둥 질의/수명    → PillarField (이미 이관됨)
-    //        - GetRoomMetrics / GetBoundsExitDistance / ScaleCoroutine / MiniChargeDash / StopNavAgent /
+    //        - GetRoomMetrics / GetBoundsExitDistance / ResolveLandingPoint / StopNavAgent /
     //          ShowLabel/ClearLabel → 공용 유틸(예: BossContext 또는 새 BossMotion/BossRoom 유틸)로 이동하거나
     //          SO 메서드를 internal 로 노출해 액션이 호출.
     //   3) BasicAttackRoutine의 '공통 래퍼'(IsAttacking/Animator/postDelay/ClearLabel)는 브레인에 남기고,
@@ -98,20 +98,14 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     [Header("① 미니 돌진 찍기 (약한 돌진)")]
     [Tooltip("비워두면 기본 원형 히트박스로 대체됩니다")]
     public GameObject stabHitboxPrefab;
-    [Tooltip("시전(웅크림+대시) 시간")]
+    [Tooltip("도약해서 착지할 때까지의 체공 시간. 이 시간 내내 착지 예고 원이 차오른다")]
     public float stabWindup = 1.0f;
-    [Tooltip("대시 끝에 생기는 전방 원형 판정 반경")]
+    [Tooltip("착지 지점에 생기는 원형 판정 크기. 착지 예고 원도 같은 값으로 그려진다")]
     public float stabRadius = 4.4f;
-    [Tooltip("전방으로 실제로 전진하는 거리")]
+    [Tooltip("도약해서 날아가는 거리. 벽에 막히면 그 앞에 착지한다")]
     public float miniChargeDistance = 3.6f;
-    [Tooltip("전진(대시)에 걸리는 시간. 나머지 windup 시간은 웅크림(스쿼시) 연출에 사용됩니다")]
-    public float miniChargeDashDuration = 0.15f;
-    [Tooltip("대시 도중 벽 충돌 검사에 사용할 반경")]
+    [Tooltip("착지 지점을 정할 때 벽 충돌 검사에 쓰는 반경")]
     public float miniChargeCheckRadius = 0.6f;
-    [Tooltip("웅크릴 때의 스케일 배율 (1보다 작을수록 더 낮고 넓게 웅크립니다)")]
-    public float miniChargeSquashScale = 0.82f;
-    [Tooltip("튀어나갈 때의 스케일 배율 (1보다 클수록 더 크게 튀어나가 보입니다)")]
-    public float miniChargeStretchScale = 1.2f;
 
     [Header("② 일반 돌진")]
     [Tooltip("일반 차저가 가진 직선형 고속 돌진입니다. 데미지가 낮고 사거리가 짧습니다.")]
@@ -125,10 +119,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public float normalChargeHitRadius = 1.0f;
     [Tooltip("플레이어 직격 시 피해량 배율 (ATK 대비, 약하게)")]
     public float normalChargeDamageMultiplier = 0.5f;
-    [Tooltip("예비동작(윈드업) 동안 웅크린 정도")]
-    public float normalChargeSquashScale = 0.82f;
-    [Tooltip("돌진 시작 순간 튀어나가는 스트레치 정도 (미니 돌진보다 더 과장해서 확실한 느낌을 줍니다)")]
-    public float normalChargeStretchScale = 1.4f;
 
     [Header("③ 휩쓸기 공격")]
     [Tooltip("비워두면 기본 원형 히트박스로 대체됩니다")]
@@ -495,9 +485,17 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         float speed = 1f;
         if (matchSpeed && duration > 0.0001f)
         {
-            float len = StateClipLength(anim, stateName);
+            // [26/08/18] 기준점을 클립 끝에서 <b>타격 프레임(OnHitEvent)</b> 으로 옮겼다.
+            // 클립 끝을 windup 에 맞추면, 타격 프레임은 클립의 중간(42~54%)이라 항상 windup 의
+            // 절반쯤에 지나가 버린다 — 해태가 이미 내려찍고 원래 자세로 돌아온 뒤에야 데미지가
+            // 들어왔다(측정값 ①-0.52s ③-0.59s 슬램-0.60s). 타격 프레임을 duration 끝에 맞추면
+            // 예비동작이 windup 전체를 쓰고 내려찍는 순간과 판정이 정확히 겹친다.
+            // 데미지 타이밍·텔레그래프는 하나도 안 건드린다 — 바뀌는 건 재생 속도뿐이다.
+            float anchor = StateHitEventTime(anim, stateName);
+            // 이벤트가 없는 클립(Dash_Ready/Dash_Attack 등)은 예전대로 클립 끝을 기준으로.
+            if (anchor <= 0.0001f) anchor = StateClipLength(anim, stateName);
             // 1프레임짜리 홀드 포즈(Dash_Ready/Stun)는 늘려봐야 정지 화면이라 배속을 건드리지 않는다.
-            if (len > 0.0001f) speed = Mathf.Clamp(len / duration, 0.05f, 20f);
+            if (anchor > 0.0001f) speed = Mathf.Clamp(anchor / duration, 0.05f, 20f);
         }
 
         anim.speed = speed;
@@ -515,6 +513,31 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         if (rac == null) return 0f;
         foreach (var c in rac.animationClips)
             if (c != null && c.name == stateName) return c.length;
+        return 0f;
+    }
+
+    /// <summary>
+    /// 이 스테이트 클립에 박힌 첫 <c>OnHitEvent</c> 가 클립 시작 몇 초 뒤인가. 없으면 0.
+    ///
+    /// aseprite 셀 user data 의 <c>event:OnHitEvent</c> 가 임포트 때 AnimationEvent 로 들어온다.
+    /// (콜론을 두 번 찍으면 함수 이름이 ":OnHitEvent" 가 되어 조용히 아무 데도 안 붙는다 — 실제로
+    ///  그 상태로 한 번 들어왔었다. Report 메뉴가 이름을 그대로 찍어주니 의심되면 거기서 확인할 것.)
+    ///
+    /// 클립 이름 == 스테이트 이름 규칙에 기대는 건 StateClipLength 와 같다. 이름이 어긋나면
+    /// (Attack/Follow/Die 처럼) 조용히 0 이 나오고 예전 동작(클립 끝 기준)으로 떨어진다.
+    /// </summary>
+    private static float StateHitEventTime(Animator anim, string stateName)
+    {
+        var rac = anim.runtimeAnimatorController;
+        if (rac == null) return 0f;
+        foreach (var c in rac.animationClips)
+        {
+            if (c == null || c.name != stateName) continue;
+            float best = 0f;
+            foreach (var e in c.events)
+                if (e.functionName == "OnHitEvent" && (best <= 0.0001f || e.time < best)) best = e.time;
+            return best;
+        }
         return 0f;
     }
 
@@ -736,7 +759,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         // 그건 IsAttacking 동안 early-return 이고, 애초에 CanExecuteAI 가 막아서 호출조차 안 된다.
         // 즉 아래 후딜레이(1초) 내내 마지막 공격 클립이 그대로 남는다. 돌진 클립(Dash_Attack)은 '루프'라
         // 그동안 멈춰 선 채로 제자리 질주하는 그림이 된다. 그래서 여기서 직접 Idle 로 되돌린다.
-        PlayState(entity, "Idle");
+        //
+        // [26/08/18] 단, 루프 클립일 때만 그렇게 한다. 배속 기준이 타격 프레임으로 바뀌면서 단발
+        // 클립은 판정 순간에 아직 뒷부분(마무리 동작)이 남아 있는데, 여기서 Idle 을 강제하면 때린
+        // 즉시 자세가 툭 끊긴다. 그냥 두면 후딜레이 동안 마무리가 재생되고, 후딜레이가 끝나면
+        // UpdateAnimation 이 (ResetAnimationState 덕에) 알아서 Idle/Follow 로 되돌린다.
+        if (entity.Animator != null && entity.Animator.GetCurrentAnimatorStateInfo(0).loop)
+            PlayState(entity, "Idle");
 
         ClearLabel();
 
@@ -748,27 +777,64 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     }
 
     // ==============================================================
-    // ① 약한 돌진: 미니 돌진 찍기 (v1.2)
-    // 전용 애니메이션이 없어서, 웅크렸다가(스쿼시) 튀어나가는(스트레치) 스케일 연출로
-    // 그 부재를 보완합니다. 실제 이동은 벽에 막히면 그 앞에서 멈춥니다.
+    // ① 도약 찍기 (v2.0)
+    // [26/08/18] "제자리에서 웅크렸다가 짧게 돌진" 에서 "즉시 도약해서 오래 떠 있다가 착지" 로 바꿨다.
+    // 예비동작 시간(stabWindup)이 통째로 체공 시간이 되고, 회피 정보는 착지 지점에 그리는 원이 준다.
     // ==============================================================
-    private IEnumerator MiniChargeStabRoutine(BaseEntity entity, Vector2 dir, float radius, float windup)
+    /// <summary>
+    /// 즉시 도약해서 <paramref name="airTime"/> 동안 날아간 뒤 착지하며 찍는다.
+    ///
+    /// 착지 예고는 두 겹이다 — <b>테두리 링</b>이 '어디에 (얼마만큼)', 그 안에서 <b>차오르는 원</b>이
+    /// '언제' 를 알려준다. 둘 다 실제 히트박스와 <b>같은 스케일 값</b>을 쓴다(둘 다 지름 기준 유닛 스프라이트라,
+    /// 히트박스 프리팹을 바꿔도 예고와 판정이 같이 움직인다).
+    ///
+    /// 몸이 쪼그라드는 연출(옛 ScaleCoroutine)은 뺐다. 해태 아트의 Jump_Attack 클립에 도약 웅크림이
+    /// 이미 들어 있어 이중으로 적용됐고, 루트 스케일을 만지는 방식이라 콜라이더·그림자·HP바·인디케이터까지
+    /// 같이 줄었다. 게다가 추적되지 않는 entity.StartCoroutine 이라 8초 특수 패턴 인터럽트가 끊지 못해
+    /// 쪼그라든 채로 남는 경로가 있었다.
+    /// </summary>
+    private IEnumerator MiniChargeStabRoutine(BaseEntity entity, Vector2 dir, float radius, float airTime)
     {
-        float dashDuration = Mathf.Min(miniChargeDashDuration, Mathf.Max(0.05f, windup - 0.1f));
-        float squashDuration = Mathf.Max(0.05f, windup - dashDuration);
+        Vector2 start = entity.transform.position;
+        Vector2 land = ResolveLandingPoint(entity, start, dir, miniChargeDistance);
 
-        entity.StartCoroutine(ScaleCoroutine(entity, squashDuration, miniChargeSquashScale, dashDuration, miniChargeStretchScale));
+        GameObject ringMark = CreateFallbackRing(new Color(1f, 0.55f, 0f, 0.6f));
+        ringMark.transform.position = land;
+        ringMark.transform.localScale = Vector3.one * radius;
 
-        yield return new WaitForSeconds(squashDuration);
+        GameObject fillMark = CreateFallbackCircle(land, 0f, new Color(1f, 0.35f, 0f, 0.25f));
 
-        yield return MiniChargeDash(entity, dir, miniChargeDistance, dashDuration);
+        // 잔상은 체공 내내. (창은 자동 만료 — 슈퍼아머라 넉백 오발동 없음)
+        entity.GetComponent<DashAfterimage>()?.BeginDash(airTime + 0.3f);
 
-        Vector2 spawnPos = (Vector2)entity.transform.position + dir * 0.6f;
+        try
+        {
+            float t = 0f;
+            while (t < airTime)
+            {
+                t += Time.deltaTime;
+                float f = Mathf.Clamp01(t / airTime);
+                entity.transform.position = Vector2.Lerp(start, land, f);
+                if (fillMark != null) fillMark.transform.localScale = Vector3.one * (radius * f);
+                yield return null;
+            }
+            entity.transform.position = land;
+        }
+        finally
+        {
+            // 8초 특수 패턴 인터럽트가 _basicAttackCoroutine 을 StopCoroutine 으로 잘라가면 아래 줄들이
+            // 실행되지 않아 착지 예고 원이 바닥에 영구히 남는다. finally 는 StopCoroutine 에서도 돈다.
+            if (ringMark != null) GameObject.Destroy(ringMark);
+            if (fillMark != null) GameObject.Destroy(fillMark);
+        }
+
+        // 착지 타격은 예고한 그 자리 그대로다. 예전엔 진행 방향으로 0.6 밀어서 스폰했는데,
+        // 그러면 "착지 지점에 원을 그린다" 는 약속이 깨진다.
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
         GameObject hitboxObj = stabHitboxPrefab != null
-            ? GameObject.Instantiate(stabHitboxPrefab, spawnPos, Quaternion.Euler(0f, 0f, angle))
-            : CreateFallbackCircle(spawnPos, 0.5f, new Color(1f, 0f, 0f, 0.35f));
+            ? GameObject.Instantiate(stabHitboxPrefab, land, Quaternion.Euler(0f, 0f, angle))
+            : CreateFallbackCircle(land, 0.5f, new Color(1f, 0f, 0f, 0.35f));
         hitboxObj.transform.localScale = Vector3.one * radius;
 
         BaseHitBox hb = hitboxObj.GetComponent<BaseHitBox>();
@@ -781,27 +847,19 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     }
 
     /// <summary>
-    /// 짧은 거리를 실제로 전진합니다. 대시 경로에 벽이 있으면 그 앞에서 멈춥니다.
+    /// 도약이 실제로 내려앉을 지점. 벽에 막히면 그 앞, 방 밖으로 나가면 경계 안으로 당긴다.
+    /// <b>이동 전에</b> 확정해야 한다 — 착지 예고 원을 거기 그려야 하기 때문이다.
     /// </summary>
-    private IEnumerator MiniChargeDash(BaseEntity entity, Vector2 dir, float distance, float duration)
+    private Vector2 ResolveLandingPoint(BaseEntity entity, Vector2 start, Vector2 dir, float distance)
     {
         LayerMask wallMask = LayerMask.GetMask("Wall", "Object");
-        float clampedDistance = distance;
 
-        // [잔상] 미니 돌진(짧은 전진) 동안만 잔상 방출 윈도우 오픈 (창은 자동 만료 — 슈퍼아머라 넉백 오발동 없음)
-        entity.GetComponent<DashAfterimage>()?.BeginDash(duration + 0.3f);
+        RaycastHit2D obstacleHit = Physics2D.CircleCast(start, miniChargeCheckRadius, dir, distance, wallMask);
+        if (obstacleHit.collider != null) distance = Mathf.Max(0.1f, obstacleHit.distance - 0.1f);
 
+        Vector2 end = start + dir * distance;
 
-        RaycastHit2D obstacleHit = Physics2D.CircleCast(entity.transform.position, miniChargeCheckRadius, dir, distance, wallMask);
-        if (obstacleHit.collider != null)
-        {
-            clampedDistance = Mathf.Max(0.1f, obstacleHit.distance - 0.1f);
-        }
-
-        Vector2 start = entity.transform.position;
-        Vector2 end = start + dir * clampedDistance;
-
-        // 방 경계를 벗어나는 것을 막는 안전장치 (벽 콜라이더를 놓치고 통과해버리는 경우 대비)
+        // 방 경계 안전장치 (벽 콜라이더를 놓치고 통과해버리는 경우 대비)
         RoomMetrics room = GetRoomMetrics(entity);
         if (room.found)
         {
@@ -810,15 +868,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 Mathf.Clamp(end.y, room.bounds.min.y, room.bounds.max.y));
         }
 
-        float t = 0f;
-        while (t < duration)
-        {
-            t += Time.deltaTime;
-            float f = Mathf.Clamp01(t / duration);
-            entity.transform.position = Vector2.Lerp(start, end, f);
-            yield return null;
-        }
-        entity.transform.position = end;
+        return end;
     }
 
     /// <summary>
@@ -833,11 +883,11 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         _chargeTelegraph = CreateFallbackRect(new Color(1f, 0.55f, 0f, 0.3f));
 
         // 예비동작 = 웅크려 조준하는 1프레임 포즈. 정지 화면이라 배속은 건드리지 않는다
-        // (부족한 연출은 아래 스쿼시/스트레치 + 바닥 전조 게이지가 메운다).
+        // (예비동작 정보는 바닥 전조 게이지와 방향 인디케이터가 준다).
         PlayState(entity, animState_ChargeReady);
 
-        // 확실한 돌진 느낌을 위해, 윈드업 동안 웅크렸다가 돌진 시작 순간 크게 튀어나가는 스쿼시/스트레치 연출입니다.
-        entity.StartCoroutine(ScaleCoroutine(entity, windup, normalChargeSquashScale, 0.2f, normalChargeStretchScale));
+        // [26/08/18] 웅크렸다 튀어나가는 스케일 연출(ScaleCoroutine)은 제거했다. 해태 아트에 예비동작이
+        // 들어오면서 이중 적용이 됐고, 루트 스케일을 만지는 방식이라 콜라이더·그림자·HP바까지 같이 줄었다.
         float estimatedLength = entity.Stats.MOVESPEED * normalChargeSpeedMultiplier * normalChargeMaxDuration;
         var ncVfb = entity.GetComponentInChildren<CharacterVisualFeedback>();
         bool ncFlashFired = false;
@@ -990,32 +1040,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     /// entity.transform.localScale을 기준 스케일의 배율로 조정하므로, 좌우 반전을 위해
     /// 음수 X 스케일을 쓰는 경우에도 부호가 그대로 유지됩니다.
     /// </summary>
-    private IEnumerator ScaleCoroutine(BaseEntity entity, float squashDuration, float squashScale, float stretchDuration, float stretchScale)
-    {
-        Vector3 baseScale = entity.transform.localScale;
-
-        float t = 0f;
-        while (t < squashDuration)
-        {
-            t += Time.deltaTime;
-            float s = Mathf.Lerp(1f, squashScale, Mathf.Clamp01(t / squashDuration));
-            entity.transform.localScale = baseScale * s;
-            yield return null;
-        }
-
-        entity.transform.localScale = baseScale * stretchScale;
-
-        t = 0f;
-        while (t < stretchDuration)
-        {
-            t += Time.deltaTime;
-            float s = Mathf.Lerp(stretchScale, 1f, Mathf.Clamp01(t / stretchDuration));
-            entity.transform.localScale = baseScale * s;
-            yield return null;
-        }
-
-        entity.transform.localScale = baseScale;
-    }
 
     // ==============================================================
     // 특수 패턴 풀: 3개(0,1,2)를 전부 한 번씩 쓸 때까지 같은 패턴이 다시 나오지 않습니다.

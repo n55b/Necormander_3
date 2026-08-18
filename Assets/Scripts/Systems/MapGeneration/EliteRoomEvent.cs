@@ -47,7 +47,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
             {
                 foreach (var data in rawList)
                 {
-                    if (data.isElite) _eliteEnemyPool.Add(data);
+                    if (data.IsSpawnableElite) _eliteEnemyPool.Add(data);
                 }
             }
             
@@ -57,7 +57,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
             {
                 foreach (var data in eliteList)
                 {
-                    if (data.isElite && !_eliteEnemyPool.Contains(data)) _eliteEnemyPool.Add(data);
+                    if (data.IsSpawnableElite && !_eliteEnemyPool.Contains(data)) _eliteEnemyPool.Add(data);
                 }
             }
             Debug.Log($"<color=red>[EliteRoom]</color> Pool Initialized. Elites: {_eliteEnemyPool.Count} in {gameObject.name}");

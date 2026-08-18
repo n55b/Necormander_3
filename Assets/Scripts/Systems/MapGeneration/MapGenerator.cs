@@ -134,7 +134,7 @@ public class MapGenerator : MonoBehaviour
 
     /// <summary>
     /// 이 층의 엘리트를 뽑는다. 디버그 강제값이 있으면 그걸 쓰고, 없으면 엘리트 풀에서 무작위.
-    /// 풀은 EliteRoomEvent 가 쓰던 것과 같다(ELITE_MINION_DATA + ENEMY_MINION_DATA 중 isElite).
+    /// 풀은 EliteRoomEvent 가 쓰던 것과 같다(ELITE_MINION_DATA + ENEMY_MINION_DATA 중 IsSpawnableElite).
     /// </summary>
     private void PickFloorElite()
     {
@@ -151,9 +151,9 @@ public class MapGenerator : MonoBehaviour
 
         var pool = new List<EnemyMinionDataSO>();
         if (data.ELITE_MINION_DATA != null)
-            foreach (var e in data.ELITE_MINION_DATA) if (e != null && e.isElite) pool.Add(e);
+            foreach (var e in data.ELITE_MINION_DATA) if (e != null && e.IsSpawnableElite) pool.Add(e);
         if (data.ENEMY_MINION_DATA != null)
-            foreach (var e in data.ENEMY_MINION_DATA) if (e != null && e.isElite && !pool.Contains(e)) pool.Add(e);
+            foreach (var e in data.ENEMY_MINION_DATA) if (e != null && e.IsSpawnableElite && !pool.Contains(e)) pool.Add(e);
 
         FloorElite = pool.Count > 0 ? pool[Random.Range(0, pool.Count)] : null;
         Debug.Log(FloorElite != null

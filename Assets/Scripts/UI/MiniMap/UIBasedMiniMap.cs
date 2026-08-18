@@ -721,8 +721,10 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                     RectTransform eRt = enemyMarker.GetComponent<RectTransform>();
                     CenterOnParent(eRt);
 
-                    // 🌟 [적 마커 스케일 분기] 보스이거나 이름에 Boss가 섞인 강한 적은 마커 크기를 1.8배 확대
-                    bool isBoss = enemy.CompareTag("Boss") || enemy.name.Contains("Boss");
+                    // 🌟 [적 마커 스케일 분기] 일반 몹이 아닌 적(엘리트/보스)은 마커를 크게 그린다.
+                    // 예전엔 태그/이름으로 봐서 'Summoner Boss Minions'(일반 몹)까지 커졌다.
+                    var enemyStatus = enemy.GetComponentInChildren<CharacterStatus>(true);
+                    bool isBoss = enemyStatus != null && enemyStatus.Tier != EnemyTier.Normal;
 
                     // 전투 HUD는 지도가 고정 스케일로 커지므로 마커도 칸 수 기준 고정. 개요(full)는 기존 방 크기 비율.
                     float eSize;

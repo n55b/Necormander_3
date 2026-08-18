@@ -14,8 +14,12 @@ namespace AstroNuts.Monsters
     /// </summary>
     public class MonsterDeathHandler : MonoBehaviour
     {
-        [Tooltip("Animator에서 재생할 죽음 스테이트 이름 (컨트롤러의 State 이름과 동일해야 함)")]
+        [Tooltip("Animator에서 재생할 죽음 스테이트 이름. 이 이름이 컨트롤러에 없으면 " +
+                 "Die / Dead 중 실제로 있는 쪽으로 자동 대체한다(아트가 태그를 어느 이름으로 달았든 동작).")]
         [SerializeField] private string deathStateName = "Die";
+
+        /// <summary>사망 스테이트 이름 후보. 아트마다 태그를 Die 로도 Dead 로도 달아서 둘 다 받는다.</summary>
+        private static readonly string[] DeathStateAliases = { "Die", "Dead" };
 
         [Tooltip("죽는 순간 즉시 꺼야 할 콜라이더들")]
         [SerializeField] private Collider2D[] collidersToDisable;
@@ -79,17 +83,45 @@ namespace AstroNuts.Monsters
             if (_hpCanvas != null)
                 _hpCanvas.gameObject.SetActive(false);
 
+            float delay = fallbackDelay;
+
             if (_animator != null)
             {
                 // [26/08/16] 배속으로 공격 모션을 재생하던 중에 죽으면 그 배속이 사망 클립까지 따라온다.
                 // (엘리트 차저처럼 클립 길이를 예비동작에 맞추려고 Animator.speed 를 건드리는 패턴이 있다.)
                 // 느려진 채로 재생되면 fallbackDelay 안에 페이드아웃이 못 끝나고 뚝 끊긴다.
                 _animator.speed = 1f;
-                _animator.Play(deathStateName);
+                _animator.Play(ResolveDeathState(), 0, 0f);
+
+                // [26/08/18] 사망 클립이 fallbackDelay 보다 길면 연출이 중간에 잘린다
+                // (해태 Dead 는 1.2초인데 기본값은 1.0초다). 클립 길이를 읽어 더 긴 쪽을 쓴다.
+                // Play 직후엔 스테이트가 아직 반영 전이라 Update(0) 으로 한 번 밀어야 길이가 잡힌다.
+                if (_animator.isActiveAndEnabled)
+                {
+                    _animator.Update(0f);
+                    float clipLength = _animator.GetCurrentAnimatorStateInfo(0).length;
+                    if (clipLength > delay) delay = clipLength + 0.05f; // 마지막 프레임이 한 번은 그려지게
+                }
             }
 
             // 죽음 클립에 Animation Event를 안 걸어뒀을 경우를 대비한 fallback
-            Invoke(nameof(OnDeathAnimationFinished), fallbackDelay);
+            Invoke(nameof(OnDeathAnimationFinished), delay);
+        }
+
+        /// <summary>
+        /// 실제로 재생할 사망 스테이트 이름. 인스펙터 값이 컨트롤러에 없으면 Die / Dead 중
+        /// 있는 쪽으로 대체한다 — Animator.Play 는 없는 스테이트에 대해 <b>조용한 no-op</b> 이라,
+        /// 이름이 어긋나면 시체가 마지막 공격 포즈로 굳은 채 사라진다(에러도 안 뜬다).
+        /// </summary>
+        private string ResolveDeathState()
+        {
+            if (_animator == null || _animator.runtimeAnimatorController == null) return deathStateName;
+            if (_animator.HasState(0, Animator.StringToHash(deathStateName))) return deathStateName;
+
+            foreach (var alt in DeathStateAliases)
+                if (alt != deathStateName && _animator.HasState(0, Animator.StringToHash(alt))) return alt;
+
+            return deathStateName;
         }
 
         /// <summary>

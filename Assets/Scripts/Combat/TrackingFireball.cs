@@ -33,6 +33,10 @@ public class TrackingFireball : Projectile
 
         // 타겟 방향으로 부드럽게 회전하며 이동
         Vector2 targetDir = ((Vector2)_targetTransform.position - (Vector2)transform.position).normalized;
+        // 유도탄은 MoveTowards 로 움직여서 _direction 이 Init 시점 값(첫 조준 방향)에 멈춰 있었다.
+        // 매 프레임 갱신해야 HitFromPoint 가 실제 비행 방향을 되짚는다 — 안 그러면 유도로 휘어 들어온
+        // 화염구의 "날아온 지점"이 처음 조준선 위에 찍혀서 가드 부채꼴 판정이 다시 어긋난다.
+        _direction = targetDir;
         
         // 이동
         transform.position = Vector2.MoveTowards(transform.position, _targetTransform.position, speed * Time.deltaTime);
@@ -44,7 +48,7 @@ public class TrackingFireball : Projectile
         // isRanged/hitFrom 은 베이스의 IDamageable 경로와 반드시 같아야 한다 — 지금은 그쪽이 먼저
         // 잡아서 여기까지 안 오지만, 빠뜨려 두면 나중에 경로가 바뀌는 순간 유도탄이 '근접'이 된다.
         DamageInfo info = new DamageInfo(_damage, DamageType.Magic, _shooter,
-                                         isRanged: true, hitFrom: (Vector2)transform.position);
+                                         isRanged: true, hitFrom: HitFromPoint);
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
     }

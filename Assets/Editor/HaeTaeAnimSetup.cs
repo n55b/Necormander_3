@@ -36,7 +36,23 @@ public static class HaeTaeAnimSetup
     /// <summary>사망 페이드아웃 길이. MonsterDeathHandler.fallbackDelay(기본 1.0초)보다 살짝 짧게 둔다.</summary>
     private const float DieFadeDuration = 0.9f;
 
-    // 스테이트 이름 -> aseprite 태그 이름. Die 는 태그가 없어서 별도 처리한다.
+    /// <summary>사망 태그로 인정할 이름들. 앞에 있는 것부터 찾는다.</summary>
+    private static readonly string[] DeathTagAliases = { "Die", "Dead" };
+
+    /// <summary>
+    /// 배속을 맞출 기준점(초). EliteChargerAIPatternSO.PlayState 와 <b>같은 규칙</b>이어야 한다 —
+    /// 타격 프레임(OnHitEvent)이 있으면 그 시각, 없으면 클립 끝. 두 곳이 갈리면 리포트가 거짓말을 한다.
+    /// </summary>
+    private static float SpeedAnchor(AnimationClip clip)
+    {
+        if (clip == null) return 0f;
+        float best = 0f;
+        foreach (var e in clip.events)
+            if (e.functionName == "OnHitEvent" && (best <= 0.0001f || e.time < best)) best = e.time;
+        return best > 0.0001f ? best : clip.length;
+    }
+
+    // 스테이트 이름 -> aseprite 태그 이름. Die 는 위 별칭으로 따로 찾는다.
     private static readonly (string state, string tag)[] StateMap =
     {
         ("Idle",         "Idle"),
@@ -173,11 +189,13 @@ public static class HaeTaeAnimSetup
         AssetDatabase.Refresh();
 
         // --- Die ---
-        // 아직 사망 모션이 없어서 Stun 프레임 + 알파 페이드로 대신 만든다.
-        // 나중에 아티스트가 aseprite 에 'Die' 태그를 그려 넣으면, 여기서 자동으로 그걸 쓴다.
-        // (사람이 이 파일을 고칠 필요 없음 — 태그만 추가하고 Build Animator 를 다시 누르면 된다.)
-        bool hasRealDieTag = clips.ContainsKey("Die");
-        AnimationClip dieClip = hasRealDieTag ? clips["Die"] : BuildDieClip(clips);
+        // 아트가 사망 태그를 그려 넣었으면 그걸 쓰고, 없으면 Stun 프레임 + 알파 페이드로 대신 만든다.
+        // 태그 이름은 'Die' 든 'Dead' 든 받는다 — 아트마다 다르게 적어서 한쪽만 보면 조용히 폴백 클립이
+        // 만들어지고, 진짜 사망 모션이 있는데도 안 쓰이는 사고가 난다(경고도 안 뜬다).
+        // 어느 태그를 썼든 <b>스테이트 이름은 항상 "Die"</b> 다 — MonsterDeathHandler 의 기본값이라서.
+        string dieTag = null;
+        foreach (var t in DeathTagAliases) if (clips.ContainsKey(t)) { dieTag = t; break; }
+        AnimationClip dieClip = dieTag != null ? clips[dieTag] : BuildDieClip(clips);
 
         // --- 컨트롤러 ---
         var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
@@ -217,8 +235,8 @@ public static class HaeTaeAnimSetup
             var dieState = sm.AddState("Die", new Vector3(280f, 60f * row++, 0f));
             dieState.motion = dieClip;
             dieState.writeDefaultValues = false;
-            sb.AppendLine(hasRealDieTag
-                ? $"  {"Die",-14} <- {"Die",-14} ({dieClip.length:0.###}s, 진짜 사망 태그)"
+            sb.AppendLine(dieTag != null
+                ? $"  {"Die",-14} <- {dieTag,-14} ({dieClip.length:0.###}s, 진짜 사망 태그)"
                 : $"  {"Die",-14} <- {"(대체 생성)",-14} ({dieClip.length:0.###}s, Stun 프레임 + 페이드아웃)");
         }
 
@@ -364,8 +382,15 @@ public static class HaeTaeAnimSetup
 
                 if (speedMatched && so.matchAnimSpeedToWindup && windup > 0.0001f)
                 {
-                    float sp = Mathf.Clamp(clip.length / windup, 0.05f, 20f);
-                    sb.AppendLine($"        클립 {clip.length:0.###}s -> 예비동작 {windup:0.###}s 에 맞춤 (speed {sp:0.###})");
+                    float anchorTime = SpeedAnchor(clip);
+                    float sp = Mathf.Clamp(anchorTime / windup, 0.05f, 20f);
+                    bool byHit = anchorTime < clip.length - 0.0001f;
+                    sb.AppendLine($"        클립 {clip.length:0.###}s, " +
+                                  (byHit ? $"타격 프레임 {anchorTime:0.###}s" : "타격 프레임 없음 -> 클립 끝") +
+                                  $" -> 예비동작 {windup:0.###}s 에 맞춤 (speed {sp:0.###})");
+                    if (!byHit)
+                        sb.AppendLine($"        [주의] '{state}' 클립에 OnHitEvent 가 없다. aseprite 셀 user data 에 " +
+                                      "event:OnHitEvent 를 박으면 타격 순간과 판정이 정확히 맞는다(콜론 하나!).");
                 }
                 else
                 {
@@ -388,7 +413,7 @@ public static class HaeTaeAnimSetup
             float t = 0f;
             int slams = 0;
             sb.AppendLine($"    t={t,5:0.00}s  내려찍기 #{++slams} 재생 시작 " +
-                          $"(클립 {slam.length:0.###}s -> {so.slamPreCastDelay:0.##}s, speed {slam.length / so.slamPreCastDelay:0.###})");
+                          $"(클립 {slam.length:0.###}s, 타격 {SpeedAnchor(slam):0.###}s -> {so.slamPreCastDelay:0.##}s, speed {SpeedAnchor(slam) / so.slamPreCastDelay:0.###})");
             t += so.slamPreCastDelay;
             for (int w = 0; w < so.slamWaveCount; w++)
             {
@@ -397,7 +422,7 @@ public static class HaeTaeAnimSetup
                 if (w < so.slamWaveCount - 1)
                 {
                     sb.AppendLine($"    t={t,5:0.00}s  내려찍기 #{++slams} 재생 시작 " +
-                                  $"(클립 {slam.length:0.###}s -> {so.slamWaveInterval:0.##}s, speed {slam.length / so.slamWaveInterval:0.###})");
+                                  $"(클립 {slam.length:0.###}s, 타격 {SpeedAnchor(slam):0.###}s -> {so.slamWaveInterval:0.##}s, speed {SpeedAnchor(slam) / so.slamWaveInterval:0.###})");
                     t += so.slamWaveInterval;
                 }
             }

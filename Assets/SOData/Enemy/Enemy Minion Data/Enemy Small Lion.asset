@@ -27,7 +27,7 @@ MonoBehaviour:
   baseEvasion: 0
   baseAccuracy: 1
   attackType: 0
-  isElite: 0
+  tier: 0
   aiPattern: {fileID: 11400000, guid: 047a205c8279f3949b31d4d02e9122fe, type: 2}
   AttackSound: {fileID: 0}
   minionPrefab: {fileID: 1190463616093019822, guid: 94222fd4519c1974aac8e103ed3e8311, type: 3}

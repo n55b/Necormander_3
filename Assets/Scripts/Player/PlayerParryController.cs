@@ -170,6 +170,14 @@ public class PlayerParryController : MonoBehaviour
     {
         CloseWindow();
         DestroyHoldTelegraph();
+
+        // 코루틴이 통째로 죽으므로 finally 가 돌지 않는다. 자세 상태를 직접 되돌리지 않으면
+        // 다시 켜졌을 때 _isParrying 이 true 로 남아 우클릭이 죽고 이속이 0.3배로 고정된다.
+        // EndStance() 를 부르지 않는 이유: 꺼진 오브젝트에서 애니메이터를 건드리게 된다.
+        _isHoldingGuard = false;
+        _isParrying = false;
+        _parryCoroutine = null;
+        if (_player != null) _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.Parry);
     }
 
     /// <summary>
@@ -393,12 +401,14 @@ public class PlayerParryController : MonoBehaviour
         }
         finally
         {
+            // EndStance 는 반드시 여기 있어야 한다. 밖에 두면 루프에서 예외가 한 번만 나도
+            // _isParrying 이 true 로 박히고, 그 뒤로 TryInterruptForAction 이 영구히 false 를
+            // 돌려줘서 대쉬·평타·Q/E/R 이 전부 막히고 이속도 0.3배로 고정된다(영구 소프트락).
             CloseWindow();
             DestroyHoldTelegraph();
             _isHoldingGuard = false;
+            EndStance();
         }
-
-        EndStance();
     }
 
     private void DestroyHoldTelegraph()

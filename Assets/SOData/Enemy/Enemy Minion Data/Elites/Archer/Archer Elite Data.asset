@@ -26,7 +26,7 @@ MonoBehaviour:
   detectRange: 100
   defense: 0
   moveSpeed: 0
-  isElite: 1
+  tier: 1
   aiPattern: {fileID: 11400000, guid: 0092992ff409f8048bf0277b57c3438d, type: 2}
   AttackSound: {fileID: 0}
   minionPrefab: {fileID: 2726140859014803944, guid: a443053a9f2c19047baea371f6e55ee5, type: 3}

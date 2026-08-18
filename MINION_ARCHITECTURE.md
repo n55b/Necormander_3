@@ -1,3 +1,22 @@
+> # ⚠️ DEPRECATED — 읽지 마세요 (2026-08-18)
+>
+> 이 문서는 **2026-07 시점의 옛 미니언 구조 스냅샷**이고, 그 구조는 이후 리팩토링으로 사라졌습니다.
+> 아래 본문이 설명하는 것 중 **지금 소스에 존재하지 않는 것**:
+>
+> - `AllyController` / `SquadSpawner` / `AllyManager` / `FusionMinionController` / `MinionLineageSO` — 전부 삭제됨
+> - `GemSO` 와 젬/소켓 시스템 전체 — 철거됨 (`GEM_LEGACY.md` 참조)
+> - 투척 파이프라인(`ThrowInputHandler`, `ThrowableBox` 등) — 철거됨 (`THROW_LEGACY.md` 참조)
+> - `MinionDataSO` — `MainMinionDataSO` 로 대체
+> - 서브 소환수 — 삭제됨. 우클릭(패링/카운터/가드)은 이제 플레이어 본인의 영구 능력
+> - **스페이스바** 소환 바인딩 — 지금 소환수 액티브는 **R** 이다
+>
+> **아직 살아 있는 것**: `MinionSkillSO`(`Scripts/SOData/Define/Skill/SkillSO.cs:134`, 추상 베이스)와
+> 그 구현 `MinionActionSkillSO`. 실제 소환 런타임은 `Entities/Minion/MinionSkillCaster.cs` 가 맡는다.
+>
+> 현재 구조는 소스를 직접 보세요. 애니메이션 저작은 `MINION_ANIMATION_GUIDE.md` 의 §1~§3 만 유효합니다
+> (§0 표는 삭제된 Lion/Mask 를 싣고 있고, §4~§5 는 존재하지 않는 필드를 가리킵니다).
+
+---
 Verified everything I needed. Writing the merged document.
 
 ---

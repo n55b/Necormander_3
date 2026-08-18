@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
-using System.IO;
 using System.Collections.Generic;
 
 /// <summary>
@@ -47,20 +46,18 @@ public class RegistryMenuTools
 
                     if (minionAsset is not EnemyMinionDataSO enemyAsset) continue;
 
-                    // 보스 분류 조건: 이름에 Boss가 포함되거나 파일명에 Boss가 포함될 때
-                    bool isBossUnit = enemyAsset.minionName.Contains("Boss") ||
-                                      Path.GetFileNameWithoutExtension(minionPath).Contains("Boss");
-
-                    if (isBossUnit)
+                    // [26/08/18] 예전엔 이름/파일명에 "Boss" 가 들어가는지로 분류했다. 그래서
+                    // 'Summoner Boss Minions' 같은 일반 몹이 보스 목록에 들어갔다.
+                    // 이제 데이터의 등급(EnemyMinionDataSO.tier) 하나만 본다 — 오분류가 구조적으로 불가능하다.
+                    if (enemyAsset.tier == EnemyTier.Boss)
                     {
                         if (!minionReg.bossMinionData.Contains(enemyAsset))
                         {
                             minionReg.bossMinionData.Add(enemyAsset);
                         }
                     }
-                    else if (enemyAsset.isElite)
+                    else if (enemyAsset.tier == EnemyTier.Elite)
                     {
-                        // 엘리트 분류 조건: 보스가 아니며 isElite가 켜진 유닛
                         if (!minionReg.eliteMinionData.Contains(enemyAsset))
                         {
                             minionReg.eliteMinionData.Add(enemyAsset);
