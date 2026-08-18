@@ -304,6 +304,36 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         }
     }
 
+    /// <summary>
+    /// [정리] 벽과 플레이어를 모두 CircleCast로 검사해 더 가까운 쪽을 우선한다. 벽부터 무조건
+    /// 검사하면 플레이어가 벽에 바짝 붙어 있을 때 항상 벽에 막힌 것으로 처리되는 사각지대가
+    /// 생긴다(플레이어가 벽과 같거나 더 가까우면 맞아야 정상). 패턴 1 강한 돌진과 ②일반 돌진이
+    /// 완전히 같은 로직을 썼던 걸 여기로 뽑아 중복을 없앴다.
+    /// </summary>
+    private readonly struct ChargeHitCheck
+    {
+        public readonly bool WallBlocksFirst;
+        public readonly bool PlayerHittable;
+        public readonly RaycastHit2D PlayerHit;
+
+        public ChargeHitCheck(bool wallBlocksFirst, bool playerHittable, RaycastHit2D playerHit)
+        {
+            WallBlocksFirst = wallBlocksFirst;
+            PlayerHittable = playerHittable;
+            PlayerHit = playerHit;
+        }
+    }
+
+    private static ChargeHitCheck CheckChargeHit(Vector2 origin, Vector2 dir, float radius, float checkDist, LayerMask wallMask, LayerMask playerMask)
+    {
+        RaycastHit2D obstacleHit = Physics2D.CircleCast(origin, radius, dir, checkDist, wallMask);
+        RaycastHit2D playerHit = Physics2D.CircleCast(origin, radius, dir, checkDist, playerMask);
+        // [최적화] LayerMask.NameToLayer는 문자열 조회다. 이미 캐싱된 Layers.PlayerDash(정수 비교)를 쓴다.
+        bool playerHittable = playerHit.collider != null && playerHit.collider.gameObject.layer != Layers.PlayerDash;
+        bool wallBlocksFirst = obstacleHit.collider != null && (!playerHittable || obstacleHit.distance <= playerHit.distance);
+        return new ChargeHitCheck(wallBlocksFirst, playerHittable, playerHit);
+    }
+
 
     private void OnDestroy()
     {
@@ -897,20 +927,21 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
             float checkDist = chargeSpeed * Time.deltaTime + 0.15f;
 
-            RaycastHit2D obstacleHit = Physics2D.CircleCast(entity.transform.position, normalChargeHitRadius, dir, checkDist, wallMask);
-            if (obstacleHit.collider != null)
+            // [정리] 벽/플레이어 우선순위 판정은 CheckChargeHit로 공통화했다 (패턴 1과 동일 로직).
+            var hitCheck = CheckChargeHit(entity.transform.position, dir, normalChargeHitRadius, checkDist, wallMask, playerMask);
+
+            if (hitCheck.WallBlocksFirst)
             {
                 // 벽에 닿으면 그냥 멈춘다. 패턴 1과 달리 기절은 없다(기본 공격이라 리스크가 없어야 함).
                 if (rb != null) rb.linearVelocity = Vector2.zero;
                 break;
             }
 
-            RaycastHit2D playerHit = Physics2D.CircleCast(entity.transform.position, normalChargeHitRadius, dir, checkDist, playerMask);
             // 대쉬(Player_Dash) 중인 플레이어는 관통(phase-through): 멈추지도/데미지도 없이 그대로 돌진 지속.
             // 그 외 플레이어만 정지 + 데미지. (여전히 레이어 기반 CircleCast — 감지는 하되 대쉬는 통과시킴)
-            if (playerHit.collider != null && playerHit.collider.gameObject.layer != LayerMask.NameToLayer("Player_Dash"))
+            if (hitCheck.PlayerHittable)
             {
-                BossCombat.TryDamage(playerHit.collider, new DamageInfo(entity.Stats.ATK * normalChargeDamageMultiplier, DamageType.Physical, entity.gameObject));
+                BossCombat.TryDamage(hitCheck.PlayerHit.collider, new DamageInfo(entity.Stats.ATK * normalChargeDamageMultiplier, DamageType.Physical, entity.gameObject));
                 if (rb != null) rb.linearVelocity = Vector2.zero;
                 break;
             }
@@ -1146,12 +1177,11 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
             float checkDist = chargeSpeed * Time.deltaTime + 0.2f;
 
-            // 벽을 플레이어보다 먼저 검사한다. 벽 너머의 플레이어를 관통해서 맞히는 일이 없어야 한다.
-            RaycastHit2D obstacleHit = Physics2D.CircleCast(entity.transform.position, chargeHitRadius, chargeDir, checkDist, wallMask);
-
+            // [정리] 벽/플레이어 우선순위 판정은 CheckChargeHit로 공통화했다 (②일반 돌진과 동일 로직).
+            var hitCheck = CheckChargeHit(entity.transform.position, chargeDir, chargeHitRadius, checkDist, wallMask, playerMask);
             bool outOfBounds = roomBounds.HasValue && !roomBounds.Value.Contains(entity.transform.position);
 
-            if (obstacleHit.collider != null || outOfBounds)
+            if (hitCheck.WallBlocksFirst || outOfBounds)
             {
                 // 벽에 박았다 = 플레이어가 회피에 성공했다. 아래에서 기절.
                 if (rb != null) rb.linearVelocity = -chargeDir * 3f;
@@ -1159,14 +1189,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 break;
             }
 
-            // 벽에 막히지 않았을 때만 플레이어 직격 여부를 검사합니다.
-            RaycastHit2D playerHit = Physics2D.CircleCast(entity.transform.position, chargeHitRadius, chargeDir, checkDist, playerMask);
+            // 벽에 막히지 않았고, 플레이어가 (대쉬 무적이 아닌 상태로) 걸렸을 때만 직격시킵니다.
             // 대쉬(Player_Dash) 중인 플레이어는 관통(phase-through): 정지/반동/기절/데미지 전부 없이 돌진 지속.
-            if (playerHit.collider != null && playerHit.collider.gameObject.layer != LayerMask.NameToLayer("Player_Dash"))
+            if (hitCheck.PlayerHittable)
             {
                 hitPlayer = true;
 
-                BossCombat.TryDamage(playerHit.collider, new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject));
+                BossCombat.TryDamage(hitCheck.PlayerHit.collider, new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject));
 
                 if (rb != null) rb.linearVelocity = -chargeDir * 3f;
                 entity.transform.position = (Vector2)entity.transform.position - chargeDir * 0.15f;

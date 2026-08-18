@@ -57,6 +57,77 @@ public class ChargerAIPatternSO : BaseAIPatternSO
     [SerializeField] private float chargeSpeedMultiplier = 3.0f; // 기본 이속 대비 돌진 배수
     [SerializeField, Range(0.1f, 1.5f)] private float wallStopRadiusRatio = 0.55f; // [추가] 돌진 중 벽/장애물 감지용 CircleCast 반지름. 값을 낮추면 벽에 더 가까이 붙은 뒤에 멈춤
     [SerializeField, Range(0f, 0.3f)] private float wallCheckDistanceBuffer = 0.15f; // [추가] 벽 감지 거리에 매 프레임 고정으로 더해지는 여유값. 낮추면 벽에 더 붙어서 멈춤
+    [SerializeField, Range(0.05f, 0.5f)] private float stuckPushCheckRadius = 0.12f; // [추가] 이 반경 안에 NavMesh가 없으면 "끼인 것"으로 보고 반동으로 밀어서 뺀다. 평범한 벽 정지는 그냥 멈춘다.
+
+    /// <summary>
+    /// [버그 수정] 돌진이 "실제로 전진하고 있는가"를 직접 본다. 돌진의 진짜 종료 조건은
+    /// '벽 레이어(Wall/Object)에 CircleCast가 닿았다'가 아니라 '더 못 나아간다'이다.
+    /// 맵 가장자리의 경계 콜라이더처럼 CircleCast가 못 보는 대상(다른 레이어, 룸 경계 등)에
+    /// 물리적으로 막히면, 기존 로직은 아무것도 잡아내지 못한 채 몬스터가 제자리에서 벽에
+    /// 짓눌린 상태로 maxChargeDuration이 다 지나갈 때까지 붙잡혀 있었다(엘리트 차저의
+    /// ChargeStallDetector와 동일한 원리로 이식).
+    /// 첫 이동이 관측되기 전에는 판정하지 않는다 — rb.linearVelocity는 Update에서 넣고 실제
+    /// 이동은 FixedUpdate에서 일어나서, 시작 직후 몇 프레임은 정상적으로도 위치가 그대로다.
+    /// </summary>
+    private struct ChargeStallDetector
+    {
+        private Vector2 _lastPos;
+        private bool _hasMoved;
+        private float _stalledTime;
+
+        private const float StallGrace = 0.06f;
+        private const float MinAdvanceRatio = 0.25f;
+
+        public ChargeStallDetector(Vector2 startPos)
+        {
+            _lastPos = startPos;
+            _hasMoved = false;
+            _stalledTime = 0f;
+        }
+
+        public bool IsStalled(Vector2 currentPos, float chargeSpeed, float deltaTime)
+        {
+            // [최적화] Vector2.Distance는 매 프레임 Sqrt를 부른다. 돌진 중인 몬스터마다 매 프레임
+            // 도는 검사라, 제곱 거리로 비교해서 Sqrt 호출 자체를 없앤다.
+            float advancedSqr = (currentPos - _lastPos).sqrMagnitude;
+            _lastPos = currentPos;
+
+            float expectedMin = chargeSpeed * deltaTime * MinAdvanceRatio;
+            if (advancedSqr >= expectedMin * expectedMin)
+            {
+                _hasMoved = true;
+                _stalledTime = 0f;
+                return false;
+            }
+
+            if (!_hasMoved) return false;
+
+            _stalledTime += deltaTime;
+            return _stalledTime >= StallGrace;
+        }
+    }
+
+    /// <summary>
+    /// [피드백 반영] 돌진이 벽/장애물에 막혀 멈출 때 호출한다. 예전엔 매번 반동(역방향 속도 +
+    /// 좌표 오프셋)을 줘서 밀림 효과가 과했다. 이제는 NavMesh에서 움직일 수 없는 곳(끼임)일
+    /// 때만 밀어서 빼주고, 정상적으로 걸을 수 있는 자리에서 멈춘 거라면 그냥 제자리에 세운다.
+    /// </summary>
+    private void ResolveChargeStop(BaseEntity entity, Vector2 chargeDir, Rigidbody2D rb)
+    {
+        bool stuckOffMesh = !NavMesh.SamplePosition(entity.transform.position, out _, stuckPushCheckRadius, NavMesh.AllAreas);
+        if (stuckOffMesh)
+        {
+            if (rb != null)
+            {
+                rb.linearVelocity = -chargeDir * 3f;
+            }
+            entity.transform.position = (Vector2)entity.transform.position - chargeDir * 0.15f;
+        }
+        else if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+        }
+    }
 
     protected override void UpdateTargeting(BaseEntity entity)
     {
@@ -116,6 +187,8 @@ public class ChargerAIPatternSO : BaseAIPatternSO
 
         // 방향 인디케이터: 돌진 충전 중엔 멈춰 있어도(이동 velocity≈0) 실시간 재조준 방향을 가리키게 오버라이드.
         var dirIndicator = entity.GetComponentInChildren<EntityDirectionIndicator>();
+        // [최적화] LayerMask.GetMask는 이름 조회 비용이 있다. 조준 루프에서 매 프레임 다시 구하지 않도록 한 번만 캐싱.
+        LayerMask telegraphWallMask = LayerMask.GetMask("Wall", "Object");
 
         while (timeout > 0f)
         {
@@ -155,7 +228,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
                     wallStopRadiusRatio,
                     chargeDir,
                     laneLength,
-                    LayerMask.GetMask("Wall", "Object"));
+                    telegraphWallMask);
                 if (laneBlock.collider != null)
                     laneLength = laneBlock.distance;
                 float chargeProgress = windupTime > 0f ? 1f - Mathf.Clamp01(timeout / windupTime) : 1f;
@@ -191,8 +264,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
             agent.enabled = false;
         }
 
-        // 물리 겹침 방지를 위해 콜라이더 트리거 설정 (제거: 벽 뚫기를 물리적으로 막기 위해 isTrigger=false 고수)
-        var chargerCollider = entity.GetComponent<Collider2D>();
+        // 물리 충돌은 계속 필요하다 (제거: 벽 뚫기를 물리적으로 막기 위해 isTrigger=false 고수, Collider2D 자체는 안 건드림)
         var rb = entity.GetComponent<Rigidbody2D>();
         float chargeSpeed = entity.Stats.MOVESPEED * chargeSpeedMultiplier;
         // maxChargeDuration 은 예고 레인 길이 계산과 공유하기 위해 필드로 올렸다.
@@ -217,10 +289,21 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         LayerMask hitMask = wallMask | playerMask;
 
         bool hasHitObstacle = false;
+        // [버그 수정] 맵 경계 등 CircleCast가 못 잡는 콜라이더에 막혀도 실제 이동량으로 직접 판정한다.
+        var stallDetector = new ChargeStallDetector(entity.transform.position);
 
         while (chargeElapsed < maxChargeDuration)
         {
             chargeElapsed += Time.deltaTime;
+
+            // [정지 감지] 벽 CircleCast가 못 잡는 장애물(맵 경계 등)에 막혀도, 실제로
+            // 전진하지 못하고 있으면 곧바로 벽에 부딪힌 것으로 처리한다.
+            if (stallDetector.IsStalled(entity.transform.position, chargeSpeed, Time.deltaTime))
+            {
+                hasHitObstacle = true;
+                ResolveChargeStop(entity, chargeDir, rb);
+                break;
+            }
             if (rb != null)
             {
                 rb.linearVelocity = chargeDir * chargeSpeed;
@@ -248,12 +331,8 @@ public class ChargerAIPatternSO : BaseAIPatternSO
                     }
                     else
                     {
-                        // 벽/정적 장애물에 충돌한 경우, Stuck 방지를 위해 물리 반동 및 강제 좌표 미세 오프셋 확보
-                        if (rb != null)
-                        {
-                            rb.linearVelocity = -chargeDir * 3f;
-                        }
-                        entity.transform.position = (Vector2)entity.transform.position - chargeDir * 0.15f;
+                        // 벽/정적 장애물에 충돌한 경우: NavMesh에서 못 움직이는 곳(끼임)일 때만 밀어서 뺀다.
+                        ResolveChargeStop(entity, chargeDir, rb);
                     }
                     break;
                 }
@@ -281,10 +360,12 @@ public class ChargerAIPatternSO : BaseAIPatternSO
 
         entity.IsAttacking = false;
 
-        // 충돌했다면 1.5초간 기절 처리
+        // [버그 수정] 충돌했다면 1.5초간 기절 처리. ApplyFixedStun 사용: 이건 남이 거는 CC가 아니라
+        // 자기 돌진으로 자초한 그로기라, 슈퍼아머나 스턴 종료 후 3초 내성에 씹혀서 안 걸리면 안 된다
+        // (일반 ApplyStatus 는 그 둘을 다 통과시켜서 스턴이 조용히 무시될 수 있었다).
         if (hasHitObstacle && entity.Stats != null && entity.Stats.Status != null)
         {
-            entity.Stats.Status.ApplyStatus(StatusType.Stun, 1.5f);
+            entity.Stats.Status.ApplyFixedStun(1.5f);
         }
     }
 }
