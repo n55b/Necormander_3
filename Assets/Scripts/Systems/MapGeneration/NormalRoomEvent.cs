@@ -33,6 +33,16 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
     private RoomInstance _cachedRoom;
     private int _currentWave = 1;
+
+    /// <summary>현재 층의 조절표. 없으면 null — 그 층은 전역 기본값으로 돈다.</summary>
+    private MapGenerationDataSO.FloorTuningEntry Tuning =>
+        (mapGenerationData != null && GameManager.Instance != null)
+            ? mapGenerationData.GetTuningForFloor(GameManager.Instance.currentFloor)
+            : null;
+
+    private int WavesThisFloor => (mapGenerationData != null && GameManager.Instance != null)
+        ? mapGenerationData.GetWavesForFloor(GameManager.Instance.currentFloor)
+        : (mapGenerationData != null ? mapGenerationData.wavesCount : 1);
     private List<Vector3> _spawnedEnemyPositions = new List<Vector3>();
     private bool _augmentChosen = false; // 증강 방에서 카드를 이미 골랐는지(방 하나당 한 번)
 
@@ -60,7 +70,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
         if (_activeEnemies.Count == 0)
         {
-            if (mapGenerationData != null && _currentWave < mapGenerationData.wavesCount)
+            if (mapGenerationData != null && _currentWave < WavesThisFloor)
             {
                 _currentWave++;
                 SpawnWaves(_cachedRoom);
@@ -194,7 +204,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             return;
         }
 
-        Debug.Log($"[NormalRoom] SpawnWaves started. Wave: {_currentWave}/{mapGenerationData.wavesCount}");
+        Debug.Log($"[NormalRoom] SpawnWaves started. Wave: {_currentWave}/{WavesThisFloor}");
 
         _spawnedEnemyPositions.Clear();
 
@@ -203,6 +213,15 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         {
             Debug.LogWarning("[NormalRoom] No enemy clusters found in DataManager.");
             return;
+        }
+
+        // 층 전용 군집 풀이 저작돼 있으면 거기서만 뽑는다. 비어 있으면 레지스트리 전체.
+        // (풀에 null 이 섞여 있어도 걸러낸다 — 인스펙터에서 빈 슬롯을 남기기 쉬워서.)
+        var tuning = Tuning;
+        if (tuning != null && tuning.clusterPool != null && tuning.clusterPool.Count > 0)
+        {
+            var pool = tuning.clusterPool.FindAll(c => c != null);
+            if (pool.Count > 0) clusters = pool;
         }
 
         // 웨이브당 1개의 무작위 군집 선택
@@ -254,6 +273,18 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             for (int i = 0; i < enemyCount.count; i++) toSpawn.Add(enemyCount);
         }
 
+        // 층 배율. 군집 에셋은 그대로 두고 여기서만 양을 깎는다(늘린다).
+        // 어느 놈이 빠지는지는 무작위 — 조성 비율은 대체로 유지되고, 최소 1마리는 남긴다.
+        var floorTuning = Tuning;
+        if (floorTuning != null && !Mathf.Approximately(floorTuning.enemyCountScale, 1f) && toSpawn.Count > 0)
+        {
+            int target = Mathf.Max(1, Mathf.RoundToInt(toSpawn.Count * floorTuning.enemyCountScale));
+            while (toSpawn.Count > target) toSpawn.RemoveAt(Random.Range(0, toSpawn.Count));
+            int seed = toSpawn.Count;
+            while (toSpawn.Count < target && seed > 0) toSpawn.Add(toSpawn[Random.Range(0, seed)]);
+        }
+
+        // 증강 페널티는 플레이어가 고른 것이라 층 배율을 타지 않는다 — 배율 뒤에 붙인다.
         int extra = ActiveAugment.ExtraEnemiesForWave(_currentWave);
         int baseCount = toSpawn.Count;
         for (int i = 0; i < extra && baseCount > 0; i++)

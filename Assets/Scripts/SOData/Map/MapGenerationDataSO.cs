@@ -71,6 +71,95 @@ public class MapGenerationDataSO : ScriptableObject
     [Tooltip("통로가 다른 방의 벽을 피해가는 최소 거리 (통로 벽 두께 감안)")]
     public int corridorAvoidMargin = 2;
 
+    [Header("Floor Tuning")]
+    [Tooltip("층별 난이도 조절표. 여기 없는 층은 아래 전역 기본값을 그대로 쓴다 — " +
+             "즉 한 층만 저작해도 나머지 층은 손대지 않은 것과 완전히 동일하다.")]
+    public List<FloorTuningEntry> floorTuning = new List<FloorTuningEntry>();
+
+    /// <summary>
+    /// 한 층의 난이도 배율. <b>군집(EnemyClusterSO) 에셋은 절대 건드리지 않는다</b> —
+    /// 군집은 "어떤 조합으로 싸우는가"(조성)이고 여기는 "그걸 얼마나 주는가"(양)다.
+    /// 둘을 섞으면 층이 하나 늘 때마다 군집 N개를 전부 다시 저작해야 한다.
+    /// 그래서 배율은 저작 시점이 아니라 <b>스폰 직전(소비 시점)</b>에 먹인다.
+    /// </summary>
+    [System.Serializable]
+    public class FloorTuningEntry
+    {
+        [Tooltip("GameManager.currentFloor 와 비교할 층수 (1부터)")]
+        public int floor = 1;
+
+        [Tooltip("이 층의 방당 전투 웨이브 수. 0 이면 전역 wavesCount 를 그대로 쓴다")]
+        public int wavesCount = 0;
+
+        [Tooltip("군집 마릿수 배율. 0.5 면 4마리 군집이 2마리가 된다. 1 이면 그대로. " +
+                 "증강 페널티(웨이브당 적 +N)는 플레이어가 고른 것이라 이 배율을 안 탄다")]
+        [Range(0.1f, 3f)] public float enemyCountScale = 1f;
+
+        [Tooltip("이 층에 나올 군집만 추린 목록. 비워두면 레지스트리 전체에서 뽑는다. " +
+                 "새 군집을 저작하지 않고도 층별 몹 구성을 가를 수 있는 자리다")]
+        public List<EnemyClusterSO> clusterPool = new List<EnemyClusterSO>();
+
+        [Header("방 개수 (-1 = 전역값 그대로)")]
+        [Tooltip("이 층의 방 총합(스폰 방 포함). 특수방을 다 빼고 남는 만큼이 일반 방이 된다")]
+        public int totalRoomCount = -1;
+        [Tooltip("일반 방 최소 보장 수. totalRoomCount 를 아무리 낮춰도 이 아래로는 안 내려간다")]
+        public int minNormalRooms = -1;
+        public int shopCount = -1;
+        public int enhanceShopCount = -1;
+        public int rewardCount = -1;
+        public int eliteCount = -1;
+        public int augmentRoomCount = -1;
+    }
+
+    /// <summary>한 층에 실제로 적용될 방 개수 묶음. 조절표에서 -1 로 남긴 항목은 전역값이 들어온다.</summary>
+    public struct RoomCounts
+    {
+        public int total, minNormal, shop, enhanceShop, reward, elite, augment;
+
+        /// <summary>스폰 방을 뺀, 이 층에 놓을 특수방 총 개수.</summary>
+        public int Specials => shop + enhanceShop + reward + elite + augment;
+    }
+
+    /// <summary>
+    /// 이 층의 방 개수. 방 배치 코드는 <b>generationData 필드를 직접 읽지 말고 반드시 이걸 거쳐야</b>
+    /// 층별 저작이 먹는다. 전역 필드와 층 오버라이드가 갈라지는 지점은 여기 한 곳뿐이다.
+    /// </summary>
+    public RoomCounts GetRoomCountsForFloor(int floor)
+    {
+        var t = GetTuningForFloor(floor);
+        return new RoomCounts
+        {
+            total       = Pick(t, t == null ? -1 : t.totalRoomCount,   totalRoomCount),
+            minNormal   = Pick(t, t == null ? -1 : t.minNormalRooms,   minNormalRooms),
+            shop        = Pick(t, t == null ? -1 : t.shopCount,        shopCount),
+            enhanceShop = Pick(t, t == null ? -1 : t.enhanceShopCount, enhanceShopCount),
+            reward      = Pick(t, t == null ? -1 : t.rewardCount,      rewardCount),
+            elite       = Pick(t, t == null ? -1 : t.eliteCount,       eliteCount),
+            augment     = Pick(t, t == null ? -1 : t.augmentRoomCount, augmentRoomCount),
+        };
+
+        // 0 은 유효한 값이다("이 층엔 상점 없음"). 그래서 미지정 표식은 0 이 아니라 -1 이어야 한다.
+        static int Pick(FloorTuningEntry t, int over, int fallback) => (t != null && over >= 0) ? over : fallback;
+    }
+
+    /// <summary>해당 층의 조절표. 없으면 null(= 전역 기본값을 쓰라는 뜻).</summary>
+    public FloorTuningEntry GetTuningForFloor(int floor)
+    {
+        if (floorTuning == null) return null;
+        foreach (var entry in floorTuning)
+        {
+            if (entry != null && entry.floor == floor) return entry;
+        }
+        return null;
+    }
+
+    /// <summary>이 층의 웨이브 수. 조절표가 없거나 0 이면 전역 <see cref="wavesCount"/>.</summary>
+    public int GetWavesForFloor(int floor)
+    {
+        var t = GetTuningForFloor(floor);
+        return (t != null && t.wavesCount > 0) ? t.wavesCount : wavesCount;
+    }
+
     [Header("Boss Settings")]
     [Tooltip("층수별 고정 보스. '몇 층에 누가 나오는가'의 유일한 스위치다 — 여기 없는 층은 " +
              "보스 층이 아니라서 보스 방 자체가 생성되지 않고, 있는 층은 항상 지정된 보스가 나온다.")]

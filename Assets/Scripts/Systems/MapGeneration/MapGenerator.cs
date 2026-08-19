@@ -102,6 +102,13 @@ public class MapGenerator : MonoBehaviour
         return gm.CurrentStageMapData.GetBossForFloor(gm.currentFloor) != null;
     }
 
+    /// <summary>이번 층의 방 개수. 층 조절표에 항목이 없으면 전역값이 그대로 나온다.</summary>
+    private MapGenerationDataSO.RoomCounts FloorRoomCounts()
+    {
+        int floor = GameManager.Instance != null ? GameManager.Instance.currentFloor : 1;
+        return generationData.GetRoomCountsForFloor(floor);
+    }
+
     private void Awake()
     {
         Instance = this;
@@ -196,8 +203,8 @@ public class MapGenerator : MonoBehaviour
             }
             else
             {
-                int totalSpecials = generationData.shopCount + generationData.enhanceShopCount + generationData.rewardCount + generationData.eliteCount + generationData.augmentRoomCount;
-                int normalCount = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - 1 - totalSpecials);
+                var rc = FloorRoomCounts();
+                int normalCount = Mathf.Max(rc.minNormal, rc.total - 1 - rc.Specials); // -1 은 스폰 방
 
                 int initialBranchCount = Random.Range(1, 5);
                 List<RoomType> phase1 = new List<RoomType> { RoomType.Spawn };
@@ -208,9 +215,9 @@ public class MapGenerator : MonoBehaviour
 
                 _currentPhaseIndex++;
                 List<RoomType> phase2 = new List<RoomType>();
-                for (int i = 0; i < generationData.shopCount; i++) phase2.Add(RoomType.Shop);
-                for (int i = 0; i < generationData.enhanceShopCount; i++) phase2.Add(RoomType.EnhanceShop);
-                int eliteHalf = generationData.eliteCount / 2;
+                for (int i = 0; i < rc.shop; i++) phase2.Add(RoomType.Shop);
+                for (int i = 0; i < rc.enhanceShop; i++) phase2.Add(RoomType.EnhanceShop);
+                int eliteHalf = rc.elite / 2;
                 for (int i = 0; i < eliteHalf; i++) phase2.Add(RoomType.Elite);
                 int p2Normal = remainingNormal > 0 ? Random.Range(1, remainingNormal / 2 + 2) : 0;
                 for (int i = 0; i < p2Normal; i++) phase2.Add(RoomType.Normal);
@@ -219,16 +226,16 @@ public class MapGenerator : MonoBehaviour
 
                 _currentPhaseIndex++;
                 List<RoomType> phase3 = new List<RoomType>();
-                int eliteRest = generationData.eliteCount - eliteHalf;
+                int eliteRest = rc.elite - eliteHalf;
                 for (int i = 0; i < eliteRest; i++) phase3.Add(RoomType.Elite);
                 // 증강 방은 중반에 둔다. 스폰 바로 옆이면 아직 아무것도 없는 상태로 가혹 페널티를 고르게 된다.
-                for (int i = 0; i < generationData.augmentRoomCount; i++) phase3.Add(RoomType.Augment);
+                for (int i = 0; i < rc.augment; i++) phase3.Add(RoomType.Augment);
                 for (int i = 0; i < remainingNormal; i++) phase3.Add(RoomType.Normal);
                 if (phase3.Count > 0) yield return StartCoroutine(RunPhase(phase3));
 
                 _currentPhaseIndex++;
                 List<RoomType> phase4 = new List<RoomType>();
-                for (int i = 0; i < generationData.rewardCount; i++) phase4.Add(RoomType.Reward);
+                for (int i = 0; i < rc.reward; i++) phase4.Add(RoomType.Reward);
                 if (phase4.Count > 0) yield return StartCoroutine(RunPhase(phase4));
             }
 
@@ -1870,8 +1877,20 @@ public class MapGenerator : MonoBehaviour
         _allRooms.Add(spawn);
 
         // 2. 일반 방 수 결정
-        int totalSpecials = generationData.shopCount + generationData.rewardCount + generationData.eliteCount + 1; // 특수방 + 보스방
-        int normalCount = Mathf.Max(generationData.minNormalRooms, generationData.totalRoomCount - totalSpecials);
+        // 특수방 목록을 여기서 미리 만든다 — 예전엔 개수를 여기서 한 번 더 더했는데,
+        // 그 합(shop+reward+elite+1)이 아래 실제 배치 목록과 어긋나 있었다: enhanceShop 과 augment 를
+        // 빼먹고, 일반 층엔 더 이상 만들지 않는 보스방을 +1 로 세고 있었다. 두 벌을 유지하면 방 종류를
+        // 하나 늘릴 때마다 또 갈라지므로, 목록 하나만 만들고 그 길이를 쓴다.
+        var rc = FloorRoomCounts();
+        List<RoomType> specialTypes = new List<RoomType>();
+        for (int i = 0; i < rc.shop; i++) specialTypes.Add(RoomType.Shop);
+        for (int i = 0; i < rc.enhanceShop; i++) specialTypes.Add(RoomType.EnhanceShop);
+        for (int i = 0; i < rc.elite; i++) specialTypes.Add(RoomType.Elite);
+        for (int i = 0; i < rc.reward; i++) specialTypes.Add(RoomType.Reward);
+        for (int i = 0; i < rc.augment; i++) specialTypes.Add(RoomType.Augment);
+
+        // -1 은 위에서 이미 만든 스폰 방. 이제 totalRoomCount 가 "이 층 방 총합" 을 정직하게 뜻한다.
+        int normalCount = Mathf.Max(rc.minNormal, rc.total - specialTypes.Count - 1);
 
         int normalPlaced = 0;
         int failedAttempts = 0;
@@ -1954,12 +1973,7 @@ public class MapGenerator : MonoBehaviour
             foreach (var a in r.anchors) a.isUsed = false;
         }
 
-        List<RoomType> specialTypes = new List<RoomType>();
-        for (int i = 0; i < generationData.shopCount; i++) specialTypes.Add(RoomType.Shop);
-        for (int i = 0; i < generationData.enhanceShopCount; i++) specialTypes.Add(RoomType.EnhanceShop);
-        for (int i = 0; i < generationData.eliteCount; i++) specialTypes.Add(RoomType.Elite);
-        for (int i = 0; i < generationData.rewardCount; i++) specialTypes.Add(RoomType.Reward);
-        for (int i = 0; i < generationData.augmentRoomCount; i++) specialTypes.Add(RoomType.Augment);
+        // specialTypes 는 위 2번에서 이미 만들었다(일반 방 수 계산과 같은 목록을 써야 하므로).
         // [제거] 보스는 4층 전용(isBossFloor → PlaceIsaacRoomsBossFloor)이라 일반 층(1~3)엔 넣지 않는다.
         // 예전엔 여기서 매 층 보스방을 추가했는데, 배치할 자리를 못 찾으면 "보스 방 배치에 실패..." 경고만 뜨고
         // 실제로 보스도 안 생겨서(원래 의도대로) 경고만 노이즈였음.

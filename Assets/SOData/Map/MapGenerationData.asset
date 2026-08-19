@@ -43,6 +43,18 @@ MonoBehaviour:
   doorRight: {fileID: 0}
   corridorStraightLength: 3
   corridorAvoidMargin: 2
+  floorTuning:
+  - floor: 1
+    wavesCount: 1
+    enemyCountScale: 1
+    clusterPool: []
+    totalRoomCount: -1
+    minNormalRooms: -1
+    shopCount: -1
+    enhanceShopCount: -1
+    rewardCount: -1
+    eliteCount: -1
+    augmentRoomCount: -1
   floorBosses:
   - floor: 4
     boss: {fileID: 11400000, guid: 67023cf1463b1d54aa99893ef5ba12ab, type: 2}
