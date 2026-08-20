@@ -41,7 +41,9 @@ public class MapGenerator : MonoBehaviour
     public RoomInstance CurrentRoom => _currentRoom;
     public void SetCurrentRoom(RoomInstance room)
     {
+        if (_currentRoom == room) return;
         _currentRoom = room;
+        UpdateTileAnimationScope(room);
     }
 
     public List<RoomInstance> GetConnectedRooms(RoomInstance room)
@@ -78,7 +80,65 @@ public class MapGenerator : MonoBehaviour
     }
     private readonly List<RoomConnectionCandidate> _connectionCandidates = new List<RoomConnectionCandidate>(128);
 
-    public System.Action OnMapGenerated;
+    
+    // ───────────────── 타일 애니메이션 스코프 제어 ─────────────────
+    // 애니메이션 타일(물/횃불 등)은 화면 밖이어도 계속 갱신되므로, 플레이어가 있는 방과
+    // 인접 방만 재생시키고 나머지는 정지시킨다.
+    // 인접 방까지 켜는 이유: CameraManager 의 vcam 에 룸 컨파이너가 없어서 문 앞·복도에서
+    // 옆 방이 화면에 같이 보인다. 현재 방만 켜면 문턱에서 옆 방 물이 '멈춰 있다 갑자기 움직이는'
+    // 것이 그대로 보인다.
+    private readonly HashSet<RoomInstance> _animActiveRooms = new HashSet<RoomInstance>();
+    private readonly HashSet<RoomInstance> _animScopeBuffer = new HashSet<RoomInstance>();
+
+    /// <summary>
+    /// 맵 생성이 끝난 직후 1회. 각 방이 스탬프한 셀 중 실제 애니메이션 셀만 확정시키고,
+    /// 전부 정지 상태로 만든 뒤 현재 스코프만 다시 켠다.
+    /// </summary>
+    public void FinalizeAllRoomTileAnimations()
+    {
+        _animActiveRooms.Clear();
+        foreach (var r in _allRooms)
+        {
+            if (r != null) r.FinalizeAnimatedCells();
+        }
+        UpdateTileAnimationScope(_currentRoom);
+    }
+
+    /// <summary>
+    /// 활성 집합 = 기준 방 + GetConnectedRooms 로 얻은 인접 방. 이전 집합과의 차분만 처리한다.
+    /// ⚠️ 복도 타일은 CorridorPainter 가 글로벌 타일맵에 직접 칠하므로 어느 방에도 속하지 않는다.
+    ///    따라서 복도의 애니메이션 타일은 항상 재생 상태로 남는다 (플레이어 이동 경로라 의도된 동작).
+    /// </summary>
+    public void UpdateTileAnimationScope(RoomInstance room)
+    {
+        if (!IsMapGenerationCompleted) return;
+
+        _animScopeBuffer.Clear();
+        if (room != null)
+        {
+            _animScopeBuffer.Add(room);
+            var neighbors = GetConnectedRooms(room);
+            for (int i = 0; i < neighbors.Count; i++)
+            {
+                if (neighbors[i] != null) _animScopeBuffer.Add(neighbors[i]);
+            }
+        }
+
+        // 스코프에서 빠진 방 정지
+        foreach (var r in _animActiveRooms)
+        {
+            if (r != null && !_animScopeBuffer.Contains(r)) r.SetTileAnimationsActive(false);
+        }
+        // 스코프에 들어온 방 재생 (SetTileAnimationsActive 내부에서 중복 호출은 조기 반환됨)
+        foreach (var r in _animScopeBuffer)
+        {
+            r.SetTileAnimationsActive(true);
+        }
+
+        _animActiveRooms.Clear();
+        foreach (var r in _animScopeBuffer) _animActiveRooms.Add(r);
+    }
+public System.Action OnMapGenerated;
 
     public void SetMapData(MapGenerationDataSO genData, RoomPrefabDataSO prefData)
     {
@@ -111,9 +171,20 @@ public class MapGenerator : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
+        
+        // 방 진입 시점에 확실히 스코프가 갱신되도록 구독한다.
+        // (SetCurrentRoom 은 미니맵 포커스 경로에서만 불려서 단독으로는 신뢰하기 어렵다)
+        RoomInstance.OnPlayerEnteredRoom += UpdateTileAnimationScope;
+Instance = this;
         _painter = gameObject.AddComponent<CorridorPainter>();
     }
+
+    private void OnDestroy()
+    {
+        // static 이벤트라 해제하지 않으면 씬 전환 후 죽은 MapGenerator 가 계속 불린다.
+        RoomInstance.OnPlayerEnteredRoom -= UpdateTileAnimationScope;
+    }
+
 
     [ContextMenu("Generate Map")]
     public void GenerateMap()
@@ -297,6 +368,7 @@ public class MapGenerator : MonoBehaviour
 
         // 맵 생성 완료 플래그 설정 및 이벤트 호출
         IsMapGenerationCompleted = true;
+        FinalizeAllRoomTileAnimations();
         OnMapGenerated?.Invoke();
         Debug.Log("<color=green>[MapGenerator]</color> Map Generation Completed.");
     }
@@ -1743,6 +1815,7 @@ public class MapGenerator : MonoBehaviour
         if (_tempObstacle != null) SafeDestroy(_tempObstacle);
         _isGenerating = false;
         IsMapGenerationCompleted = true;
+        FinalizeAllRoomTileAnimations();
         OnMapGenerated?.Invoke();
 
         // [이동] 디버그 로그는 맵 생성이 '완전히' 끝난 뒤 맨 마지막에 기록한다.

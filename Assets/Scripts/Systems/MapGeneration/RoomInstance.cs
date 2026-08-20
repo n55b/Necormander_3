@@ -390,6 +390,10 @@ public class RoomInstance : MonoBehaviour
     public void MergeTilesToGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow, Tilemap globalUnsteppable = null)
     {
         _myTiles = new HashSet<Vector2Int>();
+        _animCandidates = new List<AnimCell>();
+        _animatedCells.Clear();
+        _animationsActive = true;
+
         StampTilemap(groundTilemap, globalGround);
         StampTilemap(wallTilemap, globalWall);
         StampTilemap(shadowTilemap, globalShadow);
@@ -403,7 +407,68 @@ public class RoomInstance : MonoBehaviour
         if (unsteppableTilemap != null) unsteppableTilemap.gameObject.SetActive(false);
     }
 
-    private HashSet<Vector2Int> _myTiles = null;
+    
+    // ─────────────────────────────────────────────────────────────
+    // [추가] 타일 애니메이션 스코프 제어
+    // 방 타일은 MergeTilesToGlobal 로 글로벌 타일맵에 스탬프된 뒤 원본 타일맵이 꺼지므로,
+    // 방이 자기 애니메이션 셀을 되찾으려면 스탬프 시점의 (글로벌 타일맵, 셀) 쌍을 들고 있어야 한다.
+    // 정지는 TileAnimationFlags.PauseAnimation 으로만 한다 — SetTile 로 정적/애니메이션 타일을
+    // 스왑하면 방을 옮길 때마다 청크 메시와 컴포짓 콜라이더를 다시 굽기 때문에 오히려 더 비싸다.
+    private struct AnimCell
+    {
+        public Tilemap map;
+        public Vector3Int cell;
+        public AnimCell(Tilemap map, Vector3Int cell) { this.map = map; this.cell = cell; }
+    }
+
+    private List<AnimCell> _animCandidates = null;
+    private readonly List<AnimCell> _animatedCells = new List<AnimCell>();
+    private bool _animationsActive = true;
+
+    public int AnimatedCellCount => _animatedCells.Count;
+
+    /// <summary>
+    /// 맵 생성 완료 후 1회 호출. 스탬프된 셀 중 실제 애니메이션 프레임을 가진 것만 추려낸다.
+    /// GetAnimationFrameCount 로 판별하므로 AnimatedTile / RuleTile / 커스텀 TileBase 를 가리지 않는다.
+    /// 추려낸 뒤 기본값은 '정지' — MapGenerator 가 현재 방 + 인접 방만 다시 켜준다.
+    /// </summary>
+    public void FinalizeAnimatedCells()
+    {
+        _animatedCells.Clear();
+        if (_animCandidates != null)
+        {
+            foreach (var c in _animCandidates)
+            {
+                if (c.map == null) continue;
+                if (c.map.GetAnimationFrameCount(c.cell) > 1)
+                    _animatedCells.Add(c);
+            }
+            _animCandidates = null; // 후보 목록은 여기서 버린다 (생성 중에만 필요)
+        }
+
+        _animationsActive = true;
+        SetTileAnimationsActive(false);
+    }
+
+    /// <summary>
+    /// 이 방이 스탬프한 애니메이션 타일을 일괄 재생/정지한다.
+    /// ⚠️ 해당 셀에 나중에 SetTile 을 하면 이 플래그가 날아간다 — 그런 경우 다시 걸어줘야 한다.
+    /// </summary>
+    public void SetTileAnimationsActive(bool active)
+    {
+        if (_animationsActive == active) return;
+        _animationsActive = active;
+
+        for (int i = 0; i < _animatedCells.Count; i++)
+        {
+            var c = _animatedCells[i];
+            if (c.map == null) continue;
+
+            if (active) c.map.RemoveTileAnimationFlags(c.cell, TileAnimationFlags.PauseAnimation);
+            else        c.map.AddTileAnimationFlags(c.cell, TileAnimationFlags.PauseAnimation);
+        }
+    }
+private HashSet<Vector2Int> _myTiles = null;
 
     public bool ContainsCell(Vector2Int cellPos)
     {
@@ -467,6 +532,7 @@ public class RoomInstance : MonoBehaviour
                 Vector3Int targetCellPos = target.WorldToCell(worldPos);
                 target.SetTile(targetCellPos, tile);
                 if (_myTiles != null) _myTiles.Add(new Vector2Int(targetCellPos.x, targetCellPos.y));
+                if (_animCandidates != null) _animCandidates.Add(new AnimCell(target, targetCellPos));
             }
         }
     }
