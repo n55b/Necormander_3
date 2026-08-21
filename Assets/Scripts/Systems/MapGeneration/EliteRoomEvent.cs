@@ -17,8 +17,10 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
     [SerializeField] private GameObject portalObject;
 
     [Header("Reward Box Settings")]
-    [Tooltip("방 클리어 시 한가운데에 생성할 보상 상자 프리팹을 연결해 주세요.")]
+    [Tooltip("방 클리어 시 생성할 보상 상자 프리팹. 비워두면 상자 없이 보상이 즉시 지급됩니다.")]
     [SerializeField] private GameObject rewardBoxPrefab;
+    [Tooltip("상자가 나올 자리. 방 프리팹 안에 빈 오브젝트를 놓고 연결하세요. 비워두면 방 정중앙.")]
+    [SerializeField] private Transform rewardSpawnPoint;
 
     [Header("Unity Events")]
     public UnityEvent OnEliteCombatStart;
@@ -297,7 +299,10 @@ private void SpawnEliteOnly(RoomInstance room)
             return;
         }
 
-        Vector3 spawnPos = room.transform.position + (Vector3)room.centerOffset;
+        // 자리를 안 잡아뒀으면 방 정중앙
+        Vector3 spawnPos = rewardSpawnPoint != null
+            ? rewardSpawnPoint.position
+            : room.transform.position + (Vector3)room.centerOffset;
         GameObject boxObj = Instantiate(rewardBoxPrefab, spawnPos, Quaternion.identity);
         boxObj.name = $"RoomRewardBox_{room.roomType}_{room.name}";
 

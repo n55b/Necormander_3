@@ -2356,7 +2356,15 @@ Instance = this;
 
         if (doorPrefab != null)
         {
-            GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform);
+            // 문은 뚫린 벽 칸 정중앙에 세운다.
+            // 앵커 좌표를 그대로 쓰면 안 된다 — 방 프리팹의 앵커는 칸 중앙에서 최대 0.13 어긋나 있어서
+            // 문이 벽 선에서 삐져나온다. CarveDoorEntrance 와 똑같은 셀 계산을 써야 둘이 안 어긋난다.
+            // 한 칸 더 밀지 않는 이유: 벽이 정확히 1칸 두께라 바깥은 허공이고, 거기 세우면 문이 떠 보인다.
+            // 문 폭 4칸(프리팹 scale.x=4) > 구멍 폭 3칸 이라 이 자리에서도 옆으로 새는 틈은 없다.
+            Vector3 doorPos = globalWallTilemap != null
+                ? globalWallTilemap.GetCellCenterWorld(globalWallTilemap.WorldToCell(anchor.transform.position))
+                : anchor.transform.position;
+            GameObject doorObj = Instantiate(doorPrefab, doorPos, Quaternion.Euler(0, 0, rotation), room.transform);
             doorObj.name = $"Door_{anchor.direction}_{room.name}";
             room.doorObjects.Add(doorObj);
 
@@ -2382,23 +2390,25 @@ Instance = this;
 
         // 문 규격 폭 3칸(s = -1 ~ 1)에 대해, 딱 벽이 있는 라인(d = 0)만 정밀 개방
         // 이렇게 하면 플레이어가 좁은 틈새에 끼지 않으면서도 외부 우주 공간 타일이 휑하게 뚫리지 않습니다.
-        int d = 0;
         for (int s = -1; s <= 1; s++)
         {
-            Vector2Int targetPos = pos + (dir * d) + (sideDir * s);
-            Vector3Int targetCell = new Vector3Int(targetPos.x, targetPos.y, 0);
+            Vector2Int wallPos = pos + (sideDir * s);
+            Vector3Int wallCell = new Vector3Int(wallPos.x, wallPos.y, 0);
 
-            // 벽 타일 및 그림자 제거
-            globalWallTilemap.SetTile(targetCell, null);
-            if (globalShadowTilemap != null)
-            {
-                globalShadowTilemap.SetTile(targetCell, null);
-            }
+            globalWallTilemap.SetTile(wallCell, null);
 
             // 지나갈 수 없는 영역 타일(Unsteppable)도 함께 뚫어주어 보이지 않는 장벽 파괴
             if (globalUnsteppableTilemap != null)
             {
-                globalUnsteppableTilemap.SetTile(targetCell, null);
+                globalUnsteppableTilemap.SetTile(wallCell, null);
+            }
+
+            // 그림자는 벽 칸이 아니라 그 '안쪽' 칸에 그려져 있다 (방 프리팹 전부 동일: 벽 링 1칸 + 그림자 링 1칸).
+            // 예전엔 벽 칸에다 지우기를 걸어서 아무것도 안 지워졌고, 뚫린 구멍 뒤에 그림자 띠가 그대로 남았다.
+            if (globalShadowTilemap != null)
+            {
+                Vector2Int shadowPos = wallPos - dir;
+                globalShadowTilemap.SetTile(new Vector3Int(shadowPos.x, shadowPos.y, 0), null);
             }
         }
     }
