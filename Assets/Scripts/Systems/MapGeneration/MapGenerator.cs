@@ -352,7 +352,7 @@ Instance = this;
         DistributeNormalRoomRewards();
 
         // 안개 타일 배치
-        GenerateFogOfWar(); // 던전 전체 까맣게 칠하기
+        // GenerateFogOfWar(); // [Fog 미사용] 안개 시스템 비활성화로 주석 처리
 
         // 스폰 방만 게임 시작할 때 안개를 즉시 걷어내 줍니다.
         RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
@@ -1253,8 +1253,6 @@ Instance = this;
             bool isAligned = !mainTMFound || (Mathf.Abs(alignmentError.x) < 0.001f && Mathf.Abs(alignmentError.y) < 0.001f);
 
             Vector3Int cellPos = globalGroundTilemap.WorldToCell(room.transform.position);
-            Transform fogMaskTrans = room.transform.Find("FogMask");
-            Vector3 fogMaskPos = fogMaskTrans != null ? fogMaskTrans.position : Vector3.zero;
 
             sb.AppendLine($"Room: {room.name}");
             sb.AppendLine($"  - Type: {room.roomType}, Depth: {room.debugDepth}, PhaseIndex: {room.phaseIndex}");
@@ -1268,7 +1266,6 @@ Instance = this;
             sb.AppendLine($"  - Room Cell Position: {cellPos}");
             sb.AppendLine($"  - GridPosition (미니맵 배치/연결선 기준): {room.gridPosition}");
             sb.AppendLine($"  - Size: {room.roomSize}, CenterOffset: {room.centerOffset}");
-            sb.AppendLine($"  - FogMask World Position: {(fogMaskTrans != null ? fogMaskPos.ToString() : "None")}");
             sb.AppendLine($"  - Anchors count: {room.anchors.Count}");
             for (int i = 0; i < room.anchors.Count; i++)
             {
@@ -1789,7 +1786,7 @@ Instance = this;
         DistributeNormalRoomRewards();
 
         // 안개 생성
-        GenerateFogOfWar();
+        // GenerateFogOfWar(); // [Fog 미사용] 안개 시스템 비활성화로 주석 처리
 
         // 스폰 방 안개 즉시 제거
         RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
