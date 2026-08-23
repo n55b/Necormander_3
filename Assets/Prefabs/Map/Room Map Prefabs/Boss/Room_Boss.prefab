@@ -5465,6 +5465,7 @@ MonoBehaviour:
   specificBossData: {fileID: 0}
   portalObject: {fileID: 7688696379878300730, guid: 3f4bb635140eefb4698ee6fff68c87fb, type: 3}
   rewardBoxPrefab: {fileID: 5837210638417428083, guid: 912d8a7544ed68f4bade387c04358ac1, type: 3}
+  rewardSpawnPoint: {fileID: 0}
   OnBossCombatStart:
     m_PersistentCalls:
       m_Calls: []
