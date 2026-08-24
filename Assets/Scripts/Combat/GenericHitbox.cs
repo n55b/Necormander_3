@@ -26,6 +26,14 @@ private float _lifetime;
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        // 공격자가 이미 파괴되었거나 사망한 경우 판정 무효화
+        if (_attacker != null)
+        {
+            CharacterHealth atkHealth = _attacker.GetComponentInChildren<CharacterHealth>();
+            if (atkHealth == null) atkHealth = _attacker.GetComponentInParent<CharacterHealth>();
+            if (atkHealth != null && atkHealth.IsDead) return;
+        }
+
         // Check if the layer matches the target layer mask
         if ((_targetLayer.value & (1 << other.gameObject.layer)) != 0)
         {

@@ -15,20 +15,38 @@ public class ShopRoomEvent : MonoBehaviour, IRoomEvent
              "강화 상점 방이라면 비워두면 됩니다(EnhanceShopNPC 는 갱신할 재고가 없음).")]
     [SerializeField] private ShopNPC shopNPC;
 
+    private void Start()
+    {
+        // 씬 직접 배치 또는 테스트 환경을 위해 Start 시점에도 초기화 시도
+        TryInitializeShop();
+    }
+
     public void OnPlayerEnter(RoomInstance room)
     {
         Debug.Log("<color=yellow>[ShopRoom]</color> Welcome to the Shop!");
 
-        // 입장 시점에만 상품 갱신 (직접 연결된 NPC 사용)
-        // 연결을 깜빡했을 수도 있으니 자식에서라도 찾아보는 최소한의 안전장치.
-        if (shopNPC == null) shopNPC = GetComponentInChildren<ShopNPC>();
-
-        if (shopNPC != null) shopNPC.Initialize();
-        else if (GetComponentInChildren<EnhanceShopNPC>() == null)
-            Debug.LogWarning($"[ShopRoomEvent] {gameObject.name}: 상점 NPC가 하나도 없습니다!");
+        TryInitializeShop();
 
         // 상점 진입 시 클리어 처리 (문이 닫히지 않도록)
-        room.MarkCleared();
+        if (room != null) room.MarkCleared();
+    }
+
+    private void TryInitializeShop()
+    {
+        if (shopNPC == null)
+        {
+            shopNPC = GetComponentInChildren<ShopNPC>(true);
+            if (shopNPC == null) shopNPC = Object.FindFirstObjectByType<ShopNPC>();
+        }
+
+        if (shopNPC != null)
+        {
+            shopNPC.Initialize();
+        }
+        else if (GetComponentInChildren<EnhanceShopNPC>(true) == null && Object.FindFirstObjectByType<EnhanceShopNPC>() == null)
+        {
+            Debug.LogWarning($"[ShopRoomEvent] {gameObject.name}: 상점 NPC를 찾을 수 없습니다!");
+        }
     }
 
     public void OnRoomCleared(RoomInstance room)

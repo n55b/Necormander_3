@@ -696,6 +696,12 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
             Vector3 prevPos = entity.transform.position;
             while (elapsed < chargeDuration)
             {
+                if (entity == null || (entity.Stats != null && entity.Stats.Health != null && entity.Stats.Health.IsDead))
+                {
+                    _controller?.HardStopMovement();
+                    yield break;
+                }
+
                 if (entity.CurrentState != AIState.Skill)
                 {
                     hijacked = true;

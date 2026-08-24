@@ -68,6 +68,13 @@ namespace AstroNuts.Monsters
             // 돌격 등 코루틴으로 이동 중인 공격이 있다면 먼저 멈춤 (enabled=false만으론 코루틴이 안 멈춤)
             _baseEntity?.CancelAttack();
 
+            // 사망 시 BaseEntity와 MonsterDeathHandler에 남아있는 모든 공격/패턴 코루틴 강제 정지
+            if (_baseEntity != null)
+            {
+                _baseEntity.StopAllCoroutines();
+            }
+            StopAllCoroutines();
+
             // 죽는 순간 남아있는 관성(미끄러짐) 제거 - BaseEntity의 기절 처리와 동일한 패턴
             if (_agent != null && _agent.isActiveAndEnabled)
             {

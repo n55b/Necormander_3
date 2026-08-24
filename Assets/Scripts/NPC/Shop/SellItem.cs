@@ -19,6 +19,11 @@ public class SellItem : MonoBehaviour, IInteractable
 
     public void InitializeUI()
     {
+        if (_spriteRenderer == null)
+        {
+            _spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
         if (item.displayData != null && _spriteRenderer != null)
         {
             if (item.displayData.icon != null)
@@ -46,45 +51,75 @@ public class SellItem : MonoBehaviour, IInteractable
     }
 
     // IInteractable — 이게 있어야 PlayerController.CheckForInteractable 가 이 상점 아이템을 감지해 F 로 Interact 를 부른다.
-    // (포커스 콜백은 툴팁을 OnTriggerEnter2D 에서 이미 처리하므로 비워둔다.)
-    public void OnFocused(GameObject interactor) { }
-    public void OnLostFocus(GameObject interactor) { }
-
-    void OnTriggerEnter2D(Collider2D collision)
+    public void OnFocused(GameObject interactor)
     {
-        if(collision.tag == "Player" && item.displayData != null)
+        ShowTooltip();
+    }
+
+    public void OnLostFocus(GameObject interactor)
+    {
+        HideTooltip();
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player") || (collision.transform.root != null && collision.transform.root.CompareTag("Player")))
         {
-            Canvas.SetActive(true);
-            obj = Instantiate(explainPrefab, Canvas.transform);
-            Tooltip text = obj.GetComponent<Tooltip>();
-            
-            if (item.displayData.localizedItemName != null && !item.displayData.localizedItemName.IsEmpty)
-            {
-                var locEvent = text.name.GetComponent<LocalizeStringEvent>();
-                if (locEvent == null)
-                {
-                    locEvent = text.name.gameObject.AddComponent<LocalizeStringEvent>();
-                    locEvent.OnUpdateString.AddListener((s) => text.name.text = s);
-                }
-                locEvent.StringReference = item.displayData.localizedItemName;
-            }
-            else
-            {
-                var locEvent = text.name.GetComponent<LocalizeStringEvent>();
-                if (locEvent != null) locEvent.StringReference = null;
-                text.name.text = item.displayData.itemName;
-            }
-            
-            text.price.text = $"{item.goldAmount}G";
+            ShowTooltip();
         }
     }
 
-    void OnTriggerExit2D(Collider2D collision)
+    private void OnTriggerExit2D(Collider2D collision)
     {
-        if(collision.tag == "Player")
+        if (collision.CompareTag("Player") || (collision.transform.root != null && collision.transform.root.CompareTag("Player")))
         {
-            if (obj != null) Destroy(obj);
-            Canvas.SetActive(false);
+            HideTooltip();
         }
+    }
+
+    private void ShowTooltip()
+    {
+        if (item.displayData == null) return;
+
+        if (Canvas != null)
+        {
+            Canvas.SetActive(true);
+            if (obj == null && explainPrefab != null)
+            {
+                obj = Instantiate(explainPrefab, Canvas.transform);
+                Tooltip text = obj.GetComponent<Tooltip>();
+                if (text != null)
+                {
+                    if (item.displayData.localizedItemName != null && !item.displayData.localizedItemName.IsEmpty)
+                    {
+                        var locEvent = text.name.GetComponent<LocalizeStringEvent>();
+                        if (locEvent == null)
+                        {
+                            locEvent = text.name.gameObject.AddComponent<LocalizeStringEvent>();
+                            locEvent.OnUpdateString.AddListener((s) => text.name.text = s);
+                        }
+                        locEvent.StringReference = item.displayData.localizedItemName;
+                    }
+                    else
+                    {
+                        var locEvent = text.name.GetComponent<LocalizeStringEvent>();
+                        if (locEvent != null) locEvent.StringReference = null;
+                        if (text.name != null) text.name.text = item.displayData.itemName;
+                    }
+
+                    if (text.price != null) text.price.text = $"{item.goldAmount}G";
+                }
+            }
+        }
+    }
+
+    private void HideTooltip()
+    {
+        if (obj != null)
+        {
+            Destroy(obj);
+            obj = null;
+        }
+        if (Canvas != null) Canvas.SetActive(false);
     }
 }

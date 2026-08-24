@@ -17,6 +17,15 @@ public static class BossCombat
     {
         if (col == null) return false;
         if (col.gameObject.layer == DashLayer) return false;
+
+        // [사망한 공격자의 판정 무효화] 보스가 사망한 뒤에도 남아있는 지연 프레임이나 미회수 판정으로 인한 피해 차단
+        if (info.attacker != null)
+        {
+            CharacterHealth atkHealth = info.attacker.GetComponentInChildren<CharacterHealth>();
+            if (atkHealth == null) atkHealth = info.attacker.GetComponentInParent<CharacterHealth>();
+            if (atkHealth != null && atkHealth.IsDead) return false;
+        }
+
         CharacterHealth health = col.GetComponentInChildren<CharacterHealth>();
         if (health == null) health = col.GetComponentInParent<CharacterHealth>();
         if (health == null || health.IsDead || health.Invincible) return false;

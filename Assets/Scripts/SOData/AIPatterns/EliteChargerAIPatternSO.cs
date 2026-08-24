@@ -237,6 +237,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     private BossActionScheduler _scheduler; // 기본 no-repeat + 특수 무반복풀 + 타이머 선택 로직 일원화
     private EliteBossPatternLabel _label;
     private Coroutine _basicAttackCoroutine;
+    private Coroutine _specialPatternCoroutine;
 
     // v1.2 추격 버스트 런타임 상태
     private Coroutine _pursuitBurstCoroutine;
@@ -339,6 +340,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         _scheduler = new BossActionScheduler(3, 2);
         _label = null;
         _basicAttackCoroutine = null;
+        _specialPatternCoroutine = null;
         _pursuitBurstCoroutine = null;
         _isBursting = false;
         _nextBurstTime = Time.time + Random.Range(pursuitBurstMinInterval, pursuitBurstMaxInterval);
@@ -395,7 +397,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 StopPursuitBurst(entity);
 
                 int pattern = _scheduler.NextSpecial();
-                entity.StartCoroutine(RunSpecialPattern(entity, pattern));
+                _specialPatternCoroutine = entity.StartCoroutine(RunSpecialPattern(entity, pattern));
                 return;
             }
 
@@ -897,6 +899,12 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         float wt = 0f;
         while (wt < windup)
         {
+            if (entity == null || (entity.Stats != null && entity.Stats.Health != null && entity.Stats.Health.IsDead))
+            {
+                ClearChargeTelegraph();
+                yield break;
+            }
+
             wt += Time.deltaTime;
             if (entity.Target != null) dir = GetAimDir(entity);
             dirIndicator?.SetAimOverride(dir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
@@ -923,6 +931,12 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             yield return null;
         }
         ClearChargeTelegraph();
+
+        // [사망 체크] 조준 중 사망 시 질주 진입 차단
+        if (entity == null || (entity.Stats != null && entity.Stats.Health != null && entity.Stats.Health.IsDead))
+        {
+            yield break;
+        }
 
         // 질주 개시. 루프 클립이라 돌진이 얼마나 길어지든 계속 굴러간다.
         PlayState(entity, animState_Charge);
@@ -955,6 +969,12 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         while (elapsed < normalChargeMaxDuration)
         {
+            if (entity == null || (entity.Stats != null && entity.Stats.Health != null && entity.Stats.Health.IsDead))
+            {
+                if (rb != null) rb.linearVelocity = Vector2.zero;
+                yield break;
+            }
+
             elapsed += Time.deltaTime;
 
             if (roomBounds.HasValue && !roomBounds.Value.Contains(entity.transform.position))
@@ -1053,25 +1073,35 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         entity.IsAttacking = true;
         entity.CurrentState = AIState.Attack;
 
-        switch (pattern)
+        try
         {
-            case 0:
-                yield return Pattern1_AimedCharge(entity);
-                break;
-            default:
-                yield return Pattern3_GroundSlam(entity);
-                break;
+            switch (pattern)
+            {
+                case 0:
+                    yield return Pattern1_AimedCharge(entity);
+                    break;
+                default:
+                    yield return Pattern3_GroundSlam(entity);
+                    break;
+            }
         }
+        finally
+        {
+            ClearLabel();
+            ClearChargeTelegraph();
+            // 배속은 전역 상태다. 특수 패턴에서 늘려둔 채로 나가면 이후 Idle/Move 까지 느려진다.
+            if (entity != null && entity.Animator != null) entity.Animator.speed = 1f;
+            if (entity != null)
+            {
+                entity.IsAttacking = false;
+                entity.ResetAnimationState();
+            }
+            _specialPatternCoroutine = null;
+            _isBusy = false;
 
-        ClearLabel();
-        // 배속은 전역 상태다. 특수 패턴에서 늘려둔 채로 나가면 이후 Idle/Move 까지 느려진다.
-        if (entity.Animator != null) entity.Animator.speed = 1f;
-        entity.IsAttacking = false;
-        entity.ResetAnimationState();
-        _isBusy = false;
-
-        // 이제부터 다시 기본 공격 페이즈이므로, 8초 카운트를 여기서부터 새로 시작합니다.
-        _scheduler.ResetBasicPhase(Time.time);
+            // 이제부터 다시 기본 공격 페이즈이므로, 8초 카운트를 여기서부터 새로 시작합니다.
+            _scheduler.ResetBasicPhase(Time.time);
+        }
     }
 
     // --- 패턴 1: 돌진 조준 (3초 조준 → 강한 돌진. 빗나가면 보스 기절) ---
@@ -1099,6 +1129,12 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         // 전조는 항상 "플레이어 발밑"까지 확실히 이어지도록 대상과의 거리 기준으로 길이를 계산합니다.
         while (t < scaledChargeWindup)
         {
+            if (entity == null || (entity.Stats != null && entity.Stats.Health != null && entity.Stats.Health.IsDead))
+            {
+                ClearChargeTelegraph();
+                yield break;
+            }
+
             t += Time.deltaTime;
             if (entity.Target != null)
             {
@@ -1150,6 +1186,12 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         ClearChargeTelegraph();
 
+        // [사망 체크] 조준 중 사망 시 강한 돌진 진입 차단
+        if (entity == null || (entity.Stats != null && entity.Stats.Health != null && entity.Stats.Health.IsDead))
+        {
+            yield break;
+        }
+
         ShowLabel(label_Pattern1);
 
         // 강한 돌진 개시. ②일반 돌진과 같은 루프 클립을 공유한다(둘 다 '질주 중'이라 그림이 같다).
@@ -1187,6 +1229,12 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         while (elapsed < maxDuration)
         {
+            if (entity == null || (entity.Stats != null && entity.Stats.Health != null && entity.Stats.Health.IsDead))
+            {
+                if (rb != null) rb.linearVelocity = Vector2.zero;
+                yield break;
+            }
+
             elapsed += Time.deltaTime;
 
             // [정지 감지] 앞의 CircleCast 가 못 잡는 것에 막혔을 때도 즉시 끝낸다.
@@ -1294,11 +1342,32 @@ private GameObject _chargeTelegraph;
         }
     }
 
-    // 피격/스턴으로 공격이 끊길 때. StopCoroutine 은 루틴 뒷정리를 실행하지 않는다.
+    // 피격/스턴/사망으로 공격이 끊길 때.
     public override void OnAttackCancelled(BaseEntity entity)
     {
         base.OnAttackCancelled(entity);
         ClearChargeTelegraph();
+        ClearLabel();
+
+        if (entity != null)
+        {
+            if (_basicAttackCoroutine != null)
+            {
+                entity.StopCoroutine(_basicAttackCoroutine);
+                _basicAttackCoroutine = null;
+            }
+            if (_specialPatternCoroutine != null)
+            {
+                entity.StopCoroutine(_specialPatternCoroutine);
+                _specialPatternCoroutine = null;
+            }
+            StopPursuitBurst(entity);
+
+            var rb = entity.GetComponent<Rigidbody2D>();
+            if (rb != null) rb.linearVelocity = Vector2.zero;
+        }
+
+        _isBusy = false;
     }
 
 
