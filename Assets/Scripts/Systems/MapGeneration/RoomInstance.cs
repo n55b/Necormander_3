@@ -42,7 +42,7 @@ public class RoomInstance : MonoBehaviour
     [Header("Combat & Events")]
     public bool isCleared = false;
     public bool hasBeenVisited = false;
-    public List<GameObject> doorObjects = new List<GameObject>(); // MapGenerator에서 할당
+    public List<DoorUpController> doorObjects = new List<DoorUpController>(); // MapGenerator에서 할당
     [SerializeField] private AudioClip roomBGM; // [추가] 이 방에서 나올 음악
 
     [Header("미니맵 아이콘 설정")]
@@ -344,7 +344,10 @@ public class RoomInstance : MonoBehaviour
         {
             if (door != null)
             {
-                door.SetActive(!open); // 열리면(open == true) 문을 끈다!
+                if(open)
+                    door.OpenDoor();
+                else
+                    door.CloseDoor();
             }
         }
 

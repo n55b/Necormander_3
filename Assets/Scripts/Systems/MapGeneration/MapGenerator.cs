@@ -884,7 +884,7 @@ Instance = this;
 
             foreach (var door in room.doorObjects)
             {
-                if (door != null) SafeDestroy(door);
+                if (door != null) SafeDestroy(door.gameObject);
             }
             room.doorObjects.Clear();
         }
@@ -1178,7 +1178,7 @@ Instance = this;
         {
             GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform);
             doorObj.name = $"Door_{anchor.direction}_{room.name}";
-            room.doorObjects.Add(doorObj);
+            room.doorObjects.Add(doorObj.GetComponent<DoorUpController>());
 
             // [수정] 생성 시에는 기본적으로 열려(비활성) 있어야 플레이어가 이동 가능함
             doorObj.SetActive(false);
@@ -2366,7 +2366,7 @@ Instance = this;
                 : anchor.transform.position;
             GameObject doorObj = Instantiate(doorPrefab, doorPos, Quaternion.Euler(0, 0, rotation), room.transform);
             doorObj.name = $"Door_{anchor.direction}_{room.name}";
-            room.doorObjects.Add(doorObj);
+            room.doorObjects.Add(doorObj.GetComponent<DoorUpController>());
 
             // 플레이어와의 트리거 충돌 감지가 물리 엔진 매트릭스 상에서 100% 감지되도록 레이어 지정
             doorObj.gameObject.layer = Layers.Default;
