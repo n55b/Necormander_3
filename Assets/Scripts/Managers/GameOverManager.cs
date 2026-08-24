@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -15,6 +16,23 @@ public class GameOverManager : Singleton<GameOverManager>
     public void TriggerGameOver()
     {
         gameOverPanel.SetActive(true); // 게임오버 패널 활성화
+    }
+
+    /// <summary>
+    /// 던전 마지막 층(3층) 보스를 클리어했을 때 호출됩니다.
+    /// 기존 GameOverUI(gameOverPanel)를 그대로 재사용하되, 자식 Text (TMP)의 문구만
+    /// "GameClear!"로 바꿔서 띄웁니다.
+    /// </summary>
+    public void TriggerGameClear()
+    {
+        if (gameOverPanel != null)
+        {
+            var textTransform = gameOverPanel.transform.Find("Text (TMP)");
+            var tmp = textTransform != null ? textTransform.GetComponent<TextMeshProUGUI>() : null;
+            if (tmp != null) tmp.text = "GameClear!";
+
+            gameOverPanel.SetActive(true);
+        }
     }
 
     public void RestartGame()

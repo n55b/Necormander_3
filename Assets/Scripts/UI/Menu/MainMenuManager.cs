@@ -16,8 +16,14 @@ public class MainMenuManager : MonoBehaviour
 
     private UnityNote.SceneLoader sceneLoader;
 
-    private void Start()
+private void Start()
     {
+        // 타이틀로 돌아왔을 때 DontDestroyOnLoad로 살아남은 지난 BGM이 계속 나오는 문제 방지.
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.StopBGM();
+        }
+
         sceneLoader = UnityNote.SceneLoader.Instance;
 
         InitializeButtons();

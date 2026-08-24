@@ -154,6 +154,8 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         OnEliteCombatClear?.Invoke();
         Debug.Log($"<color=red>[EliteRoom]</color> Elite Defeated!");
 
+        GameOverManager.Instance.TriggerGameClear();
+
         BossHPBarUI.Instance?.Hide();
     }
 

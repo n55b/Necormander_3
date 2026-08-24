@@ -175,15 +175,15 @@ public class GameManager : MonoBehaviour
         {
             inventoryManager.Initialize(_loadedSaveData != null);
 
-        if (playerSkillInventoryManager != null)
-            playerSkillInventoryManager.Initialize();
+            if (playerSkillInventoryManager != null)
+                playerSkillInventoryManager.Initialize();
 
             if (_loadedSaveData != null)
             {
                 inventoryManager.LoadFromData(_loadedSaveData);
 
-            if (playerSkillInventoryManager != null)
-                playerSkillInventoryManager.LoadFromData(_loadedSaveData);
+                if (playerSkillInventoryManager != null)
+                    playerSkillInventoryManager.LoadFromData(_loadedSaveData);
 
             }
         }
@@ -325,7 +325,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("<color=cyan>[GameManager]</color> Player Spawned, Placed, and Camera Assigned.");
     }
 
-public void GoToNextFloor()
+    public void GoToNextFloor()
     {
         SaveData data = new SaveData();
 

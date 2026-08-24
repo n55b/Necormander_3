@@ -140,6 +140,46 @@ public class SoundManager : MonoBehaviour
         StartCoroutine(CrossFade(duration));
     }
 
+
+    /// <summary>
+    /// 현재 나오고 있는 BGM을 서서히 끈다. 타이틀(StartScene) 등 BGM 지정이 없는 씬으로 돌아왔을 때,
+    /// DontDestroyOnLoad로 살아남은 지난 씬 BGM이 그대로 계속 나오는 문제를 막는다.
+    /// </summary>
+    public void StopBGM(float fadeDuration = 0.5f)
+    {
+        StopAllCoroutines();
+
+        if (fadeDuration <= 0f)
+        {
+            if (sourceA != null) { sourceA.Stop(); sourceA.volume = 0f; }
+            if (sourceB != null) { sourceB.Stop(); sourceB.volume = 0f; }
+            return;
+        }
+
+        StartCoroutine(FadeOutAndStop(fadeDuration));
+    }
+
+    private IEnumerator FadeOutAndStop(float duration)
+    {
+        float elapsed = 0f;
+        float startVolA = sourceA != null ? sourceA.volume : 0f;
+        float startVolB = sourceB != null ? sourceB.volume : 0f;
+        float invDuration = duration > 0f ? 1f / duration : 1f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed * invDuration;
+            if (sourceA != null) sourceA.volume = Mathf.Lerp(startVolA, 0f, t);
+            if (sourceB != null) sourceB.volume = Mathf.Lerp(startVolB, 0f, t);
+            yield return null;
+        }
+
+        if (sourceA != null) { sourceA.Stop(); sourceA.volume = 0f; }
+        if (sourceB != null) { sourceB.Stop(); sourceB.volume = 0f; }
+    }
+
+
     private IEnumerator CrossFade(float duration)
     {
         float elapsed     = 0f;
