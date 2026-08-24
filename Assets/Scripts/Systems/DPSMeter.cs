@@ -3,7 +3,9 @@ using System.Collections.Generic;
 
 public class DPSMeter : MonoBehaviour
 {
-    private bool _showUI = true;
+    [Header("UI Settings")]
+    [Tooltip("체크 시 게임 화면에 DPS 미터기 IMGUI가 표시됩니다. (인게임 F3 키로도 토글 가능)")]
+    [SerializeField] private bool _showUI = false;
 
     private float _totalDamage = 0f;
     private Dictionary<string, float> _damageBySource = new Dictionary<string, float>();
