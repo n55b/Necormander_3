@@ -406,7 +406,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 entity.AtkTimer += Time.deltaTime;
 
                 float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
-                var agent = entity.GetComponent<NavMeshAgent>();
+                var agent = entity.NavAgent;
 
                 if (dist <= entity.Stats.ATKRANGE && entity.AtkTimer >= entity.Stats.AttackInterval)
                 {
@@ -458,91 +458,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         }
         return _lastAimDir;
     }
-
-    // ==============================================================
-    // 애니메이션 재생 헬퍼
-    // ==============================================================
-    /// <summary>
-    /// 스테이트를 처음부터 재생한다. duration 을 주고 matchSpeed 가 켜져 있으면 클립 길이가
-    /// 그 시간에 정확히 맞도록 Animator.speed 를 조절한다(BaseAIPatternSO.AttackRoutine 과 동일한 공식).
-    ///
-    /// stateName 이 비어 있으면 공용 "Attack" 으로 폴백한다 — 전용 아트가 없는 보스도 죽지 않게.
-    /// speed 는 전역 상태라 공격이 끝나면 반드시 1 로 되돌려야 한다(BasicAttackRoutine / RunSpecialPattern 말미).
-    /// </summary>
-    private static void PlayState(BaseEntity entity, string stateName, float duration = 0f, bool matchSpeed = false)
-    {
-        var anim = entity != null ? entity.Animator : null;
-        if (anim == null || anim.runtimeAnimatorController == null) return;
-
-        // [죽은 뒤 재생 금지] 돌진 계열은 windup 이 끝난 '뒤'에 질주 스테이트를 트는데(0.8초 / 조준 3초),
-        // 그 사이에 죽으면 이 호출이 사망 처리 이후에 도착한다. 이 패턴은 entity.ActiveAttackCoroutine 을
-        // 등록하지 않아서 BaseEntity.CancelAttack 이 루틴을 멈추지 못하고, MonsterDeathHandler 가
-        // 컴포넌트를 꺼도 이미 돌던 코루틴은 계속 흐른다(MonsterDeathHandler.cs 주석 참조).
-        // 막지 않으면 방금 튼 "Die" 를 루프 클립(Dash_Attack)이 덮어써서 시체가 제자리 질주한다.
-        var health = entity.Stats != null ? entity.Stats.Health : null;
-        if (health != null && health.IsDead) return;
-
-        if (string.IsNullOrWhiteSpace(stateName)) stateName = "Attack";
-
-        float speed = 1f;
-        if (matchSpeed && duration > 0.0001f)
-        {
-            // [26/08/18] 기준점을 클립 끝에서 <b>타격 프레임(OnHitEvent)</b> 으로 옮겼다.
-            // 클립 끝을 windup 에 맞추면, 타격 프레임은 클립의 중간(42~54%)이라 항상 windup 의
-            // 절반쯤에 지나가 버린다 — 해태가 이미 내려찍고 원래 자세로 돌아온 뒤에야 데미지가
-            // 들어왔다(측정값 ①-0.52s ③-0.59s 슬램-0.60s). 타격 프레임을 duration 끝에 맞추면
-            // 예비동작이 windup 전체를 쓰고 내려찍는 순간과 판정이 정확히 겹친다.
-            // 데미지 타이밍·텔레그래프는 하나도 안 건드린다 — 바뀌는 건 재생 속도뿐이다.
-            float anchor = StateHitEventTime(anim, stateName);
-            // 이벤트가 없는 클립(Dash_Ready/Dash_Attack 등)은 예전대로 클립 끝을 기준으로.
-            if (anchor <= 0.0001f) anchor = StateClipLength(anim, stateName);
-            // 1프레임짜리 홀드 포즈(Dash_Ready/Stun)는 늘려봐야 정지 화면이라 배속을 건드리지 않는다.
-            if (anchor > 0.0001f) speed = Mathf.Clamp(anchor / duration, 0.05f, 20f);
-        }
-
-        anim.speed = speed;
-        anim.Play(stateName, -1, 0f);
-    }
-
-    /// <summary>
-    /// 스테이트에 물린 클립의 길이(초). aseprite 임포터가 태그 이름 그대로 클립을 만들고
-    /// 컨트롤러도 같은 이름의 스테이트를 쓰므로 이름 매칭으로 찾는다
-    /// (MinionSkillCaster.ClipLength 와 동일한 방식). 못 찾으면 0.
-    /// </summary>
-    private static float StateClipLength(Animator anim, string stateName)
-    {
-        var rac = anim.runtimeAnimatorController;
-        if (rac == null) return 0f;
-        foreach (var c in rac.animationClips)
-            if (c != null && c.name == stateName) return c.length;
-        return 0f;
-    }
-
-    /// <summary>
-    /// 이 스테이트 클립에 박힌 첫 <c>OnHitEvent</c> 가 클립 시작 몇 초 뒤인가. 없으면 0.
-    ///
-    /// aseprite 셀 user data 의 <c>event:OnHitEvent</c> 가 임포트 때 AnimationEvent 로 들어온다.
-    /// (콜론을 두 번 찍으면 함수 이름이 ":OnHitEvent" 가 되어 조용히 아무 데도 안 붙는다 — 실제로
-    ///  그 상태로 한 번 들어왔었다. Report 메뉴가 이름을 그대로 찍어주니 의심되면 거기서 확인할 것.)
-    ///
-    /// 클립 이름 == 스테이트 이름 규칙에 기대는 건 StateClipLength 와 같다. 이름이 어긋나면
-    /// (Attack/Follow/Die 처럼) 조용히 0 이 나오고 예전 동작(클립 끝 기준)으로 떨어진다.
-    /// </summary>
-    private static float StateHitEventTime(Animator anim, string stateName)
-    {
-        var rac = anim.runtimeAnimatorController;
-        if (rac == null) return 0f;
-        foreach (var c in rac.animationClips)
-        {
-            if (c == null || c.name != stateName) continue;
-            float best = 0f;
-            foreach (var e in c.events)
-                if (e.functionName == "OnHitEvent" && (best <= 0.0001f || e.time < best)) best = e.time;
-            return best;
-        }
-        return 0f;
-    }
-
 
     // ==============================================================
     // 방 정보 헬퍼
@@ -631,7 +546,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     private IEnumerator PursuitBurstRoutine(BaseEntity entity)
     {
         _isBursting = true;
-        var agent = entity.GetComponent<NavMeshAgent>();
+        var agent = entity.NavAgent;
 
         if (agent != null && agent.isActiveAndEnabled && entity.Stats != null)
         {

@@ -72,6 +72,27 @@ public abstract class BaseEntity : MonoBehaviour
     protected NearestTargetFinder _nearestFinder;
     protected Rigidbody2D _rb;
     protected NavMeshAgent _agent;
+
+    /// <summary>
+    /// <b>명령을 걸어도 되는</b> NavMeshAgent. 아니면 null.
+    ///
+    /// NavMeshAgent 의 isStopped / SetDestination / ResetPath / velocity 는 에이전트가 NavMesh 위에
+    /// 올라가 있지 않으면 전부 "can only be called on an active agent that has been placed on a
+    /// NavMesh" 경고를 뱉는다. 예외가 아니라 경고라서 조용히 무시되고, 대신 콘솔이 폭발한다.
+    ///
+    /// 흔한 경우가 셋이다.
+    ///   · 스폰 직후 — 에이전트가 NavMesh 에 실제로 얹히기까지 한 프레임이 걸린다.
+    ///     한 웨이브에 몹을 여러 마리 뿌리면 그 프레임에 마리 수만큼 경고가 쏟아진다.
+    ///   · 사망 처리 중 — MonsterDeathHandler 가 에이전트를 끄고 나서도 정지 명령이 한 번 더 온다.
+    ///   · 넉백/대시 — 에이전트를 잠깐 꺼두고 Rigidbody 로 미는 구간.
+    ///
+    /// 예전엔 호출부마다 <c>isActiveAndEnabled</c> 만 봤는데 그건 '켜져 있나'일 뿐 '올라가 있나'가
+    /// 아니다. 호출부가 스무 곳 가까이 되므로 각자 고치는 대신 여기 한 곳에서 걸러낸다.
+    /// 에이전트를 켜고/끄거나 Warp 하려는 코드는 이 프로퍼티가 아니라 _agent 를 직접 써야 한다 —
+    /// 그건 NavMesh 밖에서도 해야 하는 일이다.
+    /// </summary>
+    public NavMeshAgent NavAgent =>
+        (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh) ? _agent : null;
     protected Collider2D _collider;
     protected SpriteRenderer _sr;
 
@@ -196,10 +217,11 @@ public abstract class BaseEntity : MonoBehaviour
             // [경직/기절/빙결 제동] 관성으로 인해 스르륵 미끄러지는 현상을 방지하기 위해 정지 처리
             if (_stats != null && _stats.Status != null && _stats.Status.IsActionBlocked)
             {
-                if (_agent != null && _agent.isActiveAndEnabled)
+                var blockedAgent = NavAgent;
+                if (blockedAgent != null)
                 {
-                    _agent.isStopped = true;
-                    _agent.velocity = Vector3.zero;
+                    blockedAgent.isStopped = true;
+                    blockedAgent.velocity = Vector3.zero;
                 }
                 
                 // 넉백 중(에이전트 임시 비활성화 상태)에는 속도 강제 리셋을 무시하여 넉백 물리 힘 보존
@@ -225,9 +247,10 @@ public abstract class BaseEntity : MonoBehaviour
         }
 
         // 경직이 풀려 AI 동작이 재개되었으므로 에이전트 정지 상태 해제
-        if (_agent != null && _agent.isActiveAndEnabled && _agent.isStopped)
+        var resumeAgent = NavAgent;
+        if (resumeAgent != null && resumeAgent.isStopped)
         {
-            _agent.isStopped = false;
+            resumeAgent.isStopped = false;
         }
 
         // [26/07/17] 공포(Feared) 분기 삭제. 처형 시스템이 부여하던 건데 처형과 함께 없어졌다.

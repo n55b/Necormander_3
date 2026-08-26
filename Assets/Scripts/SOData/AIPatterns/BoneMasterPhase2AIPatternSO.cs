@@ -123,6 +123,32 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     public float fakeCounterPlayerStun = 0.75f;
     public float fakeCounterPunishDamage = 4f;
 
+
+    // ==============================================================
+    // 애니메이션 스테이트 이름
+    // ==============================================================
+    // 페이즈1과 프리팹/애니메이터를 공유하므로 기본공격 스테이트 이름도 같다.
+    // 패턴 두 개는 한 클립이 동작 두 박자를 담고 있어서, 앞 박자는 배속을 맞춰 늘리고
+    // 뒤 박자는 '늦게 틀어서' 판정과 겹친다(배속을 안 건드리니 뒷동작이 안 느려진다).
+    [Header("애니메이션 스테이트 이름 (비우면 공용 Attack 으로 폴백)")]
+    [Tooltip("기본공격: 양손검 찌르기.")]
+    public string animState_Thrust = "Attack_Prod";
+    [Tooltip("기본공격: 양손검 휩쓸기.")]
+    public string animState_Sweep = "Attack_Sweep";
+    [Tooltip("패턴1. 앞 타격 = 광역 회전 베기, 뒤 타격 = 내려찍기.")]
+    public string animState_SpinSlam = "Pattern_SweepChop";
+    [Tooltip("패턴2. 앞 타격 = 몸통 내려찍기, 뒤 타격 = 마무리 베기.")]
+    public string animState_PivotSpin = "Pattern_DoubleSweep";
+    [Tooltip("패턴3 카운터 대기 자세. 1프레임 홀드.")]
+    public string animState_Counter = "Pattern_Counter";
+    [Tooltip("패턴3 카운터 성공 반격.")]
+    public string animState_CounterSuccess = "Pattern_Counter_Success";
+    [Tooltip("뒤 박자를 다시 틀 때 클립의 어디서부터 재생할지(0~1). 앞 타격 직후를 가리켜야 " +
+             "앞동작이 두 번 보이지 않는다.")]
+    [Range(0f, 0.95f)] public float secondBeatClipStart = 0.45f;
+    [Tooltip("클립 길이를 예비동작 시간에 맞춰 Animator.speed 를 자동 조절한다(기준점은 첫 타격 프레임).")]
+    public bool matchAnimSpeedToWindup = true;
+
     private const string Pattern1Label = "패턴 1번: 회전 베기 & 내려찍기";
     private const string Pattern2Label = "패턴 2번: 검을 축으로 삼아";
     private const string Pattern3Label = "패턴 3번: 카운터 & 페이크 카운터";
@@ -334,6 +360,8 @@ protected override void OnAttack(BaseEntity entity)
 
     private void FinishBasicAttack(BaseEntity entity)
     {
+        // 배속은 Animator 전역 상태라 여기서 반드시 1 로 되돌린다.
+        if (entity != null && entity.Animator != null) entity.Animator.speed = 1f;
         entity.IsAttacking = false;
         entity.ActiveAttackCoroutine = null;
         entity.ResetAnimationState();
@@ -352,6 +380,7 @@ private IEnumerator BasicAttack_Sweep(BaseEntity entity)
         float radius = sweepRadius * rangeMul;
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, origin, dir, radius, sweepHalfAngle, telegraphWarnColor);
+        PlayState(entity, animState_Sweep, basicAttackWindup, matchAnimSpeedToWindup);
 
         float t = 0f;
         while (t < basicAttackWindup)
@@ -383,6 +412,7 @@ private IEnumerator BasicAttack_Thrust(BaseEntity entity)
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
             entity, origin, dir, length, width, telegraphWarnColor, laneTelegraphPrefab, basicAttackWindup);
+        PlayState(entity, animState_Thrust, basicAttackWindup, matchAnimSpeedToWindup);
 
         float t = 0f;
         while (t < basicAttackWindup)
@@ -408,8 +438,24 @@ private IEnumerator BasicAttack_Thrust(BaseEntity entity)
     }
 
     /// <summary>특수 패턴 종료. 다음 특수 패턴까지의 최소 간격을 함께 건다.</summary>
+    /// <summary>
+    /// 뒤 박자를 '얼마나 일찍 틀어야' 그 타격 프레임이 판정 순간에 겹치는가(초).
+    /// = 마지막 타격 프레임 시각 - 재생 시작 지점. 배속 1 기준이라 뒷동작이 느려지지 않는다.
+    /// </summary>
+    private float SecondBeatLead(BaseEntity entity, string stateName)
+    {
+        var anim = entity != null ? entity.Animator : null;
+        if (anim == null) return 0f;
+        float len = StateClipLength(anim, stateName);
+        float last = StateLastHitEventTime(anim, stateName);
+        return Mathf.Max(0f, last - len * Mathf.Clamp01(secondBeatClipStart));
+    }
+
     private void EndPattern(BaseEntity entity, float extraLock = 0f)
     {
+        // 배속은 Animator 전역 상태다. 여기서 1 로 안 되돌리면 패턴이 늘려놓은 배속이
+        // 다음 추격/기본공격 모션까지 그대로 따라간다.
+        if (entity != null && entity.Animator != null) entity.Animator.speed = 1f;
         entity.CurrentState = AIState.Follow;
         _specialLockUntil = Time.time + Mathf.Max(0f, postPatternRecovery) + Mathf.Max(0f, extraLock);
     }
@@ -435,6 +481,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
         float spinLead = RingLead(spinTelegraphLead, csMul);
         GameObject spinTelegraph = BoneMasterTelegraphUtil.SpawnRingCountdown(
             entity, origin, spinRadius, spinSafeRadius, telegraphWarnColor);
+        PlayState(entity, animState_SpinSlam, spinLead, matchAnimSpeedToWindup);
 
         float leadT = 0f;
         while (leadT < spinLead)
@@ -476,15 +523,28 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
             gauge.OpenWindow(slamCounterGaugeAmount);
         }
 
+        // 같은 클립의 뒤 타격(내려찍기)이 실제 판정 순간에 겹치도록, 예고가 끝나기 직전에 다시 튼다.
+        // secondBeatClipStart 부터 재생하므로 회전 베기 동작이 두 번 보이지 않는다.
+        float slamBeatLead = SecondBeatLead(entity, animState_SpinSlam);
+        bool slamBeatPlayed = false;
+
         float t = 0f;
-        while (t < slamTelegraphTime * csMul)
+        float slamLeadTotal = slamTelegraphTime * csMul;
+        while (t < slamLeadTotal)
         {
             if (broken) break;
             if (entity.CurrentState != AIState.Skill) { hijacked = true; break; }
+            if (!slamBeatPlayed && slamLeadTotal - t <= slamBeatLead)
+            {
+                PlayState(entity, animState_SpinSlam, startNormalized: secondBeatClipStart);
+                slamBeatPlayed = true;
+            }
             Warp(entity, origin);
             t += Time.deltaTime;
             yield return null;
         }
+        if (!slamBeatPlayed && !broken && !hijacked)
+            PlayState(entity, animState_SpinSlam, startNormalized: secondBeatClipStart);
         if (gauge != null) gauge.OnGaugeBroken -= OnBroken;
         if (slamTelegraph != null) Object.Destroy(slamTelegraph);
 
@@ -530,6 +590,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
         float bodyLead = RingLead(pivotBodyTelegraphLead, csMul);
         GameObject bodyTelegraph = BoneMasterTelegraphUtil.SpawnRingCountdown(
             entity, origin, pivotBodySlamRadius, pivotSafeRadius, telegraphWarnColor);
+        PlayState(entity, animState_PivotSpin, bodyLead, matchAnimSpeedToWindup);
 
         float bt = 0f;
         while (bt < bodyLead)
@@ -593,16 +654,26 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
             GameObject finishTelegraph = BoneMasterTelegraphUtil.SpawnRingCountdown(
                 entity, origin, pivotFinishRadius, pivotFinishSafeRadius, telegraphWarnColor);
 
+            float finishBeatLead = SecondBeatLead(entity, animState_PivotSpin);
+            bool finishBeatPlayed = false;
+
             float ft = 0f;
             bool finishHijacked = false;
             while (ft < finishLead)
             {
                 if (entity.CurrentState != AIState.Skill) { finishHijacked = true; break; }
+                if (!finishBeatPlayed && finishLead - ft <= finishBeatLead)
+                {
+                    PlayState(entity, animState_PivotSpin, startNormalized: secondBeatClipStart);
+                    finishBeatPlayed = true;
+                }
                 Warp(entity, origin);
                 BoneMasterTelegraphUtil.UpdateRingCountdown(finishTelegraph, pivotFinishRadius, pivotFinishSafeRadius, ft / finishLead);
                 ft += Time.deltaTime;
                 yield return null;
             }
+            if (!finishBeatPlayed && !finishHijacked)
+                PlayState(entity, animState_PivotSpin, startNormalized: secondBeatClipStart);
             if (finishTelegraph != null) Object.Destroy(finishTelegraph);
 
             if (finishHijacked)
@@ -633,7 +704,9 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
             fakeChance: fakeCounterChance,
             gaugeAmount: counterGaugeAmount,
             realColor: counterRealColor,
-            fakeColor: counterFakeColor);
+            fakeColor: counterFakeColor,
+            counterState: animState_Counter,
+            counterSuccessState: animState_CounterSuccess);
 
         if (result.Countered) EndPatternAfterGroggy(entity, result.GroggyDuration);
         else EndPattern(entity);

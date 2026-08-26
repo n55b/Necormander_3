@@ -329,7 +329,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
 
     private void HandleReturningToCenter(BaseEntity entity)
     {
-        var agent = entity.GetComponent<NavMeshAgent>();
+        var agent = entity.NavAgent;
         if (agent != null && agent.isActiveAndEnabled)
         {
             agent.isStopped = false;
@@ -371,7 +371,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
 
     private void HandleSpreadPositioning(BaseEntity entity)
     {
-        var agent = entity.GetComponent<NavMeshAgent>();
+        var agent = entity.NavAgent;
         if (agent != null && agent.isActiveAndEnabled)
         {
             agent.isStopped = false;

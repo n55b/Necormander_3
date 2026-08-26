@@ -183,6 +183,36 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
     public float fakeCounterPlayerStun = 0.75f;
     public float fakeCounterPunishDamage = 3f;
 
+
+    // ==============================================================
+    // 애니메이션 스테이트 이름
+    // ==============================================================
+    // AnimController_BoneMaster 의 스테이트 이름을 그대로 적는다(= aseprite 태그 이름).
+    // 비워두면 공용 "Attack" 으로 폴백하므로, 아트가 빠져도 보스는 그대로 굴러간다.
+    [Header("애니메이션 스테이트 이름 (비우면 공용 Attack 으로 폴백)")]
+    [Tooltip("기본공격: 창 찌르기.")]
+    public string animState_Thrust = "Attack_Prod";
+    [Tooltip("기본공격: 창 휩쓸기.")]
+    public string animState_Sweep = "Attack_Sweep";
+    [Tooltip("기본공격 도약의 준비~체공. 1회 클립이라 마지막 프레임(점프 자세)에서 저절로 홀드된다.")]
+    public string animState_Jump = "Attack_Jump";
+    [Tooltip("기본공격 도약의 낙하~내려찍기. 2프레임에 타격이 박혀 있어서 착지 순간과 겹치게 늦게 튼다.")]
+    public string animState_JumpFall = "Attack_Jump_Fall";
+    [Tooltip("패턴1 박치기 돌격. 한 클립에 충전(1~3프레임)과 질주(4프레임)가 같이 들어 있다.")]
+    public string animState_Charge = "Pattern_Dash";
+    [Tooltip("패턴2 견갑 찌르기. 타격 3개가 박혀 있고 타수마다 처음부터 다시 튼다.")]
+    public string animState_ThrustPattern = "Pattern_Prod";
+    [Tooltip("패턴3 카운터 대기 자세. 1프레임 홀드.")]
+    public string animState_Counter = "Pattern_Counter";
+    [Tooltip("패턴3 카운터 성공 반격.")]
+    public string animState_CounterSuccess = "Pattern_Counter_Success";
+    [Tooltip("Pattern_Dash 클립에서 '충전이 끝나는' 지점(0~1). 기본 0.592 = 3프레임 끝 / 클립 1.225초.\n" +
+             "충전 구간만 chargeWindup 에 맞춰 늘리고, 돌진이 시작되면 이 지점부터 다시 튼다.")]
+    [Range(0.05f, 0.95f)] public float chargeWindupClipRatio = 0.592f;
+    [Tooltip("클립 길이를 예비동작 시간에 맞춰 Animator.speed 를 자동 조절한다. " +
+             "기준점은 클립 끝이 아니라 타격 프레임(OnHitEvent)이라, 때리는 순간과 판정이 겹친다.")]
+    public bool matchAnimSpeedToWindup = true;
+
     private const string Pattern1Label = "패턴 1번: 박치기 돌격";
     private const string Pattern2Label = "패턴 2번: 견갑 찌르기";
     private const string Pattern3Label = "패턴 3번: 카운터 & 페이크 카운터";
@@ -413,6 +443,8 @@ protected override void OnAttack(BaseEntity entity)
 
     private void FinishBasicAttack(BaseEntity entity)
     {
+        // 배속은 Animator 전역 상태라 여기서 반드시 1 로 되돌린다 — 안 되돌리면 다음 모션까지 느려진다.
+        if (entity != null && entity.Animator != null) entity.Animator.speed = 1f;
         entity.IsAttacking = false;
         entity.ActiveAttackCoroutine = null;
         entity.ResetAnimationState();
@@ -431,6 +463,7 @@ private IEnumerator BasicAttack_Sweep(BaseEntity entity)
         float radius = sweepRadius * rangeMul;
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, origin, dir, radius, sweepHalfAngle, telegraphWarnColor);
+        PlayState(entity, animState_Sweep, basicAttackWindup, matchAnimSpeedToWindup);
 
         float t = 0f;
         while (t < basicAttackWindup)
@@ -462,6 +495,7 @@ private IEnumerator BasicAttack_Thrust(BaseEntity entity)
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
             entity, origin, dir, length, width, telegraphWarnColor, laneTelegraphPrefab, basicAttackWindup);
+        PlayState(entity, animState_Thrust, basicAttackWindup, matchAnimSpeedToWindup);
 
         float t = 0f;
         while (t < basicAttackWindup)
@@ -498,6 +532,10 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         float trackTime = leapWindup;                           // 이 동안만 착지점이 따라온다
         float lockTime = Mathf.Max(0f, leapSlamLockTime);        // 위치를 굳히고 기다리는 시간
 
+        // 준비~체공은 Attack_Jump 하나로 덮는다. 1회 클립이라 다 재생되면 마지막 프레임(점프 자세)에서
+        // 저절로 멈춰 있고, 아래 도약 루프 내내 그 자세가 유지된다.
+        PlayState(entity, animState_Jump, trackTime + lockTime, matchAnimSpeedToWindup);
+
         // life 가 도약 시간까지 덮어야 한다 — 예고가 끝나도 착지(:Destroy)까지는 장판이 떠 있어야 하니까.
         // windup 은 '실제 착지 순간'까지로 잡는다 — 프리팹의 차오름 게이지가 가득 차는 시점과
         // 피해가 들어오는 시점이 일치해야 게이지가 거짓말을 하지 않는다.
@@ -530,13 +568,26 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
 
         _controller?.SetStateText("기본 공격: 도약 & 내려찍기", Color.white);
         Vector3 startPos = entity.transform.position;
+
+        // 낙하 모션은 '착지에 타격 프레임이 겹치도록' 늦게 튼다. 배속으로 늘리지 않는 이유는
+        // 타격 프레임이 클립 앞쪽(0.1초/0.5초)이라, 배속을 맞추면 착지 후 충격 프레임 0.4초가
+        // 그만큼 느려져서 후딜(basicAttackRecovery)보다 길어지기 때문이다. 원속으로 두면 둘이 맞아떨어진다.
+        float fallLead = entity.Animator != null ? StateHitEventTime(entity.Animator, animState_JumpFall) : 0f;
+        bool fallPlayed = false;
+
         float elapsed = 0f;
         while (elapsed < leapDuration)
         {
             elapsed += Time.deltaTime;
+            if (!fallPlayed && leapDuration - elapsed <= fallLead)
+            {
+                PlayState(entity, animState_JumpFall);
+                fallPlayed = true;
+            }
             Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, elapsed / leapDuration));
             yield return null;
         }
+        if (!fallPlayed) PlayState(entity, animState_JumpFall);
         Warp(entity, landPos);
         _controller?.HardStopMovement();
 
@@ -578,8 +629,12 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
     /// postPatternRecovery 위에 더 얹을 시간. 파훼(그로기)로 끝난 경우 "그로기 시간 + postGroggyRecovery"를
     /// 넘겨서, 그로기가 풀리자마자 다음 패턴이 시작되지 않고 실제 딜타임이 생기게 한다.
     /// </param>
+    /// <summary>패턴이 끝났다. 배속은 Animator 전역 상태라 여기서 반드시 1 로 되돌린다.</summary>
     private void EndPattern(BaseEntity entity, float extraLock = 0f)
     {
+        // 배속은 Animator 전역 상태다. 여기서 1 로 안 되돌리면 패턴이 늘려놓은 배속이
+        // 다음 추격/기본공격 모션까지 그대로 따라간다.
+        if (entity != null && entity.Animator != null) entity.Animator.speed = 1f;
         entity.CurrentState = AIState.Follow;
         _specialLockUntil = Time.time + Mathf.Max(0f, postPatternRecovery) + Mathf.Max(0f, extraLock);
     }
@@ -642,6 +697,13 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
 
         bool hijacked = false;
 
+        // Pattern_Dash 는 충전(1~3프레임)과 질주(4프레임)가 한 클립에 같이 있다. 클립 끝을 기준으로
+        // 배속을 맞추면 충전이 끝나기도 전에 질주 자세가 나와 버린다. 그래서 '충전이 끝나는 지점'을
+        // 기준점으로 직접 넘겨 그 앞부분만 예고 시간에 맞춰 늘린다. 질주 프레임은 아래에서 따로 튼다.
+        float dashClipLen = entity.Animator != null ? StateClipLength(entity.Animator, animState_Charge) : 0f;
+        PlayState(entity, animState_Charge, chargeTelegraphTime * csMul, matchAnimSpeedToWindup,
+                  anchorOverride: dashClipLen * chargeWindupClipRatio);
+
         float t = 0f;
         while (t < chargeTelegraphTime * csMul)
         {
@@ -673,6 +735,10 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
         {
             gauge?.CloseWindow();
             _controller?.SetStateText($"{Pattern1Label} - 돌진!", Color.white);
+
+            // 같은 클립의 질주 프레임부터 원속으로 다시 튼다. 1회 클립이라 다 돌면 그 프레임에서
+            // 홀드되므로, 돌진이 클립보다 길어져도 자세가 유지된다.
+            PlayState(entity, animState_Charge, startNormalized: chargeWindupClipRatio);
 
             // [버그 수정 — 돌진에 피해 판정이 아예 없던 문제]
             // 이 패턴은 폭 chargeTelegraphWidth 짜리 빨간 레인을 1.5초나 예고하고 22u/s 로 달려오는데,
@@ -846,6 +912,11 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
             GameObject strikeTelegraph = BoneMasterTelegraphUtil.SpawnLane(
                 entity, origin, dir, totalLen, width, telegraphColor, laneTelegraphPrefab, lead * csMul);
 
+            // 타수마다 클립을 처음부터 다시 튼다. PlayState 가 '첫 타격 프레임'을 기준으로 배속을
+            // 맞추므로, 매번 예비동작이 lead 를 꽉 채우고 찌르는 순간에 판정이 겹친다.
+            // (클립 안에 타격이 3개 있지만 두 번째가 오기 전에 다음 타수가 클립을 재시작한다.)
+            PlayState(entity, animState_ThrustPattern, lead * csMul, matchAnimSpeedToWindup);
+
             if (isFinal && gauge != null)
             {
                 _controller?.SetStateText($"{Pattern2Label} - 마지막 일격! (카운터 찬스)", Color.yellow);
@@ -956,7 +1027,9 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
             fakeChance: fakeCounterChance,
             gaugeAmount: counterGaugeAmount,
             realColor: counterRealColor,
-            fakeColor: counterFakeColor);
+            fakeColor: counterFakeColor,
+            counterState: animState_Counter,
+            counterSuccessState: animState_CounterSuccess);
 
         if (result.Countered) EndPatternAfterGroggy(entity, result.GroggyDuration);
         else EndPattern(entity);

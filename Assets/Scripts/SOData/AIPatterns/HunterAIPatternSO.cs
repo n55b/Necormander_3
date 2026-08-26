@@ -17,7 +17,7 @@ public class HunterAIPatternSO : BaseAIPatternSO
             
             if (distToPlayer <= entity.detectRange)
             {
-                var agent = entity.GetComponent<NavMeshAgent>();
+                var agent = entity.NavAgent;
                 if (agent != null && agent.isActiveAndEnabled)
                 {
                     agent.CalculatePath(player.transform.position, entity.NavPath);

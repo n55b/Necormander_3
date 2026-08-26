@@ -67,7 +67,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
                 else
                 {
                     // 추격 로직
-                    var agent = entity.GetComponent<NavMeshAgent>();
+                    var agent = entity.NavAgent;
                     if (agent != null && agent.isActiveAndEnabled)
                     {
                         agent.isStopped = false;
@@ -89,7 +89,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
 
             case WarriorState.RushPositioning:
                 // 3시 또는 9시 목적지로 이동
-                var rushAgent = entity.GetComponent<NavMeshAgent>();
+                var rushAgent = entity.NavAgent;
                 if (rushAgent != null && rushAgent.isActiveAndEnabled)
                 {
                     rushAgent.isStopped = false;

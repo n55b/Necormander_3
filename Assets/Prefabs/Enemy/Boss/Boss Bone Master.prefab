@@ -91,6 +91,7 @@ MonoBehaviour:
   root: {fileID: 0}
   fillImage: {fileID: 0}
   gauge: {fileID: 0}
+  fallbackSpriteResourcePath: Sprites/UI/Generated/UI_HpbarWhite
 --- !u!1001 &3259333560549598808
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -126,7 +127,7 @@ PrefabInstance:
     - target: {fileID: 2865743803237924778, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 22100000, guid: d09461136b43a684ebf192dd3ca0ba4f, type: 2}
+      objectReference: {fileID: 9100000, guid: 22756b20cfae9f14db7e155596f9806b, type: 2}
     - target: {fileID: 5849399955646985582, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -171,6 +172,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8150888168159850155, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 2974677768141486530, guid: 20d220683d7e2714f8eaaaa64e8e69f7, type: 3}
     m_RemovedComponents:
     - {fileID: 2262207286068843843, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
     m_RemovedGameObjects: []

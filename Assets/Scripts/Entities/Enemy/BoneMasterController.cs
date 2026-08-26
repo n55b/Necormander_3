@@ -38,6 +38,21 @@ public class BoneMasterController : EnemyController
     [Header("슈퍼아머")]
     public float superArmorGauge = 999999f;
 
+    [Header("뼈 갑옷 시각 표현")]
+    [Tooltip("부위 파괴 수(0/1/2/3)에 따른 슈퍼아머 아웃라인 색. 슈퍼아머는 끝까지 유지되므로 " +
+             "아웃라인을 끄지 않고 색만 짙어지게 한다 — 끄면 '이제 경직이 들어간다'는 거짓 신호가 된다.")]
+    [SerializeField] private Color[] partBreakOutlineColors =
+    {
+        new Color(1f, 0.85f, 0.25f, 1f),  // 0 파괴 — 노랑(온전한 뼈 갑옷)
+        new Color(1f, 0.55f, 0.15f, 1f),  // 1 파괴 — 주황(투구)
+        new Color(1f, 0.30f, 0.12f, 1f),  // 2 파괴 — 빨강(견갑)
+        new Color(0.75f, 0.10f, 0.10f, 1f) // 3 파괴 — 진빨강(흉갑, 페이즈2)
+    };
+
+    [Header("애니메이션")]
+    [Tooltip("페이즈2 전환 연출 동안 재생할 스테이트. 전용 모션이 아직 없어서 Stun 을 홀드한다.")]
+    [SerializeField] private string phase2TransitionState = "Stun";
+
     [Header("페이즈 전환")]
     public EnemyMinionDataSO phase2Data;
     [SerializeField] private float phase2HealFillDuration = 1f;
@@ -255,6 +270,7 @@ public class BoneMasterController : EnemyController
         if (Stats != null && Stats.Status != null)
         {
             Stats.Status.ApplySuperArmor(superArmorGauge);
+            ApplyArmorOutlineTint();
         }
 
         if (Health != null)
@@ -345,6 +361,7 @@ public class BoneMasterController : EnemyController
     {
         int partIndex = PartsDestroyed;
         PartsDestroyed++;
+        ApplyArmorOutlineTint();
 
         switch (partIndex)
         {
@@ -406,6 +423,10 @@ private IEnumerator Phase2TransitionRoutine()
         HardStopMovement();
         if (Health != null) Health.Invincible = true;
 
+        // 전환 연출 동안 세워둘 자세. 전용 모션이 없어서 Stun(1프레임)을 홀드한다 —
+        // 1회 클립이 아니라 루프지만 프레임이 하나뿐이라 결과는 정지 화면과 같다.
+        BossAIPatternSO.PlayState(this, phase2TransitionState);
+
         // [추가] 페이즈2 시작 연출: 방(맵) 정중앙으로 즉시 이동시킨다. 흉갑이 깨진 위치가 투기장 벽
         // 근처 등 애매한 곳일 수 있어서, 페이즈2는 항상 중앙에서 시작하도록 고정한다.
         RoomInstance room = FindContainingRoom();
@@ -436,6 +457,7 @@ private IEnumerator Phase2TransitionRoutine()
             }
 
             if (Stats.Status != null) Stats.Status.ApplySuperArmor(superArmorGauge);
+            ApplyArmorOutlineTint();
 
             if (phase2Data.aiPattern != null)
             {
@@ -612,6 +634,21 @@ private IEnumerator Phase2TransitionRoutine()
     {
         _outlineGlow?.Hide();
         ClearVisualFlash(); // 폴백 경로로 몸통을 칠했을 수도 있으니 항상 같이 되돌린다
+    }
+
+    /// <summary>
+    /// 지금 부위 파괴 수에 맞는 아웃라인 색을 적용한다. 색표가 짧으면 마지막 색을 쓴다.
+    /// 슈퍼아머 오버레이는 CharacterVisualFeedback 이 LateUpdate 에서 그리므로 색만 넘겨주면 된다.
+    /// </summary>
+    private void ApplyArmorOutlineTint()
+    {
+        if (partBreakOutlineColors == null || partBreakOutlineColors.Length == 0) return;
+
+        var vf = GetComponentInChildren<CharacterVisualFeedback>(true);
+        if (vf == null) return;
+
+        int idx = Mathf.Clamp(PartsDestroyed, 0, partBreakOutlineColors.Length - 1);
+        vf.SetSuperArmorTint(partBreakOutlineColors[idx]);
     }
 
     public void SetVisualFlash(Color color)

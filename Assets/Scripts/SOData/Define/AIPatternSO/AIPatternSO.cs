@@ -120,7 +120,7 @@ public abstract class AIPatternSO : ScriptableObject
 
     protected void StopNavAgent(BaseEntity entity)
     {
-        var agent = entity.GetComponent<NavMeshAgent>();
+        var agent = entity.NavAgent;
         if (agent != null && agent.isActiveAndEnabled)
         {
             agent.isStopped = true;

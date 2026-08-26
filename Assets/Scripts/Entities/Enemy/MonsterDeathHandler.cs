@@ -76,7 +76,9 @@ namespace AstroNuts.Monsters
             StopAllCoroutines();
 
             // 죽는 순간 남아있는 관성(미끄러짐) 제거 - BaseEntity의 기절 처리와 동일한 패턴
-            if (_agent != null && _agent.isActiveAndEnabled)
+            // isOnNavMesh 까지 봐야 한다. 사망 시점엔 이미 에이전트가 NavMesh 에서 떨어져 있는
+            // 경우가 흔해서(넉백 도중 사망, 벽 밖으로 밀려난 뒤 사망) 여기서 경고가 제일 많이 났다.
+            if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh)
             {
                 _agent.isStopped = true;
                 _agent.velocity = Vector3.zero;

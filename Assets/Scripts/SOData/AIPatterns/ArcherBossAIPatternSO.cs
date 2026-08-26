@@ -348,7 +348,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         if (room != null)
         {
             Vector2 center = (Vector2)room.transform.position + room.centerOffset;
-            var agent = entity.GetComponent<NavMeshAgent>();
+            var agent = entity.NavAgent;
             if (agent != null)
             {
                 agent.isStopped = false;

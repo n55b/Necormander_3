@@ -207,6 +207,20 @@ public class CharacterVisualFeedback : MonoBehaviour
     private SpriteRenderer _superArmorOverlay;
     private MaterialPropertyBlock _superArmorMpb;
     private Color _superArmorBaseColor = Color.white;
+    private Color? _superArmorTintOverride;
+
+    /// <summary>
+    /// 이 개체만 슈퍼아머 아웃라인 색을 바꾼다. null 을 주면 팔레트 기본색으로 되돌아간다.
+    ///
+    /// 본 마스터가 쓴다 — 뼈 갑옷 부위가 깨질수록 색이 짙어져서 '얼마나 벗겨졌는지'가 보인다.
+    /// 아웃라인을 끄지 않는 이유는 슈퍼아머 자체는 그대로 살아 있기 때문이다. 꺼 버리면
+    /// '이제 경직이 들어간다'는 거짓 신호가 된다.
+    /// </summary>
+    public void SetSuperArmorTint(Color? tint)
+    {
+        _superArmorTintOverride = tint;
+        _lastOverlayBrightness = -1f; // 밝기 캐시를 무효화해야 다음 프레임에 새 색이 실제로 반영된다
+    }
     private int _superArmorColorId;
     private float _lastOverlayBrightness = -1f;
 
@@ -287,11 +301,12 @@ public class CharacterVisualFeedback : MonoBehaviour
 
         if (_superArmorMpb == null) _superArmorMpb = new MaterialPropertyBlock();
         o.GetPropertyBlock(_superArmorMpb);
+        Color baseColor = _superArmorTintOverride ?? _superArmorBaseColor;
         _superArmorMpb.SetColor(_superArmorColorId, new Color(
-            _superArmorBaseColor.r * brightness,
-            _superArmorBaseColor.g * brightness,
-            _superArmorBaseColor.b * brightness,
-            _superArmorBaseColor.a));
+            baseColor.r * brightness,
+            baseColor.g * brightness,
+            baseColor.b * brightness,
+            baseColor.a));
         o.SetPropertyBlock(_superArmorMpb);
     }
 

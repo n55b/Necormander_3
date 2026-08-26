@@ -54,7 +54,9 @@ public static class BoneMasterCounterUtil
         float fakeChance = 0.5f,
         float gaugeAmount = 1f,
         Color? realColor = null,
-        Color? fakeColor = null)
+        Color? fakeColor = null,
+        string counterState = null,
+        string counterSuccessState = null)
     {
         if (result != null) { result.Countered = false; result.GroggyDuration = 0f; }
 
@@ -62,6 +64,11 @@ public static class BoneMasterCounterUtil
 
         bool isFake = Random.value < Mathf.Clamp01(fakeChance);
         Color flashColor = isFake ? (fakeColor ?? Color.red) : (realColor ?? Color.yellow);
+
+        // 대기 자세. 진짜/페이크가 모션으로는 구분되지 않는 게 의도다 — 구분은 아웃라인 색이 한다.
+        // (1프레임 클립이라 창이 길어져도 그 자세로 계속 서 있는다.)
+        if (!string.IsNullOrWhiteSpace(counterState))
+            BossAIPatternSO.PlayState(entity, counterState);
 
         var gauge = controller != null ? controller.CounterGauge : null;
         bool brokenByPlayer = false;
@@ -133,6 +140,8 @@ public static class BoneMasterCounterUtil
 
         if (!isFake && brokenByPlayer)
         {
+            if (!string.IsNullOrWhiteSpace(counterSuccessState))
+                BossAIPatternSO.PlayState(entity, counterSuccessState);
             controller?.SetStateText($"{patternLabel} - 카운터 성공! 경직!", Color.cyan);
             controller?.ApplyGroggy(successStunDuration);
             if (result != null) { result.Countered = true; result.GroggyDuration = successStunDuration; }

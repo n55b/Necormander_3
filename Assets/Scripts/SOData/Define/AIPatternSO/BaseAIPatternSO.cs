@@ -67,7 +67,7 @@ public class BaseAIPatternSO : AIPatternSO
 
     protected override void OnFollow(BaseEntity entity)
     {
-        var agent = entity.GetComponent<NavMeshAgent>();
+        var agent = entity.NavAgent;
         if (agent != null && agent.isActiveAndEnabled && entity.Target != null)
         {
             agent.isStopped = false;
