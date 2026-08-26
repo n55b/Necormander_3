@@ -335,6 +335,11 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             Vector3 randPos = new Vector3(Random.Range(-rangeX, rangeX), Random.Range(-rangeY, rangeY), 0);
             Vector3 candidatePos = room.transform.position + (Vector3)room.centerOffset + randPos;
 
+            // 방 바닥 칸 위가 아니면 버린다. NavMesh 검사보다 먼저 하는 이유는 이게 더 싸고 더 정확해서다 —
+            // 장식용 바깥 벽 띠에는 콜라이더가 없어서 NavMesh 가 그대로 깔리고, 그래서 벽 한복판에
+            // 예고 장판이 떴다. rangeX/rangeY 사각형은 방보다 크다는 걸 전제로 깔고 가는 필터.
+            if (!room.IsFloorAt(candidatePos)) continue;
+
             // 후보 좌표가 실제로 구워진 NavMesh(이동 가능 구역) 위인지 검증한다.
             // 타일맵뿐 아니라 씬의 벽/기둥/장애물까지 한 번에 우회된다.
             if (NavMesh.SamplePosition(candidatePos, out NavMeshHit hit, 1.5f, NavMesh.AllAreas))

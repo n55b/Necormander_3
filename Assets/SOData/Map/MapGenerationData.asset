@@ -18,7 +18,7 @@ MonoBehaviour:
   gridSpacing: 160
   minNormalRooms: 5
   shopCount: 1
-  enhanceShopCount: 1
+  enhanceShopCount: 0
   rewardCount: 2
   eliteCount: 1
   augmentRoomCount: 1
@@ -27,8 +27,8 @@ MonoBehaviour:
   itemRewardRoomCount: 4
   fillRemainingRoomsRandomly: 1
   wavesCount: 2
-  minDistanceBetweenEnemies: 2
-  maxSpawnAttempts: 5
+  minDistanceBetweenEnemies: 4
+  maxSpawnAttempts: 30
   spreadingForce: 5
   maxVelocityThreshold: 0.1
   maxPhysicsIteration: 500

@@ -39,6 +39,30 @@ public class RoomInstance : MonoBehaviour
         return Mathf.Max(roomSize.x, roomSize.y);
     }
 
+    /// <summary>
+    /// 이 월드 좌표가 방의 실제 바닥 칸 위인지.
+    ///
+    /// roomSize 는 Wall 타일맵 bounds 라서 장식용 바깥 벽 띠까지 들어간다(Room_Normal 7 은 98x91).
+    /// 그래서 '방 중앙 ± roomSize/2' 사각형은 방보다 한참 크고, 몹 예고 장판이 벽 한복판에 떴다.
+    /// Ground 도 자기 bounds 의 48% 만 채우고 있어서(대각선 벽 + 위아래 진입 복도) 사각형으로는
+    /// 절대 못 걸러낸다 — 칸 단위로 물어보는 수밖에 없다.
+    ///
+    /// 방 타일맵은 MergeTilesToGlobal 에서 글로벌로 스탬프된 뒤 오브젝트만 꺼진다.
+    /// 타일 데이터는 지우지 않으므로 맵 생성이 끝난 뒤에도 그대로 조회된다.
+    /// </summary>
+    public bool IsFloorAt(Vector3 worldPos)
+    {
+        if (groundTilemap == null) return true; // 타일맵을 못 찾은 방은 예전처럼 통과시킨다
+
+        if (!groundTilemap.HasTile(groundTilemap.WorldToCell(worldPos))) return false;
+
+        // 바닥 위에 벽/장애물 타일이 겹쳐 그려진 칸이 있다(Room_Normal 7 기준 319 칸).
+        if (wallTilemap != null && wallTilemap.HasTile(wallTilemap.WorldToCell(worldPos))) return false;
+        if (unsteppableTilemap != null && unsteppableTilemap.HasTile(unsteppableTilemap.WorldToCell(worldPos))) return false;
+
+        return true;
+    }
+
     [Header("Combat & Events")]
     public bool isCleared = false;
     public bool hasBeenVisited = false;
@@ -129,14 +153,24 @@ public class RoomInstance : MonoBehaviour
         if (mainTM != null)
         {
             mainTM.CompressBounds();
-            Vector2 localPos = Vector2.zero;
-            Transform curr = mainTM.transform;
-            while (curr != null && curr != transform)
-            {
-                localPos += (Vector2)curr.localPosition;
-                curr = curr.parent;
-            }
-            centerOffset = (Vector2)mainTM.localBounds.center + localPos;
+
+            // 타일맵 로컬 → 방 루트 로컬 변환을 통째로 먹인다.
+            //
+            // 예전엔 부모들의 localPosition 만 더하고 스케일을 무시했다. 그런데 방 프리팹의 Grid 는
+            // localScale 0.5 다 — 셀 1칸이 월드 0.5 다. 그래서 centerOffset 이 정확히 2배로 나왔고,
+            // '방 중앙'을 쓰는 곳이 전부(미니맵 텔레포트, 보스/포탈 스폰, 몹 스폰 기준점, 함정 조준)
+            // 오른쪽 위로 밀려 있었다.
+            //
+            // 스폰 방에서 특히 티가 났다. 스폰 방은 월드 폭이 11칸뿐인데 어긋남이 (4.5, 0.75) 라,
+            // 미니맵으로 스폰 방에 텔포하면 방 중앙이 아니라 동쪽 문 바로 앞(거리 1.5)에 떨어졌다.
+            // 착지 프레임에 문 트리거를 밟아서 그대로 옆방으로 넘어가 버렸다.
+            Matrix4x4 tmToRoom = transform.worldToLocalMatrix * mainTM.transform.localToWorldMatrix;
+            centerOffset = tmToRoom.MultiplyPoint3x4(mainTM.localBounds.center);
+
+            // roomSize 는 '칸 수' 그대로 둔다. RevealRoom 의 안개 걷기가 글로벌 타일맵 칸 단위로 도는데,
+            // 여기서 월드 크기로 바꾸면 반경이 반토막 나서 방 절반이 안 걷힌다.
+            // ponytail: 대신 roomSize 를 월드 크기처럼 쓰는 쪽(방 콜라이더, 몹 스폰 사각형,
+            // BossAIPatternSO 의 방 Bounds)은 지금 2배로 크다. 거슬리면 그때 월드 크기 프로퍼티를 따로 판다.
             roomSize = new Vector2Int(Mathf.CeilToInt(mainTM.localBounds.size.x), Mathf.CeilToInt(mainTM.localBounds.size.y));
         }
 
