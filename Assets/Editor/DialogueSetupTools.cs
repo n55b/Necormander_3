@@ -28,6 +28,16 @@ public static class DialogueSetupTools
 
     // 960x540 기준. 하단 1/3 이 대사창, 상단 2/3 가 초상화.
     private const float TEXTBOX_RATIO = 1f / 3f;
+
+    /// <summary>칸의 가로 위치(화면 폭 비율). 순서는 화면에 보이는 대로 왼쪽 / 가운데 / 오른쪽 —
+    /// DialogueUI.SLOT_FILL_ORDER 의 칸 번호와 같은 순서여야 한다.
+    /// 양 끝을 더 벌리거나 좁히려면 여기 두 값만 만지고 1번 메뉴를 다시 돌린다.</summary>
+    private static readonly float[] SLOT_X = { 0.22f, 0.5f, 0.78f };
+    private static readonly string[] SLOT_NAMES = { "Slot0_Left", "Slot1_Center", "Slot2_Right" };
+
+    /// <summary>칸 하나의 가로 폭(960 기준 픽셀). 양 끝(0.22)과 가운데(0.5) 간격이 269 라
+    /// 이 값이 그보다 크면 초상화끼리 겹친다.</summary>
+    private const float SLOT_W = 260f;
     private const float REF_W = 960f;
     private const float REF_H = 540f;
 
@@ -92,18 +102,16 @@ public static class DialogueSetupTools
         pr.offsetMax = Vector2.zero;
 
         slotRoots = new List<GameObject>();
-        float slotW = REF_W / DialogueUI.SLOT_COUNT;
         float slotH = REF_H * (1f - TEXTBOX_RATIO);
 
         for (int i = 0; i < DialogueUI.SLOT_COUNT; i++)
         {
-            GameObject slot = NewRect($"Slot{i}", portraits.transform, stretch: false);
+            GameObject slot = NewRect($"{SLOT_NAMES[i]}", portraits.transform, stretch: false);
             var sr = slot.GetComponent<RectTransform>();
-            // 각 5등분 칸의 가로 중앙, 세로는 바닥. 피벗이 바닥이라 확대하면 위로 자란다.
-            float cx = (i + 0.5f) / DialogueUI.SLOT_COUNT;
-            sr.anchorMin = sr.anchorMax = new Vector2(cx, 0f);
+            // 세로는 바닥. 피벗이 바닥이라 확대해도 발밑이 안 뜨고 위로만 자란다.
+            sr.anchorMin = sr.anchorMax = new Vector2(SLOT_X[i], 0f);
             sr.pivot     = new Vector2(0.5f, 0f);
-            sr.sizeDelta = new Vector2(slotW, slotH);
+            sr.sizeDelta = new Vector2(SLOT_W, slotH);
             sr.anchoredPosition = Vector2.zero;
 
             // 초상화. 스프라이트가 null 이면 Image 가 단색 사각형을 그리는데,
@@ -334,17 +342,33 @@ public static class DialogueSetupTools
             for (int i = 0; i < lines.Count; i++)
             {
                 var line = lines[i];
+                string where = $"  {id} {i + 1}번째 줄";
+
                 if (line.cast != null)
                 {
                     stage.Clear();
+
+                    // @자리 오타는 조용히 자동 배치로 떨어져서 눈으로는 절대 못 잡는다. 여기서 잡는다.
+                    var claimed = new HashSet<int>();
                     foreach (var c in line.cast)
                     {
-                        DialogueCastSO.SplitKey(c, out string ck, out _);
+                        DialogueCastSO.SplitKey(c, out string ck, out _, out string slotName);
                         if (!string.IsNullOrEmpty(ck)) stage.Add(ck);
+                        if (string.IsNullOrEmpty(slotName)) continue;
+
+                        int idx = DialogueUI.SlotIndexOf(slotName);
+                        if (idx < 0)
+                        {
+                            sb.AppendLine($"NG{where}: '{ck}' 의 자리 '{slotName}' 을 모르겠다 — 왼쪽/가운데/오른쪽 (left/center/right).");
+                            problems++;
+                        }
+                        else if (!claimed.Add(idx))
+                        {
+                            sb.AppendLine($"NG{where}: 자리 '{slotName}' 을 둘 이상이 찍었다 — 뒤엣놈이 남는 칸으로 밀려난다.");
+                            problems++;
+                        }
                     }
                 }
-
-                string where = $"  {id} {i + 1}번째 줄";
 
                 if (i == 0 && line.cast == null)
                 {

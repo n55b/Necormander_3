@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
-/// 화면 하단 대사창 + 상단 초상화 5칸을 굴리는 대화 UI.
+/// 화면 하단 대사창 + 상단 초상화 3칸(왼쪽/가운데/오른쪽)을 굴리는 대화 UI.
 ///
 /// <b>부르는 법</b> — 이거 하나면 된다.
 /// <code>
@@ -52,8 +52,10 @@ public class DialogueUI : Singleton<DialogueUI>
     [Tooltip("선택. 타이핑이 끝나면 켜지는 '다음' 화살표.")]
     [SerializeField] private GameObject nextArrow;
 
-    [Header("초상화 슬롯 (왼쪽부터 5칸)")]
-    [Tooltip("5칸을 왼쪽부터 순서대로 넣는다. 인원이 5명보다 적으면 가운데로 모아서 배치한다.")]
+    [Header("초상화 슬롯 (왼쪽 / 가운데 / 오른쪽)")]
+    [Tooltip("화면에 보이는 순서 그대로 넣는다: 0=왼쪽, 1=가운데, 2=오른쪽.\n\n" +
+             "채우는 순서는 이것과 다르다 — cast 에 적은 순서대로 왼쪽 → 오른쪽 → 가운데 로 들어간다. " +
+             "둘이면 양 끝에 서고, 셋째가 그 사이 가운데에 낀다.")]
     [SerializeField] private PortraitSlot[] slots = new PortraitSlot[SLOT_COUNT];
 
     [Header("타이핑")]
@@ -121,21 +123,35 @@ public class DialogueUI : Singleton<DialogueUI>
         public TextMeshProUGUI placeholderLabel;
     }
 
-    public const int SLOT_COUNT = 5;
+    public const int SLOT_COUNT = 3;
 
     /// <summary>
-    /// 인원수별 슬롯 배치. 5칸 중 가운데로 모은다.
-    /// 1명=[가운데], 2명=[2,4]칸, 3명=[2,3,4]칸, 4명=[1,2,4,5]칸, 5명=전부.
+    /// 자리를 안 찍은 캐릭터가 빈 칸을 주워 가는 순서: 왼쪽 → 오른쪽 → 가운데.
+    /// 칸 번호는 화면에 보이는 순서다 — 0=왼쪽, 1=가운데, 2=오른쪽.
+    ///
+    ///   1명 → 왼쪽
+    ///   2명 → 왼쪽, 오른쪽        (양 끝)
+    ///   3명 → 왼쪽, 오른쪽, 가운데 (셋째가 그 사이에 낀다)
+    ///
+    /// CSV 에서 <c>merchant@가운데</c> 처럼 직접 찍은 칸은 이 순서보다 먼저 예약된다.
+    /// 칸의 실제 x 좌표는 프리팹이 들고 있다 — 바꾸려면 DialogueSetupTools 의 SLOT_X 를 고치고
+    /// 1번 메뉴로 프리팹을 다시 만든다.
     /// </summary>
-    private static readonly int[][] CENTERED_LAYOUT =
+    private static readonly int[] AUTO_SLOT_ORDER = { 0, 2, 1 };
+
+    /// <summary>CSV 에 적은 자리 이름 → 칸 번호. 못 알아들으면 -1(= 자동 배치).
+    /// 검증 메뉴(DialogueSetupTools)도 오타를 잡으려고 이걸 쓴다.</summary>
+    public static int SlotIndexOf(string name)
     {
-        new int[0],
-        new[] { 2 },
-        new[] { 1, 3 },
-        new[] { 1, 2, 3 },
-        new[] { 0, 1, 3, 4 },
-        new[] { 0, 1, 2, 3, 4 },
-    };
+        if (string.IsNullOrEmpty(name)) return -1;
+        switch (name.Trim().ToLowerInvariant())
+        {
+            case "l": case "left":   case "왼": case "왼쪽":            return 0;
+            case "c": case "center": case "가운데": case "중앙":        return 1;
+            case "r": case "right":  case "오른": case "오른쪽":        return 2;
+        }
+        return -1;
+    }
 
     public bool IsPlaying { get; private set; }
 
@@ -314,23 +330,58 @@ public class DialogueUI : Singleton<DialogueUI>
     private void ApplyStage(string speakerKey, string speakerExpr)
     {
         int count = Mathf.Min(_stage.Count, SLOT_COUNT);
-        int[] layout = CENTERED_LAYOUT[count];
-
+        int[] assigned = new int[count];
         bool[] used = new bool[SLOT_COUNT];
 
+        // 1) CSV 에서 자리를 직접 찍은(@왼쪽 …) 애들이 먼저 그 칸을 예약한다.
         for (int i = 0; i < count; i++)
         {
-            int slotIndex = layout[i];
-            used[slotIndex] = true;
+            assigned[i] = -1;
+            DialogueCastSO.SplitKey(_stage[i], out string k, out _, out string slotName);
+            if (string.IsNullOrEmpty(slotName)) continue;
 
-            DialogueCastSO.SplitKey(_stage[i], out string key, out string expr);
+            int want = SlotIndexOf(slotName);
+            if (want < 0)
+            {
+                Debug.LogWarning($"[Dialogue] '{k}' 의 자리 '{slotName}' 을 모르겠다. " +
+                                 "왼쪽/가운데/오른쪽 (left/center/right) 중 하나로 적어라. 자동 배치로 넘긴다.", this);
+                continue;
+            }
+            if (used[want])
+            {
+                Debug.LogWarning($"[Dialogue] '{k}' 가 이미 찬 자리 '{slotName}' 을 찍었다. 남는 칸으로 밀어낸다.", this);
+                continue;
+            }
+            used[want] = true;
+            assigned[i] = want;
+        }
+
+        // 2) 안 찍은 애들은 왼쪽 → 오른쪽 → 가운데 순으로 남은 칸을 주워 간다.
+        for (int i = 0; i < count; i++)
+        {
+            if (assigned[i] >= 0) continue;
+            foreach (int s in AUTO_SLOT_ORDER)
+            {
+                if (used[s]) continue;
+                used[s] = true;
+                assigned[i] = s;
+                break;
+            }
+        }
+
+        // 3) 자리가 다 정해졌으니 칠한다.
+        for (int i = 0; i < count; i++)
+        {
+            if (assigned[i] < 0) continue; // 칸이 모자란 경우 (count <= SLOT_COUNT 라 정상적으론 안 걸린다)
+
+            DialogueCastSO.SplitKey(_stage[i], out string key, out string expr, out _);
 
             // 이 줄에서 화자가 다른 표정을 지정했으면 그걸 우선한다.
             // (cast 에는 bonemaster 로만 적어두고 speaker 에 bonemaster/angry 로 쓰는 흐름)
             if (key == speakerKey && !string.IsNullOrEmpty(speakerExpr)) expr = speakerExpr;
 
             bool isSpeaker = !string.IsNullOrEmpty(speakerKey) && key == speakerKey;
-            FillSlot(slotIndex, key, expr, isSpeaker);
+            FillSlot(assigned[i], key, expr, isSpeaker);
         }
 
         for (int i = 0; i < SLOT_COUNT; i++)
@@ -535,7 +586,7 @@ public class DialogueUI : Singleton<DialogueUI>
 #if UNITY_EDITOR
     /// <summary>
     /// 에디터 전용. 플레이 모드에 들어가지 않고 Game 뷰에서 레이아웃만 보려고
-    /// 5칸을 전부 채우고 대사창에 견본 문장을 넣는다.
+    /// 3칸을 전부 채우고 대사창에 견본 문장을 넣는다.
     /// 대사창 비율·글자 크기·확대 배율은 실제로 눈으로 봐야 감이 오는 값들이라,
     /// 던전을 로딩해서 확인하는 것보다 이게 빠르다.
     /// </summary>
