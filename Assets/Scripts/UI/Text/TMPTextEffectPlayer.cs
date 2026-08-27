@@ -82,7 +82,9 @@ public class TMPTextEffectPlayer : MonoBehaviour
     {
         activeRanges.Clear();
         activeRanges.AddRange(ranges);
-        startTime = Time.time;
+        // unscaled 를 쓴다: 대화창은 Time.timeScale=0 인 채로 떠 있어서
+        // Time.time 을 쓰면 wave/rainbow 가 통째로 멈춘다. 히트스톱 중에도 마찬가지.
+        startTime = Time.unscaledTime;
 
         hasContinuousEffect = false;
         float maxOneShot = 0f;
@@ -141,7 +143,7 @@ public class TMPTextEffectPlayer : MonoBehaviour
             return;
         }
 
-        float t = Time.time - startTime;
+        float t = Time.unscaledTime - startTime;
 
         foreach (var range in activeRanges)
         {
@@ -156,6 +158,10 @@ public class TMPTextEffectPlayer : MonoBehaviour
                 TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
                 if (charInfo.index < range.startIndex || charInfo.index >= endIndex) continue;
                 if (!charInfo.isVisible) continue;
+                // 타자기(maxVisibleCharacters)로 아직 안 드러난 글자는 건너뛴다.
+                // 감춰진 글자도 isVisible 이 true 라, 접힌 정점에 오프셋을 더하면
+                // 화면 구석에 유령 글자가 뜬다.
+                if (i >= tmp.maxVisibleCharacters) continue;
 
                 int matIndex = charInfo.materialReferenceIndex;
                 int vIndex = charInfo.vertexIndex;
@@ -239,7 +245,7 @@ public class TMPTextEffectPlayer : MonoBehaviour
         }
 
         // 반복 이펙트가 하나도 없고, 1회성 이펙트가 다 끝났으면 재생을 멈춘다.
-        if (!hasContinuousEffect && Time.time > oneShotEndTime)
+        if (!hasContinuousEffect && Time.unscaledTime > oneShotEndTime)
         {
             enabled = false;
         }

@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 682f36477f7cde94ab4e92be0d2e0890, type: 3}
+  m_Name: DialogueCast
+  m_EditorClassIdentifier: 
+  entries:
+  - key: player
+    displayName: "\uB124\uD06C\uB85C\uB9E8\uC11C"
+    nameColor: {r: 0.72, g: 0.86, b: 1, a: 1}
+    portraits: []
+  - key: bonemaster
+    displayName: "\uBCF8 \uB9C8\uC2A4\uD130"
+    nameColor: {r: 1, g: 0.55, b: 0.45, a: 1}
+    portraits: []
+  - key: merchant
+    displayName: "\uC0C1\uC778"
+    nameColor: {r: 1, g: 0.9, b: 0.55, a: 1}
+    portraits: []
+  - key: enhancer
+    displayName: "\uB300\uC7A5\uC7A5\uC774"
+    nameColor: {r: 0.8, g: 0.95, b: 0.7, a: 1}
+    portraits: []
+  - key: ally
+    displayName: "\uC5BC\uC74C \uB9C8\uBC95\uC0AC"
+    nameColor: {r: 0.7, g: 0.9, b: 1, a: 1}
+    portraits: []
