@@ -19,7 +19,12 @@ public bool Interact(GameObject interactor)
         Fader fader = Fader.FullScreenFader;
         if (fader != null)
         {
-            fader.FadeOutIn(FadeSignal.씬전환, () => SceneManager.LoadScene(DungeonSceneName));
+            // 새 씬이 다 지어질 때까지 암전을 유지한다. LoadScene 이 돌아와도 맵 생성 + 플레이어 스폰이
+            // 몇 프레임 더 남아 있어서, 안 기다리면 밝아진 화면으로 그 과정을 구경하게 된다.
+            fader.FadeOutIn(FadeSignal.씬전환,
+                            () => SceneManager.LoadScene(DungeonSceneName),
+                            null,
+                            GameManager.NextSceneReady());
         }
         else
         {

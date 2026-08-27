@@ -340,6 +340,13 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             // 예고 장판이 떴다. rangeX/rangeY 사각형은 방보다 크다는 걸 전제로 깔고 가는 필터.
             if (!room.IsFloorAt(candidatePos)) continue;
 
+            // 문 앞은 통째로 비운다. 여기 뜬 적은 전투가 끝나 문이 닫히면 통로 뒤에 갇혀서 못 잡는다.
+            // 구역 크기는 MapGenerationData 의 '문 앞 스폰 금지 구역'에서 조절한다.
+            if (mapGenerationData != null && room.IsInDoorKeepOut(candidatePos,
+                    mapGenerationData.doorKeepOutWidth,
+                    mapGenerationData.doorKeepOutInward,
+                    mapGenerationData.doorKeepOutOutward)) continue;
+
             // 후보 좌표가 실제로 구워진 NavMesh(이동 가능 구역) 위인지 검증한다.
             // 타일맵뿐 아니라 씬의 벽/기둥/장애물까지 한 번에 우회된다.
             if (NavMesh.SamplePosition(candidatePos, out NavMeshHit hit, 1.5f, NavMesh.AllAreas))
@@ -455,4 +462,45 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             Debug.Log($"<color=cyan>[NormalRoomEvent]</color> Added split enemy: {enemy.name}. Current Active Count: {_activeEnemies.Count}");
         }
     }
+
+#if UNITY_EDITOR
+    /// <summary>문 앞 스폰 금지 구역을 씬 뷰에 그린다. 숫자만 보고 맞출 수 있는 값이 아니라서 있어야 한다.
+    /// 런타임 anchors 목록은 Initialize 전엔 비어 있으므로 자식에서 직접 긁는다.</summary>
+    private void OnDrawGizmosSelected()
+    {
+        // 방 프리팹의 이 슬롯은 비어 있는 게 정상이다 — 런타임엔 GameManager 의 현재 층 데이터를
+        // 받아와 채운다(위 Awake 참고). 에디터엔 GameManager 가 없으니 여기서만 프로젝트에서 직접 긁는다.
+        // (필드에 대입하면 프리팹이 더럽혀지니 지역 변수로만 쓴다.)
+        MapGenerationDataSO data = mapGenerationData;
+        if (data == null)
+        {
+            string[] found = UnityEditor.AssetDatabase.FindAssets("t:MapGenerationDataSO");
+            if (found.Length == 0) return;
+            data = UnityEditor.AssetDatabase.LoadAssetAtPath<MapGenerationDataSO>(
+                       UnityEditor.AssetDatabase.GUIDToAssetPath(found[0]));
+        }
+        if (data == null) return;
+
+        float width   = data.doorKeepOutWidth;
+        float inward  = data.doorKeepOutInward;
+        float outward = data.doorKeepOutOutward;
+        if (width <= 0f || (inward <= 0f && outward <= 0f)) return;
+
+        Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.85f);
+        foreach (var anchor in GetComponentsInChildren<RoomAnchor>())
+        {
+            if (anchor == null) continue;
+            bool vertical = anchor.direction.y != 0;
+            if ((vertical ? anchor.direction.y : anchor.direction.x) == 0) continue;
+
+            // 안/밖 깊이가 다르니 상자 중심이 앵커에서 그만큼 밀린다.
+            Vector3 dir = new Vector3(anchor.direction.x, anchor.direction.y, 0f);
+            Vector3 center = anchor.transform.position + dir * ((outward - inward) * 0.5f);
+            float depth = inward + outward;
+            Vector3 box = vertical ? new Vector3(width, depth, 0.1f)
+                                   : new Vector3(depth, width, 0.1f);
+            Gizmos.DrawWireCube(center, box);
+        }
+    }
+#endif
 }

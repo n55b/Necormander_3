@@ -63,6 +63,36 @@ public class RoomInstance : MonoBehaviour
         return true;
     }
 
+    /// <summary>문 앞 스폰 금지 구역 안인가. 여기서 적이 뜨면 문틈에 껴서, 전투가 끝나 문이 닫히면
+    /// 통로 뒤에 갇혀 못 잡는다. 문은 방향이 있어서 원이 아니라 앵커 방향에 맞춰 눕힌 상자로 잰다.
+    ///
+    /// 깊이는 부호로 안/밖을 가른다 — RoomAnchor.direction 이 '통로가 뻗어나가는 방향'(= 방 바깥)이라
+    /// 그쪽으로 양수. 통로는 길고 방 안쪽 광장은 그만큼 비울 필요가 없어서 따로 준다.
+    /// 앵커 목록은 연결 안 된 문까지 다 들고 있는데, 그쪽은 어차피 벽이라 막아도 손해가 없다.</summary>
+    public bool IsInDoorKeepOut(Vector3 worldPos, float width, float inward, float outward)
+    {
+        if (width <= 0f || (inward <= 0f && outward <= 0f)) return false;
+
+        foreach (var anchor in anchors)
+        {
+            if (anchor == null) continue;
+
+            // 방향이 안 잡힌 앵커는 안/밖을 가를 수가 없다. 막지 않는 쪽으로 넘어간다.
+            bool vertical = anchor.direction.y != 0;
+            float sign = vertical ? anchor.direction.y : anchor.direction.x;
+            if (sign == 0f) continue;
+
+            Vector2 d = (Vector2)worldPos - (Vector2)anchor.transform.position;
+
+            float across = vertical ? Mathf.Abs(d.x) : Mathf.Abs(d.y);
+            if (across > width * 0.5f) continue;
+
+            float depth = (vertical ? d.y : d.x) * sign; // + 면 방 바깥(통로), - 면 방 안쪽
+            if (depth >= 0f ? depth <= outward : -depth <= inward) return true;
+        }
+        return false;
+    }
+
     [Header("Combat & Events")]
     public bool isCleared = false;
     public bool hasBeenVisited = false;

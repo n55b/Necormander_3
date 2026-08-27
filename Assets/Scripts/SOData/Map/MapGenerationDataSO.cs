@@ -47,6 +47,14 @@ public class MapGenerationDataSO : ScriptableObject
     public float minDistanceBetweenEnemies = 2.0f;
     [Tooltip("최소 간격을 만족하지 못할 때 포기할 최대 시도 횟수")]
     public int maxSpawnAttempts = 10;
+    [Tooltip("문 앞 스폰 금지 구역의 폭. 통로와 직각인 방향의 전체 너비(유닛).\n\n" +
+             "이 구역 안에는 적이 안 뜬다 — 문틈에 낀 적이 전투 후 닫힌 문 뒤에 갇혀서 못 잡는 사고를 막는다.\n" +
+             "방 프리팹 루트를 고르면 씬 뷰에 빨간 상자로 그려진다. 0 으로 두면 이 기능이 통째로 꺼진다.")]
+    public float doorKeepOutWidth = 5f;
+    [Tooltip("문에서 '방 안쪽'으로 파고드는 깊이(유닛). 문 앞 광장을 얼마나 비워둘지.")]
+    public float doorKeepOutInward = 4f;
+    [Tooltip("문에서 '방 바깥'(통로 쪽)으로 나가는 깊이(유닛). 문틈과 통로에 끼는 걸 막는 쪽.")]
+    public float doorKeepOutOutward = 4f;
 
     [Header("Spreading Settings")]
     public float spreadingForce = 5f;

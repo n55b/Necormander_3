@@ -39,13 +39,21 @@ private float _windowMaxForce  = 0f;
         Debug.Log("<color=cyan>[CameraManager]</color> Initialized.");
     }
 
-    // [추가] 텔레포트 이동 시 카메라 즉시 순간이동 기능
+    /// <summary>텔레포트 이동 시 카메라 즉시 순간이동. 부르는 쪽은 플레이어를 넘겨도 된다.
+    ///
+    /// [함정] Cinemachine 은 넘긴 target 이 Follow 와 '참조가 같지' 않으면 워프를 통째로 무시한다
+    /// (CinemachineCamera / CinemachineFollow / Confiner2D 전부 target == Follow 로 걸러낸다).
+    /// 그런데 vcam 이 따라다니는 건 플레이어가 아니라 그 자식 CameraTarget 이라,
+    /// 플레이어를 넘기면 워프가 조용히 씹히고 카메라가 damping 으로 천천히 따라온다
+    /// = 방 이동에서 페이드 인이 끝난 뒤에 카메라가 스르륵 움직이는 게 보인다.
+    /// 그래서 여기서 실제 Follow 대상으로 바꿔 넘긴다. CameraTarget 은 플레이어의 자식이니 delta 는 같다.</summary>
     public void WarpCamera(Transform target, Vector3 delta)
     {
-        if (_vcam != null)
-        {
-            _vcam.OnTargetObjectWarped(target, delta);
-        }
+        if (_vcam == null) return;
+
+        if (_vcam.Follow != null) target = _vcam.Follow;
+
+        _vcam.OnTargetObjectWarped(target, delta);
     }
 
     // ─── 흔들림 ──────────────────────────────────────────────────────

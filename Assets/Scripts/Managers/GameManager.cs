@@ -19,6 +19,20 @@ public class GameManager : MonoBehaviour
     public PlayerController PLAYERCONTROLLER => playerController;
     public bool IsPlayerReady { get; private set; } = false;
 
+    /// <summary>'다음 씬이 다 지어졌는지' 물어보는 조건을 만든다. 씬 전환 페이드가
+    /// 언제 밝혀도 되는지를 이걸로 판단한다 (Fader.FadeOutIn 의 waitUntil 에 넘긴다).
+    ///
+    /// [함정] SceneManager.LoadScene 은 부른 즉시 로드되지 않고 '그 프레임 끝'에 로드된다.
+    /// 그래서 그냥 IsPlayerReady 를 보면, 아직 멀쩡히 살아있는 '떠나는 씬'의 GameManager 가
+    /// true 를 답해버려서 기다림이 통째로 무시된다 → 페이드 인이 로드 전에 다 끝나고,
+    /// 맵이 지어지는 걸 밝은 화면으로 구경하게 된다.
+    /// 그래서 지금 인스턴스를 기억해뒀다가 '그놈이 아닌 새 GameManager' 가 준비될 때까지 기다린다.</summary>
+    public static System.Func<bool> NextSceneReady()
+    {
+        GameManager leaving = Instance;
+        return () => Instance != leaving && Instance != null && Instance.IsPlayerReady;
+    }
+
     [Header("Global Volume")]
     [SerializeField] public Volume globalvolume;
 
@@ -369,7 +383,11 @@ public class GameManager : MonoBehaviour
         Fader fader = Fader.FullScreenFader;
         if (fader != null)
         {
-            fader.FadeOutIn(FadeSignal.층이동, () => UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName));
+            // 새 씬이 다 지어질 때까지 암전을 유지한다(SceneReady). 안 그러면 맵 생성 도중에 밝아진다.
+            fader.FadeOutIn(FadeSignal.층이동,
+                            () => UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName),
+                            null,
+                            NextSceneReady());
         }
         else
         {

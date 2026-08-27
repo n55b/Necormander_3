@@ -3276,7 +3276,7 @@ MonoBehaviour:
   isCleared: 0
   hasBeenVisited: 0
   doorObjects:
-  - {fileID: 8637198600651598581, guid: 307b97e39cd375d47a324403a27bb3a6, type: 3}
+  - {fileID: -4921037650239937328, guid: 307b97e39cd375d47a324403a27bb3a6, type: 3}
   roomBGM: {fileID: 8300000, guid: 76c50e154a0bfa648927b49416b5181a, type: 3}
   miniMapIconsParent: {fileID: 2700882719608860080}
 --- !u!114 &8985164081271137351
@@ -3295,6 +3295,7 @@ MonoBehaviour:
   spawnVfxPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   spawnMargin: 3
   rewardBoxPrefab: {fileID: 0}
+  rewardSpawnPoint: {fileID: 0}
   OnCombatStart:
     m_PersistentCalls:
       m_Calls: []
