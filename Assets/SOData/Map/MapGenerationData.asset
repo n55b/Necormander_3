@@ -29,6 +29,9 @@ MonoBehaviour:
   wavesCount: 2
   minDistanceBetweenEnemies: 4
   maxSpawnAttempts: 30
+  doorKeepOutWidth: 6
+  doorKeepOutInward: 1
+  doorKeepOutOutward: 5
   spreadingForce: 5
   maxVelocityThreshold: 0.1
   maxPhysicsIteration: 500

@@ -55,13 +55,34 @@ public class DialogueCastSO : ScriptableObject
 
     /// <summary>"bonemaster/angry" 를 키와 표정으로 가른다.</summary>
     public static void SplitKey(string raw, out string key, out string expression)
+        => SplitKey(raw, out key, out expression, out _);
+
+    /// <summary>CSV 한 칸을 셋으로 가른다: <c>키/표정@자리</c>. 표정과 자리는 둘 다 생략할 수 있다.
+    ///
+    ///   <c>bonemaster</c>              → 키만
+    ///   <c>bonemaster/angry</c>        → 화난 표정
+    ///   <c>bonemaster@right</c>        → 오른쪽 자리 지정
+    ///   <c>bonemaster/angry@right</c>  → 둘 다
+    ///
+    /// 자리 이름을 실제 칸 번호로 옮기는 건 DialogueUI 가 한다 — 여기는 문자열만 가른다.
+    /// speaker 칸에 자리를 적어도 조용히 무시된다(자리는 무대 = cast 가 정한다).</summary>
+    public static void SplitKey(string raw, out string key, out string expression, out string slot)
     {
         key = raw;
         expression = null;
+        slot = null;
         if (string.IsNullOrEmpty(raw)) return;
 
+        // 자리를 먼저 떼어낸다. '@' 가 뒤에 붙는 꼬리라 표정보다 바깥이다.
+        int at = raw.LastIndexOf('@');
+        if (at >= 0)
+        {
+            slot = raw.Substring(at + 1).Trim();
+            raw = raw.Substring(0, at);
+        }
+
         int slash = raw.IndexOf('/');
-        if (slash < 0) return;
+        if (slash < 0) { key = raw.Trim(); return; }
 
         key = raw.Substring(0, slash).Trim();
         expression = raw.Substring(slash + 1).Trim();
