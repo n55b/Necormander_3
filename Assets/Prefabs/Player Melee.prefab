@@ -1407,7 +1407,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument:
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: e7b0b0c4-d2e3-4f5a-6b7c-8d9e0f1a2b3c
@@ -1567,7 +1567,7 @@ MonoBehaviour:
   lightAttackDashMultiplier: 1
   comboResetTime: 1
   attackCooldown: 0.3
-  lightHitboxSize: {x: 2.7, y: 1.7}
+  lightHitboxSize: {x: 3, y: 2}
   lightTelegraphDuration: 0.2
   hideBasicAttackTelegraph: 1
   hideFinisherTelegraph: 0
@@ -1603,7 +1603,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainSummon: {fileID: 0}
-  subSummon: {fileID: 0}
   equippedPlayerSkills: []
 --- !u!114 &3445112678206032524
 MonoBehaviour:
@@ -1630,13 +1629,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d04cdc34e11097e4dbd2d3d6a637e686, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  parryRadius: 2.5
-  parryAngle: 160
-  useAnimationDuration: 0
-  parryActiveDuration: 0.05
-  parryRecoveryDuration: 0.8
   parryTelegraphPrefab: {fileID: 0}
-  parryMoveSpeedMultiplier: 0.3
+  emptyMessage: "\uC6B0\uD074\uB9AD \uC5C6\uC74C!"
 --- !u!1 &9147274299791283214
 GameObject:
   m_ObjectHideFlags: 0
