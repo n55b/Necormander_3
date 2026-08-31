@@ -34,10 +34,19 @@ public static class BossAttackIndicator
     /// 같은 식</b>을 넘겨야 한다(배속 보정까지 곱한 뒤의 값).</param>
     /// <param name="dir">공격이 나가는 방향. 방향이 없는 패턴(회전 베기, 착지 장판 등)은
     /// 비워두면 플레이어 쪽을 본다 — 아래 <see cref="Angle"/> 참고.</param>
-    public static void Begin(BaseEntity entity, float duration, Vector2 dir = default)
+    /// <param name="color">
+    /// 게이지 색 = 카운터 신호. 노랑이면 '지금 때리면 패턴이 취소된다', 빨강이면 '때리면 즉시 시전한다',
+    /// 무채색이면 '카운터 불가'. 비워두면 프리팹에 박힌 색(빨강)이 그대로 남는다.
+    ///
+    /// <see cref="Stop"/> 은 색을 되돌리지 않는다 — 켤 때마다 반드시 다시 정해야 이전 패턴의
+    /// 색이 새 예고에 묻어나지 않는다.
+    /// </param>
+    public static void Begin(BaseEntity entity, float duration, Vector2 dir = default, Color? color = null)
     {
         CenterMeetFill fill = Find(entity);
         if (fill == null) return;
+
+        if (color.HasValue) fill.SetColor(color.Value);
 
         fill.transform.localRotation = Quaternion.Euler(0f, 0f, Angle(entity, dir));
         fill.gameObject.SetActive(true);

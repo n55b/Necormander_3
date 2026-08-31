@@ -6,7 +6,7 @@ using UnityEngine.AI;
 /// 본 마스터 보스 전용 컨트롤러.
 /// - 부위(투구/견갑/흉갑) 파괴에 따른 받는피해 증가 + 페이즈2 진입을 관리한다.
 /// - 카운터 게이지(BossCounterGauge), 머리 위 상태 텍스트(EliteBossPatternLabel)를 배선한다.
-/// - 뼈 투기장(타원형 가시 경계)은 보스를 따라다니지 않고, 보스가 스폰된 RoomInstance 중심에 고정되며
+/// - 방 경계은 보스를 따라다니지 않고, 보스가 스폰된 RoomInstance 중심에 고정되며
 ///   방의 실제 가로/세로 비율(roomSize)에 맞춰 타원으로 그려진다.
 /// - Charger Elite와 동일하게 상시 슈퍼아머를 부여해 플레이어 평타에 경직/넉백되지 않는다.
 ///
@@ -30,9 +30,16 @@ public class BoneMasterController : EnemyController
     [SerializeField] private float perPartIncomingDamageBonus = 0.15f;
     [SerializeField] private float baseArmorReduction = 0.2f;
 
-    [SerializeField] private float helmetBreakRangeBonus = 0.15f;
-    [SerializeField] private float pauldronBreakCastSpeedBonus = 0.15f;
-    [SerializeField] private float chestBreakMoveSpeedBonus = 0.15f;
+    // [0830 수정안] 부위 파괴로 보스가 얻던 이로운 효과 3종은 은퇴했다 — 남는 건 '받는 피해 증가'뿐.
+    //
+    // 필드와 소비 수식(rangeMul / csMul)을 지우지 않고 기본값만 0으로 죽인 이유:
+    // csMul 은 예고 시간 · 애니 배속 · 인디케이터 duration · 카운터 창을 한 변수로 묶고 있어서
+    // (그래야 게이지가 가득 차는 순간과 판정이 어긋나지 않는다), 걷어내면 그 배선을 전부 다시
+    // 짜야 한다. 게다가 '집행'의 시전 속도 40% 가속을 물릴 자리가 정확히 이 수식들이다.
+    // 0 이면 rangeMul = csMul = 1 이라 모든 수식이 항등이 된다. 되살리지 마라.
+    [SerializeField] private float helmetBreakRangeBonus = 0f;
+    [SerializeField] private float pauldronBreakCastSpeedBonus = 0f;
+    [SerializeField] private float chestBreakMoveSpeedBonus = 0f;
     [SerializeField] private float partBreakTextDuration = 1.5f;
 
     [Header("슈퍼아머")]
@@ -82,24 +89,13 @@ public class BoneMasterController : EnemyController
     [Range(0f, 1f)]
     [SerializeField] private float counterOutlinePulseFloor = 0.25f;
 
-    [Header("뼈 투기장 (방 경계 타원형, 링 판정)")]
-    [Tooltip("방 크기 대비 타원 비율(1에 가까울수록 방을 거의 꽉 채움)")]
+    [Header("방 경계 (보스 이동 제한)")]
+    [Tooltip("방 크기 대비 보스가 움직일 수 있는 비율.\n\n" +
+             "roomSize 는 장식 벽 띠까지 포함한 값이라 그대로 쓰면 보스가 벽 안쪽으로 들어간다. " +
+             "삭제된 뼈 투기장이 쓰던 값(0.92)을 그대로 물려받았으니, 이동 가능 범위를 " +
+             "바꿀 생각이 아니면 건드리지 마라.")]
     [Range(0.5f, 1f)]
-    [SerializeField] private float thornRingPhase1MarginRatio = 0.95f;
-    [Tooltip("페이즈2 투기장 크기 비율(페이즈1 크기 대비). 1보다 크면 페이즈1보다 더 넓어진다.")]
-    [Range(0.3f, 1f)]
-    [SerializeField] private float thornRingPhase2ShrinkRatio = 0.85f; // [수정] 0.99는 페이즈1과 거의 차이가 없어(1%) "안 줄어드는 것처럼" 보이는 문제가 있었다. 경계 자체는 눈에 띄게 줄어들되(15%), 안쪽 이동 공간은 아래 thornRingPhase2BandRatio로 별도 보정한다.
-    [SerializeField] private Vector2 thornRingFallbackSize = new Vector2(16f, 16f);
-    [SerializeField] private Color thornRingColor = new Color(1f, 0.05f, 0.05f, 1f);
-    [SerializeField] private int thornRingSortingOrder = 5000;
-    [SerializeField] private float thornRingBandRatio = 0.12f;
-    [Tooltip("페이즈2 전용 가시 띠 두께(바깥 반지름 대비). 페이즈1보다 얇게 잡아서, 경계는 줄어들어도 실제 이동 가능한 안쪽 공간은 덜 좁아지게 한다.")]
-    [Range(0.02f, 0.3f)]
-    [SerializeField] private float thornRingPhase2BandRatio = 0.06f;
-    [Header("뼈 투기장 바깥 차단 영역")]
-    [SerializeField] private float voidBarrierMargin = 60f;
-    [SerializeField] private Color voidBarrierColor = Color.black;
-    [SerializeField] private int voidBarrierSortingOrder = 4990;
+    [SerializeField] private float roomBoundsMarginRatio = 0.92f;
 
 
     public int PartsDestroyed { get; private set; } = 0;
@@ -116,8 +112,6 @@ public class BoneMasterController : EnemyController
     private SpriteRenderer[] _bodyRenderers;
     private Color[] _bodyOriginalColors;
 
-    private ThornArenaHazard _thornRing;
-    private Vector2 _thornRingPhase1Size = Vector2.zero;
     private Coroutine _stateTextClearRoutine;
     private Coroutine _groggyFlashRoutine;
     private Coroutine _groggyClearRoutine;
@@ -152,7 +146,7 @@ public class BoneMasterController : EnemyController
     {
         // finally 로 감싸야 패턴이 예외로 죽어도 핸들이 남지 않는다. 죽은 핸들이 남으면
         // 다음 CancelAttack 이 hadPattern 을 true 로 잘못 계산해 CurrentState 를 건드린다.
-        // (C# 이터레이터에서 try/finally 는 허용된다 — BoneMasterCounterUtil.Run 도 같은 방식.)
+        // (C# 이터레이터에서 try/finally 는 허용된다 — BossCounterTelegraph.Run 도 같은 방식.)
         try
         {
             yield return inner;
@@ -282,7 +276,6 @@ public class BoneMasterController : EnemyController
         SetStateText("추격 중...");
         DamageEventBus.OnBeforeDamageCalculated += HandleIncomingDamageAmp;
 
-        SetupThornArenaRing();
     }
 
     protected override void OnDestroy()
@@ -295,19 +288,26 @@ public class BoneMasterController : EnemyController
         }
         if (CounterGauge != null) CounterGauge.OnGaugeChanged -= HandleCounterGaugeChanged;
         DamageEventBus.OnBeforeDamageCalculated -= HandleIncomingDamageAmp;
-        if (_thornRing != null) Destroy(_thornRing.gameObject);
         // 예고 중에 보스가 죽으면 패턴 코루틴이 통째로 끊겨서, 그 코루틴이 만든 텔레그래프를
         // 지우는 Destroy 가 실행되지 않는다. 텔레그래프는 보스의 자식이 아니라 월드 루트
         // 오브젝트라 보스와 같이 사라지지도 않으므로 여기서 치운다.
         CleanupDanglingTelegraphs();
     }
 
+    /// <summary>
+    /// '집행' 보상. 그로기가 걸려 있는 동안에만 받는 피해에 <b>합연산</b>으로 얹힌다.
+    /// 별도 타이머가 필요 없다 — IsGroggy 가 이미 정확한 수명(그로기 해제 + 페이즈 전환 강제해제)을
+    /// 갖고 있어서, 그로기가 어떤 이유로 끝나든 이 보너스도 같이 꺼진다.
+    /// </summary>
+    public float GroggyDamageBonus { get; private set; }
+
     private void HandleIncomingDamageAmp(CharacterHealth target, ref DamageInfo info)
     {
         if (target != Health) return;
         if (info.amount <= 0f) return;
 
-        float multiplier = (1f - baseArmorReduction) + perPartIncomingDamageBonus * PartsDestroyed;
+        float multiplier = (1f - baseArmorReduction) + perPartIncomingDamageBonus * PartsDestroyed
+                         + (IsGroggy ? GroggyDamageBonus : 0f);
         info.amount *= Mathf.Max(0f, multiplier);
     }
 
@@ -439,7 +439,6 @@ private IEnumerator Phase2TransitionRoutine()
         yield return new WaitForSeconds(phase2InvincibleDuration);
 
         CurrentPhase = 2;
-        ShrinkThornArenaRing();
 
         if (phase2Data != null)
         {
@@ -521,11 +520,20 @@ private IEnumerator Phase2TransitionRoutine()
     /// 자초한 경직(그로기)을 건다. ApplyFixedStun 은 슈퍼아머·기절 clamp·기절 내성을 전부 우회하므로
     /// 여기 넘긴 duration 이 그대로 행동불가 시간이 된다(CharacterStatus.ApplyFixedStun 주석 참조).
     /// </summary>
-    public void ApplyGroggy(float duration)
+    /// <param name="damageBonus">
+    /// 이 그로기 동안에만 받는 피해에 합연산으로 얹을 값('집행' 보상용). 안 넘기면 0 이다.
+    ///
+    /// [버그 수정 — 집행 보상이 영구 패시브가 되던 문제] 예전엔 호출측이 GroggyDamageBonus 에
+    /// 직접 대입했는데 아무도 0 으로 되돌리지 않았다. IsGroggy 는 집행 전용이 아니라 공용 플래그라,
+    /// 이후 카운터 파훼로 걸리는 0.5초 그로기마다 집행 보너스가 계속 되살아났다.
+    /// 여기서 매번 정하게 만들어 이월 자체를 없앤다.
+    /// </param>
+    public void ApplyGroggy(float duration, float damageBonus = 0f)
     {
         if (Stats == null || Stats.Status == null) return;
 
         IsGroggy = true;
+        GroggyDamageBonus = damageBonus;
         Stats.Status.ApplyFixedStun(duration);
 
         if (_groggyFlashRoutine != null) StopCoroutine(_groggyFlashRoutine);
@@ -584,21 +592,20 @@ private IEnumerator Phase2TransitionRoutine()
 
     // 파훼 가능(카운터 창이 열림) 신호에 쓸 색. 페이즈마다 다를 수 있어 패턴 SO 가 Init 에서 밀어 넣는다
     // (색을 프리팹에도 두면 SO 의 counterRealColor 와 두 소스가 갈려 반드시 어긋난다).
-    private Color _counterChanceColor = new Color(0.2f, 1f, 0.3f);
-
-    /// <summary>패턴 SO 가 자기 counterRealColor 를 알려준다. 게이지가 열릴 때 이 색으로 빛난다.</summary>
-    public void SetCounterChanceColor(Color color) => _counterChanceColor = color;
 
     /// <summary>
-    /// 카운터 게이지가 열리고 닫히는 것을 그대로 아웃라인에 반영한다.
-    /// 게이지가 열려 있다 = 지금 때리면 파훼된다 = 초록 발광, 이라는 규칙을 여기 한 곳에서만 지킨다.
+    /// [0830 수정안 — 색 신호를 인디케이터 한 곳으로] 예전엔 카운터 창이 열리면 여기서 몸통
+    /// 아웃라인을 자동으로 켰다. 그런데 부위 파괴 아웃라인(partBreakOutlineColors)이 이미
+    /// 노랑 → 주황 → 빨강으로 전투 내내 켜져 있어서, 같은 스프라이트에 카운터 노랑/빨강을 겹치면
+    /// "0파괴의 기본 노랑"과 "지금 때려도 되는 노랑"이 구분되지 않는다.
+    /// (기존 counterRealColor 가 초록이었던 이유가 정확히 이 회피였다.)
+    ///
+    /// 이제 카운터 색은 머리 위 인디케이터(<see cref="BossAttackIndicator"/>)만 표현한다.
+    /// 게이지 자체는 여전히 파훼 판정에 쓰이므로 구독은 남기되, 아웃라인은 건드리지 않는다.
     /// </summary>
     private void HandleCounterGaugeChanged()
     {
-        if (CounterGauge == null) return;
-
-        if (CounterGauge.IsOpen) ShowCounterOutline(_counterChanceColor);
-        else ClearCounterOutline();
+        // 의도적으로 비워 둔다 — 되살리면 부위 파괴 아웃라인과 신호가 충돌한다.
     }
 
     /// <summary>유예 구간용. 아웃라인을 지정 색으로 켜고 깜빡이게 한다(판정 전).</summary>
@@ -651,6 +658,25 @@ private IEnumerator Phase2TransitionRoutine()
         vf.SetSuperArmorTint(partBreakOutlineColors[idx]);
     }
 
+    /// <summary>
+    /// '집행'의 은신. 보스를 통째로 안 보이게 하고 무적으로 만든다.
+    ///
+    /// [함정] 알파를 0으로 만드는 방식은 안 된다 — 슈퍼아머 아웃라인 오버레이는 별도 SpriteRenderer 라
+    /// 본체 color 의 알파를 안 따라가고 enabled 만 따라간다. 알파로 지우면 노란 뼈 윤곽만 허공에 남는다.
+    ///
+    /// 그림자·방향 인디케이터도 보스의 자식이라 같이 꺼야 위치가 새지 않는다.
+    /// 반드시 try/finally 로 복구해라 — 코루틴이 끊긴 채로 남으면 투명 무적 보스가 된다.
+    /// </summary>
+    public void SetHidden(bool hidden)
+    {
+        if (_bodyRenderers != null)
+            foreach (var sr in _bodyRenderers)
+                if (sr != null) sr.enabled = !hidden;
+
+        if (Health != null) Health.Invincible = hidden;
+        if (hidden) SetStateText("");
+    }
+
     public void SetVisualFlash(Color color)
     {
         if (_bodyRenderers == null) return;
@@ -690,13 +716,17 @@ private IEnumerator Phase2TransitionRoutine()
     /// 지점으로 보정해서 워프한다 — 안 그러면 Warp가 조용히 실패하면서 보스가 그 자리에 멈춰버린다.</summary>
 public void WarpTo(Vector3 pos)
     {
-        // [버그 수정 — 뼈 투기장을 뚫는 문제] Warp()는 물리 충돌을 거치지 않는 순간이동이라, 개별
+        // [버그 수정 — 보스가 방을 뚫는 문제] Warp()는 물리 충돌을 거치지 않는 순간이동이라, 개별
         // 패턴이 벽 체크를 깜빡하면 그대로 경계를 뚫고 나갈 수 있었다(예: 견갑 찌르기의 재조준+대시엔
         // 벽 체크가 아예 없었음). 모든 이동이 최종적으로 이 함수를 거치므로, 여기서 한 번에
-        // 뼈 투기장 바깥 경계 안쪽으로 clamp해서 원천 차단한다.
-        if (_thornRing != null)
+        // 방 안쪽으로 clamp해서 원천 차단한다.
+        //
+        // 예전엔 뼈 투기장 링이 이 역할을 겸했다. 투기장을 지우면서 방 사각형으로 갈아탔는데,
+        // 이게 도약 착지와 견갑 대시의 유일한 벽 가드다 — 지우면 그 둘이 다시 벽을 뚫는다.
+        if (TryGetArenaRect(out Vector2 arenaCenter, out Vector2 arenaHalf))
         {
-            pos = _thornRing.ClampInsideArena(pos);
+            pos.x = Mathf.Clamp(pos.x, arenaCenter.x - arenaHalf.x, arenaCenter.x + arenaHalf.x);
+            pos.y = Mathf.Clamp(pos.y, arenaCenter.y - arenaHalf.y, arenaCenter.y + arenaHalf.y);
         }
 
         if (_navAgent != null)
@@ -721,23 +751,23 @@ public void WarpTo(Vector3 pos)
     /// <summary>
     /// 돌진이 실제로 나아갈 수 있는 거리. 예고 레인의 길이이자 이동 시간 예산의 근거다.
     ///
-    /// [버그 수정 — 벽을 뚫고 돌진하던 문제] 예전엔 뼈 투기장 가시 링까지의 거리만 봤다.
-    /// 링이 방 벽보다 바깥이거나 애초에 안 세워졌으면(방을 못 찾은 경우) 벽 너머까지 예고를 그리고
-    /// 그만큼의 시간 예산을 잡았다 — 이 보스는 Warp 로 달려서 콜라이더가 안 막아주므로 그대로 통과했다.
-    /// 다른 차저들과 같은 "Wall"+"Object" 마스크로 앞을 내다봐서 링과 벽 중 가까운 쪽을 쓴다.
+    /// 방 경계까지의 거리와 실제 벽/장애물까지의 거리 중 가까운 쪽을 돌려준다.
+    /// 이 보스는 Warp(순간이동)로 움직여서 콜라이더가 몸을 안 막아주므로, 여기서 미리 재지 않으면
+    /// 예고를 벽 너머까지 그리고 그만큼의 시간 예산을 잡는다.
+    /// 선 패턴처럼 "방을 가로지르는 길이"가 필요한 쪽도 이걸 쓴다.
     /// </summary>
     /// <param name="checkRadius">보스 몸 두께. 벽에서 이만큼 떨어진 지점까지를 거리로 돌려준다.</param>
     public float GetChargeDistance(Vector2 origin, Vector2 dir, float checkRadius)
     {
-        float ring = _thornRing != null ? _thornRing.GetDistanceToInnerEdge(origin, dir) : -1f;
-
-        // 링이 없으면 얼마까지 훑을지 기준이 없다. 어떤 방보다도 긴 거리면 충분하다.
-        const float NoRingScanDistance = 60f;
-        float scan = ring > 0f ? ring : NoRingScanDistance;
+        // 방을 못 찾으면 얼마까지 훑을지 기준이 없다. 어떤 방보다도 긴 거리면 충분하다.
+        const float NoRoomScanDistance = 60f;
+        float scan = TryGetArenaRect(out Vector2 c, out Vector2 h)
+                   ? RectExitDistance(origin, dir, c, h)
+                   : NoRoomScanDistance;
 
         RaycastHit2D hit = Physics2D.CircleCast(origin, checkRadius, dir, scan,
                                                 LayerMask.GetMask("Wall", "Object"));
-        return hit.collider != null ? hit.distance : ring;
+        return hit.collider != null ? hit.distance : scan;
     }
 
     private EliteBossPatternLabel CreatePatternLabel()
@@ -754,43 +784,39 @@ public void WarpTo(Vector3 pos)
         return labelObj.AddComponent<EliteBossPatternLabel>();
     }
 
-private void SetupThornArenaRing()
+    /// <summary>
+    /// 보스가 벗어나면 안 되는 방 사각형. 방을 못 찾으면 false — 그 경우 호출측은 clamp를 건너뛴다.
+    ///
+    /// [뼈 투기장 삭제] 예전엔 ThornArenaHazard 링이 경계이자 장판이었다. 링이 사라졌으므로
+    /// 방 자체를 경계로 쓴다. roomSize 는 장식 벽 띠까지 포함한 값이라 그대로 쓰면 벽 안으로
+    /// 들어갈 수 있어서 roomBoundsMarginRatio(링이 쓰던 값과 동일)를 곱한다.
+    /// </summary>
+    public bool TryGetArenaRect(out Vector2 center, out Vector2 half)
     {
+        center = default;
+        half = default;
+
         RoomInstance room = FindContainingRoom();
-        Vector3 center;
-        Vector2 size;
+        if (room == null) return false;
 
-        if (room != null)
-        {
-            center = (Vector3)((Vector2)room.transform.position + room.centerOffset);
-            size = new Vector2(room.roomSize.x, room.roomSize.y) * thornRingPhase1MarginRatio;
-            Debug.Log($"<color=cyan>[BoneMaster]</color> 뼈 투기장: 방 발견 (center={center}, roomSize={room.roomSize}, size={size})");
-        }
-        else
-        {
-            center = transform.position;
-            size = thornRingFallbackSize;
-            Debug.LogWarning($"[BoneMaster] 보스가 속해 있는 RoomInstance를 찾지 못해, 보스 위치({center}) 기준 기본 크기({size})로 뼈 투기장을 배치합니다.");
-        }
-
-        _thornRingPhase1Size = size;
-
-        GameObject ringObj = new GameObject("ThornArenaRingHazard");
-        ringObj.transform.position = center;
-        _thornRing = ringObj.AddComponent<ThornArenaHazard>();
-        _thornRing.SetupAsRing(size, thornRingColor, thornRingSortingOrder, thornRingBandRatio, this);
-        _thornRing.SetupVoidBarrier(voidBarrierMargin, voidBarrierColor, voidBarrierSortingOrder);
-        Debug.Log($"<color=cyan>[BoneMaster]</color> 뼈 투기장 생성 완료: {ringObj.name} at {ringObj.transform.position}, size={size}");
+        center = (Vector2)room.transform.position + room.centerOffset;
+        half = new Vector2(room.roomSize.x, room.roomSize.y) * (0.5f * roomBoundsMarginRatio);
+        return true;
     }
 
-private void ShrinkThornArenaRing()
+    /// <summary>
+    /// origin 에서 dir 방향으로 갔을 때 방 사각형을 빠져나가기까지의 거리(슬래브 기법).
+    /// 축마다 어느 면에 먼저 닿는지를 재서 더 가까운 쪽을 쓴다. dir 은 정규화돼 있다고 본다.
+    /// </summary>
+    public static float RectExitDistance(Vector2 origin, Vector2 dir, Vector2 center, Vector2 half)
     {
-        if (_thornRing == null || _thornRingPhase1Size == Vector2.zero) return;
-        Vector2 newSize = _thornRingPhase1Size * thornRingPhase2ShrinkRatio;
-        // [수정] 페이즈2는 가시 띠를 더 얇게(thornRingPhase2BandRatio) 그려서, 경계 자체는 눈에 띄게
-        // 줄어들어도 실제 이동 가능한 안쪽 공간은 덜 좁아지게 보정한다.
-        _thornRing.SetupAsRing(newSize, thornRingColor, thornRingSortingOrder, thornRingPhase2BandRatio, this);
-        _thornRing.SetupVoidBarrier(voidBarrierMargin, voidBarrierColor, voidBarrierSortingOrder);
+        float t = float.MaxValue;
+        if (Mathf.Abs(dir.x) > 0.0001f)
+            t = Mathf.Min(t, ((dir.x > 0f ? center.x + half.x : center.x - half.x) - origin.x) / dir.x);
+        if (Mathf.Abs(dir.y) > 0.0001f)
+            t = Mathf.Min(t, ((dir.y > 0f ? center.y + half.y : center.y - half.y) - origin.y) / dir.y);
+
+        return t == float.MaxValue ? 0f : Mathf.Max(0f, t);
     }
 
     /// <summary>

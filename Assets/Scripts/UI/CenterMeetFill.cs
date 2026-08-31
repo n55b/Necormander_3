@@ -20,6 +20,7 @@ public class CenterMeetFill : MonoBehaviour
     void Update()
     {
         if(!isFilling) return;
+        if (leftFill == null || rightFill == null) return; // 배선이 비면 매 프레임 NRE 가 난다.
         t += Time.deltaTime / duration;
         float progress = Mathf.Clamp01(t);
 
@@ -42,8 +43,16 @@ public class CenterMeetFill : MonoBehaviour
         completed = false;
         isFilling = true;
 
-        leftFill.fillAmount = 0f;
-        rightFill.fillAmount = 0f;
+        if (leftFill != null) leftFill.fillAmount = 0f;
+        if (rightFill != null) rightFill.fillAmount = 0f;
+    }
+
+    // 게이지 색. 카운터 신호로 쓴다 — 노랑=진짜(때리면 패턴 취소) / 빨강=페이크(때리면 즉시 시전)
+    // / 무채색=카운터 불가. 프리팹에 박힌 색을 덮어쓰므로 Begin 할 때마다 반드시 다시 정해야 한다.
+    public void SetColor(Color c)
+    {
+        if (leftFill != null) leftFill.color = c;
+        if (rightFill != null) rightFill.color = c;
     }
 
     // 진행 중인 예고를 중단합니다 (경직/사망 등으로 패턴이 취소될 때 호출).

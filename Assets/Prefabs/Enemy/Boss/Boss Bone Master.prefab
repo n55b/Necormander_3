@@ -264,9 +264,9 @@ MonoBehaviour:
   - 0.4
   perPartIncomingDamageBonus: 0.15
   baseArmorReduction: 0.2
-  helmetBreakRangeBonus: 0.15
-  pauldronBreakCastSpeedBonus: 0.15
-  chestBreakMoveSpeedBonus: 0.15
+  helmetBreakRangeBonus: 0
+  pauldronBreakCastSpeedBonus: 0
+  chestBreakMoveSpeedBonus: 0
   partBreakTextDuration: 1.5
   superArmorGauge: 999999
   partBreakOutlineColors:
