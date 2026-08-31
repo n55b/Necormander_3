@@ -17,7 +17,7 @@ using UnityEngine;
 /// 에이전트 내부 상태와 어긋나 나중에 "튕기는" 버그가 생긴다. WarpTo()로 통일했다.
 ///
 /// [핵심 버그 수정 2] 돌진 이동 시간을 "벽까지 거리 × 0.95"로 계산해서 벽에 닿기 직전에 멈추도록
-/// 했었는데, 이러면 애초에 "벽에 닿았다"는 판정(IsTouchingThornWall)이 걸릴 기회 자체가 거의 없다.
+/// 했었는데, 이러면 애초에 "벽에 닿았다"는 판정(IsTouchingWall)이 걸릴 기회 자체가 거의 없다.
 /// 이제 이동 "시간 예산"은 벽까지 거리보다 넉넉하게(chargeSafetyTimeMultiplier > 1) 잡고, 정지는
 /// 오직 실제 벽 접촉 판정으로만 결정한다.
 ///
@@ -463,6 +463,7 @@ private IEnumerator BasicAttack_Sweep(BaseEntity entity)
         float radius = sweepRadius * rangeMul;
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, origin, dir, radius, sweepHalfAngle, telegraphWarnColor);
+        BossAttackIndicator.Begin(entity, basicAttackWindup, dir);
         PlayState(entity, animState_Sweep, basicAttackWindup, matchAnimSpeedToWindup);
 
         float t = 0f;
@@ -472,6 +473,7 @@ private IEnumerator BasicAttack_Sweep(BaseEntity entity)
             t += Time.deltaTime;
             yield return null;
         }
+        BossAttackIndicator.Stop(entity);
         if (telegraph != null) Object.Destroy(telegraph);
 
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
@@ -495,6 +497,7 @@ private IEnumerator BasicAttack_Thrust(BaseEntity entity)
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
             entity, origin, dir, length, width, telegraphWarnColor, laneTelegraphPrefab, basicAttackWindup);
+        BossAttackIndicator.Begin(entity, basicAttackWindup, dir);
         PlayState(entity, animState_Thrust, basicAttackWindup, matchAnimSpeedToWindup);
 
         float t = 0f;
@@ -504,6 +507,7 @@ private IEnumerator BasicAttack_Thrust(BaseEntity entity)
             t += Time.deltaTime;
             yield return null;
         }
+        BossAttackIndicator.Stop(entity);
         if (telegraph != null) Object.Destroy(telegraph);
 
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
@@ -542,6 +546,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnEllipse(
             entity, landPos, radiusX, radiusY, telegraphWarnColor, circleTelegraphPrefab,
             trackTime + lockTime + leapDuration, leapDuration + 0.2f);
+        BossAttackIndicator.Begin(entity, trackTime + lockTime + leapDuration);
 
         float t = 0f;
         while (t < trackTime)
@@ -591,6 +596,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         Warp(entity, landPos);
         _controller?.HardStopMovement();
 
+        BossAttackIndicator.Stop(entity);
         if (telegraph != null) Object.Destroy(telegraph);
 
         var info = new DamageInfo(entity.Stats.ATK * leapSlamDamageMultiplier, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true);
@@ -668,7 +674,7 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
         // 정작 패턴 자체의 시전(예고) 속도에는 전혀 반영되지 않고 있었다.
         float csMul = 1f / (1f + (_controller != null ? _controller.PatternCastSpeedBonus : 0f));
 
-        float wallDist = _controller != null ? _controller.GetChargeDistance(origin, lockedDir) : -1f;
+        float wallDist = _controller != null ? _controller.GetChargeDistance(origin, lockedDir, wallCheckRadius) : -1f;
         float chargeDistance;
         float chargeDuration;
         if (wallDist > 0f)
@@ -685,6 +691,7 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
         GameObject laneTelegraph = BoneMasterTelegraphUtil.SpawnLane(
             entity, origin, lockedDir, chargeDistance, chargeTelegraphWidth, telegraphWarnColor,
             laneTelegraphPrefab, chargeTelegraphTime * csMul);
+        BossAttackIndicator.Begin(entity, chargeTelegraphTime * csMul, lockedDir);
 
         var gauge = _controller != null ? _controller.CounterGauge : null;
         bool broken = false;
@@ -714,6 +721,7 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
             yield return null;
         }
         if (gauge != null) gauge.OnGaugeBroken -= OnBroken;
+        BossAttackIndicator.Stop(entity);
         if (laneTelegraph != null) Object.Destroy(laneTelegraph);
 
         if (hijacked)
@@ -786,7 +794,7 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
                                             entity.opponentLayer, chargeInfo, chargeHits);
                 }
 
-                if (IsTouchingThornWallSwept(prevPos, nextPos))
+                if (IsTouchingWallSwept(prevPos, nextPos))
                 {
                     hitWall = true;
                     Debug.Log($"<color=cyan>[BoneMaster]</color> 돌진 중 뼈 투기장 접촉 감지! pos={nextPos} elapsed={elapsed:F2}/{chargeDuration:F2}");
@@ -807,7 +815,7 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
 
             // [버그 수정 4 — 가끔 경직이 안 걸리는 문제] chargeDuration은 벽까지 거리보다
             // chargeSafetyTimeMultiplier(>1)배만큼 넉넉하게 잡혀 있으므로, 시간이 다 될 때까지
-            // IsTouchingThornWallSwept이 한 번도 안 걸렸어도 기하학적으로는 이미 벽을 지나쳤어야
+            // IsTouchingWallSwept이 한 번도 안 걸렸어도 기하학적으로는 이미 벽을 지나쳤어야
             // 한다(프레임 드랍으로 얇은 가시 링을 건너뛴 경우 등). 이 경우도 "벽에 닿음"으로 간주해
             // 경직을 보장한다 — 안 그러면 가끔 경직이 통째로 씹히는 현상이 재발한다.
             if (!hitWall)
@@ -826,15 +834,33 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
         }
     }
 
-    private bool IsTouchingThornWall(Vector2 pos)
+    /// <summary>
+    /// 벽/장애물 레이어. 다른 차저(ChargerAIPatternSO / EliteChargerAIPatternSO)와 같은 마스크를 쓴다.
+    /// 필드 초기화식으로 쓰면 안 된다 — LayerMask.GetMask 는 ScriptableObject 생성자에서 호출이
+    /// 금지돼 있어서 "NameToLayer is not allowed to be called from a ScriptableObject constructor"
+    /// 예외가 난다. 처음 쓸 때 한 번만 조회한다.
+    /// </summary>
+    private static int _wallMask;
+    private static int WallMask => _wallMask != 0 ? _wallMask : (_wallMask = LayerMask.GetMask("Wall", "Object"));
+
+    /// <summary>
+    /// 돌진을 멈춰야 하는가. 두 가지를 본다.
+    ///
+    /// [버그 수정 — 보스가 벽을 뚫고 계속 달리던 문제] 예전엔 뼈 투기장 가시 링만 봤다.
+    /// 다른 차저들은 rb.linearVelocity 로 달려서 콜라이더가 몸을 물리적으로 막아주지만, 이 보스는
+    /// Warp(순간이동)로 달리기 때문에 막아주는 물리가 아예 없다 — 여기서 직접 보지 않으면
+    /// 방 벽이든 기둥이든 그냥 통과한다. 링이 안 세워진 경우(방을 못 찾음)엔 맵 끝까지 갔다.
+    /// </summary>
+    private bool IsTouchingWall(Vector2 pos)
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(pos, wallCheckRadius);
-        foreach (var h in hits)
-        {
-            // 태그가 아니라 컴포넌트로 판정한다. 예전엔 "BoneSpikeWall" 태그를 썼는데 그 태그가
-            // TagManager 에 등록돼 있지 않아서, 태그를 다는 쪽은 예외로 죽고 이 검사는 영원히 false 였다.
+        if (Physics2D.OverlapCircle(pos, wallCheckRadius, WallMask) != null) return true;
+
+        // 보스가 직접 세운 가시 링은 런타임 생성이라 레이어가 Default 다. 마스크로는 안 잡히므로
+        // 컴포넌트로 따로 본다. (태그가 아니라 컴포넌트인 이유: 예전에 쓰던 "BoneSpikeWall" 태그가
+        // TagManager 에 등록돼 있지 않아서, 태그를 다는 쪽이 예외로 죽고 검사는 영원히 false 였다.)
+        foreach (var h in Physics2D.OverlapCircleAll(pos, wallCheckRadius))
             if (h.GetComponent<ThornArenaHazard>() != null) return true;
-        }
+
         return false;
     }
 
@@ -844,7 +870,7 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
     /// 크게 이동하면 이전 위치와 다음 위치 사이의 얇은 가시 링을 통째로 건너뛰어 접촉 판정을 한 번도
     /// 못 잡는 경우가 있었다. prev→next 구간을 wallCheckRadius 간격으로 여러 지점 샘플링해서 검사한다.
     /// </summary>
-    private bool IsTouchingThornWallSwept(Vector2 prevPos, Vector2 nextPos)
+    private bool IsTouchingWallSwept(Vector2 prevPos, Vector2 nextPos)
     {
         float dist = Vector2.Distance(prevPos, nextPos);
         int steps = Mathf.Max(1, Mathf.CeilToInt(dist / Mathf.Max(0.05f, wallCheckRadius)));
@@ -854,7 +880,7 @@ private IEnumerator Pattern1_ChargeRoutine(BaseEntity entity)
         for (int i = 1; i <= steps; i++)
         {
             Vector2 sample = Vector2.Lerp(prevPos, nextPos, steps == 0 ? 0f : (float)i / steps);
-            if (IsTouchingThornWall(sample)) return true;
+            if (IsTouchingWall(sample)) return true;
         }
         return false;
     }
@@ -909,8 +935,16 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
             if (entity.Target != null) entity.LookAtTarget(entity.Target);
             Vector2 dir = SafeDirTo(entity, origin, entity.Target);
 
+            // [버그 수정 — 게이지를 보고 대시했는데 맞던 문제]
+            // 예고 길이는 lead 가 아니라 'lead + 파고드는 대시 시간' 이다. 판정(DealLane)은 아래
+            // 대시가 끝난 뒤에 나가는데 예고는 lead 에서 이미 가득 차 있어서, 게이지가 찬 순간에
+            // 대시로 피하면 무적(플레이어 dashDuration = 0.2초)이 판정보다 먼저 끝나 버렸다.
+            // 특히 막타는 thrustFinalDashDuration 이 0.2초라 무적 길이와 정확히 같아서 상시 아슬아슬했다.
+            float strikeLead = (lead + dashDur) * csMul;
+
             GameObject strikeTelegraph = BoneMasterTelegraphUtil.SpawnLane(
-                entity, origin, dir, totalLen, width, telegraphColor, laneTelegraphPrefab, lead * csMul);
+                entity, origin, dir, totalLen, width, telegraphColor, laneTelegraphPrefab, strikeLead);
+            BossAttackIndicator.Begin(entity, strikeLead, dir);
 
             // 타수마다 클립을 처음부터 다시 튼다. PlayState 가 '첫 타격 프레임'을 기준으로 배속을
             // 맞추므로, 매번 예비동작이 lead 를 꽉 채우고 찌르는 순간에 판정이 겹친다.
@@ -933,8 +967,12 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
                 leadTimer += Time.deltaTime;
                 yield return null;
             }
-            if (strikeTelegraph != null) Object.Destroy(strikeTelegraph);
-            if (broken || hijacked) break;
+            if (broken || hijacked)
+            {
+                BossAttackIndicator.Stop(entity);
+                if (strikeTelegraph != null) Object.Destroy(strikeTelegraph);
+                break;
+            }
 
             // [추가] 짧게 파고드는 대시 — 제자리에서 판정만 뻗던 것을 실제 이동으로 바꿔서 위협감을 준다.
             Vector2 dashEnd = origin + dir * dashDist;
@@ -947,6 +985,10 @@ private IEnumerator Pattern2_ThrustRoutine(BaseEntity entity)
                 yield return null;
             }
             Warp(entity, dashEnd);
+
+            // 예고는 여기까지다 — 바로 아래 DealLane 이 실제 판정이다.
+            BossAttackIndicator.Stop(entity);
+            if (strikeTelegraph != null) Object.Destroy(strikeTelegraph);
 
             bool applyBleed = Random.value <= thrustBleedChance;
             var info = new DamageInfo(

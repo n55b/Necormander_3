@@ -380,6 +380,7 @@ private IEnumerator BasicAttack_Sweep(BaseEntity entity)
         float radius = sweepRadius * rangeMul;
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, origin, dir, radius, sweepHalfAngle, telegraphWarnColor);
+        BossAttackIndicator.Begin(entity, basicAttackWindup, dir);
         PlayState(entity, animState_Sweep, basicAttackWindup, matchAnimSpeedToWindup);
 
         float t = 0f;
@@ -389,6 +390,7 @@ private IEnumerator BasicAttack_Sweep(BaseEntity entity)
             t += Time.deltaTime;
             yield return null;
         }
+        BossAttackIndicator.Stop(entity);
         if (telegraph != null) Object.Destroy(telegraph);
 
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
@@ -412,6 +414,7 @@ private IEnumerator BasicAttack_Thrust(BaseEntity entity)
 
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
             entity, origin, dir, length, width, telegraphWarnColor, laneTelegraphPrefab, basicAttackWindup);
+        BossAttackIndicator.Begin(entity, basicAttackWindup, dir);
         PlayState(entity, animState_Thrust, basicAttackWindup, matchAnimSpeedToWindup);
 
         float t = 0f;
@@ -421,6 +424,7 @@ private IEnumerator BasicAttack_Thrust(BaseEntity entity)
             t += Time.deltaTime;
             yield return null;
         }
+        BossAttackIndicator.Stop(entity);
         if (telegraph != null) Object.Destroy(telegraph);
 
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
@@ -481,6 +485,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
         float spinLead = RingLead(spinTelegraphLead, csMul);
         GameObject spinTelegraph = BoneMasterTelegraphUtil.SpawnRingCountdown(
             entity, origin, spinRadius, spinSafeRadius, telegraphWarnColor);
+        BossAttackIndicator.Begin(entity, spinLead);
         PlayState(entity, animState_SpinSlam, spinLead, matchAnimSpeedToWindup);
 
         float leadT = 0f;
@@ -492,6 +497,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
             leadT += Time.deltaTime;
             yield return null;
         }
+        BossAttackIndicator.Stop(entity);
         if (spinTelegraph != null) Object.Destroy(spinTelegraph);
         if (hijacked)
         {
@@ -513,6 +519,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
         GameObject slamTelegraph = BoneMasterTelegraphUtil.SpawnLane(
             entity, origin, slamDir, slamRange, slamWidth, telegraphWarnColor,
             laneTelegraphPrefab, slamTelegraphTime * csMul);
+        BossAttackIndicator.Begin(entity, slamTelegraphTime * csMul, slamDir);
 
         var gauge = _controller != null ? _controller.CounterGauge : null;
         bool broken = false;
@@ -546,6 +553,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
         if (!slamBeatPlayed && !broken && !hijacked)
             PlayState(entity, animState_SpinSlam, startNormalized: secondBeatClipStart);
         if (gauge != null) gauge.OnGaugeBroken -= OnBroken;
+        BossAttackIndicator.Stop(entity);
         if (slamTelegraph != null) Object.Destroy(slamTelegraph);
 
         if (hijacked)
@@ -590,6 +598,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
         float bodyLead = RingLead(pivotBodyTelegraphLead, csMul);
         GameObject bodyTelegraph = BoneMasterTelegraphUtil.SpawnRingCountdown(
             entity, origin, pivotBodySlamRadius, pivotSafeRadius, telegraphWarnColor);
+        BossAttackIndicator.Begin(entity, bodyLead);
         PlayState(entity, animState_PivotSpin, bodyLead, matchAnimSpeedToWindup);
 
         float bt = 0f;
@@ -601,6 +610,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
             bt += Time.deltaTime;
             yield return null;
         }
+        BossAttackIndicator.Stop(entity);
         if (bodyTelegraph != null) Object.Destroy(bodyTelegraph);
         if (hijacked)
         {
@@ -653,6 +663,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
             float finishLead = RingLead(pivotFinishTelegraphLead, csMul);
             GameObject finishTelegraph = BoneMasterTelegraphUtil.SpawnRingCountdown(
                 entity, origin, pivotFinishRadius, pivotFinishSafeRadius, telegraphWarnColor);
+            BossAttackIndicator.Begin(entity, finishLead);
 
             float finishBeatLead = SecondBeatLead(entity, animState_PivotSpin);
             bool finishBeatPlayed = false;
@@ -674,6 +685,7 @@ private IEnumerator Pattern1_SpinSlamRoutine(BaseEntity entity)
             }
             if (!finishBeatPlayed && !finishHijacked)
                 PlayState(entity, animState_PivotSpin, startNormalized: secondBeatClipStart);
+            BossAttackIndicator.Stop(entity);
             if (finishTelegraph != null) Object.Destroy(finishTelegraph);
 
             if (finishHijacked)

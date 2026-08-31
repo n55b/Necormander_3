@@ -718,9 +718,26 @@ public void WarpTo(Vector3 pos)
         }
     }
 
-    public float GetChargeDistance(Vector2 origin, Vector2 dir)
+    /// <summary>
+    /// 돌진이 실제로 나아갈 수 있는 거리. 예고 레인의 길이이자 이동 시간 예산의 근거다.
+    ///
+    /// [버그 수정 — 벽을 뚫고 돌진하던 문제] 예전엔 뼈 투기장 가시 링까지의 거리만 봤다.
+    /// 링이 방 벽보다 바깥이거나 애초에 안 세워졌으면(방을 못 찾은 경우) 벽 너머까지 예고를 그리고
+    /// 그만큼의 시간 예산을 잡았다 — 이 보스는 Warp 로 달려서 콜라이더가 안 막아주므로 그대로 통과했다.
+    /// 다른 차저들과 같은 "Wall"+"Object" 마스크로 앞을 내다봐서 링과 벽 중 가까운 쪽을 쓴다.
+    /// </summary>
+    /// <param name="checkRadius">보스 몸 두께. 벽에서 이만큼 떨어진 지점까지를 거리로 돌려준다.</param>
+    public float GetChargeDistance(Vector2 origin, Vector2 dir, float checkRadius)
     {
-        return _thornRing != null ? _thornRing.GetDistanceToInnerEdge(origin, dir) : -1f;
+        float ring = _thornRing != null ? _thornRing.GetDistanceToInnerEdge(origin, dir) : -1f;
+
+        // 링이 없으면 얼마까지 훑을지 기준이 없다. 어떤 방보다도 긴 거리면 충분하다.
+        const float NoRingScanDistance = 60f;
+        float scan = ring > 0f ? ring : NoRingScanDistance;
+
+        RaycastHit2D hit = Physics2D.CircleCast(origin, checkRadius, dir, scan,
+                                                LayerMask.GetMask("Wall", "Object"));
+        return hit.collider != null ? hit.distance : ring;
     }
 
     private EliteBossPatternLabel CreatePatternLabel()
@@ -792,6 +809,10 @@ private void ShrinkThornArenaRing()
         // 이 함수는 멱등이고 씬 전체를 훑으므로, 프레임당 1회면 충분하다.
         if (_lastTelegraphCleanupFrame == Time.frameCount) return;
         _lastTelegraphCleanupFrame = Time.frameCount;
+
+        // 예고 게이지도 같은 운명이다 — 코루틴이 강제 종료되면 Stop 을 부르는 줄까지 못 가서
+        // 게이지가 반쯤 찬 채로 머리 위에 얼어붙는다. 여기가 그 유일한 회수 지점이다.
+        BossAttackIndicator.Stop(this);
 
         var allTransforms = FindObjectsByType<Transform>(FindObjectsSortMode.None);
         int count = 0;

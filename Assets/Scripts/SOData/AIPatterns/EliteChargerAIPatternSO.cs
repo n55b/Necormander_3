@@ -621,6 +621,10 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         Vector2 dir = GetAimDir(entity);
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
+        // 기본 공격 3종은 분기가 갈려도 전부 windup 끝에 판정이 난다(찍기=착지, 돌진=개시, 휩쓸기=히트박스 delay).
+        // 그래서 분기 앞에서 한 번만 켜면 된다.
+        BossAttackIndicator.Begin(entity, windup, dir);
+
         if (atkIndex == 0)
         {
             // ① 약한 돌진 (v1.2): 제자리 판정 대신 실제로 짧은 거리를 전진하며 찍습니다.
@@ -661,6 +665,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
         }
 
+        BossAttackIndicator.Stop(entity);
         entity.HasFiredHitEvent = true;
 
         // [수정 26/08/01] 연출 정리를 후딜레이 '앞'으로 옮겼다.
@@ -1035,6 +1040,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         // 스턴 등으로 코루틴이 끊겨도 OnAttackCancelled 에서 치울 수 있도록 인스턴스 필드에 보관.
         ClearChargeTelegraph(); // 이전 시도가 남긴 게 있으면 먼저 정리
         float scaledChargeWindup = chargeWindup;
+        BossAttackIndicator.Begin(entity, scaledChargeWindup, chargeDir);
         var p1Vfb = entity.GetComponentInChildren<CharacterVisualFeedback>();
         bool p1FlashFired = false;
 
@@ -1087,6 +1093,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
             UpdateChargeTelegraph(_chargeTelegraph, entity.transform.position, chargeDir, length, chargeHitRadius * 2f, scaledChargeWindup > 0f ? t / scaledChargeWindup : 1f);
             dirIndicator?.SetAimOverride(chargeDir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
+            BossAttackIndicator.Aim(entity, chargeDir); // 예고 게이지도 같이 돌려준다 — 안 그러면 3초 내내 처음 방향만 가리킨다.
 
             // [예고 플래시] 강한 돌진 개시 직전 하데스식 번쩍 (엘리트 = 2펄스)
             if (!p1FlashFired && scaledChargeWindup - t <= telegraphFlashLeadTime)
@@ -1099,6 +1106,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             yield return null;
         }
 
+        BossAttackIndicator.Stop(entity);
         ClearChargeTelegraph();
 
         // [사망 체크] 조준 중 사망 시 강한 돌진 진입 차단
@@ -1261,6 +1269,7 @@ private GameObject _chargeTelegraph;
     public override void OnAttackCancelled(BaseEntity entity)
     {
         base.OnAttackCancelled(entity);
+        BossAttackIndicator.Stop(entity); // 코루틴이 끊기면 Stop 줄까지 못 가서 게이지가 반쯤 찬 채로 얼어붙는다.
         ClearChargeTelegraph();
         ClearLabel();
 
@@ -1302,6 +1311,7 @@ private GameObject _chargeTelegraph;
         GameObject warmup = CreateFallbackCircle(preCenter, 0.4f, new Color(1f, 0.4f, 0f, 0.15f));
         float wt = 0f;
         float scaledPreCastDelay = slamPreCastDelay;
+        BossAttackIndicator.Begin(entity, scaledPreCastDelay); // 사방 파동 — 방향 없음
         while (wt < scaledPreCastDelay)
         {
             wt += Time.deltaTime;
@@ -1315,6 +1325,7 @@ private GameObject _chargeTelegraph;
             }
             yield return null;
         }
+        BossAttackIndicator.Stop(entity);
         if (warmup != null) GameObject.Destroy(warmup);
 
         ShowLabel(label_Pattern3);
@@ -1348,7 +1359,13 @@ private GameObject _chargeTelegraph;
                 // 아무 동작 없이 링만 튀어나왔다. 파동 사이 간격에 맞춰 클립을 다시 늘려 재생하면
                 // '다시 일어섰다 내려찍는' 순간과 다음 파동 발사가 맞물린다.
                 PlayState(entity, animState_Slam, slamWaveInterval, matchAnimSpeedToWindup);
+
+                // 다시 일어서는 모션이 시작되는 지점 = 다음 파동의 예고 시작. 클립도 slamWaveInterval 에
+                // 맞춰 늘어나므로, 내려찍는 프레임과 게이지가 차는 순간과 파동 발사가 셋 다 맞물린다.
+                // (첫 파동은 위 slamPreCastDelay 구간이 예고를 맡는다.)
+                BossAttackIndicator.Begin(entity, slamWaveInterval);
                 yield return new WaitForSeconds(slamWaveInterval);
+                BossAttackIndicator.Stop(entity);
             }
         }
 
