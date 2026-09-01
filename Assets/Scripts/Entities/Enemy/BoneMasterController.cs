@@ -110,6 +110,8 @@ public class BoneMasterController : EnemyController
 
     private float _baseMoveSpeedCached = -1f;
     private SpriteRenderer[] _bodyRenderers;
+    /// <summary>지금 '집행' 은신 중인가. StopActivePattern 이 되돌려야 할지 판단하는 데 쓴다.</summary>
+    private bool _isHidden;
     private Color[] _bodyOriginalColors;
 
     private Coroutine _stateTextClearRoutine;
@@ -171,6 +173,12 @@ public class BoneMasterController : EnemyController
         CounterGauge?.CloseWindow();
         CleanupDanglingTelegraphs();
         ClearCounterOutline();
+
+        // 집행의 은신도 여기서 되돌린다. 루틴의 finally 에만 맡기면 안 된다 — 위 주석대로
+        // StopCoroutine 으로 끊긴 이터레이터는 finally 를 실행하지 않으므로, 사망/페이즈 전환이
+        // 은신 도중에 오면 투명 무적 보스와 화면에 붙박인 카운터 구슬이 그대로 남는다.
+        if (_isHidden) SetHidden(false);
+        BossCounterPipsUI.Hide();
     }
 
     /// <summary>
@@ -669,6 +677,7 @@ private IEnumerator Phase2TransitionRoutine()
     /// </summary>
     public void SetHidden(bool hidden)
     {
+        _isHidden = hidden;
         if (_bodyRenderers != null)
             foreach (var sr in _bodyRenderers)
                 if (sr != null) sr.enabled = !hidden;

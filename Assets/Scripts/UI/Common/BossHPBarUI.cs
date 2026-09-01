@@ -19,6 +19,12 @@ public class BossHPBarUI : MonoBehaviour
 
     private CharacterHealth _health;
 
+    /// <summary>
+    /// 체력바 아래에 뭔가를 달아야 할 때 쓰는 부모(= 켜고 끌 패널 자체).
+    /// 여기 붙은 것은 체력바가 숨을 때 같이 숨는다. <see cref="BossCounterPipsUI"/> 가 쓴다.
+    /// </summary>
+    public RectTransform PipAnchor => root != null ? root.transform as RectTransform : transform as RectTransform;
+
     private void Awake()
     {
         Instance = this;

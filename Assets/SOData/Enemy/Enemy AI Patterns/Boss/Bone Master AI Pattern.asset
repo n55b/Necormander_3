@@ -15,12 +15,15 @@ MonoBehaviour:
   pushRadius: 0.8
   pushStrength: 2
   spawnTelegraph: 1
-  engageRange: 6
-  sweepRange: 2.5
-  basicThrustRange: 4.5
-  sweepRadius: 3.2
+  engageRange: 9
+  closeRange: 3.5
+  midRange: 6.5
+  attackGap: 1
+  chaseTimeLimit: 2
+  sweepTurnSpeed: 0
+  sweepRadius: 4.16
   sweepHalfAngle: 90
-  basicThrustLength: 4.5
+  basicThrustLength: 6.75
   basicThrustWidth: 1.4
   leapSlamRadiusX: 2.2
   leapSlamRadiusY: 1.6
@@ -30,7 +33,7 @@ MonoBehaviour:
   basicAttackWindup: 0.85
   basicAttackRecovery: 0.4
   leapSlamDamageMultiplier: 1.2
-  postPatternRecovery: 1.5
+  postPatternRecovery: 1
   postGroggyRecovery: 1.5
   telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
   laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3,
