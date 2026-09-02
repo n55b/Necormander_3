@@ -6,9 +6,11 @@ using UnityEngine;
 /// 본 마스터 페이즈 1 AI. 0830 수정안 기준 — 기본 공격과 특수 패턴이 하나로 통합돼서
 /// <b>보스 패턴은 아래 셋뿐이다.</b> 어느 것을 쓸지는 <see cref="OnAttack"/> 이 거리로 고른다.
 ///
-///   근접(sweepRange 이내)      → 휩쓸기 (전진 후 반원)
-///   중거리(basicThrustRange 이내) → 찌르기 (조준 후 미끄러지며 돌진)
-///   원거리(engageRange 이내)    → 도약 &amp; 내려찍기 (착지 지점 타원, 카운터 없음)
+///   근거리(closeRange 이내)  → 휩쓸기 / 찌르기
+///   중거리(midRange 이내)    → 찌르기 / 도약
+///   원거리(engageRange 이내) → 도약 &amp; 내려찍기 (착지 지점 타원, 카운터 없음)
+///
+/// 같은 패턴을 두 번 연속으로는 쓰지 않는다(원거리 도약만 예외). <see cref="PickMove"/> 참조.
 ///
 /// 삭제된 것: 박치기 돌격(버그 다발), 견갑 찌르기 3연타(페이즈2의 2연타로 이동),
 /// 카운터 전용 패턴(위 세 패턴의 전조에 흡수).
@@ -26,15 +28,49 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "BoneMasterAIPattern", menuName = "Necromancer/AI/BoneMasterPattern")]
 public class BoneMasterAIPatternSO : BossAIPatternSO
 {
-    [Header("교전 거리")]
-    public float engageRange = 6f;
+    // ==============================================================
+    // ★ 거리 구간 — "어느 패턴이 나오는가"는 전부 이 세 값이 정한다
+    // ==============================================================
+    // 보스와 플레이어 사이 거리를 재서 아래 구간에 떨어뜨리고, 그 구간의 후보 중 하나를 고른다.
+    // (PickMove 참조)
+    //
+    //   dist <= closeRange     근거리 → 휩쓸기 / 찌르기
+    //   dist <= midRange       중거리 → 찌르기 / 도약
+    //   dist <= engageRange    원거리 → 도약 (여기만 연속 사용 허용)
+    //   dist >  engageRange    추격. 단 chaseTimeLimit 을 넘기면 그대로 도약으로 강행한다.
+    //
+    // 값을 바꿀 땐 사거리(sweepRadius / basicThrustLength)와 같이 봐라 — 구간이 사거리보다
+    // 넓으면 그 구간에서 뽑힌 패턴이 닿지 않는 헛방이 된다.
+    [Header("★ 거리 구간 (패턴 선택)")]
+    [Tooltip("이 거리 안이면 근거리 — 휩쓸기 / 찌르기 중에서 고른다.")]
+    public float closeRange = 3.5f;
+    [Tooltip("이 거리 안이면 중거리 — 찌르기 / 도약 중에서 고른다.")]
+    public float midRange = 6.5f;
+    [Tooltip("이 거리 안이면 원거리 — 도약. 이 밖이면 추격한다(chaseTimeLimit 까지).")]
+    public float engageRange = 9f;
 
-    [Header("기본 공격 - 거리별 분기")]
-    public float sweepRange = 2.8f;
-    public float basicThrustRange = 4.5f;
-    public float sweepRadius = 3.2f;
+    [Header("★ 패턴 간격 / 추격")]
+    [Tooltip("패턴이 정상적으로 끝난 뒤 다음 패턴까지의 최소 간격(초).\n\n" +
+             "★ 이 값이 곧 '패턴 사이에 보스가 쫓아오는 시간'이다. 예전엔 이 값이 아예 없어서 " +
+             "공속(1/ATKSPD = 1초)이 그대로 추격 시간이 됐고, 그 1초 동안 보스가 플레이어에게 " +
+             "완전히 달라붙어 항상 근거리 판정 -> 휩쓸기만 나왔다.")]
+    public float attackGap = 1f;
+    [Tooltip("engageRange 밖에서 이 시간(초) 넘게 쫓아다니면 거리와 무관하게 패턴을 강행한다. " +
+             "그 거리에선 도약이 뽑히므로, 도망만 다니는 플레이어에게 보스가 뛰어든다.")]
+    public float chaseTimeLimit = 2f;
+
+    [Header("패턴 사거리 / 예비동작")]
+    [Tooltip("휩쓸기 반원의 반지름(유닛).")]
+    public float sweepRadius = 4.16f;
+    [Tooltip("휩쓸기 반원의 반각(도). 90 이면 정확히 반원(180도).")]
     public float sweepHalfAngle = 90f;
-    public float basicThrustLength = 4.5f;
+    [Tooltip("휩쓸기 예고 중 플레이어를 따라 도는 최대 회전 속도(도/초). " +
+             "0 이면 무제한(=완전 추적)이라 붙어서 도는 플레이어를 100% 따라가 걸어서는 못 피한다. " +
+             "값을 두면 크게 돌아서 빠져나갈 여지가 남는다.")]
+    public float sweepTurnSpeed = 0f;
+    [Tooltip("찌르기 판정 직사각형의 길이(유닛).")]
+    public float basicThrustLength = 6.75f;
+    [Tooltip("찌르기 판정 직사각형의 폭(유닛).")]
     public float basicThrustWidth = 1.4f;
     public float leapSlamRadiusX = 2.2f;
     public float leapSlamRadiusY = 1.6f;
@@ -50,8 +86,11 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
     [Tooltip("도약 & 내려찍기의 피해 배율(ATK 대비).")]
     public float leapSlamDamageMultiplier = 1.2f;
 
-    [Tooltip("휩쓸기를 시전하며 앞으로 미끄러지는 거리(유닛). 판정 반원은 전진이 끝난 위치를 중심으로 잡는다.")]
-    public float sweepStepDistance = 1.2f;
+    [Tooltip("휩쓸기를 시전하며 앞으로 미끄러지는 거리(유닛). " +
+             "★ 판정 반원도 바닥 부채꼴도 '전진이 끝난 위치'가 중심이다. 즉 0 이 아니면 예고가 " +
+             "보스보다 그만큼 앞에 그려진다 — 그림이 틀린 게 아니라 실제로 거기를 때린다. " +
+             "부채꼴을 보스 한가운데에 놓으려면 0 으로 둬라(현재값).")]
+    public float sweepStepDistance = 0f;
     [Tooltip("위 거리를 미끄러지는 데 걸리는 시간(초). 예고가 끝나는 순간부터 이만큼 나아간 뒤 판정이 난다.")]
     public float sweepStepDuration = 0.12f;
 
@@ -69,7 +108,7 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
              "★ 패턴이 통합된 뒤로 이 잠금은 기본 공격까지 막는다 — 보스의 공격 경로가 이것 하나뿐이다. " +
              "그래서 실제 딜타임 = 그로기(counterSuccessGroggyDuration) + 이 값 이고, 그동안 보스는 추격만 한다. " +
              "늘리면 그만큼 통째로 무행동이니 신중하게 만져라.")]
-    public float postPatternRecovery = 1.5f;
+    public float postPatternRecovery = 1f;
     [Tooltip("[미사용] 특수 패턴과 기본 공격이 분리돼 있던 시절의 추가 딜타임. 통합 후로는 쓰지 않는다.")]
     public float postGroggyRecovery = 1.5f;
 
@@ -120,6 +159,11 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
     public bool matchAnimSpeedToWindup = true;
 
 
+    /// <summary>보스 패턴 3종. 같은 패턴을 두 번 연속으로 쓰지 않기 위해 직전 것을 기억한다.</summary>
+    private enum Move { None, Sweep, Thrust, Leap }
+    private Move _lastMove = Move.None;
+    private float _chaseStartTime = -100f;
+
     private BoneMasterController _controller;
     private float _lastDiagLogTime = -100f;
     // 이 시각 전에는 어떤 특수 패턴도 안 뽑는다(기본 공격/추격은 계속한다). EndPattern 이 갱신.
@@ -138,6 +182,8 @@ public override void Init(BaseEntity entity)
             Debug.LogError($"[BoneMaster] Init: entity({entity?.gameObject?.name})를 BoneMasterController로 캐스팅하지 못했습니다!");
         }
         _specialLockUntil = -100f;
+        _lastMove = Move.None;
+        _chaseStartTime = Time.time;
 
         // 파훼 가능 신호색을 컨트롤러에 알려준다. 컨트롤러가 카운터 게이지 상태에 물려 아웃라인을
         // 켜고 끄므로, 패턴마다 창을 여닫는 12개 지점을 일일이 손대지 않아도 신호가 일관된다.
@@ -198,6 +244,7 @@ public override void Init(BaseEntity entity)
         if (Time.time < _activationTime)
         {
             entity.CurrentState = AIState.Idle;
+            _chaseStartTime = Time.time;
             return;
         }
 
@@ -213,43 +260,86 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
             Debug.Log($"[BoneMaster-Diag] dist={dist:F1} engageRange={effectiveEngageRange:F1} AtkTimer={entity.AtkTimer:F2}/{interval:F2} 특수잠금={lockLeft:F2}s CurrentState={entity.CurrentState} IsAttacking={entity.IsAttacking}");
         }
 
-        if (dist > effectiveEngageRange)
-        {
-            entity.CurrentState = AIState.Follow;
-            _controller?.SetStateText("추격 중...");
-            return;
-        }
-
-        // [0830 수정안 — 기본 공격과 특수 패턴 통합] 예전엔 여기서 가중치 룰렛으로 특수 패턴 3종
-        // (박치기 돌격 / 견갑 찌르기 / 카운터)을 뽑고, 전부 쿨이면 기본 공격으로 떨어졌다.
-        // 이제 보스 패턴은 찌르기 · 휩쓸기 · 도약 세 개뿐이고 그 셋이 곧 기본 공격이다.
-        // 어느 것을 쓸지는 OnAttack 이 거리로 고르므로(붙으면 휩쓸기, 중간이면 찌르기, 멀면 도약),
-        // 여기서는 '지금 때릴 때인가'만 판단한다.
-        //
-        // _specialLockUntil 은 남겨 뒀다 — 카운터 파훼로 그로기가 걸린 뒤의 딜타임을 여기서 지킨다.
+        // 카운터 파훼 뒤의 딜타임 + 패턴 사이 최소 간격(attackGap)을 여기서 지킨다.
         if (Time.time < _specialLockUntil)
         {
             entity.CurrentState = AIState.Follow;
             _controller?.SetStateText("추격 중...");
+            // 추격 시간은 '때릴 수 있게 된 순간'부터 센다. 여기서 리셋하지 않으면 딜타임이
+            // 그대로 추격 시간으로 계산돼, 잠금이 풀리는 즉시 강제 패턴이 튀어나온다.
+            _chaseStartTime = Time.time;
             return;
         }
 
-        EngageOrFollow(entity);
-    }
-
-    /// <summary>때릴 때가 됐으면 공격, 아니면 추격. 상태를 반드시 하나로 확정한다.</summary>
-    private void EngageOrFollow(BaseEntity entity)
-    {
-        float interval = entity.Stats != null ? entity.Stats.AttackInterval : 1f;
-        if (entity.AtkTimer >= interval)
-        {
-            entity.CurrentState = AIState.Attack;
-        }
-        else
+        // [버그 수정 — 패턴마다 1초씩 추격이 강제로 붙던 문제]
+        // 예전엔 여기서 entity.AtkTimer >= AttackInterval 을 봤는데, AtkTimer 는 AIPatternSO.Execute()
+        // 안에서만 증가하고 Execute 는 IsAttacking 이면 통째로 안 돈다(BaseEntity.CanExecuteAI).
+        // 즉 패턴이 도는 1.4초 동안 타이머가 얼어 있다가 패턴이 끝나서야 0 부터 다시 세기 시작했고,
+        // 그 결과 패턴마다 정확히 공속 1회분(1초)의 추격이 강제로 붙었다. 그 1초면 이동속도 5 인
+        // 보스가 플레이어에게 완전히 달라붙어서, 다음 판단은 항상 근거리 -> 휩쓸기만 나왔다.
+        // 이제 간격은 attackGap 하나로만 저작한다.
+        bool inRange = dist <= effectiveEngageRange;
+        if (!inRange && Time.time - _chaseStartTime < Mathf.Max(0f, chaseTimeLimit))
         {
             entity.CurrentState = AIState.Follow;
             _controller?.SetStateText("추격 중...");
+            return;
         }
+
+        entity.CurrentState = AIState.Attack;
+    }
+
+    /// <summary>
+    /// 이번에 쓸 패턴. 거리로 후보를 좁히고, 그 안에서 <b>직전과 같은 것은 피한다</b>.
+    ///
+    /// 원거리는 후보가 도약뿐이라 연속 사용을 허용한다(0830 확정 — 계속 멀리 도망다니는
+    /// 플레이어에게 보스가 쓸 수 있는 수단이 그것 하나뿐이라서).
+    /// </summary>
+    private Move PickMove(float dist, float rangeMul)
+    {
+        if (dist > midRange * rangeMul) return Move.Leap;
+
+        Move a, b;
+        if (dist <= closeRange * rangeMul) { a = Move.Sweep; b = Move.Thrust; }
+        else { a = Move.Thrust; b = Move.Leap; }
+
+        // 후보가 둘뿐이라 '직전 것이 아닌 쪽'이 곧 답이다.
+        // 직전 것이 이 구간의 후보가 아니면(구간을 갓 넘어왔다) 둘 중 아무거나.
+        if (_lastMove == a) return b;
+        if (_lastMove == b) return a;
+        return Random.value < 0.5f ? a : b;
+    }
+
+    /// <summary>
+    /// 다음 패턴까지의 간격을 건다. 추격 제한시간도 여기서 같이 리셋한다 —
+    /// "패턴이 끝난 시점"이 곧 "추격이 시작된 시점"이다.
+    /// </summary>
+    private void ArmNextAttack(float extraLock = 0f)
+    {
+        float until = Time.time + Mathf.Max(0f, attackGap) + Mathf.Max(0f, extraLock);
+        // 카운터 파훼 딜타임(EndPattern)이 이미 더 길게 걸려 있으면 그쪽을 존중한다.
+        _specialLockUntil = Mathf.Max(_specialLockUntil, until);
+        _chaseStartTime = Time.time;
+    }
+
+    /// <summary>
+    /// 예고 중 조준을 플레이어 쪽으로 한 프레임만큼 돌린다.
+    /// turnSpeed(도/초) 상한이 있어서 붙어서 도는 플레이어를 완전히 따라가지는 못한다 —
+    /// 크게 돌면 빠져나갈 여지를 남기는 것이 목적이다(0 이면 무제한).
+    /// </summary>
+    public static Vector2 AimToward(BaseEntity entity, Vector2 dir, Vector2 origin, float turnSpeed)
+    {
+        if (entity == null || entity.Target == null) return dir;
+        Vector2 want = (Vector2)entity.Target.position - origin;
+        if (want.sqrMagnitude < 0.0001f) return dir;
+
+        float tgt = Mathf.Atan2(want.y, want.x) * Mathf.Rad2Deg;
+        float next = turnSpeed <= 0f
+            ? tgt
+            : Mathf.MoveTowardsAngle(Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg, tgt, turnSpeed * Time.deltaTime);
+
+        float r = next * Mathf.Deg2Rad;
+        return new Vector2(Mathf.Cos(r), Mathf.Sin(r));
     }
 
     /// <summary>
@@ -312,11 +402,10 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
     }
 
     // ── 보스 패턴 3종: 거리로 고른다 ────────────────────────────────
-protected override void OnAttack(BaseEntity entity)
+    protected override void OnAttack(BaseEntity entity)
     {
         StopNavAgent(entity);
         if (entity.IsAttacking) return;
-        if (entity.AtkTimer < entity.Stats.AttackInterval) return;
 
         entity.AtkTimer = 0f;
         entity.IsAttacking = true;
@@ -326,10 +415,12 @@ protected override void OnAttack(BaseEntity entity)
         // 정작 기본 공격 판정 자체(부채꼴/직사각형/타원 크기)에는 전혀 반영되지 않고 있었다.
         float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
 
-        IEnumerator routine;
-        if (dist <= sweepRange * rangeMul) routine = BasicAttack_Sweep(entity);
-        else if (dist <= basicThrustRange * rangeMul) routine = BasicAttack_Thrust(entity);
-        else routine = BasicAttack_LeapSlam(entity);
+        Move move = PickMove(dist, rangeMul);
+        _lastMove = move;
+
+        IEnumerator routine = move == Move.Sweep ? BasicAttack_Sweep(entity)
+                            : move == Move.Thrust ? BasicAttack_Thrust(entity)
+                            : BasicAttack_LeapSlam(entity);
 
         entity.ActiveAttackCoroutine = entity.StartCoroutine(routine);
     }
@@ -341,6 +432,7 @@ protected override void OnAttack(BaseEntity entity)
         entity.IsAttacking = false;
         entity.ActiveAttackCoroutine = null;
         entity.ResetAnimationState();
+        ArmNextAttack();
     }
 
     /// <summary>
@@ -362,9 +454,7 @@ protected override void OnAttack(BaseEntity entity)
         float radius = sweepRadius * rangeMul;
         float windup = basicAttackWindup * csMul;
 
-        // 전진해서 도착할 자리를 먼저 확정한다. 벽이 가까우면 그만큼만 간다.
-        float step = SlideDistance(origin, dir, sweepStepDistance);
-        Vector2 stepEnd = origin + dir * step;
+        Vector2 stepEnd = origin + dir * SlideDistance(origin, dir, sweepStepDistance);
 
         var kind = RollTelegraph(counterable: true, out Color col);
         _controller?.SetStateText("휩쓸기", col);
@@ -372,25 +462,44 @@ protected override void OnAttack(BaseEntity entity)
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, stepEnd, dir, radius, sweepHalfAngle, col);
         PlayState(entity, animState_Sweep, windup, matchAnimSpeedToWindup);
 
+        // [0830 수정안] 예고가 차는 동안 플레이어를 계속 조준한다.
+        // 예전엔 예고 시작 순간의 방향으로 고정이었고, 판정 중심이 앞으로 전진한 자리(stepEnd)라
+        // 보스에게 완전히 붙어 있는 플레이어는 반원의 뒤쪽 사각에 서게 됐다 — 걸어서 돌기만 해도
+        // 무한히 빠졌다. 다만 회전에 상한(sweepTurnSpeed)을 둬서 크게 돌면 여전히 빠질 수 있다.
         var tele = new BossCounterTelegraph.Result();
         yield return BossCounterTelegraph.Run(entity, _controller, windup, dir, kind, col,
                                               counterGaugeAmount, tele,
-                                              onTick: () => Warp(entity, origin));
+                                              onTick: () =>
+                                              {
+                                                  Warp(entity, origin);
+                                                  dir = AimToward(entity, dir, origin, sweepTurnSpeed);
+                                                  if (entity.Target != null) entity.LookAtTarget(entity.Target);
+                                                  stepEnd = origin + dir * SlideDistance(origin, dir, sweepStepDistance);
+                                                  BoneMasterTelegraphUtil.UpdateCone(
+                                                      telegraph, stepEnd, dir,
+                                                      windup > 0.0001f ? tele.Elapsed / windup : 1f);
+                                                  BossAttackIndicator.Aim(entity, dir);
+                                              });
         if (telegraph != null) Object.Destroy(telegraph);
 
         if (tele.Hijacked) { FinishBasicAttack(entity); yield break; }
         if (tele.Countered) { CancelByCounter(entity); yield break; }
 
         // 전진 — 빨강을 맞았으면(ForcedEarly) 예고를 건너뛰고 여기부터 바로 시작된다.
-        float st = 0f;
-        float stepDur = Mathf.Max(0.01f, sweepStepDuration * csMul);
-        while (st < stepDur)
+        // [주의] 전진 거리가 0 이면 루프를 아예 건너뛴다. 그냥 돌면 제자리에서 sweepStepDuration 만큼
+        // 시간만 흘러서, 인디케이터가 가득 찬 뒤 그만큼 늦게 판정이 나간다(= 게이지가 거짓말을 한다).
+        if ((stepEnd - origin).sqrMagnitude > 0.0001f)
         {
-            st += Time.deltaTime;
-            Warp(entity, Vector2.Lerp(origin, stepEnd, Mathf.Clamp01(st / stepDur)));
-            yield return null;
+            float st = 0f;
+            float stepDur = Mathf.Max(0.01f, sweepStepDuration * csMul);
+            while (st < stepDur)
+            {
+                st += Time.deltaTime;
+                Warp(entity, Vector2.Lerp(origin, stepEnd, Mathf.Clamp01(st / stepDur)));
+                yield return null;
+            }
+            Warp(entity, stepEnd);
         }
-        Warp(entity, stepEnd);
 
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
         BossCombat.DealCone(stepEnd, dir, radius, sweepHalfAngle, entity.opponentLayer, info);
@@ -574,10 +683,6 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         entity.CurrentState = AIState.Follow;
         _specialLockUntil = Time.time + Mathf.Max(0f, postPatternRecovery) + Mathf.Max(0f, extraLock);
     }
-
-    /// <summary>파훼로 끝난 패턴의 마무리. 그로기가 끝난 뒤 postGroggyRecovery 만큼 더 쉰다.</summary>
-    private void EndPatternAfterGroggy(BaseEntity entity, float groggyDuration)
-        => EndPattern(entity, Mathf.Max(0f, groggyDuration) + Mathf.Max(0f, postGroggyRecovery));
 
     #region 벽 판정 (슬라이드 돌진 / 도약 착지 공용)
     /// <summary>

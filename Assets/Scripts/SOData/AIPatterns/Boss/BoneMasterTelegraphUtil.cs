@@ -263,29 +263,37 @@ public static class BoneMasterTelegraphUtil
     /// halfAngleDegrees=90이면 반달(180도) 모양. 중심점 → 부채꼴 호 → 중심점으로 돌아오는 외곽선(두 직선 변 + 호)이라
     /// "반달로 휩쓰는 범위"가 한눈에 보인다.
     /// </summary>
-public static GameObject SpawnCone(BaseEntity entity, Vector2 pos, Vector2 facingDir, float radius, float halfAngleDegrees, Color color, int sortingOrder = 5000, float lineWidth = 0.18f, float fillAlpha = 0.35f)
+    public static GameObject SpawnCone(BaseEntity entity, Vector2 pos, Vector2 facingDir, float radius,
+                                       float halfAngleDegrees, Color color, int sortingOrder = 5000,
+                                       float lineWidth = 0.18f, float fillAlpha = 0.35f)
     {
         GameObject go = new GameObject("BoneMaster_Telegraph_Cone");
-        go.transform.position = pos;
 
         const int arcSegments = 20;
-        Vector2 dir = facingDir.sqrMagnitude > 0.0001f ? facingDir.normalized : Vector2.right;
-        float baseAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
+        // [핵심] 정점은 항상 <b>로컬 각도 0</b> 기준으로 굽고, 방향은 transform.rotation 으로 준다.
+        // 예전엔 facingDir 을 정점에 구워 넣어서, 예고 도중 조준을 바꾸려면 메쉬를 통째로 다시
+        // 만들어야 했다. 회전으로 분리해 두면 UpdateCone 한 줄로 실시간 재조준이 된다.
         Vector3[] points = new Vector3[arcSegments + 1];
         points[0] = Vector3.zero; // 중심(보스 위치)
         for (int i = 0; i < arcSegments; i++)
         {
-            float t = arcSegments > 1 ? i / (float)(arcSegments - 1) : 0f;
-            float angleDeg = baseAngle - halfAngleDegrees + t * (halfAngleDegrees * 2f);
-            float rad = angleDeg * Mathf.Deg2Rad;
+            float f = arcSegments > 1 ? i / (float)(arcSegments - 1) : 0f;
+            float rad = (-halfAngleDegrees + f * (halfAngleDegrees * 2f)) * Mathf.Deg2Rad;
             points[i + 1] = new Vector3(Mathf.Cos(rad) * radius, Mathf.Sin(rad) * radius, 0f);
         }
 
-        // [추가 — 내부 채움] 예전엔 외곽선(LineRenderer)만 그려서 부채꼴 안이 텅 비어 어색해 보였다.
-        // 같은 점들로 중심에서 부채꼴을 이루는 삼각형 팬(fan) 메쉬를 만들어 반투명하게 채운다.
-        var mf = go.AddComponent<MeshFilter>();
-        var mr = go.AddComponent<MeshRenderer>();
+        // ── 채움(자식) ──
+        // [추가 — "부채꼴이 예고 없이 툭 뜬다"는 피드백] 레인/타원 전조에는 차오름 게이지가
+        // 프리팹에 딸려 있는데 부채꼴만 정지 그림이라, 플레이어에겐 "떴다 -> 맞았다"로만 보였다.
+        // 채움을 자식으로 내리면 외곽선(=최종 범위)은 그대로 두고 채움만 0 -> 1 로 키울 수 있다.
+        // 외곽선에 닿는 순간이 곧 발동이라 그림과 판정이 어긋날 수 없다.
+        GameObject fill = new GameObject("Fill");
+        fill.transform.SetParent(go.transform, false);
+        fill.transform.localScale = Vector3.zero;   // UpdateCone 이 키워 준다
+
+        var mf = fill.AddComponent<MeshFilter>();
+        var mr = fill.AddComponent<MeshRenderer>();
         Mesh fillMesh = new Mesh { name = "BoneMaster_Telegraph_Cone_Fill" };
         fillMesh.vertices = points;
         int triCount = arcSegments - 1;
@@ -313,19 +321,40 @@ public static GameObject SpawnCone(BaseEntity entity, Vector2 pos, Vector2 facin
 
         // [버그 수정 — Mesh/Material 누수] 코드로 만든 Mesh 와 복제 Material 은 GameObject 를 Destroy 해도
         // 같이 사라지지 않는다. 부채꼴 전조는 근접 기본 공격마다 하나씩 생기므로 전투가 길어질수록
-        // 계속 쌓였다. 어느 경로로 파괴되든 OnDestroy 는 지나가므로 꼬리표를 붙여 함께 정리한다.
+        // 계속 쌓였다. 꼬리표는 부모에 붙인다 — 자식은 부모와 함께 파괴되므로 어느 경로로 지워도 지나간다.
         go.AddComponent<TelegraphResourceCleanup>().Track(fillMesh, coneMat);
         mr.sortingLayerID = entity != null && entity.SpriteRenderer != null ? entity.SpriteRenderer.sortingLayerID : 0;
         mr.sortingOrder = sortingOrder - 1; // 외곽선보다 한 단계 아래에 채워서 테두리가 위에 선명하게 보이게 한다.
 
-        // ── 외곽선(기존과 동일) ──
+        // ── 외곽선(부모) ──
         var lr = go.AddComponent<LineRenderer>();
         lr.loop = true; // 마지막 점에서 첫 점(중심)으로 자동으로 닫힌다.
         lr.positionCount = arcSegments + 1;
         lr.SetPositions(points);
 
         ApplyCommon(lr, entity, color, sortingOrder, lineWidth);
+
+        UpdateCone(go, pos, facingDir, 0f);
         return go;
+    }
+
+    /// <summary>
+    /// 부채꼴 전조의 위치 / 조준 방향 / 차오름을 갱신한다.
+    /// 방향은 transform 회전이라 매 프레임 바꿔도 비용이 0 이다(메쉬 재생성 없음).
+    /// </summary>
+    /// <param name="dir">새 조준 방향. 길이가 0 이면 방향을 건드리지 않는다.</param>
+    /// <param name="progress01">0 = 막 시작, 1 = 발동. 음수면 차오름을 건드리지 않는다.</param>
+    public static void UpdateCone(GameObject cone, Vector2 pos, Vector2 dir, float progress01 = -1f)
+    {
+        if (cone == null) return;
+
+        cone.transform.position = pos;
+        if (dir.sqrMagnitude > 0.0001f)
+            cone.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
+
+        if (progress01 < 0f) return;
+        Transform fill = cone.transform.Find("Fill");
+        if (fill != null) fill.localScale = Vector3.one * Mathf.Clamp01(progress01);
     }
 
     /// <summary>SpawnCircle/SpawnEllipse/SpawnCone 등으로 만든 텔레그래프의 위치를 갱신한다(대상을 따라갈 때).</summary>
