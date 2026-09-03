@@ -339,7 +339,8 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        PopupSystem.ShowInteractionIcon(nearestCollider, interactIconOffset);
+        // 진열 상품은 포커스될 때 이름/가격 툴팁이 이미 뜬다. 구매 대상 선택은 유지하되 F 아이콘만 숨긴다.
+        PopupSystem.ShowInteractionIcon(nearest is SellItem ? null : nearestCollider, interactIconOffset);
 
         // 포커스 변경 시 OnFocused / OnLostFocus 호출
         if (!ReferenceEquals(nearest, _closestInteractable))
@@ -536,6 +537,7 @@ public class PlayerController : MonoBehaviour
         float originalDist = dashSpeed * dashDuration;
         Vector2 safePos = GetSafeDashPosition(transform.position, _dashDir, originalDist);
         float actualDist = Vector2.Distance(transform.position, safePos);
+        if (actualDist > 0.0001f) _dashDir = (safePos - (Vector2)transform.position).normalized;
         _dashTimeLeft = actualDist / dashSpeed; // 동적으로 대시 시간 조절
 
         if (stat != null && stat.Health != null)
@@ -1122,6 +1124,10 @@ public void OnGemTree(InputAction.CallbackContext context)
     /// </summary>
     public Vector2 GetSafeDashPosition(Vector2 startPos, Vector2 direction, float maxDistance)
     {
-        return SkillCombatUtil.GetSafeDestination(startPos, direction, maxDistance);
+        Collider2D body = GetComponent<Collider2D>();
+        float radius = body != null
+            ? Mathf.Max(body.bounds.extents.x, body.bounds.extents.y) + 0.02f
+            : 0.3f;
+        return SkillCombatUtil.GetSafeDestination(startPos, direction, maxDistance, radius);
     }
 }

@@ -197,7 +197,11 @@ public class MinionActionSkillSO : MinionSkillSO
                     hasInvokedKeyword = true;
                     Debug.Log($"<color=yellow>[MinionAction]</color> {actionType} 발동! (미니언 시전)");
                 }
-                ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
+                // 방 프리팹에 직접 배치된 튜토리얼 몬스터는 transform.root가 몬스터가 아니라 방이다.
+                // root를 밀면 Ground/Wall까지 통째로 영구 이동하므로 실제 BaseEntity만 움직인다.
+                var targetEntity = health.GetComponentInParent<BaseEntity>();
+                Transform moveTarget = targetEntity != null ? targetEntity.transform : stat.transform;
+                ApplyActionEffect(stat, moveTarget, caster, dirFromPlayer, teleportPos);
             };
 
             caster.PlaySequenced(

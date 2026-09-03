@@ -49,12 +49,11 @@ public static class SkillCombatUtil
     }
 
     /// <summary>
-    /// 좌표 텔레포트(Lerp) 이동이 <b>벽(Wall/Obstacle)을 절대 통과하지 못하도록</b> 제동한 목적지를 반환한다.
+    /// 좌표 텔레포트(Lerp) 이동이 벽을 통과하거나 바닥 없는 곳에 착지하지 않도록 제동한 목적지를 반환한다.
     /// from→목적지 <b>중심선(Linecast)</b>이 벽을 가로지르면 그 벽면 앞(radius 만큼 여유)에서 하드 정지한다.
     /// 벽은 맵(방)을 감싸는 경계라 무조건 막는다.
     ///
-    /// 낭떠러지(Unsteppable)는 맵 생성 시 물리 콜라이더가 제거되어(RoomInstance/ MapGenerator) 물리적으로
-    /// 막지 않으므로 대시와 동일하게 자유롭게 뛰어넘는다 — 별도 제동하지 않는다.
+    /// Unsteppable은 뛰어넘을 수 있지만 착지점에는 Ground가 있어야 한다. Ground 아래에 물이 겹친 셀은 허용한다.
     ///
     /// Linecast(중심선)라 반경 기반 OverlapCircle 의 오탐/관통 문제가 없다: 벽과 나란히·멀어지는 이동은
     /// 벽을 가로지르지 않아 통과되고, 벽에 '딱 붙어' 벽 쪽으로 쏘면 즉시 벽면에 걸려 제자리에 멈춘다.
@@ -68,11 +67,23 @@ public static class SkillCombatUtil
 
         // 벽은 절대 통과 불가: 중심선이 벽을 가로지르면 벽면 직전에서 하드 정지.
         RaycastHit2D wallHit = Physics2D.Linecast(from, target, Layers.WallMask);
-        if (wallHit.collider != null)
-            return from + dir * Mathf.Max(0f, wallHit.distance - radius);
+        float allowedDistance = wallHit.collider != null
+            ? Mathf.Max(0f, wallHit.distance - radius)
+            : distance;
 
-        // 벽이 없으면 목적지까지 (낭떠러지는 콜라이더가 없어 자연히 통과 = 대시로 넘기 가능).
-        return target;
+        Vector2 allowedTarget = from + dir * allowedDistance;
+        MapGenerator map = MapGenerator.Instance;
+        if (map == null) return allowedTarget;
+        if (map.TryGetGroundLandingPoint(allowedTarget, radius, out Vector2 landingPoint)) return landingPoint;
+
+        // 목적지가 물 단독 셀이면 진행선 위의 가장 가까운 안전 Ground까지 착지점을 뒤로 당긴다.
+        const float Step = 0.1f;
+        for (float d = allowedDistance - Step; d > 0f; d -= Step)
+        {
+            Vector2 candidate = from + dir * d;
+            if (map.TryGetGroundLandingPoint(candidate, radius, out landingPoint)) return landingPoint;
+        }
+        return from;
     }
 
     /// <summary>mover 를 from→to 로 duration 동안 Lerp 이동시킨다.</summary>

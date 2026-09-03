@@ -23,6 +23,7 @@ public class MeleeDodgeController : MonoBehaviour
     private bool _isDashing;
     private float _dashTimeLeft;
     private Vector2 _dashDir;
+    private Vector2 _dashEndPosition;
 
     private PlayerController _player;
     private Rigidbody2D _rb;
@@ -125,8 +126,18 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
 
         // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
         // 배율은 벽 클램프 '전'에 곱한다 — 클램프가 최종 도달점을 잡아야 벽을 뚫지 않는다.
-        float originalDist = dashSpeed * dashDuration * lengthMult;
-        Vector2 safePos = _player.GetSafeDashPosition(transform.position, _dashDir, originalDist);
+        float baseDist = dashSpeed * dashDuration;
+        float originalDist = baseDist * lengthMult;
+
+        // 평소에는 기존 거리 그대로. 그 거리 안에 물(Unsteppable)이 끼어 있을 때만
+        // 기본 대시의 1.5배까지 뻗어서 건너편 Ground 착지를 시도한다.
+        float requestedDist = originalDist;
+        MapGenerator map = MapGenerator.Instance;
+        if (map != null && map.HasUnsteppableBetween(transform.position, _dashDir, originalDist))
+            requestedDist = Mathf.Max(originalDist, baseDist * 1.5f);
+
+        Vector2 safePos = _player.GetSafeDashPosition(transform.position, _dashDir, requestedDist);
+        _dashEndPosition = safePos;
         float actualDist = Vector2.Distance(transform.position, safePos);
         _dashTimeLeft = actualDist / dashSpeed; // 동적으로 대시 시간 조절
 
@@ -292,6 +303,9 @@ private void EndDash()
         if (_rb != null)
         {
             _rb.linearVelocity = Vector2.zero;
+            // 속도×시간 방식은 FixedUpdate 한 틱만큼 안전 착지점을 넘어갈 수 있다.
+            // 충돌을 다시 켜기 전에 계산해 둔 Ground 안쪽으로 확실히 복귀시킨다.
+            _rb.position = _dashEndPosition;
         }
 
         if (_player.Stat != null && _player.Stat.Health != null)
