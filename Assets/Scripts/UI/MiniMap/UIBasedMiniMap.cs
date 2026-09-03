@@ -573,6 +573,10 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                 {
                     if (!ground.HasTile(pos)) continue;
                     Vector3 tileCenter = ground.GetCellCenterWorld(pos);
+                    // 벽 스프라이트의 투명한 가장자리를 메우는 밑칠 Ground 는 미니맵 지형이 아니다.
+                    if (room.wallTilemap != null &&
+                        room.wallTilemap.HasTile(room.wallTilemap.WorldToCell(tileCenter)))
+                        continue;
                     tiles.Add(new Vector2(tileCenter.x - roomCenterWorld.x, tileCenter.y - roomCenterWorld.y));
                 }
             }

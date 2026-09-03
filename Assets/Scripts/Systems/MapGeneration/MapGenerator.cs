@@ -1553,6 +1553,13 @@ Instance = this;
                 TileBase tile = tm.GetTile(pos);
                 if (tile != null)
                 {
+                    // 투명한 벽 스프라이트의 빈 부분을 메우려고 같은 자리에 깐 Ground 는
+                    // 실제 방 바닥이 아니다. 미니맵에서는 Wall 과 겹친 Ground 를 제외한다.
+                    Vector3 tileCenter = tm.GetCellCenterWorld(pos);
+                    if (room.wallTilemap != null &&
+                        room.wallTilemap.HasTile(room.wallTilemap.WorldToCell(tileCenter)))
+                        continue;
+
                     // 월드 좌표 기준 방 중심과의 상대 오프셋 계산
                     Vector3 tileWorldPos = tm.CellToWorld(pos);
                     int localX = Mathf.RoundToInt(tileWorldPos.x - roomCenterWorldPos.x);
