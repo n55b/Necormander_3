@@ -21306,6 +21306,7 @@ Transform:
   - {fileID: 4498839652570825898}
   - {fileID: 1106030302515060731}
   - {fileID: 2625504647648789607}
+  - {fileID: 2327416747149172113}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2467784662988300142
@@ -21354,12 +21355,32 @@ MonoBehaviour:
   mapGenerationData: {fileID: 0}
   spawnVfxPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   spawnMargin: 3
+  tutorialEnemiesRoot: {fileID: 2327416747149172113}
   rewardBoxPrefab: {fileID: 0}
   rewardSpawnPoint: {fileID: 6302489780947052499}
   OnCombatStart:
     m_PersistentCalls:
       m_Calls: []
   OnCombatClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &9100000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3242139126785221393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb6cd2757b973c241a42d31b5129be63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dialogueId: Tutorial_02
+  playOnce: 1
+  playOnEnable: 0
+  entryDelay: 0.6
+  onDialogueComplete:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1 &3800003596133946755
@@ -21606,6 +21627,38 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
+  m_Father: {fileID: 2320746058205641299}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5181161559247624301
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2327416747149172113}
+  m_Layer: 0
+  m_Name: Tutorial Enemies
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &2327416747149172113
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5181161559247624301}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3619107366362162340}
   m_Father: {fileID: 2320746058205641299}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7880265846112042188
@@ -56121,6 +56174,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5493038495254695657, guid: 8dfc3b2439daccd439e86bf81bb76eca, type: 3}
   m_PrefabInstance: {fileID: 4514155806436892837}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &4588898138015615527
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2327416747149172113}
+    m_Modifications:
+    - target: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 6.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5658053484416891064, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+      propertyPath: m_Name
+      value: Monster Range_Doll
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+--- !u!4 &3619107366362162340 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 979159577626635907, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+  m_PrefabInstance: {fileID: 4588898138015615527}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4712936269891348729
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -59097,22 +59212,3 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2037602406155824985, guid: 47312240a51b4fe4b9616f52009cd144, type: 3}
   m_PrefabInstance: {fileID: 9204078232039795750}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &9100000000000000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3242139126785221393}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb6cd2757b973c241a42d31b5129be63, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dialogueId: Tutorial_02
-  playOnce: 1
-  playOnEnable: 0
-  entryDelay: 0.6
-  onDialogueComplete:
-    m_PersistentCalls:
-      m_Calls: []

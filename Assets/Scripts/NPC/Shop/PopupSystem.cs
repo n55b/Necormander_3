@@ -1,21 +1,15 @@
 using UnityEngine;
-using TMPro;
 
 /// <summary>
-/// NPC 팝업 UI 제어 (상호작용 아이콘 + 팝업 패널).
+/// NPC 팝업 패널과 모든 IInteractable의 공용 F 아이콘을 제어합니다.
 /// </summary>
 public class PopupSystem : MonoBehaviour
 {
     [Header("Popup Panel")]
     [SerializeField] private GameObject popupPanel;
 
-    [Header("Interact Icon")]
-    [SerializeField] public GameObject InetractIcon; // 기존 오타 유지 (Inspector 연결 호환)
-
-    [Header("Prompt Text (선택)")]
-    [SerializeField] private TextMeshProUGUI promptText;
-
     private string npcName;
+    private static SpriteRenderer _interactionIcon;
 
     private void Awake()
     {
@@ -44,16 +38,45 @@ public class PopupSystem : MonoBehaviour
 
     public bool IsOpen => popupPanel != null && popupPanel.activeSelf;
 
-    // ─── 아이콘 ──────────────────────────────────────────────────────
-    public void ShowIcon(string prompt = "")
+    // ─── 모든 IInteractable 공용 아이콘 ──────────────────────────────
+    public static void ShowInteractionIcon(Collider2D target, float offset)
     {
-        if (InetractIcon != null) InetractIcon.SetActive(true);
-        if (promptText   != null) promptText.text = prompt;
+        if (target == null) { HideInteractionIcon(); return; }
+        if (!EnsureInteractionIcon()) return;
+
+        _interactionIcon.gameObject.SetActive(true);
+        _interactionIcon.transform.position = new Vector3(target.bounds.center.x,
+                                                          target.bounds.max.y + offset,
+                                                          target.transform.position.z);
     }
 
-    public void HideIcon()
+    public static void HideInteractionIcon()
     {
-        if (InetractIcon != null) InetractIcon.SetActive(false);
-        if (promptText   != null) promptText.text = "";
+        if (_interactionIcon != null) _interactionIcon.gameObject.SetActive(false);
+    }
+
+    public static void ReleaseInteractionIcon()
+    {
+        if (_interactionIcon != null) Destroy(_interactionIcon.gameObject);
+        _interactionIcon = null;
+    }
+
+    private static bool EnsureInteractionIcon()
+    {
+        if (_interactionIcon != null) return true;
+
+        Sprite[] sprites = Resources.LoadAll<Sprite>("Sprites/Icon_F");
+        if (sprites.Length == 0)
+        {
+            Debug.LogWarning("[PopupSystem] Resources/Sprites/Icon_F.png 스프라이트를 찾지 못했습니다.");
+            return false;
+        }
+
+        var iconObject = new GameObject("Interaction F Icon");
+        _interactionIcon = iconObject.AddComponent<SpriteRenderer>();
+        _interactionIcon.sprite = sprites[0];
+        _interactionIcon.sortingLayerName = "FlyingObject";
+        _interactionIcon.sortingOrder = 10000;
+        return true;
     }
 }

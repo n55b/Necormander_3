@@ -161,7 +161,7 @@ public class GameManager : MonoBehaviour
             Debug.Log($"<color=yellow>[GameManager]</color> Debug Start Floor 설정됨 — 세이브를 무시하고 {currentFloor}층에서 시작합니다.");
         }
 
-        // 튜토리얼은 '층 개념 밖'이다(MapGenerator 의 배치 분기와 같은 규칙). 그래서 층수는 항상 1 —
+        // 튜토리얼은 '층 개념 밖'이다(MapGenerator 의 배치 분기와 같은 규칙). Floor Tuning 의 0층을 쓴다 —
         // 씬에 박힌 debugStartFloor 도, 남아 있던 세이브도 여기서 끊는다.
         //
         // 반드시 위 두 분기보다 뒤여야 한다. 튜토리얼이 도는 씬은 던전(BattleScene)과 같은 씬이라,
@@ -169,8 +169,8 @@ public class GameManager : MonoBehaviour
         // (= 1층의 웨이브 1회 저작이 무시되고 전역 기본값 2회가 나온다).
         if (TutorialFlow.IsRunning)
         {
-            currentFloor = 1;
-            Debug.Log("<color=cyan>[GameManager]</color> 튜토리얼 — 층수를 1로 고정합니다(1층 조절표 적용).");
+            currentFloor = 0;
+            Debug.Log("<color=cyan>[GameManager]</color> 튜토리얼 — Floor Tuning 0번을 적용합니다.");
         }
 
         InitializeGame();

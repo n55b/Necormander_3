@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1112460400659126536
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4931313819698346475}
+  m_Layer: 0
+  m_Name: Tutorial Enemies
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &4931313819698346475
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1112460400659126536}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2320746058205641299}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1438073443494105585
 GameObject:
   m_ObjectHideFlags: 0
@@ -15116,6 +15147,7 @@ Transform:
   - {fileID: 1106030302515060731}
   - {fileID: 2625504647648789607}
   - {fileID: 2479525324525488115}
+  - {fileID: 4931313819698346475}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2467784662988300142
@@ -15130,7 +15162,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dba8ed436a9c81f4ab243b0794c50677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomType: 1
+  roomType: 6
   normalRewardType: 0
   roomSize: {x: 0, y: 0}
   centerOffset: {x: 0, y: 0}
@@ -15164,6 +15196,7 @@ MonoBehaviour:
   mapGenerationData: {fileID: 0}
   spawnVfxPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   spawnMargin: 3
+  tutorialEnemiesRoot: {fileID: 4931313819698346475}
   rewardBoxPrefab: {fileID: 5837210638417428083, guid: 912d8a7544ed68f4bade387c04358ac1, type: 3}
   rewardSpawnPoint: {fileID: 2479525324525488115}
   OnCombatStart:
