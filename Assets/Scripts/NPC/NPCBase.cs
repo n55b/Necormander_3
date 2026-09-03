@@ -37,11 +37,11 @@ public class NPCBase : MonoBehaviour, IInteractable
 
     /// <summary>
     /// PlayerController가 이 NPC를 가장 가까운 대상으로 선택했을 때 호출됩니다.
-    /// 기본 동작: 상호작용 아이콘 표시
+    /// F 아이콘은 PlayerController가 모든 IInteractable에 공통 표시하므로 여기서는 별도 처리하지 않습니다.
     /// </summary>
     public virtual void OnFocused(GameObject interactor)
     {
-        popupSystem?.ShowIcon(InteractionPrompt);
+        // F 아이콘은 PlayerController가 실제 선택한 대상 하나에만 공통으로 표시한다.
     }
 
     /// <summary>
@@ -50,7 +50,6 @@ public class NPCBase : MonoBehaviour, IInteractable
     /// </summary>
     public virtual void OnLostFocus(GameObject interactor)
     {
-        popupSystem?.HideIcon();
         popupSystem?.HidePopup();
     }
 

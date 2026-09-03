@@ -104,7 +104,7 @@ public class MapGenerationDataSO : ScriptableObject
     [System.Serializable]
     public class FloorTuningEntry
     {
-        [Tooltip("GameManager.currentFloor 와 비교할 층수 (1부터)")]
+        [Tooltip("GameManager.currentFloor 와 비교할 층수. 0은 튜토리얼, 일반 층은 1부터")]
         public int floor = 1;
 
         [Tooltip("이 층의 방당 전투 웨이브 수. 0 이면 전역 wavesCount 를 그대로 쓴다")]

@@ -56,6 +56,17 @@ MonoBehaviour:
   - {fileID: 3145241417507046039, guid: 6574240e0d4f7d544a1e83163a5a6ba9, type: 3}
   tutorialExitPortal: {fileID: 7688696379878300730, guid: 3f4bb635140eefb4698ee6fff68c87fb, type: 3}
   floorTuning:
+  - floor: 0
+    wavesCount: 1
+    enemyCountScale: 1
+    clusterPool: []
+    totalRoomCount: -1
+    minNormalRooms: -1
+    shopCount: -1
+    enhanceShopCount: -1
+    rewardCount: -1
+    eliteCount: -1
+    augmentRoomCount: -1
   - floor: 1
     wavesCount: 1
     enemyCountScale: 1
