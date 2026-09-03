@@ -36,6 +36,58 @@ public class MapGenerator : MonoBehaviour
     public Tilemap GlobalMiniMapTilemap => globalMiniMapTilemap;
     public Tilemap FogTilemap => fogTilemap;
 
+    /// <summary>
+    /// 캐릭터가 착지할 수 있는 바닥인가. Ground가 있으면 그 아래 Unsteppable(물)은 허용하지만,
+    /// Ground가 없거나 Wall이 겹친 자리는 허용하지 않는다.
+    /// </summary>
+    public bool TryGetGroundLandingPoint(Vector2 worldPos, float radius, out Vector2 landingPoint)
+    {
+        landingPoint = worldPos;
+        if (globalGroundTilemap == null) return true;
+
+        if (!globalGroundTilemap.HasTile(globalGroundTilemap.WorldToCell(worldPos))) return false;
+        if (globalWallTilemap != null && globalWallTilemap.HasTile(globalWallTilemap.WorldToCell(worldPos))) return false;
+
+        float r = Mathf.Max(0f, radius);
+        Vector2[] edges =
+        {
+            worldPos + Vector2.left * r, worldPos + Vector2.right * r,
+            worldPos + Vector2.up * r, worldPos + Vector2.down * r
+        };
+        foreach (Vector2 edge in edges)
+        {
+            bool ground = globalGroundTilemap.HasTile(globalGroundTilemap.WorldToCell(edge));
+            bool wall = globalWallTilemap != null && globalWallTilemap.HasTile(globalWallTilemap.WorldToCell(edge));
+            if (!ground || wall)
+            {
+                // 중심은 유효하지만 몸통이 경계에 걸치면 해당 Ground 셀 안쪽으로 당긴다.
+                landingPoint = globalGroundTilemap.GetCellCenterWorld(globalGroundTilemap.WorldToCell(worldPos));
+                break;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>진행선 중간에 Ground로 덮이지 않은 Unsteppable 타일이 있는지 확인한다.</summary>
+    public bool HasUnsteppableBetween(Vector2 from, Vector2 dir, float distance)
+    {
+        if (globalUnsteppableTilemap == null || dir == Vector2.zero || distance <= 0f) return false;
+
+        dir.Normalize();
+        const float Step = 0.1f;
+        int steps = Mathf.CeilToInt(distance / Step);
+        for (int i = 1; i <= steps; i++)
+        {
+            Vector2 point = from + dir * Mathf.Min(i * Step, distance);
+            bool unsteppable = globalUnsteppableTilemap.HasTile(globalUnsteppableTilemap.WorldToCell(point));
+            bool ground = globalGroundTilemap != null &&
+                          globalGroundTilemap.HasTile(globalGroundTilemap.WorldToCell(point));
+            if (unsteppable && !ground)
+                return true;
+        }
+        return false;
+    }
+
     public List<RoomInstance> AllRooms => _allRooms;
     private RoomInstance _currentRoom;
     public RoomInstance CurrentRoom => _currentRoom;
@@ -334,7 +386,6 @@ Instance = this;
         AssignSpecialRooms();
         DumpMapToLog();
 
-        CarveUnsteppableHoles();
         SetupFinalColliders();
         BakeNavMesh();
 
@@ -1691,22 +1742,6 @@ Instance = this;
         Debug.Log($"<color=cyan>[MapGenerator]</color> 플레이어가 방 {currentRoom.name}에 진입하여 UI 미니맵을 실시간 갱신했습니다.");
     }
 
-    private void CarveUnsteppableHoles()
-    {
-        if (globalUnsteppableTilemap == null || globalGroundTilemap == null) return;
-
-        globalUnsteppableTilemap.CompressBounds();
-        BoundsInt bounds = globalUnsteppableTilemap.cellBounds;
-
-        foreach (var pos in bounds.allPositionsWithin)
-        {
-            if (globalUnsteppableTilemap.HasTile(pos))
-            {
-                globalGroundTilemap.SetTile(pos, null);
-            }
-        }
-    }
-
     // =========================================================================
     // ================== 아이작 스타일 그리드 배치 & 텔레포트 이동 로직 ==================
     // =========================================================================
@@ -1795,7 +1830,6 @@ Instance = this;
         Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 3단계: 특수 방 할당 및 통행 불가 구역 갱신...");
         AssignSpecialRooms();
         SpawnTutorialExitPortal();
-        CarveUnsteppableHoles();
         yield return new WaitForSeconds(0.05f);
 
         Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 4단계: 타일맵 콜라이더 갱신 및 결합...");
@@ -2528,12 +2562,6 @@ Instance = this;
             Vector3Int wallCell = new Vector3Int(wallPos.x, wallPos.y, 0);
 
             globalWallTilemap.SetTile(wallCell, null);
-
-            // 지나갈 수 없는 영역 타일(Unsteppable)도 함께 뚫어주어 보이지 않는 장벽 파괴
-            if (globalUnsteppableTilemap != null)
-            {
-                globalUnsteppableTilemap.SetTile(wallCell, null);
-            }
 
             // 그림자는 벽 칸이 아니라 그 '안쪽' 칸에 그려져 있다 (방 프리팹 전부 동일: 벽 링 1칸 + 그림자 링 1칸).
             // 예전엔 벽 칸에다 지우기를 걸어서 아무것도 안 지워졌고, 뚫린 구멍 뒤에 그림자 띠가 그대로 남았다.
