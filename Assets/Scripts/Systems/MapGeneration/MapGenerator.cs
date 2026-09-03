@@ -1202,13 +1202,24 @@ Instance = this;
             }
         }
 
-        if (layerName == "Wall" || layerName == "Unsteppable")
+        if (layerName == "Wall")
         {
             var tr = tm.GetComponent<TilemapRenderer>();
             if (tr != null)
             {
                 tr.sortingLayerName = "Ground";
                 tr.sortingOrder = 1;
+            }
+        }
+
+        if (layerName == "Unsteppable")
+        {
+            var tr = tm.GetComponent<TilemapRenderer>();
+            if (tr != null)
+            {
+                // 물/낭떠러지처럼 바닥 아래에 깔리는 통행 불가 배경층.
+                tr.sortingLayerName = "Ground";
+                tr.sortingOrder = -1;
             }
         }
     }
