@@ -19,6 +19,7 @@ public class SpawnRoomEvent : MonoBehaviour, IRoomEvent
     public void OnPlayerEnter(RoomInstance room)
     {
         // 시작 방은 진입 시 문을 닫지 않거나, 튜토리얼 메시지를 띄우는 용도로 사용 가능
+        
         Debug.Log("<color=cyan>[SpawnRoom]</color> Welcome to the Dungeon!");
         room.isCleared = true; // 시작 방은 태생적으로 클리어 상태
     }

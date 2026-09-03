@@ -130,7 +130,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Tutorial_0
+      name: Keyboard_Tab
       rect:
         serializedVersion: 2
         x: 1
@@ -390,11 +390,11 @@ TextureImporter:
       Keyboard_LShift: -4191322583509088375
       Keyboard_Q: 3422399714171777717
       Keyboard_R: -7537239731214296419
+      Keyboard_Tab: -2521409195606705084
       Keyboard_WASD: 6718306707676705251
       Mouse_Left: 6875079111340007291
       Mouse_Right: 8746059415684039367
       Quest_Background: -854253366884684044
-      Tutorial_0: -2521409195606705084
       Tutorial_8: -3790966502919606100
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0

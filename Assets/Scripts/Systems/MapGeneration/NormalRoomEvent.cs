@@ -86,7 +86,9 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         }
     }
 
-    public void OnPlayerEnter(RoomInstance room)
+    
+
+        public void OnPlayerEnter(RoomInstance room)
     {
         if (_isBattleActive) return;
 
