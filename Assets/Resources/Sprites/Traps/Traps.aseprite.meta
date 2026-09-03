@@ -546,8 +546,8 @@ ScriptedImporter:
   spriteSheetImportData:
   - name: spike_none
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -567,8 +567,8 @@ ScriptedImporter:
     uvTransform: {x: 132, y: 43}
   - name: spike_active_01
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -588,8 +588,8 @@ ScriptedImporter:
     uvTransform: {x: 132, y: 79}
   - name: spike_active_02
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -609,8 +609,8 @@ ScriptedImporter:
     uvTransform: {x: 132, y: 115}
   - name: spike_active_03
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -630,8 +630,8 @@ ScriptedImporter:
     uvTransform: {x: 132, y: 150}
   - name: spike_active_04
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -651,8 +651,8 @@ ScriptedImporter:
     uvTransform: {x: 132, y: 185}
   - name: spike_active_05
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -672,8 +672,8 @@ ScriptedImporter:
     uvTransform: {x: 132, y: 220}
   - name: spike_active_06
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -693,8 +693,8 @@ ScriptedImporter:
     uvTransform: {x: 72, y: 198}
   - name: spike_active_07
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -714,8 +714,8 @@ ScriptedImporter:
     uvTransform: {x: 72, y: 158}
   - name: barrel_idle
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -735,8 +735,8 @@ ScriptedImporter:
     uvTransform: {x: 132, y: 4}
   - name: barrel_fuse_01
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -756,8 +756,8 @@ ScriptedImporter:
     uvTransform: {x: 168, y: 75}
   - name: barrel_fuse_02
     originalName: 
-    pivot: {x: 0.5, y: 0.44444445}
-    alignment: 9
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -777,8 +777,8 @@ ScriptedImporter:
     uvTransform: {x: 168, y: 40}
   - name: barrel_fuse_03
     originalName: 
-    pivot: {x: 0.5, y: 0.42857143}
-    alignment: 9
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -798,8 +798,8 @@ ScriptedImporter:
     uvTransform: {x: 168, y: 4}
   - name: barrel_fuse_04
     originalName: 
-    pivot: {x: 0.5, y: 0.46153846}
-    alignment: 9
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -819,8 +819,8 @@ ScriptedImporter:
     uvTransform: {x: 202, y: 4}
   - name: barrel_boom_01
     originalName: 
-    pivot: {x: 0.5, y: 0.31578946}
-    alignment: 9
+    pivot: {x: 0.5, y: 0}
+    alignment: 7
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -840,7 +840,7 @@ ScriptedImporter:
     uvTransform: {x: 72, y: 112}
   - name: barrel_boom_02
     originalName: 
-    pivot: {x: 0.5, y: 0.26666668}
+    pivot: {x: 0.5, y: 0.06666667}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -861,8 +861,8 @@ ScriptedImporter:
     uvTransform: {x: 72, y: 59}
   - name: barrel_boom_03
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.4423077, y: 0.10638297}
+    alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -882,8 +882,8 @@ ScriptedImporter:
     uvTransform: {x: 72, y: 4}
   - name: barrel_boom_04
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0.09615385}
+    alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -903,8 +903,8 @@ ScriptedImporter:
     uvTransform: {x: 4, y: 136}
   - name: barrel_boom_05
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0.125}
+    alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -924,8 +924,8 @@ ScriptedImporter:
     uvTransform: {x: 4, y: 72}
   - name: barrel_boom_06
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
+    pivot: {x: 0.5, y: 0.16666667}
+    alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
@@ -945,7 +945,7 @@ ScriptedImporter:
     uvTransform: {x: 4, y: 4}
   - name: barrel_boom_07
     originalName: 
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0.5, y: 0.099999994}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 

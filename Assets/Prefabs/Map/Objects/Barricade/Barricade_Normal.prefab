@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7083105603068031696}
   - component: {fileID: 4292847492274192051}
   - component: {fileID: 1959853915583494885}
-  - component: {fileID: 1948922263786570768}
+  - component: {fileID: 5623943789766011017}
   m_Layer: 3
   m_Name: Barricade_Normal
   m_TagString: Untagged
@@ -150,7 +150,7 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 0}
---- !u!61 &1948922263786570768
+--- !u!61 &5623943789766011017
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -184,15 +184,15 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.003072679, y: 0.029190376}
+  m_Offset: {x: 0, y: 0.328125}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0.5, y: 0.11111111}
     oldSize: {x: 0.875, y: 0.84375}
     newSize: {x: 3, y: 3.375}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.8319826, y: 0.7362064}
+  m_Size: {x: 0.875, y: 0.84375}
   m_EdgeRadius: 0
