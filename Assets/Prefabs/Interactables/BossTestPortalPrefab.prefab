@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6260306562049588663}
   - component: {fileID: 2856175403286277927}
-  - component: {fileID: 2545684129837393909}
   - component: {fileID: 1489155060327375521}
+  - component: {fileID: 206714419414894028}
   m_Layer: 0
   m_Name: BossTestPortalPrefab
   m_TagString: Untagged
@@ -78,8 +78,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0.66138935, g: 0, b: 1, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 8a878c38255ede4439d3b60a796ee16e, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -89,8 +89,21 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!58 &2545684129837393909
-CircleCollider2D:
+--- !u!114 &1489155060327375521
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7688696379878300730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae728675753ac434ea6be4d4e1293be8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetSceneName: BossTestScene
+--- !u!61 &206714419414894028
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -124,17 +137,14 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
---- !u!114 &1489155060327375521
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7688696379878300730}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ae728675753ac434ea6be4d4e1293be8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetSceneName: BossTestScene
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 2, y: 2}
+    newSize: {x: 1, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1.3, y: 2}
+  m_EdgeRadius: 0
