@@ -350,6 +350,12 @@ public class RoomInstance : MonoBehaviour
             SoundManager.Instance.ChangeBGM(roomBGM);
         }
         _roomEvent?.OnPlayerEnter(this);
+        PlayEntryDialogue();
+    }
+
+    private void PlayEntryDialogue()
+    {
+        GetComponentInChildren<DialogueTrigger>(true)?.Play();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -367,6 +373,7 @@ public class RoomInstance : MonoBehaviour
 
             // [추가] 방 입장 전역 이벤트 발생
             OnPlayerEnteredRoom?.Invoke(this);
+            PlayEntryDialogue();
 
             // [수정] 전투를 시작하지 않는 예외적인 방(스폰, 상점, 강화 상점, 보상방 등)에만 입장 즉시 BGM 및 이벤트 격발
             if (roomType == RoomType.Spawn || roomType == RoomType.Shop || roomType == RoomType.EnhanceShop || roomType == RoomType.Reward)
