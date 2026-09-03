@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6753367762242577150}
   - component: {fileID: 393181445347658212}
   - component: {fileID: 789911283410254696}
+  - component: {fileID: 9100000000000000006}
   m_Layer: 17
   m_Name: Tutorial_06
   m_TagString: Untagged
@@ -65739,3 +65740,22 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6749711221253320957, guid: 08086df1c58adee438a0bf923541b203, type: 3}
   m_PrefabInstance: {fileID: 8791929650205693300}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &9100000000000000006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219994396242961048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb6cd2757b973c241a42d31b5129be63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dialogueId: Tutorial_06
+  playOnce: 1
+  playOnEnable: 0
+  entryDelay: 0.6
+  onDialogueComplete:
+    m_PersistentCalls:
+      m_Calls: []

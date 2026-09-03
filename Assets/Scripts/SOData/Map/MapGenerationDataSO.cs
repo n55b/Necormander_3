@@ -79,6 +79,17 @@ public class MapGenerationDataSO : ScriptableObject
     [Tooltip("통로가 다른 방의 벽을 피해가는 최소 거리 (통로 벽 두께 감안)")]
     public int corridorAvoidMargin = 2;
 
+    [Header("Tutorial")]
+    [Tooltip("튜토리얼 방을 '지나갈 순서대로'. 최초 1회 새 게임에서 이 방들만 배치한다.\n\n" +
+             "★ 배치 모양은 여기서 정하지 않는다 — 각 방 프리팹의 DoorAnchor 방향을 따라 걸어가며 " +
+             "격자에 놓는다. 그러니 길을 꺾고 싶으면 방 프리팹의 앵커만 돌리면 된다.\n" +
+             "비워두면 튜토리얼은 통째로 건너뛰고 평소 맵이 나온다.")]
+    public List<GameObject> tutorialRooms = new List<GameObject>();
+
+    [Tooltip("마지막 튜토리얼 방 한가운데에 세울 '마을로 나가는' 포탈. F 로 상호작용한다.\n" +
+             "비우면 튜토리얼을 빠져나갈 길이 없다(에러 로그가 뜬다).")]
+    public GameObject tutorialExitPortal;
+
     [Header("Floor Tuning")]
     [Tooltip("층별 난이도 조절표. 여기 없는 층은 아래 전역 기본값을 그대로 쓴다 — " +
              "즉 한 층만 저작해도 나머지 층은 손대지 않은 것과 완전히 동일하다.")]

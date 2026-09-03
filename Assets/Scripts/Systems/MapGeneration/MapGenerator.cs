@@ -1712,11 +1712,19 @@ Instance = this;
 
             gridMap = new Dictionary<Vector2Int, RoomInstance>();
 
-            bool isEliteArena = GameManager.Instance != null && GameManager.Instance.debugEliteArena;
-            bool isBossFloor = !isEliteArena && IsBossFloor();
+            // 튜토리얼이 최우선이다. 튜토리얼은 층 개념 밖이라 보스층/아레나 판정을 아예 타면 안 된다.
+            bool isTutorial = TutorialFlow.IsRunning
+                              && generationData.tutorialRooms != null
+                              && generationData.tutorialRooms.Count > 0;
+            bool isEliteArena = !isTutorial && GameManager.Instance != null && GameManager.Instance.debugEliteArena;
+            bool isBossFloor = !isTutorial && !isEliteArena && IsBossFloor();
 
             bool placementSuccess = false;
-            if (isEliteArena)
+            if (isTutorial)
+            {
+                placementSuccess = PlaceIsaacRoomsTutorial(gridMap);
+            }
+            else if (isEliteArena)
             {
                 placementSuccess = PlaceIsaacRoomsArena(gridMap, RoomType.Elite);
             }
@@ -1768,6 +1776,7 @@ Instance = this;
         // 최종 가공
         Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 3단계: 특수 방 할당 및 통행 불가 구역 갱신...");
         AssignSpecialRooms();
+        SpawnTutorialExitPortal();
         CarveUnsteppableHoles();
         yield return new WaitForSeconds(0.05f);
 
@@ -1855,6 +1864,111 @@ Instance = this;
         }
 
         return room;
+    }
+
+    /// <summary>튜토리얼 마지막 방. 마을로 나가는 포탈을 여기 세운다.</summary>
+    private RoomInstance _tutorialLastRoom;
+
+    /// <summary>
+    /// [튜토리얼] 방 순서는 <see cref="MapGenerationDataSO.tutorialRooms"/> 가,
+    /// <b>길이 꺾이는 모양은 각 방의 DoorAnchor 가</b> 정한다.
+    ///
+    /// 좌표를 여기 박지 않는 이유: 지금 저작된 튜토리얼은 가로로 가다가 5번 방에서 위로 꺾고
+    /// 6번에서 다시 오른쪽으로 간다. 좌표를 박으면 방을 하나 다시 그릴 때마다 여기도 같이 고쳐야 하고,
+    /// 어긋나는 순간 '문 없는 방'이 조용히 생겨서 플레이어가 갇힌다.
+    /// 그래서 '들어온 문의 반대쪽 앵커'를 따라 한 칸씩 걷는다 — 프리팹만 고치면 코드는 따라온다.
+    /// </summary>
+    private bool PlaceIsaacRoomsTutorial(Dictionary<Vector2Int, RoomInstance> gridMap)
+    {
+        var list = generationData.tutorialRooms;
+        _tutorialLastRoom = null;
+
+        Vector2Int pos = Vector2Int.zero;
+        Vector2Int cameFrom = Vector2Int.zero;   // 직전 방을 향하는 방향. 첫 방은 (0,0) 이라 어떤 앵커도 안 걸린다.
+        RoomInstance prev = null;
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i] == null)
+            {
+                Debug.LogError($"[MapGenerator] 튜토리얼 방 목록의 {i}번이 비어 있다. MapGenerationData 를 확인할 것.");
+                return false;
+            }
+
+            // 방 타입은 프리팹에 저작된 것을 그대로 쓴다 — 그래야 전투/보상/상점 이벤트가 원래대로 돈다.
+            // 첫 방만 Spawn 을 강제한다(PlacePlayerAtSpawn 이 Spawn 방을 찾아 플레이어를 놓는다).
+            var src = list[i].GetComponent<RoomInstance>();
+            RoomType type = i == 0 ? RoomType.Spawn : (src != null ? src.roomType : RoomType.Normal);
+
+            RoomInstance room = CreateRoomAtGrid(type, pos, list[i]);
+            if (room == null) return false;
+
+            gridMap[pos] = room;
+            _allRooms.Add(room);
+            _reachedRooms.Add(room);
+            _tutorialLastRoom = room;
+
+            if (prev != null)
+            {
+                _masterAdjacency[prev].Add(room);
+                _masterAdjacency[room].Add(prev);
+
+                // 들어오는 문이 실제로 있는지 여기서 본다. 없으면 SetupIsaacDoorsAndTeleporters 가
+                // 조용히 문을 안 만들고, 그 다음에야 '왜 못 넘어가지' 를 맨눈으로 찾아야 한다.
+                if (!room.anchors.Any(a => a != null && a.direction == cameFrom))
+                    Debug.LogError($"[MapGenerator] 튜토리얼 '{list[i].name}' 에 {cameFrom} 방향 DoorAnchor 가 없다 — " +
+                                   $"'{list[i - 1].name}' 에서 넘어올 문이 안 생긴다.");
+            }
+
+            prev = room;
+            if (i == list.Count - 1) break;
+
+            // 다음 칸 = '들어온 문이 아닌' 앵커가 가리키는 쪽.
+            RoomAnchor exit = room.anchors.FirstOrDefault(a => a != null && a.direction != cameFrom);
+            if (exit == null)
+            {
+                Debug.LogError($"[MapGenerator] 튜토리얼 '{list[i].name}' 에 나가는 DoorAnchor 가 없어 " +
+                               $"다음 방('{list[i + 1].name}')으로 이어붙일 수 없다.");
+                return false;
+            }
+
+            pos += exit.direction;
+            cameFrom = -exit.direction;
+
+            if (gridMap.ContainsKey(pos))
+            {
+                Debug.LogError($"[MapGenerator] 튜토리얼 배치가 격자 {pos} 에서 겹쳤다 — " +
+                               $"'{list[i].name}' 의 나가는 앵커가 이미 놓인 방 쪽을 가리킨다.");
+                return false;
+            }
+        }
+
+        Debug.Log($"<color=cyan>[MapGenerator]</color> 튜토리얼 맵 {list.Count}칸 배치 완료 " +
+                  $"(마지막 방 '{_tutorialLastRoom.name}' 격자 {_tutorialLastRoom.gridPosition}).");
+        return true;
+    }
+
+    /// <summary>
+    /// 튜토리얼 마지막 방 한가운데에 '마을로 나가는' 포탈을 세운다. 튜토리얼이 아니면 아무것도 안 한다.
+    ///
+    /// 포탈은 <see cref="FloorProceedPortal"/> 그대로다 — 튜토리얼 중이면
+    /// <see cref="GameManager.GoToNextFloor"/> 가 다음 층 대신 마을로 보낸다.
+    /// 방 프리팹에 박지 않고 여기서 붙이는 이유: '어느 방이 마지막인가'는 방 목록이 정하기 때문이다.
+    /// </summary>
+    private void SpawnTutorialExitPortal()
+    {
+        if (_tutorialLastRoom == null) return;
+
+        if (generationData.tutorialExitPortal == null)
+        {
+            Debug.LogError("[MapGenerator] MapGenerationData 의 Tutorial Exit Portal 이 비어 있다 — " +
+                           "튜토리얼 마지막 방에서 마을로 나갈 수가 없다.");
+            return;
+        }
+
+        Vector3 pos = _tutorialLastRoom.transform.position + (Vector3)_tutorialLastRoom.centerOffset;
+        Instantiate(generationData.tutorialExitPortal, pos, Quaternion.identity, _tutorialLastRoom.transform);
+        Debug.Log($"<color=purple>[MapGenerator]</color> 튜토리얼 탈출 포탈을 '{_tutorialLastRoom.name}' 한가운데 세웠다.");
     }
 
     /// <summary>

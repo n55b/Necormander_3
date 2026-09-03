@@ -161,6 +161,18 @@ public class GameManager : MonoBehaviour
             Debug.Log($"<color=yellow>[GameManager]</color> Debug Start Floor 설정됨 — 세이브를 무시하고 {currentFloor}층에서 시작합니다.");
         }
 
+        // 튜토리얼은 '층 개념 밖'이다(MapGenerator 의 배치 분기와 같은 규칙). 그래서 층수는 항상 1 —
+        // 씬에 박힌 debugStartFloor 도, 남아 있던 세이브도 여기서 끊는다.
+        //
+        // 반드시 위 두 분기보다 뒤여야 한다. 튜토리얼이 도는 씬은 던전(BattleScene)과 같은 씬이라,
+        // 보스 테스트하려고 debugStartFloor 를 4로 올려두면 튜토리얼까지 4층 조절표로 돌아버린다
+        // (= 1층의 웨이브 1회 저작이 무시되고 전역 기본값 2회가 나온다).
+        if (TutorialFlow.IsRunning)
+        {
+            currentFloor = 1;
+            Debug.Log("<color=cyan>[GameManager]</color> 튜토리얼 — 층수를 1로 고정합니다(1층 조절표 적용).");
+        }
+
         InitializeGame();
     }
 
@@ -341,6 +353,21 @@ public class GameManager : MonoBehaviour
 
     public void GoToNextFloor()
     {
+        // 튜토리얼엔 '다음 층'이 없다 — 마을로 나가면서 끝난다. 여기 한 곳에서 갈라놓으면
+        // 튜토리얼 방에 어떤 포탈이 서든(마지막 방 포탈이든 보상 방 포탈이든) 전부 마을로 나간다.
+        if (TutorialFlow.IsRunning)
+        {
+            TutorialFlow.Complete();
+
+            // 튜토리얼에서 주운 장비/골드는 인계하지 않는다(0903 확정). 저장을 안 하는 것만으로는
+            // 부족하다 — 예전 세이브가 남아 있으면 마을의 새 GameManager 가 그걸 읽어버린다.
+            SaveSystem.DeleteSave();
+
+            Debug.Log("<color=green>[GameManager]</color> 튜토리얼 완료 — 마을로 나갑니다.");
+            LoadSceneWithFade("VillageScene", FadeSignal.씬전환);
+            return;
+        }
+
         SaveData data = new SaveData();
 
         // 다음 층수 저장
@@ -375,24 +402,27 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"<color=green>[GameManager]</color> Floor Cleared! Transitioning to Floor {data.currentFloor}...");
 
-        // 씨 재로드
-        string nextSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        // 씬 재로드
+        LoadSceneWithFade(SceneManager.GetActiveScene().name, FadeSignal.층이동);
+    }
 
-        // 페이드 양(시간/색)은 여기 박지 않는다. '층이동'이라는 이름만 넘기면
-        // ScreenFadeCanvas의 Fader가 그 이름의 줄을 찾아 쓴다 → 기획자가 거기서 조절.
+    /// <summary>
+    /// 암전 → 씬 로드 → <b>새 씬이 다 지어진 뒤</b> 밝히기.
+    ///
+    /// 페이드 양(시간/색)은 여기 박지 않는다 — 신호 이름만 넘기면 ScreenFadeCanvas 의 Fader 가
+    /// 그 줄을 찾아 쓴다(기획자가 거기서 조절). 암전을 SceneReady 까지 끄는 이유는, LoadScene 이
+    /// 돌아와도 맵 생성 + 플레이어 스폰이 몇 프레임 더 남아 있어서다.
+    /// </summary>
+    private void LoadSceneWithFade(string sceneName, FadeSignal signal)
+    {
         Fader fader = Fader.FullScreenFader;
-        if (fader != null)
+        if (fader == null)
         {
-            // 새 씬이 다 지어질 때까지 암전을 유지한다(SceneReady). 안 그러면 맵 생성 도중에 밝아진다.
-            fader.FadeOutIn(FadeSignal.층이동,
-                            () => UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName),
-                            null,
-                            NextSceneReady());
+            SceneManager.LoadScene(sceneName); // 페이더를 못 구해도 이동은 반드시 되어야 한다
+            return;
         }
-        else
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName); // 페이더를 못 구해도 층 이동은 반드시 되어야 한다
-        }
+
+        fader.FadeOutIn(signal, () => SceneManager.LoadScene(sceneName), null, NextSceneReady());
     }
 
     /// <summary>
