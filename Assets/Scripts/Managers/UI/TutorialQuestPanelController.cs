@@ -36,25 +36,25 @@ public class TutorialQuestPanelController : MonoBehaviour
     {
         { TutorialStage.Spawn, new[]
             {
-                "<sprite=\"Tutorial\" name=\"Keyboard_WASD\">로 이동하세요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_WASD\"></size>로 이동하세요",
                 "파란색 점이 향하는 곳이 다음 맵 방향이에요",
             }
         },
         { TutorialStage.Combat, new[]
             {
-                "<sprite=\"Tutorial\" name=\"Mouse_Left\">로 적을 공격하세요",
-                "<sprite=\"Tutorial\" name=\"Mouse_Right\">로 날아오는 투사체를 튕겨낼 수 있어요",
-                "<sprite=\"Tutorial\" name=\"Keyboard_LShift\">로 대시(회피)할 수 있어요",
-                "<sprite=\"Tutorial\" name=\"Keyboard_Tab\">을 누르면 이미 클리어한 맵으로 즉시 이동해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Left\"></size>로 적을 공격하세요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 날아오는 투사체를 튕겨낼 수 있어요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시(회피)할 수 있어요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>을 누르면 이미 클리어한 맵으로 즉시 이동해요",
             }
         },
         { TutorialStage.Reward, new[]
             {
-                "<sprite=\"Tutorial\" name=\"Keyboard_F\">로 상호작용하세요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용하세요",
                 "미니언을 획득하면 바로 장착돼요",
                 "하단 버튼을 누르면 미니언 대신 체력을 회복해요",
-                "<sprite=\"Tutorial\" name=\"Keyboard_R\">로 미니언 스킬을 사용해요",
-                "<sprite=\"Tutorial\" name=\"Keyboard_Tab\">로 미니언 능력을 확인해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_R\"></size>로 미니언 스킬을 사용해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>로 미니언 능력을 확인해요",
             }
         },
         { TutorialStage.Augment, new[]
@@ -64,18 +64,18 @@ public class TutorialQuestPanelController : MonoBehaviour
         },
         { TutorialStage.Dodge, new[]
             {
-                "<sprite=\"Tutorial\" name=\"Keyboard_LShift\">로 대시할 수 있어요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시할 수 있어요",
                 "대시로 걸어서 못 가는 지형도 통과할 수 있어요",
             }
         },
         { TutorialStage.Shop, new[]
             {
                 "골드로 상인에게서 아이템을 살 수 있어요",
-                "<sprite=\"Tutorial\" name=\"Keyboard_F\">로 상호작용, 구매할 수 있어요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용, 구매할 수 있어요",
                 "건틀릿(장비)을 사면 스킬이 생겨요",
-                "<sprite=\"Tutorial\" name=\"Keyboard_Tab\">로 장비/스킬을 확인해요",
-                "<sprite=\"Tutorial\" name=\"Keyboard_Q\">, <sprite=\"Tutorial\" name=\"Keyboard_E\">로 장비 스킬을 사용해요",
-                "<sprite=\"Tutorial\" name=\"Keyboard_Tab\">로 장착 중인 아이템을 확인해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>로 장비/스킬을 확인해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Q\"></size>, <size=170%><sprite=\"Tutorial\" name=\"Keyboard_E\"></size>로 장비 스킬을 사용해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>로 장착 중인 아이템을 확인해요",
             }
         },
         { TutorialStage.Descend, new[]

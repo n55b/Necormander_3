@@ -130,7 +130,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Keyboard_Tab
+      name: Keyboard_Null
       rect:
         serializedVersion: 2
         x: 1
@@ -371,6 +371,94 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Keyboard_V
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 79
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1ccdfcbb5a63d1042b849cbbd80f7d7f
+      internalID: -31761985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Keyboard_C
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 65
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 428f719f937049b459d97bd2e0f5e77a
+      internalID: 313979490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Keyboard_B
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 51
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 80cf0bb466114184aa2c8b75d38403e5
+      internalID: 665967441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Keyboard_Tab
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 37
+        width: 21
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 20e44375752d1e34a8c0e75359708b83
+      internalID: 1812235666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -385,12 +473,16 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
+      Keyboard_B: 665967441
+      Keyboard_C: 313979490
       Keyboard_E: -2599143105346636691
       Keyboard_F: 4165041436626036476
       Keyboard_LShift: -4191322583509088375
+      Keyboard_Null: -2521409195606705084
       Keyboard_Q: 3422399714171777717
       Keyboard_R: -7537239731214296419
-      Keyboard_Tab: -2521409195606705084
+      Keyboard_Tab: 1812235666
+      Keyboard_V: -31761985
       Keyboard_WASD: 6718306707676705251
       Mouse_Left: 6875079111340007291
       Mouse_Right: 8746059415684039367
