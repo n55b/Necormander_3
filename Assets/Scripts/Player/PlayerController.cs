@@ -46,6 +46,8 @@ public class PlayerController : MonoBehaviour
     [Header("상호작용 설정")]
     [SerializeField] private float interactRange = 1.5f;
     [SerializeField] private LayerMask interactableLayer;
+    [Tooltip("선택된 상호작용 대상의 콜라이더 위에서 F 아이콘을 띄울 간격(월드 유닛).")]
+    [SerializeField] private float interactIconOffset = 0.35f;
     private IInteractable _closestInteractable;
 
     // [F 홀드] IHoldInteractable 을 구현한 대상만 '떼는 순간' 판정으로 바뀐다.
@@ -88,6 +90,7 @@ public class PlayerController : MonoBehaviour
     public void SetInputBlocked(bool blocked)
     {
         _inputBlocked = blocked;
+        if (blocked) PopupSystem.HideInteractionIcon();
         if (blocked)
         {
             moveInput = Vector2.zero;
@@ -201,6 +204,8 @@ public class PlayerController : MonoBehaviour
 
     private void OnDestroy()
     {
+        PopupSystem.ReleaseInteractionIcon();
+
         if (stat != null && stat.Health != null)
         {
             stat.Health.OnDamageTaken -= HandleDamageTaken;
@@ -317,6 +322,7 @@ public class PlayerController : MonoBehaviour
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, interactRange, interactableLayer);
 
         IInteractable nearest = null;
+        Collider2D nearestCollider = null;
         float minDist = float.MaxValue;
 
         foreach (var col in colliders)
@@ -328,9 +334,12 @@ public class PlayerController : MonoBehaviour
                 {
                     minDist = dist;
                     nearest = interactable;
+                    nearestCollider = col;
                 }
             }
         }
+
+        PopupSystem.ShowInteractionIcon(nearestCollider, interactIconOffset);
 
         // 포커스 변경 시 OnFocused / OnLostFocus 호출
         if (!ReferenceEquals(nearest, _closestInteractable))

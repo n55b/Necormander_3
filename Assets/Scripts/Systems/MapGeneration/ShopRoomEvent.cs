@@ -23,6 +23,7 @@ public class ShopRoomEvent : MonoBehaviour, IRoomEvent
 
     public void OnPlayerEnter(RoomInstance room)
     {
+        
         Debug.Log("<color=yellow>[ShopRoom]</color> Welcome to the Shop!");
 
         TryInitializeShop();

@@ -17390,6 +17390,7 @@ Transform:
   - {fileID: 1106030302515060731}
   - {fileID: 2625504647648789607}
   - {fileID: 3685883767687562185}
+  - {fileID: 607022191484121465}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2467784662988300142
@@ -17438,12 +17439,32 @@ MonoBehaviour:
   mapGenerationData: {fileID: 0}
   spawnVfxPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   spawnMargin: 3
+  tutorialEnemiesRoot: {fileID: 607022191484121465}
   rewardBoxPrefab: {fileID: 0}
   rewardSpawnPoint: {fileID: 3685883767687562185}
   OnCombatStart:
     m_PersistentCalls:
       m_Calls: []
   OnCombatClear:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &9100000000000000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3242139126785221393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb6cd2757b973c241a42d31b5129be63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dialogueId: Tutorial_05
+  playOnce: 1
+  playOnEnable: 0
+  entryDelay: 0.6
+  onDialogueComplete:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1 &3264980349974658924
@@ -19931,6 +19952,37 @@ MonoBehaviour:
   m_IgnoreFromBuild: 0
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!1 &5468456528547531820
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 607022191484121465}
+  m_Layer: 0
+  m_Name: Tutorial Enemies
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &607022191484121465
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5468456528547531820}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2320746058205641299}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7880265846112042188
 GameObject:
   m_ObjectHideFlags: 0
@@ -66297,22 +66349,3 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4676439719051955315, guid: dad438c2ccdbc8140aea4544186c66a3, type: 3}
   m_PrefabInstance: {fileID: 9132561602949221439}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &9100000000000000005
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3242139126785221393}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb6cd2757b973c241a42d31b5129be63, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dialogueId: Tutorial_05
-  playOnce: 1
-  playOnEnable: 0
-  entryDelay: 0.6
-  onDialogueComplete:
-    m_PersistentCalls:
-      m_Calls: []

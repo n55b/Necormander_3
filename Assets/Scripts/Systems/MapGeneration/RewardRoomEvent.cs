@@ -37,6 +37,7 @@ public class RewardRoomEvent : MonoBehaviour, IRoomEvent
         if (room.isCleared || _isEventActive) return;
 
         _cachedRoom = room;
+        
         _isEventActive = true;
 
         // 1. 문 폐쇄

@@ -20,6 +20,12 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     [Tooltip("방 벽으로부터의 스폰 최소 거리 마진(Margin)입니다. 클수록 방 중앙 쪽에 가깝게 몹들이 스폰됩니다. 기본값 3.0f")]
     [SerializeField] private float spawnMargin = 3.0f;
 
+    [Header("Tutorial Placed Enemies")]
+    [Tooltip("튜토리얼 방에서만 사용. 이 오브젝트 아래에 몬스터 프리팹을 원하는 위치로 배치하세요. " +
+             "방 진입 전에는 숨겨 두었다가 진입 시 활성화·등록하며, 전부 죽으면 기존 방 클리어 처리를 탑니다. " +
+             "비워두면 기존 랜덤 웨이브를 사용합니다.")]
+    [SerializeField] private Transform tutorialEnemiesRoot;
+
     [Header("Reward Box Settings")]
     [Tooltip("방 클리어 시 생성할 보상 상자 프리팹. 비워두면 상자 없이 보상이 즉시 지급됩니다.")]
     [SerializeField] private GameObject rewardBoxPrefab;
@@ -35,6 +41,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
     private RoomInstance _cachedRoom;
     private int _currentWave = 1;
+    private bool _usingTutorialPlacedEnemies;
 
     /// <summary>현재 층의 조절표. 없으면 null — 그 층은 전역 기본값으로 돈다.</summary>
     private MapGenerationDataSO.FloorTuningEntry Tuning =>
@@ -54,6 +61,9 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         {
             mapGenerationData = GameManager.Instance.CurrentStageMapData;
         }
+
+        if (TutorialFlow.IsRunning && tutorialEnemiesRoot != null)
+            tutorialEnemiesRoot.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -72,7 +82,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
         if (_activeEnemies.Count == 0)
         {
-            if (mapGenerationData != null && _currentWave < WavesThisFloor)
+            if (!_usingTutorialPlacedEnemies && mapGenerationData != null && _currentWave < WavesThisFloor)
             {
                 _currentWave++;
                 SpawnWaves(_cachedRoom);
@@ -86,7 +96,9 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         }
     }
 
-    public void OnPlayerEnter(RoomInstance room)
+    
+
+        public void OnPlayerEnter(RoomInstance room)
     {
         if (_isBattleActive) return;
 
@@ -101,20 +113,66 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
         _cachedRoom = room;
         _isBattleActive = true;
-        _isSpawnPending = true; // 스폰 진행 예정 상태 설정 (스폰이 끝날 때까지 대기)
         _currentWave = 1;
 
         if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
         // 전투 시작 시 들고 있던 투척물을 떨군다.
 
-        // 0.5초 후 적들이 소환되도록 텀(Term) 연출 구현
-        StartCoroutine(DelayedSpawnWaves(room));
+        _usingTutorialPlacedEnemies = TutorialFlow.IsRunning && tutorialEnemiesRoot != null;
+        if (_usingTutorialPlacedEnemies)
+        {
+            _isSpawnPending = true;
+            StartCoroutine(ActivateTutorialEnemies());
+        }
+        else
+        {
+            _isSpawnPending = true; // 스폰 진행 예정 상태 설정 (스폰이 끝날 때까지 대기)
+            StartCoroutine(DelayedSpawnWaves(room));
+        }
 
         // 플레이어 상태 업데이트
         if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Battle);
 
         OnCombatStart?.Invoke();
         Debug.Log($"<color=white>[NormalRoom]</color> Battle Started in {room.gameObject.name}");
+    }
+
+    private IEnumerator ActivateTutorialEnemies()
+    {
+        BaseEntity[] enemies = tutorialEnemiesRoot.GetComponentsInChildren<BaseEntity>(true);
+        if (enemies.Length > 0)
+        {
+            yield return new WaitForSeconds(0.5f); // 카메라가 방에 안착한 뒤 예고를 보여준다
+
+            const float telegraphDuration = 1f;
+            var telegraphs = new List<GameObject>();
+            foreach (var enemy in enemies)
+            {
+                if (enemy == null || spawnVfxPrefab == null) continue;
+                GameObject vfx = Instantiate(spawnVfxPrefab, enemy.transform.position, Quaternion.identity);
+                BaseHitBox hitbox = vfx.GetComponent<BaseHitBox>();
+                if (hitbox != null)
+                {
+                    var dummy = new DamageInfo(0f, DamageType.Physical, gameObject, 0f);
+                    hitbox.Init(dummy, 0, 0.05f, telegraphDuration, false);
+                    vfx.transform.localScale = new Vector3(2.5f, 2.5f, 1f);
+                }
+                telegraphs.Add(vfx);
+            }
+
+            yield return new WaitForSeconds(telegraphDuration);
+            foreach (var vfx in telegraphs)
+                if (vfx != null) Destroy(vfx);
+        }
+
+        tutorialEnemiesRoot.gameObject.SetActive(true);
+        _activeEnemies.Clear();
+
+        foreach (var enemy in enemies)
+            if (enemy != null) RegisterActiveEnemy(enemy.gameObject);
+
+        _isSpawnPending = false;
+        Debug.Log($"<color=cyan>[NormalRoomEvent]</color> 튜토리얼 배치 몬스터 {_activeEnemies.Count}마리를 등록했습니다.");
     }
 
     private IEnumerator DelayedSpawnWaves(RoomInstance room)
