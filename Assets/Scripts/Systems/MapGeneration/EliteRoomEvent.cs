@@ -174,7 +174,9 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         OnEliteCombatClear?.Invoke();
         Debug.Log($"<color=red>[EliteRoom]</color> Elite Defeated!");
 
-        GameOverManager.Instance.TriggerGameClear();
+        // 1층은 전투 없는 포탈 방으로 다음 층에 보내고, 2층 엘리트 클리어부터 게임을 끝낸다.
+        if (GameManager.Instance != null && GameManager.Instance.currentFloor >= 2)
+            GameOverManager.Instance?.TriggerGameClear();
 
         BossHPBarUI.Instance?.Hide();
     }
