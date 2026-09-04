@@ -12,25 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac46b1fa0f0744c1a9cd4679b99eb04e, type: 3}
   m_Name: Charger Elite Data
   m_EditorClassIdentifier: 
-  minionSkill: {fileID: 0}
   minionType: 0
   minionName: "\uCC28\uC800 \uC5D8\uB9AC\uD2B8"
   minionIcon: {fileID: 0}
-  baseEffectValue: 0
-  maxHP: 550
-  attack: 26
-  attackSpeed: 2
-  attackRange: 3.8
-  detectRange: 12
-  defense: 10
-  moveSpeed: 3.2
-  baseEvasion: 0
-  baseAccuracy: 1
-  attackType: 0
-  tier: 1
-  aiPattern: {fileID: 11400000, guid: 320005db47f1e0b40b33ac4cde2c6c35, type: 2}
-  AttackSound: {fileID: 0}
-  minionPrefab: {fileID: 2726140859014803944, guid: b069553ee12c38e4c9fc72a014ec6d6f, type: 3}
   shopCost: 150
   rewardItemData:
     itemName: 
@@ -55,6 +39,23 @@ MonoBehaviour:
       m_LocalVariables: []
     icon: {fileID: 0}
     rarity: 0
+  baseEffectValue: 0
+  attack: 35
+  maxHP: 750
+  attackSpeed: 2
+  attackRange: 3.8
+  detectRange: 12
+  defense: 10
+  moveSpeed: 3.2
+  baseEvasion: 0
+  baseAccuracy: 1
+  attackType: 0
+  tier: 1
+  isPhaseVariant: 0
+  aiPattern: {fileID: 11400000, guid: 320005db47f1e0b40b33ac4cde2c6c35, type: 2}
+  AttackSound: {fileID: 0}
+  minionPrefab: {fileID: 2726140859014803944, guid: b069553ee12c38e4c9fc72a014ec6d6f, type: 3}
+  dedicatedRoomPrefab: {fileID: 0}
   references:
     version: 2
     RefIds: []

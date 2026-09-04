@@ -38,7 +38,7 @@ public class GameOverManager : Singleton<GameOverManager>
     public void RestartGame()
     {
         GameManager.Instance.SetTimeStop(false); // 게임 시간 재개
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // 현재 씬 재로드
+        SceneManager.LoadScene("VillageScene"); // 빌리지 씬 재로드
     }
 
     public void GoToMainMenu()
