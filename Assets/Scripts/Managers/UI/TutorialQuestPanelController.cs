@@ -43,18 +43,17 @@ public class TutorialQuestPanelController : MonoBehaviour
         { TutorialStage.Combat, new[]
             {
                 "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Left\"></size>로 적을 공격하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 날아오는 투사체를 튕겨낼 수 있어요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 날아오는 투사체를 튕겨내세요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시(회피)할 수 있어요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>을 누르면 이미 클리어한 맵으로 즉시 이동해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>을 눌러 지나온 방을 클릭하면, 다시 돌아갈 수 있어요.",
             }
         },
         { TutorialStage.Reward, new[]
             {
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용하세요",
                 "미니언을 획득하면 바로 장착돼요",
-                "하단 버튼을 누르면 미니언 대신 체력을 회복해요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_R\"></size>로 미니언 스킬을 사용해요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>로 미니언 능력을 확인해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_C\"></size>로 미니언 능력을 확인해요",
             }
         },
         { TutorialStage.Augment, new[]
