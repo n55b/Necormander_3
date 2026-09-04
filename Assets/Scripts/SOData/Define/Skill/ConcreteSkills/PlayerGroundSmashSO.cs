@@ -80,13 +80,9 @@ public class PlayerGroundSmashSO : PlayerSkillSO
 
             if (health != null && !health.IsDead)
             {
-                var stat = health.GetComponent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
-
-                if (stat != null)
+                Transform rootObj = SkillCombatUtil.ResolveEntityTransform(health);
+                if (rootObj != null)
                 {
-                    Transform rootObj = stat.transform.root;
                     if (!pulledRoots.Contains(rootObj))
                     {
                         pulledRoots.Add(rootObj);

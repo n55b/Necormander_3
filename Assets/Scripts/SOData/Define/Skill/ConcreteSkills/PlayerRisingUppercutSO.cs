@@ -60,7 +60,7 @@ public class PlayerRisingUppercutSO : PlayerSkillSO
                 return;
             }
 
-            player.StartCoroutine(LaunchVisual(stat.transform.root));
+            player.StartCoroutine(LaunchVisual(SkillCombatUtil.ResolveEntityTransform(health)));
         };
 
         box.Init(info, Layers.EnemyMask, 0.15f, 0f, true, onHit);

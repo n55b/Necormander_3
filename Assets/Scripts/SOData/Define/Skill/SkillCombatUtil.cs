@@ -32,6 +32,19 @@ public static class SkillCombatUtil
         return col.GetComponentInChildren<CharacterHealth>() ?? col.GetComponentInParent<CharacterHealth>();
     }
 
+    /// <summary>
+    /// 컴포넌트가 속한 실제 캐릭터 Transform. 튜토리얼처럼 몬스터 프리팹이 방 아래에 배치돼도
+    /// transform.root(=방)를 반환하지 않는다.
+    /// </summary>
+    public static Transform ResolveEntityTransform(Component source)
+    {
+        if (source == null) return null;
+        var entity = source.GetComponent<BaseEntity>()
+            ?? source.GetComponentInParent<BaseEntity>()
+            ?? source.GetComponentInChildren<BaseEntity>();
+        return entity != null ? entity.transform : source.transform;
+    }
+
     /// <summary>fromWorld 기준 마우스 조준 방향(월드, 정규화). 0이면 오른쪽.</summary>
     public static Vector2 GetAimDir(Vector2 fromWorld)
     {

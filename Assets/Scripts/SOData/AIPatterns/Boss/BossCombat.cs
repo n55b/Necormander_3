@@ -82,9 +82,9 @@ public static class BossCombat
         {
             if (hit == null) continue;
 
-            // 중복 판정은 콜라이더가 아니라 '루트 게임오브젝트' 기준이다. 플레이어는 본체/대쉬용 등
+            // 중복 판정은 콜라이더가 아니라 실제 캐릭터 기준이다. 플레이어는 본체/대쉬용 등
             // 콜라이더가 여러 개라, 콜라이더로 기억하면 같은 대상을 두 번 때릴 수 있다.
-            GameObject key = hit.transform.root.gameObject;
+            GameObject key = SkillCombatUtil.ResolveEntityTransform(hit).gameObject;
             if (already != null && already.Contains(key)) continue;
 
             if (!TryDamage(hit, info)) continue;

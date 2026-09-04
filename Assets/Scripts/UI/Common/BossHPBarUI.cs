@@ -12,7 +12,6 @@ public class BossHPBarUI : MonoBehaviour
     [Header("UI")]
     [SerializeField] private GameObject root;             // 켜고 끌 패널
     [SerializeField] private Image fillImage;             // Filled / Horizontal
-    [SerializeField] private Image delayFillImage;        // 잔상 (선택)
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI hpText;
     [SerializeField] private float delayCatchUpSpeed = 0.6f;
@@ -50,8 +49,6 @@ public class BossHPBarUI : MonoBehaviour
         if (root != null) root.SetActive(true);
 
         Refresh();
-        if (delayFillImage != null && fillImage != null)
-            delayFillImage.fillAmount = fillImage.fillAmount;
     }
 
     public void Hide()
@@ -78,17 +75,5 @@ public class BossHPBarUI : MonoBehaviour
         fillImage.fillAmount = ratio;
         if (hpText != null)
             hpText.text = $"{Mathf.CeilToInt(Mathf.Max(_health.CurHP, 0f))} / {Mathf.CeilToInt(max)}";
-    }
-
-    private void Update()
-    {
-        if (delayFillImage == null || fillImage == null) return;
-
-        if (delayFillImage.fillAmount > fillImage.fillAmount)
-            delayFillImage.fillAmount = Mathf.MoveTowards(
-                delayFillImage.fillAmount, fillImage.fillAmount,
-                delayCatchUpSpeed * Time.unscaledDeltaTime);
-        else
-            delayFillImage.fillAmount = fillImage.fillAmount;
     }
 }

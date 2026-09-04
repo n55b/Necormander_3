@@ -54,14 +54,10 @@ public class PlayerGuardBreakSO : PlayerSkillSO
                     Debug.Log($"<color=cyan>[Physical]</color> '{skillName}' 적중! (호출: Vulnerability)");
                 }
 
-                var stat = health.GetComponent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
-
-                if (stat != null)
+                Transform targetTransform = SkillCombatUtil.ResolveEntityTransform(health);
+                if (targetTransform != null)
                 {
-                    // 넉백 처리 (최상단 transform 기준)
-                    player.StartCoroutine(SkillCombatUtil.PushEnemy(stat.transform.root, dir, knockbackForce, knockbackDuration));
+                    player.StartCoroutine(SkillCombatUtil.PushEnemy(targetTransform, dir, knockbackForce, knockbackDuration));
                 }
             };
 

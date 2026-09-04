@@ -63,10 +63,7 @@ public class PlayerTetsuzankoSO : PlayerSkillSO
             System.Action<CharacterHealth> onHit = (health) =>
             {
                 if (health == null) return;
-                var stat = health.GetComponent<CharacterStat>()
-                    ?? health.GetComponentInParent<CharacterStat>()
-                    ?? health.GetComponentInChildren<CharacterStat>();
-                Transform root = (stat != null) ? stat.transform.root : health.transform.root;
+                Transform root = SkillCombatUtil.ResolveEntityTransform(health);
                 if (root == null || !pushedRoots.Add(root)) return;
                 if (player != null)
                     player.StartCoroutine(SkillCombatUtil.PushEnemy(root, dir, knockbackForce, knockbackDuration,

@@ -81,12 +81,8 @@ public class PlayerLeapSO : PlayerSkillSO
             DamageInfo info = new DamageInfo(finalDamage, ResolveDamageType(), player.gameObject, 1f, "Leap Impact!", category: DamageCategory.Skill);
             health.GetDamage(info);
 
-            var stat = health.GetComponent<CharacterStat>();
-            if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
-            if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
-            if (stat == null) continue;
-
-            Transform rootObj = stat.transform.root;
+            Transform rootObj = SkillCombatUtil.ResolveEntityTransform(health);
+            if (rootObj == null) continue;
             if (!pushedRoots.Contains(rootObj))
             {
                 pushedRoots.Add(rootObj);
