@@ -283,7 +283,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isDynamic: 1
   precision: 100
-  baseOffset: -1
+  baseOffset: -2
   pivotOverride: {fileID: 0}
 --- !u!1 &1841339908024047631
 GameObject:
