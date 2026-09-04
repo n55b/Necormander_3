@@ -88,6 +88,25 @@ public class MapGenerator : MonoBehaviour
         return false;
     }
 
+    /// <summary>진행선에서 처음 만나는 Wall 타일 직전까지의 이동 가능 거리.</summary>
+    public float GetDistanceBeforeWall(Vector2 from, Vector2 dir, float distance, float clearance = 0f)
+    {
+        if (globalWallTilemap == null || dir == Vector2.zero || distance <= 0f) return distance;
+
+        dir.Normalize();
+        const float Step = 0.1f;
+        int steps = Mathf.CeilToInt(distance / Step);
+        for (int i = 1; i <= steps; i++)
+        {
+            float d = Mathf.Min(i * Step, distance);
+            Vector2 point = from + dir * d;
+            if (!globalWallTilemap.HasTile(globalWallTilemap.WorldToCell(point))) continue;
+
+            return Mathf.Max(0f, d - Step - Mathf.Max(0f, clearance));
+        }
+        return distance;
+    }
+
     public List<RoomInstance> AllRooms => _allRooms;
     private RoomInstance _currentRoom;
     public RoomInstance CurrentRoom => _currentRoom;

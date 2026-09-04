@@ -63,13 +63,13 @@ public static class SkillCombatUtil
 
     /// <summary>
     /// 좌표 텔레포트(Lerp) 이동이 벽을 통과하거나 바닥 없는 곳에 착지하지 않도록 제동한 목적지를 반환한다.
-    /// from→목적지 <b>중심선(Linecast)</b>이 벽을 가로지르면 그 벽면 앞(radius 만큼 여유)에서 하드 정지한다.
+    /// from→목적지 사이에 벽 콜라이더 또는 Wall 타일이 있으면 그 벽면 앞(radius 만큼 여유)에서 하드 정지한다.
     /// 벽은 맵(방)을 감싸는 경계라 무조건 막는다.
     ///
     /// Unsteppable은 뛰어넘을 수 있지만 착지점에는 Ground가 있어야 한다. Ground 아래에 물이 겹친 셀은 허용한다.
     ///
-    /// Linecast(중심선)라 반경 기반 OverlapCircle 의 오탐/관통 문제가 없다: 벽과 나란히·멀어지는 이동은
-    /// 벽을 가로지르지 않아 통과되고, 벽에 '딱 붙어' 벽 쪽으로 쏘면 즉시 벽면에 걸려 제자리에 멈춘다.
+    /// 중심선만 검사하므로 반경 기반 OverlapCircle 의 오탐이 없다: 벽과 나란히·멀어지는 이동은
+    /// 통과되고, 실제 진행선이 Wall 타일을 가로지를 때만 막힌다.
     /// radius 는 벽면에서 뒤로 물러설 여유(플레이어 반폭)다.
     /// </summary>
     public static Vector2 GetSafeDestination(Vector2 from, Vector2 dir, float distance, float radius = 0.3f)
@@ -84,8 +84,11 @@ public static class SkillCombatUtil
             ? Mathf.Max(0f, wallHit.distance - radius)
             : distance;
 
-        Vector2 allowedTarget = from + dir * allowedDistance;
         MapGenerator map = MapGenerator.Instance;
+        if (map != null)
+            allowedDistance = Mathf.Min(allowedDistance, map.GetDistanceBeforeWall(from, dir, distance, radius));
+
+        Vector2 allowedTarget = from + dir * allowedDistance;
         if (map == null) return allowedTarget;
         if (map.TryGetGroundLandingPoint(allowedTarget, radius, out Vector2 landingPoint)) return landingPoint;
 
