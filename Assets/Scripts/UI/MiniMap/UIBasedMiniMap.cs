@@ -676,10 +676,12 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             {
                 if (col == null) continue;
                 Transform enemyTransform = SkillCombatUtil.ResolveEntityTransform(col);
-                GameObject enemyObj = enemyTransform != null ? enemyTransform.gameObject : col.gameObject;
+                // Enemy 레이어는 공격 가능한 함정도 함께 쓴다. 미니맵에는 실제 캐릭터만 표시한다.
+                if (enemyTransform == null || enemyTransform.GetComponent<BaseEntity>() == null) continue;
+                GameObject enemyObj = enemyTransform.gameObject;
 
-            Vector3 diffFromCenter = enemyObj.transform.position - roomCenter;
-            if (Mathf.Abs(diffFromCenter.x) > roomHalfW || Mathf.Abs(diffFromCenter.y) > roomHalfH) continue;
+                Vector3 diffFromCenter = enemyObj.transform.position - roomCenter;
+                if (Mathf.Abs(diffFromCenter.x) > roomHalfW || Mathf.Abs(diffFromCenter.y) > roomHalfH) continue;
 
                 if (!_cachedEnemies.Contains(enemyObj))
                 {

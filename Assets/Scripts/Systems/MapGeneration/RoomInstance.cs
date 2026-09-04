@@ -375,8 +375,13 @@ public class RoomInstance : MonoBehaviour
             OnPlayerEnteredRoom?.Invoke(this);
             PlayEntryDialogue();
 
+            // 전투 없는 엘리트 방도 경계에 들어온 즉시 클리어한다. 중앙 전투 트리거까지 걸어갈 필요가 없다.
+            bool skipElite = roomType == RoomType.Elite
+                && _roomEvent is EliteRoomEvent eliteEvent
+                && eliteEvent.SkipEncounterForCurrentFloor;
+
             // [수정] 전투를 시작하지 않는 예외적인 방(스폰, 상점, 강화 상점, 보상방 등)에만 입장 즉시 BGM 및 이벤트 격발
-            if (roomType == RoomType.Spawn || roomType == RoomType.Shop || roomType == RoomType.EnhanceShop || roomType == RoomType.Reward)
+            if (roomType == RoomType.Spawn || roomType == RoomType.Shop || roomType == RoomType.EnhanceShop || roomType == RoomType.Reward || skipElite)
             {
                 if (roomBGM != null && SoundManager.Instance != null)
                 {

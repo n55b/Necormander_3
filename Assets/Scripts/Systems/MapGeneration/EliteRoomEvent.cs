@@ -33,6 +33,18 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
     private RoomInstance _cachedRoom;
     private EnemyMinionDataSO _hpBarTargetData; // 상단 체력바에 이름을 띄울 엘리트
 
+    public bool SkipEncounterForCurrentFloor
+    {
+        get
+        {
+            var gm = GameManager.Instance;
+            var tuning = gm != null && gm.CurrentStageMapData != null
+                ? gm.CurrentStageMapData.GetTuningForFloor(gm.currentFloor)
+                : null;
+            return tuning != null && tuning.skipEliteEncounter;
+        }
+    }
+
     private void Start()
     {
         // 씬에 미리 배치해 둔 포탈 오브젝트가 있다면 시작 시 비활성화
@@ -90,9 +102,17 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
     public void OnPlayerEnter(RoomInstance room)
     {
-        if (_isBattleActive) return;
-        
+        if (_isBattleActive || room == null || room.isCleared) return;
+
         _cachedRoom = room;
+
+        if (SkipEncounterForCurrentFloor)
+        {
+            room.MarkCleared();
+            Debug.Log($"<color=green>[EliteRoom]</color> Floor {GameManager.Instance.currentFloor}: 전투 없이 즉시 클리어.");
+            return;
+        }
+
         _isBattleActive = true;
         _isSpawnPending = true; // 스폰 진행 예정 상태 설정
 
@@ -154,7 +174,9 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         OnEliteCombatClear?.Invoke();
         Debug.Log($"<color=red>[EliteRoom]</color> Elite Defeated!");
 
-        GameOverManager.Instance.TriggerGameClear();
+        // 1층은 전투 없는 포탈 방으로 다음 층에 보내고, 2층 엘리트 클리어부터 게임을 끝낸다.
+        if (GameManager.Instance != null && GameManager.Instance.currentFloor >= 2)
+            GameOverManager.Instance?.TriggerGameClear();
 
         BossHPBarUI.Instance?.Hide();
     }
