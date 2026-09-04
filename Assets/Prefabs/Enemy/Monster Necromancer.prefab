@@ -47,7 +47,7 @@ PrefabInstance:
     - target: {fileID: 2262207286068843843, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: minionData
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 11400000, guid: e5dbe97e8cfe7ef4387c56ea6386f47f, type: 2}
     - target: {fileID: 2262207286068843843, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: detectRange
       value: 10

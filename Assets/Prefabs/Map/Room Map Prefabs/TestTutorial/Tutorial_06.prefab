@@ -2163,6 +2163,7 @@ Transform:
   - {fileID: 4405633977601049735}
   - {fileID: 8165828074239202848}
   - {fileID: 4787284770103919894}
+  - {fileID: 969550966837633498}
   m_Father: {fileID: 2320746058205641299}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1438073443494105585
@@ -50290,6 +50291,68 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2320746058205641299}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &63654048597086041
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4931313819698346475}
+    m_Modifications:
+    - target: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5658053484416891064, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+      propertyPath: m_Name
+      value: Monster Necromancer
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+--- !u!4 &969550966837633498 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 979159577626635907, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+  m_PrefabInstance: {fileID: 63654048597086041}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &93484224357019802
 PrefabInstance:
   m_ObjectHideFlags: 0
