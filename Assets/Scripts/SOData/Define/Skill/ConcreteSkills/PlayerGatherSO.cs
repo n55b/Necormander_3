@@ -80,13 +80,9 @@ public class PlayerGatherSO : PlayerSkillSO
 
             if (health != null && !health.IsDead)
             {
-                var stat = health.GetComponent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
-                if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
-
-                if (stat != null)
+                Transform rootObj = SkillCombatUtil.ResolveEntityTransform(health);
+                if (rootObj != null)
                 {
-                    Transform rootObj = stat.transform.root;
                     // 중복 방지 (같은 캐릭터의 여러 콜라이더가 잡혔을 경우)
                     if (!targetsToMove.Contains(rootObj))
                     {

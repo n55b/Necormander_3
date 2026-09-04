@@ -190,6 +190,11 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         UpdateRealTimeMarkers(currentRoom);
     }
 
+    public void SetHudVisible(bool visible)
+    {
+        if (hudMapContainer != null) hudMapContainer.gameObject.SetActive(visible);
+    }
+
     private void ClearContainer(ref List<GameObject> spawnedList)
     {
         foreach (var ui in spawnedList)
@@ -217,7 +222,9 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
 
             if (focusOnlyCurrentRoom && room != currentRoom) continue;
 
-            bool isVisited = room.hasBeenVisited || room.roomType == RoomType.Spawn;
+            // Spawn 타입이 여러 개여도 현재 방만 시작부터 보인다.
+            // 실제 시작 방은 ForceEnter 전 첫 Refresh가 올 수 있어 currentRoom도 방문으로 취급한다.
+            bool isVisited = room.hasBeenVisited || room == currentRoom;
             bool isRevealed = isVisited;
 
             if (!isRevealed)
@@ -225,7 +232,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                 var connected = MapGenerator.Instance.GetConnectedRooms(room);
                 foreach (var conn in connected)
                 {
-                    if (conn != null && (conn.hasBeenVisited || conn.roomType == RoomType.Spawn))
+                    if (conn != null && (conn.hasBeenVisited || conn == currentRoom))
                     {
                         isRevealed = true;
                         break;
@@ -668,12 +675,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             foreach (var col in cols)
             {
                 if (col == null) continue;
-                GameObject enemyObj = col.gameObject;
-                
-                if (col.transform.parent != null && col.gameObject.layer == Layers.Enemy)
-                {
-                    enemyObj = col.transform.root.gameObject;
-                }
+                Transform enemyTransform = SkillCombatUtil.ResolveEntityTransform(col);
+                GameObject enemyObj = enemyTransform != null ? enemyTransform.gameObject : col.gameObject;
 
             Vector3 diffFromCenter = enemyObj.transform.position - roomCenter;
             if (Mathf.Abs(diffFromCenter.x) > roomHalfW || Mathf.Abs(diffFromCenter.y) > roomHalfH) continue;

@@ -50,12 +50,8 @@ public class PlayerNeedleSobatSO : PlayerSkillSO
         List<Transform> pushedRoots = new List<Transform>();
         System.Action<CharacterHealth> onHit = (health) =>
         {
-            var stat = health.GetComponent<CharacterStat>();
-            if (stat == null) stat = health.GetComponentInParent<CharacterStat>();
-            if (stat == null) stat = health.GetComponentInChildren<CharacterStat>();
-            if (stat == null) return;
-
-            Transform rootObj = stat.transform.root;
+            Transform rootObj = SkillCombatUtil.ResolveEntityTransform(health);
+            if (rootObj == null) return;
             if (!pushedRoots.Contains(rootObj))
             {
                 pushedRoots.Add(rootObj);

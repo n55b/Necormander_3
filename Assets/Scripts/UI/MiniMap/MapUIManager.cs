@@ -67,6 +67,7 @@ public class MapUIManager : MonoBehaviour
 
             if (UIBasedMiniMap.Instance != null)
             {
+                UIBasedMiniMap.Instance.SetHudVisible(false);
                 UIBasedMiniMap.Instance.RefreshMap();
             }
         }
@@ -75,6 +76,7 @@ public class MapUIManager : MonoBehaviour
             _isMapOpen = isOpen;
             UIPopUpManager.Instance.ClosePopUpUI();
             UIEventBus.NotifyClose("Map");
+            UIBasedMiniMap.Instance?.SetHudVisible(true);
         }
     }
 }

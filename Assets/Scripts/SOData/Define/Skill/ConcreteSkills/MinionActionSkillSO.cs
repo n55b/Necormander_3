@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public enum MinionActionType
@@ -197,11 +196,7 @@ public class MinionActionSkillSO : MinionSkillSO
                     hasInvokedKeyword = true;
                     Debug.Log($"<color=yellow>[MinionAction]</color> {actionType} 발동! (미니언 시전)");
                 }
-                // 방 프리팹에 직접 배치된 튜토리얼 몬스터는 transform.root가 몬스터가 아니라 방이다.
-                // root를 밀면 Ground/Wall까지 통째로 영구 이동하므로 실제 BaseEntity만 움직인다.
-                var targetEntity = health.GetComponentInParent<BaseEntity>();
-                Transform moveTarget = targetEntity != null ? targetEntity.transform : stat.transform;
-                ApplyActionEffect(stat, moveTarget, caster, dirFromPlayer, teleportPos);
+                ApplyActionEffect(SkillCombatUtil.ResolveEntityTransform(health), caster, dirFromPlayer);
             };
 
             caster.PlaySequenced(
@@ -244,138 +239,25 @@ public class MinionActionSkillSO : MinionSkillSO
                     var stat = health.GetComponent<CharacterStat>()
                         ?? health.GetComponentInParent<CharacterStat>()
                         ?? health.GetComponentInChildren<CharacterStat>();
-                    if (stat != null) ApplyActionEffect(stat, stat.transform.root, caster, dirFromPlayer, teleportPos);
+                    if (stat != null) ApplyActionEffect(SkillCombatUtil.ResolveEntityTransform(health), caster, dirFromPlayer);
                 });
         }
 
         return true;
     }
 
-    private void ApplyActionEffect(CharacterStat stat, Transform targetTransform, MinionSkillCaster caster, Vector2 dirFromPlayer, Vector2 teleportPos)
+    private void ApplyActionEffect(Transform targetTransform, MinionSkillCaster caster, Vector2 dirFromPlayer)
     {
         switch (actionType)
         {
             case MinionActionType.DamageOnly:
                 break;
             case MinionActionType.DamageAndPush:
-                caster.StartCoroutine(PushEnemy(targetTransform, dirFromPlayer));
+                caster.StartCoroutine(SkillCombatUtil.PushEnemy(targetTransform, dirFromPlayer, forceAmount, forceDuration));
                 break;
             case MinionActionType.DamageAndPull:
-                caster.StartCoroutine(PushEnemy(targetTransform, -dirFromPlayer));
+                caster.StartCoroutine(SkillCombatUtil.PushEnemy(targetTransform, -dirFromPlayer, forceAmount, forceDuration));
                 break;
         }
-    }
-
-    private IEnumerator PushEnemy(Transform enemy, Vector2 pushDir)
-    {
-        if (enemy == null) yield break;
-
-        // [추가] 넉백 경직 및 돌진/공격 인터럽트 적용
-        var entity = enemy.GetComponent<BaseEntity>() ?? enemy.GetComponentInChildren<BaseEntity>();
-        if (entity != null)
-        {
-            entity.ApplyKnockback(Vector2.zero); // 수동 Lerp 이동을 타므로 물리 힘은 zero 전달해 충돌 예방
-        }
-
-        var status = enemy.GetComponentInChildren<CharacterStatus>();
-        if (status == null) status = enemy.GetComponentInParent<CharacterStatus>();
-        if (status != null)
-        {
-            if (status.HasSuperArmor)
-            {
-                status.DamageSuperArmor(30f);
-                yield break;
-            }
-        }
-
-        float elapsed = 0f;
-        Vector2 startPos = enemy.position;
-        Vector2 targetPos = startPos + pushDir * forceAmount;
-        
-        int obstacleMask = Layers.WallMask | Layers.UnsteppableMask;
-
-        // 몬스터 콜라이더 크기 구하기
-        var enemyCol = enemy.GetComponent<Collider2D>();
-        float checkRadius = 0.3f;
-        if (enemyCol != null)
-        {
-            if (enemyCol is CircleCollider2D circle) checkRadius = circle.radius * enemy.localScale.x;
-            else checkRadius = Mathf.Max(enemyCol.bounds.extents.x, enemyCol.bounds.extents.y);
-        }
-
-        while (elapsed < forceDuration)
-        {
-            if (enemy == null) yield break;
-            elapsed += Time.deltaTime;
-            float t = elapsed / forceDuration;
-            
-            Vector2 nextPos = Vector2.Lerp(startPos, targetPos, t);
-            Vector2 moveDir = nextPos - (Vector2)enemy.position;
-            float moveDist = moveDir.magnitude;
-            
-            if (moveDist > 0.001f)
-            {
-                // 충돌 반지름 마진을 1.0f로 원의 축소를 방지하고 온전한 크기 검출
-                RaycastHit2D hit = Physics2D.CircleCast(enemy.position, checkRadius * 1.0f, moveDir.normalized, moveDist, obstacleMask);
-                if (hit.collider != null)
-                {
-                    // hit.centroid 대신 충돌지점에서 벽 바깥 법선(normal) 방향으로 반지름+안전오차 만큼 떨어진 포지션 밀착 지정
-                    enemy.position = hit.point + hit.normal * (checkRadius * 1.02f);
-                    yield break;
-                }
-                else
-                {
-                    enemy.position = nextPos;
-                }
-            }
-            yield return null;
-        }
-        if (enemy != null)
-        {
-            Vector2 moveDir = targetPos - (Vector2)enemy.position;
-            float moveDist = moveDir.magnitude;
-            if (moveDist > 0.001f)
-            {
-                RaycastHit2D hit = Physics2D.CircleCast(enemy.position, checkRadius * 0.9f, moveDir.normalized, moveDist, obstacleMask);
-                if (hit.collider != null)
-                {
-                    enemy.position = hit.centroid;
-                }
-                else
-                {
-                    enemy.position = targetPos;
-                }
-            }
-        }
-    }
-
-    private IEnumerator PullEnemy(Transform enemy, Vector2 center)
-    {
-        if (enemy == null) yield break;
-
-        var status = enemy.GetComponentInChildren<CharacterStatus>();
-        if (status == null) status = enemy.GetComponentInParent<CharacterStatus>();
-        if (status != null)
-        {
-            if (status.HasSuperArmor)
-            {
-                status.DamageSuperArmor(30f);
-                yield break;
-            }
-        }
-
-        float elapsed = 0f;
-        Vector2 startPos = enemy.position;
-        Vector2 targetPos = center + (startPos - center).normalized * 0.5f;
-
-        while (elapsed < forceDuration)
-        {
-            if (enemy == null) yield break;
-            elapsed += Time.deltaTime;
-            float t = elapsed / forceDuration;
-            enemy.position = Vector2.Lerp(startPos, targetPos, t);
-            yield return null;
-        }
-        if (enemy != null) enemy.position = targetPos;
     }
 }
