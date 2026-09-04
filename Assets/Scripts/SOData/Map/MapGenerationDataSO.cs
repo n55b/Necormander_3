@@ -107,6 +107,10 @@ public class MapGenerationDataSO : ScriptableObject
         [Tooltip("GameManager.currentFloor 와 비교할 층수. 0은 튜토리얼, 일반 층은 1부터")]
         public int floor = 1;
 
+        [Tooltip("켜면 이 층의 엘리트 방은 적을 소환하지 않고, 입장 시 즉시 클리어된다. " +
+                 "기존 엘리트 방의 포탈·보상·클리어 이벤트는 그대로 실행된다.")]
+        public bool skipEliteEncounter = false;
+
         [Tooltip("이 층의 방당 전투 웨이브 수. 0 이면 전역 wavesCount 를 그대로 쓴다")]
         public int wavesCount = 0;
 
