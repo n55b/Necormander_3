@@ -123,20 +123,20 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     public float slamDamageMultiplier = 1.15f;
 
     [Header("특수 패턴: 집행 (페이즈2 진입 1회)")]
-    [Tooltip("이 횟수만큼 카운터에 성공해야 집행이 끝난다. 성공할 때까지 선 패턴 → 등장 → 카운터가 " +
-             "무한히 반복된다(0830 확정 — 실패해도 빠져나갈 길은 없다).\n\n" +
-             "체력바 아래 구슬 개수도 이 값을 따라간다. 프리팹의 구슬 수(3개)보다 크게 잡으면 " +
-             "표시가 그 이상을 못 보여주므로, 늘릴 거면 Boss Counter Pips 프리팹도 같이 늘려라.")]
-    public int executionRequiredHits = 3;
-    [Tooltip("한 사이클에서 긋는 선의 개수. 기획 기준 4개.")]
+    [Tooltip("카운터 기회 횟수. 성공/실패와 무관하게 이 횟수를 진행하면 종료한다. 구슬은 성공 횟수만 표시.")]
+    [UnityEngine.Serialization.FormerlySerializedAs("executionRequiredHits")]
+    [Min(1)] public int executionCounterAttempts = 3;
+    [Tooltip("카운터 등장 전 선 공격의 발동 횟수. 각 발동마다 executionLinesPerVolley 줄을 동시에 긋는다.")]
     public int executionLinesPerCycle = 4;
+    [Tooltip("한 번에 동시에 그을 선의 수. 기본 2줄은 직각으로 교차하고, 교차점 피해는 한 번만 적용.")]
+    [Min(1)] public int executionLinesPerVolley = 2;
     [Tooltip("첫 선의 예고 시간(초). 선이 그어지고 이만큼 뒤에 그 자리가 판정된다.")]
     public float executionLineLeadStart = 1f;
     [Tooltip("한 사이클의 마지막 선 예고 시간(초). 회차가 갈수록 이 값까지 짧아진다(= 점점 빨라진다).")]
     public float executionLineLeadEnd = 0.55f;
     [Tooltip("선 사이의 간격(초).")]
     public float executionLineGap = 0.25f;
-    [Tooltip("선의 폭(유닛). 무한 반복으로 바뀌면서 얇게 내렸다 — 두꺼우면 회피 공간이 안 남는다.")]
+    [Tooltip("선의 폭(유닛). 두 선 사이에 회피 공간을 남기도록 얇게 유지한다.")]
     public float executionLineWidth = 1f;
     [Tooltip("선에 맞았을 때의 피해 배율(ATK 대비).")]
     public float executionLineDamageMultiplier = 0.8f;
@@ -149,22 +149,28 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     [Tooltip("집행 중 카운터 패턴의 시전 속도 배수. 0.75 = 25% 빨라짐. " +
              "(0.6 = 40% 였는데 카운터를 넣을 여유가 안 난다는 피드백으로 하향했다.)")]
     [Range(0.2f, 1f)] public float executionCastSpeedScale = 0.75f;
-    [Tooltip("집행을 파훼했을 때(= 요구 횟수만큼 카운터에 성공했을 때) 보스가 먹는 그로기 시간(초).")]
+    [Tooltip("집행이 정상 종료됐을 때의 고정 그로기 시간(초). 성공 횟수와 무관하게 적용한다.")]
     public float executionGroggyDuration = 4f;
     [Tooltip("위 그로기 동안 추가되는 받는 피해(합연산). 0.15 = +15%. 그로기가 끝나면 사라진다.")]
     public float executionDamageBonus = 0.15f;
 
     [Header("카운터 전조 (모든 패턴 공용)")]
     [Range(0f, 1f)]
-    [Tooltip("이번 전조가 '페이크(빨강)'일 확률. 0830 수정안 기준 0.7 = 노랑:빨강 30:70.")]
-    public float fakeCounterChance = 0.7f;
+    [Tooltip("노랑(카운터) 확률. 기본 0.3. 노랑·빨강을 제외한 나머지는 회색 일반 패턴이다.")]
+    public float realCounterChance = 0.3f;
+    [Range(0f, 1f)]
+    [Tooltip("빨강(피격 시 회복) 확률. 기본 0.2. 매 전조마다 노랑:빨강:회색 = 30:20:50 독립 추첨.")]
+    public float fakeCounterChance = 0.2f;
+    [Min(0f)]
+    [Tooltip("빨강 전조 중 플레이어/미니언의 직접 타격마다 회복할 HP. 공격 시전 시간은 바뀌지 않는다.")]
+    public float fakeCounterHealPerHit = 5f;
     [Tooltip("노랑 창을 파훼하는 데 필요한 총 피해량. 1이면 아무 공격이나 한 대면 성공.")]
     public float counterGaugeAmount = 1f;
     [Tooltip("노랑(진짜 카운터) 전조 색. 인디케이터가 이 색으로 찬다.")]
     public Color counterRealColor = new Color(1f, 0.9f, 0.2f);
-    [Tooltip("빨강(페이크) 전조 색. 치면 보스가 예고를 건너뛰고 즉시 시전한다.")]
+    [Tooltip("빨강 전조 색. 타격마다 체력을 회복하지만 시전은 앞당겨지지 않는다.")]
     public Color counterFakeColor = new Color(1f, 0.15f, 0.15f);
-    [Tooltip("카운터가 불가능한 패턴(도약 & 내려찍기, 내려찍기 후속타)의 전조 색. 무채색 = '쳐도 소용없다'.")]
+    [Tooltip("회색 일반 전조. 카운터/회복 없이 원래 시간대로 공격한다. 도약과 후속타에도 사용.")]
     public Color counterNoneColor = new Color(0.75f, 0.75f, 0.78f);
     [Tooltip("노랑 카운터에 성공했을 때 보스가 먹는 경직 시간(초). 이 동안 패턴이 취소된다.")]
     public float counterSuccessGroggyDuration = 0.5f;
@@ -425,7 +431,7 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     /// <summary>이번 예고의 성질과 색을 한 번에 뽑는다.</summary>
     private BossCounterTelegraph.Kind RollTelegraph(bool counterable, out Color color)
     {
-        var kind = BossCounterTelegraph.Roll(counterable, fakeCounterChance);
+        var kind = BossCounterTelegraph.Roll(counterable, realCounterChance, fakeCounterChance);
         color = BossCounterTelegraph.ColorOf(kind, counterRealColor, counterFakeColor, counterNoneColor);
         return kind;
     }
@@ -493,7 +499,7 @@ protected override void OnAttack(BaseEntity entity)
         // 페이즈1 휩쓸기와 같은 규칙 — 예고 동안 회전 상한(sweepTurnSpeed) 안에서 계속 조준한다.
         var tele = new BossCounterTelegraph.Result();
         yield return BossCounterTelegraph.Run(entity, _controller, windup, dir, kind, col,
-                                              counterGaugeAmount, tele,
+                                              counterGaugeAmount, tele, fakeHealPerHit: fakeCounterHealPerHit,
                                               onTick: () =>
                                               {
                                                   Warp(entity, origin);
@@ -609,7 +615,7 @@ protected override void OnAttack(BaseEntity entity)
 
             var tele = new BossCounterTelegraph.Result();
             yield return BossCounterTelegraph.Run(entity, _controller, windup, dir, kind, col,
-                                                  counterGaugeAmount, tele,
+                                                  counterGaugeAmount, tele, fakeHealPerHit: fakeCounterHealPerHit,
                                                   onTick: () => Warp(entity, origin));
             if (telegraph != null) Object.Destroy(telegraph);
 
@@ -663,26 +669,25 @@ protected override void OnAttack(BaseEntity entity)
     ///
     ///   (선 패턴 ×N, 갈수록 빨라짐) → 보스 은신 → 플레이어 바로 옆에 등장
     ///   → 조금 빨라진 찌르기/휩쓸기 1회(<b>무조건 노랑</b>) → 다시 은신
-    /// 을 <b>카운터에 executionRequiredHits 번 성공할 때까지 무한히</b> 반복한다.
-    /// 실패로 빠져나가는 길은 없다(0830 확정) — 성공해야만 끝난다.
+    /// 을 <b>executionCounterAttempts 회</b> 반복한다. 성공/실패는 종료 조건에 영향을 주지 않는다.
     ///
     /// 이 패턴 동안 보스는 카운터 순간을 빼면 계속 숨어 있고 무적이다 — 딜 구간이 아니라
-    /// 생존 + 카운터 구간이다. 남은 성공 횟수는 보스 체력바 아래 구슬로 보여준다.
+    /// 생존 + 카운터 구간이다. 성공 횟수는 보스 체력바 아래 구슬로 보여준다.
     /// </summary>
     private IEnumerator ExecutionRoutine(BaseEntity entity)
     {
         StopNavAgent(entity);
         _controller?.HardStopMovement();
 
-        int required = Mathf.Max(1, executionRequiredHits);
+        int attempts = Mathf.Max(1, executionCounterAttempts);
         int hits = 0;
         bool aborted = false;
 
-        BossCounterPipsUI.Show(required);
+        BossCounterPipsUI.Show(attempts);
 
         try
         {
-            while (hits < required)
+            for (int attempt = 0; attempt < attempts; attempt++)
             {
                 // ── 선 패턴: 맵을 가로지르는 직선이 플레이어 위를 지난다 ──
                 _controller?.SetHidden(true);
@@ -735,8 +740,8 @@ protected override void OnAttack(BaseEntity entity)
             yield break;
         }
 
-        // ── 보상: 요구 횟수를 채워야만 여기 도달하므로 고정값이다(0830 확정) ──
-        _controller?.SetStateText($"집행 파훼! 받는 피해 +{executionDamageBonus * 100f:F0}%", Color.cyan);
+        // 성공 수는 구슬에만 반영한다. 종료 보상은 기존 고정값 유지(성공 0회도 동일).
+        _controller?.SetStateText($"집행 종료! 카운터 {hits}/{attempts}, 받는 피해 +{executionDamageBonus * 100f:F0}%", Color.cyan);
         _controller?.ApplyGroggy(executionGroggyDuration, executionDamageBonus);
         // 예전 EndPatternAfterGroggy 는 그로기(4초)가 끝난 뒤에도 postGroggyRecovery(1.5초)를 더
         // 얹어서 보스가 총 7초를 멍하니 서 있게 만들었다. 보상은 '그로기 + 받는 피해 증가'이지
@@ -744,40 +749,55 @@ protected override void OnAttack(BaseEntity entity)
         EndPattern(entity, executionGroggyDuration);
     }
 
-    /// <summary>선 하나. 플레이어 위를 지나는 무작위 각도의 직선이 방을 통째로 가로지른다.</summary>
+    /// <summary>플레이어 위치를 지나는 교차선들을 동시에 예고하고, 방 전체에 한 번의 피해를 준다.</summary>
     private IEnumerator ExecutionLine(BaseEntity entity, float lead)
     {
         Vector2 through = entity.Target != null ? (Vector2)entity.Target.position : (Vector2)entity.transform.position;
 
-        float ang = Random.value * Mathf.PI;                     // 0~180도면 직선 전체를 다 덮는다
-        Vector2 dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
-
-        // 방을 완전히 가로지르도록 플레이어 기준 양쪽으로 뻗는다.
-        float back = RoomReach(-dir, through);
-        float fwd = RoomReach(dir, through);
-        Vector2 origin = through - dir * back;
-        float length = back + fwd;
-
-        GameObject lane = BoneMasterTelegraphUtil.SpawnLane(
-            entity, origin, dir, length, executionLineWidth, counterNoneColor, laneTelegraphPrefab, lead);
-
-        float t = 0f;
-        while (t < lead)
+        int count = Mathf.Max(1, executionLinesPerVolley);
+        var lanes = new (Vector2 origin, Vector2 dir, float length, GameObject visual)[count];
+        float startAngle = Random.value * Mathf.PI;
+        try
         {
-            if (entity == null || entity.CurrentState != AIState.Skill) break;
-            t += Time.deltaTime;
-            yield return null;
+            for (int i = 0; i < count; i++)
+            {
+                float angle = startAngle + i * Mathf.PI / count;
+                Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                float back = RoomReach(-dir, through);
+                Vector2 origin = through - dir * back;
+                float length = back + RoomReach(dir, through);
+                lanes[i] = (origin, dir, length, BoneMasterTelegraphUtil.SpawnLane(
+                    entity, origin, dir, length, executionLineWidth, counterNoneColor, laneTelegraphPrefab, lead));
+            }
+
+            float t = 0f;
+            while (t < lead)
+            {
+                if (entity == null || entity.CurrentState != AIState.Skill) yield break;
+                t += Time.deltaTime;
+                yield return null;
+            }
+            if (entity == null || entity.CurrentState != AIState.Skill) yield break;
+
+            var info = new DamageInfo(entity.Stats.ATK * executionLineDamageMultiplier, DamageType.Physical,
+                                      entity.gameObject, category: DamageCategory.EnemyBoss);
+            var already = new System.Collections.Generic.HashSet<GameObject>();
+            foreach (var lane in lanes)
+                BossCombat.DealLaneOnce(lane.origin, lane.dir, lane.length, executionLineWidth,
+                                       entity.opponentLayer, info, already);
         }
-
-        if (lane != null) Object.Destroy(lane);
-        if (entity == null) yield break;
-
-        var info = new DamageInfo(entity.Stats.ATK * executionLineDamageMultiplier, DamageType.Physical,
-                                  entity.gameObject, category: DamageCategory.EnemyBoss);
-        BossCombat.DealLane(origin, dir, length, executionLineWidth, entity.opponentLayer, info);
+        finally
+        {
+            foreach (var lane in lanes)
+                if (lane.visual != null)
+                {
+                    lane.visual.SetActive(false);
+                    Object.Destroy(lane.visual);
+                }
+        }
     }
 
-    /// <summary>등장 직후의 일격. 찌르기 또는 휩쓸기 중 하나를, 40% 빠르게, 무조건 노랑으로.</summary>
+    /// <summary>등장 직후의 일격. 찌르기 또는 휩쓸기 중 하나를, 25% 빠르게, 무조건 노랑으로.</summary>
     private IEnumerator ExecutionStrike(BaseEntity entity, BossCounterTelegraph.Result res)
     {
         if (entity.Target != null) entity.LookAtTarget(entity.Target);
@@ -892,7 +912,7 @@ protected override void OnAttack(BaseEntity entity)
         // windup 은 '실제 착지 순간'까지로 잡는다 — 프리팹의 차오름 게이지가 가득 차는 시점과
         // 피해가 들어오는 시점이 일치해야 게이지가 거짓말을 하지 않는다.
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnEllipse(
-            entity, landPos, radiusX, radiusY, telegraphWarnColor, circleTelegraphPrefab,
+            entity, landPos, radiusX, radiusY, counterNoneColor, circleTelegraphPrefab,
             trackTime + lockTime + leapDuration, leapDuration + 0.2f);
         // 도약은 카운터 대상이 아니다(0830 확정). 무채색 = '쳐도 소용없다'는 신호.
         BossAttackIndicator.Begin(entity, trackTime + lockTime + leapDuration, default, counterNoneColor);

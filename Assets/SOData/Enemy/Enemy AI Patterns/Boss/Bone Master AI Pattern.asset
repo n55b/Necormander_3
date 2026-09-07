@@ -43,9 +43,12 @@ MonoBehaviour:
   wallCheckRadius: 0.85
   thrustDashDistance: 3
   thrustDashDuration: 0.15
-  fakeCounterChance: 0.7
+  realCounterChance: 0.3
+  fakeCounterChance: 0.2
+  fakeCounterHealPerHit: 5
   counterGaugeAmount: 1
   counterRealColor: {r: 1, g: 0.9, b: 0.2, a: 1}
   counterFakeColor: {r: 1, g: 0.15, b: 0.15, a: 1}
+  counterNoneColor: {r: 0.75, g: 0.75, b: 0.78, a: 1}
   counterSuccessGroggyDuration: 0.5
   startupDelay: 2

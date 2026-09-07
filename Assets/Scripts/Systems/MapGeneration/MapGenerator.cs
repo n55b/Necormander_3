@@ -17,6 +17,10 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private MapGenerationDataSO generationData;
     [SerializeField] private RoomPrefabDataSO prefabData;
 
+    [Header("Debug")]
+    [Tooltip("맵 생성 뒤 MapDebugLog.txt에 전체 타일 지도를 기록합니다. 큰 방에서는 로그 한 번에 수십만 칸을 검사하므로, 연결 문제를 추적할 때만 켭니다.")]
+    [SerializeField] private bool dumpMapDebugLog;
+
 
     [Header("Global Tilemap References")]
     [SerializeField] private Tilemap globalGroundTilemap;
@@ -468,7 +472,48 @@ Instance = this;
     private void BakeNavMesh()
     {
         var navSurface = Object.FindFirstObjectByType<NavMeshSurface>();
-        if (navSurface != null) { navSurface.RemoveData(); navSurface.BuildNavMesh(); }
+        if (navSurface == null) return;
+
+        // NavMeshPlus의 RenderMeshes 모드는 타일 하나를 BuildSource 하나로 만든다.
+        // 큰 방에서는 수만 개가 되므로, Ground도 잠깐 합성 콜라이더로 묶어 1개 소스로 굽는다.
+        Rigidbody2D groundBody = null;
+        TilemapCollider2D groundTileCollider = null;
+        CompositeCollider2D groundComposite = null;
+        NavMeshCollectGeometry previousGeometry = navSurface.useGeometry;
+
+        try
+        {
+            if (globalGroundTilemap != null)
+            {
+                GameObject ground = globalGroundTilemap.gameObject;
+                groundBody = ground.AddComponent<Rigidbody2D>();
+                groundBody.bodyType = RigidbodyType2D.Static;
+
+                groundTileCollider = ground.AddComponent<TilemapCollider2D>();
+                groundTileCollider.isTrigger = true;
+                groundTileCollider.compositeOperation = Collider2D.CompositeOperation.Merge;
+
+                groundComposite = ground.AddComponent<CompositeCollider2D>();
+                groundComposite.isTrigger = true;
+                groundComposite.geometryType = CompositeCollider2D.GeometryType.Polygons;
+                groundComposite.generationType = CompositeCollider2D.GenerationType.Manual;
+
+                groundTileCollider.ProcessTilemapChanges();
+                groundComposite.GenerateGeometry();
+                Physics2D.SyncTransforms();
+            }
+
+            navSurface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
+            navSurface.RemoveData();
+            navSurface.BuildNavMesh();
+        }
+        finally
+        {
+            navSurface.useGeometry = previousGeometry;
+            if (groundComposite != null) Destroy(groundComposite);
+            if (groundTileCollider != null) Destroy(groundTileCollider);
+            if (groundBody != null) Destroy(groundBody);
+        }
     }
 
     private void SaveCorridorLength(RoomInstance r1, RoomInstance r2, int length)
@@ -1296,6 +1341,8 @@ Instance = this;
     private void AssignSpecialRooms() { }
     private void DumpMapToLog()
     {
+      if (!dumpMapDebugLog) return;
+
       try {
         if (globalGroundTilemap == null || globalWallTilemap == null) return;
         globalGroundTilemap.CompressBounds(); globalWallTilemap.CompressBounds();

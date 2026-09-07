@@ -9,15 +9,11 @@ using UnityEngine;
 /// 기다리는 일은 전부 여기가 한다.
 ///
 ///   노랑(<see cref="Kind.Real"/>) — 예고 중에 때리면 파훼. 패턴이 취소되고 보스가 경직한다.
-///   빨강(<see cref="Kind.Fake"/>) — 예고 중에 때리면 보스가 남은 예고를 건너뛰고 즉시 시전한다.
-///                                   (피해 무효화도 역공도 없다 — 예고를 통째로 잃는 것이 처벌이다.)
+///   빨강(<see cref="Kind.Fake"/>) — 예고 중 실제 피격마다 보스가 회복한다. 시전 시간은 유지한다.
 ///   무채색(<see cref="Kind.None"/>) — 카운터 불가. 그냥 시간만 재는 예고.
 ///
-/// 노랑과 빨강은 <b>같은 장치</b>로 굴러간다: 둘 다 <see cref="BossCounterGauge"/> 창을 열고,
-/// 파훼됐을 때의 결말만 다르다. 빨강은 요구량을 0.01 로 열어서 아무 공격 한 대에 즉시 터진다.
-///
-/// 게이지 구독(<c>CharacterHealth.OnDamageReceived</c>)은 무적·회피·방어력 계산보다 먼저 돌기 때문에
-/// 피해량이 0인 공격으로도 파훼가 잡힌다 — 빨강의 "쳤다" 판정이 이 순서 덕에 성립한다.
+/// <see cref="BossCounterGauge"/>가 노랑 파훼 창 / 빨강 회복 창의 수명을 함께 관리한다.
+/// 회색은 어느 창도 열지 않는다. 사망·페이즈 전환·취소 시 CloseWindow 로 모두 닫는다.
 ///
 /// <para>
 /// [반드시 지킬 것] 이 코루틴은 창이 열린 채로 끊길 수 있다(부위 파괴 → StopAllCoroutines,
@@ -33,7 +29,7 @@ public static class BossCounterTelegraph
         None,
         /// <summary>진짜 카운터(노랑). 때리면 패턴 취소 + 보스 경직.</summary>
         Real,
-        /// <summary>페이크(빨강). 때리면 보스가 즉시 시전한다.</summary>
+        /// <summary>페이크(빨강). 때리면 보스가 회복한다. 시전 시간은 변하지 않는다.</summary>
         Fake,
     }
 
@@ -48,8 +44,6 @@ public static class BossCounterTelegraph
         public Kind Kind;
         /// <summary>노랑을 파훼당했다 → 패턴을 취소하고 경직으로 넘어가야 한다.</summary>
         public bool Countered;
-        /// <summary>빨강을 맞았다 → 남은 예고를 건너뛰었다. 판정은 그대로 나간다.</summary>
-        public bool ForcedEarly;
         /// <summary>외부 요인(사망 / 부위 파괴 / 페이즈 전환)으로 끊겼다 → 아무것도 하지 말고 빠져야 한다.</summary>
         public bool Hijacked;
         /// <summary>예고가 시작된 뒤 흐른 시간(초). onTick 안에서 '끝나기 직전'을 잡는 데 쓴다.</summary>
@@ -61,9 +55,14 @@ public static class BossCounterTelegraph
     /// (0830 회의 확정 — 편중이 심하면 그때 연속 방지를 넣기로 했다).
     /// </summary>
     /// <param name="counterable">이 패턴이 애초에 카운터 가능한가. false 면 무조건 <see cref="Kind.None"/>.</param>
-    public static Kind Roll(bool counterable, float fakeChance)
-        => !counterable ? Kind.None
-         : (Random.value < Mathf.Clamp01(fakeChance) ? Kind.Fake : Kind.Real);
+    public static Kind Roll(bool counterable, float realChance, float fakeChance)
+    {
+        if (!counterable) return Kind.None;
+        float roll = Random.value;
+        float real = Mathf.Clamp01(realChance);
+        if (roll < real) return Kind.Real;
+        return roll < real + Mathf.Clamp(fakeChance, 0f, 1f - real) ? Kind.Fake : Kind.None;
+    }
 
     /// <summary>성질에 맞는 색. 바닥 전조와 머리 위 인디케이터가 같은 색을 써야 신호가 하나로 읽힌다.</summary>
     public static Color ColorOf(Kind kind, Color real, Color fake, Color none)
@@ -85,13 +84,13 @@ public static class BossCounterTelegraph
         Color color,
         float gaugeAmount,
         Result result,
-        System.Action onTick = null)
+        System.Action onTick = null,
+        float fakeHealPerHit = 5f)
     {
         if (result != null)
         {
             result.Kind = kind;
             result.Countered = false;
-            result.ForcedEarly = false;
             result.Hijacked = false;
             result.Elapsed = 0f;
         }
@@ -107,13 +106,15 @@ public static class BossCounterTelegraph
         bool broken = false;
         void OnBroken() => broken = true;
 
-        // 빨강도 창을 연다. 요구량만 0.01 로 두면 "아무 공격 한 대"가 곧 파훼라, 노랑과 완전히
-        // 같은 장치로 "플레이어가 쳤다"를 잡을 수 있다. 결말만 아래에서 갈린다.
-        bool usesGauge = kind != Kind.None && gauge != null;
-        if (usesGauge)
+        if (gauge != null)
         {
-            gauge.OnGaugeBroken += OnBroken;
-            gauge.OpenWindow(kind == Kind.Fake ? 0.01f : Mathf.Max(0.01f, gaugeAmount));
+            gauge.CloseWindow();
+            if (kind == Kind.Real)
+            {
+                gauge.OnGaugeBroken += OnBroken;
+                gauge.OpenWindow(Mathf.Max(0.01f, gaugeAmount));
+            }
+            else if (kind == Kind.Fake) gauge.OpenHealingWindow(fakeHealPerHit);
         }
 
         try
@@ -121,14 +122,14 @@ public static class BossCounterTelegraph
             float t = 0f;
             while (t < duration)
             {
-                if (broken) break;
-
                 // 사망 / 부위 파괴 / 페이즈 전환은 전부 CurrentState 를 바꾼다.
-                if (entity == null || entity.CurrentState != startState)
+                if (entity == null || entity.CurrentState != startState
+                    || (entity.Stats != null && entity.Stats.Health != null && entity.Stats.Health.IsDead))
                 {
                     if (result != null) result.Hijacked = true;
                     break;
                 }
+                if (broken) break;
 
                 if (result != null) result.Elapsed = t;
                 onTick?.Invoke();
@@ -138,7 +139,7 @@ public static class BossCounterTelegraph
         }
         finally
         {
-            if (usesGauge)
+            if (gauge != null)
             {
                 gauge.OnGaugeBroken -= OnBroken;
                 gauge.CloseWindow();
@@ -151,7 +152,6 @@ public static class BossCounterTelegraph
         if (broken)
         {
             if (kind == Kind.Real) result.Countered = true;
-            else if (kind == Kind.Fake) result.ForcedEarly = true;
         }
     }
 }

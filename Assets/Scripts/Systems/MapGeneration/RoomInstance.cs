@@ -602,18 +602,34 @@ private HashSet<Vector2Int> _myTiles = null;
         if (source == null || target == null) return;
         source.CompressBounds();
         BoundsInt bounds = source.cellBounds;
-        foreach (var pos in bounds.allPositionsWithin)
+        if (bounds.size.x <= 0 || bounds.size.y <= 0 || bounds.size.z <= 0) return;
+
+        // 타일마다 GetTile/SetTile을 호출하지 않고, 실제로 채워진 타일만 한 번에 읽고 쓴다.
+        Vector3Int rangeEnd = bounds.max - Vector3Int.one;
+        int tileCount = source.GetTilesRangeCount(bounds.min, rangeEnd);
+        if (tileCount == 0) return;
+
+        var sourcePositions = new Vector3Int[tileCount];
+        var tiles = new TileBase[tileCount];
+        tileCount = source.GetTilesRangeNonAlloc(bounds.min, rangeEnd, sourcePositions, tiles);
+        var targetPositions = new Vector3Int[tileCount];
+
+        // 두 타일맵 사이의 셀 변환은 방 전체에서 동일하다. 매 타일마다 행렬 변환하지 않는다.
+        Vector3Int targetOrigin = target.WorldToCell(source.CellToWorld(Vector3Int.zero));
+        Vector3Int targetX = target.WorldToCell(source.CellToWorld(Vector3Int.right)) - targetOrigin;
+        Vector3Int targetY = target.WorldToCell(source.CellToWorld(Vector3Int.up)) - targetOrigin;
+        Vector3Int targetZ = target.WorldToCell(source.CellToWorld(new Vector3Int(0, 0, 1))) - targetOrigin;
+
+        for (int i = 0; i < tileCount; i++)
         {
-            TileBase tile = source.GetTile(pos);
-            if (tile != null)
-            {
-                Vector3 worldPos = source.CellToWorld(pos);
-                Vector3Int targetCellPos = target.WorldToCell(worldPos);
-                target.SetTile(targetCellPos, tile);
-                if (_myTiles != null) _myTiles.Add(new Vector2Int(targetCellPos.x, targetCellPos.y));
-                if (_animCandidates != null) _animCandidates.Add(new AnimCell(target, targetCellPos));
-            }
+            Vector3Int pos = sourcePositions[i];
+            Vector3Int targetCellPos = targetOrigin + targetX * pos.x + targetY * pos.y + targetZ * pos.z;
+            targetPositions[i] = targetCellPos;
+            if (_myTiles != null) _myTiles.Add(new Vector2Int(targetCellPos.x, targetCellPos.y));
+            if (_animCandidates != null) _animCandidates.Add(new AnimCell(target, targetCellPos));
         }
+
+        target.SetTiles(targetPositions, tiles);
     }
 
     public void EraseTilesFromGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow, Tilemap globalUnsteppable = null)

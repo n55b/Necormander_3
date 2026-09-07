@@ -47,7 +47,7 @@ public class CenterMeetFill : MonoBehaviour
         if (rightFill != null) rightFill.fillAmount = 0f;
     }
 
-    // 게이지 색. 카운터 신호로 쓴다 — 노랑=진짜(때리면 패턴 취소) / 빨강=페이크(때리면 즉시 시전)
+    // 게이지 색. 카운터 신호로 쓴다 — 노랑=진짜(때리면 패턴 취소) / 빨강=페이크(때리면 보스 회복)
     // / 무채색=카운터 불가. 프리팹에 박힌 색을 덮어쓰므로 Begin 할 때마다 반드시 다시 정해야 한다.
     public void SetColor(Color c)
     {

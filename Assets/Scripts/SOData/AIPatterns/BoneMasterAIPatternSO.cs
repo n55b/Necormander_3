@@ -123,18 +123,22 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
 
     [Header("카운터 전조 (모든 패턴 공용)")]
     [Range(0f, 1f)]
-    [Tooltip("이번 전조가 '페이크(빨강)'일 확률. 0830 수정안 기준 0.7 = 노랑:빨강 30:70.\n" +
-             "노랑이면 예고 중에 때려서 패턴을 취소할 수 있고, 빨강이면 때리는 순간 보스가 즉시 시전한다.\n" +
-             "매 전조마다 독립 추첨한다.")]
-    public float fakeCounterChance = 0.7f;
+    [Tooltip("노랑(카운터) 확률. 기본 0.3. 노랑·빨강을 제외한 나머지는 회색 일반 패턴이다.")]
+    public float realCounterChance = 0.3f;
+    [Range(0f, 1f)]
+    [Tooltip("빨강(피격 시 회복) 확률. 기본 0.2. 매 전조마다 노랑:빨강:회색 = 30:20:50 독립 추첨.")]
+    public float fakeCounterChance = 0.2f;
+    [Min(0f)]
+    [Tooltip("빨강 전조 중 플레이어/미니언의 직접 타격마다 회복할 HP. 공격 시전 시간은 바뀌지 않는다.")]
+    public float fakeCounterHealPerHit = 5f;
     [Tooltip("노랑 창을 파훼하는 데 필요한 총 피해량. 1이면 사실상 아무 공격이나 한 대면 성공한다.")]
     public float counterGaugeAmount = 1f;
     [Tooltip("노랑(진짜 카운터) 전조 색. 인디케이터가 이 색으로 찬다.\n" +
              "몸통 아웃라인이 아니라 인디케이터에만 쓴다 — 아웃라인은 부위 파괴 단계 색(노랑~빨강)과 겹친다.")]
     public Color counterRealColor = new Color(1f, 0.9f, 0.2f);
-    [Tooltip("빨강(페이크) 전조 색. 치면 보스가 예고를 건너뛰고 즉시 시전한다.")]
+    [Tooltip("빨강 전조 색. 타격마다 체력을 회복하지만 시전은 앞당겨지지 않는다.")]
     public Color counterFakeColor = new Color(1f, 0.15f, 0.15f);
-    [Tooltip("카운터를 불가능한 패턴(도약 & 내려찍기 등)의 전조 색. 무채색 = '쳐도 소용없다'는 신호.")]
+    [Tooltip("회색 일반 전조. 카운터/회복 없이 원래 시간대로 공격한다. 도약과 후속타에도 사용.")]
     public Color counterNoneColor = new Color(0.75f, 0.75f, 0.78f);
     [Tooltip("노랑 카운터에 성공했을 때 보스가 먹는 경직 시간(초). 이 동안 패턴이 취소된다.")]
     public float counterSuccessGroggyDuration = 0.5f;
@@ -396,7 +400,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
     /// <summary>이번 예고의 성질과 색을 한 번에 뽑는다.</summary>
     private BossCounterTelegraph.Kind RollTelegraph(bool counterable, out Color color)
     {
-        var kind = BossCounterTelegraph.Roll(counterable, fakeCounterChance);
+        var kind = BossCounterTelegraph.Roll(counterable, realCounterChance, fakeCounterChance);
         color = BossCounterTelegraph.ColorOf(kind, counterRealColor, counterFakeColor, counterNoneColor);
         return kind;
     }
@@ -468,7 +472,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         // 무한히 빠졌다. 다만 회전에 상한(sweepTurnSpeed)을 둬서 크게 돌면 여전히 빠질 수 있다.
         var tele = new BossCounterTelegraph.Result();
         yield return BossCounterTelegraph.Run(entity, _controller, windup, dir, kind, col,
-                                              counterGaugeAmount, tele,
+                                              counterGaugeAmount, tele, fakeHealPerHit: fakeCounterHealPerHit,
                                               onTick: () =>
                                               {
                                                   Warp(entity, origin);
@@ -485,7 +489,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         if (tele.Hijacked) { FinishBasicAttack(entity); yield break; }
         if (tele.Countered) { CancelByCounter(entity); yield break; }
 
-        // 전진 — 빨강을 맞았으면(ForcedEarly) 예고를 건너뛰고 여기부터 바로 시작된다.
+        // 전진 — 빨강도 원래 예고 시간을 모두 기다린 뒤 시작한다.
         // [주의] 전진 거리가 0 이면 루프를 아예 건너뛴다. 그냥 돌면 제자리에서 sweepStepDuration 만큼
         // 시간만 흘러서, 인디케이터가 가득 찬 뒤 그만큼 늦게 판정이 나간다(= 게이지가 거짓말을 한다).
         if ((stepEnd - origin).sqrMagnitude > 0.0001f)
@@ -537,7 +541,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
 
         var tele = new BossCounterTelegraph.Result();
         yield return BossCounterTelegraph.Run(entity, _controller, windup, dir, kind, col,
-                                              counterGaugeAmount, tele,
+                                              counterGaugeAmount, tele, fakeHealPerHit: fakeCounterHealPerHit,
                                               onTick: () => Warp(entity, origin));
         if (telegraph != null) Object.Destroy(telegraph);
 
@@ -591,7 +595,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         // windup 은 '실제 착지 순간'까지로 잡는다 — 프리팹의 차오름 게이지가 가득 차는 시점과
         // 피해가 들어오는 시점이 일치해야 게이지가 거짓말을 하지 않는다.
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnEllipse(
-            entity, landPos, radiusX, radiusY, telegraphWarnColor, circleTelegraphPrefab,
+            entity, landPos, radiusX, radiusY, counterNoneColor, circleTelegraphPrefab,
             trackTime + lockTime + leapDuration, leapDuration + 0.2f);
         // 도약은 카운터 대상이 아니다(0830 확정). 무채색 = '쳐도 소용없다'는 신호.
         BossAttackIndicator.Begin(entity, trackTime + lockTime + leapDuration, default, counterNoneColor);

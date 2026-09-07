@@ -197,6 +197,9 @@ public class BoneMasterController : EnemyController
 
         base.CancelAttack();
         StopActivePattern();
+        // 기본 공격(P1/P2)도 빨강 회복 창과 바닥 전조를 남기지 않는다.
+        CounterGauge?.CloseWindow();
+        CleanupDanglingTelegraphs();
 
         // ★ 죽었을 때는 절대 풀지 않는다.
         // MonsterDeathHandler.Die() 도 CancelAttack() 을 부르는데, 여기서 Skill 잠금을 풀어 버리면
@@ -683,7 +686,12 @@ private IEnumerator Phase2TransitionRoutine()
                 if (sr != null) sr.enabled = !hidden;
 
         if (Health != null) Health.Invincible = hidden;
-        if (hidden) SetStateText("");
+        if (hidden)
+        {
+            CounterGauge?.CloseWindow();
+            BossAttackIndicator.Stop(this);
+            SetStateText("");
+        }
     }
 
     public void SetVisualFlash(Color color)
@@ -855,6 +863,7 @@ public void WarpTo(Vector3 pos)
         {
             if (t == null) continue;
             if (!t.name.StartsWith("BoneMaster_Telegraph_")) continue;
+            t.gameObject.SetActive(false);
             Destroy(t.gameObject);
             count++;
         }

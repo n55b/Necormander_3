@@ -90,8 +90,12 @@ public static class DialogueSetupTools
         canvas.sortingOrder           = 200;   // 씬 Canvas 는 1, 페이드 커튼은 999
         canvas.overridePixelPerfect   = true;
         canvas.pixelPerfect           = false;
+        canvasGo.AddComponent<GraphicRaycaster>();
 
         GameObject panel = NewRect("Panel", canvasGo.transform, stretch: true);
+        var clickBlocker = panel.AddComponent<Image>();
+        clickBlocker.color = Color.clear;
+        clickBlocker.raycastTarget = true;
 
         // ── 초상화 (상단 2/3) ──
         GameObject portraits = NewRect("Portraits", panel.transform, stretch: false);

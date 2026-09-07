@@ -54,8 +54,9 @@ public class EntityDirectionIndicator : MonoBehaviour
     public bool IsEnemy => _resolved == Kind.Enemy;
     public Vector2 WorldPosition => _unit != null ? (Vector2)_unit.position : (Vector2)transform.position;
     public bool IsAlive { get { EnsureHealth(); return _health == null || !_health.IsDead; } }
-    /// <summary>화면 밖 화살표 대상 여부(활성 + 생존).</summary>
-    public bool IsActive => isActiveAndEnabled && IsAlive;
+    /// <summary>은신한 본체는 하단 로케이터와 화면 밖 화살표에서도 숨긴다.</summary>
+    public bool IsActive => isActiveAndEnabled && IsAlive
+        && (_entity == null || _entity.SpriteRenderer == null || _entity.SpriteRenderer.enabled);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() => EnemyIndicators.Clear();
@@ -139,7 +140,7 @@ public class EntityDirectionIndicator : MonoBehaviour
     {
         if (_sr == null) return;
 
-        bool show = _sr.sprite != null && _unit != null && IsAlive;
+        bool show = _sr.sprite != null && _unit != null && IsActive;
         if (_sr.enabled != show) _sr.enabled = show;
         if (!show) return;
 

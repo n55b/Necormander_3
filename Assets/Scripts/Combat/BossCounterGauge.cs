@@ -27,6 +27,7 @@ public class BossCounterGauge : MonoBehaviour
     public event Action OnGaugeBroken;
 
     private CharacterHealth _health;
+    private float _healPerHit;
 
     private void Awake()
     {
@@ -36,11 +37,14 @@ public class BossCounterGauge : MonoBehaviour
     private void OnEnable()
     {
         if (_health != null) _health.OnDamageReceived += HandleDamageReceived;
+        DamageEventBus.OnDamageReceived += HandleConfirmedDamage;
     }
 
     private void OnDisable()
     {
         if (_health != null) _health.OnDamageReceived -= HandleDamageReceived;
+        DamageEventBus.OnDamageReceived -= HandleConfirmedDamage;
+        CloseWindow();
     }
 
     /// <summary>
@@ -50,6 +54,7 @@ public class BossCounterGauge : MonoBehaviour
     /// 아주 작은 값(예: 1)을 넣어 사실상 "아무 공격이나 한 대"로 즉시 파훼되게 만들 수 있다.</param>
     public void OpenWindow(float maxGauge)
     {
+        _healPerHit = 0f;
         MaxGauge = Mathf.Max(0.01f, maxGauge);
         CurrentGauge = MaxGauge;
         IsOpen = true;
@@ -59,10 +64,27 @@ public class BossCounterGauge : MonoBehaviour
     /// <summary>파훼되지 않고 창이 자연 종료됐을 때(패턴이 다음 단계로 넘어갈 때) 호출한다.</summary>
     public void CloseWindow()
     {
+        _healPerHit = 0f;
         if (!IsOpen && CurrentGauge <= 0f) return;
         IsOpen = false;
         CurrentGauge = 0f;
         OnGaugeChanged?.Invoke();
+    }
+
+    /// <summary>빨강 전조. 파훼 게이지는 열지 않고, 실제 명중한 타격마다 회복한다.</summary>
+    public void OpenHealingWindow(float healPerHit)
+    {
+        CloseWindow();
+        _healPerHit = Mathf.Max(0f, healPerHit);
+    }
+
+    private void HandleConfirmedDamage(CharacterHealth target, DamageInfo info)
+    {
+        // 피해 차감 뒤 이벤트를 사용한다. 만피에서도 회복하며, MISS/무적/도트/치명타격에는 발동하지 않는다.
+        if (_healPerHit <= 0f || target != _health || target == null
+            || target.IsDead || target.Invincible || target.CurHP <= 0f) return;
+        if (info.amount <= 0f || !DamageRules.IsPlayerSourced(info.category)) return;
+        target.Heal(_healPerHit);
     }
 
     private void HandleDamageReceived(DamageInfo info)
