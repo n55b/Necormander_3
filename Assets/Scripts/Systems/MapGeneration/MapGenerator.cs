@@ -21,6 +21,71 @@ public class MapGenerator : MonoBehaviour
     [Tooltip("맵 생성 뒤 MapDebugLog.txt에 전체 타일 지도를 기록합니다. 큰 방에서는 로그 한 번에 수십만 칸을 검사하므로, 연결 문제를 추적할 때만 켭니다.")]
     [SerializeField] private bool dumpMapDebugLog;
 
+    [Tooltip("맵 생성 구간별 실제 경과 시간을 [MapPerf] 로그로 기록합니다. WAIT는 다음 프레임까지의 대기 포함 시간이며, 원인 확인 후 끄면 됩니다.")]
+    [SerializeField] private bool logGenerationTimings = true;
+
+    // 부모 구간은 자식 작업과 대기 시간을 포함한다. CPU 시간이나 서로 더할 수 있는 독립 구간이 아니다.
+    internal static System.IDisposable MeasureGeneration(string label)
+        => Instance != null && Instance.logGenerationTimings ? new GenerationTiming(label) : null;
+
+    private sealed class GenerationTiming : System.IDisposable
+    {
+        private static int nextId;
+        private readonly string label;
+        private readonly int startFrame = Time.frameCount;
+        private readonly System.Diagnostics.Stopwatch watch;
+
+        public GenerationTiming(string name)
+        {
+            label = $"#{++nextId} {name}";
+            Write("BEGIN");
+            watch = System.Diagnostics.Stopwatch.StartNew();
+        }
+
+        public void Dispose()
+        {
+            watch.Stop();
+            Write($"END ms={watch.Elapsed.TotalMilliseconds:F2} frames={Time.frameCount - startFrame}");
+        }
+
+        private void Write(string result)
+        {
+            // 타이머 자체의 로그 비용을 줄이기 위해 호출 스택은 수집하지 않는다.
+            Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null,
+                "[MapPerf] {0} | {1} | utc={2:HH:mm:ss.fff}Z frame={3} scale={4:F2} focused={5}",
+                label, result, System.DateTime.UtcNow, Time.frameCount, Time.timeScale, Application.isFocused);
+        }
+    }
+
+#if UNITY_EDITOR
+    [UnityEditor.MenuItem("Tools/Map/Verify Generation Timing")]
+    private static void VerifyGenerationTiming()
+    {
+        var messages = new List<string>();
+        void Capture(string message, string stack, LogType type)
+        {
+            if (message.StartsWith("[MapPerf]") && message.Contains("TimingSelfCheck")) messages.Add(message);
+        }
+
+        Application.logMessageReceived += Capture;
+        try
+        {
+            try
+            {
+                using (new GenerationTiming("TimingSelfCheck"))
+                    throw new System.InvalidOperationException("TimingSelfCheck");
+            }
+            catch (System.InvalidOperationException ex) when (ex.Message == "TimingSelfCheck") { }
+
+            if (messages.Count != 2 || !messages[0].Contains(" | BEGIN |") ||
+                !messages[1].Contains(" | END ms=") || !messages[1].Contains("frames=0"))
+                throw new System.InvalidOperationException("Map timing BEGIN/END pairing failed.");
+        }
+        finally { Application.logMessageReceived -= Capture; }
+        Debug.Log("[MapPerf] SELF-CHECK PASS: BEGIN/END paired, including exception cleanup. No scene changes.");
+    }
+#endif
+
 
     [Header("Global Tilemap References")]
     [SerializeField] private Tilemap globalGroundTilemap;
@@ -449,28 +514,58 @@ Instance = this;
 
     private void SetupFinalColliders()
     {
+        using var timing = MeasureGeneration("4.Wall colliders TOTAL");
         if (globalWallTilemap == null) return;
         GameObject wallObj = globalWallTilemap.gameObject;
 
-        Rigidbody2D rb = wallObj.GetComponent<Rigidbody2D>();
-        if (rb == null) rb = wallObj.AddComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Static;
+        // 활성 타일맵에 타일 콜라이더부터 붙이면 합성 전 수만 개 형상/접촉을 먼저 만든다.
+        // 비활성 상태에서 Manual 합성을 먼저 준비하고, 모두 연결한 뒤 한 번만 생성한다.
+        bool wasActive = wallObj.activeSelf;
+        TilemapCollider2D tileCol;
+        CompositeCollider2D comp;
+        using (MeasureGeneration("4.Wall suspend"))
+            wallObj.SetActive(false);
+        try
+        {
+            using (MeasureGeneration("4.Wall Rigidbody2D get/add + configure"))
+            {
+                Rigidbody2D rb = wallObj.GetComponent<Rigidbody2D>();
+                if (rb == null) rb = wallObj.AddComponent<Rigidbody2D>();
+                rb.bodyType = RigidbodyType2D.Static;
+            }
 
-        TilemapCollider2D tileCol = wallObj.GetComponent<TilemapCollider2D>();
-        if (tileCol == null) tileCol = wallObj.AddComponent<TilemapCollider2D>();
-        tileCol.compositeOperation = Collider2D.CompositeOperation.Merge;
+            using (MeasureGeneration("4.Wall CompositeCollider2D get/add + configure"))
+            {
+                comp = wallObj.GetComponent<CompositeCollider2D>();
+                if (comp == null) comp = wallObj.AddComponent<CompositeCollider2D>();
+                comp.generationType = CompositeCollider2D.GenerationType.Manual;
+                comp.geometryType = CompositeCollider2D.GeometryType.Polygons;
+            }
 
-        CompositeCollider2D comp = wallObj.GetComponent<CompositeCollider2D>();
-        if (comp == null) comp = wallObj.AddComponent<CompositeCollider2D>();
-        comp.geometryType = CompositeCollider2D.GeometryType.Polygons;
-        comp.generationType = CompositeCollider2D.GenerationType.Manual;
+            using (MeasureGeneration("4.Wall TilemapCollider2D get/add + configure"))
+            {
+                tileCol = wallObj.GetComponent<TilemapCollider2D>();
+                if (tileCol == null) tileCol = wallObj.AddComponent<TilemapCollider2D>();
+                tileCol.compositeOperation = Collider2D.CompositeOperation.Merge;
+            }
+        }
+        finally
+        {
+            using (MeasureGeneration("4.Wall resume (merged colliders)"))
+                wallObj.SetActive(wasActive);
+        }
 
-        comp.GenerateGeometry();
-        Physics2D.SyncTransforms();
+        using (MeasureGeneration("4.Wall ProcessTilemapChanges"))
+            tileCol.ProcessTilemapChanges();
+        using (MeasureGeneration("4.Wall GenerateGeometry"))
+            comp.GenerateGeometry();
+        using (MeasureGeneration("4.Wall SyncTransforms"))
+            Physics2D.SyncTransforms();
     }
 
     private void BakeNavMesh()
     {
+        using var timing = MeasureGeneration("5.NavMesh TOTAL");
         var navSurface = Object.FindFirstObjectByType<NavMeshSurface>();
         if (navSurface == null) return;
 
@@ -486,29 +581,56 @@ Instance = this;
             if (globalGroundTilemap != null)
             {
                 GameObject ground = globalGroundTilemap.gameObject;
-                groundBody = ground.AddComponent<Rigidbody2D>();
-                groundBody.bodyType = RigidbodyType2D.Static;
+                // Wall과 같은 순서로 준비한다. 렌더링 프레임을 넘기지 않으므로 바닥은 깜빡이지 않는다.
+                bool wasActive = ground.activeSelf;
+                using (MeasureGeneration("5.Ground suspend"))
+                    ground.SetActive(false);
+                try
+                {
+                    using (MeasureGeneration("5.Ground Rigidbody2D add + configure"))
+                    {
+                        groundBody = ground.AddComponent<Rigidbody2D>();
+                        groundBody.bodyType = RigidbodyType2D.Static;
+                    }
 
-                groundTileCollider = ground.AddComponent<TilemapCollider2D>();
-                groundTileCollider.isTrigger = true;
-                groundTileCollider.compositeOperation = Collider2D.CompositeOperation.Merge;
+                    using (MeasureGeneration("5.Ground CompositeCollider2D add + configure"))
+                    {
+                        groundComposite = ground.AddComponent<CompositeCollider2D>();
+                        groundComposite.generationType = CompositeCollider2D.GenerationType.Manual;
+                        groundComposite.isTrigger = true;
+                        groundComposite.geometryType = CompositeCollider2D.GeometryType.Polygons;
+                    }
 
-                groundComposite = ground.AddComponent<CompositeCollider2D>();
-                groundComposite.isTrigger = true;
-                groundComposite.geometryType = CompositeCollider2D.GeometryType.Polygons;
-                groundComposite.generationType = CompositeCollider2D.GenerationType.Manual;
+                    using (MeasureGeneration("5.Ground TilemapCollider2D add + configure"))
+                    {
+                        groundTileCollider = ground.AddComponent<TilemapCollider2D>();
+                        groundTileCollider.isTrigger = true;
+                        groundTileCollider.compositeOperation = Collider2D.CompositeOperation.Merge;
+                    }
+                }
+                finally
+                {
+                    using (MeasureGeneration("5.Ground resume (merged colliders)"))
+                        ground.SetActive(wasActive);
+                }
 
-                groundTileCollider.ProcessTilemapChanges();
-                groundComposite.GenerateGeometry();
-                Physics2D.SyncTransforms();
+                using (MeasureGeneration("5.Ground ProcessTilemapChanges"))
+                    groundTileCollider.ProcessTilemapChanges();
+                using (MeasureGeneration("5.Ground GenerateGeometry"))
+                    groundComposite.GenerateGeometry();
+                using (MeasureGeneration("5.Ground SyncTransforms"))
+                    Physics2D.SyncTransforms();
             }
 
             navSurface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
-            navSurface.RemoveData();
-            navSurface.BuildNavMesh();
+            using (MeasureGeneration("5.NavMesh RemoveData"))
+                navSurface.RemoveData();
+            using (MeasureGeneration("5.NavMesh BuildNavMesh"))
+                navSurface.BuildNavMesh();
         }
         finally
         {
+            using var cleanupTiming = MeasureGeneration("5.Ground temporary colliders schedule destruction");
             navSurface.useGeometry = previousGeometry;
             if (groundComposite != null) Destroy(groundComposite);
             if (groundTileCollider != null) Destroy(groundTileCollider);
@@ -1814,6 +1936,7 @@ Instance = this;
 
     private IEnumerator IsaacStyleGenerationSequence()
     {
+        using var totalTiming = MeasureGeneration("Isaac TOTAL (includes WAIT)");
         IsMapGenerationCompleted = false;
         _isGenerating = true;
 
@@ -1825,9 +1948,12 @@ Instance = this;
         while (!mapSuccess && regenAttempt < maxRegenAttempts)
         {
             regenAttempt++;
+            using var placementTiming = MeasureGeneration($"0.Placement attempt={regenAttempt}");
             _currentPhaseIndex = 0;
-            SetupTilemapLayers();
-            ClearExistingMap();
+            using (MeasureGeneration("0.SetupTilemapLayers"))
+                SetupTilemapLayers();
+            using (MeasureGeneration("0.ClearExistingMap"))
+                ClearExistingMap();
 
             gridMap = new Dictionary<Vector2Int, RoomInstance>();
 
@@ -1863,7 +1989,8 @@ Instance = this;
             else
             {
                 Debug.LogWarning($"<color=orange>[MapGenerator]</color> Isaac-style map placement attempt {regenAttempt} failed. Re-generating...");
-                yield return null;
+                using (MeasureGeneration("0.WAIT failed placement next frame"))
+                    yield return null;
             }
         }
 
@@ -1877,40 +2004,64 @@ Instance = this;
         // 배치 간격(spacing)에 맞춰 방들의 물리적 위치 재조정 및 병합 (단계별 분리)
         Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 1단계: 방 위치 정렬 및 타일 병합 시작...");
         float spacing = generationData.gridSpacing;
-        foreach (var room in _allRooms)
+        using (MeasureGeneration($"1.Merge TOTAL rooms={_allRooms.Count} (includes WAIT)"))
         {
-            room.transform.position = new Vector3(room.gridPosition.x * spacing, room.gridPosition.y * spacing, 0);
-            room.SnapToGrid(generationData.gridUnit);
-            room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, globalUnsteppableTilemap);
-            
-            // 한 프레임에 모든 방 타일을 한꺼번에 병합하여 발생하는 프레임 드랍 방지
-            yield return new WaitForSeconds(0.03f);
+            foreach (var room in _allRooms)
+            {
+                using (MeasureGeneration($"1.Merge room={room.name} grid={room.gridPosition}"))
+                {
+                    room.transform.position = new Vector3(room.gridPosition.x * spacing, room.gridPosition.y * spacing, 0);
+                    room.SnapToGrid(generationData.gridUnit);
+                    room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, globalUnsteppableTilemap);
+                }
+
+                // 기존 대기를 그대로 측정한다. scaled 대기이므로 timeScale/프레임 정체도 로그에 함께 남긴다.
+                using (MeasureGeneration($"1.WAIT after merge room={room.name} requestedScaledSeconds=0.03"))
+                    yield return new WaitForSeconds(0.03f);
+            }
         }
 
         // 문 스폰 및 텔레포트 매핑 연동
         Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 2단계: 문 스폰 및 텔레포터 연결 중...");
-        yield return StartCoroutine(SetupIsaacDoorsAndTeleporters(gridMap));
-        yield return new WaitForSeconds(0.05f);
+        using (MeasureGeneration("2.Doors TOTAL (includes WAIT)"))
+        {
+            yield return StartCoroutine(SetupIsaacDoorsAndTeleporters(gridMap));
+            using (MeasureGeneration("2.WAIT after doors requestedScaledSeconds=0.05"))
+                yield return new WaitForSeconds(0.05f);
+        }
 
         // 최종 가공
         Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 3단계: 특수 방 할당 및 통행 불가 구역 갱신...");
-        AssignSpecialRooms();
-        SpawnTutorialExitPortal();
-        yield return new WaitForSeconds(0.05f);
+        using (MeasureGeneration("3.SpecialRooms TOTAL (includes WAIT)"))
+        {
+            using (MeasureGeneration("3.AssignSpecialRooms"))
+                AssignSpecialRooms();
+            using (MeasureGeneration("3.SpawnTutorialExitPortal"))
+                SpawnTutorialExitPortal();
+            using (MeasureGeneration("3.WAIT after special rooms requestedScaledSeconds=0.05"))
+                yield return new WaitForSeconds(0.05f);
+        }
 
         Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 4단계: 타일맵 콜라이더 갱신 및 결합...");
-        if (globalWallTilemap != null)
+        using (MeasureGeneration("4.Wall TOTAL (includes WAIT)"))
         {
-            globalWallTilemap.RefreshAllTiles();
+            if (globalWallTilemap != null)
+            {
+                using (MeasureGeneration("4.Wall RefreshAllTiles"))
+                    globalWallTilemap.RefreshAllTiles();
+            }
+            SetupFinalColliders();
+            using (MeasureGeneration("4.WAIT after colliders requestedScaledSeconds=0.05"))
+                yield return new WaitForSeconds(0.05f);
         }
-        SetupFinalColliders();
-        yield return new WaitForSeconds(0.05f);
 
         Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 5단계: NavMesh 빌드 및 안개 시스템 가동...");
+        using var finalTiming = MeasureGeneration("5.Finalize TOTAL");
         BakeNavMesh();
 
         // [추가] 일반 전투 방들의 보상 수량을 지정된 개수대로 무작위 분배 및 안배
-        DistributeNormalRoomRewards();
+        using (MeasureGeneration("5.DistributeNormalRoomRewards"))
+            DistributeNormalRoomRewards();
 
         // 안개 생성
         // GenerateFogOfWar(); // [Fog 미사용] 안개 시스템 비활성화로 주석 처리
@@ -1919,33 +2070,40 @@ Instance = this;
         RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
         if (spawnRoom != null)
         {
-            spawnRoom.RevealRoom();
+            using (MeasureGeneration("5.RevealRoom"))
+                spawnRoom.RevealRoom();
         }
 
         // 생성 완료 후 모든 방의 문을 기본 개방 상태로 설정하여 자유로운 이동 및 텔레포터 활성화 보장
-        foreach (var room in _allRooms)
+        using (MeasureGeneration("5.Open all doors"))
         {
-            room.SetDoorsOpen(true);
+            foreach (var room in _allRooms)
+                room.SetDoorsOpen(true);
         }
 
         // 스폰 방 위치로 미니맵 카메라 정밀 포커싱 초기화
         if (spawnRoom != null)
         {
-            UpdateMiniMapCameraFocus(spawnRoom);
+            using (MeasureGeneration("5.MiniMap focus"))
+                UpdateMiniMapCameraFocus(spawnRoom);
         }
 
-        PlacePlayerAtSpawn();
+        using (MeasureGeneration("5.PlacePlayerAtSpawn"))
+            PlacePlayerAtSpawn();
 
         if (_tempObstacle != null) SafeDestroy(_tempObstacle);
         _isGenerating = false;
         IsMapGenerationCompleted = true;
-        FinalizeAllRoomTileAnimations();
-        OnMapGenerated?.Invoke();
+        using (MeasureGeneration("5.FinalizeAllRoomTileAnimations"))
+            FinalizeAllRoomTileAnimations();
+        using (MeasureGeneration("5.OnMapGenerated subscribers"))
+            OnMapGenerated?.Invoke();
 
         // [이동] 디버그 로그는 맵 생성이 '완전히' 끝난 뒤 맨 마지막에 기록한다.
         // (기존엔 문 설치 직후에 호출했는데, 혹시 로깅이 예외를 던지면 타일 리프레시/콜라이더/네브메시/적 스폰이
         //  통째로 스킵되어 맵이 텅 비어 보였다. 이제 위치도 마지막이고 내부도 try-catch라 생성엔 절대 영향 없음.)
-        DumpMapToLog();
+        using (MeasureGeneration("5.DumpMapToLog (optional)"))
+            DumpMapToLog();
 
         Debug.Log("<color=green>[MapGenerator]</color> Isaac-style Map Generation Completed Successfully.");
     }
@@ -1958,18 +2116,23 @@ Instance = this;
         // 이제 넘겨받은 프리팹을 그대로 쓴다(없을 때만 랜덤 폴백 — 스폰/보스처럼 선택이 필요 없는 경우).
         GameObject prefab = prefabOverride != null ? prefabOverride : prefabData.GetRandomPrefab(type);
         if (prefab == null) return null;
+        using var creationTiming = MeasureGeneration($"0.CreateRoom prefab={prefab.name} grid={gridPos}");
 
         // 처음부터 최종 배치 간격을 곱한 물리적 위치에 생성하여 물리 겹침 반발 자체를 사전에 예방
         float spacing = generationData.gridSpacing;
         Vector3 spawnPos = new Vector3(gridPos.x * spacing, gridPos.y * spacing, 0);
 
-        GameObject roomObj = Instantiate(prefab, spawnPos, Quaternion.identity, transform);
+        GameObject roomObj;
+        using (MeasureGeneration($"0.Instantiate room prefab={prefab.name}"))
+            roomObj = Instantiate(prefab, spawnPos, Quaternion.identity, transform);
         RoomInstance room = roomObj.GetComponent<RoomInstance>() ?? roomObj.AddComponent<RoomInstance>();
-        room.Initialize(type);
+        using (MeasureGeneration("0.Room Initialize"))
+            room.Initialize(type);
         room.gridPosition = gridPos;
 
         // 생성 즉시 Rigidbody2D와 물리 콜라이더를 비활성화/파괴하여 완벽하게 정적으로 위치 고정
-        room.CleanupPhysics();
+        using (MeasureGeneration("0.Room CleanupPhysics"))
+            room.CleanupPhysics();
 
         if (type == RoomType.Spawn)
         {
@@ -2502,6 +2665,7 @@ Instance = this;
 
     private IEnumerator SetupIsaacDoorsAndTeleporters(Dictionary<Vector2Int, RoomInstance> gridMap)
     {
+        using var timing = MeasureGeneration($"2.Doors synchronous work rooms={_allRooms.Count}");
         // 1) 모든 앵커 사용 상태 초기화
         foreach (var r in _allRooms)
             foreach (var a in r.anchors) if (a != null) a.isUsed = false;
@@ -2540,26 +2704,36 @@ Instance = this;
 
                 anchorA.isUsed = true;
                 anchorB.isUsed = true;
+                using var pairTiming = MeasureGeneration($"2.Door pair {rA.name}{rA.gridPosition} <-> {rB.name}{rB.gridPosition}");
 
                 // 방 막기용 물리 장벽 문 스폰 (전투 중 봉쇄용, 개방 시 비활성)
-                SpawnIsaacDoorAtAnchor(rA, anchorA);
-                SpawnIsaacDoorAtAnchor(rB, anchorB);
+                using (MeasureGeneration("2.Door prefabs instantiate + configure"))
+                {
+                    SpawnIsaacDoorAtAnchor(rA, anchorA);
+                    SpawnIsaacDoorAtAnchor(rB, anchorB);
+                }
 
                 // 텔레포트 기능은 상시 켜져 있는 앵커(RoomAnchor) 게임오브젝트에 직접 부착해 연동
-                DoorController doorCtrlA = anchorA.gameObject.GetComponent<DoorController>() ?? anchorA.gameObject.AddComponent<DoorController>();
-                DoorController doorCtrlB = anchorB.gameObject.GetComponent<DoorController>() ?? anchorB.gameObject.AddComponent<DoorController>();
+                using (MeasureGeneration("2.Teleporter add + link + enable"))
+                {
+                    DoorController doorCtrlA = anchorA.gameObject.GetComponent<DoorController>() ?? anchorA.gameObject.AddComponent<DoorController>();
+                    DoorController doorCtrlB = anchorB.gameObject.GetComponent<DoorController>() ?? anchorB.gameObject.AddComponent<DoorController>();
 
-                // 문 A 진입 시 B의 방 안쪽 방향(dirAToB)으로 스폰
-                doorCtrlA.SetupTeleport(doorCtrlB, dirAToB);
-                doorCtrlB.SetupTeleport(doorCtrlA, dirBToA);
+                    // 문 A 진입 시 B의 방 안쪽 방향(dirAToB)으로 스폰
+                    doorCtrlA.SetupTeleport(doorCtrlB, dirAToB);
+                    doorCtrlB.SetupTeleport(doorCtrlA, dirBToA);
 
-                // 초기 시점(전투 시작 전)엔 문이 개방된 상태이므로 텔레포터 트리거 활성화
-                doorCtrlA.SetTriggerEnabled(true);
-                doorCtrlB.SetTriggerEnabled(true);
+                    // 초기 시점(전투 시작 전)엔 문이 개방된 상태이므로 텔레포터 트리거 활성화
+                    doorCtrlA.SetTriggerEnabled(true);
+                    doorCtrlB.SetTriggerEnabled(true);
+                }
 
                 // 문 위치의 전역 벽 타일 제거하여 입구 구멍 개방
-                CarveDoorEntrance(rA, anchorA);
-                CarveDoorEntrance(rB, anchorB);
+                using (MeasureGeneration("2.Carve Wall/Shadow tiles"))
+                {
+                    CarveDoorEntrance(rA, anchorA);
+                    CarveDoorEntrance(rB, anchorB);
+                }
 
                 // 문을 실제로 만든 경우에만 인접 엣지 추가 (미니맵은 이 그래프를 그대로 그림 → 연결선=진짜 문)
                 _masterAdjacency[rA].Add(rB);
