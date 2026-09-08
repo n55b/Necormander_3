@@ -13,29 +13,64 @@ public class RoomPrefabDataSO : ScriptableObject
 {
     public List<RoomPrefabEntry> roomEntries;
 
-    public GameObject GetRandomPrefab(RoomType type)
+    public GameObject GetRandomPrefab(RoomType type, string diagnosticContext = null)
     {
-        var entry = GetEntry(type);
-        if (entry != null && entry.prefabs.Count > 0)
-        {
-            return entry.prefabs[Random.Range(0, entry.prefabs.Count)];
-        }
-        return null;
+        var candidates = GetValidPrefabs(type, diagnosticContext);
+        return candidates.Count > 0 ? candidates[Random.Range(0, candidates.Count)] : null;
     }
 
     /// <summary>
-    /// 그 타입의 프리팹 목록. 전용 프리팹이 등록돼 있으면 그걸 쓰고, 비어 있으면 지형이 같은
-    /// 사촌 타입으로 떨어진다 — 새 방 프리팹을 만들기 전에도 맵 생성이 절대 실패하지 않게.
-    ///   Augment(증강 선택)   → Normal (지형이 일반 전투 방과 같고 미니맵 표시만 다름)
-    ///   EnhanceShop(강화 상점) → Shop  (지형이 상점과 같고 NPC 만 다름)
+    /// 파괴되었거나 비어 있는 참조를 제외한 후보 사본. 원본 등록 목록은 진단/수정을 위해 보존한다.
+    /// 전용 후보가 모두 무효인 경우에도 Augment → Normal, EnhanceShop → Shop 폴백을 적용한다.
     /// </summary>
-    public RoomPrefabEntry GetEntry(RoomType type)
+    public List<GameObject> GetValidPrefabs(RoomType type, string diagnosticContext = null)
     {
-        var entry = roomEntries.Find(e => e.roomType == type);
-        if (entry != null && entry.prefabs != null && entry.prefabs.Count > 0) return entry;
+        var candidates = new List<GameObject>();
+        CollectValidPrefabs(type, candidates, diagnosticContext);
+        if (candidates.Count == 0)
+        {
+            if (type == RoomType.Augment) CollectValidPrefabs(RoomType.Normal, candidates, diagnosticContext);
+            else if (type == RoomType.EnhanceShop) CollectValidPrefabs(RoomType.Shop, candidates, diagnosticContext);
+        }
 
-        if (type == RoomType.Augment) return roomEntries.Find(e => e.roomType == RoomType.Normal);
-        if (type == RoomType.EnhanceShop) return roomEntries.Find(e => e.roomType == RoomType.Shop);
-        return entry;
+        if (candidates.Count == 0)
+            Debug.LogWarning($"[MapPrefab] data='{DiagnosticName}' requested={type}: 유효한 등록 후보가 없습니다. {diagnosticContext}", this);
+        return candidates;
+    }
+
+    private void CollectValidPrefabs(RoomType type, List<GameObject> candidates, string diagnosticContext)
+    {
+        if (roomEntries == null) return;
+        int entryIndex = roomEntries.FindIndex(e => e != null && e.roomType == type);
+        if (entryIndex < 0) return;
+        var prefabs = roomEntries[entryIndex].prefabs;
+        if (prefabs == null) return;
+
+        for (int i = 0; i < prefabs.Count; i++)
+        {
+            var prefab = prefabs[i];
+            // Unity의 == null은 관리 참조가 남아 있는 Destroy된 오브젝트도 잡는다.
+            if (prefab != null)
+            {
+                candidates.Add(prefab);
+                continue;
+            }
+
+            string state = ReferenceEquals(prefab, null) ? "Null" : "Missing/Destroyed";
+            Debug.LogWarning($"[MapPrefab] data='{DiagnosticName}' roomEntries[{entryIndex}] type={type} " +
+                $"prefabs[{i}] state={state}: 후보에서 제외합니다(등록 목록은 유지). {diagnosticContext}", this);
+        }
+    }
+
+    private string DiagnosticName
+    {
+        get
+        {
+#if UNITY_EDITOR
+            string path = UnityEditor.AssetDatabase.GetAssetPath(this);
+            if (!string.IsNullOrEmpty(path)) return path;
+#endif
+            return name;
+        }
     }
 }

@@ -205,6 +205,10 @@ public class MapGenerator : MonoBehaviour
     private GameObject _tempObstacle;
     private bool _isGenerating = false;
     private int _currentPhaseIndex = 0;
+    private int _placementAttempt;
+    private string PrefabDiagnosticContext =>
+        $"scene='{gameObject.scene.name}' floor={(GameManager.Instance != null ? GameManager.Instance.currentFloor : 1)} " +
+        $"attempt={_placementAttempt} frame={Time.frameCount}";
 
     // --- 4단계 가비지 최소화 연결 후보 캐싱 ---
     private struct RoomConnectionCandidate : System.IComparable<RoomConnectionCandidate>
@@ -400,6 +404,7 @@ Instance = this;
         while (!mapSuccess && regenAttempt < maxRegenAttempts)
         {
             regenAttempt++;
+            _placementAttempt = regenAttempt;
             _currentPhaseIndex = 0;
             SetupTilemapLayers();
             ClearExistingMap();
@@ -727,7 +732,7 @@ Instance = this;
 
     private RoomInstance CreateRoom(RoomType type, float angle)
     {
-        GameObject prefab = prefabData.GetRandomPrefab(type);
+        GameObject prefab = prefabData.GetRandomPrefab(type, PrefabDiagnosticContext);
         if (prefab == null) return null;
         float spawnRadius = 1f;
         if (type != RoomType.Spawn && _allRooms.Count > 0)
@@ -1948,6 +1953,7 @@ Instance = this;
         while (!mapSuccess && regenAttempt < maxRegenAttempts)
         {
             regenAttempt++;
+            _placementAttempt = regenAttempt;
             using var placementTiming = MeasureGeneration($"0.Placement attempt={regenAttempt}");
             _currentPhaseIndex = 0;
             using (MeasureGeneration("0.SetupTilemapLayers"))
@@ -2114,7 +2120,7 @@ Instance = this;
         // 프리팹을 골라놔도(selectedPrefab) 그걸 버리고 랜덤으로 다시 뽑았다. 그 결과 부모 쪽 앵커가 없는
         // 방이 배치돼 문 생성 때 트리 엣지가 죽고(방 고립 / 엘리트 외길), 앵커 검증 자체가 무의미했다.
         // 이제 넘겨받은 프리팹을 그대로 쓴다(없을 때만 랜덤 폴백 — 스폰/보스처럼 선택이 필요 없는 경우).
-        GameObject prefab = prefabOverride != null ? prefabOverride : prefabData.GetRandomPrefab(type);
+        GameObject prefab = prefabOverride != null ? prefabOverride : prefabData.GetRandomPrefab(type, PrefabDiagnosticContext);
         if (prefab == null) return null;
         using var creationTiming = MeasureGeneration($"0.CreateRoom prefab={prefab.name} grid={gridPos}");
 
@@ -2356,6 +2362,11 @@ Instance = this;
 
         // -1 은 위에서 이미 만든 스폰 방. 이제 totalRoomCount 가 "이 층 방 총합" 을 정직하게 뜻한다.
         int normalCount = Mathf.Max(rc.minNormal, rc.total - specialTypes.Count - 1);
+        // 원본 목록을 직접 순회하지 않는다. 시도당 한 번 검증해서 무효 슬롯 로그의 반복도 줄인다.
+        var normalPrefabs = normalCount > 0
+            ? prefabData.GetValidPrefabs(RoomType.Normal, PrefabDiagnosticContext)
+            : new List<GameObject>();
+        if (normalCount > 0 && normalPrefabs.Count == 0) return false;
 
         int normalPlaced = 0;
         int failedAttempts = 0;
@@ -2379,12 +2390,10 @@ Instance = this;
 
                     // 일반방 프리팹 목록에서 해당 앵커를 지원하는 에셋 탐색
                     GameObject selectedPrefab = null;
-                    var entries = prefabData.roomEntries.Find(e => e.roomType == RoomType.Normal);
-                    if (entries == null || entries.prefabs.Count == 0) continue;
-                    
-                    var shuffledPrefabs = entries.prefabs.OrderBy(x => Random.value).ToList();
+                    var shuffledPrefabs = normalPrefabs.OrderBy(x => Random.value).ToList();
                     foreach (var p in shuffledPrefabs)
                     {
+                        if (p == null) continue;
                         RoomInstance tempRoom = p.GetComponent<RoomInstance>();
                         if (tempRoom == null) continue;
                         
@@ -2446,6 +2455,7 @@ Instance = this;
 
         foreach (var specType in specialTypes)
         {
+            var specialPrefabs = prefabData.GetValidPrefabs(specType, PrefabDiagnosticContext);
             var deadEndCandidates = GetDeadEndCandidates(gridMap);
             if (deadEndCandidates.Count == 0)
             {
@@ -2483,19 +2493,18 @@ Instance = this;
                 Vector2Int neededDir = -parentAnchor.direction;
 
                 GameObject selectedPrefab = null;
-                var entries = prefabData.GetEntry(specType); // Augment 방은 전용 프리팹이 없으면 일반 방으로 폴백
 
                 // [엘리트 전용 방] 이 층 엘리트에 dedicatedRoomPrefab 이 있으면 그 방을 1순위로 시도한다.
                 // 그 프리팹에 필요한 방향의 앵커가 없으면 아래 일반 목록으로 자연스럽게 폴백된다.
                 var shuffledPrefabs = new List<GameObject>();
                 if (specType == RoomType.Elite && FloorElite != null && FloorElite.dedicatedRoomPrefab != null)
                     shuffledPrefabs.Add(FloorElite.dedicatedRoomPrefab);
-                if (entries != null && entries.prefabs != null)
-                    shuffledPrefabs.AddRange(entries.prefabs.OrderBy(x => Random.value));
+                shuffledPrefabs.AddRange(specialPrefabs.OrderBy(x => Random.value));
                 if (shuffledPrefabs.Count == 0) continue;
 
                 foreach (var p in shuffledPrefabs)
                 {
+                    if (p == null) continue;
                     bool hasAnchor = p.GetComponentsInChildren<RoomAnchor>().Any(a => a.direction == neededDir);
                     if (hasAnchor)
                     {
