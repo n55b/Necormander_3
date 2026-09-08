@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
+using UnityEngine.Tilemaps;
+
 
 /// <summary>
 /// 일반 전투 방의 이벤트를 담당합니다.
@@ -19,6 +21,12 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     [SerializeField] private GameObject spawnVfxPrefab;
     [Tooltip("방 벽으로부터의 스폰 최소 거리 마진(Margin)입니다. 클수록 방 중앙 쪽에 가깝게 몹들이 스폰됩니다. 기본값 3.0f")]
     [SerializeField] private float spawnMargin = 3.0f;
+
+    [Tooltip("스폰 후보를 몇 칸 간격으로 뽑을지. 1이면 모든 바닥 칸, 2면 4분의 1만 훑는다. " +
+             "클수록 방 진입 시 스캔이 빨라지고 후보 자리가 성겨진다. 셀 1칸이 월드 0.5라 2면 후보 간격이 1.0이다.")]
+    [Range(1, 4)]
+    [SerializeField] private int spawnCellStride = 2;
+
 
     [Header("Tutorial Placed Enemies")]
     [Tooltip("튜토리얼 방에서만 사용. 이 오브젝트 아래에 몬스터 프리팹을 원하는 위치로 배치하세요. " +
@@ -38,7 +46,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
     private List<GameObject> _activeEnemies = new List<GameObject>();
     private bool _isBattleActive = false;
-    private bool _isSpawnPending = false; // 2.5초 지연 소환 대기 플래그
+    private bool _isSpawnPending = false; // 스폰 코루틴이 도는 동안 웨이브 진행 감지를 멈추는 락
     private RoomInstance _cachedRoom;
     private int _currentWave = 1;
     private bool _usingTutorialPlacedEnemies;
@@ -53,6 +61,24 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         ? mapGenerationData.GetWavesForFloor(GameManager.Instance.currentFloor)
         : (mapGenerationData != null ? mapGenerationData.wavesCount : 1);
     private List<Vector3> _spawnedEnemyPositions = new List<Vector3>();
+    // 스폰 후보 자리 캐시. 방마다 한 번만 바닥 타일을 훑어 '실제로 설 수 있는 칸'을 모아둔다.
+    // 예전엔 roomSize 사각형에서 무작위로 던지고 10번 안에 못 맞추면 방 중앙으로 폴백했는데,
+    // roomSize 는 장식용 바깥 벽 띠까지 포함한 Wall 타일맵 bounds(예: 98x91)라 기각률이 높았고
+    // 그 폴백 때문에 여러 마리가 정확히 같은 좌표(방 중앙)에 겹쳐 나왔다.
+    private readonly List<Vector3> _floorSpawnCells = new List<Vector3>();
+    private RoomInstance _floorCellsRoom;
+    // GetTilesBlockNonAlloc 용 공유 버퍼. 방마다 8,900칸짜리 배열을 새로 잡으면 진입할 때마다
+    // 70KB 가 GC 로 흘러간다. 한 번에 한 방만 스캔하므로 static 하나로 돌려쓴다(필요하면 커진다).
+    private static TileBase[] _tileBlockBuffer;
+
+    // 웨이브마다 new 로 잡던 임시 리스트들. Clear() 는 용량을 남기므로 재사용하면 두 번째 웨이브부터
+    // 할당이 0 이 된다. 스폰 루틴은 한 번에 하나만 도는 게 보장되므로(_isSpawnPending) 공유해도 안전하다.
+    private readonly List<Vector3> _pendingSpawnPoints = new List<Vector3>();
+    private readonly List<EnemyCount> _pendingEnemyCounts = new List<EnemyCount>();
+    private readonly List<EnemyCount> _toSpawn = new List<EnemyCount>();
+    private readonly List<GameObject> _superArmorPool = new List<GameObject>();
+
+
     private bool _augmentChosen = false; // 증강 방에서 카드를 이미 골랐는지(방 하나당 한 번)
 
     private void Start()
@@ -71,14 +97,20 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         // 지연 소환 중에 적 수가 0명인 것을 감지해 즉시 다음 웨이브로 넘어가는 조기 오작동 차단
         if (!_isBattleActive || _isSpawnPending) return;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         int beforeCount = _activeEnemies.Count;
+#endif
         _activeEnemies.RemoveAll(item => item == null);
-        int afterCount = _activeEnemies.Count;
 
-        if (beforeCount != afterCount)
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // ConvertAll + string.Join 은 호출마다 리스트와 문자열을 새로 만든다.
+        // 적이 죽을 때마다 도는 진단용이라 개발 빌드에서만 남긴다.
+        if (beforeCount != _activeEnemies.Count)
         {
-            Debug.Log($"<color=cyan>[NormalRoomEvent]</color> Enemy removed. Count: {beforeCount} -> {afterCount}. Remaining: {string.Join(", ", _activeEnemies.ConvertAll(e => e != null ? e.name : "null"))}");
+            Debug.Log($"<color=cyan>[NormalRoomEvent]</color> Enemy removed. Count: {beforeCount} -> {_activeEnemies.Count}. " +
+                      $"Remaining: {string.Join(", ", _activeEnemies.ConvertAll(e => e != null ? e.name : "null"))}");
         }
+#endif
 
         if (_activeEnemies.Count == 0)
         {
@@ -98,7 +130,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
     
 
-        public void OnPlayerEnter(RoomInstance room)
+    public void OnPlayerEnter(RoomInstance room)
     {
         if (_isBattleActive) return;
 
@@ -218,6 +250,12 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         // [증강 방] 페널티는 이 방 전투까지만이다. 보상은 상자를 열 때 지급되므로 여기서 안 건드린다.
         if (room.roomType == RoomType.Augment) ActiveAugment.ClearPenalty();
 
+        // 이 방은 더 이상 전투하지 않는다. 후보 캐시(방당 수천 개 Vector3 = 수십 KB)를 놓아준다.
+        // 다시 필요해지면 BuildFloorSpawnCells 가 알아서 재구축한다.
+        _floorSpawnCells.Clear();
+        _floorSpawnCells.TrimExcess();
+        _floorCellsRoom = null;
+
         // 인스펙터에 할당된 상자를 방 정중앙에 생성
         SpawnRoomRewardBox(room);
 
@@ -305,66 +343,73 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             return;
         }
 
-        float rangeX = (room.roomSize.x / 2f) - spawnMargin;
-        float rangeY = (room.roomSize.y / 2f) - spawnMargin;
-
-        // 마진이 과도하여 음수가 될 경우를 대비한 가드
-        if (rangeX < 1f) rangeX = 1f;
-        if (rangeY < 1f) rangeY = 1f;
-
         _isSpawnPending = true; // 스폰 코루틴이 완료될 때까지 생존 감지 루프 중단 (안전장치)
-        StartCoroutine(SpawnClusterRoutine(cluster, room, rangeX, rangeY));
+        StartCoroutine(SpawnClusterRoutine(cluster, room));
     }
 
-    private IEnumerator SpawnClusterRoutine(EnemyClusterSO cluster, RoomInstance room, float rangeX, float rangeY)
+    private IEnumerator SpawnClusterRoutine(EnemyClusterSO cluster, RoomInstance room)
     {
-        int totalExpected = 0;
-        foreach (var enemyCount in cluster.enemies)
-        {
-            if (enemyCount.enemyData != null) totalExpected += enemyCount.count;
-        }
-
-        List<Vector3> targetSpawnPoints = new List<Vector3>();
-        List<EnemyCount> targetEnemyCounts = new List<EnemyCount>();
+        // 매 웨이브 new 하지 않고 재사용한다. 이 세 리스트는 이 루틴이 도는 동안에만 유효하다.
+        _pendingSpawnPoints.Clear();
+        _pendingEnemyCounts.Clear();
+        _toSpawn.Clear();
 
         // 이번 웨이브에 실제로 뽑을 적 목록. 군집을 한 줄로 펼친 다음,
         // 증강 페널티('웨이브당 적 수 +N')가 걸려 있으면 그만큼 뒤에 더 붙인다.
-        List<EnemyCount> toSpawn = new List<EnemyCount>();
         foreach (var enemyCount in cluster.enemies)
         {
             if (enemyCount.enemyData == null) continue;
-            for (int i = 0; i < enemyCount.count; i++) toSpawn.Add(enemyCount);
+            for (int i = 0; i < enemyCount.count; i++) _toSpawn.Add(enemyCount);
         }
 
         // 층 배율. 군집 에셋은 그대로 두고 여기서만 양을 깎는다(늘린다).
         // 어느 놈이 빠지는지는 무작위 — 조성 비율은 대체로 유지되고, 최소 1마리는 남긴다.
         var floorTuning = Tuning;
-        if (floorTuning != null && !Mathf.Approximately(floorTuning.enemyCountScale, 1f) && toSpawn.Count > 0)
+        if (floorTuning != null && !Mathf.Approximately(floorTuning.enemyCountScale, 1f) && _toSpawn.Count > 0)
         {
-            int target = Mathf.Max(1, Mathf.RoundToInt(toSpawn.Count * floorTuning.enemyCountScale));
-            while (toSpawn.Count > target) toSpawn.RemoveAt(Random.Range(0, toSpawn.Count));
-            int seed = toSpawn.Count;
-            while (toSpawn.Count < target && seed > 0) toSpawn.Add(toSpawn[Random.Range(0, seed)]);
+            int target = Mathf.Max(1, Mathf.RoundToInt(_toSpawn.Count * floorTuning.enemyCountScale));
+            while (_toSpawn.Count > target) _toSpawn.RemoveAt(Random.Range(0, _toSpawn.Count));
+            int seed = _toSpawn.Count;
+            while (_toSpawn.Count < target && seed > 0) _toSpawn.Add(_toSpawn[Random.Range(0, seed)]);
         }
 
         // 증강 페널티는 플레이어가 고른 것이라 층 배율을 타지 않는다 — 배율 뒤에 붙인다.
         int extra = ActiveAugment.ExtraEnemiesForWave(_currentWave);
-        int baseCount = toSpawn.Count;
+        int baseCount = _toSpawn.Count;
         for (int i = 0; i < extra && baseCount > 0; i++)
-            toSpawn.Add(toSpawn[Random.Range(0, baseCount)]); // 원래 군집에 있던 적 중 하나를 복제
+            _toSpawn.Add(_toSpawn[Random.Range(0, baseCount)]); // 원래 군집에 있던 적 중 하나를 복제
 
-        foreach (var enemyCount in toSpawn)
+        int skipped = 0;
+        for (int i = 0; i < _toSpawn.Count; i++)
         {
-            targetSpawnPoints.Add(FindSpawnPoint(room, rangeX, rangeY, targetSpawnPoints));
-            targetEnemyCounts.Add(enemyCount);
+            // 자리를 못 찾으면 건너뛴다. 예전처럼 방 중앙으로 몰아넣지 않는다.
+            if (!TryFindSpawnPoint(room, _pendingSpawnPoints, out Vector3 point))
+            {
+                skipped++;
+                continue;
+            }
+            _pendingSpawnPoints.Add(point);
+            _pendingEnemyCounts.Add(_toSpawn[i]);
+        }
+
+        if (skipped > 0)
+            Debug.LogWarning($"<color=orange>[NormalRoom]</color> '{room.name}' 에서 스폰 자리를 못 찾아 {skipped}마리를 건너뛰었다. " +
+                             $"spawnMargin({spawnMargin}) 또는 문 앞 금지 구역이 방에 비해 큰지 확인할 것.");
+
+        if (_pendingSpawnPoints.Count == 0)
+        {
+            // 한 마리도 못 놨으면 방이 영영 안 열린다. 감지 락을 풀어 클리어 처리로 흘려보낸다.
+            Debug.LogError($"<color=red>[NormalRoom]</color> '{room.name}' 에 적을 한 마리도 배치하지 못했다.");
+            _isSpawnPending = false;
+            yield break;
         }
 
         float spawnDelay = 1.0f; // 장판이 가득 차오르는 선딜 시간
 
         // 1. 모든 몹들의 스폰 위치에 예고 장판(VFX) 동시 소환
-        for (int i = 0; i < targetSpawnPoints.Count; i++)
+        for (int i = 0; i < _pendingSpawnPoints.Count; i++)
         {
-            StartCoroutine(DelayedSpawnEnemyWithVFX(targetEnemyCounts[i], targetSpawnPoints[i], spawnDelay));
+            StartCoroutine(DelayedSpawnEnemyWithVFX(_pendingEnemyCounts[i], _pendingSpawnPoints[i], spawnDelay));
         }
 
         // 2. 장판 차오르는 시간만큼 대기 (충돌 및 생성 지연 안정성을 위해 0.1초 버퍼 추가)
@@ -375,72 +420,172 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
         // 4. 스폰 완료되었으므로 감지 락 해제
         _isSpawnPending = false;
-        
+
         Debug.Log($"<color=cyan>[NormalRoomEvent]</color> Finished spawning cluster '{cluster.name}'. Active count: {_activeEnemies.Count}");
     }
 
     /// <summary>
-    /// 이미 잡아둔 자리들과 최대한 떨어진, NavMesh 위의 스폰 좌표를 찾는다.
-    /// maxSpawnAttempts 번 안에 조건을 못 맞추면 그중 제일 나은 자리를 쓴다.
+    /// 방의 바닥 타일 중 '몹이 설 수 있는 칸'을 한 번만 훑어 캐시한다.
+    /// GetCellCenterWorld 를 쓰므로 방 스케일/셀 크기와 무관하게 좌표가 맞는다.
+    ///
+    /// 비용 주의: 방이 100x90 칸쯤 되므로 칸당 검사 수가 그대로 진입 프레임 부하가 된다.
+    ///  · 바닥 타일 존재 여부는 GetTilesBlock 로 네이티브 호출 '한 번'에 받아온다(칸마다 HasTile 금지).
+    ///  · spawnCellStride 로 후보를 솎는다. 몹 간 최소 거리가 2 월드(=4칸)라 1~2칸 해상도면 충분하다.
+    ///  · 필터는 싼 것부터: 타일 유무 → IsFloorAt → 문 앞 → 사방 여유(가장 비쌈, 앞에서 대부분 걸러진 뒤에만 돈다).
     /// </summary>
-    private Vector3 FindSpawnPoint(RoomInstance room, float rangeX, float rangeY, List<Vector3> pending)
+    private void BuildFloorSpawnCells(RoomInstance room)
     {
-        Vector3 bestPos = room.transform.position + (Vector3)room.centerOffset;
-        float bestDist = -1f;
+        if (room == null) return;
+        if (_floorCellsRoom == room && _floorSpawnCells.Count > 0) return;
 
-        for (int attempt = 0; attempt < mapGenerationData.maxSpawnAttempts; attempt++)
+        _floorCellsRoom = room;
+        _floorSpawnCells.Clear();
+
+        var tm = room.groundTilemap;
+        if (tm == null) return; // 타일맵을 못 찾은 방은 사각형 폴백으로 흘려보낸다
+
+        BoundsInt bounds = tm.cellBounds;
+        if (bounds.size.x <= 0 || bounds.size.y <= 0) return;
+        if (bounds.size.z != 1) return; // 3D 타일맵은 아래 인덱싱 전제가 깨진다 — 폴백으로 넘긴다
+
+        int cellCount = bounds.size.x * bounds.size.y;
+        if (_tileBlockBuffer == null || _tileBlockBuffer.Length < cellCount)
+            _tileBlockBuffer = new TileBase[cellCount];
+        tm.GetTilesBlockNonAlloc(bounds, _tileBlockBuffer);
+
+        int stride = Mathf.Max(1, spawnCellStride);
+        int width = bounds.size.x;
+
+        for (int y = 0; y < bounds.size.y; y += stride)
         {
-            Vector3 randPos = new Vector3(Random.Range(-rangeX, rangeX), Random.Range(-rangeY, rangeY), 0);
-            Vector3 candidatePos = room.transform.position + (Vector3)room.centerOffset + randPos;
-
-            // 방 바닥 칸 위가 아니면 버린다. NavMesh 검사보다 먼저 하는 이유는 이게 더 싸고 더 정확해서다 —
-            // 장식용 바깥 벽 띠에는 콜라이더가 없어서 NavMesh 가 그대로 깔리고, 그래서 벽 한복판에
-            // 예고 장판이 떴다. rangeX/rangeY 사각형은 방보다 크다는 걸 전제로 깔고 가는 필터.
-            if (!room.IsFloorAt(candidatePos)) continue;
-
-            // 문 앞은 통째로 비운다. 여기 뜬 적은 전투가 끝나 문이 닫히면 통로 뒤에 갇혀서 못 잡는다.
-            // 구역 크기는 MapGenerationData 의 '문 앞 스폰 금지 구역'에서 조절한다.
-            if (mapGenerationData != null && room.IsInDoorKeepOut(candidatePos,
-                    mapGenerationData.doorKeepOutWidth,
-                    mapGenerationData.doorKeepOutInward,
-                    mapGenerationData.doorKeepOutOutward)) continue;
-
-            // 후보 좌표가 실제로 구워진 NavMesh(이동 가능 구역) 위인지 검증한다.
-            // 타일맵뿐 아니라 씬의 벽/기둥/장애물까지 한 번에 우회된다.
-            if (NavMesh.SamplePosition(candidatePos, out NavMeshHit hit, 1.5f, NavMesh.AllAreas))
+            int rowStart = y * width;
+            for (int x = 0; x < width; x += stride)
             {
-                // 벽 너머나 너무 먼 곳으로 NavMesh가 당겨져 왜곡 스폰되는 것을 차단
-                if (Vector3.Distance(candidatePos, hit.position) > 1.2f) continue;
-                candidatePos = hit.position;
-            }
-            else
-            {
-                continue; // NavMesh가 없는 벽 속/공백 구역
-            }
+                if (_tileBlockBuffer[rowStart + x] == null) continue;
 
-            float minDist = float.MaxValue;
-            foreach (var center in _spawnedEnemyPositions)
-            {
-                float dist = Vector3.Distance(candidatePos, center);
-                if (dist < minDist) minDist = dist;
-            }
-            foreach (var center in pending)
-            {
-                float dist = Vector3.Distance(candidatePos, center);
-                if (dist < minDist) minDist = dist;
-            }
+                Vector3 world = tm.GetCellCenterWorld(new Vector3Int(bounds.xMin + x, bounds.yMin + y, bounds.zMin));
+                if (!room.IsFloorAt(world)) continue;     // 벽/물 겹친 칸 제외
+                if (IsDoorKeepOut(room, world)) continue;  // 앵커 몇 개 도는 산술, 아래보다 싸다
+                if (!HasWallClearance(room, world)) continue;
 
-            if ((_spawnedEnemyPositions.Count == 0 && pending.Count == 0) || minDist >= mapGenerationData.minDistanceBetweenEnemies)
-                return candidatePos;
-
-            if (minDist > bestDist)
-            {
-                bestDist = minDist;
-                bestPos = candidatePos;
+                _floorSpawnCells.Add(world);
             }
         }
 
-        return bestPos;
+        if (_floorSpawnCells.Count == 0)
+            Debug.LogWarning($"<color=orange>[NormalRoom]</color> '{room.name}' 에서 유효한 스폰 칸을 못 찾았다. 사각형 무작위 방식으로 폴백한다.");
+    }
+
+    /// <summary>spawnMargin 만큼 사방이 바닥인가. 벽에 붙어서 스폰되는 것을 막는다.</summary>
+    private bool HasWallClearance(RoomInstance room, Vector3 pos)
+    {
+        if (spawnMargin <= 0f) return true;
+        return room.IsFloorAt(pos + Vector3.right * spawnMargin)
+            && room.IsFloorAt(pos + Vector3.left  * spawnMargin)
+            && room.IsFloorAt(pos + Vector3.up    * spawnMargin)
+            && room.IsFloorAt(pos + Vector3.down  * spawnMargin);
+    }
+
+    private bool IsDoorKeepOut(RoomInstance room, Vector3 pos)
+    {
+        if (mapGenerationData == null) return false;
+        return room.IsInDoorKeepOut(pos,
+            mapGenerationData.doorKeepOutWidth,
+            mapGenerationData.doorKeepOutInward,
+            mapGenerationData.doorKeepOutOutward);
+    }
+
+    /// <summary>이미 잡아둔 자리들과의 최단 거리(제곱). 아무것도 없으면 MaxValue.
+    /// 제곱으로 비교해 후보마다 도는 sqrt 를 없앤다 — 순서 비교라 결과는 같다.</summary>
+    private float NearestSpawnSqrDistance(Vector3 pos, List<Vector3> pending)
+    {
+        float min = float.MaxValue;
+        for (int i = 0; i < _spawnedEnemyPositions.Count; i++)
+        {
+            float sqr = (pos - _spawnedEnemyPositions[i]).sqrMagnitude;
+            if (sqr < min) min = sqr;
+        }
+        for (int i = 0; i < pending.Count; i++)
+        {
+            float sqr = (pos - pending[i]).sqrMagnitude;
+            if (sqr < min) min = sqr;
+        }
+        return min;
+    }
+
+    /// <summary>
+    /// 이미 잡아둔 자리들과 최대한 떨어진, NavMesh 위의 스폰 좌표를 찾는다.
+    /// 못 찾으면 false — 예전처럼 방 중앙으로 폴백하지 않는다(그게 한 자리 중첩의 원인이었다).
+    /// </summary>
+    private bool TryFindSpawnPoint(RoomInstance room, List<Vector3> pending, out Vector3 result)
+    {
+        result = Vector3.zero;
+        if (room == null) return false;
+
+        BuildFloorSpawnCells(room);
+
+        int attempts = mapGenerationData != null ? mapGenerationData.maxSpawnAttempts : 10;
+        attempts = Mathf.Max(attempts, 40); // 후보 하나가 싸므로 넉넉히 던진다
+        float minDistance = mapGenerationData != null ? mapGenerationData.minDistanceBetweenEnemies : 2f;
+        float minSqr = minDistance * minDistance;
+        const float MaxNavDriftSqr = 1.2f * 1.2f;
+
+        // 캐시가 비었을 때만 쓰는 예전 방식(사각형 무작위). 좌표 규약은 그대로 유지한다.
+        bool useCells = _floorSpawnCells.Count > 0;
+        float rangeX = 0f, rangeY = 0f;
+        Vector3 roomCenter = Vector3.zero;
+        if (!useCells)
+        {
+            rangeX = Mathf.Max(1f, (room.roomSize.x / 2f) - spawnMargin);
+            rangeY = Mathf.Max(1f, (room.roomSize.y / 2f) - spawnMargin);
+            roomCenter = room.transform.position + (Vector3)room.centerOffset;
+        }
+
+        Vector3 bestPos = Vector3.zero;
+        float bestSqr = -1f;
+        bool hasAny = false;
+
+        for (int attempt = 0; attempt < attempts; attempt++)
+        {
+            Vector3 candidatePos;
+
+            if (useCells)
+            {
+                // 후보는 이미 바닥/여유/문앞 검사를 통과한 자리다 — 여기선 NavMesh 만 본다.
+                candidatePos = _floorSpawnCells[Random.Range(0, _floorSpawnCells.Count)];
+            }
+            else
+            {
+                candidatePos = roomCenter + new Vector3(Random.Range(-rangeX, rangeX), Random.Range(-rangeY, rangeY), 0f);
+                if (!room.IsFloorAt(candidatePos)) continue;
+                if (IsDoorKeepOut(room, candidatePos)) continue;
+            }
+
+            // 후보 좌표가 실제로 구워진 NavMesh(이동 가능 구역) 위인지 검증한다.
+            if (!NavMesh.SamplePosition(candidatePos, out NavMeshHit hit, 1.5f, NavMesh.AllAreas)) continue;
+            // 벽 너머나 너무 먼 곳으로 NavMesh 가 당겨져 왜곡 스폰되는 것을 차단
+            if ((candidatePos - hit.position).sqrMagnitude > MaxNavDriftSqr) continue;
+            candidatePos = hit.position;
+
+            float sqr = NearestSpawnSqrDistance(candidatePos, pending);
+            if (sqr >= minSqr)
+            {
+                result = candidatePos;
+                return true;
+            }
+
+            if (sqr > bestSqr)
+            {
+                bestSqr = sqr;
+                bestPos = candidatePos;
+                hasAny = true;
+            }
+        }
+
+        if (!hasAny) return false; // 유효 후보가 하나도 없었다 — 이 마리는 스폰하지 않는다
+
+        result = bestPos;
+        return true;
     }
 
     private IEnumerator DelayedSpawnEnemyWithVFX(EnemyCount enemyCount, Vector3 spawnPos, float duration)
@@ -465,7 +610,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
                 // 데미지 0짜리 가짜 판정 전달, 0.05초 유지, duration(1초) 선딜레이 대기
                 DamageInfo dummyInfo = new DamageInfo(0f, DamageType.Physical, this.gameObject, 0f);
                 hitbox.Init(dummyInfo, 0, 0.05f, duration, false);
-                
+
                 // 프리팹 스케일 조절 (기본 원 크기가 1.0이므로 2.5f정도로 키움)
                 vfxObj.transform.localScale = new Vector3(2.5f, 2.5f, 1f);
             }
@@ -475,14 +620,16 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
         if (vfxObj != null) Destroy(vfxObj);
 
-        // 실제 몹 소환 (샘플링 반경을 1.5f로 좁혀 복도나 벽 너머로의 몹 빨려 들어감 삐침 현상 완치)
-        if (_cachedRoom != null && !_cachedRoom.isCleared && NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 1.5f, NavMesh.AllAreas))
+        // spawnPos 는 TryFindSpawnPoint 가 이미 NavMesh 위로 스냅해 검증한 좌표다.
+        // 여기서 한 번 더 SamplePosition 을 태우면 서로 다른 두 좌표가 같은 경계점으로
+        // 당겨져 최종 위치가 겹칠 수 있어서, 예고 장판이 뜬 자리에 그대로 소환한다.
+        if (_cachedRoom != null && !_cachedRoom.isCleared)
         {
-            GameObject enemy = GameManager.Instance.dataManager.CreateUnit(enemyCount.enemyData, hit.position);
+            GameObject enemy = GameManager.Instance.dataManager.CreateUnit(enemyCount.enemyData, spawnPos);
             if (enemy != null)
             {
                 _activeEnemies.Add(enemy);
-                _spawnedEnemyPositions.Add(hit.position);
+                _spawnedEnemyPositions.Add(spawnPos);
             }
         }
     }
@@ -490,18 +637,19 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     private void ApplySuperArmorToRandomEnemies(int count)
     {
         if (_activeEnemies.Count == 0) return;
-        List<GameObject> enemiesToBuff = new List<GameObject>();
-        foreach (var obj in _activeEnemies)
+
+        _superArmorPool.Clear(); // 웨이브마다 new 하지 않고 돌려쓴다
+        for (int i = 0; i < _activeEnemies.Count; i++)
         {
-            if (obj != null) enemiesToBuff.Add(obj);
+            if (_activeEnemies[i] != null) _superArmorPool.Add(_activeEnemies[i]);
         }
 
-        int actualCount = Mathf.Min(count, enemiesToBuff.Count);
+        int actualCount = Mathf.Min(count, _superArmorPool.Count);
         for (int i = 0; i < actualCount; i++)
         {
-            int randIndex = Random.Range(0, enemiesToBuff.Count);
-            GameObject enemyObj = enemiesToBuff[randIndex];
-            enemiesToBuff.RemoveAt(randIndex);
+            int randIndex = Random.Range(0, _superArmorPool.Count);
+            GameObject enemyObj = _superArmorPool[randIndex];
+            _superArmorPool.RemoveAt(randIndex);
 
             var status = enemyObj.GetComponentInChildren<CharacterStatus>();
             if (status == null) status = enemyObj.GetComponentInParent<CharacterStatus>();
