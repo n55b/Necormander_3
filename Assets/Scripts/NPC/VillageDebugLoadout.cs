@@ -20,7 +20,6 @@ public class VillageDebugLoadout : MonoBehaviour
     [SerializeField] private Transform contentParent;
     [Tooltip("복제해 항목 버튼으로 쓸 템플릿 버튼(창에 이미 있는 Button_SkillSelect 등). 원본 자신은 숨겨진다.")]
     [SerializeField] private Button itemButtonTemplate;
-    [SerializeField] private bool includePlayerSkills = true;
     [SerializeField] private bool includeMinions = true;
     [SerializeField] private bool includeEquipments = true;
     [Tooltip("[26/08/15] 우클릭(패링/카운터/가드) 교체. 서브 소환수 삭제로 우클릭이 플레이어 영구 능력이 " +
@@ -46,16 +45,6 @@ public class VillageDebugLoadout : MonoBehaviour
         var gm = GameManager.Instance;
         var registry = (gm != null && gm.dataManager != null) ? gm.dataManager.GET_GROWTH_REGISTRY() : null;
         if (registry == null) { Debug.LogWarning("[VillageDebugLoadout] GrowthRegistry를 가져오지 못했습니다."); return; }
-
-        if (includePlayerSkills && registry.playerSkills != null)
-        {
-            foreach (var skill in registry.playerSkills)
-            {
-                if (skill == null) continue;
-                var s = skill; // 클로저 캡처 고정
-                AddButton($"[스킬] {(string.IsNullOrEmpty(s.skillName) ? s.name : s.skillName)}", s.icon, s.description, () => EquipPlayerSkill(s));
-            }
-        }
 
         if (includeMinions && registry.minionDatas != null)
         {
@@ -173,21 +162,6 @@ public class VillageDebugLoadout : MonoBehaviour
     }
 
     /// <summary>보상에서 플레이어 스킬을 골랐을 때와 동일: 소유 목록에 넣고 Q/E/R 슬롯 선택 UI를 띄운다.</summary>
-    private void EquipPlayerSkill(PlayerSkillSO skill)
-    {
-        CloseWindow(); // 창을 닫아 HUD의 Q/E/R 슬롯 픽커가 가려지지 않게
-
-        if (PlayerSkillInventoryManager.Instance != null)
-            PlayerSkillInventoryManager.Instance.AddOwnedSkill(skill);
-
-        var gm = GameManager.Instance;
-        if (gm != null && gm.playerStateUI != null)
-            gm.playerStateUI.OpenChangeSkillUI(skill); // 여기서 시간 정지 + 슬롯 픽커, 슬롯 클릭 시 CloseChangeSkillUI가 시간 재개
-        else if (PlayerSkillInventoryManager.Instance != null)
-            PlayerSkillInventoryManager.Instance.Equip(0, skill); // 픽커가 없으면 Q에 바로 장착
-    }
-
-    /// <summary>장비 선택 = 즉시 착용(한 자루 원칙). 스킬을 그 자리에서 굴려 Q/E 에 넣고 패시브까지 적용. 슬롯 픽커 없음.</summary>
     private void EquipEquipmentItem(EquipmentSO so)
     {
         if (PlayerSkillInventoryManager.Instance != null && so != null)

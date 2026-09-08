@@ -281,7 +281,6 @@ GameObject:
   - component: {fileID: 659937523484627104}
   - component: {fileID: 3940698526423894861}
   - component: {fileID: 3550151716728198299}
-  - component: {fileID: 5125588004716113357}
   m_Layer: 8
   m_Name: Hand
   m_TagString: Untagged
@@ -407,28 +406,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f0b1f09ef2c5774c8d04c5f4ec24a0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!95 &5125588004716113357
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2218425221562843783}
-  m_Enabled: 0
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: -3093028422847736631, guid: ed542784f4ec7824dbfb4d708ce3c1d7, type: 3}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2235908954508541628
 GameObject:
   m_ObjectHideFlags: 0
@@ -1352,50 +1329,18 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 7972545975472383977}
         m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: OnSkillQ
+        m_MethodName: OnMinionSkill
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-    m_ActionId: e7b0b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c
-    m_ActionName: 'Player/SkillQ[/Keyboard/q]'
-  - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 7972545975472383977}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: OnSkillE
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-    m_ActionId: e7b0b0c2-d2e3-4f5a-6b7c-8d9e0f1a2b3c
-    m_ActionName: 'Player/SkillE[/Keyboard/e]'
-  - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 7972545975472383977}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: OnSkillR
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: e7b0b0c3-d2e3-4f5a-6b7c-8d9e0f1a2b3c
-    m_ActionName: 'Player/SkillR[/Keyboard/r]'
+    m_ActionName: Player/MinionSkill
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7972545975472383977}
@@ -1404,14 +1349,14 @@ MonoBehaviour:
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: e7b0b0c4-d2e3-4f5a-6b7c-8d9e0f1a2b3c
-    m_ActionName: 'Player/Pouch[/Keyboard/b]'
+    m_ActionName: Player/Pouch
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -1441,7 +1386,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8192
   BodyAnimator: {fileID: 2915690303190765393}
-  HandSkillAnimator: {fileID: 5125588004716113357}
   canChangeState: 1
   MoveDirection: {x: 0, y: 0, z: 0}
   moveInput: {x: 0, y: 0}
@@ -1603,7 +1547,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainSummon: {fileID: 0}
-  equippedPlayerSkills: []
 --- !u!114 &3445112678206032524
 MonoBehaviour:
   m_ObjectHideFlags: 0

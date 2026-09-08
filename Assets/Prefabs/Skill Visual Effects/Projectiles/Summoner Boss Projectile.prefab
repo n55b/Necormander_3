@@ -179,6 +179,8 @@ MonoBehaviour:
   speed: 15
   lifeTime: 3
   rotateToDirection: 0
+  turnSpeedDegrees: 60
+  trackingHalfAngle: 75
 --- !u!95 &4483567649011384518
 Animator:
   serializedVersion: 7

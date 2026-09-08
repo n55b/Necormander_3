@@ -57,23 +57,15 @@ public class MeleeDodgeController : MonoBehaviour
             }
         }
 
-        // 대쉬 중단 체크
-        if (_isDashing)
-        {
-            _dashTimeLeft -= Time.deltaTime;
-            if (_dashTimeLeft <= 0f)
-            {
-                EndDash();
-            }
-        }
     }
 
     private void FixedUpdate()
     {
         if (_isDashing && _rb != null)
         {
-            // 대쉬 중 물리 속도 강제 덮어쓰기
-            _rb.linearVelocity = _dashDir * dashSpeed;
+            bool finished = _player.AdvanceDash(_dashEndPosition, dashSpeed);
+            _dashTimeLeft -= Time.fixedDeltaTime;
+            if (finished || _dashTimeLeft <= 0f) EndDash();
         }
     }
 
@@ -100,7 +92,7 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         {
             meleeCtrl.CancelPlayerAttack();
         }
-        _player.CancelActiveSkill();
+
 
         _isDashing = true;
 
@@ -139,7 +131,8 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         Vector2 safePos = _player.GetSafeDashPosition(transform.position, _dashDir, requestedDist);
         _dashEndPosition = safePos;
         float actualDist = Vector2.Distance(transform.position, safePos);
-        _dashTimeLeft = actualDist / dashSpeed; // 동적으로 대시 시간 조절
+        if (actualDist > 0.0001f) _dashDir = (safePos - (Vector2)transform.position).normalized;
+        _dashTimeLeft = actualDist / Mathf.Max(0.01f, dashSpeed) + 0.1f; // 충돌로 도착 불가할 때만 쓰는 안전 종료
 
         if (mod != null && mod.DealsDamage)
             SpawnDashHitBox(mod, transform.position, _dashDir, actualDist);
@@ -303,9 +296,7 @@ private void EndDash()
         if (_rb != null)
         {
             _rb.linearVelocity = Vector2.zero;
-            // 속도×시간 방식은 FixedUpdate 한 틱만큼 안전 착지점을 넘어갈 수 있다.
-            // 충돌을 다시 켜기 전에 계산해 둔 Ground 안쪽으로 확실히 복귀시킨다.
-            _rb.position = _dashEndPosition;
+            // 목적지를 향해 매 물리 틱 제한 이동한다. 종료 시 목적지로 순간이동하지 않는다.
         }
 
         if (_player.Stat != null && _player.Stat.Health != null)

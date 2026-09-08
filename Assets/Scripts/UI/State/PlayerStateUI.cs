@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 /// <summary>
 /// PlayerState UI - 플레이어 체력, 골드, 부활 타이머 표시.
-/// Q/E/R 플레이어 스킬 아이콘 + 쿨타임 Fill 오버레이 표시.
+/// Space 미니언 / 우클릭 가드 아이콘 + 쿨타임 Fill 오버레이 표시.
 /// </summary>
 public class PlayerStateUI : MonoBehaviour
 {
@@ -55,11 +55,12 @@ public class PlayerStateUI : MonoBehaviour
     [Header("Stamina Settings")]
     [SerializeField] private GameObject staminaUIPrefab;
 
-    [Header("Dash / Q / E / R 플레이어 스킬 슬롯")]
+    [Header("대쉬 / Space 미니언 스킬")]
     [SerializeField] private DashCooldownUI dashCooldownUI;
-    [SerializeField] private SkillSlotUI skillSlotQ;
-    [SerializeField] private SkillSlotUI skillSlotE;
-    [SerializeField] private SkillSlotUI skillSlotR;
+    [UnityEngine.Serialization.FormerlySerializedAs("skillSlotQ")]
+    [SerializeField] private SkillSlotUI guardSlot;
+    [UnityEngine.Serialization.FormerlySerializedAs("skillSlotR")]
+    [SerializeField] private SkillSlotUI minionSkillSlot;
 
     // ─────────────────────────────────────────────────────────────────────
     // 런타임
@@ -67,10 +68,11 @@ public class PlayerStateUI : MonoBehaviour
     private CharacterHealth       _playerHealth;
     private CharacterStatus       _playerStatus;   // 보호막 잔량 소스
     private PlayerSkillController _skillCtrl;
+    private PlayerParryController _guardCtrl;
     private List<Image>           _hpFillImages  = new List<Image>();
     private SkillSlotUI[]         _skillSlots;
     private int _lastGold = int.MinValue; // dirty 비교용
-    private PlayerSkillSO _pendingSkill; // 보상으로 받아서 장착 슬롯 선택을 기다리는 중인 스킬
+
 
 
     // ─────────────────────────────────────────────────────────────────────
@@ -79,21 +81,7 @@ public class PlayerStateUI : MonoBehaviour
     public void Initialize(CharacterHealth playerHealth)
     {
         _playerHealth = playerHealth;
-        _skillSlots   = new SkillSlotUI[] { skillSlotQ, skillSlotE, skillSlotR };
-
-        // 각 슬롯의 "스킬 바꾸기" 버튼을 실제 장착 동작에 연결.
-        // R 슬롯은 소환수 액티브 전용이라 플레이어 스킬 교체 대상이 아니다 — 건너뛴다.
-        for (int i = 0; i < _skillSlots.Length; i++)
-        {
-            if (i == (int)PlayerSkillController.SkillSlot.R) continue;
-            int slotIndex = i; // 클로저 캡처용 로컬 변수
-            var slot = _skillSlots[i];
-            if (slot == null || slot.SkillChangeButton == null) continue;
-
-            // 중복 등록 방지를 위해 기존 리스너를 먼저 제거
-            slot.SkillChangeButton.onClick.RemoveAllListeners();
-            slot.SkillChangeButton.onClick.AddListener(() => OnSkillSlotChangeClicked(slotIndex));
-        }
+        _skillSlots   = new SkillSlotUI[] { guardSlot, minionSkillSlot };
 
         // 보호막은 CharacterHealth 가 아니라 같은 오브젝트의 CharacterStatus 가 들고 있다.
         _playerStatus = _playerHealth != null ? _playerHealth.GetComponent<CharacterStatus>() : null;
@@ -109,8 +97,6 @@ public class PlayerStateUI : MonoBehaviour
         // 인벤토리 변경될 때마다 스킬 아이콘 자동 갱신
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnMinionUpdated += RefreshSkillIcons;
-        if (PlayerSkillInventoryManager.Instance != null)
-            PlayerSkillInventoryManager.Instance.OnPlayerSkillUpdated += RefreshSkillIcons;
 
 
         // Fill 초기 비활성화
@@ -142,6 +128,7 @@ public class PlayerStateUI : MonoBehaviour
                 dashCooldownUI.Initialize(GameManager.Instance.PLAYERCONTROLLER);
         }
 
+        RefreshSkillIcons();
         Debug.Log("<color=green>[PlayerStateUI]</color> HUD Initialized.");
     }
 
@@ -155,8 +142,6 @@ public class PlayerStateUI : MonoBehaviour
         if (_playerHealth != null) _playerHealth.UpdateHPBar -= RefreshHP;
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnMinionUpdated -= RefreshSkillIcons;
-        if (PlayerSkillInventoryManager.Instance != null)
-            PlayerSkillInventoryManager.Instance.OnPlayerSkillUpdated -= RefreshSkillIcons;
 
     }
 
@@ -233,7 +218,7 @@ public class PlayerStateUI : MonoBehaviour
 
 
     // ─────────────────────────────────────────────────────────────────────
-    // Q / E / R 스킬 아이콘 + 쿨타임
+    // Space 미니언 아이콘 + 쿨타임
     // ─────────────────────────────────────────────────────────────────────
     #region Skill Cooldowns
 
@@ -244,120 +229,39 @@ public class PlayerStateUI : MonoBehaviour
     /// </summary>
     public void RefreshSkillIcons()
     {
-        // _skillCtrl이 아직 null이면 재취득 시도
         if (_skillCtrl == null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
             _skillCtrl = GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>();
-
-        if (_skillCtrl == null || _skillSlots == null) return;
-
-        for (int i = 0; i < _skillSlots.Length; i++)
+        if (minionSkillSlot != null) RefreshMinionSlot(minionSkillSlot);
+        if (_skillCtrl != null) _guardCtrl = _skillCtrl.GetComponent<PlayerParryController>();
+        var rc = InventoryManager.Instance != null ? InventoryManager.Instance.EquippedRightClick : null;
+        if (guardSlot != null && guardSlot.SkillIcon != null && rc != null)
         {
-            var slot = _skillSlots[i];
-            if (slot == null) continue;
-
-            // R 슬롯은 플레이어 스킬이 아니라 메인 소환수 액티브(구 스페이스바)를 표시한다.
-            if (i == (int)PlayerSkillController.SkillSlot.R) { RefreshMinionSlot(slot); continue; }
-
-            MinionDataSO data = _skillCtrl.GetEquippedMinion(i);
-                        // 원본(PlayerSkillInventoryManager)을 직접 읽는다. _skillCtrl 캐시를 읽으면
-            // 같은 OnPlayerSkillUpdated 를 듣는 두 핸들러(여기와 PlayerSkillController.SyncPlayerSkillsFromInventory)의
-            // 호출 순서에 결과가 갈린다 — 우리가 먼저 돌면 아직 동기화 안 된 한 박자 전 값을 그리게 된다.
-            // (장비 착용은 Equip(0)/Equip(1) 로 이벤트를 두 번 쓰므로, 마지막인 E 가 항상 빈 채로 그려졌다.)
-            // 아래 R 슬롯(소환수)이 InventoryManager 원본을 읽는 것과 같은 이유다.
-            var pSkill = PlayerSkillInventoryManager.Instance != null
-                ? PlayerSkillInventoryManager.Instance.GetEquipped(i)
-                : _skillCtrl.GetEquippedPlayerSkill(i);
-            bool has = pSkill != null;
-
-            if (slot.SkillIcon != null)
-            {
-                if (has)
-                {
-                    // playerSkill.icon이 있으면 우선 사용, 없으면 미니언 아이콘으로 대체
-                    slot.SkillIcon.sprite = (pSkill.icon != null)
-                        ? pSkill.icon
-                        : (data != null ? data.minionIcon : null);
-                    slot.SkillIcon.color = Color.white;
-                    slot.SkillIcon.type  = Image.Type.Simple;
-
-                    var tooltip = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
-                    if (tooltip == null) tooltip = slot.SkillIcon.gameObject.AddComponent<SkillTooltipTrigger>();
-                    tooltip.SetData(pSkill.skillName, pSkill.description);
-                }
-                else
-                {
-                    slot.SkillIcon.sprite = null;
-
-                    var tooltipEmpty = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
-                    if (tooltipEmpty != null) tooltipEmpty.Clear();
-                    slot.SkillIcon.color  = new Color(1f, 1f, 1f, 0.2f);
-                }
-            }
-
-            // 아이콘 바뀌면 Fill도 리셋
-            if (slot.CooldownFill != null) { slot.CooldownFill.fillAmount = 0f; slot.CooldownFill.gameObject.SetActive(false); }
-            if (slot.CooldownText != null) slot.CooldownText.text = "";
+            guardSlot.SkillIcon.sprite = rc.ResolveIcon();
+            guardSlot.SkillIcon.color = Color.white;
+            var tip = guardSlot.SkillIcon.GetComponent<SkillTooltipTrigger>();
+            if (tip == null) tip = guardSlot.SkillIcon.gameObject.AddComponent<SkillTooltipTrigger>();
+            tip.SetData(rc.ResolveTitle(), rc.ResolveDescription());
         }
     }
 
     private void UpdateSkillCooldowns()
     {
-        if (_skillCtrl == null || _skillSlots == null) return;
-
-        for (int i = 0; i < _skillSlots.Length; i++)
+        if (_skillCtrl != null && minionSkillSlot != null) UpdateMinionCooldown(minionSkillSlot);
+        if (_guardCtrl != null && guardSlot != null)
         {
-            var slot = _skillSlots[i];
-            if (slot == null) continue;
-
-            // R 슬롯은 메인 소환수 액티브의 쿨타임을 표시한다. 아이콘 자체는 RefreshSkillIcons(이벤트)가
-            // 맞추고, 여기선 쿨타임 카운트다운만 매 프레임 갱신한다(Q/E 와 동일).
-            if (i == (int)PlayerSkillController.SkillSlot.R) { UpdateMinionCooldown(slot); continue; }
-            // RefreshSkillIcons 와 같은 이유로 원본을 직접 읽는다(캐시는 이벤트 순서에 한 박자 밀릴 수 있음).
-            // 쿨타임 잔여시간은 타이머를 소유한 컨트롤러에서 그대로 가져온다.
-            var pSkill = PlayerSkillInventoryManager.Instance != null
-                ? PlayerSkillInventoryManager.Instance.GetEquipped(i)
-                : _skillCtrl.GetEquippedPlayerSkill(i);
-            if (pSkill == null) continue;
-
-            float maxCd     = pSkill.cooldownTime;
-            float remaining = _skillCtrl.GetPlayerSkillCooldownRemaining((PlayerSkillController.SkillSlot)i);
-            bool  onCd      = remaining > 0.05f;
-            float fill      = (maxCd > 0f && onCd) ? Mathf.Clamp01(remaining / maxCd) : 0f;
-
-            if (slot.CooldownFill != null)
+            float remaining = _guardCtrl.CooldownRemaining;
+            var rc = InventoryManager.Instance != null ? InventoryManager.Instance.EquippedRightClick : null;
+            float max = rc != null ? rc.config.cooldownDuration : 3f;
+            if (guardSlot.CooldownFill != null)
             {
-                // SetActive는 값이 달라질 때만 호출
-                bool isActive = slot.CooldownFill.gameObject.activeSelf;
-                if (isActive != onCd) slot.CooldownFill.gameObject.SetActive(onCd);
-                if (onCd) slot.CooldownFill.fillAmount = fill;
+                guardSlot.CooldownFill.gameObject.SetActive(remaining > 0f);
+                guardSlot.CooldownFill.fillAmount = max > 0f ? Mathf.Clamp01(remaining / max) : 0f;
             }
-            else if (slot.SkillIcon != null)
-            {
-                slot.SkillIcon.type          = Image.Type.Filled;
-                slot.SkillIcon.fillMethod    = Image.FillMethod.Radial360;
-                slot.SkillIcon.fillClockwise = false;
-                slot.SkillIcon.fillAmount    = onCd ? fill : 1f;
-            }
-
-            if (slot.CooldownText != null)
-            {
-                if (onCd)
-                    slot.CooldownText.SetText("{0:1}", remaining);
-                else if (slot.CooldownText.text.Length > 0)
-                    slot.CooldownText.text = "";
-            }
+            if (guardSlot.CooldownText != null)
+                guardSlot.CooldownText.text = remaining > 0f ? remaining.ToString("0.0") : "";
         }
     }
 
-    // ── R 슬롯 = 메인 소환수 액티브 ─────────────────────────────────────
-    // R 은 플레이어 스킬이 아니라 소환수 스킬(구 스페이스바)이다. 장착 경로도(InventoryManager),
-    // 쿨타임 소스도(GetMainSummonCooldownRemaining) 플레이어 스킬과 다르므로 별도로 그린다.
-    //
-    // 소환수는 PlayerSkillController 의 캐시가 아니라 원본(InventoryManager)에서 직접 읽는다.
-    // 캐시를 읽으면, 같은 OnMinionUpdated 이벤트를 받는 두 핸들러(여기 RefreshSkillIcons 와
-    // PlayerSkillController.SyncWithInventory)의 실행 순서에 결과가 갈린다 — 우리가 먼저 돌면 아직
-    // 동기화 안 된 옛 값을 그린다. InventoryManager 는 슬롯을 채운 뒤 이벤트를 쏘므로(EquipMinion),
-    // 원본을 읽으면 순서와 무관하게 항상 최신이다. 그래서 매 프레임 폴링이 필요 없다.
     private MainMinionDataSO EquippedMainSummon =>
         InventoryManager.Instance != null ? InventoryManager.Instance.MainSummon : null;
 
@@ -427,56 +331,4 @@ public class PlayerStateUI : MonoBehaviour
     }
     #endregion
 
-    #region Skill Change
-
-    /// <summary>
-    /// 스킬 변경에 필요한 매서드
-    /// </summary>
-    public void OpenChangeSkillUI(PlayerSkillSO pendingSkill)
-    {
-        _pendingSkill = pendingSkill;
-
-        // R 슬롯은 소환수 전용이라 플레이어 스킬 교체 대상에서 제외한다.
-        for (int i = 0; i < _skillSlots.Length; i++)
-        {
-            if (i == (int)PlayerSkillController.SkillSlot.R) continue;
-            var slot = _skillSlots[i];
-            if (slot == null) continue;
-            if (slot.ArrowImage != null) slot.ArrowImage.SetActive(true);
-            if (slot.SkillChangeButton != null) { slot.SkillChangeButton.enabled = true; slot.SkillChangeButton.interactable = true; }
-        }
-
-        // Stop time so the player can't act while picking a slot.
-        if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
-    }
-    public void CloseChangeSkillUI()
-    {
-        foreach(var slot in _skillSlots)
-        {
-            if (slot == null) continue;
-            if (slot.ArrowImage != null) slot.ArrowImage.SetActive(false);
-            if (slot.SkillChangeButton != null) { slot.SkillChangeButton.enabled = false; slot.SkillChangeButton.interactable = false; }
-        }
-
-        // Resume time once a slot has been chosen (or the UI is closed).
-        if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(false);
-    }
-
-    /// <summary>
-    /// 슬롯의 "스킬 바꾸기" 버튼을 눌렀을 때, 대기 중이던 스킬을 그 슬롯에 장착하고 UI를 닫습니다.
-    /// </summary>
-    private void OnSkillSlotChangeClicked(int slotIndex)
-    {
-        if (_pendingSkill == null) return;
-
-        PlayerSkillInventoryManager.Instance?.Equip(slotIndex, _pendingSkill);
-        RefreshSkillIcons(); // Event 타이밍에 의존하지 않고 장착 즉시 UI를 강제로 갱신
-        _pendingSkill = null;
-
-        CloseChangeSkillUI();
-
-        // Reward 재개
-        RewardManager.Instance?.NotifyHandSlotSelectionComplete();
-    }
-    #endregion
 }

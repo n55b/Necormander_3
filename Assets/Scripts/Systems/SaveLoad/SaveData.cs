@@ -22,8 +22,6 @@ public class SaveData
     public int gold;
     public List<CoreSlotSaveData> slots = new List<CoreSlotSaveData>();
     public List<TreasureSaveData> treasures = new List<TreasureSaveData>();
-    public List<string> equippedPlayerSkillNames = new List<string>(); // [구] 장비 도입 전 Q/E 복원용 폴백. null 가능.
-    public List<string> ownedPlayerSkillNames = new List<string>();
 
     public EquipmentSaveData equipment; // [신규] 착용 장비 한 자루. null = 없음(스킬은 장비로만 얻으므로 초반엔 null).
 
@@ -41,7 +39,6 @@ public class SaveData
 public class EquipmentSaveData
 {
     public string equipmentSOName;                          // EquipmentSO 에셋 이름
-    public List<string> rolledSkillNames = new List<string>(); // 굴려 굳힌 스킬들(대개 2 = Q/E). SO 이름만으론 조합 복원 불가라 따로 저장.
     public int enhanceLevel;
 }
 

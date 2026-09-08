@@ -165,8 +165,6 @@ public class EntityDirectionIndicator : MonoBehaviour
                 Vector2 d = (Vector2)mw - (Vector2)_unit.position;
                 if (d.sqrMagnitude > 0.0001f) return d;
             }
-            if (_player != null && _player.CurrentSkillAimDir.sqrMagnitude > 0.0001f)
-                return _player.CurrentSkillAimDir;
             return _lastAim;
         }
 

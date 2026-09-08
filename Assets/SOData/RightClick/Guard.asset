@@ -11,18 +11,17 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f8b6d2c5a1e4970bc47d83f2e0916ab, type: 3}
   m_Name: Guard
-  m_EditorClassIdentifier:
-  displayName: "가드"
-  description:
+  m_EditorClassIdentifier: 
+  displayName: "\uAC00\uB4DC Lv1"
+  description: 
   icon: {fileID: 0}
   config:
     type: 3
+    level: 1
     activeDuration: 0.4
     recoveryDuration: 0.3
+    cooldownDuration: 3
     moveSpeedMultiplier: 0.3
     radius: 2.5
     angle: 160
     sectorColor: {r: 0.4, g: 0.9, b: 0.5, a: 1}
-    reflectMultiplier: 1
-    stunDuration: 0
-    damageReduction: 0.5
