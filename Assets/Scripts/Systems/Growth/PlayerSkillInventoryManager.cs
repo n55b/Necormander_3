@@ -1,28 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// 플레이어 스킬(Q/E/R) 장착을 관리하는 매니저.
-///
-/// InventoryManager와는 별개의 자원/슬롯을 사용합니다 (미니언 장착과 무관하게 항상 3개 다 채울 수 있음).
-/// 다만 확인 편의를 위해 InventoryManager와 같은 GameObject에 컴포넌트로 같이 붙여서 사용합니다.
-///
-/// 패턴은 InventoryManager의 미니언 슬롯과 동일하게 갑니다:
-///   - 이 매니저가 장착 데이터의 소스(source of truth)
-///   - OnPlayerSkillUpdated 이벤트로 변경 알림
-///   - PlayerSkillController가 이 이벤트를 구독해서 자기 캐시(equippedPlayerSkills)를 동기화
-/// </summary>
+/// <summary>장비 착용/강화/패시브/저장 관리. 기존 씬 배선을 위해 클래스 이름은 유지한다.</summary>
 public class PlayerSkillInventoryManager : MonoBehaviour
 {
     public static PlayerSkillInventoryManager Instance;
 
-    [Header("장착된 플레이어 스킬 (Q/E/R, 3개 고정)")]
-    [SerializeField] private PlayerSkillSO[] equippedSkills = new PlayerSkillSO[3];
-
-    [Header("보유 중인 플레이어 스킬 풀 (장착 후보)")]
-    [SerializeField] private List<PlayerSkillSO> ownedSkills = new List<PlayerSkillSO>();
-
-    public System.Action OnPlayerSkillUpdated;
+    public System.Action OnEquipmentUpdated;
 
     // [장비] 착용 중인 한 자루(런타임 전용, Unity 직렬화 안 함 → 없으면 null). 저장은 EquipmentSaveData 로.
     private EquipmentInstance _equipped;
@@ -38,57 +22,9 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     private readonly List<TriggerState> _triggers = new List<TriggerState>();
 
     /// <summary>
-    /// Called directly by GameManager during its init sequence (same timing as InventoryManager.Initialize()).
-    /// Relying on Awake() would leave script execution order undefined, so Instance could still be null
-    /// when PlayerSkillController tries to sync. This keeps it consistent with the rest of the codebase.
+    /// GameManager 초기화 순서에서 InventoryManager와 함께 등록한다.
     /// </summary>
-    public void Initialize()
-    {
-        Instance = this;
-
-        // Inspector에 저장된 배열 사이즈가 작아도(예: 슬롯 1개) 강제로 슬롯 3개로 보장합니다.
-        if (equippedSkills == null || equippedSkills.Length != 3)
-        {
-            Debug.LogWarning($"<color=orange>[PlayerSkillInventoryManager]</color> equippedSkills 배열 크기가 {(equippedSkills == null ? "null" : equippedSkills.Length.ToString())}이어서 3으로 재조정합니다.");
-            var resized = new PlayerSkillSO[3];
-            if (equippedSkills != null)
-            {
-                for (int i = 0; i < equippedSkills.Length && i < 3; i++)
-                    resized[i] = equippedSkills[i];
-            }
-            equippedSkills = resized;
-        }
-    }
-
-    public PlayerSkillSO GetEquipped(int slotIndex)
-    {
-        if (slotIndex < 0 || slotIndex >= equippedSkills.Length) return null;
-        return equippedSkills[slotIndex];
-    }
-
-    /// <summary>슬롯에 스킬을 장착합니다. UI(스킬 선택창 등)에서 호출하세요.</summary>
-    public void Equip(int slotIndex, PlayerSkillSO skill)
-    {
-        if (slotIndex < 0 || slotIndex >= equippedSkills.Length) return;
-        equippedSkills[slotIndex] = skill;
-        OnPlayerSkillUpdated?.Invoke();
-        Debug.Log($"<color=cyan>[PlayerSkillInventoryManager]</color> Slot {slotIndex} <- {(skill != null ? skill.skillName : "Empty")}");
-    }
-
-    public void Unequip(int slotIndex)
-    {
-        Equip(slotIndex, null);
-    }
-
-    /// <summary>보유 스킬 풀에 추가 (룸 보상/파밍 등으로 새 스킬을 얻었을 때 호출)</summary>
-    public void AddOwnedSkill(PlayerSkillSO skill)
-    {
-        if (skill == null || ownedSkills.Contains(skill)) return;
-        ownedSkills.Add(skill);
-        OnPlayerSkillUpdated?.Invoke();
-    }
-
-    public List<PlayerSkillSO> GetOwnedSkills() => ownedSkills;
+    public void Initialize() => Instance = this;
 
     // ── 장비 ─────────────────────────────────────────────────────────
     private static CharacterStat PlayerStat()
@@ -97,7 +33,7 @@ public class PlayerSkillInventoryManager : MonoBehaviour
 
     /// <summary>
     /// 장비 한 자루를 착용한다. 기존 장비는 버려진다(한 자루 원칙).
-    /// 굴려나온 스킬 2개가 각각 Q(0)/E(1) 로 들어가고, 패시브가 적용된다.
+    /// 장비 패시브만 적용하며 개인 액티브 스킬은 부여하지 않는다.
     /// </summary>
     public void EquipEquipment(EquipmentInstance inst)
     {
@@ -113,16 +49,13 @@ public class PlayerSkillInventoryManager : MonoBehaviour
 
         _equipped = inst;
 
-        // 굴린 스킬 → Q/E. 부족하면 그 슬롯은 비운다.
-        Equip(0, inst != null && inst.rolledSkills.Count > 0 ? inst.rolledSkills[0] : null);
-        Equip(1, inst != null && inst.rolledSkills.Count > 1 ? inst.rolledSkills[1] : null);
-
         // 새 장비 패시브 적용 (플레이어 스탯이 아직 없으면 스탯형은 스킵됨 — 로드 순서 대비 가드).
         if (inst != null && stat != null && inst.baseData != null && inst.baseData.passives != null)
             foreach (var p in inst.baseData.passives) p?.Apply(stat, inst, inst.enhanceLevel);
 
         RebuildBuffs();  // 옛 버프 스탯 회수 + 새 장비 버프 트래커 구성
         HookPlayerHit(); // 현재 플레이어 피격 이벤트로 (재)구독
+        OnEquipmentUpdated?.Invoke();
     }
 
     /// <summary>
@@ -147,17 +80,16 @@ public class PlayerSkillInventoryManager : MonoBehaviour
 
     // ── 장비 강화 ─────────────────────────────────────────────────────
     /// <summary>착용 장비를 1강 올린다(상점 강화 아이템 구매 시). 미착용이거나 최대치면 false.
-    /// 패시브는 새 강화레벨로 재적용하고(멱등), 스킬 데미지/타수는 매 시전 CurrentEnhanceLevel 을 읽어 자동 반영된다.</summary>
+    /// 패시브를 새 강화레벨로 재적용한다(멱등).</summary>
     public bool EnhanceEquipped()
     {
         if (!CanEnhanceEquipped()) return false;
         _equipped.enhanceLevel++;
         ReapplyEquipmentPassives();      // 새 강화레벨로 패시브 다시 붙임(RemoveSource 후 재적용)
-        OnPlayerSkillUpdated?.Invoke();  // HUD 강화표시 등 갱신
+        OnEquipmentUpdated?.Invoke();  // HUD 강화표시 등 갱신
         string eqName = _equipped.baseData != null && !string.IsNullOrEmpty(_equipped.baseData.equipmentName)
             ? _equipped.baseData.equipmentName : (_equipped.baseData != null ? _equipped.baseData.name : "?");
-        Debug.Log($"<color=cyan>[Enhance]</color> '{eqName}' 강화레벨 → {_equipped.enhanceLevel}/{(_equipped.baseData != null ? _equipped.baseData.maxEnhanceLevel : 0)}. " +
-                  $"(장비 패시브 *PerLevel 은 소비 시 enhanceLevel 을 실시간으로 읽어 자동 반영. 스킬 자체 데미지/타수는 그 스킬 enhanceEffects 를 채운 것만 변함)");
+        Debug.Log($"<color=cyan>[Enhance]</color> '{eqName}' 강화레벨 → {_equipped.enhanceLevel}/{(_equipped.baseData != null ? _equipped.baseData.maxEnhanceLevel : 0)}. 장비 패시브 갱신.");
         return true;
     }
 
@@ -335,88 +267,22 @@ public class PlayerSkillInventoryManager : MonoBehaviour
 
     public void SaveToData(SaveData data)
     {
-        data.equippedPlayerSkillNames = new List<string>();
-        foreach (var s in equippedSkills)
-            data.equippedPlayerSkillNames.Add(s != null ? s.name : "");
-
-        data.ownedPlayerSkillNames = new List<string>();
-        foreach (var s in ownedSkills)
-            if (s != null) data.ownedPlayerSkillNames.Add(s.name);
-
-        // [장비] 착용 중인 한 자루. 굴린 스킬 이름까지 저장 — 같은 SO 라도 조합이 다를 수 있어 SO 이름만으론 부족.
-        if (_equipped != null && _equipped.baseData != null)
-        {
-            data.equipment = new EquipmentSaveData
-            {
-                equipmentSOName = _equipped.baseData.name,
-                enhanceLevel = _equipped.enhanceLevel,
-                rolledSkillNames = new List<string>()
-            };
-            foreach (var s in _equipped.rolledSkills)
-                if (s != null) data.equipment.rolledSkillNames.Add(s.name);
-        }
-        else data.equipment = null;
+        data.equipment = _equipped != null && _equipped.baseData != null
+            ? new EquipmentSaveData { equipmentSOName = _equipped.baseData.name, enhanceLevel = _equipped.enhanceLevel }
+            : null;
     }
 
     public void LoadFromData(SaveData data)
     {
         if (data == null) return;
-
         var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null
-            ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY()
-            : null;
-
-        if (registry == null)
-        {
-            Debug.LogError("[PlayerSkillInventoryManager] GrowthRegistrySO is missing during LoadFromData!");
-            return;
-        }
-
-        _equipped = null;
-
-        // [장비] 있으면 그게 Q/E 의 소스다. 굴린 스킬 이름을 되살려 재장착(패시브 포함).
-        bool equipmentLoaded = false;
-        if (data.equipment != null && !string.IsNullOrEmpty(data.equipment.equipmentSOName)
-            && registry.equipments != null)
-        {
-            var so = registry.equipments.Find(e => e != null && e.name == data.equipment.equipmentSOName);
-            if (so != null)
-            {
-                var inst = new EquipmentInstance { baseData = so, enhanceLevel = data.equipment.enhanceLevel };
-                if (data.equipment.rolledSkillNames != null)
-                    foreach (var n in data.equipment.rolledSkillNames)
-                    {
-                        var sk = registry.playerSkills.Find(s => s != null && s.name == n);
-                        if (sk != null) inst.rolledSkills.Add(sk);
-                    }
-                EquipEquipment(inst); // Q/E 세팅 + 패시브
-                equipmentLoaded = true;
-            }
-        }
-
-        // 구 세이브 폴백: 장비 데이터가 없으면 옛 방식(equippedPlayerSkillNames)으로 Q/E 복원.
-        if (!equipmentLoaded && data.equippedPlayerSkillNames != null)
-        {
-            for (int i = 0; i < equippedSkills.Length; i++)
-            {
-                string skillName = i < data.equippedPlayerSkillNames.Count ? data.equippedPlayerSkillNames[i] : "";
-                equippedSkills[i] = string.IsNullOrEmpty(skillName)
-                    ? null
-                    : registry.playerSkills.Find(s => s != null && s.name == skillName);
-            }
-        }
-
-        ownedSkills.Clear();
-        if (data.ownedPlayerSkillNames != null)
-        {
-            foreach (var skillName in data.ownedPlayerSkillNames)
-            {
-                var found = registry.playerSkills.Find(s => s != null && s.name == skillName);
-                if (found != null) ownedSkills.Add(found);
-            }
-        }
-
-        OnPlayerSkillUpdated?.Invoke();
+            ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY() : null;
+        if (registry == null) return;
+        var saved = data.equipment;
+        var so = saved != null ? registry.equipments.Find(e => e != null && e.name == saved.equipmentSOName) : null;
+        EquipEquipment(so != null ? new EquipmentInstance {
+            baseData = so, enhanceLevel = Mathf.Clamp(saved.enhanceLevel, 0, so.maxEnhanceLevel)
+        } : null);
+        // 옛 세이브의 Q/E/rolledSkillNames는 읽지 않는다. 장비와 강화 수치는 유지한다.
     }
-
 }

@@ -185,25 +185,6 @@ public class RewardManager : MonoBehaviour
             // [26/08/03 폐지] EquipmentEnhance — 강화는 전용 상점 NPC(EnhanceShopNPC)가
             // PlayerSkillInventoryManager.EnhanceEquipped() 를 직접 부른다. 보상 파이프라인을 안 탄다.
 
-            // [폐지] 스킬 단독 획득 → 장비(Equipment)로 대체. 생성되지 않지만 구 경로 호환을 위해 남겨둔다.
-            case RewardCategory.PlayerSkill:
-                var skill = (PlayerSkillSO)candidate.rawData;
-                PlayerSkillInventoryManager.Instance?.AddOwnedSkill(skill);
-
-                if (GameManager.Instance != null && GameManager.Instance.playerStateUI != null)
-                {
-                    // 슬롯 선택을 기다림. 선택이 끝난 다음 NotifyHandSlotSelectionComplete 호출되어야 다음 보상으로 넘어감
-                    if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
-                    if (selectionUI != null) selectionUI.Hide();
-
-                    GameManager.Instance.playerStateUI.OpenChangeSkillUI(skill);
-                }
-                else
-                {
-                    // UI가 연결돼 있지 않으면 풀에만 넣고 즉시 다음 보상으로상으로행
-                    ProcessNextReward();
-                }
-                break;
         }
 
         Debug.Log($"<color=green>[Reward]</color> Processing candidate: {candidate.displayData.itemName}");

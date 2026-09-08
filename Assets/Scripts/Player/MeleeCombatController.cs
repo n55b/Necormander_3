@@ -35,7 +35,7 @@ public class MeleeCombatController : MonoBehaviour
     }
 
     /// <summary>
-    /// 메인 소환수가 R 스킬로 실체화해 바쁜가. 미니언은 한 마리뿐이라, R 로 날아가 있는 동안은
+    /// 메인 소환수가 Space 스킬로 실체화해 바쁜가. 미니언은 한 마리뿐이라, 스킬을 쓰는 동안은
     /// 같은 미니언을 쓰는 3타(마무리)를 못 낸다 → 콤보가 2타로 줄어 반복된다. R 애니가 끝나
     /// 시전자가 사라지면 자동으로 3타가 복귀한다. (마무리 자신은 예외 — 짧은 애니로 알아서 처리)
     /// </summary>
@@ -121,7 +121,7 @@ public class MeleeCombatController : MonoBehaviour
                 {
                     var parryCtrl = _player.GetComponent<PlayerParryController>();
                     bool isParrying = parryCtrl != null && parryCtrl.IsParrying;
-                    if (_player.IsDashing || isParrying || _player.IsCastingSkill || _player.IsUsingHandSkill)
+                    if (_player.IsDashing || isParrying)
                     {
                         canAttack = false;
                     }
@@ -167,7 +167,6 @@ public class MeleeCombatController : MonoBehaviour
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 공격 차단
         if (_player == null || _player.Stat.Health.IsDead) return;
         if (_player.IsCCed) return; // [26/07/17] 기절/빙결 중에는 평타 차단
-        if (_player.IsCastingSkill || _player.IsUsingHandSkill) return; // [추가] 스킬 사용 중에는 평타 차단
 
         var parryCtrl = _player.GetComponent<PlayerParryController>();
         if (parryCtrl != null && parryCtrl.IsParrying) return;

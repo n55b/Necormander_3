@@ -18,12 +18,6 @@ MonoBehaviour:
   icon: {fileID: 7214652476106930508, guid: 1ab9deb8cc0a79f4a8df904cbb5de4f7, type: 3}
   rarity: 0
   shopCost: 150
-  skillPool:
-  - {fileID: 11400000, guid: ccf0ffcea70d44d4195870544a453f42, type: 2}
-  - {fileID: 11400000, guid: 7f02ed511782c5748ba16d1768bf0e65, type: 2}
-  - {fileID: 11400000, guid: 0dca2cff1570712469fda810400fad17, type: 2}
-  - {fileID: 11400000, guid: 138d38128c227d744b24a5ad22a6c034, type: 2}
-  skillsToRoll: 2
   passives:
   - rid: 2000000000000000002
   maxEnhanceLevel: 5

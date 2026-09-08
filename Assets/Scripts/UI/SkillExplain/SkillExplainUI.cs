@@ -2,7 +2,7 @@ using UnityEngine;
 using AstroNuts.Localization;
 
 /// <summary>
-/// 내가 현재 장착 중인 플레이어 스킬(Q/E/R)과, 그에 연동되어 발동되는 연계(미니언) 스킬의
+/// 현재 착용 중인 장비와 메인 소환수의 기본 공격/대쉬/스킬의
 /// 설명을 볼 수 있는 UI. V키로 여닫으며(과거 GemTreeUI가 사용하던 키), UIPopUpManager를 통해
 /// 다른 팝업들과 동일한 방식으로 관리됩니다.
 /// </summary>
@@ -12,8 +12,9 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     [Tooltip("팝업으로 켜고 끌 대상. 비워두면 이 오브젝트 자신을 사용합니다.")]
     [SerializeField] private GameObject panelRoot;
 
-    [Header("왼쪽 패널: 0=Q스킬, 1=E스킬, 맨아래=장착 장비")]
-    [SerializeField] private SkillExplainSlotUI[] playerSkillSlots = new SkillExplainSlotUI[3];
+    [Header("왼쪽 패널: 장비")]
+    [UnityEngine.Serialization.FormerlySerializedAs("playerSkillSlots")]
+    [SerializeField] private SkillExplainSlotUI[] equipmentSlots = new SkillExplainSlotUI[1];
 
     [Header("오른쪽 패널: 메인 소환수 공격 (0=기본, 1=대쉬, 2=스킬)")]
     [SerializeField] private SkillExplainSlotUI[] linkedSkillSlots = new SkillExplainSlotUI[3];
@@ -33,7 +34,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         panelRoot.SetActive(false);
     }
 
-public void Toggle()
+    public void Toggle()
     {
         _isOpen = !_isOpen;
 
@@ -77,7 +78,7 @@ public void Toggle()
     }
 
     /// <summary>
-    /// 현재 장착된 플레이어 스킬 / 연계 스킬 정보로 슬롯들을 갱신합니다.
+    /// 현재 장비 / 메인 소환수 정보로 슬롯들을 갱신합니다.
     /// </summary>
     public void RefreshUI()
     {
@@ -87,35 +88,14 @@ public void Toggle()
             skillController = GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>();
         }
 
-        RefreshPlayerSkillSlots(skillController);
+        RefreshEquipmentSlots();
         RefreshLinkedSkillSlots(skillController);
     }
 
-private void RefreshPlayerSkillSlots(PlayerSkillController skillController)
+    private void RefreshEquipmentSlots()
     {
-        // 슬롯 0..n-2 = Q/E 플레이어 스킬. 맨 마지막(하단) 슬롯 = 착용 장비.
-        // (R 은 이제 소환수 전용이라 옛 R-스킬 칸이 비어 → 장비 칸으로 재활용)
-        int equipmentSlot = playerSkillSlots.Length - 1;
-
-        for (int i = 0; i < playerSkillSlots.Length; i++)
-        {
-            var slot = playerSkillSlots[i];
-            if (slot == null) continue;
-
-            if (i == equipmentSlot) { FillEquipmentSlot(slot); continue; }
-
-            PlayerSkillSO skill = skillController != null ? skillController.GetEquippedPlayerSkill(i) : null;
-
-            if (skill != null)
-            {
-                // [스킬 설명] 이름 + 설명만 채워도 충분함 (설명 속 키워드는 자동으로 하이라이트/툴팁 처리)
-                slot.SetData(skill.icon, skill.skillName, ApplyKeywordHighlighting(skill.description));
-            }
-            else
-            {
-                slot.SetEmpty();
-            }
-        }
+        foreach (var slot in equipmentSlots)
+            if (slot != null) FillEquipmentSlot(slot);
     }
 
     /// <summary>맨 하단 슬롯: 착용 중인 장비의 이름/효과/강화등급.</summary>
@@ -140,10 +120,10 @@ private void RefreshPlayerSkillSlots(PlayerSkillController skillController)
         slot.SetData(so.icon, title, ApplyKeywordHighlighting(desc));
     }
 
-private void RefreshLinkedSkillSlots(PlayerSkillController skillController)
+    private void RefreshLinkedSkillSlots(PlayerSkillController skillController)
     {
         // 오른쪽 패널 = 장착 중인 메인 소환수의 3가지 공격 설명.
-        //   [0] 기본 공격(평타 마무리 finisher)  [1] 대쉬 공격(dashModifier)  [2] 스킬(R minionSkill)
+        //   [0] 기본 공격(finisher)  [1] 대쉬 공격(dashModifier)  [2] Space 스킬(minionSkill)
         MainMinionDataSO main = skillController != null ? skillController.MainSummon : null;
 
         if (main == null)
@@ -173,7 +153,7 @@ private void RefreshLinkedSkillSlots(PlayerSkillController skillController)
     /// 설명 문장 안에서 키워드 사전에 등록된 단어(예: "취약")를 찾아 색상 + 호버용 <link> 태그로 감싸니다.
     /// (보상 카드와 동일한 방식. 스프라이트 태그는 붙이지 않아 미설정 스프라이트로 인한 "?" 표시를 피합니다.)
     /// </summary>
-private string ApplyKeywordHighlighting(string text)
+    private string ApplyKeywordHighlighting(string text)
     {
         if (keywordDictionary == null || string.IsNullOrEmpty(text)) return text;
 

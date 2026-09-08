@@ -15,6 +15,10 @@ public class Projectile : MonoBehaviour
     protected LayerMask _targetLayer;
     protected GameObject _shooter;
     protected Vector2 _direction;
+    public bool GuardConsumed { get; set; }
+    public GameObject Shooter => _shooter;
+    public DamageInfo GuardInfo => new DamageInfo(_damage, DamageType.Physical, _shooter, isRanged: true, hitFrom: HitFromPoint);
+
     protected bool _isDeflected; // 패리로 반사된 투사체인가. 반사 데미지는 갈래=Parry 로 태그한다.
     protected System.Collections.Generic.HashSet<Collider2D> _ignoredColliders = new System.Collections.Generic.HashSet<Collider2D>();
 
@@ -30,6 +34,7 @@ public class Projectile : MonoBehaviour
 
     public virtual void Init(Vector2 targetPos, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
     {
+        GuardConsumed = false;
         _targetLayer = targetLayer;
         
         if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
@@ -108,6 +113,7 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnTriggerEnter2D(Collider2D other)
     {
+        if (GuardConsumed) return;
         if (_ignoredColliders.Contains(other)) return;
         // 1. 벽이나 장애물에 부딪히면 파괴
         if (((Layers.WallMask) & (1 << other.gameObject.layer)) != 0)
@@ -125,6 +131,7 @@ public class Projectile : MonoBehaviour
 
             if (damageable != null && !damageable.IsDead)
             {
+                if (damageable is CharacterHealth health && PlayerParryController.TryBlockProjectile(this, health)) return;
                 // isRanged: 투사체는 attacker 로 '쏜 본체'를 넘기기 때문에, 이 표식이 없으면 맞은 쪽에서
                 // 화살인지 주먹인지 구분할 방법이 없다(우클릭 카운터/가드가 근접만 받아친다).
                 // hitFrom: 맞은 쪽이 '어디서 날아왔는지'를 알아야 방향 판정을 할 수 있다.
@@ -172,6 +179,7 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnHitTarget(CharacterStat targetStat)
     {
+        if (GuardConsumed || PlayerParryController.TryBlockProjectile(this, targetStat.Health)) return;
         DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: HitFromPoint);
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
@@ -190,6 +198,7 @@ public class Projectile : MonoBehaviour
         _targetLayer = targetLayer;
         _damage = damage;
         _shooter = shooter;
+        GuardConsumed = false;
         _isDeflected = true; // 반사된 순간부터 이 투사체의 피해는 패링 갈래다.
         speed = customSpeed;
         lifeTime = customLifeTime;

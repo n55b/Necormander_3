@@ -496,15 +496,18 @@ protected override void OnAttack(BaseEntity entity)
         GameObject cone = BoneMasterTelegraphUtil.SpawnCone(entity, stepEnd, dir, radius, sweepHalfAngle, col);
         PlayState(entity, animState_SpinSlam, windup, matchAnimSpeedToWindup);
 
-        // 페이즈1 휩쓸기와 같은 규칙 — 예고 동안 회전 상한(sweepTurnSpeed) 안에서 계속 조준한다.
+        // 페이즈1과 동일하게 마지막 aimLockLeadTime 동안은 방향을 고정하고 게이지만 계속 채운다.
         var tele = new BossCounterTelegraph.Result();
         yield return BossCounterTelegraph.Run(entity, _controller, windup, dir, kind, col,
                                               counterGaugeAmount, tele, fakeHealPerHit: fakeCounterHealPerHit,
                                               onTick: () =>
                                               {
                                                   Warp(entity, origin);
-                                                  dir = BoneMasterAIPatternSO.AimToward(entity, dir, origin, sweepTurnSpeed);
-                                                  if (entity.Target != null) entity.LookAtTarget(entity.Target);
+                                                  if (CanTrackAim(tele.Elapsed, windup))
+                                                  {
+                                                      dir = BoneMasterAIPatternSO.AimToward(entity, dir, origin, sweepTurnSpeed);
+                                                      if (entity.Target != null) entity.LookAtTarget(entity.Target);
+                                                  }
                                                   stepEnd = origin + dir * SlideDistance(origin, dir, sweepStepDistance);
                                                   BoneMasterTelegraphUtil.UpdateCone(
                                                       cone, stepEnd, dir,
@@ -574,7 +577,7 @@ protected override void OnAttack(BaseEntity entity)
         if (slamTele.Hijacked) { FinishBasicAttack(entity); yield break; }
 
         var slamInfo = new DamageInfo(entity.Stats.ATK * slamDamageMultiplier, DamageType.Physical,
-                                      entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true);
+                                      entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true, bypassGuard: true);
         BossCombat.DealLane(stepEnd, slamDir, slamRange, slamWidth, entity.opponentLayer, slamInfo);
 
         yield return new WaitForSeconds(slamFinishRecovery);
@@ -780,7 +783,7 @@ protected override void OnAttack(BaseEntity entity)
             if (entity == null || entity.CurrentState != AIState.Skill) yield break;
 
             var info = new DamageInfo(entity.Stats.ATK * executionLineDamageMultiplier, DamageType.Physical,
-                                      entity.gameObject, category: DamageCategory.EnemyBoss);
+                                      entity.gameObject, category: DamageCategory.EnemyBoss, bypassGuard: true);
             var already = new System.Collections.Generic.HashSet<GameObject>();
             foreach (var lane in lanes)
                 BossCombat.DealLaneOnce(lane.origin, lane.dir, lane.length, executionLineWidth,
@@ -921,7 +924,7 @@ protected override void OnAttack(BaseEntity entity)
         while (t < trackTime)
         {
             t += Time.deltaTime;
-            if (entity.Target != null)
+            if (CanTrackAim(t, trackTime + lockTime + leapDuration) && entity.Target != null)
             {
                 landPos = entity.Target.position;
                 BoneMasterTelegraphUtil.UpdatePosition(telegraph, landPos);
@@ -968,7 +971,7 @@ protected override void OnAttack(BaseEntity entity)
         BossAttackIndicator.Stop(entity);
         if (telegraph != null) Object.Destroy(telegraph);
 
-        var info = new DamageInfo(entity.Stats.ATK * leapSlamDamageMultiplier, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true);
+        var info = new DamageInfo(entity.Stats.ATK * leapSlamDamageMultiplier, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true, bypassGuard: true);
         BossCombat.DealEllipse(landPos, radiusX, radiusY, entity.opponentLayer, info);
 
         yield return new WaitForSeconds(basicAttackRecovery);

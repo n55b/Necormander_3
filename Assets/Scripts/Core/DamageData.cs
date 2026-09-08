@@ -124,6 +124,8 @@ public struct DamageInfo
     /// 태그하는 쪽도 Projectile 뿐이라, 투사체가 아닌 적 피해(보스 장판 등)는 전부 '근접'이 된다.
     /// </summary>
     public bool isRanged;
+    // 장판/돌진/환경 타격은 발생 지점에서 설정. 일반 찌르기는 false.
+    public bool bypassGuard;
 
     /// <summary>
     /// 피해가 '날아온 지점'(월드 좌표). 투사체만 채우고 나머지는 null 이다.
@@ -136,8 +138,9 @@ public struct DamageInfo
 
     // [26/07/18] 옛 isThrowDamage / isBasicAttack 위치 인자는 완전히 제거했다(각각 투척 철거·갈래 도입으로 의미 상실).
     // 위치 인자 50+곳을 스크립트로 일괄 이관했다. category 는 갈래(축2) — 태그할 곳에서만 `category:` 로 넘긴다.
-    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, float debuffMultiplier = 1f, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f, DamageCategory category = DamageCategory.None, StatusType? applyStatus = null, float statusDuration = 0f, bool isRanged = false, Vector2? hitFrom = null)
+    public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, float debuffMultiplier = 1f, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f, DamageCategory category = DamageCategory.None, StatusType? applyStatus = null, float statusDuration = 0f, bool isRanged = false, Vector2? hitFrom = null, bool bypassGuard = false)
     {
+        this.bypassGuard = bypassGuard;
         this.isRanged = isRanged;
         this.hitFrom = hitFrom;
         this.amount = amount;

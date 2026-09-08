@@ -762,7 +762,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         BaseHitBox hb = hitboxObj.GetComponent<BaseHitBox>();
         if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
 
-        DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f);
+        DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f, bypassGuard: true);
         hb.Init(info, entity.opponentLayer, 0.25f, 0.05f, entity.team == Team.Ally);
 
         yield return new WaitForSeconds(0.05f);
@@ -826,7 +826,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
 
             wt += Time.deltaTime;
-            if (entity.Target != null) dir = GetAimDir(entity);
+            if (CanTrackAim(wt, windup) && entity.Target != null) dir = GetAimDir(entity);
+            BossAttackIndicator.Aim(entity, dir);
             dirIndicator?.SetAimOverride(dir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
             // 레인은 플레이어를 통과시키되, 벽/장애물에 막히는 지점까지만 그린다.
             // (아래 돌진 루프와 동일한 마스크·반지름이라 예고와 실제 정지 지점이 일치)
@@ -931,7 +932,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             // 그 외 플레이어만 정지 + 데미지. (여전히 레이어 기반 CircleCast — 감지는 하되 대쉬는 통과시킴)
             if (hitCheck.PlayerHittable)
             {
-                BossCombat.TryDamage(hitCheck.PlayerHit.collider, new DamageInfo(entity.Stats.ATK * normalChargeDamageMultiplier, DamageType.Physical, entity.gameObject));
+                BossCombat.TryDamage(hitCheck.PlayerHit.collider, new DamageInfo(entity.Stats.ATK * normalChargeDamageMultiplier, DamageType.Physical, entity.gameObject, bypassGuard: true));
                 if (rb != null) rb.linearVelocity = Vector2.zero;
                 break;
             }
@@ -1046,8 +1047,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         var dirIndicator = entity.GetComponentInChildren<EntityDirectionIndicator>();
 
-        // 3초 조준: 플레이어 방향을 실시간으로 주시하며, 바닥에 돌진 경로를 빨간 직사각형으로 표시합니다.
-        // 전조는 항상 "플레이어 발밑"까지 확실히 이어지도록 대상과의 거리 기준으로 길이를 계산합니다.
+        // 조준은 마지막 aimLockLeadTime 전에 고정한다. 바닥/방향/머리 위 게이지 모두 같은 chargeDir을 쓴다.
         while (t < scaledChargeWindup)
         {
             if (entity == null || (entity.Stats != null && entity.Stats.Health != null && entity.Stats.Health.IsDead))
@@ -1057,7 +1057,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
 
             t += Time.deltaTime;
-            if (entity.Target != null)
+            if (CanTrackAim(t, scaledChargeWindup) && entity.Target != null)
             {
                 chargeDir = GetAimDir(entity);
                 entity.LookAtTarget(entity.Target);
@@ -1190,7 +1190,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             {
                 hitPlayer = true;
 
-                BossCombat.TryDamage(hitCheck.PlayerHit.collider, new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject));
+                BossCombat.TryDamage(hitCheck.PlayerHit.collider, new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, bypassGuard: true));
 
                 if (rb != null) rb.linearVelocity = -chargeDir * 3f;
                 entity.transform.position = (Vector2)entity.transform.position - chargeDir * 0.15f;
@@ -1345,7 +1345,7 @@ private GameObject _chargeTelegraph;
             if (pHealth == null || pHealth.IsDead || pHealth.Invincible || isDashingLayer) continue; // LShift 대쉬(무적/레이어 전환)로 회피 가능
 
             // 위에서 이미 dash/무적/사망을 걸렀지만, 최종 데미지 전달은 BossCombat 단일 경로로 통일.
-            BossCombat.TryDamage(hit, new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject));
+            BossCombat.TryDamage(hit, new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, bypassGuard: true));
         }
 
         for (int wave = 0; wave < slamWaveCount; wave++)
@@ -1393,7 +1393,7 @@ private GameObject _chargeTelegraph;
                 bool isDashingLayer = hit.gameObject.layer == LayerMask.NameToLayer("Player_Dash");
                 if (pHealth == null || pHealth.IsDead || pHealth.Invincible || isDashingLayer) return; // 대쉬 무적으로 완전 회피
 
-                BossCombat.TryDamage(hit, new DamageInfo(slamWaveDamage, DamageType.Physical, entity.gameObject));
+                BossCombat.TryDamage(hit, new DamageInfo(slamWaveDamage, DamageType.Physical, entity.gameObject, bypassGuard: true));
             },
             onExpand: (cur) =>
             {

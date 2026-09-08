@@ -53,12 +53,23 @@ public static class SkillCombatUtil
         return dir == Vector2.zero ? Vector2.right : dir;
     }
 
-    /// <summary>벽/장애물을 파고들지 않도록 CircleCast 로 제동한 목적지를 반환한다. (벽만, 낭떠러지 미검사)</summary>
+    /// <summary>Wall 콜라이더와 타일 모두로 제동한다. 물은 이동 중 통과 가능하므로 검사하지 않는다.</summary>
     public static Vector2 ClampToWall(Vector2 from, Vector2 dir, float distance, float radius = 0.4f)
     {
-        RaycastHit2D hit = Physics2D.CircleCast(from, radius, dir, distance, Layers.WallMask);
-        if (hit.collider != null) return hit.point + hit.normal * (radius * 1.02f);
-        return from + dir * distance;
+        if (distance <= 0f || dir.sqrMagnitude < 0.000001f) return from;
+        dir.Normalize();
+        radius = Mathf.Max(0f, radius);
+        float allowed = distance;
+        foreach (var hit in Physics2D.CircleCastAll(from, radius, dir, distance, Layers.WallMask))
+        {
+            Vector2 away = from - hit.collider.ClosestPoint(from);
+            if (hit.distance == 0f && away.sqrMagnitude > 0.000001f && Vector2.Dot(dir, away) >= 0f)
+                continue;
+            allowed = Mathf.Min(allowed, Mathf.Max(0f, hit.distance - 0.01f));
+        }
+        if (MapGenerator.Instance != null)
+            allowed = Mathf.Min(allowed, MapGenerator.Instance.GetDistanceBeforeWall(from, dir, distance, radius));
+        return from + dir * allowed;
     }
 
     /// <summary>
@@ -68,36 +79,25 @@ public static class SkillCombatUtil
     ///
     /// Unsteppable은 뛰어넘을 수 있지만 착지점에는 Ground가 있어야 한다. Ground 아래에 물이 겹친 셀은 허용한다.
     ///
-    /// 중심선만 검사하므로 반경 기반 OverlapCircle 의 오탐이 없다: 벽과 나란히·멀어지는 이동은
-    /// 통과되고, 실제 진행선이 Wall 타일을 가로지를 때만 막힌다.
-    /// radius 는 벽면에서 뒤로 물러설 여유(플레이어 반폭)다.
+    /// 몸통 폭과 Ground 안쪽으로 보정된 최종 경로까지 검사한다.
     /// </summary>
     public static Vector2 GetSafeDestination(Vector2 from, Vector2 dir, float distance, float radius = 0.3f)
     {
         if (dir == Vector2.zero || distance <= 0f) return from;
         dir = dir.normalized;
-        Vector2 target = from + dir * distance;
-
-        // 벽은 절대 통과 불가: 중심선이 벽을 가로지르면 벽면 직전에서 하드 정지.
-        RaycastHit2D wallHit = Physics2D.Linecast(from, target, Layers.WallMask);
-        float allowedDistance = wallHit.collider != null
-            ? Mathf.Max(0f, wallHit.distance - radius)
-            : distance;
-
+        Vector2 allowedTarget = ClampToWall(from, dir, distance, radius);
+        float allowedDistance = Vector2.Distance(from, allowedTarget);
         MapGenerator map = MapGenerator.Instance;
-        if (map != null)
-            allowedDistance = Mathf.Min(allowedDistance, map.GetDistanceBeforeWall(from, dir, distance, radius));
-
-        Vector2 allowedTarget = from + dir * allowedDistance;
         if (map == null) return allowedTarget;
-        if (map.TryGetGroundLandingPoint(allowedTarget, radius, out Vector2 landingPoint)) return landingPoint;
-
         // 목적지가 물 단독 셀이면 진행선 위의 가장 가까운 안전 Ground까지 착지점을 뒤로 당긴다.
         const float Step = 0.1f;
-        for (float d = allowedDistance - Step; d > 0f; d -= Step)
+        for (float d = allowedDistance; d > 0f; d -= Step)
         {
             Vector2 candidate = from + dir * d;
-            if (map.TryGetGroundLandingPoint(candidate, radius, out landingPoint)) return landingPoint;
+            if (!map.TryGetGroundLandingPoint(candidate, radius, out Vector2 landingPoint)) continue;
+            Vector2 travel = landingPoint - from;
+            Vector2 checkedLanding = ClampToWall(from, travel, travel.magnitude, radius);
+            if ((checkedLanding - landingPoint).sqrMagnitude < 0.000001f) return landingPoint;
         }
         return from;
     }

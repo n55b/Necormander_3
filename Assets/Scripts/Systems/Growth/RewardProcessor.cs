@@ -15,7 +15,7 @@ public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss, Augment, Enhanc
 // [26/08/03] EquipmentEnhance 제거 — 강화는 전용 상점(EnhanceShopNPC)에서 NPC 에게 F 로만 한다.
 //            일반 상점에 소모성 강화 카드를 같이 진열하니 역할이 겹치고, 심지어 그쪽이 고정가라 더 쌌다.
 //            (이 enum 은 런타임 전용이라 — RewardCandidate 가 [Serializable] 이 아니다 — 값을 빼도 에셋이 안 깨진다.)
-public enum RewardCategory { Minion, Metamorphosis, Treasure, Gold, PlayerSkill, Equipment, Item }
+public enum RewardCategory { Minion, Metamorphosis, Treasure, Gold, Equipment = 5, Item }
 
 /// <summary>
 /// 보상으로 제안될 아이템 정보를 담는 구조체입니다.
@@ -37,40 +37,6 @@ public struct RewardCandidate
 /// </summary>
 public static class RewardProcessor
 {
-    // --- 1-A. 플레이어 스킬 방용: 플레이어 스킬 배출 ---
-    public static List<RewardCandidate> GeneratePlayerSkillRewards(InventoryManager inven, DataManager data)
-    {
-        List<RewardCandidate> results = new List<RewardCandidate>();
-        var registry = data.GET_GROWTH_REGISTRY();
-
-        List<RewardCandidate> combinedPool = new List<RewardCandidate>();
-
-        // 플레이어 스킬 풀 (이미 장착되어 있거나 보유 중인 스킬은 제외)
-        combinedPool.AddRange(GetValidPlayerSkills(registry.playerSkills));
-
-        // 랜덤하게 3개 선택 (중복 제거)
-        for (int i = 0; i < 3; i++)
-        {
-            if (combinedPool.Count > 0)
-            {
-                int idx = Random.Range(0, combinedPool.Count);
-                results.Add(combinedPool[idx]);
-                combinedPool.RemoveAt(idx); 
-            }
-            else
-            {
-                // 보상이 고갈되었을 때 빈 보상 추가 방어 로직
-                results.Add(new RewardCandidate { 
-                    category = RewardCategory.PlayerSkill, 
-                    displayData = new GrowthItemData { itemName = "None", description = "No more player rewards available." },
-                    rawData = null 
-                });
-            }
-        }
-
-        return results;
-    }
-
     // --- 1-A'. 장비 방용: 장비 배출 (각 후보는 뜨는 순간 스킬을 굴려 굳힌다) ---
     /// <summary>서로 다른 장비 최대 3개를 뽑는다. 각 후보는 그 자리에서 skillPool 을 굴려 EquipmentInstance 로 확정된다("장비 뜰 때 고정").</summary>
     public static List<RewardCandidate> GenerateEquipmentRewards(InventoryManager inven, DataManager data)
@@ -111,18 +77,10 @@ public static class RewardProcessor
 
     private static GrowthItemData BuildEquipmentDisplayData(EquipmentSO so, EquipmentInstance inst)
     {
-        string skills = "";
-        if (inst != null && inst.rolledSkills.Count > 0)
-        {
-            var names = new List<string>();
-            foreach (var s in inst.rolledSkills)
-                if (s != null) names.Add(string.IsNullOrEmpty(s.skillName) ? s.name : s.skillName);
-            if (names.Count > 0) skills = "\n[" + string.Join(" / ", names) + "]";
-        }
         return new GrowthItemData
         {
             itemName = string.IsNullOrEmpty(so.equipmentName) ? so.name : so.equipmentName,
-            description = so.description + skills,
+            description = so.description,
             icon = so.icon
         };
     }
@@ -198,9 +156,6 @@ public static class RewardProcessor
             case RewardCategory.Treasure:
                 // [참고] 보물은 다른 방식으로 획득할 예정이므로 여기서 제안하지 않을 수 있음
                 allPossible.AddRange(GetValidTreasures(registry.treasures));
-                break;
-            case RewardCategory.PlayerSkill:
-                allPossible.AddRange(GetValidPlayerSkills(registry.playerSkills));
                 break;
         }
 
@@ -315,49 +270,6 @@ public static class RewardProcessor
         return candidates;
     }
 
-        // 이미 장착되어 있거나(equippedSkills) 보유 중인(ownedSkills) 스킬은 제외하고 후보만 제안합니다.합니다.
-    private static List<RewardCandidate> GetValidPlayerSkills(List<PlayerSkillSO> playerSkills)
-    {
-        List<RewardCandidate> candidates = new List<RewardCandidate>();
-        if (playerSkills == null) return candidates;
-
-        var pInven = PlayerSkillInventoryManager.Instance;
-
-        foreach (var skill in playerSkills)
-        {
-            if (skill == null) continue;
-
-            if (pInven != null)
-            {
-                bool alreadyOwned = pInven.GetOwnedSkills().Contains(skill);
-                bool alreadyEquipped = false;
-                for (int i = 0; i < 3; i++)
-                {
-                    if (pInven.GetEquipped(i) == skill) { alreadyEquipped = true; break; }
-                }
-                if (alreadyOwned || alreadyEquipped) continue;
-            }
-
-            candidates.Add(new RewardCandidate
-            {
-                displayData = BuildPlayerSkillDisplayData(skill),
-                rawData = skill,
-                category = RewardCategory.PlayerSkill
-            });
-        }
-        return candidates;
-    }
-
-    private static GrowthItemData BuildPlayerSkillDisplayData(PlayerSkillSO skill)
-    {
-        return new GrowthItemData
-        {
-            itemName = skill.skillName,
-            description = skill.description,
-            icon = skill.icon
-        };
-    }
-
     // 소환수 보상 카드의 표시 데이터. 무엇을 보여줄지는 소환수 타입이 스스로 답한다
     // (메인=액티브 스킬 설명, 서브=패시브 수치에서 생성). MinionDataSO.ResolveDescription 참조.
     private static GrowthItemData BuildMinionDisplayData(MinionDataSO minion)
@@ -391,9 +303,6 @@ public static class RewardProcessor
             {
                 case RewardCategory.Minion:
                     allPossible.AddRange(GetValidCores(inven, registry.minionDatas));
-                    break;
-                case RewardCategory.PlayerSkill:
-                    allPossible.AddRange(GetValidPlayerSkills(registry.playerSkills));
                     break;
                 case RewardCategory.Metamorphosis:
                     // 변이/승급 삭제

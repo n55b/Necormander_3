@@ -16,6 +16,13 @@ public abstract class BossAIPatternSO : BaseAIPatternSO
     public float phase2Threshold = 0.5f; // 페이즈 2 전환 체력 비율
     protected int currentPhase = 1;
 
+    [Header("조준 고정")]
+    [Min(0f), Tooltip("인디케이터 완료 몇 초 전부터 조준을 고정할지. 예고가 이보다 짧으면 처음부터 고정한다.")]
+    public float aimLockLeadTime = 0.5f;
+
+    public bool CanTrackAim(float elapsed, float duration)
+        => elapsed < Mathf.Max(0f, duration - Mathf.Max(0f, aimLockLeadTime));
+
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);

@@ -466,18 +466,18 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, stepEnd, dir, radius, sweepHalfAngle, col);
         PlayState(entity, animState_Sweep, windup, matchAnimSpeedToWindup);
 
-        // [0830 수정안] 예고가 차는 동안 플레이어를 계속 조준한다.
-        // 예전엔 예고 시작 순간의 방향으로 고정이었고, 판정 중심이 앞으로 전진한 자리(stepEnd)라
-        // 보스에게 완전히 붙어 있는 플레이어는 반원의 뒤쪽 사각에 서게 됐다 — 걸어서 돌기만 해도
-        // 무한히 빠졌다. 다만 회전에 상한(sweepTurnSpeed)을 둬서 크게 돌면 여전히 빠질 수 있다.
+        // 마지막 aimLockLeadTime 동안은 방향 고정. 게이지와 실제 판정은 같은 dir/stepEnd를 사용한다.
         var tele = new BossCounterTelegraph.Result();
         yield return BossCounterTelegraph.Run(entity, _controller, windup, dir, kind, col,
                                               counterGaugeAmount, tele, fakeHealPerHit: fakeCounterHealPerHit,
                                               onTick: () =>
                                               {
                                                   Warp(entity, origin);
-                                                  dir = AimToward(entity, dir, origin, sweepTurnSpeed);
-                                                  if (entity.Target != null) entity.LookAtTarget(entity.Target);
+                                                  if (CanTrackAim(tele.Elapsed, windup))
+                                                  {
+                                                      dir = AimToward(entity, dir, origin, sweepTurnSpeed);
+                                                      if (entity.Target != null) entity.LookAtTarget(entity.Target);
+                                                  }
                                                   stepEnd = origin + dir * SlideDistance(origin, dir, sweepStepDistance);
                                                   BoneMasterTelegraphUtil.UpdateCone(
                                                       telegraph, stepEnd, dir,
@@ -604,7 +604,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         while (t < trackTime)
         {
             t += Time.deltaTime;
-            if (entity.Target != null)
+            if (CanTrackAim(t, trackTime + lockTime + leapDuration) && entity.Target != null)
             {
                 landPos = entity.Target.position;
                 BoneMasterTelegraphUtil.UpdatePosition(telegraph, landPos);
@@ -651,7 +651,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         BossAttackIndicator.Stop(entity);
         if (telegraph != null) Object.Destroy(telegraph);
 
-        var info = new DamageInfo(entity.Stats.ATK * leapSlamDamageMultiplier, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true);
+        var info = new DamageInfo(entity.Stats.ATK * leapSlamDamageMultiplier, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true, bypassGuard: true);
         BossCombat.DealEllipse(landPos, radiusX, radiusY, entity.opponentLayer, info);
 
         yield return new WaitForSeconds(basicAttackRecovery);

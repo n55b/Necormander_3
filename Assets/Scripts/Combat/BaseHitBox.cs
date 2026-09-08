@@ -142,6 +142,8 @@ public class BaseHitBox : MonoBehaviour
     public void Init(DamageInfo damageInfo, LayerMask targetLayer, float overrideDuration = -1f, float startDelay = 0f, bool isAlly = false, System.Action<CharacterHealth> onHitEnemy = null)
     {
         _onHitEnemy = onHitEnemy;
+        // 지속 장판은 가드 영역 스캔과 직접 피격 양쪽에서 제외한다.
+        damageInfo.bypassGuard |= isContinuousDamage;
         _damageInfo = damageInfo;
         _targetLayer = targetLayer;
         

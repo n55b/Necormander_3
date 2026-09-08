@@ -58,8 +58,6 @@ public class PlayerController : MonoBehaviour
 
     [Header("플레이어 애니메이터")]
     [SerializeField] Animator BodyAnimator;
-    [Header("스킬 손 모션 애니메이터 (Hand 오브젝트)")]
-    [SerializeField] Animator HandSkillAnimator;
     [SerializeField] PlayerAnimationState currentAnimState;
 
     private bool _inputBlocked = false; // [추가] 맵 생성 중 입력 차단용
@@ -116,6 +114,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float dashCooldown = 1.0f;
     private bool _isDashing = false;
     private float _dashTimeLeft;
+    private Vector2 _dashEndPosition;
     private float _lastDashTime;
     private Vector2 _dashDir;
     private int _originalLayer;
@@ -269,7 +268,7 @@ public class PlayerController : MonoBehaviour
     {
         if (stat != null && stat.Health != null && stat.Health.IsDead) return;
 
-        // 소환수 액티브는 이제 R키(OnSkillR)가 담당한다. 스페이스바 바인딩은 철거됨.
+        // 소환수 액티브는 Space(OnMinionSkill)가 담당한다.
 
         if (_inputBlocked) return;
 
@@ -433,11 +432,9 @@ public class PlayerController : MonoBehaviour
 
         if (_isDashing)
         {
-            // 대쉬 중에는 물리 속도를 강제로 덮어써서 빠르게 이동 (기존 1스택 구르기 전용 물리)
-            _rb.linearVelocity = _dashDir * dashSpeed;
+            bool finished = AdvanceDash(_dashEndPosition, dashSpeed);
             _dashTimeLeft -= Time.fixedDeltaTime;
-
-            if (_dashTimeLeft <= 0)
+            if (finished || _dashTimeLeft <= 0f)
             {
                 EndDash();
             }
@@ -518,8 +515,7 @@ public class PlayerController : MonoBehaviour
         {
             meleeCtrl.CancelPlayerAttack();
         }
-        // [추가] 시전 중인 액티브 스킬 취소
-        CancelActiveSkill();
+
 
         _isDashing = true;
         _lastDashTime = Time.time;
@@ -535,10 +531,13 @@ public class PlayerController : MonoBehaviour
 
         // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
         float originalDist = dashSpeed * dashDuration;
+        if (MapGenerator.Instance != null && MapGenerator.Instance.HasUnsteppableBetween(transform.position, _dashDir, originalDist))
+            originalDist *= 1.5f; // 기본 회피 경로도 물을 넘을 때만 연장. Wall 제한은 그대로 유지.
         Vector2 safePos = GetSafeDashPosition(transform.position, _dashDir, originalDist);
+        _dashEndPosition = safePos;
         float actualDist = Vector2.Distance(transform.position, safePos);
         if (actualDist > 0.0001f) _dashDir = (safePos - (Vector2)transform.position).normalized;
-        _dashTimeLeft = actualDist / dashSpeed; // 동적으로 대시 시간 조절
+        _dashTimeLeft = actualDist / Mathf.Max(0.01f, dashSpeed) + 0.1f; // 물리 충돌로 이동 불가할 때의 안전 종료
 
         if (stat != null && stat.Health != null)
         {
@@ -599,8 +598,7 @@ public class PlayerController : MonoBehaviour
 
         if (context.performed)
         {
-            // 가드(홀드) 중이면 가드를 끊고 대쉬한다. 패링/카운터의 짧은 판정창은 지켜야 하므로 못 끊는다.
-            // 검사를 performed 안으로 넣은 이유: 밖에 두면 버튼을 뗄 때(canceled)도 불려서 가드가 취소된다.
+            // 단발 가드의 판정/실패 후딜 중에는 대쉬로 취소하지 않는다.
             var parryCtrl = GetComponent<PlayerParryController>();
             if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
 
@@ -620,59 +618,21 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void OnSkillQ(InputAction.CallbackContext context)
+    public void OnMinionSkill(InputAction.CallbackContext context)
     {
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
-        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill || IsCCed) return;
+        if (_inputBlocked || stat.Health.IsDead || IsCCed) return;
 
         if (context.performed)
         {
-            // 가드(홀드)는 끊고 발동. 패링/카운터 판정창 중이면 막는다. (OnDash 와 같은 규칙)
+            // 단발 가드의 판정/실패 후딜 중에는 소환수 스킬로 취소하지 않는다.
             var parryCtrl = GetComponent<PlayerParryController>();
             if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
 
             var skillCtrl = GetComponent<PlayerSkillController>();
             if (skillCtrl != null)
             {
-                skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.Q, transform);
-            }
-        }
-    }
-
-    public void OnSkillE(InputAction.CallbackContext context)
-    {
-        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
-        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill || IsCCed) return;
-
-        if (context.performed)
-        {
-            // 가드(홀드)는 끊고 발동. 패링/카운터 판정창 중이면 막는다. (OnDash 와 같은 규칙)
-            var parryCtrl = GetComponent<PlayerParryController>();
-            if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
-
-            var skillCtrl = GetComponent<PlayerSkillController>();
-            if (skillCtrl != null)
-            {
-                skillCtrl.ExecutePlayerSkill(PlayerSkillController.SkillSlot.E, transform);
-            }
-        }
-    }
-
-    public void OnSkillR(InputAction.CallbackContext context)
-    {
-        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
-        if (_inputBlocked || stat.Health.IsDead || IsCastingSkill || IsCCed) return;
-
-        if (context.performed)
-        {
-            // 가드(홀드)는 끊고 발동. 패링/카운터 판정창 중이면 막는다. (OnDash 와 같은 규칙)
-            var parryCtrl = GetComponent<PlayerParryController>();
-            if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
-
-            var skillCtrl = GetComponent<PlayerSkillController>();
-            if (skillCtrl != null)
-            {
-                // R = 소환수 액티브(구 스페이스바). Q/E 는 플레이어 스킬, R 은 소환 스킬 전용.
+                // Space = 장착 미니언 액티브.
                 skillCtrl.ExecuteMinionSkill(transform);
             }
         }
@@ -946,188 +906,31 @@ public void OnGemTree(InputAction.CallbackContext context)
     }
 
 
-    public Vector2 CurrentSkillAimDir { get; private set; } = Vector2.right;
-
-    private SpriteRenderer _handSpriteRenderer;
-    private Sprite _defaultHandSprite;
-    private Coroutine _handSkillDisableCoroutine;
-
-    /// <summary>
-    /// Hand 오브젝트의 전용 Animator(HandSkill.aseprite 기반)에서 지정된 이름의 스킬 손 모션을 재생합니다.
-    /// Body의 Idle/Walk/Attack 애니메이션과는 완전히 독립적으로 동작하며, 평타와 동일한 방식으로
-    /// 마우스 조준 방향 계산 + 플레이어 본체 반전 + canChangeState 잠금을 함께 처리합니다.
-    /// </summary>
-    public void PlayHandSkillAnim(string animName, float holdDurationOverride = -1f)
-    {
-        if (HandSkillAnimator == null || string.IsNullOrEmpty(animName)) return;
-
-        // Hand의 기본(평상시) 스프라이트를 최초 1회만 캐싱해둠
-        // (스킬 클립 마지막 프레임이 빈 스프라이트여도 재생 종료 후 이 값으로 복원)
-        if (_handSpriteRenderer == null)
-        {
-            _handSpriteRenderer = HandSkillAnimator.GetComponent<SpriteRenderer>();
-        }
-
-        // [Fix] 애니메이터가 꺼져있는 상태(= 이전 스킬 모션이 끝난 뒤)일 때만 "기본 스프라이트"를 다시 캐싱합니다.
-        if (!HandSkillAnimator.enabled && _handSpriteRenderer != null && _handSpriteRenderer.sprite != null)
-        {
-            _defaultHandSprite = _handSpriteRenderer.sprite;
-        }
-        // [Fix] 스킬 시작 시점에도 렌더러가 꺼져있을 수 있으므로 방어적으로 켜줍니다.
-        if (_handSpriteRenderer != null) _handSpriteRenderer.enabled = true;
-
-        // 평타(MeleeCombatController.ExecuteMeleeAttack)와 동일한 방식으로 마우스 방향을 조준 방향으로 계산하고,
-        // 같은 부호로 플레이어 본체(Body) 반전도 맞춥니다.
-        if (Mouse.current != null && Camera.main != null)
-        {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-            mousePos.z = 0;
-            Vector2 dir = ((Vector2)mousePos - (Vector2)transform.position).normalized;
-            if (dir.sqrMagnitude > 0.0001f)
-            {
-                CurrentSkillAimDir = dir;
-
-                if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
-                else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
-            }
-        }
-
-        int hash = Animator.StringToHash(animName);
-        if (!HandSkillAnimator.HasState(0, hash))
-        {
-            Debug.LogWarning($"<color=orange>[PlayerController]</color> HandSkillAnimator에 '{animName}' 스테이트가 없습니다.");
-            return;
-        }
-
-        float clipLength = GetHandSkillClipLength(animName);
-        if (clipLength <= 0f) clipLength = 0.5f; // 클립을 못 찾았을 때의 안전 기본값
-
-        // [Fix] 총난타(RapidPunch)처럼 실제 시전 시간이 손 애니메이션 클립 길이보다 긴 스킬은
-        // 호출측에서 전체 시전 시간(holdDurationOverride)을 넘겨받아, 애니메이터가 스킬 도중에 꺼지지 않도록 합니다.
-        if (holdDurationOverride > 0f) clipLength = Mathf.Max(clipLength, holdDurationOverride);
-
-        // 평타와 동일하게, 재생 중에는 canChangeState를 잠가 이동 기반 반전이 개입하지 못하게 합니다.
-        // HandSkill 클립에는 Animation Event가 없으므로, 타이머로 직접 풀어줍니다.
-        LockAnimState(clipLength + 0.2f);
-
-        HandSkillAnimator.enabled = true;
-        HandSkillAnimator.Play(hash, 0, 0f);
-
-        if (_handSkillDisableCoroutine != null) StopCoroutine(_handSkillDisableCoroutine);
-        _handSkillDisableCoroutine = StartCoroutine(DisableHandSkillAnimatorAfter(clipLength));
-    }
-
-    /// <summary>
-    /// HandSkillAnimator에 등록된 클립 중 이름이 일치하는 것의 길이(초)를 반환합니다. 없으면 0.
-    /// 스킬 SO의 hitTimingRatio와 결합해 타격 타이밍을 계산할 때 쓰세요.
-    /// </summary>
-    public float GetHandSkillClipLength(string animName)
-    {
-        if (HandSkillAnimator == null || string.IsNullOrEmpty(animName)) return 0f;
-        var controller = HandSkillAnimator.runtimeAnimatorController;
-        if (controller == null) return 0f;
-
-        foreach (var clip in controller.animationClips)
-        {
-            if (clip != null && clip.name == animName) return clip.length;
-        }
-        return 0f;
-    }
-
-    /// <summary>
-    /// 스킬 손 모션 재생이 끝난 뒤, HandSkillAnimator를 다시 비활성화해 자동 반복/마지막 프레임 고정을 방지합니다.
-    /// (Hand는 다시 Body 애니메이션이 제어하는 기본 손 스프라이트로 돌아감니다)
-    /// </summary>
-    private System.Collections.IEnumerator DisableHandSkillAnimatorAfter(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        if (HandSkillAnimator != null) HandSkillAnimator.enabled = false;
-
-        // 마지막 프레임이 빈 스프라이트였을 경우를 대비해 기본 스프라이트로 강제 복원
-        // [Fix] Aseprite에서 임포트된 애니메이션 클립에는 SpriteRenderer.enabled를 직접 켜다 끔는 커브가 들어있을 수 있습니다.
-        // 클립 재생이 끝나면 .sprite만 복원해서는 부족하고, 렉더러 자체를 반드시 다시 켜줘야 합니다.
-        if (_handSpriteRenderer != null)
-        {
-            _handSpriteRenderer.enabled = true;
-            if (_defaultHandSprite != null) _handSpriteRenderer.sprite = _defaultHandSprite;
-        }
-
-        CanChangeAnimState();
-        _handSkillDisableCoroutine = null;
-    }
-
-    /// <summary>
-    /// 현재 스킬 손 모션(HandSkillAnimator)이 재생 중인지 여부. 모든 스킬이 PlayHandSkillAnim()을 통해
-    /// 공통적으로 이 값을 켜고 끄므로, IsCastingSkill(StartSkillCasting을 쓰는 스킬에만 해당)보다
-    /// 더 일관적인 차단 조건입니다.
-    /// </summary>
-    public bool IsUsingHandSkill => HandSkillAnimator != null && HandSkillAnimator.enabled;
-
-    [Header("스킬 시전 시스템")]
-    private Coroutine _activeSkillCoroutine;
-    private System.Action _activeSkillCleanup; // 종료/취소 시 반드시 1회 실행할 정리(무적 해제·입력 복구 등)
-    public bool IsCastingSkill => _activeSkillCoroutine != null;
-
-    /// <summary>
-    /// 플레이어 액티브 스킬 시전을 시작합니다.
-    /// 시전 시간 동안 이속이 0.3배로 감소하며, 다른 행동(투척, 타스킬)이 차단됩니다.
-    /// cleanup: 정상 종료든 중간 취소(StopCoroutine)든 반드시 실행됩니다.
-    /// </summary>
-    public void StartSkillCasting(System.Collections.IEnumerator skillRoutine, System.Action cleanup = null)
-    {
-        CancelActiveSkill(); // 기존 시전 중인 스킬이 있다면 취소
-        _activeSkillCleanup = cleanup;
-        _activeSkillCoroutine = StartCoroutine(RunSkillRoutineWithCleanup(skillRoutine));
-    }
-
-    private System.Collections.IEnumerator RunSkillRoutineWithCleanup(System.Collections.IEnumerator skillRoutine)
-    {
-        SetSpeedModifier(SpeedModifierSource.Skill, 0.3f); // 스킬 시전 중 이속 감소 0.3배
-        // 내부 루틴을 직접 구동한다. 별도 StartCoroutine으로 감싸면 StopCoroutine이 래퍼만 멈추고
-        // 본체는 계속 도는 '고아 코루틴' 문제가 생기므로 MoveNext로 직접 돌린다.
-        while (skillRoutine != null && skillRoutine.MoveNext())
-            yield return skillRoutine.Current;
-        FinishSkillCast();
-    }
-
-    /// <summary>
-    /// 현재 시전 중인 플레이어 액티브 스킬을 강제 취소합니다.
-    /// </summary>
-    public void CancelActiveSkill()
-    {
-        if (_activeSkillCoroutine == null) return;
-        StopCoroutine(_activeSkillCoroutine);
-        FinishSkillCast(); // StopCoroutine은 finally를 실행하지 않으므로 여기서 명시적으로 정리
-        Debug.Log("<color=red>[Player]</color> Active skill cast canceled!");
-    }
-
-    // 시전 종료(정상/취소 공통): 이속 복구 + 정리 델리게이트 1회 실행.
-    private void FinishSkillCast()
-    {
-        RemoveSpeedModifier(SpeedModifierSource.Skill); // 이속 복구
-        _activeSkillCoroutine = null;
-        var cleanup = _activeSkillCleanup;
-        _activeSkillCleanup = null;
-        cleanup?.Invoke();
-    }
-
-    private void OnDisable()
-    {
-        // 비활성/파괴 직전, 시전 중이던 스킬의 정리를 보장한다(무적 해제·입력 복구 등).
-        if (_activeSkillCoroutine != null) FinishSkillCast();
-    }
-
-    /// <summary>
-    /// 대시 방향으로 Unsteppable(낭떠러지) 또는 벽이 있으면 걸치지 않고 안전하게 제동할 목적지 위치를 반환합니다.
-    /// 실제 스캔 로직은 <see cref="SkillCombatUtil.GetSafeDestination"/> 로 일원화되어, 좌표 텔레포트로 이동하는
-    /// 모든 스킬·넉백이 대시와 동일한 벽/낭떠러지 판정을 공유합니다.
-    /// </summary>
     public Vector2 GetSafeDashPosition(Vector2 startPos, Vector2 direction, float maxDistance)
     {
-        Collider2D body = GetComponent<Collider2D>();
-        float radius = body != null
-            ? Mathf.Max(body.bounds.extents.x, body.bounds.extents.y) + 0.02f
-            : 0.3f;
-        return SkillCombatUtil.GetSafeDestination(startPos, direction, maxDistance, radius);
+        return SkillCombatUtil.GetSafeDestination(startPos, direction, maxDistance, DashRadius);
+    }
+
+    private float DashRadius
+    {
+        get
+        {
+            Collider2D body = GetComponent<Collider2D>();
+            return body != null
+                ? Mathf.Max(body.bounds.extents.x, body.bounds.extents.y) + 0.02f
+                : 0.3f;
+        }
+    }
+
+    /// <summary>두 대쉬 컨트롤러 공용. 물리 한 틱의 이동도 Wall/최종 착지점을 넘지 않게 제한한다.</summary>
+    public bool AdvanceDash(Vector2 destination, float speed)
+    {
+        if (_rb == null) return true;
+        Vector2 from = _rb.position;
+        Vector2 next = Vector2.MoveTowards(from, destination, Mathf.Max(0f, speed) * Time.fixedDeltaTime);
+        Vector2 step = next - from;
+        next = SkillCombatUtil.ClampToWall(from, step, step.magnitude, DashRadius);
+        _rb.linearVelocity = (next - from) / Time.fixedDeltaTime;
+        return (next - from).sqrMagnitude < 0.000001f;
     }
 }

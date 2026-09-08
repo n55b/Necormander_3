@@ -325,7 +325,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
                         if (playerHealth == null) playerHealth = hit.collider.GetComponentInParent<CharacterHealth>();
                         if (playerHealth != null)
                         {
-                            DamageInfo chargeDmg = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject);
+                            DamageInfo chargeDmg = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, bypassGuard: true);
                             playerHealth.GetDamage(chargeDmg);
                         }
                     }
