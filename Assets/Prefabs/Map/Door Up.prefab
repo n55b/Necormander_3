@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5306125820948724604}
   - component: {fileID: 8605162269654540963}
   - component: {fileID: 1440932246025487847}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: DoorDownObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5000,7 +5000,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7862350566168797710}
   - component: {fileID: -4921037650239937328}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Door Up
   m_TagString: Untagged
   m_Icon: {fileID: 0}
