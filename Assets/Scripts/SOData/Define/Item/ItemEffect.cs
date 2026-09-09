@@ -7,6 +7,7 @@ using UnityEngine;
 /// 지금 있는 종류:
 ///   · ItemStatEffect        — 주머니에 있는 동안 상시 플레이어 스탯 보정 (최대 체력 +10 등)
 ///   · ItemDamageBonusEffect — 조건이 맞는 피해에만 얹히는 보너스 (빙결 파괴 +5, HP 만피 대상 +10% 등)
+///   · ItemRoomClearHealEffect — 방 클리어 시 회복 (고정치 또는 최대 체력 비율)
 ///
 /// 강화/성장 개념은 없다 — 아이템 효과는 고정이다(장비의 enhanceLevel 과 다른 점).
 /// </summary>
@@ -110,5 +111,32 @@ public class ItemDamageBonusEffect : ItemEffect
     {
         if (percentBonus != 0f) info.amount *= (1f + percentBonus);
         if (flatBonus != 0f) info.amount += flatBonus;
+    }
+}
+
+/// <summary>
+/// 방을 클리어할 때 플레이어를 회복시킨다.
+///
+/// [26/09/09] 예전엔 RoomInstance.MarkCleared 가 아이템과 무관하게 무조건 10 회복시켰다.
+/// 그 로직을 이 효과로 옮겼다 — 이 효과를 가진 아이템이 주머니에 있어야만 회복한다.
+/// 실제 발동은 ItemPouch 가 RoomInstance.OnAnyRoomCleared 를 구독해서 처리한다.
+///
+/// 같은 효과를 가진 아이템을 여러 개 들고 있으면 회복량은 그대로 합산된다(칸마다 1회).
+/// </summary>
+[System.Serializable]
+public class ItemRoomClearHealEffect : ItemEffect
+{
+    [Tooltip("회복량. isPercent 면 0.1 = 최대 체력의 10%, 아니면 고정치.")]
+    public float value = 10f;
+
+    [Tooltip("true=최대 체력 비율, false=고정치.")]
+    public bool isPercent = false;
+
+    /// <summary>이번 방 클리어로 회복시킬 양. 음수는 0 으로 막는다(회복 효과가 딜을 넣으면 안 된다).</summary>
+    public float ResolveAmount(CharacterHealth health)
+    {
+        if (health == null) return 0f;
+        float amount = isPercent ? health.MaxHP * value : value;
+        return Mathf.Max(0f, amount);
     }
 }

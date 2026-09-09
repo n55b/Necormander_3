@@ -60,8 +60,17 @@ public class ItemPouch : MonoBehaviour
         Refresh();
     }
 
-    private void OnEnable()  => DamageEventBus.OnBeforeDamageCalculated += HandleBeforeDamage;
-    private void OnDisable() => DamageEventBus.OnBeforeDamageCalculated -= HandleBeforeDamage;
+    private void OnEnable()
+    {
+        DamageEventBus.OnBeforeDamageCalculated += HandleBeforeDamage;
+        RoomInstance.OnAnyRoomCleared += HandleRoomCleared;
+    }
+
+    private void OnDisable()
+    {
+        DamageEventBus.OnBeforeDamageCalculated -= HandleBeforeDamage;
+        RoomInstance.OnAnyRoomCleared -= HandleRoomCleared;
+    }
 
     // ── 조회 ──────────────────────────────────────────────────────────
     /// <summary>해당 칸의 아이템. 빈 칸이거나 잠긴 칸이면 null.</summary>
@@ -184,6 +193,36 @@ public class ItemPouch : MonoBehaviour
                     de.Apply(ref info);
         }
     }
+    // ── 방 클리어 회복 ────────────────────────────────────────────────
+    /// <summary>
+    /// 방이 클리어될 때 ItemRoomClearHealEffect 를 가진 아이템만큼 회복시킨다.
+    ///
+    /// [26/09/09] 예전엔 RoomInstance.MarkCleared 가 아이템과 무관하게 무조건 10 회복했다.
+    /// 이제 그 리소스는 전부 아이템을 거친다 — 주머니가 비어 있으면 한 톨도 차지 않는다.
+    ///
+    /// 회복량을 칸별로 다 더한 뒤 Heal 을 한 번만 부른다 — 체력바/플로팅 텍스트가
+    /// 아이템 갯수만큼 중복으로 뜨는 걸 막기 위해서다.
+    /// </summary>
+    private void HandleRoomCleared(RoomInstance room)
+    {
+        var health = GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null
+            ? GameManager.Instance.PLAYERCONTROLLER.GetComponentInChildren<CharacterHealth>()
+            : null;
+        if (health == null || health.IsDead) return;
+
+        float total = 0f;
+        for (int i = 0; i < slotCount; i++)
+        {
+            var so = _slots[i];
+            if (so == null || so.effects == null) continue;
+            foreach (var e in so.effects)
+                if (e is ItemRoomClearHealEffect he) total += he.ResolveAmount(health);
+        }
+
+        if (total <= 0f) return;
+        health.Heal(total);
+    }
+
 
     // ── 저장 ──────────────────────────────────────────────────────────
     public void SaveToData(SaveData data)

@@ -453,16 +453,9 @@ public class RoomInstance : MonoBehaviour
         SetDoorsOpen(true);
         _roomEvent?.OnRoomCleared(this);
 
-        // [추가] 방 클리어 시 플레이어 체력을 10 회복시킵니다.
-        if (GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-        {
-            var pHealth = GameManager.Instance.PLAYERCONTROLLER.GetComponentInChildren<CharacterHealth>();
-            if (pHealth != null && !pHealth.IsDead)
-            {
-                pHealth.Heal(10f);
-            }
-        }
-
+        // [26/09/09] 방 클리어 회복은 여기서 빼냈다.
+        // 예전엔 무조건 10 회복이었는데, 이제는 ItemRoomClearHealEffect 를 가진 아이템을
+        // 주머니에 넣고 있을 때만 발동한다 — ItemPouch.HandleRoomCleared 참조.
         OnAnyRoomCleared?.Invoke(this);
     }
 

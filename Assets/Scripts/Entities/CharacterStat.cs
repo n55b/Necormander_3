@@ -231,10 +231,19 @@ public class CharacterStat : MonoBehaviour
     {
         if (!_isInitialized) return;
 
-        // 최대 체력 변화를 Health 담당자에게 알림 (체력바 UI 갱신 등)
-        if (Health != null)
+        // [26/09/09] 예전엔 여기서 Health.ResetHP() 를 불렀다 — 최대 체력이 변했든 아니든
+        // 무조건 풀피였다. 이 함수는 InventoryManager.OnMinionUpdated 에 걸려 있어서,
+        // 소환수를 장착/교체/추가할 때마다 플레이어가 통째로 회복됐다. 방 클리어 보상으로
+        // 소환수를 받으면 그대로 풀피가 되니 '방을 깨면 회복된다'로 보였다.
+        //
+        // 이제 현재 체력은 건드리지 않는다. 새 최대치에 맞춰 clamp 하고 체력바만 갱신한다
+        // (최대 체력이 줄었을 때 현재 체력이 최대치를 넘어 있는 걸 막는 게 목적).
+        //
+        // CurHP>0 가드: Init 이 아직 안 돌았으면 CurHP 가 0 이고, SetHP(0) 은 isDead 를
+        // 켜버린다 — ItemPouch.Refresh 와 같은 이유, 같은 가드.
+        if (Health != null && Health.CurHP > 0f)
         {
-            Health.ResetHP();
+            Health.SetHP(Health.CurHP);
         }
     }
 
