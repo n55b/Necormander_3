@@ -124,7 +124,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Floor Info")]
     [SerializeField] public int currentFloor = 1;
-    [Tooltip("0이면 꺼짐. 1 이상이면 세이브를 무시하고 그 층에서 시작한다. " +
+    [Tooltip("0이면 꺼짐. 1 이상이면 던전 첫 진입 시 세이브의 층수를 무시하고 그 층에서 시작한다. " +
+             "다음 층 포탈로 이동할 때는 이 값을 다시 적용하지 않고 현재 층 + 1로 진행한다. " +
              "보스 층인지 아닌지는 MapGenerationData 의 Floor Bosses 표가 정하므로, " +
              "표에 있는 층(현재 4)을 넣으면 스폰방+보스방 2칸짜리 맵으로 시작한다.")]
     [SerializeField] public int debugStartFloor = 0;
@@ -136,11 +137,15 @@ public class GameManager : MonoBehaviour
              "엘리트에 전용 방 프리팹이 지정돼 있으면 그 방이 배치된다.")]
     [SerializeField] public EnemyMinionDataSO debugForcedElite;
     [System.NonSerialized] private SaveData _loadedSaveData = null;
+    private static int _pendingNextFloor;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetFloorTransition() => _pendingNextFloor = 0;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        else { Destroy(gameObject); return; }
 
         // Awake에서 세이브 데이터를 먼저 로드해 둡니다.
         _loadedSaveData = SaveSystem.Load();
@@ -155,25 +160,33 @@ public class GameManager : MonoBehaviour
             Debug.Log("<b>[GameManager]</b> No save data found. Starting from Floor 1.");
         }
 
-        if (debugStartFloor > 0)
-        {
-            currentFloor = debugStartFloor;
-            Debug.Log($"<color=yellow>[GameManager]</color> Debug Start Floor 설정됨 — 세이브를 무시하고 {currentFloor}층에서 시작합니다.");
-        }
-
-        // 튜토리얼은 '층 개념 밖'이다(MapGenerator 의 배치 분기와 같은 규칙). Floor Tuning 의 0층을 쓴다 —
-        // 씬에 박힌 debugStartFloor 도, 남아 있던 세이브도 여기서 끊는다.
-        //
-        // 반드시 위 두 분기보다 뒤여야 한다. 튜토리얼이 도는 씬은 던전(BattleScene)과 같은 씬이라,
-        // 보스 테스트하려고 debugStartFloor 를 4로 올려두면 튜토리얼까지 4층 조절표로 돌아버린다
-        // (= 1층의 웨이브 1회 저작이 무시되고 전역 기본값 2회가 나온다).
-        if (TutorialFlow.IsRunning)
-        {
-            currentFloor = 0;
-            Debug.Log("<color=cyan>[GameManager]</color> 튜토리얼 — Floor Tuning 0번을 적용합니다.");
-        }
+        currentFloor = ResolveStartingFloor(currentFloor);
 
         InitializeGame();
+    }
+
+    private int ResolveStartingFloor(int savedFloor)
+    {
+        // 씬 프리팹은 다시 로드되므로 debugStartFloor를 0으로 바꾸는 것만으로는 유지되지 않는다.
+        // 다음 층 이동 요청만 한 번 소비한다. 새 던전 진입에는 디버그 설정을 다시 쓸 수 있다.
+        int nextFloor = _pendingNextFloor;
+        _pendingNextFloor = 0;
+        if (TutorialFlow.IsRunning)
+        {
+            Debug.Log("<color=cyan>[GameManager]</color> 튜토리얼 — Floor Tuning 0번을 적용합니다.");
+            return 0;
+        }
+        if (nextFloor > 0)
+        {
+            Debug.Log($"<color=green>[GameManager]</color> 층 이동 — Debug Start Floor를 재적용하지 않고 {nextFloor}층으로 진행합니다.");
+            return nextFloor;
+        }
+        if (debugStartFloor > 0)
+        {
+            Debug.Log($"<color=yellow>[GameManager]</color> Debug Start Floor — 첫 진입은 {debugStartFloor}층에서 시작합니다.");
+            return debugStartFloor;
+        }
+        return savedFloor;
     }
 
     private void InitializeGame()
@@ -403,7 +416,7 @@ public class GameManager : MonoBehaviour
         Debug.Log($"<color=green>[GameManager]</color> Floor Cleared! Transitioning to Floor {data.currentFloor}...");
 
         // 씬 재로드
-        LoadSceneWithFade(SceneManager.GetActiveScene().name, FadeSignal.층이동);
+        LoadSceneWithFade(SceneManager.GetActiveScene().name, FadeSignal.층이동, data.currentFloor);
     }
 
     /// <summary>
@@ -413,16 +426,23 @@ public class GameManager : MonoBehaviour
     /// 그 줄을 찾아 쓴다(기획자가 거기서 조절). 암전을 SceneReady 까지 끄는 이유는, LoadScene 이
     /// 돌아와도 맵 생성 + 플레이어 스폰이 몇 프레임 더 남아 있어서다.
     /// </summary>
-    private void LoadSceneWithFade(string sceneName, FadeSignal signal)
+    private void LoadSceneWithFade(string sceneName, FadeSignal signal, int nextFloor = 0)
     {
+        void Load()
+        {
+            // 암전 대기 중이 아니라 실제 씬 로드 직전에 넘긴다. 페이더 유무와 관계없이 같은 경로다.
+            _pendingNextFloor = nextFloor;
+            SceneManager.LoadScene(sceneName);
+        }
+
         Fader fader = Fader.FullScreenFader;
         if (fader == null)
         {
-            SceneManager.LoadScene(sceneName); // 페이더를 못 구해도 이동은 반드시 되어야 한다
+            Load(); // 페이더를 못 구해도 이동은 반드시 되어야 한다
             return;
         }
 
-        fader.FadeOutIn(signal, () => SceneManager.LoadScene(sceneName), null, NextSceneReady());
+        fader.FadeOutIn(signal, Load, null, NextSceneReady());
     }
 
     /// <summary>

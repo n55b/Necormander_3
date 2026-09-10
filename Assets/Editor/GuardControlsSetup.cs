@@ -15,6 +15,7 @@ public static class GuardControlsSetup
     private const string ExplainPath = "Assets/Prefabs/UI/SkillExplainUI.prefab";
     private const string RegistryPath = "Assets/SOData/Registry/Growth Reward Registry.asset";
     private const BindingFlags Fields = BindingFlags.Instance | BindingFlags.NonPublic;
+    private const string BatchProjectileCheck = "GuardControlsSetup.ProjectileCheck";
     private static string LevelPath(int level) => level == 1 ? "Assets/SOData/RightClick/Guard.asset"
         : $"Assets/SOData/RightClick/GuardLevel{level}.asset";
 
@@ -190,11 +191,28 @@ public static class GuardControlsSetup
             guard.OnParryFail += () => failures++;
             health.TakeDamageEvent += (_, __, ___, ____) => damageEvents++;
             Arm(guard, health, registry.rightClicks[3].config);
+            float windowEnd = (float)typeof(PlayerParryController).GetField("_windowEnd", Fields).GetValue(guard);
             health.GetDamage(hit);
-            Check(health.CurHP == 100f && damageEvents == 0 && successes == 1 && !guard.IsParrying
-                && player.canChangeState && Mathf.Approximately(player.SpeedMultiplier, 1f), "실제 피해 경로 완전 차단/즉시 자세 종료");
+            Check(health.CurHP == 100f && damageEvents == 0 && successes == 1 && guard.IsParrying
+                && !player.canChangeState && Mathf.Approximately(player.SpeedMultiplier, .3f), "실제 피해 차단 후 가드 자세/이속 유지");
             Check(Mathf.Abs(guard.CooldownRemaining - 2.25f) < .05f, "성공 1회 0.75초 환급");
-            Check(!PlayerParryController.Intercept(health, ref hit) && successes == 1, "두 번째 타격 차단/환급 금지");
+            health.GetDamage(hit);
+            var rangedHit = hit; rangedHit.isRanged = true;
+            health.GetDamage(rangedHit);
+            Check(health.CurHP == 100f && damageEvents == 0 && successes == 3 && guard.IsParrying,
+                "같은 가드에서 근접/원거리 연속 타격 전부 차단");
+            Check(Mathf.Abs(guard.CooldownRemaining - 2.25f) < .05f &&
+                (float)typeof(PlayerParryController).GetField("_windowEnd", Fields).GetValue(guard) == windowEnd,
+                "추가 방어는 환급 중첩/시간 연장 없음");
+            guard.TryStartParry();
+            Check((float)typeof(PlayerParryController).GetField("_windowEnd", Fields).GetValue(guard) == windowEnd,
+                "활성 중 재입력으로 시간 연장 금지");
+            Set(guard, "_windowEnd", Time.time - .01f);
+            Check(!PlayerParryController.Intercept(health, ref hit), "성공했어도 지속시간 종료 뒤 방어 불가");
+            var successRoutine = (IEnumerator)typeof(PlayerParryController).GetMethod("WindowRoutine", Fields)
+                .Invoke(guard, new object[] { registry.rightClicks[3].config });
+            Check(!successRoutine.MoveNext() && !guard.IsParrying && failures == 0 && player.canChangeState
+                && Mathf.Approximately(player.SpeedMultiplier, 1f), "성공한 가드는 시간 종료 시 실패 후딜 없이 Idle");
             guard.TryStartParry();
             Check(!guard.IsParrying, "쿨타임 중 재입력 금지");
 
@@ -219,9 +237,39 @@ public static class GuardControlsSetup
             float recovery = (float)typeof(WaitForSeconds).GetField("m_Seconds", Fields).GetValue(routine.Current);
             Check(Mathf.Approximately(recovery, .3f), "실패 후딜 0.3초");
             Check(!routine.MoveNext() && !guard.IsParrying, "실패 후딜 종료 후 Idle 복귀");
-            Debug.Log("[GuardCheck] PASS — input, assets, levels, damage interception, single block, cooldown, recovery.");
+            Debug.Log("[GuardCheck] PASS — input, assets, levels, repeated blocks, fixed duration, one refund, success/failure recovery.");
         }
         finally { Object.DestroyImmediate(host); Object.DestroyImmediate(enemy); }
+    }
+
+    // 배치 실행 전용: 실제 게임/저장 데이터를 시작하지 않고 빈 씬에서 투사체까지 검사한다.
+    public static void VerifyBatch()
+    {
+        if (!Application.isBatchMode) throw new InvalidOperationException("배치 모드 전용 검사입니다.");
+        Verify();
+        UnityEditor.SceneManagement.EditorSceneManager.NewScene(
+            UnityEditor.SceneManagement.NewSceneSetup.EmptyScene,
+            UnityEditor.SceneManagement.NewSceneMode.Single);
+        SessionState.SetBool(BatchProjectileCheck, true);
+        ResumeBatchCheck();
+        EditorApplication.EnterPlaymode();
+    }
+
+    [InitializeOnLoadMethod]
+    private static void ResumeBatchCheck()
+    {
+        if (!Application.isBatchMode || !SessionState.GetBool(BatchProjectileCheck, false)) return;
+        EditorApplication.playModeStateChanged -= RunBatchProjectiles;
+        EditorApplication.playModeStateChanged += RunBatchProjectiles;
+    }
+
+    private static void RunBatchProjectiles(PlayModeStateChange state)
+    {
+        if (state != PlayModeStateChange.EnteredPlayMode) return;
+        SessionState.EraseBool(BatchProjectileCheck);
+        EditorApplication.playModeStateChanged -= RunBatchProjectiles;
+        try { VerifyProjectiles(); EditorApplication.Exit(0); }
+        catch (Exception ex) { Debug.LogException(ex); EditorApplication.Exit(1); }
     }
 
     [MenuItem("Tools/Combat/Verify Guard Projectiles In Play Mode")]
@@ -237,6 +285,7 @@ public static class GuardControlsSetup
         enemy.layer = Layers.Enemy;
         enemy.transform.position = Vector3.right * 5f;
         string probeName = "Guard probe " + Guid.NewGuid();
+        var scanRoot = new GameObject(probeName + " scan") { hideFlags = HideFlags.HideAndDontSave };
         try
         {
             var player = host.AddComponent<PlayerController>();
@@ -249,33 +298,62 @@ public static class GuardControlsSetup
             {
                 var config = AssetDatabase.LoadAssetAtPath<RightClickDataSO>(LevelPath(level)).config;
                 Arm(guard, health, config);
-                var source = new GameObject(probeName) { hideFlags = HideFlags.HideAndDontSave };
-                source.SetActive(false);
-                source.transform.SetParent(host.transform);
-                source.transform.position = Vector3.right;
-                var projectile = source.AddComponent<Projectile>();
-                projectile.Init(Vector2.zero, 30f, Layers.PlayerMask, enemy, 10f, 3f);
-                Check(PlayerParryController.TryBlockProjectile(projectile, health), "실제 투사체 방어");
-                Check(projectile.GuardConsumed && successes == level && !guard.IsParrying, "소비/성공 즉시 종료");
-                Check(!PlayerParryController.TryBlockProjectile(projectile, health), "소비된 투사체 재타격 금지");
-                var clones = Resources.FindObjectsOfTypeAll<Projectile>()
-                    .Where(p => p.name == probeName + "(Clone)").ToArray();
-                Check(clones.Length == (level == 1 ? 0 : 1), "Lv1 소멸 / Lv2 반사체 생성");
-                if (level == 2)
+                for (int shot = 0; shot < 2; shot++)
                 {
-                    var reflected = clones[0];
-                    Check(reflected.Shooter == host && reflected.TargetLayer.value == Layers.EnemyMask
-                        && !reflected.GuardConsumed, "반사체 소유자/적 타격 레이어");
-                    Check(Vector2.Dot(reflected.Direction, Vector2.right) > .99f
-                        && Mathf.Approximately(reflected.GuardInfo.amount, 45f), "발사자 방향 반사/기존 반사 피해 보존");
+                    var source = new GameObject(probeName) { hideFlags = HideFlags.HideAndDontSave };
+                    source.SetActive(false);
+                    source.transform.SetParent(host.transform);
+                    source.transform.position = Vector3.right;
+                    var projectile = source.AddComponent<Projectile>();
+                    projectile.Init(Vector2.zero, 30f, Layers.PlayerMask, enemy, 10f, 3f);
+                    Check(PlayerParryController.TryBlockProjectile(projectile, health), "실제 투사체 방어");
+                    Check(projectile.GuardConsumed && successes == (level - 1) * 2 + shot + 1 && guard.IsParrying,
+                        "연속 투사체 소비 후에도 가드 유지");
+                    Check(!PlayerParryController.TryBlockProjectile(projectile, health), "소비된 투사체 재타격 금지");
+                    var clones = Resources.FindObjectsOfTypeAll<Projectile>()
+                        .Where(p => p.name == probeName + "(Clone)").ToArray();
+                    Check(clones.Length == (level == 1 ? 0 : shot + 1), "Lv1 소멸 / Lv2 매 투사체 반사");
+                    if (level == 2)
+                    {
+                        var reflected = clones[0];
+                        Check(reflected.Shooter == host && reflected.TargetLayer.value == Layers.EnemyMask
+                            && !reflected.GuardConsumed, "반사체 소유자/적 타격 레이어");
+                        Check(Vector2.Dot(reflected.Direction, Vector2.right) > .99f
+                            && Mathf.Approximately(reflected.GuardInfo.amount, 45f), "발사자 방향 반사/기존 반사 피해 보존");
+                    }
                 }
             }
-            Debug.Log("[GuardCheck] PASS — runtime projectile block, reflection, direction, ownership, single consumption.");
+            // 한 번의 스캔에서 여러 공격을 처리하고, 한 공격의 중복 콜라이더는 다시 세지 않는다.
+            host.transform.position = new Vector3(10000f, 10000f, 0f);
+            enemy.transform.position = host.transform.position + Vector3.right * 5f;
+            var scanConfig = AssetDatabase.LoadAssetAtPath<RightClickDataSO>(LevelPath(4)).config;
+            Arm(guard, health, scanConfig);
+            int beforeScan = successes;
+            for (int i = 0; i < 4; i++)
+            {
+                var source = new GameObject(probeName);
+                source.SetActive(false);
+                source.transform.SetParent(scanRoot.transform);
+                source.transform.position = host.transform.position + new Vector3(1f + i * .4f, 0f, 0f);
+                if (i < 2)
+                    source.AddComponent<Projectile>().Init(host.transform.position, 30f, Layers.PlayerMask, enemy, 10f, 3f);
+                source.AddComponent<CircleCollider2D>().isTrigger = true;
+                source.AddComponent<BoxCollider2D>().isTrigger = true;
+                if (i >= 2)
+                    source.AddComponent<BaseHitBox>().Init(new DamageInfo(30f, DamageType.Physical, enemy), Layers.PlayerMask);
+                source.SetActive(true);
+            }
+            Physics2D.SyncTransforms();
+            typeof(PlayerParryController).GetMethod("ScanIncoming", Fields).Invoke(guard, new object[] { scanConfig });
+            Check(successes == beforeScan + 4 && guard.IsParrying, "동시 투사체 2개/근접 2개 모두 방어, 중복 콜라이더 무시");
+            Check(Mathf.Abs(guard.CooldownRemaining - 2.25f) < .05f, "동시 방어도 환급은 사용당 한 번");
+            Debug.Log("[GuardCheck] PASS — repeated and simultaneous attacks, reflection, ownership, duplicate colliders, one refund.");
         }
         finally
         {
             foreach (var p in Resources.FindObjectsOfTypeAll<Projectile>())
                 if (p.name == probeName + "(Clone)") Object.DestroyImmediate(p.gameObject);
+            Object.DestroyImmediate(scanRoot);
             Object.DestroyImmediate(host);
             Object.DestroyImmediate(enemy);
             activeField.SetValue(null, previousGuard);
@@ -288,9 +366,13 @@ public static class GuardControlsSetup
         Set(guard, "_activeSelf", health);
         Set(guard, "_activeAimDir", Vector2.right);
         Set(guard, "_isParrying", true);
+        Set(guard, "_blockedAny", false);
         Set(guard, "_windowEnd", Time.time + config.activeDuration);
         Set(guard, "_cooldownEnd", Time.time + config.cooldownDuration);
         typeof(PlayerParryController).GetField("_active", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, guard);
+        var player = (PlayerController)typeof(PlayerParryController).GetField("_player", Fields).GetValue(guard);
+        player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, config.moveSpeedMultiplier);
+        player.canChangeState = false; // 비활성 테스트 객체에서는 LockAnimState의 타임아웃 코루틴을 시작하지 않는다.
     }
     private static void Set(object obj, string field, object value) => obj.GetType().GetField(field, Fields).SetValue(obj, value);
     private static void Check(bool condition, string label) { if (!condition) throw new Exception("[GuardCheck] FAIL: " + label); }

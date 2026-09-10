@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-/// <summary>기존 우클릭 배선/이벤트를 유지하는 단발 가드. 레벨별 수치는 RightClickDataSO가 관리한다.</summary>
+/// <summary>한 번 누르면 지속시간 동안 전방 공격을 방어하는 가드. 레벨별 수치는 RightClickDataSO가 관리한다.</summary>
 public class PlayerParryController : MonoBehaviour
 {
     [SerializeField] private GameObject parryTelegraphPrefab;
@@ -9,6 +9,7 @@ public class PlayerParryController : MonoBehaviour
     private PlayerController _player;
     private Coroutine _parryCoroutine;
     private bool _isParrying;
+    private bool _blockedAny;
     private float _cooldownEnd;
     private float _windowEnd;
     private static PlayerParryController _active;
@@ -36,6 +37,7 @@ public class PlayerParryController : MonoBehaviour
         DestroyTelegraph();
         _parryCoroutine = null;
         _isParrying = false;
+        _blockedAny = false;
         if (_player != null)
         {
             _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.Parry);
@@ -81,7 +83,7 @@ public class PlayerParryController : MonoBehaviour
             ? (Vector2)(shooter.transform.position - projectile.transform.position) : -projectile.Direction;
         bool reflect = guard._activeConfig.CanReflect;
         projectile.GuardConsumed = true;
-        // 판정을 먼저 닫아 반사체의 즉시 명중/이벤트가 재진입해도 한 번만 환급한다.
+        // 투사체 소비와 최초 성공을 먼저 기록해 재진입해도 같은 탄/쿨타임 환급은 중복 처리하지 않는다.
         guard.Succeed();
         if (reflect) projectile.Deflect(guard.gameObject, Layers.EnemyMask, returnDir);
         else Destroy(projectile.gameObject);
@@ -145,6 +147,7 @@ public class PlayerParryController : MonoBehaviour
         _windowEnd = Time.time + Mathf.Max(0f, rc.activeDuration);
         _active = this;
         _isParrying = true;
+        _blockedAny = false;
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, rc.moveSpeedMultiplier);
         _player.LockAnimState();
         _player.ResetAnimStateCache();
@@ -161,14 +164,17 @@ public class PlayerParryController : MonoBehaviour
             if (_player.Stat.Health.IsDead || _player.IsCCed) break;
             if (_telegraph != null) _telegraph.transform.position = transform.position;
             ScanIncoming(rc);
-            if (!_isParrying) yield break; // 성공 핸들러가 그 프레임에 즉시 자세를 끝낸다.
+            if (!_isParrying) yield break; // 이벤트에서 비활성화된 경우 즉시 정리한다.
             yield return null;
         }
         if (!_isParrying) yield break;
         CloseWindow();
         DestroyTelegraph();
-        OnParryFail?.Invoke();
-        if (rc.recoveryDuration > 0f) yield return new WaitForSeconds(rc.recoveryDuration);
+        if (!_blockedAny)
+        {
+            OnParryFail?.Invoke();
+            if (rc.recoveryDuration > 0f) yield return new WaitForSeconds(rc.recoveryDuration);
+        }
         EndStance();
     }
 
@@ -176,16 +182,20 @@ public class PlayerParryController : MonoBehaviour
     {
         foreach (var col in Physics2D.OverlapCircleAll(transform.position, rc.EffectiveRadius))
         {
-            if (col == null) continue;
+            if (!WindowOpen) break;
+            if (col == null || !col.enabled || !col.gameObject.activeInHierarchy) continue;
             var projectile = col.GetComponentInParent<Projectile>();
-            if (projectile != null && TryBlockProjectile(projectile)) return;
+            if (projectile != null)
+            {
+                TryBlockProjectile(projectile);
+                continue;
+            }
             var box = col.GetComponentInParent<BaseHitBox>();
             if (box == null || !box.IsLive || box.HasHitAnyone || !box.Targets(Layers.Player)
                 || !CanGuard(box.Info) || !IsInAimCone(box.transform.position)) continue;
             box.gameObject.SetActive(false); // Destroy가 지연되어 같은 프레임에 다시 맞는 것 방지
             Destroy(box.gameObject);
             Succeed();
-            return;
         }
     }
 
@@ -198,11 +208,12 @@ public class PlayerParryController : MonoBehaviour
     private void Succeed()
     {
         if (!WindowOpen) return;
-        _cooldownEnd = Mathf.Max(Time.time, _cooldownEnd - _activeConfig.SuccessRefund);
-        CloseWindow();
-        DestroyTelegraph();
-        // 피격 콜백 안에서 판정과 이동/공격 잠금을 즉시 풀어 두 번째 타격까지 막지 않는다.
-        EndStance();
+        if (!_blockedAny)
+        {
+            _blockedAny = true;
+            _cooldownEnd = Mathf.Max(Time.time, _cooldownEnd - _activeConfig.SuccessRefund);
+        }
+        // 성공해도 시간/자세/인디케이터를 유지한다. 추가 타격은 방어하되 지속시간을 연장하지 않는다.
         OnParrySuccess?.Invoke();
     }
 

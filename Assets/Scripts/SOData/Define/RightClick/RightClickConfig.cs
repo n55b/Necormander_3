@@ -10,6 +10,7 @@ public class RightClickConfig
     public RightClickType type = RightClickType.Guard;
     [Range(1, 4)] public int level = 1;
     [Header("타이밍 (초)")]
+    [Tooltip("한 번 누르면 이 시간 동안 전방 공격을 계속 방어한다. 성공해도 종료되거나 시간이 늘어나지 않는다.")]
     [Min(0f)] public float activeDuration = 0.4f;
     [Min(0f)] public float recoveryDuration = 0.3f;
     [Min(0f)] public float cooldownDuration = 3f;
@@ -24,10 +25,10 @@ public class RightClickConfig
     public float SuccessRefund => level >= 4 ? Mathf.Max(0f, cooldownDuration) * 0.25f : 0f;
     public string Describe()
     {
-        string text = $"가드 Lv{level} — {activeDuration:0.##}초 동안 전방 공격 1회 완전 방어. 재사용 {cooldownDuration:0.##}초.";
+        string text = $"가드 Lv{level} — {activeDuration:0.##}초 동안 전방의 가드 가능한 공격을 모두 방어. 재사용 {cooldownDuration:0.##}초.";
         if (level >= 2) text += " 원거리 투사체 반사.";
         if (level >= 3) text += " 반경 33% 증가.";
-        if (level >= 4) text += " 성공 시 쿨타임 25% 환급.";
+        if (level >= 4) text += " 사용당 최초 방어 성공 시 쿨타임 25% 환급.";
         return text;
     }
 }

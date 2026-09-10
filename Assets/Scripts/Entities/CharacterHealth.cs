@@ -119,7 +119,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // 버스 발화는 아래 무적 조기 리턴보다 한참 뒤라, 피격 무적 1초 동안 들어온 공격을 아예 못 본다.
         // 그러면 한 대 맞을 때마다 1초씩 카운터가 죽는다.
         // 카운터가 받아내면 true → 이 피격은 통째로 없던 일(경직·넉백·슬로우·상태이상까지 스킵).
-        // 단발 가드 성공은 근접/원거리 모두 true를 반환한다. 장판/돌진은 bypassGuard로 제외한다.
+        // 가드 지속시간 안에는 근접/원거리 모두 차단한다. 장판/돌진은 bypassGuard로 제외한다.
         if (!isDead && PlayerParryController.Intercept(this, ref info)) return;
 
         if (isDead || invincible) return;
