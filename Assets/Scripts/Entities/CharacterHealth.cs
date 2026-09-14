@@ -198,42 +198,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             }
         }
 
-        // 데미지 파이프라인: 계산 전 증폭/변형 이벤트
-        DamageEventBus.TriggerBeforeDamageCalculated(this, ref info);
-
-        float remainingDamage = info.amount;
-
-        // 공격 스탯 주인(플레이어/적/미니언→플레이어). 증폭·크리가 전부 이 하나에서 나온다.
-        // 예전엔 크리만 여기서 info.attacker 를 직접 뒤졌는데, 미니언 시전자엔 스탯이 없어
-        // 크리가 안 떴다. ResolveAttackerStat 이 플레이어 스탯을 빌려와 그 구멍을 메운다.
-        var atkStat = ResolveAttackerStat(info);
-
-        // [속성 증폭] (1 + 물리/마법 증폭)을 방어력 전에 곱한다. 최종식의 대괄호 안쪽이다.
-        // 물리/마법 직접 피해만 붙는다 — 고정/디버프/함정은 속성이 물리·마법이 아니라 자동 제외.
-        if (atkStat != null)
-        {
-            float amp = info.type == DamageType.Physical ? atkStat.PHYS_AMP
-                      : info.type == DamageType.Magic    ? atkStat.MAGIC_AMP
-                      : 0f;
-            if (amp != 0f) remainingDamage *= (1f + amp);
-        }
-
-        // [디버프 증폭] 아군발 상태이상 피해(중독/출혈/비폭/빙결해제)는 속성이 물리·마법이 아니라 위 증폭을 못 탄다.
-        // debuffMultiplier(기본 1)를 여기서 따로 곱한다 — 장비 상태이상형 패시브(EquipmentStatusPassive.strengthBonus)가
-        // 채우는 소스 자리(경로 예약). 1 이면 무변화라 지금은 사실상 no-op.
-        if (info.category == DamageCategory.Debuff && info.debuffMultiplier != 1f)
-            remainingDamage *= info.debuffMultiplier;
-
-        // [치명타] 방어력보다 먼저 굴린다 — 기획: "치명타 판정 끝난 최종 데미지에서 방어력 감소율을 뺀다".
-        // 상태이상 고정 피해(출혈/중독/빙결/비폭)엔 안 붙는다. '고정'이니까.
-        bool isCritical = false;
-        if (atkStat != null && DamageRules.CanCrit(info)
-            && atkStat.CRIT_CHANCE > 0f
-            && UnityEngine.Random.value * 100f < atkStat.CRIT_CHANCE)
-        {
-            isCritical = true;
-            remainingDamage *= atkStat.CRIT_DAMAGE / 100f;
-        }
+        float remainingDamage = CalculateIncomingDamage(ref info, out bool isCritical);
 
         // [쉴드] 적용.
         // Fixed(고정 피해)도 쉴드는 막는다. 쉴드는 임시 체력에 가까운 물건이라 '방어력 무시'와
@@ -250,13 +215,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // [최종 데미지 및 체력 차감]
         if (remainingDamage > 0)
         {
-            float finalDamage = remainingDamage;
-            if (!DamageRules.IgnoresDefense(info))
-            {
-                // 방어력 % 차감형. DEF 자체가 감소율이고, 상한 75% 는 게터에서 이미 잘려서 온다.
-                // [26/07/17] 고정 방어력(FLAT_DEF)은 삭제 — 방어력은 % 하나로 일원화했다.
-                finalDamage = Mathf.Max(remainingDamage * ((100f - _stat.DEF) / 100f), 1f);
-            }
+            float finalDamage = ApplyDefense(remainingDamage, info);
 
             curHP -= finalDamage;
             OnDamageTaken?.Invoke(finalDamage);
@@ -323,6 +282,61 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         }
 
         UpdateHPBar?.Invoke(); // HPBar 업데이트
+    }
+
+    /// <summary>가드도 실제 피격과 같은 증폭/치명타/방어력 식을 사용한다. 보호막/체력/피격 반응은 소모하지 않는다.</summary>
+    public float CalculateGuardDamage(DamageInfo info)
+    {
+        if (info.category == DamageCategory.None) info.category = ResolveCategoryFromAttacker(info.attacker);
+        return ApplyDefense(CalculateIncomingDamage(ref info, out _), info);
+    }
+
+    private float ApplyDefense(float amount, DamageInfo info)
+    {
+        if (amount <= 0f) return 0f;
+        return DamageRules.IgnoresDefense(info) ? amount
+            : Mathf.Max(amount * (1f - (_stat != null ? _stat.DEF : 0f) / 100f), 1f);
+    }
+
+    private float CalculateIncomingDamage(ref DamageInfo info, out bool isCritical)
+    {
+        // 데미지 파이프라인: 계산 전 증폭/변형 이벤트
+        DamageEventBus.TriggerBeforeDamageCalculated(this, ref info);
+
+        float remainingDamage = info.amount;
+
+        // 공격 스탯 주인(플레이어/적/미니언→플레이어). 증폭·크리가 전부 이 하나에서 나온다.
+        // 예전엔 크리만 여기서 info.attacker 를 직접 뒤졌는데, 미니언 시전자엔 스탯이 없어
+        // 크리가 안 떴다. ResolveAttackerStat 이 플레이어 스탯을 빌려와 그 구멍을 메운다.
+        var atkStat = ResolveAttackerStat(info);
+
+        // [속성 증폭] (1 + 물리/마법 증폭)을 방어력 전에 곱한다. 최종식의 대괄호 안쪽이다.
+        // 물리/마법 직접 피해만 붙는다 — 고정/디버프/함정은 속성이 물리·마법이 아니라 자동 제외.
+        if (atkStat != null)
+        {
+            float amp = info.type == DamageType.Physical ? atkStat.PHYS_AMP
+                      : info.type == DamageType.Magic    ? atkStat.MAGIC_AMP
+                      : 0f;
+            if (amp != 0f) remainingDamage *= (1f + amp);
+        }
+
+        // [디버프 증폭] 아군발 상태이상 피해(중독/출혈/비폭/빙결해제)는 속성이 물리·마법이 아니라 위 증폭을 못 탄다.
+        // debuffMultiplier(기본 1)를 여기서 따로 곱한다 — 장비 상태이상형 패시브(EquipmentStatusPassive.strengthBonus)가
+        // 채우는 소스 자리(경로 예약). 1 이면 무변화라 지금은 사실상 no-op.
+        if (info.category == DamageCategory.Debuff && info.debuffMultiplier != 1f)
+            remainingDamage *= info.debuffMultiplier;
+
+        // [치명타] 방어력보다 먼저 굴린다 — 기획: "치명타 판정 끝난 최종 데미지에서 방어력 감소율을 뺀다".
+        // 상태이상 고정 피해(출혈/중독/빙결/비폭)엔 안 붙는다. '고정'이니까.
+        isCritical = false;
+        if (atkStat != null && DamageRules.CanCrit(info)
+            && atkStat.CRIT_CHANCE > 0f
+            && UnityEngine.Random.value * 100f < atkStat.CRIT_CHANCE)
+        {
+            isCritical = true;
+            remainingDamage *= atkStat.CRIT_DAMAGE / 100f;
+        }
+        return remainingDamage;
     }
 
     public void Heal(float amount)

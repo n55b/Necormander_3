@@ -135,6 +135,147 @@ public static class GuardControlsSetup
         finally { PrefabUtility.UnloadPrefabContents(root); }
     }
 
+    [MenuItem("Tools/Combat/Apply Guard Gauge HUD")]
+    public static void ApplyGuardGauge()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
+        EditPrefab(HudPath, root =>
+        {
+            var ui = root.GetComponent<PlayerStateUI>();
+            var serialized = new SerializedObject(ui);
+            if (serialized.FindProperty("guardGaugeFill").objectReferenceValue != null) return;
+            var hp = (UnityEngine.UI.Image)serialized.FindProperty("hpSprite").objectReferenceValue;
+            var white = (UnityEngine.UI.Image)serialized.FindProperty("shieldSprite").objectReferenceValue;
+            var hpText = (TMP_Text)serialized.FindProperty("hpText").objectReferenceValue;
+            var hpBackground = hp.transform.parent.GetComponent<UnityEngine.UI.Image>();
+            var panel = (RectTransform)hpBackground.transform.parent;
+            float hpHeight = panel.sizeDelta.y;
+            panel.sizeDelta = new Vector2(panel.sizeDelta.x, hpHeight + 14f);
+            var hpRect = hpBackground.rectTransform;
+            hpRect.anchorMin = new Vector2(0f, 1f);
+            hpRect.anchorMax = Vector2.one;
+            hpRect.pivot = new Vector2(.5f, 1f);
+            hpRect.sizeDelta = new Vector2(0f, hpHeight);
+            hpRect.anchoredPosition = Vector2.zero;
+
+            // 새 아트 없이 기존 HP 프레임/무채색 게이지/폰트만 재사용한다.
+            var background = GaugeImage("BG_GuardGauge", panel, hpBackground.sprite);
+            background.type = UnityEngine.UI.Image.Type.Sliced;
+            var rect = background.rectTransform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.right;
+            rect.pivot = new Vector2(.5f, 0f);
+            rect.sizeDelta = new Vector2(0f, 12f);
+            rect.anchoredPosition = Vector2.zero;
+            var fill = GaugeImage("Field_GuardGauge", rect, white.sprite);
+            fill.type = UnityEngine.UI.Image.Type.Filled;
+            fill.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+            fill.fillOrigin = 0;
+            fill.color = serialized.FindProperty("guardReadyColor").colorValue;
+            fill.rectTransform.anchorMin = Vector2.zero;
+            fill.rectTransform.anchorMax = Vector2.one;
+            fill.rectTransform.offsetMin = new Vector2(4f, 3f);
+            fill.rectTransform.offsetMax = new Vector2(-4f, -3f);
+            var label = Object.Instantiate(hpText, rect);
+            label.name = "Text_GuardGauge";
+            label.raycastTarget = false;
+            label.text = "100 / 100";
+            label.rectTransform.anchorMin = Vector2.zero;
+            label.rectTransform.anchorMax = Vector2.one;
+            label.rectTransform.offsetMin = Vector2.zero;
+            label.rectTransform.offsetMax = Vector2.zero;
+            serialized.FindProperty("guardGaugeFill").objectReferenceValue = fill;
+            serialized.FindProperty("guardGaugeText").objectReferenceValue = label;
+            var slot = serialized.FindProperty("guardSlot");
+            if (slot.FindPropertyRelative("CooldownFill").objectReferenceValue is UnityEngine.UI.Image cooldown)
+                cooldown.gameObject.SetActive(false);
+            if (slot.FindPropertyRelative("CooldownText").objectReferenceValue is TMP_Text cooldownText)
+                cooldownText.text = "";
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        });
+        // 수치를 실제 플레이어 프리팹에도 저작해 인스펙터에서 쉽게 조절할 수 있게 한다.
+        EditPrefab("Assets/Prefabs/Player Melee.prefab", root =>
+        {
+            var guard = root.GetComponent<PlayerParryController>();
+            Check(guard != null, "기존 플레이어 가드 컴포넌트");
+            EditorUtility.SetDirty(guard);
+        });
+        Debug.Log("[GuardCheck] HUD gauge saved in PlayerStateUI.prefab; reused existing sprites only.");
+    }
+
+    private static UnityEngine.UI.Image GaugeImage(string name, Transform parent, Sprite sprite)
+    {
+        var go = new GameObject(name, typeof(RectTransform), typeof(UnityEngine.UI.Image));
+        go.layer = parent.gameObject.layer;
+        go.transform.SetParent(parent, false);
+        var img = go.GetComponent<UnityEngine.UI.Image>();
+        img.sprite = sprite;
+        img.raycastTarget = false;
+        return img;
+    }
+
+    // 기존 프리팹을 실제 Unity 카메라로 렌더한다. 결과는 검수용 Logs 파일이고 게임 아트가 아니다.
+    [MenuItem("Tools/Combat/Preview Guard Gauge HUD")]
+    public static void PreviewGuardGauge()
+    {
+        var scene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+        var cameraObject = new GameObject("HUD preview camera", typeof(Camera));
+        var canvasObject = new GameObject("HUD preview", typeof(RectTransform), typeof(Canvas));
+        UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(cameraObject, scene);
+        UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(canvasObject, scene);
+        var camera = cameraObject.GetComponent<Camera>();
+        camera.scene = scene;
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(.07f, .08f, .1f);
+        camera.orthographic = true;
+        var canvas = canvasObject.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        canvas.worldCamera = camera;
+        canvas.planeDistance = 10f;
+        var scaler = canvasObject.AddComponent<UnityEngine.UI.CanvasScaler>();
+        scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(960f, 540f);
+        var target = new RenderTexture(1920, 1080, 24);
+        var pixels = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
+        var previous = RenderTexture.active;
+        string output = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../Logs"));
+        System.IO.Directory.CreateDirectory(output);
+        try
+        {
+            camera.targetTexture = target;
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(HudPath), canvas.transform);
+            var serialized = new SerializedObject(root.GetComponent<PlayerStateUI>());
+            var gauge = (UnityEngine.UI.Image)serialized.FindProperty("guardGaugeFill").objectReferenceValue;
+            var label = (TMP_Text)serialized.FindProperty("guardGaugeText").objectReferenceValue;
+            ((UnityEngine.UI.Image)serialized.FindProperty("shieldSprite").objectReferenceValue).enabled = false;
+            ((TMP_Text)serialized.FindProperty("hpText").objectReferenceValue).text = "100 / 100";
+            for (int state = 0; state < 2; state++)
+            {
+                gauge.fillAmount = state == 0 ? 1f : .5f;
+                gauge.color = serialized.FindProperty(state == 0 ? "guardReadyColor" : "guardBrokenColor").colorValue;
+                label.text = state == 0 ? "100 / 100" : "50 / 100";
+                Canvas.ForceUpdateCanvases();
+                UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(root.GetComponent<RectTransform>());
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+                RenderTexture.active = target;
+                pixels.ReadPixels(new Rect(0, 0, 1920, 1080), 0, 0);
+                pixels.Apply();
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(output, $"GuardGauge-{state}.png"), pixels.EncodeToPNG());
+            }
+            Debug.Log($"[GuardCheck] Preview saved: {output}/GuardGauge-0.png / GuardGauge-1.png");
+        }
+        finally
+        {
+            RenderTexture.active = previous;
+            camera.targetTexture = null;
+            target.Release();
+            Object.DestroyImmediate(target);
+            Object.DestroyImmediate(pixels);
+            UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);
+        }
+    }
+
     [MenuItem("Tools/Combat/Verify Guard And Space Controls")]
     public static void Verify()
     {
@@ -153,11 +294,8 @@ public static class GuardControlsSetup
         {
             var c = registry.rightClicks[level - 1].config;
             Check(c.level == level && c.IsValid, $"Lv{level} 유효");
-            Check(Mathf.Approximately(c.activeDuration, .4f) && Mathf.Approximately(c.recoveryDuration, .3f)
-                && Mathf.Approximately(c.cooldownDuration, 3f), "가드 .4초/실패 .3초/쿨타임 3초");
             Check(c.CanReflect == (level >= 2), "Lv2부터 투사체 반사");
             Check(Mathf.Approximately(c.EffectiveRadius, level >= 3 ? 3.325f : 2.5f) && c.angle == 160f, "Lv3 반경만 33% 확장");
-            Check(Mathf.Approximately(c.SuccessRefund, level == 4 ? .75f : 0f), "Lv4 기본 쿨타임의 25% 환급");
         }
         var hud = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);
         Check(!hud.GetComponentsInChildren<Transform>(true).Any(t => t.name == "Icon_E_Skill" || t.name == "Icon_Q_Skill" || t.name == "Icon_R_Skill"), "HUD 옛 슬롯 제거/교체");
@@ -180,64 +318,105 @@ public static class GuardControlsSetup
         {
             var player = host.AddComponent<PlayerController>();
             var guard = host.AddComponent<PlayerParryController>();
-            var health = host.AddComponent<CharacterHealth>();
+            var stat = host.AddComponent<CharacterStat>();
+            var health = host.GetComponent<CharacterHealth>();
+            health.Init(stat, null);
+            stat.SetCurrentDef(25f);
             Set(guard, "_player", player);
-            Set(health, "curHP", 100f);
+            var dodge = host.AddComponent<MeleeDodgeController>();
+            Set(guard, "_dodge", dodge);
+            Set(dodge, "_isDashing", true);
+            Check((bool)typeof(PlayerParryController).GetProperty("IsDashing", Fields).GetValue(guard),
+                "근접 대쉬 상태도 가드 시작 차단에 포함");
+            Set(dodge, "_isDashing", false);
             enemy.transform.position = Vector3.right;
-            var hit = new DamageInfo(30f, DamageType.Physical, enemy, causesHitstun: true,
+            var hit = new DamageInfo(20f, DamageType.Physical, enemy, causesHitstun: true,
                 knockbackForce: 20f, applyStatus: StatusType.Freeze, category: DamageCategory.EnemyBoss);
-            int successes = 0, failures = 0, damageEvents = 0;
+            int successes = 0, damageEvents = 0;
             guard.OnParrySuccess += () => successes++;
-            guard.OnParryFail += () => failures++;
             health.TakeDamageEvent += (_, __, ___, ____) => damageEvents++;
             Arm(guard, health, registry.rightClicks[3].config);
-            float windowEnd = (float)typeof(PlayerParryController).GetField("_windowEnd", Fields).GetValue(guard);
+            Set(guard, "_raisedAt", Time.time - 60f);
             health.GetDamage(hit);
             Check(health.CurHP == 100f && damageEvents == 0 && successes == 1 && guard.IsParrying
-                && !player.canChangeState && Mathf.Approximately(player.SpeedMultiplier, .3f), "실제 피해 차단 후 가드 자세/이속 유지");
-            Check(Mathf.Abs(guard.CooldownRemaining - 2.25f) < .05f, "성공 1회 0.75초 환급");
+                && !player.canChangeState && Mathf.Approximately(player.SpeedMultiplier, .3f), "오래 유지한 가드도 피해/경직 없이 방어");
+            Check(guard.GuardAmount == 85f && !guard.LastBlockWasPerfect, "방어력 25% 적용: 피해 20은 게이지 15 소모");
             health.GetDamage(hit);
-            var rangedHit = hit; rangedHit.isRanged = true;
-            health.GetDamage(rangedHit);
-            Check(health.CurHP == 100f && damageEvents == 0 && successes == 3 && guard.IsParrying,
-                "같은 가드에서 근접/원거리 연속 타격 전부 차단");
-            Check(Mathf.Abs(guard.CooldownRemaining - 2.25f) < .05f &&
-                (float)typeof(PlayerParryController).GetField("_windowEnd", Fields).GetValue(guard) == windowEnd,
-                "추가 방어는 환급 중첩/시간 연장 없음");
-            guard.TryStartParry();
-            Check((float)typeof(PlayerParryController).GetField("_windowEnd", Fields).GetValue(guard) == windowEnd,
-                "활성 중 재입력으로 시간 연장 금지");
-            Set(guard, "_windowEnd", Time.time - .01f);
-            Check(!PlayerParryController.Intercept(health, ref hit), "성공했어도 지속시간 종료 뒤 방어 불가");
-            var successRoutine = (IEnumerator)typeof(PlayerParryController).GetMethod("WindowRoutine", Fields)
-                .Invoke(guard, new object[] { registry.rightClicks[3].config });
-            Check(!successRoutine.MoveNext() && !guard.IsParrying && failures == 0 && player.canChangeState
-                && Mathf.Approximately(player.SpeedMultiplier, 1f), "성공한 가드는 시간 종료 시 실패 후딜 없이 Idle");
-            guard.TryStartParry();
-            Check(!guard.IsParrying, "쿨타임 중 재입력 금지");
+            Check(guard.GuardAmount == 70f && successes == 2, "매 타격마다 소모, Lv4 환급 없음");
+            Set(guard, "_raisedAt", Time.time);
+            health.GetDamage(hit);
+            Check(guard.GuardAmount == 62.5f && guard.LastBlockWasPerfect, "0.2초 퍼펙트: 최종 피해 15의 절반 7.5");
+            Tick(guard, 10f, Time.time + 10f);
+            Check(guard.GuardAmount == 62.5f, "가드를 올린 동안 회복 없음");
+            var back = hit; back.hitFrom = Vector2.left;
+            Check(!PlayerParryController.Intercept(health, ref back), "후방 방어 불가");
+            var ground = hit; ground.bypassGuard = true;
+            Check(!PlayerParryController.Intercept(health, ref ground), "장판/돌진 제외");
+            var dot = hit; dot.category = DamageCategory.EnemyDebuff;
+            var trap = hit; trap.category = DamageCategory.Trap;
+            Check(!PlayerParryController.CanGuard(dot) && !PlayerParryController.CanGuard(trap), "DoT/가시 제외");
+            typeof(PlayerParryController).GetMethod("UpdateAim", Fields).Invoke(guard, new object[] { Vector2.up });
+            Check(!PlayerParryController.Intercept(health, ref hit), "홀드 중 방향 변경: 옛 방향은 방어 안 함");
+            var up = hit; up.hitFrom = Vector2.up;
+            Check(PlayerParryController.Intercept(health, ref up), "새 조준 방향으로 방어");
+
+            float beforeRecovery = guard.GuardAmount;
+            Check(guard.TryInterruptForAction() && !guard.IsParrying && player.canChangeState
+                && Mathf.Approximately(player.SpeedMultiplier, 1f), "다른 행동은 후딜 없이 가드 해제");
+            float loweredAt = Time.time;
+            Tick(guard, .5f, loweredAt + .5f);
+            Check(guard.GuardAmount == beforeRecovery, "가드를 내린 뒤 1초는 회복 안 함");
+            Tick(guard, .75f, loweredAt + 1.25f);
+            Check(Mathf.Approximately(guard.GuardAmount, beforeRecovery + .75f), "지연 경계를 넘긴 0.25초만 3/초 회복");
 
             Arm(guard, health, registry.rightClicks[0].config);
-            var back = hit; back.hitFrom = Vector2.left;
-            Check(!PlayerParryController.Intercept(health, ref back), "뒤쪽 공격은 가드 불가");
-            var ground = hit; ground.bypassGuard = true;
-            Check(!PlayerParryController.Intercept(health, ref ground) && guard.IsParrying, "장판/돌진은 가드 소비 없이 통과");
-            var dot = hit; dot.category = DamageCategory.EnemyDebuff;
-            Check(!PlayerParryController.CanGuard(dot), "DoT 가드 불가");
-            var trap = hit; trap.category = DamageCategory.Trap;
-            Check(!PlayerParryController.CanGuard(trap), "가시/환경 피해 가드 불가");
-            Check(PlayerParryController.CanGuard(hit), "보스 찌르기처럼 이동을 동반한 일반 근접은 가드 가능");
-            var ranged = hit; ranged.isRanged = true;
-            Check(PlayerParryController.CanGuard(ranged), "Lv1도 원거리 피해 완전 방어");
+            Set(guard, "_guard", 5f);
+            health.GetDamage(hit);
+            Check(guard.GuardBroken && guard.GuardAmount == 0f && !guard.IsParrying && health.CurHP == 100f,
+                "부족한 마지막 공격까지 완전 방어 후 소진");
+            guard.TryStartParry();
+            Check(!guard.IsParrying && !PlayerParryController.Intercept(health, ref hit), "소진 중 재사용/방어 불가");
+            Tick(guard, 6f, Time.time + 6f);
+            Check(Mathf.Approximately(guard.GuardAmount, 50f) && guard.GuardBroken, "소진 즉시 회복 시작, 6초에 50");
+            Tick(guard, 5.9f, Time.time + 11.9f);
+            Check(guard.GuardBroken, "100 미만은 계속 소진");
+            Tick(guard, .1f, Time.time + 12f);
+            Check(!guard.GuardBroken && guard.GuardAmount == 100f, "12초에 100 회복/잠금 해제");
+            Tick(guard, 100f, Time.time + 100f);
+            Check(guard.GuardAmount == 100f, "최대치 초과 금지");
+            Arm(guard, health, registry.rightClicks[0].config);
+            guard.SetGuardHeld(false);
+            Check(!guard.IsParrying, "버튼을 떼면 즉시 가드 해제");
+            var beforeHP = health.CurHP;
+            health.GetDamage(hit);
+            Check(health.CurHP == beforeHP - 15f, "일반 피격도 동일한 방어력 식");
+            var statEnemy = enemy.AddComponent<CharacterStat>();
+            Set(statEnemy, "baseCritChance", 100f);
+            Set(statEnemy, "baseCritDamage", 200f);
+            Check(health.CalculateGuardDamage(hit) == 30f, "치명타도 방어력 이후 가드 소모에 반영");
+            Check(health.CalculateGuardDamage(new DamageInfo(0f, attacker: enemy)) == 0f, "0 피해를 1로 올리지 않음");
 
-            Set(guard, "_windowEnd", Time.time - .01f);
-            Check(!PlayerParryController.Intercept(health, ref hit), "0.4초 창 종료 후 피격 통과");
-            var routine = (IEnumerator)typeof(PlayerParryController).GetMethod("WindowRoutine", Fields)
-                .Invoke(guard, new object[] { registry.rightClicks[0].config });
-            Check(routine.MoveNext() && routine.Current is WaitForSeconds && failures == 1 && guard.IsParrying, "실패만 후딜 시작");
-            float recovery = (float)typeof(WaitForSeconds).GetField("m_Seconds", Fields).GetValue(routine.Current);
-            Check(Mathf.Approximately(recovery, .3f), "실패 후딜 0.3초");
-            Check(!routine.MoveNext() && !guard.IsParrying, "실패 후딜 종료 후 Idle 복귀");
-            Debug.Log("[GuardCheck] PASS — input, assets, levels, repeated blocks, fixed duration, one refund, success/failure recovery.");
+            var uiObject = Object.Instantiate(hud);
+            uiObject.SetActive(false);
+            try
+            {
+                var ui = uiObject.GetComponent<PlayerStateUI>();
+                Set(ui, "_guardCtrl", guard);
+                var serialized = new SerializedObject(ui);
+                var fill = serialized.FindProperty("guardGaugeFill").objectReferenceValue as UnityEngine.UI.Image;
+                var label = serialized.FindProperty("guardGaugeText").objectReferenceValue as TMP_Text;
+                Check(fill != null && label != null && fill.sprite != null && !fill.raycastTarget,
+                    "HUD 프리팹에 게이지/텍스트/기존 스프라이트 실제 연결");
+                Set(guard, "_guard", 50f);
+                typeof(PlayerStateUI).GetMethod("RefreshGuardGauge", Fields).Invoke(ui, null);
+                Check(fill.fillAmount == .5f && fill.color.b > fill.color.r, "사용 가능 게이지는 파랑");
+                Set(guard, "_guardBroken", true);
+                typeof(PlayerStateUI).GetMethod("RefreshGuardGauge", Fields).Invoke(ui, null);
+                Check(fill.fillAmount == .5f && Mathf.Approximately(fill.color.r, fill.color.b), "소진 회복 게이지는 회색");
+            }
+            finally { Object.DestroyImmediate(uiObject); }
+            Debug.Log("[GuardCheck] PASS — hold, damage/defense/critical, perfect, depletion, recovery, interruption, HUD.");
+
         }
         finally { Object.DestroyImmediate(host); Object.DestroyImmediate(enemy); }
     }
@@ -278,6 +457,7 @@ public static class GuardControlsSetup
         if (!Application.isPlaying) throw new InvalidOperationException("플레이 모드에서 실행하세요.");
         var activeField = typeof(PlayerParryController).GetField("_active", BindingFlags.Static | BindingFlags.NonPublic);
         var previousGuard = activeField.GetValue(null);
+        var previousInventory = InventoryManager.Instance;
         var host = new GameObject("Guard projectile check") { hideFlags = HideFlags.HideAndDontSave };
         host.SetActive(false);
         var enemy = new GameObject("Guard projectile attacker") { hideFlags = HideFlags.HideAndDontSave };
@@ -290,8 +470,37 @@ public static class GuardControlsSetup
         {
             var player = host.AddComponent<PlayerController>();
             var guard = host.AddComponent<PlayerParryController>();
-            var health = host.AddComponent<CharacterHealth>();
+            var stat = host.AddComponent<CharacterStat>();
+            var health = host.GetComponent<CharacterHealth>();
+            health.Init(stat, null);
+            typeof(CharacterStat).GetProperty("Health").SetValue(stat, health);
+            Set(player, "stat", stat);
             Set(guard, "_player", player);
+            var inventory = host.AddComponent<InventoryManager>();
+            inventory.Slots.Add(new InventoryManager.CoreSlot());
+            inventory.Slots.Add(new InventoryManager.CoreSlot
+            {
+                EquippedRightClick = AssetDatabase.LoadAssetAtPath<RightClickDataSO>(LevelPath(1))
+            });
+            InventoryManager.Instance = inventory;
+            guard.SetGuardHeld(true);
+            Check(guard.IsParrying && !player.canChangeState, "홀드 입력으로 실제 가드 시작");
+            player.CanChangeAnimState();
+            Check(!player.canChangeState, "애니메이션 종료가 유지 중인 가드를 해제하지 않음");
+            guard.SetGuardHeld(false);
+            guard.SetGuardHeld(true);
+            Check(guard.IsParrying, "내린 즉시 쿨타임/후딜 없이 다시 올리기");
+            player.SetInputBlocked(true);
+            Check(!guard.IsParrying, "대화/입력 차단 시 가드 해제");
+            guard.SetGuardHeld(true);
+            Check(!guard.IsParrying, "입력 차단 중 가드 재시작 금지");
+            player.SetInputBlocked(false);
+            var dodge = host.AddComponent<MeleeDodgeController>();
+            Set(guard, "_dodge", dodge);
+            Set(dodge, "_isDashing", true);
+            guard.SetGuardHeld(true);
+            Check(!guard.IsParrying, "대쉬 도중 가드 시작 금지");
+            Set(dodge, "_isDashing", false);
             int successes = 0;
             guard.OnParrySuccess += () => successes++;
             for (int level = 1; level <= 2; level++)
@@ -307,6 +516,7 @@ public static class GuardControlsSetup
                     var projectile = source.AddComponent<Projectile>();
                     projectile.Init(Vector2.zero, 30f, Layers.PlayerMask, enemy, 10f, 3f);
                     Check(PlayerParryController.TryBlockProjectile(projectile, health), "실제 투사체 방어");
+                    Check(guard.GuardAmount == 100f - 30f * (shot + 1), "투사체마다 실제 피해량 소모");
                     Check(projectile.GuardConsumed && successes == (level - 1) * 2 + shot + 1 && guard.IsParrying,
                         "연속 투사체 소비 후에도 가드 유지");
                     Check(!PlayerParryController.TryBlockProjectile(projectile, health), "소비된 투사체 재타격 금지");
@@ -322,6 +532,22 @@ public static class GuardControlsSetup
                             && Mathf.Approximately(reflected.GuardInfo.amount, 45f), "발사자 방향 반사/기존 반사 피해 보존");
                     }
                 }
+            }
+            // 발사 시각이 아니라 실제 방어 시각으로 퍼펙트를 판정한다.
+            for (int late = 0; late < 2; late++)
+            {
+                Arm(guard, health, AssetDatabase.LoadAssetAtPath<RightClickDataSO>(LevelPath(1)).config);
+                var source = new GameObject(probeName);
+                source.SetActive(false);
+                source.transform.SetParent(host.transform);
+                source.transform.position = Vector3.right;
+                var projectile = source.AddComponent<TrackingFireball>();
+                projectile.Init(host.transform, 30f, Layers.PlayerMask, enemy, 10f, 3f);
+                Set(guard, "_raisedAt", Time.time - (late == 0 ? 0f : .3f));
+                Check(projectile.GuardInfo.type == DamageType.Magic, "유도탄의 실제 피해와 가드 비용은 같은 마법 속성");
+                Check(PlayerParryController.TryBlockProjectile(projectile, health)
+                    && guard.GuardAmount == (late == 0 ? 85f : 70f)
+                    && guard.LastBlockWasPerfect == (late == 0), "투사체 도착 시점으로 퍼펙트/일반 방어 구분");
             }
             // 한 번의 스캔에서 여러 공격을 처리하고, 한 공격의 중복 콜라이더는 다시 세지 않는다.
             host.transform.position = new Vector3(10000f, 10000f, 0f);
@@ -345,9 +571,9 @@ public static class GuardControlsSetup
             }
             Physics2D.SyncTransforms();
             typeof(PlayerParryController).GetMethod("ScanIncoming", Fields).Invoke(guard, new object[] { scanConfig });
-            Check(successes == beforeScan + 4 && guard.IsParrying, "동시 투사체 2개/근접 2개 모두 방어, 중복 콜라이더 무시");
-            Check(Mathf.Abs(guard.CooldownRemaining - 2.25f) < .05f, "동시 방어도 환급은 사용당 한 번");
-            Debug.Log("[GuardCheck] PASS — repeated and simultaneous attacks, reflection, ownership, duplicate colliders, one refund.");
+            Check(successes == beforeScan + 4 && !guard.IsParrying && guard.GuardBroken && guard.GuardAmount == 0f,
+                "동시 4공격 방어 후 소진, 중복 콜라이더로 게이지를 더 깎지 않음");
+            Debug.Log("[GuardCheck] PASS — repeated and simultaneous attacks, reflection, ownership, duplicate colliders, gauge consumption.");
         }
         finally
         {
@@ -357,6 +583,7 @@ public static class GuardControlsSetup
             Object.DestroyImmediate(host);
             Object.DestroyImmediate(enemy);
             activeField.SetValue(null, previousGuard);
+            InventoryManager.Instance = previousInventory;
         }
     }
 
@@ -366,14 +593,17 @@ public static class GuardControlsSetup
         Set(guard, "_activeSelf", health);
         Set(guard, "_activeAimDir", Vector2.right);
         Set(guard, "_isParrying", true);
-        Set(guard, "_blockedAny", false);
-        Set(guard, "_windowEnd", Time.time + config.activeDuration);
-        Set(guard, "_cooldownEnd", Time.time + config.cooldownDuration);
+        Set(guard, "_guard", 100f);
+        Set(guard, "_guardBroken", false);
+        Set(guard, "_raisedAt", Time.time - 1f);
         typeof(PlayerParryController).GetField("_active", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, guard);
         var player = (PlayerController)typeof(PlayerParryController).GetField("_player", Fields).GetValue(guard);
         player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, config.moveSpeedMultiplier);
         player.canChangeState = false; // 비활성 테스트 객체에서는 LockAnimState의 타임아웃 코루틴을 시작하지 않는다.
     }
+    private static void Tick(PlayerParryController guard, float dt, float now) =>
+        typeof(PlayerParryController).GetMethod("TickGauge", Fields).Invoke(guard, new object[] { dt, now });
+
     private static void Set(object obj, string field, object value) => obj.GetType().GetField(field, Fields).SetValue(obj, value);
     private static void Check(bool condition, string label) { if (!condition) throw new Exception("[GuardCheck] FAIL: " + label); }
 }

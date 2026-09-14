@@ -61,6 +61,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] PlayerAnimationState currentAnimState;
 
     private bool _inputBlocked = false; // [추가] 맵 생성 중 입력 차단용
+    public bool IsInputBlocked => _inputBlocked;
 
     /// <summary>
     /// 기절/빙결/경직으로 행동이 막혀 있는가.
@@ -91,6 +92,7 @@ public class PlayerController : MonoBehaviour
         if (blocked) PopupSystem.HideInteractionIcon();
         if (blocked)
         {
+            GetComponent<PlayerParryController>()?.StopGuard();
             moveInput = Vector2.zero;
             MoveDirection = Vector3.zero;
             if (_rb != null) _rb.linearVelocity = Vector2.zero;
@@ -578,17 +580,12 @@ public class PlayerController : MonoBehaviour
 
     public void OnParry(InputAction.CallbackContext context)
     {
+        var parryCtrl = GetComponent<PlayerParryController>();
+        // UI/일시정지 중에 뗀 입력도 반드시 해제한다.
+        if (context.canceled) { parryCtrl?.SetGuardHeld(false); return; }
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
         if (_inputBlocked || stat.Health.IsDead) return;
-
-        if (context.started)
-        {
-            var parryCtrl = GetComponent<PlayerParryController>();
-            if (parryCtrl != null)
-            {
-                parryCtrl.TryStartParry();
-            }
-        }
+        if (context.started) parryCtrl?.SetGuardHeld(true);
     }
 
     public void OnDash(InputAction.CallbackContext context)
@@ -598,7 +595,7 @@ public class PlayerController : MonoBehaviour
 
         if (context.performed)
         {
-            // 단발 가드의 판정/실패 후딜 중에는 대쉬로 취소하지 않는다.
+            // 유지형 가드는 내리고 대쉬한다.
             var parryCtrl = GetComponent<PlayerParryController>();
             if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
 
@@ -625,7 +622,7 @@ public class PlayerController : MonoBehaviour
 
         if (context.performed)
         {
-            // 단발 가드의 판정/실패 후딜 중에는 소환수 스킬로 취소하지 않는다.
+            // 유지형 가드는 내리고 소환수 스킬을 사용한다.
             var parryCtrl = GetComponent<PlayerParryController>();
             if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
 
@@ -845,6 +842,7 @@ public void OnGemTree(InputAction.CallbackContext context)
     /// </summary>
     public void CanChangeAnimState()
     {
+        if (GetComponent<PlayerParryController>() is var guard && guard != null && guard.IsParrying) return;
         canChangeState = true;
 
         if (_animStateLockTimeoutCoroutine != null)
@@ -865,7 +863,8 @@ public void OnGemTree(InputAction.CallbackContext context)
         canChangeState = false;
 
         if (_animStateLockTimeoutCoroutine != null) StopCoroutine(_animStateLockTimeoutCoroutine);
-        _animStateLockTimeoutCoroutine = StartCoroutine(AnimStateLockTimeoutRoutine(maxLockDuration));
+        _animStateLockTimeoutCoroutine = maxLockDuration > 0f
+            ? StartCoroutine(AnimStateLockTimeoutRoutine(maxLockDuration)) : null;
     }
 
     private System.Collections.IEnumerator AnimStateLockTimeoutRoutine(float duration)

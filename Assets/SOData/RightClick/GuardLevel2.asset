@@ -18,9 +18,6 @@ MonoBehaviour:
   config:
     type: 3
     level: 2
-    activeDuration: 0.4
-    recoveryDuration: 0.3
-    cooldownDuration: 3
     moveSpeedMultiplier: 0.3
     radius: 2.5
     angle: 160

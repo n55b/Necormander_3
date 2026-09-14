@@ -13,6 +13,8 @@ public class TrackingFireball : Projectile
     private float trackingHalfAngle = 75f;
 
     protected Transform _targetTransform;
+    public override DamageInfo GuardInfo => new DamageInfo(_damage, DamageType.Magic, _shooter,
+        category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: HitFromPoint);
 
     public void Init(Transform target, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
     {
@@ -51,19 +53,6 @@ public class TrackingFireball : Projectile
             Mathf.Max(0f, turnSpeedDegrees) * Mathf.Max(0f, deltaTime));
         _direction = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
         if (rotateToDirection) transform.rotation = Quaternion.Euler(0f, 0f, angle);
-    }
-
-    protected override void OnHitTarget(CharacterStat targetStat)
-    {
-        if (GuardConsumed || PlayerParryController.TryBlockProjectile(this, targetStat.Health)) return;
-        // 화염구는 마법 데미지로 처리 (26/07/17: 주석대로 실제 Magic 태그를 달았다)
-        // isRanged/hitFrom 은 베이스의 IDamageable 경로와 반드시 같아야 한다 — 지금은 그쪽이 먼저
-        // 잡아서 여기까지 안 오지만, 빠뜨려 두면 나중에 경로가 바뀌는 순간 유도탄이 '근접'이 된다.
-        DamageInfo info = new DamageInfo(_damage, DamageType.Magic, _shooter,
-                                         category: _isDeflected ? DamageCategory.Parry : DamageCategory.None,
-                                         isRanged: true, hitFrom: HitFromPoint);
-        targetStat.Health.GetDamage(info);
-        Destroy(gameObject);
     }
 
     public override void InitDeflected(Vector2 newDirection, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)

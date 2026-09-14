@@ -44,7 +44,6 @@ public void Initialize()
         {
             _parry.OnParryStart   += OnParryStart;
             _parry.OnParrySuccess += OnParrySuccess;
-            _parry.OnParryFail    += OnParryFail;
         }
         if (_health != null) _health.OnDamageTaken  += OnPlayerHurt;
         DamageEventBus.OnDamageReceived += OnDamageReceived;
@@ -61,7 +60,6 @@ private void OnDestroy()
         {
             _parry.OnParryStart   -= OnParryStart;
             _parry.OnParrySuccess -= OnParrySuccess;
-            _parry.OnParryFail    -= OnParryFail;
         }
         if (_health != null) _health.OnDamageTaken  -= OnPlayerHurt;
         DamageEventBus.OnDamageReceived -= OnDamageReceived;
@@ -76,7 +74,7 @@ private void OnDodge()
         SoundManager.Instance.PlaySFX(soundData.GetDodgeClip(), soundData.dodgeVolume);
     }
 
-    // ─── 패리 사운드 3개 (시작 / 성공 / 실패) ──────────────────
+    // ─── 가드 사운드 (시작 / 방어 성공) ──────────────────
     private void OnParryStart()
     {
         if (soundData == null || SoundManager.Instance == null) return;
@@ -87,12 +85,6 @@ private void OnDodge()
     {
         if (soundData == null || SoundManager.Instance == null) return;
         SoundManager.Instance.PlaySFX(soundData.GetParrySuccessClip(), soundData.parrySuccessVolume);
-    }
-
-    private void OnParryFail()
-    {
-        if (soundData == null || SoundManager.Instance == null) return;
-        SoundManager.Instance.PlaySFX(soundData.GetParryFailClip(), soundData.parryFailVolume);
     }
 
     

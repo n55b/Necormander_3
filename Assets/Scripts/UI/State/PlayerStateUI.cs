@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 /// <summary>
 /// PlayerState UI - 플레이어 체력, 골드, 부활 타이머 표시.
-/// Space 미니언 / 우클릭 가드 아이콘 + 쿨타임 Fill 오버레이 표시.
+/// Space 미니언 쿨타임과 우클릭 가드 게이지 표시.
 /// </summary>
 public class PlayerStateUI : MonoBehaviour
 {
@@ -48,6 +48,12 @@ public class PlayerStateUI : MonoBehaviour
              "무채색 스프라이트(UI_HpbarWhite)라 Image 의 Color 로 원하는 색을 낼 수 있다.")]
     [SerializeField] private Image shieldSprite;
     [SerializeField] private TextMeshProUGUI hpText;
+
+    [Header("가드 게이지 (HUD 프리팹에 배치)")]
+    [SerializeField] private Image guardGaugeFill;
+    [SerializeField] private TextMeshProUGUI guardGaugeText;
+    [SerializeField] private Color guardReadyColor = new Color(0.2f, 0.6f, 1f, 1f);
+    [SerializeField] private Color guardBrokenColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
     [Header("Gold Settings")]
     [SerializeField] private TextMeshProUGUI goldText;
@@ -149,6 +155,7 @@ public class PlayerStateUI : MonoBehaviour
     {
         RefreshGold();
         RefreshBars();   // 보호막은 피해/회복 이벤트 없이도 변한다 → 폴링
+        RefreshGuardGauge();
         UpdateSkillCooldowns();
     }
 
@@ -232,7 +239,7 @@ public class PlayerStateUI : MonoBehaviour
         if (_skillCtrl == null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
             _skillCtrl = GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>();
         if (minionSkillSlot != null) RefreshMinionSlot(minionSkillSlot);
-        if (_skillCtrl != null) _guardCtrl = _skillCtrl.GetComponent<PlayerParryController>();
+        if (_playerHealth != null) _guardCtrl = _playerHealth.GetComponentInParent<PlayerParryController>();
         var rc = InventoryManager.Instance != null ? InventoryManager.Instance.EquippedRightClick : null;
         if (guardSlot != null && guardSlot.SkillIcon != null && rc != null)
         {
@@ -247,19 +254,20 @@ public class PlayerStateUI : MonoBehaviour
     private void UpdateSkillCooldowns()
     {
         if (_skillCtrl != null && minionSkillSlot != null) UpdateMinionCooldown(minionSkillSlot);
-        if (_guardCtrl != null && guardSlot != null)
+    }
+
+    private void RefreshGuardGauge()
+    {
+        if (_guardCtrl == null) return;
+        Color color = _guardCtrl.GuardBroken ? guardBrokenColor : guardReadyColor;
+        if (guardGaugeFill != null)
         {
-            float remaining = _guardCtrl.CooldownRemaining;
-            var rc = InventoryManager.Instance != null ? InventoryManager.Instance.EquippedRightClick : null;
-            float max = rc != null ? rc.config.cooldownDuration : 3f;
-            if (guardSlot.CooldownFill != null)
-            {
-                guardSlot.CooldownFill.gameObject.SetActive(remaining > 0f);
-                guardSlot.CooldownFill.fillAmount = max > 0f ? Mathf.Clamp01(remaining / max) : 0f;
-            }
-            if (guardSlot.CooldownText != null)
-                guardSlot.CooldownText.text = remaining > 0f ? remaining.ToString("0.0") : "";
+            SetFill(guardGaugeFill, _guardCtrl.GuardFraction);
+            guardGaugeFill.color = color;
         }
+        if (guardGaugeText != null)
+            guardGaugeText.SetText("{0} / {1}", Mathf.Ceil(_guardCtrl.GuardAmount), _guardCtrl.GuardCapacity);
+        if (guardSlot?.SkillIcon != null) guardSlot.SkillIcon.color = _guardCtrl.GuardBroken ? guardBrokenColor : Color.white;
     }
 
     private MainMinionDataSO EquippedMainSummon =>

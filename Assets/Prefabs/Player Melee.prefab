@@ -1574,6 +1574,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   parryTelegraphPrefab: {fileID: 0}
   emptyMessage: "\uC6B0\uD074\uB9AD \uC5C6\uC74C!"
+  maxGuard: 100
+  perfectGuardWindow: 0.2
+  guardRegenPerSecond: 3
+  guardRegenDelay: 1
+  guardBreakRecoveryDuration: 12
 --- !u!1 &9147274299791283214
 GameObject:
   m_ObjectHideFlags: 0

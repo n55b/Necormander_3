@@ -1,17 +1,27 @@
 using UnityEngine;
-using System.Collections;
 
-/// <summary>한 번 누르면 지속시간 동안 전방 공격을 방어하는 가드. 레벨별 수치는 RightClickDataSO가 관리한다.</summary>
+/// <summary>우클릭을 누르는 동안 게이지로 전방 공격을 방어한다. 기존 입력/성공 이벤트 배선을 유지한다.</summary>
 public class PlayerParryController : MonoBehaviour
 {
     [SerializeField] private GameObject parryTelegraphPrefab;
     [SerializeField] private string emptyMessage = "우클릭 없음!";
+    [Header("가드 게이지")]
+    [SerializeField, Min(1f)] private float maxGuard = 100f;
+    [SerializeField, Min(0f), Tooltip("가드를 올린 뒤 실제 방어까지 이 시간 이내면 소모량이 절반이다.")]
+    private float perfectGuardWindow = 0.2f;
+    [SerializeField, Min(0f)] private float guardRegenPerSecond = 3f;
+    [SerializeField, Min(0f), Tooltip("가드를 내린 뒤 자연 회복을 기다리는 시간.")]
+    private float guardRegenDelay = 1f;
+    [SerializeField, Min(0.01f), Tooltip("소진 즉시 회복을 시작하고 이 시간 후 100%가 되어 다시 사용할 수 있다.")]
+    private float guardBreakRecoveryDuration = 12f;
+
     private PlayerController _player;
-    private Coroutine _parryCoroutine;
+    private MeleeDodgeController _dodge;
     private bool _isParrying;
-    private bool _blockedAny;
-    private float _cooldownEnd;
-    private float _windowEnd;
+    private float _guard = 100f;
+    private bool _guardBroken;
+    private float _raisedAt;
+    private float _recoverAt;
     private static PlayerParryController _active;
     private RightClickConfig _activeConfig;
     private CharacterHealth _activeSelf;
@@ -22,27 +32,63 @@ public class PlayerParryController : MonoBehaviour
 
     public event System.Action OnParryStart;
     public event System.Action OnParrySuccess;
-    public event System.Action OnParryFail;
     public bool IsParrying => _isParrying;
-    public float CooldownRemaining => Mathf.Max(0f, _cooldownEnd - Time.time);
-    public bool TryInterruptForAction() => !_isParrying;
-    private bool WindowOpen => _active == this && _isParrying && Time.time < _windowEnd;
+    public float GuardAmount => _guard;
+    public float GuardCapacity => Mathf.Max(1f, maxGuard);
+    public float GuardFraction => Mathf.Clamp01(_guard / GuardCapacity);
+    public bool GuardBroken => _guardBroken;
+    public bool LastBlockWasPerfect { get; private set; }
+    private bool WindowOpen => _active == this && _isParrying && !_guardBroken && _guard > 0f;
+    private bool IsDashing => _player.IsDashing || (_dodge != null && _dodge.IsDashing);
 
-    private void Awake() => _player = GetComponent<PlayerController>();
-
-    private void OnDisable()
+    private void Awake()
     {
-        if (_parryCoroutine != null) StopCoroutine(_parryCoroutine);
-        CloseWindow();
-        DestroyTelegraph();
-        _parryCoroutine = null;
-        _isParrying = false;
-        _blockedAny = false;
-        if (_player != null)
+        _player = GetComponent<PlayerController>();
+        _dodge = GetComponent<MeleeDodgeController>();
+        _guard = GuardCapacity;
+    }
+
+    private void OnDisable() => StopGuard();
+    private void OnApplicationFocus(bool focused) { if (!focused) StopGuard(); }
+
+    private void Update()
+    {
+        if (_player == null || _player.Stat == null || _player.Stat.Health.IsDead
+            || _player.IsInputBlocked || Time.timeScale == 0f)
         {
-            _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.Parry);
-            _player.CanChangeAnimState();
+            StopGuard();
+            return;
         }
+        if (_player.IsCCed || IsDashing) StopGuard();
+        if (_isParrying)
+        {
+            UpdateAim(AimDir());
+            ScanIncoming(_activeConfig);
+        }
+        else TickGauge(Time.deltaTime, Time.time);
+    }
+
+    private void TickGauge(float deltaTime, float now)
+    {
+        if (_isParrying || deltaTime <= 0f) return;
+        // 일반 회복은 지연을 넘긴 프레임의 일부만, 소진 회복은 지연 없이 12초 전체를 쓴다.
+        float elapsed = _guardBroken ? deltaTime : Mathf.Clamp(now - _recoverAt, 0f, deltaTime);
+        float rate = _guardBroken ? GuardCapacity / Mathf.Max(0.01f, guardBreakRecoveryDuration)
+                                 : Mathf.Max(0f, guardRegenPerSecond);
+        _guard = Mathf.Min(GuardCapacity, _guard + elapsed * rate);
+        if (_guard >= GuardCapacity - 0.0001f) { _guard = GuardCapacity; _guardBroken = false; }
+    }
+
+    public void SetGuardHeld(bool held)
+    {
+        if (held) TryStartParry();
+        else StopGuard();
+    }
+
+    public bool TryInterruptForAction()
+    {
+        StopGuard();
+        return true;
     }
 
     /// <summary>장판/돌진은 발생 지점에서 bypassGuard. 찌르기는 이동하더라도 일반 공격이다.</summary>
@@ -59,18 +105,20 @@ public class PlayerParryController : MonoBehaviour
     public static bool Intercept(CharacterHealth target, ref DamageInfo info)
     {
         var guard = _active;
-        if (guard == null || !guard.WindowOpen || target != guard._activeSelf || !CanGuard(info)) return false;
+        if (guard == null || !guard.WindowOpen || target == null || target.IsDead
+            || target != guard._activeSelf || !CanGuard(info)) return false;
         Vector2 source = info.hitFrom ?? (Vector2)info.attacker.transform.position;
         if (!guard.IsInAimCone(source)) return false;
-        guard.Succeed();
-        return true; // 피해뿐 아니라 해당 타격의 경직/넉백/상태이상도 생략한다.
+        guard.Block(info);
+        return true; // 소진시키는 마지막 타격까지 피해/경직/넉백/상태이상을 완전히 막는다.
     }
 
-    /// <summary>영역 스캔과 실제 충돌 모두 같은 관문. Update보다 먼저 닿은 투사체도 반사한다.</summary>
+    /// <summary>영역 스캔과 실제 충돌이 같은 방어/소모 경로를 쓴다. 같은 탄은 한 번만 소모한다.</summary>
     public static bool TryBlockProjectile(Projectile projectile, CharacterHealth target = null)
     {
         var guard = _active;
-        if (guard == null || !guard.WindowOpen || projectile == null || projectile.GuardConsumed
+        if (guard == null || !guard.WindowOpen || guard._activeSelf == null || guard._activeSelf.IsDead
+            || projectile == null || projectile.GuardConsumed
             || (target != null && target != guard._activeSelf)
             || (projectile.TargetLayer.value & Layers.PlayerMask) == 0
             || !CanGuard(projectile.GuardInfo)) return false;
@@ -83,8 +131,7 @@ public class PlayerParryController : MonoBehaviour
             ? (Vector2)(shooter.transform.position - projectile.transform.position) : -projectile.Direction;
         bool reflect = guard._activeConfig.CanReflect;
         projectile.GuardConsumed = true;
-        // 투사체 소비와 최초 성공을 먼저 기록해 재진입해도 같은 탄/쿨타임 환급은 중복 처리하지 않는다.
-        guard.Succeed();
+        guard.Block(projectile.GuardInfo);
         if (reflect) projectile.Deflect(guard.gameObject, Layers.EnemyMask, returnDir);
         else Destroy(projectile.gameObject);
         return true;
@@ -96,86 +143,73 @@ public class PlayerParryController : MonoBehaviour
         {
             var inven = InventoryManager.Instance;
             var so = inven != null ? inven.EquippedRightClick : null;
-
             if (so == null)
             {
                 var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null
-                    ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY()
-                    : null;
+                    ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY() : null;
                 so = registry != null ? registry.ResolveDefaultRightClick() : null;
             }
-
             var rc = so != null ? so.config : null;
             return (rc != null && rc.IsValid) ? rc : null;
         }
     }
 
-    /// <summary>현재 마우스 조준 방향. 실패하면 오른쪽.</summary>
     private Vector2 AimDir()
     {
         var cam = Camera.main;
         var mouse = UnityEngine.InputSystem.Mouse.current;
         if (cam == null || mouse == null) return Vector2.right;
-
         Vector3 mousePos = cam.ScreenToWorldPoint(mouse.position.ReadValue());
-        mousePos.z = 0;
         Vector2 dir = ((Vector2)(mousePos - transform.position)).normalized;
         return dir.sqrMagnitude < 0.0001f ? Vector2.right : dir;
     }
 
-    private void FaceAim(Vector2 aimDir)
+    private void UpdateAim(Vector2 dir)
     {
-        if (aimDir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
-        else if (aimDir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
+        _activeAimDir = dir;
+        if (dir.x != 0f)
+            transform.localScale = new Vector3(dir.x > 0f ? -1f : 1f, transform.localScale.y, transform.localScale.z);
+        if (_telegraph == null) return;
+        _telegraph.transform.SetPositionAndRotation(transform.position,
+            Quaternion.Euler(0f, 0f, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg));
     }
-
 
     public void TryStartParry()
     {
-        if (_isParrying || CooldownRemaining > 0f || _player == null || _player.Stat == null
-            || _player.Stat.Health.IsDead || _player.IsDashing || _player.IsCCed) return;
+        if (_isParrying || _guardBroken || _guard <= 0f || _player == null || _player.Stat == null
+            || _player.IsInputBlocked || Time.timeScale == 0f || _player.Stat.Health.IsDead
+            || IsDashing || _player.IsCCed) return;
         var rc = EquippedRightClick;
         if (rc == null) { Announce(emptyMessage); return; }
         var melee = GetComponent<MeleeCombatController>();
-        if (melee != null && melee.IsAttacking) melee.CancelPlayerAttack();
-        var aim = AimDir();
-        FaceAim(aim);
+        if (melee != null && melee.IsInAttackAction) melee.CancelPlayerAttack();
         _activeConfig = rc;
         _activeSelf = _player.Stat.Health;
-        _activeAimDir = aim;
-        _cooldownEnd = Time.time + Mathf.Max(0f, rc.cooldownDuration);
-        _windowEnd = Time.time + Mathf.Max(0f, rc.activeDuration);
+        _raisedAt = Time.time;
         _active = this;
         _isParrying = true;
-        _blockedAny = false;
+        LastBlockWasPerfect = false;
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, rc.moveSpeedMultiplier);
-        _player.LockAnimState();
+        _player.LockAnimState(0f); // 가드를 내릴 때 직접 해제. 3초 타임아웃으로 홀드 자세가 풀리면 안 된다.
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Parry", "Idle");
-        _telegraph = CreateTelegraphSector(aim, rc, -1f);
+        _telegraph = CreateTelegraphSector(AimDir(), rc, -1f);
+        UpdateAim(AimDir());
         OnParryStart?.Invoke();
-        _parryCoroutine = StartCoroutine(WindowRoutine(rc));
     }
 
-    private IEnumerator WindowRoutine(RightClickConfig rc)
+    public void StopGuard()
     {
-        while (WindowOpen)
-        {
-            if (_player.Stat.Health.IsDead || _player.IsCCed) break;
-            if (_telegraph != null) _telegraph.transform.position = transform.position;
-            ScanIncoming(rc);
-            if (!_isParrying) yield break; // 이벤트에서 비활성화된 경우 즉시 정리한다.
-            yield return null;
-        }
-        if (!_isParrying) yield break;
-        CloseWindow();
+        if (_active == this) _active = null;
+        if (!_isParrying) return;
+        _isParrying = false;
+        _recoverAt = Time.time + Mathf.Max(0f, guardRegenDelay);
         DestroyTelegraph();
-        if (!_blockedAny)
-        {
-            OnParryFail?.Invoke();
-            if (rc.recoveryDuration > 0f) yield return new WaitForSeconds(rc.recoveryDuration);
-        }
-        EndStance();
+        if (_player == null) return;
+        _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.Parry);
+        _player.CanChangeAnimState();
+        _player.ResetAnimStateCache();
+        _player.PlayAllAnim("Idle");
     }
 
     private void ScanIncoming(RightClickConfig rc)
@@ -185,17 +219,13 @@ public class PlayerParryController : MonoBehaviour
             if (!WindowOpen) break;
             if (col == null || !col.enabled || !col.gameObject.activeInHierarchy) continue;
             var projectile = col.GetComponentInParent<Projectile>();
-            if (projectile != null)
-            {
-                TryBlockProjectile(projectile);
-                continue;
-            }
+            if (projectile != null) { TryBlockProjectile(projectile); continue; }
             var box = col.GetComponentInParent<BaseHitBox>();
             if (box == null || !box.IsLive || box.HasHitAnyone || !box.Targets(Layers.Player)
                 || !CanGuard(box.Info) || !IsInAimCone(box.transform.position)) continue;
-            box.gameObject.SetActive(false); // Destroy가 지연되어 같은 프레임에 다시 맞는 것 방지
+            box.gameObject.SetActive(false);
             Destroy(box.gameObject);
-            Succeed();
+            Block(box.Info);
         }
     }
 
@@ -205,28 +235,18 @@ public class PlayerParryController : MonoBehaviour
         return to.sqrMagnitude < 0.0001f || Vector2.Angle(_activeAimDir, to) <= _activeConfig.angle * 0.5f;
     }
 
-    private void Succeed()
+    private void Block(DamageInfo info)
     {
-        if (!WindowOpen) return;
-        if (!_blockedAny)
+        float damage = _activeSelf.CalculateGuardDamage(info);
+        LastBlockWasPerfect = Time.time - _raisedAt <= Mathf.Max(0f, perfectGuardWindow);
+        _guard = Mathf.Max(0f, _guard - damage * (LastBlockWasPerfect ? 0.5f : 1f));
+        _player?.RecordCombatAction();
+        if (_guard <= 0f)
         {
-            _blockedAny = true;
-            _cooldownEnd = Mathf.Max(Time.time, _cooldownEnd - _activeConfig.SuccessRefund);
+            _guardBroken = true;
+            StopGuard();
         }
-        // 성공해도 시간/자세/인디케이터를 유지한다. 추가 타격은 방어하되 지속시간을 연장하지 않는다.
         OnParrySuccess?.Invoke();
-    }
-
-    private void CloseWindow() { if (_active == this) _active = null; }
-
-    private void EndStance()
-    {
-        _isParrying = false;
-        _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.Parry);
-        _player.CanChangeAnimState();
-        _player.ResetAnimStateCache();
-        _player.PlayAllAnim("Idle");
-        _parryCoroutine = null;
     }
 
     private void DestroyTelegraph()

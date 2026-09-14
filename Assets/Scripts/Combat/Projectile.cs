@@ -17,7 +17,8 @@ public class Projectile : MonoBehaviour
     protected Vector2 _direction;
     public bool GuardConsumed { get; set; }
     public GameObject Shooter => _shooter;
-    public DamageInfo GuardInfo => new DamageInfo(_damage, DamageType.Physical, _shooter, isRanged: true, hitFrom: HitFromPoint);
+    public virtual DamageInfo GuardInfo => new DamageInfo(_damage, DamageType.Physical, _shooter,
+        category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: HitFromPoint);
 
     protected bool _isDeflected; // 패리로 반사된 투사체인가. 반사 데미지는 갈래=Parry 로 태그한다.
     protected System.Collections.Generic.HashSet<Collider2D> _ignoredColliders = new System.Collections.Generic.HashSet<Collider2D>();
@@ -136,7 +137,7 @@ public class Projectile : MonoBehaviour
                 // 화살인지 주먹인지 구분할 방법이 없다(우클릭 카운터/가드가 근접만 받아친다).
                 // hitFrom: 맞은 쪽이 '어디서 날아왔는지'를 알아야 방향 판정을 할 수 있다.
                 // attacker 는 쏜 본체라, 유도탄이면 실제 비행 방향과 전혀 다른 곳을 가리킨다.
-                DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: HitFromPoint);
+                DamageInfo info = GuardInfo;
                 damageable.TakeDamage(info);
                 Destroy(gameObject);
                 return;
@@ -180,7 +181,7 @@ public class Projectile : MonoBehaviour
     protected virtual void OnHitTarget(CharacterStat targetStat)
     {
         if (GuardConsumed || PlayerParryController.TryBlockProjectile(this, targetStat.Health)) return;
-        DamageInfo info = new DamageInfo(_damage, DamageType.Physical, _shooter, 1f, category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: HitFromPoint);
+        DamageInfo info = GuardInfo;
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
     }
