@@ -170,7 +170,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
                     // Status(디버프)에 Hitstunned 등을 0.2초 정도 추가해 경직을 줄 수도 있습니다.
                     if (_status != null)
                     {
-                        _status.ApplyStatus(StatusType.Hitstun, 0.2f); // 0.2초 경직
+                        _status.ApplyStatus(StatusType.Hitstun, info.hitstunDuration ?? 0.2f);
                     }
                 }
 
@@ -304,6 +304,11 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         DamageEventBus.TriggerBeforeDamageCalculated(this, ref info);
 
         float remainingDamage = info.amount;
+        if (info.attacker != null && DamageRules.IsEnemyTier(info.category))
+        {
+            var sourceStatus = ResolveStatus(info.attacker);
+            if (sourceStatus != null) remainingDamage *= sourceStatus.FrostAuraMultiplier;
+        }
 
         // 공격 스탯 주인(플레이어/적/미니언→플레이어). 증폭·크리가 전부 이 하나에서 나온다.
         // 예전엔 크리만 여기서 info.attacker 를 직접 뒤졌는데, 미니언 시전자엔 스탯이 없어

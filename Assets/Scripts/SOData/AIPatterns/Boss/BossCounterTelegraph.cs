@@ -133,7 +133,7 @@ public static class BossCounterTelegraph
 
                 if (result != null) result.Elapsed = t;
                 onTick?.Invoke();
-                t += Time.deltaTime;
+                t += entity.ActionDeltaTime;
                 yield return null;
             }
         }

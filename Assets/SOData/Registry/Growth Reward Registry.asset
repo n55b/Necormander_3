@@ -20,9 +20,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4eaa41374a0592a43a6926f9626fc7db, type: 2}
   specialAbilities: []
   equipments:
-  - {fileID: 11400000, guid: ce696d1b192c8b740a95face81051be4, type: 2}
-  - {fileID: 11400000, guid: f3a75dc651483514287ad726b9ac670c, type: 2}
-  - {fileID: 11400000, guid: bc110321650c07a4e963feceea3b7dd6, type: 2}
+  - {fileID: 11400000, guid: 37ae12220b5789c4aa591f9ae39770b6, type: 2}
+  - {fileID: 11400000, guid: eb105fa4b6770214ca5278f80a991a91, type: 2}
+  - {fileID: 11400000, guid: 3c5d8dae69cb16a4e9d90bc445c34ed9, type: 2}
+  - {fileID: 11400000, guid: 3b65d2001a2999e4f97a210d1411be5a, type: 2}
+  - {fileID: 11400000, guid: bc6b4ced92909f145b3e9e3d5ea9095a, type: 2}
+  - {fileID: 11400000, guid: e7645dc47b61c4941b4f3209e52df868, type: 2}
+  - {fileID: 11400000, guid: eacedac5fc5b470418f811150ad227b4, type: 2}
+  - {fileID: 11400000, guid: f638e7f25c1305a40bfb2ad958d3776c, type: 2}
+  - {fileID: 11400000, guid: 63c59fcd0f8d8394ca290884739a55fb, type: 2}
   items:
   - {fileID: 11400000, guid: 9c1e4b7a2f5d40e4a83b6c1d7e9f2a34, type: 2}
   - {fileID: 11400000, guid: 4d8a3f6b1c2e59f4b7a2d8e3f1c6b5a9, type: 2}

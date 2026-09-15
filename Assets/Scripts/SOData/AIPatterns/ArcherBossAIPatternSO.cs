@@ -180,11 +180,11 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     // ==========================================
     private void HandleP1Loop(BaseEntity entity)
     {
-        loopDuration += Time.deltaTime;
+        loopDuration += ActionDeltaTime;
         
         // 공속 계산 (최대 1.4까지 서서히 증가)
         float speedMult = 1.0f + Mathf.Min(loopDuration, attackSpeedRampTime) / attackSpeedRampTime * (maxAttackSpeedMultiplier - 1.0f);
-        attackTimer -= Time.deltaTime * speedMult;
+        attackTimer -= ActionDeltaTime * speedMult;
 
         if (attackTimer <= 0f)
         {
@@ -205,13 +205,13 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     {
         archerCurrentState = ArcherState.P1_Pattern1;
         stateTimer = bombardmentDuration;
-        bombardmentCoroutine = entity.StartCoroutine(BombardmentRoutine(entity));
+        bombardmentCoroutine = entity.StartActionCoroutine(BombardmentRoutine(entity));
         Debug.Log("<color=green>[ArcherBoss]</color> Phase 1 Pattern 1: Bombardment!");
     }
 
     private void HandlePattern1(BaseEntity entity)
     {
-        stateTimer -= Time.deltaTime;
+        stateTimer -= ActionDeltaTime;
         if (stateTimer <= 0f)
         {
             EnterStunned(entity, true); // 패턴 1 종료 후 상자 드랍 기절
@@ -228,7 +228,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     private void HandlePattern2(BaseEntity entity)
     {
-        p2SubTimer -= Time.deltaTime;
+        p2SubTimer -= ActionDeltaTime;
         if (p2SubTimer <= 0f)
         {
             if (p2SubState == 0)
@@ -272,7 +272,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     private void HandleStunned(BaseEntity entity)
     {
-        stateTimer -= Time.deltaTime;
+        stateTimer -= ActionDeltaTime;
         if (stateTimer <= 0f)
         {
             // 초기화 후 루프 복귀
@@ -287,10 +287,10 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     // ==========================================
     private void HandleP2Loop(BaseEntity entity)
     {
-        loopDuration += Time.deltaTime;
+        loopDuration += ActionDeltaTime;
         
         float speedMult = 1.0f + Mathf.Min(loopDuration, attackSpeedRampTime) / attackSpeedRampTime * (maxAttackSpeedMultiplier - 1.0f);
-        attackTimer -= Time.deltaTime * speedMult;
+        attackTimer -= ActionDeltaTime * speedMult;
 
         if (attackTimer <= 0f)
         {
@@ -314,17 +314,17 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     {
         archerCurrentState = ArcherState.P2_Pattern1;
         stateTimer = bombardmentDuration;
-        bombardmentCoroutine = entity.StartCoroutine(BombardmentRoutine(entity));
+        bombardmentCoroutine = entity.StartActionCoroutine(BombardmentRoutine(entity));
         attackTimer = baseAttackInterval; // 공속 1.0 고정
         Debug.Log("<color=red>[ArcherBoss]</color> Phase 2 Pattern 1: Parallel Bombardment + Kiting!");
     }
 
     private void HandleP2Pattern1(BaseEntity entity)
     {
-        stateTimer -= Time.deltaTime;
+        stateTimer -= ActionDeltaTime;
         
         // 거리 유지 기본 사격 (공속 1.0 고정)
-        attackTimer -= Time.deltaTime * 1.0f;
+        attackTimer -= ActionDeltaTime * 1.0f;
         if (attackTimer <= 0f)
         {
             ShootNormalArrow(entity, entity.Target.position);
@@ -380,7 +380,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             return;
         }
 
-        p2SubTimer -= Time.deltaTime;
+        p2SubTimer -= ActionDeltaTime;
         if (p2SubTimer <= 0f)
         {
             if (p2SubState == 0)
@@ -506,11 +506,11 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
                 }
                 
                 // 폭격 주기만큼 대기 후 다음 폭격
-                yield return new WaitForSeconds(bombardmentInterval);
+                yield return WaitForAction(bombardmentInterval);
             }
             else
             {
-                yield return new WaitForSeconds(bombardmentInterval);
+                yield return WaitForAction(bombardmentInterval);
                 // 폭격 데미지 임시 땜빵용 (프리팹 없을 때만)
                 ShootNormalArrow(entity, randomPos); 
             }

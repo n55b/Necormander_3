@@ -168,9 +168,8 @@ public class RewardManager : MonoBehaviour
                 break;
 
             case RewardCategory.Equipment:
-                // 장비를 착용한다(한 자루 원칙 → 기존 장비 교체). 후보는 뜰 때 이미 스킬이 굴려진 인스턴스다.
-                var equipInst = (EquipmentInstance)candidate.rawData;
-                PlayerSkillInventoryManager.Instance?.EquipEquipment(equipInst);
+                // 장비 교체 보상은 폐지. 구형 진열물도 현행 장비를 덮어쓰지 않는다.
+                Debug.LogWarning("[Reward] 장비는 강화 NPC에서 분기를 선택해 강화하세요.");
                 ProcessNextReward();
                 break;
 
@@ -183,7 +182,7 @@ public class RewardManager : MonoBehaviour
                 break;
 
             // [26/08/03 폐지] EquipmentEnhance — 강화는 전용 상점 NPC(EnhanceShopNPC)가
-            // PlayerSkillInventoryManager.EnhanceEquipped() 를 직접 부른다. 보상 파이프라인을 안 탄다.
+            // EnhanceShopNPC가 선택한 무기 분기를 구매한다. 보상 파이프라인을 안 탄다.
 
         }
 

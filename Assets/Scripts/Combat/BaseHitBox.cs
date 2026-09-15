@@ -63,6 +63,7 @@ public class BaseHitBox : MonoBehaviour
     private LayerMask _targetLayer;
     private bool _isInitialized = false;
     private float _elapsed;
+    private BaseEntity _warningOwner;
     // 대상별 '지금까지 때린 횟수'. 공용 타이머를 쓰면 첫 번째 적이 틱을 독점한다.
     // 다음 '시각'이 아니라 '횟수'를 들고 있는 게 핵심 — 아래 OnTriggerStay2D 주석 참조.
     private readonly Dictionary<IDamageable, int> _tickCount = new Dictionary<IDamageable, int>();
@@ -75,6 +76,10 @@ public class BaseHitBox : MonoBehaviour
     // PulseDamageOverlapping() 호출 때마다 겹친 대상을 1회씩 때린다 — OnTriggerStay 재호출(대상이 안 움직여
     // 리지드바디가 잠들면 안 옴)에 의존하지 않아, 넉백 없는 스킬도 다단히트가 온전히 들어간다.
     private bool _manualHitOnly;
+    private int _burstHits;
+    private float _burstInterval;
+    public void SetBurstHits(int hits, float interval)
+    { _burstHits = Mathf.Max(1, hits); _burstInterval = Mathf.Max(0.01f, interval); _manualHitOnly = true; }
     private static readonly List<Collider2D> _overlapScratch = new List<Collider2D>();
 
     /// <summary>이벤트 펄스 전용 타격 모드 on/off. 이벤트당 다단히트(useEvent) 경로에서 켠다.</summary>
@@ -125,13 +130,14 @@ public class BaseHitBox : MonoBehaviour
         _overlapScratch.Clear();
         col.Overlap(filter, _overlapScratch);
 
-        foreach (var hit in _overlapScratch)
+        var damaged = new HashSet<IDamageable>();
+        foreach (var hit in _overlapScratch.ToArray())
         {
             if (hit == null) continue;
             var damageable = hit.GetComponent<IDamageable>()
                 ?? hit.GetComponentInParent<IDamageable>()
                 ?? hit.GetComponentInChildren<IDamageable>();
-            if (damageable == null || damageable.IsDead) continue;
+            if (damageable == null || damageable.IsDead || !damaged.Add(damageable)) continue;
             bool wasFrozen = IsTargetFrozen(hit); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
             damageable.TakeDamage(_damageInfo);
             SpawnHitEffect(hit.transform.position, wasFrozen);
@@ -145,6 +151,7 @@ public class BaseHitBox : MonoBehaviour
         // 지속 장판은 가드 영역 스캔과 직접 피격 양쪽에서 제외한다.
         damageInfo.bypassGuard |= isContinuousDamage;
         _damageInfo = damageInfo;
+        _warningOwner = damageInfo.attacker != null ? damageInfo.attacker.GetComponentInParent<BaseEntity>() : null;
         _targetLayer = targetLayer;
         
         if (overrideDuration > 0)
@@ -175,11 +182,7 @@ public class BaseHitBox : MonoBehaviour
             ActivateHitBox();
         }
 
-        if (destroyOnFinish && duration > 0)
-        {
-            // startDelay가 있으므로 파괴 시간도 늦춰야 함
-            Destroy(gameObject, duration + startDelay);
-        }
+        // 수명은 실제 활성화 뒤 Update에서 센다. 예약 Destroy는 빙결로 멈춘 예고도 지워버린다.
     }
 
     /// <summary>
@@ -225,7 +228,7 @@ public class BaseHitBox : MonoBehaviour
         float timer = 0f;
         while (timer < delay)
         {
-            timer += Time.deltaTime;
+            timer += _warningOwner != null ? _warningOwner.ActionDeltaTime : Time.deltaTime;
             float progress = Mathf.Clamp01(timer / delay);
             
             if (fillingTransform != null)
@@ -265,11 +268,6 @@ public class BaseHitBox : MonoBehaviour
         
         ActivateHitBox();
 
-        // [수정] 애니메이션 타격 프레임에 강제 발동된 시점으로부터 duration만큼 유지 후 삭제
-        if (destroyOnFinish && duration > 0)
-        {
-            Destroy(gameObject, duration);
-        }
     }
 
     private void ActivateHitBox()
@@ -277,16 +275,24 @@ public class BaseHitBox : MonoBehaviour
         _isInitialized = true;
         _elapsed = 0f;
         _tickCount.Clear(); // 대상별 타격 횟수 초기화 (첫 접촉 시 즉시 1타)
+        if (_burstHits > 0) StartCoroutine(BurstHits());
+    }
+
+    private System.Collections.IEnumerator BurstHits()
+    {
+        for (int i = 0; i < _burstHits; i++)
+        {
+            if (i > 0) yield return new WaitForSeconds(_burstInterval);
+            PulseDamageOverlapping();
+        }
     }
 
     private void Update()
     {
         if (!_isInitialized) return;
 
-        if (isContinuousDamage)
-        {
-            _elapsed += Time.deltaTime;
-        }
+        _elapsed += Time.deltaTime;
+        if (destroyOnFinish && duration > 0f && _elapsed >= duration) Destroy(gameObject);
     }
 
     private void OnTriggerStay2D(Collider2D col)

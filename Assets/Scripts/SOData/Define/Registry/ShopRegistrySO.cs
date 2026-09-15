@@ -47,15 +47,7 @@ public class ShopRegistrySO : ScriptableObject
         // minionPool 필드 자체는 남긴다 — 나중에 메인 소환수를 상점에 올릴 여지가 있고,
         // 지우면 이 SO 를 참조하는 에셋의 직렬화가 흔들린다.
 
-        // 장비: 전부 스캔(Deprecated 제외). GrowthRegistry.equipments 와 동일 규칙.
-        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:EquipmentSO"))
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            if (path.Contains("/Deprecated/")) continue;
-
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<EquipmentSO>(path);
-            if (asset != null) equipmentPool.Add(asset);
-        }
+        // 장비는 진열/교체하지 않는다. EnhanceShopNPC의 현재 무기 분기로만 강화한다.
 
         // 아이템: 전부 스캔(Deprecated 제외).
         foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:ItemSO"))

@@ -139,7 +139,7 @@ public class BoneMasterController : EnemyController
     {
         if (routine == null) return;
         StopActivePattern();
-        _activePattern = StartCoroutine(TrackPattern(routine));
+        _activePattern = StartActionCoroutine(TrackPattern(routine));
     }
 
     // inner 를 StartCoroutine 이 아니라 'yield return inner' 로 중첩하는 것이 핵심이다.

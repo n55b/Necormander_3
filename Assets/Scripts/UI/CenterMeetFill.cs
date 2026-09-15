@@ -11,6 +11,8 @@ public class CenterMeetFill : MonoBehaviour
     private float t;
     private bool isFilling = false;
     private bool completed = false;
+    private BaseEntity _owner;
+    private void Awake() => _owner = GetComponentInParent<BaseEntity>();
 
     // 진행도가 다 찼을 때(공격 실행 시점) 호출됩니다.
     public event Action OnFillComplete;
@@ -21,7 +23,7 @@ public class CenterMeetFill : MonoBehaviour
     {
         if(!isFilling) return;
         if (leftFill == null || rightFill == null) return; // 배선이 비면 매 프레임 NRE 가 난다.
-        t += Time.deltaTime / duration;
+        t += (_owner != null ? _owner.ActionDeltaTime : Time.deltaTime) / duration;
         float progress = Mathf.Clamp01(t);
 
         leftFill.fillAmount = progress * 0.5f;

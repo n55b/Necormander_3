@@ -16,10 +16,14 @@ public class MeleeCombatController : MonoBehaviour
 
     private PlayerController _player;
     private float _lastAttackTime;
-    private int _comboStep = 0; // 0, 1 (+ 메인 소환수가 있으면 2 = 소환수 마무리)
+    private int _comboStep = 0; // 장비 단계 - 1까지 플레이어 주먹, 마지막은 미니언 마무리
 
-    /// <summary>플레이어 자체 평타는 2타. 메인 소환수가 있으면 3타째에 소환수 마무리가 붙는다.</summary>
-    private const int PLAYER_COMBO_LENGTH = 2;
+    /// <summary>장비가 콤보 배율과 길이를 정하고 마지막 단계는 미니언에게 맡긴다.</summary>
+    private EquipmentSO Weapon => PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.Weapon : null;
+    private int PlayerComboLength => Weapon != null && Weapon.isRunWeapon ? Weapon.ComboLength - 1 : 2;
+    private float AttackSpeed => Mathf.Max(0.05f, (_player != null ? _player.Stat.ATKSPD : 1f)
+        * (PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.BasicSpeedMultiplier : 1f));
+    private int _weaponAction;
 
     /// <summary>장착된 메인 소환수의 마무리 일격. 없으면 null.</summary>
     private MinionFinisher Finisher
@@ -49,10 +53,10 @@ public class MeleeCombatController : MonoBehaviour
     }
 
     /// <summary>현재 콤보 총 타수. 메인 소환수가 있고 안 바쁘면 +1(3타). 바쁘면 2타만 반복.</summary>
-    private int ComboLength => (Finisher != null && !MinionBusy) ? PLAYER_COMBO_LENGTH + 1 : PLAYER_COMBO_LENGTH;
+    private int ComboLength => (Finisher != null && !MinionBusy) ? PlayerComboLength + 1 : PlayerComboLength;
 
     /// <summary>이번 스텝이 소환수 마무리 차례인가. 미니언이 R로 바쁘면 마무리는 안 나간다.</summary>
-    private bool IsFinisherStep(int step) => Finisher != null && !MinionBusy && step == PLAYER_COMBO_LENGTH;
+    private bool IsFinisherStep(int step) => Finisher != null && !MinionBusy && step == PlayerComboLength;
 
     [Header("콤보 설정")]
     [SerializeField] private float comboResetTime = 1.0f;
@@ -79,7 +83,7 @@ public class MeleeCombatController : MonoBehaviour
     // 콤보 스텝을 함께 전달하는 공격 시작 이벤트 (int = comboStep 0/1/2)
     public event System.Action<int> OnAttackExecuted;
 
-    public bool IsAttacking => _activeHitbox != null || (Time.time - _lastAttackTime) < attackCooldown;
+    public bool IsAttacking => _activeHitbox != null || (Time.time - _lastAttackTime) < attackCooldown / AttackSpeed;
 
     /// <summary>
     /// 취소해야 할 '진행 중 공격'이 있는가 — 평캔/대쉬/패링의 캔슬 게이트 전용.
@@ -175,6 +179,7 @@ public class MeleeCombatController : MonoBehaviour
         if (_comboStep >= ComboLength) _comboStep = 0;
 
         _lastAttackTime = Time.time;
+        _weaponAction = PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.BeginWeaponAction() : 0;
         OnAttackExecuted?.Invoke(_comboStep);
 
         // 마무리 타이밍이면 플레이어는 아무것도 하지 않고, 소환수가 나와서 때린다.
@@ -185,12 +190,14 @@ public class MeleeCombatController : MonoBehaviour
             return;
         }
 
-        float telegraphDuration = lightTelegraphDuration;
+        float telegraphDuration = lightTelegraphDuration / AttackSpeed;
         Vector2 hitboxSize = lightHitboxSize;
         // 평타 1·2타 배율. 예전엔 1.0 하드코딩이었는데, "평타 데미지만 높이는 증감 요소"를
         // 나중에 넣을 수 있게 스탯으로 뺐다. 기본값은 그대로 1.0 이라 동작은 같다.
         // (3타는 소환수 마무리라 여기 안 온다 — 소환수 고유 배율을 쓴다.)
         float damageMultiplier = _player.Stat != null ? _player.Stat.BASIC_ATK_MULT : 1.0f;
+        var weaponHit = Weapon != null && Weapon.isRunWeapon ? Weapon.Hit(_comboStep) : null;
+        if (weaponHit != null) damageMultiplier *= weaponHit.multiplier;
 
         // [애니메이션 재생]
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0f); // [수정] 평타 모션 중 키보드 수동 이동 차단
@@ -203,13 +210,13 @@ public class MeleeCombatController : MonoBehaviour
 
         // ponytail: Attack_Medium(옛 3타) 은 이제 재생하지 않는다. 3타는 소환수 마무리가 대신하고
         // 플레이어는 Idle 로 있는다. 클립 자체는 남겨둠 — 되살릴 때 다시 연결하면 된다.
-        if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
+        if (_comboStep % 2 == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
         else _player.PlayAllAnim("Attack_Light2", "Attack");
 
         // 공속(회/초)이 곧 애니 배속이다. 1회/초 = 1배속, 2회/초 = 2배속.
         if (_player.Stat != null)
         {
-            float atkAnimSpeed = Mathf.Clamp(_player.Stat.ATKSPD, 0.5f, 3f);
+            float atkAnimSpeed = Mathf.Clamp(AttackSpeed, 0.05f, 5f);
             _player.SetAttackAnimSpeed(atkAnimSpeed);
         }
 
@@ -267,10 +274,13 @@ public class MeleeCombatController : MonoBehaviour
                 // 같은 효과는 아이템(ItemDamageBonusEffect)으로 다시 만들 예정이며, 그쪽은
                 // DamageInfo 를 만든 뒤 파이프라인에서 얹히므로 여기서 더할 게 없다.
                 DamageInfo info = new DamageInfo(_player.Stat.ATK * damageMultiplier, DamageType.Physical, this.gameObject, 1f, "", false, causesHitstun: true, knockbackForce: 2f, superArmorDamage: saDmg, category: DamageCategory.BasicAttack);
+                PlayerSkillInventoryManager.Instance?.ConfigureBasicHit(ref info, _weaponAction);
+                int hits = weaponHit != null ? Mathf.Max(1, weaponHit.hits) : 1;
+                if (hits > 1) _activeHitbox.SetBurstHits(hits, Weapon.multiHitInterval);
 
                 LayerMask enemyLayer = Layers.EnemyMask;
                 // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
-                _activeHitbox.Init(info, enemyLayer, 0.2f, telegraphDuration);
+                _activeHitbox.Init(info, enemyLayer, Mathf.Max(0.2f / AttackSpeed, (hits - 1) * (Weapon != null ? Weapon.multiHitInterval : 0.08f) + 0.04f), telegraphDuration, true);
             }
             else
             {
@@ -335,7 +345,7 @@ public class MeleeCombatController : MonoBehaviour
         // 로직상 마음에 안 드는 결정이라고 하셨으니, 연결하고 싶어지면 MinionActionSkillSO 의
         // animDuration 계산에 같은 나눗셈만 얹으면 된다 — 애니와 타격 시점이 전부 비율로
         // 묶여 있어서 castDuration/skillAnimDuration 하나만 줄이면 나머지가 알아서 따라온다.
-        float atkSpd = (_player.Stat != null) ? Mathf.Max(0.05f, _player.Stat.ATKSPD) : 1f;
+        float atkSpd = AttackSpeed;
         var animSet = main.basicAnim;                       // 애니메이션은 미니언이 갖는다(basicAnim). finisher 는 로직만.
         float castDuration = animSet.ResolvedDuration / atkSpd;
         float hitWindow = animSet.EventHitWindow / atkSpd;
@@ -401,6 +411,9 @@ public class MeleeCombatController : MonoBehaviour
         // 그래야 "아군 공격력 증가" 같은 버프를 플레이어 ATK 하나에만 걸어도
         // 주먹과 소환수 마무리에 동시에 먹는다. 소환수의 개성은 배율이 유지한다.
         var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
+        // 미니언 타수·고유 배율은 그대로. 장비 마지막 단계가 0.8×2라면 1.6만 곱한다.
+        if (Weapon != null && Weapon.isRunWeapon) info.amount *= Weapon.Hit(Weapon.ComboLength - 1).TotalMultiplier;
+        PlayerSkillInventoryManager.Instance?.ConfigureBasicHit(ref info, _weaponAction);
 
         // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.
         //  · damageState 를 쓰면 그 태그가 재생되는 동안만 열린다 (MeleeDoll: Slash).

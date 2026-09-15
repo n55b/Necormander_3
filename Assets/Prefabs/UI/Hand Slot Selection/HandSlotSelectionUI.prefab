@@ -312,38 +312,6 @@ PrefabInstance:
       propertyPath: m_hasFontAssetChanged
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3282086796057664191, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_Pivot.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3282086796057664191, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3282086796057664191, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3282086796057664191, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3282086796057664191, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3282086796057664191, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: -40
-      objectReference: {fileID: 0}
-    - target: {fileID: 3282086796057664191, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 65
-      objectReference: {fileID: 0}
-    - target: {fileID: 3282086796057664191, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 10
-      objectReference: {fileID: 0}
     - target: {fileID: 3769232802905147218, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
       propertyPath: m_Name
       value: RewardCard
@@ -387,26 +355,6 @@ PrefabInstance:
     - target: {fileID: 6810151261228268761, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
       propertyPath: m_SizeDelta.y
       value: 222
-      objectReference: {fileID: 0}
-    - target: {fileID: 8640865695011844874, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8640865695011844874, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8640865695011844874, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: -40
-      objectReference: {fileID: 0}
-    - target: {fileID: 8640865695011844874, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 8640865695011844874, guid: 8098487307bb84646a54fa46c3212e40, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -13
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

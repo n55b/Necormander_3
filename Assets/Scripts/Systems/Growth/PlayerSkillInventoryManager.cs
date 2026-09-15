@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>장비 착용/강화/패시브/저장 관리. 기존 씬 배선을 위해 클래스 이름은 유지한다.</summary>
-public class PlayerSkillInventoryManager : MonoBehaviour
+public partial class PlayerSkillInventoryManager : MonoBehaviour
 {
     public static PlayerSkillInventoryManager Instance;
 
@@ -24,7 +24,7 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     /// <summary>
     /// GameManager 초기화 순서에서 InventoryManager와 함께 등록한다.
     /// </summary>
-    public void Initialize() => Instance = this;
+    public void Initialize() { Instance = this; EnsureStartingWeapon(); }
 
     // ── 장비 ─────────────────────────────────────────────────────────
     private static CharacterStat PlayerStat()
@@ -48,6 +48,10 @@ public class PlayerSkillInventoryManager : MonoBehaviour
         }
 
         _equipped = inst;
+        _passionStacks = 0;
+        _passionActions.Clear();
+        ClearFrostAura();
+        ApplyShadowStats();
 
         // 새 장비 패시브 적용 (플레이어 스탯이 아직 없으면 스탯형은 스킵됨 — 로드 순서 대비 가드).
         if (inst != null && stat != null && inst.baseData != null && inst.baseData.passives != null)
@@ -66,6 +70,7 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     /// </summary>
     public void ReapplyEquipmentPassives()
     {
+        EnsureStartingWeapon();
         var stat = PlayerStat();
         if (stat == null || _equipped == null || _equipped.baseData == null) return;
 
@@ -76,31 +81,18 @@ public class PlayerSkillInventoryManager : MonoBehaviour
 
         RebuildBuffs();  // 새 플레이어라 버프 스탯이 사라졌으니 트래커 리셋(드라이버가 조건 맞으면 재적용)
         HookPlayerHit(); // 새 플레이어 피격 이벤트로 재구독
+        ApplyShadowStats();
     }
 
     // ── 장비 강화 ─────────────────────────────────────────────────────
-    /// <summary>착용 장비를 1강 올린다(상점 강화 아이템 구매 시). 미착용이거나 최대치면 false.
-    /// 패시브를 새 강화레벨로 재적용한다(멱등).</summary>
-    public bool EnhanceEquipped()
-    {
-        if (!CanEnhanceEquipped()) return false;
-        _equipped.enhanceLevel++;
-        ReapplyEquipmentPassives();      // 새 강화레벨로 패시브 다시 붙임(RemoveSource 후 재적용)
-        OnEquipmentUpdated?.Invoke();  // HUD 강화표시 등 갱신
-        string eqName = _equipped.baseData != null && !string.IsNullOrEmpty(_equipped.baseData.equipmentName)
-            ? _equipped.baseData.equipmentName : (_equipped.baseData != null ? _equipped.baseData.name : "?");
-        Debug.Log($"<color=cyan>[Enhance]</color> '{eqName}' 강화레벨 → {_equipped.enhanceLevel}/{(_equipped.baseData != null ? _equipped.baseData.maxEnhanceLevel : 0)}. 장비 패시브 갱신.");
-        return true;
-    }
-
-    /// <summary>강화 가능 여부: 장비를 끼고 있고 아직 최대 강화레벨(EquipmentSO.maxEnhanceLevel) 미만.</summary>
+    /// <summary>다음 강화 분기가 있는 현행 무기인지 확인한다.</summary>
     public bool CanEnhanceEquipped()
-        => _equipped != null && _equipped.baseData != null
-           && _equipped.enhanceLevel < _equipped.baseData.maxEnhanceLevel;
+        => Weapon != null && Weapon.isRunWeapon && Weapon.upgrades != null && Weapon.upgrades.Length > 0;
 
     // ── 조건부 버프 드라이버 ───────────────────────────────────────────
     private void Update()
     {
+        UpdateWeapon();
         if (_equipped == null) return;
 
         // 발동형 버프 타이머(스탯 불필요 — 이벤트로 켜지고 다음 타격 or 만료로 꺼진다).
@@ -142,6 +134,11 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     private void OnPlayerDamaged(float amount)
     {
         if (amount <= 0f) return;
+        if (Weapon != null && Weapon.effect == EquipmentSO.Effect.Shadow)
+        {
+            _shadowStacks = RemainingShadowStacks(_shadowStacks, Weapon.shadowLossRatio);
+            ApplyShadowStats();
+        }
         var stat = PlayerStat();
         foreach (var b in _buffs)
         {
@@ -181,6 +178,12 @@ public class PlayerSkillInventoryManager : MonoBehaviour
 
     private void OnDisable()
     {
+        ClearFrostAura();
+        var stat = PlayerStat();
+        if (stat != null) stat.Mods.RemoveSource(this);
+        DamageEventBus.OnDamageReceived -= OnWeaponHit;
+        DamageEventBus.OnEntityDied -= OnWeaponKill;
+        if (Instance == this) Instance = null;
         if (_hookedHealth != null) { _hookedHealth.OnDamageTaken -= OnPlayerDamaged; _hookedHealth = null; }
         SkillCombatUtil.OnEnemyDisplaced -= OnEnemyDisplaced;
         DamageEventBus.OnBeforeDamageCalculated -= HandleTriggerBeforeDamage;
@@ -198,6 +201,8 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     // ── 발동형 버프(투지) + 상태이상 발동(얼음) ─────────────────────────
     private void OnEnable()
     {
+        DamageEventBus.OnDamageReceived += OnWeaponHit;
+        DamageEventBus.OnEntityDied += OnWeaponKill;
         SkillCombatUtil.OnEnemyDisplaced += OnEnemyDisplaced;
         DamageEventBus.OnBeforeDamageCalculated += HandleTriggerBeforeDamage;
     }
@@ -268,7 +273,7 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     public void SaveToData(SaveData data)
     {
         data.equipment = _equipped != null && _equipped.baseData != null
-            ? new EquipmentSaveData { equipmentSOName = _equipped.baseData.name, enhanceLevel = _equipped.enhanceLevel }
+            ? new EquipmentSaveData { equipmentSOName = _equipped.baseData.name, enhanceLevel = _equipped.enhanceLevel, shadowStacks = _shadowStacks }
             : null;
     }
 
@@ -279,10 +284,12 @@ public class PlayerSkillInventoryManager : MonoBehaviour
             ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY() : null;
         if (registry == null) return;
         var saved = data.equipment;
+        _shadowStacks = Mathf.Max(0, saved != null ? saved.shadowStacks : 0);
         var so = saved != null ? registry.equipments.Find(e => e != null && e.name == saved.equipmentSOName) : null;
         EquipEquipment(so != null ? new EquipmentInstance {
             baseData = so, enhanceLevel = Mathf.Clamp(saved.enhanceLevel, 0, so.maxEnhanceLevel)
         } : null);
+        EnsureStartingWeapon();
         // 옛 세이브의 Q/E/rolledSkillNames는 읽지 않는다. 장비와 강화 수치는 유지한다.
     }
 }

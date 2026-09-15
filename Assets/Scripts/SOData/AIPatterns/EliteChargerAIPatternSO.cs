@@ -343,9 +343,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         _specialPatternCoroutine = null;
         _pursuitBurstCoroutine = null;
         _isBursting = false;
-        _nextBurstTime = Time.time + Random.Range(pursuitBurstMinInterval, pursuitBurstMaxInterval);
+        _nextBurstTime = ActionTime + Random.Range(pursuitBurstMinInterval, pursuitBurstMaxInterval);
         _lastAimDir = Vector2.down;
-        _scheduler.ResetBasicPhase(Time.time);
+        _scheduler.ResetBasicPhase(ActionTime);
     }
 
     public override void Execute(BaseEntity entity)
@@ -381,7 +381,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         {
             entity.LookAtTarget(entity.Target);
 
-            if (_scheduler.ShouldTriggerSpecial(Time.time, specialPatternInterval))
+            if (_scheduler.ShouldTriggerSpecial(ActionTime, specialPatternInterval))
             {
                 // 기본 공격 도중이라도(가능한 타이밍이라면) 강제로 중단하고 즉시 패턴을 발동합니다.
                 if (entity.IsAttacking)
@@ -397,13 +397,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 StopPursuitBurst(entity);
 
                 int pattern = _scheduler.NextSpecial();
-                _specialPatternCoroutine = entity.StartCoroutine(RunSpecialPattern(entity, pattern));
+                _specialPatternCoroutine = entity.StartActionCoroutine(RunSpecialPattern(entity, pattern));
                 return;
             }
 
             if (!entity.IsAttacking)
             {
-                entity.AtkTimer += Time.deltaTime;
+                entity.AtkTimer += ActionDeltaTime;
 
                 float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
                 var agent = entity.NavAgent;
@@ -414,7 +414,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                     StopPursuitBurst(entity);
                     StopNavAgent(entity);
                     entity.AtkTimer = 0f;
-                    _basicAttackCoroutine = entity.StartCoroutine(BasicAttackRoutine(entity));
+                    _basicAttackCoroutine = entity.StartActionCoroutine(BasicAttackRoutine(entity));
                 }
                 else
                 {
@@ -428,9 +428,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
                     // ② 추격 버스트 (v1.2): 사거리 밖에서 추격하는 동안 간헐적으로 짧게 가속 후 감속합니다.
                     // "8초에 한 번만 돌진하는 보스"가 아니라 "항상 돌진할 수 있는 보스"로 체감시키기 위한 연출입니다.
-                    if (!_isBursting && Time.time >= _nextBurstTime)
+                    if (!_isBursting && ActionTime >= _nextBurstTime)
                     {
-                        _pursuitBurstCoroutine = entity.StartCoroutine(PursuitBurstRoutine(entity));
+                        _pursuitBurstCoroutine = entity.StartActionCoroutine(PursuitBurstRoutine(entity));
                     }
                 }
             }
@@ -557,7 +557,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             float t = 0f;
             while (t < pursuitBurstDuration)
             {
-                t += Time.deltaTime;
+                t += ActionDeltaTime;
                 if (entity.Target != null) agent.SetDestination(entity.Target.position);
                 yield return null;
             }
@@ -565,7 +565,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             float dt = 0f;
             while (dt < pursuitBurstDecelDuration)
             {
-                dt += Time.deltaTime;
+                dt += ActionDeltaTime;
                 float f = Mathf.Clamp01(dt / pursuitBurstDecelDuration);
                 agent.speed = Mathf.Lerp(burstSpeed, baseSpeed, f);
                 yield return null;
@@ -575,7 +575,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         _isBursting = false;
         _pursuitBurstCoroutine = null;
-        _nextBurstTime = Time.time + Random.Range(pursuitBurstMinInterval, pursuitBurstMaxInterval);
+        _nextBurstTime = ActionTime + Random.Range(pursuitBurstMinInterval, pursuitBurstMaxInterval);
     }
 
     /// <summary>
@@ -660,7 +660,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             float t = 0f;
             while (t < windup)
             {
-                t += Time.deltaTime;
+                t += ActionDeltaTime;
                 yield return null;
             }
         }
@@ -692,7 +692,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         ClearLabel();
 
         // 모든 기본 공격 후 후딜레이 (연속 즉시 시전 방지)
-        yield return new WaitForSeconds(basicAttackPostDelay);
+        yield return WaitForAction(basicAttackPostDelay);
 
         entity.IsAttacking = false;
         _basicAttackCoroutine = null;
@@ -734,7 +734,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             float t = 0f;
             while (t < airTime)
             {
-                t += Time.deltaTime;
+                t += ActionDeltaTime;
                 float f = Mathf.Clamp01(t / airTime);
                 entity.transform.position = Vector2.Lerp(start, land, f);
                 if (fillMark != null) fillMark.transform.localScale = Vector3.one * (radius * f);
@@ -765,7 +765,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f, bypassGuard: true);
         hb.Init(info, entity.opponentLayer, 0.25f, 0.05f, entity.team == Team.Ally);
 
-        yield return new WaitForSeconds(0.05f);
+        yield return WaitForAction(0.05f);
     }
 
     /// <summary>
@@ -825,7 +825,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 yield break;
             }
 
-            wt += Time.deltaTime;
+            wt += ActionDeltaTime;
             if (CanTrackAim(wt, windup) && entity.Target != null) dir = GetAimDir(entity);
             BossAttackIndicator.Aim(entity, dir);
             dirIndicator?.SetAimOverride(dir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
@@ -896,7 +896,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 yield break;
             }
 
-            elapsed += Time.deltaTime;
+            elapsed += ActionDeltaTime;
 
             if (roomBounds.HasValue && !roomBounds.Value.Contains(entity.transform.position))
             {
@@ -908,15 +908,15 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             // [정지 감지] 아래 CircleCast 는 wallMask 에 잡히는 것만 본다. 그 밖의 무언가(구덩이 타일,
             // 다른 레이어의 장애물 등)에 물리적으로 막히면 캐스트는 아무것도 못 찾고, 돌진은 시간이
             // 다 될 때까지 벽에 갈린다. 그래서 '실제로 전진했는가'를 직접 본다 — 이게 진짜 정지 조건이다.
-            if (stall.IsStalled(entity.transform.position, chargeSpeed, Time.deltaTime))
+            if (stall.IsStalled(entity.transform.position, chargeSpeed, ActionDeltaTime))
             {
                 if (rb != null) rb.linearVelocity = Vector2.zero;
                 break;
             }
 
-            if (rb != null) rb.linearVelocity = dir * chargeSpeed;
+            if (rb != null) rb.linearVelocity = dir * chargeSpeed * entity.ActionTempo;
 
-            float checkDist = chargeSpeed * Time.deltaTime + 0.15f;
+            float checkDist = chargeSpeed * ActionDeltaTime + 0.15f;
 
             // [정리] 벽/플레이어 우선순위 판정은 CheckChargeHit로 공통화했다 (패턴 1과 동일 로직).
             var hitCheck = CheckChargeHit(entity.transform.position, dir, normalChargeHitRadius, checkDist, wallMask, playerMask);
@@ -1021,7 +1021,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             _isBusy = false;
 
             // 이제부터 다시 기본 공격 페이즈이므로, 8초 카운트를 여기서부터 새로 시작합니다.
-            _scheduler.ResetBasicPhase(Time.time);
+            _scheduler.ResetBasicPhase(ActionTime);
         }
     }
 
@@ -1056,7 +1056,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 yield break;
             }
 
-            t += Time.deltaTime;
+            t += ActionDeltaTime;
             if (CanTrackAim(t, scaledChargeWindup) && entity.Target != null)
             {
                 chargeDir = GetAimDir(entity);
@@ -1158,19 +1158,19 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 yield break;
             }
 
-            elapsed += Time.deltaTime;
+            elapsed += ActionDeltaTime;
 
             // [정지 감지] 앞의 CircleCast 가 못 잡는 것에 막혔을 때도 즉시 끝낸다.
             // 여기서 끝나면 hitPlayer 가 false 라 아래에서 기절이 붙는다 — 벽에 박은 것과 같은 취급.
-            if (stall.IsStalled(entity.transform.position, chargeSpeed, Time.deltaTime))
+            if (stall.IsStalled(entity.transform.position, chargeSpeed, ActionDeltaTime))
             {
                 if (rb != null) rb.linearVelocity = Vector2.zero;
                 break;
             }
 
-            if (rb != null) rb.linearVelocity = chargeDir * chargeSpeed;
+            if (rb != null) rb.linearVelocity = chargeDir * chargeSpeed * entity.ActionTempo;
 
-            float checkDist = chargeSpeed * Time.deltaTime + 0.2f;
+            float checkDist = chargeSpeed * ActionDeltaTime + 0.2f;
 
             // [정리] 벽/플레이어 우선순위 판정은 CheckChargeHit로 공통화했다 (②일반 돌진과 동일 로직).
             var hitCheck = CheckChargeHit(entity.transform.position, chargeDir, chargeHitRadius, checkDist, wallMask, playerMask);
@@ -1314,7 +1314,7 @@ private GameObject _chargeTelegraph;
         BossAttackIndicator.Begin(entity, scaledPreCastDelay); // 사방 파동 — 방향 없음
         while (wt < scaledPreCastDelay)
         {
-            wt += Time.deltaTime;
+            wt += ActionDeltaTime;
             float scale = Mathf.Lerp(0.4f, slamMeleeRadius * 2f, wt / scaledPreCastDelay);
             if (warmup != null)
             {
@@ -1350,7 +1350,8 @@ private GameObject _chargeTelegraph;
 
         for (int wave = 0; wave < slamWaveCount; wave++)
         {
-            yield return RunShockwaveRing(entity, center, maxRadius);
+            // 발사 완료 파동은 시전자 빙결과 무관하게 계속 퍼진다.
+            yield return entity.StartCoroutine(RunShockwaveRing(entity, center, maxRadius));
 
             if (wave < slamWaveCount - 1)
             {
@@ -1364,7 +1365,7 @@ private GameObject _chargeTelegraph;
                 // 맞춰 늘어나므로, 내려찍는 프레임과 게이지가 차는 순간과 파동 발사가 셋 다 맞물린다.
                 // (첫 파동은 위 slamPreCastDelay 구간이 예고를 맡는다.)
                 BossAttackIndicator.Begin(entity, slamWaveInterval);
-                yield return new WaitForSeconds(slamWaveInterval);
+                yield return WaitForAction(slamWaveInterval);
                 BossAttackIndicator.Stop(entity);
             }
         }

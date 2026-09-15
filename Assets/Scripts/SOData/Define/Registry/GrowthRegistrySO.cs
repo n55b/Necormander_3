@@ -98,7 +98,7 @@ public class GrowthRegistrySO : ScriptableObject
             string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
             if (path.Contains("/Deprecated/")) continue;
             var asset3 = UnityEditor.AssetDatabase.LoadAssetAtPath<EquipmentSO>(path);
-            if (asset3 != null) equipments.Add(asset3);
+            if (asset3 != null && asset3.isRunWeapon) equipments.Add(asset3);
         }
 
         // 7. 아이템(ItemSO) 검색 — 주머니. 장비와 별개.

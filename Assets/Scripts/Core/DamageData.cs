@@ -106,6 +106,8 @@ public struct DamageInfo
     public bool causesHitstun;
     public float knockbackForce;
     public float superArmorDamage; // [추가] 슈퍼아머 깎는 수치
+    public float? hitstunDuration; // null = 기존 공격의 0.2초
+    public int weaponActionId; // 장비 평타/미니언 마무리만 지정. 같은 동작의 다단·다중 대상은 같은 ID.
 
     // [26/07/21] 타격 시 부여할 상태이상. nullable 이라 default(DamageInfo) 도 안전하게 '없음'(null)이다.
     // CharacterHealth 가 명중 확정 뒤 한 곳에서 건다(슈퍼아머는 BlockedBySuperArmor CC 를 막는다).
@@ -141,6 +143,8 @@ public struct DamageInfo
     public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, float debuffMultiplier = 1f, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f, DamageCategory category = DamageCategory.None, StatusType? applyStatus = null, float statusDuration = 0f, bool isRanged = false, Vector2? hitFrom = null, bool bypassGuard = false)
     {
         this.bypassGuard = bypassGuard;
+        this.hitstunDuration = null;
+        this.weaponActionId = 0;
         this.isRanged = isRanged;
         this.hitFrom = hitFrom;
         this.amount = amount;

@@ -62,6 +62,97 @@ public abstract class BaseEntity : MonoBehaviour
     }
 
     public float AtkTimer { get; set; } = 0f;
+    public bool IsFrozen => _stats != null && _stats.Status != null && _stats.Status.HasStatus(StatusType.Freeze);
+    public float ActionTempo => IsFrozen ? 0f : (_stats != null && _stats.Status != null ? _stats.Status.FrostAuraMultiplier : 1f);
+    public float ActionDeltaTime => Time.deltaTime * ActionTempo;
+    private float _actionTime;
+    private int _actionClockFrame = -1;
+    public float ActionTime
+    {
+        get
+        {
+            if (_actionClockFrame != Time.frameCount) { _actionClockFrame = Time.frameCount; _actionTime += ActionDeltaTime; }
+            return _actionTime;
+        }
+    }
+    private bool _freezeHeld, _agentWasStopped;
+    private Vector2 _freezeVelocity;
+    private Animator[] _freezeAnimators;
+    private float[] _freezeAnimSpeeds;
+    private readonly System.Collections.Generic.Dictionary<Animator, (float basis, float applied)> _actionAnimSpeeds
+        = new System.Collections.Generic.Dictionary<Animator, (float, float)>();
+
+    protected virtual void LateUpdate()
+    {
+        if (IsFrozen) return;
+        float tempo = _stats != null && _stats.Status != null ? _stats.Status.FrostAuraMultiplier : 1f;
+        if (tempo == 1f && _actionAnimSpeeds.Count == 0) return;
+        if (_freezeAnimators == null) _freezeAnimators = GetComponentsInChildren<Animator>(true);
+        foreach (var anim in _freezeAnimators)
+        {
+            if (anim == null) continue;
+            float basis = anim.speed;
+            if (_actionAnimSpeeds.TryGetValue(anim, out var last) && Mathf.Approximately(anim.speed, last.applied)) basis = last.basis;
+            anim.speed = basis * tempo;
+            _actionAnimSpeeds[anim] = (basis, anim.speed);
+        }
+        if (tempo == 1f) _actionAnimSpeeds.Clear();
+    }
+
+    /// <summary>중첩 패턴도 빙결 중 MoveNext 자체를 멈춘다. 월드 투사체/발사 완료 장판은 일반 StartCoroutine을 쓴다.</summary>
+    public Coroutine StartActionCoroutine(System.Collections.IEnumerator routine) => StartCoroutine(ActionRoutine(routine));
+    private System.Collections.IEnumerator ActionRoutine(System.Collections.IEnumerator routine)
+    {
+        var stack = new System.Collections.Generic.Stack<System.Collections.IEnumerator>();
+        stack.Push(routine);
+        try
+        {
+            while (stack.Count > 0)
+            {
+                if (IsFrozen) { yield return null; continue; }
+                var top = stack.Peek();
+                if (!top.MoveNext()) { (top as System.IDisposable)?.Dispose(); stack.Pop(); continue; }
+                if (top.Current is System.Collections.IEnumerator nested) stack.Push(nested);
+                else yield return top.Current;
+            }
+        }
+        finally { while (stack.Count > 0) (stack.Pop() as System.IDisposable)?.Dispose(); }
+    }
+
+    public System.Collections.IEnumerator WaitForAction(float seconds)
+    {
+        float elapsed = 0f;
+        while (elapsed < seconds) { yield return null; elapsed += ActionDeltaTime; }
+    }
+
+    private bool HoldFrozenAction()
+    {
+        _ = ActionTime;
+        if (IsFrozen)
+        {
+            if (!_freezeHeld)
+            {
+                _freezeHeld = true;
+                _freezeVelocity = _rb != null ? _rb.linearVelocity : Vector2.zero;
+                _agentWasStopped = NavAgent != null && NavAgent.isStopped;
+                _freezeAnimators = GetComponentsInChildren<Animator>(true);
+                _freezeAnimSpeeds = new float[_freezeAnimators.Length];
+                for (int i = 0; i < _freezeAnimators.Length; i++) _freezeAnimSpeeds[i] = _freezeAnimators[i].speed;
+            }
+            foreach (var anim in _freezeAnimators) if (anim != null) anim.speed = 0f;
+            if (NavAgent != null) { NavAgent.isStopped = true; NavAgent.velocity = Vector3.zero; }
+            if (_rb != null) _rb.linearVelocity = Vector2.zero;
+            return true;
+        }
+        if (_freezeHeld)
+        {
+            _freezeHeld = false;
+            for (int i = 0; i < _freezeAnimators.Length; i++) if (_freezeAnimators[i] != null) _freezeAnimators[i].speed = _freezeAnimSpeeds[i];
+            if (NavAgent != null) NavAgent.isStopped = _agentWasStopped;
+            if (_rb != null && (_stats == null || !_stats.Health.IsDead)) _rb.linearVelocity = _freezeVelocity;
+        }
+        return false;
+    }
     public NavMeshPath NavPath { get; set; }
 
     // 새로운 통합 AI 브레인 (공유 인스턴스)
@@ -212,6 +303,7 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual void Update()
     {
+        if (HoldFrozenAction()) return; // Stun 클립으로 덮어쓰거나 패턴을 취소하지 않는다.
         if (!CanExecuteAI())
         {
             // [경직/기절/빙결 제동] 관성으로 인해 스르륵 미끄러지는 현상을 방지하기 위해 정지 처리

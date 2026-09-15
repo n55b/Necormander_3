@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dafda816e2e708244ac4ae54264b5a3e, type: 3}
+  m_Name: MK02
+  m_EditorClassIdentifier: 
+  isRunWeapon: 1
+  combo:
+  - multiplier: 1.1
+    hits: 1
+  - multiplier: 1.1
+    hits: 1
+  - multiplier: 1.6
+    hits: 1
+  attackSpeed: 3
+  hitstun: 2
+  speedMultipliers:
+  - 0.7
+  - 0.85
+  - 1
+  - 1.15
+  - 1.3
+  hitstunSeconds:
+  - 0
+  - 0.1
+  - 0.2
+  - 0.3
+  - 0.4
+  multiHitInterval: 0.08
+  upgradeTier: 2
+  upgrades: []
+  effect: 1
+  passionMaxStacks: 3
+  passionSpeedPerStack: 0.03
+  passionMaxFlatDamage: 1
+  passionDuration: 5
+  strongerAtMaxPassion: 0
+  frostHits: 5
+  frostStackDuration: 5
+  freezeDuration: 2.5
+  frostMaxHpRatios: {x: 0.1, y: 0.05, z: 0.02}
+  frostExplosionRatio: 0
+  frostExplosionRadius: 2
+  frostAuraRadius: 0
+  frostAuraReduction: 0.15
+  shadowAttackPerStack: 0.5
+  shadowLossRatio: 0.5
+  shadowKillStacks: {x: 1, y: 10, z: 20}
+  equipmentName: "\uAC1C\uC218\uD615 \uAC74\uD2C0\uB9BF - MK02"
+  description: "\uAE30\uBCF8 \uACF5\uACA9 3\uB2E8\uACC4: 1.1 / 1.1 / 1.6\n\uACF5\uACA9
+    \uC18D\uB3C4: \uBE60\uB984 / \uACBD\uC9C1: 0.2\uCD08\n\uB9C8\uC9C0\uB9C9\uC740
+    \uBBF8\uB2C8\uC5B8 \uACE0\uC720 \uBC30\uC728\xB7\uD0C0\uC218\uB97C \uC720\uC9C0\uD558\uACE0
+    \uC7A5\uBE44 \uB9C8\uC9C0\uB9C9 \uBC30\uC728\uC744 \uACF1\uD569\uB2C8\uB2E4.\n\uC5F4\uC815:
+    \uBA85\uC911\uD55C \uD3C9\uD0C0 \uB3D9\uC791\uB9C8\uB2E4 \uACF5\uC18D +3%, \uCD5C\uB300
+    3\uC911\uCCA9. \uCD5C\uB300 \uC911\uCCA9\uC5D0\uC11C \uD3C9\uD0C0 \uD53C\uD574
+    +1. 5\uCD08 \uBBF8\uBA85\uC911 \uC2DC \uD574\uC81C."
+  icon: {fileID: 7214652476106930508, guid: 1ab9deb8cc0a79f4a8df904cbb5de4f7, type: 3}
+  rarity: 0
+  shopCost: 150
+  passives: []
+  maxEnhanceLevel: 2
+  references:
+    version: 2
+    RefIds: []

@@ -187,7 +187,7 @@ public override void Init(BaseEntity entity)
         }
         _specialLockUntil = -100f;
         _lastMove = Move.None;
-        _chaseStartTime = Time.time;
+        _chaseStartTime = ActionTime;
 
         // 파훼 가능 신호색을 컨트롤러에 알려준다. 컨트롤러가 카운터 게이지 상태에 물려 아웃라인을
         // 켜고 끄므로, 패턴마다 창을 여닫는 12개 지점을 일일이 손대지 않아도 신호가 일관된다.
@@ -195,7 +195,7 @@ public override void Init(BaseEntity entity)
         // [추가] 스폰 직후 startupDelay(기본 2초) 동안은 아무 패턴도 뽑지 않고 가만히 대기한다.
         // 예전엔 스폰과 동시에 바로 돌진이 뽑힐 수 있어서, 플레이어가 상황을 인지하기도 전에
         // 돌진 -> 경직까지 순식간에 지나가버리는 문제가 있었다.
-        _activationTime = Time.time + startupDelay;
+        _activationTime = ActionTime + startupDelay;
         _controller?.SetStateText("...", Color.gray);
     }
 
@@ -245,10 +245,10 @@ public override void Init(BaseEntity entity)
 
 
                 // [추가] 스폰 직후 startupDelay 동안은 어떤 패턴도 뽑지 않고 가만히 대기한다.
-        if (Time.time < _activationTime)
+        if (ActionTime < _activationTime)
         {
             entity.CurrentState = AIState.Idle;
-            _chaseStartTime = Time.time;
+            _chaseStartTime = ActionTime;
             return;
         }
 
@@ -256,22 +256,22 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         float rangeBonus = _controller != null ? _controller.AttackRangeBonus : 0f;
         float effectiveEngageRange = engageRange * (1f + rangeBonus);
 
-        if (Time.time - _lastDiagLogTime > 2f)
+        if (ActionTime - _lastDiagLogTime > 2f)
         {
-            _lastDiagLogTime = Time.time;
+            _lastDiagLogTime = ActionTime;
             float interval = entity.Stats != null ? entity.Stats.AttackInterval : -1f;
-            float lockLeft = Mathf.Max(0f, _specialLockUntil - Time.time);
+            float lockLeft = Mathf.Max(0f, _specialLockUntil - ActionTime);
             Debug.Log($"[BoneMaster-Diag] dist={dist:F1} engageRange={effectiveEngageRange:F1} AtkTimer={entity.AtkTimer:F2}/{interval:F2} 특수잠금={lockLeft:F2}s CurrentState={entity.CurrentState} IsAttacking={entity.IsAttacking}");
         }
 
         // 카운터 파훼 뒤의 딜타임 + 패턴 사이 최소 간격(attackGap)을 여기서 지킨다.
-        if (Time.time < _specialLockUntil)
+        if (ActionTime < _specialLockUntil)
         {
             entity.CurrentState = AIState.Follow;
             _controller?.SetStateText("추격 중...");
             // 추격 시간은 '때릴 수 있게 된 순간'부터 센다. 여기서 리셋하지 않으면 딜타임이
             // 그대로 추격 시간으로 계산돼, 잠금이 풀리는 즉시 강제 패턴이 튀어나온다.
-            _chaseStartTime = Time.time;
+            _chaseStartTime = ActionTime;
             return;
         }
 
@@ -283,7 +283,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         // 보스가 플레이어에게 완전히 달라붙어서, 다음 판단은 항상 근거리 -> 휩쓸기만 나왔다.
         // 이제 간격은 attackGap 하나로만 저작한다.
         bool inRange = dist <= effectiveEngageRange;
-        if (!inRange && Time.time - _chaseStartTime < Mathf.Max(0f, chaseTimeLimit))
+        if (!inRange && ActionTime - _chaseStartTime < Mathf.Max(0f, chaseTimeLimit))
         {
             entity.CurrentState = AIState.Follow;
             _controller?.SetStateText("추격 중...");
@@ -320,10 +320,10 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
     /// </summary>
     private void ArmNextAttack(float extraLock = 0f)
     {
-        float until = Time.time + Mathf.Max(0f, attackGap) + Mathf.Max(0f, extraLock);
+        float until = ActionTime + Mathf.Max(0f, attackGap) + Mathf.Max(0f, extraLock);
         // 카운터 파훼 딜타임(EndPattern)이 이미 더 길게 걸려 있으면 그쪽을 존중한다.
         _specialLockUntil = Mathf.Max(_specialLockUntil, until);
-        _chaseStartTime = Time.time;
+        _chaseStartTime = ActionTime;
     }
 
     /// <summary>
@@ -340,7 +340,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         float tgt = Mathf.Atan2(want.y, want.x) * Mathf.Rad2Deg;
         float next = turnSpeed <= 0f
             ? tgt
-            : Mathf.MoveTowardsAngle(Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg, tgt, turnSpeed * Time.deltaTime);
+            : Mathf.MoveTowardsAngle(Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg, tgt, turnSpeed * entity.ActionDeltaTime);
 
         float r = next * Mathf.Deg2Rad;
         return new Vector2(Mathf.Cos(r), Mathf.Sin(r));
@@ -353,7 +353,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
     private void StartPattern(BaseEntity entity, IEnumerator routine)
     {
         if (_controller != null) _controller.RunPattern(routine);
-        else entity.StartCoroutine(routine);
+        else entity.StartActionCoroutine(routine);
     }
 
     /// <summary>
@@ -426,7 +426,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
                             : move == Move.Thrust ? BasicAttack_Thrust(entity)
                             : BasicAttack_LeapSlam(entity);
 
-        entity.ActiveAttackCoroutine = entity.StartCoroutine(routine);
+        entity.ActiveAttackCoroutine = entity.StartActionCoroutine(routine);
     }
 
     private void FinishBasicAttack(BaseEntity entity)
@@ -498,7 +498,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
             float stepDur = Mathf.Max(0.01f, sweepStepDuration * csMul);
             while (st < stepDur)
             {
-                st += Time.deltaTime;
+                st += ActionDeltaTime;
                 Warp(entity, Vector2.Lerp(origin, stepEnd, Mathf.Clamp01(st / stepDur)));
                 yield return null;
             }
@@ -508,7 +508,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
         BossCombat.DealCone(stepEnd, dir, radius, sweepHalfAngle, entity.opponentLayer, info);
 
-        yield return new WaitForSeconds(basicAttackRecovery);
+        yield return WaitForAction(basicAttackRecovery);
         FinishBasicAttack(entity);
     }
 
@@ -555,7 +555,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         float dur = Mathf.Max(0.01f, thrustDashDuration * csMul);
         while (dt < dur)
         {
-            dt += Time.deltaTime;
+            dt += ActionDeltaTime;
             Warp(entity, Vector2.Lerp(origin, slideEnd, Mathf.Clamp01(dt / dur)));
             yield return null;
         }
@@ -564,7 +564,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
         BossCombat.DealLane(origin, dir, length, width, entity.opponentLayer, info);
 
-        yield return new WaitForSeconds(basicAttackRecovery);
+        yield return WaitForAction(basicAttackRecovery);
         FinishBasicAttack(entity);
     }
 
@@ -603,7 +603,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         float t = 0f;
         while (t < trackTime)
         {
-            t += Time.deltaTime;
+            t += ActionDeltaTime;
             if (CanTrackAim(t, trackTime + lockTime + leapDuration) && entity.Target != null)
             {
                 landPos = entity.Target.position;
@@ -619,7 +619,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         float lockT = 0f;
         while (lockT < lockTime)
         {
-            lockT += Time.deltaTime;
+            lockT += ActionDeltaTime;
             yield return null;
         }
 
@@ -635,7 +635,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         float elapsed = 0f;
         while (elapsed < leapDuration)
         {
-            elapsed += Time.deltaTime;
+            elapsed += ActionDeltaTime;
             if (!fallPlayed && leapDuration - elapsed <= fallLead)
             {
                 PlayState(entity, animState_JumpFall);
@@ -654,7 +654,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         var info = new DamageInfo(entity.Stats.ATK * leapSlamDamageMultiplier, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true, bypassGuard: true);
         BossCombat.DealEllipse(landPos, radiusX, radiusY, entity.opponentLayer, info);
 
-        yield return new WaitForSeconds(basicAttackRecovery);
+        yield return WaitForAction(basicAttackRecovery);
         FinishBasicAttack(entity);
     }
 
@@ -685,7 +685,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         // 다음 추격/기본공격 모션까지 그대로 따라간다.
         if (entity != null && entity.Animator != null) entity.Animator.speed = 1f;
         entity.CurrentState = AIState.Follow;
-        _specialLockUntil = Time.time + Mathf.Max(0f, postPatternRecovery) + Mathf.Max(0f, extraLock);
+        _specialLockUntil = ActionTime + Mathf.Max(0f, postPatternRecovery) + Mathf.Max(0f, extraLock);
     }
 
     #region 벽 판정 (슬라이드 돌진 / 도약 착지 공용)

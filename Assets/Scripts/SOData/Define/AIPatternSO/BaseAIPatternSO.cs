@@ -113,7 +113,7 @@ public class BaseAIPatternSO : AIPatternSO
         {
             entity.AtkTimer = 0f;
             entity.IsAttacking = true; // 코루틴 대기 전 상태 잠금을 위해 선제적 true 처리!
-            entity.ActiveAttackCoroutine = entity.StartCoroutine(AttackRoutine(entity));
+            entity.ActiveAttackCoroutine = entity.StartActionCoroutine(AttackRoutine(entity));
         }
     }
 
@@ -188,7 +188,7 @@ public class BaseAIPatternSO : AIPatternSO
             float timeout = 2.0f;
             while (!entity.HasFiredHitEvent && timeout > 0f)
             {
-                timeout -= Time.deltaTime;
+                timeout -= entity.ActionDeltaTime;
                 OnWindupUpdate(entity);
                 yield return null;
             }
@@ -199,7 +199,7 @@ public class BaseAIPatternSO : AIPatternSO
             float timeout = 1.0f; // 0.6f -> 1.0f 증가
             while (timeout > 0f)
             {
-                timeout -= Time.deltaTime;
+                timeout -= entity.ActionDeltaTime;
                 OnWindupUpdate(entity);
                 yield return null;
             }
@@ -216,7 +216,7 @@ public class BaseAIPatternSO : AIPatternSO
             float timeout = 2.0f;
             while (!entity.HasFiredAttackEndEvent && timeout > 0f)
             {
-                timeout -= Time.deltaTime;
+                timeout -= entity.ActionDeltaTime;
                 yield return null;
             }
         }

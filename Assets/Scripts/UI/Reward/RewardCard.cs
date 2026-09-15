@@ -13,11 +13,17 @@ public class RewardCard : MonoBehaviour
     [SerializeField] private Image iconImage;
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI descText;
+    [SerializeField] private ScrollRect descriptionScroll;
+
+    [Header("장비 선택 (기존 카드/아트 재사용)")]
+    [SerializeField] private Vector2 weaponCardSize = new Vector2(260f, 400f);
+    private bool _layoutCached;
+    private Vector2 _cardSize;
 
     [Header("Keyword Sub Tooltip")]
     [Tooltip("설명에 포함된 키워드(예: 취약)를 감지해 아래에 추가 설명을 붙여줍니다. CommonTooltipUI와 동일한 사전을 연결하세요.")]
     [SerializeField] private AstroNuts.Localization.KeywordDictionary keywordDictionary;
-    
+
     // 카드 자체에 Button 컴포넌트가 있는 경우를 위해 캐싱
     private Button _cardButton;
     private int _myIndex;
@@ -33,7 +39,7 @@ public class RewardCard : MonoBehaviour
     private void EnsureButtonLink()
     {
         if (_cardButton == null) _cardButton = GetComponent<Button>();
-        
+
         if (_cardButton != null)
         {
             _cardButton.onClick.RemoveAllListeners();
@@ -59,9 +65,10 @@ public class RewardCard : MonoBehaviour
     /// </summary>
     public void Setup(RewardCandidate candidate, int index)
     {
+        SetWeaponSize(candidate.rawData is EquipmentSO equipment && equipment.isRunWeapon);
         _myIndex = index;
         EnsureButtonLink();
-        
+
         if (nameText != null)
         {
             if (candidate.displayData.localizedItemName != null && !candidate.displayData.localizedItemName.IsEmpty)
@@ -106,7 +113,7 @@ public class RewardCard : MonoBehaviour
                 descText.text = ApplyKeywordHighlighting(candidate.displayData.description);
             }
         }
-        
+
         if (iconImage != null)
         {
             iconImage.sprite = candidate.displayData.icon;
@@ -115,10 +122,27 @@ public class RewardCard : MonoBehaviour
 
         if (_cardButton != null)
         {
-            // [수정] 데이터가 없어도(rawData == null) 버튼은 항상 활성화하여 
+            // [수정] 데이터가 없어도(rawData == null) 버튼은 항상 활성화하여
             // '없음'을 클릭했을 때 다음 보상으로 넘어가거나 UI가 닫힐 수 있도록 합니다.
             _cardButton.interactable = true;
         }
+        if (descriptionScroll != null)
+        {
+            descriptionScroll.StopMovement();
+            descriptionScroll.content.anchoredPosition = Vector2.zero;
+        }
+    }
+
+    private void SetWeaponSize(bool weapon)
+    {
+        var rect = (RectTransform)transform;
+        if (!_layoutCached)
+        {
+            _layoutCached = true;
+            _cardSize = rect.sizeDelta;
+        }
+        // 이름판/설명칸은 프리팹의 비율 앵커를 따른다. 코드에서 텍스트 위치를 덮어쓰지 않는다.
+        rect.sizeDelta = weapon ? weaponCardSize : _cardSize;
     }
 
     /// <summary>
@@ -156,7 +180,10 @@ public class RewardCard : MonoBehaviour
         if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
             cam = canvas.worldCamera;
 
-        int linkIndex = TMP_TextUtilities.FindIntersectingLink(descText, Input.mousePosition, cam);
+        // 스크롤로 가려진 문장에는 키워드 툴팁을 띄우지 않는다.
+        bool inView = descriptionScroll == null || RectTransformUtility.RectangleContainsScreenPoint(
+            descriptionScroll.viewport, Input.mousePosition, cam);
+        int linkIndex = inView ? TMP_TextUtilities.FindIntersectingLink(descText, Input.mousePosition, cam) : -1;
 
         if (linkIndex != -1)
         {

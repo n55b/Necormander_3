@@ -83,7 +83,7 @@ public class PriestAIPatternSO : BaseAIPatternSO
     {
         StopNavAgent(entity);
 
-        entity.AtkTimer += Time.deltaTime;
+        entity.AtkTimer += ActionDeltaTime;
         if (entity.AtkTimer >= entity.Stats.AttackInterval)
         {
             // [수정] GetComponentInChildren 사용

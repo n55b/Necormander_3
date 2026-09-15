@@ -1,10 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 강화 전용 상점 NPC. 진열품(SellItem) 없이 F 한 번에 착용 장비를 +1강 한다.
-///
-/// 일반 상점(ShopNPC)은 방당 재고를 한 번 굴려서 그게 제동장치지만, 여기는 재고가 없다 —
-/// 골드와 EquipmentSO.maxEnhanceLevel 둘만이 제동장치라서 가격이 레벨마다 오른다(CurrentCost).
+/// 강화 전용 상점 NPC. F로 다음 무기 분기를 선택하며, 구매 성공은 이 상점에서 한 번만 허용한다.
+/// 선택창을 취소하면 골드와 강화 기회를 소비하지 않는다.
 ///
 /// 상호작용은 PlayerController.CheckForInteractable 이 잡는다. 그래서 이 컴포넌트가 붙은
 /// 오브젝트에 Interactable(13) 레이어의 트리거 콜라이더가 반드시 같이 있어야 한다 —
@@ -20,8 +18,9 @@ public class EnhanceShopNPC : NPCBase
 
     private GameObject _bubble;
     private Tooltip _tooltip;
+    private bool _used;
 
-    public override string InteractionPrompt => $"F : 장비 강화 ({CurrentCost()}G)";
+    public override string InteractionPrompt => _used ? "이 상점에서 강화 완료" : $"F : 장비 강화 ({CurrentCost()}G)";
 
     // ─── 강화 ─────────────────────────────────────────────────────────
     public override bool Interact(GameObject interactor)
@@ -30,22 +29,46 @@ public class EnhanceShopNPC : NPCBase
         var inv = GameManager.Instance != null ? GameManager.Instance.inventoryManager : null;
         if (psi == null || inv == null) return false;
 
-        if (!psi.CanEnhanceEquipped())
+        if (_used || !psi.CanEnhanceEquipped())
         {
             Debug.Log("[EnhanceShop] 강화할 장비가 없거나 이미 최대 강화 레벨입니다.");
             return false;
         }
 
-        if (!inv.SpendGold(CurrentCost()))
+        var ui = FindFirstObjectByType<RewardSelectionUI>(FindObjectsInactive.Include);
+        if (ui == null || ui.IsOpen) return false;
+        var options = new System.Collections.Generic.List<RewardCandidate>();
+        int price = CurrentCost();
+        foreach (var next in psi.Weapon.upgrades)
         {
-            Debug.Log("[EnhanceShop] 골드가 부족합니다.");
-            return false;
+            if (next == null) continue;
+            options.Add(new RewardCandidate {
+                category = RewardCategory.Equipment, rawData = next,
+                displayData = new GrowthItemData { itemName = next.equipmentName,
+                    description = next.description + $"\n\n강화 비용: {price}G (상점당 1회)", icon = next.icon }
+            });
         }
+        if (options.Count == 0) return false;
+        ui.Show(options, candidate => {
+            var next = candidate.rawData as EquipmentSO;
+            if (this == null || _used || !psi.CanUpgradeTo(next)) { ui.Hide(); return; }
+            if (!TryPurchaseUpgrade(next)) { Debug.Log("[EnhanceShop] 강화 조건이나 골드를 확인하세요."); return; }
+            ui.Hide();
+            RefreshBubble();
+        });
+        return true;
+    }
 
-        psi.EnhanceEquipped();
-
-        // 무제한 상점이라 그 자리에서 또 누를 수 있다. 다음 강화의 가격·레벨로 즉시 갱신.
-        RefreshBubble();
+    public bool TryPurchaseUpgrade(EquipmentSO next)
+    {
+        var manager = GameManager.Instance;
+        var psi = PlayerSkillInventoryManager.Instance;
+        if (_used || psi == null || !psi.CanUpgradeTo(next) || manager == null
+            || manager.inventoryManager == null || manager.dataManager == null || manager.dataManager.SHOP_REGISTRY == null) return false;
+        int price = Mathf.Max(0, CurrentCost());
+        if (!manager.inventoryManager.SpendGold(price)) return false;
+        if (!psi.UpgradeTo(next)) { manager.inventoryManager.AddGold(price); return false; }
+        _used = true;
         return true;
     }
 
@@ -123,6 +146,6 @@ public class EnhanceShopNPC : NPCBase
             _tooltip.name.text = $"{eq.baseData.equipmentName} +{eq.enhanceLevel}/{eq.baseData.maxEnhanceLevel}";
 
         if (_tooltip.price != null)
-            _tooltip.price.text = (psi != null && psi.CanEnhanceEquipped()) ? $"{CurrentCost()}G" : "최대 강화";
+            _tooltip.price.text = _used ? "이 상점에서 강화 완료" : (psi != null && psi.CanEnhanceEquipped()) ? $"{CurrentCost()}G" : "최대 강화";
     }
 }

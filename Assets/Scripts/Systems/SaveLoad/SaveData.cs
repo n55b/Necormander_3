@@ -40,6 +40,7 @@ public class EquipmentSaveData
 {
     public string equipmentSOName;                          // EquipmentSO 에셋 이름
     public int enhanceLevel;
+    public int shadowStacks;
 }
 
 [System.Serializable]

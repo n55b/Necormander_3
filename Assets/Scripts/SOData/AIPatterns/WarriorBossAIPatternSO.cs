@@ -46,7 +46,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
         }
 
         // 특수 패턴 쿨타임은 병렬로 계속 흐름
-        specialTimer += Time.deltaTime;
+        specialTimer += ActionDeltaTime;
 
         // 특수 패턴 진입 체크 (현재 근접 공격 중이 아닐 때만 진입)
         if (specialTimer >= specialRushInterval && warriorState == WarriorState.Chasing)
@@ -57,7 +57,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
         switch (warriorState)
         {
             case WarriorState.Chasing:
-                actionTimer -= Time.deltaTime;
+                actionTimer -= ActionDeltaTime;
                 float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
                 
                 if (dist <= meleeAttackRange && actionTimer <= 0f)
@@ -78,7 +78,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
                 break;
 
             case WarriorState.MeleeAttacking:
-                actionTimer -= Time.deltaTime;
+                actionTimer -= ActionDeltaTime;
                 StopNavAgent(entity);
                 if (actionTimer <= 0f)
                 {
@@ -115,7 +115,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
 
             case WarriorState.RushCharging:
                 StopNavAgent(entity);
-                actionTimer -= Time.deltaTime;
+                actionTimer -= ActionDeltaTime;
                 if (actionTimer <= 0f)
                 {
                     ExecuteMassiveRush(entity);
@@ -138,7 +138,7 @@ public class WarriorBossAIPatternSO : BossAIPatternSO
 
             case WarriorState.Stunned:
                 StopNavAgent(entity);
-                actionTimer -= Time.deltaTime;
+                actionTimer -= ActionDeltaTime;
                 if (actionTimer <= 0f)
                 {
                     warriorState = WarriorState.Chasing;

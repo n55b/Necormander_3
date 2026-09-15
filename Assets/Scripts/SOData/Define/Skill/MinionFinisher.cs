@@ -26,7 +26,7 @@ public class MinionFinisher
     [Tooltip("몇 번 때릴지. 0 이면 마무리 일격이 없는 것으로 치고 콤보가 2타로 끝난다.")]
     public int hitCount = 1;
 
-    [Tooltip("타당 피해 = 소환수 ATK x 이 값.")]
+    [Tooltip("타당 피해 = 플레이어 ATK × 이 고유 배율 × 장비 마지막 단계의 총 배율. hitCount는 그대로 유지한다.")]
     public float damageMultiplier = 1f;
 
     [Header("속성/상태이상")]

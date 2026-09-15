@@ -37,53 +37,6 @@ public struct RewardCandidate
 /// </summary>
 public static class RewardProcessor
 {
-    // --- 1-A'. 장비 방용: 장비 배출 (각 후보는 뜨는 순간 스킬을 굴려 굳힌다) ---
-    /// <summary>서로 다른 장비 최대 3개를 뽑는다. 각 후보는 그 자리에서 skillPool 을 굴려 EquipmentInstance 로 확정된다("장비 뜰 때 고정").</summary>
-    public static List<RewardCandidate> GenerateEquipmentRewards(InventoryManager inven, DataManager data)
-    {
-        List<RewardCandidate> results = new List<RewardCandidate>();
-        var registry = data.GET_GROWTH_REGISTRY();
-
-        List<EquipmentSO> pool = new List<EquipmentSO>();
-        if (registry != null && registry.equipments != null)
-            foreach (var e in registry.equipments) if (e != null) pool.Add(e);
-
-        for (int i = 0; i < 3; i++)
-        {
-            if (pool.Count > 0)
-            {
-                int idx = Random.Range(0, pool.Count);
-                var so = pool[idx];
-                pool.RemoveAt(idx); // 같은 장비 중복 노출 방지
-                var inst = EquipmentInstance.Roll(so); // 뜨는 순간 스킬 고정
-                results.Add(new RewardCandidate
-                {
-                    displayData = BuildEquipmentDisplayData(so, inst),
-                    rawData = inst,
-                    category = RewardCategory.Equipment
-                });
-            }
-            else
-            {
-                results.Add(new RewardCandidate {
-                    category = RewardCategory.Equipment,
-                    displayData = new GrowthItemData { itemName = "None", description = "No more equipment available." },
-                    rawData = null
-                });
-            }
-        }
-        return results;
-    }
-
-    private static GrowthItemData BuildEquipmentDisplayData(EquipmentSO so, EquipmentInstance inst)
-    {
-        return new GrowthItemData
-        {
-            itemName = string.IsNullOrEmpty(so.equipmentName) ? so.name : so.equipmentName,
-            description = so.description,
-            icon = so.icon
-        };
-    }
 
     /// <summary>주머니 아이템의 상점 카드 표시 데이터. 등급 표기가 설명 앞에 붙는다.</summary>
     public static GrowthItemData BuildItemDisplayData(ItemSO so)
@@ -198,24 +151,7 @@ public static class RewardProcessor
         // 메인 소환수는 보상 방 전용이라 여기에 올리지 않는다(그 설계를 바꾸려면 별도 판단이 필요).
         // ⚠ 그 결과 상점 풀이 장비 + 아이템만 남아 진열이 고정에 가까워졌다 — 아이템 에셋을 늘려야 한다.
 
-        // [장비] 상점에서 장비 구매 = 현재 장비 교체(구매 시 스킬 2개 새로 리롤). 뜰 때 인스턴스로 굳힌다.
-        if (shopRegistry.equipmentPool != null)
-        {
-            foreach (var so in shopRegistry.equipmentPool)
-            {
-                if (so == null) continue;
-                var inst = EquipmentInstance.Roll(so);
-                combinedPool.Add(new RewardCandidate
-                {
-                    displayData = BuildEquipmentDisplayData(so, inst),
-                    rawData = inst,
-                    category = RewardCategory.Equipment,
-                    goldAmount = so.shopCost
-                });
-            }
-        }
-
-        // [강화] 여기엔 없다. 강화는 전용 상점(Room_ShopEnhance) NPC 에게 F 로만 한다.
+        // 장비는 진열/교체하지 않는다. EnhanceShopNPC의 현재 무기 분기로만 강화한다.
 
         // [아이템] 주머니 아이템. 가격은 티어에서 자동으로 나온다(ItemTierRules).
         // 사면 즉시 장착되지 않고 바닥에 떨어진다 — RewardManager 의 Item 분기 참조.

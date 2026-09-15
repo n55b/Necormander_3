@@ -47,7 +47,7 @@ protected override void OnWindupStart(BaseEntity entity, float windupTime)
     {
         // 예고 레인 진행도 계산용. OnWindupUpdate 에는 진행도가 넘어오지 않는다.
         _windupDuration = windupTime;
-        _windupStartTime = Time.time;
+        _windupStartTime = ActionTime;
         ClearShotTelegraph(); // 이전 시도가 남긴 게 있으면 먼저 정리
 
         if (showAimLine && aimLinePrefab != null && entity.Target != null)
@@ -110,7 +110,7 @@ protected override void OnWindupUpdate(BaseEntity entity)
                 laneLength = laneBlock.distance;
 
             float progress = _windupDuration > 0f
-                ? Mathf.Clamp01((Time.time - _windupStartTime) / _windupDuration)
+                ? Mathf.Clamp01((ActionTime - _windupStartTime) / _windupDuration)
                 : 1f;
 
             BossTelegraph.UpdateRectWithFill(_shotTelegraph, spawnPos, _aimDir, laneLength, shotTelegraphWidth, progress, shotTelegraphFillColor);

@@ -19,6 +19,34 @@ public class CharacterStatus : MonoBehaviour
     /// <summary>유닛 등급. EnemyMinionDataSO.tier 에서 주입되고, 데이터가 없는 유닛은 Normal 로 남는다.
     /// 피해 갈래 판정(CharacterHealth.ResolveCategoryFromAttacker)의 단일 소스다.</summary>
     public EnemyTier Tier { get; set; } = EnemyTier.Normal;
+    public float FrostAuraMultiplier { get; private set; } = 1f;
+    private readonly object _frostAuraSource = new object();
+    private int _frostStacks;
+    private float _frostStackExpiry;
+    private EquipmentSO _freezeWeapon;
+    private GameObject _freezeOwner;
+    public int FrostStacks => Time.time < _frostStackExpiry ? _frostStacks : 0;
+
+    public void SetFrostAura(float reduction)
+    {
+        FrostAuraMultiplier = 1f - Mathf.Clamp01(reduction);
+        if (_stat == null) return;
+        _stat.Mods.RemoveSource(_frostAuraSource);
+        _stat.Mods.AddPercent(_frostAuraSource, StatType.MoveSpeed, -Mathf.Clamp01(reduction));
+        // 공격 템포는 BaseEntity.ActionDeltaTime에서 줄인다. ATKSPD에도 걸면 이중 감속된다.
+    }
+
+    public void AddWeaponFrostStack(EquipmentSO weapon, GameObject owner)
+    {
+        if (weapon == null || _stat == null || _stat.IsDead || HasStatus(StatusType.Freeze)) return;
+        if (_immuneUntil.TryGetValue(StatusType.Freeze, out float until) && Time.time < until) return;
+        if (Time.time >= _frostStackExpiry) _frostStacks = 0;
+        _frostStackExpiry = Time.time + weapon.frostStackDuration;
+        if (++_frostStacks < Mathf.Max(1, weapon.frostHits)) return;
+        _frostStacks = 0;
+        ApplyStatus(StatusType.Freeze, weapon.freezeDuration);
+        if (HasStatus(StatusType.Freeze)) { _freezeWeapon = weapon; _freezeOwner = owner; }
+    }
 
     [Header("Super Armor Settings")]
     [SerializeField] private bool _hasSuperArmor = false;
@@ -42,7 +70,7 @@ public class CharacterStatus : MonoBehaviour
     /// </summary>
     public void DamageSuperArmor(float amount)
     {
-        if (!_hasSuperArmor) return;
+        if (!_hasSuperArmor || Tier == EnemyTier.Elite || Tier == EnemyTier.Boss) return;
         _superArmorGauge = Mathf.Max(0f, _superArmorGauge - amount);
         if (_superArmorGauge <= 0f)
         {
@@ -301,7 +329,7 @@ public class CharacterStatus : MonoBehaviour
 
     /// <summary>
     /// 상태이상을 건다. 이미 걸려 있으면 지속시간이 갱신되고, 스택형(비폭)이면 스택이 쌓인다.
-    /// 슈퍼아머가 있으면 이동 방해 계열(기절/빙결)은 씹힌다 — 저장되지 않으므로 나중에 다시 걸어야 한다.
+    /// 슈퍼아머는 기절/경직을 막지만 빙결은 허용한다. 거부된 상태이상은 저장하지 않는다.
     /// </summary>
     /// <param name="duration">0 이하면 StatusRules.DURATION(5초)을 쓴다. 경직처럼 짧은 건 직접 넘긴다.</param>
     /// <summary>
@@ -402,6 +430,7 @@ if (isNewlyApplied)
     public void RemoveStatus(StatusType type)
     {
         if (!_statuses.Remove(type)) return;
+        if (type == StatusType.Freeze) { _freezeWeapon = null; _freezeOwner = null; }
         debuffTerminal?.RemoveIcon(type);
     }
 
@@ -430,11 +459,30 @@ if (isNewlyApplied)
         // 빙결: 맞으면 고정 피해를 터뜨리고 즉시 풀린다.
         if (HasStatus(StatusType.Freeze))
         {
+            var weapon = _freezeWeapon;
+            var owner = _freezeOwner;
             RemoveStatus(StatusType.Freeze);
             // 피해로 깨진 경우에만 1초 내성. 자연 만료(리힛 없이 2.5초)엔 안 붙는다.
             _immuneUntil[StatusType.Freeze] = Time.time + StatusRules.FREEZE_IMMUNITY;
             OnDebuffPopped?.Invoke(StatusVisual.FreezeBreak);
-            DealSelfDamage(StatusRules.FREEZE_BREAK_DAMAGE, DamageType.Freeze, "빙결");
+            if (weapon == null) DealSelfDamage(StatusRules.FREEZE_BREAK_DAMAGE, DamageType.Freeze, "빙결");
+            else
+            {
+                var ratios = weapon.frostMaxHpRatios;
+                float ratio = Tier == EnemyTier.Boss ? ratios.z : Tier == EnemyTier.Elite ? ratios.y : ratios.x;
+                float damage = _stat.MAXHP * ratio;
+                var info = new DamageInfo(damage, DamageType.Freeze, owner, popupText: "빙결", category: DamageCategory.Debuff);
+                _stat.Health.GetDamage(info);
+                if (weapon.frostExplosionRatio > 0f)
+                {
+                    info.amount = damage * weapon.frostExplosionRatio;
+                    // 대상 목록을 복사: 폭발 도중 사망/소환으로 원본 목록이 바뀔 수 있다. 중심은 제외, Debuff는 재폭발하지 않는다.
+                    foreach (var target in ActiveEnemies.ToArray())
+                        if (target != null && target != this && target._stat != null && !target._stat.IsDead
+                            && ((Vector2)(target.transform.position - transform.position)).sqrMagnitude <= weapon.frostExplosionRadius * weapon.frostExplosionRadius)
+                            target._stat.Health.GetDamage(info);
+                }
+            }
         }
 
         // 출혈: 맞을 때마다 추가 고정 피해. 한 방에 여러 피해가 겹쳐도 1회다.
@@ -476,6 +524,8 @@ if (isNewlyApplied)
 
     public void ClearStatus()
     {
+        _frostStacks = 0; _freezeWeapon = null; _freezeOwner = null;
+        SetFrostAura(0f);
         _activeSlows.Clear(); _activeSpeedBuffs.Clear(); _shieldInstances.Clear();
         _statuses.Clear();
         _immuneUntil.Clear(); // 오브젝트 재사용 시 이전 유닛의 내성을 물려받지 않도록

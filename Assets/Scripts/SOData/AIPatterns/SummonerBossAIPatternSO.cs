@@ -140,7 +140,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
 
         if (stationaryTimer > 0)
         {
-            stationaryTimer -= Time.deltaTime;
+            stationaryTimer -= ActionDeltaTime;
             StopNavAgent(entity);
             UpdateCycleLogic(entity);
             return;
@@ -203,10 +203,10 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
                 break;
 
             case SummonerState.Kiting:
-                cycleTimer += Time.deltaTime;
-                fireballTimer += Time.deltaTime;
-                dashCooldownTimer -= Time.deltaTime;
-                spreadFireballTimer += Time.deltaTime;
+                cycleTimer += ActionDeltaTime;
+                fireballTimer += ActionDeltaTime;
+                dashCooldownTimer -= ActionDeltaTime;
+                spreadFireballTimer += ActionDeltaTime;
 
                 if (spreadFireballTimer >= spreadFireballInterval)
                 {
@@ -304,7 +304,7 @@ public class SummonerBossAIPatternSO : BossAIPatternSO
 
     private void HandleDashing(BaseEntity entity)
     {
-        dashTimeoutTimer -= Time.deltaTime;
+        dashTimeoutTimer -= ActionDeltaTime;
         
         // 순수 물리(Rigidbody2D)로 강제 직선 이동 (NavMesh 무시)
         var rb = entity.GetComponent<Rigidbody2D>();

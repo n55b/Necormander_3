@@ -13,6 +13,9 @@ public class RewardSelectionUI : MonoBehaviour
     [SerializeField] private Button skipButton;
 
     private List<RewardCandidate> _currentCandidates;
+    private System.Action<RewardCandidate> _onSelected;
+    private bool _customSelection;
+    public bool IsOpen => panel != null && panel.activeSelf;
 
     private void Awake()
     {
@@ -23,13 +26,14 @@ public class RewardSelectionUI : MonoBehaviour
         Hide();
     }
 
-    public void Show(List<RewardCandidate> candidates)
+    public void Show(List<RewardCandidate> candidates, System.Action<RewardCandidate> onSelected = null)
     {
+        _onSelected = onSelected;
+        _customSelection = onSelected != null;
         UIPopUpManager.Instance.ForcePopUpUI(panel); // 팝업 매니저에 상태 전달
 
         _currentCandidates = candidates;
         if (panel != null) panel.SetActive(true);
-        UIEventBus.NotifyOpen("Reward");
         UIEventBus.NotifyOpen("Reward");
 
 
@@ -51,24 +55,27 @@ public class RewardSelectionUI : MonoBehaviour
 
     public void Hide()
     {
+        _onSelected = null;
+        _customSelection = false;
         Debug.Log("<color=white>[RewardUI]</color> Hiding Selection UI.");
         if (panel != null) panel.SetActive(false);
         UIPopUpManager.Instance?.ClosePopUpUI();
-        UIEventBus.NotifyClose("Reward"); // 팝업 상태 해제태 해제
         UIEventBus.NotifyClose("Reward");
 
     }
 
     public void OnCardClicked(int index)
     {
-        if (index >= 0 && index < _currentCandidates.Count)
+        if (_currentCandidates != null && index >= 0 && index < _currentCandidates.Count)
         {
+            if (_customSelection) { _onSelected?.Invoke(_currentCandidates[index]); return; }
             RewardManager.Instance.ApplyReward(_currentCandidates[index]);
         }
     }
 
     private void OnSkipClicked()
     {
+        if (_customSelection) { Hide(); return; }
         RewardManager.Instance.SkipReward();
     }
 }

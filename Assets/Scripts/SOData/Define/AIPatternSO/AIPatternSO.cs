@@ -10,6 +10,10 @@ public enum AIState { Idle, Follow, Attack, Skill }
 /// </summary>
 public abstract class AIPatternSO : ScriptableObject
 {
+    protected BaseEntity ActionOwner;
+    protected float ActionTime => ActionOwner != null ? ActionOwner.ActionTime : Time.time;
+    protected float ActionDeltaTime => ActionOwner != null ? ActionOwner.ActionDeltaTime : Time.deltaTime;
+    protected System.Collections.IEnumerator WaitForAction(float seconds) => ActionOwner.WaitForAction(seconds);
     [Header("기본 설정")]
     public float pushRadius = 0.8f;
     public float pushStrength = 2.0f;
@@ -18,6 +22,7 @@ public abstract class AIPatternSO : ScriptableObject
     // 초기화: 모든 상태와 변수를 깨끗하게 비웁니다.
     public virtual void Init(BaseEntity entity)
     {
+        ActionOwner = entity;
         
         entity.CurrentState = AIState.Idle;
         entity.Target = null;
@@ -31,7 +36,7 @@ public abstract class AIPatternSO : ScriptableObject
     public virtual void Execute(BaseEntity entity)
     {
         // [추가] 상태와 무관하게 타이머는 무조건 매 프레임 돕니다.
-        entity.AtkTimer += Time.deltaTime;
+        entity.AtkTimer += entity.ActionDeltaTime;
 
         // 현재 상태 Entity에게 전달하여 애니메이션 재생
         entity.UpdateAnimation(entity.CurrentState);

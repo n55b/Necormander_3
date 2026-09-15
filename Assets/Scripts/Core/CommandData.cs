@@ -83,12 +83,12 @@ public static class StatusRules
     public const float BLOODPOP_FUSE = 0.5f;
 
     /// <summary>
-    /// 슈퍼아머가 막는 상태이상인가. 슈퍼아머 = 강인함이라, 있는 동안은 이동 방해 계열이
-    /// 통째로 씹힌다(밀치기 포함). 씹힌 CC 는 저장되지 않는다 — 깨진 뒤 다시 걸어야 한다.
-    /// 출혈/중독/비폭은 이동을 방해하지 않으므로 그대로 통과한다.
+    /// 슈퍼아머가 막는 상태이상인가. 기절·경직을 거부하며, 밀침은 ApplyKnockback에서도 막는다.
+    /// 거부된 상태이상은 저장하지 않는다.
+    /// 빙결은 보스·엘리트에게도 적용한다. 출혈/중독/비폭 역시 통과한다.
     /// </summary>
     public static bool BlockedBySuperArmor(StatusType t)
-        => t == StatusType.Stun || t == StatusType.Freeze;
+        => t == StatusType.Stun || t == StatusType.Hitstun;
 
     /// <summary>행동을 막는 상태이상인가.</summary>
     public static bool PreventsAction(StatusType t)

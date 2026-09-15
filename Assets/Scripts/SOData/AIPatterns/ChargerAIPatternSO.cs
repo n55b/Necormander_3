@@ -193,7 +193,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         while (timeout > 0f)
         {
             if (entity.Target == null) break;
-            timeout -= Time.deltaTime;
+            timeout -= ActionDeltaTime;
 
             // [예고 플래시] 돌진 개시 leadTime초 전, 하데스식 흰색 번쩍으로 타이밍 신호 (일반 몬스터 = 1펄스)
             if (!telegraphFlashFired && timeout <= telegraphFlashLeadTime)
@@ -294,11 +294,11 @@ public class ChargerAIPatternSO : BaseAIPatternSO
 
         while (chargeElapsed < maxChargeDuration)
         {
-            chargeElapsed += Time.deltaTime;
+            chargeElapsed += ActionDeltaTime;
 
             // [정지 감지] 벽 CircleCast가 못 잡는 장애물(맵 경계 등)에 막혀도, 실제로
             // 전진하지 못하고 있으면 곧바로 벽에 부딪힌 것으로 처리한다.
-            if (stallDetector.IsStalled(entity.transform.position, chargeSpeed, Time.deltaTime))
+            if (stallDetector.IsStalled(entity.transform.position, chargeSpeed, ActionDeltaTime))
             {
                 hasHitObstacle = true;
                 ResolveChargeStop(entity, chargeDir, rb);
@@ -306,13 +306,13 @@ public class ChargerAIPatternSO : BaseAIPatternSO
             }
             if (rb != null)
             {
-                rb.linearVelocity = chargeDir * chargeSpeed;
+                rb.linearVelocity = chargeDir * chargeSpeed * entity.ActionTempo;
             }
 
             // 돌진 시작 0.15초 이후부터 벽/플레이어 충돌 감지 ( Stun 판정 목적 )
             if (chargeElapsed > 0.15f)
             {
-                float checkDistance = chargeSpeed * Time.deltaTime + wallCheckDistanceBuffer;
+                float checkDistance = chargeSpeed * ActionDeltaTime + wallCheckDistanceBuffer;
                 RaycastHit2D hit = Physics2D.CircleCast(entity.transform.position, wallStopRadiusRatio, chargeDir, checkDistance, hitMask);
                 if (hit.collider != null)
                 {
