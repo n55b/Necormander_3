@@ -300,6 +300,15 @@ public static class GuardControlsSetup
         var hud = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);
         Check(!hud.GetComponentsInChildren<Transform>(true).Any(t => t.name == "Icon_E_Skill" || t.name == "Icon_Q_Skill" || t.name == "Icon_R_Skill"), "HUD 옛 슬롯 제거/교체");
         var playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player Melee.prefab");
+        var guardClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Resources/Sound/SFX/Guard_Block.wav");
+        var sounds = AssetDatabase.LoadAssetAtPath<PlayerAttackSoundData>("Assets/SOData/Sound/PlayerAttackSoundData.asset");
+        var manager = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/GameManager.prefab");
+        Check(guardClip != null && guardClip.length > 0f && sounds != null
+            && sounds.GetParrySuccessClip() == guardClip && sounds.parrySuccessVolume > 0f,
+            "제공된 WAV가 실제 방어 성공 사운드에 연결됨");
+        Check(playerPrefab.GetComponent<PlayerCombatSoundController>() != null
+            && new SerializedObject(manager.GetComponent<GameManager>()).FindProperty("playerAttackSoundData").objectReferenceValue == sounds,
+            "플레이어 전투 사운드와 GameManager의 사운드 데이터 배선");
         Check(playerPrefab.GetComponent<PlayerInput>().defaultActionMap == "Player", "플레이어 입력맵 자동 활성화");
         var events = playerPrefab.GetComponent<PlayerInput>().actionEvents;
         Check(!events.Any(e => e.actionName.Contains("SkillQ") || e.actionName.Contains("SkillE") || e.actionName.Contains("SkillR")), "프리팹 입력 이벤트 교체");
@@ -573,6 +582,36 @@ public static class GuardControlsSetup
             typeof(PlayerParryController).GetMethod("ScanIncoming", Fields).Invoke(guard, new object[] { scanConfig });
             Check(successes == beforeScan + 4 && !guard.IsParrying && guard.GuardBroken && guard.GuardAmount == 0f,
                 "동시 4공격 방어 후 소진, 중복 콜라이더로 게이지를 더 깎지 않음");
+
+            // 실제 마법사 패턴이 만드는 단발 장판도 스캔/직접 피격 양쪽에서 가드 불가여야 한다.
+            var magician = enemy.AddComponent<EnemyController>();
+            var enemyStat = enemy.AddComponent<CharacterStat>();
+            typeof(BaseEntity).GetField("_stats", Fields).SetValue(magician, enemyStat);
+            magician.Target = host.transform;
+            magician.opponentLayer = Layers.PlayerMask;
+            var pattern = AssetDatabase.LoadAssetAtPath<EnemyMagicianAIPatternSO>(
+                "Assets/SOData/Enemy/Enemy AI Patterns/Enemy Magician Pattern.asset");
+            var previousBoxes = Resources.FindObjectsOfTypeAll<BaseHitBox>();
+            typeof(EnemyMagicianAIPatternSO).GetMethod("ExecuteBasicAttack", Fields).Invoke(pattern, new object[] { magician });
+            var ground = Resources.FindObjectsOfTypeAll<BaseHitBox>()
+                .Single(b => !previousBoxes.Contains(b) && b.Info.attacker == enemy);
+            ground.transform.SetParent(scanRoot.transform);
+            Check(!ground.isContinuousDamage && ground.Info.bypassGuard && !PlayerParryController.CanGuard(ground.Info),
+                "마법사 단발 장판의 가드 제외 표시");
+            ground.StopAllCoroutines(); // 선딜 대기 대신 실제 타격 상태로 검사한다.
+            ground.GetComponent<Collider2D>().enabled = true;
+            typeof(BaseHitBox).GetMethod("ActivateHitBox", Fields).Invoke(ground, null);
+            Arm(guard, health, scanConfig);
+            int beforeGround = successes;
+            Physics2D.SyncTransforms();
+            typeof(PlayerParryController).GetMethod("ScanIncoming", Fields).Invoke(guard, new object[] { scanConfig });
+            Check(ground.gameObject.activeSelf && ground.IsLive && guard.GuardAmount == 100f && successes == beforeGround,
+                "가드 스캔이 장판을 지우거나 방어 성공을 발화하지 않음");
+            float beforeGroundHP = health.CurHP;
+            health.GetDamage(ground.Info);
+            Check(health.CurHP < beforeGroundHP && guard.GuardAmount == 100f && successes == beforeGround,
+                "가드 중에도 장판은 체력 피해를 주고 방어 성공 사운드는 발화하지 않음");
+            Debug.Log("[GuardCheck] PASS — actual magician ground hit bypasses guard scan and damage interception.");
             Debug.Log("[GuardCheck] PASS — repeated and simultaneous attacks, reflection, ownership, duplicate colliders, gauge consumption.");
         }
         finally

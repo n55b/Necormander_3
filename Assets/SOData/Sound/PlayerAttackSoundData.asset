@@ -30,7 +30,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 156c308a1d873d844b3356057ff6ed38, type: 3}
   dodgeVolume: 0.85
   parryStartClips: []
-  parrySuccessClips: []
+  parrySuccessClips:
+  - {fileID: 8300000, guid: 5276bd0ca02a4519aa060f67e7b78c92, type: 3}
   parryFailClips: []
   parryStartVolume: 0.7
   parrySuccessVolume: 0.9
