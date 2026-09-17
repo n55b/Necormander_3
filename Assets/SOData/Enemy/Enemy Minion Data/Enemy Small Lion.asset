@@ -12,25 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac46b1fa0f0744c1a9cd4679b99eb04e, type: 3}
   m_Name: Enemy Small Lion
   m_EditorClassIdentifier: 
-  minionSkill: {fileID: 0}
   minionType: 0
   minionName: Enemy Small Slime
   minionIcon: {fileID: 0}
-  baseEffectValue: 0
-  maxHP: 60
-  attack: 5
-  attackSpeed: 1
-  attackRange: 2
-  detectRange: 10
-  defense: 0
-  moveSpeed: 4
-  baseEvasion: 0
-  baseAccuracy: 1
-  attackType: 0
-  tier: 0
-  aiPattern: {fileID: 11400000, guid: 047a205c8279f3949b31d4d02e9122fe, type: 2}
-  AttackSound: {fileID: 0}
-  minionPrefab: {fileID: 1190463616093019822, guid: 94222fd4519c1974aac8e103ed3e8311, type: 3}
   shopCost: 150
   rewardItemData:
     itemName: 
@@ -55,6 +39,23 @@ MonoBehaviour:
       m_LocalVariables: []
     icon: {fileID: 0}
     rarity: 0
+  baseEffectValue: 0
+  attack: 5
+  maxHP: 30
+  attackSpeed: 1
+  attackRange: 2
+  detectRange: 10
+  defense: 0
+  moveSpeed: 4
+  baseEvasion: 0
+  baseAccuracy: 1
+  attackType: 0
+  tier: 0
+  isPhaseVariant: 0
+  aiPattern: {fileID: 11400000, guid: 047a205c8279f3949b31d4d02e9122fe, type: 2}
+  AttackSound: {fileID: 0}
+  minionPrefab: {fileID: 1190463616093019822, guid: 94222fd4519c1974aac8e103ed3e8311, type: 3}
+  dedicatedRoomPrefab: {fileID: 0}
   references:
     version: 2
     RefIds: []

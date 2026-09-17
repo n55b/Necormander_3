@@ -12,25 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac46b1fa0f0744c1a9cd4679b99eb04e, type: 3}
   m_Name: Monster LionMask
   m_EditorClassIdentifier: 
-  minionSkill: {fileID: 0}
   minionType: 0
   minionName: Monster LionMask
   minionIcon: {fileID: 0}
-  baseEffectValue: 0
-  maxHP: 60
-  attack: 3
-  attackSpeed: 1
-  attackRange: 2
-  detectRange: 10
-  defense: 0
-  moveSpeed: 4
-  baseEvasion: 0
-  baseAccuracy: 1
-  attackType: 0
-  tier: 0
-  aiPattern: {fileID: 11400000, guid: b1bf31aae6e40ed45a5247df568f0e2f, type: 2}
-  AttackSound: {fileID: 0}
-  minionPrefab: {fileID: 6906322067675149183, guid: e832ce6b5994dd7439cad5690d036f61, type: 3}
   shopCost: 150
   rewardItemData:
     itemName: 
@@ -55,6 +39,23 @@ MonoBehaviour:
       m_LocalVariables: []
     icon: {fileID: 0}
     rarity: 0
+  baseEffectValue: 0
+  attack: 3
+  maxHP: 30
+  attackSpeed: 1
+  attackRange: 2
+  detectRange: 10
+  defense: 0
+  moveSpeed: 4
+  baseEvasion: 0
+  baseAccuracy: 1
+  attackType: 0
+  tier: 0
+  isPhaseVariant: 0
+  aiPattern: {fileID: 11400000, guid: b1bf31aae6e40ed45a5247df568f0e2f, type: 2}
+  AttackSound: {fileID: 0}
+  minionPrefab: {fileID: 6906322067675149183, guid: e832ce6b5994dd7439cad5690d036f61, type: 3}
+  dedicatedRoomPrefab: {fileID: 0}
   references:
     version: 2
     RefIds: []

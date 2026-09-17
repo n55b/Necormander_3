@@ -41,7 +41,7 @@ MonoBehaviour:
     rarity: 0
   baseEffectValue: 0
   attack: 35
-  maxHP: 750
+  maxHP: 500
   attackSpeed: 2
   attackRange: 3.8
   detectRange: 12

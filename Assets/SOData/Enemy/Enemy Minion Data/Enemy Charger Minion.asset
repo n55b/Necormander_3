@@ -12,13 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac46b1fa0f0744c1a9cd4679b99eb04e, type: 3}
   m_Name: Enemy Charger Minion
   m_EditorClassIdentifier: 
-  minionSkill: {fileID: 0}
   minionType: 0
   minionName: Enemy Skeleton Charger
   minionIcon: {fileID: 0}
+  shopCost: 150
+  rewardItemData:
+    itemName: 
+    description: 
+    localizedItemName:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    icon: {fileID: 0}
+    rarity: 0
   baseEffectValue: 0
-  maxHP: 80
   attack: 12
+  maxHP: 50
   attackSpeed: 1
   attackRange: 6
   detectRange: 10
@@ -28,6 +51,11 @@ MonoBehaviour:
   baseAccuracy: 1
   attackType: 0
   tier: 0
+  isPhaseVariant: 0
   aiPattern: {fileID: 11400000, guid: e2662380101e5f544954b4ba670390f1, type: 2}
   AttackSound: {fileID: 0}
   minionPrefab: {fileID: 5658053484416891064, guid: 281de929d6f8d234c89596900a6cdea2, type: 3}
+  dedicatedRoomPrefab: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []

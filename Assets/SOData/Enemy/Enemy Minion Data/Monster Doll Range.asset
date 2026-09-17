@@ -12,13 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac46b1fa0f0744c1a9cd4679b99eb04e, type: 3}
   m_Name: Monster Doll Range
   m_EditorClassIdentifier: 
-  minionSkill: {fileID: 0}
   minionType: 2
   minionName: Monster Doll Range
   minionIcon: {fileID: 0}
+  shopCost: 150
+  rewardItemData:
+    itemName: 
+    description: 
+    localizedItemName:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    icon: {fileID: 0}
+    rarity: 0
   baseEffectValue: 0
-  maxHP: 100
   attack: 6
+  maxHP: 70
   attackSpeed: 0.5
   attackRange: 8
   detectRange: 10
@@ -28,6 +51,11 @@ MonoBehaviour:
   baseAccuracy: 1
   attackType: 0
   tier: 0
+  isPhaseVariant: 0
   aiPattern: {fileID: 11400000, guid: d714e9ff20833ad43952e96569b7dd59, type: 2}
   AttackSound: {fileID: 0}
   minionPrefab: {fileID: 5658053484416891064, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+  dedicatedRoomPrefab: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []
