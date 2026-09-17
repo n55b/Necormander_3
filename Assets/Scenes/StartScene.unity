@@ -1209,7 +1209,7 @@ MonoBehaviour:
   gameSceneName: BattleScene
   startSceneName: VillageScene
   tutorialSceneName: BattleScene
-  debugForceTutorial: 0
+  debugForceTutorial: 1
 --- !u!1 &1280517090
 GameObject:
   m_ObjectHideFlags: 0
