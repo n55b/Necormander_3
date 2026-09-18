@@ -168,6 +168,6 @@ public void CloseOption()
 public void LoadMainMenu()
     {
         Time.timeScale = 1f; // 정지 상태(ESC 메뉴)에서 나갈 경우를 대비해 반드시 복구
-        UnityEngine.SceneManagement.SceneManager.LoadScene("StartScene"); // 메인 메뉴 씬으로 이동
+        UnityNote.SceneLoader.Load("StartScene");
     }
 }

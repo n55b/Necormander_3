@@ -18,20 +18,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private PlayerController playerController;
     public PlayerController PLAYERCONTROLLER => playerController;
     public bool IsPlayerReady { get; private set; } = false;
-
-    /// <summary>'다음 씬이 다 지어졌는지' 물어보는 조건을 만든다. 씬 전환 페이드가
-    /// 언제 밝혀도 되는지를 이걸로 판단한다 (Fader.FadeOutIn 의 waitUntil 에 넘긴다).
-    ///
-    /// [함정] SceneManager.LoadScene 은 부른 즉시 로드되지 않고 '그 프레임 끝'에 로드된다.
-    /// 그래서 그냥 IsPlayerReady 를 보면, 아직 멀쩡히 살아있는 '떠나는 씬'의 GameManager 가
-    /// true 를 답해버려서 기다림이 통째로 무시된다 → 페이드 인이 로드 전에 다 끝나고,
-    /// 맵이 지어지는 걸 밝은 화면으로 구경하게 된다.
-    /// 그래서 지금 인스턴스를 기억해뒀다가 '그놈이 아닌 새 GameManager' 가 준비될 때까지 기다린다.</summary>
-    public static System.Func<bool> NextSceneReady()
-    {
-        GameManager leaving = Instance;
-        return () => Instance != leaving && Instance != null && Instance.IsPlayerReady;
-    }
+    public string InitializationError { get; private set; }
+    private float _loadingProgress;
+    /// <summary>실제 초기화 단계 진행률. SceneLoader는 이 값과 IsPlayerReady만 소비한다.</summary>
+    public float LoadingProgress => Mathf.Max(_loadingProgress,
+        mapGenerator != null ? 0.1f + 0.65f * mapGenerator.GenerationProgress : 0f);
 
     [Header("Global Volume")]
     [SerializeField] public Volume globalvolume;
@@ -248,6 +239,7 @@ public class GameManager : MonoBehaviour
 
 
         Debug.Log("<b>[GameManager]</b> Initial Managers Loaded.");
+        _loadingProgress = 0.1f;
     }
 
     private IEnumerator Start()
@@ -267,7 +259,20 @@ public class GameManager : MonoBehaviour
             yield return StartCoroutine(mapGenerator.GenerateMapCoroutine());
         }
 
+        if (mapGenerator != null && !mapGenerator.IsMapGenerationCompleted)
+        {
+            InitializationError = "맵 생성이 완료되지 않아 씬 입장을 중단합니다.";
+            Debug.LogError("[GameManager] " + InitializationError);
+            yield break;
+        }
+        _loadingProgress = 0.75f;
         SpawnPlayer();
+        if (playerController == null)
+        {
+            InitializationError = "플레이어 생성에 실패해 씬 입장을 중단합니다.";
+            yield break;
+        }
+        _loadingProgress = 0.85f;
 
         if (playerStateUI != null && playerController != null)
         {
@@ -300,6 +305,13 @@ public class GameManager : MonoBehaviour
             Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");
         }
 
+        _loadingProgress = 0.95f;
+        // 스폰 직후가 아니라 HUD 초기화와 카메라 LateUpdate까지 마친 뒤에만 완료한다.
+        yield return null;
+        yield return null;
+        _loadingProgress = 1f;
+        IsPlayerReady = true;
+        if (!UnityNote.SceneLoader.IsLoading) playerController.SetInputBlocked(false);
         Debug.Log("<color=green>[GameManager]</color> All Systems Ready!");
     }
 
@@ -338,6 +350,7 @@ public class GameManager : MonoBehaviour
             if (vcam != null)
             {
                 vcam.Follow = camTarget;
+                vcam.PreviousStateIsValid = false;
 
                 // 텔레포트와 동일한 워프 방식: CameraManager를 통해 즉시 스냅시킴
                 Vector3 camDelta = camTarget.position - vcam.transform.position;
@@ -355,17 +368,12 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (playerController != null)
-        {
-            playerController.SetInputBlocked(false);
-        }
-
-        IsPlayerReady = true;
         Debug.Log("<color=cyan>[GameManager]</color> Player Spawned, Placed, and Camera Assigned.");
     }
 
     public void GoToNextFloor()
     {
+        if (UnityNote.SceneLoader.IsLoading) return;
         // 튜토리얼엔 '다음 층'이 없다 — 마을로 나가면서 끝난다. 여기 한 곳에서 갈라놓으면
         // 튜토리얼 방에 어떤 포탈이 서든(마지막 방 포탈이든 보상 방 포탈이든) 전부 마을로 나간다.
         if (TutorialFlow.IsRunning)
@@ -419,30 +427,11 @@ public class GameManager : MonoBehaviour
         LoadSceneWithFade(SceneManager.GetActiveScene().name, FadeSignal.층이동, data.currentFloor);
     }
 
-    /// <summary>
-    /// 암전 → 씬 로드 → <b>새 씬이 다 지어진 뒤</b> 밝히기.
-    ///
-    /// 페이드 양(시간/색)은 여기 박지 않는다 — 신호 이름만 넘기면 ScreenFadeCanvas 의 Fader 가
-    /// 그 줄을 찾아 쓴다(기획자가 거기서 조절). 암전을 SceneReady 까지 끄는 이유는, LoadScene 이
-    /// 돌아와도 맵 생성 + 플레이어 스폰이 몇 프레임 더 남아 있어서다.
-    /// </summary>
+    /// <summary>층수 전달은 GameManager, 로딩 화면/씬 교체는 공통 SceneLoader가 맡는다.</summary>
     private void LoadSceneWithFade(string sceneName, FadeSignal signal, int nextFloor = 0)
     {
-        void Load()
-        {
-            // 암전 대기 중이 아니라 실제 씬 로드 직전에 넘긴다. 페이더 유무와 관계없이 같은 경로다.
-            _pendingNextFloor = nextFloor;
-            SceneManager.LoadScene(sceneName);
-        }
-
-        Fader fader = Fader.FullScreenFader;
-        if (fader == null)
-        {
-            Load(); // 페이더를 못 구해도 이동은 반드시 되어야 한다
-            return;
-        }
-
-        fader.FadeOutIn(signal, Load, null, NextSceneReady());
+        _pendingNextFloor = nextFloor;
+        if (!UnityNote.SceneLoader.Load(sceneName, signal)) _pendingNextFloor = 0;
     }
 
     /// <summary>

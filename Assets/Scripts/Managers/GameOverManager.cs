@@ -38,12 +38,12 @@ public class GameOverManager : Singleton<GameOverManager>
     public void RestartGame()
     {
         GameManager.Instance.SetTimeStop(false); // 게임 시간 재개
-        SceneManager.LoadScene("VillageScene"); // 빌리지 씬 재로드
+        UnityNote.SceneLoader.Load("VillageScene");
     }
 
     public void GoToMainMenu()
     {
         GameManager.Instance.SetTimeStop(false); // 게임 시간 재개
-        SceneManager.LoadScene("StartScene"); // 메인 메뉴 씬으로 이동
+        UnityNote.SceneLoader.Load("StartScene");
     }
 }

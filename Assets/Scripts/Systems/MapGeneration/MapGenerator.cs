@@ -12,6 +12,7 @@ public class MapGenerator : MonoBehaviour
 
     // 맵 생성 완료 여부 플래그
     public bool IsMapGenerationCompleted { get; private set; } = false;
+    public float GenerationProgress { get; private set; }
 
     [Header("Data Settings")]
     [SerializeField] private MapGenerationDataSO generationData;
@@ -21,31 +22,38 @@ public class MapGenerator : MonoBehaviour
     [Tooltip("맵 생성 뒤 MapDebugLog.txt에 전체 타일 지도를 기록합니다. 큰 방에서는 로그 한 번에 수십만 칸을 검사하므로, 연결 문제를 추적할 때만 켭니다.")]
     [SerializeField] private bool dumpMapDebugLog;
 
-    [Tooltip("맵 생성 구간별 실제 경과 시간을 [MapPerf] 로그로 기록합니다. WAIT는 다음 프레임까지의 대기 포함 시간이며, 원인 확인 후 끄면 됩니다.")]
-    [SerializeField] private bool logGenerationTimings = true;
+    [Tooltip("기본은 단계별 요약만 출력합니다. 켜면 방/타일/문/프레임 대기까지 상세 [MapPerf] 로그를 추가합니다. 경고와 오류는 이 설정과 무관하게 항상 출력합니다.")]
+    [SerializeField] private bool logGenerationTimings = false;
 
     // 부모 구간은 자식 작업과 대기 시간을 포함한다. CPU 시간이나 서로 더할 수 있는 독립 구간이 아니다.
-    internal static System.IDisposable MeasureGeneration(string label)
-        => Instance != null && Instance.logGenerationTimings ? new GenerationTiming(label) : null;
+    internal static System.IDisposable MeasureGeneration(string label, bool summary = false)
+        => summary || (Instance != null && Instance.logGenerationTimings)
+            ? new GenerationTiming(label, summary) : null;
 
     private sealed class GenerationTiming : System.IDisposable
     {
         private static int nextId;
         private readonly string label;
+        private readonly bool summary;
         private readonly int startFrame = Time.frameCount;
         private readonly System.Diagnostics.Stopwatch watch;
 
-        public GenerationTiming(string name)
+        public GenerationTiming(string name, bool summary = false)
         {
-            label = $"#{++nextId} {name}";
-            Write("BEGIN");
+            this.summary = summary;
+            label = summary ? name : $"#{++nextId} {name}";
+            if (!summary) Write("BEGIN");
             watch = System.Diagnostics.Stopwatch.StartNew();
         }
 
         public void Dispose()
         {
             watch.Stop();
-            Write($"END ms={watch.Elapsed.TotalMilliseconds:F2} frames={Time.frameCount - startFrame}");
+            if (summary)
+                Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null,
+                    "[Map] {0} | {1:F2}초", label, watch.Elapsed.TotalSeconds);
+            else
+                Write($"END ms={watch.Elapsed.TotalMilliseconds:F2} frames={Time.frameCount - startFrame}");
         }
 
         private void Write(string result)
@@ -64,7 +72,7 @@ public class MapGenerator : MonoBehaviour
         var messages = new List<string>();
         void Capture(string message, string stack, LogType type)
         {
-            if (message.StartsWith("[MapPerf]") && message.Contains("TimingSelfCheck")) messages.Add(message);
+            if (message.Contains("TimingSelfCheck")) messages.Add(message);
         }
 
         Application.logMessageReceived += Capture;
@@ -80,9 +88,46 @@ public class MapGenerator : MonoBehaviour
             if (messages.Count != 2 || !messages[0].Contains(" | BEGIN |") ||
                 !messages[1].Contains(" | END ms=") || !messages[1].Contains("frames=0"))
                 throw new System.InvalidOperationException("Map timing BEGIN/END pairing failed.");
+
+            messages.Clear();
+            using (new GenerationTiming("TimingSelfCheck summary", summary: true)) { }
+            if (messages.Count != 1 || !messages[0].StartsWith("[Map] ") || messages[0].Contains("BEGIN"))
+                throw new System.InvalidOperationException("Map summary must emit exactly one line per stage.");
         }
         finally { Application.logMessageReceived -= Capture; }
-        Debug.Log("[MapPerf] SELF-CHECK PASS: BEGIN/END paired, including exception cleanup. No scene changes.");
+        Debug.Log("[MapCheck] PASS: 단계 요약 1줄, 상세 측정 BEGIN/END 짝 및 예외 정리 검증.");
+    }
+
+    [UnityEditor.MenuItem("Tools/Map/Inspect Empty Navigation Sources")]
+    private static void InspectEmptyNavigationSources()
+    {
+        if (!Application.isPlaying || Instance == null || !Instance.IsMapGenerationCompleted)
+        {
+            Debug.LogWarning("[MapCheck] 맵 생성이 끝난 플레이 모드에서 실행하세요.");
+            return;
+        }
+        var surface = Object.FindFirstObjectByType<NavMeshSurface>();
+        if (surface == null) return;
+        // 패키지의 PhysicsColliders 수집 조건 그대로 검사한다. 생성/충돌 설정은 변경하지 않는다.
+        foreach (var modifier in Object.FindObjectsByType<NavMeshModifier>(FindObjectsSortMode.None))
+        {
+            if (modifier.ignoreFromBuild || !modifier.AffectsAgentType(surface.agentTypeID) ||
+                ((1 << modifier.gameObject.layer) & surface.layerMask.value) == 0) continue;
+            var collider = modifier.GetComponent<Collider2D>();
+            if (collider == null) continue;
+            if (collider.compositeOperation != Collider2D.CompositeOperation.None)
+                collider = collider.GetComponent<CompositeCollider2D>();
+            if (collider == null) continue;
+            Mesh mesh = collider.CreateMesh(false, false);
+            if (mesh != null) { Object.DestroyImmediate(mesh); continue; }
+            string path = collider.name;
+            for (var parent = collider.transform.parent; parent != null; parent = parent.parent)
+                path = parent.name + "/" + path;
+            var tiles = collider.GetComponent<Tilemap>();
+            Debug.Log($"[MapCheck] mesh 없음: {path}; collider={collider.GetType().Name}, shapes={collider.shapeCount}, tileKinds={(tiles != null ? tiles.GetUsedTilesCount() : -1)}", collider);
+        }
+        var nav = NavMesh.CalculateTriangulation();
+        Debug.Log($"[MapCheck] 생성 완료={Instance.IsMapGenerationCompleted}, NavMesh 정점={nav.vertices.Length}, 삼각형={nav.indices.Length / 3}");
     }
 #endif
 
@@ -385,6 +430,7 @@ Instance = this;
 
     private IEnumerator GenerationSequence()
     {
+        GenerationProgress = 0f;
         // 방을 하나라도 만들기 전에 이 층의 엘리트를 확정한다 — 엘리트 방 프리팹 선택이 이 값을 본다.
         PickFloorElite();
 
@@ -476,10 +522,12 @@ Instance = this;
             CullIsolatedRooms();
         }
 
+        GenerationProgress = 0.6f;
         AssignSpecialRooms();
         DumpMapToLog();
 
         SetupFinalColliders();
+        GenerationProgress = 0.8f;
         BakeNavMesh();
 
         // [추가] 물리 분산 모드 시 미니맵 위치 정밀 전사 및 다리(길) 렌더링 조건을 위해 월드 좌표 기반 가상 그리드 좌표 갱신
@@ -514,6 +562,7 @@ Instance = this;
         IsMapGenerationCompleted = true;
         FinalizeAllRoomTileAnimations();
         OnMapGenerated?.Invoke();
+        GenerationProgress = 1f;
         Debug.Log("<color=green>[MapGenerator]</color> Map Generation Completed.");
     }
 
@@ -1843,7 +1892,8 @@ Instance = this;
 
             globalMiniMapTilemap.SetTiles(miniMapPositions.ToArray(), miniMapTiles.ToArray());
             globalMiniMapTilemap.RefreshAllTiles();
-            Debug.Log($"<color=green>[MapGenerator]</color> [아이작 미니맵] 방 {room.name}을 미니맵에 정밀 전사했습니다. ({miniMapPositions.Count}칸)");
+            if (logGenerationTimings)
+                Debug.Log($"<color=green>[MapGenerator]</color> [아이작 미니맵] 방 {room.name}을 미니맵에 정밀 전사했습니다. ({miniMapPositions.Count}칸)");
 
             // [수정] 방문 여부가 아니라, 미니맵 상에 이미 노출되어 떠 있는 방들(isRevealedOnMinimap) 간의 연결 통로를 흰색 타일막대로 드로잉
             var connected = GetConnectedRooms(room);
@@ -1941,7 +1991,8 @@ Instance = this;
 
     private IEnumerator IsaacStyleGenerationSequence()
     {
-        using var totalTiming = MeasureGeneration("Isaac TOTAL (includes WAIT)");
+        GenerationProgress = 0f;
+        using var totalTiming = MeasureGeneration("전체 생성 소요(프레임 대기 포함)", summary: true);
         IsMapGenerationCompleted = false;
         _isGenerating = true;
 
@@ -1954,7 +2005,7 @@ Instance = this;
         {
             regenAttempt++;
             _placementAttempt = regenAttempt;
-            using var placementTiming = MeasureGeneration($"0.Placement attempt={regenAttempt}");
+            using var placementTiming = MeasureGeneration($"0단계 방 배치 · 시도 {regenAttempt}", summary: true);
             _currentPhaseIndex = 0;
             using (MeasureGeneration("0.SetupTilemapLayers"))
                 SetupTilemapLayers();
@@ -2008,9 +2059,10 @@ Instance = this;
         }
 
         // 배치 간격(spacing)에 맞춰 방들의 물리적 위치 재조정 및 병합 (단계별 분리)
-        Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 1단계: 방 위치 정렬 및 타일 병합 시작...");
         float spacing = generationData.gridSpacing;
-        using (MeasureGeneration($"1.Merge TOTAL rooms={_allRooms.Count} (includes WAIT)"))
+        int mergedRooms = 0;
+        GenerationProgress = 0.1f;
+        using (MeasureGeneration($"1단계 타일 병합 · {_allRooms.Count}개 방", summary: true))
         {
             foreach (var room in _allRooms)
             {
@@ -2020,6 +2072,7 @@ Instance = this;
                     room.SnapToGrid(generationData.gridUnit);
                     room.MergeTilesToGlobal(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, globalUnsteppableTilemap);
                 }
+                GenerationProgress = 0.1f + 0.3f * ++mergedRooms / Mathf.Max(1, _allRooms.Count);
 
                 // 기존 대기를 그대로 측정한다. scaled 대기이므로 timeScale/프레임 정체도 로그에 함께 남긴다.
                 using (MeasureGeneration($"1.WAIT after merge room={room.name} requestedScaledSeconds=0.03"))
@@ -2028,8 +2081,7 @@ Instance = this;
         }
 
         // 문 스폰 및 텔레포트 매핑 연동
-        Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 2단계: 문 스폰 및 텔레포터 연결 중...");
-        using (MeasureGeneration("2.Doors TOTAL (includes WAIT)"))
+        using (MeasureGeneration("2단계 문/텔레포터 연결", summary: true))
         {
             yield return StartCoroutine(SetupIsaacDoorsAndTeleporters(gridMap));
             using (MeasureGeneration("2.WAIT after doors requestedScaledSeconds=0.05"))
@@ -2037,8 +2089,8 @@ Instance = this;
         }
 
         // 최종 가공
-        Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 3단계: 특수 방 할당 및 통행 불가 구역 갱신...");
-        using (MeasureGeneration("3.SpecialRooms TOTAL (includes WAIT)"))
+        GenerationProgress = 0.6f;
+        using (MeasureGeneration("3단계 특수 방/출구", summary: true))
         {
             using (MeasureGeneration("3.AssignSpecialRooms"))
                 AssignSpecialRooms();
@@ -2048,8 +2100,8 @@ Instance = this;
                 yield return new WaitForSeconds(0.05f);
         }
 
-        Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 4단계: 타일맵 콜라이더 갱신 및 결합...");
-        using (MeasureGeneration("4.Wall TOTAL (includes WAIT)"))
+        GenerationProgress = 0.7f;
+        using (MeasureGeneration("4단계 벽 충돌 갱신", summary: true))
         {
             if (globalWallTilemap != null)
             {
@@ -2061,57 +2113,61 @@ Instance = this;
                 yield return new WaitForSeconds(0.05f);
         }
 
-        Debug.Log("<color=cyan>[MapGenerator]</color> [아이작 맵] 5단계: NavMesh 빌드 및 안개 시스템 가동...");
-        using var finalTiming = MeasureGeneration("5.Finalize TOTAL");
-        BakeNavMesh();
-
-        // [추가] 일반 전투 방들의 보상 수량을 지정된 개수대로 무작위 분배 및 안배
-        using (MeasureGeneration("5.DistributeNormalRoomRewards"))
-            DistributeNormalRoomRewards();
-
-        // 안개 생성
-        // GenerateFogOfWar(); // [Fog 미사용] 안개 시스템 비활성화로 주석 처리
-
-        // 스폰 방 안개 즉시 제거
-        RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
-        if (spawnRoom != null)
+        GenerationProgress = 0.8f;
+        using (MeasureGeneration("5단계 NavMesh/보상/미니맵 마무리", summary: true))
         {
-            using (MeasureGeneration("5.RevealRoom"))
-                spawnRoom.RevealRoom();
+            BakeNavMesh();
+            GenerationProgress = 0.9f;
+
+            // [추가] 일반 전투 방들의 보상 수량을 지정된 개수대로 무작위 분배 및 안배
+            using (MeasureGeneration("5.DistributeNormalRoomRewards"))
+                DistributeNormalRoomRewards();
+
+            // 안개 생성
+            // GenerateFogOfWar(); // [Fog 미사용] 안개 시스템 비활성화로 주석 처리
+
+            // 스폰 방 안개 즉시 제거
+            RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
+            if (spawnRoom != null)
+            {
+                using (MeasureGeneration("5.RevealRoom"))
+                    spawnRoom.RevealRoom();
+            }
+
+            // 생성 완료 후 모든 방의 문을 기본 개방 상태로 설정하여 자유로운 이동 및 텔레포터 활성화 보장
+            using (MeasureGeneration("5.Open all doors"))
+            {
+                foreach (var room in _allRooms)
+                    room.SetDoorsOpen(true);
+            }
+
+            // 스폰 방 위치로 미니맵 카메라 정밀 포커싱 초기화
+            if (spawnRoom != null)
+            {
+                using (MeasureGeneration("5.MiniMap focus"))
+                    UpdateMiniMapCameraFocus(spawnRoom);
+            }
+
+            using (MeasureGeneration("5.PlacePlayerAtSpawn"))
+                PlacePlayerAtSpawn();
+
+            if (_tempObstacle != null) SafeDestroy(_tempObstacle);
+            _isGenerating = false;
+            IsMapGenerationCompleted = true;
+            using (MeasureGeneration("5.FinalizeAllRoomTileAnimations"))
+                FinalizeAllRoomTileAnimations();
+            using (MeasureGeneration("5.OnMapGenerated subscribers"))
+                OnMapGenerated?.Invoke();
+
+            // [이동] 디버그 로그는 맵 생성이 '완전히' 끝난 뒤 맨 마지막에 기록한다.
+            // (기존엔 문 설치 직후에 호출했는데, 혹시 로깅이 예외를 던지면 타일 리프레시/콜라이더/네브메시/적 스폰이
+            //  통째로 스킵되어 맵이 텅 비어 보였다. 이제 위치도 마지막이고 내부도 try-catch라 생성엔 절대 영향 없음.)
+            using (MeasureGeneration("5.DumpMapToLog (optional)"))
+                DumpMapToLog();
         }
 
-        // 생성 완료 후 모든 방의 문을 기본 개방 상태로 설정하여 자유로운 이동 및 텔레포터 활성화 보장
-        using (MeasureGeneration("5.Open all doors"))
-        {
-            foreach (var room in _allRooms)
-                room.SetDoorsOpen(true);
-        }
-
-        // 스폰 방 위치로 미니맵 카메라 정밀 포커싱 초기화
-        if (spawnRoom != null)
-        {
-            using (MeasureGeneration("5.MiniMap focus"))
-                UpdateMiniMapCameraFocus(spawnRoom);
-        }
-
-        using (MeasureGeneration("5.PlacePlayerAtSpawn"))
-            PlacePlayerAtSpawn();
-
-        if (_tempObstacle != null) SafeDestroy(_tempObstacle);
-        _isGenerating = false;
-        IsMapGenerationCompleted = true;
-        using (MeasureGeneration("5.FinalizeAllRoomTileAnimations"))
-            FinalizeAllRoomTileAnimations();
-        using (MeasureGeneration("5.OnMapGenerated subscribers"))
-            OnMapGenerated?.Invoke();
-
-        // [이동] 디버그 로그는 맵 생성이 '완전히' 끝난 뒤 맨 마지막에 기록한다.
-        // (기존엔 문 설치 직후에 호출했는데, 혹시 로깅이 예외를 던지면 타일 리프레시/콜라이더/네브메시/적 스폰이
-        //  통째로 스킵되어 맵이 텅 비어 보였다. 이제 위치도 마지막이고 내부도 try-catch라 생성엔 절대 영향 없음.)
-        using (MeasureGeneration("5.DumpMapToLog (optional)"))
-            DumpMapToLog();
-
-        Debug.Log("<color=green>[MapGenerator]</color> Isaac-style Map Generation Completed Successfully.");
+        Debug.Log($"[Map] 생성 완료 · 방 {_allRooms.Count}개 · 재시도 {regenAttempt - 1}회");
+        GenerationProgress = 1f;
     }
 
     private RoomInstance CreateRoomAtGrid(RoomType type, Vector2Int gridPos, GameObject prefabOverride = null)

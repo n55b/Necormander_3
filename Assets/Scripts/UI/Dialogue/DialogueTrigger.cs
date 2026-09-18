@@ -44,7 +44,7 @@ public class DialogueTrigger : MonoBehaviour
         if (playOnce && _played) return;
         _played = true;
 
-        if (entryDelay > 0f)
+        if (entryDelay > 0f || UnityNote.SceneLoader.IsLoading)
         {
             StartCoroutine(PlayAfterDelay());
             return;
@@ -55,7 +55,7 @@ public class DialogueTrigger : MonoBehaviour
 
     private IEnumerator PlayAfterDelay()
     {
-        while (GameManager.Instance != null && !GameManager.Instance.IsPlayerReady)
+        while (UnityNote.SceneLoader.IsLoading || (GameManager.Instance != null && !GameManager.Instance.IsPlayerReady))
             yield return null;
 
         yield return new WaitForSecondsRealtime(entryDelay);

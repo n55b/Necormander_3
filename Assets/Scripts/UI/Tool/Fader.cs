@@ -235,7 +235,7 @@ public class Fader : MonoBehaviour
     /// 인스펙터의 On Blackout도 똑같이 같이 불린다 — 기획자가 나중에 연출을 더 얹을 수 있게.</summary>
     /// <param name="waitUntil">암전 상태로 이게 true 가 될 때까지 더 기다린다. 씬 로드처럼
     /// 암전 콜백이 '시작만' 시키고 실제로는 몇 프레임 더 지어지는 일에 쓴다 —
-    /// 안 기다리면 밝아진 화면으로 맵이 지어지는 걸 구경하게 된다. 최대 15초까지만 기다린다.</param>
+    /// 준비되지 않은 화면을 드러내지 않도록 시간 제한 없이 기다린다.</param>
     public void FadeOutIn(FadeSignal signal, System.Action onBlackoutCallback, System.Action onCompleteCallback = null, System.Func<bool> waitUntil = null)
     {
         // "지금 이 페이드가 벌어진다"고 방송한다. 커튼은 자기가 안 듣지만(직접 불렸으니),
@@ -245,10 +245,6 @@ public class Fader : MonoBehaviour
 
         Play(FadeOutInRoutine(Row(signal), onBlackoutCallback, onCompleteCallback, waitUntil));
     }
-
-    /// <summary>암전인 채로 기다릴 수 있는 최대 시간. 넘기면 경고 찍고 그냥 밝힌다 —
-    /// 준비 신호가 영영 안 오는 버그로 검은 화면에 갇히는 것보단 어색한 화면이 낫다.</summary>
-    private const float MaxBlackoutWait = 15f;
 
     private void Play(IEnumerator routine)
     {
@@ -270,14 +266,7 @@ public class Fader : MonoBehaviour
         // 이 코루틴은 커튼(DontDestroyOnLoad) 위에서 도니까 씬이 갈려도 안 끊긴다.
         if (waitUntil != null)
         {
-            float waited = 0f;
-            while (!waitUntil() && waited < MaxBlackoutWait)
-            {
-                waited += Time.unscaledDeltaTime;
-                yield return null;
-            }
-            if (waited >= MaxBlackoutWait)
-                Debug.LogWarning($"[Fader] '{r.signal}' 준비 신호를 {MaxBlackoutWait}초 안에 못 받아서 그냥 밝힌다.", this);
+            while (!waitUntil()) yield return null;
         }
 
         if (r.holdDuration > 0f)

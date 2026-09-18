@@ -372,6 +372,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   generationData: {fileID: 11400000, guid: 1aced7d90958fe444941591d79d29124, type: 2}
   prefabData: {fileID: 11400000, guid: 0cabf365deeca87428335ef4d3329951, type: 2}
+  logGenerationTimings: 0
   globalGroundTilemap: {fileID: 0}
   globalWallTilemap: {fileID: 0}
   globalShadowTilemap: {fileID: 0}

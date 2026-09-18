@@ -85,6 +85,7 @@ private void Start()
 
     private void OnNewGameButtonClicked()
     {
+        if (UnityNote.SceneLoader.IsLoading) return;
         Debug.Log("<color=cyan>[MainMenuManager]</color> New Game 시작! 기존 세이브 파일을 삭제합니다.");
         
         // 기존 세이브 데이터 안전 삭제.
@@ -110,6 +111,7 @@ private void Start()
 
     private void OnLoadButtonClicked()
     {
+        if (UnityNote.SceneLoader.IsLoading) return;
         Debug.Log("<color=cyan>[MainMenuManager]</color> Load Game 시작! 기존 세이브 파일을 유지하고 로드합니다.");
         
         // 지정된 게임 씬으로 이동
