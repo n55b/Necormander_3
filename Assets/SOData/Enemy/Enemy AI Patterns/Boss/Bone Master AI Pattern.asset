@@ -15,14 +15,16 @@ MonoBehaviour:
   pushRadius: 0.8
   pushStrength: 2
   spawnTelegraph: 1
-  engageRange: 9
+  phase2Threshold: 0.5
+  aimLockLeadTime: 0.5
   closeRange: 3.5
   midRange: 6.5
+  engageRange: 9
   attackGap: 1
   chaseTimeLimit: 2
-  sweepTurnSpeed: 0
   sweepRadius: 4.16
   sweepHalfAngle: 90
+  sweepTurnSpeed: 0
   basicThrustLength: 6.75
   basicThrustWidth: 1.4
   leapSlamRadiusX: 2.2
@@ -33,16 +35,16 @@ MonoBehaviour:
   basicAttackWindup: 0.85
   basicAttackRecovery: 0.4
   leapSlamDamageMultiplier: 1.2
+  sweepStepDistance: 0
+  sweepStepDuration: 0.12
+  thrustDashDistance: 3
+  thrustDashDuration: 0.15
+  wallCheckRadius: 0.85
   postPatternRecovery: 1
   postGroggyRecovery: 1.5
   telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
-  laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3,
-    type: 3}
-  circleTelegraphPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8,
-    type: 3}
-  wallCheckRadius: 0.85
-  thrustDashDistance: 3
-  thrustDashDuration: 0.15
+  laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3, type: 3}
+  circleTelegraphPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   realCounterChance: 0.3
   fakeCounterChance: 0.2
   fakeCounterHealPerHit: 5
@@ -51,4 +53,8 @@ MonoBehaviour:
   counterFakeColor: {r: 1, g: 0.15, b: 0.15, a: 1}
   counterNoneColor: {r: 0.75, g: 0.75, b: 0.78, a: 1}
   counterSuccessGroggyDuration: 0.5
+  animState_Thrust: Attack_Prod
+  animState_Sweep: Attack_Sweep
+  animState_Jump: Jump
+  animState_JumpFall: Jump_Attack
   startupDelay: 2

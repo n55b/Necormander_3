@@ -60,6 +60,61 @@ public class BoneMasterController : EnemyController
     [Tooltip("페이즈2 전환 연출 동안 재생할 스테이트. 전용 모션이 아직 없어서 Stun 을 홀드한다.")]
     [SerializeField] private string phase2TransitionState = "Stun";
 
+    [System.Serializable]
+    public class AttackMotion
+    {
+        public string state;
+        public AnimationClip clip;
+        public float warningTime;
+        public float hitTime;
+    }
+
+    [Tooltip("Setup Boss Prefab이 실제 스프라이트 키와 OnHitEvent로 갱신한다. 예고 시간은 AI 패턴 에셋에서 조절한다.")]
+    [SerializeField] private AttackMotion[] attackMotions;
+    private AttackMotion _attackMotion;
+
+    /// <summary>공격 시작 즉시 경고 자세로 진입한다. 인디케이터 앞에 원본 준비동작 시간을 더하지 않는다.</summary>
+    public void PrepareAttack(string state, BossCounterTelegraph.Result result)
+    {
+        _attackMotion = System.Array.Find(attackMotions ?? System.Array.Empty<AttackMotion>(), m => m.state == state);
+        if (_attackMotion == null || _attackMotion.clip == null || Animator == null)
+        {
+            Debug.LogError($"[BoneMaster] 공격 모션 배선 누락: {state}. Tools/BoneMaster/Setup Boss Prefab 실행 필요.", this);
+            result.Hijacked = true;
+            return;
+        }
+        if (Health != null && Health.IsDead)
+        {
+            result.Hijacked = true;
+            Animator.speed = 1f;
+            return;
+        }
+        SampleAttack(_attackMotion.warningTime);
+    }
+
+    private void SampleAttack(float seconds)
+    {
+        bool events = Animator.fireEvents;
+        Animator.fireEvents = false;
+        try
+        {
+            Animator.speed = 0f;
+            Animator.Play(_attackMotion.state, 0, seconds / _attackMotion.clip.length);
+            Animator.Update(0f);
+        }
+        finally { Animator.fireEvents = events; }
+    }
+
+    /// <summary>예고 종료 프레임에 타격 그림/SFX를 맞추고, 이후는 원속 재생한다. 남은 모션 길이를 반환.</summary>
+    public float ReleaseAttack()
+    {
+        if (_attackMotion == null || Animator == null) return 0f;
+        SampleAttack(_attackMotion.hitTime + 0.0001f);
+        Animator.speed = 1f;
+        OnHitEvent(); // 샘플링 중 억제한 이벤트를 정확히 한 번만 실행한다. 피해는 패턴에서 같은 프레임에 준다.
+        return Mathf.Max(0f, _attackMotion.clip.length - _attackMotion.hitTime);
+    }
+
     [Header("페이즈 전환")]
     public EnemyMinionDataSO phase2Data;
     [SerializeField] private float phase2HealFillDuration = 1f;
@@ -162,6 +217,7 @@ public class BoneMasterController : EnemyController
     /// <summary>진행 중인 특수 패턴을 즉시 중단하고, 그 패턴이 남긴 전조·카운터 창을 정리한다.</summary>
     public void StopActivePattern()
     {
+        if (Animator != null) Animator.speed = 1f;
         if (_activePattern == null) return;
 
         StopCoroutine(_activePattern);
@@ -193,6 +249,7 @@ public class BoneMasterController : EnemyController
     /// </summary>
     public override void CancelAttack()
     {
+        if (Animator != null) Animator.speed = 1f;
         bool hadPattern = _activePattern != null;
 
         base.CancelAttack();
@@ -546,6 +603,8 @@ private IEnumerator Phase2TransitionRoutine()
         IsGroggy = true;
         GroggyDamageBonus = damageBonus;
         Stats.Status.ApplyFixedStun(duration);
+        // 예고 프레임을 해제한 채 다음 Update까지 두면, 취소된 공격의 타격 모션/SFX가 새어 나올 수 있다.
+        BossAIPatternSO.PlayState(this, "Stun");
 
         if (_groggyFlashRoutine != null) StopCoroutine(_groggyFlashRoutine);
         _groggyFlashRoutine = StartCoroutine(GroggyFlashRoutine(duration));

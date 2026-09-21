@@ -7,20 +7,20 @@ using UnityEditor.Animations;
 using UnityEngine;
 
 /// <summary>
-/// 본 마스터(Enemy_11_BoneMaster, 4층 보스)의 애니메이터를 구성하는 에디터 도구입니다.
+/// 본 마스터(Enemy_11_NecroChief)의 애니메이터와 경고/타격 시각을 배선하는 에디터 도구입니다.
 /// HaeTaeAnimSetup 과 같은 사상이고, 다른 점만 아래에 적습니다.
 ///
 /// [왜 전용 컨트롤러인가]
 /// 공용 CharacterBase_Animator 의 실사용 슬롯은 Idle/Follow/Attack/Die/Stun 5개뿐인데
-/// 본 마스터는 태그가 14개다. AnimatorOverrideController 는 '클립 교체'만 되고 '스테이트 추가'가
+/// 본 마스터는 전용 공격/연결 태그가 있다. AnimatorOverrideController 는 '클립 교체'만 되고 '스테이트 추가'가
 /// 안 되므로 담을 수 없다. 그래서 전용 AnimatorController 를 만든다.
 ///
 /// [해태와 다른 점]
-///   · 진짜 사망 태그(Dead)가 있어서 Die 클립을 합성하지 않는다.
+///   · 사망 태그가 없어 Die에는 Stun을 연결한다. 그림/클립을 합성하지 않는다.
 ///   · 페이즈가 둘이고 브레인 SO 도 둘인데(BoneMasterAIPatternSO / BoneMasterPhase2AIPatternSO)
 ///     프리팹·애니메이터는 하나를 공유한다. 그래서 두 페이즈의 스테이트를 한 컨트롤러에 다 넣는다.
 ///   · 루프는 손대지 않는다. aseprite 태그의 repeat 값이 이미 맞게 저작돼 있다
-///     (Idle/Walk/Stun/Pattern_Counter = 무한(rep 0), 나머지 공격/패턴 = 1회(rep 1)).
+///     (Idle/Walk/Stun/Jump = 무한(rep 0), 나머지 공격 = 1회(rep 1)).
 ///     임포터가 그걸 그대로 클립 loop 로 옮긴다.
 ///
 /// [스테이트 이름 규칙]
@@ -28,11 +28,11 @@ using UnityEngine;
 /// 직접 Play 하므로 이름이 고정이다. Die 는 MonsterDeathHandler.deathStateName 기본값이다.
 /// 나머지는 두 BoneMaster 패턴 SO 의 animState_* 인스펙터 필드로 지정한다.
 ///
-/// 클립은 .aseprite 서브에셋을 그대로 참조하므로 아트가 갱신되면 자동으로 따라간다.
+/// 클립은 .aseprite 서브에셋을 직접 참조한다. 프레임 길이/OnHitEvent를 바꾸면 Setup Boss Prefab으로 시각도 갱신한다.
 /// </summary>
 public static class BoneMasterAnimSetup
 {
-    private const string AsepritePath = "Assets/Resources/Sprites/Enemy/Enemy_11_BoneMaster.aseprite";
+    private const string AsepritePath = "Assets/Resources/Sprites/Enemy/Enemy_11_NecroChief.aseprite";
     private const string OutDir = "Assets/Animations/Character/Monster/BoneMaster";
     private const string ControllerPath = OutDir + "/AnimController_BoneMaster.controller";
     private const string BossPrefabPath = "Assets/Prefabs/Enemy/Boss/Boss Bone Master.prefab";
@@ -50,21 +50,15 @@ public static class BoneMasterAnimSetup
         ("Follow",                  "Walk"),          // 스테이트는 Follow(AIState), 클립은 Walk(아트 태그)
         ("Attack",                  "Attack_Sweep"),  // 공용 폴백. 실제 공격은 아래 전용 스테이트로 재생된다.
         ("Stun",                    "Stun"),
-        ("Die",                     "Dead"),          // MonsterDeathHandler.deathStateName 기본값이 "Die"
+        ("Die",                     "Stun"),          // 사망 아트가 생길 때까지 Stun 대체
 
         // --- 페이즈 1 ---
         ("Attack_Prod",             "Attack_Prod"),              // 기본공격: 창 찌르기
         ("Attack_Sweep",            "Attack_Sweep"),             // 기본공격: 휩쓸기
-        ("Attack_Jump",             "Attack_Jump"),              // 기본공격: 도약(준비~체공). 마지막 프레임 홀드
-        ("Attack_Jump_Fall",        "Attack_Jump_Fall"),         // 기본공격: 낙하~내려찍기. 2프레임에 타격
-        ("Pattern_Dash",            "Pattern_Dash"),             // 패턴1: 박치기 돌격(1~3프레임 충전, 4프레임 질주)
-        ("Pattern_Prod",            "Pattern_Prod"),             // 패턴2: 견갑 찌르기 3타
-        ("Pattern_Counter",         "Pattern_Counter"),          // 패턴3: 카운터 자세(1프레임 홀드)
-        ("Pattern_Counter_Success", "Pattern_Counter_Success"),  // 패턴3: 카운터 성공 반격
-
-        // --- 페이즈 2 ---
-        ("Pattern_SweepChop",       "Pattern_SweepChop"),        // 패턴1: 회전 베기(3프레임 타격) + 내려찍기(9프레임 타격)
-        ("Pattern_DoubleSweep",     "Pattern_DoubleSweep"),      // 패턴2: 2연격
+        ("Jump",                    "Jump"),
+        ("Jump_Attack",             "Jump_Attack"),
+        ("Attack_Prod_2",           "Attack_Prod_2"),
+        ("Attack_Sweep_2",          "Attack_Sweep_2"), // 연결만 준비. 새 패턴을 추가하지 않는다.
     };
 
     // ==========================================================================
@@ -190,6 +184,22 @@ public static class BoneMasterAnimSetup
     [MenuItem("Tools/BoneMaster/Build Animator")]
     public static void Build()
     {
+        // 원본 그림은 건드리지 않는다. Canvas/BottomCenter는 빈 여백 80px까지 발 아래에 붙인다.
+        // 전 프레임을 같은 캔버스 높이로 고정해야 무기를 휘두를 때 몸이 위아래로 튀지 않는다.
+        var importer = AssetImporter.GetAtPath(AsepritePath) as UnityEditor.U2D.Aseprite.AsepriteImporter;
+        if (importer == null) throw new System.InvalidOperationException("NecroChief Aseprite 임포터 없음");
+        var footPivot = new Vector2(0.5f, 80f / 256f);
+        if (!Mathf.Approximately(importer.spritePixelsPerUnit, ExpectedPPU)
+            || importer.pivotSpace != UnityEditor.U2D.Aseprite.PivotSpaces.Canvas
+            || importer.pivotAlignment != SpriteAlignment.Custom || importer.customPivotPosition != footPivot)
+        {
+            importer.spritePixelsPerUnit = ExpectedPPU;
+            importer.pivotSpace = UnityEditor.U2D.Aseprite.PivotSpaces.Canvas;
+            importer.pivotAlignment = SpriteAlignment.Custom;
+            importer.customPivotPosition = footPivot;
+            EditorUtility.SetDirty(importer);
+            importer.SaveAndReimport();
+        }
         var clips = LoadClips();
         if (clips.Count == 0)
         {
@@ -206,8 +216,11 @@ public static class BoneMasterAnimSetup
 
         var sm = controller.layers[0].stateMachine;
 
-        // 기존 스테이트 전부 제거 후 재구성 (재실행 가능하도록)
-        foreach (var s in new List<ChildAnimatorState>(sm.states)) sm.RemoveState(s.state);
+        // 같은 이름은 참조를 보존하고, 새 아트에 없는 레거시 상태만 제거한다.
+        var existing = new Dictionary<string, AnimatorState>();
+        foreach (var s in sm.states) existing[s.state.name] = s.state;
+        foreach (var s in new List<ChildAnimatorState>(sm.states))
+            if (!System.Array.Exists(StateMap, pair => pair.state == s.state.name)) sm.RemoveState(s.state);
 
         var sb = new StringBuilder();
         sb.AppendLine("=== BoneMaster Animator 생성 ===");
@@ -225,7 +238,8 @@ public static class BoneMasterAnimSetup
                 continue;
             }
 
-            var st = sm.AddState(stateName, new Vector3(280f, 60f * row++, 0f));
+            var st = existing.TryGetValue(stateName, out var saved) ? saved
+                : sm.AddState(stateName, new Vector3(280f, 60f * row++, 0f));
             st.motion = clip;
             st.writeDefaultValues = false;
             if (stateName == "Idle") idleState = st;
@@ -323,8 +337,42 @@ public static class BoneMasterAnimSetup
             {
                 sb.AppendLine($"  SpriteRenderer.sprite: {(sr.sprite != null ? sr.sprite.name : "<없음>")} -> {first.name}");
                 sr.sprite = first;
+                // 이전 아트(폭 122px)용 그림자 크기를 새 Idle(61px)에 맞춘다. 그림자 자체 피벗도 반영.
+                var shadow = root.transform.Find("Shadow");
+                var shadowRenderer = shadow != null ? shadow.GetComponent<SpriteRenderer>() : null;
+                if (shadowRenderer != null && shadowRenderer.sprite != null)
+                {
+                    float scale = first.rect.width / first.pixelsPerUnit;
+                    shadow.localScale = new Vector3(scale, scale, 1f);
+                    var center = shadowRenderer.sprite.bounds.center;
+                    shadow.localPosition = new Vector3(-center.x * scale, -center.y * scale, shadow.localPosition.z);
+                    sb.AppendLine($"  발 Y={sr.bounds.min.y:0.###}, 그림자 중심 Y={shadowRenderer.bounds.center.y:0.###}");
+                }
             }
 
+            var boss = root.GetComponent<BoneMasterController>();
+            var serialized = new SerializedObject(boss);
+            var motions = serialized.FindProperty("attackMotions");
+            var attacks = new List<(string state, AnimationClip clip, float warning, float hit)>();
+            foreach (var (state, tag) in StateMap)
+            {
+                if (state == "Attack" || !clips.TryGetValue(tag, out var clip)) continue;
+                float hit = HitEventTime(clip);
+                if (hit < 0f) continue;
+                float warning = WarningTime(clip, hit);
+                attacks.Add((state, clip, warning, hit));
+                sb.AppendLine($"  {state}: 즉시 경고 프레임({warning:0.###}s) -> 설정한 예고 시간 -> 타격({hit:0.###}s)");
+            }
+            motions.arraySize = attacks.Count;
+            for (int i = 0; i < attacks.Count; i++)
+            {
+                var item = motions.GetArrayElementAtIndex(i);
+                item.FindPropertyRelative("state").stringValue = attacks[i].state;
+                item.FindPropertyRelative("clip").objectReferenceValue = attacks[i].clip;
+                item.FindPropertyRelative("warningTime").floatValue = attacks[i].warning;
+                item.FindPropertyRelative("hitTime").floatValue = attacks[i].hit;
+            }
+            serialized.ApplyModifiedPropertiesWithoutUndo();
             PrefabUtility.SaveAsPrefabAsset(root, BossPrefabPath);
             sb.AppendLine();
             sb.AppendLine($"  저장: {BossPrefabPath}");
@@ -334,9 +382,47 @@ public static class BoneMasterAnimSetup
             PrefabUtility.UnloadPrefabContents(root);
         }
 
+        // 이름이 바뀐 상태만 이행한다. 디자이너가 조정한 시간/거리 값은 그대로 보존한다.
+        foreach (var guid in AssetDatabase.FindAssets("t:BossAIPatternSO"))
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(guid));
+            if (asset is BoneMasterAIPatternSO p1)
+            {
+                p1.animState_Jump = "Jump";
+                p1.animState_JumpFall = "Jump_Attack";
+            }
+            else if (asset is BoneMasterPhase2AIPatternSO p2)
+            {
+                p2.animState_Jump = "Jump";
+                p2.animState_JumpFall = "Jump_Attack";
+                p2.animState_Slam = "Jump_Attack";
+                p2.animState_ThrustFollowup = "Attack_Prod_2";
+            }
+            else continue;
+            EditorUtility.SetDirty(asset);
+        }
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Emit(sb, "BoneMaster_Prefab.txt");
+    }
+
+    /// <summary>FPS 역산 금지: Aseprite는 프레임별 시간이 다르므로 바로 전의 서로 다른 스프라이트 키를 찾는다.</summary>
+    public static float WarningTime(AnimationClip clip, float hit)
+    {
+        foreach (var binding in AnimationUtility.GetObjectReferenceCurveBindings(clip))
+        {
+            if (binding.type != typeof(SpriteRenderer) || binding.propertyName != "m_Sprite") continue;
+            var keys = AnimationUtility.GetObjectReferenceCurve(clip, binding);
+            Object previous = null;
+            float warning = -1f;
+            foreach (var key in keys)
+            {
+                if (key.time >= hit - 0.0001f) break;
+                if (key.value != previous) { warning = key.time; previous = key.value; }
+            }
+            if (warning >= 0f) return warning;
+        }
+        throw new System.InvalidOperationException($"{clip.name}: OnHitEvent 이전 스프라이트 키 없음");
     }
 
     private static Sprite FirstSpriteOf(AnimationClip clip)

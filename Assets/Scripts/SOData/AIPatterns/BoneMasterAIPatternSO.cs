@@ -81,6 +81,7 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
              "0으로 두면 예전처럼 '따라오다 바로 착지'가 되어 사실상 회피가 불가능해진다.")]
     public float leapSlamLockTime = 0.65f;
     public float leapDuration = 0.35f;
+    [Min(0f), Tooltip("공격 시작부터 타격까지의 예고 시간(초). 경고 자세와 인디케이터가 즉시 함께 시작하고 후속 모션은 원속.")]
     public float basicAttackWindup = 0.85f;
     public float basicAttackRecovery = 0.4f;
     [Tooltip("도약 & 내려찍기의 피해 배율(ATK 대비).")]
@@ -155,12 +156,9 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
     [Tooltip("기본공격: 창 휩쓸기.")]
     public string animState_Sweep = "Attack_Sweep";
     [Tooltip("기본공격 도약의 준비~체공. 1회 클립이라 마지막 프레임(점프 자세)에서 저절로 홀드된다.")]
-    public string animState_Jump = "Attack_Jump";
+    public string animState_Jump = "Jump";
     [Tooltip("기본공격 도약의 낙하~내려찍기. 2프레임에 타격이 박혀 있어서 착지 순간과 겹치게 늦게 튼다.")]
-    public string animState_JumpFall = "Attack_Jump_Fall";
-    [Tooltip("클립 길이를 예비동작 시간에 맞춰 Animator.speed 를 자동 조절한다. " +
-             "기준점은 클립 끝이 아니라 타격 프레임(OnHitEvent)이라, 때리는 순간과 판정이 겹친다.")]
-    public bool matchAnimSpeedToWindup = true;
+    public string animState_JumpFall = "Jump_Attack";
 
 
     /// <summary>보스 패턴 3종. 같은 패턴을 두 번 연속으로 쓰지 않기 위해 직전 것을 기억한다.</summary>
@@ -463,11 +461,15 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         var kind = RollTelegraph(counterable: true, out Color col);
         _controller?.SetStateText("휩쓸기", col);
 
+        var tele = new BossCounterTelegraph.Result();
+        _controller.PrepareAttack(animState_Sweep, tele);
+        if (tele.Hijacked) { FinishBasicAttack(entity); yield break; }
+        dir = SafeDirTo(entity, origin, entity.Target);
+        if (entity.Target != null) entity.LookAtTarget(entity.Target);
+        stepEnd = origin + dir * SlideDistance(origin, dir, sweepStepDistance);
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnCone(entity, stepEnd, dir, radius, sweepHalfAngle, col);
-        PlayState(entity, animState_Sweep, windup, matchAnimSpeedToWindup);
 
         // 마지막 aimLockLeadTime 동안은 방향 고정. 게이지와 실제 판정은 같은 dir/stepEnd를 사용한다.
-        var tele = new BossCounterTelegraph.Result();
         yield return BossCounterTelegraph.Run(entity, _controller, windup, dir, kind, col,
                                               counterGaugeAmount, tele, fakeHealPerHit: fakeCounterHealPerHit,
                                               onTick: () =>
@@ -489,6 +491,11 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         if (tele.Hijacked) { FinishBasicAttack(entity); yield break; }
         if (tele.Countered) { CancelByCounter(entity); yield break; }
 
+        float tail = _controller.ReleaseAttack();
+        float hitAt = Time.time;
+        var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
+        BossCombat.DealCone(stepEnd, dir, radius, sweepHalfAngle, entity.opponentLayer, info);
+
         // 전진 — 빨강도 원래 예고 시간을 모두 기다린 뒤 시작한다.
         // [주의] 전진 거리가 0 이면 루프를 아예 건너뛴다. 그냥 돌면 제자리에서 sweepStepDuration 만큼
         // 시간만 흘러서, 인디케이터가 가득 찬 뒤 그만큼 늦게 판정이 나간다(= 게이지가 거짓말을 한다).
@@ -505,10 +512,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
             Warp(entity, stepEnd);
         }
 
-        var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
-        BossCombat.DealCone(stepEnd, dir, radius, sweepHalfAngle, entity.opponentLayer, info);
-
-        yield return new WaitForSeconds(basicAttackRecovery);
+        yield return new WaitForSeconds(Mathf.Max(basicAttackRecovery, tail - (Time.time - hitAt)));
         FinishBasicAttack(entity);
     }
 
@@ -535,11 +539,13 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         var kind = RollTelegraph(counterable: true, out Color col);
         _controller?.SetStateText("찌르기", col);
 
+        var tele = new BossCounterTelegraph.Result();
+        _controller.PrepareAttack(animState_Thrust, tele);
+        if (tele.Hijacked) { FinishBasicAttack(entity); yield break; }
+        dir = SafeDirTo(entity, origin, entity.Target);
+        if (entity.Target != null) entity.LookAtTarget(entity.Target);
         GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
             entity, origin, dir, length, width, col, laneTelegraphPrefab, windup);
-        PlayState(entity, animState_Thrust, windup, matchAnimSpeedToWindup);
-
-        var tele = new BossCounterTelegraph.Result();
         yield return BossCounterTelegraph.Run(entity, _controller, windup, dir, kind, col,
                                               counterGaugeAmount, tele, fakeHealPerHit: fakeCounterHealPerHit,
                                               onTick: () => Warp(entity, origin));
@@ -548,7 +554,11 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         if (tele.Hijacked) { FinishBasicAttack(entity); yield break; }
         if (tele.Countered) { CancelByCounter(entity); yield break; }
 
-        // 미끄러지며 돌진. 판정은 도착한 뒤 한 번에 나가되 origin 기준이라 지나온 자리도 다 포함된다.
+        // 타격 그림/판정/예고 종료는 같은 프레임. 이동 시간만큼 피해가 늦어지지 않는다.
+        float tail = _controller.ReleaseAttack();
+        float hitAt = Time.time;
+        var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
+        BossCombat.DealLane(origin, dir, length, width, entity.opponentLayer, info);
         float slide = SlideDistance(origin, dir, thrustDashDistance);
         Vector2 slideEnd = origin + dir * slide;
         float dt = 0f;
@@ -561,10 +571,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         }
         Warp(entity, slideEnd);
 
-        var info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss);
-        BossCombat.DealLane(origin, dir, length, width, entity.opponentLayer, info);
-
-        yield return new WaitForSeconds(basicAttackRecovery);
+        yield return new WaitForSeconds(Mathf.Max(basicAttackRecovery, tail - (Time.time - hitAt)));
         FinishBasicAttack(entity);
     }
 
@@ -587,9 +594,11 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         float trackTime = leapWindup;                           // 이 동안만 착지점이 따라온다
         float lockTime = Mathf.Max(0f, leapSlamLockTime);        // 위치를 굳히고 기다리는 시간
 
-        // 준비~체공은 Attack_Jump 하나로 덮는다. 1회 클립이라 다 재생되면 마지막 프레임(점프 자세)에서
-        // 저절로 멈춰 있고, 아래 도약 루프 내내 그 자세가 유지된다.
-        PlayState(entity, animState_Jump, trackTime + lockTime, matchAnimSpeedToWindup);
+        PlayState(entity, animState_Jump);
+        yield return new WaitForSeconds(StateClipLength(entity.Animator, animState_Jump));
+        var prep = new BossCounterTelegraph.Result();
+        _controller.PrepareAttack(animState_JumpFall, prep);
+        if (prep.Hijacked) { FinishBasicAttack(entity); yield break; }
 
         // life 가 도약 시간까지 덮어야 한다 — 예고가 끝나도 착지(:Destroy)까지는 장판이 떠 있어야 하니까.
         // windup 은 '실제 착지 순간'까지로 잡는다 — 프리팹의 차오름 게이지가 가득 차는 시점과
@@ -626,35 +635,24 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         _controller?.SetStateText("기본 공격: 도약 & 내려찍기", Color.white);
         Vector3 startPos = entity.transform.position;
 
-        // 낙하 모션은 '착지에 타격 프레임이 겹치도록' 늦게 튼다. 배속으로 늘리지 않는 이유는
-        // 타격 프레임이 클립 앞쪽(0.1초/0.5초)이라, 배속을 맞추면 착지 후 충격 프레임 0.4초가
-        // 그만큼 느려져서 후딜(basicAttackRecovery)보다 길어지기 때문이다. 원속으로 두면 둘이 맞아떨어진다.
-        float fallLead = entity.Animator != null ? StateHitEventTime(entity.Animator, animState_JumpFall) : 0f;
-        bool fallPlayed = false;
-
         float elapsed = 0f;
         while (elapsed < leapDuration)
         {
             elapsed += Time.deltaTime;
-            if (!fallPlayed && leapDuration - elapsed <= fallLead)
-            {
-                PlayState(entity, animState_JumpFall);
-                fallPlayed = true;
-            }
             Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, elapsed / leapDuration));
             yield return null;
         }
-        if (!fallPlayed) PlayState(entity, animState_JumpFall);
         Warp(entity, landPos);
         _controller?.HardStopMovement();
 
         BossAttackIndicator.Stop(entity);
         if (telegraph != null) Object.Destroy(telegraph);
 
+        float tail = _controller.ReleaseAttack();
         var info = new DamageInfo(entity.Stats.ATK * leapSlamDamageMultiplier, DamageType.Physical, entity.gameObject, category: DamageCategory.EnemyBoss, causesHitstun: true, bypassGuard: true);
         BossCombat.DealEllipse(landPos, radiusX, radiusY, entity.opponentLayer, info);
 
-        yield return new WaitForSeconds(basicAttackRecovery);
+        yield return new WaitForSeconds(Mathf.Max(basicAttackRecovery, tail));
         FinishBasicAttack(entity);
     }
 
