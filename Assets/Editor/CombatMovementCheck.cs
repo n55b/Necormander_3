@@ -3,6 +3,8 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using Object = UnityEngine.Object;
@@ -12,6 +14,104 @@ public static class CombatMovementCheck
 {
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
     private static readonly Vector2 Offset = new Vector2(2000f, 2000f);
+
+    [MenuItem("Tools/Combat/Verify Room Transition Input")]
+    public static void RunInput()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
+
+        var scene = EditorSceneManager.NewPreviewScene();
+        var keyboard = InputSystem.AddDevice<Keyboard>();
+        var previousSettings = InputSystem.settings;
+        var testSettings = Object.Instantiate(previousSettings);
+        InputActionAsset actions = null;
+        try
+        {
+            InputSystem.settings = testSettings;
+            testSettings.SetInternalFeatureFlag("RUN_PLAYER_UPDATES_IN_EDIT_MODE", true);
+            var host = Make(scene, "Room input check");
+            host.SetActive(false); // Awake/Start의 게임 초기화 및 저장 접근 없이 입력 경로만 검사
+            var rb = host.AddComponent<Rigidbody2D>();
+            var stat = host.AddComponent<CharacterStat>();
+            typeof(CharacterStat).GetProperty("Health").SetValue(stat, host.GetComponent<CharacterHealth>());
+            var player = host.AddComponent<PlayerController>();
+            Set(player, "stat", stat);
+            Set(player, "_rb", rb);
+            Call(player, "CachingAnim");
+            var input = host.AddComponent<PlayerInput>();
+            actions = Object.Instantiate(AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/PlayerInputSystem.inputactions"));
+            actions.devices = new InputDevice[] { keyboard };
+            input.actions = actions;
+            var move = input.actions.FindAction("Player/Move", true);
+            move.performed += player.OnMove;
+            move.canceled += player.OnMove;
+            move.Enable();
+
+            void Press(params Key[] keys)
+            {
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(keys));
+                InputSystem.Update();
+            }
+
+            // 실제 문과 동일하게 차단 → 암전 중 입력 변화 → 해제를 반복한다.
+            for (int i = 0; i < 3; i++)
+            {
+                Press(Key.D);
+                Check(player.MoveInput == Vector2.right, $"차단 전 이동 입력: action={move.ReadValue<Vector2>()}, player={player.MoveInput}");
+                Set(player, "_smoothedMoveInput", Vector2.right);
+                Set(player, "_moveInputVelocity", Vector2.right * 2f);
+                Set(player, "MoveDirection", Vector3.right);
+                player.TransitionToState(player.walkState);
+                Set(player, "_lastAnimSpeed", 2f);
+                rb.linearVelocity = Vector2.right * 5f;
+                player.SetInputBlocked(true);
+                Check(player.MoveInput == Vector2.zero && rb.linearVelocity == Vector2.zero, "차단 중 정지");
+                Check(ReferenceEquals(Get(player, "currentAnimState"), player.idleState)
+                    && (float)Get(player, "_lastAnimSpeed") == 1f, "차단 즉시 걷기 종료 및 Idle 속도 복구");
+                player.SetInputBlocked(false);
+                Check(player.MoveInput == Vector2.right && (Vector3)Get(player, "MoveDirection") == Vector3.right,
+                    "계속 누른 키는 새 이벤트 없이 복구");
+
+                player.SetInputBlocked(true);
+                Press(); // 암전 중 손을 떼었으면 새 방에서 관성이 되살아나면 안 된다.
+                player.SetInputBlocked(false);
+                Check(player.MoveInput == Vector2.zero && (Vector3)Get(player, "MoveDirection") == Vector3.zero
+                    && (Vector2)Get(player, "_smoothedMoveInput") == Vector2.zero
+                    && (Vector2)Get(player, "_moveInputVelocity") == Vector2.zero
+                    && rb.linearVelocity == Vector2.zero, "손을 뗀 채 복구 시 입력/보간/물리 관성 없음");
+
+                player.SetInputBlocked(true);
+                Press(Key.W, Key.A);
+                Check(player.MoveInput == Vector2.zero, "차단 중 새 입력으로 움직이지 않음");
+                player.SetInputBlocked(false);
+                Check((player.MoveInput - new Vector2(-1f, 1f).normalized).sqrMagnitude < .000001f,
+                    "차단 중 바꾼 대각선 방향을 현재 바인딩에서 복구");
+                Press();
+                Check(player.MoveInput == Vector2.zero, "복구 후 키 해제 콜백 유지");
+            }
+
+            Press(Key.D);
+            player.SetInputBlocked(true);
+            move.Disable();
+            player.SetInputBlocked(false);
+            Check(player.MoveInput == Vector2.zero, "비활성 이동 액션은 복구하지 않음");
+            player.TransitionToState(player.walkState);
+            player.canChangeState = false;
+            player.SetInputBlocked(true);
+            Check(ReferenceEquals(Get(player, "currentAnimState"), player.walkState), "공격/대쉬 애니메이션 잠금은 강제로 해제하지 않음");
+            Debug.Log("[RoomInputCheck] PASS: held/released/changed direction, no stale smoothing, immediate Idle, animation lock preserved, canceled and disabled action; 3 repeated transitions.");
+        }
+        finally
+        {
+            if (actions != null) actions.Disable();
+            EditorSceneManager.ClosePreviewScene(scene);
+            if (actions != null) Object.DestroyImmediate(actions);
+            InputSystem.RemoveDevice(keyboard);
+            InputSystem.settings = previousSettings;
+            Object.DestroyImmediate(testSettings);
+        }
+    }
 
     [MenuItem("Tools/Combat/Verify Aim Homing And Dash")]
     public static void Run()

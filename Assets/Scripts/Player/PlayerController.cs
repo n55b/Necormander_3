@@ -89,14 +89,32 @@ public class PlayerController : MonoBehaviour
     public void SetInputBlocked(bool blocked)
     {
         _inputBlocked = blocked;
-        if (blocked) PopupSystem.HideInteractionIcon();
+        moveInput = Vector2.zero;
         if (blocked)
         {
+            PopupSystem.HideInteractionIcon();
             GetComponent<PlayerParryController>()?.StopGuard();
-            moveInput = Vector2.zero;
-            MoveDirection = Vector3.zero;
-            if (_rb != null) _rb.linearVelocity = Vector2.zero;
+            // 차단 중에는 Update의 Idle 전환도 멈춘다. 페이드 시작 전에 걷기를 끝낸다.
+            // 공격/대쉬의 애니메이션 잠금이나 사망 모션은 덮어쓰지 않는다.
+            if (canChangeState && idleState != null && (stat == null || !stat.IsDead))
+            {
+                ResetWalkAnimSpeed();
+                TransitionToState(idleState);
+            }
         }
+        else if (stat != null && !stat.IsDead && !IsCCed)
+        {
+            // 계속 누른 키는 performed가 다시 오지 않는다. 차단 전 값을 복원하지 말고
+            // 현재 액션 값을 읽어 암전 중 키 해제/방향 변경까지 반영한다.
+            var move = GetComponent<PlayerInput>()?.actions?.FindAction("Player/Move");
+            if (move != null && move.enabled) moveInput = move.ReadValue<Vector2>();
+        }
+
+        // 이전 방의 보간값/속도가 남으면 손을 뗀 뒤에도 새 방에서 미끄러진다.
+        _smoothedMoveInput = moveInput;
+        _moveInputVelocity = Vector2.zero;
+        MoveDirection = moveInput;
+        if (_rb != null) _rb.linearVelocity = Vector2.zero;
         Debug.Log($"<color=yellow>[Player]</color> Input Blocked: {blocked}");
     }
 
