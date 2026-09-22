@@ -269,7 +269,9 @@ MonoBehaviour:
   testMode_InfiniteStamina: 1
   testMode_DisableAutoBattle: 0
   currentFloor: 1
-  debugStartFloor: 0
+  debugStartFloor: 1
+  debugEliteArena: 0
+  debugForcedElite: {fileID: 0}
 --- !u!114 &1051151079312591265
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -354,8 +356,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gold: 0
+  augmentMaxHpBonus: 0
   Slots: []
-  useDebugStartingInventory: 1
+  useDebugStartingInventory: 0
   debugStartingMinions: []
   debugStartingMinionQuantities: 
 --- !u!114 &6139375127595461034
@@ -372,6 +375,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   generationData: {fileID: 11400000, guid: 1aced7d90958fe444941591d79d29124, type: 2}
   prefabData: {fileID: 11400000, guid: 0cabf365deeca87428335ef4d3329951, type: 2}
+  dumpMapDebugLog: 0
   logGenerationTimings: 0
   globalGroundTilemap: {fileID: 0}
   globalWallTilemap: {fileID: 0}
@@ -393,6 +397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8bf706e88abd6c64e822dc1a1a71c397, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _showUI: 0
 --- !u!114 &7749112568104373486
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -417,7 +422,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 834c9549d2c274c4a894a8c13e39cad5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  slotCount: 4
+  slotCount: 9
+  useDebugStartingItems: 0
   debugStartingItems:
   - {fileID: 11400000, guid: 9c1e4b7a2f5d40e4a83b6c1d7e9f2a34, type: 2}
   - {fileID: 11400000, guid: 4d8a3f6b1c2e59f4b7a2d8e3f1c6b5a9, type: 2}

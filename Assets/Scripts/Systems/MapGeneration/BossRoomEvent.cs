@@ -154,6 +154,9 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 
         OnBossCombatClear?.Invoke();
         Debug.Log($"<color=red>[BossRoom]</color> Boss Defeated!");
+
+        // 보스를 잡으면 게임 클리어로 처리한다 (엘리트가 아닌 보스 처치가 클리어 조건)
+        GameOverManager.Instance?.TriggerGameClear();
     }
 
     /// <summary>
