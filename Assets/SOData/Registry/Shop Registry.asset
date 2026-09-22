@@ -20,5 +20,6 @@ MonoBehaviour:
   itemPool:
   - {fileID: 11400000, guid: 9c1e4b7a2f5d40e4a83b6c1d7e9f2a34, type: 2}
   - {fileID: 11400000, guid: 4d8a3f6b1c2e59f4b7a2d8e3f1c6b5a9, type: 2}
+  - {fileID: 11400000, guid: 67d2ab339dd54a27975758719bf6e361, type: 2}
   enhanceCost: 250
   enhanceCostPerLevel: 25

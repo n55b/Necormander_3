@@ -22,7 +22,9 @@ public static class BoneMasterCombatCheck
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy/Boss/Boss Bone Master.prefab");
             var source = prefab.GetComponent<BoneMasterController>();
-            var bodySprite = prefab.GetComponent<SpriteRenderer>().sprite;
+            var bodyRenderer = prefab.GetComponent<SpriteRenderer>();
+            Check(bodyRenderer.color == Color.white, "보스 본체 원색 유지 (외곽선으로 본체 틴트를 덮지 않음)");
+            var bodySprite = bodyRenderer.sprite;
             Check(Mathf.Abs(bodySprite.bounds.min.y) <= 1f / 32f,
                 $"Idle 발이 원점 위로 떠 있지 않음 (현재 Y={bodySprite.bounds.min.y:0.###})");
             var shadow = prefab.transform.Find("Shadow").GetComponent<SpriteRenderer>();
@@ -33,6 +35,7 @@ public static class BoneMasterCombatCheck
             var go = new GameObject("MotionTimingCheck");
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, scene);
             var sr = go.AddComponent<SpriteRenderer>();
+            sr.color = bodyRenderer.color;
             var anim = go.AddComponent<Animator>();
             anim.runtimeAnimatorController = prefab.GetComponentInChildren<Animator>().runtimeAnimatorController;
             anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
@@ -40,6 +43,24 @@ public static class BoneMasterCombatCheck
             boss.enabled = false;
             typeof(BaseEntity).GetField("_animator", Private).SetValue(boss, anim);
             typeof(BoneMasterController).GetField("attackMotions", Private).SetValue(boss, motions);
+            var status = go.AddComponent<CharacterStatus>();
+            status.ApplySuperArmor(source.superArmorGauge);
+            var visual = go.AddComponent<CharacterVisualFeedback>();
+            var visualType = typeof(CharacterVisualFeedback);
+            visualType.GetField("_sr", Private).SetValue(visual, sr);
+            visualType.GetField("_status", Private).SetValue(visual, status);
+            var outlineSetting = visualType.GetField("showSuperArmorOutline", Private);
+            bool bossOutline = (bool)outlineSetting.GetValue(prefab.GetComponentInChildren<CharacterVisualFeedback>(true));
+            Check(!bossOutline, "본 마스터 프리팹 상시 외곽선 비활성");
+            outlineSetting.SetValue(visual, bossOutline);
+            Call(visual, "UpdateSuperArmorOverlay");
+            Check(status.HasSuperArmor && go.transform.Find("SuperArmorOverlay") == null, "슈퍼아머 유지 / 외곽선 미생성");
+            var commonPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy/Enemy.prefab");
+            bool commonOutline = (bool)outlineSetting.GetValue(commonPrefab.GetComponentInChildren<CharacterVisualFeedback>(true));
+            Check(commonOutline, "공용 적 프리팹 외곽선 설정 유지");
+            outlineSetting.SetValue(visual, commonOutline);
+            Call(visual, "UpdateSuperArmorOverlay");
+            Check(go.transform.Find("SuperArmorOverlay") != null, "다른 유닛의 슈퍼아머 외곽선 생성 유지");
             anim.Rebind();
             foreach (var motion in motions)
             {
@@ -68,7 +89,7 @@ public static class BoneMasterCombatCheck
             boss.ReleaseAttack();
             var p2 = AssetDatabase.LoadAssetAtPath<BoneMasterPhase2AIPatternSO>(DataPath + "Bone Master Phase 2 AI Pattern.asset");
             Check(p2.animState_ThrustFollowup == "Attack_Prod_2" && p2.animState_Slam == "Jump_Attack", "2타/내려찍기 클립 연결");
-            Debug.Log("[BoneMasterMotionCheck] PASS — 발/그림자 접지, 5종 즉시 경고/타격 해제/이벤트 단발/취소 복원/PPU/후속 연결");
+            Debug.Log("[BoneMasterMotionCheck] PASS — 보스 본체 원색/상시 외곽선 OFF/슈퍼아머 유지/공용 외곽선 유지, 발/그림자 접지, 5종 즉시 경고/타격 해제/이벤트 단발/취소 복원/PPU/후속 연결");
         }
         finally
         {

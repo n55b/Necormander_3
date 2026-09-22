@@ -10,6 +10,13 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     [Header("UI 컨테이너 설정")]
     [SerializeField] private RectTransform fullMapContainer; // MiniMapUI 오브젝트 연결
     [SerializeField] private RectTransform hudMapContainer;  // Image_MiniMap 오브젝트 연결
+    [SerializeField] private RectTransform fullMapBackground;
+    [SerializeField] private RectTransform hudMapBackground;
+
+    [Header("방 방문 상태 색상")]
+    [SerializeField] private Color visitedRoomColor = new Color(0.95f, 0.95f, 0.95f, 1f);
+    [SerializeField] private Color unvisitedRoomColor = new Color(0.5f, 0.55f, 0.6f, 1f);
+    [SerializeField] private Color currentRoomColor = new Color(0.55f, 0.85f, 1f, 1f);
 
     [Header("전체 지도 (Full Map) 설정")]
     [SerializeField] private float fullRoomSize = 50f;
@@ -34,7 +41,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     [Header("🌟 2. 지형 도트 커스텀 연출")]
     [SerializeField] private Sprite customTerrainDotSprite;   // 지형 도트용 스프라이트 (비워두면 사각형)
     [Tooltip("지형 도트에 곱해지는 색(틴트). 커스텀 스프라이트를 원본 색 그대로 보고 싶으면 흰색(1,1,1,1)으로 두면 됨.")]
-    [SerializeField] private Color terrainDotColor = new Color(0.25f, 0.4f, 0.6f, 0.75f); // 기존 하드코딩 값이 기본
+    [SerializeField] private Color terrainDotColor = new Color(0.95f, 0.95f, 0.95f, 1f);
     [Tooltip("각 지형 도트를 셀 크기의 이 '배수'로 그려 인접 도트가 겹치게 한다. 1.0=딱 맞닿음(틈 보임), 1.35=35% 겹침(빈틈 없이 꽉 참). 절대 px가 아니라 배수라 큰 방/작은 방 모두 같은 비율로 겹쳐 균일하다. 네모를 더 또렷하게 보고 싶으면 1.2 근처로, 더 꽉 채우려면 키우면 됨.")]
     [SerializeField] private float terrainDotOverlap = 1.35f;
 
@@ -264,6 +271,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             img.sprite = fallbackRoomSprite;
 
             Button btn = roomObj.GetComponent<Button>();
+            // HUD/미방문 방의 비활성 버튼 틴트가 방문 상태 색을 흐리지 않게 한다.
+            btn.transition = Selectable.Transition.None;
 
             // 🌟 1. 방 모양 지형 그리기 (전투 줌인 시 현재 방 내부에만 지형 투과)
             if (focusOnlyCurrentRoom && room == currentRoom)
@@ -304,7 +313,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
 
             if (roomIconSprite == null)
             {
-                // 강화 상점도 상점 아이콘을 그대로 쓴다 — 구분은 아래 방 색(주황)이 한다.
+                // 강화 상점도 기존 상점 아이콘을 그대로 쓴다.
                 if (room.roomType == RoomType.Shop || room.roomType == RoomType.EnhanceShop) roomIconSprite = _shopIcon;
                 else if (room.roomType == RoomType.Reward) roomIconSprite = _rewardIcon;
                 else if (room.roomType == RoomType.Spawn) roomIconSprite = _stairIcon;
@@ -317,49 +326,10 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             {
                 if (customRoomSprite != null)
                 {
-                    // 커스텀 방 스프라이트 장착 완료시 틴트 없이 원본 출력
                     img.sprite = customRoomSprite;
-                    img.color = Color.white;
                 }
-                else
-                {
-                    // 커스텀 스프라이트 누락 시: 기존 틴팅 방식으로 그리기
-                    if (isVisited)
-                    {
-                        switch (room.roomType)
-                        {
-                            case RoomType.Spawn:
-                                img.color = new Color(0.2f, 0.7f, 1f, 1.0f);
-                                break;
-                            case RoomType.Shop:
-                                img.color = new Color(1f, 0.85f, 0.2f, 1.0f);
-                                break;
-                            case RoomType.EnhanceShop:
-                                // 일반 상점(노랑)과 같은 계열이되 한눈에 갈리는 주황.
-                                img.color = new Color(1f, 0.55f, 0.15f, 1.0f);
-                                break;
-                            case RoomType.Reward:
-                                img.color = new Color(0.2f, 0.85f, 0.4f, 1.0f);
-                                break;
-                            case RoomType.Boss:
-                                img.color = new Color(0.95f, 0.2f, 0.2f, 1.0f);
-                                break;
-                            case RoomType.Elite:
-                                img.color = new Color(0.8f, 0.3f, 0.9f, 1.0f);
-                                break;
-                            // 증강 선택 방은 방 색을 안 바꾼다 — 구분은 MiniMapIcons 의
-                            // AugmentMiniMapIcon(빨간 네모)이 한다. 여기까지 빨갛게 칠하면
-                            // 보스 방(같은 빨강)과 구분이 안 된다.
-                            default:
-                                img.color = new Color(0.35f, 0.45f, 0.65f, 1.0f);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        img.color = new Color(0.4f, 0.4f, 0.4f, 0.6f);
-                    }
-                }
+                img.color = room == currentRoom ? currentRoomColor
+                    : isVisited ? visitedRoomColor : unvisitedRoomColor;
 
                 // 기호 및 룸 아이콘 얹기
                 if (isVisited)
@@ -491,8 +461,36 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
                 Image lineImg = lineObj.GetComponent<Image>();
                 lineImg.sprite = fallbackRoomSprite;
                 lineImg.color = new Color(1f, 1f, 1f, 0.7f); // 70% 투명도 흰색선
+                lineImg.raycastTarget = false;
             }
         }
+
+        FitBackground(container, isFullMap ? fullMapBackground : hudMapBackground, spawnedList);
+    }
+
+    // 프리팹의 배경만 늘린다. 방 위치/배율은 그대로 두고 큰 방과 긴 지도도 덮는다.
+    private static void FitBackground(RectTransform container, RectTransform background, List<GameObject> drawnObjects)
+    {
+        if (background == null) return;
+
+        Bounds bounds = new Bounds(container.rect.center, container.rect.size);
+        var corners = new Vector3[4];
+        foreach (var obj in drawnObjects)
+        {
+            if (obj == null) continue;
+            var rect = obj.transform as RectTransform;
+            if (rect == null) continue;
+            rect.GetWorldCorners(corners);
+            foreach (var corner in corners)
+                bounds.Encapsulate(container.InverseTransformPoint(corner));
+        }
+
+        background.anchorMin = background.anchorMax = container.pivot;
+        background.pivot = new Vector2(0.5f, 0.5f);
+        background.anchoredPosition = bounds.center;
+        background.sizeDelta = (Vector2)bounds.size + Vector2.one * 24f;
+        // 복도가 SetAsFirstSibling으로 추가되므로 배경은 마지막에 다시 맨 뒤로 보낸다.
+        background.SetAsFirstSibling();
     }
 
     private Sprite GetCustomRoomSprite(RoomType type)
