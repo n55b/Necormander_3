@@ -61,11 +61,11 @@ MonoBehaviour:
     wavesCount: 1
     enemyCountScale: 1
     clusterPool: []
-    totalRoomCount: -1
-    minNormalRooms: -1
-    shopCount: -1
-    enhanceShopCount: -1
-    rewardCount: -1
+    totalRoomCount: 5
+    minNormalRooms: 2
+    shopCount: 1
+    enhanceShopCount: 0
+    rewardCount: 1
     eliteCount: -1
     augmentRoomCount: -1
   floorBosses:

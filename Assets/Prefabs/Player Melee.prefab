@@ -1385,6 +1385,7 @@ MonoBehaviour:
   interactableLayer:
     serializedVersion: 2
     m_Bits: 8192
+  interactIconOffset: 0.35
   BodyAnimator: {fileID: 2915690303190765393}
   canChangeState: 1
   MoveDirection: {x: 0, y: 0, z: 0}
@@ -1527,7 +1528,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 833c34b5488ccaf46a449ea75ca3ad2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dashSpeed: 15
+  dashSpeed: 20
   dashDuration: 0.2
   maxCharges: 2
   rechargeTime: 2
