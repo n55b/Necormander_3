@@ -38284,6 +38284,9 @@ MonoBehaviour:
   includeMinions: 1
   includeEquipments: 1
   includeRightClicks: 1
+  includeItems: 1
+  itemDropOrigin: {fileID: 1366847584}
+  itemDropOffset: {x: 0, y: -1.5}
 --- !u!1 &2096842257
 GameObject:
   m_ObjectHideFlags: 0

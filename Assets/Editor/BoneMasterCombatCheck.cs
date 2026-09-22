@@ -12,6 +12,97 @@ public static class BoneMasterCombatCheck
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
     private const string DataPath = "Assets/SOData/Enemy/Enemy AI Patterns/Boss/";
 
+    [MenuItem("Tools/BoneMaster/Verify Motion Timing")]
+    public static void VerifyMotionTiming()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
+        var scene = EditorSceneManager.NewPreviewScene();
+        BoneMasterController boss = null;
+        try
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy/Boss/Boss Bone Master.prefab");
+            var source = prefab.GetComponent<BoneMasterController>();
+            var bodyRenderer = prefab.GetComponent<SpriteRenderer>();
+            Check(bodyRenderer.color == Color.white, "보스 본체 원색 유지 (외곽선으로 본체 틴트를 덮지 않음)");
+            var bodySprite = bodyRenderer.sprite;
+            Check(Mathf.Abs(bodySprite.bounds.min.y) <= 1f / 32f,
+                $"Idle 발이 원점 위로 떠 있지 않음 (현재 Y={bodySprite.bounds.min.y:0.###})");
+            var shadow = prefab.transform.Find("Shadow").GetComponent<SpriteRenderer>();
+            Check(Mathf.Abs(shadow.bounds.center.y - prefab.transform.position.y) <= 1f / 32f, "그림자 중심과 발 기준점 일치");
+            var motions = (BoneMasterController.AttackMotion[])typeof(BoneMasterController)
+                .GetField("attackMotions", Private).GetValue(source);
+            Check(motions != null && motions.Length == 5, "공격 클립 5종 경고/타격 배선");
+            var go = new GameObject("MotionTimingCheck");
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, scene);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.color = bodyRenderer.color;
+            var anim = go.AddComponent<Animator>();
+            anim.runtimeAnimatorController = prefab.GetComponentInChildren<Animator>().runtimeAnimatorController;
+            anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            boss = go.AddComponent<BoneMasterController>();
+            boss.enabled = false;
+            typeof(BaseEntity).GetField("_animator", Private).SetValue(boss, anim);
+            typeof(BoneMasterController).GetField("attackMotions", Private).SetValue(boss, motions);
+            var status = go.AddComponent<CharacterStatus>();
+            status.ApplySuperArmor(source.superArmorGauge);
+            var visual = go.AddComponent<CharacterVisualFeedback>();
+            var visualType = typeof(CharacterVisualFeedback);
+            visualType.GetField("_sr", Private).SetValue(visual, sr);
+            visualType.GetField("_status", Private).SetValue(visual, status);
+            var outlineSetting = visualType.GetField("showSuperArmorOutline", Private);
+            bool bossOutline = (bool)outlineSetting.GetValue(prefab.GetComponentInChildren<CharacterVisualFeedback>(true));
+            Check(!bossOutline, "본 마스터 프리팹 상시 외곽선 비활성");
+            outlineSetting.SetValue(visual, bossOutline);
+            Call(visual, "UpdateSuperArmorOverlay");
+            Check(status.HasSuperArmor && go.transform.Find("SuperArmorOverlay") == null, "슈퍼아머 유지 / 외곽선 미생성");
+            var commonPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy/Enemy.prefab");
+            bool commonOutline = (bool)outlineSetting.GetValue(commonPrefab.GetComponentInChildren<CharacterVisualFeedback>(true));
+            Check(commonOutline, "공용 적 프리팹 외곽선 설정 유지");
+            outlineSetting.SetValue(visual, commonOutline);
+            Call(visual, "UpdateSuperArmorOverlay");
+            Check(go.transform.Find("SuperArmorOverlay") != null, "다른 유닛의 슈퍼아머 외곽선 생성 유지");
+            anim.Rebind();
+            foreach (var motion in motions)
+            {
+                Check(motion.warningTime < motion.hitTime && motion.hitTime < motion.clip.length, motion.state + " 시간 순서");
+                Check(Mathf.Approximately(motion.warningTime, BoneMasterAnimSetup.WarningTime(motion.clip, motion.hitTime)),
+                    motion.state + " 가변 길이 경고 프레임");
+                var immediate = new BossCounterTelegraph.Result();
+                boss.PrepareAttack(motion.state, immediate);
+                Check(!immediate.Hijacked && anim.speed == 0f, motion.state + " 대기 없이 즉시 경고 자세");
+                var warning = sr.sprite;
+                Check(warning != null && warning.pixelsPerUnit == 32f, motion.state + " 32 PPU");
+                anim.Update(.8f);
+                Check(sr.sprite == warning && anim.speed == 0f, motion.state + " 경고 자세 유지");
+                boss.ReleaseAttack();
+                Check(sr.sprite != warning && anim.speed == 1f && boss.HasFiredHitEvent, motion.state + " 타격 프레임 해제");
+                boss.HasFiredHitEvent = false;
+                anim.Update(.001f);
+                Check(!boss.HasFiredHitEvent, motion.state + " OnHitEvent 이중 발사 방지");
+                anim.speed = 0f;
+                boss.StopActivePattern();
+                Check(anim.speed == 1f, motion.state + " 취소 시 정지 복원");
+            }
+            var result = new BossCounterTelegraph.Result();
+            boss.PrepareAttack("Jump_Attack", result);
+            Check(!result.Hijacked && anim.speed == 0f, "내려찍기 즉시 경고 홀드");
+            boss.ReleaseAttack();
+            var p2 = AssetDatabase.LoadAssetAtPath<BoneMasterPhase2AIPatternSO>(DataPath + "Bone Master Phase 2 AI Pattern.asset");
+            Check(p2.animState_ThrustFollowup == "Attack_Prod_2" && p2.animState_Slam == "Jump_Attack", "2타/내려찍기 클립 연결");
+            Debug.Log("[BoneMasterMotionCheck] PASS — 보스 본체 원색/상시 외곽선 OFF/슈퍼아머 유지/공용 외곽선 유지, 발/그림자 접지, 5종 즉시 경고/타격 해제/이벤트 단발/취소 복원/PPU/후속 연결");
+        }
+        finally
+        {
+            if (boss != null)
+            {
+                typeof(BoneMasterController).GetField("_lastTelegraphCleanupFrame", Private).SetValue(boss, Time.frameCount);
+                boss.Animator.runtimeAnimatorController = null;
+                Object.DestroyImmediate(boss.gameObject);
+            }
+            EditorSceneManager.ClosePreviewScene(scene);
+        }
+    }
+
     [MenuItem("Tools/BoneMaster/Verify Combat Rules")]
     public static void Run()
     {

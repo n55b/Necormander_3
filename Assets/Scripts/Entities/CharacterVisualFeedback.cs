@@ -15,6 +15,10 @@ public class CharacterVisualFeedback : MonoBehaviour
     private bool _hasSavedOriginalBaseColor = false;
     private Coroutine _hitFlashCoroutine;
 
+    [Header("슈퍼아머 시각 효과")]
+    [Tooltip("상시 외곽선만 표시한다. 꺼도 슈퍼아머의 경직/넉백 면역 판정은 유지된다.")]
+    [SerializeField] private bool showSuperArmorOutline = true;
+
     [Header("빙결 VFX")]
     [Tooltip("빙결(Freeze) 상태인 동안 유닛에 붙여둘 이펙트 프리팹 (Assets/Prefabs/Effect/Effect_Freezing.prefab). " +
              "비워두면 Resources/Effects/Effect_Freezing 에서 자동 로드를 시도합니다.")]
@@ -231,7 +235,7 @@ public class CharacterVisualFeedback : MonoBehaviour
     /// </summary>
     private void UpdateSuperArmorOverlay()
     {
-        bool active = _sr != null
+        bool active = showSuperArmorOutline && _sr != null
                    && _status != null && _status.HasSuperArmor
                    && !(_health != null && _health.IsDead);
 

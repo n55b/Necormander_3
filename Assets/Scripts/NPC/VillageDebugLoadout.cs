@@ -5,10 +5,10 @@ using UnityEngine.Events;
 using TMPro;
 
 /// <summary>
-/// [디버그] 마을 NPC 창(F로 뜨는 ShopUI 패널)에 붙여, 장착 가능한 모든 플레이어 스킬 + 미니언을 나열한다.
-/// 항목을 누르면 보상 때와 '동일한' 장착 흐름을 띄운다:
-///   - 플레이어 스킬 → Q/E/R 슬롯 선택 UI(PlayerStateUI.OpenChangeSkillUI)
+/// 마을 NPC 창(F로 뜨는 ShopUI 패널)에 미니언/장비/우클릭/주머니 아이템을 나열한다.
+///   - 장비/우클릭 → 기존 장착 흐름
 ///   - 미니언       → 핸드 슬롯 선택 UI(HandSlotSelectionUI). 마을 HUD에 없으면 빈 슬롯에 자동 장착.
+///   - 아이템       → NPC 앞에 GroundItem으로 드랍. F로 직접 주워야 주머니에 들어간다.
 /// 게임 시작 전에 원하는 조합을 미리 세팅해보는 디버그 용도.
 ///
 /// UI를 '맨땅에서' 만들지 않는다 — 인스펙터에 지정한 기존 버튼(itemButtonTemplate)을 항목마다 복제만 한다.
@@ -25,6 +25,13 @@ public class VillageDebugLoadout : MonoBehaviour
     [Tooltip("[26/08/15] 우클릭(패링/카운터/가드) 교체. 서브 소환수 삭제로 우클릭이 플레이어 영구 능력이 " +
              "되면서, 이 NPC 가 그 교체 창구를 겸한다. 디버그 항목이 아니라 정식 기능이다.")]
     [SerializeField] private bool includeRightClicks = true;
+
+    [Header("주머니 아이템 지급")]
+    [SerializeField] private bool includeItems = true;
+    [Tooltip("아이템을 나눠주는 NPC의 월드 Transform. UI 패널의 Transform이 아니다.")]
+    [SerializeField] private Transform itemDropOrigin;
+    [Tooltip("NPC 기준 드랍 위치(월드 유닛). 아래쪽이 NPC 앞이며, 기존 드랍 방식대로 0.4유닛 이내에서 흩어진다.")]
+    [SerializeField] private Vector2 itemDropOffset = new Vector2(0f, -1.5f);
 
     private readonly List<GameObject> _spawned = new List<GameObject>();
 
@@ -45,6 +52,17 @@ public class VillageDebugLoadout : MonoBehaviour
         var gm = GameManager.Instance;
         var registry = (gm != null && gm.dataManager != null) ? gm.dataManager.GET_GROWTH_REGISTRY() : null;
         if (registry == null) { Debug.LogWarning("[VillageDebugLoadout] GrowthRegistry를 가져오지 못했습니다."); return; }
+
+        if (includeItems && registry.items != null)
+        {
+            foreach (var item in registry.items)
+            {
+                if (item == null) continue;
+                var selected = item;
+                AddButton($"[아이템] {selected.DisplayName}", selected.icon, selected.TooltipBody,
+                    () => DropItem(selected));
+            }
+        }
 
         if (includeMinions && registry.minionDatas != null)
         {
@@ -161,7 +179,21 @@ public class VillageDebugLoadout : MonoBehaviour
         if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.ClosePopUpUI();
     }
 
-    /// <summary>보상에서 플레이어 스킬을 골랐을 때와 동일: 소유 목록에 넣고 Q/E/R 슬롯 선택 UI를 띄운다.</summary>
+    /// <summary>직접 지급하지 않고 공용 드랍 프리팹을 사용한다. 실패하면 선택창을 닫지 않는다.</summary>
+    private void DropItem(ItemSO item)
+    {
+        if (item == null) return;
+        if (itemDropOrigin == null)
+        {
+            Debug.LogWarning("[VillageDebugLoadout] 아이템 드랍 기준 NPC가 지정되지 않았습니다.", this);
+            return;
+        }
+
+        Vector3 position = itemDropOrigin.position + (Vector3)itemDropOffset;
+        if (GroundItem.Drop(item, position) != null) CloseWindow();
+    }
+
+    /// <summary>선택한 장비를 기존 장착 흐름으로 적용한다.</summary>
     private void EquipEquipmentItem(EquipmentSO so)
     {
         if (PlayerSkillInventoryManager.Instance != null && so != null)

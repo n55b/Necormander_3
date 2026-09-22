@@ -15,32 +15,58 @@ MonoBehaviour:
   pushRadius: 0.8
   pushStrength: 2
   spawnTelegraph: 1
-  engageRange: 8.5
+  phase2Threshold: 0.5
+  aimLockLeadTime: 0.5
   closeRange: 3.2
   midRange: 6
+  engageRange: 8.5
   attackGap: 1
   chaseTimeLimit: 2
-  sweepTurnSpeed: 0
   sweepRadius: 3.64
   sweepHalfAngle: 90
+  sweepTurnSpeed: 0
   basicThrustLength: 6.75
   basicThrustWidth: 1.4
   basicAttackWindup: 0.7
   basicAttackRecovery: 0.35
+  thrustStrikeCount: 2
+  thrustDashDistance: 2.5
+  thrustDashDuration: 0.12
+  thrustPauseBetween: 0.18
+  wallCheckRadius: 0.85
+  leapSlamRadiusX: 2.2
+  leapSlamRadiusY: 1.6
+  leapWindup: 0.3
+  leapSlamLockTime: 0.45
+  leapDuration: 0.3
+  leapSlamDamageMultiplier: 1.2
   postPatternRecovery: 1
   postGroggyRecovery: 1.5
   telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
-  laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3,
-    type: 3}
-  circleTelegraphPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8,
-    type: 3}
+  laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3, type: 3}
+  circleTelegraphPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   minRingTelegraphLead: 1
+  sweepStepDistance: 0
+  sweepStepDuration: 0.12
   slamTelegraphTime: 1.2
   slamRange: 6.5
   slamWidth: 2
   spinToSlamPause: 0.8
   slamFinishRecovery: 0.8
   slamDamageMultiplier: 1.15
+  executionCounterAttempts: 3
+  executionLinesPerCycle: 4
+  executionLinesPerVolley: 2
+  executionLineLeadStart: 1
+  executionLineLeadEnd: 0.55
+  executionLineGap: 0.25
+  executionLineWidth: 1
+  executionLineDamageMultiplier: 0.8
+  executionAppearDelay: 0.6
+  executionAppearRadius: 1
+  executionCastSpeedScale: 0.75
+  executionGroggyDuration: 4
+  executionDamageBonus: 0.15
   realCounterChance: 0.3
   fakeCounterChance: 0.2
   fakeCounterHealPerHit: 5
@@ -49,5 +75,9 @@ MonoBehaviour:
   counterFakeColor: {r: 1, g: 0.15, b: 0.15, a: 1}
   counterNoneColor: {r: 0.75, g: 0.75, b: 0.78, a: 1}
   counterSuccessGroggyDuration: 0.5
-  executionCounterAttempts: 3
-  executionLinesPerVolley: 2
+  animState_Thrust: Attack_Prod
+  animState_ThrustFollowup: Attack_Prod_2
+  animState_Sweep: Attack_Sweep
+  animState_Slam: Jump_Attack
+  animState_Jump: Jump
+  animState_JumpFall: Jump_Attack
