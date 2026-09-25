@@ -56,7 +56,7 @@ public class AugmentSelectionUI : MonoBehaviour
         UIPopUpManager.Instance?.ForcePopUpUI(panelRoot); // 시간 정지 포함
         UIEventBus.NotifyOpen("Augment");
 
-        if (titleText != null) titleText.text = "무엇을 짊어질 것인가";
+        if (titleText != null) titleText.text = "난이도를 선택하세요";
 
         for (int i = 0; i < cards.Length; i++)
         {

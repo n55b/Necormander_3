@@ -37,13 +37,13 @@ public class TutorialQuestPanelController : MonoBehaviour
         { TutorialStage.Spawn, new[]
             {
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_WASD\"></size>로 이동하세요",
-                "파란색 점이 향하는 곳이 다음 맵 방향이에요",
+                "포탈을 이용해 다음 방으로 이동하세요.",
             }
         },
         { TutorialStage.Combat, new[]
             {
                 "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Left\"></size>로 적을 공격하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 날아오는 투사체를 튕겨내세요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 공격을 막을 수 있어요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시(회피)할 수 있어요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>을 눌러 지나온 방을 클릭하면, 다시 돌아갈 수 있어요.",
             }
@@ -52,7 +52,7 @@ public class TutorialQuestPanelController : MonoBehaviour
             {
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용하세요",
                 "미니언을 획득하면 바로 장착돼요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_R\"></size>로 미니언 스킬을 사용해요",
+                "SpaceBar로 미니언 스킬을 사용해요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_C\"></size>로 미니언 능력을 확인해요",
             }
         },
@@ -71,10 +71,7 @@ public class TutorialQuestPanelController : MonoBehaviour
             {
                 "골드로 상인에게서 아이템을 살 수 있어요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용, 구매할 수 있어요",
-                "건틀릿(장비)을 사면 스킬이 생겨요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>로 장비/스킬을 확인해요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Q\"></size>, <size=170%><sprite=\"Tutorial\" name=\"Keyboard_E\"></size>로 장비 스킬을 사용해요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>로 장착 중인 아이템을 확인해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_B\"></size>로 장착 중인 아이템을 확인해요",
             }
         },
         { TutorialStage.Descend, new[]
