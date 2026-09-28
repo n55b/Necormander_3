@@ -57,7 +57,8 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
 
     protected override void OnAwake()
     {
-        _canvas = GetComponentInParent<Canvas>();
+        var canvas = GetComponentInParent<Canvas>();
+        _canvas = canvas != null ? canvas.rootCanvas : null;
 
         var canvasGroup = tooltipPanel.GetComponent<CanvasGroup>();
         if (canvasGroup == null) canvasGroup = tooltipPanel.gameObject.AddComponent<CanvasGroup>();
@@ -158,12 +159,13 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
         {
             foreach (var entry in keywordDictionary.entries)
             {
+                if (entry == null || entry.displayName == null || entry.displayName.IsEmpty) continue;
                 string keyword = entry.displayName.GetLocalizedString();
 
-                if (data.description.Contains(keyword))
+                if (!string.IsNullOrEmpty(keyword) && data.description.Contains(keyword))
                 {
                     // 🔥 기존 스킬 설명 밑에 한 줄 띄우고 키워드 설명을 강제로 추가해버립니다!
-                    string kTitle = entry.displayName.GetLocalizedString();
+                    string kTitle = keyword;
                     string kDesc = entry.description.GetLocalizedString();
 
                     descriptionText.text += $"\n\n<b><color=#E24B4A>[{kTitle}]</color></b>\n{kDesc}";
@@ -185,12 +187,13 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
 
     private void UpdatePosition()
     {
+        if (_canvas == null) return;
         Vector2 mousePos = Input.mousePosition;
         Vector2 localPos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             _canvas.transform as RectTransform,
             mousePos,
-            _canvas.worldCamera,
+            _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera,
             out localPos
         );
 

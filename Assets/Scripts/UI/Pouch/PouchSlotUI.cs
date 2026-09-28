@@ -56,9 +56,8 @@ public class PouchSlotUI : MonoBehaviour,
             iconImage.gameObject.SetActive(unlocked && so != null);
             if (so != null)
             {
-                // 아이콘 스프라이트가 아직 없는 아이템은 등급 색 사각으로 대신 보여준다.
-                iconImage.sprite = so.icon;
-                iconImage.color = so.icon != null ? Color.white : so.TierColor;
+                iconImage.sprite = GroundItem.ItemIcon(so);
+                iconImage.color = Color.white;
             }
         }
 

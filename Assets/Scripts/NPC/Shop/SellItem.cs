@@ -9,6 +9,8 @@ public class SellItem : MonoBehaviour, IInteractable
     [SerializeField] private GameObject explainPrefab;
     private GameObject obj;
     private SpriteRenderer _spriteRenderer;
+    private bool _purchased;
+    private bool _hovering;
 
     public string InteractionPrompt => item.displayData != null ? $"Buy {item.displayData.itemName} ({item.goldAmount}G)" : "Buy (??)";
 
@@ -35,11 +37,19 @@ public class SellItem : MonoBehaviour, IInteractable
 
     public bool Interact(GameObject interactor)
     {
-        if (item.rawData == null) return false;
+        var inventory = InventoryManager.Instance;
+        if (_purchased || item.rawData == null || inventory == null || item.goldAmount < 0) return false;
 
-        if (GameManager.Instance.inventoryManager.SpendGold(item.goldAmount))
+        if (inventory.SpendGold(item.goldAmount))
         {
-            RewardManager.Instance.ApplyReward(item);
+            if (!RewardManager.TryGivePurchase(item, transform.position))
+            {
+                inventory.AddGold(item.goldAmount);
+                return false;
+            }
+            _purchased = true;
+            HideHover();
+            gameObject.SetActive(false);
             Destroy(this.gameObject);
             return true;
         }
@@ -48,6 +58,42 @@ public class SellItem : MonoBehaviour, IInteractable
             Debug.Log("Not enough gold!");
             return false;
         }
+    }
+
+    // 월드 콜라이더의 마우스 이벤트만 사용한다. 별도 레이캐스트/툴팁 시스템은 만들지 않는다.
+    private void OnMouseOver()
+    {
+        bool blocked = UnityEngine.EventSystems.EventSystem.current != null &&
+            UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
+        if (blocked || _purchased || (UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsPopUpActive))
+        { HideHover(); return; }
+        if (_hovering || CommonTooltipUI.Instance == null || item.displayData == null) return;
+        var data = new TooltipData(item.displayData.itemName, item.displayData.description);
+        data.localizedTitle = item.displayData.localizedItemName;
+        data.localizedDescription = item.displayData.localizedDescription;
+        if (item.rawData is ItemSO so)
+        {
+            data.title = so.DisplayName;
+            data.description = so.TooltipBody;
+            data.localizedTitle = null;
+            data.localizedDescription = null;
+        }
+        else if (item.rawData is MinionDataSO minion)
+        {
+            data.description = HandSlotSelectionUI.Describe(minion);
+            data.localizedDescription = null;
+        }
+        data.footer = $"가격: {item.goldAmount}G · F 구매";
+        CommonTooltipUI.Instance.Show(data);
+        _hovering = true;
+    }
+
+    private void OnMouseExit() => HideHover();
+    private void OnDisable() => HideHover();
+    private void HideHover()
+    {
+        if (_hovering) CommonTooltipUI.Instance?.Hide();
+        _hovering = false;
     }
 
     // IInteractable — 이게 있어야 PlayerController.CheckForInteractable 가 이 상점 아이템을 감지해 F 로 Interact 를 부른다.

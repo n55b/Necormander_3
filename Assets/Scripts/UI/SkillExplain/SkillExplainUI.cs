@@ -1,11 +1,7 @@
 using UnityEngine;
 using AstroNuts.Localization;
 
-/// <summary>
-/// 현재 착용 중인 장비와 메인 소환수의 기본 공격/대쉬/스킬의
-/// 설명을 볼 수 있는 UI. V키로 여닫으며(과거 GemTreeUI가 사용하던 키), UIPopUpManager를 통해
-/// 다른 팝업들과 동일한 방식으로 관리됩니다.
-/// </summary>
+/// <summary>C 키 장착 정보. 장비/가드/미니언 능력을 읽기 전용으로 보여주며 시간은 멈추지 않는다.</summary>
 public class SkillExplainUI : Singleton<SkillExplainUI>
 {
     [Header("UI Panels")]
@@ -15,6 +11,8 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     [Header("왼쪽 패널: 장비")]
     [UnityEngine.Serialization.FormerlySerializedAs("playerSkillSlots")]
     [SerializeField] private SkillExplainSlotUI[] equipmentSlots = new SkillExplainSlotUI[1];
+    [SerializeField] private SkillExplainSlotUI guardSlot;
+    [SerializeField] private SkillExplainSlotUI minionHeader;
 
     [Header("오른쪽 패널: 메인 소환수 공격 (0=기본, 1=대쉬, 2=스킬)")]
     [SerializeField] private SkillExplainSlotUI[] linkedSkillSlots = new SkillExplainSlotUI[3];
@@ -24,7 +22,6 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     [SerializeField] private KeywordDictionary keywordDictionary;
 
     private bool _isOpen = false;
-    private bool _openedAsOverlay = false; // 다른 팝업 위에 오버레이로 띄운 상태인지 여부
 
     public bool IsOpen => _isOpen;
 
@@ -36,45 +33,26 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
 
     public void Toggle()
     {
-        _isOpen = !_isOpen;
+        SetOpen(!_isOpen);
+    }
 
-        if (_isOpen)
-        {
-            if (UIPopUpManager.Instance.IsOnBattle)
-            {
-                _isOpen = !_isOpen; // 전투 중에는 열지 않음
-                return;
-            }
+    // C/V는 전투 중에도 열 수 있는 정보창이다. 일시정지 팝업 매니저는 건드리지 않는다.
+    public void SetOpen(bool open)
+    {
+        if (open && UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsPopUpActive) return;
+        if (open) { PouchUI.Instance?.SetOpen(false); RefreshUI(); }
+        _isOpen = open;
+        panelRoot.SetActive(open);
+        CommonTooltipUI.Instance?.Hide();
+    }
 
-            RefreshUI();
+    private void OnDisable() { _isOpen = false; }
 
-            if (UIPopUpManager.Instance.IsPopUpActive)
-            {
-                // 보상 선택 등 다른 팝업이 이미 떠 있는 상황.
-                // 기존 팝업을 건드리지 않고(UIPopUpManager의 단일-팝업 독점을 거치지 않고)
-                // 정보용 오버레이로만 위에 띄우고, 닫을 때도 같은 방식으로 직접 끈다.
-                _openedAsOverlay = true;
-                panelRoot.SetActive(true);
-            }
-            else
-            {
-                _openedAsOverlay = false;
-                UIPopUpManager.Instance.PopUpUI(panelRoot);
-            }
-        }
-        else
-        {
-            if (_openedAsOverlay)
-            {
-                // 다른 팝업(보상 선택 등)의 상택를 건드리지 않고 이 패널만 끄다.
-                panelRoot.SetActive(false);
-                _openedAsOverlay = false;
-            }
-            else
-            {
-                UIPopUpManager.Instance?.ClosePopUpUI();
-            }
-        }
+    private void Update()
+    {
+        if (!_isOpen) return;
+        var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
+        if (player == null || player.Stat.Health.IsDead) SetOpen(false);
     }
 
     /// <summary>
@@ -90,6 +68,12 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
 
         RefreshEquipmentSlots();
         RefreshLinkedSkillSlots(skillController);
+        var guard = InventoryManager.Instance != null ? InventoryManager.Instance.EquippedRightClick : null;
+        guardSlot?.SetData(guard != null ? guard.icon : null, guard != null ? guard.ResolveTitle() : "가드",
+            guard != null ? guard.ResolveDescription() : "장착된 가드가 없습니다.");
+        var main = InventoryManager.Instance != null ? InventoryManager.Instance.MainSummon : null;
+        minionHeader?.SetData(main != null ? main.minionIcon : null,
+            main != null ? main.minionName : "미니언 없음", "");
     }
 
     private void RefreshEquipmentSlots()
@@ -132,8 +116,8 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
             return;
         }
 
-        FillLinkedSlot(0, main.finisher.uiIcon,     Fallback(main.finisher.uiTitle, "기본 공격"),     main.finisher.uiDescription);
-        FillLinkedSlot(1, main.dashModifier.uiIcon, Fallback(main.dashModifier.uiTitle, "대쉬 공격"), main.dashModifier.uiDescription);
+        FillLinkedSlot(0, main.finisher.uiIcon,     Fallback(main.finisher.uiTitle, "기본 공격"),     main.finisher.Describe());
+        FillLinkedSlot(1, main.dashModifier.uiIcon, Fallback(main.dashModifier.uiTitle, "대쉬 공격"), main.dashModifier.Describe());
 
         var sk = main.minionSkill;
         FillLinkedSlot(2, sk != null ? sk.icon : null,
