@@ -487,6 +487,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7c55176e5d5b1a4c893a01543dd4ac6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  showSuperArmorOutline: 1
   freezingVFXPrefab: {fileID: 0}
   freezingVFXOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &5914193569906731681
@@ -1432,7 +1433,7 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
