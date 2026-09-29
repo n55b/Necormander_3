@@ -852,6 +852,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             yield return null;
         }
         ClearChargeTelegraph();
+        // 보스 규칙: 게이지는 판정(=돌진 개시) 직후에 끈다. 예전엔 돌진이 끝난 뒤 BasicAttackRoutine 에서야
+        // 꺼져서 달리는 내내 가득 찬 게이지가 머리 위에 남아 있었다. (Stop 은 중복 호출해도 안전)
+        BossAttackIndicator.Stop(entity);
 
         // [사망 체크] 조준 중 사망 시 질주 진입 차단
         if (entity == null || (entity.Stats != null && entity.Stats.Health != null && entity.Stats.Health.IsDead))

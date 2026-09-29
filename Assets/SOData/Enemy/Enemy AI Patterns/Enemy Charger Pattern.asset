@@ -16,8 +16,18 @@ MonoBehaviour:
   pushStrength: 2
   spawnTelegraph: 0
   aimLinePrefab: {fileID: 4280725952711924581, guid: cab592efd7b92504fb55c3c437314bc3, type: 3}
+  showAimLine: 0
   launchOffset: 0.5
   windupTime: 1
+  telegraphFlashLeadTime: 0.35
+  showChargeTelegraph: 0
+  chargeTelegraphColor: {r: 1, g: 0, b: 0, a: 0.22}
+  chargeTelegraphFillColor: {r: 1, g: 0.3, b: 0.1, a: 0.7}
+  chargeTelegraphWidth: 0.9
+  maxChargeDuration: 3
+  showHeadIndicator: 1
+  headIndicatorColor: {r: 0.75, g: 0.75, b: 0.78, a: 1}
   chargeSpeedMultiplier: 3
   wallStopRadiusRatio: 0.5
   wallCheckDistanceBuffer: 0.05
+  stuckPushCheckRadius: 0.12

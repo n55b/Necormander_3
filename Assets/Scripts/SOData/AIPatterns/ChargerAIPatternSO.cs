@@ -17,8 +17,8 @@ public class ChargerAIPatternSO : BaseAIPatternSO
     [SerializeField] private float windupTime = 1.0f; // 돌진 준비 시간 (락온 유지 시간)
     [SerializeField] private float telegraphFlashLeadTime = 0.35f;
     [Header("돌진 예고 레인")]
-    [Tooltip("돌진 경로를 바닥에 깔고, 두께가 차오르며 개시 타이밍을 알린다. 끄면 기존처럼 플래시만 사용.")]
-    [SerializeField] private bool showChargeTelegraph = true;
+    [Tooltip("돌진 경로를 바닥에 깔고, 두께가 차오르며 개시 타이밍을 알린다. 머리 위 예고 게이지(보스와 동일)로 대체해서 기본 꺼짐.")]
+    [SerializeField] private bool showChargeTelegraph = false;
     [Tooltip("배경 레인 색. '어디로 올지'를 알린다.")]
     [SerializeField] private Color chargeTelegraphColor = new Color(1f, 0f, 0f, 0.22f);
     [Tooltip("두께로 차오르는 게이지 색. '언제 올지'를 알린다. 배경보다 진해야 읽힌다.")]
@@ -27,6 +27,12 @@ public class ChargerAIPatternSO : BaseAIPatternSO
     [SerializeField] private float chargeTelegraphWidth = 0.9f;
     [Tooltip("돌진 안전 타임아웃. 최대 돌진 거리(= 돌진속도 x 이 시간) 계산에도 쓰인다.")]
     [SerializeField] private float maxChargeDuration = 3.0f;
+    [Header("머리 위 예고 게이지 (보스와 동일)")]
+    [Tooltip("보스와 같은 머리 위 인디케이터(Enemy 프리팹 Canvas/CounterPanel)를 돌진 준비 시간 동안 채운다. 가득 차는 순간 = 돌진 개시.")]
+    [SerializeField] private bool showHeadIndicator = true;
+    [Tooltip("게이지 색. 보스 규칙상 무채색 = '카운터 불가'. 보스의 도약(counterNoneColor)과 같은 값.")]
+    [SerializeField] private Color headIndicatorColor = new Color(0.75f, 0.75f, 0.78f);
+
     private GameObject _chargeTelegraph;
 
     /// <summary>돌진 예고 레인 제거. 정상 종료/취소 양쪽에서 호출된다.</summary>
@@ -44,6 +50,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
     {
         base.OnAttackCancelled(entity);
         ClearChargeTelegraph();
+        BossAttackIndicator.Stop(entity);
     }
 
     // 엔티티 사망/씬 언로드로 브레인 클론이 파괴될 때.
@@ -190,6 +197,15 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         // [최적화] LayerMask.GetMask는 이름 조회 비용이 있다. 조준 루프에서 매 프레임 다시 구하지 않도록 한 번만 캐싱.
         LayerMask telegraphWallMask = LayerMask.GetMask("Wall", "Object");
 
+        // [보스와 동일한 인디케이터] 돌진 준비 시간을 그대로 넘겨 게이지가 가득 차는 순간 = 돌진 개시.
+        if (showHeadIndicator)
+        {
+            Vector2 initialDir = entity.Target != null
+                ? (Vector2)entity.Target.position - (Vector2)entity.transform.position
+                : Vector2.zero;
+            BossAttackIndicator.Begin(entity, windupTime, initialDir, headIndicatorColor);
+        }
+
         while (timeout > 0f)
         {
             if (entity.Target == null) break;
@@ -208,6 +224,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
 
             // [수정] 차지 준비 중 실시간 플립: 본래의 LookAtTarget 공통 메서드를 사용하여 SpriteRenderer.flipX를 실시간 제어
             entity.LookAtTarget(entity.Target);
+            if (showHeadIndicator) BossAttackIndicator.Aim(entity, chargeDir); // 보스 해태 조준 돌진과 같은 방식: 매 프레임 재조준
             dirIndicator?.SetAimOverride(chargeDir); // 인디케이터도 실시간 조준 방향으로 (돌진 개시 후엔 자동 만료 → 이동 방향 복귀)
 
             // [추가] 돌진 예고 레인: 경로는 배경으로 계속 보여주고, 개시 타이밍은 두께 게이지로 알린다.
@@ -252,6 +269,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         // 조준 종료 후 조준선 정리
         if (aimLine != null) Destroy(aimLine);
         ClearChargeTelegraph();
+        if (showHeadIndicator) BossAttackIndicator.Stop(entity);
         entity.SetActiveHitbox(null);
 
         // [3] 돌진 돌입
