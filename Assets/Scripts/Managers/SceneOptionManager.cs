@@ -14,7 +14,8 @@ public class SceneOptionManager : MonoBehaviour
 
     public void OpenOptionScene()
     {
-        isOptionOpen = UIPopUpManager.Instance.PushOptionKey();
+        // 게임을 멈추고, 옵션 중에는 다른 창이 안 뜨게 한다(키로 여는 창은 거절, 보상 등 이벤트 창은 보류).
+        isOptionOpen = UIPopUpManager.Instance == null || UIPopUpManager.Instance.OpenOption();
         if(isOptionOpen)
             SceneManager.LoadScene("OptionScene", LoadSceneMode.Additive);
     }
@@ -23,7 +24,7 @@ public class SceneOptionManager : MonoBehaviour
     {
         isOptionOpen = false;
 
-        UIPopUpManager.Instance.CloseOption();
+        UIPopUpManager.Instance?.CloseOption(); // 게임 재개 + 보류된 창 띄우기
         SceneManager.UnloadSceneAsync("OptionScene");
     }
 }

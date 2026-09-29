@@ -64,6 +64,17 @@ public class PlayerController : MonoBehaviour
     public bool IsInputBlocked => _inputBlocked;
 
     /// <summary>
+    /// 게임플레이 입력(이동·평타·대쉬·스킬·패리·상호작용)을 받으면 안 되는가.
+    /// 팝업 시스템에서 시간 정지를 뺐기 때문에, timeScale==0 만 보면 보상창 버튼을 누를 때 평타가 같이 나간다.
+    /// 그래서 '창이 떠 있음'도 같이 본다. 주머니/장착 정보(Overlay)는 여기 포함되지 않는다 — 전투 중에 보는
+    /// 정보창이라 이동은 되고, 평타/패리/상호작용만 각자 PouchUI.IsOpen / SkillExplainUI.IsOpen 으로 막는다.
+    /// V/Tab/ESC/M 같은 창 여닫기 키에는 쓰지 않는다.
+    /// </summary>
+    public static bool IsGameplayPaused =>
+        Time.timeScale == 0f ||
+        (UIPopUpManager.Instance != null && UIPopUpManager.Instance.BlocksGameplayInput);
+
+    /// <summary>
     /// 기절/빙결/경직으로 행동이 막혀 있는가.
     ///
     /// [26/07/17 신설] 예전엔 플레이어에게 CC 경로가 아예 없었다. MOVESPEED 가 0 이 되면서
@@ -292,9 +303,13 @@ public class PlayerController : MonoBehaviour
 
         if (_inputBlocked) return;
 
+        // 창이 떠 있으면(시간은 흐른다) 이동 입력을 0 으로 본다. moveInput 자체는 지우지 않아서,
+        // 키를 누른 채로 창을 닫으면 그대로 이어서 걷는다.
+        Vector2 input = IsGameplayPaused ? Vector2.zero : moveInput;
+
         if (canChangeState)
         {
-            if (moveInput.sqrMagnitude < 0.0001f)
+            if (input.sqrMagnitude < 0.0001f)
             {
                 ResetWalkAnimSpeed();
                 TransitionToState(idleState);
@@ -321,7 +336,7 @@ public class PlayerController : MonoBehaviour
         {
             float actualSmoothTime;
             // 입력이 있을 때(가속/방향전환)는 무겁지 않게 아주 빠릿하게 반응
-            if (moveInput.sqrMagnitude > 0.01f)
+            if (input.sqrMagnitude > 0.01f)
             {
                 actualSmoothTime = 0.02f;
             }
@@ -331,7 +346,7 @@ public class PlayerController : MonoBehaviour
                 actualSmoothTime = Mathf.Max(movementSmoothTime, 0.08f);
             }
 
-            _smoothedMoveInput = Vector2.SmoothDamp(_smoothedMoveInput, moveInput, ref _moveInputVelocity, actualSmoothTime, Mathf.Infinity, Time.deltaTime);
+            _smoothedMoveInput = Vector2.SmoothDamp(_smoothedMoveInput, input, ref _moveInputVelocity, actualSmoothTime, Mathf.Infinity, Time.deltaTime);
             MoveDirection = _smoothedMoveInput;
         }
     }
@@ -601,14 +616,14 @@ public class PlayerController : MonoBehaviour
         var parryCtrl = GetComponent<PlayerParryController>();
         // UI/일시정지 중에 뗀 입력도 반드시 해제한다.
         if (context.canceled) { parryCtrl?.SetGuardHeld(false); return; }
-        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
+        if (IsGameplayPaused) return; // 옵션 일시정지 / 창(보상·맵 등)이 떠 있으면 차단
         if (_inputBlocked || stat.Health.IsDead || PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsOpen)) return;
         if (context.started) parryCtrl?.SetGuardHeld(true);
     }
 
     public void OnDash(InputAction.CallbackContext context)
     {
-        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
+        if (IsGameplayPaused) return; // 옵션 일시정지 / 창(보상·맵 등)이 떠 있으면 차단
         if (_inputBlocked || stat.Health.IsDead || IsCCed) return;
 
         if (context.performed)
@@ -635,7 +650,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnMinionSkill(InputAction.CallbackContext context)
     {
-        if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
+        if (IsGameplayPaused) return; // 옵션 일시정지 / 창(보상·맵 등)이 떠 있으면 차단
         if (_inputBlocked || stat.Health.IsDead || IsCCed) return;
 
         if (context.performed)
@@ -662,7 +677,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void OnInteract(InputAction.CallbackContext context) // [추가]
     {
-        if (_inputBlocked || Time.timeScale == 0f || PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsOpen)) { CancelInteractHold(); return; }
+        if (_inputBlocked || IsGameplayPaused || PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsOpen)) { CancelInteractHold(); return; }
 
         if (context.performed)
         {
@@ -719,28 +734,29 @@ public void OnGemTree(InputAction.CallbackContext context)
         }
     }
 
+    /// <summary>
+    /// ESC = 뒤로 가기.
+    ///   1) 옵션이 열려 있으면 옵션을 닫는다(게임 재개).
+    ///   2) 맨 위 창이 ESC 로 닫을 수 있는 창(주머니/장착 정보/맵)이면 그 창만 닫는다.
+    ///   3) 아니면 옵션을 연다(게임 정지). 보상창·대화처럼 ESC 로 안 닫히는 창은 그대로 둔 채 위에 뜬다.
+    /// </summary>
     public void OnOption(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (!context.performed) return;
+
+        var som = SceneOptionManager.Instance;
+        if (som == null)
         {
-            if (PouchUI.IsOpen) { PouchUI.Instance.SetOpen(false); return; }
-            if (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsOpen) { SkillExplainUI.Instance.SetOpen(false); return; }
-            if (SceneOptionManager.Instance != null)
-            {
-                if (!SceneOptionManager.Instance.isOptionOpen)
-                {
-                    SceneOptionManager.Instance.OpenOptionScene();
-                }
-                else
-                {
-                    SceneOptionManager.Instance.CloseOptionScene();
-                }
-            }
-            else
-            {
-                Debug.LogError("<color=red>[PlayerController]</color> SceneOptionManager.Instance is NULL!");
-            }
+            Debug.LogError("<color=red>[PlayerController]</color> SceneOptionManager.Instance is NULL!");
+            return;
         }
+
+        if (som.isOptionOpen) { som.CloseOptionScene(); return; }
+
+        var mgr = UIPopUpManager.Instance;
+        if (mgr != null && mgr.CloseTopByEscape()) return;
+
+        som.OpenOptionScene();
     }
 
     /// <summary>

@@ -17,14 +17,13 @@ using UnityEngine.UI;
 /// </code>
 /// 인스펙터에서 배선하려면 <see cref="DialogueTrigger"/> 를 UnityEvent 슬롯에 끌어다 놓는다.
 ///
-/// <b>왜 UIPopUpManager 를 안 쓰나</b> — 셋 다 대화에는 치명적이라서다.
-///   · PopUpUI 는 전투 중(_isOnBattle)이면 조용히 무시된다 → 보스 등장 대사가 아예 안 뜬다.
-///   · 팝업 스택이 1개뿐이라 상점창 위에 겹치면 서로를 지운다.
-///   · ForcePopUpUI 는 SetActive(true) 를 하지 않는다(빈 화면이 뜬다).
-/// 그래서 대화는 timeStop / 입력차단을 직접 걸고 직접 푼다.
+/// <b>UIPopUpManager</b> — System 레이어로 등록한다. 전투 중에도 뜨고(보스 등장 대사),
+/// 상점/보상창 위에 겹쳐도 아래 창을 지우지 않는다. 대화 중에는 맵/주머니/장착 정보가 안 열린다.
+/// 시간은 멈추지 않는다(팝업 시스템에서 시간 정지를 뺐다). 입력 차단은 여기서 직접 건다.
+/// ESC 옵션이 열려 있는 동안에는 대사 넘기기와 타이핑이 멈춘다.
 ///
-/// <b>timeScale=0 규약</b> — 대화 중에는 시간이 멈춘다. 여기 있는 타이핑·트윈이
-/// 전부 unscaled 로 도는 이유고, 새로 뭘 추가할 때도 Time.deltaTime 을 쓰면 안 된다.
+/// <b>unscaled 규약</b> — 타이핑·트윈은 전부 unscaled 로 돈다. 히트스톱이나 옵션 일시정지로 timeScale 이
+/// 흔들려도 대사 속도가 변하지 않게 하려는 것이니, 새로 뭘 추가할 때도 unscaled 를 쓴다.
 /// </summary>
 public class DialogueUI : Singleton<DialogueUI>
 {
@@ -84,11 +83,8 @@ public class DialogueUI : Singleton<DialogueUI>
     [Tooltip("강조 전환 속도. 클수록 빠르게 붙는다.")]
     [SerializeField] private float highlightSpeed = 14f;
 
-    [Header("게임 정지")]
-    [Tooltip("대화 중 Time.timeScale 을 0 으로. 기존 상점/보상창과 같은 관행이다.")]
-    [SerializeField] private bool stopTime = true;
-
-    [Tooltip("대화 중 플레이어 입력을 막는다. timeScale=0 만으로는 평타/스킬이 그대로 들어온다.")]
+    [Header("입력")]
+    [Tooltip("대화 중 플레이어 입력을 막는다.")]
     [SerializeField] private bool blockPlayerInput = true;
 
     [Header("사운드")]
@@ -230,8 +226,8 @@ public class DialogueUI : Singleton<DialogueUI>
         IsPlaying    = true;
         _stage.Clear();
 
-        if (panel != null) panel.SetActive(true);
-        if (stopTime && GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
+        if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.Open(panel, UIPopUpManager.Layer.System);
+        else if (panel != null) panel.SetActive(true);
         if (blockPlayerInput) SetPlayerInputBlocked(true);
         UIEventBus.NotifyOpen("Dialogue");
 
@@ -263,6 +259,7 @@ public class DialogueUI : Singleton<DialogueUI>
         }
 
         if (Time.frameCount == _openedFrame) return;   // 대화를 연 그 입력으로 첫 줄이 넘어가지 않게
+        if (IsOptionOpen) return;                        // ESC 옵션 중에는 옵션 메뉴 클릭으로 대사가 넘어가지 않게
         if (!AdvancePressed()) return;
 
         if (!_typingDone && clickSkipsTyping)
@@ -458,7 +455,7 @@ public class DialogueUI : Singleton<DialogueUI>
     }
 
     /// <summary>
-    /// 크기·색·높이를 목표값으로 민다. timeScale=0 이라 unscaledDeltaTime 을 써야 한다.
+    /// 크기·색·높이를 목표값으로 민다. timeScale 영향을 안 받게 unscaledDeltaTime 을 쓴다.
     /// 지수 감쇠라 프레임레이트가 흔들려도 도착 시간이 같다.
     /// </summary>
     private void UpdateHighlight()
@@ -526,6 +523,8 @@ public class DialogueUI : Singleton<DialogueUI>
 
         while (shown < total)
         {
+            if (IsOptionOpen) { yield return null; continue; } // 옵션 중에는 타이핑도 멈춘다(unscaled 라 timeScale 0 으로는 안 멈춤)
+
             shown += charsPerSecond * Time.unscaledDeltaTime;
             int visible = Mathf.Min(total, Mathf.FloorToInt(shown));
             bodyText.maxVisibleCharacters = visible;
@@ -566,9 +565,9 @@ public class DialogueUI : Singleton<DialogueUI>
         _lines = null;
         _stage.Clear();
 
-        if (panel != null) panel.SetActive(false);
+        if (UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsOpen(panel)) UIPopUpManager.Instance.Close(panel);
+        else if (panel != null) panel.SetActive(false);
         if (blockPlayerInput) SetPlayerInputBlocked(false);
-        if (stopTime && GameManager.Instance != null) GameManager.Instance.SetTimeStop(false);
         UIEventBus.NotifyClose("Dialogue");
 
         // 콜백이 또 대화를 열 수 있으므로 비운 뒤에 부른다.
@@ -576,6 +575,8 @@ public class DialogueUI : Singleton<DialogueUI>
         _onComplete = null;
         cb?.Invoke();
     }
+
+    private static bool IsOptionOpen => UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsOptionOpen;
 
     private void SetPlayerInputBlocked(bool blocked)
     {
@@ -632,8 +633,7 @@ public class DialogueUI : Singleton<DialogueUI>
 #endif
 
     /// <summary>
-    /// 대화 중에 패널이 꺼지거나 씬이 바뀌면 timeScale 이 0 에 묶인 채로 남는다.
-    /// SetTimeStop 은 참조 카운트가 없어서 아무도 대신 풀어주지 않으므로 여기서 확실히 푼다.
+    /// 대화 중에 패널이 꺼지거나 씬이 바뀌면 입력 차단과 팝업 등록이 남는다. 여기서 확실히 푼다.
     /// </summary>
     private void OnDisable()
     {

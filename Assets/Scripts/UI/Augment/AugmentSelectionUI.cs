@@ -37,7 +37,7 @@ public class AugmentSelectionUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 선택지를 띄운다. 고르기 전까지는 시간이 멈춰 있고(UIPopUpManager 가 처리),
+    /// 선택지를 띄운다. 고르기 전까지는 플레이어 입력이 막혀 있고(UIPopUpManager Modal, 시간은 흐른다),
     /// 고르는 순간 onPicked 가 딱 한 번 불린다.
     /// </summary>
     public void Show(List<AugmentOffer> offers, AugmentOffer noRisk, Action<AugmentOffer> onPicked)
@@ -52,8 +52,8 @@ public class AugmentSelectionUI : MonoBehaviour
             return;
         }
 
-        panelRoot.SetActive(true);
-        UIPopUpManager.Instance?.ForcePopUpUI(panelRoot); // 시간 정지 포함
+        if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.Open(panelRoot, UIPopUpManager.Layer.Modal);
+        else panelRoot.SetActive(true);
         UIEventBus.NotifyOpen("Augment");
 
         if (titleText != null) titleText.text = "난이도를 선택하세요";
@@ -80,8 +80,8 @@ public class AugmentSelectionUI : MonoBehaviour
     public void Hide()
     {
         if (panelRoot != null && !panelRoot.activeSelf) return;
-        if (panelRoot != null) panelRoot.SetActive(false);
-        UIPopUpManager.Instance?.ClosePopUpUI(); // 시간 재개
+        if (UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsOpen(panelRoot)) UIPopUpManager.Instance.Close(panelRoot); // 내 창만 닫는다
+        else if (panelRoot != null) panelRoot.SetActive(false);
         UIEventBus.NotifyClose("Augment");
     }
 }

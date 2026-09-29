@@ -54,7 +54,7 @@ public class PlayerParryController : MonoBehaviour
     private void Update()
     {
         if (_player == null || _player.Stat == null || _player.Stat.Health.IsDead
-            || _player.IsInputBlocked || Time.timeScale == 0f)
+            || _player.IsInputBlocked || PlayerController.IsGameplayPaused)
         {
             StopGuard();
             return;
@@ -177,7 +177,7 @@ public class PlayerParryController : MonoBehaviour
     public void TryStartParry()
     {
         if (_isParrying || _guardBroken || _guard <= 0f || _player == null || _player.Stat == null
-            || _player.IsInputBlocked || Time.timeScale == 0f || _player.Stat.Health.IsDead
+            || _player.IsInputBlocked || PlayerController.IsGameplayPaused || _player.Stat.Health.IsDead
             || IsDashing || _player.IsCCed) return;
         var rc = EquippedRightClick;
         if (rc == null) { Announce(emptyMessage); return; }

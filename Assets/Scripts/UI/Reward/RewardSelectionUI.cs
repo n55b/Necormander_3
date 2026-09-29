@@ -25,10 +25,10 @@ public class RewardSelectionUI : MonoBehaviour
 
     public void Show(List<RewardCandidate> candidates)
     {
-        UIPopUpManager.Instance.ForcePopUpUI(panel); // 팝업 매니저에 상태 전달
-
         _currentCandidates = candidates;
-        if (panel != null) panel.SetActive(true);
+        // Modal: 맵·주머니·장착 정보는 매니저가 닫고, 보상창은 항상 뜬다. (SetActive 도 매니저가 한다)
+        if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.Open(panel, UIPopUpManager.Layer.Modal);
+        else if (panel != null) panel.SetActive(true);
         UIEventBus.NotifyOpen("Reward");
         UIEventBus.NotifyOpen("Reward");
 
@@ -52,8 +52,9 @@ public class RewardSelectionUI : MonoBehaviour
     public void Hide()
     {
         Debug.Log("<color=white>[RewardUI]</color> Hiding Selection UI.");
-        if (panel != null) panel.SetActive(false);
-        UIPopUpManager.Instance?.ClosePopUpUI();
+        // 내 창만 닫는다 (Awake 에서 불려도 다른 창에 영향 없음)
+        if (UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsOpen(panel)) UIPopUpManager.Instance.Close(panel);
+        else if (panel != null) panel.SetActive(false);
         UIEventBus.NotifyClose("Reward"); // 팝업 상태 해제태 해제
         UIEventBus.NotifyClose("Reward");
 

@@ -47,6 +47,7 @@ public class PouchUI : MonoBehaviour
 
     private void OnDisable()
     {
+        if (IsOpen) UIPopUpManager.Instance?.Forget(panelRoot != null ? panelRoot : gameObject);
         IsOpen = false;
         EndDrag(null);
     }
@@ -78,20 +79,35 @@ public class PouchUI : MonoBehaviour
     }
 
     /// <summary>창 닫기/사망/씬 종료는 진행 중 드래그를 취소한다. 놓기 전에는 아이템을 버리지 않는다.</summary>
+    /// <summary>
+    /// 창 닫기/사망/씬 종료는 진행 중 드래그를 취소한다. 놓기 전에는 아이템을 버리지 않는다.
+    /// 팝업 매니저의 Overlay 로 등록한다(시간 정지·입력 차단 없음). 장착 정보와 서로 교체되고,
+    /// 맵/옵션/대화 중에는 안 열린다. ESC·보상창 등장으로 매니저가 닫아도 OnPanelClosed 로 온다.
+    /// </summary>
     public void SetOpen(bool open)
     {
         if (IsOpen == open) return;
-        if (open && UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsPopUpActive) return;
-        if (open) SkillExplainUI.Instance?.SetOpen(false);
-        else
-        {
-            EndDrag(null);
-            CommonTooltipUI.Instance?.Hide();
-        }
-        IsOpen = open;
-        if (panelRoot != null) panelRoot.SetActive(open);
+        var mgr = UIPopUpManager.Instance;
+        var root = panelRoot != null ? panelRoot : gameObject;
 
-        if (open) Refresh();
+        if (open)
+        {
+            if (mgr != null) { if (!mgr.Open(root, UIPopUpManager.Layer.Overlay, OnPanelClosed)) return; }
+            else root.SetActive(true);
+            IsOpen = true;
+            Refresh();
+            return;
+        }
+
+        if (mgr != null && mgr.IsOpen(root)) mgr.Close(root); // → OnPanelClosed
+        else { if (panelRoot != null) panelRoot.SetActive(false); OnPanelClosed(); }
+    }
+
+    private void OnPanelClosed()
+    {
+        IsOpen = false; // EndDrag 는 IsOpen=false 면 드랍하지 않고 취소만 한다
+        EndDrag(null);
+        CommonTooltipUI.Instance?.Hide();
     }
 
     /// <summary>

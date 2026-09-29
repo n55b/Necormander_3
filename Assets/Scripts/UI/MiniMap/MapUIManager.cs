@@ -6,9 +6,8 @@ public class MapUIManager : MonoBehaviour
 {
     [SerializeField] private GameObject fullMapUIWindow;
     private PlayerInput _playerInput;
-    private bool _isMapOpen = false;
     private bool _isInitialized = false; // 중복 초기화 방지용 변수
-    public bool IsMapOpen => _isMapOpen; // 다른 스크립트에서 맵 상태 확인용 프로퍼티
+    public bool IsMapOpen => UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsOpen(fullMapUIWindow); // 열림 여부는 팝업 매니저가 기준
 
     private void Update()
     {
@@ -45,26 +44,24 @@ public class MapUIManager : MonoBehaviour
 
     public void CloseMapUI()
     {
-        if (_isMapOpen)
-        {
-            ToggleFullMap(false);
-        }
+        if (IsMapOpen) ToggleFullMap(false);
     }
 
     private void OnMapTogglePressed(InputAction.CallbackContext context)
     {
-        ToggleFullMap(!_isMapOpen);
+        ToggleFullMap(!IsMapOpen);
     }
     public void ToggleFullMap(bool isOpen)
     {
+        var mgr = UIPopUpManager.Instance;
+        if (mgr == null) return;
+
         if (isOpen)
         {
-            if (UIPopUpManager.Instance.IsPopUpActive || UIPopUpManager.Instance.IsOnBattle) return;
+            // 전투 중 / 보상·옵션·대화 등이 떠 있으면 매니저가 거절한다. 주머니·장착 정보는 매니저가 닫는다.
+            if (!mgr.Open(fullMapUIWindow, UIPopUpManager.Layer.Window, OnMapClosed)) return;
 
-            _isMapOpen = isOpen;
-            UIPopUpManager.Instance.PopUpUI(fullMapUIWindow);
             UIEventBus.NotifyOpen("Map");
-
             if (UIBasedMiniMap.Instance != null)
             {
                 UIBasedMiniMap.Instance.SetHudVisible(false);
@@ -73,10 +70,14 @@ public class MapUIManager : MonoBehaviour
         }
         else
         {
-            _isMapOpen = isOpen;
-            UIPopUpManager.Instance.ClosePopUpUI();
-            UIEventBus.NotifyClose("Map");
-            UIBasedMiniMap.Instance?.SetHudVisible(true);
+            mgr.Close(fullMapUIWindow); // 정리는 OnMapClosed 에서
         }
+    }
+
+    /// <summary>직접 닫든, ESC·보상창 등장·전투 진입으로 매니저가 대신 닫든 여기로 온다.</summary>
+    private void OnMapClosed()
+    {
+        UIEventBus.NotifyClose("Map");
+        UIBasedMiniMap.Instance?.SetHudVisible(true);
     }
 }

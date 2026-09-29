@@ -36,17 +36,40 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         SetOpen(!_isOpen);
     }
 
-    // C/V는 전투 중에도 열 수 있는 정보창이다. 일시정지 팝업 매니저는 건드리지 않는다.
+    // 전투 중에도 열 수 있는 정보창이다. 팝업 매니저의 Overlay 로 등록한다(시간 정지·입력 차단 없음).
+    //   · 주머니와 서로 교체된다(매니저가 처리).
+    //   · 맵/옵션/대화가 떠 있으면 안 열린다. 보상 등 Modal 위에는 얹힌다.
+    //   · ESC 로 닫히고, 보상창 등장 시 매니저가 닫는다 — 어느 경로든 OnPanelClosed 로 온다.
     public void SetOpen(bool open)
     {
-        if (open && UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsPopUpActive) return;
-        if (open) { PouchUI.Instance?.SetOpen(false); RefreshUI(); }
-        _isOpen = open;
-        panelRoot.SetActive(open);
+        if (open == _isOpen) return;
+        var mgr = UIPopUpManager.Instance;
+
+        if (open)
+        {
+            RefreshUI();
+            if (mgr != null) { if (!mgr.Open(panelRoot, UIPopUpManager.Layer.Overlay, OnPanelClosed)) return; }
+            else panelRoot.SetActive(true);
+            _isOpen = true;
+            CommonTooltipUI.Instance?.Hide();
+            return;
+        }
+
+        if (mgr != null && mgr.IsOpen(panelRoot)) mgr.Close(panelRoot); // → OnPanelClosed
+        else { panelRoot.SetActive(false); OnPanelClosed(); }
+    }
+
+    private void OnPanelClosed()
+    {
+        _isOpen = false;
         CommonTooltipUI.Instance?.Hide();
     }
 
-    private void OnDisable() { _isOpen = false; }
+    private void OnDisable()
+    {
+        if (_isOpen) UIPopUpManager.Instance?.Forget(panelRoot);
+        _isOpen = false;
+    }
 
     private void Update()
     {

@@ -40,8 +40,9 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
         _onComplete = onComplete;
         _open = true;
         gameObject.SetActive(true);
-        UIPopUpManager.Instance?.ForcePopUpUI(gameObject);
-        panel.SetActive(true);
+        // Modal 로 panel 을 등록한다(예전엔 싱글톤 루트를 등록해서 닫힐 때 루트째 꺼졌다). 주머니·장착 정보는 매니저가 닫는다.
+        if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.Open(panel, UIPopUpManager.Layer.Modal, OnPanelClosed);
+        else panel.SetActive(true);
         UIEventBus.NotifyOpen("HandSlot");
         RefreshSlots();
     }
@@ -106,7 +107,11 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
     public void OnSlotSelected(int index) => Select(HandSlotSelectionItem.ActionKind.Candidate);
     private void OnDisable()
     {
-        if (_open) UIEventBus.NotifyClose("HandSlot");
+        if (_open)
+        {
+            UIPopUpManager.Instance?.Forget(panel);
+            UIEventBus.NotifyClose("HandSlot");
+        }
         _open = false;
         _source = null;
         _onComplete = null;
@@ -115,12 +120,19 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
     public void Hide()
     {
         if (!_open) return;
+        // 내 창만 닫는다. 정리는 OnPanelClosed 에서.
+        var mgr = UIPopUpManager.Instance;
+        if (mgr != null && mgr.IsOpen(panel)) mgr.Close(panel);
+        else { panel.SetActive(false); OnPanelClosed(); }
+    }
+
+    private void OnPanelClosed()
+    {
+        if (!_open) return;
         _open = false;
         _source = null;
         _onComplete = null;
-        panel.SetActive(false);
         CommonTooltipUI.Instance?.Hide();
         UIEventBus.NotifyClose("HandSlot");
-        UIPopUpManager.Instance?.ClosePopUpUI();
     }
 }
