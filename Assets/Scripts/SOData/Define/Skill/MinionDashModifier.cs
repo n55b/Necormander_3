@@ -61,4 +61,11 @@ public class MinionDashModifier
 
     /// <summary>히트박스를 만들 이유가 있는가. 출발원 모드는 폭 없이도 판정을 낸다.</summary>
     public bool DealsDamage => hitCount > 0 && (hitAtOrigin || width > 0f);
+
+    public string Describe()
+        => !string.IsNullOrEmpty(uiDescription) ? uiDescription
+            : $"대쉬 거리 {lengthMultiplier:0.##}배. " + (DealsDamage
+                ? $"{(hitAtOrigin ? "출발 지점" : "이동 경로")}의 적을 {hitCount}회 타격 · 피해 배율 {damageMultiplier:0.##}배."
+                    + (onHitStatus != StatusType.None ? $" 적중 시 {onHitStatus}." : "")
+                : "추가 공격 없음.");
 }

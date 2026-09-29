@@ -602,7 +602,7 @@ public class PlayerController : MonoBehaviour
         // UI/일시정지 중에 뗀 입력도 반드시 해제한다.
         if (context.canceled) { parryCtrl?.SetGuardHeld(false); return; }
         if (Time.timeScale == 0f) return; // [추가] 시간 일시정지 중 차단
-        if (_inputBlocked || stat.Health.IsDead) return;
+        if (_inputBlocked || stat.Health.IsDead || PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsOpen)) return;
         if (context.started) parryCtrl?.SetGuardHeld(true);
     }
 
@@ -662,7 +662,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void OnInteract(InputAction.CallbackContext context) // [추가]
     {
-        if (_inputBlocked) { CancelInteractHold(); return; }
+        if (_inputBlocked || Time.timeScale == 0f || PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsOpen)) { CancelInteractHold(); return; }
 
         if (context.performed)
         {
@@ -690,10 +690,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void OnPouch(InputAction.CallbackContext context)
     {
-        if (PouchUI.Instance == null) return;
-
-        bool blocked = _inputBlocked || (stat != null && stat.Health != null && stat.Health.IsDead);
-        PouchUI.Instance.SetOpen(!blocked && context.performed);
+        // B 바인딩 폐지. 이전 씬의 직렬화된 이벤트 참조만 호환한다.
     }
 
 public void OnGemTree(InputAction.CallbackContext context)
@@ -705,14 +702,8 @@ public void OnGemTree(InputAction.CallbackContext context)
 
         if (context.performed)
         {
-            if (SkillExplainUI.Instance != null)
-            {
-                SkillExplainUI.Instance.Toggle();
-            }
-            else
-            {
-                Debug.LogError("<color=red>[PlayerController]</color> SkillExplainUI.Instance is NULL!");
-            }
+            CancelInteractHold();
+            PouchUI.Instance?.SetOpen(!PouchUI.IsOpen);
         }
     }
 
@@ -723,19 +714,8 @@ public void OnGemTree(InputAction.CallbackContext context)
         // [수정] 탭 키를 눌러 현재 장착된 미니언/능력을 상시 조회합니다.
         if (context.performed)
         {
-            // [수정] 이미 열려 있는 상태라면 전투 중이라도 닫을 수 있게 허용
-            bool isOpen = (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen);
-
-            if (!isOpen && IsAnyBattleActive())
-            {
-                Debug.Log("<color=orange>[UI]</color> 전투가 진행 중일 때는 인벤토리를 열 수 없습니다.");
-                return;
-            }
-
-            if (HandSlotSelectionUI.Instance != null)
-            {
-                HandSlotSelectionUI.Instance.ToggleReadOnly();
-            }
+            CancelInteractHold();
+            SkillExplainUI.Instance?.Toggle();
         }
     }
 
@@ -743,6 +723,8 @@ public void OnGemTree(InputAction.CallbackContext context)
     {
         if (context.performed)
         {
+            if (PouchUI.IsOpen) { PouchUI.Instance.SetOpen(false); return; }
+            if (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsOpen) { SkillExplainUI.Instance.SetOpen(false); return; }
             if (SceneOptionManager.Instance != null)
             {
                 if (!SceneOptionManager.Instance.isOptionOpen)

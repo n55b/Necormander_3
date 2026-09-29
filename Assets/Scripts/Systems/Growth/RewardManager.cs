@@ -15,9 +15,6 @@ public class RewardManager : MonoBehaviour
 
     private Queue<List<RewardCandidate>> _rewardQueue = new Queue<List<RewardCandidate>>();
 
-    [Header("보상 스킵 설정")]
-    [SerializeField] private float skipRewardHealAmount = 10f;
-
     [Header("엘리트 방 보상")]
     [Tooltip("엘리트 방을 깼을 때 바닥에 떨어뜨릴 주머니 아이템 개수. 0 이면 아이템을 안 준다.")]
     [SerializeField] private int eliteItemDropCount = 1;
@@ -106,6 +103,14 @@ public class RewardManager : MonoBehaviour
     /// </summary>
     public void ShowRewardSelection(List<RewardCandidate> candidates)
     {
+        PouchUI.Instance?.SetOpen(false);
+        SkillExplainUI.Instance?.SetOpen(false);
+        if (candidates != null && candidates.Count == 1 && candidates[0].rawData is MinionDataSO minion)
+        {
+            var drop = GroundItem.Drop(minion, PlayerPosition());
+            if (drop != null && handSlotUI != null) handSlotUI.Show(drop, ProcessNextReward);
+            return;
+        }
         if (selectionUI != null)
         {
             // [추가] 보상 창이 뜨면 시간 정지
@@ -146,7 +151,9 @@ public class RewardManager : MonoBehaviour
                         if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
 
                         if (selectionUI != null) selectionUI.Hide();
-                        handSlotUI.Show(candidate);
+                        var drop = GroundItem.Drop(minion, PlayerPosition());
+                        if (drop != null) handSlotUI.Show(drop, ProcessNextReward);
+                        else ProcessNextReward();
                     }
                     else
                     {
@@ -206,22 +213,38 @@ public class RewardManager : MonoBehaviour
     {
         Debug.Log("<color=orange>[Reward]</color> Reward skipped.");
 
-        // 보상을 건너뛰면 보상 대신 체력을 회복시켜줍니다.
-        HealPlayer(skipRewardHealAmount);
+        // 스킵은 미습득이다. 회복은 바닥 미니언을 실제 분해했을 때만 지급한다.
 
         ProcessNextReward();
     }
 
-    /// <summary>
-    /// 플레이어 체력을 회복시킵니다. 보상 스킵뿐 아니라 다른 곳에서도 재사용할 수 있도록 분리해뒀습니다.
-    /// </summary>
-    private void HealPlayer(float amount)
+    /// <summary>상점만 즉시 습득. 빈자리 없으면 유료 진열품 대신 무료 픽업을 남긴다.</summary>
+    public static bool TryGivePurchase(RewardCandidate candidate, Vector3 dropPosition)
     {
-        var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
-        if (player != null && player.Stat != null && player.Stat.Health != null)
+        switch (candidate.category)
         {
-            player.Stat.Health.Heal(amount);
+            case RewardCategory.Item:
+                var item = candidate.rawData as ItemSO;
+                if (item == null) return false;
+                if (ItemPouch.Instance != null && ItemPouch.Instance.TryAdd(item)) return true;
+                return GroundItem.Drop(item, dropPosition) != null;
+            case RewardCategory.Minion:
+                var minion = candidate.rawData as MainMinionDataSO;
+                if (minion == null) return false;
+                var inventory = InventoryManager.Instance;
+                if (inventory != null && inventory.MainSummon == null && inventory.EquipMinion(minion)) return true;
+                return GroundItem.Drop(minion, dropPosition) != null;
+            case RewardCategory.Equipment:
+                if (!(candidate.rawData is EquipmentInstance equipment) || PlayerSkillInventoryManager.Instance == null) return false;
+                PlayerSkillInventoryManager.Instance.EquipEquipment(equipment);
+                return true;
+            case RewardCategory.Treasure:
+                if (!(candidate.rawData is TreasureSO treasure) || InventoryManager.Instance == null) return false;
+                InventoryManager.Instance.AddTreasure(treasure);
+                return true;
+            default: return false;
         }
     }
+
 
 }

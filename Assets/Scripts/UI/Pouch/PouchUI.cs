@@ -3,14 +3,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
-/// 아이템 주머니 패널. B 를 '누르고 있는 동안만' 떠 있고 시간은 멈추지 않는다 —
-/// B 를 잡은 채로 마우스로 아이템을 옮기거나 버리는 조작을 한다.
-///
-/// 키 입력은 다른 키들과 똑같이 InputSystem 을 탄다 — PlayerInputSystem.inputactions 의
-/// Player/Pouch 액션(&lt;Keyboard&gt;/b) → 플레이어 프리팹 PlayerInput 이벤트 → PlayerController.OnPouch
-/// → 여기 SetOpen(). 이 스크립트는 키를 직접 읽지 않으므로 키를 바꾸려면 액션의 바인딩만 고치면 된다.
-///
-/// 씬 Canvas 아래에 프리팹 인스턴스로 비활성 배치해두면 된다 — 기획자가 에디터에서 그대로 편집한다.
+/// V로 여닫는 아이템 주머니. 전투/시간은 계속 진행된다.
+/// 밖에서 놓으면 마우스의 월드 위치에 즉시 드랍한다. 슬롯/드랍 테두리는 프리팹에 저작한다.
 /// </summary>
 public class PouchUI : MonoBehaviour
 {
@@ -31,9 +25,10 @@ public class PouchUI : MonoBehaviour
 
     [Header("드래그 중 커서에 붙는 아이콘")]
     [SerializeField] private Image dragGhost;
+    [Header("주머니 밖으로 드래그할 때 표시할 붉은 테두리")]
+    [SerializeField] private GameObject dropOutline;
 
     private PouchSlotUI _dragSource;
-    private RectTransform _canvasRect;
     private Canvas _canvas;
 
     private void Awake()
@@ -44,13 +39,17 @@ public class PouchUI : MonoBehaviour
         if (dragGhost != null) dragGhost.gameObject.SetActive(false);
 
         _canvas = GetComponentInParent<Canvas>();
-        _canvasRect = _canvas != null ? _canvas.transform as RectTransform : null;
 
         for (int i = 0; i < slots.Length; i++)
             if (slots[i] != null) slots[i].Bind(this, i);
+        if (dropOutline != null) dropOutline.SetActive(false);
     }
 
-    private void OnDisable() => IsOpen = false;
+    private void OnDisable()
+    {
+        IsOpen = false;
+        EndDrag(null);
+    }
 
     private void OnDestroy()
     {
@@ -62,7 +61,7 @@ public class PouchUI : MonoBehaviour
     {
         if (!IsOpen) return;
 
-        // B 를 누른 채로 죽거나 씬이 넘어가면 입력 이벤트가 더 안 와서 패널이 화면에 남는다.
+        // 죽거나 씬이 넘어갈 때는 드랍을 취소한다.
         var p = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
         if (p == null || (p.Stat != null && p.Stat.Health != null && p.Stat.Health.IsDead))
         {
@@ -78,35 +77,40 @@ public class PouchUI : MonoBehaviour
         if (_dragSource != null) MoveGhostToCursor();
     }
 
-    /// <summary>
-    /// 패널을 켜고 끈다. PlayerController.OnPouch(B 액션)가 누를 때 true, 뗄 때 false 로 부른다.
-    /// 시간은 멈추지 않는다 — B 를 잡은 채로 마우스 조작을 하는 UI 다.
-    /// </summary>
+    /// <summary>창 닫기/사망/씬 종료는 진행 중 드래그를 취소한다. 놓기 전에는 아이템을 버리지 않는다.</summary>
     public void SetOpen(bool open)
     {
         if (IsOpen == open) return;
+        if (open && UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsPopUpActive) return;
+        if (open) SkillExplainUI.Instance?.SetOpen(false);
+        else
+        {
+            EndDrag(null);
+            CommonTooltipUI.Instance?.Hide();
+        }
         IsOpen = open;
         if (panelRoot != null) panelRoot.SetActive(open);
 
         if (open) Refresh();
-        else EndDrag(null); // B 를 놓으면 들고 있던 것도 취소된다(아무 일도 안 일어남)
     }
 
     /// <summary>
     /// 드래그 고스트를 커서 위로 옮긴다.
     /// rectTransform.position 에 스크린 좌표를 그대로 넣으면 안 된다 — 이 프로젝트 캔버스는
-    /// CanvasScaler 가 1920x1080 기준으로 스케일을 먹여서 월드 좌표와 스크린 픽셀이 1:1 이 아니다.
+    /// CanvasScaler 가 960x540 기준으로 스케일을 먹여서 월드 좌표와 스크린 픽셀이 1:1 이 아니다.
     /// CommonTooltipUI 가 쓰는 것과 같은 변환을 쓴다(그쪽이 이미 검증된 방식).
     /// </summary>
     private void MoveGhostToCursor()
     {
-        if (dragGhost == null || _canvasRect == null || Mouse.current == null) return;
+        if (dragGhost == null || Mouse.current == null) return;
+
+        Vector2 cursor = Mouse.current.position.ReadValue();
+        if (dropOutline != null) dropOutline.SetActive(IsOutside(cursor));
 
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _canvasRect, Mouse.current.position.ReadValue(), UICamera(), out var local))
+                dragGhost.rectTransform.parent as RectTransform, cursor, UICamera(), out var local))
         {
-            // 고스트의 부모(이 패널 루트)는 캔버스 중앙에 앵커 0.5 로 붙어 있고 anchoredPosition 이 0 이라
-            // 캔버스 로컬 좌표를 그대로 써도 된다.
+            // 부모 로컬 좌표를 사용하므로 화면 해상도/CanvasScaler가 달라도 커서에 붙는다.
             dragGhost.rectTransform.anchoredPosition = local;
         }
     }
@@ -119,24 +123,26 @@ public class PouchUI : MonoBehaviour
         {
             if (slots[i] == null) continue;
             bool unlocked = pouch != null && i < pouch.SlotCount;
-            slots[i].SetItem(unlocked && pouch != null ? pouch.Get(i) : null, unlocked);
+            slots[i].SetItem(unlocked ? pouch.Get(i) : null, unlocked);
         }
+        _dragSource?.SetDimmed(true);
     }
 
     // ── 드래그 ────────────────────────────────────────────────────────
     /// <summary>칸에서 드래그가 시작됐다. 커서에 아이콘을 붙인다.</summary>
     public void BeginDrag(PouchSlotUI source)
     {
-        if (source == null || source.Item == null) return;
+        if (!IsOpen || source == null || source.Item == null) return;
         _dragSource = source;
 
         if (dragGhost != null)
         {
-            dragGhost.sprite = source.Item.icon;
-            dragGhost.color = source.Item.icon != null ? Color.white : source.Item.TierColor;
+            dragGhost.sprite = GroundItem.ItemIcon(source.Item);
+            dragGhost.color = Color.white;
             dragGhost.gameObject.SetActive(true);
         }
         source.SetDimmed(true);
+        MoveGhostToCursor();
     }
 
     /// <summary>
@@ -151,36 +157,45 @@ public class PouchUI : MonoBehaviour
         _dragSource = null;
 
         if (dragGhost != null) dragGhost.gameObject.SetActive(false);
+        if (dropOutline != null) dropOutline.SetActive(false);
         if (source != null) source.SetDimmed(false);
 
         if (source == null || source.Item == null) return;
 
-        if (target != null && target != source)
+        if (!IsOpen || source.Index < 0 || source.Index >= slots.Length) return;
+        var pouch = ItemPouch.Instance;
+        if (pouch == null || pouch.Get(source.Index) != source.Item) return;
+        if (target != null && target.Index >= 0 && target.Index < pouch.SlotCount)
         {
-            ItemPouch.Instance?.Swap(source.Index, target.Index);
+            if (source.Index != target.Index)
+                pouch.Swap(source.Index, target.Index);
+            Refresh();
             return;
         }
 
-        // 패널 밖에 놓았으면 버린다. 좌표를 못 받은 호출(B 를 놓아서 취소된 경우)은 버리지 않는다.
-        if (hasPos && panelRect != null
-            && !RectTransformUtility.RectangleContainsScreenPoint(panelRect, screenPos, UICamera()))
+        // 취소 호출에는 좌표가 없다. 실제 놓기에서만 생성 성공 후 원본/효과를 제거한다.
+        if (hasPos && IsOutside(screenPos) && TryDrop(source.Item, screenPos))
         {
-            DropToGround(source.Index);
+            pouch.RemoveAt(source.Index);
         }
+        Refresh();
     }
 
-    /// <summary>칸의 아이템을 플레이어 발밑 바닥에 버린다. 다시 F 로 주울 수 있다.</summary>
-    private void DropToGround(int slotIndex)
+    private bool IsOutside(Vector2 screenPos) => panelRect != null &&
+        !RectTransformUtility.RectangleContainsScreenPoint(panelRect, screenPos, UICamera());
+
+    private bool TryDrop(ItemSO item, Vector2 screenPos)
     {
-        var pouch = ItemPouch.Instance;
-        if (pouch == null) return;
-
-        var so = pouch.RemoveAt(slotIndex);
-        if (so == null) return;
-
         var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
-        GroundItem.Drop(so, player != null ? player.transform.position : Vector3.zero);
-        Debug.Log($"<color=cyan>[Pouch]</color> '{so.DisplayName}' 를 바닥에 버렸다.");
+        var camera = Camera.main;
+        if (player == null || camera == null || !camera.pixelRect.Contains(screenPos)) return false;
+        var ray = camera.ScreenPointToRay(screenPos);
+        var plane = new Plane(Vector3.forward, player.transform.position);
+        if (!plane.Raycast(ray, out float distance)) return false;
+        Vector3 desired = ray.GetPoint(distance);
+        float searchRadius = Vector3.Distance(desired, player.transform.position) + 1f;
+        if (!GroundItem.TryFindDropPoint(desired, searchRadius, out Vector3 point)) return false;
+        return GroundItem.Drop(item, point, scatter: false) != null;
     }
 
     /// <summary>

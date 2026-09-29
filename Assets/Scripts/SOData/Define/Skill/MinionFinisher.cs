@@ -64,4 +64,9 @@ public class MinionFinisher
 
     /// <summary>실제로 발동할 내용이 있는가.</summary>
     public bool IsValid => hitCount > 0;
+
+    public string Describe()
+        => !string.IsNullOrEmpty(uiDescription) ? uiDescription : !IsValid ? "마무리 공격 없음"
+            : $"콤보 마지막에 {hitCount}회 타격 · 타격당 피해 배율 {damageMultiplier:0.##}배."
+                + (onHitStatus != StatusType.None ? $" 적중 시 {onHitStatus}." : "");
 }
