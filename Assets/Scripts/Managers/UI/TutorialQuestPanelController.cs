@@ -70,7 +70,8 @@ public class TutorialQuestPanelController : MonoBehaviour
         { TutorialStage.Shop, new[]
             {
                 "골드로 상인에게서 아이템을 살 수 있어요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용, 구매할 수 있어요",
+                "상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 말을 걸면 상점이 열려요",
+                "강화 상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>를 누르면 장비를 강화해요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_B\"></size>로 장착 중인 아이템을 확인해요",
             }
         },
