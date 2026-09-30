@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// V로 여닫는 아이템 주머니. 전투/시간은 계속 진행된다.
-/// 밖에서 놓으면 마우스의 월드 위치에 즉시 드랍한다. 슬롯/드랍 테두리는 프리팹에 저작한다.
+/// 밖에서 놓으면 마우스 방향의 플레이어 주변에 즉시 드랍한다. 슬롯/드랍 테두리는 프리팹에 저작한다.
 /// </summary>
 public class PouchUI : MonoBehaviour
 {
@@ -27,6 +27,8 @@ public class PouchUI : MonoBehaviour
     [SerializeField] private Image dragGhost;
     [Header("주머니 밖으로 드래그할 때 표시할 붉은 테두리")]
     [SerializeField] private GameObject dropOutline;
+    [Tooltip("버리기 방향은 마우스로 정하고, 거리는 플레이어 기준으로 고정한다. 막히면 주변 바닥으로 보정한다.")]
+    [SerializeField, Min(0.1f)] private float dropDistance = 1.25f;
 
     private PouchSlotUI _dragSource;
     private Canvas _canvas;
@@ -208,9 +210,7 @@ public class PouchUI : MonoBehaviour
         var ray = camera.ScreenPointToRay(screenPos);
         var plane = new Plane(Vector3.forward, player.transform.position);
         if (!plane.Raycast(ray, out float distance)) return false;
-        Vector3 desired = ray.GetPoint(distance);
-        float searchRadius = Vector3.Distance(desired, player.transform.position) + 1f;
-        if (!GroundItem.TryFindDropPoint(desired, searchRadius, out Vector3 point)) return false;
+        if (!GroundItem.TryFindNearbyDropPoint(player.transform.position, ray.GetPoint(distance), dropDistance, out Vector3 point)) return false;
         return GroundItem.Drop(item, point, scatter: false) != null;
     }
 

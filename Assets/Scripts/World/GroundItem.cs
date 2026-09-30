@@ -69,6 +69,39 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
         return !Physics2D.OverlapCircle(point, 0.05f, Layers.WallMask);
     }
 
+    /// <summary>마우스는 방향만 정한다. 벽 너머/멀리 떨어진 바닥이 아닌 플레이어 주변의 도달 가능한 바닥을 고른다.</summary>
+    public static bool TryFindNearbyDropPoint(Vector3 playerPosition, Vector3 mousePosition, float distance, out Vector3 point)
+    {
+        point = playerPosition;
+        distance = Mathf.Max(0.1f, distance);
+        if (!TryFindDropPoint(playerPosition, 0.5f, out Vector3 start)) return false;
+        Vector2 direction = (Vector2)(mousePosition - playerPosition);
+        direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.down;
+        Vector3 desired = playerPosition + (Vector3)(direction * distance);
+
+        // 먼저 원래 놓으려던 지점에서 가장 가까운 바닥을 고른다. 얇은 벽 너머 바닥은 제외한다.
+        if (TryFindDropPoint(desired, distance, out Vector3 nearest) && Nearby(nearest)
+            && !NavMesh.Raycast(start, nearest, out _, NavMesh.AllAreas))
+        {
+            Vector2 travel = nearest - start;
+            if (((Vector2)nearest - SkillCombatUtil.ClampToWall(start, travel, travel.magnitude, 0.1f)).sqrMagnitude < 0.0001f)
+            { point = nearest; return true; }
+        }
+
+        // 가장 가까운 점이 벽 반대편이면, 플레이어 쪽 벽/물 경계에서 멈춘 지점을 사용한다.
+        Vector2 delta = desired - start;
+        Vector3 fallback = SkillCombatUtil.ClampToWall(start, delta, delta.magnitude, 0.1f);
+        fallback.z = start.z;
+        if (NavMesh.Raycast(start, fallback, out var edge, NavMesh.AllAreas)) fallback = edge.position;
+        if (TryFindDropPoint(fallback, 0.1f, out Vector3 safe) && Nearby(safe))
+        { point = safe; return true; }
+        if (!Nearby(start)) return false;
+        point = start;
+        return true;
+
+        bool Nearby(Vector3 candidate) => ((Vector2)(candidate - playerPosition)).sqrMagnitude <= distance * distance + 0.01f;
+    }
+
     private void Awake()
     {
         _sr = GetComponent<SpriteRenderer>();

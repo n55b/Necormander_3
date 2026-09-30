@@ -87,7 +87,7 @@ public static class InventoryUICheck
         Check(inventory.MainSummon == minions[0] && drop.IsAvailable, "짧은 누름은 교체 안 함");
         replace.OnPointerDown(pointer); start = Time.realtimeSinceStartup;
         while (Time.realtimeSinceStartup - start < picker.ConfirmHoldSeconds + 0.3f) yield return null;
-        Check(inventory.MainSummon == minions[1] && (drop == null || !drop.IsAvailable), "3초 홀드로 교체");
+        Check(inventory.MainSummon == minions[1] && (drop == null || !drop.IsAvailable), "1초 홀드로 교체");
         Check(Object.FindObjectsByType<GroundItem>(FindObjectsSortMode.None).Count(d => d.IsAvailable && d.Minion == minions[0]) == 1, "교체한 기존 미니언 1개 드랍");
         var recycle = GroundItem.Drop(minions[0], Vector3.zero);
         recycle.OnHoldComplete(fixture); recycle.OnHoldComplete(fixture);
@@ -98,7 +98,7 @@ public static class InventoryUICheck
         inventory.AddGold(500);
         Check(shop.Interact(fixture) && !shop.Interact(fixture) && inventory.GOLD == 400 && pouch.Get(0) == item, "상점 정확히 1회 결제/습득");
         yield return null;
-        Debug.Log("[InventoryUICheck] RUNTIME PASS — F 습득, 짧은 클릭 취소, 3초 홀드 교체, 기존 미니언 드랍, 분해 1회 회복, 결제 중복 방지.");
+        Debug.Log("[InventoryUICheck] RUNTIME PASS — F 습득, 짧은 클릭 취소, 1초 홀드 교체, 기존 미니언 드랍, 분해 1회 회복, 결제 중복 방지.");
     }
 
     [MenuItem("Tools/UI/0928/Check flows and render previews")]
@@ -173,11 +173,13 @@ public static class InventoryUICheck
             navInstance = NavMesh.AddNavMeshData(navData, new Vector3(320, 0, 0), Quaternion.Euler(-90, 0, 0));
             Check(GroundItem.TryFindDropPoint(new Vector3(320, 0, 0), 2, out var groundPoint) && Vector3.Distance(groundPoint, new Vector3(320, 0, 0)) < 0.1f, "안전한 바닥은 마우스 위치 그대로");
             Check(GroundItem.TryFindDropPoint(new Vector3(450, 0, 0), 100, out var edgePoint) && edgePoint.x < 420 && edgePoint.x > 415 && Mathf.Abs(edgePoint.y) < 0.1f, "바닥 밖은 가장 가까운 이동 가능 경계로 보정");
+            manager.transform.position = new Vector3(320, 0, 0);
+            Check(GroundItem.TryFindNearbyDropPoint(manager.transform.position, new Vector3(370, 0, 0), 1.25f, out var nearbyPoint), "플레이어 주변 드랍 위치");
             int before = Drops(scene);
-            pouchUI.BeginDrag(slots[1]); pouchUI.EndDrag(null, new Vector2(800, 270), true);
+            pouchUI.BeginDrag(slots[1]); pouchUI.EndDrag(null, new Vector2(850, 270), true);
             Check(pouch.Get(1) == null && Drops(scene) == before + 1, "창을 닫기 전 즉시 드랍/원본 제거");
             var placed = scene.GetRootGameObjects().Select(g => g.GetComponent<GroundItem>()).First(g => g != null);
-            Check(Vector3.Distance(placed.transform.position, groundPoint) < 0.1f && placed.GetComponent<SpriteRenderer>().sprite == GroundItem.ItemIcon(items[0]), "드랍 좌표 무작위 오프셋 없음/월드와 가방 아이콘 일치");
+            Check(Vector3.Distance(placed.transform.position, nearbyPoint) < 0.1f && placed.GetComponent<SpriteRenderer>().sprite == GroundItem.ItemIcon(items[0]), "플레이어 주변 고정 거리/월드와 가방 아이콘 일치");
             before = Drops(scene);
             explain.SetOpen(true);
             Check(!PouchUI.IsOpen && explain.IsOpen && Time.timeScale == 1f && Drops(scene) == before, "C로 전환 시 추가 드랍 없음");
@@ -285,6 +287,56 @@ public static class InventoryUICheck
             finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
         }
         SceneManager.SetActiveScene(previous);
+    }
+
+    [MenuItem("Tools/UI/0928/Check nearby drop and hold durations")]
+    public static void CheckNearbyDrop()
+    {
+        Check(!EditorApplication.isPlayingOrWillChangePlaymode && MapGenerator.Instance == null, "플레이를 끈 뒤 독립 검사하세요.");
+        var picker = AssetDatabase.LoadAssetAtPath<GameObject>(PickerPath).GetComponent<HandSlotSelectionUI>();
+        Check(picker.HoldSeconds(HandSlotSelectionItem.ActionKind.Replace) == 1f, "교체는 1초");
+        Check(picker.HoldSeconds(HandSlotSelectionItem.ActionKind.Skip) == 3f, "스킵은 3초 유지");
+        Check(picker.transform.Find("MinionSelection/Replace/Label").GetComponent<TextMeshProUGUI>().text.Contains("1초"), "교체 문구도 1초");
+        var pouch = AssetDatabase.LoadAssetAtPath<GameObject>(PouchPath).GetComponent<PouchUI>();
+        float distance = (float)Read(pouch, "dropDistance");
+        Check(Mathf.Approximately(distance, 1.25f), "기본 드랍 거리 1.25");
+        var origin = new Vector3(10000, 10000, 0);
+        Check(!GroundItem.TryFindNearbyDropPoint(origin, origin + Vector3.right * 100, distance, out _), "바닥 준비 전에는 드랍 실패/원본 보존");
+        var sources = new System.Collections.Generic.List<NavMeshBuildSource> {
+            new NavMeshBuildSource { shape = NavMeshBuildSourceShape.Box, size = new Vector3(10, 0.1f, 10),
+                transform = Matrix4x4.TRS(new Vector3(0, -0.05f, 0), Quaternion.identity, Vector3.one), area = 0 }
+        };
+        var data = NavMeshBuilder.BuildNavMeshData(NavMesh.GetSettingsByIndex(0), sources,
+            new Bounds(Vector3.zero, new Vector3(20, 20, 20)), Vector3.zero, Quaternion.identity);
+        Check(data != null, "검사용 NavMesh 생성");
+        var instance = NavMesh.AddNavMeshData(data, origin, Quaternion.Euler(-90, 0, 0));
+        GameObject wall = null;
+        try
+        {
+            Check(GroundItem.TryFindNearbyDropPoint(origin, origin + Vector3.right * 100, distance, out var far), "먼 마우스 방향 드랍");
+            Check(Vector2.Distance(far, origin + Vector3.right * distance) < 0.05f, "먼 마우스라도 플레이어 바로 옆 (2D 이동면 기준)");
+            Check(GroundItem.TryFindNearbyDropPoint(origin, origin + Vector3.right * 0.2f, distance, out var close) && Vector3.Distance(far, close) < 0.01f, "마우스 거리와 무관한 고정 거리");
+            Check(GroundItem.TryFindNearbyDropPoint(origin, origin + Vector3.left * 100, distance, out var left) && left.x < origin.x - 1f, "반대 방향");
+            Check(GroundItem.TryFindNearbyDropPoint(origin, origin, distance, out var zero) && zero.y < origin.y, "방향 0일 때 아래쪽");
+            Check(GroundItem.TryFindDropPoint(origin + Vector3.right * 10, 10, out var edge), "바닥 가장자리 찾기");
+            var nearEdge = edge - Vector3.right * 0.4f;
+            Check(GroundItem.TryFindNearbyDropPoint(nearEdge, origin + Vector3.right * 100, distance, out var shore)
+                && Vector3.Distance(shore, edge) < 0.05f, "물/낭떠러지 방향은 가장 가까운 바닥 경계");
+            wall = new GameObject("Nearby drop wall check"); wall.layer = LayerMask.NameToLayer("Wall");
+            wall.transform.position = origin + Vector3.right * 0.8f;
+            wall.AddComponent<BoxCollider2D>().size = new Vector2(0.2f, 4f);
+            Physics2D.SyncTransforms();
+            Check(GroundItem.TryFindNearbyDropPoint(origin, origin + Vector3.right * 100, distance, out var blocked)
+                && blocked.x < origin.x + 0.7f && Vector3.Distance(blocked, origin) <= distance,
+                "벽 반대편이 아닌 플레이어 주변 안전한 땅");
+            Check(!Physics2D.OverlapPoint(blocked, Layers.WallMask), "벽 내부에는 드랍하지 않음");
+            Debug.Log("[InventoryUICheck] NEARBY PASS — 교체 1초/스킵 3초, 고정 거리, 방향, 바닥 경계, 벽 우회 및 미준비 실패 검사.");
+        }
+        finally
+        {
+            if (wall != null) Object.DestroyImmediate(wall);
+            instance.Remove(); Object.DestroyImmediate(data);
+        }
     }
 
     private static int Drops(Scene scene) => scene.GetRootGameObjects().Count(g => g.GetComponent<GroundItem>() != null);

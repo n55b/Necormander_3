@@ -1528,7 +1528,8 @@ MonoBehaviour:
   replaceButton: {fileID: 824801657561691632}
   singleCardAnchor: {fileID: 106158993628608110}
   candidateAnchor: {fileID: 2720842832163271603}
-  confirmHoldSeconds: 3
+  confirmHoldSeconds: 1
+  skipHoldSeconds: 3
 --- !u!1 &3891374363632454887
 GameObject:
   m_ObjectHideFlags: 0
@@ -2102,7 +2103,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uAD50\uCCB4 \xB7 3\uCD08\uAC04 \uB204\uB974\uAE30"
+  m_text: "\uAD50\uCCB4 \xB7 1\uCD08\uAC04 \uB204\uB974\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1aa20e3aa1323f047b8e8f3aa6c8edda, type: 2}
   m_sharedMaterial: {fileID: -226505433686571455, guid: 1aa20e3aa1323f047b8e8f3aa6c8edda, type: 2}

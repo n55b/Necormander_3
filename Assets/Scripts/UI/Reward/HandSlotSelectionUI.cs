@@ -12,12 +12,15 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
     [SerializeField] private GameObject replaceButton;
     [SerializeField] private RectTransform singleCardAnchor;
     [SerializeField] private RectTransform candidateAnchor;
-    [SerializeField, Min(0.1f)] private float confirmHoldSeconds = 3f;
+    [SerializeField, Min(0.1f)] private float confirmHoldSeconds = 1f;
+    [SerializeField, Min(0.1f)] private float skipHoldSeconds = 3f;
     private GroundItem _source;
     private System.Action _onComplete;
     private bool _open;
     public bool IsOpen => _open;
     public float ConfirmHoldSeconds => confirmHoldSeconds;
+    public float HoldSeconds(HandSlotSelectionItem.ActionKind action)
+        => action == HandSlotSelectionItem.ActionKind.Skip ? skipHoldSeconds : confirmHoldSeconds;
 
     protected override void OnAwake() { panel.SetActive(false); }
     public void ToggleReadOnly() => SkillExplainUI.Instance?.Toggle();

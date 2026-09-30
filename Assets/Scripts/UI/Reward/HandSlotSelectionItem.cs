@@ -27,8 +27,9 @@ public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPoint
     {
         if (!_holding || owner == null) return;
         _elapsed += Time.unscaledDeltaTime;
-        SetProgress(Mathf.Clamp01(_elapsed / owner.ConfirmHoldSeconds));
-        if (_elapsed < owner.ConfirmHoldSeconds) return;
+        float duration = Mathf.Max(0.1f, owner.HoldSeconds(action));
+        SetProgress(Mathf.Clamp01(_elapsed / duration));
+        if (_elapsed < duration) return;
         ResetHold();
         owner.Select(action);
     }
