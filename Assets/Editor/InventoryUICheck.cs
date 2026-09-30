@@ -295,7 +295,8 @@ public static class InventoryUICheck
         Check(!EditorApplication.isPlayingOrWillChangePlaymode && MapGenerator.Instance == null, "플레이를 끈 뒤 독립 검사하세요.");
         var picker = AssetDatabase.LoadAssetAtPath<GameObject>(PickerPath).GetComponent<HandSlotSelectionUI>();
         Check(picker.HoldSeconds(HandSlotSelectionItem.ActionKind.Replace) == 1f, "교체는 1초");
-        Check(picker.HoldSeconds(HandSlotSelectionItem.ActionKind.Skip) == 3f, "스킵은 3초 유지");
+        Check(picker.HoldSeconds(HandSlotSelectionItem.ActionKind.Skip) == 1f, "스킵도 1초");
+        Check(picker.transform.Find("MinionSelection/Skip/Label").GetComponent<TextMeshProUGUI>().text.Contains("1초"), "스킵 문구도 1초");
         Check(picker.transform.Find("MinionSelection/Replace/Label").GetComponent<TextMeshProUGUI>().text.Contains("1초"), "교체 문구도 1초");
         var pouch = AssetDatabase.LoadAssetAtPath<GameObject>(PouchPath).GetComponent<PouchUI>();
         float distance = (float)Read(pouch, "dropDistance");
@@ -330,7 +331,7 @@ public static class InventoryUICheck
                 && blocked.x < origin.x + 0.7f && Vector3.Distance(blocked, origin) <= distance,
                 "벽 반대편이 아닌 플레이어 주변 안전한 땅");
             Check(!Physics2D.OverlapPoint(blocked, Layers.WallMask), "벽 내부에는 드랍하지 않음");
-            Debug.Log("[InventoryUICheck] NEARBY PASS — 교체 1초/스킵 3초, 고정 거리, 방향, 바닥 경계, 벽 우회 및 미준비 실패 검사.");
+            Debug.Log("[InventoryUICheck] NEARBY PASS — 교체/스킵 1초, 고정 거리, 방향, 바닥 경계, 벽 우회 및 미준비 실패 검사.");
         }
         finally
         {

@@ -13,7 +13,7 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
     [SerializeField] private RectTransform singleCardAnchor;
     [SerializeField] private RectTransform candidateAnchor;
     [SerializeField, Min(0.1f)] private float confirmHoldSeconds = 1f;
-    [SerializeField, Min(0.1f)] private float skipHoldSeconds = 3f;
+    [SerializeField, Min(0.1f)] private float skipHoldSeconds = 1f;
     private GroundItem _source;
     private System.Action _onComplete;
     private bool _open;

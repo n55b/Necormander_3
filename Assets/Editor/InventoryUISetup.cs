@@ -134,7 +134,7 @@ public static class InventoryUISetup
         Hook(candidate.gameObject, ui, HandSlotSelectionItem.ActionKind.Candidate);
         Hook(compare.gameObject, ui, HandSlotSelectionItem.ActionKind.Compare);
         var replace = HoldButton(panel, ui, "Replace", "교체 · 1초간 누르기", new Vector2(-150, -221), HandSlotSelectionItem.ActionKind.Replace);
-        HoldButton(panel, ui, "Skip", "스킵 · 3초간 누르기", new Vector2(150, -221), HandSlotSelectionItem.ActionKind.Skip);
+        HoldButton(panel, ui, "Skip", "스킵 · 1초간 누르기", new Vector2(150, -221), HandSlotSelectionItem.ActionKind.Skip);
         var singleAnchor = Rect(panel, "SingleCardAnchor", new Vector2(0, 20), Vector2.zero);
         var candidateAnchor = Rect(panel, "CandidateAnchor", new Vector2(160, 20), Vector2.zero);
         Set(ui, "panel", panel.gameObject);
