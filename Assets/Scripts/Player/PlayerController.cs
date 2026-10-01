@@ -373,9 +373,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // 진열 상품은 포커스될 때 이름/가격 툴팁이 이미 뜬다. 구매 대상 선택은 유지하되 F 아이콘만 숨긴다.
-        PopupSystem.ShowInteractionIcon(nearest is SellItem ? null : nearestCollider, interactIconOffset);
-
         // 포커스 변경 시 OnFocused / OnLostFocus 호출
         if (!ReferenceEquals(nearest, _closestInteractable))
         {
@@ -386,6 +383,10 @@ public class PlayerController : MonoBehaviour
             // 누르고 있는 채로 대상에서 멀어졌으면 홀드는 취소된다.
             if (_holdTarget != null && !ReferenceEquals(nearest, _holdTarget)) CancelInteractHold();
         }
+
+        // 포커스 처리(툴팁 켜기) 뒤에 배치해야 첫 프레임부터 툴팁 위에 F가 붙는다.
+        // 대상에 툴팁 같은 월드 UI가 있으면 그 위에, 없으면 콜라이더 위에 뜬다(PopupSystem 참고).
+        PopupSystem.ShowInteractionIcon(nearestCollider, interactIconOffset);
     }
 
     // ── F 홀드 ────────────────────────────────────────────────────────
