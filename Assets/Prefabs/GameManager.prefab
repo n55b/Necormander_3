@@ -361,6 +361,8 @@ MonoBehaviour:
   useDebugStartingInventory: 0
   debugStartingMinions: []
   debugStartingMinionQuantities: 
+  goldGainTextFormat: +{0}G
+  goldGainTextColor: {r: 0.851, g: 0.68916106, b: 0, a: 1}
 --- !u!114 &6139375127595461034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1028,7 +1030,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectionUI: {fileID: 0}
   handSlotUI: {fileID: 0}
-  skipRewardHealAmount: 10
   eliteItemDropCount: 1
 --- !u!114 &1557044542994201147
 MonoBehaviour:

@@ -36,7 +36,7 @@ public class RewardManager : MonoBehaviour
         {
             // [보상 개편 26/07/24] 일반방은 골드만 드랍한다(장비=상점, 메인=보상방). 카드/시간정지 없음.
             int goldAmount = 200; // ponytail: 고정값, 밸런싱 시 조정
-            GameManager.Instance.inventoryManager.AddGold(goldAmount);
+            GameManager.Instance.inventoryManager.GainGold(goldAmount); // 획득 텍스트(+200G)를 플레이어 앞에 띄운다
             Debug.Log($"<color=yellow>[Reward]</color> {type} Room Cleared! {goldAmount} Gold obtained (기본 보상).");
 
             if (type == RoomType.Augment)

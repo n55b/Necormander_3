@@ -190,7 +190,46 @@ public class InventoryManager : MonoBehaviour
     }
 
     #region Gold System
+    [Header("골드 획득 텍스트")]
+    [Tooltip("GainGold 로 골드를 얻었을 때 플레이어 앞에 띄울 텍스트 형식. {0} 자리에 획득량이 들어간다.")]
+    [SerializeField] private string goldGainTextFormat = "+{0}G";
+    [Tooltip("골드 획득 텍스트 색. 증강 보상 텍스트와 맞추려면 흰색.")]
+    [SerializeField] private Color goldGainTextColor = Color.white;
+
+    /// <summary>골드만 더한다(텍스트 없음). 환불·세이브 복원처럼 '획득'이 아닌 경로용.</summary>
     public void AddGold(int amount) { gold += amount; }
+
+    /// <summary>골드를 '획득'한다. 더한 뒤 증강 방 보상처럼 플레이어 앞에 "+NG" 텍스트를 띄운다.</summary>
+    public void GainGold(int amount)
+    {
+        if (amount <= 0) return;
+        gold += amount;
+        ShowGoldGainText(amount);
+    }
+
+    /// <summary>ActiveAugment.Announce 와 같은 경로(FloatingTextManager 풀 → 플레이어 Transform 추적).</summary>
+    /// <summary>증강 보상 텍스트와 같은 공용 경로(FloatingTextManager.ShowOnPlayer)로 띄운다.</summary>
+    private void ShowGoldGainText(int amount)
+        => FloatingTextManager.ShowOnPlayer(string.Format(goldGainTextFormat, amount), goldGainTextColor);
+
+#if UNITY_EDITOR
+    /// <summary>인스펙터에서 형식 문자열을 잘못 넣으면(예: {1}) 런타임 FormatException 대신 여기서 경고하고 되돌린다.</summary>
+    private void OnValidate()
+    {
+        const string fallback = "+{0}G";
+        try
+        {
+            string.Format(goldGainTextFormat ?? string.Empty, 0);
+            if (string.IsNullOrEmpty(goldGainTextFormat) || !goldGainTextFormat.Contains("{0"))
+                Debug.LogWarning($"{name}: goldGainTextFormat 에 {{0}} 이 없어 획득량이 표시되지 않습니다.", this);
+        }
+        catch (System.FormatException)
+        {
+            Debug.LogWarning($"{name}: goldGainTextFormat '{goldGainTextFormat}' 형식이 잘못돼 '{fallback}' 로 되돌립니다.", this);
+            goldGainTextFormat = fallback;
+        }
+    }
+#endif
     public bool SpendGold(int amount)
     {
         if (gold >= amount) { gold -= amount; return true; }

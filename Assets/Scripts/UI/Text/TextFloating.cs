@@ -26,6 +26,15 @@ public class TextFloating : MonoBehaviour
     private TMPTextEffectPlayer effectPlayer;
     private static readonly List<TextEffectRange> tempEffectRanges = new List<TextEffectRange>();
 
+    /// <summary>풀 안에 있는지. ReturnToPool 이 같은 객체를 두 번 넣지 않게 막는다.</summary>
+    internal bool InPool { get; set; }
+
+    /// <summary>알림 텍스트 줄 쌓기용 대상 키. 데미지 텍스트·풀에 있는 텍스트는 null.</summary>
+    internal Transform NoticeKey { get; set; }
+
+    /// <summary>현재 세로 오프셋(월드 단위). 줄 쌓기에서 위아래 간격을 잴 때 쓴다.</summary>
+    public float OffsetY => offSet.y;
+
     private void Awake()
     {
         textMesh = GetComponent<TextMeshProUGUI>();
@@ -51,6 +60,7 @@ public class TextFloating : MonoBehaviour
         textMesh.text = parsedText;
         textMesh.color = _color;
         target = _target;
+        NoticeKey = null;
         spawnWorldPosition = _target != null ? _target.position : transform.position;
 
         offSet = new Vector3(Random.Range(-0.5f, 0.5f), 0);
@@ -91,15 +101,35 @@ public class TextFloating : MonoBehaviour
         effectPlayer.ApplyEffects(tempEffectRanges);
     }
 
+    /// <summary>
+    /// SetUp 직후 호출. 랜덤 x 흔들림 대신 지정한 오프셋에서 시작한다(알림 텍스트를 줄 맞춰 쌓을 때).
+    /// </summary>
+    public void OverrideOffset(Vector3 offset)
+    {
+        offSet = offset;
+        UpdatePosition();
+    }
+
+    /// <summary>세로 오프셋을 y 까지 끌어올린다(새 알림 텍스트가 아래에 뜰 때 기존 텍스트를 밀어 올림).</summary>
+    public void RaiseOffsetY(float y)
+    {
+        if (y <= offSet.y) return;
+        offSet.y = y;
+        UpdatePosition();
+    }
+
+    /// <summary>남은 표시 시간을 줄여 곧바로 사라지게 한다(한 대상에 줄이 너무 많이 쌓였을 때).</summary>
+    public void ExpireSoon()
+    {
+        timer = Mathf.Min(timer, fadeTime * 0.5f);
+    }
+
+
+
     private void Update()
     {
-        if (target == null)
-        {
-            gameObject.SetActive(false);
-            return;
-        }
-
-        // Animation
+        // 생성 위치(spawnWorldPosition)에 고정돼 떠오르므로 대상이 파괴돼도 끝까지 보여준다.
+        // (예전엔 target == null 이면 즉시 꺼져서, 분해된 아이템·죽은 적 위의 텍스트가 바로 사라졌다.)
         timer -= Time.deltaTime;
 
         // Fade Out
@@ -120,7 +150,7 @@ public class TextFloating : MonoBehaviour
 
     private void UpdatePosition()
     {
-        if (target == null || rectTransform == null) return;
+        if (rectTransform == null) return;
 
         if (cam == null)
         {
@@ -160,6 +190,8 @@ public class TextFloating : MonoBehaviour
 
     private void OnDisable()
     {
-        FloatingTextManager.Instance.ReturnToPool(this);
+        // 씬 언로드 중에는 매니저가 먼저 사라질 수 있다.
+        var manager = FloatingTextManager.Instance;
+        if (manager != null) manager.ReturnToPool(this);
     }
 }

@@ -211,12 +211,5 @@ public static class ActiveAugment
         return player != null && player.Stat != null ? player.Stat.Mods : null;
     }
 
-    private static void Announce(string msg)
-    {
-        var mgr = FloatingTextManager.Instance;
-        var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
-        if (mgr == null || player == null) return;
-        var t = mgr.GetFromPool();
-        if (t != null) t.SetUp(msg, Color.white, player.transform);
-    }
+    private static void Announce(string msg) => FloatingTextManager.ShowOnPlayer(msg, Color.white);
 }

@@ -8,6 +8,9 @@ public class FloatingTextSpawner : MonoBehaviour
     private CharacterStat stats;
 
     [SerializeField] private Transform vec_float;
+    /// <summary>머리 위 텍스트 지점. 알림 텍스트가 같은 대상을 써야 회복·상태이상 텍스트와 함께 줄이 쌓인다.</summary>
+    public Transform FloatPoint => vec_float != null ? vec_float : transform;
+
 
     [Header("색상 설정 (공용)")]
     [Tooltip("상태이상/데미지 텍스트 색을 모아둔 팔레트(StatusEffectPalette). 데미지 숫자는 비워두면 코드 내장 기본값으로 폴백하지만, 상태이상 텍스트는 비우면 아예 뜨지 않습니다.")]
@@ -112,7 +115,7 @@ public class FloatingTextSpawner : MonoBehaviour
         if (FloatingTextManager.Instance == null) return;
         TextFloating textObj = FloatingTextManager.Instance.GetFromPool();
 
-        textObj.SetUp(text, color, vec_float, isCritical);
+        textObj.SetUp(text, color, FloatPoint, isCritical); // vec_float 미할당 시 위치가 풀 위치로 튀지 않게 FloatPoint 사용
     }
 
     /// <summary>
@@ -139,9 +142,8 @@ public class FloatingTextSpawner : MonoBehaviour
         string text = $"+{amount:F1}"; // 소수점 첫째자리까지 힐량 표시
         Color color = colorConfig != null ? colorConfig.healColor : Color.green;
 
-        if (FloatingTextManager.Instance == null) return;
-        TextFloating textObj = FloatingTextManager.Instance.GetFromPool();
-        textObj.SetUp(text, color, vec_float, false);
+        // 알림 텍스트 경로: 보상·상태이상 텍스트와 함께 줄을 쌓아 겹치지 않게 한다.
+        FloatingTextManager.ShowNotice(text, color, FloatPoint);
     }
 
     private void ShowStatusText(StatusVisual visual)
@@ -160,7 +162,7 @@ public class FloatingTextSpawner : MonoBehaviour
         string label = colorConfig.GetLabel(visual);
         if (string.IsNullOrEmpty(label)) return;
 
-        TextFloating textObj = FloatingTextManager.Instance.GetFromPool();
-        textObj.SetUp(label, colorConfig.GetTextColor(visual), vec_float, false, colorConfig.GetPopScale(visual));
+        // 알림 텍스트 경로: 보상·회복 텍스트와 함께 줄을 쌓아 겹치지 않게 한다.
+        FloatingTextManager.Instance.Show(label, colorConfig.GetTextColor(visual), FloatPoint, colorConfig.GetPopScale(visual));
     }
 }

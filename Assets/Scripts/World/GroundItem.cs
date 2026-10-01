@@ -180,8 +180,5 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
     }
 
     private void Announce(string message)
-    {
-        var text = FloatingTextManager.Instance != null ? FloatingTextManager.Instance.GetFromPool() : null;
-        if (text != null) text.SetUp(message, Color.white, transform);
-    }
+        => FloatingTextManager.ShowNotice(message, Color.white, transform); // 아이템이 곧 파괴돼도 텍스트는 끝까지 보인다
 }
