@@ -33,6 +33,9 @@ public class SaveData
 
     // [증강] 증강 방 보상으로 누적된 최대 체력. 페널티는 방 하나짜리라 저장할 게 없다.
     public float augmentMaxHpBonus;
+
+    // [메인 소환수 강화] 보상방에서 올린 단계(0~3). 필드가 없던 세이브는 0 으로 읽혀 호환된다.
+    public int mainSummonEnhanceLevel;
 }
 
 [System.Serializable]

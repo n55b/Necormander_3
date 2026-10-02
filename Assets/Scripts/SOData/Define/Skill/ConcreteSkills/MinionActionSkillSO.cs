@@ -156,7 +156,9 @@ public class MinionActionSkillSO : MinionSkillSO
         var playerStat = GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null
             ? GameManager.Instance.PLAYERCONTROLLER.Stat
             : null;
-        float finalDamage = (playerStat != null ? playerStat.ATK : 0f) * damageMultiplier;
+        // [강화] 보상방 강화 단계만큼 스킬 피해 배율이 붙는다(MinionEnhance).
+        float finalDamage = (playerStat != null ? playerStat.ATK : 0f) * damageMultiplier
+                            * MinionEnhance.SkillDamageMult(mainData);
         var info = new DamageInfo(finalDamage, element, caster.gameObject, 1f,
             !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill,
             applyStatus: onHitStatus == StatusType.None ? (StatusType?)null : onHitStatus);

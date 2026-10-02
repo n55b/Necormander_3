@@ -16,9 +16,11 @@ public class MeleeCombatController : MonoBehaviour
 
     private PlayerController _player;
     private float _lastAttackTime;
-    private int _comboStep = 0; // 0, 1 (+ 메인 소환수가 있으면 2 = 소환수 마무리)
+    // 0 = 플레이어 1타, 1 = 플레이어 2타. 소환수 일격은 콤보 칸이 아니라 내부 쿨타임으로 붙는다.
+    // [26/10/02] 소환수 일격은 별도 콤보 칸이 아니라 플레이어 1타와 '같이' 나간다(기획 변경).
+    private int _comboStep = 0;
 
-    /// <summary>플레이어 자체 평타는 2타. 메인 소환수가 있으면 3타째에 소환수 마무리가 붙는다.</summary>
+    /// <summary>플레이어 자체 평타는 2타. 메인 소환수가 있으면 콤보 첫 타에 소환수 일격이 붙는다.</summary>
     private const int PLAYER_COMBO_LENGTH = 2;
 
     /// <summary>장착된 메인 소환수의 마무리 일격. 없으면 null.</summary>
@@ -48,11 +50,18 @@ public class MeleeCombatController : MonoBehaviour
         }
     }
 
-    /// <summary>현재 콤보 총 타수. 메인 소환수가 있고 안 바쁘면 +1(3타). 바쁘면 2타만 반복.</summary>
-    private int ComboLength => (Finisher != null && !MinionBusy) ? PLAYER_COMBO_LENGTH + 1 : PLAYER_COMBO_LENGTH;
+    /// <summary>이번 콤보에 소환수 일격이 끼는가. 미니언이 Space 로 바쁘면 빠진다.</summary>
+    private bool HasMinionStep => Finisher != null && !MinionBusy;
 
-    /// <summary>이번 스텝이 소환수 마무리 차례인가. 미니언이 R로 바쁘면 마무리는 안 나간다.</summary>
-    private bool IsFinisherStep(int step) => Finisher != null && !MinionBusy && step == PLAYER_COMBO_LENGTH;
+    /// <summary>콤보 총 타수. 소환수 일격은 1타에 겹쳐 나가므로 항상 플레이어 2타.</summary>
+    private int ComboLength => PLAYER_COMBO_LENGTH;
+
+    // 소환수 일격 내부 쿨타임. 이 시각이 지나야 다음 평타에 소환수가 같이 나간다.
+    // 쿨 길이는 소환수 데이터(MainMinionDataSO.finisher.internalCooldown)가 정한다.
+    private float _minionStrikeReadyTime;
+
+    /// <summary>소환수 일격 쿨이 돌아 있는가.</summary>
+    private bool MinionStrikeReady => Time.time >= _minionStrikeReadyTime;
 
     [Header("콤보 설정")]
     [SerializeField] private float comboResetTime = 1.0f;
@@ -176,15 +185,9 @@ public class MeleeCombatController : MonoBehaviour
         if (_comboStep >= ComboLength) _comboStep = 0;
 
         _lastAttackTime = Time.time;
-        OnAttackExecuted?.Invoke(_comboStep);
 
-        // 마무리 타이밍이면 플레이어는 아무것도 하지 않고, 소환수가 나와서 때린다.
-        if (IsFinisherStep(_comboStep))
-        {
-            ExecuteFinisher();
-            _comboStep = (_comboStep + 1) % ComboLength;
-            return;
-        }
+        int swingIndex = _comboStep; // 0 = 1타, 1 = 2타
+        OnAttackExecuted?.Invoke(swingIndex);
 
         float telegraphDuration = lightTelegraphDuration;
         Vector2 hitboxSize = lightHitboxSize;
@@ -204,7 +207,7 @@ public class MeleeCombatController : MonoBehaviour
 
         // ponytail: Attack_Medium(옛 3타) 은 이제 재생하지 않는다. 3타는 소환수 마무리가 대신하고
         // 플레이어는 Idle 로 있는다. 클립 자체는 남겨둠 — 되살릴 때 다시 연결하면 된다.
-        if (_comboStep == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
+        if (swingIndex == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
         else _player.PlayAllAnim("Attack_Light2", "Attack");
 
         // 공속(회/초)이 곧 애니 배속이다. 1회/초 = 1배속, 2회/초 = 2배속.
@@ -283,7 +286,17 @@ public class MeleeCombatController : MonoBehaviour
             Debug.LogError("[MeleeCombat] telegraphPrefab이 인스펙터에 할당되지 않았습니다.");
         }
 
-        // 콤보 진행 (메인 소환수가 있으면 3타, 없으면 2타 반복)
+        // [소환수 동시 일격] 내부 쿨이 돌아 있으면 이번 평타(1타/2타 무관)에 소환수 일격이 같이 나간다.
+        // 플레이어 히트박스/애니를 먼저 세운 뒤 소환수를 꺼낸다(방향은 둘 다 같은 마우스 조준).
+        // Space 로 소환수가 바쁘면 빠진다 — 미니언은 한 마리뿐이다. 쿨은 실제로 나갔을 때만 돈다.
+        if (HasMinionStep && MinionStrikeReady)
+        {
+            var fin = Finisher;
+            ExecuteFinisher();
+            _minionStrikeReadyTime = Time.time + (fin != null ? fin.internalCooldown : 0f);
+        }
+
+        // 콤보 진행 (1타 → 2타 반복)
         _comboStep = (_comboStep + 1) % ComboLength;
     }
 
@@ -401,7 +414,9 @@ public class MeleeCombatController : MonoBehaviour
         // [26/07/17] 예전엔 소환수 SO 자신의 attack 을 썼는데, 이제 베이스 ATK 를 공유한다.
         // 그래야 "아군 공격력 증가" 같은 버프를 플레이어 ATK 하나에만 걸어도
         // 주먹과 소환수 마무리에 동시에 먹는다. 소환수의 개성은 배율이 유지한다.
-        var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
+        // [강화] 보상방 강화 단계만큼 일반 공격 배율이 붙는다(MinionEnhance).
+        float enhanceMult = MinionEnhance.BasicAttackMult(main);
+        var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier * enhanceMult, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
 
         // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.
         //  · damageState 를 쓰면 그 태그가 재생되는 동안만 열린다 (MeleeDoll: Slash).

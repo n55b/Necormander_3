@@ -105,7 +105,7 @@ public class RewardManager : MonoBehaviour
     {
         PouchUI.Instance?.SetOpen(false);
         SkillExplainUI.Instance?.SetOpen(false);
-        if (candidates != null && candidates.Count == 1 && candidates[0].rawData is MinionDataSO minion)
+        if (candidates != null && candidates.Count == 1 && candidates[0].category == RewardCategory.Minion && candidates[0].rawData is MinionDataSO minion)
         {
             var drop = GroundItem.Drop(minion, PlayerPosition());
             if (drop != null && handSlotUI != null) handSlotUI.Show(drop, ProcessNextReward);
@@ -163,6 +163,13 @@ public class RewardManager : MonoBehaviour
                 }
                 break;
 
+
+            case RewardCategory.MinionEnhance:
+                // [26/10/02] 보상방 = 메인 소환수 강화. 카드 1장을 고르면 한 단계 오른다.
+                if (inven.EnhanceMainSummon())
+                    FloatingTextManager.ShowOnPlayer($"소환수 강화 +{inven.MainSummonEnhanceLevel}", Color.white);
+                ProcessNextReward();
+                break;
 
             case RewardCategory.Metamorphosis:
                 // 변이/진화 시스템 폐지로 동작 생략

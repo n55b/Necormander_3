@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: IceMage Minion
   m_EditorClassIdentifier: 
   minionType: 6
-  minionName: 얼음 마법사
+  minionName: "\uC5BC\uC74C \uB9C8\uBC95\uC0AC"
   minionIcon: {fileID: -4830399090049477561, guid: 36208386774834c4ba2d366cd31db059, type: 3}
   shopCost: 150
   rewardItemData:
@@ -41,6 +41,9 @@ MonoBehaviour:
     rarity: 0
   minionSkill: {fileID: 11400000, guid: b7d3e1a9c2f04b8e91a6d5c30e2f7a41, type: 2}
   dashModifier:
+    uiTitle: 
+    uiDescription: 
+    uiIcon: {fileID: 0}
     lengthMultiplier: 1.2
     width: 1
     hitAtOrigin: 1
@@ -53,6 +56,9 @@ MonoBehaviour:
     pushesEnemies: 0
     pushForce: 3
   finisher:
+    uiTitle: 
+    uiDescription: 
+    uiIcon: {fileID: 0}
     hitCount: 1
     damageMultiplier: 1
     element: 1
@@ -93,6 +99,19 @@ MonoBehaviour:
     hitBoxClip: 
     rotateHitBoxClipToDir: 0
     endClip: 
+  enhanceSteps:
+  - description: 
+    basicAttackMultiplier: 1.2
+    dashDamageMultiplier: 1.2
+    skillDamageMultiplier: 1.2
+  - description: 
+    basicAttackMultiplier: 1.45
+    dashDamageMultiplier: 1.45
+    skillDamageMultiplier: 1.45
+  - description: 
+    basicAttackMultiplier: 1.75
+    dashDamageMultiplier: 1.75
+    skillDamageMultiplier: 1.75
   references:
     version: 2
     RefIds: []

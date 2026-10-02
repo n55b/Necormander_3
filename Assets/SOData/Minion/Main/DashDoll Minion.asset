@@ -41,6 +41,9 @@ MonoBehaviour:
     rarity: 0
   minionSkill: {fileID: 11400000, guid: 368593fef46344339a29343712cf5b05, type: 2}
   dashModifier:
+    uiTitle: 
+    uiDescription: 
+    uiIcon: {fileID: 0}
     lengthMultiplier: 0.8
     width: 1.4
     hitAtOrigin: 0
@@ -53,6 +56,9 @@ MonoBehaviour:
     pushesEnemies: 1
     pushForce: 3
   finisher:
+    uiTitle: 
+    uiDescription: 
+    uiIcon: {fileID: 0}
     hitCount: 1
     damageMultiplier: 2
     element: 0
@@ -93,6 +99,19 @@ MonoBehaviour:
     hitBoxClip: Dash
     rotateHitBoxClipToDir: 0
     endClip: Dash_End
+  enhanceSteps:
+  - description: 
+    basicAttackMultiplier: 1.2
+    dashDamageMultiplier: 1.2
+    skillDamageMultiplier: 1.2
+  - description: 
+    basicAttackMultiplier: 1.45
+    dashDamageMultiplier: 1.45
+    skillDamageMultiplier: 1.45
+  - description: 
+    basicAttackMultiplier: 1.75
+    dashDamageMultiplier: 1.75
+    skillDamageMultiplier: 1.75
   references:
     version: 2
     RefIds: []

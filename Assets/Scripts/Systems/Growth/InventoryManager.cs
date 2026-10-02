@@ -98,6 +98,37 @@ public class InventoryManager : MonoBehaviour
             ? Slots[SLOT_RIGHTCLICK].EquippedRightClick
             : null;
 
+    // ── 메인 소환수 강화(보상방) ─────────────────────────────────────
+    // 런 단위 진행도라 런 세이브(SaveData)에 같이 들어간다 — 죽으면 세이브와 함께 0 으로 돌아간다.
+    // 강화는 '지금 든 소환수'에 붙는다. 다른 소환수로 바뀌면 0 부터 다시 시작한다(EquipMinion 참조).
+    [Header("메인 소환수 강화")]
+    [SerializeField] private int mainSummonEnhanceLevel = 0;
+
+    /// <summary>현재 메인 소환수의 강화 단계(0~3).</summary>
+    public int MainSummonEnhanceLevel => mainSummonEnhanceLevel;
+
+    /// <summary>보상방에서 강화를 더 받을 수 있는가.</summary>
+    public bool CanEnhanceMainSummon
+        => MainSummon != null && mainSummonEnhanceLevel < MainSummon.MaxEnhanceLevel;
+
+    /// <summary>메인 소환수를 한 단계 강화한다. 성공하면 true.</summary>
+    public bool EnhanceMainSummon()
+    {
+        if (!CanEnhanceMainSummon) return false;
+        mainSummonEnhanceLevel++;
+        Debug.Log($"<color=cyan>[InventoryManager]</color> 메인 소환수 강화: {MainSummon.minionName} +{mainSummonEnhanceLevel}/{MainSummon.MaxEnhanceLevel}");
+        OnMinionUpdated?.Invoke();
+        return true;
+    }
+
+    /// <summary>강화 단계를 0 으로 되돌린다. 마을에서 시작 소환수를 새로 고를 때 쓴다.</summary>
+    public void ResetMainSummonEnhance()
+    {
+        if (mainSummonEnhanceLevel == 0) return;
+        mainSummonEnhanceLevel = 0;
+        OnMinionUpdated?.Invoke();
+    }
+
     private MinionDataSO GetSummon(int index)
         => (index >= 0 && index < Slots.Count && !Slots[index].IsShattered) ? Slots[index].EquippedMinion : null;
 
@@ -273,6 +304,9 @@ public class InventoryManager : MonoBehaviour
             if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
         }
 
+        // 다른 소환수로 갈아끼우면 강화는 새 소환수에 따라가지 않는다.
+        if (slotIndex == SLOT_MAIN && Slots[slotIndex].EquippedMinion != minion) mainSummonEnhanceLevel = 0;
+
         Slots[slotIndex].EquippedMinion = minion;
         Slots[slotIndex].Quantity = amount;
 
@@ -338,6 +372,7 @@ public class InventoryManager : MonoBehaviour
     {
         data.gold = gold;
         data.augmentMaxHpBonus = augmentMaxHpBonus;
+        data.mainSummonEnhanceLevel = mainSummonEnhanceLevel;
 
         // Slots 저장
         data.slots.Clear();
@@ -417,6 +452,12 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
+
+        // 메인 소환수 강화. 강화 도입 전 세이브는 0. 소환수가 비었으면 강화도 의미가 없다.
+        var loadedMain = MainSummon;
+        mainSummonEnhanceLevel = loadedMain != null
+            ? Mathf.Clamp(data.mainSummonEnhanceLevel, 0, loadedMain.MaxEnhanceLevel)
+            : 0;
 
         // Treasures 로드
         TreasureStacks.Clear();
