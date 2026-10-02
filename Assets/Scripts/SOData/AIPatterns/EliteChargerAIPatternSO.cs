@@ -220,7 +220,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public float slamMeleeRadius = 2f;
     public int slamWaveCount = 2;
     [Tooltip("파동이 중심에서 최대 반경까지 도달하는 데 걸리는 시간 (클수록 파동이 느려져 회피하기 쉬워집니다)")]
-    public float slamWaveExpandTime = 1.4f;
+    public float slamWaveExpandTime = 1.8f;
     [Tooltip("충격파 회차 사이의 간격")]
     public float slamWaveInterval = 0.8f;
     [Tooltip("방을 찾지 못했을 때(fallback) 사용할 파동 최대 반경")]

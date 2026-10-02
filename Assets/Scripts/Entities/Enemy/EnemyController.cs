@@ -8,9 +8,9 @@ public class EnemyController : BaseEntity
 {
     protected override void Awake()
     {
-        base.Awake();
+        // base.Awake()가 스탯과 적 목록을 등록하므로 팀을 먼저 확정한다.
         team = Team.Enemy;
-        SetupLayers(); // base.Awake()에서 잘못 설정된 레이어를 덮어씀
+        base.Awake();
     }
 
     protected override void HandleNoTarget()

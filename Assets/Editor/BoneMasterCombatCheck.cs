@@ -12,6 +12,54 @@ public static class BoneMasterCombatCheck
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
     private const string DataPath = "Assets/SOData/Enemy/Enemy AI Patterns/Boss/";
 
+    [MenuItem("Tools/BoneMaster/Verify Minion Target Registration")]
+    public static void VerifyMinionTargetRegistration()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
+
+        var scene = EditorSceneManager.NewPreviewScene();
+        BoneMasterController boss = null;
+        CharacterStatus status = null;
+        try
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy/Boss/Boss Bone Master.prefab");
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
+            boss = go.GetComponent<BoneMasterController>();
+            status = go.GetComponentInChildren<CharacterStatus>();
+            // 프리뷰에서는 자동 Awake가 없으므로 실제 공용 초기화 경로를 직접 호출한다.
+            boss.team = Team.Ally; // 기존 보스 프리팹처럼 잘못 저장되어 있어도 적으로 등록되어야 한다.
+            Call(boss, "Awake");
+            var stat = boss.Stats;
+            Check(boss.team == Team.Enemy && stat.IsEnemy, "스탯 초기화 전에 적 팀 확정");
+            Check(CharacterStatus.ActiveEnemies.Contains(status) && !CharacterStatus.ActiveAllies.Contains(status),
+                "보스가 미니언 스킬의 적 후보 목록에만 등록됨");
+            Check(boss.myTeamLayer.value == Layers.EnemyMask && boss.opponentLayer.value == Layers.PlayerArmy,
+                "팀 레이어/상대 레이어 유지");
+
+            foreach (string dataName in new[] { "Bone Master Data", "Bone Master Phase 2 Data" })
+            {
+                stat.InitializeStats(AssetDatabase.LoadAssetAtPath<EnemyMinionDataSO>(
+                    "Assets/SOData/Enemy/Enemy Minion Data/Boss/" + dataName + ".asset"));
+                Check(!stat.Health.IsDead && stat.IsEnemy && CharacterStatus.ActiveEnemies.FindAll(s => s == status).Count == 1,
+                    dataName + " 적용 후에도 살아있는 적 후보로 한 번만 등록");
+            }
+            Debug.Log("[BoneMasterTargetCheck] PASS — 초기 팀 보정, 적/아군 목록, 레이어, 1·2페이즈 대상 등록");
+        }
+        finally
+        {
+            if (boss != null)
+                typeof(BoneMasterController).GetField("_lastTelegraphCleanupFrame", Private).SetValue(boss, Time.frameCount);
+            EditorSceneManager.ClosePreviewScene(scene);
+            // 프리뷰는 런타임처럼 OnDestroy 호출을 보장하지 않는다. 검사 개체만 정리한다.
+            if (!ReferenceEquals(status, null))
+            {
+                CharacterStatus.ActiveEnemies.Remove(status);
+                CharacterStatus.ActiveAllies.Remove(status);
+            }
+        }
+    }
+
     [MenuItem("Tools/BoneMaster/Verify Motion Timing")]
     public static void VerifyMotionTiming()
     {
