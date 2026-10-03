@@ -10,9 +10,8 @@ using UnityEngine;
 /// 이사했다. 여기 남은 건 데미지·판정·넉백 같은 로직뿐이다. 기획자는 애니를 미니언 한 곳에서 설정한다.
 /// ▶ 애니메이션 연결 방법은 repo 루트의 MINION_ANIMATION_GUIDE.md 참조.
 ///
-/// 설계 3.3: "플레이어 기본 공격 콤보 회수 + 1을 하여 마지막에 소환수의 마무리 일격이 발동
-/// (평타 2타로 줄여주셈)". 즉 메인 소환수가 없으면 앞 2타만 빠르게 반복하고, 있으면
-/// 3타 타이밍에 이것이 대신 나간다. 이때 플레이어는 아무것도 하지 않고 Idle 로 있는다.
+/// (옛 설계 3.3 의 '콤보 마지막에 소환수가 대신 때린다'는 26/10/02 에 폐기 — 지금은 internalCooldown 이
+///  돌아 있을 때 플레이어 평타와 동시에 나간다. 메인 소환수가 없으면 플레이어 평타만 나간다.)
 /// </summary>
 [System.Serializable]
 public class MinionFinisher
@@ -31,7 +30,7 @@ public class MinionFinisher
     [Min(0f)] public float internalCooldown = 1.5f;
 
     [Header("피해")]
-    [Tooltip("몇 번 때릴지. 0 이면 마무리 일격이 없는 것으로 치고 콤보가 2타로 끝난다.")]
+    [Tooltip("몇 번 때릴지. 0 이면 소환수 일격이 없는 것으로 치고 플레이어 평타만 나간다.")]
     public int hitCount = 1;
 
     [Tooltip("타당 피해 = 소환수 ATK x 이 값.")]

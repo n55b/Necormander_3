@@ -171,6 +171,14 @@ public class RewardManager : MonoBehaviour
                 ProcessNextReward();
                 break;
 
+            case RewardCategory.MinionEvolve:
+                // [26/10/03] 보상방 = 메인 소환수 진화. 고른 갈래의 에셋으로 메인 슬롯이 바뀐다.
+                var evolveTarget = candidate.rawData as MainMinionDataSO;
+                if (evolveTarget != null && inven.EvolveMainSummon(evolveTarget))
+                    FloatingTextManager.ShowOnPlayer($"{(string.IsNullOrEmpty(evolveTarget.minionName) ? evolveTarget.name : evolveTarget.minionName)}(으)로 진화!", Color.white);
+                ProcessNextReward();
+                break;
+
             case RewardCategory.Metamorphosis:
                 // 변이/진화 시스템 폐지로 동작 생략
                 ProcessNextReward();

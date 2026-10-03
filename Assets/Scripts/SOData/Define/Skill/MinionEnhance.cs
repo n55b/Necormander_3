@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 메인 소환수 강화 한 단계(보상방에서 1회 = 1단계). 값은 '누적 합계'다 —
-/// 2단계의 1.45 는 "1단계 위에 1.45배를 또 곱한다"가 아니라 "기본 대비 총 1.45배"라는 뜻.
+/// 메인 소환수 강화 한 단계(보상방에서 1회 = 1단계). 값은 '기본 대비 총 배율'이다(누적 곱 아님).
+/// 지금은 최대 1단계(MAX_LEVEL)라 사실상 칸 하나만 쓴다.
 /// 그래야 기획자가 표만 보고 최종 수치를 바로 읽을 수 있다.
 ///
 /// [확장 예정] 특수 능력/확률 상승은 여기에 필드를 추가하고, 읽는 쪽은 <see cref="MinionEnhance"/>
@@ -36,8 +36,6 @@ public class MinionEnhanceStep
     public static MinionEnhanceStep[] DefaultSteps() => new[]
     {
         new MinionEnhanceStep(1.20f, 1.20f, 1.20f),
-        new MinionEnhanceStep(1.45f, 1.45f, 1.45f),
-        new MinionEnhanceStep(1.75f, 1.75f, 1.75f),
     };
 }
 
@@ -48,7 +46,8 @@ public class MinionEnhanceStep
 public static class MinionEnhance
 {
     /// <summary>보상방 강화 최대 횟수.</summary>
-    public const int MAX_LEVEL = 3;
+    /// [26/10/03] 3 → 1 로 축소. 에셋의 enhanceSteps 가 더 길어도 이 값에서 잘린다.
+    public const int MAX_LEVEL = 1;
 
     /// <summary>현재 메인 소환수 강화 단계(0 = 강화 안 함).</summary>
     public static int CurrentLevel

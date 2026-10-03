@@ -29,9 +29,9 @@ public class MainMinionDataSO : MinionDataSO
              "hitAtOrigin(네크 인형)은 startClip 하나만, 경로형은 start/hitBox/end 세 칸을 채운다.")]
     public MinionDashAnim dashAnim = new MinionDashAnim();
 
-    [Header("보상방 강화 (최대 3단계)")]
+    [Header("보상방 강화 (최대 MinionEnhance.MAX_LEVEL 단계, 현재 1)")]
     [Tooltip("보상방에서 강화할 때마다 한 칸씩 올라간다. 각 칸의 값은 '기본 대비 총 배율'이다(누적 아님).\n" +
-             "칸 수가 곧 최대 강화 횟수지만 MinionEnhance.MAX_LEVEL(3)을 넘지 않는다.")]
+             "칸 수가 곧 최대 강화 횟수지만 MinionEnhance.MAX_LEVEL(현재 1)을 넘지 않는다.")]
     public MinionEnhanceStep[] enhanceSteps = MinionEnhanceStep.DefaultSteps();
 
     /// <summary>이 소환수의 최대 강화 단계.</summary>
@@ -40,6 +40,30 @@ public class MainMinionDataSO : MinionDataSO
     /// <summary>단계(1부터)의 강화 수치. 0 이하거나 범위를 넘으면 null(=강화 없음 / 더 없음).</summary>
     public MinionEnhanceStep GetEnhanceStep(int level)
         => (level <= 0 || level > MaxEnhanceLevel) ? null : enhanceSteps[level - 1];
+
+    [Header("진화 (갈래 선택)")]
+    [Tooltip("이 소환수가 진화할 수 있는 형태(보통 2개). 각 형태는 별도의 MainMinionDataSO 에셋이라\n" +
+             "이름·스킬·범위·애니메이션·강화표가 전부 그 에셋 것으로 바뀐다. 비우면 최종 형태.")]
+    public MainMinionDataSO[] evolutions;
+
+    [Tooltip("진화로만 얻는 형태면 체크. 마을 소환수 선택 NPC 와 보상방 소환수 카드 풀에서 빠진다.\n" +
+             "(세이브 복원 때문에 GrowthRegistry 에는 반드시 등록돼 있어야 한다.)")]
+    public bool isEvolvedForm;
+
+    [Tooltip("진화에 필요한 강화 단계를 이 소환수만 따로 정할 때. -1 이면 InventoryManager 의 공통값을 쓴다.\n" +
+             "대부분 -1 로 둔다.")]
+    [Min(-1)] public int evolveRequiredLevelOverride = -1;
+
+    /// <summary>진화할 형태가 하나라도 연결돼 있는가.</summary>
+    public bool CanEvolve
+    {
+        get
+        {
+            if (evolutions == null) return false;
+            foreach (var e in evolutions) if (e != null && e != this) return true;
+            return false;
+        }
+    }
 
     // ── 카드/툴팁: 액티브 스킬을 대표로 내세운다 ──────────────────────
     public override string ResolveTitle()

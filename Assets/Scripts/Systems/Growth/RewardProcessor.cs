@@ -15,8 +15,9 @@ public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss, Augment, Enhanc
 // [26/08/03] EquipmentEnhance 제거 — 강화는 전용 상점(EnhanceShopNPC)에서 NPC 에게 F 로만 한다.
 //            일반 상점에 소모성 강화 카드를 같이 진열하니 역할이 겹치고, 심지어 그쪽이 고정가라 더 쌌다.
 //            (이 enum 은 런타임 전용이라 — RewardCandidate 가 [Serializable] 이 아니다 — 값을 빼도 에셋이 안 깨진다.)
-// [26/10/02] MinionEnhance = 보상방의 메인 소환수 강화(최대 3회). rawData 는 MainMinionDataSO.
-public enum RewardCategory { Minion, Metamorphosis, Treasure, Gold, Equipment = 5, Item, MinionEnhance }
+// [26/10/02] MinionEnhance = 보상방의 메인 소환수 강화(최대 MinionEnhance.MAX_LEVEL 회). rawData 는 MainMinionDataSO.
+// [26/10/03] MinionEvolve = 보상방의 메인 소환수 진화(갈래 선택). rawData 는 '진화할 대상' MainMinionDataSO.
+public enum RewardCategory { Minion, Metamorphosis, Treasure, Gold, Equipment = 5, Item, MinionEnhance, MinionEvolve }
 
 /// <summary>
 /// 보상으로 제안될 아이템 정보를 담는 구조체입니다.
@@ -130,6 +131,31 @@ public static class RewardProcessor
                 icon = main.minionIcon != null ? main.minionIcon : main.ResolveIcon(),
             }
         });
+        return results;
+    }
+
+    // --- 1-A'''. 보상방용: 메인 소환수 진화 카드(갈래당 1장) ---
+    /// <summary>
+    /// 지금 든 메인 소환수의 진화 갈래 카드. 진화할 수 없으면(갈래 없음/요구 강화 미달) 빈 리스트.
+    /// </summary>
+    public static List<RewardCandidate> GenerateMinionEvolveRewards(InventoryManager inven)
+    {
+        var results = new List<RewardCandidate>();
+        if (inven == null || !inven.CanEvolveMainSummon) return results;
+
+        var main = inven.MainSummon;
+        foreach (var evo in main.evolutions)
+        {
+            if (evo == null || evo == main) continue;
+            var display = BuildMinionDisplayData(evo);
+            display.itemName = $"진화: {display.itemName}";
+            results.Add(new RewardCandidate
+            {
+                category = RewardCategory.MinionEvolve,
+                rawData = evo,
+                displayData = display,
+            });
+        }
         return results;
     }
 
@@ -292,6 +318,7 @@ public static class RewardProcessor
         {
             if (m == null) continue;
             if (roleType != null && !roleType.IsInstanceOfType(m)) continue;
+            if (m is MainMinionDataSO mm && mm.isEvolvedForm) continue; // 진화형은 진화로만 얻는다
             if (!filterOwned || !inven.HasMinionInSlots(m))
                 candidates.Add(new RewardCandidate { displayData = BuildMinionDisplayData(m), rawData = m, techIndex = 0, category = RewardCategory.Minion });
         }

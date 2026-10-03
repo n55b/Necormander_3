@@ -59,6 +59,7 @@ MonoBehaviour:
     uiTitle: 
     uiDescription: 
     uiIcon: {fileID: 0}
+    internalCooldown: 1.5
     hitCount: 2
     damageMultiplier: 0.5
     element: 0
@@ -110,14 +111,11 @@ MonoBehaviour:
     basicAttackMultiplier: 1.2
     dashDamageMultiplier: 1.2
     skillDamageMultiplier: 1.2
-  - description: 
-    basicAttackMultiplier: 1.45
-    dashDamageMultiplier: 1.45
-    skillDamageMultiplier: 1.45
-  - description: 
-    basicAttackMultiplier: 1.75
-    dashDamageMultiplier: 1.75
-    skillDamageMultiplier: 1.75
+  evolutions:
+  - {fileID: 11400000, guid: 185591aae855e5148a38b28828bc411e, type: 2}
+  - {fileID: 11400000, guid: fbe2e70e9e4c55f4e84795ef45124169, type: 2}
+  isEvolvedForm: 0
+  evolveRequiredLevelOverride: -1
   references:
     version: 2
     RefIds: []

@@ -14,7 +14,7 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
     [SerializeField] private bool isSuperEliteBox = false;
 
     [Header("소환수 강화 (보상방)")]
-    [Tooltip("메인 소환수가 이미 최대 강화(3)라 강화 카드를 못 줄 때 대신 지급할 골드.")]
+    [Tooltip("메인 소환수가 최대 강화이고 더 진화할 갈래도 없어 카드를 못 줄 때 대신 지급할 골드.")]
     [SerializeField] private int maxedEnhanceGoldReward = 300;
 
     // [26/07/30] 아이템 드랍은 여기가 아니다 — 이 상자는 이름과 달리 '보상방'(RewardRoomEvent)의
@@ -40,13 +40,15 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
         var data = GameManager.Instance.dataManager;
 
         // [26/10/02] 보상방 = 메인 소환수 '강화'. 소환수는 마을 NPC 에서 고르고 가져온다.
+        //  · [26/10/03] 진화 조건(요구 강화 단계 + 진화 갈래)을 채웠으면 → 진화 갈래 카드(보통 2장). 강화보다 우선.
         //  · 소환수가 있고 강화 여지가 있으면 → 강화 카드 1장(+스킵).
         //  · 이미 최대 강화면 → 골드로 대체.
         //  · 소환수가 아예 없으면(마을에서 안 고르고 들어옴) → 예전처럼 메인 소환수 카드를 준다.
         List<RewardCandidate> rewards;
         if (inven != null && inven.MainSummon != null)
         {
-            rewards = RewardProcessor.GenerateMinionEnhanceReward(inven);
+            rewards = RewardProcessor.GenerateMinionEvolveRewards(inven);
+            if (rewards.Count == 0) rewards = RewardProcessor.GenerateMinionEnhanceReward(inven);
             if (rewards.Count == 0)
             {
                 _isOpening = true;

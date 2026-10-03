@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b903e5195d425944aa1c1677ca0f7b79, type: 3}
+  m_Name: MeleeDoll_Breaker_Active
+  m_EditorClassIdentifier: 
+  skillName: "\uB300\uC9C0 \uAC00\uB974\uAE30"
+  description: "\uC870\uC900 \uBC29\uD5A5\uC73C\uB85C \uC9C1\uC120 \uCDA9\uACA9\uD30C\uB97C
+    \uB0B4\uB9AC\uAF42\uC2B5\uB2C8\uB2E4.\n\uCDA9\uACA9\uD30C\uB294 \uAC00\uAE4C\uC6B4
+    \uACF3\uBD80\uD130 3\uAD6C\uC5ED\uC5D0 \uCC28\uB840\uB85C \uD130\uC9C0\uBA70
+    \uAC01 \uAD6C\uC5ED\uC758 \uC801\uC5D0\uAC8C \uD070 \uD53C\uD574\uB97C \uC785\uD799\uB2C8\uB2E4."
+  icon: {fileID: -1293705836269130871, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  cooldownTime: 7
+  skillSound: {fileID: 0}
+  skillSoundVolume: 0.85
+  shakeForce: 0.5
+  hitStopDuration: 0
+  actionType: 0
+  element: 0
+  onHitStatus: 6
+  useHitBox: 1
+  hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
+  hitRadius: 2.5
+  hitBoxSize: {x: 7.5, y: 2.2}
+  damageMultiplier: 1.4
+  forceAmount: 4
+  forceDuration: 0.2
+  hitBoxForwardOffset: 4.25
+  minionOffsetFromHitBox: 3.75
+  hitCount: 1
+  zoneCount: 3
+  zoneInterval: 0.12
+  zoneActiveTime: 0.1

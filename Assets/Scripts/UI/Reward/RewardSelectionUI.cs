@@ -48,8 +48,6 @@ public class RewardSelectionUI : MonoBehaviour
         if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.Open(panel, UIPopUpManager.Layer.Modal);
         else if (panel != null) panel.SetActive(true);
         UIEventBus.NotifyOpen("Reward");
-        UIEventBus.NotifyOpen("Reward");
-
 
         for (int i = 0; i < cards.Length; i++)
         {
@@ -73,9 +71,7 @@ public class RewardSelectionUI : MonoBehaviour
         // 내 창만 닫는다 (Awake 에서 불려도 다른 창에 영향 없음)
         if (UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsOpen(panel)) UIPopUpManager.Instance.Close(panel);
         else if (panel != null) panel.SetActive(false);
-        UIEventBus.NotifyClose("Reward"); // 팝업 상태 해제태 해제
-        UIEventBus.NotifyClose("Reward");
-
+        UIEventBus.NotifyClose("Reward"); // 팝업 상태 해제
     }
 
     public void OnCardClicked(int index)

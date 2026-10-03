@@ -60,7 +60,7 @@ public class MinionSelectNPC : NPCBase
             var registry = (gm != null && gm.dataManager != null) ? gm.dataManager.GET_GROWTH_REGISTRY() : null;
             if (registry != null && registry.minionDatas != null)
                 foreach (var m in registry.minionDatas)
-                    if (m is MainMinionDataSO main && !pool.Contains(main)) pool.Add(main);
+                    if (m is MainMinionDataSO main && !main.isEvolvedForm && !pool.Contains(main)) pool.Add(main); // 진화형은 시작 소환수가 아니다
         }
 
         var equipped = InventoryManager.Instance != null ? InventoryManager.Instance.MainSummon : null;
