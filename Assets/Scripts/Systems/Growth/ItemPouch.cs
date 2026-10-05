@@ -38,6 +38,15 @@ public class ItemPouch : MonoBehaviour
     // 길이는 항상 MAX_SLOTS 로 고정. 빈 칸은 null. slotCount 밖의 칸은 잠긴 칸이다.
     private readonly ItemSO[] _slots = new ItemSO[MAX_SLOTS];
 
+    // SO는 공유 데이터다. 누적/일시 버프는 보유한 칸별로 관리하고 이동 시 함께 옮긴다.
+    private readonly int[] _nonCritHits = new int[MAX_SLOTS];
+    private readonly float[] _lastGuardAt = new float[MAX_SLOTS];
+    private readonly object _conditionalSource = new object();
+    private CharacterStat _boundStat;
+    private PlayerParryController _guard;
+    private float _conditionalChance = float.NaN;
+    private float _conditionalDamage = float.NaN;
+
     // 변경 알림 이벤트는 두지 않는다. PouchUI 는 열려 있는 동안만 매 프레임 다시 그리는데,
     // 그게 구독보다 싸고(칸 9개) 초기화 순서 문제도 안 생긴다 — PouchUI.Update 주석 참조.
 
@@ -63,13 +72,45 @@ public class ItemPouch : MonoBehaviour
     private void OnEnable()
     {
         DamageEventBus.OnBeforeDamageCalculated += HandleBeforeDamage;
+        DamageEventBus.OnAttackHitResolved += HandleAttackHit;
         RoomInstance.OnAnyRoomCleared += HandleRoomCleared;
+        ResetCombatState();
+        Refresh();
     }
 
     private void OnDisable()
     {
         DamageEventBus.OnBeforeDamageCalculated -= HandleBeforeDamage;
+        DamageEventBus.OnAttackHitResolved -= HandleAttackHit;
         RoomInstance.OnAnyRoomCleared -= HandleRoomCleared;
+        UnbindPlayer();
+    }
+
+    private void Update()
+    {
+        if (_boundStat != PlayerStat()) Refresh();
+        UpdateConditionalStats();
+    }
+
+    private void ResetCombatState()
+    {
+        for (int i = 0; i < MAX_SLOTS; i++) ResetSlotState(i);
+    }
+
+    private void ResetSlotState(int slot)
+    {
+        _nonCritHits[slot] = 0;
+        _lastGuardAt[slot] = float.NegativeInfinity;
+    }
+
+    private void UnbindPlayer()
+    {
+        if (_guard != null) _guard.OnParrySuccess -= HandleGuardSuccess;
+        if (_boundStat != null) _boundStat.Mods.RemoveSource(_conditionalSource);
+        _guard = null;
+        _boundStat = null;
+        _conditionalChance = _conditionalDamage = float.NaN;
+        ResetCombatState();
     }
 
     // ── 조회 ──────────────────────────────────────────────────────────
@@ -102,6 +143,7 @@ public class ItemPouch : MonoBehaviour
         if (slot < 0) return false;
 
         _slots[slot] = so;
+        ResetSlotState(slot);
         Refresh();
         Debug.Log($"<color=cyan>[ItemPouch]</color> '{so.DisplayName}' 습득 → {slot}번 칸");
         return true;
@@ -115,6 +157,7 @@ public class ItemPouch : MonoBehaviour
         if (so == null) return null;
 
         _slots[slot] = null;
+        ResetSlotState(slot);
         Refresh();
         return so;
     }
@@ -126,6 +169,8 @@ public class ItemPouch : MonoBehaviour
         if (a < 0 || a >= slotCount || b < 0 || b >= slotCount) return;
 
         (_slots[a], _slots[b]) = (_slots[b], _slots[a]);
+        (_nonCritHits[a], _nonCritHits[b]) = (_nonCritHits[b], _nonCritHits[a]);
+        (_lastGuardAt[a], _lastGuardAt[b]) = (_lastGuardAt[b], _lastGuardAt[a]);
         Refresh();
     }
 
@@ -141,6 +186,16 @@ public class ItemPouch : MonoBehaviour
     public void Refresh()
     {
         var stat = PlayerStat();
+        if (_boundStat != stat)
+        {
+            UnbindPlayer();
+            _boundStat = stat;
+            if (stat != null)
+            {
+                _guard = GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerParryController>();
+                if (_guard != null) _guard.OnParrySuccess += HandleGuardSuccess;
+            }
+        }
         if (stat == null) return;
 
         // 보정을 다시 걸기 '전'의 최대 체력. 아래에서 늘어난 만큼 현재 체력도 같이 올린다.
@@ -154,6 +209,7 @@ public class ItemPouch : MonoBehaviour
             foreach (var e in so.effects)
                 if (e is ItemStatEffect se) se.Apply(stat, this);
         }
+        UpdateConditionalStats();
 
         // [최대 체력 변화를 현재 체력에 그대로 반영]
         // 최대치가 +10 되면 현재 체력도 +10, 빠지면 -10. '증감분'을 따라가므로 버렸다 집었다를
@@ -184,6 +240,10 @@ public class ItemPouch : MonoBehaviour
     {
         if (target == null || target.Stat == null || !target.Stat.IsEnemy) return;
 
+        // 이동 직후/버프 종료 프레임에도 실제 추첨은 최신 조건을 본다.
+        if (_boundStat != PlayerStat()) Refresh();
+        UpdateConditionalStats();
+
         for (int i = 0; i < slotCount; i++)
         {
             var so = _slots[i];
@@ -192,6 +252,92 @@ public class ItemPouch : MonoBehaviour
                 if (e is ItemDamageBonusEffect de && de.Matches(target, info))
                     de.Apply(ref info);
         }
+    }
+
+    private void HandleAttackHit(CharacterHealth target, CharacterStat attacker, DamageInfo info, bool critical)
+    {
+        if (_boundStat == null || attacker != _boundStat || target == null || target.Stat == null
+            || !target.Stat.IsEnemy || target.IsDead || !DamageRules.CanCrit(info)) return;
+
+        int gold = 0;
+        for (int i = 0; i < slotCount; i++)
+        {
+            var so = _slots[i];
+            if (so == null || so.effects == null) continue;
+            bool hasPity = false;
+            foreach (var effect in so.effects)
+            {
+                if (effect is ItemCritPityEffect) hasPity = true;
+                if (critical && effect is ItemCritGoldEffect coin) gold += Mathf.Max(0, coin.goldPerCrit);
+            }
+            if (hasPity) _nonCritHits[i] = critical ? 0 : _nonCritHits[i] + 1;
+        }
+        if (gold > 0 && InventoryManager.Instance != null) InventoryManager.Instance.AddGold(gold);
+        UpdateConditionalStats();
+    }
+
+    private void HandleGuardSuccess()
+    {
+        for (int i = 0; i < slotCount; i++)
+        {
+            var so = _slots[i];
+            if (so == null || so.effects == null) continue;
+            foreach (var effect in so.effects)
+                if (effect is ItemGuardCritEffect) { _lastGuardAt[i] = Time.time; break; }
+        }
+        // 일반/퍼펙트 모두 성공. 재성공은 지속시간만 갱신하고 같은 아이템의 효과를 중첩하지 않는다.
+        UpdateConditionalStats();
+    }
+
+    private void UpdateConditionalStats()
+    {
+        if (_boundStat == null) return;
+        float chance = 0f, damage = 0f;
+        if (_boundStat.Health != null && !_boundStat.Health.IsDead && _boundStat.Health.CurHP > 0f)
+        {
+            for (int i = 0; i < slotCount; i++)
+            {
+                var so = _slots[i];
+                if (so == null || so.effects == null) continue;
+                foreach (var effect in so.effects)
+                {
+                    if (effect is ItemCritPityEffect pity)
+                        chance += Mathf.Max(0f, pity.chancePerNonCrit) * _nonCritHits[i];
+                    else if (effect is ItemGuardCritEffect guard && Time.time - _lastGuardAt[i] < guard.duration)
+                    {
+                        chance += Mathf.Max(0f, guard.chanceBonus);
+                        damage += Mathf.Max(0f, guard.damageBonus);
+                    }
+                    else if (effect is ItemNearbyCritEffect nearby && HasNearbyEnemies(nearby))
+                        damage += Mathf.Max(0f, nearby.damageBonus);
+                }
+            }
+        }
+        else ResetCombatState();
+
+        // F5 스탯 표시도 같은 최종값을 본다. 값이 변할 때만 보정 목록을 갱신한다.
+        if (chance == _conditionalChance && damage == _conditionalDamage) return;
+        _boundStat.Mods.RemoveSource(_conditionalSource);
+        if (chance != 0f) _boundStat.Mods.AddFlat(_conditionalSource, StatType.CritChance, chance);
+        if (damage != 0f) _boundStat.Mods.AddFlat(_conditionalSource, StatType.CritDamage, damage);
+        _conditionalChance = chance;
+        _conditionalDamage = damage;
+    }
+
+    private bool HasNearbyEnemies(ItemNearbyCritEffect effect)
+    {
+        float radius = Mathf.Max(0f, effect.radius);
+        Vector2 origin = _boundStat.transform.position;
+        int count = 0;
+        foreach (var status in CharacterStatus.ActiveEnemies)
+        {
+            if (status == null || !status.gameObject.activeInHierarchy) continue;
+            var health = status.GetComponent<CharacterHealth>();
+            if (health == null || health.IsDead || health.CurHP <= 0f) continue;
+            if (((Vector2)status.transform.position - origin).sqrMagnitude > radius * radius) continue;
+            if (++count >= Mathf.Max(1, effect.minEnemies)) return true;
+        }
+        return false;
     }
     // ── 방 클리어 회복 ────────────────────────────────────────────────
     /// <summary>
@@ -246,6 +392,7 @@ public class ItemPouch : MonoBehaviour
             slotCount = Mathf.Clamp(data.pouchSlotCount, 1, MAX_SLOTS);
 
         for (int i = 0; i < MAX_SLOTS; i++) _slots[i] = null;
+        ResetCombatState();
 
         if (registry != null && registry.items != null && data.pouchItemNames != null)
         {

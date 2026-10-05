@@ -77,7 +77,7 @@ public static class DPSMeterCheck
             string text = (string)Get(meter, "_statsText");
             foreach (string expected in new[] { "물리 공격력: 30.00", "방어력 (피해 감소): 75.0%",
                 "회피율: 20.0%", "물리 피해 증폭: 25.0%", "스킬 쿨타임 감소: 20.0%",
-                "이동 속도: 7.00", "가드 게이지: 42.0 / 100.0", "소진 잠금: True" })
+                "이동 속도: 7.00", "가드 게이지: 42.0 / 50.0", "소진 잠금: True" })
                 Check(text.Contains(expected), "최종 계산값/단위: " + expected);
             stat.Mods.RemoveSource(source);
             Set(meter, "_nextStatsRefresh", 0f);

@@ -24,12 +24,8 @@ public class Projectile : MonoBehaviour
     protected System.Collections.Generic.HashSet<Collider2D> _ignoredColliders = new System.Collections.Generic.HashSet<Collider2D>();
 
     /// <summary>
-    /// 피격자에게 넘겨줄 '날아온 지점'. 충돌 지점(transform.position)을 그대로 주면 안 된다 —
-    /// 그 점은 맞은 사람 몸 위라서, 거기서 뽑은 방향은 '발사자가 어디 있나'가 아니라
-    /// '콜라이더의 어느 면을 스쳤나'가 된다. 플레이어 피격 박스는 발밑 1.0 x 0.2 짜리 납작한
-    /// 슬래브라, 위/아래에서 날아온 투사체가 거의 수평(0/180도)으로 읽혀 우클릭 가드의
-    /// 부채꼴(반각 80도)에서 통째로 탈락했다 — 근접만 뎀감이 먹던 원인이 이것이다.
-    /// 그래서 비행 경로를 2유닛 되짚은 점을 준다. 각도 판정에만 쓰이므로 거리 값 자체는 의미 없다.
+    /// 피격 방향 호환 정보. 충돌점 대신 비행 방향을 되짚어 발사자와 비행 방향이 다른 유도탄도 표현한다.
+    /// 가드는 이 가상 위치를 쓰지 않고 Update의 실제 이동 경로와 원호의 교차를 검사한다.
     /// </summary>
     protected Vector2 HitFromPoint => (Vector2)transform.position - _direction * 2f;
 
@@ -103,7 +99,10 @@ public class Projectile : MonoBehaviour
 
     protected virtual void Update()
     {
+        if (GuardConsumed) return;
+        Vector2 previousPosition = transform.position;
         Move();
+        PlayerParryController.TryBlockProjectile(this, previousPosition);
     }
 
     protected virtual void Move()
@@ -132,7 +131,7 @@ public class Projectile : MonoBehaviour
 
             if (damageable != null && !damageable.IsDead)
             {
-                if (damageable is CharacterHealth health && PlayerParryController.TryBlockProjectile(this, health)) return;
+                // 가드는 이동 경로의 원호 교차에서 이미 처리했다. 내부에서 맞은 탄은 다시 막지 않는다.
                 // isRanged: 투사체는 attacker 로 '쏜 본체'를 넘기기 때문에, 이 표식이 없으면 맞은 쪽에서
                 // 화살인지 주먹인지 구분할 방법이 없다(우클릭 카운터/가드가 근접만 받아친다).
                 // hitFrom: 맞은 쪽이 '어디서 날아왔는지'를 알아야 방향 판정을 할 수 있다.
@@ -180,7 +179,7 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnHitTarget(CharacterStat targetStat)
     {
-        if (GuardConsumed || PlayerParryController.TryBlockProjectile(this, targetStat.Health)) return;
+        if (GuardConsumed) return;
         DamageInfo info = GuardInfo;
         targetStat.Health.GetDamage(info);
         Destroy(gameObject);
