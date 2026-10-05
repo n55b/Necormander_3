@@ -212,22 +212,22 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 34
-        y: 204
+        y: 257
         width: 31
-        height: 50
+        height: 63
       alignment: 9
       pivot: {x: 0.516129, y: 0.08}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape:
-      - - {x: 14.5, y: 24}
-        - {x: 6.5, y: 24}
-        - {x: 6.5, y: 9}
-        - {x: -14.5, y: 9}
+      - - {x: 14.5, y: 31.5}
+        - {x: 6.5, y: 31.5}
+        - {x: 6.5, y: 16.5}
+        - {x: -14.5, y: 16.5}
         - {x: -14.5, y: -1}
-        - {x: -14.5, y: -21}
-        - {x: 14.5, y: -21}
+        - {x: -14.5, y: -28.5}
+        - {x: 14.5, y: -28.5}
       tessellationDetail: 0
       bones: []
       spriteID: 513c7c5975c493130800000000000000
@@ -241,21 +241,21 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 68
-        y: 204
+        y: 257
         width: 31
-        height: 50
+        height: 63
       alignment: 9
       pivot: {x: 0.516129, y: 0.08}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape:
-      - - {x: 14.5, y: 9}
-        - {x: -6.5, y: 9}
-        - {x: -6.5, y: 24}
-        - {x: -14.5, y: 24}
-        - {x: -14.5, y: -21}
-        - {x: 14.5, y: -21}
+      - - {x: 14.5, y: 16.5}
+        - {x: -6.5, y: 16.5}
+        - {x: -6.5, y: 31.5}
+        - {x: -14.5, y: 31.5}
+        - {x: -14.5, y: -29.5}
+        - {x: 14.5, y: -29.5}
       tessellationDetail: 0
       bones: []
       spriteID: 54f5790b9d2ed4190800000000000000
@@ -269,19 +269,19 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 101
-        y: 204
+        y: 257
         width: 10
-        height: 49
+        height: 63
       alignment: 9
       pivot: {x: 0.5, y: 0.08163265}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape:
-      - - {x: 4, y: 23.5}
-        - {x: -4, y: 23.5}
-        - {x: -4, y: -20.5}
-        - {x: 4, y: -20.5}
+      - - {x: 4, y: 31.5}
+        - {x: -4, y: 31.5}
+        - {x: -4, y: -28.5}
+        - {x: 4, y: -28.5}
       tessellationDetail: 0
       bones: []
       spriteID: fed279deee403b7d0800000000000000
@@ -295,19 +295,19 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 111
-        y: 204
+        y: 257
         width: 10
-        height: 49
+        height: 63
       alignment: 9
       pivot: {x: 0.5, y: 0.08163265}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape:
-      - - {x: 4, y: -20.5}
-        - {x: 4, y: 23.5}
-        - {x: -4, y: 23.5}
-        - {x: -4, y: -20.5}
+      - - {x: 4, y: -28.5}
+        - {x: 4, y: 31.5}
+        - {x: -4, y: 31.5}
+        - {x: -4, y: -28.5}
       tessellationDetail: 0
       bones: []
       spriteID: da05564d920633590800000000000000
@@ -321,11 +321,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 123
-        y: 206
+        y: 257
         width: 14
-        height: 42
+        height: 59
       alignment: 9
-      pivot: {x: 0.5, y: 0.04761905}
+      pivot: {x: 0.5, y: 0.084745765}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -343,11 +343,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 137
-        y: 206
+        y: 257
         width: 14
-        height: 42
+        height: 59
       alignment: 9
-      pivot: {x: 0.5, y: 0.04761905}
+      pivot: {x: 0.5, y: 0.084745765}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -365,11 +365,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 151
-        y: 206
+        y: 257
         width: 14
-        height: 42
+        height: 59
       alignment: 9
-      pivot: {x: 0.5, y: 0.04761905}
+      pivot: {x: 0.5, y: 0.084745765}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -387,11 +387,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 165
-        y: 206
+        y: 257
         width: 14
-        height: 42
+        height: 59
       alignment: 9
-      pivot: {x: 0.5, y: 0.04761905}
+      pivot: {x: 0.5, y: 0.084745765}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -408,20 +408,20 @@ TextureImporter:
       name: Barricade_X
       rect:
         serializedVersion: 2
-        x: 185
-        y: 204
-        width: 20
-        height: 42
+        x: 187
+        y: 258
+        width: 26
+        height: 55
       alignment: 9
-      pivot: {x: 0.5, y: 0.0952381}
+      pivot: {x: 0.53846157, y: 0.12727273}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape:
-      - - {x: 9, y: 20}
-        - {x: -9, y: 20}
-        - {x: -9, y: -17}
-        - {x: 9, y: -17}
+      - - {x: 13, y: 27.5}
+        - {x: -13, y: 27.5}
+        - {x: -13, y: -23.5}
+        - {x: 12, y: -22.5}
       tessellationDetail: 0
       bones: []
       spriteID: c5ad1cd3d50dcbd80800000000000000
@@ -431,67 +431,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Barricade_X_Alone
-      rect:
-        serializedVersion: 2
-        x: 207
-        y: 231
-        width: 20
-        height: 21
-      alignment: 9
-      pivot: {x: 0.5, y: 0.04761905}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape:
-      - - {x: 9, y: 9.5}
-        - {x: -9, y: 9.5}
-        - {x: -9, y: -9.5}
-        - {x: 9, y: -9.5}
-      tessellationDetail: 0
-      bones: []
-      spriteID: 08d24f37c7a11b450800000000000000
-      internalID: 6102688091887381888
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Barricade_Alone_Normal
-      rect:
-        serializedVersion: 2
-        x: 228
-        y: 231
-        width: 11
-        height: 21
-      alignment: 9
-      pivot: {x: 0.45454547, y: 0.04761905}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape:
-      - - {x: 4.5, y: 9.5}
-        - {x: -4.5, y: 9.5}
-        - {x: -4.5, y: -9.5}
-        - {x: 4.5, y: -9.5}
-      tessellationDetail: 0
-      bones: []
-      spriteID: 834a1129b69c801c0800000000000000
-      internalID: -4537155160726461384
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: WhiteFlower_0
       rect:
         serializedVersion: 2
-        x: 242
-        y: 246
-        width: 14
-        height: 8
+        x: 243
+        y: 311
+        width: 12
+        height: 6
       alignment: 9
-      pivot: {x: 0.5714286, y: 0.25}
+      pivot: {x: 0.5, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -508,12 +456,12 @@ TextureImporter:
       name: WhiteFlower_1
       rect:
         serializedVersion: 2
-        x: 242
-        y: 239
-        width: 14
-        height: 8
+        x: 243
+        y: 304
+        width: 12
+        height: 7
       alignment: 9
-      pivot: {x: 0.5714286, y: 0.25}
+      pivot: {x: 0.5, y: 0.14285715}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -530,10 +478,10 @@ TextureImporter:
       name: WhiteFlower_Small_0
       rect:
         serializedVersion: 2
-        x: 258
-        y: 246
-        width: 8
-        height: 7
+        x: 259
+        y: 311
+        width: 7
+        height: 5
       alignment: 9
       pivot: {x: 0.5, y: 0.14285715}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -552,10 +500,10 @@ TextureImporter:
       name: WhiteFlower_Small_1
       rect:
         serializedVersion: 2
-        x: 258
-        y: 239
-        width: 8
-        height: 7
+        x: 259
+        y: 304
+        width: 7
+        height: 4
       alignment: 9
       pivot: {x: 0.5, y: 0.14285715}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -574,10 +522,10 @@ TextureImporter:
       name: Grass_0_0
       rect:
         serializedVersion: 2
-        x: 267
-        y: 243
-        width: 11
-        height: 11
+        x: 268
+        y: 307
+        width: 9
+        height: 10
       alignment: 9
       pivot: {x: 0.54545456, y: 0.09090909}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -596,10 +544,10 @@ TextureImporter:
       name: Grass_0_1
       rect:
         serializedVersion: 2
-        x: 279
-        y: 243
-        width: 11
-        height: 11
+        x: 280
+        y: 307
+        width: 9
+        height: 10
       alignment: 9
       pivot: {x: 0.45454547, y: 0.09090909}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -618,10 +566,10 @@ TextureImporter:
       name: Grass_0_2
       rect:
         serializedVersion: 2
-        x: 292
-        y: 243
-        width: 11
-        height: 11
+        x: 293
+        y: 307
+        width: 10
+        height: 9
       alignment: 9
       pivot: {x: 0.45454547, y: 0.09090909}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -640,10 +588,10 @@ TextureImporter:
       name: Grass_0_3
       rect:
         serializedVersion: 2
-        x: 305
-        y: 243
-        width: 11
-        height: 11
+        x: 306
+        y: 307
+        width: 9
+        height: 10
       alignment: 9
       pivot: {x: 0.45454547, y: 0.09090909}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -663,19 +611,19 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1
-        y: 204
+        y: 257
         width: 31
-        height: 35
+        height: 48
       alignment: 9
       pivot: {x: 0.48387095, y: 0.114285715}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape:
-      - - {x: 14.5, y: 16.5}
-        - {x: -14.5, y: 16.5}
-        - {x: -14.5, y: -13.5}
-        - {x: 14.5, y: -13.5}
+      - - {x: 14.5, y: 24}
+        - {x: -14.5, y: 24}
+        - {x: -14.5, y: -22}
+        - {x: 14.5, y: -22}
       tessellationDetail: 0
       bones: []
       spriteID: bd20764fb7a8e04d0800000000000000
@@ -688,16 +636,27 @@ TextureImporter:
       name: Barricade_Normal
       rect:
         serializedVersion: 2
-        x: 206
-        y: 205
-        width: 28
-        height: 27
+        x: 164
+        y: 222
+        width: 49
+        height: 34
       alignment: 9
       pivot: {x: 0.5, y: 0.11111111}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
-      physicsShape: []
+      physicsShape:
+      - - {x: 17.5, y: -11}
+        - {x: 24.5, y: -1}
+        - {x: 24.5, y: 1}
+        - {x: 9.5, y: 17}
+        - {x: -4.5, y: 17}
+        - {x: -14.5, y: 17}
+        - {x: -16.5, y: 17}
+        - {x: -24.5, y: 1}
+        - {x: -19.5, y: -14}
+        - {x: -18.5, y: -15}
+        - {x: 10.5, y: -15}
       tessellationDetail: 0
       bones: []
       spriteID: 81b10c1cdfc211740800000000000000
@@ -710,12 +669,12 @@ TextureImporter:
       name: WhiteFlower_2
       rect:
         serializedVersion: 2
-        x: 242
-        y: 232
-        width: 14
-        height: 8
+        x: 243
+        y: 297
+        width: 12
+        height: 7
       alignment: 9
-      pivot: {x: 0.5714286, y: 0.25}
+      pivot: {x: 0.5, y: 0.14285715}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -732,12 +691,12 @@ TextureImporter:
       name: WhiteFlower_3
       rect:
         serializedVersion: 2
-        x: 242
-        y: 225
-        width: 14
-        height: 8
+        x: 243
+        y: 290
+        width: 12
+        height: 6
       alignment: 9
-      pivot: {x: 0.5714286, y: 0.25}
+      pivot: {x: 0.5, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -754,10 +713,10 @@ TextureImporter:
       name: WhiteFlower_Small_2
       rect:
         serializedVersion: 2
-        x: 258
-        y: 232
-        width: 8
-        height: 7
+        x: 259
+        y: 297
+        width: 7
+        height: 4
       alignment: 9
       pivot: {x: 0.5, y: 0.14285715}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -777,11 +736,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 268
-        y: 232
+        y: 295
         width: 11
-        height: 11
+        height: 10
       alignment: 9
-      pivot: {x: 0.45454547, y: 0.09090909}
+      pivot: {x: 0.45454547, y: 0.18181819}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -798,12 +757,12 @@ TextureImporter:
       name: Grass_1_1
       rect:
         serializedVersion: 2
-        x: 279
-        y: 232
-        width: 11
-        height: 11
+        x: 280
+        y: 295
+        width: 10
+        height: 10
       alignment: 9
-      pivot: {x: 0.45454547, y: 0.09090909}
+      pivot: {x: 0.4, y: 0.2}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -820,12 +779,12 @@ TextureImporter:
       name: Grass_1_2
       rect:
         serializedVersion: 2
-        x: 290
-        y: 232
-        width: 11
-        height: 11
+        x: 291
+        y: 295
+        width: 10
+        height: 10
       alignment: 9
-      pivot: {x: 0.45454547, y: 0.09090909}
+      pivot: {x: 0.4, y: 0.2}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -842,12 +801,12 @@ TextureImporter:
       name: Grass_1_3
       rect:
         serializedVersion: 2
-        x: 303
-        y: 232
-        width: 11
-        height: 11
+        x: 304
+        y: 295
+        width: 10
+        height: 8
       alignment: 9
-      pivot: {x: 0.36363637, y: 0.09090909}
+      pivot: {x: 0.3, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -864,16 +823,28 @@ TextureImporter:
       name: Tent_Old
       rect:
         serializedVersion: 2
-        x: 1
-        y: 145
-        width: 80
-        height: 58
+        x: 77
+        y: 119
+        width: 95
+        height: 65
       alignment: 9
       pivot: {x: 0.475, y: 0.03448276}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
-      physicsShape: []
+      physicsShape:
+      - - {x: 42.5, y: -31.5}
+        - {x: 47.5, y: -18.5}
+        - {x: 47.5, y: -15.5}
+        - {x: 33.5, y: 12.5}
+        - {x: -17.5, y: 32.5}
+        - {x: -47.5, y: -1.5}
+        - {x: -47.5, y: -4.5}
+        - {x: -44.5, y: -8.5}
+        - {x: -31.5, y: -20.5}
+        - {x: -7.5, y: -31.5}
+        - {x: -1.5, y: -32.5}
+        - {x: 12.5, y: -32.5}
       tessellationDetail: 0
       bones: []
       spriteID: e730a1063a3932e90800000000000000
@@ -886,16 +857,26 @@ TextureImporter:
       name: Tent_Center
       rect:
         serializedVersion: 2
-        x: 83
-        y: 144
-        width: 98
-        height: 61
+        x: 72
+        y: 25
+        width: 110
+        height: 72
       alignment: 9
-      pivot: {x: 0.5102041, y: 0.049180325}
+      pivot: {x: 0.5181818, y: 0.11111111}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
-      physicsShape: []
+      physicsShape:
+      - - {x: 55, y: -25}
+        - {x: 55, y: 3}
+        - {x: 11, y: 36}
+        - {x: -11, y: 36}
+        - {x: -55, y: 3}
+        - {x: -55, y: -25}
+        - {x: -50, y: -30}
+        - {x: 5, y: -36}
+        - {x: 8, y: -36}
+        - {x: 50, y: -30}
       tessellationDetail: 0
       bones: []
       spriteID: 6bd8192daded4dbf0800000000000000
@@ -905,35 +886,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Tent_New
-      rect:
-        serializedVersion: 2
-        x: 183
-        y: 145
-        width: 80
-        height: 58
-      alignment: 9
-      pivot: {x: 0.5125, y: 0.03448276}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: ffb2f01aa794cb550800000000000000
-      internalID: 6177893579882441727
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: Sotdae_Center
       rect:
         serializedVersion: 2
-        x: 5
-        y: 94
-        width: 21
-        height: 45
+        x: 6
+        y: 189
+        width: 19
+        height: 43
       alignment: 9
       pivot: {x: 0.52380955, y: 0.044444446}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -952,10 +911,10 @@ TextureImporter:
       name: Sotdae_Left
       rect:
         serializedVersion: 2
-        x: 25
-        y: 94
-        width: 22
-        height: 41
+        x: 26
+        y: 189
+        width: 20
+        height: 39
       alignment: 9
       pivot: {x: 0.5, y: 0.048780486}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -974,10 +933,10 @@ TextureImporter:
       name: Sotdae_Right
       rect:
         serializedVersion: 2
-        x: 48
-        y: 94
-        width: 16
-        height: 42
+        x: 49
+        y: 189
+        width: 14
+        height: 40
       alignment: 9
       pivot: {x: 0.5, y: 0.04761905}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -996,10 +955,10 @@ TextureImporter:
       name: Jangseung_0
       rect:
         serializedVersion: 2
-        x: 67
-        y: 76
-        width: 36
-        height: 64
+        x: 68
+        y: 188
+        width: 34
+        height: 62
       alignment: 9
       pivot: {x: 0.5277778, y: 0.0625}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1025,10 +984,10 @@ TextureImporter:
       name: Jangseung_1
       rect:
         serializedVersion: 2
-        x: 106
-        y: 76
-        width: 25
-        height: 65
+        x: 107
+        y: 188
+        width: 23
+        height: 63
       alignment: 9
       pivot: {x: 0.48, y: 0.06153846}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1047,10 +1006,10 @@ TextureImporter:
       name: Jangseung_2
       rect:
         serializedVersion: 2
-        x: 133
-        y: 77
-        width: 23
-        height: 39
+        x: 135
+        y: 189
+        width: 20
+        height: 37
       alignment: 9
       pivot: {x: 0.5217391, y: 0.07692308}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1061,6 +1020,937 @@ TextureImporter:
       bones: []
       spriteID: 2a25ad5269fdb2ff0800000000000000
       internalID: -59708334066216286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stone_0
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 230
+        width: 13
+        height: 23
+      alignment: 9
+      pivot: {x: 0.4615385, y: 0.30434784}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb69331918bcdd942adde3a0b3dcbf24
+      internalID: 393718195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RedFlower_Small_0
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 312
+        width: 10
+        height: 5
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2694f1b882aebe043bd28b4529d50e5a
+      internalID: 277475671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RedFlower_Small_1
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 304
+        width: 10
+        height: 5
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d87f98fdff0521b4a81f01299eb9ad58
+      internalID: -1317373907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RedFlower_Small_2
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 297
+        width: 10
+        height: 5
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 29135bc2ab9b6644ea273320b2395fa0
+      internalID: 488237325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RedFlower_Small_3
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 290
+        width: 10
+        height: 5
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4e1f816a25193a54bbe004a0639e2045
+      internalID: 426858887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RedFlower_0
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 309
+        width: 9
+        height: 9
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b20c283a28581646b35c8830a59a4ac
+      internalID: -181247847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RedFlower_1
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 298
+        width: 9
+        height: 9
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6d19e216a8f568846a09e72095d7e568
+      internalID: 1216326179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RedFlower_2
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 287
+        width: 9
+        height: 9
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 13f5de0fcf26a4540ae62958a198be03
+      internalID: 1091601875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RedFlower_3
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 276
+        width: 9
+        height: 9
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 34d797351d7747f4cb773a43a87a17c2
+      internalID: -1963065456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: YellowFlower_0
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 284
+        width: 7
+        height: 8
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aad5b243417520f4bb7281d538986539
+      internalID: -1512324670
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: YellowFlower_1
+      rect:
+        serializedVersion: 2
+        x: 278
+        y: 284
+        width: 7
+        height: 8
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0453460932a73df44a9ba132de8e720e
+      internalID: 1608367274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: YellowFlower_2
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 284
+        width: 7
+        height: 8
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4adfc90e2ef94ba4c8e836c8c49180d2
+      internalID: 1836083526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: YellowFlower_3
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 284
+        width: 7
+        height: 8
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 13ccac0400ceab14a9ca527d193359a9
+      internalID: 336518902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bush_0
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 249
+        width: 30
+        height: 23
+      alignment: 9
+      pivot: {x: 0.5, y: 0.08695652}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f7af56be5b2165f4c85fa0610f22bc83
+      internalID: -343517462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bush_1
+      rect:
+        serializedVersion: 2
+        x: 249
+        y: 249
+        width: 30
+        height: 23
+      alignment: 9
+      pivot: {x: 0.5, y: 0.08695652}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 79c6bb7c805db2e4889b59a7458dcf42
+      internalID: -352977577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bush_2
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 249
+        width: 30
+        height: 23
+      alignment: 9
+      pivot: {x: 0.5, y: 0.08695652}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b445ac1b6989b234eb9973d7650cc36d
+      internalID: 857862185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rock_0
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 223
+        width: 14
+        height: 11
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09090909}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape:
+      - - {x: 6, y: -3.5}
+        - {x: 7, y: -2.5}
+        - {x: 7, y: 0.5}
+        - {x: 5, y: 3.5}
+        - {x: 3, y: 5.5}
+        - {x: -2, y: 5.5}
+        - {x: -4, y: 4.5}
+        - {x: -6, y: 2.5}
+        - {x: -7, y: 0.5}
+        - {x: -7, y: -2.5}
+        - {x: -5, y: -4.5}
+        - {x: 3, y: -4.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5b957ed7e143d094d85aa6592e18afcb
+      internalID: -463896588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rock_1
+      rect:
+        serializedVersion: 2
+        x: 234
+        y: 201
+        width: 28
+        height: 39
+      alignment: 9
+      pivot: {x: 0.5, y: 0.20512821}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape:
+      - - {x: 11, y: -10.5}
+        - {x: 14, y: -8.5}
+        - {x: 12, y: 4.5}
+        - {x: 10, y: 10.5}
+        - {x: 9, y: 12.5}
+        - {x: 2, y: 19.5}
+        - {x: -2, y: 19.5}
+        - {x: -7, y: 15.5}
+        - {x: -10, y: 12.5}
+        - {x: -11, y: 10.5}
+        - {x: -12, y: 7.5}
+        - {x: -13, y: -1.5}
+        - {x: -13, y: -7.5}
+        - {x: -10, y: -10.5}
+        - {x: -8, y: -11.5}
+        - {x: 5, y: -11.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10ec576285a7f7c429eb436821386d71
+      internalID: 531469429
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Field_Object_Remake_0
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 213
+        width: 22
+        height: 25
+      alignment: 9
+      pivot: {x: 0.5, y: 0.28}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape:
+      - - {x: -2, y: -5.5}
+        - {x: 9, y: -5.5}
+        - {x: 11, y: -3.5}
+        - {x: 11, y: 0.5}
+        - {x: 9, y: 6.5}
+        - {x: 8, y: 8.5}
+        - {x: 5, y: 11.5}
+        - {x: 3, y: 12.5}
+        - {x: -2, y: 12.5}
+        - {x: -4, y: 11.5}
+        - {x: -5, y: 10.5}
+        - {x: -7, y: 8.5}
+        - {x: -9, y: 5.5}
+        - {x: -10, y: 3.5}
+        - {x: -11, y: 1.5}
+        - {x: -11, y: -2.5}
+        - {x: -10, y: -3.5}
+        - {x: -6, y: -4.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 27effa4f06c9d274ba50659e1403d177
+      internalID: -1833297484
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rock_3
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 217
+        width: 27
+        height: 17
+      alignment: 9
+      pivot: {x: 0.5185185, y: 0.1764706}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape:
+      - - {x: 13.5, y: -3.5}
+        - {x: 12.5, y: 1.5}
+        - {x: 6.5, y: 5.5}
+        - {x: -0.5, y: 8.5}
+        - {x: -4.5, y: 8.5}
+        - {x: -6.5, y: 7.5}
+        - {x: -9.5, y: 4.5}
+        - {x: -12.5, y: 0.5}
+        - {x: -13.5, y: -1.5}
+        - {x: -13.5, y: -3.5}
+        - {x: -10.5, y: -5.5}
+        - {x: -7.5, y: -6.5}
+        - {x: 8.5, y: -6.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4dc4103dd157c3541ae81e4c5823bc61
+      internalID: -1045459887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WoodBox_0
+      rect:
+        serializedVersion: 2
+        x: 164
+        y: 189
+        width: 16
+        height: 21
+      alignment: 9
+      pivot: {x: 0.5, y: 0.14285715}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape:
+      - - {x: 8, y: 10.5}
+        - {x: -8, y: 10.5}
+        - {x: -8, y: -7.5}
+        - {x: 8, y: -7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d5a2d9d0cc5a5a4e84100e27affc9b7
+      internalID: 1757760417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WoodBox_1
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 190
+        width: 16
+        height: 12
+      alignment: 9
+      pivot: {x: 0.5, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape:
+      - - {x: 8, y: 6}
+        - {x: -8, y: 6}
+        - {x: -8, y: -4}
+        - {x: 8, y: -4}
+      tessellationDetail: 0
+      bones: []
+      spriteID: c4870532ea585a049acb3b50dc85f082
+      internalID: -2111130294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WoodBox_2
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 186
+        width: 22
+        height: 21
+      alignment: 9
+      pivot: {x: 0.5, y: 0.1904762}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape:
+      - - {x: 0.022888184, y: -7.5}
+        - {x: 11, y: -2.5}
+        - {x: 11, y: 6.5}
+        - {x: 4, y: 10.5}
+        - {x: 0, y: 10.5}
+        - {x: -8, y: 6.5}
+        - {x: -10, y: 3.5}
+        - {x: -11, y: 0.5}
+        - {x: -11, y: -4.5}
+        - {x: -4, y: -7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: db5f873aef5b3ee4abd90e8f922a130d
+      internalID: 1263278628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: StoneLantern_Off
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 119
+        width: 36
+        height: 65
+      alignment: 9
+      pivot: {x: 0.5, y: 0.2}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 21d85de17fc5b1f4d881934dfe32f9f5
+      internalID: -2061607925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: StoneLantern_On
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 119
+        width: 36
+        height: 65
+      alignment: 9
+      pivot: {x: 0.5, y: 0.2}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4580037a093b12c4dbecbd986e90d4c3
+      internalID: -258741437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Candle_0_0
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 156
+        width: 6
+        height: 24
+      alignment: 9
+      pivot: {x: 0.5, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e92350f6911604249993f5963fd478e5
+      internalID: 24368369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Candle_0_1
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 156
+        width: 6
+        height: 24
+      alignment: 9
+      pivot: {x: 0.5, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f1e22eedc202e54eb17b4e6ae44cf34
+      internalID: -1924069612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Candle_0_2
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 156
+        width: 6
+        height: 24
+      alignment: 9
+      pivot: {x: 0.5, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a2d465038aaac424391d653755a9dd90
+      internalID: -446750328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Candle_0_3
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 156
+        width: 6
+        height: 24
+      alignment: 9
+      pivot: {x: 0.5, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aecb7a454f0cb7644964f8a366d5f9b5
+      internalID: 206903652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Candle_0_4
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 156
+        width: 7
+        height: 24
+      alignment: 9
+      pivot: {x: 0.42857146, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 689d296c2972dd14489ebb9220e81008
+      internalID: 137384970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Candle_0_5
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 156
+        width: 7
+        height: 24
+      alignment: 9
+      pivot: {x: 0.42857146, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2d56c4a0b610bd648a42777cfb381c58
+      internalID: 1753497246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Candle_0_6
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 156
+        width: 7
+        height: 24
+      alignment: 9
+      pivot: {x: 0.5, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 092c32088019e6643a6ef005964b8f8a
+      internalID: 11789814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Candle_0_7
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 156
+        width: 7
+        height: 24
+      alignment: 9
+      pivot: {x: 0.5, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1907c804bb3b6fa49b5c85af8d832bc9
+      internalID: -1573473549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Candle_1
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 156
+        width: 6
+        height: 10
+      alignment: 9
+      pivot: {x: 0.5, y: 0.4}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2d51c5a8d0d47ba4a96faeacda3e9ba1
+      internalID: -1876548928
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Candle_2
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 156
+        width: 5
+        height: 10
+      alignment: 9
+      pivot: {x: 0.6, y: 0.4}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6939f3c680da2f24da3ba79dc831f1d6
+      internalID: 588697499
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Buddha statue
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 22
+        width: 48
+        height: 90
+      alignment: 9
+      pivot: {x: 0.5, y: 0.12222222}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape:
+      - - {x: 24, y: 45}
+        - {x: -14, y: 45}
+        - {x: -24, y: 31}
+        - {x: -24, y: -39}
+        - {x: -21, y: -45}
+        - {x: 24, y: -45}
+      tessellationDetail: 0
+      bones: []
+      spriteID: a45bf82fc4f79f648b19eee458f35bc9
+      internalID: -1491558733
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WatchTower
+      rect:
+        serializedVersion: 2
+        x: 262
+        y: 111
+        width: 38
+        height: 85
+      alignment: 9
+      pivot: {x: 0.47368422, y: 0.23529412}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape:
+      - - {x: 14, y: -22.5}
+        - {x: 18, y: 23.5}
+        - {x: 19, y: 30.5}
+        - {x: 19, y: 34.5}
+        - {x: 18, y: 42.5}
+        - {x: -18, y: 42.5}
+        - {x: -19, y: 38.5}
+        - {x: -19, y: 34.5}
+        - {x: -18, y: 23.5}
+        - {x: -14, y: -22.5}
+        - {x: -13, y: -23.5}
+        - {x: 13, y: -23.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8e12d6bd91b762e42989a91263105564
+      internalID: -390540811
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Grave
+      rect:
+        serializedVersion: 2
+        x: 196
+        y: 23
+        width: 24
+        height: 41
+      alignment: 9
+      pivot: {x: 0.5, y: 0.2195122}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 15406c936a612c54f987cfe609668213
+      internalID: 761911280
       vertices: []
       indices: 
       edges: []
@@ -1083,6 +1973,18 @@ TextureImporter:
       Barricade_Normal: 5120923719685905176
       Barricade_X: -8233476919853458852
       Barricade_X_Alone: 6102688091887381888
+      Buddha statue: -1491558733
+      Candle_0_0: 24368369
+      Candle_0_1: -1924069612
+      Candle_0_2: -446750328
+      Candle_0_3: 206903652
+      Candle_0_4: 137384970
+      Candle_0_5: 1753497246
+      Candle_0_6: 11789814
+      Candle_0_7: -1573473549
+      Candle_1: -1876548928
+      Candle_2: 588697499
+      Field_Object_Remake_0: -1833297484
       Grass_0_0: 1361012929134074560
       Grass_0_1: 622083686978065738
       Grass_0_2: -6042189716931887931
@@ -1091,12 +1993,24 @@ TextureImporter:
       Grass_1_1: 2013215240710359241
       Grass_1_2: -8039603876708285983
       Grass_1_3: -871059040294001760
+      Grave: 761911280
       Jangseung_0: -9047014361376045839
       Jangseung_1: 1638161628354632491
       Jangseung_2: -59708334066216286
+      RedFlower_0: -181247847
+      RedFlower_1: 1216326179
+      RedFlower_2: 1091601875
+      RedFlower_3: -1963065456
+      RedFlower_Small_0: 277475671
+      RedFlower_Small_1: -1317373907
+      RedFlower_Small_2: 488237325
+      RedFlower_Small_3: 426858887
       Sotdae_Center: 1533949858377675927
       Sotdae_Left: -6719553342214240924
       Sotdae_Right: -6002193481244882145
+      StoneLantern_Off: -2061607925
+      StoneLantern_On: -258741437
+      Stone_0: 393718195
       Tent_Center: -300370243709989450
       Tent_New: 6177893579882441727
       Tent_Old: -7051630261630794882
@@ -1104,6 +2018,7 @@ TextureImporter:
       TorchLight_1: 1040295123121018865
       TorchLight_2: 4924892282282869168
       TorchLight_3: 8049729761938721082
+      WatchTower: -390540811
       WhiteFlower_0: 2893812746879290744
       WhiteFlower_1: -6051398251862651859
       WhiteFlower_2: -311160920826492000
@@ -1111,11 +2026,24 @@ TextureImporter:
       WhiteFlower_Small_0: 4268087255241048309
       WhiteFlower_Small_1: 8644748671450660028
       WhiteFlower_Small_2: -6363464160498314920
+      WoodBox_0: 1757760417
+      WoodBox_1: -2111130294
+      WoodBox_2: 1263278628
       WoodWall_Left: -2903971910489002513
       WoodWall_LeftUnder: -7976469940404789435
       WoodWall_Right: -7695701605472710483
       WoodWall_RightUnder: 3546950120589738773
       WoodWall_Under: -3166441223008877861
+      YellowFlower_0: -1512324670
+      YellowFlower_1: 1608367274
+      YellowFlower_2: 1836083526
+      YellowFlower_3: 336518902
+      bush_0: -343517462
+      bush_1: -352977577
+      bush_2: 857862185
+      rock_0: -463896588
+      rock_1: 531469429
+      rock_3: -1045459887
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
