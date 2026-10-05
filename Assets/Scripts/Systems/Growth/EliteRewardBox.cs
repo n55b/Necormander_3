@@ -13,6 +13,10 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
     [Tooltip("체크 시 던지기 능력/환골탈태/보석이 모두 나옵니다.")]
     [SerializeField] private bool isSuperEliteBox = false;
 
+    [Header("소환수 강화 (보상방)")]
+    [Tooltip("메인 소환수가 최대 강화이고 더 진화할 갈래도 없어 카드를 못 줄 때 대신 지급할 골드.")]
+    [SerializeField] private int maxedEnhanceGoldReward = 300;
+
     // [26/07/30] 아이템 드랍은 여기가 아니다 — 이 상자는 이름과 달리 '보상방'(RewardRoomEvent)의
     // 메인 소환수 상자다. 엘리트 방 아이템 드랍은 RewardManager.RequestClearReward(RoomType.Elite) 가 한다.
 
@@ -35,11 +39,28 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
         var inven = InventoryManager.Instance;
         var data = GameManager.Instance.dataManager;
 
-        // [보상 개편 26/07/24] 보상방 = 메인 소환수 획득. 1장 택1 + 스킵(RewardSelectionUI 의 skip 버튼).
-        // 메인 슬롯 1개라 이미 있으면 HandSlot 픽에서 교체된다. 슈퍼 상자는 2장 중 택1(카드 수만 다름).
-        int cardCount = isSuperEliteBox ? 2 : 1;
-        List<RewardCandidate> rewards = RewardProcessor.GenerateSummonRewards(
-            inven, data, typeof(MainMinionDataSO), cardCount);
+        // [26/10/02] 보상방 = 메인 소환수 '강화'. 소환수는 마을 NPC 에서 고르고 가져온다.
+        //  · [26/10/03] 진화 조건(요구 강화 단계 + 진화 갈래)을 채웠으면 → 진화 갈래 카드(보통 2장). 강화보다 우선.
+        //  · 소환수가 있고 강화 여지가 있으면 → 강화 카드 1장(+스킵).
+        //  · 이미 최대 강화면 → 골드로 대체.
+        //  · 소환수가 아예 없으면(마을에서 안 고르고 들어옴) → 예전처럼 메인 소환수 카드를 준다.
+        List<RewardCandidate> rewards;
+        if (inven != null && inven.MainSummon != null)
+        {
+            rewards = RewardProcessor.GenerateMinionEvolveRewards(inven);
+            if (rewards.Count == 0) rewards = RewardProcessor.GenerateMinionEnhanceReward(inven);
+            if (rewards.Count == 0)
+            {
+                _isOpening = true;
+                StartCoroutine(PlayOpenThenGrantGold(maxedEnhanceGoldReward));
+                return true;
+            }
+        }
+        else
+        {
+            int cardCount = isSuperEliteBox ? 2 : 1;
+            rewards = RewardProcessor.GenerateSummonRewards(inven, data, typeof(MainMinionDataSO), cardCount);
+        }
 
         if (rewards.Count > 0)
         {
@@ -74,6 +95,24 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
         // 상호작용 후 자기 자신을 파괴
         Destroy(gameObject);
     }
+
+    /// <summary>강화가 이미 최대일 때: 상자를 열고 골드를 주고 사라진다(카드 없음).</summary>
+    private IEnumerator PlayOpenThenGrantGold(int amount)
+    {
+        float wait = 0f;
+        if (_animator != null)
+        {
+            _animator.enabled = true;
+            _animator.Play(OpenAnimName, 0, 0f);
+            wait = GetClipLength(_animator, OpenAnimName);
+        }
+        if (wait > 0f) yield return new WaitForSeconds(wait);
+
+        if (InventoryManager.Instance != null) InventoryManager.Instance.GainGold(amount);
+        Debug.Log($"<color=magenta>[EliteRewardBox]</color> 소환수가 최대 강화라 {amount}G 로 대체 지급.");
+        Destroy(gameObject);
+    }
+
 
     private static float GetClipLength(Animator animator, string clipName)
     {

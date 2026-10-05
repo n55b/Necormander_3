@@ -65,7 +65,7 @@ MonoBehaviour:
   slamPreCastDelay: 1.3
   slamMeleeRadius: 2
   slamWaveCount: 2
-  slamWaveExpandTime: 1.4
+  slamWaveExpandTime: 1.8
   slamWaveInterval: 0.8
   slamWaveFallbackMaxRadius: 10
   slamRingThickness: 0.9

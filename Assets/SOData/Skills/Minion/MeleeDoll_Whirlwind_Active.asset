@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b903e5195d425944aa1c1677ca0f7b79, type: 3}
+  m_Name: MeleeDoll_Whirlwind_Active
+  m_EditorClassIdentifier: 
+  skillName: "\uD68C\uC624\uB9AC \uB09C\uD0C0"
+  description: "\uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uC801\uC5D0\uAC8C \uB2EC\uB824\uB4E4\uC5B4\n\uC6D0\uD615
+    \uBC94\uC704 \uC548\uC758 \uC801\uB4E4\uC5D0\uAC8C 4\uBC88\uC758 \uD53C\uD574\uB97C
+    \uC785\uD799\uB2C8\uB2E4."
+  icon: {fileID: -1293705836269130871, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  cooldownTime: 6
+  skillSound: {fileID: 0}
+  skillSoundVolume: 0.85
+  shakeForce: 0.5
+  hitStopDuration: 0
+  actionType: 0
+  element: 0
+  onHitStatus: 6
+  useHitBox: 1
+  hitBoxPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
+  hitRadius: 3
+  hitBoxSize: {x: 0, y: 0}
+  damageMultiplier: 0.35
+  forceAmount: 4
+  forceDuration: 0.2
+  hitBoxForwardOffset: -1
+  minionOffsetFromHitBox: 0
+  hitCount: 4
+  zoneCount: 1
+  zoneInterval: 0.12
+  zoneActiveTime: 0.1

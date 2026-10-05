@@ -48,6 +48,18 @@ public class MinionActionSkillSO : MinionSkillSO
     [Tooltip("몇 번 때릴지. 1 이면 단타.")]
     public int hitCount = 1;
 
+    [Header("구역 분할 충격파 (박스 판정 전용)")]
+    [Tooltip("1 이면 끔. 2 이상이면 hitBoxSize 직선 박스를 진행 방향으로 N 구역으로 나눠,\n" +
+             "가까운 구역부터 zoneInterval 간격으로 차례로 터진다(충격파). 구역마다 1타 — 이때 hitCount 는 무시된다.\n" +
+             "보통 원거리형(hitBoxForwardOffset = 박스 길이의 절반)으로 써서 미니언 앞에서 시작하게 한다.")]
+    [Min(1)] public int zoneCount = 1;
+    [Tooltip("구역과 구역 사이 시간차(초). 뒤 구역은 이 시간 동안 차오르는 텔레그래프를 보여준 뒤 터진다.")]
+    [Min(0f)] public float zoneInterval = 0.12f;
+    [Tooltip("구역 하나가 판정을 유지하는 시간(초).")]
+    [Min(0.02f)] public float zoneActiveTime = 0.1f;
+
+    private bool UsesZones => zoneCount > 1 && hitBoxSize.x > 0f && hitBoxSize.y > 0f;
+
     // 타격 구간은 이제 damageState(태그) 나 hitEvent(Aseprite 셀 이벤트)가 정한다.
     // 예전엔 hitDuration(초) -> hitEndRatio(비율) 였는데, 둘 다 그림과 따로 노는 숫자라
     // 애니를 다시 타이밍할 때마다 손으로 맞춰줘야 했다. SkillSO 의 damageState/hitEvent 참조.
@@ -156,12 +168,19 @@ public class MinionActionSkillSO : MinionSkillSO
         var playerStat = GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null
             ? GameManager.Instance.PLAYERCONTROLLER.Stat
             : null;
-        float finalDamage = (playerStat != null ? playerStat.ATK : 0f) * damageMultiplier;
+        // [강화] 보상방 강화 단계만큼 스킬 피해 배율이 붙는다(MinionEnhance).
+        float finalDamage = (playerStat != null ? playerStat.ATK : 0f) * damageMultiplier
+                            * MinionEnhance.SkillDamageMult(mainData);
         var info = new DamageInfo(finalDamage, element, caster.gameObject, 1f,
             !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill,
             applyStatus: onHitStatus == StatusType.None ? (StatusType?)null : onHitStatus);
 
-        if (useHitBox && hitBoxPrefab != null)
+        if (useHitBox && hitBoxPrefab != null && UsesZones)
+        {
+            Vector2 lineCenter = rangedMode ? hitBoxCenter : (Vector2)caster.transform.position;
+            PlayZoneShockwave(caster, animSet, animDuration, eventWindow, faceRight, skillDir, lineCenter, info, dirFromPlayer);
+        }
+        else if (useHitBox && hitBoxPrefab != null)
         {
             // 히트박스를 미리 만들고 판정창이 열릴 때 Init 한다. 다단히트 규약은 finisher 와 동일:
             // OnAttackEnd 있으면 창에 hitCount 균등 배분, 없으면 OnHitEvent 마다 1타
@@ -244,6 +263,64 @@ public class MinionActionSkillSO : MinionSkillSO
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// 구역 분할 충격파. hitBoxSize 직선 박스를 진행 방향으로 zoneCount 칸으로 나눠, 판정창이 열리면
+    /// 0번(가장 가까운) 구역은 즉시, 이후 구역은 zoneInterval 간격으로 차오른 뒤 터진다.
+    /// 구역 히트박스는 시전자(미니언)의 자식으로 두지 않는다 — 뒤 구역이 시전 애니보다 오래 살 수 있어서다.
+    /// </summary>
+    private void PlayZoneShockwave(MinionSkillCaster caster, MinionAnimSet animSet, float animDuration, float eventWindow,
+        bool faceRight, Vector2 dir, Vector2 lineCenter, DamageInfo info, Vector2 pushDir)
+    {
+        int n = zoneCount;
+        float zoneLen = hitBoxSize.x / n;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        float safetyLifetime = animDuration + n * zoneInterval + zoneActiveTime + 1f;
+
+        var zones = new BaseHitBox[n];
+        for (int i = 0; i < n; i++)
+        {
+            Vector2 pos = lineCenter + dir * (-hitBoxSize.x * 0.5f + zoneLen * (i + 0.5f));
+            var z = Instantiate(hitBoxPrefab, (Vector3)pos, Quaternion.Euler(0f, 0f, angle));
+            z.transform.localScale = new Vector3(zoneLen, hitBoxSize.y, 1f);
+            var c = z.GetComponent<Collider2D>();
+            if (c != null) c.enabled = false; // 판정창 열릴 때까지 꺼둔다
+            z.ApplyTeamColor(true);
+            z.isContinuousDamage = false;     // 구역당 1타
+            z.SetManualHitOnly(false);
+            Destroy(z.gameObject, safetyLifetime); // 시전이 끊겨 판정창이 안 열려도 남지 않게
+            zones[i] = z;
+        }
+
+        System.Action<CharacterHealth> onHit = (health) =>
+        {
+            if (caster == null) return;
+            ApplyActionEffect(SkillCombatUtil.ResolveEntityTransform(health), caster, pushDir);
+        };
+
+        bool opened = false;
+        caster.PlaySequenced(
+            animSet, animDuration, eventWindow, 1, faceRight,
+            (window, useContinuous) =>
+            {
+                if (opened) return; // 이벤트가 여러 번 와도 충격파는 한 번만
+                opened = true;
+                DoHitStop();
+                for (int i = 0; i < n; i++)
+                {
+                    var z = zones[i];
+                    if (z == null) continue;
+                    float delay = i * zoneInterval;
+                    z.Init(info, Layers.EnemyMask, zoneActiveTime, delay, true, onHit);
+                    if (delay <= 0f)
+                    {
+                        // 지연 없는 Init 은 콜라이더를 켜주지 않는다(지연 있으면 ForceActivate 가 켠다).
+                        var c = z.GetComponent<Collider2D>();
+                        if (c != null) c.enabled = true;
+                    }
+                }
+            });
     }
 
     private void ApplyActionEffect(Transform targetTransform, MinionSkillCaster caster, Vector2 dirFromPlayer)

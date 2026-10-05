@@ -1,15 +1,17 @@
 using UnityEngine;
 
 /// <summary>
-/// 메인 소환수가 플레이어 평타 콤보의 마지막에 넣는 마무리 일격 — '게임플레이' 부분만.
+/// 메인 소환수가 플레이어 평타 콤보에 넣는 일격 — '게임플레이' 부분만.
+///
+/// [26/10/02] 콤보 '마지막(3타)'이 아니라 플레이어 1타와 '동시에' 나가도록 바뀌었다 → (1타 + 소환수 일격) → 2타.
+/// 클래스/필드 이름(finisher)은 에셋 직렬화 호환을 위해 그대로 둔다. 순서는 MeleeCombatController 가 정한다.
 ///
 /// [26/07/23] 애니메이션(비주얼/시퀀스/타이밍/이펙트)은 MainMinionDataSO.basicAnim(MinionAnimSet)으로
 /// 이사했다. 여기 남은 건 데미지·판정·넉백 같은 로직뿐이다. 기획자는 애니를 미니언 한 곳에서 설정한다.
 /// ▶ 애니메이션 연결 방법은 repo 루트의 MINION_ANIMATION_GUIDE.md 참조.
 ///
-/// 설계 3.3: "플레이어 기본 공격 콤보 회수 + 1을 하여 마지막에 소환수의 마무리 일격이 발동
-/// (평타 2타로 줄여주셈)". 즉 메인 소환수가 없으면 앞 2타만 빠르게 반복하고, 있으면
-/// 3타 타이밍에 이것이 대신 나간다. 이때 플레이어는 아무것도 하지 않고 Idle 로 있는다.
+/// (옛 설계 3.3 의 '콤보 마지막에 소환수가 대신 때린다'는 26/10/02 에 폐기 — 지금은 internalCooldown 이
+///  돌아 있을 때 플레이어 평타와 동시에 나간다. 메인 소환수가 없으면 플레이어 평타만 나간다.)
 /// </summary>
 [System.Serializable]
 public class MinionFinisher
@@ -22,8 +24,13 @@ public class MinionFinisher
     [Tooltip("스킬 설명창 아이콘(선택). 비우면 아이콘 숨김.")]
     public Sprite uiIcon;
 
+    [Header("발동 (내부 쿨타임)")]
+    [Tooltip("소환수 일격의 내부 쿨타임(초). 쿨이 돌아 있으면 플레이어 평타(1타든 2타든) 입력에 같이 나가고,\n" +
+             "쿨 중이면 플레이어 평타만 나간다. 0 이면 평타마다 매번 같이 나간다. 공속의 영향을 받지 않는다.")]
+    [Min(0f)] public float internalCooldown = 1.5f;
+
     [Header("피해")]
-    [Tooltip("몇 번 때릴지. 0 이면 마무리 일격이 없는 것으로 치고 콤보가 2타로 끝난다.")]
+    [Tooltip("몇 번 때릴지. 0 이면 소환수 일격이 없는 것으로 치고 플레이어 평타만 나간다.")]
     public int hitCount = 1;
 
     [Tooltip("타당 피해 = 소환수 ATK x 이 값.")]
@@ -67,6 +74,6 @@ public class MinionFinisher
 
     public string Describe()
         => !string.IsNullOrEmpty(uiDescription) ? uiDescription : !IsValid ? "마무리 공격 없음"
-            : $"콤보 마지막에 {hitCount}회 타격 · 타격당 피해 배율 {damageMultiplier:0.##}배."
+            : $"콤보 첫 타에 {hitCount}회 타격 · 타격당 피해 배율 {damageMultiplier:0.##}배."
                 + (onHitStatus != StatusType.None ? $" 적중 시 {onHitStatus}." : "");
 }
