@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f711bf1e2ceee742b68a340fd65898e, type: 3}
+  m_Name: BalanceWeight
+  m_EditorClassIdentifier: 
+  itemName: "\uADE0\uD615\uC758 \uCD94"
+  description: "\uCE58\uBA85\uD0C0\uAC00 \uC544\uB2CC \uACF5\uACA9\uC774 \uBA85\uC911\uD560
+    \uB54C\uB9C8\uB2E4 \uCE58\uBA85\uD0C0 \uD655\uB960\uC774 5%p \uC99D\uAC00\uD569\uB2C8\uB2E4.
+    \uCE58\uBA85\uD0C0 \uBA85\uC911 \uC2DC \uCD08\uAE30\uD654\uB429\uB2C8\uB2E4."
+  icon: {fileID: 0}
+  tier: 4
+  effects:
+  - rid: 2773715014607962114
+  references:
+    version: 2
+    RefIds:
+    - rid: 2773715014607962114
+      type: {class: ItemCritPityEffect, ns: , asm: Assembly-CSharp}
+      data:
+        label: 
+        chancePerNonCrit: 5

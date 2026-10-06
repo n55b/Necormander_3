@@ -19,6 +19,106 @@ public static class GuardControlsSetup
     private static string LevelPath(int level) => level == 1 ? "Assets/SOData/RightClick/Guard.asset"
         : $"Assets/SOData/RightClick/GuardLevel{level}.asset";
 
+    [MenuItem("Tools/Combat/Apply Guard 1005 Tuning")]
+    public static void ApplyGuard1005()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
+        for (int level = 1; level <= 4; level++)
+        {
+            var so = AssetDatabase.LoadAssetAtPath<RightClickDataSO>(LevelPath(level));
+            Check(so != null, "기존 가드 에셋: " + LevelPath(level));
+            Undo.RecordObject(so, "Guard 1005 range");
+            so.config.radius = 1f;
+            so.config.angle = 160f;
+            EditorUtility.SetDirty(so);
+            AssetDatabase.SaveAssetIfDirty(so);
+        }
+        EditPrefab("Assets/Prefabs/Player Melee.prefab", root =>
+        {
+            var guard = new SerializedObject(root.GetComponent<PlayerParryController>());
+            guard.FindProperty("maxGuard").floatValue = 50f;
+            guard.FindProperty("guardRegenPerSecond").floatValue = 2f;
+            guard.FindProperty("guardBreakThresholdRatio").floatValue = .2f;
+            guard.FindProperty("guardBreakRegenPerSecond").floatValue = 8.3f;
+            // 퍼펙트 0.2초/내린 뒤 1초 지연/기존 사운드와 입력 연결은 건드리지 않는다.
+            guard.ApplyModifiedPropertiesWithoutUndo();
+        });
+        EditPrefab(HudPath, root =>
+        {
+            var ui = new SerializedObject(root.GetComponent<PlayerStateUI>());
+            var label = ui.FindProperty("guardGaugeText").objectReferenceValue as TMP_Text;
+            Check(label != null, "기존 HUD 가드 텍스트 연결");
+            label.text = "50 / 50";
+        });
+    }
+
+    public static void ApplyGuard1005AndVerifyBatch()
+    {
+        ApplyGuard1005();
+        CriticalItemsCheck.Run();
+        DPSMeterCheck.Run();
+        VerifyBatch();
+    }
+
+    // 게임용 아트 생성이 아니라, 기존 플레이어 스프라이트와 실제 원호를 렌더한 검수 화면이다.
+    [MenuItem("Tools/Combat/Preview Guard 1005 Arc")]
+    public static void PreviewGuardArc()
+    {
+        var scene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+        var host = new GameObject("Guard arc preview");
+        host.SetActive(false);
+        UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(host, scene);
+        var guard = host.AddComponent<PlayerParryController>();
+        var cameraObject = new GameObject("Guard preview camera", typeof(Camera));
+        UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(cameraObject, scene);
+        var camera = cameraObject.GetComponent<Camera>();
+        camera.scene = scene;
+        camera.transform.position = new Vector3(0f, 0f, -10f);
+        camera.orthographic = true;
+        camera.orthographicSize = 1.8f;
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(.12f, .14f, .16f);
+        var target = new RenderTexture(512, 512, 24);
+        var pixels = new Texture2D(512, 512, TextureFormat.RGB24, false);
+        var previous = RenderTexture.active;
+        Material material = null;
+        try
+        {
+            var config = AssetDatabase.LoadAssetAtPath<RightClickDataSO>(LevelPath(1)).config;
+            var arc = (GameObject)typeof(PlayerParryController).GetMethod("CreateTelegraphSector", Fields)
+                .Invoke(guard, new object[] { Vector2.right, config, -1f });
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(arc, scene);
+            material = arc.GetComponent<LineRenderer>().sharedMaterial;
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player Melee.prefab");
+            var source = prefab.GetComponentsInChildren<SpriteRenderer>(true).First(r => r.name == "Body");
+            var body = new GameObject("Existing player sprite", typeof(SpriteRenderer));
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(body, scene);
+            body.transform.position = source.transform.position;
+            body.transform.localScale = source.transform.lossyScale;
+            var renderer = body.GetComponent<SpriteRenderer>();
+            renderer.sprite = source.sprite;
+            renderer.sharedMaterial = material;
+            camera.targetTexture = target;
+            camera.Render();
+            RenderTexture.active = target;
+            pixels.ReadPixels(new Rect(0, 0, 512, 512), 0, 0);
+            pixels.Apply();
+            string path = System.IO.Path.GetFullPath("Logs/Guard1005Arc.png");
+            System.IO.File.WriteAllBytes(path, pixels.EncodeToPNG());
+            Debug.Log("[GuardCheck] Arc preview: " + path);
+        }
+        finally
+        {
+            RenderTexture.active = previous;
+            camera.targetTexture = null;
+            target.Release();
+            Object.DestroyImmediate(target);
+            Object.DestroyImmediate(pixels);
+            UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);
+            if (material != null) Object.DestroyImmediate(material);
+        }
+    }
+
     [MenuItem("Tools/Combat/Apply Guard And Space Controls")]
     public static void Apply()
     {
@@ -179,7 +279,7 @@ public static class GuardControlsSetup
             var label = Object.Instantiate(hpText, rect);
             label.name = "Text_GuardGauge";
             label.raycastTarget = false;
-            label.text = "100 / 100";
+            label.text = "50 / 50";
             label.rectTransform.anchorMin = Vector2.zero;
             label.rectTransform.anchorMax = Vector2.one;
             label.rectTransform.offsetMin = Vector2.zero;
@@ -253,7 +353,7 @@ public static class GuardControlsSetup
             {
                 gauge.fillAmount = state == 0 ? 1f : .5f;
                 gauge.color = serialized.FindProperty(state == 0 ? "guardReadyColor" : "guardBrokenColor").colorValue;
-                label.text = state == 0 ? "100 / 100" : "50 / 100";
+                label.text = state == 0 ? "50 / 50" : "25 / 50";
                 Canvas.ForceUpdateCanvases();
                 UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(root.GetComponent<RectTransform>());
                 Canvas.ForceUpdateCanvases();
@@ -295,11 +395,20 @@ public static class GuardControlsSetup
             var c = registry.rightClicks[level - 1].config;
             Check(c.level == level && c.IsValid, $"Lv{level} 유효");
             Check(c.CanReflect == (level >= 2), "Lv2부터 투사체 반사");
-            Check(Mathf.Approximately(c.EffectiveRadius, level >= 3 ? 3.325f : 2.5f) && c.angle == 160f, "Lv3 반경만 33% 확장");
+            Check(Mathf.Approximately(c.EffectiveRadius, level >= 3 ? 1.33f : 1f) && c.angle == 160f, "방어 원호: Lv3 반경만 33% 확장");
         }
         var hud = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);
         Check(!hud.GetComponentsInChildren<Transform>(true).Any(t => t.name == "Icon_E_Skill" || t.name == "Icon_Q_Skill" || t.name == "Icon_R_Skill"), "HUD 옛 슬롯 제거/교체");
         var playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player Melee.prefab");
+        var guardConfig = new SerializedObject(playerPrefab.GetComponent<PlayerParryController>());
+        Check(guardConfig.FindProperty("maxGuard").floatValue == 50f
+            && guardConfig.FindProperty("guardRegenPerSecond").floatValue == 2f
+            && guardConfig.FindProperty("guardBreakThresholdRatio").floatValue == .2f
+            && guardConfig.FindProperty("guardBreakRegenPerSecond").floatValue == 8.3f,
+            "프리팹에 1005 게이지 수치 실제 저장");
+        Check(guardConfig.FindProperty("perfectGuardWindow").floatValue == .2f
+            && guardConfig.FindProperty("guardRegenDelay").floatValue == 1f,
+            "퍼펙트/회복 지연 유지");
         var guardClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Resources/Sound/SFX/Guard_Block.wav");
         var sounds = AssetDatabase.LoadAssetAtPath<PlayerAttackSoundData>("Assets/SOData/Sound/PlayerAttackSoundData.asset");
         var manager = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/GameManager.prefab");
@@ -338,7 +447,7 @@ public static class GuardControlsSetup
             Check((bool)typeof(PlayerParryController).GetProperty("IsDashing", Fields).GetValue(guard),
                 "근접 대쉬 상태도 가드 시작 차단에 포함");
             Set(dodge, "_isDashing", false);
-            enemy.transform.position = Vector3.right;
+            enemy.transform.position = Vector3.right * 2f;
             var hit = new DamageInfo(20f, DamageType.Physical, enemy, causesHitstun: true,
                 knockbackForce: 20f, applyStatus: StatusType.Freeze, category: DamageCategory.EnemyBoss);
             int successes = 0, damageEvents = 0;
@@ -349,25 +458,30 @@ public static class GuardControlsSetup
             health.GetDamage(hit);
             Check(health.CurHP == 100f && damageEvents == 0 && successes == 1 && guard.IsParrying
                 && !player.canChangeState && Mathf.Approximately(player.SpeedMultiplier, .3f), "오래 유지한 가드도 피해/경직 없이 방어");
-            Check(guard.GuardAmount == 85f && !guard.LastBlockWasPerfect, "방어력 25% 적용: 피해 20은 게이지 15 소모");
+            Check(guard.GuardAmount == 35f && !guard.LastBlockWasPerfect, "방어력 25% 적용: 피해 20은 게이지 15 소모");
             health.GetDamage(hit);
-            Check(guard.GuardAmount == 70f && successes == 2, "매 타격마다 소모, Lv4 환급 없음");
+            Check(guard.GuardAmount == 20f && successes == 2, "매 타격마다 소모, Lv4 환급 없음");
             Set(guard, "_raisedAt", Time.time);
             health.GetDamage(hit);
-            Check(guard.GuardAmount == 62.5f && guard.LastBlockWasPerfect, "0.2초 퍼펙트: 최종 피해 15의 절반 7.5");
+            Check(guard.GuardAmount == 12.5f && guard.LastBlockWasPerfect, "0.2초 퍼펙트: 최종 피해 15의 절반 7.5");
             Tick(guard, 10f, Time.time + 10f);
-            Check(guard.GuardAmount == 62.5f, "가드를 올린 동안 회복 없음");
+            Check(guard.GuardAmount == 12.5f, "가드를 올린 동안 회복 없음");
             var back = hit; back.hitFrom = Vector2.left;
+            enemy.transform.position = Vector3.left * 2f;
             Check(!PlayerParryController.Intercept(health, ref back), "후방 방어 불가");
+            enemy.transform.position = Vector3.right * 2f;
             var ground = hit; ground.bypassGuard = true;
             Check(!PlayerParryController.Intercept(health, ref ground), "장판/돌진 제외");
             var dot = hit; dot.category = DamageCategory.EnemyDebuff;
             var trap = hit; trap.category = DamageCategory.Trap;
             Check(!PlayerParryController.CanGuard(dot) && !PlayerParryController.CanGuard(trap), "DoT/가시 제외");
+            Arm(guard, health, registry.rightClicks[0].config);
             typeof(PlayerParryController).GetMethod("UpdateAim", Fields).Invoke(guard, new object[] { Vector2.up });
             Check(!PlayerParryController.Intercept(health, ref hit), "홀드 중 방향 변경: 옛 방향은 방어 안 함");
             var up = hit; up.hitFrom = Vector2.up;
+            enemy.transform.position = Vector3.up * 2f;
             Check(PlayerParryController.Intercept(health, ref up), "새 조준 방향으로 방어");
+            enemy.transform.position = Vector3.right * 2f;
 
             float beforeRecovery = guard.GuardAmount;
             Check(guard.TryInterruptForAction() && !guard.IsParrying && player.canChangeState
@@ -376,23 +490,40 @@ public static class GuardControlsSetup
             Tick(guard, .5f, loweredAt + .5f);
             Check(guard.GuardAmount == beforeRecovery, "가드를 내린 뒤 1초는 회복 안 함");
             Tick(guard, .75f, loweredAt + 1.25f);
-            Check(Mathf.Approximately(guard.GuardAmount, beforeRecovery + .75f), "지연 경계를 넘긴 0.25초만 3/초 회복");
+            Check(Mathf.Approximately(guard.GuardAmount, beforeRecovery + .5f), "지연 경계를 넘긴 0.25초만 2/초 회복");
 
             Arm(guard, health, registry.rightClicks[0].config);
-            Set(guard, "_guard", 5f);
+            Set(guard, "_guard", 25f);
+            health.GetDamage(hit);
+            Check(!guard.GuardBroken && guard.GuardAmount == 10f && guard.IsParrying,
+                $"정확히 20%인 10에서는 유지: amount={guard.GuardAmount:R}, capacity={guard.GuardCapacity:R}, broken={guard.GuardBroken}, held={guard.IsParrying}, perfect={guard.LastBlockWasPerfect}, damage={health.CalculateGuardDamage(hit):R}");
             health.GetDamage(hit);
             Check(guard.GuardBroken && guard.GuardAmount == 0f && !guard.IsParrying && health.CurHP == 100f,
                 "부족한 마지막 공격까지 완전 방어 후 소진");
             guard.TryStartParry();
             Check(!guard.IsParrying && !PlayerParryController.Intercept(health, ref hit), "소진 중 재사용/방어 불가");
-            Tick(guard, 6f, Time.time + 6f);
-            Check(Mathf.Approximately(guard.GuardAmount, 50f) && guard.GuardBroken, "소진 즉시 회복 시작, 6초에 50");
-            Tick(guard, 5.9f, Time.time + 11.9f);
-            Check(guard.GuardBroken, "100 미만은 계속 소진");
-            Tick(guard, .1f, Time.time + 12f);
-            Check(!guard.GuardBroken && guard.GuardAmount == 100f, "12초에 100 회복/잠금 해제");
+            Tick(guard, 1f, Time.time + 1f);
+            Check(Mathf.Approximately(guard.GuardAmount, 8.3f) && guard.GuardBroken, "파괴 즉시 초당 8.3 회복");
+            Tick(guard, 5f, Time.time + 6f);
+            Check(guard.GuardBroken && Mathf.Approximately(guard.GuardAmount, 49.8f), "6초에 49.8, 완충 전 잠금 유지");
+            Tick(guard, .1f, Time.time + 6.1f);
+            Check(!guard.GuardBroken && guard.GuardAmount == 50f, "약 6초에 완충/잠금 해제");
             Tick(guard, 100f, Time.time + 100f);
-            Check(guard.GuardAmount == 100f, "최대치 초과 금지");
+            Check(guard.GuardAmount == 50f, "최대치 초과 금지");
+            Set(guard, "maxGuard", 75f);
+            Arm(guard, health, registry.rightClicks[0].config);
+            Set(guard, "_guard", 30f);
+            health.GetDamage(hit);
+            Check(guard.GuardAmount == 15f && !guard.GuardBroken, "최대 75이면 15에서 유지");
+            var smallHit = hit; smallHit.amount = 1f;
+            health.GetDamage(smallHit);
+            Check(guard.GuardAmount == 0f && guard.GuardBroken && !guard.IsParrying,
+                "최대 75에서는 15 미만인 14에 파괴, 남은 양도 0으로 초기화");
+            Tick(guard, 6.1f, Time.time + 6.1f);
+            Check(guard.GuardBroken && Mathf.Approximately(guard.GuardAmount, 50.63f), "최대치가 늘어도 초당 8.3 고정");
+            Tick(guard, 3f, Time.time + 9.1f);
+            Check(!guard.GuardBroken && guard.GuardAmount == 75f, "증가한 최대치까지 회복해야 해제");
+            Set(guard, "maxGuard", 50f);
             Arm(guard, health, registry.rightClicks[0].config);
             guard.SetGuardHeld(false);
             Check(!guard.IsParrying, "버튼을 떼면 즉시 가드 해제");
@@ -416,7 +547,7 @@ public static class GuardControlsSetup
                 var label = serialized.FindProperty("guardGaugeText").objectReferenceValue as TMP_Text;
                 Check(fill != null && label != null && fill.sprite != null && !fill.raycastTarget,
                     "HUD 프리팹에 게이지/텍스트/기존 스프라이트 실제 연결");
-                Set(guard, "_guard", 50f);
+                Set(guard, "_guard", 25f);
                 typeof(PlayerStateUI).GetMethod("RefreshGuardGauge", Fields).Invoke(ui, null);
                 Check(fill.fillAmount == .5f && fill.color.b > fill.color.r, "사용 가능 게이지는 파랑");
                 Set(guard, "_guardBroken", true);
@@ -494,6 +625,12 @@ public static class GuardControlsSetup
             InventoryManager.Instance = inventory;
             guard.SetGuardHeld(true);
             Check(guard.IsParrying && !player.canChangeState, "홀드 입력으로 실제 가드 시작");
+            var arc = (GameObject)typeof(PlayerParryController).GetField("_telegraph", Fields).GetValue(guard);
+            var line = arc.GetComponent<LineRenderer>();
+            Check(line != null && arc.GetComponent<MeshFilter>() == null && !line.loop,
+                "채워진 면 없이 바깥 원호만 표시");
+            for (int i = 0; i < line.positionCount; i++)
+                Check(Mathf.Approximately(line.GetPosition(i).magnitude, 1f), "중심선 없이 반경 1의 원호 정점");
             player.CanChangeAnimState();
             Check(!player.canChangeState, "애니메이션 종료가 유지 중인 가드를 해제하지 않음");
             guard.SetGuardHeld(false);
@@ -521,14 +658,16 @@ public static class GuardControlsSetup
                     var source = new GameObject(probeName) { hideFlags = HideFlags.HideAndDontSave };
                     source.SetActive(false);
                     source.transform.SetParent(host.transform);
-                    source.transform.position = Vector3.right;
+                    source.transform.position = Vector3.right * 2f;
                     var projectile = source.AddComponent<Projectile>();
-                    projectile.Init(Vector2.zero, 30f, Layers.PlayerMask, enemy, 10f, 3f);
-                    Check(PlayerParryController.TryBlockProjectile(projectile, health), "실제 투사체 방어");
-                    Check(guard.GuardAmount == 100f - 30f * (shot + 1), "투사체마다 실제 피해량 소모");
+                    projectile.Init(Vector2.zero, 10f, Layers.PlayerMask, enemy, 10f, 3f);
+                    source.transform.position = Vector3.right * .5f;
+                    Check(PlayerParryController.TryBlockProjectile(projectile, Vector2.right * 2f), "실제 투사체 원호 통과 방어");
+                    Check(Mathf.Approximately(source.transform.position.x, 1f), "방어/반사 위치는 선 위 교차점");
+                    Check(guard.GuardAmount == 50f - 10f * (shot + 1), "투사체마다 실제 피해량 소모");
                     Check(projectile.GuardConsumed && successes == (level - 1) * 2 + shot + 1 && guard.IsParrying,
                         "연속 투사체 소비 후에도 가드 유지");
-                    Check(!PlayerParryController.TryBlockProjectile(projectile, health), "소비된 투사체 재타격 금지");
+                    Check(!PlayerParryController.TryBlockProjectile(projectile, Vector2.right * 2f), "소비된 투사체 재타격 금지");
                     var clones = Resources.FindObjectsOfTypeAll<Projectile>()
                         .Where(p => p.name == probeName + "(Clone)").ToArray();
                     Check(clones.Length == (level == 1 ? 0 : shot + 1), "Lv1 소멸 / Lv2 매 투사체 반사");
@@ -538,7 +677,7 @@ public static class GuardControlsSetup
                         Check(reflected.Shooter == host && reflected.TargetLayer.value == Layers.EnemyMask
                             && !reflected.GuardConsumed, "반사체 소유자/적 타격 레이어");
                         Check(Vector2.Dot(reflected.Direction, Vector2.right) > .99f
-                            && Mathf.Approximately(reflected.GuardInfo.amount, 45f), "발사자 방향 반사/기존 반사 피해 보존");
+                            && Mathf.Approximately(reflected.GuardInfo.amount, 15f), "발사자 방향 반사/기존 반사 배율 보존");
                     }
                 }
             }
@@ -549,13 +688,14 @@ public static class GuardControlsSetup
                 var source = new GameObject(probeName);
                 source.SetActive(false);
                 source.transform.SetParent(host.transform);
-                source.transform.position = Vector3.right;
+                source.transform.position = Vector3.right * 2f;
                 var projectile = source.AddComponent<TrackingFireball>();
                 projectile.Init(host.transform, 30f, Layers.PlayerMask, enemy, 10f, 3f);
                 Set(guard, "_raisedAt", Time.time - (late == 0 ? 0f : .3f));
                 Check(projectile.GuardInfo.type == DamageType.Magic, "유도탄의 실제 피해와 가드 비용은 같은 마법 속성");
-                Check(PlayerParryController.TryBlockProjectile(projectile, health)
-                    && guard.GuardAmount == (late == 0 ? 85f : 70f)
+                source.transform.position = Vector3.right * .5f;
+                Check(PlayerParryController.TryBlockProjectile(projectile, Vector2.right * 2f)
+                    && guard.GuardAmount == (late == 0 ? 35f : 20f)
                     && guard.LastBlockWasPerfect == (late == 0), "투사체 도착 시점으로 퍼펙트/일반 방어 구분");
             }
             // 한 번의 스캔에서 여러 공격을 처리하고, 한 공격의 중복 콜라이더는 다시 세지 않는다.
@@ -569,19 +709,37 @@ public static class GuardControlsSetup
                 var source = new GameObject(probeName);
                 source.SetActive(false);
                 source.transform.SetParent(scanRoot.transform);
-                source.transform.position = host.transform.position + new Vector3(1f + i * .4f, 0f, 0f);
-                if (i < 2)
-                    source.AddComponent<Projectile>().Init(host.transform.position, 30f, Layers.PlayerMask, enemy, 10f, 3f);
+                source.transform.position = host.transform.position + new Vector3(.2f + i * .25f, 0f, 0f);
                 source.AddComponent<CircleCollider2D>().isTrigger = true;
                 source.AddComponent<BoxCollider2D>().isTrigger = true;
-                if (i >= 2)
-                    source.AddComponent<BaseHitBox>().Init(new DamageInfo(30f, DamageType.Physical, enemy), Layers.PlayerMask);
+                source.AddComponent<BaseHitBox>().Init(new DamageInfo(11f, DamageType.Physical, enemy), Layers.PlayerMask);
                 source.SetActive(true);
             }
             Physics2D.SyncTransforms();
             typeof(PlayerParryController).GetMethod("ScanIncoming", Fields).Invoke(guard, new object[] { scanConfig });
             Check(successes == beforeScan + 4 && !guard.IsParrying && guard.GuardBroken && guard.GuardAmount == 0f,
                 "동시 4공격 방어 후 소진, 중복 콜라이더로 게이지를 더 깎지 않음");
+
+            // 큰 콜라이더가 탐색 원에 걸쳐도 멀리 있는 탄을 미리 없애지 않는다.
+            Arm(guard, health, AssetDatabase.LoadAssetAtPath<RightClickDataSO>(LevelPath(1)).config);
+            var outside = new GameObject(probeName + " outside");
+            outside.SetActive(false);
+            outside.transform.SetParent(scanRoot.transform);
+            outside.transform.position = host.transform.position + Vector3.right * 1.5f;
+            var outsideProjectile = outside.AddComponent<Projectile>();
+            outsideProjectile.Init(Vector2.zero, 5f, Layers.PlayerMask, enemy, 10f, 3f);
+            outside.AddComponent<CircleCollider2D>().radius = 1f;
+            outside.SetActive(true);
+            Physics2D.SyncTransforms();
+            Check(!PlayerParryController.TryBlockProjectile(outsideProjectile,
+                    (Vector2)host.transform.position + Vector2.right * 2f) && !outsideProjectile.GuardConsumed,
+                "반경 밖 투사체는 미리 제거하지 않음");
+            outside.transform.position = host.transform.position + Vector3.right * .5f;
+            Check(PlayerParryController.TryBlockProjectile(outsideProjectile,
+                    (Vector2)host.transform.position + Vector2.right * 1.5f) && guard.GuardAmount == 45f,
+                "바깥에서 선을 가로질러 들어온 탄 방어");
+
+            VerifyArcBoundary(guard, health, enemy, scanRoot, probeName);
 
             // 실제 마법사 패턴이 만드는 단발 장판도 스캔/직접 피격 양쪽에서 가드 불가여야 한다.
             var magician = enemy.AddComponent<EnemyController>();
@@ -605,11 +763,11 @@ public static class GuardControlsSetup
             int beforeGround = successes;
             Physics2D.SyncTransforms();
             typeof(PlayerParryController).GetMethod("ScanIncoming", Fields).Invoke(guard, new object[] { scanConfig });
-            Check(ground.gameObject.activeSelf && ground.IsLive && guard.GuardAmount == 100f && successes == beforeGround,
+            Check(ground.gameObject.activeSelf && ground.IsLive && guard.GuardAmount == 50f && successes == beforeGround,
                 "가드 스캔이 장판을 지우거나 방어 성공을 발화하지 않음");
             float beforeGroundHP = health.CurHP;
             health.GetDamage(ground.Info);
-            Check(health.CurHP < beforeGroundHP && guard.GuardAmount == 100f && successes == beforeGround,
+            Check(health.CurHP < beforeGroundHP && guard.GuardAmount == 50f && successes == beforeGround,
                 "가드 중에도 장판은 체력 피해를 주고 방어 성공 사운드는 발화하지 않음");
             Debug.Log("[GuardCheck] PASS — actual magician ground hit bypasses guard scan and damage interception.");
             Debug.Log("[GuardCheck] PASS — repeated and simultaneous attacks, reflection, ownership, duplicate colliders, gauge consumption.");
@@ -626,15 +784,123 @@ public static class GuardControlsSetup
         }
     }
 
+    private static void VerifyArcBoundary(PlayerParryController guard, CharacterHealth health,
+        GameObject enemy, GameObject scanRoot, string probeName)
+    {
+        var config = AssetDatabase.LoadAssetAtPath<RightClickDataSO>(LevelPath(1)).config;
+        Vector3 origin = guard.transform.position;
+        var cross = typeof(PlayerParryController).GetMethod("TryCrossArc", Fields);
+        Arm(guard, health, config);
+        void Path(Vector2 from, Vector2 to, bool expected, string label)
+        {
+            object[] args = { from, to, 0f };
+            Check((bool)cross.Invoke(guard, args) == expected, label);
+        }
+        Path(new Vector2(2, 0), new Vector2(.5f, 0), true, "전방 원호 진입");
+        Path(new Vector2(5, 0), new Vector2(-5, 0), true, "한 프레임에 원 전체를 관통하는 고속 탄");
+        Path(new Vector2(2, 0), new Vector2(1.1f, 0), false, "선에 닿기 전에는 막지 않음");
+        Path(new Vector2(.8f, 0), Vector2.zero, false, "이미 안쪽에서 날아온 탄");
+        Path(new Vector2(.5f, 0), new Vector2(2, 0), false, "안쪽에서 바깥쪽으로 나가는 탄");
+        Path(new Vector2(-2, 0), Vector2.zero, false, "후방 진입");
+        Path(new Vector2(-2, 0), new Vector2(2, 0), false, "뒤로 들어와 앞 선으로 나가는 탄");
+        Path(new Vector2(2, 1), new Vector2(-2, 1), false, "선을 접선 방향으로 스치는 탄");
+        Path(Vector2.right, Vector2.right * .5f, true, "선 위에서 안쪽으로 이동");
+        Path(Vector2.right, Vector2.right * 2f, false, "선 위에서 바깥으로 이동");
+        foreach (float degrees in new[] { -79f, 79f, -81f, 81f })
+        {
+            Vector2 dir = new Vector2(Mathf.Cos(degrees * Mathf.Deg2Rad), Mathf.Sin(degrees * Mathf.Deg2Rad));
+            Path(dir * 2f, dir * .5f, Mathf.Abs(degrees) < 80f, "원호 끝 각도 " + degrees);
+        }
+
+        var attack = new DamageInfo(5f, attacker: enemy, category: DamageCategory.EnemyMinion);
+        enemy.transform.position = origin + Vector3.right * .5f;
+        float hpBefore = health.CurHP;
+        health.GetDamage(attack);
+        Check(health.CurHP == hpBefore - 5f && guard.GuardAmount == 50f,
+            "원호 안에 파고든 적의 근접 공격은 체력 피해");
+        enemy.transform.position = origin + Vector3.right;
+        Check(PlayerParryController.Intercept(health, ref attack), "선 위 공격자는 방어");
+        enemy.transform.position = origin + Vector3.left * 2f;
+        attack.hitFrom = (Vector2)origin + Vector2.right * 5f;
+        Check(!PlayerParryController.Intercept(health, ref attack), "범위 중심이 앞이어도 시전자가 뒤면 방어 불가");
+        enemy.transform.position = origin + Vector3.right * 2f;
+        attack.hitFrom = origin;
+        Check(PlayerParryController.Intercept(health, ref attack), "범위 중심이 내부여도 시전자가 앞/밖이면 방어");
+
+        var boxObject = new GameObject(probeName + " inner melee");
+        boxObject.SetActive(false);
+        boxObject.transform.SetParent(scanRoot.transform);
+        boxObject.transform.position = origin - Vector3.right * .25f;
+        boxObject.AddComponent<CircleCollider2D>().isTrigger = true;
+        var box = boxObject.AddComponent<BaseHitBox>();
+        box.Init(attack, Layers.PlayerMask);
+        boxObject.SetActive(true);
+        Arm(guard, health, config);
+        enemy.transform.position = origin + Vector3.right * .5f;
+        Physics2D.SyncTransforms();
+        var scan = typeof(PlayerParryController).GetMethod("ScanIncoming", Fields);
+        scan.Invoke(guard, new object[] { config });
+        Check(boxObject.activeSelf && guard.GuardAmount == 50f, "안쪽 시전자의 히트박스를 스캔이 삭제하지 않음");
+        enemy.transform.position = origin + Vector3.right * 2f;
+        scan.Invoke(guard, new object[] { config });
+        Check(!boxObject.activeSelf && guard.GuardAmount == 45f,
+            "근접 범위의 중심 대신 바깥 시전자 기준으로 방어");
+
+        Projectile Spawn(Vector2 position, string suffix)
+        {
+            var go = new GameObject(probeName + suffix);
+            go.SetActive(false);
+            go.transform.SetParent(scanRoot.transform);
+            go.transform.position = position;
+            var projectile = go.AddComponent<Projectile>();
+            projectile.Init(origin, 5f, Layers.PlayerMask, enemy, 10f, 3f);
+            return projectile;
+        }
+        Arm(guard, health, config);
+        var inside = Spawn((Vector2)origin + Vector2.right * .5f, " inside");
+        inside.transform.position = origin + Vector3.right * .2f;
+        Check(!PlayerParryController.TryBlockProjectile(inside, (Vector2)origin + Vector2.right * .5f),
+            "내부에서 생성된 투사체는 선을 통과하지 않음");
+        hpBefore = health.CurHP;
+        typeof(Projectile).GetMethod("OnHitTarget", Fields).Invoke(inside, new object[] { health.GetComponent<CharacterStat>() });
+        Check(health.CurHP == hpBefore - 5f && guard.GuardAmount == 50f && !inside.GuardConsumed,
+            "실제 투사체 피격 경로도 내부 탄을 다시 가드하지 않음");
+
+        // 이동하는 가드가 탄을 맞이할 때도 상대 경로로 선 교차를 검사한다.
+        Arm(guard, health, config);
+        var stationary = Spawn((Vector2)origin + Vector2.right * 1.5f, " stationary");
+        guard.transform.position = origin + Vector3.right * .75f;
+        Check(PlayerParryController.TryBlockProjectile(stationary, stationary.transform.position),
+            "가드를 든 플레이어의 이동으로 선에 닿은 탄");
+        guard.StopGuard();
+        Arm(guard, health, config);
+        var lateGuard = Spawn((Vector2)origin + Vector2.right * 1.5f, " raised late");
+        Check(!PlayerParryController.TryBlockProjectile(lateGuard, lateGuard.transform.position),
+            "가드를 뒤늦게 올려도 이미 안에 있는 탄은 소급 방어하지 않음");
+        guard.transform.position = origin;
+
+        Arm(guard, health, config);
+        var fast = Spawn((Vector2)origin + Vector2.right * 2f, " fast update");
+        // 실제 Projectile.Update → Move → 가드 경로를 실행한다.
+        Check(Time.deltaTime > 0f, "Play Mode 이동 테스트의 프레임 시간");
+        Set(fast, "speed", 3f / Time.deltaTime);
+        typeof(Projectile).GetMethod("Update", Fields).Invoke(fast, null);
+        Check(fast.GuardConsumed && guard.GuardAmount == 45f
+            && Vector2.Distance(fast.transform.position, (Vector2)origin + Vector2.right) < .002f,
+            "실제 고속 투사체 Update가 몸에 닿기 전에 선에서 차단");
+        Debug.Log("[GuardCheck] PASS — arc crossing, fast/inside/rear/outgoing projectiles, moving guard, caster-based melee AoE.");
+    }
+
     private static void Arm(PlayerParryController guard, CharacterHealth health, RightClickConfig config)
     {
         Set(guard, "_activeConfig", config);
         Set(guard, "_activeSelf", health);
         Set(guard, "_activeAimDir", Vector2.right);
         Set(guard, "_isParrying", true);
-        Set(guard, "_guard", 100f);
+        Set(guard, "_guard", guard.GuardCapacity);
         Set(guard, "_guardBroken", false);
         Set(guard, "_raisedAt", Time.time - 1f);
+        typeof(PlayerParryController).GetMethod("SampleGuardOrigin", Fields).Invoke(guard, new object[] { true });
         typeof(PlayerParryController).GetField("_active", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, guard);
         var player = (PlayerController)typeof(PlayerParryController).GetField("_player", Fields).GetValue(guard);
         player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, config.moveSpeedMultiplier);

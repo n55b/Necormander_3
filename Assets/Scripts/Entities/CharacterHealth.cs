@@ -119,7 +119,8 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // 버스 발화는 아래 무적 조기 리턴보다 한참 뒤라, 피격 무적 1초 동안 들어온 공격을 아예 못 본다.
         // 그러면 한 대 맞을 때마다 1초씩 카운터가 죽는다.
         // 카운터가 받아내면 true → 이 피격은 통째로 없던 일(경직·넉백·슬로우·상태이상까지 스킵).
-        // 가드 지속시간 안에는 근접/원거리 모두 차단한다. 장판/돌진은 bypassGuard로 제외한다.
+        // 근접/범위 타격은 시전자의 위치로 판정한다. 투사체는 Projectile 이동 중 원호 교차에서
+        // 처리하므로 여기서는 재방어하지 않는다. 장판/돌진은 bypassGuard로 제외한다.
         if (!isDead && PlayerParryController.Intercept(this, ref info)) return;
 
         if (isDead || invincible) return;
@@ -198,7 +199,9 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             }
         }
 
-        float remainingDamage = CalculateIncomingDamage(ref info, out bool isCritical);
+        float remainingDamage = CalculateIncomingDamage(ref info, out bool isCritical, out var attackStat);
+        if (remainingDamage > 0f)
+            DamageEventBus.TriggerAttackHitResolved(this, attackStat, info, isCritical);
 
         // [쉴드] 적용.
         // Fixed(고정 피해)도 쉴드는 막는다. 쉴드는 임시 체력에 가까운 물건이라 '방어력 무시'와
@@ -288,7 +291,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
     public float CalculateGuardDamage(DamageInfo info)
     {
         if (info.category == DamageCategory.None) info.category = ResolveCategoryFromAttacker(info.attacker);
-        return ApplyDefense(CalculateIncomingDamage(ref info, out _), info);
+        return ApplyDefense(CalculateIncomingDamage(ref info, out _, out _), info);
     }
 
     private float ApplyDefense(float amount, DamageInfo info)
@@ -298,7 +301,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             : Mathf.Max(amount * (1f - (_stat != null ? _stat.DEF : 0f) / 100f), 1f);
     }
 
-    private float CalculateIncomingDamage(ref DamageInfo info, out bool isCritical)
+    private float CalculateIncomingDamage(ref DamageInfo info, out bool isCritical, out CharacterStat atkStat)
     {
         // 데미지 파이프라인: 계산 전 증폭/변형 이벤트
         DamageEventBus.TriggerBeforeDamageCalculated(this, ref info);
@@ -308,7 +311,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // 공격 스탯 주인(플레이어/적/미니언→플레이어). 증폭·크리가 전부 이 하나에서 나온다.
         // 예전엔 크리만 여기서 info.attacker 를 직접 뒤졌는데, 미니언 시전자엔 스탯이 없어
         // 크리가 안 떴다. ResolveAttackerStat 이 플레이어 스탯을 빌려와 그 구멍을 메운다.
-        var atkStat = ResolveAttackerStat(info);
+        atkStat = ResolveAttackerStat(info);
 
         // [속성 증폭] (1 + 물리/마법 증폭)을 방어력 전에 곱한다. 최종식의 대괄호 안쪽이다.
         // 물리/마법 직접 피해만 붙는다 — 고정/디버프/함정은 속성이 물리·마법이 아니라 자동 제외.

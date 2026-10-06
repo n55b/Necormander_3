@@ -140,3 +140,36 @@ public class ItemRoomClearHealEffect : ItemEffect
         return Mathf.Max(0f, amount);
     }
 }
+
+/// <summary>치명타가 아닌 유효 명중마다 확률을 올리고 치명타 명중에서 초기화한다.</summary>
+[System.Serializable]
+public class ItemCritPityEffect : ItemEffect
+{
+    [Min(0f), Tooltip("비치명타 명중 1회당 치명타 확률 증가(%p).")]
+    public float chancePerNonCrit = 5f;
+}
+
+[System.Serializable]
+public class ItemCritGoldEffect : ItemEffect
+{
+    [Min(0), Tooltip("치명타에 맞은 대상 1명마다 획득하는 골드.")]
+    public int goldPerCrit = 5;
+}
+
+[System.Serializable]
+public class ItemGuardCritEffect : ItemEffect
+{
+    [Min(0f)] public float duration = 10f;
+    [Min(0f)] public float chanceBonus = 15f;
+    [Min(0f)] public float damageBonus = 15f;
+}
+
+[System.Serializable]
+public class ItemNearbyCritEffect : ItemEffect
+{
+    [Min(0f), Tooltip("플레이어 중심의 월드 유닛 반경.")]
+    public float radius = 2f;
+    [Min(1)] public int minEnemies = 3;
+    [Min(0f), Tooltip("조건 충족 중 치명타 피해 증가(%p).")]
+    public float damageBonus = 25f;
+}

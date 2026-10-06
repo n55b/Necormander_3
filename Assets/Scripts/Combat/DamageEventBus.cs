@@ -20,6 +20,10 @@ public static class DamageEventBus
     /// </summary>
     public static event Action<CharacterHealth, DamageInfo> OnDamageReceived;
 
+    /// <summary>회피/무적을 통과한 양수 피해의 명중 결과. 대상별 1회이며 보호막 명중도 포함한다.
+    /// 가드 소모량 미리 계산에서는 발행하지 않는다. 치명타를 다시 추첨하지 않고 실제 결과를 전달한다.</summary>
+    public static event Action<CharacterHealth, CharacterStat, DamageInfo, bool> OnAttackHitResolved;
+
     /// <summary>
     /// 공격이 빗나갔을 때 (회피 발생 시)
     /// 인자: 피해자(CharacterHealth), 공격자 스탯(CharacterStat)
@@ -50,6 +54,11 @@ public static class DamageEventBus
     public static void TriggerDamageReceived(CharacterHealth target, DamageInfo info)
     {
         OnDamageReceived?.Invoke(target, info);
+    }
+
+    public static void TriggerAttackHitResolved(CharacterHealth target, CharacterStat attacker, DamageInfo info, bool critical)
+    {
+        OnAttackHitResolved?.Invoke(target, attacker, info, critical);
     }
 
     public static void TriggerEvasionOccurred(CharacterHealth target, CharacterStat attackerStat)

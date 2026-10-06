@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f711bf1e2ceee742b68a340fd65898e, type: 3}
+  m_Name: Whetstone
+  m_EditorClassIdentifier: 
+  itemName: "\uC22B\uB3CC"
+  description: "\uCE58\uBA85\uD0C0 \uD655\uB960\uC774 10%p \uC99D\uAC00\uD569\uB2C8\uB2E4."
+  icon: {fileID: 0}
+  tier: 4
+  effects:
+  - rid: 2773715014607962112
+  references:
+    version: 2
+    RefIds:
+    - rid: 2773715014607962112
+      type: {class: ItemStatEffect, ns: , asm: Assembly-CSharp}
+      data:
+        label: 
+        statType: 13
+        value: 10
+        isPercent: 0

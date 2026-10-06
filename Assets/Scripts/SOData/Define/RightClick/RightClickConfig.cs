@@ -12,7 +12,7 @@ public class RightClickConfig
     [Header("가드 중 이동")]
     [Range(0f, 1f)] public float moveSpeedMultiplier = 0.3f;
     [Header("판정 범위")]
-    [Min(0f)] public float radius = 2.5f;
+    [Min(0f)] public float radius = 1f;
     [Range(0f, 360f)] public float angle = 160f;
     public Color sectorColor = new Color(0.2f, 0.6f, 1f);
     public bool IsValid => type == RightClickType.Guard;

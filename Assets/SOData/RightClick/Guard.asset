@@ -19,6 +19,6 @@ MonoBehaviour:
     type: 3
     level: 1
     moveSpeedMultiplier: 0.3
-    radius: 2.5
+    radius: 1
     angle: 160
     sectorColor: {r: 0.4, g: 0.9, b: 0.5, a: 1}

@@ -11,7 +11,7 @@ using UnityEngine;
 /// [입력 처리 방식]
 /// 일부러 InputSystem 을 안 쓰고 레거시 Input 을 하드코딩했다 — 디버그용이라 액션 에셋과
 /// 프리팹 배선을 늘릴 이유가 없다. 프로젝트가 activeInputHandler: 2(둘 다)로 켜져 있어서
-/// Input.GetKeyDown 이 그대로 동작한다. 같은 방식의 선례로 DPSMeter(F3/F4)가 있다.
+/// Input.GetKeyDown 이 그대로 동작한다. DPS/스탯 패널은 별도로 F5, 기록 초기화는 F4다.
 /// 숫자 1~4 는 구 SummonButton 액션에 바인딩만 남아 있고 받는 쪽이 없어서 충돌하지 않는다.
 /// </summary>
 public class StatusDebugKeys : MonoBehaviour

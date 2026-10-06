@@ -6,19 +6,21 @@ public class PlayerParryController : MonoBehaviour
     [SerializeField] private GameObject parryTelegraphPrefab;
     [SerializeField] private string emptyMessage = "우클릭 없음!";
     [Header("가드 게이지")]
-    [SerializeField, Min(1f)] private float maxGuard = 100f;
+    [SerializeField, Min(1f)] private float maxGuard = 50f;
     [SerializeField, Min(0f), Tooltip("가드를 올린 뒤 실제 방어까지 이 시간 이내면 소모량이 절반이다.")]
     private float perfectGuardWindow = 0.2f;
-    [SerializeField, Min(0f)] private float guardRegenPerSecond = 3f;
+    [SerializeField, Min(0f)] private float guardRegenPerSecond = 2f;
     [SerializeField, Min(0f), Tooltip("가드를 내린 뒤 자연 회복을 기다리는 시간.")]
     private float guardRegenDelay = 1f;
-    [SerializeField, Min(0.01f), Tooltip("소진 즉시 회복을 시작하고 이 시간 후 100%가 되어 다시 사용할 수 있다.")]
-    private float guardBreakRecoveryDuration = 12f;
+    [SerializeField, Range(0f, 1f), Tooltip("방어 후 이 비율 미만이면 즉시 0으로 파괴된다. 0.2 = 최대 50일 때 10 미만.")]
+    private float guardBreakThresholdRatio = 0.2f;
+    [SerializeField, Min(0.01f), Tooltip("파괴 후 초당 회복량. 즉시 회복을 시작하고 완충까지 사용 불가. 최대 50이면 약 6초, 최대치가 늘면 더 오래 걸린다.")]
+    private float guardBreakRegenPerSecond = 8.3f;
 
     private PlayerController _player;
     private MeleeDodgeController _dodge;
     private bool _isParrying;
-    private float _guard = 100f;
+    private float _guard = 50f;
     private bool _guardBroken;
     private float _raisedAt;
     private float _recoverAt;
@@ -28,7 +30,9 @@ public class PlayerParryController : MonoBehaviour
     private Vector2 _activeAimDir;
     private GameObject _telegraph;
     private Material _telegraphMaterial;
-    private Mesh _telegraphMesh;
+    private Vector2 _guardOrigin;
+    private Vector2 _previousGuardOrigin;
+    private int _guardOriginFrame = -1;
 
     public event System.Action OnParryStart;
     public event System.Action OnParrySuccess;
@@ -63,6 +67,7 @@ public class PlayerParryController : MonoBehaviour
         if (_isParrying)
         {
             UpdateAim(AimDir());
+            SampleGuardOrigin();
             ScanIncoming(_activeConfig);
         }
         else TickGauge(Time.deltaTime, Time.time);
@@ -71,9 +76,9 @@ public class PlayerParryController : MonoBehaviour
     private void TickGauge(float deltaTime, float now)
     {
         if (_isParrying || deltaTime <= 0f) return;
-        // 일반 회복은 지연을 넘긴 프레임의 일부만, 소진 회복은 지연 없이 12초 전체를 쓴다.
+        // 일반 회복은 지연을 넘긴 프레임의 일부만, 파괴 회복은 지연 없이 고정 속도로 회복한다.
         float elapsed = _guardBroken ? deltaTime : Mathf.Clamp(now - _recoverAt, 0f, deltaTime);
-        float rate = _guardBroken ? GuardCapacity / Mathf.Max(0.01f, guardBreakRecoveryDuration)
+        float rate = _guardBroken ? Mathf.Max(0.01f, guardBreakRegenPerSecond)
                                  : Mathf.Max(0f, guardRegenPerSecond);
         _guard = Mathf.Min(GuardCapacity, _guard + elapsed * rate);
         if (_guard >= GuardCapacity - 0.0001f) { _guard = GuardCapacity; _guardBroken = false; }
@@ -107,24 +112,29 @@ public class PlayerParryController : MonoBehaviour
         var guard = _active;
         if (guard == null || !guard.WindowOpen || target == null || target.IsDead
             || target != guard._activeSelf || !CanGuard(info)) return false;
-        Vector2 source = info.hitFrom ?? (Vector2)info.attacker.transform.position;
-        if (!guard.IsInAimCone(source)) return false;
+        // 투사체는 이동 중 원호를 통과했을 때만 막는다. 여기서 방향만 보고 재방어하면
+        // 선 안에서 생성된 탄/뒤쪽으로 들어온 탄까지 막혀서 경계 판정이 무의미해진다.
+        if (!guard.IsAttackerOutsideArc(info)) return false;
         guard.Block(info);
         return true; // 소진시키는 마지막 타격까지 피해/경직/넉백/상태이상을 완전히 막는다.
     }
 
-    /// <summary>영역 스캔과 실제 충돌이 같은 방어/소모 경로를 쓴다. 같은 탄은 한 번만 소모한다.</summary>
-    public static bool TryBlockProjectile(Projectile projectile, CharacterHealth target = null)
+    /// <summary>투사체의 이번 이동이 바깥→안쪽으로 원호를 통과할 때만 방어한다.</summary>
+    public static bool TryBlockProjectile(Projectile projectile, Vector2 previousPosition)
     {
         var guard = _active;
         if (guard == null || !guard.WindowOpen || guard._activeSelf == null || guard._activeSelf.IsDead
             || projectile == null || projectile.GuardConsumed
-            || (target != null && target != guard._activeSelf)
             || (projectile.TargetLayer.value & Layers.PlayerMask) == 0
             || !CanGuard(projectile.GuardInfo)) return false;
-        Vector2 point = target != null
-            ? projectile.GuardInfo.hitFrom.Value : (Vector2)projectile.transform.position;
-        if (!guard.IsInAimCone(point)) return false;
+        guard.SampleGuardOrigin();
+        Vector2 position = projectile.transform.position;
+        // 플레이어도 가드를 든 채 이동하므로 상대 궤적을 검사한다. 고속 탄이 한 프레임에
+        // 원호/몸을 모두 지나가도 입구 교차점을 찾고, 이미 안쪽에 있는 탄은 소급해서 막지 않는다.
+        if (!guard.TryCrossArc(previousPosition - guard._previousGuardOrigin,
+                position - guard._guardOrigin, out float fraction)) return false;
+        Vector2 contact = Vector2.Lerp(previousPosition, position, fraction);
+        projectile.transform.position = new Vector3(contact.x, contact.y, projectile.transform.position.z);
 
         var shooter = projectile.Shooter;
         Vector2 returnDir = shooter != null
@@ -135,6 +145,41 @@ public class PlayerParryController : MonoBehaviour
         if (reflect) projectile.Deflect(guard.gameObject, Layers.EnemyMask, returnDir);
         else Destroy(projectile.gameObject);
         return true;
+    }
+
+    private void SampleGuardOrigin(bool reset = false)
+    {
+        Vector2 origin = transform.position;
+        if (reset || _guardOriginFrame < 0) _previousGuardOrigin = origin;
+        else if (_guardOriginFrame != Time.frameCount) _previousGuardOrigin = _guardOrigin;
+        _guardOrigin = origin;
+        _guardOriginFrame = Time.frameCount;
+    }
+
+    private bool TryCrossArc(Vector2 from, Vector2 to, out float fraction)
+    {
+        fraction = 0f;
+        float radius = _activeConfig.EffectiveRadius;
+        float c = from.sqrMagnitude - radius * radius;
+        Vector2 delta = to - from;
+        float a = delta.sqrMagnitude;
+        if (radius <= 0f || c < 0f || a < 0.000001f) return false;
+        float b = Vector2.Dot(from, delta);
+        float discriminant = b * b - a * c;
+        if (b >= 0f || discriminant <= 0f) return false; // 바깥으로 가거나 스치기만 한 탄
+        fraction = (-b - Mathf.Sqrt(discriminant)) / a; // 원의 입구 교차점
+        if (fraction < 0f || fraction > 1f) return false;
+        Vector2 contact = from + delta * fraction;
+        return Vector2.Angle(_activeAimDir, contact) <= _activeConfig.angle * 0.5f;
+    }
+
+    private bool IsAttackerOutsideArc(DamageInfo info)
+    {
+        if (info.isRanged || info.attacker == null) return false;
+        Vector2 source = info.attacker.transform.position;
+        float radius = _activeConfig.EffectiveRadius;
+        return radius > 0f && (source - (Vector2)transform.position).sqrMagnitude >= radius * radius
+            && IsInAimCone(source);
     }
 
     private static RightClickConfig EquippedRightClick
@@ -188,6 +233,7 @@ public class PlayerParryController : MonoBehaviour
         _raisedAt = Time.time;
         _active = this;
         _isParrying = true;
+        SampleGuardOrigin(true);
         LastBlockWasPerfect = false;
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, rc.moveSpeedMultiplier);
         _player.LockAnimState(0f); // 가드를 내릴 때 직접 해제. 3초 타임아웃으로 홀드 자세가 풀리면 안 된다.
@@ -218,11 +264,11 @@ public class PlayerParryController : MonoBehaviour
         {
             if (!WindowOpen) break;
             if (col == null || !col.enabled || !col.gameObject.activeInHierarchy) continue;
-            var projectile = col.GetComponentInParent<Projectile>();
-            if (projectile != null) { TryBlockProjectile(projectile); continue; }
+            // 투사체는 자기 이동 경로에서 처리한다. 내부 영역 스캔으로 지우지 않는다.
+            if (col.GetComponentInParent<Projectile>() != null) continue;
             var box = col.GetComponentInParent<BaseHitBox>();
             if (box == null || !box.IsLive || box.HasHitAnyone || !box.Targets(Layers.Player)
-                || !CanGuard(box.Info) || !IsInAimCone(box.transform.position)) continue;
+                || !CanGuard(box.Info) || !IsAttackerOutsideArc(box.Info)) continue;
             box.gameObject.SetActive(false);
             Destroy(box.gameObject);
             Block(box.Info);
@@ -241,8 +287,11 @@ public class PlayerParryController : MonoBehaviour
         LastBlockWasPerfect = Time.time - _raisedAt <= Mathf.Max(0f, perfectGuardWindow);
         _guard = Mathf.Max(0f, _guard - damage * (LastBlockWasPerfect ? 0.5f : 1f));
         _player?.RecordCombatAction();
-        if (_guard <= 0f)
+        float breakThreshold = GuardCapacity * Mathf.Clamp01(guardBreakThresholdRatio);
+        // 0.2f 곱셈의 미세 오차 때문에 정확히 10/50인 상태를 '미만'으로 오판하지 않는다.
+        if (_guard <= 0f || (_guard < breakThreshold && !Mathf.Approximately(_guard, breakThreshold)))
         {
+            _guard = 0f;
             _guardBroken = true;
             StopGuard();
         }
@@ -253,10 +302,8 @@ public class PlayerParryController : MonoBehaviour
     {
         if (_telegraph != null) Destroy(_telegraph);
         if (_telegraphMaterial != null) Destroy(_telegraphMaterial);
-        if (_telegraphMesh != null) Destroy(_telegraphMesh);
         _telegraph = null;
         _telegraphMaterial = null;
-        _telegraphMesh = null;
     }
 
     private void Announce(string msg)
@@ -271,7 +318,6 @@ public class PlayerParryController : MonoBehaviour
     {
         float radius = rc.EffectiveRadius;
         float angleSpan = Mathf.Min(360f, rc.angle);
-        Color fill = new Color(rc.sectorColor.r, rc.sectorColor.g, rc.sectorColor.b, 0.4f);
         Color edge = new Color(rc.sectorColor.r, rc.sectorColor.g, rc.sectorColor.b, 0.8f);
         Quaternion rot = Quaternion.Euler(0f, 0f, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
 
@@ -292,29 +338,19 @@ public class PlayerParryController : MonoBehaviour
             return customGo;
         }
 
-        // 프리팹이 없다면 코드로 직접 부채꼴 2D 메쉬 및 라인을 렌더링
+        // 투사체를 막는 바깥 원호만 그린다(채움/중심으로 잇는 선 없음).
         GameObject go = new GameObject("RightClickTelegraphSector");
         go.transform.position = transform.position;
         go.transform.rotation = rot;
 
-        MeshFilter meshFilter = go.AddComponent<MeshFilter>();
-        MeshRenderer meshRenderer = go.AddComponent<MeshRenderer>();
-
         // 빌드에서도 안전하게 핑크색 에러 없이 렌더링되게 Sprites/Default 셰이더 적용
         Shader spriteShader = Shader.Find("Sprites/Default");
         Material mat = new Material(spriteShader != null ? spriteShader : Shader.Find("Legacy Shaders/Particles/Alpha Blended Premultiply"));
-        mat.color = fill;
-        meshRenderer.material = mat;
+        mat.color = Color.white;
 
-        // 부채꼴 메쉬 작성 (+X 를 중심으로 좌우 대칭)
-        Mesh mesh = new Mesh();
-        _telegraphMesh = mesh;
+        // +X 중심의 바깥 원호. 새 이미지 없이 기존 LineRenderer를 사용한다.
         int segments = 20;
-        int vertexCount = segments + 2;
-        Vector3[] vertices = new Vector3[vertexCount];
-        int[] triangles = new int[segments * 3];
-
-        vertices[0] = Vector3.zero; // 중심점
+        Vector3[] vertices = new Vector3[segments + 1];
 
         float startAngle = -(angleSpan / 2f);
         float angleStep = angleSpan / segments;
@@ -322,48 +358,20 @@ public class PlayerParryController : MonoBehaviour
         for (int i = 0; i <= segments; i++)
         {
             float currentAngle = (startAngle + i * angleStep) * Mathf.Deg2Rad;
-            vertices[i + 1] = new Vector3(Mathf.Cos(currentAngle), Mathf.Sin(currentAngle), 0f) * radius;
+            vertices[i] = new Vector3(Mathf.Cos(currentAngle), Mathf.Sin(currentAngle), 0f) * radius;
         }
-
-        for (int i = 0; i < segments; i++)
-        {
-            triangles[i * 3] = 0;
-            triangles[i * 3 + 1] = i + 1;
-            triangles[i * 3 + 2] = i + 2;
-        }
-
-        mesh.vertices = vertices;
-        mesh.triangles = triangles;
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
-
-        meshFilter.mesh = mesh;
 
         // 테두리 외곽선 LineRenderer
         LineRenderer lr = go.AddComponent<LineRenderer>();
         lr.useWorldSpace = false;
         lr.startWidth = 0.05f;
         lr.endWidth = 0.05f;
-        lr.material = mat;
+        lr.sharedMaterial = mat;
         lr.startColor = edge;
         lr.endColor = edge;
 
-        // 전방위(360)면 중심으로 돌아오는 반지름 선을 빼고 테두리만 그린다 — 안 그러면 원 한가운데에
-        // 스포크가 하나 그어진다. 부채꼴일 때는 중심-테두리-중심이 맞다.
-        if (angleSpan >= 360f)
-        {
-            lr.positionCount = segments + 1;
-            for (int i = 0; i <= segments; i++) lr.SetPosition(i, vertices[i + 1]);
-        }
-        else
-        {
-            lr.positionCount = vertexCount + 1;
-            Vector3[] linePositions = new Vector3[vertexCount + 1];
-            linePositions[0] = Vector3.zero;
-            for (int i = 0; i <= segments; i++) linePositions[i + 1] = vertices[i + 1];
-            linePositions[vertexCount] = Vector3.zero;
-            lr.SetPositions(linePositions);
-        }
+        lr.positionCount = vertices.Length;
+        lr.SetPositions(vertices);
 
         // new Material 은 렌더러가 치워주지 않는다. 오브젝트와 같이 명시적으로 지운다
         // (예전엔 우클릭 한 번마다 머티리얼이 하나씩 새서 런 내내 쌓였다).
