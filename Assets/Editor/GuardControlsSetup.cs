@@ -19,7 +19,7 @@ public static class GuardControlsSetup
     private static string LevelPath(int level) => level == 1 ? "Assets/SOData/RightClick/Guard.asset"
         : $"Assets/SOData/RightClick/GuardLevel{level}.asset";
 
-    [MenuItem("Tools/Combat/Apply Guard 1005 Tuning")]
+    [MenuItem("Tools/Combat/Apply Guard 1006 Tuning")]
     public static void ApplyGuard1005()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
@@ -39,7 +39,7 @@ public static class GuardControlsSetup
             guard.FindProperty("maxGuard").floatValue = 50f;
             guard.FindProperty("guardRegenPerSecond").floatValue = 2f;
             guard.FindProperty("guardBreakThresholdRatio").floatValue = .2f;
-            guard.FindProperty("guardBreakRegenPerSecond").floatValue = 8.3f;
+            guard.FindProperty("guardBreakRecoveryDuration").floatValue = 12f;
             // 퍼펙트 0.2초/내린 뒤 1초 지연/기존 사운드와 입력 연결은 건드리지 않는다.
             guard.ApplyModifiedPropertiesWithoutUndo();
         });
@@ -404,8 +404,8 @@ public static class GuardControlsSetup
         Check(guardConfig.FindProperty("maxGuard").floatValue == 50f
             && guardConfig.FindProperty("guardRegenPerSecond").floatValue == 2f
             && guardConfig.FindProperty("guardBreakThresholdRatio").floatValue == .2f
-            && guardConfig.FindProperty("guardBreakRegenPerSecond").floatValue == 8.3f,
-            "프리팹에 1005 게이지 수치 실제 저장");
+            && guardConfig.FindProperty("guardBreakRecoveryDuration").floatValue == 12f,
+            "프리팹에 1006 게이지 수치 실제 저장");
         Check(guardConfig.FindProperty("perfectGuardWindow").floatValue == .2f
             && guardConfig.FindProperty("guardRegenDelay").floatValue == 1f,
             "퍼펙트/회복 지연 유지");
@@ -503,11 +503,11 @@ public static class GuardControlsSetup
             guard.TryStartParry();
             Check(!guard.IsParrying && !PlayerParryController.Intercept(health, ref hit), "소진 중 재사용/방어 불가");
             Tick(guard, 1f, Time.time + 1f);
-            Check(Mathf.Approximately(guard.GuardAmount, 8.3f) && guard.GuardBroken, "파괴 즉시 초당 8.3 회복");
-            Tick(guard, 5f, Time.time + 6f);
-            Check(guard.GuardBroken && Mathf.Approximately(guard.GuardAmount, 49.8f), "6초에 49.8, 완충 전 잠금 유지");
-            Tick(guard, .1f, Time.time + 6.1f);
-            Check(!guard.GuardBroken && guard.GuardAmount == 50f, "약 6초에 완충/잠금 해제");
+            Check(Mathf.Approximately(guard.GuardAmount, 50f / 12f) && guard.GuardBroken, "파괴 즉시 초당 50/12 회복");
+            Tick(guard, 10.9f, Time.time + 11.9f);
+            Check(guard.GuardBroken && guard.GuardAmount < 50f, "12초 완충 전 잠금 유지");
+            Tick(guard, .1f, Time.time + 12f);
+            Check(!guard.GuardBroken && guard.GuardAmount == 50f, "12초에 완충/잠금 해제");
             Tick(guard, 100f, Time.time + 100f);
             Check(guard.GuardAmount == 50f, "최대치 초과 금지");
             Set(guard, "maxGuard", 75f);
@@ -519,10 +519,11 @@ public static class GuardControlsSetup
             health.GetDamage(smallHit);
             Check(guard.GuardAmount == 0f && guard.GuardBroken && !guard.IsParrying,
                 "최대 75에서는 15 미만인 14에 파괴, 남은 양도 0으로 초기화");
-            Tick(guard, 6.1f, Time.time + 6.1f);
-            Check(guard.GuardBroken && Mathf.Approximately(guard.GuardAmount, 50.63f), "최대치가 늘어도 초당 8.3 고정");
-            Tick(guard, 3f, Time.time + 9.1f);
-            Check(!guard.GuardBroken && guard.GuardAmount == 75f, "증가한 최대치까지 회복해야 해제");
+            Tick(guard, 6f, Time.time + 6f);
+            Check(guard.GuardBroken && Mathf.Approximately(guard.GuardAmount, 37.5f), "최대 75이면 초당 6.25, 6초에 절반 회복");
+            Tick(guard, 6f, Time.time + 12f);
+            Check(!guard.GuardBroken && guard.GuardAmount == 75f, "최대치가 늘어도 12초 완충 후 해제");
+            VerifyBreakRecoveryTable(guard);
             Set(guard, "maxGuard", 50f);
             Arm(guard, health, registry.rightClicks[0].config);
             guard.SetGuardHeld(false);
@@ -889,6 +890,33 @@ public static class GuardControlsSetup
             && Vector2.Distance(fast.transform.position, (Vector2)origin + Vector2.right) < .002f,
             "실제 고속 투사체 Update가 몸에 닿기 전에 선에서 차단");
         Debug.Log("[GuardCheck] PASS — arc crossing, fast/inside/rear/outgoing projectiles, moving guard, caster-based melee AoE.");
+    }
+
+    private static void VerifyBreakRecoveryTable(PlayerParryController guard)
+    {
+        // 문서의 50~300, 12/11/10/9초 조합. 표의 반올림값을 저장하지 않고 실제 시간으로 완충한다.
+        for (int capacity = 50; capacity <= 300; capacity += 25)
+        {
+            for (int seconds = 12; seconds >= 9; seconds--)
+            {
+                Set(guard, "maxGuard", (float)capacity);
+                Set(guard, "guardBreakRecoveryDuration", (float)seconds);
+                Set(guard, "_guard", 0f);
+                Set(guard, "_guardBroken", true);
+                Tick(guard, 1f, Time.time + 1f);
+                Check(Mathf.Approximately(guard.GuardAmount, (float)capacity / seconds) && guard.GuardBroken,
+                    $"회복 표: 최대 {capacity}, {seconds}초의 초당량");
+                if (capacity == 175 && seconds == 12)
+                    Check(Mathf.Abs(guard.GuardAmount - 14.583333f) < .00001f, "175/12는 14.58 (14.48 오타 제외)");
+                Tick(guard, seconds - 1.1f, Time.time + seconds - .1f);
+                Check(guard.GuardBroken && guard.GuardAmount < capacity, "표의 완충 시간 전에는 잠금 유지");
+                Tick(guard, .1f, Time.time + seconds);
+                Check(!guard.GuardBroken && guard.GuardAmount == capacity, "표의 시간에 완충 후 잠금 해제");
+            }
+        }
+        Set(guard, "maxGuard", 50f);
+        Set(guard, "guardBreakRecoveryDuration", 12f);
+        Debug.Log("[GuardCheck] PASS — 1006 broken recovery: 44 capacity/time combinations, 175 typo corrected.");
     }
 
     private static void Arm(PlayerParryController guard, CharacterHealth health, RightClickConfig config)

@@ -1581,7 +1581,7 @@ MonoBehaviour:
   guardRegenPerSecond: 2
   guardRegenDelay: 1
   guardBreakThresholdRatio: 0.2
-  guardBreakRegenPerSecond: 8.3
+  guardBreakRecoveryDuration: 12
 --- !u!1 &9147274299791283214
 GameObject:
   m_ObjectHideFlags: 0
