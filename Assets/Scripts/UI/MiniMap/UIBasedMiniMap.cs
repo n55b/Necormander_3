@@ -45,10 +45,10 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
     [Tooltip("각 지형 도트를 셀 크기의 이 '배수'로 그려 인접 도트가 겹치게 한다. 1.0=딱 맞닿음(틈 보임), 1.35=35% 겹침(빈틈 없이 꽉 참). 절대 px가 아니라 배수라 큰 방/작은 방 모두 같은 비율로 겹쳐 균일하다. 네모를 더 또렷하게 보고 싶으면 1.2 근처로, 더 꽉 채우려면 키우면 됨.")]
     [SerializeField] private float terrainDotOverlap = 1.35f;
 
-    [Tooltip("전투 HUD 미니맵의 타일 1칸당 픽셀(고정 스케일). 방 크기와 무관하게 이 크기로 그려 빈틈이 없고, 방이 크면 미니맵 전체가 오른쪽 상단 기준으로 커진다.")]
+    [Tooltip("전투 HUD 타일 1칸의 최대 UI 크기. 큰 방은 고정된 미니맵 프레임 안에 들어오도록 같은 비율로 축소한다.")]
     [SerializeField] private float hudPixelsPerTile = 6f;
 
-    [Tooltip("전투 미니맵의 플레이어/적 마커 크기(타일 칸 수 기준). 지도가 고정 스케일로 커지므로 마커도 화면 비율이 아니라 칸 수로 잡아야 방이 커져도 마커가 같이 커지지 않는다.")]
+    [Tooltip("전투 미니맵의 플레이어/적 마커 크기(타일 칸 수 기준). 축소 후에도 알아볼 수 있도록 3~7 UI 유닛으로 제한한다.")]
     [SerializeField] private float hudMarkerTiles = 3f;
     [SerializeField] private bool useTerrainShadow = true;     // 2D 입체 그림자 효과 사용 여부
     [SerializeField] private Color terrainShadowColor = new Color(0f, 0f, 0f, 0.6f);
@@ -180,15 +180,15 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         if (hudMapContainer != null)
         {
             ClearContainer(ref _spawnedHudRooms);
-            // 전투 HUD는 '고정 스케일'(타일당 hudPixelsPerTile px)로 방 크기대로 그린다 → 빈틈 없고 방이 크면 미니맵도 커짐.
-            // 지도가 커져도 마커는 칸 수 기준으로 고정. 개요(비전투)는 기존대로 방 크기 비율.
-            _hudMarkerPx = isBattle ? hudPixelsPerTile * hudMarkerTiles : 0f;
+            // 전투 HUD는 현재 방 전체를 고정 프레임 안에 맞춘다.
+            // 지형이 없는 폴백에도 마커 크기를 제한. 개요(비전투)는 기존 방 크기 비율.
+            _hudMarkerPx = isBattle ? Mathf.Clamp(hudPixelsPerTile * hudMarkerTiles, 3f, 7f) : 0f;
 
-            // 전투 시엔 방 크기대로 프레임 밖으로 커질 수 있으니 클리핑 해제, 비전투 개요에선 프레임 안으로 유지.
+            // 1006: 전투 중에도 고정 프레임 밖으로 지도가 넘치지 않는다.
             var hudMask = hudMapContainer.GetComponent<RectMask2D>();
-            if (hudMask != null) hudMask.enabled = !isBattle;
+            if (hudMask != null) hudMask.enabled = true;
             var hudMaskLegacy = hudMapContainer.GetComponent<Mask>();
-            if (hudMaskLegacy != null) hudMaskLegacy.enabled = !isBattle;
+            if (hudMaskLegacy != null) hudMaskLegacy.enabled = true;
 
             DrawRoomsOnContainer(hudMapContainer, _spawnedHudRooms, currentRoom, hudRoomSize, hudRoomSpacing, false, isBattle);
         }
@@ -279,10 +279,9 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             {
                 img.color = new Color(0f, 0f, 0f, 0f); // 배경 사각형 투명화
 
-                // [액션 미니맵] 타일당 고정 px로 방 바닥 크기 그대로 그린다 → 방이 크면 미니맵도 그만큼 커진다.
-                // 커진 만큼 화면 밖으로 나가지 않도록 피벗/앵커를 오른쪽 상단으로 잡아 왼쪽-아래로만 자라게 한다.
+                // [액션 미니맵] 현재 방 바닥을 프레임 안쪽 크기에 맞춰 가운데 배치한다.
                 drawSize = GetFocusRoomUiSize(room);
-                rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 1f);
+                CenterOnParent(rt);
                 rt.anchoredPosition = Vector2.zero;
                 rt.sizeDelta = drawSize;
                 DrawRoomTerrainShape(roomObj, room, drawSize);
@@ -465,7 +464,8 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             }
         }
 
-        FitBackground(container, isFullMap ? fullMapBackground : hudMapBackground, spawnedList);
+        if (isFullMap) FitBackground(container, fullMapBackground, spawnedList);
+        else if (hudMapBackground != null) hudMapBackground.SetAsFirstSibling();
     }
 
     // 프리팹의 배경만 늘린다. 방 위치/배율은 그대로 두고 큰 방과 긴 지도도 덮는다.
@@ -523,7 +523,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         containerRt.anchoredPosition = Vector2.zero;
 
         // 방 크기(벽 포함 roomSize)가 아니라 '실제 바닥 타일 범위'에 꽉 차게 그린다.
-        // uiSize = span × hudPixelsPerTile 이므로 cell은 항상 hudPixelsPerTile로 고정된다(방 크기와 무관).
+        // 타일과 마커 모두 프레임에 맞춘 같은 cell 스케일을 사용한다.
         ComputeFloorLayout(terrainTiles, out Vector2 floorCenter, out Vector2 span);
         float cell = uiSize.x / span.x;
 
@@ -590,13 +590,16 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
         return tiles;
     }
 
-    /// <summary>전투 HUD용: 타일당 hudPixelsPerTile px 고정 스케일로 잡은 UI 크기(칸수×픽셀). 방이 크면 미니맵도 그만큼 커진다.</summary>
+    /// <summary>현재 방을 비율 유지한 채 HUD 프레임 안에 맞추고 마커 크기를 갱신한다.</summary>
     private Vector2 GetFocusRoomUiSize(RoomInstance room)
     {
         var tiles = GetRoomFloorTiles(room);
         if (tiles.Count == 0) return new Vector2(hudRoomSize, hudRoomSize);
         ComputeFloorLayout(tiles, out _, out Vector2 span);
-        return span * hudPixelsPerTile;
+        Vector2 available = hudMapContainer != null ? hudMapContainer.rect.size - Vector2.one * 14f : Vector2.one * 90f;
+        float cell = Mathf.Max(0.01f, Mathf.Min(hudPixelsPerTile, available.x / span.x, available.y / span.y));
+        _hudMarkerPx = Mathf.Clamp(cell * hudMarkerTiles, 3f, 7f);
+        return span * cell;
     }
 
     /// <summary>타일 중심 목록의 중심과 칸 수(가로,세로)를 구한다. 지형 도트와 마커가 같은 기준으로 배치되도록 공용.</summary>
@@ -791,7 +794,7 @@ public class UIBasedMiniMap : Singleton<UIBasedMiniMap>
             {
                 if (pRt != null && pRt.parent != null)
                 {
-                    // 전투 HUD에선 parentSize = span × hudPixelsPerTile 이라 결과가 (월드오프셋 × 고정px) = 지형 도트 격자와 정확히 일치.
+                    // 프레임 크기에 맞춰 축소된 지형 도트와 동일한 좌표계다.
                     Vector2 parentSize = pRt.parent.GetComponent<RectTransform>().sizeDelta;
                     pRt.anchoredPosition = new Vector2(pNormX * parentSize.x, pNormY * parentSize.y);
 

@@ -26,6 +26,13 @@ public class DashCooldownUI : MonoBehaviour
     [Tooltip("기본 아이콘(Dash.png)은 프리팹에 박아둔다. 나중에 대쉬 종류가 생기면 SetDashIcon 으로 교체.")]
     [SerializeField] private Image dashIcon;
 
+    [Header("플레이어 발밑 표시 (HUD 프리팹에 배치)")]
+    [SerializeField] private RectTransform worldPips;
+    [SerializeField] private Image[] worldPipFills;
+    [SerializeField] private Vector3 worldOffset = new Vector3(0f, -0.55f, 0f);
+    private Canvas _canvas;
+    private Camera _worldCamera;
+
     // ─── 런타임 ──────────────────────────────────────────────────────
     private PlayerController     _player;
     private MeleeDodgeController _dodge;
@@ -47,6 +54,8 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
         _dodge  = playerController != null
             ? playerController.GetComponent<MeleeDodgeController>()
             : null;
+        _canvas = GetComponentInParent<Canvas>();
+        _worldCamera = Camera.main;
 
         if (cooldownFill != null)
         {
@@ -58,6 +67,7 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
         // 캐시 초기화 (강제 1회 갱신)
         _lastCharges = -1;
         _lastFill    = -1f;
+        _lastPipCurrent = _lastPipMax = -1;
         ForceRefresh();
 
         Debug.Log("<color=yellow>[DashCooldownUI]</color> Initialized.");
@@ -87,6 +97,32 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
             UpdateMeleeMode();
         else
             UpdateBasicMode();
+    }
+
+    private void LateUpdate()
+    {
+        if (worldPips == null) return;
+        if (_worldCamera == null) _worldCamera = Camera.main;
+        bool visible = _player != null && _worldCamera != null && _canvas != null;
+        Vector3 screen = visible ? _worldCamera.WorldToScreenPoint(_player.transform.position + worldOffset) : Vector3.zero;
+        visible = visible && screen.z > 0f && _player.gameObject.activeInHierarchy;
+        worldPips.gameObject.SetActive(visible);
+        if (!visible) return;
+        var camera = _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera;
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)worldPips.parent, screen, camera, out var point))
+            worldPips.anchoredPosition = point;
+        if (worldPipFills == null) return;
+        int current = _dodge != null ? _dodge.CurrentCharges : (_player.DashCooldownProgress >= 1f ? 1 : 0);
+        int max = _dodge != null ? _dodge.MaxCharges : 1;
+        float progress = _dodge != null ? _dodge.RechargeProgress : _player.DashCooldownProgress;
+        for (int i = 0; i < worldPipFills.Length; i++)
+        {
+            var fill = worldPipFills[i];
+            if (fill == null) continue;
+            // Charge / Track / Fill: 레이아웃에 참여하는 Charge 전체를 숨긴다.
+            fill.transform.parent.parent.gameObject.SetActive(i < max);
+            fill.rectTransform.anchorMax = new Vector2(i < current ? 1f : i == current ? progress : 0f, 1f);
+        }
     }
 
     // ─── MeleeDodgeController 모드 ───────────────────────────────────
