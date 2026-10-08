@@ -98,6 +98,78 @@ public class InventoryManager : MonoBehaviour
             ? Slots[SLOT_RIGHTCLICK].EquippedRightClick
             : null;
 
+    // ── 메인 소환수 강화(보상방) ─────────────────────────────────────
+    // 런 단위 진행도라 런 세이브(SaveData)에 같이 들어간다 — 죽으면 세이브와 함께 0 으로 돌아간다.
+    // 강화는 '지금 든 소환수'에 붙는다. 다른 소환수로 바뀌면 0 부터 다시 시작한다(EquipMinion 참조).
+    [Header("메인 소환수 강화")]
+    [SerializeField] private int mainSummonEnhanceLevel = 0;
+
+    /// <summary>현재 메인 소환수의 강화 단계(0 ~ MinionEnhance.MAX_LEVEL).</summary>
+    public int MainSummonEnhanceLevel => mainSummonEnhanceLevel;
+
+    /// <summary>보상방에서 강화를 더 받을 수 있는가.</summary>
+    public bool CanEnhanceMainSummon
+        => MainSummon != null && mainSummonEnhanceLevel < MainSummon.MaxEnhanceLevel;
+
+    /// <summary>메인 소환수를 한 단계 강화한다. 성공하면 true.</summary>
+    public bool EnhanceMainSummon()
+    {
+        if (!CanEnhanceMainSummon) return false;
+        mainSummonEnhanceLevel++;
+        Debug.Log($"<color=cyan>[InventoryManager]</color> 메인 소환수 강화: {MainSummon.minionName} +{mainSummonEnhanceLevel}/{MainSummon.MaxEnhanceLevel}");
+        OnMinionUpdated?.Invoke();
+        return true;
+    }
+
+    /// <summary>강화 단계를 0 으로 되돌린다. 마을에서 시작 소환수를 새로 고를 때 쓴다.</summary>
+    public void ResetMainSummonEnhance()
+    {
+        if (mainSummonEnhanceLevel == 0) return;
+        mainSummonEnhanceLevel = 0;
+        OnMinionUpdated?.Invoke();
+    }
+
+    // ── 메인 소환수 진화(보상방) ─────────────────────────────────────
+    // 진화 = 메인 슬롯의 MainMinionDataSO 를 그 소환수의 evolutions 중 하나로 갈아끼우는 것.
+    // 평타/대쉬/스킬은 전부 OnMinionUpdated → PlayerSkillController.SyncWithInventory 로 새 데이터를 읽는다.
+    [Header("메인 소환수 진화")]
+    [Tooltip("진화에 필요한 강화 단계(모든 소환수 공통). 소환수별로 다르게 하려면\n" +
+             "MainMinionDataSO.evolveRequiredLevelOverride 를 쓴다. 0 이면 강화 없이 바로 진화할 수 있다.\n" +
+             "소환수의 최대 강화 단계보다 크게 넣어도 최대 단계로 잘린다(진화가 막히지 않게).")]
+    [SerializeField, Min(0)] private int defaultEvolveRequiredLevel = MinionEnhance.MAX_LEVEL;
+
+    [Tooltip("진화하면 강화 단계를 0 으로 되돌린다(진화형은 자기 강화표로 다시 쌓는다).\n" +
+             "끄면 단계를 이어받는다(진화형의 최대 단계를 넘으면 잘린다).")]
+    [SerializeField] private bool resetEnhanceOnEvolve = true;
+
+    /// <summary>이 소환수가 진화하려면 필요한 강화 단계. 개별 오버라이드가 없으면 공통값.</summary>
+    public int GetEvolveRequiredLevel(MainMinionDataSO minion)
+    {
+        if (minion == null) return int.MaxValue;
+        int req = minion.evolveRequiredLevelOverride >= 0 ? minion.evolveRequiredLevelOverride : defaultEvolveRequiredLevel;
+        return Mathf.Min(req, minion.MaxEnhanceLevel);
+    }
+
+    /// <summary>지금 메인 소환수가 진화할 수 있는가(진화형이 연결돼 있고 요구 강화 단계를 채웠는가).</summary>
+    public bool CanEvolveMainSummon
+        => MainSummon != null && MainSummon.CanEvolve && mainSummonEnhanceLevel >= GetEvolveRequiredLevel(MainSummon);
+
+    /// <summary>메인 소환수를 target 으로 진화시킨다. target 은 현재 소환수의 evolutions 중 하나여야 한다.</summary>
+    public bool EvolveMainSummon(MainMinionDataSO target)
+    {
+        var from = MainSummon;
+        if (!CanEvolveMainSummon || target == null || target == from) return false;
+        if (System.Array.IndexOf(from.evolutions, target) < 0) return false;
+
+        // EquipMinion 을 쓰지 않는다 — 거기선 소환수가 바뀌면 강화를 무조건 0 으로 돌린다.
+        Slots[SLOT_MAIN].EquippedMinion = target;
+        mainSummonEnhanceLevel = resetEnhanceOnEvolve ? 0 : Mathf.Min(mainSummonEnhanceLevel, target.MaxEnhanceLevel);
+
+        Debug.Log($"<color=cyan>[InventoryManager]</color> 메인 소환수 진화: {from.minionName} → {target.minionName} (강화 {mainSummonEnhanceLevel})");
+        OnMinionUpdated?.Invoke();
+        return true;
+    }
+
     private MinionDataSO GetSummon(int index)
         => (index >= 0 && index < Slots.Count && !Slots[index].IsShattered) ? Slots[index].EquippedMinion : null;
 
@@ -174,6 +246,10 @@ public class InventoryManager : MonoBehaviour
         {
             if (debugStartingMinions[i] == null) continue;
             if (HasMinion(debugStartingMinions[i].minionType)) continue;
+            // 역할 슬롯이 이미 차 있으면 덮지 않는다. 세이브에서 복원한 소환수(마을에서 고른 것, 진화형)를
+            // 직업(minionType)이 다르다는 이유로 디버그 시작 소환수가 갈아끼우고 강화까지 0 으로 날리던 문제 방지.
+            int roleSlot = SlotIndexOf(debugStartingMinions[i]);
+            if (roleSlot >= 0 && GetSummon(roleSlot) != null) continue;
 
             int qty = (i < debugStartingMinionQuantities.Count) ? debugStartingMinionQuantities[i] : 1;
 
@@ -207,7 +283,6 @@ public class InventoryManager : MonoBehaviour
         ShowGoldGainText(amount);
     }
 
-    /// <summary>ActiveAugment.Announce 와 같은 경로(FloatingTextManager 풀 → 플레이어 Transform 추적).</summary>
     /// <summary>증강 보상 텍스트와 같은 공용 경로(FloatingTextManager.ShowOnPlayer)로 띄운다.</summary>
     private void ShowGoldGainText(int amount)
         => FloatingTextManager.ShowOnPlayer(string.Format(goldGainTextFormat, amount), goldGainTextColor);
@@ -272,6 +347,9 @@ public class InventoryManager : MonoBehaviour
             slotIndex = SlotIndexOf(minion);
             if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
         }
+
+        // 다른 소환수로 갈아끼우면 강화는 새 소환수에 따라가지 않는다.
+        if (slotIndex == SLOT_MAIN && Slots[slotIndex].EquippedMinion != minion) mainSummonEnhanceLevel = 0;
 
         Slots[slotIndex].EquippedMinion = minion;
         Slots[slotIndex].Quantity = amount;
@@ -338,6 +416,7 @@ public class InventoryManager : MonoBehaviour
     {
         data.gold = gold;
         data.augmentMaxHpBonus = augmentMaxHpBonus;
+        data.mainSummonEnhanceLevel = mainSummonEnhanceLevel;
 
         // Slots 저장
         data.slots.Clear();
@@ -417,6 +496,12 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
+
+        // 메인 소환수 강화. 강화 도입 전 세이브는 0. 소환수가 비었으면 강화도 의미가 없다.
+        var loadedMain = MainSummon;
+        mainSummonEnhanceLevel = loadedMain != null
+            ? Mathf.Clamp(data.mainSummonEnhanceLevel, 0, loadedMain.MaxEnhanceLevel)
+            : 0;
 
         // Treasures 로드
         TreasureStacks.Clear();

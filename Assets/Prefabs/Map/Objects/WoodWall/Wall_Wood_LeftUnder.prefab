@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1709352576432549461}
   - component: {fileID: 483877160817348838}
   - component: {fileID: 8420515831945072011}
-  - component: {fileID: 8664554349276640872}
+  - component: {fileID: 9055829562404699426}
   m_Layer: 3
   m_Name: Wall_Wood_LeftUnder
   m_TagString: Untagged
@@ -150,7 +150,7 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 0}
---- !u!60 &8664554349276640872
+--- !u!60 &9055829562404699426
 PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -188,7 +188,7 @@ PolygonCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.516129, y: 0.08}
-    oldSize: {x: 0.96875, y: 1.5625}
+    oldSize: {x: 0.96875, y: 1.96875}
     newSize: {x: 2.6875, y: 3.25}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -196,10 +196,10 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 0.4375, y: 0.9375}
-      - {x: -0.21875, y: 0.9375}
-      - {x: -0.21875, y: 1.40625}
-      - {x: -0.46875, y: 1.40625}
-      - {x: -0.46875, y: 0}
-      - {x: 0.4375, y: 0}
+    - - {x: 0.4375, y: 1.3424997}
+      - {x: -0.21875, y: 1.3424997}
+      - {x: -0.21875, y: 1.8112497}
+      - {x: -0.46875, y: 1.8112497}
+      - {x: -0.46875, y: -0.09500027}
+      - {x: 0.4375, y: -0.09500027}
   m_UseDelaunayMesh: 0

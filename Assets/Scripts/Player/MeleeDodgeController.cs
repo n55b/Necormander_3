@@ -221,7 +221,9 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
         // 피해 정보 — 속성/상태이상은 소환수 대쉬 개조안에서 온다. 마법이면 CharacterHealth 가 플레이어 마법증폭을 태운다.
-        float dmg = (_player.Stat != null ? _player.Stat.ATK : 0f) * mod.damageMultiplier;
+        // [강화] 보상방 강화 단계만큼 대쉬 피해 배율이 붙는다(MinionEnhance).
+        float dmg = (_player.Stat != null ? _player.Stat.ATK : 0f) * mod.damageMultiplier
+                    * MinionEnhance.DashDamageMult(GetMainMinion());
         StatusType? status = mod.onHitStatus == StatusType.None ? (StatusType?)null : mod.onHitStatus;
         var info = new DamageInfo(dmg, mod.element, _player.gameObject, 1f, "Dash",
             causesHitstun: true, knockbackForce: mod.pushesEnemies ? mod.pushForce : 0f,

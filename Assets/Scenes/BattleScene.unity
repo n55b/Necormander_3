@@ -1488,10 +1488,6 @@ PrefabInstance:
       propertyPath: hitStopManager
       value: 
       objectReference: {fileID: 974462716}
-    - target: {fileID: 3038419152311975761, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
-      propertyPath: debugStartFloor
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 3877437135718828404, guid: 2852a750e56539d4486ab281aded78e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -3805,7 +3801,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5.515625
+  orthographic size: 8.4375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -3830,7 +3826,7 @@ Transform:
   m_GameObject: {fileID: 2046889395}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14, y: 1.71875, z: -10}
+  m_LocalPosition: {x: -14, y: 1.734375, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

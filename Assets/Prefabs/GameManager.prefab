@@ -62,6 +62,8 @@ MonoBehaviour:
   textPrefab: {fileID: 717604425048194122, guid: ad279bdf08f980742b70fceeaa100b90, type: 3}
   poolSize: 20
   showDamageNumbers: 1
+  noticeLineSpacing: 0.4
+  noticeMaxLines: 4
 --- !u!114 &8814402771336590114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -358,6 +360,9 @@ MonoBehaviour:
   gold: 0
   augmentMaxHpBonus: 0
   Slots: []
+  mainSummonEnhanceLevel: 0
+  defaultEvolveRequiredLevel: 1
+  resetEnhanceOnEvolve: 1
   useDebugStartingInventory: 0
   debugStartingMinions: []
   debugStartingMinionQuantities: 

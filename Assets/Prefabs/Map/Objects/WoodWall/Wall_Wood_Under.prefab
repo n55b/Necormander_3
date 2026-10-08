@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4899279998522714708}
   - component: {fileID: 8710407449564795451}
   - component: {fileID: 430592485063588069}
-  - component: {fileID: 8010985180453281134}
+  - component: {fileID: 1669253799600193471}
   m_Layer: 3
   m_Name: Wall_Wood_Under
   m_TagString: Untagged
@@ -150,7 +150,7 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 0}
---- !u!61 &8010985180453281134
+--- !u!61 &1669253799600193471
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -184,15 +184,15 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.45}
+  m_Offset: {x: 0.015625, y: 0.6230626}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.48387095, y: 0.114285715}
-    oldSize: {x: 0.96875, y: 1.09375}
+    oldSize: {x: 0.96875, y: 1.5}
     newSize: {x: 3.25, y: 2.8125}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.96875, y: 0.9}
+  m_Size: {x: 0.96875, y: 1.4110174}
   m_EdgeRadius: 0
