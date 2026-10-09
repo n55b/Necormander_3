@@ -12,6 +12,9 @@ public class Panel_Debuff : MonoBehaviour
     /// </summary>
     public void AddDebuff(StatusType type, Sprite sprite, int stack)
     {
+        // 평타 경직은 효과를 유지하되 머리 위 아이콘만 생략한다.
+        if (type == StatusType.Hitstun) return;
+
         if (activeIcons.TryGetValue(type, out DebuffIcon existingIcon))
         {
             existingIcon.UpdateStack(stack);
