@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: WaterTile
   m_EditorClassIdentifier: 
   m_AnimatedSprites:
-  - {fileID: -265148652307038164, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
-  - {fileID: 6453584714750622713, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
-  - {fileID: 80454637023885071, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
-  - {fileID: 5198001734744951522, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
+  - {fileID: -868462719, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
+  - {fileID: -316868481, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
+  - {fileID: 660360896, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
+  - {fileID: -233741797, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
   m_MinSpeed: 10
   m_MaxSpeed: 10
   m_AnimationStartTime: 0

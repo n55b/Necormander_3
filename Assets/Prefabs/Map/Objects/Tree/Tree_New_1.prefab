@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3961568918522060329}
   - component: {fileID: 3491615604521374005}
   - component: {fileID: 694097016967721053}
+  - component: {fileID: 8581877001264003871}
   m_Layer: 3
   m_Name: Tree_New_1
   m_TagString: Untagged
@@ -155,8 +156,8 @@ BoxCollider2D:
   m_Offset: {x: -0.1, y: 0.3}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.4875, y: 0.0882353}
-    oldSize: {x: 5, y: 6.375}
+    pivot: {x: 0.1764706, y: 0.4189944}
+    oldSize: {x: 13.8125, y: 11.1875}
     newSize: {x: 5.125, y: 6.1875}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -196,3 +197,25 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 0}
+--- !u!95 &8581877001264003871
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6230940033489204800}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: b832952c8b60dc64493921c65307f56a, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
