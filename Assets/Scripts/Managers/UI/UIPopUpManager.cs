@@ -7,7 +7,7 @@ using UnityEngine;
 ///
 /// <b>레이어</b>
 ///   · Window  : 전체맵(M). Modal/System 위에는 못 뜬다. 열리면 Window/Overlay 를 닫는다. 전투 중 불가.
-///   · Overlay : 주머니(V), 장착 정보(Tab). 시간·전투가 계속 도는 정보창. 서로 교체된다.
+///   · Overlay : 주머니(V), 플레이어 정보(C). 시간·전투가 계속 돌며 동시에 열 수 있다.
 ///               Window/System 위에는 못 뜨고, Modal(보상 등) 위에는 얹힌다. 전투 중 가능.
 ///               게임플레이 입력은 막지 않는다(평타/패리/상호작용은 각 창이 IsOpen 으로 직접 막는다).
 ///   · Modal   : 보상, 증강, 미니언 습득/교체. 항상 뜨고 아래 Window/Overlay 를 닫는다. 전투 중 가능.
@@ -41,6 +41,8 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
         public Layer layer;
         public Action onClosed;
         public bool escClosable;
+        public int overlayPriority;
+        public Transform visualRoot;
     }
 
     private readonly List<Entry> _stack = new List<Entry>();
@@ -92,7 +94,8 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
     /// </summary>
     /// <param name="onClosed">어떤 경로로든(직접 Close, 매니저가 대신 닫음, ESC) 닫힌 직후 한 번 호출.</param>
     /// <param name="escClosable">ESC 로 닫히는가. 생략하면 Window/Overlay 만 true.</param>
-    public bool Open(GameObject root, Layer layer, Action onClosed = null, bool? escClosable = null)
+    public bool Open(GameObject root, Layer layer, Action onClosed = null, bool? escClosable = null,
+        int overlayPriority = 0, Transform visualRoot = null)
     {
         if (root == null) return false;
         if (IsOpen(root)) return true;
@@ -101,6 +104,7 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
         {
             root = root, layer = layer, onClosed = onClosed,
             escClosable = escClosable ?? (layer == Layer.Window || layer == Layer.Overlay),
+            overlayPriority = overlayPriority, visualRoot = visualRoot != null ? visualRoot : root.transform,
         };
 
         // ESC 옵션 중에는 다른 창을 띄우지 않는다.
@@ -121,7 +125,6 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
                 break;
             case Layer.Overlay:
                 if (HasLayer(Layer.Window) || HasLayer(Layer.System)) return false;
-                CloseWhere(e => e.layer == Layer.Overlay); // 주머니 ↔ 장착 정보는 교체
                 break;
             case Layer.Modal:
                 CloseWhere(e => e.layer == Layer.Window || e.layer == Layer.Overlay);
@@ -129,7 +132,17 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
         }
 
         root.SetActive(true);
-        _stack.Add(entry);
+        int before = layer == Layer.Overlay
+            ? _stack.FindIndex(e => e.layer == Layer.Overlay && e.overlayPriority > overlayPriority) : -1;
+        if (before >= 0) _stack.Insert(before, entry);
+        else _stack.Add(entry);
+        // 같은 Canvas에 저작된 정보창은 열기 순서와 무관하게 C > V. ESC 순서도 일치시킨다.
+        if (layer == Layer.Overlay)
+            foreach (var overlay in _stack)
+                if (overlay.layer == Layer.Overlay && overlay.visualRoot != null)
+                    overlay.visualRoot.SetAsLastSibling();
+        if (layer == Layer.System && entry.visualRoot != null)
+            entry.visualRoot.SetAsLastSibling();
         return true;
     }
 
@@ -206,7 +219,7 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
 
         var pending = new List<Entry>(_pending);
         _pending.Clear();
-        foreach (var e in pending) Open(e.root, e.layer, e.onClosed, e.escClosable);
+        foreach (var e in pending) Open(e.root, e.layer, e.onClosed, e.escClosable, e.overlayPriority, e.visualRoot);
     }
 
     // ─── 예전 API (호환용) ──────────────────────────────────────────

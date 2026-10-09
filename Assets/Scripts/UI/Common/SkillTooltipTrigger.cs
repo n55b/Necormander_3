@@ -3,34 +3,31 @@ using UnityEngine.EventSystems;
 
 /// <summary>
 /// Generic hover tooltip trigger for UI icons (skill slots, minion slots, etc).
-/// Attach via AddComponent at runtime and call SetData() whenever the underlying
-/// skill/minion changes. Shows CommonTooltipUI.Instance on hover, hides on exit.
+/// Prefab-authored title/description or SetData() can provide the content.
+/// Shows CommonTooltipUI.Instance on hover, hides on exit.
 /// </summary>
 public class SkillTooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    private string _title;
-    private string _description;
-    private bool _hasData;
+    [SerializeField] private string title;
+    [SerializeField, TextArea] private string description;
 
     /// <summary>Call whenever the skill/minion bound to this icon changes.</summary>
     public void SetData(string title, string description)
     {
-        _title = title;
-        _description = description;
-        _hasData = !string.IsNullOrEmpty(title) || !string.IsNullOrEmpty(description);
+        this.title = title;
+        this.description = description;
     }
 
     public void Clear()
     {
-        _hasData = false;
-        _title = null;
-        _description = null;
+        title = null;
+        description = null;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!_hasData || CommonTooltipUI.Instance == null) return;
-        CommonTooltipUI.Instance.Show(new TooltipData(_title, _description));
+        if ((string.IsNullOrEmpty(title) && string.IsNullOrEmpty(description)) || CommonTooltipUI.Instance == null) return;
+        CommonTooltipUI.Instance.Show(new TooltipData(title, description));
     }
 
     public void OnPointerExit(PointerEventData eventData)

@@ -14,8 +14,8 @@ public class PlayerParryController : MonoBehaviour
     private float guardRegenDelay = 1f;
     [SerializeField, Range(0f, 1f), Tooltip("방어 후 이 비율 미만이면 즉시 0으로 파괴된다. 0.2 = 최대 50일 때 10 미만.")]
     private float guardBreakThresholdRatio = 0.2f;
-    [SerializeField, Min(0.01f), Tooltip("파괴 후 초당 회복량. 즉시 회복을 시작하고 완충까지 사용 불가. 최대 50이면 약 6초, 최대치가 늘면 더 오래 걸린다.")]
-    private float guardBreakRegenPerSecond = 8.3f;
+    [SerializeField, Min(0.01f), Tooltip("파괴 후 0에서 완충까지 걸리는 시간(초). 초당 회복량 = 최대 게이지 / 이 값. 기본 12초: 최대 50이면 약 4.17/초, 175이면 약 14.58/초. 완충까지 가드 사용 불가.")]
+    private float guardBreakRecoveryDuration = 12f;
 
     private PlayerController _player;
     private MeleeDodgeController _dodge;
@@ -76,9 +76,9 @@ public class PlayerParryController : MonoBehaviour
     private void TickGauge(float deltaTime, float now)
     {
         if (_isParrying || deltaTime <= 0f) return;
-        // 일반 회복은 지연을 넘긴 프레임의 일부만, 파괴 회복은 지연 없이 고정 속도로 회복한다.
+        // 일반 회복은 지연을 넘긴 프레임의 일부만, 파괴 회복은 지연 없이 최대치/완충 시간으로 계산한다.
         float elapsed = _guardBroken ? deltaTime : Mathf.Clamp(now - _recoverAt, 0f, deltaTime);
-        float rate = _guardBroken ? Mathf.Max(0.01f, guardBreakRegenPerSecond)
+        float rate = _guardBroken ? GuardCapacity / Mathf.Max(0.01f, guardBreakRecoveryDuration)
                                  : Mathf.Max(0f, guardRegenPerSecond);
         _guard = Mathf.Min(GuardCapacity, _guard + elapsed * rate);
         if (_guard >= GuardCapacity - 0.0001f) { _guard = GuardCapacity; _guardBroken = false; }

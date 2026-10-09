@@ -19,6 +19,7 @@ public class PouchUI : MonoBehaviour
 
     [Tooltip("드래그를 '주머니 밖'으로 판정하는 기준 영역. 보통 panelRoot 의 RectTransform.")]
     [SerializeField] private RectTransform panelRect;
+    [SerializeField] private RectTransform setEffectsPanel;
 
     [Header("칸 (최대 9개. 순서대로 꽂는다)")]
     [SerializeField] private PouchSlotUI[] slots = new PouchSlotUI[ItemPouch.MAX_SLOTS];
@@ -83,7 +84,7 @@ public class PouchUI : MonoBehaviour
     /// <summary>창 닫기/사망/씬 종료는 진행 중 드래그를 취소한다. 놓기 전에는 아이템을 버리지 않는다.</summary>
     /// <summary>
     /// 창 닫기/사망/씬 종료는 진행 중 드래그를 취소한다. 놓기 전에는 아이템을 버리지 않는다.
-    /// 팝업 매니저의 Overlay 로 등록한다(시간 정지·입력 차단 없음). 장착 정보와 서로 교체되고,
+    /// 팝업 매니저의 Overlay 로 등록한다(시간 정지·입력 차단 없음). C 정보창과 동시에 열리며,
     /// 맵/옵션/대화 중에는 안 열린다. ESC·보상창 등장으로 매니저가 닫아도 OnPanelClosed 로 온다.
     /// </summary>
     public void SetOpen(bool open)
@@ -94,9 +95,10 @@ public class PouchUI : MonoBehaviour
 
         if (open)
         {
-            if (mgr != null) { if (!mgr.Open(root, UIPopUpManager.Layer.Overlay, OnPanelClosed)) return; }
+            if (mgr != null) { if (!mgr.Open(root, UIPopUpManager.Layer.Overlay, OnPanelClosed, visualRoot: transform)) return; }
             else root.SetActive(true);
             IsOpen = true;
+            CommonTooltipUI.Instance?.Hide();
             Refresh();
             return;
         }
@@ -200,7 +202,9 @@ public class PouchUI : MonoBehaviour
     }
 
     private bool IsOutside(Vector2 screenPos) => panelRect != null &&
-        !RectTransformUtility.RectangleContainsScreenPoint(panelRect, screenPos, UICamera());
+        !RectTransformUtility.RectangleContainsScreenPoint(panelRect, screenPos, UICamera()) &&
+        !(setEffectsPanel != null && setEffectsPanel.gameObject.activeInHierarchy && RectTransformUtility.RectangleContainsScreenPoint(setEffectsPanel, screenPos, UICamera())) &&
+        !(SkillExplainUI.Instance != null && SkillExplainUI.Instance.ContainsScreenPoint(screenPos, UICamera()));
 
     private bool TryDrop(ItemSO item, Vector2 screenPos)
     {

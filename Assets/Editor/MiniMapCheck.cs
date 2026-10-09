@@ -34,6 +34,26 @@ public static class MiniMapCheck
                     field + " 반투명/클릭 통과");
                 Check(image.color.grayscale < unvisited.grayscale, field + " 방과 대비");
                 var container = (RectTransform)background.parent;
+                if (field == "hudMapBackground")
+                {
+                    Check(container.sizeDelta == new Vector2(120, 100) && background.sizeDelta == Vector2.zero, "HUD 고정 프레임");
+                    Check(container.GetComponent<RectMask2D>() != null, "HUD 프레임 밖 클리핑");
+                    var map = root.GetComponent<UIBasedMiniMap>();
+                    var cache = (Dictionary<int, List<Vector2>>)typeof(UIBasedMiniMap).GetField("_roomFloorCache", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(map);
+                    var testRoom = new GameObject("Room dimensions test"); testRoom.SetActive(false);
+                    var roomComponent = testRoom.AddComponent<RoomInstance>();
+                    try
+                    {
+                        foreach (var span in new[] { new Vector2(10, 10), new Vector2(200, 70), new Vector2(35, 180) })
+                        {
+                            cache[roomComponent.GetInstanceID()] = new List<Vector2> { Vector2.zero, span - Vector2.one };
+                            var size = (Vector2)typeof(UIBasedMiniMap).GetMethod("GetFocusRoomUiSize", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(map, new object[] { roomComponent });
+                            Check(size.x <= 106.01f && size.y <= 86.01f && Mathf.Abs(size.x / size.y - span.x / span.y) < .001f, "작은/큰/세로 방 비율 유지 및 프레임 안쪽 맞춤");
+                        }
+                    }
+                    finally { UnityEngine.Object.DestroyImmediate(testRoom); }
+                    continue;
+                }
                 var room = new GameObject("Large room check", typeof(RectTransform));
                 room.transform.SetParent(container, false);
                 var rect = (RectTransform)room.transform;

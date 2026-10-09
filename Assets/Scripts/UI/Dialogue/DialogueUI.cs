@@ -226,7 +226,7 @@ public class DialogueUI : Singleton<DialogueUI>
         IsPlaying    = true;
         _stage.Clear();
 
-        if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.Open(panel, UIPopUpManager.Layer.System);
+        if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.Open(panel, UIPopUpManager.Layer.System, visualRoot: transform);
         else if (panel != null) panel.SetActive(true);
         if (blockPlayerInput) SetPlayerInputBlocked(true);
         UIEventBus.NotifyOpen("Dialogue");

@@ -206,6 +206,8 @@ public class PlayerStateUI : MonoBehaviour
     {
         value = Mathf.Clamp01(value);
         if (Mathf.Abs(img.fillAmount - value) > 0.0005f) img.fillAmount = value;
+        // 단색 플레이스홀더는 스프라이트가 없어 fillAmount 대신 실제 너비를 바꾼다.
+        if (img.sprite == null) img.rectTransform.anchorMax = new Vector2(value, 1f);
     }
     #endregion
 
