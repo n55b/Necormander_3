@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: WaterWallTile_Center
   m_EditorClassIdentifier: 
   m_AnimatedSprites:
-  - {fileID: 5808282357928229798, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
-  - {fileID: 5715524224131406482, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
-  - {fileID: 4439997453439131181, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
-  - {fileID: 2766710519362377204, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
+  - {fileID: 1973762819, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
+  - {fileID: 875373914, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
+  - {fileID: -1719279577, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
+  - {fileID: -938002067, guid: 04030aa565f7030428cf18dc523d4981, type: 3}
   m_MinSpeed: 7
   m_MaxSpeed: 10
   m_AnimationStartTime: 0
