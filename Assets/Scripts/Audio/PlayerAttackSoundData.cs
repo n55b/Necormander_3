@@ -66,7 +66,19 @@ public AudioClip GetDodgeClip() => PickRandom(dodgeClips);
         return arr[index % arr.Length];
     }
 
-    public AudioClip GetAttackClip(int comboIndex) => PickAt(attackClips, comboIndex);
+    // 공격 사운드: attackClips 중 랜덤 재생 (직전과 같은 클립 연속 방지)
+    [System.NonSerialized] private int _lastAttackIndex = -1;
+
+    public AudioClip GetAttackClip(int comboIndex)
+    {
+        if (attackClips == null || attackClips.Length == 0) return null;
+        if (attackClips.Length == 1) return attackClips[0];
+
+        int i = Random.Range(0, attackClips.Length - 1);
+        if (i >= _lastAttackIndex && _lastAttackIndex >= 0) i++;
+        _lastAttackIndex = i;
+        return attackClips[i];
+    }
     public AudioClip GetHitClip()                  => PickRandom(hitClips);
     public AudioClip GetPlayerHurtClip()           => PickRandom(playerHurtClips);
 

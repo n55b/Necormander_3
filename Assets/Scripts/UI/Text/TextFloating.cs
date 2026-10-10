@@ -22,6 +22,23 @@ public class TextFloating : MonoBehaviour
     [SerializeField] private float displaytime;
     [SerializeField] private float punchDuration;
     [SerializeField] private float CiriPunchDuration;
+
+    [Header("[ Critical ]")]
+    [Tooltip("치명타 데미지 숫자 색(데미지 타입 색을 덮어씀).")]
+    [SerializeField] private Color critColor = new Color(1f, 0.9f, 0.15f);
+    [Tooltip("치명타 외곽선 색.")]
+    [SerializeField] private Color critOutlineColor = new Color(0.4f, 0.2f, 0f);
+    [SerializeField, Range(0f, 1f)] private float critOutlineWidth = 0.3f;
+    [Tooltip("뜰 때 외곽선이 잠깐 이 두께까지 부풀었다가 돌아온다.")]
+    [SerializeField, Range(0f, 1f)] private float critOutlinePulseWidth = 0.45f;
+    [SerializeField] private float critOutlinePulseTime = 0.12f;
+    [Tooltip("치명타 숫자 기본 크기 배율(일반 = 1).")]
+    [SerializeField] private float critScale = 1.9f;
+
+    [Header("[ Normal ]")]
+    [Tooltip("일반 데미지 펀치 강도 배율. 1 = 예전 세기, 낮을수록 약해진다.")]
+    [SerializeField, Range(0f, 1f)] private float normalPunchStrength = 0.4f;
+
     private float timer;
     private TMPTextEffectPlayer effectPlayer;
     private static readonly List<TextEffectRange> tempEffectRanges = new List<TextEffectRange>();
@@ -76,7 +93,7 @@ public class TextFloating : MonoBehaviour
         if (isCritical)
         {
             // 1. Critical Scale Base (scaleMultiplier와 함께 적용)
-            rectTransform.localScale = Vector3.one * 1.5f * scaleMultiplier;
+            rectTransform.localScale = Vector3.one * critScale * scaleMultiplier;
 
             // 2. Powerful Animation Combo
             // Scale Punch ("Pop" effect)
@@ -84,9 +101,14 @@ public class TextFloating : MonoBehaviour
             // Rotation Shake ("Impact" effect)
             rectTransform.DOShakeRotation(0.3f, 30f, 20, 90f);
 
-            // 3. Visuals (Keep it Black but Thick)
-            textMesh.outlineColor = Color.black;
-            textMesh.outlineWidth = 0.3f; // Thicker outline for emphasis
+            // 3. Visuals: 주황 글자 + 진한 외곽선이 한 번 두꺼워졌다 돌아오는 펄스
+            textMesh.color = critColor;
+            textMesh.outlineColor = critOutlineColor;
+            textMesh.outlineWidth = critOutlineWidth;
+            DOTween.To(() => textMesh.outlineWidth, w => textMesh.outlineWidth = w, critOutlinePulseWidth, critOutlinePulseTime)
+                .SetLoops(2, LoopType.Yoyo)
+                .SetEase(Ease.OutQuad)
+                .SetTarget(textMesh); // 풀 재사용 시 SetUp 맨 위의 DOTween.Kill(textMesh)로 정리됨
         }
         else
         {
@@ -94,9 +116,9 @@ public class TextFloating : MonoBehaviour
             textMesh.outlineColor = Color.black;
             textMesh.outlineWidth = 0.2f; // Default thickness
 
-            // Normal Punch
-            rectTransform.DOPunchPosition(new Vector3(1f, 1f, 1f), 0.5f, 10, 1);
-            rectTransform.DOPunchScale(Vector3.one * punchDuration, 0.25f, 8, 0.6f);
+            // Normal Punch (normalPunchStrength로 위치·스케일 펀치를 함께 줄임)
+            rectTransform.DOPunchPosition(Vector3.one * normalPunchStrength, 0.5f, 10, 1);
+            rectTransform.DOPunchScale(Vector3.one * punchDuration * normalPunchStrength, 0.25f, 8, 0.6f);
         }
         effectPlayer.ApplyEffects(tempEffectRanges);
     }
