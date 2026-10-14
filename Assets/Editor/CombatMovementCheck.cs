@@ -15,6 +15,56 @@ public static class CombatMovementCheck
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
     private static readonly Vector2 Offset = new Vector2(2000f, 2000f);
 
+    [MenuItem("Tools/Combat/Verify Hitstun Icon Hidden")]
+    public static void RunStatusIcons()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
+        var scene = EditorSceneManager.NewPreviewScene();
+        var previousPool = DebuffPool.Instance;
+        var poolProperty = typeof(Singleton<DebuffPool>).GetProperty("Instance");
+        try
+        {
+            var pool = Make(scene, "Status icon test pool", typeof(DebuffPool)).GetComponent<DebuffPool>();
+            Set(pool, "iconPrefab", AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/DebuffIcon.prefab"));
+            poolProperty.SetValue(null, pool);
+            var panel = Make(scene, "Status icon test panel", typeof(RectTransform), typeof(Panel_Debuff)).GetComponent<Panel_Debuff>();
+            var host = Make(scene, "Status icon test unit", typeof(CharacterStatus), typeof(EnemyDebuffTerminal));
+            var status = host.GetComponent<CharacterStatus>();
+            var terminal = host.GetComponent<EnemyDebuffTerminal>();
+            Set(terminal, "debuffData", AssetDatabase.LoadAssetAtPath<DebuffDataSO>("Assets/SOData/Registry/DebuffData.asset"));
+            Set(terminal, "debuffUI", panel);
+            Set(status, "debuffTerminal", terminal);
+            var icons = (System.Collections.IDictionary)Get(panel, "activeIcons");
+            for (int i = 0; i < 3; i++)
+            {
+                status.ApplyStatus(StatusType.Hitstun, .2f);
+                Check(status.HasStatus(StatusType.Hitstun) && status.IsActionBlocked, "평타 경직 및 행동 제한 유지");
+                Check(icons.Count == 0 && panel.transform.childCount == 0, "평타 경직 아이콘 생성 안 함");
+                var states = (System.Collections.IDictionary)Get(status, "_statuses");
+                var instance = states[StatusType.Hitstun];
+                var endTime = instance.GetType().GetField("EndTime");
+                Check(Mathf.Abs((float)endTime.GetValue(instance) - (Time.time + .2f)) < .01f, "경직 지속시간 유지");
+                endTime.SetValue(instance, Time.time - 1f);
+                Call(status, "UpdateStatuses");
+                Check(!status.HasStatus(StatusType.Hitstun) && !status.IsActionBlocked, "경직 만료 및 행동 제한 해제 유지");
+            }
+            foreach (var type in new[] { StatusType.Stun, StatusType.Freeze, StatusType.Bleed, StatusType.Poison, StatusType.BloodPop })
+            {
+                status.ApplyStatus(type, 1f);
+                Check(status.HasStatus(type) && icons.Contains(type), $"다른 상태이상 아이콘 유지: {type}");
+                status.RemoveStatus(type);
+                Check(icons.Count == 0, $"아이콘 제거 및 풀 반환: {type}");
+            }
+            Debug.Log("[StatusIconCheck] PASS: Hitstun applied, action blocked, duration/expiry unchanged, icon suppressed; other five status icons preserved.");
+        }
+        finally
+        {
+            EditorSceneManager.ClosePreviewScene(scene);
+            poolProperty.SetValue(null, previousPool);
+        }
+    }
+
     [MenuItem("Tools/Combat/Verify Room Transition Input")]
     public static void RunInput()
     {

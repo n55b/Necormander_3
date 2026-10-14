@@ -109,8 +109,9 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
         worldPips.gameObject.SetActive(visible);
         if (!visible) return;
         var camera = _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera;
+        // 변환 결과는 앵커가 아니라 부모 피벗 기준의 로컬 좌표다.
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)worldPips.parent, screen, camera, out var point))
-            worldPips.anchoredPosition = point;
+            worldPips.localPosition = point;
         if (worldPipFills == null) return;
         int current = _dodge != null ? _dodge.CurrentCharges : (_player.DashCooldownProgress >= 1f ? 1 : 0);
         int max = _dodge != null ? _dodge.MaxCharges : 1;

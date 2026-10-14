@@ -452,6 +452,22 @@ public static class UI1006Setup
                     Check(Mathf.Abs(fills[i].rectTransform.anchorMax.x - expected) < .001f, "대시 사용/충전 표시");
                 }
             }
+            var worldOffset = (Vector3)typeof(DashCooldownUI).GetField("worldOffset", flags).GetValue(dash);
+            foreach (float scale in new[] { 1f, 2f })
+            {
+                canvas.scaleFactor = scale;
+                Canvas.ForceUpdateCanvases();
+                Check(((RectTransform)pips.parent).rect.width > 0f, "발밑 좌표 검사 부모 너비");
+                foreach (var position in new[] { Vector3.zero, new Vector3(1, 1, 0), new Vector3(-2, -1, 0) })
+                {
+                    playerGo.transform.position = position;
+                    typeof(DashCooldownUI).GetMethod("LateUpdate", flags).Invoke(dash, null);
+                    Vector2 expected = camera.WorldToScreenPoint(position + worldOffset);
+                    Vector2 actual = RectTransformUtility.WorldToScreenPoint(null, pips.position);
+                    Check(Vector2.Distance(expected, actual) < .1f,
+                        $"발밑 위치 일치: scale={scale}, expected={expected}, actual={actual}");
+                }
+            }
             Vector2 before = pips.anchoredPosition;
             playerGo.transform.position = new Vector3(1, 1, 0);
             typeof(DashCooldownUI).GetMethod("LateUpdate", flags).Invoke(dash, null);
