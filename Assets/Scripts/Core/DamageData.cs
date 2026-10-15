@@ -96,6 +96,8 @@ public static class DamageRules
 [System.Serializable]
 public struct DamageInfo
 {
+    // 구조체 복사/다중 대상/추가 타격 모두 같은 토큰을 공유한다. 소환수 평타에는 넣지 않는다.
+    [System.NonSerialized] public PlayerBasicAttackRoll playerBasicAttack;
     public float amount;
     public DamageType type;          // 축1: 속성
     public DamageCategory category;   // 축2: 갈래(유물 효과 필터용). None 이면 피격 시점에 자동 유도.
@@ -141,6 +143,7 @@ public struct DamageInfo
     public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, float debuffMultiplier = 1f, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f, DamageCategory category = DamageCategory.None, StatusType? applyStatus = null, float statusDuration = 0f, bool isRanged = false, Vector2? hitFrom = null, bool bypassGuard = false)
     {
         this.bypassGuard = bypassGuard;
+        playerBasicAttack = null;
         this.isRanged = isRanged;
         this.hitFrom = hitFrom;
         this.amount = amount;
@@ -155,5 +158,19 @@ public struct DamageInfo
         this.superArmorDamage = superArmorDamage;
         this.applyStatus = applyStatus;
         this.statusDuration = statusDuration;
+    }
+}
+
+/// <summary>플레이어 평타 한 번의 첫 실제 적중에서만 장비 확률을 추첨한다.</summary>
+public sealed class PlayerBasicAttackRoll
+{
+    public readonly EquipmentSO Equipment;
+    private bool _resolved;
+    public PlayerBasicAttackRoll(EquipmentSO equipment) => Equipment = equipment;
+    public bool TryResolve()
+    {
+        if (_resolved) return false;
+        _resolved = true;
+        return true;
     }
 }

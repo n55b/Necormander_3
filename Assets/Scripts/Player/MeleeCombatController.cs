@@ -16,12 +16,11 @@ public class MeleeCombatController : MonoBehaviour
 
     private PlayerController _player;
     private float _lastAttackTime;
-    // 0 = 플레이어 1타, 1 = 플레이어 2타. 소환수 일격은 콤보 칸이 아니라 내부 쿨타임으로 붙는다.
-    // [26/10/02] 소환수 일격은 별도 콤보 칸이 아니라 플레이어 1타와 '같이' 나간다(기획 변경).
+    // 0/1/2 = 플레이어 3연타. 소환수 일격은 별도 내부 쿨타임으로 어떤 타수에도 붙는다.
     private int _comboStep = 0;
 
-    /// <summary>플레이어 자체 평타는 2타. 메인 소환수가 있으면 콤보 첫 타에 소환수 일격이 붙는다.</summary>
-    private const int PLAYER_COMBO_LENGTH = 2;
+    /// <summary>플레이어 자체 3연타. 마리오네트도 콤보/모션 수는 바꾸지 않는다.</summary>
+    private const int PLAYER_COMBO_LENGTH = 3;
 
     /// <summary>장착된 메인 소환수의 마무리 일격. 없으면 null.</summary>
     private MinionFinisher Finisher
@@ -38,8 +37,7 @@ public class MeleeCombatController : MonoBehaviour
 
     /// <summary>
     /// 메인 소환수가 Space 스킬로 실체화해 바쁜가. 미니언은 한 마리뿐이라, 스킬을 쓰는 동안은
-    /// 같은 미니언을 쓰는 3타(마무리)를 못 낸다 → 콤보가 2타로 줄어 반복된다. R 애니가 끝나
-    /// 시전자가 사라지면 자동으로 3타가 복귀한다. (마무리 자신은 예외 — 짧은 애니로 알아서 처리)
+    /// 소환수 평타만 쉬고 플레이어 3연타는 그대로 유지된다.
     /// </summary>
     private bool MinionBusy
     {
@@ -53,7 +51,7 @@ public class MeleeCombatController : MonoBehaviour
     /// <summary>이번 콤보에 소환수 일격이 끼는가. 미니언이 Space 로 바쁘면 빠진다.</summary>
     private bool HasMinionStep => Finisher != null && !MinionBusy;
 
-    /// <summary>콤보 총 타수. 소환수 일격은 1타에 겹쳐 나가므로 항상 플레이어 2타.</summary>
+    /// <summary>소환수 유무와 무관한 플레이어 콤보 수.</summary>
     private int ComboLength => PLAYER_COMBO_LENGTH;
 
     // 소환수 일격 내부 쿨타임. 이 시각이 지나야 다음 평타에 소환수가 같이 나간다.
@@ -70,8 +68,8 @@ public class MeleeCombatController : MonoBehaviour
     [Header("타격 범위 설정")]
     [SerializeField] private Vector2 lightHitboxSize = new Vector2(2f, 1.5f);
     [SerializeField] private float lightTelegraphDuration = 0.2f;
-    // ponytail: medium* (옛 3타 전용) 필드들은 제거됐다. 3타는 소환수 마무리가 대신하고
-    // 그 수치는 MinionDataSO.finisher 가 갖는다.
+    [Tooltip("3타 애니메이션 이벤트 누락 시의 예비 선딜. 정상 타격은 Attack_Medium의 OnAttackHitFrame이 앞서 활성화한다.")]
+    [SerializeField] private float thirdTelegraphDuration = 0.4f;
 
     [Header("평타 범위 표시(텔레그래프) 숨김")]
     [Tooltip("평타(기본 공격)의 범위 표시용 히트박스 시각효과를 숨깁니다. 데미지 판정은 그대로 유지됩니다. (스킬/적 텔레그래프에는 영향 없음)")]
@@ -186,15 +184,19 @@ public class MeleeCombatController : MonoBehaviour
 
         _lastAttackTime = Time.time;
 
-        int swingIndex = _comboStep; // 0 = 1타, 1 = 2타
+        int swingIndex = _comboStep; // 0 = 1타, 1 = 2타, 2 = 3타
         OnAttackExecuted?.Invoke(swingIndex);
 
-        float telegraphDuration = lightTelegraphDuration;
+        float telegraphDuration = (swingIndex == 2 ? thirdTelegraphDuration : lightTelegraphDuration)
+                                  / Mathf.Clamp(_player.Stat.ATKSPD, 0.5f, 3f);
         Vector2 hitboxSize = lightHitboxSize;
         // 평타 1·2타 배율. 예전엔 1.0 하드코딩이었는데, "평타 데미지만 높이는 증감 요소"를
         // 나중에 넣을 수 있게 스탯으로 뺐다. 기본값은 그대로 1.0 이라 동작은 같다.
-        // (3타는 소환수 마무리라 여기 안 온다 — 소환수 고유 배율을 쓴다.)
+        // 3타는 여기에 장비의 마지막 타격 배율을 곱한다. 소환수는 자기 배율을 유지한다.
         float damageMultiplier = _player.Stat != null ? _player.Stat.BASIC_ATK_MULT : 1.0f;
+        var weapon = PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.Weapon : null;
+        damageMultiplier *= weapon != null ? weapon.ComboMultiplier(swingIndex) : (swingIndex == 2 ? 1.5f : 1f);
+        damageMultiplier *= weapon != null ? weapon.basicDamagePerHit : 1f;
 
         // [애니메이션 재생]
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0f); // [수정] 평타 모션 중 키보드 수동 이동 차단
@@ -205,10 +207,10 @@ public class MeleeCombatController : MonoBehaviour
         _player.LockAnimState(); // canChangeState lock with timeout safety net
         _player.ResetAnimStateCache();
 
-        // ponytail: Attack_Medium(옛 3타) 은 이제 재생하지 않는다. 3타는 소환수 마무리가 대신하고
-        // 플레이어는 Idle 로 있는다. 클립 자체는 남겨둠 — 되살릴 때 다시 연결하면 된다.
+        // 기존 3타 모션을 재사용한다. 소환수 평타는 이 콤보와 별도 내부 쿨로 동시에 발동한다.
         if (swingIndex == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
-        else _player.PlayAllAnim("Attack_Light2", "Attack");
+        else if (swingIndex == 1) _player.PlayAllAnim("Attack_Light2", "Attack");
+        else _player.PlayAllAnim("Attack_Medium", "Attack");
 
         // 공속(회/초)이 곧 애니 배속이다. 1회/초 = 1배속, 2회/초 = 2배속.
         if (_player.Stat != null)
@@ -271,6 +273,13 @@ public class MeleeCombatController : MonoBehaviour
                 // 같은 효과는 아이템(ItemDamageBonusEffect)으로 다시 만들 예정이며, 그쪽은
                 // DamageInfo 를 만든 뒤 파이프라인에서 얹히므로 여기서 더할 게 없다.
                 DamageInfo info = new DamageInfo(_player.Stat.ATK * damageMultiplier, DamageType.Physical, this.gameObject, 1f, "", false, causesHitstun: true, knockbackForce: 2f, superArmorDamage: saDmg, category: DamageCategory.BasicAttack);
+                info.playerBasicAttack = new PlayerBasicAttackRoll(weapon);
+                if (weapon != null && weapon.exploitsWeakness && swingIndex == 2)
+                {
+                    info.applyStatus = StatusType.Vulnerable;
+                    info.statusDuration = weapon.weaknessDuration;
+                }
+                _activeHitbox.HitsPerContact = weapon != null ? weapon.basicHitsPerContact : 1;
 
                 LayerMask enemyLayer = Layers.EnemyMask;
                 // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
@@ -296,7 +305,7 @@ public class MeleeCombatController : MonoBehaviour
             _minionStrikeReadyTime = Time.time + (fin != null ? fin.internalCooldown : 0f);
         }
 
-        // 콤보 진행 (1타 → 2타 반복)
+        // 콤보 진행 (1타 → 2타 → 3타)
         _comboStep = (_comboStep + 1) % ComboLength;
     }
 
@@ -416,6 +425,9 @@ public class MeleeCombatController : MonoBehaviour
         // 주먹과 소환수 마무리에 동시에 먹는다. 소환수의 개성은 배율이 유지한다.
         // [강화] 보상방 강화 단계만큼 일반 공격 배율이 붙는다(MinionEnhance).
         float enhanceMult = MinionEnhance.BasicAttackMult(main);
+        var weapon = PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.Weapon : null;
+        enhanceMult *= weapon != null ? weapon.basicDamagePerHit : 1f;
+        box.HitsPerContact = weapon != null ? weapon.basicHitsPerContact : 1;
         var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier * enhanceMult, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
 
         // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.

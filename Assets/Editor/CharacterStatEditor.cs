@@ -33,6 +33,7 @@ public class CharacterStatEditor : Editor
             if (stat.IsPlayer)
             {
                 EditorGUILayout.FloatField("SKILL CDR", stat.SKILL_CDR);
+                EditorGUILayout.FloatField("LUCK (%)", stat.LUCK);
                 EditorGUILayout.FloatField("DASH CDR", stat.DASH_CDR);
                 EditorGUILayout.FloatField("BASIC ATK MULT", stat.BASIC_ATK_MULT);
             }

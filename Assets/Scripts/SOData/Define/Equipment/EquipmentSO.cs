@@ -22,6 +22,31 @@ public class EquipmentSO : ScriptableObject
     [Header("강화")]
     [Tooltip("강화 상한 레벨.")]
     public int maxEnhanceLevel = 5;
+    [Tooltip("1015 장비는 +N 수치 강화 대신 다음 장비를 선택한다. 빈 배열이면 최종 단계.")]
+    public EquipmentSO[] upgradeOptions = new EquipmentSO[0];
+    [Min(0)] public int upgradeStage;
+    [Tooltip("강화 전용 장비는 무작위 보상/진열 판매에 넣지 않는다.")]
+    public bool upgradeOnly;
+
+    [Header("기본 공격")]
+    public Vector3 comboMultipliers = new Vector3(1f, 1f, 1.5f);
+    [Min(1)] public int basicHitsPerContact = 1;
+    [Min(0f)] public float basicDamagePerHit = 1f;
+    [Min(0f)] public float minionDashDamageMultiplier = 1f;
+
+    [Header("약점 공략 (플레이어 3타 적중)")]
+    public bool exploitsWeakness;
+    [Min(0f)] public float weaknessDuration = 10f;
+
+    [Header("세렌디피티")]
+    public bool serendipity;
+    [Range(0f, 1f)] public float resetChance = 0.13f;
+    [Min(0.01f)] public float guaranteedProcSeconds = 33f;
+    [Min(0f)] public float moveBuffSeconds = 13f;
+    [Min(0f)] public float moveBuffPercent = 0.03f;
+
+    public float ComboMultiplier(int index) => comboMultipliers[Mathf.Clamp(index, 0, 2)];
+    public float ResetChance(float luckPercent) => Mathf.Clamp01(resetChance + luckPercent / 100f);
     // 강화당 패시브 수치는 각 패시브가 자기 파라미터별로 관리한다
     // (StatEffect.valuePerLevel / EquipmentStatusPassive.*PerLevel / EquipmentBuffPassive.reapplyDelayPerLevel).
     // 예전의 전역 passiveGrowthPerLevel 은 '특정 파라미터만 강화'를 못 해서 제거했다.

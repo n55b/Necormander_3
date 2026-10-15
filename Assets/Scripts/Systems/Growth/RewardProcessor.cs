@@ -48,7 +48,7 @@ public static class RewardProcessor
 
         List<EquipmentSO> pool = new List<EquipmentSO>();
         if (registry != null && registry.equipments != null)
-            foreach (var e in registry.equipments) if (e != null) pool.Add(e);
+            foreach (var e in registry.equipments) if (e != null && !e.upgradeOnly) pool.Add(e);
 
         for (int i = 0; i < 3; i++)
         {
@@ -257,7 +257,7 @@ public static class RewardProcessor
         {
             foreach (var so in shopRegistry.equipmentPool)
             {
-                if (so == null) continue;
+                if (so == null || so.upgradeOnly) continue;
                 var inst = EquipmentInstance.Roll(so);
                 combinedPool.Add(new RewardCandidate
                 {

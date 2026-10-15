@@ -27,6 +27,8 @@ public class DebuffDataSO : ScriptableObject
 
     [Tooltip("경직 — 평타에 묻는 짧은 행동 불가. 기절과 별개다")]
     public Sprite hitstunIcon;
+    [Tooltip("취약 — 받는 물리 피해 +20%. 전용 이미지가 없으면 기본 사각형으로 표시.")]
+    public Sprite vulnerableIcon;
 
     /// <summary>
     /// 비어 있으면 그냥 null 을 준다 — 경고를 찍지 않는다.
@@ -41,6 +43,7 @@ public class DebuffDataSO : ScriptableObject
         StatusType.Poison => poisonIcon,
         StatusType.BloodPop => bloodPopIcon,
         StatusType.Hitstun => hitstunIcon,
+        StatusType.Vulnerable => vulnerableIcon,
         _ => null
     };
 }

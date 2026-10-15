@@ -18,6 +18,8 @@ public class GrowthRegistrySO : ScriptableObject
 
     [Header("장비 패시브")]
     public List<EquipmentSO> equipments = new List<EquipmentSO>();
+    [Tooltip("새 게임 및 삭제된 구 장비 세이브의 기본 무기.")]
+    public EquipmentSO startingEquipment;
 
     [Header("아이템 (주머니. 장비와 별개 시스템)")]
     [Tooltip("세이브에 이름으로 저장되므로 로드 시 이름→SO 해석에 이 목록이 필요하다.")]

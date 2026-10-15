@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dafda816e2e708244ac4ae54264b5a3e, type: 3}
+  m_Name: ViperSC
+  m_EditorClassIdentifier: 
+  equipmentName: "\uBC14\uC774\uD37C-SC"
+  description: "\uAE30\uBCF8 \uACF5\uACA9 3\uC5F0\uD0C0 (1 / 1 / 1.5). \uBCF4\uD1B5
+    \uACF5\uACA9 \uC18D\uB3C4 \xB7 \uACBD\uC9C1 0.2\uCD08.\n\uACF5\uACA9\uB825 +10.\n\uC57D\uC810
+    \uACF5\uB7B5: \uD50C\uB808\uC774\uC5B4 3\uD0C0 \uC801\uC911 \uC2DC \uCDE8\uC57D
+    10\uCD08. \uBC1B\uB294 \uBB3C\uB9AC \uD53C\uD574 +20% (\uC911\uCCA9 \uC5C6\uC774
+    \uAC31\uC2E0).\n\uC18C\uD658\uC218 Space \uC2A4\uD0AC \uCFE8\uD0C0\uC784 -20%.\n"
+  icon: {fileID: 7214652476106930508, guid: 1ab9deb8cc0a79f4a8df904cbb5de4f7, type: 3}
+  rarity: 0
+  shopCost: 150
+  passives:
+  - rid: 2773715241801089030
+  - rid: 2773715241801089031
+  maxEnhanceLevel: 3
+  upgradeOptions:
+  - {fileID: 11400000, guid: f87c9732b491bb04d855d0856acb46a0, type: 2}
+  upgradeStage: 2
+  upgradeOnly: 1
+  comboMultipliers: {x: 1, y: 1, z: 1.5}
+  basicHitsPerContact: 1
+  basicDamagePerHit: 1
+  minionDashDamageMultiplier: 1
+  exploitsWeakness: 1
+  weaknessDuration: 10
+  serendipity: 0
+  resetChance: 0.13
+  guaranteedProcSeconds: 33
+  moveBuffSeconds: 13
+  moveBuffPercent: 0.03
+  references:
+    version: 2
+    RefIds:
+    - rid: 2773715241801089030
+      type: {class: EquipmentStatPassive, ns: , asm: Assembly-CSharp}
+      data:
+        label: Attack
+        effect:
+          statType: 0
+          value: 10
+          isPercent: 0
+          valuePerLevel: 0
+    - rid: 2773715241801089031
+      type: {class: EquipmentStatPassive, ns: , asm: Assembly-CSharp}
+      data:
+        label: SkillCooldownReduction
+        effect:
+          statType: 17
+          value: 20
+          isPercent: 0
+          valuePerLevel: 0
