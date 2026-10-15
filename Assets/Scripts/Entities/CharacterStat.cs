@@ -43,6 +43,8 @@ public class CharacterStat : MonoBehaviour
     [Header("플레이어 전용")]
     [Tooltip("Q/E/R 스킬 쿨타임 감소율(%). 합연산, 상한 없음. 100 이면 이론상 즉시 재사용.")]
     [SerializeField] private float baseSkillCdr = 0f;
+    [Tooltip("행운(%). 세렌디피티 등 행운을 사용하는 효과의 발동 확률에 더한다.")]
+    [SerializeField] private float baseLuck = 0f;
     [Tooltip("대쉬 쿨타임 감소율(%). 스킬 쿨감과 별개다.")]
     [SerializeField] private float baseDashCdr = 0f;
     [Tooltip("평타 1·2타 배율. 기본 1.0 = ATK 그대로. 3타(소환수 마무리)는 소환수 배율을 쓴다.")]
@@ -150,6 +152,7 @@ public class CharacterStat : MonoBehaviour
 
     /// <summary>치명타 확률(%).</summary>
     public float CRIT_CHANCE => Mathf.Max(0f, baseCritChance + Mods.Flat(StatType.CritChance));
+    public float LUCK => Mathf.Max(0f, (baseLuck + Mods.Flat(StatType.Luck)) * (1f + Mods.Percent(StatType.Luck)));
 
     /// <summary>치명타 피해량(%). 150 = 1.5배. 하향도 가능하되 100% 밑으로는 안 내려간다(크리가 손해면 이상하므로).</summary>
     public float CRIT_DAMAGE => Mathf.Max(100f, baseCritDamage + Mods.Flat(StatType.CritDamage));

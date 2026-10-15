@@ -224,6 +224,8 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         // [강화] 보상방 강화 단계만큼 대쉬 피해 배율이 붙는다(MinionEnhance).
         float dmg = (_player.Stat != null ? _player.Stat.ATK : 0f) * mod.damageMultiplier
                     * MinionEnhance.DashDamageMult(GetMainMinion());
+        var weapon = PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.Weapon : null;
+        dmg *= weapon != null ? weapon.minionDashDamageMultiplier : 1f;
         StatusType? status = mod.onHitStatus == StatusType.None ? (StatusType?)null : mod.onHitStatus;
         var info = new DamageInfo(dmg, mod.element, _player.gameObject, 1f, "Dash",
             causesHitstun: true, knockbackForce: mod.pushesEnemies ? mod.pushForce : 0f,

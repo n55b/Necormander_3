@@ -145,6 +145,7 @@ MonoBehaviour:
   name: EnhanceShop
   bubbleCanvas: {fileID: 2100000030}
   bubblePrefab: {fileID: 4713303146262076564, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
+  selectionUIPrefab: {fileID: 6747043164598574162, guid: 391dcc69b9610324fbd64fca48ef98a3, type: 3}
 --- !u!95 &7375245333075707756
 Animator:
   serializedVersion: 7

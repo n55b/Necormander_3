@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 public class PlayerSkillController : MonoBehaviour
 {
+    /// <summary>현재 스킬은 취소하지 않고 남은 재사용 대기시간만 없앤다.</summary>
+    public void ResetMainSummonCooldown() => _mainSummonCooldownEnd = 0f;
 
     [Header("Equipped Summon (Auto-Synced) — 메인 1")]
     [SerializeField] private MainMinionDataSO mainSummon;

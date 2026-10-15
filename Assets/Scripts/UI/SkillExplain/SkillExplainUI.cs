@@ -162,12 +162,12 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         if (stat == null) { playerStatsText.text = "플레이어 정보 준비 중"; return; }
         var guard = player.GetComponent<PlayerParryController>();
         var dodge = player.GetComponent<MeleeDodgeController>();
-        playerStatsText.text = $"<line-height=19>체력<pos=112>{stat.CURHP:0}/{stat.MAXHP:0}\n" +
+        playerStatsText.text = $"<line-height=18>체력<pos=112>{stat.CURHP:0}/{stat.MAXHP:0}\n" +
             $"가드<pos=112>{(guard != null ? guard.GuardAmount : 0):0}/{(guard != null ? guard.GuardCapacity : 0):0}\n" +
             $"회피 횟수<pos=112>{(dodge != null ? dodge.CurrentCharges : 0)}/{(dodge != null ? dodge.MaxCharges : 0)}\n\n" +
             $"물리 공격력<pos=112>{stat.ATK:0.##}\n마법 공격력<pos=112>{stat.MAGIC:0.##}\n" +
             $"방어력<pos=112>{stat.DEF:0.##}%\n회피율<pos=112>{stat.EVASION * 100f:0.##}%\n" +
-            $"공격 속도<pos=112>{stat.ATKSPD:0.##}\n치명타 확률<pos=112>{stat.CRIT_CHANCE:0.##}%\n" +
+            $"공격 속도<pos=112>{stat.ATKSPD:0.##}\n행운<pos=112>{stat.LUCK:0.##}%\n치명타 확률<pos=112>{stat.CRIT_CHANCE:0.##}%\n" +
             $"치명타 피해량<pos=112>{stat.CRIT_DAMAGE:0.##}%\n적중률<pos=112>{stat.ACCURACY * 100f:0.##}%\n" +
             $"기본 공격 배율<pos=112>{stat.BASIC_ATK_MULT:0.##}\n이동 속도<pos=112>{stat.MOVESPEED:0.##}\n" +
             $"스킬 쿨타임 감소<pos=112>{stat.SKILL_CDR * 100f:0.##}%\n대시 쿨타임 감소<pos=112>{stat.DASH_CDR * 100f:0.##}%\n" +
@@ -190,7 +190,9 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         string title = string.IsNullOrEmpty(so.equipmentName) ? so.name : so.equipmentName;
 
         // 효과 = 장비 설명(디자이너가 적은 효과 문구) + 강화 등급.
-        string enhance = $"강화 +{eq.enhanceLevel}/{so.maxEnhanceLevel}";
+        string enhance = so.upgradeOnly
+            ? (so.upgradeOptions.Length > 0 ? $"강화 단계 {so.upgradeStage}/3" : "최종 장비")
+            : $"강화 +{eq.enhanceLevel}/{so.maxEnhanceLevel}";
         string desc = string.IsNullOrEmpty(so.description) ? enhance : $"{so.description}\n\n{enhance}";
 
         slot.SetData(so.icon, title, ApplyKeywordHighlighting(desc));

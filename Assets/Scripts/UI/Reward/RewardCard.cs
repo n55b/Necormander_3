@@ -13,6 +13,8 @@ public class RewardCard : MonoBehaviour
     [SerializeField] private Image iconImage;
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI descText;
+    [Tooltip("긴 설명을 스크롤하는 카드에서만 연결. 비어 있으면 기존 고정 설명을 사용합니다.")]
+    [SerializeField] private ScrollRect descriptionScroll;
 
     [Header("Keyword Sub Tooltip")]
     [Tooltip("설명에 포함된 키워드(예: 취약)를 감지해 아래에 추가 설명을 붙여줍니다. CommonTooltipUI와 동일한 사전을 연결하세요.")]
@@ -96,14 +98,14 @@ public class RewardCard : MonoBehaviour
                     locEvent = descText.gameObject.AddComponent<LocalizeStringEvent>();
                 }
                 locEvent.OnUpdateString.RemoveAllListeners();
-                locEvent.OnUpdateString.AddListener((s) => descText.text = ApplyKeywordHighlighting(s));
+                locEvent.OnUpdateString.AddListener(SetDescription);
                 locEvent.StringReference = candidate.displayData.localizedDescription;
             }
             else
             {
                 var locEvent = descText.GetComponent<LocalizeStringEvent>();
                 if (locEvent != null) locEvent.StringReference = null;
-                descText.text = ApplyKeywordHighlighting(candidate.displayData.description);
+                SetDescription(candidate.displayData.description);
             }
         }
         
@@ -119,6 +121,15 @@ public class RewardCard : MonoBehaviour
             // '없음'을 클릭했을 때 다음 보상으로 넘어가거나 UI가 닫힐 수 있도록 합니다.
             _cardButton.interactable = true;
         }
+    }
+
+    private void SetDescription(string text)
+    {
+        descText.text = ApplyKeywordHighlighting(text);
+        if (descriptionScroll == null) return;
+        LayoutRebuilder.ForceRebuildLayoutImmediate(descriptionScroll.content);
+        descriptionScroll.StopMovement();
+        descriptionScroll.verticalNormalizedPosition = 1f;
     }
 
     /// <summary>
@@ -156,7 +167,10 @@ public class RewardCard : MonoBehaviour
         if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
             cam = canvas.worldCamera;
 
-        int linkIndex = TMP_TextUtilities.FindIntersectingLink(descText, Input.mousePosition, cam);
+        // 마스크 밖으로 스크롤된 키워드는 보이지 않으므로 툴팁도 띄우지 않는다.
+        bool inViewport = descriptionScroll == null || RectTransformUtility.RectangleContainsScreenPoint(
+            descriptionScroll.viewport, Input.mousePosition, cam);
+        int linkIndex = inViewport ? TMP_TextUtilities.FindIntersectingLink(descText, Input.mousePosition, cam) : -1;
 
         if (linkIndex != -1)
         {

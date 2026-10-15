@@ -54,7 +54,7 @@ public class ShopRegistrySO : ScriptableObject
             if (path.Contains("/Deprecated/")) continue;
 
             var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<EquipmentSO>(path);
-            if (asset != null) equipmentPool.Add(asset);
+            if (asset != null && !asset.upgradeOnly) equipmentPool.Add(asset);
         }
 
         // 아이템: 전부 스캔(Deprecated 제외).

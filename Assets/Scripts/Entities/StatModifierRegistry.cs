@@ -30,6 +30,7 @@ public enum StatType
     BasicAttackMultiplier = 19,    // 평타 1·2타 배율 — 플레이어 전용
     PhysDamageAmp = 20,            // 물리 피해 증폭 (0.1 = +10%). 유물로만 오른다
     MagicDamageAmp = 21,           // 마법 피해 증폭
+    Luck = 22,                    // 행운(%). 5 = 확률 +5%p. 지정된 효과만 사용한다.
 }
 
 /// <summary>스탯 변화 한 건. (원래 GemInstance.cs 에 있었다.)</summary>

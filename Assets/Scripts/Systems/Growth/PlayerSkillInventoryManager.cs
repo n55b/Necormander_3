@@ -11,6 +11,10 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     // [장비] 착용 중인 한 자루(런타임 전용, Unity 직렬화 안 함 → 없으면 null). 저장은 EquipmentSaveData 로.
     private EquipmentInstance _equipped;
     public EquipmentInstance EquippedEquipment => _equipped;
+    public EquipmentSO Weapon => _equipped != null ? _equipped.baseData : null;
+    private float _serendipityElapsed;
+    private float _moveBuffRemaining;
+    private readonly object _moveBuffSource = new object();
 
     // [조건형 버프] 착용 장비의 EquipmentConditionBuffPassive 상태 추적 + 플레이어 피격 훅.
     private class BuffState { public EquipmentConditionBuffPassive passive; public float noHitTimer; public bool active; }
@@ -40,6 +44,9 @@ public class PlayerSkillInventoryManager : MonoBehaviour
         var stat = PlayerStat();
 
         // 이전 장비 패시브 회수 (스탯 보정은 소스 키로 통째로 걷어낸다).
+        stat?.Mods.RemoveSource(_moveBuffSource);
+        _serendipityElapsed = 0f;
+        _moveBuffRemaining = 0f;
         if (_equipped != null && stat != null)
         {
             stat.Mods.RemoveSource(_equipped);
@@ -66,6 +73,12 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     /// </summary>
     public void ReapplyEquipmentPassives()
     {
+        if (Weapon == null)
+        {
+            var registry = GameManager.Instance?.dataManager?.GET_GROWTH_REGISTRY();
+            if (registry != null && registry.startingEquipment != null)
+                EquipEquipment(EquipmentInstance.Roll(registry.startingEquipment));
+        }
         var stat = PlayerStat();
         if (stat == null || _equipped == null || _equipped.baseData == null) return;
 
@@ -76,6 +89,7 @@ public class PlayerSkillInventoryManager : MonoBehaviour
 
         RebuildBuffs();  // 새 플레이어라 버프 스탯이 사라졌으니 트래커 리셋(드라이버가 조건 맞으면 재적용)
         HookPlayerHit(); // 새 플레이어 피격 이벤트로 재구독
+        RefreshMoveBuff(stat);
     }
 
     // ── 장비 강화 ─────────────────────────────────────────────────────
@@ -83,6 +97,8 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     /// 패시브를 새 강화레벨로 재적용한다(멱등).</summary>
     public bool EnhanceEquipped()
     {
+        if (Weapon != null && Weapon.upgradeOnly)
+            return Weapon.upgradeOptions.Length == 1 && UpgradeTo(Weapon.upgradeOptions[0]);
         if (!CanEnhanceEquipped()) return false;
         _equipped.enhanceLevel++;
         ReapplyEquipmentPassives();      // 새 강화레벨로 패시브 다시 붙임(RemoveSource 후 재적용)
@@ -96,12 +112,60 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     /// <summary>강화 가능 여부: 장비를 끼고 있고 아직 최대 강화레벨(EquipmentSO.maxEnhanceLevel) 미만.</summary>
     public bool CanEnhanceEquipped()
         => _equipped != null && _equipped.baseData != null
-           && _equipped.enhanceLevel < _equipped.baseData.maxEnhanceLevel;
+           && (Weapon.upgradeOnly ? System.Array.Exists(Weapon.upgradeOptions, e => e != null)
+                                  : _equipped.enhanceLevel < Weapon.maxEnhanceLevel);
+
+    public bool UpgradeTo(EquipmentSO next)
+    {
+        if (next == null || Weapon == null || !System.Array.Exists(Weapon.upgradeOptions, e => e == next)) return false;
+        EquipEquipment(new EquipmentInstance { baseData = next, enhanceLevel = next.upgradeStage });
+        return true;
+    }
+
+    private void OnBasicHit(CharacterHealth target, CharacterStat attacker, DamageInfo info, bool critical)
+    {
+        var roll = info.playerBasicAttack;
+        if (roll == null || !roll.TryResolve()) return;
+        if (Weapon == null || !Weapon.serendipity || roll.Equipment != Weapon || !IsPlayerObject(info.attacker)) return;
+        var stat = PlayerStat();
+        if (stat != null && Random.value < Weapon.ResetChance(stat.LUCK)) ProcSerendipity(stat);
+    }
+
+    private void TickSerendipity(float delta)
+    {
+        var stat = PlayerStat();
+        if (stat == null || stat.IsDead || Weapon == null || !Weapon.serendipity) return;
+        if (_moveBuffRemaining > 0f)
+        {
+            _moveBuffRemaining = Mathf.Max(0f, _moveBuffRemaining - delta);
+            if (_moveBuffRemaining == 0f) stat.Mods.RemoveSource(_moveBuffSource);
+        }
+        // 전투 여부/현재 스킬 쿨타임과 무관하게 경과한다. 일시정지 중에는 게임 시간도 멈춘다.
+        _serendipityElapsed += delta;
+        if (_serendipityElapsed >= Mathf.Max(0.01f, Weapon.guaranteedProcSeconds)) ProcSerendipity(stat);
+    }
+
+    private void ProcSerendipity(CharacterStat stat)
+    {
+        var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
+        if (player != null) player.GetComponent<PlayerSkillController>()?.ResetMainSummonCooldown();
+        _serendipityElapsed = 0f;
+        _moveBuffRemaining = Weapon.moveBuffSeconds;
+        RefreshMoveBuff(stat);
+    }
+
+    private void RefreshMoveBuff(CharacterStat stat)
+    {
+        stat.Mods.RemoveSource(_moveBuffSource);
+        if (_moveBuffRemaining > 0f && Weapon != null && Weapon.serendipity)
+            stat.Mods.AddPercent(_moveBuffSource, StatType.MoveSpeed, Weapon.moveBuffPercent);
+    }
 
     // ── 조건부 버프 드라이버 ───────────────────────────────────────────
     private void Update()
     {
         if (_equipped == null) return;
+        TickSerendipity(Time.deltaTime);
 
         // 발동형 버프 타이머(스탯 불필요 — 이벤트로 켜지고 다음 타격 or 만료로 꺼진다).
         for (int i = 0; i < _triggers.Count; i++)
@@ -184,6 +248,8 @@ public class PlayerSkillInventoryManager : MonoBehaviour
         if (_hookedHealth != null) { _hookedHealth.OnDamageTaken -= OnPlayerDamaged; _hookedHealth = null; }
         SkillCombatUtil.OnEnemyDisplaced -= OnEnemyDisplaced;
         DamageEventBus.OnBeforeDamageCalculated -= HandleTriggerBeforeDamage;
+        DamageEventBus.OnAttackHitResolved -= OnBasicHit;
+        PlayerStat()?.Mods.RemoveSource(_moveBuffSource);
     }
 
     /// <summary>"전투 중" 판정 = 살아있는 적이 하나라도 있는가(방에 적 있으면).</summary>
@@ -200,6 +266,7 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     {
         SkillCombatUtil.OnEnemyDisplaced += OnEnemyDisplaced;
         DamageEventBus.OnBeforeDamageCalculated += HandleTriggerBeforeDamage;
+        DamageEventBus.OnAttackHitResolved += OnBasicHit;
     }
 
     private static bool IsPlayerObject(GameObject go)
@@ -268,7 +335,8 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     public void SaveToData(SaveData data)
     {
         data.equipment = _equipped != null && _equipped.baseData != null
-            ? new EquipmentSaveData { equipmentSOName = _equipped.baseData.name, enhanceLevel = _equipped.enhanceLevel }
+            ? new EquipmentSaveData { equipmentSOName = _equipped.baseData.name, enhanceLevel = _equipped.enhanceLevel,
+                serendipityElapsed = _serendipityElapsed, moveBuffRemaining = _moveBuffRemaining }
             : null;
     }
 
@@ -280,9 +348,15 @@ public class PlayerSkillInventoryManager : MonoBehaviour
         if (registry == null) return;
         var saved = data.equipment;
         var so = saved != null ? registry.equipments.Find(e => e != null && e.name == saved.equipmentSOName) : null;
+        so = so != null ? so : registry.startingEquipment;
         EquipEquipment(so != null ? new EquipmentInstance {
-            baseData = so, enhanceLevel = Mathf.Clamp(saved.enhanceLevel, 0, so.maxEnhanceLevel)
+            baseData = so, enhanceLevel = so.upgradeOnly ? so.upgradeStage : Mathf.Clamp(saved != null ? saved.enhanceLevel : 0, 0, so.maxEnhanceLevel)
         } : null);
+        if (so != null && so.serendipity && saved != null)
+        {
+            _serendipityElapsed = Mathf.Clamp(saved.serendipityElapsed, 0f, so.guaranteedProcSeconds);
+            _moveBuffRemaining = Mathf.Clamp(saved.moveBuffRemaining, 0f, so.moveBuffSeconds);
+        }
         // 옛 세이브의 Q/E/rolledSkillNames는 읽지 않는다. 장비와 강화 수치는 유지한다.
     }
 }

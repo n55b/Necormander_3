@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dafda816e2e708244ac4ae54264b5a3e, type: 3}
+  m_Name: Marionette
+  m_EditorClassIdentifier: 
+  equipmentName: "\uB9C8\uB9AC\uC624\uB124\uD2B8"
+  description: "\uAE30\uBCF8 \uACF5\uACA9 3\uC5F0\uD0C0 (1 / 1 / 1.5). \uBCF4\uD1B5
+    \uACF5\uACA9 \uC18D\uB3C4 \xB7 \uACBD\uC9C1 0.2\uCD08.\n\uACF5\uACA9\uB825 +10.\n\uC57D\uC810
+    \uACF5\uB7B5: \uD50C\uB808\uC774\uC5B4 3\uD0C0 \uC801\uC911 \uC2DC \uCDE8\uC57D
+    10\uCD08. \uBC1B\uB294 \uBB3C\uB9AC \uD53C\uD574 +20% (\uC911\uCCA9 \uC5C6\uC774
+    \uAC31\uC2E0).\n\uACF5\uACA9 \uC18D\uB3C4 +20%.\n\uB9C8\uB9AC\uC624\uB124\uD2B8:
+    \uD50C\uB808\uC774\uC5B4\xB7\uC18C\uD658\uC218 \uD3C9\uD0C0\uC758 \uD0C0\uC218
+    2\uBC30, \uAC01 \uD0C0\uACA9 \uD53C\uD574 60%. \uBAA8\uC158\uC740 \uC720\uC9C0.
+    \uC18C\uD658\uC218 \uB300\uC26C \uACF5\uACA9 \uD53C\uD574 +30%."
+  icon: {fileID: 7214652476106930508, guid: 1ab9deb8cc0a79f4a8df904cbb5de4f7, type: 3}
+  rarity: 0
+  shopCost: 150
+  passives:
+  - rid: 2773715241801089028
+  - rid: 2773715241801089029
+  maxEnhanceLevel: 3
+  upgradeOptions: []
+  upgradeStage: 3
+  upgradeOnly: 1
+  comboMultipliers: {x: 1, y: 1, z: 1.5}
+  basicHitsPerContact: 2
+  basicDamagePerHit: 0.6
+  minionDashDamageMultiplier: 1.3
+  exploitsWeakness: 1
+  weaknessDuration: 10
+  serendipity: 0
+  resetChance: 0.13
+  guaranteedProcSeconds: 33
+  moveBuffSeconds: 13
+  moveBuffPercent: 0.03
+  references:
+    version: 2
+    RefIds:
+    - rid: 2773715241801089028
+      type: {class: EquipmentStatPassive, ns: , asm: Assembly-CSharp}
+      data:
+        label: Attack
+        effect:
+          statType: 0
+          value: 10
+          isPercent: 0
+          valuePerLevel: 0
+    - rid: 2773715241801089029
+      type: {class: EquipmentStatPassive, ns: , asm: Assembly-CSharp}
+      data:
+        label: AttackSpeed
+        effect:
+          statType: 2
+          value: 0.2
+          isPercent: 1
+          valuePerLevel: 0

@@ -189,6 +189,7 @@ public class DPSMeter : MonoBehaviour
         text.AppendLine($"공격 속도: {stat.ATKSPD:F2}회/초");
         text.AppendLine($"스탯 기준 공격 간격: {stat.AttackInterval:F3}초");
         text.AppendLine($"치명타 확률: {stat.CRIT_CHANCE:F1}%");
+        text.AppendLine($"행운 (Luck): {stat.LUCK:F1}%");
         text.AppendLine($"치명타 피해: {stat.CRIT_DAMAGE:F1}%");
         text.AppendLine($"적중률: {stat.ACCURACY * 100f:F1}%");
         text.AppendLine($"기본 공격 스탯 배율: x{stat.BASIC_ATK_MULT:F2}");

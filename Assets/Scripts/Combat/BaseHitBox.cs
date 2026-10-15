@@ -60,6 +60,13 @@ public class BaseHitBox : MonoBehaviour
     public FillStyle fillStyle = FillStyle.Uniform;
 
     private DamageInfo _damageInfo;
+    // 마리오네트: 원래 애니메이션/펄스는 유지하고 한 판정에서 독립된 타격을 반복한다.
+    public int HitsPerContact { get; set; } = 1;
+    private void DealContactDamage(IDamageable target)
+    {
+        for (int i = 0; i < Mathf.Max(1, HitsPerContact) && !target.IsDead; i++)
+            target.TakeDamage(_damageInfo);
+    }
     private LayerMask _targetLayer;
     private bool _isInitialized = false;
     private float _elapsed;
@@ -75,7 +82,8 @@ public class BaseHitBox : MonoBehaviour
     // PulseDamageOverlapping() 호출 때마다 겹친 대상을 1회씩 때린다 — OnTriggerStay 재호출(대상이 안 움직여
     // 리지드바디가 잠들면 안 옴)에 의존하지 않아, 넉백 없는 스킬도 다단히트가 온전히 들어간다.
     private bool _manualHitOnly;
-    private static readonly List<Collider2D> _overlapScratch = new List<Collider2D>();
+    private readonly List<Collider2D> _overlapScratch = new List<Collider2D>();
+    private readonly HashSet<IDamageable> _pulseTargets = new HashSet<IDamageable>();
 
     /// <summary>이벤트 펄스 전용 타격 모드 on/off. 이벤트당 다단히트(useEvent) 경로에서 켠다.</summary>
     public void SetManualHitOnly(bool value) => _manualHitOnly = value;
@@ -124,6 +132,7 @@ public class BaseHitBox : MonoBehaviour
         filter.SetLayerMask(_targetLayer);
         _overlapScratch.Clear();
         col.Overlap(filter, _overlapScratch);
+        _pulseTargets.Clear();
 
         foreach (var hit in _overlapScratch)
         {
@@ -131,9 +140,9 @@ public class BaseHitBox : MonoBehaviour
             var damageable = hit.GetComponent<IDamageable>()
                 ?? hit.GetComponentInParent<IDamageable>()
                 ?? hit.GetComponentInChildren<IDamageable>();
-            if (damageable == null || damageable.IsDead) continue;
+            if (damageable == null || damageable.IsDead || !_pulseTargets.Add(damageable)) continue;
             bool wasFrozen = IsTargetFrozen(hit); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
-            damageable.TakeDamage(_damageInfo);
+            DealContactDamage(damageable);
             SpawnHitEffect(hit.transform.position, wasFrozen);
             if (damageable is CharacterHealth ch) _onHitEnemy?.Invoke(ch);
         }
@@ -317,7 +326,7 @@ public class BaseHitBox : MonoBehaviour
                 if (_elapsed >= n * damageTickRate)
                 {
                     bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
-                    damageable.TakeDamage(_damageInfo);
+                    DealContactDamage(damageable);
                     SpawnHitEffect(col.transform.position, wasFrozen);
                     _tickCount[damageable] = n + 1;
 
@@ -334,7 +343,7 @@ public class BaseHitBox : MonoBehaviour
                 {
                     _hitTargets.Add(damageable);
                     bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
-                    damageable.TakeDamage(_damageInfo);
+                    DealContactDamage(damageable);
                     SpawnHitEffect(col.transform.position, wasFrozen);
                     
                     if (damageable is CharacterHealth ch)

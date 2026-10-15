@@ -49,3 +49,34 @@ source_context: "SkillExplainUI / PouchUI / UIPopUpManager"
 ```
 
 C toggles only the left stats sidebar; its top arrow independently expands equipment, guard and minion details. V toggles the center inventory and right set-effects panel. Both can remain open, with expanded C details above V regardless of opening order. Preserve editor-authored prefabs and existing colors; use simple shapes for missing art.
+
+## 2026-10-15T09:10:33.738Z — upgrade-card-title-and-scroll-region
+
+```omd-meta
+id: pref_mv9bjac9_c2cd4d8b
+timestamp: 2026-10-15T09:10:33.738Z
+scope: components.card
+signal: user-correction
+confidence: explicit
+status: pending
+source_agent: Codex
+source_context: "Assets/Prefabs/UI/Reward Selection/EquipmentUpgradeSelectionUI.prefab"
+```
+
+Place upgrade card titles in the artwork's central name ribbon and descriptions inside its lower rectangular panel. Keep long descriptions readable by scrolling within that panel, with overflow masked; preserve the existing artwork and editor-authored prefab hierarchy.
+
+
+## 2026-10-15T09:44:44.778Z — shared-card-icon-centering-and-scroll
+
+```omd-meta
+id: pref_mv9cr8x6_cbdb4039
+timestamp: 2026-10-15T09:44:44.778Z
+scope: components.card
+signal: user-correction
+confidence: explicit
+status: pending
+source_agent: Codex
+source_context: "RewardCard 1 / EquipmentUpgradeSelectionUI / RewardSelectionUI prefabs"
+```
+
+Center choice-card icons in the upper circular artwork. Apply masked, lower-panel description scrolling to the shared card prefab, including village minion choices, not just the equipment upgrade variant. Keep the layout editable in prefabs.

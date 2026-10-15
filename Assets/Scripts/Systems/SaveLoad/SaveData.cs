@@ -43,6 +43,8 @@ public class EquipmentSaveData
 {
     public string equipmentSOName;                          // EquipmentSO 에셋 이름
     public int enhanceLevel;
+    public float serendipityElapsed;
+    public float moveBuffRemaining;
 }
 
 [System.Serializable]

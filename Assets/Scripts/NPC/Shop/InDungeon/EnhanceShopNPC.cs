@@ -1,10 +1,8 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
-/// 강화 전용 상점 NPC. 진열품(SellItem) 없이 F 한 번에 착용 장비를 +1강 한다.
-///
-/// 일반 상점(ShopNPC)은 방당 재고를 한 번 굴려서 그게 제동장치지만, 여기는 재고가 없다 —
-/// 골드와 EquipmentSO.maxEnhanceLevel 둘만이 제동장치라서 가격이 레벨마다 오른다(CurrentCost).
+/// 강화 전용 상점 NPC. 다음 장비를 카드로 선택하고, 상점당 한 번만 강화한다.
 ///
 /// 상호작용은 PlayerController.CheckForInteractable 이 잡는다. 그래서 이 컴포넌트가 붙은
 /// 오브젝트에 Interactable(13) 레이어의 트리거 콜라이더가 반드시 같이 있어야 한다 —
@@ -17,18 +15,23 @@ public class EnhanceShopNPC : NPCBase
     [SerializeField] private GameObject bubbleCanvas;
     [Tooltip("Assets/Prefabs/UI/Shop/ToolTip.prefab — Name/Price 두 줄짜리 말풍선.")]
     [SerializeField] private GameObject bubblePrefab;
+    [Header("강화 선택 (기존 보상 카드 프리팹)")]
+    [SerializeField] private RewardSelectionUI selectionUIPrefab;
+    private RewardSelectionUI _ui;
+    private bool _isOpen;
+    private bool _used;
 
     private GameObject _bubble;
     private Tooltip _tooltip;
 
-    public override string InteractionPrompt => $"F : 장비 강화 ({CurrentCost()}G)";
+    public override string InteractionPrompt => _used ? "이 상점에서 강화 완료" : $"F : 장비 강화 ({CurrentCost()}G)";
 
     // ─── 강화 ─────────────────────────────────────────────────────────
     public override bool Interact(GameObject interactor)
     {
         var psi = PlayerSkillInventoryManager.Instance;
         var inv = GameManager.Instance != null ? GameManager.Instance.inventoryManager : null;
-        if (psi == null || inv == null) return false;
+        if (psi == null || inv == null || _used || _isOpen) return false;
 
         if (!psi.CanEnhanceEquipped())
         {
@@ -36,17 +39,53 @@ public class EnhanceShopNPC : NPCBase
             return false;
         }
 
-        if (!inv.SpendGold(CurrentCost()))
+        var source = psi.EquippedEquipment;
+        var options = source.baseData.upgradeOptions;
+        var choices = new List<RewardCandidate>();
+        foreach (var next in options)
         {
-            Debug.Log("[EnhanceShop] 골드가 부족합니다.");
-            return false;
+            if (next == null) continue;
+            choices.Add(new RewardCandidate {
+                category = RewardCategory.Equipment, rawData = next,
+                displayData = new GrowthItemData { itemName = next.equipmentName, icon = next.icon,
+                    description = next.description + $"\n\n강화 비용: {CurrentCost()}G (상점당 1회)" }
+            });
         }
+        if (choices.Count == 0) return false;
+        if (_ui == null && selectionUIPrefab != null && UIPopUpManager.Instance != null)
+            _ui = Instantiate(selectionUIPrefab, UIPopUpManager.Instance.transform, false);
+        if (_ui == null) return false;
 
-        psi.EnhanceEquipped();
-
-        // 무제한 상점이라 그 자리에서 또 누를 수 있다. 다음 강화의 가격·레벨로 즉시 갱신.
-        RefreshBubble();
+        _isOpen = true;
+        _ui.ShowWithCallbacks(choices, choice => {
+            // 선택 중 다른 경로로 장비가 바뀌었으면 과금하지 않는다.
+            if (!_used && psi.EquippedEquipment == source && choice.rawData is EquipmentSO next)
+            {
+                int cost = CurrentCost();
+                if (inv.SpendGold(cost))
+                {
+                    if (psi.UpgradeTo(next)) _used = true;
+                    else inv.AddGold(cost);
+                }
+                else Debug.Log("[EnhanceShop] 골드가 부족합니다.");
+            }
+            CloseSelection();
+            RefreshBubble();
+        }, CloseSelection);
         return true;
+    }
+
+    private void CloseSelection()
+    {
+        if (_isOpen && _ui != null) _ui.Hide();
+        _isOpen = false;
+    }
+
+    private void OnDisable() => CloseSelection();
+    private void OnDestroy()
+    {
+        CloseSelection();
+        if (_ui != null) Destroy(_ui.gameObject);
     }
 
     /// <summary>
@@ -120,9 +159,9 @@ public class EnhanceShopNPC : NPCBase
         }
 
         if (_tooltip.name != null)
-            _tooltip.name.text = $"{eq.baseData.equipmentName} +{eq.enhanceLevel}/{eq.baseData.maxEnhanceLevel}";
+            _tooltip.name.text = eq.baseData.equipmentName;
 
         if (_tooltip.price != null)
-            _tooltip.price.text = (psi != null && psi.CanEnhanceEquipped()) ? $"{CurrentCost()}G" : "최대 강화";
+            _tooltip.price.text = _used ? "강화 완료" : (psi != null && psi.CanEnhanceEquipped()) ? $"{CurrentCost()}G" : "최종 장비";
     }
 }
