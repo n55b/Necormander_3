@@ -24,14 +24,17 @@ public class EnhanceShopNPC : NPCBase
     private GameObject _bubble;
     private Tooltip _tooltip;
 
-    public override string InteractionPrompt => _used ? "이 상점에서 강화 완료" : $"F : 장비 강화 ({CurrentCost()}G)";
+    private bool UnlimitedEnhancements => GameManager.Instance != null && GameManager.Instance.testMode_UnlimitedShopEnhancements;
+    private bool UpgradeLimitReached => _used && !UnlimitedEnhancements;
+
+    public override string InteractionPrompt => UpgradeLimitReached ? "이 상점에서 강화 완료" : $"F : 장비 강화 ({CurrentCost()}G)";
 
     // ─── 강화 ─────────────────────────────────────────────────────────
     public override bool Interact(GameObject interactor)
     {
         var psi = PlayerSkillInventoryManager.Instance;
         var inv = GameManager.Instance != null ? GameManager.Instance.inventoryManager : null;
-        if (psi == null || inv == null || _used || _isOpen) return false;
+        if (psi == null || inv == null || UpgradeLimitReached || _isOpen) return false;
 
         if (!psi.CanEnhanceEquipped())
         {
@@ -48,7 +51,8 @@ public class EnhanceShopNPC : NPCBase
             choices.Add(new RewardCandidate {
                 category = RewardCategory.Equipment, rawData = next,
                 displayData = new GrowthItemData { itemName = next.equipmentName, icon = next.icon,
-                    description = next.description + $"\n\n강화 비용: {CurrentCost()}G (상점당 1회)" }
+                    description = next.description + $"\n\n강화 비용: {CurrentCost()}G "
+                        + (UnlimitedEnhancements ? "(디버그: 횟수 제한 없음)" : "(상점당 1회)") }
             });
         }
         if (choices.Count == 0) return false;
@@ -59,7 +63,7 @@ public class EnhanceShopNPC : NPCBase
         _isOpen = true;
         _ui.ShowWithCallbacks(choices, choice => {
             // 선택 중 다른 경로로 장비가 바뀌었으면 과금하지 않는다.
-            if (!_used && psi.EquippedEquipment == source && choice.rawData is EquipmentSO next)
+            if (!UpgradeLimitReached && psi.EquippedEquipment == source && choice.rawData is EquipmentSO next)
             {
                 int cost = CurrentCost();
                 if (inv.SpendGold(cost))
@@ -162,6 +166,6 @@ public class EnhanceShopNPC : NPCBase
             _tooltip.name.text = eq.baseData.equipmentName;
 
         if (_tooltip.price != null)
-            _tooltip.price.text = _used ? "강화 완료" : (psi != null && psi.CanEnhanceEquipped()) ? $"{CurrentCost()}G" : "최종 장비";
+            _tooltip.price.text = UpgradeLimitReached ? "강화 완료" : (psi != null && psi.CanEnhanceEquipped()) ? $"{CurrentCost()}G" : "최종 장비";
     }
 }

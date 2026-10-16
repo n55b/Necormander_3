@@ -27,10 +27,16 @@ public class ShopNPC : NPCBase
         return ShopPopupUI.Open(this);
     }
 
-    /// <summary>재고를 굴린다(ShopRoomEvent / Start / Interact). 이미 굴렸으면 무시한다.</summary>
+    /// <summary>재고를 한 번 굴린다. 이후에는 그 사이 습득한 아이템만 제외하고 재추첨하지 않는다.</summary>
     public void Initialize()
     {
-        if (_stockInitialized) return;
+        if (_stockInitialized)
+        {
+            // 맵 생성 시 미리 뽑은 재고도, 상점에 오기 전에 얻은 아이템은 다시 팔지 않는다.
+            _stock.RemoveAll(offer => !offer.Purchased && offer.candidate.rawData is ItemSO item
+                && !RewardProcessor.CanOfferItem(item));
+            return;
+        }
 
         var dm = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
         if (dm == null || dm.SHOP_REGISTRY == null) return; // 준비 전이면 플래그를 세우지 않고 다음 호출에 재시도
@@ -50,6 +56,7 @@ public class ShopNPC : NPCBase
     {
         var inventory = InventoryManager.Instance;
         if (offer == null || offer.Purchased || !offer.IsValid || inventory == null || !_stock.Contains(offer)) return false;
+        if (offer.candidate.rawData is ItemSO item && !RewardProcessor.CanOfferItem(item)) return false;
         if (!inventory.SpendGold(offer.Price)) return false;
 
         if (!RewardManager.TryGivePurchase(offer.candidate, GetDropPosition()))

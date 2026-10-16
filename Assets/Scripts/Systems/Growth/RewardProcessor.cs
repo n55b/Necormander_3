@@ -96,14 +96,18 @@ public static class RewardProcessor
             icon = so.icon
         };
 
-    /// <summary>레지스트리 전체에서 아이템 하나를 랜덤으로. 엘리트 드랍용. 없으면 null.</summary>
+    /// <summary>현재 주머니에 없는 아이템만 상점/보상 후보로 사용한다. 버린 아이템은 다시 후보가 된다.</summary>
+    public static bool CanOfferItem(ItemSO item)
+        => item != null && (ItemPouch.Instance == null || !ItemPouch.Instance.Contains(item));
+
+    /// <summary>미보유 아이템 하나를 랜덤으로. 엘리트/증강 보상 공용. 후보가 없으면 null.</summary>
     public static ItemSO PickRandomItem(DataManager data)
     {
         var registry = data != null ? data.GET_GROWTH_REGISTRY() : null;
         if (registry == null || registry.items == null) return null;
 
         var pool = new List<ItemSO>();
-        foreach (var it in registry.items) if (it != null) pool.Add(it);
+        foreach (var it in registry.items) if (CanOfferItem(it)) pool.Add(it);
         return pool.Count == 0 ? null : pool[Random.Range(0, pool.Count)];
     }
 
@@ -278,7 +282,7 @@ public static class RewardProcessor
         {
             foreach (var so in shopRegistry.itemPool)
             {
-                if (so == null) continue;
+                if (!CanOfferItem(so)) continue;
                 combinedPool.Add(new RewardCandidate
                 {
                     displayData = BuildItemDisplayData(so),

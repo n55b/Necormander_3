@@ -112,6 +112,8 @@ public class GameManager : MonoBehaviour
     [Header("Test Options")]
     [SerializeField] public bool testMode_InfiniteStamina = false;
     [SerializeField] public bool testMode_DisableAutoBattle = false;
+    [Tooltip("디버그: 같은 상점에서도 장비를 여러 번 강화할 수 있다. 골드 비용, 강화 분기, 최종 단계 제한은 유지한다. 배포 시 꺼둘 것.")]
+    [SerializeField] public bool testMode_UnlimitedShopEnhancements = false;
 
     [Header("Floor Info")]
     [SerializeField] public int currentFloor = 1;

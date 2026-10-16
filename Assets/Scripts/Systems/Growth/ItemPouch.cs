@@ -118,6 +118,14 @@ public class ItemPouch : MonoBehaviour
     public ItemSO Get(int slot)
         => (slot < 0 || slot >= slotCount) ? null : _slots[slot];
 
+    public bool Contains(ItemSO item)
+    {
+        if (item == null) return false;
+        for (int i = 0; i < slotCount; i++)
+            if (_slots[i] == item) return true;
+        return false;
+    }
+
     public bool IsFull
     {
         get
