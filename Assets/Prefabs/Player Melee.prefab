@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6814339065740526360}
   - component: {fileID: 6666768342463534266}
   - component: {fileID: 7250412908182429482}
+  - component: {fileID: 2198699292995912328}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -165,6 +166,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   walkSmogEffectPrefab: {fileID: 5578466105845466699, guid: 8939cee3313b4e74ea111509ca7382fc, type: 3}
   footEffectPoint: {fileID: 4011984707191010717}
+--- !u!114 &2198699292995912328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 566668541217861576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3844136b10f64952b8f82af4ae8967cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bodyAnimator: {fileID: 2915690303190765393}
 --- !u!1 &1757526723192270232
 GameObject:
   m_ObjectHideFlags: 0
@@ -515,6 +529,7 @@ MonoBehaviour:
   baseAtkRange: 2
   baseAttackType: 0
   baseSkillCdr: 0
+  baseLuck: 0
   baseDashCdr: 0
   baseBasicAtkMult: 1
   setDoneActions:
@@ -1515,6 +1530,7 @@ MonoBehaviour:
   attackCooldown: 0.3
   lightHitboxSize: {x: 3, y: 2}
   lightTelegraphDuration: 0.2
+  thirdTelegraphDuration: 0.4
   hideBasicAttackTelegraph: 1
   hideFinisherTelegraph: 0
 --- !u!114 &7957941004026145679

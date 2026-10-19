@@ -14,6 +14,10 @@ public class EquipmentSO : ScriptableObject
     [Tooltip("상점 판매가(골드).")]
     public int shopCost = 150;
 
+    [Header("손 애니메이션")]
+    [Tooltip("선택 사항. Body Animator와 같은 기본 컨트롤러를 사용하는 손 애니메이션 오버라이드. 비어 있으면 기본 외형을 사용한다.")]
+    public AnimatorOverrideController handAnimationOverride;
+
     [Header("패시브 (공격 관련. 유틸은 주머니 아이템 담당)")]
     [Tooltip("장비가 주는 패시브들(1개 이상). 스탯형/상태이상형을 원하는 만큼 담을 수 있다.\n" +
              "인스펙터에서 + 로 종류를 골라 추가한다([SerializeReference]).")]
