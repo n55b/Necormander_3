@@ -9,20 +9,20 @@ Sprite:
   m_Name: Viper_Frame_4
   m_Rect:
     serializedVersion: 2
-    x: 190
-    y: 4
-    width: 47
+    x: 129
+    y: 229
+    width: 63
     height: 64
-  m_Offset: {x: 32.5, y: -7}
+  m_Offset: {x: 40.5, y: -7}
   m_Border: {x: 0, y: 0, z: 0, w: 0}
   m_PixelsToUnits: 32
-  m_Pivot: {x: 1.1914893, y: 0.390625}
+  m_Pivot: {x: 1.1428572, y: 0.390625}
   m_Extrude: 0
   m_IsPolygon: 0
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -8134463878955569741
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -103,18 +103,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0000e0bf00009c3f00000000000090be00009c3f000000000000e0bf000048bf00000000000090be000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000010c000009c3f00000000000090be00009c3f00000000000010c0000048bf00000000000090be000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 190
-      y: 4
-      width: 47
+      x: 129
+      y: 229
+      width: 63
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 246, z: 32, w: 29}
+    uvTransform: {x: 32, y: 201, z: 32, w: 254}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -194,18 +194,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0000e0bf00009c3f00000000000090be00009c3f000000000000e0bf000048bf00000000000090be000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000010c000009c3f00000000000090be00009c3f00000000000010c0000048bf00000000000090be000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 190
-      y: 4
-      width: 47
+      x: 129
+      y: 229
+      width: 63
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 246, z: 32, w: 29}
+    uvTransform: {x: 32, y: 201, z: 32, w: 254}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -220,8 +220,8 @@ Sprite:
   m_Name: Viper_Frame_1
   m_Rect:
     serializedVersion: 2
-    x: 113
-    y: 396
+    x: 129
+    y: 405
     width: 55
     height: 26
   m_Offset: {x: 2.5, y: 1}
@@ -233,7 +233,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -8053063779582820579
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -318,14 +318,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 396
+      x: 129
+      y: 405
       width: 55
       height: 26
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 143, z: 32, w: 410}
+    uvTransform: {x: 32, y: 159, z: 32, w: 419}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -409,14 +409,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 396
+      x: 129
+      y: 405
       width: 55
       height: 26
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 143, z: 32, w: 410}
+    uvTransform: {x: 32, y: 159, z: 32, w: 419}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -431,8 +431,8 @@ Sprite:
   m_Name: Viper_Frame_18
   m_Rect:
     serializedVersion: 2
-    x: 186
-    y: 76
+    x: 201
+    y: 191
     width: 44
     height: 25
   m_Offset: {x: 31, y: -3.5}
@@ -444,7 +444,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -7957021287704685250
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -529,14 +529,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 186
-      y: 76
+      x: 201
+      y: 191
       width: 44
       height: 25
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 239, z: 32, w: 85}
+    uvTransform: {x: 32, y: 254, z: 32, w: 200}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -620,14 +620,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 186
-      y: 76
+      x: 201
+      y: 191
       width: 44
       height: 25
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 239, z: 32, w: 85}
+    uvTransform: {x: 32, y: 254, z: 32, w: 200}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -642,8 +642,8 @@ Sprite:
   m_Name: Viper_Frame_7
   m_Rect:
     serializedVersion: 2
-    x: 113
-    y: 292
+    x: 129
+    y: 301
     width: 62
     height: 29
   m_Offset: {x: 2, y: -0.5}
@@ -655,7 +655,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -5000762915584793286
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -740,14 +740,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 292
+      x: 129
+      y: 301
       width: 62
       height: 29
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 146, z: 32, w: 306}
+    uvTransform: {x: 32, y: 162, z: 32, w: 315}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -831,14 +831,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 292
+      x: 129
+      y: 301
       width: 62
       height: 29
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 146, z: 32, w: 306}
+    uvTransform: {x: 32, y: 162, z: 32, w: 315}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -855,18 +855,18 @@ Sprite:
     serializedVersion: 2
     x: 4
     y: 324
-    width: 85
+    width: 101
     height: 64
-  m_Offset: {x: 11.5, y: -7}
+  m_Offset: {x: 19.5, y: -7}
   m_Border: {x: 0, y: 0, z: 0, w: 0}
   m_PixelsToUnits: 32
-  m_Pivot: {x: 0.63529414, y: 0.390625}
+  m_Pivot: {x: 0.6930693, y: 0.390625}
   m_Extrude: 0
   m_IsPolygon: 0
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -3243554274539759262
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -947,18 +947,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0000d8bf00009c3f000000000000783f00009c3f000000000000d8bf000048bf000000000000783f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 00000cc000009c3f000000000000783f00009c3f0000000000000cc0000048bf000000000000783f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
       x: 4
       y: 324
-      width: 85
+      width: 101
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 58, z: 32, w: 349}
+    uvTransform: {x: 32, y: 74, z: 32, w: 349}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -1038,18 +1038,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0000d8bf00009c3f000000000000783f00009c3f000000000000d8bf000048bf000000000000783f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 00000cc000009c3f000000000000783f00009c3f0000000000000cc0000048bf000000000000783f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
       x: 4
       y: 324
-      width: 85
+      width: 101
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 58, z: 32, w: 349}
+    uvTransform: {x: 32, y: 74, z: 32, w: 349}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -1064,8 +1064,8 @@ Sprite:
   m_Name: Viper_Frame_17
   m_Rect:
     serializedVersion: 2
-    x: 113
-    y: 430
+    x: 199
+    y: 301
     width: 51
     height: 28
   m_Offset: {x: 27.5, y: -4}
@@ -1077,7 +1077,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -1808968097937019710
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -1162,14 +1162,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 430
+      x: 199
+      y: 301
       width: 51
       height: 28
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 166, z: 32, w: 440}
+    uvTransform: {x: 32, y: 252, z: 32, w: 311}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -1253,14 +1253,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 430
+      x: 199
+      y: 301
       width: 51
       height: 28
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 166, z: 32, w: 440}
+    uvTransform: {x: 32, y: 252, z: 32, w: 311}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -1275,8 +1275,8 @@ Sprite:
   m_Name: Viper_Frame_12
   m_Rect:
     serializedVersion: 2
-    x: 113
-    y: 329
+    x: 129
+    y: 338
     width: 62
     height: 25
   m_Offset: {x: 3, y: -1.5}
@@ -1288,7 +1288,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -1528497048119495949
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -1373,14 +1373,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 329
+      x: 129
+      y: 338
       width: 62
       height: 25
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 147, z: 32, w: 340}
+    uvTransform: {x: 32, y: 163, z: 32, w: 349}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -1464,14 +1464,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 329
+      x: 129
+      y: 338
       width: 62
       height: 25
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 147, z: 32, w: 340}
+    uvTransform: {x: 32, y: 163, z: 32, w: 349}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -1488,18 +1488,18 @@ Sprite:
     serializedVersion: 2
     x: 4
     y: 180
-    width: 87
+    width: 103
     height: 64
-  m_Offset: {x: 12.500004, y: -7}
+  m_Offset: {x: 20.5, y: -7}
   m_Border: {x: 0, y: 0, z: 0, w: 0}
   m_PixelsToUnits: 32
-  m_Pivot: {x: 0.6436782, y: 0.390625}
+  m_Pivot: {x: 0.69902915, y: 0.390625}
   m_Extrude: 0
   m_IsPolygon: 0
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -380932607437094651
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -1580,18 +1580,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0100e0bf00009c3f00000000feff773f00009c3f000000000100e0bf000048bf00000000feff773f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000010c000009c3f000000000000783f00009c3f00000000000010c0000048bf000000000000783f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
       x: 4
       y: 180
-      width: 87
+      width: 103
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 60.000004, z: 32, w: 205}
+    uvTransform: {x: 32, y: 76, z: 32, w: 205}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -1671,18 +1671,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0100e0bf00009c3f00000000feff773f00009c3f000000000100e0bf000048bf00000000feff773f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000010c000009c3f000000000000783f00009c3f00000000000010c0000048bf000000000000783f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
       x: 4
       y: 180
-      width: 87
+      width: 103
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 60.000004, z: 32, w: 205}
+    uvTransform: {x: 32, y: 76, z: 32, w: 205}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -1699,18 +1699,18 @@ Sprite:
     serializedVersion: 2
     x: 4
     y: 92
-    width: 84
+    width: 100
     height: 80
-  m_Offset: {x: 31, y: -7}
+  m_Offset: {x: 39, y: -7}
   m_Border: {x: 0, y: 0, z: 0, w: 0}
   m_PixelsToUnits: 32
-  m_Pivot: {x: 0.86904764, y: 0.4125}
+  m_Pivot: {x: 0.89, y: 0.4125}
   m_Extrude: 0
   m_IsPolygon: 0
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -343804218781915716
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -1791,18 +1791,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 000012c00000bc3f000000000000b03e0000bc3f00000000000012c0000084bf000000000000b03e000084bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000032c00000bc3f000000000000b03e0000bc3f00000000000032c0000084bf000000000000b03e000084bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
       x: 4
       y: 92
-      width: 84
+      width: 100
       height: 80
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 77, z: 32, w: 125}
+    uvTransform: {x: 32, y: 93, z: 32, w: 125}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -1882,18 +1882,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 000012c00000bc3f000000000000b03e0000bc3f00000000000012c0000084bf000000000000b03e000084bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000032c00000bc3f000000000000b03e0000bc3f00000000000032c0000084bf000000000000b03e000084bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
       x: 4
       y: 92
-      width: 84
+      width: 100
       height: 80
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 77, z: 32, w: 125}
+    uvTransform: {x: 32, y: 93, z: 32, w: 125}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -1909,7 +1909,7 @@ Sprite:
   m_Rect:
     serializedVersion: 2
     x: 4
-    y: 477
+    y: 468
     width: 69
     height: 28
   m_Offset: {x: 39.5, y: -4}
@@ -1921,7 +1921,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -331862217454088325
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -2007,13 +2007,13 @@ Sprite:
     textureRect:
       serializedVersion: 2
       x: 4
-      y: 477
+      y: 468
       width: 69
       height: 28
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 78, z: 32, w: 487}
+    uvTransform: {x: 32, y: 78, z: 32, w: 478}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -2098,13 +2098,13 @@ Sprite:
     textureRect:
       serializedVersion: 2
       x: 4
-      y: 477
+      y: 468
       width: 69
       height: 28
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 78, z: 32, w: 487}
+    uvTransform: {x: 32, y: 78, z: 32, w: 478}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -2119,8 +2119,8 @@ Sprite:
   m_Name: Viper_Frame_13
   m_Rect:
     serializedVersion: 2
-    x: 4
-    y: 396
+    x: 129
+    y: 4
     width: 66
     height: 73
   m_Offset: {x: 4, y: -7.5}
@@ -2132,7 +2132,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: -203423101879265771
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -2217,14 +2217,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 4
-      y: 396
+      x: 129
+      y: 4
       width: 66
       height: 73
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 41, z: 32, w: 425}
+    uvTransform: {x: 32, y: 166, z: 32, w: 33}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -2308,14 +2308,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 4
-      y: 396
+      x: 129
+      y: 4
       width: 66
       height: 73
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 41, z: 32, w: 425}
+    uvTransform: {x: 32, y: 166, z: 32, w: 33}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -2330,8 +2330,8 @@ Sprite:
   m_Name: ViperAlignedSprites
   m_Rect:
     serializedVersion: 2
-    x: 113
-    y: 362
+    x: 129
+    y: 371
     width: 59
     height: 26
   m_Offset: {x: 1.5, y: 1}
@@ -2343,7 +2343,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: 21300000
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -2428,14 +2428,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 362
+      x: 129
+      y: 371
       width: 59
       height: 26
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 144, z: 32, w: 376}
+    uvTransform: {x: 32, y: 160, z: 32, w: 385}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -2519,14 +2519,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 362
+      x: 129
+      y: 371
       width: 59
       height: 26
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 144, z: 32, w: 376}
+    uvTransform: {x: 32, y: 160, z: 32, w: 385}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -2541,20 +2541,20 @@ Sprite:
   m_Name: Viper_Frame_3
   m_Rect:
     serializedVersion: 2
-    x: 113
-    y: 4
-    width: 69
+    x: 4
+    y: 396
+    width: 85
     height: 64
-  m_Offset: {x: 19.5, y: -7}
+  m_Offset: {x: 27.5, y: -7}
   m_Border: {x: 0, y: 0, z: 0, w: 0}
   m_PixelsToUnits: 32
-  m_Pivot: {x: 0.7826087, y: 0.390625}
+  m_Pivot: {x: 0.8235294, y: 0.390625}
   m_Extrude: 0
   m_IsPolygon: 0
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: 4419015683426453599
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -2635,18 +2635,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0000d8bf00009c3f000000000000f03e00009c3f000000000000d8bf000048bf000000000000f03e000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 00000cc000009c3f000000000000f03e00009c3f0000000000000cc0000048bf000000000000f03e000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 4
-      width: 69
+      x: 4
+      y: 396
+      width: 85
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 167, z: 32, w: 29}
+    uvTransform: {x: 32, y: 74, z: 32, w: 421}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -2726,18 +2726,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0000d8bf00009c3f000000000000f03e00009c3f000000000000d8bf000048bf000000000000f03e000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 00000cc000009c3f000000000000f03e00009c3f0000000000000cc0000048bf000000000000f03e000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 4
-      width: 69
+      x: 4
+      y: 396
+      width: 85
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 167, z: 32, w: 29}
+    uvTransform: {x: 32, y: 74, z: 32, w: 421}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -2752,8 +2752,8 @@ Sprite:
   m_Name: Viper_Frame_6
   m_Rect:
     serializedVersion: 2
-    x: 113
-    y: 466
+    x: 201
+    y: 157
     width: 46
     height: 26
   m_Offset: {x: 8, y: 1}
@@ -2765,7 +2765,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: 5425963947812455078
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -2850,14 +2850,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 466
+      x: 201
+      y: 157
       width: 46
       height: 26
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 144, z: 32, w: 480}
+    uvTransform: {x: 32, y: 232, z: 32, w: 171}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -2941,14 +2941,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 466
+      x: 201
+      y: 157
       width: 46
       height: 26
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 144, z: 32, w: 480}
+    uvTransform: {x: 32, y: 232, z: 32, w: 171}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -2963,8 +2963,8 @@ Sprite:
   m_Name: Viper_Frame_2
   m_Rect:
     serializedVersion: 2
-    x: 113
-    y: 220
+    x: 202
+    y: 85
     width: 45
     height: 64
   m_Offset: {x: 7.5, y: -7}
@@ -2976,7 +2976,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: 5923538585539579102
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -3061,14 +3061,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 220
+      x: 202
+      y: 85
       width: 45
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 143, z: 32, w: 245}
+    uvTransform: {x: 32, y: 232, z: 32, w: 110}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -3152,14 +3152,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 220
+      x: 202
+      y: 85
       width: 45
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 143, z: 32, w: 245}
+    uvTransform: {x: 32, y: 232, z: 32, w: 110}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -3176,18 +3176,18 @@ Sprite:
     serializedVersion: 2
     x: 4
     y: 4
-    width: 101
+    width: 117
     height: 80
-  m_Offset: {x: 21.5, y: -7}
+  m_Offset: {x: 29.5, y: -7}
   m_Border: {x: 0, y: 0, z: 0, w: 0}
   m_PixelsToUnits: 32
-  m_Pivot: {x: 0.7128713, y: 0.4125}
+  m_Pivot: {x: 0.75213677, y: 0.4125}
   m_Extrude: 0
   m_IsPolygon: 0
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: 7017578889932742698
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -3268,18 +3268,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 000010c00000bc3f000000000000683f0000bc3f00000000000010c0000084bf000000000000683f000084bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000030c00000bc3f000000000000683f0000bc3f00000000000030c0000084bf000000000000683f000084bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 101
+      width: 117
       height: 80
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 76, z: 32, w: 37}
+    uvTransform: {x: 32, y: 92, z: 32, w: 37}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -3359,18 +3359,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 000010c00000bc3f000000000000683f0000bc3f00000000000010c0000084bf000000000000683f000084bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000030c00000bc3f000000000000683f0000bc3f00000000000030c0000084bf000000000000683f000084bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 101
+      width: 117
       height: 80
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 76, z: 32, w: 37}
+    uvTransform: {x: 32, y: 92, z: 32, w: 37}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -3385,20 +3385,20 @@ Sprite:
   m_Name: Viper_Frame_5
   m_Rect:
     serializedVersion: 2
-    x: 113
-    y: 148
-    width: 47
+    x: 129
+    y: 157
+    width: 64
     height: 64
-  m_Offset: {x: 32.5, y: -7}
+  m_Offset: {x: 41, y: -7}
   m_Border: {x: 0, y: 0, z: 0, w: 0}
   m_PixelsToUnits: 32
-  m_Pivot: {x: 1.1914893, y: 0.390625}
+  m_Pivot: {x: 1.140625, y: 0.390625}
   m_Extrude: 0
   m_IsPolygon: 0
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: 7757493593833002033
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -3479,18 +3479,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0000e0bf00009c3f00000000000090be00009c3f000000000000e0bf000048bf00000000000090be000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000012c000009c3f00000000000090be00009c3f00000000000012c0000048bf00000000000090be000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 148
-      width: 47
+      x: 129
+      y: 157
+      width: 64
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 169, z: 32, w: 173}
+    uvTransform: {x: 32, y: 202, z: 32, w: 182}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -3570,18 +3570,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0000e0bf00009c3f00000000000090be00009c3f000000000000e0bf000048bf00000000000090be000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000012c000009c3f00000000000090be00009c3f00000000000012c0000048bf00000000000090be000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 148
-      width: 47
+      x: 129
+      y: 157
+      width: 64
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 169, z: 32, w: 173}
+    uvTransform: {x: 32, y: 202, z: 32, w: 182}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -3596,8 +3596,8 @@ Sprite:
   m_Name: Viper_Frame_8
   m_Rect:
     serializedVersion: 2
-    x: 113
-    y: 76
+    x: 129
+    y: 85
     width: 65
     height: 64
   m_Offset: {x: 2.5, y: -7}
@@ -3609,7 +3609,7 @@ Sprite:
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: 8243496129867574442
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -3694,14 +3694,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 76
+      x: 129
+      y: 85
       width: 65
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 148, z: 32, w: 101}
+    uvTransform: {x: 32, y: 164, z: 32, w: 110}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -3785,14 +3785,14 @@ Sprite:
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
-      x: 113
-      y: 76
+      x: 129
+      y: 85
       width: 65
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 148, z: 32, w: 101}
+    uvTransform: {x: 32, y: 164, z: 32, w: 110}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []
@@ -3809,18 +3809,18 @@ Sprite:
     serializedVersion: 2
     x: 4
     y: 252
-    width: 86
+    width: 103
     height: 64
-  m_Offset: {x: 13.000008, y: -7}
+  m_Offset: {x: 21.5, y: -7}
   m_Border: {x: 0, y: 0, z: 0, w: 0}
   m_PixelsToUnits: 32
-  m_Pivot: {x: 0.65116286, y: 0.390625}
+  m_Pivot: {x: 0.70873785, y: 0.390625}
   m_Extrude: 0
   m_IsPolygon: 0
   m_AtlasName: 
   m_PackingTag: 
   m_RenderDataKey:
-    00000000000000000000000000000000: 0
+    4e585422c78489c46999df21338f5892: 8988766346208506706
   m_AtlasTags: []
   m_SpriteAtlas: {fileID: 0}
   m_RD:
@@ -3901,18 +3901,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0200e0bf00009c3f00000000fcff6f3f00009c3f000000000200e0bf000048bf00000000fcff6f3f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000012c000009c3f000000000000703f00009c3f00000000000012c0000048bf000000000000703f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
       x: 4
       y: 252
-      width: 86
+      width: 103
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 60.000008, z: 32, w: 277}
+    uvTransform: {x: 32, y: 77, z: 32, w: 277}
     downscaleMultiplier: 1
   m_AtlasRD:
     serializedVersion: 3
@@ -3992,18 +3992,18 @@ Sprite:
         format: 0
         dimension: 0
       m_DataSize: 80
-      _typelessdata: 0200e0bf00009c3f00000000fcff6f3f00009c3f000000000200e0bf000048bf00000000fcff6f3f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
+      _typelessdata: 000012c000009c3f000000000000703f00009c3f00000000000012c0000048bf000000000000703f000048bf000000000000000000000000000000000000000000000000000000000000000000000000
     m_Bindpose: []
     textureRect:
       serializedVersion: 2
       x: 4
       y: 252
-      width: 86
+      width: 103
       height: 64
     textureRectOffset: {x: 0, y: 0}
     atlasRectOffset: {x: -1, y: -1}
     settingsRaw: 0
-    uvTransform: {x: 32, y: 60.000008, z: 32, w: 277}
+    uvTransform: {x: 32, y: 77, z: 32, w: 277}
     downscaleMultiplier: 1
   m_PhysicsShape: []
   m_Bones: []

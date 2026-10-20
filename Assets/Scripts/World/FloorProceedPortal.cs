@@ -6,11 +6,13 @@ public class FloorProceedPortal : MonoBehaviour, IInteractable
 
     private void Awake()
     {
-        var col = GetComponent<CircleCollider2D>();
+        // 프리팹의 BoxCollider2D도 재사용해야 감지되는 콜라이더에 따라 F 아이콘 높이가 바뀌지 않는다.
+        var col = GetComponent<Collider2D>();
         if (col == null)
         {
-            col = gameObject.AddComponent<CircleCollider2D>();
-            col.radius = 0.5f; // 동적 생성 시 기본값 할당
+            var circle = gameObject.AddComponent<CircleCollider2D>();
+            circle.radius = 0.5f; // 동적 생성 시 기본값 할당
+            col = circle;
         }
         col.isTrigger = true;
 
