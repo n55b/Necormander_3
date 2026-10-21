@@ -1,0 +1,114 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a786f86611b456fbb23ecbfeacb3934, type: 3}
+  m_Name: Knight_2 Test Minion
+  m_EditorClassIdentifier: 
+  minionType: 0
+  minionName: "\uAE30\uC0AC 2"
+  minionIcon: {fileID: 7537958023452600384, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  shopCost: 150
+  rewardItemData:
+    itemName: "\uAE30\uC0AC 2"
+    description: "MeleeDoll\uACFC \uB3D9\uC77C\uD55C \uB2A5\uB825\uC758 \uC678\uD615
+      \uD14C\uC2A4\uD2B8\uC6A9 \uBBF8\uB2C8\uC5B8."
+    localizedItemName:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    icon: {fileID: 7537958023452600384, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+    rarity: 0
+  minionSkill: {fileID: 11400000, guid: 9e6780eb641747948d78784454effb69, type: 2}
+  dashModifier:
+    uiTitle: 
+    uiDescription: 
+    uiIcon: {fileID: 0}
+    lengthMultiplier: 1.2
+    width: 1
+    hitAtOrigin: 0
+    originRadius: 2
+    hitBoxPrefab: {fileID: 0}
+    hitCount: 2
+    damageMultiplier: 0.5
+    element: 0
+    onHitStatus: 6
+    pushesEnemies: 0
+    pushForce: 3
+  finisher:
+    uiTitle: 
+    uiDescription: 
+    uiIcon: {fileID: 0}
+    internalCooldown: 1.5
+    hitCount: 2
+    damageMultiplier: 0.5
+    element: 0
+    onHitStatus: 6
+    hitBoxSize: {x: 3, y: 2.8}
+    hitBoxPrefab: {fileID: 0}
+    spawnOffset: 1.6
+    minionOffsetFromHitBox: 0
+    causesHitstun: 1
+    knockbackForce: 4
+    superArmorDamage: 30
+  basicAnim:
+    visual: {fileID: 3011877677410798748, guid: 7c4cdc41d521690449d80bae5a5e00e5, type: 3}
+    duration: 0.65000004
+    sequence:
+    - tag: Attack
+      offset: {x: 0, y: 0}
+      snap: 0
+    effectState: 
+    damageState: 
+    hitEvent: OnHitEvent
+    hitWindowRatio: 0.15
+  skillAnim:
+    visual: {fileID: 3011877677410798748, guid: 7c4cdc41d521690449d80bae5a5e00e5, type: 3}
+    duration: 1.05
+    sequence:
+    - tag: Skill
+      offset: {x: 0, y: 0}
+      snap: 0
+    effectState: 
+    damageState: 
+    hitEvent: OnHitEvent
+    hitWindowRatio: 0.15
+  dashAnim:
+    visual: {fileID: 3011877677410798748, guid: 7c4cdc41d521690449d80bae5a5e00e5, type: 3}
+    clipDuration: 0
+    startClip: 
+    hitBoxClip: Attack
+    rotateHitBoxClipToDir: 0
+    endClip: 
+  enhanceSteps:
+  - description: 
+    basicAttackMultiplier: 1.2
+    dashDamageMultiplier: 1.2
+    skillDamageMultiplier: 1.2
+  evolutions: []
+  isEvolvedForm: 1
+  evolveRequiredLevelOverride: -1
+  references:
+    version: 2
+    RefIds: []

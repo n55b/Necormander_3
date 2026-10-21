@@ -30,6 +30,49 @@ MonoBehaviour:
     m_Localized: Stun
     m_Metadata:
       m_Items: []
+  - m_Id: 40506764393824256
+    m_Localized: Fighter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764452544512
+    m_Localized: A basic melee summon. Evolves into a Knight or a Warrior in reward
+      rooms.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738816
+    m_Localized: Knight
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738817
+    m_Localized: The Fighter's first branch. Strikes hard with a powerful skill,
+      and evolves into a Champion.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738818
+    m_Localized: Champion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738819
+    m_Localized: Attacks slowly, but its skill hits extremely hard.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738820
+    m_Localized: Warrior
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738821
+    m_Localized: The Fighter's second branch. Strikes in quick flurries, and evolves
+      into a Warlord.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738822
+    m_Localized: Warlord
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738823
+    m_Localized: Lands many hits with fast attacks.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

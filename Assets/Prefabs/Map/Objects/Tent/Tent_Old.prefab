@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3961345273550800504}
   - component: {fileID: 3364672550813035699}
   - component: {fileID: 4923819110345603996}
-  - component: {fileID: 8440595842036948527}
+  - component: {fileID: 1623942584947350464}
   m_Layer: 3
   m_Name: Tent_Old
   m_TagString: Untagged
@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -150,8 +150,8 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 0}
---- !u!61 &8440595842036948527
-BoxCollider2D:
+--- !u!60 &1623942584947350464
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -184,15 +184,28 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.9}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.475, y: 0.03448276}
-    oldSize: {x: 2.5, y: 1.8125}
+    oldSize: {x: 2.96875, y: 2.03125}
     newSize: {x: 5, y: 3.625}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 2.5, y: 1.8125}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: 1.4023438, y: -0.038793087}
+      - {x: 1.5585938, y: 0.3674569}
+      - {x: 1.5585938, y: 0.4612069}
+      - {x: 1.1210938, y: 1.3362069}
+      - {x: -0.47265625, y: 1.9612069}
+      - {x: -1.4101562, y: 0.8987069}
+      - {x: -1.4101562, y: 0.8049569}
+      - {x: -1.3164062, y: 0.6799569}
+      - {x: -0.91015625, y: 0.3049569}
+      - {x: -0.16015625, y: -0.038793087}
+      - {x: 0.02734375, y: -0.07004309}
+      - {x: 0.46484375, y: -0.07004309}
+  m_UseDelaunayMesh: 0

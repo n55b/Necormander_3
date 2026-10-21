@@ -4,199 +4,44 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
-using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 /// <summary>
-/// VillageScene 에 '소환수 선택' NPC 를 배치한다. 기존 마을 NPC(Map/NPC)를 복제해 외형/콜라이더 구성을
-/// 그대로 쓰고, 상호작용 컴포넌트만 MinionSelectNPC 로 바꾼다. 다시 실행하면 기존 것을 지우고 새로 만든다.
+/// VillageScene 에 '소환수 선택' NPC 를 배치하고, 근접 소환수 진화 계열을 검증한다.
+///
+/// [26/10/22] 외형 테스트(SpriteTests)로 만들던 전사/기사/기사2/무사 외형을 실제 MeleeDoll 계열에 입혔다.
+///   전사(Fighter) ─┬─ 1차 트리: 기사(Knight)  → 용사(Champion)   · Breaker 능력
+///                  └─ 2차 트리: 무사(Warrior) → 장수(Warlord)    · Whirlwind 능력
+/// 옛 테스트 SO 는 SOData/Minion/Main/Deprecated/SpriteTests 에 남아 있으며 레지스트리에는 없다.
+/// (예전 'Setup Minion Sprite Tests' 메뉴는 테스트 SO 를 레지스트리에 되살리므로 제거했다.)
 /// </summary>
 public static class MinionSelectNPCSetup
 {
     private const string UIPrefabPath = "Assets/Prefabs/UI/Reward Selection/RewardSelectionUI.prefab";
     private const string NpcName = "MinionSelectNPC";
-    private const string TestDataDir = "Assets/SOData/Minion/Main/SpriteTests";
-    private const string TestPrefabDir = "Assets/Prefabs/Minion/SpriteTests";
-    private const string TestAnimDir = "Assets/Animations/Minion/SpriteTests";
+    private const string MainDir = "Assets/SOData/Minion/Main";
     private const string RegistryPath = "Assets/SOData/Registry/Growth Reward Registry.asset";
-    private static readonly string[] TestForms = { "Fighter", "Knight", "Knight_2", "Warrior" };
-
-    [MenuItem("Tools/Village/Setup Minion Sprite Tests")]
-    public static void SetupSpriteTests()
-    {
-        if (EditorApplication.isPlayingOrWillChangePlaymode)
-            throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
-
-        var source = AssetDatabase.LoadAssetAtPath<MainMinionDataSO>("Assets/SOData/Minion/Main/MeleeDoll Minion.asset");
-        var registry = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>(RegistryPath);
-        Require(source != null && registry != null, "MeleeDoll/레지스트리 누락");
-        EnsureTestFolder(TestDataDir);
-        EnsureTestFolder(TestPrefabDir);
-        EnsureTestFolder(TestAnimDir);
-
-        foreach (string form in TestForms)
-        {
-            string artPath = $"Assets/Resources/Sprites/Minion/MeleeMinion_{form}.aseprite";
-            var importer = AssetImporter.GetAtPath(artPath) as AsepriteImporter;
-            Require(importer != null, artPath);
-            if (!Mathf.Approximately(importer.spritePixelsPerUnit, 32f))
-            {
-                importer.spritePixelsPerUnit = 32f;
-                importer.filterMode = FilterMode.Point;
-                importer.SaveAndReimport();
-            }
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>(artPath);
-            var clips = AssetDatabase.LoadAllAssetsAtPath(artPath).OfType<AnimationClip>().ToArray();
-            var attack = PlayableClip(form, clips.Single(c => c.name == "Attack"));
-            var skill = PlayableClip(form, clips.Single(c => c.name == "Skill"));
-            Require(attack.events.Any(e => e.functionName == "OnHitEvent") &&
-                    skill.events.Any(e => e.functionName == "OnHitEvent"), form + " 타격 이벤트 누락");
-
-            string controllerPath = $"{TestAnimDir}/{form}.controller";
-            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
-            if (controller == null)
-            {
-                controller = AnimatorController.CreateAnimatorControllerAtPath(controllerPath);
-                var states = controller.layers[0].stateMachine;
-                var complete = states.AddState("Complete");
-                complete.writeDefaultValues = false;
-                states.defaultState = complete;
-                foreach (var clip in new[] { attack, skill })
-                {
-                    var state = states.AddState(clip.name);
-                    state.motion = clip;
-                    state.writeDefaultValues = false;
-                    // 원본 반복 태그는 보존하고, 소환수 소멸 대기 중 재타격만 막는다.
-                    var end = state.AddTransition(complete);
-                    end.hasExitTime = true;
-                    end.exitTime = 1f;
-                    end.duration = 0f;
-                }
-            }
-
-            string prefabPath = $"{TestPrefabDir}/{form}.prefab";
-            var visual = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            if (visual == null)
-            {
-                var root = new GameObject(form + " Visual");
-                try
-                {
-                    var body = (GameObject)PrefabUtility.InstantiatePrefab(model, root.transform);
-                    body.GetComponentInChildren<Animator>().runtimeAnimatorController = controller;
-                    var sprite = body.GetComponentInChildren<SpriteRenderer>();
-                    // 256px 캔버스의 빈 하단 여백 대신 첫 자세의 발을 소환 위치에 맞춘다.
-                    body.transform.localPosition = new Vector3(0f, -Mathf.Round(sprite.bounds.min.y * 32f) / 32f, 0f);
-                    visual = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
-                }
-                finally { Object.DestroyImmediate(root); }
-            }
-
-            string dataPath = $"{TestDataDir}/{form} Test Minion.asset";
-            var data = AssetDatabase.LoadAssetAtPath<MainMinionDataSO>(dataPath);
-            if (data == null)
-            {
-                data = Object.Instantiate(source);
-                data.name = form + " Test Minion";
-                data.minionName = "[테스트] " + form.Replace('_', ' ');
-                data.minionIcon = model.GetComponentInChildren<SpriteRenderer>().sprite;
-                data.rewardItemData.itemName = data.minionName;
-                data.rewardItemData.icon = data.minionIcon;
-                data.rewardItemData.description = "MeleeDoll과 동일한 능력의 외형 테스트용 미니언.";
-                data.basicAnim = TestAnimation(visual, attack);
-                data.skillAnim = TestAnimation(visual, skill);
-                data.dashAnim = new MinionDashAnim { visual = visual, hitBoxClip = attack.name };
-                // 일반 보상 후보/진화 갈래는 아래 ConfigureEvolutionTree에서 정한다.
-                data.isEvolvedForm = true;
-                data.evolutions = Array.Empty<MainMinionDataSO>();
-                AssetDatabase.CreateAsset(data, dataPath);
-            }
-            data.dashAnim.hitBoxClip = attack.name;
-            EditorUtility.SetDirty(data);
-            if (!registry.minionDatas.Contains(data))
-            {
-                Undo.RecordObject(registry, "Register minion sprite test");
-                registry.minionDatas.Add(data);
-                EditorUtility.SetDirty(registry);
-            }
-        }
-        ConfigureEvolutionTree();
-        AssetDatabase.SaveAssets();
-        VerifySpriteTests();
-    }
+    private static readonly string[] LineForms = { "Fighter", "Knight", "Champion", "Warrior", "Warlord" };
 
     private static MainMinionDataSO Form(string form)
-        => AssetDatabase.LoadAssetAtPath<MainMinionDataSO>($"{TestDataDir}/{form} Test Minion.asset");
+        => AssetDatabase.LoadAssetAtPath<MainMinionDataSO>($"{MainDir}/{form} Minion.asset");
 
-    private static void ConfigureEvolutionTree()
-    {
-        string[] names = { "전사", "기사", "기사 2", "무사" };
-        for (int i = 0; i < TestForms.Length; i++)
-        {
-            var data = Form(TestForms[i]);
-            data.minionName = names[i];
-            data.rewardItemData.itemName = names[i];
-            data.isEvolvedForm = i != 0;
-            data.evolveRequiredLevelOverride = 1;
-            data.evolutions = i == 0 ? new[] { Form("Knight"), Form("Warrior") } :
-                i == 1 ? new[] { Form("Knight_2") } : Array.Empty<MainMinionDataSO>();
-            EditorUtility.SetDirty(data);
-        }
-    }
-
-    private static AnimationClip PlayableClip(string form, AnimationClip source)
-    {
-        if (source.events.Any(e => e.functionName == "OnHitEvent")) return source;
-        Require(form == "Warrior", form + " 타격 이벤트 누락");
-        string path = $"{TestAnimDir}/Warrior_{source.name}.anim";
-        var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
-        if (clip != null) return clip;
-        clip = Object.Instantiate(source);
-        clip.name = source.name;
-        // shortcut: 원본 이벤트가 없는 외형 테스트용. 가장 넓은 타격 그림에서 임시로 판정한다.
-        var frames = AnimationUtility.GetObjectReferenceCurveBindings(source)
-            .Where(b => b.type == typeof(SpriteRenderer) && b.propertyName == "m_Sprite")
-            .SelectMany(b => AnimationUtility.GetObjectReferenceCurve(source, b))
-            .Where(k => k.value is Sprite).OrderByDescending(k => ((Sprite)k.value).rect.width).ToArray();
-        Require(frames.Length > 0, "Warrior 타격 프레임 없음");
-        AnimationUtility.SetAnimationEvents(clip, new[] { new AnimationEvent { time = frames[0].time, functionName = "OnHitEvent" } });
-        AssetDatabase.CreateAsset(clip, path);
-        return clip;
-    }
-
-    private static MinionAnimSet TestAnimation(GameObject visual, AnimationClip clip)
-        => new MinionAnimSet
-        {
-            visual = visual, duration = clip.length, hitEvent = "OnHitEvent",
-            sequence = new System.Collections.Generic.List<AnimPhase> { new AnimPhase { tag = clip.name } }
-        };
-
-    private static void EnsureTestFolder(string path)
-    {
-        if (AssetDatabase.IsValidFolder(path)) return;
-        int slash = path.LastIndexOf('/');
-        string parent = path.Substring(0, slash);
-        EnsureTestFolder(parent);
-        AssetDatabase.CreateFolder(parent, path.Substring(slash + 1));
-    }
-
-    [MenuItem("Tools/Village/Verify Minion Sprite Tests")]
+    [MenuItem("Tools/Village/Verify Minion Evolution Line")]
     public static void VerifySpriteTests()
     {
-        var source = AssetDatabase.LoadAssetAtPath<MainMinionDataSO>("Assets/SOData/Minion/Main/MeleeDoll Minion.asset");
         var registry = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>(RegistryPath);
-        foreach (string form in TestForms)
+        Require(registry != null, "레지스트리 누락");
+        foreach (string form in LineForms)
         {
-            var data = AssetDatabase.LoadAssetAtPath<MainMinionDataSO>($"{TestDataDir}/{form} Test Minion.asset");
-            Require(data != null && registry.minionDatas.Count(m => m == data) == 1, form + " 등록/중복");
-            Require(registry.minionDatas.Single(m => m.name == data.name) == data, form + " 씬 전환 저장 키");
-            Require(data.minionSkill == source.minionSkill && data.isEvolvedForm == (form != "Fighter"), form + " 스킬/기본 후보");
-            Require(JsonUtility.ToJson(data.finisher) == JsonUtility.ToJson(source.finisher) &&
-                    JsonUtility.ToJson(data.dashModifier) == JsonUtility.ToJson(source.dashModifier), form + " 기존 능력 유지");
+            var data = Form(form);
+            Require(data != null, form + " 에셋 누락");
+            Require(registry.minionDatas.Count(m => m == data) == 1, form + " 등록/중복");
+            Require(registry.minionDatas.Count(m => m != null && m.name == data.name) == 1, form + " 저장 키 중복");
+            Require(data.isEvolvedForm == (form != "Fighter"), form + " 시작/진화형 구분");
             Require(data.minionIcon != null && data.rewardItemData.icon == data.minionIcon &&
                     data.minionIcon.pixelsPerUnit == 32f, form + " 아이콘/PPU");
-            Require(data.dashAnim.visual == data.basicAnim.visual && data.dashAnim.hitBoxClip == data.basicAnim.SequenceTags().Single() &&
-                    string.IsNullOrEmpty(data.dashAnim.startClip) && string.IsNullOrEmpty(data.dashAnim.endClip), form + " 대쉬 배선");
+            Require(data.dashAnim.visual == data.basicAnim.visual && data.dashAnim.hitBoxClip == data.basicAnim.SequenceTags().Single(), form + " 대쉬 배선");
             foreach (var set in new[] { data.basicAnim, data.skillAnim })
             {
                 var animator = set.visual.GetComponentInChildren<Animator>();
@@ -208,12 +53,24 @@ public static class MinionSelectNPCSetup
                 Require(state.transitions.Any(t => t.hasExitTime && t.exitTime == 1f && t.duration == 0f &&
                         t.destinationState.name == "Complete"), form + "/" + tag + " 재타격 방지");
                 VerifyOneShot(set.visual, clip);
-                Debug.Log($"[MinionSpriteTest] {form}/{tag}: {set.duration:F3}s, hit events={clip.events.Count(e => e.functionName == set.hitEvent)}");
             }
         }
+        // 같은 트리는 같은 능력(원래 Breaker / Whirlwind 능력)을 쓴다.
+        RequireSameAbility(Form("Knight"), Form("Champion"));
+        RequireSameAbility(Form("Warrior"), Form("Warlord"));
+        Require(Form("Knight").minionSkill.name == "MeleeDoll_Breaker_Active", "기사 = Breaker 스킬");
+        Require(Form("Warrior").minionSkill.name == "MeleeDoll_Whirlwind_Active", "무사 = Whirlwind 스킬");
+
         VerifyEvolutionTree();
         VerifyVillageChoices();
-        Debug.Log("[MinionSpriteTest] PASS: 4종 데이터/외형/이벤트/PPU/능력/진화/저장 키 검증 완료.");
+        Debug.Log("[MinionLine] PASS: 전사/기사/용사/무사/장수 데이터·외형·능력·진화·저장 키 검증 완료.");
+    }
+
+    private static void RequireSameAbility(MainMinionDataSO a, MainMinionDataSO b)
+    {
+        Require(a.minionSkill == b.minionSkill &&
+                JsonUtility.ToJson(a.finisher) == JsonUtility.ToJson(b.finisher) &&
+                JsonUtility.ToJson(a.dashModifier) == JsonUtility.ToJson(b.dashModifier), $"{a.name} ↔ {b.name} 능력 동일");
     }
 
     private static void VerifyEvolutionTree()
@@ -224,18 +81,24 @@ public static class MinionSelectNPCSetup
             var inventory = go.AddComponent<InventoryManager>();
             inventory.Slots.Clear();
             for (int i = 0; i < InventoryManager.SLOT_COUNT; i++) inventory.Slots.Add(new InventoryManager.CoreSlot());
-            foreach (string branch in new[] { "Knight", "Warrior" })
+            foreach (var (branch, final) in new[] { ("Knight", "Champion"), ("Warrior", "Warlord") })
             {
                 inventory.EquipMinion(Form("Fighter"));
-                Require(RewardProcessor.GenerateMinionEnhanceReward(inventory).Count == 1 && !inventory.CanEvolveMainSummon, "전사 첫 보상 강화");
-                Require(inventory.EnhanceMainSummon(), "전사 강화");
-                Require(RewardProcessor.GenerateMinionEvolveRewards(inventory).Count == 2, "기사/무사 선택지");
-                Require(!inventory.EvolveMainSummon(Form("Knight_2")), "진화 단계 건너뛰기 금지");
+                inventory.ResetMainSummonEnhance();
+                // 강화 없이 첫 보상방에서 바로 진화 갈래가 뜬다.
+                Require(inventory.CanEvolveMainSummon && RewardProcessor.GenerateMinionEvolveRewards(inventory).Count == 2, "전사 첫 보상 = 기사/무사 선택지");
+                Require(!inventory.EvolveMainSummon(Form(final)), "진화 단계 건너뛰기 금지");
                 Require(inventory.EvolveMainSummon(Form(branch)) && inventory.MainSummonEnhanceLevel == 0, branch + " 진화/강화 초기화");
-                Require(inventory.EnhanceMainSummon(), branch + " 1강");
-                if (branch == "Knight")
-                    Require(inventory.EvolveMainSummon(Form("Knight_2")) && !inventory.CanEvolveMainSummon, "기사2 도착");
-                else Require(!inventory.CanEvolveMainSummon && !inventory.CanEnhanceMainSummon, "무사 후속 변이 없음");
+                Require(inventory.CanEvolveMainSummon && inventory.EvolveMainSummon(Form(final)) && !inventory.CanEvolveMainSummon, final + " 최종 진화");
+                Require(inventory.EnhanceMainSummon() && !inventory.CanEnhanceMainSummon, final + " 최종형 강화");
+            }
+
+            // 예전 에셋 이름으로 저장된 세이브도 새 에셋으로 불러온다.
+            foreach (string form in LineForms)
+            {
+                var data = Form(form);
+                foreach (var oldName in data.formerAssetNames ?? new string[0])
+                    Require(data.MatchesSaveKey(oldName), $"{form}: 옛 세이브 키 '{oldName}'");
             }
         }
         finally { Object.DestroyImmediate(go); }
@@ -284,9 +147,9 @@ public static class MinionSelectNPCSetup
             const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             typeof(VillageDebugLoadout).GetMethod("Populate", flags).Invoke(ui, null);
             var buttons = (System.Collections.Generic.List<GameObject>)typeof(VillageDebugLoadout).GetField("_spawned", flags).GetValue(ui);
-            foreach (string form in TestForms)
+            foreach (string form in LineForms)
             {
-                var data = AssetDatabase.LoadAssetAtPath<MainMinionDataSO>($"{TestDataDir}/{form} Test Minion.asset");
+                var data = Form(form);
                 string label = "[미니언] " + data.minionName;
                 var button = buttons.Single(b => new SerializedObject(b.GetComponent<SkillTooltipTrigger>())
                     .FindProperty("title").stringValue == label);
@@ -298,7 +161,7 @@ public static class MinionSelectNPCSetup
                 inventory.SaveToData(saved);
                 Require(saved.slots[InventoryManager.SLOT_MAIN].equippedMinionName == data.name, form + " 실제 저장 키");
             }
-            Debug.Log("[MinionSpriteTest] PASS: 마을 NPC의 실제 선택 버튼 4종 → 장착/저장, 씬 원본 변경 없음.");
+            Debug.Log("[MinionLine] PASS: 마을 NPC 선택 버튼 5종 → 장착/저장, 씬 원본 변경 없음.");
         }
         finally
         {
@@ -309,7 +172,7 @@ public static class MinionSelectNPCSetup
 
     private static void Require(bool condition, string message)
     {
-        if (!condition) throw new InvalidOperationException("[MinionSpriteTest] " + message);
+        if (!condition) throw new InvalidOperationException("[MinionLine] " + message);
     }
 
     [MenuItem("Tools/Village/Setup Minion Select NPC")]

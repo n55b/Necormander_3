@@ -31,6 +31,46 @@ MonoBehaviour:
     m_Key: stun_desc
     m_Metadata:
       m_Items: []
+  - m_Id: 40506764393824256
+    m_Key: minion_fighter_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764452544512
+    m_Key: minion_fighter_desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738816
+    m_Key: minion_knight_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738817
+    m_Key: minion_knight_desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738818
+    m_Key: minion_champion_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738819
+    m_Key: minion_champion_desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738820
+    m_Key: minion_warrior_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738821
+    m_Key: minion_warrior_desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738822
+    m_Key: minion_warlord_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40506764456738823
+    m_Key: minion_warlord_desc
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

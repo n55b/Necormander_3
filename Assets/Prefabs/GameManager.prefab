@@ -270,6 +270,7 @@ MonoBehaviour:
   currentStageRoomData: {fileID: 11400000, guid: 0cabf365deeca87428335ef4d3329951, type: 2}
   testMode_InfiniteStamina: 1
   testMode_DisableAutoBattle: 0
+  testMode_UnlimitedShopEnhancements: 0
   currentFloor: 1
   debugStartFloor: 1
   debugEliteArena: 0
@@ -361,7 +362,7 @@ MonoBehaviour:
   augmentMaxHpBonus: 0
   Slots: []
   mainSummonEnhanceLevel: 0
-  defaultEvolveRequiredLevel: 1
+  defaultEvolveRequiredLevel: 0
   resetEnhanceOnEvolve: 1
   useDebugStartingInventory: 0
   debugStartingMinions: []

@@ -136,7 +136,7 @@ public class InventoryManager : MonoBehaviour
     [Tooltip("진화에 필요한 강화 단계(모든 소환수 공통). 소환수별로 다르게 하려면\n" +
              "MainMinionDataSO.evolveRequiredLevelOverride 를 쓴다. 0 이면 강화 없이 바로 진화할 수 있다.\n" +
              "소환수의 최대 강화 단계보다 크게 넣어도 최대 단계로 잘린다(진화가 막히지 않게).")]
-    [SerializeField, Min(0)] private int defaultEvolveRequiredLevel = MinionEnhance.MAX_LEVEL;
+    [SerializeField, Min(0)] private int defaultEvolveRequiredLevel = 0; // [26/10/22] 강화 없이 첫 보상방에서 바로 진화
 
     [Tooltip("진화하면 강화 단계를 0 으로 되돌린다(진화형은 자기 강화표로 다시 쌓는다).\n" +
              "끄면 단계를 이어받는다(진화형의 최대 단계를 넘으면 잘린다).")]
@@ -466,7 +466,9 @@ public class InventoryManager : MonoBehaviour
             if (!string.IsNullOrEmpty(slotData.equippedMinionName))
             {
                 // 에셋 이름으로 정확히 복원한다 (직업으로 찾으면 A/B/C 배리언트가 붕괴됨).
-                coreSlot.EquippedMinion = registry.minionDatas.Find(m => m.name == slotData.equippedMinionName);
+                coreSlot.EquippedMinion = registry.minionDatas.Find(m => m != null && m.name == slotData.equippedMinionName)
+                        // [26/10/22] 에셋 이름을 바꾼 소환수는 예전 이름으로 저장된 세이브도 찾아 준다.
+                        ?? registry.minionDatas.Find(m => m is MainMinionDataSO mm && mm.MatchesSaveKey(slotData.equippedMinionName));
                 if (coreSlot.EquippedMinion == null)
                     Debug.LogWarning($"<color=orange>[InventoryManager]</color> 세이브의 미니언 '{slotData.equippedMinionName}' 을 GrowthRegistry 에서 찾지 못했습니다. 슬롯을 비웁니다.");
             }
