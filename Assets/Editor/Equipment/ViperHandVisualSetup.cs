@@ -75,6 +75,63 @@ public sealed class ViperHandVisualSetup : EditorWindow
         ValidateGenerated();
     }
 
+    /// <summary>원본 교체 후 기존 스프라이트 서브에셋만 갱신한다. GUID/클립/타격 이벤트는 보존한다.</summary>
+    [MenuItem("Tools/Necromander/Refresh Viper Sprites From Source")]
+    public static void RefreshSpritesFromSource()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Exit Play Mode first.");
+        var record = JsonUtility.FromJson<SetupRecord>(
+            RequireAsset<TextAsset>(OutputFolder + "/ViperSetupRecord.json").text);
+        if (record == null) throw new InvalidOperationException("Missing Viper calibration record.");
+        var sourceObjects = AssetDatabase.LoadAllAssetsAtPath(SourcePath);
+        var sources = Enumerable.Range(0, 19).ToDictionary(i => i,
+            i => sourceObjects.OfType<Sprite>().Single(s => s.name == "Frame_" + i));
+        string path = OutputFolder + "/ViperAlignedSprites.asset";
+        var existing = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+        if (existing.Length != 19) throw new InvalidOperationException("Expected nineteen existing aligned sprites.");
+        var main = RequireAsset<Sprite>(path);
+        var targets = Enumerable.Range(0, 19).ToDictionary(i => i,
+            i => i == 0 ? main : existing.Single(s => s != main && s.name == "Viper_Frame_" + i));
+        var ranges = new[] { new[] { 1, 6 }, new[] { 7, 11 }, new[] { 12, 18 } };
+        for (int i = 0; i < ranges.Length; i++)
+            ReadTag(sourceObjects.OfType<AnimationClip>().Single(c => c.name == "Attack_" + (i + 1)),
+                sources, ranges[i][0], ranges[i][1]);
+
+        var replacements = new List<Sprite>();
+        try
+        {
+            foreach (int i in Enumerable.Range(0, 19))
+            {
+                var source = sources[i];
+                Vector2 pivot = source.pivot + record.pivotOffsetPixels;
+                var sprite = Sprite.Create(source.texture, source.rect,
+                    new Vector2(pivot.x / source.rect.width, pivot.y / source.rect.height),
+                    record.pixelsPerUnit > 0 ? record.pixelsPerUnit : source.pixelsPerUnit,
+                    0, SpriteMeshType.FullRect, source.border, false);
+                sprite.name = targets[i].name;
+                replacements.Add(sprite);
+            }
+            Undo.RegisterCompleteObjectUndo(targets.Values.Cast<UnityEngine.Object>().ToArray(), "Refresh Viper sprites");
+            for (int i = 0; i < replacements.Count; i++)
+            {
+                EditorUtility.CopySerialized(replacements[i], targets[i]);
+                EditorUtility.SetDirty(targets[i]);
+            }
+            AssetDatabase.SaveAssetIfDirty(main);
+            record.sourceDependencyHash = AssetDatabase.GetAssetDependencyHash(SourcePath).ToString();
+            string recordPath = OutputFolder + "/ViperSetupRecord.json";
+            File.WriteAllText(recordPath, JsonUtility.ToJson(record, true));
+            AssetDatabase.ImportAsset(recordPath);
+            ValidateGenerated();
+            ViperHandBindingSmokeTest.Run();
+            Debug.Log("[Viper] Refreshed nineteen sprites in place; clip references and gameplay timing preserved.");
+        }
+        finally
+        {
+            foreach (var sprite in replacements) DestroyImmediate(sprite);
+        }
+    }
+
     [MenuItem("Tools/Necromander/Validate Generated Viper Hand Visuals")]
     public static void ValidateGenerated()
     {

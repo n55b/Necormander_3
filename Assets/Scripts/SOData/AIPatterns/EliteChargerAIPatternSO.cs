@@ -328,12 +328,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
     private void OnDestroy()
     {
-        ClearChargeTelegraph(); // 엔티티 사망/씬 언로드로 브레인 클론이 파괴될 때
+        ClearPatternObjects(); // 엔티티 사망/씬 언로드로 브레인 클론이 파괴될 때
     }
 
     public override void Init(BaseEntity entity)
     {
         base.Init(entity);
+        ClearPatternObjects();
         _isBusy = false;
         _superArmorApplied = false;
         // 특수 패턴은 2종(패턴1 돌진 조준 / 패턴3 바닥 충격파). 무반복 풀이라 둘을 번갈아 쓴다.
@@ -391,6 +392,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                         entity.StopCoroutine(_basicAttackCoroutine);
                         _basicAttackCoroutine = null;
                     }
+                    ClearPatternObjects();
                     entity.IsAttacking = false;
                     ClearLabel();
                 }
@@ -646,7 +648,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             Vector2 spawnPos = entity.transform.position;
 
             GameObject hitboxObj = sweepHitboxPrefab != null
-                ? GameObject.Instantiate(sweepHitboxPrefab, spawnPos, Quaternion.Euler(0, 0, angle))
+                ? TrackPatternObject(GameObject.Instantiate(sweepHitboxPrefab, spawnPos, Quaternion.Euler(0, 0, angle)))
                 : CreateFallbackCircle(spawnPos, 0.5f, new Color(1f, 0f, 0f, 0.35f));
 
             hitboxObj.transform.localScale = Vector3.one * radius;
@@ -744,10 +746,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         }
         finally
         {
-            // 8초 특수 패턴 인터럽트가 _basicAttackCoroutine 을 StopCoroutine 으로 잘라가면 아래 줄들이
-            // 실행되지 않아 착지 예고 원이 바닥에 영구히 남는다. finally 는 StopCoroutine 에서도 돈다.
-            if (ringMark != null) GameObject.Destroy(ringMark);
-            if (fillMark != null) GameObject.Destroy(fillMark);
+            // 강제 중단에서는 finally가 실행되지 않을 수 있으므로 취소 경로에서도 명시적으로 회수한다.
+            DestroyPatternObject(ringMark);
+            DestroyPatternObject(fillMark);
         }
 
         // 착지 타격은 예고한 그 자리 그대로다. 예전엔 진행 방향으로 0.6 밀어서 스폰했는데,
@@ -755,7 +756,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 
         GameObject hitboxObj = stabHitboxPrefab != null
-            ? GameObject.Instantiate(stabHitboxPrefab, land, Quaternion.Euler(0f, 0f, angle))
+            ? TrackPatternObject(GameObject.Instantiate(stabHitboxPrefab, land, Quaternion.Euler(0f, 0f, angle)))
             : CreateFallbackCircle(land, 0.5f, new Color(1f, 0f, 0f, 0.35f));
         hitboxObj.transform.localScale = Vector3.one * radius;
 
@@ -1256,14 +1257,43 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         fill.localScale = new Vector3(1f, Mathf.Clamp01(progress01), 1f);
     }
 
-private GameObject _chargeTelegraph;
+    private GameObject _chargeTelegraph;
+    private readonly List<GameObject> _patternObjects = new List<GameObject>();
+
+    private GameObject TrackPatternObject(GameObject obj)
+    {
+        _patternObjects.RemoveAll(item => item == null); // 자동 만료된 히트박스도 회수한다.
+        _patternObjects.Add(obj);
+        return obj;
+    }
+
+    private void DestroyPatternObject(GameObject obj)
+    {
+        _patternObjects.Remove(obj);
+        if (obj == null) return;
+        obj.SetActive(false);
+        GameObject.Destroy(obj);
+    }
+
+    private void ClearPatternObjects()
+    {
+        // 월드 루트에 생성한 표시/판정은 코루틴 중단이나 적 사망으로 함께 사라지지 않는다.
+        foreach (var obj in _patternObjects)
+        {
+            if (obj == null) continue;
+            obj.SetActive(false);
+            GameObject.Destroy(obj);
+        }
+        _patternObjects.Clear();
+        _chargeTelegraph = null;
+    }
 
     /// <summary>돌진 예고 레인 제거. 정상 종료/취소/파괴 모두에서 호출된다.</summary>
     private void ClearChargeTelegraph()
     {
         if (_chargeTelegraph != null)
         {
-            GameObject.Destroy(_chargeTelegraph);
+            DestroyPatternObject(_chargeTelegraph);
             _chargeTelegraph = null;
         }
     }
@@ -1273,7 +1303,7 @@ private GameObject _chargeTelegraph;
     {
         base.OnAttackCancelled(entity);
         BossAttackIndicator.Stop(entity); // 코루틴이 끊기면 Stop 줄까지 못 가서 게이지가 반쯤 찬 채로 얼어붙는다.
-        ClearChargeTelegraph();
+        ClearPatternObjects();
         ClearLabel();
 
         if (entity != null)
@@ -1329,7 +1359,7 @@ private GameObject _chargeTelegraph;
             yield return null;
         }
         BossAttackIndicator.Stop(entity);
-        if (warmup != null) GameObject.Destroy(warmup);
+        DestroyPatternObject(warmup);
 
         ShowLabel(label_Pattern3);
         Vector2 center = entity.transform.position;
@@ -1403,7 +1433,7 @@ private GameObject _chargeTelegraph;
                 if (ring != null) ring.transform.localScale = new Vector3(cur * 2f, cur * 2f, 1f);
             });
 
-        if (ring != null) GameObject.Destroy(ring);
+        DestroyPatternObject(ring);
     }
 
     // ==============================================================
@@ -1418,7 +1448,7 @@ private GameObject _chargeTelegraph;
         sr.color = color;
         sr.sortingOrder = 10;
         obj.transform.localScale = Vector3.one * baseScale;
-        return obj;
+        return TrackPatternObject(obj);
     }
 
     private GameObject CreateFallbackRect(Color color)
@@ -1428,7 +1458,7 @@ private GameObject _chargeTelegraph;
         sr.sprite = GetOrCreateSquareSprite();
         sr.color = color;
         sr.sortingOrder = 10;
-        return obj;
+        return TrackPatternObject(obj);
     }
 
     private GameObject CreateFallbackRing(Color color)
@@ -1438,7 +1468,7 @@ private GameObject _chargeTelegraph;
         sr.sprite = GetOrCreateRingSprite();
         sr.color = color;
         sr.sortingOrder = 10;
-        return obj;
+        return TrackPatternObject(obj);
     }
 
     // 절차적 텔레그래프 스프라이트는 BossTelegraph 로 일원화(SO/기둥/BossTelegraph 3벌 중복 제거). 링 두께 정규값 0.85.
