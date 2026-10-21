@@ -71,7 +71,10 @@ public class EnhanceShopNPC : NPCBase
                     if (psi.UpgradeTo(next)) _used = true;
                     else inv.AddGold(cost);
                 }
-                else Debug.Log("[EnhanceShop] 골드가 부족합니다.");
+                else
+                {
+                    FloatingTextManager.ShowNotice($"골드 부족 · 필요 {cost}G / 보유 {inv.GOLD}G", Color.yellow, transform);
+                }
             }
             CloseSelection();
             RefreshBubble();

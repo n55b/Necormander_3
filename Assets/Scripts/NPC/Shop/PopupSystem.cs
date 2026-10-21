@@ -42,6 +42,7 @@ public class PopupSystem : MonoBehaviour
 
     // ─── 모든 IInteractable 공용 아이콘 ──────────────────────────────
     private static readonly List<Graphic> _graphicBuffer = new List<Graphic>();
+    private static readonly List<Collider2D> _colliderBuffer = new List<Collider2D>();
     private static readonly Vector3[] _corners = new Vector3[4];
     private const float UiIconGap = 0.05f; // 툴팁 위쪽 끝과 F 아이콘 아래쪽 끝 사이 간격(월드 유닛)
 
@@ -59,13 +60,18 @@ public class PopupSystem : MonoBehaviour
         _interactionIcon.gameObject.SetActive(true);
 
         Bounds col = target.bounds;
+        // 상자의 몸통/상호작용 콜라이더 중 어느 것이 먼저 검색돼도 같은 위치를 사용한다.
+        target.GetComponents(_colliderBuffer);
+        foreach (var collider in _colliderBuffer)
+            if (collider.enabled) col.Encapsulate(collider.bounds);
+        _colliderBuffer.Clear();
         float x = col.center.x;
         float y = col.max.y + offset;
 
         if (TryGetWorldUIBounds(target.transform, out Bounds ui))
         {
             // 아이콘 피벗이 중앙이 아니어도 아이콘의 '아래 끝'이 툴팁 위에 오도록 맞춘다.
-            float pivotToBottom = _interactionIcon.transform.position.y - _interactionIcon.bounds.min.y;
+            float pivotToBottom = -_interactionIcon.sprite.bounds.min.y * _interactionIcon.transform.lossyScale.y;
             x = ui.center.x;
             y = Mathf.Max(ui.max.y, col.max.y) + UiIconGap + pivotToBottom;
         }

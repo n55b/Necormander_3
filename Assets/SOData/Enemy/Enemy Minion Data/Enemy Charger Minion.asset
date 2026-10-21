@@ -44,7 +44,7 @@ MonoBehaviour:
   maxHP: 50
   attackSpeed: 1
   attackRange: 6
-  detectRange: 10
+  detectRange: 50
   defense: 0
   moveSpeed: 4
   baseEvasion: 0

@@ -10,13 +10,15 @@ namespace AstroNuts.UI
     /// 공용 시스템인 CommonTooltipUI를 호출합니다.
     /// </summary>
     [RequireComponent(typeof(TMP_Text))]
-    public class KeywordTooltipController : MonoBehaviour, IPointerMoveHandler, IPointerExitHandler
+    public class KeywordTooltipController : MonoBehaviour, IPointerEnterHandler, IPointerMoveHandler, IPointerExitHandler
     {
         [SerializeField] private KeywordDictionary dictionary;
         [SerializeField] private Camera uiCamera; // Screen Space - Overlay 캔버스면 비워두세요.
 
         private TMP_Text _text;
         private int _lastLinkIndex = -1;
+
+        public void OnPointerEnter(PointerEventData eventData) => OnPointerMove(eventData);
 
         private void Awake()
         {
@@ -28,7 +30,10 @@ namespace AstroNuts.UI
             // 전역 공용 툴팁이 씬에 없으면 아무것도 하지 않습니다.
             if (CommonTooltipUI.Instance == null) return;
 
-            int linkIndex = TMP_TextUtilities.FindIntersectingLink(_text, eventData.position, uiCamera);
+            var canvas = _text.canvas;
+            Camera camera = uiCamera != null ? uiCamera :
+                canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+            int linkIndex = TMP_TextUtilities.FindIntersectingLink(_text, eventData.position, camera);
 
             // 같은 키워드 위에 머물고 있다면 매 프레임 무거운 연산을 하지 않도록 방어
             if (linkIndex == _lastLinkIndex)

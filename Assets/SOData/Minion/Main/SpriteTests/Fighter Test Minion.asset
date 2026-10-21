@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Fighter Test Minion
   m_EditorClassIdentifier: 
   minionType: 0
-  minionName: "[\uD14C\uC2A4\uD2B8] Fighter"
+  minionName: "\uC804\uC0AC"
   minionIcon: {fileID: 6766229206524841914, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
   shopCost: 150
   rewardItemData:
-    itemName: "[\uD14C\uC2A4\uD2B8] Fighter"
+    itemName: "\uC804\uC0AC"
     description: "MeleeDoll\uACFC \uB3D9\uC77C\uD55C \uB2A5\uB825\uC758 \uC678\uD615
       \uD14C\uC2A4\uD2B8\uC6A9 \uBBF8\uB2C8\uC5B8."
     localizedItemName:
@@ -106,9 +106,11 @@ MonoBehaviour:
     basicAttackMultiplier: 1.2
     dashDamageMultiplier: 1.2
     skillDamageMultiplier: 1.2
-  evolutions: []
-  isEvolvedForm: 1
-  evolveRequiredLevelOverride: -1
+  evolutions:
+  - {fileID: 11400000, guid: e9c5f32da0b9ac44ebd23ba9ffea3799, type: 2}
+  - {fileID: 11400000, guid: 257d8baeb4f274049a8c84c8dff82b05, type: 2}
+  isEvolvedForm: 0
+  evolveRequiredLevelOverride: 1
   references:
     version: 2
     RefIds: []

@@ -138,21 +138,7 @@ public class RewardCard : MonoBehaviour
     /// </summary>
     private string ApplyKeywordHighlighting(string text)
     {
-        if (keywordDictionary == null || string.IsNullOrEmpty(text)) return text;
-
-        foreach (var entry in keywordDictionary.entries)
-        {
-            if (entry == null || string.IsNullOrEmpty(entry.id)) continue;
-
-            string keyword = ResolveLocalizedString(entry.displayName);
-            if (string.IsNullOrEmpty(keyword) || !text.Contains(keyword)) continue;
-
-            string colorHex = ColorUtility.ToHtmlStringRGB(entry.badgeColor);
-            string wrapped = $"<u><color=#{colorHex}><link=\"{entry.id}\">{keyword}</link></color></u>";
-            text = text.Replace(keyword, wrapped);
-        }
-
-        return text;
+        return AstroNuts.Localization.KeywordHighlighter.ApplyTags(text, keywordDictionary);
     }
 
     /// <summary>

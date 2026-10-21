@@ -23,7 +23,7 @@ MonoBehaviour:
   attack: 10
   attackSpeed: 1
   attackRange: 2
-  detectRange: 30
+  detectRange: 50
   defense: 0
   moveSpeed: 4
   tier: 0

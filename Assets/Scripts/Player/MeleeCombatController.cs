@@ -146,7 +146,7 @@ public class MeleeCombatController : MonoBehaviour
     {
         // 주머니(B 홀드)를 열고 마우스로 아이템을 끌고 있는 중엔 평타가 나가면 안 된다.
         // 시간이 멈추지 않는 UI라 안 막으면 정리하는 내내 주먹을 휘두른다.
-        if (PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsOpen)) { _isHoldingAttack = false; return; }
+        if (PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsPointerOverPanel())) { _isHoldingAttack = false; return; }
 
         if (context.started)
         {
@@ -171,7 +171,7 @@ public class MeleeCombatController : MonoBehaviour
 
     private void ExecuteMeleeAttack()
     {
-        if (PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsOpen)) { _isHoldingAttack = false; return; }
+        if (PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsPointerOverPanel())) { _isHoldingAttack = false; return; }
         if (PlayerController.IsGameplayPaused) return; // 옵션 일시정지 또는 창(보상/맵 등)이 떠 있으면 공격 차단
         if (_player == null || _player.Stat.Health.IsDead) return;
         if (_player.IsCCed) return; // [26/07/17] 기절/빙결 중에는 평타 차단
