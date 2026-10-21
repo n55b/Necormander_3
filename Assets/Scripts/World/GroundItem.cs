@@ -2,9 +2,11 @@ using UnityEngine;
 using UnityEngine.AI;
 
 /// <summary>아이템/미니언 공용 바닥 픽업. 짧은 F는 습득, 긴 F는 분해한다.</summary>
-[RequireComponent(typeof(SpriteRenderer))]
 public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
 {
+    [SerializeField] private SpriteRenderer iconRenderer;
+    [SerializeField] private bool alignIconToGround;
+    [SerializeField, Min(0f)] private float labelGap = 0.15f;
     [SerializeField] private GameObject infoCanvas;
     [SerializeField] private Tooltip info;
     [Header("분해")]
@@ -104,7 +106,7 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
 
     private void Awake()
     {
-        _sr = GetComponent<SpriteRenderer>();
+        _sr = iconRenderer != null ? iconRenderer : GetComponent<SpriteRenderer>();
         if (infoCanvas != null) infoCanvas.SetActive(false);
     }
 
@@ -112,9 +114,18 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
     public void SetMinion(MinionDataSO minion) { _minion = minion; _item = null; SetIcon(minion != null ? minion.minionIcon : null); }
     private void SetIcon(Sprite icon)
     {
-        if (_sr == null) _sr = GetComponent<SpriteRenderer>();
+        if (_sr == null) _sr = iconRenderer != null ? iconRenderer : GetComponent<SpriteRenderer>();
         if (icon != null) _sr.sprite = icon;
         _sr.color = Color.white;
+        if (alignIconToGround && _sr.transform != transform && _sr.sprite != null)
+        {
+            // 전투용 피벗/빈 캔버스와 무관하게 픽업 그림의 실제 발밑을 상호작용 위치에 맞춘다.
+            Bounds bounds = _sr.sprite.bounds;
+            Vector3 scale = _sr.transform.localScale;
+            _sr.transform.localPosition = new Vector3(-bounds.center.x * scale.x, -bounds.min.y * scale.y, 0f);
+            if (infoCanvas != null)
+                infoCanvas.transform.localPosition = new Vector3(0f, bounds.size.y * scale.y + labelGap, 0f);
+        }
     }
 
     public bool Interact(GameObject interactor)

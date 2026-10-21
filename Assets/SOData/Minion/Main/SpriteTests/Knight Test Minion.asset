@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Knight Test Minion
   m_EditorClassIdentifier: 
   minionType: 0
-  minionName: "[\uD14C\uC2A4\uD2B8] Knight"
+  minionName: "\uAE30\uC0AC"
   minionIcon: {fileID: 930695256080007131, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
   shopCost: 150
   rewardItemData:
-    itemName: "[\uD14C\uC2A4\uD2B8] Knight"
+    itemName: "\uAE30\uC0AC"
     description: "MeleeDoll\uACFC \uB3D9\uC77C\uD55C \uB2A5\uB825\uC758 \uC678\uD615
       \uD14C\uC2A4\uD2B8\uC6A9 \uBBF8\uB2C8\uC5B8."
     localizedItemName:
@@ -106,9 +106,10 @@ MonoBehaviour:
     basicAttackMultiplier: 1.2
     dashDamageMultiplier: 1.2
     skillDamageMultiplier: 1.2
-  evolutions: []
+  evolutions:
+  - {fileID: 11400000, guid: 0d7337f7235e74b4b92d5bd2da50975e, type: 2}
   isEvolvedForm: 1
-  evolveRequiredLevelOverride: -1
+  evolveRequiredLevelOverride: 1
   references:
     version: 2
     RefIds: []

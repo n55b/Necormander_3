@@ -315,10 +315,34 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         }
     }
 
-    private static ChargeHitCheck CheckChargeHit(Vector2 origin, Vector2 dir, float radius, float checkDist, LayerMask wallMask, LayerMask playerMask)
+    private static readonly RaycastHit2D[] ChargeObstacles = new RaycastHit2D[16];
+
+    private static bool TryGetChargeObstacle(Collider2D body, Vector2 dir, float distance, LayerMask wallMask, out RaycastHit2D obstacle)
     {
-        RaycastHit2D obstacleHit = Physics2D.CircleCast(origin, radius, dir, checkDist, wallMask);
-        RaycastHit2D playerHit = Physics2D.CircleCast(origin, radius, dir, checkDist, playerMask);
+        obstacle = default;
+        if (body == null) return false;
+        var filter = new ContactFilter2D { useTriggers = false };
+        filter.SetLayerMask(wallMask);
+        int count = body.Cast(dir, filter, ChargeObstacles, distance);
+        for (int i = 0; i < count; i++)
+        {
+            var hit = ChargeObstacles[i];
+            if (hit.distance <= 0.001f)
+            {
+                Vector2 toWall = hit.collider.ClosestPoint(body.bounds.center) - (Vector2)body.bounds.center;
+                // 출발부터 닿아 있던 뒤/옆 벽은 진행 방향을 막지 않는다.
+                if (toWall.sqrMagnitude > 0.0001f && Vector2.Dot(toWall.normalized, dir) <= 0.001f) continue;
+            }
+            if (obstacle.collider == null || hit.distance < obstacle.distance) obstacle = hit;
+        }
+        return obstacle.collider != null;
+    }
+
+    private static ChargeHitCheck CheckChargeHit(BaseEntity entity, Vector2 dir, float radius, float checkDist, LayerMask wallMask, LayerMask playerMask)
+    {
+        // 벽은 실제 몸통(중심 오프셋 포함), 플레이어는 넓은 공격 범위로 따로 검사한다.
+        TryGetChargeObstacle(entity.GetComponent<Collider2D>(), dir, checkDist, wallMask, out var obstacleHit);
+        RaycastHit2D playerHit = Physics2D.CircleCast(entity.transform.position, radius, dir, checkDist, playerMask);
         // [최적화] LayerMask.NameToLayer는 문자열 조회다. 이미 캐싱된 Layers.PlayerDash(정수 비교)를 쓴다.
         bool playerHittable = playerHit.collider != null && playerHit.collider.gameObject.layer != Layers.PlayerDash;
         bool wallBlocksFirst = obstacleHit.collider != null && (!playerHittable || obstacleHit.distance <= playerHit.distance);
@@ -833,13 +857,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             // 레인은 플레이어를 통과시키되, 벽/장애물에 막히는 지점까지만 그린다.
             // (아래 돌진 루프와 동일한 마스크·반지름이라 예고와 실제 정지 지점이 일치)
             float ncLength = estimatedLength;
-            RaycastHit2D ncBlock = Physics2D.CircleCast(
-                entity.transform.position,
-                normalChargeHitRadius,
-                dir,
-                ncLength,
-                LayerMask.GetMask("Wall", "Object"));
-            if (ncBlock.collider != null)
+            if (TryGetChargeObstacle(entity.GetComponent<Collider2D>(), dir, ncLength,
+                LayerMask.GetMask("Wall", "Object"), out var ncBlock))
                 ncLength = ncBlock.distance;
 
             UpdateChargeTelegraph(_chargeTelegraph, entity.transform.position, dir, ncLength, normalChargeHitRadius * 2f, windup > 0f ? wt / windup : 1f);
@@ -923,7 +942,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             float checkDist = chargeSpeed * Time.deltaTime + 0.15f;
 
             // [정리] 벽/플레이어 우선순위 판정은 CheckChargeHit로 공통화했다 (패턴 1과 동일 로직).
-            var hitCheck = CheckChargeHit(entity.transform.position, dir, normalChargeHitRadius, checkDist, wallMask, playerMask);
+            var hitCheck = CheckChargeHit(entity, dir, normalChargeHitRadius, checkDist, wallMask, playerMask);
 
             if (hitCheck.WallBlocksFirst)
             {
@@ -1082,13 +1101,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
             length = Mathf.Min(length, chargeTelegraphLength);
 
-            RaycastHit2D laneBlock = Physics2D.CircleCast(
-                entity.transform.position,
-                chargeHitRadius,
-                chargeDir,
-                length,
-                LayerMask.GetMask("Wall", "Object"));
-            if (laneBlock.collider != null)
+            if (TryGetChargeObstacle(entity.GetComponent<Collider2D>(), chargeDir, length,
+                LayerMask.GetMask("Wall", "Object"), out var laneBlock))
                 length = laneBlock.distance;
 
             if (_chargeTelegraph == null)
@@ -1177,7 +1191,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             float checkDist = chargeSpeed * Time.deltaTime + 0.2f;
 
             // [정리] 벽/플레이어 우선순위 판정은 CheckChargeHit로 공통화했다 (②일반 돌진과 동일 로직).
-            var hitCheck = CheckChargeHit(entity.transform.position, chargeDir, chargeHitRadius, checkDist, wallMask, playerMask);
+            var hitCheck = CheckChargeHit(entity, chargeDir, chargeHitRadius, checkDist, wallMask, playerMask);
             bool outOfBounds = roomBounds.HasValue && !roomBounds.Value.Contains(entity.transform.position);
 
             if (hitCheck.WallBlocksFirst || outOfBounds)

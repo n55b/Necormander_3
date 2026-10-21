@@ -103,6 +103,14 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         => _isOpen && ((statsPanel != null && statsPanel.gameObject.activeInHierarchy && RectTransformUtility.RectangleContainsScreenPoint(statsPanel, point, camera))
             || (IsExpanded && detailsPanel.gameObject.activeInHierarchy && RectTransformUtility.RectangleContainsScreenPoint(detailsPanel, point, camera)));
 
+    public bool IsPointerOverPanel()
+    {
+        if (!_isOpen) return false;
+        var canvas = GetComponentInParent<Canvas>();
+        return ContainsScreenPoint(Input.mousePosition,
+            canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null);
+    }
+
     private void Update()
     {
         if (!_isOpen) return;
@@ -233,28 +241,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     /// </summary>
     private string ApplyKeywordHighlighting(string text)
     {
-        if (keywordDictionary == null || string.IsNullOrEmpty(text)) return text;
-
-        foreach (var entry in keywordDictionary.entries)
-        {
-            if (entry == null || string.IsNullOrEmpty(entry.id) || entry.displayName == null) continue;
-
-            string keyword = entry.displayName.IsEmpty ? null : entry.displayName.GetLocalizedString();
-            if (string.IsNullOrEmpty(keyword) || !text.Contains(keyword)) continue;
-
-            string colorHex = ColorUtility.ToHtmlStringRGB(entry.badgeColor);
-
-            // [추가] spriteName이 지정되어 있고, 해당 이름을 가진 스프라이트가 텍스트에 연결된 Sprite Asset 안에 있으면
-            // 단어 앞에 아이콘이 함꿀 표시됩니다. 없거나 미설정이면 "?"가 나오니 주의.
-            string spriteTag = string.IsNullOrEmpty(entry.spriteName)
-                ? string.Empty
-                : $"<sprite name=\"{entry.spriteName}\">";
-
-            string wrapped = $"<u><color=#{colorHex}><link=\"{entry.id}\">{spriteTag}{keyword}</link></color></u>";
-            text = text.Replace(keyword, wrapped);
-        }
-
-        return text;
+        return KeywordHighlighter.ApplyTags(text, keywordDictionary);
     }
 
 }

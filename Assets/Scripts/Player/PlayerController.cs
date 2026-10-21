@@ -67,7 +67,7 @@ public class PlayerController : MonoBehaviour
     /// 게임플레이 입력(이동·평타·대쉬·스킬·패리·상호작용)을 받으면 안 되는가.
     /// 팝업 시스템에서 시간 정지를 뺐기 때문에, timeScale==0 만 보면 보상창 버튼을 누를 때 평타가 같이 나간다.
     /// 그래서 '창이 떠 있음'도 같이 본다. 주머니/장착 정보(Overlay)는 여기 포함되지 않는다 — 전투 중에 보는
-    /// 정보창이라 이동은 되고, 평타/패리/상호작용만 각자 PouchUI.IsOpen / SkillExplainUI.IsOpen 으로 막는다.
+    /// 정보창은 이동을 막지 않는다. C는 패널 위 클릭만, 주머니는 공격을 차단한다.
     /// V/Tab/ESC/M 같은 창 여닫기 키에는 쓰지 않는다.
     /// </summary>
     public static bool IsGameplayPaused =>
@@ -618,7 +618,7 @@ public class PlayerController : MonoBehaviour
         // UI/일시정지 중에 뗀 입력도 반드시 해제한다.
         if (context.canceled) { parryCtrl?.SetGuardHeld(false); return; }
         if (IsGameplayPaused) return; // 옵션 일시정지 / 창(보상·맵 등)이 떠 있으면 차단
-        if (_inputBlocked || stat.Health.IsDead || PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsOpen)) return;
+        if (_inputBlocked || stat.Health.IsDead || PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsPointerOverPanel())) return;
         if (context.started) parryCtrl?.SetGuardHeld(true);
     }
 
