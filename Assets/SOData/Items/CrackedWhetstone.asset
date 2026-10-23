@@ -12,16 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f711bf1e2ceee742b68a340fd65898e, type: 3}
   m_Name: CrackedWhetstone
   m_EditorClassIdentifier: 
-  itemName: "\uAC08\uB77C\uC9C4 \uC22B\uB3CC"
-  description: "\uCE58\uBA85\uD0C0 \uD53C\uD574\uAC00 15%p \uC99D\uAC00\uD569\uB2C8\uB2E4."
+  itemName: "\uC22B\uB3CC \uD30C\uD3B8"
+  description: "\uCE58\uBA85\uD0C0 \uD53C\uD574\uAC00 15% \uC99D\uAC00\uD569\uB2C8\uB2E4."
   icon: {fileID: 0}
   tier: 4
+  maxStack: 10
   effects:
-  - rid: 2773715014607962113
+  - rid: 2773715416203132935
   references:
     version: 2
     RefIds:
-    - rid: 2773715014607962113
+    - rid: 2773715416203132935
       type: {class: ItemStatEffect, ns: , asm: Assembly-CSharp}
       data:
         label: 

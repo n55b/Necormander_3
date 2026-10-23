@@ -17,14 +17,13 @@ public enum ItemTier
 }
 
 /// <summary>
-/// 티어에서 자동으로 유도되는 값들(가격/환급/색). 아이템 에셋마다 가격을 적지 않는 이유는
+/// 티어에서 자동으로 유도되는 값들(가격/색). 아이템 에셋마다 가격을 적지 않는 이유는
 /// 아이템이 늘어나면 개별 값이 전부 어긋나기 때문이다 — 밸런싱은 아래 표 한 줄만 고친다.
 /// </summary>
 public static class ItemTierRules
 {
     // 인덱스 = 티어 번호. [0] 은 안 쓰는 자리.
     private static readonly int[] PRICE  = { 0, 600, 400, 200, 100 };
-    private static readonly int[] REFUND = { 0, 270, 180,  60,  30 };
 
     private static readonly Color[] COLOR =
     {
@@ -40,9 +39,6 @@ public static class ItemTierRules
     /// <summary>상점 구매가(골드).</summary>
     public static int Price(ItemTier t) => PRICE[Index(t)];
 
-    /// <summary>분해 시 돌려받는 골드.</summary>
-    public static int Refund(ItemTier t) => REFUND[Index(t)];
-
     /// <summary>UI 테두리/텍스트 색. (메서드 이름을 Color 로 두면 UnityEngine.Color 타입을 가려서 컴파일이 깨진다.)</summary>
     public static Color TierColor(ItemTier t) => COLOR[Index(t)];
 
@@ -50,29 +46,24 @@ public static class ItemTierRules
     public static string Label(ItemTier t) => $"{Index(t)}티어";
 }
 
-/// <summary>
-/// 아이템 정의(템플릿). 하나의 에셋 = 하나의 아이템 종류.
-///
-/// 장비(EquipmentSO)와는 완전히 별개의 시스템이다:
-///   · 장비 = 무기 한 자루. Q/E 플레이어 스킬을 부여하고 강화 레벨이 있다.
-///   · 아이템 = 주머니에 넣는 것. 효과가 고정이고 강화가 없다. 여러 개 동시 소지(기본 4칸).
-/// 서로 참조하지 않으므로 한쪽을 고칠 때 다른 쪽을 볼 필요가 없다.
-///
-/// 획득 경로는 전부 '바닥에 떨어짐' 이다(상점 구매/엘리트 드랍 모두). 바닥에서 F 를 짧게 누르면
-/// 주머니에 습득, 3초 길게 누르면 분해되어 골드로 환급된다 — GroundItem 참조.
-/// </summary>
+/// <summary>주머니에 소지하는 아이템 한 종류. 장비와 별개이며 효과/최대 중첩은 에셋에서 조절한다.</summary>
 [CreateAssetMenu(fileName = "Item", menuName = "Necromancer/Item/Item")]
 public class ItemSO : ScriptableObject
 {
     [Header("표시")]
     public string itemName;
     [TextArea] public string description;
-    [Tooltip("비어 있으면 바닥/주머니에서 흰 사각으로 대체된다.")]
+    [Tooltip("비어 있으면 바닥 픽업 프리팹의 기존 기본 아이콘을 사용한다.")]
     public Sprite icon;
 
     [Header("등급")]
-    [Tooltip("가격과 분해 환급액이 여기서 자동으로 나온다(ItemTierRules).")]
+    [Tooltip("가격과 등급 색이 여기서 자동으로 나온다(ItemTierRules).")]
     public ItemTier tier = ItemTier.Tier4;
+
+    [Header("중첩")]
+    [Min(1), Tooltip("같은 아이템의 최대 보유 수. 주머니 종류/칸 수에는 제한이 없다.")]
+    public int maxStack = 1;
+    public int MaxStack => Mathf.Max(1, maxStack);
 
     [Header("효과")]
     [Tooltip("주머니에 들어 있는 동안 적용되는 효과들. 인스펙터에서 + 로 종류를 골라 추가한다.")]
@@ -82,9 +73,37 @@ public class ItemSO : ScriptableObject
     public string DisplayName => string.IsNullOrEmpty(itemName) ? name : itemName;
 
     public int Price => ItemTierRules.Price(tier);
-    public int Refund => ItemTierRules.Refund(tier);
     public Color TierColor => ItemTierRules.TierColor(tier);
 
     /// <summary>툴팁 본문. 등급 표기를 설명 앞에 붙인다.</summary>
     public string TooltipBody => $"[{ItemTierRules.Label(tier)}]\n{description}";
+
+    public string EffectSummary(int count)
+    {
+        var lines = new List<string>();
+        if (effects != null) foreach (var effect in effects)
+        {
+            if (effect is ItemStatEffect stat)
+            {
+                string title = stat.statType switch
+                {
+                    StatType.CritChance => "치명타 확률", StatType.CritDamage => "치명타 피해",
+                    StatType.Defense => "방어력", StatType.MoveSpeed => "이동 속도",
+                    StatType.Evasion => "회피율", StatType.DashRechargeSpeed => "대시 충전 속도",
+                    StatType.DashDistance => "대시 거리", StatType.Health => "최대 체력",
+                    _ => string.IsNullOrEmpty(stat.label) ? stat.statType.ToString() : stat.label
+                };
+                bool percent = stat.isPercent || stat.statType == StatType.Evasion;
+                bool points = stat.statType == StatType.CritChance || stat.statType == StatType.CritDamage;
+                float amount = stat.value * count * (percent ? 100f : 1f);
+                lines.Add($"{title} {amount:+0.##;-0.##;0}{(percent || points ? "%" : "")}");
+            }
+            else if (effect is ItemRoomEntryShieldEffect shield) lines.Add($"방 진입 보호막 +{shield.amount * count:0.##}");
+            else if (effect is ItemDashChargeEffect charge) lines.Add($"최대 대시 횟수 +{count / Mathf.Max(1, charge.copiesPerCharge)} ({charge.copiesPerCharge}개마다 +1)");
+            else if (effect is ItemCritOverflowEffect) lines.Add("초과 치명타 확률 10%마다 치명타 피해 +10%");
+            else if (effect is ItemRoomClearHealEffect heal) lines.Add($"방 클리어 회복 +{heal.value * count * (heal.isPercent ? 100f : 1f):0.##}{(heal.isPercent ? "%" : "")}");
+            else if (effect != null) lines.Add(!string.IsNullOrEmpty(effect.label) ? effect.label : description);
+        }
+        return string.Join("\n", lines);
+    }
 }

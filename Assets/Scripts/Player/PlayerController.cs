@@ -566,7 +566,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
-        float originalDist = dashSpeed * dashDuration;
+        float originalDist = dashSpeed * dashDuration * (stat != null ? stat.DASH_DISTANCE_MULTIPLIER : 1f);
         if (MapGenerator.Instance != null && MapGenerator.Instance.HasUnsteppableBetween(transform.position, _dashDir, originalDist))
             originalDist *= 1.5f; // 기본 회피 경로도 물을 넘을 때만 연장. Wall 제한은 그대로 유지.
         Vector2 safePos = GetSafeDashPosition(transform.position, _dashDir, originalDist);

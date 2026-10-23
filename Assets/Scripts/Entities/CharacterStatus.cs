@@ -5,7 +5,7 @@ public class CharacterStatus : MonoBehaviour
 {
     private class SlowInstance { public string EffectId; public float Reduction; public float EndTime; }
     private class SpeedBuffInstance { public string EffectId; public float Increase; public float EndTime; }
-    private class ShieldInstance { public float RemainingAmount; public float EndTime; public ShieldInstance(float amount, float duration){ RemainingAmount = amount; EndTime = Time.time + duration; }}
+    private class ShieldInstance { public float RemainingAmount; public float EndTime; public object Source; public ShieldInstance(float amount, float duration){ RemainingAmount = amount; EndTime = Time.time + duration; }}
 
     private List<SlowInstance> _activeSlows = new List<SlowInstance>();
     private List<SpeedBuffInstance> _activeSpeedBuffs = new List<SpeedBuffInstance>();
@@ -202,6 +202,15 @@ public class CharacterStatus : MonoBehaviour
     }
 
     public void AddShield(float amount, float duration) { _shieldInstances.Add(new ShieldInstance(amount, duration)); UpdateInstances(); }
+
+    /// <summary>특정 출처의 보호막만 갱신한다. 방 이동으로 다른 스킬 보호막을 지우거나 중복 누적하지 않는다.</summary>
+    public void SetShield(object source, float amount)
+    {
+        if (source == null) return;
+        _shieldInstances.RemoveAll(shield => ReferenceEquals(shield.Source, source));
+        if (amount > 0f) _shieldInstances.Add(new ShieldInstance(amount, float.PositiveInfinity) { Source = source });
+        UpdateInstances();
+    }
 
     private void ExplodeExpiredShield(float amount)
     {

@@ -430,7 +430,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 834c9549d2c274c4a894a8c13e39cad5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  slotCount: 9
   useDebugStartingItems: 0
   debugStartingItems:
   - {fileID: 11400000, guid: 9c1e4b7a2f5d40e4a83b6c1d7e9f2a34, type: 2}

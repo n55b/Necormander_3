@@ -31,6 +31,10 @@ public enum StatType
     PhysDamageAmp = 20,            // 물리 피해 증폭 (0.1 = +10%). 유물로만 오른다
     MagicDamageAmp = 21,           // 마법 피해 증폭
     Luck = 22,                    // 행운(%). 5 = 확률 +5%p. 지정된 효과만 사용한다.
+    DashDistance = 23,             // Percent: 0.03 = 거리 +3%
+    DashRechargeSpeed = 24,        // Percent: 0.05 = 충전 속도 +5%
+    DashCharges = 25,              // Flat: 최대 충전 횟수
+    CritOverflowConversion = 26,   // Flat > 0이면 100% 초과 확률을 10% 단위로 피해로 변환
 }
 
 /// <summary>스탯 변화 한 건. (원래 GemInstance.cs 에 있었다.)</summary>

@@ -19,6 +19,8 @@ public class MeleeDodgeController : MonoBehaviour
 
     private int _currentCharges;
     private float _rechargeTimer;
+    private int _lastMaxCharges;
+    private float _lastRechargeTime;
 
     private bool _isDashing;
     private float _dashTimeLeft;
@@ -38,19 +40,21 @@ public class MeleeDodgeController : MonoBehaviour
     {
         _player = GetComponent<PlayerController>();
         _rb = GetComponent<Rigidbody2D>();
-        _currentCharges = maxCharges;
+        _currentCharges = _lastMaxCharges = MaxCharges;
+        _lastRechargeTime = EffectiveRechargeTime;
     }
 
     private void Update()
     {
+        SyncItemBonuses();
         // 쿨타임(스택) 회복
-        if (_currentCharges < maxCharges)
+        if (_currentCharges < MaxCharges)
         {
             _rechargeTimer -= Time.deltaTime;
             if (_rechargeTimer <= 0f)
             {
                 _currentCharges++;
-                if (_currentCharges < maxCharges)
+                if (_currentCharges < MaxCharges)
                 {
                     _rechargeTimer = EffectiveRechargeTime;
                 }
@@ -71,10 +75,11 @@ public class MeleeDodgeController : MonoBehaviour
 
     public bool TryDash(Vector2 moveInput, float currentFacingSign)
     {
+        SyncItemBonuses();
         if (_isDashing || _currentCharges <= 0) return false;
 
         // 스택 차감 및 타이머 시작
-        if (_currentCharges == maxCharges)
+        if (_currentCharges == MaxCharges)
         {
             _rechargeTimer = EffectiveRechargeTime;
         }
@@ -118,7 +123,7 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
 
         // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
         // 배율은 벽 클램프 '전'에 곱한다 — 클램프가 최종 도달점을 잡아야 벽을 뚫지 않는다.
-        float baseDist = dashSpeed * dashDuration;
+        float baseDist = dashSpeed * dashDuration * (_player.Stat != null ? _player.Stat.DASH_DISTANCE_MULTIPLIER : 1f);
         float originalDist = baseDist * lengthMult;
 
         // 평소에는 기존 거리 그대로. 그 거리 안에 물(Unsteppable)이 끼어 있을 때만
@@ -316,7 +321,8 @@ private void EndDash()
     }
 
 
-public int   MaxCharges      => maxCharges;
+public int   MaxCharges      => Mathf.Max(1, maxCharges + (_player != null && _player.Stat != null
+    ? Mathf.FloorToInt(_player.Stat.Mods.Flat(StatType.DashCharges)) : 0));
     public float RechargeTime    => rechargeTime;
 
     /// <summary>대쉬 쿨감(DASH_CDR)이 반영된 실제 재충전 시간. 스탯 없으면 원본 rechargeTime.</summary>
@@ -328,9 +334,20 @@ public int   MaxCharges      => maxCharges;
         get
         {
             float rt = EffectiveRechargeTime;
-            return (_currentCharges < maxCharges && rt > 0f)
+            return (_currentCharges < MaxCharges && rt > 0f)
                 ? 1f - Mathf.Clamp01(_rechargeTimer / rt)
                 : 1f;
         }
+    }
+
+    private void SyncItemBonuses()
+    {
+        int max = MaxCharges;
+        _currentCharges = Mathf.Clamp(_currentCharges + Mathf.Max(0, max - _lastMaxCharges), 0, max);
+        _lastMaxCharges = max;
+        float time = EffectiveRechargeTime;
+        if (_lastRechargeTime > 0f && !Mathf.Approximately(time, _lastRechargeTime))
+            _rechargeTimer *= time / _lastRechargeTime;
+        _lastRechargeTime = time;
     }
 }

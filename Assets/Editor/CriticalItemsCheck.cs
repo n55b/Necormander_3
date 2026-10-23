@@ -44,8 +44,8 @@ public static class CriticalItemsCheck
             if (!shop.itemPool.Contains(item)) { shop.itemPool.Add(item); EditorUtility.SetDirty(shop); }
         }
 
-        Add("Whetstone", "숫돌", "치명타 확률이 10%p 증가합니다.", ItemTier.Tier4, Stat(StatType.CritChance, 10f));
-        Add("CrackedWhetstone", "갈라진 숫돌", "치명타 피해가 15%p 증가합니다.", ItemTier.Tier4, Stat(StatType.CritDamage, 15f));
+        Add("Whetstone", "숫돌", "치명타 확률이 7%p 증가합니다.", ItemTier.Tier4, Stat(StatType.CritChance, 7f), new ItemCritOverflowEffect());
+        Add("CrackedWhetstone", "숫돌 파편", "치명타 피해가 15%p 증가합니다.", ItemTier.Tier4, Stat(StatType.CritDamage, 15f));
         Add("BalanceWeight", "균형의 추", "치명타가 아닌 공격이 명중할 때마다 치명타 확률이 5%p 증가합니다. 치명타 명중 시 초기화됩니다.",
             ItemTier.Tier4, new ItemCritPityEffect());
         Add("LuckyCoin", "럭키 코인", "치명타 명중 시 대상마다 5골드를 획득합니다.", ItemTier.Tier4, new ItemCritGoldEffect());
@@ -111,7 +111,6 @@ public static class CriticalItemsCheck
             InventoryManager.Instance = host.AddComponent<InventoryManager>();
             pouch = host.AddComponent<ItemPouch>();
             ItemPouch.Instance = pouch;
-            Set(pouch, "slotCount", 9);
             Call(pouch, "OnEnable");
 
             var enemy = Stats(Make("Critical items target"));
@@ -137,10 +136,10 @@ public static class CriticalItemsCheck
             var vital = Item("VitalStrike");
             Check(stone.tier == ItemTier.Tier4 && vital.tier == ItemTier.Tier3, "저티어4 / 중티어3");
             pouch.TryAdd(stone); pouch.TryAdd(cracked); pouch.TryAdd(vital);
-            Equal(playerStat.CRIT_CHANCE, 35f, "확률 +10/+25%p");
+            Equal(playerStat.CRIT_CHANCE, 32f, "확률 +7/+25%p");
             Equal(playerStat.CRIT_DAMAGE, 165f, "피해 +15%p");
             pouch.Refresh(); pouch.Refresh();
-            Equal(playerStat.CRIT_CHANCE, 35f, "Refresh 멱등");
+            Equal(playerStat.CRIT_CHANCE, 32f, "Refresh 멱등");
             Clear();
             Equal(playerStat.CRIT_CHANCE, 0f, "제거 시 상시 효과 회수");
 
@@ -150,7 +149,7 @@ public static class CriticalItemsCheck
             Hit();
             Check(!lastCritical, "첫 0% 명중은 비치명타");
             Equal(playerStat.CRIT_CHANCE, 5f, "대상별 비치명타 누적");
-            pouch.Swap(0, 5);
+            pouch.Swap(0, 2);
             Equal(playerStat.CRIT_CHANCE, 5f, "주머니 이동 시 누적 유지");
             float goldBefore = InventoryManager.Instance.GOLD;
             Set(playerStat, "baseCritChance", 100f);
@@ -171,21 +170,21 @@ public static class CriticalItemsCheck
             Set(playerStat, "baseCritChance", 0f);
             Equal(playerStat.CRIT_CHANCE, 0f, "고정/디버프/0피해/무적/회피/가드 계산은 누적 안 함");
             Equal(InventoryManager.Instance.GOLD, goldBefore + 25f, "가드 계산은 골드를 주지 않음");
-            Hit(); pouch.RemoveAt(5); pouch.TryAdd(pity);
+            Hit(); pouch.RemoveAt(2); pouch.TryAdd(pity);
             Equal(playerStat.CRIT_CHANCE, 0f, "버린 뒤 다시 먹으면 누적 초기화");
             Clear();
 
-            pouch.TryAdd(coin); pouch.TryAdd(coin);
+            pouch.TryAdd(coin); Check(!pouch.TryAdd(coin), "기존 아이템 1개 중첩 제한");
             Set(playerStat, "baseCritChance", 100f);
             goldBefore = InventoryManager.Instance.GOLD;
             Hit(); Hit(); Hit();
-            Equal(InventoryManager.Instance.GOLD, goldBefore + 30f, "중복 아이템 / 다중 명중 합산");
+            Equal(InventoryManager.Instance.GOLD, goldBefore + 15f, "기존 중첩 제한 / 다중 명중 합산");
             var shield = enemy.Status;
             shield.AddShield(100f, 5f);
             float hpBeforeShieldHit = enemy.Health.CurHP;
             Hit();
             Equal(enemy.Health.CurHP, hpBeforeShieldHit, "보호막이 피해 흡수");
-            Equal(InventoryManager.Instance.GOLD, goldBefore + 40f, "보호막 명중도 대상별 한 번만 발동");
+            Equal(InventoryManager.Instance.GOLD, goldBefore + 20f, "보호막 명중도 대상별 한 번만 발동");
             Clear();
 
             var counter = Item("DeadlyCounter");
@@ -195,7 +194,7 @@ public static class CriticalItemsCheck
             Equal(playerStat.CRIT_DAMAGE, 165f, "가드 피해 버프");
             Call(guard, "Block", new DamageInfo(0f));
             Equal(playerStat.CRIT_CHANCE, 15f, "가드 재성공은 중첩하지 않음");
-            var timestamps = (float[])Get(pouch, "_lastGuardAt");
+            var timestamps = (System.Collections.Generic.List<float>)Get(pouch, "_lastGuardAt");
             timestamps[0] = Time.time - 11f; Call(pouch, "Update");
             Equal(playerStat.CRIT_CHANCE, 0f, "10초 버프 만료");
             Call(guard, "Block", new DamageInfo(0f));

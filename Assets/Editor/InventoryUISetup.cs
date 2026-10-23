@@ -76,41 +76,7 @@ public static class InventoryUISetup
         root.SetActive(true);
     }
 
-    private static void BuildPouch(GameObject root)
-    {
-        var ui = root.GetComponent<PouchUI>();
-        var serialized = new SerializedObject(ui);
-        var existing = root.GetComponentsInChildren<PouchSlotUI>(true).Where(s => s.name.StartsWith("Slot ")).OrderBy(s => s.name).ToArray();
-        if (existing.Length != 9) throw new InvalidOperationException("Pouch의 기존 9칸을 확인하세요.");
-        // 기존 슬롯/아이콘은 보존한다.
-        var keep = new GameObject("Keep", typeof(RectTransform));
-        foreach (var slot in existing) slot.transform.SetParent(keep.transform, false);
-        var ghost = (Image)serialized.FindProperty("dragGhost").objectReferenceValue;
-        ghost.transform.SetParent(keep.transform, false);
-        ClearChildren(root.transform);
-        var window = Rect(root.transform, "PouchWindow", Vector2.zero, new Vector2(740, 460));
-        var main = Background(window, "InventoryPanel", new Vector2(0, 35), new Vector2(360, 350));
-        Text(main, "Heading", "아이템 주머니  [V]", new Vector2(0, 153), new Vector2(330, 28), 18);
-        for (int i = 0; i < 9; i++)
-        {
-            existing[i].transform.SetParent(main, false);
-            Place((RectTransform)existing[i].transform, new Vector2((i % 3 - 1) * 106, 95 - i / 3 * 106), new Vector2(92, 92));
-        }
-        var synergy = Background(window, "SetEffects_NotImplemented", new Vector2(-300, 30), new Vector2(200, 340));
-        Text(synergy, "Heading", "세트 효과", new Vector2(0, 140), new Vector2(170, 24), 16);
-        synergy.gameObject.SetActive(false);
-        ghost.transform.SetParent(root.transform, false);
-        ghost.raycastTarget = false;
-        Object.DestroyImmediate(keep);
-        Set(ui, "panelRoot", window.gameObject);
-        Set(ui, "panelRect", main);
-        Array(ui, "slots", existing.Cast<Object>().ToArray());
-        AddDropOutline(root);
-        window.gameObject.SetActive(false);
-        ghost.gameObject.SetActive(false);
-        // 네 플레이 씬에 이미 배치된 CommonTooltipUI 하나를 그대로 재사용한다.
-        root.SetActive(true);
-    }
+    private static void BuildPouch(GameObject root) => StackedInventoryEditor.BuildPouch(root);
 
     private static void BuildPicker(GameObject root)
     {
@@ -241,24 +207,6 @@ public static class InventoryUISetup
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
         // 구조 전체를 재생성하지 않는다. 현재 슬롯/참조/배치는 유지하고 표시용 자식만 저작한다.
-        Edit(Pouch, root =>
-        {
-            var old = root.transform.Find("PouchWindow/DropStagingArea");
-            if (old != null) Object.DestroyImmediate(old.gameObject);
-            AddDropOutline(root);
-            var panel = root.transform.Find("PouchWindow/InventoryPanel") as RectTransform;
-            Frame(panel);
-            foreach (var slot in root.GetComponentsInChildren<PouchSlotUI>(true))
-            {
-                var frame = (Image)new SerializedObject(slot).FindProperty("frameImage").objectReferenceValue;
-                Skin(frame, "Assets/Resources/Sprites/UI/UI.png", "UI_SkillFrame");
-                var settings = new SerializedObject(slot);
-                settings.FindProperty("emptyFrameColor").colorValue = Color.white;
-                settings.ApplyModifiedPropertiesWithoutUndo();
-            }
-            var ghost = (Image)new SerializedObject(root.GetComponent<PouchUI>()).FindProperty("dragGhost").objectReferenceValue;
-            ghost.transform.SetAsLastSibling(); ghost.preserveAspect = true;
-        });
         Edit(Explain, root => Frame(root.transform.Find("LoadoutPanel") as RectTransform));
         Edit(Picker, root =>
         {
@@ -311,31 +259,6 @@ public static class InventoryUISetup
         }
     }
 
-    private static void AddDropOutline(GameObject root)
-    {
-        FullScreen((RectTransform)root.transform);
-        var outline = root.transform.Find("DropOutline") as RectTransform;
-        if (outline == null) outline = Rect(root.transform, "DropOutline", Vector2.zero, Vector2.zero);
-        FullScreen(outline); outline.offsetMin = new Vector2(8, 8); outline.offsetMax = new Vector2(-8, -8);
-        foreach (string name in new[] { "Top", "Bottom", "Left", "Right" })
-        {
-            var edge = outline.Find(name) as RectTransform;
-            if (edge == null) edge = Rect(outline, name, Vector2.zero, Vector2.zero);
-            FullScreen(edge);
-            switch (name)
-            {
-                case "Top": edge.anchorMin = new Vector2(0, 1); edge.offsetMin = new Vector2(0, -2); break;
-                case "Bottom": edge.anchorMax = new Vector2(1, 0); edge.offsetMax = new Vector2(0, 2); break;
-                case "Left": edge.anchorMax = new Vector2(0, 1); edge.offsetMax = new Vector2(2, 0); break;
-                case "Right": edge.anchorMin = new Vector2(1, 0); edge.offsetMin = new Vector2(-2, 0); break;
-            }
-            var image = edge.GetComponent<Image>() ?? edge.gameObject.AddComponent<Image>();
-            image.color = new Color(0.95f, 0.2f, 0.23f, 0.9f); image.raycastTarget = false;
-        }
-        Set(root.GetComponent<PouchUI>(), "dropOutline", outline.gameObject);
-        outline.gameObject.SetActive(false);
-    }
-
     [MenuItem("Tools/UI/0928/Validate inventory UI")]
     public static void Validate()
     {
@@ -349,7 +272,8 @@ public static class InventoryUISetup
                 if (!(behaviour is PouchUI || behaviour is HandSlotSelectionUI || behaviour is SkillExplainSlotUI || behaviour is GroundItem)) continue;
                 var so = new SerializedObject(behaviour); var p = so.GetIterator();
                 while (p.NextVisible(true))
-                    if (p.propertyType == SerializedPropertyType.ObjectReference && p.name != "m_Script" && p.objectReferenceValue == null)
+                    if (p.propertyType == SerializedPropertyType.ObjectReference && p.name != "m_Script" && p.objectReferenceValue == null
+                        && !(behaviour is GroundItem && p.name == "iconRenderer")) // 루트 SpriteRenderer를 쓰는 프리팹에서는 선택 참조다.
                         throw new Exception($"누락된 참조: {path}/{behaviour.name}/{p.propertyPath}");
             }
         }

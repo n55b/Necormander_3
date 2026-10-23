@@ -62,7 +62,6 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
             else panelRoot.SetActive(true);
             _isOpen = true;
             SetExpanded(false);
-            PouchUI.Instance?.EndDrag(null);
             CommonTooltipUI.Instance?.Hide();
             return;
         }
@@ -88,7 +87,6 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     public void ToggleDetails()
     {
         if (!_isOpen) return;
-        PouchUI.Instance?.EndDrag(null);
         CommonTooltipUI.Instance?.Hide();
         SetExpanded(!IsExpanded);
     }
