@@ -12911,7 +12911,7 @@ MonoBehaviour:
   anchors: []
   wallTilemap: {fileID: 2297822278971006684}
   groundTilemap: {fileID: 8085811977727881938}
-  shadowTilemap: {fileID: 173147117876920774}
+  shadowTilemap: {fileID: 0}
   unsteppableTilemap: {fileID: 0}
   debugDepth: -1
   phaseIndex: -1

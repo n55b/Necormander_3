@@ -277,9 +277,23 @@ public static class InventoryUICheck
             Check(scroll.content.anchoredPosition.y > 0, "끝 아이템까지 스크롤");
             for (int i = 0; i < pouch.SlotCount; i++) if (tempItems.Contains(pouch.Get(i))) pouch.RemoveAt(i);
             Call(ui, "Refresh");
+            scroll.verticalNormalizedPosition = 1;
             var explain = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(ExplainPath), canvas.transform).GetComponent<SkillExplainUI>();
             Singleton<SkillExplainUI>(explain); Call(explain, "OnAwake"); explain.SetOpen(true);
             Check(explain.IsOpen && PouchUI.IsOpen, "C/V 독립 공존");
+            Render(cam, texture, "Logs/StackedPouch-CV-Collapsed.png");
+            CheckCollapsedLayout(ui, explain, (RectTransform)canvas.transform);
+            foreach (int height in new[] { 600, 720 })
+            {
+                var aspectTexture = new RenderTexture(960, height, 24);
+                cam.targetTexture = aspectTexture;
+                try
+                {
+                    Render(cam, aspectTexture, $"Logs/StackedPouch-CV-{height}.png");
+                    CheckCollapsedLayout(ui, explain, (RectTransform)canvas.transform);
+                }
+                finally { cam.targetTexture = texture; aspectTexture.Release(); Object.DestroyImmediate(aspectTexture); }
+            }
             explain.ToggleDetails(); Check(explain.IsExpanded && PouchUI.IsOpen, "C 확장/V 유지");
             Render(cam, texture, "Logs/StackedPouch-CV.png");
             explain.SetOpen(false); Check(PouchUI.IsOpen, "C만 닫기");
@@ -319,6 +333,15 @@ public static class InventoryUICheck
                 Check(pouchRect.anchorMin == Vector2.zero && pouchRect.anchorMax == Vector2.one, name + " V 루트 전체 화면");
                 Check(pouch[0].gameObject.activeInHierarchy && info[0].gameObject.activeInHierarchy && pickers[0].gameObject.activeInHierarchy, name + " 싱글턴 초기화 가능한 루트");
                 Check((GameObject)Read(info[0], "panelRoot") != info[0].gameObject, name + " C 루트와 표시 패널 분리");
+                var statsRoot = (GameObject)Read(info[0], "panelRoot");
+                var pouchRoot = (GameObject)Read(pouch[0], "panelRoot");
+                bool statsActive = statsRoot.activeSelf, pouchActive = pouchRoot.activeSelf;
+                try
+                {
+                    statsRoot.SetActive(true); pouchRoot.SetActive(true);
+                    CheckCollapsedLayout(pouch[0], info[0], (RectTransform)pouch[0].GetComponentInParent<Canvas>().rootCanvas.transform);
+                }
+                finally { statsRoot.SetActive(statsActive); pouchRoot.SetActive(pouchActive); }
                 Check((GameObject)Read(pickers[0], "panel") != pickers[0].gameObject, name + " 미니언 루트와 표시 패널 분리");
                 Check(roots.SelectMany(r => r.GetComponentsInChildren<CommonTooltipUI>(true)).Count() == 1, name + " 공용 툴팁 실제 배치");
                 var maps = roots.SelectMany(r => r.GetComponentsInChildren<UIBasedMiniMap>(true)).ToArray();
@@ -383,6 +406,26 @@ public static class InventoryUICheck
             if (wall != null) Object.DestroyImmediate(wall);
             instance.Remove(); Object.DestroyImmediate(data);
         }
+    }
+
+    private static void CheckCollapsedLayout(PouchUI pouch, SkillExplainUI info, RectTransform canvas)
+    {
+        Canvas.ForceUpdateCanvases();
+        Rect Bounds(RectTransform panel)
+        {
+            var corners = new Vector3[4]; panel.GetWorldCorners(corners);
+            var min = canvas.InverseTransformPoint(corners[0]);
+            var max = canvas.InverseTransformPoint(corners[2]);
+            return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+        }
+        var c = Bounds((RectTransform)Read(info, "statsPanel"));
+        var v = Bounds((RectTransform)((GameObject)Read(pouch, "panelRoot")).transform);
+        float gap = v.xMin - c.xMax;
+        Check(gap >= 12f, $"접힌 C/V 사이 여백: {gap:0.##} (최소 12)");
+        Check(Mathf.Abs(c.yMin - v.yMin) < 1f && Mathf.Abs(c.yMax - v.yMax) < 1f, $"{pouch.gameObject.scene.name} C/V 위아래 정렬: C={c}, V={v}, canvas={canvas.rect}");
+        Check(c.xMin >= canvas.rect.xMin && v.xMax <= canvas.rect.xMax, "C/V 양옆 화면 경계");
+        Check(c.yMin >= canvas.rect.yMin && c.yMax <= canvas.rect.yMax, "C/V 상하 화면 경계");
+        Debug.Log($"[InventoryUICheck] LAYOUT PASS — canvas={canvas.rect.size}, C={c}, V={v}, gap={gap:0.##}");
     }
 
     private static int Drops(Scene scene) => scene.GetRootGameObjects().Count(g => g.GetComponent<GroundItem>() != null);

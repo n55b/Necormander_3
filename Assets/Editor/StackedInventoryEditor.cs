@@ -102,32 +102,33 @@ public static class StackedInventoryEditor
         var ui = root.GetComponent<PouchUI>();
         // V창 내부만 교체한다. 상위 Canvas, C창, 씬 배치는 손대지 않는다.
         for (int i = root.transform.childCount - 1; i >= 0; i--) Object.DestroyImmediate(root.transform.GetChild(i).gameObject);
-        var window = Box(root.transform, "PouchWindow", new Vector2(98, 0), new Vector2(740, 476), Burgundy);
-        Label(window, "Heading", "아이템 주머니 [V]", new Vector2(-216, 210), new Vector2(260, 30), 24);
-        var totals = Label(window, "Totals", "보유 0개   종류 0종", new Vector2(220, 210), new Vector2(254, 26), 16);
+        // C 통계 패널의 오른쪽(-240)과 16 간격. 런타임에서는 프리팹 배치를 그대로 사용한다.
+        var window = Box(root.transform, "PouchWindow", new Vector2(118, 0), new Vector2(684, 480), Burgundy);
+        Label(window, "Heading", "아이템 주머니 [V]", new Vector2(-188, 210), new Vector2(260, 30), 24);
+        var totals = Label(window, "Totals", "보유 0개   종류 0종", new Vector2(192, 210), new Vector2(254, 26), 16);
         totals.alignment = TextAlignmentOptions.Right;
-        var gridPanel = Box(window, "InventoryPanel", new Vector2(-132, -20), new Vector2(452, 414), Teal);
-        var details = Box(window, "ItemDetails", new Vector2(228, -20), new Vector2(244, 414), Teal);
+        var gridPanel = Box(window, "InventoryPanel", new Vector2(-132, -20), new Vector2(396, 414), Teal);
+        var details = Box(window, "ItemDetails", new Vector2(200, -20), new Vector2(244, 414), Teal);
         var buttons = new Button[3];
         UnityAction[] actions = { ui.SortByAcquired, ui.SortByCount, ui.SortByTier };
         string[] labels = { "획득순", "개수순", "등급순" };
         for (int i = 0; i < 3; i++)
         {
-            var frame = Box(gridPanel, "Sort" + i, new Vector2(-174 + i * 87, 179), new Vector2(80, 32), Border);
-            var face = Box(frame, "Face", Vector2.zero, new Vector2(76, 28), Teal);
+            var frame = Box(gridPanel, "Sort" + i, new Vector2(-150 + i * 78, 179), new Vector2(72, 32), Border);
+            var face = Box(frame, "Face", Vector2.zero, new Vector2(68, 28), Teal);
             var button = face.gameObject.AddComponent<Button>(); button.targetGraphic = face.GetComponent<Image>();
-            Label(face, "Label", labels[i], Vector2.zero, new Vector2(76, 28), 15).alignment = TextAlignmentOptions.Center;
+            Label(face, "Label", labels[i], Vector2.zero, new Vector2(68, 28), 15).alignment = TextAlignmentOptions.Center;
             UnityEventTools.AddPersistentListener(button.onClick, actions[i]);
             buttons[i] = button;
         }
-        Label(gridPanel, "Hint", "클릭해서 상세 보기", new Vector2(142, 178), new Vector2(146, 25), 12).color = new Color32(167, 195, 195, 255);
-        var listScroll = Scroll(gridPanel, "ItemScroll", new Vector2(0, -25), new Vector2(436, 350), out var content);
+        Label(gridPanel, "Hint", "클릭해서 상세 보기", new Vector2(124, 178), new Vector2(126, 25), 12).color = new Color32(167, 195, 195, 255);
+        var listScroll = Scroll(gridPanel, "ItemScroll", new Vector2(0, -25), new Vector2(380, 350), out var content);
         var grid = content.gameObject.AddComponent<GridLayoutGroup>();
-        grid.cellSize = new Vector2(64, 64); grid.spacing = new Vector2(9, 9);
+        grid.cellSize = new Vector2(56, 56); grid.spacing = new Vector2(7, 7);
         grid.padding = new RectOffset(3, 3, 3, 3);
         grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount; grid.constraintCount = 6;
         var fitter = content.gameObject.AddComponent<ContentSizeFitter>(); fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        var empty = Label(gridPanel, "Empty", "아직 보유한 아이템이 없습니다", new Vector2(0, 30), new Vector2(410, 42), 17);
+        var empty = Label(gridPanel, "Empty", "아직 보유한 아이템이 없습니다", new Vector2(0, 30), new Vector2(374, 42), 17);
         empty.alignment = TextAlignmentOptions.Center;
 
         var iconFrame = Box(details, "IconFrame", new Vector2(-73, 158), new Vector2(76, 76), Border);
@@ -166,20 +167,30 @@ public static class StackedInventoryEditor
 
     private static PouchSlotUI MakeSlot()
     {
-        var root = Box(null, "PouchItemSlot", Vector2.zero, new Vector2(64, 64), Border);
+        var root = Box(null, "PouchItemSlot", Vector2.zero, new Vector2(56, 56), Border);
         try
         {
             var slot = root.gameObject.AddComponent<PouchSlotUI>();
             root.gameObject.AddComponent<Button>().transition = Selectable.Transition.None;
-            Box(root, "Backing", Vector2.zero, new Vector2(56, 56), Teal).GetComponent<Image>().raycastTarget = false;
-            var icon = Box(root, "Icon", new Vector2(0, 3), new Vector2(38, 38), Color.white).GetComponent<Image>();
+            var backing = Box(root, "Backing", Vector2.zero, Vector2.zero, Teal);
+            Stretch(backing); backing.offsetMin = Vector2.one * 4; backing.offsetMax = -Vector2.one * 4;
+            backing.GetComponent<Image>().raycastTarget = false;
+            var icon = Box(root, "Icon", new Vector2(0, 3), new Vector2(34, 34), Color.white).GetComponent<Image>();
             icon.preserveAspect = true; icon.raycastTarget = false;
-            var count = Label(root, "Count", "×1", new Vector2(5, -20), new Vector2(46, 20), 17); count.alignment = TextAlignmentOptions.Right;
-            var selection = Rect(root, "Selection", Vector2.zero, new Vector2(70, 70));
+            var count = Label(root, "Count", "×1", new Vector2(-4, 0), new Vector2(42, 20), 15); count.alignment = TextAlignmentOptions.Right;
+            count.rectTransform.anchorMin = count.rectTransform.anchorMax = count.rectTransform.pivot = new Vector2(1, 0);
+            var selection = Rect(root, "Selection", Vector2.zero, Vector2.zero);
+            Stretch(selection); selection.offsetMin = -Vector2.one * 3; selection.offsetMax = Vector2.one * 3;
             foreach (bool horizontal in new[] { true, false }) foreach (int sign in new[] { -1, 1 })
-                Box(selection, (horizontal ? "Horizontal" : "Vertical") + sign,
-                    horizontal ? new Vector2(0, sign * 34) : new Vector2(sign * 34, 0),
-                    horizontal ? new Vector2(70, 2) : new Vector2(2, 70), new Color32(250, 201, 76, 255)).GetComponent<Image>().raycastTarget = false;
+            {
+                var edge = Box(selection, (horizontal ? "Horizontal" : "Vertical") + sign, Vector2.zero, Vector2.zero, new Color32(250, 201, 76, 255));
+                float side = sign > 0 ? 1 : 0;
+                edge.anchorMin = horizontal ? new Vector2(0, side) : new Vector2(side, 0);
+                edge.anchorMax = horizontal ? new Vector2(1, side) : new Vector2(side, 1);
+                edge.pivot = horizontal ? new Vector2(.5f, side) : new Vector2(side, .5f);
+                edge.sizeDelta = horizontal ? new Vector2(0, 2) : new Vector2(2, 0);
+                edge.GetComponent<Image>().raycastTarget = false;
+            }
             Set(slot, "iconImage", icon); Set(slot, "frameImage", root.GetComponent<Image>()); Set(slot, "countText", count); Set(slot, "selectionFrame", selection.gameObject);
             selection.gameObject.SetActive(false);
             return PrefabUtility.SaveAsPrefabAsset(root.gameObject, SlotPath).GetComponent<PouchSlotUI>();
