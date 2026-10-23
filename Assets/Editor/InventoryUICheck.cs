@@ -20,6 +20,7 @@ public static class InventoryUICheck
     private const string ExplainPath = "Assets/Prefabs/UI/SkillExplainUI.prefab";
     private const string PickerPath = "Assets/Prefabs/UI/Hand Slot Selection/HandSlotSelectionUI.prefab";
     private const string RuntimeKey = "InventoryUICheck.Runtime";
+    private const string RuntimeBatchKey = "InventoryUICheck.RuntimeBatch";
     private static readonly Vector2 WorldDropPoint = new Vector2(950, 80);
     private static System.Collections.IEnumerator _runtime;
     [Serializable] private class SceneBackup { public SceneSetup[] scenes; }
@@ -36,10 +37,26 @@ public static class InventoryUICheck
         if (state == PlayModeStateChange.EnteredEditMode)
         {
             SessionState.SetBool(RuntimeKey, false);
+            if (SessionState.GetBool(RuntimeBatchKey, false))
+            {
+                SessionState.SetBool(RuntimeBatchKey, false);
+                EditorApplication.Exit(SessionState.GetBool(RuntimeKey + ".Failed", false) ? 1 : 0);
+                return;
+            }
             var backup = JsonUtility.FromJson<SceneBackup>(SessionState.GetString(RuntimeKey + ".Scenes", ""));
             if (backup != null) EditorSceneManager.RestoreSceneManagerSetup(backup.scenes);
         }
     };
+
+    public static void RunRuntimeBatch()
+    {
+        if (!Application.isBatchMode) throw new Exception("배치 검증 전용입니다.");
+        SessionState.SetBool(RuntimeBatchKey, true);
+        SessionState.SetBool(RuntimeKey, true);
+        SessionState.SetBool(RuntimeKey + ".Failed", false);
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        EditorApplication.EnterPlaymode();
+    }
 
     [MenuItem("Tools/UI/0928/Check runtime pickup and hold")]
     public static void StartRuntimeCheck()
@@ -56,7 +73,7 @@ public static class InventoryUICheck
     private static void TickRuntime()
     {
         try { if (_runtime != null && _runtime.MoveNext()) return; }
-        catch (Exception error) { Debug.LogException(error); }
+        catch (Exception error) { SessionState.SetBool(RuntimeKey + ".Failed", true); Debug.LogException(error); }
         EditorApplication.update -= TickRuntime;
         _runtime = null;
         EditorApplication.ExitPlaymode();
@@ -87,11 +104,11 @@ public static class InventoryUICheck
         drop = GroundItem.Drop(minions[1], Vector3.zero); drop.Interact(fixture);
         var pointer = new UnityEngine.EventSystems.PointerEventData(null) { button = UnityEngine.EventSystems.PointerEventData.InputButton.Left };
         var replace = ((GameObject)Read(picker, "replaceButton")).GetComponent<HandSlotSelectionItem>();
-        replace.OnPointerDown(pointer); float start = Time.realtimeSinceStartup;
-        while (Time.realtimeSinceStartup - start < 0.2f) yield return null;
+        // 배치 모드 첫 셰이더 컴파일 프레임은 1초를 넘을 수 있으므로 클릭 취소는 같은 프레임에 검증한다.
+        replace.OnPointerDown(pointer);
         replace.OnPointerUp(pointer);
         Check(inventory.MainSummon == minions[0] && drop.IsAvailable, "짧은 누름은 교체 안 함");
-        replace.OnPointerDown(pointer); start = Time.realtimeSinceStartup;
+        replace.OnPointerDown(pointer); float start = Time.realtimeSinceStartup;
         while (Time.realtimeSinceStartup - start < picker.ConfirmHoldSeconds + 0.3f) yield return null;
         Check(inventory.MainSummon == minions[1] && (drop == null || !drop.IsAvailable), $"1초 홀드로 교체 (Update 누적={Read(replace, "_elapsed")}, 활성={replace.isActiveAndEnabled})");
         Check(Object.FindObjectsByType<GroundItem>(FindObjectsSortMode.None).Count(d => d.IsAvailable && d.Minion == minions[0]) == 1, "교체한 기존 미니언 1개 드랍");
@@ -104,10 +121,38 @@ public static class InventoryUICheck
         inventory.AddGold(500);
         Check(shop.Interact(fixture) && !shop.Interact(fixture) && inventory.GOLD == 400 && pouch.Get(0) == item, "상점 정확히 1회 결제/습득");
         yield return null;
+        for (int i = 0; i < pouch.SlotCount; i++) pouch.RemoveAt(i);
+        for (int i = 0; i < 10; i++) Check(pouch.TryAdd(AssetDatabase.LoadAssetAtPath<ItemSO>("Assets/SOData/Items/GaleDashRecovery.asset")), "충전 아이템 10개");
+        var rechargeObject = new GameObject("Runtime recharge check");
+        var dodge = rechargeObject.AddComponent<MeleeDodgeController>();
+        Field(dodge, "_player", player); Field(dodge, "rechargeTime", .3f);
+        Field(dodge, "_lastRechargeTime", .3f); Field(dodge, "_currentCharges", 0); Field(dodge, "_rechargeTimer", .3f);
+        float rechargeStarted = Time.time;
+        while (Time.time - rechargeStarted < .24f) yield return null;
+        Check(dodge.CurrentCharges == 1, "실제 Update에서 +50% 충전 속도로 0.3초 → 0.2초");
+        for (int i = 0; i < 9; i++) Check(pouch.TryAdd(AssetDatabase.LoadAssetAtPath<ItemSO>("Assets/SOData/Items/HermesContract.asset")), "계약서 9개");
+        yield return null;
+        Check(dodge.MaxCharges == 5 && dodge.CurrentCharges >= 4, "실제 Update에서 최대 횟수/새 충전 반영");
+        Object.Destroy(rechargeObject);
+
+        var pouchUI = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(PouchPath), canvas.transform).GetComponent<PouchUI>();
+        pouchUI.SetOpen(true);
+        yield return null;
+        var cell = pouchUI.GetComponentsInChildren<PouchSlotUI>().First(c => c.Item.name == "HermesContract");
+        ExecuteEvents.Execute(cell.gameObject, pointer, ExecuteEvents.pointerClickHandler);
+        Check(((TMP_Text)Read(pouchUI, "detailTitle")).text == "헤르메스와의 계약서류", "실제 UI 클릭으로 상세 선택");
+        var sort = ((Button[])Read(pouchUI, "sortButtons"))[1];
+        ExecuteEvents.Execute(sort.gameObject, pointer, ExecuteEvents.pointerClickHandler);
+        Check((int)Read(pouchUI, "_sort") == 1, "프리팹 정렬 버튼 영구 이벤트 연결");
+        pouchUI.SetOpen(false); pouchUI.SetOpen(true); yield return null;
+        Check(PouchUI.IsOpen, "실제 Play Mode 반복 토글");
+        pouchUI.SetOpen(false);
+        Debug.Log("[InventoryUICheck] STACK RUNTIME PASS — 실제 Update 충전/추가 횟수/UI 포인터 클릭/정렬 버튼/반복 토글.");
         Debug.Log("[InventoryUICheck] RUNTIME PASS — F 습득, 짧은 클릭 취소, 1초 홀드 교체, 기존 미니언 드랍, 분해 1회 회복, 결제 중복 방지.");
     }
 
-    [MenuItem("Tools/UI/0928/Check flows and render previews")]
+
+    [MenuItem("Tools/UI/Inventory/Check stacked pouch and render")]
     public static void Run()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("플레이를 끈 뒤 검사하세요.");
@@ -118,380 +163,153 @@ public static class InventoryUICheck
         var oldManager = GameManager.Instance;
         var oldInventory = InventoryManager.Instance;
         var oldPouch = ItemPouch.Instance;
-        var oldPouchUI = PouchUI.Instance;
+        var oldUI = PouchUI.Instance;
         var oldExplain = SkillExplainUI.Instance;
-        var oldTooltip = CommonTooltipUI.Instance;
         var oldPopup = UIPopUpManager.Instance;
-        var oldEventSystem = EventSystem.current;
-        float oldScale = Time.timeScale;
-        NavMeshDataInstance navInstance = default;
-        NavMeshData navData = null;
-        var otherCameras = Camera.allCameras.Where(c => c.CompareTag("MainCamera")).ToArray();
+        var otherCameras = Camera.allCameras.ToArray();
+        var tempItems = new System.Collections.Generic.List<ItemSO>();
+        ItemPouch pouch = null;
         try
         {
-            foreach (var other in otherCameras) other.enabled = false;
-            var manager = new GameObject("Check managers");
-            manager.SetActive(false);
-            var gm = manager.AddComponent<GameManager>(); GameManager.Instance = gm;
-            // StartScene에서도 실제 팝업 등록/정렬/닫기 경로를 검사한다.
-            var popup = manager.AddComponent<UIPopUpManager>(); Singleton<UIPopUpManager>(popup);
-            var inventory = manager.AddComponent<InventoryManager>(); InventoryManager.Instance = inventory;
-            inventory.Slots.Add(new InventoryManager.CoreSlot()); inventory.Slots.Add(new InventoryManager.CoreSlot());
-            var pouch = manager.AddComponent<ItemPouch>(); ItemPouch.Instance = pouch; Field(pouch, "slotCount", 9);
-            var player = manager.AddComponent<PlayerController>(); Field(gm, "playerController", player);
-            var stat = manager.AddComponent<CharacterStat>(); Field(player, "stat", stat);
-            var health = manager.GetComponent<CharacterHealth>(); Field(stat, "<Health>k__BackingField", health); Field(health, "_stat", stat); health.SetHP(50f);
-            var items = AssetDatabase.FindAssets("t:ItemSO").Select(g => AssetDatabase.LoadAssetAtPath<ItemSO>(AssetDatabase.GUIDToAssetPath(g))).Where(x => x != null).ToArray();
-            var minions = AssetDatabase.FindAssets("t:MainMinionDataSO").Select(g => AssetDatabase.LoadAssetAtPath<MainMinionDataSO>(AssetDatabase.GUIDToAssetPath(g))).Where(x => x != null).ToArray();
-            Check(items.Length > 0 && minions.Length >= 2, "검사용 실제 아이템/미니언");
+            foreach (var camera in otherCameras) camera.enabled = false;
+            var host = new GameObject("Inventory check fixture"); host.SetActive(false);
+            var gm = host.AddComponent<GameManager>(); GameManager.Instance = gm;
+            var inventory = host.AddComponent<InventoryManager>(); InventoryManager.Instance = inventory; gm.inventoryManager = inventory;
+            var player = host.AddComponent<PlayerController>(); Field(gm, "playerController", player);
+            var stat = host.AddComponent<CharacterStat>(); Field(player, "stat", stat); Field(stat, "_isPlayer", true);
+            var health = host.GetComponent<CharacterHealth>(); var status = host.GetComponent<CharacterStatus>();
+            Field(stat, "<Health>k__BackingField", health); Field(stat, "<Status>k__BackingField", status);
+            health.Init(stat, status);
+            var data = host.AddComponent<DataManager>(); gm.dataManager = data;
+            var registry = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>("Assets/SOData/Registry/Growth Reward Registry.asset");
+            Field(data, "growthRegistry", registry);
+            pouch = host.AddComponent<ItemPouch>(); ItemPouch.Instance = pouch; Call(pouch, "OnEnable");
+            var popup = host.AddComponent<UIPopUpManager>(); Singleton<UIPopUpManager>(popup);
+            ItemSO Item(string id) => AssetDatabase.LoadAssetAtPath<ItemSO>("Assets/SOData/Items/" + id + ".asset");
+            void Clear() { for (int i = 0; i < pouch.SlotCount; i++) pouch.RemoveAt(i); }
+            void Add(string id, int count) { for (int i = 0; i < count; i++) Check(pouch.TryAdd(Item(id)), "중첩 습득: " + id); }
+            void Equal(float actual, float expected, string label) => Check(Mathf.Abs(actual - expected) < .001f, label + ": " + actual + " != " + expected);
 
-            var canvas = new GameObject("Preview Canvas", typeof(RectTransform), typeof(Canvas)).GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            var camera = new GameObject("Preview Camera", typeof(Camera)).GetComponent<Camera>();
-            camera.tag = "MainCamera";
-            camera.transform.position = new Vector3(0, 0, -10); camera.orthographic = true; camera.orthographicSize = 270;
-            camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(0.16f, 0.17f, 0.18f);
-            canvas.worldCamera = camera; canvas.planeDistance = 1;
-            var texture = new RenderTexture(960, 540, 24); camera.targetTexture = texture;
-            canvas.gameObject.AddComponent<GraphicRaycaster>();
-            var events = new GameObject("Preview EventSystem", typeof(EventSystem)).GetComponent<EventSystem>();
+            var stone = Item("Whetstone");
+            Add("Whetstone", 10);
+            Check(pouch.CountOf(stone) == 10 && !pouch.TryAdd(stone) && !RewardProcessor.CanOfferItem(stone), "최대 중첩/11번째 차단/보상 제외");
+            Field(stat, "baseCritChance", 37f); Equal(stat.CRIT_OVERFLOW_DAMAGE, 0, "107% 절삭");
+            Field(stat, "baseCritChance", 40f); Equal(stat.CRIT_OVERFLOW_DAMAGE, 10, "110% 변환 1회");
+            Field(stat, "baseCritChance", 55f); Equal(stat.CRIT_OVERFLOW_DAMAGE, 20, "125% 변환");
+            Clear(); Equal(stat.CRIT_OVERFLOW_DAMAGE, 0, "숫돌 없으면 변환 없음"); Field(stat, "baseCritChance", 0f);
+            Add("CrackedWhetstone", 10); Equal(stat.CRIT_DAMAGE, 300, "치명타 피해 15 x10");
+            Add("GaleDashRecovery", 10); Equal(stat.ApplyDashCooldown(3f), 2f, "충전 속도 +50%");
+            Add("GaleDashLeap", 10); Equal(stat.DASH_DISTANCE_MULTIPLIER, 1.3f, "거리 +30%");
+            var dodge = host.AddComponent<MeleeDodgeController>(); Call(dodge, "Awake");
+            Add("HermesContract", 2); Call(dodge, "SyncItemBonuses"); Check(dodge.MaxCharges == 2, "계약서 2개 0회");
+            Add("HermesContract", 1); Call(dodge, "SyncItemBonuses"); Check(dodge.MaxCharges == 3 && dodge.CurrentCharges == 3, "계약서 3개 +1회");
+            Add("HermesContract", 6); Call(dodge, "SyncItemBonuses"); Check(dodge.MaxCharges == 5 && dodge.CurrentCharges == 5, "계약서 9개 +3회");
+            Check(!pouch.TryAdd(Item("HermesContract")), "계약서 10번째 차단");
+            Add("ClothArmor", 10); Equal(stat.Mods.Flat(StatType.Defense), 40, "방어력 +40");
+            Add("LightBoots", 10); Equal(stat.Mods.Percent(StatType.MoveSpeed), .4f, "이동 속도 +40%");
+            Add("WindFeather", 10); Equal(stat.EVASION, .2f, "회피율 +20%");
+            Add("PortableShield", 10);
+            var room1 = new GameObject("Room 1").AddComponent<RoomInstance>();
+            var room2 = new GameObject("Room 2").AddComponent<RoomInstance>();
+            var entry = typeof(ItemPouch).GetMethod("HandleRoomEntered", Flags);
+            status.AddShield(7, float.PositiveInfinity);
+            entry.Invoke(pouch, new object[] { room1 }); Equal(status.TotalShield, 67, "방 진입 보호막 +60");
+            entry.Invoke(pouch, new object[] { room1 }); Equal(status.TotalShield, 67, "중복 진입 트리거 무시");
+            status.ConsumeShield(10);
+            entry.Invoke(pouch, new object[] { room2 }); Equal(status.TotalShield, 60, "다른 방에서 아이템 보호막 갱신");
+            status.AddShield(9, float.PositiveInfinity);
+            entry.Invoke(pouch, new object[] { room1 }); Equal(status.TotalShield, 69, "다른 출처 보호막 유지");
 
-            var pouchUI = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(PouchPath), canvas.transform).GetComponent<PouchUI>();
-            Call(pouchUI, "Awake");
+            foreach (var item in registry.items.Where(i => i != null)) if (!pouch.Contains(item)) Check(pouch.TryAdd(item), "9종 초과 습득");
+            var unique = new System.Collections.Generic.List<ItemSO>(); pouch.GetUniqueItems(unique);
+            Check(unique.Count > 9, "종류/칸 제한 없음");
+            Check(!pouch.TryAdd(Item("LifeCharm")), "기존 아이템 1개 제한");
+            var save = new SaveData(); pouch.SaveToData(save);
+            pouch.LoadFromData(save); var restored = new SaveData(); pouch.SaveToData(restored);
+            Check(save.pouchItemNames.SequenceEqual(restored.pouchItemNames), "중첩 수/획득순 저장 복원");
+            pouch.LoadFromData(new SaveData { pouchSlotCount = 9, pouchItemNames = new System.Collections.Generic.List<string> { "Whetstone", "", "Whetstone", "LifeCharm" } });
+            Check(pouch.CountOf(stone) == 2 && pouch.CountOf(Item("LifeCharm")) == 1, "기존 빈칸/중복 세이브 마이그레이션");
+            pouch.LoadFromData(save); pouch.Refresh(); Equal(stat.Mods.Flat(StatType.Defense), 40, "로드/Refresh 중복 효과 없음");
 
-            var explain = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(ExplainPath), canvas.transform).GetComponent<SkillExplainUI>();
-            Singleton<SkillExplainUI>(explain); Call(explain, "OnAwake");
-            var slots = (PouchSlotUI[])Read(pouchUI, "slots");
-            Time.timeScale = 1f;
-            pouch.TryAdd(items[0]);
-            pouchUI.SetOpen(true);
-            Check(Time.timeScale == 1f, "V는 시간 정지 없음");
-            pouchUI.BeginDrag(slots[0]); pouchUI.EndDrag(null, new Vector2(-10000, -10000), true);
-            Check(pouch.Get(0) == items[0], "화면 밖/유효하지 않은 위치는 원본 보존");
-            pouchUI.BeginDrag(slots[0]); pouchUI.SetOpen(false);
-            Check(pouch.Get(0) == items[0] && Drops(scene) == 0, "놓기 전에 창 닫기: 드랍 취소");
-            pouchUI.SetOpen(true);
-            pouchUI.BeginDrag(slots[0]); pouchUI.EndDrag(slots[1]); Call(pouchUI, "Refresh");
-            Check(pouch.Get(0) == null && pouch.Get(1) == items[0], "인벤토리 재정렬");
-            Canvas.ForceUpdateCanvases();
-            // 독립된 평면 NavMesh: 마우스 (800,270)는 월드 (320,0), 벽/물 방향 끝은 x≈420.
-            var settings = NavMesh.GetSettingsByIndex(0);
-            var sources = new System.Collections.Generic.List<NavMeshBuildSource> {
-                new NavMeshBuildSource { shape = NavMeshBuildSourceShape.Box, size = new Vector3(200, 0.1f, 200),
-                    transform = Matrix4x4.TRS(new Vector3(0, -0.05f, 0), Quaternion.identity, Vector3.one), area = 0 }
-            };
-            navData = NavMeshBuilder.BuildNavMeshData(settings, sources, new Bounds(Vector3.zero, new Vector3(220, 20, 220)), Vector3.zero, Quaternion.identity);
-            Check(navData != null, "검사 바닥 NavMesh 생성");
-            navInstance = NavMesh.AddNavMeshData(navData, new Vector3(320, 0, 0), Quaternion.Euler(-90, 0, 0));
-            Check(GroundItem.TryFindDropPoint(new Vector3(320, 0, 0), 2, out var groundPoint) && Vector3.Distance(groundPoint, new Vector3(320, 0, 0)) < 0.1f, "안전한 바닥은 마우스 위치 그대로");
-            Check(GroundItem.TryFindDropPoint(new Vector3(450, 0, 0), 100, out var edgePoint) && edgePoint.x < 420 && edgePoint.x > 415 && Mathf.Abs(edgePoint.y) < 0.1f, "바닥 밖은 가장 가까운 이동 가능 경계로 보정");
-            manager.transform.position = new Vector3(320, 0, 0);
-            var dropRay = camera.ScreenPointToRay(WorldDropPoint);
-            Check(new Plane(Vector3.forward, manager.transform.position).Raycast(dropRay, out float dropDistance), "검사 마우스의 월드 평면 교차");
-            Check(GroundItem.TryFindNearbyDropPoint(manager.transform.position, dropRay.GetPoint(dropDistance), 1.25f, out var nearbyPoint), "플레이어 주변 드랍 위치");
-            int before = Drops(scene);
-            pouchUI.BeginDrag(slots[1]); pouchUI.EndDrag(null, WorldDropPoint, true);
-            Check(pouch.Get(1) == null && Drops(scene) == before + 1, "창을 닫기 전 즉시 드랍/원본 제거");
-            var placed = scene.GetRootGameObjects().Select(g => g.GetComponent<GroundItem>()).First(g => g != null);
-            Check(Vector3.Distance(placed.transform.position, nearbyPoint) < 0.1f && placed.GetComponent<SpriteRenderer>().sprite == GroundItem.ItemIcon(items[0]), "플레이어 주변 고정 거리/월드와 가방 아이콘 일치");
-            before = Drops(scene);
-            explain.SetOpen(true);
-            Check(PouchUI.IsOpen && explain.IsOpen && !explain.IsExpanded && Time.timeScale == 1f && Drops(scene) == before, "V 위에 C 기본 접힘/공존/추가 드랍 없음");
-            var statsLabel = (TextMeshProUGUI)Read(explain, "playerStatsText");
-            Check(statsLabel != null && statsLabel.text.StartsWith("<line-height=19>체력<pos=112>50/") &&
-                statsLabel.text.Contains($"물리 공격력<pos=112>{stat.ATK:0.##}\n"), "C 실제 스탯/열 정렬 연결");
-            health.SetHP(40f); Call(explain, "RefreshPlayerStats");
-            Check(statsLabel.text.Contains($"체력<pos=112>40/{stat.MAXHP:0}\n"), "열린 C 스탯 갱신");
-            explain.SetOpen(false);
-            var candidate = new RewardCandidate { category = RewardCategory.Item, rawData = items[0], goldAmount = 100 };
-            before = Drops(scene);
-            Check(RewardManager.TryGivePurchase(candidate, Vector3.zero) && pouch.Get(0) == items[0] && Drops(scene) == before, "빈자리 있으면 직접 습득");
-            CheckCVFlows(pouchUI, explain, popup, events, camera, scene);
-            while (!pouch.IsFull) pouch.TryAdd(items[0]);
-            Check(RewardManager.TryGivePurchase(candidate, Vector3.zero) && Drops(scene) == before + 1, "가득 차면 무료 픽업 1개");
-            candidate = new RewardCandidate { category = RewardCategory.Minion, rawData = minions[0] };
-            Check(RewardManager.TryGivePurchase(candidate, Vector3.zero) && inventory.MainSummon == minions[0], "빈 미니언 슬롯 직접 장착");
-            before = Drops(scene); candidate.rawData = minions[1];
-            Check(RewardManager.TryGivePurchase(candidate, Vector3.zero) && inventory.MainSummon == minions[0] && Drops(scene) == before + 1, "미니언 슬롯 차면 기존 장착 유지/드랍");
-            var sell = manager.AddComponent<SellItem>(); sell.item = new RewardCandidate { category = RewardCategory.Item, rawData = items[0], goldAmount = 1,
-                displayData = new GrowthItemData { itemName = items[0].DisplayName, description = items[0].description } };
-            var tooltip = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Hand Slot Selection/CommonTooltipUI.prefab"), canvas.transform).GetComponent<CommonTooltipUI>();
-            Singleton<CommonTooltipUI>(tooltip); Call(tooltip, "OnAwake");
-            Call(sell, "OnMouseOver");
-            Check(((RectTransform)Read(tooltip, "tooltipPanel")).gameObject.activeSelf &&
-                ((TextMeshProUGUI)Read(tooltip, "titleText")).text == items[0].DisplayName &&
-                ((TextMeshProUGUI)Read(tooltip, "descriptionText")).text.Contains(items[0].description) &&
-                ((TextMeshProUGUI)Read(tooltip, "footerText")).text.Contains("1G"), "진열품 호버 이름/효과/가격");
-            Call(sell, "OnMouseExit");
-            Check(!((RectTransform)Read(tooltip, "tooltipPanel")).gameObject.activeSelf, "진열품 호버 종료 시 툴팁 닫힘");
-            before = Drops(scene);
-            Check(!sell.Interact(manager) && inventory.GOLD == 0 && Drops(scene) == before, "잔액 부족 시 아이템/골드 변화 없음");
-
-            var picker = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(PickerPath), canvas.transform).GetComponent<HandSlotSelectionUI>();
-            Call(picker, "OnAwake");
-            var drop = GroundItem.Drop(minions[1], Vector3.zero);
-            Check(drop.GetComponent<SpriteRenderer>().sprite == minions[1].minionIcon, "미니언 픽업은 스킬 아닌 미니언 아이콘");
-            float hpBefore = health.CurHP;
-            picker.Show(drop);
-            var candidateCard = (SkillExplainSlotUI)Read(picker, "candidateCard");
-            Check(((Image)Read(candidateCard, "iconImage")).sprite == minions[1].minionIcon &&
-                ((TextMeshProUGUI)Read(candidateCard, "titleText")).text == minions[1].minionName, "습득 카드 미니언 그림/이름");
-            foreach (var fill in picker.GetComponentsInChildren<Image>(true).Where(i => i.name == "HoldProgress"))
-                Check(fill.sprite == null && fill.type == Image.Type.Simple && fill.rectTransform.anchorMin == Vector2.zero && fill.rectTransform.anchorMax.y == 1f, "홀드 게이지는 버튼 전체 직사각 영역");
-            picker.Select(HandSlotSelectionItem.ActionKind.Skip);
-            Check(drop.IsAvailable && health.CurHP == hpBefore && inventory.MainSummon == minions[0], "스킵 시 후보 유지/회복 없음");
-
-            // 소유 데이터는 그대로 두고 화면 내용만 채워 미리보기를 렌더링한다.
+            var ground = GroundItem.Drop(stone, Vector3.zero);
+            Check(ground.HoldSeconds == 0 && !ground.InteractionPrompt.Contains("분해"), "아이템 길게 누르기 제거");
+            ground.OnHoldComplete(host); Check(ground.IsAvailable, "아이템 분해 호출도 무효");
+            Clear();
+            int drops = Drops(scene);
+            var reward = host.AddComponent<RewardManager>();
+            reward.RequestClearReward(RoomType.Normal);
+            Check(Drops(scene) == drops + 1, "일반방 아이템 정확히 1개 드랍");
+            Check(inventory.GOLD == 200, "기존 일반방 골드 유지");
+            foreach (var item in registry.items.Where(i => i != null)) pouch.TryAdd(item);
+            Add("Whetstone", 8); Add("ClothArmor", 5); Add("LightBoots", 3);
             foreach (var world in scene.GetRootGameObjects().Where(g => g.GetComponent<GroundItem>() != null)) world.SetActive(false);
-            picker.gameObject.SetActive(false);
-            pouchUI.SetOpen(false);
-            explain.SetOpen(true);
-            ((SkillExplainSlotUI)Read(explain, "minionHeader")).SetData(minions[0].minionIcon, minions[0].minionName, "");
-            var links = (SkillExplainSlotUI[])Read(explain, "linkedSkillSlots");
-            links[0].SetData(minions[0].finisher.uiIcon, "기본 공격 마무리", minions[0].finisher.Describe());
-            links[1].SetData(minions[0].dashModifier.uiIcon, "대쉬", minions[0].dashModifier.Describe());
-            links[2].SetData(minions[0].minionSkill.icon, "Space · 미니언 스킬", minions[0].minionSkill.description);
-            Render(camera, texture, "Temp/UI0928-C-Collapsed.png");
-            var arrow = ((TextMeshProUGUI)Read(explain, "expandLabel")).GetComponentInParent<Button>();
-            ClickArrow(arrow);
-            Render(camera, texture, "Temp/UI0928-C.png");
-            pouchUI.SetOpen(true);
-            Render(camera, texture, "Temp/UI0928-CV-Expanded.png");
-            ClickArrow(arrow);
-            Render(camera, texture, "Temp/UI0928-CV-Collapsed.png");
-            explain.SetOpen(false); pouchUI.SetOpen(true);
-            pouchUI.BeginDrag(slots[0]);
-            ((GameObject)Read(pouchUI, "dropOutline")).SetActive(true);
-            ((Image)Read(pouchUI, "dragGhost")).rectTransform.anchoredPosition = new Vector2(325, -70);
-            Render(camera, texture, "Temp/UI0928-V.png");
-            pouchUI.SetOpen(false); picker.gameObject.SetActive(true); picker.Show(drop);
-            foreach (var fill in picker.GetComponentsInChildren<Image>(true).Where(i => i.name == "HoldProgress"))
+
+            var canvas = new GameObject("Preview Canvas", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster)).GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            var cam = new GameObject("Preview Camera", typeof(Camera)).GetComponent<Camera>();
+            cam.transform.position = new Vector3(0, 0, -10); cam.orthographic = true; cam.orthographicSize = 270;
+            cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(.12f, .14f, .15f);
+            canvas.worldCamera = cam; canvas.planeDistance = 1;
+            var texture = new RenderTexture(960, 540, 24); cam.targetTexture = texture;
+            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(PouchPath), canvas.transform).GetComponent<PouchUI>();
+            Call(ui, "Awake"); ui.SetOpen(true);
+            Check(PouchUI.IsOpen && Time.timeScale == 1f, "V 열기/시간 진행");
+            var cells = ui.GetComponentsInChildren<PouchSlotUI>(true);
+            Check(ui.GetComponentsInChildren<Transform>(true).All(t => t.gameObject.layer == LayerMask.NameToLayer("UI")), "새 uGUI 오브젝트는 UI 레이어 유지");
+            Check(cells.Count(c => c.gameObject.activeSelf) == registry.items.Distinct().Count(), "종류별 셀 하나");
+            Check(ui.GetComponentInChildren<ScrollRect>(true) != null && ui.transform.Find("DragGhost") == null, "스크롤/드래그 고스트 삭제");
+            Check(typeof(PouchSlotUI).GetInterface(nameof(IBeginDragHandler)) == null, "버리기 드래그 제거");
+            ui.SortByCount();
+            Check(ui.GetComponentsInChildren<PouchSlotUI>().First().Item == stone, "개수순 내림차순");
+            ui.SortByTier();
+            Check(ui.GetComponentsInChildren<PouchSlotUI>().First().Item.tier == registry.items.Min(i => i.tier), "등급순");
+            ui.SortByAcquired(); ui.Select(stone);
+            Check(((TMP_Text)Read(ui, "stackText")).text.Contains("9 / 10"), "선택 상세 수량");
+            Check(((TMP_Text)Read(ui, "totalEffectText")).text.Contains("+63%"), "선택 상세 총 효과");
+            Check(((TMP_Text)Read(ui, "nextEffectText")).text.Contains("+70%"), "다음 중첩 미리보기");
+            Render(cam, texture, "Logs/StackedPouch.png");
+            // 목록이 화면을 넘어도 프리팹 셀/스크롤만 늘어나고 아이템 유실이 없다.
+            for (int i = 0; i < 35; i++) { var item = ScriptableObject.CreateInstance<ItemSO>(); item.name = "ScrollCheck" + i; tempItems.Add(item); pouch.TryAdd(item); }
+            Call(ui, "Refresh"); Canvas.ForceUpdateCanvases();
+            var scroll = (ScrollRect)Read(ui, "itemScroll");
+            Check(scroll.content.rect.height > scroll.viewport.rect.height, "많은 종류에서 스크롤 영역 확장");
+            scroll.verticalNormalizedPosition = 0; Canvas.ForceUpdateCanvases();
+            Check(scroll.content.anchoredPosition.y > 0, "끝 아이템까지 스크롤");
+            for (int i = 0; i < pouch.SlotCount; i++) if (tempItems.Contains(pouch.Get(i))) pouch.RemoveAt(i);
+            Call(ui, "Refresh");
+            scroll.verticalNormalizedPosition = 1;
+            var explain = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(ExplainPath), canvas.transform).GetComponent<SkillExplainUI>();
+            Singleton<SkillExplainUI>(explain); Call(explain, "OnAwake"); explain.SetOpen(true);
+            Check(explain.IsOpen && PouchUI.IsOpen, "C/V 독립 공존");
+            Render(cam, texture, "Logs/StackedPouch-CV-Collapsed.png");
+            CheckCollapsedLayout(ui, explain, (RectTransform)canvas.transform);
+            foreach (int height in new[] { 600, 720 })
             {
-                typeof(HandSlotSelectionItem).GetMethod("SetProgress", Flags).Invoke(fill.GetComponentInParent<HandSlotSelectionItem>(), new object[] { 0.5f });
-                Check(fill.enabled && Mathf.Abs(fill.rectTransform.rect.width - (((RectTransform)fill.transform.parent).rect.width * 0.5f - 6f)) < 0.1f, "50% 홀드의 실제 채움 너비");
-            }
-            Render(camera, texture, "Temp/UI0928-Minion.png");
-            picker.Hover(HandSlotSelectionItem.ActionKind.Compare, true);
-            Render(camera, texture, "Temp/UI0928-Compare.png");
-            camera.targetTexture = null; texture.Release(); Object.DestroyImmediate(texture);
-            Debug.Log("[InventoryUICheck] PASS — C/V 양방향 공존/화살표/렌더·레이캐스트/ESC/Modal/System/드랍 취소, 기존 구매·미니언 검사 및 960x540 화면 7개 렌더.");
-        }
-        finally
-        {
-            if (navInstance.valid) navInstance.Remove();
-            if (navData != null) Object.DestroyImmediate(navData);
-            foreach (var other in otherCameras) if (other != null) other.enabled = true;
-            EditorSceneManager.CloseScene(scene, true); SceneManager.SetActiveScene(previous);
-            GameManager.Instance = oldManager; InventoryManager.Instance = oldInventory; ItemPouch.Instance = oldPouch;
-            PouchUI.Instance = oldPouchUI; Singleton<SkillExplainUI>(oldExplain); Singleton<CommonTooltipUI>(oldTooltip); Time.timeScale = oldScale;
-            Singleton<UIPopUpManager>(oldPopup);
-            if (oldEventSystem != null && oldEventSystem.isActiveAndEnabled) EventSystem.current = oldEventSystem;
-        }
-    }
-
-    private static void CheckCVFlows(PouchUI pouchUI, SkillExplainUI explain, UIPopUpManager popup,
-        EventSystem events, Camera camera, Scene scene)
-    {
-        var cRoot = (GameObject)Read(explain, "panelRoot");
-        var vRoot = (GameObject)Read(pouchUI, "panelRoot");
-        var stats = (RectTransform)Read(explain, "statsPanel");
-        var details = (RectTransform)Read(explain, "detailsPanel");
-        var label = (TextMeshProUGUI)Read(explain, "expandLabel");
-        var effects = (RectTransform)Read(pouchUI, "setEffectsPanel");
-        var panel = (RectTransform)Read(pouchUI, "panelRect");
-        var slots = (PouchSlotUI[])Read(pouchUI, "slots");
-        Check(stats != null && details != null && label != null && effects != null, "C/V 신규 직렬화 참조");
-        var arrow = label.GetComponentInParent<Button>(includeInactive: true);
-        Check(arrow != null && arrow.interactable && arrow.onClick.GetPersistentEventCount() == 1 &&
-            arrow.onClick.GetPersistentTarget(0) == explain && arrow.onClick.GetPersistentMethodName(0) == nameof(SkillExplainUI.ToggleDetails) &&
-            arrow.onClick.GetPersistentListenerState(0) != UnityEventCallState.Off, "실제 화살표의 영구 ToggleDetails 콜백");
-        var rootRect = (RectTransform)cRoot.transform;
-        Check(rootRect.anchorMin == Vector2.zero && rootRect.anchorMax == Vector2.one &&
-            rootRect.offsetMin == Vector2.zero && rootRect.offsetMax == Vector2.zero, "C LoadoutPanel 전체 stretch");
-        Check(stats.parent == rootRect && stats.sizeDelta == new Vector2(220, 480) && stats.anchoredPosition == new Vector2(-350, 0) &&
-            details.parent == rootRect && details.sizeDelta == new Vector2(660, 480) && details.anchoredPosition == new Vector2(130, 0), "C 스탯/상세 패널 배치");
-        Check(((TextMeshProUGUI)Read(explain, "playerStatsText")).transform.IsChildOf(stats.Find("PlayerStats")), "PlayerStats는 StatsPanel 아래");
-        foreach (string name in new[] { "Equipment", "Guard", "Minion", "SpaceSkill", "Finisher", "Dash" })
-            Check(details.Find(name) != null, "상세 패널 자식 " + name);
-        Check(((SkillExplainSlotUI[])Read(explain, "equipmentSlots")).Any(s => s != null && s.transform == details.Find("Equipment")), "기존 equipmentSlots 참조 유지");
-        var icons = (Image[])Read(explain, "summaryIcons");
-        Check(icons != null && icons.Length == 5 && icons.All(i => i != null && i.transform.IsChildOf(stats)), "접힌 C의 요약 아이콘 5개");
-
-        void State(bool c, bool v, bool expanded, string context, bool blocked = false)
-        {
-            Check(explain.IsOpen == c && PouchUI.IsOpen == v && explain.IsExpanded == expanded &&
-                popup.IsOpen(cRoot) == c && popup.IsOpen(vRoot) == v &&
-                cRoot.activeInHierarchy == c && vRoot.activeInHierarchy == v &&
-                details.gameObject.activeSelf == expanded && label.text == (expanded ? "<" : ">"), context);
-            Check(Time.timeScale == 1f && !GameManager.Instance.IsTimeStopped && popup.BlocksGameplayInput == blocked,
-                context + ": 시간 정지 없음/입력 차단 레이어");
-        }
-
-        explain.SetOpen(false); pouchUI.SetOpen(false);
-        explain.ToggleDetails(); State(false, false, false, "닫힌 C 상세 토글 무시");
-        foreach (bool cFirst in new[] { false, true })
-        {
-            string order = cFirst ? "C→V" : "V→C";
-            if (cFirst) { explain.Toggle(); pouchUI.SetOpen(true); }
-            else { pouchUI.SetOpen(true); explain.Toggle(); }
-            State(true, true, false, order + " 기본 접힘 공존");
-            Check(explain.transform.parent == pouchUI.transform.parent &&
-                explain.transform.GetSiblingIndex() > pouchUI.transform.GetSiblingIndex(), order + " C visualRoot 렌더 우선");
-            Call(pouchUI, "Refresh");
-            for (int toggle = 0; toggle < 4; toggle++)
-            {
-                bool expanded = toggle % 2 != 0;
-                State(true, true, expanded, order + " 반복 토글 " + toggle);
-                foreach (var slot in slots)
+                var aspectTexture = new RenderTexture(960, height, 24);
+                cam.targetTexture = aspectTexture;
+                try
                 {
-                    var hit = RaycastUI(events, camera, ScreenPoint((RectTransform)slot.transform, camera));
-                    Check(hit != null && (expanded ? hit.transform.IsChildOf(details) :
-                        ExecuteEvents.GetEventHandler<IBeginDragHandler>(hit) == slot.gameObject),
-                        order + (expanded ? " 확장 C 아래 V 입력 차단 " : " 접힌 C 옆 V 슬롯 입력 가능 ") + slot.Index +
-                        $" hit={(hit != null ? hit.name : "null")}, position={ScreenPoint((RectTransform)slot.transform, camera)}");
+                    Render(cam, aspectTexture, $"Logs/StackedPouch-CV-{height}.png");
+                    CheckCollapsedLayout(ui, explain, (RectTransform)canvas.transform);
                 }
-                var arrowHit = RaycastUI(events, camera, ScreenPoint((RectTransform)arrow.transform, camera));
-                Check(arrowHit != null && ExecuteEvents.GetEventHandler<IPointerClickHandler>(arrowHit) == arrow.gameObject, "화살표 실제 클릭 영역");
-                ClickArrow(arrow);
+                finally { cam.targetTexture = texture; aspectTexture.Release(); Object.DestroyImmediate(aspectTexture); }
             }
-            State(true, true, false, order + " 반복 토글 후 접힘");
-            var slotHit = RaycastUI(events, camera, ScreenPoint((RectTransform)slots[0].transform, camera));
-            ExecuteEvents.ExecuteHierarchy(slotHit, new PointerEventData(events), ExecuteEvents.beginDragHandler);
-            Check(((Image)Read(pouchUI, "dragGhost")).gameObject.activeSelf, "접힌 C에서 실제 V 드래그 이벤트");
-            pouchUI.EndDrag(null);
-            explain.SetOpen(true); pouchUI.SetOpen(true);
-            State(true, true, false, order + " 중복 열기");
-            ClickArrow(arrow);
-            pouchUI.SetOpen(false); State(true, false, true, order + " V만 닫아도 확장 C 유지");
-            pouchUI.SetOpen(true); State(true, true, true, order + " V 재열기에도 확장 C 유지");
-            explain.Toggle(); State(false, true, false, order + " C만 닫고 상세 초기화");
-            explain.Toggle(); State(true, true, false, order + " C 재열기는 기본 접힘");
-            ClickArrow(arrow);
-            if (cFirst) { pouchUI.SetOpen(false); pouchUI.SetOpen(true); }
-            Check(popup.CloseTopByEscape(), order + " 첫 ESC 처리");
-            State(false, true, false, order + " 첫 ESC는 상단 C만 닫음");
-            Check(popup.CloseTopByEscape(), order + " 두 번째 ESC 처리");
-            State(false, false, false, order + " 두 번째 ESC는 남은 V 닫음");
-            Check(!popup.CloseTopByEscape(), "중복 등록/남은 Overlay 없음");
-        }
-
-        pouchUI.SetOpen(true); Call(pouchUI, "Refresh");
-        CheckDragCancelled(pouchUI, slots[0], scene, () => explain.SetOpen(true), "C 열기 중 V 드래그 취소");
-        State(true, true, false, "드래그 중 C 열기도 공존");
-        CheckDragCancelled(pouchUI, slots[0], scene, () => ClickArrow(arrow), "상세 펼치기 중 드래그 취소");
-        State(true, true, true, "드래그 중 상세 펼치기");
-        CheckDragCancelled(pouchUI, slots[0], scene, () => ClickArrow(arrow), "상세 접기 중 드래그 취소");
-        State(true, true, false, "드래그 중 상세 접기");
-
-        Canvas.ForceUpdateCanvases();
-        var statsPoint = ScreenPoint(stats, camera);
-        var detailsPoint = ScreenPoint(details, camera, new Vector2(.45f, 0));
-        var effectsPoint = ScreenPoint(effects, camera);
-        foreach (var point in new[] { statsPoint, detailsPoint, effectsPoint, WorldDropPoint })
-            Check(camera.pixelRect.Contains(point) && !RectTransformUtility.RectangleContainsScreenPoint(panel, point, camera), "패널 제외 검사의 좌표는 화면 안/V 본체 밖");
-        Check(!explain.ContainsScreenPoint(detailsPoint, camera) && IsOutside(pouchUI, detailsPoint), "접힌 상세/전체 stretch 루트는 드랍을 막지 않음");
-        Check(!IsOutside(pouchUI, statsPoint), "보이는 C 스탯은 드랍 제외");
-        CheckDragCancelled(pouchUI, slots[0], scene, () => pouchUI.EndDrag(null, statsPoint, true), "C 스탯에 놓기 취소");
-        ClickArrow(arrow);
-        Check(!IsOutside(pouchUI, detailsPoint) && IsOutside(pouchUI, WorldDropPoint), "펼친 C 상세만 드랍 제외");
-        CheckDragCancelled(pouchUI, slots[0], scene, () => pouchUI.EndDrag(null, detailsPoint, true), "C 상세에 놓기 취소");
-        cRoot.SetActive(false);
-        try { Check(IsOutside(pouchUI, statsPoint) && IsOutside(pouchUI, detailsPoint), "상위 루트가 숨겨진 C 영역은 드랍 제외 해제"); }
-        finally { cRoot.SetActive(true); }
-        explain.SetOpen(false);
-        Check(IsOutside(pouchUI, statsPoint) && IsOutside(pouchUI, detailsPoint), "닫힌 C 영역은 드랍 제외 해제");
-        Check(!IsOutside(pouchUI, effectsPoint), "보이는 세트 효과는 드랍 제외");
-        CheckDragCancelled(pouchUI, slots[0], scene, () => pouchUI.EndDrag(null, effectsPoint, true), "세트 효과에 놓기 취소");
-        effects.gameObject.SetActive(false);
-        try { Check(IsOutside(pouchUI, effectsPoint), "숨긴 세트 효과는 드랍 제외 해제"); }
-        finally { effects.gameObject.SetActive(true); }
-
-        explain.SetOpen(true); ClickArrow(arrow);
-        var modal = new GameObject("Check modal"); modal.SetActive(false);
-        CheckDragCancelled(pouchUI, slots[0], scene,
-            () => Check(popup.Open(modal, UIPopUpManager.Layer.Modal), "Modal 열기"), "Modal이 V 드래그 취소");
-        State(false, false, false, "Modal은 C/V 모두 닫고 상세 초기화", true);
-        Check(!popup.CloseTopByEscape() && popup.IsOpen(modal), "Modal은 기본 ESC로 닫히지 않음");
-        popup.Close(modal); Object.DestroyImmediate(modal);
-        State(false, false, false, "Modal 닫은 뒤 Overlay 등록 없음");
-        CheckDialoguePriority(pouchUI, explain, popup, events, camera, arrow);
-        State(false, false, false, "대화 종료 후 정리");
-    }
-
-    private static void CheckDialoguePriority(PouchUI pouchUI, SkillExplainUI explain, UIPopUpManager popup,
-        EventSystem events, Camera camera, Button arrow)
-    {
-        var oldDialogue = DialogueUI.Instance;
-        var dialogue = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Dialogue/DialogueUI.prefab"), explain.transform.parent).GetComponent<DialogueUI>();
-        try
-        {
-            Singleton<DialogueUI>(dialogue); Call(dialogue, "OnAwake");
-            Field(dialogue, "charsPerSecond", 0f); Field(dialogue, "bodyEffect", null); Field(dialogue, "blockPlayerInput", false);
-            dialogue.transform.SetAsFirstSibling();
-            explain.SetOpen(true); ClickArrow(arrow); pouchUI.SetOpen(true);
-            dialogue.Play((string)Read(dialogue, "debugDialogueId"));
-            var panel = (GameObject)Read(dialogue, "panel");
-            Check(dialogue.IsPlaying && popup.IsOpen(panel) && explain.IsExpanded && PouchUI.IsOpen &&
-                dialogue.transform.GetSiblingIndex() > explain.transform.GetSiblingIndex(), "실제 Dialogue.Play의 System visualRoot가 C/V 위");
-            var hit = RaycastUI(events, camera, ScreenPoint(((TextMeshProUGUI)Read(dialogue, "bodyText")).rectTransform, camera));
-            Check(hit != null && hit.transform.IsChildOf(dialogue.transform), "중첩 Canvas 대화가 C/V보다 렌더/레이캐스트 우선");
-            Check(!popup.CloseTopByEscape() && explain.IsExpanded && PouchUI.IsOpen, "System 위 ESC는 아래 C/V를 닫지 않음");
-            explain.SetOpen(false); pouchUI.SetOpen(false);
-            explain.SetOpen(true); pouchUI.SetOpen(true);
-            Check(!explain.IsOpen && !PouchUI.IsOpen && popup.IsOpen(panel) && popup.BlocksGameplayInput &&
-                Time.timeScale == 1f && !GameManager.Instance.IsTimeStopped, "System 중 Overlay 재열기 거절/시간 계속");
+            explain.ToggleDetails(); Check(explain.IsExpanded && PouchUI.IsOpen, "C 확장/V 유지");
+            Render(cam, texture, "Logs/StackedPouch-CV.png");
+            explain.SetOpen(false); Check(PouchUI.IsOpen, "C만 닫기");
+            ui.SetOpen(false); Check(!PouchUI.IsOpen, "V 토글 닫기");
+            cam.targetTexture = null; texture.Release(); Object.DestroyImmediate(texture);
+            Debug.Log("[InventoryUICheck] STACK PASS — 중첩/상한/스탯/대시/보호막/구세이브/보상/분해차단/정렬/상세/스크롤/CV 검사 통과.");
         }
         finally
         {
-            dialogue.StopDialogue(); Object.DestroyImmediate(dialogue.gameObject); Singleton<DialogueUI>(oldDialogue);
+            if (pouch != null) Call(pouch, "OnDisable");
+            EditorSceneManager.CloseScene(scene, true); SceneManager.SetActiveScene(previous);
+            foreach (var item in tempItems) Object.DestroyImmediate(item);
+            foreach (var camera in otherCameras) if (camera != null) camera.enabled = true;
+            GameManager.Instance = oldManager; InventoryManager.Instance = oldInventory; ItemPouch.Instance = oldPouch; PouchUI.Instance = oldUI;
+            Singleton<SkillExplainUI>(oldExplain); Singleton<UIPopUpManager>(oldPopup);
         }
-    }
-
-    private static void CheckDragCancelled(PouchUI pouchUI, PouchSlotUI source, Scene scene, Action cancel, string context)
-    {
-        var item = ItemPouch.Instance.Get(source.Index);
-        int before = Drops(scene);
-        var ghost = (Image)Read(pouchUI, "dragGhost");
-        var outline = (GameObject)Read(pouchUI, "dropOutline");
-        var icon = (Image)Read(source, "iconImage");
-        pouchUI.BeginDrag(source);
-        Check(item != null && ghost.gameObject.activeSelf && icon.color.a < 1f, context + ": 실제 드래그 시작");
-        outline.SetActive(true);
-        cancel();
-        Check(!ghost.gameObject.activeSelf && !outline.activeSelf && icon.color.a == 1f, context + ": 고스트/테두리/원본 표시 복원");
-        pouchUI.EndDrag(null, WorldDropPoint, true);
-        Check(ItemPouch.Instance.Get(source.Index) == item && Drops(scene) == before, context + ": 늦은 놓기에도 원본 보존/추가 드랍 없음");
-    }
-
-    private static void ClickArrow(Button arrow)
-    {
-        // EditMode에서도 프리팹의 RuntimeOnly 콜백을 검증한다. 복제 인스턴스만 잠시 변경한다.
-        var state = arrow.onClick.GetPersistentListenerState(0);
-        try { arrow.onClick.SetPersistentListenerState(0, UnityEventCallState.EditorAndRuntime); arrow.onClick.Invoke(); }
-        finally { arrow.onClick.SetPersistentListenerState(0, state); }
-    }
-
-    private static Vector2 ScreenPoint(RectTransform rect, Camera camera, Vector2 offset = default)
-        => RectTransformUtility.WorldToScreenPoint(camera, rect.TransformPoint(rect.rect.center + Vector2.Scale(rect.rect.size, offset)));
-
-    private static bool IsOutside(PouchUI pouchUI, Vector2 point)
-        => (bool)typeof(PouchUI).GetMethod("IsOutside", Flags).Invoke(pouchUI, new object[] { point });
-
-    private static GameObject RaycastUI(EventSystem events, Camera camera, Vector2 point)
-    {
-        Canvas.ForceUpdateCanvases(); camera.Render();
-        var hits = new System.Collections.Generic.List<RaycastResult>();
-        // GraphicRaycaster는 ExecuteAlways가 아니므로 EditMode 픽스처에서는 등록 수명을 직접 감싼다.
-        var raycasters = events.gameObject.scene.GetRootGameObjects()
-            .SelectMany(root => root.GetComponentsInChildren<GraphicRaycaster>())
-            .Where(raycaster => !RaycasterManager.GetRaycasters().Contains(raycaster)).ToArray();
-        try
-        {
-            foreach (var raycaster in raycasters) Call(raycaster, "OnEnable");
-            events.RaycastAll(new PointerEventData(events) { position = point }, hits);
-        }
-        finally { foreach (var raycaster in raycasters) Call(raycaster, "OnDisable"); }
-        return hits.FirstOrDefault(h => h.gameObject != null && h.gameObject.scene == events.gameObject.scene).gameObject;
     }
 
     [MenuItem("Tools/UI/0928/Check scene wiring")]
@@ -512,9 +330,18 @@ public static class InventoryUICheck
                 var pickers = roots.SelectMany(r => r.GetComponentsInChildren<HandSlotSelectionUI>(true)).ToArray();
                 Check(pouch.Length == 1 && info.Length == 1 && pickers.Length == 1, name + " C/V/미니언 창 단일 배치");
                 var pouchRect = (RectTransform)pouch[0].transform;
-                Check(pouchRect.anchorMin == Vector2.zero && pouchRect.anchorMax == Vector2.one, name + " 드랍 테두리가 실제 씬에서도 전체 화면");
+                Check(pouchRect.anchorMin == Vector2.zero && pouchRect.anchorMax == Vector2.one, name + " V 루트 전체 화면");
                 Check(pouch[0].gameObject.activeInHierarchy && info[0].gameObject.activeInHierarchy && pickers[0].gameObject.activeInHierarchy, name + " 싱글턴 초기화 가능한 루트");
                 Check((GameObject)Read(info[0], "panelRoot") != info[0].gameObject, name + " C 루트와 표시 패널 분리");
+                var statsRoot = (GameObject)Read(info[0], "panelRoot");
+                var pouchRoot = (GameObject)Read(pouch[0], "panelRoot");
+                bool statsActive = statsRoot.activeSelf, pouchActive = pouchRoot.activeSelf;
+                try
+                {
+                    statsRoot.SetActive(true); pouchRoot.SetActive(true);
+                    CheckCollapsedLayout(pouch[0], info[0], (RectTransform)pouch[0].GetComponentInParent<Canvas>().rootCanvas.transform);
+                }
+                finally { statsRoot.SetActive(statsActive); pouchRoot.SetActive(pouchActive); }
                 Check((GameObject)Read(pickers[0], "panel") != pickers[0].gameObject, name + " 미니언 루트와 표시 패널 분리");
                 Check(roots.SelectMany(r => r.GetComponentsInChildren<CommonTooltipUI>(true)).Count() == 1, name + " 공용 툴팁 실제 배치");
                 var maps = roots.SelectMany(r => r.GetComponentsInChildren<UIBasedMiniMap>(true)).ToArray();
@@ -540,8 +367,7 @@ public static class InventoryUICheck
         Check(picker.HoldSeconds(HandSlotSelectionItem.ActionKind.Skip) == 1f, "스킵도 1초");
         Check(picker.transform.Find("MinionSelection/Skip/Label").GetComponent<TextMeshProUGUI>().text.Contains("1초"), "스킵 문구도 1초");
         Check(picker.transform.Find("MinionSelection/Replace/Label").GetComponent<TextMeshProUGUI>().text.Contains("1초"), "교체 문구도 1초");
-        var pouch = AssetDatabase.LoadAssetAtPath<GameObject>(PouchPath).GetComponent<PouchUI>();
-        float distance = (float)Read(pouch, "dropDistance");
+        float distance = 1.25f;
         Check(Mathf.Approximately(distance, 1.25f), "기본 드랍 거리 1.25");
         var origin = new Vector3(10000, 10000, 0);
         Check(!GroundItem.TryFindNearbyDropPoint(origin, origin + Vector3.right * 100, distance, out _), "바닥 준비 전에는 드랍 실패/원본 보존");
@@ -580,6 +406,26 @@ public static class InventoryUICheck
             if (wall != null) Object.DestroyImmediate(wall);
             instance.Remove(); Object.DestroyImmediate(data);
         }
+    }
+
+    private static void CheckCollapsedLayout(PouchUI pouch, SkillExplainUI info, RectTransform canvas)
+    {
+        Canvas.ForceUpdateCanvases();
+        Rect Bounds(RectTransform panel)
+        {
+            var corners = new Vector3[4]; panel.GetWorldCorners(corners);
+            var min = canvas.InverseTransformPoint(corners[0]);
+            var max = canvas.InverseTransformPoint(corners[2]);
+            return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+        }
+        var c = Bounds((RectTransform)Read(info, "statsPanel"));
+        var v = Bounds((RectTransform)((GameObject)Read(pouch, "panelRoot")).transform);
+        float gap = v.xMin - c.xMax;
+        Check(gap >= 12f, $"접힌 C/V 사이 여백: {gap:0.##} (최소 12)");
+        Check(Mathf.Abs(c.yMin - v.yMin) < 1f && Mathf.Abs(c.yMax - v.yMax) < 1f, $"{pouch.gameObject.scene.name} C/V 위아래 정렬: C={c}, V={v}, canvas={canvas.rect}");
+        Check(c.xMin >= canvas.rect.xMin && v.xMax <= canvas.rect.xMax, "C/V 양옆 화면 경계");
+        Check(c.yMin >= canvas.rect.yMin && c.yMax <= canvas.rect.yMax, "C/V 상하 화면 경계");
+        Debug.Log($"[InventoryUICheck] LAYOUT PASS — canvas={canvas.rect.size}, C={c}, V={v}, gap={gap:0.##}");
     }
 
     private static int Drops(Scene scene) => scene.GetRootGameObjects().Count(g => g.GetComponent<GroundItem>() != null);

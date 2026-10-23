@@ -72,7 +72,7 @@ MonoBehaviour:
     knockbackForce: 4
     superArmorDamage: 30
   basicAnim:
-    visual: {fileID: -2253911629886400664, guid: 36cddf8ebd6ba864fbcb672d9e5a6723, type: 3}
+    visual: {fileID: 6037711723510221285, guid: 725aa93ac92e5754e85e6f8a8d3a7bb3, type: 3}
     duration: 0.95
     sequence:
     - tag: Basic
@@ -83,7 +83,7 @@ MonoBehaviour:
     hitEvent: OnHitEvent
     hitWindowRatio: 0.15
   skillAnim:
-    visual: {fileID: -2253911629886400664, guid: 36cddf8ebd6ba864fbcb672d9e5a6723, type: 3}
+    visual: {fileID: 6037711723510221285, guid: 725aa93ac92e5754e85e6f8a8d3a7bb3, type: 3}
     duration: 1.7
     sequence:
     - tag: Skill
@@ -94,7 +94,7 @@ MonoBehaviour:
     hitEvent: OnHitEvent
     hitWindowRatio: 0.15
   dashAnim:
-    visual: {fileID: -2253911629886400664, guid: 36cddf8ebd6ba864fbcb672d9e5a6723, type: 3}
+    visual: {fileID: 6037711723510221285, guid: 725aa93ac92e5754e85e6f8a8d3a7bb3, type: 3}
     clipDuration: 0
     startClip: Dash
     hitBoxClip: 

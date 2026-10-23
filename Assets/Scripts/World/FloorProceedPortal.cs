@@ -34,7 +34,6 @@ public class FloorProceedPortal : MonoBehaviour, IInteractable
         if (sr != null)
         {
             sr.color = new Color(0.6f, 0.1f, 0.9f, 0.8f); // Mystical Purple Portal
-            sr.sortingOrder = 5; // Draw above grounds
         }
         Debug.Log("<color=purple>[FloorProceedPortal]</color> Initialized. Ready for interaction.");
     }

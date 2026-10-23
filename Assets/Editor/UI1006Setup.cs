@@ -559,7 +559,7 @@ public static class UI1006Setup
                     At(go.transform, "PouchWindow").gameObject.SetActive(true);
                     var items = AssetDatabase.FindAssets("t:ItemSO").Select(g => AssetDatabase.LoadAssetAtPath<ItemSO>(AssetDatabase.GUIDToAssetPath(g))).ToArray();
                     var slots = go.GetComponentsInChildren<PouchSlotUI>(true);
-                    for (int i = 0; i < slots.Length; i++) slots[i].SetItem(i < 4 ? items[i % items.Length] : null, true);
+                    for (int i = 0; i < slots.Length; i++) slots[i].Bind(go.GetComponent<PouchUI>(), i < 4 ? items[i % items.Length] : null, 1);
                 }
                 if (path == Picker)
                 {
@@ -580,7 +580,7 @@ public static class UI1006Setup
                 {
                     var bag = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Pouch), canvas.transform);
                     At(bag.transform, "PouchWindow").gameObject.SetActive(true);
-                    foreach (var slot in bag.GetComponentsInChildren<PouchSlotUI>(true)) slot.SetItem(null, true);
+                    foreach (var slot in bag.GetComponentsInChildren<PouchSlotUI>(true)) slot.Bind(bag.GetComponent<PouchUI>(), null, 0);
                     go.transform.SetAsLastSibling();
                     CapturePreview(camera, target, "C-V");
                     At(go.transform, "LoadoutPanel/DetailsPanel").gameObject.SetActive(true);

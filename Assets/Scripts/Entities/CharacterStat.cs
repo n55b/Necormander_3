@@ -155,7 +155,9 @@ public class CharacterStat : MonoBehaviour
     public float LUCK => Mathf.Max(0f, (baseLuck + Mods.Flat(StatType.Luck)) * (1f + Mods.Percent(StatType.Luck)));
 
     /// <summary>치명타 피해량(%). 150 = 1.5배. 하향도 가능하되 100% 밑으로는 안 내려간다(크리가 손해면 이상하므로).</summary>
-    public float CRIT_DAMAGE => Mathf.Max(100f, baseCritDamage + Mods.Flat(StatType.CritDamage));
+    public float CRIT_OVERFLOW_DAMAGE => Mods.Flat(StatType.CritOverflowConversion) > 0f
+        ? Mathf.Floor(Mathf.Max(0f, CRIT_CHANCE - 100f) / 10f) * 10f : 0f;
+    public float CRIT_DAMAGE => Mathf.Max(100f, baseCritDamage + Mods.Flat(StatType.CritDamage) + CRIT_OVERFLOW_DAMAGE);
 
     /// <summary>회피율(0~1).</summary>
     public float EVASION => Mathf.Clamp01(baseEvasion + Mods.Flat(StatType.Evasion));
@@ -202,7 +204,9 @@ public class CharacterStat : MonoBehaviour
     public float ApplySkillCooldown(float baseCooldown) => Mathf.Max(0f, baseCooldown * (1f - SKILL_CDR));
 
     /// <summary>대쉬 쿨타임에 쿨감을 먹인 최종 초.</summary>
-    public float ApplyDashCooldown(float baseCooldown) => Mathf.Max(0f, baseCooldown * (1f - DASH_CDR));
+    public float DASH_DISTANCE_MULTIPLIER => Mathf.Max(0f, 1f + Mods.Percent(StatType.DashDistance));
+    public float ApplyDashCooldown(float baseCooldown) => Mathf.Max(0f, baseCooldown * (1f - DASH_CDR))
+        / Mathf.Max(0.01f, 1f + Mods.Percent(StatType.DashRechargeSpeed));
 
     // ── 기타 ──────────────────────────────────────────────────────────
 

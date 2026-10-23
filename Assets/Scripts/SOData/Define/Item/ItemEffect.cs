@@ -18,6 +18,22 @@ public abstract class ItemEffect
     public string label;
 }
 
+[System.Serializable]
+public class ItemRoomEntryShieldEffect : ItemEffect
+{
+    [Min(0f)] public float amount = 6f;
+}
+
+[System.Serializable]
+public class ItemDashChargeEffect : ItemEffect
+{
+    [Min(1)] public int copiesPerCharge = 3;
+}
+
+/// <summary>소지 여부만 본다. 여러 개 소지해도 초과 확률을 중복 변환하지 않는다.</summary>
+[System.Serializable]
+public class ItemCritOverflowEffect : ItemEffect { }
+
 /// <summary>
 /// 주머니에 들어 있는 동안 플레이어 스탯을 보정한다.
 /// 실제 적용/회수는 ItemPouch 가 자기 자신을 source 키로 써서 통째로 다시 계산한다.

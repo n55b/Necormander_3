@@ -12,7 +12,6 @@ using UnityEngine;
 /// [효과가 적용되는 두 경로]
 ///   · ItemStatEffect        → 플레이어 CharacterStat.Mods 에 붙인다. source 키는 이 매니저 하나(this).
 ///                             주머니가 바뀔 때마다 RemoveSource(this) 후 전부 다시 계산한다(멱등).
-///                             칸이 9개뿐이라 전체 재계산이 부분 갱신보다 싸고 안전하다.
 ///   · ItemDamageBonusEffect → DamageEventBus.OnBeforeDamageCalculated 에서 얹는다.
 ///                             '적에게 주는 피해'만 대상이다(아래 가드 참조).
 /// </summary>
@@ -20,35 +19,31 @@ public class ItemPouch : MonoBehaviour
 {
     public static ItemPouch Instance;
 
-    /// <summary>주머니 칸 상한. UI/저장/드래그가 전부 이 수까지 대응한다.</summary>
-    public const int MAX_SLOTS = 9;
-
-    [Header("주머니")]
-    [Tooltip("현재 열려 있는 칸 수. 기본 4, 최대 9. 칸 확장 구매는 아직 미구현이라 여기서 직접 늘린다.")]
-    [Range(1, MAX_SLOTS)][SerializeField] private int slotCount = 4;
 
     [Header("디버그 (배포 시 반드시 끈다)")]
     [Tooltip("끄면 아래 목록을 무시하고 빈 주머니로 시작한다. InventoryManager 의 " +
              "useDebugStartingInventory 와 같은 역할.")]
     [SerializeField] private bool useDebugStartingItems = true;
 
-    [Tooltip("게임 시작 시 주머니에 미리 넣어둘 아이템(테스트용). 칸 수를 넘으면 넘치는 건 버려진다.")]
+    [Tooltip("게임 시작 시 넣을 아이템. 동일 아이템을 반복 등록하면 최대 중첩까지 지급한다.")]
     [SerializeField] private List<ItemSO> debugStartingItems = new List<ItemSO>();
 
-    // 길이는 항상 MAX_SLOTS 로 고정. 빈 칸은 null. slotCount 밖의 칸은 잠긴 칸이다.
-    private readonly ItemSO[] _slots = new ItemSO[MAX_SLOTS];
+    // 개별 사본을 저장해 기존 세이브/조건부 효과 상태를 보존하고, UI에서 종류별로 묶는다.
+    private readonly List<ItemSO> _slots = new List<ItemSO>();
+    private int slotCount => _slots.Count;
 
     // SO는 공유 데이터다. 누적/일시 버프는 보유한 칸별로 관리하고 이동 시 함께 옮긴다.
-    private readonly int[] _nonCritHits = new int[MAX_SLOTS];
-    private readonly float[] _lastGuardAt = new float[MAX_SLOTS];
+    private readonly List<int> _nonCritHits = new List<int>();
+    private readonly List<float> _lastGuardAt = new List<float>();
+    private RoomInstance _shieldRoom;
+    public int Revision { get; private set; }
     private readonly object _conditionalSource = new object();
     private CharacterStat _boundStat;
     private PlayerParryController _guard;
     private float _conditionalChance = float.NaN;
     private float _conditionalDamage = float.NaN;
 
-    // 변경 알림 이벤트는 두지 않는다. PouchUI 는 열려 있는 동안만 매 프레임 다시 그리는데,
-    // 그게 구독보다 싸고(칸 9개) 초기화 순서 문제도 안 생긴다 — PouchUI.Update 주석 참조.
+    // 초기화 순서와 무관하게 UI가 Revision 변경 때만 목록을 다시 그린다.
 
     public int SlotCount => slotCount;
 
@@ -63,7 +58,7 @@ public class ItemPouch : MonoBehaviour
         {
             foreach (var so in debugStartingItems)
                 if (so != null && !TryAdd(so))
-                    Debug.LogWarning($"<color=orange>[ItemPouch]</color> 디버그 아이템 '{so.DisplayName}' — 주머니가 꽉 차서 못 넣었다.");
+                    Debug.LogWarning($"<color=orange>[ItemPouch]</color> 디버그 아이템 '{so.DisplayName}' — 최대 중첩에 도달했다.");
         }
 
         Refresh();
@@ -74,6 +69,7 @@ public class ItemPouch : MonoBehaviour
         DamageEventBus.OnBeforeDamageCalculated += HandleBeforeDamage;
         DamageEventBus.OnAttackHitResolved += HandleAttackHit;
         RoomInstance.OnAnyRoomCleared += HandleRoomCleared;
+        RoomInstance.OnPlayerEnteredRoom += HandleRoomEntered;
         ResetCombatState();
         Refresh();
     }
@@ -83,6 +79,7 @@ public class ItemPouch : MonoBehaviour
         DamageEventBus.OnBeforeDamageCalculated -= HandleBeforeDamage;
         DamageEventBus.OnAttackHitResolved -= HandleAttackHit;
         RoomInstance.OnAnyRoomCleared -= HandleRoomCleared;
+        RoomInstance.OnPlayerEnteredRoom -= HandleRoomEntered;
         UnbindPlayer();
     }
 
@@ -94,7 +91,7 @@ public class ItemPouch : MonoBehaviour
 
     private void ResetCombatState()
     {
-        for (int i = 0; i < MAX_SLOTS; i++) ResetSlotState(i);
+        for (int i = 0; i < slotCount; i++) ResetSlotState(i);
     }
 
     private void ResetSlotState(int slot)
@@ -106,7 +103,13 @@ public class ItemPouch : MonoBehaviour
     private void UnbindPlayer()
     {
         if (_guard != null) _guard.OnParrySuccess -= HandleGuardSuccess;
-        if (_boundStat != null) _boundStat.Mods.RemoveSource(_conditionalSource);
+        if (_boundStat != null)
+        {
+            _boundStat.Mods.RemoveSource(_conditionalSource);
+            _boundStat.Mods.RemoveSource(this);
+            _boundStat.Status?.SetShield(this, 0f);
+        }
+        _shieldRoom = null;
         _guard = null;
         _boundStat = null;
         _conditionalChance = _conditionalDamage = float.NaN;
@@ -114,7 +117,7 @@ public class ItemPouch : MonoBehaviour
     }
 
     // ── 조회 ──────────────────────────────────────────────────────────
-    /// <summary>해당 칸의 아이템. 빈 칸이거나 잠긴 칸이면 null.</summary>
+    /// <summary>저장 순서의 개별 사본. 빈 칸이면 null.</summary>
     public ItemSO Get(int slot)
         => (slot < 0 || slot >= slotCount) ? null : _slots[slot];
 
@@ -126,13 +129,21 @@ public class ItemPouch : MonoBehaviour
         return false;
     }
 
-    public bool IsFull
+    public int CountOf(ItemSO item)
     {
-        get
-        {
-            for (int i = 0; i < slotCount; i++) if (_slots[i] == null) return false;
-            return true;
-        }
+        if (item == null) return 0;
+        int count = 0;
+        foreach (var owned in _slots) if (owned == item) count++;
+        return count;
+    }
+
+    public bool CanAdd(ItemSO item) => item != null && CountOf(item) < item.MaxStack;
+
+    public void GetUniqueItems(List<ItemSO> result)
+    {
+        result.Clear();
+        var seen = new HashSet<ItemSO>();
+        foreach (var item in _slots) if (item != null && seen.Add(item)) result.Add(item);
     }
 
     /// <summary>첫 빈 칸 번호. 없으면 -1.</summary>
@@ -143,21 +154,28 @@ public class ItemPouch : MonoBehaviour
     }
 
     // ── 변경 ──────────────────────────────────────────────────────────
-    /// <summary>첫 빈 칸에 넣는다. 꽉 찼으면 false — 호출자가 "주머니가 꽉 찼다"를 안내해야 한다.</summary>
+    /// <summary>아이템별 최대 중첩 안에서 추가한다. 보유 종류/전체 개수에는 상한이 없다.</summary>
     public bool TryAdd(ItemSO so)
     {
-        if (so == null) return false;
+        if (!CanAdd(so)) return false;
         int slot = FirstEmptySlot();
-        if (slot < 0) return false;
+        if (slot < 0)
+        {
+            slot = _slots.Count;
+            _slots.Add(null);
+            _nonCritHits.Add(0);
+            _lastGuardAt.Add(float.NegativeInfinity);
+        }
 
         _slots[slot] = so;
         ResetSlotState(slot);
+        Revision++;
         Refresh();
         Debug.Log($"<color=cyan>[ItemPouch]</color> '{so.DisplayName}' 습득 → {slot}번 칸");
         return true;
     }
 
-    /// <summary>칸을 비우고 그 아이템을 돌려준다(버리기용). 빈 칸이면 null.</summary>
+    /// <summary>개별 사본을 제거한다(데이터 조작/검증용). 게임 UI에서는 호출하지 않는다.</summary>
     public ItemSO RemoveAt(int slot)
     {
         if (slot < 0 || slot >= slotCount) return null;
@@ -166,11 +184,12 @@ public class ItemPouch : MonoBehaviour
 
         _slots[slot] = null;
         ResetSlotState(slot);
+        Revision++;
         Refresh();
         return so;
     }
 
-    /// <summary>두 칸의 내용을 맞바꾼다(주머니 안 정리). 빈 칸으로 옮기는 것도 이걸로 된다.</summary>
+    /// <summary>저장 순서와 조건부 상태를 함께 옮긴다. UI 정렬은 데이터 순서를 바꾸지 않는다.</summary>
     public void Swap(int a, int b)
     {
         if (a == b) return;
@@ -179,6 +198,7 @@ public class ItemPouch : MonoBehaviour
         (_slots[a], _slots[b]) = (_slots[b], _slots[a]);
         (_nonCritHits[a], _nonCritHits[b]) = (_nonCritHits[b], _nonCritHits[a]);
         (_lastGuardAt[a], _lastGuardAt[b]) = (_lastGuardAt[b], _lastGuardAt[a]);
+        Revision++;
         Refresh();
     }
 
@@ -210,12 +230,20 @@ public class ItemPouch : MonoBehaviour
         float maxBefore = stat.MAXHP;
 
         stat.Mods.RemoveSource(this); // 아이템 전체를 한 키로 걷어내고
+        var counted = new HashSet<ItemSO>();
         for (int i = 0; i < slotCount; i++)
         {
             var so = _slots[i];
             if (so == null || so.effects == null) continue;
+            bool firstCopy = counted.Add(so);
             foreach (var e in so.effects)
+            {
                 if (e is ItemStatEffect se) se.Apply(stat, this);
+                else if (firstCopy && e is ItemDashChargeEffect charge)
+                    stat.Mods.AddFlat(this, StatType.DashCharges, CountOf(so) / Mathf.Max(1, charge.copiesPerCharge));
+                else if (firstCopy && e is ItemCritOverflowEffect)
+                    stat.Mods.AddFlat(this, StatType.CritOverflowConversion, 1f);
+            }
         }
         UpdateConditionalStats();
 
@@ -378,6 +406,20 @@ public class ItemPouch : MonoBehaviour
     }
 
 
+    private void HandleRoomEntered(RoomInstance room)
+    {
+        if (room == null || room == _shieldRoom) return;
+        if (_boundStat != PlayerStat()) Refresh();
+        if (_boundStat == null || _boundStat.Status == null) return;
+        _shieldRoom = room;
+        float amount = 0f;
+        foreach (var item in _slots)
+            if (item != null && item.effects != null)
+                foreach (var effect in item.effects)
+                    if (effect is ItemRoomEntryShieldEffect shield) amount += Mathf.Max(0f, shield.amount);
+        _boundStat.Status.SetShield(this, amount);
+    }
+
     // ── 저장 ──────────────────────────────────────────────────────────
     public void SaveToData(SaveData data)
     {
@@ -395,23 +437,26 @@ public class ItemPouch : MonoBehaviour
             ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY()
             : null;
 
-        // 옛 세이브(주머니 도입 전)는 pouchSlotCount 가 0 이다 — 인스펙터 기본값을 그대로 쓴다.
-        if (data.pouchSlotCount > 0)
-            slotCount = Mathf.Clamp(data.pouchSlotCount, 1, MAX_SLOTS);
-
-        for (int i = 0; i < MAX_SLOTS; i++) _slots[i] = null;
-        ResetCombatState();
+        _slots.Clear();
+        _nonCritHits.Clear();
+        _lastGuardAt.Clear();
 
         if (registry != null && registry.items != null && data.pouchItemNames != null)
         {
-            for (int i = 0; i < data.pouchItemNames.Count && i < slotCount; i++)
+            for (int i = 0; i < data.pouchItemNames.Count; i++)
             {
                 string n = data.pouchItemNames[i];
                 if (string.IsNullOrEmpty(n)) continue;
-                _slots[i] = registry.items.Find(it => it != null && it.name == n);
+                var item = registry.items.Find(it => it != null && it.name == n);
+                if (item == null) { Debug.LogWarning($"[ItemPouch] 저장된 아이템을 찾지 못함: {n}"); continue; }
+                // 구 세이브의 중복 사본도 보존한다. 새 습득에만 현재 최대 중첩을 적용한다.
+                _slots.Add(item);
+                _nonCritHits.Add(0);
+                _lastGuardAt.Add(float.NegativeInfinity);
             }
         }
 
+        Revision++;
         Refresh();
     }
 }

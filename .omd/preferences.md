@@ -80,3 +80,18 @@ source_context: "RewardCard 1 / EquipmentUpgradeSelectionUI / RewardSelectionUI 
 ```
 
 Center choice-card icons in the upper circular artwork. Apply masked, lower-panel description scrolling to the shared card prefab, including village minion choices, not just the equipment upgrade variant. Keep the layout editable in prefabs.
+
+## 2026-10-23T02:18:48.000Z — collapsed-c-and-v-layout
+
+```omd-meta
+id: pref_mvkcckz5_c0a1b2d3
+timestamp: 2026-10-23T02:18:48.000Z
+scope: layout
+signal: user-correction
+confidence: explicit
+status: pending
+source_agent: Codex
+source_context: "Assets/Prefabs/UI/PouchUI.prefab"
+```
+
+The collapsed C stats panel and V inventory must fit side by side with a visible gap and aligned edges; only expanded C details may overlap V.

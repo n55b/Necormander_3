@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-/// <summary>아이템/미니언 공용 바닥 픽업. 짧은 F는 습득, 긴 F는 분해한다.</summary>
+/// <summary>아이템/미니언 공용 바닥 픽업. F로 습득. 긴 F 분해는 미니언에만 적용한다.</summary>
 public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
 {
     [SerializeField] private SpriteRenderer iconRenderer;
@@ -21,9 +21,9 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
     public ItemSO Item => _item;
     public MinionDataSO Minion => _minion;
     public bool IsAvailable => !_consumed && (_item != null || _minion != null);
-    public float HoldSeconds => disassembleHoldSeconds;
+    public float HoldSeconds => _minion != null ? disassembleHoldSeconds : 0f;
     public string InteractionPrompt => _minion != null ? $"F: 미니언 확인 · 길게: 분해 (체력 +{minionRecycleHeal})"
-        : _item != null ? $"F: 습득 · 길게: 분해 (+{_item.Refund}G)" : "";
+        : _item != null ? "F: 습득" : "";
 
     public static GroundItem Drop(ItemSO item, Vector3 pos, bool scatter = true)
     {
@@ -137,7 +137,7 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
             HandSlotSelectionUI.Instance.Show(this);
             return true;
         }
-        if (ItemPouch.Instance == null || !ItemPouch.Instance.TryAdd(_item)) { Announce("주머니가 꽉 찼다"); return false; }
+        if (ItemPouch.Instance == null || !ItemPouch.Instance.TryAdd(_item)) { Announce("최대 중첩에 도달했습니다"); return false; }
         Consume();
         return true;
     }
@@ -167,25 +167,20 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
 
     public void OnHoldProgress(float progress)
     {
+        if (_minion == null) progress = 0f;
         if (_sr != null) _sr.color = Color.Lerp(Color.white, disassembleTint, progress);
         if (info != null && info.price != null) info.price.text = progress <= 0f ? "" : $"분해 중… {progress:P0}";
     }
 
     public void OnHoldComplete(GameObject interactor)
     {
-        if (!IsAvailable) return;
+        if (!IsAvailable || _minion == null) return;
         if (_minion != null)
         {
             var player = interactor != null ? interactor.GetComponent<PlayerController>() : null;
             if (player == null || player.Stat == null || player.Stat.Health.IsDead) return;
             player.Stat.Health.Heal(minionRecycleHeal);
             Announce($"체력 +{minionRecycleHeal}");
-        }
-        else
-        {
-            if (InventoryManager.Instance == null) return;
-            InventoryManager.Instance.AddGold(_item.Refund);
-            Announce($"+{_item.Refund}G");
         }
         Consume();
     }

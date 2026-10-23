@@ -34,7 +34,7 @@ public class RewardManager : MonoBehaviour
         // [버그 26/08/03] 예전엔 여기가 else if 라서 증강 방이 기본 골드를 통째로 못 받았다.
         if (type == RoomType.Normal || type == RoomType.Augment)
         {
-            // [보상 개편 26/07/24] 일반방은 골드만 드랍한다(장비=상점, 메인=보상방). 카드/시간정지 없음.
+            // 기존 골드 보상은 유지한다. 일반방에는 아이템 하나를 추가한다.
             int goldAmount = 200; // ponytail: 고정값, 밸런싱 시 조정
             GameManager.Instance.inventoryManager.GainGold(goldAmount); // 획득 텍스트(+200G)를 플레이어 앞에 띄운다
             Debug.Log($"<color=yellow>[Reward]</color> {type} Room Cleared! {goldAmount} Gold obtained (기본 보상).");
@@ -44,6 +44,11 @@ public class RewardManager : MonoBehaviour
                 // [증강 방 26/08/01] 전투 시작 전에 고른 카드에 딸린 보상을 그대로 준다.
                 // 카드 UI 는 이미 닫혔고, 여기서는 상자를 연 시점에 지급만 한다.
                 ActiveAugment.GrantPendingReward();
+            }
+            else
+            {
+                var item = RewardProcessor.PickRandomItem(GameManager.Instance.dataManager);
+                if (item != null) GroundItem.Drop(item, PlayerPosition());
             }
         }
         else if (type == RoomType.Elite)
@@ -233,7 +238,7 @@ public class RewardManager : MonoBehaviour
         ProcessNextReward();
     }
 
-    /// <summary>상점만 즉시 습득. 빈자리 없으면 유료 진열품 대신 무료 픽업을 남긴다.</summary>
+    /// <summary>상점 아이템은 즉시 습득. 최대 중첩이면 실패하여 결제 측에서 환불한다. 미니언은 교체용 픽업을 남긴다.</summary>
     public static bool TryGivePurchase(RewardCandidate candidate, Vector3 dropPosition)
     {
         switch (candidate.category)
@@ -241,6 +246,7 @@ public class RewardManager : MonoBehaviour
             case RewardCategory.Item:
                 var item = candidate.rawData as ItemSO;
                 if (item == null) return false;
+                if (ItemPouch.Instance != null && !ItemPouch.Instance.CanAdd(item)) return false;
                 if (ItemPouch.Instance != null && ItemPouch.Instance.TryAdd(item)) return true;
                 return GroundItem.Drop(item, dropPosition) != null;
             case RewardCategory.Minion:

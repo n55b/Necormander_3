@@ -96,11 +96,11 @@ public static class RewardProcessor
             icon = so.icon
         };
 
-    /// <summary>현재 주머니에 없는 아이템만 상점/보상 후보로 사용한다. 버린 아이템은 다시 후보가 된다.</summary>
+    /// <summary>최대 중첩에 도달하지 않은 아이템만 상점/보상 후보로 사용한다.</summary>
     public static bool CanOfferItem(ItemSO item)
-        => item != null && (ItemPouch.Instance == null || !ItemPouch.Instance.Contains(item));
+        => item != null && (ItemPouch.Instance == null || ItemPouch.Instance.CanAdd(item));
 
-    /// <summary>미보유 아이템 하나를 랜덤으로. 엘리트/증강 보상 공용. 후보가 없으면 null.</summary>
+    /// <summary>중첩 여유가 있는 아이템 하나를 랜덤으로. 일반/엘리트/증강 보상 공용. 후보가 없으면 null.</summary>
     public static ItemSO PickRandomItem(DataManager data)
     {
         var registry = data != null ? data.GET_GROWTH_REGISTRY() : null;
