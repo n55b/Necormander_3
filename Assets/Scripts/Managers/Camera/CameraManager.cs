@@ -34,7 +34,19 @@ private float _windowMaxForce  = 0f;
         Instance       = this;
         _impulseSource = GetComponent<CinemachineImpulseSource>();
         _vcam          = GetComponent<CinemachineCamera>();
-        if (_vcam != null) _defaultOrthoSize = _vcam.Lens.OrthographicSize;
+        if (_vcam != null)
+        {
+            // 공용 카메라 설정(CameraSettingsSO)이 있으면 그 값을 기본 줌으로 쓴다.
+            // (Initialize 는 씬 로드 적용보다 먼저 불릴 수 있어서 렌즈 값을 직접 읽지 않음)
+            var settings = CameraSettingsSO.Instance;
+            if (settings != null)
+            {
+                var lens = _vcam.Lens;
+                lens.OrthographicSize = settings.orthographicSize;
+                _vcam.Lens = lens;
+            }
+            _defaultOrthoSize = _vcam.Lens.OrthographicSize;
+        }
 
         Debug.Log("<color=cyan>[CameraManager]</color> Initialized.");
     }
