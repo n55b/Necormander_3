@@ -15,6 +15,173 @@ public static class CombatMovementCheck
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
     private static readonly Vector2 Offset = new Vector2(2000f, 2000f);
 
+    [MenuItem("Tools/Combat/Verify Player Attack Animation")]
+    public static void RunAttackAnimation()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
+        var scene = EditorSceneManager.NewPreviewScene();
+        try
+        {
+            var host = Make(scene, "Attack animation check");
+            host.transform.position = Offset;
+            var player = host.AddComponent<PlayerController>();
+            player.enabled = false;
+            var melee = host.AddComponent<MeleeCombatController>();
+            melee.enabled = false;
+            Set(melee, "_player", player);
+            Call(player, "CachingAnim");
+            var body = Make(scene, "Body", typeof(SpriteRenderer), typeof(Animator), typeof(BodyAnimationEventRelay));
+            body.transform.SetParent(host.transform, false);
+            var hand = Make(scene, "Hand", typeof(SpriteRenderer), typeof(PlayerHandAimController));
+            hand.transform.SetParent(body.transform, false);
+            var aim = hand.GetComponent<PlayerHandAimController>();
+            Call(aim, "Awake");
+            var relay = body.GetComponent<BodyAnimationEventRelay>();
+            Call(relay, "Awake");
+            var animator = body.GetComponent<Animator>();
+            animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
+                "Assets/Animations/Player/ViperHandGenerated/ViperHand.overrideController");
+            // 이벤트의 시점은 클립에서 읽고 수동 전달한다. 실제 피격/발자국/물리 시뮬레이션은 실행하지 않는다.
+            animator.fireEvents = false;
+            Set(player, "BodyAnimator", animator);
+            var hitbox = Make(scene, "Live hitbox", typeof(BaseHitBox));
+            hitbox.transform.SetParent(host.transform, false);
+            Set(melee, "_lastAttackTime", Time.time - 10f);
+            Set(melee, "<CurrentAttackDir>k__BackingField", Vector2.right);
+            Set(player, "moveInput", Vector2.left);
+            Set(player, "MoveDirection", Vector3.left);
+
+            // 공속이 빠르면 복귀 이벤트가 0.2초 판정창보다 먼저 온다.
+            host.transform.localScale = new Vector3(-1f, 1f, 1f);
+            Set(melee, "_activeHitbox", hitbox.GetComponent<BaseHitBox>());
+            Call(melee, "PlayAttackAnimation", 0);
+            animator.Update(0f);
+            animator.speed = 1.5f;
+            animator.Update(.30f);
+            relay.CanChangeAnimState();
+            Call(player, "Update");
+            animator.Update(0f);
+            bool fast = !player.canChangeState && host.transform.localScale.x < 0f &&
+                        animator.GetCurrentAnimatorStateInfo(0).IsName("Attack_Light1");
+
+            // 기본 공속 3타: 판정은 먼저 끝나도 모션은 0.667초까지 남는다.
+            Set(melee, "_activeHitbox", null);
+            player.CanChangeAnimState();
+            Call(melee, "PlayAttackAnimation", 2);
+            animator.Update(0f);
+            animator.speed = 1f;
+            animator.Update(.50f);
+            Set(melee, "<CurrentAttackDir>k__BackingField", Vector2.up);
+            Call(aim, "LateUpdate");
+            bool slow = melee.IsAttacking && Quaternion.Angle(hand.transform.localRotation, Quaternion.identity) > 80f;
+            Debug.Log($"[PlayerAnimationCheck] fast/reverse movement protected={fast}, third-hit tail/aim protected={slow}");
+            Check(fast && slow, "공격 종료와 이동/무기 조준 복귀의 수명 일치");
+
+            int cases = 0;
+            foreach (string variant in new[] { "", "Viper", "ViperSC", "ViperAS" })
+            {
+                string folder = "Assets/Animations/Player/";
+                string prefix = "Player_AnimClip_";
+                string controller = folder + "Player_Animator.controller";
+                if (variant.Length > 0)
+                {
+                    folder += variant + "HandGenerated/";
+                    prefix = variant + "_";
+                    controller = folder + "ViperHand.overrideController";
+                }
+                animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(controller);
+                foreach (float speed in new[] { .5f, 1f, 1.5f, 3f })
+                for (int swing = 0; swing < 3; swing++)
+                {
+                    string state = new[] { "Attack_Light1", "Attack_Light2", "Attack_Medium" }[swing];
+                    var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(folder + prefix + state + ".anim");
+                    var events = AnimationUtility.GetAnimationEvents(clip);
+                    float recovery = Array.Find(events, e => e.functionName == "CanChangeAnimState").time / speed;
+                    float hit = Array.Find(events, e => e.functionName == "OnAttackHitFrame").time / speed;
+                    float fallbackHit = (swing == 2 ? .4f : .2f) / speed;
+                    float hitboxEnd = Mathf.Min(hit, fallbackHit) + .2f;
+                    float attackEnd = Mathf.Max(recovery, hitboxEnd, .3f);
+                    float probe = (Mathf.Min(recovery, hitboxEnd) + attackEnd) * .5f;
+                    if (attackEnd - probe < .001f) probe = attackEnd * .9f;
+                    for (int direction = 0; direction < 8; direction++)
+                    for (int movement = 0; movement < 9; movement++)
+                    {
+                        Vector2 dir = Quaternion.Euler(0, 0, direction * 45f) * Vector2.right;
+                        Vector2 move = movement == 8 ? Vector2.zero :
+                            (Vector2)(Quaternion.Euler(0, 0, movement * 45f) * Vector2.right);
+                        string label = $"{variant}/{state}/speed={speed}/aim={direction}/move={movement}";
+                        Set(melee, "_activeHitbox", null);
+                        Set(melee, "_lastAttackTime", Time.time - 10f);
+                        player.CanChangeAnimState();
+                        player.PlayAllAnim("Idle");
+                        animator.Update(0f);
+                        Set(player, "moveInput", move);
+                        Set(player, "MoveDirection", (Vector3)move);
+                        Set(melee, "<CurrentAttackDir>k__BackingField", dir);
+                        host.transform.localScale = new Vector3(dir.x >= 0f ? -1f : 1f, 1f, 1f);
+                        float facing = host.transform.localScale.x;
+                        Set(melee, "_activeHitbox", hitbox.GetComponent<BaseHitBox>());
+                        Set(melee, "_lastAttackTime", Time.time);
+                        Call(melee, "PlayAttackAnimation", swing);
+                        animator.Update(0f);
+                        player.SetAttackAnimSpeed(speed);
+                        animator.Update(probe);
+                        Set(melee, "_lastAttackTime", Time.time - probe);
+                        if (probe >= hitboxEnd) Set(melee, "_activeHitbox", null);
+                        if (probe >= recovery) relay.CanChangeAnimState();
+                        // 스크립트 Update 순서가 뒤바뀌어도 동일해야 한다.
+                        if (movement % 2 == 0) Call(melee, "Update");
+                        Call(player, "Update");
+                        if (movement % 2 != 0) Call(melee, "Update");
+                        animator.Update(0f);
+                        Call(aim, "LateUpdate");
+                        Check(melee.IsAttacking && !player.canChangeState &&
+                              animator.GetCurrentAnimatorStateInfo(0).IsName(state), "중간에 Walk/Idle/다음 타로 끊기지 않음: " + label);
+                        Check(host.transform.localScale.x == facing && Mathf.Approximately(animator.speed, speed),
+                            "이동 방향/속도가 평타를 덮지 않음: " + label);
+                        Check(Vector2.Dot(hand.transform.TransformVector(Vector3.left).normalized, dir) > .999f,
+                            "판정 종료와 모션 종료 사이에도 무기는 실제 조준 유지: " + label);
+
+                        Set(melee, "_activeHitbox", null);
+                        Set(melee, "_lastAttackTime", Time.time - attackEnd - .01f);
+                        animator.Update(attackEnd - probe + .01f);
+                        relay.CanChangeAnimState();
+                        Call(melee, "Update");
+                        Call(player, "Update");
+                        animator.Update(0f);
+                        Call(aim, "LateUpdate");
+                        Check(!melee.IsAttacking && player.canChangeState && player.SpeedMultiplier == 1f &&
+                              animator.GetCurrentAnimatorStateInfo(0).IsName(movement == 8 ? "Idle" : "Walk"),
+                            "완료 후 홀드 이동/정지 복귀: " + label);
+                        Check(Quaternion.Angle(hand.transform.localRotation, Quaternion.identity) < .01f,
+                            "완료 후 무기 각도 초기화: " + label);
+                        cases++;
+                    }
+                }
+            }
+
+            // 취소 후 새 대쉬/가드의 잠금을 이전 평타 Update가 풀면 안 된다.
+            Set(melee, "_lastAttackTime", Time.time);
+            Call(melee, "PlayAttackAnimation", 2);
+            melee.CancelPlayerAttack();
+            Call(aim, "LateUpdate");
+            Check(!melee.IsAimingAttack && player.canChangeState && player.SpeedMultiplier == 1f,
+                "대쉬/가드 취소가 평타 모션·방향·이동 잠금을 모두 회수");
+            player.LockAnimState(0f);
+            Set(melee, "_lastAttackTime", Time.time - 10f);
+            Call(melee, "Update");
+            Check(!player.canChangeState, "이전 평타 완료가 새 행동 잠금을 해제하지 않음");
+            player.CanChangeAnimState();
+            // 기존 3초 안전장치도 같은 CanChangeAnimState 경로를 통해 평타 플래그까지 해제한다.
+            Call(melee, "PlayAttackAnimation", 1);
+            player.CanChangeAnimState();
+            Check(!melee.IsAttacking && !melee.IsAimingAttack && player.canChangeState, "이벤트 누락 안전 해제");
+            Debug.Log($"[PlayerAnimationCheck] PASS: {cases} direction/movement/speed/combo/controller combinations; cancellation and timeout unlock path. Isolated Animator/state checks, not live combat.");
+        }
+        finally { EditorSceneManager.ClosePreviewScene(scene); }
+    }
+
     [MenuItem("Tools/Combat/Verify Hitstun Icon Hidden")]
     public static void RunStatusIcons()
     {

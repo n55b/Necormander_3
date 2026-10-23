@@ -8,12 +8,32 @@ using UnityEngine;
 /// <summary>Explicit, non-destructive setup. Never runs automatically on import.</summary>
 public sealed class ViperHandVisualSetup : EditorWindow
 {
-    private const string SourcePath = "Assets/Resources/Sprites/Player/Weapon_Viper.aseprite";
-    private const string EquipmentPath = "Assets/SOData/Equipment/1015/Viper.asset";
+    private sealed class VisualTarget
+    {
+        public readonly string Name, SourcePath;
+        public readonly int[][] Ranges;
+        public VisualTarget(string name, string source, int[][] ranges)
+        {
+            Name = name;
+            SourcePath = "Assets/Resources/Sprites/Player/" + source + ".aseprite";
+            Ranges = ranges;
+        }
+        public string EquipmentPath => "Assets/SOData/Equipment/1015/" + Name + ".asset";
+        public string OutputFolder => "Assets/Animations/Player/" + Name + "HandGenerated";
+        public string OverridePath => OutputFolder + "/ViperHand.overrideController";
+        public int FrameCount => Ranges[2][1] + 1;
+    }
+
+    private static readonly VisualTarget[] Targets =
+    {
+        new VisualTarget("Viper", "Weapon_Viper_Prototype", new[] { new[] { 1, 7, 4 }, new[] { 8, 15, 11 }, new[] { 16, 23, 20 } }),
+        new VisualTarget("ViperSC", "Weapon_Viper", new[] { new[] { 1, 6, 3 }, new[] { 7, 11, 9 }, new[] { 12, 18, 14 } }),
+        // Claw has no source hit events yet: inspected contact poses, not additional gameplay events.
+        new VisualTarget("ViperAS", "Weapon_Viper_Claw", new[] { new[] { 1, 5, 3 }, new[] { 6, 10, 8 }, new[] { 11, 18, 13 } })
+    };
+    [SerializeField] private int selectedVariant;
     private const string PrefabPath = "Assets/Prefabs/Player Melee.prefab";
     private const string ControllerPath = "Assets/Animations/Player/Player_Animator.controller";
-    private const string OutputFolder = "Assets/Animations/Player/ViperHandGenerated";
-    private const string OverridePath = OutputFolder + "/ViperHand.overrideController";
 
     [Serializable]
     private sealed class SetupRecord
@@ -33,10 +53,12 @@ public sealed class ViperHandVisualSetup : EditorWindow
 
     private void OnGUI()
     {
+        selectedVariant = EditorGUILayout.Popup("Equipment", selectedVariant, Targets.Select(t => t.Name).ToArray());
+        var target = Targets[selectedVariant];
         EditorGUILayout.HelpBox("Creates six Body clip copies with Viper Hand sprites. Body animation, hit events, parry and death behavior are retained. Existing generated assets are never overwritten.", MessageType.Info);
         pixelsPerUnit = EditorGUILayout.FloatField("Output PPU (0 = imported)", pixelsPerUnit);
         pivotOffsetPixels = EditorGUILayout.Vector2Field("Pivot offset in pixels", pivotOffsetPixels);
-        EditorGUILayout.HelpBox("Defaults 32 PPU / (+8,+105) are a pixel-preview calibration, not Unity-validated. Viper currently imports at 100 PPU with a canvas-bottom pivot; existing hands use 32 PPU. Offset is added to each imported sprite's pivot in pixel coordinates (positive Y = up). Nonzero settings create sprite copies referencing the imported texture; source art/importer remain unchanged. Inspect in Unity before accepting placement.", MessageType.Warning);
+        EditorGUILayout.HelpBox("The current Viper family uses 32 PPU / (+8,+105), checked in a player-sprite preview. Sources import at 100 PPU with a canvas-bottom pivot. Offset is added to each imported sprite's pivot in pixel coordinates (positive Y = up). Nonzero settings create sprite copies referencing the imported texture; source art/importer remain unchanged. Inspect in Unity before accepting placement.", MessageType.Warning);
         alignmentReviewed = EditorGUILayout.Toggle("Alignment reviewed for this setup", alignmentReviewed);
         using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
@@ -46,7 +68,7 @@ public sealed class ViperHandVisualSetup : EditorWindow
                 try
                 {
                     if (!alignmentReviewed) throw new InvalidOperationException("Review imported sprite alignment and enter deliberate settings first. Setup has not changed anything.");
-                    Generate(pixelsPerUnit, pivotOffsetPixels);
+                    Generate(target, pixelsPerUnit, pivotOffsetPixels);
                 }
                 catch (Exception ex) { Debug.LogException(ex); }
             }
@@ -56,109 +78,149 @@ public sealed class ViperHandVisualSetup : EditorWindow
     [MenuItem("Tools/Necromander/Inspect Viper Hand Assets")]
     public static void Inspect()
     {
-        var assets = AssetDatabase.LoadAllAssetsAtPath(SourcePath);
-        foreach (var obj in assets)
+        foreach (var target in Targets)
         {
-            if (obj is Sprite s)
-                Debug.Log($"[Viper] Sprite {s.name}: rect={s.rect}, pivot={s.pivot}, PPU={s.pixelsPerUnit}", s);
-            if (obj is AnimationClip clip)
-                Debug.Log($"[Viper] Clip {clip.name}: length={clip.length}, sprite paths=" + string.Join(", ", AnimationUtility.GetObjectReferenceCurveBindings(clip).Select(b => b.path + ":" + b.propertyName)), clip);
+            var assets = AssetDatabase.LoadAllAssetsAtPath(target.SourcePath);
+            foreach (var clip in assets.OfType<AnimationClip>())
+                Debug.Log($"[Viper] {target.Name}/{clip.name}: length={clip.length}, events=" +
+                    string.Join(", ", AnimationUtility.GetAnimationEvents(clip).Select(e => e.time + ":" + e.functionName)), clip);
+            Debug.Log($"[Viper] {target.Name}: {assets.OfType<Sprite>().Count()} sprites from {target.SourcePath}");
         }
-        Debug.Log("[Viper] Inspection only. Check the source's merged layer output, frame names, scale and pivot before setup.");
     }
 
     /// <summary>Explicit batch entry point: -executeMethod ViperHandVisualSetup.SetupBatch.
     /// Uses the reviewed pixel-preview calibration; never invoked automatically.</summary>
     public static void SetupBatch()
     {
-        Generate(32f, new Vector2(8f, 105f));
-        ValidateGenerated();
+        ApplyFamily();
     }
 
-    /// <summary>원본 교체 후 기존 스프라이트 서브에셋만 갱신한다. GUID/클립/타격 이벤트는 보존한다.</summary>
+    [MenuItem("Tools/Necromander/Apply Viper Family Visuals")]
+    public static void ApplyFamily()
+    {
+        foreach (var target in Targets)
+        {
+            if (AssetDatabase.IsValidFolder(target.OutputFolder)) RefreshSpritesFromSource(target);
+            else Generate(target, 32f, new Vector2(8f, 105f));
+        }
+        ValidateGenerated();
+        ViperHandBindingSmokeTest.Run();
+    }
+
+    /// <summary>Explicit refresh preserves sprite/clip GUIDs and non-hand curves/events.</summary>
     [MenuItem("Tools/Necromander/Refresh Viper Sprites From Source")]
     public static void RefreshSpritesFromSource()
     {
+        foreach (var target in Targets) RefreshSpritesFromSource(target);
+        ViperHandBindingSmokeTest.Run();
+    }
+
+    private static void RefreshSpritesFromSource(VisualTarget target)
+    {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Exit Play Mode first.");
         var record = JsonUtility.FromJson<SetupRecord>(
-            RequireAsset<TextAsset>(OutputFolder + "/ViperSetupRecord.json").text);
+            RequireAsset<TextAsset>(target.OutputFolder + "/ViperSetupRecord.json").text);
         if (record == null) throw new InvalidOperationException("Missing Viper calibration record.");
-        var sourceObjects = AssetDatabase.LoadAllAssetsAtPath(SourcePath);
-        var sources = Enumerable.Range(0, 19).ToDictionary(i => i,
-            i => sourceObjects.OfType<Sprite>().Single(s => s.name == "Frame_" + i));
-        string path = OutputFolder + "/ViperAlignedSprites.asset";
+        var imported = AssetDatabase.LoadAllAssetsAtPath(target.SourcePath);
+        var sources = Enumerable.Range(0, target.FrameCount).ToDictionary(i => i,
+            i => imported.OfType<Sprite>().Single(s => s.name == "Frame_" + i));
+        var tags = Enumerable.Range(1, 3).Select(i => imported.OfType<AnimationClip>().Single(c => c.name == "Attack_" + i)).ToArray();
+        var curves = Enumerable.Range(0, 3).Select(i => ReadTag(tags[i], sources, target.Ranges[i][0], target.Ranges[i][1])).ToArray();
+        string path = target.OutputFolder + "/ViperAlignedSprites.asset";
         var existing = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
-        if (existing.Length != 19) throw new InvalidOperationException("Expected nineteen existing aligned sprites.");
         var main = RequireAsset<Sprite>(path);
-        var targets = Enumerable.Range(0, 19).ToDictionary(i => i,
-            i => i == 0 ? main : existing.Single(s => s != main && s.name == "Viper_Frame_" + i));
-        var ranges = new[] { new[] { 1, 6 }, new[] { 7, 11 }, new[] { 12, 18 } };
-        for (int i = 0; i < ranges.Length; i++)
-            ReadTag(sourceObjects.OfType<AnimationClip>().Single(c => c.name == "Attack_" + (i + 1)),
-                sources, ranges[i][0], ranges[i][1]);
+        var mapped = new Dictionary<int, Sprite> { { 0, main } };
+        for (int i = 1; i < existing.Length; i++)
+            mapped.Add(i, existing.Single(s => s != main && s.name == "Viper_Frame_" + i));
+        if (existing.Length > target.FrameCount) throw new InvalidOperationException("Source lost frames; review existing references before refreshing.");
+        var controller = RequireAsset<AnimatorOverrideController>(target.OverridePath);
+        var overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+        controller.GetOverrides(overrides);
+        var names = new[] { "Idle", "Run", "Dashf", "Attack_Light1", "Attack_Light2", "Attack_Medium" };
+        var pairs = names.Select(n => overrides.Single(p => p.Key.name == "Player_AnimClip_" + n)).ToArray();
+        foreach (var pair in pairs) ValidateClipCopy(pair.Key, pair.Value);
+        for (int i = 0; i < 3; i++)
+            RetargetAttack(pairs[i + 3].Key, tags[i], curves[i], sources, sources, target.Ranges[i][2]);
 
-        var replacements = new List<Sprite>();
-        try
+        Undo.RegisterCompleteObjectUndo(existing, "Refresh Viper sprites");
+        for (int i = 0; i < target.FrameCount; i++)
         {
-            foreach (int i in Enumerable.Range(0, 19))
+            var source = sources[i];
+            Vector2 pivot = source.pivot + record.pivotOffsetPixels;
+            var replacement = Sprite.Create(source.texture, source.rect,
+                new Vector2(pivot.x / source.rect.width, pivot.y / source.rect.height),
+                record.pixelsPerUnit > 0 ? record.pixelsPerUnit : source.pixelsPerUnit,
+                0, SpriteMeshType.FullRect, source.border, false);
+            replacement.name = mapped.TryGetValue(i, out var previous) ? previous.name : "Viper_Frame_" + i;
+            if (previous != null)
             {
-                var source = sources[i];
-                Vector2 pivot = source.pivot + record.pivotOffsetPixels;
-                var sprite = Sprite.Create(source.texture, source.rect,
-                    new Vector2(pivot.x / source.rect.width, pivot.y / source.rect.height),
-                    record.pixelsPerUnit > 0 ? record.pixelsPerUnit : source.pixelsPerUnit,
-                    0, SpriteMeshType.FullRect, source.border, false);
-                sprite.name = targets[i].name;
-                replacements.Add(sprite);
+                EditorUtility.CopySerialized(replacement, previous);
+                EditorUtility.SetDirty(previous);
+                DestroyImmediate(replacement);
             }
-            Undo.RegisterCompleteObjectUndo(targets.Values.Cast<UnityEngine.Object>().ToArray(), "Refresh Viper sprites");
-            for (int i = 0; i < replacements.Count; i++)
+            else
             {
-                EditorUtility.CopySerialized(replacements[i], targets[i]);
-                EditorUtility.SetDirty(targets[i]);
+                AssetDatabase.AddObjectToAsset(replacement, path);
+                mapped.Add(i, replacement);
             }
-            AssetDatabase.SaveAssetIfDirty(main);
-            record.sourceDependencyHash = AssetDatabase.GetAssetDependencyHash(SourcePath).ToString();
-            string recordPath = OutputFolder + "/ViperSetupRecord.json";
-            File.WriteAllText(recordPath, JsonUtility.ToJson(record, true));
-            AssetDatabase.ImportAsset(recordPath);
-            ValidateGenerated();
-            ViperHandBindingSmokeTest.Run();
-            Debug.Log("[Viper] Refreshed nineteen sprites in place; clip references and gameplay timing preserved.");
         }
-        finally
+        for (int i = 0; i < pairs.Length; i++)
         {
-            foreach (var sprite in replacements) DestroyImmediate(sprite);
+            var pair = pairs[i];
+            Undo.RecordObject(pair.Value, "Refresh Viper hand curve");
+            var keys = i < 3
+                ? new[] { new ObjectReferenceKeyframe { time = 0, value = mapped[0] },
+                    new ObjectReferenceKeyframe { time = LastSample(pair.Key), value = mapped[0] } }
+                : RetargetAttack(pair.Key, tags[i - 3], curves[i - 3], sources, mapped, target.Ranges[i - 3][2]);
+            AnimationUtility.SetObjectReferenceCurve(pair.Value, RequireHandBinding(pair.Value), keys);
+            AnimationUtility.SetAnimationClipSettings(pair.Value, AnimationUtility.GetAnimationClipSettings(pair.Key));
+            AnimationUtility.SetAnimationEvents(pair.Value, AnimationUtility.GetAnimationEvents(pair.Key));
+            ValidateClipCopy(pair.Key, pair.Value);
+            EditorUtility.SetDirty(pair.Value);
+            AssetDatabase.SaveAssetIfDirty(pair.Value);
         }
+        EditorUtility.SetDirty(main);
+        AssetDatabase.SaveAssetIfDirty(main);
+        record.sourceDependencyHash = AssetDatabase.GetAssetDependencyHash(target.SourcePath).ToString();
+        string recordPath = target.OutputFolder + "/ViperSetupRecord.json";
+        File.WriteAllText(recordPath, JsonUtility.ToJson(record, true));
+        AssetDatabase.ImportAsset(recordPath);
+        ValidateGenerated(target);
+        Debug.Log($"[Viper] Refreshed {target.Name}: {target.FrameCount} sprites; original body curves/events/duration preserved.");
     }
 
     [MenuItem("Tools/Necromander/Validate Generated Viper Hand Visuals")]
     public static void ValidateGenerated()
     {
-        var recordAsset = RequireAsset<TextAsset>(OutputFolder + "/ViperSetupRecord.json");
+        foreach (var target in Targets) ValidateGenerated(target);
+    }
+
+    private static void ValidateGenerated(VisualTarget target)
+    {
+        var recordAsset = RequireAsset<TextAsset>(target.OutputFolder + "/ViperSetupRecord.json");
         var record = JsonUtility.FromJson<SetupRecord>(recordAsset.text);
-        if (record == null || record.sourceDependencyHash != AssetDatabase.GetAssetDependencyHash(SourcePath).ToString())
+        if (record == null || record.sourceDependencyHash != AssetDatabase.GetAssetDependencyHash(target.SourcePath).ToString())
             throw new InvalidOperationException("Viper source/importer changed after generation. Derived sprite rectangles may be stale; inspect and deliberately regenerate, do not reuse blindly.");
-        var controller = RequireAsset<AnimatorOverrideController>(OverridePath);
+        var controller = RequireAsset<AnimatorOverrideController>(target.OverridePath);
         if (controller.runtimeAnimatorController != RequireAsset<RuntimeAnimatorController>(ControllerPath))
             throw new InvalidOperationException("Generated override uses a different base controller.");
         var overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
         controller.GetOverrides(overrides);
         var expectedNames = new[] { "Idle", "Run", "Dashf", "Attack_Light1", "Attack_Light2", "Attack_Medium" };
-        var sourceObjects = AssetDatabase.LoadAllAssetsAtPath(SourcePath);
+        var sourceObjects = AssetDatabase.LoadAllAssetsAtPath(target.SourcePath);
         var originals = new Dictionary<int, Sprite>();
         var aligned = new Dictionary<int, Sprite>();
-        string derivedPath = OutputFolder + "/ViperAlignedSprites.asset";
+        string derivedPath = target.OutputFolder + "/ViperAlignedSprites.asset";
         var derived = AssetDatabase.LoadAllAssetsAtPath(derivedPath).OfType<Sprite>().ToArray();
         bool usesDerived = record.pixelsPerUnit != 0 || record.pivotOffsetPixels != Vector2.zero;
         // Unity may give the main sprite the asset filename as its display name.
         // Frame zero is identified by its main-asset role, never by that name.
         var mainSprite = usesDerived ? AssetDatabase.LoadMainAssetAtPath(derivedPath) as Sprite : null;
-        if (usesDerived && (derived.Length != 19 || derived.Distinct().Count() != 19 ||
+        if (usesDerived && (derived.Length != target.FrameCount || derived.Distinct().Count() != target.FrameCount ||
             mainSprite == null || !AssetDatabase.IsMainAsset(mainSprite) || !derived.Contains(mainSprite)))
-            throw new InvalidOperationException("Expected one main frame-zero sprite and eighteen distinct subasset sprites.");
+            throw new InvalidOperationException("Expected one main frame-zero sprite and distinct subasset sprites for all source frames.");
         var resolved = new HashSet<Sprite>();
-        for (int i = 0; i < 19; i++)
+        for (int i = 0; i < target.FrameCount; i++)
         {
             originals[i] = sourceObjects.OfType<Sprite>().Single(s => s.name == "Frame_" + i);
             aligned[i] = usesDerived
@@ -187,7 +249,7 @@ public sealed class ViperHandVisualSetup : EditorWindow
             else
             {
                 int attack = slot - 3;
-                var ranges = new[] { new[] { 1, 6, 3 }, new[] { 7, 11, 9 }, new[] { 12, 18, 14 } };
+                var ranges = target.Ranges;
                 var tag = sourceObjects.OfType<AnimationClip>().Single(c => c.name == "Attack_" + (attack + 1));
                 var keys = ReadTag(tag, originals, ranges[attack][0], ranges[attack][1]);
                 expected = RetargetAttack(pair.Key, tag, keys, originals, aligned, ranges[attack][2]);
@@ -197,7 +259,7 @@ public sealed class ViperHandVisualSetup : EditorWindow
                 throw new InvalidOperationException(pair.Value.name + " hand sprite mapping/timing differs from the intended setup.");
         }
         if (changed != 6) throw new InvalidOperationException("Expected exactly six override clips, found " + changed);
-        var equipment = RequireAsset<EquipmentSO>(EquipmentPath);
+        var equipment = RequireAsset<EquipmentSO>(target.EquipmentPath);
         if (equipment.handAnimationOverride != controller) throw new InvalidOperationException("Viper binding is missing.");
         var body = RequireAsset<GameObject>(PrefabPath).transform.Find("Body");
         if (body == null || body.GetComponent<PlayerEquipmentVisualController>() == null)
@@ -246,11 +308,14 @@ public sealed class ViperHandVisualSetup : EditorWindow
 
     /// <summary>Called deliberately from the window or a reviewed Editor validation script.</summary>
     public static void Generate(float outputPixelsPerUnit, Vector2 pivotOffset)
+        => Generate(Targets[0], outputPixelsPerUnit, pivotOffset);
+
+    private static void Generate(VisualTarget target, float outputPixelsPerUnit, Vector2 pivotOffset)
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Exit Play Mode before setup.");
         if (!Finite(outputPixelsPerUnit) || outputPixelsPerUnit < 0 || !Finite(pivotOffset.x) || !Finite(pivotOffset.y))
             throw new ArgumentException("PPU must be zero or positive; all alignment values must be finite.");
-        var equipment = RequireAsset<EquipmentSO>(EquipmentPath);
+        var equipment = RequireAsset<EquipmentSO>(target.EquipmentPath);
         var controller = RequireAsset<RuntimeAnimatorController>(ControllerPath);
         var prefab = RequireAsset<GameObject>(PrefabPath);
         var prefabBody = prefab.transform.Find("Body");
@@ -261,13 +326,13 @@ public sealed class ViperHandVisualSetup : EditorWindow
 
         // A repeated invocation is a true no-op, including any user edits to generated clips.
         // Do not silently regenerate assets or replace a user's equipment override.
-        if (AssetDatabase.IsValidFolder(OutputFolder))
+        if (AssetDatabase.IsValidFolder(target.OutputFolder))
         {
-            var existing = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(OverridePath);
+            var existing = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(target.OverridePath);
             if (existing != null && equipment.handAnimationOverride == existing &&
                 prefabBody.GetComponent<PlayerEquipmentVisualController>() != null)
             {
-                ValidateGenerated();
+                ValidateGenerated(target);
                 Debug.LogWarning("[Viper] Already wired. Existing assets, alignment and user edits were left untouched. Validate them; regeneration is deliberately not automatic.", existing);
                 return;
             }
@@ -276,9 +341,9 @@ public sealed class ViperHandVisualSetup : EditorWindow
         if (equipment.handAnimationOverride != null)
             throw new InvalidOperationException("Viper already has an override assigned. Nothing replaced; review that binding first.");
 
-        var imported = AssetDatabase.LoadAllAssetsAtPath(SourcePath);
+        var imported = AssetDatabase.LoadAllAssetsAtPath(target.SourcePath);
         var sprites = new Dictionary<int, Sprite>();
-        for (int i = 0; i < 19; i++)
+        for (int i = 0; i < target.FrameCount; i++)
         {
             var matches = imported.OfType<Sprite>().Where(s => s.name == "Frame_" + i).ToArray();
             if (matches.Length != 1) throw new InvalidOperationException($"Expected exactly one imported Frame_{i}, found {matches.Length}. Inspect importer output; do not guess subasset IDs or merge layers automatically.");
@@ -301,7 +366,7 @@ public sealed class ViperHandVisualSetup : EditorWindow
             RequireHandBinding(clip);
         }
         // Validate source tag curves against the known source frame ranges before creating any output.
-        var ranges = new[] { new[] { 1, 6, 3 }, new[] { 7, 11, 9 }, new[] { 12, 18, 14 } };
+        var ranges = target.Ranges;
         var sourceCurves = new ObjectReferenceKeyframe[3][];
         for (int i = 0; i < 3; i++) sourceCurves[i] = ReadTag(importedClips[i], sprites, ranges[i][0], ranges[i][1]);
         for (int i = 3; i < 6; i++)
@@ -315,16 +380,16 @@ public sealed class ViperHandVisualSetup : EditorWindow
             RetargetAttack(bases[i + 3], importedClips[i], sourceCurves[i], sprites, sprites, ranges[i][2]);
 
         // All input validation is complete. Creation is isolated; no existing output is overwritten.
-        AssetDatabase.CreateFolder("Assets/Animations/Player", "ViperHandGenerated");
+        AssetDatabase.CreateFolder("Assets/Animations/Player", target.Name + "HandGenerated");
         GameObject contents = null;
         try
         {
-            var mapped = CreateAlignedSprites(sprites, outputPixelsPerUnit, pivotOffset);
+            var mapped = CreateAlignedSprites(target, sprites, outputPixelsPerUnit, pivotOffset);
             var overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
             for (int i = 0; i < bases.Length; i++)
             {
                 var copy = Instantiate(bases[i]);
-                copy.name = "Viper_" + names[i];
+                copy.name = target.Name + "_" + names[i];
                 var binding = RequireHandBinding(copy);
                 ObjectReferenceKeyframe[] keys;
                 if (i < 3)
@@ -342,21 +407,22 @@ public sealed class ViperHandVisualSetup : EditorWindow
                 AnimationUtility.SetAnimationClipSettings(copy, AnimationUtility.GetAnimationClipSettings(bases[i]));
                 AnimationUtility.SetAnimationEvents(copy, AnimationUtility.GetAnimationEvents(bases[i]));
                 ValidateClipCopy(bases[i], copy);
-                AssetDatabase.CreateAsset(copy, OutputFolder + "/" + copy.name + ".anim");
+                AssetDatabase.CreateAsset(copy, target.OutputFolder + "/" + copy.name + ".anim");
                 overrides.Add(new KeyValuePair<AnimationClip, AnimationClip>(bases[i], copy));
             }
-            var replacement = new AnimatorOverrideController(controller) { name = "ViperHand" };
+            var replacement = new AnimatorOverrideController(controller) { name = target.Name + "Hand" };
             replacement.ApplyOverrides(overrides);
-            AssetDatabase.CreateAsset(replacement, OverridePath);
-            string recordPath = OutputFolder + "/ViperSetupRecord.json";
+            AssetDatabase.CreateAsset(replacement, target.OverridePath);
+            string recordPath = target.OutputFolder + "/ViperSetupRecord.json";
             File.WriteAllText(recordPath, JsonUtility.ToJson(new SetupRecord
             {
-                sourceDependencyHash = AssetDatabase.GetAssetDependencyHash(SourcePath).ToString(),
+                sourceDependencyHash = AssetDatabase.GetAssetDependencyHash(target.SourcePath).ToString(),
                 pixelsPerUnit = outputPixelsPerUnit,
                 pivotOffsetPixels = pivotOffset
             }, true));
             AssetDatabase.ImportAsset(recordPath);
-            AssetDatabase.SaveAssets();
+            EditorUtility.SetDirty(mapped[0]);
+            AssetDatabase.SaveAssetIfDirty(mapped[0]);
             foreach (var sprite in mapped.Values)
                 if (!EditorUtility.IsPersistent(sprite) || sprite.texture == null || !EditorUtility.IsPersistent(sprite.texture))
                     throw new InvalidOperationException("Generated sprite or texture is not persistent; wiring stopped.");
@@ -365,14 +431,16 @@ public sealed class ViperHandVisualSetup : EditorWindow
             contents = PrefabUtility.LoadPrefabContents(PrefabPath);
             var body = contents.transform.Find("Body");
             if (body.GetComponent<PlayerEquipmentVisualController>() == null)
+            {
                 body.gameObject.AddComponent<PlayerEquipmentVisualController>();
-            PrefabUtility.SaveAsPrefabAsset(contents, PrefabPath, out bool saved);
-            if (!saved) throw new InvalidOperationException("Prefab save failed. Generated files remain for inspection; equipment was not changed.");
+                PrefabUtility.SaveAsPrefabAsset(contents, PrefabPath, out bool saved);
+                if (!saved) throw new InvalidOperationException("Prefab save failed. Generated files remain for inspection; equipment was not changed.");
+            }
             Undo.RecordObject(equipment, "Assign Viper hand animations");
             equipment.handAnimationOverride = replacement;
             EditorUtility.SetDirty(equipment);
             AssetDatabase.SaveAssetIfDirty(equipment);
-            ValidateGenerated();
+            ValidateGenerated(target);
             Debug.Log("[Viper] Generated and wired. Source/importer untouched. Validate alignment, contact poses, parry/death, switching away, loading and respawning in Play Mode. Re-running setup will not overwrite this output.", replacement);
         }
         catch
@@ -383,12 +451,12 @@ public sealed class ViperHandVisualSetup : EditorWindow
         finally { if (contents != null) PrefabUtility.UnloadPrefabContents(contents); }
     }
 
-    private static Dictionary<int, Sprite> CreateAlignedSprites(Dictionary<int, Sprite> sources, float ppu, Vector2 offset)
+    private static Dictionary<int, Sprite> CreateAlignedSprites(VisualTarget target, Dictionary<int, Sprite> sources, float ppu, Vector2 offset)
     {
         if (ppu == 0 && offset == Vector2.zero) return sources;
         var result = new Dictionary<int, Sprite>();
-        string path = OutputFolder + "/ViperAlignedSprites.asset";
-        for (int frame = 0; frame < 19; frame++)
+        string path = target.OutputFolder + "/ViperAlignedSprites.asset";
+        for (int frame = 0; frame < target.FrameCount; frame++)
         {
             var source = sources[frame];
             Vector2 pivot = source.pivot + offset;
@@ -428,6 +496,9 @@ public sealed class ViperHandVisualSetup : EditorWindow
         ObjectReferenceKeyframe[] sourceKeys, Dictionary<int, Sprite> original, Dictionary<int, Sprite> mapped, int contactFrame)
     {
         float contactSource = sourceKeys.First(k => k.value == original[contactFrame]).time;
+        var hitEvents = AnimationUtility.GetAnimationEvents(source).Where(e => e.functionName == "OnHitEvent").ToArray();
+        if (hitEvents.Length > 0 && (hitEvents.Length != 1 || Mathf.Abs(hitEvents[0].time - contactSource) > 0.001f))
+            throw new InvalidOperationException(source.name + " contact pose no longer matches its source event; review the mapping.");
         float contactTarget = EventTime(target, "OnAttackHitFrame");
         float endTarget = Mathf.Min(EventTime(target, "CanChangeAnimState"), LastSample(target));
         if (contactSource <= 0 || contactSource >= source.length || contactTarget <= 0 || contactTarget >= endTarget || endTarget > target.length + 0.001f)

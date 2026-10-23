@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ViperHand
+  m_Controller: {fileID: 9100000, guid: ea86af86b05cb104d9dd5719d54aeb10, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 40836ea649e226d44a44a0dfaf89ecd3, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 1e66573d345be6840986bcb951b373fb, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 521659adac8459a4eb61169db4e54936, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 290f547b49ab0384285555e9c942c1fb, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 4cea38ded12cf8f4691ceb461183da63, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: c9b9766e600b4a24b8abe1b3d1e62b99, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 4ffd9f3c884009742963ae4592278089, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 80b8be745c8e34645aed30b4cb979e88, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 9d3d33418e5973d45810dfe9a1c6e793, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 7064dad01446e4e41909e3737618c5d9, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 2123659ecc8764440b4f9abb82cc4db6, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: db661d712377e6840a6b1fcd75d99f18, type: 2}
