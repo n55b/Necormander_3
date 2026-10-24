@@ -1221,8 +1221,8 @@ GameObject:
   - component: {fileID: 974462714}
   - component: {fileID: 974462713}
   - component: {fileID: 974462712}
-  - component: {fileID: 974462711}
   - component: {fileID: 974462710}
+  - component: {fileID: 974462711}
   - component: {fileID: 974462709}
   - component: {fileID: 974462716}
   - component: {fileID: 974462717}
@@ -1381,7 +1381,7 @@ MonoBehaviour:
     CustomLookAtTarget: 0
   Lens:
     FieldOfView: 34
-    OrthographicSize: 10
+    OrthographicSize: 5
     NearClipPlane: 0.3
     FarClipPlane: 1000
     Dutch: 0
@@ -3809,7 +3809,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5.515625
+  orthographic size: 5.625
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -3834,7 +3834,7 @@ Transform:
   m_GameObject: {fileID: 2046889395}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14, y: 1.71875, z: -10}
+  m_LocalPosition: {x: -14, y: 1.7291665, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4673,6 +4673,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5180773849188234821, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5560672357008472007, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5950913715747645491, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -4723,6 +4731,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7682537897954542495, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
       propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9218289684064673257, guid: 854731ef9e4fb254d86f88678d2cc2e4, type: 3}
+      propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
