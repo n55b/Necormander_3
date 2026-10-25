@@ -860,6 +860,8 @@ public void OnGemTree(InputAction.CallbackContext context)
     public void CanChangeAnimState()
     {
         if (GetComponent<PlayerParryController>() is var guard && guard != null && guard.IsParrying) return;
+        var melee = GetComponent<MeleeCombatController>();
+        if (melee != null && !melee.TryFinishAttackAnimation()) return;
         canChangeState = true;
 
         if (_animStateLockTimeoutCoroutine != null)

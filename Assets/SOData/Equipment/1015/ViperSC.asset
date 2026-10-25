@@ -21,6 +21,7 @@ MonoBehaviour:
   icon: {fileID: 7214652476106930508, guid: 1ab9deb8cc0a79f4a8df904cbb5de4f7, type: 3}
   rarity: 0
   shopCost: 150
+  handAnimationOverride: {fileID: 22100000, guid: 38ccdd6faf1def442befdfe5bc560887, type: 2}
   passives:
   - rid: 2773715241801089030
   - rid: 2773715241801089031

@@ -40,6 +40,18 @@ public static class ViperHandBindingSmokeTest
             Check(animator.runtimeAnimatorController == baseline, "switch back to unconfigured equipment");
             SetEquipment(inventory, viper); inventory.OnEquipmentUpdated?.Invoke();
             Check(animator.runtimeAnimatorController == viper.handAnimationOverride, "equip Viper event");
+            var variants = new System.Collections.Generic.HashSet<AnimatorOverrideController> { viper.handAnimationOverride };
+            foreach (string name in new[] { "ViperSC", "ViperAS" })
+            {
+                var equipment = AssetDatabase.LoadAssetAtPath<EquipmentSO>("Assets/SOData/Equipment/1015/" + name + ".asset");
+                Check(equipment != null && equipment.handAnimationOverride != null && variants.Add(equipment.handAnimationOverride),
+                    name + " has its own hand animation override");
+                SetEquipment(inventory, equipment); inventory.OnEquipmentUpdated?.Invoke();
+                Check(animator.runtimeAnimatorController == equipment.handAnimationOverride && Mathf.Approximately(animator.speed, 1.7f),
+                    name + " equip/speed");
+            }
+            SetEquipment(inventory, viper); inventory.OnEquipmentUpdated?.Invoke();
+            Check(animator.runtimeAnimatorController == viper.handAnimationOverride, "switch back from upgrades to Prototype");
             Invoke(visual, "OnDisable");
             Check(animator.runtimeAnimatorController == baseline && inventory.OnEquipmentUpdated == null, "disable restoration/unsubscribe");
             PlayerSkillInventoryManager.Instance = null;
@@ -55,7 +67,7 @@ public static class ViperHandBindingSmokeTest
             Check(animator.runtimeAnimatorController == viper.handAnimationOverride, "replacement manager event");
             SetEquipment(replacement, null); replacement.OnEquipmentUpdated?.Invoke();
             Check(animator.runtimeAnimatorController == baseline, "unequipped fallback");
-            Debug.Log("[Viper] Isolated binding smoke check passed: initial equipment, switch-back, events, disable/re-enable, late initialization, manager replacement, null equipment and speed. This is not a Play Mode/animation evaluation test.");
+            Debug.Log("[Viper] Isolated binding smoke check passed: all three distinct variants, initial equipment, switch-back, events, disable/re-enable, late initialization, manager replacement, null equipment and speed. This is not a Play Mode/animation evaluation test.");
         }
         finally
         {

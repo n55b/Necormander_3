@@ -20,7 +20,7 @@ public class PlayerHandAimController : MonoBehaviour
     {
         if (_melee == null) return;
 
-        if (_melee.IsAttacking)
+        if (_melee.IsAimingAttack)
         {
             Vector2 dir = _melee.CurrentAttackDir;
             if (dir.sqrMagnitude < 0.0001f) return;

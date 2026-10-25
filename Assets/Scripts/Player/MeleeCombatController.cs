@@ -82,18 +82,22 @@ public class MeleeCombatController : MonoBehaviour
     private bool _isHoldingAttack = false;
     private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
     private MinionSkillCaster _activeCaster; // 마무리 타격 소환수 추적 — 연속 공격 시 중복 스폰 방지용
+    private bool _attackAnimationPlaying;
+    private bool _ownsAnimationLock;
 
     // 콤보 스텝을 함께 전달하는 공격 시작 이벤트 (int = comboStep 0/1/2)
     public event System.Action<int> OnAttackExecuted;
 
-    public bool IsAttacking => _activeHitbox != null || (Time.time - _lastAttackTime) < attackCooldown;
+    // 판정창은 고정 길이, 모션은 공속 배율을 따른다. 둘 중 하나라도 남으면 평타는 진행 중이다.
+    public bool IsAttacking => _attackAnimationPlaying || _activeHitbox != null ||
+                               (Time.time - _lastAttackTime) < attackCooldown;
+    public bool IsAimingAttack => _ownsAnimationLock;
 
     /// <summary>
     /// 취소해야 할 '진행 중 공격'이 있는가 — 평캔/대쉬/패링의 캔슬 게이트 전용.
-    /// IsAttacking(히트박스 or 0.3s 쿨다운 창)에 마무리 소환수 생존(_activeCaster)을 더한다.
-    /// 마무리는 castDuration(기본 ~0.9s)이 쿨다운보다 길어서, IsAttacking 만으론 마무리 애니 도중을
-    /// 못 잡아 스킬/대쉬가 마무리를 못 끊었다(같은 미니언 두 마리 공존·마무리 미취소). 이걸로 마무리
-    /// 전 구간을 캔슬 대상에 포함한다. (콤보 진행 타이밍은 IsAttacking 그대로 — 여긴 캔슬 게이트 전용.)
+    /// 플레이어 모션/히트박스/최소 간격에 소환수 생존(_activeCaster)을 더한다.
+    /// 소환수 일격이 플레이어 평타보다 오래 남아도 Space 재사용 시 회수할 수 있어야 한다.
+    /// 콤보 진행에는 IsAttacking만 사용한다 — 이 속성은 캔슬 게이트 전용이다.
     /// </summary>
     public bool IsInAttackAction => IsAttacking || _activeCaster != null;
 
@@ -106,9 +110,14 @@ public class MeleeCombatController : MonoBehaviour
 
     private void Update()
     {
-        // 콤보 리셋
+        // 모션과 판정이 모두 끝난 뒤 이동·다음 콤보를 허용한다.
         if (!IsAttacking)
         {
+            if (_ownsAnimationLock)
+            {
+                _ownsAnimationLock = false;
+                _player.CanChangeAnimState();
+            }
             if (_player != null)
             {
                 _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack); // 공격 끝났으므로 이속 복구
@@ -119,7 +128,7 @@ public class MeleeCombatController : MonoBehaviour
                 _comboStep = 0;
             }
 
-            // 홀드 공격 유지 (현재 텔레그래프가 끝났고, 쿨다운이 지났다면 다음 콤보 발동)
+            // 홀드 공격 유지 (모션·판정·최소 간격이 모두 끝났다면 다음 콤보 발동)
             if (_isHoldingAttack)
             {
                 // 플레이어가 대시 중, 패리 중, 또는 스킬 시전 중일 때는 꾹 누르고 있어도 자동 공격 제한
@@ -198,26 +207,7 @@ public class MeleeCombatController : MonoBehaviour
         damageMultiplier *= weapon != null ? weapon.ComboMultiplier(swingIndex) : (swingIndex == 2 ? 1.5f : 1f);
         damageMultiplier *= weapon != null ? weapon.basicDamagePerHit : 1f;
 
-        // [애니메이션 재생]
-        _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0f); // [수정] 평타 모션 중 키보드 수동 이동 차단
-
-        // 공격 애니메이션 재생 중에는 Update()의 Idle/Walk 자동 전환을 잠그고,
-        // 캐시를 초기화해서 공격이 끝난 뒤 Idle로 제대로 복귀하도록 합니다.
-        // (실제 복귀는 애니메이션 클립의 'CanChangeAnimState' 이벤트가 canChangeState를 다시 true로 바꿔줄 때 일어납니다)
-        _player.LockAnimState(); // canChangeState lock with timeout safety net
-        _player.ResetAnimStateCache();
-
-        // 기존 3타 모션을 재사용한다. 소환수 평타는 이 콤보와 별도 내부 쿨로 동시에 발동한다.
-        if (swingIndex == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
-        else if (swingIndex == 1) _player.PlayAllAnim("Attack_Light2", "Attack");
-        else _player.PlayAllAnim("Attack_Medium", "Attack");
-
-        // 공속(회/초)이 곧 애니 배속이다. 1회/초 = 1배속, 2회/초 = 2배속.
-        if (_player.Stat != null)
-        {
-            float atkAnimSpeed = Mathf.Clamp(_player.Stat.ATKSPD, 0.5f, 3f);
-            _player.SetAttackAnimSpeed(atkAnimSpeed);
-        }
+        PlayAttackAnimation(swingIndex);
 
         // [HitBox 소환]
         if (telegraphPrefab != null)
@@ -307,6 +297,33 @@ public class MeleeCombatController : MonoBehaviour
 
         // 콤보 진행 (1타 → 2타 → 3타)
         _comboStep = (_comboStep + 1) % ComboLength;
+    }
+
+    private void PlayAttackAnimation(int swingIndex)
+    {
+        _attackAnimationPlaying = true;
+        _ownsAnimationLock = true;
+        _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0f);
+        _player.LockAnimState();
+        _player.ResetAnimStateCache();
+        if (swingIndex == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
+        else if (swingIndex == 1) _player.PlayAllAnim("Attack_Light2", "Attack");
+        else _player.PlayAllAnim("Attack_Medium", "Attack");
+        if (_player.Stat != null)
+            _player.SetAttackAnimSpeed(Mathf.Clamp(_player.Stat.ATKSPD, 0.5f, 3f));
+    }
+
+    /// <summary>
+    /// 복귀 이벤트(또는 PlayerController의 누락 이벤트 안전장치)가 모션 완료를 알린다.
+    /// 판정/최소 간격이 남았다면 이동 및 좌우 반전을 보류하고 Update에서 마저 해제한다.
+    /// </summary>
+    public bool TryFinishAttackAnimation()
+    {
+        if (!_ownsAnimationLock) return true;
+        _attackAnimationPlaying = false;
+        if (IsAttacking) return false;
+        _ownsAnimationLock = false;
+        return true;
     }
 
     /// <summary>
@@ -486,6 +503,9 @@ public class MeleeCombatController : MonoBehaviour
     /// </summary>
     public void CancelPlayerAttack()
     {
+        // 이후 도착하는 평타 종료 처리로 새 대쉬/가드의 잠금을 풀지 않는다.
+        _attackAnimationPlaying = false;
+        _ownsAnimationLock = false;
         if (_activeHitbox != null)
         {
             Destroy(_activeHitbox.gameObject);
