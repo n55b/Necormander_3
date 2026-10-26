@@ -39,6 +39,7 @@ MonoBehaviour:
       m_LocalVariables: []
     icon: {fileID: 0}
     rarity: 0
+  impactColor: {r: 1, g: 0.8, b: 0.35, a: 1}
   baseEffectValue: 0
   attack: 8
   maxHP: 80

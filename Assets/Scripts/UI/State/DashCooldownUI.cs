@@ -209,6 +209,11 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
         if (dashCount == null || dashCount.Length == 0) return;
         if (current == _lastPipCurrent && max == _lastPipMax) return;
 
+        if (_lastPipCurrent >= 0 && current > _lastPipCurrent && worldPipFills != null && worldPipFills.Length > 0)
+        {
+            var pip = worldPipFills[Mathf.Clamp(current-1,0,worldPipFills.Length-1)];
+            if (pip != null && _player != null) FeedbackOverlay.Instance?.Pulse(FeedbackCue.DashReady,_player.transform.position,destination:pip.rectTransform);
+        }
         _lastPipCurrent = current;
         _lastPipMax     = max;
 

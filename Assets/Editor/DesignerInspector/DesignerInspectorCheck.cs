@@ -62,6 +62,7 @@ public static class DesignerInspectorCheck
         foreach (string guid in AssetDatabase.FindAssets("t:ScriptableObject", new[] { "Assets/SOData" }))
             Inspect(AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid)));
         Inspect(Resources.Load<StatusBalanceSO>(StatusRules.BalanceResourcePath));
+        Inspect(Resources.Load<FeedbackCatalog>("FeedbackCatalog"));
         Directory.CreateDirectory("Logs");
         File.WriteAllText("Logs/Designer-inspector-untranslated.txt", "단어: " + string.Join(", ", unknown) + "\n필드: " + string.Join(", ", missing));
         Require(unknown.Count == 0 && missing.Count == 0, "번역 누락: " + string.Join(", ", unknown) + " / " + string.Join(", ", missing));

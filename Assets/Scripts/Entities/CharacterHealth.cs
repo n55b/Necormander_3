@@ -18,6 +18,8 @@ public class CharacterHealth : MonoBehaviour, IDamageable
     public event Action<float> OnDamageTaken;
     public event Action<DamageInfo> OnDamageReceived; // [추가] 전체 데미지 정보 전달용
     public event Action OnHeal;
+    /// <summary>최대 체력 제한까지 적용한 실제 회복량. 체력 변경 후 HUD 갱신 전에 알린다.</summary>
+    public event Action<float> OnHealthRestored;
     public event Action UpdateHPBar;
     public event Action OnDeath;
     public event Func<CharacterHealth, bool> OnBeforeDeath; // [추가] 부활/페이즈 전환 시 사망 취소용
@@ -356,6 +358,11 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         float oldHP = curHP;
 
         curHP = Mathf.Min(curHP + healAmount, _stat.MAXHP);
+        if(curHP>oldHP)
+        {
+            PolishFeedback.Play(FeedbackCue.Heal,transform.position,Vector2.up);
+            OnHealthRestored?.Invoke(curHP-oldHP);
+        }
 
         Debug.Log($"{gameObject.name} healed for {healAmount}. HP: {oldHP} -> {curHP}");
         TakeHealEvent?.Invoke(healAmount); // [추가] 힐 텍스트 띄우기

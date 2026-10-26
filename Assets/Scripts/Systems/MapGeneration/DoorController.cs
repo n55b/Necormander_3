@@ -126,6 +126,7 @@ public class DoorController : MonoBehaviour
     /// <summary>페이드 인까지 끝난 뒤: 조작 복구.</summary>
     private void FinishTeleport(PlayerController player)
     {
+        if(player!=null) PolishFeedback.Play(FeedbackCue.PortalArrive,player.transform.position,Vector2.up);
         if (player != null) player.SetInputBlocked(false);
         _isTeleporting = false;
     }

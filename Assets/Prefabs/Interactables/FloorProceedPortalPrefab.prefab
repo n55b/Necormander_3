@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6319783379995918404}
   - component: {fileID: 8965953227570319229}
   - component: {fileID: 5944868389570950736}
+  - component: {fileID: 409278265487786578}
   m_Layer: 0
   m_Name: FloorProceedPortalPrefab
   m_TagString: Untagged
@@ -164,3 +165,19 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 6260306562049588663}
+--- !u!114 &409278265487786578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7688696379878300730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de5a9ec73ec3f8d4e927d892aa6304d2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  kind: 0
+  visibleDistance: 12
+  touchDistance: 1
+  offset: {x: 0, y: 0, z: 0}

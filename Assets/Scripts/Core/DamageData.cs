@@ -96,6 +96,8 @@ public static class DamageRules
 [System.Serializable]
 public struct DamageInfo
 {
+    [System.NonSerialized] public int feedbackHitIndex;
+    [System.NonSerialized] public bool feedbackComboFinish;
     // 구조체 복사/다중 대상/추가 타격 모두 같은 토큰을 공유한다. 소환수 평타에는 넣지 않는다.
     [System.NonSerialized] public PlayerBasicAttackRoll playerBasicAttack;
     public float amount;
@@ -143,6 +145,8 @@ public struct DamageInfo
     public DamageInfo(float amount, DamageType type = DamageType.Physical, GameObject attacker = null, float debuffMultiplier = 1f, string popupText = "", bool isRedirected = false, bool causesHitstun = false, float knockbackForce = 0f, float superArmorDamage = 0f, DamageCategory category = DamageCategory.None, StatusType? applyStatus = null, float statusDuration = 0f, bool isRanged = false, Vector2? hitFrom = null, bool bypassGuard = false)
     {
         this.bypassGuard = bypassGuard;
+        feedbackHitIndex = 0;
+        feedbackComboFinish = false;
         playerBasicAttack = null;
         this.isRanged = isRanged;
         this.hitFrom = hitFrom;

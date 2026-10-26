@@ -39,6 +39,8 @@ MonoBehaviour:
       m_LocalVariables: []
     icon: {fileID: 4111508881775948770, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
     rarity: 0
+  feedbackTier: 0
+  feedbackColor: {r: 0.95, g: 0.82, b: 0.45, a: 1}
   minionSkill: {fileID: 11400000, guid: 9e6780eb641747948d78784454effb69, type: 2}
   dashModifier:
     uiTitle: 
@@ -71,6 +73,7 @@ MonoBehaviour:
     causesHitstun: 1
     knockbackForce: 4
     superArmorDamage: 30
+  hitEffectPrefab: {fileID: 0}
   basicAnim:
     visual: {fileID: 4595676993022848261, guid: 2f9f600a98025504aa3139f44a622906, type: 3}
     duration: 0.625

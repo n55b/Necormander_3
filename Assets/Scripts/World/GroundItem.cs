@@ -138,8 +138,15 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
             return true;
         }
         if (ItemPouch.Instance == null || !ItemPouch.Instance.TryAdd(_item)) { Announce("최대 중첩에 도달했습니다"); return false; }
+        PlayPickupFeedback();
         Consume();
         return true;
+    }
+
+    public void PlayPickupFeedback()
+    {
+        PolishFeedback.Pickup(_sr != null ? _sr.bounds.center : transform.position,
+            _sr != null ? _sr.sprite : null, _sr != null ? _sr.transform.lossyScale : Vector3.one);
     }
 
     // Destroy는 프레임 끝이므로 즉시 소비 표시를 남겨 중복 지급/회복을 막는다.

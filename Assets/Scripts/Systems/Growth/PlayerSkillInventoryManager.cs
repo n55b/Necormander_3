@@ -119,6 +119,7 @@ public class PlayerSkillInventoryManager : MonoBehaviour
     {
         if (next == null || Weapon == null || !System.Array.Exists(Weapon.upgradeOptions, e => e == next)) return false;
         EquipEquipment(new EquipmentInstance { baseData = next, enhanceLevel = next.upgradeStage });
+        PolishFeedback.AtPlayer(FeedbackCue.Upgrade, next.upgradeStage);
         return true;
     }
 

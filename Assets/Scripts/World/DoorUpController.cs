@@ -27,6 +27,8 @@ public class DoorUpController : MonoBehaviour
     
     public void OpenDoor()
     {
+        if(closeDoor.activeSelf && PolishFeedback.Player!=null && (PolishFeedback.Player.transform.position-transform.position).sqrMagnitude<225f)
+            PolishFeedback.Play(FeedbackCue.DoorOpen,transform.position,Vector2.up);
         closeDoor.SetActive(false);
         openDoor.SetActive(true);
         KeepChildrenUpright();

@@ -14,16 +14,49 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 0
   minionName: Enemy Scarecrow
-  throwEffectCategory: 0
+  minionIcon: {fileID: 0}
+  shopCost: 150
+  rewardItemData:
+    itemName: 
+    description: 
+    localizedItemName:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    icon: {fileID: 0}
+    rarity: 0
+  impactColor: {r: 0.9, g: 0.87, b: 0.75, a: 1}
   baseEffectValue: 0
-  effectMultiplier: 1
-  baseAreaRadius: 3
-  maxHP: 1e+20
   attack: 10
+  maxHP: 1e+20
   attackSpeed: 1
   attackRange: 2
   detectRange: 10
   defense: 0
   moveSpeed: 5
+  baseEvasion: 0
+  baseAccuracy: 1
+  attackType: 0
+  tier: 0
+  isPhaseVariant: 0
   aiPattern: {fileID: 11400000, guid: ff966283d369c134389cad610af21eef, type: 2}
+  AttackSound: {fileID: 0}
   minionPrefab: {fileID: 4998578495538801392, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+  dedicatedRoomPrefab: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []

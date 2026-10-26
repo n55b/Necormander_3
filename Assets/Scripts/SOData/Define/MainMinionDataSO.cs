@@ -7,6 +7,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewMainMinion", menuName = "Necromancer/Data/Main Minion")]
 public class MainMinionDataSO : MinionDataSO
 {
+    [Header("적중 연출 성장")]
+    [Range(0,3), Tooltip("0=기본, 1=강화/첫 진화, 2=상위, 3=최종. 실제 강화 수치가 추가되며 최대 3입니다.")]
+    public int feedbackTier;
+    public Color feedbackColor = new Color(.45f, .85f, 1f);
     [Header("스페이스바 액티브")]
     [Tooltip("Space 로 발동하는 일회성 스킬. 쿨타임만 확인하고 조건 없이 나간다.")]
     public MinionSkillSO minionSkill;

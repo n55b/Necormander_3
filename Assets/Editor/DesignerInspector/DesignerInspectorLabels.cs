@@ -102,6 +102,73 @@ public static class DesignerInspectorLabels
     }
 
     private const string SpecificData = @"
+FeedbackCatalog.dashTrailRampDuration|대시 잔상 간격 변화 시간|출발부터 이 시간이 지나면 끝 간격에 도달합니다.
+FeedbackCatalog.dashTrailIntervalRange|대시 잔상 간격 배율 (시작/끝)|기존 잔상 간격에 곱합니다. 1은 기존과 같습니다.
+
+FeedbackRecipe.enabled|사용|끄면 이 신규 연출만 중단합니다.
+FeedbackRecipe.intensity|연출 강도|0은 끄기, 1은 기본 강도입니다. 원본 그림은 확대하지 않습니다.
+FeedbackRecipe.cue|효과 번호|후보 문서와 같은 번호입니다.
+FeedbackRecipe.title|이름|기획자가 찾는 표시 이름입니다.
+FeedbackRecipe.description|설명|이 효과가 언제 나오는지 설명합니다.
+FeedbackRecipe.prefab|월드 효과 프리팹|프리팹의 선과 아이콘을 사용합니다. 비어 있는 화면/소리 전용 효과도 있습니다.
+FeedbackRecipe.shape|도형 형태|별·고리·점·연결선 등을 선택합니다.
+FeedbackRecipe.color|색상|원본 캐릭터 색을 바꾸지 않습니다.
+FeedbackRecipe.duration|지속 시간|이 시간이 지나면 효과를 정리합니다.
+FeedbackRecipe.delay|시작 지연|호출된 뒤 기다리는 시간입니다.
+FeedbackRecipe.count|빛 조각 수|프리팹에 있는 최대 16개 선에서 사용합니다.
+FeedbackRecipe.radius|퍼지는 거리|월드 유닛입니다. 원본 도트 크기를 늘리지 않습니다.
+FeedbackRecipe.width|선 굵기|0.03125는 32 PPU 기준 1픽셀입니다.
+FeedbackRecipe.drift|진행 중 이동|효과 로컬 좌표의 이동량입니다.
+FeedbackRecipe.minimumTier|최소 성장 단계|0 기본 / 1 강화 / 2 진화 / 3 최종.
+FeedbackRecipe.scaleWithTier|성장에 따른 강약 적용|성장 단계의 입자 수·거리·강도를 곱합니다.
+FeedbackRecipe.interval|같은 효과 최소 간격|짧은 시간에 몰리는 동일 효과의 출력을 제한합니다.
+FeedbackRecipe.motion|움직임 곡선|가로는 수명 비율, 세로는 진행 비율입니다.
+FeedbackRecipe.sound|추가 효과음|프로젝트에 있는 소리만 연결합니다.
+FeedbackRecipe.volume|추가 효과음 크기|기존 효과음 위에 작게 덧붙입니다.
+FeedbackRecipe.pitchVariation|효과음 음높이 변화|80번을 켜면 이 범위에서 조금씩 달라집니다.
+FeedbackTier.intensity|연출 강도|0은 끄기, 1은 기본 강도입니다. 원본 그림은 확대하지 않습니다.
+FeedbackTier.title|이름|기획자가 찾는 표시 이름입니다.
+FeedbackTier.density|입자 수 배율|원본 프리팹 한도 안에서 적용합니다.
+FeedbackTier.reach|퍼지는 거리 배율|그림 배율은 바꾸지 않습니다.
+FeedbackCatalog.enabled|사용|끄면 이 신규 연출만 중단합니다.
+FeedbackCatalog.intensity|연출 강도|0은 끄기, 1은 기본 강도입니다. 원본 그림은 확대하지 않습니다.
+FeedbackCatalog.simultaneousBursts|동시에 남길 월드 효과 수|전투가 몰려도 이 수를 넘게 생성하지 않습니다.
+FeedbackCatalog.burstsPerFrame|프레임당 월드 효과 제한|한 프레임에 생성할 최대 효과 수입니다.
+FeedbackCatalog.soundsPerFrame|프레임당 추가 효과음 제한|기존 공격 소리 외에 덧붙이는 소리의 수입니다.
+FeedbackCatalog.tiers|성장 단계|기본·강화·진화·최종 순서입니다.
+FeedbackCatalog.effects|개별 연출|번호는 이펙트 후보 문서와 같습니다.
+FeedbackCatalog.overlayPrefab|화면 연출 프리팹|GameManager에 실제 배치된 프리팹입니다.
+FeedbackCatalog.lowHealthRatio|저체력 기준 비율|이 비율 아래일 때 화면 가장자리가 호흡합니다.
+FeedbackCatalog.lowHealthInterval|저체력 호흡 주기|가장자리 밝기가 반복되는 시간입니다.
+FeedbackCatalog.ambientInterval|환경 효과 반복 간격|포탈·드롭·환경 먼지의 생성 간격입니다.
+FeedbackCatalog.trailInterval|탄환·대시 보조 잔광 간격|높이면 성기게 생성합니다.
+FeedbackCatalog.stepInterval|발걸음 간격|움직이는 동안의 발 먼지 생성 간격입니다.
+FeedbackCatalog.waterInterval|물가 파문 간격|플레이어 주변 물가만 검사합니다.
+FeedbackCatalog.dirtColor|흙 발걸음 색|기본 지면 색입니다.
+FeedbackCatalog.stoneColor|돌 발걸음 색|타일 이름에 stone/rock/brick이 있는 지면입니다.
+FeedbackCatalog.waterColor|물가 발걸음 색|인접 물 타일이 있을 때 적용합니다.
+FeedbackCatalog.cameraForce|타격 카메라 충격|기존 Cinemachine 충격 제한을 공유합니다.
+FeedbackCatalog.hitStopSeconds|강타 정지 시간|진화 이상 강타의 짧은 정지 시간입니다.
+FeedbackCatalog.slowMotionScale|보스 처치 감속 배율|1이면 원래 속도입니다.
+FeedbackCatalog.slowMotionSeconds|보스 처치 감속 시간|실제 시간 기준으로 끝납니다.
+FeedbackBurst.lines|빛 조각 참조|프리팹에 실제 배치한 선입니다.
+FeedbackBurst.icon|원본 아이콘|원본 배율 1배를 유지합니다.
+FeedbackOverlay.canvasRect|화면 캔버스|좌표 변환 기준입니다.
+FeedbackOverlay.iconSize|HUD 알림 아이콘 크기|중첩 알림 등에 쓰는 최대 UI 크기입니다. 습득 아이콘은 바닥에서 보이던 화면 크기를 유지합니다.
+FeedbackOverlay.healAbsorbDuration|회복 구슬 흡수 시간|체력바에 도착한 구슬이 작아지며 흡수되는 시간(초)입니다.
+FeedbackOverlay.motes|화면 아이콘 풀|에디터에 미리 배치한 이미지입니다.
+FeedbackOverlay.edges|가장자리 표시|상·우·하·좌 순서입니다.
+FeedbackOverlay.bagAnchor|가방 도착점|아이템 아이콘이 날아갈 위치입니다.
+FeedbackOverlay.healthAnchor|체력바 기본 도착점|미리보기용 기본 위치입니다. 실제 회복은 HUD의 회복될 빈 구간을 따라갑니다.
+FeedbackOverlay.skillAnchor|스킬 준비 위치|스킬 준비 완료 표시 위치입니다.
+FeedbackOverlay.goldAnchor|골드 표시 위치|구매 피드백 위치입니다.
+FeedbackSurface.kind|환경 종류|포탈·풀·먼지·드롭 중 선택합니다.
+FeedbackSurface.visibleDistance|주변 표시 거리|플레이어가 이 거리 안에 있을 때만 반복 효과를 만듭니다.
+FeedbackSurface.touchDistance|풀 반응 거리|가까이 들어올 때 한 번 잎 파편을 만듭니다.
+FeedbackSurface.offset|효과 위치 보정|게임 판정 위치를 바꾸지 않고 연출 위치만 옮깁니다.
+MainMinionDataSO.feedbackTier|연출 성장 단계|미니언 강화 단계가 추가됩니다.
+MainMinionDataSO.feedbackColor|계통 연출 색|기사·무사의 적중 연출 색입니다.
+EnemyMinionDataSO.impactColor|피격 재질 색|금속은 노랑, 뼈는 흰색 등으로 조절합니다.
 MeleeDodgeController.upwardEffectState|위쪽 대시 이펙트 상태|위쪽 대시에 재생할 Animator 상태 이름입니다. 기본은 원본 Aseprite 태그 Up입니다.
 MeleeDodgeController.downwardEffectState|아래·수평 대시 이펙트 상태|아래쪽 또는 수평 대시에 재생할 Animator 상태 이름입니다. 기본은 Down입니다. 좌우는 이동 방향에 맞춰 반전합니다.
 BaseAIPatternSO.attackRangeInset|공격 거리 안쪽 여유 (유닛)|사거리에서 이 거리만큼 더 접근한 뒤 공격합니다. 0이면 사거리 경계에서 공격합니다.
@@ -135,6 +202,8 @@ ArcherBossAIPatternSO.arrowLifetime|화살 최대 생존 시간 (초)|보스가 
 DashCooldownUI.usedPipAlpha|충전 중 대시 칸 불투명도|사용한 대시 칸의 밝기입니다. 0이면 보이지 않고 1이면 완전히 표시됩니다.
 PlayerController.uiIconGap|툴팁과 F 표시 간격 (유닛)|툴팁 위쪽 끝에서 F 아이콘 아래쪽 끝까지의 간격입니다. 상호작용 대상 선택에는 영향이 없습니다.
 PlayerStateUI.unavailableSkillAlpha|사용 불가 스킬 불투명도|사용할 수 없는 스킬 아이콘의 불투명도입니다. 0이면 숨기고 1이면 원래 밝기로 표시합니다.
+PlayerStateUI.healFillDuration|회복 게이지 채움 시간|구슬 도착 후 체력바와 숫자가 차오르는 시간(초)입니다. 실제 체력은 즉시 회복합니다.
+PlayerStateUI.healFillCurve|회복 게이지 채움 곡선|구슬 도착 후 시간(가로)에 따른 회복 표시 진행률(세로, 0~1)입니다.
 SkillExplainUI.statsRefreshInterval|스탯 표시 갱신 간격 (초)|정보창의 스탯 수치를 새로 읽는 간격입니다. 작을수록 빠르게 반영되지만 갱신 횟수가 늘어납니다.
 DebuffIcon.triggeredScale|상태이상 아이콘 강조 배율|상태이상 아이콘을 표시할 때 적용하는 크기 배율입니다.
 DebuffIcon.triggeredOutlineDistance|상태이상 아이콘 외곽선 두께|아이콘의 빨간 외곽선 두께입니다. X와 Y는 UI 픽셀 단위입니다.
@@ -225,7 +294,6 @@ TextFloating.displaytime|숫자 표시 시간 (초)|숫자가 떠 있는 전체 
 TextFloating.horizontalJitter|숫자 가로 흩어짐 (유닛)|생성 위치의 좌우 무작위 범위. 0이면 가운데에 겹칩니다.
 EquipmentSO.basicRepeatHitInterval|추가 타격 사이 간격 (초)|마리오네트 등 같은 공격의 반복 타격 사이 간격입니다. 늘리면 연속 타격이 더 또렷하게 분리됩니다.
 EquipmentSO.comboMultipliers|콤보별 평타 피해 배율|목록 순서가 플레이어 1타, 2타, 3타 순서입니다. 현재 3타 콤보이므로 세 항목을 유지하세요. 소환수의 평타 피해는 소환수 데이터에서 별도로 조절합니다.
-MainMinionDataSO.finisher|평타 연계 소환수 공격|플레이어 평타 시 내부 재사용 대기가 끝나 있으면 함께 나가는 소환수 공격입니다. finisher는 저장 호환을 위한 옛 코드 이름입니다.
 MinionFinisher.internalCooldown|소환수 평타 내부 대기 (초)|연계 소환수 평타를 낸 뒤 다음 연계를 허용하기까지의 시간입니다.
 EquipmentSO.basicDamagePerHit|반복 타격의 1회 피해 배율|각 추가 타격에 곱할 배율. 마리오네트 0.6 = 원래 피해의 60%.
 BoneMasterAIPatternSO.sweepTurnSpeed|휩쓸기 최대 조준 회전 속도 (도/초)|0이면 속도 제한 없이 조준합니다. 공격 직전 조준 고정 시간에는 이 값과 무관하게 방향이 고정됩니다.
@@ -239,6 +307,8 @@ BoneMasterPhase2AIPatternSO.fakeCounterChance|페이크 카운터 확률 (0~1)|�
 ";
 
     private const string WordData = @"
+feedback=연출;intensity=강도;low=낮음;minimum=최소;motion=움직임;shape=형태;sounds=소리;trail=잔광;water=물;with=함께;
+simultaneous=동시;bursts=효과;burst=효과;motes=빛조각;edges=가장자리;cue=효과번호;recipe=효과설정;recipes=효과설정;density=입자밀도;reach=거리;drift=이동;distortion=굴절;surface=지면;dirt=흙;stone=돌;foliage=풀;ambient=환경;catalog=전체설정;tiers=단계;variation=변화;material=재질;touch=접근;slow=감속;lines=선;bag=가방;kind=종류;simultaneous=동시;skills=스킬;combat=전투;
 Upward=위쪽;Downward=아래쪽;
 Alpha=불투명도;Immunity=내성;Impact=타격;Refresh=갱신;Return=복귀;Two=2;
 Inset=안쪽 여유;Flee=후퇴;Arrival=도착;Reference=기준;Fuse=폭발 예고;Vulnerable=취약;Crossfade=교차 전환;Triggered=활성;Unavailable=사용 불가;

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8298114730585990730}
   - component: {fileID: 7131001616585727160}
   - component: {fileID: 7131001616585727161}
+  - component: {fileID: 222040487851419981}
   m_Layer: 13
   m_Name: GroundItem
   m_TagString: Untagged
@@ -149,6 +150,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2214d1e4c52809648a9538470e4ef254, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  iconRenderer: {fileID: 0}
+  alignIconToGround: 0
+  labelGap: 0.15
   infoCanvas: {fileID: 8958360220479300894}
   info: {fileID: 2108739243127365812}
   disassembleHoldSeconds: 1
@@ -170,6 +174,22 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 0}
+--- !u!114 &222040487851419981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3637689602062746721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de5a9ec73ec3f8d4e927d892aa6304d2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  kind: 3
+  visibleDistance: 12
+  touchDistance: 1
+  offset: {x: 0, y: 0, z: 0}
 --- !u!1 &8958360220479300894
 GameObject:
   m_ObjectHideFlags: 0

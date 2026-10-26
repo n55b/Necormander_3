@@ -217,6 +217,7 @@ GameObject:
   - component: {fileID: 266524385317345088}
   - component: {fileID: 3137259031203312017}
   - component: {fileID: 1587453477578127499}
+  - component: {fileID: 2609679822765118765}
   m_Layer: 13
   m_Name: GroundMinion
   m_TagString: Untagged
@@ -307,6 +308,22 @@ MonoBehaviour:
   disassembleHoldSeconds: 1
   disassembleTint: {r: 1, g: 0.35, b: 0.25, a: 1}
   minionRecycleHeal: 10
+--- !u!114 &2609679822765118765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7107348126273439340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de5a9ec73ec3f8d4e927d892aa6304d2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  kind: 3
+  visibleDistance: 12
+  touchDistance: 1
+  offset: {x: 0, y: 0, z: 0}
 --- !u!1001 &7524608419573435647
 PrefabInstance:
   m_ObjectHideFlags: 0

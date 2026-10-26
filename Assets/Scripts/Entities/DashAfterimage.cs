@@ -35,6 +35,7 @@ public class DashAfterimage : MonoBehaviour
     private Rigidbody2D _rb;
     private Vector3 _lastPos;
     private float _timer;
+    private float _emitAge;
     private float _dashWindowUntil; // BeginDash로 열린 잔상 방출 윈도우의 만료 시각 (Time.time 기준)
 
     private readonly Queue<SpriteRenderer> _pool = new Queue<SpriteRenderer>();
@@ -66,12 +67,15 @@ public class DashAfterimage : MonoBehaviour
 
         if (!emitting)
         {
+            _emitAge = 0f;
             _timer = spawnInterval; // 다음 발동 시 첫 장이 즉시 나오도록
             return;
         }
 
         _timer += dt;
-        if (_timer < spawnInterval) return;
+        _emitAge += dt;
+        float interval = PolishFeedback.Enabled(FeedbackCue.DashTrail) ? spawnInterval * Mathf.Lerp(PolishFeedback.Catalog.dashTrailIntervalRange.x,PolishFeedback.Catalog.dashTrailIntervalRange.y,Mathf.Clamp01(_emitAge/Mathf.Max(.01f,PolishFeedback.Catalog.dashTrailRampDuration))) : spawnInterval;
+        if (_timer < interval) return;
         _timer = 0f;
         SpawnGhost();
     }

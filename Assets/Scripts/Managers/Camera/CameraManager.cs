@@ -89,4 +89,15 @@ private float _windowMaxForce  = 0f;
         lens.OrthographicSize = zoomOut ? _defaultOrthoSize * 1.3f : _defaultOrthoSize;
         _vcam.Lens = lens;
     }
+
+    public void DirectionalKick(Vector2 direction, float force)
+    {
+        if(_impulseSource==null||force<=0) return;
+        float now=Time.time;
+        if(now-_windowStartTime>shakeWindow) { _windowStartTime=now; _windowMaxForce=0; }
+        float capped=Mathf.Min(force,maxForcePerWindow);
+        if(capped<=_windowMaxForce) return;
+        float delta=capped-_windowMaxForce; _windowMaxForce=capped;
+        _impulseSource.GenerateImpulse((Vector3)direction.normalized*delta);
+    }
 }

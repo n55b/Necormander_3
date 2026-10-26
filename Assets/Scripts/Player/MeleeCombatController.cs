@@ -64,6 +64,7 @@ public class MeleeCombatController : MonoBehaviour
 
     /// <summary>소환수 일격 쿨이 돌아 있는가.</summary>
     private bool MinionStrikeReady => Time.time >= _minionStrikeReadyTime;
+    public bool MinionFeedbackReady => HasMinionStep && MinionStrikeReady;
 
     [Header("콤보 설정")]
     [SerializeField] private float comboResetTime = 1.0f;
@@ -265,6 +266,7 @@ public class MeleeCombatController : MonoBehaviour
                 float saDmg = 20f;
                 DamageInfo info = new DamageInfo(_player.Stat.ATK * damageMultiplier, DamageType.Physical, this.gameObject, 1f, "", false, causesHitstun: true, knockbackForce: 2f, superArmorDamage: saDmg, category: DamageCategory.BasicAttack);
                 info.playerBasicAttack = new PlayerBasicAttackRoll(weapon);
+                info.feedbackComboFinish = swingIndex == 2;
                 if (weapon != null && weapon.exploitsWeakness && swingIndex == 2)
                 {
                     info.applyStatus = StatusType.Vulnerable;

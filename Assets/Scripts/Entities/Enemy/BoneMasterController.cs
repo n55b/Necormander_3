@@ -109,6 +109,8 @@ public class BoneMasterController : EnemyController
     public float ReleaseAttack()
     {
         if (_attackMotion == null || Animator == null) return 0f;
+        PolishFeedback.Play(FeedbackCue.AttackRelease, transform.position, Vector2.up);
+        if (_attackMotion.state.Contains("Jump")) PolishFeedback.Play(FeedbackCue.BossLand, transform.position);
         SampleAttack(_attackMotion.hitTime + 0.0001f);
         Animator.speed = 1f;
         OnHitEvent(); // 샘플링 중 억제한 이벤트를 정확히 한 번만 실행한다. 피해는 패턴에서 같은 프레임에 준다.
@@ -643,6 +645,8 @@ private IEnumerator Phase2TransitionRoutine()
     /// </summary>
     public void SetHidden(bool hidden)
     {
+        if (_isHidden != hidden && Health != null && !Health.IsDead)
+            PolishFeedback.Play(FeedbackCue.BossVanish, transform.position, hidden ? Vector2.down : Vector2.up);
         _isHidden = hidden;
         GetComponentInChildren<EnemyDebuffTerminal>(true)?.SetVisible(!hidden);
         if (_bodyRenderers != null)

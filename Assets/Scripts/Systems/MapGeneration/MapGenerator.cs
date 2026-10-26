@@ -137,6 +137,32 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private Tilemap globalWallTilemap;
     [SerializeField] private Tilemap globalShadowTilemap;
     [SerializeField] private Tilemap globalUnsteppableTilemap;
+    public Color FootstepColor(Vector3 position)
+    {
+        var settings=PolishFeedback.Catalog;
+        if (settings==null) return Color.white;
+        if (TryGetNearbyWater(position,out _)) return settings.waterColor;
+        var tile=globalGroundTilemap!=null?globalGroundTilemap.GetTile(globalGroundTilemap.WorldToCell(position)):null;
+        string name=tile!=null?tile.name.ToLowerInvariant():"";
+        return name.Contains("stone")||name.Contains("rock")||name.Contains("brick")?settings.stoneColor:settings.dirtColor;
+    }
+
+    public bool TryGetNearbyWater(Vector3 position, out Vector3 water)
+    {
+        water=position;
+        if(globalUnsteppableTilemap==null) return false;
+        var cell=globalUnsteppableTilemap.WorldToCell(position);
+        for(int x=-1;x<=1;x++) for(int y=-1;y<=1;y++)
+        {
+            var c=cell+new Vector3Int(x,y,0);
+            if(!globalUnsteppableTilemap.HasTile(c)) continue;
+            var p=globalUnsteppableTilemap.GetCellCenterWorld(c);
+            if(globalGroundTilemap!=null&&globalGroundTilemap.HasTile(globalGroundTilemap.WorldToCell(p))) continue;
+            if(globalWallTilemap!=null&&globalWallTilemap.HasTile(globalWallTilemap.WorldToCell(p))) continue;
+            water=p; return true;
+        }
+        return false;
+    }
 
     // 미니맵 타일 추가
     [Header("미니맵 설정")]

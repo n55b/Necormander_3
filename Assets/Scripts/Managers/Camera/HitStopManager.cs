@@ -28,6 +28,7 @@ public class HitStopManager : MonoBehaviour
 
     private Coroutine _activeHitStop;
     private float _originalTimeScale = 1f;
+    private float _appliedScale;
 
     public void Initialize()
     {
@@ -40,10 +41,10 @@ public class HitStopManager : MonoBehaviour
     /// </summary>
     public void DoHitStop(float duration = -1f)
     {
+        if(Time.timeScale<=0f) return;
         float d = duration > 0f ? duration : defaultDuration;
         d = Mathf.Min(d, maxDuration);
         if (d <= 0f) return;
-        Debug.Log($"<color=cyan>[HitStop]</color> 발동! duration={d}, freezeScale={freezeScale}");
 
 
         if (_activeHitStop != null)
@@ -55,14 +56,23 @@ public class HitStopManager : MonoBehaviour
             _originalTimeScale = Time.timeScale;
         }
 
-        _activeHitStop = StartCoroutine(HitStopRoutine(d));
+        _activeHitStop = StartCoroutine(HitStopRoutine(d, freezeScale));
     }
 
-    private IEnumerator HitStopRoutine(float duration)
+    public void DoSlowMotion(float duration, float scale)
     {
-        Time.timeScale = freezeScale;
+        if(Time.timeScale<=0f) return;
+        if(_activeHitStop!=null) StopCoroutine(_activeHitStop);
+        else _originalTimeScale=Time.timeScale;
+        _activeHitStop=StartCoroutine(HitStopRoutine(Mathf.Clamp(duration,.01f,.5f),Mathf.Clamp(scale,.05f,1f)));
+    }
+
+    private IEnumerator HitStopRoutine(float duration, float scale)
+    {
+        _appliedScale=scale;
+        Time.timeScale = scale;
         yield return new WaitForSecondsRealtime(duration); // realtime이라 timeScale 영향을 안 받음
-        Time.timeScale = _originalTimeScale;
+        if(Mathf.Approximately(Time.timeScale,_appliedScale)) Time.timeScale = _originalTimeScale;
         _activeHitStop = null;
     }
 
@@ -71,9 +81,10 @@ public class HitStopManager : MonoBehaviour
         // 씬 전환 등으로 매니저가 꺼질 때 timeScale이 멈춰있는 상태로 남지 않도록 안전 복구
         if (_activeHitStop != null)
         {
-            Time.timeScale = _originalTimeScale;
-        _activeHitStop = null;
-        Debug.Log($"<color=cyan>[HitStop]</color> 종료, timeScale 복원됨: {Time.timeScale}");
-    }
+            if(Mathf.Approximately(Time.timeScale,_appliedScale)) Time.timeScale = _originalTimeScale;
+            StopCoroutine(_activeHitStop);
+            _activeHitStop = null;
+        }
+        if (Instance == this) Instance = null;
     }
 }

@@ -65,6 +65,8 @@ public class ShopNPC : NPCBase
         }
 
         offer.Purchased = true;
+        PolishFeedback.Play(FeedbackCue.Purchase, transform.position, Vector2.up);
+        FeedbackOverlay.Instance?.Pulse(FeedbackCue.Purchase, transform.position);
         return true;
     }
 

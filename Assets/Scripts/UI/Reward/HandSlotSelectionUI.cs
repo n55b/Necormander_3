@@ -103,6 +103,7 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
             if (oldDrop != null) oldDrop.Consume();
             return;
         }
+        _source.PlayPickupFeedback();
         _source.Consume();
         Complete();
     }

@@ -813,7 +813,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
 
             wt += Time.deltaTime;
-            if (CanTrackAim(wt, windup) && entity.Target != null) dir = GetAimDir(entity);
+            if (CanTrackAim(wt, windup, entity) && entity.Target != null) dir = GetAimDir(entity);
             BossAttackIndicator.Aim(entity, dir);
             dirIndicator?.SetAimOverride(dir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
             // 레인은 플레이어를 통과시키되, 벽/장애물에 막히는 지점까지만 그린다.
@@ -861,6 +861,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         // [잔상] 일반 돌진 동안만 잔상 방출 윈도우 오픈
         entity.GetComponent<DashAfterimage>()?.BeginDash(normalChargeMaxDuration + 0.5f);
+        PolishFeedback.Play(FeedbackCue.ChargeStart, entity.transform.position, dir);
 
         float elapsed = 0f;
 
@@ -908,6 +909,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
             if (hitCheck.WallBlocksFirst)
             {
+                PolishFeedback.Play(FeedbackCue.ChargeWall, entity.transform.position, -dir);
                 // 벽에 닿으면 그냥 멈춘다. 패턴 1과 달리 기절은 없다(기본 공격이라 리스크가 없어야 함).
                 if (rb != null) rb.linearVelocity = Vector2.zero;
                 break;
@@ -1042,7 +1044,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
 
             t += Time.deltaTime;
-            if (CanTrackAim(t, scaledChargeWindup) && entity.Target != null)
+            if (CanTrackAim(t, scaledChargeWindup, entity) && entity.Target != null)
             {
                 chargeDir = GetAimDir(entity);
                 entity.LookAtTarget(entity.Target);
@@ -1121,6 +1123,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         // [잔상] 패턴1 강한 돌진 동안만 잔상 방출 윈도우 오픈
         entity.GetComponent<DashAfterimage>()?.BeginDash(maxDuration + 0.5f);
+        PolishFeedback.Play(FeedbackCue.ChargeStart, entity.transform.position, chargeDir);
 
         float elapsed = 0f;
 
@@ -1158,6 +1161,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
             if (hitCheck.WallBlocksFirst || outOfBounds)
             {
+                PolishFeedback.Play(FeedbackCue.ChargeWall, entity.transform.position, -chargeDir);
                 // 벽에 박았다 = 플레이어가 회피에 성공했다. 아래에서 기절.
                 if (rb != null) rb.linearVelocity = -chargeDir * 3f;
                 entity.transform.position = (Vector2)entity.transform.position - chargeDir * 0.15f;

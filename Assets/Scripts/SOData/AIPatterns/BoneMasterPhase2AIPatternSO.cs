@@ -506,7 +506,7 @@ protected override void OnAttack(BaseEntity entity)
                                               onTick: () =>
                                               {
                                                   Warp(entity, origin);
-                                                  if (CanTrackAim(tele.Elapsed, windup))
+                                                  if (CanTrackAim(tele.Elapsed, windup, entity))
                                                   {
                                                       dir = BoneMasterAIPatternSO.AimToward(entity, dir, origin, sweepTurnSpeed);
                                                       if (entity.Target != null) entity.LookAtTarget(entity.Target);
@@ -929,7 +929,7 @@ protected override void OnAttack(BaseEntity entity)
         while (t < trackTime)
         {
             t += Time.deltaTime;
-            if (CanTrackAim(t, trackTime + lockTime + leapDuration) && entity.Target != null)
+            if (CanTrackAim(t, trackTime + lockTime + leapDuration, entity) && entity.Target != null)
             {
                 landPos = entity.Target.position;
                 BoneMasterTelegraphUtil.UpdatePosition(telegraph, landPos);

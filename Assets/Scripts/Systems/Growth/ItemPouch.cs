@@ -141,6 +141,12 @@ public class ItemPouch : MonoBehaviour
         }
 
         _slots[slot] = so;
+        if (PolishFeedback.Player != null)
+        {
+            int count = CountOf(so);
+            var cue = count >= so.MaxStack ? FeedbackCue.StackMax : FeedbackCue.StackUp;
+            if (count > 1) FeedbackOverlay.Instance?.Pulse(cue, PolishFeedback.Player.transform.position, GroundItem.ItemIcon(so));
+        }
         Revision++;
         Refresh();
         Debug.Log($"<color=cyan>[ItemPouch]</color> '{so.DisplayName}' 습득 → {slot}번 칸");

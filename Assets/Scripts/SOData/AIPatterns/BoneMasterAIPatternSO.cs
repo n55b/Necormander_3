@@ -480,7 +480,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
                                               onTick: () =>
                                               {
                                                   Warp(entity, origin);
-                                                  if (CanTrackAim(tele.Elapsed, windup))
+                                                  if (CanTrackAim(tele.Elapsed, windup, entity))
                                                   {
                                                       dir = AimToward(entity, dir, origin, sweepTurnSpeed);
                                                       if (entity.Target != null) entity.LookAtTarget(entity.Target);
@@ -618,7 +618,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         while (t < trackTime)
         {
             t += Time.deltaTime;
-            if (CanTrackAim(t, trackTime + lockTime + leapDuration) && entity.Target != null)
+            if (CanTrackAim(t, trackTime + lockTime + leapDuration, entity) && entity.Target != null)
             {
                 landPos = entity.Target.position;
                 BoneMasterTelegraphUtil.UpdatePosition(telegraph, landPos);

@@ -78,7 +78,11 @@ public class BaseHitBox : MonoBehaviour
             return;
         }
         for (int i = 0; i < remaining && !target.IsDead; i++)
-            target.TakeDamage(_damageInfo);
+        {
+            var info = _damageInfo;
+            info.feedbackHitIndex = i + 1;
+            target.TakeDamage(info);
+        }
     }
 
     private static System.Collections.IEnumerator RepeatContactDamage(MonoBehaviour receiver, IDamageable target,
@@ -90,6 +94,7 @@ public class BaseHitBox : MonoBehaviour
             yield return new WaitForSeconds(interval);
             if (receiver == null || !receiver.isActiveAndEnabled || target.IsDead) yield break;
             bool frozen = IsTargetFrozen(receiver);
+            info.feedbackHitIndex = i + 1;
             target.TakeDamage(info);
             if (receiver != null)
                 SpawnHitEffect(ImpactPosition(receiver, effectPrefab), frozen, effectPrefab, particlePrefab, angle, frozenColor);

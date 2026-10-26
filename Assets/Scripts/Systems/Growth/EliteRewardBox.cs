@@ -77,6 +77,7 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
     /// <summary>Chest.aseprite의 Chest_Open 애니메이션을 재생한 뒤, 재생 길이만큼 기다렸다가 보상 선택창을 띄우고 파괴합니다.</summary>
     private IEnumerator PlayOpenThenShowRewards(List<RewardCandidate> rewards)
     {
+        PolishFeedback.Play(FeedbackCue.ChestOpen, transform.position, Vector2.up);
         float wait = 0f;
         if (_animator != null)
         {
@@ -100,6 +101,7 @@ public class EliteRewardBox : MonoBehaviour, IInteractable
     /// <summary>강화가 이미 최대일 때: 상자를 열고 골드를 주고 사라진다(카드 없음).</summary>
     private IEnumerator PlayOpenThenGrantGold(int amount)
     {
+        PolishFeedback.Play(FeedbackCue.ChestOpen, transform.position, Vector2.up);
         float wait = 0f;
         if (_animator != null)
         {

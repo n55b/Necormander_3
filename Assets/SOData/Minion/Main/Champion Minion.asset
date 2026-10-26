@@ -39,6 +39,8 @@ MonoBehaviour:
       m_LocalVariables: []
     icon: {fileID: 7537958023452600384, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
     rarity: 0
+  feedbackTier: 3
+  feedbackColor: {r: 0.95, g: 0.82, b: 0.45, a: 1}
   minionSkill: {fileID: 11400000, guid: 665e6a8ea23591848ac28c4bd7c0f80e, type: 2}
   dashModifier:
     uiTitle: 

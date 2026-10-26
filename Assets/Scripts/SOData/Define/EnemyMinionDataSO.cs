@@ -24,6 +24,9 @@ public enum EnemyTier
 [CreateAssetMenu(fileName = "NewEnemyMinion", menuName = "Necromancer/Data/Enemy Minion")]
 public class EnemyMinionDataSO : MinionDataSO
 {
+    [Header("피격 재질 연출")]
+    [Tooltip("금속=노랑, 뼈=흰색 등 피격 파편의 색. 실제 방어력에는 영향이 없습니다.")]
+    public Color impactColor = new Color(.9f,.85f,.7f);
     [Header("투척 효과 설정")]
     public float baseEffectValue; // 전사: 추가 데미지, 궁수: 범위, 사제/방패/창병: 고유 효과(CC/쉴드/넉백) 수치
 

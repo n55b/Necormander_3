@@ -109,6 +109,7 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
 
     private IEnumerator PlayBoomAndDestroy()
     {
+        PolishFeedback.Play(FeedbackCue.PropBreak, transform.position, Vector2.up);
         // 폭발 사운드 재생
         if (SoundManager.Instance != null)
         {

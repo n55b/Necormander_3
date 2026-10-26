@@ -113,6 +113,7 @@ public class PlayerSkillController : MonoBehaviour
 
         // 시전 성공 → 이 시전자가 살아있는 동안 "미니언 바쁨"(평타 3타 밴). 애니 끝나 Destroy 되면 자동 해제.
         _activeMinionCaster = caster;
+        PolishFeedback.Play(FeedbackCue.MinionCommand, playerTransform.position, Vector2.up, PolishFeedback.MinionTier(minionData), caster.FeedbackAnchor!=null?caster.FeedbackAnchor:caster.transform);
         CancelForMinionSkill(); // Space 은 같은 미니언을 쓰니 평타 + 진행 중이던 마무리까지 회수(한 마리 유지)
         return true;
     }
