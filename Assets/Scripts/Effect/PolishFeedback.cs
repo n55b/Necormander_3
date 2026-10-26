@@ -15,7 +15,9 @@ public static class PolishFeedback
         get { if(!loaded) { catalog=Resources.Load<FeedbackCatalog>("FeedbackCatalog"); loaded=true; } return catalog; }
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void Reset() { catalog=null; loaded=false; frame=-1; System.Array.Clear(next,0,next.Length); }
+    private static void Reset() { catalog=null; loaded=false; frame=-1; System.Array.Clear(next,0,next.Length); Shader.SetGlobalFloat("_FeedbackDitherDisabled", 0f); }
+    public static bool ExistingEnabled(ExistingFeedbackCue cue) => Catalog == null || Catalog.ExistingEnabled(cue);
+    public static void RefreshShaderSettings() => Shader.SetGlobalFloat("_FeedbackDitherDisabled", ExistingEnabled(ExistingFeedbackCue.Dither) ? 0f : 1f);
     public static bool Enabled(FeedbackCue cue)
     {
         var c=Catalog; var r=c!=null?c.Find(cue):null;

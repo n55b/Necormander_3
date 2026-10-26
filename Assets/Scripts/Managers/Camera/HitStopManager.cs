@@ -29,6 +29,7 @@ public class HitStopManager : MonoBehaviour
     private Coroutine _activeHitStop;
     private float _originalTimeScale = 1f;
     private float _appliedScale;
+    private bool _slowMotion;
 
     public void Initialize()
     {
@@ -41,7 +42,7 @@ public class HitStopManager : MonoBehaviour
     /// </summary>
     public void DoHitStop(float duration = -1f)
     {
-        if(Time.timeScale<=0f) return;
+        if(Time.timeScale<=0f || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.HitStop)) return;
         float d = duration > 0f ? duration : defaultDuration;
         d = Mathf.Min(d, maxDuration);
         if (d <= 0f) return;
@@ -56,15 +57,24 @@ public class HitStopManager : MonoBehaviour
             _originalTimeScale = Time.timeScale;
         }
 
+        _slowMotion = false;
         _activeHitStop = StartCoroutine(HitStopRoutine(d, freezeScale));
     }
 
     public void DoSlowMotion(float duration, float scale)
     {
-        if(Time.timeScale<=0f) return;
+        if(Time.timeScale<=0f || (PolishFeedback.Catalog != null && !PolishFeedback.Catalog.enabled)) return;
         if(_activeHitStop!=null) StopCoroutine(_activeHitStop);
         else _originalTimeScale=Time.timeScale;
+        _slowMotion=true;
         _activeHitStop=StartCoroutine(HitStopRoutine(Mathf.Clamp(duration,.01f,.5f),Mathf.Clamp(scale,.05f,1f)));
+    }
+    private void Update()
+    {
+        if (_activeHitStop == null) return;
+        bool allowed = _slowMotion ? PolishFeedback.Catalog == null || PolishFeedback.Catalog.enabled
+            : PolishFeedback.ExistingEnabled(ExistingFeedbackCue.HitStop);
+        if (!allowed) RestoreTime();
     }
 
     private IEnumerator HitStopRoutine(float duration, float scale)
@@ -78,6 +88,11 @@ public class HitStopManager : MonoBehaviour
 
     private void OnDisable()
     {
+        RestoreTime();
+        if (Instance == this) Instance = null;
+    }
+    private void RestoreTime()
+    {
         // 씬 전환 등으로 매니저가 꺼질 때 timeScale이 멈춰있는 상태로 남지 않도록 안전 복구
         if (_activeHitStop != null)
         {
@@ -85,6 +100,5 @@ public class HitStopManager : MonoBehaviour
             StopCoroutine(_activeHitStop);
             _activeHitStop = null;
         }
-        if (Instance == this) Instance = null;
     }
 }

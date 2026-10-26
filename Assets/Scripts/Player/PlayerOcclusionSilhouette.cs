@@ -55,6 +55,8 @@ private void Awake()
 private void LateUpdate()
     {
         if (silhouetteRenderer == null || _mainRenderer == null) return;
+        if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Silhouette))
+        { _visibility = 0f; silhouetteRenderer.enabled = false; return; }
 
         // Sync sprite/flip every frame to follow body animation
         silhouetteRenderer.sprite = _mainRenderer.sprite;

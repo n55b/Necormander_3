@@ -41,10 +41,15 @@ public class ImpactFeedback : MonoBehaviour
     private Color[] _echoColors;
     private Vector3[] _sparkOrigins;
     private Color[] _sparkColors;
+    private Renderer[] _renderers;
+    private bool[] _visibleBeforeCatalog;
+    private bool _catalogHidden;
 
     private void Awake()
     {
         _properties = new MaterialPropertyBlock();
+        _renderers = GetComponentsInChildren<Renderer>(true);
+        _visibleBeforeCatalog = new bool[_renderers.Length];
         _alpha = slash != null ? slash.color.a : 1f;
         _echoColors = new Color[echoes != null ? echoes.Length : 0];
         for (int i=0;i<_echoColors.Length;i++) if (echoes[i] != null) _echoColors[i]=echoes[i].color;
@@ -74,11 +79,28 @@ public class ImpactFeedback : MonoBehaviour
     private void Update()
     {
         _age += Time.deltaTime;
-        RenderVisuals();
         if (_age >= Mathf.Max(.01f, lifetime)) Destroy(gameObject);
     }
+    // Aseprite 클립도 Renderer.enabled를 쓰므로 Animator 갱신 후에 적용한다.
+    private void LateUpdate() => RenderVisuals();
     private void RenderVisuals()
     {
+        if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Slash))
+        {
+            // 연출 도중 꺼도 마지막 그림이 남지 않으며 Update의 수명 정리는 계속된다.
+            for (int i = 0; i < _renderers.Length; i++)
+            {
+                if (!_catalogHidden) _visibleBeforeCatalog[i] = _renderers[i].enabled;
+                _renderers[i].enabled = false;
+            }
+            _catalogHidden = true;
+            return;
+        }
+        if (_catalogHidden)
+        {
+            for (int i = 0; i < _renderers.Length; i++) _renderers[i].enabled = _visibleBeforeCatalog[i];
+            _catalogHidden = false;
+        }
         float t = Mathf.Clamp01(_age / Mathf.Max(.01f, lifetime));
         // 원본 슬래시와 잔상은 32 PPU / 1배 고정. 크기 변화는 별도 선 도형에만 적용한다.
         if (slash != null)

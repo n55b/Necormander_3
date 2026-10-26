@@ -52,6 +52,36 @@ public class FeedbackTier
     [Range(.1f,2)] public float reach = 1;
 }
 
+public enum ExistingFeedbackCue
+{
+    [InspectorName("연결 안 함")] None,
+    [InspectorName("최종형 슬래시")] Slash,
+    [InspectorName("스쿼시 · 스트레치")] Squash,
+    [InspectorName("피격 · 회복 섬광")] Flash,
+    [InspectorName("걷기 연기")] WalkSmoke,
+    [InspectorName("대시 연기")] DashSmoke,
+    [InspectorName("대시 · 돌진 잔상")] Afterimage,
+    [InspectorName("가림 실루엣")] Silhouette,
+    [InspectorName("도트 디더링")] Dither,
+    [InspectorName("화면 · UI 페이드")] Fade,
+    [InspectorName("UI 흔들림")] UIShake,
+    [InspectorName("카메라 흔들림")] CameraShake,
+    [InspectorName("히트스톱")] HitStop
+}
+
+[Serializable]
+public class ExistingFeedbackEntry
+{
+    public ExistingFeedbackCue cue;
+    public bool enabled = true;
+    public string title;
+    [TextArea] public string description;
+    // 수치를 복제하지 않는다. Catalog 인스펙터에서 이 원본들을 직접 편집한다.
+#if UNITY_EDITOR
+    public UnityEngine.Object[] sources;
+#endif
+}
+
 [CreateAssetMenu(menuName="Necromancer/연출/전체 연출 설정",fileName="FeedbackCatalog")]
 public class FeedbackCatalog : ScriptableObject
 {
@@ -70,6 +100,8 @@ public class FeedbackCatalog : ScriptableObject
     };
     [Header("번호별 효과 — 체크를 끄면 해당 연출만 중단")]
     public FeedbackRecipe[] effects;
+    [Header("기존 연출 — 원본 설정 직접 조절")]
+    public ExistingFeedbackEntry[] existingEffects;
     [Header("프리팹 / 화면과 이동")]
     public FeedbackOverlay overlayPrefab;
     [Range(0,1)] public float lowHealthRatio = .25f;
@@ -93,4 +125,11 @@ public class FeedbackCatalog : ScriptableObject
         return null;
     }
     public FeedbackTier Tier(int tier) => tiers != null && tiers.Length>0 ? tiers[Mathf.Clamp(tier,0,tiers.Length-1)] : null;
+    public bool ExistingEnabled(ExistingFeedbackCue cue)
+    {
+        if (!enabled) return false;
+        if (existingEffects != null) foreach (var entry in existingEffects)
+            if (entry != null && entry.cue == cue) return entry.enabled;
+        return true; // 아직 연결하지 않은 이전 에셋의 동작은 보존한다.
+    }
 }

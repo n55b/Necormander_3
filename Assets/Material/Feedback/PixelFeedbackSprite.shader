@@ -4,11 +4,11 @@ Shader "Necromancer/Pixel Feedback Sprite"
     {
         [PerRendererData] _MainTex ("Sprite", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
-        [Toggle] _Dither ("Dither alpha", Float) = 1
-        _PixelsPerUnit ("Dither pixels per unit", Float) = 32
-        _DitherPixelSize ("Dither dot size (sprite pixels)", Range(1,4)) = 1
-        [Toggle] _SolidTint ("Solid silhouette", Float) = 0
-        _Emission ("Emission multiplier", Range(1,8)) = 1
+        [Toggle] _Dither ("도트 디더링 사용", Float) = 1
+        _PixelsPerUnit ("도트 기준 PPU", Float) = 32
+        _DitherPixelSize ("디더링 점 크기 (픽셀)", Range(1,4)) = 1
+        [Toggle] _SolidTint ("단색 실루엣", Float) = 0
+        _Emission ("발광 배율", Range(1,8)) = 1
         [HideInInspector] _RendererColor ("RendererColor", Color) = (1,1,1,1)
     }
     SubShader
@@ -33,6 +33,7 @@ Shader "Necromancer/Pixel Feedback Sprite"
             half4 _Color;
             float _Dither, _PixelsPerUnit, _DitherPixelSize, _SolidTint, _Emission;
             CBUFFER_END
+            float _FeedbackDitherDisabled;
             struct Attributes { float3 positionOS:POSITION; float2 uv:TEXCOORD0; half4 color:COLOR; UNITY_VERTEX_INPUT_INSTANCE_ID };
             struct Varyings { float4 positionCS:SV_POSITION; float2 uv:TEXCOORD0; float2 pixel:TEXCOORD1; half4 color:COLOR; };
             Varyings Vert(Attributes v)
@@ -51,7 +52,7 @@ Shader "Necromancer/Pixel Feedback Sprite"
             {
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
                 half4 c = half4(lerp(tex.rgb, half3(1,1,1), _SolidTint) * i.color.rgb * _Emission, tex.a * i.color.a);
-                if (_Dither > .5)
+                if (_Dither > .5 && _FeedbackDitherDisabled < .5)
                 {
                     clip(c.a - PixelDitherThreshold(i.pixel));
                     c.a = 1;

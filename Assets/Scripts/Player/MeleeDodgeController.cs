@@ -102,7 +102,7 @@ public class MeleeDodgeController : MonoBehaviour
 
     private void PlayDashEffect()
     {
-        if (dashEffectPrefab == null) return;
+        if (dashEffectPrefab == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.DashSmoke)) return;
         GameObject fx = Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
         Vector3 scale = fx.transform.localScale;
         scale.x = Mathf.Abs(scale.x) * (_dashDir.x < 0f ? 1f : -1f);

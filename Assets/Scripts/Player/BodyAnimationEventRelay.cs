@@ -46,7 +46,7 @@ public class BodyAnimationEventRelay : MonoBehaviour
     /// </summary>
     public void OnFootstep()
     {
-        if (walkSmogEffectPrefab == null) return;
+        if (walkSmogEffectPrefab == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.WalkSmoke)) return;
         Vector3 spawnPos = footEffectPoint != null ? footEffectPoint.position : transform.position;
 
         GameObject fx = Instantiate(walkSmogEffectPrefab, spawnPos, Quaternion.identity);

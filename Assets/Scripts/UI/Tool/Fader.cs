@@ -269,10 +269,10 @@ public class Fader : MonoBehaviour
             while (!waitUntil()) yield return null;
         }
 
-        if (r.holdDuration > 0f)
+        if (r.holdDuration > 0f && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Fade))
         {
             float t = 0f;
-            while (t < r.holdDuration) { t += Time.unscaledDeltaTime; yield return null; }
+            while (t < r.holdDuration && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Fade)) { t += Time.unscaledDeltaTime; yield return null; }
         }
 
         yield return FadeTo(1f, r);
@@ -300,7 +300,7 @@ public class Fader : MonoBehaviour
         // 커튼의 '실제' 상태에서 이어가야 한다. 안 그러면 남이 깜깜하게 해둔 화면을 물려받을 때 한 번 번쩍인다.
         float start = (_mode == Mode.FullScreen && curtain != null) ? 1f - curtain.alpha : _visible;
         float t = 0f;
-        while (t < r.duration && r.duration > 0f)
+        while (t < r.duration && r.duration > 0f && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Fade))
         {
             t += Time.unscaledDeltaTime;
             Apply(Mathf.LerpUnclamped(start, goalVisible, r.curve.Evaluate(Mathf.Clamp01(t / r.duration))), curtain);

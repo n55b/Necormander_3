@@ -22,7 +22,8 @@ public sealed class DesignerInspectorGuiCheck : EditorWindow
             window.ShowUtility();
             string[] assets = {
                 "Assets/Prefabs/Enemy/Enemy.prefab", "Assets/Prefabs/Effect/Hit/Slash Impact.prefab",
-                "Assets/SOData/Enemy/Enemy AI Patterns/Boss/Bone Master Phase 2 AI Pattern.asset"
+                "Assets/SOData/Enemy/Enemy AI Patterns/Boss/Bone Master Phase 2 AI Pattern.asset",
+                "Assets/Resources/FeedbackCatalog.asset"
             };
             foreach (var path in assets)
             {

@@ -445,7 +445,8 @@ public class CharacterVisualFeedback : MonoBehaviour
                 StopCoroutine(_hitFlashCoroutine);
                 if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
             }
-            _hitFlashCoroutine = StartCoroutine(FlashRoutine()); // 일반 피격
+            if (PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
+                _hitFlashCoroutine = StartCoroutine(FlashRoutine()); // 일반 피격
 
             // [수정] 레이어 체크 대신 root 태그를 사용하여 플레이어 판정 (안정성 강화)
             bool isPlayer = gameObject.CompareTag("Player") || transform.root.CompareTag("Player");
@@ -454,7 +455,8 @@ public class CharacterVisualFeedback : MonoBehaviour
             {
                 // [수정] 인스턴스 널 체크 추가하여 NRE 방지
                 if (HitStopManager.Instance != null && playerHitStopDuration > 0f) HitStopManager.Instance.DoHitStop(playerHitStopDuration);
-                if (GameManager.Instance != null) GameManager.Instance.ChangeVignetteColor(playerHurtVignetteDuration, Color.red);
+                if (GameManager.Instance != null && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
+                    GameManager.Instance.ChangeVignetteColor(playerHurtVignetteDuration, Color.red);
             }
         }
     }
@@ -464,8 +466,11 @@ public class CharacterVisualFeedback : MonoBehaviour
         if (_sr == null) yield break; // [추가] 널 체크
 
         _sr.material.SetFloat("_HitFlash", hitFlashStrength);
-        yield return new WaitForSeconds(hitFlashDuration);
+        float elapsed = 0f;
+        while (elapsed < hitFlashDuration && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
+        { elapsed += Time.deltaTime; yield return null; }
         if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
+        _hitFlashCoroutine = null;
 
         StartFlash(Color.grey); 
     }
@@ -474,7 +479,7 @@ public class CharacterVisualFeedback : MonoBehaviour
 
     private void StartFlash(Color color)
     {
-        if (_sr == null) return;
+        if (_sr == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash)) return;
         if (_flashCoroutine != null) 
         {
             StopCoroutine(_flashCoroutine);
@@ -486,8 +491,10 @@ public class CharacterVisualFeedback : MonoBehaviour
     private IEnumerator FlashRoutine(Color color)
     {
         _sr.color = color;
-        yield return new WaitForSeconds(tintFlashDuration);
-        _sr.color = _originalColor;
+        float elapsed = 0f;
+        while (elapsed < tintFlashDuration && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
+        { elapsed += Time.deltaTime; yield return null; }
+        if (_sr != null) _sr.color = _originalColor;
         _flashCoroutine = null;
     }
 

@@ -130,8 +130,8 @@ FeedbackTier.intensity|연출 강도|0은 끄기, 1은 기본 강도입니다. �
 FeedbackTier.title|이름|기획자가 찾는 표시 이름입니다.
 FeedbackTier.density|입자 수 배율|원본 프리팹 한도 안에서 적용합니다.
 FeedbackTier.reach|퍼지는 거리 배율|그림 배율은 바꾸지 않습니다.
-FeedbackCatalog.enabled|사용|끄면 이 신규 연출만 중단합니다.
-FeedbackCatalog.intensity|연출 강도|0은 끄기, 1은 기본 강도입니다. 원본 그림은 확대하지 않습니다.
+FeedbackCatalog.enabled|전체 연출 사용|기존·신규 연출을 함께 켜고 끕니다. 게임 판정과 로딩 완료 대기는 유지합니다.
+FeedbackCatalog.intensity|신규 연출 강도|신규 01~80번 효과에 적용하는 배율입니다. 기존 연출의 수치는 아래 원본 조절에서 변경합니다.
 FeedbackCatalog.simultaneousBursts|동시에 남길 월드 효과 수|전투가 몰려도 이 수를 넘게 생성하지 않습니다.
 FeedbackCatalog.burstsPerFrame|프레임당 월드 효과 제한|한 프레임에 생성할 최대 효과 수입니다.
 FeedbackCatalog.soundsPerFrame|프레임당 추가 효과음 제한|기존 공격 소리 외에 덧붙이는 소리의 수입니다.
@@ -155,6 +155,14 @@ FeedbackBurst.lines|빛 조각 참조|프리팹에 실제 배치한 선입니다
 FeedbackBurst.icon|원본 아이콘|원본 배율 1배를 유지합니다.
 FeedbackOverlay.canvasRect|화면 캔버스|좌표 변환 기준입니다.
 FeedbackOverlay.iconSize|HUD 알림 아이콘 크기|중첩 알림 등에 쓰는 최대 UI 크기입니다. 습득 아이콘은 바닥에서 보이던 화면 크기를 유지합니다.
+AutoDestroyEffect.catalogEffect|Catalog 연결 종류|해당 기존 연출의 사용 체크를 따릅니다. 연결 안 함이면 기존 동작을 유지합니다.
+AutoDestroyEffect.playbackSpeed|그림 재생 배속|1은 기존 재생 속도입니다. 그림 크기와 이동 판정은 바꾸지 않습니다.
+ExistingFeedbackEntry.cue|기존 연출 종류|기존 효과의 분류입니다.
+ExistingFeedbackEntry.enabled|사용|이 종류의 기존 연출을 켜고 끕니다.
+ExistingFeedbackEntry.title|이름|Catalog에서 보일 이름입니다.
+ExistingFeedbackEntry.description|설명|조절 방법과 주의점입니다.
+ExistingFeedbackEntry.sources|원본 설정 연결|값을 복사하지 않고 실제 원본의 설정을 편집합니다.
+FeedbackCatalog.existingEffects|기존 연출|원본 값과 개체별 차이를 유지하는 조절 목록입니다.
 FeedbackOverlay.healAbsorbDuration|회복 구슬 흡수 시간|체력바에 도착한 구슬이 작아지며 흡수되는 시간(초)입니다.
 FeedbackOverlay.motes|화면 아이콘 풀|에디터에 미리 배치한 이미지입니다.
 FeedbackOverlay.edges|가장자리 표시|상·우·하·좌 순서입니다.

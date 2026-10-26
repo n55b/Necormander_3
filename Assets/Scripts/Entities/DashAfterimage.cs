@@ -58,6 +58,7 @@ public class DashAfterimage : MonoBehaviour
         float posSpeed = ((transform.position - _lastPos) / dt).magnitude;
         _lastPos = transform.position;
         float rbSpeed = _rb != null ? _rb.linearVelocity.magnitude : 0f;
+        if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Afterimage)) return;
 
         // [수정] 속도만으로 자동 발동하던 기존 방식은 평타 넉백 등 돌진이 아닌 고속 이동에도
         // 잔상이 남는 문제가 있어, "돌진 윈도우(BeginDash~EndDash)가 열려 있는 동안" +
@@ -113,6 +114,7 @@ public class DashAfterimage : MonoBehaviour
         float t = 0f;
         while (t < fadeTime)
         {
+            if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Afterimage)) break;
             t += Time.deltaTime;
             if (ghost == null) yield break;
             Color c = tint;

@@ -60,7 +60,7 @@ private float _windowMaxForce  = 0f;
     /// <summary>외부(CameraShaker, SkillSO 등)에서 직접 호출. force로 강도 조절.</summary>
     public void HitShakeCamera(float force = 1f)
     {
-        if (_impulseSource == null) return;
+        if (_impulseSource == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.CameraShake)) return;
 
         float now = Time.time;
 
@@ -92,12 +92,18 @@ private float _windowMaxForce  = 0f;
 
     public void DirectionalKick(Vector2 direction, float force)
     {
-        if(_impulseSource==null||force<=0) return;
+        if(_impulseSource==null||force<=0||!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.CameraShake)) return;
         float now=Time.time;
         if(now-_windowStartTime>shakeWindow) { _windowStartTime=now; _windowMaxForce=0; }
         float capped=Mathf.Min(force,maxForcePerWindow);
         if(capped<=_windowMaxForce) return;
         float delta=capped-_windowMaxForce; _windowMaxForce=capped;
         _impulseSource.GenerateImpulse((Vector3)direction.normalized*delta);
+    }
+    private void LateUpdate()
+    {
+        if (PolishFeedback.ExistingEnabled(ExistingFeedbackCue.CameraShake)) return;
+        CinemachineImpulseManager.Instance.Clear();
+        _windowStartTime = -999f; _windowMaxForce = 0f;
     }
 }

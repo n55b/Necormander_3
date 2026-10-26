@@ -5,16 +5,18 @@ using UnityEngine;
 public sealed class FeedbackCatalogEditor : Editor
 {
     private string search="";
+    private ExistingFeedbackCatalogEditor existing;
+    private void OnDisable() => existing?.Dispose();
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
-        EditorGUILayout.HelpBox("그림 크기·피해 판정은 그대로입니다. 체크를 끄면 해당 신규 연출만 멈춥니다. 0~3은 기본 / 강화 / 진화 / 최종 단계입니다. 가드와 상태이상 신규 연출은 제외했습니다.",MessageType.Info);
+        EditorGUILayout.HelpBox("전체 사용은 기존·신규 연출을 함께 켜고 끕니다. 기존 연출의 원본 값은 아래에서 대상별로 조절합니다. 피해 판정·로딩 대기는 유지합니다. 0~3은 기본 / 강화 / 진화 / 최종 단계입니다.",MessageType.Info);
         var property=serializedObject.GetIterator();
         bool enter=true;
         while(property.NextVisible(enter))
         {
             enter=false;
-            if(property.name=="m_Script"||property.name=="effects") continue;
+            if(property.name=="m_Script"||property.name=="effects"||property.name=="existingEffects") continue;
             if(property.name=="tiers")
             {
                 property.isExpanded=EditorGUILayout.Foldout(property.isExpanded,"공격 성장 4단계",true);
@@ -27,6 +29,9 @@ public sealed class FeedbackCatalogEditor : Editor
             else Draw(property,typeof(FeedbackCatalog));
         }
         search=EditorGUILayout.TextField("효과 찾기 (번호·이름)",search);
+        (existing ??= new ExistingFeedbackCatalogEditor()).Draw(serializedObject, search);
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("신규 연출 01~80", EditorStyles.boldLabel);
         var effects=serializedObject.FindProperty("effects");
         for(int i=0;i<effects.arraySize;i++)
         {

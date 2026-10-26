@@ -74,7 +74,7 @@ public class VisualSquashStretch : MonoBehaviour
 
     public void Play(string pulseName)
     {
-        if (!isActiveAndEnabled || !Initialize()) return;
+        if (!isActiveAndEnabled || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Squash) || !Initialize()) return;
         foreach (var pulse in pulses)
         {
             if (pulse == null || pulse.name != pulseName) continue;
@@ -96,6 +96,7 @@ public class VisualSquashStretch : MonoBehaviour
 
     private void Advance(float deltaTime)
     {
+        if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Squash)) { ResetVisual(); return; }
         if (_active == null || (visual == null && deformRenderer == null)) return;
         _elapsed += Mathf.Max(0f, deltaTime);
         float t = Mathf.Clamp01(_elapsed / Mathf.Max(.01f, _active.duration));

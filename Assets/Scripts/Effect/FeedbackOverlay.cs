@@ -82,6 +82,7 @@ public sealed class FeedbackOverlay : MonoBehaviour
     }
     private void Update()
     {
+        PolishFeedback.RefreshShaderSettings();
         var catalog=PolishFeedback.Catalog; if(catalog==null) return;
         for(int i=0;i<motes.Length;i++)
         {

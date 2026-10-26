@@ -93,7 +93,7 @@ public class UIShaker : MonoBehaviour
 
     public void Shake(Reaction r)
     {
-        if (!isActiveAndEnabled || r == null) return;
+        if (!isActiveAndEnabled || r == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.UIShake)) return;
 
         // 겹쳐 맞으면 나중 것이 이긴다. 새로 시작하기 전에 반드시 원위치로 되돌려야
         // 연타당할 때 오프셋이 누적돼 부품이 흘러가는 일이 없다.
@@ -108,7 +108,7 @@ public class UIShaker : MonoBehaviour
     private IEnumerator ShakeRoutine(Reaction r)
     {
         float t = 0f;
-        while (t < r.duration && r.duration > 0f)
+        while (t < r.duration && r.duration > 0f && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.UIShake))
         {
             t += unscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
 
