@@ -100,6 +100,8 @@ public class PlayerController : MonoBehaviour
         moveInput = Vector2.zero;
         if (blocked)
         {
+            _isAttackDashing = false;
+            _attackDashTimeLeft = 0f;
             PopupSystem.HideInteractionIcon();
             GetComponent<PlayerParryController>()?.StopGuard();
             // 차단 중에는 Update의 Idle 전환도 멈춘다. 페이드 시작 전에 걷기를 끝낸다.
@@ -132,7 +134,13 @@ public class PlayerController : MonoBehaviour
     public Vector2 MoveInput => moveInput;
 
     [Header("조작감 설정")]
-    [SerializeField] private float movementSmoothTime = 0.15f;
+    [Tooltip("출발/가속 반응 시간. 작을수록 즉각적이다. 최대 이동속도는 스탯을 그대로 사용한다.")]
+    [Min(0.001f), SerializeField] private float movementAccelerationTime = 0.045f;
+    [Tooltip("키를 뗐을 때 감속하는 시간. 너무 늘리면 미끄러진다. 문 이동·입력 차단에는 적용하지 않는다.")]
+    [InspectorName("Movement Stop Smooth Time")]
+    [Min(0.001f), SerializeField] private float movementSmoothTime = 0.065f;
+    [Tooltip("급격한 방향 전환 반응 시간. 가속보다 짧게 두면 회피 조작이 둔해지지 않는다.")]
+    [Min(0.001f), SerializeField] private float movementTurnTime = 0.022f;
     private Vector2 _smoothedMoveInput;
     private Vector2 _moveInputVelocity;
 
@@ -140,8 +148,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float dashSpeed = 15f;
     [SerializeField] private float dashDuration = 0.2f;
     [SerializeField] private float dashCooldown = 1.0f;
+    [Tooltip("대시 이동 그래프(두 대시 경로 공용). X=시간 0~1, Y=거리 0~1. 직선은 등속. " +
+             "거리·전체 시간·벽 검사는 유지하고 가속/감속만 바꾼다. 내려가는 구간은 대기 처리하여 역주행을 막는다.")]
+    [SerializeField] private AnimationCurve dashMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
     private bool _isDashing = false;
     private float _dashTimeLeft;
+    private Vector2 _dashStartPosition;
+    private float _dashTravelDuration;
+    private float _dashElapsed;
+    private float _dashProgress;
     private Vector2 _dashEndPosition;
     private float _lastDashTime;
     private Vector2 _dashDir;
@@ -151,10 +166,14 @@ public class PlayerController : MonoBehaviour
     [Header("평타 전진 가속 설정")]
     [SerializeField] private float attackDashSpeed = 10f; // 평타 공격 시 순간 대시 속도
     [SerializeField] private float attackDashDuration = 0.08f; // 평타 대시 지속 시간 (절도 있는 느낌용 극단적 짧은 시간)
+    [Tooltip("평타 전진 그래프. X=시간 0~1, Y=전진 거리 0~1. 초반이 가파르면 타격 순간 빠르게 전진한다. " +
+             "그림 재생 속도와 타격 시점은 바꾸지 않는다.")]
+    [SerializeField] private AnimationCurve attackDashMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
     private bool _isAttackDashing = false;
     private float _attackDashTimeLeft = 0f;
     private Vector2 _attackDashDir = Vector2.zero;
     private float _attackDashSpeedVal = 10f;
+    private float _attackDashProgress;
 
     public bool IsDashing => _isDashing;
 
@@ -288,58 +307,81 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (stat != null && stat.Health != null && stat.Health.IsDead) return;
+        if (stat != null && stat.Health != null && stat.Health.IsDead) { StopLocomotion(); return; }
 
         // 소환수 액티브는 Space(OnMinionSkill)가 담당한다.
 
         if (_inputBlocked) return;
 
-        // 창이 떠 있으면(시간은 흐른다) 이동 입력을 0 으로 본다. moveInput 자체는 지우지 않아서,
-        // 키를 누른 채로 창을 닫으면 그대로 이어서 걷는다.
-        Vector2 input = IsGameplayPaused ? Vector2.zero : moveInput;
-
-        if (canChangeState)
-        {
-            if (input.sqrMagnitude < 0.0001f)
-            {
-                ResetWalkAnimSpeed();
-                TransitionToState(idleState);
-            }
-            else
-            {
-                TransitionToState(walkState);
-            }
-
-            // 이동 관련
-            if (MoveDirection.x > 0.1f)
-                this.transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
-            else if (MoveDirection.x < -0.1f)
-                this.transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
-        }
+        // 입력 보간만 비운다. 넉백/대시가 소유한 물리 속도를 렌더 Update에서 덮어쓰지 않는다.
+        if (IsGameplayPaused || IsCCed) StopLocomotion(false);
+        UpdateLocomotionAnimation();
 
         CheckForInteractable(); // [추가]
         TickInteractHold();
 
-        // --- 구르기(대쉬) 입력 처리 (하드코딩 제거) ---
-        // OnDash(InputAction.CallbackContext context) 콜백에서 처리합니다.
+    }
 
-        if (!_isDashing)
+    // 입력은 콜백에서 받고 보간은 물리 틱에서만 한다. 렌더 프레임률에 따라 조작감이 달라지지 않게 한다.
+    private void AdvanceLocomotion(Vector2 input, float deltaTime)
+    {
+        Vector2 target = Vector2.ClampMagnitude(input, 1f);
+        bool stopping = target.sqrMagnitude < 0.0001f;
+        bool turning = !stopping && _smoothedMoveInput.sqrMagnitude > 0.0004f &&
+            Vector2.Dot(_smoothedMoveInput.normalized, target.normalized) < 0.85f;
+        float response = stopping ? movementSmoothTime : turning ? movementTurnTime : movementAccelerationTime;
+        if (turning && Vector2.Dot(_moveInputVelocity, target - _smoothedMoveInput) < 0f)
+            _moveInputVelocity = Vector2.zero;
+        _smoothedMoveInput = Vector2.ClampMagnitude(Vector2.SmoothDamp(_smoothedMoveInput, target,
+            ref _moveInputVelocity, Mathf.Max(0.001f, response), Mathf.Infinity, deltaTime), 1f);
+        if (stopping && _smoothedMoveInput.sqrMagnitude < 0.0004f)
         {
-            float actualSmoothTime;
-            // 입력이 있을 때(가속/방향전환)는 무겁지 않게 아주 빠릿하게 반응
-            if (input.sqrMagnitude > 0.01f)
-            {
-                actualSmoothTime = 0.02f;
-            }
-            // 키보드에서 손을 뗐을 때(감속)만 미끄러지도록 관성 적용
-            else
-            {
-                actualSmoothTime = Mathf.Max(movementSmoothTime, 0.08f);
-            }
-
-            _smoothedMoveInput = Vector2.SmoothDamp(_smoothedMoveInput, input, ref _moveInputVelocity, actualSmoothTime, Mathf.Infinity, Time.deltaTime);
-            MoveDirection = _smoothedMoveInput;
+            _smoothedMoveInput = Vector2.zero;
+            _moveInputVelocity = Vector2.zero;
         }
+        MoveDirection = _smoothedMoveInput;
+    }
+
+    private void StopLocomotion(bool stopVelocity = true)
+    {
+        _smoothedMoveInput = _moveInputVelocity = Vector2.zero;
+        MoveDirection = Vector3.zero;
+        if (stopVelocity && _rb != null) _rb.linearVelocity = Vector2.zero;
+    }
+
+    private void UpdateLocomotionAnimation()
+    {
+        if (!canChangeState) return; // 공격/가드/대시의 모션과 재생 속도는 해당 행동이 소유한다.
+        bool blocked = _inputBlocked || IsGameplayPaused || IsCCed;
+        Vector2 input = blocked ? Vector2.zero : moveInput;
+        bool moving = !blocked && (input.sqrMagnitude > 0.0001f || _smoothedMoveInput.sqrMagnitude >= 0.0004f);
+        if (moving)
+        {
+            TransitionToState(walkState);
+            float speed = stat != null ? stat.MOVESPEED * SpeedMultiplier : 5f;
+            UpdateWalkAnimSpeed(_smoothedMoveInput.magnitude * speed);
+        }
+        else
+        {
+            ResetWalkAnimSpeed();
+            TransitionToState(idleState);
+        }
+        // 감속 벡터가 이전 방향을 가리켜도 새 입력 방향으로 즉시 돌아본다.
+        if (input.x > 0.1f) transform.localScale = new Vector3(-1f, transform.localScale.y, transform.localScale.z);
+        else if (input.x < -0.1f) transform.localScale = new Vector3(1f, transform.localScale.y, transform.localScale.z);
+    }
+
+    /// <summary>대시 종료 후 현재 누른 방향으로 걷기를 이어간다. 대시 속도/옛 평타 전진은 넘기지 않는다.</summary>
+    public void ResumeLocomotionAfterDash()
+    {
+        _isAttackDashing = false;
+        _attackDashTimeLeft = 0f;
+        StopLocomotion();
+        if (_inputBlocked || IsGameplayPaused || IsCCed || (stat != null && stat.IsDead)) return;
+        _smoothedMoveInput = Vector2.ClampMagnitude(moveInput, 1f);
+        MoveDirection = _smoothedMoveInput;
+        if (_rb != null && stat != null) _rb.linearVelocity = _smoothedMoveInput * stat.MOVESPEED * SpeedMultiplier;
+        UpdateLocomotionAnimation();
     }
 
     private void CheckForInteractable()
@@ -424,6 +466,7 @@ public class PlayerController : MonoBehaviour
     public void SetSpeedModifier(SpeedModifierSource source, float multiplier)
     {
         _speedModifiers[source] = multiplier;
+        if (multiplier <= 0f) StopLocomotion();
     }
 
     public void RemoveSpeedModifier(SpeedModifierSource source)
@@ -449,7 +492,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_inputBlocked || (stat != null && stat.Health.IsDead)) return;
+        if (_inputBlocked || (stat != null && stat.Health.IsDead)) { StopLocomotion(); return; }
 
         float currentSpeed = stat.MOVESPEED * SpeedMultiplier;
 
@@ -459,7 +502,8 @@ public class PlayerController : MonoBehaviour
 
         if (_isDashing)
         {
-            bool finished = AdvanceDash(_dashEndPosition, dashSpeed);
+            _dashElapsed += Time.fixedDeltaTime;
+            bool finished = AdvanceDash(_dashStartPosition, _dashEndPosition, _dashElapsed, _dashTravelDuration, ref _dashProgress);
             _dashTimeLeft -= Time.fixedDeltaTime;
             if (finished || _dashTimeLeft <= 0f)
             {
@@ -477,14 +521,7 @@ public class PlayerController : MonoBehaviour
         }
         else if (_isAttackDashing)
         {
-            // 평타 가속 전진 중에는 해당 속도를 덮어씌워 강제 이동
-            _rb.linearVelocity = _attackDashDir * _attackDashSpeedVal;
-            _attackDashTimeLeft -= Time.fixedDeltaTime;
-            if (_attackDashTimeLeft <= 0f)
-            {
-                _isAttackDashing = false;
-                if (_rb != null) _rb.linearVelocity = Vector2.zero; // [추가] 평타 돌진 완료 즉시 속도 강제 제동
-            }
+            AdvanceAttackDash();
         }
         else
         {
@@ -492,25 +529,40 @@ public class PlayerController : MonoBehaviour
             // 넉백(200 이상) 중일 때는 속도를 덮어쓰지 않아 넉백 효과를 유지합니다.
             if (_rb != null && _rb.linearVelocity.sqrMagnitude < 200f)
             {
-                _rb.linearVelocity = MoveDirection * currentSpeed;
-
-                // 공격(등) 애니매이션이 잠겨있는 동안(canChangeState == false)은
-                // 이동속도 기반 애니메이터 속도 값이 SetAttackAnimSpeed()가 설정한 값을 덮어쓰지 않도록 건대넌다.
-                // While an attack (or similar) animation lock is active, skip movement-speed-based
-                // animator speed updates so they don't override SetAttackAnimSpeed().
-                if (canChangeState)
+                if (IsGameplayPaused || IsCCed || currentSpeed <= 0f)
                 {
-                    UpdateWalkAnimSpeed(currentSpeed);
+                    StopLocomotion();
+                    return;
                 }
-
+                AdvanceLocomotion(moveInput, Time.fixedDeltaTime);
+                _rb.linearVelocity = MoveDirection * currentSpeed;
             }
         }
     }
 
     /// <summary>
-    /// 평타 타격 순간에 절도 있는 짧은 전진(Lunging) 물리력을 방향키/조준선 방향으로 가합니다.
-    /// 실제 대시(무적, 레이어 변경) 판정 없이 속도로만 순간 미끄러뜨립니다.
+    /// 곡선의 이번 물리 틱 이동량을 속도로 전달한다. 무적/대시 레이어 전환은 하지 않는다.
     /// </summary>
+    private void AdvanceAttackDash()
+    {
+        // 마지막 이동 틱은 물리 시뮬레이션까지 살린 뒤 다음 틱에 정지한다.
+        if (_attackDashTimeLeft <= 0f)
+        {
+            _isAttackDashing = false;
+            if (_rb != null) _rb.linearVelocity = Vector2.zero;
+            return;
+        }
+        _attackDashTimeLeft = Mathf.Max(0f, _attackDashTimeLeft - Time.fixedDeltaTime);
+        float progress = Mathf.Max(_attackDashProgress, SkillCombatUtil.EvaluateMotionProgress(
+            attackDashMovementCurve, 1f - _attackDashTimeLeft / attackDashDuration));
+        float distance = _attackDashSpeedVal * attackDashDuration * (progress - _attackDashProgress);
+        _attackDashProgress = progress;
+        // 가파른 그래프라도 물리 한 틱에 벽을 넘어가지 않게 같은 경로 검사를 사용한다.
+        Vector2 from = _rb.position;
+        Vector2 next = SkillCombatUtil.ClampToWall(from, _attackDashDir, distance, DashRadius);
+        _rb.linearVelocity = (next - from) / Time.fixedDeltaTime;
+    }
+
     public void ApplyAttackDash(Vector2 direction, float forceMultiplier = 1.0f)
     {
         if (_inputBlocked || (stat != null && stat.Health.IsDead)) return;
@@ -520,6 +572,7 @@ public class PlayerController : MonoBehaviour
         _attackDashDir = direction.normalized;
         _attackDashSpeedVal = attackDashSpeed * forceMultiplier;
         _attackDashTimeLeft = attackDashDuration;
+        _attackDashProgress = 0f;
     }
 
     public void SetDashLayer(bool isDash)
@@ -564,7 +617,10 @@ public class PlayerController : MonoBehaviour
         _dashEndPosition = safePos;
         float actualDist = Vector2.Distance(transform.position, safePos);
         if (actualDist > 0.0001f) _dashDir = (safePos - (Vector2)transform.position).normalized;
-        _dashTimeLeft = actualDist / Mathf.Max(0.01f, dashSpeed) + 0.1f; // 물리 충돌로 이동 불가할 때의 안전 종료
+        _dashStartPosition = _rb.position;
+        _dashTravelDuration = actualDist / Mathf.Max(0.01f, dashSpeed);
+        _dashElapsed = _dashProgress = 0f;
+        _dashTimeLeft = _dashTravelDuration + 0.1f; // 물리 충돌로 이동 불가할 때의 안전 종료
 
         if (stat != null && stat.Health != null)
         {
@@ -581,10 +637,7 @@ public class PlayerController : MonoBehaviour
 
         SetDashLayer(false);
 
-        // 관성 초기화
-        _smoothedMoveInput = Vector2.zero;
-        _moveInputVelocity = Vector2.zero;
-        if (_rb != null) _rb.linearVelocity = Vector2.zero; // 대쉬 끝나고 미끄러짐 방지
+        ResumeLocomotionAfterDash();
 
         if (stat != null && stat.Health != null)
         {
@@ -941,5 +994,21 @@ public void OnGemTree(InputAction.CallbackContext context)
         next = SkillCombatUtil.ClampToWall(from, step, step.magnitude, DashRadius);
         _rb.linearVelocity = (next - from) / Time.fixedDeltaTime;
         return (next - from).sqrMagnitude < 0.000001f;
+    }
+
+    /// <summary>곡선 대시. 평평한 구간은 정지/종료가 아니라 대기이며, 실제 벽에 막혔을 때만 조기 종료한다.</summary>
+    public bool AdvanceDash(Vector2 start, Vector2 destination, float elapsed, float duration, ref float progress)
+    {
+        if (_rb == null) return true;
+        progress = Mathf.Max(progress, SkillCombatUtil.EvaluateMotionProgress(
+            dashMovementCurve, duration > 0f ? elapsed / duration : 1f));
+        Vector2 from = _rb.position;
+        Vector2 next = Vector2.Lerp(start, destination, progress);
+        Vector2 step = next - from;
+        Vector2 allowed = SkillCombatUtil.ClampToWall(from, step, step.magnitude, DashRadius);
+        _rb.linearVelocity = (allowed - from) / Time.fixedDeltaTime;
+        bool blocked = step.sqrMagnitude > 0.000001f && (allowed - from).sqrMagnitude < 0.000001f;
+        bool arrived = progress >= 1f && (destination - from).sqrMagnitude < 0.000001f;
+        return blocked || arrived;
     }
 }

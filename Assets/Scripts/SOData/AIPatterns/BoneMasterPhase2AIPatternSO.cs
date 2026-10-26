@@ -110,6 +110,13 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     public float sweepStepDistance = 0f;
     [Tooltip("위 거리를 미끄러지는 데 걸리는 시간(초).")]
     public float sweepStepDuration = 0.12f;
+    [Header("이동 그래프 (X: 시간 0~1 / Y: 거리 0~1)")]
+    [Tooltip("휩쓸기 전진의 가속/감속. 전진 거리 0이면 사용하지 않는다.")]
+    public AnimationCurve sweepStepCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+    [Tooltip("각 찌르기의 이동. 예고·타격·타수 사이 간격은 유지한다.")]
+    public AnimationCurve thrustMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+    [Tooltip("도약 중 착지점까지의 이동. 착지 시점과 예고 시간은 유지한다.")]
+    public AnimationCurve leapMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
     [Tooltip("내려찍기 예고 시간(초). 이 구간은 카운터가 불가능하다 — 카운터는 앞의 휩쓸기에서만.")]
     public float slamTelegraphTime = 1.2f;
     public float slamRange = 6.5f; // [수정] 원형 반경 -> 보스 기준 뻗는 직사각형의 길이로 의미가 바뀜
@@ -529,7 +536,7 @@ protected override void OnAttack(BaseEntity entity)
             while (st < stepDur)
             {
                 st += Time.deltaTime;
-                Warp(entity, Vector2.Lerp(origin, stepEnd, Mathf.Clamp01(st / stepDur)));
+                Warp(entity, Vector2.Lerp(origin, stepEnd, SkillCombatUtil.EvaluateMotionProgress(sweepStepCurve, st / stepDur)));
                 yield return null;
             }
             Warp(entity, stepEnd);
@@ -596,7 +603,7 @@ protected override void OnAttack(BaseEntity entity)
                 while (Time.time - previousHitAt < Mathf.Max(dashDuration, thrustPauseBetween * csMul))
                 {
                     Warp(entity, Vector2.Lerp(previousOrigin, previousEnd,
-                        Mathf.Clamp01((Time.time - previousHitAt) / dashDuration)));
+                        SkillCombatUtil.EvaluateMotionProgress(thrustMovementCurve, (Time.time - previousHitAt) / dashDuration)));
                     yield return null;
                 }
                 Warp(entity, previousEnd);
@@ -635,7 +642,7 @@ protected override void OnAttack(BaseEntity entity)
         while (Time.time - previousHitAt < dashDuration)
         {
             Warp(entity, Vector2.Lerp(previousOrigin, previousEnd,
-                Mathf.Clamp01((Time.time - previousHitAt) / dashDuration)));
+                SkillCombatUtil.EvaluateMotionProgress(thrustMovementCurve, (Time.time - previousHitAt) / dashDuration)));
             yield return null;
         }
         Warp(entity, previousEnd);
@@ -948,7 +955,7 @@ protected override void OnAttack(BaseEntity entity)
         while (elapsed < leapDuration)
         {
             elapsed += Time.deltaTime;
-            Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, elapsed / leapDuration));
+            Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, SkillCombatUtil.EvaluateMotionProgress(leapMovementCurve, elapsed / leapDuration)));
             yield return null;
         }
         Warp(entity, landPos);

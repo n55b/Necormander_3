@@ -101,6 +101,13 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
     public float thrustDashDistance = 3f;
     [Tooltip("위 거리를 이동하는 데 걸리는 시간(초). 예고가 끝나는 순간부터 이만큼 미끄러진다.")]
     public float thrustDashDuration = 0.15f;
+    [Header("이동 그래프 (X: 시간 0~1 / Y: 거리 0~1)")]
+    [Tooltip("휩쓸기 전진의 가속/감속. 전진 거리 0이면 사용하지 않는다.")]
+    public AnimationCurve sweepStepCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+    [Tooltip("찌르기 이동의 가속/감속. 예고와 타격 시점, 전체 이동 시간은 유지한다.")]
+    public AnimationCurve thrustMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+    [Tooltip("도약 중 착지점까지의 이동. 착지 시점과 예고 시간은 유지한다.")]
+    public AnimationCurve leapMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
     [Tooltip("보스 몸 두께. 미끄러지는 중 벽 접촉을 이 반지름으로 검사한다.")]
     public float wallCheckRadius = 0.85f;
 
@@ -504,7 +511,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
             while (st < stepDur)
             {
                 st += Time.deltaTime;
-                Warp(entity, Vector2.Lerp(origin, stepEnd, Mathf.Clamp01(st / stepDur)));
+                Warp(entity, Vector2.Lerp(origin, stepEnd, SkillCombatUtil.EvaluateMotionProgress(sweepStepCurve, st / stepDur)));
                 yield return null;
             }
             Warp(entity, stepEnd);
@@ -564,7 +571,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         while (dt < dur)
         {
             dt += Time.deltaTime;
-            Warp(entity, Vector2.Lerp(origin, slideEnd, Mathf.Clamp01(dt / dur)));
+            Warp(entity, Vector2.Lerp(origin, slideEnd, SkillCombatUtil.EvaluateMotionProgress(thrustMovementCurve, dt / dur)));
             yield return null;
         }
         Warp(entity, slideEnd);
@@ -637,7 +644,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         while (elapsed < leapDuration)
         {
             elapsed += Time.deltaTime;
-            Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, elapsed / leapDuration));
+            Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, SkillCombatUtil.EvaluateMotionProgress(leapMovementCurve, elapsed / leapDuration)));
             yield return null;
         }
         Warp(entity, landPos);

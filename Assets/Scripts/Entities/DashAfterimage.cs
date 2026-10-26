@@ -20,6 +20,8 @@ public class DashAfterimage : MonoBehaviour
     [SerializeField] private float spawnInterval = 0.045f;
     [Tooltip("잔상 1장이 사라지기까지 걸리는 시간(초)")]
     [SerializeField] private float fadeTime = 0.25f;
+    [Tooltip("잔상 소멸 그래프. X=수명 0~1, Y=사라진 비율 0~1. 직선은 일정하게, 끝을 가파르게 하면 오래 남다 빠르게 사라진다.")]
+    [SerializeField] private AnimationCurve fadeCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
     [Tooltip("잔상 색상(알파 포함). 엘리트는 붉은 틴트 권장")]
     [SerializeField] private Color tint = new Color(1f, 1f, 1f, 0.45f);
 
@@ -106,7 +108,7 @@ public class DashAfterimage : MonoBehaviour
             t += Time.deltaTime;
             if (ghost == null) yield break;
             Color c = tint;
-            c.a = Mathf.Lerp(tint.a, 0f, t / fadeTime);
+            c.a = Mathf.Lerp(tint.a, 0f, SkillCombatUtil.EvaluateMotionProgress(fadeCurve, t / fadeTime));
             ghost.color = c;
             yield return null;
         }

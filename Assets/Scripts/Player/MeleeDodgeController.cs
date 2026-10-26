@@ -26,6 +26,10 @@ public class MeleeDodgeController : MonoBehaviour
     private float _dashTimeLeft;
     private Vector2 _dashDir;
     private Vector2 _dashEndPosition;
+    private Vector2 _dashStartPosition;
+    private float _dashTravelDuration;
+    private float _dashElapsed;
+    private float _dashProgress;
 
     private PlayerController _player;
     private Rigidbody2D _rb;
@@ -67,7 +71,8 @@ public class MeleeDodgeController : MonoBehaviour
     {
         if (_isDashing && _rb != null)
         {
-            bool finished = _player.AdvanceDash(_dashEndPosition, dashSpeed);
+            _dashElapsed += Time.fixedDeltaTime;
+            bool finished = _player.AdvanceDash(_dashStartPosition, _dashEndPosition, _dashElapsed, _dashTravelDuration, ref _dashProgress);
             _dashTimeLeft -= Time.fixedDeltaTime;
             if (finished || _dashTimeLeft <= 0f) EndDash();
         }
@@ -137,7 +142,10 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         _dashEndPosition = safePos;
         float actualDist = Vector2.Distance(transform.position, safePos);
         if (actualDist > 0.0001f) _dashDir = (safePos - (Vector2)transform.position).normalized;
-        _dashTimeLeft = actualDist / Mathf.Max(0.01f, dashSpeed) + 0.1f; // 충돌로 도착 불가할 때만 쓰는 안전 종료
+        _dashStartPosition = _rb.position;
+        _dashTravelDuration = actualDist / Mathf.Max(0.01f, dashSpeed);
+        _dashElapsed = _dashProgress = 0f;
+        _dashTimeLeft = _dashTravelDuration + 0.1f; // 충돌로 도착 불가할 때만 쓰는 안전 종료
 
         if (mod != null && mod.DealsDamage)
             SpawnDashHitBox(mod, transform.position, _dashDir, actualDist);
@@ -318,6 +326,7 @@ private void EndDash()
         _player.CanChangeAnimState(); // unlocks canChangeState and cancels the LockAnimState timeout
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Idle");
+        _player.ResumeLocomotionAfterDash();
     }
 
 

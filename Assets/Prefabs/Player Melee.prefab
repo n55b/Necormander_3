@@ -1404,12 +1404,62 @@ MonoBehaviour:
   canChangeState: 1
   MoveDirection: {x: 0, y: 0, z: 0}
   moveInput: {x: 0, y: 0}
-  movementSmoothTime: 0.05
+  movementAccelerationTime: 0.045
+  movementSmoothTime: 0.065
+  movementTurnTime: 0.022
   dashSpeed: 15
   dashDuration: 0.2
   dashCooldown: 1
+  dashMovementCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   attackDashSpeed: 10
   attackDashDuration: 0.08
+  attackDashMovementCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 2.6
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!114 &3671673066107762978
 MonoBehaviour:
   m_ObjectHideFlags: 0

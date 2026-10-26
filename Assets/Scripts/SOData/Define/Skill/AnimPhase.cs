@@ -19,6 +19,10 @@ public class AnimPhase
     public string tag;
     public Vector2 offset;
     public bool snap = false;
+
+    [Tooltip("위치 이동 그래프. X=이 태그의 경과 시간(0~1), Y=이전 위치에서 offset까지의 이동량(0~1). " +
+             "직선은 등속, 초반을 가파르게 하면 빠르게 나갔다 감속한다. snap이면 사용하지 않는다. 그림/타격 이벤트 시간은 유지된다.")]
+    public AnimationCurve movementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 }
 
 /// <summary>

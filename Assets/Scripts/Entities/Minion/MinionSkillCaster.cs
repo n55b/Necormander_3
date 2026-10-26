@@ -389,7 +389,8 @@ public class MinionSkillCaster : MonoBehaviour
                     {
                         if (visualTf == null) yield break;
                         t += Time.deltaTime;
-                        visualTf.localPosition = Vector3.Lerp(from, target, dur > 0f ? Mathf.Clamp01(t / dur) : 1f);
+                        visualTf.localPosition = Vector3.Lerp(from, target,
+                            SkillCombatUtil.EvaluateMotionProgress(phase.movementCurve, dur > 0f ? t / dur : 1f));
                         yield return null;
                     }
                     visualTf.localPosition = target;

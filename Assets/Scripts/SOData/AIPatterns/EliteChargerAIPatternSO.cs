@@ -56,6 +56,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public float miniChargeDistance = 3.6f;
     [Tooltip("착지 지점을 정할 때 벽 충돌 검사에 쓰는 반경")]
     public float miniChargeCheckRadius = 0.6f;
+    [Tooltip("짧은 도약의 이동 그래프. X=체공 시간 0~1, Y=착지점까지의 거리 0~1. 착지/예고 시점은 유지한다.")]
+    public AnimationCurve miniChargeMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
     [Header("② 일반 돌진")]
     [Tooltip("일반 차저가 가진 직선형 고속 돌진입니다. 데미지가 낮고 사거리가 짧습니다.")]
@@ -89,6 +91,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public float pursuitBurstDuration = 0.35f;
     [Tooltip("가속에서 평상시 속도로 되돌아오는 감속 시간")]
     public float pursuitBurstDecelDuration = 0.25f;
+    [Tooltip("추격 버스트 감속 그래프. X=감속 시간 0~1, Y=평상시 속도로 돌아오는 비율 0~1.")]
+    public AnimationCurve pursuitDecelerationCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
     // ==============================================================
     // 슈퍼아머 / 패턴 이름 표시
@@ -543,7 +547,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             {
                 dt += Time.deltaTime;
                 float f = Mathf.Clamp01(dt / pursuitBurstDecelDuration);
-                agent.speed = Mathf.Lerp(burstSpeed, baseSpeed, f);
+                agent.speed = Mathf.Lerp(burstSpeed, baseSpeed, SkillCombatUtil.EvaluateMotionProgress(pursuitDecelerationCurve, f));
                 yield return null;
             }
             agent.speed = baseSpeed;
@@ -712,7 +716,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             {
                 t += Time.deltaTime;
                 float f = Mathf.Clamp01(t / airTime);
-                entity.transform.position = Vector2.Lerp(start, land, f);
+                entity.transform.position = Vector2.Lerp(start, land, SkillCombatUtil.EvaluateMotionProgress(miniChargeMovementCurve, f));
                 if (fillMark != null) fillMark.transform.localScale = Vector3.one * (radius * f);
                 yield return null;
             }
