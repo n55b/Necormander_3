@@ -223,7 +223,20 @@ public static class CombatMovementCheck
                 status.RemoveStatus(type);
                 Check(icons.Count == 0, $"아이콘 제거 및 풀 반환: {type}");
             }
-            Debug.Log("[StatusIconCheck] PASS: Hitstun applied, action blocked, duration/expiry unchanged, icon suppressed; other five status icons preserved.");
+            var boss = host.AddComponent<BoneMasterController>();
+            status.ApplyStatus(StatusType.Poison, 10f);
+            boss.SetHidden(true);
+            Check(!panel.gameObject.activeSelf && status.HasStatus(StatusType.Poison) && icons.Contains(StatusType.Poison),
+                "보스 은신: 아이콘만 숨기고 상태/기존 아이콘 유지");
+            status.ApplyStatus(StatusType.Bleed, 10f);
+            status.RemoveStatus(StatusType.Poison);
+            Check(!panel.gameObject.activeSelf && icons.Contains(StatusType.Bleed) && !icons.Contains(StatusType.Poison),
+                "은신 중 새 상태/해제도 숨긴 채 갱신");
+            boss.SetHidden(false);
+            Check(panel.gameObject.activeSelf && icons.Count == 1, "재등장 시 현재 상태만 복구");
+            status.RemoveStatus(StatusType.Bleed);
+            typeof(BoneMasterController).GetField("_lastTelegraphCleanupFrame", Private).SetValue(boss, Time.frameCount);
+            Debug.Log("[StatusIconCheck] PASS: Hitstun suppressed, other icons preserved; boss hide/update/show preserves status effects.");
         }
         finally
         {
@@ -518,6 +531,83 @@ public static class CombatMovementCheck
         var go = new GameObject(name, typeof(Tilemap));
         go.transform.SetParent(grid.transform, false);
         return go.GetComponent<Tilemap>();
+    }
+
+    [MenuItem("Tools/Combat/Verify Repeated Hits In Empty Play Scene")]
+    public static void VerifyRepeatedHitsInPlayMode()
+    {
+        Check(Application.isPlaying && GameManager.Instance == null && Time.timeScale == 1f,
+            "GameManager 없는 빈 테스트 씬에서 Play Mode로 실행하세요.");
+        var runner = new GameObject("Repeated hit check runner").AddComponent<CharacterHealth>();
+        runner.StartCoroutine(RunRepeatedHitTiming(runner));
+    }
+
+    public static System.Collections.IEnumerator RunRepeatedHitTiming(MonoBehaviour runner = null)
+    {
+        Check(Application.isPlaying, "추가 타격 시간 검사는 Play Mode 필요");
+        var target = new GameObject("Repeated hit target");
+        var effect = new GameObject("Repeated hit feedback probe");
+        var stat = target.AddComponent<CharacterStat>();
+        var health = target.GetComponent<CharacterHealth>();
+        var status = target.GetComponent<CharacterStatus>();
+        typeof(CharacterStat).GetProperty("Health").SetValue(stat, health);
+        typeof(CharacterStat).GetProperty("Status").SetValue(stat, status);
+        health.Init(stat, status);
+        var times = new System.Collections.Generic.List<float>();
+        health.TakeDamageEvent += (_, __, ___, ____) => times.Add(Time.time);
+        BaseHitBox Hit(int count = 2)
+        {
+            var box = new GameObject("Short lived test hitbox").AddComponent<BaseHitBox>();
+            box.HitsPerContact = count;
+            box.ContactHitInterval = .08f;
+            box.hitEffectPrefab = effect;
+            box.Init(new DamageInfo(10f, DamageType.Fixed), 0, .03f);
+            Call(box, "DealContactDamage", health);
+            return box;
+        }
+        try
+        {
+            var weapon = AssetDatabase.LoadAssetAtPath<EquipmentSO>("Assets/SOData/Equipment/1015/Marionette.asset");
+            Check(weapon.basicHitsPerContact == 2 && Mathf.Approximately(weapon.basicRepeatHitInterval, .08f), "마리오네트 설정");
+            var box = Hit();
+            Check(health.CurHP == 90f && times.Count == 1, "첫 타격만 즉시 적용");
+            yield return new WaitForSeconds(.14f);
+            Check(box == null && health.CurHP == 80f && times.Count == 2 && times[1] - times[0] >= .079f,
+                "히트박스 만료 후에도 0.08초 시간차 추가타 1회");
+            Check(GameObject.Find(effect.name + "(Clone)") != null, "추가 타격 이펙트 생성");
+            Hit(1);
+            yield return new WaitForSeconds(.14f);
+            Check(health.CurHP == 70f && times.Count == 3, "일반 무기는 한 번만 타격");
+            Hit();
+            target.SetActive(false);
+            yield return new WaitForSeconds(.14f);
+            target.SetActive(true);
+            Check(health.CurHP == 60f && times.Count == 4, "대상 비활성화/재사용 시 예약타 취소");
+            Hit();
+            Time.timeScale = 0f;
+            yield return new WaitForSecondsRealtime(.14f);
+            Check(health.CurHP == 50f && times.Count == 5, "일시정지 동안 추가타 대기");
+            Time.timeScale = 1f;
+            yield return new WaitForSeconds(.14f);
+            Check(health.CurHP == 40f && times.Count == 6, "재개 후 추가타 1회");
+            Hit();
+            health.SetHP(0f);
+            yield return new WaitForSeconds(.14f);
+            Check(times.Count == 7, "죽은 대상 추가타 생략");
+            health.ResetHP();
+            Hit();
+            Object.Destroy(target);
+            yield return new WaitForSeconds(.14f);
+            Check(times.Count == 8, "파괴된 대상 추가타 생략");
+            Debug.Log("[RepeatedHitCheck] PASS: real Play Mode timing, hitbox expiry, extra feedback, normal weapon, pause, disabled/dead/destroyed targets.");
+        }
+        finally
+        {
+            Time.timeScale = 1f;
+            if (target != null) Object.Destroy(target);
+            Object.Destroy(effect);
+            if (runner != null) Object.Destroy(runner.gameObject);
+        }
     }
 
     private static void Set(object target, string name, object value, Type type = null)

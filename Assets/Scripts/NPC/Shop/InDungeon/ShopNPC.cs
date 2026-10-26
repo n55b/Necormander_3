@@ -41,7 +41,6 @@ public class ShopNPC : NPCBase
         var dm = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
         if (dm == null || dm.SHOP_REGISTRY == null) return; // 준비 전이면 플래그를 세우지 않고 다음 호출에 재시도
 
-        HideLegacyFloorItems();
         RollStock(RewardProcessor.GenerateShopRoom(dm));
 
         _stockInitialized = true;
@@ -83,12 +82,6 @@ public class ShopNPC : NPCBase
             var offer = new ShopOffer(prizes[i]);
             if (offer.IsValid) _stock.Add(offer);
         }
-    }
-
-    // 예전 바닥 진열품(SellItem)이 방 프리팹 오버라이드로 남아 있을 경우를 대비해 숨긴다.
-    private void HideLegacyFloorItems()
-    {
-        foreach (var legacy in GetComponentsInChildren<SellItem>(true)) legacy.gameObject.SetActive(false);
     }
 
     // 주머니가 꽉 찼을 때 구매품이 떨어질 위치. 플레이어 발밑, 못 찾으면 NPC 위치.

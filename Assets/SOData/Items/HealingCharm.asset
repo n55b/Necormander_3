@@ -16,6 +16,8 @@ MonoBehaviour:
   description: 소지 중 방을 클리어할 때마다 체력을 10 회복한다.
   icon: {fileID: 0}
   tier: 4
+  maxStack: 1
+  availableAsReward: 0
   effects:
   - rid: 2000000000000000001
   references:

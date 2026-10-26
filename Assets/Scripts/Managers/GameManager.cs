@@ -29,7 +29,6 @@ public class GameManager : MonoBehaviour
 
     [Header("Core Managers")]
     [SerializeField] public DataManager dataManager;
-    [SerializeField] public EconomyManager economyManager;
     [SerializeField] public CameraManager cameraManager;
     [SerializeField] public HitStopManager hitStopManager;
 
@@ -110,7 +109,6 @@ public class GameManager : MonoBehaviour
 
 
     [Header("Test Options")]
-    [SerializeField] public bool testMode_InfiniteStamina = false;
     [SerializeField] public bool testMode_DisableAutoBattle = false;
     [Tooltip("디버그: 같은 상점에서도 장비를 여러 번 강화할 수 있다. 골드 비용, 강화 분기, 최종 단계 제한은 유지한다. 배포 시 꺼둘 것.")]
     [SerializeField] public bool testMode_UnlimitedShopEnhancements = false;
@@ -187,7 +185,6 @@ public class GameManager : MonoBehaviour
         Debug.Log("<b>[GameManager]</b> Starting Initialization Sequence...");
 
         if (dataManager == null) dataManager = GetComponentInChildren<DataManager>();
-        if (economyManager == null) economyManager = GetComponentInChildren<EconomyManager>();
         if (cameraManager == null) cameraManager = GetComponentInChildren<CameraManager>();
         if (hitStopManager == null) hitStopManager = GetComponentInChildren<HitStopManager>();
 
@@ -232,7 +229,6 @@ public class GameManager : MonoBehaviour
         // 안 그러면 지난 층의 페널티가 그대로 남고, DamageEventBus 구독까지 중복으로 쌓인다.
         ActiveAugment.ResetAll();
 
-        if (economyManager != null) economyManager.Initialize();
         if (cameraManager != null) cameraManager.Initialize();
         if (hitStopManager != null) hitStopManager.Initialize();
 

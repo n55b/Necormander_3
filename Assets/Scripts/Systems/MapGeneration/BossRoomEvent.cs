@@ -56,7 +56,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         }
     }
 
-    // 분열 적 등을 방 클리어 판정에 귀속시킨다. (SlimeAIPatternSO/DualSplitAIPatternSO 에서 호출)
+    // 분열 적 등을 방 클리어 판정에 귀속시킨다. (DualSplitAIPatternSO 에서 호출)
     public void RegisterActiveEnemy(GameObject enemy)
     {
         if (enemy != null && !_activeEnemies.Contains(enemy)) _activeEnemies.Add(enemy);

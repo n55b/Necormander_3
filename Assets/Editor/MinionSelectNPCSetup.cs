@@ -61,6 +61,18 @@ public static class MinionSelectNPCSetup
         Require(Form("Knight").minionSkill.name == "MeleeDoll_Breaker_Active", "기사 = Breaker 스킬");
         Require(Form("Warrior").minionSkill.name == "MeleeDoll_Whirlwind_Active", "무사 = Whirlwind 스킬");
 
+        var warlord = Form("Warlord");
+        const string warlordSource = "Assets/Resources/Sprites/Minion/MeleeMinion_Warrior_2.aseprite";
+        Require(warlord.basicAnim.visual != Form("Warrior").basicAnim.visual &&
+                AssetDatabase.GetAssetPath(warlord.minionIcon) == warlordSource, "장수 전용 외형/아이콘");
+        foreach (var set in new[] { warlord.basicAnim, warlord.skillAnim })
+        {
+            var controller = (AnimatorController)set.visual.GetComponentInChildren<Animator>().runtimeAnimatorController;
+            var clip = (AnimationClip)controller.layers[0].stateMachine.states
+                .Single(s => s.state.name == set.SequenceTags().Single()).state.motion;
+            Require(AssetDatabase.GetAssetPath(clip) == warlordSource, "장수 원본 애니메이션/이벤트 연결");
+        }
+
         VerifyEvolutionTree();
         VerifyVillageChoices();
         Debug.Log("[MinionLine] PASS: 전사/기사/용사/무사/장수 데이터·외형·능력·진화·저장 키 검증 완료.");

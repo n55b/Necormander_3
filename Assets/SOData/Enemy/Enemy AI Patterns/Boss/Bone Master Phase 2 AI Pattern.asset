@@ -41,7 +41,6 @@ MonoBehaviour:
   leapDuration: 0.3
   leapSlamDamageMultiplier: 1.2
   postPatternRecovery: 1
-  postGroggyRecovery: 1.5
   telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
   laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3, type: 3}
   circleTelegraphPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}

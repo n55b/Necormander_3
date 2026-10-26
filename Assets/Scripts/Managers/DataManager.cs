@@ -10,7 +10,6 @@ public class DataManager : MonoBehaviour
     [Header("Growth System Data")]
     [SerializeField] private GrowthRegistrySO growthRegistry;
     public GrowthRegistrySO GET_GROWTH_REGISTRY() => growthRegistry;
-    public List<GrowthItemSO> GET_ALL_GROWTH_ITEMS() => growthRegistry != null ? growthRegistry.GetAllItems() : new List<GrowthItemSO>();
     [SerializeField] private MinionRegistrySO minionRegistry;
     [SerializeField] private AIPatternSO defaultAIPattern; 
     [SerializeField] private ShopRegistrySO shopRegistry;

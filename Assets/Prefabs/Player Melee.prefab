@@ -1132,7 +1132,6 @@ GameObject:
   - component: {fileID: 3671673066107762978}
   - component: {fileID: 1807700438375551738}
   - component: {fileID: 8412499594907926683}
-  - component: {fileID: 924915416061419967}
   - component: {fileID: 7483555610792978852}
   - component: {fileID: 7957941004026145679}
   - component: {fileID: 1103040150316217935}
@@ -1391,7 +1390,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stat: {fileID: 5914193569906731681}
-  staminaSystem: {fileID: 0}
   summonNum: 3
   summonRange: 5
   invincibilityDuration: 1
@@ -1498,19 +1496,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 0.2}
   m_EdgeRadius: 0
---- !u!114 &924915416061419967
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8389716956321753658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c458b2a532519240bf5a4a1892b046b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  viewRadius: 4
 --- !u!114 &7483555610792978852
 MonoBehaviour:
   m_ObjectHideFlags: 0

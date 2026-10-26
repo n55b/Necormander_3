@@ -15,9 +15,6 @@ public class PlayerController : MonoBehaviour
     [Header("플레이어 스탯")]
     [SerializeField] CharacterStat stat;
     public CharacterStat Stat => stat;
-    [HideInInspector]
-    [SerializeField] private PlayerStamina staminaSystem;
-    public PlayerStamina STAMINA => staminaSystem;
     [SerializeField] private int summonNum;
     [SerializeField] private float summonRange;
 
@@ -184,12 +181,6 @@ public class PlayerController : MonoBehaviour
         {
             Debug.LogWarning("[PlayerController] 'Player_Dash' 레이어가 설정되어 있지 않습니다! 레이어 세팅 가이드를 확인해주세요.");
             _dashLayer = _originalLayer;
-        }
-
-        if (staminaSystem == null)
-        {
-            staminaSystem = GetComponent<PlayerStamina>();
-            if (staminaSystem == null) staminaSystem = gameObject.AddComponent<PlayerStamina>();
         }
 
         // [패리] 패리 컨트롤러 추가

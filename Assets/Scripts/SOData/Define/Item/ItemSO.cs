@@ -65,6 +65,9 @@ public class ItemSO : ScriptableObject
     public int maxStack = 1;
     public int MaxStack => Mathf.Max(1, maxStack);
 
+    [Tooltip("상점·방 보상에서 무작위로 등장할 수 있는 아이템. 기본 지급 전용 아이템은 끈다.")]
+    public bool availableAsReward = true;
+
     [Header("효과")]
     [Tooltip("주머니에 들어 있는 동안 적용되는 효과들. 인스펙터에서 + 로 종류를 골라 추가한다.")]
     [SerializeReference] public List<ItemEffect> effects = new List<ItemEffect>();

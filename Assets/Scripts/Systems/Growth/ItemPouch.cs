@@ -9,11 +9,6 @@ using UnityEngine;
 /// (Awake 에 의존하면 스크립트 실행 순서가 미정이라 다른 매니저가 Instance 를 못 잡는다 —
 ///  PlayerSkillInventoryManager 와 같은 이유, 같은 패턴).
 ///
-/// [효과가 적용되는 두 경로]
-///   · ItemStatEffect        → 플레이어 CharacterStat.Mods 에 붙인다. source 키는 이 매니저 하나(this).
-///                             주머니가 바뀔 때마다 RemoveSource(this) 후 전부 다시 계산한다(멱등).
-///   · ItemDamageBonusEffect → DamageEventBus.OnBeforeDamageCalculated 에서 얹는다.
-///                             '적에게 주는 피해'만 대상이다(아래 가드 참조).
 /// </summary>
 public class ItemPouch : MonoBehaviour
 {
@@ -21,27 +16,20 @@ public class ItemPouch : MonoBehaviour
 
 
     [Header("디버그 (배포 시 반드시 끈다)")]
-    [Tooltip("끄면 아래 목록을 무시하고 빈 주머니로 시작한다. InventoryManager 의 " +
+    [Tooltip("끄면 기본 지급 아이템만 소지하고 아래 목록을 무시한다. InventoryManager 의 " +
              "useDebugStartingInventory 와 같은 역할.")]
     [SerializeField] private bool useDebugStartingItems = true;
 
     [Tooltip("게임 시작 시 넣을 아이템. 동일 아이템을 반복 등록하면 최대 중첩까지 지급한다.")]
     [SerializeField] private List<ItemSO> debugStartingItems = new List<ItemSO>();
 
-    // 개별 사본을 저장해 기존 세이브/조건부 효과 상태를 보존하고, UI에서 종류별로 묶는다.
+    // 개별 사본의 저장 순서를 보존하고, UI에서 종류별로 묶는다.
     private readonly List<ItemSO> _slots = new List<ItemSO>();
     private int slotCount => _slots.Count;
 
-    // SO는 공유 데이터다. 누적/일시 버프는 보유한 칸별로 관리하고 이동 시 함께 옮긴다.
-    private readonly List<int> _nonCritHits = new List<int>();
-    private readonly List<float> _lastGuardAt = new List<float>();
     private RoomInstance _shieldRoom;
     public int Revision { get; private set; }
-    private readonly object _conditionalSource = new object();
     private CharacterStat _boundStat;
-    private PlayerParryController _guard;
-    private float _conditionalChance = float.NaN;
-    private float _conditionalDamage = float.NaN;
 
     // 초기화 순서와 무관하게 UI가 Revision 변경 때만 목록을 다시 그린다.
 
@@ -61,23 +49,27 @@ public class ItemPouch : MonoBehaviour
                     Debug.LogWarning($"<color=orange>[ItemPouch]</color> 디버그 아이템 '{so.DisplayName}' — 최대 중첩에 도달했다.");
         }
 
+        if (!isLoadedGame) EnsureStartingItem();
         Refresh();
+    }
+
+    private void EnsureStartingItem()
+    {
+        var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null
+            ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY() : null;
+        var item = registry != null ? registry.startingItem : null;
+        if (item != null && !Contains(item)) TryAdd(item);
     }
 
     private void OnEnable()
     {
-        DamageEventBus.OnBeforeDamageCalculated += HandleBeforeDamage;
-        DamageEventBus.OnAttackHitResolved += HandleAttackHit;
         RoomInstance.OnAnyRoomCleared += HandleRoomCleared;
         RoomInstance.OnPlayerEnteredRoom += HandleRoomEntered;
-        ResetCombatState();
         Refresh();
     }
 
     private void OnDisable()
     {
-        DamageEventBus.OnBeforeDamageCalculated -= HandleBeforeDamage;
-        DamageEventBus.OnAttackHitResolved -= HandleAttackHit;
         RoomInstance.OnAnyRoomCleared -= HandleRoomCleared;
         RoomInstance.OnPlayerEnteredRoom -= HandleRoomEntered;
         UnbindPlayer();
@@ -86,34 +78,17 @@ public class ItemPouch : MonoBehaviour
     private void Update()
     {
         if (_boundStat != PlayerStat()) Refresh();
-        UpdateConditionalStats();
-    }
-
-    private void ResetCombatState()
-    {
-        for (int i = 0; i < slotCount; i++) ResetSlotState(i);
-    }
-
-    private void ResetSlotState(int slot)
-    {
-        _nonCritHits[slot] = 0;
-        _lastGuardAt[slot] = float.NegativeInfinity;
     }
 
     private void UnbindPlayer()
     {
-        if (_guard != null) _guard.OnParrySuccess -= HandleGuardSuccess;
         if (_boundStat != null)
         {
-            _boundStat.Mods.RemoveSource(_conditionalSource);
             _boundStat.Mods.RemoveSource(this);
             _boundStat.Status?.SetShield(this, 0f);
         }
         _shieldRoom = null;
-        _guard = null;
         _boundStat = null;
-        _conditionalChance = _conditionalDamage = float.NaN;
-        ResetCombatState();
     }
 
     // ── 조회 ──────────────────────────────────────────────────────────
@@ -163,12 +138,9 @@ public class ItemPouch : MonoBehaviour
         {
             slot = _slots.Count;
             _slots.Add(null);
-            _nonCritHits.Add(0);
-            _lastGuardAt.Add(float.NegativeInfinity);
         }
 
         _slots[slot] = so;
-        ResetSlotState(slot);
         Revision++;
         Refresh();
         Debug.Log($"<color=cyan>[ItemPouch]</color> '{so.DisplayName}' 습득 → {slot}번 칸");
@@ -183,21 +155,18 @@ public class ItemPouch : MonoBehaviour
         if (so == null) return null;
 
         _slots[slot] = null;
-        ResetSlotState(slot);
         Revision++;
         Refresh();
         return so;
     }
 
-    /// <summary>저장 순서와 조건부 상태를 함께 옮긴다. UI 정렬은 데이터 순서를 바꾸지 않는다.</summary>
+    /// <summary>개별 사본의 저장 순서를 옮긴다. UI 정렬은 데이터 순서를 바꾸지 않는다.</summary>
     public void Swap(int a, int b)
     {
         if (a == b) return;
         if (a < 0 || a >= slotCount || b < 0 || b >= slotCount) return;
 
         (_slots[a], _slots[b]) = (_slots[b], _slots[a]);
-        (_nonCritHits[a], _nonCritHits[b]) = (_nonCritHits[b], _nonCritHits[a]);
-        (_lastGuardAt[a], _lastGuardAt[b]) = (_lastGuardAt[b], _lastGuardAt[a]);
         Revision++;
         Refresh();
     }
@@ -218,11 +187,6 @@ public class ItemPouch : MonoBehaviour
         {
             UnbindPlayer();
             _boundStat = stat;
-            if (stat != null)
-            {
-                _guard = GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerParryController>();
-                if (_guard != null) _guard.OnParrySuccess += HandleGuardSuccess;
-            }
         }
         if (stat == null) return;
 
@@ -245,7 +209,6 @@ public class ItemPouch : MonoBehaviour
                     stat.Mods.AddFlat(this, StatType.CritOverflowConversion, 1f);
             }
         }
-        UpdateConditionalStats();
 
         // [최대 체력 변화를 현재 체력에 그대로 반영]
         // 최대치가 +10 되면 현재 체력도 +10, 빠지면 -10. '증감분'을 따라가므로 버렸다 집었다를
@@ -263,118 +226,6 @@ public class ItemPouch : MonoBehaviour
         stat.Health.SetHP(target); // SetHP 가 새 최대치로 clamp 하고 체력바까지 갱신한다
     }
 
-    // ── 조건부 피해 효과 ───────────────────────────────────────────────
-    /// <summary>
-    /// 피해 계산 직전에 아이템 보너스를 얹는다.
-    ///
-    /// [가드] '적에게 주는 피해'만 대상이다. 이 한 줄이 두 가지를 동시에 막는다:
-    ///   · 적이 플레이어를 때리는 피해에 보너스가 붙는 것
-    ///   · 플레이어가 얼었다 깨질 때 자기 빙결 파괴 피해가 +5 되는 것
-    ///     (빙결 파괴는 attacker 가 null 이라 '누가 때렸나'로는 못 가른다)
-    /// </summary>
-    private void HandleBeforeDamage(CharacterHealth target, ref DamageInfo info)
-    {
-        if (target == null || target.Stat == null || !target.Stat.IsEnemy) return;
-
-        // 이동 직후/버프 종료 프레임에도 실제 추첨은 최신 조건을 본다.
-        if (_boundStat != PlayerStat()) Refresh();
-        UpdateConditionalStats();
-
-        for (int i = 0; i < slotCount; i++)
-        {
-            var so = _slots[i];
-            if (so == null || so.effects == null) continue;
-            foreach (var e in so.effects)
-                if (e is ItemDamageBonusEffect de && de.Matches(target, info))
-                    de.Apply(ref info);
-        }
-    }
-
-    private void HandleAttackHit(CharacterHealth target, CharacterStat attacker, DamageInfo info, bool critical)
-    {
-        if (_boundStat == null || attacker != _boundStat || target == null || target.Stat == null
-            || !target.Stat.IsEnemy || target.IsDead || !DamageRules.CanCrit(info)) return;
-
-        int gold = 0;
-        for (int i = 0; i < slotCount; i++)
-        {
-            var so = _slots[i];
-            if (so == null || so.effects == null) continue;
-            bool hasPity = false;
-            foreach (var effect in so.effects)
-            {
-                if (effect is ItemCritPityEffect) hasPity = true;
-                if (critical && effect is ItemCritGoldEffect coin) gold += Mathf.Max(0, coin.goldPerCrit);
-            }
-            if (hasPity) _nonCritHits[i] = critical ? 0 : _nonCritHits[i] + 1;
-        }
-        if (gold > 0 && InventoryManager.Instance != null) InventoryManager.Instance.AddGold(gold);
-        UpdateConditionalStats();
-    }
-
-    private void HandleGuardSuccess()
-    {
-        for (int i = 0; i < slotCount; i++)
-        {
-            var so = _slots[i];
-            if (so == null || so.effects == null) continue;
-            foreach (var effect in so.effects)
-                if (effect is ItemGuardCritEffect) { _lastGuardAt[i] = Time.time; break; }
-        }
-        // 일반/퍼펙트 모두 성공. 재성공은 지속시간만 갱신하고 같은 아이템의 효과를 중첩하지 않는다.
-        UpdateConditionalStats();
-    }
-
-    private void UpdateConditionalStats()
-    {
-        if (_boundStat == null) return;
-        float chance = 0f, damage = 0f;
-        if (_boundStat.Health != null && !_boundStat.Health.IsDead && _boundStat.Health.CurHP > 0f)
-        {
-            for (int i = 0; i < slotCount; i++)
-            {
-                var so = _slots[i];
-                if (so == null || so.effects == null) continue;
-                foreach (var effect in so.effects)
-                {
-                    if (effect is ItemCritPityEffect pity)
-                        chance += Mathf.Max(0f, pity.chancePerNonCrit) * _nonCritHits[i];
-                    else if (effect is ItemGuardCritEffect guard && Time.time - _lastGuardAt[i] < guard.duration)
-                    {
-                        chance += Mathf.Max(0f, guard.chanceBonus);
-                        damage += Mathf.Max(0f, guard.damageBonus);
-                    }
-                    else if (effect is ItemNearbyCritEffect nearby && HasNearbyEnemies(nearby))
-                        damage += Mathf.Max(0f, nearby.damageBonus);
-                }
-            }
-        }
-        else ResetCombatState();
-
-        // F5 스탯 표시도 같은 최종값을 본다. 값이 변할 때만 보정 목록을 갱신한다.
-        if (chance == _conditionalChance && damage == _conditionalDamage) return;
-        _boundStat.Mods.RemoveSource(_conditionalSource);
-        if (chance != 0f) _boundStat.Mods.AddFlat(_conditionalSource, StatType.CritChance, chance);
-        if (damage != 0f) _boundStat.Mods.AddFlat(_conditionalSource, StatType.CritDamage, damage);
-        _conditionalChance = chance;
-        _conditionalDamage = damage;
-    }
-
-    private bool HasNearbyEnemies(ItemNearbyCritEffect effect)
-    {
-        float radius = Mathf.Max(0f, effect.radius);
-        Vector2 origin = _boundStat.transform.position;
-        int count = 0;
-        foreach (var status in CharacterStatus.ActiveEnemies)
-        {
-            if (status == null || !status.gameObject.activeInHierarchy) continue;
-            var health = status.GetComponent<CharacterHealth>();
-            if (health == null || health.IsDead || health.CurHP <= 0f) continue;
-            if (((Vector2)status.transform.position - origin).sqrMagnitude > radius * radius) continue;
-            if (++count >= Mathf.Max(1, effect.minEnemies)) return true;
-        }
-        return false;
-    }
     // ── 방 클리어 회복 ────────────────────────────────────────────────
     /// <summary>
     /// 방이 클리어될 때 ItemRoomClearHealEffect 를 가진 아이템만큼 회복시킨다.
@@ -438,8 +289,6 @@ public class ItemPouch : MonoBehaviour
             : null;
 
         _slots.Clear();
-        _nonCritHits.Clear();
-        _lastGuardAt.Clear();
 
         if (registry != null && registry.items != null && data.pouchItemNames != null)
         {
@@ -451,11 +300,10 @@ public class ItemPouch : MonoBehaviour
                 if (item == null) { Debug.LogWarning($"[ItemPouch] 저장된 아이템을 찾지 못함: {n}"); continue; }
                 // 구 세이브의 중복 사본도 보존한다. 새 습득에만 현재 최대 중첩을 적용한다.
                 _slots.Add(item);
-                _nonCritHits.Add(0);
-                _lastGuardAt.Add(float.NegativeInfinity);
             }
         }
 
+        EnsureStartingItem();
         Revision++;
         Refresh();
     }

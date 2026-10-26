@@ -12,7 +12,6 @@
 /// 신호를 정말 추가해야 한다면 두 단계 다 해야 함:
 ///   1. 아래 목록에 한 줄 추가 (맨 아래, 새 번호로) → 그 즉시 모든 Shaker의 드롭다운에 나타난다
 ///   2. 그 순간을 아는 곳에서 Signal.Fire(ShakeSignal.???); 한 줄
-///      (기획자가 씬에서 직접 쏘고 싶으면 ShakeSender 컴포넌트를 쓰면 된다)
 /// </summary>
 public enum ShakeSignal
 {

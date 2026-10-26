@@ -24,6 +24,8 @@ public class GrowthRegistrySO : ScriptableObject
     [Header("아이템 (주머니. 장비와 별개 시스템)")]
     [Tooltip("세이브에 이름으로 저장되므로 로드 시 이름→SO 해석에 이 목록이 필요하다.")]
     public List<ItemSO> items = new List<ItemSO>();
+    [Tooltip("기본 소지 아이템. 새 게임과 이전 세이브 로드 시 없을 때만 1개 지급한다.")]
+    public ItemSO startingItem;
 
     [Header("우클릭 (가드 Lv1~4)")]
     [Tooltip("마을 NPC 교체 목록에 뜨는 우클릭들. 영구 선택이 이름으로 저장되므로 이름→SO 해석에도 쓰인다.")]
@@ -48,18 +50,6 @@ public class GrowthRegistrySO : ScriptableObject
         return rightClicks.Find(r => r != null && r.IsValid);
     }
 
-
-    /// <summary>
-    /// 모든 아이템을 하나의 리스트로 합쳐서 반환합니다. (보상 생성용)
-    /// </summary>
-    public List<GrowthItemSO> GetAllItems()
-    {
-        List<GrowthItemSO> allItems = new List<GrowthItemSO>();
-        // 계보는 직접 아이템이 아니므로 제외하거나, 필요시 변환 로직 추가
-        allItems.AddRange(treasures);
-        allItems.AddRange(specialAbilities);
-        return allItems;
-    }
 
 #if UNITY_EDITOR
     /// <summary>

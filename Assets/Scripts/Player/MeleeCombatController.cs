@@ -259,9 +259,6 @@ public class MeleeCombatController : MonoBehaviour
 
                 // 플레이어 공격은 적에게 경직과 약간의 넉백을 유발
                 float saDmg = 20f;
-                // [26/08/15] 서브 소환수가 주던 평타 고정 추가 피해(flatBonus)를 걷어냈다.
-                // 같은 효과는 아이템(ItemDamageBonusEffect)으로 다시 만들 예정이며, 그쪽은
-                // DamageInfo 를 만든 뒤 파이프라인에서 얹히므로 여기서 더할 게 없다.
                 DamageInfo info = new DamageInfo(_player.Stat.ATK * damageMultiplier, DamageType.Physical, this.gameObject, 1f, "", false, causesHitstun: true, knockbackForce: 2f, superArmorDamage: saDmg, category: DamageCategory.BasicAttack);
                 info.playerBasicAttack = new PlayerBasicAttackRoll(weapon);
                 if (weapon != null && weapon.exploitsWeakness && swingIndex == 2)
@@ -270,6 +267,7 @@ public class MeleeCombatController : MonoBehaviour
                     info.statusDuration = weapon.weaknessDuration;
                 }
                 _activeHitbox.HitsPerContact = weapon != null ? weapon.basicHitsPerContact : 1;
+                _activeHitbox.ContactHitInterval = weapon != null ? weapon.basicRepeatHitInterval : 0f;
 
                 LayerMask enemyLayer = Layers.EnemyMask;
                 // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
@@ -445,6 +443,7 @@ public class MeleeCombatController : MonoBehaviour
         var weapon = PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.Weapon : null;
         enhanceMult *= weapon != null ? weapon.basicDamagePerHit : 1f;
         box.HitsPerContact = weapon != null ? weapon.basicHitsPerContact : 1;
+        box.ContactHitInterval = weapon != null ? weapon.basicRepeatHitInterval : 0f;
         var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier * enhanceMult, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
 
         // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.

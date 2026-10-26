@@ -4,7 +4,7 @@
 /// 듣는 쪽이 둘로 갈리는데, 이유가 있다:
 ///
 ///   [화면 커튼] 세상에 하나뿐인 공유 자원이라 신호를 '듣지 않는다'.
-///     문·포탈·FadeAction이 Fader.FullScreenFader.FadeOutIn(신호, 콜백)으로 직접 부른다.
+///     문·포탈이 Fader.FullScreenFader.FadeOutIn(신호, 콜백)으로 직접 부른다.
 ///     '깜깜해진 순간'을 돌려받아야 그때 텔레포트/씬로드를 하기 때문에, 던지고 끝인 신호로는 안 된다.
 ///     이때 이 enum은 "커튼 반응 목록의 어느 줄 수치를 쓸지" 고르는 이름표 역할을 겸한다.
 ///     (커튼이 자기도 들으면 직접 호출 + 신호로 두 번 페이드된다.)
@@ -17,7 +17,7 @@
 ///   1. 아래에 한 줄 (맨 아래, 새 번호로)
 ///   2. 화면을 가리는 신호라면 ScreenFadeCanvas 프리팹의 Fader 반응 목록에도 같은 줄을 추가하고 수치를 정한다
 ///      ★ 2번을 빼먹으면 경고와 함께 맨 윗줄 수치로 돌아간다
-///   3. 거는 쪽에서 fader.FadeOutIn(FadeSignal.새신호, ...) 또는 FadeAction에서 고른다
+///   3. 거는 쪽에서 fader.FadeOutIn(FadeSignal.새신호, ...)로 고른다
 /// </summary>
 public enum FadeSignal
 {

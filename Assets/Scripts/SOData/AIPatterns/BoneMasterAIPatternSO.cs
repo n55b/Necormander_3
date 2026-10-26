@@ -110,8 +110,6 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
              "그래서 실제 딜타임 = 그로기(counterSuccessGroggyDuration) + 이 값 이고, 그동안 보스는 추격만 한다. " +
              "늘리면 그만큼 통째로 무행동이니 신중하게 만져라.")]
     public float postPatternRecovery = 1f;
-    [Tooltip("[미사용] 특수 패턴과 기본 공격이 분리돼 있던 시절의 추가 딜타임. 통합 후로는 쓰지 않는다.")]
-    public float postGroggyRecovery = 1.5f;
 
     [Header("텔레그래프(피해범위 인디케이터) 색상")]
     public Color telegraphWarnColor = new Color(1f, 0.1f, 0.1f, 0.9f);
@@ -387,7 +385,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         _controller?.ApplyGroggy(counterSuccessGroggyDuration);
 
         // [버그 수정 — 카운터 성공이 3.5초 정지가 되던 문제] 예전엔 EndPatternAfterGroggy 를 불러서
-        // postPatternRecovery(1.5) + 그로기(0.5) + postGroggyRecovery(1.5) = 3.5초를 잠갔다.
+        // postPatternRecovery(1.5) + 그로기(0.5) + 추가 대기(1.5) = 3.5초를 잠갔다.
         // 특수 패턴과 기본 공격이 분리돼 있던 시절엔 그 3초에도 기본 공격이 나갔지만, 통합 이후엔
         // 기본 공격이 보스의 유일한 공격 경로라 그대로 무행동이 된다. 스펙의 보상은 '패턴 취소 +
         // 0.5초 경직'이므로 딜타임은 postPatternRecovery 하나만 얹는다(그로기 포함 총 2초).
@@ -673,8 +671,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
     /// 특수 패턴 종료. CurrentState 를 풀어 주는 동시에 다음 특수 패턴까지의 최소 간격을 건다.
     /// </summary>
     /// <param name="extraLock">
-    /// postPatternRecovery 위에 더 얹을 시간. 파훼(그로기)로 끝난 경우 "그로기 시간 + postGroggyRecovery"를
-    /// 넘겨서, 그로기가 풀리자마자 다음 패턴이 시작되지 않고 실제 딜타임이 생기게 한다.
+    /// postPatternRecovery 위에 더 얹을 시간. 파훼로 끝난 경우 그로기 시간을 넘긴다.
     /// </param>
     /// <summary>패턴이 끝났다. 배속은 Animator 전역 상태라 여기서 반드시 1 로 되돌린다.</summary>
     private void EndPattern(BaseEntity entity, float extraLock = 0f)

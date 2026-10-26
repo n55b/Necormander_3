@@ -98,7 +98,7 @@ public static class RewardProcessor
 
     /// <summary>최대 중첩에 도달하지 않은 아이템만 상점/보상 후보로 사용한다.</summary>
     public static bool CanOfferItem(ItemSO item)
-        => item != null && (ItemPouch.Instance == null || ItemPouch.Instance.CanAdd(item));
+        => item != null && item.availableAsReward && (ItemPouch.Instance == null || ItemPouch.Instance.CanAdd(item));
 
     /// <summary>중첩 여유가 있는 아이템 하나를 랜덤으로. 일반/엘리트/증강 보상 공용. 후보가 없으면 null.</summary>
     public static ItemSO PickRandomItem(DataManager data)

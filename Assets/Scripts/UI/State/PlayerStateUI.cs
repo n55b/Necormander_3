@@ -58,9 +58,6 @@ public class PlayerStateUI : MonoBehaviour
     [Header("Gold Settings")]
     [SerializeField] private TextMeshProUGUI goldText;
 
-    [Header("Stamina Settings")]
-    [SerializeField] private GameObject staminaUIPrefab;
-
     [Header("대쉬 / Space 미니언 스킬")]
     [SerializeField] private DashCooldownUI dashCooldownUI;
     [UnityEngine.Serialization.FormerlySerializedAs("skillSlotQ")]
@@ -112,20 +109,6 @@ public class PlayerStateUI : MonoBehaviour
             if (s.CooldownFill != null) { s.CooldownFill.fillAmount = 0f; s.CooldownFill.gameObject.SetActive(false); }
             if (s.CooldownText != null) s.CooldownText.text = "";
         }
-
-        // 스타미나 UI
-        // StaminaUI staminaUI = GetComponentInChildren<StaminaUI>();
-        // if (staminaUI == null)
-        // {
-        //     if (staminaUIPrefab != null)
-        //     {
-        //         GameObject obj = Instantiate(staminaUIPrefab, panelParent != null ? panelParent.transform : transform);
-        //         staminaUI = obj.GetComponent<StaminaUI>() ?? obj.AddComponent<StaminaUI>();
-        //     }
-        //     else staminaUI = gameObject.AddComponent<StaminaUI>();
-        // }
-        // if (staminaUI != null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-        //     staminaUI.Initialize(GameManager.Instance.PLAYERCONTROLLER.STAMINA);
 
         // Dash 쿨타임 UI
         if (dashCooldownUI != null)

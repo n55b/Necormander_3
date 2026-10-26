@@ -33,7 +33,7 @@ public class Fader : MonoBehaviour
         [Tooltip("이 줄이 어느 페이드에 대한 설정인지.\n\n" +
                  "[UI·스프라이트에 붙인 Fader] 이 신호가 오면 아래 설정대로 알아서 페이드한다. " +
                  "예: 신호=방이동으로 두면 문을 지날 때 이 UI도 같이 사라진다.\n\n" +
-                 "[화면 커튼(ScreenFadeCanvas)] 커튼은 신호를 듣지 않는다. 문·포탈·FadeAction이 직접 부르면서 " +
+                 "[화면 커튼(ScreenFadeCanvas)] 커튼은 신호를 듣지 않는다. 문·포탈이 직접 부르면서 " +
                  "이름으로 이 줄을 찾아 아래 수치만 쓴다.\n\n" +
                  "'없음' = 버튼이나 코드가 인자 없이 FadeOut()/FadeIn()을 부를 때 쓰는 줄.")]
         public FadeSignal signal = FadeSignal.방이동;
@@ -55,7 +55,7 @@ public class Fader : MonoBehaviour
     }
 
     [Tooltip("페이드 종류별 수치. 필요한 만큼 줄을 추가하면 된다.\n" +
-             "코드나 FadeAction이 종류 이름으로 줄을 찾아 그 수치로 페이드한다 — 그래서 같은 커튼이어도 " +
+             "호출 코드이 종류 이름으로 줄을 찾아 그 수치로 페이드한다 — 그래서 같은 커튼이어도 " +
              "문 이동은 0.2초 검정, 층 이동은 2초 흰색으로 다르게 줄 수 있다.\n" +
              "버튼/코드가 인자 없이 부르면 '없음' 줄을 쓴다(없으면 맨 윗줄).")]
     [SerializeField] private List<Reaction> reactions = new List<Reaction> { new Reaction() };
@@ -161,7 +161,7 @@ public class Fader : MonoBehaviour
     private void OnEnable()
     {
         // 화면 커튼(FullScreen)은 신호를 듣지 않는다. 커튼은 세상에 하나뿐인 공유 자원이라
-        // '깜깜해진 순간'을 돌려받아야 하는 쪽(문/포탈/FadeAction)이 직접 부르고,
+        // '깜깜해진 순간'을 돌려받아야 하는 쪽(문/포탈)이 직접 부르고,
         // 그 커튼이 아래 FadeOutIn에서 "지금 방이동 페이드 중"이라고 방송해준다.
         // 여기서 같이 들으면 직접 호출 + 신호로 두 번 페이드된다.
         if (_mode != Mode.FullScreen) Signal.Listen<FadeSignal>(OnSignal);

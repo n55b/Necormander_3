@@ -1938,7 +1938,6 @@ MonoBehaviour:
   guardReadyColor: {r: 0.1254902, g: 0.75686276, b: 0.9098039, a: 1}
   guardBrokenColor: {r: 0.50980395, g: 0.5372549, b: 0.5803922, a: 1}
   goldText: {fileID: 1433340160426765120}
-  staminaUIPrefab: {fileID: 5572966085134324014, guid: 8551e31bfd8b3634d981136652f7da06, type: 3}
   dashCooldownUI: {fileID: 1807527504286876959}
   guardSlot:
     SlotRoot: {fileID: 9135890455306156187}

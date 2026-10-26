@@ -10,7 +10,7 @@ using System.Collections.Generic;
 /// </summary>
 public class EnhanceShopNPC : NPCBase
 {
-    [Header("말풍선 (SellItem 과 같은 방식)")]
+    [Header("상호작용 말풍선")]
     [Tooltip("평소 꺼둘 월드 스페이스 Canvas. 플레이어가 다가오면 켜진다.")]
     [SerializeField] private GameObject bubbleCanvas;
     [Tooltip("Assets/Prefabs/UI/Shop/ToolTip.prefab — Name/Price 두 줄짜리 말풍선.")]

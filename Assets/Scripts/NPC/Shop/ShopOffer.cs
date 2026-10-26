@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 상점 NPC 가 들고 있는 진열 상품 하나. (예전엔 바닥의 SellItem 오브젝트가 이 역할을 했다)
+/// 상점 NPC 가 들고 있는 진열 상품 하나.
 /// </summary>
 public class ShopOffer
 {

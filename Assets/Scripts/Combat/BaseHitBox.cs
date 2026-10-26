@@ -60,12 +60,40 @@ public class BaseHitBox : MonoBehaviour
     public FillStyle fillStyle = FillStyle.Uniform;
 
     private DamageInfo _damageInfo;
-    // 마리오네트: 원래 애니메이션/펄스는 유지하고 한 판정에서 독립된 타격을 반복한다.
+    // 마리오네트: 모션/펄스는 유지하고 확정된 적중의 추가 피해만 시간차를 둔다.
     public int HitsPerContact { get; set; } = 1;
+    public float ContactHitInterval { get; set; }
     private void DealContactDamage(IDamageable target)
     {
-        for (int i = 0; i < Mathf.Max(1, HitsPerContact) && !target.IsDead; i++)
+        if (target.IsDead) return;
+        target.TakeDamage(_damageInfo);
+        int remaining = Mathf.Max(1, HitsPerContact) - 1;
+        if (remaining == 0 || target.IsDead) return;
+        if (ContactHitInterval > 0f && target is MonoBehaviour receiver && receiver.isActiveAndEnabled)
+        {
+            // 히트박스 수명이 끝나거나 공격을 취소해도 이미 적중한 추가타는 누락하지 않는다.
+            // 대상이 사라지거나 비활성화되면 대상의 코루틴과 함께 취소된다.
+            receiver.StartCoroutine(RepeatContactDamage(receiver, target, _damageInfo, remaining,
+                ContactHitInterval, hitEffectPrefab, hitParticlePrefab, hitEffectAngle, frozenHitEffectColor));
+            return;
+        }
+        for (int i = 0; i < remaining && !target.IsDead; i++)
             target.TakeDamage(_damageInfo);
+    }
+
+    private static System.Collections.IEnumerator RepeatContactDamage(MonoBehaviour receiver, IDamageable target,
+        DamageInfo info, int remaining, float interval, GameObject effectPrefab, GameObject particlePrefab,
+        float angle, Color frozenColor)
+    {
+        for (int i = 0; i < remaining; i++)
+        {
+            yield return new WaitForSeconds(interval);
+            if (receiver == null || !receiver.isActiveAndEnabled || target.IsDead) yield break;
+            bool frozen = IsTargetFrozen(receiver);
+            target.TakeDamage(info);
+            if (receiver != null)
+                SpawnHitEffect(receiver.transform.position, frozen, effectPrefab, particlePrefab, angle, frozenColor);
+        }
     }
     private LayerMask _targetLayer;
     private bool _isInitialized = false;
@@ -361,6 +389,10 @@ public class BaseHitBox : MonoBehaviour
     /// 적중 위치에 타격 이펙트(HitEffect)를 생성합니다.
     /// </summary>
     private void SpawnHitEffect(Vector3 position, bool frozenTarget = false)
+        => SpawnHitEffect(position, frozenTarget, hitEffectPrefab, hitParticlePrefab, hitEffectAngle, frozenHitEffectColor);
+
+    private static void SpawnHitEffect(Vector3 position, bool frozenTarget, GameObject hitEffectPrefab,
+        GameObject hitParticlePrefab, float hitEffectAngle, Color frozenHitEffectColor)
     {
         if (hitEffectPrefab != null)
         {
