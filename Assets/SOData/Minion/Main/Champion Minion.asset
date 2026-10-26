@@ -71,6 +71,7 @@ MonoBehaviour:
     causesHitstun: 1
     knockbackForce: 6
     superArmorDamage: 50
+  hitEffectPrefab: {fileID: 5299594500409048299, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
   basicAnim:
     visual: {fileID: 3011877677410798748, guid: 7c4cdc41d521690449d80bae5a5e00e5, type: 3}
     duration: 0.65000004

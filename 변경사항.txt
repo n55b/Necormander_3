@@ -40,3 +40,47 @@ https://deepnight.net/tutorial/a-simple-platformer-engine-part-1-basics/
 https://deepnight.net/games/game-feel/
 
 플레이하며 확인할 점: 좌우 반전이 답답하지 않은지, 키를 뗐을 때 너무 미끄럽지 않은지, 대시 후 걷기가 자연스러운지.
+
+2026-10-26 — 스쿼시/스트레치, 디더링, 최종 소환수 타격 연출
+
+스쿼시/스트레치: 플레이어의 평타 전진·대시·대시 종료·피격·가드 성공 때 그림이 약 5~12% 늘거나 눌렸다 돌아온다. 충돌체·카메라·UI는 변형하지 않는다.
+Player Melee 프리팹 → VisualSquashStretch에서 동작별 Scale/Duration/Curve를 조절한다. Visual에는 그림 전용 Transform을 넣는다.
+다른 오브젝트도 이 컴포넌트를 직접 붙여서 사용한다. UnityEvent에서 Play(string)에 Attack/Dash/Land/Hit/Guard 또는 직접 만든 이름을 넣으면 된다. Squash()/Stretch()/ResetVisual()도 바로 호출할 수 있다.
+
+디더링: 사물 뒤로 가려진 플레이어의 실루엣, 화면 페이드 인/아웃, 돌진 몬스터의 잔상이 도트 무늬로 나타나고 사라진다.
+기존 Fader와 로딩 완료 대기 순서는 유지한다. 완전히 가려져야 할 때는 구멍 없이 가려진다.
+재질은 Assets/Material/Feedback에 있다. 화면은 ScreenFadeCanvas → FadeImage, 플레이어는 Body/Hand 아래 Silhouette, 잔상은 DashAfterimage → Fade Material에서 교체한다.
+다른 SpriteRenderer에도 Dither Afterimage 재질을 지정하면 Fader 등이 바꾸는 알파를 디더링으로 표현할 수 있다. 원래 재질 고유의 조명/외곽선이 필요한 오브젝트는 재질 교체에 주의한다.
+
+슬래시: 최종 전사 계열 용사(Champion)와 최종 무사 계열 장수(Warlord)의 평타·Space·대시 적중에 제공된 Slash_Effect를 연결했다.
+원본은 32 PPU로 가져오고, 반복하지 않는 복제 클립으로 재생한다. 복제 클립에서 앞뒤 빈 구간만 제거해 적중 순간부터 보인다. 적중점에 슬래시 중심을 맞추고 짧은 발광·가는 선 파편 5개를 더했다. 피해량과 타격 시점은 그대로다.
+Assets/Prefabs/Effect/Hit/Slash Impact.prefab에서 크기·색·파편 배치를 직접 수정할 수 있다. ImpactFeedback의 곡선으로 확대·발광·소멸을 조절한다.
+다른 타격 이펙트도 완성 프리팹으로 만든 뒤 해당 MainMinionDataSO의 Hit Effect Prefab에 넣는다. 비우면 기존 히트박스 이펙트를 쓴다.
+
+참고: Celeste 공개 코드의 그림만 변형하는 방식과 Dead Cells 아트 개발기의 효과 합성 방식. 제공한 스프라이트와 기본 선 도형을 사용했다.
+https://www.gamedeveloper.com/production/art-design-deep-dive-using-a-3d-pipeline-for-2d-animation-in-i-dead-cells-i-
+
+플레이하며 확인할 점: 몸 변형이 과하지 않은지, 가림 실루엣이 잘 보이는지, 슬래시 밝기가 적/공격 예고를 가리지 않는지.
+
+2026-10-26 — 연출 강화 2차 (위 초기 수치보다 이 항목이 최신)
+
+스쿼시/스트레치를 몬스터 공용 프리팹과 소환수 7종에도 연결했다. 몬스터는 공격 시작/타격과 실제 체력 피해에 반응한다.
+일반 몬스터·소환수는 약 11~20%, 플레이어는 동작별 최대 27%까지 변형된다. 빠르게 눌리거나 늘어난 뒤 반대 방향으로 한 번 튕겨 돌아오는 곡선이다. 큰 엘리트·보스는 강도를 낮춰 무게감을 유지했다.
+몬스터는 그림과 충돌체가 같은 루트라, 기존 PlayerOramaticLit 셰이더 그래프에 그림 정점만 변형하는 _FeedbackScale을 추가했다. 실제 위치·충돌체·이동 판정은 그대로다.
+소환수는 현재 체력이 없는 공격 퍼펫이므로 등장·공격 판정창·타격 펄스·대시 연출에 연결된다. 체력이 있는 캐릭터의 피격 연결은 VisualSquashStretch의 Health Source가 담당한다.
+조절: 각 캐릭터 프리팹의 VisualSquashStretch → Pulses. UnityEvent 호출 방식은 동일하다. 몬스터는 Deform Renderer, 플레이어·소환수는 Visual을 사용한다.
+
+피격 섬광을 더 밝고 짧게 바꿨다. CharacterVisualFeedback의 Hit Flash Strength(0.9) / Duration(0.075초)로 조절한다.
+플레이어 대시에 청록색 디더링 잔상을 추가했다. 기존 DashAfterimage를 재사용하며, 걷기나 평타 전진에서는 생성되지 않는다. Player Melee 프리팹의 DashAfterimage에서 간격·수명·색을 바꾼다.
+가림 실루엣은 밝은 청록색과 더 큰 도트 무늬를 사용한다. 화면 전환은 대각선으로 디더링이 퍼지는 방식으로 강화했다. 완전 암전과 로딩 완료 대기는 유지한다.
+조절: Assets/Material/Feedback의 Dither Screen Fade → Pixel Size / Wipe Spread, Player Dither Silhouette → Dither Pixel Size. 플레이어 실루엣의 색은 PlayerOcclusionSilhouette에서 바꾼다.
+
+용사·장수 슬래시는 크게 벌어지는 도트 슬래시 + 0.07초 중심 섬광 + 방사형 파편 9개 + 확산 호 2개 + 시간차 디더링 잔광 2장으로 강화했다. 전체 수명은 0.36초다.
+각 요소는 Slash Impact.prefab 안에 실제 오브젝트로 배치되어 있다. 필요 없으면 해당 참조를 비우거나 요소를 제거할 수 있다. ImpactFeedback에서 확대·발광·소멸 곡선과 잔광 간격을 조절한다.
+추가 히트스톱이나 카메라 흔들기는 넣지 않았다. 기존 공격/가드 타이밍을 유지하면서 그림의 반동·잔상·타격 효과로 변화가 보이도록 했다.
+
+참고: Celeste 공개 코드의 시각적 변형, Dead Cells 개발자 Deepnight의 게임 필 데모. 아트는 제공된 스프라이트와 기본 선 도형을 사용한다.
+https://github.com/NoelFB/Celeste/blob/master/Source/Player/Player.cs
+https://deepnight.net/games/game-feel/
+
+확인할 점: 일반 몬스터를 때릴 때의 찌그러짐/섬광, 소환수 등장·공격의 반동, 플레이어 대시 잔상, 용사·장수 적중 연출, 사물 뒤 청록 실루엣과 방 이동 시 디더링 전환.

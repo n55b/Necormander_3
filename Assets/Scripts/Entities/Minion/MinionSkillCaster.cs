@@ -129,6 +129,14 @@ public class MinionSkillCaster : MonoBehaviour
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
         vfx.transform.localPosition = Vector3.zero;
 
+        var squash = vfx.GetComponent<VisualSquashStretch>();
+        squash?.Play("Appear");
+        // 이벤트·태그·폴백 모두 같은 판정창을 거치므로 외형도 여기서 함께 반응한다.
+        var openWindow = onHitWindow;
+        onHitWindow = (duration, continuous) => { squash?.PlayAttack(); openWindow?.Invoke(duration, continuous); };
+        var hitPulse = onHitPulse;
+        onHitPulse = () => { squash?.PlayAttack(); hitPulse?.Invoke(); };
+
         var sr = vfx.GetComponentInChildren<SpriteRenderer>();
         if (sr != null) sr.flipX = faceRight;
 
@@ -272,6 +280,7 @@ public class MinionSkillCaster : MonoBehaviour
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
         vfx.transform.localPosition = Vector3.zero;
+        vfx.GetComponent<VisualSquashStretch>()?.PlayDash();
 
         var anim = vfx.GetComponentInChildren<Animator>();
 

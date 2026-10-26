@@ -55,6 +55,8 @@ public class PlayerController : MonoBehaviour
 
     [Header("플레이어 애니메이터")]
     [SerializeField] Animator BodyAnimator;
+    [SerializeField] private VisualSquashStretch visualSquash;
+    public void PlayVisualPulse(string pulseName) => visualSquash?.Play(pulseName);
     [SerializeField] PlayerAnimationState currentAnimState;
 
     private bool _inputBlocked = false; // [추가] 맵 생성 중 입력 차단용
@@ -100,6 +102,7 @@ public class PlayerController : MonoBehaviour
         moveInput = Vector2.zero;
         if (blocked)
         {
+            visualSquash?.ResetVisual();
             _isAttackDashing = false;
             _attackDashTimeLeft = 0f;
             PopupSystem.HideInteractionIcon();
@@ -261,6 +264,7 @@ public class PlayerController : MonoBehaviour
         // 데미지를 받았을 때 1초 무적 & 깜빡임 처리
         if (damage > 0)
         {
+            visualSquash?.PlayHit();
             if (_invincibilityCoroutine != null) StopCoroutine(_invincibilityCoroutine);
             _invincibilityCoroutine = StartCoroutine(InvincibilitySequence());
         }
@@ -307,7 +311,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (stat != null && stat.Health != null && stat.Health.IsDead) { StopLocomotion(); return; }
+        if (stat != null && stat.Health != null && stat.Health.IsDead) { visualSquash?.ResetVisual(); StopLocomotion(); return; }
 
         // 소환수 액티브는 Space(OnMinionSkill)가 담당한다.
 
@@ -378,6 +382,7 @@ public class PlayerController : MonoBehaviour
         _attackDashTimeLeft = 0f;
         StopLocomotion();
         if (_inputBlocked || IsGameplayPaused || IsCCed || (stat != null && stat.IsDead)) return;
+        visualSquash?.PlayLand();
         _smoothedMoveInput = Vector2.ClampMagnitude(moveInput, 1f);
         MoveDirection = _smoothedMoveInput;
         if (_rb != null && stat != null) _rb.linearVelocity = _smoothedMoveInput * stat.MOVESPEED * SpeedMultiplier;
@@ -567,6 +572,7 @@ public class PlayerController : MonoBehaviour
     {
         if (_inputBlocked || (stat != null && stat.Health.IsDead)) return;
         if (_isDashing) return; // 구르는 중(대시)에는 평타 대시 무시
+        visualSquash?.PlayAttack();
 
         _isAttackDashing = true;
         _attackDashDir = direction.normalized;
@@ -681,7 +687,7 @@ public class PlayerController : MonoBehaviour
             MeleeDodgeController dodgeController = GetComponent<MeleeDodgeController>();
             if (dodgeController != null)
             {
-                dodgeController.TryDash(moveInput, transform.localScale.x);
+                if (dodgeController.TryDash(moveInput, transform.localScale.x)) visualSquash?.PlayDash();
                 return;
             }
 
@@ -689,6 +695,7 @@ public class PlayerController : MonoBehaviour
             if (!_isDashing && Time.time >= _lastDashTime + DashCooldown)
             {
                 StartDash();
+                visualSquash?.PlayDash();
             }
         }
     }

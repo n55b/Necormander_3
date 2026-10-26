@@ -14,6 +14,9 @@ public class CharacterVisualFeedback : MonoBehaviour
     private Color _originalBaseColor;
     private bool _hasSavedOriginalBaseColor = false;
     private Coroutine _hitFlashCoroutine;
+    [Header("피격 섬광")]
+    [Range(0f, 1f), SerializeField] private float hitFlashStrength = .9f;
+    [Min(.01f), SerializeField] private float hitFlashDuration = .075f;
 
     [Header("슈퍼아머 시각 효과")]
     [Tooltip("상시 외곽선만 표시한다. 꺼도 슈퍼아머의 경직/넉백 면역 판정은 유지된다.")]
@@ -454,8 +457,8 @@ if (HitStopManager.Instance != null) HitStopManager.Instance.DoHitStop(0.05f);
     {
         if (_sr == null) yield break; // [추가] 널 체크
 
-        _sr.material.SetFloat("_HitFlash", 0.5f);
-        yield return new WaitForSeconds(0.1f);       
+        _sr.material.SetFloat("_HitFlash", hitFlashStrength);
+        yield return new WaitForSeconds(hitFlashDuration);
         if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
 
         StartFlash(Color.grey); 

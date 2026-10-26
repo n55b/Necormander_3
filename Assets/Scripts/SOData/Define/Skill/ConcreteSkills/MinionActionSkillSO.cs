@@ -189,6 +189,8 @@ public class MinionActionSkillSO : MinionSkillSO
             // 히트박스 위치: 원거리형이면 hitBoxCenter(플레이어+마우스 기준, 미니언과 무관), 아니면 시전한 미니언 위치.
             Vector2 boxPos = rangedMode ? hitBoxCenter : (Vector2)caster.transform.position;
             BaseHitBox box = Instantiate(hitBoxPrefab, (Vector3)boxPos, Quaternion.Euler(0f, 0f, angle), caster.transform);
+            mainData?.ApplyHitEffect(box);
+            box.hitEffectAngle = angle;
             box.transform.position = (Vector3)boxPos;
             box.transform.rotation = Quaternion.Euler(0f, 0f, angle);
             // 크기: hitBoxSize(가로*세로)가 둘 다 양수면 박스로 비균등 스케일(사다리꼴/부채꼴), 아니면 hitRadius 원형 균등.
@@ -283,6 +285,8 @@ public class MinionActionSkillSO : MinionSkillSO
         {
             Vector2 pos = lineCenter + dir * (-hitBoxSize.x * 0.5f + zoneLen * (i + 0.5f));
             var z = Instantiate(hitBoxPrefab, (Vector3)pos, Quaternion.Euler(0f, 0f, angle));
+            (caster.Data as MainMinionDataSO)?.ApplyHitEffect(z);
+            z.hitEffectAngle = angle;
             z.transform.localScale = new Vector3(zoneLen, hitBoxSize.y, 1f);
             var c = z.GetComponent<Collider2D>();
             if (c != null) c.enabled = false; // 판정창 열릴 때까지 꺼둔다

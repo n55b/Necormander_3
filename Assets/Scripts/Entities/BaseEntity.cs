@@ -29,6 +29,8 @@ public abstract class BaseEntity : MonoBehaviour
     [SerializeField] protected EnemyMinionDataSO minionData;
     public EnemyMinionDataSO MinionData => minionData;
     protected Animator _animator;
+    private VisualSquashStretch _visualSquash;
+    public void PlayAttackFeedback() => _visualSquash?.PlayAttack();
     [SerializeField] protected AIState _lastState = (AIState)(-1); // 이전 상태 기록
     [SerializeField] protected Transform _target = null;
     [SerializeField] protected CharacterStat _targetStat = null;
@@ -116,6 +118,7 @@ public abstract class BaseEntity : MonoBehaviour
     public virtual void OnHitEvent()
     {
         HasFiredHitEvent = true;
+        PlayAttackFeedback();
 
         if (minionData != null && minionData.AttackSound != null)
         {
@@ -151,7 +154,16 @@ public abstract class BaseEntity : MonoBehaviour
     }
 
     protected TelegraphHitbox _activeTelegraph;
-    public bool IsAttacking { get; set; } = false;
+    private bool _isAttacking;
+    public bool IsAttacking
+    {
+        get => _isAttacking;
+        set
+        {
+            if (value && !_isAttacking) PlayAttackFeedback();
+            _isAttacking = value;
+        }
+    }
     public Coroutine ActiveAttackCoroutine { get; set; }
 
     private bool _isPlayingStunAnim = false;
@@ -159,6 +171,7 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual void Awake()
     {
+        _visualSquash = GetComponent<VisualSquashStretch>();
         _animator = GetComponentInChildren<Animator>();
 
         _stats = GetComponentInChildren<CharacterStat>();

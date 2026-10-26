@@ -296,6 +296,7 @@ public class PlayerParryController : MonoBehaviour
             StopGuard();
         }
         OnParrySuccess?.Invoke();
+        _player?.PlayVisualPulse("Guard");
     }
 
     private void DestroyTelegraph()

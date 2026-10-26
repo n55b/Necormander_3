@@ -24,11 +24,14 @@ public class DashAfterimage : MonoBehaviour
     [SerializeField] private AnimationCurve fadeCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
     [Tooltip("잔상 색상(알파 포함). 엘리트는 붉은 틴트 권장")]
     [SerializeField] private Color tint = new Color(1f, 1f, 1f, 0.45f);
+    [Tooltip("잔상 페이드 재질. Pixel Feedback Sprite를 지정하면 도트 디더링으로 사라진다. 비우면 기존 재질.")]
+    [SerializeField] private Material fadeMaterial;
 
     /// <summary>true로 두면 속도와 무관하게 강제 방출 (AI 패턴에서 수동 제어가 필요할 때만 사용, 선택)</summary>
     public bool ForceEmit { get; set; }
 
-    private SpriteRenderer _source;
+    [Tooltip("잔상으로 복사할 그림. 비우면 현재 오브젝트 또는 자식의 첫 스프라이트를 사용한다.")]
+    [SerializeField] private SpriteRenderer _source;
     private Rigidbody2D _rb;
     private Vector3 _lastPos;
     private float _timer;
@@ -39,7 +42,7 @@ public class DashAfterimage : MonoBehaviour
 
     private void Awake()
     {
-        _source = GetComponent<SpriteRenderer>();
+        if (_source == null) _source = GetComponent<SpriteRenderer>();
         if (_source == null) _source = GetComponentInChildren<SpriteRenderer>();
         _rb = GetComponent<Rigidbody2D>();
         _lastPos = transform.position;
@@ -96,6 +99,7 @@ public class DashAfterimage : MonoBehaviour
     {
         GameObject go = new GameObject(name + "_Ghost");
         SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+        if (fadeMaterial != null) sr.sharedMaterial = fadeMaterial;
         _spawned.Add(sr);
         return sr;
     }
@@ -126,6 +130,21 @@ public class DashAfterimage : MonoBehaviour
         }
         _spawned.Clear();
         _pool.Clear();
+    }
+
+    private void OnDisable()
+    {
+        EndDash();
+        ForceEmit = false;
+        StopAllCoroutines();
+        _pool.Clear();
+        foreach (var ghost in _spawned)
+        {
+            if (ghost == null) continue;
+            ghost.gameObject.SetActive(false);
+            _pool.Enqueue(ghost);
+        }
+        _lastPos = transform.position;
     }
 
 

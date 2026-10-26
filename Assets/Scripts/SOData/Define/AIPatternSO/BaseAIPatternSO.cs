@@ -206,6 +206,7 @@ public class BaseAIPatternSO : AIPatternSO
         }
 
         // [2] Execution (타격)
+        if (!entity.HasFiredHitEvent) entity.PlayAttackFeedback();
         ExecuteBasicAttack(entity);
         entity.HasFiredHitEvent = true;
 

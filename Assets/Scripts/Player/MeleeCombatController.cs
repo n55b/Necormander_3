@@ -429,6 +429,7 @@ public class MeleeCombatController : MonoBehaviour
         go.transform.localRotation = Quaternion.Euler(0, 0, angle);
         go.transform.localScale = new Vector3(fin.hitBoxSize.x, fin.hitBoxSize.y, 1f);
         box.hitEffectAngle = angle;
+        main.ApplyHitEffect(box);
 
         // Init(팀 색 포함)은 OnHit 판정창에서 늦게 불린다 → 윈드업 동안 프리팹 기본색이 뜬다.
         // 스폰 직후 직접 물들여 처음부터 아군 색이 나오게 한다.

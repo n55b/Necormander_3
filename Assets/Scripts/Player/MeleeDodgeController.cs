@@ -37,11 +37,13 @@ public class MeleeDodgeController : MonoBehaviour
     public bool IsDashing => _isDashing;
     /// <summary>TryDash 성공 시 발생</summary>
     public event System.Action OnDodgeStarted;
+    private DashAfterimage _afterimage;
 
     public int CurrentCharges => _currentCharges;
 
     private void Awake()
     {
+        _afterimage = GetComponent<DashAfterimage>();
         _player = GetComponent<PlayerController>();
         _rb = GetComponent<Rigidbody2D>();
         _currentCharges = _lastMaxCharges = MaxCharges;
@@ -146,6 +148,7 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         _dashTravelDuration = actualDist / Mathf.Max(0.01f, dashSpeed);
         _dashElapsed = _dashProgress = 0f;
         _dashTimeLeft = _dashTravelDuration + 0.1f; // 충돌로 도착 불가할 때만 쓰는 안전 종료
+        _afterimage?.BeginDash(_dashTimeLeft);
 
         if (mod != null && mod.DealsDamage)
             SpawnDashHitBox(mod, transform.position, _dashDir, actualDist);
@@ -303,11 +306,13 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
             box.isContinuousDamage = false;
         }
 
+        GetMainMinion()?.ApplyHitEffect(box);
         box.Init(info, Layers.EnemyMask, life, 0f, true, onHit);
     }
 
 private void EndDash()
     {
+        _afterimage?.EndDash();
         _isDashing = false;
 
         if (_rb != null)

@@ -92,7 +92,7 @@ public class BaseHitBox : MonoBehaviour
             bool frozen = IsTargetFrozen(receiver);
             target.TakeDamage(info);
             if (receiver != null)
-                SpawnHitEffect(receiver.transform.position, frozen, effectPrefab, particlePrefab, angle, frozenColor);
+                SpawnHitEffect(ImpactPosition(receiver, effectPrefab), frozen, effectPrefab, particlePrefab, angle, frozenColor);
         }
     }
     private LayerMask _targetLayer;
@@ -171,7 +171,7 @@ public class BaseHitBox : MonoBehaviour
             if (damageable == null || damageable.IsDead || !_pulseTargets.Add(damageable)) continue;
             bool wasFrozen = IsTargetFrozen(hit); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
             DealContactDamage(damageable);
-            SpawnHitEffect(hit.transform.position, wasFrozen);
+            SpawnHitEffect(ImpactPosition(hit, hitEffectPrefab), wasFrozen);
             if (damageable is CharacterHealth ch) _onHitEnemy?.Invoke(ch);
         }
     }
@@ -355,7 +355,7 @@ public class BaseHitBox : MonoBehaviour
                 {
                     bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
                     DealContactDamage(damageable);
-                    SpawnHitEffect(col.transform.position, wasFrozen);
+                    SpawnHitEffect(ImpactPosition(col, hitEffectPrefab), wasFrozen);
                     _tickCount[damageable] = n + 1;
 
                     if (damageable is CharacterHealth ch)
@@ -372,7 +372,7 @@ public class BaseHitBox : MonoBehaviour
                     _hitTargets.Add(damageable);
                     bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
                     DealContactDamage(damageable);
-                    SpawnHitEffect(col.transform.position, wasFrozen);
+                    SpawnHitEffect(ImpactPosition(col, hitEffectPrefab), wasFrozen);
                     
                     if (damageable is CharacterHealth ch)
                     {
@@ -390,6 +390,16 @@ public class BaseHitBox : MonoBehaviour
     /// </summary>
     private void SpawnHitEffect(Vector3 position, bool frozenTarget = false)
         => SpawnHitEffect(position, frozenTarget, hitEffectPrefab, hitParticlePrefab, hitEffectAngle, frozenHitEffectColor);
+
+    private static Vector3 ImpactPosition(Component target, GameObject effectPrefab)
+    {
+        if (effectPrefab != null && effectPrefab.TryGetComponent<ImpactFeedback>(out _))
+        {
+            var col = target as Collider2D ?? target.GetComponent<Collider2D>() ?? target.GetComponentInParent<Collider2D>();
+            if (col != null) return col.bounds.center;
+        }
+        return target.transform.position;
+    }
 
     private static void SpawnHitEffect(Vector3 position, bool frozenTarget, GameObject hitEffectPrefab,
         GameObject hitParticlePrefab, float hitEffectAngle, Color frozenHitEffectColor)
@@ -427,6 +437,11 @@ public class BaseHitBox : MonoBehaviour
             var main = ps.main;
             Color baseColor = main.startColor.color;
             main.startColor = new Color(tint.r, tint.g, tint.b, baseColor.a);
+        }
+        foreach (var line in effect.GetComponentsInChildren<LineRenderer>(true))
+        {
+            line.startColor = new Color(tint.r, tint.g, tint.b, line.startColor.a);
+            line.endColor = new Color(tint.r, tint.g, tint.b, line.endColor.a);
         }
     }
 

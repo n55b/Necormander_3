@@ -28,6 +28,8 @@ public class PlayerOcclusionSilhouette : MonoBehaviour
 
     [Tooltip("위 occluderLayers가 설정 안 된 채(Nothing/0) 남아있으면 Awake에서 Wall+Obstacle로 자동 대체됩니다.")]
     [SerializeField] private bool autoDefaultToWallLayers = true;
+    [Min(.01f), SerializeField] private float transitionDuration = .12f;
+    private float _visibility;
 
 
     
@@ -62,9 +64,12 @@ private void LateUpdate()
         // Re-apply tint every frame (not just once in Awake) - otherwise any other system
         // that touches this renderer's color (hit flash, status effect tint, etc.) permanently
         // overrides our silhouette tint and it never recovers.
-        silhouetteRenderer.color = silhouetteColor;
-
-        silhouetteRenderer.enabled = IsOccluded();
+        bool occluded = _mainRenderer.enabled && _mainRenderer.color.a > .001f && IsOccluded();
+        _visibility = Mathf.MoveTowards(_visibility, occluded ? 1f : 0f, Time.deltaTime / Mathf.Max(.01f, transitionDuration));
+        var tint = silhouetteColor;
+        tint.a *= _visibility;
+        silhouetteRenderer.color = tint;
+        silhouetteRenderer.enabled = _visibility > 0f;
     }
 
     /// <summary>
@@ -85,7 +90,7 @@ private bool IsOccluded()
             if (ys == null) continue;
 
             var occluderRenderer = ys.Renderer;
-            if (occluderRenderer == null) continue;
+            if (occluderRenderer == null || !occluderRenderer.enabled || occluderRenderer.sprite == null) continue;
 
             // Skip anything that belongs to my own character (body/hands/etc share the same root) -
             // otherwise my own hand (drawn in front of my body) gets mistaken for something occluding me.
@@ -107,5 +112,11 @@ private bool IsOccluded()
         }
 
         return false;
+    }
+
+    private void OnDisable()
+    {
+        _visibility = 0f;
+        if (silhouetteRenderer != null) silhouetteRenderer.enabled = false;
     }
 }

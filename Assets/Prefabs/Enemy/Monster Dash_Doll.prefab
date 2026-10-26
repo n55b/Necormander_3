@@ -185,3 +185,5 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   tint: {r: 1, g: 1, b: 1, a: 0.45}
+  fadeMaterial: {fileID: 2100000, guid: 03e606b6af5478742b76772a96f09912, type: 2}
+  _source: {fileID: 0}
