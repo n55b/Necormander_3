@@ -45,6 +45,7 @@ public static class FeedbackCheck
             var enabledBinding = AnimationUtility.GetCurveBindings(clip).Single(b => b.propertyName == "m_Enabled");
             Check(AnimationUtility.GetEditorCurve(clip, enabledBinding).Evaluate(0f) > .5f, "타격 클립은 빈 대기 없이 즉시 표시");
             Check(effect.GetComponentInChildren<SpriteRenderer>().sprite.pixelsPerUnit == 32, "슬래시 32 PPU");
+            CheckNativeSlash(effect);
             var box = host.AddComponent<BaseHitBox>();
             int overrides = 0;
             foreach (var guid in AssetDatabase.FindAssets("t:MainMinionDataSO"))
@@ -98,4 +99,48 @@ public static class FeedbackCheck
     }
     private static void Check(bool valid, string message)
     { if(!valid) throw new InvalidOperationException("[FeedbackCheck] FAIL: "+message); }
+
+    private static void CheckNativeSlash(GameObject prefab)
+    {
+        var instance = Object.Instantiate(prefab);
+        try
+        {
+            var feedback = instance.GetComponent<ImpactFeedback>();
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var type = typeof(ImpactFeedback);
+            // Edit Mode 검증에서도 실제 초기화와 재생 로직을 그대로 호출한다.
+            type.GetMethod("Awake", flags).Invoke(feedback, null);
+            type.GetMethod("OnEnable", flags).Invoke(feedback, null);
+            var render = type.GetMethod("RenderVisuals", flags);
+            var age = type.GetField("_age", flags);
+            var so = new SerializedObject(feedback);
+            float lifetime = so.FindProperty("lifetime").floatValue;
+            var sparks = (LineRenderer[])type.GetField("sparks", flags).GetValue(feedback);
+            var arcs = (LineRenderer[])type.GetField("arcs", flags).GetValue(feedback);
+            Check(sparks.Length == 6 && sparks.All(s => s != null) && arcs.Length == 4, "6개 파편 / 4개 시간차 파동 연결");
+            Check(arcs[1].startColor.a == 0f && sparks[1].startColor.a == 0f, "지연 연출은 시작 프레임에 미리 보이지 않음");
+            var start = sparks[0].transform.localPosition;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                type.GetMethod("OnEnable", flags).Invoke(feedback, null);
+                Check(sparks[0].transform.localPosition == start, "재생 초기화시 파편 위치 복원");
+                for (int frame = 0; frame <= 60; frame++)
+                {
+                    float time = lifetime * frame / 60f;
+                    age.SetValue(feedback, time);
+                    render.Invoke(feedback, null);
+                    foreach (var sr in instance.GetComponentsInChildren<SpriteRenderer>(true))
+                    {
+                        Check((sr.transform.lossyScale - Vector3.one).sqrMagnitude < .000001f, "전 구간 슬래시/잔상 1배 유지");
+                        if (sr.sprite != null) Check(sr.sprite.pixelsPerUnit == 32f, "잔상 포함 원본 도트 밀도 유지");
+                    }
+                    foreach (var spark in sparks) Check(spark.transform.localScale == Vector3.one, "빛 파편 자체 크기 불변");
+                }
+                Check(sparks[0].transform.localPosition != start, "파편은 실제로 확산");
+                Check(instance.GetComponentsInChildren<LineRenderer>().All(l => l.startColor.a == 0f), "수명 끝 선 연출 잔류 없음");
+            }
+            Debug.Log("[FeedbackCheck] Native slash PASS: 32 PPU / 1x for 122 samples, delayed arcs/sparks, replay reset, no remaining line opacity.");
+        }
+        finally { Object.DestroyImmediate(instance); }
+    }
 }

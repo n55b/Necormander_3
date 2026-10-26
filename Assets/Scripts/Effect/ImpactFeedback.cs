@@ -6,13 +6,11 @@ public class ImpactFeedback : MonoBehaviour
     [Min(.01f), SerializeField] private float lifetime = .3f;
     [SerializeField] private Animator spriteAnimator;
     [SerializeField] private SpriteRenderer slash;
-    [SerializeField] private Transform spritePulse;
     [SerializeField] private LineRenderer[] streaks;
     [SerializeField] private LineRenderer[] arcs;
     [SerializeField] private LineRenderer flash;
     [SerializeField] private SpriteRenderer[] echoes;
     [Min(.01f), SerializeField] private float echoInterval = .055f;
-    [SerializeField] private AnimationCurve expansion = AnimationCurve.EaseInOut(0f, .65f, 1f, 1.25f);
     [SerializeField] private AnimationCurve emission = AnimationCurve.EaseInOut(0f, 3f, .4f, 1f);
     [SerializeField] private AnimationCurve opacity = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(.55f, 1f), new Keyframe(1f, 0f));
     [Header("선 파편 / 원형 파동 / 순간 섬광")]
@@ -23,21 +21,41 @@ public class ImpactFeedback : MonoBehaviour
     [SerializeField] private Vector2 arcScaleRange = new Vector2(.3f, 1.65f);
     [Min(.001f), SerializeField] private float flashDuration = .07f;
     [SerializeField] private Vector2 flashScaleRange = new Vector2(.6f, 1.8f);
+    [Min(0f), SerializeField, Tooltip("파동 사이의 시간차(초). 그림 크기는 바꾸지 않고 주변 파동만 순서대로 퍼집니다.")]
+    private float arcDelay = .035f;
+    [Header("작은 빛 파편 (그림 배율과 독립)")]
+    [SerializeField] private LineRenderer[] sparks;
+    [Min(.01f), SerializeField, Tooltip("파편 하나가 보이는 시간(초). 전체 이펙트 수명 안에서 정리됩니다.")]
+    private float sparkDuration = .2f;
+    [Min(0f), SerializeField, Tooltip("파편별 출발 시간차(초). 0이면 동시에 퍼집니다.")]
+    private float sparkDelayStep = .012f;
+    [Min(0f), SerializeField, Tooltip("파편이 중심에서 바깥으로 날아가는 거리(유닛). 파편 자체 크기는 유지합니다.")]
+    private float sparkTravelDistance = .6f;
+    [Min(0f), SerializeField, Tooltip("파편 수명이 끝날 때까지 아래로 내려가는 거리(유닛).")]
+    private float sparkDropDistance = .25f;
     private static readonly int EmissionId = Shader.PropertyToID("_Emission");
     private MaterialPropertyBlock _properties;
-    private Vector3 _baseScale;
     private float _age;
     private float _alpha;
     private int _echoCount;
     private Color[] _echoColors;
+    private Vector3[] _sparkOrigins;
+    private Color[] _sparkColors;
 
     private void Awake()
     {
         _properties = new MaterialPropertyBlock();
-        if (spritePulse != null) _baseScale = spritePulse.localScale;
         _alpha = slash != null ? slash.color.a : 1f;
         _echoColors = new Color[echoes != null ? echoes.Length : 0];
         for (int i=0;i<_echoColors.Length;i++) if (echoes[i] != null) _echoColors[i]=echoes[i].color;
+        _sparkOrigins = new Vector3[sparks != null ? sparks.Length : 0];
+        _sparkColors = new Color[_sparkOrigins.Length];
+        for (int i = 0; i < _sparkOrigins.Length; i++)
+        {
+            if (sparks[i] == null) continue;
+            _sparkOrigins[i] = sparks[i].transform.localPosition;
+            _sparkColors[i] = sparks[i].startColor;
+        }
     }
     private void OnEnable()
     {
@@ -51,12 +69,18 @@ public class ImpactFeedback : MonoBehaviour
             spriteAnimator.Play(0, 0, 0f);
             spriteAnimator.Update(0f);
         }
+        RenderVisuals();
     }
     private void Update()
     {
         _age += Time.deltaTime;
+        RenderVisuals();
+        if (_age >= Mathf.Max(.01f, lifetime)) Destroy(gameObject);
+    }
+    private void RenderVisuals()
+    {
         float t = Mathf.Clamp01(_age / Mathf.Max(.01f, lifetime));
-        if (spritePulse != null) spritePulse.localScale = _baseScale * expansion.Evaluate(t);
+        // 원본 슬래시와 잔상은 32 PPU / 1배 고정. 크기 변화는 별도 선 도형에만 적용한다.
         if (slash != null)
         {
             var color = slash.color;
@@ -78,12 +102,15 @@ public class ImpactFeedback : MonoBehaviour
             color = streak.endColor; color.a = 0f; streak.endColor = color;
             streak.transform.localScale = Vector3.one * Mathf.Lerp(streakScaleRange.x, streakScaleRange.y, 1f - (1f-t)*(1f-t));
         }
-        if (arcs != null) foreach(var arc in arcs)
+        if (arcs != null) for (int i = 0; i < arcs.Length; i++)
         {
+            var arc = arcs[i];
             if (arc == null) continue;
-            float a = Mathf.Clamp01(1f-t/Mathf.Max(.01f, arcLifetimeRatio));
+            float age = _age - i * arcDelay;
+            float progress = Mathf.Clamp01(age / Mathf.Max(.01f, lifetime * arcLifetimeRatio));
+            float a = age < 0f ? 0f : 1f - progress;
             var color=arc.startColor; color.a=a*arcOpacity; arc.startColor=color; arc.endColor=color;
-            arc.transform.localScale=Vector3.one*Mathf.Lerp(arcScaleRange.x,arcScaleRange.y,1f-(1f-t)*(1f-t));
+            arc.transform.localScale=Vector3.one*Mathf.Lerp(arcScaleRange.x,arcScaleRange.y,1f-(1f-progress)*(1f-progress));
         }
         if (flash != null)
         {
@@ -108,6 +135,20 @@ public class ImpactFeedback : MonoBehaviour
                 echo.color=color;
             }
         }
-        if (t >= 1f) Destroy(gameObject);
+        if (sparks != null) for (int i = 0; i < sparks.Length; i++)
+        {
+            var spark = sparks[i];
+            if (spark == null) continue;
+            float age = _age - i * sparkDelayStep;
+            float progress = Mathf.Clamp01(age / Mathf.Max(.01f, sparkDuration));
+            Vector3 origin = _sparkOrigins[i];
+            spark.transform.localPosition = origin
+                + origin.normalized * (sparkTravelDistance * (1f - (1f-progress)*(1f-progress)))
+                + Vector3.down * (sparkDropDistance * progress * progress);
+            var color = _sparkColors[i];
+            color.a *= age < 0f ? 0f : (1f - progress) * (1f - progress);
+            spark.startColor = color;
+            spark.endColor = color;
+        }
     }
 }
