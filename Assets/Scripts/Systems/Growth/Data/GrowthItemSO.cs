@@ -23,10 +23,10 @@ public abstract class GrowthItemSO : ScriptableObject
 
 public enum ItemRarity
 {
-    Common,
-    Rare,
-    Epic,
-    Legendary
+    [UnityEngine.InspectorName("공통")] Common,
+    [UnityEngine.InspectorName("희귀")] Rare,
+    [UnityEngine.InspectorName("영웅")] Epic,
+    [UnityEngine.InspectorName("전설")] Legendary
 }
 
 /// <summary>

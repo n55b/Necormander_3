@@ -308,7 +308,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
         float remainingDamage = info.amount;
         if (info.type == DamageType.Physical && _status != null && _status.HasStatus(StatusType.Vulnerable))
-            remainingDamage *= 1.2f;
+            remainingDamage *= 1f + StatusRules.VULNERABLE_DAMAGE_BONUS;
 
         // 공격 스탯 주인(플레이어/적/미니언→플레이어). 증폭·크리가 전부 이 하나에서 나온다.
         // 예전엔 크리만 여기서 info.attacker 를 직접 뒤졌는데, 미니언 시전자엔 스탯이 없어

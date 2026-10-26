@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class MouseCursorManager : MonoBehaviour
 {
-    [Header(" [ Cursor SO ] ")]
+    [Header("커서 데이터")]
     [SerializeField] MouseCursorSO defaultCursorSO;
     [SerializeField] MouseCursorSO TargetCursorSO;
     [SerializeField] MouseCursorSO currentCursorSO;

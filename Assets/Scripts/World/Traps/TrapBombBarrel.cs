@@ -7,20 +7,20 @@ using System.Collections;
 /// </summary>
 public class TrapBombBarrel : MonoBehaviour, IDamageable
 {
-    [Header("Settings")]
+    [Header("설정")]
     [SerializeField] private float hp = 1f;
     [SerializeField] private float fuseTime = 1.5f;
     [SerializeField] private float explosionRadius = 2.5f;
     [SerializeField] private float explosionDamage = 15f;
     [SerializeField] private LayerMask targetLayer;
 
-    [Header("Visual & Effects")]
+    [Header("외형과 효과")]
     [SerializeField] private GameObject explosionEffectPrefab; // Center Skill Hitbox Circle Prefab 연결 권장
     [SerializeField] private SpriteRenderer spriteRenderer;
     [Tooltip("폭발(boom) 프레임 한 장당 재생 시간")]
     [SerializeField] private float boomFrameDuration = 0.05f;
 
-    [Header("Sound")]
+    [Header("소리")]
 
     [Tooltip("최종 폭발 사운드")]
     [SerializeField] private AudioClip explosionSound;

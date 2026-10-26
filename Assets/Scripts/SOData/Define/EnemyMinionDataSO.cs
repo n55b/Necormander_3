@@ -12,9 +12,9 @@ using UnityEngine;
 /// </summary>
 public enum EnemyTier
 {
-    Normal = 0,
-    Elite  = 1,
-    Boss   = 2,
+    [UnityEngine.InspectorName("일반")] Normal = 0,
+    [UnityEngine.InspectorName("엘리트")] Elite  = 1,
+    [UnityEngine.InspectorName("보스")] Boss   = 2,
 }
 
 /// <summary>

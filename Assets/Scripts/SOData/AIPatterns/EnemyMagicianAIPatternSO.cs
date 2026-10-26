@@ -10,6 +10,8 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
     [SerializeField] private GameObject magicCirclePrefab;
     [SerializeField] private float explosionRadius = 2.0f;
     [SerializeField] private float waitTime = 2.0f;
+    [SerializeField, Min(.01f), Tooltip("예고가 끝난 뒤 장판의 실제 피해 판정이 남아 있는 시간(초). 준비 시간은 대기 시간에서 조절합니다.")]
+    private float hitActiveDuration = .2f;
 
     protected override void UpdateTargeting(BaseEntity entity)
     {
@@ -44,8 +46,8 @@ public class EnemyMagicianAIPatternSO : BaseAIPatternSO
             // 단발 폭발도 장판 피해다. 원거리 여부와 별개로 가드 스캔/직접 피격 모두 방어 불가.
             DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageRules.FromAttackType(entity.Stats.ATTACK_TYPE), entity.gameObject, 1f, "", false, false, 0f, isRanged: true, bypassGuard: true);
             
-            // 단발성 공격이므로 타격 판정은 0.2초간만 유지하고, waitTime 만큼 선딜레이(startDelay)를 줍니다.
-            magicCircle.Init(info, entity.opponentLayer, 0.2f, waitTime);
+            // 예고 시간과 실제 판정 유지 시간을 별도로 조절한다.
+            magicCircle.Init(info, entity.opponentLayer, hitActiveDuration, waitTime);
         }
 
         Debug.Log($"<color=magenta>[Magician Pattern]</color> {entity.name}가 포격 실행");

@@ -10,10 +10,10 @@ using UnityEngine;
 /// </summary>
 public enum ItemTier
 {
-    Tier1 = 1,
-    Tier2 = 2,
-    Tier3 = 3,
-    Tier4 = 4,
+    [UnityEngine.InspectorName("등급 1")] Tier1 = 1,
+    [UnityEngine.InspectorName("등급 2")] Tier2 = 2,
+    [UnityEngine.InspectorName("등급 3")] Tier3 = 3,
+    [UnityEngine.InspectorName("등급 4")] Tier4 = 4,
 }
 
 /// <summary>

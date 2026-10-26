@@ -167,7 +167,7 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
 
 
     /// <summary>보스 패턴 3종. 같은 패턴을 두 번 연속으로 쓰지 않기 위해 직전 것을 기억한다.</summary>
-    private enum Move { None, Sweep, Thrust, Leap }
+    private enum Move { [UnityEngine.InspectorName("없음")] None, [UnityEngine.InspectorName("휩쓸기")] Sweep, [UnityEngine.InspectorName("찌르기")] Thrust, [UnityEngine.InspectorName("도약")] Leap }
     private Move _lastMove = Move.None;
     private float _chaseStartTime = -100f;
 

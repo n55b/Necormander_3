@@ -175,7 +175,7 @@ public class InventoryManager : MonoBehaviour
 
     // ======================================================
     // [에러 방지를 위한 병렬 리스트 디버그 설정]
-    [Header("Debug Settings (Starting Items)")]
+    [Header("디버그 시작 아이템")]
     [SerializeField] private bool useDebugStartingInventory = true;
 
     [Space(10)]

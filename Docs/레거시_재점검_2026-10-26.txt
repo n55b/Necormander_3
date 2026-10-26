@@ -1,0 +1,98 @@
+레거시 코드 재점검 — 2026-10-26
+
+조사 범위
+Assets/Scripts의 게임 C# 전체, Assets/Editor의 도구, 씬/프리팹/SO/애니메이션의 텍스트 참조를 조사했다.
+클래스 이름의 코드 참조, 스크립트 GUID 연결, RuntimeInitializeOnLoad/InitializeOnLoad/MenuItem 진입점을 구분했다.
+현재는 ‘확인’ 요청이므로 삭제하지 않았다. 아래의 미사용 필드는 인스펙터에서 회색 ‘사용 안 함’으로 표시했다.
+
+A. 코드에서 값을 읽지 않는 남은 필드 — 삭제 후보 12개
+
+1) PlayerController.summonNum / summonRange
+   코드에 선언만 있다. Player Melee.prefab에 값이 남아 있다.
+   현재 소환은 MainMinionDataSO/MinionSkillCaster 경로다.
+
+2) AIPatternSO.pushRadius / pushStrength
+   코드에 선언만 있다. 12개 AI 패턴 SO에 저장값이 남아 있다.
+   현재 타격/밀치기의 실제 파라미터는 개별 공격 경로에서 처리한다.
+
+3) ArcherBossAIPatternSO.phase2HpThreshold / arrowsPerDirection
+   코드에 선언만 있다. Archer Elite Pattern.asset에 값이 남아 있다.
+   이름만 보고 현재 페이즈 전환 조건/화살 수 조절값으로 사용하면 효과가 없다.
+
+4) BossHPBarUI.delayCatchUpSpeed
+   코드에 선언만 있다. 컴파일러도 ‘할당되지만 사용되지 않음’을 경고한다.
+   BattleScene/BossTestScene/EliteTestScene에 저장값이 남아 있다.
+   현재 체력바는 Refresh에서 직접 갱신한다.
+
+5) EliteChargerAIPatternSO.chargeTelegraphOvershoot
+   코드에 선언만 있다. ChargerElitePattern.asset에 저장값이 남아 있다.
+
+6) EnemyMagicianCircleAttack.outerBoundary
+   코드에서 참조하지 않는 렌더러 연결 필드다. 옛 장판 프리팹 6개에 같은 이름의 저장 키가 남아 있으나 이 컴포넌트의 스크립트 GUID 연결은 없다.
+   ‘이 연결 필드’가 미사용이라는 뜻이다. 실제 테두리 그림 오브젝트를 없애도 된다는 뜻은 아니다.
+
+7) PlayerStateUI.panelParent
+   코드에서 사용하지 않는다. PlayerStateUI.prefab에 참조가 남아 있다.
+   UI 계층의 부모 오브젝트 자체는 별개이므로 삭제 대상으로 단정하지 않는다.
+
+8) BoneMasterAIPatternSO.telegraphWarnColor / BoneMasterPhase2AIPatternSO.telegraphWarnColor
+   두 선언과 두 SO의 저장값만 남아 있다.
+   현재 카운터 색상은 counterRealColor / counterFakeColor / counterNoneColor가 담당한다.
+
+삭제할 때는 해당 필드와 저장 키/프리팹 오버라이드를 함께 정리하고 다시 검증해야 한다.
+현재 조절 체계를 바꾸거나 없는 기능을 복구하는 작업은 하지 않았다.
+
+B. 현재 에셋 기준 미사용 컴포넌트와 호환 분기
+
+Assets/Scripts/Entities/Enemy/EnemyMagicianCircleAttack.cs
+- 모든 씬/프리팹/SO에서 이 스크립트 GUID 연결이 없다.
+- 코드 참조는 ArcherBossAIPatternSO의 포격에서 GetComponent로 찾는 선택적 호환 분기 한 곳이다. AddComponent 생성은 없다.
+- 현재 마법사 공격은 EnemyMagicianAIPatternSO → BaseHitBox 경로다. 궁수 포격은 후속 TelegraphHitbox/BaseHitBox 분기가 남아 있다.
+- 현 프로젝트 에셋 기준으로 이 클래스와 궁수의 해당 호환 분기를 함께 정리할 수 있는 후보다. 이번에는 보고만 하고 보존했다.
+- 새 타이밍 옵션은 실제 담당 AI SO에 넣었으며 이 옛 컴포넌트에 기능을 추가하지 않았다.
+
+C. 일회성 에디터 도구 — 정리 가능
+
+Assets/Editor/ClaudeTemp/GitCommitPush.cs
+- 옛 작업의 커밋 메시지와 git add/commit/push 순서를 코드에 고정한 도구다.
+- 현재 게임, 씬, 프리팹에는 연결되지 않는다. 자기 메뉴로만 수동 실행된다.
+- 이번 조사 중 실행하지 않았다. 게임 동작을 위해 유지할 필요는 없다.
+
+Assets/Editor/ClaudeTemp/GitStatus.cs
+- 위 도구가 사용하는 Git 실행 도우미와 상태 확인 메뉴다.
+- 함께 제거해도 게임 런타임에는 영향이 없다.
+
+D. 이름/시기만으로 지우면 안 되는 것
+
+DemoDataReset
+- 다른 C# 호출이 없어도 DEMO_BUILD 빌드 시작 시 RuntimeInitializeOnLoadMethod로 실행된다.
+- 체험판 데이터 초기화 요구사항을 수행하는 활성 코드다.
+
+PlayerSkillInventoryManager
+- 이름에 PlayerSkill이 남아 있지만 현재 장비 패시브, 버프, 장착 상태를 관리한다. 삭제 대상이 아니다.
+
+RightClickUnlockState
+- UnlockAllForNow=true 때문에 해금 검사 일부가 도달 불가 경고를 낸다.
+- 선택 저장/불러오기와 해금 데이터는 현재 사용한다. 의도된 테스트 정책이지 클래스 전체가 레거시는 아니다.
+
+DualSplitAIPatternSO.slowReduction / slowDuration
+- 자기 파일에서는 읽지 않지만 CharacterHealth에서 읽어 둔화 효과에 사용한다.
+
+UI1006Setup / InventoryUISetup / StackedInventoryEditor
+- 초기 UI 저작 부분과 검증/재사용 함수가 섞여 있다.
+- InventoryUICheck는 InventoryUISetup.Validate를 호출하고, InventoryUISetup은 StackedInventoryEditor.BuildPouch를 사용한다.
+- 날짜가 붙었다는 이유로 파일 전체를 지우면 현재 검증/저작 경로가 끊긴다. 추후 저작 메뉴와 검증 함수를 분리한 뒤 정리할 대상이다.
+
+CreateMinimapIcons
+- InitializeOnLoad로 누락된 미니맵 프리팹을 복구하는 경로가 있다. 일반 코드 호출이 없다고 미사용으로 처리하지 않았다.
+
+판단의 한계
+임의 문자열/외부 콘텐츠에서 호출되는 모든 경로를 정적 검색만으로 증명할 수는 없다.
+미사용 필드, 현재 에셋 기준 미사용 컴포넌트와 호환 분기, 일회성 도구를 구분했다. 그 밖의 런타임 스크립트 전체 삭제는 이번 조사에서 추가 확정하지 않았다.
+
+
+추가 확인 — CharacterStatus의 옛 넉백 패시브 분기
+- KnockbackRoutine의 hasVanguard는 false로 초기화된 뒤 한 번도 바뀌지 않는다. 뒤의 Vanguard 피해/버프 분기는 실행되지 않는다.
+- CharacterStatus.ApplyKnockback 및 isIronMountain=true 호출은 현재 Assets 코드·씬·프리팹의 직접/UnityEvent 참조 검색에서 발견되지 않았다.
+- 현재 실제 넉백은 CharacterHealth / MeleeDodgeController / SkillCombatUtil → BaseEntity.ApplyKnockback 경로를 사용한다.
+- 정리 후보로 기록만 했다. 호출 검색만으로 외부 문자열 호출까지 증명할 수는 없으며, 이번 추가 작업에서는 삭제하지 않았다.

@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 public class DPSMeter : MonoBehaviour
 {
-    [Header("UI Settings")]
+    [Header("UI 설정")]
     [Tooltip("플레이어 스탯과 DPS 미터를 함께 표시합니다. F5: 함께 토글 / F4: DPS 기록만 초기화")]
     [SerializeField] private bool _showUI = false;
 

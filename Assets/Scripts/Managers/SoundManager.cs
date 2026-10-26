@@ -9,27 +9,31 @@ using UnityEngine.Audio;
 /// </summary>
 public class SoundManager : MonoBehaviour
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0f), Tooltip("방 이동 시 이전 배경음에서 새 배경음으로 바뀌는 시간입니다. 0이면 즉시 전환합니다. 코드에서 시간을 명시하면 그 값이 우선합니다.")]
+    private float bgmCrossfadeDuration = 1f;
+
     public static SoundManager Instance;
 
-    [Header("BGM Sources")]
+    [Header("배경음 소스")]
     public AudioSource sourceA;
     public AudioSource sourceB;
     private AudioSource _activeSource;
     public  AudioSource newSource; // CrossFade 외부 참조 호환 유지
     public  AudioSource oldSource;
 
-    [Header("SFX Pool")]
+    [Header("효과음 재사용 풀")]
     [Tooltip("동시 재생 허용 채널 수 (권장 8)")]
     [SerializeField] private int sfxPoolSize = 8;
     [SerializeField] private AudioMixerGroup sfxMixerGroup;
     private AudioSource[] _sfxPool;
     private int           _sfxPoolIndex;
 
-    [Header("Clips")]
+    [Header("재생 클립")]
     [SerializeField] private AudioClip ParabolaClip;
     [SerializeField] private AudioClip PurchaseClip;
 
-    [Header("Global Volume")]
+    [Header("전체 볼륨")]
     public float globalBgmVolume = 1f;
     public float globalSfxVolume = 1f;
 
@@ -124,7 +128,7 @@ public class SoundManager : MonoBehaviour
     }
 
     // ─── BGM CrossFade ───────────────────────────────────────────────
-    public void ChangeBGM(AudioClip newClip, float duration = 1f)
+    public void ChangeBGM(AudioClip newClip, float duration = -1f)
     {
         if (newClip == null) return;
         if (_activeSource != null && _activeSource.clip == newClip) return;
@@ -137,7 +141,7 @@ public class SoundManager : MonoBehaviour
         _activeSource = newSource;
 
         StopAllCoroutines();
-        StartCoroutine(CrossFade(duration));
+        StartCoroutine(CrossFade(duration < 0f ? Mathf.Max(0f, bgmCrossfadeDuration) : duration));
     }
 
 

@@ -30,6 +30,8 @@ public class VisualSquashStretch : MonoBehaviour
         new Pulse("Stretch", .92f, 1.10f, .18f)
     };
     [SerializeField] private bool useUnscaledTime;
+    [Range(.01f, 1f), SerializeField, Tooltip("연타 시 이전 변형을 부드럽게 섞어 없애는 구간. 전체 동작 시간 대비 비율이며 0.2 = 앞 20%. 크면 이전 반동이 오래 남습니다.")]
+    private float pulseBlendRatio = .2f;
     private Vector3 _baseScale;
     private bool _initialized;
     private Pulse _active;
@@ -101,7 +103,7 @@ public class VisualSquashStretch : MonoBehaviour
         float weight = _active.curve != null ? _active.curve.Evaluate(t) : Mathf.Sin(t * Mathf.PI);
         // 연속 호출 시 현재 변형에서 이어지고, 종료 때는 정확한 원래 스케일로 돌아온다.
         _scale = Vector2.one + (_active.scale - Vector2.one) * weight
-            + (_startScale - Vector2.one) * (1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / .2f)));
+            + (_startScale - Vector2.one) * (1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / Mathf.Max(.01f, pulseBlendRatio))));
         _scale.x = Mathf.Clamp(_scale.x, .5f, 1.5f);
         _scale.y = Mathf.Clamp(_scale.y, .5f, 1.5f);
         if (deformRenderer != null)

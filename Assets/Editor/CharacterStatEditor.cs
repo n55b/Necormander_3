@@ -4,43 +4,44 @@ using UnityEditor;
 [CustomEditor(typeof(CharacterStat))]
 public class CharacterStatEditor : Editor
 {
+    private DesignerInspectorView designerView;
     public override void OnInspectorGUI()
     {
-        DrawDefaultInspector();
+        (designerView ??= new DesignerInspectorView()).Draw(serializedObject);
 
         CharacterStat stat = (CharacterStat)target;
 
         if (Application.isPlaying)
         {
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Runtime Calculated Stats (Debug)", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("실행 중 최종 능력치 (읽기 전용)", EditorStyles.boldLabel);
 
             EditorGUI.BeginDisabledGroup(true);
             
-            EditorGUILayout.FloatField("CUR HP", stat.CURHP);
-            EditorGUILayout.FloatField("MAX HP", stat.MAXHP);
-            EditorGUILayout.FloatField("ATK (물리)", stat.ATK);
-            EditorGUILayout.FloatField("MAGIC (마법)", stat.MAGIC);
-            EditorGUILayout.FloatField("ATK SPD (회/초)", stat.ATKSPD);
-            EditorGUILayout.FloatField("ATK INTERVAL (초)", stat.AttackInterval);
-            EditorGUILayout.FloatField("DEF % (상한 75)", stat.DEF);
-            EditorGUILayout.FloatField("MOVE SPEED", stat.MOVESPEED);
-            EditorGUILayout.FloatField("CRIT CHANCE %", stat.CRIT_CHANCE);
-            EditorGUILayout.FloatField("CRIT DAMAGE %", stat.CRIT_DAMAGE);
-            EditorGUILayout.FloatField("EVASION", stat.EVASION);
-            EditorGUILayout.FloatField("ACCURACY", stat.ACCURACY);
+            EditorGUILayout.FloatField("현재 체력", stat.CURHP);
+            EditorGUILayout.FloatField("최대 체력", stat.MAXHP);
+            EditorGUILayout.FloatField("물리 공격력", stat.ATK);
+            EditorGUILayout.FloatField("마법 공격력", stat.MAGIC);
+            EditorGUILayout.FloatField("공격 속도 (회/초)", stat.ATKSPD);
+            EditorGUILayout.FloatField("공격 간격 (초)", stat.AttackInterval);
+            EditorGUILayout.FloatField("방어율 % (상한 75)", stat.DEF);
+            EditorGUILayout.FloatField("이동 속도", stat.MOVESPEED);
+            EditorGUILayout.FloatField("치명타 확률 %", stat.CRIT_CHANCE);
+            EditorGUILayout.FloatField("치명타 피해 %", stat.CRIT_DAMAGE);
+            EditorGUILayout.FloatField("회피율", stat.EVASION);
+            EditorGUILayout.FloatField("명중률", stat.ACCURACY);
 
             if (stat.IsPlayer)
             {
-                EditorGUILayout.FloatField("SKILL CDR", stat.SKILL_CDR);
-                EditorGUILayout.FloatField("LUCK (%)", stat.LUCK);
-                EditorGUILayout.FloatField("DASH CDR", stat.DASH_CDR);
-                EditorGUILayout.FloatField("BASIC ATK MULT", stat.BASIC_ATK_MULT);
+                EditorGUILayout.FloatField("스킬 재사용 대기 감소", stat.SKILL_CDR);
+                EditorGUILayout.FloatField("행운 (%)", stat.LUCK);
+                EditorGUILayout.FloatField("대시 재사용 대기 감소", stat.DASH_CDR);
+                EditorGUILayout.FloatField("기본 공격 배율", stat.BASIC_ATK_MULT);
             }
             else
             {
-                EditorGUILayout.FloatField("ATK RANGE", stat.ATKRANGE);
-                EditorGUILayout.EnumPopup("ATTACK TYPE", stat.ATTACK_TYPE);
+                EditorGUILayout.FloatField("공격 범위", stat.ATKRANGE);
+                EditorGUILayout.EnumPopup("공격 종류", stat.ATTACK_TYPE);
             }
 
             EditorGUI.EndDisabledGroup();
@@ -48,20 +49,20 @@ public class CharacterStatEditor : Editor
             // --- [상태이상/쉴드 모니터링] ---
             // Phase 5 에서 상태이상 5종이 들어오면 여기에 줄을 추가하면 된다.
             EditorGUILayout.Space(10);
-            EditorGUILayout.LabelField("🩸 Status & Shield", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("상태이상과 보호막", EditorStyles.boldLabel);
 
             EditorGUILayout.BeginVertical("box");
             if (stat.Status != null)
             {
                 if (stat.Status.HasStatus(StatusType.Stun))
-                    EditorGUILayout.LabelField("- Stunned (기절)");
+                    EditorGUILayout.LabelField("- 기절 중");
                 if (stat.Status.HasStatus(StatusType.Hitstun))
-                    EditorGUILayout.LabelField("- Hitstunned (경직)");
+                    EditorGUILayout.LabelField("- 경직 중");
 
                 EditorGUILayout.Space(5);
-                EditorGUILayout.LabelField($"Super Armor: {stat.Status.SuperArmorGauge:F0} / {stat.Status.MaxSuperArmorGauge:F0}" +
+                EditorGUILayout.LabelField($"슈퍼아머: {stat.Status.SuperArmorGauge:F0} / {stat.Status.MaxSuperArmorGauge:F0}" +
                                            (stat.Status.HasSuperArmor ? "" : "  (파괴됨)"));
-                EditorGUILayout.LabelField($"Total Shield: {stat.Status.TotalShield:F2}");
+                EditorGUILayout.LabelField($"전체 보호막: {stat.Status.TotalShield:F2}");
             }
             EditorGUILayout.EndVertical();
             

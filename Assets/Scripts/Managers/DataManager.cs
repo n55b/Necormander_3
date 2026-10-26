@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class DataManager : MonoBehaviour
 {
-    [Header("Growth System Data")]
+    [Header("성장 데이터")]
     [SerializeField] private GrowthRegistrySO growthRegistry;
     public GrowthRegistrySO GET_GROWTH_REGISTRY() => growthRegistry;
     [SerializeField] private MinionRegistrySO minionRegistry;

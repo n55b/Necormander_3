@@ -16,6 +16,10 @@ using TMPro;
 /// </summary>
 public class DashCooldownUI : MonoBehaviour
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Range(0f, 1f), Tooltip("사용한 대시 칸의 밝기입니다. 0이면 보이지 않고 1이면 완전히 표시됩니다.")]
+    private float usedPipAlpha = 0.35f;
+
     [Header("스택")]
     [SerializeField] private GameObject[] dashCount; 
 
@@ -45,7 +49,6 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
     // ─── 스택 핀(GameObject) 관리 ───
     private int   _lastPipCurrent = -1;
     private int   _lastPipMax     = -1;
-    private const float PIP_USED_ALPHA = 0.35f; // recharging pip alpha
 
     // ─────────────────────────────────────────────────────────────────
     public void Initialize(PlayerController playerController)
@@ -225,7 +228,7 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
 
             bool available = i < current;
             Color c = img.color;
-            float targetAlpha = available ? 1f : PIP_USED_ALPHA;
+            float targetAlpha = available ? 1f : usedPipAlpha;
             if (!Mathf.Approximately(c.a, targetAlpha))
             {
                 c.a = targetAlpha;

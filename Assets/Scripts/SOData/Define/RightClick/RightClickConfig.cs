@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // 기존 에셋의 type 숫자는 보존한다. 현재 플레이는 Guard 한 종류만 사용한다.
-public enum RightClickType { None = 0, Parry = 1, Counter = 2, Guard = 3 }
+public enum RightClickType { [UnityEngine.InspectorName("없음")] None = 0, [UnityEngine.InspectorName("패링")] Parry = 1, [UnityEngine.InspectorName("카운터")] Counter = 2, [UnityEngine.InspectorName("가드")] Guard = 3 }
 
 /// <summary>Lv1~4 누적 가드. 마을의 기존 우클릭 선택 NPC에서 에셋을 교체한다.</summary>
 [System.Serializable]

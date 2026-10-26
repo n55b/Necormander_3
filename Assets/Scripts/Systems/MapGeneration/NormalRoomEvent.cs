@@ -15,7 +15,19 @@ using UnityEngine.Tilemaps;
 /// </summary>
 public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 {
-    [Header("Combat Settings")]
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0f), Tooltip("방에 들어간 뒤 카메라가 자리 잡도록 기다리는 시간입니다. 0이면 바로 소환 절차를 시작합니다.")]
+    private float spawnStartDelay = 0.5f;
+    [SerializeField, Min(0.01f), Tooltip("일반 웨이브와 튜토리얼 배치 몬스터가 등장하기 전 바닥 예고가 차오르는 시간입니다.")]
+    private float spawnTelegraphDuration = 1f;
+    [SerializeField, Min(0.01f), Tooltip("몬스터 등장 위치 표시의 가로·세로 크기입니다. 몬스터 크기나 피해 판정은 바꾸지 않습니다.")]
+    private float spawnTelegraphScale = 2.5f;
+    [SerializeField, Min(0), Tooltip("일반 랜덤 웨이브에서 슈퍼아머를 주는 몬스터 수입니다. 0이면 주지 않습니다. 튜토리얼 직접 배치에는 적용하지 않습니다.")]
+    private int superArmorEnemyCount = 2;
+    [SerializeField, Min(1f), Tooltip("무작위로 선정된 일반 몬스터에게 주는 슈퍼아머 양입니다. 엘리트·보스의 영구 슈퍼아머 설정과 별개입니다.")]
+    private float spawnSuperArmorAmount = 100f;
+
+    [Header("전투 설정")]
     [SerializeField] private MapGenerationDataSO mapGenerationData;
     [Tooltip("몹 스폰 예고용으로 활용할 차오르는 원형 장판 프리팹을 지정하세요.")]
     [SerializeField] private GameObject spawnVfxPrefab;
@@ -28,19 +40,19 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     [SerializeField] private int spawnCellStride = 2;
 
 
-    [Header("Tutorial Placed Enemies")]
+    [Header("튜토리얼 배치 몬스터")]
     [Tooltip("튜토리얼 방에서만 사용. 이 오브젝트 아래에 몬스터 프리팹을 원하는 위치로 배치하세요. " +
              "방 진입 전에는 숨겨 두었다가 진입 시 활성화·등록하며, 전부 죽으면 기존 방 클리어 처리를 탑니다. " +
              "비워두면 기존 랜덤 웨이브를 사용합니다.")]
     [SerializeField] private Transform tutorialEnemiesRoot;
 
-    [Header("Reward Box Settings")]
+    [Header("보상 상자 설정")]
     [Tooltip("방 클리어 시 생성할 보상 상자 프리팹. 비워두면 상자 없이 보상이 즉시 지급됩니다.")]
     [SerializeField] private GameObject rewardBoxPrefab;
     [Tooltip("상자가 나올 자리. 방 프리팹 안에 빈 오브젝트를 놓고 연결하세요. 비워두면 방 정중앙.")]
     [SerializeField] private Transform rewardSpawnPoint;
 
-    [Header("Unity Events")]
+    [Header("이벤트 연결")]
     public UnityEvent OnCombatStart;
     public UnityEvent OnCombatClear;
 
@@ -174,9 +186,9 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         BaseEntity[] enemies = tutorialEnemiesRoot.GetComponentsInChildren<BaseEntity>(true);
         if (enemies.Length > 0)
         {
-            yield return new WaitForSeconds(0.5f); // 카메라가 방에 안착한 뒤 예고를 보여준다
+            yield return new WaitForSeconds(Mathf.Max(0f, spawnStartDelay)); // 카메라가 방에 안착한 뒤 예고를 보여준다
 
-            const float telegraphDuration = 1f;
+            float telegraphDuration = Mathf.Max(0.01f, spawnTelegraphDuration);
             var telegraphs = new List<GameObject>();
             foreach (var enemy in enemies)
             {
@@ -187,7 +199,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
                 {
                     var dummy = new DamageInfo(0f, DamageType.Physical, gameObject, 0f);
                     hitbox.Init(dummy, 0, 0.05f, telegraphDuration, false);
-                    vfx.transform.localScale = new Vector3(2.5f, 2.5f, 1f);
+                    vfx.transform.localScale = new Vector3(spawnTelegraphScale, spawnTelegraphScale, 1f);
                 }
                 telegraphs.Add(vfx);
             }
@@ -209,7 +221,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
     private IEnumerator DelayedSpawnWaves(RoomInstance room)
     {
-        yield return new WaitForSeconds(0.5f); // 카메라 워프가 안착하는 약 0.5초 동안만 대기 후 스폰
+        yield return new WaitForSeconds(Mathf.Max(0f, spawnStartDelay)); // 카메라 워프가 안착하는 약 0.5초 동안만 대기 후 스폰
         SpawnWaves(room);
     }
 
@@ -404,7 +416,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             yield break;
         }
 
-        float spawnDelay = 1.0f; // 장판이 가득 차오르는 선딜 시간
+        float spawnDelay = Mathf.Max(0.01f, spawnTelegraphDuration); // 장판이 가득 차오르는 선딜 시간
 
         // 1. 모든 몹들의 스폰 위치에 예고 장판(VFX) 동시 소환
         for (int i = 0; i < _pendingSpawnPoints.Count; i++)
@@ -416,7 +428,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         yield return new WaitForSeconds(spawnDelay + 0.1f);
 
         // 3. 무작위 적군 2명에게 슈퍼아머 부여
-        ApplySuperArmorToRandomEnemies(2);
+        ApplySuperArmorToRandomEnemies(Mathf.Max(0, superArmorEnemyCount));
 
         // 4. 스폰 완료되었으므로 감지 락 해제
         _isSpawnPending = false;
@@ -612,7 +624,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
                 hitbox.Init(dummyInfo, 0, 0.05f, duration, false);
 
                 // 프리팹 스케일 조절 (기본 원 크기가 1.0이므로 2.5f정도로 키움)
-                vfxObj.transform.localScale = new Vector3(2.5f, 2.5f, 1f);
+                vfxObj.transform.localScale = new Vector3(spawnTelegraphScale, spawnTelegraphScale, 1f);
             }
         }
 
@@ -655,7 +667,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             if (status == null) status = enemyObj.GetComponentInParent<CharacterStatus>();
             if (status != null)
             {
-                status.ApplySuperArmor(100f);
+                status.ApplySuperArmor(Mathf.Max(1f, spawnSuperArmorAmount));
             }
         }
     }

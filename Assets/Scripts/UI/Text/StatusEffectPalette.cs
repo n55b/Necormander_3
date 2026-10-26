@@ -9,13 +9,13 @@ using UnityEngine;
 /// </summary>
 public enum StatusVisual
 {
-    Stun,
-    Freeze,
-    FreezeBreak,
-    Bleed,
-    Poison,
-    BloodPop,
-    Hitstun,
+    [UnityEngine.InspectorName("기절")] Stun,
+    [UnityEngine.InspectorName("빙결")] Freeze,
+    [UnityEngine.InspectorName("빙결 파괴")] FreezeBreak,
+    [UnityEngine.InspectorName("출혈")] Bleed,
+    [UnityEngine.InspectorName("중독")] Poison,
+    [UnityEngine.InspectorName("혈액 튀어오름")] BloodPop,
+    [UnityEngine.InspectorName("경직")] Hitstun,
 }
 
 /// <summary>

@@ -16,14 +16,14 @@ public class TextFloating : MonoBehaviour
     private Vector3 spawnWorldPosition;
     private Vector3 offSet;
 
-    [Header("[ Text Setting ]")]
+    [Header("텍스트 설정")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float fadeTime;
     [SerializeField] private float displaytime;
     [SerializeField] private float punchDuration;
     [SerializeField] private float CiriPunchDuration;
 
-    [Header("[ Critical ]")]
+    [Header("치명타")]
     [Tooltip("치명타 데미지 숫자 색(데미지 타입 색을 덮어씀).")]
     [SerializeField] private Color critColor = new Color(1f, 0.9f, 0.15f);
     [Tooltip("치명타 외곽선 색.")]
@@ -35,9 +35,22 @@ public class TextFloating : MonoBehaviour
     [Tooltip("치명타 숫자 기본 크기 배율(일반 = 1).")]
     [SerializeField] private float critScale = 1.9f;
 
-    [Header("[ Normal ]")]
+    [Header("일반")]
     [Tooltip("일반 데미지 펀치 강도 배율. 1 = 예전 세기, 낮을수록 약해진다.")]
     [SerializeField, Range(0f, 1f)] private float normalPunchStrength = 0.4f;
+
+    [Header("숫자 등장 동작")]
+    [Min(0f), SerializeField] private float horizontalJitter = .5f;
+    [Min(.001f), SerializeField] private float normalPositionPunchTime = .5f;
+    [Min(.001f), SerializeField] private float normalScalePunchTime = .25f;
+    [Min(.001f), SerializeField] private float criticalPunchTime = .3f;
+    [Min(.001f), SerializeField] private float criticalShakeTime = .3f;
+    [Min(0f), SerializeField] private float criticalShakeAngle = 30f;
+    [Min(1), SerializeField] private int positionPunchVibrato = 10;
+    [Min(1), SerializeField] private int scalePunchVibrato = 8;
+    [Min(1), SerializeField] private int criticalPunchVibrato = 10;
+    [Min(1), SerializeField] private int criticalShakeVibrato = 20;
+    [Range(0f, 1f), SerializeField] private float normalScaleElasticity = .6f;
 
     private float timer;
     private TMPTextEffectPlayer effectPlayer;
@@ -80,7 +93,7 @@ public class TextFloating : MonoBehaviour
         NoticeKey = null;
         spawnWorldPosition = _target != null ? _target.position : transform.position;
 
-        offSet = new Vector3(Random.Range(-0.5f, 0.5f), 0);
+        offSet = new Vector3(Random.Range(-horizontalJitter, horizontalJitter), 0);
 
         // Set initial position immediately to avoid flashes at incorrect world coordinates.
         UpdatePosition();
@@ -97,9 +110,9 @@ public class TextFloating : MonoBehaviour
 
             // 2. Powerful Animation Combo
             // Scale Punch ("Pop" effect)
-            rectTransform.DOPunchScale(Vector3.one * CiriPunchDuration, 0.3f, 10, 1);
+            rectTransform.DOPunchScale(Vector3.one * CiriPunchDuration, criticalPunchTime, criticalPunchVibrato, 1);
             // Rotation Shake ("Impact" effect)
-            rectTransform.DOShakeRotation(0.3f, 30f, 20, 90f);
+            rectTransform.DOShakeRotation(criticalShakeTime, criticalShakeAngle, criticalShakeVibrato, 90f);
 
             // 3. Visuals: 주황 글자 + 진한 외곽선이 한 번 두꺼워졌다 돌아오는 펄스
             textMesh.color = critColor;
@@ -117,8 +130,8 @@ public class TextFloating : MonoBehaviour
             textMesh.outlineWidth = 0.2f; // Default thickness
 
             // Normal Punch (normalPunchStrength로 위치·스케일 펀치를 함께 줄임)
-            rectTransform.DOPunchPosition(Vector3.one * normalPunchStrength, 0.5f, 10, 1);
-            rectTransform.DOPunchScale(Vector3.one * punchDuration * normalPunchStrength, 0.25f, 8, 0.6f);
+            rectTransform.DOPunchPosition(Vector3.one * normalPunchStrength, normalPositionPunchTime, positionPunchVibrato, 1);
+            rectTransform.DOPunchScale(Vector3.one * punchDuration * normalPunchStrength, normalScalePunchTime, scalePunchVibrato, normalScaleElasticity);
         }
         effectPlayer.ApplyEffects(tempEffectRanges);
     }

@@ -76,7 +76,7 @@ public class Fader : MonoBehaviour
              "FadeOut()으로 바꿔라. SetActive(false)를 그대로 두면 즉시 꺼져버려서 페이드가 아예 안 보인다.")]
     [SerializeField] private bool deactivateOnFadeOutComplete = false;
 
-    private enum Mode { UI, Sprite, FullScreen }
+    private enum Mode { [UnityEngine.InspectorName("UI")] UI, [UnityEngine.InspectorName("스프라이트")] Sprite, [UnityEngine.InspectorName("최대 화면")] FullScreen }
 
     private static readonly Reaction Fallback = new Reaction();
 

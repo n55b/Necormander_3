@@ -9,15 +9,15 @@ public class OptionManager : MonoBehaviour
     // 정적(Static) 변수: 다른 씬(StartScene 등)에서 옵션 씬을 열 때, 설정 패널로 직행할지 여부
     public static bool OpenDirectlyToSettings = false;
 
-    [Header("Menu Panels")]
+    [Header("메뉴 패널")]
     public GameObject pauseMenuPanel;
     public GameObject settingsMenuPanel;
 
-    [Header("Audio Sliders")]
+    [Header("음량 슬라이더")]
     public Slider bgmSlider;
     public Slider sfxSlider;
 
-    [Header("Localization")]
+    [Header("다국어")]
     public TMP_Dropdown languageDropdown;
 
     private void Start()

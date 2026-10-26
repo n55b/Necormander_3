@@ -35,6 +35,14 @@ using System.Collections.Generic;
 [CreateAssetMenu(fileName = "EliteChargerAIPattern", menuName = "Necromancer/AI/EliteChargerPattern")]
 public class EliteChargerAIPatternSO : BossAIPatternSO
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0.01f), Tooltip("착지 공격 히트박스의 마지막 예고 시간입니다. 실제 타격 대기도 같은 값을 사용합니다.")]
+    private float leapImpactDelay = 0.05f;
+    [SerializeField, Min(0.01f), Tooltip("휩쓸기와 착지 타격 히트박스가 활성 상태로 남아 있는 시간입니다.")]
+    private float impactHitActiveDuration = 0.25f;
+    [SerializeField, Min(0.01f), Tooltip("벽을 향한 특수 돌진의 최대 진행 시간입니다. 먼저 벽을 만나면 기존 벽 충돌 처리가 적용됩니다.")]
+    private float wallChargeMaxDuration = 3f;
+
     // ==============================================================
     // 기본 공격 4종 (v1.3, 인스펙터에서 알아보기 쉬도록 공격별로 그룹화)
     // ==============================================================
@@ -635,7 +643,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
 
             DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f);
-            hb.Init(info, entity.opponentLayer, 0.25f, windup, entity.team == Team.Ally);
+            hb.Init(info, entity.opponentLayer, impactHitActiveDuration, windup, entity.team == Team.Ally);
 
             float t = 0f;
             while (t < windup)
@@ -742,9 +750,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
 
         DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f, bypassGuard: true);
-        hb.Init(info, entity.opponentLayer, 0.25f, 0.05f, entity.team == Team.Ally);
+        hb.Init(info, entity.opponentLayer, impactHitActiveDuration, leapImpactDelay, entity.team == Team.Ally);
 
-        yield return new WaitForSeconds(0.05f);
+        yield return new WaitForSeconds(leapImpactDelay);
     }
 
     /// <summary>
@@ -1109,7 +1117,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         float chargeSpeed = entity.Stats.MOVESPEED * chargeSpeedMultiplier;
         // 이 패턴엔 '사거리'가 따로 없다. 방이 벽으로 둘러싸여 있으니 플레이어를 못 맞히면 결국 벽에 박는다.
         // maxDuration 은 그게 어떤 이유로든(벽 콜라이더 누락 등) 안 일어났을 때 무한 돌진을 막는 안전장치일 뿐.
-        float maxDuration = 3f;
+        float maxDuration = Mathf.Max(0.01f, wallChargeMaxDuration);
 
         // [잔상] 패턴1 강한 돌진 동안만 잔상 방출 윈도우 오픈
         entity.GetComponent<DashAfterimage>()?.BeginDash(maxDuration + 0.5f);

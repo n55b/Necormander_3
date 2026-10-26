@@ -5,17 +5,17 @@ using UnityEngine.Tilemaps;
 [CreateAssetMenu(fileName = "MapGenerationData", menuName = "Map/MapGenerationData")]
 public class MapGenerationDataSO : ScriptableObject
 {
-    [Header("General Settings")]
+    [Header("일반 설정")]
     public int totalRoomCount = 15;
     public float gridUnit = 1.0f;
     
-    [Header("Isaac Style Settings")]
+    [Header("아이작식 맵 배치")]
     [Tooltip("기존 물리 분산 방식 대신 아이작 스타일 그리드 배치 및 텔레포트 이동 사용 여부")]
     public bool useIsaacStylePlacement = true;
     [Tooltip("아이작 스타일 배치 시 방 간의 배치 간격 (물리 충돌 방지용)")]
     public float gridSpacing = 160f;
     
-    [Header("Room Distribution")]
+    [Header("방 구성")]
     public int minNormalRooms = 5;
     public int shopCount = 1;
     [Tooltip("장비 강화 전용 상점의 수. 진열품 없이 NPC 에게 F 를 눌러 착용 장비를 강화하는 방. " +
@@ -40,7 +40,7 @@ public class MapGenerationDataSO : ScriptableObject
     [Tooltip("위 카운트를 다 채우고 남는 일반 방에도 무작위 보상을 배정할지. 끄면 남는 방은 보상 없음.")]
     public bool fillRemainingRoomsRandomly = true;
 
-    [Header("Encounter Spawning Settings")]
+    [Header("전투 생성 설정")]
     [Tooltip("일반방 전투 웨이브 수 (기본 2)")]
     public int wavesCount = 2;
     [Tooltip("적 개체 간 최소 간격")]
@@ -56,19 +56,19 @@ public class MapGenerationDataSO : ScriptableObject
     [Tooltip("문에서 '방 바깥'(통로 쪽)으로 나가는 깊이(유닛). 문틈과 통로에 끼는 걸 막는 쪽.")]
     public float doorKeepOutOutward = 4f;
 
-    [Header("Spreading Settings")]
+    [Header("방 펼치기 설정")]
     public float spreadingForce = 5f;
     public float maxVelocityThreshold = 0.1f;
     public int maxPhysicsIteration = 500;
     public float minSpawnRadius = 5f;
     public float maxSpawnRadius = 12f;
 
-    [Header("Corridor Settings")]
+    [Header("복도 설정")]
     public TileBase floorTile;
     public TileBase wallTile;
     public TileBase shadowTile;
 
-    [Header("Door Settings")]
+    [Header("문 설정")]
     public GameObject doorUp;
     public GameObject doorDown;
     public GameObject doorLeft;
@@ -79,7 +79,7 @@ public class MapGenerationDataSO : ScriptableObject
     [Tooltip("통로가 다른 방의 벽을 피해가는 최소 거리 (통로 벽 두께 감안)")]
     public int corridorAvoidMargin = 2;
 
-    [Header("Tutorial")]
+    [Header("튜토리얼")]
     [Tooltip("튜토리얼 방을 '지나갈 순서대로'. 최초 1회 새 게임에서 이 방들만 배치한다.\n\n" +
              "★ 배치 모양은 여기서 정하지 않는다 — 각 방 프리팹의 DoorAnchor 방향을 따라 걸어가며 " +
              "격자에 놓는다. 그러니 길을 꺾고 싶으면 방 프리팹의 앵커만 돌리면 된다.\n" +
@@ -90,7 +90,7 @@ public class MapGenerationDataSO : ScriptableObject
              "비우면 튜토리얼을 빠져나갈 길이 없다(에러 로그가 뜬다).")]
     public GameObject tutorialExitPortal;
 
-    [Header("Floor Tuning")]
+    [Header("층별 조절값")]
     [Tooltip("층별 난이도 조절표. 여기 없는 층은 아래 전역 기본값을 그대로 쓴다 — " +
              "즉 한 층만 저작해도 나머지 층은 손대지 않은 것과 완전히 동일하다.")]
     public List<FloorTuningEntry> floorTuning = new List<FloorTuningEntry>();
@@ -183,7 +183,7 @@ public class MapGenerationDataSO : ScriptableObject
         return (t != null && t.wavesCount > 0) ? t.wavesCount : wavesCount;
     }
 
-    [Header("Boss Settings")]
+    [Header("보스 설정")]
     [Tooltip("층수별 고정 보스. '몇 층에 누가 나오는가'의 유일한 스위치다 — 여기 없는 층은 " +
              "보스 층이 아니라서 보스 방 자체가 생성되지 않고, 있는 층은 항상 지정된 보스가 나온다.")]
     public List<FloorBossEntry> floorBosses = new List<FloorBossEntry>();

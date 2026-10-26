@@ -19,7 +19,7 @@ private CinemachineImpulseSource _impulseSource;
     private CinemachineCamera        _vcam;
     private float                    _defaultOrthoSize;
 
-    [Header("Shake Clamping")]
+    [Header("흔들림 제한")]
     [Tooltip("이 시간(초) 안에 들어온 히트는 힘을 새로 쌓지 않고 최댓값만 반영한다. 여러 명 동시 타격 시 임펄스가 겹쳐 어지러워지는 것을 막는다.")]
     [SerializeField] private float shakeWindow = 0.15f;
     [Tooltip("한 윈도우 안에서 허용하는 최대 힘.")]

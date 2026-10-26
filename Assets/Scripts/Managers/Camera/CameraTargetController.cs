@@ -7,16 +7,16 @@ using UnityEngine;
 public class CameraTargetController : Singleton<CameraTargetController>
 {
 
-    [Header("Follow Settings")]
+    [Header("따라가기 설정")]
     [SerializeField] private Transform playerTransform;
     [SerializeField] private float smoothTime = 0.2f;
 
-    [Header("Aiming Settings")]
+    [Header("조준 설정")]
     [SerializeField] private bool isAiming = false;
     [Range(0f, 1f)]
     [SerializeField] private float leanWeight = 0.5f; // 플레이어와 마우스 사이의 거리 중 얼마나 갈지 (0.5 = 중간)
     
-    [Header("Box Bounds (Clamp)")]
+    [Header("상자 위치 제한")]
     [SerializeField] private Vector2 maxOffset = new Vector2(5f, 3f); // 플레이어로부터의 최대 가로/세로 거리
 
     private Vector3 _currentVelocity;

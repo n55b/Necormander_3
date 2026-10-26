@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// </summary>
 public class RewardSelectionUI : MonoBehaviour
 {
-    [Header("UI Containers")]
+    [Header("UI 컨테이너")]
     [SerializeField] private GameObject panel;
     [SerializeField] private RewardCard[] cards; // 3개 고정
     [SerializeField] private Button skipButton;

@@ -5,7 +5,7 @@ using UnityEngine;
 /// 페널티(증강) 등급. 숫자가 클수록 가혹하고, 보상도 그만큼 크다.
 /// P0 은 '아무 페널티도 안 받는 선택지'라서 페널티 목록에는 절대 등장하지 않는다 — 보상만 있다.
 /// </summary>
-public enum AugmentTier { P0 = 0, P1 = 1, P2 = 2, P3 = 3 }
+public enum AugmentTier { [UnityEngine.InspectorName("P 0")] P0 = 0, [UnityEngine.InspectorName("P 1")] P1 = 1, [UnityEngine.InspectorName("P 2")] P2 = 2, [UnityEngine.InspectorName("P 3")] P3 = 3 }
 
 /// <summary>
 /// 페널티가 실제로 무엇을 건드리는가. 표에 있던 17개 항목이 이 9종으로 전부 표현된다
@@ -16,19 +16,19 @@ public enum AugmentTier { P0 = 0, P1 = 1, P2 = 2, P3 = 3 }
 /// </summary>
 public enum AugmentPenaltyKind
 {
-    PlayerDamageTaken = 0,    // 플레이어가 받는 피해 +value%
-    MinionCooldown = 1,       // 소환수(R) 쿨다운 +value%
-    PlayerMoveSpeed = 2,      // 플레이어 이동속도 value% (음수로 적는다)
-    PlayerBasicAttack = 3,    // 플레이어 평타 배율 value% (음수로 적는다)
-    PlayerDashCooldown = 4,   // 대쉬 쿨다운 +value%
-    EnemyMaxHp = 5,           // 적 최대 체력 +value%
-    EnemyAttack = 6,          // 적 공격력 +value%
-    EnemyCountPerWave = 7,    // 웨이브당 적 수 +value 마리
-    EnemyCountEarlyWaves = 8, // 앞 waveLimit 웨이브 한정 적 수 +value 마리
+    [UnityEngine.InspectorName("플레이어 피해 받은")] PlayerDamageTaken = 0,    // 플레이어가 받는 피해 +value%
+    [UnityEngine.InspectorName("소환수 재사용 대기")] MinionCooldown = 1,       // 소환수(R) 쿨다운 +value%
+    [UnityEngine.InspectorName("플레이어 이동 속도")] PlayerMoveSpeed = 2,      // 플레이어 이동속도 value% (음수로 적는다)
+    [UnityEngine.InspectorName("플레이어 평타 공격")] PlayerBasicAttack = 3,    // 플레이어 평타 배율 value% (음수로 적는다)
+    [UnityEngine.InspectorName("플레이어 대시 재사용 대기")] PlayerDashCooldown = 4,   // 대쉬 쿨다운 +value%
+    [UnityEngine.InspectorName("적 최대 체력")] EnemyMaxHp = 5,           // 적 최대 체력 +value%
+    [UnityEngine.InspectorName("적 공격")] EnemyAttack = 6,          // 적 공격력 +value%
+    [UnityEngine.InspectorName("적 개수 매 파동")] EnemyCountPerWave = 7,    // 웨이브당 적 수 +value 마리
+    [UnityEngine.InspectorName("적 개수 초반 파동")] EnemyCountEarlyWaves = 8, // 앞 waveLimit 웨이브 한정 적 수 +value 마리
 }
 
 /// <summary>보상 종류. Item 은 아이템 종류가 늘어날 때까지 테이블에서 빼둔다(AugmentTableSO.allowItemRewards).</summary>
-public enum AugmentRewardKind { Gold = 0, HealPercent = 1, MaxHpFlat = 2, Item = 3 }
+public enum AugmentRewardKind { [UnityEngine.InspectorName("골드")] Gold = 0, [UnityEngine.InspectorName("회복 백분율")] HealPercent = 1, [UnityEngine.InspectorName("최대 체력 고정값")] MaxHpFlat = 2, [UnityEngine.InspectorName("아이템")] Item = 3 }
 
 /// <summary>페널티 한 줄. 표의 (ID / 이름 / 대상 / 효과 / 표시 문구) 를 그대로 담는다.</summary>
 [System.Serializable]

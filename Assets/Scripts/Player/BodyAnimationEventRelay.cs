@@ -11,7 +11,7 @@ public class BodyAnimationEventRelay : MonoBehaviour
     private PlayerController _controller;
     private MeleeCombatController _melee;
 
-    [Header("Walk Footstep Effect")]
+    [Header("걷기 발자국 효과")]
     [SerializeField] private GameObject walkSmogEffectPrefab;
     [SerializeField] private Transform footEffectPoint;
 

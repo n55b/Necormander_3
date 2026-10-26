@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class TelegraphHitbox : MonoBehaviour
 {
-    [Header("Visuals")]
+    [Header("외형")]
     [SerializeField] private SpriteRenderer fillSprite; // 서서히 차오르는 이미지
     // BoxCollider2D는 필요하지 않으므로 제거합니다.
 

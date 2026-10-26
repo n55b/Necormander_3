@@ -20,7 +20,7 @@ public class CharacterStatus : MonoBehaviour
     /// 피해 갈래 판정(CharacterHealth.ResolveCategoryFromAttacker)의 단일 소스다.</summary>
     public EnemyTier Tier { get; set; } = EnemyTier.Normal;
 
-    [Header("Super Armor Settings")]
+    [Header("슈퍼아머 설정")]
     [SerializeField] private bool _hasSuperArmor = false;
     [SerializeField] private float _superArmorGauge = 0f;
     [SerializeField] private float _maxSuperArmorGauge = 100f;
@@ -478,7 +478,7 @@ if (isNewlyApplied)
         // 적에게 걸린 비폭이니 적을 때린다. 자신도 범위에 들어가므로 같이 맞는다.
         LayerMask mask = IsEnemyTarget ? Layers.EnemyMask : Layers.PlayerArmy;
         var info = new DamageInfo(StatusRules.BLOODPOP_DAMAGE, DamageType.BloodPop, null, 1f, "비폭", category: DamageCategory.Debuff);
-        box.Init(info, mask, 0.2f, StatusRules.BLOODPOP_FUSE, isAlly: !IsEnemyTarget);
+        box.Init(info, mask, StatusRules.BLOODPOP_HIT_DURATION, StatusRules.BLOODPOP_FUSE, isAlly: !IsEnemyTarget);
     }
 
 

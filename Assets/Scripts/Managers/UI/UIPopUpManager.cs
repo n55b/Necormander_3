@@ -33,7 +33,7 @@ using UnityEngine;
 /// </summary>
 public class UIPopUpManager : Singleton<UIPopUpManager>
 {
-    public enum Layer { Window, Overlay, Modal, System }
+    public enum Layer { [UnityEngine.InspectorName("판정 시간")] Window, [UnityEngine.InspectorName("덧그림")] Overlay, [UnityEngine.InspectorName("모달")] Modal, [UnityEngine.InspectorName("시스템")] System }
 
     private class Entry
     {

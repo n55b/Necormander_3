@@ -2,15 +2,15 @@ using UnityEngine;
 
 public enum CommandData
 {
-    SkeletonWarrior = 0,
-    SkeletonShieldbearer = 1,
-    SkeletonArcher = 2,
-    SkeletonPriest = 3,
-    SkeletonBomber = 4,
-    SkeletonSpearman = 5,
-    SkeletonMagician = 6,
-    SkeletonThief = 7,
-    None = 100
+    [UnityEngine.InspectorName("해골 전사")] SkeletonWarrior = 0,
+    [UnityEngine.InspectorName("해골 방패병")] SkeletonShieldbearer = 1,
+    [UnityEngine.InspectorName("해골 궁수")] SkeletonArcher = 2,
+    [UnityEngine.InspectorName("해골 사제")] SkeletonPriest = 3,
+    [UnityEngine.InspectorName("해골 폭탄병")] SkeletonBomber = 4,
+    [UnityEngine.InspectorName("해골 창병")] SkeletonSpearman = 5,
+    [UnityEngine.InspectorName("해골 마법사")] SkeletonMagician = 6,
+    [UnityEngine.InspectorName("해골 도적")] SkeletonThief = 7,
+    [UnityEngine.InspectorName("없음")] None = 100
 }
 
 
@@ -27,38 +27,59 @@ public enum CommandData
 /// </summary>
 public enum StatusType
 {
-    Stun,      // 기절 — 행동 완전 불가. 피해 없음
-    Freeze,    // 빙결 — 행동 불가. 직접 피해를 맞으면 고정 피해 + 즉시 해제
-    Bleed,     // 출혈 — 직접 피해를 받을 때마다 추가 고정 피해
-    Poison,    // 중독 — 초당 고정 피해
-    BloodPop,  // 비폭 — 스택형. 임계치에 닿으면 자신과 주변에 폭발
-    Hitstun,   // 경직 — 평타에 묻는 짧은 행동 불가. 기절과 '별개'로 둔 이유는
+    [UnityEngine.InspectorName("기절")] Stun,      // 기절 — 행동 완전 불가. 피해 없음
+    [UnityEngine.InspectorName("빙결")] Freeze,    // 빙결 — 행동 불가. 직접 피해를 맞으면 고정 피해 + 즉시 해제
+    [UnityEngine.InspectorName("출혈")] Bleed,     // 출혈 — 직접 피해를 받을 때마다 추가 고정 피해
+    [UnityEngine.InspectorName("중독")] Poison,    // 중독 — 초당 고정 피해
+    [UnityEngine.InspectorName("혈액 튀어오름")] BloodPop,  // 비폭 — 스택형. 임계치에 닿으면 자신과 주변에 폭발
+    [UnityEngine.InspectorName("경직")] Hitstun,   // 경직 — 평타에 묻는 짧은 행동 불가. 기절과 '별개'로 둔 이유는
                // '기절 시간 증가' 같은 증감 요소가 여기에 묻지 않게 하기 위함이다.
-    None = 6,  // 기존 직렬화 값 보존. 새 상태는 뒤에 추가한다.
-    Vulnerable = 7, // 취약: 받는 물리 피해 +20%, 행동 제한 없음.
+    [UnityEngine.InspectorName("없음")] None = 6,  // 기존 직렬화 값 보존. 새 상태는 뒤에 추가한다.
+    [UnityEngine.InspectorName("취약")] Vulnerable = 7, // 취약: 받는 물리 피해 +20%, 행동 제한 없음.
 }
 
 /// <summary>
-/// 상태이상 수치와 규칙. 전부 기획 임시값이라 밸런싱 때 여기만 고치면 된다.
-/// (SO 로 빼는 건 실제로 튜닝을 시작할 때 — 지금 만들면 인스펙터만 늘고 쓸 일이 없다.)
+/// 상태이상 규칙. 수치는 Resources/Settings/StatusBalance.asset 에서 공통 조절한다.
+/// 에셋이 없는 테스트 환경에서는 기존 기본값을 사용한다.
 /// </summary>
 public static class StatusRules
 {
+    public static float BLOODPOP_HIT_DURATION => Mathf.Max(0.01f, Balance != null ? Balance.bloodPopHitDuration : 0.2f);
+    public static float VULNERABLE_DAMAGE_BONUS => Mathf.Max(0f, Balance != null ? Balance.vulnerableDamageBonus : 0.2f);
+    public const string BalanceResourcePath = "Settings/StatusBalance";
+    private static StatusBalanceSO _balance;
+    private static bool _balanceLoaded;
+    private static StatusBalanceSO Balance
+    {
+        get
+        {
+            if (!_balanceLoaded)
+            {
+                _balance = Resources.Load<StatusBalanceSO>(BalanceResourcePath);
+                _balanceLoaded = true;
+                if (_balance == null) Debug.LogWarning("[StatusRules] 상태이상 공통 설정이 없어 기본값을 사용합니다: " + BalanceResourcePath);
+            }
+            return _balance;
+        }
+    }
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetBalanceCache() { _balance = null; _balanceLoaded = false; }
+
     /// <summary>출혈·중독·비폭 기본 지속시간(초). 소스가 더 길게 명시할 수 있다. 재적중하면 갱신된다.</summary>
-    public const float DURATION = 5f;
+    public static float DURATION => Mathf.Max(0.01f, Balance != null ? Balance.defaultDuration : 5f);
 
     /// <summary>기절 기본 1초. 소스가 명시하면 0.5~2초로 clamp 된다.</summary>
-    public const float STUN_DURATION = 1f;
-    public const float STUN_MIN = 0.5f;
-    public const float STUN_MAX = 2f;
+    public static float STUN_DURATION => Mathf.Max(0.01f, Balance != null ? Balance.stunDuration : 1f);
+    public static float STUN_MIN => Mathf.Max(0.01f, Balance != null ? Balance.stunMinDuration : 0.5f);
+    public static float STUN_MAX => Mathf.Max(STUN_MIN, Balance != null ? Balance.stunMaxDuration : 2f);
 
     /// <summary>빙결 기본 2.5초. 재적중하면 갱신된다.</summary>
-    public const float FREEZE_DURATION = 2.5f;
+    public static float FREEZE_DURATION => Mathf.Max(0.01f, Balance != null ? Balance.freezeDuration : 2.5f);
 
     /// <summary>기절이 '자연 종료'된 뒤 다시 안 걸리는 내성 시간(초).</summary>
-    public const float STUN_IMMUNITY = 3f;
+    public static float STUN_IMMUNITY => Mathf.Max(0f, Balance != null ? Balance.stunImmunityDuration : 3f);
     /// <summary>빙결이 '피해로 깨진' 뒤 다시 안 걸리는 내성 시간(초). 자연 만료엔 안 생긴다.</summary>
-    public const float FREEZE_IMMUNITY = 1f;
+    public static float FREEZE_IMMUNITY => Mathf.Max(0f, Balance != null ? Balance.freezeImmunityDuration : 1f);
 
     /// <summary>타입별 기본 지속시간. duration 을 안 넘겼을(0 이하) 때 쓴다.</summary>
     public static float DefaultDuration(StatusType t)
@@ -67,21 +88,21 @@ public static class StatusRules
          : DURATION;
 
     /// <summary>빙결이 깨질 때 터지는 고정 피해.</summary>
-    public const float FREEZE_BREAK_DAMAGE = 20f;
+    public static float FREEZE_BREAK_DAMAGE => Mathf.Max(0f, Balance != null ? Balance.freezeBreakDamage : 20f);
 
     /// <summary>출혈 중 피격 1회당 추가되는 고정 피해.</summary>
-    public const float BLEED_HIT_DAMAGE = 2f;
+    public static float BLEED_HIT_DAMAGE => Mathf.Max(0f, Balance != null ? Balance.bleedHitDamage : 2f);
 
     /// <summary>중독 틱 피해와 주기(초).</summary>
-    public const float POISON_TICK_DAMAGE = 5f;
-    public const float POISON_TICK_INTERVAL = 1f;
+    public static float POISON_TICK_DAMAGE => Mathf.Max(0f, Balance != null ? Balance.poisonTickDamage : 5f);
+    public static float POISON_TICK_INTERVAL => Mathf.Max(0.01f, Balance != null ? Balance.poisonTickInterval : 1f);
 
     /// <summary>비폭: 이 스택에 닿으면 터지고 스택이 0 으로 돌아간다.</summary>
-    public const int BLOODPOP_THRESHOLD = 10;
-    public const float BLOODPOP_DAMAGE = 20f;
-    public const float BLOODPOP_RADIUS = 2.5f;
+    public static int BLOODPOP_THRESHOLD => Mathf.Max(1, Balance != null ? Balance.bloodPopThreshold : 10);
+    public static float BLOODPOP_DAMAGE => Mathf.Max(0f, Balance != null ? Balance.bloodPopDamage : 20f);
+    public static float BLOODPOP_RADIUS => Mathf.Max(0.01f, Balance != null ? Balance.bloodPopRadius : 2.5f);
     /// <summary>폭발 예고 시간(초). 보이긴 하되 못 피할 정도.</summary>
-    public const float BLOODPOP_FUSE = 0.5f;
+    public static float BLOODPOP_FUSE => Mathf.Max(0f, Balance != null ? Balance.bloodPopFuse : 0.5f);
 
     /// <summary>
     /// 슈퍼아머가 막는 상태이상인가. 슈퍼아머 = 강인함이라, 있는 동안은 이동 방해 계열이

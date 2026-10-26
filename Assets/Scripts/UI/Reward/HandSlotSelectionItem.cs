@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class HandSlotSelectionItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
     IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
 {
-    public enum ActionKind { Current, Candidate, Compare, Replace, Skip }
+    public enum ActionKind { [UnityEngine.InspectorName("현재")] Current, [UnityEngine.InspectorName("후보")] Candidate, [UnityEngine.InspectorName("비교")] Compare, [UnityEngine.InspectorName("교체")] Replace, [UnityEngine.InspectorName("건너뛰기")] Skip }
     [SerializeField] private HandSlotSelectionUI owner;
     [SerializeField] private ActionKind action;
     [SerializeField] private Image holdFill;

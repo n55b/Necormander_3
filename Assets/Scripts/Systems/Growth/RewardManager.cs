@@ -9,7 +9,7 @@ public class RewardManager : MonoBehaviour
 {
     public static RewardManager Instance;
 
-    [Header("UI Reference")]
+    [Header("UI 연결")]
     [SerializeField] private RewardSelectionUI selectionUI;
     [SerializeField] private HandSlotSelectionUI handSlotUI;
 

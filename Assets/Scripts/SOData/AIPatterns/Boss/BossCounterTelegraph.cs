@@ -26,11 +26,11 @@ public static class BossCounterTelegraph
     public enum Kind
     {
         /// <summary>카운터 불가. 무채색으로 시간만 예고한다.</summary>
-        None,
+        [UnityEngine.InspectorName("없음")] None,
         /// <summary>진짜 카운터(노랑). 때리면 패턴 취소 + 보스 경직.</summary>
-        Real,
+        [UnityEngine.InspectorName("진짜")] Real,
         /// <summary>페이크(빨강). 때리면 보스가 회복한다. 시전 시간은 변하지 않는다.</summary>
-        Fake,
+        [UnityEngine.InspectorName("페이크")] Fake,
     }
 
     /// <summary>

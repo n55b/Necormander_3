@@ -14,11 +14,11 @@ public class MapGenerator : MonoBehaviour
     public bool IsMapGenerationCompleted { get; private set; } = false;
     public float GenerationProgress { get; private set; }
 
-    [Header("Data Settings")]
+    [Header("데이터 연결")]
     [SerializeField] private MapGenerationDataSO generationData;
     [SerializeField] private RoomPrefabDataSO prefabData;
 
-    [Header("Debug")]
+    [Header("디버그")]
     [Tooltip("맵 생성 뒤 MapDebugLog.txt에 전체 타일 지도를 기록합니다. 큰 방에서는 로그 한 번에 수십만 칸을 검사하므로, 연결 문제를 추적할 때만 켭니다.")]
     [SerializeField] private bool dumpMapDebugLog;
 
@@ -132,14 +132,14 @@ public class MapGenerator : MonoBehaviour
 #endif
 
 
-    [Header("Global Tilemap References")]
+    [Header("통합 타일맵 연결")]
     [SerializeField] private Tilemap globalGroundTilemap;
     [SerializeField] private Tilemap globalWallTilemap;
     [SerializeField] private Tilemap globalShadowTilemap;
     [SerializeField] private Tilemap globalUnsteppableTilemap;
 
     // 미니맵 타일 추가
-    [Header("MiniMap Settings")]
+    [Header("미니맵 설정")]
     [SerializeField] private Tilemap globalMiniMapTilemap; // GlobalMiniMapTilemap 등록
     [SerializeField] private TileBase miniMapNormalTile;  // 일반 방/복도용 단색 타일
 

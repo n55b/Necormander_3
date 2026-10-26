@@ -15,23 +15,23 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class TMPTextEffectPlayer : MonoBehaviour
 {
-    [Header("Wave")]
+    [Header("파동")]
     [SerializeField] private float waveAmplitude = 6f;
     [SerializeField] private float waveFrequency = 2f;
 
-    [Header("Jitter")]
+    [Header("잘게 떨림")]
     [SerializeField] private float jitterAmplitude = 3f;
     [SerializeField] private float jitterSpeed = 20f;
 
-    [Header("Shake (per-char, one-shot)")]
+    [Header("글자별 흔들림: 한 번")]
     [SerializeField] private float shakeAmplitude = 4f;
     [SerializeField] private float shakeDuration = 0.4f;
 
-    [Header("Punch (per-char, one-shot)")]
+    [Header("글자별 튀는 효과: 한 번")]
     [SerializeField] private float punchScale = 0.5f;
     [SerializeField] private float punchDuration = 0.35f;
 
-    [Header("Rainbow")]
+    [Header("무지개 색")]
     [SerializeField] private float rainbowSaturation = 0.85f;
     [SerializeField] private float rainbowSpeed = 1f;
 

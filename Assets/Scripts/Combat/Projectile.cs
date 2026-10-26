@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public class Projectile : MonoBehaviour
 {
-    [Header("Base Projectile Settings")]
+    [Header("기본 투사체 설정")]
     [SerializeField] protected float speed = 15f;
     [SerializeField] protected float lifeTime = 3f;
     [SerializeField] protected bool rotateToDirection = true; // [추가] 날아가는 궤적 방향으로 오브젝트를 회전시킬지 여부 (구체형 등은 false)

@@ -12,7 +12,7 @@ using UnityEngine;
 /// </summary>
 public abstract class BossAIPatternSO : BaseAIPatternSO
 {
-    [Header("Boss Phase Settings")]
+    [Header("보스 페이즈 설정")]
     public float phase2Threshold = 0.5f; // 페이즈 2 전환 체력 비율
     protected int currentPhase = 1;
 

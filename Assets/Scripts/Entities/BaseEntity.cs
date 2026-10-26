@@ -3,8 +3,8 @@ using UnityEngine.AI;
 
 public enum Team
 {
-    Ally,
-    Enemy
+    [UnityEngine.InspectorName("아군")] Ally,
+    [UnityEngine.InspectorName("적")] Enemy
 }
 
 /// <summary>
@@ -14,6 +14,12 @@ public enum Team
 [RequireComponent(typeof(NearestTargetFinder))]
 public abstract class BaseEntity : MonoBehaviour
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0.01f), Tooltip("공통 기본 공격 히트박스가 타격 순간 이후 남아 있는 시간입니다. 별도 보스·스킬 판정은 각 패턴 설정을 따릅니다.")]
+    private float attackHitActiveDuration = 0.2f;
+    [SerializeField, Range(0f, 1f), Tooltip("유닛 공격 효과음의 볼륨입니다. 전체 효과음 볼륨과 곱해집니다.")]
+    private float attackSoundVolume = 0.4f;
+
     [Header("팀 설정")]
     public Team team;
     public LayerMask myTeamLayer;
@@ -122,7 +128,7 @@ public abstract class BaseEntity : MonoBehaviour
 
         if (minionData != null && minionData.AttackSound != null)
         {
-            SoundManager.Instance.PlaySFX(minionData.AttackSound, 0.4f);
+            SoundManager.Instance.PlaySFX(minionData.AttackSound, attackSoundVolume);
         }
     }
 
@@ -476,7 +482,7 @@ public abstract class BaseEntity : MonoBehaviour
                 go.transform.localScale = new Vector3(_stats.ATKRANGE, _stats.ATKRANGE, 1f);
 
                 // 전달받은 실제 애니메이션 이벤트 시간(windupTime)과 피아식별 정보(team)를 넘겨줍니다.
-                _activeHitbox.Init(info, opponentLayer, 0.2f, windupTime, this.team == Team.Ally);
+                _activeHitbox.Init(info, opponentLayer, attackHitActiveDuration, windupTime, this.team == Team.Ally);
             }
             else
             {

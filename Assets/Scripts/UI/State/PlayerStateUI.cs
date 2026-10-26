@@ -9,6 +9,10 @@ using System.Collections.Generic;
 /// </summary>
 public class PlayerStateUI : MonoBehaviour
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Range(0f, 1f), Tooltip("사용할 수 없는 스킬 아이콘의 불투명도입니다. 0이면 숨기고 1이면 원래 밝기로 표시합니다.")]
+    private float unavailableSkillAlpha = 0.2f;
+
     /// <summary>
     /// 스킬 슬롯 1개의 UI 요소.
     /// - SkillIcon    : 스킬 아이콘 Image (Sprite 교체)
@@ -37,10 +41,10 @@ public class PlayerStateUI : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     // Inspector 필드
     // ─────────────────────────────────────────────────────────────────────
-    [Header("Panel Parent")]
+    [Header("패널 부모")]
     [SerializeField] private GameObject panelParent;
 
-    [Header("HP Settings")]
+    [Header("체력 설정")]
     [SerializeField] private Image hpSprite;
     [Tooltip("보호막 게이지. 체력바와 같은 자리에 '뒤쪽'으로 깔린다 — 앞의 체력바가 왼쪽을 덮으므로 " +
              "체력이 끝나는 지점부터 보호막 색이 이어져 보인다.\n" +
@@ -55,7 +59,7 @@ public class PlayerStateUI : MonoBehaviour
     [SerializeField] private Color guardReadyColor = new Color(0.2f, 0.6f, 1f, 1f);
     [SerializeField] private Color guardBrokenColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
-    [Header("Gold Settings")]
+    [Header("골드 설정")]
     [SerializeField] private TextMeshProUGUI goldText;
 
     [Header("대쉬 / Space 미니언 스킬")]
@@ -282,7 +286,7 @@ public class PlayerStateUI : MonoBehaviour
                 slot.SkillIcon.sprite = null;
                 var tooltipEmpty = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
                 if (tooltipEmpty != null) tooltipEmpty.Clear();
-                slot.SkillIcon.color = new Color(1f, 1f, 1f, 0.2f);
+                slot.SkillIcon.color = new Color(1f, 1f, 1f, unavailableSkillAlpha);
             }
         }
 

@@ -5,7 +5,7 @@ using UnityEngine;
 /// </summary>
 public class SpawnRoomEvent : MonoBehaviour, IRoomEvent
 {
-    [Header("Spawn Settings")]
+    [Header("생성 설정")]
     [SerializeField] private Transform playerSpawnPoint;
 
     /// <summary>

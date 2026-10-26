@@ -8,7 +8,7 @@ using UnityEngine;
 /// </summary>
 public abstract class MinionDataSO : ScriptableObject
 {
-    [Header("Basic Information")]
+    [Header("기본 정보")]
     public CommandData minionType;
     public string minionName;
     public Sprite minionIcon;   // 대가리만 달린 이미지
@@ -17,7 +17,7 @@ public abstract class MinionDataSO : ScriptableObject
     // 소환수(메인/서브)는 이제 플레이어의 ATK 를 그대로 가져다 쓰므로 자기 공격력이 없다.
     // 적만 자기 공격력이 필요해서 적 전용 데이터로 이사시켰다.
 
-    [Header("UI & Reward Settings")]
+    [Header("UI와 보상 설정")]
     public int shopCost = 150;
     public GrowthItemData rewardItemData;
 

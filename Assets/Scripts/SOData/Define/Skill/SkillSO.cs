@@ -11,17 +11,17 @@ public abstract class SkillSO : ScriptableObject
     public Sprite icon;           // UI에 표시할 스킬 아이콘 (null이면 MinionDataSO.minionIcon 대체)
     public float cooldownTime = 5f; // 스킬의 기본 쿨타임 (초 단위)
 
-    [Header("Sound")]
+    [Header("소리")]
     [Tooltip("스킬 발동 시 재생할 사운드 (null이면 무음)")]
     public AudioClip skillSound;
     [Range(0f, 1f)]
     public float skillSoundVolume = 0.85f;
 
-    [Header("Shake Force")]
+    [Header("흔들림 강도")]
     [Tooltip("스킬 발동 시 카메라 흔들림 강도 (0.5f = 기본, 강한 스킬은 1~1.5f 권장)")]
     public float shakeForce = 0.5f;
 
-    [Header("Hit Stop")]
+    [Header("타격 시 시간 정지")]
     [Tooltip("0보다 크면 이 스킬이 명중할 때 히트스탑 발동. 값(초)이 곧 정지 시간. 0이면 없음.")]
     public float hitStopDuration = 0f;
 

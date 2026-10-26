@@ -39,7 +39,7 @@ public struct TooltipData
 public class CommonTooltipUI : Singleton<CommonTooltipUI>
 {
 
-    [Header("UI References")]
+    [Header("UI 연결")]
     [SerializeField] private RectTransform tooltipPanel;
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI typeText;
@@ -47,10 +47,10 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
     [SerializeField] private TextMeshProUGUI effectsText;
     [SerializeField] private TextMeshProUGUI footerText;
 
-    [Header("Keyword Sub Tooltip")]
+    [Header("키워드 하위 설명")]
     [SerializeField] private AstroNuts.Localization.KeywordDictionary keywordDictionary; // 사전 연결
 
-    [Header("Settings")]
+    [Header("설정")]
     [SerializeField] private Vector2 offset = new Vector2(15, -15);
 
     private Canvas _canvas;

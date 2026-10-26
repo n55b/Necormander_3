@@ -14,16 +14,16 @@ public class RoomInstance : MonoBehaviour
     /// <b>값(2)은 그대로 둔다</b> — enum 은 정수로 직렬화되므로, 중간 값을 지우거나 순서를 바꾸면
     /// 이미 저작된 방 프리팹들의 보상 타입이 통째로 밀린다.
     /// </summary>
-    public enum NormalRewardType { PlayerSkill, MainSummon, Item }
+    public enum NormalRewardType { [UnityEngine.InspectorName("플레이어 스킬")] PlayerSkill, [UnityEngine.InspectorName("메인 소환")] MainSummon, [UnityEngine.InspectorName("아이템")] Item }
     [Header("일반 방 보상 세부 설정")]
     public NormalRewardType normalRewardType;
     public Vector2Int roomSize;
     public Vector2 centerOffset;
 
-    [Header("Anchors")]
+    [Header("기준점")]
     public List<RoomAnchor> anchors = new List<RoomAnchor>();
 
-    [Header("Tilemaps (Optional - Auto-assigned if Null)")]
+    [Header("타일맵: 비우면 자동 연결")]
     public Tilemap wallTilemap;
     public Tilemap groundTilemap;
     public Tilemap shadowTilemap;
@@ -93,7 +93,7 @@ public class RoomInstance : MonoBehaviour
         return false;
     }
 
-    [Header("Combat & Events")]
+    [Header("전투와 이벤트")]
     public bool isCleared = false;
     public bool hasBeenVisited = false;
     public List<DoorUpController> doorObjects = new List<DoorUpController>(); // MapGenerator에서 할당

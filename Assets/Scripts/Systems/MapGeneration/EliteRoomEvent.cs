@@ -9,20 +9,24 @@ using UnityEngine.Events;
 /// </summary>
 public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 {
-    [Header("Elite Settings")]
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0f), Tooltip("방에 들어간 뒤 카메라가 자리 잡도록 기다리는 시간입니다. 0이면 바로 소환 절차를 시작합니다.")]
+    private float spawnStartDelay = 0.5f;
+
+    [Header("엘리트 설정")]
     [SerializeField] private int eliteCount = 1;
     [Tooltip("이 방에 나올 엘리트를 못박는다. 전용 방 프리팹에 미리 꽂아두는 용도.\n" +
              "비워두면 MapGenerator 가 이 층에 정한 엘리트를 쓰고, 그것도 없으면 풀에서 무작위로 뽑는다.")]
     [SerializeField] private EnemyMinionDataSO forcedElite;
     [SerializeField] private GameObject portalObject;
 
-    [Header("Reward Box Settings")]
+    [Header("보상 상자 설정")]
     [Tooltip("방 클리어 시 생성할 보상 상자 프리팹. 비워두면 상자 없이 보상이 즉시 지급됩니다.")]
     [SerializeField] private GameObject rewardBoxPrefab;
     [Tooltip("상자가 나올 자리. 방 프리팹 안에 빈 오브젝트를 놓고 연결하세요. 비워두면 방 정중앙.")]
     [SerializeField] private Transform rewardSpawnPoint;
 
-    [Header("Unity Events")]
+    [Header("이벤트 연결")]
     public UnityEvent OnEliteCombatStart;
     public UnityEvent OnEliteCombatClear;
 
@@ -133,7 +137,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
 
     private IEnumerator DelayedSpawnElite(RoomInstance room)
     {
-        yield return new WaitForSeconds(0.5f); // 카메라 워프가 안착하는 약 0.5초 동안만 대기 후 스폰
+        yield return new WaitForSeconds(Mathf.Max(0f, spawnStartDelay)); // 카메라 워프가 안착하는 약 0.5초 동안만 대기 후 스폰
         _isSpawnPending = false; // 지연 해제, 이제부터 Update 감지 가능
         SpawnEliteOnly(room);
     }

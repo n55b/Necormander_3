@@ -20,7 +20,7 @@ public class PlayerOcclusionSilhouette : MonoBehaviour
     [Tooltip("실루엣 색상/투명도. 알파가 너무 높으면 본체처럼 또렷하게 보여서 가리는 의미가 없어지고, 너무 낮으면 안 보임.")]
     [SerializeField] private Color silhouetteColor = new Color(1f, 1f, 1f, 0.55f);
 
-    [Tooltip("Occlusion check radius. Objects farther than this skip the bounds check entirely (perf).")]
+    [Tooltip("가림막을 확인할 최대 거리(월드 유닛). 이보다 먼 오브젝트는 검사하지 않습니다. 늘리면 멀리 있는 가림막도 찾지만 검사량이 늘어납니다.")]
     [SerializeField] private float maxCheckDistance = 3f;
 
     [Tooltip("실루엣이 반응할 대상의 레이어. 기본값은 Wall/Obstacle만 포함되어 몬스터(Enemy)는 가림막으로 취급하지 않습니다. 인스펙터에서 원하는 레이어로 바꿀 수 있습니다.")]

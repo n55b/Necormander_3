@@ -3,6 +3,10 @@ using UnityEngine.InputSystem;
 
 public class MeleeCombatController : MonoBehaviour
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0.01f), Tooltip("플레이어 평타 히트박스의 활성 시간입니다. 모션이나 콤보 수는 변경하지 않습니다.")]
+    private float attackHitActiveDuration = 0.2f;
+
     [SerializeField] private GameObject telegraphPrefab; // 인스펙터 할당
     public GameObject TelegraphPrefab => telegraphPrefab;
 
@@ -271,7 +275,7 @@ public class MeleeCombatController : MonoBehaviour
 
                 LayerMask enemyLayer = Layers.EnemyMask;
                 // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
-                _activeHitbox.Init(info, enemyLayer, 0.2f, telegraphDuration);
+                _activeHitbox.Init(info, enemyLayer, attackHitActiveDuration, telegraphDuration);
             }
             else
             {

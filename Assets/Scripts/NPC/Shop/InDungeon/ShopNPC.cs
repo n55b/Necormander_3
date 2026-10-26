@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class ShopNPC : NPCBase
 {
-    [Header("Stock")]
+    [Header("재고")]
     [Tooltip("상점 창에 진열할 상품 개수")]
     [SerializeField, Min(1)] private int stockCount = 5;
 

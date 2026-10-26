@@ -17,6 +17,12 @@ public class CharacterVisualFeedback : MonoBehaviour
     [Header("피격 섬광")]
     [Range(0f, 1f), SerializeField] private float hitFlashStrength = .9f;
     [Min(.01f), SerializeField] private float hitFlashDuration = .075f;
+    [Min(.001f), SerializeField, Tooltip("피격/회복 후 몸 색이 잠깐 바뀌는 시간(초).")]
+    private float tintFlashDuration = .1f;
+    [Range(0f, .25f), SerializeField, Tooltip("플레이어 피격 시 화면 시간을 잠깐 멈추는 시간(초). 0이면 피격 히트스톱을 끕니다.")]
+    private float playerHitStopDuration = .05f;
+    [Min(.001f), SerializeField, Tooltip("플레이어 피격 시 화면 가장자리 색 변화 시간(초).")]
+    private float playerHurtVignetteDuration = .05f;
 
     [Header("슈퍼아머 시각 효과")]
     [Tooltip("상시 외곽선만 표시한다. 꺼도 슈퍼아머의 경직/넉백 면역 판정은 유지된다.")]
@@ -447,8 +453,8 @@ public class CharacterVisualFeedback : MonoBehaviour
             if(isPlayer)
             {
                 // [수정] 인스턴스 널 체크 추가하여 NRE 방지
-if (HitStopManager.Instance != null) HitStopManager.Instance.DoHitStop(0.05f); 
-                if (GameManager.Instance != null) GameManager.Instance.ChangeVignetteColor(0.05f, Color.red);
+                if (HitStopManager.Instance != null && playerHitStopDuration > 0f) HitStopManager.Instance.DoHitStop(playerHitStopDuration);
+                if (GameManager.Instance != null) GameManager.Instance.ChangeVignetteColor(playerHurtVignetteDuration, Color.red);
             }
         }
     }
@@ -480,7 +486,7 @@ if (HitStopManager.Instance != null) HitStopManager.Instance.DoHitStop(0.05f);
     private IEnumerator FlashRoutine(Color color)
     {
         _sr.color = color;
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(tintFlashDuration);
         _sr.color = _originalColor;
         _flashCoroutine = null;
     }

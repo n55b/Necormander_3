@@ -6,12 +6,20 @@ using UnityEngine.InputSystem;
 
 public enum PlayerStates
 {
-    Idle,
-    Battle
+    [UnityEngine.InspectorName("대기")] Idle,
+    [UnityEngine.InspectorName("전투")] Battle
 }
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0.01f), Tooltip("이 이동속도일 때 걷기 모션을 원래 속도로 재생합니다. 실제 이동속도는 바꾸지 않습니다.")]
+    private float walkAnimationReferenceSpeed = 5f;
+    [SerializeField, Min(0f), Tooltip("툴팁 위쪽 끝에서 F 아이콘 아래쪽 끝까지의 간격입니다. 상호작용 대상 선택에는 영향이 없습니다.")]
+    private float uiIconGap = 0.05f;
+    [SerializeField, Tooltip("X는 최소, Y는 최대 재생 배속입니다. 이동·대시·공격 판정 시간에는 영향이 없습니다.")]
+    private Vector2 walkAnimationSpeedRange = new Vector2(0.3f, 3f);
+
     [Header("플레이어 스탯")]
     [SerializeField] CharacterStat stat;
     public CharacterStat Stat => stat;
@@ -424,7 +432,7 @@ public class PlayerController : MonoBehaviour
 
         // 포커스 처리(툴팁 켜기) 뒤에 배치해야 첫 프레임부터 툴팁 위에 F가 붙는다.
         // 대상에 툴팁 같은 월드 UI가 있으면 그 위에, 없으면 콜라이더 위에 뜬다(PopupSystem 참고).
-        PopupSystem.ShowInteractionIcon(nearestCollider, interactIconOffset);
+        PopupSystem.ShowInteractionIcon(nearestCollider, interactIconOffset, uiIconGap);
     }
 
     // ── F 홀드 ────────────────────────────────────────────────────────
@@ -460,10 +468,10 @@ public class PlayerController : MonoBehaviour
 
     public enum SpeedModifierSource
     {
-        MeleeAttack,
-        Parry,
-        Skill,
-        Debuff
+        [UnityEngine.InspectorName("근접 공격")] MeleeAttack,
+        [UnityEngine.InspectorName("패링")] Parry,
+        [UnityEngine.InspectorName("스킬")] Skill,
+        [UnityEngine.InspectorName("디버프")] Debuff
     }
 
     private Dictionary<SpeedModifierSource, float> _speedModifiers = new Dictionary<SpeedModifierSource, float>();
@@ -873,7 +881,7 @@ public void OnGemTree(InputAction.CallbackContext context)
 
     private void UpdateWalkAnimSpeed(float currentSpeed)
     {
-        float speedRatio = Mathf.Clamp(currentSpeed * 0.2f, 0.3f, 3f);
+        float speedRatio = Mathf.Clamp(currentSpeed / Mathf.Max(0.01f, walkAnimationReferenceSpeed), Mathf.Max(0.01f, walkAnimationSpeedRange.x), Mathf.Max(0.01f, Mathf.Max(walkAnimationSpeedRange.x, walkAnimationSpeedRange.y)));
 
         if (Mathf.Abs(speedRatio - _lastAnimSpeed) < 0.01f) return;
         _lastAnimSpeed = speedRatio;

@@ -7,8 +7,8 @@ using UnityEngine;
 /// </summary>
 public enum AttackType
 {
-    Physical,
-    Magic
+    [UnityEngine.InspectorName("물리")] Physical,
+    [UnityEngine.InspectorName("마법")] Magic
 }
 
 /// <summary>
@@ -17,13 +17,13 @@ public enum AttackType
 /// </summary>
 public enum DamageType
 {
-    Physical,   // ATK 기반 직접 피해
-    Magic,      // MAGIC 기반 직접 피해
-    Freeze,     // 빙결 해제 시 터지는 고정 피해
-    Poison,     // 중독 틱
-    Bleed,      // 출혈이 피격에 얹는 추가 고정 피해
-    BloodPop,   // 비폭 10스택 폭발
-    Fixed       // 어느 상태이상에도 속하지 않는 고정 피해
+    [UnityEngine.InspectorName("물리")] Physical,   // ATK 기반 직접 피해
+    [UnityEngine.InspectorName("마법")] Magic,      // MAGIC 기반 직접 피해
+    [UnityEngine.InspectorName("빙결")] Freeze,     // 빙결 해제 시 터지는 고정 피해
+    [UnityEngine.InspectorName("중독")] Poison,     // 중독 틱
+    [UnityEngine.InspectorName("출혈")] Bleed,      // 출혈이 피격에 얹는 추가 고정 피해
+    [UnityEngine.InspectorName("혈액 튀어오름")] BloodPop,   // 비폭 10스택 폭발
+    [UnityEngine.InspectorName("고정")] Fixed       // 어느 상태이상에도 속하지 않는 고정 피해
 }
 
 /// <summary>
@@ -37,17 +37,17 @@ public enum DamageType
 /// </summary>
 public enum DamageCategory
 {
-    None = 0,       // 미분류(기본값). 어떤 갈래 효과도 안 받는다.
-    BasicAttack,    // 평타 (플레이어 3타 + 소환수 마무리 일격)
-    Skill,          // 스킬 (Q/E + R 소환수 액티브)
-    DashAttack,     // 대쉬 공격
-    Parry,          // 패링으로 반사한 투사체
-    Debuff,         // 아군발 상태이상 피해(중독/출혈/비폭/빙결해제 등)
-    Trap,           // 함정/환경 피해
-    EnemyMinion,    // 적 일반
-    EnemyElite,     // 적 엘리트
-    EnemyBoss,      // 적 보스
-    EnemyDebuff     // 적발 상태이상 (지금은 없지만 예약)
+    [UnityEngine.InspectorName("없음")] None = 0,       // 미분류(기본값). 어떤 갈래 효과도 안 받는다.
+    [UnityEngine.InspectorName("평타 공격")] BasicAttack,    // 평타 (플레이어 3타 + 소환수 마무리 일격)
+    [UnityEngine.InspectorName("스킬")] Skill,          // 스킬 (Q/E + R 소환수 액티브)
+    [UnityEngine.InspectorName("대시 공격")] DashAttack,     // 대쉬 공격
+    [UnityEngine.InspectorName("패링")] Parry,          // 패링으로 반사한 투사체
+    [UnityEngine.InspectorName("디버프")] Debuff,         // 아군발 상태이상 피해(중독/출혈/비폭/빙결해제 등)
+    [UnityEngine.InspectorName("함정")] Trap,           // 함정/환경 피해
+    [UnityEngine.InspectorName("적 소환수")] EnemyMinion,    // 적 일반
+    [UnityEngine.InspectorName("적 엘리트")] EnemyElite,     // 적 엘리트
+    [UnityEngine.InspectorName("적 보스")] EnemyBoss,      // 적 보스
+    [UnityEngine.InspectorName("적 디버프")] EnemyDebuff     // 적발 상태이상 (지금은 없지만 예약)
 }
 
 /// <summary>

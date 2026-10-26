@@ -6,7 +6,7 @@ using System.Collections;
 /// </summary>
 public class TrapArrow : MonoBehaviour
 {
-    [Header("Settings")]
+    [Header("설정")]
     [SerializeField] private float fireDelay = 1f;
     [SerializeField] private float cooldown = 1f; // 화살 발사 후 다시 작동하기까지의 쿨다운
     [SerializeField] private float damage = 10f;
@@ -21,13 +21,13 @@ public class TrapArrow : MonoBehaviour
     [Tooltip("벽 탐지 레이캐스트가 기하학적 예상 거리보다 얼마나 더 멀리까지 벽을 찾을지의 여유값.")]
     [SerializeField] private float wallRaycastPadding = 3f;
 
-    [Header("References")]
+    [Header("연결 대상")]
     [SerializeField] private GameObject arrowPrefab; // Projectile 컴포넌트가 붙어 있는 프리팹
     [SerializeField] private Transform firePoint;     // 화살 스폰 기본 위치 (방을 못 찾을 때의 폴백용)
     [SerializeField] private LayerMask targetLayer;
     [SerializeField] private Animator plateAnimator; // PlateVisual의 Animator (미지정 시 자식에서 자동 탐색)
 
-    [Header("Sound")]
+    [Header("소리")]
     [Tooltip("압력판 작동 사운드")]
     [SerializeField] private AudioClip plateSound;
     [Range(0f, 1f)]

@@ -11,30 +11,30 @@ using System.Collections.Generic;
 /// </summary>
 public enum StatType
 {
-    Attack = 0,         // 물리 공격력 (배율: 0.1 = 10% 증가)
-    Health = 1,         // 최대 체력
-    AttackSpeed = 2,    // 공격 속도 (회/초)
+    [UnityEngine.InspectorName("공격")] Attack = 0,         // 물리 공격력 (배율: 0.1 = 10% 증가)
+    [UnityEngine.InspectorName("체력")] Health = 1,         // 최대 체력
+    [UnityEngine.InspectorName("공격 속도")] AttackSpeed = 2,    // 공격 속도 (회/초)
     // 3 = 구 RespawnTime (삭제됨 — 재사용 금지)
     // 4, 5, 6 = 구 투척 스탯. 투척 철거와 함께 삭제 — 재사용 금지.
 
     // ── 26/07/17 스탯 재설계 ──────────────────────────────────────
-    Magic = 10,                    // 마법 공격력
-    Defense = 11,                  // 방어력(%). 감소율 상한 75%
-    MoveSpeed = 12,
-    CritChance = 13,               // 치명타 확률(%)
-    CritDamage = 14,               // 치명타 피해량(%)
-    Evasion = 15,                  // 회피율 (0~1)
-    Accuracy = 16,                 // 적중률 (0~1). 기본 1 = 100%
-    SkillCooldownReduction = 17,   // 스킬 쿨감(%) — 플레이어 전용. 합연산, 상한 없음
-    DashCooldownReduction = 18,    // 대쉬 쿨감(%) — 플레이어 전용
-    BasicAttackMultiplier = 19,    // 평타 1·2타 배율 — 플레이어 전용
-    PhysDamageAmp = 20,            // 물리 피해 증폭 (0.1 = +10%). 유물로만 오른다
-    MagicDamageAmp = 21,           // 마법 피해 증폭
-    Luck = 22,                    // 행운(%). 5 = 확률 +5%p. 지정된 효과만 사용한다.
-    DashDistance = 23,             // Percent: 0.03 = 거리 +3%
-    DashRechargeSpeed = 24,        // Percent: 0.05 = 충전 속도 +5%
-    DashCharges = 25,              // Flat: 최대 충전 횟수
-    CritOverflowConversion = 26,   // Flat > 0이면 100% 초과 확률을 10% 단위로 피해로 변환
+    [UnityEngine.InspectorName("마법")] Magic = 10,                    // 마법 공격력
+    [UnityEngine.InspectorName("방어")] Defense = 11,                  // 방어력(%). 감소율 상한 75%
+    [UnityEngine.InspectorName("이동 속도")] MoveSpeed = 12,
+    [UnityEngine.InspectorName("치명타 확률")] CritChance = 13,               // 치명타 확률(%)
+    [UnityEngine.InspectorName("치명타 피해")] CritDamage = 14,               // 치명타 피해량(%)
+    [UnityEngine.InspectorName("회피율")] Evasion = 15,                  // 회피율 (0~1)
+    [UnityEngine.InspectorName("명중률")] Accuracy = 16,                 // 적중률 (0~1). 기본 1 = 100%
+    [UnityEngine.InspectorName("스킬 재사용 대기 감소")] SkillCooldownReduction = 17,   // 스킬 쿨감(%) — 플레이어 전용. 합연산, 상한 없음
+    [UnityEngine.InspectorName("대시 재사용 대기 감소")] DashCooldownReduction = 18,    // 대쉬 쿨감(%) — 플레이어 전용
+    [UnityEngine.InspectorName("평타 공격 배율")] BasicAttackMultiplier = 19,    // 평타 1·2타 배율 — 플레이어 전용
+    [UnityEngine.InspectorName("물리 피해 증폭")] PhysDamageAmp = 20,            // 물리 피해 증폭 (0.1 = +10%). 유물로만 오른다
+    [UnityEngine.InspectorName("마법 피해 증폭")] MagicDamageAmp = 21,           // 마법 피해 증폭
+    [UnityEngine.InspectorName("행운")] Luck = 22,                    // 행운(%). 5 = 확률 +5%p. 지정된 효과만 사용한다.
+    [UnityEngine.InspectorName("대시 거리")] DashDistance = 23,             // Percent: 0.03 = 거리 +3%
+    [UnityEngine.InspectorName("대시 충전 속도")] DashRechargeSpeed = 24,        // Percent: 0.05 = 충전 속도 +5%
+    [UnityEngine.InspectorName("대시 충전 횟수")] DashCharges = 25,              // Flat: 최대 충전 횟수
+    [UnityEngine.InspectorName("치명타 초과분 변환")] CritOverflowConversion = 26,   // Flat > 0이면 100% 초과 확률을 10% 단위로 피해로 변환
 }
 
 /// <summary>스탯 변화 한 건. (원래 GemInstance.cs 에 있었다.)</summary>

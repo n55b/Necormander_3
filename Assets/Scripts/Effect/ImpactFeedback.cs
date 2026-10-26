@@ -15,6 +15,14 @@ public class ImpactFeedback : MonoBehaviour
     [SerializeField] private AnimationCurve expansion = AnimationCurve.EaseInOut(0f, .65f, 1f, 1.25f);
     [SerializeField] private AnimationCurve emission = AnimationCurve.EaseInOut(0f, 3f, .4f, 1f);
     [SerializeField] private AnimationCurve opacity = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(.55f, 1f), new Keyframe(1f, 0f));
+    [Header("선 파편 / 원형 파동 / 순간 섬광")]
+    [Range(.01f, 1f), SerializeField] private float streakLifetimeRatio = .65f;
+    [SerializeField] private Vector2 streakScaleRange = new Vector2(.55f, 1.9f);
+    [Range(.01f, 1f), SerializeField] private float arcLifetimeRatio = .6f;
+    [Range(0f, 1f), SerializeField] private float arcOpacity = .7f;
+    [SerializeField] private Vector2 arcScaleRange = new Vector2(.3f, 1.65f);
+    [Min(.001f), SerializeField] private float flashDuration = .07f;
+    [SerializeField] private Vector2 flashScaleRange = new Vector2(.6f, 1.8f);
     private static readonly int EmissionId = Shader.PropertyToID("_Emission");
     private MaterialPropertyBlock _properties;
     private Vector3 _baseScale;
@@ -63,25 +71,26 @@ public class ImpactFeedback : MonoBehaviour
         {
             if (streak == null) continue;
             // 파편은 슬래시보다 먼저 사라져 다음 적중을 가리지 않는다.
-            float alpha = Mathf.Clamp01(1f - t / .65f);
+            float alpha = Mathf.Clamp01(1f - t / Mathf.Max(.01f, streakLifetimeRatio));
             var color = streak.startColor;
             color.a = alpha;
             streak.startColor = color;
             color = streak.endColor; color.a = 0f; streak.endColor = color;
-            streak.transform.localScale = Vector3.one * Mathf.Lerp(.55f, 1.9f, 1f - (1f-t)*(1f-t));
+            streak.transform.localScale = Vector3.one * Mathf.Lerp(streakScaleRange.x, streakScaleRange.y, 1f - (1f-t)*(1f-t));
         }
         if (arcs != null) foreach(var arc in arcs)
         {
             if (arc == null) continue;
-            float a = Mathf.Clamp01(1f-t/.6f);
-            var color=arc.startColor; color.a=a*.7f; arc.startColor=color; arc.endColor=color;
-            arc.transform.localScale=Vector3.one*Mathf.Lerp(.3f,1.65f,1f-(1f-t)*(1f-t));
+            float a = Mathf.Clamp01(1f-t/Mathf.Max(.01f, arcLifetimeRatio));
+            var color=arc.startColor; color.a=a*arcOpacity; arc.startColor=color; arc.endColor=color;
+            arc.transform.localScale=Vector3.one*Mathf.Lerp(arcScaleRange.x,arcScaleRange.y,1f-(1f-t)*(1f-t));
         }
         if (flash != null)
         {
-            float a = Mathf.Clamp01(1f-_age/.07f);
+            float progress = Mathf.Clamp01(_age / Mathf.Max(.001f, flashDuration));
+            float a = 1f - progress;
             var color=flash.startColor; color.a=a; flash.startColor=color; flash.endColor=color;
-            flash.transform.localScale=Vector3.one*Mathf.Lerp(.6f,1.8f,Mathf.Clamp01(_age/.07f));
+            flash.transform.localScale=Vector3.one*Mathf.Lerp(flashScaleRange.x,flashScaleRange.y,progress);
         }
         if (echoes != null && slash != null)
         {

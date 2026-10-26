@@ -29,7 +29,7 @@ public class BaseHitBox : MonoBehaviour
             return _colorConfig;
         }
     }
-    [Header("Settings")]
+    [Header("설정")]
     [Tooltip("장판이 유지되는 시간 (0이면 무한유지)")]
     public float duration = 0.5f; 
     public bool destroyOnFinish = true; 
@@ -38,13 +38,13 @@ public class BaseHitBox : MonoBehaviour
     public bool isContinuousDamage = false;
     public float damageTickRate = 0.5f;
 
-    [Header("Visuals (Optional)")]
+    [Header("외형: 선택 사항")]
     [Tooltip("장판이 찰 때 크기가 점점 커질 내부 이미지(Transform)")]
     public Transform fillingTransform;
     [Tooltip("가득 찼을 때의 최대 로컬 스케일")]
     public Vector3 maxFillScale = Vector3.one;
 
-    [Header("Hit Effect")]
+    [Header("타격 효과")]
     [Tooltip("적중 시 생성할 타격 이펙트 프리팹 (HitEffect)")]
     public GameObject hitEffectPrefab;
     [Tooltip("적중 시 함께 생성할 파티클 이펙트 프리팹 (예: MeleeHitSparkEffect)")]
@@ -55,7 +55,7 @@ public class BaseHitBox : MonoBehaviour
 
     [HideInInspector] public float hitEffectAngle = 0f; // [추가] 히트 이펙트 전용 실제(월드) 방향 각도. 부모(공격자) 미러링 보정과는 무관하게 실제 타격 방향을 그대로 담습니다.
 
-    public enum FillStyle { Uniform, Horizontal }
+    public enum FillStyle { [UnityEngine.InspectorName("균일")] Uniform, [UnityEngine.InspectorName("가로")] Horizontal }
     [Tooltip("장판 차오르는 방식 (Uniform: 점방사형, Horizontal: 로딩바형)")]
     public FillStyle fillStyle = FillStyle.Uniform;
 

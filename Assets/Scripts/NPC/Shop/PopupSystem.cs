@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// </summary>
 public class PopupSystem : MonoBehaviour
 {
-    [Header("Popup Panel")]
+    [Header("팝업 패널")]
     [SerializeField] private GameObject popupPanel;
 
     private string npcName;
@@ -44,7 +44,6 @@ public class PopupSystem : MonoBehaviour
     private static readonly List<Graphic> _graphicBuffer = new List<Graphic>();
     private static readonly List<Collider2D> _colliderBuffer = new List<Collider2D>();
     private static readonly Vector3[] _corners = new Vector3[4];
-    private const float UiIconGap = 0.05f; // 툴팁 위쪽 끝과 F 아이콘 아래쪽 끝 사이 간격(월드 유닛)
 
     /// <summary>
     /// F 아이콘을 대상 위에 띄운다. 대상 아래에 켜진 월드 스페이스 UI(이름 툴팁 등)가 있으면
@@ -52,7 +51,7 @@ public class PopupSystem : MonoBehaviour
     /// 그래서 어떤 상호작용 대상이든 [F] / [툴팁] 이 위아래 한 쌍으로 붙는다.
     /// 매 프레임 호출되므로 툴팁 크기(이름 길이, 분해 진행 줄)가 바뀌어도 따라간다.
     /// </summary>
-    public static void ShowInteractionIcon(Collider2D target, float offset)
+    public static void ShowInteractionIcon(Collider2D target, float offset, float uiIconGap = 0.05f)
     {
         if (target == null) { HideInteractionIcon(); return; }
         if (!EnsureInteractionIcon()) return;
@@ -73,7 +72,7 @@ public class PopupSystem : MonoBehaviour
             // 아이콘 피벗이 중앙이 아니어도 아이콘의 '아래 끝'이 툴팁 위에 오도록 맞춘다.
             float pivotToBottom = -_interactionIcon.sprite.bounds.min.y * _interactionIcon.transform.lossyScale.y;
             x = ui.center.x;
-            y = Mathf.Max(ui.max.y, col.max.y) + UiIconGap + pivotToBottom;
+            y = Mathf.Max(ui.max.y, col.max.y) + uiIconGap + pivotToBottom;
         }
 
         _interactionIcon.transform.position = new Vector3(x, y, target.transform.position.z);

@@ -10,7 +10,7 @@ using UnityEngine;
 /// </summary>
 public class ShopRoomEvent : MonoBehaviour, IRoomEvent
 {
-    [Header("Shop References")]
+    [Header("상점 연결")]
     [Tooltip("방 프리팹 내부에 있는 ShopNPC 오브젝트를 여기에 연결해주세요.\n" +
              "강화 상점 방이라면 비워두면 됩니다(EnhanceShopNPC 는 갱신할 재고가 없음).")]
     [SerializeField] private ShopNPC shopNPC;
