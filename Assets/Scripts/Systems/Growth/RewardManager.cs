@@ -7,6 +7,7 @@ using UnityEngine;
 /// </summary>
 public class RewardManager : MonoBehaviour
 {
+    public const int NormalClearGold = 200;
     public static RewardManager Instance;
 
     [Header("UI 연결")]
@@ -35,7 +36,7 @@ public class RewardManager : MonoBehaviour
         if (type == RoomType.Normal || type == RoomType.Augment)
         {
             // 기존 골드 보상은 유지한다. 일반방에는 아이템 하나를 추가한다.
-            int goldAmount = 200; // ponytail: 고정값, 밸런싱 시 조정
+            int goldAmount = NormalClearGold;
             GameManager.Instance.inventoryManager.GainGold(goldAmount); // 획득 텍스트(+200G)를 플레이어 앞에 띄운다
             Debug.Log($"<color=yellow>[Reward]</color> {type} Room Cleared! {goldAmount} Gold obtained (기본 보상).");
 
@@ -47,8 +48,7 @@ public class RewardManager : MonoBehaviour
             }
             else
             {
-                var item = RewardProcessor.PickRandomItem(GameManager.Instance.dataManager);
-                if (item != null) GroundItem.Drop(item, PlayerPosition());
+                RewardProcessor.DropItems(GameManager.Instance.dataManager, PlayerPosition(), 1);
             }
         }
         else if (type == RoomType.Elite)

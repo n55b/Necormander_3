@@ -101,14 +101,44 @@ public static class RewardProcessor
         => item != null && item.availableAsReward && (ItemPouch.Instance == null || ItemPouch.Instance.CanAdd(item));
 
     /// <summary>중첩 여유가 있는 아이템 하나를 랜덤으로. 일반/엘리트/증강 보상 공용. 후보가 없으면 null.</summary>
-    public static ItemSO PickRandomItem(DataManager data)
+    public static ItemSO PickRandomItem(DataManager data, ItemTier maximumTier = ItemTier.Tier4,
+        Dictionary<ItemSO, int> reserved = null)
     {
         var registry = data != null ? data.GET_GROWTH_REGISTRY() : null;
         if (registry == null || registry.items == null) return null;
 
         var pool = new List<ItemSO>();
-        foreach (var it in registry.items) if (CanOfferItem(it)) pool.Add(it);
+        foreach (var it in registry.items)
+        {
+            if (!CanOfferItem(it) || it.tier > maximumTier) continue;
+            int pending = reserved != null && reserved.TryGetValue(it, out int amount) ? amount : 0;
+            if ((ItemPouch.Instance != null ? ItemPouch.Instance.CountOf(it) : 0) + pending < it.MaxStack) pool.Add(it);
+        }
         return pool.Count == 0 ? null : pool[Random.Range(0, pool.Count)];
+    }
+
+    public static bool HasRewardItem(DataManager data, ItemTier maximumTier)
+    {
+        var items = data != null ? data.GET_GROWTH_REGISTRY()?.items : null;
+        if (items == null) return false;
+        foreach (var item in items) if (CanOfferItem(item) && item.tier <= maximumTier) return true;
+        return false;
+    }
+
+    /// <summary>보상 한 묶음에서 최대 중첩을 초과해 뽑지 않고, 기존 바닥 아이템 경로로 지급한다.</summary>
+    public static int DropItems(DataManager data, Vector3 position, int count, ItemTier maximumTier = ItemTier.Tier4)
+    {
+        var reserved = new Dictionary<ItemSO, int>();
+        int dropped = 0;
+        for (int i = 0; i < count; i++)
+        {
+            var item = PickRandomItem(data, maximumTier, reserved);
+            if (item == null) break;
+            if (GroundItem.Drop(item, position) == null) break;
+            reserved.TryGetValue(item, out int pending); reserved[item] = pending + 1;
+            dropped++;
+        }
+        return dropped;
     }
 
     // --- 1-A''. 보상방용: 메인 소환수 강화 카드 ---

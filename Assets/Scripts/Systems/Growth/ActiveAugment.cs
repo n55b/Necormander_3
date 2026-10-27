@@ -194,9 +194,17 @@ public static class ActiveAugment
                 break;
 
             case AugmentRewardKind.Item:
-                var itemSO = RewardProcessor.PickRandomItem(
-                    GameManager.Instance != null ? GameManager.Instance.dataManager : null);
-                if (itemSO != null && player != null) GroundItem.Drop(itemSO, player.transform.position);
+            case AugmentRewardKind.NormalRoom:
+                // 기본 200골드는 RewardManager가 이미 지급했다. 무위험은 일반 방처럼 아이템 하나만 더 준다.
+                int count = reward.kind == AugmentRewardKind.NormalRoom ? 1 : Mathf.Max(1, reward.itemCount);
+                var tier = reward.kind == AugmentRewardKind.NormalRoom ? ItemTier.Tier4 : reward.maximumItemTier;
+                int dropped = player != null ? RewardProcessor.DropItems(
+                    GameManager.Instance.dataManager, player.transform.position, count, tier) : 0;
+                if (dropped < count)
+                {
+                    Announce($"아이템 {dropped}개 획득 · 나머지는 획득 가능한 후보가 없습니다");
+                    return;
+                }
                 break;
         }
 

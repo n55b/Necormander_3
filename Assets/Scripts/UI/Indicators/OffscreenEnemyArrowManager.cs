@@ -14,6 +14,7 @@ using UnityEngine;
 /// 레지스트리에서 가져오고, 카메라 가시영역 경계와 방향 벡터의 교점으로 위치를 구한다.
 /// 화살표 스프라이트는 풀링해 재사용한다(자식 "~OffscreenArrows" 아래).
 /// </summary>
+[DefaultExecutionOrder(10000)] // Cinemachine 카메라 이동 이후 화면 가장자리를 계산한다.
 public class OffscreenEnemyArrowManager : MonoBehaviour
 {
     public static OffscreenEnemyArrowManager Instance { get; private set; }
@@ -32,7 +33,7 @@ public class OffscreenEnemyArrowManager : MonoBehaviour
     [SerializeField] private string sortingLayerName = "";
     [Tooltip("동시에 그릴 최대 화살표 수(초과 시 카메라에서 가까운 적 우선).")]
     [SerializeField] private int maxArrows = 16;
-    [Tooltip("비워두면 Arrow.aseprite의 Arrow_Side를 런타임 로드.")]
+    [Tooltip("비워두면 Arrow_Indicator.png의 옆 화살표를 사용합니다.")]
     [SerializeField] private Sprite arrowSpriteOverride;
     [Tooltip("화살표에 쓸 머티리얼(비우면 SpriteRenderer 기본).")]
     [SerializeField] private Material arrowMaterial;
@@ -50,6 +51,7 @@ public class OffscreenEnemyArrowManager : MonoBehaviour
     /// <summary>GameManager.InitializeGame()이 다른 매니저들과 같은 순서로 호출한다(CameraManager.Initialize 패턴).</summary>
     public void Initialize()
     {
+        if (_initialized) return;
         Instance = this;
         _arrowSprite = (arrowSpriteOverride != null) ? arrowSpriteOverride : ArrowIndicatorSprites.ArrowSide;
 
@@ -64,6 +66,8 @@ public class OffscreenEnemyArrowManager : MonoBehaviour
     {
         if (Instance == this) Instance = null;
     }
+
+    private void OnDisable() => HideFrom(0);
 
     private void LateUpdate()
     {

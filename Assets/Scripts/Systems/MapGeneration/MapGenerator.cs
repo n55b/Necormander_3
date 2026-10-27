@@ -178,29 +178,33 @@ public class MapGenerator : MonoBehaviour
     public bool TryGetGroundLandingPoint(Vector2 worldPos, float radius, out Vector2 landingPoint)
     {
         landingPoint = worldPos;
+        return HasGroundSupport(worldPos, Vector2.one * (Mathf.Max(0f, radius) * 2f));
+    }
+
+    /// <summary>발 충돌체 전체(모서리 포함)가 Ground 위인지 검사한다. 물 위 Ground는 허용한다.</summary>
+    public bool HasGroundSupport(Vector2 center, Vector2 size)
+    {
+        if (HasWallInBounds(center, size)) return false;
         if (globalGroundTilemap == null) return true;
-
-        if (!globalGroundTilemap.HasTile(globalGroundTilemap.WorldToCell(worldPos))) return false;
-        if (globalWallTilemap != null && globalWallTilemap.HasTile(globalWallTilemap.WorldToCell(worldPos))) return false;
-
-        float r = Mathf.Max(0f, radius);
-        Vector2[] edges =
-        {
-            worldPos + Vector2.left * r, worldPos + Vector2.right * r,
-            worldPos + Vector2.up * r, worldPos + Vector2.down * r
-        };
-        foreach (Vector2 edge in edges)
-        {
-            bool ground = globalGroundTilemap.HasTile(globalGroundTilemap.WorldToCell(edge));
-            bool wall = globalWallTilemap != null && globalWallTilemap.HasTile(globalWallTilemap.WorldToCell(edge));
-            if (!ground || wall)
-            {
-                // 중심은 유효하지만 몸통이 경계에 걸치면 해당 Ground 셀 안쪽으로 당긴다.
-                landingPoint = globalGroundTilemap.GetCellCenterWorld(globalGroundTilemap.WorldToCell(worldPos));
-                break;
-            }
-        }
+        Vector2 half = Vector2.Max(Vector2.zero, size * .5f - Vector2.one * .0001f);
+        var min = globalGroundTilemap.WorldToCell(center - half);
+        var max = globalGroundTilemap.WorldToCell(center + half);
+        for (int x = min.x; x <= max.x; x++)
+            for (int y = min.y; y <= max.y; y++)
+                if (!globalGroundTilemap.HasTile(new Vector3Int(x, y, min.z))) return false;
         return true;
+    }
+
+    public bool HasWallInBounds(Vector2 center, Vector2 size)
+    {
+        if (globalWallTilemap == null) return false;
+        Vector2 half = Vector2.Max(Vector2.zero, size * .5f - Vector2.one * .0001f);
+        var min = globalWallTilemap.WorldToCell(center - half);
+        var max = globalWallTilemap.WorldToCell(center + half);
+        for (int x = min.x; x <= max.x; x++)
+            for (int y = min.y; y <= max.y; y++)
+                if (globalWallTilemap.HasTile(new Vector3Int(x, y, min.z))) return true;
+        return false;
     }
 
     /// <summary>진행선 중간에 Ground로 덮이지 않은 Unsteppable 타일이 있는지 확인한다.</summary>

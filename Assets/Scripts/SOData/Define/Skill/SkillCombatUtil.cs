@@ -102,6 +102,61 @@ public static class SkillCombatUtil
         return from;
     }
 
+    /// <summary>플레이어 발 박스 기준 벽 검사. 원형 근사로 좁은 길을 막거나 모서리를 통과하지 않는다.</summary>
+    public static Vector2 ClampBoxToWall(Vector2 center, Vector2 delta, Vector2 size)
+    {
+        float distance = delta.magnitude;
+        if (distance < .00001f) return center;
+        Vector2 dir = delta / distance;
+        float allowed = distance;
+        foreach (var hit in Physics2D.BoxCastAll(center, size, 0f, dir, distance, Layers.WallMask))
+        {
+            if (hit.collider.isTrigger) continue;
+            Vector2 away = center - hit.collider.ClosestPoint(center);
+            if (hit.distance == 0f && away.sqrMagnitude > .000001f && Vector2.Dot(dir, away) >= 0f) continue;
+            allowed = Mathf.Min(allowed, Mathf.Max(0f, hit.distance - .01f));
+        }
+        var map = MapGenerator.Instance;
+        if (map != null)
+        {
+            // 콜라이더가 아직 합쳐지지 않은 타일도 관통하지 않는다.
+            const float step = .05f;
+            int steps = Mathf.CeilToInt(allowed / step);
+            for (int i = 1; i <= steps; i++)
+            {
+                float d = Mathf.Min(i * step, allowed);
+                if (!map.HasWallInBounds(center + dir * d, size)) continue;
+                allowed = Mathf.Max(0f, d - step);
+                break;
+            }
+        }
+        return center + dir * allowed;
+    }
+
+    public static bool IsSafeBoxLanding(Vector2 center, Vector2 size, float clearance = .02f)
+    {
+        size += Vector2.one * Mathf.Max(0f, clearance) * 2f;
+        var map = MapGenerator.Instance;
+        if (map != null && !map.HasGroundSupport(center, size)) return false;
+        foreach (var col in Physics2D.OverlapBoxAll(center, size, 0f, Layers.WallMask | Layers.UnsteppableMask))
+            if (!col.isTrigger) return false;
+        return true;
+    }
+
+    public static Vector2 GetSafeBoxDestination(Vector2 center, Vector2 direction, float distance, Vector2 size)
+    {
+        if (direction.sqrMagnitude < .000001f || distance <= 0f) return center;
+        Vector2 dir = direction.normalized;
+        float allowed = Vector2.Distance(center, ClampBoxToWall(center, dir * distance, size));
+        // 건널 수 있으면 건너편 안쪽, 없으면 출발한 땅의 끝에서 정지한다.
+        for (float d = allowed; d > 0f; d -= .025f)
+        {
+            Vector2 candidate = center + dir * d;
+            if (IsSafeBoxLanding(candidate, size)) return candidate;
+        }
+        return center;
+    }
+
     /// <summary>
     /// 이동 그래프: X=경과 시간 비율, Y=이동 거리 비율. 시작/끝과 0~1 범위를 고정하여
     /// 곡선을 편집해도 정해진 사거리 밖으로 나가지 않는다. 빈 곡선은 기존 등속 이동이다.

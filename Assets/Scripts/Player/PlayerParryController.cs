@@ -240,9 +240,11 @@ public class PlayerParryController : MonoBehaviour
         SampleGuardOrigin(true);
         LastBlockWasPerfect = false;
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, rc.moveSpeedMultiplier);
-        _player.LockAnimState(0f); // 가드를 내릴 때 직접 해제. 3초 타임아웃으로 홀드 자세가 풀리면 안 된다.
+        // 공통 Parry 클립에는 기본 주먹 그림이 들어 있다. 가드는 선만 표시하고
+        // 장착 무기의 Idle/Walk를 유지한다. 공격 취소 때 남은 모션 잠금만 해제한다.
+        _player.CanChangeAnimState();
         _player.ResetAnimStateCache();
-        _player.PlayAllAnim("Parry", "Idle");
+        _player.PlayAllAnim("Idle");
         _telegraph = CreateTelegraphSector(AimDir(), rc, -1f);
         UpdateAim(AimDir());
         OnParryStart?.Invoke();
@@ -257,9 +259,7 @@ public class PlayerParryController : MonoBehaviour
         DestroyTelegraph();
         if (_player == null) return;
         _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.Parry);
-        _player.CanChangeAnimState();
-        _player.ResetAnimStateCache();
-        _player.PlayAllAnim("Idle");
+        // 가드가 모션을 소유하지 않으므로 종료 시 대시/피격/걷기 애니메이션을 덮지 않는다.
     }
 
     private void ScanIncoming(RightClickConfig rc)

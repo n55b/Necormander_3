@@ -29,6 +29,9 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
     [Header("전투 설정")]
     [SerializeField] private MapGenerationDataSO mapGenerationData;
+    [SerializeField, InspectorName("모든 웨이브를 한 번에 소환")]
+    [Tooltip("이 방만 층 설정의 모든 웨이브를 첫 등장에 합칩니다. 웨이브별 군집 추첨·적 수 배율·증강 추가 몬스터를 그대로 합산합니다. 튜토리얼 직접 배치에는 영향이 없습니다.")]
+    private bool combineAllWaves;
     [Tooltip("몹 스폰 예고용으로 활용할 차오르는 원형 장판 프리팹을 지정하세요.")]
     [SerializeField] private GameObject spawnVfxPrefab;
     [Tooltip("방 벽으로부터의 스폰 최소 거리 마진(Margin)입니다. 클수록 방 중앙 쪽에 가깝게 몹들이 스폰됩니다. 기본값 3.0f")]
@@ -88,6 +91,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     private readonly List<Vector3> _pendingSpawnPoints = new List<Vector3>();
     private readonly List<EnemyCount> _pendingEnemyCounts = new List<EnemyCount>();
     private readonly List<EnemyCount> _toSpawn = new List<EnemyCount>();
+    private readonly List<EnemyCount> _waveEnemies = new List<EnemyCount>();
     private readonly List<GameObject> _superArmorPool = new List<GameObject>();
 
 
@@ -314,6 +318,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         if (mapGenerationData == null)
         {
             Debug.LogWarning("[NormalRoom] MapGenerationData is not assigned!");
+            _isSpawnPending = false;
             return;
         }
 
@@ -325,6 +330,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         if (clusters == null || clusters.Count == 0)
         {
             Debug.LogWarning("[NormalRoom] No enemy clusters found in DataManager.");
+            _isSpawnPending = false;
             return;
         }
 
@@ -337,59 +343,46 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             if (pool.Count > 0) clusters = pool;
         }
 
-        // 웨이브당 1개의 무작위 군집 선택
-        var selectedCluster = clusters[Random.Range(0, clusters.Count)];
-        SpawnCluster(selectedCluster, room);
-    }
-
-    private void SpawnCluster(EnemyClusterSO cluster, RoomInstance room)
-    {
-        if (cluster == null)
-        {
-            Debug.LogWarning("[NormalRoom] SpawnCluster: cluster is null!");
-            return;
-        }
-        if (cluster.enemies == null || cluster.enemies.Count == 0)
-        {
-            Debug.LogWarning($"[NormalRoom] SpawnCluster: cluster '{cluster.name}' has no enemies defined!");
-            return;
-        }
-
-        _isSpawnPending = true; // 스폰 코루틴이 완료될 때까지 생존 감지 루프 중단 (안전장치)
-        StartCoroutine(SpawnClusterRoutine(cluster, room));
-    }
-
-    private IEnumerator SpawnClusterRoutine(EnemyClusterSO cluster, RoomInstance room)
-    {
-        // 매 웨이브 new 하지 않고 재사용한다. 이 세 리스트는 이 루틴이 도는 동안에만 유효하다.
-        _pendingSpawnPoints.Clear();
-        _pendingEnemyCounts.Clear();
         _toSpawn.Clear();
+        int lastWave = combineAllWaves ? Mathf.Max(_currentWave, WavesThisFloor) : _currentWave;
+        int waveCount = lastWave - _currentWave + 1;
+        for (int wave = _currentWave; wave <= lastWave; wave++)
+            AppendWaveEnemies(clusters[Random.Range(0, clusters.Count)], wave, tuning != null ? tuning.enemyCountScale : 1f);
+        _currentWave = lastWave;
+        _isSpawnPending = true;
+        StartCoroutine(SpawnClusterRoutine(room, waveCount));
+    }
 
-        // 이번 웨이브에 실제로 뽑을 적 목록. 군집을 한 줄로 펼친 다음,
-        // 증강 페널티('웨이브당 적 수 +N')가 걸려 있으면 그만큼 뒤에 더 붙인다.
+    private void AppendWaveEnemies(EnemyClusterSO cluster, int wave, float countScale)
+    {
+        if (cluster == null || cluster.enemies == null) return;
+        _waveEnemies.Clear();
         foreach (var enemyCount in cluster.enemies)
         {
             if (enemyCount.enemyData == null) continue;
-            for (int i = 0; i < enemyCount.count; i++) _toSpawn.Add(enemyCount);
+            for (int i = 0; i < enemyCount.count; i++) _waveEnemies.Add(enemyCount);
         }
 
-        // 층 배율. 군집 에셋은 그대로 두고 여기서만 양을 깎는다(늘린다).
-        // 어느 놈이 빠지는지는 무작위 — 조성 비율은 대체로 유지되고, 최소 1마리는 남긴다.
-        var floorTuning = Tuning;
-        if (floorTuning != null && !Mathf.Approximately(floorTuning.enemyCountScale, 1f) && _toSpawn.Count > 0)
+        // 합치기 전 각 웨이브에 배율/반올림을 적용해야 기존 총 마릿수가 유지된다.
+        if (!Mathf.Approximately(countScale, 1f) && _waveEnemies.Count > 0)
         {
-            int target = Mathf.Max(1, Mathf.RoundToInt(_toSpawn.Count * floorTuning.enemyCountScale));
-            while (_toSpawn.Count > target) _toSpawn.RemoveAt(Random.Range(0, _toSpawn.Count));
-            int seed = _toSpawn.Count;
-            while (_toSpawn.Count < target && seed > 0) _toSpawn.Add(_toSpawn[Random.Range(0, seed)]);
+            int target = Mathf.Max(1, Mathf.RoundToInt(_waveEnemies.Count * countScale));
+            while (_waveEnemies.Count > target) _waveEnemies.RemoveAt(Random.Range(0, _waveEnemies.Count));
+            int seed = _waveEnemies.Count;
+            while (_waveEnemies.Count < target && seed > 0) _waveEnemies.Add(_waveEnemies[Random.Range(0, seed)]);
         }
 
-        // 증강 페널티는 플레이어가 고른 것이라 층 배율을 타지 않는다 — 배율 뒤에 붙인다.
-        int extra = ActiveAugment.ExtraEnemiesForWave(_currentWave);
-        int baseCount = _toSpawn.Count;
+        int extra = ActiveAugment.ExtraEnemiesForWave(wave);
+        int baseCount = _waveEnemies.Count;
         for (int i = 0; i < extra && baseCount > 0; i++)
-            _toSpawn.Add(_toSpawn[Random.Range(0, baseCount)]); // 원래 군집에 있던 적 중 하나를 복제
+            _waveEnemies.Add(_waveEnemies[Random.Range(0, baseCount)]);
+        _toSpawn.AddRange(_waveEnemies);
+    }
+
+    private IEnumerator SpawnClusterRoutine(RoomInstance room, int waveCount)
+    {
+        _pendingSpawnPoints.Clear();
+        _pendingEnemyCounts.Clear();
 
         int skipped = 0;
         for (int i = 0; i < _toSpawn.Count; i++)
@@ -428,12 +421,12 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         yield return new WaitForSeconds(spawnDelay + 0.1f);
 
         // 3. 무작위 적군 2명에게 슈퍼아머 부여
-        ApplySuperArmorToRandomEnemies(Mathf.Max(0, superArmorEnemyCount));
+        ApplySuperArmorToRandomEnemies(Mathf.Max(0, superArmorEnemyCount) * waveCount);
 
         // 4. 스폰 완료되었으므로 감지 락 해제
         _isSpawnPending = false;
 
-        Debug.Log($"<color=cyan>[NormalRoomEvent]</color> Finished spawning cluster '{cluster.name}'. Active count: {_activeEnemies.Count}");
+        Debug.Log($"<color=cyan>[NormalRoomEvent]</color> {waveCount}개 웨이브 소환 완료. Active count: {_activeEnemies.Count}");
     }
 
     /// <summary>

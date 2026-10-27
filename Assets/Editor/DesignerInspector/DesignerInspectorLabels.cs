@@ -188,6 +188,10 @@ BaseAIPatternSO.fleeSpreadAngle|후퇴 방향 흔들림 (도)|플레이어 반�
 BaseAIPatternSO.fallbackAttackWindup|타격 이벤트가 없을 때 예고 (초)|공격 애니메이션이나 OnHitEvent가 없을 때 사용할 준비 시간입니다. 이벤트가 있으면 해당 시각을 따릅니다.
 BaseAIPatternSO.attackAnimationIntervalRatio|공격 간격 중 모션 비율|공격 간격의 이 비율 안에 모션이 끝나도록 빠르게 재생합니다. 0.9는 90%입니다.
 NormalRoomEvent.spawnStartDelay|방 진입 후 소환 대기 (초)|방에 들어간 뒤 카메라가 자리 잡도록 기다리는 시간입니다. 0이면 바로 소환 절차를 시작합니다.
+NormalRoomEvent.combineAllWaves|모든 웨이브를 한 번에 소환|이 방에서만 층의 모든 웨이브 적을 첫 웨이브에 합칩니다. 총 적 수와 웨이브별 증강은 유지합니다. 튜토리얼 직접 배치는 그대로 사용합니다.
+AugmentReward.itemCount|아이템 개수|아이템 보상으로 바닥에 떨어뜨릴 개수입니다. 보유 중첩 한도를 초과하지 않도록 추첨합니다.
+AugmentReward.maximumItemTier|아이템 허용 등급|4는 전체, 2는 1~2등급입니다. 해당 등급의 획득 가능한 아이템이 없으면 보상 후보에서 제외합니다.
+PlayerOcclusionSilhouette.maskAlphaCutoff|가림막 불투명도 기준|가림막 그림의 투명 여백을 제외하고 실제로 겹치는 픽셀에만 실루엣을 표시합니다.
 NormalRoomEvent.spawnTelegraphDuration|몬스터 등장 예고 (초)|일반 웨이브와 튜토리얼 배치 몬스터가 등장하기 전 바닥 예고가 차오르는 시간입니다.
 NormalRoomEvent.spawnTelegraphScale|등장 예고 크기 배율|몬스터 등장 위치 표시의 가로·세로 크기입니다. 몬스터 크기나 피해 판정은 바꾸지 않습니다.
 NormalRoomEvent.superArmorEnemyCount|웨이브 슈퍼아머 몬스터 수|일반 랜덤 웨이브에서 슈퍼아머를 주는 몬스터 수입니다. 0이면 주지 않습니다. 튜토리얼 직접 배치에는 적용하지 않습니다.

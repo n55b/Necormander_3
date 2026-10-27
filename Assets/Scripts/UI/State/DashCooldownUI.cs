@@ -102,7 +102,16 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
             UpdateBasicMode();
     }
 
-    private void LateUpdate()
+    private void OnEnable() => Canvas.willRenderCanvases += UpdateWorldPips;
+
+    private void OnDisable()
+    {
+        Canvas.willRenderCanvases -= UpdateWorldPips;
+        if (worldPips != null) worldPips.gameObject.SetActive(false);
+    }
+
+    // Cinemachine의 LateUpdate가 끝난 뒤, 실제 렌더링에 쓰는 카메라 위치로 투영한다.
+    private void UpdateWorldPips()
     {
         if (worldPips == null) return;
         if (_worldCamera == null) _worldCamera = Camera.main;

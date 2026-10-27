@@ -147,14 +147,15 @@ public class MeleeDodgeController : MonoBehaviour
         // 평소에는 기존 거리 그대로. 그 거리 안에 물(Unsteppable)이 끼어 있을 때만
         // 기본 대시의 1.5배까지 뻗어서 건너편 Ground 착지를 시도한다.
         float requestedDist = originalDist;
+        Vector2 start = _rb.position;
         MapGenerator map = MapGenerator.Instance;
-        if (map != null && map.HasUnsteppableBetween(transform.position, _dashDir, originalDist))
+        if (map != null && map.HasUnsteppableBetween(start, _dashDir, originalDist))
             requestedDist = Mathf.Max(originalDist, baseDist * 1.5f);
 
-        Vector2 safePos = _player.GetSafeDashPosition(transform.position, _dashDir, requestedDist);
+        Vector2 safePos = _player.GetSafeDashPosition(start, _dashDir, requestedDist);
         _dashEndPosition = safePos;
-        float actualDist = Vector2.Distance(transform.position, safePos);
-        if (actualDist > 0.0001f) _dashDir = (safePos - (Vector2)transform.position).normalized;
+        float actualDist = Vector2.Distance(start, safePos);
+        if (actualDist > 0.0001f) _dashDir = (safePos - start).normalized;
         _dashStartPosition = _rb.position;
         _dashTravelDuration = actualDist / Mathf.Max(0.01f, dashSpeed);
         _dashElapsed = _dashProgress = 0f;

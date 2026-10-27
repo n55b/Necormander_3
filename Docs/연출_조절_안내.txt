@@ -168,3 +168,12 @@ Unity 컴파일, 한글 인스펙터/Undo, 기존 스쿼시·디더링·슬래�
 12종·127개 원본 연결을 등록했다. 원본 수치/곡선/색, 기존 66개 신규 설정, 사용 체크 보존과 Undo를 검사했다(112개).
 재생 중 끄기와 복구, 슬래시 Animator의 렌더러 재활성화 방지, 연기·잔상 정리, 디더링 전환, 페이드 비활성 중 로딩 대기·입력 차단, UI 원점 복구, 히트스톱/일시정지 소유권을 격리 Play Mode에서 검사했다(29개).
 Catalog를 포함한 인스펙터 그리기 57회를 통과했다. 배치 에디터의 기존 TextCore 폰트 아틀라스 assertion 5회는 별도로 기록했다. 전체 게임을 수동 플레이한 검증은 아니다.
+
+2026-10-27 플레이 피드백 조절 위치
+- 횃불/벽 가림: FeedbackCatalog > 기존 연출 > 가림 실루엣 > Player Melee의 Body/Hand. 회색·투명도·전환 시간·가림막 불투명도 기준을 조절한다. 실제로 가린 그림 부분만 표시된다.
+- 대시/돌진 잔상: FeedbackCatalog > 기존 연출 > 잔상. 공용 Dither Afterimage 재질의 ‘도트 디더링 사용’은 이제 꺼져 있다. 잔상 간격·수명·알파 곡선은 원래 조절 위치를 유지한다.
+- 방향 표시: Assets/Resources/Sprites/UI/Arrow_Indicator.png의 0=대각 화살표, 1=옆 화살표, 2=하단 방향 원. GameManager 프리팹의 OffscreenEnemyArrowManager에서 화면 가장자리 여백·크기를 조절한다.
+- 발밑 대시 UI: PlayerStateUI 프리팹의 DashCooldownUI. 기존 worldOffset으로 위치를 조절한다. 카메라 LateUpdate 이후 Canvas 렌더 직전에 따라간다.
+- 방별 웨이브 합치기: 해당 방 프리팹 루트의 NormalRoomEvent > ‘모든 웨이브를 한 번에 소환’. 층 설정의 총 적 수와 증강은 유지하고 등장 시점만 합친다. 튜토리얼 직접 배치 몬스터에는 영향이 없다.
+- 증강 보상: Assets/SOData/Augment/AugmentTable.asset. 회복은 최대 체력의 %, 골드는 기본 클리어 200에 더하는 값이다. 아이템 개수와 허용 등급도 각 행에서 수정한다. 1~2등급 후보가 없는 동안 고등급 보상은 표시하지 않는다.
+- 장비 아이콘: Assets/Resources/Sprites/UI/Equipment Icons의 Sprite 에셋 4종. 1015 장비 SO의 icon 슬롯으로 연결되어 있다. 실제 착용 원본 텍스처를 참조하며 3단계는 직전 단계와 아이콘을 공유한다. 새 전용 아이콘이 오면 각 SO의 icon 슬롯만 교체하면 된다.

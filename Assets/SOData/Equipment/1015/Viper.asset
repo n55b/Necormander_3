@@ -18,7 +18,7 @@ MonoBehaviour:
     \uACF5\uB7B5: \uD50C\uB808\uC774\uC5B4 3\uD0C0 \uC801\uC911 \uC2DC \uCDE8\uC57D
     10\uCD08. \uBC1B\uB294 \uBB3C\uB9AC \uD53C\uD574 +20% (\uC911\uCCA9 \uC5C6\uC774
     \uAC31\uC2E0).\n"
-  icon: {fileID: 7214652476106930508, guid: 1ab9deb8cc0a79f4a8df904cbb5de4f7, type: 3}
+  icon: {fileID: 21300000, guid: 7ab3d5fefa10871499bb67cb266de163, type: 2}
   rarity: 0
   shopCost: 150
   handAnimationOverride: {fileID: 22100000, guid: 877bf30da491cef4790d3701cfeb694c, type: 2}
@@ -32,6 +32,7 @@ MonoBehaviour:
   upgradeOnly: 1
   comboMultipliers: {x: 1, y: 1, z: 1.5}
   basicHitsPerContact: 1
+  basicRepeatHitInterval: 0
   basicDamagePerHit: 1
   minionDashDamageMultiplier: 1
   exploitsWeakness: 1

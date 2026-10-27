@@ -27,8 +27,8 @@ public enum AugmentPenaltyKind
     [UnityEngine.InspectorName("적 개수 초반 파동")] EnemyCountEarlyWaves = 8, // 앞 waveLimit 웨이브 한정 적 수 +value 마리
 }
 
-/// <summary>보상 종류. Item 은 아이템 종류가 늘어날 때까지 테이블에서 빼둔다(AugmentTableSO.allowItemRewards).</summary>
-public enum AugmentRewardKind { [UnityEngine.InspectorName("골드")] Gold = 0, [UnityEngine.InspectorName("회복 백분율")] HealPercent = 1, [UnityEngine.InspectorName("최대 체력 고정값")] MaxHpFlat = 2, [UnityEngine.InspectorName("아이템")] Item = 3 }
+/// <summary>기존 직렬화 번호를 유지한다. 무위험은 일반 방과 같은 보상을 사용한다.</summary>
+public enum AugmentRewardKind { [UnityEngine.InspectorName("추가 골드")] Gold = 0, [UnityEngine.InspectorName("최대 체력 비례 회복")] HealPercent = 1, [UnityEngine.InspectorName("최대 체력 고정값")] MaxHpFlat = 2, [UnityEngine.InspectorName("아이템")] Item = 3, [UnityEngine.InspectorName("일반 방과 동일")] NormalRoom = 4 }
 
 /// <summary>페널티 한 줄. 표의 (ID / 이름 / 대상 / 효과 / 표시 문구) 를 그대로 담는다.</summary>
 [System.Serializable]
@@ -86,15 +86,21 @@ public class AugmentReward
     public AugmentTier tier = AugmentTier.P1;
     public AugmentRewardKind kind = AugmentRewardKind.Gold;
 
-    [Tooltip("Gold=골드, HealPercent=최대 체력의 %, MaxHpFlat=최대 체력 고정 증가. Item 은 값 무시.")]
+    [Tooltip("골드=기본 클리어 200에 추가 지급, 회복=최대 체력의 %, 최대 체력=고정 증가량. 아이템/일반 방 보상은 아래 항목을 사용합니다.")]
     public float value = 15f;
+
+    [Min(1), InspectorName("아이템 개수")]
+    public int itemCount = 1;
+    [InspectorName("아이템 허용 등급"), Tooltip("이 등급 이상만 뽑습니다. 4=전체, 2=1~2등급. 해당 후보가 없으면 이 보상은 카드에 나오지 않습니다.")]
+    public ItemTier maximumItemTier = ItemTier.Tier4;
 
     public string Describe() => kind switch
     {
-        AugmentRewardKind.Gold => $"골드 +{Mathf.RoundToInt(value)}",
-        AugmentRewardKind.HealPercent => $"체력 {Mathf.RoundToInt(value)}% 회복",
+        AugmentRewardKind.Gold => $"기본 {RewardManager.NormalClearGold}골드 + 추가 {Mathf.RoundToInt(value)}골드",
+        AugmentRewardKind.HealPercent => $"최대 체력의 {Mathf.RoundToInt(value)}% 회복",
         AugmentRewardKind.MaxHpFlat => $"최대 체력 +{Mathf.RoundToInt(value)}",
-        AugmentRewardKind.Item => "아이템 1개",
+        AugmentRewardKind.Item => $"{(maximumItemTier <= ItemTier.Tier2 ? "고등급 " : "")}아이템 {Mathf.Max(1, itemCount)}개",
+        AugmentRewardKind.NormalRoom => $"일반 방과 동일: {RewardManager.NormalClearGold}골드 + 아이템 1개",
         _ => "",
     };
 }
@@ -127,8 +133,8 @@ public class AugmentTableSO : ScriptableObject
     [Tooltip("켜면 카드 중 최소 한 장은 반드시 P3(가혹)이 나온다.")]
     public bool guaranteeP3 = true;
 
-    [Tooltip("아이템 보상을 후보에 넣을지. 아이템 종류가 적어서 지금은 꺼둔다 — 로직은 이미 다 있다.")]
-    public bool allowItemRewards = false;
+    [Tooltip("아이템 보상을 후보에 넣습니다. 지정 등급의 획득 가능한 아이템이 없는 보상은 자동 제외됩니다.")]
+    public bool allowItemRewards = true;
 
     [Header("페널티 목록")]
     public List<AugmentPenalty> penalties = new List<AugmentPenalty>();
@@ -205,6 +211,8 @@ public class AugmentTableSO : ScriptableObject
         {
             if (r == null || r.tier != tier) continue;
             if (r.kind == AugmentRewardKind.Item && !allowItemRewards) continue;
+            if (r.kind == AugmentRewardKind.Item && !RewardProcessor.HasRewardItem(
+                GameManager.Instance != null ? GameManager.Instance.dataManager : null, r.maximumItemTier)) continue;
             candidates.Add(r);
         }
         return candidates.Count == 0 ? null : candidates[Random.Range(0, candidates.Count)];

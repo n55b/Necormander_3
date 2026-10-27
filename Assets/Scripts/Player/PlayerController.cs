@@ -200,10 +200,14 @@ public class PlayerController : MonoBehaviour
     }
 
     private Rigidbody2D _rb;
+    private Collider2D _dashBody;
+    private Vector2 _lastSafeDashPosition;
+    private bool _dashLandingTracked;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
+        _dashBody = GetComponent<Collider2D>();
 
         _originalLayer = gameObject.layer;
         _dashLayer = Layers.PlayerDash;
@@ -363,7 +367,7 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateLocomotionAnimation()
     {
-        if (!canChangeState) return; // 공격/가드/대시의 모션과 재생 속도는 해당 행동이 소유한다.
+        if (!canChangeState) return; // 공격/대시의 모션과 재생 속도는 해당 행동이 소유한다.
         bool blocked = _inputBlocked || IsGameplayPaused || IsCCed;
         Vector2 input = blocked ? Vector2.zero : moveInput;
         bool moving = !blocked && (input.sqrMagnitude > 0.0001f || _smoothedMoveInput.sqrMagnitude >= 0.0004f);
@@ -597,6 +601,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            RestoreDashLanding();
             gameObject.layer = _originalLayer;
         }
     }
@@ -625,12 +630,13 @@ public class PlayerController : MonoBehaviour
 
         // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
         float originalDist = dashSpeed * dashDuration * (stat != null ? stat.DASH_DISTANCE_MULTIPLIER : 1f);
-        if (MapGenerator.Instance != null && MapGenerator.Instance.HasUnsteppableBetween(transform.position, _dashDir, originalDist))
+        Vector2 start = _rb.position;
+        if (MapGenerator.Instance != null && MapGenerator.Instance.HasUnsteppableBetween(start, _dashDir, originalDist))
             originalDist *= 1.5f; // 기본 회피 경로도 물을 넘을 때만 연장. Wall 제한은 그대로 유지.
-        Vector2 safePos = GetSafeDashPosition(transform.position, _dashDir, originalDist);
+        Vector2 safePos = GetSafeDashPosition(start, _dashDir, originalDist);
         _dashEndPosition = safePos;
-        float actualDist = Vector2.Distance(transform.position, safePos);
-        if (actualDist > 0.0001f) _dashDir = (safePos - (Vector2)transform.position).normalized;
+        float actualDist = Vector2.Distance(start, safePos);
+        if (actualDist > 0.0001f) _dashDir = (safePos - start).normalized;
         _dashStartPosition = _rb.position;
         _dashTravelDuration = actualDist / Mathf.Max(0.01f, dashSpeed);
         _dashElapsed = _dashProgress = 0f;
@@ -918,7 +924,6 @@ public void OnGemTree(InputAction.CallbackContext context)
     /// </summary>
     public void CanChangeAnimState()
     {
-        if (GetComponent<PlayerParryController>() is var guard && guard != null && guard.IsParrying) return;
         var melee = GetComponent<MeleeCombatController>();
         if (melee != null && !melee.TryFinishAttackAnimation()) return;
         canChangeState = true;
@@ -985,7 +990,48 @@ public void OnGemTree(InputAction.CallbackContext context)
 
     public Vector2 GetSafeDashPosition(Vector2 startPos, Vector2 direction, float maxDistance)
     {
-        return SkillCombatUtil.GetSafeDestination(startPos, direction, maxDistance, DashRadius);
+        _lastSafeDashPosition = startPos;
+        _dashLandingTracked = true;
+        Vector2 offset = DashBodyOffset;
+        return SkillCombatUtil.GetSafeBoxDestination(startPos + offset, direction, maxDistance, DashBodySize) - offset;
+    }
+
+    // bounds.center는 물리 위치, transform.position은 보간된 표시 위치일 수 있다.
+    // 둘을 빼면 FixedUpdate/강제 이동 직후 발 오프셋이 흔들리므로 로컬 콜라이더 오프셋을 사용한다.
+    private Vector2 DashBodyOffset => _dashBody != null ? (Vector2)transform.TransformVector(_dashBody.offset) : Vector2.zero;
+    private Vector2 DashBodySize => _dashBody != null ? (Vector2)_dashBody.bounds.size : Vector2.one * .4f;
+
+    private void TrackDashLanding(Vector2 position)
+    {
+        if (SkillCombatUtil.IsSafeBoxLanding(position + DashBodyOffset, DashBodySize))
+            _lastSafeDashPosition = position;
+    }
+
+    private void RestoreDashLanding()
+    {
+        if (!_dashLandingTracked || _rb == null) return;
+        _dashLandingTracked = false;
+        if (SkillCombatUtil.IsSafeBoxLanding(_rb.position + DashBodyOffset, DashBodySize)) return;
+        // 물 위에서 중단되면 이미 지나온 안전 지점으로 복귀한 뒤 일반 충돌을 복원한다.
+        Vector2 safe = _lastSafeDashPosition;
+        if (!SkillCombatUtil.IsSafeBoxLanding(safe + DashBodyOffset, DashBodySize))
+        {
+            // 출발점부터 물가에 붙어 있었다면 가까운 땅 안쪽으로 밀어낸다.
+            bool found = false;
+            for (float r = .025f; r <= 1f && !found; r += .025f)
+                for (int i = 0; i < 16; i++)
+                {
+                    float angle = i * Mathf.PI / 8f;
+                    Vector2 candidate = safe + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * r;
+                    if (!SkillCombatUtil.IsSafeBoxLanding(candidate + DashBodyOffset, DashBodySize)) continue;
+                    Vector2 checkedPoint = SkillCombatUtil.ClampBoxToWall(safe + DashBodyOffset, candidate - safe, DashBodySize);
+                    if (Vector2.Distance(checkedPoint, candidate + DashBodyOffset) > .001f) continue;
+                    safe = candidate; found = true; break;
+                }
+        }
+        _rb.position = safe;
+        transform.position = new Vector3(safe.x, safe.y, transform.position.z);
+        _rb.linearVelocity = Vector2.zero;
     }
 
     private float DashRadius
@@ -1004,9 +1050,10 @@ public void OnGemTree(InputAction.CallbackContext context)
     {
         if (_rb == null) return true;
         Vector2 from = _rb.position;
+        TrackDashLanding(from);
         Vector2 next = Vector2.MoveTowards(from, destination, Mathf.Max(0f, speed) * Time.fixedDeltaTime);
         Vector2 step = next - from;
-        next = SkillCombatUtil.ClampToWall(from, step, step.magnitude, DashRadius);
+        next = SkillCombatUtil.ClampBoxToWall(from + DashBodyOffset, step, DashBodySize) - DashBodyOffset;
         _rb.linearVelocity = (next - from) / Time.fixedDeltaTime;
         return (next - from).sqrMagnitude < 0.000001f;
     }
@@ -1018,9 +1065,10 @@ public void OnGemTree(InputAction.CallbackContext context)
         progress = Mathf.Max(progress, SkillCombatUtil.EvaluateMotionProgress(
             dashMovementCurve, duration > 0f ? elapsed / duration : 1f));
         Vector2 from = _rb.position;
+        TrackDashLanding(from);
         Vector2 next = Vector2.Lerp(start, destination, progress);
         Vector2 step = next - from;
-        Vector2 allowed = SkillCombatUtil.ClampToWall(from, step, step.magnitude, DashRadius);
+        Vector2 allowed = SkillCombatUtil.ClampBoxToWall(from + DashBodyOffset, step, DashBodySize) - DashBodyOffset;
         _rb.linearVelocity = (allowed - from) / Time.fixedDeltaTime;
         bool blocked = step.sqrMagnitude > 0.000001f && (allowed - from).sqrMagnitude < 0.000001f;
         bool arrived = progress >= 1f && (destination - from).sqrMagnitude < 0.000001f;

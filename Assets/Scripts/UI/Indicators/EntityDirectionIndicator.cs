@@ -29,7 +29,7 @@ public class EntityDirectionIndicator : MonoBehaviour
     [SerializeField] private Kind kind = Kind.Auto;
     [Tooltip("스프라이트 기본이 '아래(-Y)'를 봐서 +90 보정. 스프라이트 방향이 다르면 이 값만 바꾸면 됨.")]
     [SerializeField] private float baseAngle = 90f;
-    [Tooltip("비워두면 kind에 맞는 Arrow.aseprite 로케이터(Ally/Enemy_Locator)를 런타임에 자동 로드.")]
+    [Tooltip("비워두면 Arrow_Indicator.png의 하단 로케이터를 사용합니다.")]
     [SerializeField] private Sprite spriteOverride;
     [Tooltip("로케이터 크기. 이 값이 자식 Transform의 localScale에 그대로 적용된다(여기서만 조절하면 됨). 플레이어는 좀 더 크게.")]
     [Min(0.01f)]

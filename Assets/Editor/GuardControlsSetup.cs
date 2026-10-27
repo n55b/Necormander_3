@@ -457,7 +457,7 @@ public static class GuardControlsSetup
             Set(guard, "_raisedAt", Time.time - 60f);
             health.GetDamage(hit);
             Check(health.CurHP == 100f && damageEvents == 0 && successes == 1 && guard.IsParrying
-                && !player.canChangeState && Mathf.Approximately(player.SpeedMultiplier, .3f), "오래 유지한 가드도 피해/경직 없이 방어");
+                && player.canChangeState && Mathf.Approximately(player.SpeedMultiplier, .3f), "모션 잠금 없이 유지한 가드도 피해/경직 없이 방어");
             Check(guard.GuardAmount == 35f && !guard.LastBlockWasPerfect, "방어력 25% 적용: 피해 20은 게이지 15 소모");
             health.GetDamage(hit);
             Check(guard.GuardAmount == 20f && successes == 2, "매 타격마다 소모, Lv4 환급 없음");
@@ -625,7 +625,7 @@ public static class GuardControlsSetup
             });
             InventoryManager.Instance = inventory;
             guard.SetGuardHeld(true);
-            Check(guard.IsParrying && !player.canChangeState, "홀드 입력으로 실제 가드 시작");
+            Check(guard.IsParrying && player.canChangeState, "홀드 입력으로 실제 가드 시작·이동 모션 유지");
             var arc = (GameObject)typeof(PlayerParryController).GetField("_telegraph", Fields).GetValue(guard);
             var line = arc.GetComponent<LineRenderer>();
             Check(line != null && arc.GetComponent<MeshFilter>() == null && !line.loop,
@@ -633,7 +633,7 @@ public static class GuardControlsSetup
             for (int i = 0; i < line.positionCount; i++)
                 Check(Mathf.Approximately(line.GetPosition(i).magnitude, 1f), "중심선 없이 반경 1의 원호 정점");
             player.CanChangeAnimState();
-            Check(!player.canChangeState, "애니메이션 종료가 유지 중인 가드를 해제하지 않음");
+            Check(player.canChangeState && guard.IsParrying, "애니메이션 종료가 유지 중인 가드를 해제하지 않음");
             guard.SetGuardHeld(false);
             guard.SetGuardHeld(true);
             Check(guard.IsParrying, "내린 즉시 쿨타임/후딜 없이 다시 올리기");
@@ -932,7 +932,7 @@ public static class GuardControlsSetup
         typeof(PlayerParryController).GetField("_active", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, guard);
         var player = (PlayerController)typeof(PlayerParryController).GetField("_player", Fields).GetValue(guard);
         player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, config.moveSpeedMultiplier);
-        player.canChangeState = false; // 비활성 테스트 객체에서는 LockAnimState의 타임아웃 코루틴을 시작하지 않는다.
+        player.canChangeState = true; // 가드는 선만 표시하며 Idle/Walk 모션을 잠그지 않는다.
     }
     private static void Tick(PlayerParryController guard, float dt, float now) =>
         typeof(PlayerParryController).GetMethod("TickGauge", Fields).Invoke(guard, new object[] { dt, now });

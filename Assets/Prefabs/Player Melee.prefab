@@ -146,13 +146,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   silhouetteRenderer: {fileID: 7773861144495448027}
-  silhouetteColor: {r: 0.35, g: 1, b: 0.9, a: 0.75}
+  silhouetteColor: {r: 0.65, g: 0.67, b: 0.68, a: 0.55}
   maxCheckDistance: 3
   occluderLayers:
     serializedVersion: 2
     m_Bits: 0
   autoDefaultToWallLayers: 1
   transitionDuration: 0.2
+  maskAlphaCutoff: 0.1
 --- !u!114 &7250412908182429482
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -403,13 +404,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   silhouetteRenderer: {fileID: 7014098569055171752}
-  silhouetteColor: {r: 0.35, g: 1, b: 0.9, a: 0.75}
+  silhouetteColor: {r: 0.65, g: 0.67, b: 0.68, a: 0.55}
   maxCheckDistance: 3
   occluderLayers:
     serializedVersion: 2
     m_Bits: 0
   autoDefaultToWallLayers: 1
   transitionDuration: 0.2
+  maskAlphaCutoff: 0.1
 --- !u!114 &3550151716728198299
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -877,7 +879,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 858500907095700878, guid: c586faae84aa162429ed7ceb0e16bc2a, type: 3}
+  m_Sprite: {fileID: -8406559165381632762, guid: 1a06e194afcc37d4aafe779b826eb127, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -902,7 +904,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   kind: 1
   baseAngle: 90
-  spriteOverride: {fileID: 0}
+  spriteOverride: {fileID: -8406559165381632762, guid: 1a06e194afcc37d4aafe779b826eb127, type: 3}
   indicatorScale: 2
 --- !u!114 &2631576122415696307
 MonoBehaviour:
@@ -1036,7 +1038,7 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 0
-  m_MaskInteraction: 0
+  m_MaskInteraction: 1
   m_SpriteSortPoint: 0
 --- !u!1 &8018710434257463118
 GameObject:
@@ -2275,5 +2277,5 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 0
-  m_MaskInteraction: 0
+  m_MaskInteraction: 1
   m_SpriteSortPoint: 0

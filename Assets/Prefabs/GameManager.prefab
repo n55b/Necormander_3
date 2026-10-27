@@ -263,7 +263,7 @@ MonoBehaviour:
   playerSkillInventoryManager: {fileID: 0}
   itemPouch: {fileID: 0}
   rewardManager: {fileID: 7453844490307090777}
-  offscreenEnemyArrowManager: {fileID: 0}
+  offscreenEnemyArrowManager: {fileID: 3823117376901426705}
   playerStateUI: {fileID: 0}
   playerAttackSoundData: {fileID: 11400000, guid: abdae526f219dc04dbee902382943a37, type: 2}
   mapGenerator: {fileID: 6139375127595461034}
@@ -1052,7 +1052,7 @@ MonoBehaviour:
   arrowSortingOrder: 10000
   sortingLayerName: 
   maxArrows: 16
-  arrowSpriteOverride: {fileID: 0}
+  arrowSpriteOverride: {fileID: -2147174629691609883, guid: 1a06e194afcc37d4aafe779b826eb127, type: 3}
   arrowMaterial: {fileID: 0}
 --- !u!1 &7931369442624503284
 GameObject:

@@ -72,25 +72,34 @@ public class GameManager : MonoBehaviour
 
 
 
-    // [추가] 게임 매니저에서 비네트 색상 변경 메서드
+    private Vignette _hurtVignette;
+    private Color _vignetteRestColor;
+    private float _vignetteRestoreAt;
+
+    // 연속 피격이 이전 피격의 빨간색을 복원 색으로 저장하지 않도록 한 곳에서 소유한다.
     public void ChangeVignetteColor(float time, Color color)
     {
-        StartCoroutine(ChangeVignetteColorCoroutine(time, color));
-    }
-
-    private IEnumerator ChangeVignetteColorCoroutine(float time, Color color)
-    {
-        Vignette vignette;
-        if (globalvolume != null && globalvolume.profile.TryGet(out vignette))
+        if (_hurtVignette == null)
         {
-            Color originalColor = vignette.color.value;
-            vignette.color.value = color;
-
-            yield return new WaitForSeconds(time);
-
-            vignette.color.value = originalColor;
+            if (globalvolume == null || !globalvolume.profile.TryGet(out _hurtVignette)) return;
+            _vignetteRestColor = _hurtVignette.color.value;
         }
+        _hurtVignette.color.value = color;
+        _vignetteRestoreAt = Time.unscaledTime + Mathf.Max(0f, time);
     }
+
+    private void LateUpdate()
+    {
+        if (_hurtVignette != null && Time.unscaledTime >= _vignetteRestoreAt) RestoreVignette();
+    }
+
+    private void RestoreVignette()
+    {
+        if (_hurtVignette != null) _hurtVignette.color.value = _vignetteRestColor;
+        _hurtVignette = null;
+    }
+
+    private void OnDisable() => RestoreVignette();
 
     // 게임오버 처리 메서드
     public void Gameover()
