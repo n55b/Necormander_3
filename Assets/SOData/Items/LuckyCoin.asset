@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: LuckyCoin
   m_EditorClassIdentifier: 
   itemName: "\uB7ED\uD0A4 \uCF54\uC778"
-  description: "\uCE58\uBA85\uD0C0 \uC801\uC911 \uC2DC \uB300\uC0C1\uB9C8\uB2E4 5\uACE8\uB4DC
-    \uD68D\uB4DD"
+  description: "\uCE58\uBA85\uD0C0 \uBA85\uC911 \uC2DC \uB300\uC0C1\uB9C8\uB2E4 5\uACE8\uB4DC\uB97C
+    \uD68D\uB4DD\uD569\uB2C8\uB2E4."
   icon: {fileID: 0}
   tier: 4
   effects:

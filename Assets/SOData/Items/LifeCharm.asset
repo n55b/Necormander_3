@@ -11,10 +11,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f711bf1e2ceee742b68a340fd65898e, type: 3}
   m_Name: LifeCharm
-  m_EditorClassIdentifier: 
-  itemName: "\uC0DD\uBA85\uC758 \uBD80\uC801"
-  description: "\uCD5C\uB300 \uCCB4\uB825 +10\n\uCCB4\uB825\uC774 \uAC00\uB4DD \uCC2C
-    \uC801\uC5D0\uAC8C \uD53C\uD574 +10%"
+  m_EditorClassIdentifier:
+  itemName: 생명의 부적
+  description: 최대 체력이 10 늘어난다. 체력이 가득 찬 적에게 주는 피해가 10% 늘어난다.
   icon: {fileID: 0}
   tier: 4
   effects:
@@ -26,15 +25,14 @@ MonoBehaviour:
     - rid: 2000000000000000001
       type: {class: ItemStatEffect, ns: , asm: Assembly-CSharp}
       data:
-        label: "\uCD5C\uB300 \uCCB4\uB825 +10"
+        label: 최대 체력 +10
         statType: 1
         value: 10
         isPercent: 0
     - rid: 2000000000000000002
       type: {class: ItemDamageBonusEffect, ns: , asm: Assembly-CSharp}
       data:
-        label: "\uCCB4\uB825\uC774 \uAC00\uB4DD \uCC2C \uB300\uC0C1 \uD53C\uD574
-          +10%"
+        label: 만피 대상 피해 +10%
         condition: 1
         requiredStatus: 1
         filterByDamageType: 0

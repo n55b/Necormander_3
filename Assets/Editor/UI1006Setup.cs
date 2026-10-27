@@ -211,7 +211,7 @@ public static class UI1006Setup
             fill.sprite = null; fill.type = UnityEngine.UI.Image.Type.Simple;
             Stretch(fill.rectTransform, 3); fill.rectTransform.anchorMax = new Vector2(0, 1);
             fill.color = new Color(Teal.r, Teal.g, Teal.b, .85f); fill.raycastTarget = false; fill.enabled = false;
-            Label(button.Find("Label").GetComponent<TextMeshProUGUI>(), name == "Replace" ? "길게 눌러 교체" : "길게 눌러 넘기기", 0, 0, 268, 28, 16);
+            Label(button.Find("Label").GetComponent<TextMeshProUGUI>(), name == "Replace" ? "교체 · 1초간 누르기" : "스킵 · 1초간 누르기", 0, 0, 268, 28, 16);
             button.Find("Label").SetAsLastSibling();
         }
         var compare = At(panel, "CompareHover");

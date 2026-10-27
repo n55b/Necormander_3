@@ -37,47 +37,47 @@ public class TutorialQuestPanelController : MonoBehaviour
         { TutorialStage.Spawn, new[]
             {
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_WASD\"></size>로 이동하세요",
-                "포탈로 다음 방으로 이동하세요",
+                "포탈을 이용해 다음 방으로 이동하세요.",
             }
         },
         { TutorialStage.Combat, new[]
             {
-                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Left\"></size>로 공격하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 방어하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시/회피하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>으로 지나온 방에 돌아가세요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Left\"></size>로 적을 공격하세요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 공격을 막을 수 있어요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시(회피)할 수 있어요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>을 눌러 지나온 방을 클릭하면, 다시 돌아갈 수 있어요.",
             }
         },
         { TutorialStage.Reward, new[]
             {
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용하세요",
-                "미니언을 획득하여 장착하세요",
-                "SpaceBar로 미니언 스킬을 사용하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_C\"></size>로 미니언 능력을 확인하세요",
+                "미니언을 획득하면 바로 장착돼요",
+                "SpaceBar로 미니언 스킬을 사용해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_C\"></size>로 미니언 능력을 확인해요",
             }
         },
         { TutorialStage.Augment, new[]
             {
-                "증강을 고르고 보상과 난이도를 높이세요",
+                "증강을 선택하면 보상은 늘지만 더 강한 전투가 시작돼요",
             }
         },
         { TutorialStage.Dodge, new[]
             {
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시하세요",
-                "대시로 막힌 지형을 건너가세요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시할 수 있어요",
+                "대시로 걸어서 못 가는 지형도 통과할 수 있어요",
             }
         },
         { TutorialStage.Shop, new[]
             {
-                "골드로 아이템을 구매하세요",
-                "상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>를 눌러 상점을 여세요",
-                "강화 상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 장비를 강화하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_V\"></size>로 장착한 아이템을 확인하세요",
+                "골드로 상인에게서 아이템을 살 수 있어요",
+                "상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 말을 걸면 상점이 열려요",
+                "강화 상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>를 누르면 장비를 강화해요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_B\"></size>로 장착 중인 아이템을 확인해요",
             }
         },
         { TutorialStage.Descend, new[]
             {
-                "튜토리얼 완료! 마을로 이동하세요",
+                "마을로 이동합니다 (튜토리얼 종료)",
             }
         },
     };

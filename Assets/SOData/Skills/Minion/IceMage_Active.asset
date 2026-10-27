@@ -11,10 +11,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b903e5195d425944aa1c1677ca0f7b79, type: 3}
   m_Name: IceMage_Active
-  m_EditorClassIdentifier: 
-  skillName: "\uBE59\uACB0 \uBD80\uCC44\uAF34"
-  description: "\uC804\uBC29 \uBD80\uCC44\uAF34 \uBC94\uC704\uC5D0 \uB9C8\uBC95 \uD53C\uD574,
-    \uBE59\uACB0"
+  m_EditorClassIdentifier:
+  skillName: "빙결 부채꼴"
+  description: "앞쪽 부채꼴 범위의 적을 1회 마법 피해로 얼립니다."
   icon: {fileID: 0}
   cooldownTime: 8
   skillSound: {fileID: 0}
@@ -28,12 +27,9 @@ MonoBehaviour:
   hitBoxPrefab: {fileID: -7664338518204726940, guid: 8dba8aa921497304492e5abd6e509026, type: 3}
   hitRadius: 1.5
   hitBoxSize: {x: 2, y: 4}
+  hitBoxForwardOffset: 2.5
+  minionOffsetFromHitBox: 1.3
   damageMultiplier: 1.4
   forceAmount: 4
   forceDuration: 0.2
-  hitBoxForwardOffset: 2.5
-  minionOffsetFromHitBox: 1.3
   hitCount: 1
-  zoneCount: 1
-  zoneInterval: 0.12
-  zoneActiveTime: 0.1
