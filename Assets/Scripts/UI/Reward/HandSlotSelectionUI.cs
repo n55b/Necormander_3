@@ -68,9 +68,19 @@ public class HandSlotSelectionUI : Singleton<HandSlotSelectionUI>
     public static string Describe(MinionDataSO data)
     {
         if (!(data is MainMinionDataSO main)) return data != null ? data.ResolveDescription() : "";
-        return $"<b>Space · 미니언 스킬</b>\n{main.minionSkill?.description}\n\n" +
-               $"<b>기본 공격 마무리</b>\n{main.finisher.Describe()}\n\n" +
-               $"<b>대쉬</b>\n{main.dashModifier.Describe()}";
+        var sb = new System.Text.StringBuilder();
+
+        if (main.minionSkill != null)
+        {
+            string skillName = string.IsNullOrEmpty(main.minionSkill.skillName) ? main.minionSkill.name : main.minionSkill.skillName;
+            sb.Append("<b>[Space] ").Append(skillName).Append("</b>\n").Append(main.minionSkill.description);
+        }
+        if (main.finisher != null && main.finisher.IsValid)
+            sb.Append("\n\n<b>[기본 공격]</b>\n").Append(main.finisher.Describe());
+        if (main.dashModifier != null)
+            sb.Append("\n\n<b>[Shift] 대시</b>\n").Append(main.dashModifier.Describe());
+
+        return sb.ToString();
     }
 
     public void Hover(HandSlotSelectionItem.ActionKind kind, bool show)

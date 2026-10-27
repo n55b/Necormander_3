@@ -80,12 +80,10 @@ public class MinionSelectNPC : NPCBase
         var sb = new System.Text.StringBuilder();
         if (m.minionSkill != null)
         {
-            sb.Append("[스킬] ").Append(string.IsNullOrEmpty(m.minionSkill.skillName) ? m.minionSkill.name : m.minionSkill.skillName);
-            if (!string.IsNullOrEmpty(m.minionSkill.description)) sb.Append('\n').Append(m.minionSkill.description);
-            sb.Append("\n\n");
+            string skillName = string.IsNullOrEmpty(m.minionSkill.skillName) ? m.minionSkill.name : m.minionSkill.skillName;
+            sb.Append("<b>").Append(skillName).Append("</b>\n").Append(m.minionSkill.description);
         }
-        if (m.finisher != null) sb.Append("[일반 공격] ").Append(m.finisher.Describe()).Append('\n');
-        if (m.dashModifier != null) sb.Append("[대쉬] ").Append(m.dashModifier.Describe());
+        // 일반 공격과 대시 정보는 카드에서 제외 (마우스 오버 상세창, C키 능력창에서 확인)
 
         return new RewardCandidate
         {

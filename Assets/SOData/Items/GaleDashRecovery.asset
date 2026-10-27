@@ -13,12 +13,11 @@ MonoBehaviour:
   m_Name: GaleDashRecovery
   m_EditorClassIdentifier: 
   itemName: "\uC9C8\uD48D\uB300\uC2DC - \uD68C\uBCF5"
-  description: "\uB300\uC2DC \uCDA9\uC804 \uC18D\uB3C4\uAC00 5% \uC99D\uAC00\uD569\uB2C8\uB2E4.
-    10\uAC1C\uBA74 \uCDA9\uC804 \uC18D\uB3C4 +50%\uB85C, \uCDA9\uC804 \uC2DC\uAC04\uC740
-    \uC6D0\uB798\uC758 2/3\uC774 \uB429\uB2C8\uB2E4."
+  description: "\uB300\uC2DC \uCDA9\uC804 \uC18D\uB3C4 +5%"
   icon: {fileID: 0}
   tier: 4
   maxStack: 10
+  availableAsReward: 1
   effects:
   - rid: 2773715416203132931
   references:
