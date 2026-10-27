@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: VitalStrike
   m_EditorClassIdentifier: 
   itemName: "\uAE09\uC18C\uD0C0\uACA9"
-  description: "\uCE58\uBA85\uD0C0 \uD655\uB960\uC774 25%p \uC99D\uAC00\uD569\uB2C8\uB2E4."
+  description: "\uCE58\uBA85\uD0C0 \uD655\uB960 +25%"
   icon: {fileID: 0}
   tier: 3
   effects:

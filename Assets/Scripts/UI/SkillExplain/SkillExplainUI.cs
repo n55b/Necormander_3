@@ -219,7 +219,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         }
 
         FillLinkedSlot(0, main.finisher.uiIcon,     Fallback(main.finisher.uiTitle, "기본 공격"),     main.finisher.Describe());
-        FillLinkedSlot(1, main.dashModifier.uiIcon, Fallback(main.dashModifier.uiTitle, "대쉬 공격"), main.dashModifier.Describe());
+        FillLinkedSlot(1, main.dashModifier.uiIcon, Fallback(main.dashModifier.uiTitle, "대시 공격"), main.dashModifier.Describe());
 
         var sk = main.minionSkill;
         FillLinkedSlot(2, sk != null ? sk.icon : null,

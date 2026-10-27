@@ -11,11 +11,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b903e5195d425944aa1c1677ca0f7b79, type: 3}
   m_Name: MeleeDoll_Active
-  m_EditorClassIdentifier:
-  skillName: "회전 난타"
-  description: "가장 가까운 적에게 달려들어
-    원형 범위 안의 적들에게 5번의
-    피해를 입힙니다."
+  m_EditorClassIdentifier: 
+  skillName: "\uD68C\uC804 \uB09C\uD0C0"
+  description: "\uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uC801\uC5D0\uAC8C \uB3CC\uC9C4,
+    \uC8FC\uBCC0 \uC801\uC744 5\uD68C \uACF5\uACA9"
   icon: {fileID: -1293705836269130871, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 6
   skillSound: {fileID: 0}
@@ -32,4 +31,9 @@ MonoBehaviour:
   damageMultiplier: 0.3
   forceAmount: 4
   forceDuration: 0.2
+  hitBoxForwardOffset: -1
+  minionOffsetFromHitBox: 0
   hitCount: 5
+  zoneCount: 1
+  zoneInterval: 0.12
+  zoneActiveTime: 0.1
