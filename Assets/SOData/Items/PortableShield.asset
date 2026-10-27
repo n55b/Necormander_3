@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: PortableShield
   m_EditorClassIdentifier: 
   itemName: "\uD734\uB300\uC6A9 \uBC29\uC5B4\uB9C9 \uC7A5\uCE58"
-  description: "\uBC29\uC5D0 \uC9C4\uC785\uD558\uBA74 \uBCF4\uD638\uB9C9\uC744 6
-    \uD68D\uB4DD\uD569\uB2C8\uB2E4. \uC774 \uC544\uC774\uD15C\uC758 \uB0A8\uC740
-    \uBCF4\uD638\uB9C9\uC740 \uC9C4\uC785 \uC2DC \uAC31\uC2E0\uB418\uBA70 \uB204\uC801\uB418\uC9C0
-    \uC54A\uC2B5\uB2C8\uB2E4."
+  description: "\uBC29 \uC785\uC7A5 \uC2DC \uBCF4\uD638\uB9C9 6 \uD68D\uB4DD\n\uBCF4\uD638\uB9C9\uC740
+    \uB204\uC801\uB418\uC9C0 \uC54A\uC74C"
   icon: {fileID: 0}
   tier: 4
   maxStack: 10
+  availableAsReward: 1
   effects:
   - rid: 2773715416203132932
   references:

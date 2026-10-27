@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: ClothArmor
   m_EditorClassIdentifier: 
   itemName: "\uCC9C\uAC11\uC637"
-  description: "\uBC29\uC5B4\uB825\uC774 4 \uC99D\uAC00\uD569\uB2C8\uB2E4."
+  description: "\uBC29\uC5B4\uB825 +4"
   icon: {fileID: 0}
   tier: 4
   maxStack: 10
+  availableAsReward: 1
   effects:
   - rid: 2773715416203132928
   references:

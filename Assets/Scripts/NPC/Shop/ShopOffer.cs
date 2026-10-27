@@ -28,7 +28,7 @@ public class ShopOffer
 
     public static string DescriptionOf(RewardCandidate c)
     {
-        if (c.rawData is ItemSO so) return so.TooltipBody;
+        if (c.rawData is ItemSO so) return so.ShopBody;
         if (c.rawData is MinionDataSO minion) return HandSlotSelectionUI.Describe(minion);
         var d = c.displayData;
         if (d == null) return "";

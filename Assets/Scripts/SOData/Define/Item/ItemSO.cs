@@ -53,6 +53,9 @@ public class ItemSO : ScriptableObject
     [Header("표시")]
     public string itemName;
     [TextArea] public string description;
+    [Tooltip("상점 카드에만 표시할 짧은 설명. 비우면 description 을 그대로 쓴다.\n" +
+             "카드 폭이 좁아 긴 설명이 가격과 겹칠 때만 채운다(보상 카드, 주머니, 능력창은 description 사용).")]
+    [TextArea] public string shopDescription;
     [Tooltip("비어 있으면 바닥 픽업 프리팹의 기존 기본 아이콘을 사용한다.")]
     public Sprite icon;
 
@@ -80,6 +83,9 @@ public class ItemSO : ScriptableObject
 
     /// <summary>툴팁 본문. 등급 표기를 설명 앞에 붙인다.</summary>
     public string TooltipBody => $"[{ItemTierRules.Label(tier)}]\n{description}";
+
+    /// <summary>상점 카드 본문. shopDescription 이 있으면 그것을, 없으면 description 을 쓴다.</summary>
+    public string ShopBody => $"[{ItemTierRules.Label(tier)}]\n{(string.IsNullOrEmpty(shopDescription) ? description : shopDescription)}";
 
     public string EffectSummary(int count)
     {

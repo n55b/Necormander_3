@@ -13,14 +13,13 @@ MonoBehaviour:
   m_Name: Whetstone
   m_EditorClassIdentifier: 
   itemName: "\uC22B\uB3CC"
-  description: "\uCE58\uBA85\uD0C0 \uD655\uB960 +7%. \uC18C\uC9C0 \uC911 \uCD1D \uCE58\uBA85\uD0C0
-    \uD655\uB960\uC774 100%\uB97C \uB118\uC73C\uBA74, \uCD08\uACFC\uD55C 10%\uB9C8\uB2E4
-    \uCE58\uBA85\uD0C0 \uD53C\uD574\uAC00 10% \uC99D\uAC00\uD569\uB2C8\uB2E4. \uBCC0\uD658
-    \uD6A8\uACFC\uB294 \uC5EC\uB7EC \uAC1C \uC18C\uC9C0\uD574\uB3C4 \uC911\uBCF5
-    \uC801\uC6A9\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
+  description: "\uCE58\uBA85\uD0C0 \uD655\uB960 +7%\n\uCE58\uBA85\uD0C0 \uD655\uB960
+    100% \uCD08\uACFC\uBD84 10%\uB9C8\uB2E4 \uCE58\uBA85\uD0C0 \uD53C\uD574 +10%"
+  shopDescription: "\uCE58\uBA85\uD0C0 \uD655\uB960 +7%"
   icon: {fileID: 0}
   tier: 4
   maxStack: 10
+  availableAsReward: 1
   effects:
   - rid: 2773715416203132929
   - rid: 2773715416203132930

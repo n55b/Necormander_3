@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: CrackedWhetstone
   m_EditorClassIdentifier: 
   itemName: "\uC22B\uB3CC \uD30C\uD3B8"
-  description: "\uCE58\uBA85\uD0C0 \uD53C\uD574\uAC00 15% \uC99D\uAC00\uD569\uB2C8\uB2E4."
+  description: "\uCE58\uBA85\uD0C0 \uD53C\uD574 +15%"
   icon: {fileID: 0}
   tier: 4
   maxStack: 10
+  availableAsReward: 1
   effects:
   - rid: 2773715416203132935
   references:

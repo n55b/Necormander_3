@@ -13,12 +13,11 @@ MonoBehaviour:
   m_Name: HermesContract
   m_EditorClassIdentifier: 
   itemName: "\uD5E4\uB974\uBA54\uC2A4\uC640\uC758 \uACC4\uC57D\uC11C\uB958"
-  description: "3\uAC1C\uB9C8\uB2E4 \uCD5C\uB300 \uB300\uC2DC \uD69F\uC218\uAC00
-    1 \uC99D\uAC00\uD569\uB2C8\uB2E4. 3 / 6 / 9\uAC1C\uC77C \uB54C \uAC01\uAC01 +1
-    / +2 / +3\uD68C."
+  description: "3\uAC1C\uB9C8\uB2E4 \uCD5C\uB300 \uB300\uC2DC \uD69F\uC218 +1"
   icon: {fileID: 0}
   tier: 4
   maxStack: 9
+  availableAsReward: 1
   effects:
   - rid: 2773715416203132934
   references:

@@ -13,12 +13,11 @@ MonoBehaviour:
   m_Name: GaleDashLeap
   m_EditorClassIdentifier: 
   itemName: "\uC9C8\uD48D\uB300\uC2DC - \uB3C4\uC57D"
-  description: "\uB300\uC2DC \uAC70\uB9AC\uAC00 3% \uC99D\uAC00\uD569\uB2C8\uB2E4.
-    \uBCBD\uACFC \uCC29\uC9C0 \uC9C0\uC810\uC758 \uC548\uC804 \uAC80\uC0AC\uB294
-    \uADF8\uB300\uB85C \uC801\uC6A9\uB429\uB2C8\uB2E4."
+  description: "\uB300\uC2DC \uAC70\uB9AC +3%"
   icon: {fileID: 0}
   tier: 4
   maxStack: 10
+  availableAsReward: 1
   effects:
   - rid: 2773715416203132933
   references:
