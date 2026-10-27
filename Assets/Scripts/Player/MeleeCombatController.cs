@@ -3,6 +3,10 @@ using UnityEngine.InputSystem;
 
 public class MeleeCombatController : MonoBehaviour
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0.01f), Tooltip("플레이어 평타 히트박스의 활성 시간입니다. 모션이나 콤보 수는 변경하지 않습니다.")]
+    private float attackHitActiveDuration = 0.2f;
+
     [SerializeField] private GameObject telegraphPrefab; // 인스펙터 할당
     public GameObject TelegraphPrefab => telegraphPrefab;
 
@@ -60,6 +64,7 @@ public class MeleeCombatController : MonoBehaviour
 
     /// <summary>소환수 일격 쿨이 돌아 있는가.</summary>
     private bool MinionStrikeReady => Time.time >= _minionStrikeReadyTime;
+    public bool MinionFeedbackReady => HasMinionStep && MinionStrikeReady;
 
     [Header("콤보 설정")]
     [SerializeField] private float comboResetTime = 1.0f;
@@ -259,21 +264,20 @@ public class MeleeCombatController : MonoBehaviour
 
                 // 플레이어 공격은 적에게 경직과 약간의 넉백을 유발
                 float saDmg = 20f;
-                // [26/08/15] 서브 소환수가 주던 평타 고정 추가 피해(flatBonus)를 걷어냈다.
-                // 같은 효과는 아이템(ItemDamageBonusEffect)으로 다시 만들 예정이며, 그쪽은
-                // DamageInfo 를 만든 뒤 파이프라인에서 얹히므로 여기서 더할 게 없다.
                 DamageInfo info = new DamageInfo(_player.Stat.ATK * damageMultiplier, DamageType.Physical, this.gameObject, 1f, "", false, causesHitstun: true, knockbackForce: 2f, superArmorDamage: saDmg, category: DamageCategory.BasicAttack);
                 info.playerBasicAttack = new PlayerBasicAttackRoll(weapon);
+                info.feedbackComboFinish = swingIndex == 2;
                 if (weapon != null && weapon.exploitsWeakness && swingIndex == 2)
                 {
                     info.applyStatus = StatusType.Vulnerable;
                     info.statusDuration = weapon.weaknessDuration;
                 }
                 _activeHitbox.HitsPerContact = weapon != null ? weapon.basicHitsPerContact : 1;
+                _activeHitbox.ContactHitInterval = weapon != null ? weapon.basicRepeatHitInterval : 0f;
 
                 LayerMask enemyLayer = Layers.EnemyMask;
                 // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
-                _activeHitbox.Init(info, enemyLayer, 0.2f, telegraphDuration);
+                _activeHitbox.Init(info, enemyLayer, attackHitActiveDuration, telegraphDuration);
             }
             else
             {
@@ -431,6 +435,7 @@ public class MeleeCombatController : MonoBehaviour
         go.transform.localRotation = Quaternion.Euler(0, 0, angle);
         go.transform.localScale = new Vector3(fin.hitBoxSize.x, fin.hitBoxSize.y, 1f);
         box.hitEffectAngle = angle;
+        main.ApplyHitEffect(box);
 
         // Init(팀 색 포함)은 OnHit 판정창에서 늦게 불린다 → 윈드업 동안 프리팹 기본색이 뜬다.
         // 스폰 직후 직접 물들여 처음부터 아군 색이 나오게 한다.
@@ -445,6 +450,7 @@ public class MeleeCombatController : MonoBehaviour
         var weapon = PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.Weapon : null;
         enhanceMult *= weapon != null ? weapon.basicDamagePerHit : 1f;
         box.HitsPerContact = weapon != null ? weapon.basicHitsPerContact : 1;
+        box.ContactHitInterval = weapon != null ? weapon.basicRepeatHitInterval : 0f;
         var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier * enhanceMult, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
 
         // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.

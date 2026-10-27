@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 보스 패턴들이 공유하는 "바닥 전조(텔레그래프)" 유틸.
-/// 기존에 EliteChargerAIPatternSO 와 EliteMonsterPillar 에 복붙돼 있던 절차적 원/사각/링 스프라이트
+/// 보스와 엘리트가 사용하는 절차적 원/사각/링 스프라이트
 /// 생성과 배치를 한 곳으로 모은 것. 스프라이트는 정적 캐시(런타임 1회 생성)라 매번 만들지 않는다.
 /// (SkillCombatUtil 처럼 상태 없는 정적 유틸 — 이 코드베이스의 공용 유틸 관례를 따른다.)
 /// </summary>

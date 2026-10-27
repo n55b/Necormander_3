@@ -124,7 +124,7 @@ public class EquipmentConditionBuffPassive : EquipmentPassive
 /// <summary>조건형 버프 발동 조건. 확장 가능(예: 나중에 Always 추가 → 항시 버프).</summary>
 public enum BuffCondition
 {
-    InCombatNoRecentHit,   // 전투 중 + 최근 피격 없음
+    [UnityEngine.InspectorName("진입 전투 없음 최근 타격")] InCombatNoRecentHit,   // 전투 중 + 최근 피격 없음
 }
 
 /// <summary>
@@ -154,5 +154,5 @@ public class EquipmentTriggerBuffPassive : EquipmentPassive
 /// <summary>발동형 버프 트리거. 확장 가능.</summary>
 public enum BuffTrigger
 {
-    OnPushOrPull,   // 적을 밀치거나 끌어당김
+    [UnityEngine.InspectorName("발생 시 밀기 또는 당기기")] OnPushOrPull,   // 적을 밀치거나 끌어당김
 }

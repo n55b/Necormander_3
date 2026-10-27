@@ -23,7 +23,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(SpriteRenderer))]
 public class EntityDirectionIndicator : MonoBehaviour
 {
-    public enum Kind { Auto, Player, Enemy }
+    public enum Kind { [UnityEngine.InspectorName("자동")] Auto, [UnityEngine.InspectorName("플레이어")] Player, [UnityEngine.InspectorName("적")] Enemy }
 
     [Tooltip("Auto = 부모에 PlayerController가 있으면 플레이어, 없으면 적으로 자동 판별.")]
     [SerializeField] private Kind kind = Kind.Auto;

@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 public class DPSMeter : MonoBehaviour
 {
-    [Header("UI Settings")]
+    [Header("UI 설정")]
     [Tooltip("플레이어 스탯과 DPS 미터를 함께 표시합니다. F5: 함께 토글 / F4: DPS 기록만 초기화")]
     [SerializeField] private bool _showUI = false;
 
@@ -216,8 +216,6 @@ public class DPSMeter : MonoBehaviour
             text.AppendLine($"방어 중: {guard.IsParrying} / 소진 잠금: {guard.GuardBroken}");
             text.AppendLine($"최근 퍼펙트 가드: {guard.LastBlockWasPerfect}");
         }
-        if (player.STAMINA != null)
-            text.AppendLine($"스태미나: {player.STAMINA.CurrentStamina:F1} / {player.STAMINA.MaxStamina:F1}");
         text.AppendLine("\n<b>[상태 / 원본값]</b>");
         text.AppendLine($"플레이어 상태: {player.GetPlayerState()}");
         text.AppendLine($"입력 차단: {player.IsInputBlocked} / 행동 불가: {player.IsCCed}");

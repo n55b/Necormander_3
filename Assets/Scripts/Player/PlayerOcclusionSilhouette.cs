@@ -20,7 +20,7 @@ public class PlayerOcclusionSilhouette : MonoBehaviour
     [Tooltip("실루엣 색상/투명도. 알파가 너무 높으면 본체처럼 또렷하게 보여서 가리는 의미가 없어지고, 너무 낮으면 안 보임.")]
     [SerializeField] private Color silhouetteColor = new Color(1f, 1f, 1f, 0.55f);
 
-    [Tooltip("Occlusion check radius. Objects farther than this skip the bounds check entirely (perf).")]
+    [Tooltip("가림막을 확인할 최대 거리(월드 유닛). 이보다 먼 오브젝트는 검사하지 않습니다. 늘리면 멀리 있는 가림막도 찾지만 검사량이 늘어납니다.")]
     [SerializeField] private float maxCheckDistance = 3f;
 
     [Tooltip("실루엣이 반응할 대상의 레이어. 기본값은 Wall/Obstacle만 포함되어 몬스터(Enemy)는 가림막으로 취급하지 않습니다. 인스펙터에서 원하는 레이어로 바꿀 수 있습니다.")]
@@ -28,6 +28,8 @@ public class PlayerOcclusionSilhouette : MonoBehaviour
 
     [Tooltip("위 occluderLayers가 설정 안 된 채(Nothing/0) 남아있으면 Awake에서 Wall+Obstacle로 자동 대체됩니다.")]
     [SerializeField] private bool autoDefaultToWallLayers = true;
+    [Min(.01f), SerializeField] private float transitionDuration = .12f;
+    private float _visibility;
 
 
     
@@ -53,6 +55,8 @@ private void Awake()
 private void LateUpdate()
     {
         if (silhouetteRenderer == null || _mainRenderer == null) return;
+        if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Silhouette))
+        { _visibility = 0f; silhouetteRenderer.enabled = false; return; }
 
         // Sync sprite/flip every frame to follow body animation
         silhouetteRenderer.sprite = _mainRenderer.sprite;
@@ -62,9 +66,12 @@ private void LateUpdate()
         // Re-apply tint every frame (not just once in Awake) - otherwise any other system
         // that touches this renderer's color (hit flash, status effect tint, etc.) permanently
         // overrides our silhouette tint and it never recovers.
-        silhouetteRenderer.color = silhouetteColor;
-
-        silhouetteRenderer.enabled = IsOccluded();
+        bool occluded = _mainRenderer.enabled && _mainRenderer.color.a > .001f && IsOccluded();
+        _visibility = Mathf.MoveTowards(_visibility, occluded ? 1f : 0f, Time.deltaTime / Mathf.Max(.01f, transitionDuration));
+        var tint = silhouetteColor;
+        tint.a *= _visibility;
+        silhouetteRenderer.color = tint;
+        silhouetteRenderer.enabled = _visibility > 0f;
     }
 
     /// <summary>
@@ -85,7 +92,7 @@ private bool IsOccluded()
             if (ys == null) continue;
 
             var occluderRenderer = ys.Renderer;
-            if (occluderRenderer == null) continue;
+            if (occluderRenderer == null || !occluderRenderer.enabled || occluderRenderer.sprite == null) continue;
 
             // Skip anything that belongs to my own character (body/hands/etc share the same root) -
             // otherwise my own hand (drawn in front of my body) gets mistaken for something occluding me.
@@ -107,5 +114,11 @@ private bool IsOccluded()
         }
 
         return false;
+    }
+
+    private void OnDisable()
+    {
+        _visibility = 0f;
+        if (silhouetteRenderer != null) silhouetteRenderer.enabled = false;
     }
 }

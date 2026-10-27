@@ -14,16 +14,16 @@ public class RoomInstance : MonoBehaviour
     /// <b>값(2)은 그대로 둔다</b> — enum 은 정수로 직렬화되므로, 중간 값을 지우거나 순서를 바꾸면
     /// 이미 저작된 방 프리팹들의 보상 타입이 통째로 밀린다.
     /// </summary>
-    public enum NormalRewardType { PlayerSkill, MainSummon, Item }
+    public enum NormalRewardType { [UnityEngine.InspectorName("플레이어 스킬")] PlayerSkill, [UnityEngine.InspectorName("메인 소환")] MainSummon, [UnityEngine.InspectorName("아이템")] Item }
     [Header("일반 방 보상 세부 설정")]
     public NormalRewardType normalRewardType;
     public Vector2Int roomSize;
     public Vector2 centerOffset;
 
-    [Header("Anchors")]
+    [Header("기준점")]
     public List<RoomAnchor> anchors = new List<RoomAnchor>();
 
-    [Header("Tilemaps (Optional - Auto-assigned if Null)")]
+    [Header("타일맵: 비우면 자동 연결")]
     public Tilemap wallTilemap;
     public Tilemap groundTilemap;
     public Tilemap shadowTilemap;
@@ -93,7 +93,7 @@ public class RoomInstance : MonoBehaviour
         return false;
     }
 
-    [Header("Combat & Events")]
+    [Header("전투와 이벤트")]
     public bool isCleared = false;
     public bool hasBeenVisited = false;
     public List<DoorUpController> doorObjects = new List<DoorUpController>(); // MapGenerator에서 할당
@@ -197,8 +197,7 @@ public class RoomInstance : MonoBehaviour
             Matrix4x4 tmToRoom = transform.worldToLocalMatrix * mainTM.transform.localToWorldMatrix;
             centerOffset = tmToRoom.MultiplyPoint3x4(mainTM.localBounds.center);
 
-            // roomSize 는 '칸 수' 그대로 둔다. RevealRoom 의 안개 걷기가 글로벌 타일맵 칸 단위로 도는데,
-            // 여기서 월드 크기로 바꾸면 반경이 반토막 나서 방 절반이 안 걷힌다.
+            // roomSize 는 기존 타일맵의 로컬 크기를 유지한다.
             // ponytail: 대신 roomSize 를 월드 크기처럼 쓰는 쪽(방 콜라이더, 몹 스폰 사각형,
             // BossAIPatternSO 의 방 Bounds)은 지금 2배로 크다. 거슬리면 그때 월드 크기 프로퍼티를 따로 판다.
             roomSize = new Vector2Int(Mathf.CeilToInt(mainTM.localBounds.size.x), Mathf.CeilToInt(mainTM.localBounds.size.y));
@@ -337,7 +336,6 @@ public class RoomInstance : MonoBehaviour
     public void ForceEnter()
     {
         hasBeenVisited = true;
-        RevealRoom(); // 타일 안개 제거 호출
 
         // [추가] 강제 진입 시 진입한 방을 촘촘한 미니맵에 실시간으로 그려서 개방
         if (MapGenerator.Instance != null)
@@ -363,7 +361,6 @@ public class RoomInstance : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             hasBeenVisited = true;
-            RevealRoom(); // 플레이어가 방에 들어가면 해당 방의 안개 타일을 한 번에 지웁니다.
             
             // [추가] 플레이어가 방 진입 시 촘촘한 미니맵에 그려서 실시간으로 미니맵 안개를 걷음
             if (MapGenerator.Instance != null)
@@ -706,38 +703,6 @@ private HashSet<Vector2Int> _myTiles = null;
         if (_rb != null) MapGenerator.SafeDestroy(_rb);
     }
 
-    // ⭐ [핵심 추가] 방 크기만큼의 FogTilemap 검은 타일을 관통해 싹 지워주는 함수
-    public void RevealRoom()
-    {
-        if (MapGenerator.Instance == null) return;
-        
-        // 인스펙터에 등록했던 FogTilemap을 MapGenerator 싱글톤을 통해 가져옵니다.
-        Tilemap fogTM = MapGenerator.Instance.FogTilemap;
-        if (fogTM == null) return;
-
-        // 1. 실제 월드 맵 상의 방 안개 제거
-        Vector3 roomCenterWorld = transform.position + (Vector3)centerOffset;
-        Vector3Int roomCenterCell = fogTM.WorldToCell(roomCenterWorld);
-
-        // 방 크기(roomSize)의 절반을 돌며 벽 두께까지 지우기 위해 여유 마진(+3)을 줍니다.
-        int halfX = (roomSize.x / 2) + 3;
-        int halfY = (roomSize.y / 2) + 3;
-
-        for (int x = -halfX; x <= halfX; x++)
-        {
-            for (int y = -halfY; y <= halfY; y++)
-            {
-                Vector3Int targetCell = new Vector3Int(roomCenterCell.x + x, roomCenterCell.y + y, 0);
-                if (fogTM.HasTile(targetCell))
-                {
-                    fogTM.SetTile(targetCell, null); // 타일을 없앰으로써 시야 확보
-                }
-            }
-        }
-
-        // 2. 촘촘한 미니맵 영역 상의 안개 제거는 미니맵이 (-1000, -1000) 격리 공간으로 이전되어 겹칠 일 없으므로 생략합니다.
-    }
-
     private Transform FindTransformRecursive(Transform current, string targetName)
     {
         foreach (Transform child in current)
@@ -745,8 +710,7 @@ private HashSet<Vector2Int> _myTiles = null;
             if (child.name == targetName)
                 return child;
 
-            if (child.name.StartsWith("Fog") ||
-                child.name.StartsWith("Decorate") ||
+            if (child.name.StartsWith("Decorate") ||
                 child.name.StartsWith("Light") ||
                 child.name.StartsWith("Global") ||
                 child.name.StartsWith("DoorAnchor"))

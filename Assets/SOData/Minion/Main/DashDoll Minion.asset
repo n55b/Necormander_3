@@ -39,6 +39,8 @@ MonoBehaviour:
       m_LocalVariables: []
     icon: {fileID: 0}
     rarity: 0
+  feedbackTier: 0
+  feedbackColor: {r: 0.95, g: 0.82, b: 0.45, a: 1}
   minionSkill: {fileID: 11400000, guid: 368593fef46344339a29343712cf5b05, type: 2}
   dashModifier:
     uiTitle: 
@@ -71,6 +73,7 @@ MonoBehaviour:
     causesHitstun: 1
     knockbackForce: 6
     superArmorDamage: 30
+  hitEffectPrefab: {fileID: 0}
   basicAnim:
     visual: {fileID: 2025862953014797774, guid: 8107f7e40fd1da54f92690cea1694ff6, type: 3}
     duration: 0.65
@@ -78,6 +81,30 @@ MonoBehaviour:
     - tag: Basic
       offset: {x: 0, y: 0}
       snap: 0
+      movementCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 1.8
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
     effectState: 
     damageState: 
     hitEvent: OnHitEvent
@@ -89,6 +116,30 @@ MonoBehaviour:
     - tag: Skill
       offset: {x: 0, y: 0}
       snap: 0
+      movementCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 1.8
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
     effectState: 
     damageState: 
     hitEvent: OnHitEvent
@@ -108,6 +159,7 @@ MonoBehaviour:
   evolutions: []
   isEvolvedForm: 0
   evolveRequiredLevelOverride: -1
+  formerAssetNames: []
   references:
     version: 2
     RefIds: []

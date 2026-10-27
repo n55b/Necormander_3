@@ -9,7 +9,7 @@ public class RewardManager : MonoBehaviour
 {
     public static RewardManager Instance;
 
-    [Header("UI Reference")]
+    [Header("UI 연결")]
     [SerializeField] private RewardSelectionUI selectionUI;
     [SerializeField] private HandSlotSelectionUI handSlotUI;
 
@@ -204,7 +204,7 @@ public class RewardManager : MonoBehaviour
             case RewardCategory.Item:
                 // [아이템] 절대 즉시 장착하지 않는다 — 플레이어 발밑 바닥에 떨어뜨린다.
                 // 거기서 F 짧게 누르면 습득, 길게 누르면 분해다(GroundItem).
-                // 상점 구매(SellItem)도 이 경로를 타므로 SellItem 은 따로 손댈 게 없다.
+                // 상점 구매도 이 공용 지급 경로를 사용한다.
                 GroundItem.Drop((ItemSO)candidate.rawData, PlayerPosition());
                 ProcessNextReward();
                 break;

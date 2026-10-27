@@ -79,8 +79,6 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     [Tooltip("패턴이 파훼(그로기)로 끝난 뒤 보스가 다음 행동을 못 하는 시간(초). " +
              "그로기 시간 위에 얹히므로 실제 딜타임 = 그로기 + 이 값 이다.")]
     public float postPatternRecovery = 1f;
-    [Tooltip("[미사용] 특수 패턴과 기본 공격이 분리돼 있던 시절의 추가 딜타임. 통합 후로는 쓰지 않는다.")]
-    public float postGroggyRecovery = 1.5f;
 
     [Header("텔레그래프(피해범위 인디케이터) 색상")]
     public Color telegraphWarnColor = new Color(1f, 0.1f, 0.1f, 0.9f);
@@ -112,6 +110,13 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     public float sweepStepDistance = 0f;
     [Tooltip("위 거리를 미끄러지는 데 걸리는 시간(초).")]
     public float sweepStepDuration = 0.12f;
+    [Header("이동 그래프 (X: 시간 0~1 / Y: 거리 0~1)")]
+    [Tooltip("휩쓸기 전진의 가속/감속. 전진 거리 0이면 사용하지 않는다.")]
+    public AnimationCurve sweepStepCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+    [Tooltip("각 찌르기의 이동. 예고·타격·타수 사이 간격은 유지한다.")]
+    public AnimationCurve thrustMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+    [Tooltip("도약 중 착지점까지의 이동. 착지 시점과 예고 시간은 유지한다.")]
+    public AnimationCurve leapMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
     [Tooltip("내려찍기 예고 시간(초). 이 구간은 카운터가 불가능하다 — 카운터는 앞의 휩쓸기에서만.")]
     public float slamTelegraphTime = 1.2f;
     public float slamRange = 6.5f; // [수정] 원형 반경 -> 보스 기준 뻗는 직사각형의 길이로 의미가 바뀜
@@ -202,7 +207,7 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     private const string Pattern3Label = "패턴 3번: 카운터 & 페이크 카운터";
 
     /// <summary>보스 패턴 3종. 같은 패턴을 두 번 연속으로 쓰지 않기 위해 직전 것을 기억한다.</summary>
-    private enum Move { None, Sweep, Thrust, Leap }
+    private enum Move { [UnityEngine.InspectorName("없음")] None, [UnityEngine.InspectorName("휩쓸기")] Sweep, [UnityEngine.InspectorName("찌르기")] Thrust, [UnityEngine.InspectorName("도약")] Leap }
     private Move _lastMove = Move.None;
     private float _chaseStartTime = -100f;
 
@@ -414,7 +419,7 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
         _controller?.ApplyGroggy(counterSuccessGroggyDuration);
 
         // [버그 수정 — 카운터 성공이 3.5초 정지가 되던 문제] 예전엔 EndPatternAfterGroggy 를 불러서
-        // postPatternRecovery(1.5) + 그로기(0.5) + postGroggyRecovery(1.5) = 3.5초를 잠갔다.
+        // postPatternRecovery(1.5) + 그로기(0.5) + 추가 대기(1.5) = 3.5초를 잠갔다.
         // 특수 패턴과 기본 공격이 분리돼 있던 시절엔 그 3초에도 기본 공격이 나갔지만, 통합 이후엔
         // 기본 공격이 보스의 유일한 공격 경로라 그대로 무행동이 된다. 스펙의 보상은 '패턴 취소 +
         // 0.5초 경직'이므로 딜타임은 postPatternRecovery 하나만 얹는다(그로기 포함 총 2초).
@@ -501,7 +506,7 @@ protected override void OnAttack(BaseEntity entity)
                                               onTick: () =>
                                               {
                                                   Warp(entity, origin);
-                                                  if (CanTrackAim(tele.Elapsed, windup))
+                                                  if (CanTrackAim(tele.Elapsed, windup, entity))
                                                   {
                                                       dir = BoneMasterAIPatternSO.AimToward(entity, dir, origin, sweepTurnSpeed);
                                                       if (entity.Target != null) entity.LookAtTarget(entity.Target);
@@ -531,7 +536,7 @@ protected override void OnAttack(BaseEntity entity)
             while (st < stepDur)
             {
                 st += Time.deltaTime;
-                Warp(entity, Vector2.Lerp(origin, stepEnd, Mathf.Clamp01(st / stepDur)));
+                Warp(entity, Vector2.Lerp(origin, stepEnd, SkillCombatUtil.EvaluateMotionProgress(sweepStepCurve, st / stepDur)));
                 yield return null;
             }
             Warp(entity, stepEnd);
@@ -598,7 +603,7 @@ protected override void OnAttack(BaseEntity entity)
                 while (Time.time - previousHitAt < Mathf.Max(dashDuration, thrustPauseBetween * csMul))
                 {
                     Warp(entity, Vector2.Lerp(previousOrigin, previousEnd,
-                        Mathf.Clamp01((Time.time - previousHitAt) / dashDuration)));
+                        SkillCombatUtil.EvaluateMotionProgress(thrustMovementCurve, (Time.time - previousHitAt) / dashDuration)));
                     yield return null;
                 }
                 Warp(entity, previousEnd);
@@ -637,7 +642,7 @@ protected override void OnAttack(BaseEntity entity)
         while (Time.time - previousHitAt < dashDuration)
         {
             Warp(entity, Vector2.Lerp(previousOrigin, previousEnd,
-                Mathf.Clamp01((Time.time - previousHitAt) / dashDuration)));
+                SkillCombatUtil.EvaluateMotionProgress(thrustMovementCurve, (Time.time - previousHitAt) / dashDuration)));
             yield return null;
         }
         Warp(entity, previousEnd);
@@ -735,7 +740,7 @@ protected override void OnAttack(BaseEntity entity)
         // 성공 수는 구슬에만 반영한다. 종료 보상은 기존 고정값 유지(성공 0회도 동일).
         _controller?.SetStateText($"집행 종료! 카운터 {hits}/{attempts}, 받는 피해 +{executionDamageBonus * 100f:F0}%", Color.cyan);
         _controller?.ApplyGroggy(executionGroggyDuration, executionDamageBonus);
-        // 예전 EndPatternAfterGroggy 는 그로기(4초)가 끝난 뒤에도 postGroggyRecovery(1.5초)를 더
+        // 예전 EndPatternAfterGroggy 는 그로기(4초)가 끝난 뒤에도 추가 대기(1.5초)를 더
         // 얹어서 보스가 총 7초를 멍하니 서 있게 만들었다. 보상은 '그로기 + 받는 피해 증가'이지
         // 무행동이 아니므로, 카운터 파훼 때와 같은 규칙으로 딜타임은 postPatternRecovery 만 얹는다.
         EndPattern(entity, executionGroggyDuration);
@@ -924,7 +929,7 @@ protected override void OnAttack(BaseEntity entity)
         while (t < trackTime)
         {
             t += Time.deltaTime;
-            if (CanTrackAim(t, trackTime + lockTime + leapDuration) && entity.Target != null)
+            if (CanTrackAim(t, trackTime + lockTime + leapDuration, entity) && entity.Target != null)
             {
                 landPos = entity.Target.position;
                 BoneMasterTelegraphUtil.UpdatePosition(telegraph, landPos);
@@ -950,7 +955,7 @@ protected override void OnAttack(BaseEntity entity)
         while (elapsed < leapDuration)
         {
             elapsed += Time.deltaTime;
-            Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, elapsed / leapDuration));
+            Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, SkillCombatUtil.EvaluateMotionProgress(leapMovementCurve, elapsed / leapDuration)));
             yield return null;
         }
         Warp(entity, landPos);

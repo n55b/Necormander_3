@@ -6,9 +6,8 @@ using UnityEngine.Events;
 /// 인스펙터 배선용 대화 트리거.
 ///
 /// <see cref="Play"/> 가 인자를 받지 않으므로 UnityEvent 슬롯에 그대로 잡힌다.
-/// BossRoomEvent 의 OnBossCombatStart / OnBossCombatClear, 문·포탈의 FadeAction 등
+/// BossRoomEvent 의 OnBossCombatStart / OnBossCombatClear 등
 /// 이미 있는 UnityEvent 어디에든 이 컴포넌트를 끌어다 놓으면 대화가 붙는다.
-/// (이 프로젝트는 '드래그로 이을 수 있으면 UnityEvent' 가 규약이다 — FadeAction.cs 참고)
 ///
 /// 방 프리팹에 붙이면 RoomInstance 가 입장 시 Play 를 호출한다. 그 외에는 기존 UnityEvent 에 연결한다.
 /// </summary>

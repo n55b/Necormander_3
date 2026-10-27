@@ -9,7 +9,7 @@ using UnityEngine;
 // [26/08/03] EnhanceShop = 장비 강화 전용 상점. 진열품 없이 NPC 에게 F 만 누르면 되는 방이라
 // 일반 Shop 과 지형만 같고 하는 일이 다르다. Shop 을 재사용하지 않고 타입을 나눈 이유는
 // '층당 몇 개' 를 따로 잡아야 해서다(안 그러면 같은 상점 두 개가 뜰 수 있다).
-public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss, Augment, EnhanceShop }
+public enum RoomType { [UnityEngine.InspectorName("생성")] Spawn, [UnityEngine.InspectorName("일반")] Normal, [UnityEngine.InspectorName("엘리트")] Elite, [UnityEngine.InspectorName("보상")] Reward, [UnityEngine.InspectorName("상점")] Shop, [UnityEngine.InspectorName("보스")] Boss, [UnityEngine.InspectorName("증강")] Augment, [UnityEngine.InspectorName("강화 상점")] EnhanceShop }
 // [26/07/17] Ability 는 투척 능력 전용이라 투척 철거와 함께 사라졌다.
 // [26/07/30] Item = 주머니 아이템. 장비(Equipment)와 별개 시스템이다. 새 항목은 반드시 맨 끝에 붙인다.
 // [26/08/03] EquipmentEnhance 제거 — 강화는 전용 상점(EnhanceShopNPC)에서 NPC 에게 F 로만 한다.
@@ -17,7 +17,7 @@ public enum RoomType { Spawn, Normal, Elite, Reward, Shop, Boss, Augment, Enhanc
 //            (이 enum 은 런타임 전용이라 — RewardCandidate 가 [Serializable] 이 아니다 — 값을 빼도 에셋이 안 깨진다.)
 // [26/10/02] MinionEnhance = 보상방의 메인 소환수 강화(최대 MinionEnhance.MAX_LEVEL 회). rawData 는 MainMinionDataSO.
 // [26/10/03] MinionEvolve = 보상방의 메인 소환수 진화(갈래 선택). rawData 는 '진화할 대상' MainMinionDataSO.
-public enum RewardCategory { Minion, Metamorphosis, Treasure, Gold, Equipment = 5, Item, MinionEnhance, MinionEvolve }
+public enum RewardCategory { [UnityEngine.InspectorName("소환수")] Minion, [UnityEngine.InspectorName("변이")] Metamorphosis, [UnityEngine.InspectorName("보물")] Treasure, [UnityEngine.InspectorName("골드")] Gold, [UnityEngine.InspectorName("장비")] Equipment = 5, [UnityEngine.InspectorName("아이템")] Item, [UnityEngine.InspectorName("소환수 강화")] MinionEnhance, [UnityEngine.InspectorName("소환수 진화")] MinionEvolve }
 
 /// <summary>
 /// 보상으로 제안될 아이템 정보를 담는 구조체입니다.
@@ -98,7 +98,7 @@ public static class RewardProcessor
 
     /// <summary>최대 중첩에 도달하지 않은 아이템만 상점/보상 후보로 사용한다.</summary>
     public static bool CanOfferItem(ItemSO item)
-        => item != null && (ItemPouch.Instance == null || ItemPouch.Instance.CanAdd(item));
+        => item != null && item.availableAsReward && (ItemPouch.Instance == null || ItemPouch.Instance.CanAdd(item));
 
     /// <summary>중첩 여유가 있는 아이템 하나를 랜덤으로. 일반/엘리트/증강 보상 공용. 후보가 없으면 null.</summary>
     public static ItemSO PickRandomItem(DataManager data)

@@ -8,6 +8,24 @@ using UnityEngine.AI;
 [CreateAssetMenu(fileName = "BaseAIPattern", menuName = "Necromancer/AI/BasePattern")]
 public class BaseAIPatternSO : AIPatternSO
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0f), Tooltip("사거리에서 이 거리만큼 더 접근한 뒤 공격합니다. 0이면 사거리 경계에서 공격합니다.")]
+    private float attackRangeInset = 0.2f;
+    [SerializeField, Min(0f), Tooltip("공격 사거리가 이 값 이상인 일반 적은 공격 대기 중 후퇴합니다. 돌진형은 제외됩니다.")]
+    private float rangedFleeThreshold = 3f;
+    [SerializeField, Min(0f), Tooltip("공격 대기 중 플레이어가 이 거리 안에 있으면 후퇴합니다.")]
+    private float fleeTriggerDistance = 7f;
+    [SerializeField, Min(0f), Tooltip("새 후퇴 목적지를 이 거리만큼 떨어진 곳에서 찾습니다.")]
+    private float fleeStepDistance = 3.5f;
+    [SerializeField, Min(0.01f), Tooltip("현재 목적지까지 남은 거리가 이 값보다 작으면 다음 후퇴 방향을 고릅니다.")]
+    private float fleeArrivalDistance = 0.5f;
+    [SerializeField, Range(0f, 180f), Tooltip("플레이어 반대 방향에서 좌우로 무작위 선택할 각도입니다. 0이면 바로 뒤로 물러납니다.")]
+    private float fleeSpreadAngle = 90f;
+    [SerializeField, Min(0.01f), Tooltip("공격 애니메이션이나 OnHitEvent가 없을 때 사용할 준비 시간입니다. 이벤트가 있으면 해당 시각을 따릅니다.")]
+    private float fallbackAttackWindup = 1f;
+    [SerializeField, Range(0.01f, 1f), Tooltip("공격 간격의 이 비율 안에 모션이 끝나도록 빠르게 재생합니다. 0.9는 90%입니다.")]
+    private float attackAnimationIntervalRatio = 0.9f;
+
     [Header("패턴 범용 설정")]
     [Tooltip("공격 루틴 시작 시 BaseEntity의 telegraphPrefab(장판)을 자동 생성할지 여부 (궁수, 마법사 등은 false로 설정)")]
     public bool spawnTelegraph = true;
@@ -49,7 +67,7 @@ public class BaseAIPatternSO : AIPatternSO
             {
                 // 적인 경우(플레이어 포함) 사거리에 따라 결정
                 // 공격 쿨타임이 찼고, 사거리 내에 있을 때만 공격 상태로 전환
-                if (dist <= entity.Stats.ATKRANGE - 0.2f && entity.AtkTimer >= entity.Stats.AttackInterval) nextState = AIState.Attack;
+                if (dist <= entity.Stats.ATKRANGE - attackRangeInset && entity.AtkTimer >= entity.Stats.AttackInterval) nextState = AIState.Attack;
                 else nextState = AIState.Follow;
             }
         }
@@ -75,16 +93,16 @@ public class BaseAIPatternSO : AIPatternSO
 
             // 원거리 적(사거리 3.0f 이상, 단 돌진 몬스터 제외)이고 공격 쿨타임이 아직 차지 않은 경우
             bool isCharger = entity.Brain is ChargerAIPatternSO;
-            if (!isCharger && entity.Stats.ATKRANGE >= 3.0f && entity.AtkTimer < entity.Stats.AttackInterval)
+            if (!isCharger && entity.Stats.ATKRANGE >= rangedFleeThreshold && entity.AtkTimer < entity.Stats.AttackInterval)
             {
                 // 플레이어가 평타 사거리의 약 2배(거리 7f) 내에 접근했을 때만 도망침
-                float fleeTriggerRange = 7.0f;
+                float fleeTriggerRange = fleeTriggerDistance;
                 if (ShouldFleeFromTarget(entity, fleeTriggerRange))
                 {
                     // 매 프레임 목적지를 갱신하여 덜덜덜 흔들리는 것을 막기 위해, 이전 목적지에 근접했을 때만 신규 도망 방향을 연산합니다.
-                    if (!agent.pathPending && agent.remainingDistance < 0.5f)
+                    if (!agent.pathPending && agent.remainingDistance < fleeArrivalDistance)
                     {
-                        Vector3 fleeDest = CalculateFleeDestination(entity, 3.5f);
+                        Vector3 fleeDest = CalculateFleeDestination(entity, fleeStepDistance);
                         agent.SetDestination(fleeDest);
                     }
                 }
@@ -124,7 +142,7 @@ public class BaseAIPatternSO : AIPatternSO
         entity.HasFiredAttackEndEvent = false;
 
         bool hasAnimator = entity.Animator != null && entity.Animator.runtimeAnimatorController != null;
-        float windupTime = 1.0f; // 기본 선딜레이 fallback (0.6f -> 1.0f 증가)
+        float windupTime = fallbackAttackWindup; // 기본 선딜레이 fallback (0.6f -> 1.0f 증가)
 
         if (hasAnimator) 
         {
@@ -141,7 +159,7 @@ public class BaseAIPatternSO : AIPatternSO
             }
 
             // 여유를 위해 공격 간격의 90% 시간 안에 애니메이션이 끝나도록 배속을 조절합니다.
-            float targetDuration = entity.Stats.AttackInterval * 0.9f;
+            float targetDuration = entity.Stats.AttackInterval * Mathf.Clamp(attackAnimationIntervalRatio, 0.01f, 1f);
             if (animLength > targetDuration && targetDuration > 0)
             {
                 entity.Animator.speed = animLength / targetDuration;
@@ -155,7 +173,7 @@ public class BaseAIPatternSO : AIPatternSO
             entity.Animator.Play("Attack", -1, 0f);
 
             // [추가] 애니메이션 이벤트(OnHitEvent)의 정확한 발생 시간(windupTime)을 찾아 배속을 반영합니다.
-            float eventTime = 1.0f; // fallback (0.6f -> 1.0f 증가)
+            float eventTime = fallbackAttackWindup; // fallback (0.6f -> 1.0f 증가)
             foreach (var clip in clips)
             {
                 if (clip.name.IndexOf("Attack", System.StringComparison.OrdinalIgnoreCase) >= 0)
@@ -206,6 +224,7 @@ public class BaseAIPatternSO : AIPatternSO
         }
 
         // [2] Execution (타격)
+        if (!entity.HasFiredHitEvent) entity.PlayAttackFeedback();
         ExecuteBasicAttack(entity);
         entity.HasFiredHitEvent = true;
 
@@ -280,7 +299,7 @@ public class BaseAIPatternSO : AIPatternSO
 
         // 플레이어 반대 방향(플레이어 방향 + 180도) 기준으로 +-90도(총 180도) 범위 내에서 무작위 방향 추출
         float angleToPlayer = Mathf.Atan2(dirToPlayer.y, dirToPlayer.x) * Mathf.Rad2Deg;
-        float randomOffset = Random.Range(-90f, 90f); // +-90도 편차
+        float randomOffset = Random.Range(-fleeSpreadAngle, fleeSpreadAngle); // +-90도 편차
         float finalAngle = (angleToPlayer + 180f + randomOffset) * Mathf.Deg2Rad;
 
         Vector3 randomDir = new Vector3(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle), 0f);

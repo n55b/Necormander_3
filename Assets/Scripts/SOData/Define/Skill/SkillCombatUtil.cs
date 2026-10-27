@@ -102,6 +102,18 @@ public static class SkillCombatUtil
         return from;
     }
 
+    /// <summary>
+    /// 이동 그래프: X=경과 시간 비율, Y=이동 거리 비율. 시작/끝과 0~1 범위를 고정하여
+    /// 곡선을 편집해도 정해진 사거리 밖으로 나가지 않는다. 빈 곡선은 기존 등속 이동이다.
+    /// </summary>
+    public static float EvaluateMotionProgress(AnimationCurve curve, float time01)
+    {
+        float t = Mathf.Clamp01(time01);
+        if (t <= 0f || t >= 1f || curve == null || curve.length < 2) return t;
+        float value = curve.Evaluate(t);
+        return float.IsNaN(value) || float.IsInfinity(value) ? t : Mathf.Clamp01(value);
+    }
+
     /// <summary>mover 를 from→to 로 duration 동안 Lerp 이동시킨다.</summary>
     public static IEnumerator MoveOverTime(Transform mover, Vector2 from, Vector2 to, float duration)
     {

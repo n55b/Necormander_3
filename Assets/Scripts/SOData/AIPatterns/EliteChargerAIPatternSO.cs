@@ -18,13 +18,11 @@ using System.Collections.Generic;
 /// 기본 공격 3종 중 2종이 돌진이고, 사거리 밖 추격 중에도 간헐적으로 짧게 가속합니다(추격 버스트).
 ///
 /// [v1.5] 보스가 아니라 엘리트인 만큼 "짧고 명료한 전투"로 다운스케일했습니다. 삭제된 것들:
-///   - 기둥(EliteMonsterPillar) 전체. 그래서 회피 수단은 대쉬와 지형뿐이고,
+///   - 기둥 패턴 전체. 그래서 회피 수단은 대쉬와 지형뿐이고,
 ///     패턴 1의 회피 성공 조건도 "벽 충돌" 하나로 통일됐습니다(보스 기절 1.5초).
 ///   - 기둥 파편 누적 강화 스택(받는 피해 +5%/스택) — 획득 경로가 기둥뿐이었습니다.
 ///   - 패턴 2 '중력 도넛 폭발' — 특수 패턴 풀은 [패턴1 돌진 조준, 패턴3 바닥 충격파] 2종.
 ///   - 2페이즈 전환(하울링 + 상시 속도 증가). 전투 강도는 시작부터 끝까지 일정합니다.
-///  ※ EliteMonsterPillar / PillarField / Charger Pillar 프리팹은 지우지 않고 남겨뒀습니다.
-///    다음 보스가 기둥을 쓸 수 있어서인데, 이 차저는 더 이상 참조하지 않습니다.
 ///
 /// [중요] Unity 엔진의 BaseEntity.Update()는 IsAttacking == true인 동안(공격 windup~후딜레이)에는
 /// CanExecuteAI()가 false를 반환해 브레인의 Execute()를 아예 호출하지 않습니다. 그래서 8초 판정은
@@ -37,53 +35,13 @@ using System.Collections.Generic;
 [CreateAssetMenu(fileName = "EliteChargerAIPattern", menuName = "Necromancer/AI/EliteChargerPattern")]
 public class EliteChargerAIPatternSO : BossAIPatternSO
 {
-    // ##############################################################################
-    // # [Step 4b 계획 — 아직 실행 안 함] IBossAction 카탈로그 리팩터                  #
-    // # 새 보스를 만들 때 이 파일을 참고할 텐데, 그때 "이 정리를 지금 할지" 판단용 메모.     #
-    // ##############################################################################
-    //
-    // ▷ 지금 구조(문제):
-    //   이 SO 한 파일(~1600줄)에 6개 공격 '바디'가 전부 private 코루틴으로 살고,
-    //   index(매직넘버 0/1/2)로 switch 디스패치한다.
-    //     - 기본 3종: BasicAttackRoutine()이 _scheduler.NextBasic() index로 windup/radius/label을
-    //       삼항으로 고르고 → MiniChargeStabRoutine / NormalChargeRoutine / (sweep 인라인) 분기.
-    //     - 특수 2종: RunSpecialPattern(p)의 switch(p) → Pattern1_AimedCharge / Pattern3_GroundSlam.
-    //
-    // ▷ 목표 구조(리팩 후):
-    //   각 공격을 IBossAction 구현 1개로 분리하고, 브레인은 "고르고 실행"만 한다.
-    //     _basics   = { MiniStabAction, NormalChargeAction, SweepAction };
-    //     _specials = { AimedChargeAction, GroundSlamAction };
-    //     Execute(): scheduler가 고른 _basics[i] / _specials[i] 의 .Run(ctx) 만 호출.
-    //   => 공격 추가/삭제/교체 = 클래스 하나 + 리스트 한 줄. index 매직넘버·거대 switch 사라짐.
-    //
-    // ▷ 이미 만들어 둔 재사용 인프라 (Assets/Scripts/SOData/AI patterns/Boss/):
-    //     IBossAction / BossContext (BossAction.cs), BossActionScheduler, BossTelegraph,
-    //     BossCombat(TryDamage/DealCircle/ExpandingRing), PillarField.
-    //   => 새 보스는 '엘리트를 안 뜯어도' 이 인프라 위에 IBossAction 리스트로 바로 만들 수 있다.
-    //      (즉 미래 보스가 '잠겨있는' 게 아니다. 4b는 순수하게 '엘리트 자신을 그 모양에 맞추는' 일.)
-    //
-    // ▷ 추출 방법(한 번에 X, 액션 하나씩 → 매번 플레이테스트):
-    //   1) 각 액션 클래스는 생성자로 이 SO(설정 필드 provider)를 받는다. (config는 전부 public 필드라 접근 가능)
-    //   2) 액션이 쓰는 헬퍼를 공용으로 옮기거나 노출:
-    //        - GetAimDir      → 이미 BossContext.AimDir() 로 대체 가능
-    //        - 텔레그래프 생성   → BossTelegraph (원/사각/링). CreateFallbackRect/Circle/Ring도 여기로 흡수
-    //        - 데미지/링 판정    → BossCombat.TryDamage / DealCircle / ExpandingRing (이미 링·데미지는 이걸 씀)
-    //        - 기둥 질의/수명    → PillarField (이미 이관됨)
-    //        - GetRoomMetrics / GetBoundsExitDistance / ResolveLandingPoint / StopNavAgent /
-    //          ShowLabel/ClearLabel → 공용 유틸(예: BossContext 또는 새 BossMotion/BossRoom 유틸)로 이동하거나
-    //          SO 메서드를 internal 로 노출해 액션이 호출.
-    //   3) BasicAttackRoutine의 '공통 래퍼'(IsAttacking/Animator/postDelay/ClearLabel)는 브레인에 남기고,
-    //      액션은 '공격 고유부'만 담당하게 쪼갠다. (특수 3종은 이미 자기완결형이라 래핑이 더 쉬움)
-    //
-    // ▷ 왜/언제:
-    //   기능 변화 0의 순수 정리다. 즉시 이득(#6 기둥누수, 데미지 단일경로, 텔레그래프/링 중복제거, 레이어 정리)은
-    //   이미 다 챙겼다. 회귀 리스크는 제일 크고 즉시 이득은 제일 작으므로 급하지 않다.
-    //   ⇒ 보스 #2를 만들며 '두 보스 공통 모양'이 실제로 필요해질 때, 그 김에 여기도 함께 정리하는 걸 권장.
-    //
-    // ▷ 이미 완료된 관련 리팩(참고): SO 브레인 클론 방식 유지(BaseEntity가 인스턴스별 Instantiate),
-    //   PillarField로 기둥 수명/정리(#6) 캡슐화, 스케줄러 일원화(_scheduler), 데미지 단일경로(BossCombat),
-    //   텔레그래프 스프라이트 BossTelegraph로 통합, 링 2종 BossCombat.ExpandingRing으로 통합.
-    // ##############################################################################
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0.01f), Tooltip("착지 공격 히트박스의 마지막 예고 시간입니다. 실제 타격 대기도 같은 값을 사용합니다.")]
+    private float leapImpactDelay = 0.05f;
+    [SerializeField, Min(0.01f), Tooltip("휩쓸기와 착지 타격 히트박스가 활성 상태로 남아 있는 시간입니다.")]
+    private float impactHitActiveDuration = 0.25f;
+    [SerializeField, Min(0.01f), Tooltip("벽을 향한 특수 돌진의 최대 진행 시간입니다. 먼저 벽을 만나면 기존 벽 충돌 처리가 적용됩니다.")]
+    private float wallChargeMaxDuration = 3f;
 
     // ==============================================================
     // 기본 공격 4종 (v1.3, 인스펙터에서 알아보기 쉬도록 공격별로 그룹화)
@@ -106,6 +64,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public float miniChargeDistance = 3.6f;
     [Tooltip("착지 지점을 정할 때 벽 충돌 검사에 쓰는 반경")]
     public float miniChargeCheckRadius = 0.6f;
+    [Tooltip("짧은 도약의 이동 그래프. X=체공 시간 0~1, Y=착지점까지의 거리 0~1. 착지/예고 시점은 유지한다.")]
+    public AnimationCurve miniChargeMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
     [Header("② 일반 돌진")]
     [Tooltip("일반 차저가 가진 직선형 고속 돌진입니다. 데미지가 낮고 사거리가 짧습니다.")]
@@ -139,6 +99,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public float pursuitBurstDuration = 0.35f;
     [Tooltip("가속에서 평상시 속도로 되돌아오는 감속 시간")]
     public float pursuitBurstDecelDuration = 0.25f;
+    [Tooltip("추격 버스트 감속 그래프. X=감속 시간 0~1, Y=평상시 속도로 돌아오는 비율 0~1.")]
+    public AnimationCurve pursuitDecelerationCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
     // ==============================================================
     // 슈퍼아머 / 패턴 이름 표시
@@ -593,7 +555,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             {
                 dt += Time.deltaTime;
                 float f = Mathf.Clamp01(dt / pursuitBurstDecelDuration);
-                agent.speed = Mathf.Lerp(burstSpeed, baseSpeed, f);
+                agent.speed = Mathf.Lerp(burstSpeed, baseSpeed, SkillCombatUtil.EvaluateMotionProgress(pursuitDecelerationCurve, f));
                 yield return null;
             }
             agent.speed = baseSpeed;
@@ -681,7 +643,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
 
             DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f);
-            hb.Init(info, entity.opponentLayer, 0.25f, windup, entity.team == Team.Ally);
+            hb.Init(info, entity.opponentLayer, impactHitActiveDuration, windup, entity.team == Team.Ally);
 
             float t = 0f;
             while (t < windup)
@@ -762,7 +724,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             {
                 t += Time.deltaTime;
                 float f = Mathf.Clamp01(t / airTime);
-                entity.transform.position = Vector2.Lerp(start, land, f);
+                entity.transform.position = Vector2.Lerp(start, land, SkillCombatUtil.EvaluateMotionProgress(miniChargeMovementCurve, f));
                 if (fillMark != null) fillMark.transform.localScale = Vector3.one * (radius * f);
                 yield return null;
             }
@@ -788,9 +750,9 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         if (hb == null) hb = hitboxObj.AddComponent<BaseHitBox>();
 
         DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f, bypassGuard: true);
-        hb.Init(info, entity.opponentLayer, 0.25f, 0.05f, entity.team == Team.Ally);
+        hb.Init(info, entity.opponentLayer, impactHitActiveDuration, leapImpactDelay, entity.team == Team.Ally);
 
-        yield return new WaitForSeconds(0.05f);
+        yield return new WaitForSeconds(leapImpactDelay);
     }
 
     /// <summary>
@@ -851,7 +813,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
 
             wt += Time.deltaTime;
-            if (CanTrackAim(wt, windup) && entity.Target != null) dir = GetAimDir(entity);
+            if (CanTrackAim(wt, windup, entity) && entity.Target != null) dir = GetAimDir(entity);
             BossAttackIndicator.Aim(entity, dir);
             dirIndicator?.SetAimOverride(dir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
             // 레인은 플레이어를 통과시키되, 벽/장애물에 막히는 지점까지만 그린다.
@@ -899,6 +861,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
         // [잔상] 일반 돌진 동안만 잔상 방출 윈도우 오픈
         entity.GetComponent<DashAfterimage>()?.BeginDash(normalChargeMaxDuration + 0.5f);
+        PolishFeedback.Play(FeedbackCue.ChargeStart, entity.transform.position, dir);
 
         float elapsed = 0f;
 
@@ -946,6 +909,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
             if (hitCheck.WallBlocksFirst)
             {
+                PolishFeedback.Play(FeedbackCue.ChargeWall, entity.transform.position, -dir);
                 // 벽에 닿으면 그냥 멈춘다. 패턴 1과 달리 기절은 없다(기본 공격이라 리스크가 없어야 함).
                 if (rb != null) rb.linearVelocity = Vector2.zero;
                 break;
@@ -1080,7 +1044,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             }
 
             t += Time.deltaTime;
-            if (CanTrackAim(t, scaledChargeWindup) && entity.Target != null)
+            if (CanTrackAim(t, scaledChargeWindup, entity) && entity.Target != null)
             {
                 chargeDir = GetAimDir(entity);
                 entity.LookAtTarget(entity.Target);
@@ -1155,10 +1119,11 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         float chargeSpeed = entity.Stats.MOVESPEED * chargeSpeedMultiplier;
         // 이 패턴엔 '사거리'가 따로 없다. 방이 벽으로 둘러싸여 있으니 플레이어를 못 맞히면 결국 벽에 박는다.
         // maxDuration 은 그게 어떤 이유로든(벽 콜라이더 누락 등) 안 일어났을 때 무한 돌진을 막는 안전장치일 뿐.
-        float maxDuration = 3f;
+        float maxDuration = Mathf.Max(0.01f, wallChargeMaxDuration);
 
         // [잔상] 패턴1 강한 돌진 동안만 잔상 방출 윈도우 오픈
         entity.GetComponent<DashAfterimage>()?.BeginDash(maxDuration + 0.5f);
+        PolishFeedback.Play(FeedbackCue.ChargeStart, entity.transform.position, chargeDir);
 
         float elapsed = 0f;
 
@@ -1196,6 +1161,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
             if (hitCheck.WallBlocksFirst || outOfBounds)
             {
+                PolishFeedback.Play(FeedbackCue.ChargeWall, entity.transform.position, -chargeDir);
                 // 벽에 박았다 = 플레이어가 회피에 성공했다. 아래에서 기절.
                 if (rb != null) rb.linearVelocity = -chargeDir * 3f;
                 entity.transform.position = (Vector2)entity.transform.position - chargeDir * 0.15f;

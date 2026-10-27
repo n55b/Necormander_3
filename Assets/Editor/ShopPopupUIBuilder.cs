@@ -105,20 +105,13 @@ public static class ShopPopupUIBuilder
     // ─── 메뉴 명령 ───────────────────────────────────────────────────
 
 
-    // ── ShopNPC 프리팹 정리: 바닥 진열품 제거 + 말 걸기용 콜라이더 ──
-    [MenuItem("Tools/Shop/Setup ShopNPC (remove floor items)")]
+    // ── ShopNPC 프리팹: 말 걸기용 콜라이더 ──
+    [MenuItem("Tools/Shop/Setup ShopNPC Collider")]
     public static void SetupShopNpc()
     {
         var root = PrefabUtility.LoadPrefabContents(ShopNpcPrefab);
         try
         {
-            int removed = 0;
-            foreach (var s in root.GetComponentsInChildren<SellItem>(true))
-            {
-                Object.DestroyImmediate(s.gameObject);
-                removed++;
-            }
-
             string colInfo = "기존 콜라이더 유지";
             if (root.GetComponent<Collider2D>() == null)
             {
@@ -137,7 +130,7 @@ public static class ShopPopupUIBuilder
             }
 
             PrefabUtility.SaveAsPrefabAsset(root, ShopNpcPrefab);
-            Debug.Log($"[ShopPopupUIBuilder] ShopNPC: 바닥 진열품 {removed}개 제거, {colInfo}");
+            Debug.Log($"[ShopPopupUIBuilder] ShopNPC: {colInfo}");
         }
         finally
         {

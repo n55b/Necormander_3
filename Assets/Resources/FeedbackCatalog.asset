@@ -1,0 +1,3253 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b39538e5096e0ae42a927b7b8f3e598e, type: 3}
+  m_Name: FeedbackCatalog
+  m_EditorClassIdentifier: 
+  enabled: 1
+  intensity: 1
+  simultaneousBursts: 72
+  burstsPerFrame: 12
+  soundsPerFrame: 3
+  tiers:
+  - title: "\uAE30\uBCF8"
+    intensity: 0.55
+    density: 0.45
+    reach: 0.7
+  - title: "\uAC15\uD654"
+    intensity: 0.7
+    density: 0.65
+    reach: 0.85
+  - title: "\uC9C4\uD654"
+    intensity: 0.85
+    density: 0.85
+    reach: 1
+  - title: "\uCD5C\uC885"
+    intensity: 1
+    density: 1
+    reach: 1.1
+  effects:
+  - cue: 1
+    title: "\uD0C0\uACA9 \uBC29\uD5A5 \uD30C\uD3B8"
+    description: " \uB9DE\uC740 \uC9C0\uC810\uC5D0\uC11C \uACF5\uACA9 \uBC29\uD5A5\uC73C\uB85C
+      \uC9E7\uC740 \uD30C\uD3B8\uC744 \uBAB0\uC544\uC900\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 1, g: 0.88, b: 0.58, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.5
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 2
+    title: "\uCF64\uBCF4 \uB9C8\uC9C0\uB9C9 \uD0C0 \uC804\uC6A9 \uC12C\uAD11"
+    description: " \uB9C8\uC9C0\uB9C9 \uACF5\uACA9\uC5D0\uB9CC \uBCC4 \uBAA8\uC591
+      \uC12C\uAD11\uACFC \uC791\uC740 \uD30C\uB3D9\uC744 \uCD94\uAC00\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 1, g: 0.88, b: 0.58, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 2
+    radius: 0.9
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 1
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 8300000, guid: bfc8eb06cb2dafd49b0328f7f17a235a, type: 3}
+    volume: 0.12
+    pitchVariation: 0.05
+  - cue: 3
+    title: "\uCE58\uBA85\uD0C0 \uC774\uC911 \uBC18\uC9DD\uC784"
+    description: " \uC77C\uBC18 \uD0C0\uACA9 \uC9C1\uD6C4 \uC791\uC740 \uBE5B\uC774
+      \uD55C \uBC88 \uB354 \uB0A8\uC544 \uCE58\uBA85\uD0C0\uB97C \uAD6C\uBCC4\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0.055
+    count: 4
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 1
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 4
+    title: "\uC7AC\uC9C8\uBCC4 \uD53C\uACA9"
+    description: " \uAE08\uC18D\uC740 \uB178\uB780 \uBD88\uAF43, \uBF08\uB294 \uD770
+      \uC870\uAC01, \uC0B4\uC810\uC740 \uC5B4\uB450\uC6B4 \uC9E7\uC740 \uC5BC\uB8E9\uC73C\uB85C
+      \uAD6C\uBCC4\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 2
+    color: {r: 1, g: 0.88, b: 0.58, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 4
+    radius: 0.4
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 1
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 8300000, guid: 1339cd58ce579f944804a24b7e7fd997, type: 3}
+    volume: 0.08
+    pitchVariation: 0.05
+  - cue: 5
+    title: "\uBB34\uAE30 \uADA4\uC801 \uC794\uAD11"
+    description: " \uACF5\uACA9 \uADF8\uB9BC\uC740 \uADF8\uB300\uB85C \uB450\uACE0
+      \uD718\uB450\uB978 \uACBD\uB85C\uC5D0 \uAC00\uB290\uB2E4\uB780 \uC120\uC744
+      \uC9E7\uAC8C \uB0A8\uAE34\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 6
+    color: {r: 1, g: 0.88, b: 0.58, a: 1}
+    intensity: 1
+    duration: 0.14
+    delay: 0
+    count: 1
+    radius: 0.7
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 1
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 6
+    title: "\uAC15\uD0C0 \uBC14\uB2E5 \uBA3C\uC9C0"
+    description: " \uC801\uC758 \uBC1C\uBC11\uC5D0 \uB0AE\uC740 \uBA3C\uC9C0\uAC00
+      \uD37C\uC838 \uBB34\uAC8C\uAC10\uC744 \uC900\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 2
+    color: {r: 1, g: 0.88, b: 0.58, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 8
+    radius: 0.9
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 2
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 7
+    title: "\uB2E4\uB2E8\uD788\uD2B8 \uB9AC\uB4EC"
+    description: " \uCCAB \uD0C0\xB7\uC911\uAC04 \uD0C0\xB7\uB9C8\uC9C0\uB9C9 \uD0C0\uC758
+      \uD30C\uD3B8 \uBC00\uB3C4\uC640 \uC794\uAD11 \uC2DC\uAC04\uC744 \uB098\uB208\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 1, g: 0.88, b: 0.58, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 3
+    radius: 0.32
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 1
+    interval: 0.015
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 8
+    title: "\uB9C8\uBB34\uB9AC \uC77C\uACA9 \uD45C\uC2DC"
+    description: " \uC2E4\uC81C \uCC98\uCE58\uD55C \uB9C8\uC9C0\uB9C9 \uD0C0\uACA9\uC5D0\uB9CC
+      \uC587\uC740 \uC2ED\uC790\uBE5B\uC744 \uB0A8\uAE34\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 1, g: 0.88, b: 0.58, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 2
+    radius: 0.75
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 1
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 17
+    title: "\uCD9C\uBC1C \uBA3C\uC9C0"
+    description: " \uC815\uC9C0\uC5D0\uC11C \uC6C0\uC9C1\uC77C \uB54C\uB9CC \uBC1C\uB4A4\uC5D0
+      \uC791\uC740 \uBA3C\uC9C0 \uB450\uC138 \uAC1C\uB97C \uB0A8\uAE34\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 2
+    color: {r: 0.75, g: 0.7, b: 0.6, a: 0.85}
+    intensity: 1
+    duration: 0.26
+    delay: 0
+    count: 4
+    radius: 0.4
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 18
+    title: "\uAE09\uC815\uC9C0 \uB9C8\uCC30"
+    description: " \uBE60\uB974\uAC8C \uB2EC\uB9AC\uB2E4 \uBA48\uCD9C \uB54C \uBC1C\uB05D\uC5D0
+      \uB0AE\uC740 \uBA3C\uC9C0\uC640 \uC9E7\uC740 \uD754\uC801\uC744 \uB0A8\uAE34\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 2
+    color: {r: 0.75, g: 0.7, b: 0.6, a: 0.85}
+    intensity: 1
+    duration: 0.26
+    delay: 0
+    count: 4
+    radius: 0.4
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 19
+    title: "\uAE09\uD68C\uC804 \uBA3C\uC9C0"
+    description: " \uBC18\uB300 \uBC29\uD5A5\uC73C\uB85C \uAEBE\uC744 \uB54C \uBC14\uAE65\uCABD
+      \uBC1C\uC5D0\uC11C \uC791\uC740 \uBD80\uCC44\uAF34 \uBA3C\uC9C0\uAC00 \uD37C\uC9C4\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 2
+    color: {r: 0.75, g: 0.7, b: 0.6, a: 0.85}
+    intensity: 1
+    duration: 0.26
+    delay: 0
+    count: 4
+    radius: 0.4
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 20
+    title: "\uB300\uC2DC \uCD9C\uBC1C \uC555\uCD95\uD30C"
+    description: " \uCD9C\uBC1C \uC9C0\uC810\uC5D0 \uC9E7\uC740 \uC120\uB4E4\uC774
+      \uBAA8\uC600\uB2E4\uAC00 \uB4A4\uB85C \uD130\uC9C4\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 0.75, g: 0.7, b: 0.6, a: 0.85}
+    intensity: 1
+    duration: 0.18
+    delay: 0
+    count: 7
+    radius: 0.65
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 21
+    title: "\uB300\uC2DC \uB05D \uCC29\uC9C0\uD30C"
+    description: " \uB3C4\uCC29 \uC9C0\uC810\uC5D0 \uB0AE\uACE0 \uC9E7\uC740 \uD0C0\uC6D0\uD615
+      \uBA3C\uC9C0\uB97C \uB9CC\uB4E0\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 1
+    color: {r: 0.75, g: 0.7, b: 0.6, a: 0.85}
+    intensity: 1
+    duration: 0.26
+    delay: 0
+    count: 1
+    radius: 0.6
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 22
+    title: "\uB300\uC2DC \uCDA9\uC804 \uC644\uB8CC \uC2E0\uD638"
+    description: " \uBC1C\uBC11 \uB300\uC2DC UI \uD55C \uCE78\uACFC \uBC1C\uB05D\uC774
+      \uD55C \uBC88\uB9CC \uAC00\uBCCD\uAC8C \uBC18\uC9DD\uC778\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 0.5, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.26
+    delay: 0
+    count: 2
+    radius: 0.2
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 23
+    title: "\uD45C\uBA74\uBCC4 \uBC1C\uAC78\uC74C"
+    description: " \uD759\xB7\uB3CC\xB7\uBB3C\uAC00\uC5D0 \uB9DE\uCDB0 \uBA3C\uC9C0
+      \uC0C9, \uC791\uC740 \uC870\uAC01, \uBB3C\uBC29\uC6B8\uC744 \uAD6C\uBCC4\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 2
+    color: {r: 0.75, g: 0.7, b: 0.6, a: 0.85}
+    intensity: 1
+    duration: 0.26
+    delay: 0
+    count: 4
+    radius: 0.4
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 24
+    title: "\uC774\uB3D9 \uC794\uC0C1 \uB9AC\uB4EC"
+    description: " \uAE30\uC874 \uB300\uC2DC \uC794\uC0C1\uC758 \uAC04\uACA9\uC744
+      \uC2DC\uC791 \uCD18\uCD18\xB7\uB05D \uC131\uAE30\uAC8C \uC870\uC808\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 7
+    color: {r: 0.4, g: 0.85, b: 1, a: 0.5}
+    intensity: 1
+    duration: 0.26
+    delay: 0
+    count: 1
+    radius: 0.22
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.025
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 25
+    title: "\uBBF8\uB2C8\uC5B8 \uBA85\uB839 \uC5F0\uACB0\uC120"
+    description: " Space \uBA85\uB839 \uC21C\uAC04 \uD50C\uB808\uC774\uC5B4\u2192\uC18C\uD658\uC218
+      \uC0AC\uC774\uC5D0 \uC601\uD63C \uC2E4\uC774 \uC9E7\uAC8C \uD750\uB978\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 4
+    color: {r: 0.35, g: 0.85, b: 1, a: 1}
+    intensity: 1
+    duration: 0.35
+    delay: 0
+    count: 1
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 26
+    title: "\uB3D9\uC2DC \uD3C9\uD0C0 \uC900\uBE44 \uC2E0\uD638"
+    description: " \uB0B4\uBD80 \uCFE8\uC774 \uB05D\uB0AC\uC744 \uB54C \uBBF8\uB2C8\uC5B8
+      \uBB34\uAE30\uB098 \uBC1C\uBC11\uC5D0 \uC791\uC740 \uBE5B\uC774 \uB3C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 6
+    color: {r: 0.35, g: 0.85, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 1
+    radius: 0.3
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 27
+    title: "\uC18C\uD658 \uC870\uB9BD"
+    description: " \uC601\uD63C \uC785\uC790\uAC00 \uBAA8\uC778 \uB4A4 \uAE30\uC874
+      \uB514\uB354\uB9C1\uC73C\uB85C \uC18C\uD658\uC218\uC758 \uC724\uACFD\uC774
+      \uB4DC\uB7EC\uB09C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 5
+    color: {r: 0.35, g: 0.85, b: 1, a: 1}
+    intensity: 1
+    duration: 0.35
+    delay: 0
+    count: 9
+    radius: 0.7
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 28
+    title: "\uADC0\uD658 \uD761\uC218"
+    description: " \uBBF8\uB2C8\uC5B8\uC774 \uC0AC\uB77C\uC9C8 \uB54C \uB0A8\uC740
+      \uC785\uC790\uAC00 \uD50C\uB808\uC774\uC5B4 \uCABD\uC73C\uB85C \uC9E7\uAC8C
+      \uD758\uB7EC\uAC04\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 4
+    color: {r: 0.35, g: 0.85, b: 1, a: 1}
+    intensity: 1
+    duration: 0.35
+    delay: 0
+    count: 1
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 29
+    title: "\uB9C8\uB9AC\uC624\uB124\uD2B8 \uC774\uC911 \uD0C0\uACA9 \uAD6C\uBCC4"
+    description: " \uCCAB \uD0C0\uC640 \uD6C4\uC18D \uD0C0\uC5D0 \uB2E4\uB978 \uC0C9/\uBC29\uD5A5\uC758
+      \uC791\uC740 \uC794\uAD11\uC744 \uC900\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 7
+    color: {r: 0.8, g: 0.45, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 2
+    radius: 0.6
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 1
+    interval: 0.015
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 30
+    title: "\uC9C4\uD654 \uACC4\uD1B5 \uC0C9"
+    description: " \uAE30\uC0AC \uACC4\uC5F4\uC740 \uB2E8\uB2E8\uD55C \uAE08\uC18D
+      \uBD88\uAF43, \uBB34\uC0AC \uACC4\uC5F4\uC740 \uC587\uC740 \uC808\uB2E8 \uC794\uAD11\uC744
+      \uC0AC\uC6A9\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 6
+    color: {r: 0.35, g: 0.85, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 2
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 2
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 31
+    title: "\uCC98\uCE58 \uC601\uD63C \uD750\uB984"
+    description: " \uC801\uC774 \uC8FD\uC744 \uB54C \uC7A5\uC2DD\uC6A9 \uC601\uD63C\uC774
+      \uC18C\uD658\uC218\uB098 \uD50C\uB808\uC774\uC5B4 \uBC29\uD5A5\uC73C\uB85C
+      \uC774\uB3D9\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 4
+    color: {r: 0.35, g: 0.85, b: 1, a: 1}
+    intensity: 1
+    duration: 0.35
+    delay: 0
+    count: 1
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 1
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 32
+    title: "\uC9C4\uD654 \uD655\uC815 \uC758\uC2DD"
+    description: " \uAE30\uC874 \uADF8\uB9BC \uC2E4\uB8E8\uC5E3\uC5D0 \uC791\uC740
+      \uC6D0\xB7\uC785\uC790\uAC00 \uBAA8\uC778 \uB4A4 \uC0C8 \uADF8\uB9BC\uC774
+      \uB4F1\uC7A5\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 5
+    color: {r: 0.35, g: 0.85, b: 1, a: 1}
+    intensity: 1
+    duration: 0.8
+    delay: 0
+    count: 12
+    radius: 1.3
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 39
+    title: "\uD68C\uBCF5 \uC0C1\uC2B9 \uC785\uC790"
+    description: " \uD68C\uBCF5 \uC21C\uAC04 \uC791\uC740 \uC810\uC774 \uC704\uB85C
+      \uC624\uB974\uACE0 HP \uBC14\uC5D0 \uC794\uAD11\uC774 \uB3C4\uCC29\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 0.5, g: 1, b: 0.55, a: 1}
+    intensity: 1
+    duration: 0.65
+    delay: 0
+    count: 2
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 1}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 40
+    title: "\uC800\uCCB4\uB825 \uC2EC\uBC15"
+    description: " \uAE30\uC874 \uD654\uBA74 \uAC00\uC7A5\uC790\uB9AC \uD6A8\uACFC\uB97C
+      \uC57D\uD55C \uD638\uD761 \uC8FC\uAE30\uB85C \uBC14\uAFD4 \uC9C0\uC18D \uC0C1\uD0DC\uB97C
+      \uC804\uB2EC\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 0.65, g: 0.05, b: 0.12, a: 0.09}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 41
+    title: "\uBC1C\uC0AC \uC12C\uAD11"
+    description: " \uBC1C\uC0AC \uC9C0\uC810\uC758 \uC9E7\uC740 \uBE5B\uACFC \uBC18\uB300
+      \uBC29\uD5A5 \uC5F0\uAE30\uB97C \uD55C \uBC88\uB9CC \uCD9C\uB825\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 1, g: 0.65, b: 0.38, a: 1}
+    intensity: 1
+    duration: 0.16
+    delay: 0
+    count: 3
+    radius: 0.22
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.025
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 42
+    title: "\uC9E7\uC740 \uADA4\uC801 \uAF2C\uB9AC"
+    description: " \uD0C4 \uB4A4\uC5D0 \uC6D0\uBCF8 \uB3C4\uD2B8 \uBC30\uC728\uC744
+      \uC720\uC9C0\uD55C \uC810 \uB610\uB294 \uC120\uC774 \uB0A8\uB294\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 7
+    color: {r: 1, g: 0.65, b: 0.38, a: 1}
+    intensity: 1
+    duration: 0.16
+    delay: 0
+    count: 1
+    radius: 0.15
+    width: 0.02
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.025
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 43
+    title: "\uC720\uB3C4 \uC911 \uC794\uAD11"
+    description: " \uC720\uB3C4 \uB2A5\uB825\uC774 \uC788\uB294 \uB3D9\uC548\uB9CC
+      \uAF2C\uB9AC\uC5D0 \uC605\uC740 \uBCF4\uC870 \uC120\uC744 \uB454\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 7
+    color: {r: 0.45, g: 0.85, b: 1, a: 0.75}
+    intensity: 1
+    duration: 0.16
+    delay: 0
+    count: 1
+    radius: 0.15
+    width: 0.02
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.025
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 44
+    title: "\uBCBD \uCDA9\uB3CC \uBC18\uC751"
+    description: " \uCDA9\uB3CC \uBC29\uD5A5\uC758 \uBC18\uB300\uB85C \uBD88\uAF43\xB7\uBA3C\uC9C0\uB97C
+      \uD280\uAE34\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 1, g: 0.65, b: 0.38, a: 1}
+    intensity: 1
+    duration: 0.16
+    delay: 0
+    count: 3
+    radius: 0.22
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.025
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 45
+    title: "\uBC14\uB2E5 \uCDA9\uB3CC \uD754\uC801"
+    description: " \uD0C4\uC774 \uB05D\uB09C \uC704\uCE58\uC5D0 \uC9E7\uC740 \uC810\uD615
+      \uC790\uAD6D\uC744 \uB0A8\uAE34\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 2
+    color: {r: 0.5, g: 0.4, b: 0.35, a: 0.7}
+    intensity: 1
+    duration: 0.35
+    delay: 0
+    count: 3
+    radius: 0.22
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.025
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 46
+    title: "\uBC18\uC0AC \uC804\uD6C4 \uC0C9 \uAD6C\uBCC4"
+    description: " \uC801 \uD0C4\uACFC \uBC18\uC0AC\uB41C \uD0C4\uC758 \uAF2C\uB9AC
+      \uC0C9\xB7\uBC18\uC9DD\uC784\uC744 \uB2E4\uB974\uAC8C \uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 7
+    color: {r: 0.45, g: 0.85, b: 1, a: 0.75}
+    intensity: 1
+    duration: 0.16
+    delay: 0
+    count: 1
+    radius: 0.15
+    width: 0.02
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.025
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 47
+    title: "\uAD00\uD1B5 \uD1B5\uACFC \uC12C\uAD11"
+    description: " \uAD00\uD1B5\uD55C \uC801\uC758 \uC785\uAD6C\uC640 \uCD9C\uAD6C\uC5D0
+      \uC791\uC740 \uBD88\uAF43\uC744 \uC9E7\uAC8C \uB098\uB220 \uCD9C\uB825\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 7
+    color: {r: 1, g: 0.65, b: 0.38, a: 1}
+    intensity: 1
+    duration: 0.16
+    delay: 0
+    count: 2
+    radius: 0.22
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.025
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 48
+    title: "\uD0C4 \uC18C\uBA78 \uC218\uCD95"
+    description: " \uC218\uBA85\uC774 \uB05D\uB09C \uD0C4 \uC8FC\uBCC0\uC758 \uBE5B\uC774
+      \uC911\uC2EC\uC73C\uB85C \uBAA8\uC5EC \uC0AC\uB77C\uC9C4\uB2E4. \uD0C4 \uC790\uCCB4
+      \uB3C4\uD2B8\uB294 \uD655\uB300\uD558\uC9C0 \uC54A\uB294\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 5
+    color: {r: 1, g: 0.65, b: 0.38, a: 1}
+    intensity: 1
+    duration: 0.2
+    delay: 0
+    count: 3
+    radius: 0.22
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.025
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 49
+    title: "\uC870\uC900 \uD655\uC815 \uC2E0\uD638"
+    description: " \uCD94\uC801\uC774 \uBA48\uCD94\uB294 \uC21C\uAC04 \uC608\uACE0\uC120
+      \uB05D\uC810\uC774 \uD55C \uBC88 \uBC18\uC9DD\uC5EC \uBC29\uD5A5 \uACE0\uC815\uC744
+      \uC54C\uB9B0\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.12
+    delay: 0
+    count: 2
+    radius: 0.4
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 50
+    title: "\uACF5\uACA9 \uC9C1\uC804 \uC9D1\uC911\uC120"
+    description: " \uC2E4\uC81C \uD0C0\uACA9 \uC9C1\uC804\uC5D0\uB9CC \uC608\uACE0
+      \uBC94\uC704 \uBC14\uAE65\uC758 \uC9E7\uC740 \uC120\uC774 \uC548\uC73C\uB85C
+      \uBAA8\uC778\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 1, g: 0.65, b: 0.28, a: 1}
+    intensity: 1
+    duration: 0.1
+    delay: 0
+    count: 6
+    radius: 0.5
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 51
+    title: "\uB3CC\uC9C4 \uCD9C\uBC1C \uD759\uBA3C\uC9C0"
+    description: " \uC801 \uB4A4\uCABD\uC5D0 \uBA3C\uC9C0\uB97C \uBAA8\uC544 \uB3CC\uC9C4
+      \uBC29\uD5A5\uC744 \uAC15\uC870\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 6
+    color: {r: 1, g: 0.65, b: 0.28, a: 1}
+    intensity: 1
+    duration: 0.25
+    delay: 0
+    count: 1
+    radius: 0.9
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 52
+    title: "\uBCBD \uCDA9\uB3CC \uD30C\uD3B8"
+    description: " \uC2E4\uC81C \uBCBD \uCDA9\uB3CC\uC774 \uD655\uC815\uB410\uC744
+      \uB54C \uC811\uCD09\uC810\uC5D0\uC11C \uB3CC \uC870\uAC01\uACFC \uBA3C\uC9C0\uAC00
+      \uD284\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 1, g: 0.65, b: 0.28, a: 1}
+    intensity: 1
+    duration: 0.25
+    delay: 0
+    count: 10
+    radius: 1.3
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 53
+    title: "\uBCF4\uC2A4 \uCC29\uC9C0 \uC774\uC911 \uD30C\uB3D9"
+    description: " \uC2E4\uC81C \uD310\uC815\uACFC \uD568\uAED8 \uB0AE\uC740 \uBA3C\uC9C0\xB7\uC7A5\uC2DD
+      \uD30C\uB3D9\uC774 \uC2DC\uAC04\uCC28\uB85C \uD37C\uC9C4\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 1
+    color: {r: 1, g: 0.65, b: 0.28, a: 1}
+    intensity: 1
+    duration: 0.32
+    delay: 0
+    count: 1
+    radius: 2
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 54
+    title: "\uCE74\uC6B4\uD130 \uC131\uACF5 \uD30C\uC5F4"
+    description: " \uB178\uB780 \uC608\uACE0\uAC00 \uC791\uC740 \uC870\uAC01\uC73C\uB85C
+      \uAE68\uC9C0\uACE0 \uC9E7\uC740 \uCCAD\uBC31\uC0C9 \uC131\uACF5 \uBE5B\uC774
+      \uB0A8\uB294\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 0.5, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.25
+    delay: 0
+    count: 4
+    radius: 1.1
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 55
+    title: "\uC740\uC2E0\xB7\uB4F1\uC7A5 \uC601\uD63C \uD754\uC801"
+    description: " \uBCF4\uC2A4\uAC00 \uC228\uACE0 \uB098\uC624\uB294 \uC704\uCE58\uC5D0
+      \uC9E7\uC740 \uC785\uC790 \uD754\uC801\uC744 \uB0A8\uAE34\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 5
+    color: {r: 1, g: 0.65, b: 0.28, a: 1}
+    intensity: 1
+    duration: 0.3
+    delay: 0
+    count: 12
+    radius: 1.1
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 56
+    title: "\uBCF4\uC2A4 \uCC98\uCE58 \uC218\uCD95"
+    description: " \uC794\uC5EC \uACF5\uACA9 \uC5F0\uCD9C\uC744 \uBA3C\uC800 \uC815\uB9AC\uD558\uACE0
+      \uBCF4\uC2A4 \uC8FC\uBCC0\uC758 \uBE5B\uC774 \uBAA8\uC600\uB2E4 \uD769\uC5B4\uC9C4\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 1, g: 0.65, b: 0.28, a: 1}
+    intensity: 1
+    duration: 0.7
+    delay: 0
+    count: 14
+    radius: 2
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 57
+    title: "\uC0C1\uC790 \uD2C8\uC0C8 \uBE5B"
+    description: " \uB69C\uAED1\uC774 \uC5F4\uB9AC\uB294 \uD504\uB808\uC784\uC5D0
+      \uB0B4\uBD80\uC5D0\uC11C \uC9E7\uC740 \uBE5B\uC774 \uC62C\uB77C\uC628\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 0.95, g: 0.86, b: 0.45, a: 1}
+    intensity: 1
+    duration: 0.5
+    delay: 0.2
+    count: 9
+    radius: 0.9
+    width: 0.03125
+    drift: {x: 0, y: 0.5}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 58
+    title: "\uBCF4\uC0C1 \uD280\uC5B4\uB098\uC624\uAE30"
+    description: " \uBCF4\uC0C1\uC774 \uC791\uC740 \uD3EC\uBB3C\uC120\uC744 \uADF8\uB9B0
+      \uD6C4 \uBC14\uB2E5 \uBA3C\uC9C0\uC640 \uD568\uAED8 \uC548\uCC29\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 1
+    color: {r: 0.95, g: 0.86, b: 0.45, a: 1}
+    intensity: 1
+    duration: 0.25
+    delay: 0
+    count: 1
+    radius: 0.3
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 59
+    title: "\uD76C\uADC0\uB3C4\uBCC4 \uBC18\uC9DD\uC784"
+    description: " \uC544\uC774\uD15C \uADF8\uB9BC\uC740 \uC720\uC9C0\uD558\uACE0
+      \uD14C\uB450\uB9AC \uC810\xB7\uBE5B\uC904\uAE30\uC758 \uC0C9\uACFC \uBE48\uB3C4\uB9CC
+      \uB2EC\uB9AC\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 6
+    color: {r: 0.95, g: 0.86, b: 0.45, a: 1}
+    intensity: 0.5
+    duration: 0.8
+    delay: 0
+    count: 1
+    radius: 0.4
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 60
+    title: "\uD68D\uB4DD UI \uC5F0\uACB0"
+    description: " \uC2B5\uB4DD\uD55C \uC544\uC774\uCF58\uC758 \uC791\uC740 \uC0AC\uBCF8\uC774
+      \uAC00\uBC29 UI\uB85C \uC774\uB3D9\uD55C \uB4A4 \uC22B\uC790\uAC00 \uAC31\uC2E0\uB41C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 5
+    color: {r: 0.95, g: 0.86, b: 0.45, a: 1}
+    intensity: 1
+    duration: 0.45
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 61
+    title: "\uC2A4\uD0DD \uC99D\uAC00 \uBC18\uB3D9"
+    description: " \uC911\uCCA9 \uAC1C\uC218\uB9CC \uC791\uAC8C \uD280\uACE0 \uD574\uB2F9
+      \uC2AC\uB86F \uD14C\uB450\uB9AC\uC5D0 \uBE5B\uC774 \uD55C \uBC14\uD034 \uB3C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 0.95, g: 0.86, b: 0.45, a: 1}
+    intensity: 1
+    duration: 0.5
+    delay: 0
+    count: 2
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 62
+    title: "\uC911\uCCA9 \uD55C\uB3C4 \uD45C\uC2DC"
+    description: " \uCD5C\uB300 \uC911\uCCA9\uC5D0 \uB3C4\uB2EC\uD560 \uB54C \uD14C\uB450\uB9AC\uAC00
+      \uD55C \uBC88 \uC644\uC131\uB418\uB294 \uBAA8\uC2B5\uC744 \uBCF4\uC5EC\uC900\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 0.95, g: 0.86, b: 0.45, a: 1}
+    intensity: 1
+    duration: 0.5
+    delay: 0
+    count: 2
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 63
+    title: "\uAC15\uD654 \uD655\uC815 \uC12C\uAD11"
+    description: " \uC120\uD0DD\uD55C \uCE74\uB4DC\uC5D0\uC11C \uBB34\uAE30 \uCABD\uC73C\uB85C
+      \uBE5B\uC774 \uD750\uB974\uACE0 \uC0C8 \uC0C1\uD0DC\uB97C \uD55C \uBC88 \uAC15\uC870\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 1
+    color: {r: 0.95, g: 0.86, b: 0.45, a: 1}
+    intensity: 1
+    duration: 0.65
+    delay: 0
+    count: 1
+    radius: 1.2
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 64
+    title: "\uAD6C\uB9E4 \uACB0\uACFC \uBC18\uC751"
+    description: " \uC0C1\uD488 \uC790\uB9AC\uC758 \uC794\uAD11\uACFC \uACE8\uB4DC
+      \uC22B\uC790\uC758 \uBCC0\uD654\uAC00 \uAC19\uC740 \uC21C\uAC04\uC5D0 \uBC18\uC751\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 2
+    color: {r: 0.95, g: 0.86, b: 0.45, a: 1}
+    intensity: 1
+    duration: 0.5
+    delay: 0
+    count: 6
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0.4}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 65
+    title: "\uD3EC\uD0C8 \uD761\uC785 \uC785\uC790"
+    description: " \uC8FC\uBCC0\uC758 \uC791\uC740 \uC810\uC774 \uD3EC\uD0C8 \uC911\uC2EC\uC73C\uB85C
+      \uCC9C\uCC9C\uD788 \uB4E4\uC5B4\uAC04\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 5
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 0.5
+    duration: 1.2
+    delay: 0
+    count: 6
+    radius: 0.65
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 66
+    title: "\uD3EC\uD0C8 \uB3C4\uCC29 \uD30C\uB3D9"
+    description: " \uD50C\uB808\uC774\uC5B4\uC758 \uB3C4\uCC29 \uBC1C\uBC11\uC5D0
+      \uB0AE\uC740 \uC6D0\uC774 \uC9E7\uAC8C \uD37C\uC9C4\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 1
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 1
+    duration: 0.4
+    delay: 0
+    count: 1
+    radius: 0.8
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 67
+    title: "\uBC29 \uD074\uB9AC\uC5B4 \uC815\uD654"
+    description: " \uBC29 \uAD6C\uC11D\uC758 \uC791\uC740 \uC5B4\uB450\uC6B4 \uC785\uC790\uAC00
+      \uC0AC\uB77C\uC9C0\uACE0 \uBB38\uC774 \uC21C\uC11C\uB300\uB85C \uBE5B\uB09C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 1
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 1
+    duration: 0.6
+    delay: 0
+    count: 1
+    radius: 1.5
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 68
+    title: "\uBB38 \uAC1C\uBC29 \uBA3C\uC9C0"
+    description: " \uBB38\uC774 \uC5F4\uB9B4 \uB54C \uBC14\uB2E5 \uC811\uC810\uC5D0\uC11C\uB9CC
+      \uBA3C\uC9C0\uAC00 \uB5A8\uC5B4\uC9C4\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 2
+    color: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 6
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 69
+    title: "\uBB3C\uAC00 \uC794\uBB3C\uACB0"
+    description: " \uC2E4\uC81C \uBB3C \uD45C\uBA74 \uADFC\uCC98\uC5D0 \uC791\uC740
+      \uD30C\uBB38\xB7\uBC18\uC0AC\uB97C \uC81C\uD55C\uC801\uC73C\uB85C \uCD94\uAC00\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 1
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 0.4
+    duration: 0.8
+    delay: 0
+    count: 1
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 70
+    title: "\uC218\uD480 \uC2A4\uCE68"
+    description: " \uCE90\uB9AD\uD130 \uADFC\uCC98 \uC218\uD480\uC758 \uADF8\uB9BC\uB9CC
+      \uD754\uB4E4\uB9AC\uACE0 \uC791\uC740 \uC78E\uC774 \uB098\uC628\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 0.55, g: 0.85, b: 0.35, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 3
+    radius: 0.35
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 71
+    title: "\uAD6D\uC18C \uBA3C\uC9C0\xB7\uBE5B\uC904\uAE30"
+    description: " \uCC3D\uBB38\xB7\uD683\uBD88\xB7\uD3EC\uD0C8 \uC8FC\uBCC0\uC5D0\uB9CC
+      \uB0AE\uC740 \uBC00\uB3C4\uC758 \uBA3C\uC9C0\uB97C \uB454\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 2
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 0.35
+    duration: 1.8
+    delay: 0
+    count: 3
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0.8}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 72
+    title: "\uD30C\uAD34 \uC18C\uD488 \uBC18\uC751"
+    description: " \uC2E4\uC81C \uBD80\uC11C\uC9C4 \uC21C\uAC04 \uC870\uAC01\xB7\uC9E7\uC740
+      \uBA3C\uC9C0\xB7\uBC14\uB2E5 \uD754\uC801\uC744 \uAC19\uC774 \uB0B8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 0
+    color: {r: 0.85, g: 0.55, b: 0.3, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 10
+    radius: 1.2
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 73
+    title: "\uBC29\uD5A5\uC131 \uCE74\uBA54\uB77C \uBC18\uB3D9"
+    description: " \uAC15\uD55C \uD0C0\uACA9 \uBC29\uD5A5\uC73C\uB85C\uB9CC \uC7A0\uAE50
+      \uBC00\uC5C8\uB2E4 \uC815\uD655\uD788 \uC6D0\uC704\uCE58\uB85C \uB3CC\uC544\uC628\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 74
+    title: "\uC911\uC694\uD55C \uD0C0\uACA9\uB9CC \uD788\uD2B8\uC2A4\uD1B1"
+    description: " \uAE30\uC874 \uD53C\uB4DC\uBC31\uC744 \uCF64\uBCF4 \uB9C8\uC9C0\uB9C9\xB7\uD37C\uD399\uD2B8
+      \uAC00\uB4DC\xB7\uCC98\uCE58\uB85C \uAD6C\uBCC4\uD574 \uC870\uC808\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 75
+    title: "\uC81C\uD55C\uC801 \uC2AC\uB85C\uBAA8\uC158"
+    description: " \uBCF4\uC2A4 \uCC98\uCE58 \uAC19\uC740 \uB4DC\uBB38 \uC21C\uAC04\uC5D0\uB9CC
+      \uC544\uC8FC \uC9E7\uAC8C \uB290\uB824\uC9C4\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 76
+    title: "\uAD6D\uC18C \uC65C\uACE1 \uD30C\uB3D9"
+    description: " \uAC15\uD55C \uD0C0\uACA9 \uC8FC\uBCC0 \uC791\uC740 \uC601\uC5ED\uB9CC
+      \uBB3C\uACB0\uCE58\uAC8C \uD55C\uB2E4. \uB3C4\uD2B8 \uC6D0\uBCF8 \uD655\uB300\uB294
+      \uD558\uC9C0 \uC54A\uB294\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 1
+    duration: 0.2
+    delay: 0
+    count: 5
+    radius: 1.5
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 3
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 77
+    title: "\uC2A4\uD0AC \uC900\uBE44 UI \uBC18\uC9DD\uC784"
+    description: " \uCFE8\uC774 \uB05D\uB098\uB294 \uC21C\uAC04 Space \uC544\uC774\uCF58
+      \uD14C\uB450\uB9AC\uAC00 \uD55C \uBC88 \uBE5B\uB09C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 0.5, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 2
+    radius: 0.3
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 78
+    title: "\uD53C\uD574 \uBC29\uD5A5 \uD45C\uC2DC"
+    description: " \uD50C\uB808\uC774\uC5B4\uAC00 \uC2E4\uC81C \uD53C\uD574\uB97C
+      \uC785\uC740 \uBC29\uD5A5\uC758 \uD654\uBA74 \uAC00\uC7A5\uC790\uB9AC\uC5D0\uB9CC
+      \uC9E7\uC740 \uD45C\uC2DC\uB97C \uB454\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 0.65, g: 0.05, b: 0.12, a: 0.25}
+    intensity: 1
+    duration: 0.25
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 79
+    title: "\uD0C0\uACA9\uC74C \uCE35 \uBD84\uB9AC"
+    description: " \uAE08\uC18D\uC74C\xB7\uCDA9\uACA9\uC74C\xB7\uC9E7\uC740 \uC800\uC74C\uC744
+      \uACF5\uACA9 \uC885\uB958\uBCC4\uB85C \uC11E\uC5B4 \uC2DC\uAC01 \uD6A8\uACFC\uC640
+      \uB9DE\uCD98\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 8300000, guid: 9429bbf84d24a8c4aa53e080d48ff80d, type: 3}
+    volume: 0.16
+    pitchVariation: 0.05
+  - cue: 80
+    title: "\uC5F0\uD0C0 \uC18C\uB9AC \uBBF8\uC138 \uBCC0\uD654"
+    description: " \uC5F0\uC18D \uD0C0\uACA9\uC5D0\uC11C \uC74C\uB192\uC774\xB7\uC74C\uB7C9\uC744
+      \uC18C\uD3ED \uBC14\uAFB8\uACE0 \uB3D9\uC2DC \uC7AC\uC0DD \uAC1C\uC218\uB97C
+      \uC81C\uD55C\uD55C\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 0.5, g: 0.88, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  existingEffects:
+  - cue: 1
+    enabled: 1
+    title: "\uCD5C\uC885\uD615 \uC2AC\uB798\uC2DC"
+    description: "\uB300\uC0C1\uBCC4 \uC6D0\uBCF8 \uC218\uCE58\uC640 \uACE1\uC120\uC744
+      \uC9C1\uC811 \uC218\uC815\uD569\uB2C8\uB2E4. \uCCB4\uD06C\uB97C \uB044\uBA74
+      \uC774 \uC885\uB958\uC758 \uAE30\uC874 \uC5F0\uCD9C\uC744 \uC911\uB2E8\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 6351231141037112601, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 2192890428852568706, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 6080318802168613623, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 336869620372124368, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 5466239719588520991, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 1016090705096359509, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 5724791765235240023, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 8616127603868106795, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 409294501118682515, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 4699861688308564279, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 6675477000182133583, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 3282444029937782883, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 4166742034932025235, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 1926295995059118340, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 2935955552282474867, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 6902558161070865633, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 3961375735475010932, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 6772639670904853996, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 3571120058086617654, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 5049856639852355058, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 4415508769799013725, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
+    - {fileID: 2100000, guid: 8daedbfcf078ebf43b6c176bc379c001, type: 2}
+  - cue: 2
+    enabled: 1
+    title: "\uC2A4\uCFFC\uC2DC \xB7 \uC2A4\uD2B8\uB808\uCE58"
+    description: "\uB300\uC0C1\uBCC4 \uC6D0\uBCF8 \uC218\uCE58\uC640 \uACE1\uC120\uC744
+      \uC9C1\uC811 \uC218\uC815\uD569\uB2C8\uB2E4. \uCCB4\uD06C\uB97C \uB044\uBA74
+      \uC774 \uC885\uB958\uC758 \uAE30\uC874 \uC5F0\uCD9C\uC744 \uC911\uB2E8\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 1079714133486096319, guid: a443053a9f2c19047baea371f6e55ee5, type: 3}
+    - {fileID: 2276678031604858880, guid: 5e2bb3c2b983f064e8085d46b105636a, type: 3}
+    - {fileID: 1079714133486096319, guid: b069553ee12c38e4c9fc72a014ec6d6f, type: 3}
+    - {fileID: 6778823845049967061, guid: 8107f7e40fd1da54f92690cea1694ff6, type: 3}
+    - {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+    - {fileID: 7957962015339058343, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+    - {fileID: 6813756237751138271, guid: 2f9f600a98025504aa3139f44a622906, type: 3}
+    - {fileID: 7325369006915490403, guid: 725aa93ac92e5754e85e6f8a8d3a7bb3, type: 3}
+    - {fileID: 6651426326369586472, guid: 89560b1127288d7479661de1874b6d7c, type: 3}
+    - {fileID: 2434081449813323349, guid: 7c4cdc41d521690449d80bae5a5e00e5, type: 3}
+    - {fileID: 7326135349157906159, guid: 281de929d6f8d234c89596900a6cdea2, type: 3}
+    - {fileID: 7326135349157906159, guid: 2ffb833db373c2044a4dd63658d2a4c7, type: 3}
+    - {fileID: 4299733385630802169, guid: 94222fd4519c1974aac8e103ed3e8311, type: 3}
+    - {fileID: 8428196113728589096, guid: e832ce6b5994dd7439cad5690d036f61, type: 3}
+    - {fileID: 4299733385630802169, guid: a5a554fab7e153149a18b2c6fa30e720, type: 3}
+    - {fileID: 3627033847670836346, guid: 2b2dfdce21806ab4785ed47808a31264, type: 3}
+    - {fileID: 7326135349157906159, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+    - {fileID: 7326135349157906159, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+    - {fileID: 5593554232641012641, guid: a30e235aa3ef85c48bd0bce9f76be120, type: 3}
+    - {fileID: 8845770142411088750, guid: b4109e21ab453ba4c9851b718906868f, type: 3}
+    - {fileID: 7151166061447600416, guid: b4109e21ab453ba4c9851b718906868f, type: 3}
+    - {fileID: 1832925895851425356, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+    - {fileID: 3049745191931522426, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+    - {fileID: 7298518936924473782, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+    - {fileID: 6133605793492856043, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+    - {fileID: 6431884519615799808, guid: 470535e94f78e9f4994fe957df7ec134, type: 3}
+    - {fileID: 4405088299963001636, guid: 2681080f0b2c5814ba92905e9b636fe7, type: 3}
+  - cue: 3
+    enabled: 1
+    title: "\uD53C\uACA9 \xB7 \uD68C\uBCF5 \uC12C\uAD11"
+    description: "\uB300\uC0C1\uBCC4 \uC6D0\uBCF8 \uC218\uCE58\uC640 \uACE1\uC120\uC744
+      \uC9C1\uC811 \uC218\uC815\uD569\uB2C8\uB2E4. \uCCB4\uD06C\uB97C \uB044\uBA74
+      \uC774 \uC885\uB958\uC758 \uAE30\uC874 \uC5F0\uCD9C\uC744 \uC911\uB2E8\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 4562920233509813775, guid: a443053a9f2c19047baea371f6e55ee5, type: 3}
+    - {fileID: 3328502163945910704, guid: 5e2bb3c2b983f064e8085d46b105636a, type: 3}
+    - {fileID: 4562920233509813775, guid: b069553ee12c38e4c9fc72a014ec6d6f, type: 3}
+    - {fileID: 219072812567762920, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+    - {fileID: 6906562242946606359, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+    - {fileID: 6053678779012642655, guid: 281de929d6f8d234c89596900a6cdea2, type: 3}
+    - {fileID: 6053678779012642655, guid: 2ffb833db373c2044a4dd63658d2a4c7, type: 3}
+    - {fileID: 721399706362204489, guid: 94222fd4519c1974aac8e103ed3e8311, type: 3}
+    - {fileID: 4998892473909378200, guid: e832ce6b5994dd7439cad5690d036f61, type: 3}
+    - {fileID: 721399706362204489, guid: a5a554fab7e153149a18b2c6fa30e720, type: 3}
+    - {fileID: 287251394444803530, guid: 2b2dfdce21806ab4785ed47808a31264, type: 3}
+    - {fileID: 6053678779012642655, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+    - {fileID: 6053678779012642655, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+    - {fileID: 2515561534420629188, guid: a30e235aa3ef85c48bd0bce9f76be120, type: 3}
+    - {fileID: 5434482032787346142, guid: b4109e21ab453ba4c9851b718906868f, type: 3}
+    - {fileID: 5951328970158565520, guid: b4109e21ab453ba4c9851b718906868f, type: 3}
+    - {fileID: 2938187446505279484, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+    - {fileID: 2016357636188642506, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+    - {fileID: 6116127727867885574, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+    - {fileID: 7257450153672990043, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+  - cue: 4
+    enabled: 1
+    title: "\uAC77\uAE30 \uC5F0\uAE30"
+    description: "\uB300\uC0C1\uBCC4 \uC6D0\uBCF8 \uC218\uCE58\uC640 \uACE1\uC120\uC744
+      \uC9C1\uC811 \uC218\uC815\uD569\uB2C8\uB2E4. \uCCB4\uD06C\uB97C \uB044\uBA74
+      \uC774 \uC885\uB958\uC758 \uAE30\uC874 \uC5F0\uCD9C\uC744 \uC911\uB2E8\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 3908119063364906468, guid: 8939cee3313b4e74ea111509ca7382fc, type: 3}
+    - {fileID: 454277934158331459, guid: 8939cee3313b4e74ea111509ca7382fc, type: 3}
+  - cue: 5
+    enabled: 1
+    title: "\uB300\uC2DC \uC5F0\uAE30"
+    description: "\uB300\uC0C1\uBCC4 \uC6D0\uBCF8 \uC218\uCE58\uC640 \uACE1\uC120\uC744
+      \uC9C1\uC811 \uC218\uC815\uD569\uB2C8\uB2E4. \uCCB4\uD06C\uB97C \uB044\uBA74
+      \uC774 \uC885\uB958\uC758 \uAE30\uC874 \uC5F0\uCD9C\uC744 \uC911\uB2E8\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 3905450924070246875, guid: c5d0c7c91c095c74fb398f43b9bd4cf5, type: 3}
+    - {fileID: 382725176561033307, guid: c5d0c7c91c095c74fb398f43b9bd4cf5, type: 3}
+  - cue: 6
+    enabled: 1
+    title: "\uB300\uC2DC \xB7 \uB3CC\uC9C4 \uC794\uC0C1"
+    description: "\uB300\uC0C1\uBCC4 \uC6D0\uBCF8 \uC218\uCE58\uC640 \uACE1\uC120\uC744
+      \uC9C1\uC811 \uC218\uC815\uD569\uB2C8\uB2E4. \uCCB4\uD06C\uB97C \uB044\uBA74
+      \uC774 \uC885\uB958\uC758 \uAE30\uC874 \uC5F0\uCD9C\uC744 \uC911\uB2E8\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 8103014025916533932, guid: b069553ee12c38e4c9fc72a014ec6d6f, type: 3}
+    - {fileID: 556898571985992303, guid: 281de929d6f8d234c89596900a6cdea2, type: 3}
+    - {fileID: 606286514386762975, guid: a30e235aa3ef85c48bd0bce9f76be120, type: 3}
+    - {fileID: 8898819707336803020, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+  - cue: 7
+    enabled: 1
+    title: "\uAC00\uB9BC \uC2E4\uB8E8\uC5E3"
+    description: "\uB300\uC0C1\uBCC4 \uC6D0\uBCF8 \uC218\uCE58\uC640 \uACE1\uC120\uC744
+      \uC9C1\uC811 \uC218\uC815\uD569\uB2C8\uB2E4. \uCCB4\uD06C\uB97C \uB044\uBA74
+      \uC774 \uC885\uB958\uC758 \uAE30\uC874 \uC5F0\uCD9C\uC744 \uC911\uB2E8\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 6666768342463534266, guid: a30e235aa3ef85c48bd0bce9f76be120, type: 3}
+    - {fileID: 3940698526423894861, guid: a30e235aa3ef85c48bd0bce9f76be120, type: 3}
+  - cue: 8
+    enabled: 1
+    title: "\uB3C4\uD2B8 \uB514\uB354\uB9C1"
+    description: "\uB044\uBA74 \uB3C4\uD2B8 \uBB34\uB2AC \uB300\uC2E0 \uC6D0\uB798
+      \uC54C\uD30C\uB85C \uD45C\uC2DC\uD569\uB2C8\uB2E4. \uC644\uC804 \uC554\uC804\uACFC
+      \uD22C\uBA85\uB3C4\uB294 \uC720\uC9C0\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 2100000, guid: 03e606b6af5478742b76772a96f09912, type: 2}
+    - {fileID: 2100000, guid: dca4dbc87c821944ab0210b1d077bcdc, type: 2}
+    - {fileID: 2100000, guid: c9893092a6632f34ab8a27102cf1d769, type: 2}
+    - {fileID: 2100000, guid: afa3341b4c55e814cbd44cc85ae8c92f, type: 2}
+    - {fileID: 2100000, guid: 92d6fa55792fd5045ae3f645658983a4, type: 2}
+  - cue: 9
+    enabled: 1
+    title: "\uD654\uBA74 \xB7 UI \uD398\uC774\uB4DC"
+    description: "\uB044\uBA74 \uBD80\uB4DC\uB7EC\uC6B4 \uC804\uD658\uB9CC \uC0DD\uB7B5\uD569\uB2C8\uB2E4.
+      \uB85C\uB529 \uC644\uB8CC \uB300\uAE30\xB7\uC554\uC804\xB7\uC785\uB825 \uCC28\uB2E8\uC740
+      \uC720\uC9C0\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 8531671642042725014, guid: e15bbf338fedf1a4eb1bb92bed0fff39, type: 3}
+  - cue: 10
+    enabled: 1
+    title: "UI \uD754\uB4E4\uB9BC"
+    description: "\uB300\uC0C1\uBCC4 \uC6D0\uBCF8 \uC218\uCE58\uC640 \uACE1\uC120\uC744
+      \uC9C1\uC811 \uC218\uC815\uD569\uB2C8\uB2E4. \uCCB4\uD06C\uB97C \uB044\uBA74
+      \uC774 \uC885\uB958\uC758 \uAE30\uC874 \uC5F0\uCD9C\uC744 \uC911\uB2E8\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 581792273860967864, guid: 4252bbb80ebf5f94192451edeb69b5c2, type: 3}
+    - {fileID: 8716148280877125319, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+    - {fileID: 3705380794887587482, guid: 56132f91dc6bb754480a335527f850d9, type: 3}
+  - cue: 11
+    enabled: 1
+    title: "\uCE74\uBA54\uB77C \uD754\uB4E4\uB9BC"
+    description: "\uB300\uC0C1\uBCC4 \uC6D0\uBCF8 \uC218\uCE58\uC640 \uACE1\uC120\uC744
+      \uC9C1\uC811 \uC218\uC815\uD569\uB2C8\uB2E4. \uCCB4\uD06C\uB97C \uB044\uBA74
+      \uC774 \uC885\uB958\uC758 \uAE30\uC874 \uC5F0\uCD9C\uC744 \uC911\uB2E8\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 102900000, guid: cdf17f751d2446d4fbe669b2d11ec5e6, type: 3}
+    - {fileID: 102900000, guid: f3414e576ecb222489fd4f909a3010c5, type: 3}
+    - {fileID: 11400000, guid: 368593fef46344339a29343712cf5b05, type: 2}
+    - {fileID: 102900000, guid: 3f7c25a9e08b41d4a95c6be174f2038d, type: 3}
+    - {fileID: 11400000, guid: b7d3e1a9c2f04b8e91a6d5c30e2f7a41, type: 2}
+    - {fileID: 102900000, guid: 890b2baaafb8abb4682611c61c78af18, type: 3}
+    - {fileID: 11400000, guid: 9e6780eb641747948d78784454effb69, type: 2}
+    - {fileID: 11400000, guid: 665e6a8ea23591848ac28c4bd7c0f80e, type: 2}
+    - {fileID: 11400000, guid: d287663b4ced11e4d952f5eaf6a503da, type: 2}
+    - {fileID: 102900000, guid: d315c5b3c66b9754594ce074bce9be27, type: 3}
+  - cue: 12
+    enabled: 1
+    title: "\uD788\uD2B8\uC2A4\uD1B1"
+    description: "\uB300\uC0C1\uBCC4 \uC6D0\uBCF8 \uC218\uCE58\uC640 \uACE1\uC120\uC744
+      \uC9C1\uC811 \uC218\uC815\uD569\uB2C8\uB2E4. \uCCB4\uD06C\uB97C \uB044\uBA74
+      \uC774 \uC885\uB958\uC758 \uAE30\uC874 \uC5F0\uCD9C\uC744 \uC911\uB2E8\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 4562920233509813775, guid: a443053a9f2c19047baea371f6e55ee5, type: 3}
+    - {fileID: 102900000, guid: cdf17f751d2446d4fbe669b2d11ec5e6, type: 3}
+    - {fileID: 3328502163945910704, guid: 5e2bb3c2b983f064e8085d46b105636a, type: 3}
+    - {fileID: 102900000, guid: f3414e576ecb222489fd4f909a3010c5, type: 3}
+    - {fileID: 4562920233509813775, guid: b069553ee12c38e4c9fc72a014ec6d6f, type: 3}
+    - {fileID: 11400000, guid: 368593fef46344339a29343712cf5b05, type: 2}
+    - {fileID: 102900000, guid: 3f7c25a9e08b41d4a95c6be174f2038d, type: 3}
+    - {fileID: 219072812567762920, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+    - {fileID: 6906562242946606359, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+    - {fileID: 11400000, guid: b7d3e1a9c2f04b8e91a6d5c30e2f7a41, type: 2}
+    - {fileID: 102900000, guid: 890b2baaafb8abb4682611c61c78af18, type: 3}
+    - {fileID: 11400000, guid: 9e6780eb641747948d78784454effb69, type: 2}
+    - {fileID: 11400000, guid: 665e6a8ea23591848ac28c4bd7c0f80e, type: 2}
+    - {fileID: 11400000, guid: d287663b4ced11e4d952f5eaf6a503da, type: 2}
+    - {fileID: 6053678779012642655, guid: 281de929d6f8d234c89596900a6cdea2, type: 3}
+    - {fileID: 6053678779012642655, guid: 2ffb833db373c2044a4dd63658d2a4c7, type: 3}
+    - {fileID: 721399706362204489, guid: 94222fd4519c1974aac8e103ed3e8311, type: 3}
+    - {fileID: 4998892473909378200, guid: e832ce6b5994dd7439cad5690d036f61, type: 3}
+    - {fileID: 721399706362204489, guid: a5a554fab7e153149a18b2c6fa30e720, type: 3}
+    - {fileID: 287251394444803530, guid: 2b2dfdce21806ab4785ed47808a31264, type: 3}
+    - {fileID: 6053678779012642655, guid: 321acf2406d3af4439b140f834f67313, type: 3}
+    - {fileID: 6053678779012642655, guid: 7453cb5f188a1a745883cc413ddf4500, type: 3}
+    - {fileID: 2515561534420629188, guid: a30e235aa3ef85c48bd0bce9f76be120, type: 3}
+    - {fileID: 5434482032787346142, guid: b4109e21ab453ba4c9851b718906868f, type: 3}
+    - {fileID: 5951328970158565520, guid: b4109e21ab453ba4c9851b718906868f, type: 3}
+    - {fileID: 2938187446505279484, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+    - {fileID: 2016357636188642506, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+    - {fileID: 6116127727867885574, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+    - {fileID: 7257450153672990043, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+  overlayPrefab: {fileID: 870907240442243352, guid: f91117987761b814bbc31cc784cb80f9, type: 3}
+  lowHealthRatio: 0.25
+  lowHealthInterval: 1.25
+  ambientInterval: 0.9
+  trailInterval: 0.075
+  stepInterval: 0.23
+  waterInterval: 0.35
+  dashTrailRampDuration: 0.3
+  dashTrailIntervalRange: {x: 0.6, y: 1.4}
+  dirtColor: {r: 0.75, g: 0.65, b: 0.46, a: 0.8}
+  stoneColor: {r: 0.8, g: 0.85, b: 0.9, a: 0.8}
+  waterColor: {r: 0.45, g: 0.8, b: 1, a: 0.7}
+  cameraForce: 0.25
+  hitStopSeconds: 0.025
+  slowMotionScale: 0.35
+  slowMotionSeconds: 0.18

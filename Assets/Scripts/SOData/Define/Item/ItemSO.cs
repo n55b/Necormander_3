@@ -10,10 +10,10 @@ using UnityEngine;
 /// </summary>
 public enum ItemTier
 {
-    Tier1 = 1,
-    Tier2 = 2,
-    Tier3 = 3,
-    Tier4 = 4,
+    [UnityEngine.InspectorName("등급 1")] Tier1 = 1,
+    [UnityEngine.InspectorName("등급 2")] Tier2 = 2,
+    [UnityEngine.InspectorName("등급 3")] Tier3 = 3,
+    [UnityEngine.InspectorName("등급 4")] Tier4 = 4,
 }
 
 /// <summary>
@@ -64,6 +64,9 @@ public class ItemSO : ScriptableObject
     [Min(1), Tooltip("같은 아이템의 최대 보유 수. 주머니 종류/칸 수에는 제한이 없다.")]
     public int maxStack = 1;
     public int MaxStack => Mathf.Max(1, maxStack);
+
+    [Tooltip("상점·방 보상에서 무작위로 등장할 수 있는 아이템. 기본 지급 전용 아이템은 끈다.")]
+    public bool availableAsReward = true;
 
     [Header("효과")]
     [Tooltip("주머니에 들어 있는 동안 적용되는 효과들. 인스펙터에서 + 로 종류를 골라 추가한다.")]

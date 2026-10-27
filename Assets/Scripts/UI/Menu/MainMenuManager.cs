@@ -4,12 +4,12 @@ using UnityEngine.UI;
 
 public class MainMenuManager : MonoBehaviour
 {
-    [Header("UI References")]
+    [Header("UI 연결")]
     [SerializeField] private Button startButton;
     [SerializeField] private Button loadButton;
     [SerializeField] private Button exitButton;
 
-    [Header("Scene Settings")]
+    [Header("씬 설정")]
     [Tooltip("Load 버튼을 눌렀을 때 이동할 메인 게임 씬의 이름입니다.")]
     [SerializeField] private string gameSceneName = "Map"; 
     [SerializeField] private string startSceneName = "VillageScene";
@@ -17,7 +17,7 @@ public class MainMenuManager : MonoBehaviour
              "그대로 재사용하고, 방 목록만 MapGenerationData 의 Tutorial Rooms 로 갈아끼운다.")]
     [SerializeField] private string tutorialSceneName = "BattleScene";
 
-    [Header("Debug")]
+    [Header("디버그")]
     [Tooltip("켜면 '새 게임'이 완료 기록을 무시하고 항상 튜토리얼부터 시작한다.\n\n" +
              "튜토리얼로 갈지 마을로 갈지는 오직 이 버튼이 정하므로, 강제 스위치도 여기 있어야 한다 — " +
              "던전 쪽(GameManager)에 두면 이 갈림길엔 닿지도 못하면서, 켜둔 채로 마을 포탈을 타면 " +

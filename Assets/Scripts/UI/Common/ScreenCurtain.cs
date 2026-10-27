@@ -59,6 +59,7 @@ public class ScreenCurtain : MonoBehaviour
     {
         if (_instance == this) _instance = null;
     }
+    private void LateUpdate() => PolishFeedback.RefreshShaderSettings();
 
     /// <summary>커튼 색 바꾸기 (흰 페이드/붉은 페이드용). Fader가 신호별 색에 맞춰 불러준다.</summary>
     public void SetColor(Color color)

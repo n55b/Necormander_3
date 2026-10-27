@@ -9,6 +9,10 @@ using System.Collections.Generic;
 /// </summary>
 public class PlayerStateUI : MonoBehaviour
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Range(0f, 1f), Tooltip("사용할 수 없는 스킬 아이콘의 불투명도입니다. 0이면 숨기고 1이면 원래 밝기로 표시합니다.")]
+    private float unavailableSkillAlpha = 0.2f;
+
     /// <summary>
     /// 스킬 슬롯 1개의 UI 요소.
     /// - SkillIcon    : 스킬 아이콘 Image (Sprite 교체)
@@ -37,10 +41,10 @@ public class PlayerStateUI : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     // Inspector 필드
     // ─────────────────────────────────────────────────────────────────────
-    [Header("Panel Parent")]
+    [Header("패널 부모")]
     [SerializeField] private GameObject panelParent;
 
-    [Header("HP Settings")]
+    [Header("체력 설정")]
     [SerializeField] private Image hpSprite;
     [Tooltip("보호막 게이지. 체력바와 같은 자리에 '뒤쪽'으로 깔린다 — 앞의 체력바가 왼쪽을 덮으므로 " +
              "체력이 끝나는 지점부터 보호막 색이 이어져 보인다.\n" +
@@ -48,6 +52,10 @@ public class PlayerStateUI : MonoBehaviour
              "무채색 스프라이트(UI_HpbarWhite)라 Image 의 Color 로 원하는 색을 낼 수 있다.")]
     [SerializeField] private Image shieldSprite;
     [SerializeField] private TextMeshProUGUI hpText;
+    [SerializeField, Min(.01f), Tooltip("회복 구슬 도착 후 체력바와 숫자가 회복량만큼 차오르는 시간(초)입니다. 실제 체력은 회복 순간 즉시 적용됩니다.")]
+    private float healFillDuration = .24f;
+    [SerializeField, Tooltip("가로는 구슬 도착 후 시간, 세로는 체력바 회복 진행률(0~1)입니다.")]
+    private AnimationCurve healFillCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
     [Header("가드 게이지 (HUD 프리팹에 배치)")]
     [SerializeField] private Image guardGaugeFill;
@@ -55,11 +63,8 @@ public class PlayerStateUI : MonoBehaviour
     [SerializeField] private Color guardReadyColor = new Color(0.2f, 0.6f, 1f, 1f);
     [SerializeField] private Color guardBrokenColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
-    [Header("Gold Settings")]
+    [Header("골드 설정")]
     [SerializeField] private TextMeshProUGUI goldText;
-
-    [Header("Stamina Settings")]
-    [SerializeField] private GameObject staminaUIPrefab;
 
     [Header("대쉬 / Space 미니언 스킬")]
     [SerializeField] private DashCooldownUI dashCooldownUI;
@@ -78,6 +83,15 @@ public class PlayerStateUI : MonoBehaviour
     private List<Image>           _hpFillImages  = new List<Image>();
     private SkillSlotUI[]         _skillSlots;
     private int _lastGold = int.MinValue; // dirty 비교용
+    private sealed class HealingDisplay
+    {
+        public float amount, elapsed, progress;
+        public bool arrived;
+        public float Hidden => amount * (1f - progress);
+    }
+    private readonly List<HealingDisplay> _healing = new List<HealingDisplay>();
+    private float _lastActualHP, _lastMaxHP, _displayedHP;
+    private int _lastShownHP = -1, _lastShownMaxHP = -1;
 
 
 
@@ -86,13 +100,26 @@ public class PlayerStateUI : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     public void Initialize(CharacterHealth playerHealth)
     {
+        if (_playerHealth != null)
+        {
+            _playerHealth.UpdateHPBar -= RefreshHP;
+            _playerHealth.OnHealthRestored -= AnimateHealing;
+        }
+        _healing.Clear();
         _playerHealth = playerHealth;
         _skillSlots   = new SkillSlotUI[] { guardSlot, minionSkillSlot };
 
         // 보호막은 CharacterHealth 가 아니라 같은 오브젝트의 CharacterStatus 가 들고 있다.
         _playerStatus = _playerHealth != null ? _playerHealth.GetComponent<CharacterStatus>() : null;
 
-        if (_playerHealth != null) { _playerHealth.UpdateHPBar += RefreshHP; RefreshHP(); }
+        if (_playerHealth != null)
+        {
+            _lastActualHP = _playerHealth.CurHP;
+            _lastMaxHP = _playerHealth.MaxHP;
+            _playerHealth.UpdateHPBar += RefreshHP;
+            _playerHealth.OnHealthRestored += AnimateHealing;
+            RefreshHP();
+        }
 
         RefreshGold();
 
@@ -113,20 +140,6 @@ public class PlayerStateUI : MonoBehaviour
             if (s.CooldownText != null) s.CooldownText.text = "";
         }
 
-        // 스타미나 UI
-        // StaminaUI staminaUI = GetComponentInChildren<StaminaUI>();
-        // if (staminaUI == null)
-        // {
-        //     if (staminaUIPrefab != null)
-        //     {
-        //         GameObject obj = Instantiate(staminaUIPrefab, panelParent != null ? panelParent.transform : transform);
-        //         staminaUI = obj.GetComponent<StaminaUI>() ?? obj.AddComponent<StaminaUI>();
-        //     }
-        //     else staminaUI = gameObject.AddComponent<StaminaUI>();
-        // }
-        // if (staminaUI != null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
-        //     staminaUI.Initialize(GameManager.Instance.PLAYERCONTROLLER.STAMINA);
-
         // Dash 쿨타임 UI
         if (dashCooldownUI != null)
         {
@@ -146,6 +159,7 @@ public class PlayerStateUI : MonoBehaviour
     private void OnDestroy()
     {
         if (_playerHealth != null) _playerHealth.UpdateHPBar -= RefreshHP;
+        if (_playerHealth != null) _playerHealth.OnHealthRestored -= AnimateHealing;
         if (InventoryManager.Instance != null)
             InventoryManager.Instance.OnMinionUpdated -= RefreshSkillIcons;
 
@@ -154,6 +168,7 @@ public class PlayerStateUI : MonoBehaviour
     private void Update()
     {
         RefreshGold();
+        AdvanceHealing(Time.unscaledDeltaTime);
         RefreshBars();   // 보호막은 피해/회복 이벤트 없이도 변한다 → 폴링
         RefreshGuardGauge();
         UpdateSkillCooldowns();
@@ -163,12 +178,82 @@ public class PlayerStateUI : MonoBehaviour
     // HP
     // ─────────────────────────────────────────────────────────────────────
     #region HP
-    /// <summary>피해/회복 이벤트용. 바 두 개는 공용 함수가 그리고, 여기선 숫자 텍스트만 추가로 갱신한다.</summary>
+    /// <summary>피해는 즉시, 회복 표시는 구슬 도착에 맞춰 갱신한다.</summary>
     public void RefreshHP()
     {
         if (_playerHealth == null) return;
         RefreshBars();
-        if (hpText != null) hpText.text = $"{(int)_playerHealth.CurHP} / {(int)_playerHealth.MaxHP}";
+    }
+
+    private void AnimateHealing(float amount)
+    {
+        var overlay = FeedbackOverlay.Instance;
+        if (!isActiveAndEnabled || hpSprite == null || !hpSprite.isActiveAndEnabled || overlay == null || amount <= 0f) return;
+        var heal = new HealingDisplay { amount = amount };
+        _healing.Add(heal);
+        // 실제 회복은 완료됐다. HUD만 날아오는 회복량을 표시에서 잠시 보류한다.
+        bool started = overlay.Pulse(FeedbackCue.Heal, _playerHealth.transform.position,
+            screenDestination: () => HealingDestination(heal),
+            onFinished: reached =>
+            {
+                if (this == null) return;
+                if (reached) heal.arrived = true;
+                else _healing.Remove(heal);
+                RefreshBars();
+            });
+        if (!started) _healing.Remove(heal);
+    }
+
+    private void AdvanceHealing(float dt)
+    {
+        if (!PolishFeedback.Enabled(FeedbackCue.Heal)) { _healing.Clear(); return; }
+        for (int i = _healing.Count - 1; i >= 0; i--)
+        {
+            var heal = _healing[i];
+            if (!heal.arrived) continue;
+            heal.elapsed += dt;
+            float t = Mathf.Clamp01(heal.elapsed / Mathf.Max(.01f, healFillDuration));
+            // 잘못 꺾은 곡선도 체력바를 되감거나 실제 체력보다 높게 만들지 않는다.
+            heal.progress = Mathf.Max(heal.progress, Mathf.Clamp01(healFillCurve.Evaluate(t)));
+            if (t >= 1f) _healing.RemoveAt(i);
+        }
+    }
+
+    private Vector2? HealingDestination(HealingDisplay heal)
+    {
+        if (this == null || !isActiveAndEnabled || hpSprite == null || !hpSprite.isActiveAndEnabled ||
+            _playerHealth == null || _playerHealth.IsDead || !_healing.Contains(heal)) return null;
+        float hidden = 0f, before = 0f;
+        foreach (var pending in _healing) hidden += pending.Hidden;
+        foreach (var pending in _healing)
+        {
+            if (pending == heal) break;
+            before += pending.Hidden;
+        }
+        float shield = _playerStatus != null ? _playerStatus.TotalShield : 0f;
+        float denominator = Mathf.Max(_playerHealth.MaxHP, _playerHealth.CurHP + shield);
+        // 이번 회복으로 채워질 빈 구간의 중앙. 연속 회복은 각자의 구간으로 들어간다.
+        float ratio = Mathf.Clamp01((_playerHealth.CurHP - hidden + before + heal.Hidden * .5f) / Mathf.Max(.001f, denominator));
+        var rect = hpSprite.rectTransform;
+        Vector3 world;
+        if (hpSprite.sprite == null && rect.parent is RectTransform track)
+        {
+            // 단색 바는 anchorMax 자체가 줄어든다. 이미 줄어든 바가 아닌 전체 트랙을 기준으로 한다.
+            float left = track.rect.xMin + rect.offsetMin.x;
+            float right = track.rect.xMax + rect.offsetMax.x;
+            world = track.TransformPoint(new Vector3(Mathf.Lerp(left, right, ratio),
+                rect.localPosition.y + rect.rect.center.y, 0));
+        }
+        else world = rect.TransformPoint(new Vector3(Mathf.Lerp(rect.rect.xMin, rect.rect.xMax, ratio), rect.rect.center.y, 0));
+        var canvas = hpSprite.canvas;
+        var camera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+        return RectTransformUtility.WorldToScreenPoint(camera, world);
+    }
+
+    private void OnDisable()
+    {
+        _healing.Clear();
+        RefreshBars();
     }
 
     /// <summary>
@@ -181,17 +266,31 @@ public class PlayerStateUI : MonoBehaviour
     /// (바가 배경 프레임 밖으로 삐져나가는 게 아니다 — 전체 길이는 그대로다.)
     ///
     /// 매 프레임 도는 이유: 보호막은 '피해/회복' 이벤트 없이도 변한다(가드 성공으로 생기고 5초 뒤 만료).
-    /// UpdateHPBar 에만 묶으면 그 순간들을 통째로 놓친다. 텍스트만 이벤트 쪽에 남겨 매 프레임
-    /// 문자열을 새로 만들지 않게 했다.
+    /// UpdateHPBar 에만 묶으면 그 순간들을 통째로 놓친다. 숫자는 표시할 정수가 바뀔 때만 갱신한다.
     /// </summary>
     private void RefreshBars()
     {
         if (hpSprite == null || _playerHealth == null || _playerHealth.MaxHP <= 0f) return;
 
+        // 피해·사망·최대 체력 변경은 즉시 실제 값으로 합류한다. 오래된 구슬이 체력을 다시 올려 보이게 하지 않는다.
+        if (_playerHealth.CurHP < _lastActualHP || !Mathf.Approximately(_lastMaxHP, _playerHealth.MaxHP) || _playerHealth.IsDead)
+            _healing.Clear();
+        _lastActualHP = _playerHealth.CurHP;
+        _lastMaxHP = _playerHealth.MaxHP;
+        float hidden = 0f;
+        foreach (var heal in _healing) hidden += heal.Hidden;
+        _displayedHP = Mathf.Max(0f, _playerHealth.CurHP - hidden);
+
         float shield = _playerStatus != null ? _playerStatus.TotalShield : 0f;
         float denom = Mathf.Max(_playerHealth.MaxHP, _playerHealth.CurHP + shield);
 
-        SetFill(hpSprite, _playerHealth.CurHP / denom);
+        SetFill(hpSprite, _displayedHP / denom);
+        int shownHP = (int)_displayedHP, maxHP = (int)_playerHealth.MaxHP;
+        if (hpText != null && (shownHP != _lastShownHP || maxHP != _lastShownMaxHP))
+        {
+            hpText.text = $"{shownHP} / {maxHP}";
+            _lastShownHP = shownHP; _lastShownMaxHP = maxHP;
+        }
 
         if (shieldSprite == null) return;
         // 보호막이 없으면 두 바의 폭이 같아져 가장자리가 1픽셀 삐져나올 수 있다. 아예 끈다.
@@ -199,7 +298,7 @@ public class PlayerStateUI : MonoBehaviour
         if (shieldSprite.enabled != show) shieldSprite.enabled = show;
         // 보호막바는 '보호막만큼'이 아니라 '체력+보호막'까지 채운다. 체력바 뒤에 깔려 있어서
         // 앞의 빨간 바가 왼쪽을 가리고 그 오른쪽만 흰색으로 보인다 = 오프셋 계산이 필요 없다.
-        if (show) SetFill(shieldSprite, (_playerHealth.CurHP + shield) / denom);
+        if (show) SetFill(shieldSprite, (_displayedHP + shield) / denom);
     }
 
     private static void SetFill(Image img, float value)
@@ -299,7 +398,7 @@ public class PlayerStateUI : MonoBehaviour
                 slot.SkillIcon.sprite = null;
                 var tooltipEmpty = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
                 if (tooltipEmpty != null) tooltipEmpty.Clear();
-                slot.SkillIcon.color = new Color(1f, 1f, 1f, 0.2f);
+                slot.SkillIcon.color = new Color(1f, 1f, 1f, unavailableSkillAlpha);
             }
         }
 

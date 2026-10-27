@@ -116,6 +116,7 @@ public class InventoryManager : MonoBehaviour
     {
         if (!CanEnhanceMainSummon) return false;
         mainSummonEnhanceLevel++;
+        PolishFeedback.AtPlayer(FeedbackCue.Upgrade, PolishFeedback.MinionTier());
         Debug.Log($"<color=cyan>[InventoryManager]</color> 메인 소환수 강화: {MainSummon.minionName} +{mainSummonEnhanceLevel}/{MainSummon.MaxEnhanceLevel}");
         OnMinionUpdated?.Invoke();
         return true;
@@ -163,6 +164,7 @@ public class InventoryManager : MonoBehaviour
 
         // EquipMinion 을 쓰지 않는다 — 거기선 소환수가 바뀌면 강화를 무조건 0 으로 돌린다.
         Slots[SLOT_MAIN].EquippedMinion = target;
+        PolishFeedback.AtPlayer(FeedbackCue.Evolve, target.feedbackTier, target.minionIcon);
         mainSummonEnhanceLevel = resetEnhanceOnEvolve ? 0 : Mathf.Min(mainSummonEnhanceLevel, target.MaxEnhanceLevel);
 
         Debug.Log($"<color=cyan>[InventoryManager]</color> 메인 소환수 진화: {from.minionName} → {target.minionName} (강화 {mainSummonEnhanceLevel})");
@@ -175,7 +177,7 @@ public class InventoryManager : MonoBehaviour
 
     // ======================================================
     // [에러 방지를 위한 병렬 리스트 디버그 설정]
-    [Header("Debug Settings (Starting Items)")]
+    [Header("디버그 시작 아이템")]
     [SerializeField] private bool useDebugStartingInventory = true;
 
     [Space(10)]

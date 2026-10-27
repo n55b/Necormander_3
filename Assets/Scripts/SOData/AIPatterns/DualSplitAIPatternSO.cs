@@ -3,7 +3,6 @@ using UnityEngine;
 /// <summary>
 /// 사망 시 서로 다른 외형(프리팹)을 가진 두 개체로 분화하는 AI 패턴입니다.
 /// 예: LionMask가 사망하면 서로 다르게 생긴 LionMask_A, LionMask_B 두 마리로 갈라짐.
-/// SlimeAIPatternSO와 분열 컨셉은 같지만, 같은 프리팹을 N번 복제하는 대신
 /// 서로 다른 두 프리팹을 각각 1번씩 스폰합니다.
 ///
 /// 주의: 이 SO 에셋은 같은 타입의 모든 적 인스턴스가 공유합니다.

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 0
   minionName: "\uC7A5\uC218"
-  minionIcon: {fileID: -3463035966016753622, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  minionIcon: {fileID: -7821324900155728968, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
   shopCost: 150
   rewardItemData:
     itemName: "\uC7A5\uC218"
@@ -37,8 +37,10 @@ MonoBehaviour:
       m_FallbackState: 0
       m_WaitForCompletion: 0
       m_LocalVariables: []
-    icon: {fileID: -3463035966016753622, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+    icon: {fileID: -7821324900155728968, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
     rarity: 0
+  feedbackTier: 3
+  feedbackColor: {r: 0.4, g: 0.9, b: 1, a: 1}
   minionSkill: {fileID: 11400000, guid: d287663b4ced11e4d952f5eaf6a503da, type: 2}
   dashModifier:
     uiTitle: 
@@ -71,33 +73,82 @@ MonoBehaviour:
     causesHitstun: 1
     knockbackForce: 4
     superArmorDamage: 30
+  hitEffectPrefab: {fileID: 5299594500409048299, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
   basicAnim:
-    visual: {fileID: 3048557255023118396, guid: 2681080f0b2c5814ba92905e9b636fe7, type: 3}
+    visual: {fileID: 4313797112953274009, guid: 470535e94f78e9f4994fe957df7ec134, type: 3}
     duration: 0.6
     sequence:
-    - tag: Warrior_Attack
+    - tag: Attack
       offset: {x: 0, y: 0}
       snap: 0
+      movementCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 1.8
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
     effectState: 
     damageState: 
     hitEvent: OnHitEvent
     hitWindowRatio: 0.15
   skillAnim:
-    visual: {fileID: 3048557255023118396, guid: 2681080f0b2c5814ba92905e9b636fe7, type: 3}
+    visual: {fileID: 4313797112953274009, guid: 470535e94f78e9f4994fe957df7ec134, type: 3}
     duration: 0.72499996
     sequence:
-    - tag: Warrior_Skill
+    - tag: Skill
       offset: {x: 0, y: 0}
       snap: 0
+      movementCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 1.8
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
     effectState: 
     damageState: 
     hitEvent: OnHitEvent
     hitWindowRatio: 0.15
   dashAnim:
-    visual: {fileID: 3048557255023118396, guid: 2681080f0b2c5814ba92905e9b636fe7, type: 3}
+    visual: {fileID: 4313797112953274009, guid: 470535e94f78e9f4994fe957df7ec134, type: 3}
     clipDuration: 0
     startClip: 
-    hitBoxClip: Warrior_Attack
+    hitBoxClip: Attack
     rotateHitBoxClipToDir: 0
     endClip: 
   enhanceSteps:

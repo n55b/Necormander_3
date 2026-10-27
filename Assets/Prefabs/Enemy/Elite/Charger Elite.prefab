@@ -72,6 +72,70 @@ PrefabInstance:
       propertyPath: indicatorScale
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[0].scale.x
+      value: 1.112
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[0].scale.y
+      value: 0.923
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[1].scale.x
+      value: 1.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[1].scale.y
+      value: 0.89500004
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[2].scale.x
+      value: 1.1259999
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[2].scale.y
+      value: 0.89500004
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[3].scale.x
+      value: 1.133
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[3].scale.y
+      value: 0.888
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[4].scale.x
+      value: 0.909
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[4].scale.y
+      value: 1.112
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[5].scale.x
+      value: 1.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[5].scale.y
+      value: 0.874
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[6].scale.x
+      value: 0.89500004
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[6].scale.y
+      value: 1.154
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[7].scale.x
+      value: 1.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 3648786518705645144, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: pulses.Array.data[7].scale.y
+      value: 0.84599996
+      objectReference: {fileID: 0}
     - target: {fileID: 4098996742743280423, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.71875
@@ -228,4 +292,30 @@ MonoBehaviour:
   speedThreshold: 5.5
   spawnInterval: 0.045
   fadeTime: 0.25
+  fadeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0.5
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1.8
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   tint: {r: 1, g: 0.35, b: 0.3, a: 0.5}
+  fadeMaterial: {fileID: 2100000, guid: 03e606b6af5478742b76772a96f09912, type: 2}
+  _source: {fileID: 0}

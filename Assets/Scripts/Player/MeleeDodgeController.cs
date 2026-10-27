@@ -10,6 +10,10 @@ public class MeleeDodgeController : MonoBehaviour
     
     [Header("대쉬 이펙트")]
     [SerializeField] private GameObject dashEffectPrefab; // 대쉬 이펙트 프리팹
+    [SerializeField, Tooltip("위쪽으로 대시할 때 재생할 이펙트 Animator 상태 이름입니다. 원본 Aseprite 태그 이름을 사용합니다.")]
+    private string upwardEffectState = "Up";
+    [SerializeField, Tooltip("아래쪽 또는 수평으로 대시할 때 재생할 이펙트 Animator 상태 이름입니다. 좌우는 대시 방향에 맞춰 반전합니다.")]
+    private string downwardEffectState = "Down";
 
     [Header("대쉬 히트박스 (메인 소환수가 대쉬에 피해를 붙일 때 사용)")]
     [Tooltip("경로를 훑는 박스 프리팹(전방 기준). 미지정이면 소환수가 대쉬 피해를 갖고 있어도 발동하지 않는다.")]
@@ -26,6 +30,10 @@ public class MeleeDodgeController : MonoBehaviour
     private float _dashTimeLeft;
     private Vector2 _dashDir;
     private Vector2 _dashEndPosition;
+    private Vector2 _dashStartPosition;
+    private float _dashTravelDuration;
+    private float _dashElapsed;
+    private float _dashProgress;
 
     private PlayerController _player;
     private Rigidbody2D _rb;
@@ -33,11 +41,13 @@ public class MeleeDodgeController : MonoBehaviour
     public bool IsDashing => _isDashing;
     /// <summary>TryDash 성공 시 발생</summary>
     public event System.Action OnDodgeStarted;
+    private DashAfterimage _afterimage;
 
     public int CurrentCharges => _currentCharges;
 
     private void Awake()
     {
+        _afterimage = GetComponent<DashAfterimage>();
         _player = GetComponent<PlayerController>();
         _rb = GetComponent<Rigidbody2D>();
         _currentCharges = _lastMaxCharges = MaxCharges;
@@ -67,7 +77,8 @@ public class MeleeDodgeController : MonoBehaviour
     {
         if (_isDashing && _rb != null)
         {
-            bool finished = _player.AdvanceDash(_dashEndPosition, dashSpeed);
+            _dashElapsed += Time.fixedDeltaTime;
+            bool finished = _player.AdvanceDash(_dashStartPosition, _dashEndPosition, _dashElapsed, _dashTravelDuration, ref _dashProgress);
             _dashTimeLeft -= Time.fixedDeltaTime;
             if (finished || _dashTimeLeft <= 0f) EndDash();
         }
@@ -89,7 +100,21 @@ public class MeleeDodgeController : MonoBehaviour
         return true;
     }
 
-private void StartDash(Vector2 moveInput, float currentFacingSign)
+    private void PlayDashEffect()
+    {
+        if (dashEffectPrefab == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.DashSmoke)) return;
+        GameObject fx = Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
+        Vector3 scale = fx.transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * (_dashDir.x < 0f ? 1f : -1f);
+        fx.transform.localScale = scale;
+        var animator = fx.GetComponent<Animator>();
+        string state = _dashDir.y > 0f ? upwardEffectState : downwardEffectState;
+        if (animator != null && animator.runtimeAnimatorController != null && !string.IsNullOrEmpty(state)
+            && animator.HasState(0, Animator.StringToHash(state)))
+            animator.Play(state, 0, 0f);
+    }
+
+    private void StartDash(Vector2 moveInput, float currentFacingSign)
     {
         // 플레이어 평타만 캔슬한다 — 미니언 마무리는 남긴다(미니언은 R끼리만 회수). 스킬 시전도 취소.
         var meleeCtrl = _player.GetComponent<MeleeCombatController>();
@@ -108,14 +133,7 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
             _dashDir = new Vector2(-Mathf.Sign(currentFacingSign), 0).normalized;
         }
 
-        // [수정] Dash Smog Effect - 대쉬 방향에 따라 좌우 반전
-        if (dashEffectPrefab != null)
-        {
-            GameObject fx = Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
-            Vector3 fxScale = fx.transform.localScale;
-            fxScale.x = Mathf.Abs(fxScale.x) * (_dashDir.x < 0f ? 1f : -1f);
-            fx.transform.localScale = fxScale;
-        }
+        PlayDashEffect();
 
         // 메인 소환수가 대쉬를 개조한다 (없으면 mod == null → 기본 대쉬 그대로).
         var mod = GetDashModifier();
@@ -137,7 +155,11 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
         _dashEndPosition = safePos;
         float actualDist = Vector2.Distance(transform.position, safePos);
         if (actualDist > 0.0001f) _dashDir = (safePos - (Vector2)transform.position).normalized;
-        _dashTimeLeft = actualDist / Mathf.Max(0.01f, dashSpeed) + 0.1f; // 충돌로 도착 불가할 때만 쓰는 안전 종료
+        _dashStartPosition = _rb.position;
+        _dashTravelDuration = actualDist / Mathf.Max(0.01f, dashSpeed);
+        _dashElapsed = _dashProgress = 0f;
+        _dashTimeLeft = _dashTravelDuration + 0.1f; // 충돌로 도착 불가할 때만 쓰는 안전 종료
+        _afterimage?.BeginDash(_dashTimeLeft);
 
         if (mod != null && mod.DealsDamage)
             SpawnDashHitBox(mod, transform.position, _dashDir, actualDist);
@@ -295,11 +317,13 @@ private void StartDash(Vector2 moveInput, float currentFacingSign)
             box.isContinuousDamage = false;
         }
 
+        GetMainMinion()?.ApplyHitEffect(box);
         box.Init(info, Layers.EnemyMask, life, 0f, true, onHit);
     }
 
 private void EndDash()
     {
+        _afterimage?.EndDash();
         _isDashing = false;
 
         if (_rb != null)
@@ -318,6 +342,7 @@ private void EndDash()
         _player.CanChangeAnimState(); // unlocks canChangeState and cancels the LockAnimState timeout
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Idle");
+        _player.ResumeLocomotionAfterDash();
     }
 
 

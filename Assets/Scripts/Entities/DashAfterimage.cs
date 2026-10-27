@@ -20,16 +20,22 @@ public class DashAfterimage : MonoBehaviour
     [SerializeField] private float spawnInterval = 0.045f;
     [Tooltip("잔상 1장이 사라지기까지 걸리는 시간(초)")]
     [SerializeField] private float fadeTime = 0.25f;
+    [Tooltip("잔상 소멸 그래프. X=수명 0~1, Y=사라진 비율 0~1. 직선은 일정하게, 끝을 가파르게 하면 오래 남다 빠르게 사라진다.")]
+    [SerializeField] private AnimationCurve fadeCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
     [Tooltip("잔상 색상(알파 포함). 엘리트는 붉은 틴트 권장")]
     [SerializeField] private Color tint = new Color(1f, 1f, 1f, 0.45f);
+    [Tooltip("잔상 페이드 재질. Pixel Feedback Sprite를 지정하면 도트 디더링으로 사라진다. 비우면 기존 재질.")]
+    [SerializeField] private Material fadeMaterial;
 
     /// <summary>true로 두면 속도와 무관하게 강제 방출 (AI 패턴에서 수동 제어가 필요할 때만 사용, 선택)</summary>
     public bool ForceEmit { get; set; }
 
-    private SpriteRenderer _source;
+    [Tooltip("잔상으로 복사할 그림. 비우면 현재 오브젝트 또는 자식의 첫 스프라이트를 사용한다.")]
+    [SerializeField] private SpriteRenderer _source;
     private Rigidbody2D _rb;
     private Vector3 _lastPos;
     private float _timer;
+    private float _emitAge;
     private float _dashWindowUntil; // BeginDash로 열린 잔상 방출 윈도우의 만료 시각 (Time.time 기준)
 
     private readonly Queue<SpriteRenderer> _pool = new Queue<SpriteRenderer>();
@@ -37,7 +43,7 @@ public class DashAfterimage : MonoBehaviour
 
     private void Awake()
     {
-        _source = GetComponent<SpriteRenderer>();
+        if (_source == null) _source = GetComponent<SpriteRenderer>();
         if (_source == null) _source = GetComponentInChildren<SpriteRenderer>();
         _rb = GetComponent<Rigidbody2D>();
         _lastPos = transform.position;
@@ -52,6 +58,7 @@ public class DashAfterimage : MonoBehaviour
         float posSpeed = ((transform.position - _lastPos) / dt).magnitude;
         _lastPos = transform.position;
         float rbSpeed = _rb != null ? _rb.linearVelocity.magnitude : 0f;
+        if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Afterimage)) return;
 
         // [수정] 속도만으로 자동 발동하던 기존 방식은 평타 넉백 등 돌진이 아닌 고속 이동에도
         // 잔상이 남는 문제가 있어, "돌진 윈도우(BeginDash~EndDash)가 열려 있는 동안" +
@@ -61,12 +68,15 @@ public class DashAfterimage : MonoBehaviour
 
         if (!emitting)
         {
+            _emitAge = 0f;
             _timer = spawnInterval; // 다음 발동 시 첫 장이 즉시 나오도록
             return;
         }
 
         _timer += dt;
-        if (_timer < spawnInterval) return;
+        _emitAge += dt;
+        float interval = PolishFeedback.Enabled(FeedbackCue.DashTrail) ? spawnInterval * Mathf.Lerp(PolishFeedback.Catalog.dashTrailIntervalRange.x,PolishFeedback.Catalog.dashTrailIntervalRange.y,Mathf.Clamp01(_emitAge/Mathf.Max(.01f,PolishFeedback.Catalog.dashTrailRampDuration))) : spawnInterval;
+        if (_timer < interval) return;
         _timer = 0f;
         SpawnGhost();
     }
@@ -94,6 +104,7 @@ public class DashAfterimage : MonoBehaviour
     {
         GameObject go = new GameObject(name + "_Ghost");
         SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+        if (fadeMaterial != null) sr.sharedMaterial = fadeMaterial;
         _spawned.Add(sr);
         return sr;
     }
@@ -103,10 +114,11 @@ public class DashAfterimage : MonoBehaviour
         float t = 0f;
         while (t < fadeTime)
         {
+            if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Afterimage)) break;
             t += Time.deltaTime;
             if (ghost == null) yield break;
             Color c = tint;
-            c.a = Mathf.Lerp(tint.a, 0f, t / fadeTime);
+            c.a = Mathf.Lerp(tint.a, 0f, SkillCombatUtil.EvaluateMotionProgress(fadeCurve, t / fadeTime));
             ghost.color = c;
             yield return null;
         }
@@ -124,6 +136,21 @@ public class DashAfterimage : MonoBehaviour
         }
         _spawned.Clear();
         _pool.Clear();
+    }
+
+    private void OnDisable()
+    {
+        EndDash();
+        ForceEmit = false;
+        StopAllCoroutines();
+        _pool.Clear();
+        foreach (var ghost in _spawned)
+        {
+            if (ghost == null) continue;
+            ghost.gameObject.SetActive(false);
+            _pool.Enqueue(ghost);
+        }
+        _lastPos = transform.position;
     }
 
 

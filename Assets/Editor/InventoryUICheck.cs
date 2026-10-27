@@ -83,7 +83,8 @@ public static class InventoryUICheck
     {
         // MCP 실행 중 에디터가 비활성이어도 실제 Game Update가 진행되게 한다.
         Application.runInBackground = true;
-        EditorWindow.GetWindow(Type.GetType("UnityEditor.GameView,UnityEditor")).Focus();
+        if (!Application.isBatchMode)
+            EditorWindow.GetWindow(Type.GetType("UnityEditor.GameView,UnityEditor")).Focus();
         var fixture = new GameObject("Isolated runtime check"); fixture.SetActive(false);
         var gm = fixture.AddComponent<GameManager>(); GameManager.Instance = gm;
         var player = fixture.AddComponent<PlayerController>(); Field(gm, "playerController", player);
@@ -115,11 +116,12 @@ public static class InventoryUICheck
         var recycle = GroundItem.Drop(minions[0], Vector3.zero);
         recycle.OnHoldComplete(fixture); recycle.OnHoldComplete(fixture);
         Check(health.CurHP == 60f, "미니언 분해 +10 회복/중복 호출 방지");
-        var item = AssetDatabase.LoadAssetAtPath<ItemSO>(AssetDatabase.GUIDToAssetPath(AssetDatabase.FindAssets("t:ItemSO")[0]));
-        var shop = new GameObject("Shop transaction", typeof(SpriteRenderer)).AddComponent<SellItem>();
-        shop.item = new RewardCandidate { category = RewardCategory.Item, rawData = item, goldAmount = 100 };
+        var item = AssetDatabase.LoadAssetAtPath<ItemSO>("Assets/SOData/Items/Whetstone.asset");
+        var shop = new GameObject("Shop transaction").AddComponent<ShopNPC>();
+        var offer = new ShopOffer(new RewardCandidate { category = RewardCategory.Item, rawData = item, goldAmount = 100 });
+        ((System.Collections.Generic.List<ShopOffer>)Read(shop, "_stock")).Add(offer);
         inventory.AddGold(500);
-        Check(shop.Interact(fixture) && !shop.Interact(fixture) && inventory.GOLD == 400 && pouch.Get(0) == item, "상점 정확히 1회 결제/습득");
+        Check(shop.TryPurchase(offer) && !shop.TryPurchase(offer) && inventory.GOLD == 400 && pouch.Get(0) == item, "상점 정확히 1회 결제/습득");
         yield return null;
         for (int i = 0; i < pouch.SlotCount; i++) pouch.RemoveAt(i);
         for (int i = 0; i < 10; i++) Check(pouch.TryAdd(AssetDatabase.LoadAssetAtPath<ItemSO>("Assets/SOData/Items/GaleDashRecovery.asset")), "충전 아이템 10개");
@@ -223,12 +225,12 @@ public static class InventoryUICheck
             foreach (var item in registry.items.Where(i => i != null)) if (!pouch.Contains(item)) Check(pouch.TryAdd(item), "9종 초과 습득");
             var unique = new System.Collections.Generic.List<ItemSO>(); pouch.GetUniqueItems(unique);
             Check(unique.Count > 9, "종류/칸 제한 없음");
-            Check(!pouch.TryAdd(Item("LifeCharm")), "기존 아이템 1개 제한");
+            Check(!pouch.TryAdd(Item("HealingCharm")), "기본 부적 1개 제한");
             var save = new SaveData(); pouch.SaveToData(save);
             pouch.LoadFromData(save); var restored = new SaveData(); pouch.SaveToData(restored);
             Check(save.pouchItemNames.SequenceEqual(restored.pouchItemNames), "중첩 수/획득순 저장 복원");
             pouch.LoadFromData(new SaveData { pouchSlotCount = 9, pouchItemNames = new System.Collections.Generic.List<string> { "Whetstone", "", "Whetstone", "LifeCharm" } });
-            Check(pouch.CountOf(stone) == 2 && pouch.CountOf(Item("LifeCharm")) == 1, "기존 빈칸/중복 세이브 마이그레이션");
+            Check(pouch.CountOf(stone) == 2 && pouch.CountOf(Item("HealingCharm")) == 1, "구 아이템 제거/빈칸/중복 보존/기본 부적 지급");
             pouch.LoadFromData(save); pouch.Refresh(); Equal(stat.Mods.Flat(StatType.Defense), 40, "로드/Refresh 중복 효과 없음");
 
             var ground = GroundItem.Drop(stone, Vector3.zero);

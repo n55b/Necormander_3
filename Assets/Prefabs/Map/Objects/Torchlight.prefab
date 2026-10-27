@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 7631836521896083630}
   - component: {fileID: 866279085276893003}
   - component: {fileID: 7841035780948035619}
+  - component: {fileID: 8275833606474795791}
   m_Layer: 3
   m_Name: Torchlight
   m_TagString: Untagged
@@ -339,3 +340,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.4375, y: 0.3}
   m_EdgeRadius: 0
+--- !u!114 &8275833606474795791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7418683891380451860}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de5a9ec73ec3f8d4e927d892aa6304d2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  kind: 2
+  visibleDistance: 12
+  touchDistance: 1
+  offset: {x: 0, y: 0, z: 0}

@@ -21,7 +21,6 @@ public static class PortalColliderSmokeTest
             root.SetActive(false);
             SceneManager.MoveGameObjectToScene(root, scene);
             Check<FloorProceedPortal>(root.transform, "FloorProceedPortalPrefab", 0.5f);
-            Check<BossTestPortal>(root.transform, "BossTestPortalPrefab", 0.6f);
             Debug.Log("[PortalColliderSmokeTest] ALL CHECKS PASSED");
         }
         finally { EditorSceneManager.ClosePreviewScene(scene); }

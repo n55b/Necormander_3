@@ -39,6 +39,7 @@ MonoBehaviour:
       m_LocalVariables: []
     icon: {fileID: 0}
     rarity: 0
+  impactColor: {r: 0.9, g: 0.87, b: 0.75, a: 1}
   baseEffectValue: 0
   attack: 15
   maxHP: 1200
@@ -51,6 +52,7 @@ MonoBehaviour:
   baseAccuracy: 1
   attackType: 0
   tier: 2
+  isPhaseVariant: 0
   aiPattern: {fileID: 11400000, guid: a94120482e786164490728fd9663c845, type: 2}
   AttackSound: {fileID: 0}
   minionPrefab: {fileID: 3798428365419413079, guid: 5e2bb3c2b983f064e8085d46b105636a, type: 3}

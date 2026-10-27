@@ -4,7 +4,11 @@ using AstroNuts.Localization;
 /// <summary>C는 왼쪽 스탯, 화살표는 장착 상세 정보. V와 동시에 열 수 있으며 시간을 멈추지 않는다.</summary>
 public class SkillExplainUI : Singleton<SkillExplainUI>
 {
-    [Header("UI Panels")]
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0.02f), Tooltip("정보창의 스탯 수치를 새로 읽는 간격입니다. 작을수록 빠르게 반영되지만 갱신 횟수가 늘어납니다.")]
+    private float statsRefreshInterval = 0.2f;
+
+    [Header("UI 패널")]
     [Tooltip("팝업으로 켜고 끌 대상. 비워두면 이 오브젝트 자신을 사용합니다.")]
     [SerializeField] private GameObject panelRoot;
     [SerializeField] private RectTransform statsPanel;
@@ -23,7 +27,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     [Header("오른쪽 패널: 메인 소환수 공격 (0=기본, 1=대쉬, 2=스킬)")]
     [SerializeField] private SkillExplainSlotUI[] linkedSkillSlots = new SkillExplainSlotUI[3];
 
-    [Header("Keyword Tooltip")]
+    [Header("키워드 설명")]
     [Tooltip("설명 속 '취약', '기절' 같은 키워드를 감지해 하이라이트 + 호버 툴팁을 붙입니다. 보상 카드와 동일한 사전을 연결하세요.")]
     [SerializeField] private KeywordDictionary keywordDictionary;
 
@@ -161,7 +165,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
 
     private void RefreshPlayerStats()
     {
-        _nextStatsRefresh = Time.unscaledTime + 0.2f;
+        _nextStatsRefresh = Time.unscaledTime + Mathf.Max(0.02f, statsRefreshInterval);
         if (playerStatsText == null) return;
         var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
         var stat = player != null ? player.Stat : null;

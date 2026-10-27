@@ -3,6 +3,10 @@ using UnityEngine;
 /// <summary>우클릭을 누르는 동안 게이지로 전방 공격을 방어한다. 기존 입력/성공 이벤트 배선을 유지한다.</summary>
 public class PlayerParryController : MonoBehaviour
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Range(0f, 1f), Tooltip("일반 가드 소모량에 곱합니다. 0.5이면 절반, 0이면 퍼펙트 가드 시 소모하지 않습니다.")]
+    private float perfectGuardCostRatio = 0.5f;
+
     [SerializeField] private GameObject parryTelegraphPrefab;
     [SerializeField] private string emptyMessage = "우클릭 없음!";
     [Header("가드 게이지")]
@@ -285,7 +289,7 @@ public class PlayerParryController : MonoBehaviour
     {
         float damage = _activeSelf.CalculateGuardDamage(info);
         LastBlockWasPerfect = Time.time - _raisedAt <= Mathf.Max(0f, perfectGuardWindow);
-        _guard = Mathf.Max(0f, _guard - damage * (LastBlockWasPerfect ? 0.5f : 1f));
+        _guard = Mathf.Max(0f, _guard - damage * (LastBlockWasPerfect ? Mathf.Clamp01(perfectGuardCostRatio) : 1f));
         _player?.RecordCombatAction();
         float breakThreshold = GuardCapacity * Mathf.Clamp01(guardBreakThresholdRatio);
         // 0.2f 곱셈의 미세 오차 때문에 정확히 10/50인 상태를 '미만'으로 오판하지 않는다.
@@ -296,6 +300,7 @@ public class PlayerParryController : MonoBehaviour
             StopGuard();
         }
         OnParrySuccess?.Invoke();
+        _player?.PlayVisualPulse("Guard");
     }
 
     private void DestroyTelegraph()

@@ -43,12 +43,6 @@ public class UISoundController : MonoBehaviour
         if (Instance != null) Instance._ready = true;
     }
 
-    /// <summary>UISound 컴포넌트에서 같은 게이트를 공유합니다.</summary>
-    public static bool GetIsReady()
-    {
-        return Instance != null && Instance._ready;
-    }
-
     // ─────────────────────────────────────────────────────────────────
     private void Awake()
     {

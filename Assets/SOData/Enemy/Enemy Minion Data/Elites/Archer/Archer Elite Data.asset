@@ -15,18 +15,48 @@ MonoBehaviour:
   minionType: 0
   minionName: 
   minionIcon: {fileID: 0}
-  throwEffectCategory: 0
+  shopCost: 150
+  rewardItemData:
+    itemName: 
+    description: 
+    localizedItemName:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: 
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: 
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    icon: {fileID: 0}
+    rarity: 0
+  impactColor: {r: 0.9, g: 0.87, b: 0.75, a: 1}
   baseEffectValue: 0
-  effectMultiplier: 1
-  baseAreaRadius: 3
-  maxHP: 300
   attack: 15
+  maxHP: 300
   attackSpeed: 1
   attackRange: 20
   detectRange: 100
   defense: 0
   moveSpeed: 0
+  baseEvasion: 0
+  baseAccuracy: 1
+  attackType: 0
   tier: 1
+  isPhaseVariant: 0
   aiPattern: {fileID: 11400000, guid: 0092992ff409f8048bf0277b57c3438d, type: 2}
   AttackSound: {fileID: 0}
   minionPrefab: {fileID: 2726140859014803944, guid: a443053a9f2c19047baea371f6e55ee5, type: 3}
+  dedicatedRoomPrefab: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []

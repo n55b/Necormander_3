@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public class RewardRoomEvent : MonoBehaviour, IRoomEvent
 {
-    [Header("Reward References")]
+    [Header("보상 연결")]
     [Tooltip("방 프리팹 내부에 있는 보상 상자(EliteRewardBox)를 연결해주세요.")]
     [SerializeField] private EliteRewardBox rewardBox;
 

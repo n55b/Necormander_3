@@ -39,6 +39,8 @@ MonoBehaviour:
       m_LocalVariables: []
     icon: {fileID: 7537958023452600384, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
     rarity: 0
+  feedbackTier: 3
+  feedbackColor: {r: 0.95, g: 0.82, b: 0.45, a: 1}
   minionSkill: {fileID: 11400000, guid: 665e6a8ea23591848ac28c4bd7c0f80e, type: 2}
   dashModifier:
     uiTitle: 
@@ -71,6 +73,7 @@ MonoBehaviour:
     causesHitstun: 1
     knockbackForce: 6
     superArmorDamage: 50
+  hitEffectPrefab: {fileID: 5299594500409048299, guid: fd91a9804d2100f45b8d700e9d5d79e1, type: 3}
   basicAnim:
     visual: {fileID: 3011877677410798748, guid: 7c4cdc41d521690449d80bae5a5e00e5, type: 3}
     duration: 0.65000004
@@ -78,6 +81,30 @@ MonoBehaviour:
     - tag: Attack
       offset: {x: 0, y: 0}
       snap: 0
+      movementCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 1.8
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
     effectState: 
     damageState: 
     hitEvent: OnHitEvent
@@ -89,6 +116,30 @@ MonoBehaviour:
     - tag: Skill
       offset: {x: 0, y: 0}
       snap: 0
+      movementCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 0
+          outSlope: 1.8
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 0
+          outSlope: 0
+          tangentMode: 0
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
     effectState: 
     damageState: 
     hitEvent: OnHitEvent

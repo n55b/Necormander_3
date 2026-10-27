@@ -6,11 +6,13 @@ using UnityEngine;
 /// </summary>
 public class Projectile : MonoBehaviour
 {
-    [Header("Base Projectile Settings")]
+    [Header("기본 투사체 설정")]
     [SerializeField] protected float speed = 15f;
     [SerializeField] protected float lifeTime = 3f;
     [SerializeField] protected bool rotateToDirection = true; // [추가] 날아가는 궤적 방향으로 오브젝트를 회전시킬지 여부 (구체형 등은 false)
 
+    private float nextFeedbackTrail;
+    protected virtual bool IsGuiding => false;
     protected float _damage;
     protected LayerMask _targetLayer;
     protected GameObject _shooter;
@@ -61,7 +63,9 @@ public class Projectile : MonoBehaviour
         }
 
         // 일정 시간 후 자동 파괴
-        Destroy(gameObject, lifeTime);
+        CancelInvoke(nameof(Expire));
+        Invoke(nameof(Expire), Mathf.Max(.01f, lifeTime));
+        PolishFeedback.Play(FeedbackCue.ProjectileLaunch, transform.position, -_direction);
 
         // 초기 겹쳐 있는 콜라이더 오버랩 체크
         Collider2D myCol = GetComponent<Collider2D>();
@@ -103,6 +107,12 @@ public class Projectile : MonoBehaviour
         Vector2 previousPosition = transform.position;
         Move();
         PlayerParryController.TryBlockProjectile(this, previousPosition);
+        if (!GuardConsumed && Time.time >= nextFeedbackTrail && PolishFeedback.Catalog != null)
+        {
+            nextFeedbackTrail = Time.time + PolishFeedback.Catalog.trailInterval;
+            PolishFeedback.Play(_isDeflected ? FeedbackCue.ReflectedTrail : FeedbackCue.ProjectileTrail, transform.position, -_direction);
+            if (IsGuiding) PolishFeedback.Play(FeedbackCue.HomingTrail, transform.position, -_direction);
+        }
     }
 
     protected virtual void Move()
@@ -185,11 +195,21 @@ public class Projectile : MonoBehaviour
         Destroy(gameObject);
     }
 
-    protected virtual void OnHitObstacle(Collider2D other)
+    private void Expire()
     {
+        if (!GuardConsumed) PolishFeedback.Play(FeedbackCue.ProjectileExpire, transform.position, _direction);
         Destroy(gameObject);
     }
 
+    protected virtual void OnHitObstacle(Collider2D other)
+    {
+        PolishFeedback.Play(FeedbackCue.WallHit, transform.position, -_direction);
+        PolishFeedback.Play(FeedbackCue.GroundHit, transform.position);
+        Destroy(gameObject);
+    }
+
+    /// <summary>관통형 파생 투사체가 대상을 통과한 뒤 호출하는 연출 훅. 기본 탄은 관통하지 않는다.</summary>
+    protected void FeedbackPierced(Vector3 point) => PolishFeedback.Play(FeedbackCue.PierceHit,point,_direction);
     public Vector2 Direction => _direction;
     public LayerMask TargetLayer => _targetLayer;
 
@@ -253,7 +273,9 @@ public class Projectile : MonoBehaviour
         }
 
         // 일정 시간 후 자동 파괴
-        Destroy(gameObject, lifeTime);
+        CancelInvoke(nameof(Expire));
+        Invoke(nameof(Expire), Mathf.Max(.01f, lifeTime));
+        PolishFeedback.Play(FeedbackCue.ProjectileLaunch, transform.position, -_direction);
     }
 
     public virtual Projectile Deflect(GameObject newShooter, LayerMask newTargetLayer, Vector2 newDirection)

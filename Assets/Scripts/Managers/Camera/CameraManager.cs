@@ -19,7 +19,7 @@ private CinemachineImpulseSource _impulseSource;
     private CinemachineCamera        _vcam;
     private float                    _defaultOrthoSize;
 
-    [Header("Shake Clamping")]
+    [Header("흔들림 제한")]
     [Tooltip("이 시간(초) 안에 들어온 히트는 힘을 새로 쌓지 않고 최댓값만 반영한다. 여러 명 동시 타격 시 임펄스가 겹쳐 어지러워지는 것을 막는다.")]
     [SerializeField] private float shakeWindow = 0.15f;
     [Tooltip("한 윈도우 안에서 허용하는 최대 힘.")]
@@ -72,7 +72,7 @@ private float _windowMaxForce  = 0f;
     /// <summary>외부(CameraShaker, SkillSO 등)에서 직접 호출. force로 강도 조절.</summary>
     public void HitShakeCamera(float force = 1f)
     {
-        if (_impulseSource == null) return;
+        if (_impulseSource == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.CameraShake)) return;
 
         float now = Time.time;
 
@@ -100,5 +100,22 @@ private float _windowMaxForce  = 0f;
         var lens = _vcam.Lens;
         lens.OrthographicSize = zoomOut ? _defaultOrthoSize * 1.3f : _defaultOrthoSize;
         _vcam.Lens = lens;
+    }
+
+    public void DirectionalKick(Vector2 direction, float force)
+    {
+        if(_impulseSource==null||force<=0||!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.CameraShake)) return;
+        float now=Time.time;
+        if(now-_windowStartTime>shakeWindow) { _windowStartTime=now; _windowMaxForce=0; }
+        float capped=Mathf.Min(force,maxForcePerWindow);
+        if(capped<=_windowMaxForce) return;
+        float delta=capped-_windowMaxForce; _windowMaxForce=capped;
+        _impulseSource.GenerateImpulse((Vector3)direction.normalized*delta);
+    }
+    private void LateUpdate()
+    {
+        if (PolishFeedback.ExistingEnabled(ExistingFeedbackCue.CameraShake)) return;
+        CinemachineImpulseManager.Instance.Clear();
+        _windowStartTime = -999f; _windowMaxForce = 0f;
     }
 }

@@ -15,19 +15,19 @@ public class TutorialQuestPanelController : MonoBehaviour
 
     public enum TutorialStage
     {
-        Spawn,
-        Combat,
-        Reward,
-        Augment,
-        Dodge,
-        Shop,
-        Descend
+        [UnityEngine.InspectorName("생성")] Spawn,
+        [UnityEngine.InspectorName("전투")] Combat,
+        [UnityEngine.InspectorName("보상")] Reward,
+        [UnityEngine.InspectorName("증강")] Augment,
+        [UnityEngine.InspectorName("회피")] Dodge,
+        [UnityEngine.InspectorName("상점")] Shop,
+        [UnityEngine.InspectorName("다음 층")] Descend
     }
 
     [Header("Object_Quest 템플릿 (자식 0번, 비활성 상태로 유지)")]
     [SerializeField] private RectTransform objectQuestTemplate;
 
-    [Header("Layout")]
+    [Header("배치")]
     [SerializeField] private RectTransform panelRect;
 
     private readonly List<GameObject> _spawned = new List<GameObject>();

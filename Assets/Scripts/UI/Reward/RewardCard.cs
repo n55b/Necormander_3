@@ -9,14 +9,14 @@ using UnityEngine.Localization.Components;
 /// </summary>
 public class RewardCard : MonoBehaviour
 {
-    [Header("UI References")]
+    [Header("UI 연결")]
     [SerializeField] private Image iconImage;
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI descText;
     [Tooltip("긴 설명을 스크롤하는 카드에서만 연결. 비어 있으면 기존 고정 설명을 사용합니다.")]
     [SerializeField] private ScrollRect descriptionScroll;
 
-    [Header("Keyword Sub Tooltip")]
+    [Header("키워드 하위 설명")]
     [Tooltip("설명에 포함된 키워드(예: 취약)를 감지해 아래에 추가 설명을 붙여줍니다. CommonTooltipUI와 동일한 사전을 연결하세요.")]
     [SerializeField] private AstroNuts.Localization.KeywordDictionary keywordDictionary;
     

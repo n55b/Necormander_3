@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public enum SceneNames { StartScene, BattleScene }
+public enum SceneNames { [UnityEngine.InspectorName("시작 씬")] StartScene, [UnityEngine.InspectorName("전투 씬")] BattleScene }
 
 namespace UnityNote
 {

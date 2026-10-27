@@ -6,39 +6,53 @@ using System.Collections;
 [CreateAssetMenu(fileName = "ArcherBossPattern", menuName = "Necromancer/AI/ArcherBossPattern")]
 public class ArcherBossAIPatternSO : BossAIPatternSO
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0f), Tooltip("2페이즈 전용 데이터가 없을 때만 사용하는 기본 이동속도입니다. 데이터가 연결되어 있으면 그 스탯을 따릅니다.")]
+    private float phaseTwoMoveSpeed = 5f;
+    [SerializeField, Min(0f), Tooltip("방 중앙으로 복귀할 때 기본 이동속도에 곱하는 배율입니다.")]
+    private float centerReturnSpeedMultiplier = 1.5f;
+    [SerializeField, Min(0.01f), Tooltip("보스가 발사하는 화살이 명중하지 않았을 때 유지되는 최대 시간입니다.")]
+    private float arrowLifetime = 7f;
+
     public enum ArcherState 
     { 
-        P1_Loop, P1_Pattern1, P1_Pattern2, Stunned, 
-        P2_Loop, P2_Pattern1, P2_Pattern2,
-        Transitioning
+        [UnityEngine.InspectorName("P 1 반복")] P1_Loop, [UnityEngine.InspectorName("P 1 패턴 1")] P1_Pattern1, [UnityEngine.InspectorName("P 1 패턴 2")] P1_Pattern2, [UnityEngine.InspectorName("기절")] Stunned,
+        [UnityEngine.InspectorName("P 2 반복")] P2_Loop, [UnityEngine.InspectorName("P 2 패턴 1")] P2_Pattern1, [UnityEngine.InspectorName("P 2 패턴 2")] P2_Pattern2,
+        [UnityEngine.InspectorName("전환 중")] Transitioning
     }
 
-    [Header("Phase Settings")]
+    [Header("페이즈 설정")]
     public float phase2HpThreshold = 350f;
     public EnemyMinionDataSO phase2Data; // [추가] 2페이즈 전용 스탯 데이터 (이 값이 있으면 체력 0 도달 시 부활하며 전환)
     [SerializeField] private bool isPhase2 = false;
 
-    [Header("Basic Attack Loop")]
+    [Header("평타 반복")]
     public float baseAttackInterval = 1.0f;
     public float maxAttackSpeedMultiplier = 1.4f;
     public float attackSpeedRampTime = 5.0f; // 8초에서 5초로 단축하여 패턴을 더 자주 보게 함
     public GameObject normalArrowPrefab;
     public float projectileSpeed = 10f;
 
-    [Header("Pattern 1 (Bombardment)")]
+    [Header("패턴 1: 폭격")]
     public GameObject bombardmentIndicatorPrefab; // 경고용 프리팹 (옵션)
     public float bombardmentDuration = 6.0f;
     public float bombardmentInterval = 0.5f;
+    [Min(.01f), Tooltip("각 포격 지점에 예고가 나타난 뒤 폭발하기까지의 시간(초).")]
+    public float bombardmentLeadTime = .5f;
+    [Min(.01f), Tooltip("각 포격의 반경(월드 유닛). 지름은 이 값의 두 배입니다.")]
+    public float bombardmentRadius = 1.5f;
+    [Min(.01f), Tooltip("BaseHitBox 방식 포격의 폭발 판정 유지 시간(초). TelegraphHitbox는 자신의 판정 설정을 사용합니다.")]
+    public float bombardmentHitDuration = .1f;
 
-    [Header("Pattern 2 (Fan Spread)")]
+    [Header("패턴 2: 부채꼴 발사")]
     public float fanWarningTime = 2.0f;
     public int arrowsPerDirection = 3;
     public float spreadAngle = 15f;
 
-    [Header("Stun & Drop")]
+    [Header("기절과 드롭")]
     public float stunDuration = 3.0f;
 
-    [Header("Runtime")]
+    [Header("실행 중 상태")]
     [SerializeField] private ArcherState archerCurrentState = ArcherState.P1_Loop;
     [SerializeField] private float stateTimer = 0f;
     [SerializeField] private float attackTimer = 0f;
@@ -166,7 +180,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         else
         {
             // 데이터가 없다면 임시로 이속만 5로 변경
-            entity.Stats.SetBaseMoveSpeed(5f); 
+            entity.Stats.SetBaseMoveSpeed(phaseTwoMoveSpeed);
         }
         loopDuration = 0f;
         archerCurrentState = ArcherState.P2_Loop;
@@ -352,7 +366,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
             if (agent != null)
             {
                 agent.isStopped = false;
-                agent.speed = entity.Stats.MOVESPEED * 1.5f; // 중앙으로 빠르게 이동
+                agent.speed = entity.Stats.MOVESPEED * centerReturnSpeedMultiplier; // 중앙으로 빠르게 이동
                 agent.SetDestination(center);
             }
         }
@@ -441,7 +455,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         var proj = arrow.GetComponentInChildren<Projectile>();
         if (proj != null)
         {
-            proj.Init(targetPos, entity.Stats.ATK, entity.opponentLayer, entity.gameObject, projectileSpeed, 7f);
+            proj.Init(targetPos, entity.Stats.ATK, entity.opponentLayer, entity.gameObject, projectileSpeed, arrowLifetime);
         }
     }
 
@@ -463,7 +477,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
                 var proj = arrow.GetComponentInChildren<Projectile>();
                 if (proj != null)
                 {
-                    proj.Init((Vector2)entity.transform.position + fireDir, entity.Stats.ATK, entity.opponentLayer, entity.gameObject, projectileSpeed, 7f);
+                    proj.Init((Vector2)entity.transform.position + fireDir, entity.Stats.ATK, entity.opponentLayer, entity.gameObject, projectileSpeed, arrowLifetime);
                 }
             }
         }
@@ -491,18 +505,18 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
                 if (circleAttack != null)
                 {
                     // 마법사 장판 스크립트를 재활용: 폭발 데미지, 타겟 레이어, 폭발 대기시간(0.5초), 반경(1.5f) 지정
-                    circleAttack.Init(entity.Stats.ATK, entity.opponentLayer, entity.gameObject, 1.5f, 0.5f);
+                    circleAttack.Init(entity.Stats.ATK, entity.opponentLayer, entity.gameObject, bombardmentRadius, bombardmentLeadTime);
                 }
                 else if (telegraph != null)
                 {
                     DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f, "Archer Bombardment", bypassGuard: true);
-                    telegraph.Init(0.5f, info, entity.opponentLayer, new Vector2(3f, 3f)); // 반경 1.5면 지름 3.0
+                    telegraph.Init(bombardmentLeadTime, info, entity.opponentLayer, Vector2.one * (bombardmentRadius * 2f));
                 }
                 else if (baseHitBox != null)
                 {
                     DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f, "Archer Bombardment", bypassGuard: true);
-                    indicator.transform.localScale = new Vector3(3f, 3f, 1f);
-                    baseHitBox.Init(info, entity.opponentLayer, 0.1f, 0.5f, false, null);
+                    indicator.transform.localScale = new Vector3(bombardmentRadius * 2f, bombardmentRadius * 2f, 1f);
+                    baseHitBox.Init(info, entity.opponentLayer, bombardmentHitDuration, bombardmentLeadTime, false, null);
                 }
                 
                 // 폭격 주기만큼 대기 후 다음 폭격

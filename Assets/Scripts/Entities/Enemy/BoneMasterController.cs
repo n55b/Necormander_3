@@ -109,6 +109,8 @@ public class BoneMasterController : EnemyController
     public float ReleaseAttack()
     {
         if (_attackMotion == null || Animator == null) return 0f;
+        PolishFeedback.Play(FeedbackCue.AttackRelease, transform.position, Vector2.up);
+        if (_attackMotion.state.Contains("Jump")) PolishFeedback.Play(FeedbackCue.BossLand, transform.position);
         SampleAttack(_attackMotion.hitTime + 0.0001f);
         Animator.speed = 1f;
         OnHitEvent(); // 샘플링 중 억제한 이벤트를 정확히 한 번만 실행한다. 피해는 패턴에서 같은 프레임에 준다.
@@ -127,22 +129,6 @@ public class BoneMasterController : EnemyController
 
     [Header("그로기(경직) 시각 피드백")]
     [SerializeField] private Color groggyFlashColor = new Color(0.4f, 0.85f, 1f, 1f);
-
-    [Header("카운터 아웃라인 발광")]
-    [Tooltip("스프라이트 외곽선을 따라 빛나게 할 아웃라인 머티리얼. " +
-             "Assets/Material/Pixel_SuperArmor_Shader.mat 과 같은 PickUpOutline 계열 셰이더(_Color 노출)를 쓴다.\n" +
-             "★ 비워두면 예전처럼 몸통 전체를 단색으로 칠하는 방식으로 자동 폴백한다(연출만 투박해지고 동작은 같다).")]
-    [SerializeField] private Material counterOutlineMaterial;
-    [Tooltip("아웃라인 머티리얼에서 색을 받는 셰이더 프로퍼티 이름. PickUpOutline 계열은 _Color 다.")]
-    [SerializeField] private string counterOutlineColorProperty = "_Color";
-    [Tooltip("아웃라인 발광 세기. 1보다 크면 HDR 범위로 올라가 블룸(Bloom)이 먹는다.")]
-    [SerializeField] private float counterOutlineIntensity = 2.5f;
-    [Tooltip("판정이 열리기 전 '유예' 구간에서 아웃라인이 깜빡이는 속도(초당 왕복 횟수). " +
-             "깜빡이는 동안은 아직 판정이 없고, 깜빡임이 멈추고 꽉 차는 순간부터 판정이 시작된다.")]
-    [SerializeField] private float counterOutlinePulseSpeed = 3f;
-    [Tooltip("유예 구간 깜빡임의 최저 밝기(0~1). 0이면 완전히 꺼졌다 켜지고, 높을수록 은은하게 맥동한다.")]
-    [Range(0f, 1f)]
-    [SerializeField] private float counterOutlinePulseFloor = 0.25f;
 
     [Header("방 경계 (보스 이동 제한)")]
     [Tooltip("방 크기 대비 보스가 움직일 수 있는 비율.\n\n" +
@@ -173,7 +159,6 @@ public class BoneMasterController : EnemyController
     private Coroutine _groggyFlashRoutine;
     private Coroutine _groggyClearRoutine;
     private Coroutine _activePattern;
-    private BossOutlineGlow _outlineGlow;
     private NavMeshAgent _navAgent;
     private RoomInstance _cachedRoom;
 
@@ -225,10 +210,10 @@ public class BoneMasterController : EnemyController
 
         // StopCoroutine 으로 끊긴 루틴은 자기 정리 코드를 실행하지 못한다.
         // 열어둔 카운터 창(= 안 닫으면 다음 패턴까지 파훼 판정이 새어 나감), 월드에 남은 전조,
-        // 켜 둔 카운터 아웃라인을 대신 치운다.
+        // 남은 일시 색상 효과를 대신 치운다.
         CounterGauge?.CloseWindow();
         CleanupDanglingTelegraphs();
-        ClearCounterOutline();
+        ClearVisualFlash();
 
         // 집행의 은신도 여기서 되돌린다. 루틴의 finally 에만 맡기면 안 된다 — 위 주석대로
         // StopCoroutine 으로 끊긴 이터레이터는 finally 를 실행하지 않으므로, 사망/페이즈 전환이
@@ -300,14 +285,6 @@ public class BoneMasterController : EnemyController
         {
             Debug.LogWarning($"[BoneMaster] {gameObject.name}: BossCounterGauge 컴포넌트가 없습니다.");
         }
-        else
-        {
-            // [파훼 가능 신호의 단일 소유자]
-            // 카운터 창은 패턴마다 따로 열고 닫는다(돌진 예고 / 3연타 마지막 / P2 광역 2종 / 패턴3).
-            // 그 12개 지점에서 아웃라인을 일일이 켜고 끄면 한 곳만 빠져도 발광이 켜진 채 남는다.
-            // 게이지 상태가 곧 "지금 때리면 파훼된다"이므로, 게이지에 직접 물려서 어긋날 수 없게 한다.
-            CounterGauge.OnGaugeChanged += HandleCounterGaugeChanged;
-        }
 
         if (patternLabel == null) patternLabel = GetComponentInChildren<EliteBossPatternLabel>();
         if (patternLabel == null) patternLabel = CreatePatternLabel();
@@ -315,17 +292,6 @@ public class BoneMasterController : EnemyController
         _bodyRenderers = GetComponentsInChildren<SpriteRenderer>();
         _bodyOriginalColors = new Color[_bodyRenderers.Length];
         for (int i = 0; i < _bodyRenderers.Length; i++) _bodyOriginalColors[i] = _bodyRenderers[i].color;
-
-        // 아웃라인 발광 오버레이. 머티리얼이 비어 있으면 IsUsable 이 false 로 남고,
-        // 호출측(PulseCounterOutline/ShowCounterOutline)이 예전 몸통 단색 방식으로 폴백한다.
-        _outlineGlow = gameObject.AddComponent<BossOutlineGlow>();
-        _outlineGlow.Init(SpriteRenderer, counterOutlineMaterial, counterOutlineColorProperty, counterOutlineIntensity);
-        if (counterOutlineMaterial == null)
-        {
-            Debug.LogWarning($"[BoneMaster] {gameObject.name}: Counter Outline Material 이 비어 있습니다. " +
-                             "카운터 연출이 예전 방식(몸통 전체 단색)으로 나갑니다 — " +
-                             "프리팹에 Assets/Material/Pixel_SuperArmor_Shader.mat 같은 아웃라인 머티리얼을 꽂아 주세요.");
-        }
 
         if (Stats != null) _baseMoveSpeedCached = Stats.BaseMoveSpeed;
 
@@ -354,7 +320,6 @@ public class BoneMasterController : EnemyController
             Health.UpdateHPBar -= CheckPartBreak;
             Health.OnBeforeDeath -= HandleBeforeDeath;
         }
-        if (CounterGauge != null) CounterGauge.OnGaugeChanged -= HandleCounterGaugeChanged;
         DamageEventBus.OnBeforeDamageCalculated -= HandleIncomingDamageAmp;
         // 예고 중에 보스가 죽으면 패턴 코루틴이 통째로 끊겨서, 그 코루틴이 만든 텔레그래프를
         // 지우는 Destroy 가 실행되지 않는다. 텔레그래프는 보스의 자식이 아니라 월드 루트
@@ -654,65 +619,6 @@ private IEnumerator Phase2TransitionRoutine()
         _stateTextClearRoutine = null;
     }
 
-    // ── 카운터 아웃라인 발광 ──────────────────────────────────────────
-    //
-    // 판정이 열리기 전까지는 "깜빡이는 아웃라인"으로 색만 알려주고(= 아직 아무 판정도 없다),
-    // 판정이 열리는 순간 깜빡임을 멈추고 꽉 찬 발광으로 바꾼다. 플레이어는 색으로 진짜/가짜를,
-    // 깜빡임 여부로 "지금부터 유효하다"를 읽는다.
-
-    // 파훼 가능(카운터 창이 열림) 신호에 쓸 색. 페이즈마다 다를 수 있어 패턴 SO 가 Init 에서 밀어 넣는다
-    // (색을 프리팹에도 두면 SO 의 counterRealColor 와 두 소스가 갈려 반드시 어긋난다).
-
-    /// <summary>
-    /// [0830 수정안 — 색 신호를 인디케이터 한 곳으로] 예전엔 카운터 창이 열리면 여기서 몸통
-    /// 아웃라인을 자동으로 켰다. 그런데 부위 파괴 아웃라인(partBreakOutlineColors)이 이미
-    /// 노랑 → 주황 → 빨강으로 전투 내내 켜져 있어서, 같은 스프라이트에 카운터 노랑/빨강을 겹치면
-    /// "0파괴의 기본 노랑"과 "지금 때려도 되는 노랑"이 구분되지 않는다.
-    /// (기존 counterRealColor 가 초록이었던 이유가 정확히 이 회피였다.)
-    ///
-    /// 이제 카운터 색은 머리 위 인디케이터(<see cref="BossAttackIndicator"/>)만 표현한다.
-    /// 게이지 자체는 여전히 파훼 판정에 쓰이므로 구독은 남기되, 아웃라인은 건드리지 않는다.
-    /// </summary>
-    private void HandleCounterGaugeChanged()
-    {
-        // 의도적으로 비워 둔다 — 되살리면 부위 파괴 아웃라인과 신호가 충돌한다.
-    }
-
-    /// <summary>유예 구간용. 아웃라인을 지정 색으로 켜고 깜빡이게 한다(판정 전).</summary>
-    public void PulseCounterOutline(Color color, float elapsed)
-    {
-        if (_outlineGlow == null || !_outlineGlow.IsUsable)
-        {
-            // 폴백: 머티리얼 미배선 — 예전 방식(몸통 단색)으로라도 색은 알려준다.
-            SetVisualFlash(color);
-            return;
-        }
-
-        if (!_outlineGlow.IsVisible) _outlineGlow.Show(color);
-
-        float wave = Mathf.Abs(Mathf.Sin(elapsed * Mathf.PI * Mathf.Max(0.01f, counterOutlinePulseSpeed)));
-        _outlineGlow.SetBrightness(Mathf.Lerp(counterOutlinePulseFloor, 1f, wave));
-    }
-
-    /// <summary>판정 개시. 깜빡임을 멈추고 아웃라인을 꽉 채운다.</summary>
-    public void ShowCounterOutline(Color color)
-    {
-        if (_outlineGlow == null || !_outlineGlow.IsUsable)
-        {
-            SetVisualFlash(color);
-            return;
-        }
-
-        _outlineGlow.Show(color);
-        _outlineGlow.SetBrightness(1f);
-    }
-
-    public void ClearCounterOutline()
-    {
-        _outlineGlow?.Hide();
-        ClearVisualFlash(); // 폴백 경로로 몸통을 칠했을 수도 있으니 항상 같이 되돌린다
-    }
-
     /// <summary>
     /// 지금 부위 파괴 수에 맞는 아웃라인 색을 적용한다. 색표가 짧으면 마지막 색을 쓴다.
     /// 슈퍼아머 오버레이는 CharacterVisualFeedback 이 LateUpdate 에서 그리므로 색만 넘겨주면 된다.
@@ -739,7 +645,10 @@ private IEnumerator Phase2TransitionRoutine()
     /// </summary>
     public void SetHidden(bool hidden)
     {
+        if (_isHidden != hidden && Health != null && !Health.IsDead)
+            PolishFeedback.Play(FeedbackCue.BossVanish, transform.position, hidden ? Vector2.down : Vector2.up);
         _isHidden = hidden;
+        GetComponentInChildren<EnemyDebuffTerminal>(true)?.SetVisible(!hidden);
         if (_bodyRenderers != null)
             foreach (var sr in _bodyRenderers)
                 if (sr != null) sr.enabled = !hidden;

@@ -29,7 +29,7 @@ public class BaseHitBox : MonoBehaviour
             return _colorConfig;
         }
     }
-    [Header("Settings")]
+    [Header("설정")]
     [Tooltip("장판이 유지되는 시간 (0이면 무한유지)")]
     public float duration = 0.5f; 
     public bool destroyOnFinish = true; 
@@ -38,13 +38,13 @@ public class BaseHitBox : MonoBehaviour
     public bool isContinuousDamage = false;
     public float damageTickRate = 0.5f;
 
-    [Header("Visuals (Optional)")]
+    [Header("외형: 선택 사항")]
     [Tooltip("장판이 찰 때 크기가 점점 커질 내부 이미지(Transform)")]
     public Transform fillingTransform;
     [Tooltip("가득 찼을 때의 최대 로컬 스케일")]
     public Vector3 maxFillScale = Vector3.one;
 
-    [Header("Hit Effect")]
+    [Header("타격 효과")]
     [Tooltip("적중 시 생성할 타격 이펙트 프리팹 (HitEffect)")]
     public GameObject hitEffectPrefab;
     [Tooltip("적중 시 함께 생성할 파티클 이펙트 프리팹 (예: MeleeHitSparkEffect)")]
@@ -55,17 +55,50 @@ public class BaseHitBox : MonoBehaviour
 
     [HideInInspector] public float hitEffectAngle = 0f; // [추가] 히트 이펙트 전용 실제(월드) 방향 각도. 부모(공격자) 미러링 보정과는 무관하게 실제 타격 방향을 그대로 담습니다.
 
-    public enum FillStyle { Uniform, Horizontal }
+    public enum FillStyle { [UnityEngine.InspectorName("균일")] Uniform, [UnityEngine.InspectorName("가로")] Horizontal }
     [Tooltip("장판 차오르는 방식 (Uniform: 점방사형, Horizontal: 로딩바형)")]
     public FillStyle fillStyle = FillStyle.Uniform;
 
     private DamageInfo _damageInfo;
-    // 마리오네트: 원래 애니메이션/펄스는 유지하고 한 판정에서 독립된 타격을 반복한다.
+    // 마리오네트: 모션/펄스는 유지하고 확정된 적중의 추가 피해만 시간차를 둔다.
     public int HitsPerContact { get; set; } = 1;
+    public float ContactHitInterval { get; set; }
     private void DealContactDamage(IDamageable target)
     {
-        for (int i = 0; i < Mathf.Max(1, HitsPerContact) && !target.IsDead; i++)
-            target.TakeDamage(_damageInfo);
+        if (target.IsDead) return;
+        target.TakeDamage(_damageInfo);
+        int remaining = Mathf.Max(1, HitsPerContact) - 1;
+        if (remaining == 0 || target.IsDead) return;
+        if (ContactHitInterval > 0f && target is MonoBehaviour receiver && receiver.isActiveAndEnabled)
+        {
+            // 히트박스 수명이 끝나거나 공격을 취소해도 이미 적중한 추가타는 누락하지 않는다.
+            // 대상이 사라지거나 비활성화되면 대상의 코루틴과 함께 취소된다.
+            receiver.StartCoroutine(RepeatContactDamage(receiver, target, _damageInfo, remaining,
+                ContactHitInterval, hitEffectPrefab, hitParticlePrefab, hitEffectAngle, frozenHitEffectColor));
+            return;
+        }
+        for (int i = 0; i < remaining && !target.IsDead; i++)
+        {
+            var info = _damageInfo;
+            info.feedbackHitIndex = i + 1;
+            target.TakeDamage(info);
+        }
+    }
+
+    private static System.Collections.IEnumerator RepeatContactDamage(MonoBehaviour receiver, IDamageable target,
+        DamageInfo info, int remaining, float interval, GameObject effectPrefab, GameObject particlePrefab,
+        float angle, Color frozenColor)
+    {
+        for (int i = 0; i < remaining; i++)
+        {
+            yield return new WaitForSeconds(interval);
+            if (receiver == null || !receiver.isActiveAndEnabled || target.IsDead) yield break;
+            bool frozen = IsTargetFrozen(receiver);
+            info.feedbackHitIndex = i + 1;
+            target.TakeDamage(info);
+            if (receiver != null)
+                SpawnHitEffect(ImpactPosition(receiver, effectPrefab), frozen, effectPrefab, particlePrefab, angle, frozenColor);
+        }
     }
     private LayerMask _targetLayer;
     private bool _isInitialized = false;
@@ -143,7 +176,7 @@ public class BaseHitBox : MonoBehaviour
             if (damageable == null || damageable.IsDead || !_pulseTargets.Add(damageable)) continue;
             bool wasFrozen = IsTargetFrozen(hit); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
             DealContactDamage(damageable);
-            SpawnHitEffect(hit.transform.position, wasFrozen);
+            SpawnHitEffect(ImpactPosition(hit, hitEffectPrefab), wasFrozen);
             if (damageable is CharacterHealth ch) _onHitEnemy?.Invoke(ch);
         }
     }
@@ -327,7 +360,7 @@ public class BaseHitBox : MonoBehaviour
                 {
                     bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
                     DealContactDamage(damageable);
-                    SpawnHitEffect(col.transform.position, wasFrozen);
+                    SpawnHitEffect(ImpactPosition(col, hitEffectPrefab), wasFrozen);
                     _tickCount[damageable] = n + 1;
 
                     if (damageable is CharacterHealth ch)
@@ -344,7 +377,7 @@ public class BaseHitBox : MonoBehaviour
                     _hitTargets.Add(damageable);
                     bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
                     DealContactDamage(damageable);
-                    SpawnHitEffect(col.transform.position, wasFrozen);
+                    SpawnHitEffect(ImpactPosition(col, hitEffectPrefab), wasFrozen);
                     
                     if (damageable is CharacterHealth ch)
                     {
@@ -361,6 +394,20 @@ public class BaseHitBox : MonoBehaviour
     /// 적중 위치에 타격 이펙트(HitEffect)를 생성합니다.
     /// </summary>
     private void SpawnHitEffect(Vector3 position, bool frozenTarget = false)
+        => SpawnHitEffect(position, frozenTarget, hitEffectPrefab, hitParticlePrefab, hitEffectAngle, frozenHitEffectColor);
+
+    private static Vector3 ImpactPosition(Component target, GameObject effectPrefab)
+    {
+        if (effectPrefab != null && effectPrefab.TryGetComponent<ImpactFeedback>(out _))
+        {
+            var col = target as Collider2D ?? target.GetComponent<Collider2D>() ?? target.GetComponentInParent<Collider2D>();
+            if (col != null) return col.bounds.center;
+        }
+        return target.transform.position;
+    }
+
+    private static void SpawnHitEffect(Vector3 position, bool frozenTarget, GameObject hitEffectPrefab,
+        GameObject hitParticlePrefab, float hitEffectAngle, Color frozenHitEffectColor)
     {
         if (hitEffectPrefab != null)
         {
@@ -395,6 +442,11 @@ public class BaseHitBox : MonoBehaviour
             var main = ps.main;
             Color baseColor = main.startColor.color;
             main.startColor = new Color(tint.r, tint.g, tint.b, baseColor.a);
+        }
+        foreach (var line in effect.GetComponentsInChildren<LineRenderer>(true))
+        {
+            line.startColor = new Color(tint.r, tint.g, tint.b, line.startColor.a);
+            line.endColor = new Color(tint.r, tint.g, tint.b, line.endColor.a);
         }
     }
 

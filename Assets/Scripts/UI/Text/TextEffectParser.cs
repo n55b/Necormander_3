@@ -9,11 +9,11 @@ using System.Text.RegularExpressions;
 /// </summary>
 public enum TextEffectType
 {
-    Punch,
-    Shake,
-    Wave,
-    Rainbow,
-    Jitter
+    [UnityEngine.InspectorName("튀는 동작")] Punch,
+    [UnityEngine.InspectorName("흔들림")] Shake,
+    [UnityEngine.InspectorName("파동")] Wave,
+    [UnityEngine.InspectorName("무지개")] Rainbow,
+    [UnityEngine.InspectorName("흩어짐")] Jitter
 }
 
 /// <summary>

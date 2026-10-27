@@ -10,12 +10,12 @@ public class MinionRegistrySO : ScriptableObject
     [Header("아군 미니언 데이터")]
     public List<MinionDataSO> allyMinionData; // 소환수(메인/서브 혼재)라 공통 base 로 받는다
 
-    [Header("Enemy Minions")]
+    [Header("일반 적 목록")]
     public List<EnemyMinionDataSO> enemyMinionData;
 
-    [Header("Elite Minions")]
+    [Header("엘리트 목록")]
     public List<EnemyMinionDataSO> eliteMinionData; // 엘리트 전용 데이터 목록
 
-    [Header("Boss Minions")]
+    [Header("보스 목록")]
     public List<EnemyMinionDataSO> bossMinionData; // 보스 전용 데이터 목록
 }

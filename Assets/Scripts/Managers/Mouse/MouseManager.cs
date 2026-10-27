@@ -1,19 +1,19 @@
 using UnityEngine;
 
 // 던질 때 빼고 마우스 커서는 동일
-public enum CursorType { Default, Targeting }
+public enum CursorType { [UnityEngine.InspectorName("기본값")] Default, [UnityEngine.InspectorName("대상 조준")] Targeting }
 
 public class MouseManager : MonoBehaviour
 {
     private MouseCursorManager cursorManager;
 
-    [Header(" [ Layer Mask ] ")]
+    [Header("물리 레이어")]
     [SerializeField] LayerMask allyLayer;
 
-    [Header(" [ Settings ] ")]
+    [Header("설정")]
     [SerializeField] CursorType currentType = CursorType.Default;
 
-    [Header(" [ Under The Mouse ] ")]
+    [Header("마우스 아래 대상")]
     [SerializeField] GameObject hoverObject = null;
 
     public GameObject HoverObject => hoverObject;

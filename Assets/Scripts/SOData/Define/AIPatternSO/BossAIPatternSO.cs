@@ -12,7 +12,7 @@ using UnityEngine;
 /// </summary>
 public abstract class BossAIPatternSO : BaseAIPatternSO
 {
-    [Header("Boss Phase Settings")]
+    [Header("보스 페이즈 설정")]
     public float phase2Threshold = 0.5f; // 페이즈 2 전환 체력 비율
     protected int currentPhase = 1;
 
@@ -20,8 +20,13 @@ public abstract class BossAIPatternSO : BaseAIPatternSO
     [Min(0f), Tooltip("인디케이터 완료 몇 초 전부터 조준을 고정할지. 예고가 이보다 짧으면 처음부터 고정한다.")]
     public float aimLockLeadTime = 0.5f;
 
-    public bool CanTrackAim(float elapsed, float duration)
-        => elapsed < Mathf.Max(0f, duration - Mathf.Max(0f, aimLockLeadTime));
+    public bool CanTrackAim(float elapsed, float duration, BaseEntity entity = null)
+    {
+        float lockAt = Mathf.Max(0f, duration - Mathf.Max(0f, aimLockLeadTime));
+        if (entity != null && elapsed >= lockAt && (elapsed == 0f || elapsed - Time.deltaTime < lockAt))
+            PolishFeedback.Play(FeedbackCue.AimLock, entity.transform.position, Vector2.up);
+        return elapsed < lockAt;
+    }
 
     public override void Init(BaseEntity entity)
     {

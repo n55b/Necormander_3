@@ -17,6 +17,7 @@ public class MinionSkillCaster : MonoBehaviour
 {
     /// <summary>시전 주체인 소환수의 데이터. 스킬이 ATK 등을 여기서 읽는다.</summary>
     public MinionDataSO Data { get; private set; }
+    public Transform FeedbackAnchor { get; private set; }
 
     // 아무도 수명을 안 정해줬을 때만 쓰는 상한. 실제로는 PlaySequenced 가 시전 시간에 맞춰 다시 잡는다.
     private const float DEFAULT_LIFETIME = 3f;
@@ -54,6 +55,8 @@ public class MinionSkillCaster : MonoBehaviour
     private System.Collections.IEnumerator DespawnRoutine(float seconds)
     {
         yield return new WaitForSeconds(seconds);
+        if (PolishFeedback.Player != null)
+            PolishFeedback.Play(FeedbackCue.MinionReturn, FeedbackAnchor!=null?FeedbackAnchor.position:transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO), PolishFeedback.Player.transform);
         if (this != null) Destroy(gameObject);
     }
 
@@ -112,6 +115,8 @@ public class MinionSkillCaster : MonoBehaviour
         if (!string.IsNullOrEmpty(effectState))
         {
             var fx = Instantiate(visual, transform.position, Quaternion.identity, transform);
+            FeedbackAnchor = fx.transform;
+            PolishFeedback.Play(FeedbackCue.MinionAppear, fx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO));
             fx.transform.localPosition = Vector3.zero;
             var fxsr = fx.GetComponentInChildren<SpriteRenderer>();
             if (fxsr != null) fxsr.flipX = faceRight;
@@ -127,7 +132,17 @@ public class MinionSkillCaster : MonoBehaviour
         }
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
+        FeedbackAnchor = vfx.transform;
+        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO));
         vfx.transform.localPosition = Vector3.zero;
+
+        var squash = vfx.GetComponent<VisualSquashStretch>();
+        squash?.Play("Appear");
+        // 이벤트·태그·폴백 모두 같은 판정창을 거치므로 외형도 여기서 함께 반응한다.
+        var openWindow = onHitWindow;
+        onHitWindow = (duration, continuous) => { squash?.PlayAttack(); openWindow?.Invoke(duration, continuous); };
+        var hitPulse = onHitPulse;
+        onHitPulse = () => { squash?.PlayAttack(); hitPulse?.Invoke(); };
 
         var sr = vfx.GetComponentInChildren<SpriteRenderer>();
         if (sr != null) sr.flipX = faceRight;
@@ -271,7 +286,10 @@ public class MinionSkillCaster : MonoBehaviour
         }
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
+        FeedbackAnchor = vfx.transform;
+        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO));
         vfx.transform.localPosition = Vector3.zero;
+        vfx.GetComponent<VisualSquashStretch>()?.PlayDash();
 
         var anim = vfx.GetComponentInChildren<Animator>();
 
@@ -389,7 +407,8 @@ public class MinionSkillCaster : MonoBehaviour
                     {
                         if (visualTf == null) yield break;
                         t += Time.deltaTime;
-                        visualTf.localPosition = Vector3.Lerp(from, target, dur > 0f ? Mathf.Clamp01(t / dur) : 1f);
+                        visualTf.localPosition = Vector3.Lerp(from, target,
+                            SkillCombatUtil.EvaluateMotionProgress(phase.movementCurve, dur > 0f ? t / dur : 1f));
                         yield return null;
                     }
                     visualTf.localPosition = target;
@@ -550,6 +569,8 @@ public class MinionSkillCaster : MonoBehaviour
         if (visual == null) return null;
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
+        FeedbackAnchor = vfx.transform;
+        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO));
         vfx.transform.localPosition = Vector3.zero;
 
         var sr = vfx.GetComponentInChildren<SpriteRenderer>();

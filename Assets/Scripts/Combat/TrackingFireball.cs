@@ -12,6 +12,7 @@ public class TrackingFireball : Projectile
     [SerializeField, Range(0f, 90f), Tooltip("진행 방향에서 이 각도 이상 벗어난 대상은 놓친다. 이후 재추적 없이 직진한다.")]
     private float trackingHalfAngle = 75f;
 
+    protected override bool IsGuiding => _targetTransform != null;
     protected Transform _targetTransform;
     public override DamageInfo GuardInfo => new DamageInfo(_damage, DamageType.Magic, _shooter,
         category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: HitFromPoint);

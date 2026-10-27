@@ -14,11 +14,11 @@ public class MapGenerator : MonoBehaviour
     public bool IsMapGenerationCompleted { get; private set; } = false;
     public float GenerationProgress { get; private set; }
 
-    [Header("Data Settings")]
+    [Header("데이터 연결")]
     [SerializeField] private MapGenerationDataSO generationData;
     [SerializeField] private RoomPrefabDataSO prefabData;
 
-    [Header("Debug")]
+    [Header("디버그")]
     [Tooltip("맵 생성 뒤 MapDebugLog.txt에 전체 타일 지도를 기록합니다. 큰 방에서는 로그 한 번에 수십만 칸을 검사하므로, 연결 문제를 추적할 때만 켭니다.")]
     [SerializeField] private bool dumpMapDebugLog;
 
@@ -132,23 +132,44 @@ public class MapGenerator : MonoBehaviour
 #endif
 
 
-    [Header("Global Tilemap References")]
+    [Header("통합 타일맵 연결")]
     [SerializeField] private Tilemap globalGroundTilemap;
     [SerializeField] private Tilemap globalWallTilemap;
     [SerializeField] private Tilemap globalShadowTilemap;
     [SerializeField] private Tilemap globalUnsteppableTilemap;
+    public Color FootstepColor(Vector3 position)
+    {
+        var settings=PolishFeedback.Catalog;
+        if (settings==null) return Color.white;
+        if (TryGetNearbyWater(position,out _)) return settings.waterColor;
+        var tile=globalGroundTilemap!=null?globalGroundTilemap.GetTile(globalGroundTilemap.WorldToCell(position)):null;
+        string name=tile!=null?tile.name.ToLowerInvariant():"";
+        return name.Contains("stone")||name.Contains("rock")||name.Contains("brick")?settings.stoneColor:settings.dirtColor;
+    }
+
+    public bool TryGetNearbyWater(Vector3 position, out Vector3 water)
+    {
+        water=position;
+        if(globalUnsteppableTilemap==null) return false;
+        var cell=globalUnsteppableTilemap.WorldToCell(position);
+        for(int x=-1;x<=1;x++) for(int y=-1;y<=1;y++)
+        {
+            var c=cell+new Vector3Int(x,y,0);
+            if(!globalUnsteppableTilemap.HasTile(c)) continue;
+            var p=globalUnsteppableTilemap.GetCellCenterWorld(c);
+            if(globalGroundTilemap!=null&&globalGroundTilemap.HasTile(globalGroundTilemap.WorldToCell(p))) continue;
+            if(globalWallTilemap!=null&&globalWallTilemap.HasTile(globalWallTilemap.WorldToCell(p))) continue;
+            water=p; return true;
+        }
+        return false;
+    }
 
     // 미니맵 타일 추가
-    [Header("MiniMap Settings")]
+    [Header("미니맵 설정")]
     [SerializeField] private Tilemap globalMiniMapTilemap; // GlobalMiniMapTilemap 등록
     [SerializeField] private TileBase miniMapNormalTile;  // 일반 방/복도용 단색 타일
 
-    [Header("안개 시스템")]
-    [SerializeField] private Tilemap fogTilemap; // 방금 만든 FogTilemap 등록
-    [SerializeField] private TileBase blackTile; // 검은색 타일 에셋 등록
-
     public Tilemap GlobalMiniMapTilemap => globalMiniMapTilemap;
-    public Tilemap FogTilemap => fogTilemap;
 
     /// <summary>
     /// 캐릭터가 착지할 수 있는 바닥인가. Ground가 있으면 그 아래 Unsteppable(물)은 허용하지만,
@@ -542,16 +563,6 @@ Instance = this;
 
         // [추가] 일반 전투 방들의 보상 수량을 지정된 개수대로 무작위 분배 및 안배
         DistributeNormalRoomRewards();
-
-        // 안개 타일 배치
-        // GenerateFogOfWar(); // [Fog 미사용] 안개 시스템 비활성화로 주석 처리
-
-        // 스폰 방만 게임 시작할 때 안개를 즉시 걷어내 줍니다.
-        RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
-        if (spawnRoom != null)
-        {
-            spawnRoom.RevealRoom();
-        }
 
         PlacePlayerAtSpawn();
 
@@ -1732,94 +1743,6 @@ Instance = this;
             default: return miniMapNormalTile;
         }
     }
-    // 카메라 자동 정렬 헬퍼 함수
-    public void AutoFocusMiniMapCamera(Camera miniMapCam)
-    {
-        if (miniMapCam == null || globalMiniMapTilemap == null) return;
-
-        // 유니티 내장 기능으로 미니맵 타일 영역의 타일맵 렌더러 기준 Bounds를 통째로 가져옵니다.
-        var tilemapRenderer = globalMiniMapTilemap.GetComponent<TilemapRenderer>();
-        if (tilemapRenderer == null) return;
-
-        Bounds mapBounds = tilemapRenderer.bounds;
-
-        // 1. 카메라의 중심점을 생성된 맵 전체의 정중앙 좌표로 이동시킵니다.
-        Vector3 centerPos = GameManager.Instance.PLAYERCONTROLLER.transform.position; // 플레이어 위치를 중심으로 시작
-        centerPos.z = miniMapCam.transform.position.z; // 기존 카메라이 Z축 깊이(-100) 유지
-        miniMapCam.transform.position = centerPos;
-
-        miniMapCam.orthographicSize = 30.0f;
-    }
-
-    // 안개 타일 & 미니맵 타일 채우기 함수
-    private void GenerateFogOfWar()
-    {
-        if (fogTilemap == null || blackTile == null) return;
-
-        globalGroundTilemap.CompressBounds();
-        BoundsInt bounds = globalGroundTilemap.cellBounds;
-
-        // 일괄 배치를 위한 리스트
-        List<Vector3Int> fogPositions = new List<Vector3Int>();
-        List<TileBase> fogTiles = new List<TileBase>();
-
-        for (int x = bounds.xMin - 5; x <= bounds.xMax + 5; x++)
-        {
-            for (int y = bounds.yMin - 5; y <= bounds.yMax + 5; y++)
-            {
-                Vector3Int pos = new Vector3Int(x, y, 0);
-
-                bool hasGround = globalGroundTilemap.HasTile(pos);
-                bool hasWall = (globalWallTilemap != null && globalWallTilemap.HasTile(pos));
-                bool hasUnsteppable = (globalUnsteppableTilemap != null && globalUnsteppableTilemap.HasTile(pos));
-
-                if (hasGround || hasWall || hasUnsteppable)
-                {
-                    // 1. 안개 영역 채우기
-                    fogPositions.Add(pos);
-                    fogTiles.Add(blackTile);
-                }
-            }
-        }
-
-        // 배열로 한 번에 쏴서 렉 없이 생성
-        fogTilemap.SetTiles(fogPositions.ToArray(), fogTiles.ToArray());
-
-        // [추가] 아이작 스타일 모드라면 논리 그리드 기반 미니맵 영역을 초기화하고 스폰 방만 먼저 그려둠
-        if (generationData != null && generationData.useIsaacStylePlacement)
-        {
-            if (globalMiniMapTilemap != null) globalMiniMapTilemap.ClearAllTiles();
-            RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
-            if (spawnRoom != null)
-            {
-                SetCurrentRoom(spawnRoom);
-                DrawRoomOnMinimap(spawnRoom);
-                if (UIBasedMiniMap.Instance != null)
-                {
-                    UIBasedMiniMap.Instance.RefreshMap();
-                }
-            }
-        }
-        else
-        {
-            if (globalMiniMapTilemap != null)
-            {
-                globalMiniMapTilemap.ClearAllTiles();
-                List<Vector3Int> miniMapPositions = new List<Vector3Int>();
-                List<TileBase> miniMapTiles = new List<TileBase>();
-                foreach (var pos in fogPositions)
-                {
-                    if (miniMapNormalTile != null)
-                    {
-                        miniMapPositions.Add(pos);
-                        miniMapTiles.Add(miniMapNormalTile);
-                    }
-                }
-                globalMiniMapTilemap.SetTiles(miniMapPositions.ToArray(), miniMapTiles.ToArray());
-            }
-        }
-    }
-
     public void DrawRoomOnMinimap(RoomInstance room)
     {
         if (globalMiniMapTilemap == null || room == null) return;
@@ -2123,16 +2046,7 @@ Instance = this;
             using (MeasureGeneration("5.DistributeNormalRoomRewards"))
                 DistributeNormalRoomRewards();
 
-            // 안개 생성
-            // GenerateFogOfWar(); // [Fog 미사용] 안개 시스템 비활성화로 주석 처리
-
-            // 스폰 방 안개 즉시 제거
             RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
-            if (spawnRoom != null)
-            {
-                using (MeasureGeneration("5.RevealRoom"))
-                    spawnRoom.RevealRoom();
-            }
 
             // 생성 완료 후 모든 방의 문을 기본 개방 상태로 설정하여 자유로운 이동 및 텔레포터 활성화 보장
             using (MeasureGeneration("5.Open all doors"))

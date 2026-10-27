@@ -13,7 +13,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    [Header("Player")]
+    [Header("플레이어")]
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private PlayerController playerController;
     public PlayerController PLAYERCONTROLLER => playerController;
@@ -24,19 +24,18 @@ public class GameManager : MonoBehaviour
     public float LoadingProgress => Mathf.Max(_loadingProgress,
         mapGenerator != null ? 0.1f + 0.65f * mapGenerator.GenerationProgress : 0f);
 
-    [Header("Global Volume")]
+    [Header("전체 볼륨")]
     [SerializeField] public Volume globalvolume;
 
-    [Header("Core Managers")]
+    [Header("핵심 관리자 연결")]
     [SerializeField] public DataManager dataManager;
-    [SerializeField] public EconomyManager economyManager;
     [SerializeField] public CameraManager cameraManager;
     [SerializeField] public HitStopManager hitStopManager;
 
     [SerializeField] public MouseManager mouseManager;
     [SerializeField] public MouseCursorManager mouseCursorManager;
 
-    [Header("Growth System")]
+    [Header("성장 시스템")]
     [SerializeField] public InventoryManager inventoryManager;
     [SerializeField] public PlayerSkillInventoryManager playerSkillInventoryManager;
     [Tooltip("아이템 주머니. 장비(playerSkillInventoryManager)와 별개 시스템이다.")]
@@ -44,16 +43,16 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] public RewardManager rewardManager;
 
-    [Header("HUD / Feedback")]
+    [Header("상태 UI와 반응 연출")]
     [SerializeField] public OffscreenEnemyArrowManager offscreenEnemyArrowManager;
 
-    [Header("UI References")]
+    [Header("UI 연결")]
     [SerializeField] public PlayerStateUI playerStateUI;
-    [Header("Combat Sound")]
+    [Header("전투 효과음")]
     [SerializeField] private PlayerAttackSoundData playerAttackSoundData;
 
 
-    [Header("Map Generation")]
+    [Header("맵 생성")]
     [SerializeField] public MapGenerator mapGenerator;
     [SerializeField] private MapGenerationDataSO currentStageMapData;
     public MapGenerationDataSO CurrentStageMapData => currentStageMapData;
@@ -109,13 +108,12 @@ public class GameManager : MonoBehaviour
 
 
 
-    [Header("Test Options")]
-    [SerializeField] public bool testMode_InfiniteStamina = false;
+    [Header("테스트 옵션")]
     [SerializeField] public bool testMode_DisableAutoBattle = false;
     [Tooltip("디버그: 같은 상점에서도 장비를 여러 번 강화할 수 있다. 골드 비용, 강화 분기, 최종 단계 제한은 유지한다. 배포 시 꺼둘 것.")]
     [SerializeField] public bool testMode_UnlimitedShopEnhancements = false;
 
-    [Header("Floor Info")]
+    [Header("층 정보")]
     [SerializeField] public int currentFloor = 1;
     [Tooltip("0이면 꺼짐. 1 이상이면 던전 첫 진입 시 세이브의 층수를 무시하고 그 층에서 시작한다. " +
              "다음 층 포탈로 이동할 때는 이 값을 다시 적용하지 않고 현재 층 + 1로 진행한다. " +
@@ -187,7 +185,6 @@ public class GameManager : MonoBehaviour
         Debug.Log("<b>[GameManager]</b> Starting Initialization Sequence...");
 
         if (dataManager == null) dataManager = GetComponentInChildren<DataManager>();
-        if (economyManager == null) economyManager = GetComponentInChildren<EconomyManager>();
         if (cameraManager == null) cameraManager = GetComponentInChildren<CameraManager>();
         if (hitStopManager == null) hitStopManager = GetComponentInChildren<HitStopManager>();
 
@@ -232,7 +229,6 @@ public class GameManager : MonoBehaviour
         // 안 그러면 지난 층의 페널티가 그대로 남고, DamageEventBus 구독까지 중복으로 쌓인다.
         ActiveAugment.ResetAll();
 
-        if (economyManager != null) economyManager.Initialize();
         if (cameraManager != null) cameraManager.Initialize();
         if (hitStopManager != null) hitStopManager.Initialize();
 

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 // [26/07/17] Caught/Thrown 삭제 — 유닛을 집어 들고 던지는 투척 전용 상태였다.
-public enum AIState { Idle, Follow, Attack, Skill }
+public enum AIState { [UnityEngine.InspectorName("대기")] Idle, [UnityEngine.InspectorName("추적")] Follow, [UnityEngine.InspectorName("공격")] Attack, [UnityEngine.InspectorName("스킬")] Skill }
 
 /// <summary>
 /// 유닛의 모든 행동(대기, 추격, 공격)을 관리하는 통합 AI 기반 클래스입니다.

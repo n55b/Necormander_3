@@ -11,7 +11,7 @@ public class BodyAnimationEventRelay : MonoBehaviour
     private PlayerController _controller;
     private MeleeCombatController _melee;
 
-    [Header("Walk Footstep Effect")]
+    [Header("걷기 발자국 효과")]
     [SerializeField] private GameObject walkSmogEffectPrefab;
     [SerializeField] private Transform footEffectPoint;
 
@@ -46,7 +46,7 @@ public class BodyAnimationEventRelay : MonoBehaviour
     /// </summary>
     public void OnFootstep()
     {
-        if (walkSmogEffectPrefab == null) return;
+        if (walkSmogEffectPrefab == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.WalkSmoke)) return;
         Vector3 spawnPos = footEffectPoint != null ? footEffectPoint.position : transform.position;
 
         GameObject fx = Instantiate(walkSmogEffectPrefab, spawnPos, Quaternion.identity);

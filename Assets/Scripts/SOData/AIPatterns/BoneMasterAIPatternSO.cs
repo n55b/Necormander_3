@@ -101,6 +101,13 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
     public float thrustDashDistance = 3f;
     [Tooltip("위 거리를 이동하는 데 걸리는 시간(초). 예고가 끝나는 순간부터 이만큼 미끄러진다.")]
     public float thrustDashDuration = 0.15f;
+    [Header("이동 그래프 (X: 시간 0~1 / Y: 거리 0~1)")]
+    [Tooltip("휩쓸기 전진의 가속/감속. 전진 거리 0이면 사용하지 않는다.")]
+    public AnimationCurve sweepStepCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+    [Tooltip("찌르기 이동의 가속/감속. 예고와 타격 시점, 전체 이동 시간은 유지한다.")]
+    public AnimationCurve thrustMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+    [Tooltip("도약 중 착지점까지의 이동. 착지 시점과 예고 시간은 유지한다.")]
+    public AnimationCurve leapMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
     [Tooltip("보스 몸 두께. 미끄러지는 중 벽 접촉을 이 반지름으로 검사한다.")]
     public float wallCheckRadius = 0.85f;
 
@@ -110,8 +117,6 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
              "그래서 실제 딜타임 = 그로기(counterSuccessGroggyDuration) + 이 값 이고, 그동안 보스는 추격만 한다. " +
              "늘리면 그만큼 통째로 무행동이니 신중하게 만져라.")]
     public float postPatternRecovery = 1f;
-    [Tooltip("[미사용] 특수 패턴과 기본 공격이 분리돼 있던 시절의 추가 딜타임. 통합 후로는 쓰지 않는다.")]
-    public float postGroggyRecovery = 1.5f;
 
     [Header("텔레그래프(피해범위 인디케이터) 색상")]
     public Color telegraphWarnColor = new Color(1f, 0.1f, 0.1f, 0.9f);
@@ -162,7 +167,7 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
 
 
     /// <summary>보스 패턴 3종. 같은 패턴을 두 번 연속으로 쓰지 않기 위해 직전 것을 기억한다.</summary>
-    private enum Move { None, Sweep, Thrust, Leap }
+    private enum Move { [UnityEngine.InspectorName("없음")] None, [UnityEngine.InspectorName("휩쓸기")] Sweep, [UnityEngine.InspectorName("찌르기")] Thrust, [UnityEngine.InspectorName("도약")] Leap }
     private Move _lastMove = Move.None;
     private float _chaseStartTime = -100f;
 
@@ -387,7 +392,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         _controller?.ApplyGroggy(counterSuccessGroggyDuration);
 
         // [버그 수정 — 카운터 성공이 3.5초 정지가 되던 문제] 예전엔 EndPatternAfterGroggy 를 불러서
-        // postPatternRecovery(1.5) + 그로기(0.5) + postGroggyRecovery(1.5) = 3.5초를 잠갔다.
+        // postPatternRecovery(1.5) + 그로기(0.5) + 추가 대기(1.5) = 3.5초를 잠갔다.
         // 특수 패턴과 기본 공격이 분리돼 있던 시절엔 그 3초에도 기본 공격이 나갔지만, 통합 이후엔
         // 기본 공격이 보스의 유일한 공격 경로라 그대로 무행동이 된다. 스펙의 보상은 '패턴 취소 +
         // 0.5초 경직'이므로 딜타임은 postPatternRecovery 하나만 얹는다(그로기 포함 총 2초).
@@ -475,7 +480,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
                                               onTick: () =>
                                               {
                                                   Warp(entity, origin);
-                                                  if (CanTrackAim(tele.Elapsed, windup))
+                                                  if (CanTrackAim(tele.Elapsed, windup, entity))
                                                   {
                                                       dir = AimToward(entity, dir, origin, sweepTurnSpeed);
                                                       if (entity.Target != null) entity.LookAtTarget(entity.Target);
@@ -506,7 +511,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
             while (st < stepDur)
             {
                 st += Time.deltaTime;
-                Warp(entity, Vector2.Lerp(origin, stepEnd, Mathf.Clamp01(st / stepDur)));
+                Warp(entity, Vector2.Lerp(origin, stepEnd, SkillCombatUtil.EvaluateMotionProgress(sweepStepCurve, st / stepDur)));
                 yield return null;
             }
             Warp(entity, stepEnd);
@@ -566,7 +571,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         while (dt < dur)
         {
             dt += Time.deltaTime;
-            Warp(entity, Vector2.Lerp(origin, slideEnd, Mathf.Clamp01(dt / dur)));
+            Warp(entity, Vector2.Lerp(origin, slideEnd, SkillCombatUtil.EvaluateMotionProgress(thrustMovementCurve, dt / dur)));
             yield return null;
         }
         Warp(entity, slideEnd);
@@ -613,7 +618,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         while (t < trackTime)
         {
             t += Time.deltaTime;
-            if (CanTrackAim(t, trackTime + lockTime + leapDuration) && entity.Target != null)
+            if (CanTrackAim(t, trackTime + lockTime + leapDuration, entity) && entity.Target != null)
             {
                 landPos = entity.Target.position;
                 BoneMasterTelegraphUtil.UpdatePosition(telegraph, landPos);
@@ -639,7 +644,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         while (elapsed < leapDuration)
         {
             elapsed += Time.deltaTime;
-            Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, elapsed / leapDuration));
+            Warp(entity, Vector3.Lerp(startPos, (Vector3)landPos, SkillCombatUtil.EvaluateMotionProgress(leapMovementCurve, elapsed / leapDuration)));
             yield return null;
         }
         Warp(entity, landPos);
@@ -673,8 +678,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
     /// 특수 패턴 종료. CurrentState 를 풀어 주는 동시에 다음 특수 패턴까지의 최소 간격을 건다.
     /// </summary>
     /// <param name="extraLock">
-    /// postPatternRecovery 위에 더 얹을 시간. 파훼(그로기)로 끝난 경우 "그로기 시간 + postGroggyRecovery"를
-    /// 넘겨서, 그로기가 풀리자마자 다음 패턴이 시작되지 않고 실제 딜타임이 생기게 한다.
+    /// postPatternRecovery 위에 더 얹을 시간. 파훼로 끝난 경우 그로기 시간을 넘긴다.
     /// </param>
     /// <summary>패턴이 끝났다. 배속은 Animator 전역 상태라 여기서 반드시 1 로 되돌린다.</summary>
     private void EndPattern(BaseEntity entity, float extraLock = 0f)

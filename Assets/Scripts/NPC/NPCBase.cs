@@ -16,10 +16,10 @@ using UnityEngine;
 /// </summary>
 public class NPCBase : MonoBehaviour, IInteractable
 {
-    [Header("Popup UI System")]
+    [Header("팝업 UI")]
     [SerializeField] protected PopupSystem popupSystem;
 
-    [Header("NPC UI Name")]
+    [Header("NPC 표시 이름")]
     [SerializeField] public new string name = "";
 
     // ─── IInteractable ────────────────────────────────────────────────

@@ -7,18 +7,18 @@ using System.Collections.Generic;
 /// </summary>
 public class TrapSpike : MonoBehaviour
 {
-    [Header("Settings")]
+    [Header("설정")]
     [SerializeField] private float activationDelay = 1f;
     [SerializeField] private float duration = 5f;
     [SerializeField] private float damage = 10f;
     [SerializeField] private Vector2 damageAreaSize = new Vector2(1f, 1f);
     [SerializeField] private LayerMask targetLayer;
 
-    [Header("Visual References")]
+    [Header("외형 연결")]
     [SerializeField] private GameObject spikeVisual; // 솟아오르는 가시 오브젝트
     [SerializeField] private Animator plateAnimator; // PlateVisual의 Animator (미지정 시 자식에서 자동 탐색)
 
-    [Header("Sound")]
+    [Header("소리")]
     [Tooltip("가시가 솟아올라 피해를 줄 때 사운드")]
     [SerializeField] private AudioClip spikeSound;
     [Range(0f, 1f)]

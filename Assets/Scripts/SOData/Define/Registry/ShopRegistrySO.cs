@@ -64,7 +64,7 @@ public class ShopRegistrySO : ScriptableObject
             if (path.Contains("/Deprecated/")) continue;
 
             var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemSO>(path);
-            if (asset != null) itemPool.Add(asset);
+            if (asset != null && asset.availableAsReward) itemPool.Add(asset);
         }
 
         UnityEditor.EditorUtility.SetDirty(this);

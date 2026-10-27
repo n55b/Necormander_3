@@ -10,20 +10,24 @@ using UnityEngine.Events;
 /// </summary>
 public class BossRoomEvent : MonoBehaviour, IRoomEvent
 {
-    [Header("Boss Settings")]
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0f), Tooltip("방에 들어간 뒤 카메라가 자리 잡도록 기다리는 시간입니다. 0이면 바로 소환 절차를 시작합니다.")]
+    private float spawnStartDelay = 0.5f;
+
+    [Header("보스 설정")]
     [Tooltip("이 방에서만 강제로 소환할 보스. 보스 테스트 씬처럼 층수와 무관하게 특정 보스를 " +
              "띄우고 싶을 때만 채운다. 비워두면 층수에 배정된 보스가 나온다 " +
              "(MapGenerationDataSO.floorBosses).")]
     [SerializeField] private EnemyMinionDataSO specificBossData;
     [SerializeField] private GameObject portalObject;
 
-    [Header("Reward Box Settings")]
+    [Header("보상 상자 설정")]
     [Tooltip("방 클리어 시 생성할 보상 상자 프리팹. 비워두면 상자 없이 보상이 즉시 지급됩니다.")]
     [SerializeField] private GameObject rewardBoxPrefab;
     [Tooltip("상자가 나올 자리. 방 프리팹 안에 빈 오브젝트를 놓고 연결하세요. 비워두면 방 정중앙.")]
     [SerializeField] private Transform rewardSpawnPoint;
 
-    [Header("Unity Events")]
+    [Header("이벤트 연결")]
     public UnityEvent OnBossCombatStart;
     public UnityEvent OnBossCombatClear;
 
@@ -56,7 +60,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         }
     }
 
-    // 분열 적 등을 방 클리어 판정에 귀속시킨다. (SlimeAIPatternSO/DualSplitAIPatternSO 에서 호출)
+    // 분열 적 등을 방 클리어 판정에 귀속시킨다. (DualSplitAIPatternSO 에서 호출)
     public void RegisterActiveEnemy(GameObject enemy)
     {
         if (enemy != null && !_activeEnemies.Contains(enemy)) _activeEnemies.Add(enemy);
@@ -92,7 +96,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 
     private IEnumerator DelayedSpawnBoss(RoomInstance room)
     {
-        yield return new WaitForSeconds(0.5f); // 카메라 워프가 안착하는 약 0.5초 동안만 대기 후 스폰
+        yield return new WaitForSeconds(Mathf.Max(0f, spawnStartDelay)); // 카메라 워프가 안착하는 약 0.5초 동안만 대기 후 스폰
 
         // [버그 수정 — "보스 없는 보스방"이 즉시 클리어되던 문제] 예전엔 _isSpawnPending 을 먼저
         // 풀고 스폰했다. 스폰이 실패하면(층에 배정된 보스가 없음 등) _activeBoss 가 null 인 채로

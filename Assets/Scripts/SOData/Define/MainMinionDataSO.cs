@@ -7,6 +7,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewMainMinion", menuName = "Necromancer/Data/Main Minion")]
 public class MainMinionDataSO : MinionDataSO
 {
+    [Header("적중 연출 성장")]
+    [Range(0,3), Tooltip("0=기본, 1=강화/첫 진화, 2=상위, 3=최종. 실제 강화 수치가 추가되며 최대 3입니다.")]
+    public int feedbackTier;
+    public Color feedbackColor = new Color(.45f, .85f, 1f);
     [Header("스페이스바 액티브")]
     [Tooltip("Space 로 발동하는 일회성 스킬. 쿨타임만 확인하고 조건 없이 나간다.")]
     public MinionSkillSO minionSkill;
@@ -17,6 +21,17 @@ public class MainMinionDataSO : MinionDataSO
 
     [Tooltip("플레이어 평타 콤보 첫 타에 이 소환수가 넣는 일격(이름은 옛 '마무리'를 그대로 둔다 — 에셋 직렬화 호환).")]
     public MinionFinisher finisher = new MinionFinisher();
+
+    [Header("적중 연출")]
+    [Tooltip("피격 대상에게 재생할 완성 이펙트 프리팹. 비우면 히트박스의 기존 연출을 사용한다. 평타·Space·대시에 공통 적용.")]
+    public GameObject hitEffectPrefab;
+
+    public void ApplyHitEffect(BaseHitBox box)
+    {
+        if (box == null || hitEffectPrefab == null) return;
+        box.hitEffectPrefab = hitEffectPrefab;
+        box.hitParticlePrefab = null; // 복합 이펙트 안의 파편을 사용한다.
+    }
 
     [Header("애니메이션 — 미니언이 자기 연출을 전부 갖는다")]
     [Tooltip("평타 콤보 마무리(finisher)의 연출. finisher 로직이 여기서 비주얼/시퀀스/타이밍을 읽는다.")]

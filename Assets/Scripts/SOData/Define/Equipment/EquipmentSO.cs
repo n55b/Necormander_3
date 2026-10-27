@@ -35,6 +35,8 @@ public class EquipmentSO : ScriptableObject
     [Header("기본 공격")]
     public Vector3 comboMultipliers = new Vector3(1f, 1f, 1.5f);
     [Min(1)] public int basicHitsPerContact = 1;
+    [Min(0f), Tooltip("플레이어·소환수 평타의 추가 타격 간격(초). 0이면 동시에 적용한다.")]
+    public float basicRepeatHitInterval;
     [Min(0f)] public float basicDamagePerHit = 1f;
     [Min(0f)] public float minionDashDamageMultiplier = 1f;
 

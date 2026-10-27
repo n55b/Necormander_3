@@ -6,14 +6,18 @@ public enum MinionActionType
     // [26/07/17] 상태이상 부여 타입(ApplyStun/Strike/Smash/StunExtension/ApplyCorrosion)은 삭제됐다.
     // 스킬은 상태이상을 걸지 않는다 — 부여 수단은 유물/아이템 전용이다.
     // 값 순서는 그대로 두었다(0/1/2). 에셋이 인덱스로 직렬화돼 있어서 바꾸면 데이터가 어긋난다.
-    DamageOnly,             // 데미지만 입힘
-    DamageAndPush,          // 데미지 + 밀치기
-    DamageAndPull,          // 데미지 + 당기기
+    [UnityEngine.InspectorName("피해 전용")] DamageOnly,             // 데미지만 입힘
+    [UnityEngine.InspectorName("피해 및 밀기")] DamageAndPush,          // 데미지 + 밀치기
+    [UnityEngine.InspectorName("피해 및 당기기")] DamageAndPull,          // 데미지 + 당기기
 }
 
 [CreateAssetMenu(fileName = "MinionActionSkill", menuName = "Necromancer/Skills/Minion/ActionSkill")]
 public class MinionActionSkillSO : MinionSkillSO
 {
+    [Header("기획 조절 · 동작과 타이밍")]
+    [SerializeField, Min(0f), Tooltip("대상 앞이나 뒤로 순간이동하는 스킬에서 대상 중심과 떨어질 거리입니다. 원거리형 스킬에는 적용하지 않습니다.")]
+    private float teleportTargetDistance = 0.5f;
+
     public MinionActionType actionType;
 
     [Header("속성/상태이상")]
@@ -124,12 +128,12 @@ public class MinionActionSkillSO : MinionSkillSO
         else if (actionType == MinionActionType.DamageAndPull)
         {
             // 당기기의 경우 타겟 등 뒤로 이동
-            teleportPos = (Vector2)closestTarget.position + dirFromPlayer * 0.5f;
+            teleportPos = (Vector2)closestTarget.position + dirFromPlayer * teleportTargetDistance;
         }
         else
         {
             // 나머지는 플레이어와 타겟 사이로 이동
-            teleportPos = (Vector2)closestTarget.position - dirFromPlayer * 0.5f;
+            teleportPos = (Vector2)closestTarget.position - dirFromPlayer * teleportTargetDistance;
         }
 
         // 대시와 동일 판정: 미니언이 벽/낭떠러지를 뚫고 타겟으로 순간이동하지 않도록 목적지 제동.
@@ -189,6 +193,8 @@ public class MinionActionSkillSO : MinionSkillSO
             // 히트박스 위치: 원거리형이면 hitBoxCenter(플레이어+마우스 기준, 미니언과 무관), 아니면 시전한 미니언 위치.
             Vector2 boxPos = rangedMode ? hitBoxCenter : (Vector2)caster.transform.position;
             BaseHitBox box = Instantiate(hitBoxPrefab, (Vector3)boxPos, Quaternion.Euler(0f, 0f, angle), caster.transform);
+            mainData?.ApplyHitEffect(box);
+            box.hitEffectAngle = angle;
             box.transform.position = (Vector3)boxPos;
             box.transform.rotation = Quaternion.Euler(0f, 0f, angle);
             // 크기: hitBoxSize(가로*세로)가 둘 다 양수면 박스로 비균등 스케일(사다리꼴/부채꼴), 아니면 hitRadius 원형 균등.
@@ -283,6 +289,8 @@ public class MinionActionSkillSO : MinionSkillSO
         {
             Vector2 pos = lineCenter + dir * (-hitBoxSize.x * 0.5f + zoneLen * (i + 0.5f));
             var z = Instantiate(hitBoxPrefab, (Vector3)pos, Quaternion.Euler(0f, 0f, angle));
+            (caster.Data as MainMinionDataSO)?.ApplyHitEffect(z);
+            z.hitEffectAngle = angle;
             z.transform.localScale = new Vector3(zoneLen, hitBoxSize.y, 1f);
             var c = z.GetComponent<Collider2D>();
             if (c != null) c.enabled = false; // 판정창 열릴 때까지 꺼둔다
