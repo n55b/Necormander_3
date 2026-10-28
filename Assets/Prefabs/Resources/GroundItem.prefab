@@ -184,8 +184,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de5a9ec73ec3f8d4e927d892aa6304d2, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   kind: 3
   visibleDistance: 12
   touchDistance: 1
@@ -202,7 +202,7 @@ GameObject:
   - component: {fileID: 6936117822505407274}
   - component: {fileID: 220282942206741817}
   - component: {fileID: 5201333333347498679}
-  m_Layer: 13
+  m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -249,7 +249,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 66980121
+  m_SortingLayerID: 1813563702
   m_SortingOrder: 1
   m_TargetDisplay: 0
 --- !u!114 &220282942206741817
@@ -300,9 +300,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7408135733306101134}
     m_Modifications:
+    - target: {fileID: 1549434930591503874, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
+    - target: {fileID: 1549434930591503874, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 1761981276836729092, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
     - target: {fileID: 4713303146262076564, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
       propertyPath: m_Name
       value: ToolTip
+      objectReference: {fileID: 0}
+    - target: {fileID: 4713303146262076564, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
+      propertyPath: m_Layer
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4957111732766187138, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
+      propertyPath: m_Layer
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5874091469716053270, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
+      propertyPath: m_Layer
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8180174298546194303, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
       propertyPath: m_Pivot.x
@@ -384,6 +404,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8221216204802905137, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
+    - target: {fileID: 8221216204802905137, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 1761981276836729092, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

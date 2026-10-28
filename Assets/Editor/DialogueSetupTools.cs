@@ -87,6 +87,7 @@ public static class DialogueSetupTools
         GameObject canvasGo = NewRect("Canvas (pixelPerfect off)", root.transform, stretch: true);
         var canvas = canvasGo.AddComponent<Canvas>();
         canvas.overrideSorting        = true;
+        canvas.sortingLayerName       = "UI";  // 모든 UI 는 UI Sorting Layer (맨 위)
         canvas.sortingOrder           = 200;   // 씬 Canvas 는 1, 페이드 커튼은 999
         canvas.overridePixelPerfect   = true;
         canvas.pixelPerfect           = false;
@@ -481,7 +482,8 @@ public static class DialogueSetupTools
                     foreach (var c in go.GetComponentsInChildren<Canvas>(true))
                     {
                         // 페이드 커튼(order 999, DontDestroyOnLoad)이 아니라 씬 본 캔버스를 찾는다.
-                        if (c.transform.parent == null && c.renderMode == RenderMode.ScreenSpaceOverlay)
+                        // Screen Space - Camera 는 카메라가 비어 있으면 renderMode 가 Overlay 로 읽히므로 둘 다 받는다. 페이드 커튼은 ScreenCurtain 컴포넌트로 거른다.
+                        if (c.transform.parent == null && c.renderMode != RenderMode.WorldSpace && c.GetComponent<ScreenCurtain>() == null)
                         {
                             canvas = c;
                             break;

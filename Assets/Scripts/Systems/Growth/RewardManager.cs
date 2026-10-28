@@ -112,8 +112,7 @@ public class RewardManager : MonoBehaviour
         SkillExplainUI.Instance?.SetOpen(false);
         if (candidates != null && candidates.Count == 1 && candidates[0].category == RewardCategory.Minion && candidates[0].rawData is MinionDataSO minion)
         {
-            var drop = GroundItem.Drop(minion, PlayerPosition());
-            if (drop != null && handSlotUI != null) handSlotUI.Show(drop, ProcessNextReward);
+            OpenMinionPicker(minion);
             return;
         }
         if (selectionUI != null)
@@ -156,9 +155,7 @@ public class RewardManager : MonoBehaviour
                         if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
 
                         if (selectionUI != null) selectionUI.Hide();
-                        var drop = GroundItem.Drop(minion, PlayerPosition());
-                        if (drop != null) handSlotUI.Show(drop, ProcessNextReward);
-                        else ProcessNextReward();
+                        OpenMinionPicker(minion);
                     }
                     else
                     {
@@ -268,4 +265,17 @@ public class RewardManager : MonoBehaviour
     }
 
 
+
+
+    /// <summary>
+    /// 보상 소환수 비교창. 상자를 열 때 바로 바닥에 떨어뜨리지 않는다 —
+    /// 스킵하면 그때 후보가, 교체하면 기존 소환수가 플레이어 발밑에 떨어진다(HandSlotSelectionUI.ShowPending).
+    /// 창을 못 띄우면(이미 열려 있는 등) 보상이 사라지지 않도록 예전처럼 바닥에 떨어뜨린다.
+    /// </summary>
+    private void OpenMinionPicker(MinionDataSO minion)
+    {
+        if (handSlotUI != null && handSlotUI.ShowPending(minion, ProcessNextReward)) return;
+        GroundItem.Drop(minion, PlayerPosition());
+        ProcessNextReward();
+    }
 }

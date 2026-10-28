@@ -343,6 +343,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bda2e3b28fd28014ab425928d120e2cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  attackHitActiveDuration: 0.2
+  attackSoundVolume: 0.4
   team: 1
   myTeamLayer:
     serializedVersion: 2
@@ -1021,6 +1023,7 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   useUnscaledTime: 0
+  pulseBlendRatio: 0.2
 --- !u!1 &2696463484107242445
 GameObject:
   m_ObjectHideFlags: 0
@@ -1411,7 +1414,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 1659204433
+  m_SortingLayerID: 1813563702
   m_SortingOrder: 999
   m_TargetDisplay: 0
 --- !u!114 &6317196187552681405
@@ -1627,6 +1630,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hitFlashStrength: 0.9
   hitFlashDuration: 0.075
+  tintFlashDuration: 0.1
+  playerHitStopDuration: 0.05
+  playerHurtVignetteDuration: 0.05
   showSuperArmorOutline: 1
   freezingVFXPrefab: {fileID: 2839721534096716484, guid: e10b7331cfa745940942def5a0cd4450, type: 3}
   freezingVFXOffset: {x: 0, y: 0, z: 0}
