@@ -1,0 +1,1168 @@
+fileFormatVersion: 2
+guid: 2edd814a0b1724e4eac0829ab6698e64
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6818828044012447086
+    second: UI_Panel_0
+  - first:
+      213: 6783126540053581183
+    second: UI_Panel_1
+  - first:
+      213: -702549711790698826
+    second: UI_Panel_2
+  - first:
+      213: -2407112865638336818
+    second: UI_Panel_3
+  - first:
+      213: -5828245705033235542
+    second: UI_Panel_4
+  - first:
+      213: -8831582436648364404
+    second: UI_Panel_5
+  - first:
+      213: -5842501461691977116
+    second: UI_Panel_6
+  - first:
+      213: 7971684154266824114
+    second: UI_Panel_7
+  - first:
+      213: -1455610054576367391
+    second: UI_Panel_8
+  - first:
+      213: 8616226425275666343
+    second: UI_Panel_9
+  - first:
+      213: -1291540556689114905
+    second: UI_Panel_10
+  - first:
+      213: -1476726771070208221
+    second: UI_Panel_11
+  - first:
+      213: -2562778803424873249
+    second: UI_Panel_12
+  - first:
+      213: 18847949946028505
+    second: UI_Panel_13
+  - first:
+      213: -2065027350463290113
+    second: UI_Panel_14
+  - first:
+      213: -870012168039119048
+    second: UI_Panel_15
+  - first:
+      213: 2793378250440891304
+    second: UI_Panel_16
+  - first:
+      213: 950529116248338020
+    second: UI_Panel_17
+  - first:
+      213: -2106256218293945655
+    second: UI_Panel_18
+  - first:
+      213: -163684396828059221
+    second: UI_Panel_19
+  - first:
+      213: -8000119392160039778
+    second: UI_Panel_20
+  - first:
+      213: -7195758908785519619
+    second: UI_Panel_21
+  - first:
+      213: 1054033329142543268
+    second: UI_Panel_22
+  - first:
+      213: -7671463609723092102
+    second: UI_Panel_23
+  - first:
+      213: 2854443549045285856
+    second: UI_Panel_24
+  - first:
+      213: 6307973746346253329
+    second: UI_Panel_25
+  - first:
+      213: 8675804010502068435
+    second: UI_Panel_26
+  - first:
+      213: 5410903598445197683
+    second: UI_Panel_27
+  - first:
+      213: -4477336696517611019
+    second: UI_Panel_28
+  - first:
+      213: -4038617776410174831
+    second: UI_Panel_29
+  - first:
+      213: 3762392001428371563
+    second: UI_Panel_30
+  - first:
+      213: 6673785733922643772
+    second: UI_Panel_31
+  - first:
+      213: -2416956883488864327
+    second: UI_Panel_32
+  - first:
+      213: 3674827561798857141
+    second: UI_Panel_33
+  - first:
+      213: -2558023710118774660
+    second: UI_Panel_34
+  - first:
+      213: -7502008489560581560
+    second: UI_Panel_35
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: UI_Panel_Red_Big
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 192
+        width: 96
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 15, y: 15, z: 15, w: 15}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6565d37af751ae50800000000000000
+      internalID: 6818828044012447086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_1
+      rect:
+        serializedVersion: 2
+        x: 361
+        y: 240
+        width: 15
+        height: 14
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7d0b6e46a1822e50800000000000000
+      internalID: 6783126540053581183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_2
+      rect:
+        serializedVersion: 2
+        x: 361
+        y: 225
+        width: 16
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6be89a762ca0046f0800000000000000
+      internalID: -702549711790698826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_Red_Tab
+      rect:
+        serializedVersion: 2
+        x: 337
+        y: 166
+        width: 62
+        height: 19
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 2, y: 3, z: 2, w: 3}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec6ba552a97389ed0800000000000000
+      internalID: -2407112865638336818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_4
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 113
+        width: 46
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 15, y: 15, z: 15, w: 15}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa34ccf1969ed1fa0800000000000000
+      internalID: -5828245705033235542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_5
+      rect:
+        serializedVersion: 2
+        x: 90
+        y: 107
+        width: 32
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 5, y: 6, z: 0, w: 6}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c86defac09aef6580800000000000000
+      internalID: -8831582436648364404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_6
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 113
+        width: 46
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 15, y: 15, z: 15, w: 15}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 462362020e34beea0800000000000000
+      internalID: -5842501461691977116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_7
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 129
+        width: 30
+        height: 30
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 4, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bd2fa4a08c11ae60800000000000000
+      internalID: 7971684154266824114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_8
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 148
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e81d751e52accbe0800000000000000
+      internalID: -1455610054576367391
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_9
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 148
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7afc3e6784cf29770800000000000000
+      internalID: 8616226425275666343
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_10
+      rect:
+        serializedVersion: 2
+        x: 316
+        y: 148
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e8f881e4b6831ee0800000000000000
+      internalID: -1291540556689114905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_11
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 65
+        width: 46
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 15, y: 15, z: 15, w: 15}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 327fc0463dc918be0800000000000000
+      internalID: -1476726771070208221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_12
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 65
+        width: 46
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 15, y: 15, z: 15, w: 15}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd4b5f7a14e2f6cd0800000000000000
+      internalID: -2562778803424873249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_13
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 108
+        width: 29
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d107415c16f24000800000000000000
+      internalID: 18847949946028505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_14
+      rect:
+        serializedVersion: 2
+        x: 255
+        y: 105
+        width: 32
+        height: 14
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 5, y: 5, z: 5, w: 5}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff46b24d09c8753e0800000000000000
+      internalID: -2065027350463290113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_15
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 112
+        width: 30
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 2, y: 1, z: 2, w: 1}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 837c2cdea881de3f0800000000000000
+      internalID: -870012168039119048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_16
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 106
+        width: 30
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 2, y: 1, z: 2, w: 1}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8abd4d408b214c620800000000000000
+      internalID: 2793378250440891304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_17
+      rect:
+        serializedVersion: 2
+        x: 323
+        y: 113
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 5, y: 4, z: 5, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46ee5a2f135f03d00800000000000000
+      internalID: 950529116248338020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_18
+      rect:
+        serializedVersion: 2
+        x: 323
+        y: 99
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 4, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cab1aef02315c2e0800000000000000
+      internalID: -2106256218293945655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_19
+      rect:
+        serializedVersion: 2
+        x: 337
+        y: 113
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 4, w: 4}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba91ac788e97abdf0800000000000000
+      internalID: -163684396828059221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_20
+      rect:
+        serializedVersion: 2
+        x: 337
+        y: 99
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9c369d9ccdd9f090800000000000000
+      internalID: -8000119392160039778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_21
+      rect:
+        serializedVersion: 2
+        x: 90
+        y: 56
+        width: 32
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 5, y: 6, z: 0, w: 6}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df39c70b567832c90800000000000000
+      internalID: -7195758908785519619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_22
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 80
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 4, w: 2}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a3b6f47abda0ae00800000000000000
+      internalID: 1054033329142543268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_23
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 65
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 4, w: 2}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a738e1bfd7c798590800000000000000
+      internalID: -7671463609723092102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_24
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 80
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 4, w: 2}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e3ef3cc8450d9720800000000000000
+      internalID: 2854443549045285856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_25
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 65
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 4, w: 2}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11c557383bc6a8750800000000000000
+      internalID: 6307973746346253329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_26
+      rect:
+        serializedVersion: 2
+        x: 268
+        y: 80
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 4, y: 4, z: 4, w: 2}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d892eaf7c5a66870800000000000000
+      internalID: 8675804010502068435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_27
+      rect:
+        serializedVersion: 2
+        x: 268
+        y: 65
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 2, y: 4, z: 2, w: 2}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37975339724671b40800000000000000
+      internalID: 5410903598445197683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_28
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 17
+        width: 46
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f13f381ffd4dd1c0800000000000000
+      internalID: -4477336696517611019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_29
+      rect:
+        serializedVersion: 2
+        x: 90
+        y: 4
+        width: 32
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 5, y: 6, z: 0, w: 6}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19a5e75a782f3f7c0800000000000000
+      internalID: -4038617776410174831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_30
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 52
+        width: 20
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 1, y: 1, z: 1, w: 1}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b68b8ee5793b63430800000000000000
+      internalID: 3762392001428371563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_31
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 52
+        width: 20
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 1, y: 1, z: 1, w: 1}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3f578904cc0e9c50800000000000000
+      internalID: 6673785733922643772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_32
+      rect:
+        serializedVersion: 2
+        x: 268
+        y: 52
+        width: 20
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 1, y: 1, z: 1, w: 1}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b70632258e357ed0800000000000000
+      internalID: -2416956883488864327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_33
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 32
+        width: 64
+        height: 15
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 3, y: 3, z: 3, w: 2}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b1f5d7823c9ff230800000000000000
+      internalID: 3674827561798857141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_34
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 34
+        width: 13
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c78f7571df2108cd0800000000000000
+      internalID: -2558023710118774660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_35
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 17
+        width: 62
+        height: 14
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 1, y: 1, z: 6, w: 1}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84ad6cda60383e790800000000000000
+      internalID: -7502008489560581560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_Black_Big
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 192
+        width: 96
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 6, y: 6, z: 6, w: 7}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b90371ab259334541a968b7073570b41
+      internalID: -1251608609
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_White_Big
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 192
+        width: 96
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 6, y: 6, z: 6, w: 6}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4079313d999a97a44a51631348755b4e
+      internalID: 1637538573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_Red_Half
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 160
+        width: 64
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 5, y: 0, z: 5, w: 6}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ce4af1e31f64844d8366f7849ccfd55
+      internalID: 1180526814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_Black_Half
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 160
+        width: 64
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 5, y: 0, z: 5, w: 6}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0cbea6c0a5ba0924899a8f52002bee44
+      internalID: -440099646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_Panel_White_Half
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 160
+        width: 64
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 5, y: 0, z: 5, w: 6}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4b337495602881449983c39b0a907b50
+      internalID: -1445439513
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 6a871e219d817d04eadf291f2ee74290
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      UI_Panel_1: 6783126540053581183
+      UI_Panel_10: -1291540556689114905
+      UI_Panel_11: -1476726771070208221
+      UI_Panel_12: -2562778803424873249
+      UI_Panel_13: 18847949946028505
+      UI_Panel_14: -2065027350463290113
+      UI_Panel_15: -870012168039119048
+      UI_Panel_16: 2793378250440891304
+      UI_Panel_17: 950529116248338020
+      UI_Panel_18: -2106256218293945655
+      UI_Panel_19: -163684396828059221
+      UI_Panel_2: -702549711790698826
+      UI_Panel_20: -8000119392160039778
+      UI_Panel_21: -7195758908785519619
+      UI_Panel_22: 1054033329142543268
+      UI_Panel_23: -7671463609723092102
+      UI_Panel_24: 2854443549045285856
+      UI_Panel_25: 6307973746346253329
+      UI_Panel_26: 8675804010502068435
+      UI_Panel_27: 5410903598445197683
+      UI_Panel_28: -4477336696517611019
+      UI_Panel_29: -4038617776410174831
+      UI_Panel_30: 3762392001428371563
+      UI_Panel_31: 6673785733922643772
+      UI_Panel_32: -2416956883488864327
+      UI_Panel_33: 3674827561798857141
+      UI_Panel_34: -2558023710118774660
+      UI_Panel_35: -7502008489560581560
+      UI_Panel_4: -5828245705033235542
+      UI_Panel_5: -8831582436648364404
+      UI_Panel_6: -5842501461691977116
+      UI_Panel_7: 7971684154266824114
+      UI_Panel_8: -1455610054576367391
+      UI_Panel_9: 8616226425275666343
+      UI_Panel_Black_Big: -1251608609
+      UI_Panel_Black_Half: -440099646
+      UI_Panel_Red_Big: 6818828044012447086
+      UI_Panel_Red_Half: 1180526814
+      UI_Panel_Red_Tab: -2407112865638336818
+      UI_Panel_White_Big: 1637538573
+      UI_Panel_White_Half: -1445439513
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
