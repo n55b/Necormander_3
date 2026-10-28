@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>전용 프리팹의 고정 이미지 풀. 입력을 받지 않는 획득/준비/피격 표시.</summary>
+[DefaultExecutionOrder(10000)]
 public sealed class FeedbackOverlay : MonoBehaviour
 {
     public static FeedbackOverlay Instance { get; private set; }
@@ -15,6 +16,8 @@ public sealed class FeedbackOverlay : MonoBehaviour
     private float healAbsorbDuration = .16f;
     private float[] ages;
     private Vector2[] starts, ends;
+    private Vector3[] worldStarts;
+    private bool[] useWorldStart;
     private FeedbackRecipe[] recipes;
     private System.Func<Vector2?>[] destinations;
     private System.Action<bool>[] completions;
@@ -27,6 +30,7 @@ public sealed class FeedbackOverlay : MonoBehaviour
     {
         Instance=this;
         ages=new float[motes.Length]; starts=new Vector2[motes.Length]; ends=new Vector2[motes.Length]; recipes=new FeedbackRecipe[motes.Length];
+        worldStarts=new Vector3[motes.Length]; useWorldStart=new bool[motes.Length];
         destinations=new System.Func<Vector2?>[motes.Length]; completions=new System.Action<bool>[motes.Length]; arrived=new bool[motes.Length];
         foreach(var image in motes) { image.raycastTarget=false; image.enabled=false; }
         foreach(var image in edges) { image.raycastTarget=false; image.enabled=false; }
@@ -56,6 +60,8 @@ public sealed class FeedbackOverlay : MonoBehaviour
         var endScreen=dynamicEnd??RectTransformUtility.WorldToScreenPoint(null,anchor.position);
         RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect,endScreen,null,out ends[i]);
         if(cue!=FeedbackCue.Pickup&&cue!=FeedbackCue.Heal) starts[i]=ends[i];
+        useWorldStart[i]=cue==FeedbackCue.Pickup||cue==FeedbackCue.Heal;
+        worldStarts[i]=world;
         ages[i]=0; recipes[i]=recipe;
         destinations[i]=screenDestination; completions[i]=onFinished; arrived[i]=false;
         var image=motes[i];
@@ -79,6 +85,22 @@ public sealed class FeedbackOverlay : MonoBehaviour
         image.color=color;
         image.enabled=true;
         return true;
+    }
+    // 월드 출발점은 고정하되 카메라 이동에 따라 화면 좌표를 다시 계산한다.
+    private void LateUpdate()
+    {
+        var cam = Camera.main;
+        if (cam == null || recipes == null) return;
+        for (int i = 0; i < recipes.Length; i++)
+        {
+            var recipe = recipes[i];
+            if (recipe == null || !useWorldStart[i] || arrived[i]) continue;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, cam.WorldToScreenPoint(worldStarts[i]), null, out starts[i]);
+            float t = Mathf.Clamp01(ages[i] / Mathf.Max(.02f, recipe.duration));
+            var p = Vector2.Lerp(starts[i], ends[i], recipe.motion.Evaluate(t));
+            if (starts[i] != ends[i]) p.y += Mathf.Sin(t * Mathf.PI) * recipe.radius * 100;
+            motes[i].rectTransform.anchoredPosition = p;
+        }
     }
     private void Update()
     {
@@ -129,7 +151,7 @@ public sealed class FeedbackOverlay : MonoBehaviour
     private void Finish(int i, bool reached)
     {
         var completed=completions[i]; completions[i]=null;
-        recipes[i]=null; destinations[i]=null; arrived[i]=false;
+        recipes[i]=null; destinations[i]=null; arrived[i]=false; useWorldStart[i]=false;
         motes[i].enabled=false;
         completed?.Invoke(reached);
     }

@@ -328,6 +328,16 @@ public class GameManager : MonoBehaviour
                 yield return StartCoroutine(dataManager.PrewarmEncounter(mapGenerator, currentStageMapData, currentFloor));
         }
         _loadingProgress = 0.95f;
+        // 첫 피격 프레임에 오디오 데이터를 불러오지 않도록 로딩 화면에서 준비한다.
+        if (playerAttackSoundData != null && playerAttackSoundData.playerHurtClips != null)
+        {
+            foreach (var clip in playerAttackSoundData.playerHurtClips)
+            {
+                if (clip == null) continue;
+                if (clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
+                while (clip.loadState == AudioDataLoadState.Loading) yield return null;
+            }
+        }
         // 첫 적중 때 무거운 연출 프리팹이 한꺼번에 생성되지 않도록 로딩 중 분산한다.
         yield return StartCoroutine(PolishFeedback.Prewarm());
         // 스폰 직후가 아니라 HUD 초기화와 카메라 LateUpdate까지 마친 뒤에만 완료한다.

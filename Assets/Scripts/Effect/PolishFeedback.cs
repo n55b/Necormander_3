@@ -119,7 +119,26 @@ public static class PolishFeedback
     public static PlayerController Player => GameManager.Instance!=null?GameManager.Instance.PLAYERCONTROLLER:null;
     public static void AtPlayer(FeedbackCue cue, int tier=0, Sprite sprite=null)
     {
-        if(Player!=null) Play(cue,Player.transform.position,Vector2.up,tier,sprite:sprite);
+        if(Player!=null) Play(cue,Player.transform.position,Vector2.up,tier,sprite:sprite)?.FollowOrigin(Player.transform);
+    }
+    public static IEnumerator ChestOpening(Transform chest, Animator animator)
+    {
+        if (chest == null) yield break;
+        var settings = Catalog;
+        if (settings == null) yield break;
+        if (animator != null && animator.isActiveAndEnabled)
+        {
+            // Animator.Play가 실제 상태에 반영된 뒤 재생 비율을 읽는다.
+            yield return null;
+            while (chest != null && animator != null && animator.isActiveAndEnabled &&
+                   animator.GetCurrentAnimatorStateInfo(0).IsName("Chest_Open") &&
+                   animator.GetCurrentAnimatorStateInfo(0).normalizedTime < Mathf.Clamp(settings.chestOpenAnimationTime, 0f, .95f))
+                yield return null;
+        }
+        if (chest == null) yield break;
+        var renderer = chest.GetComponent<SpriteRenderer>();
+        // 원형 빛은 회전할 필요가 없다. 위쪽 drift까지 90도 회전해 옆으로 밀리지 않게 한다.
+        Play(FeedbackCue.ChestOpen, chest.position + settings.chestOpenOffset, Vector2.right)?.FollowOrigin(chest, renderer);
     }
     public static void Pickup(Vector3 position, Sprite sprite, Vector3? sourceWorldScale=null)
     {
@@ -133,17 +152,17 @@ public static class PolishFeedback
         Vector2 dir=info.attacker!=null ? pos-info.attacker.transform.position:Vector2.right;
         bool minion=info.playerBasicAttack==null;
         int tier=minion?MinionTier():WeaponTier;
-        Play(FeedbackCue.DirectionHit,pos,dir,tier);
-        if(critical) Play(FeedbackCue.CriticalEcho,pos,dir,tier);
-        if(info.feedbackComboFinish) { Play(FeedbackCue.ComboFinish,pos,dir,tier); Play(FeedbackCue.HeavyDust,pos,dir,tier); }
+        Play(FeedbackCue.DirectionHit,pos,dir,tier)?.FollowOrigin(health.transform);
+        if(critical) Play(FeedbackCue.CriticalEcho,pos,dir,tier)?.FollowOrigin(health.transform);
+        if(info.feedbackComboFinish) { Play(FeedbackCue.ComboFinish,pos,dir,tier)?.FollowOrigin(health.transform); Play(FeedbackCue.HeavyDust,pos,dir,tier); }
         var entity=health.GetComponentInParent<BaseEntity>();
         Color material=entity!=null&&entity.MinionData!=null?entity.MinionData.impactColor:Color.white;
-        Play(FeedbackCue.MaterialHit,pos,dir,tier,tint:material);
-        if(minion) { var main=InventoryManager.Instance!=null?InventoryManager.Instance.MainSummon:null; Play(FeedbackCue.MinionFamily,pos,dir,tier,tint:main!=null?main.feedbackColor:(Color?)null); }
+        Play(FeedbackCue.MaterialHit,pos,dir,tier,tint:material)?.FollowOrigin(health.transform);
+        if(minion) { var main=InventoryManager.Instance!=null?InventoryManager.Instance.MainSummon:null; Play(FeedbackCue.MinionFamily,pos,dir,tier,tint:main!=null?main.feedbackColor:(Color?)null)?.FollowOrigin(health.transform); }
         if(info.feedbackHitIndex>0)
         {
-            Play(FeedbackCue.MultiHit,pos,-dir,tier);
-            Play(FeedbackCue.MarionetteHit,pos,-dir,tier);
+            Play(FeedbackCue.MultiHit,pos,-dir,tier)?.FollowOrigin(health.transform);
+            Play(FeedbackCue.MarionetteHit,pos,-dir,tier)?.FollowOrigin(health.transform);
         }
         Play(FeedbackCue.ImpactSound,pos,dir,tier);
         if(critical||info.feedbackComboFinish)

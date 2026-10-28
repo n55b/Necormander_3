@@ -508,7 +508,7 @@ MonoBehaviour:
   hitFlashStrength: 0.9
   hitFlashDuration: 0.075
   tintFlashDuration: 0.1
-  playerHitStopDuration: 0.05
+  playerHitStopDuration: 0
   playerHurtVignetteDuration: 0.05
   showSuperArmorOutline: 1
   freezingVFXPrefab: {fileID: 0}
@@ -2155,8 +2155,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bd1b216dcb5bdfc4fbc22593dd963a36, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   player: {fileID: 7972545975472383977}
   dodge: {fileID: 7957941004026145679}
   combat: {fileID: 7483555610792978852}

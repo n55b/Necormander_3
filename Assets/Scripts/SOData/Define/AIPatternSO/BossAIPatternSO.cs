@@ -24,7 +24,7 @@ public abstract class BossAIPatternSO : BaseAIPatternSO
     {
         float lockAt = Mathf.Max(0f, duration - Mathf.Max(0f, aimLockLeadTime));
         if (entity != null && elapsed >= lockAt && (elapsed == 0f || elapsed - Time.deltaTime < lockAt))
-            PolishFeedback.Play(FeedbackCue.AimLock, entity.transform.position, Vector2.up);
+            PolishFeedback.Play(FeedbackCue.AimLock, entity.transform.position, Vector2.up)?.FollowOrigin(entity.transform);
         return elapsed < lockAt;
     }
 

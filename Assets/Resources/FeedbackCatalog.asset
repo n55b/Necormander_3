@@ -1948,9 +1948,9 @@ MonoBehaviour:
     color: {r: 0.95, g: 0.86, b: 0.45, a: 1}
     intensity: 1
     duration: 0.5
-    delay: 0.2
+    delay: 0
     count: 9
-    radius: 0.9
+    radius: 0.5
     width: 0.03125
     drift: {x: 0, y: 0.5}
     minimumTier: 0
@@ -3371,9 +3371,11 @@ MonoBehaviour:
     - {fileID: 6116127727867885574, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
     - {fileID: 7257450153672990043, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
   overlayPrefab: {fileID: 870907240442243352, guid: f91117987761b814bbc31cc784cb80f9, type: 3}
-  prewarmBurstCount: 6
-  prewarmImpactCount: 6
-  prewarmHitCount: 6
+  chestOpenOffset: {x: 0, y: 0.55, z: 0}
+  chestOpenAnimationTime: 0.3
+  prewarmBurstCount: 12
+  prewarmImpactCount: 12
+  prewarmHitCount: 12
   prewarmHitPrefabs:
   - {fileID: 3940381455572104995, guid: 8d06d861d308b6343908d022f4a95489, type: 3}
   - {fileID: 4428137900650296124, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}

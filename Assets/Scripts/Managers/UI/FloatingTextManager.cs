@@ -38,9 +38,11 @@ public class FloatingTextManager : Singleton<FloatingTextManager>
     }
 
     // Queue setting
-    void InitializePool()
+    void InitializePool() => ExpandPool(poolSize);
+
+    private void ExpandPool(int count)
     {
-        for (int i = 0; i < poolSize; i++)
+        for (int i = 0; i < count; i++)
         {
             GameObject obj = Instantiate(textPrefab, transform);
             TextFloating text = obj.GetComponent<TextFloating>();
@@ -55,7 +57,8 @@ public class FloatingTextManager : Singleton<FloatingTextManager>
     {
         while (true)
         {
-            if (textPool.Count == 0) InitializePool();
+            // 피격 순간 풀이 비면 20개를 한 번에 만들지 않고 필요한 한 개만 늘린다.
+            if (textPool.Count == 0) ExpandPool(1);
 
             TextFloating text = textPool.Dequeue();
             if (text == null) continue; // 씬 전환 등으로 파괴된 항목은 건너뛴다

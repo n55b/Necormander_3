@@ -54,11 +54,11 @@ public sealed class FeedbackSurface : MonoBehaviour
         else if(pickup!=null&&pickup.IsAvailable)
         {
             PolishFeedback.Play(FeedbackCue.RarityGlow,transform.position+offset,Vector2.up,
-                tint:pickup.Item!=null?pickup.Item.TierColor:new Color(.45f,.95f,1f));
+                tint:pickup.Item!=null?pickup.Item.TierColor:new Color(.45f,.95f,1f))?.FollowOrigin(transform);
             if (pickup.Item != null)
             {
                 Vector3 center = visualRenderer != null ? visualRenderer.bounds.center : transform.position;
-                PolishFeedback.Play(FeedbackCue.DropGlimmer, center + offset + new Vector3(.25f,.25f,0));
+                PolishFeedback.Play(FeedbackCue.DropGlimmer, center + offset + new Vector3(.25f,.25f,0))?.FollowOrigin(transform);
             }
         }
     }

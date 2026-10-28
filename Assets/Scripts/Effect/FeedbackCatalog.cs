@@ -108,16 +108,21 @@ public class FeedbackCatalog : ScriptableObject
     public ExistingFeedbackEntry[] existingEffects;
     [Header("프리팹 / 화면과 이동")]
     public FeedbackOverlay overlayPrefab;
+    [Header("상자 열기 연출 위치 / 타이밍")]
+    [InspectorName("상자 뚜껑 빛 위치 보정"), Tooltip("상자 피벗에서 빛이 시작되는 위치(월드 단위).")]
+    public Vector3 chestOpenOffset = new Vector3(0f, .55f, 0f);
+    [InspectorName("상자 애니메이션 중 빛 시작 시점"), Range(0f, .95f), Tooltip("0은 애니메이션 시작, 0.5는 절반 지점입니다. 57번 효과의 지연 시간은 이 시점 이후 추가됩니다.")]
+    public float chestOpenAnimationTime = .3f;
     [Header("로딩 중 이펙트 사전 준비")]
     [InspectorName("공용 효과 미리 준비할 개수")]
     [Tooltip("처음 타격 때 생길 생성 비용을 로딩 중에 나눠 처리한다. 0이면 사전 준비하지 않는다.")]
-    [Range(0, 24)] public int prewarmBurstCount = 6;
+    [Range(0, 24)] public int prewarmBurstCount = 12;
     [InspectorName("미니언 타격 효과 미리 준비할 개수")]
     [Tooltip("등록된 미니언과 진화 형태의 타격 이펙트를 종류별로 미리 준비한다. 0이면 사전 준비하지 않는다.")]
-    [Range(0, 24)] public int prewarmImpactCount = 6;
+    [Range(0, 24)] public int prewarmImpactCount = 12;
     [InspectorName("일반 타격 미리 준비할 개수")]
     [Tooltip("일반 타격 그림과 파티클을 각각 이 개수만큼 로딩 중 준비한다. 0이면 끈다.")]
-    [Range(0, 24)] public int prewarmHitCount = 6;
+    [Range(0, 24)] public int prewarmHitCount = 12;
     [InspectorName("미리 준비할 일반 타격 프리팹")]
     public PooledHitEffect[] prewarmHitPrefabs;
     [InspectorName("이동·대시 연기 미리 준비할 개수")]

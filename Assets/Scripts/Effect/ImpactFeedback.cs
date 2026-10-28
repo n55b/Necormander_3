@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>프리팹에 배치한 슬래시·발광·짧은 선 파편을 재생한다. 피해/카메라/시간은 변경하지 않는다.</summary>
+[DefaultExecutionOrder(10000)]
 public class ImpactFeedback : MonoBehaviour
 {
     [Min(.01f), SerializeField] private float lifetime = .3f;
@@ -55,6 +56,14 @@ public class ImpactFeedback : MonoBehaviour
     private ParticleSystem.MinMaxGradient[] _particleColors;
     private bool[] _initialVisibility;
     private float _clipLength;
+    private Transform _followTarget;
+    private Vector3 _followOffset;
+
+    public void FollowTarget(Transform target)
+    {
+        _followTarget = target;
+        if (target != null) _followOffset = transform.position - target.position;
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetPool() => pool.Clear();
@@ -162,6 +171,7 @@ public class ImpactFeedback : MonoBehaviour
     }
     private void OnEnable()
     {
+        _followTarget = null;
         _age = 0f;
         _echoCount = 0;
         if (echoes != null) foreach (var echo in echoes) if (echo != null) echo.enabled = false;
@@ -179,7 +189,13 @@ public class ImpactFeedback : MonoBehaviour
         if (_age >= Mathf.Max(.01f, lifetime)) Release();
     }
     // Aseprite 클립도 Renderer.enabled를 쓰므로 Animator 갱신 후에 적용한다.
-    private void LateUpdate() => RenderVisuals();
+    private void LateUpdate()
+    {
+        if (_followTarget != null && _followTarget.gameObject.activeInHierarchy)
+            transform.position = _followTarget.position + _followOffset;
+        else _followTarget = null;
+        RenderVisuals();
+    }
     private void RenderVisuals()
     {
         if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Slash))

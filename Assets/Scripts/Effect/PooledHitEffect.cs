@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>기존 타격 스프라이트/파티클 프리팹을 재생 후 재사용한다.</summary>
+[DefaultExecutionOrder(10000)]
 public sealed class PooledHitEffect : MonoBehaviour
 {
     private static readonly Dictionary<PooledHitEffect, Queue<PooledHitEffect>> Pool = new Dictionary<PooledHitEffect, Queue<PooledHitEffect>>();
@@ -14,6 +15,20 @@ public sealed class PooledHitEffect : MonoBehaviour
     private ParticleSystem.MinMaxGradient[] _particleColors;
     private Animator[] _animators;
     private float _age;
+    private Transform _followTarget;
+    private Vector3 _followOffset;
+    public void FollowTarget(Transform target)
+    {
+        _followTarget = target;
+        if (target != null) _followOffset = transform.position - target.position;
+    }
+    private void OnEnable() => _followTarget = null;
+    private void LateUpdate()
+    {
+        if (_followTarget != null && _followTarget.gameObject.activeInHierarchy)
+            transform.position = _followTarget.position + _followOffset;
+        else _followTarget = null;
+    }
     public bool IsManaged => _source != null;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

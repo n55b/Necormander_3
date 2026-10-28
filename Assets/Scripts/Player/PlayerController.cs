@@ -268,6 +268,7 @@ public class PlayerController : MonoBehaviour
     }
 
     private Coroutine _invincibilityCoroutine;
+    private readonly System.Collections.Generic.List<SpriteRenderer> _invincibilityRenderers = new System.Collections.Generic.List<SpriteRenderer>();
 
     private void HandleDamageTaken(float damage)
     {
@@ -288,11 +289,13 @@ public class PlayerController : MonoBehaviour
 
         stat.Health.Invincible = true;
 
-        SpriteRenderer[] srs = GetComponentsInChildren<SpriteRenderer>();
+        GetComponentsInChildren(false, _invincibilityRenderers);
+        var srs = _invincibilityRenderers;
         float elapsed = 0f;
         float duration = invincibilityDuration;
         float blinkInterval = invincibilityBlinkInterval;
         bool isVisible = true;
+        var wait = new WaitForSeconds(blinkInterval);
 
         while (elapsed < duration)
         {
@@ -306,7 +309,7 @@ public class PlayerController : MonoBehaviour
                 c.a = isVisible ? 1.0f : 0.2f;
                 sr.color = c;
             }
-            yield return new WaitForSeconds(blinkInterval);
+            yield return wait;
         }
 
         foreach (var sr in srs)

@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>프리팹에 미리 배치한 선/아이콘만 재생한다. 충돌체·피해·캐릭터 크기는 변경하지 않는다.</summary>
+[DefaultExecutionOrder(10000)]
 public sealed class FeedbackBurst : MonoBehaviour
 {
     [SerializeField] private LineRenderer[] lines;
@@ -9,6 +10,11 @@ public sealed class FeedbackBurst : MonoBehaviour
     private FeedbackRecipe recipe;
     private Vector3 origin, end;
     private Transform target;
+    private Transform originAnchor;
+    private Vector3 originOffset;
+    private SpriteRenderer sortingAnchor;
+    private int[] defaultLayers, defaultOrders;
+    private int iconLayer, iconOrder;
     private float age, power, reach;
     private int count;
     private bool registered;
@@ -27,6 +33,13 @@ public sealed class FeedbackBurst : MonoBehaviour
         return points;
     }
     public static int ActiveCount { get; private set; }
+    private void Awake()
+    {
+        defaultLayers = new int[lines.Length]; defaultOrders = new int[lines.Length];
+        for (int i = 0; i < lines.Length; i++) if (lines[i] != null)
+        { defaultLayers[i] = lines[i].sortingLayerID; defaultOrders[i] = lines[i].sortingOrder; }
+        if (icon != null) { iconLayer = icon.sortingLayerID; iconOrder = icon.sortingOrder; }
+    }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetCount() { ActiveCount=0; pool.Clear(); }
 
@@ -62,6 +75,10 @@ public sealed class FeedbackBurst : MonoBehaviour
 
     public void Begin(FeedbackRecipe settings, Vector3 destination, Transform follow, int tier, Sprite sprite, Color? tint)
     {
+        originAnchor = null; sortingAnchor = null;
+        for (int i = 0; i < lines.Length; i++) if (lines[i] != null)
+        { lines[i].sortingLayerID = defaultLayers[i]; lines[i].sortingOrder = defaultOrders[i]; }
+        if (icon != null) { icon.sortingLayerID = iconLayer; icon.sortingOrder = iconOrder; }
         recipe=settings; origin=transform.position; end=destination; target=follow;
         var catalog=PolishFeedback.Catalog;
         var growth=settings.scaleWithTier ? catalog.Tier(tier) : null;
@@ -75,6 +92,28 @@ public sealed class FeedbackBurst : MonoBehaviour
         if(icon!=null) { icon.sprite=sprite; icon.enabled=sprite!=null; icon.transform.localScale=Vector3.one; }
         registered=true; ActiveCount++;
         Render(0,false);
+    }
+    // 부모로 묶지 않아 대상이 사라져도 연출과 풀의 수명은 유지한다.
+    public void FollowOrigin(Transform anchor, SpriteRenderer sorting = null)
+    {
+        if (anchor == null) return;
+        originAnchor = anchor; originOffset = transform.position - anchor.position; sortingAnchor = sorting;
+        Follow();
+    }
+    private void LateUpdate() => Follow();
+    private void Follow()
+    {
+        if (originAnchor != null && originAnchor.gameObject.activeInHierarchy)
+        {
+            Vector3 position = originAnchor.position + originOffset;
+            if (target == null) end += position - origin;
+            transform.position = position; origin = position;
+        }
+        else originAnchor = null;
+        if (sortingAnchor == null) return;
+        foreach (var line in lines) if (line != null)
+        { line.sortingLayerID = sortingAnchor.sortingLayerID; line.sortingOrder = sortingAnchor.sortingOrder + 1; }
+        if (icon != null) { icon.sortingLayerID = sortingAnchor.sortingLayerID; icon.sortingOrder = sortingAnchor.sortingOrder + 2; }
     }
     private Color color;
     private void Update()
@@ -162,6 +201,7 @@ public sealed class FeedbackBurst : MonoBehaviour
     }
     private void OnDisable()
     {
+        originAnchor = null; sortingAnchor = null; target = null;
         if(registered) ActiveCount=Mathf.Max(0,ActiveCount-1);
         registered=false;
         if(lines!=null) foreach(var line in lines) if(line!=null) line.enabled=false;

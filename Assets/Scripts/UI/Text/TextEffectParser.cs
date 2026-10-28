@@ -53,7 +53,7 @@ public static class TextEffectParser
     {
         outRanges.Clear();
 
-        if (string.IsNullOrEmpty(input))
+        if (string.IsNullOrEmpty(input) || input.IndexOf('<') < 0)
             return input;
 
         var matches = TagRegex.Matches(input);

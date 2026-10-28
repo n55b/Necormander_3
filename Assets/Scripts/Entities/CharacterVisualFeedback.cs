@@ -14,6 +14,18 @@ public class CharacterVisualFeedback : MonoBehaviour
     private Color _originalBaseColor;
     private bool _hasSavedOriginalBaseColor = false;
     private Coroutine _hitFlashCoroutine;
+    private MaterialPropertyBlock _hitFlashProperties;
+    private static readonly int HitFlashId = Shader.PropertyToID("_HitFlash");
+
+    private void SetHitFlash(float value)
+    {
+        if (_sr == null) return;
+        if (_hitFlashProperties == null) _hitFlashProperties = new MaterialPropertyBlock();
+        // 스쿼시/기타 효과가 같은 렌더러에 쓴 속성은 유지한다.
+        _sr.GetPropertyBlock(_hitFlashProperties);
+        _hitFlashProperties.SetFloat(HitFlashId, value);
+        _sr.SetPropertyBlock(_hitFlashProperties);
+    }
     [Header("피격 섬광")]
     [Range(0f, 1f), SerializeField] private float hitFlashStrength = .9f;
     [Min(.01f), SerializeField] private float hitFlashDuration = .075f;
@@ -451,7 +463,7 @@ public class CharacterVisualFeedback : MonoBehaviour
             if (_hitFlashCoroutine != null)
             {
                 StopCoroutine(_hitFlashCoroutine);
-                if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
+                SetHitFlash(0f);
             }
             if (PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
                 _hitFlashCoroutine = StartCoroutine(FlashRoutine()); // 일반 피격
@@ -473,11 +485,11 @@ public class CharacterVisualFeedback : MonoBehaviour
     {
         if (_sr == null) yield break; // [추가] 널 체크
 
-        _sr.material.SetFloat("_HitFlash", hitFlashStrength);
+        SetHitFlash(hitFlashStrength);
         float elapsed = 0f;
         while (elapsed < hitFlashDuration && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
         { elapsed += Time.deltaTime; yield return null; }
-        if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
+        SetHitFlash(0f);
         _hitFlashCoroutine = null;
 
         StartFlash(Color.grey); 
