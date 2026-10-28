@@ -56,7 +56,7 @@ public class AugmentSelectionUI : MonoBehaviour
         else panelRoot.SetActive(true);
         UIEventBus.NotifyOpen("Augment");
 
-        if (titleText != null) titleText.text = "난이도를 선택하세요";
+        // 제목은 프리팹(Panel/Title)에 적힌 문구를 그대로 쓴다 — 여기서 덮어쓰지 않는다.
 
         for (int i = 0; i < cards.Length; i++)
         {
