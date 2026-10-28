@@ -96,8 +96,8 @@ public class AugmentReward
 
     public string Describe() => kind switch
     {
-        AugmentRewardKind.Gold => $"기본 {RewardManager.NormalClearGold}골드 + 추가 {Mathf.RoundToInt(value)}골드",
-        AugmentRewardKind.HealPercent => $"최대 체력의 {Mathf.RoundToInt(value)}% 회복",
+        AugmentRewardKind.Gold => $"{RewardManager.NormalClearGold + Mathf.RoundToInt(value)} 골드 획득", // 기본 클리어 골드 + 추가분을 합쳐서 보여준다
+        AugmentRewardKind.HealPercent => $"최대 체력 {Mathf.RoundToInt(value)}% 회복",
         AugmentRewardKind.MaxHpFlat => $"최대 체력 +{Mathf.RoundToInt(value)}",
         AugmentRewardKind.Item => $"{(maximumItemTier <= ItemTier.Tier2 ? "고등급 " : "")}아이템 {Mathf.Max(1, itemCount)}개",
         AugmentRewardKind.NormalRoom => $"일반 방과 동일: {RewardManager.NormalClearGold}골드 + 아이템 1개",
@@ -116,7 +116,8 @@ public class AugmentOffer
     public string Flavor => penalty != null ? penalty.flavor : "아무것도 짊어지지 않는다";
     /// <summary>페널티의 실제 수치. P0 은 페널티가 없으니 빈 줄.</summary>
     public string EffectText => penalty != null ? penalty.Describe() : "";
-    public string RewardText => reward != null ? reward.Describe() : "";
+    /// <summary>카드 보상 줄. 무위험(일반 방과 동일)은 카드에 보상을 적지 않는다 — 지급 알림은 Describe() 를 그대로 쓴다.</summary>
+    public string RewardText => reward == null || reward.kind == AugmentRewardKind.NormalRoom ? "" : reward.Describe();
 }
 
 /// <summary>
