@@ -1486,8 +1486,13 @@ Instance = this;
             doorObj.name = $"Door_{anchor.direction}_{room.name}";
             room.doorObjects.Add(doorObj.GetComponent<DoorUpController>());
 
-            // [수정] 생성 시에는 기본적으로 열려(비활성) 있어야 플레이어가 이동 가능함
-            doorObj.SetActive(false);
+            // 포탈은 열린 상태에서도 기둥과 빛이 보여야 하므로 충돌 장벽만 끈다.
+            // 구형 문 프리팹은 기존처럼 전체를 비활성화한다.
+            var controller = doorObj.GetComponent<DoorUpController>();
+            if (controller != null && doorObj.GetComponentInChildren<PortalDoorVisual>(true) != null)
+                controller.OpenDoor();
+            else
+                doorObj.SetActive(false);
         }
     }
 
