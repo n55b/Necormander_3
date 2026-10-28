@@ -91,6 +91,8 @@ private bool UpdateMasks()
         Bounds myBounds = _mainRenderer.bounds;
         float maxDistSqr = maxCheckDistance * maxCheckDistance;
         Transform myRoot = transform.root;
+        Vector3 myPosition = transform.position;
+        int bodyLayer = SortingLayer.GetLayerValueFromID(_mainRenderer.sortingLayerID);
 
         var instances = YSortableObject.ActiveInstances;
         int used = 0;
@@ -100,23 +102,21 @@ private bool UpdateMasks()
             if (ys == null) continue;
 
             var occluderRenderer = ys.Renderer;
-            if (occluderRenderer == null || !occluderRenderer.enabled || occluderRenderer.sprite == null
-                || occluderRenderer.color.a < maskAlphaCutoff) continue;
+            if (occluderRenderer == null) continue;
+            // 가림 대상이 아닌 몬스터·소환수는 스프라이트/정렬 검사 전에 제외한다.
+            if (((1 << occluderRenderer.gameObject.layer) & occluderLayers.value) == 0) continue;
+            if (!occluderRenderer.enabled || occluderRenderer.sprite == null || occluderRenderer.color.a < maskAlphaCutoff) continue;
 
             // Skip anything that belongs to my own character (body/hands/etc share the same root) -
             // otherwise my own hand (drawn in front of my body) gets mistaken for something occluding me.
             if (occluderRenderer.transform.root == myRoot) continue;
 
             // Cheap distance check first - skip far-away objects before touching bounds (perf)
-            float distSqr = (occluderRenderer.transform.position - transform.position).sqrMagnitude;
+            float distSqr = (occluderRenderer.transform.position - myPosition).sqrMagnitude;
             if (distSqr > maxDistSqr) continue;
 
             int layer = SortingLayer.GetLayerValueFromID(occluderRenderer.sortingLayerID);
-            int bodyLayer = SortingLayer.GetLayerValueFromID(_mainRenderer.sortingLayerID);
             if (layer < bodyLayer || (layer == bodyLayer && occluderRenderer.sortingOrder <= _mainRenderer.sortingOrder)) continue;
-
-            // 지정된 레이어(기본: 벽/장애물)에 속한 오브젝트만 가림막으로 인정. 몬스터 등은 제외됨.
-            if (((1 << occluderRenderer.gameObject.layer) & occluderLayers.value) == 0) continue;
 
 
             if (!occluderRenderer.bounds.Intersects(myBounds)) continue;

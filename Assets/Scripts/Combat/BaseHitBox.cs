@@ -411,16 +411,28 @@ public class BaseHitBox : MonoBehaviour
     {
         if (hitEffectPrefab != null)
         {
-            GameObject effect = Instantiate(hitEffectPrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
-            if (frozenTarget) TintEffect(effect, frozenHitEffectColor);
-            Destroy(effect, 1.0f);
+            Quaternion rotation = Quaternion.Euler(0f, 0f, hitEffectAngle);
+            var impactPrefab = hitEffectPrefab.GetComponent<ImpactFeedback>();
+            var impact = impactPrefab != null ? ImpactFeedback.Spawn(impactPrefab, position, rotation) : null;
+            var pooledPrefab = impact == null ? hitEffectPrefab.GetComponent<PooledHitEffect>() : null;
+            var pooled = pooledPrefab != null ? PooledHitEffect.Spawn(pooledPrefab, position, rotation, frozenTarget, frozenHitEffectColor) : null;
+            GameObject effect = impact != null
+                ? impact.gameObject
+                : pooled != null ? pooled.gameObject : Instantiate(hitEffectPrefab, position, rotation);
+            if (frozenTarget && pooled == null) { if (impact != null) impact.SetTint(frozenHitEffectColor); else TintEffect(effect, frozenHitEffectColor); }
+            if (impact == null && pooled == null) Destroy(effect, 1.0f);
         }
 
         if (hitParticlePrefab != null)
         {
-            GameObject particle = Instantiate(hitParticlePrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
-            if (frozenTarget) TintEffect(particle, frozenHitEffectColor);
-            Destroy(particle, 1.0f);
+            var pooledPrefab = hitParticlePrefab.GetComponent<PooledHitEffect>();
+            var pooled = pooledPrefab != null ? PooledHitEffect.Spawn(pooledPrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle), frozenTarget, frozenHitEffectColor) : null;
+            if (pooled == null)
+            {
+                GameObject particle = Instantiate(hitParticlePrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
+                if (frozenTarget) TintEffect(particle, frozenHitEffectColor);
+                Destroy(particle, 1.0f);
+            }
         }
     }
 

@@ -141,13 +141,18 @@ public static class BossCombat
                                             LayerMask targetMask, Action<Collider2D, Vector2> onHit, Action<float> onExpand = null)
     {
         HashSet<GameObject> already = new HashSet<GameObject>();
+        // 코루틴마다 독립 버퍼를 쓰므로 동시에 여러 충격파가 돌아도 서로 결과를 덮지 않는다.
+        var hits = new List<Collider2D>(16);
+        var filter = new ContactFilter2D { useTriggers = Physics2D.queriesHitTriggers };
+        filter.SetLayerMask(targetMask);
         float t = 0f;
         while (t < duration)
         {
             t += Time.deltaTime;
             float cur = Mathf.Lerp(0f, maxRadius, Mathf.Clamp01(t / duration));
             onExpand?.Invoke(cur);
-            Collider2D[] hits = Physics2D.OverlapCircleAll(center, cur + thickness, targetMask);
+            filter.useTriggers = Physics2D.queriesHitTriggers;
+            Physics2D.OverlapCircle(center, cur + thickness, filter, hits);
             foreach (var hit in hits)
             {
                 if (already.Contains(hit.gameObject)) continue;

@@ -40,6 +40,10 @@ public class DashAfterimage : MonoBehaviour
 
     private readonly Queue<SpriteRenderer> _pool = new Queue<SpriteRenderer>();
     private readonly List<SpriteRenderer> _spawned = new List<SpriteRenderer>();
+    private static int _warmFrame = -1, _warmCount;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetWarmBudget() { _warmFrame = -1; _warmCount = 0; }
 
     private void Awake()
     {
@@ -47,6 +51,31 @@ public class DashAfterimage : MonoBehaviour
         if (_source == null) _source = GetComponentInChildren<SpriteRenderer>();
         _rb = GetComponent<Rigidbody2D>();
         _lastPos = transform.position;
+    }
+
+    private void OnEnable()
+    {
+        if (Application.isPlaying) StartCoroutine(PrewarmGhosts());
+    }
+
+    private IEnumerator PrewarmGhosts()
+    {
+        yield return null; // 여러 유닛이 생성되는 프레임과 분리한다.
+        var catalog = PolishFeedback.Catalog;
+        if (catalog == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Afterimage)) yield break;
+        while (_spawned.Count < catalog.prewarmGhostCount)
+        {
+            if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Afterimage)) yield break;
+            if (_warmFrame != Time.frameCount) { _warmFrame = Time.frameCount; _warmCount = 0; }
+            if (_warmCount < 2)
+            {
+                _warmCount++;
+                var ghost = CreateGhost();
+                ghost.gameObject.SetActive(false);
+                _pool.Enqueue(ghost);
+            }
+            yield return null;
+        }
     }
 
     private void LateUpdate()

@@ -15,6 +15,8 @@ public class BodyAnimationEventRelay : MonoBehaviour
     [SerializeField] private GameObject walkSmogEffectPrefab;
     [SerializeField] private Transform footEffectPoint;
 
+    public GameObject WalkEffectPrefab => walkSmogEffectPrefab;
+
     private void Awake()
     {
         _controller = GetComponentInParent<PlayerController>();
@@ -49,7 +51,9 @@ public class BodyAnimationEventRelay : MonoBehaviour
         if (walkSmogEffectPrefab == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.WalkSmoke)) return;
         Vector3 spawnPos = footEffectPoint != null ? footEffectPoint.position : transform.position;
 
-        GameObject fx = Instantiate(walkSmogEffectPrefab, spawnPos, Quaternion.identity);
+        var data = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
+        GameObject fx = data != null ? data.TakePreparedObject(walkSmogEffectPrefab, spawnPos) : null;
+        if (fx == null) fx = Instantiate(walkSmogEffectPrefab, spawnPos, Quaternion.identity);
 
         // 플레이어 루트(Player Melee)의 localScale.x 부호가 곧 '현재 바라보는 방향'입니다.
         // (PlayerController.Update()에서 이동 방향에 따라 뒤집어서 유지하는 값)

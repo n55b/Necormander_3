@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>프리팹에 배치한 슬래시·발광·짧은 선 파편을 재생한다. 피해/카메라/시간은 변경하지 않는다.</summary>
 public class ImpactFeedback : MonoBehaviour
@@ -44,12 +45,109 @@ public class ImpactFeedback : MonoBehaviour
     private Renderer[] _renderers;
     private bool[] _visibleBeforeCatalog;
     private bool _catalogHidden;
+    private static readonly Dictionary<ImpactFeedback, Queue<ImpactFeedback>> pool = new Dictionary<ImpactFeedback, Queue<ImpactFeedback>>();
+    private ImpactFeedback _source;
+    private SpriteRenderer[] _spriteRenderers;
+    private Color[] _spriteColors;
+    private LineRenderer[] _lineRenderers;
+    private Color[] _lineStartColors, _lineEndColors;
+    private ParticleSystem[] _particles;
+    private ParticleSystem.MinMaxGradient[] _particleColors;
+    private bool[] _initialVisibility;
+    private float _clipLength;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetPool() => pool.Clear();
+
+    public static ImpactFeedback Spawn(ImpactFeedback prefab, Vector3 position, Quaternion rotation)
+    {
+        ImpactFeedback result = null;
+        if (pool.TryGetValue(prefab, out var available))
+            while (available.Count > 0 && result == null) result = available.Dequeue();
+        if (result == null)
+        {
+            result = Instantiate(prefab, position, rotation);
+            result._source = prefab;
+        }
+        else
+        {
+            result.RestoreDefaults();
+            result.transform.SetPositionAndRotation(position, rotation);
+            result.gameObject.SetActive(true);
+        }
+        return result;
+    }
+
+    public static void PrewarmOne(ImpactFeedback prefab, int desired)
+    {
+        if (prefab == null || desired <= 0) return;
+        if (!pool.TryGetValue(prefab, out var available)) pool[prefab] = available = new Queue<ImpactFeedback>();
+        int valid = 0;
+        foreach (var entry in available) if (entry != null) valid++;
+        if (valid >= desired) return;
+        var instance = Instantiate(prefab);
+        instance._source = prefab;
+        instance.gameObject.SetActive(false);
+        available.Enqueue(instance);
+    }
+
+    private void Release()
+    {
+        if (_source == null) { Destroy(gameObject); return; }
+        gameObject.SetActive(false);
+        if (!pool.TryGetValue(_source, out var available)) pool[_source] = available = new Queue<ImpactFeedback>();
+        if (available.Count < 32) available.Enqueue(this);
+        else Destroy(gameObject);
+    }
+
+    private void RestoreDefaults()
+    {
+        for (int i=0; i<_spriteRenderers.Length; i++) if (_spriteRenderers[i] != null) _spriteRenderers[i].color = _spriteColors[i];
+        for (int i=0; i<_lineRenderers.Length; i++) if (_lineRenderers[i] != null)
+        { _lineRenderers[i].startColor = _lineStartColors[i]; _lineRenderers[i].endColor = _lineEndColors[i]; }
+        for (int i=0; i<_particles.Length; i++) if (_particles[i] != null)
+        { var main = _particles[i].main; main.startColor = _particleColors[i]; }
+        for (int i=0; i<_renderers.Length; i++) if (_renderers[i] != null) _renderers[i].enabled = _initialVisibility[i];
+        _catalogHidden = false;
+    }
+
+    /// <summary>빙결 대상 색상을 적용한다. 렌더러 목록은 최초 생성 때만 찾는다.</summary>
+    public void SetTint(Color tint)
+    {
+        foreach (var sr in _spriteRenderers) if (sr != null) sr.color = new Color(tint.r,tint.g,tint.b,sr.color.a);
+        foreach (var line in _lineRenderers) if (line != null)
+        {
+            line.startColor = new Color(tint.r,tint.g,tint.b,line.startColor.a);
+            line.endColor = new Color(tint.r,tint.g,tint.b,line.endColor.a);
+        }
+        foreach (var ps in _particles) if (ps != null)
+        {
+            var main = ps.main;
+            main.startColor = new Color(tint.r,tint.g,tint.b,main.startColor.color.a);
+        }
+    }
 
     private void Awake()
     {
         _properties = new MaterialPropertyBlock();
         _renderers = GetComponentsInChildren<Renderer>(true);
         _visibleBeforeCatalog = new bool[_renderers.Length];
+        _initialVisibility = new bool[_renderers.Length];
+        for (int i=0; i<_renderers.Length; i++) _initialVisibility[i] = _renderers[i].enabled;
+        _spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+        _spriteColors = new Color[_spriteRenderers.Length];
+        for (int i=0; i<_spriteRenderers.Length; i++) _spriteColors[i] = _spriteRenderers[i].color;
+        _lineRenderers = GetComponentsInChildren<LineRenderer>(true);
+        _lineStartColors = new Color[_lineRenderers.Length]; _lineEndColors = new Color[_lineRenderers.Length];
+        for (int i=0; i<_lineRenderers.Length; i++) { _lineStartColors[i] = _lineRenderers[i].startColor; _lineEndColors[i] = _lineRenderers[i].endColor; }
+        _particles = GetComponentsInChildren<ParticleSystem>(true);
+        _particleColors = new ParticleSystem.MinMaxGradient[_particles.Length];
+        for (int i=0; i<_particles.Length; i++) _particleColors[i] = _particles[i].main.startColor;
+        if (spriteAnimator != null && spriteAnimator.runtimeAnimatorController != null)
+        {
+            var clips = spriteAnimator.runtimeAnimatorController.animationClips;
+            if (clips.Length > 0) _clipLength = clips[0].length;
+        }
         _alpha = slash != null ? slash.color.a : 1f;
         _echoColors = new Color[echoes != null ? echoes.Length : 0];
         for (int i=0;i<_echoColors.Length;i++) if (echoes[i] != null) _echoColors[i]=echoes[i].color;
@@ -69,8 +167,7 @@ public class ImpactFeedback : MonoBehaviour
         if (echoes != null) foreach (var echo in echoes) if (echo != null) echo.enabled = false;
         if (spriteAnimator != null && spriteAnimator.runtimeAnimatorController != null)
         {
-            var clips = spriteAnimator.runtimeAnimatorController.animationClips;
-            if (clips.Length > 0) spriteAnimator.speed = clips[0].length / Mathf.Max(.01f, lifetime);
+            if (_clipLength > 0f) spriteAnimator.speed = _clipLength / Mathf.Max(.01f, lifetime);
             spriteAnimator.Play(0, 0, 0f);
             spriteAnimator.Update(0f);
         }
@@ -79,7 +176,7 @@ public class ImpactFeedback : MonoBehaviour
     private void Update()
     {
         _age += Time.deltaTime;
-        if (_age >= Mathf.Max(.01f, lifetime)) Destroy(gameObject);
+        if (_age >= Mathf.Max(.01f, lifetime)) Release();
     }
     // Aseprite 클립도 Renderer.enabled를 쓰므로 Animator 갱신 후에 적용한다.
     private void LateUpdate() => RenderVisuals();

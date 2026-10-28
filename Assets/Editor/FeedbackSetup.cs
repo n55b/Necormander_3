@@ -122,6 +122,8 @@ public static class FeedbackSetup
             case FeedbackCue.DropLand: r.shape=FeedbackShape.Ring; r.count=1; r.radius=.3f; r.duration=.25f; break;
             case FeedbackCue.RarityGlow: r.shape=FeedbackShape.Arc; r.count=1; r.radius=.4f; r.duration=.8f; r.intensity=.5f; break;
             case FeedbackCue.DropGlimmer: r.shape=FeedbackShape.Cross; r.count=2; r.radius=.14f; r.width=.03f; r.duration=.45f; r.intensity=.8f; r.color=new Color(1f,.88f,.55f,.9f); break;
+            case FeedbackCue.PerfectGuardFlash: r.title="퍼펙트 가드 섬광"; r.description="퍼펙트 가드 접촉 지점에 밝은 섬광을 표시합니다."; r.shape=FeedbackShape.Cross; r.count=2; r.radius=1.35f; r.width=.065f; r.duration=.17f; r.color=Color.white; r.interval=0; break;
+            case FeedbackCue.PerfectGuardRing: r.title="퍼펙트 가드 파동"; r.description="퍼펙트 가드 접촉 지점에 짧은 푸른 파동을 표시합니다."; r.shape=FeedbackShape.Ring; r.count=1; r.radius=.8f; r.width=.045f; r.duration=.25f; r.color=new Color(.35f,.83f,1f,.95f); r.interval=0; break;
             case FeedbackCue.Pickup: r.shape=FeedbackShape.Inward; r.count=5; r.duration=.45f; break;
             case FeedbackCue.StackUp: case FeedbackCue.StackMax: r.shape=FeedbackShape.Cross; r.count=2; break;
             case FeedbackCue.Upgrade: r.shape=FeedbackShape.Ring; r.count=1; r.radius=1.2f; r.duration=.65f; break;

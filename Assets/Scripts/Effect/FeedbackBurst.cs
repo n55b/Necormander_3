@@ -14,6 +14,18 @@ public sealed class FeedbackBurst : MonoBehaviour
     private bool registered;
     private FeedbackBurst source;
     private static readonly Dictionary<FeedbackBurst,Queue<FeedbackBurst>> pool = new Dictionary<FeedbackBurst,Queue<FeedbackBurst>>();
+    private static readonly Vector2[] ringPoints = MakeArc(Mathf.PI * 2f);
+    private static readonly Vector2[] arcPoints = MakeArc(Mathf.PI * .8f);
+    private static Vector2[] MakeArc(float span)
+    {
+        var points = new Vector2[17];
+        for (int i = 0; i < points.Length; i++)
+        {
+            float angle = i * span / 16f;
+            points[i] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+        }
+        return points;
+    }
     public static int ActiveCount { get; private set; }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetCount() { ActiveCount=0; pool.Clear(); }
@@ -25,6 +37,19 @@ public sealed class FeedbackBurst : MonoBehaviour
         if(result==null) { result=Instantiate(prefab,position,rotation); result.source=prefab; }
         else { result.transform.SetPositionAndRotation(position,rotation); result.gameObject.SetActive(true); }
         return result;
+    }
+    /// <summary>로딩 중 한 개씩 준비한다. 풀에 남은 유효한 객체가 목표 수 이상이면 생성하지 않는다.</summary>
+    public static void PrewarmOne(FeedbackBurst prefab, int desired)
+    {
+        if (prefab == null || desired <= 0) return;
+        if (!pool.TryGetValue(prefab, out var available)) pool[prefab] = available = new Queue<FeedbackBurst>();
+        int valid = 0;
+        foreach (var entry in available) if (entry != null) valid++;
+        if (valid >= desired) return;
+        var instance = Instantiate(prefab);
+        instance.source = prefab;
+        instance.gameObject.SetActive(false);
+        available.Enqueue(instance);
     }
     private void Release()
     {
@@ -69,8 +94,9 @@ public sealed class FeedbackBurst : MonoBehaviour
         for(int i=0;i<lines.Length;i++)
         {
             var line=lines[i]; if(line==null) continue;
-            line.enabled=visible&&i<count;
-            if(!line.enabled) continue;
+            bool enabled=visible&&i<count;
+            if(line.enabled!=enabled) line.enabled=enabled;
+            if(!enabled) continue;
             float a=i*Mathf.PI*2/count;
             if(recipe.shape==FeedbackShape.Cross) a=i*Mathf.PI/count;
             if(recipe.cue==FeedbackCue.DirectionHit||recipe.cue==FeedbackCue.WallHit||recipe.cue==FeedbackCue.Foliage)
@@ -87,8 +113,12 @@ public sealed class FeedbackBurst : MonoBehaviour
                 case FeedbackShape.Ring:
                 case FeedbackShape.Arc:
                     line.positionCount=17;
-                    float span=recipe.shape==FeedbackShape.Ring?Mathf.PI*2:Mathf.PI*.8f;
-                    for(int j=0;j<17;j++) { float angle=a+j*span/16; line.SetPosition(j,new Vector3(Mathf.Cos(angle)*length,Mathf.Sin(angle)*length*.65f)+drift); }
+                    var points=recipe.shape==FeedbackShape.Ring?ringPoints:arcPoints;
+                    for(int j=0;j<points.Length;j++)
+                    {
+                        var point=points[j];
+                        line.SetPosition(j,new Vector3((dir.x*point.x-dir.y*point.y)*length,(dir.y*point.x+dir.x*point.y)*length*.65f)+drift);
+                    }
                     break;
                 case FeedbackShape.Link:
                     Vector3 local=transform.InverseTransformPoint(destination);

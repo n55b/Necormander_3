@@ -32,6 +32,7 @@ public class CharacterVisualFeedback : MonoBehaviour
     [Tooltip("빙결(Freeze) 상태인 동안 유닛에 붙여둘 이펙트 프리팹 (Assets/Prefabs/Effect/Effect_Freezing.prefab). " +
              "비워두면 Resources/Effects/Effect_Freezing 에서 자동 로드를 시도합니다.")]
     [SerializeField] private GameObject freezingVFXPrefab;
+    public GameObject FreezingVfxPrefab => freezingVFXPrefab;
     [Tooltip("빙결 이펙트를 붙일 위치 오프셋 (유닛 로컬 기준)")]
     [SerializeField] private Vector3 freezingVFXOffset = Vector3.zero;
 
@@ -369,7 +370,14 @@ public class CharacterVisualFeedback : MonoBehaviour
         if (prefab == null) return;
 
         Transform anchor = _sr != null ? _sr.transform : transform;
-        _freezingVFXInstance = Instantiate(prefab, anchor.position + freezingVFXOffset, prefab.transform.rotation, anchor);
+        var data = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
+        _freezingVFXInstance = data != null ? data.TakePreparedObject(prefab, anchor.position + freezingVFXOffset) : null;
+        if (_freezingVFXInstance != null)
+        {
+            _freezingVFXInstance.transform.SetParent(anchor, false);
+            _freezingVFXInstance.transform.SetPositionAndRotation(anchor.position + freezingVFXOffset, prefab.transform.rotation);
+        }
+        else _freezingVFXInstance = Instantiate(prefab, anchor.position + freezingVFXOffset, prefab.transform.rotation, anchor);
 
         SyncFreezingVFXSorting();
 

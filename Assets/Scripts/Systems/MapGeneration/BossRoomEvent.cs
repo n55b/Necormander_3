@@ -169,6 +169,8 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     /// (예전엔 보스 레지스트리에서 랜덤으로 뽑았고, 그 풀에 페이즈2 데이터까지 들어 있어서
     ///  4층 보스가 절반의 확률로 페이즈2 개체로 시작하곤 했다.)
     /// </summary>
+    public EnemyMinionDataSO PrewarmBossData => ResolveBossData();
+
     private EnemyMinionDataSO ResolveBossData()
     {
         if (specificBossData != null) return specificBossData;

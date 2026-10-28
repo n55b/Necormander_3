@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 // 번호는 기획 후보 목록과 동일하다. 가드 9~16, 상태이상 33~38은 이번 범위에서 제외.
@@ -13,7 +14,9 @@ public enum FeedbackCue
     [InspectorName("57 상자 틈새 빛")] ChestOpen=57, [InspectorName("58 보상 튀어나오기")] DropLand, [InspectorName("59 희귀도별 반짝임")] RarityGlow, [InspectorName("60 획득 UI 연결")] Pickup, [InspectorName("61 스택 증가 반동")] StackUp, [InspectorName("62 중첩 한도 표시")] StackMax, [InspectorName("63 강화 확정 섬광")] Upgrade, [InspectorName("64 구매 결과 반응")] Purchase,
     [InspectorName("65 포탈 흡입 입자")] PortalAmbient=65, [InspectorName("66 포탈 도착 파동")] PortalArrive, [InspectorName("67 방 클리어 정화")] RoomClear, [InspectorName("68 문 개방 먼지")] DoorOpen, [InspectorName("69 물가 잔물결")] WaterRipple, [InspectorName("70 수풀 스침")] Foliage, [InspectorName("71 국소 먼지·빛줄기")] AmbientDust, [InspectorName("72 파괴 소품 반응")] PropBreak,
     [InspectorName("73 방향성 카메라 반동")] CameraKick=73, [InspectorName("74 중요한 타격만 히트스톱")] HitStop, [InspectorName("75 제한적 슬로모션")] SlowMotion, [InspectorName("76 국소 왜곡 파동")] Distortion, [InspectorName("77 스킬 준비 UI 반짝임")] SkillReady, [InspectorName("78 피해 방향 표시")] HurtDirection, [InspectorName("79 타격음 층 분리")] ImpactSound, [InspectorName("80 연타 소리 미세 변화")] SoundVariation,
-    [InspectorName("81 바닥 아이템 반짝임")] DropGlimmer = 81
+    [InspectorName("81 바닥 아이템 반짝임")] DropGlimmer = 81,
+    [InspectorName("82 퍼펙트 가드 섬광")] PerfectGuardFlash = 82,
+    [InspectorName("83 퍼펙트 가드 파동")] PerfectGuardRing = 83
 }
 
 public enum FeedbackShape { [InspectorName("방향 파편")] Rays, [InspectorName("원형 파동")] Ring, [InspectorName("작은 점")] Dots, [InspectorName("십자빛")] Cross, [InspectorName("영혼 연결선")] Link, [InspectorName("모이는 입자")] Inward, [InspectorName("반원 잔광")] Arc, [InspectorName("절단선")] Slash }
@@ -105,6 +108,27 @@ public class FeedbackCatalog : ScriptableObject
     public ExistingFeedbackEntry[] existingEffects;
     [Header("프리팹 / 화면과 이동")]
     public FeedbackOverlay overlayPrefab;
+    [Header("로딩 중 이펙트 사전 준비")]
+    [InspectorName("공용 효과 미리 준비할 개수")]
+    [Tooltip("처음 타격 때 생길 생성 비용을 로딩 중에 나눠 처리한다. 0이면 사전 준비하지 않는다.")]
+    [Range(0, 24)] public int prewarmBurstCount = 6;
+    [InspectorName("미니언 타격 효과 미리 준비할 개수")]
+    [Tooltip("등록된 미니언과 진화 형태의 타격 이펙트를 종류별로 미리 준비한다. 0이면 사전 준비하지 않는다.")]
+    [Range(0, 24)] public int prewarmImpactCount = 6;
+    [InspectorName("일반 타격 미리 준비할 개수")]
+    [Tooltip("일반 타격 그림과 파티클을 각각 이 개수만큼 로딩 중 준비한다. 0이면 끈다.")]
+    [Range(0, 24)] public int prewarmHitCount = 6;
+    [InspectorName("미리 준비할 일반 타격 프리팹")]
+    public PooledHitEffect[] prewarmHitPrefabs;
+    [InspectorName("이동·대시 연기 미리 준비할 개수")]
+    [Tooltip("걷기와 대시 연기를 각각 로딩 중 준비합니다. 0이면 기존처럼 사용할 때 생성합니다. DataManager의 전체 준비 상한도 적용됩니다.")]
+    [Range(0, 24)] public int prewarmMovementCount = 6;
+    [InspectorName("빙결 연출 미리 준비할 개수")]
+    [Tooltip("등장 가능한 몬스터에 연결된 빙결 이펙트를 로딩 중 준비합니다. 0이면 사용할 때 생성합니다.")]
+    [Range(0, 24)] public int prewarmFreezeCount = 3;
+    [InspectorName("대시 잔상 미리 준비할 개수")]
+    [Tooltip("각 캐릭터가 활성화된 뒤 잔상을 나눠 만든다. 0이면 첫 대시 때 생성한다.")]
+    [Range(0, 8)] public int prewarmGhostCount = 2;
     [Range(0,1)] public float lowHealthRatio = .25f;
     [Min(.1f)] public float lowHealthInterval = 1.25f;
     [Min(.05f)] public float ambientInterval = .9f;
@@ -120,17 +144,40 @@ public class FeedbackCatalog : ScriptableObject
     [Range(0,.1f)] public float hitStopSeconds = .025f;
     [Range(.05f,1)] public float slowMotionScale = .35f;
     [Range(.02f,.5f)] public float slowMotionSeconds = .18f;
+    private Dictionary<FeedbackCue, FeedbackRecipe> _effectLookup;
+    private Dictionary<ExistingFeedbackCue, ExistingFeedbackEntry> _existingLookup;
+    private FeedbackRecipe[] _cachedEffects;
+    private ExistingFeedbackEntry[] _cachedExisting;
+
+    private void OnEnable() => ClearLookups();
+#if UNITY_EDITOR
+    private void OnValidate() => ClearLookups();
+#endif
+    private void ClearLookups() { _effectLookup = null; _existingLookup = null; _cachedEffects = null; _cachedExisting = null; }
+
     public FeedbackRecipe Find(FeedbackCue cue)
     {
-        if(effects != null) foreach(var entry in effects) if(entry != null && entry.cue == cue) return entry;
-        return null;
+        if (_effectLookup == null || _cachedEffects != effects)
+        {
+            _effectLookup = new Dictionary<FeedbackCue, FeedbackRecipe>();
+            _cachedEffects = effects;
+            if (effects != null) foreach (var entry in effects)
+                if (entry != null && !_effectLookup.ContainsKey(entry.cue)) _effectLookup.Add(entry.cue, entry);
+        }
+        return _effectLookup.TryGetValue(cue, out var result) ? result : null;
     }
     public FeedbackTier Tier(int tier) => tiers != null && tiers.Length>0 ? tiers[Mathf.Clamp(tier,0,tiers.Length-1)] : null;
     public bool ExistingEnabled(ExistingFeedbackCue cue)
     {
         if (!enabled) return false;
-        if (existingEffects != null) foreach (var entry in existingEffects)
-            if (entry != null && entry.cue == cue) return entry.enabled;
+        if (_existingLookup == null || _cachedExisting != existingEffects)
+        {
+            _existingLookup = new Dictionary<ExistingFeedbackCue, ExistingFeedbackEntry>();
+            _cachedExisting = existingEffects;
+            if (existingEffects != null) foreach (var entry in existingEffects)
+                if (entry != null && !_existingLookup.ContainsKey(entry.cue)) _existingLookup.Add(entry.cue, entry);
+        }
+        if (_existingLookup.TryGetValue(cue, out var result)) return result.enabled;
         return true; // 아직 연결하지 않은 이전 에셋의 동작은 보존한다.
     }
 }
