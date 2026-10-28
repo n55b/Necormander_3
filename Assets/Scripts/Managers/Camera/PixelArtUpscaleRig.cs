@@ -74,7 +74,7 @@ public class PixelArtUpscaleRig : MonoBehaviour
 
         var worldData = _world.GetUniversalAdditionalCameraData();
         worldData.renderType = CameraRenderType.Base;
-        worldData.renderPostProcessing = displayData.renderPostProcessing;
+        worldData.renderPostProcessing = false; // 포스트 프로세스는 Main Camera 에서 한 번만 (업스케일된 월드 + UI 전체)
         worldData.antialiasing = AntialiasingMode.None;
         worldData.volumeLayerMask = displayData.volumeLayerMask;
         worldData.volumeTrigger = transform;
@@ -85,7 +85,7 @@ public class PixelArtUpscaleRig : MonoBehaviour
         _origCullingMask = _display.cullingMask;
         _origPostProcessing = displayData.renderPostProcessing;
         _display.cullingMask = 1 << UILayer;
-        displayData.renderPostProcessing = false; // 포스트 프로세스는 World 카메라(RT)에서 한 번만
+        // 포스트 프로세스는 Main Camera 설정 그대로 사용 → 업스케일된 월드와 UI 레이어에 화면 해상도로 적용
 
         // ── 화면 전체 쿼드 ──────────────────────────────────────────────
         _quadGO = new GameObject("PixelWorldDisplay (runtime)") { hideFlags = HideFlags.DontSave, layer = UILayer };

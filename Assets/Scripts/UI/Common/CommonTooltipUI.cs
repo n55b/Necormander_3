@@ -168,7 +168,7 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
                     string kTitle = keyword;
                     string kDesc = entry.description.GetLocalizedString();
 
-                    descriptionText.text += $"\n\n<b><color=#E24B4A>[{kTitle}]</color></b>\n{kDesc}";
+                    descriptionText.text += $"\n\n<color=#E24B4A>[{kTitle}]</color>\n{kDesc}";
                     break;
                 }
             }

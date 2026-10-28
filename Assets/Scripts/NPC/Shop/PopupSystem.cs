@@ -123,10 +123,16 @@ public class PopupSystem : MonoBehaviour
             return false;
         }
 
-        var iconObject = new GameObject("Interaction F Icon");
+        // 월드 UI 와 같이 UI 레이어(5)/UI Sorting Layer 에 둔다 → Main Camera 가 화면 해상도로 그려 툴팁 캔버스보다 위에 보인다.
+        var iconObject = new GameObject("Interaction F Icon") { layer = 5 };
         _interactionIcon = iconObject.AddComponent<SpriteRenderer>();
         _interactionIcon.sprite = sprites[0];
-        _interactionIcon.sortingLayerName = "FlyingObject";
+        _interactionIcon.sortingLayerName = "UI";
+        // AddComponent 로 만든 SpriteRenderer 는 기본으로 Sprite-Lit 머티리얼을 쓴다.
+        // UI Sorting Layer 는 어떤 Light2D 도 비추지 않아 Lit 이면 새까맣게 나오므로 Unlit 으로 바꾼다.
+        var unlit = Resources.Load<Material>("Materials/UI/UISpriteUnlit");
+        if (unlit != null) _interactionIcon.sharedMaterial = unlit;
+        else Debug.LogWarning("[PopupSystem] Resources/Materials/UI/UISpriteUnlit 머티리얼이 없습니다. F 아이콘이 검게 보일 수 있습니다.");
         _interactionIcon.sortingOrder = 10000;
         return true;
     }

@@ -81,7 +81,7 @@ public class MinionSelectNPC : NPCBase
         if (m.minionSkill != null)
         {
             string skillName = string.IsNullOrEmpty(m.minionSkill.skillName) ? m.minionSkill.name : m.minionSkill.skillName;
-            sb.Append("<b>").Append(skillName).Append("</b>\n").Append(m.minionSkill.description);
+            sb.Append(skillName).Append("\n").Append(m.minionSkill.description);
         }
         // 일반 공격과 대시 정보는 카드에서 제외 (마우스 오버 상세창, C키 능력창에서 확인)
 

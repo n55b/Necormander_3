@@ -37,7 +37,11 @@ public class RewardManager : MonoBehaviour
         {
             // 기존 골드 보상은 유지한다. 일반방에는 아이템 하나를 추가한다.
             int goldAmount = NormalClearGold;
-            GameManager.Instance.inventoryManager.GainGold(goldAmount); // 획득 텍스트(+200G)를 플레이어 앞에 띄운다
+            // 증강 방 골드 보상이면 텍스트 없이 더하고, ActiveAugment 가 기본 + 추가를 합친 금액을 한 번만 띄운다.
+            if (type == RoomType.Augment && ActiveAugment.PendingRewardIsGold)
+                GameManager.Instance.inventoryManager.AddGold(goldAmount);
+            else
+                GameManager.Instance.inventoryManager.GainGold(goldAmount); // 획득 텍스트(+200G)를 플레이어 앞에 띄운다
             Debug.Log($"<color=yellow>[Reward]</color> {type} Room Cleared! {goldAmount} Gold obtained (기본 보상).");
 
             if (type == RoomType.Augment)
@@ -112,8 +116,7 @@ public class RewardManager : MonoBehaviour
         SkillExplainUI.Instance?.SetOpen(false);
         if (candidates != null && candidates.Count == 1 && candidates[0].category == RewardCategory.Minion && candidates[0].rawData is MinionDataSO minion)
         {
-            var drop = GroundItem.Drop(minion, PlayerPosition());
-            if (drop != null && handSlotUI != null) handSlotUI.Show(drop, ProcessNextReward);
+            OpenMinionPicker(minion);
             return;
         }
         if (selectionUI != null)
@@ -156,9 +159,7 @@ public class RewardManager : MonoBehaviour
                         if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
 
                         if (selectionUI != null) selectionUI.Hide();
-                        var drop = GroundItem.Drop(minion, PlayerPosition());
-                        if (drop != null) handSlotUI.Show(drop, ProcessNextReward);
-                        else ProcessNextReward();
+                        OpenMinionPicker(minion);
                     }
                     else
                     {
@@ -268,4 +269,17 @@ public class RewardManager : MonoBehaviour
     }
 
 
+
+
+    /// <summary>
+    /// 보상 소환수 비교창. 상자를 열 때 바로 바닥에 떨어뜨리지 않는다 —
+    /// 스킵하면 그때 후보가, 교체하면 기존 소환수가 플레이어 발밑에 떨어진다(HandSlotSelectionUI.ShowPending).
+    /// 창을 못 띄우면(이미 열려 있는 등) 보상이 사라지지 않도록 예전처럼 바닥에 떨어뜨린다.
+    /// </summary>
+    private void OpenMinionPicker(MinionDataSO minion)
+    {
+        if (handSlotUI != null && handSlotUI.ShowPending(minion, ProcessNextReward)) return;
+        GroundItem.Drop(minion, PlayerPosition());
+        ProcessNextReward();
+    }
 }

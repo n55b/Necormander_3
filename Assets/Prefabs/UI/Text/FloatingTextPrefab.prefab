@@ -68,8 +68,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 20
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 67c80a13426f71f4a97281daae4e471e, type: 2}
-  m_sharedMaterial: {fileID: -828186160056152395, guid: 67c80a13426f71f4a97281daae4e471e, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
+  m_sharedMaterial: {fileID: 1761981276836729092, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -99,7 +99,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -154,3 +154,21 @@ MonoBehaviour:
   displaytime: 1.5
   punchDuration: 1.5
   CiriPunchDuration: 2
+  critColor: {r: 1, g: 0.9, b: 0.15, a: 1}
+  critOutlineColor: {r: 0.4, g: 0.2, b: 0, a: 1}
+  critOutlineWidth: 0.3
+  critOutlinePulseWidth: 0.45
+  critOutlinePulseTime: 0.12
+  critScale: 1.9
+  normalPunchStrength: 0.4
+  horizontalJitter: 0.5
+  normalPositionPunchTime: 0.5
+  normalScalePunchTime: 0.25
+  criticalPunchTime: 0.3
+  criticalShakeTime: 0.3
+  criticalShakeAngle: 30
+  positionPunchVibrato: 10
+  scalePunchVibrato: 8
+  criticalPunchVibrato: 10
+  criticalShakeVibrato: 20
+  normalScaleElasticity: 0.6
