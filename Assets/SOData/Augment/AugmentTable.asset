@@ -29,7 +29,7 @@ MonoBehaviour:
     kind: 1
     value: 15
     waveLimit: 2
-    flavor: "\uC18C\uD658\uC218\uAC00 \uC870\uAE08 \uB2A6\uB2E4"
+    flavor: "\uBBF8\uB2C8\uC5B8\uC774 \uC870\uAE08 \uB2A6\uB2E4"
   - id: P1-03
     displayName: "\uAD7C\uB72C \uBC1C"
     tier: 1
@@ -57,7 +57,7 @@ MonoBehaviour:
     kind: 6
     value: 15
     waveLimit: 2
-    flavor: "\uC801\uC758 \uACF5\uACA9\uC774 \uC870\uAE08 \uB0A0\uCE74\uB86D\uB2E4"
+    flavor: "\uC801\uC758 \uACF5\uACA9\uC774 \uC870\uAE08 \uB9E4\uC12D\uB2E4"
   - id: P2-01
     displayName: "\uD750\uB9BF\uD55C \uC721\uC2E0"
     tier: 2
@@ -71,7 +71,7 @@ MonoBehaviour:
     kind: 1
     value: 25
     waveLimit: 2
-    flavor: "\uC18C\uD658\uC218\uC758 \uBC18\uC751\uC774 \uB290\uB9AC\uB2E4"
+    flavor: "\uBBF8\uB2C8\uC5B8\uC758 \uBC18\uC751\uC774 \uB290\uB9AC\uB2E4"
   - id: P2-03
     displayName: "\uBB34\uAC70\uC6B4 \uBC1C\uAC78\uC74C"
     tier: 2
@@ -85,7 +85,7 @@ MonoBehaviour:
     kind: 3
     value: -20
     waveLimit: 2
-    flavor: "\uC8FC\uBA39\uC5D0 \uD798\uC774 \uC2E4\uB9AC\uC9C0 \uC54A\uB294\uB2E4"
+    flavor: "\uC8FC\uBA39\uC5D0 \uD798\uC774 \uBE60\uC9C4\uB2E4"
   - id: P2-05
     displayName: "\uAC15\uC778\uD55C \uC801"
     tier: 2
@@ -113,15 +113,14 @@ MonoBehaviour:
     kind: 0
     value: 100
     waveLimit: 2
-    flavor: "\uBC1B\uB294 \uD53C\uD574\uAC00 \uB450 \uBC30\uAC00 \uB41C\uB2E4"
+    flavor: "\uD53C\uD574\uB97C \uB450 \uBC30\uB85C \uBC1B\uB294\uB2E4"
   - id: P3-02
     displayName: "\uC601\uD63C\uC758 \uCE68\uBB35"
     tier: 3
     kind: 1
     value: 50
     waveLimit: 2
-    flavor: "\uC18C\uD658\uC218\uAC00 \uC880\uCC98\uB7FC \uC751\uB2F5\uD558\uC9C0
-      \uC54A\uB294\uB2E4"
+    flavor: "\uC601\uD63C\uC774 \uC751\uB2F5\uD558\uC9C0 \uC54A\uB294\uB2E4"
   - id: P3-03
     displayName: "\uAD73\uC740 \uB2E4\uB9AC"
     tier: 3
@@ -135,7 +134,7 @@ MonoBehaviour:
     kind: 6
     value: 40
     waveLimit: 2
-    flavor: "\uC801\uC774 \uAD11\uAE30\uC5D0 \uC0AC\uB85C\uC7A1\uD600 \uC788\uB2E4"
+    flavor: "\uC801\uC774 \uAD11\uAE30\uC5D0 \uC0AC\uB85C\uC7A1\uD614\uB2E4"
   rewards:
   - tier: 0
     kind: 4

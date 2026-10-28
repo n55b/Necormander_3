@@ -17,10 +17,10 @@ public enum AugmentTier { [UnityEngine.InspectorName("P 0")] P0 = 0, [UnityEngin
 public enum AugmentPenaltyKind
 {
     [UnityEngine.InspectorName("플레이어 피해 받은")] PlayerDamageTaken = 0,    // 플레이어가 받는 피해 +value%
-    [UnityEngine.InspectorName("소환수 재사용 대기")] MinionCooldown = 1,       // 소환수(R) 쿨다운 +value%
+    [UnityEngine.InspectorName("미니언 재사용 대기")] MinionCooldown = 1,       // 미니언(R) 쿨다운 +value%
     [UnityEngine.InspectorName("플레이어 이동 속도")] PlayerMoveSpeed = 2,      // 플레이어 이동속도 value% (음수로 적는다)
-    [UnityEngine.InspectorName("플레이어 평타 공격")] PlayerBasicAttack = 3,    // 플레이어 평타 배율 value% (음수로 적는다)
-    [UnityEngine.InspectorName("플레이어 대시 재사용 대기")] PlayerDashCooldown = 4,   // 대쉬 쿨다운 +value%
+    [UnityEngine.InspectorName("플레이어 기본 공격")] PlayerBasicAttack = 3,    // 플레이어 공격력 value% (음수로 적는다)
+    [UnityEngine.InspectorName("플레이어 대시 재사용 대기")] PlayerDashCooldown = 4,   // 대시 쿨다운 +value%
     [UnityEngine.InspectorName("적 최대 체력")] EnemyMaxHp = 5,           // 적 최대 체력 +value%
     [UnityEngine.InspectorName("적 공격")] EnemyAttack = 6,          // 적 공격력 +value%
     [UnityEngine.InspectorName("적 개수 매 파동")] EnemyCountPerWave = 7,    // 웨이브당 적 수 +value 마리
@@ -61,10 +61,10 @@ public class AugmentPenalty
         return kind switch
         {
             AugmentPenaltyKind.PlayerDamageTaken   => $"받는 피해 {signed}%",
-            AugmentPenaltyKind.MinionCooldown      => $"소환수 쿨다운 {signed}%",
+            AugmentPenaltyKind.MinionCooldown      => $"미니언 쿨다운 {signed}%",
             AugmentPenaltyKind.PlayerMoveSpeed     => $"이동속도 {signed}%",
-            AugmentPenaltyKind.PlayerBasicAttack   => $"평타 배율 {signed}%",
-            AugmentPenaltyKind.PlayerDashCooldown  => $"대쉬 쿨다운 {signed}%",
+            AugmentPenaltyKind.PlayerBasicAttack   => $"공격력 {signed}%",
+            AugmentPenaltyKind.PlayerDashCooldown  => $"대시 쿨다운 {signed}%",
             AugmentPenaltyKind.EnemyMaxHp          => $"적 체력 {signed}%",
             AugmentPenaltyKind.EnemyAttack         => $"적 공격력 {signed}%",
             AugmentPenaltyKind.EnemyCountPerWave   => $"웨이브당 적 {signed}마리",
@@ -96,8 +96,8 @@ public class AugmentReward
 
     public string Describe() => kind switch
     {
-        AugmentRewardKind.Gold => $"기본 {RewardManager.NormalClearGold}골드 + 추가 {Mathf.RoundToInt(value)}골드",
-        AugmentRewardKind.HealPercent => $"최대 체력의 {Mathf.RoundToInt(value)}% 회복",
+        AugmentRewardKind.Gold => $"{RewardManager.NormalClearGold + Mathf.RoundToInt(value)} 골드 획득", // 기본 클리어 골드 + 추가분을 합쳐서 보여준다
+        AugmentRewardKind.HealPercent => $"최대 체력 {Mathf.RoundToInt(value)}% 회복",
         AugmentRewardKind.MaxHpFlat => $"최대 체력 +{Mathf.RoundToInt(value)}",
         AugmentRewardKind.Item => $"{(maximumItemTier <= ItemTier.Tier2 ? "고등급 " : "")}아이템 {Mathf.Max(1, itemCount)}개",
         AugmentRewardKind.NormalRoom => $"일반 방과 동일: {RewardManager.NormalClearGold}골드 + 아이템 1개",
@@ -112,11 +112,12 @@ public class AugmentOffer
     public AugmentReward reward;
 
     public AugmentTier Tier => penalty != null ? penalty.tier : AugmentTier.P0;
-    public string Title => penalty != null ? penalty.displayName : "무위험";
-    public string Flavor => penalty != null ? penalty.flavor : "아무것도 짊어지지 않는다";
+    public string Title => penalty != null ? penalty.displayName : "넘기기";
+    public string Flavor => penalty != null ? penalty.flavor : ""; // 넘기기 버튼은 이름 한 줄만 보여준다
     /// <summary>페널티의 실제 수치. P0 은 페널티가 없으니 빈 줄.</summary>
     public string EffectText => penalty != null ? penalty.Describe() : "";
-    public string RewardText => reward != null ? reward.Describe() : "";
+    /// <summary>카드 보상 줄. 무위험(일반 방과 동일)은 카드에 보상을 적지 않는다 — 지급 알림은 Describe() 를 그대로 쓴다.</summary>
+    public string RewardText => reward == null || reward.kind == AugmentRewardKind.NormalRoom ? "" : reward.Describe();
 }
 
 /// <summary>

@@ -37,7 +37,11 @@ public class RewardManager : MonoBehaviour
         {
             // 기존 골드 보상은 유지한다. 일반방에는 아이템 하나를 추가한다.
             int goldAmount = NormalClearGold;
-            GameManager.Instance.inventoryManager.GainGold(goldAmount); // 획득 텍스트(+200G)를 플레이어 앞에 띄운다
+            // 증강 방 골드 보상이면 텍스트 없이 더하고, ActiveAugment 가 기본 + 추가를 합친 금액을 한 번만 띄운다.
+            if (type == RoomType.Augment && ActiveAugment.PendingRewardIsGold)
+                GameManager.Instance.inventoryManager.AddGold(goldAmount);
+            else
+                GameManager.Instance.inventoryManager.GainGold(goldAmount); // 획득 텍스트(+200G)를 플레이어 앞에 띄운다
             Debug.Log($"<color=yellow>[Reward]</color> {type} Room Cleared! {goldAmount} Gold obtained (기본 보상).");
 
             if (type == RoomType.Augment)
