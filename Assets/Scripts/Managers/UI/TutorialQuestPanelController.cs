@@ -45,33 +45,32 @@ public class TutorialQuestPanelController : MonoBehaviour
                 "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Left\"></size>로 공격하세요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 방어하세요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시/회피하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>으로 지나온 방에 돌아가세요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>으로 지도를 열어 지나온 방에 돌아가세요",
             }
         },
         { TutorialStage.Reward, new[]
             {
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용하세요",
-                "미니언을 획득하여 장착하세요",
-                "SpaceBar로 미니언 스킬을 사용하세요",
+                "보상 상자에서 미니언을 얻으세요",
+                "적 근처에서 Space로 미니언 스킬을 쓰세요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_C\"></size>로 미니언 능력을 확인하세요",
             }
         },
         { TutorialStage.Augment, new[]
             {
-                "증강을 고르고 보상과 난이도를 높이세요",
+                "증강을 골라 더 큰 보상에 도전하세요",
             }
         },
         { TutorialStage.Dodge, new[]
             {
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시하세요",
-                "대시로 막힌 지형을 건너가세요",
+                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 걸어서 못 가는 곳을 건너가세요",
             }
         },
         { TutorialStage.Shop, new[]
             {
                 "골드로 아이템을 구매하세요",
                 "상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>를 눌러 상점을 여세요",
-                "강화 상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 장비를 강화하세요",
+                "강화 상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>를 눌러 장비를 강화하세요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_V\"></size>로 장착한 아이템을 확인하세요",
             }
         },
