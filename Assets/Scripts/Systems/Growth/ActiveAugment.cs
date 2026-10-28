@@ -30,6 +30,8 @@ public static class ActiveAugment
 
     public static AugmentPenalty CurrentPenalty => _penalty;
     public static bool HasPendingReward => _pendingReward != null;
+    /// <summary>골드 보상이면 RewardManager 가 기본 골드 텍스트를 생략한다 — 기본 + 추가를 합쳐 한 번만 띄우기 위해서.</summary>
+    public static bool PendingRewardIsGold => _pendingReward != null && _pendingReward.kind == AugmentRewardKind.Gold;
 
     // ── 적용 / 해제 ────────────────────────────────────────────────────
     /// <summary>카드를 골랐을 때. 페널티를 즉시 걸고, 보상은 방을 깰 때까지 들고 있는다.</summary>
@@ -174,8 +176,18 @@ public static class ActiveAugment
         switch (reward.kind)
         {
             case AugmentRewardKind.Gold:
-                InventoryManager.Instance?.AddGold(Mathf.RoundToInt(reward.value));
-                break;
+            {
+                // 기본 골드는 RewardManager 가 텍스트 없이 이미 더했다. 여기서 추가분을 더하고 합산 금액을 "+400G" 처럼 한 번만 띄운다.
+                int extra = Mathf.RoundToInt(reward.value);
+                var inven = InventoryManager.Instance;
+                if (inven != null)
+                {
+                    inven.AddGold(extra);
+                    inven.ShowGoldGainText(RewardManager.NormalClearGold + extra);
+                }
+                Debug.Log($"<color=green>[Augment]</color> 보상 지급: {reward.Describe()}");
+                return;
+            }
 
             case AugmentRewardKind.HealPercent:
                 if (stat != null && stat.Health != null) stat.Health.Heal(stat.MAXHP * reward.value / 100f);
@@ -200,6 +212,12 @@ public static class ActiveAugment
                 var tier = reward.kind == AugmentRewardKind.NormalRoom ? ItemTier.Tier4 : reward.maximumItemTier;
                 int dropped = player != null ? RewardProcessor.DropItems(
                     GameManager.Instance.dataManager, player.transform.position, count, tier) : 0;
+                if (reward.kind == AugmentRewardKind.NormalRoom)
+                {
+                    // 넘기기는 일반 방과 같은 보상이라 알림도 일반 방처럼 "+200G" 하나만 남긴다(아이템은 바닥에 보인다).
+                    Debug.Log($"<color=green>[Augment]</color> 보상 지급(넘기기): 아이템 {dropped}개");
+                    return;
+                }
                 if (dropped < count)
                 {
                     Announce($"아이템 {dropped}개 획득 · 나머지는 획득 가능한 후보가 없습니다");

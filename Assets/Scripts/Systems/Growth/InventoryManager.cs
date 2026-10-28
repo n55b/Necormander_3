@@ -285,8 +285,9 @@ public class InventoryManager : MonoBehaviour
         ShowGoldGainText(amount);
     }
 
-    /// <summary>증강 보상 텍스트와 같은 공용 경로(FloatingTextManager.ShowOnPlayer)로 띄운다.</summary>
-    private void ShowGoldGainText(int amount)
+    /// <summary>증강 보상 텍스트와 같은 공용 경로(FloatingTextManager.ShowOnPlayer)로 띄운다.
+    /// 증강 방 골드 보상이 기본 골드와 합산한 금액을 한 번만 띄울 때도 쓴다(ActiveAugment).</summary>
+    public void ShowGoldGainText(int amount)
         => FloatingTextManager.ShowOnPlayer(string.Format(goldGainTextFormat, amount), goldGainTextColor);
 
 #if UNITY_EDITOR
