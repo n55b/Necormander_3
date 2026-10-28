@@ -179,5 +179,12 @@ Catalog를 포함한 인스펙터 그리기 57회를 통과했다. 배치 에디
 - 장비 아이콘: Assets/Resources/Sprites/UI/Equipment Icons의 Sprite 에셋 4종. 1015 장비 SO의 icon 슬롯으로 연결되어 있다. 실제 착용 원본 텍스처를 참조하며 3단계는 직전 단계와 아이콘을 공유한다. 새 전용 아이콘이 오면 각 SO의 icon 슬롯만 교체하면 된다.
 
 2026-10-28 방 출입구 포탈
-- Assets/Prefabs/Map/Portal Door Visual.prefab 루트의 PortalDoorVisual에서 기둥 간격·높이·크기와 포탈 빛의 색상·폭·두께·투명도·깜박임·줄기 이동 속도를 조절한다. 기본 기둥 간격/빛 폭은 3유닛이다.
-- 자식 포탈 기둥 A/B와 포탈 빛의 SpriteRenderer도 프리팹에서 확인할 수 있다. 던전 문과 마을 입구가 이 프리팹을 공유한다. 게임의 방 열림/닫힘 신호가 프레임과 빛을 전환하고 기존 닫힌 문 충돌체는 유지한다.
+- Assets/Prefabs/Map/Portal Door Visual.prefab 루트의 PortalDoorVisual에서 비석 높이와 크기를 조절한다. 출입구 중앙에 비석 하나를 표시한다.
+- 던전 문과 마을 입구가 이 프리팹을 공유한다. 방 열림/닫힘 신호에 따라 비석 프레임을 전환하며 기존 닫힌 문 충돌체는 유지한다. 비석 사이 빛은 사용하지 않는다.
+
+2026-10-28 바닥 아이템
+- Assets/Resources/FeedbackCatalog.asset에서 58 보상 튀어나오기(착지), 59 희귀도별 반짝임(등급 잔광), 81 바닥 아이템 반짝임(주머니 위 십자빛)을 각각 켜고 끄거나 색상·강도·반경·지속시간·선 두께 등을 조절한다. 반복 간격은 같은 카탈로그의 ambientInterval이며, 81번 interval은 연속 출력 제한이다.
+- Assets/Prefabs/Resources/GroundItem.prefab의 GroundItem 컴포넌트에서 바닥 아이템 공통 그림과 아이콘 미지정 시 대체 그림을 교체한다. 아이템별 아이콘은 Assets/SOData/Items의 각 SO에서 변경한다. 미니언은 별도 GroundMinion 프리팹을 사용한다.
+
+2026-10-28 플레이어 방향 표시
+- Assets/Prefabs/Player Melee.prefab의 DirectionIndicator > EntityDirectionIndicator에서 크기를 조절한다. 기본 크기는 1이며 Arrow_Indicator.png의 하단 표시 스프라이트는 32 PPU다.

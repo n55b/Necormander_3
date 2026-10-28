@@ -13,6 +13,7 @@ public sealed class FeedbackSurface : MonoBehaviour
     private bool wasNear;
     private GroundItem pickup;
     private SpriteRenderer dropRenderer;
+    private SpriteRenderer visualRenderer;
     private bool restoreDrop;
     private void Start()
     {
@@ -20,7 +21,7 @@ public sealed class FeedbackSurface : MonoBehaviour
         next=Time.time+PolishFeedback.VisualRange(0,.8f);
         if(kind==Kind.Drop)
         {
-            var sr=GetComponentInChildren<SpriteRenderer>();
+            var sr=visualRenderer=GetComponentInChildren<SpriteRenderer>();
             var burst=PolishFeedback.Play(FeedbackCue.DropLand,transform.position+offset,Vector2.zero,sprite:sr!=null?sr.sprite:null);
             if(burst!=null&&sr!=null&&sr.enabled) { dropRenderer=sr; restoreDrop=true; sr.enabled=false; StartCoroutine(RestoreDrop()); }
         }
@@ -51,7 +52,14 @@ public sealed class FeedbackSurface : MonoBehaviour
         if(kind==Kind.Portal) PolishFeedback.Play(FeedbackCue.PortalAmbient,transform.position+offset,Vector2.up);
         else if(kind==Kind.Ambient) PolishFeedback.Play(FeedbackCue.AmbientDust,transform.position+offset,Vector2.up);
         else if(pickup!=null&&pickup.IsAvailable)
+        {
             PolishFeedback.Play(FeedbackCue.RarityGlow,transform.position+offset,Vector2.up,
                 tint:pickup.Item!=null?pickup.Item.TierColor:new Color(.45f,.95f,1f));
+            if (pickup.Item != null)
+            {
+                Vector3 center = visualRenderer != null ? visualRenderer.bounds.center : transform.position;
+                PolishFeedback.Play(FeedbackCue.DropGlimmer, center + offset + new Vector3(.25f,.25f,0));
+            }
+        }
     }
 }

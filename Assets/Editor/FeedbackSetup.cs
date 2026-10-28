@@ -121,6 +121,7 @@ public static class FeedbackSetup
             case FeedbackCue.ChestOpen: r.shape=FeedbackShape.Rays; r.count=9; r.drift=Vector2.up*.5f; r.delay=.2f; r.radius=.9f; break;
             case FeedbackCue.DropLand: r.shape=FeedbackShape.Ring; r.count=1; r.radius=.3f; r.duration=.25f; break;
             case FeedbackCue.RarityGlow: r.shape=FeedbackShape.Arc; r.count=1; r.radius=.4f; r.duration=.8f; r.intensity=.5f; break;
+            case FeedbackCue.DropGlimmer: r.shape=FeedbackShape.Cross; r.count=2; r.radius=.14f; r.width=.03f; r.duration=.45f; r.intensity=.8f; r.color=new Color(1f,.88f,.55f,.9f); break;
             case FeedbackCue.Pickup: r.shape=FeedbackShape.Inward; r.count=5; r.duration=.45f; break;
             case FeedbackCue.StackUp: case FeedbackCue.StackMax: r.shape=FeedbackShape.Cross; r.count=2; break;
             case FeedbackCue.Upgrade: r.shape=FeedbackShape.Ring; r.count=1; r.radius=1.2f; r.duration=.65f; break;

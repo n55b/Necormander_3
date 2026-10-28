@@ -3023,6 +3023,53 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+  - cue: 81
+    title: "\uBC14\uB2E5 \uC544\uC774\uD15C \uBC18\uC9DD\uC784"
+    description: "\uBC14\uB2E5\uC5D0 \uB193\uC778 \uC544\uC774\uD15C \uC704\uC5D0
+      \uB530\uB73B\uD55C \uC2ED\uC790\uBE5B\uC774 \uC7A0\uAE50 \uB098\uD0C0\uB09C\uB2E4.
+      \uC544\uC774\uD15C \uADF8\uB9BC\uACFC \uD68D\uB4DD \uD310\uC815\uC740 \uBCC0\uACBD\uD558\uC9C0
+      \uC54A\uB294\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 1, g: 0.88, b: 0.55, a: 0.9}
+    intensity: 0.8
+    duration: 0.45
+    delay: 0
+    count: 2
+    radius: 0.14
+    width: 0.03
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.08
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
   existingEffects:
   - cue: 1
     enabled: 1

@@ -9,7 +9,7 @@ public static class PolishFeedback
     // 연출을 꺼도 전투/보상 추첨의 Unity Random 상태가 바뀌지 않는다.
     private static readonly System.Random visualRandom = new System.Random();
     internal static float VisualRange(float min, float max) => min+(max-min)*(float)visualRandom.NextDouble();
-    private static readonly float[] next = new float[81];
+    private static readonly float[] next = new float[(int)FeedbackCue.DropGlimmer + 1];
     public static FeedbackCatalog Catalog
     {
         get { if(!loaded) { catalog=Resources.Load<FeedbackCatalog>("FeedbackCatalog"); loaded=true; } return catalog; }
