@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4564057034234498640}
   - component: {fileID: 6635359701067707657}
-  - component: {fileID: 1875579450565210508}
   - component: {fileID: 4778330014944313834}
   m_Layer: 0
   m_Name: Spot Light 2D
@@ -86,23 +85,6 @@ MonoBehaviour:
   - {x: 0.5, y: -0.5, z: 0}
   - {x: 0.5, y: 0.5, z: 0}
   - {x: -0.5, y: 0.5, z: 0}
---- !u!114 &1875579450565210508
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1560398475689433356}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e741851cba3ad425c91ecf922cc6b379, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _data:
-    _json: '{"declarations":{"Kind":"Object","collection":{"$content":[{"name":"Speed","value":{"$content":5.0,"$type":"System.Single"},"typeHandle":{"Identification":"System.Single,
-      mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089","$version":"A"},"$version":"A"},{"name":"Scale","value":{"x":1.2,"y":1.2,"z":1.2,"$type":"UnityEngine.Vector3"},"typeHandle":{"Identification":"UnityEngine.Vector3,
-      UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null","$version":"A"},"$version":"A"}],"$version":"A"},"$version":"A"}}'
-    _objectReferences: []
 --- !u!114 &4778330014944313834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112,13 +94,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1560398475689433356}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2fe5546f775c47d2820aa5e8a715f53, type: 3}
+  m_Script: {fileID: 11500000, guid: 80e1ed0925a34dcba6c74f68e3d968ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _data:
-    _json: '{"nest":{"source":"Macro","macro":0,"embed":null}}'
-    _objectReferences:
-    - {fileID: 11400000, guid: b432d6ac4b7759f459a8b303afcf02d1, type: 2}
+  baseScale: {x: 1.2, y: 1.2, z: 1.2}
+  speed: 5
+  relativeAmplitude: 0.02
 --- !u!1 &7418683891380451860
 GameObject:
   m_ObjectHideFlags: 0

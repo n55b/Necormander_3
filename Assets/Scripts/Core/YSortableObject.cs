@@ -28,6 +28,7 @@ public class YSortableObject : MonoBehaviour
 
     /// <summary>현재 씬에 활성화된 모든 YSortableObject 등록. 가림(occlusion) 판정 등에서 순회용으로 사용.</summary>
     public static readonly List<YSortableObject> ActiveInstances = new List<YSortableObject>();
+    public static uint ActiveInstancesVersion { get; private set; }
 
     /// <summary>이 오브젝트의 SpriteRenderer (읽기 전용 노출).</summary>
     public SpriteRenderer Renderer => _renderer;
@@ -46,11 +47,13 @@ private SpriteRenderer _renderer;
     private void OnEnable()
     {
         ActiveInstances.Add(this);
+        unchecked { ActiveInstancesVersion++; }
     }
 
     private void OnDisable()
     {
         ActiveInstances.Remove(this);
+        unchecked { ActiveInstancesVersion++; }
     }
 
     

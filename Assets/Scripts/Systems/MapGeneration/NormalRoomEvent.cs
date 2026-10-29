@@ -22,6 +22,9 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     private float spawnTelegraphDuration = 1f;
     [SerializeField, Min(0.01f), Tooltip("몬스터 등장 위치 표시의 가로·세로 크기입니다. 몬스터 크기나 피해 판정은 바꾸지 않습니다.")]
     private float spawnTelegraphScale = 2.5f;
+    [InspectorName("한 프레임 등장 준비 수")]
+    [SerializeField, Min(1), Tooltip("한 프레임에 등장 준비를 시작할 몬스터 수입니다. 예고와 실제 등장은 함께 나누어지며 예고 시간은 유지됩니다.")]
+    private int spawnGroupPerFrame = 4;
     [SerializeField, Min(0), Tooltip("일반 랜덤 웨이브에서 슈퍼아머를 주는 몬스터 수입니다. 0이면 주지 않습니다. 튜토리얼 직접 배치에는 적용하지 않습니다.")]
     private int superArmorEnemyCount = 2;
     [SerializeField, Min(1f), Tooltip("무작위로 선정된 일반 몬스터에게 주는 슈퍼아머 양입니다. 엘리트·보스의 영구 슈퍼아머 설정과 별개입니다.")]
@@ -426,6 +429,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         // 1. 모든 몹들의 스폰 위치에 예고 장판(VFX) 동시 소환
         for (int i = 0; i < _pendingSpawnPoints.Count; i++)
         {
+            if (i > 0 && i % Mathf.Max(1, spawnGroupPerFrame) == 0) yield return null;
             StartCoroutine(DelayedSpawnEnemyWithVFX(_pendingEnemyCounts[i], _pendingSpawnPoints[i], spawnDelay));
         }
 

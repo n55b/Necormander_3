@@ -14,6 +14,9 @@ public sealed class PortalDoorVisual : MonoBehaviour
     [SerializeField] private float pillarHeight = -1f;
     [InspectorName("비석 크기")]
     [SerializeField, Min(0.01f)] private float pillarScale = 1f;
+    [InspectorName("비석을 도트 격자에 맞춤")]
+    [Tooltip("반 픽셀 피벗으로 인해 카메라 이동 시 비석 끝이 흔들리는 것을 줄입니다. 비석 위치만 최대 반 도트 보정합니다.")]
+    [SerializeField] private bool snapPillarToPixelGrid = true;
     [InspectorName("켜짐·꺼짐 전환 시간")]
     [Tooltip("이전 그림이 새 그림 위에서 사라지는 시간(초). 0이면 즉시 전환한다.")]
     [SerializeField, Min(0f)] private float fadeDuration = .22f;
@@ -67,6 +70,19 @@ public sealed class PortalDoorVisual : MonoBehaviour
         firstPillar.transform.rotation = Quaternion.identity;
         firstPillar.transform.localScale = Vector3.one * pillarScale;
         firstPillar.sprite = _open ? activeSprite : inactiveSprite;
+        if (snapPillarToPixelGrid && firstPillar.sprite != null)
+        {
+            var sprite = firstPillar.sprite;
+            float ppu = Mathf.Max(1f, sprite.pixelsPerUnit);
+            Vector3 scale = firstPillar.transform.lossyScale;
+            Vector3 position = firstPillar.transform.position;
+            // Sprite pivot이 반 픽셀인 경우에도 그림의 좌하단이 월드 픽셀 격자에 놓이게 한다.
+            float offsetX = sprite.pivot.x * Mathf.Abs(scale.x) / ppu;
+            float offsetY = sprite.pivot.y * Mathf.Abs(scale.y) / ppu;
+            position.x = Mathf.Round((position.x - offsetX) * ppu) / ppu + offsetX;
+            position.y = Mathf.Round((position.y - offsetY) * ppu) / ppu + offsetY;
+            firstPillar.transform.position = position;
+        }
         if (transitionOverlay != null)
         {
             transitionOverlay.transform.SetPositionAndRotation(firstPillar.transform.position, firstPillar.transform.rotation);

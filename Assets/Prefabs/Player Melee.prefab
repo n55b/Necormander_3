@@ -921,7 +921,7 @@ MonoBehaviour:
   isDynamic: 1
   precision: 100
   baseOffset: -1
-  pivotOverride: {fileID: 0}
+  pivotOverride: {fileID: 8947953161765370038}
 --- !u!1 &7486575472172356911
 GameObject:
   m_ObjectHideFlags: 0
