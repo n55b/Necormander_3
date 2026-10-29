@@ -1,0 +1,222 @@
+UI 카메라 변환 단계별 적용 기록 (2026-10-29)
+
+목표
+- 원본 5b5450b4(현재 브랜치 f1c70f82, 글자깨짐 카메라 수정&폰트추가)의 의도를 살리되 전투 성능 저하를 피한다.
+- 한 단계씩 적용하고 사용자가 직접 플레이한다. 결과가 오기 전에는 다음 단계를 적용하지 않는다.
+- 이번 커밋 정리가 끝나면 원본과 달라진 부분, 변경 이유, 사용자 확인 결과를 아래에 정리한다.
+- 이후 남은 커밋을 적용하고 최종 상태의 전투 성능을 사용자가 확인한다.
+- 최신 확정 범위: 자글거림은 문제 커밋 전부터 존재한 기존 문제이며 이번 작업에서 보류한다. 이번 커밋의 렉 발생 조건만 수정하고 나머지 기능과 의도를 최대한 유지하는 것이 합격 기준이다.
+
+확인된 기준점
+- 폰트, UI 레이어와 표시 순서, 월드 UI, Main Camera의 후처리는 원본 커밋 상태로 유지했다.
+- 전환된 화면 캔버스 13개를 Overlay로 돌리고 관련 카메라 바인더와 씬의 카메라 재정의 참조를 제거했다.
+- 이 상태에서 사용자 확인: 렉 사라짐.
+- 앞서 후처리 위치만 저해상도 카메라로 되돌린 실험은 사용자 확인상 오히려 악화되어 취소했다.
+- 1단계에서 BattleScene 기본 HUD 캔버스 하나만 Camera 방식으로 전환해도 사용자 확인상 렉이 재현되었다. 특정 내부 렌더링 작업이 병목이라고 확정한 상태는 아니다.
+
+복구 자료
+- Git 관리 폴더의 codex/perf-checkpoints/20261029T102948Z-ui-camera-step0-all-overlay에 저장했다.
+- known-good.patch: 사용자 확인이 끝난 Overlay 기준점과 HEAD의 차이.
+- baseline.json: 기준 커밋, 브랜치, 수정 파일별 해시.
+- BattleScene.before-step1.unity: 1단계 적용 직전 씬 원본.
+- Git 커밋이나 다른 브랜치는 새로 만들지 않았다.
+
+1단계: BattleScene 기본 HUD 캔버스만 Camera 방식 적용
+- 상태: 사용자 확인상 렉 재발. 실험에서 바꾼 3개 설정을 Overlay 기준점으로 복구 완료.
+- 대상: Assets/Scenes/BattleScene.unity의 Canvas(fileID 1198423917).
+- 변경: RenderMode Overlay -> Camera, 씬 Main Camera 직접 연결, PlaneDistance 100 -> 1.
+- 이 Canvas의 설정은 원본 커밋과 동일하다.
+- CanvasCameraBinder는 아직 붙이지 않는다. 씬 카메라가 직접 연결되어 있어 이번 단계에는 필요하지 않다.
+- 피해 숫자 풀(GameManager/PoolSystems), Feedback Overlay, 로딩/페이드/상점 화면과 다른 씬은 기준점 그대로 유지한다.
+- 비교 방법: 플레이를 종료하고 BattleScene을 디스크에서 다시 열어 같은 방 전투에서 스폰 직후와 전투 지속 중의 끊김을 확인한다.
+- Unity 실행, 플레이 테스트 및 빌드는 자동으로 하지 않았다.
+- 의미: 바인더를 다시 붙이거나 피해 숫자/화면 효과 캔버스를 전환하지 않아도 문제가 재현된다. 바인더나 모든 UI의 동시 전환이 재현의 필수 조건은 아니다.
+- 1단계 원복 직후 자산 12개의 파일 해시가 사용자 확인이 끝난 Overlay 기준점과 모두 일치함을 확인했다.
+- Camera 방식 전체가 항상 느리다는 뜻은 아니다. 현재의 이동하는 게임 카메라, Pixel Perfect가 켜진 HUD, UI 갱신/렌더링 조합 안에서 원인을 더 좁혀야 한다.
+- 후속 비교로 아래 1-B단계를 진행한다. 개선 여부는 사용자 플레이로 확인한다.
+
+1-B단계: 같은 Camera HUD에서 Pixel Perfect만 끄기
+- 결과: 사용자 플레이 확인상 렉 사라짐. 당시 Camera 모드와 Pixel Perfect 꺼짐을 유지했고, 이후 1-D에서 Overlay + Pixel Perfect 켜짐으로 복구했다.
+- 대상: BattleScene의 같은 Canvas(fileID 1198423917).
+- Camera 모드, Main Camera 직접 연결, PlaneDistance 1은 렉이 재현된 1단계와 동일하다.
+- 1단계 대비 유일한 변경은 이 HUD Canvas의 Pixel Perfect 켜짐 -> 꺼짐이다.
+- 카메라 자체의 픽셀 정렬/업스케일 설정, 폰트, 후처리, 피해 숫자/화면 효과 캔버스는 변경하지 않았다. CanvasCameraBinder도 추가하지 않았다.
+- Overlay 기준점에서는 BattleScene의 Canvas 설정 4줄만 달라졌으며, 나머지 자산 11개는 기준점과 일치한다.
+- 복구 자료 폴더에 step1b-camera-pixelperfect-off.patch를 저장했다.
+- 비교 방법: 플레이 종료 후 BattleScene을 디스크에서 다시 열고 같은 방에서 스폰 직후와 전투 중 끊김을 확인한다. UI 글자/아이콘의 선명도와 이동 시 떨림도 함께 확인한다.
+- Unity 실행, 플레이 테스트 및 빌드는 하지 않았다. 다음 단계와 남은 커밋은 아직 적용하지 않는다.
+- 의미: 같은 HUD의 Camera 모드에서 Pixel Perfect 하나만 껐을 때 사용자가 성능 회복을 확인했다. 현재 조합에서 해당 옵션이 성능 저하 재현에 관여함을 확인했으며, 내부 재계산 비용은 별도 계측하지 않았다.
+
+1-B 이후 시각 피드백: 게임 화면의 자글거림
+- 사용자 확인: UI가 아닌 배경, 캐릭터, 문에서 보인다.
+- Canvas Pixel Perfect는 HUD용 옵션이다. 월드는 PixelArtUpscaleRig의 별도 저해상도 RT와 PixelArtSharpUpscale 셰이더로 그리므로 월드 보정과 구분한다.
+- 현재 CameraSettings는 OrthographicSize 6, PPU 32. 기본 줌에서 표시되는 세로 월드 픽셀은 384이며, FHD 출력일 경우 확대 배율은 1080 / 384 = 2.8125이다. 실제 테스트 출력 해상도는 확인하지 않았다.
+- 월드 카메라의 위치는 이미 원본 도트 격자로 정렬하지만, 최종 출력은 소수점 UV 보정과 sharp bilinear 경계 보간을 사용한다. 이는 부드러운 이동을 위한 처리이며 자글거림의 원인 후보이다. 원인 확정은 아니다.
+- 문 스프라이트는 Point 필터와 mipmap 꺼짐을 확인했다. 전체 스프라이트 설정을 일괄 변경하지 않는다.
+- 대응 후보: HUD Pixel Perfect는 끈 채 유지하고, 월드의 최종 출력 위치를 화면 픽셀 단위로 정렬하는 비교를 우선 고려한다. 엄격한 정수 배율은 더 강한 대안이나, 줌/여백 또는 이동 느낌에 영향이 있어 별도 비교가 필요하다.
+- 이번 분석에서는 게임 코드와 씬 설정을 추가로 변경하지 않았고, 테스트를 실행하지 않았다.
+
+1-C단계: 최종 월드 출력 위치만 화면 1픽셀 간격에 정렬
+- 상태: 사용자 확인상 렉은 없으나 자글거림은 그대로다. 시각 문제의 해결책으로 확인되지 않았다.
+- 변경 파일: Assets/Scripts/Managers/Camera/PixelArtUpscaleRig.cs.
+- 카메라의 실제 위치나 줌 대신, 월드 이미지를 최종 화면에 표시할 때 쓰는 UV 오프셋만 변경했다.
+- 카메라 출력 폭/높이와 현재 시야 크기로 화면 1픽셀의 월드 길이를 구한다. 표시 영역의 절대 월드 좌표를 그 간격에 반올림한 뒤, 저해상도 RT 내부의 오프셋으로 변환한다.
+- RT 내부 오프셋부터 반올림하지 않는다. RT가 한 도트 이동할 때 비정수 확대 배율 때문에 화면 정렬 기준이 달라지는 것을 피하기 위해서다.
+- Main Camera의 위치, OrthographicSize, 종횡비, 표시 영역 크기, 저해상도 RT 크기, 업스케일 필터 및 후처리는 유지했다. 입력 좌표 변환과 충돌 판정도 바꾸지 않았다.
+- HUD는 1-B단계의 Camera 모드 + Pixel Perfect 꺼짐 그대로다. 다른 캔버스와 남은 커밋은 건드리지 않았다.
+- 화면 출력의 반올림 보정은 축마다 최대 반 화면 픽셀이다. 원본 도트 한 칸 단위로 움직이게 만드는 변경은 아니다.
+- 비교 결과: 사용자가 렉 없음, 자글거림 지속을 보고했다. 최종 화면 위치 정렬만으로 현재 시각 문제를 해결하지 못했다.
+- 복구 자료 폴더에 PixelArtUpscaleRig.before-step1c.cs와 step1c-before.json을 저장했다.
+- Unity 실행, 플레이 테스트, 빌드는 하지 않았다. 코드 변경 범위와 나머지 자산 유지 여부만 정적으로 확인했다.
+
+1-C 이후 대응 제안 (미적용)
+- HUD Canvas의 Pixel Perfect와 월드 카메라의 픽셀 정렬은 별개다. 이번 결과로 월드용 픽셀 퍼펙트도 동일한 렉을 유발한다고 결론 내리지 않는다.
+- 먼저 실제 출력 해상도와 Game View 표시 배율을 고정하여 비교한다. 에디터가 게임 화면을 다시 축소해서 표시하는 경우도 구분한다.
+- 확대 보간 문제를 가르는 강한 비교는 월드만 정수 배율로 표시하는 것이다. FHD/PPU 32에서 3배 확대라면 OrthographicSize 5.625가 되므로 기존 6보다 시야가 좁아진다. 사용자 동의 없이 적용하지 않는다.
+- 기존 시야를 유지하는 대안은 정수 배율 출력에 여백을 허용하거나, 현재 확대 필터의 경계 혼합을 더 부드럽게 만드는 것이다. 각각 화면 활용도 또는 도트 선명도에 손실이 있다.
+- 정수 배율에서도 자글거림이 남으면 스프라이트 변형, 셰이더/후처리 등 다른 원인을 분리해야 한다. Pixel Perfect가 만능 해결책이라고 단정하지 않는다.
+- 기존 PixelArtUpscaleRig 위에 다른 픽셀 퍼펙트 카메라를 무작정 추가하지 않는다. 동일한 줌/렌더 텍스처를 두 시스템이 제어하지 않도록 한 경로에서 비교한다.
+- 이 제안 단계에서는 게임 파일을 추가로 바꾸지 않았다. 당시 남겨둔 1-C 코드는 이후 1-D에서 원복했다.
+
+1-D단계: HUD의 Pixel Perfect를 유지하고 카메라 연결 방식 원복
+- 결과: 사용자 확인상 렉은 없고 자글거림은 지속된다. 자동 플레이 테스트는 실행하지 않았다.
+- BattleScene 기본 HUD를 Screen Space - Overlay로 복구하고 Pixel Perfect를 다시 켰다. Render Camera 참조를 비우고 PlaneDistance도 기준점 값으로 돌렸다.
+- 효과가 없었던 1-C의 최종 월드 출력 위치 반올림 코드를 제거했다. PixelArtUpscaleRig는 실험 전 코드와 완전히 일치한다.
+- 자산 12개 모두 최초 사용자 확인이 끝난 Overlay 기준점의 파일 해시와 일치함을 확인했다.
+- 새 폰트, UI 레이어/표시 순서, 월드 UI, Main Camera의 후처리는 유지한다. 줌, 시야, 스프라이트, 업스케일 필터는 변경하지 않았다.
+- 문제 커밋 이전에도 HUD의 Pixel Perfect는 켜져 있었다. 이번 커밋은 해당 값을 유지하면서 Overlay를 Camera로 바꾼 것이므로, Pixel Perfect 자체가 새로 추가된 기능이라고 해석하지 않는다.
+- 결과적으로 화면 고정 UI는 게임 카메라의 후처리를 받지 않는다. UI 후처리를 같은 방식으로 다시 연결하는 작업은 별도 검증이 필요하다.
+- UI Canvas Setup 도구의 자동 Camera 전환은 아직 원본 코드로 남아 있다. 최종 정리 전에는 해당 일괄 변환을 실행하지 않는다.
+- 현재 단계의 변경 이유와 결과를 기록했으며, 남은 커밋은 아직 적용하지 않았다.
+
+1-E단계: HUD를 고정하고 월드 후처리 위치만 이전 방식으로 비교
+- 결과: 사용자 확인상 렉은 없으나 자글거림은 그대로다. 후처리 위치를 원인으로 확인하지 못했으며, 2단계에서 원본 커밋의 확대 후 Main Camera 후처리를 복구했다.
+- 근거: 원본 커밋은 PixelArtUpscaleRig에서 후처리를 저해상도 World 카메라에서 확대 후 Main Camera로 옮기는 두 줄을 변경했다. 월드 화질에 영향을 줄 수 있는 이 변경을 분리해 비교한다.
+- 변경: World 카메라의 renderPostProcessing을 원래 Main Camera 설정값으로 받아 활성화하고, Main Camera의 renderPostProcessing은 꺼서 중복 적용을 막는다.
+- 결과 코드가 문제 커밋의 부모(f1c70f82^)에 있던 PixelArtUpscaleRig와 일치함을 확인했다.
+- 블룸/비네트 자체를 제거하지 않고, 적용 위치를 확대 이전으로 옮겼다. 설정값, 확대 셰이더, 줌, 시야, RT 크기는 유지한다.
+- 화면 HUD는 Overlay + Pixel Perfect 켜짐 그대로다. Main Camera가 별도로 그리는 월드 UI에도 이 단계에서는 Main Camera 후처리가 적용되지 않는다.
+- 초기의 동일한 후처리 위치 실험은 HUD Camera + Pixel Perfect 조건이 남아 있었고 사용자 확인상 렉이 악화되어 취소했다. 이번에는 HUD를 성능 확인이 끝난 Overlay 기준점으로 고정했으므로 조건이 다르다. 성능 개선이나 자글거림 해결을 보장하지 않는다.
+- 비교 포인트: 같은 해상도/줌에서 배경, 문, 캐릭터의 자글거림 변화 및 전투 렉 재발 여부. 블룸의 번짐 크기와 느낌도 달라질 수 있다.
+- 실험 전 소스는 PixelArtUpscaleRig.before-step1e.cs, 적용 패치는 step1e-world-postprocessing-before-upscale.patch로 복구 자료 폴더에 저장했다.
+- 자산 12개는 Overlay 기준점과 동일하고 카메라 코드 두 줄만 변경했다. 테스트/빌드는 실행하지 않았다. 다음 단계 및 나머지 커밋은 적용하지 않는다.
+
+자글거림 조사 보류 및 원본 의도 복구
+- 사용자가 자글거림은 문제 커밋 이전부터 있었고 나중에 수정해도 된다고 명시했다. 추가 시각 실험은 진행하지 않는다.
+- 효과가 없던 출력 위치 정렬 실험은 이미 제거했고, 후처리 위치 실험도 취소했다. PixelArtUpscaleRig 전체가 원본 문제 커밋의 코드와 일치한다.
+- 새 폰트, UI 레이어/정렬, 고해상도 Main Camera 후처리 등 렉 원인으로 확인되지 않은 변경은 유지한다.
+
+2단계: 피해 숫자/상태 알림 PoolSystems의 Camera 변환 복구
+- 결과: 사용자 확인상 렉 없음, 피해 숫자 위치 정상. 원본 설정을 그대로 유지한다.
+- 대상: Assets/Prefabs/GameManager.prefab의 PoolSystems Canvas(fileID 1587180274595360789).
+- 원본 커밋의 Camera 모드, PlaneDistance 1, Pixel Perfect 켜짐, CanvasCameraBinder 부착을 그대로 복구했다. 프리팹 전체가 HEAD와 일치한다.
+- 기본 HUD는 Overlay + Pixel Perfect 켜짐으로 유지한다. 다른 화면 캔버스 11개의 기준점 파일도 그대로다.
+- 목적: HUD에서 확인된 성능 문제를 모든 Canvas로 일반화하지 않고, 피해 숫자/상태 알림의 원래 Camera 변환은 그대로 유지할 수 있는지 확인한다.
+- 씬의 중복 카메라 재정의는 다시 넣지 않았다. 원본 바인더가 시작 시 Main Camera를 연결한다.
+- 비교 포인트: 몬스터 스폰과 전투 유지 중 렉, 피해 숫자/상태 알림이 많이 나올 때의 끊김, 표시 위치가 대상과 맞는지 여부. 자글거림은 이번 합격 조건에서 제외한다.
+- 복구 자료: before-step2-pool-camera.patch, GameManager.before-step2.prefab, step2-pool-camera.patch.
+- Unity 실행, 플레이 테스트, 빌드는 하지 않았다. 나머지 커밋은 아직 적용하지 않는다.
+
+3단계: 화면 피드백 Canvas의 Camera 변환 복구
+- 결과: 사용자 확인상 렉 없음, 이펙트 정상. 원본 Camera 설정과 좌표 변환 보정을 유지한다.
+- 대상: Assets/Prefabs/Effect/Feedback/Feedback Overlay.prefab.
+- Camera 모드, PlaneDistance 1, 원래부터 꺼져 있던 Pixel Perfect, CanvasCameraBinder를 모두 원본 커밋과 동일하게 복구했다. 프리팹 전체가 HEAD와 일치한다.
+- 원본 변환에서 누락된 좌표 처리 1곳을 수정했다. FeedbackOverlay.LateUpdate가 아이템/회복 구슬 출발점을 매 프레임 갱신할 때 카메라 인자를 무조건 null로 보내던 것을, Pulse/Update와 동일한 UICam(canvasRect) 기준으로 맞췄다.
+- UI 카메라는 루프 밖에서 한 번 조회하여 이미지마다 다시 찾지 않는다. Overlay에서는 기존처럼 null이므로 양쪽 모드를 지원한다.
+- 기본 HUD는 Overlay + Pixel Perfect 켜짐, 피해 숫자 풀은 2단계에서 확인한 원본 Camera 설정으로 유지한다.
+- 비교 포인트: 전투 렉, 피격 시 화면 가장자리 효과, 이동하며 아이템을 주울 때 아이콘의 출발 위치, 회복 구슬이 체력바 쪽으로 날아가는 경로와 도착 위치.
+- 복구 자료: before-step3-feedback-camera.patch, FeedbackOverlay.before-step3.cs, FeedbackOverlay.before-step3.prefab, step3-before.json, step3-feedback-camera.patch.
+- Unity 실행, 플레이 테스트, 빌드는 하지 않았다. 다음 단계 및 남은 커밋은 아직 적용하지 않았다.
+
+4단계: 상점 팝업 Canvas의 Camera 변환 복구
+- 결과: 사용자 확인상 상점 정상, 렉 없음. 원본 Camera 설정을 유지한다.
+- 대상: Assets/Resources/UI/ShopPopupUI.prefab.
+- 원본 커밋의 Camera 모드, PlaneDistance 1, Pixel Perfect 꺼짐, CanvasCameraBinder를 복구했다. 프리팹은 원본 HEAD와 일치한다.
+- 상점 UI 코드는 별도의 화면 좌표 변환을 사용하지 않아 이번 단계에서 스크립트 변경은 필요하지 않다. 기본 HUD와 통과한 피해 숫자/화면 효과 설정은 그대로 유지한다.
+- 비교 포인트: 상점 NPC와 상호작용하여 창을 열고 닫기, 상품/구매/닫기 버튼의 표시 위치와 클릭, 상점 이용 후 몬스터 스폰 및 전투 중 렉 재발 여부.
+- 복구 자료: before-step4-shop-camera.patch, ShopPopupUI.before-step4.prefab, step4-before.json, step4-shop-camera.patch.
+- Unity 실행, 플레이 테스트, 빌드는 하지 않았다. 다음 단계 및 남은 커밋은 아직 적용하지 않았다.
+
+전체 화면 가림 UI의 유지 결정
+- ScreenFadeCanvas는 화면 전체를 덮는 커튼이며 Fader는 해당 CanvasGroup의 알파/입력 차단만 조절한다. 기본 HUD를 따로 숨기거나 렌더 모드를 바꾸는 처리는 없다.
+- 기본 HUD를 Overlay로 유지한 상태에서 커튼만 Camera로 돌리면 Overlay HUD가 커튼보다 나중에 그려져 위에 남으므로, 암전이 HUD까지 덮는 현재 동작을 보존하지 못한다.
+- 같은 이유로 씬 준비 완료까지 화면을 가려야 하는 SceneLoader도 Overlay로 유지한다. 두 프리팹은 이번 단계에서 수정하지 않았다. 이 결정은 코드/렌더 순서에 근거하며 새 플레이 테스트 결과는 아니다.
+- 최종 UI Canvas Setup 정리 시 기본 HUD뿐 아니라 이 두 전체 화면 가림 UI도 일괄 Camera 변환에서 제외해야 한다.
+
+5단계: 시작 메뉴 Canvas의 Camera 변환 복구
+- 결과: 사용자 확인상 시작 메뉴 정상, 렉 없음. 원본 Camera 설정을 유지한다.
+- 대상: Assets/Scenes/StartScene.unity의 루트 Canvas.
+- 원본 커밋의 Camera 모드, Main Camera 참조, PlaneDistance 1, Pixel Perfect 꺼짐, CanvasCameraBinder를 복구했다.
+- 같은 씬의 로딩 UI에 있던 Camera 재정의는 복구하지 않았다. SceneLoader는 Overlay 상태를 유지한다. 이 재정의 삭제 외의 StartScene 내용은 원본 HEAD와 일치한다.
+- 기본 HUD, 통과한 피해 숫자/화면 효과/상점, 카메라 후처리 설정은 그대로 유지한다.
+- 비교 포인트: 시작 씬 메뉴의 표시 위치와 버튼 클릭, 새 게임/이어하기 등 기존 진입 경로의 로딩 화면, 전투 진입 후 몬스터 스폰 및 전투 중 렉 재발 여부.
+- 복구 자료: before-step5-start-menu-camera.patch, StartScene.before-step5.unity, step5-before.json, step5-start-menu-camera.patch.
+- Unity 실행, 플레이 테스트, 빌드는 하지 않았다. 다음 단계 및 남은 커밋은 아직 적용하지 않았다.
+
+옵션/일시정지 UI의 유지 결정
+- OptionScene의 Panel_BackGround는 화면 전체를 덮는 반투명 배경이며, 옵션은 기존 UI 위에 뜨는 시스템 창이다. 열 때 기존 HUD를 숨기는 코드는 없다.
+- 옵션 Canvas를 Camera로 바꾸면 Overlay HUD가 반투명 배경/옵션보다 나중에 그려진다. 의도한 표시 순서를 유지하도록 OptionScene은 Overlay + Pixel Perfect 켜짐으로 둔다.
+- OptionScene 자체와 게임플레이 코드는 이번 단계에서 변경하지 않았다. 이 결정은 씬 구성과 코드/렌더 순서에 근거하며 새 플레이 테스트 결과는 아니다.
+
+6단계: UI Canvas Setup 일괄 변환 재발 방지
+- 상태: 에디터 코드 수정 완료. Unity 컴파일/실행은 사용자 확인 전이다.
+- 대상: Assets/Scripts/Editor/UICanvasSetupTool.cs.
+- Overlay를 무조건 Camera로 바꾸던 분기를 제거했다. 렌더 방식, PlaneDistance, Pixel Perfect는 씬/프리팹에 저작된 값을 유지한다.
+- Camera로 설정된 Canvas의 Main Camera 연결 및 기존 CanvasCameraBinder 부착, UI 레이어/정렬 정리는 유지한다.
+- 메뉴 표시를 'Tools > UI Canvas Setup > 2. 캔버스 정리 (렌더 방식 유지)'로 변경했다. 기존 공개 메서드 ConvertAll은 유지한다.
+- HUD/로딩/페이드/옵션을 별도 이름 목록으로 관리하지 않고 모든 Canvas의 저작 렌더 모드를 존중한다. Camera가 필요한 신규 UI는 Inspector에서 해당 모드와 거리를 설정한다.
+- 이번 단계는 에디터 도구만 수정했다. 도구를 실행하거나 씬/프리팹을 다시 저장하지 않았으므로 직전 사용자 테스트의 런타임 설정은 그대로다.
+- 복구 자료: before-step6-canvas-tool.patch, UICanvasSetupTool.before-step6.cs, step6-before.json, step6-canvas-tool.patch.
+- 변경 범위와 diff만 검토했다. Unity 실행, 컴파일, 플레이 테스트, 빌드는 하지 않았다. 후속 커밋은 아직 적용하지 않았다.
+
+7단계: 남은 씬 설정 정리
+- 결과: 사용자 확인상 렉 없음, 정상 동작. 최종 씬 설정도 통과했다. 에이전트가 Unity 컴파일/플레이를 실행한 결과는 아니다.
+- 실제 추가 변경: Assets/Scenes/MapDesign.unity의 PoolManager Canvas만 원본 Camera 모드로 복구했다. Main Camera 참조, PlaneDistance 1, Pixel Perfect 켜짐, CanvasCameraBinder도 원본 그대로다.
+- PoolManager의 자식은 FloatingTextPool과 DebuffPool이다. 일반 HUD와 분리된 피해 숫자/상태 알림이므로 2단계에서 통과한 공용 PoolSystems와 같은 방식으로 맞췄다.
+- BattleScene / VillageScene / BossTestScene / EliteTestScene / MapDesign의 기본 HUD는 Overlay + Pixel Perfect 켜짐으로 확정한다. 현재 화면 구성/타이밍을 바꾸지 않고 BattleScene에서 확인된 문제 조합을 피한다. 다른 씬도 별도로 성능 측정한 것으로 간주하지 않는다.
+- OptionScene, ScreenFadeCanvas, SceneLoader는 HUD 위를 가리는 표시 순서를 위해 Overlay로 유지한다. StartScene 메뉴는 5단계에서 통과한 Camera + Pixel Perfect 꺼짐을 유지한다.
+- VillageScene의 두 World Space Canvas는 원본 설정을 유지한다. 월드 UI, 새 폰트, UI 레이어/정렬, 후처리 코드도 그대로다.
+- 다섯 씬에 있던 GameManager의 m_Camera 재정의는 제거 상태로 확정한다. fileID 1048942024511420104는 원본 GameManager 프리팹에도 대상이 없고, 유효한 PoolSystems(fileID 1587180274595360789)는 기존 CanvasCameraBinder가 Main Camera를 연결한다.
+- 페이드/로딩의 카메라 재정의도 Overlay 용도와 맞지 않아 제거 상태로 둔다. 다른 게임 매니저 참조나 씬 오브젝트는 수정하지 않았다.
+- 정적 확인: 씬의 Canvas 모드/Pixel Perfect/카메라/바인더 연결, 중복 fileID, 잔여 카메라 재정의와 Git diff 범위를 확인했다. 이번 추가 변경은 MapDesign의 PoolManager와 이 기록뿐이다.
+- 복구 자료: before-step7-remaining-scenes.patch, MapDesign.before-step7.unity, step7-before.json, step7-mapdesign-pool-camera.patch, step7-scene-settings.json.
+- Unity 실행, 컴파일, 플레이 테스트, 빌드는 하지 않았다. 문제 커밋의 설정 정리는 마쳤지만 이번 최종 설정의 실측 통과를 선언하지 않는다.
+
+씬/프리팹별 최종 설정
+- BattleScene / VillageScene / BossTestScene / EliteTestScene / MapDesign 기본 HUD: Overlay / Pixel Perfect 켜짐.
+- OptionScene: Overlay / Pixel Perfect 켜짐.
+- ScreenFadeCanvas / SceneLoader: Overlay / Pixel Perfect 꺼짐.
+- StartScene 메뉴: Camera / Pixel Perfect 꺼짐.
+- GameManager.PoolSystems / MapDesign.PoolManager: Camera / Pixel Perfect 켜짐.
+- Feedback Overlay / ShopPopupUI: Camera / Pixel Perfect 꺼짐.
+- VillageScene의 World Space Canvas 2개 및 다른 월드 UI: 원본 유지.
+
+단계별 확인 상태
+2. 피해 숫자 풀 캔버스: 사용자 확인 통과.
+3. 화면 피드백 캔버스: 사용자 확인 통과.
+4. 상점 팝업 캔버스: 사용자 확인 통과.
+5. 시작 메뉴 캔버스: 사용자 확인 통과.
+6. UI Canvas Setup 재발 방지: 에디터 코드 수정 완료. 런타임 설정 변경 없음.
+7. 남은 씬 설정: 사용자 확인 통과. 이번 문제 커밋에서 예정했던 코드/설정 정리는 모두 적용했다.
+문제가 재현되는 단계는 원복 후 필요한 의도를 다른 방식으로 구현한다. 모든 캔버스를 Camera로 바꾸는 것 자체가 목표는 아니다.
+
+이번 커밋 이후 남은 적용 대상
+- 일반 커밋 5개: 1d730860, ef38af45, 12230e28, 4329137c, 7c9ac2ae.
+- 별도로 확인할 병합 해결 변경 1건: 186c5c5e.
+- 최종 사용자 확인을 통과했고, 이번에는 위 남은 변경들을 한 번에 적용하도록 승인받았다. 아래 목록의 적용 결과는 후속 작업에서 기록한다.
+
+최종 원본 대비 차이와 이유
+- 문제 커밋의 코드/설정 정리를 완료했고 7단계 최종 설정까지 사용자 확인상 렉 없이 정상 동작했다. 에이전트는 Unity 실행/컴파일/테스트를 하지 않았다. 이 수정은 후속 원본 커밋들과 분리해 이식 가능한 별도 커밋으로 보관한다.
+- 확인된 렉 재현 조건: BattleScene 기본 HUD Canvas를 Main Camera에 연결하고 기존 Pixel Perfect를 유지하면 렉이 발생했다. 같은 HUD에서 Pixel Perfect를 끄거나 Overlay로 복구하면 사용자 확인상 렉이 사라졌다.
+- Pixel Perfect는 문제 커밋 이전부터 켜져 있었다. 문제 커밋은 UI에 고해상도 후처리를 적용하고 글자를 선명하게 유지하기 위해 Overlay를 Camera로 일괄 전환했다(UICanvasSetupTool 주석에 명시).
+- 채택한 예외: 기본 HUD는 Overlay + Pixel Perfect 켜짐을 유지해 UI 선명도를 보존하면서 확인된 성능 문제 조합을 피한다. 이 HUD는 Main Camera 후처리를 받지 않는 차이가 있다. HUD까지 가려야 하는 로딩/페이드 및 옵션 Canvas도 Overlay로 유지한다.
+- 유지한 원본 의도: 새 폰트, UI 레이어/정렬, 확대 후 Main Camera 후처리, 월드 UI, 피해 숫자의 Camera 렌더링은 그대로다. 피해 숫자는 Camera + Pixel Perfect여도 사용자 확인상 정상이다.
+- 추가 보정: 화면 피드백의 Camera 모드 좌표 변환 누락을 수정했다. 기능 제거가 아니라 원본 Camera 전환 의도가 제대로 동작하도록 보완한 것이다.
+- 내부 엔진의 정확한 비용(메시/배치 재구성 등)은 계측하지 않았다. UI 갱신과 픽셀 정렬의 반복 비용은 가설이며, Camera 모드나 Pixel Perfect 전체가 항상 느리다고 일반화하지 않는다.
+- 자글거림은 기존 문제로 보류했고 관련 실험 변경은 모두 취소했다. 현재 카메라/업스케일 코드는 원본 문제 커밋과 동일하다.
+
+원래 은혁 브랜치로 반영하는 원칙
+- 대상은 은혁/신규스프라이트테스트(c9d35b57 기준)이며, 원래 프로젝트 경로는 C:/Users/rimmy/Desktop/Studies/indie/indie/Necormander_3이다.
+- 대상 브랜치에는 위 일반 커밋 5개와 병합 커밋 186c5c5e가 모두 조상으로 포함되어 있다. 원본 커밋을 다시 체리픽하거나 테스트 브랜치 전체를 병합할 필요가 없다.
+- 검증된 UI 카메라 렉 수정 커밋만 대상 브랜치에 체리픽하는 방식을 사용한다. 원래 브랜치의 이후 최적화/애니메이션 변경은 유지한다.
+- 이번 요청에서는 대상 브랜치를 읽기만 했다. 실제 이식/푸시는 수행하지 않는다.

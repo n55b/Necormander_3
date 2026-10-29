@@ -10,7 +10,7 @@ using UnityEngine;
 /// UI 캔버스 일괄 정리 도구. (메뉴: Tools > UI Canvas Setup)
 ///  1) Sorting Layer "UI" 를 만들고 맨 아래(= 가장 위에 그려짐)로 옮긴다.
 ///  2) 씬 + 프리팹의 캔버스를 정리한다.
-///     - Screen Space - Overlay → Screen Space - Camera (Main Camera 에서 포스트 프로세스를 받도록)
+///     - 각 Canvas의 렌더 방식과 Pixel Perfect 설정을 유지한다(Inspector에서 개별 선택).
 ///     - 루트 캔버스(월드 스페이스 포함)의 Sorting Layer = UI, 캔버스와 모든 자식의 Layer = UI(5)
 ///       → PixelArtUpscaleRig 에서 저해상도 RT 가 아니라 Main Camera 가 화면 해상도로 그린다(글자 선명).
 ///     - Screen Space - Camera 캔버스에는 CanvasCameraBinder 를 붙여 런타임에 Camera.main 을 연결한다.
@@ -21,7 +21,6 @@ public static class UICanvasSetupTool
 {
     const string SortingLayerName = "UI";
     const int    UILayer          = 5;
-    const float  PlaneDistance    = 1f;
     const string LogTag           = "[UICanvasSetup] ";
     const string LogFile          = "Logs/UICanvasSetup.log"; // 프로젝트 폴더/Logs (Assets 밖)
     // 로그 파일 위치: <프로젝트>/Logs/UICanvasSetup.log
@@ -99,7 +98,7 @@ public static class UICanvasSetupTool
     }
 
     // ─── 2. 캔버스 정리 ───────────────────────────────────────────────
-    [MenuItem("Tools/UI Canvas Setup/2. Convert Canvases (Scenes + Prefabs)", priority = 2)]
+    [MenuItem("Tools/UI Canvas Setup/2. 캔버스 정리 (렌더 방식 유지)", priority = 2)]
     public static void ConvertAll()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)
@@ -118,6 +117,7 @@ public static class UICanvasSetupTool
         }
 
         EnsureUISortingLayerOnTop();
+        Log("기존 렌더 방식과 Pixel Perfect를 유지하고 UI 레이어/카메라 연결을 정리합니다.");
 
         var log = new StringBuilder();
         int changed = 0;
@@ -204,18 +204,12 @@ public static class UICanvasSetupTool
             var so = new SerializedObject(canvas);
             var mode    = so.FindProperty("m_RenderMode");     // 0 Overlay, 1 Camera, 2 World
             var camProp = so.FindProperty("m_Camera");
-            var plane   = so.FindProperty("m_PlaneDistance");
             var sortId  = so.FindProperty("m_SortingLayerID");
             var over    = so.FindProperty("m_OverrideSorting");
 
             if (isRoot)
             {
-                if (mode.intValue == 0)
-                {
-                    mode.intValue = 1;
-                    plane.floatValue = PlaneDistance;
-                    dirty = true;
-                }
+                // 일괄 Camera 전환은 HUD 렉을 재발시키고, Overlay UI를 덮는 커튼/옵션의 순서를 바꾼다.
                 if (mode.intValue == 1)
                 {
                     if (sceneCam != null && camProp.objectReferenceValue == null) { camProp.objectReferenceValue = sceneCam; dirty = true; }

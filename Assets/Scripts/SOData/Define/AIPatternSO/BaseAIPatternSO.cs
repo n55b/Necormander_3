@@ -25,6 +25,11 @@ public class BaseAIPatternSO : AIPatternSO
     private float fallbackAttackWindup = 1f;
     [SerializeField, Range(0.01f, 1f), Tooltip("공격 간격의 이 비율 안에 모션이 끝나도록 빠르게 재생합니다. 0.9는 90%입니다.")]
     private float attackAnimationIntervalRatio = 0.9f;
+    [InspectorName("추격 경로 갱신 간격")]
+    [SerializeField, Min(0.02f), Tooltip("추격 경로를 다시 요청하는 간격(초). 줄이면 빠르게 반응하지만 몬스터가 많을 때 경로 계산이 늘어납니다.")]
+    private float chasePathRefreshInterval = 0.12f;
+    [System.NonSerialized] private float _nextChasePathRefresh;
+    [System.NonSerialized] private Transform _chasePathTarget;
 
     [Header("패턴 범용 설정")]
     [Tooltip("공격 루틴 시작 시 BaseEntity의 telegraphPrefab(장판)을 자동 생성할지 여부 (궁수, 마법사 등은 false로 설정)")]
@@ -115,7 +120,12 @@ public class BaseAIPatternSO : AIPatternSO
             else
             {
                 // 근접 몹이거나 공격 쿨타임이 찼을 때는 타겟에게 붙음
-                agent.SetDestination(entity.Target.position);
+                if (_chasePathTarget != entity.Target || Time.time >= _nextChasePathRefresh)
+                {
+                    _chasePathTarget = entity.Target;
+                    _nextChasePathRefresh = Time.time + Mathf.Max(.02f, chasePathRefreshInterval);
+                    agent.SetDestination(entity.Target.position);
+                }
             }
         }
     }

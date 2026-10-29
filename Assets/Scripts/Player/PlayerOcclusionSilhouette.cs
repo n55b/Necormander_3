@@ -35,6 +35,33 @@ public class PlayerOcclusionSilhouette : MonoBehaviour
     private float maskAlphaCutoff = .1f;
     private float _visibility;
     private readonly List<SpriteMask> _masks = new List<SpriteMask>();
+    // 몸통과 손이 같은 프레임에 같은 레이어 목록을 다시 훑지 않도록 공유한다.
+    private static readonly List<YSortableObject> Candidates = new List<YSortableObject>();
+    private static int _candidateFrame = -1;
+    private static int _candidateLayers;
+    private static uint _candidateVersion;
+
+    private static List<YSortableObject> GetCandidates(int layers)
+    {
+        uint version = YSortableObject.ActiveInstancesVersion;
+        if (_candidateFrame == Time.frameCount && _candidateLayers == layers && _candidateVersion == version)
+            return Candidates;
+
+        Candidates.Clear();
+        var instances = YSortableObject.ActiveInstances;
+        for (int i = 0; i < instances.Count; i++)
+        {
+            var instance = instances[i];
+            if (instance == null) continue;
+            var renderer = instance.Renderer;
+            if (renderer != null && ((1 << renderer.gameObject.layer) & layers) != 0)
+                Candidates.Add(instance);
+        }
+        _candidateFrame = Time.frameCount;
+        _candidateLayers = layers;
+        _candidateVersion = version;
+        return Candidates;
+    }
 
 
     
@@ -94,7 +121,7 @@ private bool UpdateMasks()
         Vector3 myPosition = transform.position;
         int bodyLayer = SortingLayer.GetLayerValueFromID(_mainRenderer.sortingLayerID);
 
-        var instances = YSortableObject.ActiveInstances;
+        var instances = GetCandidates(occluderLayers.value);
         int used = 0;
         for (int i = 0; i < instances.Count; i++)
         {
@@ -105,15 +132,16 @@ private bool UpdateMasks()
             if (occluderRenderer == null) continue;
             // 가림 대상이 아닌 몬스터·소환수는 스프라이트/정렬 검사 전에 제외한다.
             if (((1 << occluderRenderer.gameObject.layer) & occluderLayers.value) == 0) continue;
-            if (!occluderRenderer.enabled || occluderRenderer.sprite == null || occluderRenderer.color.a < maskAlphaCutoff) continue;
+            if (!occluderRenderer.enabled) continue;
+
+            Transform occluderTransform = occluderRenderer.transform;
+            float distSqr = (occluderTransform.position - myPosition).sqrMagnitude;
+            if (distSqr > maxDistSqr) continue;
+            if (occluderRenderer.sprite == null || occluderRenderer.color.a < maskAlphaCutoff) continue;
 
             // Skip anything that belongs to my own character (body/hands/etc share the same root) -
             // otherwise my own hand (drawn in front of my body) gets mistaken for something occluding me.
-            if (occluderRenderer.transform.root == myRoot) continue;
-
-            // Cheap distance check first - skip far-away objects before touching bounds (perf)
-            float distSqr = (occluderRenderer.transform.position - myPosition).sqrMagnitude;
-            if (distSqr > maxDistSqr) continue;
+            if (occluderTransform.root == myRoot) continue;
 
             int layer = SortingLayer.GetLayerValueFromID(occluderRenderer.sortingLayerID);
             if (layer < bodyLayer || (layer == bodyLayer && occluderRenderer.sortingOrder <= _mainRenderer.sortingOrder)) continue;
@@ -126,9 +154,9 @@ private bool UpdateMasks()
             mask.frontSortingLayerID = mask.backSortingLayerID = silhouetteRenderer.sortingLayerID;
             mask.frontSortingOrder = silhouetteRenderer.sortingOrder + 1;
             mask.backSortingOrder = silhouetteRenderer.sortingOrder - 1;
-            mask.transform.SetPositionAndRotation(occluderRenderer.transform.position, occluderRenderer.transform.rotation);
+            mask.transform.SetPositionAndRotation(occluderTransform.position, occluderTransform.rotation);
             Vector3 parentScale = mask.transform.parent.lossyScale;
-            Vector3 scale = occluderRenderer.transform.lossyScale;
+            Vector3 scale = occluderTransform.lossyScale;
             mask.transform.localScale = new Vector3(
                 scale.x / parentScale.x * (occluderRenderer.flipX ? -1f : 1f),
                 scale.y / parentScale.y * (occluderRenderer.flipY ? -1f : 1f), 1f);

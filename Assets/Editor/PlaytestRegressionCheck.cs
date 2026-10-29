@@ -157,6 +157,26 @@ public static class PlaytestRegressionCheck
         Require(uncovered.b > .9f && uncovered.r < .05f && uncovered.g < .05f, "가리지 않은 몸은 원래 색 그대로");
         Require(covered.g > .2f && Mathf.Abs(covered.g - covered.b) < .08f, "가려진 픽셀에 회색 실루엣 표시");
         Require(hole.b > .9f && hole.r < .05f, "가림막의 투명 여백에는 실루엣 없음");
+        // 몸과 손이 목록을 공유하더라도 활성 상태와 레이어 변경을 반영해야 한다.
+        var handSprite = SpriteRect("Test hand", new Vector2(1, 1), Color.blue, normalMaterial);
+        handSprite.transform.SetParent(playerSprite.transform, false);
+        var handSilhouette = SpriteRect("Hand silhouette", new Vector2(1, 1), Color.white,
+            AssetDatabase.LoadAssetAtPath<Material>("Assets/Material/Feedback/Player Dither Silhouette.mat"));
+        handSilhouette.transform.SetParent(handSprite.transform, false); handSilhouette.sortingOrder = 9000;
+        handSprite.gameObject.SetActive(false);
+        var handOcclusion = handSprite.gameObject.AddComponent<PlayerOcclusionSilhouette>();
+        Set(handOcclusion, "silhouetteRenderer", handSilhouette);
+        handSprite.gameObject.SetActive(true);
+        Require((bool)Call(occlusion, "UpdateMasks") && (bool)Call(handOcclusion, "UpdateMasks"), "몸통과 손이 같은 가림막을 검사");
+        blocker.gameObject.SetActive(false);
+        Require(!(bool)Call(handOcclusion, "UpdateMasks"), "같은 프레임에 가림막 비활성화 반영");
+        blocker.gameObject.SetActive(true);
+        Require((bool)Call(handOcclusion, "UpdateMasks"), "같은 프레임에 가림막 재등록 반영");
+        blocker.gameObject.layer = 0;
+        Require(!(bool)Call(handOcclusion, "UpdateMasks"), "가림막 레이어 변경 시 기존 후보 제외");
+        blocker.gameObject.layer = Layers.Wall;
+        yield return null;
+        Require((bool)Call(handOcclusion, "UpdateMasks"), "다음 프레임에 가림막 레이어 복원 반영");
         blocker.transform.position = Vector3.right * 5;
         wait = Wait(.2f); while (wait.MoveNext()) yield return null;
         Require(!silhouette.enabled, "가림막에서 벗어나면 실루엣 정리");
@@ -199,6 +219,14 @@ public static class PlaytestRegressionCheck
             Require(target.handAnimationOverride != null && target.handAnimationOverride == previous.handAnimationOverride, pair[0] + " 직전 무기 클립 유지");
         }
         Require(ArrowIndicatorSprites.ArrowSide != null && ArrowIndicatorSprites.AllyLocator != null, "PNG 슬라이스 로딩");
+        foreach (var name in new[] { "Torchlight", "Candle_Long" })
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Prefabs/Map/Objects/{name}.prefab");
+            var wave = prefab.GetComponentInChildren<LightScaleWave>(true);
+            Require(wave != null && Get<Vector3>(wave, "baseScale") == Vector3.one * 1.2f &&
+                Mathf.Approximately(Get<float>(wave, "speed"), 5f) && Mathf.Approximately(Get<float>(wave, "relativeAmplitude"), .02f),
+                name + " 빛 흔들림 기존 값 유지");
+        }
     }
     private static void CheckDash()
     {

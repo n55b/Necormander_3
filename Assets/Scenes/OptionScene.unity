@@ -506,7 +506,6 @@ GameObject:
   - component: {fileID: 277591214}
   - component: {fileID: 277591213}
   - component: {fileID: 277591217}
-  - component: {fileID: 277591218}
   m_Layer: 5
   m_Name: Canvas_Pause
   m_TagString: Untagged
@@ -563,9 +562,9 @@ Canvas:
   m_GameObject: {fileID: 277591212}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 0}
-  m_PlaneDistance: 1
+  m_PlaneDistance: 100
   m_PixelPerfect: 1
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -614,18 +613,6 @@ MonoBehaviour:
   bgmSlider: {fileID: 1834561157}
   sfxSlider: {fileID: 19369577}
   languageDropdown: {fileID: 113528576}
---- !u!114 &277591218
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 277591212}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ac51e547aed6f14a939fd02badc6a22, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &354972961
 GameObject:
   m_ObjectHideFlags: 0
