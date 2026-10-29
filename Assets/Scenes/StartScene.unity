@@ -1953,10 +1953,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: LoadingUICanvas
       objectReference: {fileID: 0}
-    - target: {fileID: 6553380112135197624, guid: 0d1593462d0be864ab9c2c8e5d9b4039, type: 3}
-      propertyPath: m_Camera
-      value: 
-      objectReference: {fileID: 2056537639}
     - target: {fileID: 8185883450094433496, guid: 0d1593462d0be864ab9c2c8e5d9b4039, type: 3}
       propertyPath: m_sharedMaterial
       value: 

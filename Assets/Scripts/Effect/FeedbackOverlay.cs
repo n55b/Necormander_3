@@ -101,11 +101,12 @@ public sealed class FeedbackOverlay : MonoBehaviour
     {
         var cam = Camera.main;
         if (cam == null || recipes == null) return;
+        var uiCam = UICam(canvasRect);
         for (int i = 0; i < recipes.Length; i++)
         {
             var recipe = recipes[i];
             if (recipe == null || !useWorldStart[i] || arrived[i]) continue;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, cam.WorldToScreenPoint(worldStarts[i]), null, out starts[i]);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, cam.WorldToScreenPoint(worldStarts[i]), uiCam, out starts[i]);
             float t = Mathf.Clamp01(ages[i] / Mathf.Max(.02f, recipe.duration));
             var p = Vector2.Lerp(starts[i], ends[i], recipe.motion.Evaluate(t));
             if (starts[i] != ends[i]) p.y += Mathf.Sin(t * Mathf.PI) * recipe.radius * 100;
