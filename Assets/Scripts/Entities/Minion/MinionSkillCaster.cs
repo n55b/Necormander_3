@@ -116,7 +116,7 @@ public class MinionSkillCaster : MonoBehaviour
         {
             var fx = Instantiate(visual, transform.position, Quaternion.identity, transform);
             FeedbackAnchor = fx.transform;
-            PolishFeedback.Play(FeedbackCue.MinionAppear, fx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO));
+            PolishFeedback.Play(FeedbackCue.MinionAppear, fx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(fx.transform);
             fx.transform.localPosition = Vector3.zero;
             var fxsr = fx.GetComponentInChildren<SpriteRenderer>();
             if (fxsr != null) fxsr.flipX = faceRight;
@@ -133,7 +133,7 @@ public class MinionSkillCaster : MonoBehaviour
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
         FeedbackAnchor = vfx.transform;
-        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO));
+        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(vfx.transform);
         vfx.transform.localPosition = Vector3.zero;
 
         var squash = vfx.GetComponent<VisualSquashStretch>();
@@ -287,7 +287,7 @@ public class MinionSkillCaster : MonoBehaviour
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
         FeedbackAnchor = vfx.transform;
-        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO));
+        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(vfx.transform);
         vfx.transform.localPosition = Vector3.zero;
         vfx.GetComponent<VisualSquashStretch>()?.PlayDash();
 
@@ -570,7 +570,7 @@ public class MinionSkillCaster : MonoBehaviour
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
         FeedbackAnchor = vfx.transform;
-        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO));
+        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(vfx.transform);
         vfx.transform.localPosition = Vector3.zero;
 
         var sr = vfx.GetComponentInChildren<SpriteRenderer>();

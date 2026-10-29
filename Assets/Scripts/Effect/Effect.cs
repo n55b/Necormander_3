@@ -4,6 +4,8 @@ public class Effect : MonoBehaviour
 {
     public void Destroy()
     {
-        Destroy(gameObject);
+        var pooled = GetComponentInParent<PooledHitEffect>();
+        if (pooled != null && pooled.IsManaged) pooled.Release();
+        else Destroy(gameObject);
     }
 }

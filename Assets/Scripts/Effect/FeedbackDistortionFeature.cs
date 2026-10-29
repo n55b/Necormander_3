@@ -12,6 +12,9 @@ public sealed class FeedbackDistortionFeature : ScriptableRendererFeature
     private struct Pulse { public Vector3 position; public float started; }
     private static readonly Pulse[] pulses = new Pulse[8];
     private static readonly Vector4[] rings = new Vector4[8];
+    private static readonly int RingsId = Shader.PropertyToID("_Rings");
+    private static readonly int RingCountId = Shader.PropertyToID("_RingCount");
+    private static readonly int AspectId = Shader.PropertyToID("_Aspect");
     private static int cursor;
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void Reset() { cursor=0; for(int i=0;i<pulses.Length;i++) pulses[i].started=-100f; }
@@ -29,12 +32,22 @@ public sealed class FeedbackDistortionFeature : ScriptableRendererFeature
             var pos=camera.WorldToViewportPoint(pulses[i].position);
             if(pos.z<=0) continue;
             float t=age/recipe.duration;
-            rings[count++]=new Vector4(pos.x,pos.y,recipe.radius/(camera.orthographicSize*2)*t,(1-t)*recipe.intensity*PolishFeedback.Catalog.intensity*.002f);
+            float radius=recipe.radius/(camera.orthographicSize*2)*t;
+            // 화면 밖에서도 링이 화면까지 닿을 때는 유지한다. 닿지 않을 때만 전체 화면 패스를 생략한다.
+            if(!CanReachViewport(pos,camera.aspect,radius)) continue;
+            rings[count++]=new Vector4(pos.x,pos.y,radius,(1-t)*recipe.intensity*PolishFeedback.Catalog.intensity*.002f);
         }
         if(count==0) return;
-        material.SetVectorArray("_Rings",rings); material.SetInt("_RingCount",count);
-        material.SetFloat("_Aspect",camera.aspect);
+        material.SetVectorArray(RingsId,rings); material.SetInt(RingCountId,count);
+        material.SetFloat(AspectId,camera.aspect);
         renderer.EnqueuePass(pass);
+    }
+    internal static bool CanReachViewport(Vector2 position,float aspect,float radius)
+    {
+        float dx=Mathf.Max(0f,Mathf.Max(-position.x,position.x-1f))*aspect;
+        float dy=Mathf.Max(0f,Mathf.Max(-position.y,position.y-1f));
+        float extent=radius+.025f; // shader의 smoothstep 띠 폭
+        return dx*dx+dy*dy<=extent*extent;
     }
     protected override void Dispose(bool disposing) { pass?.Dispose(); }
     private sealed class DistortionPass : ScriptableRenderPass

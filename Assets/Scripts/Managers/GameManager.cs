@@ -312,7 +312,34 @@ public class GameManager : MonoBehaviour
             Debug.Log("<color=cyan>[GameManager]</color> Player HUD Initialized.");
         }
 
+        _loadingProgress = 0.90f;
+        if (mapGenerator != null)
+        {
+            // 맵/문/NavMesh 배치가 끝난 뒤 방별 후보를 계산한다. 랜덤 추첨과 소환은 여전히 방 진입 시 수행한다.
+            foreach (var room in mapGenerator.AllRooms)
+            {
+                if (room == null) continue;
+                var normal = room.GetComponent<NormalRoomEvent>();
+                if (normal == null) continue;
+                normal.PrepareSpawnCells(room, currentStageMapData);
+                yield return null;
+            }
+            if (dataManager != null)
+                yield return StartCoroutine(dataManager.PrewarmEncounter(mapGenerator, currentStageMapData, currentFloor));
+        }
         _loadingProgress = 0.95f;
+        // 첫 피격 프레임에 오디오 데이터를 불러오지 않도록 로딩 화면에서 준비한다.
+        if (playerAttackSoundData != null && playerAttackSoundData.playerHurtClips != null)
+        {
+            foreach (var clip in playerAttackSoundData.playerHurtClips)
+            {
+                if (clip == null) continue;
+                if (clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
+                while (clip.loadState == AudioDataLoadState.Loading) yield return null;
+            }
+        }
+        // 첫 적중 때 무거운 연출 프리팹이 한꺼번에 생성되지 않도록 로딩 중 분산한다.
+        yield return StartCoroutine(PolishFeedback.Prewarm());
         // 스폰 직후가 아니라 HUD 초기화와 카메라 LateUpdate까지 마친 뒤에만 완료한다.
         yield return null;
         yield return null;

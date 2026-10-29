@@ -154,7 +154,7 @@ public static class BossCounterTelegraph
             if (kind == Kind.Real)
             {
                 result.Countered = true;
-                PolishFeedback.Play(FeedbackCue.CounterSuccess, entity.transform.position, Vector2.up);
+                PolishFeedback.Play(FeedbackCue.CounterSuccess, entity.transform.position, Vector2.up)?.FollowOrigin(entity.transform);
             }
         }
     }

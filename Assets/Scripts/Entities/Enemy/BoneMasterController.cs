@@ -109,7 +109,7 @@ public class BoneMasterController : EnemyController
     public float ReleaseAttack()
     {
         if (_attackMotion == null || Animator == null) return 0f;
-        PolishFeedback.Play(FeedbackCue.AttackRelease, transform.position, Vector2.up);
+        PolishFeedback.Play(FeedbackCue.AttackRelease, transform.position, Vector2.up)?.FollowOrigin(transform);
         if (_attackMotion.state.Contains("Jump")) PolishFeedback.Play(FeedbackCue.BossLand, transform.position);
         SampleAttack(_attackMotion.hitTime + 0.0001f);
         Animator.speed = 1f;

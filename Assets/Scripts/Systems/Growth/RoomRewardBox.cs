@@ -57,7 +57,6 @@ public class RoomRewardBox : MonoBehaviour, IInteractable
     /// <summary>Chest.aseprite의 Chest_Open 애니메이션을 재생한 뒤, 재생 길이만큼 기다렸다가 보상을 지급하고 파괴합니다.</summary>
     private IEnumerator PlayOpenThenGrantReward()
     {
-        PolishFeedback.Play(FeedbackCue.ChestOpen, transform.position, Vector2.up);
         float wait = 0f;
         if (_animator != null)
         {
@@ -67,6 +66,8 @@ public class RoomRewardBox : MonoBehaviour, IInteractable
             _animator.Play(OpenAnimName, 0, 0f);
             wait = GetClipLength(_animator, OpenAnimName);
         }
+
+        StartCoroutine(PolishFeedback.ChestOpening(transform, _animator));
 
         if (wait > 0f) yield return new WaitForSeconds(wait);
 

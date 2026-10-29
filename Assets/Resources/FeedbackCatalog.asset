@@ -1948,9 +1948,9 @@ MonoBehaviour:
     color: {r: 0.95, g: 0.86, b: 0.45, a: 1}
     intensity: 1
     duration: 0.5
-    delay: 0.2
+    delay: 0
     count: 9
-    radius: 0.9
+    radius: 0.5
     width: 0.03125
     drift: {x: 0, y: 0.5}
     minimumTier: 0
@@ -3023,6 +3023,141 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+  - cue: 81
+    title: "\uBC14\uB2E5 \uC544\uC774\uD15C \uBC18\uC9DD\uC784"
+    description: "\uBC14\uB2E5\uC5D0 \uB193\uC778 \uC544\uC774\uD15C \uC704\uC5D0
+      \uB530\uB73B\uD55C \uC2ED\uC790\uBE5B\uC774 \uC7A0\uAE50 \uB098\uD0C0\uB09C\uB2E4.
+      \uC544\uC774\uD15C \uADF8\uB9BC\uACFC \uD68D\uB4DD \uD310\uC815\uC740 \uBCC0\uACBD\uD558\uC9C0
+      \uC54A\uB294\uB2E4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 1, g: 0.88, b: 0.55, a: 0.9}
+    intensity: 0.8
+    duration: 0.45
+    delay: 0
+    count: 2
+    radius: 0.14
+    width: 0.03
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.08
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 82
+    title: "\ud37c\ud399\ud2b8 \uac00\ub4dc \uc12c\uad11"
+    description: "\ud37c\ud399\ud2b8 \uac00\ub4dc\uc5d0\ub9cc \uc811\ucd09 \uc9c0\uc810\uc5d0\uc11c \uc9e7\uace0 \ubc1d\uc740 \uc2ed\uc790 \uc12c\uad11\uc744 \ud45c\uc2dc\ud569\ub2c8\ub2e4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 3
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.17
+    delay: 0
+    count: 2
+    radius: 1.35
+    width: 0.065
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+  - cue: 83
+    title: "\ud37c\ud399\ud2b8 \uac00\ub4dc \ud30c\ub3d9"
+    description: "\ud37c\ud399\ud2b8 \uac00\ub4dc \uc811\ucd09 \uc9c0\uc810\uc5d0\uc11c \ud478\ub978 \ud30c\ub3d9\uc774 \uc9e7\uac8c \ud37c\uc9d1\ub2c8\ub2e4."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 1
+    color: {r: 0.35, g: 0.83, b: 1, a: 0.95}
+    intensity: 1
+    duration: 0.25
+    delay: 0
+    count: 1
+    radius: 0.8
+    width: 0.045
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
   existingEffects:
   - cue: 1
     enabled: 1
@@ -3236,6 +3371,15 @@ MonoBehaviour:
     - {fileID: 6116127727867885574, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
     - {fileID: 7257450153672990043, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
   overlayPrefab: {fileID: 870907240442243352, guid: f91117987761b814bbc31cc784cb80f9, type: 3}
+  chestOpenOffset: {x: 0, y: 0.55, z: 0}
+  chestOpenAnimationTime: 0.3
+  prewarmBurstCount: 12
+  prewarmImpactCount: 12
+  prewarmHitCount: 12
+  prewarmHitPrefabs:
+  - {fileID: 3940381455572104995, guid: 8d06d861d308b6343908d022f4a95489, type: 3}
+  - {fileID: 4428137900650296124, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+  prewarmGhostCount: 2
   lowHealthRatio: 0.25
   lowHealthInterval: 1.25
   ambientInterval: 0.9

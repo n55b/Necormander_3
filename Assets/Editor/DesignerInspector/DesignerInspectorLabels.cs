@@ -131,7 +131,7 @@ FeedbackTier.title|이름|기획자가 찾는 표시 이름입니다.
 FeedbackTier.density|입자 수 배율|원본 프리팹 한도 안에서 적용합니다.
 FeedbackTier.reach|퍼지는 거리 배율|그림 배율은 바꾸지 않습니다.
 FeedbackCatalog.enabled|전체 연출 사용|기존·신규 연출을 함께 켜고 끕니다. 게임 판정과 로딩 완료 대기는 유지합니다.
-FeedbackCatalog.intensity|신규 연출 강도|신규 01~80번 효과에 적용하는 배율입니다. 기존 연출의 수치는 아래 원본 조절에서 변경합니다.
+FeedbackCatalog.intensity|신규 연출 강도|신규 01~83번 효과에 적용하는 배율입니다. 기존 연출의 수치는 아래 원본 조절에서 변경합니다.
 FeedbackCatalog.simultaneousBursts|동시에 남길 월드 효과 수|전투가 몰려도 이 수를 넘게 생성하지 않습니다.
 FeedbackCatalog.burstsPerFrame|프레임당 월드 효과 제한|한 프레임에 생성할 최대 효과 수입니다.
 FeedbackCatalog.soundsPerFrame|프레임당 추가 효과음 제한|기존 공격 소리 외에 덧붙이는 소리의 수입니다.

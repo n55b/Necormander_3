@@ -16,7 +16,7 @@ MonoBehaviour:
   description: "\uCE58\uBA85\uD0C0 \uD655\uB960 +7%\n\uCE58\uBA85\uD0C0 \uD655\uB960
     100% \uCD08\uACFC\uBD84 10%\uB9C8\uB2E4 \uCE58\uBA85\uD0C0 \uD53C\uD574 +10%"
   shopDescription: "\uCE58\uBA85\uD0C0 \uD655\uB960 +7%"
-  icon: {fileID: 0}
+  icon: {fileID: 435680594, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
   tier: 4
   maxStack: 10
   availableAsReward: 1

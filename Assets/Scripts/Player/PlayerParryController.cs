@@ -145,7 +145,7 @@ public class PlayerParryController : MonoBehaviour
             ? (Vector2)(shooter.transform.position - projectile.transform.position) : -projectile.Direction;
         bool reflect = guard._activeConfig.CanReflect;
         projectile.GuardConsumed = true;
-        guard.Block(projectile.GuardInfo);
+        guard.Block(projectile.GuardInfo, contact);
         if (reflect) projectile.Deflect(guard.gameObject, Layers.EnemyMask, returnDir);
         else Destroy(projectile.gameObject);
         return true;
@@ -285,11 +285,20 @@ public class PlayerParryController : MonoBehaviour
         return to.sqrMagnitude < 0.0001f || Vector2.Angle(_activeAimDir, to) <= _activeConfig.angle * 0.5f;
     }
 
-    private void Block(DamageInfo info)
+    private void Block(DamageInfo info, Vector2? contact = null)
     {
         float damage = _activeSelf.CalculateGuardDamage(info);
         LastBlockWasPerfect = Time.time - _raisedAt <= Mathf.Max(0f, perfectGuardWindow);
         _guard = Mathf.Max(0f, _guard - damage * (LastBlockWasPerfect ? Mathf.Clamp01(perfectGuardCostRatio) : 1f));
+        if (LastBlockWasPerfect)
+        {
+            Vector2 toward = contact.HasValue ? contact.Value - (Vector2)transform.position :
+                (info.attacker != null ? (Vector2)info.attacker.transform.position - (Vector2)transform.position : _activeAimDir);
+            if (toward.sqrMagnitude < 0.0001f) toward = _activeAimDir;
+            Vector2 position = contact ?? ((Vector2)transform.position + toward.normalized * _activeConfig.EffectiveRadius);
+            PolishFeedback.Play(FeedbackCue.PerfectGuardFlash, position, toward);
+            PolishFeedback.Play(FeedbackCue.PerfectGuardRing, position, toward);
+        }
         _player?.RecordCombatAction();
         float breakThreshold = GuardCapacity * Mathf.Clamp01(guardBreakThresholdRatio);
         // 0.2f 곱셈의 미세 오차 때문에 정확히 10/50인 상태를 '미만'으로 오판하지 않는다.

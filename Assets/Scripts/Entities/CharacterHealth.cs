@@ -109,7 +109,10 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         return null;
     }
 
-    public void GetDamage(DamageInfo info)
+    public void GetDamage(DamageInfo info) => ApplyDamage(info);
+
+    // 판정·이벤트 순서는 그대로 두고, 무적/회피로 끝난 접촉의 일반 타격 이펙트만 생략한다.
+    internal bool ApplyDamage(DamageInfo info)
     {
         // 갈래가 안 붙은 피해는 공격자를 보고 자동 분류(적 티어 / 플레이어=스킬).
         if (info.category == DamageCategory.None)
@@ -123,9 +126,9 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // 카운터가 받아내면 true → 이 피격은 통째로 없던 일(경직·넉백·슬로우·상태이상까지 스킵).
         // 근접/범위 타격은 시전자의 위치로 판정한다. 투사체는 Projectile 이동 중 원호 교차에서
         // 처리하므로 여기서는 재방어하지 않는다. 장판/돌진은 bypassGuard로 제외한다.
-        if (!isDead && PlayerParryController.Intercept(this, ref info)) return;
+        if (!isDead && PlayerParryController.Intercept(this, ref info)) return true;
 
-        if (isDead || invincible) return;
+        if (isDead || invincible) return false;
 
         // [추가] 회피 / 명중 판정 (평타인 경우에만 적용)
         // 기본값(적중률 1, 회피 0)이면 명중률 1.0 이라 Random.value(<1.0)가 절대 못 넘는다 = 무조건 명중.
@@ -143,7 +146,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
                     // 회피 성공
                     TakeDamageEvent?.Invoke(0, info.type, "MISS", false);
-                    return;
+                    return false;
                 }
                 // else (명중 성공) 시 아래의 데미지 파이프라인으로 계속 진행됨
             }
@@ -279,7 +282,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         {
             if (OnBeforeDeath != null && OnBeforeDeath.Invoke(this))
             {
-                return; // 페이즈 전환 등으로 죽음을 회피함
+                return true; // 페이즈 전환 등으로 죽음을 회피함
             }
             // 사망 직전 이벤트
             DamageEventBus.TriggerEntityDied(this, info);
@@ -287,6 +290,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         }
 
         UpdateHPBar?.Invoke(); // HPBar 업데이트
+        return true;
     }
 
     /// <summary>가드도 실제 피격과 같은 증폭/치명타/방어력 식을 사용한다. 보호막/체력/피격 반응은 소모하지 않는다.</summary>
@@ -360,7 +364,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         curHP = Mathf.Min(curHP + healAmount, _stat.MAXHP);
         if(curHP>oldHP)
         {
-            PolishFeedback.Play(FeedbackCue.Heal,transform.position,Vector2.up);
+            PolishFeedback.Play(FeedbackCue.Heal,transform.position,Vector2.up)?.FollowOrigin(transform);
             OnHealthRestored?.Invoke(curHP-oldHP);
         }
 

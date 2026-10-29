@@ -37,6 +37,11 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
     private RoomInstance _cachedRoom;
     private EnemyMinionDataSO _hpBarTargetData; // 상단 체력바에 이름을 띄울 엘리트
 
+    // 무작위 폴백은 미리 추첨하지 않는다. 확정된 프리팹만 로딩 중 준비한다.
+    public EnemyMinionDataSO PrewarmEliteData => forcedElite != null ? forcedElite :
+        (MapGenerator.Instance != null ? MapGenerator.Instance.FloorElite : null);
+    public int PrewarmEliteCount => Mathf.Max(0, eliteCount);
+
     public bool SkipEncounterForCurrentFloor
     {
         get

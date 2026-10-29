@@ -14,6 +14,18 @@ public class CharacterVisualFeedback : MonoBehaviour
     private Color _originalBaseColor;
     private bool _hasSavedOriginalBaseColor = false;
     private Coroutine _hitFlashCoroutine;
+    private MaterialPropertyBlock _hitFlashProperties;
+    private static readonly int HitFlashId = Shader.PropertyToID("_HitFlash");
+
+    private void SetHitFlash(float value)
+    {
+        if (_sr == null) return;
+        if (_hitFlashProperties == null) _hitFlashProperties = new MaterialPropertyBlock();
+        // 스쿼시/기타 효과가 같은 렌더러에 쓴 속성은 유지한다.
+        _sr.GetPropertyBlock(_hitFlashProperties);
+        _hitFlashProperties.SetFloat(HitFlashId, value);
+        _sr.SetPropertyBlock(_hitFlashProperties);
+    }
     [Header("피격 섬광")]
     [Range(0f, 1f), SerializeField] private float hitFlashStrength = .9f;
     [Min(.01f), SerializeField] private float hitFlashDuration = .075f;
@@ -32,6 +44,7 @@ public class CharacterVisualFeedback : MonoBehaviour
     [Tooltip("빙결(Freeze) 상태인 동안 유닛에 붙여둘 이펙트 프리팹 (Assets/Prefabs/Effect/Effect_Freezing.prefab). " +
              "비워두면 Resources/Effects/Effect_Freezing 에서 자동 로드를 시도합니다.")]
     [SerializeField] private GameObject freezingVFXPrefab;
+    public GameObject FreezingVfxPrefab => freezingVFXPrefab;
     [Tooltip("빙결 이펙트를 붙일 위치 오프셋 (유닛 로컬 기준)")]
     [SerializeField] private Vector3 freezingVFXOffset = Vector3.zero;
 
@@ -369,7 +382,14 @@ public class CharacterVisualFeedback : MonoBehaviour
         if (prefab == null) return;
 
         Transform anchor = _sr != null ? _sr.transform : transform;
-        _freezingVFXInstance = Instantiate(prefab, anchor.position + freezingVFXOffset, prefab.transform.rotation, anchor);
+        var data = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
+        _freezingVFXInstance = data != null ? data.TakePreparedObject(prefab, anchor.position + freezingVFXOffset) : null;
+        if (_freezingVFXInstance != null)
+        {
+            _freezingVFXInstance.transform.SetParent(anchor, false);
+            _freezingVFXInstance.transform.SetPositionAndRotation(anchor.position + freezingVFXOffset, prefab.transform.rotation);
+        }
+        else _freezingVFXInstance = Instantiate(prefab, anchor.position + freezingVFXOffset, prefab.transform.rotation, anchor);
 
         SyncFreezingVFXSorting();
 
@@ -443,7 +463,7 @@ public class CharacterVisualFeedback : MonoBehaviour
             if (_hitFlashCoroutine != null)
             {
                 StopCoroutine(_hitFlashCoroutine);
-                if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
+                SetHitFlash(0f);
             }
             if (PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
                 _hitFlashCoroutine = StartCoroutine(FlashRoutine()); // 일반 피격
@@ -465,11 +485,11 @@ public class CharacterVisualFeedback : MonoBehaviour
     {
         if (_sr == null) yield break; // [추가] 널 체크
 
-        _sr.material.SetFloat("_HitFlash", hitFlashStrength);
+        SetHitFlash(hitFlashStrength);
         float elapsed = 0f;
         while (elapsed < hitFlashDuration && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
         { elapsed += Time.deltaTime; yield return null; }
-        if (_sr != null) _sr.material.SetFloat("_HitFlash", 0f);
+        SetHitFlash(0f);
         _hitFlashCoroutine = null;
 
         StartFlash(Color.grey); 

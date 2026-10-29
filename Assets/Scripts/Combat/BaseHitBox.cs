@@ -63,26 +63,34 @@ public class BaseHitBox : MonoBehaviour
     // 마리오네트: 모션/펄스는 유지하고 확정된 적중의 추가 피해만 시간차를 둔다.
     public int HitsPerContact { get; set; } = 1;
     public float ContactHitInterval { get; set; }
-    private void DealContactDamage(IDamageable target)
+    private static bool ApplyContact(IDamageable target, DamageInfo info)
     {
-        if (target.IsDead) return;
-        target.TakeDamage(_damageInfo);
+        if (target is CharacterHealth health) return health.ApplyDamage(info);
+        target.TakeDamage(info);
+        return true;
+    }
+
+    private bool DealContactDamage(IDamageable target)
+    {
+        if (target.IsDead) return false;
+        bool showEffect = ApplyContact(target, _damageInfo);
         int remaining = Mathf.Max(1, HitsPerContact) - 1;
-        if (remaining == 0 || target.IsDead) return;
+        if (remaining == 0 || target.IsDead) return showEffect;
         if (ContactHitInterval > 0f && target is MonoBehaviour receiver && receiver.isActiveAndEnabled)
         {
             // 히트박스 수명이 끝나거나 공격을 취소해도 이미 적중한 추가타는 누락하지 않는다.
             // 대상이 사라지거나 비활성화되면 대상의 코루틴과 함께 취소된다.
             receiver.StartCoroutine(RepeatContactDamage(receiver, target, _damageInfo, remaining,
                 ContactHitInterval, hitEffectPrefab, hitParticlePrefab, hitEffectAngle, frozenHitEffectColor));
-            return;
+            return showEffect;
         }
         for (int i = 0; i < remaining && !target.IsDead; i++)
         {
             var info = _damageInfo;
             info.feedbackHitIndex = i + 1;
-            target.TakeDamage(info);
+            showEffect |= ApplyContact(target, info);
         }
+        return showEffect;
     }
 
     private static System.Collections.IEnumerator RepeatContactDamage(MonoBehaviour receiver, IDamageable target,
@@ -95,9 +103,9 @@ public class BaseHitBox : MonoBehaviour
             if (receiver == null || !receiver.isActiveAndEnabled || target.IsDead) yield break;
             bool frozen = IsTargetFrozen(receiver);
             info.feedbackHitIndex = i + 1;
-            target.TakeDamage(info);
-            if (receiver != null)
-                SpawnHitEffect(ImpactPosition(receiver, effectPrefab), frozen, effectPrefab, particlePrefab, angle, frozenColor);
+            bool showEffect = ApplyContact(target, info);
+            if (showEffect && receiver != null)
+                SpawnHitEffect(ImpactPosition(receiver, effectPrefab), frozen, effectPrefab, particlePrefab, angle, frozenColor, receiver.transform);
         }
     }
     private LayerMask _targetLayer;
@@ -175,8 +183,8 @@ public class BaseHitBox : MonoBehaviour
                 ?? hit.GetComponentInChildren<IDamageable>();
             if (damageable == null || damageable.IsDead || !_pulseTargets.Add(damageable)) continue;
             bool wasFrozen = IsTargetFrozen(hit); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
-            DealContactDamage(damageable);
-            SpawnHitEffect(ImpactPosition(hit, hitEffectPrefab), wasFrozen);
+            if (DealContactDamage(damageable))
+                SpawnHitEffect(ImpactPosition(hit, hitEffectPrefab), wasFrozen, hit.transform);
             if (damageable is CharacterHealth ch) _onHitEnemy?.Invoke(ch);
         }
     }
@@ -359,8 +367,8 @@ public class BaseHitBox : MonoBehaviour
                 if (_elapsed >= n * damageTickRate)
                 {
                     bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
-                    DealContactDamage(damageable);
-                    SpawnHitEffect(ImpactPosition(col, hitEffectPrefab), wasFrozen);
+                    if (DealContactDamage(damageable))
+                        SpawnHitEffect(ImpactPosition(col, hitEffectPrefab), wasFrozen, col.transform);
                     _tickCount[damageable] = n + 1;
 
                     if (damageable is CharacterHealth ch)
@@ -376,8 +384,8 @@ public class BaseHitBox : MonoBehaviour
                 {
                     _hitTargets.Add(damageable);
                     bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
-                    DealContactDamage(damageable);
-                    SpawnHitEffect(ImpactPosition(col, hitEffectPrefab), wasFrozen);
+                    if (DealContactDamage(damageable))
+                        SpawnHitEffect(ImpactPosition(col, hitEffectPrefab), wasFrozen, col.transform);
                     
                     if (damageable is CharacterHealth ch)
                     {
@@ -393,8 +401,8 @@ public class BaseHitBox : MonoBehaviour
     /// <summary>
     /// 적중 위치에 타격 이펙트(HitEffect)를 생성합니다.
     /// </summary>
-    private void SpawnHitEffect(Vector3 position, bool frozenTarget = false)
-        => SpawnHitEffect(position, frozenTarget, hitEffectPrefab, hitParticlePrefab, hitEffectAngle, frozenHitEffectColor);
+    private void SpawnHitEffect(Vector3 position, bool frozenTarget, Transform target)
+        => SpawnHitEffect(position, frozenTarget, hitEffectPrefab, hitParticlePrefab, hitEffectAngle, frozenHitEffectColor, target);
 
     private static Vector3 ImpactPosition(Component target, GameObject effectPrefab)
     {
@@ -407,20 +415,35 @@ public class BaseHitBox : MonoBehaviour
     }
 
     private static void SpawnHitEffect(Vector3 position, bool frozenTarget, GameObject hitEffectPrefab,
-        GameObject hitParticlePrefab, float hitEffectAngle, Color frozenHitEffectColor)
+        GameObject hitParticlePrefab, float hitEffectAngle, Color frozenHitEffectColor, Transform target)
     {
         if (hitEffectPrefab != null)
         {
-            GameObject effect = Instantiate(hitEffectPrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
-            if (frozenTarget) TintEffect(effect, frozenHitEffectColor);
-            Destroy(effect, 1.0f);
+            Quaternion rotation = Quaternion.Euler(0f, 0f, hitEffectAngle);
+            var impactPrefab = hitEffectPrefab.GetComponent<ImpactFeedback>();
+            var impact = impactPrefab != null ? ImpactFeedback.Spawn(impactPrefab, position, rotation) : null;
+            var pooledPrefab = impact == null ? hitEffectPrefab.GetComponent<PooledHitEffect>() : null;
+            var pooled = pooledPrefab != null ? PooledHitEffect.Spawn(pooledPrefab, position, rotation, frozenTarget, frozenHitEffectColor) : null;
+            if (impact != null) impact.FollowTarget(target);
+            if (pooled != null) pooled.FollowTarget(target);
+            GameObject effect = impact != null
+                ? impact.gameObject
+                : pooled != null ? pooled.gameObject : Instantiate(hitEffectPrefab, position, rotation);
+            if (frozenTarget && pooled == null) { if (impact != null) impact.SetTint(frozenHitEffectColor); else TintEffect(effect, frozenHitEffectColor); }
+            if (impact == null && pooled == null) Destroy(effect, 1.0f);
         }
 
         if (hitParticlePrefab != null)
         {
-            GameObject particle = Instantiate(hitParticlePrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
-            if (frozenTarget) TintEffect(particle, frozenHitEffectColor);
-            Destroy(particle, 1.0f);
+            var pooledPrefab = hitParticlePrefab.GetComponent<PooledHitEffect>();
+            var pooled = pooledPrefab != null ? PooledHitEffect.Spawn(pooledPrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle), frozenTarget, frozenHitEffectColor) : null;
+            if (pooled != null) pooled.FollowTarget(target);
+            if (pooled == null)
+            {
+                GameObject particle = Instantiate(hitParticlePrefab, position, Quaternion.Euler(0f, 0f, hitEffectAngle));
+                if (frozenTarget) TintEffect(particle, frozenHitEffectColor);
+                Destroy(particle, 1.0f);
+            }
         }
     }
 

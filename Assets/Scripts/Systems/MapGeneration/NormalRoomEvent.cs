@@ -97,6 +97,18 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
     private bool _augmentChosen = false; // 증강 방에서 카드를 이미 골랐는지(방 하나당 한 번)
 
+    /// <summary>튜토리얼에서 직접 배치한 개체는 별도의 랜덤 프리팹 준비가 필요 없다.</summary>
+    public GameObject SpawnTelegraphPrefab => spawnVfxPrefab;
+    public bool UsesRandomEnemies => !(TutorialFlow.IsRunning && tutorialEnemiesRoot != null);
+
+    /// <summary>생성 완료된 방의 바닥 후보를 로딩 중 계산한다. 실제 위치 추첨은 전투 시작 때 한다.</summary>
+    public void PrepareSpawnCells(RoomInstance room, MapGenerationDataSO generation)
+    {
+        if (!UsesRandomEnemies || room == null) return;
+        if (mapGenerationData == null) mapGenerationData = generation;
+        BuildFloorSpawnCells(room);
+    }
+
     private void Start()
     {
         if (mapGenerationData == null && GameManager.Instance != null)
@@ -197,7 +209,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             foreach (var enemy in enemies)
             {
                 if (enemy == null || spawnVfxPrefab == null) continue;
-                GameObject vfx = Instantiate(spawnVfxPrefab, enemy.transform.position, Quaternion.identity);
+                GameObject vfx = TakeSpawnTelegraph(spawnVfxPrefab, enemy.transform.position);
                 BaseHitBox hitbox = vfx.GetComponent<BaseHitBox>();
                 if (hitbox != null)
                 {
@@ -593,6 +605,13 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         return true;
     }
 
+    private GameObject TakeSpawnTelegraph(GameObject prefab, Vector3 position)
+    {
+        var data = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
+        var prepared = data != null ? data.TakePreparedObject(prefab, position) : null;
+        return prepared != null ? prepared : Instantiate(prefab, position, Quaternion.identity);
+    }
+
     private IEnumerator DelayedSpawnEnemyWithVFX(EnemyCount enemyCount, Vector3 spawnPos, float duration)
     {
         GameObject vfxObj = null;
@@ -608,7 +627,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
         if (vfxPrefabToUse != null)
         {
-            vfxObj = Instantiate(vfxPrefabToUse, spawnPos, Quaternion.identity);
+            vfxObj = TakeSpawnTelegraph(vfxPrefabToUse, spawnPos);
             BaseHitBox hitbox = vfxObj.GetComponent<BaseHitBox>();
             if (hitbox != null)
             {

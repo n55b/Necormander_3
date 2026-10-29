@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: "\uCC9C\uAC11\uC637"
   description: "\uBC29\uC5B4\uB825 +4"
-  icon: {fileID: 0}
+  shopDescription: 
+  icon: {fileID: 600542586, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
   tier: 4
   maxStack: 10
   availableAsReward: 1

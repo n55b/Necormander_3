@@ -5,6 +5,12 @@ using UnityEngine.AI;
 public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
 {
     [SerializeField] private SpriteRenderer iconRenderer;
+    [Tooltip("아이템이 바닥에 있을 때 공통으로 보여줄 그림. 미니언에는 적용하지 않는다.")]
+    [InspectorName("바닥 아이템 공통 그림")]
+    [SerializeField] private Sprite itemDropSprite;
+    [Tooltip("아이콘을 아직 만들지 않은 아이템의 주머니/상점용 대체 그림.")]
+    [InspectorName("아이콘 미지정 시 대체 그림")]
+    [SerializeField] private Sprite fallbackItemIcon;
     [SerializeField] private bool alignIconToGround;
     [SerializeField, Min(0f)] private float labelGap = 0.15f;
     [SerializeField] private GameObject infoCanvas;
@@ -56,7 +62,7 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
         if (_fallbackItemIcon == null)
         {
             var prefab = Resources.Load<GroundItem>("GroundItem");
-            if (prefab != null) _fallbackItemIcon = prefab.GetComponent<SpriteRenderer>().sprite;
+            if (prefab != null) _fallbackItemIcon = prefab.fallbackItemIcon != null ? prefab.fallbackItemIcon : prefab.GetComponent<SpriteRenderer>().sprite;
         }
         return _fallbackItemIcon;
     }
@@ -110,7 +116,7 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
         if (infoCanvas != null) infoCanvas.SetActive(false);
     }
 
-    public void SetItem(ItemSO item) { _item = item; _minion = null; SetIcon(ItemIcon(item)); }
+    public void SetItem(ItemSO item) { _item = item; _minion = null; SetIcon(itemDropSprite != null ? itemDropSprite : ItemIcon(item)); }
     public void SetMinion(MinionDataSO minion) { _minion = minion; _item = null; SetIcon(minion != null ? minion.minionIcon : null); }
     private void SetIcon(Sprite icon)
     {
@@ -146,7 +152,8 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
     public void PlayPickupFeedback()
     {
         PolishFeedback.Pickup(_sr != null ? _sr.bounds.center : transform.position,
-            _sr != null ? _sr.sprite : null, _sr != null ? _sr.transform.lossyScale : Vector3.one);
+            _item != null ? ItemIcon(_item) : _sr != null ? _sr.sprite : null,
+            _sr != null ? _sr.transform.lossyScale : Vector3.one);
     }
 
     // Destroy는 프레임 끝이므로 즉시 소비 표시를 남겨 중복 지급/회복을 막는다.

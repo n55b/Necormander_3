@@ -100,10 +100,14 @@ public class MeleeDodgeController : MonoBehaviour
         return true;
     }
 
+    public GameObject DashEffectPrefab => dashEffectPrefab;
+
     private void PlayDashEffect()
     {
         if (dashEffectPrefab == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.DashSmoke)) return;
-        GameObject fx = Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
+        var data = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
+        GameObject fx = data != null ? data.TakePreparedObject(dashEffectPrefab, transform.position) : null;
+        if (fx == null) fx = Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
         Vector3 scale = fx.transform.localScale;
         scale.x = Mathf.Abs(scale.x) * (_dashDir.x < 0f ? 1f : -1f);
         fx.transform.localScale = scale;

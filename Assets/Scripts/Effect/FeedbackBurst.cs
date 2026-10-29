@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>프리팹에 미리 배치한 선/아이콘만 재생한다. 충돌체·피해·캐릭터 크기는 변경하지 않는다.</summary>
+[DefaultExecutionOrder(10000)]
 public sealed class FeedbackBurst : MonoBehaviour
 {
     [SerializeField] private LineRenderer[] lines;
@@ -9,12 +10,36 @@ public sealed class FeedbackBurst : MonoBehaviour
     private FeedbackRecipe recipe;
     private Vector3 origin, end;
     private Transform target;
+    private Transform originAnchor;
+    private Vector3 originOffset;
+    private SpriteRenderer sortingAnchor;
+    private int[] defaultLayers, defaultOrders;
+    private int iconLayer, iconOrder;
     private float age, power, reach;
     private int count;
     private bool registered;
     private FeedbackBurst source;
     private static readonly Dictionary<FeedbackBurst,Queue<FeedbackBurst>> pool = new Dictionary<FeedbackBurst,Queue<FeedbackBurst>>();
+    private static readonly Vector2[] ringPoints = MakeArc(Mathf.PI * 2f);
+    private static readonly Vector2[] arcPoints = MakeArc(Mathf.PI * .8f);
+    private static Vector2[] MakeArc(float span)
+    {
+        var points = new Vector2[17];
+        for (int i = 0; i < points.Length; i++)
+        {
+            float angle = i * span / 16f;
+            points[i] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+        }
+        return points;
+    }
     public static int ActiveCount { get; private set; }
+    private void Awake()
+    {
+        defaultLayers = new int[lines.Length]; defaultOrders = new int[lines.Length];
+        for (int i = 0; i < lines.Length; i++) if (lines[i] != null)
+        { defaultLayers[i] = lines[i].sortingLayerID; defaultOrders[i] = lines[i].sortingOrder; }
+        if (icon != null) { iconLayer = icon.sortingLayerID; iconOrder = icon.sortingOrder; }
+    }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetCount() { ActiveCount=0; pool.Clear(); }
 
@@ -25,6 +50,19 @@ public sealed class FeedbackBurst : MonoBehaviour
         if(result==null) { result=Instantiate(prefab,position,rotation); result.source=prefab; }
         else { result.transform.SetPositionAndRotation(position,rotation); result.gameObject.SetActive(true); }
         return result;
+    }
+    /// <summary>로딩 중 한 개씩 준비한다. 풀에 남은 유효한 객체가 목표 수 이상이면 생성하지 않는다.</summary>
+    public static void PrewarmOne(FeedbackBurst prefab, int desired)
+    {
+        if (prefab == null || desired <= 0) return;
+        if (!pool.TryGetValue(prefab, out var available)) pool[prefab] = available = new Queue<FeedbackBurst>();
+        int valid = 0;
+        foreach (var entry in available) if (entry != null) valid++;
+        if (valid >= desired) return;
+        var instance = Instantiate(prefab);
+        instance.source = prefab;
+        instance.gameObject.SetActive(false);
+        available.Enqueue(instance);
     }
     private void Release()
     {
@@ -37,6 +75,10 @@ public sealed class FeedbackBurst : MonoBehaviour
 
     public void Begin(FeedbackRecipe settings, Vector3 destination, Transform follow, int tier, Sprite sprite, Color? tint)
     {
+        originAnchor = null; sortingAnchor = null;
+        for (int i = 0; i < lines.Length; i++) if (lines[i] != null)
+        { lines[i].sortingLayerID = defaultLayers[i]; lines[i].sortingOrder = defaultOrders[i]; }
+        if (icon != null) { icon.sortingLayerID = iconLayer; icon.sortingOrder = iconOrder; }
         recipe=settings; origin=transform.position; end=destination; target=follow;
         var catalog=PolishFeedback.Catalog;
         var growth=settings.scaleWithTier ? catalog.Tier(tier) : null;
@@ -50,6 +92,28 @@ public sealed class FeedbackBurst : MonoBehaviour
         if(icon!=null) { icon.sprite=sprite; icon.enabled=sprite!=null; icon.transform.localScale=Vector3.one; }
         registered=true; ActiveCount++;
         Render(0,false);
+    }
+    // 부모로 묶지 않아 대상이 사라져도 연출과 풀의 수명은 유지한다.
+    public void FollowOrigin(Transform anchor, SpriteRenderer sorting = null)
+    {
+        if (anchor == null) return;
+        originAnchor = anchor; originOffset = transform.position - anchor.position; sortingAnchor = sorting;
+        Follow();
+    }
+    private void LateUpdate() => Follow();
+    private void Follow()
+    {
+        if (originAnchor != null && originAnchor.gameObject.activeInHierarchy)
+        {
+            Vector3 position = originAnchor.position + originOffset;
+            if (target == null) end += position - origin;
+            transform.position = position; origin = position;
+        }
+        else originAnchor = null;
+        if (sortingAnchor == null) return;
+        foreach (var line in lines) if (line != null)
+        { line.sortingLayerID = sortingAnchor.sortingLayerID; line.sortingOrder = sortingAnchor.sortingOrder + 1; }
+        if (icon != null) { icon.sortingLayerID = sortingAnchor.sortingLayerID; icon.sortingOrder = sortingAnchor.sortingOrder + 2; }
     }
     private Color color;
     private void Update()
@@ -69,8 +133,9 @@ public sealed class FeedbackBurst : MonoBehaviour
         for(int i=0;i<lines.Length;i++)
         {
             var line=lines[i]; if(line==null) continue;
-            line.enabled=visible&&i<count;
-            if(!line.enabled) continue;
+            bool enabled=visible&&i<count;
+            if(line.enabled!=enabled) line.enabled=enabled;
+            if(!enabled) continue;
             float a=i*Mathf.PI*2/count;
             if(recipe.shape==FeedbackShape.Cross) a=i*Mathf.PI/count;
             if(recipe.cue==FeedbackCue.DirectionHit||recipe.cue==FeedbackCue.WallHit||recipe.cue==FeedbackCue.Foliage)
@@ -87,8 +152,12 @@ public sealed class FeedbackBurst : MonoBehaviour
                 case FeedbackShape.Ring:
                 case FeedbackShape.Arc:
                     line.positionCount=17;
-                    float span=recipe.shape==FeedbackShape.Ring?Mathf.PI*2:Mathf.PI*.8f;
-                    for(int j=0;j<17;j++) { float angle=a+j*span/16; line.SetPosition(j,new Vector3(Mathf.Cos(angle)*length,Mathf.Sin(angle)*length*.65f)+drift); }
+                    var points=recipe.shape==FeedbackShape.Ring?ringPoints:arcPoints;
+                    for(int j=0;j<points.Length;j++)
+                    {
+                        var point=points[j];
+                        line.SetPosition(j,new Vector3((dir.x*point.x-dir.y*point.y)*length,(dir.y*point.x+dir.x*point.y)*length*.65f)+drift);
+                    }
                     break;
                 case FeedbackShape.Link:
                     Vector3 local=transform.InverseTransformPoint(destination);
@@ -132,6 +201,7 @@ public sealed class FeedbackBurst : MonoBehaviour
     }
     private void OnDisable()
     {
+        originAnchor = null; sortingAnchor = null; target = null;
         if(registered) ActiveCount=Mathf.Max(0,ActiveCount-1);
         registered=false;
         if(lines!=null) foreach(var line in lines) if(line!=null) line.enabled=false;
