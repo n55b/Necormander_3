@@ -133,7 +133,7 @@ public class PopupSystem : MonoBehaviour
         var unlit = Resources.Load<Material>("Materials/UI/UISpriteUnlit");
         if (unlit != null) _interactionIcon.sharedMaterial = unlit;
         else Debug.LogWarning("[PopupSystem] Resources/Materials/UI/UISpriteUnlit 머티리얼이 없습니다. F 아이콘이 검게 보일 수 있습니다.");
-        _interactionIcon.sortingOrder = 10000;
+        _interactionIcon.sortingOrder = 0;
         return true;
     }
 }
