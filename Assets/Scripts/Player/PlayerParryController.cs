@@ -240,11 +240,9 @@ public class PlayerParryController : MonoBehaviour
         SampleGuardOrigin(true);
         LastBlockWasPerfect = false;
         _player.SetSpeedModifier(PlayerController.SpeedModifierSource.Parry, rc.moveSpeedMultiplier);
-        // 공통 Parry 클립에는 기본 주먹 그림이 들어 있다. 가드는 선만 표시하고
-        // 장착 무기의 Idle/Walk를 유지한다. 공격 취소 때 남은 모션 잠금만 해제한다.
+        // 가드는 선만 표시한다. Idle을 직접 재생하면 걷기 상태 캐시와 실제 클립이 어긋날 수 있다.
         _player.CanChangeAnimState();
-        _player.ResetAnimStateCache();
-        _player.PlayAllAnim("Idle");
+        _player.UpdateLocomotionAnimation();
         _telegraph = CreateTelegraphSector(AimDir(), rc, -1f);
         UpdateAim(AimDir());
         OnParryStart?.Invoke();
@@ -259,7 +257,8 @@ public class PlayerParryController : MonoBehaviour
         DestroyTelegraph();
         if (_player == null) return;
         _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.Parry);
-        // 가드가 모션을 소유하지 않으므로 종료 시 대시/피격/걷기 애니메이션을 덮지 않는다.
+        // 이동키를 다시 누르지 않아도 즉시 복귀한다. 공격/대시 잠금은 공통 갱신 함수가 존중한다.
+        _player.UpdateLocomotionAnimation();
     }
 
     private void ScanIncoming(RightClickConfig rc)

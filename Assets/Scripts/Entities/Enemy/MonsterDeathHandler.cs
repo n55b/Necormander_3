@@ -33,6 +33,14 @@ namespace AstroNuts.Monsters
         [Tooltip("죽음 클립에 Animation Event를 안 걸어둔 경우를 대비한 안전장치 시간(초)")]
         [SerializeField] private float fallbackDelay = 1.0f;
 
+        [Header("디버그 · 사망 좌표 (에디터 / 개발 빌드)")]
+        [InspectorName("사망 전후 좌표 로그"), SerializeField]
+        [Tooltip("사망 직전과 시체 제거 직전의 좌표를 기록합니다. 이동 판정·속도에는 영향을 주지 않습니다.")]
+        private bool logDeathPositions = true;
+        [InspectorName("사망 후 이동 경고 거리"), SerializeField, Min(.01f)]
+        [Tooltip("사망 직전 위치에서 이 거리(유닛) 이상 이동하면 해당 개체당 경고를 한 번 남깁니다.")]
+        private float deathPositionWarningDistance = 1f;
+
         private Animator _animator;
         private NavMeshAgent _agent;
         private Rigidbody2D _rb;
@@ -40,6 +48,11 @@ namespace AstroNuts.Monsters
         private Canvas _hpCanvas;
         private bool _isDead;
         private bool _hasFinished;
+
+        private bool _traceActive, _traceWarned;
+        private Vector3 _deathPosition, _previousTracePosition, _positionAfterCleanup, _furthestDeathPosition;
+        private float _deathTime, _maxDeathDistance, _maxDeathStep;
+        private int _deathFrame;
 
         public bool IsDead => _isDead;
 
@@ -57,6 +70,8 @@ namespace AstroNuts.Monsters
         public void Die()
         {
             if (_isDead) return; // 중복 호출 방지
+            BeginDeathPositionTrace(); // CharacterHealth를 거치지 않는 직접 호출도 기록한다.
+            SampleDeathPosition("사망 이벤트 이후");
             _isDead = true;
 
             foreach (var col in collidersToDisable)
@@ -113,9 +128,71 @@ namespace AstroNuts.Monsters
                 }
             }
 
+            _positionAfterCleanup = transform.position;
+            SampleDeathPosition("사망 처리 직후");
             // 죽음 클립에 Animation Event를 안 걸어뒀을 경우를 대비한 fallback
             Invoke(nameof(OnDeathAnimationFinished), delay);
         }
+
+        // 코루틴을 쓰지 않아 Die()의 StopAllCoroutines 이후에도 시체 이동을 관찰한다.
+        public void BeginDeathPositionTrace()
+        {
+            if (!Debug.isDebugBuild || !logDeathPositions || _traceActive) return;
+            _traceActive = true;
+            _traceWarned = false;
+            _deathFrame = Time.frameCount;
+            _deathTime = Time.time;
+            _deathPosition = _previousTracePosition = _positionAfterCleanup = _furthestDeathPosition = transform.position;
+            _maxDeathDistance = _maxDeathStep = 0f;
+            Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, this, "{0}",
+                $"[DeathPosition][BEGIN] {name}#{gameObject.GetInstanceID()} frame={_deathFrame} scene={gameObject.scene.name} " +
+                $"parent={(transform.parent != null ? transform.parent.name : "없음")} {DeathMovementState()}");
+        }
+
+        private void LateUpdate() => SampleDeathPosition("사망 후 프레임");
+
+        private void SampleDeathPosition(string stage)
+        {
+            if (!_traceActive) return;
+            Vector3 position = transform.position;
+            float distance = Vector3.Distance(_deathPosition, position);
+            _maxDeathStep = Mathf.Max(_maxDeathStep, Vector3.Distance(_previousTracePosition, position));
+            if (distance > _maxDeathDistance)
+            {
+                _maxDeathDistance = distance;
+                _furthestDeathPosition = position;
+            }
+            _previousTracePosition = position;
+            if (!_traceWarned && distance >= Mathf.Max(.01f, deathPositionWarningDistance))
+            {
+                _traceWarned = true;
+                Debug.LogFormat(LogType.Warning, LogOption.NoStacktrace, this, "{0}",
+                    $"[DeathPosition][JUMP] {name}#{gameObject.GetInstanceID()} stage={stage} frame={Time.frameCount} " +
+                    $"사망={_deathPosition:F3} 이동거리={distance:F3} 최대단계이동={_maxDeathStep:F3} {DeathMovementState()}");
+            }
+        }
+
+        private string DeathMovementState()
+        {
+            string body = _rb != null ? $"pos={_rb.position:F3}, velocity={_rb.linearVelocity:F3}, simulated={_rb.simulated}" : "없음";
+            string agent = _agent == null ? "없음" : !_agent.isActiveAndEnabled ? "꺼짐" : !_agent.isOnNavMesh ? "NavMesh 밖" :
+                $"next={_agent.nextPosition:F3}, velocity={_agent.velocity:F3}, stopped={_agent.isStopped}";
+            return $"root={transform.position:F3} Rigidbody=[{body}] Agent=[{agent}]";
+        }
+
+        private void FinishDeathPositionTrace(string stage)
+        {
+            if (!_traceActive) return;
+            SampleDeathPosition(stage);
+            _traceActive = false;
+            Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, this, "{0}",
+                $"[DeathPosition][END] {name}#{gameObject.GetInstanceID()} stage={stage} frames={_deathFrame}->{Time.frameCount} " +
+                $"경과={Time.time - _deathTime:F3}s 사망={_deathPosition:F3} 처리직후={_positionAfterCleanup:F3} " +
+                $"최대변위={_maxDeathDistance:F3} 최대위치={_furthestDeathPosition:F3} 최대단계이동={_maxDeathStep:F3} {DeathMovementState()}");
+        }
+
+        private void OnDisable() => FinishDeathPositionTrace("비활성화");
+        private void OnDestroy() => FinishDeathPositionTrace("제거");
 
         /// <summary>
         /// 실제로 재생할 사망 스테이트 이름. 인스펙터 값이 컨트롤러에 없으면 Die / Dead 중
@@ -143,6 +220,7 @@ namespace AstroNuts.Monsters
             if (_hasFinished) return;
             _hasFinished = true;
             CancelInvoke(nameof(OnDeathAnimationFinished));
+            FinishDeathPositionTrace("사망 모션 종료");
 
             if (useObjectPooling)
                 gameObject.SetActive(false);

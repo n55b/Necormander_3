@@ -285,6 +285,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
                 return true; // 페이즈 전환 등으로 죽음을 회피함
             }
             // 사망 직전 이벤트
+            GetComponentInParent<MonsterDeathHandler>()?.BeginDeathPositionTrace();
             DamageEventBus.TriggerEntityDied(this, info);
             Die();
         }

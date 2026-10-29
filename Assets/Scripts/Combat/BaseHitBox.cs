@@ -103,9 +103,11 @@ public class BaseHitBox : MonoBehaviour
             if (receiver == null || !receiver.isActiveAndEnabled || target.IsDead) yield break;
             bool frozen = IsTargetFrozen(receiver);
             info.feedbackHitIndex = i + 1;
+            Vector3 impactPosition = ImpactPosition(receiver, effectPrefab);
+            Transform impactTarget = receiver.transform;
             bool showEffect = ApplyContact(target, info);
-            if (showEffect && receiver != null)
-                SpawnHitEffect(ImpactPosition(receiver, effectPrefab), frozen, effectPrefab, particlePrefab, angle, frozenColor, receiver.transform);
+            if (showEffect)
+                SpawnHitEffect(impactPosition, frozen, effectPrefab, particlePrefab, angle, frozenColor, impactTarget);
         }
     }
     private LayerMask _targetLayer;
@@ -183,8 +185,10 @@ public class BaseHitBox : MonoBehaviour
                 ?? hit.GetComponentInChildren<IDamageable>();
             if (damageable == null || damageable.IsDead || !_pulseTargets.Add(damageable)) continue;
             bool wasFrozen = IsTargetFrozen(hit); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
+            Vector3 impactPosition = ImpactPosition(hit, hitEffectPrefab);
+            Transform impactTarget = hit.transform;
             if (DealContactDamage(damageable))
-                SpawnHitEffect(ImpactPosition(hit, hitEffectPrefab), wasFrozen, hit.transform);
+                SpawnHitEffect(impactPosition, wasFrozen, impactTarget);
             if (damageable is CharacterHealth ch) _onHitEnemy?.Invoke(ch);
         }
     }
@@ -367,8 +371,10 @@ public class BaseHitBox : MonoBehaviour
                 if (_elapsed >= n * damageTickRate)
                 {
                     bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
+                    Vector3 impactPosition = ImpactPosition(col, hitEffectPrefab);
+                    Transform impactTarget = col.transform;
                     if (DealContactDamage(damageable))
-                        SpawnHitEffect(ImpactPosition(col, hitEffectPrefab), wasFrozen, col.transform);
+                        SpawnHitEffect(impactPosition, wasFrozen, impactTarget);
                     _tickCount[damageable] = n + 1;
 
                     if (damageable is CharacterHealth ch)
@@ -384,8 +390,10 @@ public class BaseHitBox : MonoBehaviour
                 {
                     _hitTargets.Add(damageable);
                     bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
+                    Vector3 impactPosition = ImpactPosition(col, hitEffectPrefab);
+                    Transform impactTarget = col.transform;
                     if (DealContactDamage(damageable))
-                        SpawnHitEffect(ImpactPosition(col, hitEffectPrefab), wasFrozen, col.transform);
+                        SpawnHitEffect(impactPosition, wasFrozen, impactTarget);
                     
                     if (damageable is CharacterHealth ch)
                     {
@@ -406,10 +414,11 @@ public class BaseHitBox : MonoBehaviour
 
     private static Vector3 ImpactPosition(Component target, GameObject effectPrefab)
     {
+        // 반드시 피해 처리 전에 저장한다. 막타는 Die()에서 충돌체를 꺼 bounds를 비운다.
         if (effectPrefab != null && effectPrefab.TryGetComponent<ImpactFeedback>(out _))
         {
             var col = target as Collider2D ?? target.GetComponent<Collider2D>() ?? target.GetComponentInParent<Collider2D>();
-            if (col != null) return col.bounds.center;
+            if (col != null && col.enabled && col.gameObject.activeInHierarchy) return col.bounds.center;
         }
         return target.transform.position;
     }
