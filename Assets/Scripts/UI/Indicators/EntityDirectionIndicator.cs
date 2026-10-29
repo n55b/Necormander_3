@@ -29,11 +29,31 @@ public class EntityDirectionIndicator : MonoBehaviour
     [SerializeField] private Kind kind = Kind.Auto;
     [Tooltip("스프라이트 기본이 '아래(-Y)'를 봐서 +90 보정. 스프라이트 방향이 다르면 이 값만 바꾸면 됨.")]
     [SerializeField] private float baseAngle = 90f;
+    // ─── [TODO] 인디케이터 크기 줄이기 ─────────────────────────────────────────────
+    // 크기는 아래 두 가지 중 하나로 조절한다.
+    //  (A) 권장: 더 작은 해상도로 새로 그린 스프라이트로 교체
+    //      - 가장 간단: Resources/Sprites/UI/Arrow_Indicator.png 의 "Arrow_Indicator_2" 슬라이스 그림을 교체
+    //        (각 프리팹 DirectionIndicator 의 SpriteRenderer 가 이 스프라이트를 직접 참조 중)
+    //      - 주의: spriteOverride 는 SpriteRenderer 의 Sprite 가 비어 있을 때만 쓰인다(Awake 참고).
+    //        새 스프라이트를 별도 에셋으로 만들면 각 프리팹의 SpriteRenderer.Sprite 를 바꾸거나 비워야 함
+    //      - PPU 는 다른 아트와 같은 32 를 유지할 것 (PixelArtUpscaleRig 의 assetsPPU 와 일치해야 도트 1:1)
+    //      - RotSprite 회전 캐시(RotSpriteCache)는 새 스프라이트로 자동 생성되므로 따로 할 일 없음
+    //  (B) indicatorScale 값 변경 — 단, 반드시 정수(1, 2, 3…)만 사용
+    //      - 0.5, 1.6 같은 비정수 배율은 픽셀 RT 에서 도트 두께가 들쭉날쭉해져 다시 뭉개진다
+    //      - 그래서 '지금보다 작게'는 (B)로는 불가능(1 이 최소) → (A) 로 해야 함
+    //  ※ 스프라이트를 바꾸면 회전 중심(피벗)과 baseAngle(기본 방향)도 새 그림에 맞는지 확인할 것.
+    // ───────────────────────────────────────────────────────────────────────────────
     [Tooltip("비워두면 Arrow_Indicator.png의 하단 로케이터를 사용합니다.")]
     [SerializeField] private Sprite spriteOverride;
     [Tooltip("로케이터 크기. 이 값이 자식 Transform의 localScale에 그대로 적용된다(여기서만 조절하면 됨). 플레이어는 좀 더 크게.")]
     [Min(0.01f)]
     [SerializeField] private float indicatorScale = 1.6f;
+    [Tooltip("플레이어 로케이터를 저해상도 픽셀 RT 대신 Main Camera(화면 해상도)로 그린다. 회전해도 도트가 뭉개지지 않는다.\n대신 월드 그림 전체보다 위에, 다른 UI(UI Sorting Layer·오버레이 캔버스)보다는 아래에 그려진다.")]
+    [SerializeField] private bool renderAtScreenResolution = false;
+    [Tooltip("픽셀 RT 로 그릴 때 RotSprite 로 미리 회전시켜 둘 방향 수. 클수록 회전이 부드럽다(64 = 5.6° 간격).\n0 이면 예전처럼 transform 을 직접 회전(도트가 뭉개짐).")]
+    [Min(0)]
+    [SerializeField] private int rotationSteps = 64;
+    private Sprite[] _rotSprites;
 
     /// <summary>화면 밖 화살표가 순회할 적군 로케이터 레지스트리.</summary>
     public static readonly List<EntityDirectionIndicator> EnemyIndicators = new List<EntityDirectionIndicator>();
@@ -105,6 +125,27 @@ public class EntityDirectionIndicator : MonoBehaviour
             if (spriteOverride != null) _sr.sprite = spriteOverride;
             else _sr.sprite = (_resolved == Kind.Enemy) ? ArrowIndicatorSprites.EnemyLocator : ArrowIndicatorSprites.AllyLocator;
         }
+
+        if (renderAtScreenResolution && _resolved == Kind.Player)
+            UseScreenResolution();
+        else if (rotationSteps > 0)
+            _rotSprites = RotSpriteCache.Get(_sr.sprite, rotationSteps); // [크기 수정 시] 여기서 쓰는 _sr.sprite 가 회전 원본. 작은 스프라이트로 바꾸면 자동 반영
+    }
+
+    /// <summary>
+    /// PixelArtUpscaleRig 는 UI 레이어(5)만 Main Camera 가 화면 해상도로 그리고, 나머지는 아트 픽셀 1:1 RT 로 그린다.
+    /// 연속 각도로 회전하는 스프라이트가 RT 격자에 다시 샘플링되면 도트가 각도마다 뭉개지므로 UI 레이어로 옮긴다.
+    /// Main Camera 에서는 월드 전체가 BackGround 레이어의 쿼드 한 장이라 Y 정렬은 의미가 없다 →
+    /// YSort 를 끄고 Default 레이어 최저 order 로 두어 쿼드보다 위, 다른 UI(UI Sorting Layer 등)보다 아래에 그린다.
+    /// (Default Sorting Layer 를 유지하는 건 Light2D 조명을 그대로 받기 위함.)
+    /// </summary>
+    private void UseScreenResolution()
+    {
+        gameObject.layer = 5; // UI
+        var ySort = GetComponent<YSortableObject>();
+        if (ySort != null) ySort.enabled = false;
+        _sr.sortingLayerName = "Default";
+        _sr.sortingOrder = short.MinValue + 1;
     }
 
     private void OnEnable()
@@ -151,7 +192,19 @@ public class EntityDirectionIndicator : MonoBehaviour
         // 부모가 X미러(플레이어 좌향)면 좌우대칭 각도 보정. (아니면 그대로)
         bool flipped = transform.parent != null && transform.parent.lossyScale.x < 0f;
         float r = flipped ? (180f - phi + baseAngle) : (phi + baseAngle);
-        transform.localRotation = Quaternion.Euler(0f, 0f, r);
+        if (_rotSprites != null)
+        {
+            // 미리 회전된 도트 스프라이트로 교체. transform 은 회전시키지 않는다.
+            int n = _rotSprites.Length;
+            int idx = Mathf.RoundToInt(r / (360f / n)) % n;
+            if (idx < 0) idx += n;
+            if (_sr.sprite != _rotSprites[idx]) _sr.sprite = _rotSprites[idx];
+            transform.localRotation = Quaternion.identity;
+        }
+        else
+        {
+            transform.localRotation = Quaternion.Euler(0f, 0f, r);
+        }
     }
 
     private Vector2 ComputeAim()
