@@ -177,7 +177,7 @@ public static class PolishFeedback
     public static void ResolvedHit(CharacterHealth health, CharacterStat attacker, DamageInfo info, bool critical)
     {
         if(health==null || !DamageRules.IsPlayerSourced(info.category) || info.category==DamageCategory.Parry) return;
-        if (info.category == DamageCategory.BasicAttack && info.minionSource != null) info.minionSource.PlayBasicHitSound();
+        if (info.minionSource != null) info.minionSource.PlayHitSound(info.category);
         Vector3 pos=health.transform.position;
         Vector2 dir=info.attacker!=null ? pos-info.attacker.transform.position:Vector2.right;
         bool minion=info.playerBasicAttack==null;
@@ -194,7 +194,8 @@ public static class PolishFeedback
             Play(FeedbackCue.MultiHit,pos,-dir,tier)?.FollowOrigin(health.transform);
             Play(FeedbackCue.MarionetteHit,pos,-dir,tier)?.FollowOrigin(health.transform);
         }
-        Play(FeedbackCue.ImpactSound,pos,dir,tier);
+        // 소환수는 자기 사운드 세트로 적중음을 낸다. 공통 타격음까지 세 겹으로 쌓지 않는다.
+        Play(FeedbackCue.ImpactSound,pos,dir,tier,playSound:info.minionSource==null);
         if(critical||info.feedbackComboFinish)
         {
             if(Enabled(FeedbackCue.CameraKick)) CameraManager.Instance?.DirectionalKick(dir,Catalog.cameraForce*Catalog.Find(FeedbackCue.CameraKick).intensity);

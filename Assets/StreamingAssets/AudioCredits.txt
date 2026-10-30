@@ -1,4 +1,4 @@
-SOUND EFFECTS CREDITS / 사운드 크레딧
+﻿SOUND EFFECTS CREDITS / 사운드 크레딧
 2026-10-30 선택·편집·연결분
 
 본 게임에 포함된 효과음의 원제작자와 배포처는 아래와 같습니다. 게임용 편집본의 원저작권을 주장하지 않습니다.
@@ -175,3 +175,41 @@ Erase / Escape — Fupi
   Source: https://opengameart.org/content/erase-escape
   License: CC0 1.0 Universal (https://creativecommons.org/publicdomain/zero/1.0/)
   In-game files: SoulDissolve.wav, SplitDeath_A.wav, SplitDeath_B.wav, SplitDeath_C.wav
+
+미니언 휘두르기 / 실제 적중 분리 — 2026-10-30
+
+Swishes Sound Pack — artisticdude
+  Source: https://opengameart.org/content/swishes-sound-pack
+  License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
+  In-game files: Swish_Light_A.wav, Swish_Light_B.wav, Swish_Heavy_A.wav, Swish_Heavy_B.wav
+  Edits: excerpt, tempo adjustment, mono, EQ, soft-knee compression, gain and fades.
+
+3 Melee sounds — remaxim
+  Source: https://opengameart.org/content/3-melee-sounds
+  License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
+  In-game files: Melee_Sword_Swing.wav, Melee_Swing_A.wav, Melee_Swing_B.wav
+  Edits: excerpt, tempo adjustment, mono, EQ, soft-knee compression, gain and fades.
+
+20 Sword Sound Effects (Attacks and Clashes) — StarNinjas
+  Source: https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes
+  License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
+  In-game files: Sword_Impact_A.wav, Sword_Impact_B.wav, Sword_Impact_Heavy_A.wav, Sword_Impact_Heavy_B.wav
+  Edits: excerpt, tempo adjustment, mono, EQ, soft-knee compression, gain and fades.
+
+Ice spells — bart
+  Source: https://opengameart.org/content/ice-spells
+  License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
+  In-game files: Ice_Basic.wav
+  Edits: excerpt, tempo adjustment, mono, EQ, soft-knee compression, gain and fades.
+
+Freeze Spell — artisticdude
+  Source: https://opengameart.org/content/freeze-spell-0
+  License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
+  In-game files: Ice_Freeze_Skill.wav
+  Edits: excerpt, tempo adjustment, mono, EQ, soft-knee compression, gain and fades.
+
+Body punch quick hit — Mixkit (배포처; 개별 제작자 미표기)
+  Source: https://mixkit.co/free-sound-effects/punch/#:~:text=Body%20punch%20quick%20hit
+  License: Mixkit Sound Effects Free License (https://mixkit.co/license/modal/sfxFree/)
+  In-game files: Body_Impact_Thud.wav
+  Edits: first 0.24s excerpt, 1.1x tempo, mono, 70Hz high-pass/4.2kHz low-pass, soft compression, reduced peak, short fades.

@@ -35,3 +35,8 @@
 - 크레딧: Assets/StreamingAssets/AudioCredits.txt. 원음/편집 정보: Docs/AudioSources.json.
 
 추가: 방 이동 도착음은 FeedbackCatalog > 102 문에서 나올 때, 진입음은 66 문 진입 · 층 이동에서 조절. 사운드 테스트 툴 > 게임 행동에도 표시. 같은 PortalTravel 음원을 재사용하며 새 음원 파일/크레딧은 추가하지 않음. 도착 소리는 이동 성공 후 페이드 인 종료 시 한 번 재생. 설정 연결·컴파일 확인, Play Mode는 실행하지 않음.
+
+[2026-10-30 미니언 사운드 후속 반영]
+미니언 7종의 휘두르기/실제 적중 분리, 새 편집본 13개 추가. 아래 과거 수치보다 Docs/미니언_사운드_적용.txt의 최신 연결·볼륨을 우선한다. Dash Doll 적중음은 후속 선택된 Body punch quick hit로 연결 완료.
+
+Dash Doll 후속: Body punch quick hit를 0.222초로 편집해 실제 적중에만 재생. 평타 볼륨 0.19, 스킬 0.21. 스킬 피치 0.94~1.00. 기존 3 Melee 휘두르기 소리와 함께 사용. 전체 목록 86개.

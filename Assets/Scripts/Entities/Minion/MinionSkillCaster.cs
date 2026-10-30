@@ -39,7 +39,14 @@ public class MinionSkillCaster : MonoBehaviour
             PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(visual.transform);
     }
 
-    public void PlayBasicHitSound() => _visualSounds?.Play(SoundTrigger.OnBasicDamageDealt);
+    public void PlayHitSound(DamageCategory category)
+    {
+        if (_visualSounds == null) return;
+        if (category == DamageCategory.BasicAttack)
+            _visualSounds.Play(SoundTrigger.OnBasicDamageDealt);
+        else if (category == DamageCategory.Skill)
+            _visualSounds.Play(SoundTrigger.OnSkillDamageDealt);
+    }
 
     public static MinionSkillCaster Spawn(MinionDataSO data, Vector3 position)
     {

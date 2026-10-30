@@ -36,6 +36,7 @@ public class SoundTestWindow : EditorWindow
     private static readonly (string name, SoundTrigger trigger)[] Presets =
     {
         ("공격", SoundTrigger.OnAttackHit), ("공격 끝", SoundTrigger.OnAttackEnd), ("피격", SoundTrigger.OnHurt),
+        ("평타 적중", SoundTrigger.OnBasicDamageDealt), ("스킬 적중", SoundTrigger.OnSkillDamageDealt),
         ("사망", SoundTrigger.OnDeath), ("회복", SoundTrigger.OnHeal), ("등장", SoundTrigger.OnSpawn),
         ("스킬", SoundTrigger.Manual), ("발소리", SoundTrigger.Manual), ("직접 호출", SoundTrigger.Manual),
     };

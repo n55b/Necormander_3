@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8939438294426237593}
   - component: {fileID: 6778823845049967061}
+  - component: {fileID: 4329517593292669864}
   m_Layer: 0
   m_Name: DashDoll
   m_TagString: Untagged
@@ -512,6 +513,83 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &4329517593292669864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2025862953014797774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41466e2c6d085894da9d33a4469a1c7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sounds:
+  - clips:
+    - {fileID: 8300000, guid: fe04e2299e0a9d642822922b9d68f5f3, type: 3}
+    - {fileID: 8300000, guid: 68656d9f7b8d27d43895efba97945d91, type: 3}
+    volume: 0.25
+    pitchMin: 0.96
+    pitchMax: 1.04
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 128
+    audibleRange: 22
+    name: "\uD3C9\uD0C0 \xB7 \uD718\uB450\uB974\uAE30 (\uBE57\uB098\uAC00\uB3C4 \uC7AC\uC0DD)"
+    trigger: 2
+    animationState: Basic
+    minInterval: 0.07
+    delay: 0
+  - clips:
+    - {fileID: 8300000, guid: fe04e2299e0a9d642822922b9d68f5f3, type: 3}
+    - {fileID: 8300000, guid: 68656d9f7b8d27d43895efba97945d91, type: 3}
+    volume: 0.27
+    pitchMin: 0.96
+    pitchMax: 1.04
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 128
+    audibleRange: 22
+    name: "\uC2A4\uD0AC \xB7 \uD718\uB450\uB974\uAE30 (\uBE57\uB098\uAC00\uB3C4 \uC7AC\uC0DD)"
+    trigger: 2
+    animationState: Skill
+    minInterval: 0.07
+    delay: 0
+  - clips:
+    - {fileID: 8300000, guid: 7c82d8bddfe795346bfe4cc5cd748612, type: 3}
+    volume: 0.19
+    pitchMin: 0.96
+    pitchMax: 1.03
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 112
+    audibleRange: 22
+    name: "\uD3C9\uD0C0 \xB7 \uC2E4\uC81C \uC801\uC911"
+    trigger: 7
+    animationState: 
+    minInterval: 0.07
+    delay: 0
+  - clips:
+    - {fileID: 8300000, guid: 7c82d8bddfe795346bfe4cc5cd748612, type: 3}
+    volume: 0.21
+    pitchMin: 0.94
+    pitchMax: 1
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 112
+    audibleRange: 22
+    name: "\uC2A4\uD0AC \xB7 \uC2E4\uC81C \uC801\uC911"
+    trigger: 8
+    animationState: 
+    minInterval: 0.07
+    delay: 0
+  health: {fileID: 0}
+  listenAnimationEvents: 1
 --- !u!1001 &154813354001983104
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -571,6 +649,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -2253911629886400664, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7898384734652231943}
+    - targetCorrespondingSourceObject: {fileID: -2253911629886400664, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1662325885149015727}
   m_SourcePrefab: {fileID: -8435245712485981826, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}
 --- !u!1 &7106256610686251496 stripped
 GameObject:
@@ -594,6 +675,19 @@ MonoBehaviour:
   baseOffset: 0
   pivotOverride: {fileID: 8939438294426237593}
   sortingGroup: {fileID: 0}
+--- !u!114 &1662325885149015727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7106256610686251496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31379e083162a5f43b43b1f76524e8db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  owner: {fileID: 4329517593292669864}
 --- !u!4 &8030907915998992781 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7878350319992209165, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}
