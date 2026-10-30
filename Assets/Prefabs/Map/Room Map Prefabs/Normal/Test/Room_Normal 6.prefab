@@ -19005,7 +19005,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e52a622eabe45745a6e5c10a52c7720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnStartDelay: 0.5
+  spawnTelegraphDuration: 1
+  spawnTelegraphScale: 2.5
+  spawnGroupPerFrame: 4
+  superArmorEnemyCount: 2
+  spawnSuperArmorAmount: 100
   mapGenerationData: {fileID: 0}
+  combineAllWaves: 0
   spawnVfxPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   spawnMargin: 3
   spawnCellStride: 2
@@ -361518,11 +361525,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1817253240779999629, guid: a4a5febc2586f0d47bcba40841e823b0, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 21.57
+      value: 21.02
       objectReference: {fileID: 0}
     - target: {fileID: 1817253240779999629, guid: a4a5febc2586f0d47bcba40841e823b0, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.37
+      value: -0.92
       objectReference: {fileID: 0}
     - target: {fileID: 1817253240779999629, guid: a4a5febc2586f0d47bcba40841e823b0, type: 3}
       propertyPath: m_LocalPosition.z
@@ -362770,11 +362777,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6749711221253320957, guid: 08086df1c58adee438a0bf923541b203, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 19.35
+      value: 19.29
       objectReference: {fileID: 0}
     - target: {fileID: 6749711221253320957, guid: 08086df1c58adee438a0bf923541b203, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.57
+      value: -0.98
       objectReference: {fileID: 0}
     - target: {fileID: 6749711221253320957, guid: 08086df1c58adee438a0bf923541b203, type: 3}
       propertyPath: m_LocalPosition.z
