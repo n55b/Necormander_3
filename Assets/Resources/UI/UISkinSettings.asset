@@ -1,0 +1,365 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1c6df7ab6175d74e979798cc17bca97, type: 3}
+  m_Name: UISkinSettings
+  m_EditorClassIdentifier: 
+  windowFrame:
+    sprite: {fileID: 6818828044012447086, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  innerPanel:
+    sprite: {fileID: -1251608609, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  tooltipBack:
+    sprite: {fileID: -1251608609, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 0.97}
+    drawMode: 0
+    pixelScale: 1
+  tabOuter:
+    sprite: {fileID: 1180526814, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  tabFace:
+    sprite: {fileID: -1445439513, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  smallButton:
+    sprite: {fileID: 6673785733922643772, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  divider:
+    sprite: {fileID: 0}
+    color: {r: 0.6509804, g: 0.19607843, b: 0.27058825, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  hpBarFrame:
+    sprite: {fileID: -2065027350463290113, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  gaugeFrame:
+    sprite: {fileID: 7971684154266824114, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  gaugeTrack:
+    sprite: {fileID: 0}
+    color: {r: 0.1254902, g: 0.09411765, b: 0.14509805, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  gaugeFill:
+    sprite: {fileID: 2793378250440891304, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  skillSlotBack:
+    sprite: {fileID: -1251608609, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  skillSlotFrame:
+    sprite: {fileID: 7971684154266824114, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  miniMapFrame:
+    sprite: {fileID: -5828245705033235542, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  itemSlot:
+    sprite: {fileID: -2562778803424873249, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  itemDetailFrame:
+    sprite: {fileID: -1476726771070208221, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  selectionFrame:
+    sprite: {fileID: -5842501461691977116, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 0.98039216, g: 0.7882353, b: 0.29803923, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  smallIconSlot:
+    sprite: {fileID: 7971684154266824114, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  motionEnabled: 1
+  useUnscaledTime: 1
+  punchCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 6
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.3
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  windowOpen:
+    enabled: 1
+    delay: 0
+    duration: 0.2
+    startScale: 0.92
+    scaleCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 3
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.65
+        value: 1.06
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    startAlpha: 0
+    alphaCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    startOffset: {x: 0, y: -10}
+  popupOpen:
+    enabled: 1
+    delay: 0
+    duration: 0.1
+    startScale: 0.85
+    scaleCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 3
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.65
+        value: 1.06
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    startAlpha: 0
+    alphaCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    startOffset: {x: 0, y: 0}
+  hpBar:
+    trail: 1
+    trailColor: {r: 1, g: 0.92, b: 0.75, a: 1}
+    trailHold: 0.35
+    trailShrink: 0.35
+    trailCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    hitFlashColor: {r: 1, g: 1, b: 1, a: 1}
+    hitFlashTime: 0.15
+    hitPunch: 1.04
+    hitPunchTime: 0.12
+    healFlashColor: {r: 0.55, g: 1, b: 0.6, a: 1}
+    healFlashTime: 0.3
+    shieldFlashColor: {r: 1, g: 1, b: 1, a: 1}
+    shieldFlashTime: 0.25
+    shieldPunch: 1.06
+    danger: 1
+    dangerThreshold: 0.3
+    dangerPeriod: 0.8
+    dangerColor: {r: 1, g: 0.25, b: 0.25, a: 1}
+    dangerStrength: 0.7
+  guardBar:
+    trail: 1
+    trailColor: {r: 0.75, g: 0.95, b: 1, a: 1}
+    trailHold: 0.25
+    trailShrink: 0.3
+    trailCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    hitFlashColor: {r: 0.75, g: 0.95, b: 1, a: 1}
+    hitFlashTime: 0.12
+    hitPunch: 1.03
+    hitPunchTime: 0.1
+    healFlashColor: {r: 0.55, g: 1, b: 0.6, a: 1}
+    healFlashTime: 0
+    shieldFlashColor: {r: 1, g: 1, b: 1, a: 1}
+    shieldFlashTime: 0
+    shieldPunch: 1
+    danger: 0
+    dangerThreshold: 0.3
+    dangerPeriod: 0.8
+    dangerColor: {r: 1, g: 0.25, b: 0.25, a: 1}
+    dangerStrength: 0.7
+  skill:
+    enabled: 1
+    coolingFrameColor: {r: 0.45, g: 0.4, b: 0.5, a: 1}
+    readyFlashColor: {r: 1, g: 0.95, b: 0.7, a: 1}
+    readyFlashTime: 0.35
+    readyPunch: 1.18
+    readyPunchTime: 0.22
+  hover:
+    enabled: 1
+    hoverScale: 1.06
+    pressScale: 0.94
+    time: 0.08

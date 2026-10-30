@@ -74,8 +74,19 @@ public class SoundManager : MonoBehaviour
     {
         if (clip == null) return;
         var src    = GetNextSfxSource();
-        //src.pitch  = pitch;
+        src.pitch  = 1f; // 기존 동작 유지: 이 경로는 음높이를 바꾸지 않는다 (풀 재사용 시 이전 음높이가 남지 않게 초기화)
         src.volume = Mathf.Round(volume * globalSfxVolume * 100f) / 100f; // Clamp01은 Audio 엔진이 처리
+        src.clip   = clip;
+        src.Play();
+    }
+
+    /// <summary>음높이까지 적용해서 재생한다. (사운드 세트 · 사운드 테스트 툴용)</summary>
+    public void PlaySFXWithPitch(AudioClip clip, float volume, float pitch)
+    {
+        if (clip == null) return;
+        var src    = GetNextSfxSource();
+        src.pitch  = Mathf.Clamp(pitch, 0.1f, 3f);
+        src.volume = Mathf.Round(volume * globalSfxVolume * 100f) / 100f;
         src.clip   = clip;
         src.Play();
     }

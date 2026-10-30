@@ -57,7 +57,8 @@ public class ShopPopupSlot : MonoBehaviour
 
         bool affordable = gold >= _offer.Price;
         if (priceText != null) priceText.color = affordable ? ShopPopupUI.GoldColor : ShopPopupUI.PoorColor;
-        if (buyButton != null) buyButton.interactable = affordable;
+        // 골드가 모자라도 버튼은 눌리게 둔다 — 눌렀을 때 '구매 실패' 소리와 흔들림으로 알려준다.
+        if (buyButton != null) buyButton.interactable = true;
         if (buyLabel != null) buyLabel.text = affordable ? "구매" : "골드 부족";
         if (canvasGroup != null) canvasGroup.alpha = 1f;
     }

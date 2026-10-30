@@ -23,7 +23,7 @@ MonoBehaviour:
   orbRadius: 0.61
   lookRadius: 0.6
   orbMove: 0.03
-  imagePan: 0.06
+  imagePan: 0.005
   smoothTime: 0.35
   idleBob: 0.08
   idleBobSpeed: 1

@@ -98,7 +98,7 @@ ScriptedImporter:
     addSortingGroup: 1
     addShadowCasters: 0
   importFileNodeState: 1
-  platformSettingsDirtyTick: 639289189157474323
+  platformSettingsDirtyTick: 639289549597975924
   textureAssetName: 
   singleSpriteImportData:
   - name: 
@@ -125,7 +125,7 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: Title_Image
     originalName: 
-    pivot: {x: 0.48, y: 0.5}
+    pivot: {x: 0.5, y: 0.5}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -133,7 +133,7 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 500
+      width: 480
       height: 270
     spriteID: bcd5949bc6a4d2b4c9426d745c73bfda
     spriteBone: []
@@ -164,7 +164,7 @@ ScriptedImporter:
       cellRect:
         x: 0
         y: 0
-        width: 500
+        width: 480
         height: 270
       spriteId: bcd5949bc6a4d2b4c9426d745c73bfda
     linkedCells: []

@@ -268,7 +268,12 @@ public class BaseHitBox : MonoBehaviour
             if (!isAlly) c.a = sr.color.a;
             sr.color = c;
         }
+
+        // 아군(소환수) 범위 표시는 디버그 스위치를 따른다 (Tools > 디버그 > 소환수 공격 범위 표시). 판정은 영향 없음.
+        if (isAlly) AllyRangeDisplay.Register(this);
     }
+
+    private void OnDestroy() => AllyRangeDisplay.Unregister(this);
 
     private System.Collections.IEnumerator DelayRoutine(float delay, Collider2D col)
     {

@@ -287,6 +287,7 @@ GameObject:
   - component: {fileID: 2000105}
   - component: {fileID: 2000112}
   - component: {fileID: 2000119}
+  - component: {fileID: 5478431771849265994}
   m_Layer: 5
   m_Name: Card 0
   m_TagString: Untagged
@@ -419,6 +420,31 @@ MonoBehaviour:
   flavorText: {fileID: 2000231}
   effectText: {fileID: 2000259}
   rewardText: {fileID: 2000287}
+--- !u!114 &5478431771849265994
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000084}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d14faa00658f1e9489b6901567e5093d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  kind: 0
+  playHover: 1
+  playClick: 1
+  hoverOverride:
+    clips: []
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
+  clickOverride:
+    clips: []
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
 --- !u!1 &2000126
 GameObject:
   m_ObjectHideFlags: 0
@@ -1187,6 +1213,7 @@ GameObject:
   - component: {fileID: 2000315}
   - component: {fileID: 2000322}
   - component: {fileID: 2000329}
+  - component: {fileID: 4599751984056569167}
   m_Layer: 5
   m_Name: Card 1
   m_TagString: Untagged
@@ -1319,6 +1346,31 @@ MonoBehaviour:
   flavorText: {fileID: 2000441}
   effectText: {fileID: 2000469}
   rewardText: {fileID: 2000497}
+--- !u!114 &4599751984056569167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d14faa00658f1e9489b6901567e5093d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  kind: 0
+  playHover: 1
+  playClick: 1
+  hoverOverride:
+    clips: []
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
+  clickOverride:
+    clips: []
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
 --- !u!1 &2000336
 GameObject:
   m_ObjectHideFlags: 0
@@ -2087,6 +2139,7 @@ GameObject:
   - component: {fileID: 2000525}
   - component: {fileID: 2000532}
   - component: {fileID: 2000539}
+  - component: {fileID: 7963341480756831803}
   m_Layer: 5
   m_Name: Card 2
   m_TagString: Untagged
@@ -2219,6 +2272,31 @@ MonoBehaviour:
   flavorText: {fileID: 2000651}
   effectText: {fileID: 2000679}
   rewardText: {fileID: 2000707}
+--- !u!114 &7963341480756831803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d14faa00658f1e9489b6901567e5093d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  kind: 0
+  playHover: 1
+  playClick: 1
+  hoverOverride:
+    clips: []
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
+  clickOverride:
+    clips: []
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
 --- !u!1 &2000546
 GameObject:
   m_ObjectHideFlags: 0
@@ -2987,6 +3065,7 @@ GameObject:
   - component: {fileID: 2000735}
   - component: {fileID: 2000742}
   - component: {fileID: 2000749}
+  - component: {fileID: 734670453946162078}
   m_Layer: 5
   m_Name: Card 3
   m_TagString: Untagged
@@ -3119,6 +3198,31 @@ MonoBehaviour:
   flavorText: {fileID: 2000861}
   effectText: {fileID: 2000889}
   rewardText: {fileID: 2000917}
+--- !u!114 &734670453946162078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000714}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d14faa00658f1e9489b6901567e5093d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  kind: 0
+  playHover: 1
+  playClick: 1
+  hoverOverride:
+    clips: []
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
+  clickOverride:
+    clips: []
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
 --- !u!1 &2000756
 GameObject:
   m_ObjectHideFlags: 0
@@ -3887,6 +3991,7 @@ GameObject:
   - component: {fileID: 2000945}
   - component: {fileID: 2000952}
   - component: {fileID: 2000959}
+  - component: {fileID: 6872108586184807095}
   m_Layer: 5
   m_Name: NoRiskButton
   m_TagString: Untagged
@@ -4017,6 +4122,31 @@ MonoBehaviour:
   flavorText: {fileID: 2001043}
   effectText: {fileID: 0}
   rewardText: {fileID: 2001071}
+--- !u!114 &6872108586184807095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d14faa00658f1e9489b6901567e5093d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  kind: 0
+  playHover: 1
+  playClick: 1
+  hoverOverride:
+    clips: []
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
+  clickOverride:
+    clips: []
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
 --- !u!1 &2000966
 GameObject:
   m_ObjectHideFlags: 0

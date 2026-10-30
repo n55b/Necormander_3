@@ -16,6 +16,7 @@ public class GameOverManager : Singleton<GameOverManager>
     public void TriggerGameOver()
     {
         gameOverPanel.SetActive(true); // 게임오버 패널 활성화
+        UIEventBus.NotifyOpen("GameOver"); // UI 소리 설정의 창 이름
     }
 
     /// <summary>
@@ -32,6 +33,7 @@ public class GameOverManager : Singleton<GameOverManager>
             if (tmp != null) tmp.text = "GameClear!";
 
             gameOverPanel.SetActive(true);
+            UIEventBus.NotifyOpen("GameClear"); // UI 소리 설정의 창 이름
         }
     }
 

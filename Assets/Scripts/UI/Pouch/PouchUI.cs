@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class PouchUI : MonoBehaviour
 {
     public static PouchUI Instance;
+    public const string UIName = "Pouch"; // UI 소리 설정의 창 이름
     public static bool IsOpen { get; private set; }
     [SerializeField] private GameObject panelRoot;
     [SerializeField] private RectTransform content;
@@ -71,13 +72,19 @@ public class PouchUI : MonoBehaviour
             { if (!manager.Open(root, UIPopUpManager.Layer.Overlay, OnPanelClosed, visualRoot: transform)) return; }
             else root.SetActive(true);
             IsOpen = true;
+            UIEventBus.NotifyOpen(UIName);
             CommonTooltipUI.Instance?.Hide();
             Refresh();
         }
         else if (manager != null && manager.IsOpen(root)) manager.Close(root);
         else { if (panelRoot != null) panelRoot.SetActive(false); OnPanelClosed(); }
     }
-    private void OnPanelClosed() { IsOpen = false; CommonTooltipUI.Instance?.Hide(); }
+    private void OnPanelClosed()
+    {
+        if (IsOpen) UIEventBus.NotifyClose(UIName); // UI 소리: 닫힘
+        IsOpen = false;
+        CommonTooltipUI.Instance?.Hide();
+    }
     public void SortByAcquired() => SetSort(0);
     public void SortByCount() => SetSort(1);
     public void SortByTier() => SetSort(2);

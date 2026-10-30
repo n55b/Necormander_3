@@ -66,11 +66,19 @@ public class ShopPopupUI : MonoBehaviour
         else if (panel.activeSelf) { panel.SetActive(false); OnClosed(); }
     }
 
-    /// <summary>카드의 구매 버튼에서 호출. 실패하면 카드를 흔든다.</summary>
+    /// <summary>카드의 구매 버튼에서 호출. 성공/실패 소리를 내고, 실패하면 카드를 흔든다.</summary>
     internal void Purchase(ShopPopupSlot slot, ShopOffer offer)
     {
-        if (_npc != null && _npc.TryPurchase(offer)) slot.Refresh(CurrentGold());
-        else slot.PlayFail();
+        if (_npc != null && _npc.TryPurchase(offer))
+        {
+            slot.Refresh(CurrentGold());
+            UISoundSettings.PlayCue(UISoundSettings.Cue.PurchaseSuccess);
+        }
+        else
+        {
+            slot.PlayFail();
+            UISoundSettings.PlayCue(UISoundSettings.Cue.PurchaseFail);
+        }
         RefreshGold(force: true);
     }
 

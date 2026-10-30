@@ -236,7 +236,7 @@ public class PlayerStateUI : MonoBehaviour
         float ratio = Mathf.Clamp01((_playerHealth.CurHP - hidden + before + heal.Hidden * .5f) / Mathf.Max(.001f, denominator));
         var rect = hpSprite.rectTransform;
         Vector3 world;
-        if (hpSprite.sprite == null && rect.parent is RectTransform track)
+        if ((hpSprite.sprite == null || hpSprite.type != Image.Type.Filled) && rect.parent is RectTransform track)
         {
             // 단색 바는 anchorMax 자체가 줄어든다. 이미 줄어든 바가 아닌 전체 트랙을 기준으로 한다.
             float left = track.rect.xMin + rect.offsetMin.x;
@@ -305,8 +305,9 @@ public class PlayerStateUI : MonoBehaviour
     {
         value = Mathf.Clamp01(value);
         if (Mathf.Abs(img.fillAmount - value) > 0.0005f) img.fillAmount = value;
-        // 단색 플레이스홀더는 스프라이트가 없어 fillAmount 대신 실제 너비를 바꾼다.
-        if (img.sprite == null) img.rectTransform.anchorMax = new Vector2(value, 1f);
+        // 단색 바, 또는 9분할(Sliced) 스킨 바는 fillAmount 가 먹지 않으므로 실제 너비(anchorMax)를 바꾼다.
+        // (9분할이라 바가 줄어도 양 끝 모양·하이라이트가 찌그러지지 않는다)
+        if (img.sprite == null || img.type != Image.Type.Filled) img.rectTransform.anchorMax = new Vector2(value, 1f);
     }
     #endregion
 

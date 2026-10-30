@@ -146,7 +146,7 @@ public class TitleCrystalBall : MonoBehaviour, IMaterialModifier
                 target = Vector2.ClampMagnitude((mousePx - restPx) / (settings.lookRadius * art.y), 1f);
 
             float t = Time.unscaledTime * settings.idleBobSpeed;
-            target += new Vector2(Mathf.Sin(t * 0.7f), Mathf.Sin(t * 1.1f + 1f)) * settings.idleBob;
+            target += new Vector2(Mathf.Sin(t * 0.7f), 0.0f) * settings.idleBob;
             target = Vector2.ClampMagnitude(target, 1f);
 
             _look = Vector2.SmoothDamp(_look, target, ref _lookVelocity, settings.smoothTime, Mathf.Infinity, Time.unscaledDeltaTime);

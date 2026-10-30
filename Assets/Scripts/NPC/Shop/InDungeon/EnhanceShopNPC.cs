@@ -68,12 +68,21 @@ public class EnhanceShopNPC : NPCBase
                 int cost = CurrentCost();
                 if (inv.SpendGold(cost))
                 {
-                    if (psi.UpgradeTo(next)) _used = true;
-                    else inv.AddGold(cost);
+                    if (psi.UpgradeTo(next))
+                    {
+                        _used = true;
+                        UISoundSettings.PlayCue(UISoundSettings.Cue.PurchaseSuccess);
+                    }
+                    else
+                    {
+                        inv.AddGold(cost);
+                        UISoundSettings.PlayCue(UISoundSettings.Cue.PurchaseFail);
+                    }
                 }
                 else
                 {
                     FloatingTextManager.ShowNotice($"골드 부족 · 필요 {cost}G / 보유 {inv.GOLD}G", Color.yellow, transform);
+                    UISoundSettings.PlayCue(UISoundSettings.Cue.PurchaseFail);
                 }
             }
             CloseSelection();

@@ -31,6 +31,10 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     [Tooltip("설명 속 '취약', '기절' 같은 키워드를 감지해 하이라이트 + 호버 툴팁을 붙입니다. 보상 카드와 동일한 사전을 연결하세요.")]
     [SerializeField] private KeywordDictionary keywordDictionary;
 
+    // UI 소리 설정의 창 이름
+    public const string UIName = "PlayerInfo";
+    public const string DetailsUIName = "PlayerInfoDetails";
+
     private bool _isOpen = false;
     private float _nextStatsRefresh;
 
@@ -65,6 +69,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
                 overlayPriority: 1, visualRoot: transform)) return; }
             else panelRoot.SetActive(true);
             _isOpen = true;
+            UIEventBus.NotifyOpen(UIName);
             SetExpanded(false);
             CommonTooltipUI.Instance?.Hide();
             return;
@@ -76,6 +81,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
 
     private void OnPanelClosed()
     {
+        if (_isOpen) UIEventBus.NotifyClose(UIName); // UI 소리: 닫힘
         _isOpen = false;
         SetExpanded(false);
         CommonTooltipUI.Instance?.Hide();
@@ -92,7 +98,9 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     {
         if (!_isOpen) return;
         CommonTooltipUI.Instance?.Hide();
-        SetExpanded(!IsExpanded);
+        bool expand = !IsExpanded;
+        SetExpanded(expand);
+        if (expand) UIEventBus.NotifyOpen(DetailsUIName); else UIEventBus.NotifyClose(DetailsUIName);
     }
 
     private void SetExpanded(bool expanded)
