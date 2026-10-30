@@ -9,17 +9,18 @@
 
 ## 나중에 스프라이트가 준비되면
 
-생성형 이미지나 통짜 합성 UI는 사용하지 않는다. 현재 색 도형은 각각의 uGUI Image이며, 아래 Image의 Source Image를 바꾸면 된다. 새 그림의 비율이 다르면 RectTransform의 크기와 여백도 함께 조정한다.
+현재는 기존 UI_Panel 스프라이트를 사용한다. 생성형 이미지는 사용하지 않는다. UISkinPart가 붙은 Image는 Assets/Resources/UI/UISkinSettings.asset의 해당 역할에서 스프라이트를 교체한다. 새 그림의 비율이 다르면 프리팹의 RectTransform 여백도 함께 조정한다. 최신 C/V 구조: Assets/Prefabs/UI/InventoryUI_README.md.
 
 | 프리팹 / 자식 | 교체 대상 |
 | --- | --- |
 | PouchUI / PouchWindow | 전체 주머니 배경·테두리 |
-| PouchWindow / InventoryPanel | 목록 배경 |
+| PouchWindow / InventoryPanel | 흰 장식 테두리 (C·V 장식 패널 역할) |
+| InventoryPanel / ItemArea | 테두리 안쪽 붉은 목록 바탕 (주머니 목록 바탕 역할) |
 | PouchWindow / ItemDetails | 상세정보 배경 |
 | InventoryPanel / Sort0~2 / Face | 정렬 버튼 |
 | ItemDetails / IconFrame, Backing | 상세 아이콘 테두리·바탕 |
 | PouchItemSlot / 루트 Image, Backing | 개별 칸 테두리·바탕 |
-| PouchItemSlot / Selection | 선택 표시. 현재 네 개의 얇은 Image로 된 테두리이며, 이 컨테이너 안에 선택용 아트를 배치할 수 있다. |
+| PouchItemSlot / Selection | 선택 표시. UISkinSettings의 선택 표시 테두리로 교체한다. |
 
 - `PouchItemSlot.prefab` 한 곳을 수정하면 목록의 모든 칸에 적용된다. 칸 크기·간격·열 수는 PouchUI의 `InventoryPanel/ItemScroll/Viewport/Content`에 있는 GridLayoutGroup에서 설정한다.
 - 슬롯의 Backing과 Selection은 칸 크기에 맞춰 늘어나고, 수량은 오른쪽 아래에 고정된다. 아이콘과 텍스트는 배경 아트와 별도 오브젝트다.

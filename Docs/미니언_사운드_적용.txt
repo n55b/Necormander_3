@@ -1,0 +1,82 @@
+﻿미니언 사운드 적용 및 조절 — 2026-10-30
+
+현재 소환수 7종의 평타·스킬에 반영. 전사·무사·기사·용사·장수·Dash Doll은 휘두르기와 실제 적중을 분리했다. 얼음 마법사는 요청대로 전용 사운드를 주문음만 연결했다. 기존 상태이상 적용음은 별도로 유지한다.
+Dash Doll의 실제 적중음은 사용자가 고른 Mixkit Body punch quick hit(2153)로 연결했다. 공통 Enemy_Hit_1까지 중복해서 섞지 않도록 미니언 평타·스킬에서는 공통 타격음을 제외한다. 플레이어 평타와 기존 소환수 대시 공격의 공통 소리는 유지한다.
+
+[캐릭터별 연결 — 볼륨은 사운드 세트의 값]
+전사 Fighter
+  평타 휘두르기: Swishes 2개 + 3 Melee의 sword sound를 무작위 선택, 0.26.
+  평타 실제 적중: 20 Sword의 sword.3 / sword.6 편집본, 0.18.
+  스킬 휘두르기: Swishes의 긴 두 변형만 사용, 0.24.
+  스킬 실제 적중: 20 Sword의 sword.3 / sword.6 편집본, 0.19.
+무사 Warrior
+  평타 휘두르기: 기존 Sword_Draw 유지, 중첩 음량에 맞춰 0.18로 완화. 실제 적중은 Sword_Impact_A/B, 0.17.
+  스킬 휘두르기: Swishes 바람층, 0.24. 실제 검격은 요청한 20 Sword의 sword.1 / sword.7 편집본, 0.20.
+기사 Knight
+  평타 휘두르기: Swish_Light_A / Melee_Sword_Swing, 0.25. 기존 Sword_Quick은 실제 적중에만 0.22.
+  스킬 휘두르기: Swish_Heavy_A/B, 0.24. 기존 Swing_Heavy는 실제 적중에만 0.13.
+용사 Champion (Knight_2)
+  평타 휘두르기: 기존 Swing_Light_A/B, 0.20. 실제 적중: 기존 Swing_Heavy, 0.14.
+  스킬 휘두르기: Swish_Heavy_A/B, 0.25. 기존 Sword_Skill은 실제 적중에만 0.14.
+장수 Warlord
+  평타 휘두르기: 기존 Sword_Draw, 0.18. 실제 적중: Sword_Impact_Heavy_A/B, 0.19.
+  스킬 휘두르기: Swish_Heavy_A/B, 0.25. 기존 Sword_Skill은 실제 적중에만 0.14.
+Dash Doll
+  평타·스킬 휘두르기: 3 Melee의 melee sound / animal melee sound, 각각 0.25 / 0.27.
+  평타·스킬 실제 적중: Body_Impact_Thud (Mixkit Body punch quick hit), 볼륨 0.19 / 0.21. 평타 피치 0.96~1.03, 스킬 0.94~1.00.
+얼음 마법사 IceMage
+  평타: Ice spells의 ice.wav → Ice_Basic, 0.28.
+  스킬: Freeze Spell → Ice_Freeze_Skill, 0.23. coldsnap은 사용 안 함.
+
+[재생 시점과 튜닝]
+각 프리팹의 EntitySoundSet(사운드 세트)에 직접 저장. 실행 중 설정을 만들지 않는다. 자식 Animator 중계기도 프리팹에 저장했다.
+Assets/Prefabs/Minion/SpriteTests/ 아래 Fighter / Warrior / Knight / Knight_2 / Warlord.prefab.
+Assets/Prefabs/Minion/ 아래 DashDoll.prefab / IceMage.prefab.
+Tools > 사운드 > 사운드 테스트 툴 > 오브젝트 소리: 프리팹을 대상으로 소리·볼륨·음높이·간격·거리 조절.
+같은 툴의 전체 음원 탭: 전체 86개 파일 검색·미리듣기. 평타 적중 / 스킬 적중 프리셋도 추가.
+
+휘두르기: 애니메이션 OnHitEvent의 실제 프레임. 공격 속도에 따라 그림과 함께 움직인다. 빗나가도 재생한다.
+적중: CharacterHealth가 무적·회피를 통과하고 양수 피해를 확정한 시점. 보호막을 맞혀도 적중으로 취급한다. 0 피해·무적·MISS에서는 나지 않는다.
+연속타·다중 대상의 볼륨 폭증 방지: 묶음별 0.08초, 같은 파일 공통 0.07초 간격. 너무 촘촘한 타격은 일부 적중음을 생략하며 피해 자체는 바꾸지 않는다.
+휘두르기 피치 0.96~1.04, 적중 0.96~1.03, 볼륨 ±7% 무작위. 같은 파일 연속 선택 방지. 무작위 지연 없음.
+Dash 적중음의 스킬 피치만 0.94~1.00으로 조금 낮췄다. 얼음 평타 피치 0.98~1.03, 스킬 0.97~1.03. 들리는 거리 22. 우선순위 휘두르기 128 / 적중 112.
+기존 SoundManager의 16개 소스 풀을 사용한다. 새 AudioSource를 타격마다 만들지 않는다.
+
+[파일 편집]
+편집본: Assets/Resources/Sound/SFX/Minion/ (신규 14 WAV).
+원본: Docs/AudioOriginals/OpenGameArt/ — Swishes 13개, 3 Melee 3개, Sword attacks 10개+clashes 10개, Ice spells, Freeze Spell, 10 Impact/Shield Blocks 보관.
+딱딱한 Impact/Shield Blocks는 용사 바닥 타격용 후보로 보관만 했다. 현재 애니메이션에는 별도의 바닥 충돌 이벤트가 없으므로 임의 타이머로 연결하지 않았다.
+배속은 파일 편집 단계에서 atempo로 음높이를 보존. 짧은 Swishes는 원속도 또는 0.9배로 약간 늘렸다.
+모노 / PCM16 / 44.1kHz, 저역 110Hz 정리, 고역 4~6kHz 완화, 급격한 피크를 압축, 시작 3ms·끝 35ms 페이드.
+Unity: Decompress On Load, Preload 켬, Normalize 끔. 편집해서 낮춘 음량을 임포터가 다시 키우지 않는다.
+아래 RMS/피크는 편집 파일 수치다. 소스 볼륨·기존 SFX 믹서 +10dB·거리·사용자 옵션을 거친 실제 전투 합산 녹음값은 아니다.
+Swish_Light_A: swish-1.wav 0.017~0.126초 / 1배 / 결과 0.104초 / 고역 6000Hz / RMS -29.0, 피크 -18.8 dBFS
+Swish_Light_B: swish-2.wav 0.015~0.096초 / 1배 / 결과 0.081초 / 고역 6000Hz / RMS -29.0, 피크 -19.3 dBFS
+Swish_Heavy_A: swish-7.wav 0.01~0.18초 / 0.9배 / 결과 0.175초 / 고역 5400Hz / RMS -28.0, 피크 -17.6 dBFS
+Swish_Heavy_B: swish-9.wav 0.026~0.19초 / 0.9배 / 결과 0.164초 / 고역 5400Hz / RMS -28.0, 피크 -17.5 dBFS
+Melee_Sword_Swing: sword sound.wav 0~0.48초 / 1.5배 / 결과 0.330초 / 고역 5200Hz / RMS -29.0, 피크 -16.3 dBFS
+Melee_Swing_A: melee sound.wav 0~0.52초 / 1.5배 / 결과 0.364초 / 고역 5000Hz / RMS -29.0, 피크 -15.9 dBFS
+Melee_Swing_B: animal melee sound.wav 0~0.56초 / 1.5배 / 결과 0.393초 / 고역 5000Hz / RMS -29.0, 피크 -15.4 dBFS
+Sword_Impact_A: sword.3.ogg 0.028~0.42초 / 1.5배 / 결과 0.270초 / 고역 4300Hz / RMS -26.0, 피크 -12.8 dBFS
+Sword_Impact_B: sword.6.ogg 0.008~0.37초 / 1.5배 / 결과 0.252초 / 고역 4300Hz / RMS -26.1, 피크 -12.0 dBFS
+Sword_Impact_Heavy_A: sword.1.ogg 0.12~0.7초 / 1.4배 / 결과 0.431초 / 고역 4000Hz / RMS -26.2, 피크 -12.0 dBFS
+Sword_Impact_Heavy_B: sword.7.ogg 0.136~0.65초 / 1.4배 / 결과 0.366초 / 고역 4000Hz / RMS -26.0, 피크 -13.2 dBFS
+Ice_Basic: ice.wav 0~0.78초 / 1.35배 / 결과 0.591초 / 고역 5700Hz / RMS -32.0, 피크 -12.0 dBFS
+Ice_Freeze_Skill: freeze.wav 0.08~1.55초 / 1.8배 / 결과 0.826초 / 고역 5200Hz / RMS -27.0, 피크 -14.7 dBFS
+
+Body_Impact_Thud: Mixkit 2153 원본 0~0.24초 / 1.1배 / 결과 0.222초 / 저역 70Hz·고역 4200Hz / RMS -28.8, 피크 -12.0 dBFS / 시작 2ms·끝 25ms 페이드
+
+[라이선스와 검증]
+OpenGameArt 5개 배포 묶음은 각 페이지의 CC0 확인. 추가한 Mixkit Body punch quick hit는 Sound Effects Free License로 무료 상업용 게임 이용·편집 가능.
+배포 크레딧: Assets/StreamingAssets/AudioCredits.txt. 출처/제작자/원본 및 편집본 SHA-256/편집값: Docs/AudioSources.json.
+원본 묶음별 출처 페이지와 라이선스 증거는 Docs/AudioOriginals/OpenGameArt/에 보관. 미사용 충격음은 게임 빌드에 포함하지 않음.
+검증: Unity 컴파일, 7개 프리팹·7개 SO 연결, 실제 애니메이션 이벤트/상태 필터, 무적/0 피해/평타/스킬의 명중 이벤트 전달을 편집 모드에서 확인했다. 실제 전투·청감 테스트는 하지 않았다.
+
+[플레이 확인]
+1. 각 미니언으로 빈 곳을 향해 평타: 휘두르기만 들리는지 확인.
+2. 적에게 평타: 휘두르기+실제 적중이 겹쳐도 크게 튀지 않는지 확인.
+3. 스킬은 대상이 필요하므로 적에게 사용한 뒤 범위를 벗어나게 하거나 무적 허수아비로 비교.
+4. 용사·장수 연속타/다수의 적 적중 시 소리가 과밀하지 않은지 확인.
+5. 얼음 마법사는 ice / Freeze Spell 구분, Dash Doll은 빗나가면 바람 소리만, 적중하면 짧은 thud가 함께 나는지 확인.
+
+추가 검증: DashDoll 프리팹의 평타·스킬 적중 참조 2개, 기존 휘두르기 묶음 2개 유지, PCM/미리 로딩/Normalize 꺼짐을 편집 모드에서 확인. 실제 청감 테스트는 사용자 확인 대기.

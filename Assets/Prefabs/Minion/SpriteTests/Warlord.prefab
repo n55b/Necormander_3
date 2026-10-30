@@ -528,32 +528,64 @@ MonoBehaviour:
   sounds:
   - clips:
     - {fileID: 8300000, guid: e1dfc6d17d119e04796c4480a6c44077, type: 3}
-    volume: 0.4
-    pitchMin: 0.98
-    pitchMax: 1.02
+    volume: 0.18
+    pitchMin: 0.96
+    pitchMax: 1.04
     enabled: 1
-    volumeVariation: 0
-    minPlaybackInterval: 0
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
     priority: 128
-    audibleRange: 0
-    name: "\uD3C9\uD0C0 \xB7 \uBC1C\uB3C4"
+    audibleRange: 22
+    name: "\uD3C9\uD0C0 \xB7 \uD718\uB450\uB974\uAE30 (\uBE57\uB098\uAC00\uB3C4 \uC7AC\uC0DD)"
     trigger: 2
     animationState: Attack
     minInterval: 0.07
     delay: 0
   - clips:
-    - {fileID: 8300000, guid: bae35d54f135c274b99dc91b0032bd25, type: 3}
-    volume: 0.4
-    pitchMin: 0.98
-    pitchMax: 1.02
+    - {fileID: 8300000, guid: a26f835137e8cb54184a4c3db261ba95, type: 3}
+    - {fileID: 8300000, guid: a0545078c73cbf14f8dd840ccdade85e, type: 3}
+    volume: 0.19
+    pitchMin: 0.96
+    pitchMax: 1.03
     enabled: 1
-    volumeVariation: 0
-    minPlaybackInterval: 0
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 112
+    audibleRange: 22
+    name: "\uD3C9\uD0C0 \xB7 \uC2E4\uC81C \uC801\uC911"
+    trigger: 7
+    animationState: 
+    minInterval: 0.07
+    delay: 0
+  - clips:
+    - {fileID: 8300000, guid: c267767ef44174d47b236ef1109b9959, type: 3}
+    - {fileID: 8300000, guid: f35c8dc3b941eb440a1d3f309f928a69, type: 3}
+    volume: 0.25
+    pitchMin: 0.96
+    pitchMax: 1.04
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
     priority: 128
-    audibleRange: 0
-    name: "\uC2A4\uD0AC \xB7 \uAC15\uD654 \uAC80\uACA9"
+    audibleRange: 22
+    name: "\uC2A4\uD0AC \xB7 \uD718\uB450\uB974\uAE30 (\uBE57\uB098\uAC00\uB3C4 \uC7AC\uC0DD)"
     trigger: 2
     animationState: Skill
+    minInterval: 0.07
+    delay: 0
+  - clips:
+    - {fileID: 8300000, guid: bae35d54f135c274b99dc91b0032bd25, type: 3}
+    volume: 0.14
+    pitchMin: 0.96
+    pitchMax: 1.03
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 112
+    audibleRange: 22
+    name: "\uC2A4\uD0AC \xB7 \uC2E4\uC81C \uC801\uC911"
+    trigger: 8
+    animationState: 
     minInterval: 0.07
     delay: 0
   health: {fileID: 0}

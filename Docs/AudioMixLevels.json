@@ -1,4 +1,4 @@
-{
+﻿{
   "method": "Active 10ms RMS, relative gate -30dB; assumed SFX gain +10dB, user volume 1, no distance attenuation/variation; source-file estimates, not captured output.",
   "before": [
     {
@@ -4299,5 +4299,303 @@
       "effective_active_rms_dbfs": -39.91380344711921,
       "effective_max50_rms_dbfs": -40.88203062725033
     }
-  ]
+  ],
+  "minion_20261030": {
+    "method": "Full edited-clip RMS/peak in dBFS; not an in-game recording. Prefab gain/pitch in 미니언_사운드_적용.txt.",
+    "clips": [
+      {
+        "source_slug": "swishes-sound-pack",
+        "original_filename": "swish-1.wav",
+        "original_sha256": "9a15c881345c1ce1c39cc31f52f081c8c4dc81fa41111e0079400f39d3ba0e45",
+        "name": "Swish_Light_A",
+        "cut": [
+          0.017,
+          0.126
+        ],
+        "speed": 1,
+        "lowpass": 6000,
+        "highpass": 110,
+        "filters": "atrim=start=0.017:end=0.126,asetpts=PTS-STARTPTS,atempo=1,highpass=f=110,lowpass=f=6000,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": -0.74,
+        "duration": 0.1036,
+        "peak_db": -18.81,
+        "rms_db": -29.0,
+        "file": "Assets/Resources/Sound/SFX/Minion/Swish_Light_A.wav",
+        "sha256": "8271fd8ddb17a7ed5fbc300bee18394e0d92d863c790b5d00773dc314c7ed6f5"
+      },
+      {
+        "source_slug": "swishes-sound-pack",
+        "original_filename": "swish-2.wav",
+        "original_sha256": "1ce7752cce3d43f16fc222ad7f7ffb69d9a5fc01e64b93d205765fc37b8e9b0d",
+        "name": "Swish_Light_B",
+        "cut": [
+          0.015,
+          0.096
+        ],
+        "speed": 1,
+        "lowpass": 6000,
+        "highpass": 110,
+        "filters": "atrim=start=0.015:end=0.096,asetpts=PTS-STARTPTS,atempo=1,highpass=f=110,lowpass=f=6000,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": -1.11,
+        "duration": 0.0808,
+        "peak_db": -19.29,
+        "rms_db": -29.0,
+        "file": "Assets/Resources/Sound/SFX/Minion/Swish_Light_B.wav",
+        "sha256": "ef9886c1216ce76a283d83405776f5870a5cef1820dcea2291fedcee1d34512f"
+      },
+      {
+        "source_slug": "swishes-sound-pack",
+        "original_filename": "swish-7.wav",
+        "original_sha256": "e6de737a34de16afed094d6170d7679149022f149e0a8356d2f029b0e8f4a4d7",
+        "name": "Swish_Heavy_A",
+        "cut": [
+          0.01,
+          0.18
+        ],
+        "speed": 0.9,
+        "lowpass": 5400,
+        "highpass": 110,
+        "filters": "atrim=start=0.01:end=0.18,asetpts=PTS-STARTPTS,atempo=0.9,highpass=f=110,lowpass=f=5400,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 0.5,
+        "duration": 0.1751,
+        "peak_db": -17.63,
+        "rms_db": -28.0,
+        "file": "Assets/Resources/Sound/SFX/Minion/Swish_Heavy_A.wav",
+        "sha256": "447df5ca58f6381f5a3e77f7f8c31d05882858544aa47d9754a3072b265b1081"
+      },
+      {
+        "source_slug": "swishes-sound-pack",
+        "original_filename": "swish-9.wav",
+        "original_sha256": "123883f006ce55feecbff11eea5f87c4493df4399989983037144570a23723c1",
+        "name": "Swish_Heavy_B",
+        "cut": [
+          0.026,
+          0.19
+        ],
+        "speed": 0.9,
+        "lowpass": 5400,
+        "highpass": 110,
+        "filters": "atrim=start=0.026:end=0.19,asetpts=PTS-STARTPTS,atempo=0.9,highpass=f=110,lowpass=f=5400,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 0.5,
+        "duration": 0.164,
+        "peak_db": -17.46,
+        "rms_db": -28.0,
+        "file": "Assets/Resources/Sound/SFX/Minion/Swish_Heavy_B.wav",
+        "sha256": "62bae66d35e2f497ef9a795ea9a7851ec934779b8f865e1777e9791d9d8fdfdc"
+      },
+      {
+        "source_slug": "3-melee-sounds",
+        "original_filename": "sword sound.wav",
+        "original_sha256": "0c964284a606da1bd9591a20184c0e0aeb358bb21e41c9edd16a1410911fa042",
+        "name": "Melee_Sword_Swing",
+        "cut": [
+          0,
+          0.48
+        ],
+        "speed": 1.5,
+        "lowpass": 5200,
+        "highpass": 110,
+        "filters": "atrim=start=0:end=0.48,asetpts=PTS-STARTPTS,atempo=1.5,highpass=f=110,lowpass=f=5200,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 2.52,
+        "duration": 0.3302,
+        "peak_db": -16.26,
+        "rms_db": -29.0,
+        "file": "Assets/Resources/Sound/SFX/Minion/Melee_Sword_Swing.wav",
+        "sha256": "ab9308dea4bd7ef6fddcb089895e2981b0a57e37b858159fbf2793ef401a7289"
+      },
+      {
+        "source_slug": "3-melee-sounds",
+        "original_filename": "melee sound.wav",
+        "original_sha256": "1dc8e8b168c2c5faa526c00e9ea8b1f9015cc57a7cb0b84c6f69e9c83e4cbfec",
+        "name": "Melee_Swing_A",
+        "cut": [
+          0,
+          0.52
+        ],
+        "speed": 1.5,
+        "lowpass": 5000,
+        "highpass": 110,
+        "filters": "atrim=start=0:end=0.52,asetpts=PTS-STARTPTS,atempo=1.5,highpass=f=110,lowpass=f=5000,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 2.32,
+        "duration": 0.3642,
+        "peak_db": -15.87,
+        "rms_db": -29.0,
+        "file": "Assets/Resources/Sound/SFX/Minion/Melee_Swing_A.wav",
+        "sha256": "96841159189595a3c34ef02f6f015ccb321b24e0b31aa516578a28790d2a820c"
+      },
+      {
+        "source_slug": "3-melee-sounds",
+        "original_filename": "animal melee sound.wav",
+        "original_sha256": "3918b3517ef36c437856307a14a4a87b05a7f307742a9687a3c1c2ce859aa668",
+        "name": "Melee_Swing_B",
+        "cut": [
+          0,
+          0.56
+        ],
+        "speed": 1.5,
+        "lowpass": 5000,
+        "highpass": 110,
+        "filters": "atrim=start=0:end=0.56,asetpts=PTS-STARTPTS,atempo=1.5,highpass=f=110,lowpass=f=5000,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 2.82,
+        "duration": 0.3933,
+        "peak_db": -15.38,
+        "rms_db": -29.0,
+        "file": "Assets/Resources/Sound/SFX/Minion/Melee_Swing_B.wav",
+        "sha256": "0057bd8ff2596fb866f55474c0db30eb0bb9606be433fdb6101cbe2e883f2e7a"
+      },
+      {
+        "source_slug": "20-sword-sound-effects-attacks-and-clashes",
+        "original_filename": "sword.3.ogg",
+        "original_sha256": "ce09eb2987531d1323415065d7811a9cf0ea8639766d9fa77655d602e7e14989",
+        "name": "Sword_Impact_A",
+        "cut": [
+          0.028,
+          0.42
+        ],
+        "speed": 1.5,
+        "lowpass": 4300,
+        "highpass": 110,
+        "filters": "atrim=start=0.028:end=0.42,asetpts=PTS-STARTPTS,atempo=1.5,highpass=f=110,lowpass=f=4300,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 7.65,
+        "duration": 0.2703,
+        "peak_db": -12.81,
+        "rms_db": -26.0,
+        "file": "Assets/Resources/Sound/SFX/Minion/Sword_Impact_A.wav",
+        "sha256": "9288bfca4e174733cb478fcee637ae177540e35581208c0075c3e4e87b486543"
+      },
+      {
+        "source_slug": "20-sword-sound-effects-attacks-and-clashes",
+        "original_filename": "sword.6.ogg",
+        "original_sha256": "5b6eaaac9c552ce364cfdea3c12cef846c89796fc9bb880181615f43ee4e4779",
+        "name": "Sword_Impact_B",
+        "cut": [
+          0.008,
+          0.37
+        ],
+        "speed": 1.5,
+        "lowpass": 4300,
+        "highpass": 110,
+        "filters": "atrim=start=0.008:end=0.37,asetpts=PTS-STARTPTS,atempo=1.5,highpass=f=110,lowpass=f=4300,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 6.55,
+        "duration": 0.2521,
+        "peak_db": -12.0,
+        "rms_db": -26.09,
+        "file": "Assets/Resources/Sound/SFX/Minion/Sword_Impact_B.wav",
+        "sha256": "7a94e4d1c91c03862af842af9134430d884bcea150354a4c6d8ba30c96193ce2"
+      },
+      {
+        "source_slug": "20-sword-sound-effects-attacks-and-clashes",
+        "original_filename": "sword.1.ogg",
+        "original_sha256": "4a3e80705619cbd7500682ab51004011ddf67e14ccf1818ceb9e5b539fe42b75",
+        "name": "Sword_Impact_Heavy_A",
+        "cut": [
+          0.12,
+          0.7
+        ],
+        "speed": 1.4,
+        "lowpass": 4000,
+        "highpass": 110,
+        "filters": "atrim=start=0.12:end=0.7,asetpts=PTS-STARTPTS,atempo=1.4,highpass=f=110,lowpass=f=4000,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 7.7,
+        "duration": 0.4306,
+        "peak_db": -12.0,
+        "rms_db": -26.18,
+        "file": "Assets/Resources/Sound/SFX/Minion/Sword_Impact_Heavy_A.wav",
+        "sha256": "3c969bea0afe805619d707fe58eb9f7db5b77312be84e8383e04c5f3e648bba3"
+      },
+      {
+        "source_slug": "20-sword-sound-effects-attacks-and-clashes",
+        "original_filename": "sword.7.ogg",
+        "original_sha256": "66f2a2e63182fa14470a63fc4a862ff77fa861f69a6a41d8e9874c9853c2d9dd",
+        "name": "Sword_Impact_Heavy_B",
+        "cut": [
+          0.136,
+          0.65
+        ],
+        "speed": 1.4,
+        "lowpass": 4000,
+        "highpass": 110,
+        "filters": "atrim=start=0.136:end=0.65,asetpts=PTS-STARTPTS,atempo=1.4,highpass=f=110,lowpass=f=4000,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 7.41,
+        "duration": 0.366,
+        "peak_db": -13.21,
+        "rms_db": -26.0,
+        "file": "Assets/Resources/Sound/SFX/Minion/Sword_Impact_Heavy_B.wav",
+        "sha256": "87f197b0d34178c4269263fc660dde54cd37bbe0b840ef10f15279ce7b3e9eff"
+      },
+      {
+        "source_slug": "ice-spells",
+        "original_filename": "ice.wav",
+        "original_sha256": "c3039c864d056d0e4951b84b96a7bb0044ca8cb58aeae514fc256145872b6a94",
+        "name": "Ice_Basic",
+        "cut": [
+          0,
+          0.78
+        ],
+        "speed": 1.35,
+        "lowpass": 5700,
+        "highpass": 110,
+        "filters": "atrim=start=0:end=0.78,asetpts=PTS-STARTPTS,atempo=1.35,highpass=f=110,lowpass=f=5700,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 7.49,
+        "duration": 0.5906,
+        "peak_db": -12.0,
+        "rms_db": -32.04,
+        "file": "Assets/Resources/Sound/SFX/Minion/Ice_Basic.wav",
+        "sha256": "cce9b14b6144ff473e2a101d5b5d72d20a053d3dff6d8a84e9faa4893c11ca92"
+      },
+      {
+        "source_slug": "freeze-spell-0",
+        "original_filename": "freeze.wav",
+        "original_sha256": "dc16da845f18f88885db4584205a4ad9b84a8da6e377b79d4511b366cc8631f1",
+        "name": "Ice_Freeze_Skill",
+        "cut": [
+          0.08,
+          1.55
+        ],
+        "speed": 1.8,
+        "lowpass": 5200,
+        "highpass": 110,
+        "filters": "atrim=start=0.08:end=1.55,asetpts=PTS-STARTPTS,atempo=1.8,highpass=f=110,lowpass=f=5200,acompressor=threshold=0.04:ratio=4:attack=0.01:release=40:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft-knee compressor ratio 4; 3ms fade-in, 35ms fade-out; RMS trim with -12dBFS peak ceiling",
+        "gain_db": 4.01,
+        "duration": 0.8261,
+        "peak_db": -14.65,
+        "rms_db": -27.0,
+        "file": "Assets/Resources/Sound/SFX/Minion/Ice_Freeze_Skill.wav",
+        "sha256": "d4e7c798e50f116cd6ab75f6562a470f997aa48b7b73b2dc827441933433bfaf"
+      },
+      {
+        "name": "Body_Impact_Thud",
+        "cut": [
+          0,
+          0.24
+        ],
+        "speed": 1.1,
+        "lowpass": 4200,
+        "highpass": 70,
+        "filters": "atrim=start=0:end=0.24,asetpts=PTS-STARTPTS,atempo=1.1,highpass=f=70,lowpass=f=4200,acompressor=threshold=0.07:ratio=3:attack=0.4:release=30:knee=4",
+        "extra": "mono PCM16/44.1kHz; soft knee 3:1 compression; 2ms fade-in, 25ms fade-out; -27dBFS RMS target/-12dBFS peak ceiling",
+        "gain_db": 0.02,
+        "duration": 0.2217,
+        "peak_db": -12.0,
+        "rms_db": -28.84,
+        "file": "Assets/Resources/Sound/SFX/Minion/Body_Impact_Thud.wav",
+        "sha256": "0b210c54663d4412605fa7216f08b4821a76d8b85a402b6a62e387dfbf0aee17",
+        "source_provider": "Mixkit",
+        "source_id": 2153
+      }
+    ]
+  }
 }

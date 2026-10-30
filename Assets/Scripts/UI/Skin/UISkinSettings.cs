@@ -22,6 +22,8 @@ public enum UISkinRole
     [InspectorName("아이템 상세 아이콘 테두리")]    ItemDetailFrame,
     [InspectorName("선택 표시 테두리")]            SelectionFrame,
     [InspectorName("작은 아이콘 칸")]             SmallIconSlot,
+    [InspectorName("C·V 장식 패널")]              InfoPanel,
+    [InspectorName("주머니 목록 바탕")]           ItemListBack,
 }
 
 /// <summary>
@@ -78,6 +80,8 @@ public class UISkinSettings : ScriptableObject
     [Header("① 창 · 패널 모양")]
     [KoLabel("큰 창 (장식 테두리)"), Tooltip("아이템 주머니, 장착 정보 같은 큰 창의 바깥 틀")] public SkinEntry windowFrame = new SkinEntry();
     [KoLabel("안쪽 패널"), Tooltip("큰 창 안에 들어가는 어두운 칸들")] public SkinEntry innerPanel = new SkinEntry();
+    [KoLabel("C·V 장식 패널"), Tooltip("플레이어 정보와 아이템 주머니의 흰 장식 테두리입니다.")] public SkinEntry infoPanel = new SkinEntry();
+    [KoLabel("주머니 목록 바탕"), Tooltip("정렬 탭 아래 아이템들이 놓이는 붉은 면입니다.")] public SkinEntry itemListBack = new SkinEntry();
     [KoLabel("툴팁 배경")] public SkinEntry tooltipBack = new SkinEntry();
     [KoLabel("탭 버튼 · 바깥 테두리"), Tooltip("주머니의 정렬 버튼(획득순/개수순/등급순)")] public SkinEntry tabOuter = new SkinEntry();
     [KoLabel("탭 버튼 · 안쪽 면"), Tooltip("선택/비선택 색은 PouchUI 의 정렬 버튼 색이 곱해집니다.")] public SkinEntry tabFace = new SkinEntry();
@@ -129,6 +133,8 @@ public class UISkinSettings : ScriptableObject
         {
             case UISkinRole.WindowFrame:     return windowFrame;
             case UISkinRole.InnerPanel:      return innerPanel;
+            case UISkinRole.InfoPanel:       return infoPanel;
+            case UISkinRole.ItemListBack:    return itemListBack;
             case UISkinRole.TooltipBack:     return tooltipBack;
             case UISkinRole.TabOuter:        return tabOuter;
             case UISkinRole.TabFace:         return tabFace;

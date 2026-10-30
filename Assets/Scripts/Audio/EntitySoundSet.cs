@@ -14,6 +14,7 @@ public enum SoundTrigger
     [InspectorName("회복했을 때")]                                      OnHeal,
     [InspectorName("죽을 때")]                                          OnDeath,
     [InspectorName("소환수 평타 실제 적중 (빗나가면 재생 안 함)")] OnBasicDamageDealt,
+    [InspectorName("소환수 스킬 실제 적중 (빗나가면 재생 안 함)")] OnSkillDamageDealt,
 }
 
 /// <summary>오브젝트 소리 하나: 소리 묶음 + 이름 + 재생 조건.</summary>

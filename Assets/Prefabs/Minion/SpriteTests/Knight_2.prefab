@@ -530,45 +530,61 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 805099f85421b464ea1ee1f242e80b96, type: 3}
     - {fileID: 8300000, guid: 429578fe8b837454091e22899b44e0a8, type: 3}
     volume: 0.2
-    pitchMin: 0.94
+    pitchMin: 0.96
     pitchMax: 1.04
     enabled: 1
-    volumeVariation: 0.04
-    minPlaybackInterval: 0
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
     priority: 128
-    audibleRange: 0
-    name: "\uD3C9\uD0C0 \xB7 \uD718\uB450\uB974\uAE30"
+    audibleRange: 22
+    name: "\uD3C9\uD0C0 \xB7 \uD718\uB450\uB974\uAE30 (\uBE57\uB098\uAC00\uB3C4 \uC7AC\uC0DD)"
     trigger: 2
     animationState: Attack
-    minInterval: 0.1
-    delay: 0
-  - clips:
-    - {fileID: 8300000, guid: bae35d54f135c274b99dc91b0032bd25, type: 3}
-    volume: 0.22
-    pitchMin: 0.98
-    pitchMax: 1.02
-    enabled: 1
-    volumeVariation: 0
-    minPlaybackInterval: 0
-    priority: 128
-    audibleRange: 0
-    name: "\uC2A4\uD0AC \xB7 \uAC15\uD654 \uAC80\uACA9"
-    trigger: 2
-    animationState: Skill
-    minInterval: 0.2
+    minInterval: 0.07
     delay: 0
   - clips:
     - {fileID: 8300000, guid: fa2eb55fee7a59b439041b098c54e58b, type: 3}
-    volume: 0.18
-    pitchMin: 0.92
-    pitchMax: 1.02
+    volume: 0.14
+    pitchMin: 0.96
+    pitchMax: 1.03
     enabled: 1
-    volumeVariation: 0
-    minPlaybackInterval: 0.07
-    priority: 90
-    audibleRange: 0
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 112
+    audibleRange: 22
     name: "\uD3C9\uD0C0 \xB7 \uC2E4\uC81C \uC801\uC911"
     trigger: 7
+    animationState: 
+    minInterval: 0.07
+    delay: 0
+  - clips:
+    - {fileID: 8300000, guid: c267767ef44174d47b236ef1109b9959, type: 3}
+    - {fileID: 8300000, guid: f35c8dc3b941eb440a1d3f309f928a69, type: 3}
+    volume: 0.25
+    pitchMin: 0.96
+    pitchMax: 1.04
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 128
+    audibleRange: 22
+    name: "\uC2A4\uD0AC \xB7 \uD718\uB450\uB974\uAE30 (\uBE57\uB098\uAC00\uB3C4 \uC7AC\uC0DD)"
+    trigger: 2
+    animationState: Skill
+    minInterval: 0.07
+    delay: 0
+  - clips:
+    - {fileID: 8300000, guid: bae35d54f135c274b99dc91b0032bd25, type: 3}
+    volume: 0.14
+    pitchMin: 0.96
+    pitchMax: 1.03
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 112
+    audibleRange: 22
+    name: "\uC2A4\uD0AC \xB7 \uC2E4\uC81C \uC801\uC911"
+    trigger: 8
     animationState: 
     minInterval: 0.07
     delay: 0

@@ -22,6 +22,16 @@ MonoBehaviour:
     color: {r: 1, g: 1, b: 1, a: 1}
     drawMode: 0
     pixelScale: 1
+  infoPanel:
+    sprite: {fileID: -5842501461691977116, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
+  itemListBack:
+    sprite: {fileID: 1180526814, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+    color: {r: 1, g: 1, b: 1, a: 1}
+    drawMode: 0
+    pixelScale: 1
   tooltipBack:
     sprite: {fileID: -1251608609, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
     color: {r: 1, g: 1, b: 1, a: 0.97}
