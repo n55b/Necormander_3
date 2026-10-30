@@ -26,13 +26,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2137388687450507322}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0.70915914, w: 0.7050485}
-  m_LocalPosition: {x: -0.6, y: 1.6, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0.5759399, w: -0.81749207}
+  m_LocalPosition: {x: -0.60000044, y: 1.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7953078042309958236}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90.333}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -289.669}
 --- !u!198 &3921167445089863597
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -223,7 +223,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 0.70823884, g: 1, b: 0, a: 1}
+      maxColor: {r: 0.88732076, g: 1, b: 0, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -4860,7 +4860,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 4.62, y: 5.9, z: 0}
-  m_LocalScale: {x: 3, y: 3, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1492144180039809839}
@@ -4879,15 +4879,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ComponentVersion: 2
-  m_LightType: 2
+  m_LightType: 3
   m_BlendStyleIndex: 0
-  m_FalloffIntensity: 0.5
-  m_Color: {r: 0.9847499, g: 1, b: 0, a: 0.5058824}
-  m_Intensity: 1
+  m_FalloffIntensity: 0.4
+  m_Color: {r: 0.9843137, g: 1, b: 0, a: 1}
+  m_Intensity: 5
   m_LightVolumeIntensity: 1
   m_LightVolumeEnabled: 0
   m_ApplyToSortingLayers: db040e230b7aa468000000005173e562
-  m_LightCookieSprite: {fileID: 3227367524403163835, guid: b0f3348942e68fe49807e7c7b354a29a, type: 3}
+  m_LightCookieSprite: {fileID: -1932207817200600204, guid: 2d41cb1c04c7a814c830c13b9fb7b618, type: 3}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
   m_AlphaBlendOnOverlap: 0
@@ -4902,12 +4902,12 @@ MonoBehaviour:
   m_ShadowVolumeIntensityEnabled: 0
   m_ShadowVolumeIntensity: 0.75
   m_LocalBounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0.84375, y: 1.875, z: 0}
-  m_PointLightInnerAngle: 360
-  m_PointLightOuterAngle: 360
-  m_PointLightInnerRadius: 0
-  m_PointLightOuterRadius: 1
+    m_Center: {x: 0, y: -0.00000011920929, z: 0}
+    m_Extent: {x: 0.9985302, y: 0.99853027, z: 0}
+  m_PointLightInnerAngle: 15
+  m_PointLightOuterAngle: 20
+  m_PointLightInnerRadius: 3
+  m_PointLightOuterRadius: 11.12
   m_ShapeLightParametricSides: 5
   m_ShapeLightParametricAngleOffset: 0
   m_ShapeLightParametricRadius: 1
