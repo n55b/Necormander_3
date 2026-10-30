@@ -229,3 +229,91 @@ Catalog를 포함한 인스펙터 그리기 57회를 통과했다. 배치 에디
 2026-10-29 횃불 빛 / 가림 실루엣 최적화
 - Assets/Prefabs/Map/Objects의 Torchlight, Candle_Long 프리팹 > Spot Light 2D > Light Scale Wave에서 기준 크기(1.2), 흔들림 속도(5), 흔들림 크기(0.02)를 조절한다. 기존 그래프와 같은 시간 기준과 파형을 사용한다.
 - 플레이어 가림 실루엣은 기존 색상·투명도·거리·픽셀 마스크 설정을 유지한다. 몸통과 손의 가림 대상 검색을 공유해 반복 계산을 줄였다.
+
+2026-10-30 미니언 검격 사운드
+- 조절: Tools > 사운드 > 사운드 테스트 툴 > 오브젝트 소리. Assets/Prefabs/Minion/SpriteTests의 Fighter(전사), Knight(기사), Knight_2(용사), Warrior(무사), Warlord(장수) 프리팹을 선택한다. 프리팹의 사운드 세트 인스펙터에서도 같은 값을 바꿀 수 있다.
+- 평타와 스킬을 별도 항목으로 저장했다. '애니메이션 상태'가 Attack/Skill(무사는 Warrior_Attack/Warrior_Skill)인 항목만 해당 타격 프레임에 재생한다. 이 칸을 비우면 기존처럼 모든 타격 이벤트에서 재생한다. 기존 애니메이션과 피해 이벤트는 수정하지 않는다.
+- 전사: 평타 swing/swing2 무작위, 스킬 doubleswing. 기사: 평타 sword, 스킬 bigswordswing. 용사: 평타 bigswordswing, 스킬 sword_skill. 무사: 평타 battojutsu, 스킬 doubleswing. 장수: 평타 battojutsu, 스킬 sword_skill.
+- 편집본: Assets/Resources/Sound/SFX/Minion. Swing_Light_A 0.390초, Swing_Light_B 0.310초, Swing_Heavy 0.570초, Swing_Double 0.538초, Sword_Quick 0.275초, Sword_Draw 0.500초, Sword_Skill 0.857초. 원본 MP3는 Downloads/sound에 그대로 둔다.
+- 앞뒤 무음과 긴 꼬리를 줄이고 짧은 페이드를 넣었다. 파일 피크 -8~-10dBFS, 항목 볼륨 0.375~0.4(초기 적용값의 절반, 약 -6dB), 음높이 0.98~1.02로 시작한다. 44.1kHz 모노 PCM WAV이며 Unity에서 미리 로드한다. 옵션의 효과음 볼륨과 기존 SoundManager 재사용 풀을 따른다.
+- 항목의 소리 파일들/볼륨/음높이/최소 재생 간격/지연을 조절하면 된다. 끄려면 해당 항목 볼륨을 0으로 낮춘다. doubleswing은 한 파일 안에 두 번의 검격이 있어 최소 간격 0.55초로 중복 재생을 제한했다.
+- 이번 배치는 파일명·파형·타격 이벤트에 맞춘 초안이다. 전투 중 실제 청감과 다른 효과음에 묻히는 정도는 플레이하며 조절한다. 마법사와 적 몬스터에는 이번 검격 소리를 연결하지 않았다.
+
+2026-10-30 화면 정렬·문·상점·보스·HUD
+
+한곳에서 연출 켜기/끄기
+- Assets/Resources/FeedbackCatalog.asset: 84 보스 등장 집중, 85 집행 절단 잔광. 색·개수·폭·지속시간·곡선을 조절한다. 기존 공용 Feedback Burst 풀과 사전 준비를 함께 사용한다.
+- 같은 파일의 기존 연출: 문 테두리 빛 / 층 이동 포탈 / 나무 흔들림 분산 / 보스 집행 예고선 테두리. 각 항목의 원본 연결을 열면 실제 프리팹 수치를 바로 편집할 수 있다. 포탈 흡입 입자는 기존 65번이며, 보스 등장 직후 파동은 기존 53번을 사용한다.
+- 원본 prefab의 AmbientOutlinePulse: 빛 색상, 가장 어두울 때 밝기, 맥동 주기, 켜짐·꺼짐 시간을 조절한다. 층 포탈·집행 예고선은 자식 LineRenderer에서 폭과 꼭짓점을 편집한다. 일반 문의 비석 윤곽은 Portal Edge 재질에서 도트 두께를 조절한다. 매 프레임 메시·재질을 생성하지 않는다.
+
+문과 다음 층 포탈
+- Assets/Prefabs/Map/Portal Door Visual.prefab: 비석 자체는 기존 supplied sprite를 유지. Edge_Light가 켜진 문의 안쪽 테두리를 강조한다. 닫힌 문은 테두리 빛이 사라진다.
+- Assets/Prefabs/Interactables/FloorProceedPortalPrefab.prefab: 기존 SpriteRenderer는 비워 두고 껐다. Portal_Ring_0/1과 FeedbackSurface의 흡입 입자를 사용한다. 상호작용 콜라이더와 F 표시는 유지한다.
+- Assets/Prefabs/Map/Room Map Prefabs/Boss/Room_Boss.prefab > RoomAnchor > 문을 방 안쪽으로 당길 거리 = 0.5. 다른 방은 0. 벽 구멍을 파는 기준점과 텔레포터 연결은 이동하지 않고 실제 문 생성 위치만 보정한다. 문을 더 안쪽으로 당길 때 이 값만 변경한다.
+
+플레이어와 NPC 정렬
+- Assets/Prefabs/Player Melee.prefab > Body > YSortableObject의 피벗은 플레이어 루트. Body의 SortingGroup이 몸·무기를 함께 정렬한다. Hand의 +5는 같은 그룹 안에서만 앞쪽 표시를 정한다.
+- Body와 Hand의 Silhouette는 Sort At Root 그룹으로 분리했다. 가림 검사도 몸 그룹의 실제 월드 정렬값을 사용하며, 마스크는 각 실루엣 그룹 안에서만 적용된다.
+- Assets/Prefabs/Interactables/ShopNPC.prefab, EnhanceShopNPC.prefab: YSortableObject로 발밑 기준 정렬한다.
+
+하단 HUD와 새 아이콘
+- Assets/Prefabs/UI/Player State/PlayerStateUI.prefab > Panel_PlayerState: 240×46, 화면 아래 중앙. Panel_HP: 190×34, Panel_Skill: 오른쪽 44×44. 크기·위치는 RectTransform에서 편집한다.
+- Icon_MinionSkill의 Skill_Rim / Skill_Disc는 기본 원형 도형이다. 나중에 전용 그림을 받으면 각 Image의 Sprite를 교체하면 된다. 텍스트·아이콘·쿨타임은 별도 오브젝트다. 하단 HUD 이외의 공용 UI 스킨은 변경하지 않았다.
+- Icon_Dash_Skill은 CanvasGroup으로 그림만 숨겼다. DashCooldownUI가 발밑 횟수를 계속 갱신하므로 오브젝트 자체는 끄지 않는다. WorldDashPips는 기존 위치 추적을 유지한다.
+- Assets/Resources/Sprites/UI/Temp_Icon.png: 24×24칸, PPU32, Point. 윗줄부터 Fighter / Knight / Champion / Warrior, 다음 줄 Warlord / Gauntlet / Viper / ViperSC, 마지막 줄 첫 칸 ViperAS.
+- Assets/SOData/Minion/Main의 5종 minionIcon과 Assets/SOData/Equipment/1015의 icon에 연결. Serendipity는 ViperSC, Marionette는 ViperAS 아이콘을 공유한다. Space HUD도 장착 미니언 초상화를 표시하며 스킬 설명과 쿨타임 동작은 유지한다.
+- Assets/Resources/Sprites/Object/Item.png의 HealingCharm 조각을 Assets/SOData/Items/HealingCharm.asset의 icon에 연결했다. 기존 9개 조각의 Sprite ID는 유지했다.
+
+icon_16px.png 사용처 — Assets/SOData/Registry/DebuffData.asset
+- Aging_Icon: 기절
+- Chill_icon: 빙결
+- Execute_Icon: 출혈
+- Poison_Icon: 중독
+- BloodPop_Icon: 비폭
+- Corroded_Icon: 기존 경직 필드에 연결돼 있지만 경직 아이콘은 Panel_Debuff에서 표시하지 않음. 이번에 취약 필드에도 연결하여 흰 사각형을 대체했다. 경직 판정이나 숨김 처리는 변경하지 않았다.
+
+상점·보상방·나무
+- Assets/Prefabs/Map/Room Map Prefabs/Shop/Test/Room_Shop.prefab, Room_ShopEnhance.prefab: DecorateObject 아래 상인들은 (3.54, 6.83), (6.54, 6.83). 횃불은 (0.5, 7.5). 이 좌표는 방 기준 로컬 좌표이며, 세 위치가 ground이고 wall이 아닌 것을 에디터 데이터로 확인했다.
+- Assets/Resources/Sprites/Effect/PointLight.aseprite: 새 보상방 빛, PPU32. 보상방 Light/SpotLight의 Light2D Cookie에 연결했다. 광원 밝기·색은 해당 Light2D에서 조절한다. 원본 SpotLight 프리팹의 다른 사용처는 유지했다.
+- Assets/Prefabs/Map/Objects/Tree/Tree_New_0~3.prefab > AmbientAnimationPhase: 시작 프레임을 무작위로 분산하고 재생 속도 범위 0.85~1.15. 원본 애니메이션의 프레임 순서는 그대로다. 전투·보상 난수와 별도의 연출 난수를 사용한다.
+
+보스와 결과 화면
+- BossRoomEvent의 spawnStartDelay(현재 0.5초)는 실제 등장까지 기다리는 시간이다. Catalog 84의 지속시간도 함께 조절하면 등장 준비와 입자 수렴을 맞출 수 있다.
+- Boss Bone Master.prefab > BoneMasterController > 머리 위 패턴 설명 표시 = 해제. 보스 체력바 이름, 피해 숫자, 상태이상·카운터 표시는 유지한다. DebuffPanel 위치를 머리 쪽으로 낮췄다.
+- Assets/Prefabs/Skill Visual Effects/Boss Execution Lane.prefab: 집행 전용 예고 외형. 기존 차오름 표시 + 안쪽의 얇은 테두리. 페이즈2 AI의 집행 선공격 전용 예고 외형 필드에 연결했다. 이 필드를 비우면 기존 공용 선 예고로 돌아간다.
+- 집행 잔광은 실제 타격 시점에만 생성하고 기존 방 경계 길이에 맞춘다. 카운터 횟수·피해량·폭·추적 시간은 변경하지 않았다.
+- GameOverManager가 결과창을 열 때 FeedbackOverlay 저체력/피격 가장자리와 GameManager 피격 비네트를 정리한다. 결과창 뒤에서 새 피격 연출이 다시 올라오지 않게 억제한다. 회복 구슬의 완료 콜백 등 다른 HUD 기능은 중단하지 않는다.
+
+참고한 시각 자료
+- Celeste 공식 스크린샷: https://www.celestegame.com/images/screenshots/02.png — 작은 밝은 픽셀과 제한된 강조색의 대비를 참고.
+- Dead Cells 공식 프레스킷: https://motiontwin.com/presskit/81 — 배경을 덮지 않는 국소 광원과 밝은 중심선 대비를 참고. 참고 화면: https://motiontwin.com/img/presskit_dc/Screenshot3.jpg
+- 해당 게임의 아트는 가져오지 않았다. 제공된 원본과 기존 에셋·기본 도형·LineRenderer만 사용했다. 새 카메라/후처리 패스는 추가하지 않았다.
+
+플레이 확인 순서
+1) 나무·상인 앞뒤로 이동하며 몸과 주먹이 함께 가려지는지 확인.
+2) 마을/전투에서 HP·가드·Space 쿨타임과 발밑 대시 횟수 확인.
+3) 상점 두 NPC 상호작용, 보상방 빛, 문 열림/닫힘, 다음 층 포탈 확인.
+4) 보스 등장·집행 선공격·상태이상 높이·저체력 상태의 클리어 화면 확인.
+5) Catalog의 신규 항목을 꺼서 해당 연출만 사라지는지 확인.
+에디터 컴파일·직렬화 참조·HUD 정적 렌더링은 확인했으며 플레이 테스트는 사용자에게 맡긴다.
+
+2026-10-30 — 게임 행동 사운드
+Tools > 사운드 > 사운드 테스트 툴 > 게임 행동에서 행동별 소리를 찾아 미리 듣고 조절한다. UI 소리 탭은 클릭·Hover·구매 결과를 담당한다.
+FeedbackCatalog의 각 항목 > 효과음 묶음에서 소리만 켜고 끌 수 있다. 숫자가 작은 우선순위일수록 중요한 소리다. 들리는 거리 0은 제한 없음. 풀/땅은 Catalog의 풀 지면 타일 목록으로 구분한다.
+대화 글자음은 DialogueUI.prefab의 DialogueUI에서 간격·볼륨·음높이를 바꾼다. 모든 새 소리는 기존 SoundManager의 효과음 볼륨/믹서를 따른다. 자세한 38개 항목과 테스트 순서는 사운드_적용_내역.txt 참조.
+
+2026-10-30 — 신규 사운드 음량 균형
+신규 효과음 42개 볼륨 설정을 재조정했다. 발걸음: 풀 0.07 / 땅 0.06, 퍼펙트 가드 0.24, 카운터 0.19. UI 클릭 0.09~0.10, Hover 0.08, 대화 0.06. 공용 믹서와 기존 전투음은 유지한다.
+측정 기준·전체 전후 값: Docs/사운드_음량_조정.txt. 같은 사운드 테스트 툴에서 계속 조절할 수 있다.
+
+
+2026-10-30 — HUD 원래 아트 복구 / 비석 윤곽 / C·V·Tab 아이콘
+- PlayerStateUI의 체력·보호막·가드 바 Image와 UISkinPart 9개를 변경 전 원본 설정으로 복구했다. 가로 배치·오른쪽 원형 Space 슬롯은 유지한다. 원래 아트는 Resources/UI/UISkinSettings.asset의 Hp Bar Frame, Gauge Frame, Gauge Fill에서 조절한다.
+- Resources/Sprites/UI/UI_Icon.png: 제공된 원본을 32×32 세 칸, PPU32·Point로 분리했다. PlayerStateUI > Panel_UnderRight > Panel_UIButton에 C(플레이어), V(아이템), Tab(지도) 순서로 저장했다. 각 RectTransform/Image에서 배치·그림을 바꿀 수 있다. 기존 키 입력 동작은 그대로다.
+- Portal Door Visual > 비석 > Edge_Light: 임의 아치 선을 없애고 실제 비석 스프라이트의 불투명 윤곽만 표시한다. 반투명 그림자와 비석 내부는 덧칠하지 않는다. 켜짐·꺼짐 그림과 피벗·위치 보정도 원본 비석을 따라간다.
+- FeedbackCatalog > 기존 연출 > 문 테두리 빛: 조절 대상에서 AmbientOutlinePulse(색·주기·전환)와 Portal Edge 재질(두께 1도트·알파 기준 0.5·발광 1.5)을 선택한다. 체크를 끄면 비석 본체는 남고 테두리만 사라진다. 새로고침해도 원본 연결을 다시 찾는다.
+
+
+[2026-10-30 사운드 후속 조정 / 실체화·방 이동·Hover]
+발소리를 짧고 작게, 대시·회복·함정·소환/귀환 소리를 낮춤. 미니언은 등장과 귀환 때 그림만 실체화/소멸. 방 이동은 플레이어 본체가 위로 빠졌다 되돌아오는 연출로 교체. Hover 소리에 3픽셀 상승 동작, 시작 화면에도 소리 배치. 용사는 휘두르기와 실제 적중 소리 분리. 선택한 퍼펙트 가드/엘리트 두 공격음 편집·연결. 사망음은 OpenGameArt의 Erase / Escape로 교체하고 초반 폭발음 제거.
+조절 경로, 수치, 음원, 검증 내역: Docs/사운드_후속_조정.txt

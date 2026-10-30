@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
 
 /// <summary>
@@ -66,11 +67,13 @@ public class PlayerOcclusionSilhouette : MonoBehaviour
 
     
     private SpriteRenderer _mainRenderer;
+    private SortingGroup _sortingGroup;
 
     
 private void Awake()
     {
         _mainRenderer = GetComponent<SpriteRenderer>();
+        _sortingGroup = GetComponentInParent<SortingGroup>();
 
         if (autoDefaultToWallLayers && occluderLayers.value == 0)
         {
@@ -102,7 +105,7 @@ private void LateUpdate()
         bool occluded = UpdateMasks();
         _visibility = Mathf.MoveTowards(_visibility, occluded ? 1f : 0f, Time.deltaTime / Mathf.Max(.01f, transitionDuration));
         var tint = silhouetteColor;
-        tint.a *= _visibility;
+        tint.a *= _visibility * _mainRenderer.color.a;
         silhouetteRenderer.color = tint;
         silhouetteRenderer.enabled = _visibility > 0f;
     }
@@ -119,7 +122,8 @@ private bool UpdateMasks()
         float maxDistSqr = maxCheckDistance * maxCheckDistance;
         Transform myRoot = transform.root;
         Vector3 myPosition = transform.position;
-        int bodyLayer = SortingLayer.GetLayerValueFromID(_mainRenderer.sortingLayerID);
+        int bodyLayer = SortingLayer.GetLayerValueFromID(_sortingGroup != null ? _sortingGroup.sortingLayerID : _mainRenderer.sortingLayerID);
+        int bodyOrder = _sortingGroup != null ? _sortingGroup.sortingOrder : _mainRenderer.sortingOrder;
 
         var instances = GetCandidates(occluderLayers.value);
         int used = 0;
@@ -144,7 +148,7 @@ private bool UpdateMasks()
             if (occluderTransform.root == myRoot) continue;
 
             int layer = SortingLayer.GetLayerValueFromID(occluderRenderer.sortingLayerID);
-            if (layer < bodyLayer || (layer == bodyLayer && occluderRenderer.sortingOrder <= _mainRenderer.sortingOrder)) continue;
+            if (layer < bodyLayer || (layer == bodyLayer && occluderRenderer.sortingOrder <= bodyOrder)) continue;
 
 
             if (!occluderRenderer.bounds.Intersects(myBounds)) continue;
@@ -171,7 +175,7 @@ private bool UpdateMasks()
         if (index == _masks.Count)
         {
             var go = new GameObject("Occluder Pixel Mask");
-            go.transform.SetParent(transform, false);
+            go.transform.SetParent(silhouetteRenderer.transform, false);
             go.layer = gameObject.layer;
             var mask = go.AddComponent<SpriteMask>();
             mask.isCustomRangeActive = true;

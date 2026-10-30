@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1303604766827126372}
   - component: {fileID: 2434081449813323349}
+  - component: {fileID: 8308774298443005673}
   m_Layer: 0
   m_Name: Knight_2
   m_TagString: Untagged
@@ -482,6 +483,97 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   useUnscaledTime: 0
+  pulseBlendRatio: 0.2
+  materializeEnabled: 1
+  appearDuration: 0.16
+  vanishDuration: 0.2
+  vanishRise: 0.18
+  vanishScale: {x: 0.22, y: 1.35}
+  materializeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &8308774298443005673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3011877677410798748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41466e2c6d085894da9d33a4469a1c7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sounds:
+  - clips:
+    - {fileID: 8300000, guid: 805099f85421b464ea1ee1f242e80b96, type: 3}
+    - {fileID: 8300000, guid: 429578fe8b837454091e22899b44e0a8, type: 3}
+    volume: 0.2
+    pitchMin: 0.94
+    pitchMax: 1.04
+    enabled: 1
+    volumeVariation: 0.04
+    minPlaybackInterval: 0
+    priority: 128
+    audibleRange: 0
+    name: "\uD3C9\uD0C0 \xB7 \uD718\uB450\uB974\uAE30"
+    trigger: 2
+    animationState: Attack
+    minInterval: 0.1
+    delay: 0
+  - clips:
+    - {fileID: 8300000, guid: bae35d54f135c274b99dc91b0032bd25, type: 3}
+    volume: 0.22
+    pitchMin: 0.98
+    pitchMax: 1.02
+    enabled: 1
+    volumeVariation: 0
+    minPlaybackInterval: 0
+    priority: 128
+    audibleRange: 0
+    name: "\uC2A4\uD0AC \xB7 \uAC15\uD654 \uAC80\uACA9"
+    trigger: 2
+    animationState: Skill
+    minInterval: 0.2
+    delay: 0
+  - clips:
+    - {fileID: 8300000, guid: fa2eb55fee7a59b439041b098c54e58b, type: 3}
+    volume: 0.18
+    pitchMin: 0.92
+    pitchMax: 1.02
+    enabled: 1
+    volumeVariation: 0
+    minPlaybackInterval: 0.07
+    priority: 90
+    audibleRange: 0
+    name: "\uD3C9\uD0C0 \xB7 \uC2E4\uC81C \uC801\uC911"
+    trigger: 7
+    animationState: 
+    minInterval: 0.07
+    delay: 0
+  health: {fileID: 0}
+  listenAnimationEvents: 1
 --- !u!1001 &1861662010809145596
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -545,6 +637,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -2253911629886400664, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5572766578311420530}
+    - targetCorrespondingSourceObject: {fileID: -2253911629886400664, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1491904458245306175}
   m_SourcePrefab: {fileID: -8435245712485981826, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
 --- !u!4 &8394839876501383153 stripped
 Transform:
@@ -572,3 +667,17 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 1303604766827126372}
+  sortingGroup: {fileID: 0}
+--- !u!114 &1491904458245306175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8749804597488488340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31379e083162a5f43b43b1f76524e8db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  owner: {fileID: 8308774298443005673}

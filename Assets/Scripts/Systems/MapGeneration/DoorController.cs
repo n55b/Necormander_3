@@ -76,6 +76,8 @@ public class DoorController : MonoBehaviour
 
         _isTeleporting = true;
         player.SetInputBlocked(true);
+        player.GetComponent<VisualSquashStretch>()?.Dematerialize();
+        PolishFeedback.PlaySound(FeedbackCue.PortalArrive, player.transform.position);
 
         // 문은 양(시간/색)을 안 들고 있다. '방이동' 이라는 신호 이름만 넘기면
         // 실제 수치는 ScreenFadeCanvas의 Fader 반응 목록에서 '방이동' 줄을 찾아 쓴다 → 기획자가 거기서 조절.
@@ -87,18 +89,18 @@ public class DoorController : MonoBehaviour
         if (fader == null)
         {
             // 페이더를 못 구하면 연출만 생략하고 이동은 정상 수행 (검은 화면에 갇히는 것보다 낫다)
-            DoTeleport(player);
-            FinishTeleport(player);
+            FinishTeleport(player, DoTeleport(player));
             return;
         }
 
-        fader.FadeOutIn(FadeSignal.방이동, () => DoTeleport(player), () => FinishTeleport(player));
+        bool arrived = false;
+        fader.FadeOutIn(FadeSignal.방이동, () => arrived = DoTeleport(player), () => FinishTeleport(player, arrived));
     }
 
     /// <summary>암전된 동안 실행: 플레이어 순간이동 + 카메라 워프 + 미니맵 초점 이동.</summary>
-    private void DoTeleport(PlayerController player)
+    private bool DoTeleport(PlayerController player)
     {
-        if (player == null || _destinationDoor == null) return;
+        if (player == null || _destinationDoor == null) return false;
 
         Vector3 prevPos = player.transform.position;
 
@@ -121,12 +123,14 @@ public class DoorController : MonoBehaviour
         {
             MapGenerator.Instance.UpdateMiniMapCameraFocus(targetRoom);
         }
+        return true;
     }
 
     /// <summary>페이드 인까지 끝난 뒤: 조작 복구.</summary>
-    private void FinishTeleport(PlayerController player)
+    private void FinishTeleport(PlayerController player, bool arrived)
     {
-        if(player!=null) PolishFeedback.Play(FeedbackCue.PortalArrive,player.transform.position,Vector2.up);
+        if (player != null) player.GetComponent<VisualSquashStretch>()?.Materialize();
+        if (player != null && arrived) PolishFeedback.PlaySound(FeedbackCue.DoorEmerge, player.transform.position);
         if (player != null) player.SetInputBlocked(false);
         _isTeleporting = false;
     }

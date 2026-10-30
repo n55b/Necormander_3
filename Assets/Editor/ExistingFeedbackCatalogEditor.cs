@@ -137,6 +137,10 @@ public sealed class ExistingFeedbackCatalogEditor
             case ExistingFeedbackCue.CameraShake: return obj is CameraManager || obj is CameraShaker || obj is SkillSO
                 || obj is Unity.Cinemachine.CinemachineImpulseSource || obj is Unity.Cinemachine.CinemachineImpulseListener;
             case ExistingFeedbackCue.HitStop: return obj is HitStopManager || obj is CharacterVisualFeedback || obj is SkillSO;
+            case ExistingFeedbackCue.DoorOutline:
+            case ExistingFeedbackCue.FloorPortal:
+            case ExistingFeedbackCue.ExecutionLane: return obj is AmbientOutlinePulse pulse && pulse.CatalogCue == cue;
+            case ExistingFeedbackCue.TreeMotion: return obj is AmbientAnimationPhase;
             default: return false;
         }
     }
@@ -186,6 +190,7 @@ public sealed class ExistingFeedbackCatalogEditor
             var material = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
             if (material.shader.name.Contains("Pixel")) sources[ExistingFeedbackCue.Dither].Add(material);
             if (material.shader.name.Contains("Additive")) sources[ExistingFeedbackCue.Slash].Add(material);
+            if (material.shader.name == "Necromancer/Sprite Edge Only") sources[ExistingFeedbackCue.DoorOutline].Add(material);
         }
         foreach (string guid in AssetDatabase.FindAssets("t:SkillSO"))
         {

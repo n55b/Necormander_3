@@ -395,6 +395,8 @@ if (isNewlyApplied)
         // 터질 때 DetonateBloodPop 이 따로 띄운다.
         if (isNewlyApplied && StatusRules.AnnouncesOnApply(type))
             OnDebuffPopped?.Invoke(StatusEffectPalette.FromStatus(type));
+        if (isNewlyApplied && type == StatusType.Freeze)
+            PolishFeedback.PlaySound(FeedbackCue.FreezeApplied, transform.position);
     }
 
     public bool HasStatus(StatusType type) => _statuses.ContainsKey(type);

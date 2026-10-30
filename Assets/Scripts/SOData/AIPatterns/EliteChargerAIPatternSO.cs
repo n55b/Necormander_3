@@ -85,6 +85,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public GameObject sweepHitboxPrefab;
     [Tooltip("시전(웅크림+대시) 시간. 기존 1.5초 -> 1.2초(20% 단축) -> 1.02초(추가 15% 단축)")]
     public float sweepWindup = 1.02f;
+    [Min(0f), InspectorName("휘두르기 소리 선행 시간 (초)"), Tooltip("타격보다 이만큼 먼저 휘두르기 소리를 시작합니다. 0이면 판정 시작과 동시에 재생합니다.")]
+    public float sweepSoundLead = .08f;
     [Tooltip("휩쓸기 반경. 20% 증가 (기존 6.0)")]
     public float sweepRadius = 7.2f;
 
@@ -646,11 +648,18 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             hb.Init(info, entity.opponentLayer, impactHitActiveDuration, windup, entity.team == Team.Ally);
 
             float t = 0f;
+            bool soundStarted = false;
             while (t < windup)
             {
                 t += Time.deltaTime;
+                if (!soundStarted && t >= Mathf.Max(0f, windup - sweepSoundLead))
+                {
+                    PolishFeedback.PlaySound(FeedbackCue.EliteSweep, entity.transform.position);
+                    soundStarted = true;
+                }
                 yield return null;
             }
+            if (!soundStarted) PolishFeedback.PlaySound(FeedbackCue.EliteSweep, entity.transform.position);
         }
 
         BossAttackIndicator.Stop(entity);
@@ -753,6 +762,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         hb.Init(info, entity.opponentLayer, impactHitActiveDuration, leapImpactDelay, entity.team == Team.Ally);
 
         yield return new WaitForSeconds(leapImpactDelay);
+        PolishFeedback.PlaySound(FeedbackCue.EliteJumpLand, entity.transform.position);
     }
 
     /// <summary>
@@ -1393,6 +1403,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     /// </summary>
     private IEnumerator RunShockwaveRing(BaseEntity entity, Vector2 center, float maxRadius)
     {
+        PolishFeedback.PlaySound(FeedbackCue.ChargeShockwave, center);
         GameObject ring = CreateFallbackRing(new Color(1f, 0.35f, 0f, 0.5f));
         ring.transform.position = center;
 

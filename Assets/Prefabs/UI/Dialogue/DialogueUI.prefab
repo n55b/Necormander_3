@@ -1712,8 +1712,9 @@ MonoBehaviour:
   idleDropPixels: 10
   highlightSpeed: 14
   blockPlayerInput: 1
-  typeSfx: {fileID: 0}
+  typeSfx: {fileID: 8300000, guid: 332035f4c9345d24f86f14529168e16b, type: 3}
   typeSfxEveryNChars: 3
-  typeSfxVolume: 0.5
+  typeSfxVolume: 0.06
+  typeSfxPitchVariation: 0.06
   debugKey: 102
   debugDialogueId: layout_test

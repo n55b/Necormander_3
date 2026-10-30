@@ -1137,7 +1137,7 @@ TilemapRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1755609611
-  m_SortingLayer: 2
+  m_SortingLayer: -1
   m_SortingOrder: 0
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
@@ -2658,17 +2658,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roomType: 1
+  normalRewardType: 0
   roomSize: {x: 0, y: 0}
   centerOffset: {x: 0, y: 0}
   anchors: []
   wallTilemap: {fileID: 0}
   groundTilemap: {fileID: 0}
   shadowTilemap: {fileID: 0}
+  unsteppableTilemap: {fileID: 0}
   debugDepth: -1
+  phaseIndex: -1
+  gridPosition: {x: 0, y: 0}
+  isRevealedOnMinimap: 0
   isCleared: 0
+  hasBeenVisited: 0
   doorObjects:
   - {fileID: 8637198600651598581, guid: 307b97e39cd375d47a324403a27bb3a6, type: 3}
   roomBGM: {fileID: 8300000, guid: 76c50e154a0bfa648927b49416b5181a, type: 3}
+  miniMapIconsParent: {fileID: 0}
 --- !u!114 &-7381801102678007556
 MonoBehaviour:
   m_ObjectHideFlags: 0

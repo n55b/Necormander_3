@@ -75,6 +75,7 @@ public sealed class FeedbackBurst : MonoBehaviour
 
     public void Begin(FeedbackRecipe settings, Vector3 destination, Transform follow, int tier, Sprite sprite, Color? tint)
     {
+        transform.localScale = Vector3.one;
         originAnchor = null; sortingAnchor = null;
         for (int i = 0; i < lines.Length; i++) if (lines[i] != null)
         { lines[i].sortingLayerID = defaultLayers[i]; lines[i].sortingOrder = defaultOrders[i]; }
@@ -92,6 +93,10 @@ public sealed class FeedbackBurst : MonoBehaviour
         if(icon!=null) { icon.sprite=sprite; icon.enabled=sprite!=null; icon.transform.localScale=Vector3.one; }
         registered=true; ActiveCount++;
         Render(0,false);
+    }
+    public void FitLane(float length)
+    {
+        transform.localScale = new Vector3(length / Mathf.Max(.01f, reach * 2f), 1f, 1f);
     }
     // 부모로 묶지 않아 대상이 사라져도 연출과 풀의 수명은 유지한다.
     public void FollowOrigin(Transform anchor, SpriteRenderer sorting = null)

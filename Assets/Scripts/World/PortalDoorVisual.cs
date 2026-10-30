@@ -6,6 +6,10 @@ public sealed class PortalDoorVisual : MonoBehaviour
 {
     [Header("포탈 비석")]
     [SerializeField] private SpriteRenderer firstPillar;
+    [SerializeField, InspectorName("문 테두리 연출")] private AmbientOutlinePulse edgePulse;
+    [SerializeField, InspectorName("비석 윤곽 스프라이트")]
+    [Tooltip("비석과 같은 그림을 사용하며 전용 재질이 불투명한 부분의 가장자리만 표시합니다.")]
+    private SpriteRenderer edgeOutline;
     [SerializeField] private SpriteRenderer transitionOverlay;
     [SerializeField] private Sprite inactiveSprite;
     [SerializeField] private Sprite activeSprite;
@@ -28,6 +32,8 @@ public sealed class PortalDoorVisual : MonoBehaviour
     private float _fadeStartAlpha = 1f;
     private float _fadeTime;
     private Color _overlayColor = Color.white;
+    private MaterialPropertyBlock _edgeProperties;
+    private static readonly int SpriteUVRectId = Shader.PropertyToID("_SpriteUVRect");
 
     private void OnEnable() { _transitioning = false; if (transitionOverlay != null) transitionOverlay.enabled = false; Refresh(); }
     private void OnDisable() { _transitioning = false; if (transitionOverlay != null) transitionOverlay.enabled = false; }
@@ -59,6 +65,7 @@ public sealed class PortalDoorVisual : MonoBehaviour
             if (transitionOverlay != null) transitionOverlay.enabled = false;
         }
         _open = open;
+        if (edgePulse != null) edgePulse.SetOpen(open);
         Refresh();
     }
 
@@ -89,6 +96,27 @@ public sealed class PortalDoorVisual : MonoBehaviour
             transitionOverlay.transform.localScale = firstPillar.transform.localScale;
             transitionOverlay.sortingLayerID = firstPillar.sortingLayerID;
             transitionOverlay.sortingOrder = firstPillar.sortingOrder + 1;
+        }
+        if (edgeOutline != null)
+        {
+            // 비석의 켜짐/꺼짐 그림·피벗·도트 격자 보정과 항상 동일하게 맞춘다.
+            edgeOutline.sprite = firstPillar.sprite;
+            edgeOutline.transform.SetPositionAndRotation(firstPillar.transform.position, firstPillar.transform.rotation);
+            edgeOutline.sortingLayerID = firstPillar.sortingLayerID;
+            edgeOutline.sortingOrder = firstPillar.sortingOrder + 2;
+            edgeOutline.flipX = firstPillar.flipX;
+            edgeOutline.flipY = firstPillar.flipY;
+            if (edgeOutline.sprite != null)
+            {
+                var sprite = edgeOutline.sprite;
+                Rect rect = sprite.textureRect;
+                var texture = sprite.texture;
+                _edgeProperties ??= new MaterialPropertyBlock();
+                edgeOutline.GetPropertyBlock(_edgeProperties);
+                _edgeProperties.SetVector(SpriteUVRectId, new Vector4(rect.xMin / texture.width, rect.yMin / texture.height,
+                    rect.xMax / texture.width, rect.yMax / texture.height));
+                edgeOutline.SetPropertyBlock(_edgeProperties);
+            }
         }
     }
 

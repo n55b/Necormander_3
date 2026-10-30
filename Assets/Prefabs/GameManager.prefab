@@ -129,7 +129,8 @@ MonoBehaviour:
   sourceB: {fileID: 7219595044889989361}
   newSource: {fileID: 0}
   oldSource: {fileID: 0}
-  sfxPoolSize: 8
+  sfxPoolSize: 16
+  sameClipVoiceLimit: 3
   sfxMixerGroup: {fileID: 24300002, guid: 0d813ccb3cb165a4094886f331623a67, type: 2}
   ParabolaClip: {fileID: 8300000, guid: da498f638c5629040a4a28579f8e0b40, type: 3}
   PurchaseClip: {fileID: 8300000, guid: db355bc6eca9d204d96fc602c9c21eda, type: 3}

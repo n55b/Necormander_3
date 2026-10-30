@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minionType: 0
   minionName: "\uC7A5\uC218"
-  minionIcon: {fileID: -7821324900155728968, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  minionIcon: {fileID: 857691071, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
   shopCost: 150
   rewardItemData:
     itemName: "\uC7A5\uC218"

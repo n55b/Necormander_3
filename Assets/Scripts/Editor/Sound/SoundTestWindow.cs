@@ -9,6 +9,7 @@ using UnityEngine;
 ///
 /// [오브젝트 소리] 고른 몬스터·소환수·캐릭터·사물의 '사운드 세트'. 소리 추가/삭제, 언제 재생할지, 볼륨·음높이를 고치고 ▶ 로 듣는다.
 /// [UI 소리]      창마다 다른 열림/닫힘 소리, 버튼·아이템 칸 마우스 올림/클릭 소리, 상점 구매 성공/실패 소리.
+/// [전체 음원]    Assets의 모든 오디오 파일을 이름·경로로 검색, 미리듣기, 선택, 목록 복사.
 /// 공통: 소리 칸에 오디오 파일을 끌어다 놓거나, 오른쪽 '오디오 파일 찾기'에서 [+] 로 넣는다.
 ///       아래 '재생 기록'에는 플레이 중 실제로 난 소리와 열리고 닫힌 창 이름이 쌓인다.
 /// </summary>
@@ -30,7 +31,7 @@ public class SoundTestWindow : EditorWindow
         w.SetTarget(target);
     }
 
-    private static readonly string[] Tabs = { "오브젝트 소리", "UI 소리" };
+    private static readonly string[] Tabs = { "오브젝트 소리", "UI 소리", "게임 행동", "전체 음원" };
 
     private static readonly (string name, SoundTrigger trigger)[] Presets =
     {
@@ -46,6 +47,7 @@ public class SoundTestWindow : EditorWindow
     private SerializedObject _setSO;
     private UISoundSettings _ui;
     private SerializedObject _uiSO;
+    private SerializedObject _catalogSO;
     private bool _followSelection = true;
     private float _previewVolume = 1f;
     private bool _simplePreview;
@@ -53,6 +55,10 @@ public class SoundTestWindow : EditorWindow
     private string _search = "", _lastSearch;
     private string _newWindowName = "";
     private readonly List<AudioClip> _found = new List<AudioClip>();
+    private readonly List<AudioClip> _allClips = new List<AudioClip>();
+    private bool _clipsDirty = true;
+    private int _clipPage;
+    private const int ClipsPerPage = 40;
     private readonly List<string> _log = new List<string>();
     private readonly HashSet<string> _folded = new HashSet<string>();
     private readonly HashSet<string> _seenWindows = new HashSet<string>();
@@ -68,6 +74,7 @@ public class SoundTestWindow : EditorWindow
     private void OnEnable()
     {
         EntitySoundSet.Played += OnObjectPlayed;
+        PolishFeedback.SoundPlayed += OnGameplaySound;
         UIEventBus.OnUIOpen += OnWindowOpened;
         UIEventBus.OnUIClose += OnWindowClosed;
         if (_followSelection) SetTarget(Selection.activeGameObject);
@@ -76,10 +83,13 @@ public class SoundTestWindow : EditorWindow
     private void OnDisable()
     {
         EntitySoundSet.Played -= OnObjectPlayed;
+        PolishFeedback.SoundPlayed -= OnGameplaySound;
         UIEventBus.OnUIOpen -= OnWindowOpened;
         UIEventBus.OnUIClose -= OnWindowClosed;
         StopAll();
     }
+
+    private void OnProjectChange() { _clipsDirty = true; Repaint(); }
 
     private void OnSelectionChange()
     {
@@ -90,6 +100,8 @@ public class SoundTestWindow : EditorWindow
 
     private void OnObjectPlayed(EntitySoundSet set, SoundEntry entry, AudioClip clip)
         => AddLog($"{(set != null ? set.name : "?")}  ·  {entry.name}  ·  {(clip != null ? clip.name : "-")}");
+    private void OnGameplaySound(FeedbackCue cue, AudioClip clip)
+        => AddLog($"{PolishFeedback.Catalog?.Find(cue)?.title ?? cue.ToString()} · {clip?.name}");
 
     private void OnWindowOpened(string name) => LogWindow(name, "열림");
     private void OnWindowClosed(string name) => LogWindow(name, "닫힘");
@@ -124,12 +136,18 @@ public class SoundTestWindow : EditorWindow
     {
         if (_box == null) _box = new GUIStyle(EditorStyles.helpBox) { padding = new RectOffset(6, 6, 4, 6) };
         DrawToolbar();
+        if (_tab == 3)
+        {
+            EditorGUILayout.HelpBox("Assets 폴더의 전체 음원입니다(미사용 파일 포함). 이름·경로로 검색하고 ▶로 들어볼 수 있습니다. 게임의 볼륨/피치는 앞의 세 탭에서 조절하세요. 피치는 음높이와 속도를 함께 바꾸며, 구간 자르기·음높이/속도 개별 편집은 원본 파일 편집이 필요합니다.", MessageType.Info);
+            DrawClipBrowser(true);
+            return;
+        }
         using (new EditorGUILayout.HorizontalScope())
         {
             using (new EditorGUILayout.VerticalScope(GUILayout.Width(position.width * 0.6f)))
             {
                 _scrollMain = EditorGUILayout.BeginScrollView(_scrollMain);
-                if (_tab == 0) DrawObjectTab(); else DrawUITab();
+                if (_tab == 0) DrawObjectTab(); else if (_tab == 1) DrawUITab(); else DrawGameplayTab();
                 EditorGUILayout.EndScrollView();
             }
             using (new EditorGUILayout.VerticalScope())
@@ -142,7 +160,7 @@ public class SoundTestWindow : EditorWindow
     {
         using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
         {
-            int tab = GUILayout.Toolbar(_tab, Tabs, EditorStyles.toolbarButton, GUILayout.Width(200));
+            int tab = GUILayout.Toolbar(_tab, Tabs, EditorStyles.toolbarButton, GUILayout.Width(350));
             if (tab != _tab) { _tab = tab; ClearPick(); }
             GUILayout.FlexibleSpace();
             GUILayout.Label(new GUIContent("미리듣기 볼륨", "이 툴에서 ▶ 로 들을 때만 쓰는 볼륨입니다. 게임 값은 바뀌지 않습니다."), GUILayout.Width(80));
@@ -157,6 +175,25 @@ public class SoundTestWindow : EditorWindow
     // ═════════════════════════════════════════════════════════════════
     // 오브젝트 소리
     // ═════════════════════════════════════════════════════════════════
+    private void DrawGameplayTab()
+    {
+        var catalog = AssetDatabase.LoadAssetAtPath<FeedbackCatalog>("Assets/Resources/FeedbackCatalog.asset");
+        if (catalog == null) { EditorGUILayout.HelpBox("FeedbackCatalog 설정이 없습니다.", MessageType.Info); return; }
+        if (_catalogSO == null || _catalogSO.targetObject != catalog) _catalogSO = new SerializedObject(catalog);
+        _catalogSO.Update();
+        EditorGUILayout.HelpBox("발소리·대시·가드·보스·보상 소리입니다. 파일을 교체하거나 볼륨/음높이/최소 간격을 조절하세요. 시각 효과의 수치는 바꾸지 않습니다.", MessageType.Info);
+        var effects = _catalogSO.FindProperty("effects");
+        for (int i = 0; i < effects.arraySize; i++)
+        {
+            var entry = effects.GetArrayElementAtIndex(i);
+            var audio = entry.FindPropertyRelative("audio");
+            string title = entry.FindPropertyRelative("title").stringValue;
+            if (!AnyClip(audio) && entry.FindPropertyRelative("cue").intValue < 86) continue;
+            DrawGroup(_catalogSO, audio, title);
+        }
+        _catalogSO.ApplyModifiedProperties();
+    }
+
     private void DrawObjectTab()
     {
         using (new EditorGUILayout.HorizontalScope())
@@ -220,6 +257,9 @@ public class SoundTestWindow : EditorWindow
                     delete = EditorUtility.DisplayDialog("소리 삭제", $"'{pName.stringValue}' 소리를 삭제할까요?", "삭제", "취소");
             }, footer: () =>
             {
+                if ((SoundTrigger)pTrigger.enumValueIndex == SoundTrigger.OnAttackHit ||
+                    (SoundTrigger)pTrigger.enumValueIndex == SoundTrigger.OnAttackEnd)
+                    EditorGUILayout.PropertyField(e.FindPropertyRelative("animationState"));
                 EditorGUILayout.PropertyField(e.FindPropertyRelative("minInterval"));
                 EditorGUILayout.PropertyField(e.FindPropertyRelative("delay"));
                 if ((SoundTrigger)pTrigger.enumValueIndex == SoundTrigger.Manual)
@@ -284,6 +324,7 @@ public class SoundTestWindow : EditorWindow
                 var e = l.GetArrayElementAtIndex(i);
                 e.FindPropertyRelative("name").stringValue = preset.name;
                 e.FindPropertyRelative("trigger").enumValueIndex = (int)preset.trigger;
+                e.FindPropertyRelative("animationState").stringValue = "";
                 ResetGroup(e, 0.8f, 0.95f, 1.05f);
                 e.FindPropertyRelative("minInterval").floatValue = 0.05f;
                 e.FindPropertyRelative("delay").floatValue = 0f;
@@ -485,6 +526,8 @@ public class SoundTestWindow : EditorWindow
 
             EditorGUILayout.PropertyField(g.FindPropertyRelative("volume"));
             DrawPitchRange(g);
+            foreach (var field in new[] { "enabled", "volumeVariation", "minPlaybackInterval", "priority", "audibleRange" })
+                EditorGUILayout.PropertyField(g.FindPropertyRelative(field));
             footer?.Invoke();
         }
     }
@@ -496,7 +539,7 @@ public class SoundTestWindow : EditorWindow
         float lo = pMin.floatValue, hi = pMax.floatValue;
         using (new EditorGUILayout.HorizontalScope())
         {
-            EditorGUILayout.PrefixLabel(new GUIContent("음높이 범위", "1 = 원래 높이. 범위를 넓히면 같은 소리도 매번 조금씩 다르게 들립니다."));
+            EditorGUILayout.PrefixLabel(new GUIContent("피치 · 재생 속도", "음높이와 속도가 함께 변합니다. 1 = 원본, 1.2 = 높고 빠르게, 0.8 = 낮고 느리게. 두 값을 같게 하면 고정, 다르게 하면 매번 범위 안에서 무작위입니다."));
             lo = EditorGUILayout.FloatField(lo, GUILayout.Width(40));
             EditorGUILayout.MinMaxSlider(ref lo, ref hi, 0.5f, 2f);
             hi = EditorGUILayout.FloatField(hi, GUILayout.Width(40));
@@ -556,18 +599,33 @@ public class SoundTestWindow : EditorWindow
     // ═════════════════════════════════════════════════════════════════
     // 오디오 파일 찾기 · 재생 기록
     // ═════════════════════════════════════════════════════════════════
-    private void DrawClipBrowser()
+    private void DrawClipBrowser(bool fullList = false)
     {
-        GUILayout.Label("오디오 파일 찾기", EditorStyles.boldLabel);
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            GUILayout.Label(fullList ? "전체 음원 목록" : "오디오 파일 찾기", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("새로고침", GUILayout.Width(70))) _clipsDirty = true;
+        }
         _search = EditorGUILayout.TextField(_search, EditorStyles.toolbarSearchField);
-        if (_search != _lastSearch) RunSearch();
+        if (_clipsDirty || _search != _lastSearch) RunSearch();
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            GUILayout.Label($"검색 {_found.Count} / 전체 {_allClips.Count}개", EditorStyles.miniLabel);
+            GUILayout.FlexibleSpace();
+            if (fullList && GUILayout.Button("목록 복사", GUILayout.Width(75)))
+                EditorGUIUtility.systemCopyBuffer = string.Join("\n", _found.Where(c => c != null)
+                    .Select(c => $"{c.name}\t{c.length:0.000}초\t{AssetDatabase.GetAssetPath(c)}"));
+        }
 
         bool canAdd = _pickSO != null && _pickSO.targetObject != null && _pickPath != null;
-        GUILayout.Label(canAdd ? $"[+] → '{_pickLabel}'" : "[+] 를 쓰려면 왼쪽 소리 칸의 체크를 켜세요", EditorStyles.miniLabel);
+        if (!fullList) GUILayout.Label(canAdd ? $"[+] → '{_pickLabel}'" : "[+] 를 쓰려면 왼쪽 소리 칸의 체크를 켜세요", EditorStyles.miniLabel);
 
         _scrollClips = EditorGUILayout.BeginScrollView(_scrollClips);
-        foreach (var clip in _found)
+        int end = Mathf.Min((_clipPage + 1) * ClipsPerPage, _found.Count);
+        for (int index = _clipPage * ClipsPerPage; index < end; index++)
         {
+            var clip = _found[index];
             if (clip == null) continue;
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -585,7 +643,9 @@ public class SoundTestWindow : EditorWindow
                 }
                 if (ev.type == EventType.MouseDown && ev.clickCount == 2 && rect.Contains(ev.mousePosition)) EditorGUIUtility.PingObject(clip);
                 GUILayout.Label($"{clip.length:0.0}초", EditorStyles.miniLabel, GUILayout.Width(36));
-                using (new EditorGUI.DisabledScope(!canAdd))
+                if (fullList && GUILayout.Button("파일 선택", GUILayout.Width(70)))
+                { Selection.activeObject = clip; EditorGUIUtility.PingObject(clip); }
+                if (!fullList) using (new EditorGUI.DisabledScope(!canAdd))
                 {
                     if (GUILayout.Button(new GUIContent("+", "선택한 소리 칸에 추가"), GUILayout.Width(22)))
                     {
@@ -596,22 +656,42 @@ public class SoundTestWindow : EditorWindow
                     }
                 }
             }
+            if (fullList) EditorGUILayout.SelectableLabel(AssetDatabase.GetAssetPath(clip), EditorStyles.miniLabel, GUILayout.Height(17));
         }
         if (_found.Count == 0) GUILayout.Label("찾은 오디오 파일이 없습니다.", EditorStyles.centeredGreyMiniLabel);
         EditorGUILayout.EndScrollView();
+        int pages = Mathf.Max(1, Mathf.CeilToInt(_found.Count / (float)ClipsPerPage));
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            using (new EditorGUI.DisabledScope(_clipPage == 0))
+                if (GUILayout.Button("이전")) { _clipPage--; _scrollClips = Vector2.zero; }
+            GUILayout.Label($"{_clipPage + 1} / {pages}", EditorStyles.centeredGreyMiniLabel);
+            using (new EditorGUI.DisabledScope(_clipPage + 1 >= pages))
+                if (GUILayout.Button("다음")) { _clipPage++; _scrollClips = Vector2.zero; }
+        }
     }
 
     private void RunSearch()
     {
         _lastSearch = _search;
         _found.Clear();
-        string filter = "t:AudioClip" + (string.IsNullOrWhiteSpace(_search) ? "" : " " + _search.Trim());
-        foreach (var guid in AssetDatabase.FindAssets(filter, new[] { "Assets" }).Take(300))
+        if (_clipsDirty)
         {
-            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(AssetDatabase.GUIDToAssetPath(guid));
-            if (clip != null) _found.Add(clip);
+            _allClips.Clear();
+            foreach (var guid in AssetDatabase.FindAssets("t:AudioClip", new[] { "Assets" }))
+            {
+                var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(AssetDatabase.GUIDToAssetPath(guid));
+                if (clip != null) _allClips.Add(clip);
+            }
+            _allClips.Sort((a, b) => string.CompareOrdinal(AssetDatabase.GetAssetPath(a), AssetDatabase.GetAssetPath(b)));
+            _clipsDirty = false;
         }
-        _found.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        string query = _search.Trim();
+        _found.AddRange(_allClips.Where(c => c != null && (query.Length == 0 ||
+            c.name.IndexOf(query, System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+            AssetDatabase.GetAssetPath(c).IndexOf(query, System.StringComparison.OrdinalIgnoreCase) >= 0)));
+        _clipPage = 0;
+        _scrollClips = Vector2.zero;
     }
 
     private void DrawLog()

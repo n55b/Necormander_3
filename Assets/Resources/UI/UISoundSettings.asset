@@ -19,12 +19,22 @@ MonoBehaviour:
     volume: 0.5
     pitchMin: 1
     pitchMax: 1
+    enabled: 1
+    volumeVariation: 0
+    minPlaybackInterval: 0.05
+    priority: 128
+    audibleRange: 0
   defaultClose:
     clips:
     - {fileID: 8300000, guid: 96a52cb7dc9dbec47a9827295d8c3531, type: 3}
     volume: 0.5
     pitchMin: 1
     pitchMax: 1
+    enabled: 1
+    volumeVariation: 0
+    minPlaybackInterval: 0.05
+    priority: 128
+    audibleRange: 0
   windows:
   - uiName: Reward
     label: "\uBCF4\uC0C1 \uC120\uD0DD"
@@ -33,11 +43,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: HandSlot
     label: "\uC18C\uD658\uC218 \uC2B5\uB4DD \xB7 \uAD50\uCCB4"
     open:
@@ -45,11 +65,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: Augment
     label: "\uC99D\uAC15 \uC120\uD0DD"
     open:
@@ -57,11 +87,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: Map
     label: "\uC804\uCCB4 \uC9C0\uB3C4 (M)"
     open:
@@ -69,11 +109,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: Shop
     label: "\uC0C1\uC810"
     open:
@@ -81,11 +131,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: Dialogue
     label: "\uB300\uD654"
     open:
@@ -93,11 +153,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: Pouch
     label: "\uC544\uC774\uD15C \uC8FC\uBA38\uB2C8 (V)"
     open:
@@ -105,11 +175,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: PlayerInfo
     label: "\uC7A5\uCC29 \uC815\uBCF4 (C)"
     open:
@@ -117,11 +197,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: PlayerInfoDetails
     label: "\uC7A5\uCC29 \uC815\uBCF4 \xB7 \uC0C1\uC138 \uD3BC\uCE58\uAE30"
     open:
@@ -129,11 +219,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: Option
     label: "\uC635\uC158 (ESC)"
     open:
@@ -141,11 +241,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: GameOver
     label: "\uAC8C\uC784 \uC624\uBC84 (\uC5F4\uB9BC\uB9CC)"
     open:
@@ -153,11 +263,21 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - uiName: GameClear
     label: "\uAC8C\uC784 \uD074\uB9AC\uC5B4 (\uC5F4\uB9BC\uB9CC)"
     open:
@@ -165,44 +285,96 @@ MonoBehaviour:
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
     close:
       clips: []
       volume: 0.8
       pitchMin: 1
       pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   buttonHover:
-    clips: []
-    volume: 0.8
-    pitchMin: 1
-    pitchMax: 1
+    clips:
+    - {fileID: 8300000, guid: 450a681af3614dc4f9951224a45f9f5d, type: 3}
+    volume: 0.08
+    pitchMin: 0.96
+    pitchMax: 1.04
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 220
+    audibleRange: 0
   buttonClick:
-    clips: []
-    volume: 0.8
-    pitchMin: 1
-    pitchMax: 1
+    clips:
+    - {fileID: 8300000, guid: b39a472e6fd7f8343af8aac15ebbf56f, type: 3}
+    volume: 0.1
+    pitchMin: 0.97
+    pitchMax: 1.03
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.06
+    priority: 100
+    audibleRange: 0
   slotHover:
-    clips: []
-    volume: 0.8
-    pitchMin: 1
-    pitchMax: 1
+    clips:
+    - {fileID: 8300000, guid: 450a681af3614dc4f9951224a45f9f5d, type: 3}
+    volume: 0.08
+    pitchMin: 0.96
+    pitchMax: 1.04
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.08
+    priority: 220
+    audibleRange: 0
   slotClick:
-    clips: []
-    volume: 0.8
-    pitchMin: 1
-    pitchMax: 1
+    clips:
+    - {fileID: 8300000, guid: b39a472e6fd7f8343af8aac15ebbf56f, type: 3}
+    volume: 0.09
+    pitchMin: 0.97
+    pitchMax: 1.03
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.06
+    priority: 110
+    audibleRange: 0
   tabClick:
-    clips: []
-    volume: 0.8
-    pitchMin: 1
-    pitchMax: 1
-  hoverInterval: 0.05
+    clips:
+    - {fileID: 8300000, guid: b39a472e6fd7f8343af8aac15ebbf56f, type: 3}
+    volume: 0.1
+    pitchMin: 0.97
+    pitchMax: 1.03
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.06
+    priority: 110
+    audibleRange: 0
+  hoverInterval: 0.08
   purchaseSuccess:
-    clips: []
-    volume: 0.8
-    pitchMin: 1
-    pitchMax: 1
+    clips:
+    - {fileID: 8300000, guid: b247cbbb920d35b4398e0037c02e65ff, type: 3}
+    volume: 0.18
+    pitchMin: 0.97
+    pitchMax: 1.03
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.1
+    priority: 80
+    audibleRange: 0
   purchaseFail:
-    clips: []
-    volume: 0.8
-    pitchMin: 1
-    pitchMax: 1
+    clips:
+    - {fileID: 8300000, guid: bc78a8673d20b6741b0706e33e132044, type: 3}
+    volume: 0.14
+    pitchMin: 0.98
+    pitchMax: 1.02
+    enabled: 1
+    volumeVariation: 0.07
+    minPlaybackInterval: 0.15
+    priority: 80
+    audibleRange: 0

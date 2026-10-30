@@ -26,6 +26,20 @@ public class MinionSkillCaster : MonoBehaviour
     private const float DESPAWN_TAIL = 0.25f;
 
     private Coroutine _despawn;
+    private VisualSquashStretch _visualTransition;
+    private EntitySoundSet _visualSounds;
+
+    private void RegisterVisual(GameObject visual)
+    {
+        FeedbackAnchor = visual.transform;
+        _visualTransition = visual.GetComponent<VisualSquashStretch>();
+        _visualSounds = visual.GetComponentInChildren<EntitySoundSet>();
+        if (PolishFeedback.Enabled(FeedbackCue.MinionAppear)) _visualTransition?.Materialize();
+        PolishFeedback.Play(FeedbackCue.MinionAppear, visual.transform.position, Vector2.up,
+            PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(visual.transform);
+    }
+
+    public void PlayBasicHitSound() => _visualSounds?.Play(SoundTrigger.OnBasicDamageDealt);
 
     public static MinionSkillCaster Spawn(MinionDataSO data, Vector3 position)
     {
@@ -54,9 +68,13 @@ public class MinionSkillCaster : MonoBehaviour
 
     private System.Collections.IEnumerator DespawnRoutine(float seconds)
     {
-        yield return new WaitForSeconds(seconds);
+        float fadeTime = Mathf.Min(DESPAWN_TAIL, Mathf.Max(0f, seconds),
+            _visualTransition != null && PolishFeedback.Enabled(FeedbackCue.MinionReturn) ? _visualTransition.VanishDuration : 0f);
+        yield return new WaitForSeconds(Mathf.Max(0f, seconds - fadeTime));
+        if (fadeTime > 0f) _visualTransition?.DematerializeWithin(fadeTime);
         if (PolishFeedback.Player != null)
             PolishFeedback.Play(FeedbackCue.MinionReturn, FeedbackAnchor!=null?FeedbackAnchor.position:transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO), PolishFeedback.Player.transform);
+        if (fadeTime > 0f) yield return new WaitForSeconds(fadeTime);
         if (this != null) Destroy(gameObject);
     }
 
@@ -116,7 +134,6 @@ public class MinionSkillCaster : MonoBehaviour
         {
             var fx = Instantiate(visual, transform.position, Quaternion.identity, transform);
             FeedbackAnchor = fx.transform;
-            PolishFeedback.Play(FeedbackCue.MinionAppear, fx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(fx.transform);
             fx.transform.localPosition = Vector3.zero;
             var fxsr = fx.GetComponentInChildren<SpriteRenderer>();
             if (fxsr != null) fxsr.flipX = faceRight;
@@ -132,8 +149,7 @@ public class MinionSkillCaster : MonoBehaviour
         }
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
-        FeedbackAnchor = vfx.transform;
-        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(vfx.transform);
+        RegisterVisual(vfx);
         vfx.transform.localPosition = Vector3.zero;
 
         var squash = vfx.GetComponent<VisualSquashStretch>();
@@ -286,8 +302,7 @@ public class MinionSkillCaster : MonoBehaviour
         }
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
-        FeedbackAnchor = vfx.transform;
-        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(vfx.transform);
+        RegisterVisual(vfx);
         vfx.transform.localPosition = Vector3.zero;
         vfx.GetComponent<VisualSquashStretch>()?.PlayDash();
 
@@ -351,7 +366,7 @@ public class MinionSkillCaster : MonoBehaviour
 
             yield return new WaitForSeconds(dur);
         }
-        if (this != null) Destroy(gameObject);
+        SetLifetime(DESPAWN_TAIL);
     }
 
     private System.Collections.IEnumerator SequenceRoutine(Animator anim, Transform visualTf, string[] sequence,
@@ -569,8 +584,7 @@ public class MinionSkillCaster : MonoBehaviour
         if (visual == null) return null;
 
         var vfx = Instantiate(visual, transform.position, Quaternion.identity, transform);
-        FeedbackAnchor = vfx.transform;
-        PolishFeedback.Play(FeedbackCue.MinionAppear, vfx.transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(vfx.transform);
+        RegisterVisual(vfx);
         vfx.transform.localPosition = Vector3.zero;
 
         var sr = vfx.GetComponentInChildren<SpriteRenderer>();

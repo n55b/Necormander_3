@@ -31,11 +31,11 @@ public class TrapArrow : MonoBehaviour
     [Tooltip("압력판 작동 사운드")]
     [SerializeField] private AudioClip plateSound;
     [Range(0f, 1f)]
-    [SerializeField] private float plateVolume = 1f;
+    [SerializeField] private float plateVolume = .06f;
     [Tooltip("화살 발사 사운드")]
     [SerializeField] private AudioClip arrowFireSound;
     [Range(0f, 1f)]
-    [SerializeField] private float arrowFireVolume = 1f;
+    [SerializeField] private float arrowFireVolume = .045f;
 
 
     private const string StateOn = "TrapOn";
@@ -189,7 +189,7 @@ public class TrapArrow : MonoBehaviour
         {
             // 화살의 목적지는 발판(현재 함정의 위치)으로 조준하여 저격 발사
             Vector2 targetPos = (Vector2)transform.position;
-            projectile.Init(targetPos, damage, targetLayer, gameObject, arrowSpeed, arrowLifeTime);
+            projectile.Init(targetPos, damage, targetLayer, gameObject, arrowSpeed, arrowLifeTime, playLaunchSound: arrowFireSound == null);
             // 화살 발사 사운드 재생
             if (SoundManager.Instance != null)
             {

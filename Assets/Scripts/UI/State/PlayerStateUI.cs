@@ -382,9 +382,10 @@ public class PlayerStateUI : MonoBehaviour
 
         if (slot.SkillIcon != null)
         {
+            slot.SkillIcon.enabled = has;
             if (has)
             {
-                slot.SkillIcon.sprite = main.ResolveIcon(); // MainMinionDataSO 는 소환수 스킬 아이콘을 반환
+                slot.SkillIcon.sprite = main.minionIcon != null ? main.minionIcon : main.ResolveIcon();
                 slot.SkillIcon.color  = Color.white;
                 slot.SkillIcon.type   = Image.Type.Simple;
 

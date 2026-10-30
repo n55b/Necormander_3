@@ -119,6 +119,7 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
                 Debug.LogWarning($"<color=red>[DualSplit]</color> Failed to find any RoomInstance to register {obj.name}!");
             }
         }
+        obj.GetComponent<AstroNuts.Monsters.MonsterDeathHandler>()?.BeginSpawnPositionTrace(spawnPos);
         return obj;
     }
 

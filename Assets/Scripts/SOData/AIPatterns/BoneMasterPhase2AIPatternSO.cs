@@ -86,6 +86,8 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     [Tooltip("직선(레인) 전조 프리팹. Assets/Prefabs/Skill Visual Effects/Telegraph Line Hitbox Prefab. " +
              "시각 전용으로만 쓰며 피해는 BossCombat 이 준다(콜라이더가 없는 프리팹).")]
     public BaseHitBox laneTelegraphPrefab;
+    [InspectorName("집행 선공격 전용 예고 외형"), Tooltip("집행만 사용하는 외형입니다. 비워두면 공용 직선 예고를 사용합니다. 피해 범위·발동 시각은 아래 집행 설정을 따릅니다.")]
+    public BaseHitBox executionLanePrefab;
     [Tooltip("원형/타원 전조 프리팹. 도약 착지 지점 예고에 쓴다(페이즈1과 같은 프리팹).")]
     public BaseHitBox circleTelegraphPrefab;
 
@@ -764,7 +766,8 @@ protected override void OnAttack(BaseEntity entity)
                 Vector2 origin = through - dir * back;
                 float length = back + RoomReach(dir, through);
                 lanes[i] = (origin, dir, length, BoneMasterTelegraphUtil.SpawnLane(
-                    entity, origin, dir, length, executionLineWidth, counterNoneColor, laneTelegraphPrefab, lead));
+                    entity, origin, dir, length, executionLineWidth, counterNoneColor,
+                    executionLanePrefab != null ? executionLanePrefab : laneTelegraphPrefab, lead));
             }
 
             float t = 0f;
@@ -780,8 +783,11 @@ protected override void OnAttack(BaseEntity entity)
                                       entity.gameObject, category: DamageCategory.EnemyBoss, bypassGuard: true);
             var already = new System.Collections.Generic.HashSet<GameObject>();
             foreach (var lane in lanes)
+            {
+                PolishFeedback.Play(FeedbackCue.ExecutionSlash, lane.origin + lane.dir * (lane.length * .5f), lane.dir)?.FitLane(lane.length);
                 BossCombat.DealLaneOnce(lane.origin, lane.dir, lane.length, executionLineWidth,
                                        entity.opponentLayer, info, already);
+            }
         }
         finally
         {

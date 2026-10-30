@@ -98,6 +98,7 @@ public struct DamageInfo
 {
     [System.NonSerialized] public int feedbackHitIndex;
     [System.NonSerialized] public bool feedbackComboFinish;
+    [System.NonSerialized] public MinionSkillCaster minionSource;
     // 구조체 복사/다중 대상/추가 타격 모두 같은 토큰을 공유한다. 소환수 평타에는 넣지 않는다.
     [System.NonSerialized] public PlayerBasicAttackRoll playerBasicAttack;
     public float amount;
@@ -147,6 +148,7 @@ public struct DamageInfo
         this.bypassGuard = bypassGuard;
         feedbackHitIndex = 0;
         feedbackComboFinish = false;
+        minionSource = null;
         playerBasicAttack = null;
         this.isRanged = isRanged;
         this.hitFrom = hitFrom;

@@ -1,0 +1,120 @@
+﻿사운드 전체 목록 — 2026-10-30 에디터 기준
+
+Tools > 사운드 > 사운드 테스트 툴 > 전체 음원에서 최신 목록 검색·미리듣기·복사 가능.
+게임 행동 / UI 소리 / 오브젝트 소리 탭: 볼륨, 피치(음높이+속도), 무작위 변화 폭, 최소 재생 간격, 거리, 우선순위 조절.
+피치 1.2는 음높이와 속도 모두 상승. 음높이 유지 배속·음색/EQ·구간 자르기는 파일 편집 필요.
+전체 음원 탭은 사용 여부와 관계없이 Assets의 AudioClip 파일을 표시한다. 아래 목록도 미사용 파일 포함.
+
+[게임 행동에 연결된 소리]
+급회전 먼지: DashStart / 볼륨 0.035 / 피치 0.96~1.04
+대시 출발 압축파: DashStart / 볼륨 0.12 / 피치 0.97~1.04
+대시 끝 착지파: DashLand / 볼륨 0.055 / 피치 0.94~1.06
+소환 조립: MinionSummon / 볼륨 0.085 / 피치 0.96~1.04
+귀환 흡수: MinionSummon / 볼륨 0.065 / 피치 0.96~1.04
+진화 확정 의식: MinionUpgrade / 볼륨 0.14 / 피치 0.98~1.02
+회복 상승 입자: Heal / 볼륨 0.11 / 피치 0.96~1.04
+저체력 심박: Heartbeat / 볼륨 0.12 / 피치 1~1
+발사 섬광: MagicProjectile / 볼륨 0.12 / 피치 0.94~1.06
+벽 충돌 반응: ProjectileImpact / 볼륨 0.12 / 피치 0.95~1.05
+돌진 출발 흙먼지: ChargeStart / 볼륨 0.2 / 피치 0.97~1.03
+벽 충돌 파편: ChargeImpact / 볼륨 0.15 / 피치 0.97~1.04
+보스 착지 이중 파동: BossLand / 볼륨 0.2 / 피치 0.98~1.02
+카운터 성공 파열: CounterSuccess / 볼륨 0.19 / 피치 0.99~1.01
+상자 틈새 빛: ChestOpen / 볼륨 0.16 / 피치 0.98~1.02
+획득 UI 연결: ItemPickup / 볼륨 0.1 / 피치 0.96~1.04
+강화 확정 섬광: MinionUpgrade / 볼륨 0.14 / 피치 0.98~1.02
+문 진입 · 층 이동: PortalTravel / 볼륨 0.16 / 피치 0.98~1.02
+문 개방 먼지: DoorOpen / 볼륨 0.11 / 피치 0.96~1.04
+퍼펙트 가드 섬광: PerfectGuard / 볼륨 0.14 / 피치 0.96~1.02
+86 풀 발소리: FootGrass_A, FootGrass_B, FootGrass_C, FootGrass_D / 볼륨 0.045 / 피치 0.94~1.06
+87 땅 발소리: FootGround_A, FootGround_B, FootGround_C, FootGround_D / 볼륨 0.04 / 피치 0.94~1.06
+88 근접 몬스터 검격: EnemyMelee_A, EnemyMelee_B / 볼륨 0.11 / 피치 0.93~1.07
+89 궁수 발사: ArrowShot / 볼륨 0.11 / 피치 0.96~1.04
+90 마법진 폭발: MagicCast / 볼륨 0.14 / 피치 0.96~1.04
+91 빙결 적용: Freeze / 볼륨 0.14 / 피치 0.94~1.06
+92 몬스터 영혼 소멸: SoulDissolve / 볼륨 0.13 / 피치 0.92~1.08
+93 사자탈 분열: SplitDeath_A, SplitDeath_B, SplitDeath_C / 볼륨 0.1 / 피치 0.94~1.06
+94 보스 휩쓸기: BossSweep / 볼륨 0.2 / 피치 0.98~1.03
+95 보스 찌르기: BossThrust / 볼륨 0.2 / 피치 0.98~1.03
+96 돌진 충격파: ChargeImpact / 볼륨 0.15 / 피치 0.97~1.04
+97 투사체 반사: ProjectileImpact / 볼륨 0.22 / 피치 0.97~1.04
+98 골드 획득: Coins / 볼륨 0.1 / 피치 0.96~1.04
+99 가드 올리기: GuardRaise / 볼륨 0.13 / 피치 0.97~1.03
+엘리트 휩쓸기: EliteSweep / 볼륨 0.12 / 피치 0.96~1.02
+엘리트 도약 내려찍기: EliteJumpLand / 볼륨 0.12 / 피치 0.96~1.02
+
+문에서 나올 때: PortalTravel / 볼륨 0.14 / 피치 1.14~1.18
+
+[전체 음원 파일 72개 — 이름 / 길이 / 경로]
+Iron_Labyrinth_Descent / 62.903초 / Assets/Resources/Sound/Music/Iron_Labyrinth_Descent.mp3
+Ticking_Beneath_the_Stone / 57.757초 / Assets/Resources/Sound/Music/Ticking_Beneath_the_Stone.mp3
+8Bit_Hit_Sound / 0.209초 / Assets/Resources/Sound/SFX/8Bit_Hit_Sound.mp3
+Damaged_2 / 0.470초 / Assets/Resources/Sound/SFX/Damaged_2.mp3
+Damaged_3 / 0.784초 / Assets/Resources/Sound/SFX/Damaged_3.mp3
+ArrowShot / 0.158초 / Assets/Resources/Sound/SFX/Gameplay/ArrowShot.wav
+BossLand / 0.365초 / Assets/Resources/Sound/SFX/Gameplay/BossLand.wav
+BossSweep / 0.280초 / Assets/Resources/Sound/SFX/Gameplay/BossSweep.wav
+BossThrust / 0.245초 / Assets/Resources/Sound/SFX/Gameplay/BossThrust.wav
+ChargeImpact / 0.385초 / Assets/Resources/Sound/SFX/Gameplay/ChargeImpact.wav
+ChargeStart / 0.452초 / Assets/Resources/Sound/SFX/Gameplay/ChargeStart.wav
+ChestOpen / 0.246초 / Assets/Resources/Sound/SFX/Gameplay/ChestOpen.wav
+Coins / 0.301초 / Assets/Resources/Sound/SFX/Gameplay/Coins.wav
+CounterSuccess / 0.171초 / Assets/Resources/Sound/SFX/Gameplay/CounterSuccess.wav
+DashLand / 0.241초 / Assets/Resources/Sound/SFX/Gameplay/DashLand.wav
+DashStart / 0.293초 / Assets/Resources/Sound/SFX/Gameplay/DashStart.wav
+DialogueType / 0.057초 / Assets/Resources/Sound/SFX/Gameplay/DialogueType.wav
+DoorOpen / 0.439초 / Assets/Resources/Sound/SFX/Gameplay/DoorOpen.wav
+EliteJumpLand / 0.371초 / Assets/Resources/Sound/SFX/Gameplay/EliteJumpLand.wav
+EliteSweep / 0.436초 / Assets/Resources/Sound/SFX/Gameplay/EliteSweep.wav
+EnemyMelee_A / 0.160초 / Assets/Resources/Sound/SFX/Gameplay/EnemyMelee_A.wav
+EnemyMelee_B / 0.210초 / Assets/Resources/Sound/SFX/Gameplay/EnemyMelee_B.wav
+FootGrass_A / 0.213초 / Assets/Resources/Sound/SFX/Gameplay/FootGrass_A.wav
+FootGrass_B / 0.162초 / Assets/Resources/Sound/SFX/Gameplay/FootGrass_B.wav
+FootGrass_C / 0.166초 / Assets/Resources/Sound/SFX/Gameplay/FootGrass_C.wav
+FootGrass_D / 0.198초 / Assets/Resources/Sound/SFX/Gameplay/FootGrass_D.wav
+FootGround_A / 0.166초 / Assets/Resources/Sound/SFX/Gameplay/FootGround_A.wav
+FootGround_B / 0.194초 / Assets/Resources/Sound/SFX/Gameplay/FootGround_B.wav
+FootGround_C / 0.147초 / Assets/Resources/Sound/SFX/Gameplay/FootGround_C.wav
+FootGround_D / 0.142초 / Assets/Resources/Sound/SFX/Gameplay/FootGround_D.wav
+Freeze / 0.541초 / Assets/Resources/Sound/SFX/Gameplay/Freeze.wav
+GuardRaise / 0.211초 / Assets/Resources/Sound/SFX/Gameplay/GuardRaise.wav
+Heal / 0.599초 / Assets/Resources/Sound/SFX/Gameplay/Heal.wav
+Heartbeat / 0.747초 / Assets/Resources/Sound/SFX/Gameplay/Heartbeat.wav
+ItemPickup / 0.060초 / Assets/Resources/Sound/SFX/Gameplay/ItemPickup.wav
+MagicCast / 0.425초 / Assets/Resources/Sound/SFX/Gameplay/MagicCast.wav
+MagicProjectile / 0.264초 / Assets/Resources/Sound/SFX/Gameplay/MagicProjectile.wav
+MinionSummon / 0.351초 / Assets/Resources/Sound/SFX/Gameplay/MinionSummon.wav
+MinionUpgrade / 0.501초 / Assets/Resources/Sound/SFX/Gameplay/MinionUpgrade.wav
+PerfectGuard / 0.304초 / Assets/Resources/Sound/SFX/Gameplay/PerfectGuard.wav
+PortalTravel / 0.545초 / Assets/Resources/Sound/SFX/Gameplay/PortalTravel.wav
+ProjectileImpact / 0.261초 / Assets/Resources/Sound/SFX/Gameplay/ProjectileImpact.wav
+PurchaseFail / 0.186초 / Assets/Resources/Sound/SFX/Gameplay/PurchaseFail.wav
+SoulDissolve / 0.360초 / Assets/Resources/Sound/SFX/Gameplay/SoulDissolve.wav
+SplitDeath_A / 0.343초 / Assets/Resources/Sound/SFX/Gameplay/SplitDeath_A.wav
+SplitDeath_B / 0.340초 / Assets/Resources/Sound/SFX/Gameplay/SplitDeath_B.wav
+SplitDeath_C / 0.330초 / Assets/Resources/Sound/SFX/Gameplay/SplitDeath_C.wav
+UIButton / 0.072초 / Assets/Resources/Sound/SFX/Gameplay/UIButton.wav
+UIHover / 0.163초 / Assets/Resources/Sound/SFX/Gameplay/UIHover.wav
+Guard_Block / 0.604초 / Assets/Resources/Sound/SFX/Guard_Block.wav
+Enemy_Hit_1 / 0.598초 / Assets/Resources/Sound/SFX/Hit/Enemy_Hit_1.wav
+Enemy_Hit_2 / 0.628초 / Assets/Resources/Sound/SFX/Hit/Enemy_Hit_2.wav
+Enemy_Hit_3 / 0.551초 / Assets/Resources/Sound/SFX/Hit/Enemy_Hit_3.wav
+Enemy_Hit_4 / 0.591초 / Assets/Resources/Sound/SFX/Hit/Enemy_Hit_4.wav
+Player_Hit_1 / 0.591초 / Assets/Resources/Sound/SFX/Hit/Player_Hit_1.wav
+Swing_Double / 0.538초 / Assets/Resources/Sound/SFX/Minion/Swing_Double.wav
+Swing_Heavy / 0.570초 / Assets/Resources/Sound/SFX/Minion/Swing_Heavy.wav
+Swing_Light_A / 0.390초 / Assets/Resources/Sound/SFX/Minion/Swing_Light_A.wav
+Swing_Light_B / 0.310초 / Assets/Resources/Sound/SFX/Minion/Swing_Light_B.wav
+Sword_Draw / 0.500초 / Assets/Resources/Sound/SFX/Minion/Sword_Draw.wav
+Sword_Quick / 0.275초 / Assets/Resources/Sound/SFX/Minion/Sword_Quick.wav
+Sword_Skill / 0.857초 / Assets/Resources/Sound/SFX/Minion/Sword_Skill.wav
+WhooshesCombo_1 / 0.199초 / Assets/Resources/Sound/SFX/Whooshes/WhooshesCombo_1.wav
+WhooshesCombo_2 / 0.211초 / Assets/Resources/Sound/SFX/Whooshes/WhooshesCombo_2.wav
+WhooshesCombo_3 / 0.304초 / Assets/Resources/Sound/SFX/Whooshes/WhooshesCombo_3.wav
+Whooshes_3 / 0.140초 / Assets/Resources/Sound/SFX/Whooshes/Whooshes_3.wav
+uiclosesfx / 0.784초 / Assets/Resources/Sound/SFX/uiclosesfx.wav
+uiopensfx / 0.784초 / Assets/Resources/Sound/SFX/uiopensfx.wav
+ArrowSwipe / 1.045초 / Assets/Resources/Sound/TrapSoundTest/ArrowSwipe.mp3
+Boom2 / 0.470초 / Assets/Resources/Sound/TrapSoundTest/Boom2.mp3
+PlateSound2 / 0.810초 / Assets/Resources/Sound/TrapSoundTest/PlateSound2.mp3
+SpikeDown / 0.384초 / Assets/Resources/Sound/TrapSoundTest/SpikeDown.wav

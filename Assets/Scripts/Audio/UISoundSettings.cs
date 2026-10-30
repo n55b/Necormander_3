@@ -80,6 +80,14 @@ public class UISoundSettings : ScriptableObject
     private Dictionary<string, WindowSound> _byName;
     private static float _lastHover = -1f;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetPlayback()
+    {
+        _active = null;
+        _searched = false;
+        _lastHover = -1f;
+    }
+
     public SoundClipGroup Get(Cue cue)
     {
         switch (cue)

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5536103579134677465}
   - component: {fileID: 5205123348623321498}
   - component: {fileID: 74422872902610697}
+  - component: {fileID: 7190542814822819687}
   m_Layer: 5
   m_Name: Restart
   m_TagString: Untagged
@@ -154,11 +155,34 @@ MonoBehaviour:
     volume: 0.8
     pitchMin: 1
     pitchMax: 1
+    enabled: 1
+    volumeVariation: 0
+    minPlaybackInterval: 0
+    priority: 128
+    audibleRange: 0
   clickOverride:
     clips: []
     volume: 0.8
     pitchMin: 1
     pitchMax: 1
+    enabled: 1
+    volumeVariation: 0
+    minPlaybackInterval: 0
+    priority: 128
+    audibleRange: 0
+--- !u!114 &7190542814822819687
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 939497781044134356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1224578648a25e846ac33757eb1fc73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 6478521067473596936}
 --- !u!1 &1119544851357968110
 GameObject:
   m_ObjectHideFlags: 0
@@ -659,6 +683,7 @@ GameObject:
   - component: {fileID: 5337659614125559285}
   - component: {fileID: 6509745094974457637}
   - component: {fileID: 5524445695217740717}
+  - component: {fileID: 1655743859391656532}
   m_Layer: 5
   m_Name: Exit
   m_TagString: Untagged
@@ -800,11 +825,34 @@ MonoBehaviour:
     volume: 0.8
     pitchMin: 1
     pitchMax: 1
+    enabled: 1
+    volumeVariation: 0
+    minPlaybackInterval: 0
+    priority: 128
+    audibleRange: 0
   clickOverride:
     clips: []
     volume: 0.8
     pitchMin: 1
     pitchMax: 1
+    enabled: 1
+    volumeVariation: 0
+    minPlaybackInterval: 0
+    priority: 128
+    audibleRange: 0
+--- !u!114 &1655743859391656532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7378866424367417727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1224578648a25e846ac33757eb1fc73d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 8718789122911325910}
 --- !u!1 &8700055154149269483
 GameObject:
   m_ObjectHideFlags: 0

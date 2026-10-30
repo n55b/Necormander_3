@@ -137,6 +137,8 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private Tilemap globalWallTilemap;
     [SerializeField] private Tilemap globalShadowTilemap;
     [SerializeField] private Tilemap globalUnsteppableTilemap;
+    public TileBase GroundTileAt(Vector3 position) => globalGroundTilemap != null
+        ? globalGroundTilemap.GetTile(globalGroundTilemap.WorldToCell(position)) : null;
     public Color FootstepColor(Vector3 position)
     {
         var settings=PolishFeedback.Catalog;
@@ -1482,7 +1484,8 @@ Instance = this;
 
         if (doorPrefab != null)
         {
-            GameObject doorObj = Instantiate(doorPrefab, anchor.transform.position, Quaternion.Euler(0, 0, rotation), room.transform);
+            Vector3 position = anchor.transform.position - (Vector3)(Vector2)anchor.direction * anchor.doorInset;
+            GameObject doorObj = Instantiate(doorPrefab, position, Quaternion.Euler(0, 0, rotation), room.transform);
             doorObj.name = $"Door_{anchor.direction}_{room.name}";
             room.doorObjects.Add(doorObj.GetComponent<DoorUpController>());
 
@@ -2758,6 +2761,7 @@ Instance = this;
             Vector3 doorPos = globalWallTilemap != null
                 ? globalWallTilemap.GetCellCenterWorld(globalWallTilemap.WorldToCell(anchor.transform.position))
                 : anchor.transform.position;
+            doorPos -= (Vector3)(Vector2)anchor.direction * anchor.doorInset;
             GameObject doorObj = Instantiate(doorPrefab, doorPos, Quaternion.Euler(0, 0, rotation), room.transform);
             doorObj.name = $"Door_{anchor.direction}_{room.name}";
             room.doorObjects.Add(doorObj.GetComponent<DoorUpController>());

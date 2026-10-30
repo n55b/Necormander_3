@@ -10,6 +10,8 @@ public class Projectile : MonoBehaviour
     [SerializeField] protected float speed = 15f;
     [SerializeField] protected float lifeTime = 3f;
     [SerializeField] protected bool rotateToDirection = true; // [추가] 날아가는 궤적 방향으로 오브젝트를 회전시킬지 여부 (구체형 등은 false)
+    [SerializeField, KoLabel("발사 효과음 종류"), Tooltip("화살은 궁수 발사, 마법탄은 발사 섬광. 소리 파일과 볼륨은 Feedback Catalog에서 조절합니다.")]
+    private FeedbackCue launchSound = FeedbackCue.ProjectileLaunch;
 
     private float nextFeedbackTrail;
     protected virtual bool IsGuiding => false;
@@ -31,7 +33,7 @@ public class Projectile : MonoBehaviour
     /// </summary>
     protected Vector2 HitFromPoint => (Vector2)transform.position - _direction * 2f;
 
-    public virtual void Init(Vector2 targetPos, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
+    public virtual void Init(Vector2 targetPos, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime, bool playLaunchSound = true)
     {
         GuardConsumed = false;
         _targetLayer = targetLayer;
@@ -65,7 +67,8 @@ public class Projectile : MonoBehaviour
         // 일정 시간 후 자동 파괴
         CancelInvoke(nameof(Expire));
         Invoke(nameof(Expire), Mathf.Max(.01f, lifeTime));
-        PolishFeedback.Play(FeedbackCue.ProjectileLaunch, transform.position, -_direction);
+        PolishFeedback.Play(FeedbackCue.ProjectileLaunch, transform.position, -_direction,playSound:false);
+        if (playLaunchSound) PolishFeedback.PlaySound(launchSound, transform.position);
 
         // 초기 겹쳐 있는 콜라이더 오버랩 체크
         Collider2D myCol = GetComponent<Collider2D>();
@@ -148,6 +151,7 @@ public class Projectile : MonoBehaviour
                 // attacker 는 쏜 본체라, 유도탄이면 실제 비행 방향과 전혀 다른 곳을 가리킨다.
                 DamageInfo info = GuardInfo;
                 damageable.TakeDamage(info);
+                PolishFeedback.PlaySound(FeedbackCue.WallHit, transform.position);
                 Destroy(gameObject);
                 return;
             }
@@ -192,6 +196,7 @@ public class Projectile : MonoBehaviour
         if (GuardConsumed) return;
         DamageInfo info = GuardInfo;
         targetStat.Health.GetDamage(info);
+        PolishFeedback.PlaySound(FeedbackCue.WallHit, transform.position);
         Destroy(gameObject);
     }
 
@@ -275,7 +280,8 @@ public class Projectile : MonoBehaviour
         // 일정 시간 후 자동 파괴
         CancelInvoke(nameof(Expire));
         Invoke(nameof(Expire), Mathf.Max(.01f, lifeTime));
-        PolishFeedback.Play(FeedbackCue.ProjectileLaunch, transform.position, -_direction);
+        PolishFeedback.Play(FeedbackCue.ProjectileLaunch, transform.position, -_direction,playSound:false);
+        PolishFeedback.PlaySound(FeedbackCue.ProjectileReflect, transform.position);
     }
 
     public virtual Projectile Deflect(GameObject newShooter, LayerMask newTargetLayer, Vector2 newDirection)

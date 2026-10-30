@@ -273,6 +273,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         entity.SetActiveHitbox(null);
 
         // [3] 돌진 돌입
+        PolishFeedback.PlaySound(FeedbackCue.ChargeStart, entity.transform.position);
         var agent = entity.GetComponent<NavMeshAgent>();
         bool wasAgentEnabled = agent != null && agent.enabled;
         if (wasAgentEnabled)
@@ -383,6 +384,7 @@ public class ChargerAIPatternSO : BaseAIPatternSO
         // (일반 ApplyStatus 는 그 둘을 다 통과시켜서 스턴이 조용히 무시될 수 있었다).
         if (hasHitObstacle && entity.Stats != null && entity.Stats.Status != null)
         {
+            PolishFeedback.PlaySound(FeedbackCue.ChargeWall, entity.transform.position);
             entity.Stats.Status.ApplyFixedStun(1.5f);
         }
     }

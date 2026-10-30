@@ -482,6 +482,36 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   useUnscaledTime: 0
+  pulseBlendRatio: 0.2
+  materializeEnabled: 1
+  appearDuration: 0.16
+  vanishDuration: 0.2
+  vanishRise: 0.18
+  vanishScale: {x: 0.22, y: 1.35}
+  materializeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &154813354001983104
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -563,6 +593,7 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 8939438294426237593}
+  sortingGroup: {fileID: 0}
 --- !u!4 &8030907915998992781 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7878350319992209165, guid: 480332cc36402aa4196f40f8d11a1996, type: 3}

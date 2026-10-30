@@ -14,6 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pushRadius: 0.8
   pushStrength: 2
+  attackRangeInset: 0.2
+  rangedFleeThreshold: 3
+  fleeTriggerDistance: 7
+  fleeStepDistance: 3.5
+  fleeArrivalDistance: 0.5
+  fleeSpreadAngle: 90
+  fallbackAttackWindup: 1
+  attackAnimationIntervalRatio: 0.9
+  chasePathRefreshInterval: 0.12
   spawnTelegraph: 1
   phase2Threshold: 0.5
   aimLockLeadTime: 0.5
@@ -43,6 +52,7 @@ MonoBehaviour:
   postPatternRecovery: 1
   telegraphWarnColor: {r: 1, g: 0.15, b: 0.15, a: 0.9}
   laneTelegraphPrefab: {fileID: -7664338518204726940, guid: cab592efd7b92504fb55c3c437314bc3, type: 3}
+  executionLanePrefab: {fileID: -7664338518204726940, guid: 118aaca2f9dd7ae45bc4206feac1254d, type: 3}
   circleTelegraphPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   minRingTelegraphLead: 1
   sweepStepDistance: 0

@@ -11,13 +11,15 @@ public static class PolishFeedback
     // 연출을 꺼도 전투/보상 추첨의 Unity Random 상태가 바뀌지 않는다.
     private static readonly System.Random visualRandom = new System.Random();
     internal static float VisualRange(float min, float max) => min+(max-min)*(float)visualRandom.NextDouble();
-    private static readonly float[] next = new float[(int)FeedbackCue.PerfectGuardRing + 1];
+    private static readonly float[] next = new float[(int)FeedbackCue.DoorEmerge + 1];
+    private static readonly float[] nextSound = new float[(int)FeedbackCue.DoorEmerge + 1];
+    public static event System.Action<FeedbackCue, AudioClip> SoundPlayed;
     public static FeedbackCatalog Catalog
     {
         get { if(!loaded) { catalog=Resources.Load<FeedbackCatalog>("FeedbackCatalog"); loaded=true; } return catalog; }
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void Reset() { catalog=null; loaded=false; frame=-1; System.Array.Clear(next,0,next.Length); Shader.SetGlobalFloat("_FeedbackDitherDisabled", 0f); }
+    private static void Reset() { catalog=null; loaded=false; frame=-1; System.Array.Clear(next,0,next.Length); System.Array.Clear(nextSound,0,nextSound.Length); Shader.SetGlobalFloat("_FeedbackDitherDisabled", 0f); }
     public static bool ExistingEnabled(ExistingFeedbackCue cue) => Catalog == null || Catalog.ExistingEnabled(cue);
     public static void RefreshShaderSettings() => Shader.SetGlobalFloat("_FeedbackDitherDisabled", ExistingEnabled(ExistingFeedbackCue.Dither) ? 0f : 1f);
     public static bool Enabled(FeedbackCue cue)
@@ -26,12 +28,13 @@ public static class PolishFeedback
         return c!=null && c.enabled && c.intensity>0 && r!=null && r.enabled && r.intensity>0;
     }
     public static FeedbackBurst Play(FeedbackCue cue, Vector3 position, Vector2 direction=default, int tier=0,
-        Transform target=null, Sprite sprite=null, Color? tint=null)
+        Transform target=null, Sprite sprite=null, Color? tint=null, bool playSound=true)
     {
         var c=Catalog;
-        if(c==null || !c.enabled || c.intensity<=0) return null;
+        if(c==null || !c.enabled) return null;
         var r=c.Find(cue);
-        if(r==null || !r.enabled || r.intensity<=0) return null;
+        if (playSound && r != null && tier >= r.minimumTier) PlaySound(cue, position);
+        if(c.intensity<=0 || r==null || !r.enabled || r.intensity<=0) return null;
         if(tier<r.minimumTier) return null;
         if(frame!=Time.frameCount) { frame=Time.frameCount; bursts=0; sounds=0; guardBursts=0; }
         int id=(int)cue;
@@ -41,12 +44,6 @@ public static class PolishFeedback
         if(guardCue && guardBursts>=2) return null;
         if(!guardCue && (bursts>=c.burstsPerFrame || FeedbackBurst.ActiveCount>=c.simultaneousBursts)) return null;
         next[id]=Time.time+r.interval;
-        if(r.sound!=null && sounds<c.soundsPerFrame && SoundManager.Instance!=null)
-        {
-            sounds++;
-            float variation=Enabled(FeedbackCue.SoundVariation)?r.pitchVariation:0;
-            SoundManager.Instance.PlaySFX(r.sound,r.volume*c.intensity*(1+VisualRange(-variation,variation)),1+VisualRange(-variation,variation));
-        }
         if(cue==FeedbackCue.Distortion) FeedbackDistortionFeature.Add(position);
         if(r.prefab==null) return null;
         bursts++;
@@ -57,12 +54,44 @@ public static class PolishFeedback
         return burst;
     }
 
+    /// <summary>시각 효과 풀 포화/강도와 별개로 실제 행동 시점에 소리를 낸다.</summary>
+    public static bool PlaySound(FeedbackCue cue, Vector3 position)
+    {
+        var c = Catalog;
+        var r = c != null ? c.Find(cue) : null;
+        if (c == null || !c.enabled || r == null || !r.enabled || SoundManager.Instance == null) return false;
+        if (frame != Time.frameCount) { frame=Time.frameCount; bursts=0; sounds=0; guardBursts=0; }
+        if (r.audio != null && r.audio.HasClip)
+        {
+            if (sounds >= c.soundsPerFrame && r.audio.priority > 64) return false;
+            if (!r.audio.Play(position)) return false;
+            sounds++;
+            SoundPlayed?.Invoke(cue, r.audio.LastPlayedClip);
+            return true;
+        }
+        if (r.sound == null || sounds >= c.soundsPerFrame || Time.unscaledTime < nextSound[(int)cue]) return false;
+        nextSound[(int)cue] = Time.unscaledTime + r.interval;
+        sounds++;
+        float variation = Enabled(FeedbackCue.SoundVariation) ? r.pitchVariation : 0;
+        SoundManager.Instance.PlaySFX(r.sound, r.volume*c.intensity*(1+VisualRange(-variation,variation)), 1+VisualRange(-variation,variation));
+        SoundPlayed?.Invoke(cue, r.sound);
+        return true;
+    }
+
     /// <summary>공용 효과와 현재 미니언의 타격 효과를 로딩 화면에서 조금씩 준비한다.</summary>
     public static IEnumerator Prewarm()
     {
         var c = Catalog;
         if (c == null || !c.enabled) yield break;
         int perFrame = 0;
+        // 짧은 효과음은 미리 PCM으로 풀어 첫 발사/피격 순간의 압축 해제를 피한다.
+        if (c.effects != null) foreach (var recipe in c.effects)
+        {
+            if (recipe == null || !recipe.enabled) continue;
+            if (recipe.audio?.clips != null) foreach (var clip in recipe.audio.clips)
+                if (clip != null && clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
+            if (++perFrame >= 8) { perFrame = 0; yield return null; }
+        }
         var prefabs = new HashSet<FeedbackBurst>();
         if (c.effects != null) foreach (var recipe in c.effects)
             if (recipe != null && recipe.enabled && recipe.prefab != null) prefabs.Add(recipe.prefab);
@@ -148,6 +177,7 @@ public static class PolishFeedback
     public static void ResolvedHit(CharacterHealth health, CharacterStat attacker, DamageInfo info, bool critical)
     {
         if(health==null || !DamageRules.IsPlayerSourced(info.category) || info.category==DamageCategory.Parry) return;
+        if (info.category == DamageCategory.BasicAttack && info.minionSource != null) info.minionSource.PlayBasicHitSound();
         Vector3 pos=health.transform.position;
         Vector2 dir=info.attacker!=null ? pos-info.attacker.transform.position:Vector2.right;
         bool minion=info.playerBasicAttack==null;
@@ -178,6 +208,8 @@ public static class PolishFeedback
         var entity=health.GetComponentInParent<BaseEntity>();
         if(entity==null) return;
         var pos=entity.transform.position;
+        if (entity.team == Team.Enemy)
+            PlaySound(entity.Brain is DualSplitAIPatternSO ? FeedbackCue.SplitDeath : FeedbackCue.EnemyDeath, pos);
         Play(FeedbackCue.KillHit,pos,Vector2.up,MinionTier());
         if(Player!=null) Play(FeedbackCue.SoulReturn,pos,Vector2.up,MinionTier(),Player.transform);
         if(entity.MinionData!=null&&entity.MinionData.tier==EnemyTier.Boss)

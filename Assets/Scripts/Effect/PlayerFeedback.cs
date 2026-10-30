@@ -9,7 +9,7 @@ public sealed class PlayerFeedback : MonoBehaviour
     [SerializeField] private PlayerSkillController skills;
     private Vector3 previous;
     private Vector2 velocity;
-    private float nextTrail, nextStep, nextWater;
+    private float nextTrail, nextWater, nextHeartbeat;
     private int charges;
     private bool dashing, ready, minionReady;
     private CharacterHealth health;
@@ -45,21 +45,30 @@ public sealed class PlayerFeedback : MonoBehaviour
     {
         if(player==null||PolishFeedback.Catalog==null) return;
         health=player.Stat!=null?player.Stat.Health:null;
-        if(health!=null) FeedbackOverlay.Instance?.SetHealth(health.MaxHP>0?health.CurHP/health.MaxHP:1);
+        if(health!=null)
+        {
+            float fraction = health.MaxHP > 0 ? health.CurHP / health.MaxHP : 1;
+            FeedbackOverlay.Instance?.SetHealth(fraction);
+            if (!health.IsDead && !player.IsInputBlocked && !PlayerController.IsGameplayPaused
+                && fraction < PolishFeedback.Catalog.lowHealthRatio && Time.time >= nextHeartbeat)
+            {
+                nextHeartbeat = Time.time + PolishFeedback.Catalog.lowHealthInterval;
+                PolishFeedback.PlaySound(FeedbackCue.LowHealth, transform.position);
+            }
+        }
         Vector3 position=transform.position;
         Vector2 delta=position-previous;
         previous=position;
         if(Time.deltaTime<=0||player.IsInputBlocked||delta.sqrMagnitude>4) { velocity=Vector2.zero; return; }
         Vector2 current=delta/Time.deltaTime;
         bool dash=dodge!=null&&dodge.IsDashing;
-        if(dash&&!dashing) PolishFeedback.Play(FeedbackCue.DashStart,position,current.normalized);
+        if(dash&&!dashing) PolishFeedback.Play(FeedbackCue.DashStart,position,current.normalized,playSound:false);
         if(!dash&&dashing) PolishFeedback.Play(FeedbackCue.DashEnd,position,velocity.normalized);
         if(!dash&&!dashing)
         {
             if(current.magnitude>.4f&&velocity.magnitude<.1f) PolishFeedback.Play(FeedbackCue.MoveStart,position,-current.normalized);
             if(current.magnitude<.1f&&velocity.magnitude>.4f) PolishFeedback.Play(FeedbackCue.MoveBrake,position,velocity.normalized);
             if(current.sqrMagnitude>1&&velocity.sqrMagnitude>1&&Vector2.Dot(current.normalized,velocity.normalized)<.4f) PolishFeedback.Play(FeedbackCue.MoveTurn,position,-velocity.normalized);
-            if(current.magnitude>.5f&&Time.time>nextStep) { nextStep=Time.time+PolishFeedback.Catalog.stepInterval; PolishFeedback.Play(FeedbackCue.FootSurface,position,-current.normalized,tint:MapGenerator.Instance!=null?MapGenerator.Instance.FootstepColor(position):(Color?)null); }
         }
         if(dash&&Time.time>nextTrail) { nextTrail=Time.time+PolishFeedback.Catalog.trailInterval; PolishFeedback.Play(FeedbackCue.DashTrail,position,-current.normalized); }
         if(dodge!=null)

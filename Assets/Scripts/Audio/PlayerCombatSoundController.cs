@@ -70,6 +70,11 @@ private void OnDestroy()
     // ─── ① 구르기 → 구르기 사운드 ────────────────────────────────────────────
 private void OnDodge()
     {
+        if (PolishFeedback.Catalog?.Find(FeedbackCue.DashStart)?.audio?.HasClip == true)
+        {
+            PolishFeedback.PlaySound(FeedbackCue.DashStart, transform.position);
+            return;
+        }
         if (soundData == null || SoundManager.Instance == null) return;
         SoundManager.Instance.PlaySFX(soundData.GetDodgeClip(), soundData.dodgeVolume);
     }
@@ -77,12 +82,18 @@ private void OnDodge()
     // ─── 가드 사운드 (시작 / 방어 성공) ──────────────────
     private void OnParryStart()
     {
+        if (PolishFeedback.Catalog?.Find(FeedbackCue.GuardRaise)?.audio?.HasClip == true)
+        {
+            PolishFeedback.PlaySound(FeedbackCue.GuardRaise, transform.position);
+            return;
+        }
         if (soundData == null || SoundManager.Instance == null) return;
         SoundManager.Instance.PlaySFX(soundData.GetParryStartClip(), soundData.parryStartVolume);
     }
 
     private void OnParrySuccess()
     {
+        if (_parry != null && _parry.LastBlockWasPerfect) return; // 전용 퍼펙트 가드 소리와 겹치지 않는다.
         if (soundData == null || SoundManager.Instance == null) return;
         SoundManager.Instance.PlaySFX(soundData.GetParrySuccessClip(), soundData.parrySuccessVolume);
     }

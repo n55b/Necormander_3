@@ -1,6 +1,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// Y좌표 기반 동적 스프라이트 정렬.
@@ -25,6 +26,9 @@ public class YSortableObject : MonoBehaviour
 
     [Tooltip("정렬 기준점을 다른 Transform으로 고정할 때 지정. 예: 손/무기 스프라이트가 자기 Y가 아니라 몸통 Y를 기준으로 정렬되도록. 비워두면 자기 자신의 Transform 사용.")]
     [SerializeField] private Transform pivotOverride;
+
+    [SerializeField, InspectorName("함께 정렬할 몸체 그룹"), Tooltip("몸과 무기를 한 묶음으로 앞뒤 정렬할 때 연결합니다. 일반 사물은 비워둡니다.")]
+    private SortingGroup sortingGroup;
 
     /// <summary>현재 씬에 활성화된 모든 YSortableObject 등록. 가림(occlusion) 판정 등에서 순회용으로 사용.</summary>
     public static readonly List<YSortableObject> ActiveInstances = new List<YSortableObject>();
@@ -77,6 +81,8 @@ private void Start()
         _lastOrder = order;
 
         _renderer.sortingOrder = order;
+        if (sortingGroup != null)
+        { sortingGroup.sortingLayerID = _renderer.sortingLayerID; sortingGroup.sortingOrder = order; }
     }
 
     /// <summary>외부에서 피벗(정렬 기준점)을 다른 Transform으로 지정할 때 사용 (예: 발밑 기준).</summary>

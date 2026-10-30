@@ -194937,13 +194937,25 @@ PrefabInstance:
       propertyPath: m_Name
       value: SpotLight
       objectReference: {fileID: 0}
+    - target: {fileID: 4811928166353188002, guid: 7db6a6e25b934614b84a7ae2439aad0a, type: 3}
+      propertyPath: m_LightCookieSprite
+      value: 
+      objectReference: {fileID: -1932207817200600204, guid: 2d41cb1c04c7a814c830c13b9fb7b618, type: 3}
+    - target: {fileID: 7953078042309958236, guid: 7db6a6e25b934614b84a7ae2439aad0a, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7953078042309958236, guid: 7db6a6e25b934614b84a7ae2439aad0a, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7953078042309958236, guid: 7db6a6e25b934614b84a7ae2439aad0a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 4.62
+      value: 4.5
       objectReference: {fileID: 0}
     - target: {fileID: 7953078042309958236, guid: 7db6a6e25b934614b84a7ae2439aad0a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 5.9
+      value: 1.7
       objectReference: {fileID: 0}
     - target: {fileID: 7953078042309958236, guid: 7db6a6e25b934614b84a7ae2439aad0a, type: 3}
       propertyPath: m_LocalPosition.z

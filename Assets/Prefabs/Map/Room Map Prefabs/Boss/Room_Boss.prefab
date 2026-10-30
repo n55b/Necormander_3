@@ -21585,6 +21585,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b48a7c6bafddea49bca4ba2b0596a61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnStartDelay: 0.5
   specificBossData: {fileID: 0}
   portalObject: {fileID: 7688696379878300730, guid: 3f4bb635140eefb4698ee6fff68c87fb, type: 3}
   rewardBoxPrefab: {fileID: 5837210638417428083, guid: 912d8a7544ed68f4bade387c04358ac1, type: 3}
@@ -135858,6 +135859,10 @@ PrefabInstance:
       value: DoorAnchor
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
       value: 1
       objectReference: {fileID: 0}
@@ -136122,6 +136127,10 @@ PrefabInstance:
       value: DoorAnchor (1)
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
       value: -1
       objectReference: {fileID: 0}
@@ -136190,6 +136199,10 @@ PrefabInstance:
     - target: {fileID: 2406258673432980911, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: m_Name
       value: DoorAnchor (10)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
@@ -136450,6 +136463,10 @@ PrefabInstance:
     - target: {fileID: 2406258673432980911, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: m_Name
       value: DoorAnchor (7)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
@@ -136716,6 +136733,10 @@ PrefabInstance:
       value: DoorAnchor (12)
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
       value: 0
       objectReference: {fileID: 0}
@@ -136784,6 +136805,10 @@ PrefabInstance:
     - target: {fileID: 2406258673432980911, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: m_Name
       value: DoorAnchor (11)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
@@ -136916,6 +136941,10 @@ PrefabInstance:
     - target: {fileID: 2406258673432980911, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: m_Name
       value: DoorAnchor (6)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
@@ -137054,6 +137083,10 @@ PrefabInstance:
       value: DoorAnchor (9)
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
       value: 0
       objectReference: {fileID: 0}
@@ -137122,6 +137155,10 @@ PrefabInstance:
     - target: {fileID: 2406258673432980911, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: m_Name
       value: DoorAnchor (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
@@ -137324,6 +137361,10 @@ PrefabInstance:
     - target: {fileID: 2406258673432980911, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: m_Name
       value: DoorAnchor (8)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
@@ -137718,6 +137759,10 @@ PrefabInstance:
       value: DoorAnchor (3)
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
       value: 1
       objectReference: {fileID: 0}
@@ -137786,6 +137831,10 @@ PrefabInstance:
     - target: {fileID: 2406258673432980911, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: m_Name
       value: DoorAnchor (5)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x
@@ -137918,6 +137967,10 @@ PrefabInstance:
     - target: {fileID: 2406258673432980911, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: m_Name
       value: DoorAnchor (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
+      propertyPath: doorInset
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5039713261729630864, guid: 71cff2ab965779b49ad1a996d1bd8dbc, type: 3}
       propertyPath: direction.x

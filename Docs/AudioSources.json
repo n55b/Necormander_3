@@ -1,0 +1,1135 @@
+[
+  {
+    "provider": "mixkit",
+    "id": 1125,
+    "title": "Typewriter soft click",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/click/#:~:text=Typewriter%20soft%20click",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "04837e10d65b23aede5626d833e4e46001e90e908817200da1dcf21a51d36205",
+    "edits": [
+      {
+        "name": "DialogueType",
+        "cut": [
+          0.085,
+          0.16
+        ],
+        "speed": 1.7,
+        "lowpass": 3800,
+        "highpass": 300,
+        "extra": "",
+        "duration": 0.0572,
+        "peak_db": -5.960000038146973,
+        "rms_db": -27.030000686645508,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/DialogueType.wav",
+        "sha256": "c6716014900c570ba4b922dfbd8371d83547ce4922a56f13f5d8518e67d01f10"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 1269,
+    "title": "Walking on stones loop",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/footsteps/#:~:text=Walking%20on%20stones%20loop",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "326ad8dd953d3008117b024a62da400a1c2126119fc1aa90d8358ba9b65849df",
+    "edits": [
+      {
+        "name": "FootGround_A",
+        "cut": [
+          0.09,
+          0.44
+        ],
+        "speed": 2.0999999999999996,
+        "lowpass": 3800,
+        "highpass": 130,
+        "extra": "",
+        "duration": 0.1663,
+        "peak_db": -7.099999904632568,
+        "rms_db": -25.020000457763672,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/FootGround_A.wav",
+        "sha256": "a6cce81518fd4f35137389230c0099966d6091514ba354dc2b19170597505998"
+      },
+      {
+        "name": "FootGround_B",
+        "cut": [
+          0.7,
+          1.08
+        ],
+        "speed": 2.0999999999999996,
+        "lowpass": 3800,
+        "highpass": 130,
+        "extra": "",
+        "duration": 0.1945,
+        "peak_db": -7.019999980926514,
+        "rms_db": -25.200000762939453,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/FootGround_B.wav",
+        "sha256": "d1289b56010e98e6fa1164fe0e1dcf9465daf6658bbe568eff964c3f1b69ed36"
+      },
+      {
+        "name": "FootGround_C",
+        "cut": [
+          1.27,
+          1.52
+        ],
+        "speed": 1.6500000000000001,
+        "lowpass": 3800,
+        "highpass": 130,
+        "extra": "",
+        "duration": 0.1473,
+        "peak_db": -8.789999961853027,
+        "rms_db": -25.100000381469727,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/FootGround_C.wav",
+        "sha256": "3c5d3c8295cda80237d74cf21f0448261e5246b8b74c5a0b0f2b000e414188ad"
+      },
+      {
+        "name": "FootGround_D",
+        "cut": [
+          1.85,
+          2.15
+        ],
+        "speed": 1.9500000000000002,
+        "lowpass": 3800,
+        "highpass": 130,
+        "extra": "",
+        "duration": 0.1419,
+        "peak_db": -6.010000228881836,
+        "rms_db": -25.110000610351562,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/FootGround_D.wav",
+        "sha256": "1633c36ee5d200a392f87192281641a6ed715ed31e03b08e5234882d5095d160"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 1487,
+    "title": "Dagger woosh",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/sword/#:~:text=Dagger%20woosh",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "f8483970bec9e69ed7234545da9ee59a733c5310c8becbd3db8b6a63064c3049",
+    "edits": [
+      {
+        "name": "EnemyMelee_A",
+        "cut": [
+          0.03,
+          0.27
+        ],
+        "speed": 1.5,
+        "lowpass": 5000,
+        "highpass": 120,
+        "extra": "",
+        "duration": 0.1596,
+        "peak_db": -7.340000152587891,
+        "rms_db": -21.06999969482422,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/EnemyMelee_A.wav",
+        "sha256": "383b10cffcd9a84cd258820ecf28e589e2c0dcaa7298cd69769736161204d2e8"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 1489,
+    "title": "Air woosh",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/whoosh/#:~:text=Air%20woosh",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "fdc4f87eb2c6d29ec3567b299fdc3b2aeea2432afe27801db80c496bda084499",
+    "edits": [
+      {
+        "name": "DashStart",
+        "cut": [
+          0.38,
+          1.18
+        ],
+        "speed": 2.8,
+        "lowpass": 6000,
+        "highpass": 150,
+        "extra": "",
+        "duration": 0.2928,
+        "peak_db": -11.65999984741211,
+        "rms_db": -20.190000534057617,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/DashStart.wav",
+        "sha256": "cabcb9704606367a7645a64085f11694e3eed1c5ff1ccab80bb70056cf4b354c"
+      },
+      {
+        "name": "ChargeStart",
+        "cut": [
+          0.32,
+          1.23
+        ],
+        "speed": 2.1,
+        "lowpass": 4800,
+        "highpass": 100,
+        "extra": "",
+        "duration": 0.4518,
+        "peak_db": -11.5,
+        "rms_db": -20.100000381469727,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/ChargeStart.wav",
+        "sha256": "d320062926fb1a06036f42d03a61c996cedd6eac108e8aa7dd2d4c0f94c996c6"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 1491,
+    "title": "Arrow whoosh",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/whoosh/#:~:text=Arrow%20whoosh",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "c9aa08de97e5a1235f9b2b4eb7a1096f2fe09586995859e46aa83e9066badca2",
+    "edits": [
+      {
+        "name": "ArrowShot",
+        "cut": [
+          0.17,
+          0.46
+        ],
+        "speed": 1.8,
+        "lowpass": 6000,
+        "highpass": 200,
+        "extra": "",
+        "duration": 0.1575,
+        "peak_db": -7.679999828338623,
+        "rms_db": -21.010000228881836,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/ArrowShot.wav",
+        "sha256": "14d733159079a47c981b3ca7938eed3ac83cbbc6bc5c0d198cd2f1a892c80790"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 1523,
+    "title": "Heavy sliding door",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/doors/#:~:text=Heavy%20sliding%20door",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "b61787d524e16e11675b07b578fb0b9322bbae9aa220936e7a89b72c143837fb",
+    "edits": [
+      {
+        "name": "DoorOpen",
+        "cut": [
+          0.1,
+          1.08
+        ],
+        "speed": 2.3,
+        "lowpass": 3500,
+        "highpass": 100,
+        "extra": "",
+        "duration": 0.4387,
+        "peak_db": -13.890000343322754,
+        "rms_db": -24.0,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/DoorOpen.wav",
+        "sha256": "e9036e702af000a4df5028bea77f5adf291021166dc77fcf14a9b2caeb0d9ae2"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 1694,
+    "title": "Short explosion",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/explosion/#:~:text=Short%20explosion",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "8c1a3261c957706fcbd101e6af767f6c917123f7d0856aaed484beca4687aad4",
+    "edits": [
+      {
+        "name": "ChargeImpact",
+        "cut": [
+          0,
+          0.72
+        ],
+        "speed": 1.9,
+        "lowpass": 4300,
+        "highpass": 65,
+        "extra": "",
+        "duration": 0.385,
+        "peak_db": -5.53000020980835,
+        "rms_db": -19.010000228881836,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/ChargeImpact.wav",
+        "sha256": "79f51edae2da220d77dae20ed8097c21d14f177441ec15aa88767695efdc9260"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 1920,
+    "title": "Grass step",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/discover/grass/#:~:text=Grass%20step",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "b12a352009d7ad6510cfaad273c4a25f9cd74b2035694c91241366b3775748d0",
+    "edits": [
+      {
+        "name": "DashLand",
+        "cut": [
+          0.08,
+          0.55
+        ],
+        "speed": 2.0,
+        "lowpass": 4200,
+        "highpass": 90,
+        "extra": "",
+        "duration": 0.2407,
+        "peak_db": -6.650000095367432,
+        "rms_db": -22.09000015258789,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/DashLand.wav",
+        "sha256": "65493df91bc3455092e59bae3c453537277d9c320e371d14a9d85af304d639ca"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 1993,
+    "title": "Clinking coins",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/coin/#:~:text=Clinking%20coins",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "0c24f5172586b6cbed13cff9099ad59705177fe1cc40c941797983af4e75d717",
+    "edits": [
+      {
+        "name": "Coins",
+        "cut": [
+          0,
+          0.72
+        ],
+        "speed": 2.5,
+        "lowpass": 5400,
+        "highpass": 240,
+        "extra": "",
+        "duration": 0.3014,
+        "peak_db": -3.880000114440918,
+        "rms_db": -23.389999389648438,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/Coins.wav",
+        "sha256": "79523903006a3070c891cfef5f5a18a96078cd88cb94a08f13dfd2038357dfcf"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 2069,
+    "title": "Winning a coin, video game",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/game/#:~:text=Winning%20a%20coin%2C%20video%20game",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "bff5c76442da525f142d39baa743387c5719bcc2c69827f9139db57127bc8eaf",
+    "edits": [
+      {
+        "name": "MinionUpgrade",
+        "cut": [
+          0,
+          0.74
+        ],
+        "speed": 1.5,
+        "lowpass": 6200,
+        "highpass": 160,
+        "extra": "",
+        "duration": 0.5013,
+        "peak_db": -9.789999961853027,
+        "rms_db": -20.0,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/MinionUpgrade.wav",
+        "sha256": "d77259664fcccb085dff331e3d166d4378ccdd63dbd79bea63bca42e07eb0969"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 2353,
+    "title": "Magic glitter shot",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/magic/#:~:text=Magic%20glitter%20shot",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "63b572fd90233d3e924f79082803f84127cb1161a6d132bb82079cb7003d3f36",
+    "edits": [
+      {
+        "name": "MinionSummon",
+        "cut": [
+          0.78,
+          1.72
+        ],
+        "speed": 2.8,
+        "lowpass": 4000,
+        "highpass": 180,
+        "extra": "",
+        "duration": 0.3507,
+        "peak_db": -12.539999961853027,
+        "rms_db": -25.219999313354492,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/MinionSummon.wav",
+        "sha256": "bb38a1d50136001935aa47395d34108c44c672ab570b7f3503b9bdeb39ca1010"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 2568,
+    "title": "Cool interface click tone",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/interface/#:~:text=Cool%20interface%20click%20tone",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "248312c2ef619427ef7024126a846e4210fe37e39038cfd32c73b1fb854a8086",
+    "edits": [
+      {
+        "name": "UIButton",
+        "cut": [
+          0,
+          0.12
+        ],
+        "speed": 1.6,
+        "lowpass": 5300,
+        "highpass": 180,
+        "extra": "",
+        "duration": 0.0719,
+        "peak_db": -12.630000114440918,
+        "rms_db": -28.020000457763672,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/UIButton.wav",
+        "sha256": "13d6bdfed4b4d6bd762632d9b23aed3f36b9c8762b7161707a0075901cd1e400"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 2569,
+    "title": "Negative tone interface tap",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/interface/#:~:text=Negative%20tone%20interface%20tap",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "66be19b433b653739b10c257365d71d110958c8a150dc19c0948c27fec3ab5b8",
+    "edits": [
+      {
+        "name": "PurchaseFail",
+        "cut": [
+          0,
+          0.31
+        ],
+        "speed": 1.7,
+        "lowpass": 4800,
+        "highpass": 120,
+        "extra": "",
+        "duration": 0.1861,
+        "peak_db": -11.600000381469727,
+        "rms_db": -22.149999618530273,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/PurchaseFail.wav",
+        "sha256": "7da8f5c1cf6e88b5c1e92e611e777afe4bb305eaee61632f169f1a90aa11b5c2"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 2582,
+    "title": "Quick switch click",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/click/#:~:text=Quick%20switch%20click",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "35eddfbbb0d53ea5f430443dba0125a6b1c8ad1b822a920b24c7ae9b3ead3cee",
+    "edits": [
+      {
+        "name": "CounterSuccess",
+        "cut": [
+          0,
+          0.24
+        ],
+        "speed": 1.5,
+        "lowpass": 6000,
+        "highpass": 120,
+        "extra": "",
+        "duration": 0.1713,
+        "peak_db": -4.880000114440918,
+        "rms_db": -18.229999542236328,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/CounterSuccess.wav",
+        "sha256": "2b8e631d159c4963372386ad321c209fe9fa4d493f93c3d407daf4f7a9932b12"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 2776,
+    "title": "Sword blade lashes chainmail armor",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/sword/#:~:text=Sword%20blade%20lashes%20chainmail%20armor",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "4c48be8eb55d0b15fd5b4ee013daa5bc026ffbe9493a8cf3a772589916e02162",
+    "edits": [
+      {
+        "name": "BossLand",
+        "cut": [
+          0.04,
+          0.62
+        ],
+        "speed": 1.65,
+        "lowpass": 4800,
+        "highpass": 85,
+        "extra": "",
+        "duration": 0.3647,
+        "peak_db": -3.880000114440918,
+        "rms_db": -20.0,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/BossLand.wav",
+        "sha256": "e05ab1795d16abe6a02c48d1020655006951e9d8e5c4c1f5364c2f5586c89d8d"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 3062,
+    "title": "Magic wand sparkle",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/magic/#:~:text=Magic%20wand%20sparkle",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "6b7938d7c408bb2c413945cee4219f8edf5014d49ccf2020659f954ef7a699ce",
+    "edits": [
+      {
+        "name": "PortalTravel",
+        "cut": [
+          0,
+          1.1
+        ],
+        "speed": 2.0,
+        "lowpass": 5600,
+        "highpass": 200,
+        "extra": "",
+        "duration": 0.545,
+        "peak_db": -10.229999542236328,
+        "rms_db": -23.0,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/PortalTravel.wav",
+        "sha256": "008127ef556c64412bf6ad6136cf7c86be28fb839931efad89db26b3b6785b48"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 3114,
+    "title": "Fast sci fi transition sweep",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/sci-fi/#:~:text=Fast%20sci%20fi%20transition%20sweep",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "87de75447edc15e1f17473bb7303abfcef6b11fffb62f902af5b752bd82904ef",
+    "edits": [
+      {
+        "name": "GuardRaise",
+        "cut": [
+          0.12,
+          0.58
+        ],
+        "speed": 2.2,
+        "lowpass": 5200,
+        "highpass": 170,
+        "extra": "",
+        "duration": 0.2115,
+        "peak_db": -8.710000038146973,
+        "rms_db": -22.190000534057617,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/GuardRaise.wav",
+        "sha256": "abed518ae4098b38efec189c8d672e8468c3b9d0c3a128d59235b30e1e7c76ce"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 494,
+    "title": "Slow heartbeat",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/heartbeat/#:~:text=Slow%20heartbeat",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "822be1b3de5bdd0774173c0da82272addd7e6dde0ff46079d9b74e323a539627",
+    "edits": [
+      {
+        "name": "Heartbeat",
+        "cut": [
+          0.4,
+          1.15
+        ],
+        "speed": 1.0,
+        "lowpass": 650,
+        "highpass": 35,
+        "extra": "",
+        "duration": 0.7469,
+        "peak_db": -16.43000030517578,
+        "rms_db": -24.0,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/Heartbeat.wav",
+        "sha256": "07ceca7e750fd97b56469965bf5afaef2ba04288f88422427d44b49116630031"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 532,
+    "title": "Footsteps on tall grass",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/discover/grass/#:~:text=Footsteps%20on%20tall%20grass",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "ee8664b534dea3178de2b1ad6370af73d4f1a3c1f713116f20f6758277dcd697",
+    "edits": [
+      {
+        "name": "FootGrass_A",
+        "cut": [
+          0.06,
+          0.49
+        ],
+        "speed": 2.25,
+        "lowpass": 3800,
+        "highpass": 110,
+        "extra": "",
+        "duration": 0.2132,
+        "peak_db": -5.769999980926514,
+        "rms_db": -25.190000534057617,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/FootGrass_A.wav",
+        "sha256": "6933833fffcab956b69f73ed54b3e6cbbad7022852cf22bd1c0d9933f6603e4e"
+      },
+      {
+        "name": "FootGrass_B",
+        "cut": [
+          0.81,
+          1.11
+        ],
+        "speed": 1.7999999999999998,
+        "lowpass": 3800,
+        "highpass": 110,
+        "extra": "",
+        "duration": 0.1624,
+        "peak_db": -10.850000381469727,
+        "rms_db": -25.520000457763672,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/FootGrass_B.wav",
+        "sha256": "6b9b7a040901f3a2da0d15925451f81ecbf2844f36d8ceda4ec2349fcdd503b7"
+      },
+      {
+        "name": "FootGrass_C",
+        "cut": [
+          1.6,
+          1.94
+        ],
+        "speed": 1.9500000000000002,
+        "lowpass": 3800,
+        "highpass": 110,
+        "extra": "",
+        "duration": 0.1662,
+        "peak_db": -10.779999732971191,
+        "rms_db": -25.3799991607666,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/FootGrass_C.wav",
+        "sha256": "0bd131dbb59fb3af4269d2d8f63e12a58a292d0ef348d1538cdda22fd81be33c"
+      },
+      {
+        "name": "FootGrass_D",
+        "cut": [
+          2.21,
+          2.66
+        ],
+        "speed": 2.25,
+        "lowpass": 3800,
+        "highpass": 110,
+        "extra": "",
+        "duration": 0.198,
+        "peak_db": -3.880000114440918,
+        "rms_db": -27.5,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/FootGrass_D.wav",
+        "sha256": "8d05ac9f3258edbd926deb8024d6784268cc02d743284a4621a9935efcf6e107"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 873,
+    "title": "Light spell",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/spell/#:~:text=Light%20spell",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "394090b28b6a63689047954bcb86576045341cd42da9ee74b624c7e28bd23206",
+    "edits": [
+      {
+        "name": "Heal",
+        "cut": [
+          0.08,
+          1.14
+        ],
+        "speed": 1.8,
+        "lowpass": 5500,
+        "highpass": 160,
+        "extra": "",
+        "duration": 0.5987,
+        "peak_db": -10.0600004196167,
+        "rms_db": -22.020000457763672,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/Heal.wav",
+        "sha256": "4cc29d89b7d7b4bfb89de01b5f85d3836e0f569f0e801dbcfae2c5ea770987ba"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 881,
+    "title": "Icicles spell whoosh",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/spell/#:~:text=Icicles%20spell%20whoosh",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "f2b697ca91377e5f66fa4ccc1798a87fc1d03e108554b39d2075103e9bccbd02",
+    "edits": [
+      {
+        "name": "Freeze",
+        "cut": [
+          0.38,
+          1.7
+        ],
+        "speed": 2.5,
+        "lowpass": 6500,
+        "highpass": 250,
+        "extra": "",
+        "duration": 0.541,
+        "peak_db": -9.25,
+        "rms_db": -22.030000686645508,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/Freeze.wav",
+        "sha256": "d7b9b4bbf672c64050b4c10d39919ea95e62c2f2e6e297ac98b710f7e44cf5d7"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 883,
+    "title": "Fast magic game spell",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/spell/#:~:text=Fast%20magic%20game%20spell",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "d34200b11b157cedeb87d1ee7a5d0fa957e81ee97154e423d23d1af3e3f2b18a",
+    "edits": [
+      {
+        "name": "MagicCast",
+        "cut": [
+          0,
+          0.93
+        ],
+        "speed": 2.2,
+        "lowpass": 5400,
+        "highpass": 160,
+        "extra": "",
+        "duration": 0.4251,
+        "peak_db": -7.769999980926514,
+        "rms_db": -21.030000686645508,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/MagicCast.wav",
+        "sha256": "cd7f267589c3f2a4177962be16e195d3681e7ddb1734709424bc9d645e74af66"
+      },
+      {
+        "name": "MagicProjectile",
+        "cut": [
+          0,
+          0.58
+        ],
+        "speed": 2.4,
+        "lowpass": 5600,
+        "highpass": 220,
+        "extra": "",
+        "duration": 0.2643,
+        "peak_db": -10.850000381469727,
+        "rms_db": -22.3700008392334,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/MagicProjectile.wav",
+        "sha256": "e75c15854b5d918cf5ac1405280b56db57ff7af6a4eba11e10887980cd757d9c"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 887,
+    "title": "Sci-fi metallic reveal or shield",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/discover/shield/#:~:text=Sci-fi%20metallic%20reveal%20or%20shield",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "c4809fa71c8271ae829644e615021f5142524c9f7224498df9410fc77a406677",
+    "edits": [
+      {
+        "name": "ProjectileImpact",
+        "cut": [
+          0.1,
+          0.71
+        ],
+        "speed": 2.6,
+        "lowpass": 5400,
+        "highpass": 180,
+        "extra": "",
+        "duration": 0.2608,
+        "peak_db": -9.0600004196167,
+        "rms_db": -23.280000686645508,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/ProjectileImpact.wav",
+        "sha256": "d8c6c77ca4d1d3985514684e5eb7909526e4e55759c35e3f793d2744d863098f"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 1476,
+    "title": "Sword slash swoosh",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/sword/#:~:text=Sword%20slash%20swoosh",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "b56fc9317def91ce75a988bdf0e23797d0ee8631c33484babed4a35512573c45",
+    "edits": [
+      {
+        "name": "BossSweep",
+        "cut": [
+          0.12,
+          0.67
+        ],
+        "speed": 2.0,
+        "lowpass": 5800,
+        "highpass": 100,
+        "extra": "",
+        "duration": 0.2795,
+        "peak_db": -8.229999542236328,
+        "rms_db": -19.100000381469727,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/BossSweep.wav",
+        "sha256": "287e821965ea7e531b85c459830f06b942713744861ff5e540f684bdd9ff99f2"
+      }
+    ]
+  },
+  {
+    "provider": "freesound",
+    "id": 840717,
+    "title": "Sword Swing 3",
+    "author": "Nomagician",
+    "source_url": "https://freesound.org/people/Nomagician/sounds/840717/",
+    "license": "CC0 1.0 Universal",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "9b1910cf2e2ae52c82dea561f22d55e9b823e0c572db44d31523ca61e281a1eb",
+    "edits": [
+      {
+        "name": "BossThrust",
+        "cut": [
+          0.08,
+          0.44
+        ],
+        "speed": 1.5,
+        "lowpass": 5800,
+        "highpass": 110,
+        "extra": "",
+        "duration": 0.2451,
+        "peak_db": -7.21999979019165,
+        "rms_db": -19.040000915527344,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/BossThrust.wav",
+        "sha256": "994927f07acd56032cc905c5b74e0f66a4fd760e312d6a2a0751a7e83f70d811"
+      }
+    ]
+  },
+  {
+    "provider": "freesound",
+    "id": 676426,
+    "title": "Open chest",
+    "author": "leongameryt",
+    "source_url": "https://freesound.org/people/leongameryt/sounds/676426/",
+    "license": "CC0 1.0 Universal",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "4b7b7e88e8490cdba77f74387738ad9664453647c097034779b32453e2d1240a",
+    "edits": [
+      {
+        "name": "ChestOpen",
+        "cut": [
+          0,
+          0.277
+        ],
+        "speed": 1.15,
+        "lowpass": 5000,
+        "highpass": 140,
+        "extra": "",
+        "duration": 0.2459,
+        "peak_db": -6.130000114440918,
+        "rms_db": -22.31999969482422,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/ChestOpen.wav",
+        "sha256": "eb32d0c2b4c706a45aa87676f7829eaeae9fbb4688d9de029e7ae5bc652b163c"
+      }
+    ]
+  },
+  {
+    "provider": "freesound",
+    "id": 665183,
+    "title": "Item or Material Pickup Pop (1 of 3)",
+    "author": "el_boss",
+    "source_url": "https://freesound.org/people/el_boss/sounds/665183/",
+    "license": "CC0 1.0 Universal",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "1716ce83952a4d9671355d9a367e43395f0dfa1a2963feec1ae10ac28cd446ae",
+    "edits": [
+      {
+        "name": "ItemPickup",
+        "cut": [
+          0,
+          0.0711
+        ],
+        "speed": 1.0,
+        "lowpass": 5000,
+        "highpass": 160,
+        "extra": "",
+        "duration": 0.0604,
+        "peak_db": -11.430000305175781,
+        "rms_db": -22.0,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/ItemPickup.wav",
+        "sha256": "85021ed079a4a1d722bb04df76f9b983a82f39d6a68b4b07e99961cd7e26b29a"
+      }
+    ]
+  },
+  {
+    "provider": "freesound",
+    "id": 237421,
+    "title": "Hover 2",
+    "author": "plasterbrain",
+    "source_url": "https://freesound.org/people/plasterbrain/sounds/237421/",
+    "license": "CC0 1.0 Universal",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "95a1bbf63fbe396123d460ece9a30705a274cac3da93517807bf1477006b364b",
+    "edits": [
+      {
+        "name": "UIHover",
+        "cut": [
+          0,
+          0.225
+        ],
+        "speed": 1.35,
+        "lowpass": 4700,
+        "highpass": 250,
+        "extra": "",
+        "duration": 0.1628,
+        "peak_db": -19.559999465942383,
+        "rms_db": -27.020000457763672,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/UIHover.wav",
+        "sha256": "cf56caf441f4d667c695f62822fd46040ac06fa72acf970c49f303bb8ec30a70"
+      }
+    ]
+  },
+  {
+    "provider": "freesound",
+    "id": 471097,
+    "title": "Knife/sword swing",
+    "author": "spycrah",
+    "source_url": "https://freesound.org/people/spycrah/sounds/471097/",
+    "license": "CC0 1.0 Universal",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "52faf9aa07779cdb981da29c9921cffddb4c942edb9c380df2ee048bfb9d5889",
+    "edits": [
+      {
+        "name": "EnemyMelee_B",
+        "cut": [
+          1.76,
+          2.04
+        ],
+        "speed": 1.4,
+        "lowpass": 5000,
+        "highpass": 150,
+        "extra": "",
+        "duration": 0.2101,
+        "peak_db": -6.840000152587891,
+        "rms_db": -21.010000228881836,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/EnemyMelee_B.wav",
+        "sha256": "e904153f625ab3216124919cdd7c7865aa170e9c58de226e105889089445da38"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 2160,
+    "title": "Metallic sword strike",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/sword/#:~:text=Metallic%20sword%20strike",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "2717a659587f7962dbfdfc59b2716894620834b9d24836794560d86bf10b4c30",
+    "edits": [
+      {
+        "name": "PerfectGuard",
+        "cut": [
+          0,
+          0.42
+        ],
+        "speed": 1.4,
+        "lowpass": 2600,
+        "highpass": 180,
+        "extra": "equalizer=f=1700:t=q:w=1:g=-3",
+        "duration": 0.3037,
+        "peak_db": -15.800000190734863,
+        "rms_db": -27.170000076293945,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/PerfectGuard.wav",
+        "sha256": "c9937553cb604a18e28ddd37fa52455825c2e0821fd6db8e2b487f41156ec6cd"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 2792,
+    "title": "Fast sword whoosh",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/sword/#:~:text=Fast%20sword%20whoosh",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "e1de4e011ee6369aed772202a979590f03261e3607147bd2f04eda58ba5746eb",
+    "edits": [
+      {
+        "name": "EliteSweep",
+        "cut": [
+          0,
+          0.25
+        ],
+        "speed": 0.5,
+        "lowpass": 4500,
+        "highpass": 120,
+        "extra": "",
+        "duration": 0.4358,
+        "peak_db": -9.479999542236328,
+        "rms_db": -24.0,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/EliteSweep.wav",
+        "sha256": "2ef23650ed426bcc5cac2c9bfe38a04e63d2a191736aad19466dc979391613e3"
+      }
+    ]
+  },
+  {
+    "provider": "mixkit",
+    "id": 2794,
+    "title": "Heavy sword hit",
+    "author": "Mixkit (배포처; 개별 제작자 미표기)",
+    "source_url": "https://mixkit.co/free-sound-effects/sword/#:~:text=Heavy%20sword%20hit",
+    "license": "Mixkit Sound Effects Free License",
+    "license_url": "https://mixkit.co/license/modal/sfxFree/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "d47d1e5daaa2e6460f68aa3fb2d4ea33f0b4f5ea66dc5b9338e140833104292e",
+    "edits": [
+      {
+        "name": "EliteJumpLand",
+        "cut": [
+          0.035,
+          0.54
+        ],
+        "speed": 1.35,
+        "lowpass": 2400,
+        "highpass": 90,
+        "extra": "equalizer=f=1600:t=q:w=1:g=-3",
+        "duration": 0.3712,
+        "peak_db": -13.670000076293945,
+        "rms_db": -25.459999084472656,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/EliteJumpLand.wav",
+        "sha256": "9699d0b74f781acb5b19d29e62981c121f03861bc5d3d64a985dd9040450f35d"
+      }
+    ]
+  },
+  {
+    "provider": "OpenGameArt",
+    "id": "erase-escape",
+    "title": "Erase / Escape",
+    "author": "Fupi",
+    "source_url": "https://opengameart.org/content/erase-escape",
+    "license": "CC0 1.0 Universal",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "checked_date": "2026-10-30",
+    "original_sha256": "9ba3844a664b12b34e252a75d98004d8ed6201fb252d3565cbca36a9b253cdab",
+    "edits": [
+      {
+        "name": "SoulDissolve",
+        "cut": [
+          0.2,
+          0.56
+        ],
+        "speed": 1.05,
+        "lowpass": 4200,
+        "highpass": 150,
+        "extra": "3kHz -3dB; fade-in 20ms / fade-out up to 80ms; remove opening transient",
+        "duration": 0.36,
+        "peak_db": -16.057104110717773,
+        "rms_db": -29.805622100830078,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/SoulDissolve.wav",
+        "sha256": "16cf528e93f21144001c69b238542f9201f0bb377722c8911e00b652eb80b757"
+      },
+      {
+        "name": "SplitDeath_A",
+        "cut": [
+          0.2,
+          0.56
+        ],
+        "speed": 1.1,
+        "lowpass": 4200,
+        "highpass": 150,
+        "extra": "3kHz -3dB; fade-in 20ms / fade-out up to 80ms; remove opening transient",
+        "duration": 0.3434,
+        "peak_db": -16.057104110717773,
+        "rms_db": -29.658918380737305,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/SplitDeath_A.wav",
+        "sha256": "be9335295d6898ac66543098b53c66a191cf2e9bc5321c1cec1e58414a3eff0b"
+      },
+      {
+        "name": "SplitDeath_B",
+        "cut": [
+          0.22,
+          0.56
+        ],
+        "speed": 0.98,
+        "lowpass": 4200,
+        "highpass": 150,
+        "extra": "3kHz -3dB; fade-in 20ms / fade-out up to 80ms; remove opening transient",
+        "duration": 0.34,
+        "peak_db": -15.0,
+        "rms_db": -29.22481918334961,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/SplitDeath_B.wav",
+        "sha256": "392ff305d1c4ee0d0619ee29803fd7a07c36224bcfb32166aac745bcdf67d7bb"
+      },
+      {
+        "name": "SplitDeath_C",
+        "cut": [
+          0.24,
+          0.57
+        ],
+        "speed": 1.04,
+        "lowpass": 4200,
+        "highpass": 150,
+        "extra": "3kHz -3dB; fade-in 20ms / fade-out up to 80ms; remove opening transient",
+        "duration": 0.33,
+        "peak_db": -15.0,
+        "rms_db": -29.940156936645508,
+        "file": "Assets/Resources/Sound/SFX/Gameplay/SplitDeath_C.wav",
+        "sha256": "d2e2cbd7ad8089a76c88dd608aa91032703d5ee96118d53f5ef5e9b46a51eafc"
+      }
+    ]
+  }
+]

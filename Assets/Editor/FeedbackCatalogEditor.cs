@@ -31,7 +31,7 @@ public sealed class FeedbackCatalogEditor : Editor
         search=EditorGUILayout.TextField("효과 찾기 (번호·이름)",search);
         (existing ??= new ExistingFeedbackCatalogEditor()).Draw(serializedObject, search);
         EditorGUILayout.Space();
-        EditorGUILayout.LabelField("신규 연출 01~83", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("시각 연출 · 행동 효과음", EditorStyles.boldLabel);
         var effects=serializedObject.FindProperty("effects");
         for(int i=0;i<effects.arraySize;i++)
         {

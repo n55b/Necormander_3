@@ -35,7 +35,7 @@ namespace AstroNuts.Monsters
 
         [Header("디버그 · 사망 좌표 (에디터 / 개발 빌드)")]
         [InspectorName("사망 전후 좌표 로그"), SerializeField]
-        [Tooltip("사망 직전과 시체 제거 직전의 좌표를 기록합니다. 이동 판정·속도에는 영향을 주지 않습니다.")]
+        [Tooltip("사망 전후 좌표와 분열체 생성 후 첫 6프레임의 몸통·물리·그림 상태를 기록합니다. 이동 판정·속도에는 영향을 주지 않습니다.")]
         private bool logDeathPositions = true;
         [InspectorName("사망 후 이동 경고 거리"), SerializeField, Min(.01f)]
         [Tooltip("사망 직전 위치에서 이 거리(유닛) 이상 이동하면 해당 개체당 경고를 한 번 남깁니다.")]
@@ -53,6 +53,11 @@ namespace AstroNuts.Monsters
         private Vector3 _deathPosition, _previousTracePosition, _positionAfterCleanup, _furthestDeathPosition;
         private float _deathTime, _maxDeathDistance, _maxDeathStep;
         private int _deathFrame;
+        private System.Text.StringBuilder _spawnTrace;
+        private SpriteRenderer _spawnRenderer;
+        private MaterialPropertyBlock _spawnProperties;
+        private int _spawnSamples;
+        private static readonly int FeedbackScaleId = Shader.PropertyToID("_FeedbackScale");
 
         public bool IsDead => _isDead;
 
@@ -149,7 +154,50 @@ namespace AstroNuts.Monsters
                 $"parent={(transform.parent != null ? transform.parent.name : "없음")} {DeathMovementState()}");
         }
 
-        private void LateUpdate() => SampleDeathPosition("사망 후 프레임");
+        private void LateUpdate()
+        {
+            SampleDeathPosition("사망 후 프레임");
+            if (_spawnTrace == null) return;
+            SampleSpawnPosition("LateUpdate");
+            if (++_spawnSamples >= 6) FinishSpawnPositionTrace("생성 후 6프레임");
+        }
+
+        // 사망 좌표만으로는 '분열체의 첫 화면만 튀는' 현상을 구분할 수 없어 짧게 함께 기록한다.
+        public void BeginSpawnPositionTrace(Vector3 expectedPosition)
+        {
+            if (!Debug.isDebugBuild || !logDeathPositions) return;
+            _spawnRenderer = GetComponent<SpriteRenderer>();
+            _spawnProperties = new MaterialPropertyBlock();
+            _spawnSamples = 0;
+            _spawnTrace = new System.Text.StringBuilder();
+            _spawnTrace.AppendLine($"[SplitSpawn] {name}#{gameObject.GetInstanceID()} 예상={expectedPosition:F3}");
+            SampleSpawnPosition("초기화 직후");
+        }
+
+        private void SampleSpawnPosition(string stage)
+        {
+            _spawnTrace.Append($"  {stage} frame={Time.frameCount} {DeathMovementState()}");
+            if (_spawnRenderer != null)
+            {
+                _spawnRenderer.GetPropertyBlock(_spawnProperties);
+                var mat = _spawnRenderer.sharedMaterial;
+                var scale = _spawnProperties.HasVector(FeedbackScaleId) ? _spawnProperties.GetVector(FeedbackScaleId) :
+                    mat != null && mat.HasProperty(FeedbackScaleId) ? mat.GetVector(FeedbackScaleId) : Vector4.one;
+                _spawnTrace.Append($" 그림={_spawnRenderer.transform.position:F3} bounds={_spawnRenderer.bounds.center:F3}" +
+                    $" 크기={_spawnRenderer.transform.lossyScale:F3} 변형={scale:F3} sprite={_spawnRenderer.sprite?.name}");
+            }
+            _spawnTrace.AppendLine();
+        }
+
+        private void FinishSpawnPositionTrace(string stage)
+        {
+            if (_spawnTrace == null) return;
+            _spawnTrace.Append($"  기록 종료: {stage}");
+            Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, this, "{0}", _spawnTrace.ToString());
+            _spawnTrace = null;
+            _spawnProperties = null;
+            _spawnRenderer = null;
+        }
 
         private void SampleDeathPosition(string stage)
         {
@@ -191,8 +239,8 @@ namespace AstroNuts.Monsters
                 $"최대변위={_maxDeathDistance:F3} 최대위치={_furthestDeathPosition:F3} 최대단계이동={_maxDeathStep:F3} {DeathMovementState()}");
         }
 
-        private void OnDisable() => FinishDeathPositionTrace("비활성화");
-        private void OnDestroy() => FinishDeathPositionTrace("제거");
+        private void OnDisable() { FinishDeathPositionTrace("비활성화"); FinishSpawnPositionTrace("비활성화"); }
+        private void OnDestroy() { FinishDeathPositionTrace("제거"); FinishSpawnPositionTrace("제거"); }
 
         /// <summary>
         /// 실제로 재생할 사망 스테이트 이름. 인스펙터 값이 컨트롤러에 없으면 Die / Dead 중

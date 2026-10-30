@@ -15,6 +15,7 @@ public class GameOverManager : Singleton<GameOverManager>
 
     public void TriggerGameOver()
     {
+        ClearCombatWarnings();
         gameOverPanel.SetActive(true); // 게임오버 패널 활성화
         UIEventBus.NotifyOpen("GameOver"); // UI 소리 설정의 창 이름
     }
@@ -26,6 +27,7 @@ public class GameOverManager : Singleton<GameOverManager>
     /// </summary>
     public void TriggerGameClear()
     {
+        ClearCombatWarnings();
         if (gameOverPanel != null)
         {
             var textTransform = gameOverPanel.transform.Find("Text (TMP)");
@@ -35,6 +37,12 @@ public class GameOverManager : Singleton<GameOverManager>
             gameOverPanel.SetActive(true);
             UIEventBus.NotifyOpen("GameClear"); // UI 소리 설정의 창 이름
         }
+    }
+
+    private void ClearCombatWarnings()
+    {
+        FeedbackOverlay.Instance?.SuppressCombatWarnings();
+        GameManager.Instance?.ClearDamageScreenFeedback();
     }
 
     public void RestartGame()

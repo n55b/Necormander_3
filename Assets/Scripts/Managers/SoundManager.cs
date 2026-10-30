@@ -4,7 +4,7 @@ using UnityEngine.Audio;
 
 /// <summary>
 /// 전역 사운드 매니저.
-/// SFX: 라운드로빈 AudioSource 풀 — 동시 재생 씹힘 없음.
+/// SFX: 고정 AudioSource 풀 — 중요 소리를 보존하고 과도한 중복은 제한.
 /// PlaySFX 단일 진입점으로 중복 코드 제거.
 /// </summary>
 public class SoundManager : MonoBehaviour
@@ -23,8 +23,10 @@ public class SoundManager : MonoBehaviour
     public  AudioSource oldSource;
 
     [Header("효과음 재사용 풀")]
-    [Tooltip("동시 재생 허용 채널 수 (권장 8)")]
-    [SerializeField] private int sfxPoolSize = 8;
+    [Tooltip("동시 재생 허용 채널 수. 로딩 때 한 번 준비하고 전투 중 추가 생성하지 않습니다.")]
+    [SerializeField] private int sfxPoolSize = 16;
+    [SerializeField, Range(1, 8), Tooltip("같은 클립이 동시에 겹칠 수 있는 수. 다수 적의 같은 공격 소리가 과도하게 커지는 것을 막습니다.")]
+    private int sameClipVoiceLimit = 3;
     [SerializeField] private AudioMixerGroup sfxMixerGroup;
     private AudioSource[] _sfxPool;
     private int           _sfxPoolIndex;
@@ -56,8 +58,8 @@ public class SoundManager : MonoBehaviour
     // ─── SFX 풀 ──────────────────────────────────────────────────────
     private void BuildSfxPool()
     {
-        _sfxPool = new AudioSource[sfxPoolSize];
-        for (int i = 0; i < sfxPoolSize; i++)
+        _sfxPool = new AudioSource[Mathf.Max(1, sfxPoolSize)];
+        for (int i = 0; i < _sfxPool.Length; i++)
         {
             var go           = new GameObject("SFX_Pool_" + i);
             go.transform.SetParent(transform);
@@ -72,42 +74,47 @@ public class SoundManager : MonoBehaviour
     // ─── 단일 진입점 (pitch 기본값 1f) ───────────────────────────────
     public void PlaySFX(AudioClip clip, float volume = 1f, float pitch = 1f)
     {
-        if (clip == null) return;
-        var src    = GetNextSfxSource();
-        src.pitch  = 1f; // 기존 동작 유지: 이 경로는 음높이를 바꾸지 않는다 (풀 재사용 시 이전 음높이가 남지 않게 초기화)
-        src.volume = Mathf.Round(volume * globalSfxVolume * 100f) / 100f; // Clamp01은 Audio 엔진이 처리
-        src.clip   = clip;
-        src.Play();
+        PlaySFXWithPitch(clip, volume, pitch);
     }
 
     /// <summary>음높이까지 적용해서 재생한다. (사운드 세트 · 사운드 테스트 툴용)</summary>
-    public void PlaySFXWithPitch(AudioClip clip, float volume, float pitch)
+    public bool PlaySFXWithPitch(AudioClip clip, float volume, float pitch, int priority = 128)
     {
-        if (clip == null) return;
-        var src    = GetNextSfxSource();
+        if (clip == null || volume <= 0f || globalSfxVolume <= 0f) return false;
+        priority = Mathf.Clamp(priority, 0, 256);
+        var src    = GetNextSfxSource(clip, priority);
+        if (src == null) return false;
         src.pitch  = Mathf.Clamp(pitch, 0.1f, 3f);
+        src.priority = priority;
         src.volume = Mathf.Round(volume * globalSfxVolume * 100f) / 100f;
         src.clip   = clip;
         src.Play();
+        return true;
     }
 
-    // 빈 슬롯 우선, 전부 재생 중이면 라운드로빈으로 덮어씀
-    private AudioSource GetNextSfxSource()
+    // 발소리가 카운터 성공음/보스 타격음을 잘라 버리지 않도록 우선순위를 보존한다.
+    private AudioSource GetNextSfxSource(AudioClip clip, int priority)
     {
+        if (_sfxPool == null || _sfxPool.Length == 0) return null;
         int len = _sfxPool.Length;
+        int sameClip = 0, free = -1, weakest = -1;
         for (int i = 0; i < len; i++)
         {
             int idx = (_sfxPoolIndex + i) % len;
-            if (!_sfxPool[idx].isPlaying)
+            var candidate = _sfxPool[idx];
+            if (!candidate.isPlaying)
             {
-                _sfxPoolIndex = (idx + 1) % len;
-                return _sfxPool[idx];
+                if (free < 0) free = idx;
+                continue;
             }
+            if (candidate.clip == clip) sameClip++;
+            if (weakest < 0 || candidate.priority > _sfxPool[weakest].priority) weakest = idx;
         }
-        // 전부 재생 중 → 현재 인덱스 덮어쓰고 인덱스 전진
-        var src = _sfxPool[_sfxPoolIndex];
-        _sfxPoolIndex = (_sfxPoolIndex + 1) % len;
-        return src;
+        if (sameClip >= Mathf.Max(1, sameClipVoiceLimit)) return null;
+        int chosen = free >= 0 ? free : weakest;
+        if (chosen < 0 || (free < 0 && _sfxPool[chosen].priority < priority)) return null;
+        _sfxPoolIndex = (chosen + 1) % len;
+        return _sfxPool[chosen];
     }
 
     // ─── 기존 호환 ───────────────────────────────────────────────────

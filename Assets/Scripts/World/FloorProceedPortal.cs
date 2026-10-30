@@ -30,11 +30,6 @@ public class FloorProceedPortal : MonoBehaviour, IInteractable
 
     private void Start()
     {
-        var sr = GetComponent<SpriteRenderer>();
-        if (sr != null)
-        {
-            sr.color = new Color(0.6f, 0.1f, 0.9f, 0.8f); // Mystical Purple Portal
-        }
         Debug.Log("<color=purple>[FloorProceedPortal]</color> Initialized. Ready for interaction.");
     }
 
@@ -43,6 +38,7 @@ public class FloorProceedPortal : MonoBehaviour, IInteractable
         Debug.Log("<color=green>[FloorProceedPortal]</color> Player interacted with portal. Moving to the next floor!");
         if (GameManager.Instance != null)
         {
+            PolishFeedback.PlaySound(FeedbackCue.PortalArrive, transform.position);
             GameManager.Instance.GoToNextFloor();
         }
         gameObject.SetActive(false);

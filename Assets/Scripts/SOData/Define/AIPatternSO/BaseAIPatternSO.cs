@@ -283,6 +283,7 @@ public class BaseAIPatternSO : AIPatternSO
 
     protected virtual void ExecuteBasicAttack(BaseEntity entity)
     {
+        if (entity.team == Team.Enemy) PolishFeedback.PlaySound(FeedbackCue.EnemyMelee, entity.transform.position);
         // 기본값: 근접 공격 수행 (HitBox가 아닌 직접 데미지 부여 방식)
         ExecuteAttack(entity, entity.Target);
     }

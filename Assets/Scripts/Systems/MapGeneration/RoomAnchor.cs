@@ -7,6 +7,10 @@ public class RoomAnchor : MonoBehaviour
 {
     [Tooltip("통로가 뻗어나가는 방향 (예: 북쪽 벽이면 0,1 / 남쪽 벽이면 0,-1)")]
     public Vector2Int direction = Vector2Int.up;
+
+    [InspectorName("문을 방 안쪽으로 당길 거리")]
+    [Tooltip("벽 구멍과 방 연결 기준은 유지하고, 생성되는 문 오브젝트만 안쪽으로 옮깁니다. 월드 단위입니다.")]
+    [Min(0f)] public float doorInset;
     
     [HideInInspector] public bool isUsed = false;
 

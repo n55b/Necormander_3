@@ -36,6 +36,12 @@ public sealed class FeedbackOverlay : MonoBehaviour
     private float hurtAge=10;
     private int hurtEdge;
     private float healthFraction=1;
+    private bool suppressCombatWarnings;
+    public void SuppressCombatWarnings()
+    {
+        suppressCombatWarnings = true; hurtAge = float.MaxValue;
+        if (edges != null) foreach (var edge in edges) if (edge != null) edge.enabled = false;
+    }
     private void Awake()
     {
         Instance=this;
@@ -148,12 +154,12 @@ public sealed class FeedbackOverlay : MonoBehaviour
             motes[i].color=color;
         }
         hurtAge+=Time.unscaledDeltaTime;
-        float low=healthFraction>0&&healthFraction<catalog.lowHealthRatio&&PolishFeedback.Enabled(FeedbackCue.LowHealth)
+        float low=!suppressCombatWarnings&&healthFraction>0&&healthFraction<catalog.lowHealthRatio&&PolishFeedback.Enabled(FeedbackCue.LowHealth)
             ?(.5f+.5f*Mathf.Sin(Time.unscaledTime*Mathf.PI*2/Mathf.Max(.01f,catalog.lowHealthInterval)))*catalog.Find(FeedbackCue.LowHealth).color.a*catalog.Find(FeedbackCue.LowHealth).intensity:0;
         for(int i=0;i<edges.Length;i++)
         {
             var hurtRecipe=catalog.Find(FeedbackCue.HurtDirection);
-            float hurt=i==hurtEdge&&PolishFeedback.Enabled(FeedbackCue.HurtDirection)?Mathf.Clamp01(1-hurtAge/Mathf.Max(.01f,hurtRecipe.duration))*hurtRecipe.color.a*hurtRecipe.intensity:0;
+            float hurt=!suppressCombatWarnings&&i==hurtEdge&&PolishFeedback.Enabled(FeedbackCue.HurtDirection)?Mathf.Clamp01(1-hurtAge/Mathf.Max(.01f,hurtRecipe.duration))*hurtRecipe.color.a*hurtRecipe.intensity:0;
             var color=hurt>low?hurtRecipe.color:catalog.Find(FeedbackCue.LowHealth).color;
             color.a=Mathf.Max(low,hurt)*catalog.intensity;
             edges[i].color=color; edges[i].enabled=color.a>0;

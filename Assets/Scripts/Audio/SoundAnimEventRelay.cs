@@ -9,7 +9,7 @@ public class SoundAnimEventRelay : MonoBehaviour
 {
     [HideInInspector] public EntitySoundSet owner;
 
-    public void OnHitEvent() { if (owner != null && owner.listenAnimationEvents) owner.Play(SoundTrigger.OnAttackHit); }
-    public void OnAttackEndEvent() { if (owner != null && owner.listenAnimationEvents) owner.Play(SoundTrigger.OnAttackEnd); }
+    public void OnHitEvent(AnimationEvent evt) { if (owner != null && owner.listenAnimationEvents) owner.Play(SoundTrigger.OnAttackHit, evt); }
+    public void OnAttackEndEvent(AnimationEvent evt) { if (owner != null && owner.listenAnimationEvents) owner.Play(SoundTrigger.OnAttackEnd, evt); }
     public void PlaySound(string soundName) { if (owner != null) owner.PlaySound(soundName); }
 }

@@ -109,6 +109,9 @@ public class BoneMasterController : EnemyController
     public float ReleaseAttack()
     {
         if (_attackMotion == null || Animator == null) return 0f;
+        if (_attackMotion.state.Contains("Sweep")) PolishFeedback.PlaySound(FeedbackCue.BossSweep, transform.position);
+        else if (_attackMotion.state.IndexOf("Prod", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            PolishFeedback.PlaySound(FeedbackCue.BossThrust, transform.position);
         PolishFeedback.Play(FeedbackCue.AttackRelease, transform.position, Vector2.up)?.FollowOrigin(transform);
         if (_attackMotion.state.Contains("Jump")) PolishFeedback.Play(FeedbackCue.BossLand, transform.position);
         SampleAttack(_attackMotion.hitTime + 0.0001f);
@@ -124,6 +127,7 @@ public class BoneMasterController : EnemyController
     [SerializeField] private float phase2InvincibleDuration = 2f;
 
     [Header("UI 참조")]
+    [SerializeField, InspectorName("머리 위 패턴 설명 표시")] private bool showPatternText = false;
     [SerializeField] private EliteBossPatternLabel patternLabel;
     [SerializeField] private Vector3 patternLabelOffset = new Vector3(0f, 1.6f, 0f);
 
@@ -287,7 +291,8 @@ public class BoneMasterController : EnemyController
         }
 
         if (patternLabel == null) patternLabel = GetComponentInChildren<EliteBossPatternLabel>();
-        if (patternLabel == null) patternLabel = CreatePatternLabel();
+        if (showPatternText && patternLabel == null) patternLabel = CreatePatternLabel();
+        if (!showPatternText && patternLabel != null) patternLabel.gameObject.SetActive(false);
 
         _bodyRenderers = GetComponentsInChildren<SpriteRenderer>();
         _bodyOriginalColors = new Color[_bodyRenderers.Length];
@@ -597,6 +602,7 @@ private IEnumerator Phase2TransitionRoutine()
 
     public void SetStateText(string text, Color? color = null)
     {
+        if (!showPatternText) return;
         if (_stateTextClearRoutine != null)
         {
             StopCoroutine(_stateTextClearRoutine);
@@ -607,6 +613,7 @@ private IEnumerator Phase2TransitionRoutine()
 
     public void SetStateTextTemporary(string text, Color color, float duration)
     {
+        if (!showPatternText) return;
         patternLabel?.SetText(text, color);
         if (_stateTextClearRoutine != null) StopCoroutine(_stateTextClearRoutine);
         _stateTextClearRoutine = StartCoroutine(ClearStateTextAfter(duration));

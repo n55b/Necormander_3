@@ -96,6 +96,8 @@ public class DialogueUI : Singleton<DialogueUI>
 
     [Range(0f, 1f)]
     [SerializeField] private float typeSfxVolume = 0.5f;
+    [SerializeField, Range(0f, .2f), Tooltip("글자음의 음높이·속도를 조금씩 달리합니다.")]
+    private float typeSfxPitchVariation = .06f;
 
     [Header("디버그")]
     [Tooltip("플레이 중에 이 키를 누르면 아래 id 의 대화를 띄운다.\n" +
@@ -533,7 +535,10 @@ public class DialogueUI : Singleton<DialogueUI>
             if (typeSfx != null && visible - lastSfxAt >= step)
             {
                 lastSfxAt = visible;
-                if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(typeSfx, typeSfxVolume);
+                if (visible > 0 && !char.IsWhiteSpace(bodyText.textInfo.characterInfo[visible - 1].character)
+                    && SoundManager.Instance != null)
+                    SoundManager.Instance.PlaySFXWithPitch(typeSfx, typeSfxVolume,
+                        PolishFeedback.VisualRange(1f-typeSfxPitchVariation, 1f+typeSfxPitchVariation), 210);
             }
 
             yield return null;

@@ -75,10 +75,12 @@ public class GameManager : MonoBehaviour
     private Vignette _hurtVignette;
     private Color _vignetteRestColor;
     private float _vignetteRestoreAt;
+    private bool _damageScreenFeedbackSuppressed;
 
     // 연속 피격이 이전 피격의 빨간색을 복원 색으로 저장하지 않도록 한 곳에서 소유한다.
     public void ChangeVignetteColor(float time, Color color)
     {
+        if (_damageScreenFeedbackSuppressed) return;
         if (_hurtVignette == null)
         {
             if (globalvolume == null || !globalvolume.profile.TryGet(out _hurtVignette)) return;
@@ -91,6 +93,12 @@ public class GameManager : MonoBehaviour
     private void LateUpdate()
     {
         if (_hurtVignette != null && Time.unscaledTime >= _vignetteRestoreAt) RestoreVignette();
+    }
+
+    public void ClearDamageScreenFeedback()
+    {
+        _damageScreenFeedbackSuppressed = true;
+        RestoreVignette();
     }
 
     private void RestoreVignette()

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 /// <summary>
 /// Body의 Animator에서 발생하는 Animation Event(예: CanChangeAnimState)를
@@ -10,6 +11,7 @@ public class BodyAnimationEventRelay : MonoBehaviour
 {
     private PlayerController _controller;
     private MeleeCombatController _melee;
+    private Tilemap[] _sceneGrounds;
 
     [Header("걷기 발자국 효과")]
     [SerializeField] private GameObject walkSmogEffectPrefab;
@@ -48,8 +50,21 @@ public class BodyAnimationEventRelay : MonoBehaviour
     /// </summary>
     public void OnFootstep()
     {
-        if (walkSmogEffectPrefab == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.WalkSmoke)) return;
+        if (_controller == null || _controller.IsInputBlocked || _controller.IsDashing
+            || _controller.IsCCed || _controller.MoveInput.sqrMagnitude < .001f
+            || PlayerController.IsGameplayPaused || Time.deltaTime <= 0f) return;
         Vector3 spawnPos = footEffectPoint != null ? footEffectPoint.position : transform.position;
+        var settings = PolishFeedback.Catalog;
+        if (settings != null)
+        {
+            var tile = GroundTile(_controller.transform.position);
+            bool grass = tile != null && settings.grassFootstepTiles != null
+                && System.Array.IndexOf(settings.grassFootstepTiles, tile) >= 0;
+            PolishFeedback.PlaySound(grass ? FeedbackCue.GrassFootstep : FeedbackCue.GroundFootstep, spawnPos);
+            PolishFeedback.Play(FeedbackCue.FootSurface, spawnPos, Vector2.down,
+                tint: MapGenerator.Instance != null ? MapGenerator.Instance.FootstepColor(spawnPos) : (Color?)null);
+        }
+        if (walkSmogEffectPrefab == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.WalkSmoke)) return;
 
         var data = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
         GameObject fx = data != null ? data.TakePreparedObject(walkSmogEffectPrefab, spawnPos) : null;
@@ -63,5 +78,18 @@ public class BodyAnimationEventRelay : MonoBehaviour
         Vector3 scale = fx.transform.localScale;
         scale.x = Mathf.Abs(scale.x) * facingSign;
         fx.transform.localScale = scale;
+    }
+
+    private TileBase GroundTile(Vector3 position)
+    {
+        var tile = MapGenerator.Instance != null ? MapGenerator.Instance.GroundTileAt(position) : null;
+        if (tile != null) return tile;
+        // 마을은 통합 타일맵을 만들지 않는다. 최초 발걸음 때 한 번만 찾는다.
+        if (_sceneGrounds == null)
+            _sceneGrounds = System.Array.FindAll(FindObjectsByType<Tilemap>(FindObjectsSortMode.None),
+                map => map.name.IndexOf("Ground", System.StringComparison.OrdinalIgnoreCase) >= 0);
+        foreach (var map in _sceneGrounds)
+            if (map != null && map.isActiveAndEnabled && (tile = map.GetTile(map.WorldToCell(position))) != null) return tile;
+        return null;
     }
 }

@@ -75,7 +75,7 @@ public static class UISoundSetupTool
         Debug.Log($"[UI 소리] 버튼 소리 컴포넌트 {added}개를 붙였습니다.\n{log}");
     }
 
-    private static int AttachIn(GameObject root)
+    public static int AttachIn(GameObject root)
     {
         // 상점 구매 버튼은 성공/실패 소리가 따로 나므로 클릭 소리를 끈다.
         var buyButtons = new HashSet<Button>();
@@ -85,7 +85,17 @@ public static class UISoundSetupTool
         int count = 0;
         foreach (var button in root.GetComponentsInChildren<Button>(true))
         {
-            if (button.GetComponent<UISoundOnInteract>() != null) continue; // 기획자가 고친 값을 덮어쓰지 않는다
+            var existing = button.GetComponent<UISoundOnInteract>();
+            if ((existing == null || existing.playHover) && button.GetComponent<UIHoverMotion>() == null)
+            {
+                var motion = button.gameObject.AddComponent<UIHoverMotion>();
+                // 버튼의 클릭 영역은 고정하고, 표시용 자식만 들어 올린다.
+                var label = button.GetComponentInChildren<TMPro.TMP_Text>(true);
+                motion.target = button.targetGraphic != null && button.targetGraphic.transform != button.transform
+                    ? button.targetGraphic.rectTransform : label != null && label.transform != button.transform ? label.rectTransform : button.transform as RectTransform;
+                count++;
+            }
+            if (existing != null) continue; // 기획자가 고친 값을 덮어쓰지 않는다
             var s = button.gameObject.AddComponent<UISoundOnInteract>();
             var parent = button.transform.parent;
             if (button.GetComponent<PouchSlotUI>() != null) s.kind = UISoundOnInteract.Kind.Slot;

@@ -16,7 +16,26 @@ public enum FeedbackCue
     [InspectorName("73 방향성 카메라 반동")] CameraKick=73, [InspectorName("74 중요한 타격만 히트스톱")] HitStop, [InspectorName("75 제한적 슬로모션")] SlowMotion, [InspectorName("76 국소 왜곡 파동")] Distortion, [InspectorName("77 스킬 준비 UI 반짝임")] SkillReady, [InspectorName("78 피해 방향 표시")] HurtDirection, [InspectorName("79 타격음 층 분리")] ImpactSound, [InspectorName("80 연타 소리 미세 변화")] SoundVariation,
     [InspectorName("81 바닥 아이템 반짝임")] DropGlimmer = 81,
     [InspectorName("82 퍼펙트 가드 섬광")] PerfectGuardFlash = 82,
-    [InspectorName("83 퍼펙트 가드 파동")] PerfectGuardRing = 83
+    [InspectorName("83 퍼펙트 가드 파동")] PerfectGuardRing = 83,
+    [InspectorName("84 보스 등장 집중")] BossEntrance = 84,
+    [InspectorName("85 집행 절단 잔광")] ExecutionSlash = 85,
+    [InspectorName("86 풀 발소리")] GrassFootstep = 86,
+    [InspectorName("87 땅 발소리")] GroundFootstep,
+    [InspectorName("88 근접 몬스터 검격")] EnemyMelee,
+    [InspectorName("89 궁수 발사")] ArrowShot,
+    [InspectorName("90 마법진 폭발")] MagicCast,
+    [InspectorName("91 빙결 적용")] FreezeApplied,
+    [InspectorName("92 몬스터 영혼 소멸")] EnemyDeath,
+    [InspectorName("93 사자탈 분열")] SplitDeath,
+    [InspectorName("94 보스 휩쓸기")] BossSweep,
+    [InspectorName("95 보스 찌르기")] BossThrust,
+    [InspectorName("96 돌진 충격파")] ChargeShockwave,
+    [InspectorName("97 투사체 반사")] ProjectileReflect,
+    [InspectorName("98 골드 획득")] GoldPickup,
+    [InspectorName("99 가드 올리기")] GuardRaise,
+    [InspectorName("100 엘리트 휩쓸기")] EliteSweep,
+    [InspectorName("101 엘리트 도약 내려찍기")] EliteJumpLand,
+    [InspectorName("102 문에서 나올 때")] DoorEmerge
 }
 
 public enum FeedbackShape { [InspectorName("방향 파편")] Rays, [InspectorName("원형 파동")] Ring, [InspectorName("작은 점")] Dots, [InspectorName("십자빛")] Cross, [InspectorName("영혼 연결선")] Link, [InspectorName("모이는 입자")] Inward, [InspectorName("반원 잔광")] Arc, [InspectorName("절단선")] Slash }
@@ -45,6 +64,8 @@ public class FeedbackRecipe
     public AudioClip sound;
     [Range(0,1)] public float volume = .3f;
     [Range(0,.3f)] public float pitchVariation = .05f;
+    [KoLabel("효과음 (변형 · 간격 · 우선순위)"), Tooltip("새 소리 묶음이 있으면 위의 단일 효과음보다 우선합니다. 시각 효과의 생성 제한과 별도로 재생합니다.")]
+    public SoundClipGroup audio = new SoundClipGroup();
 }
 
 [Serializable]
@@ -70,7 +91,11 @@ public enum ExistingFeedbackCue
     [InspectorName("화면 · UI 페이드")] Fade,
     [InspectorName("UI 흔들림")] UIShake,
     [InspectorName("카메라 흔들림")] CameraShake,
-    [InspectorName("히트스톱")] HitStop
+    [InspectorName("히트스톱")] HitStop,
+    [InspectorName("문 테두리 빛")] DoorOutline,
+    [InspectorName("층 이동 포탈")] FloorPortal,
+    [InspectorName("나무 흔들림 분산")] TreeMotion,
+    [InspectorName("보스 집행 예고선 테두리")] ExecutionLane
 }
 
 [Serializable]
@@ -95,6 +120,9 @@ public class FeedbackCatalog : ScriptableObject
     [Min(1)] public int simultaneousBursts = 72;
     [Min(1)] public int burstsPerFrame = 12;
     [Min(1)] public int soundsPerFrame = 3;
+    [Header("발소리 지형 — 이 타일에서는 풀, 나머지 지면에서는 땅")]
+    [KoLabel("풀 지면 타일 목록"), Tooltip("현재 맵에서 사용하는 풀 바닥 타일. 발이 닿는 프레임마다 발밑 타일로 판정합니다.")]
+    public UnityEngine.Tilemaps.TileBase[] grassFootstepTiles = Array.Empty<UnityEngine.Tilemaps.TileBase>();
     [Header("공격 성장 단계 — 그림 배율은 바꾸지 않음")]
     public FeedbackTier[] tiers = {
         new FeedbackTier {title="기본",intensity=.55f,density=.45f,reach=.7f},

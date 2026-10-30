@@ -15,7 +15,7 @@ MonoBehaviour:
   equipmentName: "\uAC74\uD2C0\uB81B"
   description: "\uAE30\uBCF8 \uACF5\uACA9 3\uC5F0\uD0C0 (1 / 1 / 1.5). \uBCF4\uD1B5
     \uACF5\uACA9 \uC18D\uB3C4 \xB7 \uACBD\uC9C1 0.2\uCD08.\n\uACF5\uACA9\uB825 +5.\n"
-  icon: {fileID: 21300000, guid: f2b3ca10fd5760f439d277ea3c5b12d7, type: 2}
+  icon: {fileID: -124903066, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
   rarity: 0
   shopCost: 150
   handAnimationOverride: {fileID: 0}

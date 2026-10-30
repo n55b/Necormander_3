@@ -16,7 +16,79 @@ MonoBehaviour:
   intensity: 1
   simultaneousBursts: 72
   burstsPerFrame: 12
-  soundsPerFrame: 3
+  soundsPerFrame: 6
+  grassFootstepTiles:
+  - {fileID: 11400000, guid: 2743d49ee0fcc0e4dbb95d4d1df7a319, type: 2}
+  - {fileID: 11400000, guid: 4b3a7271596635849bad62b7097c7558, type: 2}
+  - {fileID: 11400000, guid: 77509fa9a2f92ce4ba7a8f06d3078171, type: 2}
+  - {fileID: 11400000, guid: c25e303e7a7705644a213a9059ee3fe0, type: 2}
+  - {fileID: 11400000, guid: 990b70bf38e6a0a44bdc2f571f2657fc, type: 2}
+  - {fileID: 11400000, guid: da4dfd526b34372438a548d59b776730, type: 2}
+  - {fileID: 11400000, guid: 45ba9d01449e408478fc96e85134c4b9, type: 2}
+  - {fileID: 11400000, guid: f6f4b1c75a612c047abdfa36571766ed, type: 2}
+  - {fileID: 11400000, guid: 7bc1623ff6dc4884b90fd456f69c087b, type: 2}
+  - {fileID: 11400000, guid: 498051f2c836f3b4aa0442751847adb8, type: 2}
+  - {fileID: 11400000, guid: f1b94926e5733d545a3a2a957436b124, type: 2}
+  - {fileID: 11400000, guid: b6a809b75fe71d043b7f1adc71132d4a, type: 2}
+  - {fileID: 11400000, guid: 0399298ab43d6df44a6367aa3bfa5dfb, type: 2}
+  - {fileID: 11400000, guid: 706b34e435b792940b7d740194ed1e12, type: 2}
+  - {fileID: 11400000, guid: fa9525b1f511e6640b31f10640979ed6, type: 2}
+  - {fileID: 11400000, guid: c23947aa73497ad4dabc378e050db43f, type: 2}
+  - {fileID: 11400000, guid: cbb78332729e4354483d4067de1a6463, type: 2}
+  - {fileID: 11400000, guid: 5c4d73386053eed45ac94c091f450785, type: 2}
+  - {fileID: 11400000, guid: e51e771cd44989947afb2f563aa1cc55, type: 2}
+  - {fileID: 11400000, guid: 456f88a8c599cf048918975ddaec5b42, type: 2}
+  - {fileID: 11400000, guid: 4d56a15dfba31f4448cfdeebe16425bd, type: 2}
+  - {fileID: 11400000, guid: 74647c4437c5e43468689681240fb0f4, type: 2}
+  - {fileID: 11400000, guid: 8e738e5a2da880349a49c623897f7c03, type: 2}
+  - {fileID: 11400000, guid: c3b020c175669d04c88c89c1aba2e86a, type: 2}
+  - {fileID: 11400000, guid: 8dd37fee977e7374ba6a6547e3aa7f71, type: 2}
+  - {fileID: 11400000, guid: 077042cd39fb23b4b825f7dadfa9fedc, type: 2}
+  - {fileID: 11400000, guid: 16054ff80fa992c419b8cd4a7362ea56, type: 2}
+  - {fileID: 11400000, guid: db7b4859f8b7950439ffc49f957fc637, type: 2}
+  - {fileID: 11400000, guid: e2e0f16510cfe484aa3a517aab293146, type: 2}
+  - {fileID: 11400000, guid: be8157f9e33361c4d85205b23bc8cd08, type: 2}
+  - {fileID: 11400000, guid: 57a1eafa3e4b4d544b146ad6e0438e90, type: 2}
+  - {fileID: 11400000, guid: 7ca943c097a527a4b8f297c98536935a, type: 2}
+  - {fileID: 11400000, guid: 71855d6e0e1c32a49b5eb6648c9e6488, type: 2}
+  - {fileID: 11400000, guid: 47763cac77c8f4544a3edcd1830f6905, type: 2}
+  - {fileID: 11400000, guid: 60fa1421a3229d4458b70c827682cbd1, type: 2}
+  - {fileID: 11400000, guid: 5994d8521819e894ba308a9c5f41c6d6, type: 2}
+  - {fileID: 11400000, guid: 9c896d14651cdf44dad0eee3d098595d, type: 2}
+  - {fileID: 11400000, guid: da5d6ec81dfc5c34aab8ba5dca551f48, type: 2}
+  - {fileID: 11400000, guid: 4c9a9fc4fb9bd9648b447187ff52d8a7, type: 2}
+  - {fileID: 11400000, guid: b8c2ccf76df5c5c4f9d56752076432d4, type: 2}
+  - {fileID: 11400000, guid: 263c5f10149486045869ff581321bc96, type: 2}
+  - {fileID: 11400000, guid: bf842b43b77fc924da3f8aa60a62c62c, type: 2}
+  - {fileID: 11400000, guid: 240492046381d3048a6bda6aeb4301ca, type: 2}
+  - {fileID: 11400000, guid: 08539aa3a13bdd04aa20484b6b627c47, type: 2}
+  - {fileID: 11400000, guid: 3daf2b62611245a44915a214641c3501, type: 2}
+  - {fileID: 11400000, guid: 9f3b84ca774818e4f99a56dd7e785c46, type: 2}
+  - {fileID: 11400000, guid: 46c64e5a11c1151429b309acfb56c61e, type: 2}
+  - {fileID: 11400000, guid: 02ae7da603413db4a8635147329d010e, type: 2}
+  - {fileID: 11400000, guid: 3fcd40c99d06c15429a37085201ff8f3, type: 2}
+  - {fileID: 11400000, guid: c441b1af2200aea419f2afea3fa9165d, type: 2}
+  - {fileID: 11400000, guid: b5c6525ce6d863c43901edc4fe3a323b, type: 2}
+  - {fileID: 11400000, guid: ec88a68a1d86f1b4ba6218a748fbab21, type: 2}
+  - {fileID: 11400000, guid: 143ff57d4eb8e89429a5f952bc02d969, type: 2}
+  - {fileID: 11400000, guid: 6565e8fe3a371c44f8878c83800007b6, type: 2}
+  - {fileID: 11400000, guid: ecf26529d6153cd4ba06b942e7a61c9d, type: 2}
+  - {fileID: 11400000, guid: d794bcf744bc81b4a8317b1c675b4d4a, type: 2}
+  - {fileID: 11400000, guid: b53f77c615127184aa271fd164afc144, type: 2}
+  - {fileID: 11400000, guid: ec86b55d718dd22488bbe91f1fd21502, type: 2}
+  - {fileID: 11400000, guid: fc72d41c7b08f1e448dc01a7fa55e522, type: 2}
+  - {fileID: 11400000, guid: 403abc72be69d3546a4f4e00668fe1da, type: 2}
+  - {fileID: 11400000, guid: c23491caef0829448b9cd4bb19d238f7, type: 2}
+  - {fileID: 11400000, guid: 288bc3c5cf7a10c4d8157447bae5d16b, type: 2}
+  - {fileID: 11400000, guid: 394bd68a72f7a1d4bbe6c582848ffac8, type: 2}
+  - {fileID: 11400000, guid: 47ff5facbf2baf6469b72f2a872a784f, type: 2}
+  - {fileID: 11400000, guid: 67bc7959866399649842c62b2d0c959c, type: 2}
+  - {fileID: 11400000, guid: 901c05e9a29040947808772b622bcd1a, type: 2}
+  - {fileID: 11400000, guid: 6aa7be00955907748a27a6333113fc17, type: 2}
+  - {fileID: 11400000, guid: 793bb64685bf7de40b1342e24d7252c7, type: 2}
+  - {fileID: 11400000, guid: 1ec461ce1d30178478b1b506057088b5, type: 2}
+  - {fileID: 11400000, guid: 7870a81290870524693734f49ec414dc, type: 2}
+  - {fileID: 11400000, guid: c2baf85754f66e34bb78d861233c76e8, type: 2}
   tiers:
   - title: "\uAE30\uBCF8"
     intensity: 0.55
@@ -80,6 +152,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 2
     title: "\uCF64\uBCF4 \uB9C8\uC9C0\uB9C9 \uD0C0 \uC804\uC6A9 \uC12C\uAD11"
     description: " \uB9C8\uC9C0\uB9C9 \uACF5\uACA9\uC5D0\uB9CC \uBCC4 \uBAA8\uC591
@@ -125,6 +207,16 @@ MonoBehaviour:
     sound: {fileID: 8300000, guid: bfc8eb06cb2dafd49b0328f7f17a235a, type: 3}
     volume: 0.12
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 3
     title: "\uCE58\uBA85\uD0C0 \uC774\uC911 \uBC18\uC9DD\uC784"
     description: " \uC77C\uBC18 \uD0C0\uACA9 \uC9C1\uD6C4 \uC791\uC740 \uBE5B\uC774
@@ -170,6 +262,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 4
     title: "\uC7AC\uC9C8\uBCC4 \uD53C\uACA9"
     description: " \uAE08\uC18D\uC740 \uB178\uB780 \uBD88\uAF43, \uBF08\uB294 \uD770
@@ -216,6 +318,16 @@ MonoBehaviour:
     sound: {fileID: 8300000, guid: 1339cd58ce579f944804a24b7e7fd997, type: 3}
     volume: 0.08
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 5
     title: "\uBB34\uAE30 \uADA4\uC801 \uC794\uAD11"
     description: " \uACF5\uACA9 \uADF8\uB9BC\uC740 \uADF8\uB300\uB85C \uB450\uACE0
@@ -262,6 +374,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 6
     title: "\uAC15\uD0C0 \uBC14\uB2E5 \uBA3C\uC9C0"
     description: " \uC801\uC758 \uBC1C\uBC11\uC5D0 \uB0AE\uC740 \uBA3C\uC9C0\uAC00
@@ -307,6 +429,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 7
     title: "\uB2E4\uB2E8\uD788\uD2B8 \uB9AC\uB4EC"
     description: " \uCCAB \uD0C0\xB7\uC911\uAC04 \uD0C0\xB7\uB9C8\uC9C0\uB9C9 \uD0C0\uC758
@@ -352,6 +484,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 8
     title: "\uB9C8\uBB34\uB9AC \uC77C\uACA9 \uD45C\uC2DC"
     description: " \uC2E4\uC81C \uCC98\uCE58\uD55C \uB9C8\uC9C0\uB9C9 \uD0C0\uACA9\uC5D0\uB9CC
@@ -397,6 +539,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 17
     title: "\uCD9C\uBC1C \uBA3C\uC9C0"
     description: " \uC815\uC9C0\uC5D0\uC11C \uC6C0\uC9C1\uC77C \uB54C\uB9CC \uBC1C\uB4A4\uC5D0
@@ -442,6 +594,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 18
     title: "\uAE09\uC815\uC9C0 \uB9C8\uCC30"
     description: " \uBE60\uB974\uAC8C \uB2EC\uB9AC\uB2E4 \uBA48\uCD9C \uB54C \uBC1C\uB05D\uC5D0
@@ -487,6 +649,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 19
     title: "\uAE09\uD68C\uC804 \uBA3C\uC9C0"
     description: " \uBC18\uB300 \uBC29\uD5A5\uC73C\uB85C \uAEBE\uC744 \uB54C \uBC14\uAE65\uCABD
@@ -532,6 +704,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: ea4d83dff0880f745bb2d44bdb99cb48, type: 3}
+      volume: 0.035
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.16
+      priority: 180
+      audibleRange: 0
   - cue: 20
     title: "\uB300\uC2DC \uCD9C\uBC1C \uC555\uCD95\uD30C"
     description: " \uCD9C\uBC1C \uC9C0\uC810\uC5D0 \uC9E7\uC740 \uC120\uB4E4\uC774
@@ -577,6 +760,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: ea4d83dff0880f745bb2d44bdb99cb48, type: 3}
+      volume: 0.12
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.08
+      priority: 80
+      audibleRange: 0
   - cue: 21
     title: "\uB300\uC2DC \uB05D \uCC29\uC9C0\uD30C"
     description: " \uB3C4\uCC29 \uC9C0\uC810\uC5D0 \uB0AE\uACE0 \uC9E7\uC740 \uD0C0\uC6D0\uD615
@@ -622,6 +816,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 91a3707a87d25af4f8cde1ee2e70b768, type: 3}
+      volume: 0.055
+      pitchMin: 0.94
+      pitchMax: 1.06
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.08
+      priority: 170
+      audibleRange: 0
   - cue: 22
     title: "\uB300\uC2DC \uCDA9\uC804 \uC644\uB8CC \uC2E0\uD638"
     description: " \uBC1C\uBC11 \uB300\uC2DC UI \uD55C \uCE78\uACFC \uBC1C\uB05D\uC774
@@ -667,6 +872,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 23
     title: "\uD45C\uBA74\uBCC4 \uBC1C\uAC78\uC74C"
     description: " \uD759\xB7\uB3CC\xB7\uBB3C\uAC00\uC5D0 \uB9DE\uCDB0 \uBA3C\uC9C0
@@ -712,6 +927,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 24
     title: "\uC774\uB3D9 \uC794\uC0C1 \uB9AC\uB4EC"
     description: " \uAE30\uC874 \uB300\uC2DC \uC794\uC0C1\uC758 \uAC04\uACA9\uC744
@@ -757,6 +982,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 25
     title: "\uBBF8\uB2C8\uC5B8 \uBA85\uB839 \uC5F0\uACB0\uC120"
     description: " Space \uBA85\uB839 \uC21C\uAC04 \uD50C\uB808\uC774\uC5B4\u2192\uC18C\uD658\uC218
@@ -802,6 +1037,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 26
     title: "\uB3D9\uC2DC \uD3C9\uD0C0 \uC900\uBE44 \uC2E0\uD638"
     description: " \uB0B4\uBD80 \uCFE8\uC774 \uB05D\uB0AC\uC744 \uB54C \uBBF8\uB2C8\uC5B8
@@ -847,6 +1092,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 27
     title: "\uC18C\uD658 \uC870\uB9BD"
     description: " \uC601\uD63C \uC785\uC790\uAC00 \uBAA8\uC778 \uB4A4 \uAE30\uC874
@@ -893,6 +1148,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: e2bf5722f79b4654abde6d0b1ec31de8, type: 3}
+      volume: 0.085
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.14
+      priority: 160
+      audibleRange: 22
   - cue: 28
     title: "\uADC0\uD658 \uD761\uC218"
     description: " \uBBF8\uB2C8\uC5B8\uC774 \uC0AC\uB77C\uC9C8 \uB54C \uB0A8\uC740
@@ -939,6 +1205,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: e2bf5722f79b4654abde6d0b1ec31de8, type: 3}
+      volume: 0.065
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.14
+      priority: 160
+      audibleRange: 22
   - cue: 29
     title: "\uB9C8\uB9AC\uC624\uB124\uD2B8 \uC774\uC911 \uD0C0\uACA9 \uAD6C\uBCC4"
     description: " \uCCAB \uD0C0\uC640 \uD6C4\uC18D \uD0C0\uC5D0 \uB2E4\uB978 \uC0C9/\uBC29\uD5A5\uC758
@@ -984,6 +1261,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 30
     title: "\uC9C4\uD654 \uACC4\uD1B5 \uC0C9"
     description: " \uAE30\uC0AC \uACC4\uC5F4\uC740 \uB2E8\uB2E8\uD55C \uAE08\uC18D
@@ -1030,6 +1317,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 31
     title: "\uCC98\uCE58 \uC601\uD63C \uD750\uB984"
     description: " \uC801\uC774 \uC8FD\uC744 \uB54C \uC7A5\uC2DD\uC6A9 \uC601\uD63C\uC774
@@ -1076,6 +1373,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 32
     title: "\uC9C4\uD654 \uD655\uC815 \uC758\uC2DD"
     description: " \uAE30\uC874 \uADF8\uB9BC \uC2E4\uB8E8\uC5E3\uC5D0 \uC791\uC740
@@ -1122,6 +1429,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 99213bce387fe994e9f03499300e80b3, type: 3}
+      volume: 0.14
+      pitchMin: 0.98
+      pitchMax: 1.02
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.12
+      priority: 72
+      audibleRange: 0
   - cue: 39
     title: "\uD68C\uBCF5 \uC0C1\uC2B9 \uC785\uC790"
     description: " \uD68C\uBCF5 \uC21C\uAC04 \uC791\uC740 \uC810\uC774 \uC704\uB85C
@@ -1167,6 +1485,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 41bc9935dfb8709449948dceb9eb30dd, type: 3}
+      volume: 0.11
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.15
+      priority: 110
+      audibleRange: 0
   - cue: 40
     title: "\uC800\uCCB4\uB825 \uC2EC\uBC15"
     description: " \uAE30\uC874 \uD654\uBA74 \uAC00\uC7A5\uC790\uB9AC \uD6A8\uACFC\uB97C
@@ -1213,6 +1542,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 815bc42d1bb52844b9ab829a2e673023, type: 3}
+      volume: 0.12
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 1.25
+      priority: 120
+      audibleRange: 0
   - cue: 41
     title: "\uBC1C\uC0AC \uC12C\uAD11"
     description: " \uBC1C\uC0AC \uC9C0\uC810\uC758 \uC9E7\uC740 \uBE5B\uACFC \uBC18\uB300
@@ -1258,6 +1598,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 720e404776f621e4a9d04b198075a700, type: 3}
+      volume: 0.12
+      pitchMin: 0.94
+      pitchMax: 1.06
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.08
+      priority: 170
+      audibleRange: 24
   - cue: 42
     title: "\uC9E7\uC740 \uADA4\uC801 \uAF2C\uB9AC"
     description: " \uD0C4 \uB4A4\uC5D0 \uC6D0\uBCF8 \uB3C4\uD2B8 \uBC30\uC728\uC744
@@ -1303,6 +1654,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 43
     title: "\uC720\uB3C4 \uC911 \uC794\uAD11"
     description: " \uC720\uB3C4 \uB2A5\uB825\uC774 \uC788\uB294 \uB3D9\uC548\uB9CC
@@ -1348,6 +1709,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 44
     title: "\uBCBD \uCDA9\uB3CC \uBC18\uC751"
     description: " \uCDA9\uB3CC \uBC29\uD5A5\uC758 \uBC18\uB300\uB85C \uBD88\uAF43\xB7\uBA3C\uC9C0\uB97C
@@ -1393,6 +1764,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 667772c88a4787b429abc217bcb8c6a4, type: 3}
+      volume: 0.12
+      pitchMin: 0.95
+      pitchMax: 1.05
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.06
+      priority: 180
+      audibleRange: 24
   - cue: 45
     title: "\uBC14\uB2E5 \uCDA9\uB3CC \uD754\uC801"
     description: " \uD0C4\uC774 \uB05D\uB09C \uC704\uCE58\uC5D0 \uC9E7\uC740 \uC810\uD615
@@ -1438,6 +1820,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 46
     title: "\uBC18\uC0AC \uC804\uD6C4 \uC0C9 \uAD6C\uBCC4"
     description: " \uC801 \uD0C4\uACFC \uBC18\uC0AC\uB41C \uD0C4\uC758 \uAF2C\uB9AC
@@ -1483,6 +1875,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 47
     title: "\uAD00\uD1B5 \uD1B5\uACFC \uC12C\uAD11"
     description: " \uAD00\uD1B5\uD55C \uC801\uC758 \uC785\uAD6C\uC640 \uCD9C\uAD6C\uC5D0
@@ -1528,6 +1930,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 48
     title: "\uD0C4 \uC18C\uBA78 \uC218\uCD95"
     description: " \uC218\uBA85\uC774 \uB05D\uB09C \uD0C4 \uC8FC\uBCC0\uC758 \uBE5B\uC774
@@ -1574,6 +1986,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 49
     title: "\uC870\uC900 \uD655\uC815 \uC2E0\uD638"
     description: " \uCD94\uC801\uC774 \uBA48\uCD94\uB294 \uC21C\uAC04 \uC608\uACE0\uC120
@@ -1620,6 +2042,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 50
     title: "\uACF5\uACA9 \uC9C1\uC804 \uC9D1\uC911\uC120"
     description: " \uC2E4\uC81C \uD0C0\uACA9 \uC9C1\uC804\uC5D0\uB9CC \uC608\uACE0
@@ -1666,6 +2098,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 51
     title: "\uB3CC\uC9C4 \uCD9C\uBC1C \uD759\uBA3C\uC9C0"
     description: " \uC801 \uB4A4\uCABD\uC5D0 \uBA3C\uC9C0\uB97C \uBAA8\uC544 \uB3CC\uC9C4
@@ -1711,6 +2153,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 0875e6e80cb9eaf4e865ee5c38e7e84e, type: 3}
+      volume: 0.2
+      pitchMin: 0.97
+      pitchMax: 1.03
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.1
+      priority: 80
+      audibleRange: 30
   - cue: 52
     title: "\uBCBD \uCDA9\uB3CC \uD30C\uD3B8"
     description: " \uC2E4\uC81C \uBCBD \uCDA9\uB3CC\uC774 \uD655\uC815\uB410\uC744
@@ -1757,6 +2210,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 3157ccb9872b51b4892d0de61d18c151, type: 3}
+      volume: 0.15
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.1
+      priority: 64
+      audibleRange: 30
   - cue: 53
     title: "\uBCF4\uC2A4 \uCC29\uC9C0 \uC774\uC911 \uD30C\uB3D9"
     description: " \uC2E4\uC81C \uD310\uC815\uACFC \uD568\uAED8 \uB0AE\uC740 \uBA3C\uC9C0\xB7\uC7A5\uC2DD
@@ -1802,6 +2266,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 8e37f0a9d3944134fa63545b9905b2ea, type: 3}
+      volume: 0.2
+      pitchMin: 0.98
+      pitchMax: 1.02
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.12
+      priority: 48
+      audibleRange: 32
   - cue: 54
     title: "\uCE74\uC6B4\uD130 \uC131\uACF5 \uD30C\uC5F4"
     description: " \uB178\uB780 \uC608\uACE0\uAC00 \uC791\uC740 \uC870\uAC01\uC73C\uB85C
@@ -1848,6 +2323,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: c0e20a0e3f1ddc446b43244af1f5da6e, type: 3}
+      volume: 0.19
+      pitchMin: 0.99
+      pitchMax: 1.01
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.08
+      priority: 24
+      audibleRange: 0
   - cue: 55
     title: "\uC740\uC2E0\xB7\uB4F1\uC7A5 \uC601\uD63C \uD754\uC801"
     description: " \uBCF4\uC2A4\uAC00 \uC228\uACE0 \uB098\uC624\uB294 \uC704\uCE58\uC5D0
@@ -1893,6 +2379,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 56
     title: "\uBCF4\uC2A4 \uCC98\uCE58 \uC218\uCD95"
     description: " \uC794\uC5EC \uACF5\uACA9 \uC5F0\uCD9C\uC744 \uBA3C\uC800 \uC815\uB9AC\uD558\uACE0
@@ -1938,6 +2434,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 57
     title: "\uC0C1\uC790 \uD2C8\uC0C8 \uBE5B"
     description: " \uB69C\uAED1\uC774 \uC5F4\uB9AC\uB294 \uD504\uB808\uC784\uC5D0
@@ -1983,6 +2489,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: b448e3330d85b9344a4e14ddc09f6d0c, type: 3}
+      volume: 0.16
+      pitchMin: 0.98
+      pitchMax: 1.02
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.2
+      priority: 88
+      audibleRange: 20
   - cue: 58
     title: "\uBCF4\uC0C1 \uD280\uC5B4\uB098\uC624\uAE30"
     description: " \uBCF4\uC0C1\uC774 \uC791\uC740 \uD3EC\uBB3C\uC120\uC744 \uADF8\uB9B0
@@ -2028,6 +2545,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 59
     title: "\uD76C\uADC0\uB3C4\uBCC4 \uBC18\uC9DD\uC784"
     description: " \uC544\uC774\uD15C \uADF8\uB9BC\uC740 \uC720\uC9C0\uD558\uACE0
@@ -2074,6 +2601,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 60
     title: "\uD68D\uB4DD UI \uC5F0\uACB0"
     description: " \uC2B5\uB4DD\uD55C \uC544\uC774\uCF58\uC758 \uC791\uC740 \uC0AC\uBCF8\uC774
@@ -2119,6 +2656,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 3902b039e6975de4b88e906968f20d1c, type: 3}
+      volume: 0.1
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.055
+      priority: 96
+      audibleRange: 0
   - cue: 61
     title: "\uC2A4\uD0DD \uC99D\uAC00 \uBC18\uB3D9"
     description: " \uC911\uCCA9 \uAC1C\uC218\uB9CC \uC791\uAC8C \uD280\uACE0 \uD574\uB2F9
@@ -2164,6 +2712,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 62
     title: "\uC911\uCCA9 \uD55C\uB3C4 \uD45C\uC2DC"
     description: " \uCD5C\uB300 \uC911\uCCA9\uC5D0 \uB3C4\uB2EC\uD560 \uB54C \uD14C\uB450\uB9AC\uAC00
@@ -2209,6 +2767,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 63
     title: "\uAC15\uD654 \uD655\uC815 \uC12C\uAD11"
     description: " \uC120\uD0DD\uD55C \uCE74\uB4DC\uC5D0\uC11C \uBB34\uAE30 \uCABD\uC73C\uB85C
@@ -2254,6 +2822,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 99213bce387fe994e9f03499300e80b3, type: 3}
+      volume: 0.14
+      pitchMin: 0.98
+      pitchMax: 1.02
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.12
+      priority: 72
+      audibleRange: 0
   - cue: 64
     title: "\uAD6C\uB9E4 \uACB0\uACFC \uBC18\uC751"
     description: " \uC0C1\uD488 \uC790\uB9AC\uC758 \uC794\uAD11\uACFC \uACE8\uB4DC
@@ -2299,6 +2878,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 65
     title: "\uD3EC\uD0C8 \uD761\uC785 \uC785\uC790"
     description: " \uC8FC\uBCC0\uC758 \uC791\uC740 \uC810\uC774 \uD3EC\uD0C8 \uC911\uC2EC\uC73C\uB85C
@@ -2344,10 +2933,22 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 66
-    title: "\uD3EC\uD0C8 \uB3C4\uCC29 \uD30C\uB3D9"
-    description: " \uD50C\uB808\uC774\uC5B4\uC758 \uB3C4\uCC29 \uBC1C\uBC11\uC5D0
-      \uB0AE\uC740 \uC6D0\uC774 \uC9E7\uAC8C \uD37C\uC9C4\uB2E4."
+    title: "\uBB38 \uC9C4\uC785 \xB7 \uCE35 \uC774\uB3D9"
+    description: "\uBB38\uC5D0 \uB4E4\uC5B4\uAC00\uBA70 \uC0AC\uB77C\uC9C8 \uB54C
+      \uC7AC\uC0DD\uD558\uB294 \uC774\uB3D9\uC74C. \uBC18\uB300\uD3B8\uC5D0\uC11C
+      \uB098\uD0C0\uB0A0 \uB54C\uB294 102 \uBB38\uC5D0\uC11C \uB098\uC62C \uB54C
+      \uC18C\uB9AC\uB97C \uBCC4\uB3C4\uB85C \uC0AC\uC6A9\uD569\uB2C8\uB2E4."
     enabled: 1
     prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
     shape: 1
@@ -2389,6 +2990,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 395c180954a7d6a42989292f6f64473e, type: 3}
+      volume: 0.16
+      pitchMin: 0.98
+      pitchMax: 1.02
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.6
+      priority: 96
+      audibleRange: 0
   - cue: 67
     title: "\uBC29 \uD074\uB9AC\uC5B4 \uC815\uD654"
     description: " \uBC29 \uAD6C\uC11D\uC758 \uC791\uC740 \uC5B4\uB450\uC6B4 \uC785\uC790\uAC00
@@ -2434,6 +3046,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 68
     title: "\uBB38 \uAC1C\uBC29 \uBA3C\uC9C0"
     description: " \uBB38\uC774 \uC5F4\uB9B4 \uB54C \uBC14\uB2E5 \uC811\uC810\uC5D0\uC11C\uB9CC
@@ -2479,6 +3101,17 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 57629aa98bfa4674aab4bd13d2e5db81, type: 3}
+      volume: 0.11
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.12
+      priority: 160
+      audibleRange: 18
   - cue: 69
     title: "\uBB3C\uAC00 \uC794\uBB3C\uACB0"
     description: " \uC2E4\uC81C \uBB3C \uD45C\uBA74 \uADFC\uCC98\uC5D0 \uC791\uC740
@@ -2524,6 +3157,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 70
     title: "\uC218\uD480 \uC2A4\uCE68"
     description: " \uCE90\uB9AD\uD130 \uADFC\uCC98 \uC218\uD480\uC758 \uADF8\uB9BC\uB9CC
@@ -2569,6 +3212,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 71
     title: "\uAD6D\uC18C \uBA3C\uC9C0\xB7\uBE5B\uC904\uAE30"
     description: " \uCC3D\uBB38\xB7\uD683\uBD88\xB7\uD3EC\uD0C8 \uC8FC\uBCC0\uC5D0\uB9CC
@@ -2614,6 +3267,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 72
     title: "\uD30C\uAD34 \uC18C\uD488 \uBC18\uC751"
     description: " \uC2E4\uC81C \uBD80\uC11C\uC9C4 \uC21C\uAC04 \uC870\uAC01\xB7\uC9E7\uC740
@@ -2659,6 +3322,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 73
     title: "\uBC29\uD5A5\uC131 \uCE74\uBA54\uB77C \uBC18\uB3D9"
     description: " \uAC15\uD55C \uD0C0\uACA9 \uBC29\uD5A5\uC73C\uB85C\uB9CC \uC7A0\uAE50
@@ -2704,6 +3377,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 74
     title: "\uC911\uC694\uD55C \uD0C0\uACA9\uB9CC \uD788\uD2B8\uC2A4\uD1B1"
     description: " \uAE30\uC874 \uD53C\uB4DC\uBC31\uC744 \uCF64\uBCF4 \uB9C8\uC9C0\uB9C9\xB7\uD37C\uD399\uD2B8
@@ -2749,6 +3432,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 75
     title: "\uC81C\uD55C\uC801 \uC2AC\uB85C\uBAA8\uC158"
     description: " \uBCF4\uC2A4 \uCC98\uCE58 \uAC19\uC740 \uB4DC\uBB38 \uC21C\uAC04\uC5D0\uB9CC
@@ -2794,6 +3487,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 76
     title: "\uAD6D\uC18C \uC65C\uACE1 \uD30C\uB3D9"
     description: " \uAC15\uD55C \uD0C0\uACA9 \uC8FC\uBCC0 \uC791\uC740 \uC601\uC5ED\uB9CC
@@ -2840,6 +3543,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 77
     title: "\uC2A4\uD0AC \uC900\uBE44 UI \uBC18\uC9DD\uC784"
     description: " \uCFE8\uC774 \uB05D\uB098\uB294 \uC21C\uAC04 Space \uC544\uC774\uCF58
@@ -2885,6 +3598,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 78
     title: "\uD53C\uD574 \uBC29\uD5A5 \uD45C\uC2DC"
     description: " \uD50C\uB808\uC774\uC5B4\uAC00 \uC2E4\uC81C \uD53C\uD574\uB97C
@@ -2931,6 +3654,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 79
     title: "\uD0C0\uACA9\uC74C \uCE35 \uBD84\uB9AC"
     description: " \uAE08\uC18D\uC74C\xB7\uCDA9\uACA9\uC74C\xB7\uC9E7\uC740 \uC800\uC74C\uC744
@@ -2977,6 +3710,16 @@ MonoBehaviour:
     sound: {fileID: 8300000, guid: 9429bbf84d24a8c4aa53e080d48ff80d, type: 3}
     volume: 0.16
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 80
     title: "\uC5F0\uD0C0 \uC18C\uB9AC \uBBF8\uC138 \uBCC0\uD654"
     description: " \uC5F0\uC18D \uD0C0\uACA9\uC5D0\uC11C \uC74C\uB192\uC774\xB7\uC74C\uB7C9\uC744
@@ -3023,6 +3766,16 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 81
     title: "\uBC14\uB2E5 \uC544\uC774\uD15C \uBC18\uC9DD\uC784"
     description: "\uBC14\uB2E5\uC5D0 \uB193\uC778 \uC544\uC774\uD15C \uC704\uC5D0
@@ -3070,9 +3823,20 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
   - cue: 82
-    title: "\ud37c\ud399\ud2b8 \uac00\ub4dc \uc12c\uad11"
-    description: "\ud37c\ud399\ud2b8 \uac00\ub4dc\uc5d0\ub9cc \uc811\ucd09 \uc9c0\uc810\uc5d0\uc11c \uc9e7\uace0 \ubc1d\uc740 \uc2ed\uc790 \uc12c\uad11\uc744 \ud45c\uc2dc\ud569\ub2c8\ub2e4."
+    title: "\uD37C\uD399\uD2B8 \uAC00\uB4DC \uC12C\uAD11"
+    description: "\uD37C\uD399\uD2B8 \uAC00\uB4DC\uC5D0\uB9CC \uC811\uCD09 \uC9C0\uC810\uC5D0\uC11C
+      \uC9E7\uACE0 \uBC1D\uC740 \uC2ED\uC790 \uC12C\uAD11\uC744 \uD45C\uC2DC\uD569\uB2C8\uB2E4."
     enabled: 1
     prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
     shape: 3
@@ -3114,9 +3878,21 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 5de6f8424f258b94ab53e3dc19c7c68a, type: 3}
+      volume: 0.14
+      pitchMin: 0.96
+      pitchMax: 1.02
+      enabled: 1
+      volumeVariation: 0.03
+      minPlaybackInterval: 0.06
+      priority: 24
+      audibleRange: 0
   - cue: 83
-    title: "\ud37c\ud399\ud2b8 \uac00\ub4dc \ud30c\ub3d9"
-    description: "\ud37c\ud399\ud2b8 \uac00\ub4dc \uc811\ucd09 \uc9c0\uc810\uc5d0\uc11c \ud478\ub978 \ud30c\ub3d9\uc774 \uc9e7\uac8c \ud37c\uc9d1\ub2c8\ub2e4."
+    title: "\uD37C\uD399\uD2B8 \uAC00\uB4DC \uD30C\uB3D9"
+    description: "\uD37C\uD399\uD2B8 \uAC00\uB4DC \uC811\uCD09 \uC9C0\uC810\uC5D0\uC11C
+      \uD478\uB978 \uD30C\uB3D9\uC774 \uC9E7\uAC8C \uD37C\uC9D1\uB2C8\uB2E4."
     enabled: 1
     prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
     shape: 1
@@ -3158,6 +3934,1111 @@ MonoBehaviour:
     sound: {fileID: 0}
     volume: 0.3
     pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
+  - cue: 84
+    title: "\uBCF4\uC2A4 \uB4F1\uC7A5 \uC9D1\uC911"
+    description: "\uB4F1\uC7A5 \uC608\uC815 \uC704\uCE58\uC5D0 \uBAA8\uC774\uB294
+      \uC601\uD63C. \uBC29 \uC18C\uD658 \uB300\uAE30 \uC2DC\uAC04\uC740 BossRoomEvent\uC5D0\uC11C
+      \uC870\uC808."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 5
+    color: {r: 0.55, g: 0.85, b: 1, a: 0.85}
+    intensity: 1
+    duration: 0.5
+    delay: 0
+    count: 8
+    radius: 1.6
+    width: 0.05
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
+  - cue: 85
+    title: "\uC9D1\uD589 \uC120\uACF5\uACA9 \uD0C0\uACA9 \uC794\uAD11"
+    description: "\uAE30\uC874 \uC608\uACE0\uAC00 \uB05D\uB098 \uC2E4\uC81C \uD53C\uD574\uAC00
+      \uB4E4\uC5B4\uAC00\uB294 \uC21C\uAC04 \uD45C\uC2DC. \uAE38\uC774\uB294 \uC2E4\uC81C
+      \uBC29 \uACBD\uACC4, \uD53C\uD574 \uD3ED\uACFC \uD0C0\uC774\uBC0D\uC740 \uAE30\uC874
+      AI \uC124\uC815 \uC720\uC9C0."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 7
+    color: {r: 1, g: 0.75, b: 0.5, a: 0.9}
+    intensity: 1
+    duration: 0.18
+    delay: 0
+    count: 2
+    radius: 1
+    width: 0.06
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips: []
+      volume: 0.8
+      pitchMin: 1
+      pitchMax: 1
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 128
+      audibleRange: 0
+  - cue: 86
+    title: "86 \uD480 \uBC1C\uC18C\uB9AC"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 3ecb12f6f88ebb341a57d73534490a31, type: 3}
+      - {fileID: 8300000, guid: e357b609a7eb4d44c836754c1394115f, type: 3}
+      - {fileID: 8300000, guid: e24d2773414e5d04da4742e6bc687cab, type: 3}
+      - {fileID: 8300000, guid: 2ab484181f3b7a349b4612f72af1a212, type: 3}
+      volume: 0.045
+      pitchMin: 0.94
+      pitchMax: 1.06
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.075
+      priority: 210
+      audibleRange: 0
+  - cue: 87
+    title: "87 \uB545 \uBC1C\uC18C\uB9AC"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: dbd9a1a08f1a27a4aa8ca2a9dbcc1160, type: 3}
+      - {fileID: 8300000, guid: cac924f26fe763a4482e49321be01424, type: 3}
+      - {fileID: 8300000, guid: 87a5353ebbef7ea4b8f808ca8c448f91, type: 3}
+      - {fileID: 8300000, guid: d13103d046ac7e2438a5afcd69ea66ed, type: 3}
+      volume: 0.04
+      pitchMin: 0.94
+      pitchMax: 1.06
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.075
+      priority: 210
+      audibleRange: 0
+  - cue: 88
+    title: "88 \uADFC\uC811 \uBAAC\uC2A4\uD130 \uAC80\uACA9"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 489c36a1d143dbe4483eba534db1e4f0, type: 3}
+      - {fileID: 8300000, guid: 3d31fbf6f8b6d7743b4c03bc06d613da, type: 3}
+      volume: 0.11
+      pitchMin: 0.93
+      pitchMax: 1.07
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.08
+      priority: 144
+      audibleRange: 24
+  - cue: 89
+    title: "89 \uAD81\uC218 \uBC1C\uC0AC"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: a16a5c1c1602e1048a866ec0409e2b5a, type: 3}
+      volume: 0.11
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.08
+      priority: 136
+      audibleRange: 24
+  - cue: 90
+    title: "90 \uB9C8\uBC95\uC9C4 \uD3ED\uBC1C"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 4f8d5c35cd6406e4cad137752532ef5c, type: 3}
+      volume: 0.14
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.1
+      priority: 112
+      audibleRange: 26
+  - cue: 91
+    title: "91 \uBE59\uACB0 \uC801\uC6A9"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 9c0c819398bc4994a86a2fc5c8ae2fb6, type: 3}
+      volume: 0.14
+      pitchMin: 0.94
+      pitchMax: 1.06
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.12
+      priority: 140
+      audibleRange: 24
+  - cue: 92
+    title: "92 \uBAAC\uC2A4\uD130 \uC601\uD63C \uC18C\uBA78"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: a8e542565a8f2bc4b95eda66603cef17, type: 3}
+      volume: 0.13
+      pitchMin: 0.92
+      pitchMax: 1.08
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.12
+      priority: 180
+      audibleRange: 24
+  - cue: 93
+    title: "93 \uC0AC\uC790\uD0C8 \uBD84\uC5F4"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 677082b13673e694ca7336ccbb23585c, type: 3}
+      - {fileID: 8300000, guid: 08c6c400865589d4c9875ea1a515ffc9, type: 3}
+      - {fileID: 8300000, guid: 365e295b59ed1e446baf7a3da356ca33, type: 3}
+      volume: 0.1
+      pitchMin: 0.94
+      pitchMax: 1.06
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.12
+      priority: 140
+      audibleRange: 24
+  - cue: 94
+    title: "94 \uBCF4\uC2A4 \uD729\uC4F8\uAE30"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 5e352b477954e4e42b647aaac9c7bf11, type: 3}
+      volume: 0.2
+      pitchMin: 0.98
+      pitchMax: 1.02
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.08
+      priority: 48
+      audibleRange: 32
+  - cue: 95
+    title: "95 \uBCF4\uC2A4 \uCC0C\uB974\uAE30"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 31dcfd613e9a3084498def2eaf767b9b, type: 3}
+      volume: 0.2
+      pitchMin: 0.98
+      pitchMax: 1.02
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.08
+      priority: 48
+      audibleRange: 32
+  - cue: 96
+    title: "96 \uB3CC\uC9C4 \uCDA9\uACA9\uD30C"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 3157ccb9872b51b4892d0de61d18c151, type: 3}
+      volume: 0.15
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.1
+      priority: 64
+      audibleRange: 30
+  - cue: 97
+    title: "97 \uD22C\uC0AC\uCCB4 \uBC18\uC0AC"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 667772c88a4787b429abc217bcb8c6a4, type: 3}
+      volume: 0.22
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.1
+      priority: 72
+      audibleRange: 0
+  - cue: 98
+    title: "98 \uACE8\uB4DC \uD68D\uB4DD"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: b247cbbb920d35b4398e0037c02e65ff, type: 3}
+      volume: 0.1
+      pitchMin: 0.96
+      pitchMax: 1.04
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.1
+      priority: 112
+      audibleRange: 0
+  - cue: 99
+    title: "99 \uAC00\uB4DC \uC62C\uB9AC\uAE30"
+    description: "\uD589\uB3D9 \uD6A8\uACFC\uC74C. \uD30C\uC77C\xB7\uBCFC\uB968\xB7\uC74C\uB192\uC774\xB7\uAC04\uACA9\xB7\uC6B0\uC120\uC21C\uC704\xB7\uAC70\uB9AC\uB97C
+      \uC870\uC808\uD569\uB2C8\uB2E4. \uBE44\uC5B4 \uC788\uC73C\uBA74 \uC7AC\uC0DD\uD558\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 1
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: a0c302d1416ac564c81072dd28fee178, type: 3}
+      volume: 0.13
+      pitchMin: 0.97
+      pitchMax: 1.03
+      enabled: 1
+      volumeVariation: 0.07
+      minPlaybackInterval: 0.12
+      priority: 96
+      audibleRange: 0
+  - cue: 100
+    title: "\uC5D8\uB9AC\uD2B8 \uD729\uC4F8\uAE30"
+    description: "\uC0AC\uC6A9\uC790 \uC120\uD0DD \uC74C\uC6D0. \uD729\uC4F8\uAE30\uB294
+      \uD0C0\uACA9 0.08\uCD08 \uC804\uBD80\uD130, \uB0B4\uB824\uCC0D\uAE30\uB294
+      \uCC29\uC9C0 \uD310\uC815 \uC2DC\uC810\uC5D0 \uC7AC\uC0DD. \uC0AC\uC6B4\uB4DC
+      \uD14C\uC2A4\uD2B8 \uD234\uC5D0\uC11C \uC870\uC808."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 0
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 6c3d24e5ffd49ce44941c237f0922b30, type: 3}
+      volume: 0.12
+      pitchMin: 0.96
+      pitchMax: 1.02
+      enabled: 1
+      volumeVariation: 0.03
+      minPlaybackInterval: 0.1
+      priority: 85
+      audibleRange: 24
+  - cue: 101
+    title: "\uC5D8\uB9AC\uD2B8 \uB3C4\uC57D \uB0B4\uB824\uCC0D\uAE30"
+    description: "\uC0AC\uC6A9\uC790 \uC120\uD0DD \uC74C\uC6D0. \uD729\uC4F8\uAE30\uB294
+      \uD0C0\uACA9 0.08\uCD08 \uC804\uBD80\uD130, \uB0B4\uB824\uCC0D\uAE30\uB294
+      \uCC29\uC9C0 \uD310\uC815 \uC2DC\uC810\uC5D0 \uC7AC\uC0DD. \uC0AC\uC6B4\uB4DC
+      \uD14C\uC2A4\uD2B8 \uD234\uC5D0\uC11C \uC870\uC808."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 0
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 036deaa60be269e45a337080fdc81517, type: 3}
+      volume: 0.12
+      pitchMin: 0.96
+      pitchMax: 1.02
+      enabled: 1
+      volumeVariation: 0.03
+      minPlaybackInterval: 0.1
+      priority: 80
+      audibleRange: 24
+  - cue: 102
+    title: "\uBB38\uC5D0\uC11C \uB098\uC62C \uB54C"
+    description: "\uBC29 \uC774\uB3D9 \uC131\uACF5 \uD6C4 \uD398\uC774\uB4DC \uC778\uC774
+      \uB05D\uB098\uACE0 \uCE90\uB9AD\uD130\uAC00 \uB098\uD0C0\uB098\uB294 \uC21C\uAC04.
+      \uC9C4\uC785\uACFC \uAC19\uC740 \uC74C\uC6D0\uC744 \uB192\uC740 \uD53C\uCE58\uB85C
+      \uC7AC\uC0DD\uD569\uB2C8\uB2E4. \uC0AC\uC6B4\uB4DC \uD14C\uC2A4\uD2B8 \uD234
+      > \uAC8C\uC784 \uD589\uB3D9\uC5D0\uC11C \uAC01\uAC01 \uC870\uC808."
+    enabled: 1
+    prefab: {fileID: 0}
+    shape: 0
+    color: {r: 1, g: 1, b: 1, a: 1}
+    intensity: 0
+    duration: 0.24
+    delay: 0
+    count: 5
+    radius: 0.45
+    width: 0.03125
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 395c180954a7d6a42989292f6f64473e, type: 3}
+      volume: 0.14
+      pitchMin: 1.14
+      pitchMax: 1.18
+      enabled: 1
+      volumeVariation: 0.03
+      minPlaybackInterval: 0.1
+      priority: 64
+      audibleRange: 0
   existingEffects:
   - cue: 1
     enabled: 1
@@ -3370,6 +5251,46 @@ MonoBehaviour:
     - {fileID: 2016357636188642506, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
     - {fileID: 6116127727867885574, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
     - {fileID: 7257450153672990043, guid: 2c464758461f6d84d8d4adae597dbc66, type: 3}
+  - cue: 13
+    enabled: 1
+    title: "\uBB38 \uD14C\uB450\uB9AC \uB9E5\uB3D9"
+    description: "\uBB38 \uCF1C\uC9D0\xB7\uAEBC\uC9D0\uACFC \uD568\uAED8 \uBE44\uC11D\uC758
+      \uC2E4\uC81C \uB3C4\uD2B8 \uC724\uACFD\uB9CC \uB9E5\uB3D9\uD569\uB2C8\uB2E4.
+      AmbientOutlinePulse\uC5D0\uC11C \uC0C9\xB7\uC8FC\uAE30\xB7\uBC1D\uAE30\xB7\uC804\uD658
+      \uC2DC\uAC04, Portal Edge \uC7AC\uC9C8\uC5D0\uC11C \uB3C4\uD2B8 \uB450\uAED8\xB7\uADF8\uB9BC\uC790
+      \uC81C\uC678 \uAE30\uC900\xB7\uBC1C\uAD11\uC744 \uC870\uC808\uD569\uB2C8\uB2E4."
+    sources:
+    - {fileID: 1991065195677029051, guid: 8e8a752acc80bf244b674d495f600456, type: 3}
+    - {fileID: 2100000, guid: 10abd8b732458324f8335fcc2a733c73, type: 2}
+  - cue: 14
+    enabled: 1
+    title: "\uCE35 \uC774\uB3D9 \uD3EC\uD0C8 \uD14C\uB450\uB9AC"
+    description: "\uCCB4\uD06C\uB85C \uCF1C\uACE0 \uB044\uAE30. \uC6D0\uBCF8 \uD504\uB9AC\uD339
+      AmbientOutlinePulse\uC5D0\uC11C \uC0C9\xB7\uC8FC\uAE30\xB7\uBC1D\uAE30\xB7\uC804\uD658
+      \uC2DC\uAC04, \uC790\uC2DD LineRenderer\uC5D0\uC11C \uD3ED\xB7\uBAA8\uC591
+      \uC870\uC808."
+    sources:
+    - {fileID: 6203059925790545799, guid: 3f4bb635140eefb4698ee6fff68c87fb, type: 3}
+  - cue: 15
+    enabled: 1
+    title: "\uB098\uBB34\uBCC4 \uD754\uB4E4\uB9BC \uBD84\uC0B0"
+    description: "\uC6D0\uBCF8 \uD504\uB808\uC784 \uC21C\uC11C\uB97C \uC720\uC9C0\uD558\uACE0
+      \uC2DC\uC791 \uC2DC\uC810\xB7\uC18D\uB3C4\uB9CC \uBD84\uC0B0. \uCCB4\uD06C\uB97C
+      \uB044\uBA74 \uAE30\uBCF8 \uC18D\uB3C4\uB85C \uBCF5\uADC0."
+    sources:
+    - {fileID: 2923946835806129894, guid: a48c89cf4b054c74a829eda8cbca7fd1, type: 3}
+    - {fileID: 2452935730814653697, guid: 2ea51a8264fa10f43a95f1c2ea44d4bf, type: 3}
+    - {fileID: 1393243988171339621, guid: 45314cebce5d2234dbb2f68e75d9f1ae, type: 3}
+    - {fileID: 3253181558815774216, guid: a8de260e52a823144b979e6c72557dc4, type: 3}
+  - cue: 16
+    enabled: 1
+    title: "\uBCF4\uC2A4 \uC9D1\uD589 \uC608\uACE0\uC120 \uD14C\uB450\uB9AC"
+    description: "\uAE30\uC874 \uCC28\uC624\uB984 \uC608\uACE0\uC758 \uC2E4\uC81C
+      \uD3ED \uC548\uCABD\uC5D0 \uC120\uC744 \uCD94\uAC00. \uC6D0\uBCF8 \uD504\uB9AC\uD339\uC5D0\uC11C
+      \uC0C9\uACFC \uB9E5\uB3D9 \uC870\uC808. \uCCB4\uD06C \uD574\uC81C \uC2DC \uAE30\uBCF8
+      \uC608\uACE0\uB294 \uC720\uC9C0."
+    sources:
+    - {fileID: 96621752760724692, guid: 118aaca2f9dd7ae45bc4206feac1254d, type: 3}
   overlayPrefab: {fileID: 870907240442243352, guid: f91117987761b814bbc31cc784cb80f9, type: 3}
   chestOpenOffset: {x: 0, y: 0.55, z: 0}
   chestOpenAnimationTime: 0.3
@@ -3379,6 +5300,8 @@ MonoBehaviour:
   prewarmHitPrefabs:
   - {fileID: 3940381455572104995, guid: 8d06d861d308b6343908d022f4a95489, type: 3}
   - {fileID: 4428137900650296124, guid: c4896b016c8167e4186084904a6f2d9e, type: 3}
+  prewarmMovementCount: 6
+  prewarmFreezeCount: 3
   prewarmGhostCount: 2
   lowHealthRatio: 0.25
   lowHealthInterval: 1.25

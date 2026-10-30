@@ -360,6 +360,7 @@ MonoBehaviour:
     readyPunchTime: 0.22
   hover:
     enabled: 1
+    liftPixels: 3
     hoverScale: 1.06
     pressScale: 0.94
-    time: 0.08
+    time: 0.12

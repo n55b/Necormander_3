@@ -106,6 +106,7 @@ MonoBehaviour:
   speed: 15
   lifeTime: 3
   rotateToDirection: 1
+  launchSound: 89
 --- !u!61 &-8887338375934734293
 BoxCollider2D:
   m_ObjectHideFlags: 0

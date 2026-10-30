@@ -8,11 +8,12 @@ public enum SoundTrigger
 {
     [InspectorName("직접 호출 (애니메이션 이벤트 PlaySound / 코드)")] Manual,
     [InspectorName("나타날 때 (오브젝트가 켜질 때)")]                  OnSpawn,
-    [InspectorName("공격이 맞는 순간 (애니메이션 이벤트 OnHitEvent)")]  OnAttackHit,
+    [InspectorName("무기 휘두르는 순간 (애니메이션 OnHitEvent / 빗나가도 재생)")] OnAttackHit,
     [InspectorName("공격 동작 끝 (애니메이션 이벤트 OnAttackEndEvent)")] OnAttackEnd,
     [InspectorName("맞았을 때")]                                        OnHurt,
     [InspectorName("회복했을 때")]                                      OnHeal,
     [InspectorName("죽을 때")]                                          OnDeath,
+    [InspectorName("소환수 평타 실제 적중 (빗나가면 재생 안 함)")] OnBasicDamageDealt,
 }
 
 /// <summary>오브젝트 소리 하나: 소리 묶음 + 이름 + 재생 조건.</summary>
@@ -23,7 +24,9 @@ public class SoundEntry : SoundClipGroup
     public string name = "새 소리";
     [KoLabel("언제 재생")]
     public SoundTrigger trigger = SoundTrigger.Manual;
-    [KoLabel("최소 재생 간격 (초)", 0f, 2f), Tooltip("같은 소리가 이 시간 안에 다시 불리면 무시합니다. 여러 마리가 한꺼번에 맞을 때 소리가 겹쳐 터지는 것을 막습니다.")]
+    [KoLabel("애니메이션 상태 (비우면 공통)"), Tooltip("공격 타격/종료 이벤트를 받을 상태 이름입니다. 예: Attack, Skill. 비우면 모든 상태에서 재생합니다. 직접 호출과 미리 듣기에는 적용하지 않습니다.")]
+    public string animationState = "";
+    [KoLabel("같은 파일 공통 간격 (초)", 0f, 2f), Tooltip("같은 파일을 사용하는 여러 오브젝트 사이의 공통 간격입니다. 소리 묶음의 최소 간격은 이 항목 자체에 적용됩니다.")]
     public float minInterval = 0.05f;
     [KoLabel("지연 (초)", 0f, 2f), Tooltip("재생 조건이 된 뒤 이만큼 기다렸다가 재생합니다.")]
     public float delay = 0f;
@@ -58,6 +61,8 @@ public class EntitySoundSet : MonoBehaviour
 
     // 같은 클립이 여러 오브젝트에서 동시에 터지는 것을 막는 전역 간격 기록
     private static readonly Dictionary<int, float> _lastPlayByClip = new Dictionary<int, float>();
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetPlayback() => _lastPlayByClip.Clear();
 
     private bool _subscribed;
 
@@ -103,8 +108,8 @@ public class EntitySoundSet : MonoBehaviour
     private void HandleDeath() => Play(SoundTrigger.OnDeath);
 
     // ── 애니메이션 이벤트 (같은 오브젝트에 Animator 가 있을 때 직접 받음) ──
-    public void OnHitEvent() { if (listenAnimationEvents) Play(SoundTrigger.OnAttackHit); }
-    public void OnAttackEndEvent() { if (listenAnimationEvents) Play(SoundTrigger.OnAttackEnd); }
+    public void OnHitEvent(AnimationEvent evt) { if (listenAnimationEvents) Play(SoundTrigger.OnAttackHit, evt); }
+    public void OnAttackEndEvent(AnimationEvent evt) { if (listenAnimationEvents) Play(SoundTrigger.OnAttackEnd, evt); }
 
     /// <summary>애니메이션 이벤트 / 코드에서 이름으로 재생.</summary>
     public void PlaySound(string soundName)
@@ -117,13 +122,17 @@ public class EntitySoundSet : MonoBehaviour
     }
 
     /// <summary>해당 시점의 소리를 모두 재생.</summary>
-    public void Play(SoundTrigger trigger)
+    public void Play(SoundTrigger trigger, AnimationEvent evt = null)
     {
         if (!Application.isPlaying) return;
         for (int i = 0; i < sounds.Count; i++)
         {
             var e = sounds[i];
-            if (e != null && e.trigger == trigger) PlayEntry(e);
+            if (e == null || e.trigger != trigger) continue;
+            if ((trigger == SoundTrigger.OnAttackHit || trigger == SoundTrigger.OnAttackEnd)
+                && !string.IsNullOrEmpty(e.animationState)
+                && (evt == null || !evt.isFiredByAnimator || !evt.animatorStateInfo.IsName(e.animationState))) continue;
+            PlayEntry(e);
         }
     }
 
@@ -148,9 +157,10 @@ public class EntitySoundSet : MonoBehaviour
         int key = clip.GetInstanceID();
         float now = Time.unscaledTime;
         if (_lastPlayByClip.TryGetValue(key, out float last) && now - last < e.minInterval) return;
-        _lastPlayByClip[key] = now;
-
-        SoundClipGroup.PlayClip(clip, e.volume, e.PickPitch());
-        Played?.Invoke(this, e, clip);
+        if (e.PlayChosenClip(clip, transform.position))
+        {
+            _lastPlayByClip[key] = now;
+            Played?.Invoke(this, e, clip);
+        }
     }
 }

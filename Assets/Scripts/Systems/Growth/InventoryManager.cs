@@ -275,7 +275,12 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private Color goldGainTextColor = Color.white;
 
     /// <summary>골드만 더한다(텍스트 없음). 환불·세이브 복원처럼 '획득'이 아닌 경로용.</summary>
-    public void AddGold(int amount) { gold += amount; }
+    public void AddGold(int amount)
+    {
+        gold += amount;
+        if (amount > 0 && PolishFeedback.Player != null)
+            PolishFeedback.PlaySound(FeedbackCue.GoldPickup, PolishFeedback.Player.transform.position);
+    }
 
     /// <summary>골드를 '획득'한다. 더한 뒤 증강 방 보상처럼 플레이어 앞에 "+NG" 텍스트를 띄운다.</summary>
     public void GainGold(int amount)

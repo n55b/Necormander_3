@@ -264,6 +264,7 @@ public class SkillMotion
 public class HoverMotion
 {
     [KoLabel("사용")] public bool enabled = true;
+    [KoLabel("마우스를 올렸을 때 높이 (UI 픽셀)", 0f, 12f)] public float liftPixels = 3f;
     [KoLabel("마우스를 올렸을 때 크기", 0.8f, 1.5f)] public float hoverScale = 1.06f;
     [KoLabel("눌렀을 때 크기", 0.6f, 1.2f)] public float pressScale = 0.94f;
     [KoLabel("크기가 바뀌는 시간 (초)", 0f, 0.5f), Tooltip("0이면 즉시 바뀝니다.")] public float time = 0.08f;

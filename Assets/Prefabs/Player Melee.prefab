@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 6666768342463534266}
   - component: {fileID: 7250412908182429482}
   - component: {fileID: 2198699292995912328}
+  - component: {fileID: 2131436560357356090}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -132,7 +133,8 @@ MonoBehaviour:
   isDynamic: 1
   precision: 100
   baseOffset: 0
-  pivotOverride: {fileID: 0}
+  pivotOverride: {fileID: 1604435047591240911}
+  sortingGroup: {fileID: 2131436560357356090}
 --- !u!114 &6666768342463534266
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,6 +183,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bodyAnimator: {fileID: 2915690303190765393}
+--- !u!210 &2131436560357356090
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 566668541217861576}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
 --- !u!1 &1757526723192270232
 GameObject:
   m_ObjectHideFlags: 0
@@ -391,6 +405,7 @@ MonoBehaviour:
   precision: 100
   baseOffset: 5
   pivotOverride: {fileID: 1604435047591240911}
+  sortingGroup: {fileID: 0}
 --- !u!114 &3940698526423894861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -906,6 +921,8 @@ MonoBehaviour:
   baseAngle: 90
   spriteOverride: {fileID: -8406559165381632762, guid: 1a06e194afcc37d4aafe779b826eb127, type: 3}
   indicatorScale: 1
+  renderAtScreenResolution: 0
+  rotationSteps: 64
 --- !u!114 &2631576122415696307
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -921,7 +938,8 @@ MonoBehaviour:
   isDynamic: 1
   precision: 100
   baseOffset: -1
-  pivotOverride: {fileID: 8947953161765370038}
+  pivotOverride: {fileID: 1604435047591240911}
+  sortingGroup: {fileID: 0}
 --- !u!1 &7486575472172356911
 GameObject:
   m_ObjectHideFlags: 0
@@ -963,6 +981,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2174475832111382353}
   - component: {fileID: 7773861144495448027}
+  - component: {fileID: 7042028188116976124}
   m_Layer: 0
   m_Name: Silhouette
   m_TagString: Untagged
@@ -1040,6 +1059,18 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 1
   m_SpriteSortPoint: 0
+--- !u!210 &7042028188116976124
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7999888722073057843}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 9000
+  m_SortAtRoot: 1
 --- !u!1 &8018710434257463118
 GameObject:
   m_ObjectHideFlags: 0
@@ -2101,8 +2132,37 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  useUnscaledTime: 0
+  useUnscaledTime: 1
   pulseBlendRatio: 0.2
+  materializeEnabled: 1
+  appearDuration: 0.16
+  vanishDuration: 0.2
+  vanishRise: 0.45
+  vanishScale: {x: 0.22, y: 1.35}
+  materializeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!114 &606286514386762975
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2202,6 +2262,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7550031707332359919}
   - component: {fileID: 7014098569055171752}
+  - component: {fileID: 2598352366239654019}
   m_Layer: 0
   m_Name: Silhouette
   m_TagString: Untagged
@@ -2279,3 +2340,15 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 1
   m_SpriteSortPoint: 0
+--- !u!210 &2598352366239654019
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9213966562212248489}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 9000
+  m_SortAtRoot: 1

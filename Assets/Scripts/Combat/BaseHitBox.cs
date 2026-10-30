@@ -333,6 +333,10 @@ public class BaseHitBox : MonoBehaviour
 
     private void ActivateHitBox()
     {
+        if (!_isInitialized && _damageInfo.amount > 0f && _damageInfo.attacker != null
+            && _damageInfo.attacker.TryGetComponent<BaseEntity>(out var caster)
+            && caster.Brain is EnemyMagicianAIPatternSO)
+            PolishFeedback.PlaySound(FeedbackCue.MagicCast, transform.position);
         _isInitialized = true;
         _elapsed = 0f;
         _tickCount.Clear(); // 대상별 타격 횟수 초기화 (첫 접촉 시 즉시 1타)

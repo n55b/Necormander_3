@@ -96,6 +96,9 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 
     private IEnumerator DelayedSpawnBoss(RoomInstance room)
     {
+        Vector3 entrance = room.transform.position + (Vector3)room.centerOffset;
+        if (NavMesh.SamplePosition(entrance, out var entranceHit, 5f, NavMesh.AllAreas)) entrance = entranceHit.position;
+        PolishFeedback.Play(FeedbackCue.BossEntrance, entrance);
         yield return new WaitForSeconds(Mathf.Max(0f, spawnStartDelay)); // 카메라 워프가 안착하는 약 0.5초 동안만 대기 후 스폰
 
         // [버그 수정 — "보스 없는 보스방"이 즉시 클리어되던 문제] 예전엔 _isSpawnPending 을 먼저
@@ -205,6 +208,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
             _activeBoss = GameManager.Instance.dataManager.CreateUnit(dataToSpawn, spawnPos);
         }
 
+        if (_activeBoss != null) PolishFeedback.Play(FeedbackCue.BossLand, _activeBoss.transform.position);
         BindBossHPBar(dataToSpawn);   // ← 추가
     }
 

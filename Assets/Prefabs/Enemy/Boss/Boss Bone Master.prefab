@@ -116,6 +116,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1328322500855024888, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1328322500855024888, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0.6500001
+      objectReference: {fileID: 0}
     - target: {fileID: 1578376785222923104, guid: d99ae60375e3c554baf7eed13445c838, type: 3}
       propertyPath: m_WalkableMask
       value: 4294967287
@@ -381,6 +389,7 @@ MonoBehaviour:
   phase2Data: {fileID: 11400000, guid: c3dac0bf2a19e2842b2040428baf4c03, type: 2}
   phase2HealFillDuration: 1
   phase2InvincibleDuration: 2
+  showPatternText: 0
   patternLabel: {fileID: 0}
   patternLabelOffset: {x: 0, y: 1.6, z: 0}
   groggyFlashColor: {r: 0.4, g: 0.85, b: 1, a: 1}
