@@ -368,8 +368,10 @@ public class PlayerController : MonoBehaviour
         if (stopVelocity && _rb != null) _rb.linearVelocity = Vector2.zero;
     }
 
-    private void UpdateLocomotionAnimation()
+    // 가드처럼 이동 속도만 바뀌는 행동도 같은 상태/재생 속도 갱신 경로를 사용한다.
+    public void UpdateLocomotionAnimation()
     {
+        if (stat != null && stat.IsDead) return;
         if (!canChangeState) return; // 공격/대시의 모션과 재생 속도는 해당 행동이 소유한다.
         bool blocked = _inputBlocked || IsGameplayPaused || IsCCed;
         Vector2 input = blocked ? Vector2.zero : moveInput;
