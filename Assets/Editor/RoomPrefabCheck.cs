@@ -70,7 +70,7 @@ public static class RoomPrefabCheck
             tuning.augmentRoomCount = 1;
             tuning.enhanceShopCount = tuning.eliteCount = tuning.rewardCount = 0;
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            var place = typeof(MapGenerator).GetMethod("PlaceIsaacRoomsNormalFloor", flags);
+            var place = typeof(MapGenerator).GetMethod("PlaceIsaacRoomsFloor", flags);
             for (int seed = 0; seed < 16; seed++)
             {
                 Random.InitState(seed);
@@ -82,7 +82,7 @@ public static class RoomPrefabCheck
                 try
                 {
                     var grid = new Dictionary<Vector2Int, RoomInstance>();
-                    bool placed = (bool)place.Invoke(generator, new object[] { grid });
+                    bool placed = (bool)place.Invoke(generator, new object[] { grid, false });
                     Check(placed && grid.Count == 5 && grid.Values.All(r => r.debugDepth >= 0),
                         $"seed={seed}: 스폰/일반/특수 방 배치와 연결 완료");
                     if (seed == 15)
@@ -90,7 +90,7 @@ public static class RoomPrefabCheck
                         data.roomEntries[2].prefabs = new List<GameObject> { null, destroyed };
                         typeof(MapGenerator).GetMethod("ClearExistingMap", flags).Invoke(generator, null);
                         grid.Clear();
-                        Check(!(bool)place.Invoke(generator, new object[] { grid }), "일반 후보 전부 무효: 예외 대신 실패 반환");
+                        Check(!(bool)place.Invoke(generator, new object[] { grid, false }), "일반 후보 전부 무효: 예외 대신 실패 반환");
                     }
                 }
                 finally { Object.DestroyImmediate(host); }

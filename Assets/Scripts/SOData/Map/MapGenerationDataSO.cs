@@ -185,7 +185,8 @@ public class MapGenerationDataSO : ScriptableObject
 
     [Header("보스 설정")]
     [Tooltip("층수별 고정 보스. '몇 층에 누가 나오는가'의 유일한 스위치다 — 여기 없는 층은 " +
-             "보스 층이 아니라서 보스 방 자체가 생성되지 않고, 있는 층은 항상 지정된 보스가 나온다.")]
+             "보스 방이 생성되지 않는다. 등록된 층도 일반 층 구성으로 생성하며, 엘리트 방 한 자리를 " +
+             "보스 전용 방으로 교체한다. 엘리트 방 수가 0이어도 보스 방은 하나 생성한다.")]
     public List<FloorBossEntry> floorBosses = new List<FloorBossEntry>();
 
     [System.Serializable]

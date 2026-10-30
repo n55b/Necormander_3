@@ -385,6 +385,21 @@ public System.Action OnMapGenerated;
         return generationData.GetRoomCountsForFloor(floor);
     }
 
+    private static List<RoomType> BuildFloorSpecialRoomTypes(MapGenerationDataSO.RoomCounts counts, bool isBossFloor)
+    {
+        var types = new List<RoomType>();
+        for (int i = 0; i < counts.shop; i++) types.Add(RoomType.Shop);
+        for (int i = 0; i < counts.enhanceShop; i++) types.Add(RoomType.EnhanceShop);
+        // 보스 층도 일반 층 구성으로 만든다. 엘리트 한 자리를 보스 전용 방으로 교체한다.
+        // 엘리트 수를 0으로 설정해도 층별 보스 표에 등록된 보스 방은 반드시 하나 만든다.
+        int eliteCount = isBossFloor ? Mathf.Max(0, counts.elite - 1) : counts.elite;
+        for (int i = 0; i < eliteCount; i++) types.Add(RoomType.Elite);
+        if (isBossFloor) types.Add(RoomType.Boss);
+        for (int i = 0; i < counts.reward; i++) types.Add(RoomType.Reward);
+        for (int i = 0; i < counts.augment; i++) types.Add(RoomType.Augment);
+        return types;
+    }
+
     private void Awake()
     {
         
@@ -473,6 +488,8 @@ Instance = this;
         int maxRegenAttempts = 10;
         int regenAttempt = 0;
         bool mapSuccess = false;
+        bool isEliteArena = GameManager.Instance != null && GameManager.Instance.debugEliteArena;
+        bool isBossFloor = !isEliteArena && IsBossFloor();
 
         while (!mapSuccess && regenAttempt < maxRegenAttempts)
         {
@@ -482,69 +499,71 @@ Instance = this;
             SetupTilemapLayers();
             ClearExistingMap();
 
-            bool isEliteArena = GameManager.Instance != null && GameManager.Instance.debugEliteArena;
-            bool isBossFloor = !isEliteArena && IsBossFloor();
+            var rc = FloorRoomCounts();
+            var specialTypes = BuildFloorSpecialRoomTypes(rc, isBossFloor);
+            int eliteCount = specialTypes.Count(type => type == RoomType.Elite);
+            int normalCount = Mathf.Max(rc.minNormal, rc.total - 1 - specialTypes.Count); // -1 은 스폰 방
 
-            if (isBossFloor)
-            {
-                List<RoomType> bossPhase = new List<RoomType> { RoomType.Spawn, RoomType.Boss };
-                yield return StartCoroutine(RunPhase(bossPhase));
-            }
-            else
-            {
-                var rc = FloorRoomCounts();
-                int normalCount = Mathf.Max(rc.minNormal, rc.total - 1 - rc.Specials); // -1 은 스폰 방
+            int initialBranchCount = Random.Range(1, 5);
+            List<RoomType> phase1 = new List<RoomType> { RoomType.Spawn };
+            for (int i = 0; i < initialBranchCount; i++) phase1.Add(RoomType.Normal);
+            yield return StartCoroutine(RunPhase(phase1));
 
-                int initialBranchCount = Random.Range(1, 5);
-                List<RoomType> phase1 = new List<RoomType> { RoomType.Spawn };
-                for (int i = 0; i < initialBranchCount; i++) phase1.Add(RoomType.Normal);
-                yield return StartCoroutine(RunPhase(phase1));
+            int remainingNormal = normalCount - initialBranchCount;
 
-                int remainingNormal = normalCount - initialBranchCount;
+            _currentPhaseIndex++;
+            List<RoomType> phase2 = new List<RoomType>();
+            for (int i = 0; i < rc.shop; i++) phase2.Add(RoomType.Shop);
+            for (int i = 0; i < rc.enhanceShop; i++) phase2.Add(RoomType.EnhanceShop);
+            int eliteHalf = eliteCount / 2;
+            for (int i = 0; i < eliteHalf; i++) phase2.Add(RoomType.Elite);
+            int p2Normal = remainingNormal > 0 ? Random.Range(1, remainingNormal / 2 + 2) : 0;
+            for (int i = 0; i < p2Normal; i++) phase2.Add(RoomType.Normal);
+            remainingNormal -= p2Normal;
+            if (phase2.Count > 0) yield return StartCoroutine(RunPhase(phase2));
 
-                _currentPhaseIndex++;
-                List<RoomType> phase2 = new List<RoomType>();
-                for (int i = 0; i < rc.shop; i++) phase2.Add(RoomType.Shop);
-                for (int i = 0; i < rc.enhanceShop; i++) phase2.Add(RoomType.EnhanceShop);
-                int eliteHalf = rc.elite / 2;
-                for (int i = 0; i < eliteHalf; i++) phase2.Add(RoomType.Elite);
-                int p2Normal = remainingNormal > 0 ? Random.Range(1, remainingNormal / 2 + 2) : 0;
-                for (int i = 0; i < p2Normal; i++) phase2.Add(RoomType.Normal);
-                remainingNormal -= p2Normal;
-                if (phase2.Count > 0) yield return StartCoroutine(RunPhase(phase2));
+            _currentPhaseIndex++;
+            List<RoomType> phase3 = new List<RoomType>();
+            int eliteRest = eliteCount - eliteHalf;
+            for (int i = 0; i < eliteRest; i++) phase3.Add(RoomType.Elite);
+            if (isBossFloor) phase3.Add(RoomType.Boss);
+            // 증강 방은 중반에 둔다. 스폰 바로 옆이면 아직 아무것도 없는 상태로 가혹 페널티를 고르게 된다.
+            for (int i = 0; i < rc.augment; i++) phase3.Add(RoomType.Augment);
+            for (int i = 0; i < remainingNormal; i++) phase3.Add(RoomType.Normal);
+            if (phase3.Count > 0) yield return StartCoroutine(RunPhase(phase3));
 
-                _currentPhaseIndex++;
-                List<RoomType> phase3 = new List<RoomType>();
-                int eliteRest = rc.elite - eliteHalf;
-                for (int i = 0; i < eliteRest; i++) phase3.Add(RoomType.Elite);
-                // 증강 방은 중반에 둔다. 스폰 바로 옆이면 아직 아무것도 없는 상태로 가혹 페널티를 고르게 된다.
-                for (int i = 0; i < rc.augment; i++) phase3.Add(RoomType.Augment);
-                for (int i = 0; i < remainingNormal; i++) phase3.Add(RoomType.Normal);
-                if (phase3.Count > 0) yield return StartCoroutine(RunPhase(phase3));
-
-                _currentPhaseIndex++;
-                List<RoomType> phase4 = new List<RoomType>();
-                for (int i = 0; i < rc.reward; i++) phase4.Add(RoomType.Reward);
-                if (phase4.Count > 0) yield return StartCoroutine(RunPhase(phase4));
-            }
+            _currentPhaseIndex++;
+            List<RoomType> phase4 = new List<RoomType>();
+            for (int i = 0; i < rc.reward; i++) phase4.Add(RoomType.Reward);
+            if (phase4.Count > 0) yield return StartCoroutine(RunPhase(phase4));
 
             // 모든 방의 물리 분산 및 타일맵 병합이 완료된 후 단 한번 복도 연결 수행!
             yield return StartCoroutine(ConnectUnreachedRoomsCoroutine());
 
             // 최종 모든 방이 온전히 다 연결되었는지 검증
             int totalIsolated = _allRooms.Count - _reachedRooms.Count;
-            if (totalIsolated == 0)
+            bool bossConnected = !isBossFloor ||
+                (_allRooms.Count(room => room.roomType == RoomType.Boss) == 1 &&
+                 _reachedRooms.Any(room => room.roomType == RoomType.Boss) &&
+                 ValidateSpecialRoomAccess(_masterAdjacency, true));
+            if (totalIsolated == 0 && bossConnected)
             {
                 mapSuccess = true;
             }
             else
             {
-                Debug.LogWarning($"<color=orange>[MapGenerator]</color> Map attempt {regenAttempt} failed due to {totalIsolated} isolated rooms. Re-generating entire map...");
+                Debug.LogWarning($"<color=orange>[MapGenerator]</color> Map attempt {regenAttempt} failed: isolated={totalIsolated}, bossConnected={bossConnected}. Re-generating entire map...");
             }
         }
 
         if (!mapSuccess)
         {
+            if (isBossFloor)
+            {
+                Debug.LogError($"[MapGenerator] 보스 방이 연결된 층을 {maxRegenAttempts}회 안에 생성하지 못했습니다. 방 프리팹과 문 앵커를 확인하세요.");
+                _isGenerating = false;
+                yield break;
+            }
             Debug.LogError($"<color=red>[MapGenerator]</color> Failed to generate a fully connected map after {maxRegenAttempts} attempts! Culling remaining isolated rooms as fallback.");
             CullIsolatedRooms();
         }
@@ -983,10 +1002,11 @@ Instance = this;
 
                     foreach (var r in _reachedRooms)
                     {
+                        if (r.roomType == RoomType.Boss) continue; // 보스 뒤로 필수 경로가 이어지면 처치 후 방문할 수 없다.
                         for (int uIndex = 0; uIndex < phaseUnreached.Count; uIndex++)
                         {
                             var u = phaseUnreached[uIndex];
-                            if ((u.roomType == RoomType.Shop || u.roomType == RoomType.EnhanceShop || u.roomType == RoomType.Elite) && r.roomType == RoomType.Spawn)
+                            if ((u.roomType == RoomType.Shop || u.roomType == RoomType.EnhanceShop || u.roomType == RoomType.Elite || u.roomType == RoomType.Boss) && r.roomType == RoomType.Spawn)
                                 continue;
 
                             // 직선거리를 복도 길이 예상치로 사용
@@ -1050,7 +1070,7 @@ Instance = this;
             foreach (var reward in rewardRooms)
             {
                 UpdateAllRoomDepths();
-                var validReached = _reachedRooms.Where(r => r.debugDepth != -1).ToList();
+                var validReached = _reachedRooms.Where(r => r.debugDepth != -1 && r.roomType != RoomType.Boss).ToList();
                 if (validReached.Count == 0) continue;
                 int normalMaxD = validReached.Where(r => r.roomType != RoomType.Reward).Max(r => r.debugDepth);
 
@@ -1129,10 +1149,10 @@ Instance = this;
                         }
                     }
 
-                    // 조건 B: 모든 특수방(Shop, EnhanceShop, Elite)의 깊이가 스폰 방 기준 2 이상이어야 함. (스폰방 바로 옆 직접 연결 방지)
+                    // 조건 B: 상점·엘리트·보스 방은 스폰 바로 옆에 연결하지 않는다.
                     foreach (var room in _allRooms)
                     {
-                        if ((room.roomType == RoomType.Shop || room.roomType == RoomType.EnhanceShop || room.roomType == RoomType.Elite) && room.debugDepth < 2)
+                        if ((room.roomType == RoomType.Shop || room.roomType == RoomType.EnhanceShop || room.roomType == RoomType.Elite || room.roomType == RoomType.Boss) && room.debugDepth < 2)
                         {
                             isValidMap = false;
                             break;
@@ -1965,13 +1985,9 @@ Instance = this;
             {
                 placementSuccess = PlaceIsaacRoomsArena(gridMap, RoomType.Elite);
             }
-            else if (isBossFloor)
-            {
-                placementSuccess = PlaceIsaacRoomsBossFloor(gridMap);
-            }
             else
             {
-                placementSuccess = PlaceIsaacRoomsNormalFloor(gridMap);
+                placementSuccess = PlaceIsaacRoomsFloor(gridMap, isBossFloor);
             }
 
             if (placementSuccess)
@@ -2286,42 +2302,7 @@ Instance = this;
         return true;
     }
 
-    private bool PlaceIsaacRoomsBossFloor(Dictionary<Vector2Int, RoomInstance> gridMap)
-    {
-        // 보스층: Spawn (0,0) -> Boss (0,1)
-        RoomInstance spawn = CreateRoomAtGrid(RoomType.Spawn, Vector2Int.zero);
-        if (spawn == null) return false;
-        gridMap[Vector2Int.zero] = spawn;
-        _allRooms.Add(spawn);
-
-        bool hasUp = spawn.anchors.Any(a => a.direction == Vector2Int.up);
-        if (!hasUp)
-        {
-            Debug.LogError("[MapGenerator] Spawn room doesn't have an Up anchor!");
-            return false;
-        }
-
-        RoomInstance boss = CreateRoomAtGrid(RoomType.Boss, Vector2Int.up);
-        if (boss == null) return false;
-        bool hasDown = boss.anchors.Any(a => a.direction == Vector2Int.down);
-        if (!hasDown)
-        {
-            Debug.LogError("[MapGenerator] Boss room doesn't have a Down anchor!");
-            SafeDestroy(boss.gameObject);
-            return false;
-        }
-
-        gridMap[Vector2Int.up] = boss;
-        _allRooms.Add(boss);
-        _reachedRooms.Add(boss);
-
-        _masterAdjacency[spawn].Add(boss);
-        _masterAdjacency[boss].Add(spawn);
-
-        return true;
-    }
-
-    private bool PlaceIsaacRoomsNormalFloor(Dictionary<Vector2Int, RoomInstance> gridMap)
+    private bool PlaceIsaacRoomsFloor(Dictionary<Vector2Int, RoomInstance> gridMap, bool isBossFloor)
     {
         // 1. 스폰 룸 배치
         RoomInstance spawn = CreateRoomAtGrid(RoomType.Spawn, Vector2Int.zero);
@@ -2330,17 +2311,9 @@ Instance = this;
         _allRooms.Add(spawn);
 
         // 2. 일반 방 수 결정
-        // 특수방 목록을 여기서 미리 만든다 — 예전엔 개수를 여기서 한 번 더 더했는데,
-        // 그 합(shop+reward+elite+1)이 아래 실제 배치 목록과 어긋나 있었다: enhanceShop 과 augment 를
-        // 빼먹고, 일반 층엔 더 이상 만들지 않는 보스방을 +1 로 세고 있었다. 두 벌을 유지하면 방 종류를
-        // 하나 늘릴 때마다 또 갈라지므로, 목록 하나만 만들고 그 길이를 쓴다.
+        // 실제 배치할 특수방 목록으로 계산한다. 보스 방은 엘리트 한 자리를 대체한다.
         var rc = FloorRoomCounts();
-        List<RoomType> specialTypes = new List<RoomType>();
-        for (int i = 0; i < rc.shop; i++) specialTypes.Add(RoomType.Shop);
-        for (int i = 0; i < rc.enhanceShop; i++) specialTypes.Add(RoomType.EnhanceShop);
-        for (int i = 0; i < rc.elite; i++) specialTypes.Add(RoomType.Elite);
-        for (int i = 0; i < rc.reward; i++) specialTypes.Add(RoomType.Reward);
-        for (int i = 0; i < rc.augment; i++) specialTypes.Add(RoomType.Augment);
+        var specialTypes = BuildFloorSpecialRoomTypes(rc, isBossFloor);
 
         // -1 은 위에서 이미 만든 스폰 방. 이제 totalRoomCount 가 "이 층 방 총합" 을 정직하게 뜻한다.
         int normalCount = Mathf.Max(rc.minNormal, rc.total - specialTypes.Count - 1);
@@ -2429,12 +2402,6 @@ Instance = this;
             foreach (var a in r.anchors) a.isUsed = false;
         }
 
-        // specialTypes 는 위 2번에서 이미 만들었다(일반 방 수 계산과 같은 목록을 써야 하므로).
-        // [제거] 보스는 4층 전용(isBossFloor → PlaceIsaacRoomsBossFloor)이라 일반 층(1~3)엔 넣지 않는다.
-        // 예전엔 여기서 매 층 보스방을 추가했는데, 배치할 자리를 못 찾으면 "보스 방 배치에 실패..." 경고만 뜨고
-        // 실제로 보스도 안 생겨서(원래 의도대로) 경고만 노이즈였음.
-        // specialTypes.Add(RoomType.Boss);
-
         foreach (var specType in specialTypes)
         {
             var specialPrefabs = prefabData.GetValidPrefabs(specType, PrefabDiagnosticContext);
@@ -2446,12 +2413,6 @@ Instance = this;
 
             if (deadEndCandidates.Count == 0)
             {
-                // [수정] 보스 방은 배치할 공간이 없어도 맵 생성 자체를 실패시키지 않고 건너뜁니다.
-                if (specType == RoomType.Boss)
-                {
-                    Debug.LogWarning("<color=orange>[MapGenerator]</color> 보스 방을 배치할 공간이 없어 보스 방 없이 맵을 생성합니다.");
-                    continue;
-                }
                 return false; // 막다른 골목 혹은 빈 이웃이 아예 없는 비정상 상태
             }
 
@@ -2514,21 +2475,13 @@ Instance = this;
 
             if (!placed)
             {
-                // [수정] 보스 방 배치에 실패해도 맵 생성 자체는 계속 진행합니다.
-                if (specType == RoomType.Boss)
-                {
-                    Debug.LogWarning("<color=orange>[MapGenerator]</color> 보스 방 배치에 실패해 보스 방 없이 맵을 생성합니다.");
-                    continue;
-                }
                 return false; // 해당 특수방 배치 실패 시 재배치
             }
         }
 
-        // 엘리트 외길 방지: 최종 문 그래프에서 스폰 → (엘리트 미통과) → 모든 Shop/Reward 가 닿아야 한다.
-        // 못 닿으면 그 특수방은 엘리트를 반드시 지나야만 갈 수 있는 배치 → 이 시도를 버리고 재생성한다.
-        // (여기는 기존 재생성 루프 안이라 return false 하나로 재배치가 걸린다. 실제 문은 아직 없어서
-        //  SetupIsaacDoorsAndTeleporters 와 '동일한 규칙'으로 문 그래프를 시뮬레이션해 검사한다.)
-        if (!ValidateNoSpecialBehindElite()) return false;
+        // 실제 문과 같은 앵커 규칙으로 검사한다. 보스 처치 뒤에는 게임이 끝나므로
+        // 보스를 통과해야만 갈 수 있는 방이 있거나, 보스에 도달할 수 없으면 다시 배치한다.
+        if (!ValidateIsaacRoomAccess(isBossFloor)) return false;
 
         // BFS 깊이(debugDepth) 계산 갱신
         UpdateAllRoomDepths();
@@ -2537,18 +2490,10 @@ Instance = this;
     }
 
     /// <summary>
-    /// 상점/보상방이 '엘리트를 반드시 통과해야만' 도달 가능한 배치인지 검사한다. true = 정상(통과 없음).
-    ///
-    /// 이 시점(배치 직후)엔 실제 문이 아직 없으므로, SetupIsaacDoorsAndTeleporters 와 '같은 규칙'으로
-    /// 문 그래프를 시뮬레이션한다: 격자 맨해튼 dist==1 이고 양쪽에 서로 마주보는 앵커가 있는 쌍만 연결.
-    /// (문 생성은 앵커를 isUsed 로 소진하지만, 한 방향 = 한 이웃 칸이라 앵커 경쟁이 없어 isUsed 를 무시해도
-    ///  같은 엣지 집합이 나온다 — 순서 무관.)
-    ///
-    /// 그 다음 스폰에서 BFS 하되 '엘리트는 통과하지 않는다'(엘리트 자체엔 도달 가능으로 치되 그 너머로 안 뻗음).
-    /// 이렇게 도달한 집합에 모든 Shop/Reward 가 들어 있지 않으면 = 엘리트 외길 뒤에 있는 것 → false.
-    /// (엘리트가 상점의 '이웃'인 것 자체는 괜찮다. 상점을 비-엘리트 경로로만 갈 수 있으면 된다.)
+    /// 실제 문 생성과 같은 규칙(이웃 격자 + 서로 마주보는 앵커)으로 그래프를 만든 뒤 접근성을 검사한다.
+    /// 한 방향에는 이웃 한 칸만 있으므로 앵커의 임시 isUsed 상태와 무관하게 같은 연결이 나온다.
     /// </summary>
-    private bool ValidateNoSpecialBehindElite()
+    private bool ValidateIsaacRoomAccess(bool requiresBoss)
     {
         // 1) 문 규칙과 동일한 인접 그래프 시뮬레이션.
         var sim = new Dictionary<RoomInstance, List<RoomInstance>>();
@@ -2574,9 +2519,14 @@ Instance = this;
             }
         }
 
-        // 2) 스폰에서 BFS — 엘리트는 방문 표시만 하고 그 너머로는 뻗지 않는다(= 통과 불가).
+        return ValidateSpecialRoomAccess(sim, requiresBoss);
+    }
+
+    private bool ValidateSpecialRoomAccess(Dictionary<RoomInstance, List<RoomInstance>> graph, bool requiresBoss)
+    {
+        // 엘리트/보스 자체에는 도달할 수 있지만 그 방을 통과하는 경로는 제외한다.
         RoomInstance spawn = _allRooms.Find(r => r != null && r.roomType == RoomType.Spawn);
-        if (spawn == null) return true; // 스폰이 없으면 검사 대상 아님
+        if (spawn == null) return false;
 
         var visited = new HashSet<RoomInstance> { spawn };
         var queue = new Queue<RoomInstance>();
@@ -2584,23 +2534,25 @@ Instance = this;
         while (queue.Count > 0)
         {
             var cur = queue.Dequeue();
-            foreach (var nb in sim[cur])
+            foreach (var nb in graph[cur])
             {
                 if (nb == null || visited.Contains(nb)) continue;
                 visited.Add(nb);                          // 그 방 자체엔 도달 가능
-                if (nb.roomType == RoomType.Elite) continue; // 엘리트 '너머'로는 안 뻗음(통과 금지)
+                if (nb.roomType == RoomType.Elite || nb.roomType == RoomType.Boss) continue;
                 queue.Enqueue(nb);
             }
         }
 
-        // 3) 모든 Shop/EnhanceShop/Reward 가 엘리트 안 거치고 도달 가능해야 한다.
+        // 일반 층의 기존 특수방 접근 규칙은 유지. 보스 층은 모든 방을 보스전 전에 방문할 수 있어야 한다.
+        int bossCount = 0;
         foreach (var r in _allRooms)
         {
             if (r == null) continue;
-            if ((r.roomType == RoomType.Shop || r.roomType == RoomType.EnhanceShop || r.roomType == RoomType.Reward) && !visited.Contains(r))
-                return false; // 이 특수방은 엘리트를 반드시 지나야만 도달 → 위반
+            if (r.roomType == RoomType.Boss) bossCount++;
+            if ((requiresBoss || r.roomType == RoomType.Shop || r.roomType == RoomType.EnhanceShop || r.roomType == RoomType.Reward) && !visited.Contains(r))
+                return false;
         }
-        return true;
+        return !requiresBoss || bossCount == 1;
     }
 
     private List<System.Tuple<RoomInstance, RoomAnchor, Vector2Int>> GetDeadEndCandidates(Dictionary<Vector2Int, RoomInstance> gridMap)
