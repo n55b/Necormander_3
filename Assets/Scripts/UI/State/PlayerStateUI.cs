@@ -91,7 +91,10 @@ public class PlayerStateUI : MonoBehaviour
     }
     private readonly List<HealingDisplay> _healing = new List<HealingDisplay>();
     private float _lastActualHP, _lastMaxHP, _displayedHP;
-    private int _lastShownHP = -1, _lastShownMaxHP = -1;
+    private int _lastShownHP = -1, _lastShownMaxHP = -1, _lastShownShield = -1;
+
+    [Tooltip("체력 숫자 뒤에 붙는 보호막 수치 (+N) 의 색")]
+    [SerializeField] private Color shieldTextColor = new Color(0.75f, 0.93f, 1f, 1f);
 
 
 
@@ -286,10 +289,14 @@ public class PlayerStateUI : MonoBehaviour
 
         SetFill(hpSprite, _displayedHP / denom);
         int shownHP = (int)_displayedHP, maxHP = (int)_playerHealth.MaxHP;
-        if (hpText != null && (shownHP != _lastShownHP || maxHP != _lastShownMaxHP))
+        // 보호막은 소수로 남을 수 있어 올림으로 표시한다(0.4 남아도 '+1'). 없으면 괄호 자체를 숨긴다.
+        int shownShield = shield > 0.01f ? Mathf.CeilToInt(shield) : 0;
+        if (hpText != null && (shownHP != _lastShownHP || maxHP != _lastShownMaxHP || shownShield != _lastShownShield))
         {
-            hpText.text = $"{shownHP} / {maxHP}";
-            _lastShownHP = shownHP; _lastShownMaxHP = maxHP;
+            hpText.text = shownShield > 0
+                ? $"{shownHP} / {maxHP} <color=#{ColorUtility.ToHtmlStringRGBA(shieldTextColor)}>(+{shownShield})</color>"
+                : $"{shownHP} / {maxHP}";
+            _lastShownHP = shownHP; _lastShownMaxHP = maxHP; _lastShownShield = shownShield;
         }
 
         if (shieldSprite == null) return;
