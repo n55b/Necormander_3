@@ -85,6 +85,8 @@ namespace UnityNote
             if (GameManager.Instance != null)
                 GameManager.Instance.PLAYERCONTROLLER?.SetInputBlocked(true);
             Signal.Fire(signal);
+            // 씬이 바뀌면 지난 씬 BGM(예: 보스방)을 끈다. 새 씬은 방 입장 시 자기 BGM을 다시 튼다.
+            if (SoundManager.Instance != null) SoundManager.Instance.StopBGM();
             StartCoroutine(LoadSceneAsync(name));
             return true;
         }

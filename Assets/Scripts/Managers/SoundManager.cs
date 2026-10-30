@@ -149,7 +149,7 @@ public class SoundManager : MonoBehaviour
     public void ChangeBGM(AudioClip newClip, float duration = -1f)
     {
         if (newClip == null) return;
-        if (_activeSource != null && _activeSource.clip == newClip) return;
+        if (_activeSource != null && _activeSource.clip == newClip && _activeSource.isPlaying) return;
 
         newSource        = (_activeSource == sourceA) ? sourceB : sourceA;
         oldSource        = _activeSource;
@@ -190,7 +190,7 @@ public class SoundManager : MonoBehaviour
 
         while (elapsed < duration)
         {
-            elapsed += Time.deltaTime;
+            elapsed += Time.unscaledDeltaTime;
             float t = elapsed * invDuration;
             if (sourceA != null) sourceA.volume = Mathf.Lerp(startVolA, 0f, t);
             if (sourceB != null) sourceB.volume = Mathf.Lerp(startVolB, 0f, t);
