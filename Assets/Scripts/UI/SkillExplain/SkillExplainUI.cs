@@ -22,7 +22,38 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     [SerializeField] private SkillExplainSlotUI[] equipmentSlots = new SkillExplainSlotUI[1];
     [SerializeField] private SkillExplainSlotUI guardSlot;
     [SerializeField] private SkillExplainSlotUI minionHeader;
-    [SerializeField] private TMPro.TextMeshProUGUI playerStatsText;
+    [Header("스탯 행 · 배치는 프리팹의 Rows에서 조절")]
+    [SerializeField, Tooltip("각 행의 수치 연결입니다. 행의 이름·설명·높이·간격은 프리팹에서 편집합니다.")]
+    private StatRow[] statRows;
+
+    private enum StatKind
+    {
+        [InspectorName("체력")] Health,
+        [InspectorName("가드")] Guard,
+        [InspectorName("회피 횟수")] DashCharges,
+        [InspectorName("물리 공격력")] Attack,
+        [InspectorName("마법 공격력")] Magic,
+        [InspectorName("방어력")] Defense,
+        [InspectorName("회피율")] Evasion,
+        [InspectorName("공격 속도")] AttackSpeed,
+        [InspectorName("행운")] Luck,
+        [InspectorName("치명타 확률")] CritChance,
+        [InspectorName("치명타 피해량")] CritDamage,
+        [InspectorName("적중률")] Accuracy,
+        [InspectorName("기본 공격 배율")] BasicMultiplier,
+        [InspectorName("이동 속도")] MoveSpeed,
+        [InspectorName("스킬 쿨타임 감소")] SkillCooldown,
+        [InspectorName("대시 쿨타임 감소")] DashCooldown,
+        [InspectorName("물리 피해 증폭")] PhysicalAmp,
+        [InspectorName("마법 피해 증폭")] MagicAmp
+    }
+
+    [System.Serializable]
+    private sealed class StatRow
+    {
+        [InspectorName("스탯")] public StatKind kind;
+        [InspectorName("수치 글자")] public TMPro.TMP_Text value;
+    }
 
     [Header("오른쪽 패널: 메인 소환수 공격 (0=기본, 1=대쉬, 2=스킬)")]
     [SerializeField] private SkillExplainSlotUI[] linkedSkillSlots = new SkillExplainSlotUI[3];
@@ -163,6 +194,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         if (summaryIcons == null || index >= summaryIcons.Length || summaryIcons[index] == null) return;
         summaryIcons[index].sprite = sprite;
         summaryIcons[index].enabled = sprite != null;
+        summaryIcons[index].transform.parent.gameObject.SetActive(sprite != null);
     }
 
     private void RefreshEquipmentSlots()
@@ -174,22 +206,42 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     private void RefreshPlayerStats()
     {
         _nextStatsRefresh = Time.unscaledTime + Mathf.Max(0.02f, statsRefreshInterval);
-        if (playerStatsText == null) return;
+        if (statRows == null) return;
         var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
         var stat = player != null ? player.Stat : null;
-        if (stat == null) { playerStatsText.text = "플레이어 정보 준비 중"; return; }
-        var guard = player.GetComponent<PlayerParryController>();
-        var dodge = player.GetComponent<MeleeDodgeController>();
-        playerStatsText.text = $"<line-height=18>체력<pos=112>{stat.CURHP:0}/{stat.MAXHP:0}\n" +
-            $"가드<pos=112>{(guard != null ? guard.GuardAmount : 0):0}/{(guard != null ? guard.GuardCapacity : 0):0}\n" +
-            $"회피 횟수<pos=112>{(dodge != null ? dodge.CurrentCharges : 0)}/{(dodge != null ? dodge.MaxCharges : 0)}\n\n" +
-            $"물리 공격력<pos=112>{stat.ATK:0.##}\n마법 공격력<pos=112>{stat.MAGIC:0.##}\n" +
-            $"방어력<pos=112>{stat.DEF:0.##}%\n회피율<pos=112>{stat.EVASION * 100f:0.##}%\n" +
-            $"공격 속도<pos=112>{stat.ATKSPD:0.##}\n행운<pos=112>{stat.LUCK:0.##}%\n치명타 확률<pos=112>{stat.CRIT_CHANCE:0.##}%\n" +
-            $"치명타 피해량<pos=112>{stat.CRIT_DAMAGE:0.##}%\n적중률<pos=112>{stat.ACCURACY * 100f:0.##}%\n" +
-            $"기본 공격 배율<pos=112>{stat.BASIC_ATK_MULT:0.##}\n이동 속도<pos=112>{stat.MOVESPEED:0.##}\n" +
-            $"스킬 쿨타임 감소<pos=112>{stat.SKILL_CDR * 100f:0.##}%\n대시 쿨타임 감소<pos=112>{stat.DASH_CDR * 100f:0.##}%\n" +
-            $"물리 피해 증폭<pos=112>{stat.PHYS_AMP * 100f:0.##}%\n마법 피해 증폭<pos=112>{stat.MAGIC_AMP * 100f:0.##}%";
+        var guard = player != null ? player.GetComponent<PlayerParryController>() : null;
+        var dodge = player != null ? player.GetComponent<MeleeDodgeController>() : null;
+        foreach (var row in statRows)
+        {
+            if (row == null || row.value == null) continue;
+            row.value.text = stat == null ? "—" : FormatStat(row.kind, stat, guard, dodge);
+        }
+    }
+
+    private static string FormatStat(StatKind kind, CharacterStat stat, PlayerParryController guard, MeleeDodgeController dodge)
+    {
+        switch (kind)
+        {
+            case StatKind.Health: return $"{stat.CURHP:0}/{stat.MAXHP:0}";
+            case StatKind.Guard: return $"{(guard != null ? guard.GuardAmount : 0):0}/{(guard != null ? guard.GuardCapacity : 0):0}";
+            case StatKind.DashCharges: return $"{(dodge != null ? dodge.CurrentCharges : 0)}/{(dodge != null ? dodge.MaxCharges : 0)}";
+            case StatKind.Attack: return $"{stat.ATK:0.##}";
+            case StatKind.Magic: return $"{stat.MAGIC:0.##}";
+            case StatKind.Defense: return $"{stat.DEF:0.##}%";
+            case StatKind.Evasion: return $"{stat.EVASION * 100f:0.##}%";
+            case StatKind.AttackSpeed: return $"{stat.ATKSPD:0.##}";
+            case StatKind.Luck: return $"{stat.LUCK:0.##}%";
+            case StatKind.CritChance: return $"{stat.CRIT_CHANCE:0.##}%";
+            case StatKind.CritDamage: return $"{stat.CRIT_DAMAGE:0.##}%";
+            case StatKind.Accuracy: return $"{stat.ACCURACY * 100f:0.##}%";
+            case StatKind.BasicMultiplier: return $"{stat.BASIC_ATK_MULT:0.##}";
+            case StatKind.MoveSpeed: return $"{stat.MOVESPEED:0.##}";
+            case StatKind.SkillCooldown: return $"{stat.SKILL_CDR * 100f:0.##}%";
+            case StatKind.DashCooldown: return $"{stat.DASH_CDR * 100f:0.##}%";
+            case StatKind.PhysicalAmp: return $"{stat.PHYS_AMP * 100f:0.##}%";
+            case StatKind.MagicAmp: return $"{stat.MAGIC_AMP * 100f:0.##}%";
+            default: return "—";
+        }
     }
 
     /// <summary>맨 하단 슬롯: 착용 중인 장비의 이름/효과/강화등급.</summary>

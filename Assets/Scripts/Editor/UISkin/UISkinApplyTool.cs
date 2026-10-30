@@ -84,6 +84,8 @@ public static class UISkinApplyTool
 
         s.windowFrame     = E("UI_Panel_Red_Big");                       // 빨간 기둥 장식 창
         s.innerPanel      = E("UI_Panel_Black_Big");                     // 어두운 둥근 패널
+        s.infoPanel       = E("UI_Panel_6");                             // C·V 흰 장식 테두리, 바깥 창의 보라색 바탕 유지
+        s.itemListBack    = E("UI_Panel_Red_Half");                      // 정렬 탭 아래 목록 바탕
         s.tooltipBack     = E("UI_Panel_Black_Big", new Color(1f, 1f, 1f, 0.97f));
         s.tabOuter        = E("UI_Panel_Red_Half");                      // 아래가 열린 탭 모양
         s.tabFace         = E("UI_Panel_White_Half");                    // 밝은 탭 → 선택색이 그대로 입혀짐
@@ -208,8 +210,9 @@ public static class UISkinApplyTool
         Skin(win, UISkinRole.WindowFrame);
         Comp<UIOpenMotion>(win).kind = UIOpenMotion.Kind.Window;
 
-        Skin(Find(root, "PouchWindow/InventoryPanel"), UISkinRole.InnerPanel);
-        Skin(Find(root, "PouchWindow/ItemDetails"), UISkinRole.InnerPanel);
+        Skin(Find(root, "PouchWindow/InventoryPanel"), UISkinRole.InfoPanel);
+        Skin(Find(root, "PouchWindow/ItemDetails"), UISkinRole.InfoPanel);
+        Skin(win.Find("InventoryPanel/ItemArea"), UISkinRole.ItemListBack);
         for (int i = 0; i < 3; i++)
         {
             var sort = Find(root, $"PouchWindow/InventoryPanel/Sort{i}");
@@ -274,10 +277,10 @@ public static class UISkinApplyTool
             HideOld(stats);
             Skin(stats, UISkinRole.WindowFrame);
             Comp<UIOpenMotion>(stats).kind = UIOpenMotion.Kind.Window;
-            foreach (var n in new[] { "Summary", "PlayerStats" }) Skin(stats.Find(n), UISkinRole.InnerPanel);
+            foreach (var n in new[] { "Summary", "PlayerStats" }) Skin(stats.Find(n), UISkinRole.InfoPanel);
             var summary = stats.Find("Summary");
             if (summary != null)
-                for (int i = 0; i < 5; i++) Skin(summary.Find("IconSlot" + i), UISkinRole.SmallIconSlot);
+                for (int i = 0; i < 5; i++) Skin(summary.Find("Icons/IconSlot" + i), UISkinRole.SmallIconSlot);
             var expand = stats.Find("ExpandButton");
             if (expand != null) { Skin(expand, UISkinRole.SmallButton); Comp<UIHoverMotion>(expand); }
         }
@@ -288,8 +291,8 @@ public static class UISkinApplyTool
             HideOld(details);
             Skin(details, UISkinRole.WindowFrame);
             Comp<UIOpenMotion>(details).kind = UIOpenMotion.Kind.Popup;
-            foreach (var n in new[] { "Equipment", "Guard", "Minion", "SpaceSkill", "Finisher", "Dash" })
-                Skin(details.Find(n), UISkinRole.InnerPanel);
+            foreach (var n in new[] { "Equipment", "Guard", "MinionPanel" })
+                Skin(details.Find(n), UISkinRole.InfoPanel);
         }
     }
 

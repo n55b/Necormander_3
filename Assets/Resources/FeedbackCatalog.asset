@@ -1151,7 +1151,7 @@ MonoBehaviour:
     audio:
       clips:
       - {fileID: 8300000, guid: e2bf5722f79b4654abde6d0b1ec31de8, type: 3}
-      volume: 0.085
+      volume: 0.02
       pitchMin: 0.96
       pitchMax: 1.04
       enabled: 1
