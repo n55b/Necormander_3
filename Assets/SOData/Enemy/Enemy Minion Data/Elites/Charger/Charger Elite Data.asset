@@ -42,7 +42,7 @@ MonoBehaviour:
   impactColor: {r: 0.9, g: 0.87, b: 0.75, a: 1}
   baseEffectValue: 0
   attack: 35
-  maxHP: 500
+  maxHP: 875
   attackSpeed: 2
   attackRange: 3.8
   detectRange: 12
