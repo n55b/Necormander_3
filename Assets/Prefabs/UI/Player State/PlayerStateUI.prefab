@@ -687,7 +687,7 @@ MonoBehaviour:
   m_text: 100 / 100
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
-  m_sharedMaterial: {fileID: 1761981276836729092, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: bbbae958a435b30448e36d70cf94986f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1724,6 +1724,7 @@ MonoBehaviour:
     CooldownText: {fileID: 4449052604660960719}
     ArrowImage: {fileID: 0}
     SkillChangeButton: {fileID: 0}
+  shieldTextColor: {r: 0.75, g: 0.93, b: 1, a: 1}
 --- !u!1 &3026339311157683912
 GameObject:
   m_ObjectHideFlags: 0
@@ -3276,7 +3277,7 @@ MonoBehaviour:
   m_text: 50 / 50
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
-  m_sharedMaterial: {fileID: 1761981276836729092, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: bbbae958a435b30448e36d70cf94986f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
