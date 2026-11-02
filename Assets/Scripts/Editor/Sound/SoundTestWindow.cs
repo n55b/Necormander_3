@@ -69,6 +69,7 @@ public class SoundTestWindow : EditorWindow
     private string _pickPath, _pickLabel;
 
     private static AudioSource _previewSource;
+    private SoundAnimPreview _anim; // [오브젝트 소리] '애니메이션과 함께 듣기'
     private static GUIStyle _box;
 
     // ── 수명 ─────────────────────────────────────────────────────────
@@ -78,7 +79,10 @@ public class SoundTestWindow : EditorWindow
         PolishFeedback.SoundPlayed += OnGameplaySound;
         UIEventBus.OnUIOpen += OnWindowOpened;
         UIEventBus.OnUIClose += OnWindowClosed;
+        if (_anim == null) _anim = new SoundAnimPreview();
+        _anim.Log = AddLog;
         if (_followSelection) SetTarget(Selection.activeGameObject);
+        else if (_set != null) _anim.SetTarget(_set);
     }
 
     private void OnDisable()
@@ -88,9 +92,19 @@ public class SoundTestWindow : EditorWindow
         UIEventBus.OnUIOpen -= OnWindowOpened;
         UIEventBus.OnUIClose -= OnWindowClosed;
         StopAll();
+        _anim?.Dispose();
+        _anim = null;
     }
 
     private void OnProjectChange() { _clipsDirty = true; Repaint(); }
+
+    // 애니메이션 미리보기 재생 (재생 중일 때만 다시 그린다)
+    private void Update()
+    {
+        if (_anim == null || !_anim.NeedsRepaint) return;
+        _anim.Tick();
+        Repaint();
+    }
 
     private void OnSelectionChange()
     {
@@ -127,6 +141,7 @@ public class SoundTestWindow : EditorWindow
         _target = go;
         _set = go != null ? go.GetComponentInParent<EntitySoundSet>(true) : null;
         _setSO = _set != null ? new SerializedObject(_set) : null;
+        _anim?.SetTarget(_set);
         if (_pickSO != null && _pickSO != _uiSO) ClearPick();
     }
 
@@ -162,14 +177,14 @@ public class SoundTestWindow : EditorWindow
         using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
         {
             int tab = GUILayout.Toolbar(_tab, Tabs, EditorStyles.toolbarButton, GUILayout.Width(350));
-            if (tab != _tab) { _tab = tab; ClearPick(); }
+            if (tab != _tab) { _tab = tab; ClearPick(); _anim?.Stop(); _anim?.StopSceneSample(); }
             GUILayout.FlexibleSpace();
             GUILayout.Label(new GUIContent("미리듣기 볼륨", "이 툴에서 ▶ 로 들을 때만 쓰는 볼륨입니다. 게임 값은 바뀌지 않습니다."), GUILayout.Width(80));
             _previewVolume = GUILayout.HorizontalSlider(_previewVolume, 0f, 1f, GUILayout.Width(80));
             _simplePreview = GUILayout.Toggle(_simplePreview,
                 new GUIContent("단순 미리듣기", "▶ 를 눌러도 소리가 안 나면 켜 보세요. 유니티 기본 미리듣기를 씁니다(볼륨·음높이는 반영 안 됨)."),
                 EditorStyles.toolbarButton, GUILayout.Width(80));
-            if (GUILayout.Button("■ 정지", EditorStyles.toolbarButton, GUILayout.Width(50))) StopAll();
+            if (GUILayout.Button("■ 정지", EditorStyles.toolbarButton, GUILayout.Width(50))) { StopAll(); _anim?.Stop(); }
         }
     }
 
@@ -237,6 +252,13 @@ public class SoundTestWindow : EditorWindow
                 }
             }
         }
+        if (_anim != null && Section("anim", "애니메이션과 함께 듣기"))
+        {
+            _anim.PreviewVolume = _previewVolume;
+            _anim.SimplePreview = _simplePreview;
+            using (new EditorGUILayout.VerticalScope(_box)) _anim.Draw();
+        }
+
         if (list.arraySize == 0)
             EditorGUILayout.HelpBox("[+ 소리 추가] 를 눌러 '공격 / 피격 / 사망' 같은 소리를 만든 뒤, 오디오 파일을 끌어다 놓으세요.", MessageType.Info);
 

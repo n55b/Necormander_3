@@ -87,31 +87,19 @@ public class ItemSO : ScriptableObject
     /// <summary>상점 카드 본문. shopDescription 이 있으면 그것을, 없으면 description 을 쓴다.</summary>
     public string ShopBody => $"[{ItemTierRules.Label(tier)}]\n{(string.IsNullOrEmpty(shopDescription) ? description : shopDescription)}";
 
+    /// <summary>
+    /// 주머니 UI 의 효과 문구(개당 / 현재 총 / 1개 더 획득 시). 효과 한 줄씩.
+    /// 문구는 각 효과의 '표시 문구'(displayText)에서 오고, 비어 있으면 효과 종류별 자동 문구를 쓴다.
+    /// 기획자는 아이템 인스펙터 또는 Tools > Items > 아이템 편집기 에서 고친다.
+    /// </summary>
     public string EffectSummary(int count)
     {
         var lines = new List<string>();
         if (effects != null) foreach (var effect in effects)
         {
-            if (effect is ItemStatEffect stat)
-            {
-                string title = stat.statType switch
-                {
-                    StatType.CritChance => "치명타 확률", StatType.CritDamage => "치명타 피해",
-                    StatType.Defense => "방어력", StatType.MoveSpeed => "이동 속도",
-                    StatType.Evasion => "회피율", StatType.DashRechargeSpeed => "대시 충전 속도",
-                    StatType.DashDistance => "대시 거리", StatType.Health => "최대 체력",
-                    _ => string.IsNullOrEmpty(stat.label) ? stat.statType.ToString() : stat.label
-                };
-                bool percent = stat.isPercent || stat.statType == StatType.Evasion;
-                bool points = stat.statType == StatType.CritChance || stat.statType == StatType.CritDamage;
-                float amount = stat.value * count * (percent ? 100f : 1f);
-                lines.Add($"{title} {amount:+0.##;-0.##;0}{(percent || points ? "%" : "")}");
-            }
-            else if (effect is ItemRoomEntryShieldEffect shield) lines.Add($"방 진입 보호막 +{shield.amount * count:0.##}");
-            else if (effect is ItemDashChargeEffect charge) lines.Add($"최대 대시 횟수 +{count / Mathf.Max(1, charge.copiesPerCharge)} ({charge.copiesPerCharge}개마다 +1)");
-            else if (effect is ItemCritOverflowEffect) lines.Add("초과 치명타 확률 10%마다 치명타 피해 +10%");
-            else if (effect is ItemRoomClearHealEffect heal) lines.Add($"방 클리어 회복 +{heal.value * count * (heal.isPercent ? 100f : 1f):0.##}{(heal.isPercent ? "%" : "")}");
-            else if (effect != null) lines.Add(!string.IsNullOrEmpty(effect.label) ? effect.label : description);
+            if (effect == null) continue;
+            string line = effect.Describe(count);
+            lines.Add(string.IsNullOrEmpty(line) ? description : line);
         }
         return string.Join("\n", lines);
     }
