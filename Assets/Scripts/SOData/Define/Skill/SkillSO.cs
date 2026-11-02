@@ -81,5 +81,5 @@ public abstract class MinionSkillSO : SkillSO
     // [26/07/23] 애니메이션 설정(비주얼/시퀀스/타이밍)은 여기서 미니언(MainMinionDataSO.skillAnim)으로 이사했다.
     // 스킬은 로직(데미지/판정/넉백)만 갖고, 연출은 시전한 미니언 데이터에서 읽는다.
     // → 기획자는 애니메이션을 미니언 한 곳(MinionAnimSet)에서 전부 설정한다.
-    // 연결 방법 / 이벤트 vs 태그 / 속도 조절은 repo 루트의 MINION_ANIMATION_GUIDE.md 참조.
+    // 연결 방법 / 이벤트 vs 태그 / 속도 조절은 repo 루트의 Docs/Guides/MINION_ANIMATION_GUIDE.md 참조.
 }

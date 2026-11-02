@@ -323,7 +323,7 @@ public static class RewardProcessor
             }
         }
 
-        // 젬 효과가 전부 제거되어 상점 젬 풀도 내렸다. (GEM_LEGACY.md)
+        // 젬 효과가 전부 제거되어 상점 젬 풀도 내렸다. (Docs/Archive/GEM_LEGACY.md)
 
         // 랜덤하게 최대 5개 선택. 중복 제거 — 같은 카드를 여러 장 팔면 사는 족족 덮어쓰기만 되는
         // 항목이 있다. (예전엔 RemoveAt 이 주석 처리돼 있어서 5장 전부 같은 카드가 뜰 수 있었다.)

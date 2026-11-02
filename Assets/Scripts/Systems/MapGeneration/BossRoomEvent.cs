@@ -81,7 +81,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
 
         room.SetDoorsOpen(false); // 문 폐쇄
 
-        if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
+        if (MainMinionSelectionUI.Instance != null && MainMinionSelectionUI.Instance.IsOpen) MainMinionSelectionUI.Instance.Hide();
         // 전투 시작 시 들고 있던 투척물을 떨군다.
 
         // 1초 후 보스가 소환되도록 텀(Term) 연출 구현

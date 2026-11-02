@@ -208,7 +208,7 @@ public class MeleeCombatController : MonoBehaviour
         // 나중에 넣을 수 있게 스탯으로 뺐다. 기본값은 그대로 1.0 이라 동작은 같다.
         // 3타는 여기에 장비의 마지막 타격 배율을 곱한다. 소환수는 자기 배율을 유지한다.
         float damageMultiplier = _player.Stat != null ? _player.Stat.BASIC_ATK_MULT : 1.0f;
-        var weapon = PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.Weapon : null;
+        var weapon = EquipmentInventoryManager.Instance != null ? EquipmentInventoryManager.Instance.Weapon : null;
         damageMultiplier *= weapon != null ? weapon.ComboMultiplier(swingIndex) : (swingIndex == 2 ? 1.5f : 1f);
         damageMultiplier *= weapon != null ? weapon.basicDamagePerHit : 1f;
 
@@ -447,7 +447,7 @@ public class MeleeCombatController : MonoBehaviour
         // 주먹과 소환수 마무리에 동시에 먹는다. 소환수의 개성은 배율이 유지한다.
         // [강화] 보상방 강화 단계만큼 일반 공격 배율이 붙는다(MinionEnhance).
         float enhanceMult = MinionEnhance.BasicAttackMult(main);
-        var weapon = PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.Weapon : null;
+        var weapon = EquipmentInventoryManager.Instance != null ? EquipmentInventoryManager.Instance.Weapon : null;
         enhanceMult *= weapon != null ? weapon.basicDamagePerHit : 1f;
         box.HitsPerContact = weapon != null ? weapon.basicHitsPerContact : 1;
         box.ContactHitInterval = weapon != null ? weapon.basicRepeatHitInterval : 0f;

@@ -178,7 +178,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         _isBattleActive = true;
         _currentWave = 1;
 
-        if (HandSlotSelectionUI.Instance != null && HandSlotSelectionUI.Instance.IsOpen) HandSlotSelectionUI.Instance.Hide();
+        if (MainMinionSelectionUI.Instance != null && MainMinionSelectionUI.Instance.IsOpen) MainMinionSelectionUI.Instance.Hide();
         // 전투 시작 시 들고 있던 투척물을 떨군다.
 
         _usingTutorialPlacedEnemies = TutorialFlow.IsRunning && tutorialEnemiesRoot != null;
@@ -625,7 +625,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         if (vfxPrefabToUse == null)
         {
             // 인스펙터 할당 누락 시 내장 원형 예고 장판 프리팹을 자동으로 긁어와 Fallback 매핑
-            vfxPrefabToUse = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Skill Visual Effects/TelegraphHitbox Prefab.prefab");
+            vfxPrefabToUse = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Effect/Combat/Skills/TelegraphHitbox Prefab.prefab");
         }
 #endif
 

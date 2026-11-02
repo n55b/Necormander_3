@@ -7,7 +7,7 @@ using TMPro;
 /// <summary>
 /// 마을 NPC 창(F로 뜨는 ShopUI 패널)에 미니언/장비/우클릭/주머니 아이템을 나열한다.
 ///   - 장비/우클릭 → 기존 장착 흐름
-///   - 미니언       → 핸드 슬롯 선택 UI(HandSlotSelectionUI). 마을 HUD에 없으면 빈 슬롯에 자동 장착.
+///   - 미니언       → 핸드 슬롯 선택 UI(MainMinionSelectionUI). 마을 HUD에 없으면 빈 슬롯에 자동 장착.
 ///   - 아이템       → NPC 앞에 GroundItem으로 드랍. F로 직접 주워야 주머니에 들어간다.
 /// 게임 시작 전에 원하는 조합을 미리 세팅해보는 디버그 용도.
 ///
@@ -196,8 +196,8 @@ public class VillageDebugLoadout : MonoBehaviour
     /// <summary>선택한 장비를 기존 장착 흐름으로 적용한다.</summary>
     private void EquipEquipmentItem(EquipmentSO so)
     {
-        if (PlayerSkillInventoryManager.Instance != null && so != null)
-            PlayerSkillInventoryManager.Instance.EquipEquipment(EquipmentInstance.Roll(so));
+        if (EquipmentInventoryManager.Instance != null && so != null)
+            EquipmentInventoryManager.Instance.EquipEquipment(EquipmentInstance.Roll(so));
         CloseWindow();
     }
 
@@ -219,7 +219,7 @@ public class VillageDebugLoadout : MonoBehaviour
     /// <summary>보상에서 미니언을 골랐을 때와 동일: 핸드 슬롯 선택 UI를 띄운다. 없으면 빈 슬롯에 자동 장착.</summary>
     private void EquipMinion(MinionDataSO minion)
     {
-        if (HandSlotSelectionUI.Instance != null)
+        if (MainMinionSelectionUI.Instance != null)
         {
             CloseWindow(); // 창을 닫고 핸드 슬롯 픽커를 띄운다 (보상 흐름과 동일)
             var candidate = new RewardCandidate
@@ -228,7 +228,7 @@ public class VillageDebugLoadout : MonoBehaviour
                 rawData = minion,
                 displayData = minion.rewardItemData
             };
-            HandSlotSelectionUI.Instance.Show(candidate);
+            MainMinionSelectionUI.Instance.Show(candidate);
         }
         else
         {

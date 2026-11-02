@@ -54,12 +54,12 @@ public static class DesignerInspectorCheck
             }
             Require(before == EditorJsonUtility.ToJson(target), "표시 중 값 변경: " + target.name);
         }
-        foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs" }))
+        foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs", "Assets/Resources" }))
         {
             var root = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
             foreach (var component in root.GetComponentsInChildren<MonoBehaviour>(true)) Inspect(component);
         }
-        foreach (string guid in AssetDatabase.FindAssets("t:ScriptableObject", new[] { "Assets/SOData" }))
+        foreach (string guid in AssetDatabase.FindAssets("t:ScriptableObject", new[] { "Assets/SOData", "Assets/Resources" }))
             Inspect(AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid)));
         Inspect(Resources.Load<StatusBalanceSO>(StatusRules.BalanceResourcePath));
         Inspect(Resources.Load<FeedbackCatalog>("FeedbackCatalog"));

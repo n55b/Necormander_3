@@ -138,7 +138,7 @@ public static class PolishFeedback
             }
         }
     }
-    public static int WeaponTier => Mathf.Clamp(PlayerSkillInventoryManager.Instance?.Weapon?.upgradeStage??0,0,3);
+    public static int WeaponTier => Mathf.Clamp(EquipmentInventoryManager.Instance?.Weapon?.upgradeStage??0,0,3);
     public static int MinionTier(MainMinionDataSO data=null)
     {
         var inventory=InventoryManager.Instance;

@@ -8,7 +8,7 @@ using UnityEngine;
 ///
 /// [26/07/23] 애니메이션(비주얼/시퀀스/타이밍/이펙트)은 MainMinionDataSO.basicAnim(MinionAnimSet)으로
 /// 이사했다. 여기 남은 건 데미지·판정·넉백 같은 로직뿐이다. 기획자는 애니를 미니언 한 곳에서 설정한다.
-/// ▶ 애니메이션 연결 방법은 repo 루트의 MINION_ANIMATION_GUIDE.md 참조.
+/// ▶ 애니메이션 연결 방법은 repo 루트의 Docs/Guides/MINION_ANIMATION_GUIDE.md 참조.
 ///
 /// (옛 설계 3.3 의 '콤보 마지막에 소환수가 대신 때린다'는 26/10/02 에 폐기 — 지금은 internalCooldown 이
 ///  돌아 있을 때 플레이어 평타와 동시에 나간다. 메인 소환수가 없으면 플레이어 평타만 나간다.)

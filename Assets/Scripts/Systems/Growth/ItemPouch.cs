@@ -4,10 +4,10 @@ using UnityEngine;
 /// <summary>
 /// 플레이어의 아이템 주머니. "주머니에 들어 있으면 곧 장착 상태"다 — 보관칸/착용칸 구분은 없다.
 ///
-/// 장비(PlayerSkillInventoryManager.EquippedEquipment)와는 완전히 별개다. 서로 참조하지 않는다.
+/// 장비(EquipmentInventoryManager.EquippedEquipment)와는 완전히 별개다. 서로 참조하지 않는다.
 /// InventoryManager 와 같은 GameObject 에 붙여 두고 GameManager 가 Initialize() 를 불러 준다
 /// (Awake 에 의존하면 스크립트 실행 순서가 미정이라 다른 매니저가 Instance 를 못 잡는다 —
-///  PlayerSkillInventoryManager 와 같은 이유, 같은 패턴).
+///  EquipmentInventoryManager 와 같은 이유, 같은 패턴).
 ///
 /// </summary>
 public class ItemPouch : MonoBehaviour

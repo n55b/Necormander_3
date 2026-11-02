@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// 모든 게임플레이 씬 카메라가 공유하는 설정.
-/// 에셋 위치: Assets/SOData/Camera/Resources/CameraSettings.asset (Resources 이름 "CameraSettings")
+/// 에셋 위치: Assets/Resources/CameraSettings.asset (Resources 이름 "CameraSettings")
 ///
 /// 이 에셋 값을 바꾸면 열려 있는 모든 씬 카메라에 반영된다 (에디터/플레이 모두).
 /// 씬이 로드될 때도 자동 적용되므로 씬마다 카메라를 따로 설정할 필요가 없다.

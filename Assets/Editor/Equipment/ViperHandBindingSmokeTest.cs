@@ -11,19 +11,19 @@ public static class ViperHandBindingSmokeTest
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)
             throw new InvalidOperationException("Run this isolated test outside Play Mode.");
-        var originalSingleton = PlayerSkillInventoryManager.Instance;
+        var originalSingleton = EquipmentInventoryManager.Instance;
         GameObject inventoryObject = null, replacementObject = null, body = null;
         PlayerEquipmentVisualController visual = null;
         EquipmentSO ordinary = null;
         try
         {
-            var viper = AssetDatabase.LoadAssetAtPath<EquipmentSO>("Assets/SOData/Equipment/1015/Viper.asset");
+            var viper = AssetDatabase.LoadAssetAtPath<EquipmentSO>("Assets/SOData/Equipment/Weapons/Viper.asset");
             var baseline = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/Animations/Player/Player_Animator.controller");
             if (viper == null || viper.handAnimationOverride == null || baseline == null)
                 throw new InvalidOperationException("Run Viper setup first.");
             ordinary = ScriptableObject.CreateInstance<EquipmentSO>();
             inventoryObject = Hidden("Viper binding test inventory");
-            var inventory = inventoryObject.AddComponent<PlayerSkillInventoryManager>();
+            var inventory = inventoryObject.AddComponent<EquipmentInventoryManager>();
             SetEquipment(inventory, viper);
             inventory.Initialize();
             body = Hidden("Viper binding test Body");
@@ -43,7 +43,7 @@ public static class ViperHandBindingSmokeTest
             var variants = new System.Collections.Generic.HashSet<AnimatorOverrideController> { viper.handAnimationOverride };
             foreach (string name in new[] { "ViperSC", "ViperAS" })
             {
-                var equipment = AssetDatabase.LoadAssetAtPath<EquipmentSO>("Assets/SOData/Equipment/1015/" + name + ".asset");
+                var equipment = AssetDatabase.LoadAssetAtPath<EquipmentSO>("Assets/SOData/Equipment/Weapons/" + name + ".asset");
                 Check(equipment != null && equipment.handAnimationOverride != null && variants.Add(equipment.handAnimationOverride),
                     name + " has its own hand animation override");
                 SetEquipment(inventory, equipment); inventory.OnEquipmentUpdated?.Invoke();
@@ -54,13 +54,13 @@ public static class ViperHandBindingSmokeTest
             Check(animator.runtimeAnimatorController == viper.handAnimationOverride, "switch back from upgrades to Prototype");
             Invoke(visual, "OnDisable");
             Check(animator.runtimeAnimatorController == baseline && inventory.OnEquipmentUpdated == null, "disable restoration/unsubscribe");
-            PlayerSkillInventoryManager.Instance = null;
+            EquipmentInventoryManager.Instance = null;
             Invoke(visual, "OnEnable");
             Check(animator.runtimeAnimatorController == baseline, "missing inventory fallback");
             inventory.Initialize(); Invoke(visual, "Update");
             Check(animator.runtimeAnimatorController == viper.handAnimationOverride, "late Initialize");
             replacementObject = Hidden("Viper binding replacement inventory");
-            var replacement = replacementObject.AddComponent<PlayerSkillInventoryManager>();
+            var replacement = replacementObject.AddComponent<EquipmentInventoryManager>();
             SetEquipment(replacement, ordinary); replacement.Initialize(); Invoke(visual, "Update");
             Check(animator.runtimeAnimatorController == baseline && inventory.OnEquipmentUpdated == null, "manager replacement and old subscription cleanup");
             SetEquipment(replacement, viper); replacement.OnEquipmentUpdated?.Invoke();
@@ -76,16 +76,16 @@ public static class ViperHandBindingSmokeTest
             if (inventoryObject != null) UnityEngine.Object.DestroyImmediate(inventoryObject);
             if (replacementObject != null) UnityEngine.Object.DestroyImmediate(replacementObject);
             if (ordinary != null) UnityEngine.Object.DestroyImmediate(ordinary);
-            PlayerSkillInventoryManager.Instance = originalSingleton;
+            EquipmentInventoryManager.Instance = originalSingleton;
         }
     }
 
     private static GameObject Hidden(string name) => new GameObject(name) { hideFlags = HideFlags.HideAndDontSave };
-    private static void SetEquipment(PlayerSkillInventoryManager inventory, EquipmentSO equipment)
+    private static void SetEquipment(EquipmentInventoryManager inventory, EquipmentSO equipment)
     {
         // Bypass EquipEquipment intentionally: the test must not mutate live player
         // stats, passives, hit hooks, registries, saves, or scene state.
-        typeof(PlayerSkillInventoryManager).GetField("_equipped", BindingFlags.Instance | BindingFlags.NonPublic)
+        typeof(EquipmentInventoryManager).GetField("_equipped", BindingFlags.Instance | BindingFlags.NonPublic)
             .SetValue(inventory, equipment == null ? null : new EquipmentInstance { baseData = equipment });
     }
     private static void Invoke(PlayerEquipmentVisualController target, string method)

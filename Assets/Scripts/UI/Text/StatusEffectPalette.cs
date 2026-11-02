@@ -131,7 +131,7 @@ public class StatusEffectPalette : ScriptableObject
     /// <summary>
     /// 프리팹마다 배선하지 않고 코드에서 바로 집는 공용 팔레트. HitBoxColorConfigSO 와 같은 방식이다 —
     /// 에셋이 'Resources' 폴더 아래에 있고 이름이 "StatusEffectPalette" 여야 한다
-    /// (현재 Assets/SOData/UI/Resources/StatusEffectPalette.asset).
+    /// (현재 Assets/Resources/StatusEffectPalette.asset).
     /// Unity 는 프로젝트 내 모든 Resources 폴더를 하나로 합쳐 보므로 중첩 폴더에 둬도 된다.
     ///
     /// 인스펙터로 꽂을 수 있는 쪽(FloatingTextSpawner)은 계속 SerializeField 를 쓴다. 여기는

@@ -21,7 +21,7 @@ public sealed class DesignerInspectorGuiCheck : EditorWindow
             window.position = new Rect(0, 0, 460, 900);
             window.ShowUtility();
             string[] assets = {
-                "Assets/Prefabs/Enemy/Enemy.prefab", "Assets/Prefabs/Effect/Hit/Slash Impact.prefab",
+                "Assets/Prefabs/Enemy/Enemy.prefab", "Assets/Prefabs/Effect/Combat/Hit/Slash Impact.prefab",
                 "Assets/SOData/Enemy/Enemy AI Patterns/Boss/Bone Master Phase 2 AI Pattern.asset",
                 "Assets/Resources/FeedbackCatalog.asset"
             };

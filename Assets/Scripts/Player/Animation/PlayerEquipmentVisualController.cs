@@ -13,7 +13,7 @@ public sealed class PlayerEquipmentVisualController : MonoBehaviour
     private RuntimeAnimatorController _originalController;
     private RuntimeAnimatorController _baseController;
     private RuntimeAnimatorController _appliedController;
-    private PlayerSkillInventoryManager _inventory;
+    private EquipmentInventoryManager _inventory;
     private EquipmentSO _lastEquipment;
     private AnimatorOverrideController _lastOverride;
     private AnimatorOverrideController _warnedInvalidOverride;
@@ -65,7 +65,7 @@ public sealed class PlayerEquipmentVisualController : MonoBehaviour
 
     private void RefreshInventorySubscription()
     {
-        var current = PlayerSkillInventoryManager.Instance;
+        var current = EquipmentInventoryManager.Instance;
         // Normalize Unity's destroyed-object null so the old managed delegate is
         // detached even when the static Instance still points at a destroyed object.
         if (current == null)

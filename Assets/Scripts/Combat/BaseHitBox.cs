@@ -9,7 +9,7 @@ public class BaseHitBox : MonoBehaviour
 {
     // 아군/적 히트박스 색·투명도 팔레트. 전용 에셋을 Resources.Load 로 한 번 읽어 캐시한다
     // (DamageTextColorConfigSO 와 같은 '공용 색 config' 패턴 — GameManager 커플링 없음).
-    // 에셋은 이름이 'Resources' 인 폴더 아래면 아무데나 OK(중첩 가능 — 예: Assets/SOData/UI/Resources/HitBoxColorConfig.asset).
+    // 에셋은 이름이 'Resources' 인 폴더 아래면 아무데나 OK(중첩 가능 — 예: Assets/Resources/HitBoxColorConfig.asset).
     // Unity 는 프로젝트 내 모든 'Resources' 폴더를 하나로 합쳐 보므로 스프라이트용 Assets/Resources 와 안 섞여도 된다.
     // 못 찾으면 하드코딩 색으로 폴백한다.
     private static HitBoxColorConfigSO _colorConfig;
@@ -24,7 +24,7 @@ public class BaseHitBox : MonoBehaviour
                 _colorConfigLoaded = true;
                 if (_colorConfig == null)
                     Debug.LogWarning("<color=orange>[BaseHitBox]</color> Resources 에서 'HitBoxColorConfig' 를 못 찾았습니다 — 하드코딩 색(아군 파랑/적 빨강)으로 폴백합니다. " +
-                                     "에셋을 이름이 'Resources' 인 폴더 아래(예: Assets/SOData/UI/Resources/)에 이름 'HitBoxColorConfig' 로 두세요.");
+                                     "에셋을 이름이 'Resources' 인 폴더 아래(예: Assets/Resources/)에 이름 'HitBoxColorConfig' 로 두세요.");
             }
             return _colorConfig;
         }

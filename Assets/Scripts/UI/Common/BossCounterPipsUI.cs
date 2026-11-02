@@ -15,7 +15,7 @@ using UnityEngine.UI;
 /// </summary>
 public class BossCounterPipsUI : MonoBehaviour
 {
-    /// <summary>Assets/Prefabs/Resources/UI/Boss Counter Pips.prefab</summary>
+    /// <summary>Assets/Resources/UI/Boss Counter Pips.prefab</summary>
     private const string ResourcePath = "UI/Boss Counter Pips";
 
     [Tooltip("왼쪽부터 순서대로. 배열 길이가 곧 표시할 수 있는 최대 카운터 횟수다.")]

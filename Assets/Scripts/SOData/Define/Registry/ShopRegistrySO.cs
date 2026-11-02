@@ -5,7 +5,7 @@ using UnityEngine;
 /// 게임 내 상점에서 등장할 수 있는 모든 아이템 풀을 관리하는 레지스트리입니다.
 /// 상점 아이템은 전부 여기(SOData)에서 관리한다: 장비 + 주머니 아이템 + 강화.
 /// ([26/08/15] 서브 소환수 삭제로 소환수 진열이 빠졌다 — 그만큼 아이템 에셋을 늘려야 한다.)
-/// (젬 효과가 전부 제거되면서 gemPool 도 함께 내렸습니다 — GEM_LEGACY.md 참조.
+/// (젬 효과가 전부 제거되면서 gemPool 도 함께 내렸습니다 — Docs/Archive/GEM_LEGACY.md 참조.
 ///  젬 에셋 자체는 SOData/Rewards/Gems 에 그대로 남아 있고, 소켓 배관도 살아 있습니다.)
 /// </summary>
 [CreateAssetMenu(fileName = "ShopRegistry", menuName = "Necromancer/Registry/ShopRegistry")]
