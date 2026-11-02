@@ -83,7 +83,7 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     [Header("텔레그래프(피해범위 인디케이터) 색상")]
     public Color telegraphWarnColor = new Color(1f, 0.1f, 0.1f, 0.9f);
 
-    [Tooltip("직선(레인) 전조 프리팹. Assets/Prefabs/Skill Visual Effects/Telegraph Line Hitbox Prefab. " +
+    [Tooltip("직선(레인) 전조 프리팹. Assets/Prefabs/Effect/Combat/Skills/Telegraph Line Hitbox Prefab. " +
              "시각 전용으로만 쓰며 피해는 BossCombat 이 준다(콜라이더가 없는 프리팹).")]
     public BaseHitBox laneTelegraphPrefab;
     [InspectorName("집행 선공격 전용 예고 외형"), Tooltip("집행만 사용하는 외형입니다. 비워두면 공용 직선 예고를 사용합니다. 피해 범위·발동 시각은 아래 집행 설정을 따릅니다.")]

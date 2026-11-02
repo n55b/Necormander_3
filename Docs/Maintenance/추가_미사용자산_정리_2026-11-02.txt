@@ -1,0 +1,40 @@
+추가 미사용 자산 정리 — 2026-11-02
+
+사용자 승인 후 미사용 자산 10개와 해당 메타, 비게 된 옛 씬 폴더 4개를 삭제했다.
+삭제 전 Assets / ProjectSettings / Packages / Tools의 GUID 및 코드·설정 문자열 참조가 없음을 확인했다.
+삭제 후 GUID 잔존 참조 0개. 씬·프리팹·사용 중인 입력 자산·남은 가시 함정 자산 195개는 SHA-256이 동일하다.
+현재 가시 함정은 _New 클립을 사용하고, 실제 입력은 PlayerInputSystem.inputactions에 연결되어 있다.
+이번 추가 삭제에서는 코드 변경·Unity 실행·플레이 테스트·커밋을 하지 않았다.
+
+삭제 목록
+  Assets/Scenes/SpawnSystem/NavMesh-Ground.asset
+  Assets/Scenes/SpawnSystem/NavMesh-NavMesh Surface.asset
+  Assets/Scenes/SpawnSystem/NavMesh-NavMesh2D.asset
+  Assets/Scenes/PortalSpawnSystem/NavMesh-Nav2D.asset
+  Assets/Scenes/DynamicSpawnSystem/NavMesh-Nav2D.asset
+  Assets/Scenes/Map/NavMesh-Nav2D.asset
+  Assets/Animations/Trap/SpikeTrap/SpikeTrap_Clip_On.anim
+  Assets/Animations/Trap/SpikeTrap/SpikeTrap_Clip_Off.anim
+  Assets/Resources/Sound/SFX/Minion/Swing_Double.wav
+  Assets/InputSystem_Actions.inputactions
+
+보관 확정
+  PointLight / Spot_Light 두 원본.
+  이름이 같은 PNG / aseprite 4쌍 모두.
+  Sprites/Old 아래 스프라이트 8개.
+  모든 방 프리팹과 그 밖의 파일.
+  음원 출처·가공 이력 문서와 JSON. 현재 음원 목록에서만 Swing_Double을 제외했다.
+
+F의 클래스명 설명 — 이번에는 이름 변경하지 않음
+  PlayerSkillInventoryManager
+    현재 역할: 장비 착용·강화·패시브·저장/불러오기 관리.
+    더 어울리는 이름: EquipmentInventoryManager.
+  HandSlotSelectionUI
+    현재 역할: 현재 미니언과 후보 비교, 습득·교체·스킵 창.
+    더 어울리는 이름: MainMinionSelectionUI.
+  HandSlotSelectionItem
+    현재 역할: 위 창의 카드·버튼 클릭 및 교체/스킵 홀드 처리.
+    더 어울리는 이름: MainMinionSelectionAction.
+  모두 실제 사용하는 코드다. 과거 기능을 개편하면서 이름이 남은 것으로 삭제 대상이 아니다.
+
+이 문서는 1차 폴더 정리 보고서 A~F 보류 목록에 대한 최신 결정과 처리 결과다.

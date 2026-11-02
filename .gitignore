@@ -78,3 +78,11 @@ Assets/TextMesh Pro/Fonts/Galmuri11 SDF.asset
 Assets/TextMesh Pro/Fonts/Galmuri11 SDF.asset
 Assets/TextMesh Pro/Fonts/Galmuri11 SDF.asset
 MapDebugLog.txt
+
+# Local analysis outputs and IDE caches
+*.csproj.lscache
+__pycache__/
+/temp_out.txt
+/temp_search.txt
+/prefab_guids.txt
+/extracted.txt

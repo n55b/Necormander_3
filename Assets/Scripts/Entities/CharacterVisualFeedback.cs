@@ -41,7 +41,7 @@ public class CharacterVisualFeedback : MonoBehaviour
     [SerializeField] private bool showSuperArmorOutline = true;
 
     [Header("빙결 VFX")]
-    [Tooltip("빙결(Freeze) 상태인 동안 유닛에 붙여둘 이펙트 프리팹 (Assets/Prefabs/Effect/Effect_Freezing.prefab). " +
+    [Tooltip("빙결(Freeze) 상태인 동안 유닛에 붙여둘 이펙트 프리팹 (Assets/Prefabs/Effect/Status/Effect_Freezing.prefab). " +
              "비워두면 Resources/Effects/Effect_Freezing 에서 자동 로드를 시도합니다.")]
     [SerializeField] private GameObject freezingVFXPrefab;
     public GameObject FreezingVfxPrefab => freezingVFXPrefab;

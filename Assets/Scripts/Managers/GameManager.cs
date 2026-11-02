@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour
 
     [Header("성장 시스템")]
     [SerializeField] public InventoryManager inventoryManager;
-    [SerializeField] public PlayerSkillInventoryManager playerSkillInventoryManager;
+    [SerializeField] public EquipmentInventoryManager playerSkillInventoryManager;
     [Tooltip("아이템 주머니. 장비(playerSkillInventoryManager)와 별개 시스템이다.")]
     [SerializeField] public ItemPouch itemPouch;
 
@@ -208,7 +208,7 @@ public class GameManager : MonoBehaviour
         if (mouseManager == null) mouseManager = GetComponentInChildren<MouseManager>();
         if (mouseCursorManager == null) mouseCursorManager = GetComponentInChildren<MouseCursorManager>();
         if (inventoryManager == null) inventoryManager = GetComponentInChildren<InventoryManager>();
-        if (playerSkillInventoryManager == null) playerSkillInventoryManager = GetComponentInChildren<PlayerSkillInventoryManager>();
+        if (playerSkillInventoryManager == null) playerSkillInventoryManager = GetComponentInChildren<EquipmentInventoryManager>();
         if (itemPouch == null) itemPouch = GetComponentInChildren<ItemPouch>();
 
         if (rewardManager == null) rewardManager = GetComponentInChildren<RewardManager>();

@@ -19,7 +19,7 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private RoomPrefabDataSO prefabData;
 
     [Header("디버그")]
-    [Tooltip("맵 생성 뒤 MapDebugLog.txt에 전체 타일 지도를 기록합니다. 큰 방에서는 로그 한 번에 수십만 칸을 검사하므로, 연결 문제를 추적할 때만 켭니다.")]
+    [Tooltip("맵 생성 뒤 Logs/MapDebugLog.txt에 전체 타일 지도를 기록합니다. 큰 방에서는 로그 한 번에 수십만 칸을 검사하므로, 연결 문제를 추적할 때만 켭니다.")]
     [SerializeField] private bool dumpMapDebugLog;
 
     [Tooltip("기본은 단계별 요약만 출력합니다. 켜면 방/타일/문/프레임 대기까지 상세 [MapPerf] 로그를 추가합니다. 경고와 오류는 이 설정과 무관하게 항상 출력합니다.")]
@@ -1694,7 +1694,9 @@ Instance = this;
         }
         sb.AppendLine($"\nSuspect edges: {suspectCount}  (facing=false / NO-USED-ANCHOR / (물리모드)corridor=MISSING => '미니맵엔 연결·방엔 문 없음' 후보)");
 
-        string path = System.IO.Path.Combine(Application.dataPath, "..", "MapDebugLog.txt");
+        string logDirectory = System.IO.Path.Combine(Application.dataPath, "..", "Logs");
+        System.IO.Directory.CreateDirectory(logDirectory);
+        string path = System.IO.Path.Combine(logDirectory, "MapDebugLog.txt");
         System.IO.File.WriteAllText(path, sb.ToString());
       }
       catch (System.Exception _dumpEx)

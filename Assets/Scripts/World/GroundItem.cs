@@ -139,8 +139,8 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
         if (!IsAvailable) return false;
         if (_minion != null)
         {
-            if (HandSlotSelectionUI.Instance == null) return false;
-            HandSlotSelectionUI.Instance.Show(this);
+            if (MainMinionSelectionUI.Instance == null) return false;
+            MainMinionSelectionUI.Instance.Show(this);
             return true;
         }
         if (ItemPouch.Instance == null || !ItemPouch.Instance.TryAdd(_item)) { Announce("최대 중첩에 도달했습니다"); return false; }

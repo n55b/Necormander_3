@@ -1,0 +1,387 @@
+폴더 정리 결과 — 2026-11-02
+
+대상: C:/Users/rimmy/Desktop/Studies/indie/indie/Necormander_3
+브랜치: 은혁/신규스프라이트테스트
+
+1. 완료
+
+- 일반 파일 251개 이동(메타 파일 제외): Unity 자산 200개 + 문서·외부 도구 등 51개.
+- 자체 에디터 코드 62개를 Assets/Editor의 기능별 하위 폴더로 통합.
+- 공용 상호작용, 사운드, 카메라, 보스 보조 스크립트를 실제 역할에 맞는 위치로 이동.
+- 자체 Resources 네 곳을 Assets/Resources 한 곳으로 통합. 기존 로딩 주소 7개 유지.
+- SpriteTests → Melee, 1015 → Weapons, 방 Test → Variants, TestTutorial → Tutorial.
+- Viper 세 종류의 생성 애니메이션을 Animations/Player/Weapons/<무기명>으로 통합.
+- 이펙트 프리팹 분류, 머티리얼·셰이더·물리 설정·환경 그래프의 위치 정리.
+- 대사 CSV는 Data/Dialogue, 키워드 사전은 SOData/Localization으로 이동.
+- 루트 문서·번역 자료·외부 도구 분류. 스크린샷은 Assets 밖의 Docs/Screenshots로 이동.
+- 검증된 임시 출력·로그·IDE 캐시 8개 삭제. 삭제한 게임 자산은 없음.
+- MapDebugLog.txt 출력 위치를 Logs/MapDebugLog.txt로 변경하고 디렉터리 생성 처리.
+- 생성·검증 도구의 직접 경로와 조합 경로를 모두 갱신.
+- Catalog와 인스펙터 검사 도구가 이동한 Resources 프리팹·SO도 계속 검색하도록 수정.
+- Feedback Distortion 머티리얼 생성 경로를 새 위치로 맞추고 기존 자산을 재사용하도록 처리.
+- 변경사항.txt는 루트 위치 유지. 새 안내: Docs/Guides/폴더_찾기.txt.
+
+2. 참조 보존과 검증
+
+- 기존 유지 대상 .meta 2,819개의 바이트 내용·GUID가 이동 전과 일치.
+- 제거한 메타는 Assets 밖으로 옮긴 문서·스크린샷 및 참조 없는 빈 폴더의 메타뿐.
+- 씬·프리팹·SO·애니메이션·컨트롤러·머티리얼·원본 아트의 내용은 이동 전과 동일.
+- 새로 발생한 중복 GUID, 고아 메타, 누락 파일, 코드의 이전 전체 경로 참조: 0개.
+- Unity 6000.0.59f2 배치 모드에서 최종 컴파일 성공, 종료 코드 0.
+- 이동한 자산 200개의 GUID·임포트 로딩 성공.
+- 자체 프리팹 176개 검사: Missing Script 0개.
+- 통합한 Resources 로딩 7개 모두 실제 로드 성공.
+- 이동한 셰이더 오류 검사 통과.
+- 프로젝트 설정·패키지·클립 이름·타격 이벤트·게임플레이 수치 변경 없음.
+- 검증 과정에서 자동 갱신된 폰트 캐시는 작업 전 SHA-256과 대조해 원본으로 복원.
+- 검증용 임시 C#과 메타는 검증 후 제거. 새 런타임 시스템 추가 없음.
+- 플레이 모드와 실제 게임 플레이는 실행하지 않음. 커밋하지 않음.
+
+3. 불명확해서 그대로 남긴 항목 — 일괄 보고
+
+아래 항목은 정리를 진행하는 데 결정을 요구하지 않았으며, 삭제·병합을 보류했다.
+
+A. PointLight / Spot_Light 원본 중복
+  Assets/Resources/Sprites/Effect/PointLight.aseprite
+  Assets/Resources/Sprites/Spot_Light.aseprite
+  바이트는 같지만 GUID·서브스프라이트 ID가 다르다.
+  PointLight는 사용 중. Spot_Light의 향후 원본 용도까지 확인되지 않아 둘 다 보존.
+
+B. 같은 Resources 주소의 PNG / aseprite 쌍 4개
+  Sprites/UI/UI
+  Sprites/Effect/Move_Effect
+  Sprites/Effect/Dash_Effect
+  Sprites/Title_Image
+  정지 그림·애니메이션 원본의 의도적인 공존 여부가 불명확해 이름 변경·삭제 보류.
+
+C. 대응 씬이 없는 과거 NavMesh 6개
+  Assets/Scenes/SpawnSystem/NavMesh-Ground.asset
+  Assets/Scenes/SpawnSystem/NavMesh-NavMesh Surface.asset
+  Assets/Scenes/SpawnSystem/NavMesh-NavMesh2D.asset
+  Assets/Scenes/PortalSpawnSystem/NavMesh-Nav2D.asset
+  Assets/Scenes/DynamicSpawnSystem/NavMesh-Nav2D.asset
+  Assets/Scenes/Map/NavMesh-Nav2D.asset
+  검색한 직렬화 참조는 없지만 다른 작업용 보관 의도가 확인되지 않아 보존.
+
+D. 옛 스프라이트·함정 클립·효과음
+  Assets/Resources/Sprites/Old 아래 8개
+  Assets/Animations/Trap/SpikeTrap의 이름에 _New가 없는 예전 클립
+  Swing_Double.wav
+  현재 사용 여부·보관 의도가 불명확해 삭제 보류.
+  Minion/Old의 7개는 참조가 확인되어 Skeleton으로 이름만 변경하고 모두 유지.
+
+E. 입력 자산과 방 프리팹
+  Assets/InputSystem_Actions.inputactions의 현재 용도가 확인되지 않아 보존.
+  실제 사용하는 PlayerInputSystem.inputactions도 유지.
+  활성 씬에서 연결이 확인되지 않았던 방 변형 2개 및 별도 작업용 방들도 삭제하지 않음.
+  같은 이름의 방·벽·함정·상자 파일은 내용·GUID가 다른 경우 각각 유지.
+
+F. 이번 폴더 작업에서 동작을 바꾸지 않은 기존 코드
+  CharacterVisualFeedback의 Resources 대체 로딩 주소 Effects/Effect_Freezing은 대응 자산이 없다.
+  직렬화된 이펙트 참조가 있으면 해당 대체 경로를 쓰지 않으므로 폴더 정리 중 동작을 임의로 바꾸지 않음.
+  PlayerSkillInventoryManager, HandSlotSelectionUI 등 현재 역할과 다른 클래스명은 연결을 유지.
+
+4. 삭제한 임시 파일
+  temp_out.txt
+  temp_search.txt
+  prefab_guids.txt
+  extracted.txt
+  MapDebugLog.txt
+  Assembly-CSharp-Editor.csproj.lscache
+  Assembly-CSharp.csproj.lscache
+  Assembly-CSharp-firstpass.csproj.lscache
+
+5. 이동 대응표 (프로젝트 상대 경로)
+
+Assets/Editor/UI1006Setup.cs
+  → Assets/Editor/UI/UI1006Setup.cs
+Assets/Editor/InventoryUISetup.cs
+  → Assets/Editor/UI/InventoryUISetup.cs
+Assets/Editor/InventoryUICheck.cs
+  → Assets/Editor/UI/InventoryUICheck.cs
+Assets/Editor/StackedInventoryEditor.cs
+  → Assets/Editor/UI/StackedInventoryEditor.cs
+Assets/Editor/ShopPopupUIBuilder.cs
+  → Assets/Editor/UI/ShopPopupUIBuilder.cs
+Assets/Editor/MiniMapCheck.cs
+  → Assets/Editor/UI/MiniMapCheck.cs
+Assets/Editor/DPSMeterCheck.cs
+  → Assets/Editor/UI/DPSMeterCheck.cs
+Assets/Editor/FeedbackSetup.cs
+  → Assets/Editor/Feedback/FeedbackSetup.cs
+Assets/Editor/FeedbackValidation.cs
+  → Assets/Editor/Feedback/FeedbackValidation.cs
+Assets/Editor/FeedbackCheck.cs
+  → Assets/Editor/Feedback/FeedbackCheck.cs
+Assets/Editor/FeedbackCatalogEditor.cs
+  → Assets/Editor/Feedback/FeedbackCatalogEditor.cs
+Assets/Editor/ExistingFeedbackValidation.cs
+  → Assets/Editor/Feedback/ExistingFeedbackValidation.cs
+Assets/Editor/ExistingFeedbackCatalogEditor.cs
+  → Assets/Editor/Feedback/ExistingFeedbackCatalogEditor.cs
+Assets/Editor/HealingFeedbackValidation.cs
+  → Assets/Editor/Feedback/HealingFeedbackValidation.cs
+Assets/Editor/GameplayFeedbackChecks.cs
+  → Assets/Editor/Feedback/GameplayFeedbackChecks.cs
+Assets/Editor/CreateMinimapIcons.cs
+  → Assets/Editor/Map/CreateMinimapIcons.cs
+Assets/Editor/RoomTilemapCheck.cs
+  → Assets/Editor/Map/RoomTilemapCheck.cs
+Assets/Editor/RoomPrefabCheck.cs
+  → Assets/Editor/Map/RoomPrefabCheck.cs
+Assets/Editor/MapColliderCheck.cs
+  → Assets/Editor/Map/MapColliderCheck.cs
+Assets/Editor/SetupUnsteppable.cs
+  → Assets/Editor/Map/SetupUnsteppable.cs
+Assets/Editor/PortalColliderSmokeTest.cs
+  → Assets/Editor/Map/PortalColliderSmokeTest.cs
+Assets/Editor/WorldSortingCheck.cs
+  → Assets/Editor/Map/WorldSortingCheck.cs
+Assets/Editor/BoneMasterCombatCheck.cs
+  → Assets/Editor/Combat/BoneMasterCombatCheck.cs
+Assets/Editor/CombatMovementCheck.cs
+  → Assets/Editor/Combat/CombatMovementCheck.cs
+Assets/Editor/EliteTelegraphCleanupCheck.cs
+  → Assets/Editor/Combat/EliteTelegraphCleanupCheck.cs
+Assets/Editor/CriticalItemsCheck.cs
+  → Assets/Editor/Combat/CriticalItemsCheck.cs
+Assets/Editor/CharacterStatEditor.cs
+  → Assets/Editor/Combat/CharacterStatEditor.cs
+Assets/Editor/GuardControlsSetup.cs
+  → Assets/Editor/Combat/GuardControlsSetup.cs
+Assets/Editor/BoneMasterAnimSetup.cs
+  → Assets/Editor/Animation/BoneMasterAnimSetup.cs
+Assets/Editor/HaeTaeAnimSetup.cs
+  → Assets/Editor/Animation/HaeTaeAnimSetup.cs
+Assets/Editor/GameplaySpriteAnimations.cs
+  → Assets/Editor/Animation/GameplaySpriteAnimations.cs
+Assets/Editor/AugmentRewardCheck.cs
+  → Assets/Editor/Gameplay/AugmentRewardCheck.cs
+Assets/Editor/DebugStartFloorCheck.cs
+  → Assets/Editor/Gameplay/DebugStartFloorCheck.cs
+Assets/Editor/MinionSelectNPCSetup.cs
+  → Assets/Editor/Gameplay/MinionSelectNPCSetup.cs
+Assets/Editor/RegistryMenuTools.cs
+  → Assets/Editor/Gameplay/RegistryMenuTools.cs
+Assets/Editor/TutorialMenuTools.cs
+  → Assets/Editor/Gameplay/TutorialMenuTools.cs
+Assets/Editor/VillageLoadoutCheck.cs
+  → Assets/Editor/Gameplay/VillageLoadoutCheck.cs
+Assets/Editor/PlaytestRegressionCheck.cs
+  → Assets/Editor/Gameplay/PlaytestRegressionCheck.cs
+Assets/Editor/SceneLoadingTools.cs
+  → Assets/Editor/Loading/SceneLoadingTools.cs
+Assets/Editor/DialogueSetupTools.cs
+  → Assets/Editor/Localization/DialogueSetupTools.cs
+Assets/Editor/UITranslationPopulator.cs
+  → Assets/Editor/Localization/UITranslationPopulator.cs
+Assets/Scripts/Editor/UILitRendererTool.cs
+  → Assets/Editor/UI/UILitRendererTool.cs
+Assets/Scripts/Editor/UICanvasSetupTool.cs
+  → Assets/Editor/UI/UICanvasSetupTool.cs
+Assets/Scripts/Editor/TitleCrystalBallEditor.cs
+  → Assets/Editor/UI/TitleCrystalBallEditor.cs
+Assets/Scripts/Editor/ButtonHoverUnderlineEditor.cs
+  → Assets/Editor/UI/ButtonHoverUnderlineEditor.cs
+Assets/Scripts/Editor/FontSetupTool.cs
+  → Assets/Editor/UI/FontSetupTool.cs
+Assets/Scripts/Editor/CameraSettingsApplierEditor.cs
+  → Assets/Editor/Camera/CameraSettingsApplierEditor.cs
+Assets/Scripts/Editor/AllyRangeDisplayMenu.cs
+  → Assets/Editor/Combat/AllyRangeDisplayMenu.cs
+Assets/Scripts/Editor/GrowthRegistryEditor.cs
+  → Assets/Editor/Gameplay/GrowthRegistryEditor.cs
+Assets/Scripts/Editor/KoLabelDrawer.cs
+  → Assets/Editor/DesignerInspector/KoLabelDrawer.cs
+Assets/Scripts/Editor/UISkin
+  → Assets/Editor/UI/UISkin
+Assets/Scripts/Editor/Sound
+  → Assets/Editor/Audio
+Assets/Scripts/UI/Common/UISoundController.cs
+  → Assets/Scripts/Audio/UISoundController.cs
+Assets/Scripts/UI/Tool/CameraShaker.cs
+  → Assets/Scripts/Managers/Camera/CameraShaker.cs
+Assets/Scripts/NPC/Shop/PopupSystem.cs
+  → Assets/Scripts/UI/Common/PopupSystem.cs
+Assets/Scripts/NPC/Shop/Tooltip.cs
+  → Assets/Scripts/UI/Common/Tooltip.cs
+Assets/Scripts/SOData/AIPatterns/Boss
+  → Assets/Scripts/Combat/Boss
+Assets/Scripts/Combat/BossCounterGauge.cs
+  → Assets/Scripts/Combat/Boss/BossCounterGauge.cs
+Assets/Prefabs/Resources/GroundItem.prefab
+  → Assets/Resources/GroundItem.prefab
+Assets/Prefabs/Resources/GroundMinion.prefab
+  → Assets/Resources/GroundMinion.prefab
+Assets/Prefabs/Resources/UI/SceneLoader.prefab
+  → Assets/Resources/UI/SceneLoader.prefab
+Assets/Prefabs/Resources/UI/Boss Counter Pips.prefab
+  → Assets/Resources/UI/Boss Counter Pips.prefab
+Assets/SOData/Camera/Resources/CameraSettings.asset
+  → Assets/Resources/CameraSettings.asset
+Assets/SOData/UI/Resources/HitBoxColorConfig.asset
+  → Assets/Resources/HitBoxColorConfig.asset
+Assets/SOData/UI/Resources/StatusEffectPalette.asset
+  → Assets/Resources/StatusEffectPalette.asset
+Assets/Prefabs/Minion/SpriteTests
+  → Assets/Prefabs/Minion/Melee
+Assets/Animations/Minion/SpriteTests
+  → Assets/Animations/Minion/Melee
+Assets/SOData/Equipment/1015
+  → Assets/SOData/Equipment/Weapons
+Assets/Animations/Player/ViperHandGenerated
+  → Assets/Animations/Player/Weapons/Viper
+Assets/Animations/Player/ViperSCHandGenerated
+  → Assets/Animations/Player/Weapons/ViperSC
+Assets/Animations/Player/ViperASHandGenerated
+  → Assets/Animations/Player/Weapons/ViperAS
+Assets/Prefabs/Map/Room Map Prefabs/Elite/Test
+  → Assets/Prefabs/Map/Room Map Prefabs/Elite/Variants
+Assets/Prefabs/Map/Room Map Prefabs/Normal/Test
+  → Assets/Prefabs/Map/Room Map Prefabs/Normal/Variants
+Assets/Prefabs/Map/Room Map Prefabs/Reward/Test
+  → Assets/Prefabs/Map/Room Map Prefabs/Reward/Variants
+Assets/Prefabs/Map/Room Map Prefabs/Shop/Test
+  → Assets/Prefabs/Map/Room Map Prefabs/Shop/Variants
+Assets/Prefabs/Map/Room Map Prefabs/Spawn/Test
+  → Assets/Prefabs/Map/Room Map Prefabs/Spawn/Variants
+Assets/Prefabs/Map/Room Map Prefabs/TestTutorial
+  → Assets/Prefabs/Map/Room Map Prefabs/Tutorial
+Assets/Resources/Sprites/Minion/Old
+  → Assets/Resources/Sprites/Minion/Skeleton
+Assets/Data/Localization/KeywordDictionary.asset
+  → Assets/SOData/Localization/KeywordDictionary.asset
+Assets/Resources/Dialogue
+  → Assets/Data/Dialogue
+Assets/Resources/Sound/TrapSoundTest
+  → Assets/Resources/Sound/SFX/Traps
+Assets/Material/PlayerPhysicsMaterial2D.physicsMaterial2D
+  → Assets/Physics/PlayerPhysicsMaterial2D.physicsMaterial2D
+Assets/Material/ScriptMachine
+  → Assets/Animations/Environment/ScriptMachine
+Assets/Material/Burn_Effect.shadergraph
+  → Assets/Shaders/Burn_Effect.shadergraph
+Assets/Material/Feedback/ImpactAdditive.shader
+  → Assets/Shaders/Feedback/ImpactAdditive.shader
+Assets/Material/Feedback/PixelDither.hlsl
+  → Assets/Shaders/Feedback/PixelDither.hlsl
+Assets/Material/Feedback/PixelDitherUI.shader
+  → Assets/Shaders/Feedback/PixelDitherUI.shader
+Assets/Material/Feedback/PixelFeedbackSprite.shader
+  → Assets/Shaders/Feedback/PixelFeedbackSprite.shader
+Assets/Material/Feedback/SpriteEdgeOnly.shader
+  → Assets/Shaders/Feedback/SpriteEdgeOnly.shader
+Assets/Material/Flash_Effect.shadergraph
+  → Assets/Shaders/Flash_Effect.shadergraph
+Assets/Material/Light/Emission-Sprite-Lit.shadergraph
+  → Assets/Shaders/Light/Emission-Sprite-Lit.shadergraph
+Assets/Material/PickUpOutline.shadergraph
+  → Assets/Shaders/PickUpOutline.shadergraph
+Assets/Material/Pixel_Burn_Particle_SG.shadergraph
+  → Assets/Shaders/Pixel_Burn_Particle_SG.shadergraph
+Assets/Material/Player/PlayerOramaticLit.shadergraph
+  → Assets/Shaders/Player/PlayerOramaticLit.shadergraph
+Assets/Material/Subgraph/Outline offset Component.shadersubgraph
+  → Assets/Shaders/Subgraph/Outline offset Component.shadersubgraph
+Assets/Prefabs/Effect/Materials
+  → Assets/Material/Effect
+Assets/Prefabs/Effect/Feedback/Feedback Distortion.mat
+  → Assets/Material/Feedback/Feedback Distortion.mat
+Assets/Prefabs/Effect/Hit
+  → Assets/Prefabs/Effect/Combat/Hit
+Assets/Prefabs/Effect/DashSmog
+  → Assets/Prefabs/Effect/Movement/DashSmog
+Assets/Prefabs/Effect/Walk_Smog_Effect.prefab
+  → Assets/Prefabs/Effect/Movement/Walk_Smog_Effect.prefab
+Assets/Prefabs/Effect/Effect_Smog.prefab
+  → Assets/Prefabs/Effect/Movement/Effect_Smog.prefab
+Assets/Prefabs/Effect/MeleeHitSparkEffect.prefab
+  → Assets/Prefabs/Effect/Combat/MeleeHitSparkEffect.prefab
+Assets/Prefabs/Effect/HitEffect.prefab
+  → Assets/Prefabs/Effect/Combat/HitEffect.prefab
+Assets/Prefabs/Effect/Effect_EnemyFullCharge.prefab
+  → Assets/Prefabs/Effect/Combat/Effect_EnemyFullCharge.prefab
+Assets/Prefabs/Effect/Effect_Freezing.prefab
+  → Assets/Prefabs/Effect/Status/Effect_Freezing.prefab
+Assets/Prefabs/Effect/GreenBurnParticle.prefab
+  → Assets/Prefabs/Effect/Status/GreenBurnParticle.prefab
+Assets/Prefabs/Effect/FireflyAmbientEffect.prefab
+  → Assets/Prefabs/Effect/Environment/FireflyAmbientEffect.prefab
+Assets/Prefabs/Light
+  → Assets/Prefabs/Effect/Environment/Lighting
+Assets/Prefabs/Skill Visual Effects/Enemy Skills/Circle.png
+  → Assets/Resources/Sprites/Effect/EnemyMagicCircle.png
+Assets/Prefabs/Skill Visual Effects
+  → Assets/Prefabs/Effect/Combat/Skills
+Assets/Docs/툴 사용 가이드.md
+  → Docs/Guides/툴 사용 가이드.md
+MINION_ANIMATION_GUIDE.md
+  → Docs/Guides/MINION_ANIMATION_GUIDE.md
+GEM_LEGACY.md
+  → Docs/Archive/GEM_LEGACY.md
+THROW_LEGACY.md
+  → Docs/Archive/THROW_LEGACY.md
+MINION_ARCHITECTURE.md
+  → Docs/Archive/MINION_ARCHITECTURE.md
+REFACTOR_HANDOFF.md
+  → Docs/Archive/REFACTOR_HANDOFF.md
+Docs/AudioMixLevels.json
+  → Docs/Audio/AudioMixLevels.json
+Docs/AudioSources.json
+  → Docs/Audio/AudioSources.json
+Docs/UI카메라_단계별_적용기록.txt
+  → Docs/Archive/UI카메라_단계별_적용기록.txt
+Docs/기획_조절값_추가점검_2026-10-26.txt
+  → Docs/Archive/기획_조절값_추가점검_2026-10-26.txt
+Docs/기획자_인스펙터_안내.txt
+  → Docs/Guides/기획자_인스펙터_안내.txt
+Docs/레거시_재점검_2026-10-26.txt
+  → Docs/Archive/레거시_재점검_2026-10-26.txt
+Docs/미니언_사운드_적용.txt
+  → Docs/Audio/미니언_사운드_적용.txt
+Docs/미니언_사운드_후보.txt
+  → Docs/Audio/미니언_사운드_후보.txt
+Docs/분열체_첫프레임_확인.txt
+  → Docs/Archive/분열체_첫프레임_확인.txt
+Docs/브랜치_삭제결과_2026-11-02.txt
+  → Docs/Maintenance/브랜치_삭제결과_2026-11-02.txt
+Docs/브랜치_정리후보_2026-11-02.txt
+  → Docs/Maintenance/브랜치_정리후보_2026-11-02.txt
+Docs/사운드_음량_조정.txt
+  → Docs/Audio/사운드_음량_조정.txt
+Docs/사운드_적용_내역.txt
+  → Docs/Audio/사운드_적용_내역.txt
+Docs/사운드_전체_목록.txt
+  → Docs/Audio/사운드_전체_목록.txt
+Docs/사운드_후속_조정.txt
+  → Docs/Audio/사운드_후속_조정.txt
+Docs/연출_조절_안내.txt
+  → Docs/Feedback/연출_조절_안내.txt
+Docs/이펙트_후보_2026-10-26.txt
+  → Docs/Feedback/이펙트_후보_2026-10-26.txt
+Docs/폴더_정리검토_2026-11-02.txt
+  → Docs/Maintenance/폴더_정리검토_2026-11-02.txt
+Docs/AudioOriginals
+  → Docs/Audio/Originals
+Assets/Screenshots/screenshot-20261028-194026.png
+  → Docs/Screenshots/screenshot-20261028-194026.png
+Assets/Screenshots/screenshot-20261030-111836.png
+  → Docs/Screenshots/screenshot-20261030-111836.png
+extract.py
+  → Tools/Archive/extract.py
+extract_strings.py
+  → Tools/Localization/extract_strings.py
+translate_gems.py
+  → Tools/Localization/translate_gems.py
+gem_strings.txt
+  → Tools/Localization/Data/gem_strings.txt
+translated.json
+  → Tools/Localization/Data/translated.json
+translated_gems.json
+  → Tools/Localization/Data/translated_gems.json
+ui_translated.json
+  → Tools/Localization/Data/ui_translated.json
+untranslated.json
+  → Tools/Localization/Data/untranslated.json
+untranslated_gems.json
+  → Tools/Localization/Data/untranslated_gems.json

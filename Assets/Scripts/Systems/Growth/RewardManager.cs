@@ -12,7 +12,7 @@ public class RewardManager : MonoBehaviour
 
     [Header("UI 연결")]
     [SerializeField] private RewardSelectionUI selectionUI;
-    [SerializeField] private HandSlotSelectionUI handSlotUI;
+    [SerializeField] private MainMinionSelectionUI handSlotUI;
 
     private Queue<List<RewardCandidate>> _rewardQueue = new Queue<List<RewardCandidate>>();
 
@@ -198,7 +198,7 @@ public class RewardManager : MonoBehaviour
             case RewardCategory.Equipment:
                 // 장비를 착용한다(한 자루 원칙 → 기존 장비 교체). 후보는 뜰 때 이미 스킬이 굴려진 인스턴스다.
                 var equipInst = (EquipmentInstance)candidate.rawData;
-                PlayerSkillInventoryManager.Instance?.EquipEquipment(equipInst);
+                EquipmentInventoryManager.Instance?.EquipEquipment(equipInst);
                 ProcessNextReward();
                 break;
 
@@ -211,7 +211,7 @@ public class RewardManager : MonoBehaviour
                 break;
 
             // [26/08/03 폐지] EquipmentEnhance — 강화는 전용 상점 NPC(EnhanceShopNPC)가
-            // PlayerSkillInventoryManager.EnhanceEquipped() 를 직접 부른다. 보상 파이프라인을 안 탄다.
+            // EquipmentInventoryManager.EnhanceEquipped() 를 직접 부른다. 보상 파이프라인을 안 탄다.
 
         }
 
@@ -257,8 +257,8 @@ public class RewardManager : MonoBehaviour
                 if (inventory != null && inventory.MainSummon == null && inventory.EquipMinion(minion)) return true;
                 return GroundItem.Drop(minion, dropPosition) != null;
             case RewardCategory.Equipment:
-                if (!(candidate.rawData is EquipmentInstance equipment) || PlayerSkillInventoryManager.Instance == null) return false;
-                PlayerSkillInventoryManager.Instance.EquipEquipment(equipment);
+                if (!(candidate.rawData is EquipmentInstance equipment) || EquipmentInventoryManager.Instance == null) return false;
+                EquipmentInventoryManager.Instance.EquipEquipment(equipment);
                 return true;
             case RewardCategory.Treasure:
                 if (!(candidate.rawData is TreasureSO treasure) || InventoryManager.Instance == null) return false;
@@ -273,7 +273,7 @@ public class RewardManager : MonoBehaviour
 
     /// <summary>
     /// 보상 소환수 비교창. 상자를 열 때 바로 바닥에 떨어뜨리지 않는다 —
-    /// 스킵하면 그때 후보가, 교체하면 기존 소환수가 플레이어 발밑에 떨어진다(HandSlotSelectionUI.ShowPending).
+    /// 스킵하면 그때 후보가, 교체하면 기존 소환수가 플레이어 발밑에 떨어진다(MainMinionSelectionUI.ShowPending).
     /// 창을 못 띄우면(이미 열려 있는 등) 보상이 사라지지 않도록 예전처럼 바닥에 떨어뜨린다.
     /// </summary>
     private void OpenMinionPicker(MinionDataSO minion)

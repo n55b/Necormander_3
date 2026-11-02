@@ -18,8 +18,8 @@ public sealed class ViperHandVisualSetup : EditorWindow
             SourcePath = "Assets/Resources/Sprites/Player/" + source + ".aseprite";
             Ranges = ranges;
         }
-        public string EquipmentPath => "Assets/SOData/Equipment/1015/" + Name + ".asset";
-        public string OutputFolder => "Assets/Animations/Player/" + Name + "HandGenerated";
+        public string EquipmentPath => "Assets/SOData/Equipment/Weapons/" + Name + ".asset";
+        public string OutputFolder => "Assets/Animations/Player/Weapons/" + Name;
         public string OverridePath => OutputFolder + "/ViperHand.overrideController";
         public int FrameCount => Ranges[2][1] + 1;
     }
@@ -380,7 +380,9 @@ public sealed class ViperHandVisualSetup : EditorWindow
             RetargetAttack(bases[i + 3], importedClips[i], sourceCurves[i], sprites, sprites, ranges[i][2]);
 
         // All input validation is complete. Creation is isolated; no existing output is overwritten.
-        AssetDatabase.CreateFolder("Assets/Animations/Player", target.Name + "HandGenerated");
+        if (!AssetDatabase.IsValidFolder("Assets/Animations/Player/Weapons"))
+            AssetDatabase.CreateFolder("Assets/Animations/Player", "Weapons");
+        AssetDatabase.CreateFolder("Assets/Animations/Player/Weapons", target.Name);
         GameObject contents = null;
         try
         {

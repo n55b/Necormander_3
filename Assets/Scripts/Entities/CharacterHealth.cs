@@ -272,9 +272,9 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             && info.attacker != null && GameManager.Instance != null
             && GameManager.Instance.PLAYERCONTROLLER != null
             && info.attacker == GameManager.Instance.PLAYERCONTROLLER.gameObject
-            && PlayerSkillInventoryManager.Instance != null)
+            && EquipmentInventoryManager.Instance != null)
         {
-            PlayerSkillInventoryManager.Instance.TryProcEquipmentStatus(_status);
+            EquipmentInventoryManager.Instance.TryProcEquipmentStatus(_status);
         }
 
         // [사망] 체크

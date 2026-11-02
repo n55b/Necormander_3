@@ -98,7 +98,7 @@ public class EquipmentStatusPassive : EquipmentPassive
 
 /// <summary>
 /// 조건형 버프: 조건이 성립하는 '동안' effects 의 스탯을 부여한다(전투 고양 등).
-/// 매니저(PlayerSkillInventoryManager)가 매 프레임 조건을 굴려 on/off 토글한다 — Apply 는 no-op.
+/// 매니저(EquipmentInventoryManager)가 매 프레임 조건을 굴려 on/off 토글한다 — Apply 는 no-op.
 ///
 /// InCombatNoRecentHit: 전투 중(방에 적 있음) + 마지막 피격 후 EffectiveDelay 초 경과 → ON.
 ///                      피격 시 OFF + 타이머 리셋. (나중에 Always 등 조건을 enum 에 추가하면 항시 버프도 같은 타입으로.)

@@ -1,0 +1,61 @@
+프로젝트 폴더 찾기 — 2026-11-02 정리 기준
+
+경로는 프로젝트 루트 기준이다. 게임 동작과 씬·프리팹 연결은 유지했다.
+
+게임 코드
+  Assets/Scripts — 런타임 코드 전체
+  Assets/Scripts/Combat/Boss — 보스 전투·전조·카운터 보조 코드
+  Assets/Scripts/UI/Common — 공용 상호작용 표시(PopupSystem), 툴팁 등
+  Assets/Scripts/Audio — UI 사운드를 포함한 사운드 코드
+  Assets/Scripts/Managers/Camera — 카메라 관리와 흔들림
+  Assets/Scripts/Systems/Growth/EquipmentInventoryManager.cs — 장비 착용·강화·패시브·저장
+  Assets/Scripts/UI/Reward/MainMinionSelectionUI.cs — 미니언 습득·교체 창
+  Assets/Scripts/UI/Reward/MainMinionSelectionAction.cs — 위 창의 클릭·홀드 버튼 처리
+
+에디터 도구
+  Assets/Editor — 모든 자체 에디터 코드
+  UI / Feedback / Audio / Map / Combat / Animation / Equipment
+  Gameplay / Loading / Camera / Localization / DesignerInspector
+  Unity 상단 메뉴 이름과 사용 방법은 기존과 같다.
+
+게임 자산
+  Assets/Prefabs/Minion/Melee — 전사·기사·용사·무사·장수 프리팹
+  Assets/Animations/Minion/Melee — 위 미니언의 애니메이션 연결
+  Assets/SOData/Equipment/Weapons — 장비 설정(옛 1015 폴더)
+  Assets/Animations/Player/Weapons/Viper, ViperSC, ViperAS — 무기별 생성 클립·컨트롤러
+  Assets/Prefabs/Map/Room Map Prefabs/Tutorial — 튜토리얼 방 7개
+  Assets/Prefabs/Map/Room Map Prefabs/<방 종류>/Variants — 기존 Test 방들
+  Assets/Prefabs/Effect — Feedback / Movement / Combat / Status / Environment
+  Assets/Material — 머티리얼
+  Assets/Shaders — 셰이더·HLSL·Shader Graph·Sub Graph
+  Assets/Physics — 물리 머티리얼
+  Assets/Animations/Environment/ScriptMachine — 환경 연출 그래프
+  Assets/SOData/Localization — 키워드 사전 SO
+  Assets/Data/Dialogue — 대사 CSV와 사용 안내
+  Assets/Resources/Sound/SFX/Traps — 함정 효과음
+  Assets/Resources/Sprites/Minion/Skeleton — 옛 Minion/Old 스프라이트(참조 유지)
+
+Resources
+  자체 Resources는 Assets/Resources 한 곳으로 모았다.
+  GroundItem, GroundMinion, UI/SceneLoader, UI/Boss Counter Pips,
+  CameraSettings, HitBoxColorConfig, StatusEffectPalette의 로딩 이름은 유지된다.
+  TextMesh Pro 등 외부 패키지의 Resources는 별개이며 그대로 둔다.
+  Resources 안의 경로를 바꾸면 문자열 로딩 코드도 확인해야 한다.
+
+문서·외부 도구
+  변경사항.txt — 계속 누적하는 변경 기록(기존 루트 위치 유지)
+  Docs/Guides — 기획자·애니메이션·도구 사용 안내
+  Docs/Feedback — 연출 조절 안내와 Catalog 설명 원본
+  Docs/Audio — 사운드 기록·편집 수치·출처
+  Docs/Audio/Originals — 원본 음원·라이선스 증거
+  Docs/UI — UI 문서
+  Docs/Archive — 지난 조사와 옛 설계 기록
+  Docs/Maintenance — 브랜치·폴더 정리 결과
+  Docs/Screenshots — 게임 자산이 아닌 참고 스크린샷
+  Tools/Localization — 번역 보조 도구와 Data 입력 파일
+  Tools/Archive — 과거 일회성 보조 도구
+  Logs — 맵 진단 등 로컬 생성 로그(Git 제외)
+
+주의: Docs/Feedback/이펙트_후보_2026-10-26.txt는 FeedbackSetup이 직접 읽는다.
+Tools/Localization/Data/ui_translated.json도 UITranslationPopulator의 입력이다.
+문서·JSON처럼 보여도 위 파일들은 도구 경로와 함께 관리해야 한다.

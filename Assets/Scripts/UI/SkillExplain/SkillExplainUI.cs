@@ -180,7 +180,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         var main = InventoryManager.Instance != null ? InventoryManager.Instance.MainSummon : null;
         minionHeader?.SetData(main != null ? main.minionIcon : null,
             main != null ? main.minionName : "미니언 없음", "");
-        var equipment = PlayerSkillInventoryManager.Instance != null ? PlayerSkillInventoryManager.Instance.EquippedEquipment?.baseData : null;
+        var equipment = EquipmentInventoryManager.Instance != null ? EquipmentInventoryManager.Instance.EquippedEquipment?.baseData : null;
         SetSummaryIcon(0, equipment != null ? equipment.icon : null);
         SetSummaryIcon(1, guard != null ? guard.icon : null);
         SetSummaryIcon(2, main != null ? main.minionIcon : null);
@@ -247,8 +247,8 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     /// <summary>맨 하단 슬롯: 착용 중인 장비의 이름/효과/강화등급.</summary>
     private void FillEquipmentSlot(SkillExplainSlotUI slot)
     {
-        var eq = PlayerSkillInventoryManager.Instance != null
-            ? PlayerSkillInventoryManager.Instance.EquippedEquipment : null;
+        var eq = EquipmentInventoryManager.Instance != null
+            ? EquipmentInventoryManager.Instance.EquippedEquipment : null;
 
         if (eq == null || eq.baseData == null)
         {

@@ -1,0 +1,27 @@
+클래스명 정리 — 2026-11-02
+
+완료
+  PlayerSkillInventoryManager → EquipmentInventoryManager
+  HandSlotSelectionUI → MainMinionSelectionUI
+  HandSlotSelectionItem → MainMinionSelectionAction
+
+스크립트 파일명과 클래스명, 호출부·타입 참조·진단 메시지를 26개 C# 파일에서 함께 변경했다.
+스크립트 메타 3개의 GUID는 원본 그대로 유지했고, 이전 클래스명을 식별하는 MovedFrom 속성을 추가했다.
+GameManager 등의 직렬화 필드명, 장비 저장 형식, UI 이벤트 키, 메서드명과 동작은 유지했다.
+기존 UI 프리팹 파일명과 씬 오브젝트 이름은 유지하며 새 MainMinionSelectionUI 컴포넌트가 연결된다.
+예전 클래스명은 이전 이름 대응 속성 및 기존 프리팹 경로에만 남는다.
+
+검증
+  26개 코드 파일에서 이름 변경과 호환 속성·설명 외의 로직 변경 없음 확인.
+  씬·프리팹·설정·애니메이션 등 1,309개 파일의 바이트 내용 불변 확인.
+  Unity 6000.0.59f2 컴파일 및 배치 검증 통과.
+  기존 스크립트 GUID 3개가 새 클래스 3개로 해석되는지 확인.
+  GameManager 프리팹의 장비 관리자 컴포넌트 연결 확인.
+  미니언 UI와 버튼 5개의 owner 연결, 교체·스킵 1초 유지 확인.
+  프리팹 176개에서 Missing Script 0개.
+  검사용 임시 코드는 삭제. 플레이 테스트·커밋은 하지 않음.
+
+현재 파일
+  Assets/Scripts/Systems/Growth/EquipmentInventoryManager.cs
+  Assets/Scripts/UI/Reward/MainMinionSelectionUI.cs
+  Assets/Scripts/UI/Reward/MainMinionSelectionAction.cs

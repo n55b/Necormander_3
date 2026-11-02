@@ -7,7 +7,7 @@ using UnityEngine;
 /// [읽는 곳] BaseHitBox 가 스폰 시 Resources.Load 로 이 에셋을 읽어(static 캐시) 물들입니다.
 /// 그래서 이 에셋은 이름이 'Resources' 인 폴더 아래에 있고 이름이 "HitBoxColorConfig" 여야 합니다.
 /// Unity 는 프로젝트 내 모든 'Resources' 폴더를 하나로 합쳐 보므로, 스프라이트용 Assets/Resources 와 섞을
-/// 필요 없이 중첩 폴더에 두면 됩니다(예: Assets/SOData/UI/Resources/HitBoxColorConfig.asset).
+/// 필요 없이 중첩 폴더에 두면 됩니다(예: Assets/Resources/HitBoxColorConfig.asset).
 /// 못 찾으면 BaseHitBox 는 하드코딩 색(파랑/빨강)으로 폴백합니다.
 ///
 /// 색의 알파 채널이 곧 투명도입니다. 채움 = fillingTransform 밑 스프라이트, 나머지 = 외곽선으로 취급됩니다.

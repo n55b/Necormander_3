@@ -32,7 +32,7 @@ public class EnhanceShopNPC : NPCBase
     // ─── 강화 ─────────────────────────────────────────────────────────
     public override bool Interact(GameObject interactor)
     {
-        var psi = PlayerSkillInventoryManager.Instance;
+        var psi = EquipmentInventoryManager.Instance;
         var inv = GameManager.Instance != null ? GameManager.Instance.inventoryManager : null;
         if (psi == null || inv == null || UpgradeLimitReached || _isOpen) return false;
 
@@ -120,8 +120,8 @@ public class EnhanceShopNPC : NPCBase
     }
 
     private static EquipmentInstance EquippedOrNull()
-        => PlayerSkillInventoryManager.Instance != null
-            ? PlayerSkillInventoryManager.Instance.EquippedEquipment
+        => EquipmentInventoryManager.Instance != null
+            ? EquipmentInventoryManager.Instance.EquippedEquipment
             : null;
 
     // ─── 말풍선 ───────────────────────────────────────────────────────
@@ -164,7 +164,7 @@ public class EnhanceShopNPC : NPCBase
     {
         if (_tooltip == null) return;
 
-        var psi = PlayerSkillInventoryManager.Instance;
+        var psi = EquipmentInventoryManager.Instance;
         var eq = EquippedOrNull();
 
         if (eq == null || eq.baseData == null)
