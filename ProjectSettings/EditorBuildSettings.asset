@@ -23,7 +23,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/OptionScene.unity
     guid: 4a1861f610f31504489fb34cb92f79c3
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/EliteTestScene.unity
     guid: 3f7c25a9e08b41d4a95c6be174f2038d
   m_configObjects:

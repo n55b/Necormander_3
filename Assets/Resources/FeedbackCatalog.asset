@@ -2155,7 +2155,7 @@ MonoBehaviour:
     pitchVariation: 0.05
     audio:
       clips:
-      - {fileID: 8300000, guid: 0875e6e80cb9eaf4e865ee5c38e7e84e, type: 3}
+      - {fileID: 8300000, guid: a16a5c1c1602e1048a866ec0409e2b5a, type: 3}
       volume: 0.2
       pitchMin: 0.97
       pitchMax: 1.03

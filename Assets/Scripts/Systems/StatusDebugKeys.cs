@@ -19,6 +19,9 @@ public class StatusDebugKeys : MonoBehaviour
     [Tooltip("끄면 디버그 키가 동작하지 않습니다. 빌드에 실수로 남아도 이 체크만 풀면 됩니다.")]
     [SerializeField] private bool enableDebugKeys = true;
 
+    // 릴리스 빌드(Development Build 체크 해제)에서는 아래 코드 전체가 컴파일되지 않는다.
+    // 에디터와 Development Build에서는 enableDebugKeys 설정대로 동작한다.
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     private static readonly (KeyCode key, StatusType type, string label)[] Bindings =
     {
         (KeyCode.Alpha1, StatusType.Stun,     "기절"),
@@ -57,4 +60,5 @@ public class StatusDebugKeys : MonoBehaviour
         string note = blocked > 0 ? $" (슈퍼아머로 {blocked}마리 씹힘)" : "";
         Debug.Log($"<color=magenta>[상태이상 디버그]</color> {label} -> 적 {hit}마리{note}");
     }
+#endif
 }

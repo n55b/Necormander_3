@@ -9,6 +9,9 @@ public class DPSMeter : MonoBehaviour
     [Tooltip("플레이어 스탯과 DPS 미터를 함께 표시합니다. F5: 함께 토글 / F4: DPS 기록만 초기화")]
     [SerializeField] private bool _showUI = false;
 
+    // 릴리스 빌드(Development Build 체크 해제)에서는 아래 코드 전체가 컴파일되지 않는다.
+    // F4/F5 입력, 패널 표시, 피해 기록이 모두 빠지고 에디터와 Development Build에서만 동작한다.
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     private float _totalDamage = 0f;
     private Dictionary<string, float> _damageBySource = new Dictionary<string, float>();
     private Dictionary<string, Dictionary<string, float>> _damageBySkill = new Dictionary<string, Dictionary<string, float>>();
@@ -237,4 +240,5 @@ public class DPSMeter : MonoBehaviour
         text.AppendLine($"기본 이동 속도: {stat.BaseMoveSpeed:F2}");
         return text.ToString();
     }
+#endif
 }

@@ -35,8 +35,8 @@ public class OptionManager : MonoBehaviour
         }
 
         // 초기 볼륨 설정 (SoundManager가 있으면 거기서, 없으면 PlayerPrefs에서 직접)
-        float currentBgmVolume = (SoundManager.Instance != null) ? SoundManager.Instance.globalBgmVolume : PlayerPrefs.GetFloat("BGM_Volume", 1f);
-        float currentSfxVolume = (SoundManager.Instance != null) ? SoundManager.Instance.globalSfxVolume : PlayerPrefs.GetFloat("SFX_Volume", 1f);
+        float currentBgmVolume = (SoundManager.Instance != null) ? SoundManager.Instance.globalBgmVolume : PlayerPrefs.GetFloat("BGM_Volume", SoundManager.DefaultVolume);
+        float currentSfxVolume = (SoundManager.Instance != null) ? SoundManager.Instance.globalSfxVolume : PlayerPrefs.GetFloat("SFX_Volume", SoundManager.DefaultVolume);
 
         if (bgmSlider != null)
         {

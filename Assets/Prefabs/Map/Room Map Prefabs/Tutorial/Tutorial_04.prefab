@@ -12919,7 +12919,7 @@ MonoBehaviour:
   isCleared: 0
   hasBeenVisited: 0
   doorObjects:
-  - {fileID: 8637198600651598581, guid: 307b97e39cd375d47a324403a27bb3a6, type: 3}
+  - {fileID: 0}
   roomBGM: {fileID: 8300000, guid: 76c50e154a0bfa648927b49416b5181a, type: 3}
   miniMapIconsParent: {fileID: 6914688855089812644}
 --- !u!114 &8985164081271137351
@@ -12934,7 +12934,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e52a622eabe45745a6e5c10a52c7720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnStartDelay: 0.5
+  spawnTelegraphDuration: 1
+  spawnTelegraphScale: 2.5
+  spawnGroupPerFrame: 4
+  superArmorEnemyCount: 2
+  spawnSuperArmorAmount: 100
   mapGenerationData: {fileID: 0}
+  combineAllWaves: 0
   spawnVfxPrefab: {fileID: 4280725952711924581, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   spawnMargin: 3
   spawnCellStride: 2

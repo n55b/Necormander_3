@@ -252,11 +252,13 @@ public class DialogueUI : Singleton<DialogueUI>
         if (!IsPlaying)
         {
             // 디버그 키. 대화를 걸어둔 NPC 나 트리거가 아직 없어도 여기서 바로 확인할 수 있다.
+            #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (debugKey != Key.None)
             {
                 var debugKb = Keyboard.current;
                 if (debugKb != null && debugKb[debugKey].wasPressedThisFrame) Play(debugDialogueId);
             }
+#endif
             return;
         }
 

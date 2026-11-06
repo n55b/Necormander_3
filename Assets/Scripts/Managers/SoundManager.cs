@@ -36,8 +36,11 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private AudioClip PurchaseClip;
 
     [Header("전체 볼륨")]
-    public float globalBgmVolume = 1f;
-    public float globalSfxVolume = 1f;
+    /// <summary>옵션을 한 번도 저장하지 않은 플레이어에게 적용되는 기본 음량(0~1).</summary>
+    public const float DefaultVolume = 0.5f;
+
+    public float globalBgmVolume = DefaultVolume;
+    public float globalSfxVolume = DefaultVolume;
 
     // ─────────────────────────────────────────────────────────────────
     private void Awake()
@@ -124,8 +127,8 @@ public class SoundManager : MonoBehaviour
     // ─── 볼륨 ────────────────────────────────────────────────────────
     private void LoadSettings()
     {
-        globalBgmVolume = PlayerPrefs.GetFloat("BGM_Volume", 1f);
-        globalSfxVolume = PlayerPrefs.GetFloat("SFX_Volume", 1f);
+        globalBgmVolume = PlayerPrefs.GetFloat("BGM_Volume", DefaultVolume);
+        globalSfxVolume = PlayerPrefs.GetFloat("SFX_Volume", DefaultVolume);
         if (sourceA != null) sourceA.volume = globalBgmVolume;
         if (sourceB != null) sourceB.volume = globalBgmVolume;
     }
