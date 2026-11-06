@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 /// <summary>
 /// PlayerState UI - 플레이어 체력, 골드, 부활 타이머 표시.
-/// Space 미니언 쿨타임과 우클릭 가드 게이지 표시.
+/// 소환수 스킬 칸 2개(활성 표시·각 쿨타임)와 스왑 쿨타임 표시.
 /// </summary>
 public class PlayerStateUI : MonoBehaviour
 {
@@ -57,19 +57,30 @@ public class PlayerStateUI : MonoBehaviour
     [SerializeField, Tooltip("가로는 구슬 도착 후 시간, 세로는 체력바 회복 진행률(0~1)입니다.")]
     private AnimationCurve healFillCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-    [Header("가드 게이지 (HUD 프리팹에 배치)")]
-    [SerializeField] private Image guardGaugeFill;
-    [SerializeField] private TextMeshProUGUI guardGaugeText;
-    [SerializeField] private Color guardReadyColor = new Color(0.2f, 0.6f, 1f, 1f);
-    [SerializeField] private Color guardBrokenColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+    [Header("스왑 쿨타임 바 (HUD 프리팹에 배치)")]
+    [UnityEngine.Serialization.FormerlySerializedAs("guardGaugeFill")]
+    [SerializeField] private Image swapCooldownFill;
+    [UnityEngine.Serialization.FormerlySerializedAs("guardGaugeText")]
+    [SerializeField] private TextMeshProUGUI swapCooldownText;
+    [UnityEngine.Serialization.FormerlySerializedAs("guardReadyColor")]
+    [SerializeField] private Color swapReadyColor = new Color(0.2f, 0.6f, 1f, 1f);
+    [UnityEngine.Serialization.FormerlySerializedAs("guardBrokenColor")]
+    [SerializeField] private Color swapUnavailableColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+
+    [Header("소환수 스킬 칸 활성 표시 (임시값)")]
+    [SerializeField, Min(0.1f), Tooltip("활성 소환수 칸의 크기 배율.")] private float activeSlotScale = 1.15f;
+    [SerializeField, Min(0.1f), Tooltip("대기 소환수 칸의 크기 배율.")] private float standbySlotScale = 0.9f;
+    [SerializeField, Range(0f, 1f), Tooltip("대기 소환수 아이콘의 불투명도.")] private float standbyIconAlpha = 0.6f;
+    [SerializeField, Tooltip("활성 소환수 아이콘의 외곽선 색.")] private Color activeOutlineColor = new Color(1f, 0.85f, 0.25f, 1f);
 
     [Header("골드 설정")]
     [SerializeField] private TextMeshProUGUI goldText;
 
-    [Header("대쉬 / Space 미니언 스킬")]
+    [Header("대쉬 / 소환수 스킬 칸 (슬롯 1 · 슬롯 2)")]
     [SerializeField] private DashCooldownUI dashCooldownUI;
+    [UnityEngine.Serialization.FormerlySerializedAs("guardSlot")]
     [UnityEngine.Serialization.FormerlySerializedAs("skillSlotQ")]
-    [SerializeField] private SkillSlotUI guardSlot;
+    [SerializeField] private SkillSlotUI secondSummonSlot;
     [UnityEngine.Serialization.FormerlySerializedAs("skillSlotR")]
     [SerializeField] private SkillSlotUI minionSkillSlot;
 
@@ -79,7 +90,6 @@ public class PlayerStateUI : MonoBehaviour
     private CharacterHealth       _playerHealth;
     private CharacterStatus       _playerStatus;   // 보호막 잔량 소스
     private PlayerSkillController _skillCtrl;
-    private PlayerParryController _guardCtrl;
     private List<Image>           _hpFillImages  = new List<Image>();
     private SkillSlotUI[]         _skillSlots;
     private int _lastGold = int.MinValue; // dirty 비교용
@@ -110,7 +120,7 @@ public class PlayerStateUI : MonoBehaviour
         }
         _healing.Clear();
         _playerHealth = playerHealth;
-        _skillSlots   = new SkillSlotUI[] { guardSlot, minionSkillSlot };
+        _skillSlots   = new SkillSlotUI[] { minionSkillSlot, secondSummonSlot };
 
         // 보호막은 CharacterHealth 가 아니라 같은 오브젝트의 CharacterStatus 가 들고 있다.
         _playerStatus = _playerHealth != null ? _playerHealth.GetComponent<CharacterStatus>() : null;
@@ -173,7 +183,7 @@ public class PlayerStateUI : MonoBehaviour
         RefreshGold();
         AdvanceHealing(Time.unscaledDeltaTime);
         RefreshBars();   // 보호막은 피해/회복 이벤트 없이도 변한다 → 폴링
-        RefreshGuardGauge();
+        RefreshSwapCooldown();
         UpdateSkillCooldowns();
     }
 
@@ -334,94 +344,109 @@ public class PlayerStateUI : MonoBehaviour
 
 
     // ─────────────────────────────────────────────────────────────────────
-    // Space 미니언 아이콘 + 쿨타임
+    // 소환수 스킬 칸 + 쿨타임 + 스왑
     // ─────────────────────────────────────────────────────────────────────
     #region Skill Cooldowns
 
     /// <summary>
-    /// 스킬 아이콘을 갱신합니다.
-    /// 아이콘 우선순위: playerSkill.icon → minionIcon
-    /// InventoryManager.OnMinionUpdated에 등록되어 인벤토리 변경 시 자동 호출됩니다.
+    /// 소환수 스킬 칸을 갱신합니다. 인덱스 0/1 이 소환수 슬롯 0/1 입니다.
+    /// InventoryManager.OnMinionUpdated에 등록되어 장착/스왑 시 자동 호출됩니다.
     /// </summary>
     public void RefreshSkillIcons()
     {
         if (_skillCtrl == null && GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null)
             _skillCtrl = GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>();
-        if (minionSkillSlot != null) RefreshMinionSlot(minionSkillSlot);
-        if (_playerHealth != null) _guardCtrl = _playerHealth.GetComponentInParent<PlayerParryController>();
-        var rc = InventoryManager.Instance != null ? InventoryManager.Instance.EquippedRightClick : null;
-        if (guardSlot != null && guardSlot.SkillIcon != null && rc != null)
-        {
-            guardSlot.SkillIcon.sprite = rc.ResolveIcon();
-            guardSlot.SkillIcon.color = Color.white;
-            var tip = guardSlot.SkillIcon.GetComponent<SkillTooltipTrigger>();
-            if (tip == null) tip = guardSlot.SkillIcon.gameObject.AddComponent<SkillTooltipTrigger>();
-            tip.SetData(rc.ResolveTitle(), rc.ResolveDescription());
-        }
+        if (_skillSlots == null) return;
+        for (int i = 0; i < _skillSlots.Length; i++)
+            if (_skillSlots[i] != null) RefreshSummonSlot(_skillSlots[i], i);
     }
 
     private void UpdateSkillCooldowns()
     {
-        if (_skillCtrl != null && minionSkillSlot != null) UpdateMinionCooldown(minionSkillSlot);
+        if (_skillCtrl == null || _skillSlots == null) return;
+        for (int i = 0; i < _skillSlots.Length; i++)
+            if (_skillSlots[i] != null) UpdateSummonCooldown(_skillSlots[i], i);
     }
 
-    private void RefreshGuardGauge()
+    private void RefreshSwapCooldown()
     {
-        if (_guardCtrl == null) return;
-        Color color = _guardCtrl.GuardBroken ? guardBrokenColor : guardReadyColor;
-        if (guardGaugeFill != null)
+        var inventory = InventoryManager.Instance;
+        if (_skillCtrl == null || inventory == null) return;
+        bool canSwap = inventory.EquippedSummonCount >= InventoryManager.SLOT_COUNT;
+        float remaining = _skillCtrl.SwapCooldownRemaining;
+        float duration = _skillCtrl.SwapCooldownDuration;
+        float ready = !canSwap ? 0f : (duration > 0f ? 1f - Mathf.Clamp01(remaining / duration) : 1f);
+        if (swapCooldownFill != null)
         {
-            SetFill(guardGaugeFill, _guardCtrl.GuardFraction);
-            guardGaugeFill.color = color;
+            SetFill(swapCooldownFill, ready);
+            swapCooldownFill.color = canSwap && remaining <= 0f ? swapReadyColor : swapUnavailableColor;
         }
-        if (guardGaugeText != null)
-            guardGaugeText.SetText("{0} / {1}", Mathf.Ceil(_guardCtrl.GuardAmount), _guardCtrl.GuardCapacity);
-        if (guardSlot?.SkillIcon != null) guardSlot.SkillIcon.color = _guardCtrl.GuardBroken ? guardBrokenColor : Color.white;
+        if (swapCooldownText == null) return;
+        if (!canSwap) swapCooldownText.SetText("스왑 불가");
+        else if (remaining > 0f) swapCooldownText.SetText("스왑 {0:1}", remaining);
+        else swapCooldownText.SetText("스왑 가능 [Space]");
     }
 
-    private MainMinionDataSO EquippedMainSummon =>
-        InventoryManager.Instance != null ? InventoryManager.Instance.MainSummon : null;
-
-    private void RefreshMinionSlot(SkillSlotUI slot)
+    private void RefreshSummonSlot(SkillSlotUI slot, int index)
     {
-        MainMinionDataSO main = EquippedMainSummon;
-        bool has = main != null;
+        var inventory = InventoryManager.Instance;
+        MainMinionDataSO summon = inventory != null ? inventory.GetSummonAt(index) : null;
+        bool has = summon != null;
+        bool active = has && inventory.ActiveSummonSlot == index;
+
+        if (slot.SlotRoot != null)
+        {
+            if (!slot.SlotRoot.activeSelf) slot.SlotRoot.SetActive(true);
+            slot.SlotRoot.transform.localScale = Vector3.one * (active ? activeSlotScale : standbySlotScale);
+            // 칸 아래 조작 안내. 프리팹의 기존 글자를 그대로 쓴다.
+            var keyLabel = slot.SlotRoot.transform.Find("Text (TMP)")?.GetComponent<TMP_Text>();
+            if (keyLabel != null) keyLabel.text = active ? "우클릭" : has ? "대기" : "";
+        }
 
         if (slot.SkillIcon != null)
         {
             slot.SkillIcon.enabled = has;
+            var outline = slot.SkillIcon.GetComponent<Outline>();
+            if (outline == null) outline = slot.SkillIcon.gameObject.AddComponent<Outline>();
+            outline.effectColor = activeOutlineColor;
+            outline.effectDistance = new Vector2(1.5f, -1.5f);
+            outline.enabled = active;
+
+            var tooltip = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
             if (has)
             {
-                slot.SkillIcon.sprite = main.minionIcon != null ? main.minionIcon : main.ResolveIcon();
-                slot.SkillIcon.color  = Color.white;
+                slot.SkillIcon.sprite = summon.minionIcon != null ? summon.minionIcon : summon.ResolveIcon();
+                slot.SkillIcon.color  = new Color(1f, 1f, 1f, active ? 1f : standbyIconAlpha);
                 slot.SkillIcon.type   = Image.Type.Simple;
 
-                var tooltip = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
                 if (tooltip == null) tooltip = slot.SkillIcon.gameObject.AddComponent<SkillTooltipTrigger>();
-                string desc = main.ResolveDescription();
-                if (!string.IsNullOrEmpty(desc)) tooltip.SetData(main.ResolveTitle(), desc);
+                string desc = summon.ResolveDescription();
+                if (!string.IsNullOrEmpty(desc)) tooltip.SetData(summon.ResolveTitle(), desc);
                 else tooltip.Clear();
             }
             else
             {
                 slot.SkillIcon.sprite = null;
-                var tooltipEmpty = slot.SkillIcon.GetComponent<SkillTooltipTrigger>();
-                if (tooltipEmpty != null) tooltipEmpty.Clear();
+                if (tooltip != null) tooltip.Clear();
                 slot.SkillIcon.color = new Color(1f, 1f, 1f, unavailableSkillAlpha);
             }
         }
 
-        if (slot.CooldownFill != null) { slot.CooldownFill.fillAmount = 0f; slot.CooldownFill.gameObject.SetActive(false); }
-        if (slot.CooldownText != null) slot.CooldownText.text = "";
+        // 쿨타임 표시는 UpdateSummonCooldown 이 매 프레임 다시 그린다(스왑해도 이어진다).
+        if (!has)
+        {
+            if (slot.CooldownFill != null) { slot.CooldownFill.fillAmount = 0f; slot.CooldownFill.gameObject.SetActive(false); }
+            if (slot.CooldownText != null) slot.CooldownText.text = "";
+        }
     }
 
-    private void UpdateMinionCooldown(SkillSlotUI slot)
+    private void UpdateSummonCooldown(SkillSlotUI slot, int index)
     {
-        var main = EquippedMainSummon;
-        if (main == null || main.minionSkill == null) return;
+        var summon = InventoryManager.Instance != null ? InventoryManager.Instance.GetSummonAt(index) : null;
+        if (summon == null || summon.minionSkill == null) return;
 
-        float maxCd     = main.minionSkill.cooldownTime;
-        float remaining = _skillCtrl.GetMainSummonCooldownRemaining();
+        float maxCd     = _skillCtrl.GetSummonCooldownDuration(index);
+        float remaining = _skillCtrl.GetSummonCooldownRemaining(index);
         bool  onCd      = remaining > 0.05f;
         float fill      = (maxCd > 0f && onCd) ? Mathf.Clamp01(remaining / maxCd) : 0f;
 

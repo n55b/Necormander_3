@@ -20,7 +20,8 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     [Header("왼쪽 패널: 장비")]
     [UnityEngine.Serialization.FormerlySerializedAs("playerSkillSlots")]
     [SerializeField] private SkillExplainSlotUI[] equipmentSlots = new SkillExplainSlotUI[1];
-    [SerializeField] private SkillExplainSlotUI guardSlot;
+    [UnityEngine.Serialization.FormerlySerializedAs("guardSlot")]
+    [SerializeField] private SkillExplainSlotUI standbySummonSlot;
     [SerializeField] private SkillExplainSlotUI minionHeader;
     [Header("스탯 행 · 배치는 프리팹의 Rows에서 조절")]
     [SerializeField, Tooltip("각 행의 수치 연결입니다. 행의 이름·설명·높이·간격은 프리팹에서 편집합니다.")]
@@ -174,19 +175,21 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         RefreshEquipmentSlots();
         RefreshPlayerStats();
         RefreshLinkedSkillSlots(skillController);
-        var guard = InventoryManager.Instance != null ? InventoryManager.Instance.EquippedRightClick : null;
-        guardSlot?.SetData(guard != null ? guard.icon : null, guard != null ? guard.ResolveTitle() : "가드",
-            guard != null ? guard.ResolveDescription() : "장착된 가드가 없습니다.");
-        var main = InventoryManager.Instance != null ? InventoryManager.Instance.MainSummon : null;
+        // 옛 가드 칸은 대기 중인 소환수 칸으로 쓴다.
+        var inventory = InventoryManager.Instance;
+        var main = inventory != null ? inventory.MainSummon : null;
+        var standby = inventory != null ? inventory.GetSummonAt(1 - inventory.ActiveSummonSlot) : null;
+        standbySummonSlot?.SetData(standby != null ? standby.minionIcon : null, standby != null ? standby.minionName : "대기 소환수 없음",
+            standby != null ? MainMinionSelectionUI.Describe(standby) : "Space 로 교대할 소환수가 없습니다.");
         minionHeader?.SetData(main != null ? main.minionIcon : null,
             main != null ? main.minionName : "미니언 없음", "");
         var equipment = EquipmentInventoryManager.Instance != null ? EquipmentInventoryManager.Instance.EquippedEquipment?.baseData : null;
         SetSummaryIcon(0, equipment != null ? equipment.icon : null);
-        SetSummaryIcon(1, guard != null ? guard.icon : null);
+        SetSummaryIcon(1, standby != null ? standby.minionIcon : null);
         SetSummaryIcon(2, main != null ? main.minionIcon : null);
         SetSummaryIcon(3, main != null && main.minionSkill != null ? main.minionSkill.icon : null);
-        SetSummaryIcon(4, main != null ? main.dashModifier.uiIcon : null);
-        if (summaryText != null) summaryText.text = $"플레이어 정보  [C]     소환수 {(main != null ? 1 : 0)}";
+        SetSummaryIcon(4, null);
+        if (summaryText != null) summaryText.text = $"플레이어 정보  [C]     소환수 {(inventory != null ? inventory.EquippedSummonCount : 0)}";
     }
 
     private void SetSummaryIcon(int index, Sprite sprite)
@@ -209,21 +212,20 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         if (statRows == null) return;
         var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
         var stat = player != null ? player.Stat : null;
-        var guard = player != null ? player.GetComponent<PlayerParryController>() : null;
         var dodge = player != null ? player.GetComponent<MeleeDodgeController>() : null;
         foreach (var row in statRows)
         {
             if (row == null || row.value == null) continue;
-            row.value.text = stat == null ? "—" : FormatStat(row.kind, stat, guard, dodge);
+            if (row.kind == StatKind.Guard) { row.value.transform.parent.gameObject.SetActive(false); continue; } // 가드 제거. 직렬화 호환으로 항목만 남긴다.
+            row.value.text = stat == null ? "—" : FormatStat(row.kind, stat, dodge);
         }
     }
 
-    private static string FormatStat(StatKind kind, CharacterStat stat, PlayerParryController guard, MeleeDodgeController dodge)
+    private static string FormatStat(StatKind kind, CharacterStat stat, MeleeDodgeController dodge)
     {
         switch (kind)
         {
             case StatKind.Health: return $"{stat.CURHP:0}/{stat.MAXHP:0}";
-            case StatKind.Guard: return $"{(guard != null ? guard.GuardAmount : 0):0}/{(guard != null ? guard.GuardCapacity : 0):0}";
             case StatKind.DashCharges: return $"{(dodge != null ? dodge.CurrentCharges : 0)}/{(dodge != null ? dodge.MaxCharges : 0)}";
             case StatKind.Attack: return $"{stat.ATK:0.##}";
             case StatKind.Magic: return $"{stat.MAGIC:0.##}";
@@ -271,7 +273,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     private void RefreshLinkedSkillSlots(PlayerSkillController skillController)
     {
         // 오른쪽 패널 = 장착 중인 메인 소환수의 3가지 공격 설명.
-        //   [0] 기본 공격(finisher)  [1] 대쉬 공격(dashModifier)  [2] Space 스킬(minionSkill)
+        //   [0] 자동 공격(finisher)  [1] 스왑 대쉬 공격(dashModifier)  [2] 우클릭 스킬(minionSkill)
         MainMinionDataSO main = skillController != null ? skillController.MainSummon : null;
 
         if (main == null)
@@ -280,8 +282,8 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
             return;
         }
 
-        FillLinkedSlot(0, main.finisher.uiIcon,     Fallback(main.finisher.uiTitle, "기본 공격"),     main.finisher.Describe());
-        FillLinkedSlot(1, main.dashModifier.uiIcon, Fallback(main.dashModifier.uiTitle, "대시 공격"), main.dashModifier.Describe());
+        FillLinkedSlot(0, main.finisher.uiIcon,     Fallback(main.finisher.uiTitle, "자동 공격"),     main.finisher.Describe());
+        FillLinkedSlot(1, main.dashModifier.uiIcon, Fallback(main.dashModifier.uiTitle, "대쉬 공격"), main.dashModifier.Describe());
 
         var sk = main.minionSkill;
         FillLinkedSlot(2, sk != null ? sk.icon : null,

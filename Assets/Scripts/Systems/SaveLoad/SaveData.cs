@@ -36,6 +36,10 @@ public class SaveData
 
     // [메인 소환수 강화] 보상방에서 올린 단계(0 ~ MAX_LEVEL). 로드 때 현재 최대치로 잘린다. 필드가 없던 세이브는 0 으로 읽혀 호환된다.
     public int mainSummonEnhanceLevel;
+
+    // [소환수 2슬롯] 2번째 칸의 강화 단계와 활성 슬롯. 필드가 없던 세이브는 0 으로 읽혀 호환된다.
+    public int secondSummonEnhanceLevel;
+    public int activeSummonSlot;
 }
 
 [System.Serializable]

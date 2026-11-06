@@ -14,7 +14,6 @@ public class PlayerCombatSoundController : MonoBehaviour
     // ─── 캐시 ────────────────────────────────────────────────────────
     private MeleeCombatController _melee;
     
-    private PlayerParryController _parry;
 private MeleeDodgeController  _dodge;
 
     private CharacterHealth       _health;
@@ -26,7 +25,6 @@ private void Awake()
     {
         _melee       = GetComponent<MeleeCombatController>();
         
-        _parry       = GetComponent<PlayerParryController>();
 _dodge       = GetComponent<MeleeDodgeController>();
         _health      = GetComponentInChildren<CharacterHealth>();
         _playerLayer = Layers.Player;
@@ -40,11 +38,6 @@ public void Initialize()
 
         if (_melee  != null) _melee.OnAttackExecuted += OnMeleeAttack;
         if (_dodge  != null) _dodge.OnDodgeStarted  += OnDodge;
-        if (_parry  != null)
-        {
-            _parry.OnParryStart   += OnParryStart;
-            _parry.OnParrySuccess += OnParrySuccess;
-        }
         if (_health != null) _health.OnDamageTaken  += OnPlayerHurt;
         DamageEventBus.OnDamageReceived += OnDamageReceived;
 
@@ -56,11 +49,6 @@ private void OnDestroy()
     {
         if (_melee  != null) _melee.OnAttackExecuted -= OnMeleeAttack;
         if (_dodge  != null) _dodge.OnDodgeStarted  -= OnDodge;
-        if (_parry  != null)
-        {
-            _parry.OnParryStart   -= OnParryStart;
-            _parry.OnParrySuccess -= OnParrySuccess;
-        }
         if (_health != null) _health.OnDamageTaken  -= OnPlayerHurt;
         DamageEventBus.OnDamageReceived -= OnDamageReceived;
     }
@@ -79,24 +67,7 @@ private void OnDodge()
         SoundManager.Instance.PlaySFX(soundData.GetDodgeClip(), soundData.dodgeVolume);
     }
 
-    // ─── 가드 사운드 (시작 / 방어 성공) ──────────────────
-    private void OnParryStart()
-    {
-        if (PolishFeedback.Catalog?.Find(FeedbackCue.GuardRaise)?.audio?.HasClip == true)
-        {
-            PolishFeedback.PlaySound(FeedbackCue.GuardRaise, transform.position);
-            return;
-        }
-        if (soundData == null || SoundManager.Instance == null) return;
-        SoundManager.Instance.PlaySFX(soundData.GetParryStartClip(), soundData.parryStartVolume);
-    }
 
-    private void OnParrySuccess()
-    {
-        if (_parry != null && _parry.LastBlockWasPerfect) return; // 전용 퍼펙트 가드 소리와 겹치지 않는다.
-        if (soundData == null || SoundManager.Instance == null) return;
-        SoundManager.Instance.PlaySFX(soundData.GetParrySuccessClip(), soundData.parrySuccessVolume);
-    }
 
     
 private void OnMeleeAttack(int comboStep)

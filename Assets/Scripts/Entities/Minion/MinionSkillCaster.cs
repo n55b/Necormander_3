@@ -34,6 +34,7 @@ public class MinionSkillCaster : MonoBehaviour
         FeedbackAnchor = visual.transform;
         _visualTransition = visual.GetComponent<VisualSquashStretch>();
         _visualSounds = visual.GetComponentInChildren<EntitySoundSet>();
+        if (_quiet) return;
         if (PolishFeedback.Enabled(FeedbackCue.MinionAppear)) _visualTransition?.Materialize();
         PolishFeedback.Play(FeedbackCue.MinionAppear, visual.transform.position, Vector2.up,
             PolishFeedback.MinionTier(Data as MainMinionDataSO))?.FollowOrigin(visual.transform);
@@ -48,7 +49,9 @@ public class MinionSkillCaster : MonoBehaviour
             _visualSounds.Play(SoundTrigger.OnSkillDamageDealt);
     }
 
-    public static MinionSkillCaster Spawn(MinionDataSO data, Vector3 position)
+    private bool _quiet;
+
+    public static MinionSkillCaster Spawn(MinionDataSO data, Vector3 position, bool quiet = false)
     {
         var go = new GameObject($"MinionCaster_{(data != null ? data.minionName : "?")}");
         go.transform.position = position;
@@ -59,6 +62,7 @@ public class MinionSkillCaster : MonoBehaviour
 
         var caster = go.AddComponent<MinionSkillCaster>();
         caster.Data = data;
+        caster._quiet = quiet;
         caster.SetLifetime(DEFAULT_LIFETIME);
         return caster;
     }
@@ -73,15 +77,10 @@ public class MinionSkillCaster : MonoBehaviour
         _despawn = StartCoroutine(DespawnRoutine(seconds));
     }
 
+    // 사라지는 연출은 없다. 시전이 끝나면 필드 소환수(SummonFieldAgent)가 같은 자리에서 바로 이어받는다.
     private System.Collections.IEnumerator DespawnRoutine(float seconds)
     {
-        float fadeTime = Mathf.Min(DESPAWN_TAIL, Mathf.Max(0f, seconds),
-            _visualTransition != null && PolishFeedback.Enabled(FeedbackCue.MinionReturn) ? _visualTransition.VanishDuration : 0f);
-        yield return new WaitForSeconds(Mathf.Max(0f, seconds - fadeTime));
-        if (fadeTime > 0f) _visualTransition?.DematerializeWithin(fadeTime);
-        if (PolishFeedback.Player != null)
-            PolishFeedback.Play(FeedbackCue.MinionReturn, FeedbackAnchor!=null?FeedbackAnchor.position:transform.position, Vector2.up, PolishFeedback.MinionTier(Data as MainMinionDataSO), PolishFeedback.Player.transform);
-        if (fadeTime > 0f) yield return new WaitForSeconds(fadeTime);
+        yield return new WaitForSeconds(Mathf.Max(0f, seconds));
         if (this != null) Destroy(gameObject);
     }
 

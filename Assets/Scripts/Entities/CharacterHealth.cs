@@ -120,14 +120,6 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
         OnDamageReceived?.Invoke(info); // [추가] AI 측에서 피격 상세 정보를 파악하기 위함
 
-        // [우클릭 카운터/가드] 무적 검사보다 '먼저' 본다. DamageEventBus 로 하지 않는 이유가 이것이다 —
-        // 버스 발화는 아래 무적 조기 리턴보다 한참 뒤라, 피격 무적 1초 동안 들어온 공격을 아예 못 본다.
-        // 그러면 한 대 맞을 때마다 1초씩 카운터가 죽는다.
-        // 카운터가 받아내면 true → 이 피격은 통째로 없던 일(경직·넉백·슬로우·상태이상까지 스킵).
-        // 근접/범위 타격은 시전자의 위치로 판정한다. 투사체는 Projectile 이동 중 원호 교차에서
-        // 처리하므로 여기서는 재방어하지 않는다. 장판/돌진은 bypassGuard로 제외한다.
-        if (!isDead && PlayerParryController.Intercept(this, ref info)) return true;
-
         if (isDead || invincible) return false;
 
         // [추가] 회피 / 명중 판정 (평타인 경우에만 적용)
@@ -292,13 +284,6 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 
         UpdateHPBar?.Invoke(); // HPBar 업데이트
         return true;
-    }
-
-    /// <summary>가드도 실제 피격과 같은 증폭/치명타/방어력 식을 사용한다. 보호막/체력/피격 반응은 소모하지 않는다.</summary>
-    public float CalculateGuardDamage(DamageInfo info)
-    {
-        if (info.category == DamageCategory.None) info.category = ResolveCategoryFromAttacker(info.attacker);
-        return ApplyDefense(CalculateIncomingDamage(ref info, out _, out _), info);
     }
 
     private float ApplyDefense(float amount, DamageInfo info)

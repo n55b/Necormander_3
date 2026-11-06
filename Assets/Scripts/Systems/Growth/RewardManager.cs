@@ -254,7 +254,7 @@ public class RewardManager : MonoBehaviour
                 var minion = candidate.rawData as MainMinionDataSO;
                 if (minion == null) return false;
                 var inventory = InventoryManager.Instance;
-                if (inventory != null && inventory.MainSummon == null && inventory.EquipMinion(minion)) return true;
+                if (inventory != null && inventory.EquipMinion(minion)) return true; // 빈 칸이 있고 같은 계열이 없을 때만 장착된다
                 return GroundItem.Drop(minion, dropPosition) != null;
             case RewardCategory.Equipment:
                 if (!(candidate.rawData is EquipmentInstance equipment) || EquipmentInventoryManager.Instance == null) return false;

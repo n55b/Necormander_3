@@ -84,31 +84,6 @@ public class VillageDebugLoadout : MonoBehaviour
             }
         }
 
-        // [우클릭] 한 번에 하나만 든다. 마을에서만 바꿀 수 있고, 고른 값은 런을 넘어 유지된다.
-        // 잠긴 항목도 목록에는 띄운다 — 뭘 딸 수 있는지 보이는 편이 동기가 된다.
-        // (해금 조건이 정해지기 전까지 RightClickUnlockState.UnlockAllForNow 때문에 전부 해금 상태다.)
-        if (includeRightClicks && registry.rightClicks != null)
-        {
-            var equipped = (GameManager.Instance != null && GameManager.Instance.inventoryManager != null)
-                ? GameManager.Instance.inventoryManager.EquippedRightClick
-                : null;
-
-            foreach (var rightClick in registry.rightClicks)
-            {
-                if (rightClick == null || !rightClick.IsValid) continue;
-                var rc = rightClick; // 클로저 캡처 고정
-
-                bool unlocked = RightClickUnlockState.IsUnlocked(rc);
-                string mark = rc == equipped ? "● " : "";
-                string suffix = unlocked ? "" : "  (잠김)";
-
-                AddButton($"[우클릭] {mark}{rc.ResolveTitle()}{suffix}",
-                          rc.ResolveIcon(),
-                          rc.ResolveDescription(),
-                          () => EquipRightClick(rc),
-                          interactable: unlocked);
-            }
-        }
     }
 
     private void AddButton(string label, Sprite icon, string tooltipDesc, UnityAction onClick, bool interactable = true)
@@ -198,21 +173,6 @@ public class VillageDebugLoadout : MonoBehaviour
     {
         if (EquipmentInventoryManager.Instance != null && so != null)
             EquipmentInventoryManager.Instance.EquipEquipment(EquipmentInstance.Roll(so));
-        CloseWindow();
-    }
-
-    /// <summary>
-    /// 우클릭 교체. 슬롯이 1칸이라 픽커 없이 바로 덮어쓴다.
-    /// EquipRightClick 이 영구 저장까지 같이 해주므로(persist 기본값 true) 다음 런에도 이 선택이 유지된다.
-    /// </summary>
-    private void EquipRightClick(RightClickDataSO rc)
-    {
-        var gm = GameManager.Instance;
-        if (gm != null && gm.inventoryManager != null && gm.inventoryManager.EquipRightClick(rc))
-            Debug.Log($"<color=cyan>[VillageLoadout]</color> 우클릭 교체: {rc.ResolveTitle()}");
-        else
-            Debug.LogWarning($"<color=orange>[VillageLoadout]</color> 우클릭 교체 실패: {(rc != null ? rc.name : "null")}");
-
         CloseWindow();
     }
 

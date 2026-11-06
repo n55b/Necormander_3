@@ -22,7 +22,9 @@ public class MainMinionSelectionAction : MonoBehaviour, IPointerEnterHandler, IP
     public void OnPointerUp(PointerEventData e) => ResetHold();
     public void OnPointerClick(PointerEventData e)
     {
-        if (e.button == PointerEventData.InputButton.Left && action == ActionKind.Candidate) owner?.Select(action);
+        if (e.button != PointerEventData.InputButton.Left) return;
+        if (action == ActionKind.Candidate) owner?.Select(action);
+        else if (action == ActionKind.Current) owner?.ToggleTargetSlot();
     }
     private void Update()
     {

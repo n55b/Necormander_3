@@ -210,15 +210,7 @@ public class DPSMeter : MonoBehaviour
         }
         var skill = player.GetComponent<PlayerSkillController>();
         if (skill != null)
-            text.AppendLine($"미니언 스킬 남은 쿨타임: {skill.GetMainSummonCooldownRemaining():F2}초 / 사용 중: {skill.IsMainSummonBusy}");
-        text.AppendLine("\n<b>[가드 / 자원]</b>");
-        var guard = player.GetComponent<PlayerParryController>();
-        if (guard != null)
-        {
-            text.AppendLine($"가드 게이지: {guard.GuardAmount:F1} / {guard.GuardCapacity:F1}");
-            text.AppendLine($"방어 중: {guard.IsParrying} / 소진 잠금: {guard.GuardBroken}");
-            text.AppendLine($"최근 퍼펙트 가드: {guard.LastBlockWasPerfect}");
-        }
+            text.AppendLine($"소환수 스킬 남은 쿨타임: {skill.GetMainSummonCooldownRemaining():F2}초 / 사용 중: {skill.IsMainSummonBusy} / 스왑 쿨타임: {skill.SwapCooldownRemaining:F2}초");
         text.AppendLine("\n<b>[상태 / 원본값]</b>");
         text.AppendLine($"플레이어 상태: {player.GetPlayerState()}");
         text.AppendLine($"입력 차단: {player.IsInputBlocked} / 행동 불가: {player.IsCCed}");

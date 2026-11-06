@@ -79,7 +79,7 @@ public sealed class PlayerFeedback : MonoBehaviour
         bool skillReady=skills!=null&&skills.MainSummon!=null&&skills.GetMainSummonCooldownRemaining()<=0;
         if(skillReady&&!ready) { PolishFeedback.Play(FeedbackCue.SkillReady,position,Vector2.up)?.FollowOrigin(transform); FeedbackOverlay.Instance?.Pulse(FeedbackCue.SkillReady,position); }
         ready=skillReady;
-        bool basicReady=combat!=null&&combat.MinionFeedbackReady;
+        bool basicReady=false; // 소환수 공격이 플레이어 평타에서 분리되어 준비 신호가 없다
         if(basicReady&&!minionReady) PolishFeedback.Play(FeedbackCue.MinionReady,position,Vector2.up,PolishFeedback.MinionTier())?.FollowOrigin(transform);
         minionReady=basicReady;
         if(Time.time>nextWater&&MapGenerator.Instance!=null)

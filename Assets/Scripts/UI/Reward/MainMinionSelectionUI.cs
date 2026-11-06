@@ -1,6 +1,6 @@
 using UnityEngine;
 
-/// <summary>미니언 습득/교체. 슬롯 고르기 없이 현재 미니언과 후보를 비교한다.</summary>
+/// <summary>소환수 습득/교체. 슬롯 2칸이 찼으면 현재 카드를 눌러 교체할 슬롯을 고른 뒤 후보와 비교한다.</summary>
 [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "", "Assembly-CSharp", "HandSlotSelectionUI")]
 public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
 {
@@ -26,7 +26,13 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
 
     private System.Action _onComplete;
     private bool _open;
+    private int _targetSlot;
     public bool IsOpen => _open;
+    public int TargetSlot => _targetSlot;
+
+    private static bool SlotsFull => InventoryManager.Instance != null && InventoryManager.Instance.FindEmptySummonSlot() < 0;
+    private bool CandidateBlocked => InventoryManager.Instance != null && Candidate != null && InventoryManager.Instance.HasSameFamilyEquipped(Candidate);
+    private MainMinionDataSO TargetSummon => InventoryManager.Instance != null ? InventoryManager.Instance.GetSummonAt(_targetSlot) : null;
     public float ConfirmHoldSeconds => confirmHoldSeconds;
     public float HoldSeconds(MainMinionSelectionAction.ActionKind action)
         => action == MainMinionSelectionAction.ActionKind.Skip ? skipHoldSeconds : confirmHoldSeconds;
@@ -80,6 +86,9 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
         if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.Open(panel, UIPopUpManager.Layer.Modal, OnPanelClosed);
         else panel.SetActive(true);
         UIEventBus.NotifyOpen("HandSlot");
+        var inventory = InventoryManager.Instance;
+        int empty = inventory != null ? inventory.FindEmptySummonSlot() : -1;
+        _targetSlot = empty >= 0 ? empty : (inventory != null ? inventory.ActiveSummonSlot : 0);
         RefreshSlots();
     }
 
@@ -99,16 +108,20 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
 
     public void RefreshSlots()
     {
-        var current = InventoryManager.Instance != null ? InventoryManager.Instance.MainSummon : null;
+        // 빈 칸이 있으면 _targetSlot 이 빈 칸이라 current 가 null → 예전처럼 단일 카드 습득 화면이다.
+        var current = TargetSummon;
         var candidate = Candidate;
+        bool blocked = CandidateBlocked;
         currentCard.gameObject.SetActive(current != null);
-        if (current != null) currentCard.SetData(current.minionIcon, current.minionName, "현재 장착");
+        if (current != null) currentCard.SetData(current.minionIcon, current.minionName,
+            $"슬롯 {_targetSlot + 1} 교체 대상 (클릭하여 슬롯 변경)");
         candidateCard.SetData(candidate != null ? candidate.minionIcon : null,
-            candidate != null ? candidate.minionName : "", current != null ? "교체 후보" : "클릭하여 습득");
+            candidate != null ? candidate.minionName : "",
+            blocked ? "같은 소환수를 이미 장착 중" : current != null ? "교체 후보" : "클릭하여 습득");
         var anchor = current != null ? candidateAnchor : singleCardAnchor;
         if (anchor != null) candidateCard.transform.position = anchor.position;
         comparisonTarget.SetActive(current != null);
-        replaceButton.SetActive(current != null);
+        replaceButton.SetActive(current != null && !blocked);
         Hover(MainMinionSelectionAction.ActionKind.Compare, false);
     }
 
@@ -120,19 +133,20 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
         if (main.minionSkill != null)
         {
             string skillName = string.IsNullOrEmpty(main.minionSkill.skillName) ? main.minionSkill.name : main.minionSkill.skillName;
-            sb.Append("[Space] ").Append(skillName).Append("\n").Append(main.minionSkill.description);
+            sb.Append("[우클릭] ").Append(skillName).Append("\n").Append(main.minionSkill.description);
         }
         if (main.finisher != null && main.finisher.IsValid)
-            sb.Append("\n\n[기본 공격]\n").Append(main.finisher.Describe());
-        if (main.dashModifier != null)
-            sb.Append("\n\n[Shift] 대시\n").Append(main.dashModifier.Describe());
+            sb.Append("\n\n[자동 공격]\n").Append(main.finisher.Describe());
 
+        sb.Append("\n\n[Space 스왑] ");
+        if (main.dashModifier != null && main.dashModifier.DealsDamage) sb.Append("대쉬 공격\n").Append(main.dashModifier.Describe());
+        else sb.Append("스킬로 대체");
         return sb.ToString();
     }
 
     public void Hover(MainMinionSelectionAction.ActionKind kind, bool show)
     {
-        var current = InventoryManager.Instance != null ? InventoryManager.Instance.MainSummon : null;
+        var current = TargetSummon;
         var candidate = Candidate;
         bool left = show && current != null && (kind == MainMinionSelectionAction.ActionKind.Current || kind == MainMinionSelectionAction.ActionKind.Compare);
         bool right = show && candidate != null && (kind == MainMinionSelectionAction.ActionKind.Candidate || kind == MainMinionSelectionAction.ActionKind.Compare);
@@ -140,6 +154,14 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
         candidateDetails.gameObject.SetActive(right);
         if (left) currentDetails.SetData(current.minionIcon, current.minionName, Describe(current));
         if (right) candidateDetails.SetData(candidate.minionIcon, candidate.minionName, Describe(candidate));
+    }
+
+    /// <summary>현재 카드 클릭: 슬롯 2칸이 찼을 때 교체할 슬롯을 바꾼다.</summary>
+    public void ToggleTargetSlot()
+    {
+        if (!_open || !SlotsFull) return;
+        _targetSlot = 1 - _targetSlot;
+        RefreshSlots();
     }
 
     public void Select(MainMinionSelectionAction.ActionKind kind)
@@ -154,14 +176,15 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
         }
         var inventory = InventoryManager.Instance;
         if (inventory == null) return;
-        var old = inventory.MainSummon;
+        if (CandidateBlocked) return; // 같은 계열은 교체로도 장착하지 않는다. 건너뛰기만 가능하다.
+        var old = TargetSummon;
         if (kind == MainMinionSelectionAction.ActionKind.Candidate && old != null) return;
         if (kind != MainMinionSelectionAction.ActionKind.Candidate && kind != MainMinionSelectionAction.ActionKind.Replace) return;
         var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
         if (player == null) return;
         var oldDrop = old != null ? GroundItem.Drop(old, player.transform.position) : null; // 교체: 기존 소환수가 바닥에 떨어진다
         if (old != null && oldDrop == null) return;
-        if (!inventory.EquipMinion(candidate))
+        if (!inventory.EquipMinion(_targetSlot, candidate))
         {
             if (oldDrop != null) oldDrop.Consume();
             return;

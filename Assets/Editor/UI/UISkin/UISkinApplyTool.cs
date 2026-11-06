@@ -127,7 +127,7 @@ public static class UISkinApplyTool
         var skills = Find(root, "Panel_PlayerState/Panel_Skill");
         if (skills != null)
         {
-            foreach (var name in new[] { "Icon_Dash_Skill", "Icon_Guard", "Icon_MinionSkill" })
+            foreach (var name in new[] { "Icon_Dash_Skill", "Icon_SummonSkill2", "Icon_MinionSkill" })
             {
                 var slot = skills.Find(name);
                 if (slot == null) { Log.AppendLine("    - 못 찾음: " + name); continue; }
@@ -147,8 +147,8 @@ public static class UISkinApplyTool
 
         SkinBar(Find(root, "Panel_PlayerState/Panel_HP/BG_HPBar"), UIBarMotion.Kind.Hp, UISkinRole.HpBarFrame, 5f,
                 "Field_HPBar", "Field_ShieldBar", Hex("EA405B"));
-        SkinBar(Find(root, "Panel_PlayerState/Panel_HP/BG_GuardGauge"), UIBarMotion.Kind.Guard, UISkinRole.GaugeFrame, 2f,
-                "Field_GuardGauge", null, Hex("20C1E8"));
+        SkinBar(Find(root, "Panel_PlayerState/Panel_HP/BG_SwapCooldown"), UIBarMotion.Kind.Guard, UISkinRole.GaugeFrame, 2f,
+                "Field_SwapCooldown", null, Hex("20C1E8"));
     }
 
     /// <summary>게이지 하나: 바깥=틀 스프라이트, 안쪽=어두운 트랙, 채움=하이라이트 바, 그 뒤에 피해 잔상 바.</summary>

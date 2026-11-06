@@ -114,7 +114,6 @@ public class PlayerController : MonoBehaviour
             _isAttackDashing = false;
             _attackDashTimeLeft = 0f;
             PopupSystem.HideInteractionIcon();
-            GetComponent<PlayerParryController>()?.StopGuard();
             // 차단 중에는 Update의 Idle 전환도 멈춘다. 페이드 시작 전에 걷기를 끝낸다.
             // 공격/대쉬의 애니메이션 잠금이나 사망 모션은 덮어쓰지 않는다.
             if (canChangeState && idleState != null && (stat == null || !stat.IsDead))
@@ -216,10 +215,6 @@ public class PlayerController : MonoBehaviour
             Debug.LogWarning("[PlayerController] 'Player_Dash' 레이어가 설정되어 있지 않습니다! 레이어 세팅 가이드를 확인해주세요.");
             _dashLayer = _originalLayer;
         }
-
-        // [패리] 패리 컨트롤러 추가
-        if (GetComponent<PlayerParryController>() == null)
-            gameObject.AddComponent<PlayerParryController>();
 
         // [26/08/15] 서브 소환수 삭제로 SubSummonPassiveController 부착을 걷어냈다.
 
@@ -328,7 +323,7 @@ public class PlayerController : MonoBehaviour
     {
         if (stat != null && stat.Health != null && stat.Health.IsDead) { visualSquash?.ResetVisual(); StopLocomotion(); return; }
 
-        // 소환수 액티브는 Space(OnMinionSkill)가 담당한다.
+        // 소환수 액티브는 우클릭(OnMinionSkill), 스왑은 Space(OnMinionSwap)가 담당한다.
 
         if (_inputBlocked) return;
 
@@ -368,7 +363,6 @@ public class PlayerController : MonoBehaviour
         if (stopVelocity && _rb != null) _rb.linearVelocity = Vector2.zero;
     }
 
-    // 가드처럼 이동 속도만 바뀌는 행동도 같은 상태/재생 속도 갱신 경로를 사용한다.
     public void UpdateLocomotionAnimation()
     {
         if (stat != null && stat.IsDead) return;
@@ -681,16 +675,6 @@ public class PlayerController : MonoBehaviour
         return;
     }
 
-    public void OnParry(InputAction.CallbackContext context)
-    {
-        var parryCtrl = GetComponent<PlayerParryController>();
-        // UI/일시정지 중에 뗀 입력도 반드시 해제한다.
-        if (context.canceled) { parryCtrl?.SetGuardHeld(false); return; }
-        if (IsGameplayPaused) return; // 옵션 일시정지 / 창(보상·맵 등)이 떠 있으면 차단
-        if (_inputBlocked || stat.Health.IsDead || PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsPointerOverPanel())) return;
-        if (context.started) parryCtrl?.SetGuardHeld(true);
-    }
-
     public void OnDash(InputAction.CallbackContext context)
     {
         if (IsGameplayPaused) return; // 옵션 일시정지 / 창(보상·맵 등)이 떠 있으면 차단
@@ -698,10 +682,6 @@ public class PlayerController : MonoBehaviour
 
         if (context.performed)
         {
-            // 유지형 가드는 내리고 대쉬한다.
-            var parryCtrl = GetComponent<PlayerParryController>();
-            if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
-
             // 근접 구르기 컨트롤러가 있다면 우선적으로 사용 (2스택 구르기 등)
             MeleeDodgeController dodgeController = GetComponent<MeleeDodgeController>();
             if (dodgeController != null)
@@ -724,19 +704,30 @@ public class PlayerController : MonoBehaviour
         if (IsGameplayPaused) return; // 옵션 일시정지 / 창(보상·맵 등)이 떠 있으면 차단
         if (_inputBlocked || stat.Health.IsDead || IsCCed) return;
 
+        if (PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsPointerOverPanel())) return;
+
         if (context.performed)
         {
-            // 유지형 가드는 내리고 소환수 스킬을 사용한다.
-            var parryCtrl = GetComponent<PlayerParryController>();
-            if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
-
             var skillCtrl = GetComponent<PlayerSkillController>();
             if (skillCtrl != null)
             {
-                // Space = 장착 미니언 액티브.
+                // 우클릭 = 활성 소환수 액티브.
                 skillCtrl.ExecuteMinionSkill(transform);
             }
         }
+    }
+
+    /// <summary>
+    /// Space = 소환수 스왑. 대사창이 떠 있으면 IsGameplayPaused 가 막으므로 대사 넘기기와 겹치지 않는다.
+    /// 입력 콜백은 프레임 시작에 먼저 오므로, 마지막 대사를 닫는 Space 도 아직 창이 열린 상태에서 걸러진다.
+    /// </summary>
+    public void OnMinionSwap(InputAction.CallbackContext context)
+    {
+        if (IsGameplayPaused) return; // 옵션 일시정지 / 창(대화·보상·맵 등)이 떠 있으면 차단
+        if (_inputBlocked || stat.Health.IsDead || IsCCed) return;
+        if (DialogueUI.Instance != null && DialogueUI.Instance.IsPlaying) return;
+        if (!context.performed) return;
+        GetComponent<PlayerSkillController>()?.TrySwapSummon();
     }
 
     /// <summary>

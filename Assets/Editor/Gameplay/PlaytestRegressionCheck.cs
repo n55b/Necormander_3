@@ -71,7 +71,6 @@ public static class PlaytestRegressionCheck
         var player = root.AddComponent<PlayerController>();
         var stat = root.AddComponent<CharacterStat>(); Set(stat, "setDoneActions", new UnityEngine.Events.UnityEvent());
         Set(player, "stat", stat);
-        var guard = root.AddComponent<PlayerParryController>();
         var body = new GameObject("Body", typeof(SpriteRenderer), typeof(Animator)); body.transform.SetParent(root.transform, false);
         var hand = new GameObject("Hand", typeof(SpriteRenderer)); hand.transform.SetParent(body.transform, false);
         var animator = body.GetComponent<Animator>();
@@ -88,19 +87,8 @@ public static class PlaytestRegressionCheck
             var binding = AnimationUtility.GetObjectReferenceCurveBindings(clip).Single(b => b.path == "Hand" && b.propertyName == "m_Sprite");
             var expected = (Sprite)AnimationUtility.GetObjectReferenceCurve(clip, binding)[0].value;
             Set(player, "moveInput", Vector2.zero);
-            guard.TryStartParry(); animator.Update(0);
-            Require(guard.IsParrying && player.canChangeState, name + " 가드 중 이동 모션 잠금 없음");
-            Require(animator.GetCurrentAnimatorStateInfo(0).IsName("Idle") && hand.GetComponent<SpriteRenderer>().sprite == expected,
-                name + " 가드 시 장착 무기 외형 유지");
-            var line = Get<GameObject>(guard, "_telegraph");
-            Require(line != null && line.GetComponent<LineRenderer>().positionCount > 1, name + " 가드 선 표시 유지");
-            Set(player, "moveInput", Vector2.right); Call(player, "UpdateLocomotionAnimation"); animator.Update(0);
-            Require(animator.GetCurrentAnimatorStateInfo(0).IsName("Walk"), name + " 가드 중 걷기 가능");
-            guard.StopGuard(); animator.Update(0);
-            Require(!guard.IsParrying && animator.GetCurrentAnimatorStateInfo(0).IsName("Walk"), name + " 가드 종료가 걷기 모션을 덮지 않음");
         }
         root.SetActive(false); GameManager.Instance = null;
-        GuardControlsSetup.VerifyProjectiles();
         Debug.Log($"[PlaytestGuard] PASS: {passed} weapon/line/locomotion checks plus existing guard damage, projectile, break/recovery regressions.");
         yield break;
     }

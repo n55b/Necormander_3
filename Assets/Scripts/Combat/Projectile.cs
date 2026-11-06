@@ -109,7 +109,6 @@ public class Projectile : MonoBehaviour
         if (GuardConsumed) return;
         Vector2 previousPosition = transform.position;
         Move();
-        PlayerParryController.TryBlockProjectile(this, previousPosition);
         if (!GuardConsumed && Time.time >= nextFeedbackTrail && PolishFeedback.Catalog != null)
         {
             nextFeedbackTrail = Time.time + PolishFeedback.Catalog.trailInterval;

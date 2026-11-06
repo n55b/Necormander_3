@@ -26,45 +26,11 @@ public class MeleeCombatController : MonoBehaviour
     /// <summary>플레이어 자체 3연타. 마리오네트도 콤보/모션 수는 바꾸지 않는다.</summary>
     private const int PLAYER_COMBO_LENGTH = 3;
 
-    /// <summary>장착된 메인 소환수의 마무리 일격. 없으면 null.</summary>
-    private MinionFinisher Finisher
-    {
-        get
-        {
-            // 매 공격마다 읽는다 — SyncWithInventory 가 런 도중 소환수를 갈아끼울 수 있다.
-            var skillCtrl = _player != null ? _player.GetComponent<PlayerSkillController>() : null;
-            var main = skillCtrl != null ? skillCtrl.MainSummon : null;
-            if (main == null) return null;
-            return (main.finisher != null && main.finisher.IsValid) ? main.finisher : null;
-        }
-    }
-
-    /// <summary>
-    /// 메인 소환수가 Space 스킬로 실체화해 바쁜가. 미니언은 한 마리뿐이라, 스킬을 쓰는 동안은
-    /// 소환수 평타만 쉬고 플레이어 3연타는 그대로 유지된다.
-    /// </summary>
-    private bool MinionBusy
-    {
-        get
-        {
-            var skillCtrl = _player != null ? _player.GetComponent<PlayerSkillController>() : null;
-            return skillCtrl != null && skillCtrl.IsMainSummonBusy;
-        }
-    }
-
-    /// <summary>이번 콤보에 소환수 일격이 끼는가. 미니언이 Space 로 바쁘면 빠진다.</summary>
-    private bool HasMinionStep => Finisher != null && !MinionBusy;
-
     /// <summary>소환수 유무와 무관한 플레이어 콤보 수.</summary>
     private int ComboLength => PLAYER_COMBO_LENGTH;
 
     // 소환수 일격 내부 쿨타임. 이 시각이 지나야 다음 평타에 소환수가 같이 나간다.
     // 쿨 길이는 소환수 데이터(MainMinionDataSO.finisher.internalCooldown)가 정한다.
-    private float _minionStrikeReadyTime;
-
-    /// <summary>소환수 일격 쿨이 돌아 있는가.</summary>
-    private bool MinionStrikeReady => Time.time >= _minionStrikeReadyTime;
-    public bool MinionFeedbackReady => HasMinionStep && MinionStrikeReady;
 
     [Header("콤보 설정")]
     [SerializeField] private float comboResetTime = 1.0f;
@@ -86,7 +52,6 @@ public class MeleeCombatController : MonoBehaviour
 
     private bool _isHoldingAttack = false;
     private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
-    private MinionSkillCaster _activeCaster; // 마무리 타격 소환수 추적 — 연속 공격 시 중복 스폰 방지용
     private bool _attackAnimationPlaying;
     private bool _ownsAnimationLock;
 
@@ -100,11 +65,11 @@ public class MeleeCombatController : MonoBehaviour
 
     /// <summary>
     /// 취소해야 할 '진행 중 공격'이 있는가 — 평캔/대쉬/패링의 캔슬 게이트 전용.
-    /// 플레이어 모션/히트박스/최소 간격에 소환수 생존(_activeCaster)을 더한다.
+    /// 플레이어 모션/히트박스/최소 간격에 소환수와는 무관하다.
     /// 소환수 일격이 플레이어 평타보다 오래 남아도 Space 재사용 시 회수할 수 있어야 한다.
     /// 콤보 진행에는 IsAttacking만 사용한다 — 이 속성은 캔슬 게이트 전용이다.
     /// </summary>
-    public bool IsInAttackAction => IsAttacking || _activeCaster != null;
+    public bool IsInAttackAction => IsAttacking;
 
     public Vector2 CurrentAttackDir { get; private set; } = Vector2.right;
 
@@ -136,19 +101,8 @@ public class MeleeCombatController : MonoBehaviour
             // 홀드 공격 유지 (모션·판정·최소 간격이 모두 끝났다면 다음 콤보 발동)
             if (_isHoldingAttack)
             {
-                // 플레이어가 대시 중, 패리 중, 또는 스킬 시전 중일 때는 꾹 누르고 있어도 자동 공격 제한
-                bool canAttack = true;
-                if (_player != null)
-                {
-                    var parryCtrl = _player.GetComponent<PlayerParryController>();
-                    bool isParrying = parryCtrl != null && parryCtrl.IsParrying;
-                    if (_player.IsDashing || isParrying)
-                    {
-                        canAttack = false;
-                    }
-                }
-
-                if (canAttack)
+                // 플레이어가 대시 중일 때는 꾹 누르고 있어도 자동 공격 제한
+                if (_player == null || !_player.IsDashing)
                 {
                     ExecuteMeleeAttack();
                 }
@@ -165,12 +119,6 @@ public class MeleeCombatController : MonoBehaviour
         if (context.started)
         {
             _isHoldingAttack = true;
-
-            // 가드 중이면 즉시 내리고 때린다.
-            // '새로 누른' 이 경로에서만 끊는다 — 아래 Update 의 홀드 자동연타까지 끊게 하면
-            // 좌클릭을 누르고 있는 동안 가드를 아예 못 켠다.
-            var parryCtrl = _player != null ? _player.GetComponent<PlayerParryController>() : null;
-            if (parryCtrl != null && !parryCtrl.TryInterruptForAction()) return;
 
             if (!IsAttacking)
             {
@@ -189,9 +137,6 @@ public class MeleeCombatController : MonoBehaviour
         if (PlayerController.IsGameplayPaused) return; // 옵션 일시정지 또는 창(보상/맵 등)이 떠 있으면 공격 차단
         if (_player == null || _player.Stat.Health.IsDead) return;
         if (_player.IsCCed) return; // [26/07/17] 기절/빙결 중에는 평타 차단
-
-        var parryCtrl = _player.GetComponent<PlayerParryController>();
-        if (parryCtrl != null && parryCtrl.IsParrying) return;
 
         // 콤보 길이가 줄었는데(미니언이 R로 바빠져 마무리 제외) 스텝이 범위를 벗어났으면 0으로 되돌린다.
         if (_comboStep >= ComboLength) _comboStep = 0;
@@ -289,16 +234,6 @@ public class MeleeCombatController : MonoBehaviour
             Debug.LogError("[MeleeCombat] telegraphPrefab이 인스펙터에 할당되지 않았습니다.");
         }
 
-        // [소환수 동시 일격] 내부 쿨이 돌아 있으면 이번 평타(1타/2타 무관)에 소환수 일격이 같이 나간다.
-        // 플레이어 히트박스/애니를 먼저 세운 뒤 소환수를 꺼낸다(방향은 둘 다 같은 마우스 조준).
-        // Space 로 소환수가 바쁘면 빠진다 — 미니언은 한 마리뿐이다. 쿨은 실제로 나갔을 때만 돈다.
-        if (HasMinionStep && MinionStrikeReady)
-        {
-            var fin = Finisher;
-            ExecuteFinisher();
-            _minionStrikeReadyTime = Time.time + (fin != null ? fin.internalCooldown : 0f);
-        }
-
         // 콤보 진행 (1타 → 2타 → 3타)
         _comboStep = (_comboStep + 1) % ComboLength;
     }
@@ -362,65 +297,43 @@ public class MeleeCombatController : MonoBehaviour
     /// 콤보 마지막 타이밍: 플레이어는 아무것도 하지 않고, 메인 소환수가 실체화해 마무리 일격을 넣는다.
     /// (설계 3.3 "마지막에 소환수의 마무리 일격이 발동" — 플레이어는 Idle)
     /// </summary>
-    private void ExecuteFinisher()
+    /// <summary>
+    /// 소환수 기본 공격. 필드 소환수 AI 가 자기 위치에서 호출한다. 플레이어 평타와는 연결되지 않는다.
+    /// 피해 = 플레이어 ATK × 소환수 고유 배율 × 강화 × Inspector 의 소환수 평타 피해 배율.
+    /// </summary>
+    /// <returns>시전 오브젝트. 시전하지 못하면 null.</returns>
+    public MinionSkillCaster CastSummonBasicAttack(MainMinionDataSO main, Vector2 origin2D, Vector2 dir)
     {
-        var skillCtrl = _player.GetComponent<PlayerSkillController>();
-        var main = skillCtrl != null ? skillCtrl.MainSummon : null;
-        var fin = Finisher;
-        if (main == null || fin == null) return;
+        var fin = main != null && main.finisher != null && main.finisher.IsValid ? main.finisher : null;
+        if (main == null || fin == null || _player.Stat == null) return null;
 
-        // ── 마무리 일격의 시전 시간은 공속을 따라간다 ───────────────────────────────
-        // 마무리는 '평타 콤보의 3타'다. 1·2타만 공속으로 빨라지고 3타가 원래 속도로 남으면
-        // 콤보 중간에 속도가 뚝 떨어진다. 그래서 여기만 공속을 먹인다.
-        //
-        // [유의사항 — 나중에 물어볼 것]
-        // 소환수 R 액티브(MinionSkillSO.skillAnimDuration)는 일부러 공속을 '안' 받는다.
-        // R 은 평타 콤보의 일부가 아니라 독립 스킬이라 분리해 둔 것이다(기획 확정, 26/07/17).
-        // 로직상 마음에 안 드는 결정이라고 하셨으니, 연결하고 싶어지면 MinionActionSkillSO 의
-        // animDuration 계산에 같은 나눗셈만 얹으면 된다 — 애니와 타격 시점이 전부 비율로
-        // 묶여 있어서 castDuration/skillAnimDuration 하나만 줄이면 나머지가 알아서 따라온다.
-        float atkSpd = (_player.Stat != null) ? Mathf.Max(0.05f, _player.Stat.ATKSPD) : 1f;
-        var animSet = main.basicAnim;                       // 애니메이션은 미니언이 갖는다(basicAnim). finisher 는 로직만.
+        float atkSpd = Mathf.Max(0.05f, _player.Stat.ATKSPD);
+        var animSet = main.basicAnim;
         float castDuration = animSet.ResolvedDuration / atkSpd;
         float hitWindow = animSet.EventHitWindow / atkSpd;
 
-        // 조준 방향은 평타와 동일하게 마우스 기준.
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-        mousePos.z = 0;
-        Vector3 origin = attackSpawnPoint != null ? attackSpawnPoint.position : transform.position;
-        Vector2 dir = ((Vector2)(mousePos - origin)).normalized;
-        if (dir.sqrMagnitude < 0.0001f) dir = CurrentAttackDir;
-        CurrentAttackDir = dir;
+        Vector3 origin = origin2D;
+        if (dir.sqrMagnitude < 0.0001f) dir = Vector2.right;
+        dir.Normalize();
 
-        // 플레이어 외형만 방향 동기화하고, 모션은 재생하지 않는다 (Idle 유지).
-        if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
-        else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
-
-        // [수정] 히트박스는 평타처럼 조준 각도(dir)에 맞춰 자유 회전시킨다.
-        // (소환수 스프라이트 자체는 좌우로만 뒤집히지만, 판정 박스는 실제 조준 방향을 그대로 따라간다.)
+        // 히트박스는 조준 각도에 맞춰 자유 회전시킨다(스프라이트는 좌우로만 뒤집힌다).
         bool faceRight = dir.x >= 0f;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        Vector3 spawnPos = origin + (Vector3)(dir * fin.spawnOffset);
-        // 소환수(비주얼)는 히트박스 중심(spawnPos)에서 플레이어 쪽으로 minionOffsetFromHitBox 만큼 뒤로 물린다.
-        // 히트박스 자체는 아래에서 spawnPos 에 그대로 깔린다(조준 위치 유지, 소환수와 안 겹침).
-        Vector3 casterPos = spawnPos - (Vector3)(dir * fin.minionOffsetFromHitBox);
+        // 공격 거리가 길면 그 거리의 적에게 판정이 닿도록 판정을 앞으로 민다.
+        float boxOffset = Mathf.Max(fin.spawnOffset, fin.summonAttackDistance + 0.5f - fin.hitBoxSize.x * 0.5f);
+        Vector3 spawnPos = origin + (Vector3)(dir * boxOffset);
+        // 소환수는 서 있던 자리에서 그대로 때리고, 판정만 앞쪽(spawnPos)에 깔린다. 위치를 옮기면 때릴 때마다 순간이동해 보인다.
+        Vector3 casterPos = origin;
 
-        // 이전 마무리 소환수가 아직 안 사라졌으면 먼저 정리 (연속 공격 시 여러 마리 남는 문제 방지)
-        if (_activeCaster != null)
-        {
-            Destroy(_activeCaster.gameObject);
-            _activeCaster = null;
-        }
-
-        var caster = MinionSkillCaster.Spawn(main, casterPos);
-        _activeCaster = caster;
+        // 자주 나오는 공격이라 나타나는 연출은 생략한다.
+        var caster = MinionSkillCaster.Spawn(main, casterPos, quiet: true);
 
         // 이펙트 오버레이(예: DashDoll 의 Skill_Attack_Effect)는 이제 PlaySequenced 가 effectState 로 직접
         // 겹쳐 재생한다 — 타격 이벤트가 이펙트 클립에 박힌 경우 그쪽에 relay 를 붙여야 하기 때문이다.
 
         // 프리팹: 소환수 SO(finisher)가 자기 것을 지정했으면 그걸, 아니면 컨트롤러의 Telegraph Prefab 으로 폴백.
         var finBoxPrefab = fin.hitBoxPrefab != null ? fin.hitBoxPrefab : telegraphPrefab;
-        if (finBoxPrefab == null) return;
+        if (finBoxPrefab == null) return caster;
 
         GameObject go = Instantiate(finBoxPrefab, spawnPos, Quaternion.identity, caster.transform);
         if (hideFinisherTelegraph)
@@ -430,7 +343,7 @@ public class MeleeCombatController : MonoBehaviour
         }
 
         var box = go.GetComponent<BaseHitBox>();
-        if (box == null) return;
+        if (box == null) return caster;
 
         go.transform.localRotation = Quaternion.Euler(0, 0, angle);
         go.transform.localScale = new Vector3(fin.hitBoxSize.x, fin.hitBoxSize.y, 1f);
@@ -451,7 +364,9 @@ public class MeleeCombatController : MonoBehaviour
         enhanceMult *= weapon != null ? weapon.basicDamagePerHit : 1f;
         box.HitsPerContact = weapon != null ? weapon.basicHitsPerContact : 1;
         box.ContactHitInterval = weapon != null ? weapon.basicRepeatHitInterval : 0f;
-        var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier * enhanceMult, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
+        var summonCtrl = _player.GetComponent<PlayerSkillController>();
+        float autoMult = summonCtrl != null ? summonCtrl.AutoAttackDamageMultiplier : 1f;
+        var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier * enhanceMult * autoMult, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
         info.minionSource = caster;
 
         // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.
@@ -487,25 +402,11 @@ public class MeleeCombatController : MonoBehaviour
             onHitPulse: () => { if (box != null) box.PulseDamageOverlapping(); },
             // OnAttackEndEvent: 후딜까지 끝났으니 판정을 닫는다.
             onAttackEnd: () => { if (col != null) col.enabled = false; });
+        return caster;
     }
 
     /// <summary>
-    /// 풀 캔슬: 플레이어 평타 + 마무리 소환수(_activeCaster)까지 회수한다.
-    /// 미니언을 재사용하는 R(미니언 스킬)만 이걸 쓴다 — "미니언은 자기들끼리만 캔슬".
-    /// 대쉬/패링/Q·E 는 미니언을 남겨야 하므로 CancelPlayerAttack 을 쓴다.
-    /// </summary>
-    public void CancelAttack()
-    {
-        if (_activeCaster != null)
-        {
-            Destroy(_activeCaster.gameObject);
-            _activeCaster = null;
-        }
-        CancelPlayerAttack(); // 나머지(평타 히트박스·콤보 리셋·Idle 복귀)는 공통
-    }
-
-    /// <summary>
-    /// 플레이어 평타(1·2타)만 취소한다. 마무리 소환수(_activeCaster)는 건드리지 않아,
+    /// 플레이어 평타만 취소한다. 소환수의 행동은 건드리지 않아,
     /// 3타 도중 대쉬/패링/Q·E 를 써도 미니언은 남아서 마무리를 끝낸다.
     /// </summary>
     public void CancelPlayerAttack()

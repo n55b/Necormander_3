@@ -225,13 +225,13 @@ public static class UI1006Setup
         var so = new SerializedObject(ui);
         var hp = (UnityEngine.UI.Image)so.FindProperty("hpSprite").objectReferenceValue;
         var shield = (UnityEngine.UI.Image)so.FindProperty("shieldSprite").objectReferenceValue;
-        var guard = (UnityEngine.UI.Image)so.FindProperty("guardGaugeFill").objectReferenceValue;
+        var guard = (UnityEngine.UI.Image)so.FindProperty("swapCooldownFill").objectReferenceValue;
         var hpText = (TextMeshProUGUI)so.FindProperty("hpText").objectReferenceValue;
-        var guardText = (TextMeshProUGUI)so.FindProperty("guardGaugeText").objectReferenceValue;
+        var guardText = (TextMeshProUGUI)so.FindProperty("swapCooldownText").objectReferenceValue;
         Bar(hp, shield, hpText, new Color32(234, 64, 91, 255), 4);
         Bar(guard, null, guardText, new Color32(32, 193, 232, 255), 2);
-        so.FindProperty("guardReadyColor").colorValue = new Color32(32, 193, 232, 255);
-        so.FindProperty("guardBrokenColor").colorValue = new Color32(130, 137, 148, 255);
+        so.FindProperty("swapReadyColor").colorValue = new Color32(32, 193, 232, 255);
+        so.FindProperty("swapUnavailableColor").colorValue = new Color32(130, 137, 148, 255);
         so.ApplyModifiedPropertiesWithoutUndo();
         var dash = (DashCooldownUI)so.FindProperty("dashCooldownUI").objectReferenceValue;
         var pips = Rect(root.transform, "WorldDashPips", 0, -25, 42, 8);
@@ -475,7 +475,7 @@ public static class UI1006Setup
             Object.DestroyImmediate(playerGo);
             typeof(DashCooldownUI).GetMethod("LateUpdate", flags).Invoke(dash, null);
             Check(!pips.gameObject.activeSelf, "플레이어 파괴 후 표시 해제");
-            foreach (var name in new[] { "hpSprite", "guardGaugeFill" })
+            foreach (var name in new[] { "hpSprite", "swapCooldownFill" })
             {
                 var fill = (UnityEngine.UI.Image)new SerializedObject(hud.GetComponent<PlayerStateUI>()).FindProperty(name).objectReferenceValue;
                 foreach (float fraction in new[] { 0f, .5f, 1f })

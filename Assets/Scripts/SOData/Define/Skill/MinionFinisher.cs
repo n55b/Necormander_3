@@ -59,6 +59,10 @@ public class MinionFinisher
              "히트박스와 안 겹치게 바깥에서 때리는 느낌을 줄 때 키운다(히트박스는 조준 위치 그대로 유지).")]
     public float minionOffsetFromHitBox = 0f;
 
+    [Header("소환수 자동 공격")]
+    [Tooltip("소환수가 적과 이 거리까지 다가가면 멈춰서 기본 공격을 한다(유닛). 원거리 소환수는 크게 잡는다. 판정이 이 거리에 닿도록 자동으로 앞으로 밀린다.")]
+    [Min(0.1f)] public float summonAttackDistance = 2f;
+
     [Header("연출(넉백/경직)")]
     [Tooltip("적에게 경직을 주는지.")]
     public bool causesHitstun = true;

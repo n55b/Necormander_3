@@ -70,6 +70,7 @@ MonoBehaviour:
     hitBoxPrefab: {fileID: 0}
     spawnOffset: 1.7
     minionOffsetFromHitBox: 0
+    summonAttackDistance: 2.2
     causesHitstun: 1
     knockbackForce: 6
     superArmorDamage: 30

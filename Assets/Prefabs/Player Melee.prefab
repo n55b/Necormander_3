@@ -1176,7 +1176,6 @@ GameObject:
   - component: {fileID: 7957941004026145679}
   - component: {fileID: 1103040150316217935}
   - component: {fileID: 3445112678206032524}
-  - component: {fileID: 5149496357544255013}
   - component: {fileID: 5593554232641012641}
   - component: {fileID: 606286514386762975}
   - component: {fileID: 5671409497227620468}
@@ -1271,7 +1270,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 7972545975472383977}
         m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: OnParry
+        m_MethodName: OnMinionSwap
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1282,7 +1281,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: a1ac0817-f9d7-416f-a844-6365fcc7db01
-    m_ActionName: 'Player/Parry[/Mouse/rightButton]'
+    m_ActionName: 'Player/MinionSwap[/Keyboard/space]'
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7972545975472383977}
@@ -1398,7 +1397,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: e7b0b0c3-d2e3-4f5a-6b7c-8d9e0f1a2b3c
-    m_ActionName: Player/MinionSkill
+    m_ActionName: 'Player/MinionSkill[/Mouse/rightButton]'
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7972545975472383977}
@@ -1663,27 +1662,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   soundData: {fileID: 0}
---- !u!114 &5149496357544255013
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8389716956321753658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d04cdc34e11097e4dbd2d3d6a637e686, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  perfectGuardCostRatio: 0.5
-  parryTelegraphPrefab: {fileID: 0}
-  emptyMessage: "\uC6B0\uD074\uB9AD \uC5C6\uC74C!"
-  maxGuard: 50
-  perfectGuardWindow: 0.2
-  guardRegenPerSecond: 2
-  guardRegenDelay: 1
-  guardBreakThresholdRatio: 0.2
-  guardBreakRecoveryDuration: 12
 --- !u!114 &5593554232641012641
 MonoBehaviour:
   m_ObjectHideFlags: 0

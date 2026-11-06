@@ -5,6 +5,9 @@ public class MeleeDodgeController : MonoBehaviour
     [Header("대쉬 설정")]
     [SerializeField] private float dashSpeed = 15f;
     [SerializeField] private float dashDuration = 0.2f;
+    [Header("소환수 대쉬 공격 기본 히트박스 (소환수 SO 에 없을 때 사용)")]
+    [SerializeField] private BaseHitBox dashHitBoxPrefab;
+    [SerializeField] private BaseHitBox originHitBoxPrefab;
     [SerializeField] private int maxCharges = 2;
     [SerializeField] private float rechargeTime = 2.0f; // 스택 회복 시간
     
@@ -14,12 +17,6 @@ public class MeleeDodgeController : MonoBehaviour
     private string upwardEffectState = "Up";
     [SerializeField, Tooltip("아래쪽 또는 수평으로 대시할 때 재생할 이펙트 Animator 상태 이름입니다. 좌우는 대시 방향에 맞춰 반전합니다.")]
     private string downwardEffectState = "Down";
-
-    [Header("대쉬 히트박스 (메인 소환수가 대쉬에 피해를 붙일 때 사용)")]
-    [Tooltip("경로를 훑는 박스 프리팹(전방 기준). 미지정이면 소환수가 대쉬 피해를 갖고 있어도 발동하지 않는다.")]
-    [SerializeField] private BaseHitBox dashHitBoxPrefab;
-    [Tooltip("dashModifier.hitAtOrigin(출발점 원형) 일 때 쓰는 원형 콜라이더 프리팹. 예: 얼음 마법사. 미지정이면 발동 안 함.")]
-    [SerializeField] private BaseHitBox originHitBoxPrefab;
 
     private int _currentCharges;
     private float _rechargeTimer;
@@ -139,14 +136,9 @@ public class MeleeDodgeController : MonoBehaviour
 
         PlayDashEffect();
 
-        // 메인 소환수가 대쉬를 개조한다 (없으면 mod == null → 기본 대쉬 그대로).
-        var mod = GetDashModifier();
-        float lengthMult = (mod != null) ? Mathf.Max(0.01f, mod.lengthMultiplier) : 1f;
-
         // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
-        // 배율은 벽 클램프 '전'에 곱한다 — 클램프가 최종 도달점을 잡아야 벽을 뚫지 않는다.
         float baseDist = dashSpeed * dashDuration * (_player.Stat != null ? _player.Stat.DASH_DISTANCE_MULTIPLIER : 1f);
-        float originalDist = baseDist * lengthMult;
+        float originalDist = baseDist;
 
         // 평소에는 기존 거리 그대로. 그 거리 안에 물(Unsteppable)이 끼어 있을 때만
         // 기본 대시의 1.5배까지 뻗어서 건너편 Ground 착지를 시도한다.
@@ -166,12 +158,6 @@ public class MeleeDodgeController : MonoBehaviour
         _dashTimeLeft = _dashTravelDuration + 0.1f; // 충돌로 도착 불가할 때만 쓰는 안전 종료
         _afterimage?.BeginDash(_dashTimeLeft);
 
-        if (mod != null && mod.DealsDamage)
-            SpawnDashHitBox(mod, transform.position, _dashDir, actualDist);
-
-        // 대쉬 연출: 미니언이 자기 대쉬 애니를 '위치별'로 재생한다(히트박스와 무관한 순수 비주얼).
-        SpawnDashVisual(GetMainMinion(), mod, transform.position, _dashDir, actualDist);
-
         if (_player.Stat != null && _player.Stat.Health != null)
         {
             _player.Stat.Health.Invincible = true; // 대쉬 무적
@@ -181,87 +167,60 @@ public class MeleeDodgeController : MonoBehaviour
 
         // Lock the Idle/Walk auto-transition for the ACTUAL dash duration, otherwise
         // PlayerController.Update() overwrites the Dash pose one frame later.
-        // (안전망 타임아웃을 실제 대쉬 길이 _dashTimeLeft 로 건다 — 예전엔 고정 dashDuration 0.2s 였는데
-        //  소환수 lengthMultiplier>1(예: 네크 1.2 → 0.24s)이면 대쉬가 끝나기 전에 타임아웃이 터져
-        //  "canChangeState force-reset" 경고가 났다. EndDash 가 정상 해제하니 이건 여유 상한일 뿐.)
         _player.LockAnimState(_dashTimeLeft + 0.1f);
         _player.ResetAnimStateCache();
         _player.PlayAllAnim("Dash", "Idle");
         OnDodgeStarted?.Invoke();
     }
 
-    /// <summary>장착된 메인 소환수. 없으면 null.</summary>
-    private MainMinionDataSO GetMainMinion()
+    // ─── 소환수 대쉬 공격 (Space 스왑) ─────────────────────────────
+    // 플레이어 대쉬와는 무관하다. 소환수가 플레이어 위치에서 마우스 방향으로 대쉬 공격을 한다.
+    public bool CanCastSummonDashAttack(MainMinionDataSO main)
     {
-        var skillCtrl = _player != null ? _player.GetComponent<PlayerSkillController>() : null;
-        return skillCtrl != null ? skillCtrl.MainSummon : null;
+        var mod = main != null ? main.dashModifier : null;
+        if (mod == null || !mod.DealsDamage) return false;
+        if (mod.hitBoxPrefab != null) return true;
+        return (mod.hitAtOrigin ? originHitBoxPrefab : dashHitBoxPrefab) != null;
     }
 
-    /// <summary>장착된 메인 소환수의 대쉬 개조안. 없으면 null(= 기본 대쉬).</summary>
-    private MinionDashModifier GetDashModifier()
+    public MinionSkillCaster CastSummonDashAttack(MainMinionDataSO main)
     {
-        var main = GetMainMinion();
-        return main != null ? main.dashModifier : null;
-    }
+        if (!CanCastSummonDashAttack(main) || _player == null || _player.Stat == null) return null;
+        var mod = main.dashModifier;
+        Vector2 origin = transform.position;
+        Vector2 dir = Vector2.right;
+        if (Camera.main != null && UnityEngine.InputSystem.Mouse.current != null)
+        {
+            Vector2 aim = (Vector2)Camera.main.ScreenToWorldPoint(UnityEngine.InputSystem.Mouse.current.position.ReadValue()) - origin;
+            if (aim.sqrMagnitude > 0.0001f) dir = aim.normalized;
+        }
 
-    /// <summary>
-    /// 대쉬 '연출'을 깐다 — 히트박스/데미지와 무관한 순수 비주얼(대쉬 판정은 SpawnDashHitBox 가 낸다).
-    ///  · hitAtOrigin(네크 인형): 출발 지점에 클립 하나(startClip 우선).
-    ///  · 경로형: 출발 / 히트박스중앙 / 종료 세 지점에 채워진 클립을 순서대로.
-    /// </summary>
-    private void SpawnDashVisual(MainMinionDataSO main, MinionDashModifier mod, Vector2 origin, Vector2 dir, float dist)
-    {
-        if (main == null) return;
-        var da = main.dashAnim;
-        if (da == null || !da.HasVisual) return;
-
+        float wanted = dashSpeed * dashDuration * Mathf.Max(0.01f, mod.lengthMultiplier);
+        float dist = mod.hitAtOrigin ? wanted : Vector2.Distance(origin, SkillCombatUtil.GetSafeDestination(origin, dir, wanted));
         Vector2 end = origin + dir * dist;
-        Vector2 center = origin + dir * (dist * 0.5f);
-        bool faceRight = dir.x >= 0f;
-        // 히트박스 회전각 — hitBoxClip 회전 옵션이 켜졌을 때 이 각도로 스프라이트를 통째 회전(경로 히트박스와 동일).
-        float? hitBoxRot = da.rotateHitBoxClipToDir ? (float?)(Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg) : null;
-
-        var steps = new System.Collections.Generic.List<(string clip, Vector3 pos, float? rotZ)>();
-        if (mod != null && mod.hitAtOrigin)
-        {
-            // 출발점 판정형: 출발 자리에 클립 하나. startClip 우선, 비었으면 채워진 첫 클립으로 폴백.
-            string clip = !string.IsNullOrWhiteSpace(da.startClip) ? da.startClip
-                        : !string.IsNullOrWhiteSpace(da.hitBoxClip) ? da.hitBoxClip
-                        : da.endClip;
-            if (!string.IsNullOrWhiteSpace(clip)) steps.Add((clip, (Vector3)origin, null));
-        }
-        else
-        {
-            // 경로 판정형: 채워진 것만 순서대로(출발 → 히트박스중앙 → 종료). hitBoxClip 만 회전 옵션 적용.
-            if (!string.IsNullOrWhiteSpace(da.startClip))  steps.Add((da.startClip,  (Vector3)origin, null));
-            if (!string.IsNullOrWhiteSpace(da.hitBoxClip)) steps.Add((da.hitBoxClip, (Vector3)center, hitBoxRot));
-            if (!string.IsNullOrWhiteSpace(da.endClip))    steps.Add((da.endClip,    (Vector3)end,    null));
-        }
-
-        if (steps.Count == 0) return;
 
         var caster = MinionSkillCaster.Spawn(main, origin);
-        caster.PlayDashSequence(da.visual, steps, da.clipDuration, faceRight);
+        float life = SpawnSummonDashHitBox(main, mod, caster, origin, dir, dist);
+        if (!PlaySummonDashVisual(caster, main, mod, origin, end, dir))
+        {
+            // 연출 없는 소환수는 판정 시간만큼 있다가 끝 지점에서 이어간다.
+            if (!mod.hitAtOrigin) caster.transform.position = end;
+            caster.SetLifetime(life);
+        }
+        return caster;
     }
 
-    /// <summary>
-    /// 대쉬 경로를 덮는 히트박스를 깐다. 대쉬 자체는 원래 순수 이동이라 이 히트박스가 신규다.
-    /// 다단히트는 BaseHitBox 의 isContinuousDamage + damageTickRate 로 낸다.
-    /// </summary>
-    private void SpawnDashHitBox(MinionDashModifier mod, Vector2 origin, Vector2 dir, float dist)
+    private float SpawnSummonDashHitBox(MainMinionDataSO main, MinionDashModifier mod, MinionSkillCaster caster, Vector2 origin, Vector2 dir, float dist)
     {
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-
-        // 피해 정보 — 속성/상태이상은 소환수 대쉬 개조안에서 온다. 마법이면 CharacterHealth 가 플레이어 마법증폭을 태운다.
-        // [강화] 보상방 강화 단계만큼 대쉬 피해 배율이 붙는다(MinionEnhance).
-        float dmg = (_player.Stat != null ? _player.Stat.ATK : 0f) * mod.damageMultiplier
-                    * MinionEnhance.DashDamageMult(GetMainMinion());
+        float dmg = _player.Stat.ATK * mod.damageMultiplier * MinionEnhance.DashDamageMult(main);
         var weapon = EquipmentInventoryManager.Instance != null ? EquipmentInventoryManager.Instance.Weapon : null;
         dmg *= weapon != null ? weapon.minionDashDamageMultiplier : 1f;
         StatusType? status = mod.onHitStatus == StatusType.None ? (StatusType?)null : mod.onHitStatus;
         var info = new DamageInfo(dmg, mod.element, _player.gameObject, 1f, "Dash",
             causesHitstun: true, knockbackForce: mod.pushesEnemies ? mod.pushForce : 0f,
             category: DamageCategory.DashAttack, applyStatus: status);
+        info.minionSource = caster;
 
         System.Action<CharacterHealth> onHit = null;
         if (mod.pushesEnemies)
@@ -275,58 +234,55 @@ public class MeleeDodgeController : MonoBehaviour
 
         BaseHitBox box;
         float life;
-
         if (mod.hitAtOrigin)
         {
-            // [출발점 원형] 경로를 훑는 대신 대쉬 시작 자리에 원 하나를 잠깐 깐다(네크 인형).
-            // 이동과 무관하므로 dist 가짜여도 발동한다. 원형 콜라이더 프리팹이 따로 필요하다.
-            // 프리팹: 소환수 SO 가 자기 것을 지정했으면 그걸, 아니면 컨트롤러의 출발점 기본 프리팹으로 폴백.
             var prefab = mod.hitBoxPrefab != null ? mod.hitBoxPrefab : originHitBoxPrefab;
-            if (prefab == null)
-            {
-                Debug.LogWarning("<color=orange>[MeleeDodge]</color> hitAtOrigin 대쉬인데 히트박스 프리팹이 없습니다 (dashModifier.hitBoxPrefab / originHitBoxPrefab 둘 다 빔).");
-                return;
-            }
             box = Instantiate(prefab, origin, Quaternion.identity);
             box.transform.localScale = new Vector3(mod.originRadius * 2f, mod.originRadius * 2f, 1f);
-            box.hitEffectAngle = angle;
-            life = 0.15f; // 원이 겹친 적을 잡는 데 필요한 짧은 수명. 반지름이 크기 축이고 이건 튜닝 대상 아님.
+            life = 0.15f;
         }
         else
         {
-            // [경로 박스] 이 프리팹의 콜라이더는 '전방 기준'이다 (m_Offset.x = 0.5, m_Size.x = 1 -> 로컬 x [0,1]).
-            // 즉 자기 원점에서 앞으로 자란다. 대쉬 시작점에 그대로 깔면 [0, dist] 를 정확히 덮는다.
-            // (예전엔 경로 '중앙'에 놨다가 오프셋 0.5 가 스케일까지 먹어 [0.5d, 1.5d] 로 밀렸었다.)
-            // 프리팹: 소환수 SO 가 자기 것을 지정했으면 그걸, 아니면 컨트롤러의 경로 기본 프리팹으로 폴백.
             var prefab = mod.hitBoxPrefab != null ? mod.hitBoxPrefab : dashHitBoxPrefab;
-            if (prefab == null)
-            {
-                Debug.LogWarning("<color=orange>[MeleeDodge]</color> 소환수가 대쉬 피해를 갖고 있는데 히트박스 프리팹이 없습니다 (dashModifier.hitBoxPrefab / dashHitBoxPrefab 둘 다 빔).");
-                return;
-            }
-            if (dist <= 0.01f) return;
             box = Instantiate(prefab, origin, Quaternion.Euler(0, 0, angle));
-            box.transform.localScale = new Vector3(dist, mod.width, 1f);
-            box.hitEffectAngle = angle; // 없으면 히트 이펙트가 대쉬 방향과 무관하게 오른쪽으로 튄다
-            life = dist / dashSpeed;    // 경로를 지나는 시간
+            box.transform.localScale = new Vector3(Mathf.Max(0.01f, dist), mod.width, 1f);
+            life = Mathf.Max(0.05f, dist / Mathf.Max(0.01f, dashSpeed));
         }
-
-        if (mod.hitCount > 1)
-        {
-            // N타를 수명 안에 균등 배분한다.
-            box.isContinuousDamage = true;
-            box.damageTickRate = life / mod.hitCount;
-        }
-        else
-        {
-            box.isContinuousDamage = false;
-        }
-
-        GetMainMinion()?.ApplyHitEffect(box);
+        box.hitEffectAngle = angle;
+        box.isContinuousDamage = mod.hitCount > 1;
+        if (mod.hitCount > 1) box.damageTickRate = life / mod.hitCount;
+        main.ApplyHitEffect(box);
         box.Init(info, Layers.EnemyMask, life, 0f, true, onHit);
+        return life;
     }
 
-private void EndDash()
+    /// <returns>연출을 재생했으면 true.</returns>
+    private static bool PlaySummonDashVisual(MinionSkillCaster caster, MainMinionDataSO main, MinionDashModifier mod, Vector2 origin, Vector2 end, Vector2 dir)
+    {
+        var da = main.dashAnim;
+        if (da == null || !da.HasVisual) return false;
+        Vector2 center = (origin + end) * 0.5f;
+        float? hitBoxRot = da.rotateHitBoxClipToDir ? (float?)(Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg) : null;
+        var steps = new System.Collections.Generic.List<(string clip, Vector3 pos, float? rotZ)>();
+        if (mod.hitAtOrigin)
+        {
+            string clip = !string.IsNullOrWhiteSpace(da.startClip) ? da.startClip
+                        : !string.IsNullOrWhiteSpace(da.hitBoxClip) ? da.hitBoxClip
+                        : da.endClip;
+            if (!string.IsNullOrWhiteSpace(clip)) steps.Add((clip, (Vector3)origin, null));
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(da.startClip))  steps.Add((da.startClip,  (Vector3)origin, null));
+            if (!string.IsNullOrWhiteSpace(da.hitBoxClip)) steps.Add((da.hitBoxClip, (Vector3)center, hitBoxRot));
+            if (!string.IsNullOrWhiteSpace(da.endClip))    steps.Add((da.endClip,    (Vector3)end,    null));
+        }
+        if (steps.Count == 0) return false;
+        caster.PlayDashSequence(da.visual, steps, da.clipDuration, dir.x >= 0f);
+        return true;
+    }
+
+    private void EndDash()
     {
         _afterimage?.EndDash();
         _isDashing = false;

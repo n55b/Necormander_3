@@ -135,8 +135,8 @@ public static class SceneLoadingTools
             // 새 그림 대신 기존 가드 게이지의 무채색 스프라이트와 파란색을 그대로 쓴다.
             var hud = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Player State/PlayerStateUI.prefab");
             var hudData = new SerializedObject(hud.GetComponent<PlayerStateUI>());
-            progress.sprite = ((Image)hudData.FindProperty("guardGaugeFill").objectReferenceValue).sprite;
-            progress.color = hudData.FindProperty("guardReadyColor").colorValue;
+            progress.sprite = ((Image)hudData.FindProperty("swapCooldownFill").objectReferenceValue).sprite;
+            progress.color = hudData.FindProperty("swapReadyColor").colorValue;
             progress.type = Image.Type.Filled;
             progress.fillMethod = Image.FillMethod.Horizontal;
             progress.fillOrigin = 0;

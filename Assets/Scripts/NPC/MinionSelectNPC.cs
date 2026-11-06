@@ -106,7 +106,7 @@ public class MinionSelectNPC : NPCBase
         if (minion != null && inv != null)
         {
             // 같은 소환수를 다시 골라도 '새로 시작'이다 — 강화 단계는 런마다 보상방에서 쌓는다.
-            if (inv.EquipMinion(minion)) inv.ResetMainSummonEnhance();
+            inv.EquipStartingSummon(minion);
             Debug.Log($"<color=cyan>[MinionSelectNPC]</color> 시작 소환수 선택: {minion.minionName}");
             FloatingTextManager.ShowOnPlayer($"{(string.IsNullOrEmpty(minion.minionName) ? minion.name : minion.minionName)} 획득", Color.white);
         }

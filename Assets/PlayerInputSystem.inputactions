@@ -25,7 +25,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Parry",
+                    "name": "MinionSwap",
                     "type": "Button",
                     "id": "a1ac0817-f9d7-416f-a844-6365fcc7db01",
                     "expectedControlType": "",
@@ -216,7 +216,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Parry",
+                    "action": "MinionSkill",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -337,7 +337,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "MinionSkill",
+                    "action": "MinionSwap",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -9,38 +9,21 @@ public class InventoryManager : MonoBehaviour
     public static InventoryManager Instance;
 
     /// <summary>
-    /// 슬롯 하나. 0번은 메인 소환수, 1번은 우클릭이 들어간다.
-    ///
-    /// [26/08/15] 1번은 원래 서브 소환수 칸이었다. 서브가 삭제되면서 칸 자체는 살리고 페이로드만
-    /// 우클릭으로 바꿨다 — UI(슬롯 2칸)와 세이브 구조를 그대로 두기 위해서다.
-    /// 그래서 한 슬롯이 소환수 또는 우클릭 <b>둘 중 하나</b>를 든다. 둘 다 드는 슬롯은 없다.
+    /// 소환수 슬롯 하나. 소환수를 최대 2개 장착하고 그중 1개가 활성 소환수다.
     /// </summary>
     [System.Serializable]
     public class CoreSlot
     {
         public bool IsShattered;
         public MinionDataSO EquippedMinion;
-        public RightClickDataSO EquippedRightClick;
         public int Quantity;                // 미니언 마리수
 
-        public bool IsEmpty => !IsShattered && EquippedMinion == null && EquippedRightClick == null;
+        public bool IsEmpty => !IsShattered && EquippedMinion == null;
 
         public MinionDataSO GetCurrentMinionData() => EquippedMinion;
 
         public GrowthItemData GetCurrentItemData()
         {
-            // 우클릭 칸. 아이콘은 스프라이트가 없으면 색 아이콘으로 자동 폴백된다(ResolveIcon).
-            if (EquippedRightClick != null)
-            {
-                return new GrowthItemData
-                {
-                    itemName = EquippedRightClick.ResolveTitle(),
-                    description = EquippedRightClick.ResolveDescription(),
-                    icon = EquippedRightClick.ResolveIcon(),
-                    rarity = default,
-                };
-            }
-
             if (EquippedMinion != null)
             {
                 // [수정] rewardItemData가 비어있어도(미할당) 미니언 자체 정보(minionName/minionIcon)로 대체하여
@@ -74,50 +57,133 @@ public class InventoryManager : MonoBehaviour
     public float AugmentMaxHpBonus => augmentMaxHpBonus;
     public void AddAugmentMaxHp(float amount) => augmentMaxHpBonus += amount;
 
-    /// <summary>슬롯 인덱스. 메인 소환수 1 + 우클릭 1 고정.</summary>
+    /// <summary>소환수 슬롯 인덱스. 세이브 호환을 위해 0번은 옛 메인 소환수 칸 그대로다.</summary>
     public const int SLOT_MAIN = 0;
-    /// <summary>[26/08/15] 옛 SLOT_SUB. 서브 소환수 삭제 후 우클릭 칸으로 재활용했다.</summary>
-    public const int SLOT_RIGHTCLICK = 1;
+    public const int SLOT_SECOND = 1;
     public const int SLOT_COUNT = 2;
 
-    [Header("슬롯 시스템 (메인 소환수 1 + 우클릭 1 고정)")]
+    [Header("슬롯 시스템 (소환수 2칸)")]
     public List<CoreSlot> Slots = new List<CoreSlot>(SLOT_COUNT);
 
-    /// <summary>역할에 대응하는 슬롯 인덱스. 소환수가 아니면(적 데이터 등) -1.</summary>
-    public static int SlotIndexOf(MinionDataSO minion) => minion switch
+    [Tooltip("기본 공격 추가타와 우클릭 스킬을 담당하는 활성 소환수 슬롯.")]
+    [SerializeField, Range(0, SLOT_COUNT - 1)] private int activeSummonSlot = SLOT_MAIN;
+    public int ActiveSummonSlot => activeSummonSlot;
+
+    /// <summary>활성 소환수. 평타/스킬/강화/진화의 기존 경로는 전부 이 값을 읽는다.</summary>
+    public MainMinionDataSO MainSummon => GetSummonAt(activeSummonSlot);
+
+    public MainMinionDataSO GetSummonAt(int index) => GetSummon(index) as MainMinionDataSO;
+
+    public int EquippedSummonCount
     {
-        MainMinionDataSO => SLOT_MAIN,
-        _ => -1,
-    };
+        get
+        {
+            int count = 0;
+            for (int i = 0; i < SLOT_COUNT; i++) if (GetSummon(i) != null) count++;
+            return count;
+        }
+    }
 
-    public MainMinionDataSO MainSummon => GetSummon(SLOT_MAIN) as MainMinionDataSO;
+    /// <summary>활성 슬롯을 바꾼다. 빈 슬롯은 활성으로 둘 수 없다.</summary>
+    public bool SetActiveSummonSlot(int slot)
+    {
+        if (GetSummon(slot) == null) return false;
+        if (activeSummonSlot == slot) return true;
+        activeSummonSlot = slot;
+        OnMinionUpdated?.Invoke();
+        return true;
+    }
 
-    /// <summary>현재 장착된 우클릭. PlayerParryController 가 입력 때마다 여기를 본다.</summary>
-    public RightClickDataSO EquippedRightClick
-        => (SLOT_RIGHTCLICK < Slots.Count && !Slots[SLOT_RIGHTCLICK].IsShattered)
-            ? Slots[SLOT_RIGHTCLICK].EquippedRightClick
-            : null;
+    private void NormalizeActiveSlot()
+    {
+        activeSummonSlot = Mathf.Clamp(activeSummonSlot, 0, SLOT_COUNT - 1);
+        if (GetSummon(activeSummonSlot) != null) return;
+        for (int i = 0; i < SLOT_COUNT; i++)
+            if (GetSummon(i) != null) { activeSummonSlot = i; return; }
+    }
 
-    // ── 메인 소환수 강화(보상방) ─────────────────────────────────────
+    // ── 같은 소환수(진화 계열) 판정 ─────────────────────────────────
+    /// <summary>진화 계열의 시작 형태. 레지스트리에 등록된 evolutions 연결을 거슬러 올라간다.</summary>
+    private static MainMinionDataSO FamilyRoot(MainMinionDataSO minion)
+    {
+        var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null
+            ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY() : null;
+        if (registry == null || registry.minionDatas == null) return minion;
+        var current = minion;
+        for (int depth = 0; depth < 8 && current != null; depth++)
+        {
+            MainMinionDataSO parent = null;
+            foreach (var entry in registry.minionDatas)
+                if (entry is MainMinionDataSO candidate && candidate != current && candidate.evolutions != null
+                    && System.Array.IndexOf(candidate.evolutions, current) >= 0) { parent = candidate; break; }
+            if (parent == null) break;
+            current = parent;
+        }
+        return current;
+    }
+
+    private static bool EvolvesInto(MainMinionDataSO from, MainMinionDataSO to, int depth = 0)
+    {
+        if (from == null || from.evolutions == null || depth > 8) return false;
+        foreach (var next in from.evolutions)
+            if (next == to || EvolvesInto(next, to, depth + 1)) return true;
+        return false;
+    }
+
+    /// <summary>같은 소환수인가. 전사·기사·용사·무사·장수처럼 진화 계열이 같으면 같은 소환수다.</summary>
+    public static bool IsSameFamily(MinionDataSO a, MinionDataSO b)
+    {
+        if (a == null || b == null) return false;
+        if (a == b) return true;
+        if (!(a is MainMinionDataSO ma) || !(b is MainMinionDataSO mb)) return false;
+        return EvolvesInto(ma, mb) || EvolvesInto(mb, ma) || FamilyRoot(ma) == FamilyRoot(mb);
+    }
+
+    /// <summary>같은 계열 소환수가 장착된 슬롯. 없으면 -1. ignoreSlot 은 비교에서 뺀다.</summary>
+    public int FindFamilySlot(MinionDataSO minion, int ignoreSlot = -1)
+    {
+        for (int i = 0; i < SLOT_COUNT; i++)
+            if (i != ignoreSlot && IsSameFamily(GetSummon(i), minion)) return i;
+        return -1;
+    }
+
+    public bool HasSameFamilyEquipped(MinionDataSO minion) => FindFamilySlot(minion) >= 0;
+
+    public int FindEmptySummonSlot()
+    {
+        for (int i = 0; i < SLOT_COUNT; i++)
+            if (i < Slots.Count && !Slots[i].IsShattered && Slots[i].EquippedMinion == null) return i;
+        return -1;
+    }
+
+    // ── 소환수 강화(보상방) ─────────────────────────────────────────
     // 런 단위 진행도라 런 세이브(SaveData)에 같이 들어간다 — 죽으면 세이브와 함께 0 으로 돌아간다.
-    // 강화는 '지금 든 소환수'에 붙는다. 다른 소환수로 바뀌면 0 부터 다시 시작한다(EquipMinion 참조).
-    [Header("메인 소환수 강화")]
-    [SerializeField] private int mainSummonEnhanceLevel = 0;
+    // 강화는 슬롯의 소환수에 붙는다. 다른 소환수로 바뀌면 0 부터 다시 시작한다(EquipMinion 참조).
+    [Header("소환수 강화")]
+    [SerializeField] private int[] summonEnhanceLevels = new int[SLOT_COUNT];
 
-    /// <summary>현재 메인 소환수의 강화 단계(0 ~ MinionEnhance.MAX_LEVEL).</summary>
-    public int MainSummonEnhanceLevel => mainSummonEnhanceLevel;
+    /// <summary>활성 소환수의 강화 단계(0 ~ MinionEnhance.MAX_LEVEL).</summary>
+    public int MainSummonEnhanceLevel => summonEnhanceLevels[activeSummonSlot];
+
+    /// <summary>이 소환수가 장착된 슬롯의 강화 단계. 장착 중이 아니면 0.</summary>
+    public int GetEnhanceLevelOf(MainMinionDataSO minion)
+    {
+        for (int i = 0; i < SLOT_COUNT; i++)
+            if (minion != null && GetSummon(i) == minion) return summonEnhanceLevels[i];
+        return 0;
+    }
 
     /// <summary>보상방에서 강화를 더 받을 수 있는가.</summary>
     public bool CanEnhanceMainSummon
-        => MainSummon != null && mainSummonEnhanceLevel < MainSummon.MaxEnhanceLevel;
+        => MainSummon != null && MainSummonEnhanceLevel < MainSummon.MaxEnhanceLevel;
 
-    /// <summary>메인 소환수를 한 단계 강화한다. 성공하면 true.</summary>
+    /// <summary>활성 소환수를 한 단계 강화한다. 성공하면 true.</summary>
     public bool EnhanceMainSummon()
     {
         if (!CanEnhanceMainSummon) return false;
-        mainSummonEnhanceLevel++;
+        summonEnhanceLevels[activeSummonSlot]++;
         PolishFeedback.AtPlayer(FeedbackCue.Upgrade, PolishFeedback.MinionTier());
-        Debug.Log($"<color=cyan>[InventoryManager]</color> 메인 소환수 강화: {MainSummon.minionName} +{mainSummonEnhanceLevel}/{MainSummon.MaxEnhanceLevel}");
+        Debug.Log($"<color=cyan>[InventoryManager]</color> 소환수 강화: {MainSummon.minionName} +{MainSummonEnhanceLevel}/{MainSummon.MaxEnhanceLevel}");
         OnMinionUpdated?.Invoke();
         return true;
     }
@@ -125,8 +191,8 @@ public class InventoryManager : MonoBehaviour
     /// <summary>강화 단계를 0 으로 되돌린다. 마을에서 시작 소환수를 새로 고를 때 쓴다.</summary>
     public void ResetMainSummonEnhance()
     {
-        if (mainSummonEnhanceLevel == 0) return;
-        mainSummonEnhanceLevel = 0;
+        if (MainSummonEnhanceLevel == 0) return;
+        summonEnhanceLevels[activeSummonSlot] = 0;
         OnMinionUpdated?.Invoke();
     }
 
@@ -153,7 +219,7 @@ public class InventoryManager : MonoBehaviour
 
     /// <summary>지금 메인 소환수가 진화할 수 있는가(진화형이 연결돼 있고 요구 강화 단계를 채웠는가).</summary>
     public bool CanEvolveMainSummon
-        => MainSummon != null && MainSummon.CanEvolve && mainSummonEnhanceLevel >= GetEvolveRequiredLevel(MainSummon);
+        => MainSummon != null && MainSummon.CanEvolve && MainSummonEnhanceLevel >= GetEvolveRequiredLevel(MainSummon);
 
     /// <summary>메인 소환수를 target 으로 진화시킨다. target 은 현재 소환수의 evolutions 중 하나여야 한다.</summary>
     public bool EvolveMainSummon(MainMinionDataSO target)
@@ -163,11 +229,11 @@ public class InventoryManager : MonoBehaviour
         if (System.Array.IndexOf(from.evolutions, target) < 0) return false;
 
         // EquipMinion 을 쓰지 않는다 — 거기선 소환수가 바뀌면 강화를 무조건 0 으로 돌린다.
-        Slots[SLOT_MAIN].EquippedMinion = target;
+        Slots[activeSummonSlot].EquippedMinion = target;
         PolishFeedback.AtPlayer(FeedbackCue.Evolve, target.feedbackTier, target.minionIcon);
-        mainSummonEnhanceLevel = resetEnhanceOnEvolve ? 0 : Mathf.Min(mainSummonEnhanceLevel, target.MaxEnhanceLevel);
+        summonEnhanceLevels[activeSummonSlot] = resetEnhanceOnEvolve ? 0 : Mathf.Min(MainSummonEnhanceLevel, target.MaxEnhanceLevel);
 
-        Debug.Log($"<color=cyan>[InventoryManager]</color> 메인 소환수 진화: {from.minionName} → {target.minionName} (강화 {mainSummonEnhanceLevel})");
+        Debug.Log($"<color=cyan>[InventoryManager]</color> 메인 소환수 진화: {from.minionName} → {target.minionName} (강화 {MainSummonEnhanceLevel})");
         OnMinionUpdated?.Invoke();
         return true;
     }
@@ -208,55 +274,22 @@ public class InventoryManager : MonoBehaviour
             Debug_InitializeInventory();
         }
 
-        // 우클릭은 '없는 상태'를 만들지 않는다 — 세이브가 있든 없든 마지막 선택(없으면 기본 패링)을 물린다.
-        // 런 세이브에는 우클릭을 저장하지 않는다(영구 저장소가 진실 공급원). 그래서 여기서 항상 복원한다.
-        RestoreRightClickFromMeta();
-    }
-
-    /// <summary>
-    /// 영구 저장소에 적힌 선택을 우클릭 슬롯에 물린다. 저장이 없으면 레지스트리 기본값(패링).
-    /// 마을 NPC 가 교체할 때도 같은 슬롯을 쓰므로, 여기가 유일한 '런 시작 시 배선' 지점이다.
-    /// </summary>
-    private void RestoreRightClickFromMeta()
-    {
-        var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null
-            ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY()
-            : null;
-        if (registry == null)
-        {
-            Debug.LogWarning("<color=orange>[InventoryManager]</color> GrowthRegistry 가 없어 우클릭을 복원하지 못했습니다.");
-            return;
-        }
-
-        var rc = RightClickUnlockState.ResolveSelected(registry);
-        if (rc == null)
-        {
-            Debug.LogWarning("<color=orange>[InventoryManager]</color> 레지스트리에 우클릭 에셋이 하나도 없습니다. " +
-                             "GrowthRegistry 를 Refresh 하거나 defaultRightClick 을 배선하세요.");
-            return;
-        }
-
-        EquipRightClick(rc, persist: false); // 복원이지 새 선택이 아니다 — 저장을 되쓰지 않는다
     }
 
     private void Debug_InitializeInventory()
     {
         Debug.Log($"<color=cyan>[InventoryManager]</color> Debug_InitializeInventory Started. Starting Minions Count: {debugStartingMinions.Count}");
 
-        // 1. 미니언 먼저 생성 (미소유 직업만 추가)
+        // 세이브에서 복원한 소환수(마을에서 고른 것, 진화형)가 있으면 디버그 소환수를 끼워 넣지 않는다.
+        if (EquippedSummonCount > 0) return;
+
         for (int i = 0; i < debugStartingMinions.Count; i++)
         {
             if (debugStartingMinions[i] == null) continue;
-            if (HasMinion(debugStartingMinions[i].minionType)) continue;
-            // 역할 슬롯이 이미 차 있으면 덮지 않는다. 세이브에서 복원한 소환수(마을에서 고른 것, 진화형)를
-            // 직업(minionType)이 다르다는 이유로 디버그 시작 소환수가 갈아끼우고 강화까지 0 으로 날리던 문제 방지.
-            int roleSlot = SlotIndexOf(debugStartingMinions[i]);
-            if (roleSlot >= 0 && GetSummon(roleSlot) != null) continue;
-
             int qty = (i < debugStartingMinionQuantities.Count) ? debugStartingMinionQuantities[i] : 1;
 
-            // [개선] Registry 에셋 등록 상태와 무관하게 인스펙터에 직접 지정된 미니언 데이터를 100% 꽂아 장착합니다.
-            // 슬롯은 역할당 1칸이므로 빈 칸을 찾지 않고 역할 슬롯에 바로 넣는다.
+            // [개선] Registry 에셋 등록 상태와 무관하게 인스펙터에 직접 지정된 소환수를 장착합니다.
+            // 같은 계열이나 칸이 가득 찬 경우 EquipMinion 이 거절한다.
             EquipMinion(debugStartingMinions[i], qty);
         }
 
@@ -336,54 +369,47 @@ public class InventoryManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 소환수를 자기 역할의 슬롯에 장착한다. 슬롯은 역할당 1칸이므로 기존 것을 덮어쓴다.
+    /// 소환수를 빈 슬롯에 장착한다. 같은 계열을 이미 장착했거나 빈 칸이 없으면 false —
+    /// 칸이 가득 찼을 때는 교체 UI(MainMinionSelectionUI)가 슬롯을 지정해 아래 오버로드를 부른다.
     /// </summary>
     public bool EquipMinion(MinionDataSO minion, int amount = 1)
     {
+        if (minion == null || HasSameFamilyEquipped(minion)) return false;
+        int slot = FindEmptySummonSlot();
+        return slot >= 0 && EquipMinion(slot, minion, amount);
+    }
+
+    /// <summary>
+    /// 마을 NPC 의 시작 소환수 선택. 같은 계열이 있으면 그 칸, 빈 칸이 있으면 빈 칸, 가득 차면 활성 칸을 바꾸고
+    /// 그 칸의 강화를 0 부터 다시 시작한다.
+    /// </summary>
+    public bool EquipStartingSummon(MinionDataSO minion)
+    {
         if (minion == null) return false;
-        return EquipMinion(SlotIndexOf(minion), minion, amount);
+        int slot = FindFamilySlot(minion);
+        if (slot < 0) slot = FindEmptySummonSlot();
+        if (slot < 0) slot = activeSummonSlot;
+        if (!EquipMinion(slot, minion)) return false;
+        summonEnhanceLevels[slot] = 0;
+        activeSummonSlot = slot;
+        OnMinionUpdated?.Invoke();
+        return true;
     }
 
     public bool EquipMinion(int slotIndex, MinionDataSO minion, int amount = 1)
     {
         if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
 
-        // 역할과 슬롯이 어긋나면 역할 쪽 슬롯으로 돌려보낸다 (서브 카드가 메인 슬롯에 앉는 것을 방지).
-        // 소환수가 아니면(적 데이터가 흘러들어오면) SlotIndexOf 가 -1 이라 여기서 걸러진다.
-        if (minion != null && SlotIndexOf(minion) != slotIndex)
-        {
-            slotIndex = SlotIndexOf(minion);
-            if (slotIndex < 0 || slotIndex >= Slots.Count || Slots[slotIndex].IsShattered) return false;
-        }
+        // 소환수가 아니면(적 데이터가 흘러들어오면) 거른다. 다른 칸에 같은 계열이 있으면 중복 장착이다.
+        if (minion != null && !(minion is MainMinionDataSO)) return false;
+        if (minion != null && FindFamilySlot(minion, slotIndex) >= 0) return false;
 
         // 다른 소환수로 갈아끼우면 강화는 새 소환수에 따라가지 않는다.
-        if (slotIndex == SLOT_MAIN && Slots[slotIndex].EquippedMinion != minion) mainSummonEnhanceLevel = 0;
+        if (slotIndex < SLOT_COUNT && Slots[slotIndex].EquippedMinion != minion) summonEnhanceLevels[slotIndex] = 0;
 
         Slots[slotIndex].EquippedMinion = minion;
         Slots[slotIndex].Quantity = amount;
-
-        OnMinionUpdated?.Invoke();
-        return true;
-    }
-
-    /// <summary>
-    /// 우클릭을 장착한다. 슬롯은 1칸이라 기존 것을 덮어쓴다.
-    /// </summary>
-    /// <param name="persist">
-    /// true 면 영구 저장소에도 기록한다(= 플레이어가 NPC 에서 직접 고른 경우).
-    /// 런 시작 시 복원처럼 '이미 저장된 값을 되읽는' 경로는 false 로 불러야 한다 — 안 그러면
-    /// 저장을 자기 자신으로 덮어쓰는 왕복이 생긴다.
-    /// </param>
-    public bool EquipRightClick(RightClickDataSO rightClick, bool persist = true)
-    {
-        if (rightClick == null || !rightClick.IsValid) return false;
-        if (SLOT_RIGHTCLICK >= Slots.Count || Slots[SLOT_RIGHTCLICK].IsShattered) return false;
-        if (!RightClickUnlockState.IsUnlocked(rightClick)) return false;
-
-        Slots[SLOT_RIGHTCLICK].EquippedRightClick = rightClick;
-        Slots[SLOT_RIGHTCLICK].EquippedMinion = null; // 이 칸은 우클릭 전용이다. 소환수가 섞여 앉지 않게.
-
-        if (persist) RightClickUnlockState.SetSelected(rightClick);
+        NormalizeActiveSlot();
 
         OnMinionUpdated?.Invoke();
         return true;
@@ -395,12 +421,11 @@ public class InventoryManager : MonoBehaviour
         {
             Slots[slotIndex].IsShattered = true;
             Slots[slotIndex].EquippedMinion = null;
-            Slots[slotIndex].EquippedRightClick = null;
         }
     }
     #endregion
 
-    public bool HasMinionInSlots(MinionDataSO minion) => Slots.Exists(s => s.EquippedMinion == minion);
+    public bool HasMinionInSlots(MinionDataSO minion) => HasSameFamilyEquipped(minion);
     public bool HasJobInSlots(CommandData job) => Slots.Exists(s => s.EquippedMinion != null && s.EquippedMinion.minionType == job);
 
     public void AddTreasure(TreasureSO treasure)
@@ -424,7 +449,9 @@ public class InventoryManager : MonoBehaviour
     {
         data.gold = gold;
         data.augmentMaxHpBonus = augmentMaxHpBonus;
-        data.mainSummonEnhanceLevel = mainSummonEnhanceLevel;
+        data.mainSummonEnhanceLevel = summonEnhanceLevels[SLOT_MAIN];
+        data.secondSummonEnhanceLevel = summonEnhanceLevels[SLOT_SECOND];
+        data.activeSummonSlot = activeSummonSlot;
 
         // Slots 저장
         data.slots.Clear();
@@ -485,33 +512,32 @@ public class InventoryManager : MonoBehaviour
             coreSlot.Quantity = slotData.quantity;
             Slots.Add(coreSlot);
         }
-        // 메인/우클릭 2칸 보장. (예전엔 Initialize 가 3칸, 여기가 10칸으로 패딩이 어긋나 있었고,
-        //  UI 가 안 보여주는 슬롯에 미니언이 들어가는 조용한 버그가 있었다.)
+        // 소환수 2칸 보장.
         while (Slots.Count < SLOT_COUNT)
         {
             Slots.Add(new CoreSlot());
         }
         if (Slots.Count > SLOT_COUNT) Slots.RemoveRange(SLOT_COUNT, Slots.Count - SLOT_COUNT);
 
-        // 세이브는 슬롯 순서대로 이름만 복원할 뿐 역할을 검증하지 않는다. 슬롯이 자유 배치였던
-        // 구버전 세이브면 소환수가 1번 칸(지금은 우클릭 전용)에 들어앉은 채로 살아남을 수 있다.
-        // 장착 경로는 EquipMinion 이 막아주지만 이 경로는 그걸 우회하므로 여기서 한 번 더 거른다.
+        // 세이브는 슬롯 순서대로 이름만 복원할 뿐 검증하지 않는다. 장착 경로를 우회하므로 여기서 거른다.
         for (int i = 0; i < Slots.Count; i++)
         {
             var m = Slots[i].EquippedMinion;
-            if (m != null && SlotIndexOf(m) != i)
+            if (m == null) continue;
+            if (!(m is MainMinionDataSO) || (i == SLOT_SECOND && IsSameFamily(Slots[SLOT_MAIN].EquippedMinion, m)))
             {
-                Debug.LogWarning($"<color=orange>[InventoryManager]</color> 세이브의 '{m.name}' 이 역할과 안 맞는 슬롯 {i} 에 있습니다. 비웁니다.");
+                Debug.LogWarning($"<color=orange>[InventoryManager]</color> 세이브의 '{m.name}' 을 슬롯 {i} 에 장착할 수 없습니다. 비웁니다.");
                 Slots[i].EquippedMinion = null;
             }
         }
 
-
-        // 메인 소환수 강화. 강화 도입 전 세이브는 0. 소환수가 비었으면 강화도 의미가 없다.
-        var loadedMain = MainSummon;
-        mainSummonEnhanceLevel = loadedMain != null
-            ? Mathf.Clamp(data.mainSummonEnhanceLevel, 0, loadedMain.MaxEnhanceLevel)
-            : 0;
+        // 강화 단계 복원. 필드가 없던 옛 세이브는 2번째 칸 0, 활성 슬롯 0 으로 읽힌다.
+        activeSummonSlot = data.activeSummonSlot;
+        NormalizeActiveSlot();
+        var first = GetSummonAt(SLOT_MAIN);
+        var second = GetSummonAt(SLOT_SECOND);
+        summonEnhanceLevels[SLOT_MAIN] = first != null ? Mathf.Clamp(data.mainSummonEnhanceLevel, 0, first.MaxEnhanceLevel) : 0;
+        summonEnhanceLevels[SLOT_SECOND] = second != null ? Mathf.Clamp(data.secondSummonEnhanceLevel, 0, second.MaxEnhanceLevel) : 0;
 
         // Treasures 로드
         TreasureStacks.Clear();
@@ -529,10 +555,6 @@ public class InventoryManager : MonoBehaviour
         {
             Debug_InitializeInventory();
         }
-
-        // 우클릭은 런 세이브가 아니라 영구 저장소가 진실 공급원이다. 위에서 Slots 를 통째로
-        // 다시 만들었으므로 Initialize 가 물려놨던 우클릭이 날아간 상태다 — 여기서 다시 물린다.
-        RestoreRightClickFromMeta();
 
         OnMinionUpdated?.Invoke();
     }

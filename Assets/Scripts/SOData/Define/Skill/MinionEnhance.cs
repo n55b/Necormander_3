@@ -58,12 +58,12 @@ public static class MinionEnhance
     {
         if (main == null) return null;
         var inv = InventoryManager.Instance;
-        if (inv == null || inv.MainSummon != main) return null;
-        return main.GetEnhanceStep(inv.MainSummonEnhanceLevel);
+        if (inv == null) return null;
+        return main.GetEnhanceStep(inv.GetEnhanceLevelOf(main));
     }
 
-    public static float BasicAttackMult(MainMinionDataSO main) => CurrentStep(main)?.basicAttackMultiplier ?? 1f;
     public static float DashDamageMult(MainMinionDataSO main) => CurrentStep(main)?.dashDamageMultiplier ?? 1f;
+    public static float BasicAttackMult(MainMinionDataSO main) => CurrentStep(main)?.basicAttackMultiplier ?? 1f;
     public static float SkillDamageMult(MainMinionDataSO main) => CurrentStep(main)?.skillDamageMultiplier ?? 1f;
 
     /// <summary>강화 카드 설명. 단계 설명이 있으면 그걸, 없으면 '현재 → 다음' 배율을 만든다.</summary>
@@ -75,9 +75,8 @@ public static class MinionEnhance
         if (!string.IsNullOrEmpty(next.description)) return next.description;
 
         var cur = main.GetEnhanceStep(currentLevel);
-        float cb = cur?.basicAttackMultiplier ?? 1f, cd = cur?.dashDamageMultiplier ?? 1f, cs = cur?.skillDamageMultiplier ?? 1f;
+        float cb = cur?.basicAttackMultiplier ?? 1f, cs = cur?.skillDamageMultiplier ?? 1f;
         return $"일반 공격 피해 x{cb:0.##} → x{next.basicAttackMultiplier:0.##}\n" +
-               $"대쉬 피해 x{cd:0.##} → x{next.dashDamageMultiplier:0.##}\n" +
                $"스킬 피해 x{cs:0.##} → x{next.skillDamageMultiplier:0.##}";
     }
 }
