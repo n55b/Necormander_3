@@ -50,6 +50,67 @@ public class MeleeCombatController : MonoBehaviour
              "차오르는 바가 '어디를 언제 치는지'를 알려주는 게 평타보다 중요합니다.")]
     [SerializeField] private bool hideFinisherTelegraph = false;
 
+    [Header("대기 소환수 효과 (평타)")]
+    [Tooltip("필드에 없는 대기 소환수의 '대기 효과'(빙결·출혈·취약 등)를 플레이어 평타에 묻힌다.\n" +
+             "확률·타수·지속시간은 소환수 에셋의 standbyInfusion 에서 정한다. 소환수가 1마리면 대기 소환수가 없어 발동하지 않는다.")]
+    [SerializeField] private bool standbyInfusionEnabled = true;
+
+    public bool StandbyInfusionEnabled { get => standbyInfusionEnabled; set => standbyInfusionEnabled = value; }
+
+    /// <summary>마지막으로 평타에 묻은 대기 효과(툴·점검 표시용). 묻지 않았으면 갱신하지 않는다.</summary>
+    public MainMinionDataSO LastInfusionMinion { get; private set; }
+    public StatusType LastInfusionStatus { get; private set; } = StatusType.None;
+
+    /// <summary>지금 평타에 묻을 수 있는 대기 소환수. 꺼져 있거나 대기 소환수·효과가 없으면 null.</summary>
+    public MainMinionDataSO GetStandbyInfusionSource()
+    {
+        if (!standbyInfusionEnabled || _player == null) return null;
+        var skills = _player.GetComponent<PlayerSkillController>();
+        var standby = skills != null ? skills.StandbySummon : null;
+        return standby != null && standby.HasStandbyInfusion ? standby : null;
+    }
+
+    /// <summary>
+    /// 이번 휘두르기에 대기 효과들을 효과마다 따로 추첨한다.
+    /// 첫 번째로 붙은 효과는 피해 정보(applyStatus)에 싣고, 두 번째부터는 적중 콜백으로 따로 건다.
+    /// </summary>
+    /// <returns>추가로 걸 효과가 있으면 그 적중 콜백, 없으면 null.</returns>
+    private System.Action<CharacterHealth> ApplyStandbyInfusion(ref DamageInfo info, int swingIndex)
+    {
+        LastInfusionStatuses.Clear();
+        var source = GetStandbyInfusionSource();
+        if (source == null) return null;
+        System.Collections.Generic.List<MinionStandbyInfusion> extras = null;
+        foreach (var inf in source.standbyInfusions)
+        {
+            if (inf == null || !inf.IsActive || !inf.AppliesToSwing(swingIndex) || Random.value >= inf.chance) continue;
+            LastInfusionStatuses.Add(inf.status);
+            if (!info.applyStatus.HasValue)
+            {
+                info.applyStatus = inf.status;
+                info.statusDuration = inf.duration;
+            }
+            else (extras ??= new System.Collections.Generic.List<MinionStandbyInfusion>()).Add(inf);
+        }
+        if (LastInfusionStatuses.Count == 0) return null;
+        LastInfusionMinion = source;
+        LastInfusionStatus = LastInfusionStatuses[0];
+        if (extras == null) return null;
+
+        float power = _player.Stat != null ? _player.Stat.ATK * (1f + _player.Stat.PHYS_AMP) : 0f;
+        return health =>
+        {
+            if (health == null || health.IsDead) return;
+            var status = health.GetComponent<CharacterStatus>();
+            if (status == null) status = health.GetComponentInParent<CharacterStatus>();
+            if (status == null) return;
+            foreach (var e in extras) status.ApplyStatus(e.status, e.duration, power: power);
+        };
+    }
+
+    /// <summary>마지막 휘두르기에 붙은 대기 효과들(툴·점검용). 아무것도 안 붙었으면 비어 있다.</summary>
+    public readonly System.Collections.Generic.List<StatusType> LastInfusionStatuses = new System.Collections.Generic.List<StatusType>();
+
     private bool _isHoldingAttack = false;
     private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
     private bool _attackAnimationPlaying;
@@ -212,17 +273,16 @@ public class MeleeCombatController : MonoBehaviour
                 DamageInfo info = new DamageInfo(_player.Stat.ATK * damageMultiplier, DamageType.Physical, this.gameObject, 1f, "", false, causesHitstun: true, knockbackForce: 2f, superArmorDamage: saDmg, category: DamageCategory.BasicAttack);
                 info.playerBasicAttack = new PlayerBasicAttackRoll(weapon);
                 info.feedbackComboFinish = swingIndex == 2;
-                if (weapon != null && weapon.exploitsWeakness && swingIndex == 2)
-                {
-                    info.applyStatus = StatusType.Vulnerable;
-                    info.statusDuration = weapon.weaknessDuration;
-                }
+                // [26/11] 무기 '약점 공략'(3타 취약 부여)은 껐다 — 취약은 용사 계열(기사/용사) 소환수 스킬 전용이다.
+                // 되살리려면 EquipmentSO.exploitsWeakness 를 다시 읽어 info.applyStatus = Vulnerable 을 실으면 된다.
+                // 대기 소환수(필드에 없는 쪽)의 효과를 확률로 평타에 묻힌다.
+                var infusionOnHit = ApplyStandbyInfusion(ref info, swingIndex);
                 _activeHitbox.HitsPerContact = weapon != null ? weapon.basicHitsPerContact : 1;
                 _activeHitbox.ContactHitInterval = weapon != null ? weapon.basicRepeatHitInterval : 0f;
 
                 LayerMask enemyLayer = Layers.EnemyMask;
                 // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
-                _activeHitbox.Init(info, enemyLayer, attackHitActiveDuration, telegraphDuration);
+                _activeHitbox.Init(info, enemyLayer, attackHitActiveDuration, telegraphDuration, onHitEnemy: infusionOnHit);
             }
             else
             {

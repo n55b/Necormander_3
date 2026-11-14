@@ -22,6 +22,13 @@ public class MainMinionDataSO : MinionDataSO
     [Tooltip("플레이어 평타 콤보 첫 타에 이 소환수가 넣는 일격(이름은 옛 '마무리'를 그대로 둔다 — 에셋 직렬화 호환).")]
     public MinionFinisher finisher = new MinionFinisher();
 
+    [Header("대기 효과 (필드에 없을 때 플레이어 평타에 묻어남)")]
+    [Tooltip("이 소환수가 대기 슬롯에 있을 때(현현하지 않았을 때) 플레이어 평타에 붙는 상태이상들.\n" +
+             "효과마다 확률을 따로 추첨한다(여러 개가 동시에 붙을 수 있다).")]
+    public MinionStandbyInfusion[] standbyInfusions = new MinionStandbyInfusion[0];
+
+    public bool HasStandbyInfusion => MinionStandbyInfusion.AnyActive(standbyInfusions);
+
     [Header("적중 연출")]
     [Tooltip("피격 대상에게 재생할 완성 이펙트 프리팹. 비우면 히트박스의 기존 연출을 사용한다. 평타·Space·대시에 공통 적용.")]
     public GameObject hitEffectPrefab;

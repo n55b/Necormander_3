@@ -255,7 +255,11 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         {
             StatusType st = info.applyStatus.Value;
             if (st != StatusType.None && !(hasSuperArmor && StatusRules.BlockedBySuperArmor(st)))
-                _status.ApplyStatus(st, info.statusDuration);
+            {
+                // 출혈은 공격자의 공격력(물리 증폭 포함)을 기억한다. 미니언 스킬은 플레이어 스탯을 빌린다(ResolveAttackerStat).
+                float power = attackStat != null ? attackStat.ATK * (1f + attackStat.PHYS_AMP) : 0f;
+                _status.ApplyStatus(st, info.statusDuration, power: power);
+            }
         }
 
         // [장비 상태이상 발동] 플레이어 Q/E 스킬 타격이면 착용 장비의 상태이상 확률을 굴려 부여(얼음 건틀릿 등).
@@ -299,7 +303,9 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         DamageEventBus.TriggerBeforeDamageCalculated(this, ref info);
 
         float remainingDamage = info.amount;
-        if (info.type == DamageType.Physical && _status != null && _status.HasStatus(StatusType.Vulnerable))
+        // 취약: 물리 피해 +X%. 출혈 틱도 '물리 피해'로 취급해 함께 키운다(출혈 = 물리 기반 틱 피해).
+        if ((info.type == DamageType.Physical || info.type == DamageType.Bleed)
+            && _status != null && _status.HasStatus(StatusType.Vulnerable))
             remainingDamage *= 1f + StatusRules.VULNERABLE_DAMAGE_BONUS;
 
         // 공격 스탯 주인(플레이어/적/미니언→플레이어). 증폭·크리가 전부 이 하나에서 나온다.

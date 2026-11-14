@@ -15,7 +15,7 @@ using UnityEngine;
 /// </summary>
 public class SoundTestWindow : EditorWindow
 {
-    [MenuItem("Tools/사운드/사운드 테스트 툴", priority = 0)]
+    [MenuItem("Tools/기획/사운드 테스트 툴", priority = 2)]
     public static SoundTestWindow Open()
     {
         var w = GetWindow<SoundTestWindow>("사운드 테스트");

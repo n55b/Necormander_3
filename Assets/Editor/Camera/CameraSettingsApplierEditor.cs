@@ -30,7 +30,7 @@ static class CameraSettingsApplierEditor
         UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
     }
 
-    [MenuItem("Tools/Camera/Select Camera Settings")]
+    [MenuItem("Tools/기획/카메라 설정 열기", priority = 21)]
     static void SelectSettings()
     {
         var s = CameraSettingsSO.Instance;

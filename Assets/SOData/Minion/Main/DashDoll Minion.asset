@@ -54,7 +54,7 @@ MonoBehaviour:
     hitCount: 1
     damageMultiplier: 1
     element: 0
-    onHitStatus: 6
+    onHitStatus: 0
     pushesEnemies: 1
     pushForce: 3
   finisher:
@@ -74,6 +74,11 @@ MonoBehaviour:
     causesHitstun: 1
     knockbackForce: 6
     superArmorDamage: 30
+  standbyInfusions:
+  - status: 0
+    chance: 0.5
+    swings: 0
+    duration: 0
   hitEffectPrefab: {fileID: 0}
   basicAnim:
     visual: {fileID: 2025862953014797774, guid: 8107f7e40fd1da54f92690cea1694ff6, type: 3}

@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 /// <summary>실제 프리팹/SO의 표시 항목과 Undo·직렬화를 확인한다. 게임 에셋은 저장하지 않는다.</summary>
 public static class DesignerInspectorCheck
 {
-    [MenuItem("Tools/기획/인스펙터와 연출 함께 검증")]
+    [MenuItem("Tools/기획/개발용 검사/인스펙터와 연출 함께 검증", priority = 101)]
     public static void RunWithFeedback()
     {
         Run();
@@ -18,7 +18,7 @@ public static class DesignerInspectorCheck
         if (SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null)
             DesignerInspectorGuiCheck.Run();
     }
-    [MenuItem("Tools/기획/한글 인스펙터 검증")]
+    [MenuItem("Tools/기획/개발용 검사/한글 인스펙터 검증", priority = 102)]
     public static void Run()
     {
         DesignerInspectionInventory.Export();

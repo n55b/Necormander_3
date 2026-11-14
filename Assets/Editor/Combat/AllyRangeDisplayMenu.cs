@@ -2,14 +2,14 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// 메뉴: Tools > 디버그 > 소환수 공격 범위 표시   (단축키 Alt + Shift + H)
+/// 메뉴: Tools > 기획 > 플레이테스트 > 소환수 공격 범위 표시   (단축키 Alt + Shift + H)
 /// 체크 = 보임(디버그), 체크 해제 = 숨김(기본). 플레이 중에도 바로 바뀐다. 에디터 전용.
 /// </summary>
 public static class AllyRangeDisplayMenu
 {
-    private const string MenuName = "Tools/디버그/소환수 공격 범위 표시";
+    private const string MenuName = "Tools/기획/플레이테스트/소환수 공격 범위 표시";
 
-    [MenuItem(MenuName + " &#h", priority = 100)]
+    [MenuItem(MenuName + " &#h", priority = 42)]
     private static void Toggle()
     {
         AllyRangeDisplay.Visible = !AllyRangeDisplay.Visible;

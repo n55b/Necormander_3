@@ -13,7 +13,7 @@ public static class DesignerInspectionInventory
         public string owner, field, type, tooltip, header, source;
     }
     [Serializable] public class Report { public List<Entry> fields = new List<Entry>(); }
-    [MenuItem("Tools/기획/코드 조절항목 조사")]
+    [MenuItem("Tools/기획/개발용 검사/코드 조절항목 조사", priority = 103)]
     public static void Export()
     {
         var report = new Report();

@@ -10,7 +10,7 @@ public sealed class DesignerInspectorGuiCheck : EditorWindow
     private int draws;
     private Exception failure;
     private int fontAtlasAssertions;
-    [MenuItem("Tools/기획/인스펙터 그리기 검사")]
+    [MenuItem("Tools/기획/개발용 검사/인스펙터 그리기 검사", priority = 100)]
     public static void Run()
     {
         var window = CreateInstance<DesignerInspectorGuiCheck>();

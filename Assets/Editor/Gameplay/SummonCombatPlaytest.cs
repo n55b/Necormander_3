@@ -207,7 +207,11 @@ public static class SummonCombatPlaytest
         Check(inv.EquipMinion(ice), "다른 소환수 2번째 칸 장착");
         Check(!inv.EquipMinion(doll), "칸이 차면 자동 장착 안 함");
         yield return 0.2f;
-        Check(skills.GetFieldAgent(0) != null && skills.GetFieldAgent(1) != null, "필드에 두 마리 표시");
+        Check(skills.GetFieldAgent(0) != null && skills.GetFieldAgent(1) != null, "슬롯별 필드 개체 생성");
+        {
+            var on = skills.GetFieldAgent(inv.ActiveSummonSlot); var off = skills.GetFieldAgent(1 - inv.ActiveSummonSlot);
+            Check(on.IsVisualVisible && !on.IsBenched && off.IsBenched && !off.IsVisualVisible, "필드에는 장착(활성) 소환수만 표시");
+        }
         foreach (var agent in new[] { skills.GetFieldAgent(0), skills.GetFieldAgent(1) })
             Check(agent.GetComponentsInChildren<Collider2D>(true).Length == 0 && agent.GetComponentInChildren<CharacterHealth>(true) == null
                   && agent.GetComponentInChildren<CharacterStatus>(true) == null && agent.gameObject.layer == Layers.Default,
@@ -223,11 +227,13 @@ public static class SummonCombatPlaytest
         Check(inv.ActiveSummonSlot == 1 - prev && inv.MainSummon == ice && skills.MainSummon == ice, "2개: Space 스왑 → 활성 변경");
         yield return 0.25f;
         Check(Casters(fighter.minionName) > fighterCasters && skills.GetSummonCooldownRemaining(prev) <= cdBeforeSwap, "스왑 시 스왑 전 소환수 대쉬 공격 발동, 쿨타임은 늘지 않음");
-        Check(skills.GetSummonCooldownRemaining(1) <= 0f && Mathf.Approximately(skills.SwapCooldownDuration, 30f), "새 소환수 쿨타임 유지, 스왑 쿨타임 30초");
+        Check(skills.GetSummonCooldownRemaining(1) <= 0f && Mathf.Approximately(skills.SwapCooldownDuration, PrefabSwapCooldown()) && skills.SwapCooldownRemaining > 0f, "새 소환수 쿨타임 유지, 스왑 쿨타임 = 플레이어 프리팹 값");
         int after = inv.ActiveSummonSlot;
         yield return TapSpace();
         Check(inv.ActiveSummonSlot == after, "스왑 쿨타임 중 재스왑 차단");
         yield return 1.1f;
+        Check(skills.GetFieldAgent(prev).IsBenched && !skills.GetFieldAgent(prev).IsVisualVisible
+              && skills.GetFieldAgent(after).IsVisualVisible, "스왑 전 소환수는 액팅 후 사라지고, 새 소환수만 필드에 표시");
         float fighterCd = skills.GetSummonCooldownRemaining(0);
         Check(fighterCd > 0f, $"슬롯별 쿨타임 유지 (전사 남은 {fighterCd:F1}s)");
         yield return 1f;
@@ -278,13 +284,14 @@ public static class SummonCombatPlaytest
         Check(enemyHealth.CurHP < hpBefore, "시전한 스킬이 스왑 후에도 피해를 줌(자동 공격 포함 값)");
 
         // ── 자동 공격 ──
-        var a0 = skills.GetFieldAgent(0); var a1 = skills.GetFieldAgent(1);
-        ((float[])typeof(PlayerSkillController).GetField("_summonCooldownEnd", Any).GetValue(skills))[0] = Time.time + 30f;
+        int onSlot = inv.ActiveSummonSlot;
+        var a0 = skills.GetFieldAgent(onSlot); var a1 = skills.GetFieldAgent(1 - onSlot); // a0 = 활성, a1 = 비활성
+        ((float[])typeof(PlayerSkillController).GetField("_summonCooldownEnd", Any).GetValue(skills))[onSlot] = Time.time + 30f;
         int c0 = a0.AutoAttackCount, c1 = a1.AutoAttackCount;
         float hp = enemyHealth.CurHP;
         yield return 4.5f;
-        Check(a0.AutoAttackCount - c0 >= 1 && a1.AutoAttackCount - c1 >= 1, $"활성·비활성 모두 자동 공격 ({a0.AutoAttackCount - c0}, {a1.AutoAttackCount - c1}회 / 4.5초)");
-        Check(a0.AutoAttackCount - c0 <= 3 && a1.AutoAttackCount - c1 <= 3, "자동 공격 주기 2초 범위");
+        Check(a0.AutoAttackCount - c0 >= 1 && a1.AutoAttackCount - c1 == 0, $"활성 소환수만 자동 공격 ({a0.AutoAttackCount - c0}, {a1.AutoAttackCount - c1}회 / 4.5초)");
+        Check(a0.AutoAttackCount - c0 <= 3, "자동 공격 주기 2초 범위");
         Check(enemyHealth.CurHP < hp || enemyHealth.IsDead, "자동 공격 피해 적용");
         if (!enemyHealth.IsDead && !a0.IsLinking)
             Check(Vector2.Distance(a0.transform.position, enemy.transform.position) >= skills.MinEnemyGap - 0.2f, "소환수가 적과 겹치지 않음");
@@ -334,13 +341,125 @@ public static class SummonCombatPlaytest
             yield return 0.02f;
             Check(dashed && invincible && Casters() == castersBefore
                   && UnityEngine.Object.FindObjectsByType<BaseHitBox>(FindObjectsSortMode.None).Length == boxesBefore && !dashAgent.IsLinking,
-                $"대쉬: {name} 무적 유지, 연출·판정·연계 없음");
+                $"대쉬(1마리): {name} 무적 유지, 대기 소환수 없으니 대쉬 공격·연계 없음 (dashed={dashed}, 무적={invincible}, 시전자 {castersBefore}->{Casters()}, 판정 {boxesBefore}->{UnityEngine.Object.FindObjectsByType<BaseHitBox>(FindObjectsSortMode.None).Length}, 연계={dashAgent.IsLinking})");
             durations.Add(travel.ToString("F4"));
             yield return 0.5f;
             player.transform.position += Vector3.left * (travel * 15f);
             yield return 0.1f;
         }
         Check(durations.Distinct().Count() == 1, $"모든 소환수 대쉬 이동 시간 동일 ({string.Join(",", durations)})");
+
+        // ── 대기 소환수 효과 → 플레이어 평타 ──
+        {
+            ClearSlots(inv);
+            inv.EquipMinion(0, fighter); inv.EquipMinion(1, ice);
+            yield return 0.3f;
+            var standby = skills.StandbySummon; var onField = inv.MainSummon;
+            var sSaved = standby.standbyInfusions; var fSaved = onField.standbyInfusions;
+            var apply = typeof(MeleeCombatController).GetMethod("ApplyStandbyInfusion", Any);
+            List<StatusType> Roll(int swing)
+            {
+                object[] a = { new DamageInfo(10f), swing };
+                apply.Invoke(melee, a);
+                return new List<StatusType>(melee.LastInfusionStatuses);
+            }
+            MinionStandbyInfusion E(StatusType s, float c, bool finalOnly = false) => new MinionStandbyInfusion
+                { status = s, chance = c, swings = finalOnly ? MinionStandbyInfusion.SwingFilter.FinalSwingOnly : MinionStandbyInfusion.SwingFilter.AllSwings };
+            try
+            {
+                standby.standbyInfusions = new[] { E(StatusType.Freeze, 1f) };
+                onField.standbyInfusions = new[] { E(StatusType.Bleed, 1f) };
+                var hit = Roll(0);
+                Check(hit.Count == 1 && hit[0] == StatusType.Freeze && melee.LastInfusionMinion == standby,
+                    $"대기 효과: 필드가 아닌 대기 소환수({standby.minionName}) 효과가 평타에 묻음 ({string.Join(",", hit)})");
+                standby.standbyInfusions = new[] { E(StatusType.Freeze, 1f, finalOnly: true) };
+                Check(Roll(0).Count == 0 && Roll(2).Contains(StatusType.Freeze), "대기 효과: '3타만' 설정이 1타에는 안 붙고 3타에 붙음");
+                // 효과마다 다른 확률: 100% 와 0% 를 같이 둔다 → 100% 효과만 붙는다.
+                standby.standbyInfusions = new[] { E(StatusType.Freeze, 0f), E(StatusType.Vulnerable, 1f) };
+                var mixed = Roll(0);
+                Check(mixed.Count == 1 && mixed[0] == StatusType.Vulnerable, $"대기 효과: 효과마다 확률을 따로 추첨 (0% 빙결·100% 취약 → {string.Join(",", mixed)})");
+                standby.standbyInfusions = new[] { E(StatusType.Freeze, 1f), E(StatusType.Vulnerable, 1f) };
+                var both = Roll(0);
+                Check(both.Count == 2 && both.Contains(StatusType.Freeze) && both.Contains(StatusType.Vulnerable), "대기 효과: 여러 효과가 동시에 붙을 수 있음");
+                // 50% 는 대략 절반만 붙는다(400회 추첨).
+                standby.standbyInfusions = new[] { E(StatusType.Freeze, 0.5f) };
+                int procs = 0;
+                for (int i = 0; i < 400; i++) if (Roll(0).Count > 0) procs++;
+                Check(procs > 140 && procs < 260, $"대기 효과: 50% 확률 (400회 중 {procs}회)");
+                standby.standbyInfusions = new[] { E(StatusType.Freeze, 1f) };
+                melee.StandbyInfusionEnabled = false;
+                Check(Roll(2).Count == 0, "대기 효과: 꺼짐 설정이면 안 붙음");
+                melee.StandbyInfusionEnabled = true;
+                inv.SetActiveSummonSlot(1 - inv.ActiveSummonSlot);
+                Check(Roll(0).Contains(StatusType.Bleed), "대기 효과: 스왑하면 묻는 효과도 바뀜");
+                inv.EquipMinion(0, null); inv.EquipMinion(1, null); inv.EquipMinion(0, fighter);
+                Check(Roll(0).Count == 0, "대기 효과: 소환수 1마리면 없음(현현 중인 소환수 효과는 안 붙음)");
+            }
+            finally
+            {
+                standby.standbyInfusions = sSaved; onField.standbyInfusions = fSaved;
+                melee.StandbyInfusionEnabled = true;
+            }
+            yield return 0.2f;
+        }
+
+        // ── 범위 안에 적이 없으면 공격 없이 제자리 교대 ──
+        {
+            ClearSlots(inv);
+            inv.EquipMinion(0, fighter); inv.EquipMinion(1, ice);
+            yield return 0.4f;
+            int from = inv.ActiveSummonSlot;
+            var outAgent = skills.GetFieldAgent(from); var inAgent = skills.GetFieldAgent(1 - from);
+            outAgent.transform.position = player.transform.position + Vector3.up * 1.2f + Vector3.right * 1.2f; // 동행 거리 안이라 나타난 뒤 바로 따라가지 않는다
+            // 실제 소환수는 NavMesh 위에만 있다. 테스트 자리도 NavMesh 위로 맞춘다.
+            if (UnityEngine.AI.NavMesh.SamplePosition(outAgent.transform.position, out var navHit, 2f, UnityEngine.AI.NavMesh.AllAreas))
+                outAgent.transform.position = navHit.position;
+            Vector2 oldPos = outAgent.transform.position;
+            int outCasters = Casters(outAgent.Data.minionName);
+            ClearSwap(skills);
+            Check(!skills.HasEnemyInSwapRange(), "(전제) 스왑 범위 안에 적 없음");
+            bool swapped = skills.TrySwapSummon();
+            // 에디터가 포커스를 잃으면 게임 프레임이 거의 안 돈다. 두 소환수의 한 프레임을 직접 돌려 교대 결과만 확인한다.
+            var tick = typeof(SummonFieldAgent).GetMethod("Update", Any);
+            tick.Invoke(outAgent, null); tick.Invoke(inAgent, null);
+            yield return 0.05f;
+            float gap = Vector2.Distance(inAgent.transform.position, oldPos);
+            Check(swapped && inv.ActiveSummonSlot == 1 - from && Casters(outAgent.Data.minionName) == outCasters && !outAgent.IsLinking,
+                "적 없음: 스왑 공격 없이 교대");
+            Check(gap < 0.6f && outAgent.IsBenched && inAgent.IsVisualVisible, $"적 없음: 새 소환수가 스왑 전 소환수 자리에 나타남 (거리 {gap:F2}, 이전 {oldPos}, 새 {(Vector2)inAgent.transform.position}, 플레이어 {(Vector2)player.transform.position})");
+        }
+
+        // ── LShift 대쉬 공격 = 대기(필드에 없는) 소환수 ──
+        {
+            var prevSource = dodge.DashAttackSource;
+            dodge.DashAttackSource = MeleeDodgeController.PlayerDashAttackSource.StandbySummon;
+            ClearSlots(inv);
+            inv.EquipMinion(0, fighter); inv.EquipMinion(1, ice);
+            yield return 0.3f;
+            for (int round = 0; round < 2; round++)
+            {
+                var fieldMinion = inv.MainSummon;
+                var standby = inv.GetSummonAt(1 - inv.ActiveSummonSlot) as MainMinionDataSO;
+                Check(standby != null && standby != fieldMinion && dodge.GetPlayerDashAttackMinion() == standby,
+                    $"LShift 대쉬 공격 대상 = 대기 소환수 ({standby?.minionName}, 필드 {fieldMinion?.minionName})");
+                // 앞 대쉬가 물리 틱 없이 남아 있으면(일시정지 등) 정리하고 시작한다.
+                if (dodge.IsDashing) typeof(MeleeDodgeController).GetMethod("EndDash", Any).Invoke(dodge, null);
+                Out($"INFO timeScale={Time.timeScale} 일시정지={PlayerController.IsGameplayPaused}");
+                int fieldBefore = Casters(fieldMinion.minionName), standbyBefore = Casters(standby.minionName);
+                typeof(MeleeDodgeController).GetField("_currentCharges", Any).SetValue(dodge, dodge.MaxCharges);
+                bool dashed = dodge.TryDash(Vector2.right, player.transform.localScale.x);
+                float travel = (float)typeof(MeleeDodgeController).GetField("_dashTravelDuration", Any).GetValue(dodge);
+                yield return 0.02f;
+                Check(dashed && Casters(standby.minionName) > standbyBefore && Casters(fieldMinion.minionName) == fieldBefore
+                      && dodge.LastDashAttackMinion == standby, $"대쉬: 대기 소환수({standby.minionName}) 대쉬 공격만 발동 (dashed={dashed}, 대기 {standbyBefore}->{Casters(standby.minionName)}, 필드 {fieldBefore}->{Casters(fieldMinion.minionName)}, last={dodge.LastDashAttackMinion?.minionName})");
+                Check(durations.Count > 0 && travel.ToString("F4") == durations[0], $"대쉬 공격이 붙어도 대쉬 거리 동일 ({travel:F4})");
+                yield return 0.6f;
+                player.transform.position += Vector3.left * (travel * 15f);
+                inv.SetActiveSummonSlot(1 - inv.ActiveSummonSlot); // 스왑하면 대쉬 공격 소환수도 바뀐다
+                yield return 0.3f;
+            }
+            dodge.DashAttackSource = prevSource;
+        }
 
         enemy.SetActive(true);
         // ── 평타 중 대쉬 캔슬 ──
@@ -412,7 +531,12 @@ public static class SummonCombatPlaytest
         UnityEngine.Object.Destroy(enemy);
     }
 
-    private static void ClearSwap(PlayerSkillController skills) =>
+    // 스왑 쿨타임 기준값은 Player Melee 프리팹의 PlayerSkillController 인스펙터 값 하나뿐이다. 여기에 숫자를 따로 적지 않는다.
+    private static float PrefabSwapCooldown() =>
+        AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player Melee.prefab").GetComponent<PlayerSkillController>().SwapCooldownDuration;
+
+    
+private static void ClearSwap(PlayerSkillController skills) =>
         typeof(PlayerSkillController).GetField("_swapReadyTime", Any).SetValue(skills, 0f);
 
     private static bool running0(MainMinionDataSO data) => Casters(data.minionName) > 0;

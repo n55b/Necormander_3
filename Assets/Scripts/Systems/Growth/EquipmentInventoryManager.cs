@@ -313,7 +313,13 @@ public class EquipmentInventoryManager : MonoBehaviour
             {
                 float chance = sp.EffectiveChance(level);
                 if (chance > 0f && Random.value < chance)
-                    targetStatus.ApplyStatus(sp.status);
+                {
+                    // 출혈 틱 피해가 플레이어 공격력을 따르도록 power 를 넘긴다(다른 상태이상은 무시한다).
+                    var ps = GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null
+                        ? GameManager.Instance.PLAYERCONTROLLER.Stat : null;
+                    float power = ps != null ? ps.ATK * (1f + ps.PHYS_AMP) : 0f;
+                    targetStatus.ApplyStatus(sp.status, power: power);
+                }
             }
     }
 

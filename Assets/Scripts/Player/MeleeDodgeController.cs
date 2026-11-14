@@ -8,6 +8,29 @@ public class MeleeDodgeController : MonoBehaviour
     [Header("소환수 대쉬 공격 기본 히트박스 (소환수 SO 에 없을 때 사용)")]
     [SerializeField] private BaseHitBox dashHitBoxPrefab;
     [SerializeField] private BaseHitBox originHitBoxPrefab;
+
+    /// <summary>LShift 대쉬에 붙는 소환수 대쉬 공격을 어느 소환수가 내는지.</summary>
+    public enum PlayerDashAttackSource
+    {
+        [InspectorName("끔")] Off = 0,
+        [InspectorName("대기 소환수 (필드에 없는 쪽)")] StandbySummon = 1,
+        [InspectorName("활성 소환수 (필드에 있는 쪽)")] ActiveSummon = 2,
+    }
+
+    [Header("플레이어 대쉬 공격 (LShift)")]
+    [SerializeField, Tooltip("LShift 대쉬 때 어느 소환수의 대쉬 공격(dashModifier)을 대쉬 경로에 붙일지.\n" +
+        "기본은 필드에 나와 있지 않은 '대기 소환수'. 소환수가 1마리뿐이면 대기 소환수가 없어 발동하지 않는다.\n" +
+        "대쉬 거리는 소환수와 무관하게 항상 같다(dashModifier.lengthMultiplier 는 쓰지 않는다).")]
+    private PlayerDashAttackSource playerDashAttackSource = PlayerDashAttackSource.StandbySummon;
+
+    public PlayerDashAttackSource DashAttackSource
+    {
+        get => playerDashAttackSource;
+        set => playerDashAttackSource = value;
+    }
+
+    /// <summary>마지막으로 LShift 대쉬 공격을 낸 소환수(툴·점검 표시용).</summary>
+    public MainMinionDataSO LastDashAttackMinion { get; private set; }
     [SerializeField] private int maxCharges = 2;
     [SerializeField] private float rechargeTime = 2.0f; // 스택 회복 시간
     
@@ -158,6 +181,10 @@ public class MeleeDodgeController : MonoBehaviour
         _dashTimeLeft = _dashTravelDuration + 0.1f; // 충돌로 도착 불가할 때만 쓰는 안전 종료
         _afterimage?.BeginDash(_dashTimeLeft);
 
+        // 대쉬 공격: 플레이어 대쉬 경로(실제 이동 거리 그대로)에 소환수의 대쉬 판정·연출을 깐다.
+        // 기본은 필드에 없는 대기 소환수의 대쉬 공격이다. 거리 배율은 쓰지 않는다.
+        CastPlayerDashAttack(GetPlayerDashAttackMinion(), start, _dashDir, actualDist);
+
         if (_player.Stat != null && _player.Stat.Health != null)
         {
             _player.Stat.Health.Invincible = true; // 대쉬 무적
@@ -172,6 +199,56 @@ public class MeleeDodgeController : MonoBehaviour
         _player.PlayAllAnim("Dash", "Idle");
         OnDodgeStarted?.Invoke();
     }
+
+    // ─── 플레이어 대쉬 공격 (LShift) ───────────────────────────────
+    /// <summary>
+    /// 지금 LShift 대쉬를 하면 대쉬 공격을 낼 소환수. 없으면 null.
+    /// 대기 소환수 모드는 소환수 2마리를 장착했을 때만 동작한다(1마리면 '다른 소환수'가 없다).
+    /// </summary>
+    public MainMinionDataSO GetPlayerDashAttackMinion()
+    {
+        var inv = InventoryManager.Instance;
+        if (inv == null) return null;
+        switch (playerDashAttackSource)
+        {
+            case PlayerDashAttackSource.ActiveSummon:
+                return inv.MainSummon;
+            case PlayerDashAttackSource.StandbySummon:
+                if (inv.EquippedSummonCount < InventoryManager.SLOT_COUNT) return null;
+                var standby = inv.GetSummonAt(1 - inv.ActiveSummonSlot) as MainMinionDataSO;
+                return standby != null && standby != inv.MainSummon ? standby : null;
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>대쉬 공격이 판정을 낼 수 있는가(피해 설정 + 히트박스 프리팹). 연출만 있는 소환수는 false.</summary>
+    public bool CanDealPlayerDashAttack(MainMinionDataSO main) => CanCastSummonDashAttack(main);
+
+    /// <summary>대쉬 출발점·방향·실제 이동 거리로 소환수 대쉬 공격(판정 + 연출)을 깐다.</summary>
+    private void CastPlayerDashAttack(MainMinionDataSO main, Vector2 origin, Vector2 dir, float dist)
+    {
+        if (main == null || main.dashModifier == null || _player == null || _player.Stat == null) return;
+        var mod = main.dashModifier;
+        bool canHit = CanCastSummonDashAttack(main) && (mod.hitAtOrigin || dist > 0.01f);
+        bool hasVisual = main.dashAnim != null && main.dashAnim.HasVisual;
+        if (!canHit && !hasVisual) return;
+
+        Vector2 end = origin + dir * dist;
+        var caster = MinionSkillCaster.Spawn(main, origin);
+        float life = canHit ? SpawnSummonDashHitBox(main, mod, caster, origin, dir, dist) : 0f;
+        if (!PlaySummonDashVisual(caster, main, mod, origin, end, dir))
+        {
+            if (!canHit) { Destroy(caster.gameObject); return; }
+            // 연출 없는 소환수는 판정 시간만큼 있다가 끝 지점에서 사라진다.
+            if (!mod.hitAtOrigin) caster.transform.position = end;
+            caster.SetLifetime(life);
+        }
+        LastDashAttackMinion = main;
+    }
+
+    /// <summary>Space 스왑 대쉬 공격 사거리(유닛). 모든 소환수 공통 = 대쉬 속도 x 대쉬 시간.</summary>
+    public float SummonDashAttackDistance => dashSpeed * dashDuration;
 
     // ─── 소환수 대쉬 공격 (Space 스왑) ─────────────────────────────
     // 플레이어 대쉬와는 무관하다. 소환수가 플레이어 위치에서 마우스 방향으로 대쉬 공격을 한다.
@@ -195,7 +272,8 @@ public class MeleeDodgeController : MonoBehaviour
             if (aim.sqrMagnitude > 0.0001f) dir = aim.normalized;
         }
 
-        float wanted = dashSpeed * dashDuration * Mathf.Max(0.01f, mod.lengthMultiplier);
+        // 사거리는 모든 소환수가 같다(기본 대쉬 거리). 소환수별 거리 배율은 쓰지 않는다.
+        float wanted = SummonDashAttackDistance;
         float dist = mod.hitAtOrigin ? wanted : Vector2.Distance(origin, SkillCombatUtil.GetSafeDestination(origin, dir, wanted));
         Vector2 end = origin + dir * dist;
 

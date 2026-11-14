@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// 기획자용 아이템 편집기 (Tools > Items > 아이템 편집기).
+/// 기획자용 아이템 편집기 (Tools > 기획 > 아이템 편집기).
 ///
 ///  · 표로 보기   — 모든 아이템의 이름/등급/중첩/설명/효과를 한 화면에서 고친다.
 ///  · 하나씩 편집 — 왼쪽 목록에서 고르고 오른쪽에서 아이템 인스펙터와 같은 화면으로 고친다.
@@ -54,7 +54,7 @@ public class ItemDatabaseWindow : EditorWindow
     };
 
     // ── 열기 ──────────────────────────────────────────────────────────
-    [MenuItem("Tools/Items/아이템 편집기", priority = 0)]
+    [MenuItem("Tools/기획/아이템 편집기", priority = 1)]
     public static void Open() => Open(null);
 
     public static void Open(ItemSO select)

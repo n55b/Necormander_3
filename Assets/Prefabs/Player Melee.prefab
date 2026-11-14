@@ -1629,13 +1629,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dashSpeed: 20
   dashDuration: 0.2
+  dashHitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
+  originHitBoxPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   maxCharges: 2
   rechargeTime: 2
   dashEffectPrefab: {fileID: 1585796293089155853, guid: c5d0c7c91c095c74fb398f43b9bd4cf5, type: 3}
   upwardEffectState: Up
   downwardEffectState: Down
-  dashHitBoxPrefab: {fileID: -7664338518204726940, guid: 59afbb19cdb7f3c4f96cc01184106b54, type: 3}
-  originHitBoxPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
 --- !u!114 &1103040150316217935
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1648,6 +1648,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5701508bce8e7a44b98dbba1ef83d3b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  swapCooldown: 15
+  swapTriggersSkill: 1
+  autoAttackInterval: 2
+  autoAttackRange: 6
+  autoAttackDamageMultiplier: 1
+  minEnemyGap: 1.2
+  chaseSpeed: 7
+  followDistance: 2
+  followStopDistance: 1.4
+  moveAcceleration: 60
+  separationDistance: 1
+  combatLeashDistance: 12
+  followTeleportDistance: 14
+  linkMoveDuration: 0.08
+  linkReturnDelay: 0.3
   mainSummon: {fileID: 0}
 --- !u!114 &3445112678206032524
 MonoBehaviour:

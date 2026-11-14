@@ -13,14 +13,14 @@ using UnityEngine;
 /// </summary>
 public static class TutorialMenuTools
 {
-    [MenuItem("Tools/Tutorial/튜토리얼 다시 보기 (완료 기록 삭제)")]
+    [MenuItem("Tools/기획/플레이테스트/튜토리얼 다시 보기 (완료 기록 삭제)", priority = 40)]
     private static void ResetTutorial()
     {
         TutorialFlow.ResetProgress();
         Report();
     }
 
-    [MenuItem("Tools/Tutorial/튜토리얼 건너뛰기 (봤음으로 표시)")]
+    [MenuItem("Tools/기획/플레이테스트/튜토리얼 건너뛰기 (봤음으로 표시)", priority = 41)]
     private static void CompleteTutorial()
     {
         TutorialFlow.Complete();

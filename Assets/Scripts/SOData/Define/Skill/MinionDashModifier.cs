@@ -6,6 +6,9 @@ using UnityEngine;
 /// 기본 대쉬는 순수 이동이다 (MeleeDodgeController: 속도 15 x 지속 0.2 = 3유닛, 무적, 벽 클램프).
 /// 히트박스도 데미지도 '폭'이라는 개념도 원래 없었고, 여기 있는 것이 전부 신규다.
 /// 모든 값이 1/0 이면 기본 대쉬와 완전히 동일하게 동작한다 (메인 소환수가 없을 때의 상태).
+///
+/// LShift 대쉬에는 기본적으로 '필드에 없는 대기 소환수'의 대쉬 공격이 붙는다(MeleeDodgeController.playerDashAttackSource).
+/// 이때 대쉬 거리는 바뀌지 않고, 판정은 플레이어가 실제로 이동한 경로를 덮는다.
 /// </summary>
 [System.Serializable]
 public class MinionDashModifier
@@ -19,8 +22,9 @@ public class MinionDashModifier
     public Sprite uiIcon;
 
     [Header("형태")]
-    [Tooltip("대쉬 거리 배율. 1 = 기본(3유닛).")]
-    public float lengthMultiplier = 1f;
+    // 사용하지 않는다. 대쉬 거리·스왑 대쉬 공격 사거리는 모든 소환수가 같다(MeleeDodgeController).
+    // 기존 에셋 값이 깨지지 않도록 필드만 남겨 두고 인스펙터에서 숨긴다.
+    [HideInInspector] public float lengthMultiplier = 1f;
 
     [Tooltip("대쉬 히트박스의 폭(유닛). 0 이면 (경로 모드에서) 히트박스를 만들지 않는다.")]
     public float width = 0f;
@@ -64,7 +68,7 @@ public class MinionDashModifier
 
     public string Describe()
         => !string.IsNullOrEmpty(uiDescription) ? uiDescription
-            : $"대쉬 거리 {lengthMultiplier:0.##}배. " + (DealsDamage
+            : (DealsDamage
                 ? $"{(hitAtOrigin ? "출발 지점" : "이동 경로")}의 적을 {hitCount}회 타격 · 피해 배율 {damageMultiplier:0.##}배."
                     + (onHitStatus != StatusType.None ? $" 적중 시 {onHitStatus}." : "")
                 : "추가 공격 없음.");

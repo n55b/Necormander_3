@@ -180,7 +180,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         var main = inventory != null ? inventory.MainSummon : null;
         var standby = inventory != null ? inventory.GetSummonAt(1 - inventory.ActiveSummonSlot) : null;
         standbySummonSlot?.SetData(standby != null ? standby.minionIcon : null, standby != null ? standby.minionName : "대기 소환수 없음",
-            standby != null ? MainMinionSelectionUI.Describe(standby) : "Space 로 교대할 소환수가 없습니다.");
+            standby != null ? MainMinionSelectionUI.Describe(standby) + StandbyInfusionLine(standby) : "Space 로 교대할 소환수가 없습니다.");
         minionHeader?.SetData(main != null ? main.minionIcon : null,
             main != null ? main.minionName : "미니언 없음", "");
         var equipment = EquipmentInventoryManager.Instance != null ? EquipmentInventoryManager.Instance.EquippedEquipment?.baseData : null;
@@ -219,6 +219,13 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
             if (row.kind == StatKind.Guard) { row.value.transform.parent.gameObject.SetActive(false); continue; } // 가드 제거. 직렬화 호환으로 항목만 남긴다.
             row.value.text = stat == null ? "—" : FormatStat(row.kind, stat, dodge);
         }
+    }
+
+    /// <summary>대기 소환수가 평타에 묻히는 효과 한 줄. 없으면 빈 문자열.</summary>
+    private static string StandbyInfusionLine(UnityEngine.Object standby)
+    {
+        var main = standby as MainMinionDataSO;
+        return main != null && main.HasStandbyInfusion ? "\n" + MinionStandbyInfusion.DescribeAll(main.standbyInfusions) : "";
     }
 
     private static string FormatStat(StatKind kind, CharacterStat stat, MeleeDodgeController dodge)

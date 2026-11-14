@@ -16,7 +16,7 @@ public class DebuffDataSO : ScriptableObject
     [Tooltip("빙결 — 행동 불가. 맞으면 터지고 풀림")]
     public Sprite freezeIcon;
 
-    [Tooltip("출혈 — 맞을 때마다 추가 고정 피해")]
+    [Tooltip("출혈 — 공격력 비례 틱 피해")]
     public Sprite bleedIcon;
 
     [Tooltip("중독 — 초당 고정 피해")]
@@ -27,7 +27,7 @@ public class DebuffDataSO : ScriptableObject
 
     [Tooltip("경직 — 평타에 묻는 짧은 행동 불가. 기절과 별개다")]
     public Sprite hitstunIcon;
-    [Tooltip("취약 — 받는 물리 피해 +20%. 전용 이미지가 없으면 기본 사각형으로 표시.")]
+    [Tooltip("취약 — 받는 물리 피해(출혈 포함) +20%. 용사 계열 전용. 전용 이미지가 없으면 기본 사각형으로 표시.")]
     public Sprite vulnerableIcon;
 
     /// <summary>

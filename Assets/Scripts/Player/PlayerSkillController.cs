@@ -6,14 +6,18 @@ public class PlayerSkillController : MonoBehaviour
     /// <summary>현재 스킬은 취소하지 않고 활성 슬롯의 남은 재사용 대기시간만 없앤다.</summary>
     public void ResetMainSummonCooldown() => _summonCooldownEnd[ActiveSlot] = 0f;
 
-    [Header("소환수 스왑 (임시값)")]
-    [SerializeField, Min(0f), Tooltip("Space 스왑의 재사용 대기시간(초).")]
-    private float swapCooldown = 30f;
+    // 스왑 쿨타임은 이 필드 하나가 기준이다. 값은 Player Melee 프리팹 인스펙터에서 바꾼다(UI·테스트도 SwapCooldownDuration 으로 읽는다).
+    [Header("소환수 스왑")]
+    [SerializeField, Min(0f), Tooltip("Space 스왑의 재사용 대기시간(초). 밸런스 조정은 Player Melee 프리팹에서 이 값만 바꾸면 된다.")]
+    private float swapCooldown = 15f;
     [SerializeField, Tooltip("스왑할 때 스왑 전 소환수의 대쉬 공격을 발동한다. 대쉬 공격이 없는 소환수는 스킬로 대체하며, 스킬 쿨타임을 확인하지도 돌리지도 않는다.")]
     private bool swapTriggersSkill = true;
+    [SerializeField, Min(0f), Tooltip("스왑 공격을 낼지 정하는 적 탐지 범위(플레이어 기준, 유닛). 이 안에 적이 없으면 공격 없이, 스왑 전 소환수가 있던 자리에서 새 소환수가 나타난다.")]
+    private float swapAttackRange = 6f;
+    public float SwapAttackRange => swapAttackRange;
 
     [Header("필드 소환수 AI (임시값)")]
-    [SerializeField, Min(0.05f), Tooltip("소환수 기본 공격 주기(초). 활성·비활성 소환수 모두 각자 수행한다.")]
+    [SerializeField, Min(0.05f), Tooltip("소환수 기본 공격 주기(초). 필드에는 활성(장착) 소환수만 나와 공격하고, 비활성 소환수는 숨어 있는다.")]
     private float autoAttackInterval = 2f;
     [SerializeField, Min(0f), Tooltip("소환수 위치 기준 적 발견 범위(유닛). 이 안의 적에게 다가가 공격한다.")]
     private float autoAttackRange = 6f;
@@ -23,6 +27,8 @@ public class PlayerSkillController : MonoBehaviour
     private float minEnemyGap = 1.2f;
     [SerializeField, Min(0.01f), Tooltip("적에게 다가가거나 플레이어를 쫓아갈 때의 이동 속도(유닛/초).")]
     private float chaseSpeed = 7f;
+    [SerializeField, Range(0.1f, 1.5f), Tooltip("플레이어를 따라갈 때의 이동 속도 = 플레이어 현재 이동속도 × 이 값. 1 보다 작으면 플레이어보다 약간 느리게 따라붙는다.")]
+    private float followSpeedRatio = 0.9f;
     [SerializeField, Min(0.1f), Tooltip("전투가 아닐 때 플레이어와 이 거리보다 멀어지면 쫓아가기 시작한다(유닛). 그 안에서는 멈춰 있는다.")]
     private float followDistance = 2f;
     [SerializeField, Min(0f), Tooltip("쫓아가다 플레이어와 이 거리까지 가까워지면 멈춘다(유닛). 동행 거리보다 작아야 한다.")]
@@ -46,6 +52,19 @@ public class PlayerSkillController : MonoBehaviour
     public float AutoAttackRange => autoAttackRange;
     public float AutoAttackDamageMultiplier => autoAttackDamageMultiplier;
     public float ChaseSpeed => chaseSpeed;
+    /// <summary>플레이어 동행 이동 속도. 플레이어 현재 이동속도(버프·슬로우 반영) × followSpeedRatio.</summary>
+    public float FollowSpeed
+    {
+        get
+        {
+            if (_playerController == null) _playerController = GetComponent<PlayerController>();
+            var stat = _playerController != null ? _playerController.Stat : null;
+            if (stat == null) return chaseSpeed * followSpeedRatio;
+            // 플레이어가 CC 로 멈춰도 소환수가 굳지 않게 최소 속도를 둔다.
+            return Mathf.Max(1f, stat.MOVESPEED * _playerController.SpeedMultiplier * followSpeedRatio);
+        }
+    }
+    private PlayerController _playerController;
     public float MinEnemyGap => minEnemyGap;
     public float FollowStopDistance => Mathf.Min(followStopDistance, followDistance);
     public float FollowDistance => followDistance;
@@ -74,6 +93,18 @@ public class PlayerSkillController : MonoBehaviour
 
     /// <summary>우클릭 액티브를 담당하는 활성 소환수. 없으면 null.</summary>
     public MainMinionDataSO MainSummon => mainSummon;
+
+    /// <summary>필드에 없는 대기 소환수. 소환수 2마리를 장착했을 때만 있고, 아니면 null.</summary>
+    public MainMinionDataSO StandbySummon
+    {
+        get
+        {
+            var inv = InventoryManager.Instance;
+            if (inv == null || inv.EquippedSummonCount < InventoryManager.SLOT_COUNT) return null;
+            var standby = inv.GetSummonAt(1 - inv.ActiveSummonSlot) as MainMinionDataSO;
+            return standby != null && standby != inv.MainSummon ? standby : null;
+        }
+    }
 
     public float SwapCooldownDuration => swapCooldown;
     public float SwapCooldownRemaining => Mathf.Max(0f, _swapReadyTime - Time.time);
@@ -138,9 +169,14 @@ public class PlayerSkillController : MonoBehaviour
         if (melee != null && melee.IsAttacking) melee.CancelPlayerAttack();
 
         _swapReadyTime = Time.time + swapCooldown;
+        int fromSlot = inventory.ActiveSummonSlot;
         // 활성 소환수를 바꾸기 전에 시전해야 스왑 전 소환수의 공격이 나간다.
-        if (swapTriggersSkill) CastSwapAttack();
-        inventory.SetActiveSummonSlot(1 - inventory.ActiveSummonSlot);
+        bool attacked = swapTriggersSkill && CastSwapAttack();
+        // 공격이 없으면(범위 안에 적이 없음 등) 스왑 전 소환수가 있던 자리에서 그대로 교대한다.
+        var outgoing = GetFieldAgent(fromSlot);
+        var incoming = GetFieldAgent(1 - fromSlot);
+        if (!attacked && outgoing != null && incoming != null) incoming.AppearAtOnNextUnbench(outgoing.transform.position);
+        inventory.SetActiveSummonSlot(1 - fromSlot);
         return true;
     }
 
@@ -162,20 +198,36 @@ public class PlayerSkillController : MonoBehaviour
         GetFieldAgent(slot)?.CancelBasicAttack();
     }
 
-    /// <summary>스왑 전 소환수의 대쉬 공격. 대쉬 공격이 없는 소환수는 우선 스킬로 대체한다. 쿨타임과 무관하다.</summary>
-    private void CastSwapAttack()
+    /// <summary>
+    /// 스왑 전 소환수의 대쉬 공격. 대쉬 공격이 없는 소환수는 우선 스킬로 대체한다. 쿨타임과 무관하다.
+    /// 플레이어 기준 swapAttackRange 안에 적이 없으면 아무것도 하지 않는다.
+    /// </summary>
+    /// <returns>공격(또는 대체 스킬)을 내보냈으면 true.</returns>
+    private bool CastSwapAttack()
     {
         int slot = ActiveSlot;
         var data = mainSummon;
         var dodge = GetComponent<MeleeDodgeController>();
-        if (data == null || CollectTargets().Count == 0) return;
+        if (data == null || !HasEnemyInSwapRange()) return false;
         if (dodge == null || !dodge.CanCastSummonDashAttack(data))
         {
+            if (data.minionSkill == null) return false;
             CastActiveSkill(transform, true);
-            return;
+            return true;
         }
         GetFieldAgent(slot)?.CancelBasicAttack();
         RunSummonLink(slot, () => dodge.CastSummonDashAttack(data));
+        return true;
+    }
+
+    /// <summary>플레이어 기준 스왑 공격 범위 안에 살아 있는 적이 있는가.</summary>
+    public bool HasEnemyInSwapRange()
+    {
+        Vector2 me = transform.position;
+        float sqr = swapAttackRange * swapAttackRange;
+        foreach (var t in CollectTargets())
+            if (t != null && ((Vector2)t.position - me).sqrMagnitude <= sqr) return true;
+        return false;
     }
 
     private static List<Transform> CollectTargets()

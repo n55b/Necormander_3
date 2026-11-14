@@ -26,9 +26,16 @@ public sealed class StatusBalanceSO : ScriptableObject
     [Min(0f), Tooltip("일반 빙결을 타격으로 해제할 때 추가되는 고정 피해입니다. 무기 전용 빙결 효과와는 별개입니다.")]
     public float freezeBreakDamage = 20f;
 
-    [Header("출혈·중독")]
-    [Min(0f), Tooltip("출혈 중 직접 타격을 받을 때 추가되는 고정 피해입니다.")]
-    public float bleedHitDamage = 2f;
+    [Header("출혈")]
+    [Min(0f), Tooltip("출혈 틱 1회 피해 = 출혈을 건 공격자의 공격력(물리 증폭 포함) x 이 비율입니다. 0.1은 공격력의 10%입니다.\n" +
+                      "걸리는 순간의 공격력을 기억하므로, 이후 공격력이 바뀌어도 이번 출혈의 틱 피해는 그대로입니다.")]
+    public float bleedAtkRatio = 0.1f;
+    [Min(0.01f), Tooltip("출혈 피해 사이의 간격(초)입니다. 초당 피해 = 틱 피해 / 이 값입니다.")]
+    public float bleedTickInterval = 0.5f;
+    [Min(0f), Tooltip("공격력을 알 수 없는 출처(디버그 키 등)가 출혈을 걸었을 때 쓰는 틱 피해입니다.")]
+    public float bleedFallbackTickDamage = 2f;
+
+    [Header("중독")]
     [Min(0f), Tooltip("중독이 한 번 발동할 때의 고정 피해입니다. 초당 피해는 이 값 / 중독 피해 간격입니다.")]
     public float poisonTickDamage = 5f;
     [Min(0.01f), Tooltip("중독 피해 사이의 간격(초)입니다. 작을수록 자주 피해를 주므로 초당 피해도 늘어납니다.")]

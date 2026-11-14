@@ -58,7 +58,8 @@ public class CharacterStatus : MonoBehaviour
     {
         public float EndTime;       // 만료 시각. 재적중하면 갱신된다.
         public int Stacks;          // 비폭만 쓴다.
-        public float NextTickTime;  // 중독 전용. '절대 격자' — 아래 UpdateStatuses 주석 참조.
+        public float NextTickTime;  // 틱형(중독/출혈) 전용. '절대 격자' — 아래 UpdateStatuses 주석 참조.
+        public float TickDamage;    // 출혈 전용. 걸린 순간 공격자 공격력에서 뽑은 틱 피해(재적중 시 큰 값 유지).
     }
     private readonly Dictionary<StatusType, StatusInstance> _statuses = new Dictionary<StatusType, StatusInstance>();
 
@@ -166,6 +167,15 @@ public class CharacterStatus : MonoBehaviour
             {
                 inst.NextTickTime += StatusRules.POISON_TICK_INTERVAL;
                 DealSelfDamage(StatusRules.POISON_TICK_DAMAGE, DamageType.Poison, "중독");
+            }
+
+            // 출혈 틱. 중독과 같은 절대 격자. 피해량은 걸 때 기억한 TickDamage(공격력 비례)다.
+            // DamageType.Bleed + 갈래 Debuff 라 방어/치명타/출혈 재트리거는 없고, 취약(물리 취급)만 탄다.
+            if (type == StatusType.Bleed && Time.time >= inst.NextTickTime)
+            {
+                inst.NextTickTime += StatusRules.BLEED_TICK_INTERVAL;
+                if (inst.TickDamage > 0f)
+                    DealSelfDamage(inst.TickDamage, DamageType.Bleed, "출혈");
             }
 
             if (Time.time >= inst.EndTime)
@@ -346,7 +356,11 @@ public class CharacterStatus : MonoBehaviour
     /// 기절 지속시간 clamp(0.5~2초)와 종료 후 내성을 함께 무시한다. 둘 다 '플레이어가 거는 CC'를
     /// 겨냥한 밸런스 장치라, 자초한 그로기(<see cref="ApplyFixedStun"/>)에는 적용되면 안 된다.
     /// </param>
-    public void ApplyStatus(StatusType type, float duration = 0f, int stacks = 1, bool bypassSuperArmor = false, bool bypassLimits = false)
+    /// <param name="power">
+    /// 출혈 전용: 건 공격자의 공격력(물리 증폭 포함). 틱 피해 = power x StatusRules.BLEED_ATK_RATIO.
+    /// 0 이하면(공격력을 모르는 출처) StatusRules.BLEED_FALLBACK_TICK_DAMAGE 를 쓴다.
+    /// </param>
+    public void ApplyStatus(StatusType type, float duration = 0f, int stacks = 1, bool bypassSuperArmor = false, bool bypassLimits = false, float power = 0f)
     {
         if (_stat != null && _stat.IsDead) return;
         if (!bypassSuperArmor && _hasSuperArmor && StatusRules.BlockedBySuperArmor(type)) return;
@@ -373,8 +387,15 @@ if (isNewlyApplied)
         {
             inst = new StatusInstance();
             _statuses[type] = inst;
-            // 중독의 첫 틱은 '건 시점 + 주기'다. 여기서만 잡고, 갱신 때는 절대 안 건드린다.
-            inst.NextTickTime = Time.time + StatusRules.POISON_TICK_INTERVAL;
+            // 틱형(중독/출혈)의 첫 틱은 '건 시점 + 주기'다. 여기서만 잡고, 갱신 때는 절대 안 건드린다.
+            inst.NextTickTime = Time.time + StatusRules.TickInterval(type);
+        }
+
+        // 출혈 틱 피해. 재적중이면 더 센 쪽을 유지한다 — 약한 출처가 덮어써서 피해가 줄면 안 되니까.
+        if (type == StatusType.Bleed)
+        {
+            float tick = power > 0f ? power * StatusRules.BLEED_ATK_RATIO : StatusRules.BLEED_FALLBACK_TICK_DAMAGE;
+            inst.TickDamage = isNewlyApplied ? tick : Mathf.Max(inst.TickDamage, tick);
         }
 
         inst.EndTime = Time.time + duration; // 재적중 = 지속시간만 갱신
@@ -430,7 +451,8 @@ if (isNewlyApplied)
     // ── 피격 훅 (CharacterHealth 가 부른다) ───────────────────────────
 
     /// <summary>
-    /// 직접 피해를 받았을 때 상태이상이 반응하는 지점. 빙결 해제와 출혈 추가 피해가 여기서 나간다.
+    /// 직접 피해를 받았을 때 상태이상이 반응하는 지점. 빙결 해제가 여기서 나간다.
+    /// ([26/11] 출혈은 '피격당 추가 피해'에서 '틱 피해'로 바뀌어 여기서 빠졌다 — UpdateStatuses 참조.)
     ///
     /// [철칙] 상태이상 피해(Fixed 계열)는 여기 못 들어온다 — DamageRules.TriggersBleed 가 막는다.
     /// 안 그러면 출혈의 +2 가 스스로를 트리거해서 무한 재귀가 난다.
@@ -446,12 +468,6 @@ if (isNewlyApplied)
             _immuneUntil[StatusType.Freeze] = Time.time + StatusRules.FREEZE_IMMUNITY;
             OnDebuffPopped?.Invoke(StatusVisual.FreezeBreak);
             DealSelfDamage(StatusRules.FREEZE_BREAK_DAMAGE, DamageType.Freeze, "빙결");
-        }
-
-        // 출혈: 맞을 때마다 추가 고정 피해. 한 방에 여러 피해가 겹쳐도 1회다.
-        if (HasStatus(StatusType.Bleed))
-        {
-            DealSelfDamage(StatusRules.BLEED_HIT_DAMAGE, DamageType.Bleed, "출혈");
         }
     }
 

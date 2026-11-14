@@ -22,6 +22,8 @@ public class SummonFieldAgent : MonoBehaviour
     private const float STUCK_SECONDS = 1.2f;
     private const float BOB_HEIGHT = 0.05f;
     private const float BOB_FREQUENCY = 9f;
+    private const float SIDE_ALIGN_TOLERANCE = 0.35f; // 적과의 세로 차이가 이 안이면 좌우에서 때린다고 본다
+    private const float SIDE_ALIGN_GIVEUP = 0.8f;     // 옆자리가 막혀 이 시간 동안 못 맞추면 그 자리에서 때린다
 
     private PlayerSkillController _owner;
     private MainMinionDataSO _data;
@@ -52,12 +54,19 @@ public class SummonFieldAgent : MonoBehaviour
     private bool _hasPath;
     private float _stuckTimer;
     private float _bobPhase;
+    private bool _benched; // 비활성 슬롯: 필드에서 숨고 AI 를 멈춘다
+    private float _alignTimer;
+    private Vector2? _unbenchAt; // 다음에 필드에 나타날 자리(없으면 플레이어 곁)
 
     public MainMinionDataSO Data => _data;
     public bool IsLinking => _linkCount > 0;
     public bool IsEngaged => _target != null;
     public bool IsVisualVisible => _visual != null && _visual.activeSelf;
     public int AutoAttackCount { get; private set; }
+    /// <summary>지금 장착(활성) 슬롯의 소환수인가. 필드에는 이 소환수만 나타난다.</summary>
+    public bool IsActiveSlot => _owner != null && _owner.ActiveSlot == _slot;
+    /// <summary>비활성 슬롯이라 필드에서 숨어 있는 상태.</summary>
+    public bool IsBenched => _benched;
 
     public static SummonFieldAgent Spawn(PlayerSkillController owner, MainMinionDataSO data, int slot)
     {
@@ -73,6 +82,7 @@ public class SummonFieldAgent : MonoBehaviour
         agent._slot = slot;
         agent._path = new NavMeshPath();
         agent.BuildVisual();
+        if (!agent.IsActiveSlot) agent.Bench(); // 비활성 슬롯은 처음부터 숨겨 둔다
         return agent;
     }
 
@@ -118,7 +128,11 @@ public class SummonFieldAgent : MonoBehaviour
     {
         if (_owner == null) { Destroy(gameObject); return; }
         _attackTimer -= Time.deltaTime;
-        if (IsLinking) return;
+        if (IsLinking) return; // 스왑 직후 이전 소환수는 하던 행동(스왑 공격 등)을 끝까지 마친다
+
+        // 필드에는 장착 중인 소환수만 둔다. 스왑으로 빠진 소환수는 행동이 끝나면 사라지고, 들어온 소환수는 곁에 나타난다.
+        if (!IsActiveSlot) { if (!_benched) Bench(); return; }
+        if (_benched) Unbench();
 
         // 문 이동처럼 플레이어와 너무 멀어지면 곁으로 옮긴다.
         Vector2 player = _owner.transform.position;
@@ -132,7 +146,7 @@ public class SummonFieldAgent : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (_visual == null || IsLinking) return;
+        if (_visual == null || IsLinking || _benched) return;
         // 걷는 클립이 없어도 움직이는 느낌이 나도록 이동 중에 살짝 뛰게 한다.
         float speed = _velocity.magnitude;
         if (speed > 0.3f)
@@ -155,6 +169,40 @@ public class SummonFieldAgent : MonoBehaviour
         _stuckTimer = 0f;
     }
 
+    // ─── 상태: 대기(비활성 슬롯) ─────────────────────────────────
+    /// <summary>필드에서 숨기고 AI 를 멈춘다. 진행 중인 행동은 건드리지 않는다(행동 중에는 호출되지 않는다).</summary>
+    private void Bench()
+    {
+        _benched = true;
+        if (_visual != null) _visual.SetActive(false);
+        _velocity = Vector2.zero;
+        _hasPath = false;
+        _following = false;
+        _backingOff = false;
+        ClearTarget();
+    }
+
+    /// <summary>스왑으로 활성 슬롯이 되면 플레이어 곁에 나타나 바로 AI 를 시작한다.</summary>
+    private void Unbench()
+    {
+        _benched = false;
+        SettleAt(_unbenchAt ?? (Vector2)_owner.transform.position + _sideOffset);
+        _unbenchAt = null;
+        if (_visual != null)
+        {
+            _visual.SetActive(true);
+            _visual.transform.localPosition = Vector3.zero;
+            ReturnToPose();
+        }
+        _retargetTimer = 0f;
+    }
+
+    /// <summary>
+    /// 다음에 활성 슬롯이 되어 필드에 나타날 때 플레이어 곁이 아니라 이 자리에 나타난다.
+    /// 공격 없는 스왑에서 스왑 전 소환수가 있던 자리를 넘겨받는 데 쓴다.
+    /// </summary>
+    public void AppearAtOnNextUnbench(Vector2 position) => _unbenchAt = position;
+
     // ─── 상태: 동행 ─────────────────────────────────────────────
     /// <summary>
     /// 플레이어가 멀어질 때만 쫓아가고, 충분히 가까워지면 그 자리에 멈춘다.
@@ -173,7 +221,7 @@ public class SummonFieldAgent : MonoBehaviour
 
         // 플레이어 옆 고정 자리가 아니라, 지금 있는 쪽에서 곧장 다가가 불필요한 궤도 이동을 없앤다.
         if (distance < 0.001f) fromPlayer = _sideOffset;
-        MoveTo(player + fromPlayer.normalized * _owner.FollowStopDistance, _owner.ChaseSpeed);
+        MoveTo(player + fromPlayer.normalized * _owner.FollowStopDistance, _owner.FollowSpeed);
     }
 
     // ─── 상태: 교전 ─────────────────────────────────────────────
@@ -200,19 +248,28 @@ public class SummonFieldAgent : MonoBehaviour
             _backingOff = false;
         }
 
+        // 웬만하면 적의 좌우에서 때린다. 지금 있는 쪽(왼쪽/오른쪽) 옆자리로 가서, 세로 높이를 맞춘 뒤 공격한다.
+        float side = Mathf.Abs(away.x) > 0.05f ? Mathf.Sign(away.x) : Mathf.Sign(_sideOffset.x);
+        float sideDistance = Mathf.Clamp(reach * 0.85f, gap + 0.1f, reach);
+        Vector2 stand = targetPos + Vector2.right * (side * sideDistance);
+        bool aligned = Mathf.Abs(away.y) <= SIDE_ALIGN_TOLERANCE;
+
         if (distance <= reach)
         {
-            Stop();
-            Face(targetPos.x - me.x);
-            if (_attackTimer > 0f) return;
-            _attackTimer = _owner.AutoAttackInterval;
-            AutoAttack(targetPos);
-            return;
+            // 위·아래에 있으면 옆으로 돌아간다. 옆자리가 벽 등으로 막혀 오래 못 가면 그 자리에서 때린다.
+            _alignTimer = aligned ? 0f : _alignTimer + Time.deltaTime;
+            if (aligned || _alignTimer >= SIDE_ALIGN_GIVEUP)
+            {
+                Stop();
+                Face(targetPos.x - me.x);
+                if (_attackTimer > 0f) return;
+                _attackTimer = _owner.AutoAttackInterval;
+                AutoAttack(targetPos);
+                return;
+            }
         }
+        else _alignTimer = 0f;
 
-        // 두 마리가 한 점에 겹치지 않게 적을 사이에 두고 서로 다른 쪽으로 붙는다.
-        float angle = _slot == 0 ? 25f : -25f;
-        Vector2 stand = targetPos + (Vector2)(Quaternion.Euler(0f, 0f, angle) * (Vector3)(away.normalized * (reach * 0.9f)));
         MoveTo(stand, _owner.ChaseSpeed);
     }
 
@@ -325,7 +382,7 @@ public class SummonFieldAgent : MonoBehaviour
     {
         var other = _owner.GetFieldAgent(1 - _slot);
         float range = _owner.SeparationDistance;
-        if (other == null || other == this || other.IsLinking || range <= 0f) return Vector2.zero;
+        if (other == null || other == this || other.IsLinking || other.IsBenched || range <= 0f) return Vector2.zero;
         Vector2 away = (Vector2)transform.position - (Vector2)other.transform.position;
         float distance = away.magnitude;
         if (distance >= range) return Vector2.zero;
@@ -444,7 +501,7 @@ public class SummonFieldAgent : MonoBehaviour
         _castCount--;
 
         // 사라지는 틈 없이 끝난 자리에 바로 나타난다. 복귀 지연 동안에는 그 자리에 서 있다.
-        if (_castCount == 0 && _visual != null)
+        if (_castCount == 0 && _visual != null && IsActiveSlot)
         {
             _visual.SetActive(true);
             ReturnToPose();

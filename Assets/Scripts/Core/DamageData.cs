@@ -21,7 +21,7 @@ public enum DamageType
     [UnityEngine.InspectorName("마법")] Magic,      // MAGIC 기반 직접 피해
     [UnityEngine.InspectorName("빙결")] Freeze,     // 빙결 해제 시 터지는 고정 피해
     [UnityEngine.InspectorName("중독")] Poison,     // 중독 틱
-    [UnityEngine.InspectorName("출혈")] Bleed,      // 출혈이 피격에 얹는 추가 고정 피해
+    [UnityEngine.InspectorName("출혈")] Bleed,      // 출혈 틱 피해(공격력 비례, 취약 적용)
     [UnityEngine.InspectorName("혈액 튀어오름")] BloodPop,   // 비폭 10스택 폭발
     [UnityEngine.InspectorName("고정")] Fixed       // 어느 상태이상에도 속하지 않는 고정 피해
 }

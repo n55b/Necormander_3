@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 아이템(ItemSO) 전용 인스펙터. 공통 기획자 인스펙터(DesignerAssetInspector, isFallback)보다 우선한다.
 /// 효과 종류를 메뉴에서 골라 추가하고, 수치를 % 로 입력하고, 게임 표시 문구를 바로 미리 본다.
-/// 여러 아이템을 한 번에 고치려면 Tools > Items > 아이템 편집기.
+/// 여러 아이템을 한 번에 고치려면 Tools > 기획 > 아이템 편집기.
 /// </summary>
 [CustomEditor(typeof(ItemSO))]
 public class ItemSOEditor : Editor

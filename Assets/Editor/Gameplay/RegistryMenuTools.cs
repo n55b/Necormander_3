@@ -9,7 +9,7 @@ using System.Collections.Generic;
 /// </summary>
 public class RegistryMenuTools
 {
-    [MenuItem("Tools/Registry/Refresh All Registries")]
+    [MenuItem("Tools/기획/레지스트리 새로고침 (새 소환수·아이템 등록)", priority = 22)]
     public static void RefreshAllRegistries()
     {
         // 1. MinionRegistrySO 검색 및 아군/적군/보스 3단 정밀 자동 분류 갱신

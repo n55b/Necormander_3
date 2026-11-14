@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: "\uD68C\uC624\uB9AC \uB09C\uD0C0"
   description: "\uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uC801\uC5D0\uAC8C \uB3CC\uC9C4,
-    \uC8FC\uBCC0 \uC801\uC744 4\uD68C \uACF5\uACA9"
+    \uC8FC\uBCC0 \uC801\uC744 4\uD68C \uACF5\uACA9. \uC801\uC911\uD55C \uC801\uC5D0\uAC8C
+    \uCD9C\uD608(\uACF5\uACA9\uB825 \uBE44\uB840 \uC9C0\uC18D \uD53C\uD574)"
   icon: {fileID: -1293705836269130871, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 6
   skillSound: {fileID: 0}
@@ -24,7 +25,7 @@ MonoBehaviour:
   teleportTargetDistance: 0.5
   actionType: 0
   element: 0
-  onHitStatus: 6
+  onHitStatus: 2
   useHitBox: 1
   hitBoxPrefab: {fileID: 3747391856757494731, guid: b4b5441ba7997a743a7b9ac9a0acc1f8, type: 3}
   hitRadius: 3

@@ -16,6 +16,7 @@ public enum StatusVisual
     [UnityEngine.InspectorName("중독")] Poison,
     [UnityEngine.InspectorName("혈액 튀어오름")] BloodPop,
     [UnityEngine.InspectorName("경직")] Hitstun,
+    [UnityEngine.InspectorName("취약")] Vulnerable, // 끝에 추가 — 기존 직렬화 인덱스 보존
 }
 
 /// <summary>
@@ -71,6 +72,7 @@ public class StatusEffectPalette : ScriptableObject
         new Entry { visual = StatusVisual.BloodPop,    label = "비폭!",     textColor = new Color(1.00f, 0.75f, 0.20f), emphasize = true },
         // 경직은 평타마다 묻으므로 라벨을 비워둔다 — 채우면 화면이 텍스트로 덮인다.
         new Entry { visual = StatusVisual.Hitstun,     label = "",         textColor = new Color(0.75f, 0.75f, 0.75f) },
+        new Entry { visual = StatusVisual.Vulnerable,  label = "취약!",     textColor = new Color(1.00f, 0.55f, 0.20f) },
     };
 
     [Tooltip("팔레트에 없는 표시 상태가 들어왔을 때 쓸 색")]
@@ -168,6 +170,7 @@ public class StatusEffectPalette : ScriptableObject
         StatusType.Bleed => StatusVisual.Bleed,
         StatusType.Poison => StatusVisual.Poison,
         StatusType.BloodPop => StatusVisual.BloodPop,
+        StatusType.Vulnerable => StatusVisual.Vulnerable,
         _ => StatusVisual.Hitstun,
     };
 

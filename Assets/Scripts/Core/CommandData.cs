@@ -29,13 +29,13 @@ public enum StatusType
 {
     [UnityEngine.InspectorName("기절")] Stun,      // 기절 — 행동 완전 불가. 피해 없음
     [UnityEngine.InspectorName("빙결")] Freeze,    // 빙결 — 행동 불가. 직접 피해를 맞으면 고정 피해 + 즉시 해제
-    [UnityEngine.InspectorName("출혈")] Bleed,     // 출혈 — 직접 피해를 받을 때마다 추가 고정 피해
+    [UnityEngine.InspectorName("출혈")] Bleed,     // 출혈 — 건 공격자의 공격력 비례 틱 피해(물리 취급, 취약 적용). [26/11] 피격당 +고정 → 틱형으로 교체
     [UnityEngine.InspectorName("중독")] Poison,    // 중독 — 초당 고정 피해
     [UnityEngine.InspectorName("혈액 튀어오름")] BloodPop,  // 비폭 — 스택형. 임계치에 닿으면 자신과 주변에 폭발
     [UnityEngine.InspectorName("경직")] Hitstun,   // 경직 — 평타에 묻는 짧은 행동 불가. 기절과 '별개'로 둔 이유는
                // '기절 시간 증가' 같은 증감 요소가 여기에 묻지 않게 하기 위함이다.
     [UnityEngine.InspectorName("없음")] None = 6,  // 기존 직렬화 값 보존. 새 상태는 뒤에 추가한다.
-    [UnityEngine.InspectorName("취약")] Vulnerable = 7, // 취약: 받는 물리 피해 +20%, 행동 제한 없음.
+    [UnityEngine.InspectorName("취약")] Vulnerable = 7, // 취약: 받는 물리 피해(출혈 틱 포함) +20%, 행동 제한 없음. 용사 계열 전용.
 }
 
 /// <summary>
@@ -90,8 +90,18 @@ public static class StatusRules
     /// <summary>빙결이 깨질 때 터지는 고정 피해.</summary>
     public static float FREEZE_BREAK_DAMAGE => Mathf.Max(0f, Balance != null ? Balance.freezeBreakDamage : 20f);
 
-    /// <summary>출혈 중 피격 1회당 추가되는 고정 피해.</summary>
-    public static float BLEED_HIT_DAMAGE => Mathf.Max(0f, Balance != null ? Balance.bleedHitDamage : 2f);
+    /// <summary>출혈 틱 피해 = 건 공격자의 공격력(물리 증폭 포함) x 이 비율. 걸리는 순간 값을 기억한다.</summary>
+    public static float BLEED_ATK_RATIO => Mathf.Max(0f, Balance != null ? Balance.bleedAtkRatio : 0.1f);
+    /// <summary>출혈 틱 주기(초).</summary>
+    public static float BLEED_TICK_INTERVAL => Mathf.Max(0.01f, Balance != null ? Balance.bleedTickInterval : 0.5f);
+    /// <summary>공격력을 모르는 출처가 건 출혈의 틱 피해.</summary>
+    public static float BLEED_FALLBACK_TICK_DAMAGE => Mathf.Max(0f, Balance != null ? Balance.bleedFallbackTickDamage : 2f);
+
+    /// <summary>틱 피해를 주는 상태이상의 틱 주기. 틱이 없으면 0.</summary>
+    public static float TickInterval(StatusType t)
+        => t == StatusType.Poison ? POISON_TICK_INTERVAL
+         : t == StatusType.Bleed ? BLEED_TICK_INTERVAL
+         : 0f;
 
     /// <summary>중독 틱 피해와 주기(초).</summary>
     public static float POISON_TICK_DAMAGE => Mathf.Max(0f, Balance != null ? Balance.poisonTickDamage : 5f);
@@ -126,7 +136,8 @@ public static class StatusRules
     /// 지금은 빙결만 띄운다. 다른 상태이상도 알리고 싶으면 여기에 || 로 한 줄 붙이면 되고,
     /// 라벨과 색은 StatusEffectPalette 항목이 들고 있으므로 이 파일은 더 안 건드려도 된다.
     /// </summary>
-    public static bool AnnouncesOnApply(StatusType t) => t == StatusType.Freeze;
+    public static bool AnnouncesOnApply(StatusType t)
+        => t == StatusType.Freeze || t == StatusType.Bleed || t == StatusType.Vulnerable;
 
 }
 

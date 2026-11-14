@@ -74,6 +74,11 @@ MonoBehaviour:
     causesHitstun: 1
     knockbackForce: 4
     superArmorDamage: 30
+  standbyInfusions:
+  - status: 1
+    chance: 0.5
+    swings: 0
+    duration: 0
   hitEffectPrefab: {fileID: 0}
   basicAnim:
     visual: {fileID: 6037711723510221285, guid: 725aa93ac92e5754e85e6f8a8d3a7bb3, type: 3}
