@@ -180,7 +180,7 @@ public class ItemDatabaseWindow : EditorWindow
             GUILayout.Space(6);
             search = GUILayout.TextField(search ?? "", EditorStyles.toolbarSearchField, GUILayout.MinWidth(120), GUILayout.MaxWidth(260));
             tierFilter = EditorGUILayout.Popup(tierFilter, TierOptions, EditorStyles.toolbarPopup, GUILayout.Width(82));
-            onlyWarnings = GUILayout.Toggle(onlyWarnings, new GUIContent("확인 필요만", "설명에 실제 효과 수치가 없거나, 효과가 비어 있는 아이템만 본다."), EditorStyles.toolbarButton, GUILayout.Width(78));
+            onlyWarnings = GUILayout.Toggle(onlyWarnings, new GUIContent("확인 필요만", "'확인 필요' 경고가 있는 아이템만 본다(목록 미등록, 빈 효과, 설명·상점 설명에 효과 수치 없음, 게임이 읽지 않는 비율/고정 보정 등)."), EditorStyles.toolbarButton, GUILayout.Width(78));
             GUILayout.FlexibleSpace();
             if (GUILayout.Button(new GUIContent("새 아이템", "이름·등급·첫 효과·목록 등록을 정해 새 아이템을 만든다. 기존 아이템 복사로 시작할 수도 있다."), EditorStyles.toolbarButton))
                 Defer(() => NewItemPopup.Open(null, OnCreated));
@@ -350,6 +350,9 @@ public class ItemDatabaseWindow : EditorWindow
 
     private void Rename(ItemSO item, string newName)
     {
+        // RenameAsset 은 같은 폴더 안의 충돌만 막는다. 세이브는 폴더와 무관하게 이름으로 찾으므로 프로젝트 전체에서 검사한다.
+        string nameError = ItemCreation.ValidateName(newName, item);
+        if (nameError != null) { EditorUtility.DisplayDialog("이름 변경 실패", nameError, "확인"); return; }
         if (!EditorUtility.DisplayDialog("에셋 이름 바꾸기",
                 $"'{item.name}' → '{newName}'\n\n세이브 데이터가 에셋 이름으로 아이템을 찾습니다. 기존 세이브에 들어 있는 아이템이면 불러올 때 사라집니다.\n" +
                 "검증 스크립트(CriticalItemsCheck 등)에 이름이 적혀 있으면 함께 고쳐야 합니다.", "바꾸기", "취소")) return;
@@ -496,7 +499,9 @@ internal static class ItemCsv
         {
             var names = newRows.Select(r => Cell(r, 0).Trim()).ToList();
             msg.AppendLine($"\n프로젝트에 없는 아이템 {names.Count}개: {string.Join(", ", names.Take(10))}{(names.Count > 10 ? " …" : "")}");
-            msg.AppendLine($"새로 만들면 {ItemCreation.DefaultFolderOrAssets} 에 생깁니다. 효과는 비어 있고 목록·상점 등록은 꺼진 상태라, 편집기에서 효과를 넣고 '목록 등록'을 켜야 게임에 나옵니다.");
+            msg.AppendLine($"새로 만들면 {ItemCreation.DefaultFolderOrAssets} 에 생깁니다. 효과는 비어 있고 목록·상점 등록은 꺼진 상태입니다. " +
+                           "'보상등장' 칸이 비어 있으면 '상점 · 방 보상에 등장'도 꺼진 채로 만듭니다(1 이면 켬. 기존 아이템은 빈 칸이면 그대로 둠). " +
+                           "편집기에서 효과를 넣고 '목록 등록'과 '상점 · 방 보상에 등장'을 켜야 게임 보상·상점에 나옵니다.");
         }
         if (errors.Count > 0) msg.AppendLine("\n읽지 못한 값(건너뜀):\n" + string.Join("\n", errors.Take(8)));
 
@@ -545,7 +550,8 @@ internal static class ItemCsv
                     shopDescription = Get(row, cShop) ?? "",
                     tier = TryTier(Get(row, cTier) ?? "", out var t) ? t : ItemTier.Tier4,
                     maxStack = int.TryParse((Get(row, cMax) ?? "").Trim(), out int m) && m >= 1 ? m : 1,
-                    availableAsReward = !TryBool(Get(row, cReward) ?? "", out bool rw) || rw,
+                    // 새 줄은 빈 칸이면 끈다 — 효과 없는 빈 아이템이 목록 스캔 한 번으로 보상에 섞이지 않게.
+                    availableAsReward = TryBool(Get(row, cReward) ?? "", out bool rw) && rw,
                     addToCatalog = false,
                     addToShop = false,
                 };
@@ -553,7 +559,8 @@ internal static class ItemCsv
                 else failed.Add($"{asset}: {err}");
             }
             var done = new StringBuilder($"새 아이템 {created.Count}개를 만들었습니다.");
-            if (created.Count > 0) done.AppendLine("\n효과를 넣고 '목록 등록'을 켜야 게임에 나옵니다(편집기의 '확인 필요만'으로 모아 볼 수 있음).");
+            if (created.Count > 0) done.AppendLine("\n효과를 넣고 '목록 등록'과 '상점 · 방 보상에 등장'을 켜야 게임 보상·상점에 나옵니다" +
+                                                   "('보상등장' 칸이 비어 있던 줄은 꺼진 채로 만들었습니다. 편집기의 '확인 필요만'으로 모아 볼 수 있음).");
             if (failed.Count > 0) done.AppendLine("\n만들지 못함:\n" + string.Join("\n", failed.Take(8)));
             EditorUtility.DisplayDialog("CSV 가져오기", done.ToString(), "확인");
         }

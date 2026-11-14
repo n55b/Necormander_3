@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 /// UI 소리 설정 — 창 열림/닫힘(창마다 다르게), 버튼·아이템 칸 마우스 올림/클릭, 상점 구매 성공/실패.
 /// 위치: Assets/Resources/UI/UISoundSettings.asset
-/// 소리를 넣고 바로 들어보려면: Tools > 사운드 > 사운드 테스트 툴 → [UI 소리] 탭
+/// 소리를 넣고 바로 들어보려면: Tools > 기획 > 사운드 테스트 툴 → [UI 소리] 탭
 /// </summary>
 [CreateAssetMenu(fileName = "UISoundSettings", menuName = "사운드/UI 소리 설정", order = 1)]
 public class UISoundSettings : ScriptableObject

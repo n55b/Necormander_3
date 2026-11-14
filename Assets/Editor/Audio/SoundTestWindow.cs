@@ -5,10 +5,11 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// 사운드 테스트 툴 (메뉴: Tools > 사운드 > 사운드 테스트 툴)
+/// 사운드 테스트 툴 (메뉴: Tools > 기획 > 사운드 테스트 툴)
 ///
 /// [오브젝트 소리] 고른 몬스터·소환수·캐릭터·사물의 '사운드 세트'. 소리 추가/삭제, 언제 재생할지, 볼륨·음높이를 고치고 ▶ 로 듣는다.
 /// [UI 소리]      창마다 다른 열림/닫힘 소리, 버튼·아이템 칸 마우스 올림/클릭 소리, 상점 구매 성공/실패 소리.
+/// [게임 행동]    FeedbackCatalog 연출에 딸린 소리(발소리·대시·가드·보스·보상·타격). 기존 단일 효과음도 함께 보여 준다.
 /// [전체 음원]    Assets의 모든 오디오 파일을 이름·경로로 검색, 미리듣기, 선택, 목록 복사.
 /// 공통: 소리 칸에 오디오 파일을 끌어다 놓거나, 오른쪽 '오디오 파일 찾기'에서 [+] 로 넣는다.
 ///       아래 '재생 기록'에는 플레이 중 실제로 난 소리와 열리고 닫힌 창 이름이 쌓인다.
@@ -63,6 +64,7 @@ public class SoundTestWindow : EditorWindow
     private readonly List<string> _log = new List<string>();
     private readonly HashSet<string> _folded = new HashSet<string>();
     private readonly HashSet<string> _seenWindows = new HashSet<string>();
+    private readonly HashSet<int> _shownCues = new HashSet<int>(); // [게임 행동] 탭에 이미 보인 연출 번호
 
     // [+] 로 넣을 대상: (어느 SerializedObject 의) 어느 소리 묶음
     private SerializedObject _pickSO;
@@ -140,6 +142,8 @@ public class SoundTestWindow : EditorWindow
     {
         _target = go;
         _set = go != null ? go.GetComponentInParent<EntitySoundSet>(true) : null;
+        // 플레이 중 소환수는 코드가 만든 빈 루트(SummonField_X 등) 아래 자식 그림에 세트가 있다.
+        if (_set == null && go != null) _set = go.GetComponentInChildren<EntitySoundSet>(true);
         _setSO = _set != null ? new SerializedObject(_set) : null;
         _anim?.SetTarget(_set);
         if (_pickSO != null && _pickSO != _uiSO) ClearPick();
@@ -197,15 +201,26 @@ public class SoundTestWindow : EditorWindow
         if (catalog == null) { EditorGUILayout.HelpBox("FeedbackCatalog 설정이 없습니다.", MessageType.Info); return; }
         if (_catalogSO == null || _catalogSO.targetObject != catalog) _catalogSO = new SerializedObject(catalog);
         _catalogSO.Update();
-        EditorGUILayout.HelpBox("발소리·대시·가드·보스·보상 소리입니다. 파일을 교체하거나 볼륨/음높이/최소 간격을 조절하세요. 시각 효과의 수치는 바꾸지 않습니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("발소리·대시·가드·보스·보상·타격 소리입니다. 파일을 교체하거나 볼륨/음높이/최소 간격을 조절하세요. 시각 효과의 수치는 바꾸지 않습니다.", MessageType.Info);
         var effects = _catalogSO.FindProperty("effects");
         for (int i = 0; i < effects.arraySize; i++)
         {
             var entry = effects.GetArrayElementAtIndex(i);
             var audio = entry.FindPropertyRelative("audio");
+            var legacy = entry.FindPropertyRelative("sound");
             string title = entry.FindPropertyRelative("title").stringValue;
-            if (!AnyClip(audio) && entry.FindPropertyRelative("cue").intValue < 86) continue;
-            DrawGroup(_catalogSO, audio, title);
+            int cue = entry.FindPropertyRelative("cue").intValue;
+            // 한 번 보인 행은 마지막 파일을 지워도 이 창이 열려 있는 동안 남긴다(다시 채울 수 있게).
+            if (!AnyClip(audio) && legacy.objectReferenceValue == null && cue < (int)FeedbackCue.GrassFootstep && !_shownCues.Contains(cue)) continue;
+            _shownCues.Add(cue);
+            DrawGroup(_catalogSO, audio, title, null, legacy.objectReferenceValue == null ? null : (System.Action)(() =>
+            {
+                // PolishFeedback.PlaySound: 묶음에 파일이 있으면 묶음만, 비어 있을 때만 이 단일 효과음을 낸다.
+                EditorGUILayout.PropertyField(legacy, new GUIContent("단일 효과음 (기존)", "소리 묶음이 비어 있을 때 실제로 나는 소리입니다."));
+                EditorGUILayout.PropertyField(entry.FindPropertyRelative("volume"), new GUIContent("단일 효과음 볼륨", "전체 연출 강도(Catalog intensity)가 곱해집니다."));
+                EditorGUILayout.PropertyField(entry.FindPropertyRelative("pitchVariation"), new GUIContent("단일 효과음 음높이 변화", "80번 '연타 소리 미세 변화'가 켜져 있을 때 음높이·볼륨이 이 폭만큼 달라집니다."));
+                EditorGUILayout.HelpBox("위 소리 묶음에 파일이 하나라도 있으면 이 단일 효과음 대신 묶음만 재생됩니다. 묶음 볼륨(기본 0.8)은 단일 효과음보다 훨씬 클 수 있으니 파일을 넣기 전에 먼저 맞추세요.", MessageType.None);
+            }));
         }
         _catalogSO.ApplyModifiedProperties();
     }
@@ -240,6 +255,8 @@ public class SoundTestWindow : EditorWindow
             if (GUILayout.Button("+ 소리 추가 ▼", GUILayout.Width(100))) ShowAddEntryMenu();
         }
 
+        if (Application.isPlaying && !EditorUtility.IsPersistent(_set))
+            EditorGUILayout.HelpBox("플레이 중인 씬 오브젝트입니다. 여기서 고친 값은 플레이를 끝내면 모두 사라집니다. 남기려면 Project 창의 프리팹 원본을 골라서 고치세요.", MessageType.Warning);
         if (!EditorUtility.IsPersistent(_set) && PrefabUtility.IsPartOfPrefabInstance(_set))
         {
             using (new EditorGUILayout.HorizontalScope())
@@ -338,7 +355,8 @@ public class SoundTestWindow : EditorWindow
         foreach (var p in Presets)
         {
             var preset = p;
-            menu.AddItem(new GUIContent(preset.name), false, () =>
+            // 직접 호출 프리셋은 자동으로 나지 않으므로 하위 메뉴로 구분한다. 소리 이름(PlaySound 키)은 그대로 preset.name.
+            menu.AddItem(new GUIContent(preset.trigger == SoundTrigger.Manual ? "수동 재생 (애니메이션 이벤트·코드에서 호출)/" + preset.name : preset.name), false, () =>
             {
                 _setSO.Update();
                 var l = _setSO.FindProperty("sounds");
@@ -579,6 +597,12 @@ public class SoundTestWindow : EditorWindow
         g.FindPropertyRelative("volume").floatValue = volume;
         g.FindPropertyRelative("pitchMin").floatValue = pitchMin;
         g.FindPropertyRelative("pitchMax").floatValue = pitchMax;
+        // 새 칸은 마지막 칸을 복사해 생기므로 나머지 값도 SoundClipGroup 기본값으로 되돌린다.
+        g.FindPropertyRelative("enabled").boolValue = true;
+        g.FindPropertyRelative("volumeVariation").floatValue = 0f;
+        g.FindPropertyRelative("minPlaybackInterval").floatValue = 0f;
+        g.FindPropertyRelative("priority").intValue = 128;
+        g.FindPropertyRelative("audibleRange").floatValue = 0f;
     }
 
     private void Pick(SerializedObject so, SerializedProperty g, string label)

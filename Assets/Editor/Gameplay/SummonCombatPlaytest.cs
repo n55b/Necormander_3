@@ -291,7 +291,7 @@ public static class SummonCombatPlaytest
         float hp = enemyHealth.CurHP;
         yield return 4.5f;
         Check(a0.AutoAttackCount - c0 >= 1 && a1.AutoAttackCount - c1 == 0, $"활성 소환수만 자동 공격 ({a0.AutoAttackCount - c0}, {a1.AutoAttackCount - c1}회 / 4.5초)");
-        Check(a0.AutoAttackCount - c0 <= 3, "자동 공격 주기 2초 범위");
+        Check(a0.AutoAttackCount - c0 <= Mathf.FloorToInt(4.5f / skills.AutoAttackInterval) + 1, $"자동 공격 주기 {skills.AutoAttackInterval}초 범위");
         Check(enemyHealth.CurHP < hp || enemyHealth.IsDead, "자동 공격 피해 적용");
         if (!enemyHealth.IsDead && !a0.IsLinking)
             Check(Vector2.Distance(a0.transform.position, enemy.transform.position) >= skills.MinEnemyGap - 0.2f, "소환수가 적과 겹치지 않음");

@@ -29,8 +29,8 @@ public class MeleeCombatController : MonoBehaviour
     /// <summary>소환수 유무와 무관한 플레이어 콤보 수.</summary>
     private int ComboLength => PLAYER_COMBO_LENGTH;
 
-    // 소환수 일격 내부 쿨타임. 이 시각이 지나야 다음 평타에 소환수가 같이 나간다.
-    // 쿨 길이는 소환수 데이터(MainMinionDataSO.finisher.internalCooldown)가 정한다.
+    // 소환수 자동 공격은 플레이어 평타와 연결되지 않는다(CastSummonBasicAttack 참고). 주기는
+    // PlayerSkillController.autoAttackInterval 이 정한다 — finisher.internalCooldown 은 쓰지 않는다.
 
     [Header("콤보 설정")]
     [SerializeField] private float comboResetTime = 1.0f;

@@ -26,7 +26,7 @@ public class AnimPhase
 }
 
 /// <summary>
-/// 미니언 한 '행동'(스페이스바 스킬 / 평타 마무리)의 애니메이션 설정 한 벌.
+/// 미니언 한 '행동'(우클릭 스킬 / 자동 공격)의 애니메이션 설정 한 벌.
 ///
 /// [왜 여기 있나] 예전엔 이 필드들이 MinionSkillSO(스킬)와 MinionFinisher(마무리)에 '똑같이 중복'돼
 /// 있었다. 이제 미니언(MainMinionDataSO)이 skillAnim / basicAnim 두 벌을 들고, 스킬·마무리 로직은

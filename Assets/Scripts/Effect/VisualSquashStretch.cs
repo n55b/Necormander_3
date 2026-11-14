@@ -39,6 +39,9 @@ public class VisualSquashStretch : MonoBehaviour
     private Vector2 _startScale;
     private float _elapsed;
     private static readonly int FeedbackScaleId = Shader.PropertyToID("_FeedbackScale");
+    // 스프라이트 배칭 시 정점이 월드 좌표로 합쳐져 '오브젝트 원점'이 월드 원점이 된다.
+    // 그때도 제자리에서 변형되도록 셰이더가 이 월드 피벗을 기준으로 늘린다 (분열체가 화면 밖으로 튀던 원인).
+    private static readonly int FeedbackPivotId = Shader.PropertyToID("_FeedbackPivot");
     private MaterialPropertyBlock _properties;
 
     [Header("실체화 / 귀환 (그림만 변형)")]
@@ -203,6 +206,7 @@ public class VisualSquashStretch : MonoBehaviour
         {
             deformRenderer.GetPropertyBlock(_properties);
             _properties.SetVector(FeedbackScaleId, new Vector4(_scale.x, _scale.y, 1f, 1f));
+            _properties.SetVector(FeedbackPivotId, deformRenderer.transform.position);
             deformRenderer.SetPropertyBlock(_properties);
             // 프레임마다 스프라이트의 크기가 달라도 화면 가장자리에서 잘리지 않는다.
             if (deformRenderer.sprite != null)
@@ -231,6 +235,7 @@ public class VisualSquashStretch : MonoBehaviour
         {
             deformRenderer.GetPropertyBlock(_properties);
             _properties.SetVector(FeedbackScaleId, Vector4.one);
+            _properties.SetVector(FeedbackPivotId, Vector4.zero); // 배율 1이면 피벗 무관. 정지 상태끼리는 다시 배칭되게 같은 값으로 맞춘다.
             deformRenderer.SetPropertyBlock(_properties);
             deformRenderer.ResetLocalBounds();
         }

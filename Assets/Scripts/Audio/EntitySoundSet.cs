@@ -42,7 +42,7 @@ public class SoundEntry : SoundClipGroup
 /// · 그 외 원하는 순간: 애니메이션 이벤트 함수 이름 PlaySound, 문자열 인자에 소리 이름.
 /// · 재생은 SoundManager 효과음 풀을 거친다(옵션의 효과음 볼륨 반영).
 ///
-/// 소리를 넣고 바로 들어보려면: Tools > 사운드 > 사운드 테스트 툴
+/// 소리를 넣고 바로 들어보려면: Tools > 기획 > 사운드 테스트 툴
 /// </summary>
 [DisallowMultipleComponent]
 [AddComponentMenu("사운드/사운드 세트")]

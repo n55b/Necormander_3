@@ -29,8 +29,13 @@ public static class DesignerInspectorCheck
         int objects = 0;
         var report = new System.Text.StringBuilder();
         var inventory = JsonUtility.FromJson<DesignerInspectionInventory.Report>(File.ReadAllText("Logs/Designer-fields.json"));
+        var assembly = typeof(PlayerController).Assembly;
         foreach (var field in inventory.fields)
+        {
+            // [KoLabel] 필드는 화면에 그 한글 이름이 그대로 보이므로 영어 단어 사전 검사에서 뺀다.
+            if (assembly.GetType(field.owner)?.GetField(field.field, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)?.IsDefined(typeof(KoLabelAttribute)) == true) continue;
             foreach (string word in DesignerInspectorLabels.UnknownWords(field.field)) unknown.Add(word);
+        }
         void Inspect(Object target)
         {
             if (target == null || !DesignerInspectorView.IsProjectType(target.GetType())) return;
@@ -44,7 +49,7 @@ public static class DesignerInspectorCheck
                     if (p.name == "m_Script" || p.name.StartsWith("data[")) continue;
                     var f = DesignerInspectorView.ResolveField(target, p.propertyPath);
                     if (f == null || !DesignerInspectorView.IsProjectType(f.DeclaringType)) continue;
-                    foreach (string word in DesignerInspectorLabels.UnknownWords(f.Name)) unknown.Add(word);
+                    if (!f.IsDefined(typeof(KoLabelAttribute))) foreach (string word in DesignerInspectorLabels.UnknownWords(f.Name)) unknown.Add(word);
                     var label = DesignerInspectorLabels.Content(f, p.displayName, p.tooltip);
                     if (!System.Text.RegularExpressions.Regex.IsMatch(label.text, "[가-힣]|^(ID|UI|X|Y|Z|A|B)$")) missing.Add(f.DeclaringType.Name + "." + f.Name);
                     Require(label.tooltip.Contains("코드:"), "설명 경로 없음: " + f.Name);

@@ -191,25 +191,33 @@ public static class InventoryUICheck
             void Clear() { for (int i = 0; i < pouch.SlotCount; i++) pouch.RemoveAt(i); }
             void Add(string id, int count) { for (int i = 0; i < count; i++) Check(pouch.TryAdd(Item(id)), "중첩 습득: " + id); }
             void Equal(float actual, float expected, string label) => Check(Mathf.Abs(actual - expected) < .001f, label + ": " + actual + " != " + expected);
+            // 기대값은 지금 아이템 에셋 수치에서 계산한다(아이템 편집기로 밸런스를 바꿔도 같은 동작을 검사).
+            float PerCopy(string id, StatType type, bool percent) => Item(id).effects.OfType<ItemStatEffect>()
+                .Where(e => e.statType == type && e.isPercent == percent).Sum(e => e.value);
+            int Fill(string id) { int max = Item(id).MaxStack; Add(id, max); return max; }
 
             var stone = Item("Whetstone");
-            Add("Whetstone", 10);
-            Check(pouch.CountOf(stone) == 10 && !pouch.TryAdd(stone) && !RewardProcessor.CanOfferItem(stone), "최대 중첩/11번째 차단/보상 제외");
-            Field(stat, "baseCritChance", 37f); Equal(stat.CRIT_OVERFLOW_DAMAGE, 0, "107% 절삭");
-            Field(stat, "baseCritChance", 40f); Equal(stat.CRIT_OVERFLOW_DAMAGE, 10, "110% 변환 1회");
-            Field(stat, "baseCritChance", 55f); Equal(stat.CRIT_OVERFLOW_DAMAGE, 20, "125% 변환");
+            int stones = Fill("Whetstone");
+            Check(pouch.CountOf(stone) == stones && !pouch.TryAdd(stone) && !RewardProcessor.CanOfferItem(stone), "최대 중첩/초과분 차단/보상 제외");
+            // 기본 치명타 확률을 숫돌 합계에 맞춰 총 107% / 110% / 125% 를 만든다.
+            float stoneCrit = stones * PerCopy("Whetstone", StatType.CritChance, false);
+            Field(stat, "baseCritChance", 107f - stoneCrit); Equal(stat.CRIT_OVERFLOW_DAMAGE, 0, "107% 절삭");
+            Field(stat, "baseCritChance", 110f - stoneCrit); Equal(stat.CRIT_OVERFLOW_DAMAGE, 10, "110% 변환 1회");
+            Field(stat, "baseCritChance", 125f - stoneCrit); Equal(stat.CRIT_OVERFLOW_DAMAGE, 20, "125% 변환");
             Clear(); Equal(stat.CRIT_OVERFLOW_DAMAGE, 0, "숫돌 없으면 변환 없음"); Field(stat, "baseCritChance", 0f);
-            Add("CrackedWhetstone", 10); Equal(stat.CRIT_DAMAGE, 300, "치명타 피해 15 x10");
-            Add("GaleDashRecovery", 10); Equal(stat.ApplyDashCooldown(3f), 2f, "충전 속도 +50%");
-            Add("GaleDashLeap", 10); Equal(stat.DASH_DISTANCE_MULTIPLIER, 1.3f, "거리 +30%");
+            float critDamage = stat.CRIT_DAMAGE;
+            int n = Fill("CrackedWhetstone"); Equal(stat.CRIT_DAMAGE, critDamage + n * PerCopy("CrackedWhetstone", StatType.CritDamage, false), "치명타 피해 최대 중첩");
+            n = Fill("GaleDashRecovery"); Equal(stat.ApplyDashCooldown(3f), 3f / (1f + n * PerCopy("GaleDashRecovery", StatType.DashRechargeSpeed, true)), "충전 속도 최대 중첩");
+            n = Fill("GaleDashLeap"); Equal(stat.DASH_DISTANCE_MULTIPLIER, 1f + n * PerCopy("GaleDashLeap", StatType.DashDistance, true), "대시 거리 최대 중첩");
             var dodge = host.AddComponent<MeleeDodgeController>(); Call(dodge, "Awake");
             Add("HermesContract", 2); Call(dodge, "SyncItemBonuses"); Check(dodge.MaxCharges == 2, "계약서 2개 0회");
             Add("HermesContract", 1); Call(dodge, "SyncItemBonuses"); Check(dodge.MaxCharges == 3 && dodge.CurrentCharges == 3, "계약서 3개 +1회");
             Add("HermesContract", 6); Call(dodge, "SyncItemBonuses"); Check(dodge.MaxCharges == 5 && dodge.CurrentCharges == 5, "계약서 9개 +3회");
             Check(!pouch.TryAdd(Item("HermesContract")), "계약서 10번째 차단");
-            Add("ClothArmor", 10); Equal(stat.Mods.Flat(StatType.Defense), 40, "방어력 +40");
-            Add("LightBoots", 10); Equal(stat.Mods.Percent(StatType.MoveSpeed), .4f, "이동 속도 +40%");
-            Add("WindFeather", 10); Equal(stat.EVASION, .2f, "회피율 +20%");
+            n = Fill("ClothArmor"); float armorDef = n * PerCopy("ClothArmor", StatType.Defense, false);
+            Equal(stat.Mods.Flat(StatType.Defense), armorDef, "방어력 최대 중첩");
+            n = Fill("LightBoots"); Equal(stat.Mods.Percent(StatType.MoveSpeed), n * PerCopy("LightBoots", StatType.MoveSpeed, true), "이동 속도 최대 중첩");
+            n = Fill("WindFeather"); Equal(stat.EVASION, Mathf.Clamp01(n * PerCopy("WindFeather", StatType.Evasion, false)), "회피율 최대 중첩");
             Add("PortableShield", 10);
             var room1 = new GameObject("Room 1").AddComponent<RoomInstance>();
             var room2 = new GameObject("Room 2").AddComponent<RoomInstance>();
@@ -231,7 +239,7 @@ public static class InventoryUICheck
             Check(save.pouchItemNames.SequenceEqual(restored.pouchItemNames), "중첩 수/획득순 저장 복원");
             pouch.LoadFromData(new SaveData { pouchSlotCount = 9, pouchItemNames = new System.Collections.Generic.List<string> { "Whetstone", "", "Whetstone", "LifeCharm" } });
             Check(pouch.CountOf(stone) == 2 && pouch.CountOf(Item("HealingCharm")) == 1, "구 아이템 제거/빈칸/중복 보존/기본 부적 지급");
-            pouch.LoadFromData(save); pouch.Refresh(); Equal(stat.Mods.Flat(StatType.Defense), 40, "로드/Refresh 중복 효과 없음");
+            pouch.LoadFromData(save); pouch.Refresh(); Equal(stat.Mods.Flat(StatType.Defense), armorDef, "로드/Refresh 중복 효과 없음");
 
             var ground = GroundItem.Drop(stone, Vector3.zero);
             Check(ground.HoldSeconds == 0 && !ground.InteractionPrompt.Contains("분해"), "아이템 길게 누르기 제거");
@@ -267,8 +275,8 @@ public static class InventoryUICheck
             Check(ui.GetComponentsInChildren<PouchSlotUI>().First().Item.tier == registry.items.Min(i => i.tier), "등급순");
             ui.SortByAcquired(); ui.Select(stone);
             Check(((TMP_Text)Read(ui, "stackText")).text.Contains("9 / 10"), "선택 상세 수량");
-            Check(((TMP_Text)Read(ui, "totalEffectText")).text.Contains("+63%"), "선택 상세 총 효과");
-            Check(((TMP_Text)Read(ui, "nextEffectText")).text.Contains("+70%"), "다음 중첩 미리보기");
+            Check(((TMP_Text)Read(ui, "totalEffectText")).text.Contains(stone.EffectSummary(pouch.CountOf(stone))), "선택 상세 총 효과");
+            Check(((TMP_Text)Read(ui, "nextEffectText")).text.Contains(stone.EffectSummary(pouch.CountOf(stone) + 1)), "다음 중첩 미리보기");
             Render(cam, texture, "Logs/StackedPouch.png");
             // 목록이 화면을 넘어도 프리팹 셀/스크롤만 늘어나고 아이템 유실이 없다.
             for (int i = 0; i < 35; i++) { var item = ScriptableObject.CreateInstance<ItemSO>(); item.name = "ScrollCheck" + i; tempItems.Add(item); pouch.TryAdd(item); }

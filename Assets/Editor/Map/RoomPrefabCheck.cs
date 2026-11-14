@@ -95,6 +95,47 @@ public static class RoomPrefabCheck
                 }
                 finally { Object.DestroyImmediate(host); }
             }
+
+            // 같은 층 중복 금지: 서로 다른 일반 맵이 충분하면 일반 2칸 + 증강(일반 맵 폴백) 1칸이 모두 다른 맵이어야 한다.
+            var distinct = new List<GameObject>();
+            for (int i = 0; i < 4; i++)
+            {
+                var room = Object.Instantiate(valid);
+                room.name = "Unique normal " + i;
+                SceneManager.MoveGameObjectToScene(room, scene);
+                distinct.Add(room);
+            }
+            data.roomEntries[2].prefabs = distinct;
+            int reuseWarnings = 0;
+            void OnReuse(string message, string stack, LogType type)
+            {
+                if (message.StartsWith("[MapGenerator] 같은 층에")) reuseWarnings++;
+            }
+            Application.logMessageReceived += OnReuse;
+            try
+            {
+                for (int seed = 0; seed < 16; seed++)
+                {
+                    Random.InitState(100 + seed);
+                    var host = new GameObject("Unique placement check");
+                    SceneManager.MoveGameObjectToScene(host, scene);
+                    var generator = host.AddComponent<MapGenerator>();
+                    generator.SetMapData(tuning, data);
+                    typeof(MapGenerator).GetField("logGenerationTimings", flags).SetValue(generator, false);
+                    try
+                    {
+                        var grid = new Dictionary<Vector2Int, RoomInstance>();
+                        Check((bool)place.Invoke(generator, new object[] { grid, false }), $"unique seed={seed}: 배치 성공");
+                        var names = grid.Values.Select(r => r.name).Where(n => n.StartsWith("Unique normal")).ToList();
+                        Check(names.Count == 3 && names.Distinct().Count() == 3,
+                            $"unique seed={seed}: 일반·증강 방이 모두 다른 맵 ({string.Join(", ", names)})");
+                    }
+                    finally { Object.DestroyImmediate(host); }
+                }
+            }
+            finally { Application.logMessageReceived -= OnReuse; }
+            Check(reuseWarnings == 0, "맵이 충분하면 재사용 경고 없음");
+
             data.roomEntries = null;
             Check(data.GetRandomPrefab(RoomType.Spawn) == null, "등록 목록 null");
             data.roomEntries = new List<RoomPrefabEntry> { new RoomPrefabEntry { roomType = RoomType.Spawn } };
@@ -104,7 +145,7 @@ public static class RoomPrefabCheck
                 diagnostics.Any(s => s.Contains("floor=") && s.Contains("attempt=") && s.Contains("frame=")),
                 "무효 슬롯/상태/생성 상황 로그");
             Debug.Log("[MapPrefabCheck] PASS: null/destroyed filtering, fallback, source preservation, " +
-                "16 placement seeds, all-invalid failure and diagnostics. No assets/scenes saved.");
+                "16 placement seeds, all-invalid failure, no duplicate map per floor and diagnostics. No assets/scenes saved.");
         }
         finally
         {

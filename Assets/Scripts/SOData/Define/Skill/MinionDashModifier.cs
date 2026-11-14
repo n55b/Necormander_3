@@ -70,6 +70,6 @@ public class MinionDashModifier
         => !string.IsNullOrEmpty(uiDescription) ? uiDescription
             : (DealsDamage
                 ? $"{(hitAtOrigin ? "출발 지점" : "이동 경로")}의 적을 {hitCount}회 타격 · 피해 배율 {damageMultiplier:0.##}배."
-                    + (onHitStatus != StatusType.None ? $" 적중 시 {onHitStatus}." : "")
+                    + (onHitStatus != StatusType.None ? $" 적중 시 {MinionStandbyInfusion.StatusLabel(onHitStatus)}." : "")
                 : "추가 공격 없음.");
 }

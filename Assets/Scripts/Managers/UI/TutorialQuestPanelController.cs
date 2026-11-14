@@ -43,7 +43,6 @@ public class TutorialQuestPanelController : MonoBehaviour
         { TutorialStage.Combat, new[]
             {
                 "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Left\"></size>로 공격하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 방어하세요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시/회피하세요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>으로 지도를 열어 지나온 방에 돌아가세요",
             }
@@ -52,7 +51,7 @@ public class TutorialQuestPanelController : MonoBehaviour
             {
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용하세요",
                 "보상 상자에서 미니언을 얻으세요",
-                "적 근처에서 Space로 미니언 스킬을 쓰세요",
+                "적 근처에서 <size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 미니언 스킬을 쓰세요",
                 "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_C\"></size>로 미니언 능력을 확인하세요",
             }
         },

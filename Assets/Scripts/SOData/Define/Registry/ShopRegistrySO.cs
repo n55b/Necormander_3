@@ -22,7 +22,7 @@ public class ShopRegistrySO : ScriptableObject
 
     [Header("상점에 등장할 아이템 목록(주머니)")]
     [Tooltip("장비와 별개 시스템. 가격은 티어에서 자동으로 나오므로(ItemTierRules) 따로 적을 게 없다.\n" +
-             "구매하면 즉시 장착되지 않고 바닥에 떨어진다.")]
+             "구매하면 바로 주머니에 들어간다. 중첩 한도면 골드를 내기 전에 구매가 막히고, 주머니가 없을 때만 바닥에 떨어진다.")]
     public List<ItemSO> itemPool = new List<ItemSO>();
 
     // [26/08/03] 강화는 전용 상점(Room_ShopEnhance)의 EnhanceShopNPC 에게 F 로만 한다.

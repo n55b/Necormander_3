@@ -6,7 +6,8 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>현재 아이템 카탈로그·기본 지급·치명타·저장 검증. 에셋/씬/세이브를 저장하지 않는다.</summary>
+/// <summary>현재 아이템 카탈로그·기본 지급·치명타·저장 검증. 에셋/씬/세이브를 저장하지 않는다.
+/// 개수·수치를 박아 두지 않고 지금 에셋에서 계산한다 — 아이템 편집기로 추가/밸런스 조정을 해도 깨지지 않게.</summary>
 public static class CriticalItemsCheck
 {
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -18,19 +19,12 @@ public static class CriticalItemsCheck
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
         var growth = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>("Assets/SOData/Registry/Growth Reward Registry.asset");
         var shop = AssetDatabase.LoadAssetAtPath<ShopRegistrySO>("Assets/SOData/Registry/Shop Registry.asset");
-        var names = new[] { "Whetstone", "CrackedWhetstone", "ClothArmor", "LightBoots", "WindFeather",
-            "PortableShield", "GaleDashRecovery", "GaleDashLeap", "HermesContract" };
-        var charm = AssetDatabase.LoadAssetAtPath<ItemSO>(Folder + "HealingCharm.asset");
-        Check(charm != null && growth.startingItem == charm && charm.MaxStack == 1 && !charm.availableAsReward, "기본 부적 배선/중첩/드롭 제외");
-        Check(growth.items.Count == 10 && growth.items.Distinct().Count() == 10 && growth.items.Contains(charm), "카탈로그 10종");
-        Check(shop.itemPool.Count == 9 && shop.itemPool.All(i => i != null && names.Contains(i.name)), "상점은 스택형 9종만");
-        foreach (var name in names)
-        {
-            var item = AssetDatabase.LoadAssetAtPath<ItemSO>(Folder + name + ".asset");
-            Check(item != null && growth.items.Contains(item) && shop.itemPool.Contains(item) && item.availableAsReward,
-                "카탈로그/보상/상점: " + name);
-            Check(item.MaxStack == (name == "HermesContract" ? 9 : 10), "최대 중첩: " + name);
-        }
+        var charm = growth.startingItem;
+        Check(charm != null && charm.MaxStack == 1 && !charm.availableAsReward, "기본 아이템 배선/중첩 1/드롭 제외");
+        Check(growth.items.All(i => i != null) && growth.items.Distinct().Count() == growth.items.Count && growth.items.Contains(charm), "카탈로그 빈칸/중복 없음, 기본 아이템 포함");
+        Check(!shop.itemPool.Contains(charm), "기본 아이템은 상점에 없음");
+        foreach (var item in shop.itemPool)
+            Check(item != null && growth.items.Contains(item) && item.availableAsReward, "상점 아이템은 카탈로그 등록 + 보상 등장: " + (item != null ? item.name : "(빈칸)"));
         foreach (var name in new[] { "BalanceWeight", "DeadlyCounter", "FrostKnuckle", "LifeCharm", "LuckyCoin", "SeventeenToOne", "VitalStrike" })
             Check(AssetDatabase.LoadAssetAtPath<ItemSO>(Folder + name + ".asset") == null, "구 아이템 제거: " + name);
 
@@ -67,13 +61,18 @@ public static class CriticalItemsCheck
             pouch.Initialize(false);
             Check(pouch.CountOf(charm) == 1, "새 게임/재초기화 기본 1개");
             health.SetHP(50f);
+            float heal = charm.effects.OfType<ItemRoomClearHealEffect>().Sum(h => h.ResolveAmount(health));
             typeof(ItemPouch).GetMethod("HandleRoomCleared", Private).Invoke(pouch, new object[] { null });
-            Check(Mathf.Approximately(health.CurHP, 60f), "실제 방 클리어 회복 +10");
+            Check(heal > 0f && Mathf.Approximately(health.CurHP, Mathf.Min(health.MaxHP, 50f + heal)), $"실제 방 클리어 회복 +{heal}");
 
-            pouch.TryAdd(AssetDatabase.LoadAssetAtPath<ItemSO>(Folder + "Whetstone.asset"));
-            pouch.TryAdd(AssetDatabase.LoadAssetAtPath<ItemSO>(Folder + "CrackedWhetstone.asset"));
+            var critItems = new[] { AssetDatabase.LoadAssetAtPath<ItemSO>(Folder + "Whetstone.asset"), AssetDatabase.LoadAssetAtPath<ItemSO>(Folder + "CrackedWhetstone.asset") };
+            Check(critItems.All(i => i != null), "치명타 아이템 에셋(Whetstone/CrackedWhetstone)");
+            float Flat(StatType type) => critItems.SelectMany(i => i.effects).OfType<ItemStatEffect>()
+                .Where(e => e.statType == type && !e.isPercent).Sum(e => e.value);
+            float critDamageBefore = stat.CRIT_DAMAGE;
+            foreach (var item in critItems) pouch.TryAdd(item);
             pouch.Refresh(); pouch.Refresh();
-            Check(Mathf.Approximately(stat.CRIT_CHANCE, 7f) && Mathf.Approximately(stat.CRIT_DAMAGE, 165f), "치명타 스탯/Refresh 멱등");
+            Check(Mathf.Approximately(stat.CRIT_CHANCE, Flat(StatType.CritChance)) && Mathf.Approximately(stat.CRIT_DAMAGE, critDamageBefore + Flat(StatType.CritDamage)), "치명타 스탯/Refresh 멱등");
             var save = new SaveData(); pouch.SaveToData(save);
             pouch.LoadFromData(save); pouch.LoadFromData(save);
             var restored = new SaveData(); pouch.SaveToData(restored);
@@ -87,9 +86,9 @@ public static class CriticalItemsCheck
             for (int i = 0; i < 100; i++)
             {
                 var reward = RewardProcessor.PickRandomItem(data);
-                Check(reward != null && names.Contains(reward.name), "방 보상은 스택형 9종만");
+                Check(reward != null && reward != charm && growth.items.Contains(reward) && reward.availableAsReward, "방 보상은 카탈로그의 보상 등장 아이템만");
             }
-            Debug.Log("[CriticalItemsCheck] PASS: 9 drop items + starting charm, fresh/load/reload, room heal, crit stats, 100 reward rolls.");
+            Debug.Log($"[CriticalItemsCheck] PASS: catalog {growth.items.Count} / shop {shop.itemPool.Count} invariants + starting item, fresh/load/reload, room heal, crit stats, 100 reward rolls.");
         }
         finally
         {

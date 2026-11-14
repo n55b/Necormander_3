@@ -59,16 +59,8 @@ public class RewardManager : MonoBehaviour
         {
             // [엘리트 보상 26/07/30] 아이템을 바닥에 떨어뜨린다. 카드 UI 는 띄우지 않는다 —
             // 예전엔 Metamorphosis 후보만 굴렸는데 그 시스템이 없어져서 빈 카드 3장이 뜨는 죽은 경로였다.
-            var data = GameManager.Instance.dataManager;
-            var pos = PlayerPosition();
-            int dropped = 0;
-            for (int i = 0; i < eliteItemDropCount; i++)
-            {
-                var itemSO = RewardProcessor.PickRandomItem(data);
-                if (itemSO == null) break;
-                GroundItem.Drop(itemSO, pos);
-                dropped++;
-            }
+            // 일반 방과 같은 DropItems — 한 묶음 안에서 최대 중첩을 넘겨 뽑지 않는다.
+            int dropped = RewardProcessor.DropItems(GameManager.Instance.dataManager, PlayerPosition(), eliteItemDropCount);
             Debug.Log($"<color=yellow>[Reward]</color> Elite Room Cleared! 아이템 {dropped}개를 바닥에 떨어뜨렸다.");
         }
         else
@@ -204,8 +196,8 @@ public class RewardManager : MonoBehaviour
 
             case RewardCategory.Item:
                 // [아이템] 절대 즉시 장착하지 않는다 — 플레이어 발밑 바닥에 떨어뜨린다.
-                // 거기서 F 짧게 누르면 습득, 길게 누르면 분해다(GroundItem).
-                // 상점 구매도 이 공용 지급 경로를 사용한다.
+                // 거기서 F 로 습득한다(GroundItem. 길게 눌러 분해는 미니언 전용).
+                // 상점 구매는 이 경로가 아니다 — TryGivePurchase 가 바로 주머니에 넣는다.
                 GroundItem.Drop((ItemSO)candidate.rawData, PlayerPosition());
                 ProcessNextReward();
                 break;

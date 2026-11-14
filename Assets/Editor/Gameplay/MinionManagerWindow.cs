@@ -8,12 +8,13 @@ using UnityEngine;
 /// 소환수 관리 툴 (Tools/기획/소환수 관리).
 ///
 ///  · 왼쪽  : 메인 소환수 목록. 진화 트리 순서(기본형 → 진화형)로 들여쓰기해서 보여준다.
-///  · 수치표: 전 소환수의 스킬/마무리/대쉬 핵심 수치를 한 표에서 비교하고 바로 고친다.
-///  · 상세  : 고른 소환수의 전체 설정 + 스페이스바 스킬 에셋을 한 화면에서 편집한다.
-///  · 미리보기: 스킬/마무리/대쉬 애니메이션을 게임과 같은 규칙(시퀀스 순서, 시전시간 배속, 위치 이동,
+///  · 수치표: 전 소환수의 스킬/자동 공격/대쉬 핵심 수치를 한 표에서 비교하고 바로 고친다.
+///  · 상세  : 고른 소환수의 전체 설정 + 우클릭 스킬 에셋을 한 화면에서 편집한다.
+///  · 미리보기: 스킬/자동 공격/대쉬 애니메이션을 게임과 같은 규칙(시퀀스 순서, 시전시간 배속, 위치 이동,
 ///             이펙트 겹침)으로 재생하고, 타격 이벤트 시점을 타임라인에 표시한다.
 ///
-/// 편집은 전부 SerializedObject 를 거치므로 Undo 가 되고, 에셋에 바로 저장된다.
+/// 편집은 전부 SerializedObject 를 거치므로 Undo 가 된다. 소환수/스킬 에셋(ScriptableObject) 수정은
+/// Ctrl+S(Save Project) 때 디스크에 저장되고, 대쉬 공격·대기 효과 탭의 플레이어 프리팹 값은 고치는 즉시 저장된다.
 /// 같은 스킬 에셋을 여러 소환수가 공유하면(예: 기사·용사) 경고를 띄운다 — 하나를 고치면 같이 바뀐다.
 /// </summary>
 public class MinionManagerWindow : EditorWindow
@@ -63,20 +64,22 @@ public class MinionManagerWindow : EditorWindow
         _preview = new MinionAnimPreviewer();
         Rebuild();
         EditorApplication.projectChanged += Rebuild;
-        Undo.undoRedoPerformed += Repaint;
+        // 되돌리기로 minionSkill/evolutions 가 바뀔 수 있다 → 공유 스킬 경고·진화 트리도 다시 만든다(Rebuild 가 Repaint 까지 한다).
+        Undo.undoRedoPerformed += Rebuild;
     }
 
     private void OnDisable()
     {
         EditorApplication.projectChanged -= Rebuild;
-        Undo.undoRedoPerformed -= Repaint;
+        Undo.undoRedoPerformed -= Rebuild;
         if (_minionEditor != null) DestroyImmediate(_minionEditor);
         if (_skillEditor != null) DestroyImmediate(_skillEditor);
     }
 
     private void Update()
     {
-        if (_preview != null && _preview.Tick()) Repaint();
+        // 미리보기는 상세 탭에만 보인다 — 다른 탭에서 계속 다시 그리지 않는다.
+        if (_tab == Tab.Detail && _preview != null && _preview.Tick()) Repaint();
     }
 
     // ── 데이터 수집 ─────────────────────────────────────────────────
@@ -204,24 +207,25 @@ public class MinionManagerWindow : EditorWindow
     private static readonly Col[] Cols =
     {
         new Col("소환수", 120f),
-        new Col("스킬", 110f, "스페이스바 스킬 에셋 이름"),
+        new Col("스킬", 110f, "우클릭 스킬 에셋 이름"),
         new Col("쿨타임", 52f, "스킬 쿨타임(초)"),
         new Col("배율", 52f, "스킬 타당 피해 = 플레이어 ATK x 배율"),
         new Col("타수", 40f, "스킬 타격 횟수(구역 충격파면 구역 수)"),
-        new Col("총배율", 52f, "배율 x 타수 — 한 번 시전으로 한 대상이 받는 최대 피해(ATK 배수)"),
+        new Col("총배율", 52f, "배율 x 타수 — 한 번 시전으로 한 대상이 받는 피해(ATK 배수).\n* = 구역 충격파: 대상은 보통 한 구역에만 1타 맞으므로 배율 그대로(구역 경계에 걸치면 더 맞음)"),
         new Col("스킬 상태", 82f, "스킬 적중 시 거는 상태이상"),
-        new Col("마무리 배율", 64f, "평타 첫 타에 소환수가 넣는 일격의 배율"),
+        new Col("자동 공격 배율", 76f, "필드 소환수 자동 공격 1타 피해 = 플레이어 ATK x 이 배율 x 강화 x 무기 basicDamagePerHit x PlayerSkillController 의 autoAttackDamageMultiplier.\n" +
+                                       "autoAttackInterval 초마다 나갑니다(대쉬 공격 탭의 '자동 공격'에서 조정)."),
         new Col("타수", 40f),
-        new Col("마무리 상태", 82f),
+        new Col("자동 공격 상태", 82f),
         new Col("대쉬 배율", 60f, "대쉬 공격 타당 피해 = 플레이어 ATK x 배율. LShift 대쉬에서는 '대기 소환수'의 값이 쓰입니다(대쉬 공격 탭 참고)."),
         new Col("타수", 40f),
         new Col("대쉬 상태", 82f),
-        new Col("강화 배율(평/대/스)", 150f, "보상방 강화 1단계 배율: 평타/대쉬/스킬"),
+        new Col("강화 배율(자/대/스)", 150f, "보상방 강화 1단계 배율: 자동 공격/대쉬/스킬"),
     };
 
     private void DrawTable()
     {
-        EditorGUILayout.HelpBox("칸을 바로 고치면 에셋에 저장됩니다(Ctrl+Z 가능). 노란 칸 = 여러 소환수가 같이 쓰는 스킬이라 같이 바뀝니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("칸을 고치면 에셋에 바로 반영되고, Ctrl+S(Save Project) 때 디스크에 저장됩니다(Ctrl+Z 가능). 노란 칸 = 여러 소환수가 같이 쓰는 스킬이라 같이 바뀝니다.", MessageType.Info);
         _tableScroll = EditorGUILayout.BeginScrollView(_tableScroll);
 
         float total = Cols.Sum(c => c.width) + Cols.Length * 4f;
@@ -270,10 +274,16 @@ public class MinionManagerWindow : EditorWindow
             {
                 Field(Next(2), sso, "cooldownTime", shared);
                 Field(Next(3), sso, "damageMultiplier", shared);
-                bool zones = skill.zoneCount > 1 && skill.hitBoxSize.x > 0f && skill.hitBoxSize.y > 0f;
+                // 런타임(MinionActionSkillSO.Execute 의 useHitBox && hitBoxPrefab != null && UsesZones)과 같은 조건.
+                bool zones = skill.useHitBox && skill.hitBoxPrefab != null
+                             && skill.zoneCount > 1 && skill.hitBoxSize.x > 0f && skill.hitBoxSize.y > 0f;
                 Field(Next(4), sso, zones ? "zoneCount" : "hitCount", shared);
-                int hits = zones ? skill.zoneCount : Mathf.Max(1, skill.hitCount);
-                GUI.Label(Next(5), $"x{skill.damageMultiplier * hits:0.##}", EditorStyles.miniLabel);
+                // 구역 충격파는 구역마다 1타라 대상당 배율 그대로다(구역 수를 곱하면 다른 스킬과 비교가 안 된다).
+                if (zones)
+                    GUI.Label(Next(5), new GUIContent($"x{skill.damageMultiplier:0.##}*",
+                        $"구역 충격파: 구역 {skill.zoneCount}개가 차례로 나가고 대상은 보통 한 구역에 1타만 맞습니다(대상당 배율). 구역 경계에 걸치면 더 맞습니다."), EditorStyles.miniLabel);
+                else
+                    GUI.Label(Next(5), $"x{skill.damageMultiplier * Mathf.Max(1, skill.hitCount):0.##}", EditorStyles.miniLabel);
                 Field(Next(6), sso, "onHitStatus", shared);
             }
             else
@@ -306,7 +316,7 @@ public class MinionManagerWindow : EditorWindow
         EditorGUILayout.EndScrollView();
 
         EditorGUILayout.HelpBox(
-            "스킬 쿨타임·배율·타수·상태이상은 '스킬 에셋'에, 마무리·대쉬·강화는 '소환수 에셋'에 저장됩니다.\n" +
+            "스킬 쿨타임·배율·타수·상태이상은 '스킬 에셋'에, 자동 공격·대쉬·강화는 '소환수 에셋'에 저장됩니다.\n" +
             "상태이상 지속시간·출혈 비율 같은 공통 수치는 위 '상태이상 공통 수치' 버튼으로 엽니다.", MessageType.None);
     }
 
@@ -421,12 +431,28 @@ public class MinionManagerWindow : EditorWindow
                     EditorGUILayout.LabelField("공격 사거리 (모든 소환수 공통)", $"{dodgeAsset.SummonDashAttackDistance:0.##} 유닛  (대쉬 속도 x 대쉬 시간)");
             }
             EditorGUILayout.HelpBox("범위 안에 적이 있으면: 스왑 전 소환수가 플레이어 자리에서 마우스 방향으로 대쉬 공격을 하고, 새 소환수는 플레이어 곁에 나타납니다.\n" +
-                                    "범위 안에 적이 없으면: 공격 없이 스왑 전 소환수가 있던 자리에서 새 소환수로 교대합니다.", MessageType.Info);
+                                    "범위 안에 적이 없으면: 공격 없이 스왑 전 소환수가 있던 자리에서 새 소환수로 교대합니다.\n" +
+                                    "범위 안에 적이 있는데 스왑 전 소환수가 대쉬 공격을 낼 수 없으면(피해 없음/히트박스 없음): 대신 우클릭 스킬을 쿨타임 무시하고 씁니다(쿨타임도 돌리지 않음).", MessageType.Info);
             if (Application.isPlaying)
             {
                 var liveSkill = FindAnyObjectByType<PlayerSkillController>();
                 if (liveSkill != null)
                     EditorGUILayout.LabelField("지금 스왑하면", liveSkill.HasEnemyInSwapRange() ? "대쉬 공격 후 교대" : "공격 없이 제자리 교대 (범위 안에 적 없음)", EditorStyles.boldLabel);
+            }
+
+            // 1-c) 필드 소환수 자동 공격 — 같은 PlayerSkillController 값.
+            EditorGUILayout.Space(6f);
+            EditorGUILayout.LabelField("자동 공격 (모든 소환수 공통)", EditorStyles.boldLabel);
+            using (new EditorGUILayout.VerticalScope("box"))
+            {
+                EditorGUILayout.PropertyField(sso.FindProperty("autoAttackInterval"), new GUIContent("공격 주기(초)", "필드 소환수가 자동 공격을 내는 간격. 플레이어 프리팹(Player Melee)에 저장됩니다."));
+                EditorGUILayout.PropertyField(sso.FindProperty("autoAttackRange"), new GUIContent("적 발견 범위", "소환수 위치 기준(유닛). 이 안의 적에게 다가가 공격합니다."));
+                EditorGUILayout.PropertyField(sso.FindProperty("autoAttackDamageMultiplier"), new GUIContent("공통 피해 배율", "자동 공격 1타 피해 = 플레이어 ATK x 소환수별 '자동 공격 배율' x 강화 x 무기 basicDamagePerHit x 이 값."));
+                if (sso.ApplyModifiedProperties())
+                {
+                    AssetDatabase.SaveAssetIfDirty(prefab);
+                    SyncLive(skillAsset, "autoAttackInterval", "autoAttackRange", "autoAttackDamageMultiplier");
+                }
             }
         }
 
@@ -644,8 +670,10 @@ public class MinionManagerWindow : EditorWindow
             GUILayout.FlexibleSpace();
             EditorGUILayout.LabelField("모든 효과 확률", GUILayout.Width(90f));
             _bulkChance = EditorGUILayout.Slider(_bulkChance, 0f, 1f, GUILayout.Width(160f));
-            if (GUILayout.Button("일괄 적용", GUILayout.Width(70f))) SetAllStandbyChance(_bulkChance);
-            if (GUILayout.Button(new GUIContent("빈 소환수 채우기", "대기 효과가 하나도 없는 소환수에, 스킬 → 마무리 → 대쉬 순서로 찾은 상태이상을 50% 확률로 넣습니다."), GUILayout.Width(110f)))
+            if (GUILayout.Button("일괄 적용", GUILayout.Width(70f))
+                && EditorUtility.DisplayDialog("확률 일괄 적용", $"모든 소환수의 모든 대기 효과 확률을 {_bulkChance:P0}(으)로 바꾸고 저장합니다.", "적용", "취소"))
+                SetAllStandbyChance(_bulkChance);
+            if (GUILayout.Button(new GUIContent("빈 소환수 채우기", "대기 효과가 하나도 없는 소환수에, 스킬 → 자동 공격 → 대쉬 순서로 찾은 상태이상을 50% 확률로 넣습니다."), GUILayout.Width(110f)))
                 FillStandbyInfusionDefaults();
         }
         float total = StandbyCols.Sum(c => c.width) + StandbyCols.Length * 4f + 320f;
@@ -673,7 +701,10 @@ public class MinionManagerWindow : EditorWindow
                                    : m == _selected ? new Color(0.24f, 0.48f, 0.9f, 0.25f) : new Color(1f, 1f, 1f, 0.05f));
             string indent = new string(' ', r.depth * 3) + (r.depth > 0 ? "└ " : "");
             if (GUI.Button(new Rect(line.x + 2f, line.y + 2f, 240f, 18f), indent + MinionLabel(m), EditorStyles.boldLabel)) Select(m);
-            GUI.Label(new Rect(line.x + 248f, line.y + 2f, 160f, 18f), "스킬 상태: " + MinionStandbyInfusion.StatusLabel(SkillStatus(m)), EditorStyles.miniLabel);
+            string statusSrc = SkillStatusSource(m);
+            GUI.Label(new Rect(line.x + 248f, line.y + 2f, 160f, 18f),
+                new GUIContent("대표 상태: " + MinionStandbyInfusion.StatusLabel(SkillStatus(m)) + (statusSrc != null ? $" ({statusSrc})" : ""),
+                    "스킬 → 자동 공격 → 대쉬 순서로 찾은 첫 상태이상과 그 출처. '+ 효과 추가'·'빈 소환수 채우기'의 기본값으로 씁니다."), EditorStyles.miniLabel);
             if (GUI.Button(new Rect(line.x + 412f, line.y + 2f, 80f, 18f), "+ 효과 추가", EditorStyles.miniButton) && list != null)
             {
                 int i = list.arraySize;
@@ -711,11 +742,11 @@ public class MinionManagerWindow : EditorWindow
         }
 
         EditorGUILayout.Space(4f);
-        EditorGUILayout.HelpBox("초록 줄 = 플레이 중 지금 평타에 효과를 묻히는 대기 소환수.\n값은 각 소환수 에셋(standbyInfusions)에 바로 저장됩니다(Ctrl+Z 가능).", MessageType.None);
+        EditorGUILayout.HelpBox("초록 줄 = 플레이 중 지금 평타에 효과를 묻히는 대기 소환수.\n값은 각 소환수 에셋(standbyInfusions)에 바로 반영되고, Ctrl+S(Save Project) 때 디스크에 저장됩니다(Ctrl+Z 가능).", MessageType.None);
         EditorGUILayout.EndScrollView();
     }
 
-    /// <summary>소환수가 스킬 → 마무리 → 대쉬 순서로 가진 첫 상태이상.</summary>
+    /// <summary>소환수가 스킬 → 자동 공격 → 대쉬 순서로 가진 첫 상태이상.</summary>
     private static StatusType SkillStatus(MainMinionDataSO m)
     {
         var skill = m.minionSkill as MinionActionSkillSO;
@@ -723,6 +754,16 @@ public class MinionManagerWindow : EditorWindow
         if (m.finisher != null && m.finisher.onHitStatus != StatusType.None) return m.finisher.onHitStatus;
         if (m.dashModifier != null && m.dashModifier.onHitStatus != StatusType.None) return m.dashModifier.onHitStatus;
         return StatusType.None;
+    }
+
+    /// <summary>SkillStatus 가 상태이상을 찾은 곳("스킬"/"자동 공격"/"대쉬"). 없으면 null.</summary>
+    private static string SkillStatusSource(MainMinionDataSO m)
+    {
+        var skill = m.minionSkill as MinionActionSkillSO;
+        if (skill != null && skill.onHitStatus != StatusType.None) return "스킬";
+        if (m.finisher != null && m.finisher.onHitStatus != StatusType.None) return "자동 공격";
+        if (m.dashModifier != null && m.dashModifier.onHitStatus != StatusType.None) return "대쉬";
+        return null;
     }
 
     private static IEnumerable<MainMinionDataSO> AllMainMinions()
@@ -809,7 +850,7 @@ public class MinionManagerWindow : EditorWindow
 
                 if (_selected.minionSkill != null)
                 {
-                    _skillFold = EditorGUILayout.Foldout(_skillFold, $"스페이스바 스킬 · {_selected.minionSkill.skillName}  ({_selected.minionSkill.name})", true, EditorStyles.foldoutHeader);
+                    _skillFold = EditorGUILayout.Foldout(_skillFold, $"우클릭 스킬 · {_selected.minionSkill.skillName}  ({_selected.minionSkill.name})", true, EditorStyles.foldoutHeader);
                     if (_skillFold)
                     {
                         if (_skillUsers.TryGetValue(_selected.minionSkill, out var users) && users.Count > 1)
@@ -823,11 +864,16 @@ public class MinionManagerWindow : EditorWindow
                     EditorGUILayout.Space(6f);
                 }
 
-                EditorGUILayout.LabelField("소환수 설정 (마무리 · 대쉬 · 애니메이션 · 강화 · 진화)", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("소환수 설정 (자동 공격 · 대쉬 · 애니메이션 · 강화 · 진화)", EditorStyles.boldLabel);
                 Editor.CreateCachedEditor(_selected, null, ref _minionEditor);
                 EditorGUI.BeginChangeCheck();
                 using (new EditorGUILayout.VerticalScope("box")) _minionEditor.OnInspectorGUI();
-                if (EditorGUI.EndChangeCheck()) _preview.MarkDirty();
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _preview.MarkDirty();
+                    // minionSkill/evolutions 를 바꿨을 수 있다 → 공유 스킬 경고·진화 트리를 다시 만든다(_rows 순회 밖).
+                    Rebuild();
+                }
 
                 EditorGUILayout.EndScrollView();
             }
@@ -851,7 +897,7 @@ public class MinionManagerWindow : EditorWindow
 public class MinionAnimPreviewer
 {
     private enum Source { Skill, Basic, Dash, AllClips }
-    private static readonly string[] SourceLabels = { "스킬", "마무리(평타)", "대쉬", "클립 전체" };
+    private static readonly string[] SourceLabels = { "우클릭 스킬", "자동 공격", "대쉬", "클립 전체" };
 
     private class Segment
     {
@@ -959,18 +1005,23 @@ public class MinionAnimPreviewer
             var d = _minion.dashAnim;
             var dm = _minion.dashModifier;
             bool originOnly = dm != null && dm.hitAtOrigin;
-            foreach (var (tag, label) in new[] { (d.startClip, "출발"), (d.hitBoxClip, "히트박스"), (d.endClip, "종료") })
+            var clips = new[] { (d.startClip, "출발"), (d.hitBoxClip, "히트박스"), (d.endClip, "종료") };
+            // 출발점 판정형은 게임(MeleeDodgeController.PlaySummonDashVisual)처럼 출발 → 히트박스 → 종료 중
+            // 처음으로 채워진 클립 하나만 출발 지점에서 재생한다.
+            int originIndex = originOnly ? System.Array.FindIndex(clips, c => !string.IsNullOrWhiteSpace(c.Item1)) : -1;
+            for (int ci = 0; ci < clips.Length; ci++)
             {
+                var (tag, label) = clips[ci];
                 if (string.IsNullOrWhiteSpace(tag)) continue;
-                if (originOnly && label != "출발") { _notes.Add($"출발점 판정형 대쉬라 '{label}' 클립({tag})은 게임에서 무시됩니다."); continue; }
+                if (originOnly && ci != originIndex) { _notes.Add($"출발점 판정형 대쉬는 처음 채워진 클립 하나만 재생해 '{label}' 클립({tag})은 게임에서 무시됩니다."); continue; }
                 var seg = AddSegment(lookup, tag, lookup.Find(tag), Vector2.zero, false, null);
-                if (seg != null) { seg.tag = $"{label}:{tag}"; if (d.clipDuration > 0f) { seg.length = d.clipDuration; } }
+                if (seg != null) { seg.tag = originOnly && ci != 0 ? $"출발점({label} 클립):{tag}" : $"{label}:{tag}"; if (d.clipDuration > 0f) { seg.length = d.clipDuration; } }
             }
             // 대쉬는 클립마다 clipDuration(0=원래 길이) — 전체 배속이 아니다.
             float t = 0f;
             foreach (var s in _segments) { s.start = t; t += s.length; }
             _total = t; _rawTotal = _segments.Sum(s => s.rawLength);
-            _notes.Add("대쉬 연출은 실제로는 출발/히트박스/종료 '서로 다른 위치'에서 차례로 재생됩니다. 여기선 한 자리에서 이어서 보여줍니다.");
+            if (!originOnly) _notes.Add("대쉬 연출은 실제로는 출발/히트박스/종료 '서로 다른 위치'에서 차례로 재생됩니다. 여기선 한 자리에서 이어서 보여줍니다.");
             return;
         }
 

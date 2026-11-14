@@ -2327,6 +2327,10 @@ Instance = this;
 
         int normalPlaced = 0;
         int failedAttempts = 0;
+        // 한 층에 같은 맵(프리팹)이 두 번 나오지 않게 한다. 재생성 시도마다 이 함수가 새로 불리므로 시도마다 비워진다.
+        // 안 쓴 맵으로는 놓을 자리가 하나도 없을 때(방 수 > 등록 맵 수 등)만 그 한 칸에 재사용을 허용한다.
+        var usedPrefabs = new HashSet<GameObject>();
+        bool allowReuse = false;
 
         while (normalPlaced < normalCount)
         {
@@ -2350,7 +2354,7 @@ Instance = this;
                     var shuffledPrefabs = normalPrefabs.OrderBy(x => Random.value).ToList();
                     foreach (var p in shuffledPrefabs)
                     {
-                        if (p == null) continue;
+                        if (p == null || (!allowReuse && usedPrefabs.Contains(p))) continue;
                         RoomInstance tempRoom = p.GetComponent<RoomInstance>();
                         if (tempRoom == null) continue;
                         
@@ -2366,6 +2370,9 @@ Instance = this;
                     {
                         RoomInstance newRoom = CreateRoomAtGrid(RoomType.Normal, targetPos, selectedPrefab);
                         if (newRoom == null) continue;
+                        if (!usedPrefabs.Add(selectedPrefab))
+                            Debug.LogWarning($"[MapGenerator] 같은 층에 '{selectedPrefab.name}' 맵을 다시 사용합니다. " +
+                                             $"안 쓴 일반 맵 중 문 방향이 맞는 게 없습니다(일반 방 {normalCount}개 / 등록 맵 {normalPrefabs.Count}개).");
 
                         gridMap[targetPos] = newRoom;
                         _allRooms.Add(newRoom);
@@ -2389,12 +2396,15 @@ Instance = this;
 
             if (!placed)
             {
+                // 모든 방·앵커를 다 훑고도 안 쓴 맵으로 놓을 곳이 없었다 → 다음 한 칸만 재사용 허용.
+                if (!allowReuse) { allowReuse = true; continue; }
                 failedAttempts++;
                 if (failedAttempts > 200)
                 {
                     return false; // 일반 방 배치 루프 탈출 실패로 맵 재생성 유도
                 }
             }
+            else allowReuse = false;
         }
 
         // 3. 특수 방 배치 (막다른 골목 탐색)
@@ -2430,48 +2440,53 @@ Instance = this;
                 deadEndCandidates = deadEndCandidates.OrderBy(x => Random.value).ToList();
             }
 
-            foreach (var candidate in deadEndCandidates)
+            // 1회차: 이 층에서 아직 안 쓴 맵만. 2회차: 재사용 허용(같은 종류 맵이 1개뿐인 보상방 2개 등은 정상적으로 여기로 온다).
+            for (int pass = 0; pass < 2 && !placed; pass++)
             {
-                RoomInstance parent = candidate.Item1;
-                RoomAnchor parentAnchor = candidate.Item2;
-                Vector2Int targetPos = candidate.Item3;
-                Vector2Int neededDir = -parentAnchor.direction;
-
-                GameObject selectedPrefab = null;
-
-                // [엘리트 전용 방] 이 층 엘리트에 dedicatedRoomPrefab 이 있으면 그 방을 1순위로 시도한다.
-                // 그 프리팹에 필요한 방향의 앵커가 없으면 아래 일반 목록으로 자연스럽게 폴백된다.
-                var shuffledPrefabs = new List<GameObject>();
-                if (specType == RoomType.Elite && FloorElite != null && FloorElite.dedicatedRoomPrefab != null)
-                    shuffledPrefabs.Add(FloorElite.dedicatedRoomPrefab);
-                shuffledPrefabs.AddRange(specialPrefabs.OrderBy(x => Random.value));
-                if (shuffledPrefabs.Count == 0) continue;
-
-                foreach (var p in shuffledPrefabs)
+                foreach (var candidate in deadEndCandidates)
                 {
-                    if (p == null) continue;
-                    bool hasAnchor = p.GetComponentsInChildren<RoomAnchor>().Any(a => a.direction == neededDir);
-                    if (hasAnchor)
+                    RoomInstance parent = candidate.Item1;
+                    RoomAnchor parentAnchor = candidate.Item2;
+                    Vector2Int targetPos = candidate.Item3;
+                    Vector2Int neededDir = -parentAnchor.direction;
+
+                    GameObject selectedPrefab = null;
+
+                    // [엘리트 전용 방] 이 층 엘리트에 dedicatedRoomPrefab 이 있으면 그 방을 1순위로 시도한다.
+                    // 그 프리팹에 필요한 방향의 앵커가 없으면 아래 일반 목록으로 자연스럽게 폴백된다.
+                    var shuffledPrefabs = new List<GameObject>();
+                    if (specType == RoomType.Elite && FloorElite != null && FloorElite.dedicatedRoomPrefab != null)
+                        shuffledPrefabs.Add(FloorElite.dedicatedRoomPrefab);
+                    shuffledPrefabs.AddRange(specialPrefabs.OrderBy(x => Random.value));
+                    if (shuffledPrefabs.Count == 0) continue;
+
+                    foreach (var p in shuffledPrefabs)
                     {
-                        selectedPrefab = p;
+                        if (p == null || (pass == 0 && usedPrefabs.Contains(p))) continue;
+                        bool hasAnchor = p.GetComponentsInChildren<RoomAnchor>().Any(a => a.direction == neededDir);
+                        if (hasAnchor)
+                        {
+                            selectedPrefab = p;
+                            break;
+                        }
+                    }
+
+                    if (selectedPrefab != null)
+                    {
+                        RoomInstance newRoom = CreateRoomAtGrid(specType, targetPos, selectedPrefab);
+                        if (newRoom == null) continue;
+                        usedPrefabs.Add(selectedPrefab);
+
+                        gridMap[targetPos] = newRoom;
+                        _allRooms.Add(newRoom);
+                        _reachedRooms.Add(newRoom);
+
+                        _masterAdjacency[parent].Add(newRoom);
+                        _masterAdjacency[newRoom].Add(parent);
+
+                        placed = true;
                         break;
                     }
-                }
-
-                if (selectedPrefab != null)
-                {
-                    RoomInstance newRoom = CreateRoomAtGrid(specType, targetPos, selectedPrefab);
-                    if (newRoom == null) continue;
-
-                    gridMap[targetPos] = newRoom;
-                    _allRooms.Add(newRoom);
-                    _reachedRooms.Add(newRoom);
-
-                    _masterAdjacency[parent].Add(newRoom);
-                    _masterAdjacency[newRoom].Add(parent);
-
-                    placed = true;
-                    break;
                 }
             }
 

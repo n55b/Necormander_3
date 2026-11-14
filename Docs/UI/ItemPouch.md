@@ -28,6 +28,6 @@
 - 슬롯의 frameImage는 등급 색(ItemSO.TierColor, 일반 등급은 PouchSlotUI.commonColor), 정렬 버튼의 Face는 선택 색(PouchUI의 Inspector)을 코드에서 갱신한다. 원색 아트와 등급 색을 모두 유지하려면 원색 장식 Image와 작은 등급 테두리 Image를 분리하고 frameImage에는 등급 테두리를 연결한다.
 - 아이템 Icon과 상세 Icon은 ItemSO.icon을 표시하는 자리다. 공통 장식 그림을 넣는 곳이 아니다.
 - PouchUI/PouchSlotUI의 연결 필드와 ScrollRect·Viewport·Content는 유지한다. 장식 Image는 Raycast Target을 끄고 버튼의 입력용 Image는 유지한다.
-- `Tools/Items/Apply stacked pouch assets`는 최초 데이터·UI 구축용이다. 아트 교체에는 실행하지 않는다. 프리팹을 직접 편집한다.
+- 예전 `Tools/Items/Apply stacked pouch assets` 메뉴는 아이템 수치를 옛 값으로 되돌려서 제거했다. 아이템 데이터는 `Tools/기획/아이템 편집기`에서, 주머니 UI는 프리팹을 직접 편집한다.
 
 아이템 추가·중첩·선택·정렬·스크롤 로직과 아트는 분리되어 있으므로, 배경과 칸 이미지를 교체해도 해당 로직을 다시 작성할 필요는 없다.

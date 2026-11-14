@@ -166,10 +166,12 @@ public static class GameplayFeedbackChecks
     private static void CheckRoomRegistration()
     {
         var rooms = AssetDatabase.LoadAssetAtPath<RoomPrefabDataSO>("Assets/SOData/Map/RoomPrefabData.asset");
+        // 등록 목록 자체를 기준으로 본다(예전엔 Room_Normal 1~13 고정이라 맵을 지우거나 빼면 항상 실패했다).
         var candidates = rooms.GetValidPrefabs(RoomType.Normal);
-        for (int i = 1; i <= 13; i++)
+        Assert(candidates.Count > 0, "normal rooms registered");
+        foreach (var room in candidates)
         {
-            var room = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Prefabs/Map/Room Map Prefabs/Normal/Variants/Room_Normal {i}.prefab");
+            string i = room.name;
             Assert(candidates.Count(p => p == room) == 1, "normal room " + i + " registered exactly once");
             Assert(room.GetComponent<RoomInstance>().roomType == RoomType.Normal && room.GetComponent<NormalRoomEvent>() != null,
                 "normal room " + i + " combat event/type");

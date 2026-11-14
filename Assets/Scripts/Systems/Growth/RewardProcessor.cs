@@ -306,7 +306,8 @@ public static class RewardProcessor
         // [강화] 여기엔 없다. 강화는 전용 상점(Room_ShopEnhance) NPC 에게 F 로만 한다.
 
         // [아이템] 주머니 아이템. 가격은 티어에서 자동으로 나온다(ItemTierRules).
-        // 사면 즉시 장착되지 않고 바닥에 떨어진다 — RewardManager 의 Item 분기 참조.
+        // 사면 바로 주머니에 들어간다. 중첩 한도면 골드를 내기 전에 구매 자체가 막히고(ShopNPC.TryPurchase 의 CanOfferItem),
+        // 주머니가 없을 때만 바닥에 떨어진다 — RewardManager.TryGivePurchase 참조.
         // ponytail: 티어별 등장 확률 가중치는 없다(전 티어 동일 확률). 필요해지면 여기에 가중치를 건다.
         if (shopRegistry.itemPool != null)
         {

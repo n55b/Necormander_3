@@ -37,15 +37,15 @@ public static class ItemCreation
         .Select(g => AssetDatabase.LoadAssetAtPath<ItemSO>(AssetDatabase.GUIDToAssetPath(g)))
         .Where(i => i != null).ToList();
 
-    /// <summary>에셋 이름 검사. 문제 없으면 null.</summary>
-    public static string ValidateName(string name)
+    /// <summary>에셋 이름 검사. 문제 없으면 null. self 는 이름을 바꾸는 아이템 자신(중복 검사에서 뺀다).</summary>
+    public static string ValidateName(string name, ItemSO self = null)
     {
         if (string.IsNullOrWhiteSpace(name)) return "에셋 파일 이름을 입력하세요.";
         name = name.Trim();
         if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name.Contains('/') || name.Contains('\\'))
             return "파일 이름에 쓸 수 없는 문자가 있습니다.";
         if (name.StartsWith(".") || name.EndsWith(".")) return "점(.)으로 시작하거나 끝날 수 없습니다.";
-        if (AllItems().Any(i => string.Equals(i.name, name, StringComparison.OrdinalIgnoreCase)))
+        if (AllItems().Any(i => i != self && string.Equals(i.name, name, StringComparison.OrdinalIgnoreCase)))
             return $"'{name}' 아이템이 이미 있습니다. 세이브가 에셋 이름으로 아이템을 찾으므로 겹치면 안 됩니다.";
         return null;
     }

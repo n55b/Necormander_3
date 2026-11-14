@@ -141,21 +141,51 @@ public class ItemStatEffect : ItemEffect
         else           stat.Mods.AddFlat(source, statType, value);
     }
 
-    /// <summary>표시용 능력치 이름.</summary>
+    /// <summary>표시용 능력치 이름. 표에 없는 능력치는 StatType 의 한글 [InspectorName] 을 쓴다
+    /// (메모 label 은 '게임에 안 보임'이라 여기서 쓰지 않는다).</summary>
     public string StatTitle => statType switch
     {
         StatType.CritChance => "치명타 확률", StatType.CritDamage => "치명타 피해",
         StatType.Defense => "방어력", StatType.MoveSpeed => "이동 속도",
         StatType.Evasion => "회피율", StatType.DashRechargeSpeed => "대시 충전 속도",
         StatType.DashDistance => "대시 거리", StatType.Health => "최대 체력",
-        _ => string.IsNullOrEmpty(label) ? statType.ToString() : label
+        _ => StatName(statType)
     };
 
-    /// <summary>저장값(0.04)을 표시값(4)으로 바꿀 때 100 을 곱하는지. 회피율은 고정치여도 0~1 이다.</summary>
-    public bool ScalesToPercent => isPercent || statType == StatType.Evasion;
+    private static Dictionary<StatType, string> _statNames;
 
-    /// <summary>표시값 뒤에 % 를 붙이는지. 치명타 확률/피해는 고정치 자체가 %p 단위다.</summary>
-    public bool ShowsPercentSign => ScalesToPercent || statType == StatType.CritChance || statType == StatType.CritDamage;
+    /// <summary>StatType 의 [InspectorName] 한글 이름(없으면 enum 이름). 처음 한 번만 리플렉션으로 읽어 둔다.</summary>
+    public static string StatName(StatType type)
+    {
+        if (_statNames == null)
+        {
+            var names = new Dictionary<StatType, string>();
+            foreach (var f in typeof(StatType).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static))
+            {
+                var attr = (InspectorNameAttribute)System.Attribute.GetCustomAttribute(f, typeof(InspectorNameAttribute));
+                names[(StatType)f.GetValue(null)] = attr != null ? attr.displayName : f.Name;
+            }
+            _statNames = names;
+        }
+        return _statNames.TryGetValue(type, out var name) ? name : type.ToString();
+    }
+
+    /// <summary>저장값(0.04)을 표시값(4)으로 바꿀 때 100 을 곱하는지. 비율 보정이거나, CharacterStat 이
+    /// 고정치를 0~1 비율로 읽는 능력치(회피율 EVASION, 명중률 ACCURACY, 물리/마법 피해 증폭 PHYS_AMP/MAGIC_AMP)일 때.</summary>
+    public static bool ScalesToPercentFor(StatType type, bool percent)
+        => percent || type == StatType.Evasion || type == StatType.Accuracy
+           || type == StatType.PhysDamageAmp || type == StatType.MagicDamageAmp;
+
+    /// <summary>표시값 뒤에 % 를 붙이는지. 위 경우에 더해, CharacterStat 이 고정치만 읽고 그 고정치가 % 단위인 능력치
+    /// (치명타 확률/피해, 스킬/대시 재사용 대기 감소 — SKILL_CDR/DASH_CDR 는 /100)는 %p 다.
+    /// 방어력·행운은 고정/비율 둘 다 읽어서 고정치에 % 를 붙이면 비율 보정(+10% = ×1.1)과 문구가 같아지므로 붙이지 않는다.</summary>
+    public static bool ShowsPercentSignFor(StatType type, bool percent)
+        => ScalesToPercentFor(type, percent)
+           || type == StatType.CritChance || type == StatType.CritDamage
+           || type == StatType.SkillCooldownReduction || type == StatType.DashCooldownReduction;
+
+    public bool ScalesToPercent => ScalesToPercentFor(statType, isPercent);
+    public bool ShowsPercentSign => ShowsPercentSignFor(statType, isPercent);
 
     /// <summary>개수가 반영된 표시값.</summary>
     public float DisplayAmount(int count) => value * count * (ScalesToPercent ? 100f : 1f);

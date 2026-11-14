@@ -8,7 +8,8 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-/// <summary>아이템 주머니 프리팹/데이터 저작. 런타임 UI 생성기가 아니다.</summary>
+/// <summary>아이템 주머니 프리팹 저작. 런타임 UI 생성기가 아니다.
+/// 아이템 데이터(수치·설명·목록 등록)는 아이템 편집기(Tools/기획/아이템 편집기)가 맡는다.</summary>
 public static class StackedInventoryEditor
 {
     public const string PouchPath = "Assets/Prefabs/UI/PouchUI.prefab";
@@ -28,11 +29,12 @@ public static class StackedInventoryEditor
         InventoryUICheck.CheckScenes();
     }
 
-    [MenuItem("Tools/Items/Apply stacked pouch assets")]
+    // 메뉴에서 뺐다. 예전 메뉴는 아이템 9종을 옛 수치/설명으로 되돌리고(6d5c8fa2 밸런스 이전),
+    // 스킨이 붙은 PouchUI/PouchItemSlot 프리팹을 통째로 다시 만들었다(확인·Undo 없음).
+    // 프리팹 생성 코드(BuildPouch/MakeSlot)는 InventoryUISetup 이 쓰므로 남긴다.
     public static void Apply()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
-        UpdateItems();
         var root = PrefabUtility.LoadPrefabContents(PouchPath);
         try { BuildPouch(root); PrefabUtility.SaveAsPrefabAsset(root, PouchPath); }
         finally { PrefabUtility.UnloadPrefabContents(root); }
@@ -61,38 +63,7 @@ public static class StackedInventoryEditor
         }
         finally { PrefabUtility.UnloadPrefabContents(root); }
         AssetDatabase.SaveAssets();
-        Debug.Log("[StackedInventory] AUTHOR PASS — 아이템 9종, V창/슬롯/HUD 프리팹 저장.");
-    }
-
-    private static void UpdateItems()
-    {
-        var growth = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>("Assets/SOData/Registry/Growth Reward Registry.asset");
-        var shop = AssetDatabase.LoadAssetAtPath<ShopRegistrySO>("Assets/SOData/Registry/Shop Registry.asset");
-        if (growth == null || shop == null) throw new Exception("레지스트리 없음");
-        ItemStatEffect Stat(StatType type, float value, bool percent = false) => new ItemStatEffect { statType = type, value = value, isPercent = percent };
-        void Upsert(string id, string title, string description, int limit, params ItemEffect[] effects)
-        {
-            string path = "Assets/SOData/Items/" + id + ".asset";
-            var item = AssetDatabase.LoadAssetAtPath<ItemSO>(path);
-            if (item == null) { item = ScriptableObject.CreateInstance<ItemSO>(); AssetDatabase.CreateAsset(item, path); }
-            // 에셋 GUID와 기존 아이콘은 보존한다. 숫돌 파편도 구 CrackedWhetstone 세이브와 호환된다.
-            item.itemName = title; item.description = description; item.maxStack = limit;
-            item.effects = effects.ToList();
-            if (!growth.items.Contains(item)) growth.items.Add(item);
-            if (!shop.itemPool.Contains(item)) shop.itemPool.Add(item);
-            EditorUtility.SetDirty(item);
-        }
-        Upsert("Whetstone", "숫돌", "치명타 확률 +7%. 소지 중 총 치명타 확률이 100%를 넘으면, 초과한 10%마다 치명타 피해가 10% 증가합니다. 변환 효과는 여러 개 소지해도 중복 적용되지 않습니다.", 10,
-            Stat(StatType.CritChance, 7), new ItemCritOverflowEffect());
-        Upsert("CrackedWhetstone", "숫돌 파편", "치명타 피해가 15% 증가합니다.", 10, Stat(StatType.CritDamage, 15));
-        Upsert("ClothArmor", "천갑옷", "방어력이 4 증가합니다.", 10, Stat(StatType.Defense, 4));
-        Upsert("LightBoots", "가벼운 장화", "이동 속도가 4% 증가합니다.", 10, Stat(StatType.MoveSpeed, .04f, true));
-        Upsert("WindFeather", "바람깃털", "회피율이 2% 증가합니다.", 10, Stat(StatType.Evasion, .02f));
-        Upsert("PortableShield", "휴대용 방어막 장치", "방에 진입하면 보호막을 6 획득합니다. 이 아이템의 남은 보호막은 진입 시 갱신되며 누적되지 않습니다.", 10, new ItemRoomEntryShieldEffect());
-        Upsert("GaleDashRecovery", "질풍대시 - 회복", "대시 충전 속도가 5% 증가합니다. 10개면 충전 속도 +50%로, 충전 시간은 원래의 2/3이 됩니다.", 10, Stat(StatType.DashRechargeSpeed, .05f, true));
-        Upsert("GaleDashLeap", "질풍대시 - 도약", "대시 거리가 3% 증가합니다. 벽과 착지 지점의 안전 검사는 그대로 적용됩니다.", 10, Stat(StatType.DashDistance, .03f, true));
-        Upsert("HermesContract", "헤르메스와의 계약서류", "3개마다 최대 대시 횟수가 1 증가합니다. 3 / 6 / 9개일 때 각각 +1 / +2 / +3회.", 9, new ItemDashChargeEffect());
-        EditorUtility.SetDirty(growth); EditorUtility.SetDirty(shop);
+        Debug.Log("[StackedInventory] AUTHOR PASS — V창/슬롯/HUD 프리팹 저장.");
     }
 
     public static void BuildPouch(GameObject root)

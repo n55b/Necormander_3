@@ -261,8 +261,8 @@ public static class ItemEditorGUI
     }
 
     /// <summary>
-    /// 'value' 필드. 저장값이 0~1 비율인 경우(비율 보정, 회피율, 최대 체력 비율 회복)는 % 로 바꿔 입력받는다.
-    /// 예: 저장 0.04 ↔ 표시 4 (%)
+    /// 'value' 필드. 저장값이 0~1 비율인 경우(비율 보정, 회피율·명중률·피해 증폭, 최대 체력 비율 회복)는 % 로 바꿔 입력받는다.
+    /// 예: 저장 0.04 ↔ 표시 4 (%). 판정은 게임 표시 문구와 같은 ItemStatEffect.ScalesToPercentFor 를 쓴다.
     /// </summary>
     private static void DrawValue(SerializedProperty effect, SerializedProperty value, Type type)
     {
@@ -273,9 +273,10 @@ public static class ItemEditorGUI
         if (type == typeof(ItemStatEffect))
         {
             var stat = (StatType)effect.FindPropertyRelative("statType").intValue;
-            percentScale = (pct != null && pct.boolValue) || stat == StatType.Evasion;
+            bool isPercent = pct != null && pct.boolValue;
+            percentScale = ItemStatEffect.ScalesToPercentFor(stat, isPercent);
             if (percentScale) { label = "수치 (%)"; tip = "1개당 % 수치. 5 를 넣으면 +5%. (내부 저장값은 0.05)"; }
-            else if (stat == StatType.CritChance || stat == StatType.CritDamage) { label = "수치 (%p)"; tip = "1개당 수치. 치명타 확률/피해는 7 = +7%p."; }
+            else if (ItemStatEffect.ShowsPercentSignFor(stat, isPercent)) { label = "수치 (%p)"; tip = "1개당 수치. 이 능력치는 고정치 자체가 % 단위라 7 = +7%p."; }
             else { label = "수치 (고정)"; tip = "1개당 더하는 고정 수치."; }
         }
         else if (type == typeof(ItemRoomClearHealEffect))
@@ -330,6 +331,20 @@ public static class ItemEditorGUI
         }
     }
 
+    // ItemStatEffect 의 보정 방식(비율/고정) 중 게임이 실제로 읽는 쪽. CharacterStat 게터를 손으로 옮긴 표라
+    // 게터가 바뀌면 같이 고칠 것 (Assets/Scripts/Entities/CharacterStat.cs, 줄 번호는 작성 시점 기준).
+    //  · 고정치만 읽음: PHYS_AMP :97 · MAGIC_AMP :100 · CRIT_CHANCE :154 · CRIT_OVERFLOW_DAMAGE :158 · CRIT_DAMAGE :160 ·
+    //    EVASION :163 · ACCURACY :166 · SKILL_CDR :195 · DASH_CDR :198 · BASIC_ATK_MULT :201 · DashCharges(MeleeDodgeController.cs:389)
+    //  · 비율만 읽음: DASH_DISTANCE_MULTIPLIER :207 · ApplyDashCooldown :208-209(DashRechargeSpeed)
+    //  · 둘 다 읽음(표에 없음): ATK :82-90 · MAGIC :93 · MAXHP :102-116 · ATKSPD :125-134 · DEF :144-151 · LUCK :155 · MOVESPEED :168-178
+    private static readonly HashSet<StatType> FlatOnlyStats = new HashSet<StatType>
+    {
+        StatType.PhysDamageAmp, StatType.MagicDamageAmp, StatType.CritChance, StatType.CritOverflowConversion,
+        StatType.CritDamage, StatType.Evasion, StatType.Accuracy, StatType.SkillCooldownReduction,
+        StatType.DashCooldownReduction, StatType.BasicAttackMultiplier, StatType.DashCharges,
+    };
+    private static readonly HashSet<StatType> PercentOnlyStats = new HashSet<StatType> { StatType.DashDistance, StatType.DashRechargeSpeed };
+
     /// <summary>기획자가 확인해야 할 문제 목록. 비어 있으면 문제 없음.</summary>
     public static List<string> Warnings(ItemSO item)
     {
@@ -341,17 +356,36 @@ public static class ItemEditorGUI
         if (item.effects == null || item.effects.Count == 0)
         {
             list.Add("효과가 없습니다. 주머니에 넣어도 아무 일도 일어나지 않습니다.");
+            if (item.availableAsReward)
+                list.Add("효과가 없는데 '상점 · 방 보상에 등장'이 켜져 있습니다. 목록에 들어가는 순간('목록 등록', GrowthRegistry 의 '전체 데이터 자동 스캔 및 갱신') " +
+                         "빈 아이템이 보상·상점에 나옵니다. 효과를 넣기 전까지는 끄세요.");
             return list;
         }
         if (item.effects.Any(e => e == null)) list.Add("종류가 정해지지 않은 빈 효과 칸이 있습니다.");
 
         var descNums = new HashSet<string>(Numbers.Matches(item.description ?? "").Cast<Match>()
             .Select(m => Norm(double.Parse(m.Value, CultureInfo.InvariantCulture))));
+        // 상점 카드는 shopDescription 이 있으면 그것을 쓴다(ItemSO.ShopBody) — 따로 검사한다.
+        var shopNums = string.IsNullOrEmpty(item.shopDescription) ? null
+            : new HashSet<string>(Numbers.Matches(item.shopDescription).Cast<Match>()
+                .Select(m => Norm(double.Parse(m.Value, CultureInfo.InvariantCulture))));
         foreach (var e in item.effects.Where(e => e != null))
         {
             foreach (var n in KeyNumbers(e))
+            {
                 if (!descNums.Contains(Norm(n)))
                     list.Add($"설명에 효과 수치 '{Norm(n)}' 이(가) 없습니다. 설명이 실제 효과와 맞는지 확인하세요.\n실제 효과: {e.AutoDescribe(1)}");
+                if (shopNums != null && !shopNums.Contains(Norm(n)))
+                    list.Add($"상점 카드 설명에 효과 수치 '{Norm(n)}' 이(가) 없습니다. 상점 카드 설명이 실제 효과와 맞는지 확인하세요.\n실제 효과: {e.AutoDescribe(1)}");
+            }
+
+            if (e is ItemStatEffect s)
+            {
+                if (s.isPercent && FlatOnlyStats.Contains(s.statType))
+                    list.Add($"'{s.StatTitle}' 능력치는 게임이 고정치만 읽어서 비율(%) 보정은 적용되지 않습니다. '비율(%) 보정'을 끄세요.");
+                else if (!s.isPercent && PercentOnlyStats.Contains(s.statType))
+                    list.Add($"'{s.StatTitle}' 능력치는 게임이 비율만 읽어서 고정치 보정은 적용되지 않습니다. '비율(%) 보정'을 켜세요.");
+            }
 
             if (!string.IsNullOrWhiteSpace(e.displayText))
                 foreach (Match m in Token.Matches(e.Describe(1)))

@@ -23,7 +23,10 @@ public static class TutorialMenuTools
     [MenuItem("Tools/기획/플레이테스트/튜토리얼 건너뛰기 (봤음으로 표시)", priority = 41)]
     private static void CompleteTutorial()
     {
+        // 기록만 남긴다. 플레이 중인 튜토리얼 런이 일반 던전으로 바뀌지 않도록 진행 여부는 되돌린다.
+        bool running = TutorialFlow.IsRunning;
         TutorialFlow.Complete();
+        TutorialFlow.IsRunning = running;
         Report();
     }
 
