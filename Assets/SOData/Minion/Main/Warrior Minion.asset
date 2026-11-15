@@ -37,7 +37,7 @@ MonoBehaviour:
       m_FallbackState: 0
       m_WaitForCompletion: 0
       m_LocalVariables: []
-    icon: {fileID: -3463035966016753622, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+    icon: {fileID: -9223132874578986776, guid: 22786651fd010e044b4b0302d981032c, type: 3}
     rarity: 0
   feedbackTier: 1
   feedbackColor: {r: 0.4, g: 0.9, b: 1, a: 1}
@@ -84,7 +84,7 @@ MonoBehaviour:
     visual: {fileID: 3048557255023118396, guid: 2681080f0b2c5814ba92905e9b636fe7, type: 3}
     duration: 0.6
     sequence:
-    - tag: Warrior_Attack
+    - tag: Attack
       offset: {x: 0, y: 0}
       snap: 0
       movementCurve:
@@ -119,7 +119,7 @@ MonoBehaviour:
     visual: {fileID: 3048557255023118396, guid: 2681080f0b2c5814ba92905e9b636fe7, type: 3}
     duration: 0.72499996
     sequence:
-    - tag: Warrior_Skill
+    - tag: Skill
       offset: {x: 0, y: 0}
       snap: 0
       movementCurve:
@@ -154,7 +154,7 @@ MonoBehaviour:
     visual: {fileID: 3048557255023118396, guid: 2681080f0b2c5814ba92905e9b636fe7, type: 3}
     clipDuration: 0
     startClip: 
-    hitBoxClip: Warrior_Attack
+    hitBoxClip: Attack
     rotateHitBoxClipToDir: 0
     endClip: 
   enhanceSteps:

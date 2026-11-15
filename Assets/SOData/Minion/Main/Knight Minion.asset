@@ -37,7 +37,7 @@ MonoBehaviour:
       m_FallbackState: 0
       m_WaitForCompletion: 0
       m_LocalVariables: []
-    icon: {fileID: 7528655747528444033, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+    icon: {fileID: 604161384721462048, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
     rarity: 0
   feedbackTier: 1
   feedbackColor: {r: 0.95, g: 0.82, b: 0.45, a: 1}
@@ -82,7 +82,7 @@ MonoBehaviour:
   hitEffectPrefab: {fileID: 0}
   basicAnim:
     visual: {fileID: 1149201009932805945, guid: 89560b1127288d7479661de1874b6d7c, type: 3}
-    duration: 1.0749999
+    duration: 0.8
     sequence:
     - tag: Attack
       offset: {x: 0, y: 0}
@@ -117,7 +117,7 @@ MonoBehaviour:
     hitWindowRatio: 0.15
   skillAnim:
     visual: {fileID: 1149201009932805945, guid: 89560b1127288d7479661de1874b6d7c, type: 3}
-    duration: 0.95
+    duration: 0.825
     sequence:
     - tag: Skill
       offset: {x: 0, y: 0}

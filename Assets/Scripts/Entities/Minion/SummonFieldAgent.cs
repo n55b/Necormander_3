@@ -37,6 +37,10 @@ public class SummonFieldAgent : MonoBehaviour
     private Animator _anim;
     private string _poseState;
     private bool _poseFrozen;
+    private string _runState; // 컨트롤러에 "Run" 상태가 있는 소환수만. 없으면 기존처럼 자세 + 코드 흔들림
+    private bool _running;
+    private Vector2 _animLastPos;
+    private float _stillTime;
     private float _attackTimer;
     private int _linkCount;
     private int _castCount;
@@ -104,13 +108,15 @@ public class SummonFieldAgent : MonoBehaviour
         if (_anim == null || _anim.runtimeAnimatorController == null) { _anim = null; return; }
         _anim.gameObject.AddComponent<MinionAnimEventRelay>(); // 클립 이벤트의 "has no receiver" 경고 흡수
 
-        // 대기 클립이 있으면 반복 재생, 없으면 첫 클립의 첫 프레임을 기본 자세로 쓴다. 이동감은 코드 흔들림이 담당한다.
+        // 대기 클립이 있으면 반복 재생, 없으면 첫 클립의 첫 프레임을 기본 자세로 쓴다.
+        // 이동은 Run 클립이 있으면 그걸, 없으면 코드 흔들림이 담당한다. (상태 이름 = 클립 이름)
         string first = null;
         foreach (var clip in _anim.runtimeAnimatorController.animationClips)
         {
             if (clip == null) continue;
             if (first == null) first = clip.name;
             if (_poseState == null && clip.name.IndexOf("idle", StringComparison.OrdinalIgnoreCase) >= 0) _poseState = clip.name;
+            if (_runState == null && string.Equals(clip.name, "Run", StringComparison.OrdinalIgnoreCase)) _runState = clip.name;
         }
         _poseFrozen = _poseState == null;
         if (_poseFrozen) _poseState = first;
@@ -119,6 +125,7 @@ public class SummonFieldAgent : MonoBehaviour
 
     private void ReturnToPose()
     {
+        _running = false;
         if (_anim == null || _poseState == null || !_anim.isActiveAndEnabled) return;
         _anim.speed = _poseFrozen ? 0f : 1f;
         _anim.Play(_poseState, 0, 0f);
@@ -146,10 +153,23 @@ public class SummonFieldAgent : MonoBehaviour
 
     private void LateUpdate()
     {
+        // 실제로 움직인 속도. 벽에 막혀 제자리인데 _velocity 만 남아 있을 때 제자리 달리기를 막는다.
+        Vector2 pos = transform.position;
+        float moved = (pos - _animLastPos).magnitude / Mathf.Max(Time.deltaTime, 1e-5f);
+        _animLastPos = pos;
         if (_visual == null || IsLinking || _benched) return;
-        // 걷는 클립이 없어도 움직이는 느낌이 나도록 이동 중에 살짝 뛰게 한다.
         float speed = _velocity.magnitude;
-        if (speed > 0.3f)
+        // Run 클립: 이동 중 재생, 멈추면 대기 자세. 적 앞에서 멈칫·재출발을 반복할 때 깜빡이지 않게 잠깐(0.12초) 멈춰 있어야 대기로 돌아간다.
+        float runSpeed = Mathf.Min(speed, moved);
+        _stillTime = runSpeed > 0.15f ? 0f : _stillTime + Time.deltaTime;
+        bool run = _runState != null && (runSpeed > 0.3f || (_running && _stillTime < 0.12f));
+        if (run != _running && _anim != null && _anim.isActiveAndEnabled)
+        {
+            if (run) { _running = true; _anim.speed = 1f; _anim.Play(_runState, 0, 0f); }
+            else ReturnToPose();
+        }
+        // 걷는 클립이 없을 때만 이동 중에 살짝 뛰게 한다. (Run 이 있으면 그림에 그려진 그림자가 땅에서 뜨지 않게 흔들지 않는다)
+        if (speed > 0.3f && _runState == null)
         {
             _bobPhase += Time.deltaTime * BOB_FREQUENCY * Mathf.Clamp(speed / 4f, 0.6f, 1.4f);
             _visual.transform.localPosition = Vector3.up * (Mathf.Abs(Mathf.Sin(_bobPhase)) * BOB_HEIGHT);

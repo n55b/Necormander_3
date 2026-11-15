@@ -538,7 +538,7 @@ MonoBehaviour:
     audibleRange: 22
     name: "\uD3C9\uD0C0 \xB7 \uD718\uB450\uB974\uAE30 (\uBE57\uB098\uAC00\uB3C4 \uC7AC\uC0DD)"
     trigger: 2
-    animationState: Warrior_Attack
+    animationState: Attack
     minInterval: 0.07
     delay: 0
   - clips:
@@ -570,7 +570,7 @@ MonoBehaviour:
     audibleRange: 22
     name: "\uC2A4\uD0AC \xB7 \uD718\uB450\uB974\uAE30 (\uBE57\uB098\uAC00\uB3C4 \uC7AC\uC0DD)"
     trigger: 2
-    animationState: Warrior_Skill
+    animationState: Skill
     minInterval: 0.07
     delay: 0
   - clips:

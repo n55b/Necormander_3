@@ -232,7 +232,7 @@ Catalog를 포함한 인스펙터 그리기 57회를 통과했다. 배치 에디
 
 2026-10-30 미니언 검격 사운드
 - 조절: Tools > 사운드 > 사운드 테스트 툴 > 오브젝트 소리. Assets/Prefabs/Minion/Melee의 Fighter(전사), Knight(기사), Knight_2(용사), Warrior(무사), Warlord(장수) 프리팹을 선택한다. 프리팹의 사운드 세트 인스펙터에서도 같은 값을 바꿀 수 있다.
-- 평타와 스킬을 별도 항목으로 저장했다. '애니메이션 상태'가 Attack/Skill(무사는 Warrior_Attack/Warrior_Skill)인 항목만 해당 타격 프레임에 재생한다. 이 칸을 비우면 기존처럼 모든 타격 이벤트에서 재생한다. 기존 애니메이션과 피해 이벤트는 수정하지 않는다.
+- 평타와 스킬을 별도 항목으로 저장했다. '애니메이션 상태'가 Attack/Skill인 항목만 해당 타격 프레임에 재생한다. 이 칸을 비우면 기존처럼 모든 타격 이벤트에서 재생한다. 기존 애니메이션과 피해 이벤트는 수정하지 않는다.
 - 전사: 평타 swing/swing2 무작위, 스킬 doubleswing. 기사: 평타 sword, 스킬 bigswordswing. 용사: 평타 bigswordswing, 스킬 sword_skill. 무사: 평타 battojutsu, 스킬 doubleswing. 장수: 평타 battojutsu, 스킬 sword_skill.
 - 편집본: Assets/Resources/Sound/SFX/Minion. Swing_Light_A 0.390초, Swing_Light_B 0.310초, Swing_Heavy 0.570초, Swing_Double 0.538초, Sword_Quick 0.275초, Sword_Draw 0.500초, Sword_Skill 0.857초. 원본 MP3는 Downloads/sound에 그대로 둔다.
 - 앞뒤 무음과 긴 꼬리를 줄이고 짧은 페이드를 넣었다. 파일 피크 -8~-10dBFS, 항목 볼륨 0.375~0.4(초기 적용값의 절반, 약 -6dB), 음높이 0.98~1.02로 시작한다. 44.1kHz 모노 PCM WAV이며 Unity에서 미리 로드한다. 옵션의 효과음 볼륨과 기존 SoundManager 재사용 풀을 따른다.
