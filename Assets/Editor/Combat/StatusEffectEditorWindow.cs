@@ -20,7 +20,7 @@ public class StatusEffectEditorWindow : EditorWindow
     private const string AssetPath = "Assets/Resources/Settings/StatusBalance.asset";
     private const string PrefSampleAtk = "StatusEffectEditor.SampleAtk";
 
-    [MenuItem("Tools/기획/상태이상 편집기", priority = 19)]
+    [MenuItem("Tools/기획/상태이상 편집기", priority = 8)]
     public static void Open()
     {
         var w = GetWindow<StatusEffectEditorWindow>("상태이상 편집기");
