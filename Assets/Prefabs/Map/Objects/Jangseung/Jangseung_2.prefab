@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8479478875891265196}
   - component: {fileID: 5786818536542602309}
   - component: {fileID: 3370629568249692540}
-  - component: {fileID: 3069753570939796746}
+  - component: {fileID: 4966928463691309784}
   m_Layer: 3
   m_Name: Jangseung_2
   m_TagString: Untagged
@@ -150,8 +150,9 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 0}
---- !u!61 &3069753570939796746
-BoxCollider2D:
+  sortingGroup: {fileID: 0}
+--- !u!60 &4966928463691309784
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -184,15 +185,22 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.038244396, y: 0.17219093}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5217391, y: 0.07692308}
-    oldSize: {x: 0.625, y: 1.15625}
+    pivot: {x: 0.54285717, y: 0.1954023}
+    oldSize: {x: 1.09375, y: 2.71875}
     newSize: {x: 2.6875, y: 3.25}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.53299147, y: 0.48027164}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0.4375, y: 0.09375}
+      - {x: 0.4375, y: 0.25}
+      - {x: -0.5, y: 0.25}
+      - {x: -0.5, y: 0.125}
+      - {x: -0.3125, y: 0}
+      - {x: 0.375, y: 0}
+  m_UseDelaunayMesh: 0

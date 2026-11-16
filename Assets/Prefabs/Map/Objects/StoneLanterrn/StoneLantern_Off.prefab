@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6028424673816628746}
   - component: {fileID: 4764142670010434880}
   - component: {fileID: 5346183251120475826}
-  - component: {fileID: 8168378359867666143}
+  - component: {fileID: 5159657492431428024}
   m_Layer: 3
   m_Name: StoneLantern_Off
   m_TagString: Untagged
@@ -105,8 +105,9 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 0}
---- !u!61 &8168378359867666143
-BoxCollider2D:
+  sortingGroup: {fileID: 0}
+--- !u!60 &5159657492431428024
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -139,15 +140,22 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.78038275}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.2}
-    oldSize: {x: 1.125, y: 2.03125}
+    oldSize: {x: 1.125, y: 2.0625}
     newSize: {x: 0.5, y: 0.4375}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.125, y: 1.6892345}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0.40625, y: -0.03750038}
+      - {x: 0.40625, y: 0.11874962}
+      - {x: 0.375, y: 0.21249962}
+      - {x: -0.375, y: 0.21249962}
+      - {x: -0.40625, y: 0.11874962}
+      - {x: -0.40625, y: -0.03750038}
+  m_UseDelaunayMesh: 0

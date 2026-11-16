@@ -54,7 +54,7 @@ MonoBehaviour:
   m_LightVolumeIntensity: 1
   m_LightVolumeEnabled: 0
   m_ApplyToSortingLayers: 0b7aa4685173e562db040e2300000000
-  m_LightCookieSprite: {fileID: 24368369, guid: 55dc691b1001a5d4c9f21ae751705819, type: 3}
+  m_LightCookieSprite: {fileID: 4228558828309313260, guid: a407db584a7e9b644bd198b570b8d435, type: 3}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
   m_AlphaBlendOnOverlap: 0
@@ -181,12 +181,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 24368369, guid: 55dc691b1001a5d4c9f21ae751705819, type: 3}
+  m_Sprite: {fileID: 4228558828309313260, guid: a407db584a7e9b644bd198b570b8d435, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.3125, y: 3.6875}
+  m_Size: {x: 0.1875, y: 0.6875}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -251,6 +251,7 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 0}
+  sortingGroup: {fileID: 0}
 --- !u!95 &866279085276893003
 Animator:
   serializedVersion: 7

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4765096627124545853}
   - component: {fileID: 5064486126148706768}
   - component: {fileID: 8648534207703406198}
-  - component: {fileID: 1685605218726320321}
+  - component: {fileID: 2631507898847846094}
   m_Layer: 3
   m_Name: Wall_Wood_Right
   m_TagString: Untagged
@@ -150,8 +150,9 @@ MonoBehaviour:
   precision: 100
   baseOffset: 0
   pivotOverride: {fileID: 0}
---- !u!61 &1685605218726320321
-BoxCollider2D:
+  sortingGroup: {fileID: 0}
+--- !u!60 &2631507898847846094
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -184,15 +185,20 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.03125, y: 0.993836}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.47368422, y: 0.23529412}
-    oldSize: {x: 1.1875, y: 2.65625}
+    pivot: {x: 0.5, y: 0.10791367}
+    oldSize: {x: 2.25, y: 4.34375}
     newSize: {x: 1.6875, y: 2.5625}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.1875, y: 2.0748281}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: -0.9375, y: -0.03125}
+      - {x: -0.96875, y: 0.5625}
+      - {x: 0.96875, y: 0.5625}
+      - {x: 0.96875, y: -0.03125}
+  m_UseDelaunayMesh: 0

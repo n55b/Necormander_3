@@ -2,8 +2,9 @@ using UnityEngine;
 using System.Collections;
 
 /// <summary>
-/// 피격 시 도화선이 타들어가는 연출(fuse_02~04) 후 폭발 애니메이션(boom_01~07)을 재생하여
-/// 주변 영역에 큰 데미지를 주는 폭탄 통 함정입니다.
+/// 피격 시 도화선이 타들어가는 연출(Jar_Active) 후 폭발 애니메이션(Jar_Explode)을 재생하여
+/// 주변 영역에 큰 데미지를 주는 폭탄 항아리(통) 함정입니다.
+/// 스프라이트 프레임은 Animator(BombBarrel.controller)가 구동합니다.
 /// </summary>
 public class TrapBombBarrel : MonoBehaviour, IDamageable
 {
@@ -17,8 +18,8 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
     [Header("외형과 효과")]
     [SerializeField] private GameObject explosionEffectPrefab; // Center Skill Hitbox Circle Prefab 연결 권장
     [SerializeField] private SpriteRenderer spriteRenderer;
-    [Tooltip("폭발(boom) 프레임 한 장당 재생 시간")]
-    [SerializeField] private float boomFrameDuration = 0.05f;
+    [Tooltip("Visual의 Animator (미지정 시 자식에서 자동 탐색)")]
+    [SerializeField] private Animator animator;
 
     [Header("소리")]
 
@@ -29,8 +30,16 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
     [Tooltip("폭발 시 카메라 흔들림 강도")]
     [SerializeField] private float explosionShakeForce;
 
-    private const string SpriteSheetPath = "Sprites/Traps/Traps";
-    private static Sprite[] _spriteCache;
+    // Traps.aseprite 태그 기반 Animator 상태 (BombBarrel.controller)
+    private const string StateIdle = "Jar_Idle";       // 점화 전 대기
+    private const string StateFuse = "Jar_Active";     // 도화선 타들어감 (루프)
+    private const string StateExplode = "Jar_Explode"; // 폭발
+    private const float FallbackExplodeLength = 0.525f;
+    private const string HitEventName = "OnHitEvent";
+    private const float FallbackExplodeHitTime = 0.2f; // Jar_Active_0 클립의 OnHitEvent 시점
+
+    private TrapAnimationEventRelay _relay;
+    private bool _hitEventFired = false;
 
     private bool _isDead = false;
     private bool _isTriggered = false;
@@ -43,9 +52,20 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
         {
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         }
+        if (animator == null)
+        {
+            animator = GetComponentInChildren<Animator>();
+        }
+        // 폭발 클립의 OnHitEvent(폭발 타격 프레임) 수신
+        if (animator != null)
+        {
+            _relay = animator.GetComponent<TrapAnimationEventRelay>();
+            if (_relay != null) _relay.HitEvent += OnRelayHit;
+        }
 
-        // 평소(점화 전)에는 fuse_01 스프라이트로 대기
-        SetSprite("barrel_fuse_01");
+
+        // 평소(점화 전)에는 Idle 상태로 대기
+        PlayState(StateIdle);
 
         if (targetLayer == 0)
         {
@@ -75,14 +95,9 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
         // 타격을 받는 순간 바닥에 시각 장판(Telegraph) 생성 및 fuseTime 후 예약 작동
         SpawnExplosionTelegraph();
 
-        // 점화 가능 상태: fuse_02 -> fuse_03 -> fuse_04 순서로 도화선이 타들어가는 연출 (fuseTime 동안 균등 재생)
-        string[] fuseFrames = { "barrel_fuse_02", "barrel_fuse_03", "barrel_fuse_04" };
-        float perFrame = fuseTime / fuseFrames.Length;
-        foreach (var frameName in fuseFrames)
-        {
-            SetSprite(frameName);
-            yield return new WaitForSeconds(perFrame);
-        }
+        // 점화: 도화선이 타들어가는 애니메이션을 fuseTime 동안 루프 재생
+        PlayState(StateFuse);
+        yield return new WaitForSeconds(fuseTime);
 
         // 최종 폭발 연출 및 파괴
         yield return StartCoroutine(PlayBoomAndDestroy());
@@ -102,13 +117,26 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
         if (hitbox != null)
         {
             DamageInfo dmgInfo = new DamageInfo(explosionDamage, DamageType.Physical, gameObject, category: DamageCategory.Trap);
-            // 1.5초(fuseTime) 선딜레이 동안 원형 장판이 차오르도록 설정하고, 1.5초 후 0.2초 동안 타격 판정 적용
-            hitbox.Init(dmgInfo, targetLayer, 0.2f, startDelay: fuseTime, isAlly: false);
+            // fuseTime(도화선) + 폭발 클립의 OnHitEvent 시점까지 원형 장판이 차오르고, 그 프레임에 0.2초 동안 타격 판정 적용
+            hitbox.Init(dmgInfo, targetLayer, 0.2f, startDelay: fuseTime + GetExplodeHitTime(), isAlly: false);
         }
     }
 
     private IEnumerator PlayBoomAndDestroy()
     {
+        // 폭발 애니메이션 재생
+        _hitEventFired = false;
+        PlayState(StateExplode);
+
+        // 폭발 타격 프레임(OnHitEvent)까지 대기 (이벤트가 없으면 클립 기준 시간으로 대체)
+        float hitTime = GetExplodeHitTime();
+        float waited = 0f;
+        while (!_hitEventFired && waited < hitTime + 0.1f)
+        {
+            waited += Time.deltaTime;
+            yield return null;
+        }
+
         PolishFeedback.Play(FeedbackCue.PropBreak, transform.position, Vector2.up);
         // 폭발 사운드 재생
         if (SoundManager.Instance != null)
@@ -122,45 +150,60 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
             CameraManager.Instance.HitShakeCamera(explosionShakeForce);
         }
 
-        // boom_01 ~ boom_07 프레임을 순서대로 재생
-        for (int i = 1; i <= 7; i++)
-        {
-            SetSprite($"barrel_boom_{i:00}");
-            yield return new WaitForSeconds(boomFrameDuration);
-        }
-
-        // 이펙트는 장판 프리팹 내부의 BaseHitBox가 타격 시간에 맞춰 자체 처리하므로
-        // 폭탄 통 본체는 폭발 프레임 재생이 끝나면 파괴하면 됩니다.
+        // 남은 폭발 애니메이션 재생 후 파괴
+        // (피해 판정은 장판 프리팹의 BaseHitBox가 같은 타이밍에 자체 처리)
+        float remain = GetExplodeLength() - waited;
+        if (remain > 0f) yield return new WaitForSeconds(remain);
         Destroy(gameObject);
     }
 
-    private void SetSprite(string spriteName)
+    private void OnRelayHit()
     {
-        if (spriteRenderer == null) return;
-        Sprite sprite = FindSprite(spriteName);
-        if (sprite != null)
-        {
-            spriteRenderer.sprite = sprite;
-        }
+        _hitEventFired = true;
     }
 
-    private static Sprite FindSprite(string spriteName)
+    private void OnDestroy()
     {
-        if (_spriteCache == null)
-        {
-            _spriteCache = Resources.LoadAll<Sprite>(SpriteSheetPath);
-        }
+        if (_relay != null) _relay.HitEvent -= OnRelayHit;
+    }
 
-        for (int i = 0; i < _spriteCache.Length; i++)
+    private float GetExplodeHitTime()
+    {
+        if (animator != null && animator.runtimeAnimatorController != null)
         {
-            if (_spriteCache[i] != null && _spriteCache[i].name == spriteName)
+            foreach (var clip in animator.runtimeAnimatorController.animationClips)
             {
-                return _spriteCache[i];
+                if (clip == null || (clip.name != StateExplode && clip.name != "Jar_Active_0")) continue;
+                foreach (var e in clip.events)
+                {
+                    if (e.functionName == HitEventName) return e.time;
+                }
             }
         }
+        return FallbackExplodeHitTime;
+    }
 
-        Debug.LogWarning($"[TrapBombBarrel] Sprite '{spriteName}' not found in {SpriteSheetPath}.");
-        return null;
+
+    private void PlayState(string stateName)
+    {
+        if (animator == null || animator.runtimeAnimatorController == null) return;
+        animator.Play(stateName, 0, 0f);
+    }
+
+    private float GetExplodeLength()
+    {
+        if (animator != null && animator.runtimeAnimatorController != null)
+        {
+            foreach (var clip in animator.runtimeAnimatorController.animationClips)
+            {
+                // 폭발 상태에 연결된 클립 (Aseprite 태그명 Jar_Active_0)
+                if (clip != null && (clip.name == StateExplode || clip.name == "Jar_Active_0"))
+                {
+                    return clip.length;
+                }
+            }
+        }
+        return FallbackExplodeLength;
     }
 
     private void OnDrawGizmosSelected()

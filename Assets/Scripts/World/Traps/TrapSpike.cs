@@ -29,8 +29,17 @@ public class TrapSpike : MonoBehaviour
     [SerializeField] private float spikeDownVolume = 1f;
 
 
-    private const string StateOn = "TrapOn";
-    private const string StateOff = "TrapOff";
+    // Traps.aseprite 태그 기반 Animator 상태 (SpikeTrap.controller)
+    private const string StateIdle = "Spike_Idle";     // 대기
+    private const string StateActive = "Spike_Active"; // 발판 눌림 (경고)
+    private const string StateAttack = "Spike_Attack"; // 가시 솟음
+    private const string StateDeactivate = "Spike_Deactivate"; // 가시 하강(Attack 역순) + 발판 복귀(Active 역순)
+    private const float FallbackDeactivateLength = 0.75f;
+    private const string HitEventName = "OnHitEvent";
+    private const float FallbackAttackHitTime = 0.225f; // Spike_Attack 클립의 OnHitEvent 시점
+
+    private TrapAnimationEventRelay _relay;
+    private bool _hitEventFired = false;
 
     private bool _isTriggered = false;
     private bool _isActive = false;
@@ -38,14 +47,18 @@ public class TrapSpike : MonoBehaviour
 
     private void Start()
     {
-        // PlateVisual의 Animator 자동 탐색 후 Off 상태(마지막 프레임)로 초기화
+        // PlateVisual의 Animator 자동 탐색 후 대기(Idle) 상태로 초기화
         if (plateAnimator == null)
         {
             plateAnimator = GetComponentInChildren<Animator>();
         }
         if (plateAnimator != null)
         {
-            plateAnimator.Play(StateOff, 0, 1f);
+            plateAnimator.Play(StateIdle, 0, 0f);
+
+            // 클립의 OnHitEvent(가시가 솟는 프레임) 수신
+            _relay = plateAnimator.GetComponent<TrapAnimationEventRelay>();
+            if (_relay != null) _relay.HitEvent += OnRelayHit;
         }
 
         if (spikeVisual != null)
@@ -94,20 +107,35 @@ public class TrapSpike : MonoBehaviour
     {
         _isTriggered = true;
 
+        // 발판을 밟는 즉시 눌림(경고) 애니메이션 재생
+        if (plateAnimator != null)
+        {
+            plateAnimator.Play(StateActive, 0, 0f);
+        }
+
         // 1초 대기
         yield return new WaitForSeconds(activationDelay);
 
-        // 발판이 눌리는 즉시 함정 작동(On) 애니메이션 재생
+        // 지연 후 가시가 솟아오르는 공격 애니메이션 재생
+        _hitEventFired = false;
         if (plateAnimator != null)
         {
-            plateAnimator.Play(StateOn, 0, 0f);
+            plateAnimator.Play(StateAttack, 0, 0f);
+        }
+
+        // 가시가 실제로 솟는 프레임(OnHitEvent)까지 대기 (이벤트가 없으면 클립 기준 시간으로 대체)
+        float hitTimeout = GetHitEventTime(StateAttack, FallbackAttackHitTime) + 0.1f;
+        float waited = 0f;
+        while (!_hitEventFired && waited < hitTimeout)
+        {
+            waited += Time.deltaTime;
+            yield return null;
         }
 
         // 가시 발동 사운드 재생
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlaySFX(spikeSound, spikeVolume);
-
         }
 
         // 가시 활성화
@@ -141,7 +169,10 @@ public class TrapSpike : MonoBehaviour
         }
         if (plateAnimator != null)
         {
-            plateAnimator.Play(StateOff, 0, 0f);
+            // 비활성화: 가시가 들어가고(Attack 역순) 발판이 복귀(Active 역순)된 뒤 Idle로
+            plateAnimator.Play(StateDeactivate, 0, 0f);
+            yield return new WaitForSeconds(GetClipLength(StateDeactivate, FallbackDeactivateLength));
+            plateAnimator.Play(StateIdle, 0, 0f);
         }
 
         // 상태 초기화
@@ -164,6 +195,44 @@ public class TrapSpike : MonoBehaviour
                 health.GetDamage(info);
             }
         }
+    }
+
+    private void OnRelayHit()
+    {
+        _hitEventFired = true;
+    }
+
+    private void OnDestroy()
+    {
+        if (_relay != null) _relay.HitEvent -= OnRelayHit;
+    }
+
+    private float GetHitEventTime(string clipName, float fallback)
+    {
+        if (plateAnimator != null && plateAnimator.runtimeAnimatorController != null)
+        {
+            foreach (var clip in plateAnimator.runtimeAnimatorController.animationClips)
+            {
+                if (clip == null || clip.name != clipName) continue;
+                foreach (var e in clip.events)
+                {
+                    if (e.functionName == HitEventName) return e.time;
+                }
+            }
+        }
+        return fallback;
+    }
+
+    private float GetClipLength(string clipName, float fallback)
+    {
+        if (plateAnimator != null && plateAnimator.runtimeAnimatorController != null)
+        {
+            foreach (var clip in plateAnimator.runtimeAnimatorController.animationClips)
+            {
+                if (clip != null && clip.name == clipName) return clip.length;
+            }
+        }
+        return fallback;
     }
 
     private void OnDrawGizmosSelected()
