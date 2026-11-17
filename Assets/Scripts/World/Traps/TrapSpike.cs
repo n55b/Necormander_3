@@ -17,6 +17,8 @@ public class TrapSpike : MonoBehaviour
     [Header("외형 연결")]
     [SerializeField] private GameObject spikeVisual; // 솟아오르는 가시 오브젝트
     [SerializeField] private Animator plateAnimator; // PlateVisual의 Animator (미지정 시 자식에서 자동 탐색)
+    [Tooltip("Spike_Attack 클립에서 가시가 완전히 솟은 시점(초). 내려갈 때 이 지점부터 거꾸로 재생합니다.")]
+    [SerializeField] private float spikeFullyUpTime = 0.325f;
 
     [Header("소리")]
     [Tooltip("가시가 솟아올라 피해를 줄 때 사운드")]
@@ -33,8 +35,10 @@ public class TrapSpike : MonoBehaviour
     private const string StateIdle = "Spike_Idle";     // 대기
     private const string StateActive = "Spike_Active"; // 발판 눌림 (경고)
     private const string StateAttack = "Spike_Attack"; // 가시 솟음
-    private const string StateDeactivate = "Spike_Deactivate"; // 가시 하강(Attack 역순) + 발판 복귀(Active 역순)
-    private const float FallbackDeactivateLength = 0.75f;
+    private const string StateDeactivate = "Spike_Deactivate";            // Spike_Attack 역재생 (speed -1): 가시 하강
+    private const string StateDeactivatePlate = "Spike_Deactivate_Plate"; // Spike_Active 역재생 (speed -1): 발판 복귀
+    private const float FallbackAttackLength = 0.825f;
+    private const float FallbackActiveLength = 0.3f;
     private const string HitEventName = "OnHitEvent";
     private const float FallbackAttackHitTime = 0.225f; // Spike_Attack 클립의 OnHitEvent 시점
 
@@ -169,9 +173,13 @@ public class TrapSpike : MonoBehaviour
         }
         if (plateAnimator != null)
         {
-            // 비활성화: 가시가 들어가고(Attack 역순) 발판이 복귀(Active 역순)된 뒤 Idle로
-            plateAnimator.Play(StateDeactivate, 0, 0f);
-            yield return new WaitForSeconds(GetClipLength(StateDeactivate, FallbackDeactivateLength));
+            // 비활성화: On 때 재생한 애니메이션(Active → Attack)을 역순으로 재생 (Attack 역재생 → Active 역재생) 후 Idle
+            float attackLen = GetClipLength(StateAttack, FallbackAttackLength);
+            float retractFrom = Mathf.Clamp(spikeFullyUpTime, 0f, attackLen);
+            plateAnimator.Play(StateDeactivate, 0, attackLen > 0f ? retractFrom / attackLen : 1f);
+            yield return new WaitForSeconds(retractFrom);
+            plateAnimator.Play(StateDeactivatePlate, 0, 1f);
+            yield return new WaitForSeconds(GetClipLength(StateActive, FallbackActiveLength));
             plateAnimator.Play(StateIdle, 0, 0f);
         }
 
