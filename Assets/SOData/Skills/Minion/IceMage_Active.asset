@@ -12,9 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b903e5195d425944aa1c1677ca0f7b79, type: 3}
   m_Name: IceMage_Active
   m_EditorClassIdentifier: 
-  skillName: "\uBE59\uACB0 \uBD80\uCC44\uAF34"
-  description: "\uC804\uBC29 \uBD80\uCC44\uAF34 \uBC94\uC704\uC5D0 \uB9C8\uBC95 \uD53C\uD574,
-    \uBE59\uACB0"
+  skillName:
+    ko: "\uBE59\uACB0 \uBD80\uCC44\uAF34"
+    key: IceMage_Active.skillName
+  description:
+    ko: "\uC804\uBC29 \uBD80\uCC44\uAF34 \uBC94\uC704\uC5D0 \uB9C8\uBC95 \uD53C\uD574,
+      \uBE59\uACB0"
+    key: IceMage_Active.description
   icon: {fileID: 0}
   cooldownTime: 8
   skillSound: {fileID: 0}

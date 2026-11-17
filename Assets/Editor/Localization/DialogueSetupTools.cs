@@ -10,7 +10,7 @@ using UnityEngine.UI;
 /// <summary>
 /// 대화 시스템 셋업 도구.
 ///
-/// 1) 대화 UI 프리팹 만들기 — 계층/앵커/배선을 전부 코드로 만든다.
+/// 1) 대화 UI 프리팹 만들기 — 프리팹이 없을 때만 계층/앵커/배선을 전부 코드로 만든다.
 ///    손으로 만들면 앵커 하나 어긋나도 티가 안 나고, 슬롯 5칸 × 3컴포넌트를
 ///    인스펙터로 끌어 넣다가 하나 빠뜨리면 런타임에 조용히 아무 일도 안 일어난다.
 /// 2) 대사 테이블 검증 — CSV 파싱 결과와 흔한 저작 실수를 리포트로 뽑는다.
@@ -31,7 +31,7 @@ public static class DialogueSetupTools
 
     /// <summary>칸의 가로 위치(화면 폭 비율). 순서는 화면에 보이는 대로 왼쪽 / 가운데 / 오른쪽 —
     /// DialogueUI.SLOT_FILL_ORDER 의 칸 번호와 같은 순서여야 한다.
-    /// 양 끝을 더 벌리거나 좁히려면 여기 두 값만 만지고 1번 메뉴를 다시 돌린다.</summary>
+    /// 프리팹을 처음 만들 때만 쓴다. 이미 있는 프리팹의 칸 위치는 프리팹에서 Slot0_Left / Slot2_Right 앵커를 직접 고친다.</summary>
     private static readonly float[] SLOT_X = { 0.22f, 0.5f, 0.78f };
     private static readonly string[] SLOT_NAMES = { "Slot0_Left", "Slot1_Center", "Slot2_Right" };
 
@@ -57,6 +57,17 @@ public static class DialogueSetupTools
     {
         var table = EnsureTable();
         var cast  = EnsureCast();
+
+        // 없을 때만 만든다. 다시 만들면 손으로 연결한 타자음(typeSfx)·글꼴 수정 등이 전부 날아간다.
+        var existing = AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
+        if (existing != null)
+        {
+            Selection.activeObject = existing;
+            EditorGUIUtility.PingObject(existing);
+            Debug.Log($"<color=cyan>[DialogueSetup]</color> {PREFAB_PATH} 가 이미 있어 그대로 둔다. " +
+                      "배치·글꼴·소리는 프리팹을 직접 고칠 것. (처음부터 다시 만들려면 프리팹을 지운 뒤 실행)");
+            return;
+        }
 
         GameObject root = BuildHierarchy(out DialogueUI ui, out List<GameObject> slotRoots);
         WireUI(ui, table, cast, root, slotRoots);
@@ -303,7 +314,7 @@ public static class DialogueSetupTools
         {
             var e = entries.GetArrayElementAtIndex(i);
             e.FindPropertyRelative("key").stringValue         = SAMPLE_CAST[i].key;
-            e.FindPropertyRelative("displayName").stringValue = SAMPLE_CAST[i].name;
+            e.FindPropertyRelative("displayName.ko").stringValue = SAMPLE_CAST[i].name;
             e.FindPropertyRelative("nameColor").colorValue    = SAMPLE_CAST[i].color;
             e.FindPropertyRelative("portraits").arraySize     = 0;   // 아트가 생기면 여기 채운다
         }

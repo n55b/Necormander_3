@@ -31,6 +31,14 @@ public static class FeedbackSetup
             catalog.overlayPrefab=overlay;
             AssetDatabase.CreateAsset(catalog,CatalogPath);
         }
+        // FeedbackCue 에 새로 추가된 번호는 기본값 설정을 붙인다(기존 기획 수치는 그대로).
+        var missing=Enum.GetValues(typeof(FeedbackCue)).Cast<FeedbackCue>().Where(c=>catalog.Find(c)==null).ToArray();
+        if(missing.Length>0)
+        {
+            catalog.effects=(catalog.effects??Array.Empty<FeedbackRecipe>()).Concat(missing.Select(c=>Default(c,burst,null))).ToArray();
+            EditorUtility.SetDirty(catalog);
+        }
+        RequireCatalog(catalog); // 목록이 틀렸으면 프리팹을 하나도 다시 저장하지 않고 멈춘다.
         WirePrefab("Assets/Prefabs/Player Melee.prefab",go=>
         {
             var feedback=go.GetComponent<PlayerFeedback>()??go.AddComponent<PlayerFeedback>();
@@ -127,8 +135,6 @@ public static class FeedbackSetup
             case FeedbackCue.DropLand: r.shape=FeedbackShape.Ring; r.count=1; r.radius=.3f; r.duration=.25f; break;
             case FeedbackCue.RarityGlow: r.shape=FeedbackShape.Arc; r.count=1; r.radius=.4f; r.duration=.8f; r.intensity=.5f; break;
             case FeedbackCue.DropGlimmer: r.shape=FeedbackShape.Cross; r.count=2; r.radius=.14f; r.width=.03f; r.duration=.45f; r.intensity=.8f; r.color=new Color(1f,.88f,.55f,.9f); break;
-            case FeedbackCue.PerfectGuardFlash: r.title="퍼펙트 가드 섬광"; r.description="퍼펙트 가드 접촉 지점에 밝은 섬광을 표시합니다."; r.shape=FeedbackShape.Cross; r.count=2; r.radius=1.35f; r.width=.065f; r.duration=.17f; r.color=Color.white; r.interval=0; break;
-            case FeedbackCue.PerfectGuardRing: r.title="퍼펙트 가드 파동"; r.description="퍼펙트 가드 접촉 지점에 짧은 푸른 파동을 표시합니다."; r.shape=FeedbackShape.Ring; r.count=1; r.radius=.8f; r.width=.045f; r.duration=.25f; r.color=new Color(.35f,.83f,1f,.95f); r.interval=0; break;
             case FeedbackCue.Pickup: r.shape=FeedbackShape.Inward; r.count=5; r.duration=.45f; break;
             case FeedbackCue.StackUp: case FeedbackCue.StackMax: r.shape=FeedbackShape.Cross; r.count=2; break;
             case FeedbackCue.Upgrade: r.shape=FeedbackShape.Ring; r.count=1; r.radius=1.2f; r.duration=.65f; break;
@@ -211,9 +217,7 @@ public static class FeedbackSetup
     public static void Validate()
     {
         var c=AssetDatabase.LoadAssetAtPath<FeedbackCatalog>(CatalogPath);
-        Require(c!=null&&c.effects.Length==66,"66개 효과 설정");
-        Require(c.effects.Select(r=>r.cue).Distinct().Count()==66,"중복 없는 번호");
-        foreach(var r in c.effects) Require(!string.IsNullOrEmpty(r.title)&&r.duration>0,"효과 이름/수명 "+r.cue);
+        RequireCatalog(c);
         var player=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player Melee.prefab").GetComponent<PlayerFeedback>();
         Require(player!=null,"플레이어 관찰자");
         foreach(var field in new[]{"player","combat","dodge","skills"}) Require(new SerializedObject(player).FindProperty(field).objectReferenceValue!=null,"플레이어 참조 "+field);
@@ -224,7 +228,15 @@ public static class FeedbackSetup
         var burst=AssetDatabase.LoadAssetAtPath<GameObject>(Folder+"/Feedback Burst.prefab");
         Require(burst.GetComponentsInChildren<LineRenderer>(true).Length==16,"선 프리팹 16개");
         Require(burst.GetComponentsInChildren<Transform>(true).All(t=>t.localScale==Vector3.one),"원본 그림 1배");
-        Debug.Log("[FeedbackSetup] PASS: 66개 설정, 성장 4단계, 실제 프리팹 배선, 입력 비차단, 원본 배율 검증");
+        Debug.Log($"[FeedbackSetup] PASS: {c.effects.Length}개 설정, 성장 4단계, 실제 프리팹 배선, 입력 비차단, 원본 배율 검증");
+    }
+    // 효과 수는 FeedbackCue 에서 센다. 번호를 추가할 때마다 숫자를 고치지 않아도 된다.
+    private static void RequireCatalog(FeedbackCatalog c)
+    {
+        int cues=Enum.GetValues(typeof(FeedbackCue)).Length;
+        Require(c!=null&&c.effects!=null&&c.effects.Length==cues,$"{cues}개 효과 설정");
+        Require(c.effects.Select(r=>r.cue).Distinct().Count()==cues,"중복 없는 번호");
+        foreach(var r in c.effects) Require(!string.IsNullOrEmpty(r.title)&&r.duration>0,"효과 이름/수명 "+r.cue);
     }
     private static void Require(bool value,string label) { if(!value) throw new Exception("[FeedbackSetup] 실패: "+label); }
 }

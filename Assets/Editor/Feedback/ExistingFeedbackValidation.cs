@@ -20,7 +20,8 @@ public static class ExistingFeedbackValidation
     {
         if (!Application.isBatchMode) throw new InvalidOperationException("별도 batchmode에서 실행하세요.");
         catalog = AssetDatabase.LoadAssetAtPath<FeedbackCatalog>(FeedbackSetup.CatalogPath);
-        Require(catalog.existingEffects.Length == 12, "기존 연출 12종");
+        int groups = Enum.GetValues(typeof(ExistingFeedbackCue)).Length - 1; // '연결 안 함'(None) 제외 — Rebuild 와 같은 기준
+        Require(catalog.existingEffects.Length == groups, $"기존 연출 {groups}종");
         foreach (var entry in catalog.existingEffects) Require(entry.sources.Length > 0 && entry.sources.All(s => s != null), entry.title + " 연결");
         var originals = catalog.existingEffects.SelectMany(e => e.sources).Distinct().Where(o => !(o is SceneAsset))
             .ToDictionary(o => o, EditorJsonUtility.ToJson);
@@ -32,7 +33,7 @@ public static class ExistingFeedbackValidation
         catalog.existingEffects.First(e => e.cue == ExistingFeedbackCue.Squash).enabled = oldEnabled;
         EditorUtility.SetDirty(catalog); AssetDatabase.SaveAssetIfDirty(catalog);
         foreach (var pair in originals) Require(pair.Value == EditorJsonUtility.ToJson(pair.Key), "원본 값 유지: " + pair.Key.name);
-        Require(recipes == JsonUtility.ToJson(new Recipes { entries = catalog.effects }), "기존 66개 신규 설정 유지");
+        Require(recipes == JsonUtility.ToJson(new Recipes { entries = catalog.effects }), "기존 신규 연출 설정 유지");
 
         var impact = catalog.existingEffects.First(e => e.cue == ExistingFeedbackCue.Slash).sources.OfType<ImpactFeedback>().First();
         var data = new SerializedObject(impact); float old = data.FindProperty("lifetime").floatValue;

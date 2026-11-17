@@ -8,7 +8,7 @@ using UnityEngine.UI;
 /// 상점 창. 상점 주인(ShopNPC)에게 F 로 말을 걸면 열린다. 진열 상품 카드 + 보유 골드를 보여준다.
 /// UIPopUpManager 의 Window 레이어로 열려서 ESC 로 닫히고, 열려 있는 동안 게임플레이 입력이 막힌다.
 /// Screen Space Overlay + Scale With Screen Size(1920x1080) 라 해상도가 달라도 비율이 유지된다.
-/// 프리팹: Resources/UI/ShopPopupUI.prefab (Tools/Shop/Build Shop Popup Prefab 로 생성)
+/// 프리팹: Resources/UI/ShopPopupUI.prefab (손으로 꾸민 프리팹 — 직접 편집한다)
 /// </summary>
 public class ShopPopupUI : MonoBehaviour
 {
@@ -44,7 +44,7 @@ public class ShopPopupUI : MonoBehaviour
         var prefab = Resources.Load<ShopPopupUI>(ResourcePath);
         if (prefab == null)
         {
-            Debug.LogWarning($"[ShopPopupUI] Resources/{ResourcePath}.prefab 이 없습니다. Tools/Shop/Build Shop Popup Prefab 을 실행하세요.");
+            Debug.LogWarning($"[ShopPopupUI] Resources/{ResourcePath}.prefab 이 없습니다. git 에서 프리팹을 복구하세요.");
             return null;
         }
         Instantiate(prefab).name = "ShopPopupUI";
@@ -165,7 +165,7 @@ public class ShopPopupUI : MonoBehaviour
         if (!force && gold == _shownGold) return;
         _shownGold = gold;
 
-        if (goldText != null) goldText.text = $"보유 골드  <color=#{ColorUtility.ToHtmlStringRGB(GoldColor)}>{gold:N0} G</color>";
+        if (goldText != null) goldText.text = Loc.F("ShopPopupUI.gold", "보유 골드  <color=#{0}>{1:N0} G</color>", ColorUtility.ToHtmlStringRGB(GoldColor), gold);
         foreach (var s in _slots) if (s.gameObject.activeSelf) s.Refresh(gold);
     }
 

@@ -13,30 +13,18 @@ MonoBehaviour:
   m_Name: Bone Master Phase 2 Data
   m_EditorClassIdentifier: 
   minionType: 0
-  minionName: "\uBCF8 \uB9C8\uC2A4\uD130 (2\uD398\uC774\uC988)"
+  minionName:
+    ko: "\uBCF8 \uB9C8\uC2A4\uD130 (2\uD398\uC774\uC988)"
+    key: Bone Master Phase 2 Data.minionName
   minionIcon: {fileID: 0}
   shopCost: 150
   rewardItemData:
-    itemName: 
-    description: 
-    localizedItemName:
-      m_TableReference:
-        m_TableCollectionName: 
-      m_TableEntryReference:
-        m_KeyId: 0
-        m_Key: 
-      m_FallbackState: 0
-      m_WaitForCompletion: 0
-      m_LocalVariables: []
-    localizedDescription:
-      m_TableReference:
-        m_TableCollectionName: 
-      m_TableEntryReference:
-        m_KeyId: 0
-        m_Key: 
-      m_FallbackState: 0
-      m_WaitForCompletion: 0
-      m_LocalVariables: []
+    itemName:
+      ko: 
+      key: 
+    description:
+      ko: 
+      key: 
     icon: {fileID: 0}
     rarity: 0
   impactColor: {r: 0.9, g: 0.87, b: 0.75, a: 1}

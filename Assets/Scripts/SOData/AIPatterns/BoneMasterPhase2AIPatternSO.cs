@@ -327,7 +327,7 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
         if (dist > effectiveEngageRange)
         {
             entity.CurrentState = AIState.Follow;
-            _controller?.SetStateText("추격 중... (페이즈2)");
+            _controller?.SetStateText(Loc.T("BoneMasterPhase2AIPatternSO.chase", "추격 중... (페이즈2)"));
             return;
         }
 
@@ -344,7 +344,7 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
         if (Time.time < _specialLockUntil)
         {
             entity.CurrentState = AIState.Follow;
-            _controller?.SetStateText("추격 중... (페이즈2)");
+            _controller?.SetStateText(Loc.T("BoneMasterPhase2AIPatternSO.chase", "추격 중... (페이즈2)"));
             // 추격 시간은 '때릴 수 있게 된 순간'부터 센다. 여기서 리셋하지 않으면 딜타임이
             // 그대로 추격 시간으로 계산돼, 잠금이 풀리는 즉시 강제 패턴이 튀어나온다.
             _chaseStartTime = Time.time;
@@ -358,7 +358,7 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
         if (!inRange && Time.time - _chaseStartTime < Mathf.Max(0f, chaseTimeLimit))
         {
             entity.CurrentState = AIState.Follow;
-            _controller?.SetStateText("추격 중... (페이즈2)");
+            _controller?.SetStateText(Loc.T("BoneMasterPhase2AIPatternSO.chase", "추격 중... (페이즈2)"));
             return;
         }
 
@@ -417,7 +417,7 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     /// <summary>노랑 카운터를 파훼당했다. 패턴을 취소하고 경직 + 딜타임까지 건다.</summary>
     private void CancelByCounter(BaseEntity entity)
     {
-        _controller?.SetStateText("카운터 성공! 패턴 취소!", Color.cyan);
+        _controller?.SetStateText(Loc.T("BoneMasterPhase2AIPatternSO.counter_success", "카운터 성공! 패턴 취소!"), Color.cyan);
         _controller?.ApplyGroggy(counterSuccessGroggyDuration);
 
         // [버그 수정 — 카운터 성공이 3.5초 정지가 되던 문제] 예전엔 EndPatternAfterGroggy 를 불러서
@@ -492,7 +492,7 @@ protected override void OnAttack(BaseEntity entity)
 
         // ── 1타: 휩쓸기 (카운터 가능) ────────────────────────────────
         var kind = RollTelegraph(counterable: true, out Color col);
-        _controller?.SetStateText("휩쓸고 내려찍기", col);
+        _controller?.SetStateText(Loc.T("BoneMasterPhase2AIPatternSO.sweep_slam", "휩쓸고 내려찍기"), col);
 
         var tele = new BossCounterTelegraph.Result();
         _controller.PrepareAttack(animState_Sweep, tele);
@@ -551,7 +551,7 @@ protected override void OnAttack(BaseEntity entity)
         Vector2 slamDir = SafeDirTo(entity, stepEnd, entity.Target);
         float slamLead = slamTelegraphTime * csMul;
 
-        _controller?.SetStateText("내려찍기!", counterNoneColor);
+        _controller?.SetStateText(Loc.T("BoneMasterPhase2AIPatternSO.slam", "내려찍기!"), counterNoneColor);
         var slamTele = new BossCounterTelegraph.Result();
         _controller.PrepareAttack(animState_Slam, slamTele);
         if (slamTele.Hijacked) { FinishBasicAttack(entity); yield break; }
@@ -620,7 +620,7 @@ protected override void OnAttack(BaseEntity entity)
             Vector2 dir = SafeDirTo(entity, origin, entity.Target);
 
             var kind = RollTelegraph(counterable: isFinal, out Color col);
-            _controller?.SetStateText(isFinal ? "견갑 찌르기 - 마지막!" : "견갑 찌르기", col);
+            _controller?.SetStateText(isFinal ? Loc.T("BoneMasterPhase2AIPatternSO.pauldron_stab_final", "견갑 찌르기 - 마지막!") : Loc.T("BoneMasterPhase2AIPatternSO.pauldron_stab", "견갑 찌르기"), col);
 
             GameObject telegraph = BoneMasterTelegraphUtil.SpawnLane(
                 entity, origin, dir, length, width, col, laneTelegraphPrefab, windup);
@@ -740,7 +740,7 @@ protected override void OnAttack(BaseEntity entity)
         }
 
         // 성공 수는 구슬에만 반영한다. 종료 보상은 기존 고정값 유지(성공 0회도 동일).
-        _controller?.SetStateText($"집행 종료! 카운터 {hits}/{attempts}, 받는 피해 +{executionDamageBonus * 100f:F0}%", Color.cyan);
+        _controller?.SetStateText(Loc.F("BoneMasterPhase2AIPatternSO.execution_end", "집행 종료! 카운터 {0}/{1}, 받는 피해 +{2:F0}%", hits, attempts, executionDamageBonus * 100f), Color.cyan);
         _controller?.ApplyGroggy(executionGroggyDuration, executionDamageBonus);
         // 예전 EndPatternAfterGroggy 는 그로기(4초)가 끝난 뒤에도 추가 대기(1.5초)를 더
         // 얹어서 보스가 총 7초를 멍하니 서 있게 만들었다. 보상은 '그로기 + 받는 피해 증가'이지
@@ -811,7 +811,7 @@ protected override void OnAttack(BaseEntity entity)
         float windup = basicAttackWindup * executionCastSpeedScale;
         float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
 
-        _controller?.SetStateText(useSweep ? "집행 - 휩쓸기!" : "집행 - 찌르기!", counterRealColor);
+        _controller?.SetStateText(useSweep ? Loc.T("BoneMasterPhase2AIPatternSO.execution_sweep", "집행 - 휩쓸기!") : Loc.T("BoneMasterPhase2AIPatternSO.execution_stab", "집행 - 찌르기!"), counterRealColor);
 
         _controller.PrepareAttack(useSweep ? animState_Sweep : animState_Thrust, res);
         if (res.Hijacked) yield break;
@@ -900,7 +900,7 @@ protected override void OnAttack(BaseEntity entity)
     private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
     {
         StopNavAgent(entity);
-        _controller?.SetStateText("도약 & 내려찍기", counterNoneColor);
+        _controller?.SetStateText(Loc.T("BoneMasterPhase2AIPatternSO.leap_slam", "도약 & 내려찍기"), counterNoneColor);
         float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
         float radiusX = leapSlamRadiusX * rangeMul;
         float radiusY = leapSlamRadiusY * rangeMul;
@@ -944,7 +944,7 @@ protected override void OnAttack(BaseEntity entity)
         }
 
         // 착지점 확정 — 여기서부터는 절대 안 따라간다. 플레이어가 빠져나갈 수 있는 구간.
-        _controller?.SetStateText("기본 공격: 도약 지점 확정!", Color.yellow);
+        _controller?.SetStateText(Loc.T("BoneMasterPhase2AIPatternSO.basic_leap_locked", "기본 공격: 도약 지점 확정!"), Color.yellow);
         BoneMasterTelegraphUtil.UpdatePosition(telegraph, landPos);
 
         float lockT = 0f;
@@ -954,7 +954,7 @@ protected override void OnAttack(BaseEntity entity)
             yield return null;
         }
 
-        _controller?.SetStateText("기본 공격: 도약 & 내려찍기", Color.white);
+        _controller?.SetStateText(Loc.T("BoneMasterPhase2AIPatternSO.basic_leap_slam", "기본 공격: 도약 & 내려찍기"), Color.white);
         Vector3 startPos = entity.transform.position;
 
         float elapsed = 0f;

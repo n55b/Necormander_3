@@ -38,6 +38,7 @@ public sealed class DesignerInspectorView
     private readonly Dictionary<string, ReorderableList> lists = new Dictionary<string, ReorderableList>();
     private readonly Dictionary<string, FieldInfo> fields = new Dictionary<string, FieldInfo>();
     private SerializedObject current;
+    private int fieldsDirtyCount = -1;
     private const float Gap = 2f;
     public static bool IsProjectType(Type type) => type != null && type.Assembly == typeof(PlayerController).Assembly;
 
@@ -56,7 +57,10 @@ public sealed class DesignerInspectorView
     private void DrawContents(SerializedObject serialized)
     {
         if (current != serialized) { lists.Clear(); fields.Clear(); current = serialized; }
-        fields.Clear();
+        // 관리 참조의 구체 타입이 바뀌면 필드 경로가 달라지므로 대상이 실제로 수정됐을 때만 비운다.
+        // (매 그리기마다 비우면 플레이 중 계속 다시 그리는 인스펙터가 매번 리플렉션을 반복한다.)
+        int dirty = EditorUtility.GetDirtyCount(serialized.targetObject);
+        if (dirty != fieldsDirtyCount) { fields.Clear(); fieldsDirtyCount = dirty; }
         serialized.Update();
         using (new EditorGUILayout.HorizontalScope())
         {
@@ -105,7 +109,7 @@ public sealed class DesignerInspectorView
 
     private FieldInfo Field(SerializedProperty p)
     {
-        // 매 그리기 시작 시 비우므로 관리 참조의 구체 타입을 바꿔도 다음 프레임에 반영된다.
+        // 대상이 수정되면(DrawContents) 비우므로 관리 참조의 구체 타입을 바꿔도 다음 프레임에 반영된다.
         if (fields.TryGetValue(p.propertyPath, out var cached)) return cached;
         var found = ResolveField(p.serializedObject.targetObject, p.propertyPath);
         fields[p.propertyPath] = found;
@@ -151,8 +155,8 @@ public sealed class DesignerInspectorView
         var type = f.FieldType;
         if (type.IsArray) type = type.GetElementType();
         else if (type.IsGenericType) type = type.GetGenericArguments()[0];
-        // UnityEvent 등은 전용 기본 드로워에 맡긴다.
-        return IsProjectType(type) && !typeof(UnityEventBase).IsAssignableFrom(type);
+        // UnityEvent, LocText 등은 전용 드로워에 맡긴다.
+        return IsProjectType(type) && !typeof(UnityEventBase).IsAssignableFrom(type) && type != typeof(LocText);
     }
 
     private IEnumerable<SerializedProperty> Children(SerializedProperty p)

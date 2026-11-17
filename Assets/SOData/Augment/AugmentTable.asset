@@ -17,124 +17,192 @@ MonoBehaviour:
   allowItemRewards: 1
   penalties:
   - id: P1-01
-    displayName: "\uC800\uB9B0 \uC721\uC2E0"
+    displayName:
+      ko: "\uC800\uB9B0 \uC721\uC2E0"
+      key: AugmentTable.penalties[0].displayName
     tier: 1
     kind: 0
     value: 25
     waveLimit: 2
-    flavor: "\uC0C1\uCC98\uAC00 \uC870\uAE08 \uAE4A\uB2E4"
+    flavor:
+      ko: "\uC0C1\uCC98\uAC00 \uC870\uAE08 \uAE4A\uB2E4"
+      key: AugmentTable.penalties[0].flavor
   - id: P1-02
-    displayName: "\uC601\uD63C\uC758 \uC9C0\uCCB4"
+    displayName:
+      ko: "\uC601\uD63C\uC758 \uC9C0\uCCB4"
+      key: AugmentTable.penalties[1].displayName
     tier: 1
     kind: 1
     value: 15
     waveLimit: 2
-    flavor: "\uBBF8\uB2C8\uC5B8\uC774 \uC870\uAE08 \uB2A6\uB2E4"
+    flavor:
+      ko: "\uBBF8\uB2C8\uC5B8\uC774 \uC870\uAE08 \uB2A6\uB2E4"
+      key: AugmentTable.penalties[1].flavor
   - id: P1-03
-    displayName: "\uAD7C\uB72C \uBC1C"
+    displayName:
+      ko: "\uAD7C\uB72C \uBC1C"
+      key: AugmentTable.penalties[2].displayName
     tier: 1
     kind: 2
     value: -10
     waveLimit: 2
-    flavor: "\uBC1C\uC774 \uC870\uAE08 \uBB34\uAC81\uB2E4"
+    flavor:
+      ko: "\uBC1C\uC774 \uC870\uAE08 \uBB34\uAC81\uB2E4"
+      key: AugmentTable.penalties[2].flavor
   - id: P1-04
-    displayName: "\uC124\uC775\uC740 \uC8FC\uBA39"
+    displayName:
+      ko: "\uC124\uC775\uC740 \uC8FC\uBA39"
+      key: AugmentTable.penalties[3].displayName
     tier: 1
     kind: 3
     value: -10
     waveLimit: 2
-    flavor: "\uC8FC\uBA39\uC774 \uC870\uAE08 \uAC00\uBCCD\uB2E4"
+    flavor:
+      ko: "\uC8FC\uBA39\uC774 \uC870\uAE08 \uAC00\uBCCD\uB2E4"
+      key: AugmentTable.penalties[3].flavor
   - id: P1-05
-    displayName: "\uB2E8\uB2E8\uD55C \uAECD\uC9C8"
+    displayName:
+      ko: "\uB2E8\uB2E8\uD55C \uAECD\uC9C8"
+      key: AugmentTable.penalties[4].displayName
     tier: 1
     kind: 5
     value: 15
     waveLimit: 2
-    flavor: "\uC801\uC774 \uC870\uAE08 \uB2E8\uB2E8\uD558\uB2E4"
+    flavor:
+      ko: "\uC801\uC774 \uC870\uAE08 \uB2E8\uB2E8\uD558\uB2E4"
+      key: AugmentTable.penalties[4].flavor
   - id: P1-06
-    displayName: "\uBCBC\uB824\uC9C4 \uBC1C\uD1B1"
+    displayName:
+      ko: "\uBCBC\uB824\uC9C4 \uBC1C\uD1B1"
+      key: AugmentTable.penalties[5].displayName
     tier: 1
     kind: 6
     value: 15
     waveLimit: 2
-    flavor: "\uC801\uC758 \uACF5\uACA9\uC774 \uC870\uAE08 \uB9E4\uC12D\uB2E4"
+    flavor:
+      ko: "\uC801\uC758 \uACF5\uACA9\uC774 \uC870\uAE08 \uB9E4\uC12D\uB2E4"
+      key: AugmentTable.penalties[5].flavor
   - id: P2-01
-    displayName: "\uD750\uB9BF\uD55C \uC721\uC2E0"
+    displayName:
+      ko: "\uD750\uB9BF\uD55C \uC721\uC2E0"
+      key: AugmentTable.penalties[6].displayName
     tier: 2
     kind: 0
     value: 50
     waveLimit: 2
-    flavor: "\uBC1B\uB294 \uD53C\uD574\uAC00 \uB298\uC5B4\uB09C\uB2E4"
+    flavor:
+      ko: "\uBC1B\uB294 \uD53C\uD574\uAC00 \uB298\uC5B4\uB09C\uB2E4"
+      key: AugmentTable.penalties[6].flavor
   - id: P2-02
-    displayName: "\uC601\uD63C\uC758 \uC9C0\uC5F0"
+    displayName:
+      ko: "\uC601\uD63C\uC758 \uC9C0\uC5F0"
+      key: AugmentTable.penalties[7].displayName
     tier: 2
     kind: 1
     value: 25
     waveLimit: 2
-    flavor: "\uBBF8\uB2C8\uC5B8\uC758 \uBC18\uC751\uC774 \uB290\uB9AC\uB2E4"
+    flavor:
+      ko: "\uBBF8\uB2C8\uC5B8\uC758 \uBC18\uC751\uC774 \uB290\uB9AC\uB2E4"
+      key: AugmentTable.penalties[7].flavor
   - id: P2-03
-    displayName: "\uBB34\uAC70\uC6B4 \uBC1C\uAC78\uC74C"
+    displayName:
+      ko: "\uBB34\uAC70\uC6B4 \uBC1C\uAC78\uC74C"
+      key: AugmentTable.penalties[8].displayName
     tier: 2
     kind: 2
     value: -20
     waveLimit: 2
-    flavor: "\uBC1C\uC774 \uBB34\uAC81\uB2E4"
+    flavor:
+      ko: "\uBC1C\uC774 \uBB34\uAC81\uB2E4"
+      key: AugmentTable.penalties[8].flavor
   - id: P2-04
-    displayName: "\uBB34\uB38C\uC9C4 \uC8FC\uBA39"
+    displayName:
+      ko: "\uBB34\uB38C\uC9C4 \uC8FC\uBA39"
+      key: AugmentTable.penalties[9].displayName
     tier: 2
     kind: 3
     value: -20
     waveLimit: 2
-    flavor: "\uC8FC\uBA39\uC5D0 \uD798\uC774 \uBE60\uC9C4\uB2E4"
+    flavor:
+      ko: "\uC8FC\uBA39\uC5D0 \uD798\uC774 \uBE60\uC9C4\uB2E4"
+      key: AugmentTable.penalties[9].flavor
   - id: P2-05
-    displayName: "\uAC15\uC778\uD55C \uC801"
+    displayName:
+      ko: "\uAC15\uC778\uD55C \uC801"
+      key: AugmentTable.penalties[10].displayName
     tier: 2
     kind: 5
     value: 30
     waveLimit: 2
-    flavor: "\uC801\uC774 \uB2E8\uB2E8\uD558\uB2E4"
+    flavor:
+      ko: "\uC801\uC774 \uB2E8\uB2E8\uD558\uB2E4"
+      key: AugmentTable.penalties[10].flavor
   - id: P2-06
-    displayName: "\uC6D0\uAD70"
+    displayName:
+      ko: "\uC6D0\uAD70"
+      key: AugmentTable.penalties[11].displayName
     tier: 2
     kind: 7
     value: 2
     waveLimit: 2
-    flavor: "\uC801\uC758 \uC218\uAC00 \uB298\uC5B4\uB09C\uB2E4"
+    flavor:
+      ko: "\uC801\uC758 \uC218\uAC00 \uB298\uC5B4\uB09C\uB2E4"
+      key: AugmentTable.penalties[11].flavor
   - id: P2-08
-    displayName: "\uCCA8\uBCD1"
+    displayName:
+      ko: "\uCCA8\uBCD1"
+      key: AugmentTable.penalties[12].displayName
     tier: 2
     kind: 8
     value: 1
     waveLimit: 2
-    flavor: "\uC120\uBC1C\uB300\uAC00 \uAE30\uB2E4\uB9AC\uACE0 \uC788\uB2E4"
+    flavor:
+      ko: "\uC120\uBC1C\uB300\uAC00 \uAE30\uB2E4\uB9AC\uACE0 \uC788\uB2E4"
+      key: AugmentTable.penalties[12].flavor
   - id: P3-01
-    displayName: "\uACB0\uC190\uB41C \uC721\uC2E0"
+    displayName:
+      ko: "\uACB0\uC190\uB41C \uC721\uC2E0"
+      key: AugmentTable.penalties[13].displayName
     tier: 3
     kind: 0
     value: 100
     waveLimit: 2
-    flavor: "\uD53C\uD574\uB97C \uB450 \uBC30\uB85C \uBC1B\uB294\uB2E4"
+    flavor:
+      ko: "\uD53C\uD574\uB97C \uB450 \uBC30\uB85C \uBC1B\uB294\uB2E4"
+      key: AugmentTable.penalties[13].flavor
   - id: P3-02
-    displayName: "\uC601\uD63C\uC758 \uCE68\uBB35"
+    displayName:
+      ko: "\uC601\uD63C\uC758 \uCE68\uBB35"
+      key: AugmentTable.penalties[14].displayName
     tier: 3
     kind: 1
     value: 50
     waveLimit: 2
-    flavor: "\uC601\uD63C\uC774 \uC751\uB2F5\uD558\uC9C0 \uC54A\uB294\uB2E4"
+    flavor:
+      ko: "\uC601\uD63C\uC774 \uC751\uB2F5\uD558\uC9C0 \uC54A\uB294\uB2E4"
+      key: AugmentTable.penalties[14].flavor
   - id: P3-03
-    displayName: "\uAD73\uC740 \uB2E4\uB9AC"
+    displayName:
+      ko: "\uAD73\uC740 \uB2E4\uB9AC"
+      key: AugmentTable.penalties[15].displayName
     tier: 3
     kind: 4
     value: 100
     waveLimit: 2
-    flavor: "\uBAB8\uC774 \uBB34\uAC81\uB2E4"
+    flavor:
+      ko: "\uBAB8\uC774 \uBB34\uAC81\uB2E4"
+      key: AugmentTable.penalties[15].flavor
   - id: P3-04
-    displayName: "\uAD11\uD3ED"
+    displayName:
+      ko: "\uAD11\uD3ED"
+      key: AugmentTable.penalties[16].displayName
     tier: 3
     kind: 6
     value: 40
     waveLimit: 2
-    flavor: "\uC801\uC774 \uAD11\uAE30\uC5D0 \uC0AC\uB85C\uC7A1\uD614\uB2E4"
+    flavor:
+      ko: "\uC801\uC774 \uAD11\uAE30\uC5D0 \uC0AC\uB85C\uC7A1\uD614\uB2E4"
+      key: AugmentTable.penalties[16].flavor
   rewards:
   - tier: 0
     kind: 4

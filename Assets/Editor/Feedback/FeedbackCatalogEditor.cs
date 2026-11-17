@@ -36,7 +36,9 @@ public sealed class FeedbackCatalogEditor : Editor
         for(int i=0;i<effects.arraySize;i++)
         {
             var entry=effects.GetArrayElementAtIndex(i);
-            string label=$"{entry.FindPropertyRelative("cue").intValue:00} · {entry.FindPropertyRelative("title").stringValue}";
+            int cue=entry.FindPropertyRelative("cue").intValue;
+            if(DesignerInspectorLabels.RetiredCues.Contains((FeedbackCue)cue)) continue;
+            string label=$"{cue:00} · {entry.FindPropertyRelative("title").stringValue}";
             if(!string.IsNullOrWhiteSpace(search)&&!label.Contains(search)) continue;
             EditorGUILayout.BeginHorizontal();
             var on=entry.FindPropertyRelative("enabled"); on.boolValue=EditorGUILayout.ToggleLeft(label,on.boolValue);

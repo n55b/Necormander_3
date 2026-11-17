@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
+using UnityEditor.SceneManagement;
 using UnityEditor.U2D.Aseprite;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 /// <summary>원본 그림은 보존하고 기존 게임 프리팹의 애니메이션 연결만 갱신한다.</summary>
@@ -106,7 +108,7 @@ public static class GameplaySpriteAnimations
         foreach (var pair in clips)
         {
             var state = machine.states.Select(s => s.state).FirstOrDefault(s => s.name == pair.Key) ?? machine.AddState(pair.Key);
-            state.motion = pair.Value; state.speed = 1f;
+            state.motion = pair.Value; // 속도는 기획자 값이라 새로 만들 때 기본값(1)만 쓰고 덮어쓰지 않는다.
             if (pair.Key == "Down") machine.defaultState = state;
             EditorUtility.SetDirty(state);
         }
@@ -144,6 +146,20 @@ public static class GameplaySpriteAnimations
 
     [MenuItem("Tools/아트/상자·이동·대시 애니메이션 검사")]
     public static void Validate()
+    {
+        // 검사용 복제본(프리팹 인스턴스·대시 이펙트)은 임시 씬을 활성으로 두고 만든다 — 열린 씬을 더럽히지 않는다.
+        var previousScene = SceneManager.GetActiveScene();
+        var scratch = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+        SceneManager.SetActiveScene(scratch);
+        try { ValidateInScratchScene(); }
+        finally
+        {
+            SceneManager.SetActiveScene(previousScene);
+            EditorSceneManager.CloseScene(scratch, true);
+        }
+    }
+
+    private static void ValidateInScratchScene()
     {
         foreach (string path in Chests.Concat(new[] { DashPrefab, MovePrefab }))
         {

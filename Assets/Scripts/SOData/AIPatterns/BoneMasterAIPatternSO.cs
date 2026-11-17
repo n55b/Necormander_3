@@ -271,7 +271,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         if (Time.time < _specialLockUntil)
         {
             entity.CurrentState = AIState.Follow;
-            _controller?.SetStateText("추격 중...");
+            _controller?.SetStateText(Loc.T("BoneMasterAIPatternSO.chase", "추격 중..."));
             // 추격 시간은 '때릴 수 있게 된 순간'부터 센다. 여기서 리셋하지 않으면 딜타임이
             // 그대로 추격 시간으로 계산돼, 잠금이 풀리는 즉시 강제 패턴이 튀어나온다.
             _chaseStartTime = Time.time;
@@ -289,7 +289,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         if (!inRange && Time.time - _chaseStartTime < Mathf.Max(0f, chaseTimeLimit))
         {
             entity.CurrentState = AIState.Follow;
-            _controller?.SetStateText("추격 중...");
+            _controller?.SetStateText(Loc.T("BoneMasterAIPatternSO.chase", "추격 중..."));
             return;
         }
 
@@ -388,7 +388,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
     /// </summary>
     private void CancelByCounter(BaseEntity entity)
     {
-        _controller?.SetStateText("카운터 성공! 패턴 취소!", Color.cyan);
+        _controller?.SetStateText(Loc.T("BoneMasterAIPatternSO.counter_success", "카운터 성공! 패턴 취소!"), Color.cyan);
         _controller?.ApplyGroggy(counterSuccessGroggyDuration);
 
         // [버그 수정 — 카운터 성공이 3.5초 정지가 되던 문제] 예전엔 EndPatternAfterGroggy 를 불러서
@@ -464,7 +464,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         Vector2 stepEnd = origin + dir * SlideDistance(origin, dir, sweepStepDistance);
 
         var kind = RollTelegraph(counterable: true, out Color col);
-        _controller?.SetStateText("휩쓸기", col);
+        _controller?.SetStateText(Loc.T("BoneMasterAIPatternSO.sweep", "휩쓸기"), col);
 
         var tele = new BossCounterTelegraph.Result();
         _controller.PrepareAttack(animState_Sweep, tele);
@@ -542,7 +542,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
         float windup = basicAttackWindup * csMul;
 
         var kind = RollTelegraph(counterable: true, out Color col);
-        _controller?.SetStateText("찌르기", col);
+        _controller?.SetStateText(Loc.T("BoneMasterAIPatternSO.stab", "찌르기"), col);
 
         var tele = new BossCounterTelegraph.Result();
         _controller.PrepareAttack(animState_Thrust, tele);
@@ -583,7 +583,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
 private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
     {
         StopNavAgent(entity);
-        _controller?.SetStateText("도약 & 내려찍기", counterNoneColor);
+        _controller?.SetStateText(Loc.T("BoneMasterAIPatternSO.leap_slam", "도약 & 내려찍기"), counterNoneColor);
         float rangeMul = 1f + (_controller != null ? _controller.AttackRangeBonus : 0f);
         float radiusX = leapSlamRadiusX * rangeMul;
         float radiusY = leapSlamRadiusY * rangeMul;
@@ -627,7 +627,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
         }
 
         // 착지점 확정 — 여기서부터는 절대 안 따라간다. 플레이어가 빠져나갈 수 있는 구간.
-        _controller?.SetStateText("기본 공격: 도약 지점 확정!", Color.yellow);
+        _controller?.SetStateText(Loc.T("BoneMasterAIPatternSO.basic_leap_locked", "기본 공격: 도약 지점 확정!"), Color.yellow);
         BoneMasterTelegraphUtil.UpdatePosition(telegraph, landPos);
 
         float lockT = 0f;
@@ -637,7 +637,7 @@ private IEnumerator BasicAttack_LeapSlam(BaseEntity entity)
             yield return null;
         }
 
-        _controller?.SetStateText("기본 공격: 도약 & 내려찍기", Color.white);
+        _controller?.SetStateText(Loc.T("BoneMasterAIPatternSO.basic_leap_slam", "기본 공격: 도약 & 내려찍기"), Color.white);
         Vector3 startPos = entity.transform.position;
 
         float elapsed = 0f;

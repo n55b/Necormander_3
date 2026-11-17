@@ -36,4 +36,6 @@ public class EnemyEditorWindow : EditorWindow
     private void OnDisable() => panel?.Disable();
 
     private void OnGUI() => panel.OnGUI();
+
+    private void OnInspectorUpdate() => panel?.InspectorUpdate();
 }

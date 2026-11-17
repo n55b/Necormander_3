@@ -13,30 +13,18 @@ MonoBehaviour:
   m_Name: Charger Elite Data
   m_EditorClassIdentifier: 
   minionType: 0
-  minionName: "\uCC28\uC800 \uC5D8\uB9AC\uD2B8"
+  minionName:
+    ko: "\uCC28\uC800 \uC5D8\uB9AC\uD2B8"
+    key: Charger Elite Data.minionName
   minionIcon: {fileID: 0}
   shopCost: 150
   rewardItemData:
-    itemName: 
-    description: 
-    localizedItemName:
-      m_TableReference:
-        m_TableCollectionName: 
-      m_TableEntryReference:
-        m_KeyId: 0
-        m_Key: 
-      m_FallbackState: 0
-      m_WaitForCompletion: 0
-      m_LocalVariables: []
-    localizedDescription:
-      m_TableReference:
-        m_TableCollectionName: 
-      m_TableEntryReference:
-        m_KeyId: 0
-        m_Key: 
-      m_FallbackState: 0
-      m_WaitForCompletion: 0
-      m_LocalVariables: []
+    itemName:
+      ko: 
+      key: 
+    description:
+      ko: 
+      key: 
     icon: {fileID: 0}
     rarity: 0
   impactColor: {r: 0.9, g: 0.87, b: 0.75, a: 1}

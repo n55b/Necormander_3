@@ -382,9 +382,9 @@ public class PlayerStateUI : MonoBehaviour
             swapCooldownFill.color = canSwap && remaining <= 0f ? swapReadyColor : swapUnavailableColor;
         }
         if (swapCooldownText == null) return;
-        if (!canSwap) swapCooldownText.SetText("스왑 불가");
-        else if (remaining > 0f) swapCooldownText.SetText("스왑 {0:1}", remaining);
-        else swapCooldownText.SetText("스왑 가능 [Space]");
+        if (!canSwap) swapCooldownText.SetText(Loc.T("PlayerStateUI.swap_unavailable", "스왑 불가"));
+        else if (remaining > 0f) swapCooldownText.SetText(Loc.T("PlayerStateUI.swap_cooldown", "스왑 {0:1}"), remaining);
+        else swapCooldownText.SetText(Loc.T("PlayerStateUI.swap_ready", "스왑 가능 [Space]"));
     }
 
     private void RefreshSummonSlot(SkillSlotUI slot, int index)
@@ -400,7 +400,7 @@ public class PlayerStateUI : MonoBehaviour
             slot.SlotRoot.transform.localScale = Vector3.one * (active ? activeSlotScale : standbySlotScale);
             // 칸 아래 조작 안내. 프리팹의 기존 글자를 그대로 쓴다.
             var keyLabel = slot.SlotRoot.transform.Find("Text (TMP)")?.GetComponent<TMP_Text>();
-            if (keyLabel != null) keyLabel.text = active ? "우클릭" : has ? "대기" : "";
+            if (keyLabel != null) keyLabel.text = active ? Loc.T("PlayerStateUI.right_click", "우클릭") : has ? Loc.T("PlayerStateUI.standby", "대기") : "";
         }
 
         if (slot.SkillIcon != null)

@@ -41,6 +41,9 @@ public static class AugmentRewardCheck
         var data = host.AddComponent<DataManager>(); gm.dataManager = data;
         var registrySource = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>(AssetDatabase.GUIDToAssetPath(AssetDatabase.FindAssets("t:GrowthRegistrySO")[0]));
         var registry = Object.Instantiate(registrySource); Set(data, "growthRegistry", registry);
+        // 일반 클리어 골드·티어 가중치는 Shop Registry 데이터 — 없으면 기본 골드가 0으로 검사된다.
+        Set(data, "shopRegistry", AssetDatabase.LoadAssetAtPath<ShopRegistrySO>("Assets/SOData/Registry/Shop Registry.asset"));
+        Require(RewardManager.NormalClearGold > 0, "Shop Registry 일반 클리어 골드 연결");
         var player = host.AddComponent<PlayerController>(); Set(gm, "playerController", player);
         var stat = new GameObject("Reward HP").AddComponent<CharacterStat>(); Set(player, "stat", stat);
         Set(stat, "setDoneActions", new UnityEngine.Events.UnityEvent());
@@ -49,7 +52,8 @@ public static class AugmentRewardCheck
         var pouch = host.AddComponent<ItemPouch>(); ItemPouch.Instance = pouch;
         var manager = host.AddComponent<RewardManager>();
         var table = AssetDatabase.LoadAssetAtPath<AugmentTableSO>("Assets/SOData/Augment/AugmentTable.asset");
-        Require(table.rewards.Count == 10 && table.allowItemRewards, "새 보상 10행·아이템 후보 활성화");
+        // 보상 행 수/구성은 기획자가 조정한다 — 개수가 아니라 비어 있지 않은지만 본다.
+        Require(table.rewards.Count > 0 && table.rewards.All(r => r != null) && table.allowItemRewards, "보상 행 있음·아이템 후보 활성화");
         Require(table.rewards.Count(r => r.kind == AugmentRewardKind.MaxHpFlat) == 0, "옛 최대 체력 증가 보상 제외");
         var baseOffer = table.RollNoRiskOffer();
         Require(baseOffer.reward.kind == AugmentRewardKind.NormalRoom, "무위험은 일반 방 보상");
@@ -60,32 +64,35 @@ public static class AugmentRewardCheck
             ActiveAugment.Apply(new AugmentOffer { reward = reward });
             manager.RequestClearReward(RoomType.Augment);
             int bonus = reward.kind == AugmentRewardKind.Gold ? Mathf.RoundToInt(reward.value) : 0;
-            Require(inventory.GOLD == 200 + bonus, reward.tier + "/" + reward.kind + " 기본 200 + 보너스 정확히 한 번");
+            Require(inventory.GOLD == RewardManager.NormalClearGold + bonus, reward.tier + "/" + reward.kind + " 기본 골드 + 보너스 정확히 한 번");
             float hp = reward.kind == AugmentRewardKind.HealPercent ? Mathf.Min(stat.MAXHP, 10 + stat.MAXHP * reward.value / 100) : 10;
             Require(Mathf.Abs(health.CurHP - hp) < .01f, reward.tier + "/" + reward.kind + " 최대 체력 비례 회복");
             int expectedItems = reward.kind == AugmentRewardKind.NormalRoom ? 1 : reward.kind == AugmentRewardKind.Item ? reward.itemCount : 0;
             Require(Object.FindObjectsByType<GroundItem>(FindObjectsSortMode.None).Length == expectedItems, reward.tier + "/" + reward.kind + " 실제 바닥 아이템 " + expectedItems + "개");
             Require(!ActiveAugment.HasPendingReward, "지급 후 대기 보상 소진");
         }
-        Require(!RewardProcessor.HasRewardItem(data, ItemTier.Tier2), "현재 고등급 후보 없음");
+        // 지금 레지스트리에 어떤 등급 아이템이 있든 성립해야 하는 규칙: 줄 아이템이 없는 등급의 아이템 보상은 카드에 안 나온다.
         var oldRandom = UnityEngine.Random.state; UnityEngine.Random.InitState(91);
         for (int i = 0; i < 100; i++)
         {
             var reward = (AugmentReward)typeof(AugmentTableSO).GetMethod("RollReward", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(table, new object[] { AugmentTier.P3 });
-            if (reward.kind == AugmentRewardKind.Item && reward.maximumItemTier != ItemTier.Tier4) throw new Exception("빈 고등급 보상이 노출됨");
+            if (reward != null && reward.kind == AugmentRewardKind.Item && !RewardProcessor.HasRewardItem(data, reward.maximumItemTier))
+                throw new Exception("빈 고등급 보상이 노출됨");
         }
-        Require(true, "고등급 미구현 보상은 카드 후보에서 제외");
+        Require(true, "줄 아이템이 없는 등급의 보상은 카드 후보에서 제외");
         var rare = ScriptableObject.CreateInstance<ItemSO>(); rare.tier = ItemTier.Tier2; rare.availableAsReward = true;
         registry.items.Add(rare);
         Require(RewardProcessor.HasRewardItem(data, ItemTier.Tier2), "고등급 추가 시 자동으로 후보 발견");
-        Require(RewardProcessor.PickRandomItem(data, ItemTier.Tier2) == rare, "고등급 보상에 일반 아이템 혼입 없음");
+        Require(RewardProcessor.PickRandomItem(data, ItemTier.Tier2)?.tier <= ItemTier.Tier2, "고등급 보상에 일반 아이템 혼입 없음");
         bool offered = false;
         for (int i = 0; i < 100; i++)
         {
             var reward = (AugmentReward)typeof(AugmentTableSO).GetMethod("RollReward", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(table, new object[] { AugmentTier.P3 });
-            offered |= reward.kind == AugmentRewardKind.Item && reward.maximumItemTier == ItemTier.Tier2;
+            offered |= reward != null && reward.kind == AugmentRewardKind.Item && reward.maximumItemTier == ItemTier.Tier2;
         }
-        Require(offered, "고등급 추가 시 실제 카드 추첨에 포함");
+        // 표에 P3 고등급 아이템 카드가 있을 때만 의미가 있다(카드 구성은 기획자 값).
+        bool hasTier2Card = table.rewards.Any(r => r.tier == AugmentTier.P3 && r.kind == AugmentRewardKind.Item && r.maximumItemTier == ItemTier.Tier2);
+        Require(!hasTier2Card || offered, "고등급 추가 시 실제 카드 추첨에 포함");
         rare.maxStack = 10; registry.items = new List<ItemSO> { rare };
         var owned = (List<ItemSO>)Field(pouch, "_slots").GetValue(pouch); for (int i = 0; i < 9; i++) owned.Add(rare);
         var reserved = new Dictionary<ItemSO, int>();

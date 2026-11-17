@@ -32,53 +32,51 @@ public class TutorialQuestPanelController : MonoBehaviour
 
     private readonly List<GameObject> _spawned = new List<GameObject>();
 
-    private static readonly Dictionary<TutorialStage, string[]> StageLines = new Dictionary<TutorialStage, string[]>
+    // 언어가 바뀌어도 반영되도록 호출할 때마다 번역해서 만든다(정적 초기화에서 Loc.T 금지).
+    private static string[] StageLines(TutorialStage stage)
     {
-        { TutorialStage.Spawn, new[]
+        switch (stage)
+        {
+            case TutorialStage.Spawn: return new[]
             {
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_WASD\"></size>로 이동하세요",
-                "포탈로 다음 방으로 이동하세요",
-            }
-        },
-        { TutorialStage.Combat, new[]
+                Loc.T("TutorialQuestPanelController.spawn_move", "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_WASD\"></size>로 이동하세요"),
+                Loc.T("TutorialQuestPanelController.spawn_portal", "포탈로 다음 방으로 이동하세요"),
+            };
+            case TutorialStage.Combat: return new[]
             {
-                "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Left\"></size>로 공격하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시/회피하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>으로 지도를 열어 지나온 방에 돌아가세요",
-            }
-        },
-        { TutorialStage.Reward, new[]
+                Loc.T("TutorialQuestPanelController.combat_attack", "<size=170%><sprite=\"Tutorial\" name=\"Mouse_Left\"></size>로 공격하세요"),
+                Loc.T("TutorialQuestPanelController.combat_dash", "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 대시/회피하세요"),
+                Loc.T("TutorialQuestPanelController.combat_map", "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_Tab\"></size>으로 지도를 열어 지나온 방에 돌아가세요"),
+            };
+            case TutorialStage.Reward: return new[]
             {
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용하세요",
-                "보상 상자에서 미니언을 얻으세요",
-                "적 근처에서 <size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 미니언 스킬을 쓰세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_C\"></size>로 미니언 능력을 확인하세요",
-            }
-        },
-        { TutorialStage.Augment, new[]
+                Loc.T("TutorialQuestPanelController.reward_interact", "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>로 상호작용하세요"),
+                Loc.T("TutorialQuestPanelController.reward_minion", "보상 상자에서 미니언을 얻으세요"),
+                Loc.T("TutorialQuestPanelController.reward_minion_skill", "적 근처에서 <size=170%><sprite=\"Tutorial\" name=\"Mouse_Right\"></size>로 미니언 스킬을 쓰세요"),
+                Loc.T("TutorialQuestPanelController.reward_minion_info", "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_C\"></size>로 미니언 능력을 확인하세요"),
+            };
+            case TutorialStage.Augment: return new[]
             {
-                "증강을 골라 더 큰 보상에 도전하세요",
-            }
-        },
-        { TutorialStage.Dodge, new[]
+                Loc.T("TutorialQuestPanelController.augment_pick", "증강을 골라 더 큰 보상에 도전하세요"),
+            };
+            case TutorialStage.Dodge: return new[]
             {
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 걸어서 못 가는 곳을 건너가세요",
-            }
-        },
-        { TutorialStage.Shop, new[]
+                Loc.T("TutorialQuestPanelController.dodge_cross", "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_LShift\"></size>로 걸어서 못 가는 곳을 건너가세요"),
+            };
+            case TutorialStage.Shop: return new[]
             {
-                "골드로 아이템을 구매하세요",
-                "상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>를 눌러 상점을 여세요",
-                "강화 상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>를 눌러 장비를 강화하세요",
-                "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_V\"></size>로 장착한 아이템을 확인하세요",
-            }
-        },
-        { TutorialStage.Descend, new[]
+                Loc.T("TutorialQuestPanelController.shop_buy", "골드로 아이템을 구매하세요"),
+                Loc.T("TutorialQuestPanelController.shop_open", "상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>를 눌러 상점을 여세요"),
+                Loc.T("TutorialQuestPanelController.shop_enhance", "강화 상인에게 <size=170%><sprite=\"Tutorial\" name=\"Keyboard_F\"></size>를 눌러 장비를 강화하세요"),
+                Loc.T("TutorialQuestPanelController.shop_equipped", "<size=170%><sprite=\"Tutorial\" name=\"Keyboard_V\"></size>로 장착한 아이템을 확인하세요"),
+            };
+            case TutorialStage.Descend: return new[]
             {
-                "튜토리얼 완료! 마을로 이동하세요",
-            }
-        },
-    };
+                Loc.T("TutorialQuestPanelController.descend_done", "튜토리얼 완료! 마을로 이동하세요"),
+            };
+            default: return null;
+        }
+    }
 
     private void Awake()
     {
@@ -105,7 +103,8 @@ public class TutorialQuestPanelController : MonoBehaviour
     /// <summary>미리 정의된 단계 문구로 패널을 채웁니다.</summary>
     public void ShowStage(TutorialStage stage)
     {
-        if (!StageLines.TryGetValue(stage, out var lines))
+        var lines = StageLines(stage);
+        if (lines == null)
         {
             Debug.LogWarning($"[TutorialQuestPanelController] '{stage}' 단계에 등록된 문구가 없어요.");
             return;

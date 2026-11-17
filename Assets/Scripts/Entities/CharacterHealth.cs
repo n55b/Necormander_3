@@ -90,6 +90,13 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         ?? attacker.GetComponentInParent<CharacterStatus>()
         ?? attacker.GetComponentInChildren<CharacterStatus>(true);
 
+    /// <summary>공격자 오브젝트의 CharacterStat. 위 ResolveStatus 와 같은 이유로 자식까지 본다
+    /// (루트만 보면 플레이어·적 모두 null 이라 명중/회피 판정과 공격 스탯이 통째로 빠졌다).</summary>
+    private static CharacterStat ResolveStat(GameObject attacker)
+        => attacker.GetComponent<CharacterStat>()
+        ?? attacker.GetComponentInParent<CharacterStat>()
+        ?? attacker.GetComponentInChildren<CharacterStat>(true);
+
     /// <summary>
     /// 이 피해의 '공격 스탯' 주인을 찾는다 — 크리 확률/피해량, 물리·마법 증폭이 여기서 나온다.
     /// 보통은 공격자(또는 그 부모)의 CharacterStat 이지만, 미니언 스킬은 시전자(caster)가
@@ -100,7 +107,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
     {
         if (info.attacker != null)
         {
-            var s = info.attacker.GetComponent<CharacterStat>() ?? info.attacker.GetComponentInParent<CharacterStat>();
+            var s = ResolveStat(info.attacker);
             if (s != null) return s;
         }
         if (DamageRules.IsPlayerSourced(info.category)
@@ -127,7 +134,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // 예전엔 '빗나갈 확률 <= Random.value' 라 회피 0% 여도 0.0 이 뜨면 빗나갔다. 뒤집으면서 같이 해결됨.
         if ((info.category == DamageCategory.BasicAttack || DamageRules.IsEnemyTier(info.category)) && info.attacker != null)
         {
-            var attackerStat = info.attacker.GetComponent<CharacterStat>();
+            var attackerStat = ResolveStat(info.attacker);
             if (attackerStat != null && _stat != null)
             {
                 float hitChance = attackerStat.ACCURACY - _stat.EVASION;

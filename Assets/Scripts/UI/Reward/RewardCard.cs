@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.Localization.Components;
 
 /// <summary>
 /// 개별 보상 카드를 관리하는 클래스입니다.
@@ -65,48 +64,14 @@ public class RewardCard : MonoBehaviour
         EnsureButtonLink();
         
         if (nameText != null)
-        {
-            if (candidate.displayData.localizedItemName != null && !candidate.displayData.localizedItemName.IsEmpty)
-            {
-                var locEvent = nameText.GetComponent<LocalizeStringEvent>();
-                if (locEvent == null)
-                {
-                    locEvent = nameText.gameObject.AddComponent<LocalizeStringEvent>();
-                    locEvent.OnUpdateString.AddListener((s) => nameText.text = s);
-                }
-                locEvent.StringReference = candidate.displayData.localizedItemName;
-            }
-            else
-            {
-                // 로컬라이즈 이벤트가 있으면 참조 해제
-                var locEvent = nameText.GetComponent<LocalizeStringEvent>();
-                if (locEvent != null) locEvent.StringReference = null;
-                nameText.text = candidate.displayData.itemName;
-            }
-        }
+            nameText.text = candidate.displayData.itemName;
 
         if (descText != null)
         {
             // [수정] 키워드(예: "취약")는 아래에 텍스트를 덧붙이는 대신,
             // 설명 안에서 밑줄 + 사전에 등록된 색상(badgeColor)으로 강조 표시하고,
             // 마우스를 올렸을 때 CommonTooltipUI로 효과 설명을 보여줍니다.
-            if (candidate.displayData.localizedDescription != null && !candidate.displayData.localizedDescription.IsEmpty)
-            {
-                var locEvent = descText.GetComponent<LocalizeStringEvent>();
-                if (locEvent == null)
-                {
-                    locEvent = descText.gameObject.AddComponent<LocalizeStringEvent>();
-                }
-                locEvent.OnUpdateString.RemoveAllListeners();
-                locEvent.OnUpdateString.AddListener(SetDescription);
-                locEvent.StringReference = candidate.displayData.localizedDescription;
-            }
-            else
-            {
-                var locEvent = descText.GetComponent<LocalizeStringEvent>();
-                if (locEvent != null) locEvent.StringReference = null;
-                SetDescription(candidate.displayData.description);
-            }
+            SetDescription(candidate.displayData.description);
         }
         
         if (iconImage != null)

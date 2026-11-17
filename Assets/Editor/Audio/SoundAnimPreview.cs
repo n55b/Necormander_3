@@ -242,7 +242,9 @@ public class SoundAnimPreview : IDisposable
         foreach (var e in list)
         {
             string why = null;
-            if (!string.IsNullOrEmpty(e.animationState))
+            // 런타임: OnHitEvent/OnAttackEndEvent 는 '애니메이션 이벤트 받기'가 꺼지면 무시된다(EntitySoundSet / SoundAnimEventRelay).
+            if (!_set.listenAnimationEvents) why = "사운드 세트의 '애니메이션 이벤트 받기'가 꺼져 있습니다";
+            else if (!string.IsNullOrEmpty(e.animationState))
             {
                 if (!info.statesKnown) why = null; // 상태를 알 수 없으면 일단 재생(아래 참고 문구)
                 else if (!info.stateKeys.Contains(e.animationState))
@@ -270,14 +272,17 @@ public class SoundAnimPreview : IDisposable
             _cues.Add(new Cue { time = ev.time, eventTime = ev.time, eventLabel = label, muted = true, note = $"'{name}' 이름의 소리가 없습니다" });
             return;
         }
-        foreach (var e in list) AddEntry(ev.time, label, e, null, false);
+        // 런타임: 같은 오브젝트의 Animator 면 EntitySoundSet.PlaySound 가 '이벤트 받기'와 상관없이 직접 받는다.
+        // 자식 Animator 면 '이벤트 받기'가 켜져 있을 때만 붙는 SoundAnimEventRelay 가 넘겨준다.
+        var animator = Current?.animator;
+        string why = !_set.listenAnimationEvents && animator != null && animator.gameObject != _set.gameObject
+            ? "사운드 세트의 '애니메이션 이벤트 받기'가 꺼져 있어 자식 Animator 의 이벤트를 넘겨받지 못합니다" : null;
+        foreach (var e in list) AddEntry(ev.time, label, e, why, false);
     }
 
     private Cue AddEntry(float eventTime, string label, SoundEntry e, string muteReason, bool assumed)
     {
-        string why = muteReason;
-        if (why == null && !_set.listenAnimationEvents && label != "나타날 때 (시작)" && !assumed)
-            why = "사운드 세트의 '애니메이션 이벤트 받기'가 꺼져 있습니다";
+        string why = muteReason; // '이벤트 받기' 규칙은 이벤트 종류마다 달라서 부르는 쪽(AddTriggered/AddNamed)이 정한다.
         if (why == null && !e.enabled) why = "'소리 켜기'가 꺼져 있습니다";
         if (why == null && !e.HasClip) why = "소리 파일이 비어 있습니다";
         float maxLen = e.clips == null ? 0f : e.clips.Where(c => c != null).Select(c => c.length).DefaultIfEmpty(0f).Max();

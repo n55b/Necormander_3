@@ -30,6 +30,9 @@ public class RegistryMenuTools
             {
                 Undo.RecordObject(minionReg, "레지스트리 새로고침");
                 minionReg.allyMinionData.Clear();
+                // 일반 적 목록에 든 엘리트도 엘리트 방 풀에 들어간다 — 비우기 전에 엘리트 목록으로 옮겨 풀을 그대로 둔다.
+                foreach (var en in minionReg.enemyMinionData)
+                    if (en != null && en.IsSpawnableElite && !minionReg.eliteMinionData.Contains(en)) minionReg.eliteMinionData.Add(en);
                 minionReg.enemyMinionData.Clear();
                 minionReg.bossMinionData.Clear();
                 var missingElites = new List<string>();

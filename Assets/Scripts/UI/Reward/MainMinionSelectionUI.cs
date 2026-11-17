@@ -114,10 +114,11 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
         bool blocked = CandidateBlocked;
         currentCard.gameObject.SetActive(current != null);
         if (current != null) currentCard.SetData(current.minionIcon, current.minionName,
-            $"슬롯 {_targetSlot + 1} 교체 대상 (클릭하여 슬롯 변경)");
+            Loc.F("MainMinionSelectionUI.replace_target", "슬롯 {0} 교체 대상 (클릭하여 슬롯 변경)", _targetSlot + 1));
         candidateCard.SetData(candidate != null ? candidate.minionIcon : null,
-            candidate != null ? candidate.minionName : "",
-            blocked ? "같은 소환수를 이미 장착 중" : current != null ? "교체 후보" : "클릭하여 습득");
+            candidate != null ? (string)candidate.minionName : "",
+            blocked ? Loc.T("MainMinionSelectionUI.already_equipped", "같은 소환수를 이미 장착 중")
+                : current != null ? Loc.T("MainMinionSelectionUI.replace_candidate", "교체 후보") : Loc.T("MainMinionSelectionUI.click_to_take", "클릭하여 습득"));
         var anchor = current != null ? candidateAnchor : singleCardAnchor;
         if (anchor != null) candidateCard.transform.position = anchor.position;
         comparisonTarget.SetActive(current != null);
@@ -132,15 +133,15 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
 
         if (main.minionSkill != null)
         {
-            string skillName = string.IsNullOrEmpty(main.minionSkill.skillName) ? main.minionSkill.name : main.minionSkill.skillName;
-            sb.Append("[우클릭] ").Append(skillName).Append("\n").Append(main.minionSkill.description);
+            string skillName = string.IsNullOrEmpty(main.minionSkill.skillName) ? main.minionSkill.name : (string)main.minionSkill.skillName;
+            sb.Append(Loc.T("MainMinionSelectionUI.right_click", "[우클릭]")).Append(' ').Append(skillName).Append("\n").Append((string)main.minionSkill.description);
         }
         if (main.finisher != null && main.finisher.IsValid)
-            sb.Append("\n\n[자동 공격]\n").Append(main.finisher.Describe());
+            sb.Append("\n\n").Append(Loc.T("MainMinionSelectionUI.auto_attack", "[자동 공격]")).Append("\n").Append(main.finisher.Describe());
 
-        sb.Append("\n\n[Space 스왑] ");
-        if (main.dashModifier != null && main.dashModifier.DealsDamage) sb.Append("대쉬 공격\n").Append(main.dashModifier.Describe());
-        else sb.Append("스킬로 대체");
+        sb.Append("\n\n").Append(Loc.T("MainMinionSelectionUI.space_swap", "[Space 스왑]")).Append(' ');
+        if (main.dashModifier != null && main.dashModifier.DealsDamage) sb.Append(Loc.T("MainMinionSelectionUI.dash_attack", "대쉬 공격")).Append("\n").Append(main.dashModifier.Describe());
+        else sb.Append(Loc.T("MainMinionSelectionUI.skill_instead", "스킬로 대체"));
         return sb.ToString();
     }
 

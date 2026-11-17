@@ -115,13 +115,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public bool showPatternLabel = true;
     public TMP_FontAsset patternLabelFont;
     public Vector3 patternLabelOffset = new Vector3(0f, 1.3f, 0f);
-    public string label_Stab = "미니 돌진 찍기";
-    public string label_NormalCharge = "돌진";
-    public string label_Sweep = "휩쓸기";
-    public string label_Pattern1Windup = "돌진 조준";
-    public string label_Pattern1 = "돌진!";
-    public string label_Pattern3Windup = "바닥 충격파 준비";
-    public string label_Pattern3 = "바닥 충격파";
+    public LocText label_Stab = new LocText { ko = "미니 돌진 찍기" };
+    public LocText label_NormalCharge = new LocText { ko = "돌진" };
+    public LocText label_Sweep = new LocText { ko = "휩쓸기" };
+    public LocText label_Pattern1Windup = new LocText { ko = "돌진 조준" };
+    public LocText label_Pattern1 = new LocText { ko = "돌진!" };
+    public LocText label_Pattern3Windup = new LocText { ko = "바닥 충격파 준비" };
+    public LocText label_Pattern3 = new LocText { ko = "바닥 충격파" };
 
     // ==============================================================
     // 애니메이션 스테이트 이름

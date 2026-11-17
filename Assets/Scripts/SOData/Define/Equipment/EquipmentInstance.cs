@@ -6,5 +6,6 @@ public class EquipmentInstance
 {
     public EquipmentSO baseData;
     public int enhanceLevel;
-    public static EquipmentInstance Roll(EquipmentSO so) => new EquipmentInstance { baseData = so };
+    // 강화 전용 장비는 단계가 곧 강화레벨이다(UpgradeTo/LoadFromData 와 같은 규칙). 안 맞추면 세이브-로드 전까지 0강으로 돈다.
+    public static EquipmentInstance Roll(EquipmentSO so) => new EquipmentInstance { baseData = so, enhanceLevel = so != null && so.upgradeOnly ? so.upgradeStage : 0 };
 }

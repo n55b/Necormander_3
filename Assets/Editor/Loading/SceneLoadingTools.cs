@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
-using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -11,7 +10,9 @@ using UnityEngine.UI;
 using UnityNote;
 using Object = UnityEngine.Object;
 
-/// <summary>기존 로딩 캔버스의 프리팹화 및 회귀 검사. 런타임에 UI를 조립하지 않는다.</summary>
+/// <summary>로딩 캔버스 회귀 검사. 런타임에 UI를 조립하지 않는다.
+/// (기존 캔버스를 프리팹화하던 'Apply Existing Loading Canvas' 는 끝난 일회성 메뉴라 제거했다 —
+///  다시 돌리면 손으로 꾸민 SceneLoader 프리팹 스타일을 고정값으로 되돌리고 StartScene 을 저장했다.)</summary>
 public static class SceneLoadingTools
 {
     private const string PrefabPath = "Assets/Resources/UI/SceneLoader.prefab";
@@ -85,74 +86,6 @@ public static class SceneLoadingTools
         Check(loader.Progress == 1f && !panel.activeSelf, "100% 후에만 가림 해제");
     }
 
-    [MenuItem("Tools/Loading/Apply Existing Loading Canvas")]
-    public static void Apply()
-    {
-        Check(!EditorApplication.isPlayingOrWillChangePlaymode, "플레이를 끈 뒤 실행");
-        var scene = SceneManager.GetSceneByPath("Assets/Scenes/StartScene.unity");
-        bool opened = !scene.isLoaded;
-        if (opened) scene = EditorSceneManager.OpenScene("Assets/Scenes/StartScene.unity", OpenSceneMode.Additive);
-        Check(!scene.isDirty, "StartScene의 저장하지 않은 변경을 먼저 확인하세요");
-        try
-        {
-            var loader = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<SceneLoader>(true)).Single();
-            var data = new SerializedObject(loader);
-            var panel = (GameObject)data.FindProperty("loadingScreen").objectReferenceValue;
-            var canvas = loader.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.overrideSorting = true;
-            canvas.sortingOrder = short.MaxValue;
-            loader.transform.localScale = Vector3.one;
-            var opaque = panel.GetComponent<Image>() ?? panel.AddComponent<Image>();
-            opaque.color = Color.black;
-            opaque.raycastTarget = true; // 배경 아트에 투명 픽셀이 있어도 뒤 씬이 보이지 않는다.
-            var label = panel.GetComponentInChildren<TMP_Text>(true);
-            label.raycastTarget = false;
-            var labelRect = label.rectTransform;
-            labelRect.anchoredPosition = new Vector2(0f, 6f);
-
-            var bar = panel.transform.Find("LoadingProgress");
-            if (bar == null)
-            {
-                bar = new GameObject("LoadingProgress", typeof(RectTransform), typeof(Image)).transform;
-                bar.SetParent(panel.transform, false);
-                bar.gameObject.layer = panel.layer;
-                var rect = (RectTransform)bar;
-                rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.right;
-                rect.anchoredPosition = new Vector2(-10f, 42f);
-                rect.sizeDelta = new Vector2(200f, 6f);
-                bar.GetComponent<Image>().color = new Color(0.1f, 0.1f, 0.1f, 1f);
-                bar.GetComponent<Image>().raycastTarget = false;
-                var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image));
-                fill.layer = panel.layer;
-                fill.transform.SetParent(bar, false);
-                var fr = (RectTransform)fill.transform;
-                fr.anchorMin = Vector2.zero;
-                fr.anchorMax = Vector2.one;
-                fr.offsetMin = fr.offsetMax = Vector2.zero;
-            }
-            var progress = bar.GetChild(0).GetComponent<Image>();
-            // 새 그림 대신 기존 가드 게이지의 무채색 스프라이트와 파란색을 그대로 쓴다.
-            var hud = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Player State/PlayerStateUI.prefab");
-            var hudData = new SerializedObject(hud.GetComponent<PlayerStateUI>());
-            progress.sprite = ((Image)hudData.FindProperty("swapCooldownFill").objectReferenceValue).sprite;
-            progress.color = hudData.FindProperty("swapReadyColor").colorValue;
-            progress.type = Image.Type.Filled;
-            progress.fillMethod = Image.FillMethod.Horizontal;
-            progress.fillOrigin = 0;
-            progress.fillAmount = 0f;
-            progress.raycastTarget = false;
-            data.FindProperty("progressFill").objectReferenceValue = progress;
-            data.FindProperty("loadingText").objectReferenceValue = label;
-            data.ApplyModifiedPropertiesWithoutUndo();
-            panel.SetActive(false);
-            PrefabUtility.SaveAsPrefabAssetAndConnect(loader.gameObject, PrefabPath, InteractionMode.AutomatedAction);
-            EditorSceneManager.SaveScene(scene);
-        }
-        finally { if (opened) EditorSceneManager.CloseScene(scene, true); }
-        Verify();
-    }
-
     [MenuItem("Tools/Loading/Verify Loading Prefab")]
     public static void Verify()
     {
@@ -160,11 +93,18 @@ public static class SceneLoadingTools
         var data = new SerializedObject(loader);
         var panel = (GameObject)data.FindProperty("loadingScreen").objectReferenceValue;
         var bar = (Image)data.FindProperty("progressFill").objectReferenceValue;
-        Check(loader.GetComponent<Canvas>().sortingOrder == short.MaxValue, "로딩 캔버스 최상단");
-        Check(panel.GetComponent<Image>().color.a == 1f && panel.GetComponent<Image>().raycastTarget, "불투명 배경과 후면 클릭 차단");
-        Check(bar.sprite != null && bar.type == Image.Type.Filled && bar.color.b > bar.color.r, "기존 아트 기반 파란 진행 바");
+        // 색/스프라이트는 손으로 꾸민 스타일이라 안 본다. 가림막의 일(맨 위 · 불투명 · 클릭 차단)만 본다.
+        var canvas = loader.GetComponent<Canvas>();
+        int topUI = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/UI", "Assets/Resources/UI" })
+            .Select(AssetDatabase.GUIDToAssetPath).Where(p => p != PrefabPath)
+            .SelectMany(p => AssetDatabase.LoadAssetAtPath<GameObject>(p).GetComponentsInChildren<Canvas>(true))
+            .Select(c => c.sortingOrder).DefaultIfEmpty(0).Max();
+        Check(canvas != null && canvas.sortingOrder > topUI, $"로딩 캔버스가 다른 UI 캔버스(최고 {topUI})보다 위");
+        var cover = panel != null ? panel.GetComponent<Graphic>() : null;
+        Check(cover != null && cover.color.a >= 1f && cover.raycastTarget, "불투명 가림 화면과 후면 클릭 차단");
+        Check(bar != null && bar.type == Image.Type.Filled, "진행 바 연결 (Filled — fillAmount 로 진행률 표시)");
         Check(data.FindProperty("loadingText").objectReferenceValue != null, "Loading 문구 연결");
-        Debug.Log("[LoadingCheck] PASS: prefab, opaque cover, raycast blocking, blue progress bar, label.");
+        Debug.Log("[LoadingCheck] PASS: prefab, loading screen, raycast blocking, filled progress bar, label.");
     }
 
     [MenuItem("Tools/Loading/Verify Readiness In Play Mode")]

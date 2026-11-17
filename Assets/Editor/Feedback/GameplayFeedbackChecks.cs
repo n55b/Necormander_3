@@ -115,10 +115,10 @@ public static class GameplayFeedbackChecks
         LocalizationSettings.InitializationOperation.WaitForCompletion();
         LocalizationSettings.SelectedLocale = LocalizationSettings.AvailableLocales.GetLocale("ko");
         var dictionary = AssetDatabase.LoadAssetAtPath<KeywordDictionary>("Assets/SOData/Localization/KeywordDictionary.asset");
-        string text = KeywordHighlighter.ApplyTags("충격파 격파 취약 <link=\"existing\">취약</link>", dictionary);
-        Assert(text.StartsWith("충격파 "), "keyword does not match part of shockwave word");
+        string text = KeywordHighlighter.ApplyTags("운전기사 기절 취약 <link=\"existing\">취약</link>", dictionary);
+        Assert(text.StartsWith("운전기사 "), "keyword (기사) does not match part of a longer word");
         Assert(!text.Contains("<sprite"), "missing keyword sprite cannot render a question mark");
-        Assert(text.Contains("vulnerable_stack") && text.Contains("break_stack"), "real keywords still get hover links: " + text);
+        Assert(text.Contains("vulnerable_stack") && text.Contains("stun_stack"), "real keywords still get hover links: " + text);
         Assert(text.Contains("<link=\"existing\">취약</link>"), "existing markup is preserved");
         Assert(KeywordHighlighter.ApplyTags(text, dictionary) == text, "highlighting is idempotent");
         var ui = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/SkillExplainUI.prefab");

@@ -222,7 +222,8 @@ private float Def(string prop) => _defaults.TryGetValue(prop, out var v) ? v : 0
             if (Application.isPlaying)
             {
                 var c = GUI.color; GUI.color = new Color(0.5f, 1f, 0.6f);
-                GUILayout.Label("▶ 플레이 중 — 고치면 바로 게임에 반영됩니다", EditorStyles.miniBoldLabel);
+                GUILayout.Label(new GUIContent("▶ 플레이 중 — 고치면 바로 반영되고, 플레이를 멈춰도 남습니다",
+                    "SO 에셋 수정은 플레이 종료 시 되돌아가지 않습니다. 시험용으로 바꿨다면 원래 값을 기록해 두세요."), EditorStyles.miniBoldLabel);
                 GUI.color = c;
             }
             if (GUILayout.Button(new GUIContent("에셋 위치", "프로젝트 창에서 수치 에셋을 보여줍니다"), EditorStyles.toolbarButton, GUILayout.Width(64f)))

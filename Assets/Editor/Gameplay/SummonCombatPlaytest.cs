@@ -126,7 +126,7 @@ public static class SummonCombatPlaytest
     }
 
     private static int Casters(string summonName = null) => UnityEngine.Object.FindObjectsByType<MinionSkillCaster>(FindObjectsSortMode.None)
-        .Count(c => summonName == null || (c.Data != null && c.Data.minionName == summonName));
+        .Count(c => summonName == null || (c.Data != null && c.Data.minionName.ko == summonName));
 
     private static void ClearSlots(InventoryManager inv)
     {
@@ -196,7 +196,7 @@ public static class SummonCombatPlaytest
         Check(inv.ActiveSummonSlot == activeBefore && skills.SwapCooldownRemaining <= 0f, "1개: Space 무동작");
         yield return TapRight();
         yield return 0.2f;
-        Check(skills.GetSummonCooldownRemaining(0) > 0f && Casters(fighter.minionName) > 0, "1개: 우클릭 스킬 발동");
+        Check(skills.GetSummonCooldownRemaining(0) > 0f && Casters(fighter.minionName.ko) > 0, "1개: 우클릭 스킬 발동");
 
         // ── 장착 2개, 중복 차단 ──
         foreach (string f in new[] { "Fighter", "Knight", "Champion", "Warrior", "Warlord" })
@@ -222,11 +222,11 @@ public static class SummonCombatPlaytest
         ClearSwap(skills);
         int prev = inv.ActiveSummonSlot;
         float cdBeforeSwap = skills.GetSummonCooldownRemaining(prev);
-        int fighterCasters = Casters(fighter.minionName);
+        int fighterCasters = Casters(fighter.minionName.ko);
         yield return TapSpace();
         Check(inv.ActiveSummonSlot == 1 - prev && inv.MainSummon == ice && skills.MainSummon == ice, "2개: Space 스왑 → 활성 변경");
         yield return 0.25f;
-        Check(Casters(fighter.minionName) > fighterCasters && skills.GetSummonCooldownRemaining(prev) <= cdBeforeSwap, "스왑 시 스왑 전 소환수 대쉬 공격 발동, 쿨타임은 늘지 않음");
+        Check(Casters(fighter.minionName.ko) > fighterCasters && skills.GetSummonCooldownRemaining(prev) <= cdBeforeSwap, "스왑 시 스왑 전 소환수 대쉬 공격 발동, 쿨타임은 늘지 않음");
         Check(skills.GetSummonCooldownRemaining(1) <= 0f && Mathf.Approximately(skills.SwapCooldownDuration, PrefabSwapCooldown()) && skills.SwapCooldownRemaining > 0f, "새 소환수 쿨타임 유지, 스왑 쿨타임 = 플레이어 프리팹 값");
         int after = inv.ActiveSummonSlot;
         yield return TapSpace();
@@ -253,7 +253,7 @@ public static class SummonCombatPlaytest
         ((float[])typeof(PlayerSkillController).GetField("_summonCooldownEnd", Any).GetValue(skills))[1] = 0f;
         yield return TapRight();
         yield return 0.25f;
-        Check(skills.GetSummonCooldownRemaining(1) > 0f && Casters(ice.minionName) > 0, "스왑 후 우클릭 = 활성 소환수");
+        Check(skills.GetSummonCooldownRemaining(1) > 0f && Casters(ice.minionName.ko) > 0, "스왑 후 우클릭 = 활성 소환수");
 
         // ── 스킬 중 스왑/평타 캔슬 ──
         yield return 1f;
@@ -415,7 +415,7 @@ public static class SummonCombatPlaytest
             if (UnityEngine.AI.NavMesh.SamplePosition(outAgent.transform.position, out var navHit, 2f, UnityEngine.AI.NavMesh.AllAreas))
                 outAgent.transform.position = navHit.position;
             Vector2 oldPos = outAgent.transform.position;
-            int outCasters = Casters(outAgent.Data.minionName);
+            int outCasters = Casters(outAgent.Data.minionName.ko);
             ClearSwap(skills);
             Check(!skills.HasEnemyInSwapRange(), "(전제) 스왑 범위 안에 적 없음");
             bool swapped = skills.TrySwapSummon();
@@ -424,7 +424,7 @@ public static class SummonCombatPlaytest
             tick.Invoke(outAgent, null); tick.Invoke(inAgent, null);
             yield return 0.05f;
             float gap = Vector2.Distance(inAgent.transform.position, oldPos);
-            Check(swapped && inv.ActiveSummonSlot == 1 - from && Casters(outAgent.Data.minionName) == outCasters && !outAgent.IsLinking,
+            Check(swapped && inv.ActiveSummonSlot == 1 - from && Casters(outAgent.Data.minionName.ko) == outCasters && !outAgent.IsLinking,
                 "적 없음: 스왑 공격 없이 교대");
             Check(gap < 0.6f && outAgent.IsBenched && inAgent.IsVisualVisible, $"적 없음: 새 소환수가 스왑 전 소환수 자리에 나타남 (거리 {gap:F2}, 이전 {oldPos}, 새 {(Vector2)inAgent.transform.position}, 플레이어 {(Vector2)player.transform.position})");
         }
@@ -445,13 +445,13 @@ public static class SummonCombatPlaytest
                 // 앞 대쉬가 물리 틱 없이 남아 있으면(일시정지 등) 정리하고 시작한다.
                 if (dodge.IsDashing) typeof(MeleeDodgeController).GetMethod("EndDash", Any).Invoke(dodge, null);
                 Out($"INFO timeScale={Time.timeScale} 일시정지={PlayerController.IsGameplayPaused}");
-                int fieldBefore = Casters(fieldMinion.minionName), standbyBefore = Casters(standby.minionName);
+                int fieldBefore = Casters(fieldMinion.minionName.ko), standbyBefore = Casters(standby.minionName.ko);
                 typeof(MeleeDodgeController).GetField("_currentCharges", Any).SetValue(dodge, dodge.MaxCharges);
                 bool dashed = dodge.TryDash(Vector2.right, player.transform.localScale.x);
                 float travel = (float)typeof(MeleeDodgeController).GetField("_dashTravelDuration", Any).GetValue(dodge);
                 yield return 0.02f;
-                Check(dashed && Casters(standby.minionName) > standbyBefore && Casters(fieldMinion.minionName) == fieldBefore
-                      && dodge.LastDashAttackMinion == standby, $"대쉬: 대기 소환수({standby.minionName}) 대쉬 공격만 발동 (dashed={dashed}, 대기 {standbyBefore}->{Casters(standby.minionName)}, 필드 {fieldBefore}->{Casters(fieldMinion.minionName)}, last={dodge.LastDashAttackMinion?.minionName})");
+                Check(dashed && Casters(standby.minionName.ko) > standbyBefore && Casters(fieldMinion.minionName.ko) == fieldBefore
+                      && dodge.LastDashAttackMinion == standby, $"대쉬: 대기 소환수({standby.minionName}) 대쉬 공격만 발동 (dashed={dashed}, 대기 {standbyBefore}->{Casters(standby.minionName.ko)}, 필드 {fieldBefore}->{Casters(fieldMinion.minionName.ko)}, last={dodge.LastDashAttackMinion?.minionName})");
                 Check(durations.Count > 0 && travel.ToString("F4") == durations[0], $"대쉬 공격이 붙어도 대쉬 거리 동일 ({travel:F4})");
                 yield return 0.6f;
                 player.transform.position += Vector3.left * (travel * 15f);
@@ -539,7 +539,7 @@ public static class SummonCombatPlaytest
 private static void ClearSwap(PlayerSkillController skills) =>
         typeof(PlayerSkillController).GetField("_swapReadyTime", Any).SetValue(skills, 0f);
 
-    private static bool running0(MainMinionDataSO data) => Casters(data.minionName) > 0;
+    private static bool running0(MainMinionDataSO data) => Casters(data.minionName.ko) > 0;
 
     private static bool IsInvokingAttackLock(this MeleeCombatController melee) =>
         (bool)typeof(MeleeCombatController).GetField("_attackAnimationPlaying", Any).GetValue(melee);

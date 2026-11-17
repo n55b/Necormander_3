@@ -220,8 +220,8 @@ public class DataManager : MonoBehaviour
         if (unitObj == null) unitObj = Instantiate(data.minionPrefab, position, Quaternion.identity);
         if (unitObj.TryGetComponent<BaseEntity>(out var entity)) entity.Initialize(data);
 
-        // [증강 페널티] '적 체력/공격력 +N%'. 적이 태어나는 길목이 여기 하나뿐이라
-        // 분열로 생긴 적까지 전부 걸린다. Initialize 가 Mods.Clear() 를 하므로 반드시 그 뒤여야 한다.
+        // [증강 페널티] '적 체력/공격력 +N%'. 분열체는 이 길을 안 거쳐 DualSplitAIPatternSO 가 따로 건다.
+        // Initialize 가 Mods.Clear() 를 하므로 반드시 그 뒤여야 한다.
         ActiveAugment.ApplyToSpawnedEnemy(unitObj);
         return unitObj;
     }

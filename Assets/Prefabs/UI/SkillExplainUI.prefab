@@ -184,6 +184,7 @@ GameObject:
   - component: {fileID: 3556750760536333656}
   - component: {fileID: 3944621924270258865}
   - component: {fileID: 5240720743277852525}
+  - component: {fileID: 3616958880057892217}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -309,6 +310,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3616958880057892217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 74985600691763506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: ui.skill_explain.luck_label
 --- !u!1 &130447966012214101
 GameObject:
   m_ObjectHideFlags: 0
@@ -1104,6 +1118,7 @@ GameObject:
   - component: {fileID: 3024620406732039767}
   - component: {fileID: 2639635202161003778}
   - component: {fileID: 4940780223489126452}
+  - component: {fileID: 1697377128326844657}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -1229,6 +1244,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1697377128326844657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195112330324860770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Magic.title
 --- !u!1 &1196134321682037210
 GameObject:
   m_ObjectHideFlags: 0
@@ -1922,6 +1950,7 @@ GameObject:
   - component: {fileID: 8654928020294545035}
   - component: {fileID: 3061915691939934892}
   - component: {fileID: 5015021355485158932}
+  - component: {fileID: 6052178865599012339}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -2047,6 +2076,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6052178865599012339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1707000741294808845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/SkillCooldown.title
 --- !u!1 &1732273403285713032
 GameObject:
   m_ObjectHideFlags: 0
@@ -2362,6 +2404,7 @@ GameObject:
   - component: {fileID: 2268827312246764250}
   - component: {fileID: 7313016252007665874}
   - component: {fileID: 9034495375805296185}
+  - component: {fileID: 8841154410532303659}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -2487,6 +2530,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8841154410532303659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1833517829313770431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/MagicAmp.title
 --- !u!1 &1844924526632219018
 GameObject:
   m_ObjectHideFlags: 0
@@ -3127,9 +3183,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uCCB4\uB825"
-  description: "\uD604\uC7AC \uCCB4\uB825 / \uCD5C\uB300 \uCCB4\uB825. \uCCB4\uB825\uC774
-    0\uC774 \uB418\uBA74 \uC0AC\uB9DD\uD569\uB2C8\uB2E4."
+  title:
+    ko: "\uCCB4\uB825"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Health.title
+  description:
+    ko: "\uD604\uC7AC \uCCB4\uB825 / \uCD5C\uB300 \uCCB4\uB825. \uCCB4\uB825\uC774
+      0\uC774 \uB418\uBA74 \uC0AC\uB9DD\uD569\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Health.description
 --- !u!114 &3125508564776041415
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3241,9 +3301,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uAC00\uB4DC"
-  description: "\uD604\uC7AC \uAC00\uB4DC \uAC8C\uC774\uC9C0 / \uCD5C\uB300 \uAC8C\uC774\uC9C0.
-    \uACF5\uACA9\uC744 \uB9C9\uC73C\uBA74 \uC18C\uBAA8\uB429\uB2C8\uB2E4."
+  title:
+    ko: "\uAC00\uB4DC"
+    key: 
+  description:
+    ko: "\uD604\uC7AC \uAC00\uB4DC \uAC8C\uC774\uC9C0 / \uCD5C\uB300 \uAC8C\uC774\uC9C0.
+      \uACF5\uACA9\uC744 \uB9C9\uC73C\uBA74 \uC18C\uBAA8\uB429\uB2C8\uB2E4."
+    key: 
 --- !u!114 &4491552829343355999
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3528,9 +3592,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uBB3C\uB9AC \uACF5\uACA9\uB825"
-  description: "\uAE30\uBCF8 \uACF5\uACA9\uACFC \uBB3C\uB9AC \uACF5\uACA9\uC758 \uD53C\uD574
-    \uAE30\uC900\uAC12\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uBB3C\uB9AC \uACF5\uACA9\uB825"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Attack.title
+  description:
+    ko: "\uAE30\uBCF8 \uACF5\uACA9\uACFC \uBB3C\uB9AC \uACF5\uACA9\uC758 \uD53C\uD574
+      \uAE30\uC900\uAC12\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Attack.description
 --- !u!114 &8767043411312107753
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3562,6 +3630,7 @@ GameObject:
   - component: {fileID: 4890214357495345605}
   - component: {fileID: 8716291059460544589}
   - component: {fileID: 701850607953164739}
+  - component: {fileID: 8850305723087216061}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -3687,6 +3756,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8850305723087216061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2690185483866340502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/DashCooldown.title
 --- !u!1 &2732985915702952030
 GameObject:
   m_ObjectHideFlags: 0
@@ -3793,6 +3875,7 @@ GameObject:
   - component: {fileID: 2434886577589770975}
   - component: {fileID: 8138813763787684665}
   - component: {fileID: 4721013515480665610}
+  - component: {fileID: 3952281920824045383}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -3918,6 +4001,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3952281920824045383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3105727380502144220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/DashCharges.title
 --- !u!1 &3307831138795864338
 GameObject:
   m_ObjectHideFlags: 0
@@ -4009,8 +4105,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uD68C\uD53C \uD69F\uC218"
-  description: "\uB0A8\uC740 \uB300\uC2DC \uD69F\uC218 / \uCD5C\uB300 \uD69F\uC218."
+  title:
+    ko: "\uD68C\uD53C \uD69F\uC218"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/DashCharges.title
+  description:
+    ko: "\uB0A8\uC740 \uB300\uC2DC \uD69F\uC218 / \uCD5C\uB300 \uD69F\uC218."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/DashCharges.description
 --- !u!114 &5232531149671499353
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4122,8 +4222,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uACF5\uACA9 \uC18D\uB3C4"
-  description: "\uCD08\uB2F9 \uACF5\uACA9 \uC18D\uB3C4\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uACF5\uACA9 \uC18D\uB3C4"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/AttackSpeed.title
+  description:
+    ko: "\uCD08\uB2F9 \uACF5\uACA9 \uC18D\uB3C4\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/AttackSpeed.description
 --- !u!114 &7033507402045831907
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4155,6 +4259,7 @@ GameObject:
   - component: {fileID: 7187462888269428035}
   - component: {fileID: 5835462587375599958}
   - component: {fileID: 2903462767479039079}
+  - component: {fileID: 3790274499517586131}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -4280,6 +4385,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3790274499517586131
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3646848981724214507}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/CritDamage.title
 --- !u!1 &3668838898668337535
 GameObject:
   m_ObjectHideFlags: 0
@@ -4433,6 +4551,7 @@ GameObject:
   - component: {fileID: 296443756396649281}
   - component: {fileID: 13907278758090527}
   - component: {fileID: 5128317130595485557}
+  - component: {fileID: 8128695242546525017}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -4558,6 +4677,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8128695242546525017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3757670087009156942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/PhysicalAmp.title
 --- !u!1 &3787518966305254772
 GameObject:
   m_ObjectHideFlags: 0
@@ -4649,8 +4781,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uBB3C\uB9AC \uD53C\uD574 \uC99D\uD3ED"
-  description: "\uBB3C\uB9AC \uD53C\uD574\uB7C9\uC5D0 \uC801\uC6A9\uB418\uB294 \uC99D\uAC00\uC728\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uBB3C\uB9AC \uD53C\uD574 \uC99D\uD3ED"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/PhysicalAmp.title
+  description:
+    ko: "\uBB3C\uB9AC \uD53C\uD574\uB7C9\uC5D0 \uC801\uC6A9\uB418\uB294 \uC99D\uAC00\uC728\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/PhysicalAmp.description
 --- !u!114 &2232864037666906244
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4872,9 +5008,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uCE58\uBA85\uD0C0 \uD53C\uD574\uB7C9"
-  description: "\uCE58\uBA85\uD0C0\uB85C \uC801\uC911\uD588\uC744 \uB54C \uC801\uC6A9\uB418\uB294
-    \uD53C\uD574 \uBC30\uC728\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uCE58\uBA85\uD0C0 \uD53C\uD574\uB7C9"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/CritDamage.title
+  description:
+    ko: "\uCE58\uBA85\uD0C0\uB85C \uC801\uC911\uD588\uC744 \uB54C \uC801\uC6A9\uB418\uB294
+      \uD53C\uD574 \uBC30\uC728\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/CritDamage.description
 --- !u!114 &530196285187613276
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5582,6 +5722,7 @@ GameObject:
   - component: {fileID: 3113699471470981131}
   - component: {fileID: 6162123062003662160}
   - component: {fileID: 6304070353483752794}
+  - component: {fileID: 2893531322840815629}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -5707,6 +5848,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2893531322840815629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4390990020142850166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/AttackSpeed.title
 --- !u!1 &4536975232332763359
 GameObject:
   m_ObjectHideFlags: 0
@@ -5854,6 +6008,7 @@ GameObject:
   - component: {fileID: 7388436968953513838}
   - component: {fileID: 6082883466845758004}
   - component: {fileID: 8454815770501684758}
+  - component: {fileID: 4521631969106503855}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -5979,6 +6134,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &4521631969106503855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4539382807474639858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Evasion.title
 --- !u!1 &4712335068423430623
 GameObject:
   m_ObjectHideFlags: 0
@@ -5990,6 +6158,7 @@ GameObject:
   - component: {fileID: 4835202352034903036}
   - component: {fileID: 4556017563739920308}
   - component: {fileID: 5662836402490201609}
+  - component: {fileID: 3890390831115298344}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -6115,6 +6284,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3890390831115298344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4712335068423430623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/MoveSpeed.title
 --- !u!1 &4834313853090732883
 GameObject:
   m_ObjectHideFlags: 0
@@ -6206,8 +6388,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uC774\uB3D9 \uC18D\uB3C4"
-  description: "\uD50C\uB808\uC774\uC5B4\uAC00 \uC774\uB3D9\uD558\uB294 \uC18D\uB3C4\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uC774\uB3D9 \uC18D\uB3C4"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/MoveSpeed.title
+  description:
+    ko: "\uD50C\uB808\uC774\uC5B4\uAC00 \uC774\uB3D9\uD558\uB294 \uC18D\uB3C4\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/MoveSpeed.description
 --- !u!114 &259789646575577646
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6319,8 +6505,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uBC29\uC5B4\uB825"
-  description: "\uBC1B\uB294 \uD53C\uD574\uC758 \uAC10\uC18C\uC728\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uBC29\uC5B4\uB825"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Defense.title
+  description:
+    ko: "\uBC1B\uB294 \uD53C\uD574\uC758 \uAC10\uC18C\uC728\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Defense.description
 --- !u!114 &5659156942427969446
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6524,8 +6714,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uB300\uC2DC \uCFE8\uD0C0\uC784 \uAC10\uC18C"
-  description: "\uB300\uC2DC \uCDA9\uC804 \uB300\uAE30\uC2DC\uAC04 \uAC10\uC18C\uC728\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uB300\uC2DC \uCFE8\uD0C0\uC784 \uAC10\uC18C"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/DashCooldown.title
+  description:
+    ko: "\uB300\uC2DC \uCDA9\uC804 \uB300\uAE30\uC2DC\uAC04 \uAC10\uC18C\uC728\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/DashCooldown.description
 --- !u!114 &6132461035406714685
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6984,8 +7178,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uC801\uC911\uB960"
-  description: "\uACF5\uACA9\uC774 \uB300\uC0C1\uC5D0\uAC8C \uC801\uC911\uD560 \uD655\uB960\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uC801\uC911\uB960"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Accuracy.title
+  description:
+    ko: "\uACF5\uACA9\uC774 \uB300\uC0C1\uC5D0\uAC8C \uC801\uC911\uD560 \uD655\uB960\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Accuracy.description
 --- !u!114 &8612753418213367630
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7017,6 +7215,7 @@ GameObject:
   - component: {fileID: 1353969032993302353}
   - component: {fileID: 2084440098731552299}
   - component: {fileID: 1760530901229014709}
+  - component: {fileID: 3357891520158792083}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -7142,6 +7341,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3357891520158792083
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5684759426609876553}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Accuracy.title
 --- !u!1 &5888013751895979879
 GameObject:
   m_ObjectHideFlags: 0
@@ -7371,8 +7583,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uCE58\uBA85\uD0C0 \uD655\uB960"
-  description: "\uACF5\uACA9\uC774 \uCE58\uBA85\uD0C0\uAC00 \uB420 \uD655\uB960\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uCE58\uBA85\uD0C0 \uD655\uB960"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/CritChance.title
+  description:
+    ko: "\uACF5\uACA9\uC774 \uCE58\uBA85\uD0C0\uAC00 \uB420 \uD655\uB960\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/CritChance.description
 --- !u!114 &6307279350444380726
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7540,6 +7756,7 @@ GameObject:
   - component: {fileID: 428575675977243812}
   - component: {fileID: 4860751157114841644}
   - component: {fileID: 2044625594079038774}
+  - component: {fileID: 1005063890152440293}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -7665,6 +7882,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1005063890152440293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6331266173957864715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/CritChance.title
 --- !u!1 &6433326420377327392
 GameObject:
   m_ObjectHideFlags: 0
@@ -8811,6 +9041,7 @@ GameObject:
   - component: {fileID: 164294294200638429}
   - component: {fileID: 4368907667495617130}
   - component: {fileID: 8534508699061271121}
+  - component: {fileID: 5069328512424934037}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -8936,6 +9167,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &5069328512424934037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7256287670810410299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/BasicMultiplier.title
 --- !u!1 &7268867607366356229
 GameObject:
   m_ObjectHideFlags: 0
@@ -9314,9 +9558,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uC2A4\uD0AC \uCFE8\uD0C0\uC784 \uAC10\uC18C"
-  description: "\uBBF8\uB2C8\uC5B8 \uC2A4\uD0AC\uC758 \uC7AC\uC0AC\uC6A9 \uB300\uAE30\uC2DC\uAC04
-    \uAC10\uC18C\uC728\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uC2A4\uD0AC \uCFE8\uD0C0\uC784 \uAC10\uC18C"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/SkillCooldown.title
+  description:
+    ko: "\uBBF8\uB2C8\uC5B8 \uC2A4\uD0AC\uC758 \uC7AC\uC0AC\uC6A9 \uB300\uAE30\uC2DC\uAC04
+      \uAC10\uC18C\uC728\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/SkillCooldown.description
 --- !u!114 &4175450694196485006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9348,6 +9596,7 @@ GameObject:
   - component: {fileID: 4654421563445574806}
   - component: {fileID: 7560236636404880786}
   - component: {fileID: 4952069360161488661}
+  - component: {fileID: 8068688696067875651}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -9473,6 +9722,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8068688696067875651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7453301217944878097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Health.title
 --- !u!1 &7583141713353311979
 GameObject:
   m_ObjectHideFlags: 0
@@ -9564,8 +9826,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uB9C8\uBC95 \uD53C\uD574 \uC99D\uD3ED"
-  description: "\uB9C8\uBC95 \uD53C\uD574\uB7C9\uC5D0 \uC801\uC6A9\uB418\uB294 \uC99D\uAC00\uC728\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uB9C8\uBC95 \uD53C\uD574 \uC99D\uD3ED"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/MagicAmp.title
+  description:
+    ko: "\uB9C8\uBC95 \uD53C\uD574\uB7C9\uC5D0 \uC801\uC6A9\uB418\uB294 \uC99D\uAC00\uC728\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/MagicAmp.description
 --- !u!114 &7653167237483793341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9949,8 +10215,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uAE30\uBCF8 \uACF5\uACA9 \uBC30\uC728"
-  description: "\uAE30\uBCF8 \uACF5\uACA9\uC5D0 \uC801\uC6A9\uB418\uB294 \uBC30\uC728\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uAE30\uBCF8 \uACF5\uACA9 \uBC30\uC728"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/BasicMultiplier.title
+  description:
+    ko: "\uAE30\uBCF8 \uACF5\uACA9\uC5D0 \uC801\uC6A9\uB418\uB294 \uBC30\uC728\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/BasicMultiplier.description
 --- !u!114 &1269928162754046278
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10118,6 +10388,7 @@ GameObject:
   - component: {fileID: 67692028657561045}
   - component: {fileID: 3461695119649904710}
   - component: {fileID: 6084559962272776338}
+  - component: {fileID: 8303899150483605724}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -10243,6 +10514,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8303899150483605724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8127666053689447788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Attack.title
 --- !u!1 &8224750309376585244
 GameObject:
   m_ObjectHideFlags: 0
@@ -10545,10 +10829,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uD589\uC6B4 (Luck)"
-  description: "\uC138\uB80C\uB514\uD53C\uD2F0 \uB4F1 \uC9C0\uC815\uB41C \uD6A8\uACFC\uC758
-    \uBC1C\uB3D9 \uD655\uB960\uC5D0 \uB354\uD569\uB2C8\uB2E4. 5%\uB294 \uD655\uB960
-    +5%p\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uD589\uC6B4 (Luck)"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Luck.title
+  description:
+    ko: "\uC138\uB80C\uB514\uD53C\uD2F0 \uB4F1 \uC9C0\uC815\uB41C \uD6A8\uACFC\uC758
+      \uBC1C\uB3D9 \uD655\uB960\uC5D0 \uB354\uD569\uB2C8\uB2E4. 5%\uB294 \uD655\uB960
+      +5%p\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Luck.description
 --- !u!114 &3082398293022167434
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10660,8 +10948,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uD68C\uD53C\uC728"
-  description: "\uC801\uC758 \uACF5\uACA9\uC744 \uD68C\uD53C\uD560 \uD655\uB960\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uD68C\uD53C\uC728"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Evasion.title
+  description:
+    ko: "\uC801\uC758 \uACF5\uACA9\uC744 \uD68C\uD53C\uD560 \uD655\uB960\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Evasion.description
 --- !u!114 &8397285735910373833
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11022,8 +11314,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44216e40e87420544884be81dc1e87fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  title: "\uB9C8\uBC95 \uACF5\uACA9\uB825"
-  description: "\uB9C8\uBC95 \uACF5\uACA9\uC758 \uD53C\uD574 \uAE30\uC900\uAC12\uC785\uB2C8\uB2E4."
+  title:
+    ko: "\uB9C8\uBC95 \uACF5\uACA9\uB825"
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Magic.title
+  description:
+    ko: "\uB9C8\uBC95 \uACF5\uACA9\uC758 \uD53C\uD574 \uAE30\uC900\uAC12\uC785\uB2C8\uB2E4."
+    key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Magic.description
 --- !u!114 &8626847466275116425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11865,6 +12161,7 @@ GameObject:
   - component: {fileID: 5135260632425481471}
   - component: {fileID: 2699484900848716604}
   - component: {fileID: 1792254760028111597}
+  - component: {fileID: 2989504313151425942}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -11990,3 +12287,16 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2989504313151425942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9166874805522342454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Defense.title

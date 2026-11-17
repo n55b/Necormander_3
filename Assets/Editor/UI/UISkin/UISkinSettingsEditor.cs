@@ -25,13 +25,15 @@ public class UISkinSettingsEditor : Editor
 
         using (new EditorGUILayout.HorizontalScope())
         {
-            if (GUILayout.Button(new GUIContent("모양을 UI_Panel 기본값으로", "①~③ 의 스프라이트·색·굵기를 처음 값으로 되돌립니다. 연출 값은 그대로 둡니다.")))
+            if (GUILayout.Button(new GUIContent("모양을 UI_Panel 기본값으로", "①~③ 의 스프라이트·색·굵기를 처음 값으로 되돌립니다. 연출 값은 그대로 둡니다."))
+                && EditorUtility.DisplayDialog("UI 스킨", "①~③ 모양(스프라이트·색·굵기)을 UI_Panel 기본값으로 되돌릴까요?\n조정한 값이 사라집니다. (Ctrl+Z 로 되돌릴 수 있습니다)", "되돌리기", "취소"))
             {
                 Undo.RecordObject(s, "UI 스킨 모양 초기화");
                 UISkinApplyTool.FillDefaultSkins(s);
                 UISkinSettings.NotifyChanged();
             }
-            if (GUILayout.Button(new GUIContent("연출을 기본값으로", "④~⑧ 의 시간·크기·색을 처음 값으로 되돌립니다. 모양은 그대로 둡니다.")))
+            if (GUILayout.Button(new GUIContent("연출을 기본값으로", "④~⑧ 의 시간·크기·색을 처음 값으로 되돌립니다. 모양은 그대로 둡니다."))
+                && EditorUtility.DisplayDialog("UI 스킨", "④~⑧ 연출 값을 기본값으로 되돌릴까요?\n조정한 값이 사라집니다. (Ctrl+Z 로 되돌릴 수 있습니다)", "되돌리기", "취소"))
             {
                 Undo.RecordObject(s, "UI 연출 초기화");
                 UISkinApplyTool.FillDefaultMotions(s);
@@ -40,7 +42,8 @@ public class UISkinSettingsEditor : Editor
         }
         using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
-            if (GUILayout.Button(new GUIContent("인게임 UI 프리팹에 스킨 다시 붙이기", "HUD·미니맵·주머니·장착 정보·툴팁 프리팹에 스킨 부품과 연출을 다시 붙입니다. (플레이 중에는 못 누릅니다)")))
+            if (GUILayout.Button(new GUIContent("인게임 UI 프리팹에 스킨 다시 붙이기", "HUD·미니맵·주머니·장착 정보·툴팁 프리팹에 빠진 스킨 부품과 연출만 붙입니다. 이미 붙은 곳의 조정값은 유지합니다. (플레이 중에는 못 누릅니다)"))
+                && EditorUtility.DisplayDialog("UI 스킨", "HUD·미니맵·주머니·장착 정보·툴팁 프리팹을 열어 빠진 스킨 부품과 연출을 붙이고 저장합니다.\n이미 붙은 곳의 역할·색·배치는 유지합니다. 진행할까요?", "붙이기", "취소"))
                 UISkinApplyTool.ApplyAll();
         }
 

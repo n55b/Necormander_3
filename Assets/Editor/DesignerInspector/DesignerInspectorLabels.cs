@@ -56,10 +56,21 @@ public static class DesignerInspectorLabels
         "BoneMasterAIPatternSO.telegraphWarnColor", "BoneMasterPhase2AIPatternSO.telegraphWarnColor"
     };
     public static bool ReadOnly(FieldInfo f) => f != null && Unused.Contains(Key(f));
+    // 은퇴한 우클릭 가드 연출. 재생하는 코드가 없어 연출 설정 화면에서 숨긴다(번호·에셋 데이터는 호환을 위해 보존).
+    public static readonly HashSet<FeedbackCue> RetiredCues = new HashSet<FeedbackCue>
+    {
+        FeedbackCue.PerfectGuardFlash, FeedbackCue.PerfectGuardRing, FeedbackCue.GuardRaise
+    };
+
+    // 인스펙터는 다시 그릴 때마다 항목당 2~3번(높이·그리기·목록 높이) 이름을 묻는다. 같은 필드는 언제나 같은 결과이므로
+    // (existingHelp 도 그 필드의 [Tooltip]에서 온다) 완성된 GUIContent 를 '코드 이름' 표시 여부별로 기억한다.
+    // 사전·속성은 코드라 바뀌면 도메인 리로드로 이 static 도 비워진다. 돌려받은 GUIContent 는 고치지 말 것(공유됨).
+    private static readonly Dictionary<(FieldInfo, bool), GUIContent> Contents = new Dictionary<(FieldInfo, bool), GUIContent>();
 
     public static GUIContent Content(FieldInfo field, string fallback, string existingHelp, bool code = false)
     {
         if (field == null) return new GUIContent(fallback, existingHelp);
+        if (Contents.TryGetValue((field, code), out var cached)) return cached;
         string label = Translate(field.Name);
         string help = field.GetCustomAttribute<TooltipAttribute>()?.tooltip ?? existingHelp ?? "";
         if (Specific.TryGetValue(Key(field), out var exact) || Specific.TryGetValue("*." + field.Name, out exact)) { label = exact[1]; help = exact[2]; }
@@ -101,7 +112,7 @@ public static class DesignerInspectorLabels
         }
         help += "\n코드: " + Key(field);
         if (code) label += " · " + field.Name;
-        return new GUIContent(label, help);
+        return Contents[(field, code)] = new GUIContent(label, help);
     }
 
     private const string SpecificData = @"
@@ -263,6 +274,8 @@ StatusBalanceSO.vulnerableDamageBonus|취약 추가 물리 피해 비율|취약 
 *.criticalShakeAngle|치명타 숫자 회전 강도 (도)|숫자 회전 흔들림의 각도입니다. 크게 하면 더 과장됩니다.
 ShopRegistrySO.equipmentPool|상점 장비 후보|상점이 장비 상품을 만들 때 사용하는 목록입니다. 현재 장비 강화는 강화 NPC가 처리합니다.
 ShopRegistrySO.itemPool|상점 아이템 후보|진열할 아이템 후보입니다. 구매하면 바로 주머니에 들어갑니다. 중첩 한도가 찬 아이템은 골드를 쓰기 전에 구매를 막고, 주머니가 없을 때만 바닥에 드롭합니다.
+ShopRegistrySO.itemTierPrice|아이템 등급별 가격 (골드)|상점 구매가입니다. 칸 0 = 1등급 … 칸 3 = 4등급. 아이템마다 적지 않고 등급으로 정합니다. 아이템 편집기 위쪽 '티어별 가격 · 보상 등장 비중'에서도 고칠 수 있습니다.
+ShopRegistrySO.itemTierRewardWeight|아이템 등급별 보상 등장 비중|방 보상으로 아이템이 떨어질 때 이 등급 아이템 한 개가 뽑힐 상대 비중입니다. 칸 0 = 1등급 … 칸 3 = 4등급. 모두 같으면 후보 아이템마다 같은 확률이고, 0 이면 그 등급은 방 보상으로 나오지 않습니다. 상점 진열에는 영향이 없습니다.
 ShopRegistrySO.enhanceCostPerLevel|강화 단계당 추가 비용 (골드)|기본 강화 비용 + 현재 단계 × 이 값. 상점당 강화 제한은 강화 NPC/디버그 옵션에서 결정합니다.
 PlayerController.summonNum|사용 안 함: 옛 소환 수|현재 실행 코드에서 읽지 않는 옛 필드입니다. 변경해도 효과가 없습니다. 직렬화 호환을 위해 남겨둔 값입니다.
 PlayerController.summonRange|사용 안 함: 옛 소환 범위|현재 실행 코드에서 읽지 않는 옛 필드입니다. 변경해도 효과가 없습니다.

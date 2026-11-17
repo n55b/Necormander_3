@@ -37,35 +37,35 @@ public class MinionStandbyInfusion
     {
         switch (s)
         {
-            case StatusType.Stun: return "기절";
-            case StatusType.Freeze: return "빙결";
-            case StatusType.Bleed: return "출혈";
-            case StatusType.Poison: return "중독";
-            case StatusType.BloodPop: return "혈액 튀어오름";
-            case StatusType.Hitstun: return "경직";
-            case StatusType.Vulnerable: return "취약";
-            default: return "없음";
+            case StatusType.Stun: return Loc.T("MinionStandbyInfusion.stun", "기절");
+            case StatusType.Freeze: return Loc.T("MinionStandbyInfusion.freeze", "빙결");
+            case StatusType.Bleed: return Loc.T("MinionStandbyInfusion.bleed", "출혈");
+            case StatusType.Poison: return Loc.T("MinionStandbyInfusion.poison", "중독");
+            case StatusType.BloodPop: return Loc.T("MinionStandbyInfusion.blood_pop", "혈액 튀어오름");
+            case StatusType.Hitstun: return Loc.T("MinionStandbyInfusion.hitstun", "경직");
+            case StatusType.Vulnerable: return Loc.T("MinionStandbyInfusion.vulnerable", "취약");
+            default: return Loc.T("MinionStandbyInfusion.none", "없음");
         }
     }
 
     /// <summary>효과 하나의 짧은 설명. 예) "평타 50% 빙결"</summary>
     public string DescribeShort()
     {
-        if (!IsActive) return "없음";
-        string when = swings == SwingFilter.FinalSwingOnly ? "평타 3타" : "평타";
-        string dur = duration > 0f ? $" {duration:0.##}초" : "";
-        return $"{when} {chance * 100f:0}% {StatusLabel(status)}{dur}";
+        if (!IsActive) return Loc.T("MinionStandbyInfusion.none", "없음");
+        string when = swings == SwingFilter.FinalSwingOnly ? Loc.T("MinionStandbyInfusion.final_swing", "평타 3타") : Loc.T("MinionStandbyInfusion.basic_attack", "평타");
+        string dur = duration > 0f ? Loc.F("MinionStandbyInfusion.duration", " {0:0.##}초", duration) : "";
+        return Loc.F("MinionStandbyInfusion.short", "{0} {1:0}% {2}{3}", when, chance * 100f, StatusLabel(status), dur);
     }
 
-    public string Describe() => IsActive ? $"대기 중일 때 {DescribeShort()}." : "대기 효과 없음.";
+    public string Describe() => IsActive ? Loc.F("MinionStandbyInfusion.standby", "대기 중일 때 {0}.", DescribeShort()) : Loc.T("MinionStandbyInfusion.no_standby", "대기 효과 없음.");
 
     /// <summary>여러 효과를 한 줄로. 예) "대기 중일 때 평타 50% 빙결, 평타 3타 20% 취약."</summary>
     public static string DescribeAll(MinionStandbyInfusion[] list)
     {
-        if (list == null) return "대기 효과 없음.";
+        if (list == null) return Loc.T("MinionStandbyInfusion.no_standby", "대기 효과 없음.");
         var parts = new System.Collections.Generic.List<string>();
         foreach (var e in list) if (e != null && e.IsActive) parts.Add(e.DescribeShort());
-        return parts.Count == 0 ? "대기 효과 없음." : "대기 중일 때 " + string.Join(", ", parts) + ".";
+        return parts.Count == 0 ? Loc.T("MinionStandbyInfusion.no_standby", "대기 효과 없음.") : Loc.F("MinionStandbyInfusion.standby", "대기 중일 때 {0}.", string.Join(", ", parts));
     }
 
     public static bool AnyActive(MinionStandbyInfusion[] list)

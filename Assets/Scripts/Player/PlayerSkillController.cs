@@ -262,7 +262,9 @@ public class PlayerSkillController : MonoBehaviour
 
         if (!fromSwap)
         {
-            var casterStat = playerTransform != null ? playerTransform.GetComponent<CharacterStat>() : null;
+            // 플레이어 스탯은 루트가 아니라 자식(CharacterStatStuff)에 있다 — 루트 GetComponent 는 늘 null 이라 쿨감이 안 먹었다.
+            if (_playerController == null) _playerController = GetComponent<PlayerController>();
+            var casterStat = _playerController != null ? _playerController.Stat : null;
             float minionCd = casterStat != null
                 ? casterStat.ApplySkillCooldown(minionData.minionSkill.cooldownTime)
                 : minionData.minionSkill.cooldownTime;

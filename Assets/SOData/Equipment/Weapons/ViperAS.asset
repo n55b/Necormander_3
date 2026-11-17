@@ -12,12 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafda816e2e708244ac4ae54264b5a3e, type: 3}
   m_Name: ViperAS
   m_EditorClassIdentifier: 
-  equipmentName: "\uBC14\uC774\uD37C-AS"
-  description: "\uAE30\uBCF8 \uACF5\uACA9 3\uC5F0\uD0C0 (1 / 1 / 1.5). \uBCF4\uD1B5
-    \uACF5\uACA9 \uC18D\uB3C4 \xB7 \uACBD\uC9C1 0.2\uCD08.\n\uACF5\uACA9\uB825 +10.\n\uC57D\uC810
-    \uACF5\uB7B5: \uD50C\uB808\uC774\uC5B4 3\uD0C0 \uC801\uC911 \uC2DC \uCDE8\uC57D
-    10\uCD08. \uBC1B\uB294 \uBB3C\uB9AC \uD53C\uD574 +20% (\uC911\uCCA9 \uC5C6\uC774
-    \uAC31\uC2E0).\n\uACF5\uACA9 \uC18D\uB3C4 +20%.\n"
+  equipmentName:
+    ko: "\uBC14\uC774\uD37C-AS"
+    key: ViperAS.equipmentName
+  description:
+    ko: "\uAE30\uBCF8 \uACF5\uACA9 3\uC5F0\uD0C0 (1 / 1 / 1.5). \uBCF4\uD1B5 \uACF5\uACA9
+      \uC18D\uB3C4 \xB7 \uACBD\uC9C1 0.2\uCD08.\n\uACF5\uACA9\uB825 +10.\n\uACF5\uACA9
+      \uC18D\uB3C4 +20%.\n"
+    key: ViperAS.description
   icon: {fileID: 2059219716, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
   rarity: 0
   shopCost: 150

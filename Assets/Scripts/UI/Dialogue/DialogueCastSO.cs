@@ -21,7 +21,7 @@ public class DialogueCastEntry
     public string key;
 
     [Tooltip("이름칸에 뜰 이름. CSV 의 name 칸이 비어 있을 때 이게 쓰인다.")]
-    public string displayName;
+    public LocText displayName;
 
     [Tooltip("이름칸 글자색.")]
     public Color nameColor = Color.white;
@@ -100,7 +100,7 @@ public class DialogueCastSO : ScriptableObject
     {
         var e = GetEntry(key);
         if (e == null) return key;
-        return string.IsNullOrEmpty(e.displayName) ? key : e.displayName;
+        return string.IsNullOrEmpty(e.displayName.ko) ? key : e.displayName;
     }
 
     public Color GetNameColor(string key)

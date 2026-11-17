@@ -14,14 +14,15 @@ public class GrowthRegistryEditor : Editor
         (designerView ??= new DesignerInspectorView()).Draw(serializedObject);
 
         EditorGUILayout.Space(20);
-        EditorGUILayout.HelpBox("프로젝트의 현재 성장 데이터 목록을 다시 스캔합니다. 수동으로 구성한 목록도 바뀌므로 필요한 경우에만 실행하세요.", MessageType.Info);
+        EditorGUILayout.HelpBox("새 메인 소환수를 이 목록 맨 뒤에 붙입니다. 기존 순서(마을 카드 순서)는 바뀌지 않습니다.\n" +
+                                "소환수 레지스트리(MinionRegistrySO)의 아군/일반 적/보스 목록도 다시 분류해 저장합니다(엘리트 목록은 유지).\n" +
+                                "(Tools/기획/레지스트리 새로고침 (새 소환수 등록) 과 같은 동작)", MessageType.Info);
 
         GUI.backgroundColor = Color.cyan;
-        if (GUILayout.Button("전체 데이터 자동 스캔 및 갱신", GUILayout.Height(40)))
+        // RefreshRegistry(전체 재구성)는 순서를 바꾸므로 쓰지 않는다 — 덧붙이기만 하는 메뉴와 같은 경로.
+        if (GUILayout.Button("새 소환수 등록 (레지스트리 새로고침)", GUILayout.Height(40)))
         {
-            GrowthRegistrySO registry = (GrowthRegistrySO)target;
-            Undo.RecordObject(registry, "성장 데이터 목록 갱신");
-            registry.RefreshRegistry();
+            RegistryMenuTools.RefreshAllRegistries();
         }
         GUI.backgroundColor = Color.white;
     }

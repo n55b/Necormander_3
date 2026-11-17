@@ -22,7 +22,6 @@ public class ShopOffer
         if (c.rawData is ItemSO so) return so.DisplayName;
         var d = c.displayData;
         if (d == null) return "";
-        if (d.localizedItemName != null && !d.localizedItemName.IsEmpty) return d.localizedItemName.GetLocalizedString();
         return d.itemName;
     }
 
@@ -32,7 +31,6 @@ public class ShopOffer
         if (c.rawData is MinionDataSO minion) return MainMinionSelectionUI.Describe(minion);
         var d = c.displayData;
         if (d == null) return "";
-        if (d.localizedDescription != null && !d.localizedDescription.IsEmpty) return d.localizedDescription.GetLocalizedString();
         return d.description;
     }
 }

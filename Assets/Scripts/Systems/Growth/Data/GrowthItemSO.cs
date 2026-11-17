@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Localization;
 
 /// <summary>
 /// 모든 성장 아이템(소환수, 보석, 보물 등)의 최상위 데이터 클래스입니다.
@@ -7,12 +6,8 @@ using UnityEngine.Localization;
 public abstract class GrowthItemSO : ScriptableObject
 {
     [Header("기본 정보")]
-    public string itemName;
-    [TextArea] public string description;
-    
-    [Header("번역 데이터")]
-    public LocalizedString localizedItemName;
-    public LocalizedString localizedDescription;
+    public LocText itemName;
+    public LocText description;
 
     public Sprite icon;
     public ItemRarity rarity;
@@ -35,12 +30,9 @@ public enum ItemRarity
 [System.Serializable]
 public class GrowthItemData
 {
-    public string itemName;
-    [TextArea] public string description;
-
-    [Header("번역 데이터")]
-    public LocalizedString localizedItemName;
-    public LocalizedString localizedDescription;
+    // 런타임 카드 DTO 로도 쓴다 — 코드가 이미 번역한 문장은 key 없이 ko 에만 담는다(빈 key = 그대로 표시).
+    public LocText itemName;
+    public LocText description;
 
     public Sprite icon;
     public ItemRarity rarity;

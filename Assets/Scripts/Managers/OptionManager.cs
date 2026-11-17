@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.Localization.Settings;
 using System.Collections;
+using System.Linq;
 
 public class OptionManager : MonoBehaviour
 {
@@ -63,6 +64,10 @@ public class OptionManager : MonoBehaviour
             // 현재 선택된 언어의 인덱스를 찾아 드롭다운에 설정
             var locales = LocalizationSettings.AvailableLocales.Locales;
             var currentLocale = LocalizationSettings.SelectedLocale;
+
+            // 항목을 언어 목록으로 다시 만들어 i번째 항목 == locales[i]를 보장한다 (한국어 / English).
+            languageDropdown.ClearOptions();
+            languageDropdown.AddOptions(locales.Select(l => l.Identifier.CultureInfo != null ? l.Identifier.CultureInfo.NativeName : l.LocaleName).ToList());
             
             for (int i = 0; i < locales.Count; i++)
             {

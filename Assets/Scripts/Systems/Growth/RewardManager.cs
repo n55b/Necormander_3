@@ -7,7 +7,16 @@ using UnityEngine;
 /// </summary>
 public class RewardManager : MonoBehaviour
 {
-    public const int NormalClearGold = 200;
+    /// <summary>일반 · 증강 방 클리어 기본 골드. 값은 상점 데이터(ShopRegistrySO.normalClearGold)에 있다. 데이터를 못 찾으면 0.</summary>
+    public static int NormalClearGold
+    {
+        get
+        {
+            var dm = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
+            var shop = dm != null ? dm.SHOP_REGISTRY : null;
+            return shop != null ? shop.normalClearGold : 0;
+        }
+    }
     public static RewardManager Instance;
 
     [Header("UI 연결")]
@@ -41,7 +50,7 @@ public class RewardManager : MonoBehaviour
             if (type == RoomType.Augment && ActiveAugment.PendingRewardIsGold)
                 GameManager.Instance.inventoryManager.AddGold(goldAmount);
             else
-                GameManager.Instance.inventoryManager.GainGold(goldAmount); // 획득 텍스트(+200G)를 플레이어 앞에 띄운다
+                GameManager.Instance.inventoryManager.GainGold(goldAmount); // 획득 텍스트(+NG)를 플레이어 앞에 띄운다
             Debug.Log($"<color=yellow>[Reward]</color> {type} Room Cleared! {goldAmount} Gold obtained (기본 보상).");
 
             if (type == RoomType.Augment)
@@ -165,7 +174,7 @@ public class RewardManager : MonoBehaviour
             case RewardCategory.MinionEnhance:
                 // [26/10/02] 보상방 = 메인 소환수 강화. 카드 1장을 고르면 한 단계 오른다.
                 if (inven.EnhanceMainSummon())
-                    FloatingTextManager.ShowOnPlayer($"소환수 강화 +{inven.MainSummonEnhanceLevel}", Color.white);
+                    FloatingTextManager.ShowOnPlayer(Loc.F("RewardManager.minion_enhanced", "소환수 강화 +{0}", inven.MainSummonEnhanceLevel), Color.white);
                 ProcessNextReward();
                 break;
 
@@ -173,7 +182,7 @@ public class RewardManager : MonoBehaviour
                 // [26/10/03] 보상방 = 메인 소환수 진화. 고른 갈래의 에셋으로 메인 슬롯이 바뀐다.
                 var evolveTarget = candidate.rawData as MainMinionDataSO;
                 if (evolveTarget != null && inven.EvolveMainSummon(evolveTarget))
-                    FloatingTextManager.ShowOnPlayer($"{(string.IsNullOrEmpty(evolveTarget.minionName) ? evolveTarget.name : evolveTarget.minionName)}(으)로 진화!", Color.white);
+                    FloatingTextManager.ShowOnPlayer(Loc.F("RewardManager.evolved", "{0}(으)로 진화!", string.IsNullOrEmpty(evolveTarget.minionName.ko) ? evolveTarget.name : (string)evolveTarget.minionName), Color.white);
                 ProcessNextReward();
                 break;
 
@@ -188,7 +197,7 @@ public class RewardManager : MonoBehaviour
                 break;
 
             case RewardCategory.Equipment:
-                // 장비를 착용한다(한 자루 원칙 → 기존 장비 교체). 후보는 뜰 때 이미 스킬이 굴려진 인스턴스다.
+                // 장비를 착용한다(한 자루 원칙 → 기존 장비 교체). 후보는 뜰 때 만든 0강 인스턴스다(장비는 패시브만 준다).
                 var equipInst = (EquipmentInstance)candidate.rawData;
                 EquipmentInventoryManager.Instance?.EquipEquipment(equipInst);
                 ProcessNextReward();

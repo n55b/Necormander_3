@@ -23,6 +23,8 @@ public static class FeedbackValidation
     private static Color32[] beforeDistortion;
     public static void Run()
     {
+        // 빈 씬으로 갈아엎고 끝나면 에디터를 종료한다. 열린 에디터에서 부르면 작업이 날아간다.
+        if(!Application.isBatchMode) throw new InvalidOperationException("별도 batchmode에서 실행하세요.");
         try
         {
             FeedbackSetup.Validate();
@@ -71,7 +73,7 @@ public static class FeedbackValidation
             }
             if(stage==2)
             {
-                Require(FeedbackBurst.ActiveCount==0,"66종 재생 후 활성 효과 잔류 없음");
+                Require(FeedbackBurst.ActiveCount==0,$"{cues.Length}종 재생 후 활성 효과 잔류 없음");
                 catalog.Find(FeedbackCue.DirectionHit).interval=0; catalog.burstsPerFrame=2; catalog.simultaneousBursts=3;
                 for(int i=0;i<10;i++) PolishFeedback.Play(FeedbackCue.DirectionHit,Vector3.zero);
                 Require(FeedbackBurst.ActiveCount==2,"프레임당 2개 제한"); stage=3; next=now+.8; return;
@@ -137,7 +139,7 @@ public static class FeedbackValidation
                 var after=ReadCamera(); int changed=0;
                 for(int i=0;i<after.Length;i++) if(!after[i].Equals(beforeDistortion[i])) changed++;
                 Require(changed>0,"국소 굴절 실제 픽셀 변화");
-                Debug.Log($"[FeedbackValidation] PASS: 66 cues, peak {peak}, lifetime cleanup, frame/active caps, disable, pooling, slow motion restore, pause ownership; distortion changed {changed} pixels. Preview: Logs/feedback-preview.png");
+                Debug.Log($"[FeedbackValidation] PASS: {cues.Length} cues, peak {peak}, lifetime cleanup, frame/active caps, disable, pooling, slow motion restore, pause ownership; distortion changed {changed} pixels. Preview: Logs/feedback-preview.png");
                 Finish(0);
             }
         }

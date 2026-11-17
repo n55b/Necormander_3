@@ -326,9 +326,9 @@ public class DialogueNPC : NPCBase
 
 4명 이상은 뒤가 잘린다. 검증에서 잡아준다.
 
-칸의 가로 위치는 `Assets/Editor/Localization/DialogueSetupTools.cs` 의 `SLOT_X`
-(기본 `0.22 / 0.5 / 0.78` = 화면 폭 비율). 양 끝을 더 벌리거나 좁히려면 그 값을 고치고
-`Tools/Dialogue/1. 대화 UI 프리팹 만들기` 를 다시 돌린다.
+칸의 가로 위치는 프리팹이 들고 있다(처음 만들 때 기본값은 `DialogueSetupTools.cs` 의 `SLOT_X`
+= `0.22 / 0.5 / 0.78` 화면 폭 비율). 양 끝을 더 벌리거나 좁히려면 `DialogueUI.prefab` 에서
+`Slot0_Left` / `Slot2_Right` 앵커를 직접 고친다.
 
 ---
 
@@ -383,7 +383,7 @@ bm_intro,player|bonemaster,bonemaster,,"드디어 왔군, 애송이.",So you cam
 
 | 메뉴 | 언제 |
 |---|---|
-| `1. 대화 UI 프리팹 만들기` | 프리팹을 처음부터 다시 만들 때 (**기존 프리팹을 덮어쓴다**) |
+| `1. 대화 UI 프리팹 만들기` | 프리팹이 없을 때 처음 만든다 (이미 있으면 덮어쓰지 않고 선택만 한다 — 고칠 때는 프리팹을 직접 편집) |
 | `2. 대사 테이블 검증` | CSV 를 고칠 때마다 |
 | `3. 씬에 배치` | 새 씬에 대화 UI 를 넣을 때 |
 | `4. 레이아웃 미리보기 토글` | 화면 비율·색·크기를 눈으로 맞출 때 |

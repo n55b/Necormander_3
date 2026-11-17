@@ -17,14 +17,14 @@ public enum ItemTier
 }
 
 /// <summary>
-/// 티어에서 자동으로 유도되는 값들(가격/색). 아이템 에셋마다 가격을 적지 않는 이유는
-/// 아이템이 늘어나면 개별 값이 전부 어긋나기 때문이다 — 밸런싱은 아래 표 한 줄만 고친다.
+/// 티어에서 자동으로 유도되는 값들(색/표기). 아이템 에셋마다 적지 않는 이유는
+/// 아이템이 늘어나면 개별 값이 전부 어긋나기 때문이다.
+/// 가격 · 방 보상 등장 비중은 밸런싱 값이라 상점 데이터(ShopRegistrySO.ItemPrice / ItemRewardWeight)에 있다 —
+/// 기획자는 아이템 편집기 위쪽 '티어별 가격 · 보상 등장 비중'에서 고친다.
 /// </summary>
 public static class ItemTierRules
 {
     // 인덱스 = 티어 번호. [0] 은 안 쓰는 자리.
-    private static readonly int[] PRICE  = { 0, 600, 400, 200, 100 };
-
     private static readonly Color[] COLOR =
     {
         Color.white,
@@ -36,14 +36,11 @@ public static class ItemTierRules
 
     private static int Index(ItemTier t) => Mathf.Clamp((int)t, 1, 4);
 
-    /// <summary>상점 구매가(골드).</summary>
-    public static int Price(ItemTier t) => PRICE[Index(t)];
-
     /// <summary>UI 테두리/텍스트 색. (메서드 이름을 Color 로 두면 UnityEngine.Color 타입을 가려서 컴파일이 깨진다.)</summary>
     public static Color TierColor(ItemTier t) => COLOR[Index(t)];
 
     /// <summary>"3티어" 같은 표기.</summary>
-    public static string Label(ItemTier t) => $"{Index(t)}티어";
+    public static string Label(ItemTier t) => Loc.F("ItemSO.tier_label", "{0}티어", Index(t));
 }
 
 /// <summary>주머니에 소지하는 아이템 한 종류. 장비와 별개이며 효과/최대 중첩은 에셋에서 조절한다.</summary>
@@ -51,16 +48,16 @@ public static class ItemTierRules
 public class ItemSO : ScriptableObject
 {
     [Header("표시")]
-    public string itemName;
-    [TextArea] public string description;
+    public LocText itemName;
+    public LocText description;
     [Tooltip("상점 카드에만 표시할 짧은 설명. 비우면 description 을 그대로 쓴다.\n" +
              "카드 폭이 좁아 긴 설명이 가격과 겹칠 때만 채운다(보상 카드, 주머니, 능력창은 description 사용).")]
-    [TextArea] public string shopDescription;
+    public LocText shopDescription;
     [Tooltip("비어 있으면 바닥 픽업 프리팹의 기존 기본 아이콘을 사용한다.")]
     public Sprite icon;
 
     [Header("등급")]
-    [Tooltip("가격과 등급 색이 여기서 자동으로 나온다(ItemTierRules).")]
+    [Tooltip("가격(상점 데이터의 등급별 가격)과 등급 색이 여기서 자동으로 나온다.")]
     public ItemTier tier = ItemTier.Tier4;
 
     [Header("중첩")]
@@ -76,16 +73,16 @@ public class ItemSO : ScriptableObject
     [SerializeReference] public List<ItemEffect> effects = new List<ItemEffect>();
 
     /// <summary>표기용 이름. itemName 이 비면 에셋 이름으로 폴백.</summary>
-    public string DisplayName => string.IsNullOrEmpty(itemName) ? name : itemName;
+    public string DisplayName => string.IsNullOrEmpty(itemName.ko) ? name : itemName;
 
-    public int Price => ItemTierRules.Price(tier);
+    // 가격은 여기 없다 — ShopRegistrySO.ItemPrice(tier) (상점 데이터의 등급별 가격).
     public Color TierColor => ItemTierRules.TierColor(tier);
 
     /// <summary>툴팁 본문. 등급 표기를 설명 앞에 붙인다.</summary>
     public string TooltipBody => $"[{ItemTierRules.Label(tier)}]\n{description}";
 
     /// <summary>상점 카드 본문. shopDescription 이 있으면 그것을, 없으면 description 을 쓴다.</summary>
-    public string ShopBody => $"[{ItemTierRules.Label(tier)}]\n{(string.IsNullOrEmpty(shopDescription) ? description : shopDescription)}";
+    public string ShopBody => $"[{ItemTierRules.Label(tier)}]\n{(string.IsNullOrEmpty(shopDescription.ko) ? description : shopDescription)}";
 
     /// <summary>
     /// 주머니 UI 의 효과 문구(개당 / 현재 총 / 1개 더 획득 시). 효과 한 줄씩.

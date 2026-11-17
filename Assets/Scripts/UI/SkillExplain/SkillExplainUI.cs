@@ -179,17 +179,17 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         var inventory = InventoryManager.Instance;
         var main = inventory != null ? inventory.MainSummon : null;
         var standby = inventory != null ? inventory.GetSummonAt(1 - inventory.ActiveSummonSlot) : null;
-        standbySummonSlot?.SetData(standby != null ? standby.minionIcon : null, standby != null ? standby.minionName : "대기 소환수 없음",
-            standby != null ? MainMinionSelectionUI.Describe(standby) + StandbyInfusionLine(standby) : "Space 로 교대할 소환수가 없습니다.");
+        standbySummonSlot?.SetData(standby != null ? standby.minionIcon : null, standby != null ? (string)standby.minionName : Loc.T("SkillExplainUI.no_standby", "대기 소환수 없음"),
+            standby != null ? MainMinionSelectionUI.Describe(standby) + StandbyInfusionLine(standby) : Loc.T("SkillExplainUI.no_standby_desc", "Space 로 교대할 소환수가 없습니다."));
         minionHeader?.SetData(main != null ? main.minionIcon : null,
-            main != null ? main.minionName : "미니언 없음", "");
+            main != null ? (string)main.minionName : Loc.T("SkillExplainUI.no_minion", "미니언 없음"), "");
         var equipment = EquipmentInventoryManager.Instance != null ? EquipmentInventoryManager.Instance.EquippedEquipment?.baseData : null;
         SetSummaryIcon(0, equipment != null ? equipment.icon : null);
         SetSummaryIcon(1, standby != null ? standby.minionIcon : null);
         SetSummaryIcon(2, main != null ? main.minionIcon : null);
         SetSummaryIcon(3, main != null && main.minionSkill != null ? main.minionSkill.icon : null);
         SetSummaryIcon(4, null);
-        if (summaryText != null) summaryText.text = $"플레이어 정보  [C]     소환수 {(inventory != null ? inventory.EquippedSummonCount : 0)}";
+        if (summaryText != null) summaryText.text = Loc.F("SkillExplainUI.summary", "플레이어 정보  [C]     소환수 {0}", inventory != null ? inventory.EquippedSummonCount : 0);
     }
 
     private void SetSummaryIcon(int index, Sprite sprite)
@@ -261,18 +261,18 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
 
         if (eq == null || eq.baseData == null)
         {
-            slot.SetData(null, "장비 없음", "장착된 장비가 없습니다.");
+            slot.SetData(null, Loc.T("SkillExplainUI.no_equipment", "장비 없음"), Loc.T("SkillExplainUI.no_equipment_desc", "장착된 장비가 없습니다."));
             return;
         }
 
         var so = eq.baseData;
-        string title = string.IsNullOrEmpty(so.equipmentName) ? so.name : so.equipmentName;
+        string title = string.IsNullOrEmpty(so.equipmentName.ko) ? so.name : (string)so.equipmentName;
 
         // 효과 = 장비 설명(디자이너가 적은 효과 문구) + 강화 등급.
         string enhance = so.upgradeOnly
-            ? (so.upgradeOptions.Length > 0 ? $"강화 단계 {so.upgradeStage}/3" : "최종 장비")
-            : $"강화 +{eq.enhanceLevel}/{so.maxEnhanceLevel}";
-        string desc = string.IsNullOrEmpty(so.description) ? enhance : $"{so.description}\n\n{enhance}";
+            ? (so.upgradeOptions.Length > 0 ? Loc.F("SkillExplainUI.upgrade_stage", "강화 단계 {0}/3", so.upgradeStage) : Loc.T("SkillExplainUI.final_equipment", "최종 장비"))
+            : Loc.F("SkillExplainUI.enhance_level", "강화 +{0}/{1}", eq.enhanceLevel, so.maxEnhanceLevel);
+        string desc = string.IsNullOrEmpty(so.description.ko) ? enhance : $"{so.description}\n\n{enhance}";
 
         slot.SetData(so.icon, title, ApplyKeywordHighlighting(desc));
     }
@@ -289,13 +289,14 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
             return;
         }
 
-        FillLinkedSlot(0, main.finisher.uiIcon,     Fallback(main.finisher.uiTitle, "자동 공격"),     main.finisher.Describe());
-        FillLinkedSlot(1, main.dashModifier.uiIcon, Fallback(main.dashModifier.uiTitle, "대쉬 공격"), main.dashModifier.Describe());
+        FillLinkedSlot(0, main.finisher.uiIcon,     Fallback(main.finisher.uiTitle, Loc.T("SkillExplainUI.auto_attack", "자동 공격")),     main.finisher.Describe());
+        FillLinkedSlot(1, main.dashModifier.uiIcon, Fallback(main.dashModifier.uiTitle, Loc.T("SkillExplainUI.dash_attack", "대쉬 공격")), main.dashModifier.Describe());
 
         var sk = main.minionSkill;
+        string skillTitle = Loc.T("SkillExplainUI.skill", "스킬");
         FillLinkedSlot(2, sk != null ? sk.icon : null,
-                          sk != null ? Fallback(sk.skillName, "스킬") : "스킬",
-                          sk != null ? sk.description : null);
+                          sk != null ? Fallback(sk.skillName, skillTitle) : skillTitle,
+                          sk != null ? (string)sk.description : null);
     }
 
     private void FillLinkedSlot(int i, Sprite icon, string title, string desc)

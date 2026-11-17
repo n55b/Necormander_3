@@ -278,6 +278,17 @@ public class BoneMasterController : EnemyController
         return base.CanExecuteAI();
     }
 
+    /// <summary>
+    /// 패턴 잠금(Skill: 페이즈2 전환·집행 등) 중엔 패턴/전환 연출이 애니메이터를 직접 쥔다(PlayState).
+    /// 공용 경로가 "Skill" 을 Play 하면 그 자세(phase2TransitionState 등)를 덮어쓰므로 건너뛴다.
+    /// _lastState 는 비워 둬서 잠금이 풀린 뒤의 상태는 다시 재생되게 한다(예전 'Skill 스테이트 없음' 동작과 같음).
+    /// </summary>
+    public override void UpdateAnimation(AIState state)
+    {
+        if (state == AIState.Skill) { ResetAnimationState(); return; }
+        base.UpdateAnimation(state);
+    }
+
     protected override void Start()
     {
         base.Start();
@@ -312,7 +323,7 @@ public class BoneMasterController : EnemyController
             Health.OnBeforeDeath += HandleBeforeDeath;
         }
 
-        SetStateText("추격 중...");
+        SetStateText(Loc.T("BoneMasterController.chase", "추격 중..."));
         DamageEventBus.OnBeforeDamageCalculated += HandleIncomingDamageAmp;
 
     }
@@ -405,12 +416,12 @@ public class BoneMasterController : EnemyController
         {
             case 0:
                 AttackRangeBonus += helmetBreakRangeBonus;
-                SetStateTextTemporary("투구 파괴!", Color.red, partBreakTextDuration);
+                SetStateTextTemporary(Loc.T("BoneMasterController.helmet_break", "투구 파괴!"), Color.red, partBreakTextDuration);
                 Debug.Log("<color=orange>[BoneMaster]</color> 투구 파괴! 받는피해 +15%, 공격범위 +15%");
                 break;
             case 1:
                 PatternCastSpeedBonus += pauldronBreakCastSpeedBonus;
-                SetStateTextTemporary("견갑 파괴!", Color.red, partBreakTextDuration);
+                SetStateTextTemporary(Loc.T("BoneMasterController.pauldron_break", "견갑 파괴!"), Color.red, partBreakTextDuration);
                 Debug.Log("<color=orange>[BoneMaster]</color> 견갑 파괴! 받는피해 +15%(누적 30%), 패턴 시전속도 +15%");
                 break;
             case 2:
@@ -418,7 +429,7 @@ public class BoneMasterController : EnemyController
                 {
                     Stats.SetBaseMoveSpeed(_baseMoveSpeedCached * (1f + chestBreakMoveSpeedBonus));
                 }
-                SetStateTextTemporary("흉갑 파괴! 페이즈 2 돌입!", Color.red, partBreakTextDuration);
+                SetStateTextTemporary(Loc.T("BoneMasterController.breastplate_break", "흉갑 파괴! 페이즈 2 돌입!"), Color.red, partBreakTextDuration);
                 Debug.Log("<color=red>[BoneMaster]</color> 흉갑 파괴! 받는피해 +15%(누적 45%), 이동속도 +15%. 페이즈2 진입.");
 
                 // CancelAttack() 을 먼저 부른다. StopAllCoroutines() 만 쓰면 공격 루틴이 끝에서

@@ -39,16 +39,24 @@ public static class ItemCreation
 
     /// <summary>에셋 이름 검사. 문제 없으면 null. self 는 이름을 바꾸는 아이템 자신(중복 검사에서 뺀다).</summary>
     public static string ValidateName(string name, ItemSO self = null)
+        => ValidateName(name, UsedNames(self));
+
+    /// <summary>이미 쓰인 이름 목록으로 검사한다. 창이 매 프레임 부를 때 프로젝트를 다시 훑지 않도록 목록을 한 번 만들어 넘긴다.</summary>
+    public static string ValidateName(string name, HashSet<string> usedNames)
     {
         if (string.IsNullOrWhiteSpace(name)) return "에셋 파일 이름을 입력하세요.";
         name = name.Trim();
         if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name.Contains('/') || name.Contains('\\'))
             return "파일 이름에 쓸 수 없는 문자가 있습니다.";
         if (name.StartsWith(".") || name.EndsWith(".")) return "점(.)으로 시작하거나 끝날 수 없습니다.";
-        if (AllItems().Any(i => i != self && string.Equals(i.name, name, StringComparison.OrdinalIgnoreCase)))
+        if (usedNames.Contains(name))
             return $"'{name}' 아이템이 이미 있습니다. 세이브가 에셋 이름으로 아이템을 찾으므로 겹치면 안 됩니다.";
         return null;
     }
+
+    /// <summary>프로젝트의 아이템 에셋 이름(대소문자 무시). self 는 뺀다.</summary>
+    public static HashSet<string> UsedNames(ItemSO self = null)
+        => new HashSet<string>(AllItems().Where(i => i != self).Select(i => i.name), StringComparer.OrdinalIgnoreCase);
 
     /// <summary>규칙상 문제는 없지만 권장하지 않는 이름이면 안내 문구.</summary>
     public static string NameHint(string name)
@@ -59,7 +67,7 @@ public static class ItemCreation
     /// <summary>겹치지 않는 이름. 'NewItem' → 'NewItem2' …</summary>
     public static string UniqueName(string baseName)
     {
-        var used = new HashSet<string>(AllItems().Select(i => i.name), StringComparer.OrdinalIgnoreCase);
+        var used = UsedNames();
         if (!used.Contains(baseName)) return baseName;
         for (int n = 2; ; n++) if (!used.Contains(baseName + n)) return baseName + n;
     }
@@ -87,9 +95,9 @@ public static class ItemCreation
             if (r.firstEffect != null) item.effects.Add((ItemEffect)Activator.CreateInstance(r.firstEffect));
         }
 
-        item.itemName = r.displayName ?? "";
-        if (r.description != null) item.description = r.description;
-        if (r.shopDescription != null) item.shopDescription = r.shopDescription;
+        item.itemName = new LocText { ko = r.displayName ?? "" }; // 키는 비운다 — '번역 표 갱신'이 이 에셋 이름으로 새 키를 붙인다
+        if (r.description != null) item.description = new LocText { ko = r.description };
+        if (r.shopDescription != null) item.shopDescription = new LocText { ko = r.shopDescription };
         item.tier = r.tier;
         item.maxStack = Mathf.Max(1, r.maxStack);
         item.availableAsReward = r.availableAsReward;
@@ -121,7 +129,7 @@ public static class ItemCreation
         var skip = new HashSet<string> { path };
         if (growth != null) skip.Add(AssetDatabase.GetAssetPath(growth));
         if (shop != null) skip.Add(AssetDatabase.GetAssetPath(shop));
-        if (!FindReferences(item, skip, out var assetRefs, out var codeRefs)) return false; // 검사 취소
+        if (!EquipmentAssets.FindReferences(item, skip, out var assetRefs, out var codeRefs)) return false; // 검사 취소
 
         var msg = new StringBuilder();
         msg.AppendLine($"'{item.DisplayName}' ({item.name}) 을(를) 삭제합니다.");
@@ -154,38 +162,6 @@ public static class ItemCreation
         }
         return true;
     }
-
-    /// <summary>
-    /// 이 아이템을 GUID 로 참조하는 에셋/씬/프리팹과, 이름을 문자열로 적은 C# 파일을 찾는다.
-    /// 사용자가 진행 표시줄에서 취소하면 false.
-    /// </summary>
-    public static bool FindReferences(ItemSO item, HashSet<string> skip, out List<string> assetRefs, out List<string> codeRefs)
-    {
-        assetRefs = new List<string>();
-        codeRefs = new List<string>();
-        string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(item));
-        string quoted = "\"" + item.name + "\"";
-        string root = Path.GetDirectoryName(Application.dataPath).Replace('\\', '/') + "/";
-
-        var files = Directory.EnumerateFiles(Application.dataPath, "*.*", SearchOption.AllDirectories)
-            .Where(f => f.EndsWith(".prefab") || f.EndsWith(".unity") || f.EndsWith(".asset") || f.EndsWith(".cs"))
-            .ToList();
-        try
-        {
-            for (int i = 0; i < files.Count; i++)
-            {
-                string rel = files[i].Replace('\\', '/').Replace(root, "");
-                if (i % 40 == 0 && EditorUtility.DisplayCancelableProgressBar("아이템 참조 검사", rel, (float)i / files.Count)) return false;
-                if (skip.Contains(rel)) continue;
-                string text;
-                try { text = File.ReadAllText(files[i]); } catch { continue; }
-                if (rel.EndsWith(".cs")) { if (text.Contains(quoted)) codeRefs.Add(rel); }
-                else if (text.Contains(guid)) assetRefs.Add(rel);
-            }
-        }
-        finally { EditorUtility.ClearProgressBar(); }
-        return true;
-    }
 }
 
 /// <summary>새 아이템 / 아이템 복제 창.</summary>
@@ -194,6 +170,7 @@ public class NewItemPopup : EditorWindow
     private ItemCreation.Request req;
     private Action<ItemSO> onCreated;
     private List<ItemSO> sources;
+    private HashSet<string> usedNames; // 열 때 한 번 만든다 — 이름 칸 검사가 매 프레임 프로젝트를 훑지 않게(만들 때는 Create 가 다시 검사)
     private int mode;          // 0 = 빈 아이템, 1 = 기존 아이템 복사
     private int sourceIndex;
     private int effectIndex;   // 0 = 없음
@@ -205,6 +182,7 @@ public class NewItemPopup : EditorWindow
         w.titleContent = new GUIContent(copyFrom != null ? "아이템 복제" : "새 아이템");
         w.onCreated = onCreated;
         w.sources = ItemCreation.AllItems().OrderBy(i => (int)i.tier).ThenBy(i => i.DisplayName, StringComparer.Ordinal).ToList();
+        w.usedNames = new HashSet<string>(w.sources.Select(i => i.name), StringComparer.OrdinalIgnoreCase);
         w.req = new ItemCreation.Request
         {
             folder = ItemCreation.DefaultFolderOrAssets,
@@ -227,7 +205,7 @@ public class NewItemPopup : EditorWindow
         var src = sources[Mathf.Clamp(sourceIndex, 0, sources.Count - 1)];
         req.folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(src))?.Replace('\\', '/') ?? ItemCreation.DefaultFolderOrAssets;
         req.assetName = ItemCreation.UniqueName(src.name + "Copy");
-        req.displayName = src.DisplayName + " (사본)";
+        req.displayName = (string.IsNullOrEmpty(src.itemName.ko) ? src.name : src.itemName.ko) + " (사본)";
         req.tier = src.tier;
         req.maxStack = src.MaxStack;
         req.availableAsReward = src.availableAsReward;
@@ -256,7 +234,7 @@ public class NewItemPopup : EditorWindow
 
         ItemEditorGUI.Header("이름");
         req.assetName = EditorGUILayout.TextField(new GUIContent("에셋 파일 이름", "세이브와 검증 스크립트가 이 이름으로 아이템을 찾는다. 나중에 바꾸기 어렵다."), req.assetName);
-        string nameError = ItemCreation.ValidateName(req.assetName);
+        string nameError = ItemCreation.ValidateName(req.assetName, usedNames);
         if (nameError != null) EditorGUILayout.HelpBox(nameError, MessageType.Error);
         else if (ItemCreation.NameHint(req.assetName) is string hint) EditorGUILayout.HelpBox(hint, MessageType.Info);
         req.displayName = EditorGUILayout.TextField(new GUIContent("게임 표시 이름"), req.displayName);

@@ -50,7 +50,7 @@ public class ShopPopupSlot : MonoBehaviour
         {
             if (priceText != null) priceText.color = ShopPopupUI.SoldColor;
             if (buyButton != null) buyButton.interactable = false;
-            if (buyLabel != null) buyLabel.text = "판매 완료";
+            if (buyLabel != null) buyLabel.text = Loc.T("ShopPopupSlot.sold_out", "판매 완료");
             if (canvasGroup != null) canvasGroup.alpha = 0.5f;
             return;
         }
@@ -59,7 +59,7 @@ public class ShopPopupSlot : MonoBehaviour
         if (priceText != null) priceText.color = affordable ? ShopPopupUI.GoldColor : ShopPopupUI.PoorColor;
         // 골드가 모자라도 버튼은 눌리게 둔다 — 눌렀을 때 '구매 실패' 소리와 흔들림으로 알려준다.
         if (buyButton != null) buyButton.interactable = true;
-        if (buyLabel != null) buyLabel.text = affordable ? "구매" : "골드 부족";
+        if (buyLabel != null) buyLabel.text = affordable ? Loc.T("ShopPopupSlot.buy", "구매") : Loc.T("ShopPopupSlot.not_enough_gold", "골드 부족");
         if (canvasGroup != null) canvasGroup.alpha = 1f;
     }
 

@@ -132,8 +132,7 @@ public class DialogueUI : Singleton<DialogueUI>
     ///   3명 → 왼쪽, 오른쪽, 가운데 (셋째가 그 사이에 낀다)
     ///
     /// CSV 에서 <c>merchant@가운데</c> 처럼 직접 찍은 칸은 이 순서보다 먼저 예약된다.
-    /// 칸의 실제 x 좌표는 프리팹이 들고 있다 — 바꾸려면 DialogueSetupTools 의 SLOT_X 를 고치고
-    /// 1번 메뉴로 프리팹을 다시 만든다.
+    /// 칸의 실제 x 좌표는 프리팹이 들고 있다 — 바꾸려면 프리팹에서 Slot0_Left / Slot2_Right 앵커를 직접 고친다.
     /// </summary>
     private static readonly int[] AUTO_SLOT_ORDER = { 0, 2, 1 };
 

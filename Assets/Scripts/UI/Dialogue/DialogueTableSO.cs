@@ -126,6 +126,9 @@ public class DialogueTableSO : ScriptableObject
         int cSpeaker = Column(header, "speaker", locale);
         int cName    = Column(header, "name", locale);
         int cText    = Column(header, "text", locale);
+        // 번역 칸(text_en 등)이 비어 있는 줄은 원문(fallbackLocale) 칸으로 채운다 — 번역이 덜 된 줄이 빈 대사로 뜨지 않게.
+        int cNameFb  = Column(header, "name", fallbackLocale);
+        int cTextFb  = Column(header, "text", fallbackLocale);
 
         if (cId < 0 || cText < 0)
         {
@@ -146,8 +149,8 @@ public class DialogueTableSO : ScriptableObject
                 id          = id,
                 cast        = string.IsNullOrEmpty(castRaw) ? null : castRaw.Split('|'),
                 speaker     = Cell(row, cSpeaker),
-                displayName = Cell(row, cName),
-                text        = Cell(row, cText)
+                displayName = CellOr(row, cName, cNameFb),
+                text        = CellOr(row, cText, cTextFb)
             };
 
             // cast 항목 앞뒤 공백은 기획자가 보기 좋으라고 넣는 경우가 많아 여기서 털어둔다.
@@ -226,6 +229,13 @@ public class DialogueTableSO : ScriptableObject
     {
         if (idx < 0 || idx >= row.Length) return "";
         return row[idx].Trim();
+    }
+
+    /// <summary>idx 칸이 비었으면 fallbackIdx 칸을 읽는다.</summary>
+    private static string CellOr(string[] row, int idx, int fallbackIdx)
+    {
+        string v = Cell(row, idx);
+        return v.Length > 0 ? v : Cell(row, fallbackIdx);
     }
 
     // ─── CSV 파서 ────────────────────────────────────────────────────

@@ -426,7 +426,7 @@ public class MeleeCombatController : MonoBehaviour
         box.ContactHitInterval = weapon != null ? weapon.basicRepeatHitInterval : 0f;
         var summonCtrl = _player.GetComponent<PlayerSkillController>();
         float autoMult = summonCtrl != null ? summonCtrl.AutoAttackDamageMultiplier : 1f;
-        var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier * enhanceMult * autoMult, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName) ? $"{main.minionName} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
+        var info = new DamageInfo(_player.Stat.ATK * fin.damageMultiplier * enhanceMult * autoMult, fin.element, _player.gameObject, 1f, !string.IsNullOrEmpty(main.minionName.ko) ? $"{main.minionName.ko} 마무리" : "Finisher", false, causesHitstun: fin.causesHitstun, knockbackForce: fin.knockbackForce, superArmorDamage: fin.superArmorDamage, category: DamageCategory.BasicAttack, applyStatus: fin.onHitStatus == StatusType.None ? (StatusType?)null : fin.onHitStatus); // 소환수 마무리 일격도 평타 갈래
         info.minionSource = caster;
 
         // 판정은 '언제 열지'를 애니메이션이 정한다 — 초로 박지 않는다.

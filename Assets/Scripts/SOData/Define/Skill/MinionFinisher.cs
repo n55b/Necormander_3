@@ -19,9 +19,9 @@ public class MinionFinisher
 {
     [Header("설명(스킬 설명창 V)")]
     [Tooltip("스킬 설명창에 표시할 이름. 비우면 '자동 공격'으로 표시.")]
-    public string uiTitle;
+    public LocText uiTitle;
     [Tooltip("스킬 설명창에 표시할 설명 문구.")]
-    [TextArea] public string uiDescription;
+    public LocText uiDescription;
     [Tooltip("스킬 설명창 아이콘(선택). 비우면 아이콘 숨김.")]
     public Sprite uiIcon;
 
@@ -77,7 +77,7 @@ public class MinionFinisher
     public bool IsValid => hitCount > 0;
 
     public string Describe()
-        => !string.IsNullOrEmpty(uiDescription) ? uiDescription : !IsValid ? "자동 공격 없음"
-            : $"{hitCount}회 타격 · 타격당 피해 배율 {damageMultiplier:0.##}배."
-                + (onHitStatus != StatusType.None ? $" 적중 시 {MinionStandbyInfusion.StatusLabel(onHitStatus)}." : "");
+        => !string.IsNullOrEmpty(uiDescription) ? uiDescription : !IsValid ? Loc.T("MinionFinisher.no_attack", "자동 공격 없음")
+            : Loc.F("MinionFinisher.hits", "{0}회 타격 · 타격당 피해 배율 {1:0.##}배.", hitCount, damageMultiplier)
+                + (onHitStatus != StatusType.None ? Loc.F("MinionFinisher.on_hit_status", " 적중 시 {0}.", MinionStandbyInfusion.StatusLabel(onHitStatus)) : "");
 }

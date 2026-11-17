@@ -24,8 +24,8 @@ using UnityEngine;
 ///     임포터가 그걸 그대로 클립 loop 로 옮긴다.
 ///
 /// [스테이트 이름 규칙]
-/// Idle / Follow / Attack / Skill 은 BaseEntity.UpdateAnimation 이 AIState.ToString() 으로
-/// 직접 Play 하므로 이름이 고정이다. Die 는 MonsterDeathHandler.deathStateName 기본값이다.
+/// Idle / Follow / Attack 은 BaseEntity.UpdateAnimation 이 AIState.ToString() 으로
+/// 직접 Play 하므로 이름이 고정이다(Skill 은 BoneMasterController 가 건너뛴다 — 패턴이 직접 Play). Die 는 MonsterDeathHandler.deathStateName 기본값이다.
 /// 나머지는 두 BoneMaster 패턴 SO 의 animState_* 인스펙터 필드로 지정한다.
 ///
 /// 클립은 .aseprite 서브에셋을 직접 참조한다. 프레임 길이/OnHitEvent를 바꾸면 Setup Boss Prefab으로 시각도 갱신한다.
@@ -51,6 +51,7 @@ public static class BoneMasterAnimSetup
         ("Attack",                  "Attack_Sweep"),  // 공용 폴백. 실제 공격은 아래 전용 스테이트로 재생된다.
         ("Stun",                    "Stun"),
         ("Die",                     "Stun"),          // 사망 아트가 생길 때까지 Stun 대체
+        // Skill 스테이트는 없다 — 패턴 잠금 중 BoneMasterController.UpdateAnimation 이 "Skill" 재생을 건너뛴다.
 
         // --- 페이즈 1 ---
         ("Attack_Prod",             "Attack_Prod"),              // 기본공격: 창 찌르기
@@ -337,17 +338,7 @@ public static class BoneMasterAnimSetup
             {
                 sb.AppendLine($"  SpriteRenderer.sprite: {(sr.sprite != null ? sr.sprite.name : "<없음>")} -> {first.name}");
                 sr.sprite = first;
-                // 이전 아트(폭 122px)용 그림자 크기를 새 Idle(61px)에 맞춘다. 그림자 자체 피벗도 반영.
-                var shadow = root.transform.Find("Shadow");
-                var shadowRenderer = shadow != null ? shadow.GetComponent<SpriteRenderer>() : null;
-                if (shadowRenderer != null && shadowRenderer.sprite != null)
-                {
-                    float scale = first.rect.width / first.pixelsPerUnit;
-                    shadow.localScale = new Vector3(scale, scale, 1f);
-                    var center = shadowRenderer.sprite.bounds.center;
-                    shadow.localPosition = new Vector3(-center.x * scale, -center.y * scale, shadow.localPosition.z);
-                    sb.AppendLine($"  발 Y={sr.bounds.min.y:0.###}, 그림자 중심 Y={shadowRenderer.bounds.center.y:0.###}");
-                }
+                // 그림자 크기/위치는 기획자 값이다. 이전 아트(122px) → 새 Idle(61px) 맞춤은 끝난 이행이라 덮어쓰지 않는다.
             }
 
             var boss = root.GetComponent<BoneMasterController>();
@@ -382,25 +373,8 @@ public static class BoneMasterAnimSetup
             PrefabUtility.UnloadPrefabContents(root);
         }
 
-        // 이름이 바뀐 상태만 이행한다. 디자이너가 조정한 시간/거리 값은 그대로 보존한다.
-        foreach (var guid in AssetDatabase.FindAssets("t:BossAIPatternSO"))
-        {
-            var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(guid));
-            if (asset is BoneMasterAIPatternSO p1)
-            {
-                p1.animState_Jump = "Jump";
-                p1.animState_JumpFall = "Jump_Attack";
-            }
-            else if (asset is BoneMasterPhase2AIPatternSO p2)
-            {
-                p2.animState_Jump = "Jump";
-                p2.animState_JumpFall = "Jump_Attack";
-                p2.animState_Slam = "Jump_Attack";
-                p2.animState_ThrustFollowup = "Attack_Prod_2";
-            }
-            else continue;
-            EditorUtility.SetDirty(asset);
-        }
+        // 브레인 SO 의 animState_* 는 기획자 값이다. 예전 스테이트 이름 이행(Jump/Jump_Attack/Attack_Prod_2)은
+        // 끝났으므로 더는 덮어쓰지 않는다 — 잘못된 이름은 Verify 가 [실패]로 알려준다.
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Emit(sb, "BoneMaster_Prefab.txt");

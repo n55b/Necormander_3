@@ -375,8 +375,8 @@ public static class InventoryUICheck
         var picker = AssetDatabase.LoadAssetAtPath<GameObject>(PickerPath).GetComponent<MainMinionSelectionUI>();
         Check(picker.HoldSeconds(MainMinionSelectionAction.ActionKind.Replace) == 1f, "교체는 1초");
         Check(picker.HoldSeconds(MainMinionSelectionAction.ActionKind.Skip) == 1f, "스킵도 1초");
-        Check(picker.transform.Find("MinionSelection/Skip/Label").GetComponent<TextMeshProUGUI>().text.Contains("1초"), "스킵 문구도 1초");
-        Check(picker.transform.Find("MinionSelection/Replace/Label").GetComponent<TextMeshProUGUI>().text.Contains("1초"), "교체 문구도 1초");
+        Check(picker.transform.Find("MinionSelection/Skip/Label").GetComponent<TextMeshProUGUI>().text.Contains("길게"), "스킵 문구: 길게 누르기 안내");
+        Check(picker.transform.Find("MinionSelection/Replace/Label").GetComponent<TextMeshProUGUI>().text.Contains("길게"), "교체 문구: 길게 누르기 안내");
         float distance = 1.25f;
         Check(Mathf.Approximately(distance, 1.25f), "기본 드랍 거리 1.25");
         var origin = new Vector3(10000, 10000, 0);

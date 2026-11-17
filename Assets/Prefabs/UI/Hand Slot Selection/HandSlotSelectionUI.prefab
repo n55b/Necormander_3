@@ -507,6 +507,7 @@ GameObject:
   - component: {fileID: 8754914932405179073}
   - component: {fileID: 6957548894949841528}
   - component: {fileID: 8231184145385213634}
+  - component: {fileID: 4356879405807555003}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -632,6 +633,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &4356879405807555003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 852980051418703476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: ui.hand_slot_selection.compare
 --- !u!1 &930978697724646480
 GameObject:
   m_ObjectHideFlags: 0
@@ -2248,6 +2262,7 @@ GameObject:
   - component: {fileID: 8812583143303949709}
   - component: {fileID: 2136731111717885783}
   - component: {fileID: 1154974055569443584}
+  - component: {fileID: 5342631976494639655}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -2373,6 +2388,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &5342631976494639655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3672033368352483706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: ui.hand_slot_selection.skip
 --- !u!1 &3883363901962577329
 GameObject:
   m_ObjectHideFlags: 0
@@ -3221,6 +3249,7 @@ GameObject:
   - component: {fileID: 6293053261592097731}
   - component: {fileID: 1407736840461210939}
   - component: {fileID: 6059139326460908343}
+  - component: {fileID: 6308023287624543900}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -3346,6 +3375,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6308023287624543900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5775391911542304687}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: ui.hand_slot_selection.replace
 --- !u!1 &5805888534098665986
 GameObject:
   m_ObjectHideFlags: 0

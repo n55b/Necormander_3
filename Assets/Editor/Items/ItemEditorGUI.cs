@@ -96,10 +96,11 @@ public static class ItemEditorGUI
         Field(so, "tier", "등급", "1이 가장 좋고 4가 가장 흔하다. 가격과 색은 등급에서 자동으로 정해진다.");
         using (new EditorGUILayout.HorizontalScope())
         {
-            EditorGUILayout.PrefixLabel(new GUIContent("가격 · 색 (자동)", "등급별 가격/색은 ItemTierRules 표 한 곳에서 정한다(코드)."));
+            EditorGUILayout.PrefixLabel(new GUIContent("가격 · 색 (자동)",
+                "등급별 가격은 상점 데이터(Shop Registry)에서 정한다 — 아이템 편집기 위쪽 '티어별 가격 · 보상 등장 비중'.\n등급 색은 코드(ItemTierRules)."));
             var r = GUILayoutUtility.GetRect(14, 14, GUILayout.Width(14));
             r.y += 2; EditorGUI.DrawRect(r, item.TierColor);
-            GUILayout.Label($"{item.Price} 골드  ·  {ItemTierRules.Label(item.tier)}");
+            GUILayout.Label($"{PriceText(item)}  ·  {ItemTierRules.Label(item.tier)}");
         }
         Field(so, "maxStack", "최대 보유 수", "같은 아이템을 최대 몇 개까지 가질 수 있는지.");
         Field(so, "availableAsReward", "상점 · 방 보상에 등장", "끄면 무작위 보상/상점에 나오지 않는다(기본 지급 전용 아이템 등).");
@@ -255,8 +256,9 @@ public static class ItemEditorGUI
         {
             EditorGUILayout.LabelField(new GUIContent("표시 문구 (비우면 자동)", displayText.tooltip), compact ? EditorStyles.miniLabel : EditorStyles.label);
             EditorGUI.BeginChangeCheck();
-            string text = EditorGUILayout.TextArea(displayText.stringValue ?? "", WrapArea, GUILayout.MinHeight(compact ? 18 : 34));
-            if (EditorGUI.EndChangeCheck()) displayText.stringValue = text;
+            var ko = displayText.FindPropertyRelative("ko");
+            string text = EditorGUILayout.TextArea(ko.stringValue ?? "", WrapArea, GUILayout.MinHeight(compact ? 18 : 34));
+            if (EditorGUI.EndChangeCheck()) ko.stringValue = text;
         }
     }
 
@@ -357,17 +359,17 @@ public static class ItemEditorGUI
         {
             list.Add("효과가 없습니다. 주머니에 넣어도 아무 일도 일어나지 않습니다.");
             if (item.availableAsReward)
-                list.Add("효과가 없는데 '상점 · 방 보상에 등장'이 켜져 있습니다. 목록에 들어가는 순간('목록 등록', GrowthRegistry 의 '전체 데이터 자동 스캔 및 갱신') " +
+                list.Add("효과가 없는데 '상점 · 방 보상에 등장'이 켜져 있습니다. 목록에 들어가는 순간('목록 등록') " +
                          "빈 아이템이 보상·상점에 나옵니다. 효과를 넣기 전까지는 끄세요.");
             return list;
         }
         if (item.effects.Any(e => e == null)) list.Add("종류가 정해지지 않은 빈 효과 칸이 있습니다.");
 
-        var descNums = new HashSet<string>(Numbers.Matches(item.description ?? "").Cast<Match>()
+        var descNums = new HashSet<string>(Numbers.Matches(item.description.ko ?? "").Cast<Match>()
             .Select(m => Norm(double.Parse(m.Value, CultureInfo.InvariantCulture))));
         // 상점 카드는 shopDescription 이 있으면 그것을 쓴다(ItemSO.ShopBody) — 따로 검사한다.
-        var shopNums = string.IsNullOrEmpty(item.shopDescription) ? null
-            : new HashSet<string>(Numbers.Matches(item.shopDescription).Cast<Match>()
+        var shopNums = string.IsNullOrEmpty(item.shopDescription.ko) ? null
+            : new HashSet<string>(Numbers.Matches(item.shopDescription.ko).Cast<Match>()
                 .Select(m => Norm(double.Parse(m.Value, CultureInfo.InvariantCulture))));
         foreach (var e in item.effects.Where(e => e != null))
         {
@@ -387,7 +389,7 @@ public static class ItemEditorGUI
                     list.Add($"'{s.StatTitle}' 능력치는 게임이 비율만 읽어서 고정치 보정은 적용되지 않습니다. '비율(%) 보정'을 켜세요.");
             }
 
-            if (!string.IsNullOrWhiteSpace(e.displayText))
+            if (!string.IsNullOrWhiteSpace(e.displayText.ko))
                 foreach (Match m in Token.Matches(e.Describe(1)))
                     list.Add($"표시 문구에 알 수 없는 치환어 {m.Value} 가 있습니다. 쓸 수 있는 치환어: {e.TokenHelp}");
         }
@@ -410,6 +412,9 @@ public static class ItemEditorGUI
 
     public static GrowthRegistrySO Growth { get { LoadRegistries(); return growthCache; } }
     public static ShopRegistrySO Shop { get { LoadRegistries(); return shopCache; } }
+
+    /// <summary>상점 구매가 표기. 가격은 상점 데이터의 등급별 가격에서 나온다.</summary>
+    public static string PriceText(ItemSO item) => Shop != null ? $"{Shop.ItemPrice(item.tier)} 골드" : "가격 ? (상점 데이터 없음)";
 
     private static void LoadRegistries()
     {

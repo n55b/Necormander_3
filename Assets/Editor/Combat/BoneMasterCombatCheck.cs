@@ -136,7 +136,10 @@ public static class BoneMasterCombatCheck
             Check(!result.Hijacked && anim.speed == 0f, "내려찍기 즉시 경고 홀드");
             boss.ReleaseAttack();
             var p2 = AssetDatabase.LoadAssetAtPath<BoneMasterPhase2AIPatternSO>(DataPath + "Bone Master Phase 2 AI Pattern.asset");
-            Check(p2.animState_ThrustFollowup == "Attack_Prod_2" && p2.animState_Slam == "Jump_Attack", "2타/내려찍기 클립 연결");
+            // 스테이트 이름은 기획자 값이다 — 특정 이름이 아니라 컨트롤러에 실제로 있는지만 본다(비면 공용 Attack 폴백).
+            foreach (var state in new[] { p2.animState_ThrustFollowup, p2.animState_Slam })
+                Check(anim.HasState(0, Animator.StringToHash(string.IsNullOrWhiteSpace(state) ? "Attack" : state)),
+                    $"2타/내려찍기 스테이트 '{state}' 컨트롤러에 있음");
             Debug.Log("[BoneMasterMotionCheck] PASS — 보스 본체 원색/상시 외곽선 OFF/슈퍼아머 유지/공용 외곽선 유지, 발/그림자 접지, 5종 즉시 경고/타격 해제/이벤트 단발/취소 복원/PPU/후속 연결");
         }
         finally
@@ -168,17 +171,27 @@ public static class BoneMasterCombatCheck
             var p1 = AssetDatabase.LoadAssetAtPath<BoneMasterAIPatternSO>(DataPath + "Bone Master AI Pattern.asset");
             var p2 = AssetDatabase.LoadAssetAtPath<BoneMasterPhase2AIPatternSO>(DataPath + "Bone Master Phase 2 AI Pattern.asset");
             Check(p1 != null && p2 != null, "패턴 SO 연결");
-            Check(Mathf.Approximately(p1.realCounterChance, .3f) && Mathf.Approximately(p2.realCounterChance, .3f)
-                && Mathf.Approximately(p1.fakeCounterChance, .2f) && Mathf.Approximately(p2.fakeCounterChance, .2f), "두 SO 확률 30:20:50");
-            Check(p1.fakeCounterHealPerHit == 5f && p2.fakeCounterHealPerHit == 5f, "두 SO 회복량 5");
-            Check(p2.executionCounterAttempts == 3 && p2.executionLinesPerVolley == 2, "집행 3기회 / 동시 2줄");
+            // 확률/회복량/횟수는 기획자가 조정하는 밸런스 값이다 — 숫자 자체가 아니라 유효 범위만 본다.
+            foreach (var (label, real, fake, heal) in new[]
+                     {
+                         ("1페이즈", p1.realCounterChance, p1.fakeCounterChance, p1.fakeCounterHealPerHit),
+                         ("2페이즈", p2.realCounterChance, p2.fakeCounterChance, p2.fakeCounterHealPerHit),
+                     })
+            {
+                Check(real >= 0f && fake >= 0f && real + fake <= 1.0001f, label + " 진짜/페이크 확률 0~1, 합 1 이하");
+                Check(heal >= 0f, label + " 페이크 회복량 0 이상");
+            }
+            Check(p2.executionCounterAttempts > 0 && p2.executionLinesPerCycle > 0 && p2.executionLinesPerVolley > 0, "집행 기회/선 횟수/동시 줄 1 이상");
 
             UnityEngine.Random.InitState(907);
             int[] counts = new int[3];
             for (int i = 0; i < 10000; i++)
                 counts[(int)BossCounterTelegraph.Roll(true, p1.realCounterChance, p1.fakeCounterChance)]++;
-            Check(Mathf.Abs(counts[0] - 5000) < 250 && Mathf.Abs(counts[1] - 3000) < 250
-                && Mathf.Abs(counts[2] - 2000) < 250, "독립 추첨 분포");
+            // 기대 분포도 SO 값에서 계산한다(Roll 과 같은 클램프).
+            float realP = Mathf.Clamp01(p1.realCounterChance);
+            float fakeP = Mathf.Clamp(p1.fakeCounterChance, 0f, 1f - realP);
+            Check(Mathf.Abs(counts[0] - 10000f * (1f - realP - fakeP)) < 250 && Mathf.Abs(counts[1] - 10000f * realP) < 250
+                && Mathf.Abs(counts[2] - 10000f * fakeP) < 250, "독립 추첨 분포");
             Check(BossCounterTelegraph.Roll(false, 1f, 1f) == BossCounterTelegraph.Kind.None, "카운터 없는 후속타");
 
             var go = new GameObject("BoneMasterCombatCheck");
@@ -259,7 +272,7 @@ public static class BoneMasterCombatCheck
             // 실제 ExecutionRoutine의 종료 조건을 검사하므로 성공 수 while로 되돌리면 실패한다.
             CheckExecution(phase2, boss, false);
             CheckExecution(phase2, boss, true);
-            Debug.Log($"[BoneMasterCombatCheck] PASS — 3회 종료(전부 실패/성공), 빨강 다단회복/타이밍/종료, 회색, 노랑, 은신. 추첨 회색/노랑/빨강={counts[0]}/{counts[1]}/{counts[2]}");
+            Debug.Log($"[BoneMasterCombatCheck] PASS — 집행 횟수대로 종료(전부 실패/성공), 빨강 다단회복/타이밍/종료, 회색, 노랑, 은신. 추첨 회색/노랑/빨강={counts[0]}/{counts[1]}/{counts[2]}");
         }
         finally
         {
@@ -286,7 +299,7 @@ public static class BoneMasterCombatCheck
         bool ended = false;
         try
         {
-            for (int budget = 0; budget < 100; budget++)
+            for (int budget = 0; budget < 1000; budget++) // 기회/줄 수를 늘려도 끝까지 돌 만큼. 끝나면 바로 빠진다.
             {
                 if (!routine.MoveNext()) { ended = true; break; }
                 if (!(routine.Current is IEnumerator nested)) continue;
@@ -296,8 +309,9 @@ public static class BoneMasterCombatCheck
                 var result = (BossCounterTelegraph.Result)nested.GetType().GetField("res", Private | BindingFlags.Public).GetValue(nested);
                 result.Countered = success;
             }
-            Check(ended && attempts == 3 && volleys == 3 * phase2.executionLinesPerCycle,
-                $"집행 {(success ? "전부 성공" : "전부 실패")}해도 정확히 3회 종료");
+            int expected = Mathf.Max(1, phase2.executionCounterAttempts);
+            Check(ended && attempts == expected && volleys == expected * Mathf.Max(1, phase2.executionLinesPerCycle),
+                $"집행 {(success ? "전부 성공" : "전부 실패")}해도 정확히 {expected}회 종료");
         }
         finally { (routine as IDisposable)?.Dispose(); }
     }

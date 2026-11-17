@@ -203,8 +203,21 @@ public static class HaeTaeAnimSetup
 
         var sm = controller.layers[0].stateMachine;
 
-        // 기존 스테이트 전부 제거 후 재구성 (재실행 가능하도록)
-        foreach (var s in new List<ChildAnimatorState>(sm.states)) sm.RemoveState(s.state);
+        // 같은 이름 스테이트는 그대로 두고 모션만 바꾼다 — 기획자가 손본 속도/트랜지션이 재실행에 날아가지 않게.
+        // 새 아트에 없는 레거시 스테이트만 지운다. (BoneMasterAnimSetup.Build 와 같은 방식)
+        var existing = new Dictionary<string, AnimatorState>();
+        foreach (var s in sm.states) existing[s.state.name] = s.state;
+        foreach (var s in new List<ChildAnimatorState>(sm.states))
+            if (s.state.name != "Die" && !System.Array.Exists(StateMap, pair => pair.state == s.state.name)) sm.RemoveState(s.state);
+
+        // 처음 만드는 스테이트만 기본값을 준다.
+        AnimatorState GetOrAdd(string stateKey, ref int nextRow)
+        {
+            if (existing.TryGetValue(stateKey, out var saved)) return saved;
+            var added = sm.AddState(stateKey, new Vector3(280f, 60f * nextRow++, 0f));
+            added.writeDefaultValues = false; // 알파 페이드가 끝난 뒤 다른 스테이트로 값이 새지 않도록
+            return added;
+        }
 
         var sb = new StringBuilder();
         sb.AppendLine("=== HaeTae Animator 생성 ===");
@@ -221,9 +234,8 @@ public static class HaeTaeAnimSetup
                 continue;
             }
 
-            var st = sm.AddState(stateName, new Vector3(280f, 60f * row++, 0f));
+            var st = GetOrAdd(stateName, ref row);
             st.motion = clip;
-            st.writeDefaultValues = false; // 알파 페이드가 끝난 뒤 다른 스테이트로 값이 새지 않도록
             if (stateName == "Idle") idleState = st;
 
             sb.AppendLine($"  {stateName,-14} <- {tag,-14} ({clip.length:0.###}s, loop={clip.isLooping})");
@@ -232,9 +244,8 @@ public static class HaeTaeAnimSetup
         // Die 는 태그가 아니라 직접 만든 클립
         if (dieClip != null)
         {
-            var dieState = sm.AddState("Die", new Vector3(280f, 60f * row++, 0f));
+            var dieState = GetOrAdd("Die", ref row);
             dieState.motion = dieClip;
-            dieState.writeDefaultValues = false;
             sb.AppendLine(dieTag != null
                 ? $"  {"Die",-14} <- {dieTag,-14} ({dieClip.length:0.###}s, 진짜 사망 태그)"
                 : $"  {"Die",-14} <- {"(대체 생성)",-14} ({dieClip.length:0.###}s, Stun 프레임 + 페이드아웃)");
@@ -312,8 +323,9 @@ public static class HaeTaeAnimSetup
                            AssetDatabase.GetAssetPath(sr.sprite) == AsepritePath;
             Check(fromAse, $"프리팹 스프라이트가 해태 aseprite 출신 (실제: {(sr?.sprite != null ? sr.sprite.name : "<none>")})");
 
-            Check(Mathf.Approximately(elite.transform.localScale.x, RootScale),
-                  $"루트 스케일 == {RootScale} (실제: {elite.transform.localScale.x})");
+            // 크기/높이 값(루트 스케일, Canvas, 인디케이터, 플로팅 텍스트)은 기획자가 조정한다 —
+            // 특정 숫자가 아니라 구조(있음, 0 이 아님)만 본다. 아래 그림자/콜라이더는 숫자가 아니라 관계 규칙이다.
+            Check(elite.transform.localScale.x > 0f, $"루트 스케일 > 0 (실제: {elite.transform.localScale.x})");
 
             // 그림자: Shadow.aseprite 는 자기 피벗이 타원보다 11px 아래라, 형제 프리팹 전부
             // y = -0.5 × scale 로 상쇄한다. 이걸 어기면 그림자가 몸통 한가운데로 떠오른다.
@@ -322,11 +334,10 @@ public static class HaeTaeAnimSetup
                   $"그림자 y == -0.5 × scale (피벗 보정) " +
                   $"(실제 y={shadow?.localPosition.y}, scale={shadow?.localScale.x}, 기대={(shadow != null ? ShadowPivotCompensation * shadow.localScale.x : 0f)})");
 
-            // 머리 위 UI: 이 프로젝트 모든 적이 Canvas 월드 스케일 1.0 이다.
+            // 머리 위 UI (HP바/디버프 아이콘)
             var canvas = elite.transform.Find("Canvas");
             float canvasWorld = canvas != null ? canvas.localScale.x * elite.transform.localScale.x : 0f;
-            Check(canvas != null && Mathf.Approximately(canvasWorld, 1f),
-                  $"Canvas 월드 스케일 == 1.0 (다른 적들과 동일) (실제: {canvasWorld})");
+            Check(canvas != null && canvasWorld > 0f, $"머리 위 Canvas 있음, 스케일 > 0 (실제 월드 스케일: {canvasWorld})");
 
             // 콜라이더: 원이 지면에 접해야 한다(offset.y == radius). 일반 몹 6종의 규칙.
             var col2 = elite.GetComponent<CircleCollider2D>();
@@ -337,13 +348,12 @@ public static class HaeTaeAnimSetup
             if (ind != null)
             {
                 float iv = new SerializedObject(ind).FindProperty("indicatorScale").floatValue;
-                Check(Mathf.Approximately(iv, IndicatorScale),
-                      $"방향 인디케이터 indicatorScale == {IndicatorScale} (교체 전 월드 크기 보존) (실제: {iv})");
+                Check(iv > 0f, $"방향 인디케이터 indicatorScale > 0 (실제: {iv})");
             }
 
             var vf = elite.transform.Find("vec_float");
-            Check(vf != null && Mathf.Approximately(vf.localPosition.y * elite.transform.localScale.y, FloatTextWorldY),
-                  $"플로팅 텍스트 월드 y == {FloatTextWorldY} (실제: {(vf != null ? vf.localPosition.y * elite.transform.localScale.y : 0f)})");
+            Check(vf != null && vf.localPosition.y > 0f,
+                  $"플로팅 텍스트 앵커 vec_float 가 발밑보다 위 (실제 로컬 y: {(vf != null ? vf.localPosition.y : 0f)})");
 
             if (sr != null && sr.sprite != null)
                 sb.AppendLine($"  스프라이트 bounds: {sr.sprite.bounds} (발밑=0 이면 center.y>0)");
@@ -370,8 +380,7 @@ public static class HaeTaeAnimSetup
                 ("패턴3 충격파",     so.animState_Slam,        so.slamPreCastDelay,    true),
             };
             sb.AppendLine($"    matchAnimSpeedToWindup = {so.matchAnimSpeedToWindup}");
-            Check(Mathf.Approximately(so.patternLabelOffset.y * RootScale, PatternLabelWorldY),
-                  $"patternLabelOffset 월드 y == {PatternLabelWorldY} (실제: {so.patternLabelOffset.y * RootScale})");
+            sb.AppendLine($"    patternLabelOffset = {so.patternLabelOffset} (기획자 값, 검사 안 함)");
             foreach (var (label, state, windup, speedMatched) in pairs)
             {
                 bool exists = !string.IsNullOrWhiteSpace(state) && states.ContainsKey(state);
@@ -437,48 +446,18 @@ public static class HaeTaeAnimSetup
     }
 
     // ==========================================================================
-    // Charger Elite 프리팹을 해태로 교체
+    // Charger Elite 프리팹 — 스프라이트/컨트롤러만 다시 물린다 (아트 재익스포트 후 재실행용)
     // ==========================================================================
-    // --------------------------------------------------------------------------
-    // [26/08/17 수정] 아래 값들은 처음에 "피벗이 중앙 -> 발밑으로 바뀌었다"는 잘못된 전제로 잡았다가
-    // 전부 다시 계산한 것이다. 실제로는 교체 전 몸통 스프라이트(Enemy_06_DashDoll_64px)도
-    // 이미 alignment 7(BottomCenter) = 발밑 피벗이었다(32개 중 31개). 즉 몸통 원점은 원래부터 발밑이었고,
-    // 이번에 바뀐 건 '루트 스케일 2 -> 1' 하나뿐이다. 그래서 기준은 "월드 크기/위치를 그대로 보존"이다.
-    // --------------------------------------------------------------------------
-
-    /// <summary>루트 스케일. 해태는 그림 자체가 크게 그려져 있어서(idle 119px ≒ 3.72u) 1이면 충분하다.</summary>
-    private const float RootScale = 1f;
-
-    /// <summary>몸통 콜라이더 반경. 기존 실효값(0.5 × 루트스케일 2 = 1.0)을 유지한다.</summary>
-    private const float ColliderRadius = 1.0f;
+    // [26/11] 예전엔 여기서 루트 스케일(2 -> 1)·콜라이더·그림자·Canvas·vec_float·인디케이터·패턴 라벨 높이까지
+    // 고정값으로 매번 덮어썼다. 그 스케일/오프셋 이행은 끝났고 지금 값은 기획자 값이라 더는 건드리지 않는다.
 
     /// <summary>
-    /// 그림자 로컬 y = 이 값 × 그림자 스케일.
+    /// 그림자 로컬 y = 이 값 × 그림자 스케일. (Verify 의 관계 규칙)
     /// Shadow.aseprite 는 자기 피벗이 타원보다 11px 아래에 있어서(pivot y -1.2222 × 9px) 스프라이트가
     /// 자기 원점보다 위에 그려진다. 형제 프리팹들이 전부 y = -0.5 × scale 로 이걸 상쇄한다
     /// (Dash_Doll -0.5/1, LionMask -1/2, Lion·Mask·Melee·Range·Necromancer -0.5/1).
     /// </summary>
     private const float ShadowPivotCompensation = -0.5f;
-
-    /// <summary>
-    /// 머리 위 UI(Canvas)의 로컬 스케일. 이 프로젝트의 모든 적은 Canvas 월드 스케일이 1.0 이다
-    /// (엘리트: 루트 2 × 캔버스 0.5, 일반 몹: 루트 1 × 캔버스 1). 루트를 1로 내렸으므로 1.0 으로 올려야
-    /// HP바/디버프 아이콘이 다른 적들과 같은 크기로 보인다.
-    /// </summary>
-    private const float CanvasLocalScale = 1.0f;
-
-    /// <summary>플로팅 데미지 텍스트 앵커의 월드 높이. 교체 전 값(로컬 1.25 × 루트 2)을 그대로 보존한다.</summary>
-    private const float FloatTextWorldY = 2.5f;
-
-    /// <summary>
-    /// 방향 인디케이터 크기. 자식 localScale 은 EntityDirectionIndicator.ApplyScale() 이 매번
-    /// indicatorScale 로 덮어쓰므로 트랜스폼이 아니라 이 필드를 고쳐야 한다.
-    /// 교체 전 월드 크기(루트 2 × indicatorScale 1 = 2)를 보존한다.
-    /// </summary>
-    private const float IndicatorScale = 2.0f;
-
-    /// <summary>보스 머리 위 패턴 이름 라벨의 월드 높이. 교체 전 값(로컬 1.3 × 루트 2)을 보존한다.</summary>
-    private const float PatternLabelWorldY = 2.6f;
 
     [MenuItem("Tools/HaeTae/Setup Charger Elite Prefab")]
     public static void SetupPrefab()
@@ -534,11 +513,6 @@ public static class HaeTaeAnimSetup
             void Log(string what, object before, object after) =>
                 sb.AppendLine($"  {what,-34} {before}  ->  {after}");
 
-            // --- 루트 스케일 ---
-            var rt = root.transform;
-            Log("root.localScale", rt.localScale, Vector3.one * RootScale);
-            rt.localScale = Vector3.one * RootScale;
-
             // --- 스프라이트 / 컨트롤러 ---
             var sr = root.GetComponent<SpriteRenderer>();
             if (sr != null)
@@ -553,69 +527,6 @@ public static class HaeTaeAnimSetup
                 Log("Animator.controller",
                     an.runtimeAnimatorController != null ? an.runtimeAnimatorController.name : "<none>", controller.name);
                 an.runtimeAnimatorController = controller;
-            }
-
-            // --- 콜라이더 ---
-            var col = root.GetComponent<CircleCollider2D>();
-            if (col != null)
-            {
-                Log("CircleCollider2D.radius", col.radius, ColliderRadius);
-                col.radius = ColliderRadius;
-                // 원이 지면에 접하도록 올린다(offset.y == radius). 일반 몹 6종이 전부 이 규칙이다
-                // (Dash_Doll 0.5/0.5, Lion 0.4/0.4, Mask 0.4/0.4, Melee·Range·Necromancer 0.5/0.5).
-                var off = new Vector2(0f, ColliderRadius);
-                Log("CircleCollider2D.offset", col.offset, off);
-                col.offset = off;
-            }
-
-            // --- 그림자: 스프라이트 자체 피벗 보정이 필요하다 (y = -0.5 × scale) ---
-            var shadow = rt.Find("Shadow");
-            if (shadow != null)
-            {
-                // 타원 폭은 몸통 폭의 62.5% 가 되도록. (그림자 스프라이트는 20x9px = 0.625 x 0.28u 이므로
-                // scale = spriteWidth 를 주면 타원 실폭이 spriteWidth × 0.625 가 된다 — 교체 전 비율과 같다.)
-                var s = new Vector3(spriteWidth, spriteWidth, 1f);
-                Log("Shadow.localScale", shadow.localScale, s);
-                shadow.localScale = s;
-
-                var sp = new Vector3(0f, ShadowPivotCompensation * spriteWidth, 0f);
-                Log("Shadow.localPosition", shadow.localPosition, sp);
-                shadow.localPosition = sp;
-            }
-
-            // --- 머리 위 UI (WorldHPBar 는 위치를 안 건드린다 = 수동 배치) ---
-            var canvas = rt.Find("Canvas");
-            if (canvas != null)
-            {
-                // 루트가 2 -> 1 이 되면서 월드 스케일이 0.5 로 반토막 났다. 다른 적들과 똑같이 1.0 으로 되돌린다.
-                var cs = new Vector3(CanvasLocalScale, CanvasLocalScale, CanvasLocalScale);
-                Log("Canvas.localScale", canvas.localScale, cs);
-                canvas.localScale = cs;
-
-                // 위치는 건드리지 않는다 — 다른 엘리트들과 동일하게 로컬 0 이면 HP바가 월드 0.75 에 온다.
-                Log("Canvas.localPosition", canvas.localPosition, Vector3.zero);
-                canvas.localPosition = Vector3.zero;
-            }
-            var vecFloat = rt.Find("vec_float");
-            if (vecFloat != null)
-            {
-                var fp = new Vector3(0f, FloatTextWorldY / RootScale, 0f);
-                Log("vec_float.localPosition", vecFloat.localPosition, fp);
-                vecFloat.localPosition = fp;
-            }
-
-            // --- 방향 인디케이터: 트랜스폼이 아니라 컴포넌트 필드를 고쳐야 한다 ---
-            var indicator = root.GetComponentInChildren<EntityDirectionIndicator>(true);
-            if (indicator != null)
-            {
-                var so = new SerializedObject(indicator);
-                var prop = so.FindProperty("indicatorScale");
-                if (prop != null)
-                {
-                    Log("EntityDirectionIndicator.indicatorScale", prop.floatValue, IndicatorScale);
-                    prop.floatValue = IndicatorScale;
-                    so.ApplyModifiedPropertiesWithoutUndo();
-                }
             }
 
             PrefabUtility.SaveAsPrefabAsset(root, ElitePrefabPath);
@@ -652,31 +563,6 @@ public static class HaeTaeAnimSetup
         }
         sb.AppendLine($"  최종 sprite = {(savedSr != null && savedSr.sprite != null ? savedSr.sprite.name : "<none>")} " +
                       $"(기대: {idleSprite.name})");
-
-        // --- 패턴 이름 라벨 높이 (SO 에 있다) ---
-        // CreatePatternLabel 이 라벨을 entity.transform 자식으로 붙이고 localPosition = patternLabelOffset 을
-        // 주므로, 루트 스케일이 2 -> 1 이 되면 라벨 높이도 그대로 반토막 난다. 월드 높이를 보존한다.
-        sb.AppendLine();
-        foreach (var guid in AssetDatabase.FindAssets("t:EliteChargerAIPatternSO"))
-        {
-            string p = AssetDatabase.GUIDToAssetPath(guid);
-            var pattern = AssetDatabase.LoadAssetAtPath<EliteChargerAIPatternSO>(p);
-            if (pattern == null) continue;
-
-            float want = PatternLabelWorldY / RootScale;
-            if (!Mathf.Approximately(pattern.patternLabelOffset.y, want))
-            {
-                var pso = new SerializedObject(pattern);
-                var prop = pso.FindProperty("patternLabelOffset");
-                sb.AppendLine($"  {p}");
-                sb.AppendLine($"    patternLabelOffset.y  {pattern.patternLabelOffset.y}  ->  {want}");
-                prop.vector3Value = new Vector3(pattern.patternLabelOffset.x, want, pattern.patternLabelOffset.z);
-                pso.ApplyModifiedPropertiesWithoutUndo();
-                EditorUtility.SetDirty(pattern);
-            }
-            else sb.AppendLine($"  {p}\n    patternLabelOffset.y 이미 {want} — 변경 없음");
-        }
-        AssetDatabase.SaveAssets();
 
         Emit(sb, "HaeTae_Prefab.txt");
     }

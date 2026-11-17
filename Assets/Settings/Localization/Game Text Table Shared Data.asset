@@ -1,0 +1,1396 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Game Text Table Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: Game Text Table
+  m_TableCollectionNameGuidString: 9e0b51c38c1c45e1b73a50c12e882dbb
+  m_Entries:
+  - m_Id: 47607898411052
+    m_Key: treasure.minion_stat_treasure.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411053
+    m_Key: treasure.minion_stat_treasure.desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411054
+    m_Key: ActiveAugment.item_partial
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411055
+    m_Key: AugmentTable.penalties[0].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411056
+    m_Key: AugmentTable.penalties[0].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411057
+    m_Key: AugmentTable.penalties[10].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411058
+    m_Key: AugmentTable.penalties[10].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411059
+    m_Key: AugmentTable.penalties[11].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411060
+    m_Key: AugmentTable.penalties[11].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411061
+    m_Key: AugmentTable.penalties[12].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411062
+    m_Key: AugmentTable.penalties[12].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411063
+    m_Key: AugmentTable.penalties[13].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411064
+    m_Key: AugmentTable.penalties[13].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411065
+    m_Key: AugmentTable.penalties[14].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411066
+    m_Key: AugmentTable.penalties[14].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411067
+    m_Key: AugmentTable.penalties[15].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411068
+    m_Key: AugmentTable.penalties[15].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411069
+    m_Key: AugmentTable.penalties[16].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411070
+    m_Key: AugmentTable.penalties[16].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411071
+    m_Key: AugmentTable.penalties[1].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411072
+    m_Key: AugmentTable.penalties[1].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411073
+    m_Key: AugmentTable.penalties[2].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411074
+    m_Key: AugmentTable.penalties[2].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411075
+    m_Key: AugmentTable.penalties[3].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411076
+    m_Key: AugmentTable.penalties[3].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411077
+    m_Key: AugmentTable.penalties[4].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411078
+    m_Key: AugmentTable.penalties[4].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411079
+    m_Key: AugmentTable.penalties[5].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411080
+    m_Key: AugmentTable.penalties[5].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411081
+    m_Key: AugmentTable.penalties[6].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411082
+    m_Key: AugmentTable.penalties[6].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411083
+    m_Key: AugmentTable.penalties[7].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411084
+    m_Key: AugmentTable.penalties[7].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411085
+    m_Key: AugmentTable.penalties[8].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411086
+    m_Key: AugmentTable.penalties[8].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411087
+    m_Key: AugmentTable.penalties[9].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411088
+    m_Key: AugmentTable.penalties[9].flavor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411089
+    m_Key: AugmentTableSO.penalty_attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411090
+    m_Key: AugmentTableSO.penalty_damage_taken
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411091
+    m_Key: AugmentTableSO.penalty_dash_cooldown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411092
+    m_Key: AugmentTableSO.penalty_enemy_attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411093
+    m_Key: AugmentTableSO.penalty_enemy_count_early
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411094
+    m_Key: AugmentTableSO.penalty_enemy_count_per_wave
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411095
+    m_Key: AugmentTableSO.penalty_enemy_hp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411096
+    m_Key: AugmentTableSO.penalty_minion_cooldown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411097
+    m_Key: AugmentTableSO.penalty_move_speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411098
+    m_Key: AugmentTableSO.reward_gold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411099
+    m_Key: AugmentTableSO.reward_heal_percent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411100
+    m_Key: AugmentTableSO.reward_item
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411101
+    m_Key: AugmentTableSO.reward_item_high_tier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411102
+    m_Key: AugmentTableSO.reward_max_hp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411103
+    m_Key: AugmentTableSO.reward_normal_room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411104
+    m_Key: AugmentTableSO.skip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411105
+    m_Key: AugmentTableSO.tier_p0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411106
+    m_Key: AugmentTableSO.tier_p1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411107
+    m_Key: AugmentTableSO.tier_p2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411108
+    m_Key: AugmentTableSO.tier_p3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411109
+    m_Key: Bone Master Data.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411110
+    m_Key: Bone Master Phase 2 Data.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411111
+    m_Key: BoneMasterAIPatternSO.basic_leap_locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411112
+    m_Key: BoneMasterAIPatternSO.basic_leap_slam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411113
+    m_Key: BoneMasterAIPatternSO.chase
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411114
+    m_Key: BoneMasterAIPatternSO.counter_success
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411115
+    m_Key: BoneMasterAIPatternSO.leap_slam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411116
+    m_Key: BoneMasterAIPatternSO.stab
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411117
+    m_Key: BoneMasterAIPatternSO.sweep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411118
+    m_Key: BoneMasterController.breastplate_break
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411119
+    m_Key: BoneMasterController.chase
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411120
+    m_Key: BoneMasterController.helmet_break
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411121
+    m_Key: BoneMasterController.pauldron_break
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411122
+    m_Key: BoneMasterPhase2AIPatternSO.basic_leap_locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411123
+    m_Key: BoneMasterPhase2AIPatternSO.basic_leap_slam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411124
+    m_Key: BoneMasterPhase2AIPatternSO.chase
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411125
+    m_Key: BoneMasterPhase2AIPatternSO.counter_success
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411126
+    m_Key: BoneMasterPhase2AIPatternSO.execution_end
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411127
+    m_Key: BoneMasterPhase2AIPatternSO.execution_stab
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411128
+    m_Key: BoneMasterPhase2AIPatternSO.execution_sweep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411129
+    m_Key: BoneMasterPhase2AIPatternSO.leap_slam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411130
+    m_Key: BoneMasterPhase2AIPatternSO.pauldron_stab
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411131
+    m_Key: BoneMasterPhase2AIPatternSO.pauldron_stab_final
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411132
+    m_Key: BoneMasterPhase2AIPatternSO.slam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411133
+    m_Key: BoneMasterPhase2AIPatternSO.sweep_slam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411134
+    m_Key: Champion Minion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411135
+    m_Key: Champion Minion.rewardItemData.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411136
+    m_Key: Charger Elite Data.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411137
+    m_Key: ChargerElitePattern.label_NormalCharge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411138
+    m_Key: ChargerElitePattern.label_Pattern1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411139
+    m_Key: ChargerElitePattern.label_Pattern1Windup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411140
+    m_Key: ChargerElitePattern.label_Pattern3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411141
+    m_Key: ChargerElitePattern.label_Pattern3Windup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411142
+    m_Key: ChargerElitePattern.label_Stab
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411143
+    m_Key: ChargerElitePattern.label_Sweep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411144
+    m_Key: ClothArmor.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411145
+    m_Key: ClothArmor.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411146
+    m_Key: CrackedWhetstone.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411147
+    m_Key: CrackedWhetstone.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411148
+    m_Key: DashDoll Minion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411149
+    m_Key: DashDoll_Active.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411150
+    m_Key: DashDoll_Active.skillName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411151
+    m_Key: DialogueCast.entries[0].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411152
+    m_Key: DialogueCast.entries[1].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411153
+    m_Key: DialogueCast.entries[2].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411154
+    m_Key: DialogueCast.entries[3].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411155
+    m_Key: DialogueCast.entries[4].displayName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411156
+    m_Key: Enemy Charger Minion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411157
+    m_Key: Enemy Homing Magician Minion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411158
+    m_Key: Enemy Magician Minion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411159
+    m_Key: Enemy Scarecrow.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411160
+    m_Key: Enemy Small Lion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411161
+    m_Key: Enemy Small Mask.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411162
+    m_Key: EnhanceShopNPC.cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411163
+    m_Key: EnhanceShopNPC.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411164
+    m_Key: EnhanceShopNPC.max_equipment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411165
+    m_Key: EnhanceShopNPC.no_equipment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411166
+    m_Key: EnhanceShopNPC.not_enough_gold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411167
+    m_Key: EnhanceShopNPC.once_per_shop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411168
+    m_Key: EnhanceShopNPC.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411169
+    m_Key: EnhanceShopNPC.unlimited
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411170
+    m_Key: Fighter Minion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411171
+    m_Key: Fighter Minion.rewardItemData.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411172
+    m_Key: GaleDashLeap.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411173
+    m_Key: GaleDashLeap.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411174
+    m_Key: GaleDashRecovery.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411175
+    m_Key: GaleDashRecovery.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411176
+    m_Key: GameOverManager.game_clear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411177
+    m_Key: Gauntlet.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411178
+    m_Key: Gauntlet.equipmentName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411179
+    m_Key: GroundItem.disassembling
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411180
+    m_Key: GroundItem.heal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411181
+    m_Key: GroundItem.max_stack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411182
+    m_Key: HealingCharm.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411183
+    m_Key: HealingCharm.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411184
+    m_Key: HermesContract.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411185
+    m_Key: HermesContract.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411186
+    m_Key: IceMage Minion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411187
+    m_Key: IceMage_Active.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411188
+    m_Key: IceMage_Active.skillName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411189
+    m_Key: ItemEffect.crit_chance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411190
+    m_Key: ItemEffect.crit_damage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411191
+    m_Key: ItemEffect.crit_overflow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411192
+    m_Key: ItemEffect.dash_charge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411193
+    m_Key: ItemEffect.dash_distance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411194
+    m_Key: ItemEffect.dash_recharge_speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411195
+    m_Key: ItemEffect.defense
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411196
+    m_Key: ItemEffect.evasion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411197
+    m_Key: ItemEffect.max_health
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411198
+    m_Key: ItemEffect.move_speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411199
+    m_Key: ItemEffect.room_clear_heal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411200
+    m_Key: ItemEffect.room_entry_shield
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411201
+    m_Key: ItemSO.tier_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411202
+    m_Key: KeywordTooltipController.keyword
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411203
+    m_Key: Knight Minion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411204
+    m_Key: Knight Minion.rewardItemData.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411205
+    m_Key: LightBoots.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411206
+    m_Key: LightBoots.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411207
+    m_Key: MainMinionSelectionUI.already_equipped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411208
+    m_Key: MainMinionSelectionUI.auto_attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411209
+    m_Key: MainMinionSelectionUI.click_to_take
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411210
+    m_Key: MainMinionSelectionUI.dash_attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411211
+    m_Key: MainMinionSelectionUI.replace_candidate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411212
+    m_Key: MainMinionSelectionUI.replace_target
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411213
+    m_Key: MainMinionSelectionUI.right_click
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411214
+    m_Key: MainMinionSelectionUI.skill_instead
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411215
+    m_Key: MainMinionSelectionUI.space_swap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411216
+    m_Key: Marionette.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411217
+    m_Key: Marionette.equipmentName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411218
+    m_Key: MeleeDoll_Active.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411219
+    m_Key: MeleeDoll_Active.skillName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411220
+    m_Key: MeleeDoll_Breaker_Active.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411221
+    m_Key: MeleeDoll_Breaker_Active.skillName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411222
+    m_Key: MeleeDoll_Whirlwind_Active.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411223
+    m_Key: MeleeDoll_Whirlwind_Active.skillName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411224
+    m_Key: MinionDashModifier.hits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411225
+    m_Key: MinionDashModifier.no_attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411226
+    m_Key: MinionDashModifier.on_hit_status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411227
+    m_Key: MinionDashModifier.origin
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411228
+    m_Key: MinionDashModifier.path
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411229
+    m_Key: MinionEnhance.max_level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411230
+    m_Key: MinionEnhance.next
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411231
+    m_Key: MinionFinisher.hits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411232
+    m_Key: MinionFinisher.no_attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411233
+    m_Key: MinionFinisher.on_hit_status
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411234
+    m_Key: MinionSelectNPC.acquired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411235
+    m_Key: MinionSelectNPC.equipped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411236
+    m_Key: MinionStandbyInfusion.basic_attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411237
+    m_Key: MinionStandbyInfusion.bleed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411238
+    m_Key: MinionStandbyInfusion.blood_pop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411239
+    m_Key: MinionStandbyInfusion.duration
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411240
+    m_Key: MinionStandbyInfusion.final_swing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411241
+    m_Key: MinionStandbyInfusion.freeze
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411242
+    m_Key: MinionStandbyInfusion.hitstun
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411243
+    m_Key: MinionStandbyInfusion.no_standby
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411244
+    m_Key: MinionStandbyInfusion.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411245
+    m_Key: MinionStandbyInfusion.poison
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411246
+    m_Key: MinionStandbyInfusion.short
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411247
+    m_Key: MinionStandbyInfusion.standby
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411248
+    m_Key: MinionStandbyInfusion.stun
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411249
+    m_Key: MinionStandbyInfusion.vulnerable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411250
+    m_Key: Monster Doll Melee.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411251
+    m_Key: Monster Doll Range.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411252
+    m_Key: Monster LionMask.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411253
+    m_Key: PlayerStateUI.right_click
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411254
+    m_Key: PlayerStateUI.standby
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411255
+    m_Key: PlayerStateUI.swap_cooldown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411256
+    m_Key: PlayerStateUI.swap_ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411257
+    m_Key: PlayerStateUI.swap_unavailable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411258
+    m_Key: PortableShield.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411259
+    m_Key: PortableShield.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411260
+    m_Key: PouchUI.empty_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411261
+    m_Key: PouchUI.max_stack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411262
+    m_Key: PouchUI.next_effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411263
+    m_Key: PouchUI.per_copy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411264
+    m_Key: PouchUI.select_item
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411265
+    m_Key: PouchUI.stack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411266
+    m_Key: PouchUI.tier_count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411267
+    m_Key: PouchUI.total_effect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411268
+    m_Key: PouchUI.totals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411269
+    m_Key: RewardManager.evolved
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411270
+    m_Key: RewardManager.minion_enhanced
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411271
+    m_Key: RewardProcessor.enhance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411272
+    m_Key: RewardProcessor.evolve
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411273
+    m_Key: RewardProcessor.no_more_equipment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411274
+    m_Key: RewardProcessor.no_more_minion_rewards
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411275
+    m_Key: RewardProcessor.no_more_rewards
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411276
+    m_Key: RewardProcessor.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411277
+    m_Key: SceneLoader.loading
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411278
+    m_Key: SceneLoader.loading_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411279
+    m_Key: Serendipity.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411280
+    m_Key: Serendipity.equipmentName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411281
+    m_Key: ShopPopupSlot.buy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411282
+    m_Key: ShopPopupSlot.not_enough_gold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411283
+    m_Key: ShopPopupSlot.sold_out
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411284
+    m_Key: ShopPopupUI.gold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411285
+    m_Key: SkillExplainSlotUI.empty_description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411286
+    m_Key: SkillExplainSlotUI.empty_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411287
+    m_Key: SkillExplainUI.auto_attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411288
+    m_Key: SkillExplainUI.dash_attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411289
+    m_Key: SkillExplainUI.enhance_level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411290
+    m_Key: SkillExplainUI.final_equipment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411291
+    m_Key: SkillExplainUI.no_equipment
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411292
+    m_Key: SkillExplainUI.no_equipment_desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411293
+    m_Key: SkillExplainUI.no_minion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411294
+    m_Key: SkillExplainUI.no_standby
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411295
+    m_Key: SkillExplainUI.no_standby_desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411296
+    m_Key: SkillExplainUI.skill
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411297
+    m_Key: SkillExplainUI.summary
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411298
+    m_Key: SkillExplainUI.upgrade_stage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411299
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Accuracy.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411300
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Accuracy.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411301
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Attack.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411302
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Attack.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411303
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/AttackSpeed.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411304
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/AttackSpeed.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411305
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/BasicMultiplier.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411306
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/BasicMultiplier.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411307
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/CritChance.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411308
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/CritChance.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411309
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/CritDamage.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411310
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/CritDamage.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411311
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/DashCharges.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411312
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/DashCharges.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411313
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/DashCooldown.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411314
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/DashCooldown.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411315
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Defense.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411316
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Defense.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411317
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Evasion.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411318
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Evasion.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411319
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Health.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411320
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Health.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411321
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Luck.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411322
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Luck.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411323
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Magic.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411324
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/Magic.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411325
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/MagicAmp.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411326
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/MagicAmp.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411327
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/MoveSpeed.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411328
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/MoveSpeed.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411329
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/PhysicalAmp.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411330
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/PhysicalAmp.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411331
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/SkillCooldown.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411332
+    m_Key: SkillExplainUI/LoadoutPanel/StatsPanel/PlayerStats/Rows/SkillCooldown.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411333
+    m_Key: StatusEffectPalette.entries[0].label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411334
+    m_Key: StatusEffectPalette.entries[1].label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411335
+    m_Key: StatusEffectPalette.entries[2].label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411336
+    m_Key: StatusEffectPalette.entries[3].label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411337
+    m_Key: StatusEffectPalette.entries[4].label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411338
+    m_Key: StatusEffectPalette.entries[5].label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411339
+    m_Key: StatusEffectPalette.entries[7].label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411340
+    m_Key: TutorialQuestPanelController.augment_pick
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411341
+    m_Key: TutorialQuestPanelController.combat_attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411342
+    m_Key: TutorialQuestPanelController.combat_dash
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411343
+    m_Key: TutorialQuestPanelController.combat_map
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411344
+    m_Key: TutorialQuestPanelController.descend_done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411345
+    m_Key: TutorialQuestPanelController.dodge_cross
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411346
+    m_Key: TutorialQuestPanelController.reward_interact
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411347
+    m_Key: TutorialQuestPanelController.reward_minion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411348
+    m_Key: TutorialQuestPanelController.reward_minion_info
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411349
+    m_Key: TutorialQuestPanelController.reward_minion_skill
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411350
+    m_Key: TutorialQuestPanelController.shop_buy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411351
+    m_Key: TutorialQuestPanelController.shop_enhance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411352
+    m_Key: TutorialQuestPanelController.shop_equipped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411353
+    m_Key: TutorialQuestPanelController.shop_open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411354
+    m_Key: TutorialQuestPanelController.spawn_move
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411355
+    m_Key: TutorialQuestPanelController.spawn_portal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411356
+    m_Key: VillageDebugLoadout.equipment_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411357
+    m_Key: VillageDebugLoadout.item_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411358
+    m_Key: VillageDebugLoadout.minion_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411359
+    m_Key: VillageDebugLoadout.minion_tooltip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411360
+    m_Key: Viper.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411361
+    m_Key: Viper.equipmentName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411362
+    m_Key: ViperAS.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411363
+    m_Key: ViperAS.equipmentName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411364
+    m_Key: ViperSC.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411365
+    m_Key: ViperSC.equipmentName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411366
+    m_Key: Warlord Minion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411367
+    m_Key: Warlord Minion.rewardItemData.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411368
+    m_Key: Warrior Minion.minionName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411369
+    m_Key: Warrior Minion.rewardItemData.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411370
+    m_Key: Whetstone.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411371
+    m_Key: Whetstone.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411372
+    m_Key: Whetstone.shopDescription
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411373
+    m_Key: WindFeather.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411374
+    m_Key: WindFeather.itemName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411375
+    m_Key: ui.augment_selection.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411376
+    m_Key: ui.hand_slot_selection.compare
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411377
+    m_Key: ui.hand_slot_selection.replace
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411378
+    m_Key: ui.hand_slot_selection.skip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411379
+    m_Key: ui.pouch.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411380
+    m_Key: ui.pouch.heading
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411381
+    m_Key: ui.pouch.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411382
+    m_Key: ui.pouch.sort_acquired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411383
+    m_Key: ui.pouch.sort_count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411384
+    m_Key: ui.pouch.sort_grade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411385
+    m_Key: ui.shop_popup.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411386
+    m_Key: ui.shop_popup.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411387
+    m_Key: ui.shop_popup.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411388
+    m_Key: ui.skill_explain.luck_label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411389
+    m_Key: ui.village_loadout.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411390
+    m_Key: GameOverManager.game_over
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411391
+    m_Key: ui.gameover.exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411392
+    m_Key: ui.gameover.restart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411393
+    m_Key: ui.reward_selection.skip
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 6640442280425291890
+  references:
+    version: 2
+    RefIds:
+    - rid: 6640442280425291890
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1780486691942

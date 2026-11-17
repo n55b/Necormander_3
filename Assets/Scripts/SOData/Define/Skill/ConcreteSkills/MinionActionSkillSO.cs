@@ -176,7 +176,7 @@ public class MinionActionSkillSO : MinionSkillSO
         float finalDamage = (playerStat != null ? playerStat.ATK : 0f) * damageMultiplier
                             * MinionEnhance.SkillDamageMult(mainData);
         var info = new DamageInfo(finalDamage, element, caster.gameObject, 1f,
-            !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill,
+            !string.IsNullOrEmpty(skillName.ko) ? skillName.ko : $"Action {actionType}", category: DamageCategory.Skill,
             applyStatus: onHitStatus == StatusType.None ? (StatusType?)null : onHitStatus);
         info.minionSource = caster;
 

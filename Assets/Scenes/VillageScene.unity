@@ -26375,6 +26375,7 @@ GameObject:
   - component: {fileID: 1202181977}
   - component: {fileID: 1202181979}
   - component: {fileID: 1202181978}
+  - component: {fileID: 4725365445287429498}
   m_Layer: 5
   m_Name: Title
   m_TagString: Untagged
@@ -26492,6 +26493,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &4725365445287429498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1202181976}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27cf918a1fb84821b0925764280ac86a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  key: ui.village_loadout.title
 --- !u!222 &1202181979
 CanvasRenderer:
   m_ObjectHideFlags: 0

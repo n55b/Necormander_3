@@ -102,13 +102,27 @@ MonoBehaviour:
   showPatternLabel: 1
   patternLabelFont: {fileID: 11400000, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
   patternLabelOffset: {x: 0, y: 2.6, z: 0}
-  label_Stab: "\uBBF8\uB2C8 \uB3CC\uC9C4 \uCC0D\uAE30"
-  label_NormalCharge: "\uB3CC\uC9C4"
-  label_Sweep: "\uD729\uC4F8\uAE30"
-  label_Pattern1Windup: "\uB3CC\uC9C4 \uC870\uC900"
-  label_Pattern1: "\uB3CC\uC9C4!"
-  label_Pattern3Windup: "\uBC14\uB2E5 \uCDA9\uACA9\uD30C \uC900\uBE44"
-  label_Pattern3: "\uBC14\uB2E5 \uCDA9\uACA9\uD30C"
+  label_Stab:
+    ko: "\uBBF8\uB2C8 \uB3CC\uC9C4 \uCC0D\uAE30"
+    key: ChargerElitePattern.label_Stab
+  label_NormalCharge:
+    ko: "\uB3CC\uC9C4"
+    key: ChargerElitePattern.label_NormalCharge
+  label_Sweep:
+    ko: "\uD729\uC4F8\uAE30"
+    key: ChargerElitePattern.label_Sweep
+  label_Pattern1Windup:
+    ko: "\uB3CC\uC9C4 \uC870\uC900"
+    key: ChargerElitePattern.label_Pattern1Windup
+  label_Pattern1:
+    ko: "\uB3CC\uC9C4!"
+    key: ChargerElitePattern.label_Pattern1
+  label_Pattern3Windup:
+    ko: "\uBC14\uB2E5 \uCDA9\uACA9\uD30C \uC900\uBE44"
+    key: ChargerElitePattern.label_Pattern3Windup
+  label_Pattern3:
+    ko: "\uBC14\uB2E5 \uCDA9\uACA9\uD30C"
+    key: ChargerElitePattern.label_Pattern3
   animState_Stab: Jump_Attack
   animState_ChargeReady: Dash_Ready
   animState_Charge: Dash_Attack

@@ -65,9 +65,10 @@ public class CharacterStatEditor : Editor
                 EditorGUILayout.LabelField($"전체 보호막: {stat.Status.TotalShield:F2}");
             }
             EditorGUILayout.EndVertical();
-            
-            // To ensure it repaints constantly while selected in Play Mode
-            Repaint();
         }
     }
+
+    // 플레이 중 실시간 수치를 갱신한다. 예전엔 OnInspectorGUI 안에서 Repaint() 를 불러 매 에디터 프레임
+    // 다시 그렸다(게임 뷰 FPS 저하). 이 방식은 인스펙터가 알아서 주기를 제한한다.
+    public override bool RequiresConstantRepaint() => Application.isPlaying;
 }

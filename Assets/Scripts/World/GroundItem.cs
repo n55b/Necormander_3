@@ -143,7 +143,7 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
             MainMinionSelectionUI.Instance.Show(this);
             return true;
         }
-        if (ItemPouch.Instance == null || !ItemPouch.Instance.TryAdd(_item)) { Announce("최대 중첩에 도달했습니다"); return false; }
+        if (ItemPouch.Instance == null || !ItemPouch.Instance.TryAdd(_item)) { Announce(Loc.T("GroundItem.max_stack", "최대 중첩에 도달했습니다")); return false; }
         PlayPickupFeedback();
         Consume();
         return true;
@@ -169,7 +169,7 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
     {
         if (!IsAvailable || infoCanvas == null || info == null) return;
         infoCanvas.SetActive(true);
-        if (info.name != null) info.name.text = _minion != null ? _minion.minionName : _item.DisplayName;
+        if (info.name != null) info.name.text = _minion != null ? (string)_minion.minionName : _item.DisplayName;
         if (info.price != null) info.price.text = "";
     }
 
@@ -183,7 +183,7 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
     {
         if (_minion == null) progress = 0f;
         if (_sr != null) _sr.color = Color.Lerp(Color.white, disassembleTint, progress);
-        if (info != null && info.price != null) info.price.text = progress <= 0f ? "" : $"분해 중… {progress:P0}";
+        if (info != null && info.price != null) info.price.text = progress <= 0f ? "" : Loc.F("GroundItem.disassembling", "분해 중… {0:P0}", progress);
     }
 
     public void OnHoldComplete(GameObject interactor)
@@ -194,7 +194,7 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
             var player = interactor != null ? interactor.GetComponent<PlayerController>() : null;
             if (player == null || player.Stat == null || player.Stat.Health.IsDead) return;
             player.Stat.Health.Heal(minionRecycleHeal);
-            Announce($"체력 +{minionRecycleHeal}");
+            Announce(Loc.F("GroundItem.heal", "체력 +{0}", minionRecycleHeal));
         }
         Consume();
     }

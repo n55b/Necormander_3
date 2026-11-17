@@ -12,15 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dafda816e2e708244ac4ae54264b5a3e, type: 3}
   m_Name: Marionette
   m_EditorClassIdentifier: 
-  equipmentName: "\uB9C8\uB9AC\uC624\uB124\uD2B8"
-  description: "\uAE30\uBCF8 \uACF5\uACA9 3\uC5F0\uD0C0 (1 / 1 / 1.5). \uBCF4\uD1B5
-    \uACF5\uACA9 \uC18D\uB3C4 \xB7 \uACBD\uC9C1 0.2\uCD08.\n\uACF5\uACA9\uB825 +10.\n\uC57D\uC810
-    \uACF5\uB7B5: \uD50C\uB808\uC774\uC5B4 3\uD0C0 \uC801\uC911 \uC2DC \uCDE8\uC57D
-    10\uCD08. \uBC1B\uB294 \uBB3C\uB9AC \uD53C\uD574 +20% (\uC911\uCCA9 \uC5C6\uC774
-    \uAC31\uC2E0).\n\uACF5\uACA9 \uC18D\uB3C4 +20%.\n\uB9C8\uB9AC\uC624\uB124\uD2B8:
-    \uD50C\uB808\uC774\uC5B4\xB7\uC18C\uD658\uC218 \uD3C9\uD0C0\uC758 \uD0C0\uC218
-    2\uBC30, \uAC01 \uD0C0\uACA9 \uD53C\uD574 60%. \uBAA8\uC158\uC740 \uC720\uC9C0.
-    \uC18C\uD658\uC218 \uB300\uC26C \uACF5\uACA9 \uD53C\uD574 +30%."
+  equipmentName:
+    ko: "\uB9C8\uB9AC\uC624\uB124\uD2B8"
+    key: Marionette.equipmentName
+  description:
+    ko: "\uAE30\uBCF8 \uACF5\uACA9 3\uC5F0\uD0C0 (1 / 1 / 1.5). \uBCF4\uD1B5 \uACF5\uACA9
+      \uC18D\uB3C4 \xB7 \uACBD\uC9C1 0.2\uCD08.\n\uACF5\uACA9\uB825 +10.\n\uACF5\uACA9
+      \uC18D\uB3C4 +20%.\n\uB9C8\uB9AC\uC624\uB124\uD2B8: \uD50C\uB808\uC774\uC5B4\xB7\uC18C\uD658\uC218
+      \uD3C9\uD0C0\uC758 \uD0C0\uC218 2\uBC30, \uAC01 \uD0C0\uACA9 \uD53C\uD574 60%.
+      \uBAA8\uC158\uC740 \uC720\uC9C0. \uC18C\uD658\uC218 \uB300\uC26C \uACF5\uACA9
+      \uD53C\uD574 +30%."
+    key: Marionette.description
   icon: {fileID: 2059219716, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
   rarity: 0
   shopCost: 150

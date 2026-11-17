@@ -39,13 +39,13 @@ public abstract class ItemEffect
     [Tooltip("주머니 UI(개당 효과 / 현재 총 효과 / 1개 더 획득 시)에 나올 문구. 비우면 자동 문구를 쓴다.\n" +
              "치환어: {값} = 보유 개수가 반영된 수치, {개수} = 보유 개수, {자동} = 자동 문구.\n" +
              "효과 종류별 추가 치환어는 아이템 인스펙터의 효과 칸 아래에 표시된다.")]
-    [TextArea(1, 3)] public string displayText;
+    public LocText displayText;
 
     /// <summary>보유 개수(count)를 반영한 표시 문구. 표시 문구가 비어 있으면 자동 문구.</summary>
     public string Describe(int count)
     {
         string auto = AutoText(count);
-        if (string.IsNullOrWhiteSpace(displayText)) return auto;
+        if (string.IsNullOrWhiteSpace(displayText.ko)) return auto;
 
         var tokens = new Dictionary<string, string>
         {
@@ -80,7 +80,7 @@ public class ItemRoomEntryShieldEffect : ItemEffect
     [Tooltip("1개당 보호막 양.")]
     [Min(0f)] public float amount = 6f;
 
-    protected override string AutoText(int count) => $"방 진입 보호막 +{amount * count:0.##}";
+    protected override string AutoText(int count) => Loc.F("ItemEffect.room_entry_shield", "방 진입 보호막 +{0:0.##}", amount * count);
 
     protected override void FillTokens(int count, Dictionary<string, string> tokens)
     {
@@ -99,7 +99,7 @@ public class ItemDashChargeEffect : ItemEffect
     [Min(1)] public int copiesPerCharge = 3;
 
     protected override string AutoText(int count)
-        => $"최대 대시 횟수 +{count / Mathf.Max(1, copiesPerCharge)} ({copiesPerCharge}개마다 +1)";
+        => Loc.F("ItemEffect.dash_charge", "최대 대시 횟수 +{0} ({1}개마다 +1)", count / Mathf.Max(1, copiesPerCharge), copiesPerCharge);
 
     protected override void FillTokens(int count, Dictionary<string, string> tokens)
     {
@@ -115,7 +115,7 @@ public class ItemDashChargeEffect : ItemEffect
 [System.Serializable]
 public class ItemCritOverflowEffect : ItemEffect
 {
-    protected override string AutoText(int count) => "초과 치명타 확률 10%마다 치명타 피해 +10%";
+    protected override string AutoText(int count) => Loc.T("ItemEffect.crit_overflow", "초과 치명타 확률 10%마다 치명타 피해 +10%");
 }
 
 /// <summary>
@@ -145,10 +145,10 @@ public class ItemStatEffect : ItemEffect
     /// (메모 label 은 '게임에 안 보임'이라 여기서 쓰지 않는다).</summary>
     public string StatTitle => statType switch
     {
-        StatType.CritChance => "치명타 확률", StatType.CritDamage => "치명타 피해",
-        StatType.Defense => "방어력", StatType.MoveSpeed => "이동 속도",
-        StatType.Evasion => "회피율", StatType.DashRechargeSpeed => "대시 충전 속도",
-        StatType.DashDistance => "대시 거리", StatType.Health => "최대 체력",
+        StatType.CritChance => Loc.T("ItemEffect.crit_chance", "치명타 확률"), StatType.CritDamage => Loc.T("ItemEffect.crit_damage", "치명타 피해"),
+        StatType.Defense => Loc.T("ItemEffect.defense", "방어력"), StatType.MoveSpeed => Loc.T("ItemEffect.move_speed", "이동 속도"),
+        StatType.Evasion => Loc.T("ItemEffect.evasion", "회피율"), StatType.DashRechargeSpeed => Loc.T("ItemEffect.dash_recharge_speed", "대시 충전 속도"),
+        StatType.DashDistance => Loc.T("ItemEffect.dash_distance", "대시 거리"), StatType.Health => Loc.T("ItemEffect.max_health", "최대 체력"),
         _ => StatName(statType)
     };
 
@@ -236,7 +236,7 @@ public class ItemRoomClearHealEffect : ItemEffect
     private float DisplayAmount(int count) => value * count * (isPercent ? 100f : 1f);
 
     protected override string AutoText(int count)
-        => $"방 클리어 회복 +{DisplayAmount(count):0.##}{(isPercent ? "%" : "")}";
+        => Loc.F("ItemEffect.room_clear_heal", "방 클리어 회복 +{0:0.##}{1}", DisplayAmount(count), isPercent ? "%" : "");
 
     protected override void FillTokens(int count, Dictionary<string, string> tokens)
     {

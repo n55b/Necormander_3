@@ -14,42 +14,58 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   entries:
   - visual: 1
-    label: "\uBE59\uACB0!"
+    label:
+      ko: "\uBE59\uACB0!"
+      key: StatusEffectPalette.entries[0].label
     textColor: {r: 0.35, g: 0.7, b: 1, a: 1}
     tintColor: {r: 0.55, g: 0.78, b: 1, a: 1}
     emphasize: 0
   - visual: 2
-    label: "\uBE59\uACB0 \uD30C\uAD34!"
+    label:
+      ko: "\uBE59\uACB0 \uD30C\uAD34!"
+      key: StatusEffectPalette.entries[1].label
     textColor: {r: 0.75, g: 0.94, b: 1, a: 1}
     tintColor: {r: 1, g: 1, b: 1, a: 0}
     emphasize: 1
   - visual: 0
-    label: "\uAE30\uC808!"
+    label:
+      ko: "\uAE30\uC808!"
+      key: StatusEffectPalette.entries[2].label
     textColor: {r: 1, g: 0.85, b: 0.3, a: 1}
     tintColor: {r: 1, g: 1, b: 1, a: 0}
     emphasize: 1
   - visual: 3
-    label: "\uCD9C\uD608"
+    label:
+      ko: "\uCD9C\uD608"
+      key: StatusEffectPalette.entries[3].label
     textColor: {r: 0.9, g: 0.2, b: 0.25, a: 1}
     tintColor: {r: 1, g: 1, b: 1, a: 0}
     emphasize: 0
   - visual: 4
-    label: "\uC911\uB3C5"
+    label:
+      ko: "\uC911\uB3C5"
+      key: StatusEffectPalette.entries[4].label
     textColor: {r: 0.55, g: 0.85, b: 0.3, a: 1}
     tintColor: {r: 0.7, g: 0.95, b: 0.6, a: 1}
     emphasize: 0
   - visual: 5
-    label: "\uBE44\uD3ED!"
+    label:
+      ko: "\uBE44\uD3ED!"
+      key: StatusEffectPalette.entries[5].label
     textColor: {r: 1, g: 0.75, b: 0.2, a: 1}
     tintColor: {r: 1, g: 1, b: 1, a: 0}
     emphasize: 1
   - visual: 6
-    label: 
+    label:
+      ko: 
+      key: 
     textColor: {r: 0.75, g: 0.75, b: 0.75, a: 1}
     tintColor: {r: 1, g: 1, b: 1, a: 0}
     emphasize: 0
   - visual: 7
-    label: "\uCDE8\uC57D!"
+    label:
+      ko: "\uCDE8\uC57D!"
+      key: StatusEffectPalette.entries[7].label
     textColor: {r: 1, g: 0.55, b: 0.2, a: 1}
     tintColor: {r: 1, g: 1, b: 1, a: 0}
     emphasize: 0

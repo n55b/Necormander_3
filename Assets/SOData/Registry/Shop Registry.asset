@@ -24,5 +24,16 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c4c4454b50645b24786ab980e5100034, type: 2}
   - {fileID: 11400000, guid: ca562125503addd42a0c90750af27992, type: 2}
   - {fileID: 11400000, guid: 05fb0e4bbbe630b4e93ffa4fc587bcea, type: 2}
+  itemTierPrice:
+  - 600
+  - 400
+  - 200
+  - 100
+  itemTierRewardWeight:
+  - 1
+  - 1
+  - 1
+  - 1
   enhanceCost: 250
   enhanceCostPerLevel: 25
+  normalClearGold: 200

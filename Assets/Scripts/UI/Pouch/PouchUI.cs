@@ -118,7 +118,7 @@ public class PouchUI : MonoBehaviour
             _cells[i].Bind(this, _items[i], _pouch.CountOf(_items[i]));
         }
         for (int i = _items.Count; i < _cells.Count; i++) _cells[i].gameObject.SetActive(false);
-        if (totalsText != null) totalsText.text = $"보유 {total}개   종류 {_items.Count}종";
+        if (totalsText != null) totalsText.text = Loc.F("PouchUI.totals", "보유 {0}개   종류 {1}종", total, _items.Count);
         if (emptyText != null) emptyText.gameObject.SetActive(_items.Count == 0);
         if (sortButtons != null) for (int i = 0; i < sortButtons.Length; i++)
             if (sortButtons[i] != null) sortButtons[i].GetComponent<Image>().color = i == _sort ? activeSortColor : inactiveSortColor;
@@ -130,14 +130,14 @@ public class PouchUI : MonoBehaviour
         foreach (var cell in _cells) cell.SetSelected(item != null && cell.Item == item);
         int count = item != null && _pouch != null ? _pouch.CountOf(item) : 0;
         if (detailIcon != null) { detailIcon.sprite = GroundItem.ItemIcon(item); detailIcon.enabled = item != null; }
-        if (detailTitle != null) detailTitle.text = item != null ? item.DisplayName : "아이템을 선택하세요";
-        if (detailTier != null) detailTier.text = item != null ? $"{ItemTierRules.Label(item.tier)} · 보유 {count}개" : "";
-        if (perCopyText != null) perCopyText.text = item != null ? "개당 효과\n" + item.EffectSummary(1) : "";
-        if (stackText != null) stackText.text = item != null ? $"중첩   ×{count} / {item.MaxStack}" : "";
-        if (totalEffectText != null) totalEffectText.text = item != null ? "현재 총 효과\n" + item.EffectSummary(count) : "";
-        if (nextEffectText != null) nextEffectText.text = item == null ? "" : count >= item.MaxStack ? "최대 중첩 도달"
-            : "1개 더 획득 시\n" + item.EffectSummary(count + 1);
-        if (descriptionText != null) descriptionText.text = item != null ? item.description : "방 클리어 보상이나 상점에서 아이템을 획득하세요.";
+        if (detailTitle != null) detailTitle.text = item != null ? item.DisplayName : Loc.T("PouchUI.select_item", "아이템을 선택하세요");
+        if (detailTier != null) detailTier.text = item != null ? Loc.F("PouchUI.tier_count", "{0} · 보유 {1}개", ItemTierRules.Label(item.tier), count) : "";
+        if (perCopyText != null) perCopyText.text = item != null ? Loc.F("PouchUI.per_copy", "개당 효과\n{0}", item.EffectSummary(1)) : "";
+        if (stackText != null) stackText.text = item != null ? Loc.F("PouchUI.stack", "중첩   ×{0} / {1}", count, item.MaxStack) : "";
+        if (totalEffectText != null) totalEffectText.text = item != null ? Loc.F("PouchUI.total_effect", "현재 총 효과\n{0}", item.EffectSummary(count)) : "";
+        if (nextEffectText != null) nextEffectText.text = item == null ? "" : count >= item.MaxStack ? Loc.T("PouchUI.max_stack", "최대 중첩 도달")
+            : Loc.F("PouchUI.next_effect", "1개 더 획득 시\n{0}", item.EffectSummary(count + 1));
+        if (descriptionText != null) descriptionText.text = item != null ? (string)item.description : Loc.T("PouchUI.empty_description", "방 클리어 보상이나 상점에서 아이템을 획득하세요.");
         if (detailScroll != null) detailScroll.verticalNormalizedPosition = 1f;
     }
 }

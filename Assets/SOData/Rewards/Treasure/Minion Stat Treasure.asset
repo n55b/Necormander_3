@@ -12,26 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49461d1437485a444ab9d4d42cd76df7, type: 3}
   m_Name: Minion Stat Treasure
   m_EditorClassIdentifier: 
-  itemName: Minion Stat Treasure
-  description: Treasure that enhances all minions stats.
-  localizedItemName:
-    m_TableReference:
-      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
-    m_TableEntryReference:
-      m_KeyId: 47607898411052
-      m_Key: 
-    m_FallbackState: 0
-    m_WaitForCompletion: 0
-    m_LocalVariables: []
-  localizedDescription:
-    m_TableReference:
-      m_TableCollectionName: GUID:fb33b23eb1ad3d64b9b02523ebac3189
-    m_TableEntryReference:
-      m_KeyId: 47607898411053
-      m_Key: 
-    m_FallbackState: 0
-    m_WaitForCompletion: 0
-    m_LocalVariables: []
+  itemName:
+    ko: "\uBBF8\uB2C8\uC5B8 \uC2A4\uD0EF \uBCF4\uBB3C"
+    key: treasure.minion_stat_treasure.name
+  description:
+    ko: "\uBAA8\uB4E0 \uBBF8\uB2C8\uC5B8 \uC2A4\uD0EF\uC744 \uAC15\uD654\uD558\uB294
+      \uBCF4\uBB3C\uC785\uB2C8\uB2E4."
+    key: treasure.minion_stat_treasure.desc
   icon: {fileID: 0}
   rarity: 0
   shopCost: 100

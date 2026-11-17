@@ -15,14 +15,15 @@ MonoBehaviour:
   m_GroupName: Localization-String-Tables-Korean (ko)
   m_GUID: 81793fce8e6a8f04ebf3fa4d2e070758
   m_SerializeEntries:
-  - m_GUID: 4d75614c38741ed4cbc81b4c3093e235
-    m_Address: UI Text Table_ko
+  - m_GUID: 246337f67f0a4de28b18ff0d920001af
+    m_Address: Game Text Table_ko
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-ko
+    - Preload
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7861f50d9a1ea294e9467fdbafef5a3d
-    m_Address: Reward Text Table_ko
+  - m_GUID: 4d75614c38741ed4cbc81b4c3093e235
+    m_Address: UI Text Table_ko
     m_ReadOnly: 1
     m_SerializedLabels:
     - Locale-ko

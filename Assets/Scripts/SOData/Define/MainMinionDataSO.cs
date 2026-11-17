@@ -110,5 +110,5 @@ public class MainMinionDataSO : MinionDataSO
 
     public override string ResolveDescription()
         => base.ResolveDescription()
-           ?? ((minionSkill != null && !string.IsNullOrEmpty(minionSkill.description)) ? minionSkill.description : null);
+           ?? ((minionSkill != null && !string.IsNullOrEmpty(minionSkill.description)) ? (string)minionSkill.description : null);
 }

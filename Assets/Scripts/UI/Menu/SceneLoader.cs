@@ -96,7 +96,7 @@ namespace UnityNote
             _isLoading = true;
             Progress = 0f;
             progressFill.fillAmount = 0f;
-            loadingText.text = "Loading...";
+            loadingText.text = Loc.T("SceneLoader.loading", "불러오는 중...");
             if (loadingSprites != null && loadingSprites.Length > 0)
                 loadingBackGround.sprite = loadingSprites[Random.Range(0, loadingSprites.Length)];
             loadingScreen.SetActive(true);
@@ -146,7 +146,7 @@ namespace UnityNote
                     SetProgress(0.3f + 0.7f * manager.LoadingProgress);
                     if (!string.IsNullOrEmpty(manager.InitializationError))
                     {
-                        loadingText.text = "Loading failed. Please restart.";
+                        loadingText.text = Loc.T("SceneLoader.loading_failed", "불러오지 못했습니다. 게임을 다시 시작해 주세요.");
                         Debug.LogError("[SceneLoader] " + manager.InitializationError);
                         yield break; // 실패를 성공처럼 취급해 미완성 씬을 드러내지 않는다.
                     }

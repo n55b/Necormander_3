@@ -59,7 +59,7 @@ public class VillageDebugLoadout : MonoBehaviour
             {
                 if (item == null) continue;
                 var selected = item;
-                AddButton($"[아이템] {selected.DisplayName}", selected.icon, selected.TooltipBody,
+                AddButton(Loc.F("VillageDebugLoadout.item_label", "[아이템] {0}", selected.DisplayName), selected.icon, selected.TooltipBody,
                     () => DropItem(selected));
             }
         }
@@ -70,7 +70,8 @@ public class VillageDebugLoadout : MonoBehaviour
             {
                 if (minion == null) continue;
                 var m = minion;
-                AddButton($"[미니언] {(string.IsNullOrEmpty(m.minionName) ? m.name : m.minionName)}", m.minionIcon, $"미니언 · {m.minionType}", () => EquipMinion(m));
+                AddButton(Loc.F("VillageDebugLoadout.minion_label", "[미니언] {0}", string.IsNullOrEmpty(m.minionName.ko) ? m.name : (string)m.minionName),
+                    m.minionIcon, Loc.F("VillageDebugLoadout.minion_tooltip", "미니언 · {0}", m.minionType), () => EquipMinion(m));
             }
         }
 
@@ -80,7 +81,8 @@ public class VillageDebugLoadout : MonoBehaviour
             {
                 if (equip == null) continue;
                 var e = equip;
-                AddButton($"[장비] {(string.IsNullOrEmpty(e.equipmentName) ? e.name : e.equipmentName)}", e.icon, e.description, () => EquipEquipmentItem(e));
+                AddButton(Loc.F("VillageDebugLoadout.equipment_label", "[장비] {0}", string.IsNullOrEmpty(e.equipmentName.ko) ? e.name : (string)e.equipmentName),
+                    e.icon, e.description, () => EquipEquipmentItem(e));
             }
         }
 

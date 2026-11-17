@@ -104,8 +104,8 @@ public class EquipmentInventoryManager : MonoBehaviour
         _equipped.enhanceLevel++;
         ReapplyEquipmentPassives();      // 새 강화레벨로 패시브 다시 붙임(RemoveSource 후 재적용)
         OnEquipmentUpdated?.Invoke();  // HUD 강화표시 등 갱신
-        string eqName = _equipped.baseData != null && !string.IsNullOrEmpty(_equipped.baseData.equipmentName)
-            ? _equipped.baseData.equipmentName : (_equipped.baseData != null ? _equipped.baseData.name : "?");
+        string eqName = _equipped.baseData != null && !string.IsNullOrEmpty(_equipped.baseData.equipmentName.ko)
+            ? _equipped.baseData.equipmentName.ko :(_equipped.baseData != null ? _equipped.baseData.name : "?");
         Debug.Log($"<color=cyan>[Enhance]</color> '{eqName}' 강화레벨 → {_equipped.enhanceLevel}/{(_equipped.baseData != null ? _equipped.baseData.maxEnhanceLevel : 0)}. 장비 패시브 갱신.");
         return true;
     }

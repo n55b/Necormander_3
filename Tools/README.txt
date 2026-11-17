@@ -10,7 +10,8 @@ Localization/translate_gems.py
 
 Localization/Data
   기존 번역 입력·출력을 보존한 위치.
-  ui_translated.json은 Unity의 Tools/Localization/5. Populate UI Text Table에서 사용한다.
+  게임 번역은 여기서 하지 않는다. 한국어 원문은 Unity의 Tools/번역/번역 표 갱신(LocSync)이
+  "Game Text Table"에 모으고, 다른 언어는 Localization Tables 창이나 CSV로 채운다.
 
 Archive/extract.py
   과거 외부 대화 기록에서 특정 문구 주변을 추출하던 일회성 도구.

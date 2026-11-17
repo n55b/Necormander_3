@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Game Text Table_en
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 9e0b51c38c1c45e1b73a50c12e882dbb, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 47607898411052
+    m_Localized: Minion Stat Treasure
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411053
+    m_Localized: Treasure that enhances all minions stats.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411134
+    m_Localized: Champion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411170
+    m_Localized: Fighter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411203
+    m_Localized: Knight
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411366
+    m_Localized: Warlord
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411368
+    m_Localized: Warrior
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411135
+    m_Localized: Champion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411171
+    m_Localized: Fighter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411204
+    m_Localized: Knight
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411367
+    m_Localized: Warlord
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411369
+    m_Localized: Warrior
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411148
+    m_Localized: Dash Doll
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411176
+    m_Localized: Game Clear!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411186
+    m_Localized: Ice Mage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411273
+    m_Localized: No more equipment available.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411274
+    m_Localized: No more minion rewards available.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411275
+    m_Localized: No more rewards available.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411276
+    m_Localized: None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411277
+    m_Localized: Loading...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411278
+    m_Localized: Loading failed. Please restart.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411390
+    m_Localized: Game Over
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411391
+    m_Localized: Exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411392
+    m_Localized: Restart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 47607898411393
+    m_Localized: Skip
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

@@ -75,7 +75,7 @@ public class SummonFieldAgent : MonoBehaviour
     public static SummonFieldAgent Spawn(PlayerSkillController owner, MainMinionDataSO data, int slot)
     {
         Vector2 side = slot == 0 ? Vector2.left : Vector2.right;
-        var go = new GameObject($"SummonField_{(data != null ? data.minionName : "?")}");
+        var go = new GameObject($"SummonField_{(data != null ? data.minionName.ko : "?")}");
         go.transform.position = owner.transform.position + (Vector3)(side * 0.6f);
         var agent = go.AddComponent<SummonFieldAgent>();
         agent._owner = owner;

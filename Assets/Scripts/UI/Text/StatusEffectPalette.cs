@@ -45,7 +45,7 @@ public class StatusEffectPalette : ScriptableObject
         public StatusVisual visual;
 
         [Tooltip("상태이상 팝업에 띄울 문구. 비우면 텍스트를 띄우지 않는다")]
-        public string label;
+        public LocText label;
 
         [Tooltip("팝업 텍스트 색")]
         public Color textColor = Color.white;
@@ -62,17 +62,17 @@ public class StatusEffectPalette : ScriptableObject
     public Entry[] entries =
     {
         // 빙결: 차분한 하늘빛 파랑. 얼어붙어 '멈춘' 느낌이라 채도를 과하게 올리지 않는다.
-        new Entry { visual = StatusVisual.Freeze,      label = "빙결!",     textColor = new Color(0.35f, 0.70f, 1.00f), tintColor = new Color(0.55f, 0.78f, 1.00f, 1f) },
+        new Entry { visual = StatusVisual.Freeze,      label = new LocText { ko = "빙결!" },     textColor = new Color(0.35f, 0.70f, 1.00f), tintColor = new Color(0.55f, 0.78f, 1.00f, 1f) },
         // 빙결깨짐: 같은 파랑 계열이되 더 밝고 창백하게. 깨지는 순간의 섬광이라 흰빛에 가깝다.
         // 빙결(0.35,0.70,1.00)과 명도 차가 커서 나란히 떠도 구분되고, 색상 계열은 그대로 읽힌다.
-        new Entry { visual = StatusVisual.FreezeBreak, label = "빙결 파괴!", textColor = new Color(0.75f, 0.94f, 1.00f), emphasize = true },
-        new Entry { visual = StatusVisual.Stun,        label = "기절!",     textColor = new Color(1.00f, 0.85f, 0.30f), emphasize = true },
-        new Entry { visual = StatusVisual.Bleed,       label = "출혈",      textColor = new Color(0.90f, 0.20f, 0.25f) },
-        new Entry { visual = StatusVisual.Poison,      label = "중독",      textColor = new Color(0.55f, 0.85f, 0.30f), tintColor = new Color(0.70f, 0.95f, 0.60f, 1f) },
-        new Entry { visual = StatusVisual.BloodPop,    label = "비폭!",     textColor = new Color(1.00f, 0.75f, 0.20f), emphasize = true },
+        new Entry { visual = StatusVisual.FreezeBreak, label = new LocText { ko = "빙결 파괴!" }, textColor = new Color(0.75f, 0.94f, 1.00f), emphasize = true },
+        new Entry { visual = StatusVisual.Stun,        label = new LocText { ko = "기절!" },     textColor = new Color(1.00f, 0.85f, 0.30f), emphasize = true },
+        new Entry { visual = StatusVisual.Bleed,       label = new LocText { ko = "출혈" },      textColor = new Color(0.90f, 0.20f, 0.25f) },
+        new Entry { visual = StatusVisual.Poison,      label = new LocText { ko = "중독" },      textColor = new Color(0.55f, 0.85f, 0.30f), tintColor = new Color(0.70f, 0.95f, 0.60f, 1f) },
+        new Entry { visual = StatusVisual.BloodPop,    label = new LocText { ko = "비폭!" },     textColor = new Color(1.00f, 0.75f, 0.20f), emphasize = true },
         // 경직은 평타마다 묻으므로 라벨을 비워둔다 — 채우면 화면이 텍스트로 덮인다.
-        new Entry { visual = StatusVisual.Hitstun,     label = "",         textColor = new Color(0.75f, 0.75f, 0.75f) },
-        new Entry { visual = StatusVisual.Vulnerable,  label = "취약!",     textColor = new Color(1.00f, 0.55f, 0.20f) },
+        new Entry { visual = StatusVisual.Hitstun,     label = new LocText { ko = "" },         textColor = new Color(0.75f, 0.75f, 0.75f) },
+        new Entry { visual = StatusVisual.Vulnerable,  label = new LocText { ko = "취약!" },     textColor = new Color(1.00f, 0.55f, 0.20f) },
     };
 
     [Tooltip("팔레트에 없는 표시 상태가 들어왔을 때 쓸 색")]

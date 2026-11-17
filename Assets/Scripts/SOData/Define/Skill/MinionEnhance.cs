@@ -12,7 +12,7 @@ using UnityEngine;
 public class MinionEnhanceStep
 {
     [Tooltip("보상방 강화 카드에 표시할 설명. 비우면 배율로 자동 생성한다.")]
-    [TextArea] public string description;
+    public LocText description;
 
     [Tooltip("일반 공격(평타 첫 타의 소환수 일격) 피해 총 배율. 1 = 강화 없음.")]
     public float basicAttackMultiplier = 1f;
@@ -71,12 +71,12 @@ public static class MinionEnhance
     {
         if (main == null) return "";
         var next = main.GetEnhanceStep(currentLevel + 1);
-        if (next == null) return "더 이상 강화할 수 없습니다.";
+        if (next == null) return Loc.T("MinionEnhance.max_level", "더 이상 강화할 수 없습니다.");
         if (!string.IsNullOrEmpty(next.description)) return next.description;
 
         var cur = main.GetEnhanceStep(currentLevel);
         float cb = cur?.basicAttackMultiplier ?? 1f, cs = cur?.skillDamageMultiplier ?? 1f;
-        return $"일반 공격 피해 x{cb:0.##} → x{next.basicAttackMultiplier:0.##}\n" +
-               $"스킬 피해 x{cs:0.##} → x{next.skillDamageMultiplier:0.##}";
+        return Loc.F("MinionEnhance.next", "일반 공격 피해 x{0:0.##} → x{1:0.##}\n스킬 피해 x{2:0.##} → x{3:0.##}",
+                     cb, next.basicAttackMultiplier, cs, next.skillDamageMultiplier);
     }
 }

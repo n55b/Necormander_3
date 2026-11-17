@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_StartupSelectors:
   - rid: 6640442280425291853
-  - rid: 6640442280425291854
+  - rid: 6640442280425291879
   - rid: 6640442280425291855
   m_AvailableLocales:
     rid: 6640442280425291856
@@ -25,9 +25,9 @@ MonoBehaviour:
   m_Metadata:
     m_Items: []
   m_ProjectLocaleIdentifier:
-    m_Code: en
+    m_Code: ko
   m_PreloadBehavior: 1
-  m_InitializeSynchronously: 0
+  m_InitializeSynchronously: 1
   references:
     version: 2
     RefIds:
@@ -37,14 +37,11 @@ MonoBehaviour:
       type: {class: CommandLineLocaleSelector, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
       data:
         m_CommandLineArgument: -language=
-    - rid: 6640442280425291854
-      type: {class: SystemLocaleSelector, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
-      data: 
     - rid: 6640442280425291855
       type: {class: SpecificLocaleSelector, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
       data:
         m_LocaleId:
-          m_Code: en
+          m_Code: ko
     - rid: 6640442280425291856
       type: {class: LocalesProvider, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
       data: 
@@ -67,8 +64,8 @@ MonoBehaviour:
           rid: -2
         m_CustomTablePostprocessor:
           rid: -2
-        m_UseFallback: 0
-        m_MissingTranslationState: 1
+        m_UseFallback: 1
+        m_MissingTranslationState: 2
         m_NoTranslationFoundMessage: No translation found for '{key}' in {table.TableCollectionName}
         m_SmartFormat:
           rid: 6640442280425291859
@@ -203,3 +200,7 @@ MonoBehaviour:
         - default
         - d
         - 
+    - rid: 6640442280425291879
+      type: {class: PlayerPrefLocaleSelector, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
+      data:
+        m_PlayerPreferenceKey: selected-locale

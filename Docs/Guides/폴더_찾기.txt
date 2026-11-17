@@ -57,5 +57,4 @@ Resources
   Logs — 맵 진단 등 로컬 생성 로그(Git 제외)
 
 주의: Docs/Feedback/이펙트_후보_2026-10-26.txt는 FeedbackSetup이 직접 읽는다.
-Tools/Localization/Data/ui_translated.json도 UITranslationPopulator의 입력이다.
 문서·JSON처럼 보여도 위 파일들은 도구 경로와 함께 관리해야 한다.

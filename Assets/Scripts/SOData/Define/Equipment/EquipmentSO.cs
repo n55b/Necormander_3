@@ -6,8 +6,8 @@ using UnityEngine;
 public class EquipmentSO : ScriptableObject
 {
     [Header("표시")]
-    public string equipmentName;
-    [TextArea] public string description;
+    public LocText equipmentName;
+    public LocText description;
     public Sprite icon;
     [Tooltip("장비 등급.")]
     public ItemRarity rarity = ItemRarity.Common;

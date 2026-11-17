@@ -125,8 +125,8 @@ public static class ActiveAugment
     }
 
     /// <summary>
-    /// 방금 스폰된 적에게 체력/공격력 페널티를 얹는다. DataManager.CreateUnit 이 부른다 —
-    /// 스폰 경로가 거기 하나뿐이라 분열로 생긴 적까지 전부 걸린다.
+    /// 방금 스폰된 적에게 체력/공격력 페널티를 얹는다. 스폰 경로마다 부른다:
+    /// DataManager.CreateUnit(일반 스폰)과 DualSplitAIPatternSO.SpawnSplit(분열체 — CreateUnit 을 안 거친다).
     /// [순서 주의] BaseEntity.Initialize → CharacterStat.InitializeStats 가 Mods.Clear() 를 하므로
     /// 반드시 그 뒤에 걸어야 하고, 체력을 늘렸으면 ResetHP 로 현재 체력도 새 최대치까지 채워야 한다.
     /// </summary>
@@ -207,20 +207,20 @@ public static class ActiveAugment
 
             case AugmentRewardKind.Item:
             case AugmentRewardKind.NormalRoom:
-                // 기본 200골드는 RewardManager가 이미 지급했다. 무위험은 일반 방처럼 아이템 하나만 더 준다.
+                // 기본 클리어 골드(상점 데이터의 normalClearGold)는 RewardManager가 이미 지급했다. 무위험은 일반 방처럼 아이템 하나만 더 준다.
                 int count = reward.kind == AugmentRewardKind.NormalRoom ? 1 : Mathf.Max(1, reward.itemCount);
                 var tier = reward.kind == AugmentRewardKind.NormalRoom ? ItemTier.Tier4 : reward.maximumItemTier;
                 int dropped = player != null ? RewardProcessor.DropItems(
                     GameManager.Instance.dataManager, player.transform.position, count, tier) : 0;
                 if (reward.kind == AugmentRewardKind.NormalRoom)
                 {
-                    // 넘기기는 일반 방과 같은 보상이라 알림도 일반 방처럼 "+200G" 하나만 남긴다(아이템은 바닥에 보인다).
+                    // 넘기기는 일반 방과 같은 보상이라 알림도 일반 방처럼 "+NG" 하나만 남긴다(아이템은 바닥에 보인다).
                     Debug.Log($"<color=green>[Augment]</color> 보상 지급(넘기기): 아이템 {dropped}개");
                     return;
                 }
                 if (dropped < count)
                 {
-                    Announce($"아이템 {dropped}개 획득 · 나머지는 획득 가능한 후보가 없습니다");
+                    Announce(Loc.F("ActiveAugment.item_partial", "아이템 {0}개 획득 · 나머지는 획득 가능한 후보가 없습니다", dropped));
                     return;
                 }
                 break;

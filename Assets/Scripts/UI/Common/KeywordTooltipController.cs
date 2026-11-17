@@ -67,7 +67,7 @@ namespace AstroNuts.UI
             data.titleColor = entry.badgeColor; // 사전에 기획자가 지정해둔 타이틀 색상 반영
             
             // 만약 나중에 툴팁에 "종류"나 "부가 효과"도 넣고 싶다면 여기서 채워주면 됩니다.
-            data.type = "키워드"; 
+            data.type = Loc.T("KeywordTooltipController.keyword", "키워드"); 
 
             // 공용 툴팁 팝업 짠!
             CommonTooltipUI.Instance.Show(data);

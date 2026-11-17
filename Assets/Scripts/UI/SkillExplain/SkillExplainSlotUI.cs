@@ -12,9 +12,6 @@ public class SkillExplainSlotUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI descriptionText;
 
-    private const string EMPTY_TITLE = "미보유";
-    private const string EMPTY_DESCRIPTION = "장착된 스킬이 없습니다.";
-
     /// <summary>
     /// 스킬 정보를 슬롯에 채웁니다.
     /// </summary>
@@ -43,7 +40,7 @@ public class SkillExplainSlotUI : MonoBehaviour
             iconImage.enabled = false;
         }
 
-        if (titleText != null) titleText.text = EMPTY_TITLE;
-        if (descriptionText != null) descriptionText.text = EMPTY_DESCRIPTION;
+        if (titleText != null) titleText.text = Loc.T("SkillExplainSlotUI.empty_title", "미보유");
+        if (descriptionText != null) descriptionText.text = Loc.T("SkillExplainSlotUI.empty_description", "장착된 스킬이 없습니다.");
     }
 }

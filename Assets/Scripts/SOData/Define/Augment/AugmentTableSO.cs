@@ -36,7 +36,7 @@ public class AugmentPenalty
 {
     [Tooltip("표의 ID. 코드는 안 쓰고 에디터에서 찾기 편하라고 두는 것.")]
     public string id = "P1-01";
-    public string displayName = "저린 육신";
+    public LocText displayName = new LocText { ko = "저린 육신" };
     public AugmentTier tier = AugmentTier.P1;
     public AugmentPenaltyKind kind = AugmentPenaltyKind.PlayerDamageTaken;
 
@@ -47,7 +47,7 @@ public class AugmentPenalty
     public int waveLimit = 2;
 
     [Tooltip("카드에 뜨는 문구. 수치를 그대로 쓰지 않고 분위기로 알려준다.")]
-    public string flavor = "상처가 조금 깊다";
+    public LocText flavor = new LocText { ko = "상처가 조금 깊다" };
 
     /// <summary>
     /// 카드에 같이 띄울 실제 수치. flavor("발이 조금 무겁다") 밑에 "이동속도 -10%" 로 붙는다.
@@ -60,15 +60,15 @@ public class AugmentPenalty
         string signed = v >= 0 ? $"+{v}" : v.ToString();
         return kind switch
         {
-            AugmentPenaltyKind.PlayerDamageTaken   => $"받는 피해 {signed}%",
-            AugmentPenaltyKind.MinionCooldown      => $"미니언 쿨다운 {signed}%",
-            AugmentPenaltyKind.PlayerMoveSpeed     => $"이동속도 {signed}%",
-            AugmentPenaltyKind.PlayerBasicAttack   => $"공격력 {signed}%",
-            AugmentPenaltyKind.PlayerDashCooldown  => $"대시 쿨다운 {signed}%",
-            AugmentPenaltyKind.EnemyMaxHp          => $"적 체력 {signed}%",
-            AugmentPenaltyKind.EnemyAttack         => $"적 공격력 {signed}%",
-            AugmentPenaltyKind.EnemyCountPerWave   => $"웨이브당 적 {signed}마리",
-            AugmentPenaltyKind.EnemyCountEarlyWaves => $"첫 {waveLimit}웨이브 적 {signed}마리",
+            AugmentPenaltyKind.PlayerDamageTaken   => Loc.F("AugmentTableSO.penalty_damage_taken", "받는 피해 {0}%", signed),
+            AugmentPenaltyKind.MinionCooldown      => Loc.F("AugmentTableSO.penalty_minion_cooldown", "미니언 쿨다운 {0}%", signed),
+            AugmentPenaltyKind.PlayerMoveSpeed     => Loc.F("AugmentTableSO.penalty_move_speed", "이동속도 {0}%", signed),
+            AugmentPenaltyKind.PlayerBasicAttack   => Loc.F("AugmentTableSO.penalty_attack", "공격력 {0}%", signed),
+            AugmentPenaltyKind.PlayerDashCooldown  => Loc.F("AugmentTableSO.penalty_dash_cooldown", "대시 쿨다운 {0}%", signed),
+            AugmentPenaltyKind.EnemyMaxHp          => Loc.F("AugmentTableSO.penalty_enemy_hp", "적 체력 {0}%", signed),
+            AugmentPenaltyKind.EnemyAttack         => Loc.F("AugmentTableSO.penalty_enemy_attack", "적 공격력 {0}%", signed),
+            AugmentPenaltyKind.EnemyCountPerWave   => Loc.F("AugmentTableSO.penalty_enemy_count_per_wave", "웨이브당 적 {0}마리", signed),
+            AugmentPenaltyKind.EnemyCountEarlyWaves => Loc.F("AugmentTableSO.penalty_enemy_count_early", "첫 {0}웨이브 적 {1}마리", waveLimit, signed),
             _ => "",
         };
     }
@@ -86,7 +86,7 @@ public class AugmentReward
     public AugmentTier tier = AugmentTier.P1;
     public AugmentRewardKind kind = AugmentRewardKind.Gold;
 
-    [Tooltip("골드=기본 클리어 200에 추가 지급, 회복=최대 체력의 %, 최대 체력=고정 증가량. 아이템/일반 방 보상은 아래 항목을 사용합니다.")]
+    [Tooltip("골드=기본 클리어 골드(상점 데이터 Shop Registry 의 '일반 클리어 골드')에 추가 지급, 회복=최대 체력의 %, 최대 체력=고정 증가량. 아이템/일반 방 보상은 아래 항목을 사용합니다.")]
     public float value = 15f;
 
     [Min(1), InspectorName("아이템 개수")]
@@ -96,11 +96,14 @@ public class AugmentReward
 
     public string Describe() => kind switch
     {
-        AugmentRewardKind.Gold => $"{RewardManager.NormalClearGold + Mathf.RoundToInt(value)} 골드 획득", // 기본 클리어 골드 + 추가분을 합쳐서 보여준다
-        AugmentRewardKind.HealPercent => $"최대 체력 {Mathf.RoundToInt(value)}% 회복",
-        AugmentRewardKind.MaxHpFlat => $"최대 체력 +{Mathf.RoundToInt(value)}",
-        AugmentRewardKind.Item => $"{(maximumItemTier <= ItemTier.Tier2 ? "고등급 " : "")}아이템 {Mathf.Max(1, itemCount)}개",
-        AugmentRewardKind.NormalRoom => $"일반 방과 동일: {RewardManager.NormalClearGold}골드 + 아이템 1개",
+        AugmentRewardKind.Gold => Loc.F("AugmentTableSO.reward_gold", "{0} 골드 획득", RewardManager.NormalClearGold + Mathf.RoundToInt(value)), // 기본 클리어 골드 + 추가분을 합쳐서 보여준다
+        AugmentRewardKind.HealPercent => Loc.F("AugmentTableSO.reward_heal_percent", "최대 체력 {0}% 회복", Mathf.RoundToInt(value)),
+        AugmentRewardKind.MaxHpFlat => Loc.F("AugmentTableSO.reward_max_hp", "최대 체력 +{0}", Mathf.RoundToInt(value)),
+        // 문장을 조각내지 않고 통째로 둔다 — 번역할 때 어순이 바뀌어도 한 줄로 옮길 수 있게.
+        AugmentRewardKind.Item => maximumItemTier <= ItemTier.Tier2
+            ? Loc.F("AugmentTableSO.reward_item_high_tier", "고등급 아이템 {0}개", Mathf.Max(1, itemCount))
+            : Loc.F("AugmentTableSO.reward_item", "아이템 {0}개", Mathf.Max(1, itemCount)),
+        AugmentRewardKind.NormalRoom => Loc.F("AugmentTableSO.reward_normal_room", "일반 방과 동일: {0}골드 + 아이템 1개", RewardManager.NormalClearGold),
         _ => "",
     };
 }
@@ -112,7 +115,7 @@ public class AugmentOffer
     public AugmentReward reward;
 
     public AugmentTier Tier => penalty != null ? penalty.tier : AugmentTier.P0;
-    public string Title => penalty != null ? penalty.displayName : "넘기기";
+    public string Title => penalty != null ? penalty.displayName : Loc.T("AugmentTableSO.skip", "넘기기");
     public string Flavor => penalty != null ? penalty.flavor : ""; // 넘기기 버튼은 이름 한 줄만 보여준다
     /// <summary>페널티의 실제 수치. P0 은 페널티가 없으니 빈 줄.</summary>
     public string EffectText => penalty != null ? penalty.Describe() : "";
@@ -146,10 +149,10 @@ public class AugmentTableSO : ScriptableObject
     /// <summary>등급 표기. 카드 상단에 그대로 찍힌다.</summary>
     public static string TierLabel(AugmentTier t) => t switch
     {
-        AugmentTier.P0 => "P0 · 무위험",
-        AugmentTier.P1 => "P1 · 경미",
-        AugmentTier.P2 => "P2 · 중간",
-        _ => "P3 · 가혹",
+        AugmentTier.P0 => Loc.T("AugmentTableSO.tier_p0", "P0 · 무위험"),
+        AugmentTier.P1 => Loc.T("AugmentTableSO.tier_p1", "P1 · 경미"),
+        AugmentTier.P2 => Loc.T("AugmentTableSO.tier_p2", "P2 · 중간"),
+        _ => Loc.T("AugmentTableSO.tier_p3", "P3 · 가혹"),
     };
 
     /// <summary>등급 색. 메서드 이름을 Color 로 두면 UnityEngine.Color 타입이 가려져 컴파일이 깨진다.</summary>

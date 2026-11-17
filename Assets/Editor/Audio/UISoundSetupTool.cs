@@ -54,7 +54,7 @@ public static class UISoundSetupTool
             paths.Add("Assets/Resources/UI/ShopPopupUI.prefab");
 
         var log = new StringBuilder();
-        int added = 0;
+        int added = 0, motions = 0;
         foreach (var path in paths)
         {
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -62,20 +62,22 @@ public static class UISoundSetupTool
             var root = PrefabUtility.LoadPrefabContents(path);
             try
             {
-                int n = AttachIn(root);
+                int n = AttachIn(root, out int m);
                 if (n > 0)
                 {
                     PrefabUtility.SaveAsPrefabAsset(root, path);
-                    log.AppendLine($"  {path}: {n}개");
+                    log.AppendLine($"  {path}: 소리 {n}개, 호버 모션 {m}개");
                     added += n;
+                    motions += m;
                 }
             }
             finally { PrefabUtility.UnloadPrefabContents(root); }
         }
-        Debug.Log($"[UI 소리] 버튼 소리 컴포넌트 {added}개를 붙였습니다.\n{log}");
+        Debug.Log($"[UI 소리] 버튼 소리 컴포넌트 {added}개, 호버 모션 {motions}개를 붙였습니다.\n{log}");
     }
 
-    public static int AttachIn(GameObject root)
+    /// <summary>소리 컴포넌트가 없는 버튼에만 소리(+호버 모션)를 붙인다. 반환값 = 붙인 소리 수.</summary>
+    public static int AttachIn(GameObject root, out int motions)
     {
         // 상점 구매 버튼은 성공/실패 소리가 따로 나므로 클릭 소리를 끈다.
         var buyButtons = new HashSet<Button>();
@@ -83,19 +85,20 @@ public static class UISoundSetupTool
             if (new SerializedObject(slot).FindProperty("buyButton")?.objectReferenceValue is Button b) buyButtons.Add(b);
 
         int count = 0;
+        motions = 0;
         foreach (var button in root.GetComponentsInChildren<Button>(true))
         {
-            var existing = button.GetComponent<UISoundOnInteract>();
-            if ((existing == null || existing.playHover) && button.GetComponent<UIHoverMotion>() == null)
+            // 이미 소리가 붙은 버튼은 기획자가 손본 버튼이다 — 소리 값도, 지운 호버 모션도 되살리지 않는다.
+            if (button.GetComponent<UISoundOnInteract>() != null) continue;
+            if (button.GetComponent<UIHoverMotion>() == null)
             {
                 var motion = button.gameObject.AddComponent<UIHoverMotion>();
                 // 버튼의 클릭 영역은 고정하고, 표시용 자식만 들어 올린다.
                 var label = button.GetComponentInChildren<TMPro.TMP_Text>(true);
                 motion.target = button.targetGraphic != null && button.targetGraphic.transform != button.transform
                     ? button.targetGraphic.rectTransform : label != null && label.transform != button.transform ? label.rectTransform : button.transform as RectTransform;
-                count++;
+                motions++;
             }
-            if (existing != null) continue; // 기획자가 고친 값을 덮어쓰지 않는다
             var s = button.gameObject.AddComponent<UISoundOnInteract>();
             var parent = button.transform.parent;
             if (button.GetComponent<PouchSlotUI>() != null) s.kind = UISoundOnInteract.Kind.Slot;

@@ -54,7 +54,7 @@ public class MinionSkillCaster : MonoBehaviour
 
     public static MinionSkillCaster Spawn(MinionDataSO data, Vector3 position, bool quiet = false)
     {
-        var go = new GameObject($"MinionCaster_{(data != null ? data.minionName : "?")}");
+        var go = new GameObject($"MinionCaster_{(data != null ? data.minionName.ko : "?")}");
         go.transform.position = position;
         if(go.TryGetComponent<SpriteRenderer>(out var sr))
         {

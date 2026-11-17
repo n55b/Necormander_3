@@ -14,7 +14,8 @@ using UnityEngine;
 ///             이펙트 겹침)으로 재생하고, 타격 이벤트 시점을 타임라인에 표시한다.
 ///
 /// 편집은 전부 SerializedObject 를 거치므로 Undo 가 된다. 소환수/스킬 에셋(ScriptableObject) 수정은
-/// Ctrl+S(Save Project) 때 디스크에 저장되고, 대쉬 공격·대기 효과 탭의 플레이어 프리팹 값은 고치는 즉시 저장된다.
+/// 위 '● 저장' 버튼이나 Ctrl+S 때 디스크에 저장되고, 대쉬 공격·대기 효과 탭의 플레이어 프리팹 값은 고치는 즉시 저장된다
+/// (되돌리기로 다시 바뀐 프리팹 값은 '● 저장' 버튼이 같이 저장한다).
 /// 같은 스킬 에셋을 여러 소환수가 공유하면(예: 기사·용사) 경고를 띄운다 — 하나를 고치면 같이 바뀐다.
 /// </summary>
 public class MinionManagerWindow : EditorWindow
@@ -27,13 +28,14 @@ public class MinionManagerWindow : EditorWindow
         w.Show();
     }
 
-    [MenuItem("Tools/기획/상태이상 공통 수치 열기", priority = 20)]
-    public static void OpenStatusBalance()
+    /// <summary>창을 열고 그 소환수를 상세 탭에 띄운다(전체 검사 창의 소환수 줄). delayCall 에서도 불리니 GUI 호출(Select 의 FocusControl)은 피한다.</summary>
+    public static void Open(MainMinionDataSO select)
     {
-        var bal = Resources.Load<StatusBalanceSO>(StatusRules.BalanceResourcePath);
-        if (bal == null) { Debug.LogWarning("[기획] Resources/" + StatusRules.BalanceResourcePath + " 에셋이 없습니다."); return; }
-        Selection.activeObject = bal;
-        EditorGUIUtility.PingObject(bal);
+        Open();
+        if (select == null) return;
+        var w = GetWindow<MinionManagerWindow>();
+        if (w._selected != select) { w._selected = select; w._preview.SetMinion(select); }
+        w._tab = Tab.Detail;
     }
 
     private enum Tab { Table, Detail, DashAttack, Standby }
@@ -55,6 +57,14 @@ public class MinionManagerWindow : EditorWindow
     private Editor _minionEditor, _skillEditor;
     private bool _skillFold = true;
     private MinionAnimPreviewer _preview;
+    // 표의 줄마다 OnGUI 때 SerializedObject 를 새로 만들면(플레이 중 10Hz 다시 그리기) 할당이 쌓이고 해제도 안 된다.
+    // 대상별로 한 번 만들어 두고 OnDisable 때(지워진 에셋 것은 Rebuild 때) 버린다.
+    private readonly Dictionary<Object, SerializedObject> _serialized = new Dictionary<Object, SerializedObject>();
+    // '● 저장' 버튼이 살피고 저장하는 에셋: 소환수 · 그 스킬 · 이 창이 고치는 플레이어 프리팹 컴포넌트.
+    // Rebuild 때 모아 두고(다시 그릴 때마다 FindAssets 하지 않는다), 스킬을 바꿔 빠진 에셋도 창을 닫을 때까지 계속 살핀다.
+    private readonly HashSet<Object> _edited = new HashSet<Object>();
+    private bool _visible, _shownDirty;
+    private static GUIStyle _changedTag;
 
     private const float ListWidth = 220f;
     private const float PreviewWidth = 360f;
@@ -72,19 +82,25 @@ public class MinionManagerWindow : EditorWindow
     {
         EditorApplication.projectChanged -= Rebuild;
         Undo.undoRedoPerformed -= Rebuild;
+        DisposeSerialized();
         if (_minionEditor != null) DestroyImmediate(_minionEditor);
         if (_skillEditor != null) DestroyImmediate(_skillEditor);
     }
 
+    private void OnBecameVisible() => _visible = true;
+    private void OnBecameInvisible() => _visible = false;
+
     private void Update()
     {
-        // 미리보기는 상세 탭에만 보인다 — 다른 탭에서 계속 다시 그리지 않는다.
-        if (_tab == Tab.Detail && _preview != null && _preview.Tick()) Repaint();
+        // 미리보기는 상세 탭에만 보인다 — 다른 탭이거나 창이 가려져 있으면 다시 그리지 않는다.
+        if (_visible && _tab == Tab.Detail && _preview != null && _preview.Tick()) Repaint();
     }
 
     // ── 데이터 수집 ─────────────────────────────────────────────────
     private void Rebuild()
     {
+        // Rebuild 는 그리는 도중(상세 탭 변경, 저장 직후)에도 불린다 — 지금 쓰는 것은 두고 지워진 에셋 것만 버린다.
+        DisposeSerialized(onlyDestroyed: true);
         var all = AssetDatabase.FindAssets("t:MainMinionDataSO")
             .Select(g => AssetDatabase.LoadAssetAtPath<MainMinionDataSO>(AssetDatabase.GUIDToAssetPath(g)))
             .Where(m => m != null).Distinct().ToList();
@@ -112,8 +128,35 @@ public class MinionManagerWindow : EditorWindow
             list.Add(m);
         }
 
+        _edited.RemoveWhere(o => o == null);
+        _edited.UnionWith(all);
+        _edited.UnionWith(_skillUsers.Keys);
+        // 프리팹 값은 고치는 즉시 저장하지만 Ctrl+Z 로 되돌리면 다시 저장 안 된 상태가 된다 — 같이 살핀다.
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath);
+        if (prefab != null)
+            foreach (var c in new Component[] { prefab.GetComponent<MeleeDodgeController>(), prefab.GetComponent<PlayerSkillController>(), prefab.GetComponent<MeleeCombatController>() })
+                if (c != null) _edited.Add(c);
+
         if (_selected == null && _rows.Count > 0) Select(_rows[0].data);
         Repaint();
+    }
+
+    /// <summary>대상의 캐시된 SerializedObject 를 최신 값으로 갱신해서 돌려준다.</summary>
+    private SerializedObject Serialized(Object target)
+    {
+        if (!_serialized.TryGetValue(target, out var so)) _serialized[target] = so = new SerializedObject(target);
+        so.Update();
+        return so;
+    }
+
+    private void DisposeSerialized(bool onlyDestroyed = false)
+    {
+        foreach (var key in _serialized.Keys.ToList())
+        {
+            if (onlyDestroyed && key != null) continue; // 살아 있는 대상은 Update() 로 최신화되므로 그대로 쓴다
+            _serialized[key].Dispose();
+            _serialized.Remove(key);
+        }
     }
 
     private void AddTree(MainMinionDataSO m, int depth, HashSet<MainMinionDataSO> visited)
@@ -138,12 +181,22 @@ public class MinionManagerWindow : EditorWindow
     // ── GUI ─────────────────────────────────────────────────────────
     private void OnGUI()
     {
+        _visible = true; // 그려지고 있으면 보이는 중이다(OnBecameVisible 을 놓쳐도 미리보기가 멈추지 않게)
         using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
         {
-            _tab = (Tab)GUILayout.Toolbar((int)_tab, TabLabels, EditorStyles.toolbarButton, GUILayout.Width(540f));
+            // 탭은 글자 폭만큼 — 저장 표시가 들어갈 자리를 남긴다.
+            _tab = (Tab)GUILayout.Toolbar((int)_tab, TabLabels, EditorStyles.toolbarButton, GUI.ToolbarButtonSize.FitToContents);
+            GUILayout.Space(8f);
+            DrawSaveButton();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("상태이상 공통 수치", EditorStyles.toolbarButton, GUILayout.Width(120f)))
-                OpenStatusBalance();
+            if (Application.isPlaying)
+            {
+                var c = GUI.color; GUI.color = new Color(0.5f, 1f, 0.6f);
+                GUILayout.Label(new GUIContent("▶ 플레이 중", "소환수·스킬 에셋 수정은 플레이를 멈춰도 남습니다. 시험용으로 바꿨다면 원래 값을 기록해 두세요."), EditorStyles.miniBoldLabel);
+                GUI.color = c;
+            }
+            if (GUILayout.Button(new GUIContent("상태이상 공통 수치", "상태이상 편집기(Tools/기획/상태이상 편집기)를 엽니다"), EditorStyles.toolbarButton, GUILayout.Width(120f)))
+                StatusEffectEditorWindow.Open();
             if (GUILayout.Button("새로고침", EditorStyles.toolbarButton, GUILayout.Width(70f))) Rebuild();
         }
 
@@ -160,6 +213,28 @@ public class MinionManagerWindow : EditorWindow
         }
     }
 
+    private bool AnyDirty()
+    {
+        foreach (var o in _edited) if (o != null && EditorUtility.IsDirty(o)) return true;
+        return false;
+    }
+
+    /// <summary>상태이상 편집기와 같은 저장 버튼. 플레이 중 SO 수정도 남으므로 그때도 저장 안 됨으로 보인다.</summary>
+    private void DrawSaveButton()
+    {
+        bool dirty = _shownDirty = AnyDirty();
+        using (new EditorGUI.DisabledScope(!dirty))
+            if (GUILayout.Button(new GUIContent(dirty ? "● 저장" : "저장됨", "수정한 소환수·스킬·플레이어 프리팹 값을 파일에 저장합니다 (Ctrl+S 와 같음)"), EditorStyles.toolbarButton, GUILayout.Width(70f)))
+            {
+                // 저장하면 projectChanged → Rebuild 가 _edited 를 고칠 수 있다 → 복사본으로 돈다.
+                foreach (var o in _edited.ToArray()) if (o != null) AssetDatabase.SaveAssetIfDirty(o);
+                ShowNotification(new GUIContent("저장했습니다"));
+            }
+        if (dirty)
+            GUILayout.Label("저장하지 않은 변경이 있습니다  (Ctrl+Z 로 되돌리기 가능)",
+                _changedTag ??= new GUIStyle(EditorStyles.miniLabel) { normal = { textColor = new Color(1f, 0.7f, 0.3f) } });
+    }
+
     private void DrawList()
     {
         using (new EditorGUILayout.VerticalScope(GUILayout.Width(ListWidth)))
@@ -172,7 +247,7 @@ public class MinionManagerWindow : EditorWindow
                 var m = r.data;
                 if (m == null) continue;
                 if (!string.IsNullOrEmpty(_search)
-                    && (m.minionName ?? "").IndexOf(_search, System.StringComparison.OrdinalIgnoreCase) < 0
+                    && (m.minionName.ko ?? "").IndexOf(_search, System.StringComparison.OrdinalIgnoreCase) < 0
                     && m.name.IndexOf(_search, System.StringComparison.OrdinalIgnoreCase) < 0) continue;
 
                 Rect rect = GUILayoutUtility.GetRect(ListWidth - 24f, 30f);
@@ -225,7 +300,7 @@ public class MinionManagerWindow : EditorWindow
 
     private void DrawTable()
     {
-        EditorGUILayout.HelpBox("칸을 고치면 에셋에 바로 반영되고, Ctrl+S(Save Project) 때 디스크에 저장됩니다(Ctrl+Z 가능). 노란 칸 = 여러 소환수가 같이 쓰는 스킬이라 같이 바뀝니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("칸을 고치면 에셋에 바로 반영되고, 위 '● 저장' 버튼이나 Ctrl+S 때 디스크에 저장됩니다(Ctrl+Z 가능). 노란 칸 = 여러 소환수가 같이 쓰는 스킬이라 같이 바뀝니다.", MessageType.Info);
         _tableScroll = EditorGUILayout.BeginScrollView(_tableScroll);
 
         float total = Cols.Sum(c => c.width) + Cols.Length * 4f;
@@ -247,11 +322,9 @@ public class MinionManagerWindow : EditorWindow
             if (m == _selected) EditorGUI.DrawRect(line, new Color(0.24f, 0.48f, 0.9f, 0.25f));
             else if (i++ % 2 == 1) EditorGUI.DrawRect(line, new Color(1f, 1f, 1f, 0.03f));
 
-            var so = new SerializedObject(m);
-            so.Update();
+            var so = Serialized(m);
             var skill = m.minionSkill as MinionActionSkillSO;
-            SerializedObject sso = skill != null ? new SerializedObject(skill) : null;
-            sso?.Update();
+            SerializedObject sso = skill != null ? Serialized(skill) : null;
             bool shared = m.minionSkill != null && _skillUsers.TryGetValue(m.minionSkill, out var users) && users.Count > 1;
 
             float x = line.x;
@@ -351,7 +424,9 @@ public class MinionManagerWindow : EditorWindow
 
     private void OnInspectorUpdate()
     {
-        if ((_tab == Tab.DashAttack || _tab == Tab.Standby) && Application.isPlaying) Repaint();
+        if (!_visible) return;
+        // 다른 곳(Ctrl+S, 인스펙터)에서 저장·수정해도 저장 표시가 맞도록, 바뀌었을 때만 다시 그린다.
+        if (AnyDirty() != _shownDirty || ((_tab == Tab.DashAttack || _tab == Tab.Standby) && Application.isPlaying)) Repaint();
     }
 
     private static string MinionLabel(MinionDataSO m) => m == null ? "(비어 있음)" : (string.IsNullOrEmpty(m.minionName) ? m.name : m.minionName);
@@ -371,8 +446,7 @@ public class MinionManagerWindow : EditorWindow
         }
         else
         {
-            var so = new SerializedObject(dodgeAsset);
-            so.Update();
+            var so = Serialized(dodgeAsset);
             using (new EditorGUILayout.VerticalScope("box"))
             {
                 EditorGUILayout.PropertyField(so.FindProperty("playerDashAttackSource"), new GUIContent("대쉬 공격을 내는 소환수",
@@ -415,8 +489,7 @@ public class MinionManagerWindow : EditorWindow
         }
         else
         {
-            var sso = new SerializedObject(skillAsset);
-            sso.Update();
+            var sso = Serialized(skillAsset);
             using (new EditorGUILayout.VerticalScope("box"))
             {
                 EditorGUILayout.PropertyField(sso.FindProperty("swapTriggersSkill"), new GUIContent("스왑 때 대쉬 공격", "끄면 스왑은 항상 공격 없이 제자리 교대로 동작합니다."));
@@ -522,8 +595,7 @@ public class MinionManagerWindow : EditorWindow
             else if (row % 2 == 1) EditorGUI.DrawRect(line, new Color(1f, 1f, 1f, 0.03f));
             row++;
 
-            var so = new SerializedObject(m);
-            so.Update();
+            var so = Serialized(m);
             float x = line.x;
             Rect Next(int col) { var rc = new Rect(x + 2f, line.y + 2f, DashCols[col].width, 18f); x += DashCols[col].width + 4f; return rc; }
 
@@ -623,8 +695,7 @@ public class MinionManagerWindow : EditorWindow
             EditorGUILayout.HelpBox(PlayerPrefabPath + " 에서 MeleeCombatController 를 찾지 못했습니다.", MessageType.Error);
         else
         {
-            var so = new SerializedObject(meleeAsset);
-            so.Update();
+            var so = Serialized(meleeAsset);
             using (new EditorGUILayout.VerticalScope("box"))
             {
                 EditorGUILayout.PropertyField(so.FindProperty("standbyInfusionEnabled"), new GUIContent("대기 효과 사용", "끄면 대기 소환수 효과가 평타에 묻지 않습니다. 플레이어 프리팹에 저장됩니다."));
@@ -691,8 +762,7 @@ public class MinionManagerWindow : EditorWindow
         {
             var m = r.data;
             if (m == null) continue;
-            var so = new SerializedObject(m);
-            so.Update();
+            var so = Serialized(m);
             var list = so.FindProperty("standbyInfusions");
 
             // 소환수 줄
@@ -742,7 +812,7 @@ public class MinionManagerWindow : EditorWindow
         }
 
         EditorGUILayout.Space(4f);
-        EditorGUILayout.HelpBox("초록 줄 = 플레이 중 지금 평타에 효과를 묻히는 대기 소환수.\n값은 각 소환수 에셋(standbyInfusions)에 바로 반영되고, Ctrl+S(Save Project) 때 디스크에 저장됩니다(Ctrl+Z 가능).", MessageType.None);
+        EditorGUILayout.HelpBox("초록 줄 = 플레이 중 지금 평타에 효과를 묻히는 대기 소환수.\n값은 각 소환수 에셋(standbyInfusions)에 바로 반영되고, 위 '● 저장' 버튼이나 Ctrl+S 때 디스크에 저장됩니다(Ctrl+Z 가능).", MessageType.None);
         EditorGUILayout.EndScrollView();
     }
 
@@ -780,8 +850,7 @@ public class MinionManagerWindow : EditorWindow
             if (m.standbyInfusions != null && m.standbyInfusions.Length > 0) continue;
             var status = SkillStatus(m);
             if (status == StatusType.None) continue;
-            var so = new SerializedObject(m);
-            so.Update();
+            using var so = new SerializedObject(m);
             var list = so.FindProperty("standbyInfusions");
             list.arraySize = 1;
             var e = list.GetArrayElementAtIndex(0);
@@ -790,9 +859,9 @@ public class MinionManagerWindow : EditorWindow
             e.FindPropertyRelative("swings").intValue = 0;
             e.FindPropertyRelative("duration").floatValue = 0f;
             so.ApplyModifiedProperties();
+            AssetDatabase.SaveAssetIfDirty(m); // 고친 소환수만 — 다른 창에서 저장 안 한 에셋까지 저장하지 않는다
             changed++;
         }
-        AssetDatabase.SaveAssets();
         Debug.Log($"[기획] 대기 효과 빈 소환수 채우기 완료: {changed}개");
     }
 
@@ -801,14 +870,13 @@ public class MinionManagerWindow : EditorWindow
     {
         foreach (var m in AllMainMinions())
         {
-            var so = new SerializedObject(m);
-            so.Update();
+            using var so = new SerializedObject(m);
             var list = so.FindProperty("standbyInfusions");
             for (int i = 0; list != null && i < list.arraySize; i++)
                 list.GetArrayElementAtIndex(i).FindPropertyRelative("chance").floatValue = chance;
             so.ApplyModifiedProperties();
+            AssetDatabase.SaveAssetIfDirty(m);
         }
-        AssetDatabase.SaveAssets();
     }
 
     // ── 상세 편집 ───────────────────────────────────────────────────
@@ -825,8 +893,8 @@ public class MinionManagerWindow : EditorWindow
             {
                 var big = new GUIStyle(EditorStyles.boldLabel) { fontSize = 15 };
                 GUILayout.Label(string.IsNullOrEmpty(_selected.minionName) ? _selected.name : _selected.minionName, big);
-                var parents = _rows.Where(r => r.data != null && r.data.evolutions != null && r.data.evolutions.Contains(_selected)).Select(r => r.data.minionName);
-                var evo = _selected.evolutions != null ? _selected.evolutions.Where(e => e != null).Select(e => e.minionName) : Enumerable.Empty<string>();
+                var parents = _rows.Where(r => r.data != null && r.data.evolutions != null && r.data.evolutions.Contains(_selected)).Select(r => r.data.minionName.ko);
+                var evo = _selected.evolutions != null ? _selected.evolutions.Where(e => e != null).Select(e => e.minionName.ko) : Enumerable.Empty<string>();
                 string line = _selected.name;
                 if (parents.Any()) line += "   ·   진화 전: " + string.Join(", ", parents);
                 if (evo.Any()) line += "   ·   진화: " + string.Join(", ", evo);
@@ -930,7 +998,11 @@ public class MinionAnimPreviewer
     private int _clipIndex;
 
     private float _time;
-    private bool _playing = true, _loop = true;
+    // 멈춘 채로 연다(재생 버튼으로 시작) — 재생 중엔 창 전체(인스펙터 2개 포함)를 계속 다시 그린다.
+    private bool _playing, _loop = true;
+    private Sprite _shownBody, _shownFx; // 마지막으로 그린 그림 — 바뀔 때만 다시 그린다
+    private bool _shownFlash;
+    private double _lastRepaint;
     private int _speedIndex = 2;
     private static readonly float[] Speeds = { 0.25f, 0.5f, 1f };
     private static readonly string[] SpeedLabels = { "0.25배", "0.5배", "1배" };
@@ -947,7 +1019,7 @@ public class MinionAnimPreviewer
 
     public void MarkDirty() => _dirty = true;
 
-    /// <summary>재생 중이면 시간을 진행시키고 true(다시 그려야 함)를 돌려준다.</summary>
+    /// <summary>재생 중이면 시간을 진행시키고, 다시 그려야 하면 true 를 돌려준다.</summary>
     public bool Tick()
     {
         double now = EditorApplication.timeSinceStartup;
@@ -958,8 +1030,15 @@ public class MinionAnimPreviewer
         if (_time > _total)
         {
             if (_loop) _time = _total > 0f ? _time % (_total + 0.35f) : 0f; // 끝에서 잠깐 멈췄다가 다시
-            else { _time = _total; _playing = false; }
+            else { _time = _total; _playing = false; return true; } // 재생 버튼 글자를 바꾼다
         }
+        // Update 는 초당 수백 번 온다. 그림·타격 번쩍임이 바뀔 때(프레임 정확)와,
+        // 위치 이동·재생 막대를 위해 초당 12번만 다시 그린다.
+        if (now - _lastRepaint < 1.0 / 12.0
+            && FrameAt(SegmentAt(_time), _time) == _shownBody
+            && (_effect != null ? FrameAt(_effect, _time) : null) == _shownFx
+            && IsNearEvent(_time, _hitEvent, 0.05f) == _shownFlash) return false;
+        _lastRepaint = now;
         return true;
     }
 
@@ -1194,8 +1273,9 @@ public class MinionAnimPreviewer
     private void DrawStage(Rect view)
     {
         var main = SegmentAt(_time);
-        Sprite body = FrameAt(main, _time);
-        Sprite fx = _effect != null ? FrameAt(_effect, _time) : null;
+        Sprite body = _shownBody = FrameAt(main, _time);
+        Sprite fx = _shownFx = _effect != null ? FrameAt(_effect, _time) : null;
+        _shownFlash = IsNearEvent(_time, _hitEvent, 0.05f);
 
         // 화면 배율: 등장하는 스프라이트 중 가장 큰 것이 화면의 55% 안에 들도록, 정수 배(픽셀아트).
         float ppu = 16f, maxW = 16f, maxH = 16f;
@@ -1238,7 +1318,7 @@ public class MinionAnimPreviewer
             GUI.Label(view, _segments.Count == 0 ? "재생할 애니메이션 없음" : "(이 클립에 스프라이트 프레임이 없음)", EditorStyles.centeredGreyMiniLabel);
 
         // 타격 순간 번쩍임
-        if (IsNearEvent(_time, _hitEvent, 0.05f))
+        if (_shownFlash)
             EditorGUI.DrawRect(new Rect(view.x, view.y, view.width, 3f), new Color(1f, 0.25f, 0.25f, 0.9f));
     }
 

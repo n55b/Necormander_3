@@ -39,8 +39,8 @@ public struct RewardCandidate
 /// </summary>
 public static class RewardProcessor
 {
-    // --- 1-A'. 장비 방용: 장비 배출 (각 후보는 뜨는 순간 스킬을 굴려 굳힌다) ---
-    /// <summary>서로 다른 장비 최대 3개를 뽑는다. 각 후보는 그 자리에서 skillPool 을 굴려 EquipmentInstance 로 확정된다("장비 뜰 때 고정").</summary>
+    // --- 1-A'. 장비 방용: 장비 배출 (각 후보는 뜨는 순간 0강 인스턴스로 만든다) ---
+    /// <summary>서로 다른 장비 최대 3개를 뽑는다. 각 후보는 그 자리에서 EquipmentInstance(0강)로 만든다. 장비는 패시브만 주고 스킬은 없다.</summary>
     public static List<RewardCandidate> GenerateEquipmentRewards(InventoryManager inven, DataManager data)
     {
         List<RewardCandidate> results = new List<RewardCandidate>();
@@ -57,7 +57,7 @@ public static class RewardProcessor
                 int idx = Random.Range(0, pool.Count);
                 var so = pool[idx];
                 pool.RemoveAt(idx); // 같은 장비 중복 노출 방지
-                var inst = EquipmentInstance.Roll(so); // 뜨는 순간 스킬 고정
+                var inst = EquipmentInstance.Roll(so); // 뜨는 순간 인스턴스로 굳힌다
                 results.Add(new RewardCandidate
                 {
                     displayData = BuildEquipmentDisplayData(so, inst),
@@ -69,7 +69,7 @@ public static class RewardProcessor
             {
                 results.Add(new RewardCandidate {
                     category = RewardCategory.Equipment,
-                    displayData = new GrowthItemData { itemName = "None", description = "No more equipment available." },
+                    displayData = EmptyData(Loc.T("RewardProcessor.no_more_equipment", "더 이상 받을 수 있는 장비가 없습니다.")),
                     rawData = null
                 });
             }
@@ -77,11 +77,15 @@ public static class RewardProcessor
         return results;
     }
 
+    /// <summary>보상이 고갈됐을 때 채우는 빈 카드. 문구는 부르는 쪽에서 이미 번역해 넘긴다.</summary>
+    private static GrowthItemData EmptyData(string description)
+        => new GrowthItemData { itemName = new LocText { ko = Loc.T("RewardProcessor.none", "없음") }, description = new LocText { ko = description } };
+
     private static GrowthItemData BuildEquipmentDisplayData(EquipmentSO so, EquipmentInstance inst)
     {
         return new GrowthItemData
         {
-            itemName = string.IsNullOrEmpty(so.equipmentName) ? so.name : so.equipmentName,
+            itemName = string.IsNullOrEmpty(so.equipmentName.ko) ? new LocText { ko = so.name } : so.equipmentName,
             description = so.description,
             icon = so.icon
         };
@@ -91,8 +95,8 @@ public static class RewardProcessor
     public static GrowthItemData BuildItemDisplayData(ItemSO so)
         => new GrowthItemData
         {
-            itemName = so.DisplayName,
-            description = so.TooltipBody,
+            itemName = new LocText { ko = so.DisplayName },
+            description = new LocText { ko = so.TooltipBody },
             icon = so.icon
         };
 
@@ -100,7 +104,11 @@ public static class RewardProcessor
     public static bool CanOfferItem(ItemSO item)
         => item != null && item.availableAsReward && (ItemPouch.Instance == null || ItemPouch.Instance.CanAdd(item));
 
-    /// <summary>중첩 여유가 있는 아이템 하나를 랜덤으로. 일반/엘리트/증강 보상 공용. 후보가 없으면 null.</summary>
+    /// <summary>
+    /// 중첩 여유가 있는 아이템 하나를 랜덤으로. 일반/엘리트/증강 보상 공용. 후보가 없으면 null.
+    /// 아이템마다 등급별 비중(ShopRegistrySO.itemTierRewardWeight)으로 뽑는다. 비중이 전부 같으면(기본 1)
+    /// 예전 균등 추첨과 난수 사용까지 똑같다.
+    /// </summary>
     public static ItemSO PickRandomItem(DataManager data, ItemTier maximumTier = ItemTier.Tier4,
         Dictionary<ItemSO, int> reserved = null)
     {
@@ -108,20 +116,28 @@ public static class RewardProcessor
         if (registry == null || registry.items == null) return null;
 
         var pool = new List<ItemSO>();
+        int total = 0;
         foreach (var it in registry.items)
         {
-            if (!CanOfferItem(it) || it.tier > maximumTier) continue;
+            if (!CanOfferItem(it) || it.tier > maximumTier || RewardWeight(data, it) <= 0) continue;
             int pending = reserved != null && reserved.TryGetValue(it, out int amount) ? amount : 0;
-            if ((ItemPouch.Instance != null ? ItemPouch.Instance.CountOf(it) : 0) + pending < it.MaxStack) pool.Add(it);
+            if ((ItemPouch.Instance != null ? ItemPouch.Instance.CountOf(it) : 0) + pending < it.MaxStack) { pool.Add(it); total += RewardWeight(data, it); }
         }
-        return pool.Count == 0 ? null : pool[Random.Range(0, pool.Count)];
+        if (total <= 0) return null;
+        int roll = Random.Range(0, total);
+        foreach (var it in pool) if ((roll -= RewardWeight(data, it)) < 0) return it;
+        return null;
     }
+
+    /// <summary>방 보상으로 뽑힐 상대 비중. 상점 데이터가 없으면 1(균등).</summary>
+    private static int RewardWeight(DataManager data, ItemSO item)
+        => data != null && data.SHOP_REGISTRY != null ? data.SHOP_REGISTRY.ItemRewardWeight(item.tier) : 1;
 
     public static bool HasRewardItem(DataManager data, ItemTier maximumTier)
     {
         var items = data != null ? data.GET_GROWTH_REGISTRY()?.items : null;
         if (items == null) return false;
-        foreach (var item in items) if (CanOfferItem(item) && item.tier <= maximumTier) return true;
+        foreach (var item in items) if (CanOfferItem(item) && item.tier <= maximumTier && RewardWeight(data, item) > 0) return true;
         return false;
     }
 
@@ -160,8 +176,8 @@ public static class RewardProcessor
             rawData = main,
             displayData = new GrowthItemData
             {
-                itemName = $"{minionName} 강화 +{cur + 1}/{main.MaxEnhanceLevel}",
-                description = MinionEnhance.DescribeNext(main, cur),
+                itemName = new LocText { ko = Loc.F("RewardProcessor.enhance", "{0} 강화 +{1}/{2}", minionName, cur + 1, main.MaxEnhanceLevel) },
+                description = new LocText { ko = MinionEnhance.DescribeNext(main, cur) },
                 icon = main.minionIcon != null ? main.minionIcon : main.ResolveIcon(),
             }
         });
@@ -182,7 +198,7 @@ public static class RewardProcessor
         {
             if (evo == null || evo == main) continue;
             var display = BuildMinionDisplayData(evo);
-            display.itemName = $"진화: {display.itemName}";
+            display.itemName = new LocText { ko = Loc.F("RewardProcessor.evolve", "진화: {0}", (string)display.itemName) };
             results.Add(new RewardCandidate
             {
                 category = RewardCategory.MinionEvolve,
@@ -218,7 +234,7 @@ public static class RewardProcessor
                 // 보상이 고갈되었을 때 빈 보상 추가 방어 로직
                 results.Add(new RewardCandidate { 
                     category = RewardCategory.Minion, 
-                    displayData = new GrowthItemData { itemName = "None", description = "No more minion rewards available." },
+                    displayData = EmptyData(Loc.T("RewardProcessor.no_more_minion_rewards", "더 이상 받을 수 있는 소환수가 없습니다.")),
                     rawData = null 
                 });
             }
@@ -263,7 +279,7 @@ public static class RewardProcessor
                 // [예외 처리] 데이터가 부족할 경우 "비어있는 슬롯" 후보 추가
                 results.Add(new RewardCandidate { 
                     category = category, 
-                    displayData = new GrowthItemData { itemName = "None", description = "No more rewards available." },
+                    displayData = EmptyData(Loc.T("RewardProcessor.no_more_rewards", "더 이상 받을 수 있는 보상이 없습니다.")),
                     rawData = null 
                 });
             }
@@ -286,7 +302,7 @@ public static class RewardProcessor
         // 메인 소환수는 보상 방 전용이라 여기에 올리지 않는다(그 설계를 바꾸려면 별도 판단이 필요).
         // ⚠ 그 결과 상점 풀이 장비 + 아이템만 남아 진열이 고정에 가까워졌다 — 아이템 에셋을 늘려야 한다.
 
-        // [장비] 상점에서 장비 구매 = 현재 장비 교체(구매 시 스킬 2개 새로 리롤). 뜰 때 인스턴스로 굳힌다.
+        // [장비] 상점에서 장비 구매 = 현재 장비를 이 장비(0강)로 교체. 가격은 장비마다(shopCost). 뜰 때 인스턴스로 굳힌다.
         if (shopRegistry.equipmentPool != null)
         {
             foreach (var so in shopRegistry.equipmentPool)
@@ -305,10 +321,10 @@ public static class RewardProcessor
 
         // [강화] 여기엔 없다. 강화는 전용 상점(Room_ShopEnhance) NPC 에게 F 로만 한다.
 
-        // [아이템] 주머니 아이템. 가격은 티어에서 자동으로 나온다(ItemTierRules).
+        // [아이템] 주머니 아이템. 가격은 등급에서 나온다(상점 데이터의 등급별 가격, ShopRegistrySO.ItemPrice).
         // 사면 바로 주머니에 들어간다. 중첩 한도면 골드를 내기 전에 구매 자체가 막히고(ShopNPC.TryPurchase 의 CanOfferItem),
         // 주머니가 없을 때만 바닥에 떨어진다 — RewardManager.TryGivePurchase 참조.
-        // ponytail: 티어별 등장 확률 가중치는 없다(전 티어 동일 확률). 필요해지면 여기에 가중치를 건다.
+        // ponytail: 상점 진열은 등급 비중을 안 쓴다(전 상품 동일 확률). 등급별 비중은 방 보상(PickRandomItem)에만 걸려 있다.
         if (shopRegistry.itemPool != null)
         {
             foreach (var so in shopRegistry.itemPool)
@@ -319,7 +335,7 @@ public static class RewardProcessor
                     displayData = BuildItemDisplayData(so),
                     rawData = so,
                     category = RewardCategory.Item,
-                    goldAmount = so.Price
+                    goldAmount = shopRegistry.ItemPrice(so.tier)
                 });
             }
         }
@@ -367,15 +383,13 @@ public static class RewardProcessor
         var baseData = minion.rewardItemData;
 
         // [안전장치] baseData가 존재하더라도 필드가 비어있으면 에셋 기본정보로 대체(Fallback)
-        string finalName = (baseData != null && !string.IsNullOrEmpty(baseData.itemName)) ? baseData.itemName : minion.minionName;
+        LocText finalName = (baseData != null && !string.IsNullOrEmpty(baseData.itemName.ko)) ? baseData.itemName : minion.minionName;
         Sprite finalIcon = (baseData != null && baseData.icon != null) ? baseData.icon : minion.minionIcon;
 
         return new GrowthItemData
         {
             itemName = finalName,
-            description = minion.ResolveDescription(),
-            localizedItemName = baseData != null ? baseData.localizedItemName : null,
-            localizedDescription = baseData != null ? baseData.localizedDescription : null,
+            description = new LocText { ko = minion.ResolveDescription() },
             icon = finalIcon,
             rarity = baseData != null ? baseData.rarity : default
         };
@@ -413,7 +427,7 @@ public static class RewardProcessor
             {
                 results.Add(new RewardCandidate { 
                     category = RewardCategory.Gold, // 폴백으로 골드 
-                    displayData = new GrowthItemData { itemName = "None", description = "No more rewards available." },
+                    displayData = EmptyData(Loc.T("RewardProcessor.no_more_rewards", "더 이상 받을 수 있는 보상이 없습니다.")),
                     rawData = null 
                 });
             }
@@ -425,7 +439,7 @@ public static class RewardProcessor
     {
         List<RewardCandidate> candidates = new List<RewardCandidate>();
         foreach (var t in treasures)
-            candidates.Add(new RewardCandidate { displayData = new GrowthItemData { itemName = t.itemName, description = t.description, icon = t.icon, rarity = t.rarity, localizedItemName = t.localizedItemName, localizedDescription = t.localizedDescription }, rawData = t, category = RewardCategory.Treasure });
+            candidates.Add(new RewardCandidate { displayData = new GrowthItemData { itemName = t.itemName, description = t.description, icon = t.icon, rarity = t.rarity }, rawData = t, category = RewardCategory.Treasure });
         return candidates;
     }
 

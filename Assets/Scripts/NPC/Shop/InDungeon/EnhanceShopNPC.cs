@@ -51,8 +51,8 @@ public class EnhanceShopNPC : NPCBase
             choices.Add(new RewardCandidate {
                 category = RewardCategory.Equipment, rawData = next,
                 displayData = new GrowthItemData { itemName = next.equipmentName, icon = next.icon,
-                    description = next.description + $"\n\n강화 비용: {CurrentCost()}G "
-                        + (UnlimitedEnhancements ? "(디버그: 횟수 제한 없음)" : "(상점당 1회)") }
+                    description = new LocText { ko = (string)next.description + "\n\n" + Loc.F("EnhanceShopNPC.cost", "강화 비용: {0}G {1}", CurrentCost(),
+                        UnlimitedEnhancements ? Loc.T("EnhanceShopNPC.unlimited", "(디버그: 횟수 제한 없음)") : Loc.T("EnhanceShopNPC.once_per_shop", "(상점당 1회)")) } }
             });
         }
         if (choices.Count == 0) return false;
@@ -81,7 +81,7 @@ public class EnhanceShopNPC : NPCBase
                 }
                 else
                 {
-                    FloatingTextManager.ShowNotice($"골드 부족 · 필요 {cost}G / 보유 {inv.GOLD}G", Color.yellow, transform);
+                    FloatingTextManager.ShowNotice(Loc.F("EnhanceShopNPC.not_enough_gold", "골드 부족 · 필요 {0}G / 보유 {1}G", cost, inv.GOLD), Color.yellow, transform);
                     UISoundSettings.PlayCue(UISoundSettings.Cue.PurchaseFail);
                 }
             }
@@ -169,8 +169,8 @@ public class EnhanceShopNPC : NPCBase
 
         if (eq == null || eq.baseData == null)
         {
-            if (_tooltip.name != null) _tooltip.name.text = "장비 강화";
-            if (_tooltip.price != null) _tooltip.price.text = "장비 없음";
+            if (_tooltip.name != null) _tooltip.name.text = Loc.T("EnhanceShopNPC.title", "장비 강화");
+            if (_tooltip.price != null) _tooltip.price.text = Loc.T("EnhanceShopNPC.no_equipment", "장비 없음");
             return;
         }
 
@@ -178,6 +178,6 @@ public class EnhanceShopNPC : NPCBase
             _tooltip.name.text = eq.baseData.equipmentName;
 
         if (_tooltip.price != null)
-            _tooltip.price.text = UpgradeLimitReached ? "강화 완료" : (psi != null && psi.CanEnhanceEquipped()) ? $"{CurrentCost()}G" : "최종 장비";
+            _tooltip.price.text = UpgradeLimitReached ? Loc.T("EnhanceShopNPC.done", "강화 완료") : (psi != null && psi.CanEnhanceEquipped()) ? $"{CurrentCost()}G" : Loc.T("EnhanceShopNPC.max_equipment", "최종 장비");
     }
 }

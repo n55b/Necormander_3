@@ -12,10 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b903e5195d425944aa1c1677ca0f7b79, type: 3}
   m_Name: MeleeDoll_Whirlwind_Active
   m_EditorClassIdentifier: 
-  skillName: "\uD68C\uC624\uB9AC \uB09C\uD0C0"
-  description: "\uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uC801\uC5D0\uAC8C \uB3CC\uC9C4,
-    \uC8FC\uBCC0 \uC801\uC744 4\uD68C \uACF5\uACA9. \uC801\uC911\uD55C \uC801\uC5D0\uAC8C
-    \uCD9C\uD608(\uACF5\uACA9\uB825 \uBE44\uB840 \uC9C0\uC18D \uD53C\uD574)"
+  skillName:
+    ko: "\uD68C\uC624\uB9AC \uB09C\uD0C0"
+    key: MeleeDoll_Whirlwind_Active.skillName
+  description:
+    ko: "\uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uC801\uC5D0\uAC8C \uB3CC\uC9C4,
+      \uC8FC\uBCC0 \uC801\uC744 4\uD68C \uACF5\uACA9. \uC801\uC911\uD55C \uC801\uC5D0\uAC8C
+      \uCD9C\uD608(\uACF5\uACA9\uB825 \uBE44\uB840 \uC9C0\uC18D \uD53C\uD574)"
+    key: MeleeDoll_Whirlwind_Active.description
   icon: {fileID: -1293705836269130871, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   cooldownTime: 6
   skillSound: {fileID: 0}

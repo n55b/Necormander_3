@@ -92,6 +92,8 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
             {
                 splitEntity.Initialize(data);
             }
+            // [증강 페널티] 분열체는 DataManager.CreateUnit 을 안 거치니 여기서 직접 건다(Initialize 의 Mods.Clear 뒤여야 함).
+            ActiveAugment.ApplyToSpawnedEnemy(obj);
 
             // 2. 원본의 방(RoomInstance)을 찾아 동적 등록하여 방 클리어 판정에 귀속시킴
             if (room != null)

@@ -10,7 +10,7 @@ public abstract class MinionDataSO : ScriptableObject
 {
     [Header("기본 정보")]
     public CommandData minionType;
-    public string minionName;
+    public LocText minionName;
     public Sprite minionIcon;   // 대가리만 달린 이미지
 
     // [26/07/17] attack 필드는 EnemyMinionDataSO 로 내려갔다.
@@ -37,6 +37,6 @@ public abstract class MinionDataSO : ScriptableObject
     /// </summary>
     public virtual string ResolveDescription()
         => (rewardItemData != null && !string.IsNullOrEmpty(rewardItemData.description))
-            ? rewardItemData.description
+            ? (string)rewardItemData.description
             : null;
 }

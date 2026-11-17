@@ -1,14 +1,17 @@
 #if UNITY_EDITOR
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using Object = UnityEngine.Object;
+using UnityEngine.SceneManagement;
 
 /// <summary>
-/// VillageScene 에 '소환수 선택' NPC 를 배치하고, 근접 소환수 진화 계열을 검증한다.
+/// 근접 소환수 진화 계열을 검증한다.
+/// (마을 '소환수 선택' NPC 를 처음 배치하던 'Setup Minion Select NPC' 는 끝난 일회성 메뉴라 제거했다 —
+///  다시 돌리면 손으로 배치한 NPC 를 지우고 Map/NPC 복제본으로 바꿔 씬을 저장했다.)
 ///
 /// [26/10/22] 외형 테스트(SpriteTests)로 만들던 전사/기사/기사2/무사 외형을 실제 MeleeDoll 계열에 입혔다.
 ///   전사(Fighter) ─┬─ 1차 트리: 기사(Knight)  → 용사(Champion)   · Breaker 능력
@@ -18,14 +21,17 @@ using Object = UnityEngine.Object;
 /// </summary>
 public static class MinionSelectNPCSetup
 {
-    private const string UIPrefabPath = "Assets/Prefabs/UI/Reward Selection/RewardSelectionUI.prefab";
-    private const string NpcName = "MinionSelectNPC";
     private const string MainDir = "Assets/SOData/Minion/Main";
     private const string RegistryPath = "Assets/SOData/Registry/Growth Reward Registry.asset";
     private static readonly string[] LineForms = { "Fighter", "Knight", "Champion", "Warrior", "Warlord" };
 
     private static MainMinionDataSO Form(string form)
         => AssetDatabase.LoadAssetAtPath<MainMinionDataSO>($"{MainDir}/{form} Minion.asset");
+
+    // 소환수 선택 NPC·보상 카드가 실제로 띄우는 아이콘(MinionSelectNPC / RewardProcessor 와 같은 규칙).
+    // 근접 5종은 일부러 rewardItemData.icon = 각자 .aseprite 의 Idle 첫 프레임이고, minionIcon(HUD·마을 디버그 목록)은 아이콘 시트라 둘은 다르다.
+    private static Sprite CardIcon(MainMinionDataSO m)
+        => m.rewardItemData != null && m.rewardItemData.icon != null ? m.rewardItemData.icon : m.minionIcon;
 
     [MenuItem("Tools/Village/Verify Minion Evolution Line")]
     public static void VerifySpriteTests()
@@ -39,8 +45,8 @@ public static class MinionSelectNPCSetup
             Require(registry.minionDatas.Count(m => m == data) == 1, form + " 등록/중복");
             Require(registry.minionDatas.Count(m => m != null && m.name == data.name) == 1, form + " 저장 키 중복");
             Require(data.isEvolvedForm == (form != "Fighter"), form + " 시작/진화형 구분");
-            Require(data.minionIcon != null && data.rewardItemData.icon == data.minionIcon &&
-                    data.minionIcon.pixelsPerUnit == 32f, form + " 아이콘/PPU");
+            Require(data.minionIcon != null && data.minionIcon.pixelsPerUnit == 32f, form + " HUD 아이콘/PPU");
+            Require(CardIcon(data) != null && CardIcon(data).pixelsPerUnit == 32f, form + " 선택 카드 아이콘/PPU");
             Require(data.dashAnim.visual == data.basicAnim.visual && data.dashAnim.hitBoxClip == data.basicAnim.SequenceTags().Single(), form + " 대쉬 배선");
             foreach (var set in new[] { data.basicAnim, data.skillAnim })
             {
@@ -64,7 +70,7 @@ public static class MinionSelectNPCSetup
         var warlord = Form("Warlord");
         const string warlordSource = "Assets/Resources/Sprites/Minion/MeleeMinion_Warrior_2.aseprite";
         Require(warlord.basicAnim.visual != Form("Warrior").basicAnim.visual &&
-                AssetDatabase.GetAssetPath(warlord.minionIcon) == warlordSource, "장수 전용 외형/아이콘");
+                AssetDatabase.GetAssetPath(CardIcon(warlord)) == warlordSource, "장수 전용 외형/카드 아이콘");
         foreach (var set in new[] { warlord.basicAnim, warlord.skillAnim })
         {
             var controller = (AnimatorController)set.visual.GetComponentInChildren<Animator>().runtimeAnimatorController;
@@ -81,12 +87,20 @@ public static class MinionSelectNPCSetup
     private static void RequireSameAbility(MainMinionDataSO a, MainMinionDataSO b)
     {
         Require(a.minionSkill == b.minionSkill &&
-                JsonUtility.ToJson(a.finisher) == JsonUtility.ToJson(b.finisher) &&
-                JsonUtility.ToJson(a.dashModifier) == JsonUtility.ToJson(b.dashModifier), $"{a.name} ↔ {b.name} 능력 동일");
+                AbilityJson(a.finisher) == AbilityJson(b.finisher) &&
+                AbilityJson(a.dashModifier) == AbilityJson(b.dashModifier), $"{a.name} ↔ {b.name} 능력 동일");
     }
+
+    // 설명 문구(LocText)는 능력이 아니고 번역 키도 에셋마다 다르므로 비교에서 뺀다.
+    private static string AbilityJson(object block)
+        => Regex.Replace(JsonUtility.ToJson(block), @"\{""ko"":""(?:[^""\\]|\\.)*"",""key"":""(?:[^""\\]|\\.)*""\}", "{}");
 
     private static void VerifyEvolutionTree()
     {
+        // 열린 씬을 더럽히지 않게 임시 씬을 활성으로 두고 만든다(진화 연출 등 부수 생성물도 임시 씬에만 생긴다).
+        var previousScene = SceneManager.GetActiveScene();
+        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+        SceneManager.SetActiveScene(scene);
         var go = new GameObject("Minion evolution validation");
         try
         {
@@ -113,7 +127,11 @@ public static class MinionSelectNPCSetup
                     Require(data.MatchesSaveKey(oldName), $"{form}: 옛 세이브 키 '{oldName}'");
             }
         }
-        finally { Object.DestroyImmediate(go); }
+        finally
+        {
+            SceneManager.SetActiveScene(previousScene);
+            EditorSceneManager.CloseScene(scene, true);
+        }
     }
 
     private static void VerifyOneShot(GameObject prefab, AnimationClip clip)
@@ -162,9 +180,9 @@ public static class MinionSelectNPCSetup
             foreach (string form in LineForms)
             {
                 var data = Form(form);
-                string label = "[미니언] " + data.minionName;
+                string label = "[미니언] " + data.minionName.ko;
                 var button = buttons.Single(b => new SerializedObject(b.GetComponent<SkillTooltipTrigger>())
-                    .FindProperty("title").stringValue == label);
+                    .FindProperty("title.ko").stringValue == label);
                 Require(button.GetComponentsInChildren<UnityEngine.UI.Image>(true).Any(i => i.sprite == data.minionIcon),
                     form + " 마을 선택 아이콘");
                 button.GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
@@ -185,58 +203,6 @@ public static class MinionSelectNPCSetup
     private static void Require(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException("[MinionLine] " + message);
-    }
-
-    [MenuItem("Tools/Village/Setup Minion Select NPC")]
-    public static void Setup()
-    {
-        var scene = EditorSceneManager.GetActiveScene();
-        if (scene.name != "VillageScene") { Debug.LogError("[Setup] VillageScene 을 열고 실행하세요."); return; }
-
-        var source = GameObject.Find("Map/NPC");
-        if (source == null) { Debug.LogError("[Setup] Map/NPC 를 찾지 못했습니다."); return; }
-
-        var old = GameObject.Find("Map/" + NpcName);
-        if (old != null) Undo.DestroyObjectImmediate(old);
-
-        var npc = Object.Instantiate(source, source.transform.parent);
-        Undo.RegisterCreatedObjectUndo(npc, "Create Minion Select NPC");
-        npc.name = NpcName;
-        npc.transform.position = new Vector3(-4f, 2f, 0f); // 기존 NPC(4,2)의 맞은편
-
-        var sr = npc.GetComponent<SpriteRenderer>();
-        if (sr != null) sr.color = new Color(0.8f, 0.7f, 1f, 1f); // 구분용 옅은 보라 틴트(외형 교체 전까지)
-
-        var range = npc.transform.Find("InteractRange");
-        if (range == null) { Debug.LogError("[Setup] InteractRange 자식이 없습니다."); return; }
-
-        foreach (var oldNpc in range.GetComponents<NPCBase>()) Object.DestroyImmediate(oldNpc);
-        foreach (var popup in range.GetComponents<PopupSystem>()) Object.DestroyImmediate(popup);
-
-        var select = range.gameObject.AddComponent<MinionSelectNPC>();
-        var so = new SerializedObject(select);
-        so.FindProperty("selectionUIPrefab").objectReferenceValue =
-            AssetDatabase.LoadAssetAtPath<RewardSelectionUI>(UIPrefabPath);
-        var nameProp = so.FindProperty("name");
-        if (nameProp != null && nameProp.propertyType == SerializedPropertyType.String) nameProp.stringValue = "소환수 선택";
-        so.ApplyModifiedPropertiesWithoutUndo();
-
-        // 머리 위 이름표가 있으면 바꾼다.
-        foreach (var t in npc.GetComponentsInChildren<TMPro.TMP_Text>(true)) t.text = "소환수 선택";
-        foreach (var t in npc.GetComponentsInChildren<UnityEngine.UI.Text>(true)) t.text = "소환수 선택";
-
-        // 메인 소환수 에셋에 강화 기본값(1.2/1.45/1.75)을 실제로 기록해 둔다(인스펙터에서 바로 조정 가능하게).
-        foreach (var g in AssetDatabase.FindAssets("t:MainMinionDataSO"))
-        {
-            var m = AssetDatabase.LoadAssetAtPath<MainMinionDataSO>(AssetDatabase.GUIDToAssetPath(g));
-            if (m != null) EditorUtility.SetDirty(m);
-        }
-        AssetDatabase.SaveAssets();
-
-        EditorSceneManager.MarkSceneDirty(scene);
-        EditorSceneManager.SaveScene(scene);
-        Selection.activeGameObject = npc;
-        Debug.Log("[Setup] MinionSelectNPC 배치 완료: " + npc.transform.position);
     }
 }
 #endif

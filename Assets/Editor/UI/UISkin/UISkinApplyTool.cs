@@ -12,7 +12,8 @@ using SkinEntry = UISkinSettings.SkinEntry;
 /// 적용 대상: 플레이어 HUD(체력·보호막·가드·스킬 칸), 미니맵, 아이템 주머니, 장착 정보, 공용 툴팁.
 /// 소환수 선택(MainMinionSelectionUI)·보상 선택(RewardSelectionUI)·증강 선택은 기존 UI 그대로 두고 건드리지 않는다.
 ///
-/// · 여러 번 눌러도 안전하다(이미 붙어 있으면 갱신만 한다).
+/// · 여러 번 눌러도 안전하다. 빠진 스킨 부품·연출만 새로 붙이고, 이미 붙은 곳의 역할·색·배치·연출 종류는 건드리지 않는다
+///   (프리팹에서 직접 조정한 값이 유지된다). 스프라이트·색은 설정 파일이 역할별로 칠한다.
 /// · 원래 있던 단색 테두리(Frame1006 등)는 지우지 않고 꺼 둔다. 되돌리려면 Git 으로 프리팹을 되돌리면 된다.
 /// </summary>
 public static class UISkinApplyTool
@@ -137,7 +138,8 @@ public static class UISkinApplyTool
                 frame.transform.SetSiblingIndex(icon != null ? icon.GetSiblingIndex() + 1 : slot.childCount - 1);
                 Skin(frame.transform, UISkinRole.SkillSlotFrame);
 
-                var motion = Comp<UISkillSlotMotion>(slot);
+                if (slot.GetComponent<UISkillSlotMotion>() != null) continue; // 이미 있으면 연결을 덮어쓰지 않는다
+                var motion = slot.gameObject.AddComponent<UISkillSlotMotion>();
                 var cool = icon != null ? icon.Find("Image_CoolTime") : null;
                 motion.cooldown = cool != null ? cool.GetComponent<Image>() : null;
                 motion.frame = frame;
@@ -147,6 +149,7 @@ public static class UISkinApplyTool
 
         SkinBar(Find(root, "Panel_PlayerState/Panel_HP/BG_HPBar"), UIBarMotion.Kind.Hp, UISkinRole.HpBarFrame, 5f,
                 "Field_HPBar", "Field_ShieldBar", Hex("EA405B"));
+        // Kind.Guard 는 '체력 외 게이지' 연출 설정(guardBar)을 쓰라는 뜻이다. 옛 가드 게이지 이름이 남은 것뿐, 지금은 스왑 쿨타임 바다.
         SkinBar(Find(root, "Panel_PlayerState/Panel_HP/BG_SwapCooldown"), UIBarMotion.Kind.Guard, UISkinRole.GaugeFrame, 2f,
                 "Field_SwapCooldown", null, Hex("20C1E8"));
     }
@@ -160,19 +163,16 @@ public static class UISkinApplyTool
 
         var track = bg.Find("Track1006");
         if (track == null) { Log.AppendLine($"    - 못 찾음: {bg.name}/Track1006"); return; }
-        Stretch(track, inset);                         // 틀의 빈 창에 정확히 맞춘다
         Skin(track, UISkinRole.GaugeTrack);
 
         var fill = track.Find(fillName);
         var shield = shieldName != null ? track.Find(shieldName) : null;
         if (fill == null) { Log.AppendLine($"    - 못 찾음: {fillName}"); return; }
-        FillStretch(fill); Skin(fill, UISkinRole.GaugeFill, keepColor: true);
-        fill.GetComponent<Image>().color = fillColor;   // 체력 빨강 / 가드 파랑 (가드는 런타임에 PlayerStateUI 의 색으로 덮인다)
-        if (shield != null) { FillStretch(shield); Skin(shield, UISkinRole.GaugeFill, keepColor: true); shield.GetComponent<Image>().color = Color.white; }
+        Skin(fill, UISkinRole.GaugeFill, keepColor: true);
+        if (shield != null) Skin(shield, UISkinRole.GaugeFill, keepColor: true);
 
         var trail = Child(track, "Skin_DamageTrail", 0f);
         Skin(trail.transform, UISkinRole.GaugeFill, keepColor: true);
-        trail.color = kind == UIBarMotion.Kind.Hp ? BarMotion.Hp().trailColor : BarMotion.Guard().trailColor;
         trail.enabled = false;                         // 피해를 입을 때만 연출이 켠다
         // 그리는 순서: 보호막(맨 뒤) → 잔상 → 채움(맨 앞)
         int i = 0;
@@ -180,7 +180,15 @@ public static class UISkinApplyTool
         trail.transform.SetSiblingIndex(i++);
         fill.SetSiblingIndex(i);
 
-        var m = Comp<UIBarMotion>(bg);
+        // 이미 연출이 붙은 게이지는 여기까지만: 안쪽 여백·채움 색·배치·연결은 프리팹에서 조정한 값을 유지한다.
+        if (bg.GetComponent<UIBarMotion>() != null) return;
+        Stretch(track, inset);                         // 틀의 빈 창에 정확히 맞춘다
+        FillStretch(fill);
+        fill.GetComponent<Image>().color = fillColor;   // 체력 빨강 / 스왑 쿨타임 파랑 (스왑 바는 런타임에 PlayerStateUI 의 색으로 덮인다)
+        if (shield != null) { FillStretch(shield); shield.GetComponent<Image>().color = Color.white; }
+        trail.color = kind == UIBarMotion.Kind.Hp ? BarMotion.Hp().trailColor : BarMotion.Guard().trailColor;
+
+        var m = bg.gameObject.AddComponent<UIBarMotion>();
         m.kind = kind;
         m.fill = fill.GetComponent<Image>();
         m.trail = trail;
@@ -200,15 +208,16 @@ public static class UISkinApplyTool
             Skin(frame.transform, UISkinRole.MiniMapFrame, onTop: true); // 방 아이콘이 나중에 생겨도 틀이 위에
         }
         var full = Find(root, "MiniMapUI");
-        if (full != null) Comp<UIOpenMotion>(full).kind = UIOpenMotion.Kind.Window;
+        if (full != null) AddOpenMotion(full, UIOpenMotion.Kind.Window);
     }
 
     private static void SkinPouch(GameObject root)
     {
         var win = Find(root, "PouchWindow");
         if (win == null) return;
+        bool first = win.GetComponent<UISkinPart>() == null; // 처음 붙일 때만 바탕 투명 처리·탭 색을 정한다
         Skin(win, UISkinRole.WindowFrame);
-        Comp<UIOpenMotion>(win).kind = UIOpenMotion.Kind.Window;
+        AddOpenMotion(win, UIOpenMotion.Kind.Window);
 
         Skin(Find(root, "PouchWindow/InventoryPanel"), UISkinRole.InfoPanel);
         Skin(Find(root, "PouchWindow/ItemDetails"), UISkinRole.InfoPanel);
@@ -221,13 +230,14 @@ public static class UISkinApplyTool
             var face = sort.Find("Face");
             if (face == null) continue;
             Skin(face, UISkinRole.TabFace, keepColor: true); // 선택/비선택 색은 PouchUI 가 칠한다
-            Comp<UIHoverMotion>(face).target = (RectTransform)sort;
+            if (face.GetComponent<UIHoverMotion>() == null) face.gameObject.AddComponent<UIHoverMotion>().target = (RectTransform)sort;
         }
+        Skin(Find(root, "PouchWindow/ItemDetails/IconFrame"), UISkinRole.ItemDetailFrame);
+        Skin(Find(root, "PouchWindow/ItemDetails/Divider"), UISkinRole.Divider);
+        if (!first) return;
         Clear(Find(root, "PouchWindow/InventoryPanel/ItemScroll/Viewport"));
         Clear(Find(root, "PouchWindow/ItemDetails/DetailScroll/Viewport"));
-        Skin(Find(root, "PouchWindow/ItemDetails/IconFrame"), UISkinRole.ItemDetailFrame);
         Clear(Find(root, "PouchWindow/ItemDetails/IconFrame/Backing"));
-        Skin(Find(root, "PouchWindow/ItemDetails/Divider"), UISkinRole.Divider);
 
         var pouch = root.GetComponent<PouchUI>();
         if (pouch != null)
@@ -240,8 +250,9 @@ public static class UISkinApplyTool
     private static void SkinPouchSlot(GameObject root)
     {
         var t = root.transform;
+        bool first = t.GetComponent<UISkinPart>() == null; // 다시 누를 때는 등급 기본색·선택 테두리를 덮어쓰지 않는다
         Skin(t, UISkinRole.ItemSlot, keepColor: true); // 등급색은 PouchSlotUI 가 칠한다
-        Clear(t.Find("Backing"));
+        if (first) Clear(t.Find("Backing"));
 
         var slotUI = root.GetComponent<PouchSlotUI>();
         if (slotUI != null)
@@ -254,14 +265,14 @@ public static class UISkinApplyTool
                 Log.AppendLine("    · PouchSlotUI.frameImage → 바깥 틀로 연결");
             }
             var common = so.FindProperty("commonColor");
-            if (common != null) common.colorValue = new Color(0.8f, 0.76f, 0.86f, 1f);
+            if (first && common != null) common.colorValue = new Color(0.8f, 0.76f, 0.86f, 1f);
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         var sel = t.Find("Selection");
         if (sel != null)
         {
-            foreach (Transform line in sel) line.gameObject.SetActive(false);
+            if (first) foreach (Transform line in sel) line.gameObject.SetActive(false);
             var p = Skin(sel, UISkinRole.SelectionFrame);
             if (p != null) p.GetComponent<Image>().raycastTarget = false;
         }
@@ -276,7 +287,7 @@ public static class UISkinApplyTool
         {
             HideOld(stats);
             Skin(stats, UISkinRole.WindowFrame);
-            Comp<UIOpenMotion>(stats).kind = UIOpenMotion.Kind.Window;
+            AddOpenMotion(stats, UIOpenMotion.Kind.Window);
             foreach (var n in new[] { "Summary", "PlayerStats" }) Skin(stats.Find(n), UISkinRole.InfoPanel);
             var summary = stats.Find("Summary");
             if (summary != null)
@@ -290,7 +301,7 @@ public static class UISkinApplyTool
         {
             HideOld(details);
             Skin(details, UISkinRole.WindowFrame);
-            Comp<UIOpenMotion>(details).kind = UIOpenMotion.Kind.Popup;
+            AddOpenMotion(details, UIOpenMotion.Kind.Popup);
             foreach (var n in new[] { "Equipment", "Guard", "MinionPanel" })
                 Skin(details.Find(n), UISkinRole.InfoPanel);
         }
@@ -305,14 +316,15 @@ public static class UISkinApplyTool
             var prop = new SerializedObject(tip).FindProperty("tooltipPanel");
             if (prop != null && prop.objectReferenceValue is Component c) t = c.transform;
         }
+        bool first = t.GetComponent<UISkinPart>() == null; // 다시 누를 때는 조정한 여백을 유지한다
         Skin(t, UISkinRole.TooltipBack);
         var layout = t.GetComponent<VerticalLayoutGroup>();
-        if (layout != null)
+        if (first && layout != null)
         {
             var p = layout.padding; // 둥근 틀 안쪽으로 글자가 들어오게 여백 확보
             layout.padding = new RectOffset(Mathf.Max(p.left, 9), Mathf.Max(p.right, 9), Mathf.Max(p.top, 8), Mathf.Max(p.bottom, 8));
         }
-        Comp<UIOpenMotion>(t).kind = UIOpenMotion.Kind.Popup;
+        AddOpenMotion(t, UIOpenMotion.Kind.Popup);
     }
 
     // ─── 공용 도우미 ─────────────────────────────────────────────
@@ -344,18 +356,29 @@ public static class UISkinApplyTool
         return c;
     }
 
+    /// <summary>스킨 부품은 없을 때만 붙인다. 이미 있으면 기획자가 고른 역할·'원래 색 유지'를 그대로 둔다.</summary>
     private static UISkinPart Skin(Transform t, UISkinRole role, bool keepColor = false, bool onTop = false)
     {
         if (t == null) return null;
         var img = Comp<Image>(t);
-        var ownColor = img.color;            // 컴포넌트를 붙이는 순간 OnEnable 이 먼저 칠하므로 원래 색을 기억해 둔다
-        var part = Comp<UISkinPart>(t);
-        part.role = role;
-        part.keepOwnColor = keepColor;
+        var part = t.GetComponent<UISkinPart>();
+        if (part == null)
+        {
+            var ownColor = img.color;        // 컴포넌트를 붙이는 순간 OnEnable 이 먼저 칠하므로 원래 색을 기억해 둔다
+            part = t.gameObject.AddComponent<UISkinPart>();
+            part.role = role;
+            part.keepOwnColor = keepColor;
+            if (keepColor) img.color = ownColor;
+        }
         if (onTop) Comp<UIKeepOnTop>(t);
-        if (keepColor) img.color = ownColor;
         part.Apply();
         return part;
+    }
+
+    /// <summary>창 열림 연출은 없을 때만 붙인다. 기획자가 고른 '연출 종류'(직접 설정 등)를 되돌리지 않는다.</summary>
+    private static void AddOpenMotion(Transform t, UIOpenMotion.Kind kind)
+    {
+        if (t.GetComponent<UIOpenMotion>() == null) t.gameObject.AddComponent<UIOpenMotion>().kind = kind;
     }
 
     /// <summary>꽉 차게 늘어나는 장식용 자식 이미지(마우스 클릭은 통과).</summary>
@@ -368,9 +391,9 @@ public static class UISkinApplyTool
             go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             go.layer = parent.gameObject.layer;
             go.transform.SetParent(parent, false);
+            Stretch(go.transform, inset);              // 이미 있던 장식의 배치는 건드리지 않는다
         }
         else go = t.gameObject;
-        Stretch(go.transform, inset);
         var img = go.GetComponent<Image>();
         img.raycastTarget = false;
         return img;

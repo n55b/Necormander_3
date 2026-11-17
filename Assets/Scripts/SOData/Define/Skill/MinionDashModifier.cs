@@ -15,9 +15,9 @@ public class MinionDashModifier
 {
     [Header("설명(스킬 설명창 V)")]
     [Tooltip("스킬 설명창에 표시할 이름. 비우면 '대쉬 공격'으로 표시.")]
-    public string uiTitle;
+    public LocText uiTitle;
     [Tooltip("스킬 설명창에 표시할 설명 문구.")]
-    [TextArea] public string uiDescription;
+    public LocText uiDescription;
     [Tooltip("스킬 설명창 아이콘(선택). 비우면 아이콘 숨김.")]
     public Sprite uiIcon;
 
@@ -69,7 +69,8 @@ public class MinionDashModifier
     public string Describe()
         => !string.IsNullOrEmpty(uiDescription) ? uiDescription
             : (DealsDamage
-                ? $"{(hitAtOrigin ? "출발 지점" : "이동 경로")}의 적을 {hitCount}회 타격 · 피해 배율 {damageMultiplier:0.##}배."
-                    + (onHitStatus != StatusType.None ? $" 적중 시 {MinionStandbyInfusion.StatusLabel(onHitStatus)}." : "")
-                : "추가 공격 없음.");
+                ? Loc.F("MinionDashModifier.hits", "{0}의 적을 {1}회 타격 · 피해 배율 {2:0.##}배.",
+                        hitAtOrigin ? Loc.T("MinionDashModifier.origin", "출발 지점") : Loc.T("MinionDashModifier.path", "이동 경로"), hitCount, damageMultiplier)
+                    + (onHitStatus != StatusType.None ? Loc.F("MinionDashModifier.on_hit_status", " 적중 시 {0}.", MinionStandbyInfusion.StatusLabel(onHitStatus)) : "")
+                : Loc.T("MinionDashModifier.no_attack", "추가 공격 없음."));
 }

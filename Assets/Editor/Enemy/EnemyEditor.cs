@@ -12,17 +12,20 @@ using UnityEngine;
 ///  · 하나씩 편집 — 기본 정보 · 능력치 · AI 패턴(같은 화면에서 수치 편집) · 프리팹 · 등장 위치를 한글 화면으로 고친다.
 ///  · 능력치 표   — 모든 적의 체력/공격력/공속/방어/이동/사거리를 한 표에서 비교하고 바로 고친다(초당 피해·실질 체력 자동 계산).
 ///  · 군집 편집   — 일반 방 웨이브에 나오는 '군집'(어떤 적이 몇 마리)을 만들고 고친다.
+///  · 처치 시간   — 적마다 플레이어+메인 소환수 하나가 잡는 초와 그 적이 플레이어를 잡는 초를 게임 공식대로 계산해 비교한다(EnemyEditorBalance.cs).
+///  · 층별 구성   — 층마다 방 구성 · 웨이브 · 군집 풀 · 엘리트/보스 · 기본 골드를 게임 규칙대로 계산해 보여준다(EnemyEditorFloors.cs).
 ///
 /// 게임이 적을 고르는 경로(이 편집기의 '등장 위치'가 보여주는 것):
 ///  · 일반 적   — EnemyClusterRegistry 의 군집(또는 층 조절표의 군집 목록)에서 뽑힌다.
-///  · 엘리트    — MinionRegistry 의 엘리트 목록(손으로 고른 목록)에서 뽑힌다.
+///  · 엘리트    — MinionRegistry 의 엘리트 목록 + 일반 적 목록 중 엘리트 등급(페이즈 전용 제외)에서 뽑힌다.
 ///  · 보스      — MapGenerationData 의 '층수별 보스'에 배정된 층에서 나온다.
-/// 모든 수정은 Undo(Ctrl+Z) 가 된다.
+/// 삭제를 뺀 모든 수정은 Undo(Ctrl+Z) 가 된다.
 /// </summary>
 [Serializable]
-public class EnemyEditorPanel
+public partial class EnemyEditorPanel
 {
-    private enum View { Detail, Table, Cluster }
+    // 뒤에 붙이기만 한다(창에 저장된 탭 번호가 그대로 맞도록). 처치 시간 = EnemyEditorBalance.cs, 층별 구성 = EnemyEditorFloors.cs
+    private enum View { Detail, Table, Cluster, Balance, Floors }
     private enum SortBy { Default, Hp, Attack, Dps, Move, Range }
     private static readonly string[] SortLabels = { "정렬: 등급순", "정렬: 체력", "정렬: 공격력", "정렬: 초당 피해", "정렬: 이동 속도", "정렬: 사거리" };
     private static readonly string[] TierFilterLabels = { "전체 등급", "일반", "엘리트", "보스" };
@@ -46,6 +49,10 @@ public class EnemyEditorPanel
     private EnemyMinionDataSO renameTarget;
     private string lastContext;
     private int version;
+    private List<EnemyMinionDataSO> visible;
+    private string lastFilter;
+    private List<UnityEngine.Object> otherAssets = new List<UnityEngine.Object>(); // 저장 버튼이 보는 적·AI 패턴 외 에셋: 군집 · 레지스트리 · 맵 데이터(Reload 때 모음)
+    private bool lastDirty; // 툴바 저장 표시가 마지막으로 그린 상태
 
     // ── 창 연결 ──────────────────────────────────────────────────────
     // 이 화면은 '몬스터 편집기' 창(EnemyEditorWindow) 안에서 그려진다.
@@ -99,6 +106,13 @@ public class EnemyEditorPanel
     private void OnProjectChanged() { Reload(); Repaint(); }
     private void OnUndoRedo() { version++; EnemyAssets.InvalidateUsage(); Repaint(); }
 
+    // 저장 버튼이 보는 에셋. AI 패턴은 적의 칸에서 바꿀 수 있어 매번 지금 연결된 것을 본다(패턴 수치는 이 창에서 고친다).
+    private IEnumerable<UnityEngine.Object> SaveTargets() =>
+        all.Concat<UnityEngine.Object>(all.Where(e => e != null).Select(e => e.aiPattern)).Concat(otherAssets);
+
+    /// <summary>창의 OnInspectorUpdate 에서 부른다. 인스펙터 수정이나 Ctrl+S 처럼 창 밖에서 저장 상태가 바뀌어도 툴바 표시를 맞춘다.</summary>
+    public void InspectorUpdate() { if (EquipmentEditorPanel.AnyDirty(SaveTargets()) != lastDirty) Repaint(); }
+
     private void ClearSerialized()
     {
         foreach (var so in serialized.Values) so?.Dispose();
@@ -109,8 +123,12 @@ public class EnemyEditorPanel
     {
         ClearSerialized();
         EnemyAssets.InvalidateUsage();
+        EnemyAssets.ClearPreviews();
         all = EnemyAssets.All();
         clusters = EnemyAssets.AllClusters();
+        otherAssets = clusters.Cast<UnityEngine.Object>()
+            .Concat(new UnityEngine.Object[] { EnemyAssets.MinionRegistry, EnemyAssets.ClusterRegistry, EnemyAssets.MapData })
+            .Where(o => o != null).ToList();
         if (selected != null && !all.Contains(selected)) selected = null;
         if (selectedCluster != null && !clusters.Contains(selectedCluster)) selectedCluster = null;
         version++;
@@ -161,7 +179,7 @@ public class EnemyEditorPanel
     {
         if (string.IsNullOrWhiteSpace(search)) return true;
         string q = search.Trim();
-        return Has(e.name, q) || Has(e.minionName, q) || (e.aiPattern != null && Has(e.aiPattern.name, q));
+        return Has(e.name, q) || Has(e.minionName.ko, q) || (e.aiPattern != null && Has(e.aiPattern.name, q));
     }
 
     private static bool Has(string t, string q) => !string.IsNullOrEmpty(t) && t.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0;
@@ -171,34 +189,44 @@ public class EnemyEditorPanel
     {
         if (all.Any(e => e == null) || clusters.Any(c => c == null)) Reload();
 
-        string context = $"{view}|{(selected != null ? selected.GetInstanceID() : 0)}|{(selectedCluster != null ? selectedCluster.GetInstanceID() : 0)}|{version}";
+        string context = $"{view}|{(selected != null ? selected.GetInstanceID() : 0)}|{(selectedCluster != null ? selectedCluster.GetInstanceID() : 0)}|{tierFilter}|{sortBy}|{onlyWarnings}|{version}";
         if (context != lastContext) { lastContext = context; EndTextEditing(); }
+
+        // 표시 목록은 검색어/필터/정렬이 바뀌거나 다시 읽을 때(되돌리기 포함)만 다시 계산한다.
+        // 표에서 이름·등급·수치를 고칠 때마다 다시 정렬하면 그 줄이 다른 자리로 밀려, 이어 치던 글자가 옆 적에 들어간다.
+        // 툴바보다 먼저 계산해서, 필터를 바꾼 그 프레임에는 이전 목록 그대로 그린다(ItemDatabaseWindow 와 같은 방식).
+        string filter = $"{search}|{tierFilter}|{sortBy}|{onlyWarnings}|{version}";
+        if (visible == null || filter != lastFilter) { lastFilter = filter; visible = Filtered(); }
 
         DrawToolbar();
 
         int warn = all.Count(e => EnemyAssets.Warnings(e).Count > 0);
         EditorGUILayout.LabelField(
-            $"적 {all.Count}종 (일반 {all.Count(e => e.tier == EnemyTier.Normal)} · 엘리트 {all.Count(e => e.tier == EnemyTier.Elite)} · 보스 {all.Count(e => e.tier == EnemyTier.Boss)}) · 군집 {clusters.Count}개 · 확인 필요 {warn}개 · Ctrl+Z 로 되돌리기"
+            $"적 {all.Count}종 (일반 {all.Count(e => e.tier == EnemyTier.Normal)} · 엘리트 {all.Count(e => e.tier == EnemyTier.Elite)} · 보스 {all.Count(e => e.tier == EnemyTier.Boss)}) · 군집 {clusters.Count}개 · 확인 필요 {warn}개 · Ctrl+Z 로 되돌리기(삭제 제외)"
+            + (onlyWarnings ? " · 고친 적은 ↻ 를 누르면 목록에서 빠집니다" : "")
             + (Application.isPlaying ? " · 플레이 중 수정도 에셋에 그대로 남습니다" : ""), EditorStyles.miniLabel);
 
         if (view == View.Cluster) { DrawClusters(); return; }
+        if (view == View.Floors) { DrawFloors(); return; }
         if (all.Count == 0)
         {
             EditorGUILayout.HelpBox("EnemyMinionDataSO 에셋이 없습니다. '새 적'으로 만드세요.", MessageType.Info);
             return;
         }
-        var list = Filtered();
-        if (view == View.Table) DrawTable(list); else DrawDetail(list);
+        var list = visible.Where(e => e != null).ToList();
+        if (view == View.Table) DrawTable(list);
+        else if (view == View.Balance) DrawBalance(list);
+        else DrawDetail(list);
     }
 
     private void DrawToolbar()
     {
         using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
         {
-            var nv = (View)GUILayout.Toolbar((int)view, new[] { "하나씩 편집", "능력치 표", "군집 편집" }, EditorStyles.toolbarButton, GUILayout.Width(250));
+            var nv = (View)GUILayout.Toolbar((int)view, new[] { "하나씩 편집", "능력치 표", "군집 편집", "처치 시간", "층별 구성" }, EditorStyles.toolbarButton, GUILayout.Width(420));
             if (nv != view) { var v = nv; Defer(() => view = v); }
             GUILayout.Space(6);
-            using (new EditorGUI.DisabledScope(view == View.Cluster))
+            using (new EditorGUI.DisabledScope(view == View.Cluster || view == View.Floors))
             {
                 search = GUILayout.TextField(search ?? "", EditorStyles.toolbarSearchField, GUILayout.MinWidth(100), GUILayout.MaxWidth(220));
                 tierFilter = EditorGUILayout.Popup(tierFilter, TierFilterLabels, EditorStyles.toolbarPopup, GUILayout.Width(76));
@@ -206,6 +234,7 @@ public class EnemyEditorPanel
                 onlyWarnings = GUILayout.Toggle(onlyWarnings, new GUIContent("확인 필요만", "능력치 이상, AI·프리팹 누락, 어디에도 등장하지 않는 적 등만 본다."), EditorStyles.toolbarButton, GUILayout.Width(74));
             }
             GUILayout.FlexibleSpace();
+            lastDirty = EquipmentEditorPanel.SaveButton(host, SaveTargets());
             if (GUILayout.Button(new GUIContent("새 적", "등급·AI 패턴·프리팹·등장 위치를 정해 새 적을 만든다. 기존 적 복사로 시작할 수도 있다."), EditorStyles.toolbarButton))
                 Defer(() => NewEnemyPopup.Open(null, OnCreated));
             if (GUILayout.Button(new GUIContent("↻", "목록 새로고침"), EditorStyles.toolbarButton, GUILayout.Width(24))) Defer(Reload);
@@ -255,7 +284,7 @@ public class EnemyEditorPanel
         var r = GUILayoutUtility.GetRect(10, 26, GUILayout.ExpandWidth(true));
         if (e == selected) EditorGUI.DrawRect(r, new Color(0.24f, 0.48f, 0.90f, 0.35f));
         EditorGUI.DrawRect(new Rect(r.x + 2, r.y + 4, 4, r.height - 8), EnemyAssets.TierColor(e.tier));
-        EquipmentEditorPanel.DrawSprite(new Rect(r.x + 10, r.y + 3, 20, 20), e.minionIcon);
+        EquipmentEditorPanel.DrawSprite(new Rect(r.x + 10, r.y + 3, 20, 20), EnemyAssets.Preview(e));
         string label = EnemyAssets.DisplayName(e) + (e.isPhaseVariant ? "  (페이즈)" : "");
         GUI.Label(new Rect(r.x + 34, r.y + 4, r.width - 58, 18), new GUIContent(label, e.name));
         if (EnemyAssets.Warnings(e).Count > 0)
@@ -320,9 +349,9 @@ public class EnemyEditorPanel
         using (new EditorGUILayout.HorizontalScope())
         {
             var icon = so.FindProperty("minionIcon");
-            EditorGUILayout.PropertyField(icon, new GUIContent("아이콘", "얼굴만 있는 작은 이미지"));
+            EditorGUILayout.PropertyField(icon, new GUIContent("아이콘", "편집기 목록에만 보이는 작은 이미지(게임에서는 쓰지 않음). 비워 두면 대기 애니메이션 첫 프레임을 보여준다."));
             var r = GUILayoutUtility.GetRect(40, 40, GUILayout.Width(40), GUILayout.Height(40));
-            EquipmentEditorPanel.DrawSprite(r, icon.objectReferenceValue as Sprite);
+            EquipmentEditorPanel.DrawSprite(r, EnemyAssets.Preview(e));
         }
         Prop(so, "tier", "등급", "일반/엘리트/보스. 피해 갈래·엘리트 방 추첨·미니맵 표시가 이 값 하나로 정해진다. 바꾸면 위의 '목록 분류 고치기'로 목록도 맞추세요.");
         if (e.tier != EnemyTier.Normal)
@@ -363,8 +392,8 @@ public class EnemyEditorPanel
         so.Update();
         EquipmentEditorPanel.Header("프리팹");
         Prop(so, "minionPrefab", "몬스터 프리팹", "실제로 소환되는 프리팹. 루트에 BaseEntity 계열 컴포넌트가 있어야 이 데이터가 들어간다.");
-        if (e.tier != EnemyTier.Normal)
-            Prop(so, "dedicatedRoomPrefab", "전용 방 프리팹", "이 엘리트/보스가 나오는 방. 비우면 일반 엘리트 방을 쓴다.");
+        if (e.IsSpawnableElite) // 맵 생성은 층 엘리트의 이 칸만 읽는다(보스 방은 안 씀)
+            Prop(so, "dedicatedRoomPrefab", "전용 엘리트 방 프리팹", "이 엘리트가 그 층 엘리트로 뽑히면 엘리트 방으로 이 방을 배치한다. 비우면 일반 엘리트 방을 쓴다.");
         so.ApplyModifiedProperties();
         if (e.minionPrefab != null)
         {
@@ -434,7 +463,7 @@ public class EnemyEditorPanel
         {
             var owners = EnemyAssets.PhaseOwners(e);
             EditorGUILayout.HelpBox("페이즈 전환용 데이터라 스폰 추첨에 들어가지 않습니다."
-                + (owners.Count > 0 ? "\n이 데이터를 2페이즈로 쓰는 곳: " + string.Join(", ", owners) : "\n이 데이터를 2페이즈로 연결한 AI 패턴·컨트롤러를 찾지 못했습니다."), MessageType.None);
+                + (owners.Count > 0 ? "\n이 데이터를 2페이즈로 쓰는 곳: " + string.Join(", ", owners) : "\n이 데이터를 2페이즈로 연결한 AI 패턴·적 프리팹을 찾지 못했습니다."), MessageType.None);
             return;
         }
 
@@ -449,13 +478,16 @@ public class EnemyEditorPanel
                 {
                     bool inList = reg != null && reg.eliteMinionData.Contains(e);
                     bool n = EditorGUILayout.ToggleLeft(new GUIContent("층 엘리트 후보에 등록" + (reg != null ? $" ({reg.name} 엘리트 목록)" : ""),
-                        "엘리트 방이 이 목록에서 엘리트를 뽑는다. 빠지면 게임에 나오지 않는다."), inList);
+                        "엘리트 방은 이 목록과 일반 적 목록에 든 엘리트 등급(페이즈 전용 제외) 중에서 뽑는다. 두 목록 모두에 없으면 게임에 나오지 않는다."), inList);
                     if (n != inList) EnemyAssets.SetIn(reg, reg.eliteMinionData, e, n);
                 }
+                if (reg != null && reg.enemyMinionData.Contains(e))
+                    EditorGUILayout.LabelField("일반 적 목록에도 들어 있어 체크를 꺼도 엘리트 후보로 뽑힙니다.", EnemyAssets.WrapMini);
                 if (reg != null)
                 {
-                    var others = reg.eliteMinionData.Where(x => x != null && x != e).Select(EnemyAssets.DisplayName).ToList();
-                    EditorGUILayout.LabelField("현재 엘리트 후보: " + (others.Count + (reg.eliteMinionData.Contains(e) ? 1 : 0)) + "종"
+                    var pool = EnemyAssets.ElitePool();
+                    var others = pool.Where(x => x != e).Select(EnemyAssets.DisplayName).ToList();
+                    EditorGUILayout.LabelField("현재 엘리트 후보: " + pool.Count + "종"
                         + (others.Count > 0 ? " (그 외: " + string.Join(", ", others) + ")" : ""), EditorStyles.miniLabel);
                 }
                 DrawClusterMembership(e, compact: true);
@@ -493,7 +525,7 @@ public class EnemyEditorPanel
                         registered ? EnemyAssets.ClusterFloorsText(c) : "전체 군집 목록에 등록되지 않은 군집입니다(층 조절표에 직접 넣은 층에서만 나옴)."), GUILayout.Width(200));
                     EditorGUILayout.LabelField("마릿수", GUILayout.Width(40));
                     EditorGUILayout.PropertyField(el.FindPropertyRelative("count"), GUIContent.none, GUILayout.Width(50));
-                    GUILayout.Label($"/ 군집 전체 {c.enemies.Sum(x => Mathf.Max(0, x.count))}마리", EditorStyles.miniLabel, GUILayout.Width(110));
+                    GUILayout.Label($"/ 군집 전체 {EnemyAssets.WaveCount(c)}마리", EditorStyles.miniLabel, GUILayout.Width(110));
                     if (GUILayout.Button("군집 열기", EditorStyles.miniButtonLeft, GUILayout.Width(64)))
                     { var t = c; Defer(() => { selectedCluster = t; view = View.Cluster; }); }
                     int idx = i;
@@ -615,7 +647,7 @@ public class EnemyEditorPanel
                 {
                     var r = GUILayoutUtility.GetRect(44, 36, GUILayout.Width(44), GUILayout.Height(36));
                     EditorGUI.DrawRect(new Rect(r.x, r.y, 3, r.height), EnemyAssets.TierColor(e.tier));
-                    EquipmentEditorPanel.DrawSprite(new Rect(r.x + 6, r.y + 2, 32, 32), e.minionIcon);
+                    EquipmentEditorPanel.DrawSprite(new Rect(r.x + 6, r.y + 2, 32, 32), EnemyAssets.Preview(e));
                     if (GUILayout.Button("편집", EditorStyles.miniButton, GUILayout.Width(44)))
                     { var t = e; Defer(() => { selected = t; view = View.Detail; }); }
                 }
@@ -675,7 +707,7 @@ public class EnemyEditorPanel
                     var r = GUILayoutUtility.GetRect(10, 24, GUILayout.ExpandWidth(true));
                     if (c == selectedCluster) EditorGUI.DrawRect(r, new Color(0.24f, 0.48f, 0.90f, 0.35f));
                     bool reg = registry != null && registry.enemyClusters.Contains(c);
-                    int total = c.enemies?.Sum(x => Mathf.Max(0, x.count)) ?? 0;
+                    int total = EnemyAssets.WaveCount(c);
                     GUI.Label(new Rect(r.x + 6, r.y + 3, r.width - 12, 18), new GUIContent($"{(reg ? "●" : "○")} {EnemyAssets.ClusterName(c)}  ({total}마리)", reg ? "전체 군집 목록에 등록됨" : "전체 군집 목록에 없음"));
                     if (Event.current.type == EventType.MouseDown && r.Contains(Event.current.mousePosition))
                     { var t = c; Defer(() => selectedCluster = t); Event.current.Use(); }
@@ -725,18 +757,16 @@ public class EnemyEditorPanel
 
         EquipmentEditorPanel.Header("구성 (웨이브 하나에 이만큼 나온다)");
         var arr = so.FindProperty("enemies");
-        int total = 0;
         for (int i = 0; i < arr.arraySize; i++)
         {
             var el = arr.GetArrayElementAtIndex(i);
             var dataProp = el.FindPropertyRelative("enemyData");
             var countProp = el.FindPropertyRelative("count");
             var data = dataProp.objectReferenceValue as EnemyMinionDataSO;
-            total += Mathf.Max(0, countProp.intValue);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
             {
                 var r = GUILayoutUtility.GetRect(24, 24, GUILayout.Width(24), GUILayout.Height(24));
-                if (data != null) EquipmentEditorPanel.DrawSprite(r, data.minionIcon);
+                if (data != null) EquipmentEditorPanel.DrawSprite(r, EnemyAssets.Preview(data));
                 EditorGUILayout.PropertyField(dataProp, GUIContent.none, GUILayout.MinWidth(160));
                 EditorGUILayout.LabelField("마릿수", GUILayout.Width(40));
                 EditorGUILayout.PropertyField(countProp, GUIContent.none, GUILayout.Width(50));
@@ -776,7 +806,7 @@ public class EnemyEditorPanel
             scaleMax = Mathf.Max(1f, map.floorTuning.Max(f => f.enemyCountScale));
         }
         EditorGUILayout.Space(4);
-        EditorGUILayout.LabelField($"웨이브당 총 {total}마리" + (scaleMin != 1f || scaleMax != 1f ? $" (층 마릿수 배율 적용 시 약 {Mathf.CeilToInt(total * scaleMin)}~{Mathf.CeilToInt(total * scaleMax)}마리)" : ""), EditorStyles.boldLabel);
+        EditorGUILayout.LabelField($"웨이브당 총 {EnemyAssets.WaveCount(c)}마리" + (scaleMin != 1f || scaleMax != 1f ? $" (층 마릿수 배율 적용 시 약 {EnemyAssets.WaveCount(c, scaleMin)}~{EnemyAssets.WaveCount(c, scaleMax)}마리)" : ""), EditorStyles.boldLabel);
         var valid = c.enemies?.Where(x => x.enemyData != null && x.count > 0).ToList() ?? new List<EnemyCount>();
         if (valid.Count > 0)
         {
@@ -829,7 +859,7 @@ public static class EnemyAssets
         .Select(g => AssetDatabase.LoadAssetAtPath<EnemyClusterSO>(AssetDatabase.GUIDToAssetPath(g)))
         .Where(c => c != null).OrderBy(ClusterName, StringComparer.Ordinal).ToList();
 
-    public static string DisplayName(EnemyMinionDataSO e) => e == null ? "(없음)" : string.IsNullOrWhiteSpace(e.minionName) ? e.name : e.minionName;
+    public static string DisplayName(EnemyMinionDataSO e) => e == null ? "(없음)" : string.IsNullOrWhiteSpace(e.minionName.ko) ? e.name : e.minionName.ko;
     public static string ClusterName(EnemyClusterSO c) => c == null ? "(없음)" : string.IsNullOrWhiteSpace(c.clusterName) ? c.name : c.clusterName;
 
     public static string TierName(EnemyTier t) => t == EnemyTier.Boss ? "보스" : t == EnemyTier.Elite ? "엘리트" : "일반";
@@ -837,6 +867,24 @@ public static class EnemyAssets
 
     public static float Dps(EnemyMinionDataSO e) => e == null ? 0f : Mathf.Max(0f, e.attack) * Mathf.Max(0f, e.attackSpeed);
     public static float EffectiveHp(EnemyMinionDataSO e) => e == null ? 0f : e.maxHP / (1f - Mathf.Clamp(e.defense, 0f, 75f) / 100f);
+
+    /// <summary>웨이브 하나에 실제로 나오는 마릿수. NormalRoomEvent.AppendWaveEnemies 와 같은 계산:
+    /// 빈 칸은 건너뛰고, 층 배율은 웨이브 합계에 곱해 반올림(최소 1). 증강의 추가 마릿수는 뺀 값.</summary>
+    public static int WaveCount(EnemyClusterSO c, float scale = 1f)
+    {
+        int n = c != null && c.enemies != null ? c.enemies.Where(x => x.enemyData != null).Sum(x => Mathf.Max(0, x.count)) : 0;
+        return n > 0 && !Mathf.Approximately(scale, 1f) ? Mathf.Max(1, Mathf.RoundToInt(n * scale)) : n;
+    }
+
+    /// <summary>게임의 엘리트 방 풀과 같은 규칙(MapGenerator.PickFloorElite, EliteRoomEvent):
+    /// 엘리트 목록 + 일반 적 목록 중 IsSpawnableElite.</summary>
+    public static List<EnemyMinionDataSO> ElitePool()
+    {
+        var reg = MinionRegistry;
+        if (reg == null) return new List<EnemyMinionDataSO>();
+        return (reg.eliteMinionData ?? new List<EnemyMinionDataSO>()).Concat(reg.enemyMinionData ?? new List<EnemyMinionDataSO>())
+            .Where(x => x != null && x.IsSpawnableElite).Distinct().ToList();
+    }
 
     private static GUIStyle wrapMini;
     public static GUIStyle WrapMini => wrapMini ??= new GUIStyle(EditorStyles.miniLabel) { wordWrap = true };
@@ -878,6 +926,34 @@ public static class EnemyAssets
         warningCache.Clear();
     }
 
+    // 적 아이콘은 게임에서 쓰지 않아 대부분 비어 있다. 비어 있으면 편집기 화면에만 대기 애니메이션 첫 프레임(없으면 프리팹 몸통 그림)을 보여준다.
+    // 그림은 프리팹/애니메이션 파일에만 달려 있어서, 클릭·수정마다 비우지 않고 프로젝트가 바뀔 때(Reload)만 비운다.
+    private static readonly Dictionary<GameObject, Sprite> previewCache = new Dictionary<GameObject, Sprite>();
+    public static void ClearPreviews() => previewCache.Clear();
+
+    public static Sprite Preview(EnemyMinionDataSO e)
+    {
+        if (e == null || e.minionIcon != null || e.minionPrefab == null) return e != null ? e.minionIcon : null;
+        if (!previewCache.TryGetValue(e.minionPrefab, out var s)) previewCache[e.minionPrefab] = s = FirstFrame(e.minionPrefab);
+        return s;
+    }
+
+    private static Sprite FirstFrame(GameObject prefab)
+    {
+        var anim = prefab.GetComponentInChildren<Animator>(true);
+        var body = anim != null ? anim.GetComponent<SpriteRenderer>() : prefab.GetComponentInChildren<SpriteRenderer>(true);
+        var clips = anim != null && anim.runtimeAnimatorController != null ? anim.runtimeAnimatorController.animationClips : Array.Empty<AnimationClip>();
+        // Idle 이 들어간 클립을 먼저 본다. 몸통(Animator 와 같은 오브젝트)의 그림만 — 그림자·무기 같은 자식 그림은 건너뛴다.
+        foreach (var clip in clips.Where(c => c != null).OrderBy(c => c.name.IndexOf("idle", StringComparison.OrdinalIgnoreCase) >= 0 ? 0 : 1))
+            foreach (var b in AnimationUtility.GetObjectReferenceCurveBindings(clip))
+            {
+                if (b.type != typeof(SpriteRenderer) || b.propertyName != "m_Sprite" || b.path != "") continue;
+                var keys = AnimationUtility.GetObjectReferenceCurve(clip, b);
+                if (keys.Length > 0 && keys[0].value is Sprite sprite) return sprite;
+            }
+        return body != null ? body.sprite : null;
+    }
+
     public static List<EnemyMinionDataSO> PatternUsers(AIPatternSO p)
     {
         if (patternUsers == null)
@@ -893,7 +969,8 @@ public static class EnemyAssets
         return p != null && patternUsers.TryGetValue(p, out var list) ? list : new List<EnemyMinionDataSO>();
     }
 
-    /// <summary>이 데이터를 2페이즈 등으로 참조하는 AI 패턴 에셋(직렬화된 EnemyMinionDataSO 필드)을 찾는다.</summary>
+    /// <summary>이 데이터를 2페이즈 등으로 참조하는 곳(직렬화된 EnemyMinionDataSO 필드)을 찾는다:
+    /// AI 패턴 에셋(ArcherBossAIPatternSO.phase2Data 등)과 적 프리팹의 컴포넌트(BoneMasterController.phase2Data 등).</summary>
     public static List<string> PhaseOwners(EnemyMinionDataSO e)
     {
         if (phaseOwners == null)
@@ -902,23 +979,29 @@ public static class EnemyAssets
             foreach (var g in AssetDatabase.FindAssets("t:AIPatternSO"))
             {
                 var p = AssetDatabase.LoadAssetAtPath<AIPatternSO>(AssetDatabase.GUIDToAssetPath(g));
-                if (p == null) continue;
-                using (var so = new SerializedObject(p))
-                {
-                    var it = so.GetIterator();
-                    while (it.Next(true))
-                    {
-                        if (it.propertyType != SerializedPropertyType.ObjectReference) continue;
-                        if (it.objectReferenceValue is EnemyMinionDataSO target)
-                        {
-                            if (!phaseOwners.TryGetValue(target, out var l)) phaseOwners[target] = l = new List<string>();
-                            l.Add($"{p.name} ({ObjectNames.NicifyVariableName(it.name)})");
-                        }
-                    }
-                }
+                if (p != null) CollectDataRefs(p, p.name);
             }
+            foreach (var prefab in All().Select(x => x.minionPrefab).Where(x => x != null).Distinct())
+                foreach (var comp in prefab.GetComponentsInChildren<MonoBehaviour>(true))
+                    if (comp != null) CollectDataRefs(comp, prefab.name + " 프리팹");
         }
         return e != null && phaseOwners.TryGetValue(e, out var list) ? list : new List<string>();
+    }
+
+    private static void CollectDataRefs(UnityEngine.Object owner, string ownerName)
+    {
+        using (var so = new SerializedObject(owner))
+        {
+            var it = so.GetIterator();
+            while (it.Next(true))
+            {
+                if (it.propertyType != SerializedPropertyType.ObjectReference) continue;
+                if (!(it.objectReferenceValue is EnemyMinionDataSO target)) continue;
+                if (owner is BaseEntity && it.propertyPath == "minionData") continue; // 프리팹 자신의 기본 데이터 — 2페이즈 연결 아님
+                if (!phaseOwners.TryGetValue(target, out var l)) phaseOwners[target] = l = new List<string>();
+                l.Add($"{ownerName} ({ObjectNames.NicifyVariableName(it.name)})");
+            }
+        }
     }
 
     public static string ClusterFloorsText(EnemyClusterSO c)
@@ -943,6 +1026,8 @@ public static class EnemyAssets
     }
 
     // ── 검사 ──────────────────────────────────────────────────────────
+    // 게임이 읽는 목록은 엘리트 방 풀(엘리트 목록 + 일반 적 목록 중 IsSpawnableElite)뿐이다.
+    // 일반/보스 목록은 분류용이라(일반은 군집, 보스는 층 배정으로 나온다) '목록에 없음'은 경고하지 않는다.
     public static string RegistryMismatch(EnemyMinionDataSO e)
     {
         var reg = MinionRegistry;
@@ -953,7 +1038,6 @@ public static class EnemyAssets
         switch (e.tier)
         {
             case EnemyTier.Normal:
-                if (!inNormal) return $"{reg.name} 일반 적 목록에 없습니다.";
                 if (inBoss || inElite) return $"일반 등급인데 {reg.name} 의 엘리트/보스 목록에 들어 있습니다.";
                 break;
             case EnemyTier.Elite:
@@ -961,7 +1045,6 @@ public static class EnemyAssets
                 if (inElite && e.isPhaseVariant) return "페이즈 전환용 데이터가 엘리트 후보 목록에 들어 있습니다(2페이즈 몸으로 시작함).";
                 break;
             case EnemyTier.Boss:
-                if (!inBoss) return $"{reg.name} 보스 목록에 없습니다.";
                 if (inNormal || inElite) return $"보스 등급인데 {reg.name} 의 일반/엘리트 목록에 들어 있습니다.";
                 break;
         }
@@ -973,9 +1056,13 @@ public static class EnemyAssets
         var reg = MinionRegistry;
         if (reg == null || e == null) return;
         Undo.RecordObject(reg, "적 목록 분류 고치기");
+        bool wasInNormal = reg.enemyMinionData.Contains(e);
         reg.enemyMinionData.RemoveAll(x => x == e);
         reg.bossMinionData.RemoveAll(x => x == e);
-        if (e.tier != EnemyTier.Elite || e.isPhaseVariant) reg.eliteMinionData.RemoveAll(x => x == e);
+        // 일반 적 목록에 있던 엘리트는 이미 엘리트 풀에 들어가 있었다 — 빼기만 하면 엘리트 방에서 사라지므로 엘리트 목록으로 옮긴다.
+        // 보스 목록은 게임이 안 읽으니 풀에 없던 것이다. 넣을지는 기획자가 정한다.
+        if (!e.IsSpawnableElite) reg.eliteMinionData.RemoveAll(x => x == e);
+        else if (wasInNormal && !reg.eliteMinionData.Contains(e)) reg.eliteMinionData.Add(e);
         if (e.tier == EnemyTier.Normal) reg.enemyMinionData.Add(e);
         if (e.tier == EnemyTier.Boss) reg.bossMinionData.Add(e);
         EditorUtility.SetDirty(reg);
@@ -990,8 +1077,7 @@ public static class EnemyAssets
         if (warningCache.TryGetValue(e, out var cached)) return cached;
 
         var w = new List<string>();
-        if (string.IsNullOrWhiteSpace(e.minionName)) w.Add("게임 표시 이름이 비어 있습니다.");
-        if (e.minionIcon == null) w.Add("아이콘이 없습니다.");
+        if (string.IsNullOrWhiteSpace(e.minionName.ko)) w.Add("게임 표시 이름이 비어 있습니다.");
         if (e.minionPrefab == null) w.Add("프리팹이 없어 소환되지 않습니다.");
         else if (e.minionPrefab.GetComponent<BaseEntity>() == null) w.Add("프리팹 루트에 BaseEntity 가 없습니다.");
         if (e.aiPattern == null) w.Add("AI 패턴이 없습니다.");
@@ -1006,24 +1092,33 @@ public static class EnemyAssets
 
         if (!e.isPhaseVariant)
         {
-            var reg = MinionRegistry;
-            if (e.tier == EnemyTier.Elite && reg != null && !reg.eliteMinionData.Contains(e))
+            if (e.tier == EnemyTier.Elite && MinionRegistry != null && !ElitePool().Contains(e))
                 w.Add("엘리트 후보 목록에 없어 엘리트 방에 나오지 않습니다.");
             if (e.tier == EnemyTier.Boss && MapData != null && !MapData.floorBosses.Any(f => f != null && f.boss == e))
                 w.Add("어느 층 보스로도 배정되지 않았습니다.");
         }
+        // 게임은 층마다 먼저 적힌 배정 하나만 쓴다(MapGenerationDataSO.GetBossForFloor).
+        var bosses = MapData != null ? MapData.floorBosses : null;
+        if (bosses != null)
+            foreach (var f in bosses)
+            {
+                if (f == null || f.boss != e) continue;
+                var first = bosses.First(x => x != null && x.floor == f.floor);
+                if (first != f) w.Add($"{f.floor}층에는 먼저 적힌 배정({DisplayName(first.boss)})이 있어 이 배정은 무시됩니다. 한 층에 보스는 하나만 나옵니다.");
+            }
         warningCache[e] = w;
         return w;
     }
 
-    public static string ValidateName(string name, EnemyMinionDataSO self = null)
+    /// <summary>usedNames 를 주면 그 이름 모음(대소문자 무시)으로 겹침을 본다 — 매 프레임 검사하는 창용. 없으면 프로젝트 전체를 읽는다.</summary>
+    public static string ValidateName(string name, EnemyMinionDataSO self = null, HashSet<string> usedNames = null)
     {
         if (string.IsNullOrWhiteSpace(name)) return "에셋 파일 이름을 입력하세요.";
         name = name.Trim();
         if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name.Contains('/') || name.Contains('\\'))
             return "파일 이름에 쓸 수 없는 문자가 있습니다.";
         if (name.StartsWith(".") || name.EndsWith(".")) return "점(.)으로 시작하거나 끝날 수 없습니다.";
-        if (All().Any(e => e != self && string.Equals(e.name, name, StringComparison.OrdinalIgnoreCase)))
+        if (usedNames != null ? usedNames.Contains(name) : All().Any(e => e != self && string.Equals(e.name, name, StringComparison.OrdinalIgnoreCase)))
             return $"'{name}' 적이 이미 있습니다.";
         return null;
     }
@@ -1052,7 +1147,7 @@ public static class EnemyAssets
         public EnemyTier tier = EnemyTier.Normal;
         public AIPatternSO aiPattern;
         public GameObject prefab;
-        public bool registerList = true;          // 등급에 맞는 MinionRegistry 목록(일반/보스) 또는 엘리트 후보
+        public bool registerList = true;          // 등급에 맞는 MinionRegistry 목록(일반/보스는 분류용) 또는 엘리트 후보
         public EnemyClusterSO addToCluster;       // 일반만
         public int clusterCount = 2;
     }
@@ -1077,7 +1172,7 @@ public static class EnemyAssets
             e = ScriptableObject.CreateInstance<EnemyMinionDataSO>();
             AssetDatabase.CreateAsset(e, path);
         }
-        e.minionName = r.displayName ?? "";
+        e.minionName = new LocText { ko = r.displayName ?? "" };
         e.tier = r.tier;
         e.isPhaseVariant = r.copyFrom != null && r.tier != EnemyTier.Normal && r.copyFrom.isPhaseVariant;
         if (r.aiPattern != null) e.aiPattern = r.aiPattern;
@@ -1085,11 +1180,7 @@ public static class EnemyAssets
         EditorUtility.SetDirty(e);
 
         var reg = MinionRegistry;
-        if (r.registerList && reg != null)
-        {
-            if (r.tier == EnemyTier.Elite) SetIn(reg, reg.eliteMinionData, e, true);
-            else FixRegistry(e);
-        }
+        if (r.registerList && reg != null) { FixRegistry(e); if (e.IsSpawnableElite) SetIn(reg, reg.eliteMinionData, e, true); }
         if (r.tier == EnemyTier.Normal && r.addToCluster != null) AddToCluster(r.addToCluster, e, Mathf.Max(1, r.clusterCount));
         AssetDatabase.SaveAssets();
         InvalidateUsage();
@@ -1145,7 +1236,6 @@ public static class EnemyAssets
         var c = ScriptableObject.CreateInstance<EnemyClusterSO>();
         c.clusterName = displayName;
         AssetDatabase.CreateAsset(c, path);
-        Undo.RegisterCreatedObjectUndo(c, "새 군집");
         if (register && ClusterRegistry != null) SetIn(ClusterRegistry, ClusterRegistry.enemyClusters, c, true);
         AssetDatabase.SaveAssets();
         return c;
@@ -1171,14 +1261,14 @@ public static class EnemyAssets
         var reg = ClusterRegistry;
         var map = MapData;
         var floors = map?.floorTuning?.Where(f => f != null && f.clusterPool != null && f.clusterPool.Contains(c)).Select(f => f.floor).ToList() ?? new List<int>();
-        string msg = $"'{ClusterName(c)}' 군집을 삭제합니다(OS 휴지통으로 이동).\n"
+        string msg = $"'{ClusterName(c)}' 군집을 삭제합니다(OS 휴지통으로 이동, Ctrl+Z 로는 되돌릴 수 없음).\n"
                      + (reg != null && reg.enemyClusters.Contains(c) ? "\n· 전체 군집 목록에서 뺍니다." : "")
                      + (floors.Count > 0 ? $"\n· 층 조절표({string.Join(", ", floors)}층)의 군집 목록에서 뺍니다." : "");
         if (!EditorUtility.DisplayDialog("군집 삭제", msg, "삭제", "취소")) return false;
-        if (reg != null && reg.enemyClusters.Contains(c)) { Undo.RecordObject(reg, "군집 삭제"); reg.enemyClusters.RemoveAll(x => x == c); EditorUtility.SetDirty(reg); }
+        // 삭제는 Undo 기록을 남기지 않는다 — 되돌리면 목록에 '없는 에셋' 칸만 돌아온다.
+        if (reg != null && reg.enemyClusters.Contains(c)) { reg.enemyClusters.RemoveAll(x => x == c); EditorUtility.SetDirty(reg); }
         if (map != null && floors.Count > 0)
         {
-            Undo.RecordObject(map, "군집 삭제");
             foreach (var f in map.floorTuning) f?.clusterPool?.RemoveAll(x => x == c);
             EditorUtility.SetDirty(map);
         }
@@ -1210,7 +1300,7 @@ public static class EnemyAssets
 
         var msg = new StringBuilder();
         msg.AppendLine($"'{DisplayName(e)}' ({e.name}) 을(를) 삭제합니다.");
-        msg.AppendLine("에셋은 OS 휴지통으로 이동합니다(휴지통에서 복구 가능).\n");
+        msg.AppendLine("에셋은 OS 휴지통으로 이동합니다(휴지통에서 복구 가능, Ctrl+Z 로는 되돌릴 수 없음).\n");
         if (reg != null && (reg.enemyMinionData.Contains(e) || reg.eliteMinionData.Contains(e) || reg.bossMinionData.Contains(e)))
             msg.AppendLine($"· {reg.name} 목록에서 자동으로 뺍니다.");
         if (inClusters.Count > 0) msg.AppendLine($"· 군집 {inClusters.Count}개에서 뺍니다: {string.Join(", ", inClusters.Select(ClusterName))}");
@@ -1229,9 +1319,9 @@ public static class EnemyAssets
         msg.AppendLine("\n프리팹·AI 패턴 에셋은 지우지 않습니다.");
         if (!EditorUtility.DisplayDialog("적 삭제", msg.ToString(), "삭제", "취소")) return false;
 
+        // 삭제는 Undo 기록을 남기지 않는다 — 되돌리면 목록에 '없는 에셋' 칸만 돌아와 엘리트 방 등이 깨진다.
         if (reg != null)
         {
-            Undo.RecordObject(reg, "적 삭제");
             reg.enemyMinionData.RemoveAll(x => x == e);
             reg.eliteMinionData.RemoveAll(x => x == e);
             reg.bossMinionData.RemoveAll(x => x == e);
@@ -1239,13 +1329,11 @@ public static class EnemyAssets
         }
         foreach (var c in inClusters)
         {
-            Undo.RecordObject(c, "적 삭제");
             c.enemies.RemoveAll(x => x.enemyData == e);
             EditorUtility.SetDirty(c);
         }
         if (map != null && bossFloors.Count > 0)
         {
-            Undo.RecordObject(map, "적 삭제");
             map.floorBosses.RemoveAll(f => f != null && f.boss == e);
             EditorUtility.SetDirty(map);
         }
@@ -1267,6 +1355,7 @@ public class NewEnemyPopup : EditorWindow
     private EnemyAssets.Request req;
     private Action<EnemyMinionDataSO> onCreated;
     private List<EnemyMinionDataSO> sources;
+    private HashSet<string> usedNames; // 열 때 한 번 모은 기존 적 이름. 이름 칸 검사용이고, 최종 확인은 Create 가 다시 한다.
     private List<EnemyClusterSO> clusters;
     private int mode;
     private int sourceIndex;
@@ -1280,6 +1369,7 @@ public class NewEnemyPopup : EditorWindow
         w.titleContent = new GUIContent(copyFrom != null ? "적 복제" : "새 적");
         w.onCreated = onCreated;
         w.sources = EnemyAssets.All().OrderBy(e => (int)e.tier).ThenBy(EnemyAssets.DisplayName, StringComparer.Ordinal).ToList();
+        w.usedNames = new HashSet<string>(w.sources.Select(e => e.name), StringComparer.OrdinalIgnoreCase);
         w.clusters = EnemyAssets.AllClusters();
         w.req = new EnemyAssets.Request { assetName = EnemyAssets.UniqueName("New Enemy"), folder = EnemyAssets.FolderFor(EnemyTier.Normal) };
         if (copyFrom != null)
@@ -1328,7 +1418,7 @@ public class NewEnemyPopup : EditorWindow
 
         EquipmentEditorPanel.Header("이름");
         req.assetName = EditorGUILayout.TextField(new GUIContent("에셋 파일 이름"), req.assetName);
-        string nameError = EnemyAssets.ValidateName(req.assetName);
+        string nameError = EnemyAssets.ValidateName(req.assetName, usedNames: usedNames);
         if (nameError != null) EditorGUILayout.HelpBox(nameError, MessageType.Error);
         req.displayName = EditorGUILayout.TextField(new GUIContent("게임 표시 이름"), req.displayName);
 
@@ -1358,9 +1448,16 @@ public class NewEnemyPopup : EditorWindow
             }
         }
         var reg = EnemyAssets.MinionRegistry;
-        string listName = req.tier == EnemyTier.Elite ? "엘리트 후보 목록에 등록 (엘리트 방에 나옴)" : req.tier == EnemyTier.Boss ? "보스 목록에 등록" : "일반 적 목록에 등록";
-        using (new EditorGUI.DisabledScope(reg == null))
-            req.registerList = EditorGUILayout.ToggleLeft(new GUIContent(listName + (reg != null ? $" ({reg.name})" : " (레지스트리 없음)")), req.registerList && reg != null);
+        string listName = req.tier == EnemyTier.Elite ? "엘리트 후보 목록에 등록 (엘리트 방에 나옴)" : req.tier == EnemyTier.Boss ? "보스 목록에 등록 (분류용)" : "일반 적 목록에 등록 (분류용)";
+        string listTip = req.tier == EnemyTier.Elite ? "엘리트 방이 이 목록에서 엘리트를 뽑는다."
+            : "정리용 분류 목록이라 게임 등장에는 영향이 없다. 일반 적은 군집에, 보스는 층 배정에 넣어야 나온다.";
+        // 페이즈 전환용을 복사하면 사본도 페이즈 전환용(Create)이라 엘리트 풀에 넣지 않는다.
+        bool phaseCopy = req.tier == EnemyTier.Elite && mode == 1 && sources.Count > 0 && sources[sourceIndex].isPhaseVariant;
+        if (phaseCopy)
+            using (new EditorGUI.DisabledScope(true))
+                EditorGUILayout.ToggleLeft(new GUIContent("엘리트 후보 목록에 등록 안 함 (페이즈 전환용 데이터 복사)", "사본도 페이즈 전환용이라 스폰 추첨에서 빠진다."), false);
+        else using (new EditorGUI.DisabledScope(reg == null))
+            req.registerList = EditorGUILayout.ToggleLeft(new GUIContent(listName + (reg != null ? $" ({reg.name})" : " (레지스트리 없음)"), listTip), req.registerList && reg != null);
         if (req.tier == EnemyTier.Normal)
         {
             var names = new[] { "넣지 않음 (나중에)" }.Concat(clusters.Select(EnemyAssets.ClusterName)).ToArray();

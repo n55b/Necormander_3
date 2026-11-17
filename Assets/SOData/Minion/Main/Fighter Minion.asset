@@ -13,38 +13,30 @@ MonoBehaviour:
   m_Name: Fighter Minion
   m_EditorClassIdentifier: 
   minionType: 0
-  minionName: "\uC804\uC0AC"
+  minionName:
+    ko: "\uC804\uC0AC"
+    key: Fighter Minion.minionName
   minionIcon: {fileID: 758877764, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
   shopCost: 150
   rewardItemData:
-    itemName: "\uC804\uC0AC"
-    description: 
-    localizedItemName:
-      m_TableReference:
-        m_TableCollectionName: 
-      m_TableEntryReference:
-        m_KeyId: 0
-        m_Key: 
-      m_FallbackState: 0
-      m_WaitForCompletion: 0
-      m_LocalVariables: []
-    localizedDescription:
-      m_TableReference:
-        m_TableCollectionName: 
-      m_TableEntryReference:
-        m_KeyId: 0
-        m_Key: 
-      m_FallbackState: 0
-      m_WaitForCompletion: 0
-      m_LocalVariables: []
+    itemName:
+      ko: "\uC804\uC0AC"
+      key: Fighter Minion.rewardItemData.itemName
+    description:
+      ko: 
+      key: 
     icon: {fileID: -6577148393127653879, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
     rarity: 0
   feedbackTier: 0
   feedbackColor: {r: 0.95, g: 0.82, b: 0.45, a: 1}
   minionSkill: {fileID: 11400000, guid: 9e6780eb641747948d78784454effb69, type: 2}
   dashModifier:
-    uiTitle: 
-    uiDescription: 
+    uiTitle:
+      ko: 
+      key: 
+    uiDescription:
+      ko: 
+      key: 
     uiIcon: {fileID: 0}
     lengthMultiplier: 1.2
     width: 1
@@ -58,8 +50,12 @@ MonoBehaviour:
     pushesEnemies: 0
     pushForce: 3
   finisher:
-    uiTitle: 
-    uiDescription: 
+    uiTitle:
+      ko: 
+      key: 
+    uiDescription:
+      ko: 
+      key: 
     uiIcon: {fileID: 0}
     internalCooldown: 1.5
     hitCount: 2
@@ -153,7 +149,9 @@ MonoBehaviour:
     rotateHitBoxClipToDir: 0
     endClip: 
   enhanceSteps:
-  - description: 
+  - description:
+      ko: 
+      key: 
     basicAttackMultiplier: 1.2
     dashDamageMultiplier: 1.2
     skillDamageMultiplier: 1.2

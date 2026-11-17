@@ -13,8 +13,10 @@ using UnityEngine;
 ///  · 하나씩 편집 — 왼쪽 목록에서 고르고 오른쪽에서 아이템 인스펙터와 같은 화면으로 고친다.
 ///  · 확인 필요만 — 설명 문구에 실제 효과 수치가 없거나 효과가 빈 아이템만 본다.
 ///  · CSV 내보내기/가져오기 — 이름·등급·중첩·설명을 엑셀/구글 시트에서 일괄 수정한다(효과는 이 창에서).
+///  · 티어별 가격 · 보상 등장 비중 — 상점 데이터(ShopRegistrySO)의 등급별 값. 위쪽 접이 칸에서 고친다.
 ///
 /// 모든 수정은 Undo(Ctrl+Z) 가 된다. 아이템을 찾는 키는 에셋 파일 이름이다(세이브도 같은 키).
+/// 수치 수정은 에셋을 '바뀜'으로만 표시하고 디스크에는 '저장' 버튼이나 Ctrl+S 때 기록된다(툴바에 표시).
 /// </summary>
 public class ItemDatabaseWindow : EditorWindow
 {
@@ -25,9 +27,12 @@ public class ItemDatabaseWindow : EditorWindow
     [SerializeField] private int tierFilter;          // 0 = 전체, 1~4 = 해당 등급
     [SerializeField] private bool onlyWarnings;
     [SerializeField] private ItemSO selected;
+    [SerializeField] private bool showTierEconomy;
 
     private List<ItemSO> items = new List<ItemSO>();
     private readonly Dictionary<ItemSO, SerializedObject> serialized = new Dictionary<ItemSO, SerializedObject>();
+    private SerializedObject shopSO;   // 티어별 가격 · 보상 비중 편집용
+    private bool lastDirty;            // 툴바 저장 표시가 마지막으로 그린 상태(창 밖에서 저장/수정되면 다시 그린다)
     private Vector2 tableScroll, listScroll, detailScroll;
     private string renameText;
     private ItemSO renameTarget;
@@ -44,7 +49,7 @@ public class ItemDatabaseWindow : EditorWindow
     {
         ("", 52, ""),
         ("이름 / 에셋", 140, "게임 표시 이름 / 에셋 파일 이름(세이브 키)"),
-        ("등급 / 가격", 88, "가격은 등급에서 자동으로 정해진다"),
+        ("등급 / 가격", 88, "가격은 등급에서 자동으로 정해진다(위쪽 '티어별 가격 · 보상 등장 비중')"),
         ("최대", 46, "최대 보유 수"),
         ("보상", 34, "상점 · 방 보상에 등장"),
         ("설명", 250, "툴팁 · 보상 카드 · 주머니 · 능력창에 표시"),
@@ -87,11 +92,27 @@ public class ItemDatabaseWindow : EditorWindow
     // 되돌리기 후에도 입력 중이던 글 칸이 옛 글을 들고 있다가 다시 써넣지 않도록 편집을 닫는다.
     private void OnUndoRedo() { undoVersion++; Repaint(); }
 
+    // 인스펙터 수정이나 Ctrl+S 처럼 창 밖에서 저장 상태가 바뀌어도 툴바 표시를 맞춘다.
+    private void OnInspectorUpdate() { if (AnyDirty() != lastDirty) Repaint(); }
+
     private void ClearSerialized()
     {
         foreach (var so in serialized.Values) so?.Dispose();
         serialized.Clear();
+        shopSO?.Dispose();
+        shopSO = null;
     }
+
+    // ── 저장 표시 ─────────────────────────────────────────────────────
+    /// <summary>이 창이 고치는 에셋: 아이템 전부 + 아이템 목록(GrowthRegistry) + 상점 데이터(진열 후보 · 등급별 가격/비중).</summary>
+    private IEnumerable<UnityEngine.Object> EditedAssets()
+    {
+        foreach (var i in items) if (i != null) yield return i;
+        if (ItemEditorGUI.Growth != null) yield return ItemEditorGUI.Growth;
+        if (ItemEditorGUI.Shop != null) yield return ItemEditorGUI.Shop;
+    }
+
+    private bool AnyDirty() => EditedAssets().Any(EditorUtility.IsDirty);
 
     private void Reload()
     {
@@ -131,7 +152,7 @@ public class ItemDatabaseWindow : EditorWindow
     {
         if (string.IsNullOrWhiteSpace(search)) return true;
         string s = search.Trim();
-        return Has(i.name, s) || Has(i.itemName, s) || Has(i.description, s) || Has(i.shopDescription, s) || Has(i.EffectSummary(1), s);
+        return Has(i.name, s) || Has(i.itemName.ko, s) || Has(i.description.ko, s) || Has(i.shopDescription.ko, s) || Has(i.EffectSummary(1), s);
     }
 
     private static bool Has(string text, string s) => !string.IsNullOrEmpty(text) && text.IndexOf(s, StringComparison.OrdinalIgnoreCase) >= 0;
@@ -145,7 +166,7 @@ public class ItemDatabaseWindow : EditorWindow
         // IMGUI 는 입력 중인 글을 '화면 위 칸 번호'로 기억한다. 같은 자리에 다른 아이템이 그려지면
         // 입력하던 글이 그 아이템에 그대로 들어가 버린다. 그래서 보여주는 대상(선택 아이템, 보기, 필터,
         // 목록)이 바뀐 첫 프레임에, 아무것도 그리기 전에 편집 중인 글 칸을 닫는다.
-        string context = $"{view}|{(selected != null ? selected.GetInstanceID() : 0)}|{tierFilter}|{onlyWarnings}|{itemsVersion}|{undoVersion}";
+        string context = $"{view}|{(selected != null ? selected.GetInstanceID() : 0)}|{tierFilter}|{onlyWarnings}|{itemsVersion}|{undoVersion}|{showTierEconomy}";
         if (context != lastContext) { lastContext = context; ItemEditorGUI.EndTextEditing(); }
 
         // 표시 목록은 검색어/필터가 바뀔 때만 다시 계산한다. 편집하다 경고가 사라지거나 등급이 바뀌어도
@@ -162,6 +183,8 @@ public class ItemDatabaseWindow : EditorWindow
             $"아이템 {items.Count}개 · 표시 중 {list.Count}개 · 확인 필요 {warnCount}개 · 모든 수정은 Ctrl+Z 로 되돌릴 수 있습니다"
             + (onlyWarnings ? " · 고친 아이템은 ↻ 를 누르면 목록에서 빠집니다" : "")
             + (Application.isPlaying ? " · 플레이 중 수정도 에셋에 그대로 남습니다" : ""), EditorStyles.miniLabel);
+
+        DrawTierEconomy();
 
         if (items.Count == 0)
         {
@@ -182,12 +205,78 @@ public class ItemDatabaseWindow : EditorWindow
             tierFilter = EditorGUILayout.Popup(tierFilter, TierOptions, EditorStyles.toolbarPopup, GUILayout.Width(82));
             onlyWarnings = GUILayout.Toggle(onlyWarnings, new GUIContent("확인 필요만", "'확인 필요' 경고가 있는 아이템만 본다(목록 미등록, 빈 효과, 설명·상점 설명에 효과 수치 없음, 게임이 읽지 않는 비율/고정 보정 등)."), EditorStyles.toolbarButton, GUILayout.Width(78));
             GUILayout.FlexibleSpace();
+            // 장비 · 몬스터 편집기와 같은 저장 표시(창이 좁으면 안내 글이 줄어든다). 수정한 아이템 · 아이템 목록 · 상점 데이터만 저장한다.
+            lastDirty = EquipmentEditorPanel.SaveButton(this, EditedAssets());
             if (GUILayout.Button(new GUIContent("새 아이템", "이름·등급·첫 효과·목록 등록을 정해 새 아이템을 만든다. 기존 아이템 복사로 시작할 수도 있다."), EditorStyles.toolbarButton))
                 Defer(() => NewItemPopup.Open(null, OnCreated));
             if (GUILayout.Button(new GUIContent("CSV 내보내기", "이름·등급·중첩·보상 등장·설명을 CSV 로 저장(엑셀/구글 시트용)."), EditorStyles.toolbarButton)) Defer(() => ItemCsv.Export(items));
             if (GUILayout.Button(new GUIContent("CSV 가져오기", "내보낸 CSV 를 고친 뒤 다시 불러와 일괄 반영. 바뀌는 곳을 먼저 보여준다."), EditorStyles.toolbarButton)) Defer(() => { ItemCsv.Import(items); ClearSerialized(); });
             if (GUILayout.Button(new GUIContent("↻", "목록 새로고침"), EditorStyles.toolbarButton, GUILayout.Width(24))) Defer(Reload);
         }
+    }
+
+    // ── 티어별 가격 · 보상 등장 비중 ─────────────────────────────────
+    /// <summary>상점 데이터(ShopRegistrySO)의 등급별 가격 · 방 보상 비중. SerializedObject 로 고치므로 Ctrl+Z 가 된다.</summary>
+    private void DrawTierEconomy()
+    {
+        showTierEconomy = EditorGUILayout.Foldout(showTierEconomy, new GUIContent("티어별 가격 · 보상 등장 비중",
+            "등급마다 상점 구매가와 방 보상(일반 방 · 엘리트 · 증강 아이템 보상)에서 뽑힐 비중을 정한다. 상점 데이터(Shop Registry)에 저장된다."), true);
+        if (!showTierEconomy) return;
+
+        var shop = ItemEditorGUI.Shop;
+        if (shop == null) { EditorGUILayout.HelpBox("상점 데이터(ShopRegistrySO) 에셋을 찾지 못했습니다.", MessageType.Warning); return; }
+        if (shopSO == null || shopSO.targetObject != shop) { shopSO?.Dispose(); shopSO = new SerializedObject(shop); }
+        shopSO.Update();
+        var prices = shopSO.FindProperty("itemTierPrice");
+        var weights = shopSO.FindProperty("itemTierRewardWeight");
+        if (prices == null || weights == null || prices.arraySize != 4 || weights.arraySize != 4)
+        {
+            EditorGUILayout.HelpBox($"{shop.name} 의 등급별 칸이 4개가 아닙니다. 인스펙터에서 값을 한 번 고치면 4칸으로 맞춰집니다.", MessageType.Warning);
+            return;
+        }
+
+        // 확률 기준 후보 = 아이템 목록에 있고 '상점 · 방 보상에 등장'이 켜진 아이템(보유 중첩은 무시).
+        var counts = new int[4];
+        var growth = ItemEditorGUI.Growth;
+        if (growth != null && growth.items != null)
+            foreach (var i in growth.items) if (i != null && i.availableAsReward) counts[Mathf.Clamp((int)i.tier, 1, 4) - 1]++;
+        long total = 0;
+        for (int t = 0; t < 4; t++) total += (long)counts[t] * Mathf.Max(0, weights.GetArrayElementAtIndex(t).intValue);
+
+        using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Label("등급", EditorStyles.miniBoldLabel, GUILayout.Width(70));
+                GUILayout.Label(new GUIContent("가격 (골드)", "상점 구매가."), EditorStyles.miniBoldLabel, GUILayout.Width(80));
+                GUILayout.Label(new GUIContent("보상 비중", "이 등급 아이템 '한 개'가 방 보상으로 뽑힐 상대 비중.\n모두 같으면(기본 1) 아이템마다 같은 확률. 0 이면 방 보상에서 빠진다(상점 진열은 그대로)."),
+                    EditorStyles.miniBoldLabel, GUILayout.Width(80));
+                GUILayout.Label(new GUIContent("방 보상에서 이 등급이 나올 확률",
+                    "아이템 목록에서 '상점 · 방 보상에 등장'이 켜진 아이템 기준. 증강 고등급 보상의 등급 제한과 보유 중첩은 빼고 계산한다."), EditorStyles.miniBoldLabel);
+            }
+            for (int t = 0; t < 4; t++)
+            {
+                var tier = (ItemTier)(t + 1);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    var r = GUILayoutUtility.GetRect(10, 16, GUILayout.Width(10));
+                    EditorGUI.DrawRect(new Rect(r.x, r.y + 3, 4, r.height - 6), ItemTierRules.TierColor(tier));
+                    GUILayout.Label(ItemTierRules.Label(tier), GUILayout.Width(56));
+                    IntCell(prices.GetArrayElementAtIndex(t));
+                    IntCell(weights.GetArrayElementAtIndex(t));
+                    long share = (long)counts[t] * Mathf.Max(0, weights.GetArrayElementAtIndex(t).intValue);
+                    GUILayout.Label($"{(total > 0 ? (100.0 * share / total).ToString("0.#") + "%" : "-")}  (후보 {counts[t]}개)", EditorStyles.miniLabel);
+                }
+            }
+        }
+        shopSO.ApplyModifiedProperties();
+    }
+
+    private static void IntCell(SerializedProperty p)
+    {
+        EditorGUI.BeginChangeCheck();
+        int v = EditorGUILayout.IntField(p.intValue, GUILayout.Width(80));
+        if (EditorGUI.EndChangeCheck()) p.intValue = Mathf.Max(0, v);
     }
 
     // ── 표 보기 ───────────────────────────────────────────────────────
@@ -210,7 +299,7 @@ public class ItemDatabaseWindow : EditorWindow
                 {
                     var r = GUILayoutUtility.GetRect(44, 40, GUILayout.Width(44), GUILayout.Height(40));
                     EditorGUI.DrawRect(new Rect(r.x, r.y, 3, r.height), item.TierColor);
-                    DrawSprite(new Rect(r.x + 6, r.y + 2, 36, 36), item.icon);
+                    EquipmentEditorPanel.DrawSprite(new Rect(r.x + 6, r.y + 2, 36, 36), item.icon);
                     if (GUILayout.Button(new GUIContent("편집", "하나씩 편집 화면에서 연다"), EditorStyles.miniButton, GUILayout.Width(44)))
                     { var target = item; Defer(() => { selected = target; view = View.Detail; }); }
                 }
@@ -222,12 +311,12 @@ public class ItemDatabaseWindow : EditorWindow
                 using (new EditorGUILayout.VerticalScope(GUILayout.Width(Columns[2].width)))
                 {
                     EditorGUILayout.PropertyField(so.FindProperty("tier"), GUIContent.none, GUILayout.Width(Columns[2].width));
-                    EditorGUILayout.LabelField($"{item.Price} 골드", EditorStyles.miniLabel, GUILayout.Width(Columns[2].width));
+                    EditorGUILayout.LabelField(ItemEditorGUI.PriceText(item), EditorStyles.miniLabel, GUILayout.Width(Columns[2].width));
                 }
                 EditorGUILayout.PropertyField(so.FindProperty("maxStack"), GUIContent.none, GUILayout.Width(Columns[3].width));
                 EditorGUILayout.PropertyField(so.FindProperty("availableAsReward"), GUIContent.none, GUILayout.Width(Columns[4].width));
-                TextAreaProp(so.FindProperty("description"), Columns[5].width);
-                TextAreaProp(so.FindProperty("shopDescription"), Columns[6].width);
+                TextAreaProp(so.FindProperty("description.ko"), Columns[5].width);
+                TextAreaProp(so.FindProperty("shopDescription.ko"), Columns[6].width);
                 using (new EditorGUILayout.VerticalScope(GUILayout.Width(Columns[7].width)))
                     ItemEditorGUI.DrawEffects(so.FindProperty("effects"), item, true);
 
@@ -285,7 +374,7 @@ public class ItemDatabaseWindow : EditorWindow
         var r = GUILayoutUtility.GetRect(10, 26, GUILayout.ExpandWidth(true));
         if (item == selected) EditorGUI.DrawRect(r, new Color(0.24f, 0.48f, 0.90f, 0.35f));
         EditorGUI.DrawRect(new Rect(r.x + 2, r.y + 4, 4, r.height - 8), item.TierColor);
-        DrawSprite(new Rect(r.x + 10, r.y + 3, 20, 20), item.icon);
+        EquipmentEditorPanel.DrawSprite(new Rect(r.x + 10, r.y + 3, 20, 20), item.icon);
         GUI.Label(new Rect(r.x + 34, r.y + 4, r.width - 58, 18), new GUIContent(item.DisplayName, item.name));
         if (ItemEditorGUI.Warnings(item).Count > 0)
         {
@@ -361,27 +450,6 @@ public class ItemDatabaseWindow : EditorWindow
         AssetDatabase.SaveAssets();
         renameTarget = null;
     }
-
-    private static void DrawSprite(Rect r, Sprite s)
-    {
-        if (s == null || s.texture == null) return;
-        try
-        {
-            var t = s.texture;
-            var tr = s.textureRect;
-            var uv = new Rect(tr.x / t.width, tr.y / t.height, tr.width / t.width, tr.height / t.height);
-            float aspect = tr.height > 0 ? tr.width / tr.height : 1f;
-            var fit = r;
-            if (aspect > 1f) { fit.height = r.width / aspect; fit.y += (r.height - fit.height) * 0.5f; }
-            else { fit.width = r.height * aspect; fit.x += (r.width - fit.width) * 0.5f; }
-            GUI.DrawTextureWithTexCoords(fit, t, uv);
-        }
-        catch (Exception)
-        {
-            var preview = AssetPreview.GetAssetPreview(s);
-            if (preview != null) GUI.DrawTexture(r, preview, ScaleMode.ScaleToFit);
-        }
-    }
 }
 
 /// <summary>
@@ -407,8 +475,8 @@ internal static class ItemCsv
         {
             var cells = new[]
             {
-                i.name, i.itemName, ((int)i.tier).ToString(), i.maxStack.ToString(), i.availableAsReward ? "1" : "0",
-                i.description, i.shopDescription, i.EffectSummary(1),
+                i.name, i.itemName.ko, ((int)i.tier).ToString(), i.maxStack.ToString(), i.availableAsReward ? "1" : "0",
+                i.description.ko, i.shopDescription.ko, i.EffectSummary(1),
             };
             sb.Append(string.Join(",", cells.Select(Esc))).Append("\r\n");
         }
@@ -451,16 +519,16 @@ internal static class ItemCsv
             if (!byName.TryGetValue(asset, out var item)) { newRows.Add(row); continue; }
 
             string name = Get(row, cName);
-            if (name != null && name != (item.itemName ?? ""))
-                changes.Add(new Change { item = item, field = "이름", from = item.itemName, to = name, apply = () => item.itemName = name });
+            if (name != null && name != (item.itemName.ko ?? ""))
+                changes.Add(new Change { item = item, field = "이름", from = item.itemName.ko, to = name, apply = () => item.itemName.ko = name });
 
             string desc = Get(row, cDesc);
-            if (desc != null && desc != Norm(item.description))
-                changes.Add(new Change { item = item, field = "설명", from = item.description, to = desc, apply = () => item.description = desc });
+            if (desc != null && desc != Norm(item.description.ko))
+                changes.Add(new Change { item = item, field = "설명", from = item.description.ko, to = desc, apply = () => item.description.ko = desc });
 
             string shop = Get(row, cShop);
-            if (shop != null && shop != Norm(item.shopDescription))
-                changes.Add(new Change { item = item, field = "상점설명", from = item.shopDescription, to = shop, apply = () => item.shopDescription = shop });
+            if (shop != null && shop != Norm(item.shopDescription.ko))
+                changes.Add(new Change { item = item, field = "상점설명", from = item.shopDescription.ko, to = shop, apply = () => item.shopDescription.ko = shop });
 
             string tierText = Get(row, cTier);
             if (!string.IsNullOrWhiteSpace(tierText))

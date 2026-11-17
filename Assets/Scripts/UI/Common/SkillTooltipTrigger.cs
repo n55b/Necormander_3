@@ -8,20 +8,21 @@ using UnityEngine.EventSystems;
 /// </summary>
 public class SkillTooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [SerializeField] private string title;
-    [SerializeField, TextArea] private string description;
+    [SerializeField] private LocText title;
+    [SerializeField] private LocText description;
 
     /// <summary>Call whenever the skill/minion bound to this icon changes.</summary>
     public void SetData(string title, string description)
     {
-        this.title = title;
-        this.description = description;
+        // Callers pass already-localized text, so no key (shown as is).
+        this.title = new LocText { ko = title };
+        this.description = new LocText { ko = description };
     }
 
     public void Clear()
     {
-        title = null;
-        description = null;
+        title = default;
+        description = default;
     }
 
     public void OnPointerEnter(PointerEventData eventData)

@@ -29,17 +29,15 @@ public class InventoryManager : MonoBehaviour
                 // [수정] rewardItemData가 비어있어도(미할당) 미니언 자체 정보(minionName/minionIcon)로 대체하여
                 // 이미 장착된 미니언이 '비어있음'으로 잘못 표시되는 버그를 방지합니다.
                 var baseData = EquippedMinion.rewardItemData;
-                string finalName = (baseData != null && !string.IsNullOrEmpty(baseData.itemName)) ? baseData.itemName : EquippedMinion.minionName;
+                LocText finalName = (baseData != null && !string.IsNullOrEmpty(baseData.itemName.ko)) ? baseData.itemName : EquippedMinion.minionName;
                 Sprite finalIcon = (baseData != null && baseData.icon != null) ? baseData.icon : EquippedMinion.minionIcon;
 
                 return new GrowthItemData
                 {
                     itemName = finalName,
-                    description = baseData != null ? baseData.description : null,
+                    description = baseData != null ? baseData.description : default,
                     icon = finalIcon,
-                    rarity = baseData != null ? baseData.rarity : default,
-                    localizedItemName = baseData != null ? baseData.localizedItemName : null,
-                    localizedDescription = baseData != null ? baseData.localizedDescription : null
+                    rarity = baseData != null ? baseData.rarity : default
                 };
             }
             return null;
@@ -543,7 +541,7 @@ public class InventoryManager : MonoBehaviour
         TreasureStacks.Clear();
         foreach (var treasureData in data.treasures)
         {
-            var treasure = registry.treasures.Find(t => t.name == treasureData.treasureSOAddress || t.itemName == treasureData.treasureSOAddress);
+            var treasure = registry.treasures.Find(t => t.name == treasureData.treasureSOAddress || t.itemName.ko == treasureData.treasureSOAddress);
             if (treasure != null)
             {
                 TreasureStacks[treasure] = treasureData.stackCount;

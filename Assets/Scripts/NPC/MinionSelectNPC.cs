@@ -75,7 +75,7 @@ public class MinionSelectNPC : NPCBase
         var baseData = m.rewardItemData;
         string title = (baseData != null && !string.IsNullOrEmpty(baseData.itemName)) ? baseData.itemName
                      : !string.IsNullOrEmpty(m.minionName) ? m.minionName : m.name;
-        if (isEquipped) title += " (장착 중)";
+        if (isEquipped) title = Loc.F("MinionSelectNPC.equipped", "{0} (장착 중)", title);
 
         var sb = new System.Text.StringBuilder();
         if (m.minionSkill != null)
@@ -91,8 +91,8 @@ public class MinionSelectNPC : NPCBase
             rawData = m,
             displayData = new GrowthItemData
             {
-                itemName = title,
-                description = sb.ToString(),
+                itemName = new LocText { ko = title },
+                description = new LocText { ko = sb.ToString() },
                 icon = (baseData != null && baseData.icon != null) ? baseData.icon : m.minionIcon,
             }
         };
@@ -108,7 +108,7 @@ public class MinionSelectNPC : NPCBase
             // 같은 소환수를 다시 골라도 '새로 시작'이다 — 강화 단계는 런마다 보상방에서 쌓는다.
             inv.EquipStartingSummon(minion);
             Debug.Log($"<color=cyan>[MinionSelectNPC]</color> 시작 소환수 선택: {minion.minionName}");
-            FloatingTextManager.ShowOnPlayer($"{(string.IsNullOrEmpty(minion.minionName) ? minion.name : minion.minionName)} 획득", Color.white);
+            FloatingTextManager.ShowOnPlayer(Loc.F("MinionSelectNPC.acquired", "{0} 획득", string.IsNullOrEmpty(minion.minionName.ko) ? minion.name : (string)minion.minionName), Color.white);
         }
         Close();
     }

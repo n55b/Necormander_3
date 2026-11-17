@@ -9,7 +9,7 @@ using UnityEngine;
 ///
 /// [오브젝트 소리] 고른 몬스터·소환수·캐릭터·사물의 '사운드 세트'. 소리 추가/삭제, 언제 재생할지, 볼륨·음높이를 고치고 ▶ 로 듣는다.
 /// [UI 소리]      창마다 다른 열림/닫힘 소리, 버튼·아이템 칸 마우스 올림/클릭 소리, 상점 구매 성공/실패 소리.
-/// [게임 행동]    FeedbackCatalog 연출에 딸린 소리(발소리·대시·가드·보스·보상·타격). 기존 단일 효과음도 함께 보여 준다.
+/// [게임 행동]    FeedbackCatalog 연출에 딸린 소리(발소리·대시·보스·보상·타격). 기존 단일 효과음도 함께 보여 준다.
 /// [전체 음원]    Assets의 모든 오디오 파일을 이름·경로로 검색, 미리듣기, 선택, 목록 복사.
 /// 공통: 소리 칸에 오디오 파일을 끌어다 놓거나, 오른쪽 '오디오 파일 찾기'에서 [+] 로 넣는다.
 ///       아래 '재생 기록'에는 플레이 중 실제로 난 소리와 열리고 닫힌 창 이름이 쌓인다.
@@ -94,6 +94,8 @@ public class SoundTestWindow : EditorWindow
         UIEventBus.OnUIOpen -= OnWindowOpened;
         UIEventBus.OnUIClose -= OnWindowClosed;
         StopAll();
+        // HideAndDontSave 라 씬과 함께 사라지지 않는다. 안 지우면 도메인 리로드마다 하나씩 쌓인다.
+        if (_previewSource != null) { DestroyImmediate(_previewSource.gameObject); _previewSource = null; }
         _anim?.Dispose();
         _anim = null;
     }
@@ -201,7 +203,7 @@ public class SoundTestWindow : EditorWindow
         if (catalog == null) { EditorGUILayout.HelpBox("FeedbackCatalog 설정이 없습니다.", MessageType.Info); return; }
         if (_catalogSO == null || _catalogSO.targetObject != catalog) _catalogSO = new SerializedObject(catalog);
         _catalogSO.Update();
-        EditorGUILayout.HelpBox("발소리·대시·가드·보스·보상·타격 소리입니다. 파일을 교체하거나 볼륨/음높이/최소 간격을 조절하세요. 시각 효과의 수치는 바꾸지 않습니다.", MessageType.Info);
+        EditorGUILayout.HelpBox("발소리·대시·보스·보상·타격 소리입니다. 파일을 교체하거나 볼륨/음높이/최소 간격을 조절하세요. 시각 효과의 수치는 바꾸지 않습니다.", MessageType.Info);
         var effects = _catalogSO.FindProperty("effects");
         for (int i = 0; i < effects.arraySize; i++)
         {
@@ -210,6 +212,8 @@ public class SoundTestWindow : EditorWindow
             var legacy = entry.FindPropertyRelative("sound");
             string title = entry.FindPropertyRelative("title").stringValue;
             int cue = entry.FindPropertyRelative("cue").intValue;
+            // 은퇴한 가드/패링 연출(우클릭 = 소환수 스킬)은 게임에서 더 이상 울리지 않는다.
+            if (cue == (int)FeedbackCue.GuardRaise || cue == (int)FeedbackCue.PerfectGuardFlash || cue == (int)FeedbackCue.PerfectGuardRing) continue;
             // 한 번 보인 행은 마지막 파일을 지워도 이 창이 열려 있는 동안 남긴다(다시 채울 수 있게).
             if (!AnyClip(audio) && legacy.objectReferenceValue == null && cue < (int)FeedbackCue.GrassFootstep && !_shownCues.Contains(cue)) continue;
             _shownCues.Add(cue);
