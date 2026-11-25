@@ -375,6 +375,50 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
+      name: Tent_Old_Back
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 230
+        width: 58
+        height: 147
+      alignment: 9
+      pivot: {x: 2.0344827, y: 0.12244898}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 09d27f9e7f13ec6d0800000000000000
+      internalID: -2968380163538604656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tent_Old_Front
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 230
+        width: 134
+        height: 147
+      alignment: 9
+      pivot: {x: 0.4477612, y: 0.12244898}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cb151ce8380bbfb40800000000000000
+      internalID: 5475163851081208252
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
       name: Tent_Center
       rect:
         serializedVersion: 2
@@ -1006,6 +1050,8 @@ TextureImporter:
       Tent_Center: -300370243709989450
       Tent_New: 6177893579882441727
       Tent_Old: -7051630261630794882
+      Tent_Old_Back: -2968380163538604656
+      Tent_Old_Front: 5475163851081208252
       TorchLight_0: 8723125385489503399
       TorchLight_1: 1040295123121018865
       TorchLight_2: 4924892282282869168
