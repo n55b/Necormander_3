@@ -60,5 +60,7 @@ namespace AstroNuts.Localization
 
         [Tooltip("태그 사전 문서의 색상 규칙과 동일하게 맞출 것 (예: 소모 계열 = 빨강)")]
         public Color badgeColor = Color.white;
+        [Tooltip("이 단어에 반복 적용할 TextMotion 프리셋. 비워두면 색만 사용합니다.")]
+        public string textMotion;
     }
 }

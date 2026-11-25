@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// <summary>
 /// 상점 창. 상점 주인(ShopNPC)에게 F 로 말을 걸면 열린다. 진열 상품 카드 + 보유 골드를 보여준다.
 /// UIPopUpManager 의 Window 레이어로 열려서 ESC 로 닫히고, 열려 있는 동안 게임플레이 입력이 막힌다.
-/// Screen Space Overlay + Scale With Screen Size(1920x1080) 라 해상도가 달라도 비율이 유지된다.
+/// CanvasCameraBinder가 상점 캔버스를 게임 프레임에 연결한다. CanvasScaler는 저작 좌표를 논리 해상도에 맞춘다.
 /// 프리팹: Resources/UI/ShopPopupUI.prefab (Tools/Shop/Build Shop Popup Prefab 로 생성)
 /// </summary>
 public class ShopPopupUI : MonoBehaviour
@@ -35,7 +35,7 @@ public class ShopPopupUI : MonoBehaviour
     private int _closedFrame = -1;
 
     // ─── 공개 API ────────────────────────────────────────────────────
-    public static bool IsOpen => _instance != null && _instance.panel != null && _instance.panel.activeSelf;
+    public static bool IsOpen => _instance != null && UIOpenMotion.IsShown(_instance.panel);
 
     /// <summary>씬에 없으면 Resources 프리팹을 하나 띄운다. 프리팹이 없으면 null.</summary>
     public static ShopPopupUI Ensure()
@@ -63,7 +63,7 @@ public class ShopPopupUI : MonoBehaviour
     {
         if (panel == null) return;
         if (UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsOpen(panel)) UIPopUpManager.Instance.Close(panel); // onClosed 가 불린다
-        else if (panel.activeSelf) { panel.SetActive(false); OnClosed(); }
+        else if (IsOpen) { panel.SetActive(false); OnClosed(); }
     }
 
     /// <summary>카드의 구매 버튼에서 호출. 성공/실패 소리를 내고, 실패하면 카드를 흔든다.</summary>
@@ -135,6 +135,7 @@ public class ShopPopupUI : MonoBehaviour
     private void OnClosed()
     {
         _closedFrame = Time.frameCount;
+        if (_npc != null) _npc.GetComponentInParent<RoomInstance>()?.FinishShopVisit();
         _npc = null;
         UIEventBus.NotifyClose(UIName);
     }

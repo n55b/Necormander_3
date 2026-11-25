@@ -106,13 +106,12 @@ public class DialogueTableSO : ScriptableObject
 
         _cachedLocale = locale;
         _lookup = new Dictionary<string, List<DialogueLine>>();
-        if (csvFiles == null) return;
-
-        foreach (var csv in csvFiles)
+        foreach (var csv in csvFiles ?? System.Array.Empty<TextAsset>())
         {
             if (csv == null) continue;
             BuildFrom(csv, locale);
         }
+        ProjectDialogue.Apply(locale, fallbackLocale, _lookup);
     }
 
     private void BuildFrom(TextAsset csv, string locale)

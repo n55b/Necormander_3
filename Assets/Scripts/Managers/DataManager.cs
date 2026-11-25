@@ -23,8 +23,8 @@ public class DataManager : MonoBehaviour
     // 데이터 게터
     public List<MinionDataSO> ALL_MINION_DATA => minionRegistry != null ? minionRegistry.allyMinionData : null;
     public List<EnemyMinionDataSO> ENEMY_MINION_DATA => minionRegistry != null ? minionRegistry.enemyMinionData : null;
-    public List<EnemyMinionDataSO> ELITE_MINION_DATA => minionRegistry != null ? minionRegistry.eliteMinionData : null; // [추가] 엘리트 데이터 접근
-    public List<EnemyMinionDataSO> BOSS_MINION_DATA => minionRegistry != null ? minionRegistry.bossMinionData : null; // [추가] 보스 데이터 접근
+    public List<EnemyMinionDataSO> ELITE_MINION_DATA => minionRegistry != null ? minionRegistry.eliteMinionData : null; // 엘리트 데이터 접근
+    public List<EnemyMinionDataSO> BOSS_MINION_DATA => minionRegistry != null ? minionRegistry.bossMinionData : null; // 보스 데이터 접근
     public ShopRegistrySO SHOP_REGISTRY => shopRegistry;
     public List<EnemyClusterSO> ENEMY_CLUSTERS => clusterRegistry != null ? clusterRegistry.enemyClusters : new List<EnemyClusterSO>();
     public AugmentTableSO AUGMENT_TABLE => augmentTable;
@@ -119,6 +119,8 @@ public class DataManager : MonoBehaviour
     {
         if (map == null || prewarmPerPrefab <= 0 || prewarmTotalLimit <= 0) yield break;
         _prepareTargets.Clear();
+        var pickup = GroundItem.ItemPrefab;
+        if (pickup != null) AddPrepareTarget(pickup.gameObject, 8);
         var catalog = PolishFeedback.Catalog;
         var player = GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
         if (catalog != null && catalog.enabled && player != null)
@@ -130,6 +132,8 @@ public class DataManager : MonoBehaviour
             if (PolishFeedback.ExistingEnabled(ExistingFeedbackCue.WalkSmoke) && footsteps != null)
                 AddPrepareTarget(footsteps.WalkEffectPrefab, catalog.prewarmMovementCount);
         }
+        var tuning = generation != null ? generation.GetTuningForFloor(floor) : null;
+        float scale = tuning != null ? Mathf.Max(1f, tuning.enemyCountScale) : 1f;
         int randomRooms = 0;
         foreach (var room in map.AllRooms)
         {
@@ -137,8 +141,14 @@ public class DataManager : MonoBehaviour
             var normal = room.GetComponent<NormalRoomEvent>();
             if (normal != null)
             {
-                if (normal.UsesRandomEnemies) randomRooms++;
-                AddPrepareTarget(normal.SpawnTelegraphPrefab, prewarmPerPrefab);
+                if (normal.AuthoredWaves.Count>0)
+                {
+                    foreach (var cluster in normal.AuthoredWaves)
+                        foreach (var entry in cluster.enemies)
+                            AddPrepareTarget(entry.enemyData, Mathf.CeilToInt(Mathf.Max(0, entry.count) * scale));
+                }
+                else if (normal.UsesRandomEnemies) randomRooms++;
+
             }
             if (room.roomType == RoomType.Elite)
             {
@@ -152,11 +162,9 @@ public class DataManager : MonoBehaviour
                 if (boss != null) AddPrepareTarget(boss.PrewarmBossData, 1);
             }
         }
-        var tuning = generation != null ? generation.GetTuningForFloor(floor) : null;
         var clusters = tuning != null && tuning.clusterPool != null && tuning.clusterPool.Exists(c => c != null)
             ? tuning.clusterPool : ENEMY_CLUSTERS;
         int waves = generation != null ? Mathf.Max(1, generation.GetWavesForFloor(floor)) : 1;
-        float scale = tuning != null ? Mathf.Max(1f, tuning.enemyCountScale) : 1f;
         if (randomRooms > 0 && clusters != null)
         {
             foreach (var cluster in clusters)
@@ -223,6 +231,7 @@ public class DataManager : MonoBehaviour
         // [증강 페널티] '적 체력/공격력 +N%'. 적이 태어나는 길목이 여기 하나뿐이라
         // 분열로 생긴 적까지 전부 걸린다. Initialize 가 Mods.Clear() 를 하므로 반드시 그 뒤여야 한다.
         ActiveAugment.ApplyToSpawnedEnemy(unitObj);
+        if (Application.isPlaying && entity != null && entity.team == Team.Enemy) entity.PlayArrival(data.tier);
         return unitObj;
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 유닛 등급. 피해 갈래(<see cref="DamageCategory"/>)·엘리트 방 풀·미니맵 마커가 전부 이 값 하나에서 온다.
 ///
-/// [26/08/18] 예전엔 bool isElite 였고 보스는 프리팹 태그 "Boss" 또는 <b>이름에 "Boss" 포함</b>으로
+/// 예전엔 bool isElite 였고 보스는 프리팹 태그 "Boss" 또는 <b>이름에 "Boss" 포함</b>으로
 /// 판정했다. 그래서 두 가지가 동시에 깨져 있었다:
 ///  · 'Summoner Boss Minions'(사실상 일반 몹)가 이름 때문에 보스로 잡혀 <b>카운터로 막을 수 없었다</b>.
 ///  · 엘리트 4종이 전부 Boss 태그를 달고 있어서 DamageCategory.EnemyElite 가 아예 도달 불가였다

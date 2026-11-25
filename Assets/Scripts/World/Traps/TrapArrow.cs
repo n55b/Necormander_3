@@ -72,7 +72,7 @@ public class TrapArrow : MonoBehaviour
         // 타겟 레이어 검사
         if (((1 << other.gameObject.layer) & targetLayer) == 0) return;
 
-        // [추가] 방이 클리어되었다면 작동 안함
+        // 방이 클리어되었다면 작동 안함
         RoomInstance room = GetComponentInParent<RoomInstance>();
         if (room != null && room.isCleared) return;
 

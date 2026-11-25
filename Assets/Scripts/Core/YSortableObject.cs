@@ -1,90 +1,94 @@
-
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-/// <summary>
-/// Y좌표 기반 동적 스프라이트 정렬.
-/// Y가 클수록(화면 위쪽/먼 곳) sortingOrder가 작아지고, Y가 작을수록(화면 아래쪽/가까운 곳) sortingOrder가 커집니다.
-/// → 플레이어가 Wall보다 위쪽(Y가 큰 쪽)에 있으면 Wall에 가려지고, 아래쪽에 있으면 Wall보다 앞에 그려집니다.
-///
-/// 정적 오브젝트(Wall, 나무 등): isDynamic = false → 1회만 계산
-/// 동적 오브젝트(플레이어, 미니언, 적): isDynamic = true → 매 프레임 갱신
-/// </summary>
-[RequireComponent(typeof(SpriteRenderer))]
-public class YSortableObject : MonoBehaviour
+/// <summary>Registers one ground contact and one render unit with the world depth pass.</summary>
+[DisallowMultipleComponent, RequireComponent(typeof(SpriteRenderer))]
+public sealed class YSortableObject : MonoBehaviour
 {
-    [Header("정렬 설정")]
-    [Tooltip("매 프레임 위치가 바뀌는 오브젝트(플레이어, 몬스터 등)는 체크. 고정된 오브젝트(벽, 나무 등)는 해제.")]
-    [SerializeField] private bool isDynamic = false;
-
-    [Tooltip("정밀도. 값이 클수록 Y값 차이에 더 민감하게 sortingOrder가 갈립니다.")]
-    [SerializeField] private int precision = 100;
-
-    [Tooltip("기준 오프셋. 같은 Y값에서도 항상 위에 그려야 하는 오브젝트(예: 플레이어)에 약간 더한 값을 줍니다.")]
-    [SerializeField] private int baseOffset = 0;
-
-    [Tooltip("정렬 기준점을 다른 Transform으로 고정할 때 지정. 예: 손/무기 스프라이트가 자기 Y가 아니라 몸통 Y를 기준으로 정렬되도록. 비워두면 자기 자신의 Transform 사용.")]
+    [Tooltip("지면 접점. 비워 두면 오브젝트의 피벗을 사용합니다.")]
     [SerializeField] private Transform pivotOverride;
+    [Tooltip("기준 Transform의 로컬 좌표에서 지면 접점을 보정합니다.")]
+    [SerializeField] private Vector2 localAnchorOffset;
+    [Tooltip("지면 높이가 같은 경우에만 적용합니다. 큰 값이 앞입니다.")]
+    [SerializeField] private int tiePriority;
+    [Tooltip("여러 그림을 함께 정렬할 때 그룹을 지정합니다.")]
+    [SerializeField] private SortingGroup sortingGroup;
+    [Tooltip("몸통이 가려졌을 때 플레이어 위치에 안개가 펼쳐지는 사물입니다.")]
+    [SerializeField] private bool occludesPlayer;
 
-    [SerializeField, InspectorName("함께 정렬할 몸체 그룹"), Tooltip("몸과 무기를 한 묶음으로 앞뒤 정렬할 때 연결합니다. 일반 사물은 비워둡니다.")]
-    private SortingGroup sortingGroup;
+    [SerializeField] private Transform shadowContact;
+    public bool CastsGroundShadow { get; set; } = true;
+    public Vector3 ShadowGroundPosition => shadowContact != null
+        ? shadowContact.position : SpriteGroundContacts.Resolve(Renderer, GroundPosition);
 
-    /// <summary>현재 씬에 활성화된 모든 YSortableObject 등록. 가림(occlusion) 판정 등에서 순회용으로 사용.</summary>
-    public static readonly List<YSortableObject> ActiveInstances = new List<YSortableObject>();
-    public static uint ActiveInstancesVersion { get; private set; }
+    internal TreeCanopyWind Canopy { get; private set; }
+    public SpriteRenderer Renderer { get; private set; }
+    public SortingGroup Group => sortingGroup != null && sortingGroup.isActiveAndEnabled ? sortingGroup : null;
+    public bool OccludesPlayer => occludesPlayer;
+    public Vector3 GroundPosition
+    {
+        get
+        {
+            var pivot = pivotOverride != null ? pivotOverride : transform;
+            return localAnchorOffset == Vector2.zero ? pivot.position : pivot.TransformPoint(localAnchorOffset);
+        }
+    }
 
-    /// <summary>이 오브젝트의 SpriteRenderer (읽기 전용 노출).</summary>
-    public SpriteRenderer Renderer => _renderer;
-
-    
-private SpriteRenderer _renderer;
-    private Transform _pivot; // 정렬 기준점 (없으면 transform 사용)
-    private int _lastOrder = int.MinValue;
+    internal double Depth { get; private set; }
+    internal Vector2 SampledGround { get; private set; }
+    internal bool HasManualShadowContact => shadowContact != null;
+    internal int TiePriority => tiePriority;
+    internal int StableId { get; private set; }
 
     private void Awake()
     {
-        _renderer = GetComponent<SpriteRenderer>();
-        _pivot = pivotOverride != null ? pivotOverride : transform;
+        Renderer = GetComponent<SpriteRenderer>();
+        Canopy = GetComponent<TreeCanopyWind>();
+        StableId = GetInstanceID();
     }
 
-    private void OnEnable()
+    internal int ParticipantIndex { get; set; } = -1;
+    private void OnEnable() => WorldDepthOrder.Register(this);
+    private void OnDisable() => WorldDepthOrder.Unregister(this);
+
+    internal void SampleDepth()
     {
-        ActiveInstances.Add(this);
-        unchecked { ActiveInstancesVersion++; }
+        // One logical pixel is 32 steps on the default lens.
+        var ground = GroundPosition;
+        SampledGround = ground;
+        Depth = System.Math.Round(ground.y * 1024.0);
     }
 
-    private void OnDisable()
+    internal void ApplyWorldOrder(int order)
     {
-        ActiveInstances.Remove(this);
-        unchecked { ActiveInstancesVersion++; }
+        var group = Group;
+        if (group != null)
+        {
+            if (!group.sortAtRoot) group.sortAtRoot = true;
+            if (group.sortingLayerID != WorldDepthOrder.LayerId) group.sortingLayerID = WorldDepthOrder.LayerId;
+            if (group.sortingOrder != order) group.sortingOrder = order;
+        }
+        else if (Renderer != null)
+        {
+            if (Renderer.sortingLayerID != WorldDepthOrder.LayerId) Renderer.sortingLayerID = WorldDepthOrder.LayerId;
+            if (Renderer.sortingOrder != order) Renderer.sortingOrder = order;
+        }
     }
 
-    
-private void Start()
+    public void SetPivot(Transform pivot) => pivotOverride = pivot;
+
+    public void SetGroundPoint(Vector3 worldPoint, int equalDepthPriority = 0)
     {
-        // 정적 오브젝트는 1회만 계산
-        if (!isDynamic) UpdateSortOrder();
+        pivotOverride = null;
+        localAnchorOffset = transform.InverseTransformPoint(worldPoint);
+        tiePriority = equalDepthPriority;
     }
 
-    private void LateUpdate()
+    private void OnDrawGizmosSelected()
     {
-        if (isDynamic) UpdateSortOrder();
+        var point = GroundPosition;
+        Gizmos.color = new Color(0.3f, 0.9f, 0.85f);
+        Gizmos.DrawLine(point + Vector3.left * .24f, point + Vector3.right * .24f);
+        Gizmos.DrawWireSphere(point, .055f);
     }
-
-    private void UpdateSortOrder()
-    {
-        int order = baseOffset - Mathf.RoundToInt(_pivot.position.y * precision);
-
-        // 값이 안 바뀌면 대입 스킵 (불필요한 갱신 방지)
-        if (order == _lastOrder) return;
-        _lastOrder = order;
-
-        _renderer.sortingOrder = order;
-        if (sortingGroup != null)
-        { sortingGroup.sortingLayerID = _renderer.sortingLayerID; sortingGroup.sortingOrder = order; }
-    }
-
-    /// <summary>외부에서 피벗(정렬 기준점)을 다른 Transform으로 지정할 때 사용 (예: 발밑 기준).</summary>
-    public void SetPivot(Transform pivot) => _pivot = pivot != null ? pivot : transform;
 }

@@ -172,9 +172,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDynamic: 0
-  precision: 100
-  baseOffset: 0
   pivotOverride: {fileID: 0}
 --- !u!114 &222040487851419981
 MonoBehaviour:
@@ -305,11 +302,11 @@ PrefabInstance:
     - target: {fileID: 1549434930591503874, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
       propertyPath: m_fontAsset
       value: 
-      objectReference: {fileID: 11400000, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
+      objectReference: {fileID: 11400000, guid: 5301ed5cbfc017b49a9a45b33315d456, type: 2}
     - target: {fileID: 1549434930591503874, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: 1761981276836729092, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
+      objectReference: {fileID: 313695779448459715, guid: 5301ed5cbfc017b49a9a45b33315d456, type: 2}
     - target: {fileID: 4713303146262076564, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
       propertyPath: m_Name
       value: ToolTip
@@ -409,11 +406,11 @@ PrefabInstance:
     - target: {fileID: 8221216204802905137, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
       propertyPath: m_fontAsset
       value: 
-      objectReference: {fileID: 11400000, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
+      objectReference: {fileID: 11400000, guid: 5301ed5cbfc017b49a9a45b33315d456, type: 2}
     - target: {fileID: 8221216204802905137, guid: 61d55bbb2041b96408cede075e20cb56, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: 1761981276836729092, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
+      objectReference: {fileID: 313695779448459715, guid: 5301ed5cbfc017b49a9a45b33315d456, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

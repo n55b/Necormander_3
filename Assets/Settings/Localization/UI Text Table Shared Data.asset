@@ -263,6 +263,26 @@ MonoBehaviour:
     m_Key: MinionReaction_Type5_StunExt_Desc
     m_Metadata:
       m_Items: []
+  - m_Id: 5812374291701000
+    m_Key: Choice_Summon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701001
+    m_Key: Choice_Reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701002
+    m_Key: Choice_Skip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701003
+    m_Key: Choice_Upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701004
+    m_Key: "Choice_Equipped"
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

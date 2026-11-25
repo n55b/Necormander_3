@@ -93,6 +93,7 @@ public static class EliteTelegraphCleanupCheck
             var pending = (GameObject)Call(brain, "CreateFallbackRing", Color.red);
             brain.Init(entity);
             Check(!pending.activeSelf, "reinitialization cleans remaining markers");
+            VerifySpecialPriority(entity);
             var last = (GameObject)Call(brain, "CreateFallbackRing", Color.red);
             Object.DestroyImmediate(brain);
             brain = null;
@@ -107,6 +108,47 @@ public static class EliteTelegraphCleanupCheck
             Object.DestroyImmediate(other);
             if (unrelated != null) Object.DestroyImmediate(unrelated);
             Object.DestroyImmediate(go);
+        }
+    }
+
+    private static void VerifySpecialPriority(BaseEntity entity)
+    {
+        const string path = "Assets/SOData/Enemy/Enemy AI Patterns/Elites/ChargerElitePattern.asset";
+        var asset = AssetDatabase.LoadAssetAtPath<EliteChargerAIPatternSO>(path);
+        Check(asset != null, "authored elite pattern loads");
+        var brain = Object.Instantiate(asset);
+        var target = new GameObject("Elite action target");
+        var brainField = typeof(BaseEntity).GetField("_runtimeBrain", Private);
+        var previous = brainField.GetValue(entity);
+        try
+        {
+            var stats = entity.gameObject.AddComponent<CharacterStat>();
+            typeof(BaseEntity).GetField("_stats", Private).SetValue(entity, stats);
+            var sprite = entity.gameObject.AddComponent<SpriteRenderer>();
+            typeof(BaseEntity).GetField("_sr", Private).SetValue(entity, sprite);
+            brainField.SetValue(entity, brain);
+            brain.Init(entity);
+            brain.showPatternLabel = false;
+            brain.specialPatternInterval = 60f;
+            entity.Target = target.transform;
+            target.transform.position = Vector3.right * (stats.ATKRANGE + 1f);
+            brain.Execute(entity);
+            Check(entity.CurrentState == AIState.Follow, "elite chases outside basic attack range");
+
+            target.transform.position = Vector3.right * .5f;
+            entity.AtkTimer = stats.AttackInterval;
+            brain.specialPatternInterval = 0f;
+            brain.Execute(entity);
+            Check(typeof(EliteChargerAIPatternSO).GetField("_specialPatternCoroutine", Private).GetValue(brain) != null
+                && typeof(EliteChargerAIPatternSO).GetField("_basicAttackCoroutine", Private).GetValue(brain) == null
+                && entity.AtkTimer == stats.AttackInterval, "scheduled special wins and leaves the basic timer intact");
+        }
+        finally
+        {
+            entity.CancelAttack();
+            brainField.SetValue(entity, previous);
+            Object.DestroyImmediate(target);
+            Object.DestroyImmediate(brain);
         }
     }
 

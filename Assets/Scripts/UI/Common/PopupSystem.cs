@@ -11,7 +11,9 @@ public class PopupSystem : MonoBehaviour
     [SerializeField] private GameObject popupPanel;
 
     private string npcName;
-    private static SpriteRenderer _interactionIcon;
+    private static SpriteRenderer _interactionIcon, _previousIcon;
+    private static Transform _iconTarget;
+    private static bool _iconShown;
 
     private void Awake()
     {
@@ -21,7 +23,7 @@ public class PopupSystem : MonoBehaviour
     // ─── 팝업 ────────────────────────────────────────────────────────
     public void ShowPopup()
     {
-        if (popupPanel != null && !popupPanel.activeSelf) 
+        if (popupPanel != null && !IsOpen)
         {
             UIPopUpManager.Instance.PopUpUI(popupPanel);
             if(npcName != null) UIEventBus.NotifyOpen(npcName);
@@ -30,15 +32,14 @@ public class PopupSystem : MonoBehaviour
 
     public void HidePopup()
     {
-        if (popupPanel != null && popupPanel.activeSelf) 
+        if (UIOpenMotion.IsShown(popupPanel))
         {
-            UIPopUpManager.Instance.ClosePopUpUI();
-            GameManager.Instance.SetTimeStop(false);
+            UIPopUpManager.Instance.Close(popupPanel);
             if(npcName != null) UIEventBus.NotifyClose(npcName);
         }
     }
 
-    public bool IsOpen => popupPanel != null && popupPanel.activeSelf;
+    public bool IsOpen => UIOpenMotion.IsShown(popupPanel);
 
     // ─── 모든 IInteractable 공용 아이콘 ──────────────────────────────
     private static readonly List<Graphic> _graphicBuffer = new List<Graphic>();
@@ -56,7 +57,16 @@ public class PopupSystem : MonoBehaviour
         if (target == null) { HideInteractionIcon(); return; }
         if (!EnsureInteractionIcon()) return;
 
-        _interactionIcon.gameObject.SetActive(true);
+        if (!_iconShown || _iconTarget != target.transform)
+        {
+            if (_iconShown) HideInteractionIcon();
+            // The departing prompt stays at the old target while the other copy follows the new one.
+            (_previousIcon, _interactionIcon) = (_interactionIcon, _previousIcon);
+            _interactionIcon.gameObject.SetActive(true);
+            SpriteVisibility.For(_interactionIcon).Reveal(.12f);
+            _iconTarget = target.transform;
+            _iconShown = true;
+        }
 
         Bounds col = target.bounds;
         // 상자의 몸통/상호작용 콜라이더 중 어느 것이 먼저 검색돼도 같은 위치를 사용한다.
@@ -103,13 +113,20 @@ public class PopupSystem : MonoBehaviour
 
     public static void HideInteractionIcon()
     {
-        if (_interactionIcon != null) _interactionIcon.gameObject.SetActive(false);
+        if (!_iconShown || _interactionIcon == null) return;
+        _iconShown = false;
+        _iconTarget = null;
+        var icon = _interactionIcon;
+        SpriteVisibility.For(icon).FadeOut(.09f, () => icon.gameObject.SetActive(false));
     }
 
     public static void ReleaseInteractionIcon()
     {
         if (_interactionIcon != null) Destroy(_interactionIcon.gameObject);
-        _interactionIcon = null;
+        if (_previousIcon != null) Destroy(_previousIcon.gameObject);
+        _previousIcon = _interactionIcon = null;
+        _iconShown = false;
+        _iconTarget = null;
     }
 
     private static bool EnsureInteractionIcon()
@@ -134,6 +151,10 @@ public class PopupSystem : MonoBehaviour
         if (unlit != null) _interactionIcon.sharedMaterial = unlit;
         else Debug.LogWarning("[PopupSystem] Resources/Materials/UI/UISpriteUnlit 머티리얼이 없습니다. F 아이콘이 검게 보일 수 있습니다.");
         _interactionIcon.sortingOrder = 0;
+        _previousIcon = Instantiate(_interactionIcon);
+        _previousIcon.gameObject.SetActive(false);
+        _interactionIcon.gameObject.SetActive(false);
+        _iconShown = false;
         return true;
     }
 }

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6849678664410979706}
   - component: {fileID: 8146734334599477059}
   - component: {fileID: 5597082425078933010}
+  - component: {fileID: 6873340098875642191}
   m_Layer: 3
   m_Name: Barricade_X
   m_TagString: Untagged
@@ -146,11 +147,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDynamic: 0
-  precision: 100
-  baseOffset: 0
   pivotOverride: {fileID: 0}
+  occludesPlayer: 1
   sortingGroup: {fileID: 0}
+  localAnchorOffset: {x: 0, y: -0.125}
 --- !u!61 &5597082425078933010
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -197,3 +197,22 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.81754935, y: 1.6334155}
   m_EdgeRadius: 0
+--- !u!114 &6873340098875642191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 6573063553699626744}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7db70e0ea77f5ac47a8f4565a9406397, type: 3}
+  m_Name:
+  m_ShadowCastingSource: 1
+  m_CastingOption: 1
+  m_CastsShadows: 1
+  m_SelfShadows: 0
+  m_UseRendererSilhouette: 0
+  m_ShapePathHash: 1
+  m_ApplyToSortingLayers: 0b7aa4688184013c81521176000000005173e562
+  m_ShapePath:
+  - {x: -0.40233, y: 0.16901, z: 0}
+  - {x: 0.34982, y: 0.16901, z: 0}
+  - {x: 0.32529, y: 1.26340, z: 0}
+  - {x: -0.37780, y: 1.26340, z: 0}

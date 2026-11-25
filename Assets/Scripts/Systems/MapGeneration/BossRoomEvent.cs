@@ -47,11 +47,14 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
         }
     }
 
+    private readonly RoomFinalBlow finalBlow = new();
+
     private void Update()
     {
         // 지연 스폰 중에는 보스가 소환 안 된 상태이므로 즉시 클리어되는 현상 방지
         if (!_isBattleActive || _isSpawnPending) return;
 
+        finalBlow.Resolve(true);
         _activeEnemies.RemoveAll(e => e == null);
         if (_activeBoss == null && _activeEnemies.Count == 0)
         {
@@ -63,7 +66,11 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
     // 분열 적 등을 방 클리어 판정에 귀속시킨다. (DualSplitAIPatternSO 에서 호출)
     public void RegisterActiveEnemy(GameObject enemy)
     {
-        if (enemy != null && !_activeEnemies.Contains(enemy)) _activeEnemies.Add(enemy);
+        if (enemy != null && !_activeEnemies.Contains(enemy))
+        {
+            _activeEnemies.Add(enemy);
+            finalBlow.Track(enemy);
+        }
     }
 
     public void OnPlayerEnter(RoomInstance room)
@@ -208,7 +215,7 @@ public class BossRoomEvent : MonoBehaviour, IRoomEvent
             _activeBoss = GameManager.Instance.dataManager.CreateUnit(dataToSpawn, spawnPos);
         }
 
-        if (_activeBoss != null) PolishFeedback.Play(FeedbackCue.BossLand, _activeBoss.transform.position);
+        finalBlow.Track(_activeBoss);
         BindBossHPBar(dataToSpawn);   // ← 추가
     }
 

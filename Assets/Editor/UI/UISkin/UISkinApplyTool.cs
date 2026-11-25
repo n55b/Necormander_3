@@ -82,25 +82,25 @@ public static class UISkinApplyTool
             return new SkinEntry { sprite = sp, color = color ?? Color.white, drawMode = SkinEntry.DrawMode.Sliced, pixelScale = 1f };
         }
 
-        s.windowFrame     = E("UI_Panel_Red_Big");                       // 빨간 기둥 장식 창
-        s.innerPanel      = E("UI_Panel_Black_Big");                     // 어두운 둥근 패널
-        s.infoPanel       = E("UI_Panel_6");                             // C·V 흰 장식 테두리, 바깥 창의 보라색 바탕 유지
-        s.itemListBack    = E("UI_Panel_Red_Half");                      // 정렬 탭 아래 목록 바탕
+        s.windowFrame     = E("UI_Panel_Red_Big");
+        s.innerPanel      = E("UI_Panel_Black_Big");
+        s.infoPanel       = E("UI_Panel_6");
+        s.itemListBack    = E("UI_Panel_Red_Half");
         s.tooltipBack     = E("UI_Panel_Black_Big", new Color(1f, 1f, 1f, 0.97f));
-        s.tabOuter        = E("UI_Panel_Red_Half");                      // 아래가 열린 탭 모양
-        s.tabFace         = E("UI_Panel_White_Half");                    // 밝은 탭 → 선택색이 그대로 입혀짐
-        s.smallButton     = E("UI_Panel_31");                            // 작은 빨간 버튼
-        s.divider         = E(null, Hex("A63245"));                      // 빨간 단색 선
-        s.hpBarFrame      = E("UI_Panel_14");                            // 빨간 게이지 틀
-        s.gaugeFrame      = E("UI_Panel_7");                             // 얇은 빨간 틀
-        s.gaugeTrack      = E(null, Hex("201825"));                      // 빈 칸 = 아주 어두운 보라
-        s.gaugeFill       = E("UI_Panel_16");                            // 흰 하이라이트 바 (색은 각 바가 정함)
+        s.tabOuter        = E("UI_Panel_Red_Half");
+        s.tabFace         = E("UI_Panel_White_Half");
+        s.smallButton     = E("UI_Panel_31");
+        s.divider         = E(null, Hex("504B53"));
+        s.hpBarFrame      = E("UI_Panel_14");
+        s.gaugeFrame      = E("UI_Panel_7");
+        s.gaugeTrack      = E(null, Hex("201825"));
+        s.gaugeFill       = E("UI_Panel_16");
         s.skillSlotBack   = E("UI_Panel_Black_Big");
         s.skillSlotFrame  = E("UI_Panel_7");
-        s.miniMapFrame    = E("UI_Panel_4");                             // 매듭 장식 빨간 틀 (속 빔)
-        s.itemSlot        = E("UI_Panel_12");                            // 밝은 매듭 틀 + 어두운 속 (등급색이 입혀짐)
-        s.itemDetailFrame = E("UI_Panel_11");                            // 빨간 매듭 틀 + 어두운 속
-        s.selectionFrame  = E("UI_Panel_6", Hex("FAC94C"));              // 밝은 매듭 틀 (속 빔) 금색
+        s.miniMapFrame    = E("UI_Panel_4");
+        s.itemSlot        = E("UI_Panel_12");
+        s.itemDetailFrame = E("UI_Panel_11");
+        s.selectionFrame  = E("UI_Panel_6", Hex("C6B7A6"));
         s.smallIconSlot   = E("UI_Panel_7");
         EditorUtility.SetDirty(s);
     }
@@ -217,11 +217,11 @@ public static class UISkinApplyTool
         {
             var sort = Find(root, $"PouchWindow/InventoryPanel/Sort{i}");
             if (sort == null) continue;
-            Skin(sort, UISkinRole.TabOuter);
+            sort.GetComponent<Image>().enabled = false;
             var face = sort.Find("Face");
             if (face == null) continue;
-            Skin(face, UISkinRole.TabFace, keepColor: true); // 선택/비선택 색은 PouchUI 가 칠한다
-            Comp<UIHoverMotion>(face).target = (RectTransform)sort;
+            Skin(face, UISkinRole.TabFace);
+            Comp<UIHoverMotion>(face).target = (RectTransform)face;
         }
         Clear(Find(root, "PouchWindow/InventoryPanel/ItemScroll/Viewport"));
         Clear(Find(root, "PouchWindow/ItemDetails/DetailScroll/Viewport"));
@@ -229,18 +229,12 @@ public static class UISkinApplyTool
         Clear(Find(root, "PouchWindow/ItemDetails/IconFrame/Backing"));
         Skin(Find(root, "PouchWindow/ItemDetails/Divider"), UISkinRole.Divider);
 
-        var pouch = root.GetComponent<PouchUI>();
-        if (pouch != null)
-        {
-            SetColor(pouch, "activeSortColor", new Color(1f, 0.62f, 0.66f, 1f));   // 선택된 탭: 밝은 붉은색
-            SetColor(pouch, "inactiveSortColor", new Color(0.42f, 0.37f, 0.5f, 1f)); // 나머지 탭: 어두운 보라
-        }
     }
 
     private static void SkinPouchSlot(GameObject root)
     {
         var t = root.transform;
-        Skin(t, UISkinRole.ItemSlot, keepColor: true); // 등급색은 PouchSlotUI 가 칠한다
+        Skin(t, UISkinRole.ItemSlot);
         Clear(t.Find("Backing"));
 
         var slotUI = root.GetComponent<PouchSlotUI>();
@@ -365,7 +359,7 @@ public static class UISkinApplyTool
         GameObject go;
         if (t == null)
         {
-            go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(VectorUiImage));
             go.layer = parent.gameObject.layer;
             go.transform.SetParent(parent, false);
         }
@@ -414,12 +408,4 @@ public static class UISkinApplyTool
         var c = img.color; c.a = 0f; img.color = c;
     }
 
-    private static void SetColor(Object target, string field, Color color)
-    {
-        var so = new SerializedObject(target);
-        var p = so.FindProperty(field);
-        if (p == null) { Log.AppendLine($"    - 필드 없음: {target.GetType().Name}.{field}"); return; }
-        p.colorValue = color;
-        so.ApplyModifiedPropertiesWithoutUndo();
-    }
 }

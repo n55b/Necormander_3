@@ -9,11 +9,21 @@ public class Projectile : MonoBehaviour
     [Header("기본 투사체 설정")]
     [SerializeField] protected float speed = 15f;
     [SerializeField] protected float lifeTime = 3f;
-    [SerializeField] protected bool rotateToDirection = true; // [추가] 날아가는 궤적 방향으로 오브젝트를 회전시킬지 여부 (구체형 등은 false)
+    [SerializeField] protected bool rotateToDirection = true; // 날아가는 궤적 방향으로 오브젝트를 회전시킬지 여부 (구체형 등은 false)
+    [SerializeField, Tooltip("벡터 화살의 로컬 표시 크기. 둘 중 한 축이 0이면 프리팹의 스프라이트를 사용합니다.")]
+    private Vector2 vectorArrowSize;
     [SerializeField, KoLabel("발사 효과음 종류"), Tooltip("화살은 궁수 발사, 마법탄은 발사 섬광. 소리 파일과 볼륨은 Feedback Catalog에서 조절합니다.")]
     private FeedbackCue launchSound = FeedbackCue.ProjectileLaunch;
 
+    private AttackGraze graze;
     private float nextFeedbackTrail;
+    private AirborneShadow flightShadow;
+
+    private void UpdateFlightShadow()
+    {
+        if (flightShadow != null)
+            flightShadow.SetFloor((Vector2)transform.position + Vector2.down * .35f);
+    }
     protected virtual bool IsGuiding => false;
     protected float _damage;
     protected LayerMask _targetLayer;
@@ -33,8 +43,21 @@ public class Projectile : MonoBehaviour
     /// </summary>
     protected Vector2 HitFromPoint => (Vector2)transform.position - _direction * 2f;
 
+    private void Awake()
+    {
+        if (vectorArrowSize.x <= 0f || vectorArrowSize.y <= 0f || !TryGetComponent<SpriteRenderer>(out var renderer)) return;
+        PixelVectorShape.Apply(renderer, PixelVectorShape.Kind.ProjectileArrow, PixelVectorShape.Stroke.Boundary);
+        PixelVectorShape.SetLocalSize(renderer, vectorArrowSize);
+    }
+
     public virtual void Init(Vector2 targetPos, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime, bool playLaunchSound = true)
     {
+        nextFeedbackTrail = Time.time;
+        if (shooter != null && shooter.layer == Layers.Enemy && TryGetComponent<SpriteRenderer>(out var picture))
+        {
+            flightShadow = picture.GetComponent<AirborneShadow>() ?? picture.gameObject.AddComponent<AirborneShadow>();
+            UpdateFlightShadow();
+        }
         GuardConsumed = false;
         _targetLayer = targetLayer;
         
@@ -72,6 +95,7 @@ public class Projectile : MonoBehaviour
 
         // 초기 겹쳐 있는 콜라이더 오버랩 체크
         Collider2D myCol = GetComponent<Collider2D>();
+        graze.Arm(myCol, _targetLayer, damage, projectile: true);
         if (myCol != null)
         {
             ContactFilter2D filter = new ContactFilter2D();
@@ -107,19 +131,21 @@ public class Projectile : MonoBehaviour
     protected virtual void Update()
     {
         if (GuardConsumed) return;
-        Vector2 previousPosition = transform.position;
+        graze.Sample();
         Move();
+        UpdateFlightShadow();
         if (!GuardConsumed && Time.time >= nextFeedbackTrail && PolishFeedback.Catalog != null)
         {
             nextFeedbackTrail = Time.time + PolishFeedback.Catalog.trailInterval;
-            PolishFeedback.Play(_isDeflected ? FeedbackCue.ReflectedTrail : FeedbackCue.ProjectileTrail, transform.position, -_direction);
-            if (IsGuiding) PolishFeedback.Play(FeedbackCue.HomingTrail, transform.position, -_direction);
+            WorldSparkField.Emit(_isDeflected ? WorldSparkField.Kind.Reflect : WorldSparkField.Kind.Projectile,
+                transform.position, -_direction, 1);
+
         }
     }
 
     protected virtual void Move()
     {
-        // [수정] 패링 회전 여부(rotateToDirection)와 무관하게 항상 조준한 월드 방향(_direction)으로 비행하도록 월드 좌표 이동 적용
+        // 패링 회전 여부(rotateToDirection)와 무관하게 항상 조준한 월드 방향(_direction)으로 비행하도록 월드 좌표 이동 적용
         transform.Translate(_direction * speed * Time.deltaTime, Space.World);
     }
 
@@ -127,6 +153,7 @@ public class Projectile : MonoBehaviour
     {
         if (GuardConsumed) return;
         if (_ignoredColliders.Contains(other)) return;
+        if (other.gameObject.layer == Layers.Player || other.gameObject.layer == Layers.PlayerDash) graze.Contact(other);
         // 1. 벽이나 장애물에 부딪히면 파괴
         if (((Layers.WallMask) & (1 << other.gameObject.layer)) != 0)
         {
@@ -193,6 +220,8 @@ public class Projectile : MonoBehaviour
     protected virtual void OnHitTarget(CharacterStat targetStat)
     {
         if (GuardConsumed) return;
+        if (targetStat.gameObject.layer == Layers.Player && PolishFeedback.Player?.Stat == targetStat)
+            graze.Contact(PolishFeedback.Player.BodyCollider);
         DamageInfo info = GuardInfo;
         targetStat.Health.GetDamage(info);
         PolishFeedback.PlaySound(FeedbackCue.WallHit, transform.position);
@@ -207,6 +236,8 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnHitObstacle(Collider2D other)
     {
+        graze.Cancel();
+        WorldSparkField.Emit(WorldSparkField.Kind.Wall, other.ClosestPoint(transform.position), -_direction, 9);
         PolishFeedback.Play(FeedbackCue.WallHit, transform.position, -_direction);
         PolishFeedback.Play(FeedbackCue.GroundHit, transform.position);
         Destroy(gameObject);
@@ -219,10 +250,13 @@ public class Projectile : MonoBehaviour
 
     public virtual void InitDeflected(Vector2 newDirection, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
     {
+        flightShadow = GetComponent<AirborneShadow>();
+        UpdateFlightShadow();
         _targetLayer = targetLayer;
         _damage = damage;
         _shooter = shooter;
         GuardConsumed = false;
+        graze.Cancel();
         _isDeflected = true; // 반사된 순간부터 이 투사체의 피해는 패링 갈래다.
         speed = customSpeed;
         lifeTime = customLifeTime;

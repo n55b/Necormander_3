@@ -1,0 +1,20 @@
+--- a/Runtime/BatchedDeformation/GpuDeformationSystem.cs
++++ b/Runtime/BatchedDeformation/GpuDeformationSystem.cs
+@@ -24,13 +24,17 @@
+         static void CreateFallbackBuffer()
+         {
+             if (s_FallbackBuffer == null)
++            {
+                 s_FallbackBuffer = new ComputeBuffer(UnsafeUtility.SizeOf<float4x4>(), UnsafeUtility.SizeOf<float4x4>(), ComputeBufferType.Default);
++                Application.quitting += ClearFallbackBuffer;
++            }
+ 
+             Shader.SetGlobalBuffer(k_GlobalSpriteBoneBufferId, s_FallbackBuffer);
+         }
+ 
+         static void ClearFallbackBuffer()
+         {
++            Application.quitting -= ClearFallbackBuffer;
+             if (s_FallbackBuffer != null)
+                 s_FallbackBuffer.Release();
+ 

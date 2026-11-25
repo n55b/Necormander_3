@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
-public class MeleeCombatController : MonoBehaviour
+public partial class MeleeCombatController : MonoBehaviour
 {
     [Header("기획 조절 · 동작과 타이밍")]
     [SerializeField, Min(0.01f), Tooltip("플레이어 평타 히트박스의 활성 시간입니다. 모션이나 콤보 수는 변경하지 않습니다.")]
@@ -14,9 +13,12 @@ public class MeleeCombatController : MonoBehaviour
     [Tooltip("플레이어 공격 히트박스가 스폰될 시작 기준점 트랜스폼입니다. 미지정 시 플레이어 본체 피벗을 사용합니다.")]
     [SerializeField] private Transform attackSpawnPoint;
 
-    [Header("평타 대시 물리력 설정")]
-    [Tooltip("평타 타격 순간의 돌진력(가속 배율)입니다. 기본값 1.0f")]
+    [Header("평타 준비 이동")]
+    [Tooltip("공격 모션 전 입력 방향으로 이동하는 거리의 배율입니다. 0이면 바로 공격합니다.")]
     [SerializeField] private float lightAttackDashMultiplier = 1.0f;
+
+    [SerializeField, Range(0f, 1f), Tooltip("준비 이동이 끝난 뒤 다음 평타를 낼 수 있을 때까지 적용하는 걷기 속도 비율입니다.")]
+    private float attackWalkSpeedMultiplier = 0.25f;
 
     private PlayerController _player;
     private float _lastAttackTime;
@@ -113,14 +115,15 @@ public class MeleeCombatController : MonoBehaviour
 
     private bool _isHoldingAttack = false;
     private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
+    private bool _preparingAttack;
     private bool _attackAnimationPlaying;
     private bool _ownsAnimationLock;
 
     // 콤보 스텝을 함께 전달하는 공격 시작 이벤트 (int = comboStep 0/1/2)
     public event System.Action<int> OnAttackExecuted;
 
-    // 판정창은 고정 길이, 모션은 공속 배율을 따른다. 둘 중 하나라도 남으면 평타는 진행 중이다.
-    public bool IsAttacking => _attackAnimationPlaying || _activeHitbox != null ||
+    // 준비 이동부터 모션, 판정창, 최소 공격 간격까지 평타가 행동 슬롯을 점유한다.
+    public bool IsAttacking => _preparingAttack || _attackAnimationPlaying || _activeHitbox != null ||
                                (Time.time - _lastAttackTime) < attackCooldown;
     public bool IsAimingAttack => _ownsAnimationLock;
 
@@ -139,224 +142,6 @@ public class MeleeCombatController : MonoBehaviour
         _player = GetComponent<PlayerController>();
     }
 
-    private void Update()
-    {
-        // 모션과 판정이 모두 끝난 뒤 이동·다음 콤보를 허용한다.
-        if (!IsAttacking)
-        {
-            if (_ownsAnimationLock)
-            {
-                _ownsAnimationLock = false;
-                _player.CanChangeAnimState();
-            }
-            if (_player != null)
-            {
-                _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack); // 공격 끝났으므로 이속 복구
-            }
-
-            if (Time.time - _lastAttackTime > comboResetTime)
-            {
-                _comboStep = 0;
-            }
-
-            // 홀드 공격 유지 (모션·판정·최소 간격이 모두 끝났다면 다음 콤보 발동)
-            if (_isHoldingAttack)
-            {
-                // 플레이어가 대시 중일 때는 꾹 누르고 있어도 자동 공격 제한
-                if (_player == null || !_player.IsDashing)
-                {
-                    ExecuteMeleeAttack();
-                }
-            }
-        }
-    }
-
-    public void OnAttackInput(InputAction.CallbackContext context)
-    {
-        // 주머니(B 홀드)를 열고 마우스로 아이템을 끌고 있는 중엔 평타가 나가면 안 된다.
-        // 시간이 멈추지 않는 UI라 안 막으면 정리하는 내내 주먹을 휘두른다.
-        if (PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsPointerOverPanel())) { _isHoldingAttack = false; return; }
-
-        if (context.started)
-        {
-            _isHoldingAttack = true;
-
-            if (!IsAttacking)
-            {
-                ExecuteMeleeAttack();
-            }
-        }
-        else if (context.canceled)
-        {
-            _isHoldingAttack = false;
-        }
-    }
-
-    private void ExecuteMeleeAttack()
-    {
-        if (PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsPointerOverPanel())) { _isHoldingAttack = false; return; }
-        if (PlayerController.IsGameplayPaused) return; // 옵션 일시정지 또는 창(보상/맵 등)이 떠 있으면 공격 차단
-        if (_player == null || _player.Stat.Health.IsDead) return;
-        if (_player.IsCCed) return; // [26/07/17] 기절/빙결 중에는 평타 차단
-
-        // 콤보 길이가 줄었는데(미니언이 R로 바빠져 마무리 제외) 스텝이 범위를 벗어났으면 0으로 되돌린다.
-        if (_comboStep >= ComboLength) _comboStep = 0;
-
-        _lastAttackTime = Time.time;
-
-        int swingIndex = _comboStep; // 0 = 1타, 1 = 2타, 2 = 3타
-        OnAttackExecuted?.Invoke(swingIndex);
-
-        float telegraphDuration = (swingIndex == 2 ? thirdTelegraphDuration : lightTelegraphDuration)
-                                  / Mathf.Clamp(_player.Stat.ATKSPD, 0.5f, 3f);
-        Vector2 hitboxSize = lightHitboxSize;
-        // 평타 1·2타 배율. 예전엔 1.0 하드코딩이었는데, "평타 데미지만 높이는 증감 요소"를
-        // 나중에 넣을 수 있게 스탯으로 뺐다. 기본값은 그대로 1.0 이라 동작은 같다.
-        // 3타는 여기에 장비의 마지막 타격 배율을 곱한다. 소환수는 자기 배율을 유지한다.
-        float damageMultiplier = _player.Stat != null ? _player.Stat.BASIC_ATK_MULT : 1.0f;
-        var weapon = EquipmentInventoryManager.Instance != null ? EquipmentInventoryManager.Instance.Weapon : null;
-        damageMultiplier *= weapon != null ? weapon.ComboMultiplier(swingIndex) : (swingIndex == 2 ? 1.5f : 1f);
-        damageMultiplier *= weapon != null ? weapon.basicDamagePerHit : 1f;
-
-        PlayAttackAnimation(swingIndex);
-
-        // [HitBox 소환]
-        if (telegraphPrefab != null)
-        {
-            // 마우스 방향 또는 이동 방향을 공격 방향으로 설정 (지정된 스폰포인트 기준으로 에이밍 방향 산출)
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-            mousePos.z = 0;
-            Vector3 startOrigin = attackSpawnPoint != null ? attackSpawnPoint.position : transform.position;
-            Vector2 dir = (mousePos - startOrigin).normalized;
-            CurrentAttackDir = dir;
-
-            // 플레이어가 바라보는 방향 동기화
-            if (dir.x > 0) transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
-            else if (dir.x < 0) transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
-
-            Vector3 spawnPos = attackSpawnPoint != null ? attackSpawnPoint.position : transform.position;
-            GameObject go = Instantiate(telegraphPrefab, spawnPos, Quaternion.identity, transform); // [수정] 월드가 아닌 시전자(플레이어)의 하위 자식으로 붙여 이동 궤적 동기화
-
-            // [평타 텔레그래프 숨김] 범위 표시용 시각(SpriteRenderer)만 끄고 콜라이더/데미지 판정은 그대로 둔다.
-            if (hideBasicAttackTelegraph)
-            {
-                foreach (var vis in go.GetComponentsInChildren<SpriteRenderer>(true))
-                    vis.enabled = false;
-                // [중요] SpriteMask도 반드시 꺼야 한다. 텔레그래프 프리팹엔 안쪽을 도려내는 SpriteMask가 들어있는데,
-                // SpriteRenderer만 끄면 눈엔 안 보여도 '마스크'는 살아있어서, 겹치는 적 텔레그래프의
-                // 외곽선(MaskInteraction=Visible Outside Mask)을 마스크 영역만큼 잘라내(덮어써) 경계선이 사라진다.
-                foreach (var mask in go.GetComponentsInChildren<SpriteMask>(true))
-                    mask.enabled = false;
-            }
-
-            // 범용 BaseHitBox 사용
-            _activeHitbox = go.GetComponent<BaseHitBox>();
-
-            if (_activeHitbox != null)
-            {
-                // 부모의 scale.x 반전에 맞물려 대칭 정렬되도록 로컬 오프셋 유지
-                go.transform.localPosition = attackSpawnPoint != null ? attackSpawnPoint.localPosition : Vector3.zero;
-
-                float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-                // [수정] 부모(플레이어)의 localScale.x 반전(-1) 상태에 따른 로컬 회전 각도 기하학적 보정 (마우스 좌우 대칭 오류 해결)
-                float localAngle = (transform.localScale.x < 0f) ? (180f - angle) : angle;
-                go.transform.localRotation = Quaternion.Euler(0, 0, localAngle);
-
-            // [추가] 히트 이펙트는 부모(플레이어)의 미러링 보정 없이 스폰되므로, 보정 전의 실제 타격 방향(angle)을 그대로 전달
-            if (_activeHitbox != null) _activeHitbox.hitEffectAngle = angle;
-
-                // 크기 설정 (TelegraphHitbox 로직 대체)
-                go.transform.localScale = new Vector3(hitboxSize.x, hitboxSize.y, 1f);
-
-                // 플레이어 공격은 적에게 경직과 약간의 넉백을 유발
-                float saDmg = 20f;
-                DamageInfo info = new DamageInfo(_player.Stat.ATK * damageMultiplier, DamageType.Physical, this.gameObject, 1f, "", false, causesHitstun: true, knockbackForce: 2f, superArmorDamage: saDmg, category: DamageCategory.BasicAttack);
-                info.playerBasicAttack = new PlayerBasicAttackRoll(weapon);
-                info.feedbackComboFinish = swingIndex == 2;
-                // [26/11] 무기 '약점 공략'(3타 취약 부여)은 껐다 — 취약은 용사 계열(기사/용사) 소환수 스킬 전용이다.
-                // 되살리려면 EquipmentSO.exploitsWeakness 를 다시 읽어 info.applyStatus = Vulnerable 을 실으면 된다.
-                // 대기 소환수(필드에 없는 쪽)의 효과를 확률로 평타에 묻힌다.
-                var infusionOnHit = ApplyStandbyInfusion(ref info, swingIndex);
-                _activeHitbox.HitsPerContact = weapon != null ? weapon.basicHitsPerContact : 1;
-                _activeHitbox.ContactHitInterval = weapon != null ? weapon.basicRepeatHitInterval : 0f;
-
-                LayerMask enemyLayer = Layers.EnemyMask;
-                // duration은 0.2f(타격유지시간), startDelay는 telegraphDuration(선딜레이)
-                _activeHitbox.Init(info, enemyLayer, attackHitActiveDuration, telegraphDuration, onHitEnemy: infusionOnHit);
-            }
-            else
-            {
-                Debug.LogError("[MeleeCombat] telegraphPrefab에 BaseHitBox 스크립트가 없습니다!");
-            }
-        }
-        else
-        {
-            Debug.LogError("[MeleeCombat] telegraphPrefab이 인스펙터에 할당되지 않았습니다.");
-        }
-
-        // 콤보 진행 (1타 → 2타 → 3타)
-        _comboStep = (_comboStep + 1) % ComboLength;
-    }
-
-    private void PlayAttackAnimation(int swingIndex)
-    {
-        _attackAnimationPlaying = true;
-        _ownsAnimationLock = true;
-        _player.SetSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack, 0f);
-        _player.LockAnimState();
-        _player.ResetAnimStateCache();
-        if (swingIndex == 0) _player.PlayAllAnim("Attack_Light1", "Attack");
-        else if (swingIndex == 1) _player.PlayAllAnim("Attack_Light2", "Attack");
-        else _player.PlayAllAnim("Attack_Medium", "Attack");
-        if (_player.Stat != null)
-            _player.SetAttackAnimSpeed(Mathf.Clamp(_player.Stat.ATKSPD, 0.5f, 3f));
-    }
-
-    /// <summary>
-    /// 복귀 이벤트(또는 PlayerController의 누락 이벤트 안전장치)가 모션 완료를 알린다.
-    /// 판정/최소 간격이 남았다면 이동 및 좌우 반전을 보류하고 Update에서 마저 해제한다.
-    /// </summary>
-    public bool TryFinishAttackAnimation()
-    {
-        if (!_ownsAnimationLock) return true;
-        _attackAnimationPlaying = false;
-        if (IsAttacking) return false;
-        _ownsAnimationLock = false;
-        return true;
-    }
-
-    /// <summary>
-    /// Attack 애니메이션 클립의 실제 타격 프레임(Animation Event)에서 호출됩니다.
-    /// 텔레그래프 선딜레이를 강제로 끝내고 즉시 데미지 판정을 시작합니다.
-    /// (BodyAnimationEventRelay -> 여기로 전달됨)
-    /// </summary>
-    public void OnAttackHitFrame()
-    {
-        if (_activeHitbox != null) _activeHitbox.ForceActivate(); // ?. 는 Unity의 == 오버로드를 안 타서 파괴된 오브젝트를 못 거른다
-
-        if (_player != null)
-        {
-            // 1. 방향키 입력 방향 (MoveInput) 가져오기
-            Vector2 inputDir = _player.MoveInput;
-            
-            // 2. [수정] 방향키 입력이 있는 경우에만 가속 전진을 수행 (가만히 서서 때릴 때는 제자리 타격)
-            if (inputDir.sqrMagnitude > 0.001f)
-            {
-                Vector2 dashDir = inputDir.normalized;
-                
-                // 플레이어 평타는 이제 1/2타뿐이라 전부 light 배율을 쓴다.
-                // (3타 = 소환수 마무리는 플레이어가 움직이지 않으므로 이 경로를 타지 않는다)
-                float forceMultiplier = lightAttackDashMultiplier;
-
-                _player.ApplyAttackDash(dashDir, forceMultiplier);
-            }
-        }
-    }
-
-    /// <summary>
-    /// 콤보 마지막 타이밍: 플레이어는 아무것도 하지 않고, 메인 소환수가 실체화해 마무리 일격을 넣는다.
-    /// (설계 3.3 "마지막에 소환수의 마무리 일격이 발동" — 플레이어는 Idle)
-    /// </summary>
     /// <summary>
     /// 소환수 기본 공격. 필드 소환수 AI 가 자기 위치에서 호출한다. 플레이어 평타와는 연결되지 않는다.
     /// 피해 = 플레이어 ATK × 소환수 고유 배율 × 강화 × Inspector 의 소환수 평타 피해 배율.
@@ -415,7 +200,7 @@ public class MeleeCombatController : MonoBehaviour
         box.ApplyTeamColor(true);
 
         // 피해는 '플레이어의 ATK * 소환수 고유 배율'.
-        // [26/07/17] 예전엔 소환수 SO 자신의 attack 을 썼는데, 이제 베이스 ATK 를 공유한다.
+        // 예전엔 소환수 SO 자신의 attack 을 썼는데, 이제 베이스 ATK 를 공유한다.
         // 그래야 "아군 공격력 증가" 같은 버프를 플레이어 ATK 하나에만 걸어도
         // 주먹과 소환수 마무리에 동시에 먹는다. 소환수의 개성은 배율이 유지한다.
         // [강화] 보상방 강화 단계만큼 일반 공격 배율이 붙는다(MinionEnhance).
@@ -463,30 +248,5 @@ public class MeleeCombatController : MonoBehaviour
             // OnAttackEndEvent: 후딜까지 끝났으니 판정을 닫는다.
             onAttackEnd: () => { if (col != null) col.enabled = false; });
         return caster;
-    }
-
-    /// <summary>
-    /// 플레이어 평타만 취소한다. 소환수의 행동은 건드리지 않아,
-    /// 3타 도중 대쉬/패링/Q·E 를 써도 미니언은 남아서 마무리를 끝낸다.
-    /// </summary>
-    public void CancelPlayerAttack()
-    {
-        // 이후 도착하는 평타 종료 처리로 새 대쉬/가드의 잠금을 풀지 않는다.
-        _attackAnimationPlaying = false;
-        _ownsAnimationLock = false;
-        if (_activeHitbox != null)
-        {
-            Destroy(_activeHitbox.gameObject);
-            _activeHitbox = null;
-        }
-        _comboStep = 0;
-        // _isHoldingAttack = false; // 대시/패리 후에도 꾹 누르고 있으면 이어서 공격하도록 주석 처리
-        _player.SetAttackAnimSpeed(1f);
-
-        // 공격이 중간에 취소되더도 Idle/Walk 전환이 영원히 잠겨있지 않도록 해제합니다.
-        _player.CanChangeAnimState();
-        _player.ResetAnimStateCache();
-        _player.PlayAllAnim("Idle");
-        _player.RemoveSpeedModifier(PlayerController.SpeedModifierSource.MeleeAttack); // 이동 속도 복구
     }
 }

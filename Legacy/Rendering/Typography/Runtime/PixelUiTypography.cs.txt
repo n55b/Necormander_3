@@ -1,0 +1,140 @@
+using System;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.TextCore.LowLevel;
+using UnityEngine.UI;
+using Object = UnityEngine.Object;
+
+/// <summary>Rasterizes UI glyphs at their logical-pixel size and keeps the atlas point sampled.</summary>
+internal sealed class PixelUiTypography : IDisposable
+{
+    private sealed class Label
+    {
+        public TMP_FontAsset original;
+        public TMP_FontAsset bitmap;
+        public float authoredSize;
+        public float appliedSize;
+        public Action<TMP_TextInfo> prepareAtlas;
+    }
+
+    private readonly HashSet<Canvas> canvases = new();
+    private readonly Dictionary<TextMeshProUGUI, Label> labels = new();
+    private readonly Dictionary<(Font face, int pixels), TMP_FontAsset> fonts = new();
+    private readonly List<TextMeshProUGUI> removedLabels = new();
+
+    public void Register(Canvas canvas) => canvases.Add(canvas);
+
+    public void Prune()
+    {
+        canvases.RemoveWhere(canvas => canvas == null);
+        foreach (var label in labels.Keys)
+            if (label == null) removedLabels.Add(label);
+        foreach (var label in removedLabels) labels.Remove(label);
+        removedLabels.Clear();
+    }
+
+    public void Apply()
+    {
+        foreach (var canvas in canvases)
+        {
+            if (canvas == null || !canvas.isActiveAndEnabled) continue;
+            var graphics = GraphicRegistry.GetGraphicsForCanvas(canvas);
+            for (int i = 0; i < graphics.Count; i++)
+                if (graphics[i] is TextMeshProUGUI text && text.isActiveAndEnabled)
+                    ApplyLabel(text, canvas.rootCanvas);
+        }
+    }
+
+    private void ApplyLabel(TextMeshProUGUI text, Canvas canvas)
+    {
+        if (canvas == null || canvas.worldCamera == null || text.font == null) return;
+
+        // Measure the label in its render camera's pixels, including nested canvas scale.
+        float pixelsPerUnit = PixelViewport.CanvasPixelsPerUnit(canvas, text.rectTransform);
+        if (pixelsPerUnit <= .0001f) return;
+
+        if (!labels.TryGetValue(text, out var label))
+        {
+            label = new Label();
+            label.prepareAtlas = _ => SetPointFilter(text.font);
+            text.OnPreRenderText += label.prepareAtlas;
+            labels.Add(text, label);
+        }
+        if (label.original == null || text.font != label.bitmap)
+        {
+            label.original = text.font;
+            label.bitmap = null;
+            label.authoredSize = text.fontSize;
+        }
+        else if (!text.enableAutoSizing && !Mathf.Approximately(text.fontSize, label.appliedSize))
+        {
+            label.authoredSize = text.fontSize;
+        }
+
+        var face = label.original.sourceFontFile;
+        if (face == null) return;
+        float size = text.enableAutoSizing ? text.fontSizeMax : label.authoredSize;
+        int pixels = Mathf.Clamp(Mathf.RoundToInt(size * pixelsPerUnit), 5, 64);
+        var bitmap = GetFont(face, pixels);
+        if (bitmap == null) return;
+
+        if (text.font != bitmap)
+        {
+            text.font = bitmap;
+            text.fontSharedMaterial = bitmap.material;
+        }
+        label.bitmap = bitmap;
+
+        // TMP still fits its own text for autosized cards and translated labels.
+        if (!text.enableAutoSizing)
+        {
+            float adjustedSize = pixels / pixelsPerUnit;
+            if (Mathf.Abs(text.fontSize - adjustedSize) > .001f) text.fontSize = adjustedSize;
+        }
+        label.appliedSize = text.fontSize;
+    }
+
+    private TMP_FontAsset GetFont(Font face, int pixels)
+    {
+        if (fonts.TryGetValue((face, pixels), out var bitmap)) return bitmap;
+        bitmap = TMP_FontAsset.CreateFontAsset(face, pixels, 2, GlyphRenderMode.RASTER_HINTED,
+            512, 512, AtlasPopulationMode.Dynamic, true);
+        fonts[(face, pixels)] = bitmap;
+        if (bitmap == null) return null;
+        bitmap.name = $"{face.name} · {pixels}px bitmap";
+        bitmap.hideFlags = HideFlags.HideAndDontSave;
+        bitmap.material.hideFlags = HideFlags.HideAndDontSave;
+        SetPointFilter(bitmap);
+        return bitmap;
+    }
+
+    private static void SetPointFilter(TMP_FontAsset font)
+    {
+        if (font == null || font.atlasRenderMode != GlyphRenderMode.RASTER_HINTED) return;
+        foreach (var atlas in font.atlasTextures)
+        {
+            if (atlas == null || atlas.filterMode == FilterMode.Point) continue;
+            atlas.filterMode = FilterMode.Point;
+            atlas.wrapMode = TextureWrapMode.Clamp;
+            atlas.hideFlags = HideFlags.HideAndDontSave;
+        }
+    }
+
+    public void Dispose()
+    {
+        foreach (var pair in labels)
+            if (pair.Key != null) pair.Key.OnPreRenderText -= pair.Value.prepareAtlas;
+        foreach (var font in fonts.Values)
+        {
+            if (font == null) continue;
+            foreach (var atlas in font.atlasTextures)
+                if (atlas != null) Object.Destroy(atlas);
+            Object.Destroy(font.material);
+            Object.Destroy(font);
+        }
+        labels.Clear();
+        fonts.Clear();
+        canvases.Clear();
+    }
+}

@@ -15,6 +15,14 @@ public static class CombatMovementCheck
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
     private static readonly Vector2 Offset = new Vector2(2000f, 2000f);
 
+    public static void RunPlayerControlChecks()
+    {
+        RunInput();
+        RunLocomotion();
+        RunMotionCurves();
+        RunAttackAnimation();
+    }
+
     [MenuItem("Tools/Combat/Verify Player Attack Animation")]
     public static void RunAttackAnimation()
     {
@@ -271,7 +279,7 @@ public static class CombatMovementCheck
             foreach (string field in new[] { "movementAccelerationTime", "movementSmoothTime", "movementTurnTime" })
                 Set(player, field, Get(prefab, field));
 
-            Vector2 Motion() => (Vector2)Get(player, "_smoothedMoveInput");
+            Vector2 Motion() => (Vector3)Get(player, "MoveDirection");
             void Reset() => Call(player, "StopLocomotion", true);
             void Step(Vector2 input, float dt) => Call(player, "AdvanceLocomotion", input, dt);
             foreach (float dt in new[] { .02f, 1f / 60f, 1f / 120f })
@@ -296,7 +304,7 @@ public static class CombatMovementCheck
                 Check(Motion() == Vector2.zero && drift < .4f, "0.25초 내 완전 정지, 기본 속도에서 잔여 이동 0.4유닛 미만");
                 Check(ReferenceEquals(Get(player, "currentAnimState"), player.idleState), "정지 후 Idle 전환");
 
-                Set(player, "_smoothedMoveInput", Vector2.right);
+                Call(player, "ResetLocomotion", Vector2.right, false);
                 for (float t = 0f; t < .04f; t += dt) Step(Vector2.left, dt);
                 Check(Motion().x < -.5f, "급반전 0.04초 안에 반대 방향 50% 이상");
                 for (int i = 0; i < 120; i++)
@@ -359,6 +367,7 @@ public static class CombatMovementCheck
         var keyboard = InputSystem.AddDevice<Keyboard>();
         var previousSettings = InputSystem.settings;
         var testSettings = Object.Instantiate(previousSettings);
+        float previousTimeScale = Time.timeScale;
         InputActionAsset actions = null;
         try
         {
@@ -393,9 +402,7 @@ public static class CombatMovementCheck
             {
                 Press(Key.D);
                 Check(player.MoveInput == Vector2.right, $"차단 전 이동 입력: action={move.ReadValue<Vector2>()}, player={player.MoveInput}");
-                Set(player, "_smoothedMoveInput", Vector2.right);
-                Set(player, "_moveInputVelocity", Vector2.right * 2f);
-                Set(player, "MoveDirection", Vector3.right);
+                Call(player, "AdvanceLocomotion", Vector2.right, .02f);
                 player.TransitionToState(player.walkState);
                 Set(player, "_lastAnimSpeed", 2f);
                 rb.linearVelocity = Vector2.right * 5f;
@@ -411,9 +418,9 @@ public static class CombatMovementCheck
                 Press(); // 암전 중 손을 떼었으면 새 방에서 관성이 되살아나면 안 된다.
                 player.SetInputBlocked(false);
                 Check(player.MoveInput == Vector2.zero && (Vector3)Get(player, "MoveDirection") == Vector3.zero
-                    && (Vector2)Get(player, "_smoothedMoveInput") == Vector2.zero
-                    && (Vector2)Get(player, "_moveInputVelocity") == Vector2.zero
                     && rb.linearVelocity == Vector2.zero, "손을 뗀 채 복구 시 입력/보간/물리 관성 없음");
+                Call(player, "AdvanceLocomotion", Vector2.zero, .02f);
+                Check((Vector3)Get(player, "MoveDirection") == Vector3.zero, "복구 직후 물리 틱에도 이전 가속이 살아나지 않음");
 
                 player.SetInputBlocked(true);
                 Press(Key.W, Key.A);
@@ -434,7 +441,31 @@ public static class CombatMovementCheck
             player.canChangeState = false;
             player.SetInputBlocked(true);
             Check(ReferenceEquals(Get(player, "currentAnimState"), player.walkState), "공격/대쉬 애니메이션 잠금은 강제로 해제하지 않음");
-            Debug.Log("[RoomInputCheck] PASS: held/released/changed direction, no stale smoothing, immediate Idle, animation lock preserved, canceled and disabled action; 3 repeated transitions.");
+
+            var interaction = new HoldProbe();
+            Set(player, "_closestInteractable", interaction);
+            var interact = input.actions.FindAction("Player/Interact", true);
+            interact.performed += player.OnInteract;
+            interact.canceled += player.OnInteract;
+            interact.Enable();
+            player.SetInputBlocked(false);
+            Press(Key.F);
+            Check(ReferenceEquals(Get(player, "_holdTarget"), interaction), "F starts the authored hold");
+            player.SetInputBlocked(true);
+            Check(Get(player, "_holdTarget") == null, "room transition cancels the active hold");
+            Press();
+            player.SetInputBlocked(false);
+            Press(Key.F);
+            Time.timeScale = 0f;
+            Call(player, "TickInteractHold");
+            Time.timeScale = 1f;
+            Press();
+            Check(interaction.Completed == 0 && interaction.Taps == 0 && Get(player, "_holdTarget") == null,
+                "a paused hold cannot complete or turn into a tap after resuming");
+            Press(Key.F);
+            Press();
+            Check(interaction.Taps == 1 && interaction.Completed == 0, "a normal short F press still interacts once");
+            Debug.Log("[RoomInputCheck] PASS: held/released/changed direction, reset smoothing, animation lock, disabled action and F hold cancellation.");
         }
         finally
         {
@@ -444,7 +475,21 @@ public static class CombatMovementCheck
             InputSystem.RemoveDevice(keyboard);
             InputSystem.settings = previousSettings;
             Object.DestroyImmediate(testSettings);
+            Time.timeScale = previousTimeScale;
         }
+    }
+
+    private sealed class HoldProbe : IInteractable, IHoldInteractable
+    {
+        public string InteractionPrompt => "";
+        public float HoldSeconds => 10f;
+        public int Taps { get; private set; }
+        public int Completed { get; private set; }
+        public bool Interact(GameObject interactor) { Taps++; return true; }
+        public void OnHoldComplete(GameObject interactor) => Completed++;
+        public void OnFocused(GameObject interactor) { }
+        public void OnLostFocus(GameObject interactor) { }
+        public void OnHoldProgress(float t01) { }
     }
 
     [MenuItem("Tools/Combat/Verify Aim Homing And Dash")]
@@ -651,6 +696,7 @@ public static class CombatMovementCheck
         var player = host.AddComponent<PlayerController>();
         player.enabled = false;
         Set(player, "_rb", rb);
+        Set(player, "attackDashSpeed", 10f);
         var curves = new[]
         {
             AnimationCurve.Linear(0f, 0f, 1f, 1f),
@@ -845,7 +891,7 @@ public static class CombatMovementCheck
     private static object Get(object target, string name, Type type = null)
         => (type ?? target.GetType()).GetField(name, Private).GetValue(target);
     private static void Call(object target, string name, params object[] args)
-        => target.GetType().GetMethod(name, Private).Invoke(target, args);
+        => target.GetType().GetMethod(name, Private | BindingFlags.Public).Invoke(target, args);
     private static void Check(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException("[CombatMovementCheck] FAIL: " + message);

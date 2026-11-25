@@ -46,7 +46,7 @@ public class MinionEnhanceStep
 public static class MinionEnhance
 {
     /// <summary>보상방 강화 최대 횟수.</summary>
-    /// [26/10/03] 3 → 1 로 축소. 에셋의 enhanceSteps 가 더 길어도 이 값에서 잘린다.
+    /// 3 → 1 로 축소. 에셋의 enhanceSteps 가 더 길어도 이 값에서 잘린다.
     public const int MAX_LEVEL = 1;
 
     /// <summary>현재 메인 소환수 강화 단계(0 = 강화 안 함).</summary>

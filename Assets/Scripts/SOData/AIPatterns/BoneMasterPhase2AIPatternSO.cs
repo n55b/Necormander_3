@@ -30,14 +30,12 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     public float closeRange = 3.2f;
     [Tooltip("이 거리 안이면 중거리 — 견갑 찌르기 / 도약 중에서 고른다.")]
     public float midRange = 6f;
-    [Tooltip("이 거리 안이면 원거리 — 도약. 이 밖이면 추격한다(chaseTimeLimit 까지).")]
+    [Tooltip("이 거리 안에서 패턴을 시작합니다. 범위 밖에서는 들어올 때까지 추격합니다.")]
     public float engageRange = 8.5f;
 
     [Header("★ 패턴 간격 / 추격")]
     [Tooltip("패턴이 정상적으로 끝난 뒤 다음 패턴까지의 최소 간격(초). = 패턴 사이 추격 시간.")]
     public float attackGap = 1f;
-    [Tooltip("engageRange 밖에서 이 시간(초) 넘게 쫓아다니면 거리와 무관하게 패턴을 강행한다(도약).")]
-    public float chaseTimeLimit = 2f;
 
     [Header("보스 패턴 - 사거리")]
     public float sweepRadius = 3.64f;
@@ -91,14 +89,6 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     [Tooltip("원형/타원 전조 프리팹. 도약 착지 지점 예고에 쓴다(페이즈1과 같은 프리팹).")]
     public BaseHitBox circleTelegraphPrefab;
 
-    // ── 원형(광역) 전조의 최소 예고 시간 ─────────────────────────────
-    //
-    // [추가 — "외곽선이 뜨자마자 터진다"는 억까 피드백]
-    // 페이즈2 광역기 3종은 전부 정지 링 전조를 썼고, 에셋에 저장된 예고 시간이 0.3~0.4초였다.
-    // 그 정도면 링이 그려지는 프레임과 판정이 들어오는 프레임이 사실상 붙어 있어서
-    // "빨간 원이 보였다 = 이미 맞았다"가 된다. 반응할 수 있는 하한을 코드에 못박아 둔다 —
-    // 에셋 값이 이보다 작아도 여기서 끌어올리므로, 잘못 튜닝해도 회피 불가 패턴이 나오지 않는다.
-    // 시각적으로도 SpawnRingCountdown 으로 바꿔서 남은 시간이 띠로 차오르게 했다.
     [Header("광역 전조 공통")]
     [Tooltip("원형(광역) 전조가 뜬 뒤 발동까지 최소로 보장하는 시간(초). 각 패턴의 개별 예고 시간이 " +
              "이보다 짧으면 이 값으로 끌어올린다. 반응 불가 패턴을 구조적으로 막는 하한선.")]
@@ -121,8 +111,8 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     public AnimationCurve leapMovementCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
     [Tooltip("내려찍기 예고 시간(초). 이 구간은 카운터가 불가능하다 — 카운터는 앞의 휩쓸기에서만.")]
     public float slamTelegraphTime = 1.2f;
-    public float slamRange = 6.5f; // [수정] 원형 반경 -> 보스 기준 뻗는 직사각형의 길이로 의미가 바뀜
-    public float slamWidth = 2f; // [추가] 직사각형 내려찍기의 폭
+    public float slamRange = 6.5f; // 원형 반경 -> 보스 기준 뻗는 직사각형의 길이로 의미가 바뀜
+    public float slamWidth = 2f; // 직사각형 내려찍기의 폭
     [Tooltip("휩쓸기 판정이 나간 뒤 내려찍기 예고가 시작되기까지의 사이(초).")]
     public float spinToSlamPause = 0.35f;
     [Tooltip("내려찍기까지 정상적으로 끝냈을 때의 후딜(초).")]
@@ -211,10 +201,8 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
     /// <summary>보스 패턴 3종. 같은 패턴을 두 번 연속으로 쓰지 않기 위해 직전 것을 기억한다.</summary>
     private enum Move { [UnityEngine.InspectorName("없음")] None, [UnityEngine.InspectorName("휩쓸기")] Sweep, [UnityEngine.InspectorName("찌르기")] Thrust, [UnityEngine.InspectorName("도약")] Leap }
     private Move _lastMove = Move.None;
-    private float _chaseStartTime = -100f;
 
     private BoneMasterController _controller;
-    private float _lastDiagLogTime = -100f;
     // 이 시각 전에는 어떤 특수 패턴도 안 뽑는다(기본 공격/추격은 계속한다). EndPattern 이 갱신.
     private float _specialLockUntil = -100f;
 
@@ -235,7 +223,6 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
         _executionDone = false;
         _firstTickDone = false;
         _lastMove = Move.None;
-        _chaseStartTime = Time.time;
 
         // 파훼 가능 신호색을 컨트롤러에 알려준다(P1 과 동일 — 그쪽 주석 참조).
     }
@@ -278,91 +265,34 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
 
     protected override void UpdateStateTransitions(BaseEntity entity)
     {
-        if (entity.Target == null)
+        if (entity.Target == null || (_controller != null && _controller.IsGroggy))
         {
             entity.CurrentState = AIState.Idle;
             return;
         }
 
-        // [버그 수정 — 경직 끝나기도 전에 다음 패턴이 시작되는 문제] AIPatternSO.Execute()는
-        // CurrentState==Skill 일 때만 AI 판단을 멈추고, IsGroggy(경직) 여부는 보지 않는다. 패턴이
-        // 끝나며 CurrentState가 Follow로 바뀌자마자 다음 프레임에 여기서 바로 새 패턴을 뽑을 수 있어서,
-        // 보스가 아직 경직 중인데도(연출/스턴이 안 끝났는데도) 새 패턴이 시작돼버리는 문제가 있었다.
-        if (_controller != null && _controller.IsGroggy)
-        {
-            entity.CurrentState = AIState.Idle;
-            return;
-        }
-
-
-        // 브레인이 실제로 처음 판단하는 프레임 = 페이즈2 전환 연출이 끝난 직후다.
-        // 여기서 잠금을 걸어야 의도한 postPatternRecovery 가 연출에 갉아먹히지 않는다.
+        float now = Time.time;
         if (!_firstTickDone)
         {
+            // Recovery starts when the new brain first runs after the phase transition.
             _firstTickDone = true;
-            _specialLockUntil = Time.time + Mathf.Max(0f, postPatternRecovery);
+            _specialLockUntil = now + Mathf.Max(0f, postPatternRecovery);
         }
 
-        float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
-
-        // [버그 수정 — 페이즈2에 부위파괴 보너스가 반쪽만 적용되던 문제]
-        // 부위파괴 보너스는 페이즈 전환 후에도 누적 유지되는 설계인데, 페이즈2의 교전 거리와
-        // 패턴 쿨타임에는 전혀 반영되지 않고 있었다. 정작 같은 파일의 기본 공격 판정(OnAttack/
-        // BasicAttack_*)은 rangeMul 을 쓰고 있어서 "판정은 커지는데 교전 거리는 그대로"인
-        // 비일관 상태였다(= 투구를 깨면 사거리는 늘었는데 그만큼 다가가지 않아 헛방이 늘었다).
+        float distance = Vector2.Distance(entity.transform.position, entity.Target.position);
         float rangeBonus = _controller != null ? _controller.AttackRangeBonus : 0f;
-        float effectiveEngageRange = engageRange * (1f + rangeBonus);
+        bool outOfRange = distance > engageRange * (1f + rangeBonus);
 
-        float castSpeedBonus = _controller != null ? _controller.PatternCastSpeedBonus : 0f;
-        float cdMul = 1f / (1f + castSpeedBonus);
-
-        if (Time.time - _lastDiagLogTime > 2f)
-        {
-            _lastDiagLogTime = Time.time;
-            float interval = entity.Stats != null ? entity.Stats.AttackInterval : -1f;
-            float lockLeft = Mathf.Max(0f, _specialLockUntil - Time.time);
-            Debug.Log($"[BoneMaster-Diag-P2] dist={dist:F1} engageRange={effectiveEngageRange:F1} AtkTimer={entity.AtkTimer:F2}/{interval:F2} 특수잠금={lockLeft:F2}s CurrentState={entity.CurrentState} IsAttacking={entity.IsAttacking}");
-        }
-
-        if (dist > effectiveEngageRange)
-        {
-            entity.CurrentState = AIState.Follow;
-            _controller?.SetStateText("추격 중... (페이즈2)");
-            return;
-        }
-
-        // '집행'은 페이즈2 전환 연출이 끝난 직후 딱 한 번, 다른 무엇보다 먼저 나간다.
-        if (!_executionDone)
+        entity.CurrentState = EnemyAIDecisions.BoneMasterPhaseTwo(outOfRange, _executionDone, now < _specialLockUntil);
+        if (entity.CurrentState == AIState.Skill)
         {
             _executionDone = true;
-            entity.CurrentState = AIState.Skill;
             StartPattern(entity, ExecutionRoutine(entity));
-            return;
         }
-
-        // 카운터 파훼 뒤의 딜타임 + 패턴 사이 최소 간격(attackGap).
-        if (Time.time < _specialLockUntil)
+        else if (entity.CurrentState == AIState.Follow)
         {
-            entity.CurrentState = AIState.Follow;
             _controller?.SetStateText("추격 중... (페이즈2)");
-            // 추격 시간은 '때릴 수 있게 된 순간'부터 센다. 여기서 리셋하지 않으면 딜타임이
-            // 그대로 추격 시간으로 계산돼, 잠금이 풀리는 즉시 강제 패턴이 튀어나온다.
-            _chaseStartTime = Time.time;
-            return;
         }
-
-        // [버그 수정 — 패턴마다 공속 1회분(1초)의 추격이 강제로 붙던 문제]
-        // AtkTimer 는 Execute() 안에서만 증가하는데 Execute 는 IsAttacking 이면 안 돈다.
-        // 자세한 내용은 페이즈1(BoneMasterAIPatternSO.UpdateStateTransitions) 주석 참조.
-        bool inRange = dist <= effectiveEngageRange;
-        if (!inRange && Time.time - _chaseStartTime < Mathf.Max(0f, chaseTimeLimit))
-        {
-            entity.CurrentState = AIState.Follow;
-            _controller?.SetStateText("추격 중... (페이즈2)");
-            return;
-        }
-
-        entity.CurrentState = AIState.Attack;
     }
 
     /// <summary>이번에 쓸 패턴. 거리로 후보를 좁히고 직전과 같은 것은 피한다(원거리 도약만 예외).</summary>
@@ -379,12 +309,11 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
         return Random.value < 0.5f ? a : b;
     }
 
-    /// <summary>다음 패턴까지의 간격을 걸고 추격 제한시간을 리셋한다.</summary>
+    /// <summary>다음 패턴까지의 최소 간격을 설정한다.</summary>
     private void ArmNextAttack(float extraLock = 0f)
     {
         float until = Time.time + Mathf.Max(0f, attackGap) + Mathf.Max(0f, extraLock);
         _specialLockUntil = Mathf.Max(_specialLockUntil, until);
-        _chaseStartTime = Time.time;
     }
 
     /// <summary>특수 패턴 코루틴은 반드시 컨트롤러를 거쳐 돌린다(사망/전환 시 확실히 끊기 위해).</summary>
@@ -516,7 +445,7 @@ protected override void OnAttack(BaseEntity entity)
                                                   stepEnd = origin + dir * SlideDistance(origin, dir, sweepStepDistance);
                                                   BoneMasterTelegraphUtil.UpdateCone(
                                                       cone, stepEnd, dir,
-                                                      windup > 0.0001f ? tele.Elapsed / windup : 1f);
+                                                      windup > 0.0001f ? tele.Elapsed / windup : 1f, windup);
                                                   BossAttackIndicator.Aim(entity, dir);
                                               });
         if (cone != null) Object.Destroy(cone);
@@ -836,7 +765,7 @@ protected override void OnAttack(BaseEntity entity)
                                                   if (useSweep)
                                                       BoneMasterTelegraphUtil.UpdateCone(
                                                           telegraph, origin, dir,
-                                                          windup > 0.0001f ? res.Elapsed / windup : 1f);
+                                                          windup > 0.0001f ? res.Elapsed / windup : 1f, windup);
                                               });
         if (telegraph != null) Object.Destroy(telegraph);
 

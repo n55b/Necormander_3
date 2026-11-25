@@ -100,7 +100,6 @@ MonoBehaviour:
     m_RotationOrder: 4
   superArmorGauge: 999999
   showPatternLabel: 1
-  patternLabelFont: {fileID: 11400000, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
   patternLabelOffset: {x: 0, y: 2.6, z: 0}
   label_Stab: "\uBBF8\uB2C8 \uB3CC\uC9C4 \uCC0D\uAE30"
   label_NormalCharge: "\uB3CC\uC9C4"

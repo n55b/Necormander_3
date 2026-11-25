@@ -1,0 +1,53 @@
+    private GameObject TakeSpawnTelegraph(GameObject prefab, Vector3 position)
+    {
+        var data = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
+        var prepared = data != null ? data.TakePreparedObject(prefab, position) : null;
+        return prepared != null ? prepared : Instantiate(prefab, position, Quaternion.identity);
+    }
+
+    private IEnumerator DelayedSpawnEnemyWithVFX(EnemyCount enemyCount, Vector3 spawnPos, float duration)
+    {
+        GameObject vfxObj = null;
+        GameObject vfxPrefabToUse = spawnVfxPrefab;
+
+#if UNITY_EDITOR
+        if (vfxPrefabToUse == null)
+        {
+            // 인스펙터 할당 누락 시 내장 원형 예고 장판 프리팹을 자동으로 긁어와 Fallback 매핑
+            vfxPrefabToUse = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Effect/Combat/Skills/TelegraphHitbox Prefab.prefab");
+        }
+#endif
+
+        if (vfxPrefabToUse != null)
+        {
+            vfxObj = TakeSpawnTelegraph(vfxPrefabToUse, spawnPos);
+            BaseHitBox hitbox = vfxObj.GetComponent<BaseHitBox>();
+            if (hitbox != null)
+            {
+                // 데미지 0짜리 가짜 판정 전달, 0.05초 유지, duration(1초) 선딜레이 대기
+                DamageInfo dummyInfo = new DamageInfo(0f, DamageType.Physical, this.gameObject, 0f);
+                hitbox.Init(dummyInfo, 0, 0.05f, duration, false);
+
+                // 프리팹 스케일 조절 (기본 원 크기가 1.0이므로 2.5f정도로 키움)
+                vfxObj.transform.localScale = new Vector3(spawnTelegraphScale, spawnTelegraphScale, 1f);
+            }
+        }
+
+        yield return new WaitForSeconds(duration);
+
+        if (vfxObj != null) Destroy(vfxObj);
+
+        // spawnPos 는 TryFindSpawnPoint 가 이미 NavMesh 위로 스냅해 검증한 좌표다.
+        // 여기서 한 번 더 SamplePosition 을 태우면 서로 다른 두 좌표가 같은 경계점으로
+        // 당겨져 최종 위치가 겹칠 수 있어서, 예고 장판이 뜬 자리에 그대로 소환한다.
+        if (_cachedRoom != null && !_cachedRoom.isCleared)
+        {
+            GameObject enemy = GameManager.Instance.dataManager.CreateUnit(enemyCount.enemyData, spawnPos);
+            if (enemy != null)
+            {
+                _activeEnemies.Add(enemy);
+                _spawnedEnemyPositions.Add(spawnPos);
+            }
+        }
+    }
+

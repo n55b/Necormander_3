@@ -1,102 +1,141 @@
+using System;
 using System.IO;
+using System.Text;
 using UnityEngine;
 
 public static class SaveSystem
 {
-    private static readonly string SaveFileName = "save_data.json";
-    private static string SavePath => Path.Combine(Application.persistentDataPath, SaveFileName);
+    private const string SaveFileName = "save_data.json";
+    private static readonly object FileLock = new object();
+    private static string SavePath => Path.Combine(WorkshopTrial.Active ? WorkshopTrial.SaveFolder : Application.persistentDataPath, SaveFileName);
 
-    public static void Save(SaveData data)
+    private enum FileState { Missing, Current, Invalid, Unsupported, Unreadable }
+
+    // Read the version without SaveData's default for newly captured checkpoints.
+    [Serializable]
+    private sealed class SaveHeader
     {
-        try
+        public int saveVersion = 0;
+        public int currentFloor = 0;
+    }
+
+    public static bool Save(SaveData data)
+    {
+        lock (FileLock)
         {
-            string json = JsonUtility.ToJson(data, true);
-            File.WriteAllText(SavePath, json);
-            Debug.Log($"<color=green>[SaveSystem]</color> Game saved successfully to: {SavePath}");
-        }
-        catch (System.Exception ex)
-        {
-            Debug.LogError($"<color=red>[SaveSystem]</color> Failed to save game: {ex.Message}");
+            string path = SavePath;
+            string backup = path + ".bak";
+            string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                if (data == null || data.saveVersion != SaveData.CURRENT_VERSION || !HasValidCheckpoint(data))
+                    throw new InvalidOperationException("Invalid run checkpoint.");
+
+                FileState primary = Read(path, out _);
+                if (PreventsOverwrite(primary) || PreventsOverwrite(Read(backup, out _)))
+                    throw new InvalidOperationException("Existing save is unreadable or uses a different schema.");
+
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                byte[] payload = Encoding.UTF8.GetBytes(JsonUtility.ToJson(data, true));
+                using (var file = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    file.Write(payload, 0, payload.Length);
+                    file.Flush(flushToDisk: true);
+                }
+
+                // Preserve the good backup when replacing a damaged primary.
+                if (primary == FileState.Missing) File.Move(temporary, path);
+                else File.Replace(temporary, path, primary == FileState.Current ? backup : null);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[SaveSystem] Checkpoint was not written: {ex.Message}");
+                return false;
+            }
+            finally
+            {
+                try { File.Delete(temporary); }
+                catch (IOException ex) { Debug.LogWarning($"[SaveSystem] Temporary file cleanup failed: {ex.Message}"); }
+                catch (UnauthorizedAccessException ex) { Debug.LogWarning($"[SaveSystem] Temporary file cleanup failed: {ex.Message}"); }
+            }
         }
     }
 
-    public static SaveData Load()
+    public static SaveData Load() => ReadCheckpoint(logResult: true);
+
+    public static bool SaveExists() => ReadCheckpoint(logResult: false) != null;
+
+    public static bool DeleteSave()
     {
-        try
+        lock (FileLock)
         {
-            if (!File.Exists(SavePath))
+            try
             {
-                Debug.Log("<color=yellow>[SaveSystem]</color> Save file not found.");
-                return null;
+                string path = SavePath;
+                File.Delete(path + ".bak");
+                File.Delete(path);
+                return true;
             }
-
-            string json = File.ReadAllText(SavePath);
-            SaveData data = JsonUtility.FromJson<SaveData>(json);
-            if (data == null)
+            catch (Exception ex)
             {
-                Debug.LogError("<color=red>[SaveSystem]</color> Failed to deserialize save data (result is null).");
-                return null;
+                Debug.LogWarning($"[SaveSystem] Checkpoint deletion failed: {ex.Message}");
+                return false;
             }
-
-            // 포맷이 안 맞으면 읽지 않는다. 억지로 읽으면 '슬롯이 조용히 비어 있는' 상태로 게임이
-            // 시작돼서 원인을 찾기가 훨씬 어려워진다. 그냥 지우고 새 런으로 보낸다 —
-            // 이 프로젝트는 아직 개발 중이라 세이브를 마이그레이션할 가치보다 확실함이 크다.
-            // (파일을 지워두지 않으면 다음 실행 때 SaveExists() 가 true 라 '이어하기'가 계속 뜬다.)
-            if (data.saveVersion != SaveData.CURRENT_VERSION)
-            {
-                Debug.LogWarning($"<color=orange>[SaveSystem]</color> 세이브 버전이 맞지 않아 폐기합니다 " +
-                                 $"(파일 v{data.saveVersion} / 현재 v{SaveData.CURRENT_VERSION}). 새 게임으로 시작하세요.");
-                DeleteSave();
-                return null;
-            }
-
-            Debug.Log($"<color=green>[SaveSystem]</color> Game loaded successfully from: {SavePath}");
-            return data;
         }
-        catch (System.Exception ex)
+    }
+
+    private static SaveData ReadCheckpoint(bool logResult)
+    {
+        lock (FileLock)
         {
-            Debug.LogError($"<color=red>[SaveSystem]</color> Failed to load game: {ex.Message}");
+            string path = SavePath;
+            FileState primary = Read(path, out var data);
+            if (primary == FileState.Current) return data;
+
+            if (primary == FileState.Unsupported)
+            {
+                if (logResult) Debug.LogWarning("[SaveSystem] Saved run uses an unsupported schema. The file was preserved.");
+                return null;
+            }
+
+            FileState backup = Read(path + ".bak", out data);
+            if (backup == FileState.Current)
+            {
+                if (logResult) Debug.LogWarning("[SaveSystem] Restored the previous checkpoint from the backup.");
+                return data;
+            }
+
+            if (logResult && (primary != FileState.Missing || backup != FileState.Missing))
+                Debug.LogWarning($"[SaveSystem] No usable checkpoint (primary: {primary}, backup: {backup}).");
             return null;
         }
     }
 
-    public static void DeleteSave()
+    private static FileState Read(string path, out SaveData data)
     {
+        data = null;
         try
         {
-            if (File.Exists(SavePath))
-            {
-                File.Delete(SavePath);
-                Debug.Log("<color=yellow>[SaveSystem]</color> Save file deleted.");
-            }
+            string json = File.ReadAllText(path);
+            var header = JsonUtility.FromJson<SaveHeader>(json);
+            if (header == null) return FileState.Invalid;
+            if (header.saveVersion != SaveData.CURRENT_VERSION)
+                return header.saveVersion != 0 || header.currentFloor > 0 ? FileState.Unsupported : FileState.Invalid;
+
+            data = new SaveData { playerHP = -1f };
+            JsonUtility.FromJsonOverwrite(json, data);
+            return HasValidCheckpoint(data) ? FileState.Current : FileState.Invalid;
         }
-        catch (System.Exception ex)
-        {
-            Debug.LogError($"<color=red>[SaveSystem]</color> Failed to delete save file: {ex.Message}");
-        }
+        catch (FileNotFoundException) { return FileState.Missing; }
+        catch (DirectoryNotFoundException) { return FileState.Missing; }
+        catch (ArgumentException) { return FileState.Invalid; }
+        catch (IOException) { return FileState.Unreadable; }
+        catch (UnauthorizedAccessException) { return FileState.Unreadable; }
     }
 
-    /// <summary>
-    /// 이어할 수 있는 세이브가 있는가. <b>버전까지 본다.</b>
-    ///
-    /// 파일 존재만 보면, 구버전 세이브를 가진 사람에게 '이어하기'가 멀쩡히 떠 있다가 눌렀을 때
-    /// Load 가 null 을 돌려주며 아무 일도 안 일어난다 — 버튼이 고장 난 것처럼 보인다.
-    /// 여기서 같이 걸러서 애초에 그 선택지가 안 뜨게 한다.
-    /// </summary>
-    public static bool SaveExists()
-    {
-        if (!File.Exists(SavePath)) return false;
+    private static bool PreventsOverwrite(FileState state) => state == FileState.Unsupported || state == FileState.Unreadable;
 
-        try
-        {
-            var data = JsonUtility.FromJson<SaveData>(File.ReadAllText(SavePath));
-            return data != null && data.saveVersion == SaveData.CURRENT_VERSION;
-        }
-        catch (System.Exception ex)
-        {
-            // 깨진 파일도 '없는 것'으로 취급한다. 여기서 예외를 던지면 타이틀 화면이 통째로 죽는다.
-            Debug.LogWarning($"<color=orange>[SaveSystem]</color> 세이브 파일을 읽을 수 없습니다: {ex.Message}");
-            return false;
-        }
-    }
+    private static bool HasValidCheckpoint(SaveData data)
+        => data.currentFloor > 0 && data.playerHP >= 0f && !float.IsInfinity(data.playerHP);
 }

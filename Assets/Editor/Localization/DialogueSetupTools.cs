@@ -13,7 +13,7 @@ using UnityEngine.UI;
 /// 1) 대화 UI 프리팹 만들기 — 계층/앵커/배선을 전부 코드로 만든다.
 ///    손으로 만들면 앵커 하나 어긋나도 티가 안 나고, 슬롯 5칸 × 3컴포넌트를
 ///    인스펙터로 끌어 넣다가 하나 빠뜨리면 런타임에 조용히 아무 일도 안 일어난다.
-/// 2) 대사 테이블 검증 — CSV 파싱 결과와 흔한 저작 실수를 리포트로 뽑는다.
+/// 2) 대사 테이블 검증 — 프로젝트 대사와 흔한 저작 실수를 리포트로 뽑는다.
 ///
 /// BoneMaster 툴과 같은 방식(메뉴 → Temp/*.txt 리포트)이다.
 /// </summary>
@@ -24,7 +24,6 @@ public static class DialogueSetupTools
     private const string SO_DIR      = "Assets/SOData/Dialogue";
     private const string TABLE_PATH  = SO_DIR + "/DialogueTable.asset";
     private const string CAST_PATH   = SO_DIR + "/DialogueCast.asset";
-    private const string CSV_PATH    = "Assets/Data/Dialogue/dialogue_sample.csv";
 
     // 960x540 기준. 하단 1/3 이 대사창, 상단 2/3 가 초상화.
     private const float TEXTBOX_RATIO = 1f / 3f;
@@ -41,7 +40,7 @@ public static class DialogueSetupTools
     private const float REF_W = 960f;
     private const float REF_H = 540f;
 
-    // 샘플 CSV 가 쓰는 캐릭터 키들. 초상화 없이도 플레이스홀더로 보이게 미리 채워둔다.
+    // 기본 대화가 쓰는 캐릭터 키들. 초상화 없이도 플레이스홀더로 보이게 미리 채워둔다.
     private static readonly (string key, string name, Color color)[] SAMPLE_CAST =
     {
         ("player",     "네크로맨서", new Color(0.72f, 0.86f, 1f)),
@@ -157,9 +156,9 @@ public static class DialogueSetupTools
         GameObject nameBox = NewRect("NameBox", bg.transform, stretch: false);
         var nbRect = nameBox.GetComponent<RectTransform>();
         nbRect.anchorMin = nbRect.anchorMax = new Vector2(0f, 1f);
-        nbRect.pivot     = new Vector2(0f, 1f);
+        nbRect.pivot     = Vector2.zero;
         nbRect.sizeDelta = new Vector2(220f, 34f);
-        nbRect.anchoredPosition = new Vector2(14f, 14f);   // 패널 위쪽으로 살짝 걸치게
+        nbRect.anchoredPosition = new Vector2(13f, -3f);   // 이름판의 하단이 본문 영역 위에 놓인다.
         var nbImg = nameBox.AddComponent<Image>();
         nbImg.color         = new Color(0.10f, 0.10f, 0.16f, 0.98f);
         nbImg.raycastTarget = false;
@@ -268,21 +267,6 @@ public static class DialogueSetupTools
 
         Directory.CreateDirectory(SO_DIR);
         var table = ScriptableObject.CreateInstance<DialogueTableSO>();
-
-        var csv = AssetDatabase.LoadAssetAtPath<TextAsset>(CSV_PATH);
-        if (csv != null)
-        {
-            var so = new SerializedObject(table);
-            var arr = so.FindProperty("csvFiles");
-            arr.arraySize = 1;
-            arr.GetArrayElementAtIndex(0).objectReferenceValue = csv;
-            so.ApplyModifiedPropertiesWithoutUndo();
-        }
-        else
-        {
-            Debug.LogWarning($"<color=orange>[DialogueSetup]</color> {CSV_PATH} 를 못 찾았다. " +
-                             "테이블에 CSV 를 직접 넣어야 한다.");
-        }
 
         AssetDatabase.CreateAsset(table, TABLE_PATH);
         return table;

@@ -16,89 +16,44 @@ public class FloatingTextSpawner : MonoBehaviour
     [Tooltip("상태이상/데미지 텍스트 색을 모아둔 팔레트(StatusEffectPalette). 데미지 숫자는 비워두면 코드 내장 기본값으로 폴백하지만, 상태이상 텍스트는 비우면 아예 뜨지 않습니다.")]
     [SerializeField] private StatusEffectPalette colorConfig;
 
-    [SerializeField] private bool isSubscribed = false;
+    private CharacterHealth subscribedHealth;
+    private CharacterStatus subscribedStatus;
 
-    // CharacterStat에서 호출해줄 초기화 함수
     public void Initialize(CharacterStat characterStat)
     {
-        if (isSubscribed) return;
-
-        this.stats = characterStat;
-
-        if (stats == null) Debug.Log("stats가 null임");
-        if (stats.Health == null) Debug.Log("health가 null");
-
-        if (stats != null && stats.Health != null)
-        {
-            stats.Health.TakeDamageEvent += ShowDamageText;
-            stats.Health.TakeHealEvent += ShowHealText;
-            isSubscribed = true;
-            Debug.Log($"{gameObject.name} 데미지 텍스트 구독 성공!");
-        }
-
+        stats = characterStat;
         status = stats != null ? stats.GetComponent<CharacterStatus>() : null;
-        if (status != null)
-        {
-            status.OnDebuffPopped -= ShowStatusText;
-            status.OnDebuffPopped += ShowStatusText;
-        }
+        if (isActiveAndEnabled) BindSources(stats != null ? stats.Health : null, status);
     }
 
-    private void OnEnable()
-    {
-        if (stats != null && stats.Health != null && !isSubscribed)
-        {
-            stats.Health.TakeDamageEvent += ShowDamageText;
-            stats.Health.TakeHealEvent += ShowHealText;
-            isSubscribed = true;
-            Debug.Log($"{gameObject.name} 데미지 텍스트 재구독 성공!");
-        }
+    private void OnEnable() => BindSources(stats != null ? stats.Health : null, status);
+    private void OnDisable() => BindSources(null, null);
 
-        if (status != null)
-        {
-            status.OnDebuffPopped -= ShowStatusText; // avoid double subscription
-            status.OnDebuffPopped += ShowStatusText;
-        }
-    }
-
-    private void OnDisable()
+    private void BindSources(CharacterHealth health, CharacterStatus nextStatus)
     {
-        // stats가 null인지 먼저 확인 (매우 중요!)
-        if (stats != null)
+        if (!ReferenceEquals(subscribedHealth, health))
         {
-            // stats is set but Health may already be destroyed, so double-check
-            if (stats.Health != null)
+            if (subscribedHealth != null)
             {
-                stats.Health.TakeDamageEvent -= ShowDamageText;
-                stats.Health.TakeHealEvent -= ShowHealText;
-                isSubscribed = false;
+                subscribedHealth.TakeDamageEvent -= ShowDamageText;
+                subscribedHealth.TakeHealEvent -= ShowHealText;
+            }
+            subscribedHealth = health;
+            if (health != null)
+            {
+                health.TakeDamageEvent += ShowDamageText;
+                health.TakeHealEvent += ShowHealText;
             }
         }
-
-        if (status != null)
-        {
-            status.OnDebuffPopped -= ShowStatusText;
-        }
-    }
-
-    // OnDestroy도 동일하게 방어 코드를 작성합니다.
-    private void OnDestroy()
-    {
-        if (stats != null && stats.Health != null)
-        {
-            stats.Health.TakeDamageEvent -= ShowDamageText;
-            stats.Health.TakeHealEvent -= ShowHealText;
-        }
-
-        if (status != null)
-        {
-            status.OnDebuffPopped -= ShowStatusText;
-        }
+        if (ReferenceEquals(subscribedStatus, nextStatus)) return;
+        if (subscribedStatus != null) subscribedStatus.OnDebuffPopped -= ShowStatusText;
+        subscribedStatus = nextStatus;
+        if (nextStatus != null) nextStatus.OnDebuffPopped += ShowStatusText;
     }
 
     private void ShowDamageText(int damage, DamageType dmgType, string typeStr, bool isCritical)
     {
-        if (FloatingTextManager.Instance != null && !FloatingTextManager.Instance.ShowDamageNumbers) return; // [추가] 데미지 텍스트 켜기/끄기 스위치
+        if (FloatingTextManager.Instance != null && !FloatingTextManager.Instance.ShowDamageNumbers) return; // 데미지 텍스트 켜기/끄기 스위치
 
         string text = typeStr == "MISS" ? "MISS" : damage.ToString();
         Color color;
@@ -112,10 +67,18 @@ public class FloatingTextSpawner : MonoBehaviour
         if (typeStr == "Shield") color = colorConfig != null ? colorConfig.shieldColor : Color.grey;           // 쉴드
         else if (typeStr == "MISS") color = colorConfig != null ? colorConfig.missColor : Color.gray;             // 회피
 
-        if (FloatingTextManager.Instance == null) return;
-        TextFloating textObj = FloatingTextManager.Instance.GetFromPool();
-
-        textObj.SetUp(text, color, FloatPoint, isCritical); // vec_float 미할당 시 위치가 풀 위치로 튀지 않게 FloatPoint 사용
+        var manager = FloatingTextManager.Instance;
+        if (manager == null) return;
+        string style = typeStr switch
+        {
+            "MISS" => "Miss",
+            "Shield" => "Shield",
+            _ when subscribedHealth != null && subscribedHealth.CurHP <= 0 && damage > 0 => "Finisher",
+            _ when isCritical => "Critical",
+            "Combo" => "Combo",
+            _ => "Hit"
+        };
+        manager.ShowDamage(text, color, FloatPoint.position, isCritical, style);
     }
 
     /// <summary>
@@ -143,7 +106,7 @@ public class FloatingTextSpawner : MonoBehaviour
         Color color = colorConfig != null ? colorConfig.healColor : Color.green;
 
         // 알림 텍스트 경로: 보상·상태이상 텍스트와 함께 줄을 쌓아 겹치지 않게 한다.
-        FloatingTextManager.ShowNotice(text, color, FloatPoint);
+        FloatingTextManager.ShowNotice(text, color, FloatPoint, preset: "Heal");
     }
 
     private void ShowStatusText(StatusVisual visual)

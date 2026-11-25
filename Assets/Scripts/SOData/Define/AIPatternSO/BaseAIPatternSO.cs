@@ -8,6 +8,8 @@ using UnityEngine.AI;
 [CreateAssetMenu(fileName = "BaseAIPattern", menuName = "Necromancer/AI/BasePattern")]
 public class BaseAIPatternSO : AIPatternSO
 {
+    private const float PlayerEscortDistance = 2f;
+
     [Header("기획 조절 · 동작과 타이밍")]
     [SerializeField, Min(0f), Tooltip("사거리에서 이 거리만큼 더 접근한 뒤 공격합니다. 0이면 사거리 경계에서 공격합니다.")]
     private float attackRangeInset = 0.2f;
@@ -30,6 +32,7 @@ public class BaseAIPatternSO : AIPatternSO
     private float chasePathRefreshInterval = 0.12f;
     [System.NonSerialized] private float _nextChasePathRefresh;
     [System.NonSerialized] private Transform _chasePathTarget;
+    [System.NonSerialized] private Vector3 _chaseDestination;
 
     [Header("패턴 범용 설정")]
     [Tooltip("공격 루틴 시작 시 BaseEntity의 telegraphPrefab(장판)을 자동 생성할지 여부 (궁수, 마법사 등은 false로 설정)")]
@@ -38,49 +41,21 @@ public class BaseAIPatternSO : AIPatternSO
 
     protected override void UpdateTargeting(BaseEntity entity)
     {
-        // 1. 적군(Enemy) 탐색
-        Transform nearestEnemy = entity.TargetFinder.FindNearest(entity.detectRange);
-        
-        if (nearestEnemy != null)
-        {
-            entity.Target = nearestEnemy;
-        }
-        else
-        {
-            entity.Target = null;
-        }
+        entity.Target = entity.TargetFinder.FindNearest(entity.detectRange);
     }
 
     protected override void UpdateStateTransitions(BaseEntity entity)
     {
-        // [상태 잠금] 공격 중일 때는 상태 전이를 무시하고 공격을 끝까지 완수합니다.
-        if (entity.CurrentState == AIState.Attack && entity.IsAttacking) return;
-
-        AIState nextState = AIState.Idle;
-
-        if (entity.Target != null)
-        {
-            float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
-            
-            // [수정] 아군 미니언이 플레이어를 따라갈 때만 거리 유지, 적군이 플레이어를 잡았을 때는 공격 수행
-            if (entity.team == Team.Ally && entity.Target.CompareTag("Player"))
-            {
-                if (dist > 2.0f) nextState = AIState.Follow;
-                else nextState = AIState.Idle;
-            }
-            else
-            {
-                // 적인 경우(플레이어 포함) 사거리에 따라 결정
-                // 공격 쿨타임이 찼고, 사거리 내에 있을 때만 공격 상태로 전환
-                if (dist <= entity.Stats.ATKRANGE - attackRangeInset && entity.AtkTimer >= entity.Stats.AttackInterval) nextState = AIState.Attack;
-                else nextState = AIState.Follow;
-            }
-        }
-
-        if(nextState != entity.CurrentState)
-        {
+        Transform target = entity.Target;
+        bool hasTarget = target != null;
+        bool escorting = hasTarget && entity.team == Team.Ally && target.CompareTag("Player");
+        float distance = hasTarget ? Vector2.Distance(entity.transform.position, target.position) : 0f;
+        var stats = entity.Stats;
+        AIState nextState = EnemyAIDecisions.StandardState(entity.CurrentState, entity.IsAttacking, hasTarget, escorting,
+            distance, PlayerEscortDistance, (stats != null ? stats.ATKRANGE : 0f) - attackRangeInset,
+            stats != null && entity.AtkTimer >= stats.AttackInterval);
+        if (nextState != entity.CurrentState)
             entity.CurrentState = nextState;
-        }
     }
 
     protected override void OnIdle(BaseEntity entity)
@@ -91,41 +66,42 @@ public class BaseAIPatternSO : AIPatternSO
     protected override void OnFollow(BaseEntity entity)
     {
         var agent = entity.NavAgent;
-        if (agent != null && agent.isActiveAndEnabled && entity.Target != null)
-        {
-            agent.isStopped = false;
-            agent.speed = entity.Stats.MOVESPEED;
+        Transform target = entity.Target;
+        if (agent == null || target == null) return;
 
-            // 원거리 적(사거리 3.0f 이상, 단 돌진 몬스터 제외)이고 공격 쿨타임이 아직 차지 않은 경우
-            bool isCharger = entity.Brain is ChargerAIPatternSO;
-            if (!isCharger && entity.Stats.ATKRANGE >= rangedFleeThreshold && entity.AtkTimer < entity.Stats.AttackInterval)
+        var stats = entity.Stats;
+        bool rangedCooldown = entity.Brain is not ChargerAIPatternSO && stats.ATKRANGE >= rangedFleeThreshold
+            && entity.AtkTimer < stats.AttackInterval;
+        bool withinRetreatRange = rangedCooldown
+            && Vector2.Distance(entity.transform.position, target.position) <= fleeTriggerDistance;
+        bool retreatPathFinished = withinRetreatRange && !agent.pathPending && agent.remainingDistance < fleeArrivalDistance;
+
+        EnemyFollowAction action = EnemyAIDecisions.Follow(rangedCooldown, withinRetreatRange, retreatPathFinished);
+        if (action == EnemyFollowAction.Wait)
+        {
+            StopNavAgent(entity);
+            return;
+        }
+
+        agent.isStopped = false;
+        agent.speed = stats.MOVESPEED;
+        if (action == EnemyFollowAction.BeginRetreat)
+        {
+            _chasePathTarget = null;
+            agent.SetDestination(CalculateFleeDestination(entity, fleeStepDistance));
+        }
+        else if (action == EnemyFollowAction.Chase && (_chasePathTarget != target || Time.time >= _nextChasePathRefresh))
+        {
+            bool newTarget = _chasePathTarget != target;
+            var destination = target.position;
+            _nextChasePathRefresh = Time.time + Mathf.Max(.02f, chasePathRefreshInterval);
+            if (!newTarget && (_chaseDestination - destination).sqrMagnitude < .0039f &&
+                (agent.pathPending || (agent.hasPath && !agent.isPathStale && agent.pathStatus == NavMeshPathStatus.PathComplete)))
+                return;
+            if (agent.SetDestination(destination))
             {
-                // 플레이어가 평타 사거리의 약 2배(거리 7f) 내에 접근했을 때만 도망침
-                float fleeTriggerRange = fleeTriggerDistance;
-                if (ShouldFleeFromTarget(entity, fleeTriggerRange))
-                {
-                    // 매 프레임 목적지를 갱신하여 덜덜덜 흔들리는 것을 막기 위해, 이전 목적지에 근접했을 때만 신규 도망 방향을 연산합니다.
-                    if (!agent.pathPending && agent.remainingDistance < fleeArrivalDistance)
-                    {
-                        Vector3 fleeDest = CalculateFleeDestination(entity, fleeStepDistance);
-                        agent.SetDestination(fleeDest);
-                    }
-                }
-                else
-                {
-                    // Flee 범위 밖에 있다면 도망치지 않고 정지하여 대기
-                    StopNavAgent(entity);
-                }
-            }
-            else
-            {
-                // 근접 몹이거나 공격 쿨타임이 찼을 때는 타겟에게 붙음
-                if (_chasePathTarget != entity.Target || Time.time >= _nextChasePathRefresh)
-                {
-                    _chasePathTarget = entity.Target;
-                    _nextChasePathRefresh = Time.time + Mathf.Max(.02f, chasePathRefreshInterval);
-                    agent.SetDestination(entity.Target.position);
-                }
+                _chasePathTarget = target;
+                _chaseDestination = destination;
             }
         }
     }
@@ -145,6 +121,39 @@ public class BaseAIPatternSO : AIPatternSO
         }
     }
 
+    private RuntimeAnimatorController attackController;
+    private float attackLength;
+    private float? firstHitTime;
+    private bool clipHasHit, clipHasEnd;
+
+    private void ReadAttackClip(RuntimeAnimatorController controller)
+    {
+        // Override mappings can be edited in place without replacing the controller.
+        if (controller == attackController && !(controller is AnimatorOverrideController)) return;
+        attackController = controller;
+        attackLength = 1f;
+        firstHitTime = null;
+        clipHasHit = clipHasEnd = false;
+        bool foundFirst = false;
+        foreach (var clip in controller.animationClips)
+        {
+            string name = clip.name;
+            if (name.IndexOf("Attack", System.StringComparison.OrdinalIgnoreCase) < 0) continue;
+            if (!foundFirst) attackLength = clip.length;
+            bool receivesEvents = name.Contains("Attack");
+            foreach (var evt in clip.events)
+            {
+                if (evt.functionName == "OnHitEvent")
+                {
+                    if (!foundFirst && !firstHitTime.HasValue) firstHitTime = evt.time;
+                    clipHasHit |= receivesEvents;
+                }
+                if (receivesEvents && evt.functionName == "OnAttackEndEvent") clipHasEnd = true;
+            }
+            foundFirst = true;
+        }
+    }
+
     protected virtual System.Collections.IEnumerator AttackRoutine(BaseEntity entity)
     {
         entity.IsAttacking = true;
@@ -157,16 +166,8 @@ public class BaseAIPatternSO : AIPatternSO
         if (hasAnimator) 
         {
             // 애니메이션 클립 길이를 동적으로 찾아서, 공격 속도보다 길다면 1.0배속보다 빠르게 틉니다.
-            float animLength = 1f;
-            var clips = entity.Animator.runtimeAnimatorController.animationClips;
-            foreach (var clip in clips)
-            {
-                if (clip.name.IndexOf("Attack", System.StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    animLength = clip.length;
-                    break;
-                }
-            }
+            ReadAttackClip(entity.Animator.runtimeAnimatorController);
+            float animLength = attackLength;
 
             // 여유를 위해 공격 간격의 90% 시간 안에 애니메이션이 끝나도록 배속을 조절합니다.
             float targetDuration = entity.Stats.AttackInterval * Mathf.Clamp(attackAnimationIntervalRatio, 0.01f, 1f);
@@ -182,32 +183,17 @@ public class BaseAIPatternSO : AIPatternSO
             // 애니메이션 처음부터 강제 재시작 (루핑 방지 및 정확한 재생)
             entity.Animator.Play("Attack", -1, 0f);
 
-            // [추가] 애니메이션 이벤트(OnHitEvent)의 정확한 발생 시간(windupTime)을 찾아 배속을 반영합니다.
-            float eventTime = fallbackAttackWindup; // fallback (0.6f -> 1.0f 증가)
-            foreach (var clip in clips)
-            {
-                if (clip.name.IndexOf("Attack", System.StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    foreach (var evt in clip.events)
-                    {
-                        if (evt.functionName == "OnHitEvent")
-                        {
-                            eventTime = evt.time;
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
+            // 애니메이션 이벤트(OnHitEvent)의 정확한 발생 시간(windupTime)을 찾아 배속을 반영합니다.
+            float eventTime = firstHitTime ?? fallbackAttackWindup;
             windupTime = eventTime / entity.Animator.speed;
         }
 
-        // [수정] 텔레그래프 등 선딜레이 시작 시점의 처리를 가상 메서드로 분리
+        // 텔레그래프 등 선딜레이 시작 시점의 처리를 가상 메서드로 분리
         OnWindupStart(entity, windupTime);
 
         // 애니메이션 이벤트를 우선 대기
-        bool hasHitEvent = hasAnimator && entity.HasAnimationEvent("Attack", "OnHitEvent");
-        bool hasEndEvent = hasAnimator && entity.HasAnimationEvent("Attack", "OnAttackEndEvent");
+        bool hasHitEvent = hasAnimator && clipHasHit;
+        bool hasEndEvent = hasAnimator && clipHasEnd;
 
         // [1] Windup (선딜레이)
         if (hasHitEvent)
@@ -262,7 +248,7 @@ public class BaseAIPatternSO : AIPatternSO
 
         entity.IsAttacking = false;
         entity.ActiveAttackCoroutine = null;
-        // [수정] 공격 중 멈춰있던 애니메이션 상태 추적을 초기화하여, 공격 종료 직후
+        // 공격 중 멈춰있던 애니메이션 상태 추적을 초기화하여, 공격 종료 직후
         // 다음 상태(Idle/Follow 등)가 정상적으로 재생되도록 강제합니다.
         entity.ResetAnimationState();
     }
@@ -289,17 +275,7 @@ public class BaseAIPatternSO : AIPatternSO
     }
 
     /// <summary>
-    /// 대상(플레이어 등)이 도망 트리거 범위 내에 들어왔는지 검사합니다.
-    /// </summary>
-    protected bool ShouldFleeFromTarget(BaseEntity entity, float fleeRangeThreshold)
-    {
-        if (entity.Target == null) return false;
-        float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
-        return dist <= fleeRangeThreshold;
-    }
-
-    /// <summary>
-    /// 대상으로부터 330도 범위 내 무작위 방향으로 fleeDistance 만큼 도망친 목적지(NavMesh 좌표)를 구합니다.
+    /// 대상 반대편의 설정된 각도 범위에서 후퇴 목적지(NavMesh 좌표)를 구합니다.
     /// </summary>
     protected Vector3 CalculateFleeDestination(BaseEntity entity, float fleeDistance)
     {
@@ -308,9 +284,8 @@ public class BaseAIPatternSO : AIPatternSO
         Vector3 dirToPlayer = (entity.Target.position - entity.transform.position).normalized;
         if (dirToPlayer == Vector3.zero) dirToPlayer = Vector3.right;
 
-        // 플레이어 반대 방향(플레이어 방향 + 180도) 기준으로 +-90도(총 180도) 범위 내에서 무작위 방향 추출
         float angleToPlayer = Mathf.Atan2(dirToPlayer.y, dirToPlayer.x) * Mathf.Rad2Deg;
-        float randomOffset = Random.Range(-fleeSpreadAngle, fleeSpreadAngle); // +-90도 편차
+        float randomOffset = Random.Range(-fleeSpreadAngle, fleeSpreadAngle);
         float finalAngle = (angleToPlayer + 180f + randomOffset) * Mathf.Deg2Rad;
 
         Vector3 randomDir = new Vector3(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle), 0f);

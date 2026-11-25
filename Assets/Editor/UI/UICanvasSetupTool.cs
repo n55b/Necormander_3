@@ -12,7 +12,7 @@ using UnityEngine;
 ///  2) 씬 + 프리팹의 캔버스를 정리한다.
 ///     - 각 Canvas의 렌더 방식과 Pixel Perfect 설정을 유지한다(Inspector에서 개별 선택).
 ///     - 루트 캔버스(월드 스페이스 포함)의 Sorting Layer = UI, 캔버스와 모든 자식의 Layer = UI(5)
-///       → PixelArtUpscaleRig 에서 저해상도 RT 가 아니라 Main Camera 가 화면 해상도로 그린다(글자 선명).
+///       → 플레이 중에는 월드와 UI가 같은 640×360 프레임에서 렌더된다.
 ///     - Screen Space - Camera 캔버스에는 CanvasCameraBinder 를 붙여 런타임에 Camera.main 을 연결한다.
 ///  3) 전환 시 확인이 필요한 스크립트(오버레이 좌표 가정 등)를 나열한다.
 /// 결과는 콘솔과 Logs/UICanvasSetup.log 에 남는다.
@@ -215,7 +215,9 @@ public static class UICanvasSetupTool
                     if (sceneCam != null && camProp.objectReferenceValue == null) { camProp.objectReferenceValue = sceneCam; dirty = true; }
                     if (go.GetComponent<CanvasCameraBinder>() == null) { go.AddComponent<CanvasCameraBinder>(); dirty = true; }
                 }
-                if (sortId.intValue != uiSortId) { sortId.intValue = uiSortId; dirty = true; }
+                int layer = mode.intValue == (int)RenderMode.WorldSpace
+                    ? SortingLayer.NameToID(PixelArtUpscaleRig.WorldUiLayer) : uiSortId;
+                if (sortId.intValue != layer) { sortId.intValue = layer; dirty = true; }
             }
             else if (over.boolValue && sortId.intValue != uiSortId)
             {

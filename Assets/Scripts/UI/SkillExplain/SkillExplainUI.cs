@@ -76,6 +76,9 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     protected override void OnAwake()
     {
         if (panelRoot == null) panelRoot = gameObject;
+        foreach (var slot in equipmentSlots) slot?.EnableScrollableDescription();
+        standbySummonSlot?.EnableScrollableDescription();
+        foreach (var slot in linkedSkillSlots) slot?.EnableScrollableDescription();
         SetExpanded(false);
         panelRoot.SetActive(false);
     }
@@ -149,8 +152,8 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
     {
         if (!_isOpen) return false;
         var canvas = GetComponentInParent<Canvas>();
-        return ContainsScreenPoint(Input.mousePosition,
-            canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null);
+        return ContainsScreenPoint(PixelViewport.PointerForCanvas(canvas, Input.mousePosition),
+            PixelViewport.CanvasCamera(canvas));
     }
 
     private void Update()
@@ -189,7 +192,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         SetSummaryIcon(2, main != null ? main.minionIcon : null);
         SetSummaryIcon(3, main != null && main.minionSkill != null ? main.minionSkill.icon : null);
         SetSummaryIcon(4, null);
-        if (summaryText != null) summaryText.text = $"플레이어 정보  [C]     소환수 {(inventory != null ? inventory.EquippedSummonCount : 0)}";
+        if (summaryText != null) summaryText.text = "플레이어 정보  [C]";
     }
 
     private void SetSummaryIcon(int index, Sprite sprite)
@@ -272,7 +275,7 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
         string enhance = so.upgradeOnly
             ? (so.upgradeOptions.Length > 0 ? $"강화 단계 {so.upgradeStage}/3" : "최종 장비")
             : $"강화 +{eq.enhanceLevel}/{so.maxEnhanceLevel}";
-        string desc = string.IsNullOrEmpty(so.description) ? enhance : $"{so.description}\n\n{enhance}";
+        string desc = string.IsNullOrEmpty(so.description) ? enhance : $"{enhance}\n{so.description}";
 
         slot.SetData(so.icon, title, ApplyKeywordHighlighting(desc));
     }
@@ -285,7 +288,8 @@ public class SkillExplainUI : Singleton<SkillExplainUI>
 
         if (main == null)
         {
-            foreach (var s in linkedSkillSlots) s?.SetEmpty();
+            foreach (var slot in linkedSkillSlots)
+                if (slot != null) slot.gameObject.SetActive(false);
             return;
         }
 

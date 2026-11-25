@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 /// <summary>프리팹에 배치한 슬래시·발광·짧은 선 파편을 재생한다. 피해/카메라/시간은 변경하지 않는다.</summary>
 [DefaultExecutionOrder(10000)]
@@ -8,6 +8,7 @@ public class ImpactFeedback : MonoBehaviour
     [Min(.01f), SerializeField] private float lifetime = .3f;
     [SerializeField] private Animator spriteAnimator;
     [SerializeField] private SpriteRenderer slash;
+    [SerializeField] private Transform pixelArtAnchor;
     [SerializeField] private LineRenderer[] streaks;
     [SerializeField] private LineRenderer[] arcs;
     [SerializeField] private LineRenderer flash;
@@ -46,33 +47,36 @@ public class ImpactFeedback : MonoBehaviour
     private Renderer[] _renderers;
     private bool[] _visibleBeforeCatalog;
     private bool _catalogHidden;
-    private static readonly Dictionary<ImpactFeedback, Queue<ImpactFeedback>> pool = new Dictionary<ImpactFeedback, Queue<ImpactFeedback>>();
     private ImpactFeedback _source;
     private SpriteRenderer[] _spriteRenderers;
     private Color[] _spriteColors;
     private LineRenderer[] _lineRenderers;
     private Color[] _lineStartColors, _lineEndColors;
+    private float[] _lineWidthMultipliers, _linePeakWidths;
+    private float _unitsPerPixel = -1f;
     private ParticleSystem[] _particles;
     private ParticleSystem.MinMaxGradient[] _particleColors;
     private bool[] _initialVisibility;
     private float _clipLength;
     private Transform _followTarget;
     private Vector3 _followOffset;
+    private SortingGroup depthGroup;
+    private YSortableObject depthTarget;
 
     public void FollowTarget(Transform target)
     {
         _followTarget = target;
         if (target != null) _followOffset = transform.position - target.position;
+        depthTarget = WorldDepthOrder.FindParticipant(target);
+        depthGroup = WorldDepthOrder.BindEffect(gameObject, depthGroup, depthTarget);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetPool() => pool.Clear();
+    private static void ResetPool() => SceneEffectPool<ImpactFeedback>.Reset();
 
     public static ImpactFeedback Spawn(ImpactFeedback prefab, Vector3 position, Quaternion rotation)
     {
-        ImpactFeedback result = null;
-        if (pool.TryGetValue(prefab, out var available))
-            while (available.Count > 0 && result == null) result = available.Dequeue();
+        var result = SceneEffectPool<ImpactFeedback>.Take(prefab);
         if (result == null)
         {
             result = Instantiate(prefab, position, rotation);
@@ -90,13 +94,18 @@ public class ImpactFeedback : MonoBehaviour
     public static void PrewarmOne(ImpactFeedback prefab, int desired)
     {
         if (prefab == null || desired <= 0) return;
-        if (!pool.TryGetValue(prefab, out var available)) pool[prefab] = available = new Queue<ImpactFeedback>();
+        var available = SceneEffectPool<ImpactFeedback>.For(prefab);
         int valid = 0;
         foreach (var entry in available) if (entry != null) valid++;
         if (valid >= desired) return;
         var instance = Instantiate(prefab);
         instance._source = prefab;
         instance.gameObject.SetActive(false);
+        if (!instance.TryGetComponent<SortingGroup>(out _))
+        {
+            instance.depthGroup = instance.gameObject.AddComponent<SortingGroup>();
+            instance.depthGroup.enabled = false;
+        }
         available.Enqueue(instance);
     }
 
@@ -104,7 +113,7 @@ public class ImpactFeedback : MonoBehaviour
     {
         if (_source == null) { Destroy(gameObject); return; }
         gameObject.SetActive(false);
-        if (!pool.TryGetValue(_source, out var available)) pool[_source] = available = new Queue<ImpactFeedback>();
+        var available = SceneEffectPool<ImpactFeedback>.For(_source);
         if (available.Count < 32) available.Enqueue(this);
         else Destroy(gameObject);
     }
@@ -148,7 +157,17 @@ public class ImpactFeedback : MonoBehaviour
         for (int i=0; i<_spriteRenderers.Length; i++) _spriteColors[i] = _spriteRenderers[i].color;
         _lineRenderers = GetComponentsInChildren<LineRenderer>(true);
         _lineStartColors = new Color[_lineRenderers.Length]; _lineEndColors = new Color[_lineRenderers.Length];
-        for (int i=0; i<_lineRenderers.Length; i++) { _lineStartColors[i] = _lineRenderers[i].startColor; _lineEndColors[i] = _lineRenderers[i].endColor; }
+        _lineWidthMultipliers = new float[_lineRenderers.Length];
+        _linePeakWidths = new float[_lineRenderers.Length];
+        for (int i = 0; i < _lineRenderers.Length; i++)
+        {
+            var line = _lineRenderers[i];
+            _lineStartColors[i] = line.startColor;
+            _lineEndColors[i] = line.endColor;
+            _lineWidthMultipliers[i] = line.widthMultiplier;
+            foreach (var key in line.widthCurve.keys)
+                _linePeakWidths[i] = Mathf.Max(_linePeakWidths[i], key.value);
+        }
         _particles = GetComponentsInChildren<ParticleSystem>(true);
         _particleColors = new ParticleSystem.MinMaxGradient[_particles.Length];
         for (int i=0; i<_particles.Length; i++) _particleColors[i] = _particles[i].main.startColor;
@@ -172,8 +191,16 @@ public class ImpactFeedback : MonoBehaviour
     private void OnEnable()
     {
         _followTarget = null;
+        depthTarget = null;
+        if (depthGroup != null) depthGroup.enabled = false;
         _age = 0f;
         _echoCount = 0;
+        if (pixelArtAnchor != null)
+        {
+            const float quarterTurn = 90f;
+            float angle = Mathf.Round(transform.eulerAngles.z / quarterTurn) * quarterTurn;
+            pixelArtAnchor.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        }
         if (echoes != null) foreach (var echo in echoes) if (echo != null) echo.enabled = false;
         if (spriteAnimator != null && spriteAnimator.runtimeAnimatorController != null)
         {
@@ -194,6 +221,7 @@ public class ImpactFeedback : MonoBehaviour
         if (_followTarget != null && _followTarget.gameObject.activeInHierarchy)
             transform.position = _followTarget.position + _followOffset;
         else _followTarget = null;
+        WorldDepthOrder.SyncEffect(depthGroup, depthTarget);
         RenderVisuals();
     }
     private void RenderVisuals()
@@ -214,6 +242,7 @@ public class ImpactFeedback : MonoBehaviour
             for (int i = 0; i < _renderers.Length; i++) _renderers[i].enabled = _visibleBeforeCatalog[i];
             _catalogHidden = false;
         }
+        AlignLineWidths();
         float t = Mathf.Clamp01(_age / Mathf.Max(.01f, lifetime));
         // 원본 슬래시와 잔상은 32 PPU / 1배 고정. 크기 변화는 별도 선 도형에만 적용한다.
         if (slash != null)
@@ -284,6 +313,20 @@ public class ImpactFeedback : MonoBehaviour
             color.a *= age < 0f ? 0f : (1f - progress) * (1f - progress);
             spark.startColor = color;
             spark.endColor = color;
+        }
+    }
+
+    private void AlignLineWidths()
+    {
+        float unitsPerPixel = PixelViewport.WorldUnitsPerPixel;
+        if (unitsPerPixel == _unitsPerPixel) return;
+        _unitsPerPixel = unitsPerPixel;
+        for (int i = 0; i < _lineRenderers.Length; i++)
+        {
+            var line = _lineRenderers[i];
+            float peak = _linePeakWidths[i];
+            if (line == null || peak <= 0f) continue;
+            line.widthMultiplier = PixelViewport.QuantizeStrokeWidth(_lineWidthMultipliers[i] * peak, unitsPerPixel) / peak;
         }
     }
 }

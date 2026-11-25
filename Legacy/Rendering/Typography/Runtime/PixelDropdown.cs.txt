@@ -1,0 +1,12 @@
+using TMPro;
+using UnityEngine;
+
+public sealed class PixelDropdown : TMP_Dropdown
+{
+    protected override GameObject CreateDropdownList(GameObject template)
+    {
+        var popup = base.CreateDropdownList(template);
+        PixelArtUpscaleRig.RegisterCanvasTypography(popup.GetComponent<Canvas>());
+        return popup;
+    }
+}

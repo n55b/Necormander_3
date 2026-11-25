@@ -46,7 +46,7 @@ public class BossHPBarUI : MonoBehaviour
         _health.OnDeath     += Hide;
 
         if (nameText != null) nameText.text = bossName;
-        if (root != null) root.SetActive(true);
+        UIOpenMotion.SetVisible(root, true);
 
         Refresh();
     }
@@ -54,7 +54,7 @@ public class BossHPBarUI : MonoBehaviour
     public void Hide()
     {
         Unbind();
-        if (root != null) root.SetActive(false);
+        UIOpenMotion.SetVisible(root, false);
     }
 
     private void Unbind()

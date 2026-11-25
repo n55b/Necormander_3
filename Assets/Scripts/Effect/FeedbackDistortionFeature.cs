@@ -24,7 +24,9 @@ public sealed class FeedbackDistortionFeature : ScriptableRendererFeature
     {
         if(material==null||!Application.isPlaying||data.cameraData.cameraType!=CameraType.Game||!PolishFeedback.Enabled(FeedbackCue.Distortion)) return;
         var recipe=PolishFeedback.Catalog.Find(FeedbackCue.Distortion);
-        var camera=data.cameraData.camera; int count=0;
+        var camera=data.cameraData.camera;
+        if (camera.cullingMask == 0) return;
+        int count=0;
         for(int i=0;i<8;i++)
         {
             float age=Time.time-pulses[i].started;

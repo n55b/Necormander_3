@@ -110,6 +110,21 @@ public abstract class BaseEntity : MonoBehaviour
     public SpriteRenderer SpriteRenderer => _sr;
     public Animator Animator => _animator;
 
+    private CenterMeetFill attackGauge;
+    private bool attackGaugeResolved;
+    public CenterMeetFill AttackGauge
+    {
+        get
+        {
+            if (!attackGaugeResolved)
+            {
+                attackGauge = GetComponentInChildren<CenterMeetFill>(true);
+                attackGaugeResolved = true;
+            }
+            return attackGauge;
+        }
+    }
+
     public bool HasFiredHitEvent { get; set; } = false;
     public bool HasFiredAttackEndEvent { get; set; } = false;
 
@@ -173,7 +188,7 @@ public abstract class BaseEntity : MonoBehaviour
     public Coroutine ActiveAttackCoroutine { get; set; }
 
     private bool _isPlayingStunAnim = false;
-    private float _knockbackExpiry = 0f; // [추가] 넉백 중 DirectionIndicator 오작동 방지용 만료 시각 (Time.time 기준)
+    private float _knockbackExpiry = 0f; // 넉백 중 DirectionIndicator 오작동 방지용 만료 시각 (Time.time 기준)
 
     protected virtual void Awake()
     {
@@ -188,6 +203,7 @@ public abstract class BaseEntity : MonoBehaviour
         _agent = GetComponent<NavMeshAgent>();
         _collider = GetComponent<Collider2D>();
         _sr = GetComponentInChildren<SpriteRenderer>();
+        _pictureMotion = PixelActorMotion.Attach(gameObject, PixelActorMotion.Actor.Enemy);
 
         if (_agent != null)
         {
@@ -208,7 +224,7 @@ public abstract class BaseEntity : MonoBehaviour
 
     protected virtual void Start()
     {
-        // [수정] 오토배틀러 비활성화 상태에서는 적군의 모든 물리/타겟팅 판정(opponentLayer)에서 아군 미니언을 제외함
+        // 오토배틀러 비활성화 상태에서는 적군의 모든 물리/타겟팅 판정(opponentLayer)에서 아군 미니언을 제외함
         if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
         {
             if (team == Team.Enemy)
@@ -217,7 +233,7 @@ public abstract class BaseEntity : MonoBehaviour
             }
         }
 
-        // [수정] 직접 배치된 개체라면 스스로 초기화 (스탯 및 브레인 생성)
+        // 직접 배치된 개체라면 스스로 초기화 (스탯 및 브레인 생성)
         if (minionData != null && _runtimeBrain == null)
         {
             Initialize(minionData);
@@ -229,8 +245,17 @@ public abstract class BaseEntity : MonoBehaviour
         }
     }
 
+    private PixelActorMotion _pictureMotion;
+
+    public void PlayArrival(EnemyTier tier)
+    {
+        _visualSquash?.SetActorAmplitude(CameraSettingsSO.Instance?.enemyPoseStrength ?? .8f);
+        _pictureMotion?.Descend(tier, _visualSquash, _sr, _stats != null ? _stats.Health : null);
+    }
+
     protected virtual void Update()
     {
+        if (_pictureMotion != null && _pictureMotion.IsDescending) return;
         if (!CanExecuteAI())
         {
             // [경직/기절/빙결 제동] 관성으로 인해 스르륵 미끄러지는 현상을 방지하기 위해 정지 처리
@@ -272,9 +297,11 @@ public abstract class BaseEntity : MonoBehaviour
             resumeAgent.isStopped = false;
         }
 
-        // [26/07/17] 공포(Feared) 분기 삭제. 처형 시스템이 부여하던 건데 처형과 함께 없어졌다.
-        //            (실은 그 전부터 GetDebuffStack 스텁 때문에 한 번도 발동한 적이 없었다.)
-
+        if (_visualSquash != null)
+        {
+            _visualSquash.SetActorAmplitude(CameraSettingsSO.Instance?.enemyPoseStrength ?? .8f);
+            _visualSquash.Locomotion(MoveVelocity.sqrMagnitude > .04f);
+        }
         if (_runtimeBrain != null)
         {
             _runtimeBrain.Execute(this);
@@ -299,10 +326,10 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (!enabled) return false;
         
-        // [추가] 공격 중(Telegraph 차오르는 중)일 때는 다른 행동 불가
+        // 공격 중(Telegraph 차오르는 중)일 때는 다른 행동 불가
         if (IsAttacking) return false;
 
-        // [추가] 행동불가(기절/빙결/경직)면 AI 중단 — 플레이어 IsCCed 와 같은 단일 소스(IsActionBlocked).
+        // 행동불가(기절/빙결/경직)면 AI 중단 — 플레이어 IsCCed 와 같은 단일 소스(IsActionBlocked).
         if (_stats != null && _stats.Status != null)
         {
             if (_stats.Status.IsActionBlocked)
@@ -380,7 +407,7 @@ public abstract class BaseEntity : MonoBehaviour
     {
         get
         {
-            if (Time.time < _knockbackExpiry) return Vector2.zero; // [추가] 넉백 중엔 방향 갱신용 속도를 주지 않음 (DirectionIndicator가 밀리는 방향으로 도는 문제 방지)
+            if (Time.time < _knockbackExpiry) return Vector2.zero; // 넉백 중엔 방향 갱신용 속도를 주지 않음 (DirectionIndicator가 밀리는 방향으로 도는 문제 방지)
 
             if (_agent != null && _agent.isActiveAndEnabled)
             {
@@ -413,7 +440,7 @@ public abstract class BaseEntity : MonoBehaviour
     {
         if (_animator == null || _animator.runtimeAnimatorController == null) return;
 
-        // [수정] 공격 애니메이션 재생 중(IsAttacking)에는 AttackRoutine이 애니메이터를 직접 제어하므로
+        // 공격 애니메이션 재생 중(IsAttacking)에는 AttackRoutine이 애니메이터를 직접 제어하므로
         // 여기서 간섭하면 안 됩니다. (기존에는 공격 시작 다음 프레임에 상태 변경이 뒤늦게 감지되어
         // Attack 애니메이션이 1프레임만 재생되고 바로 Idle로 덮어써지는 버그가 있었습니다.)
         if (IsAttacking) return;
@@ -424,19 +451,28 @@ public abstract class BaseEntity : MonoBehaviour
 
             // Attack 상태 진입 시 바로 Attack 애니메이션을 틀지 않고 대기(Idle) 모션을 취합니다.
             // 실제 Attack 애니메이션은 쿨타임이 차고 AttackRoutine이 실행될 때 한 번만 틉니다.
-            if (state == AIState.Attack)
-            {
-                _animator.Play("Idle");
-            }
-            else
-            {
-                _animator.Play(state.ToString());
-            }
+            string namedState=state==AIState.Attack ? nameof(AIState.Idle) : state.ToString();
+            if(TryPlayState(namedState)) return;
+            if(state==AIState.Follow && !TryPlayState("Move") && !TryPlayState("Walk"))
+                TryPlayState(nameof(AIState.Idle));
         }
     }
 
+    // Boss skills can own a named pose for several AI states.
+    private bool TryPlayState(string stateName)
+    {
+        int state=UnityEngine.Animator.StringToHash(stateName);
+        for(int layer=0;layer<_animator.layerCount;layer++)
+        {
+            if(!_animator.HasState(layer,state)) continue;
+            _animator.Play(state,layer);
+            return true;
+        }
+        return false;
+    }
+
     /// <summary>
-    /// [추가] 공격 애니메이션 종료 등, 강제로 애니메이션 상태를 다시 평가하게 만들고 싶을 때 호출합니다.
+    /// 공격 애니메이션 종료 등, 강제로 애니메이션 상태를 다시 평가하게 만들고 싶을 때 호출합니다.
     /// (공격 중에는 UpdateAnimation이 아무것도 하지 않으므로, 공격이 끝난 직후 CurrentState가
     /// 공격 시작 전과 동일하면 Play가 호출되지 않아 마지막 공격 포즈에 멈춰있는 문제를 방지합니다.)
     /// </summary>
@@ -465,7 +501,7 @@ public abstract class BaseEntity : MonoBehaviour
         if (telegraphPrefab != null)
         {
             Vector3 dir = (target.position - transform.position).normalized;
-            // [수정] 몬스터가 공격 시전 중 이동할 때 판정 범위가 따라오도록 시전자(BaseEntity)의 하위 자식으로 붙임
+            // 몬스터가 공격 시전 중 이동할 때 판정 범위가 따라오도록 시전자(BaseEntity)의 하위 자식으로 붙임
             GameObject go = Instantiate(telegraphPrefab, transform.position, Quaternion.identity, transform);
             
             _activeHitbox = go.GetComponent<BaseHitBox>();
@@ -478,7 +514,7 @@ public abstract class BaseEntity : MonoBehaviour
 
                 DamageInfo info = new DamageInfo(_stats.ATK, DamageRules.FromAttackType(_stats.ATTACK_TYPE), this.gameObject, 1f, "", false, false, 0f); 
                 
-                // [수정] 몬스터는 localScale.x가 상시 양수이므로 스케일 X를 음수로 뒤집을 필요 없이 상시 양수 유지
+                // 몬스터는 localScale.x가 상시 양수이므로 스케일 X를 음수로 뒤집을 필요 없이 상시 양수 유지
                 go.transform.localScale = new Vector3(_stats.ATKRANGE, _stats.ATKRANGE, 1f);
 
                 // 전달받은 실제 애니메이션 이벤트 시간(windupTime)과 피아식별 정보(team)를 넘겨줍니다.
@@ -520,7 +556,7 @@ public abstract class BaseEntity : MonoBehaviour
             return;
         }
 
-        // [수정] 플레이어가 미니언을 들고 있을 때 등을 고려하여 robust하게 Stat을 찾습니다.
+        // 타깃 루트에 스탯이 없으면 FlyingObject 레이어를 제외한 자식에서 찾는다.
         CharacterStat targetStat = _target.GetComponent<CharacterStat>();
         if (targetStat == null)
         {
@@ -537,7 +573,6 @@ public abstract class BaseEntity : MonoBehaviour
 
         if (targetStat != null)
         {
-            // [수정] 직접 Health 담당자에게 명령, isBasicAttack = true 추가
             DamageInfo info = new DamageInfo(_stats.ATK, DamageRules.FromAttackType(_stats.ATTACK_TYPE), this.gameObject, 1f);
             targetStat.Health.GetDamage(info);
 
@@ -546,7 +581,7 @@ public abstract class BaseEntity : MonoBehaviour
         _target = null;
     }
 
-    // [추가] 공격 취소 (경직 시 호출)
+    // 공격 취소 (경직 시 호출)
     public virtual void CancelAttack()
     {
         _target = null;
@@ -573,7 +608,7 @@ public abstract class BaseEntity : MonoBehaviour
         {
             _animator.Play("Idle"); // 애니메이션 강제 초기화
             _animator.speed = 1f; // 공격 취소 시 배속 강제 원복
-            ResetAnimationState(); // [수정] _lastState도 함께 초기화하여 이후 상태 변화 시 재생 누락 방지
+            ResetAnimationState(); // _lastState도 함께 초기화하여 이후 상태 변화 시 재생 누락 방지
         }
 
         if (_runtimeBrain != null)
@@ -591,10 +626,10 @@ public abstract class BaseEntity : MonoBehaviour
         }
     }
 
-    // [추가] 넉백 적용
+    // 넉백 적용
     public virtual void ApplyKnockback(Vector2 force)
     {
-        if (_stats != null && _stats.Status != null && _stats.Status.HasSuperArmor) return; // [추가] 슈퍼아머 시 넉백 무시
+        if (_stats != null && _stats.Status != null && _stats.Status.HasSuperArmor) return; // 슈퍼아머 시 넉백 무시
 
         // 공격 취소 및 넉백 피격 경직(기존 평타 경직과 통일된 0.25초 경직 부여)
         CancelAttack();
@@ -615,7 +650,7 @@ public abstract class BaseEntity : MonoBehaviour
             _rb.linearVelocity = Vector2.zero; // 기존 속도 및 돌진 속도 리셋
             _rb.AddForce(force, ForceMode2D.Impulse);
 
-            // [추가] 넉백 중에는 DirectionIndicator가 밀려나는 방향을 진행 방향으로 오인하지 않도록 방지. 연타로 이어져도 높은 만료 시각으로 덮여쓰이도록 Max 사용
+            // 넉백 중에는 DirectionIndicator가 밀려나는 방향을 진행 방향으로 오인하지 않도록 방지. 연타로 이어져도 높은 만료 시각으로 덮여쓰이도록 Max 사용
             _knockbackExpiry = Mathf.Max(_knockbackExpiry, Time.time + 0.25f);
         }
     }

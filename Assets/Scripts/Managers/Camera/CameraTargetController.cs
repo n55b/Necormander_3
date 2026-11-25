@@ -49,12 +49,8 @@ public class CameraTargetController : Singleton<CameraTargetController>
 
         Vector3 targetLocalPos;
 
-        if (isAiming)
+        if (isAiming && PixelViewport.TryPointerToWorld(Input.mousePosition, out var mouseWorldPos))
         {
-            // 1. 마우스 월드 좌표 가져오기
-            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            mouseWorldPos.z = 0f;
-
             // 2. 부모(플레이어) 로컬 공간 기준으로 마우스의 위치(상대적 거리) 계산
             Vector3 localMousePos = playerTransform.InverseTransformPoint(mouseWorldPos);
             
@@ -74,8 +70,9 @@ public class CameraTargetController : Singleton<CameraTargetController>
         transform.localPosition = Vector3.SmoothDamp(transform.localPosition, targetLocalPos, ref _currentVelocity, smoothTime);
     }
 
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
+        if (Application.isPlaying) return;
         // 자식 오브젝트인 경우 부모 위치를 기준으로 박스 표시
         Gizmos.color = Color.yellow;
         Vector3 center = (playerTransform != null) ? playerTransform.position : transform.parent != null ? transform.parent.position : transform.position;

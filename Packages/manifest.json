@@ -1,7 +1,8 @@
 {
   "dependencies": {
-    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
+    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#78ee5418415953b79c358bfe6355fcc3fde7912b",
     "com.h8man.2d.navmeshplus": "https://github.com/h8man/NavMeshPlus.git#master",
+    "com.unity.2d.animation": "file:Local/com.unity.2d.animation-10.2.1-workshop.1.tgz",
     "com.unity.ai.navigation": "2.0.12",
     "com.unity.cinemachine": "3.1.6",
     "com.unity.collab-proxy": "2.9.3",

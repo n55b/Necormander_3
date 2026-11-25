@@ -153,13 +153,15 @@ public class DialogueUI : Singleton<DialogueUI>
 
     public bool IsPlaying { get; private set; }
 
+    private PixelText greetingTypography;
     private List<DialogueLine> _lines;
     private int _index;
     private Action _onComplete;
 
     private Coroutine _typing;
     private bool _typingDone;
-    private int _openedFrame = -1;
+    private int _openedFrame = -1, _closedFrame = -1;
+    public bool ConsumesAdvanceInput => IsPlaying || Time.frameCount == _closedFrame;
 
     // 무대에 서 있는 캐릭터들. cast 칸이 빈 줄은 이걸 그대로 물려받는다.
     private readonly List<string> _stage = new List<string>();
@@ -222,6 +224,23 @@ public class DialogueUI : Singleton<DialogueUI>
             return;
         }
 
+        BeginLines(_lines, onComplete);
+    }
+
+    internal void PlayGreeting(string speaker, string displayName, string text, Action onComplete = null)
+    {
+        if (IsPlaying || string.IsNullOrWhiteSpace(text)) return;
+        if (WorkshopTrial.Library!=null && bodyText!=null) bodyText.TryGetComponent(out greetingTypography);
+        var lines = new List<DialogueLine>();
+        foreach (var line in text.Split('\n'))
+            if (!string.IsNullOrWhiteSpace(line))
+                lines.Add(new DialogueLine { speaker = speaker, displayName = displayName, text = line.Trim() });
+        BeginLines(lines, onComplete);
+    }
+
+    private void BeginLines(List<DialogueLine> lines, Action onComplete)
+    {
+        _lines = lines;
         _onComplete  = onComplete;
         _index       = 0;
         _openedFrame = Time.frameCount;
@@ -233,6 +252,7 @@ public class DialogueUI : Singleton<DialogueUI>
         if (blockPlayerInput) SetPlayerInputBlocked(true);
         UIEventBus.NotifyOpen("Dialogue");
 
+        if (greetingTypography!=null) greetingTypography.UseFaceResolver(WorkshopTrial.Library.FontForInput);
         ShowLine(_lines[0]);
         SnapHighlight();   // 첫 줄은 트윈 없이 제자리에서 시작한다(이전 대화의 잔상 방지)
     }
@@ -490,9 +510,11 @@ public class DialogueUI : Singleton<DialogueUI>
         if (_typing != null) StopCoroutine(_typing);
 
         SetBodyText(raw);
+        // Dialogue owns line timing, punctuation holds, voice ticks and advance input.
+        bodyEffect?.FinishReveal();
         if (nextArrow != null) nextArrow.SetActive(false);
 
-        if (charsPerSecond <= 0f || bodyText == null)
+        if (charsPerSecond <= 0f || bodyText == null || !UISkinSettings.MotionOn)
         {
             CompleteTyping();
             return;
@@ -524,14 +546,22 @@ public class DialogueUI : Singleton<DialogueUI>
 
         float shown = 0f;
         int lastSfxAt = 0;
+        float punctuationUntil = 0;
 
         while (shown < total)
         {
-            if (IsOptionOpen) { yield return null; continue; } // 옵션 중에는 타이핑도 멈춘다(unscaled 라 timeScale 0 으로는 안 멈춤)
+            if (!UISkinSettings.MotionOn) break;
+            if (IsOptionOpen) { yield return null; continue; }
 
+            if (Time.unscaledTime < punctuationUntil) { yield return null; continue; }
             shown += charsPerSecond * Time.unscaledDeltaTime;
             int visible = Mathf.Min(total, Mathf.FloorToInt(shown));
-            bodyText.maxVisibleCharacters = visible;
+            if (visible != bodyText.maxVisibleCharacters)
+            {
+                bodyText.maxVisibleCharacters = visible;
+                if (visible > 0 && visible < total && ".,!?…，。！？".IndexOf(bodyText.textInfo.characterInfo[visible - 1].character) >= 0)
+                    punctuationUntil = Time.unscaledTime + (TextMotionLibrary.Instance?.punctuationRest ?? 0);
+            }
 
             int step = Mathf.Max(1, typeSfxEveryNChars);
             if (typeSfx != null && visible - lastSfxAt >= step)
@@ -559,6 +589,7 @@ public class DialogueUI : Singleton<DialogueUI>
             bodyText.maxVisibleCharacters = int.MaxValue;
         }
 
+        bodyEffect?.FinishReveal();
         _typingDone = true;
         if (nextArrow != null) nextArrow.SetActive(true);
     }
@@ -568,8 +599,15 @@ public class DialogueUI : Singleton<DialogueUI>
     {
         if (_typing != null) { StopCoroutine(_typing); _typing = null; }
 
+        _closedFrame = Time.frameCount;
         IsPlaying = false;
         _lines = null;
+        if (greetingTypography!=null)
+        {
+            SetBodyText(string.Empty);
+            greetingTypography.UseFaceResolver(null);
+            greetingTypography=null;
+        }
         _stage.Clear();
 
         if (UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsOpen(panel)) UIPopUpManager.Instance.Close(panel);

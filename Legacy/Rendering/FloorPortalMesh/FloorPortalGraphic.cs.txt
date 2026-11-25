@@ -1,0 +1,195 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+// Drawn on top of the final game frame. Positions below are in logical 640 x 360 pixels.
+public sealed class FloorPortalGraphic : MaskableGraphic
+{
+    private readonly List<FloorPortalActor> actors = new(2);
+    private HudMotionElement[] hud;
+    private Canvas layer;
+    private float progress;
+    private PortalItemStream items;
+    private static FloorPortalGraphic activePortal;
+    internal static float AtmosphereWeight => activePortal != null && activePortal.isActiveAndEnabled ? activePortal.progress : 0;
+    private Color32[] Stars;
+    private Color32 night, diskGold, diskRose;
+
+    private static Texture2D travelPalette;
+    internal static Color32 TravelColor(int column, int row)
+    {
+        if (travelPalette == null) travelPalette = Resources.Load<Texture2D>("WorldAtmosphere/necrohanderPalette");
+        return travelPalette.GetPixel(column, travelPalette.height - 1 - row);
+    }
+
+    private void ReadPalette()
+    {
+        Stars = new[] { TravelColor(11,7), TravelColor(9,7), TravelColor(0,7), TravelColor(8,5) };
+        night = TravelColor(14,7);
+        diskGold = TravelColor(0,5);
+        diskRose = TravelColor(9,4);
+    }
+
+    internal static Canvas CreateTravelCanvas(Camera cam)
+    {
+        var canvas = new GameObject("Floor travel canvas",typeof(RectTransform),typeof(Canvas)).GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        canvas.worldCamera = cam;
+        canvas.planeDistance = cam.nearClipPlane + .05f;
+        canvas.sortingLayerName = "UI";
+        canvas.sortingOrder = short.MaxValue - 1;
+        canvas.pixelPerfect = true;
+        return canvas;
+    }
+
+    public static FloorPortalGraphic Capture(PlayerController player)
+    {
+        var cam = PixelArtUpscaleRig.RenderCamera;
+        if (player == null || cam == null || PixelArtUpscaleRig.Output == null) return null;
+        var body = player.GetComponentInChildren<YSortableObject>()?.Renderer;
+        var shader = Resources.Load<Shader>("WorldAtmosphere/PortalSilhouette");
+        if (body == null || body.sprite == null || shader == null) return null;
+        var captureShader = Resources.Load<Shader>("WorldAtmosphere/PortalPoseCapture");
+        if (captureShader == null || !shader.isSupported || !captureShader.isSupported) return null;
+        var canvas = CreateTravelCanvas(cam);
+        var go = new GameObject("Floor portal", typeof(RectTransform), typeof(CanvasRenderer));
+        go.transform.SetParent(canvas.transform, false);
+        var graphic = go.AddComponent<FloorPortalGraphic>();
+        graphic.layer = canvas;
+        graphic.ReadPalette();
+        graphic.raycastTarget = false;
+        graphic.rectTransform.pivot = graphic.rectTransform.anchorMin = Vector2.zero;
+        graphic.rectTransform.anchorMax = Vector2.one;
+        graphic.rectTransform.offsetMin = graphic.rectTransform.offsetMax = Vector2.zero;
+        var material = new Material(captureShader);
+        try
+        {
+            var hero = FloorPortalActor.Capture(go.transform, cam, body.transform, body,
+                (player.transform.lossyScale.x < 0) ^ body.flipX, 0, material, shader);
+            if (hero == null) { Destroy(canvas.gameObject); return null; }
+            graphic.actors.Add(hero);
+            var skills = player.GetComponentInChildren<PlayerSkillController>();
+            var ally = skills != null ? skills.GetFieldAgent(skills.ActiveSlot) : null;
+            if (ally != null && ally.FieldPicture != null)
+            {
+                // A summon can enter the portal on its first, nearly transparent materialization frame.
+                ally.TravelVisual.GetComponent<VisualSquashStretch>()?.ResetVisual();
+                var sprite = ally.FieldPicture;
+                var visual = ally.IsVisualVisible ? ally.TravelVisual : sprite.transform;
+                var actor = FloorPortalActor.Capture(go.transform, cam, visual, sprite,
+                    sprite.flipX ^ (sprite.transform.lossyScale.x < 0), 1, material, shader);
+                if (actor != null) graphic.actors.Add(actor);
+            }
+            graphic.items = PortalItemStream.Create(graphic.rectTransform, hero.StartPoint, FloorTravel.Mouth, false);
+            graphic.hud = FindObjectsByType<HudMotionElement>(FindObjectsSortMode.None);
+            graphic.SetProgress(0);
+            return graphic;
+        }
+        catch { Destroy(canvas.gameObject); throw; }
+        finally { Destroy(material); }
+    }
+
+    public static IEnumerator CaptureAsync(PlayerController player, System.Action<FloorPortalGraphic> ready)
+    {
+        ready(Capture(player));
+        yield break;
+    }
+
+    public void SetProgress(float value)
+    {
+        activePortal = this;
+        progress = Mathf.Clamp01(value);
+        foreach (var actor in actors) actor.Present(progress, actors.Count);
+        if (hud != null) foreach (var element in hud) if (element != null) element.Depart(progress);
+        if (items != null) items.SetProgress(progress);
+        SetVerticesDirty();
+    }
+
+    protected override void OnPopulateMesh(VertexHelper mesh)
+    {
+        mesh.Clear();
+        if (Stars == null) return;
+        Vector2 center = new(320, 180);
+        float darkness = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(0, .58f, progress));
+        Quad(mesh, Vector2.zero, new Vector2(640, 360), new Color(night.r/255f,night.g/255f,night.b/255f,darkness));
+        for (int i = 0; i < 220; i++)
+        {
+            float f = (i + .5f) / 220f;
+            float radius = 5 + 205f * f;
+            float a = i % 3 * 2.0944f + f * 8f + progress * (2f - f) + Mathf.Sin(i * 19.2f) * .22f;
+            var pos = center + new Vector2(Mathf.Cos(a) * radius, Mathf.Sin(a) * radius * .48f);
+            Color color = Stars[i % Stars.Length]; color.a = darkness * (1f - .65f * f);
+            Quad(mesh, pos, Vector2.one * (i % 13 == 0 ? 2 : 1), color);
+        }
+        float opening = FloorTravel.Ease(.08f, .36f, progress) * (1 - FloorTravel.Ease(.93f, 1, progress));
+        float pulse = FloorTravel.Ease(FloorTravel.Bloom, .456f, progress) * (1 - FloorTravel.Ease(.456f, .58f, progress));
+        float diskRadius = 3 + opening * (8 + 12 * FloorTravel.Ease(.43f, .46f, progress)) + 14 * pulse;
+        if (pulse > 0)
+        {
+            float radius = 24 + 51 * FloorTravel.Ease(.43f, .58f, progress);
+            Color rim = diskRose; rim.a = pulse * .9f;
+            for (int i = 0; i < 96; i++)
+            {
+                float a = i * Mathf.PI / 48;
+                var p = new Vector2(Mathf.Cos(a), .45f * Mathf.Sin(a)) * radius;
+                p.y += .21f * p.x;
+                Quad(mesh, center + p, Vector2.one, rim);
+            }
+        }
+        for (int i = 0; i < 112; i++)
+        {
+            float a = i * Mathf.PI / 56f;
+            float shimmer = .5f + .5f * Mathf.Sin(3*a - progress*11);
+            Vector2 disk = new(Mathf.Cos(a)*diskRadius,Mathf.Sin(a)*diskRadius*.34f);
+            disk.y += disk.x*.21f;
+            Color c = Stars[shimmer>.68f ? 3 : 2]; c.a = darkness*(.60f+.40f*shimmer);
+            Quad(mesh,center+disk,Vector2.one,c);
+            if (opening > 0)
+            {
+                // The far half of the disk bends above the horizon; the near lip stays thin.
+                float y = Mathf.Sin(a);
+                var lens = new Vector2(Mathf.Cos(a) * .70f, y * (y > 0 ? .60f : .29f)) * diskRadius;
+                lens.y += lens.x * .21f;
+                Color gold = Color.Lerp(diskRose, diskGold, shimmer);
+                gold.a = opening * (.62f + .38f * shimmer);
+                Quad(mesh, center + lens, Vector2.one * (shimmer > .72f ? 2 : 1), gold);
+            }
+            c = Stars[1]; c.a=darkness*(.48f+.32f*shimmer);
+            Quad(mesh,center+disk*(1.20f+shimmer*.15f),Vector2.one,c);
+        }
+        float coreOpacity = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.24f, .55f, progress));
+        if (coreOpacity > 0)
+        {
+            int radius = Mathf.RoundToInt(diskRadius * .58f);
+            int height = Mathf.Max(1, Mathf.RoundToInt(radius * .55f));
+            Color core = Color.Lerp(night, Color.black, .7f);
+            core.a = coreOpacity;
+            for (int row = -height; row <= height; row++)
+            {
+                float y = row / (height + .5f);
+                int span = Mathf.RoundToInt(radius * Mathf.Sqrt(1f - y * y));
+                Quad(mesh, center + new Vector2(-span, row), new Vector2(2 * span + 1, 1), core);
+            }
+        }
+        float close = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.96f, 1, progress));
+        if (close > 0) Quad(mesh, Vector2.zero, new Vector2(640, 360), new Color(night.r/255f,night.g/255f,night.b/255f,close));
+    }
+
+    internal static void Quad(VertexHelper mesh, Vector2 point, Vector2 size, Color color)
+    {
+        Vector2 p = Vector2Int.RoundToInt(point);
+        int n = mesh.currentVertCount;
+        mesh.AddVert(p,color,Vector2.zero); mesh.AddVert(p + Vector2.up * size.y,color,Vector2.zero);
+        mesh.AddVert(p + size,color,Vector2.zero); mesh.AddVert(p + Vector2.right * size.x,color,Vector2.zero);
+        mesh.AddTriangle(n,n+1,n+2); mesh.AddTriangle(n,n+2,n+3);
+    }
+
+    protected override void OnDestroy()
+    {
+        if (activePortal == this) activePortal = null;
+        if (hud != null) foreach (var element in hud) if (element != null) element.Depart(0);
+        if (layer != null) Destroy(layer.gameObject);
+        base.OnDestroy();
+    }
+}

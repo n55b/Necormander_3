@@ -33,15 +33,14 @@ public class MouseManager : MonoBehaviour
         CursorType newType = CursorType.Default;
         GameObject newHoverObject = null;
 
-        // 2. 2D 마우스 위치 레이캐스트
-            Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            LayerMask searchMask = allyLayer;
-            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, 0f, searchMask);
-
-        if (hit.collider != null)
+        if (PixelViewport.TryPointerToWorld(Input.mousePosition, out var mousePos))
         {
-            newType = CursorType.Targeting;
-            newHoverObject = hit.transform.gameObject;
+            var hit = Physics2D.Raycast(mousePos, Vector2.zero, 0f, allyLayer);
+            if (hit.collider != null)
+            {
+                newType = CursorType.Targeting;
+                newHoverObject = hit.transform.gameObject;
+            }
         }
 
         // 3. 상태 변화가 있을 때만 업데이트

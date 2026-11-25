@@ -91,6 +91,7 @@ public class DualSplitAIPatternSO : BaseAIPatternSO
             if (data != null)
             {
                 splitEntity.Initialize(data);
+                splitEntity.PlayArrival(data.tier);
             }
 
             // 2. 원본의 방(RoomInstance)을 찾아 동적 등록하여 방 클리어 판정에 귀속시킴

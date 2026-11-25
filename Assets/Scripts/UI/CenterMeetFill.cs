@@ -1,63 +1,63 @@
-using System;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Rendering;
 
+/// <summary>Animates the two-sided fill of the directional attack gauge under the actor's HUD.</summary>
 public class CenterMeetFill : MonoBehaviour
 {
-    public Image leftFill;   // Fill Origin = Left
-    public Image rightFill;  // Fill Origin = Right
-    public float duration = 1f;
+    [SerializeField] private RectTransform gaugeAnchor;
+    [SerializeField] private Color backgroundColor = Color.white;
+    [SerializeField] private Color fillColor = Color.red;
 
-    private float t;
-    private bool isFilling = false;
-    private bool completed = false;
+    private SpriteRenderer gauge;
+    private float elapsed;
+    private float duration;
 
-    // 진행도가 다 찼을 때(공격 실행 시점) 호출됩니다.
-    public event Action OnFillComplete;
+    public bool IsFilling { get; private set; }
 
-    public bool IsFilling => isFilling;
-
-    void Update()
+    private void Awake()
     {
-        if(!isFilling) return;
-        if (leftFill == null || rightFill == null) return; // 배선이 비면 매 프레임 NRE 가 난다.
-        t += Time.deltaTime / duration;
-        float progress = Mathf.Clamp01(t);
-
-        leftFill.fillAmount = progress * 0.5f;
-        rightFill.fillAmount = progress * 0.5f;
-
-        if (progress >= 1f && !completed)
+        if (gaugeAnchor == null)
         {
-            completed = true;
-            isFilling = false;
-            OnFillComplete?.Invoke();
+            Debug.LogError("The attack gauge is missing its position and size reference.", this);
+            enabled = false;
+            return;
         }
+
+        var canvas = GetComponentInParent<Canvas>();
+        int layer = canvas != null ? canvas.sortingLayerID : 0;
+        int order = canvas != null ? canvas.sortingOrder + 1 : 1;
+        gauge = PixelVectorShape.Create("Attack Gauge", PixelVectorShape.Kind.Gauge, backgroundColor, order,
+            PixelVectorShape.Stroke.Boundary, sortingLayer: layer);
+        gauge.transform.SetParent(gaugeAnchor, false);
+        if (WorldDepthOrder.FindEffectiveGroup(gauge) != null)
+        {
+            var overlay = gauge.gameObject.AddComponent<SortingGroup>();
+            overlay.sortAtRoot = true;
+            overlay.sortingLayerID = layer;
+            overlay.sortingOrder = order;
+        }
+        Vector2 size = gaugeAnchor.rect.size;
+        gauge.transform.localScale = new Vector3(size.x, size.y, 1f);
     }
 
-    // 예고를 시작합니다. 패턴마다 다른 시간을 그대로 넘기면 됩니다.
-    public void StartFill(float fillDuration)
+    private void Update()
     {
-        duration = fillDuration > 0f ? fillDuration : 0.05f;
-        t = 0f;
-        completed = false;
-        isFilling = true;
-
-        if (leftFill != null) leftFill.fillAmount = 0f;
-        if (rightFill != null) rightFill.fillAmount = 0f;
+        if (!IsFilling) return;
+        elapsed += Time.deltaTime;
+        float progress = Mathf.Clamp01(elapsed / duration);
+        PixelVectorShape.SetGaugeProgress(gauge, progress, fillColor, duration);
+        if (progress >= 1f) IsFilling = false;
     }
 
-    // 게이지 색. 카운터 신호로 쓴다 — 노랑=진짜(때리면 패턴 취소) / 빨강=페이크(때리면 보스 회복)
-    // / 무채색=카운터 불가. 프리팹에 박힌 색을 덮어쓰므로 Begin 할 때마다 반드시 다시 정해야 한다.
-    public void SetColor(Color c)
+    public void StartFill(float seconds)
     {
-        if (leftFill != null) leftFill.color = c;
-        if (rightFill != null) rightFill.color = c;
+        duration = seconds > 0f ? seconds : 0.05f;
+        elapsed = 0f;
+        IsFilling = true;
+        if (gauge != null) PixelVectorShape.SetGaugeProgress(gauge, 0f, fillColor, duration);
     }
 
-    // 진행 중인 예고를 중단합니다 (경직/사망 등으로 패턴이 취소될 때 호출).
-    public void StopFill()
-    {
-        isFilling = false;
-    }
+    public void SetColor(Color color) => fillColor = color;
+
+    public void StopFill() => IsFilling = false;
 }

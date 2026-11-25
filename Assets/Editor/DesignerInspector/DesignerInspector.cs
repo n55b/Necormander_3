@@ -43,6 +43,7 @@ public sealed class DesignerInspectorView
 
     public void Draw(SerializedObject serialized)
     {
+        using var propertyFonts = new KoreanEditorText.PropertyFontScope(EditorStyles.label, EditorStyles.boldLabel);
         float previousWidth = EditorGUIUtility.labelWidth;
         try
         {
@@ -63,7 +64,7 @@ public sealed class DesignerInspectorView
             search = EditorGUILayout.TextField(new GUIContent("항목 검색", "한글 이름·원래 필드 이름·설명으로 검색합니다."), search);
             showCode = GUILayout.Toggle(showCode, new GUIContent("코드 이름", "개발자와 이야기할 때 원래 필드 이름을 함께 표시합니다."), GUILayout.Width(78));
         }
-        EditorGUILayout.HelpBox(Application.isPlaying
+        KoreanEditorText.Help(Application.isPlaying
             ? "씬 오브젝트의 실행 중 수정은 종료 시 되돌아갑니다. SO 에셋 수정은 남을 수 있으니 원래 값을 기록하세요."
             : "이름 위에 마우스를 올리면 단위와 설명이 나옵니다. 곡선은 클릭해서 편집합니다.", MessageType.None);
         var iterator = serialized.GetIterator();

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -6,17 +7,18 @@ public class RoomInstance : MonoBehaviour
 {
     public RoomType roomType;
     /// <summary>
-    /// 일반 방이 어떤 보상을 주는지.
-    /// 각 타입이 몇 개 방에 배정되는지는 MapGenerationDataSO 의 카운트가 정한다 —
-    /// 나중에 특정 풀을 Reward 방으로 옮기거나 로비 고정으로 돌릴 때 숫자만 바꾸면 된다.
-    ///
-    /// [26/08/15] 2번은 원래 SubSummon 이었다. 서브 소환수 삭제로 Item 이 됐다.
-    /// <b>값(2)은 그대로 둔다</b> — enum 은 정수로 직렬화되므로, 중간 값을 지우거나 순서를 바꾸면
-    /// 이미 저작된 방 프리팹들의 보상 타입이 통째로 밀린다.
+    /// 일반 방의 보상 유형. 방 프리팹이 enum 값을 정수로 저장하므로 기존 순서와 Item 값 2를 유지한다.
     /// </summary>
     public enum NormalRewardType { [UnityEngine.InspectorName("플레이어 스킬")] PlayerSkill, [UnityEngine.InspectorName("메인 소환")] MainSummon, [UnityEngine.InspectorName("아이템")] Item }
     [Header("일반 방 보상 세부 설정")]
     public NormalRewardType normalRewardType;
+    [SerializeField, HideInInspector] private bool hasAuthoredReward;
+    public bool HasAuthoredReward => hasAuthoredReward;
+    internal void SetAuthoredReward(NormalRewardType type)
+    {
+        normalRewardType=type;
+        hasAuthoredReward=true;
+    }
     public Vector2Int roomSize;
     public Vector2 centerOffset;
 
@@ -31,8 +33,8 @@ public class RoomInstance : MonoBehaviour
 
     [HideInInspector] public int debugDepth = -1; // 맵 생성 시 계산된 깊이 저장용
     [HideInInspector] public int phaseIndex = -1; // 방이 생성된 맵 생성 페이즈 인덱스
-    [HideInInspector] public Vector2Int gridPosition = Vector2Int.zero; // [추가] 아이작 스타일 가상 그리드 좌표
-    [HideInInspector] public bool isRevealedOnMinimap = false; // [추가] 미니맵에 밝혀져 전사된 상태인지 여부
+    [HideInInspector] public Vector2Int gridPosition = Vector2Int.zero; // 아이작 스타일 가상 그리드 좌표
+    [HideInInspector] public bool isRevealedOnMinimap = false; // 미니맵에 밝혀져 전사된 상태인지 여부
 
     public float GetDiameter()
     {
@@ -95,15 +97,20 @@ public class RoomInstance : MonoBehaviour
 
     [Header("전투와 이벤트")]
     public bool isCleared = false;
+    private bool shopVisitFinished;
+    public bool AllowsSprint => roomType == RoomType.Shop || roomType == RoomType.EnhanceShop
+        ? shopVisitFinished : isCleared;
+    public bool CanSprintAt(Vector2 feet) => AllowsSprint && groundTilemap != null && IsFloorAt(feet);
+    public void FinishShopVisit() => shopVisitFinished = true;
     public bool hasBeenVisited = false;
     public List<DoorUpController> doorObjects = new List<DoorUpController>(); // MapGenerator에서 할당
-    [SerializeField] private AudioClip roomBGM; // [추가] 이 방에서 나올 음악
+    [SerializeField] private AudioClip roomBGM; // 이 방에서 나올 음악
 
     [Header("미니맵 아이콘 설정")]
     [Tooltip("방 프리팹 하위의 MiniMapIcons 최상위 부모 오브젝트입니다. 미지정 시 transform.Find(\"MiniMapIcons\")로 자동 검색합니다.")]
     [SerializeField] private Transform miniMapIconsParent;
 
-    // [추가] 방에 처음 들어갈 때마다 호출되는 전역 이벤트 (매니저들에서 방 리셋용으로 사용)
+    // 방에 처음 들어갈 때마다 호출되는 전역 이벤트 (매니저들에서 방 리셋용으로 사용)
     public static System.Action<RoomInstance> OnPlayerEnteredRoom;
 
     private IRoomEvent _roomEvent;
@@ -223,8 +230,8 @@ public class RoomInstance : MonoBehaviour
         _triggerCollider.size = new Vector2(Mathf.Max(1, roomSize.x - 4f), Mathf.Max(1, roomSize.y - 4f));
         _triggerCollider.offset = centerOffset;
 
-        // [수정] 일반 방(Normal)일 때 보상 종류를 전체 Enum 개수에 맞추어 무작위로 초기 결정 (맵 빌더에서 오버라이트 가능)
-        if (roomType == RoomType.Normal)
+        // 일반 방(Normal)일 때 보상 종류를 전체 Enum 개수에 맞추어 무작위로 초기 결정 (맵 빌더에서 오버라이트 가능)
+        if (roomType == RoomType.Normal && !hasAuthoredReward)
         {
             normalRewardType = (NormalRewardType)Random.Range(0, System.Enum.GetValues(typeof(NormalRewardType)).Length);
         }
@@ -232,7 +239,7 @@ public class RoomInstance : MonoBehaviour
         // 미니맵 아이콘들 상태 갱신
         SetRewardTypeAndSyncIcon(normalRewardType);
 
-        // [수정] 방 한가운데 감지용 콜라이더(CombatCenterTrigger) 프리팹 바인딩 및 누락 시 Fallback 안전 자동 셋업
+        // 방 한가운데 감지용 콜라이더(CombatCenterTrigger) 프리팹 바인딩 및 누락 시 Fallback 안전 자동 셋업
         // Augment(증강 선택) 방도 전투 방이다 — 한가운데 도달하면 카드가 뜨고 그 뒤에 전투가 시작된다.
         if (roomType == RoomType.Normal || roomType == RoomType.Elite || roomType == RoomType.Boss || roomType == RoomType.Augment)
         {
@@ -337,7 +344,7 @@ public class RoomInstance : MonoBehaviour
     {
         hasBeenVisited = true;
 
-        // [추가] 강제 진입 시 진입한 방을 촘촘한 미니맵에 실시간으로 그려서 개방
+        // 강제 진입 시 진입한 방을 촘촘한 미니맵에 실시간으로 그려서 개방
         if (MapGenerator.Instance != null)
         {
             MapGenerator.Instance.DrawRoomOnMinimap(this);
@@ -362,13 +369,13 @@ public class RoomInstance : MonoBehaviour
         {
             hasBeenVisited = true;
             
-            // [추가] 플레이어가 방 진입 시 촘촘한 미니맵에 그려서 실시간으로 미니맵 안개를 걷음
+            // 플레이어가 방 진입 시 촘촘한 미니맵에 그려서 실시간으로 미니맵 안개를 걷음
             if (MapGenerator.Instance != null)
             {
                 MapGenerator.Instance.DrawRoomOnMinimap(this);
             }
 
-            // [추가] 방 입장 전역 이벤트 발생
+            // 방 입장 전역 이벤트 발생
             OnPlayerEnteredRoom?.Invoke(this);
             PlayEntryDialogue();
 
@@ -377,7 +384,7 @@ public class RoomInstance : MonoBehaviour
                 && _roomEvent is EliteRoomEvent eliteEvent
                 && eliteEvent.SkipEncounterForCurrentFloor;
 
-            // [수정] 전투를 시작하지 않는 예외적인 방(스폰, 상점, 강화 상점, 보상방 등)에만 입장 즉시 BGM 및 이벤트 격발
+            // 전투를 시작하지 않는 예외적인 방(스폰, 상점, 강화 상점, 보상방 등)에만 입장 즉시 BGM 및 이벤트 격발
             if (roomType == RoomType.Spawn || roomType == RoomType.Shop || roomType == RoomType.EnhanceShop || roomType == RoomType.Reward || skipElite)
             {
                 if (roomBGM != null && SoundManager.Instance != null)
@@ -446,11 +453,12 @@ public class RoomInstance : MonoBehaviour
 
     public void MarkCleared()
     {
+        if (isCleared) return;
         isCleared = true;
         SetDoorsOpen(true);
         _roomEvent?.OnRoomCleared(this);
 
-        // [26/09/09] 방 클리어 회복은 여기서 빼냈다.
+        // 방 클리어 회복은 여기서 빼냈다.
         // 예전엔 무조건 10 회복이었는데, 이제는 ItemRoomClearHealEffect 를 가진 아이템을
         // 주머니에 넣고 있을 때만 발동한다 — ItemPouch.HandleRoomCleared 참조.
         OnAnyRoomCleared?.Invoke(this);
@@ -458,17 +466,28 @@ public class RoomInstance : MonoBehaviour
 
     public void MergeTilesToGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow, Tilemap globalUnsteppable = null)
     {
+        var transfer = MergeTilesForFloor(globalGround, globalWall, globalShadow, globalUnsteppable, 0);
+        while (transfer.MoveNext()) { }
+    }
+
+    internal IEnumerator MergeTilesForFloor(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow,
+        Tilemap globalUnsteppable, double budget)
+    {
         _myTiles = new HashSet<Vector2Int>();
         _animCandidates = new List<AnimCell>();
         _animatedCells.Clear();
         _animationsActive = true;
 
-        StampTilemap(groundTilemap, globalGround);
-        StampTilemap(wallTilemap, globalWall);
-        StampTilemap(shadowTilemap, globalShadow);
-        if (unsteppableTilemap != null && globalUnsteppable != null)
+        var transfers = new[] {
+            RoomTileTransfer.Stamp(groundTilemap, globalGround, budget, RegisterCells),
+            RoomTileTransfer.Stamp(wallTilemap, globalWall, budget, RegisterCells),
+            RoomTileTransfer.Stamp(shadowTilemap, globalShadow, budget, RegisterCells),
+            RoomTileTransfer.Stamp(unsteppableTilemap, globalUnsteppable, budget, RegisterCells)
+        };
+        foreach (var transfer in transfers)
         {
-            StampTilemap(unsteppableTilemap, globalUnsteppable);
+            while (transfer.MoveNext()) yield return transfer.Current;
+            if (budget > 0) yield return null;
         }
         if (groundTilemap != null) groundTilemap.gameObject.SetActive(false);
         if (wallTilemap != null) wallTilemap.gameObject.SetActive(false);
@@ -478,7 +497,7 @@ public class RoomInstance : MonoBehaviour
 
     
     // ─────────────────────────────────────────────────────────────
-    // [추가] 타일 애니메이션 스코프 제어
+    // 타일 애니메이션 스코프 제어
     // 방 타일은 MergeTilesToGlobal 로 글로벌 타일맵에 스탬프된 뒤 원본 타일맵이 꺼지므로,
     // 방이 자기 애니메이션 셀을 되찾으려면 스탬프 시점의 (글로벌 타일맵, 셀) 쌍을 들고 있어야 한다.
     // 정지는 TileAnimationFlags.PauseAnimation 으로만 한다 — SetTile 로 정적/애니메이션 타일을
@@ -503,11 +522,24 @@ public class RoomInstance : MonoBehaviour
     /// </summary>
     public void FinalizeAnimatedCells()
     {
+        var work = FinalizeAnimatedCells(false);
+        while (work.MoveNext()) { }
+    }
+
+    internal IEnumerator FinalizeAnimatedCells(bool staged)
+    {
         _animatedCells.Clear();
         if (_animCandidates != null)
         {
+            double deadline = Time.realtimeSinceStartupAsDouble + .002;
+            int scanned = 0;
             foreach (var c in _animCandidates)
             {
+                if (staged && (++scanned & 127) == 0 && Time.realtimeSinceStartupAsDouble >= deadline)
+                {
+                    yield return null;
+                    deadline = Time.realtimeSinceStartupAsDouble + .002;
+                }
                 if (c.map == null) continue;
                 if (c.map.GetAnimationFrameCount(c.cell) > 1)
                     _animatedCells.Add(c);
@@ -587,75 +619,23 @@ private HashSet<Vector2Int> _myTiles = null;
         return _myTiles.Contains(cellPos);
     }
 
-    private void StampTilemap(Tilemap source, Tilemap target)
+    private void RegisterCells(Tilemap target, Vector3Int[] cells)
     {
-        if (source == null || target == null) return;
-        using var timing = MapGenerator.MeasureGeneration($"1.Stamp room={name} layer={source.name}");
-        using (MapGenerator.MeasureGeneration("1.Stamp CompressBounds"))
-            source.CompressBounds();
-        BoundsInt bounds = source.cellBounds;
-        if (bounds.size.x <= 0 || bounds.size.y <= 0 || bounds.size.z <= 0) return;
-
-        // 타일마다 GetTile/SetTile을 호출하지 않고, 실제로 채워진 타일만 한 번에 읽고 쓴다.
-        Vector3Int rangeEnd = bounds.max - Vector3Int.one;
-        int tileCount;
-        using (MapGenerator.MeasureGeneration($"1.Stamp GetTilesRangeCount bounds={bounds.size}"))
-            tileCount = source.GetTilesRangeCount(bounds.min, rangeEnd);
-        if (tileCount == 0) return;
-
-        var sourcePositions = new Vector3Int[tileCount];
-        var tiles = new TileBase[tileCount];
-        using (MapGenerator.MeasureGeneration($"1.Stamp GetTilesRangeNonAlloc tiles={tileCount}"))
-            tileCount = source.GetTilesRangeNonAlloc(bounds.min, rangeEnd, sourcePositions, tiles);
-        var targetPositions = new Vector3Int[tileCount];
-
-        // 두 타일맵 사이의 셀 변환은 방 전체에서 동일하다. 매 타일마다 행렬 변환하지 않는다.
-        Vector3Int targetOrigin = target.WorldToCell(source.CellToWorld(Vector3Int.zero));
-        Vector3Int targetX = target.WorldToCell(source.CellToWorld(Vector3Int.right)) - targetOrigin;
-        Vector3Int targetY = target.WorldToCell(source.CellToWorld(Vector3Int.up)) - targetOrigin;
-        Vector3Int targetZ = target.WorldToCell(source.CellToWorld(new Vector3Int(0, 0, 1))) - targetOrigin;
-
-        using (MapGenerator.MeasureGeneration($"1.Stamp convert + register tiles={tileCount}"))
+        foreach (var cell in cells)
         {
-            for (int i = 0; i < tileCount; i++)
-            {
-                Vector3Int pos = sourcePositions[i];
-                Vector3Int targetCellPos = targetOrigin + targetX * pos.x + targetY * pos.y + targetZ * pos.z;
-                targetPositions[i] = targetCellPos;
-                if (_myTiles != null) _myTiles.Add(new Vector2Int(targetCellPos.x, targetCellPos.y));
-                if (_animCandidates != null) _animCandidates.Add(new AnimCell(target, targetCellPos));
-            }
+            _myTiles.Add(new Vector2Int(cell.x, cell.y));
+            _animCandidates.Add(new AnimCell(target, cell));
         }
-
-        using (MapGenerator.MeasureGeneration($"1.Stamp SetTiles target={target.name} tiles={tileCount}"))
-            target.SetTiles(targetPositions, tiles);
     }
 
     public void EraseTilesFromGlobal(Tilemap globalGround, Tilemap globalWall, Tilemap globalShadow, Tilemap globalUnsteppable = null)
     {
-        UnstampTilemap(groundTilemap, globalGround);
-        UnstampTilemap(wallTilemap, globalWall);
-        UnstampTilemap(shadowTilemap, globalShadow);
+        RoomTileTransfer.Erase(groundTilemap, globalGround);
+        RoomTileTransfer.Erase(wallTilemap, globalWall);
+        RoomTileTransfer.Erase(shadowTilemap, globalShadow);
         if (unsteppableTilemap != null && globalUnsteppable != null)
         {
-            UnstampTilemap(unsteppableTilemap, globalUnsteppable);
-        }
-    }
-
-    private void UnstampTilemap(Tilemap source, Tilemap target)
-    {
-        if (source == null || target == null) return;
-        source.CompressBounds();
-        BoundsInt bounds = source.cellBounds;
-        foreach (var pos in bounds.allPositionsWithin)
-        {
-            TileBase tile = source.GetTile(pos);
-            if (tile != null)
-            {
-                Vector3 worldPos = source.CellToWorld(pos);
-                Vector3Int targetCellPos = target.WorldToCell(worldPos);
-                target.SetTile(targetCellPos, null);
-            }
+            RoomTileTransfer.Erase(unsteppableTilemap, globalUnsteppable);
         }
     }
 

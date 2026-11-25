@@ -22,6 +22,7 @@ public static class TutorialFlow
     public static void Complete()
     {
         IsRunning = false;
+        if (WorkshopTrial.Active) return;
         PlayerPrefs.SetInt(Key, 1);
         PlayerPrefs.Save();
     }
@@ -37,6 +38,7 @@ public static class TutorialFlow
 
     public static void ResetProgress()
     {
+        if (WorkshopTrial.Active) return;
         PlayerPrefs.DeleteKey(Key);
         PlayerPrefs.Save();
         Debug.Log("<color=yellow>[TutorialFlow]</color> 튜토리얼 완료 기록을 지웠다 — 다음 새 게임에서 다시 나온다.");

@@ -35,6 +35,7 @@ MonoBehaviour:
     spriteName: vulnerable
     badgeColor: {r: 0.56700003, g: 0.56700003, b: 0.56700003, a: 1}
   - id: break_stack
+    textMotion: Enchantment
     displayName:
       m_TableReference:
         m_TableCollectionName: GUID:0445db3d9809f9f428335fc4c031aaf6
@@ -77,6 +78,7 @@ MonoBehaviour:
     spriteName: smash
     badgeColor: {r: 0.56700003, g: 0.56700003, b: 0.56700003, a: 1}
   - id: stun_stack
+    textMotion: Enchantment
     displayName:
       m_TableReference:
         m_TableCollectionName: GUID:0445db3d9809f9f428335fc4c031aaf6

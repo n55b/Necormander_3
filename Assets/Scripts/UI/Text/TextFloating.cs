@@ -1,58 +1,45 @@
-using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using System.Collections.Generic;
 
-public class TextFloating : MonoBehaviour
+[DefaultExecutionOrder(1100)]
+public class TextFloating : MonoBehaviour, UnityEngine.UI.IMaterialModifier
 {
     private TextMeshProUGUI textMesh;
 
-    private Camera cam;
     private Canvas parentCanvas;
     private RectTransform rectTransform;
+    private RectTransform parentRect;
 
     // Text Location
-    private Transform target;
     private Vector3 spawnWorldPosition;
     private Vector3 offSet;
+    private CanvasGroup opacity;
+    private PixelText pixelText;
 
     [Header("텍스트 설정")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float fadeTime;
     [SerializeField] private float displaytime;
-    [SerializeField] private float punchDuration;
-    [SerializeField] private float CiriPunchDuration;
 
     [Header("치명타")]
     [Tooltip("치명타 데미지 숫자 색(데미지 타입 색을 덮어씀).")]
     [SerializeField] private Color critColor = new Color(1f, 0.9f, 0.15f);
-    [Tooltip("치명타 외곽선 색.")]
-    [SerializeField] private Color critOutlineColor = new Color(0.4f, 0.2f, 0f);
-    [SerializeField, Range(0f, 1f)] private float critOutlineWidth = 0.3f;
-    [Tooltip("뜰 때 외곽선이 잠깐 이 두께까지 부풀었다가 돌아온다.")]
-    [SerializeField, Range(0f, 1f)] private float critOutlinePulseWidth = 0.45f;
-    [SerializeField] private float critOutlinePulseTime = 0.12f;
-    [Tooltip("치명타 숫자 기본 크기 배율(일반 = 1).")]
-    [SerializeField] private float critScale = 1.9f;
+    [SerializeField, Min(8)] private int normalPixels = 10;
+    [SerializeField, Min(8)] private int criticalPixels = 15;
 
-    [Header("일반")]
-    [Tooltip("일반 데미지 펀치 강도 배율. 1 = 예전 세기, 낮을수록 약해진다.")]
-    [SerializeField, Range(0f, 1f)] private float normalPunchStrength = 0.4f;
-
-    [Header("숫자 등장 동작")]
     [Min(0f), SerializeField] private float horizontalJitter = .5f;
-    [Min(.001f), SerializeField] private float normalPositionPunchTime = .5f;
-    [Min(.001f), SerializeField] private float normalScalePunchTime = .25f;
-    [Min(.001f), SerializeField] private float criticalPunchTime = .3f;
-    [Min(.001f), SerializeField] private float criticalShakeTime = .3f;
-    [Min(0f), SerializeField] private float criticalShakeAngle = 30f;
-    [Min(1), SerializeField] private int positionPunchVibrato = 10;
-    [Min(1), SerializeField] private int scalePunchVibrato = 8;
-    [Min(1), SerializeField] private int criticalPunchVibrato = 10;
-    [Min(1), SerializeField] private int criticalShakeVibrato = 20;
-    [Range(0f, 1f), SerializeField] private float normalScaleElasticity = .6f;
 
     private float timer;
+    private CombatTextLibrary.Style style;
+    private int lane;
+    private Vector2 screenOffset;
+    internal bool IsDamageLabel { get; private set; }
+    public Material GetModifiedMaterial(Material source)
+    {
+        var manager = FloatingTextManager.Instance;
+        return IsDamageLabel && manager != null ? manager.InkFor(source) : source;
+    }
     private TMPTextEffectPlayer effectPlayer;
     private static readonly List<TextEffectRange> tempEffectRanges = new List<TextEffectRange>();
 
@@ -65,75 +52,77 @@ public class TextFloating : MonoBehaviour
     /// <summary>현재 세로 오프셋(월드 단위). 줄 쌓기에서 위아래 간격을 잴 때 쓴다.</summary>
     public float OffsetY => offSet.y;
 
-    private void Awake()
+    private void Awake() => Bind();
+
+    private void Bind()
     {
+        if (opacity != null && effectPlayer != null) return;
         textMesh = GetComponent<TextMeshProUGUI>();
+        pixelText = PixelText.Configure(textMesh, normalPixels);
         rectTransform = GetComponent<RectTransform>();
-        parentCanvas = GetComponentInParent<Canvas>();
-        cam = parentCanvas != null ? parentCanvas.worldCamera : Camera.main;
-        if (cam == null) cam = Camera.main;
+        opacity = GetComponent<CanvasGroup>();
+        if (opacity == null) opacity = gameObject.AddComponent<CanvasGroup>();
+        CacheParent();
         effectPlayer = GetComponent<TMPTextEffectPlayer>();
         if (effectPlayer == null) effectPlayer = gameObject.AddComponent<TMPTextEffectPlayer>();
     }
 
-    public void SetUp(string _text, Color _color, Transform _target, bool isCritical = false, float scaleMultiplier = 1f)
+    private void OnTransformParentChanged() => CacheParent();
+
+    internal void PrepareDamageMesh()
     {
-        DOTween.Kill(textMesh); // Kill previous tween
-        DOTween.Kill(rectTransform);
+        // TMP needs an active canvas to allocate its glyph and motion buffers.
+        gameObject.SetActive(true);
+        Bind();
+        SetUpAt("8888", Color.white, Vector3.zero, false, 1f, "Hit", damageLabel: true);
+        textMesh.enabled = true;
+        pixelText.PrepareForRender();
+        textMesh.ForceMeshUpdate();
+        gameObject.SetActive(false);
+    }
 
-        timer = displaytime;
+    private void CacheParent()
+    {
+        parentRect = transform.parent as RectTransform;
+        parentCanvas = GetComponentInParent<Canvas>();
+    }
 
-        if (textMesh == null)
-            textMesh = GetComponent<TextMeshProUGUI>();
+    public void SetUp(string _text, Color _color, Transform _target, bool isCritical = false, float scaleMultiplier = 1f, string preset = null)
+        => SetUpAt(_text, _color, _target != null ? _target.position : transform.position, isCritical, scaleMultiplier, preset);
+
+    internal void SetUpAt(string _text, Color _color, Vector3 position, bool isCritical, float scaleMultiplier, string preset,
+        CombatTextLibrary.Style combatStyle = null, int sequence = 0, bool damageLabel = false)
+    {
+        Bind();
+        style = combatStyle;
+        if (IsDamageLabel != damageLabel) textMesh.SetMaterialDirty();
+        IsDamageLabel = damageLabel;
+        effectPlayer.padCombatInk = damageLabel && FloatingTextManager.Instance != null && FloatingTextManager.Instance.HasInk;
+        lane = sequence;
+        timer = style != null ? Mathf.Max(.1f, style.lifetime) : displaytime;
+        screenOffset = style != null ? style.Offset(0, lane, UISkinSettings.MotionOn) : Vector2.zero;
 
         string parsedText = TextEffectParser.Parse(_text, tempEffectRanges);
         textMesh.text = parsedText;
         textMesh.color = _color;
-        target = _target;
         NoticeKey = null;
-        spawnWorldPosition = _target != null ? _target.position : transform.position;
+        spawnWorldPosition = position;
 
-        offSet = new Vector3(Random.Range(-horizontalJitter, horizontalJitter), 0);
+        offSet = style != null ? Vector3.zero : new Vector3(PolishFeedback.VisualRange(-horizontalJitter, horizontalJitter), 0);
+        opacity.alpha = 1f;
 
         // Set initial position immediately to avoid flashes at incorrect world coordinates.
         UpdatePosition();
         gameObject.SetActive(true);
 
         // Reset Transform
-        rectTransform.localScale = Vector3.one * scaleMultiplier;
+        rectTransform.localScale = Vector3.one;
         rectTransform.localRotation = Quaternion.identity;
-
-        if (isCritical)
-        {
-            // 1. Critical Scale Base (scaleMultiplier와 함께 적용)
-            rectTransform.localScale = Vector3.one * critScale * scaleMultiplier;
-
-            // 2. Powerful Animation Combo
-            // Scale Punch ("Pop" effect)
-            rectTransform.DOPunchScale(Vector3.one * CiriPunchDuration, criticalPunchTime, criticalPunchVibrato, 1);
-            // Rotation Shake ("Impact" effect)
-            rectTransform.DOShakeRotation(criticalShakeTime, criticalShakeAngle, criticalShakeVibrato, 90f);
-
-            // 3. Visuals: 주황 글자 + 진한 외곽선이 한 번 두꺼워졌다 돌아오는 펄스
-            textMesh.color = critColor;
-            textMesh.outlineColor = critOutlineColor;
-            textMesh.outlineWidth = critOutlineWidth;
-            DOTween.To(() => textMesh.outlineWidth, w => textMesh.outlineWidth = w, critOutlinePulseWidth, critOutlinePulseTime)
-                .SetLoops(2, LoopType.Yoyo)
-                .SetEase(Ease.OutQuad)
-                .SetTarget(textMesh); // 풀 재사용 시 SetUp 맨 위의 DOTween.Kill(textMesh)로 정리됨
-        }
-        else
-        {
-            // Reset Visuals
-            textMesh.outlineColor = Color.black;
-            textMesh.outlineWidth = 0.2f; // Default thickness
-
-            // Normal Punch (normalPunchStrength로 위치·스케일 펀치를 함께 줄임)
-            rectTransform.DOPunchPosition(Vector3.one * normalPunchStrength, normalPositionPunchTime, positionPunchVibrato, 1);
-            rectTransform.DOPunchScale(Vector3.one * punchDuration * normalPunchStrength, normalScalePunchTime, scalePunchVibrato, normalScaleElasticity);
-        }
-        effectPlayer.ApplyEffects(tempEffectRanges);
+        int pixels = style != null ? style.fontPixels : isCritical ? criticalPixels : normalPixels;
+        pixelText.SetLogicalSize(Mathf.Max(8, Mathf.RoundToInt(scaleMultiplier * pixels)));
+        if (isCritical) textMesh.color = critColor;
+        if (tempEffectRanges.Count == 0) effectPlayer.PlayPreset(preset ?? (isCritical ? "Critical" : "Hit"));
+        else effectPlayer.ApplyEffects(tempEffectRanges);
     }
 
     /// <summary>
@@ -163,68 +152,50 @@ public class TextFloating : MonoBehaviour
 
     private void Update()
     {
-        // 생성 위치(spawnWorldPosition)에 고정돼 떠오르므로 대상이 파괴돼도 끝까지 보여준다.
-        // (예전엔 target == null 이면 즉시 꺼져서, 분해된 아이템·죽은 적 위의 텍스트가 바로 사라졌다.)
+        // 생성 시점의 월드 위치를 기준으로 떠오른다. 대상의 수명과 독립적으로 표시 시간을 유지한다.
         timer -= Time.deltaTime;
 
         // Fade Out
-        Color color = textMesh.color;
-        color.a = timer / fadeTime;
-        textMesh.color = color;
-
-        offSet.y += moveSpeed * Time.deltaTime;
-
-        UpdatePosition();
+        if (style != null)
+        {
+            float t = Mathf.Clamp01(1 - timer / Mathf.Max(.1f, style.lifetime));
+            screenOffset = style.Offset(t, lane, UISkinSettings.MotionOn);
+            opacity.alpha = 1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(style.fadeFrom, 1, t));
+        }
+        else
+        {
+            opacity.alpha = Mathf.Clamp01(timer / Mathf.Max(.001f, fadeTime));
+            offSet.y += moveSpeed * Time.deltaTime;
+        }
 
         if (timer <= 0)
-        {
-            target = null;
             gameObject.SetActive(false);
-        }
+    }
+
+    private void OnEnable() => Canvas.preWillRenderCanvases += RefreshDisplay;
+
+    private void RefreshDisplay()
+    {
+        UpdatePosition();
     }
 
     private void UpdatePosition()
     {
         if (rectTransform == null) return;
-
-        if (cam == null)
+        bool projected = PixelViewport.TryWorldToGamePoint(spawnWorldPosition + offSet, out var point);
+        point += screenOffset;
+        var pixel = (Vector2)point;
+        if (projected && PixelViewport.TryGamePointToCanvas(pixel, parentCanvas, parentRect, out Vector2 local))
         {
-            cam = parentCanvas != null ? parentCanvas.worldCamera : Camera.main;
-            if (cam == null) return;
+            if (rectTransform.localPosition != (Vector3)local) rectTransform.localPosition = local;
+            textMesh.enabled = true;
         }
-
-        Vector3 worldPosition = spawnWorldPosition + offSet;
-        Vector3 screenPos = cam.WorldToScreenPoint(worldPosition);
-
-        if (parentCanvas == null)
-        {
-            transform.position = screenPos;
-            return;
-        }
-
-        RectTransform canvasRect = parentCanvas.transform as RectTransform;
-        if (canvasRect == null)
-        {
-            transform.position = screenPos;
-            return;
-        }
-
-        if (parentCanvas.renderMode == RenderMode.WorldSpace)
-        {
-            if (RectTransformUtility.ScreenPointToWorldPointInRectangle(canvasRect, screenPos, parentCanvas.worldCamera, out Vector3 worldPoint))
-            {
-                rectTransform.position = worldPoint;
-            }
-        }
-        else
-        {
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenPos, parentCanvas.worldCamera, out Vector2 localPoint);
-            rectTransform.anchoredPosition = localPoint;
-        }
+        else textMesh.enabled = false;
     }
 
     private void OnDisable()
     {
+        Canvas.preWillRenderCanvases -= RefreshDisplay;
         // 씬 언로드 중에는 매니저가 먼저 사라질 수 있다.
         var manager = FloatingTextManager.Instance;
         if (manager != null) manager.ReturnToPool(this);

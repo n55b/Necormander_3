@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public enum MinionActionType
 {
-    // [26/07/17] 상태이상 부여 타입(ApplyStun/Strike/Smash/StunExtension/ApplyCorrosion)은 삭제됐다.
+    // 상태이상 부여 타입(ApplyStun/Strike/Smash/StunExtension/ApplyCorrosion)은 삭제됐다.
     // 스킬은 상태이상을 걸지 않는다 — 부여 수단은 유물/아이템 전용이다.
     // 값 순서는 그대로 두었다(0/1/2). 에셋이 인덱스로 직렬화돼 있어서 바꾸면 데이터가 어긋난다.
     [UnityEngine.InspectorName("피해 전용")] DamageOnly,             // 데미지만 입힘
@@ -146,7 +146,7 @@ public class MinionActionSkillSO : MinionSkillSO
         user.position = teleportPos;
 
         PlaySkillSound();
-        ShakeCamera();
+
 
         // 미니언 바라보는 방향 + 히트박스 방향. 원거리형이면 마우스 조준, 아니면 기존 타겟 방향.
         Vector2 skillDir = rangedMode ? aimDir : dirFromPlayer;
@@ -179,6 +179,8 @@ public class MinionActionSkillSO : MinionSkillSO
             !string.IsNullOrEmpty(skillName) ? skillName : $"Action {actionType}", category: DamageCategory.Skill,
             applyStatus: onHitStatus == StatusType.None ? (StatusType?)null : onHitStatus);
         info.minionSource = caster;
+        info.impactStopSeconds = hitStopDuration;
+        info.impactStrength = shakeForce;
 
         if (useHitBox && hitBoxPrefab != null && UsesZones)
         {
@@ -231,7 +233,7 @@ public class MinionActionSkillSO : MinionSkillSO
                 (window, useContinuous) =>
                 {
                     if (box == null) return;
-                    DoHitStop();
+
                     float w = Mathf.Max(0.05f, window);
                     if (useContinuous && hitCount > 1)
                     {
@@ -257,10 +259,11 @@ public class MinionActionSkillSO : MinionSkillSO
                 (window, useContinuous) =>
                 {
                     if (caster == null || closestTarget == null) return;
-                    DoHitStop();
+
                     var health = closestTarget.GetComponentInChildren<CharacterHealth>()
                         ?? closestTarget.GetComponentInParent<CharacterHealth>();
                     if (health == null || health.IsDead) return;
+                    info.impactPulse++;
                     health.GetDamage(info);
                     var stat = health.GetComponent<CharacterStat>()
                         ?? health.GetComponentInParent<CharacterStat>()
@@ -315,13 +318,15 @@ public class MinionActionSkillSO : MinionSkillSO
             {
                 if (opened) return; // 이벤트가 여러 번 와도 충격파는 한 번만
                 opened = true;
-                DoHitStop();
+
                 for (int i = 0; i < n; i++)
                 {
                     var z = zones[i];
                     if (z == null) continue;
                     float delay = i * zoneInterval;
-                    z.Init(info, Layers.EnemyMask, zoneActiveTime, delay, true, onHit);
+                    var zoneHit = info;
+                    zoneHit.impactPulse = i;
+                    z.Init(zoneHit, Layers.EnemyMask, zoneActiveTime, delay, true, onHit);
                     if (delay <= 0f)
                     {
                         // 지연 없는 Init 은 콜라이더를 켜주지 않는다(지연 있으면 ForceActivate 가 켠다).

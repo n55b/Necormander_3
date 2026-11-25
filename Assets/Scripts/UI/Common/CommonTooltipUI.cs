@@ -67,7 +67,7 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
 
         tooltipPanel.pivot = new Vector2(0, 1);
 
-        Hide();
+        tooltipPanel.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -80,7 +80,7 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
 
     public void Show(TooltipData data)
     {
-        // [수정] 다른 UI(보상 카드 등)가 나중에 활성화되면서 툴팁보다 앞쪽 sibling으로 그려져
+        // 다른 UI(보상 카드 등)가 나중에 활성화되면서 툴팁보다 앞쪽 sibling으로 그려져
         // 툴팁이 그 뒤에 가려지는 문제를 방지하기 위해, 표시할 때마다 항상 맨 앞으로 올립니다.
         transform.SetAsLastSibling();
 
@@ -102,7 +102,7 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
                 if (locEvent != null) locEvent.StringReference = null;
                 titleText.text = data.title;
             }
-            // [수정] titleColor의 알파값이 0으로 넘어오는 경우(데이터 실수 등)에도 타이틀이
+            // titleColor의 알파값이 0으로 넘어오는 경우(데이터 실수 등)에도 타이틀이
             // 항상 보이도록 알파를 강제로 1로 고정합니다.
             Color safeTitleColor = data.titleColor;
             safeTitleColor.a = 1f;
@@ -164,7 +164,7 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
 
                 if (!string.IsNullOrEmpty(keyword) && data.description.Contains(keyword))
                 {
-                    // 🔥 기존 스킬 설명 밑에 한 줄 띄우고 키워드 설명을 강제로 추가해버립니다!
+                    // 스킬 설명 아래에 현재 키워드 설명을 추가한다.
                     string kTitle = keyword;
                     string kDesc = entry.description.GetLocalizedString();
 
@@ -174,7 +174,7 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
             }
         }
 
-        tooltipPanel.gameObject.SetActive(true);
+        UIOpenMotion.SetVisible(tooltipPanel.gameObject, true);
         LayoutRebuilder.ForceRebuildLayoutImmediate(tooltipPanel);
         UpdatePosition();
     }
@@ -182,32 +182,26 @@ public class CommonTooltipUI : Singleton<CommonTooltipUI>
     public void Hide()
     {
         if (tooltipPanel != null)
-            tooltipPanel.gameObject.SetActive(false);
+            UIOpenMotion.SetVisible(tooltipPanel.gameObject, false);
     }
 
     private void UpdatePosition()
     {
-        if (_canvas == null) return;
-        Vector2 mousePos = Input.mousePosition;
-        Vector2 localPos;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            _canvas.transform as RectTransform,
-            mousePos,
-            _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera,
-            out localPos
-        );
+        if (_canvas == null || tooltipPanel == null) return;
+        var canvasRect = (RectTransform)_canvas.rootCanvas.transform;
+        var mousePos = PixelViewport.ScreenToGamePoint(Input.mousePosition);
+        if (!PixelViewport.TryGamePointToCanvas(mousePos, _canvas, canvasRect, out var localPos)) return;
 
+        var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(canvasRect, tooltipPanel);
+        var currentPivot = canvasRect.InverseTransformPoint(tooltipPanel.position);
+        Vector2 min = bounds.min - currentPivot;
+        Vector2 max = bounds.max - currentPivot;
+        var viewport = canvasRect.rect;
         Vector2 finalPos = localPos + offset;
-        float canvasWidth = ((RectTransform)_canvas.transform).rect.width;
-        float canvasHeight = ((RectTransform)_canvas.transform).rect.height;
-        Vector2 tooltipSize = tooltipPanel.sizeDelta;
-
-        if (finalPos.x + tooltipSize.x > canvasWidth / 2f)
-            finalPos.x = localPos.x - tooltipSize.x - offset.x;
-
-        if (finalPos.y - tooltipSize.y < -canvasHeight / 2f)
-            finalPos.y = localPos.y + tooltipSize.y + Mathf.Abs(offset.y);
-
-        tooltipPanel.anchoredPosition = finalPos;
+        if (finalPos.x + max.x > viewport.xMax) finalPos.x = localPos.x - offset.x - max.x;
+        if (finalPos.y + min.y < viewport.yMin) finalPos.y = localPos.y + Mathf.Abs(offset.y) - min.y;
+        finalPos.x = Mathf.Max(viewport.xMin - min.x, Mathf.Min(finalPos.x, viewport.xMax - max.x));
+        finalPos.y = Mathf.Max(viewport.yMin - min.y, Mathf.Min(finalPos.y, viewport.yMax - max.y));
+        tooltipPanel.position = canvasRect.TransformPoint(new Vector3(finalPos.x, finalPos.y, currentPivot.z));
     }
 }

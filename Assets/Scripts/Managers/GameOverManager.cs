@@ -16,7 +16,7 @@ public class GameOverManager : Singleton<GameOverManager>
     public void TriggerGameOver()
     {
         ClearCombatWarnings();
-        gameOverPanel.SetActive(true); // 게임오버 패널 활성화
+        UIOpenMotion.SetVisible(gameOverPanel, true); // 게임오버 패널 활성화
         UIEventBus.NotifyOpen("GameOver"); // UI 소리 설정의 창 이름
     }
 
@@ -34,7 +34,7 @@ public class GameOverManager : Singleton<GameOverManager>
             var tmp = textTransform != null ? textTransform.GetComponent<TextMeshProUGUI>() : null;
             if (tmp != null) tmp.text = "GameClear!";
 
-            gameOverPanel.SetActive(true);
+            UIOpenMotion.SetVisible(gameOverPanel, true);
             UIEventBus.NotifyOpen("GameClear"); // UI 소리 설정의 창 이름
         }
     }
@@ -47,13 +47,13 @@ public class GameOverManager : Singleton<GameOverManager>
 
     public void RestartGame()
     {
-        GameManager.Instance.SetTimeStop(false); // 게임 시간 재개
+        HitStopManager.SetPaused(false, HitStopManager.PauseOwner.GameOver); // 게임 시간 재개
         UnityNote.SceneLoader.Load("VillageScene");
     }
 
     public void GoToMainMenu()
     {
-        GameManager.Instance.SetTimeStop(false); // 게임 시간 재개
+        HitStopManager.SetPaused(false, HitStopManager.PauseOwner.GameOver); // 게임 시간 재개
         UnityNote.SceneLoader.Load("StartScene");
     }
 }

@@ -159,7 +159,7 @@ public class MeleeDodgeController : MonoBehaviour
 
         PlayDashEffect();
 
-        // [추가] Unsteppable 안전 체크 및 대시 도달 범위 축소
+        // Unsteppable 안전 체크 및 대시 도달 범위 축소
         float baseDist = dashSpeed * dashDuration * (_player.Stat != null ? _player.Stat.DASH_DISTANCE_MULTIPLIER : 1f);
         float originalDist = baseDist;
 
@@ -266,9 +266,10 @@ public class MeleeDodgeController : MonoBehaviour
         var mod = main.dashModifier;
         Vector2 origin = transform.position;
         Vector2 dir = Vector2.right;
-        if (Camera.main != null && UnityEngine.InputSystem.Mouse.current != null)
+        var mouse = UnityEngine.InputSystem.Mouse.current;
+        if (mouse != null && PixelViewport.TryPointerToWorld(mouse.position.ReadValue(), out var point))
         {
-            Vector2 aim = (Vector2)Camera.main.ScreenToWorldPoint(UnityEngine.InputSystem.Mouse.current.position.ReadValue()) - origin;
+            Vector2 aim = point - origin;
             if (aim.sqrMagnitude > 0.0001f) dir = aim.normalized;
         }
 

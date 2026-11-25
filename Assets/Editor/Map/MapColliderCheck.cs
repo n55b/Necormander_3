@@ -113,7 +113,9 @@ public static class MapColliderCheck
     private static CompositeCollider2D BuildNew(MapGenerator generator, Tilemap map)
     {
         typeof(MapGenerator).GetField("globalWallTilemap", Private).SetValue(generator, map);
-        typeof(MapGenerator).GetMethod("SetupFinalColliders", Private).Invoke(generator, null);
+        var build = (System.Collections.IEnumerator)typeof(MapGenerator).GetMethod("SetupFinalColliders", Private).Invoke(generator, null);
+        while (build.MoveNext()) { }
+
         return map.GetComponent<CompositeCollider2D>();
     }
 

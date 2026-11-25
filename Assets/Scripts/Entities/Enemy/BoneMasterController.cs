@@ -113,7 +113,11 @@ public class BoneMasterController : EnemyController
         else if (_attackMotion.state.IndexOf("Prod", System.StringComparison.OrdinalIgnoreCase) >= 0)
             PolishFeedback.PlaySound(FeedbackCue.BossThrust, transform.position);
         PolishFeedback.Play(FeedbackCue.AttackRelease, transform.position, Vector2.up)?.FollowOrigin(transform);
-        if (_attackMotion.state.Contains("Jump")) PolishFeedback.Play(FeedbackCue.BossLand, transform.position);
+        if (_attackMotion.state.Contains("Jump"))
+        {
+            PolishFeedback.Play(FeedbackCue.BossLand, transform.position);
+            CameraManager.Instance?.Request(ImpactKind.BossLanding, Vector2.up);
+        }
         SampleAttack(_attackMotion.hitTime + 0.0001f);
         Animator.speed = 1f;
         OnHitEvent(); // 샘플링 중 억제한 이벤트를 정확히 한 번만 실행한다. 피해는 패턴에서 같은 프레임에 준다.
@@ -465,7 +469,7 @@ private IEnumerator Phase2TransitionRoutine()
         // 1회 클립이 아니라 루프지만 프레임이 하나뿐이라 결과는 정지 화면과 같다.
         BossAIPatternSO.PlayState(this, phase2TransitionState);
 
-        // [추가] 페이즈2 시작 연출: 방(맵) 정중앙으로 즉시 이동시킨다. 흉갑이 깨진 위치가 투기장 벽
+        // 페이즈2 시작 연출: 방(맵) 정중앙으로 즉시 이동시킨다. 흉갑이 깨진 위치가 투기장 벽
         // 근처 등 애매한 곳일 수 있어서, 페이즈2는 항상 중앙에서 시작하도록 고정한다.
         RoomInstance room = FindContainingRoom();
         if (room != null)

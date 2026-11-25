@@ -103,7 +103,7 @@ public abstract class BossAIPatternSO : BaseAIPatternSO
     // ==============================================================
     // 애니메이션 재생 헬퍼 (해태/본 마스터 공용)
     // ==============================================================
-    // [26/08/26] 원래 EliteChargerAIPatternSO 안에 private static 으로 있었다.
+    // 원래 EliteChargerAIPatternSO 안에 private static 으로 있었다.
     // 본 마스터가 페이즈마다 브레인 SO 를 따로 쓰는 구조라(BoneMasterAIPatternSO /
     // BoneMasterPhase2AIPatternSO) 그대로 두면 같은 구현이 세 벌이 된다. 세 브레인이
     // 전부 BossAIPatternSO 를 상속하므로 여기로 올려서 한 벌만 남긴다.
@@ -140,7 +140,7 @@ public abstract class BossAIPatternSO : BaseAIPatternSO
         float speed = 1f;
         if (matchSpeed && duration > 0.0001f)
         {
-            // [26/08/18] 기준점을 클립 끝에서 <b>타격 프레임(OnHitEvent)</b> 으로 옮겼다.
+            // 기준점을 클립 끝에서 <b>타격 프레임(OnHitEvent)</b> 으로 옮겼다.
             // 클립 끝을 windup 에 맞추면, 타격 프레임은 클립의 중간(42~54%)이라 항상 windup 의
             // 절반쯤에 지나가 버린다 — 해태가 이미 내려찍고 원래 자세로 돌아온 뒤에야 데미지가
             // 들어왔다(측정값 ①-0.52s ③-0.59s 슬램-0.60s). 타격 프레임을 duration 끝에 맞추면

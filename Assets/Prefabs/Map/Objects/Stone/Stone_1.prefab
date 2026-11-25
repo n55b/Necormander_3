@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4764142670010434880}
   - component: {fileID: 5346183251120475826}
   - component: {fileID: 1551290572708307210}
+  - component: {fileID: 6873340098875642191}
   m_Layer: 0
   m_Name: Stone_1
   m_TagString: Untagged
@@ -75,7 +76,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 1755609611
+  m_SortingLayerID: 0
   m_SortingLayer: -1
   m_SortingOrder: 0
   m_Sprite: {fileID: 531469429, guid: 55dc691b1001a5d4c9f21ae751705819, type: 3}
@@ -101,10 +102,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDynamic: 0
-  precision: 100
-  baseOffset: 0
   pivotOverride: {fileID: 0}
+  occludesPlayer: 1
 --- !u!61 &1551290572708307210
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -151,3 +150,22 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.875, y: 0.34818405}
   m_EdgeRadius: 0
+--- !u!114 &6873340098875642191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 2714614975619600806}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7db70e0ea77f5ac47a8f4565a9406397, type: 3}
+  m_Name:
+  m_ShadowCastingSource: 1
+  m_CastingOption: 1
+  m_CastsShadows: 1
+  m_SelfShadows: 0
+  m_UseRendererSilhouette: 0
+  m_ShapePathHash: 1
+  m_ApplyToSortingLayers: 0b7aa4688184013c81521176000000005173e562
+  m_ShapePath:
+  - {x: -0.40250, y: 0.05505, z: 0}
+  - {x: 0.40250, y: 0.05505, z: 0}
+  - {x: 0.37625, y: 0.28833, z: 0}
+  - {x: -0.37625, y: 0.28833, z: 0}

@@ -3,3 +3,4 @@
 *.ttf binary
 *.otf binary
 *.asset binary
+DATA/**/*.json text eol=lf

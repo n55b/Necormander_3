@@ -23,6 +23,8 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
     private MinionDataSO _minion;
     private SpriteRenderer _sr;
     private bool _consumed;
+    private bool labelPrepared;
+    private static GroundItem itemPrefab, minionPrefab;
     private static Sprite _fallbackItemIcon;
     public ItemSO Item => _item;
     public MinionDataSO Minion => _minion;
@@ -34,7 +36,7 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
     public static GroundItem Drop(ItemSO item, Vector3 pos, bool scatter = true)
     {
         if (item == null) return null;
-        var result = Spawn("GroundItem", pos, scatter);
+        var result = Spawn(ref itemPrefab, "GroundItem", pos, scatter);
         if (result != null) result.SetItem(item);
         return result;
     }
@@ -42,16 +44,28 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
     public static GroundItem Drop(MinionDataSO minion, Vector3 pos)
     {
         if (!(minion is MainMinionDataSO)) return null;
-        var result = Spawn("GroundMinion", pos);
+        var result = Spawn(ref minionPrefab, "GroundMinion", pos);
         if (result != null) result.SetMinion(minion);
         return result;
     }
 
-    private static GroundItem Spawn(string resource, Vector3 pos, bool scatter = true)
+    internal static GroundItem ItemPrefab
     {
-        var prefab = Resources.Load<GroundItem>(resource);
+        get
+        {
+            if (itemPrefab == null) itemPrefab = Resources.Load<GroundItem>("GroundItem");
+            return itemPrefab;
+        }
+    }
+
+    private static GroundItem Spawn(ref GroundItem prefab, string resource, Vector3 pos, bool scatter = true)
+    {
+        if (prefab == null) prefab = Resources.Load<GroundItem>(resource);
         if (prefab == null) { Debug.LogError($"[GroundItem] Resources/{resource} 프리팹 누락. 원본은 소비하지 않습니다."); return null; }
-        return Instantiate(prefab, scatter ? pos + (Vector3)(Random.insideUnitCircle * 0.4f) : pos, Quaternion.identity);
+        Vector3 position = scatter ? pos + (Vector3)(Random.insideUnitCircle * 0.4f) : pos;
+        var data = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
+        var prepared = data != null ? data.TakePreparedObject(prefab.gameObject, position) : null;
+        return prepared != null ? prepared.GetComponent<GroundItem>() : Instantiate(prefab, position, Quaternion.identity);
     }
 
     // 주머니/드래그/월드 픽업이 같은 그림을 쓴다. 미저작 아이템도 픽업 프리팹의 기존 그림으로 통일한다.
@@ -61,7 +75,7 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
         if (item.icon != null) return item.icon;
         if (_fallbackItemIcon == null)
         {
-            var prefab = Resources.Load<GroundItem>("GroundItem");
+            var prefab = ItemPrefab;
             if (prefab != null) _fallbackItemIcon = prefab.fallbackItemIcon != null ? prefab.fallbackItemIcon : prefab.GetComponent<SpriteRenderer>().sprite;
         }
         return _fallbackItemIcon;
@@ -116,6 +130,24 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
         if (infoCanvas != null) infoCanvas.SetActive(false);
     }
 
+    private void PrepareLabel()
+    {
+        if (labelPrepared) return;
+        labelPrepared = true;
+        if (infoCanvas != null && infoCanvas.TryGetComponent<Canvas>(out var canvas))
+            PixelArtUpscaleRig.BindCanvas(canvas);
+        if (info != null)
+        {
+            if (info.name != null)
+            {
+                PixelText.Configure(info.name, 10);
+                var frame = info.GetComponent<GroundRewardLabel>() ?? info.gameObject.AddComponent<GroundRewardLabel>();
+                frame.Bind(info);
+            }
+            if (info.price != null) PixelText.Configure(info.price, 8);
+        }
+    }
+
     public void SetItem(ItemSO item) { _item = item; _minion = null; SetIcon(itemDropSprite != null ? itemDropSprite : ItemIcon(item)); }
     public void SetMinion(MinionDataSO minion) { _minion = minion; _item = null; SetIcon(minion != null ? minion.minionIcon : null); }
     private void SetIcon(Sprite icon)
@@ -168,21 +200,27 @@ public class GroundItem : MonoBehaviour, IInteractable, IHoldInteractable
     public void OnFocused(GameObject interactor)
     {
         if (!IsAvailable || infoCanvas == null || info == null) return;
-        infoCanvas.SetActive(true);
+        PrepareLabel();
+        UIOpenMotion.SetVisible(infoCanvas, true);
         if (info.name != null) info.name.text = _minion != null ? _minion.minionName : _item.DisplayName;
         if (info.price != null) info.price.text = "";
     }
 
     public void OnLostFocus(GameObject interactor)
     {
-        if (infoCanvas != null) infoCanvas.SetActive(false);
+        UIOpenMotion.SetVisible(infoCanvas, false);
         OnHoldProgress(0f);
     }
 
     public void OnHoldProgress(float progress)
     {
         if (_minion == null) progress = 0f;
-        if (_sr != null) _sr.color = Color.Lerp(Color.white, disassembleTint, progress);
+        if (_sr != null)
+        {
+            var tint = Color.Lerp(Color.white, disassembleTint, progress);
+            tint.a = _sr.color.a;
+            _sr.color = tint;
+        }
         if (info != null && info.price != null) info.price.text = progress <= 0f ? "" : $"분해 중… {progress:P0}";
     }
 

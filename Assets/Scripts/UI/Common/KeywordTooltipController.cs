@@ -59,17 +59,14 @@ namespace AstroNuts.UI
                 return;
             }
 
-            // 🔥 핵심: 기존 CommonTooltipUI의 강력한 기능을 100% 활용합니다.
-            // 문자열을 미리 가공해서 넘기는 게 아니라, 번역 에셋(LocalizedString)을 통째로 보냅니다.
+            // 공용 툴팁에서 로케일을 적용할 수 있도록 LocalizedString을 전달한다.
             TooltipData data = new TooltipData();
             data.localizedTitle = entry.displayName;
             data.localizedDescription = entry.description;
             data.titleColor = entry.badgeColor; // 사전에 기획자가 지정해둔 타이틀 색상 반영
             
-            // 만약 나중에 툴팁에 "종류"나 "부가 효과"도 넣고 싶다면 여기서 채워주면 됩니다.
             data.type = "키워드"; 
 
-            // 공용 툴팁 팝업 짠!
             CommonTooltipUI.Instance.Show(data);
         }
 

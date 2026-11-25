@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class FloorProceedPortal : MonoBehaviour, IInteractable
 {
+    private bool departing;
+
     public string InteractionPrompt => "Proceed to Next Floor";
 
     private void Awake()
@@ -35,14 +37,17 @@ public class FloorProceedPortal : MonoBehaviour, IInteractable
 
     public bool Interact(GameObject interactor)
     {
-        Debug.Log("<color=green>[FloorProceedPortal]</color> Player interacted with portal. Moving to the next floor!");
-        if (GameManager.Instance != null)
+        if (departing || GameManager.Instance == null || !GameManager.Instance.GoToNextFloor()) return false;
+
+        PolishFeedback.PlaySound(FeedbackCue.PortalArrive, transform.position);
+        departing = true;
+        foreach (var col in GetComponents<Collider2D>()) col.enabled = false;
+        if (TryGetComponent<AmbientOutlinePulse>(out var outline))
         {
-            PolishFeedback.PlaySound(FeedbackCue.PortalArrive, transform.position);
-            GameManager.Instance.GoToNextFloor();
+            outline.SetOpen(false);
+            Destroy(gameObject, outline.FadeDuration);
         }
-        gameObject.SetActive(false);
-        Destroy(gameObject);
+        else Destroy(gameObject);
         return true;
     }
     public void OnFocused(GameObject interactor){}

@@ -1,6 +1,5 @@
 /// <summary>
-/// 플레이어 상태이상 UI. 아직 표시할 자리를 안 잡아서 전부 빈 구현이다.
-/// (플레이어 CC 는 Phase 5 에서 들어온다 — 그때 여기도 채워야 한다.)
+/// 플레이어의 상태이상 UI 연결점. 현재 이 터미널은 아이콘을 표시하지 않는다.
 /// </summary>
 public class PlayerDebuffTerminal : Base_DebuffUITerminal
 {

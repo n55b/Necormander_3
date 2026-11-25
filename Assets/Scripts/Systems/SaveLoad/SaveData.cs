@@ -3,16 +3,7 @@ using System.Collections.Generic;
 [System.Serializable]
 public class SaveData
 {
-    /// <summary>
-    /// 세이브 포맷 버전. <b>포맷이 호환 안 되게 바뀔 때마다 올린다.</b>
-    ///
-    /// [26/08/15 · v2] 서브 소환수 삭제. 슬롯 1번의 의미가 '서브 소환수'에서 '우클릭'으로 바뀌었고,
-    /// 서브 미니언 에셋 3종이 지워졌다. v1 세이브를 그대로 읽으면 슬롯 1번에 이제 없는 에셋
-    /// 이름이 들어 있어 조용히 빈 칸이 되거나, 최악의 경우 역할 검증에 걸려 경고를 뿜는다.
-    /// 값을 못 살리는 변경이라 이어하기를 막고 새로 시작하게 한다.
-    ///
-    /// 구버전 세이브에는 이 필드가 아예 없다 → JsonUtility 가 0 을 넣는다 → 불일치로 걸린다.
-    /// </summary>
+    // v2 uses asset names for equipment and summon references. Preserve JSON field names.
     public const int CURRENT_VERSION = 2;
 
     public int saveVersion = CURRENT_VERSION;
@@ -23,11 +14,9 @@ public class SaveData
     public List<CoreSlotSaveData> slots = new List<CoreSlotSaveData>();
     public List<TreasureSaveData> treasures = new List<TreasureSaveData>();
 
-    public EquipmentSaveData equipment; // [신규] 착용 장비 한 자루. null = 없음(스킬은 장비로만 얻으므로 초반엔 null).
+    public EquipmentSaveData equipment; // 착용 장비 한 자루. null = 없음(스킬은 장비로만 얻으므로 초반엔 null).
 
-    // [아이템 주머니] 장비와 무관한 별개 시스템. 칸 순서를 유지해야 하므로 빈 칸은 "" 로 채운다.
-    // 바닥에 떨어져 있던 아이템은 저장하지 않는다 — 층을 넘기면 사라진다.
-    // pouchSlotCount는 구 세이브 호환용. 같은 이름을 반복 저장해 중첩 수/획득 순서를 유지한다.
+    // The pouch restores owned copies in order. Earlier v2 files can include empty strings and a slot count.
     public int pouchSlotCount;
     public List<string> pouchItemNames = new List<string>();
 
@@ -55,12 +44,9 @@ public class EquipmentSaveData
 public class CoreSlotSaveData
 {
     public bool isShattered;
-    // 에셋 이름으로 저장한다. 예전엔 CommandData(직업) 이름을 저장했는데, 같은 직업의 A/B/C 배리언트가
-    // 전부 같은 minionType 을 공유해서 로드 시 레지스트리의 첫 번째 항목으로 붕괴됐다.
-    // 플레이어 스킬(equippedPlayerSkillNames)이 이미 쓰던 방식과 동일.
+    // Asset names distinguish variants that share a CommandData value.
     public string equippedMinionName;
-    // [26/07/17] 투척 철거 후에도 이 필드는 남긴다 — 지우면 기존 세이브가 깨진다.
-    // 읽는 쪽도 쓰는 쪽도 없는 죽은 필드다. 세이브 포맷을 갈아엎을 때 같이 지우면 된다.
+    // Kept in the existing v2 payload for compatibility with older files.
     public string equippedThrowAbilityName;
     public int evolutionIndex;
     public int quantity;

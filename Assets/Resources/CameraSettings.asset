@@ -12,7 +12,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48aa36351f7b59e4ba1e76b731f55847, type: 3}
   m_Name: CameraSettings
   m_EditorClassIdentifier: 
-  orthographicSize: 6
+  orthographicSize: 5.625
   assetsPPU: 32
-  upscaleShader: {fileID: 4800000, guid: 113892be05eb1fa44be4297cc247e6a5, type: 3}
+  finalBlowDuration: 0.72
+  finalBlowTimeScale: 0.15
+  comboZoomPixelsPerHit: 2
+  comboZoomMaxPixels: 6
+  comboZoomHalfLife: 0.85
+  playerMotion: 0
+  cameraMotion: 0
+  edgeMistOpacity: 0.34
+  edgeMistWidth: 44
+  edgeMistSpeed: 0.65
+  mistStrength: 0.26
+  bloomStrength: 0.94
+  occlusionMistSize: 1
+  groundShadowStrength: 0.60
+  groundShadowAngle: -32
+  groundShadowLength: 0.56
+  canopyWindPixels: 2
+  enemyMotion: 0
+  summonMotion: 0
+  upscaleShader: {fileID: 4800000, guid: fc8469fc35d649cda526d430d6be4f3e, type: 3}
+  vectorShapeShader: {fileID: 4800000, guid: 50fb3b7dbc144310b452dc16b42011be, type: 3}
+  vectorIndicatorStrokePixels: 1
+  vectorTelegraphStrokePixels: 1
+  vectorIndicatorStroke: {r: 0.19607843, g: 0.23529412, b: 0.22352941, a: 1}
+  playerLocatorPixels: 30
+  enemyLocatorPixels: 30
+  offscreenArrowPixels: 18
+  offscreenArrowInsetPixels: 22
   excludedScenes: []

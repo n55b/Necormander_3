@@ -13,7 +13,8 @@ public enum TextEffectType
     [UnityEngine.InspectorName("흔들림")] Shake,
     [UnityEngine.InspectorName("파동")] Wave,
     [UnityEngine.InspectorName("무지개")] Rainbow,
-    [UnityEngine.InspectorName("흩어짐")] Jitter
+    [UnityEngine.InspectorName("흩어짐")] Jitter,
+    [UnityEngine.InspectorName("타이핑")] Type
 }
 
 /// <summary>
@@ -23,6 +24,7 @@ public enum TextEffectType
 public struct TextEffectRange
 {
     public TextEffectType type;
+    public string preset;
     public int startIndex;
     public int length;
     public float param; // 세기/속도 배율 (기본 1)
@@ -41,60 +43,61 @@ public struct TextEffectRange
 public static class TextEffectParser
 {
     // <punch>, <shake=1.5>, <wave>, <rainbow=2>, <jitter> 형태를 매칭
-    private static readonly Regex TagRegex = new Regex(
-        @"<(punch|shake|wave|rainbow|jitter)(?:=([\d.]+))?>(.*?)</\1>",
-        RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+    private static Regex tagRegex;
+    private static Regex TagRegex => tagRegex ??= new Regex(
+        @"<(?:(?<end>/)(?<name>punch|shake|wave|rainbow|jitter|type|fx)|(?<name>fx)=(?<id>[\w.-]+)|(?<name>punch|shake|wave|rainbow|jitter|type)(?:=(?<speed>[\d.]+))?)>",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-    /// <summary>
-    /// 원본 문자열에서 커스텀 이펙트 태그를 제거한 최종 문자열을 반환하고,
-    /// outRanges에 각 이펙트가 적용될 구간(제거된 문자열 기준 인덱스)을 채운다.
-    /// </summary>
+    internal static bool HasMarkup(string text) =>
+        !string.IsNullOrEmpty(text) && text.IndexOf('<') >= 0 && TagRegex.IsMatch(text);
+
     public static string Parse(string input, List<TextEffectRange> outRanges)
     {
         outRanges.Clear();
+        if (string.IsNullOrEmpty(input) || input.IndexOf('<') < 0) return input;
+        return ParseTagged(input, outRanges);
+    }
 
-        if (string.IsNullOrEmpty(input) || input.IndexOf('<') < 0)
-            return input;
+    private static string ParseTagged(string input, List<TextEffectRange> outRanges)
+    {
+        var tags=TagRegex.Matches(input);
+        if (tags.Count==0) return input;
 
-        var matches = TagRegex.Matches(input);
-        if (matches.Count == 0)
-            return input;
-
-        var sb = new StringBuilder(input.Length);
-        int lastIndex = 0;
-
-        foreach (Match m in matches)
+        // Only matched pairs are removed. Rich text, sprite tags and unfinished authoring text pass through.
+        var stack=new Stack<int>();
+        var pairs=new int[tags.Count];
+        for(int n=0;n<tags.Count;n++)
         {
-            // 태그 이전의 일반 텍스트를 그대로 붙인다.
-            sb.Append(input, lastIndex, m.Index - lastIndex);
-
-            int start = sb.Length;
-            string inner = m.Groups[3].Value;
-            sb.Append(inner);
-            int length = inner.Length;
-
-            if (Enum.TryParse(m.Groups[1].Value, true, out TextEffectType type))
-            {
-                float param = 1f;
-                if (m.Groups[2].Success)
-                    float.TryParse(m.Groups[2].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out param);
-
-                if (length > 0)
-                {
-                    outRanges.Add(new TextEffectRange
-                    {
-                        type = type,
-                        startIndex = start,
-                        length = length,
-                        param = param <= 0f ? 1f : param
-                    });
-                }
-            }
-
-            lastIndex = m.Index + m.Length;
+            var tag=tags[n];
+            if (!tag.Groups["end"].Success) { stack.Push(n); continue; }
+            if(stack.Count==0) continue;
+            int open=stack.Peek();
+            if(!string.Equals(tags[open].Groups["name"].Value,tag.Groups["name"].Value,StringComparison.OrdinalIgnoreCase)) continue;
+            stack.Pop();
+            pairs[open]=n+1; pairs[n]=open+1;
         }
-
-        sb.Append(input, lastIndex, input.Length - lastIndex);
-        return sb.ToString();
+        var output=new StringBuilder(input.Length);
+        var offsets=new int[tags.Count];
+        int cursor=0;
+        for(int n=0;n<tags.Count;n++)
+        {
+            if(pairs[n]==0) continue;
+            var tag=tags[n];
+            output.Append(input,cursor,tag.Index-cursor);
+            cursor=tag.Index+tag.Length;
+            offsets[n]=output.Length;
+        }
+        output.Append(input,cursor,input.Length-cursor);
+        for(int n=0;n<tags.Count;n++)
+        {
+            var tag=tags[n];
+            if(pairs[n]==0 || tag.Groups["end"].Success) continue;
+            var range=new TextEffectRange {startIndex=offsets[n],length=offsets[pairs[n]-1]-offsets[n],param=1f};
+            if(tag.Groups["id"].Success) range.preset=tag.Groups["id"].Value;
+            else Enum.TryParse(tag.Groups["name"].Value,true,out range.type);
+            if(tag.Groups["speed"].Success && float.TryParse(tag.Groups["speed"].Value,NumberStyles.Float,CultureInfo.InvariantCulture,out var speed) && speed>0) range.param=speed;
+            if(range.length>0) outRanges.Add(range);
+        }
+        return output.ToString();
     }
 }

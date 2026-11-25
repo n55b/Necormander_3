@@ -70,7 +70,7 @@ public class EnemyMagicianCircleAttack : MonoBehaviour
 
         foreach (var col in hits)
         {
-            // [수정] 콜라이더가 붙은 오브젝트뿐만 아니라 부모/자식에서도 Stat 탐색 (더 유연하게)
+            // 콜라이더가 붙은 오브젝트뿐만 아니라 부모/자식에서도 Stat 탐색 (더 유연하게)
             CharacterStat stat = col.GetComponentInChildren<CharacterStat>();
             if (stat == null) stat = col.GetComponentInParent<CharacterStat>();
 

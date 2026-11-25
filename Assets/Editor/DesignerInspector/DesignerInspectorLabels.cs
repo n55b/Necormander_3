@@ -150,8 +150,6 @@ FeedbackCatalog.waterInterval|물가 파문 간격|플레이어 주변 물가만
 FeedbackCatalog.dirtColor|흙 발걸음 색|기본 지면 색입니다.
 FeedbackCatalog.stoneColor|돌 발걸음 색|타일 이름에 stone/rock/brick이 있는 지면입니다.
 FeedbackCatalog.waterColor|물가 발걸음 색|인접 물 타일이 있을 때 적용합니다.
-FeedbackCatalog.cameraForce|타격 카메라 충격|기존 Cinemachine 충격 제한을 공유합니다.
-FeedbackCatalog.hitStopSeconds|강타 정지 시간|진화 이상 강타의 짧은 정지 시간입니다.
 FeedbackCatalog.slowMotionScale|보스 처치 감속 배율|1이면 원래 속도입니다.
 FeedbackCatalog.slowMotionSeconds|보스 처치 감속 시간|실제 시간 기준으로 끝납니다.
 FeedbackBurst.lines|빛 조각 참조|프리팹에 실제 배치한 선입니다.
@@ -194,7 +192,7 @@ NormalRoomEvent.spawnStartDelay|방 진입 후 소환 대기 (초)|방에 들어
 NormalRoomEvent.combineAllWaves|모든 웨이브를 한 번에 소환|이 방에서만 층의 모든 웨이브 적을 첫 웨이브에 합칩니다. 총 적 수와 웨이브별 증강은 유지합니다. 튜토리얼 직접 배치는 그대로 사용합니다.
 AugmentReward.itemCount|아이템 개수|아이템 보상으로 바닥에 떨어뜨릴 개수입니다. 보유 중첩 한도를 초과하지 않도록 추첨합니다.
 AugmentReward.maximumItemTier|아이템 허용 등급|4는 전체, 2는 1~2등급입니다. 해당 등급의 획득 가능한 아이템이 없으면 보상 후보에서 제외합니다.
-PlayerOcclusionSilhouette.maskAlphaCutoff|가림막 불투명도 기준|가림막 그림의 투명 여백을 제외하고 실제로 겹치는 픽셀에만 실루엣을 표시합니다.
+PlayerOcclusionMist.bodyCoverageHeight|몸통 가림 기준|발에서 머리까지의 비율입니다. 이 높이를 가릴 때 안개가 펼쳐집니다.
 NormalRoomEvent.spawnTelegraphDuration|몬스터 등장 예고 (초)|일반 웨이브와 튜토리얼 배치 몬스터가 등장하기 전 바닥 예고가 차오르는 시간입니다.
 NormalRoomEvent.spawnTelegraphScale|등장 예고 크기 배율|몬스터 등장 위치 표시의 가로·세로 크기입니다. 몬스터 크기나 피해 판정은 바꾸지 않습니다.
 NormalRoomEvent.superArmorEnemyCount|웨이브 슈퍼아머 몬스터 수|일반 랜덤 웨이브에서 슈퍼아머를 주는 몬스터 수입니다. 0이면 주지 않습니다. 튜토리얼 직접 배치에는 적용하지 않습니다.
@@ -271,10 +269,11 @@ PlayerController.movementSmoothTime|정지 감속 시간 (초)|입력을 놓았�
 PlayerController.movementTurnTime|방향 전환 시간 (초)|반대 방향 입력에 반응하는 시간. 작으면 빠르게 꺾입니다.
 PlayerController.dashSpeed|일반 대시 속도 (유닛/초)|대시 이동 속도. 총 거리는 속도와 지속 시간의 영향을 함께 받습니다.
 PlayerController.dashDuration|일반 대시 지속 시간 (초)|대시 동작의 전체 시간. 속도와 함께 조절합니다.
-PlayerController.attackDashSpeed|평타 전진 속도 (유닛/초)|평타를 낼 때 앞으로 미는 속도입니다. 장비/콤보의 전진 배율도 적용됩니다.
-PlayerController.attackDashDuration|평타 전진 시간 (초)|평타로 앞으로 이동하는 시간. 늘리면 전진 거리가 함께 커집니다.
+PlayerController.attackDashSpeed|평타 준비 이동 속도 (유닛/초)|공격 모션 전에 입력 방향으로 움직입니다. 속도와 시간을 곱하면 기본 이동 거리가 됩니다.
+PlayerController.attackDashDuration|평타 준비 이동 시간 (초)|이동 입력이 있는 평타에서 공격 모션 전 이동에 쓰는 시간입니다.
 MeleeCombatController.comboResetTime|콤보 유지 시간 (초)|다음 평타를 이어갈 수 있는 시간입니다. 끊기면 첫 타부터 다시 시작합니다.
-MeleeCombatController.lightAttackDashMultiplier|평타 전진 거리 배율|플레이어의 평타 전진 속도에 곱하는 배율. 1 = 기본, 0 = 전진 없음.
+MeleeCombatController.lightAttackDashMultiplier|평타 준비 이동 거리 배율|1은 기본 거리입니다. 0을 설정하면 방향키를 누른 중에도 바로 공격 모션을 재생합니다.
+MeleeCombatController.attackWalkSpeedMultiplier|평타 중 걷기 속도 배율|공격 모션과 후딜레이 중의 걷기 속도입니다. 0.25는 평소 걷기 속도의 25%입니다.
 MeleeDodgeController.rechargeTime|대시 1회 충전 시간 (초)|소모한 대시를 충전하는 기본 시간입니다. 아이템 충전 속도 보정은 별도로 적용됩니다.
 VisualSquashStretch.visual|변형할 그림 전용 오브젝트|충돌체·카메라·UI가 없는 그림 전용 Transform을 연결합니다. 물리 루트를 연결하지 마세요.
 VisualSquashStretch.deformRenderer|몬스터 그림 렌더러|물리와 그림이 같은 루트인 몬스터용. _FeedbackScale 지원 재질의 정점만 변형합니다. 지정하면 그림 전용 오브젝트보다 우선합니다.
@@ -314,6 +313,7 @@ BoneMasterPhase2AIPatternSO.fakeCounterChance|페이크 카운터 확률 (0~1)|�
 ";
 
     private const string WordData = @"
+art=아트;budget=예산;coverage=가림 범위;decay=감쇠;emphasis=강조;fit=맞춤;fully=완전히;layout=배치;local=로컬;locator=방향 표시;logical=논리;merge=병합;ms=밀리초;occludes=가림;profiles=프리셋;seed=시드;stroke=선;tie=동일 깊이;triangles=삼각형;vector=벡터;vertices=꼭짓점
 feedback=연출;intensity=강도;low=낮음;minimum=최소;motion=움직임;shape=형태;sounds=소리;trail=잔광;water=물;with=함께;
 simultaneous=동시;bursts=효과;burst=효과;motes=빛조각;edges=가장자리;cue=효과번호;recipe=효과설정;recipes=효과설정;density=입자밀도;reach=거리;drift=이동;distortion=굴절;surface=지면;dirt=흙;stone=돌;foliage=풀;ambient=환경;catalog=전체설정;tiers=단계;variation=변화;material=재질;touch=접근;slow=감속;lines=선;bag=가방;kind=종류;simultaneous=동시;skills=스킬;combat=전투;
 Upward=위쪽;Downward=아래쪽;

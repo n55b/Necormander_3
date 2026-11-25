@@ -43,7 +43,7 @@ public class MinionSelectNPC : NPCBase
         if (ui == null) return false;
 
         _isOpen = true;
-        ui.ShowWithCallbacks(candidates, OnPicked, Close);
+        ui.ShowWithCallbacks(candidates, OnPicked, Close, "Choice_Summon");
         return true;
     }
 
@@ -75,23 +75,25 @@ public class MinionSelectNPC : NPCBase
         var baseData = m.rewardItemData;
         string title = (baseData != null && !string.IsNullOrEmpty(baseData.itemName)) ? baseData.itemName
                      : !string.IsNullOrEmpty(m.minionName) ? m.minionName : m.name;
-        if (isEquipped) title += " (장착 중)";
 
         var sb = new System.Text.StringBuilder();
         if (m.minionSkill != null)
         {
             string skillName = string.IsNullOrEmpty(m.minionSkill.skillName) ? m.minionSkill.name : m.minionSkill.skillName;
-            sb.Append(skillName).Append("\n").Append(m.minionSkill.description);
+            sb.Append("<fx=Enchantment><color=#AFDFC9>").Append(skillName).Append("</color></fx>\n").Append(m.minionSkill.description);
         }
         // 일반 공격과 대시 정보는 카드에서 제외 (마우스 오버 상세창, C키 능력창에서 확인)
 
         return new RewardCandidate
         {
             category = RewardCategory.Minion,
+            equipped = isEquipped,
             rawData = m,
             displayData = new GrowthItemData
             {
                 itemName = title,
+                localizedItemName = baseData?.localizedItemName,
+                localizedDescription = baseData?.localizedDescription,
                 description = sb.ToString(),
                 icon = (baseData != null && baseData.icon != null) ? baseData.icon : m.minionIcon,
             }

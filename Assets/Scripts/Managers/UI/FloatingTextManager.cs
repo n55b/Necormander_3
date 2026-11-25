@@ -11,9 +11,122 @@ public class FloatingTextManager : Singleton<FloatingTextManager>
     [Tooltip("체크 해제하면 데미지 숫자(MISS, 쉴드, 처형 포함) 팝업이 뜨지 않습니다. 힐/상태 텍스트는 영향 없음.")]
     [SerializeField] private bool showDamageNumbers = true;
     public bool ShowDamageNumbers => showDamageNumbers;
-    public void SetShowDamageNumbers(bool value) => showDamageNumbers = value;
+    public void SetShowDamageNumbers(bool value)
+    {
+        showDamageNumbers = value;
+        if (value) return;
+        pending.Clear();
+        if (burstField != null) burstField.Clear();
+        foreach (Transform child in transform)
+            if (child.gameObject.activeSelf && child.TryGetComponent<TextFloating>(out var label) && label.IsDamageLabel)
+                label.gameObject.SetActive(false);
+    }
 
-    private Queue<TextFloating> textPool = new Queue<TextFloating>();
+    private readonly Queue<TextFloating> textPool = new Queue<TextFloating>();
+    private const int DamageLabelsPerFrame = 16;
+    private int reserveCount, createdCount, labelFrame = -1, shownThisFrame;
+    private readonly Queue<DamageLabel> pending = new Queue<DamageLabel>(64);
+    private readonly Queue<TextFloating> unprepared = new();
+    private CombatTextLibrary library;
+    private Shader inkShader;
+    private readonly Dictionary<Material, Material> inkByAtlas = new();
+    internal bool HasInk => inkShader != null && inkShader.isSupported;
+    internal Material InkFor(Material source)
+    {
+        if (!HasInk || source == null) return source;
+        if (!inkByAtlas.TryGetValue(source, out var ink))
+        {
+            ink = new Material(source) { shader = inkShader, name = source.name + " (combat ink)" };
+            inkByAtlas.Add(source, ink);
+        }
+        return ink;
+    }
+
+    protected override void OnDestroy()
+    {
+        foreach (var ink in inkByAtlas.Values) Destroy(ink);
+        base.OnDestroy();
+    }
+    private CombatTextBurstField burstField;
+    private int sequence;
+
+    private struct DamageLabel
+    {
+        public string text, preset;
+        public Color color;
+        public Vector3 position;
+        public bool critical;
+        public int frame;
+    }
+
+#if NECRO_RENDER_BENCH
+    internal int DamageLabelsShown { get; private set; }
+#endif
+
+    public void ReserveForEncounter(int enemies)
+    {
+        if (showDamageNumbers) reserveCount = Mathf.Max(reserveCount, Mathf.Min(128, enemies));
+    }
+
+    public void ShowDamage(string text, Color color, Vector3 position, bool critical, string preset)
+    {
+        if (!showDamageNumbers) return;
+        var label = new DamageLabel { text = text, color = color, position = position,
+            critical = critical, preset = preset, frame = Time.frameCount };
+        BeginLabelFrame();
+        if (shownThisFrame < DamageLabelsPerFrame && pending.Count == 0) DrawDamage(label);
+        else pending.Enqueue(label);
+    }
+
+    private void BeginLabelFrame()
+    {
+        if (labelFrame == Time.frameCount) return;
+        labelFrame = Time.frameCount;
+        shownThisFrame = 0;
+    }
+
+    private void Update()
+    {
+        BeginLabelFrame();
+        int budget = DamageLabelsPerFrame;
+        if (pending.Count > 0 && pending.Peek().frame < Time.frameCount)
+            budget = Mathf.Max(budget, (pending.Count + 1) / 2);
+        while (pending.Count > 0)
+        {
+            // A dying target can disappear before its number is drawn. Keep the hit position
+            // and give every number a deadline of two rendered frames.
+            if (shownThisFrame >= budget && Time.frameCount - pending.Peek().frame < 2) break;
+            DrawDamage(pending.Dequeue());
+        }
+        if (!showDamageNumbers || shownThisFrame != 0) return;
+        if (createdCount < reserveCount) ExpandPool(Mathf.Min(2, reserveCount - createdCount));
+        for (int i = 0; i < 2 && unprepared.Count > 0; i++)
+        {
+            var label = unprepared.Dequeue();
+            if (label != null && label.InPool) label.PrepareDamageMesh();
+        }
+    }
+
+    private void DrawDamage(DamageLabel label)
+    {
+        shownThisFrame++;
+        string defaultId = label.critical ? "Critical" : "Hit";
+        var style = library != null ? library.Find(label.preset ?? defaultId) : null;
+        string glyph = style != null ? style.glyphMotion : label.preset ?? defaultId;
+        if (style == null && library != null) style = library.Find(defaultId);
+        GetFromPool().SetUpAt(label.text, label.color, label.position, label.critical, 1f, glyph, style, sequence, true);
+        if (style != null && burstField != null) burstField.Emit(style, label.position, label.color, sequence);
+        sequence = (sequence + 1) % 3600;
+#if NECRO_RENDER_BENCH
+        DamageLabelsShown++;
+#endif
+    }
+
+    private void OnDisable()
+    {
+        pending.Clear();
+        if (burstField != null) burstField.Clear();
+    }
 
     [Header("알림 텍스트 줄 쌓기")]
     [Tooltip("연달아 뜬 알림 텍스트 사이의 세로 간격(월드 단위).")]
@@ -34,6 +147,18 @@ public class FloatingTextManager : Singleton<FloatingTextManager>
 
     protected override void OnAwake()
     {
+        library = Resources.Load<CombatTextLibrary>("UI/CombatText");
+        inkShader = Resources.Load<Shader>("UI/CombatTextInk");
+        var field = new GameObject("Combat text sparks", typeof(RectTransform), typeof(CombatTextBurstField));
+        field.layer = gameObject.layer;
+        var rect = (RectTransform)field.transform;
+        rect.SetParent(transform, false);
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = rect.offsetMax = Vector2.zero;
+        rect.SetAsFirstSibling();
+        burstField = field.GetComponent<CombatTextBurstField>();
+        burstField.raycastTarget = false;
         InitializePool();
     }
 
@@ -46,10 +171,12 @@ public class FloatingTextManager : Singleton<FloatingTextManager>
         {
             GameObject obj = Instantiate(textPrefab, transform);
             TextFloating text = obj.GetComponent<TextFloating>();
+            createdCount++;
             // 프리팹이 활성 상태면 SetActive(false) 의 OnDisable 이 이미 풀에 넣는다.
             // ReturnToPool 은 중복을 막으므로 여기서 한 번 더 불러도 안전하다.
             obj.SetActive(false);
             ReturnToPool(text);
+            unprepared.Enqueue(text);
         }
     }
 
@@ -85,7 +212,7 @@ public class FloatingTextManager : Singleton<FloatingTextManager>
     /// 시간 창이 아니라 실제 높이로 간격을 맞추므로, 떠오르는 속도나 시간 정지 여부와 관계없이 겹치지 않는다.
     /// 텍스트는 생성 위치에 고정되므로 대상이 파괴돼도 끝까지 보인다.
     /// </summary>
-    public void Show(string message, Color color, Transform target, float scaleMultiplier = 1f)
+    public void Show(string message, Color color, Transform target, float scaleMultiplier = 1f, string preset = "Reward")
     {
         if (target == null || string.IsNullOrEmpty(message)) return;
 
@@ -94,7 +221,7 @@ public class FloatingTextManager : Singleton<FloatingTextManager>
 
         var t = GetFromPool();
         if (t == null) return;
-        t.SetUp(message, color, target, false, scaleMultiplier);
+        t.SetUp(message, color, target, false, scaleMultiplier, preset);
         t.OverrideOffset(Vector3.zero);
         t.NoticeKey = target;
         stack.Insert(0, t);
@@ -147,10 +274,10 @@ public class FloatingTextManager : Singleton<FloatingTextManager>
     /// 매니저가 없으면(마을/로딩/씬 언로드 중) 조용히 넘어가는 Show. 외부에서는 Instance?.Show 대신 이것을 쓴다
     /// (UnityEngine.Object 에 ?. 를 쓰면 Unity 의 파괴 판정을 우회하므로).
     /// </summary>
-    public static void ShowNotice(string message, Color color, Transform target, float scaleMultiplier = 1f)
+    public static void ShowNotice(string message, Color color, Transform target, float scaleMultiplier = 1f, string preset = "Reward")
     {
         var manager = Instance;
-        if (manager != null) manager.Show(message, color, target, scaleMultiplier);
+        if (manager != null) manager.Show(message, color, target, scaleMultiplier, preset);
     }
 
     /// <summary>

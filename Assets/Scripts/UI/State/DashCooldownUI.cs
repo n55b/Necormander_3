@@ -35,7 +35,9 @@ public class DashCooldownUI : MonoBehaviour
     [SerializeField] private Image[] worldPipFills;
     [SerializeField] private Vector3 worldOffset = new Vector3(0f, -0.55f, 0f);
     private Canvas _canvas;
-    private Camera _worldCamera;
+    private int previousWorldCharges = -1, activePip = -1;
+    private float changeTime;
+    private bool refill;
 
     // ─── 런타임 ──────────────────────────────────────────────────────
     private PlayerController     _player;
@@ -58,7 +60,13 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
             ? playerController.GetComponent<MeleeDodgeController>()
             : null;
         _canvas = GetComponentInParent<Canvas>();
-        _worldCamera = Camera.main;
+        if (worldPipFills != null)
+            foreach (var fill in worldPipFills)
+            {
+                if (!fill) continue;
+                RoundedPlate.ApplyFlat(fill);
+                RoundedPlate.ApplyFlat(fill.transform.parent.GetComponent<Image>());
+            }
 
         if (cooldownFill != null)
         {
@@ -68,6 +76,8 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
         }
 
         // 캐시 초기화 (강제 1회 갱신)
+        previousWorldCharges = -1;
+        activePip = -1;
         _lastCharges = -1;
         _lastFill    = -1f;
         _lastPipCurrent = _lastPipMax = -1;
@@ -114,26 +124,40 @@ private const float FILL_THRESHOLD = 0.005f; // fillAmount 변경 최소 단위
     private void UpdateWorldPips()
     {
         if (worldPips == null) return;
-        if (_worldCamera == null) _worldCamera = Camera.main;
-        bool visible = _player != null && _worldCamera != null && _canvas != null;
-        Vector3 screen = visible ? _worldCamera.WorldToScreenPoint(_player.transform.position + worldOffset) : Vector3.zero;
-        visible = visible && screen.z > 0f && _player.gameObject.activeInHierarchy;
+        Vector2 point = default;
+        bool visible = _player != null && _player.gameObject.activeInHierarchy &&
+            PixelViewport.TryWorldToCanvasPoint(_player.transform.position + worldOffset,
+                _canvas, worldPips.parent as RectTransform, out point);
         worldPips.gameObject.SetActive(visible);
         if (!visible) return;
-        var camera = _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera;
-        // 변환 결과는 앵커가 아니라 부모 피벗 기준의 로컬 좌표다.
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)worldPips.parent, screen, camera, out var point))
-            worldPips.localPosition = point;
+        worldPips.localPosition = point;
         if (worldPipFills == null) return;
         int current = _dodge != null ? _dodge.CurrentCharges : (_player.DashCooldownProgress >= 1f ? 1 : 0);
         int max = _dodge != null ? _dodge.MaxCharges : 1;
         float progress = _dodge != null ? _dodge.RechargeProgress : _player.DashCooldownProgress;
+        if (current != previousWorldCharges)
+        {
+            refill = current > previousWorldCharges;
+            activePip = previousWorldCharges < 0 ? -1 : (refill ? current - 1 : current);
+            changeTime = Time.unscaledTime;
+            previousWorldCharges = current;
+        }
+        float pulse = UISkinSettings.MotionOn ? Mathf.Clamp01(1f - (Time.unscaledTime - changeTime)/.26f) : 0;
         for (int i = 0; i < worldPipFills.Length; i++)
         {
             var fill = worldPipFills[i];
             if (fill == null) continue;
             // Charge / Track / Fill: 레이아웃에 참여하는 Charge 전체를 숨긴다.
-            fill.transform.parent.parent.gameObject.SetActive(i < max);
+            var charge = (RectTransform)fill.transform.parent.parent;
+            if (charge.gameObject.activeSelf != (i < max)) charge.gameObject.SetActive(i < max);
+            if (i >= max) continue;
+            var track = (RectTransform)fill.transform.parent;
+            float strength = i == activePip ? pulse*pulse : 0;
+            track.localScale = new Vector3(1, 1 + .40f * strength, 1);
+            var resting = i < current ? new Color32(126,230,187,255) : new Color32(119,132,134,255);
+            fill.color = Color.Lerp(resting, new Color32(255,237,196,255), refill ? strength : 0);
+            if (track.TryGetComponent<Image>(out var backing))
+                backing.color = Color.Lerp(new Color32(42,51,49,255), new Color32(230,139,155,255), refill ? 0 : strength);
             fill.rectTransform.anchorMax = new Vector2(i < current ? 1f : i == current ? progress : 0f, 1f);
         }
     }

@@ -124,16 +124,22 @@ public class TutorialQuestPanelController : MonoBehaviour
         }
 
         Clear();
-        gameObject.SetActive(true);
+        UIOpenMotion.SetVisible(gameObject, true);
 
         foreach (var line in lines)
         {
             RectTransform instance = Instantiate(objectQuestTemplate, objectQuestTemplate.parent);
-            instance.gameObject.SetActive(true);
+            UIOpenMotion.SetVisible(instance.gameObject, true);
 
             TextMeshProUGUI text = instance.GetComponentInChildren<TextMeshProUGUI>(true);
-            if (text != null) text.text = line;
+            if (text != null)
+            {
+                text.text = line;
+                if (!string.IsNullOrEmpty(line) && line.IndexOf("<sprite", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    text.gameObject.AddComponent<VectorUiInlineIcons>();
+            }
 
+            HudMotionElement.Attach(instance, _spawned.Count * .72f + 2.4f);
             _spawned.Add(instance.gameObject);
         }
 
@@ -146,8 +152,7 @@ public class TutorialQuestPanelController : MonoBehaviour
     /// <summary>패널을 비우고 숨깁니다. (예: 내려가는방에서 튜토리얼 종료 시 호출)</summary>
     public void Hide()
     {
-        Clear();
-        gameObject.SetActive(false);
+        UIOpenMotion.SetVisible(gameObject, false);
     }
 
     private void Clear()

@@ -17,7 +17,7 @@ public static class OptionSceneSkinTool
     private static readonly Color TextLight = new Color32(0xEF, 0xE9, 0xD5, 0xFF);
     private static readonly Color TextDark = new Color32(0x2A, 0x20, 0x30, 0xFF);
     private static readonly Color FillRed = new Color32(0xEA, 0x40, 0x5B, 0xFF);
-    private static readonly Color FieldTint = new Color32(0xD8, 0xCE, 0xDF, 0xFF);
+    private static readonly Color FieldTint = Color.white;
 
     private static Dictionary<string, Sprite> _sheet;
 
@@ -100,9 +100,8 @@ public static class OptionSceneSkinTool
 
         Transform viewport = scroll.Find("Viewport");
         Stretch(viewport, 0f, 0f, 0f, 0f);
-        var viewportImage = viewport.GetComponent<Image>();
         Transform content = viewport.Find("Content");
-        Place(content, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(.5f, 1f), Vector2.zero, new Vector2(0f, 188f));
+        Place(content, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(.5f, 1f), Vector2.zero, new Vector2(0f, 180f));
         var layout = content.GetComponent<VerticalLayoutGroup>();
         layout.padding = new RectOffset(8, 8, 8, 8);
         layout.spacing = 6f;
@@ -112,9 +111,9 @@ public static class OptionSceneSkinTool
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
 
-        SkinRow(content.Find("Panel_BGMOption"), true);
-        SkinRow(content.Find("Panel_SFXOption"), true);
-        SkinRow(content.Find("Panel_LanguageOption"), false);
+        SkinRow(content.Find("Panel_BGMOption"));
+        SkinRow(content.Find("Panel_SFXOption"));
+        SkinRow(content.Find("Panel_LanguageOption"));
         SkinSlider(content.Find("Panel_BGMOption"));
         SkinSlider(content.Find("Panel_SFXOption"));
         SkinDropdown(content.Find("Panel_LanguageOption/Dropdown"));
@@ -127,30 +126,21 @@ public static class OptionSceneSkinTool
         Style(exit.GetComponentInChildren<TMP_Text>(true), 14f, TextLight, TextAlignmentOptions.Center);
     }
 
-    private static void SkinRow(Transform row, bool divider)
+    private static void SkinRow(Transform row)
     {
-        ((RectTransform)row).sizeDelta = new Vector2(((RectTransform)row).sizeDelta.x, 44f);
+        ((RectTransform)row).sizeDelta = new Vector2(((RectTransform)row).sizeDelta.x, 34f);
         var image = row.GetComponent<Image>();
-        image.sprite = null;
-        Color clear = image.color; clear.a = 0f; image.color = clear;
+        Paint(image, "UI_Panel_22", Image.Type.Sliced);
 
-        Image bullet = Child(row, "Skin_Bullet");
-        Paint(bullet, "UI_Panel_9", Image.Type.Simple);
-        Place(bullet.transform, new Vector2(0f, .5f), new Vector2(0f, .5f), new Vector2(0f, .5f), new Vector2(8f, 0f), new Vector2(9f, 11f));
+        var bullet = row.Find("Skin_Bullet");
+        if (bullet != null) bullet.gameObject.SetActive(false);
 
         Transform name = row.Find("Text_OptionName");
         Place(name, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(0f, .5f), new Vector2(24f, 0f), new Vector2(120f, 0f));
         Style(name.GetComponent<TMP_Text>(), 14f, TextLight, TextAlignmentOptions.MidlineLeft);
 
         Transform line = row.Find("Skin_Divider");
-        if (divider)
-        {
-            Image lineImage = Child(row, "Skin_Divider");
-            Skin(lineImage.transform, UISkinRole.Divider);
-            lineImage.raycastTarget = false;
-            Place(lineImage.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(.5f, 0f), new Vector2(0f, -3f), new Vector2(-12f, 1f));
-        }
-        else if (line != null) Object.DestroyImmediate(line.gameObject);
+        if (line != null) line.gameObject.SetActive(false);
     }
 
     private static void SkinSlider(Transform row)
@@ -160,26 +150,20 @@ public static class OptionSceneSkinTool
         Place(t, new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(-44f, 0f), new Vector2(180f, 20f));
 
         Transform back = t.Find("Background");
-        Skin(back, UISkinRole.HpBarFrame);
-        Place(back, new Vector2(0f, .5f), new Vector2(1f, .5f), new Vector2(.5f, .5f), Vector2.zero, new Vector2(0f, 18f));
-        Image track = Child(back, "Skin_Track");
-        Skin(track.transform, UISkinRole.GaugeTrack);
-        track.raycastTarget = false;
-        Stretch(track.transform, 5f, 5f, 5f, 5f);
-
-        Transform area = t.Find("Fill Area");
-        Place(area, new Vector2(0f, .5f), new Vector2(1f, .5f), new Vector2(.5f, .5f), Vector2.zero, new Vector2(-10f, 8f));
-        Transform fill = area.Find("Fill");
-        ((RectTransform)fill).sizeDelta = Vector2.zero;
-        Skin(fill, UISkinRole.GaugeFill, keepColor: true);
-        fill.GetComponent<Image>().color = FillRed;
-
-        Transform slide = t.Find("Handle Slide Area");
-        Stretch(slide, 6f, 6f, 0f, 0f);
-        Transform handle = slide.Find("Handle");
-        ((RectTransform)handle).sizeDelta = new Vector2(12f, -8f);
-        Paint(handle.GetComponent<Image>(), "UI_Panel_19", Image.Type.Simple);
-
+        // The transparent background retains the full pointer area at both ends of the rail.
+        Flat(back, Color.clear).raycastTarget = true;
+        Stretch(back, 0, 0, 0, 0);
+        var track = Child(back, "Skin_Track");
+        Flat(track.transform, new Color32(87, 74, 86, 255)).raycastTarget = false;
+        Place(track.transform, new Vector2(0,.5f), new Vector2(1,.5f), Vector2.one * .5f, Vector2.zero, new Vector2(-10,5));
+        var area = t.Find("Fill Area");
+        Place(area, new Vector2(0,.5f), new Vector2(1,.5f), Vector2.one * .5f, Vector2.zero, new Vector2(-10,5));
+        var fill = slider.fillRect;
+        fill.sizeDelta = Vector2.zero;
+        Flat(fill, new Color32(181, 115, 131, 255)).raycastTarget = false;
+        Stretch(slider.handleRect.parent, 5, 5, 0, 0);
+        slider.handleRect.sizeDelta = new Vector2(4, -6);
+        Flat(slider.handleRect, TextLight);
         // 수치 표시
         Transform old = row.Find("Skin_Value");
         GameObject valueObject = old != null ? old.gameObject : new GameObject("Skin_Value", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
@@ -187,8 +171,6 @@ public static class OptionSceneSkinTool
         valueObject.transform.SetParent(row, false);
         Place(valueObject.transform, new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(-6f, 0f), new Vector2(34f, 20f));
         var value = valueObject.GetComponent<TMP_Text>();
-        TMP_Text reference = row.Find("Text_OptionName").GetComponent<TMP_Text>();
-        value.font = reference.font;
         value.raycastTarget = false;
         value.text = Mathf.RoundToInt(slider.normalizedValue * 100f).ToString();
         Style(value, 13f, TextLight, TextAlignmentOptions.MidlineRight);
@@ -200,20 +182,21 @@ public static class OptionSceneSkinTool
 
     private static void SkinDropdown(Transform dropdown)
     {
-        Place(dropdown, new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(-6f, 0f), new Vector2(218f, 24f));
-        Paint(dropdown.GetComponent<Image>(), "UI_Panel_33", Image.Type.Sliced);
+        Place(dropdown, new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(-6f, 0f), new Vector2(218f, 25f));
+        Paint(dropdown.GetComponent<Image>(), "UI_Panel_22", Image.Type.Sliced);
         dropdown.GetComponent<Image>().color = FieldTint;
 
         Transform label = dropdown.Find("Label");
         Stretch(label, 8f, 24f, 0f, 0f);
-        Style(label.GetComponent<TMP_Text>(), 13f, TextDark, TextAlignmentOptions.MidlineLeft);
+        Style(label.GetComponent<TMP_Text>(), 13f, TextLight, TextAlignmentOptions.MidlineLeft);
 
         Transform arrow = dropdown.Find("Arrow");
-        Place(arrow, new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(.5f, .5f), new Vector2(-13f, 0f), new Vector2(13f, 9f));
+        Place(arrow, new Vector2(1f, .5f), new Vector2(1f, .5f), new Vector2(.5f, .5f), new Vector2(-13f, 0f), new Vector2(9f, 6f));
         Paint(arrow.GetComponent<Image>(), "UI_Panel_34", Image.Type.Simple);
 
         Transform template = dropdown.Find("Template");
-        Paint(template.GetComponent<Image>(), "UI_Panel_33", Image.Type.Sliced);
+        Place(template, Vector2.up, Vector2.one, new Vector2(.5f, 0f), new Vector2(0, 2), new Vector2(0, 70));
+        Paint(template.GetComponent<Image>(), "UI_Panel_22", Image.Type.Sliced);
         template.GetComponent<Image>().color = FieldTint;
         var templateScroll = template.GetComponent<ScrollRect>();
         templateScroll.verticalScrollbar = null;
@@ -231,18 +214,19 @@ public static class OptionSceneSkinTool
         var toggle = item.GetComponent<Toggle>();
         ColorBlock colors = toggle.colors;
         colors.normalColor = new Color(1f, 1f, 1f, 0f);
-        colors.highlightedColor = new Color(0.92f, 0.45f, 0.5f, 0.45f);
-        colors.pressedColor = new Color(0.92f, 0.45f, 0.5f, 0.7f);
-        colors.selectedColor = new Color(0.92f, 0.45f, 0.5f, 0.45f);
+        colors.highlightedColor = colors.normalColor;
+        colors.pressedColor = colors.normalColor;
+        colors.selectedColor = colors.normalColor;
         toggle.colors = colors;
+        Comp<UIHoverMotion>(item);
 
         Transform check = item.Find("Item Checkmark");
-        Place(check, new Vector2(0f, .5f), new Vector2(0f, .5f), new Vector2(.5f, .5f), new Vector2(12f, 0f), new Vector2(12f, 12f));
+        Place(check, new Vector2(0f, .5f), new Vector2(0f, .5f), new Vector2(.5f, .5f), new Vector2(12f, 0f), new Vector2(8f, 8f));
         Paint(check.GetComponent<Image>(), "UI_Panel_20", Image.Type.Simple);
 
         Transform itemLabel = item.Find("Item Label");
         Stretch(itemLabel, 24f, 6f, 0f, 0f);
-        Style(itemLabel.GetComponent<TMP_Text>(), 13f, TextDark, TextAlignmentOptions.MidlineLeft);
+        Style(itemLabel.GetComponent<TMP_Text>(), 13f, TextLight, TextAlignmentOptions.MidlineLeft);
     }
 
     // ─── 공용 도우미 ─────────────────────────────────────────────
@@ -250,6 +234,16 @@ public static class OptionSceneSkinTool
     {
         var c = t.GetComponent<T>();
         return c != null ? c : t.gameObject.AddComponent<T>();
+    }
+
+    private static Image Flat(Transform target, Color color)
+    {
+        if (target.TryGetComponent<UISkinPart>(out var skin)) Object.DestroyImmediate(skin);
+        var image = target.GetComponent<Image>();
+        image.sprite = null;
+        image.type = Image.Type.Simple;
+        image.color = color;
+        return image;
     }
 
     private static void Skin(Transform t, UISkinRole role, bool keepColor = false)
@@ -267,7 +261,7 @@ public static class OptionSceneSkinTool
         if (t != null) go = t.gameObject;
         else
         {
-            go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(VectorUiImage));
             go.layer = parent.gameObject.layer;
             go.transform.SetParent(parent, false);
         }
@@ -289,7 +283,8 @@ public static class OptionSceneSkinTool
     {
         if (text == null) return;
         text.enableAutoSizing = false;
-        text.fontSize = size;
+        text.fontSize = Mathf.Round(size * .8f);
+        PixelText.Configure(text, text.name == "Skin_Value" ? 10 : 12, bold: false);
         text.color = color;
         text.alignment = alignment;
     }
@@ -298,7 +293,8 @@ public static class OptionSceneSkinTool
     {
         var rt = (RectTransform)t;
         rt.anchorMin = anchorMin; rt.anchorMax = anchorMax; rt.pivot = pivot;
-        rt.anchoredPosition = position; rt.sizeDelta = size;
+        rt.anchoredPosition = new Vector2(Mathf.Round(position.x * .8f), Mathf.Round(position.y * .8f));
+        rt.sizeDelta = new Vector2(Mathf.Round(size.x * .8f), Mathf.Round(size.y * .8f));
         rt.localScale = Vector3.one;
     }
 
@@ -306,8 +302,8 @@ public static class OptionSceneSkinTool
     {
         var rt = (RectTransform)t;
         rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.pivot = new Vector2(.5f, .5f);
-        rt.offsetMin = new Vector2(left, bottom);
-        rt.offsetMax = new Vector2(-right, -top);
+        rt.offsetMin = new Vector2(Mathf.Round(left * .8f), Mathf.Round(bottom * .8f));
+        rt.offsetMax = new Vector2(-Mathf.Round(right * .8f), -Mathf.Round(top * .8f));
         rt.localScale = Vector3.one;
     }
 }

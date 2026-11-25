@@ -68,6 +68,9 @@
         },
         {
             "m_Id": "df44087a6bea492b8f963e575e3eaac8"
+        },
+        {
+            "m_Id": "4b5122ae1e2e48cb8b90f8775119fe81"
         }
     ],
     "m_GroupDatas": [],
@@ -76,9 +79,9 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "0058eb8c28674411a1ff828f642f6d20"
+                    "m_Id": "4b5122ae1e2e48cb8b90f8775119fe81"
                 },
-                "m_SlotId": 0
+                "m_SlotId": 2
             },
             "m_InputSlot": {
                 "m_Node": {
@@ -240,6 +243,34 @@
                 },
                 "m_SlotId": 0
             }
+        },
+        {
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "4b5122ae1e2e48cb8b90f8775119fe81"
+                },
+                "m_SlotId": 0
+            },
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "a6a6a57567684392bd3ea3f05316c80f"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "4b5122ae1e2e48cb8b90f8775119fe81"
+                },
+                "m_SlotId": 1
+            },
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "0058eb8c28674411a1ff828f642f6d20"
+                },
+                "m_SlotId": 0
+            }
         }
     ],
     "m_VertexContext": {
@@ -262,7 +293,7 @@
     "m_FragmentContext": {
         "m_Position": {
             "x": 8.00003433227539,
-            "y": 223.99998474121095
+            "y": 223.99998474121094
         },
         "m_Blocks": [
             {
@@ -1930,3 +1961,104 @@
     "m_BareResource": false
 }
 
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.CustomFunctionNode",
+    "m_ObjectId": "4b5122ae1e2e48cb8b90f8775119fe81",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Pixel hit contrast (Custom Function)",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -959.0001220703125,
+            "y": 373.00001525878906,
+            "width": 218.666748046875,
+            "height": 118.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "518fa26fa1a74d28a401b5442b49c7eb"
+        },
+        {
+            "m_Id": "62f70b61eec64e278398895c4a6af45f"
+        },
+        {
+            "m_Id": "b241b75b2c00408e84e7cbf1a6f24948"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": false,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SourceType": 1,
+    "m_FunctionName": "PixelHitContrast",
+    "m_FunctionSource": "",
+    "m_FunctionBody": "float lightest = max(Body.r, max(Body.g, Body.b));\nMask = saturate(Hit) * lerp(0.08, 1.0, smoothstep(0.035, 0.20, lightest));"
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "518fa26fa1a74d28a401b5442b49c7eb",
+    "m_Id": 0,
+    "m_DisplayName": "Body",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Body",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "62f70b61eec64e278398895c4a6af45f",
+    "m_Id": 1,
+    "m_DisplayName": "Hit",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Hit",
+    "m_StageCapability": 2,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [
+        "X"
+    ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "b241b75b2c00408e84e7cbf1a6f24948",
+    "m_Id": 2,
+    "m_DisplayName": "Mask",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Mask",
+    "m_StageCapability": 2,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [
+        "X"
+    ]
+}

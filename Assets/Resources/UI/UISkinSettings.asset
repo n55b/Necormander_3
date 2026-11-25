@@ -54,7 +54,7 @@ MonoBehaviour:
     pixelScale: 1
   divider:
     sprite: {fileID: 0}
-    color: {r: 0.6509804, g: 0.19607843, b: 0.27058825, a: 1}
+    color: {r: 0.3137255, g: 0.2941177, b: 0.3254902, a: 1}
     drawMode: 0
     pixelScale: 1
   hpBarFrame:
@@ -104,7 +104,7 @@ MonoBehaviour:
     pixelScale: 1
   selectionFrame:
     sprite: {fileID: -5842501461691977116, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
-    color: {r: 0.98039216, g: 0.7882353, b: 0.29803923, a: 1}
+    color: {r: 0.77647, g: 0.71765, b: 0.65098, a: 1}
     drawMode: 0
     pixelScale: 1
   smallIconSlot:

@@ -7,6 +7,8 @@ public class CorridorPainter : MonoBehaviour
     private Tilemap _groundTilemap;
     private Tilemap _wallTilemap;
     private Tilemap _shadowTilemap;
+    private Tilemap _unsteppableTilemap;
+    private readonly List<(Tilemap map, Vector3Int cell)> roomBrushes = new();
     private TileBase _floorTile;
     private TileBase _wallTile;
     private TileBase _shadowTile;
@@ -69,6 +71,8 @@ public class CorridorPainter : MonoBehaviour
 
     public void Init(Tilemap ground, Tilemap wall, Tilemap shadow, Tilemap unsteppable, TileBase floor, TileBase wallT, TileBase shadowT)
     {
+        roomBrushes.Clear();
+        _unsteppableTilemap = unsteppable;
         _groundTilemap = ground; _wallTilemap = wall; _shadowTilemap = shadow;
         _floorTile = floor; _wallTile = wallT; _shadowTile = shadowT;
 
@@ -222,7 +226,9 @@ public class CorridorPainter : MonoBehaviour
         tm.CompressBounds();
         foreach (var pos in tm.cellBounds.allPositionsWithin)
         {
-            if (tm.HasTile(pos))
+            var tile = tm.GetTile(pos);
+            if (tile is WorkshopTerrainTile) roomBrushes.Add((tm, pos));
+            if (tile != null)
             {
                 Vector2Int gridPos = new Vector2Int(pos.x, pos.y);
                 if (isWall) _roomWallTiles.Add(gridPos); else _roomFloorTiles.Add(gridPos);
@@ -304,28 +310,14 @@ public class CorridorPainter : MonoBehaviour
 
     private void ApplyAnchorEntrance(RoomAnchor anchor, int depth)
     {
-        Vector3Int cellPos3 = _wallTilemap.WorldToCell(anchor.transform.position);
-        Vector2Int pos = new Vector2Int(cellPos3.x, cellPos3.y);
-        Vector2Int dir = anchor.direction;
-        Vector2Int sideDir = new Vector2Int(-dir.y, dir.x);
-
-        for (int d = -1; d <= 1; d++)
+        var mouth = _wallTilemap.WorldToCell(anchor.transform.position);
+        var side = new Vector2Int(-anchor.direction.y, anchor.direction.x);
+        foreach (var cell in anchor.PassageCells(_wallTilemap, true))
         {
-            for (int s = -1; s <= 1; s++)
-            {
-                Vector2Int targetPos = pos + (dir * d) + (sideDir * s);
-                
-                // 오직 중앙 1칸(s == 0)만 path 타일로 등록하여 그림자를 걷어냅니다 (양옆은 그림자로 가림).
-                if (s == 0)
-                {
-                    _totalPathTiles.Add(targetPos); 
-                }
-                
-                _tileDepths[targetPos] = depth;
-                
-                // 문 입구의 3칸 전체를 강제로 뚫어 방의 벽을 깔끔하게 개방합니다.
-                AddGroundWithDepth(targetPos, depth, force: true);
-            }
+            var pos = (Vector2Int)cell;
+            if (Vector2.Dot(pos - (Vector2Int)mouth, side) == 0) _totalPathTiles.Add(pos);
+            _tileDepths[pos] = depth;
+            AddGroundWithDepth(pos, depth, force: true);
         }
     }
 
@@ -338,7 +330,7 @@ public class CorridorPainter : MonoBehaviour
         _drawTiles.Clear();
         foreach (var gPos in _totalGroundTiles)
         {
-            if (!_roomFloorTiles.Contains(gPos))
+            if (!_groundTilemap.HasTile((Vector3Int)gPos))
             {
                 _drawPositions.Add((Vector3Int)gPos);
                 _drawTiles.Add(_floorTile);
@@ -360,7 +352,10 @@ public class CorridorPainter : MonoBehaviour
         }
         if (_drawPositions.Count > 0)
         {
-            _wallTilemap.SetTiles(_drawPositions.ToArray(), _drawTiles.ToArray());
+            var positions = _drawPositions.ToArray();
+            var empty = _drawTiles.ToArray();
+            _wallTilemap.SetTiles(positions, empty);
+            if (_unsteppableTilemap != null) _unsteppableTilemap.SetTiles(positions, empty);
         }
 
         _drawPositions.Clear();
@@ -424,6 +419,8 @@ public class CorridorPainter : MonoBehaviour
         {
             _shadowTilemap.SetTiles(_drawPositions.ToArray(), _drawTiles.ToArray());
         }
+        // Static corridor tiles do not notify room brushes of a new edge.
+        foreach (var (map, cell) in roomBrushes) map.RefreshTile(cell);
     }
 
     private Vector2Int GetDirection(List<Vector2Int> path, int index)
@@ -526,19 +523,8 @@ public class CorridorPainter : MonoBehaviour
         System.Action<RoomAnchor> simulatedApplyAnchor = (anchor) =>
         {
             if (anchor == null) return;
-            Vector3Int cellPos3 = _wallTilemap.WorldToCell(anchor.transform.position);
-            Vector2Int pos = new Vector2Int(cellPos3.x, cellPos3.y);
-            Vector2Int dir = anchor.direction;
-            Vector2Int sideDir = new Vector2Int(-dir.y, dir.x);
-
-            for (int d = -1; d <= 1; d++)
-            {
-                for (int s = -1; s <= 1; s++)
-                {
-                    Vector2Int targetPos = pos + (dir * d) + (sideDir * s);
-                    newCorridorTiles.Add(targetPos);
-                }
-            }
+            foreach (var cell in anchor.PassageCells(_wallTilemap, true))
+                newCorridorTiles.Add((Vector2Int)cell);
         };
 
         simulatedApplyAnchor(startAnchor);

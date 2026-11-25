@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -19,9 +18,7 @@ public static class RoomPrefabCheck
             throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
 
         var scene = EditorSceneManager.NewPreviewScene();
-        var previousInstance = MapGenerator.Instance;
         var randomState = Random.state;
-        var existingMaterials = new HashSet<PhysicsMaterial2D>(Resources.FindObjectsOfTypeAll<PhysicsMaterial2D>());
         var data = ScriptableObject.CreateInstance<RoomPrefabDataSO>();
         var tuning = ScriptableObject.CreateInstance<MapGenerationDataSO>();
         var diagnostics = new List<string>();
@@ -69,32 +66,22 @@ public static class RoomPrefabCheck
             tuning.shopCount = 1;
             tuning.augmentRoomCount = 1;
             tuning.enhanceShopCount = tuning.eliteCount = tuning.rewardCount = 0;
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            var place = typeof(MapGenerator).GetMethod("PlaceIsaacRoomsFloor", flags);
+            var planner = new DungeonLayoutPlanner(tuning, data);
             for (int seed = 0; seed < 16; seed++)
             {
-                Random.InitState(seed);
-                var host = new GameObject("Placement check");
-                SceneManager.MoveGameObjectToScene(host, scene);
-                var generator = host.AddComponent<MapGenerator>();
-                generator.SetMapData(tuning, data);
-                typeof(MapGenerator).GetField("logGenerationTimings", flags).SetValue(generator, false);
-                try
-                {
-                    var grid = new Dictionary<Vector2Int, RoomInstance>();
-                    bool placed = (bool)place.Invoke(generator, new object[] { grid, false });
-                    Check(placed && grid.Count == 5 && grid.Values.All(r => r.debugDepth >= 0),
-                        $"seed={seed}: 스폰/일반/특수 방 배치와 연결 완료");
-                    if (seed == 15)
-                    {
-                        data.roomEntries[2].prefabs = new List<GameObject> { null, destroyed };
-                        typeof(MapGenerator).GetMethod("ClearExistingMap", flags).Invoke(generator, null);
-                        grid.Clear();
-                        Check(!(bool)place.Invoke(generator, new object[] { grid, false }), "일반 후보 전부 무효: 예외 대신 실패 반환");
-                    }
-                }
-                finally { Object.DestroyImmediate(host); }
+                Check(planner.TryPlan(DungeonLayoutMode.Normal, 1, null, new System.Random(seed),
+                    "floor=1 attempt=1 frame=0", out var layout, out string error) && layout.Rooms.Count == 5 &&
+                    layout.Doors.Count >= 4, $"seed={seed}: spawn, normal and special rooms connected ({error})");
             }
+            data.roomEntries[2].prefabs = new List<GameObject> { null, destroyed };
+            Check(!planner.TryPlan(DungeonLayoutMode.Normal, 1, null, new System.Random(15), null,
+                out _, out _), "No usable normal rooms returns a planning failure.");
+            var missingEntrance = new GameObject("Tutorial room missing entrance");
+            SceneManager.MoveGameObjectToScene(missingEntrance, scene);
+            tuning.tutorialRooms = new List<GameObject> { valid, missingEntrance };
+            Check(!planner.TryPlan(DungeonLayoutMode.Tutorial, 0, null, new System.Random(15), null,
+                out _, out string tutorialError) && tutorialError.Contains("entrance"),
+                "A disconnected tutorial is rejected before applying the layout.");
 
             // 같은 층 중복 금지: 서로 다른 일반 맵이 충분하면 일반 2칸 + 증강(일반 맵 폴백) 1칸이 모두 다른 맵이어야 한다.
             var distinct = new List<GameObject>();
@@ -116,21 +103,12 @@ public static class RoomPrefabCheck
             {
                 for (int seed = 0; seed < 16; seed++)
                 {
-                    Random.InitState(100 + seed);
-                    var host = new GameObject("Unique placement check");
-                    SceneManager.MoveGameObjectToScene(host, scene);
-                    var generator = host.AddComponent<MapGenerator>();
-                    generator.SetMapData(tuning, data);
-                    typeof(MapGenerator).GetField("logGenerationTimings", flags).SetValue(generator, false);
-                    try
-                    {
-                        var grid = new Dictionary<Vector2Int, RoomInstance>();
-                        Check((bool)place.Invoke(generator, new object[] { grid, false }), $"unique seed={seed}: 배치 성공");
-                        var names = grid.Values.Select(r => r.name).Where(n => n.StartsWith("Unique normal")).ToList();
-                        Check(names.Count == 3 && names.Distinct().Count() == 3,
-                            $"unique seed={seed}: 일반·증강 방이 모두 다른 맵 ({string.Join(", ", names)})");
-                    }
-                    finally { Object.DestroyImmediate(host); }
+                    Check(planner.TryPlan(DungeonLayoutMode.Normal, 1, null, new System.Random(100 + seed),
+                        null, out var layout, out var error), $"unique seed={seed}: {error}");
+                    var roomPrefabs = layout.Rooms.Select(room => room.Prefab)
+                        .Where(prefab => distinct.Contains(prefab)).ToArray();
+                    Check(roomPrefabs.Length == 3 && roomPrefabs.Distinct().Count() == 3,
+                        $"unique seed={seed}: normal and augment use distinct prefabs");
                 }
             }
             finally { Application.logMessageReceived -= OnReuse; }
@@ -153,10 +131,6 @@ public static class RoomPrefabCheck
             EditorSceneManager.ClosePreviewScene(scene);
             Object.DestroyImmediate(data);
             Object.DestroyImmediate(tuning);
-            foreach (var material in Resources.FindObjectsOfTypeAll<PhysicsMaterial2D>())
-                if (!existingMaterials.Contains(material) && !EditorUtility.IsPersistent(material) && material.name == "Slippery")
-                    Object.DestroyImmediate(material);
-            MapGenerator.Instance = previousInstance;
             Random.state = randomState;
         }
     }

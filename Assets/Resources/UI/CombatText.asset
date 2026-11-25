@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4041c52a95547ae9f472bf820b450ef, type: 3}
+  m_Name: CombatText
+  m_EditorClassIdentifier:
+  styles:
+  - id: Hit
+    glyphMotion: Hit
+    fontPixels: 10
+    lifetime: 1.03
+    fadeFrom: 0.62
+    risePixels: 18
+    spreadPixels: 10
+    shards: 7
+    burstRadius: 18
+    edgeRays: 0
+    priority: 0
+    swatch: {x: 5, y: 2}
+  - id: Critical
+    mark: 1
+    glyphMotion: Critical
+    fontPixels: 15
+    lifetime: 1.28
+    fadeFrom: 0.69
+    risePixels: 31
+    spreadPixels: 16
+    shards: 16
+    burstRadius: 43
+    edgeRays: 16
+    priority: 2
+    swatch: {x: 8, y: 2}
+  - id: Combo
+    mark: 2
+    glyphMotion: Combo
+    fontPixels: 15
+    lifetime: 1.17
+    fadeFrom: 0.67
+    risePixels: 24
+    spreadPixels: 25
+    shards: 13
+    burstRadius: 34
+    edgeRays: 8
+    priority: 1
+    swatch: {x: 7, y: 5}
+  - id: Finisher
+    mark: 3
+    glyphMotion: FinishingBlow
+    fontPixels: 20
+    lifetime: 1.48
+    fadeFrom: 0.72
+    risePixels: 39
+    spreadPixels: 20
+    shards: 24
+    burstRadius: 66
+    edgeRays: 32
+    priority: 4
+    swatch: {x: 8, y: 4}
+  - id: Shield
+    mark: 4
+    glyphMotion: GuardChime
+    fontPixels: 10
+    lifetime: 0.98
+    fadeFrom: 0.62
+    risePixels: 14
+    spreadPixels: 8
+    shards: 9
+    burstRadius: 19
+    edgeRays: 0
+    priority: 0
+    swatch: {x: 8, y: 7}
+  - id: Miss
+    glyphMotion: Sidestep
+    fontPixels: 10
+    lifetime: 0.89
+    fadeFrom: 0.63
+    risePixels: 8
+    spreadPixels: 25
+    shards: 3
+    burstRadius: 15
+    edgeRays: 0
+    priority: 0
+    swatch: {x: 6, y: 6}

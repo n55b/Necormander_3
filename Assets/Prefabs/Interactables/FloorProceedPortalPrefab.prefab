@@ -523,9 +523,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDynamic: 0
-  precision: 100
-  baseOffset: 0
   pivotOverride: {fileID: 6260306562049588663}
   sortingGroup: {fileID: 4214510804363887281}
 --- !u!114 &409278265487786578

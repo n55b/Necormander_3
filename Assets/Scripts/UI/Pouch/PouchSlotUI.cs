@@ -10,7 +10,6 @@ public class PouchSlotUI : MonoBehaviour, IPointerClickHandler, ISubmitHandler
     [SerializeField] private Image frameImage;
     [SerializeField] private TMP_Text countText;
     [SerializeField] private GameObject selectionFrame;
-    [SerializeField] private Color commonColor = new Color(0.23f, 0.49f, 0.48f);
     private PouchUI _owner;
     public ItemSO Item { get; private set; }
     public void Bind(PouchUI owner, ItemSO item, int count)
@@ -18,10 +17,21 @@ public class PouchSlotUI : MonoBehaviour, IPointerClickHandler, ISubmitHandler
         _owner = owner;
         Item = item;
         if (iconImage != null) { iconImage.sprite = GroundItem.ItemIcon(item); iconImage.enabled = item != null; }
-        if (frameImage != null) frameImage.color = item != null && item.tier != ItemTier.Tier4 ? item.TierColor : commonColor;
-        if (countText != null) countText.text = $"×{count}";
+        if (frameImage != null) frameImage.color = Color.white;
+        if (countText != null) countText.text = count > 1 ? $"×{count}" : string.Empty;
     }
-    public void SetSelected(bool selected) { if (selectionFrame != null) selectionFrame.SetActive(selected); }
+    private ControlFocusRing selectedOutline;
+    public void SetSelected(bool selected)
+    {
+        if (!selectionFrame) return;
+        if (selected && !selectedOutline)
+        {
+            if (selectionFrame.TryGetComponent<Graphic>(out var oldFrame)) oldFrame.enabled = false;
+            selectedOutline = ControlFocusRing.Create((RectTransform)selectionFrame.transform, "Selected item");
+            selectedOutline.color = new Color32(255,237,196,255);
+        }
+        selectionFrame.SetActive(selected);
+    }
     public void OnPointerClick(PointerEventData data)
     { if (data.button == PointerEventData.InputButton.Left) _owner?.Select(Item); }
     public void OnSubmit(BaseEventData data) => _owner?.Select(Item);

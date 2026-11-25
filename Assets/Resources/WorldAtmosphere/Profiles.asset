@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 856da7400ef64dcfa0061a0c732cd108, type: 3}
+  m_Name: Profiles
+  m_EditorClassIdentifier: 
+  village:
+    cloudShadow: 0.58
+    depth: 0.9
+    shaftColor: {r: 1.0, g: 0.9098, b: 0.7176, a: 1}
+    shadeColor: {r: 0.2157, g: 0.298, b: 0.5961, a: 1}
+    ambient: {r: 0.96, g: 1, b: 0.96, a: 1}
+    fog: 1.32
+    globalIntensity: 0.83
+    glow: 1.54
+    shafts: 1.38
+    wind: 1.12
+    airborne: 1.3
+    airPalette: {x: 0.9, y: 0.16}
+  dungeon:
+    cloudShadow: 0.44
+    depth: 0.85
+    shaftColor: {r: 0.6706, g: 0.9765, b: 0.8784, a: 1}
+    shadeColor: {r: 0.2392, g: 0.2, b: 0.3647, a: 1}
+    ambient: {r: 0.84, g: 0.88, b: 1, a: 1}
+    fog: 1.47
+    globalIntensity: 0.75
+    glow: 1.69
+    shafts: 1.29
+    wind: 0.78
+    airborne: 1.42
+    airPalette: {x: 0.21, y: 0.19}
+  boss:
+    cloudShadow: 0.39
+    depth: 0.94
+    shaftColor: {r: 0.9725, g: 0.7569, b: 0.8118, a: 1}
+    shadeColor: {r: 0.1098, g: 0.1451, b: 0.4745, a: 1}
+    ambient: {r: 0.99, g: 0.79, b: 0.88, a: 1}
+    fog: 1.31
+    globalIntensity: 0.74
+    glow: 1.76
+    shafts: 1.52
+    wind: 1.36
+    airborne: 1.62
+    airPalette: {x: 0.04, y: 0.86}
+  sanctuary:
+    cloudShadow: 0.34
+    depth: 0.74
+    shaftColor: {r: 1.0, g: 0.9294, b: 0.7686, a: 1}
+    shadeColor: {r: 0.3412, g: 0.2863, b: 0.4627, a: 1}
+    ambient: {r: 1, g: 0.93, b: 0.88, a: 1}
+    fog: 1.16
+    globalIntensity: 0.89
+    glow: 1.54
+    shafts: 1.22
+    wind: 0.78
+    airborne: 1.38
+    airPalette: {x: 0.35, y: 0.53}
+  portal:
+    cloudShadow: 0.46
+    depth: 1.0
+    shaftColor: {r: 0.6392, g: 0.7765, b: 0.902, a: 1}
+    shadeColor: {r: 0.0667, g: 0.0431, b: 0.3294, a: 1}
+    ambient: {r: 0.71, g: 0.76, b: 1, a: 1}
+    fog: 1.65
+    globalIntensity: 0.73
+    glow: 1.85
+    shafts: 1.64
+    wind: 1.63
+    airborne: 1.78
+    airPalette: {x: 0.17, y: 0.58}
+  blendSeconds: 0.45

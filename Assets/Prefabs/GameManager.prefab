@@ -1060,14 +1060,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   overlayEnabled: 1
-  edgeMargin: 0.7
-  arrowScale: 2.2
-  arrowBaseAngle: 180
   arrowSortingOrder: 10000
   sortingLayerName: 
   maxArrows: 16
-  arrowSpriteOverride: {fileID: -2147174629691609883, guid: 1a06e194afcc37d4aafe779b826eb127, type: 3}
-  arrowMaterial: {fileID: 0}
+  arrowColor: {r: 0.81960785, g: 0.3372549, b: 0.38039216, a: 1}
 --- !u!1 &7931369442624503284
 GameObject:
   m_ObjectHideFlags: 0

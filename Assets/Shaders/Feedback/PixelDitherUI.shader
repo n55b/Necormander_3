@@ -4,7 +4,7 @@ Shader "Necromancer/Pixel Dither UI"
     {
         [PerRendererData] _MainTex ("Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
-        _PixelSize ("디더링 점 크기 (540p 기준)", Float) = 1
+        _PixelSize ("디더링 점 크기 (내부 픽셀)", Float) = 1
         _WipeSpread ("대각선 퍼짐 정도", Range(0,1)) = 0
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
@@ -53,7 +53,7 @@ Shader "Necromancer/Pixel Dither UI"
                 c.a *= UnityGet2DClipping(i.local.xy, _ClipRect);
                 #endif
                 if (_FeedbackDitherDisabled > .5) return c;
-                float pixelSize = max(1, floor(_ScreenParams.y / 540.0 + .5)) * max(1, _PixelSize);
+                float pixelSize = max(1.0, floor(_PixelSize + 0.5));
                 float sweep = dot(saturate(i.vertex.xy / _ScreenParams.xy), float2(.7,.3));
                 float coverage = saturate(c.a * (1 + _WipeSpread) - sweep * _WipeSpread);
                 clip(coverage - PixelDitherThreshold(i.vertex.xy / pixelSize));

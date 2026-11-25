@@ -1,45 +1,28 @@
-// ==================== MapUIManager.cs 수정 ====================
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class MapUIManager : MonoBehaviour
 {
     [SerializeField] private GameObject fullMapUIWindow;
-    private PlayerInput _playerInput;
-    private bool _isInitialized = false; // 중복 초기화 방지용 변수
+    private InputAction mapToggle;
     public bool IsMapOpen => UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsOpen(fullMapUIWindow); // 열림 여부는 팝업 매니저가 기준
 
     private void Update()
     {
-        // 아직 초기화가 안 되었다면, GameManager가 플레이어를 스폰 완료했는지 매 프레임 체크합니다.
-        if (!_isInitialized)
-        {
-            if (GameManager.Instance != null && GameManager.Instance.IsPlayerReady)
-            {
-                InitializeMapUI();
-            }
-            return; // 플레이어가 준비될 때까지 조작 및 Update 문 아래쪽 실행을 막습니다.
-        }
+        if (mapToggle != null) return;
+        var game = GameManager.Instance;
+        if (game == null || !game.IsPlayerReady || game.PLAYERCONTROLLER == null) return;
+        if (!game.PLAYERCONTROLLER.TryGetComponent<PlayerInput>(out var input)) return;
+        mapToggle = input.actions["MapToggle"];
+        mapToggle.performed += OnMapTogglePressed;
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
-        // 이벤트 해제 안전장치
-        if (_playerInput != null)
-        {
-            _playerInput.actions["MapToggle"].performed -= OnMapTogglePressed;
-        }
-    }
-
-    private void InitializeMapUI()
-    {
-        _playerInput = GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerInput>();
-        if (_playerInput != null)
-        {
-            _playerInput.actions["MapToggle"].performed += OnMapTogglePressed;
-            _isInitialized = true; //  이제 다 찾았으니 Update의 감시를 종료합니다.
-            Debug.Log("<color=green>[MapUIManager]</color> 인풋 바인딩 성공!");
-        }
+        // PlayerInput can already be destroyed when the UI scene is torn down.
+        if (mapToggle == null) return;
+        mapToggle.performed -= OnMapTogglePressed;
+        mapToggle = null;
     }
 
     public void CloseMapUI()

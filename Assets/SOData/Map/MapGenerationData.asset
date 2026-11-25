@@ -16,6 +16,9 @@ MonoBehaviour:
   gridUnit: 1
   useIsaacStylePlacement: 1
   gridSpacing: 160
+  roomMergeBudgetMs: 4
+  useFixedLayoutSeed: 0
+  fixedLayoutSeed: 907
   minNormalRooms: 5
   shopCount: 1
   enhanceShopCount: 0

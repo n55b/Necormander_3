@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.Localization.Components;
+using UnityEngine.Localization;
 
 /// <summary>
 /// 개별 보상 카드를 관리하는 클래스입니다.
@@ -22,9 +22,14 @@ public class RewardCard : MonoBehaviour
     
     // 카드 자체에 Button 컴포넌트가 있는 경우를 위해 캐싱
     private Button _cardButton;
+    private UISparkBurst revealSparks;
     private int _myIndex;
     private RewardSelectionUI _parentUI;
-    private string _lastHoveredKeywordId; // [추가] 현재 마우스가 올라가 있는 키워드 링크 id (호버 툴팁용)
+    private LocalizedString boundName, boundDescription;
+    private readonly LocalizedString equippedLabel = new("UI Text Table", "Choice_Equipped");
+    private string title, equipped;
+    private bool markEquipped;
+    private string _lastHoveredKeywordId; // 현재 마우스가 올라가 있는 키워드 링크 id (호버 툴팁용)
 
     private void Awake()
     {
@@ -38,23 +43,15 @@ public class RewardCard : MonoBehaviour
         
         if (_cardButton != null)
         {
-            _cardButton.onClick.RemoveAllListeners();
-            _cardButton.onClick.AddListener(() => {
-                if (_parentUI != null)
-                {
-                    _parentUI.OnCardClicked(_myIndex);
-                }
-                else
-                {
-                    Debug.LogError($"[RewardCard] {gameObject.name}: 부모 UI(RewardSelectionUI)를 찾을 수 없습니다!");
-                }
-            });
+            _cardButton.onClick.RemoveListener(Pick);
+            _cardButton.onClick.AddListener(Pick);
         }
         else
         {
             Debug.LogError($"[RewardCard] {gameObject.name}: Button 컴포넌트가 오브젝트에 없습니다!");
         }
     }
+    private void Pick() { if (_parentUI != null) _parentUI.OnCardClicked(_myIndex); }
 
     /// <summary>
     /// 전달받은 보상 데이터를 기반으로 카드의 내용을 갱신합니다.
@@ -62,52 +59,17 @@ public class RewardCard : MonoBehaviour
     public void Setup(RewardCandidate candidate, int index)
     {
         _myIndex = index;
+        if (iconImage != null) UISparkBurst.Play(ref revealSparks, iconImage.rectTransform);
         EnsureButtonLink();
         
-        if (nameText != null)
-        {
-            if (candidate.displayData.localizedItemName != null && !candidate.displayData.localizedItemName.IsEmpty)
-            {
-                var locEvent = nameText.GetComponent<LocalizeStringEvent>();
-                if (locEvent == null)
-                {
-                    locEvent = nameText.gameObject.AddComponent<LocalizeStringEvent>();
-                    locEvent.OnUpdateString.AddListener((s) => nameText.text = s);
-                }
-                locEvent.StringReference = candidate.displayData.localizedItemName;
-            }
-            else
-            {
-                // 로컬라이즈 이벤트가 있으면 참조 해제
-                var locEvent = nameText.GetComponent<LocalizeStringEvent>();
-                if (locEvent != null) locEvent.StringReference = null;
-                nameText.text = candidate.displayData.itemName;
-            }
-        }
-
-        if (descText != null)
-        {
-            // [수정] 키워드(예: "취약")는 아래에 텍스트를 덧붙이는 대신,
-            // 설명 안에서 밑줄 + 사전에 등록된 색상(badgeColor)으로 강조 표시하고,
-            // 마우스를 올렸을 때 CommonTooltipUI로 효과 설명을 보여줍니다.
-            if (candidate.displayData.localizedDescription != null && !candidate.displayData.localizedDescription.IsEmpty)
-            {
-                var locEvent = descText.GetComponent<LocalizeStringEvent>();
-                if (locEvent == null)
-                {
-                    locEvent = descText.gameObject.AddComponent<LocalizeStringEvent>();
-                }
-                locEvent.OnUpdateString.RemoveAllListeners();
-                locEvent.OnUpdateString.AddListener(SetDescription);
-                locEvent.StringReference = candidate.displayData.localizedDescription;
-            }
-            else
-            {
-                var locEvent = descText.GetComponent<LocalizeStringEvent>();
-                if (locEvent != null) locEvent.StringReference = null;
-                SetDescription(candidate.displayData.description);
-            }
-        }
+        UnbindStrings();
+        equipped = null;
+        SetName(candidate.displayData.itemName);
+        SetDescription(candidate.displayData.description);
+        boundName = candidate.displayData.localizedItemName;
+        boundDescription = candidate.displayData.localizedDescription;
+        markEquipped = candidate.equipped;
+        if (isActiveAndEnabled) BindStrings();
         
         if (iconImage != null)
         {
@@ -117,14 +79,38 @@ public class RewardCard : MonoBehaviour
 
         if (_cardButton != null)
         {
-            // [수정] 데이터가 없어도(rawData == null) 버튼은 항상 활성화하여 
+            // 데이터가 없는 선택 카드도 클릭할 수 있게 유지한다.
             // '없음'을 클릭했을 때 다음 보상으로 넘어가거나 UI가 닫힐 수 있도록 합니다.
             _cardButton.interactable = true;
         }
     }
 
+    private void SetName(string value)
+    {
+        title = value;
+        if (nameText != null) nameText.text = string.IsNullOrEmpty(equipped) ? title : $"{title} · {equipped}";
+    }
+
+    private void SetEquipped(string value) { equipped = value; SetName(title); }
+
+    private void OnEnable() => BindStrings();
+    private void BindStrings()
+    {
+        if (boundName != null && !boundName.IsEmpty) boundName.StringChanged += SetName;
+        if (boundDescription != null && !boundDescription.IsEmpty) boundDescription.StringChanged += SetDescription;
+        if (markEquipped) equippedLabel.StringChanged += SetEquipped;
+    }
+
+    private void UnbindStrings()
+    {
+        if (boundName != null) boundName.StringChanged -= SetName;
+        if (boundDescription != null) boundDescription.StringChanged -= SetDescription;
+        equippedLabel.StringChanged -= SetEquipped;
+    }
+
     private void SetDescription(string text)
     {
+        if (descText == null) return;
         descText.text = ApplyKeywordHighlighting(text);
         if (descriptionScroll == null) return;
         LayoutRebuilder.ForceRebuildLayoutImmediate(descriptionScroll.content);
@@ -133,7 +119,7 @@ public class RewardCard : MonoBehaviour
     }
 
     /// <summary>
-    /// [추가] 설명 텍스트 안에서 키워드 사전에 등록된 단어를 찾아 밑줄 + 사전 색상(badgeColor)의 TMP 링크 태그로 감쌉니다.
+    /// 설명 텍스트 안에서 키워드 사전에 등록된 단어를 찾아 밑줄 + 사전 색상(badgeColor)의 TMP 링크 태그로 감쌉니다.
     /// 감싸진 키워드는 Update()에서 마우스 호버를 감지해 CommonTooltipUI로 설명을 보여줍니다.
     /// </summary>
     private string ApplyKeywordHighlighting(string text)
@@ -142,21 +128,20 @@ public class RewardCard : MonoBehaviour
     }
 
     /// <summary>
-    /// [추가] 매 프레임 마우스가 설명 텍스트 안의 키워드 링크 위에 있는지 검사하여 툴팁을 표시/숨김 처리합니다.
+    /// 매 프레임 마우스가 설명 텍스트 안의 키워드 링크 위에 있는지 검사하여 툴팁을 표시/숨김 처리합니다.
     /// </summary>
     private void Update()
     {
         if (descText == null || keywordDictionary == null) return;
 
-        Camera cam = null;
         var canvas = descText.canvas;
-        if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
-            cam = canvas.worldCamera;
+        var cam = PixelViewport.CanvasCamera(canvas);
 
         // 마스크 밖으로 스크롤된 키워드는 보이지 않으므로 툴팁도 띄우지 않는다.
+        Vector2 pointer = PixelViewport.PointerForCanvas(canvas, Input.mousePosition);
         bool inViewport = descriptionScroll == null || RectTransformUtility.RectangleContainsScreenPoint(
-            descriptionScroll.viewport, Input.mousePosition, cam);
-        int linkIndex = inViewport ? TMP_TextUtilities.FindIntersectingLink(descText, Input.mousePosition, cam) : -1;
+            descriptionScroll.viewport, pointer, cam);
+        int linkIndex = inViewport ? TMP_TextUtilities.FindIntersectingLink(descText, pointer, cam) : -1;
 
         if (linkIndex != -1)
         {
@@ -185,7 +170,7 @@ public class RewardCard : MonoBehaviour
 
         string title = $"[{keywordName}]";
 
-        // [수정] 사전(KeywordDictionary)에 등록된 badgeColor의 알파값이 0으로 저장되어 있으면
+        // 사전(KeywordDictionary)에 등록된 badgeColor의 알파값이 0으로 저장되어 있으면
         // 타이틀 텍스트가 완전 투명해져 안 보이는 문제가 있어, 알파를 항상 1로 강제합니다.
         Color titleColor = entry.badgeColor;
         titleColor.a = 1f;
@@ -209,6 +194,7 @@ public class RewardCard : MonoBehaviour
 
     private void OnDisable()
     {
+        UnbindStrings();
         _lastHoveredKeywordId = null;
         if (CommonTooltipUI.Instance != null)
             CommonTooltipUI.Instance.Hide();

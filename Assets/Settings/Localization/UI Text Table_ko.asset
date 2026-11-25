@@ -284,6 +284,26 @@ MonoBehaviour:
       \uC5F0\uC7A5\uD569\uB2C8\uB2E4."
     m_Metadata:
       m_Items: []
+  - m_Id: 5812374291701000
+    m_Localized: 소환수 선택
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701001
+    m_Localized: 보상 선택
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701002
+    m_Localized: 건너뛰기
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701003
+    m_Localized: 강화 선택
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701004
+    m_Localized: "장착 중"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

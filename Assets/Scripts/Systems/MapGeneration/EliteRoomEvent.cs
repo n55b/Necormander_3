@@ -87,11 +87,14 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         }
     }
 
+    private readonly RoomFinalBlow finalBlow = new();
+
     private void Update()
     {
         // 지연 스폰 중에는 엘리트 몹 수가 0명이므로 즉시 클리어되는 현상 방지
         if (!_isBattleActive || _isSpawnPending) return;
 
+        finalBlow.Resolve(true);
         int beforeCount = _activeEnemies.Count;
         _activeEnemies.RemoveAll(item => item == null);
         int afterCount = _activeEnemies.Count;
@@ -133,7 +136,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         // 1초 후 적들이 소환되도록 텀(Term) 연출 구현
         StartCoroutine(DelayedSpawnElite(room));
 
-        // [추가] 플레이어 상태 업데이트 코드 추가
+        // 플레이어 상태 업데이트 코드 추가
         if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Battle);
 
         OnEliteCombatStart?.Invoke();
@@ -153,7 +156,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
         // 인스펙터에 할당된 상자를 방 정중앙에 생성
         SpawnRoomRewardBox(room);
 
-        // [추가] 엘리트 방 클리어 시 포탈 활성화 또는 생성
+        // 엘리트 방 클리어 시 포탈 활성화 또는 생성
         if (portalObject != null)
         {
             if (portalObject.scene.IsValid())
@@ -177,7 +180,7 @@ public class EliteRoomEvent : MonoBehaviour, IRoomEvent
             Debug.Log("<color=purple>[EliteRoom]</color> Created FloorProceedPortal dynamically at room center since portalObject is null.");
         }
 
-        // [추가] 플레이어 상태 업데이트 코드 추가
+        // 플레이어 상태 업데이트 코드 추가
         if(GameManager.Instance?.PLAYERCONTROLLER != null) GameManager.Instance.PLAYERCONTROLLER.ChangeState(PlayerStates.Idle);
 
         OnEliteCombatClear?.Invoke();
@@ -215,7 +218,7 @@ private void SpawnEliteOnly(RoomInstance room)
             }
         }
 
-        // [추가] 생성된 엘리트 중 무작위 2명에게 슈퍼아머 부여
+        // 생성된 엘리트 중 무작위 2명에게 슈퍼아머 부여
         ApplySuperArmorToRandomEnemies(2);
 
         BindBossHPBar(_hpBarTargetData);   // GetComponent 제거
@@ -300,6 +303,7 @@ private void SpawnEliteOnly(RoomInstance room)
             {
                 // [버그 수정] 예전엔 여기서 같은 오브젝트를 두 번 Add 해서 활성 적 수가 실제의 2배로 잡혔다.
                 _activeEnemies.Add(eliteObj);
+                finalBlow.Track(eliteObj);
                 if (_hpBarTargetData == null) _hpBarTargetData = data; // 첫 엘리트 = 체력바 주인
             }
         }
@@ -314,6 +318,7 @@ private void SpawnEliteOnly(RoomInstance room)
         if (enemy != null && !_activeEnemies.Contains(enemy))
         {
             _activeEnemies.Add(enemy);
+            finalBlow.Track(enemy);
             Debug.Log($"<color=red>[EliteRoomEvent]</color> Added split enemy: {enemy.name}. Current Active Count: {_activeEnemies.Count}");
         }
     }

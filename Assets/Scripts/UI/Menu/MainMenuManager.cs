@@ -11,7 +11,7 @@ public class MainMenuManager : MonoBehaviour
 
     [Header("씬 설정")]
     [Tooltip("Load 버튼을 눌렀을 때 이동할 메인 게임 씬의 이름입니다.")]
-    [SerializeField] private string gameSceneName = "Map"; 
+    [SerializeField] private string gameSceneName = "BattleScene";
     [SerializeField] private string startSceneName = "VillageScene";
     [Tooltip("최초 1회 거치는 튜토리얼 맵이 지어질 씬. 던전과 같은 씬을 쓴다 — 맵 생성기/문/미니맵을 " +
              "그대로 재사용하고, 방 목록만 MapGenerationData 의 Tutorial Rooms 로 갈아끼운다.")]
@@ -42,6 +42,7 @@ private void Start()
         sceneLoader = UnityNote.SceneLoader.Instance;
 
         InitializeButtons();
+        WorkshopUI.TitleButton();
     }
 
     private void InitializeButtons()
@@ -91,7 +92,7 @@ private void Start()
         // 기존 세이브 데이터 안전 삭제.
         // 우클릭 해금은 영구 성장요소라 여기서 안 지운다 — '새 게임'은 런을 새로 시작하는 것이지
         // 그동안 쌓은 영구 해금을 되돌리는 게 아니다.
-        SaveSystem.DeleteSave();
+        if (!SaveSystem.DeleteSave()) return;
 
         // 튜토리얼을 아직 안 봤으면 마을보다 먼저 거친다. 완료 기록은 세이브가 아니라 PlayerPrefs 라
         // (우클릭 해금과 같은 취급) '새 게임'으로 세이브를 지워도 두 번 보지는 않는다.
@@ -128,6 +129,7 @@ private void Start()
     {
         Debug.Log("<color=cyan>[MainMenuManager]</color> 옵션 설정 창으로 바로 이동합니다.");
         // 옵션 씬이 열릴 때 설정 창(Settings)으로 직행하도록 플래그 설정
+        if (OptionManager.OpenDirectlyToSettings || SceneManager.GetSceneByName("OptionScene").isLoaded) return;
         OptionManager.OpenDirectlyToSettings = true;
         // 옵션 씬 중첩 로드
         SceneManager.LoadScene("OptionScene", LoadSceneMode.Additive);

@@ -4,6 +4,7 @@ using System.Collections;
 /// <summary>
 /// 유닛의 피격 반짝임, VFX(보호막 등) 시각적 피드백을 담당하는 컴포넌트입니다.
 /// </summary>
+[DefaultExecutionOrder(8100)]
 public class CharacterVisualFeedback : MonoBehaviour
 {
     private CharacterHealth _health;
@@ -13,26 +14,39 @@ public class CharacterVisualFeedback : MonoBehaviour
     private Coroutine _flashCoroutine;
     private Color _originalBaseColor;
     private bool _hasSavedOriginalBaseColor = false;
-    private Coroutine _hitFlashCoroutine;
-    private MaterialPropertyBlock _hitFlashProperties;
+    private float flashStart = -1f;
+    private float flashDuration, flashPeak, appliedFlash = -1f;
+    private float flashWindowStart = -1f;
+    private float previousHit = -1f;
+    [SerializeField] private SpriteRenderer[] additionalHitSurfaces;
+    // SetPropertyBlock copies the data. Each renderer is read immediately before writing.
+    private static MaterialPropertyBlock hitFlashProperties;
     private static readonly int HitFlashId = Shader.PropertyToID("_HitFlash");
+#if NECRO_RENDER_BENCH
+    internal int LastHitFlashFrame { get; private set; } = -1;
+#endif
 
     private void SetHitFlash(float value)
     {
-        if (_sr == null) return;
-        if (_hitFlashProperties == null) _hitFlashProperties = new MaterialPropertyBlock();
+        if (_sr == null || value == appliedFlash) return;
+        appliedFlash = value;
+        hitFlashProperties ??= new MaterialPropertyBlock();
         // 스쿼시/기타 효과가 같은 렌더러에 쓴 속성은 유지한다.
-        _sr.GetPropertyBlock(_hitFlashProperties);
-        _hitFlashProperties.SetFloat(HitFlashId, value);
-        _sr.SetPropertyBlock(_hitFlashProperties);
+        Write(_sr);
+        if (additionalHitSurfaces != null)
+            foreach (var surface in additionalHitSurfaces) if (surface != null && surface != _sr) Write(surface);
+        void Write(SpriteRenderer surface)
+        {
+            surface.GetPropertyBlock(hitFlashProperties);
+            hitFlashProperties.SetFloat(HitFlashId, value);
+            surface.SetPropertyBlock(hitFlashProperties);
+        }
     }
     [Header("피격 섬광")]
     [Range(0f, 1f), SerializeField] private float hitFlashStrength = .9f;
     [Min(.01f), SerializeField] private float hitFlashDuration = .075f;
     [Min(.001f), SerializeField, Tooltip("피격/회복 후 몸 색이 잠깐 바뀌는 시간(초).")]
     private float tintFlashDuration = .1f;
-    [Range(0f, .25f), SerializeField, Tooltip("플레이어 피격 시 화면 시간을 잠깐 멈추는 시간(초). 0이면 피격 히트스톱을 끕니다.")]
-    private float playerHitStopDuration = .05f;
     [Min(.001f), SerializeField, Tooltip("플레이어 피격 시 화면 가장자리 색 변화 시간(초).")]
     private float playerHurtVignetteDuration = .05f;
 
@@ -49,6 +63,7 @@ public class CharacterVisualFeedback : MonoBehaviour
     [SerializeField] private Vector3 freezingVFXOffset = Vector3.zero;
 
     private GameObject _freezingVFXInstance;
+    private Renderer[] freezingRenderers;
     private bool _freezingPrefabResolved;
 
     private GameObject _shieldVFXInstance;
@@ -60,49 +75,27 @@ public class CharacterVisualFeedback : MonoBehaviour
     {
         _health = health;
         _status = status;
-        
-        // [개선] 이름을 사용하지 않고 계층 구조를 횡단하여 SpriteRenderer 탐색
-        // 1. 현재 컴포넌트에서 시작
-        _sr = GetComponent<SpriteRenderer>();
 
-        // 2. 찾지 못했다면 최상위 부모(Root)를 찾은 후 그 아래의 모든 자식 탐색
-        // (이 방식은 CharacterStatStuff와 Visual이 형제 관계여도 Root를 통해 찾을 수 있게 해줍니다)
-        if (_sr == null)
-        {
-            var parentEntity = GetComponentInParent<BaseEntity>();
-            if (parentEntity != null)
-            {
-                _sr = parentEntity.GetComponentInChildren<SpriteRenderer>();
-            }
-        }
+        _sr = health.HitBody;
+        if (_sr == null) _sr = GetComponentInChildren<SpriteRenderer>();
+        if (_sr == null && GetComponentInParent<BaseEntity>() is { } owner) _sr = owner.SpriteRenderer;
 
-        if (_sr == null)
-        {
-            _sr = GetComponentInChildren<SpriteRenderer>();
-        }
-
-        if (_sr == null)
-        {
-            Transform root = transform.root;
-
-            // Prefer the dedicated "Body" child by name first - multiple SpriteRenderers exist
-            // under root (hands, silhouettes, icon), so a blind "first match" search is unreliable.
-            Transform bodyChild = root.Find("Body");
-            if (bodyChild != null) _sr = bodyChild.GetComponent<SpriteRenderer>();
-
-            // Fallback: old behavior if no "Body" child exists (e.g. other character prefabs)
-            if (_sr == null)
-                _sr = root.GetComponentInChildren<SpriteRenderer>();
-        }
-
-        if (_sr != null) 
+        if (_sr != null)
         {
             _originalColor = _sr.color;
-            Debug.Log($"<color=cyan>[VisualFeedback]</color> {gameObject.name}: SpriteRenderer found on <b>{_sr.gameObject.name}</b> (Root: {transform.root.name})");
+            if ((additionalHitSurfaces == null || additionalHitSurfaces.Length == 0) && GetComponentInParent<BaseEntity>() is { } actor)
+            {
+                var bodyMaterial = _sr.sharedMaterial;
+                var renderers = actor.GetComponentsInChildren<SpriteRenderer>(true);
+                additionalHitSurfaces = System.Array.FindAll(renderers, r => r != _sr && r.sharedMaterial == bodyMaterial &&
+                    !r.TryGetComponent<AirborneShadow>(out _) && r.GetComponentInParent<Canvas>() == null);
+            }
+            // Allocate the renderer's overrides while this actor enters the room.
+            SetHitFlash(0f);
         }
         else
         {
-            Debug.LogWarning($"<color=red>[VisualFeedback]</color> {gameObject.name}: SpriteRenderer NOT found in any hierarchy!");
+            Debug.LogWarning($"피격 표시용 스프라이트를 찾지 못했습니다: {transform.root.name}/{name}", this);
         }
 
         // 이벤트 구독
@@ -121,17 +114,25 @@ public class CharacterVisualFeedback : MonoBehaviour
         }
     }
 
+    private void OnDisable()
+    {
+        flashStart = -1f;
+        previousHit = flashWindowStart = -1f;
+        SetHitFlash(0f);
+    }
+
     private void PlayDeathVisual()
     {
         if (_sr == null) return;
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
-        
+
         // 사망 시 약간 어둡고 투명하게 (혹은 회색조)
         _sr.color = new Color(0.3f, 0.3f, 0.3f, 0.7f);
     }
 
     private void Update()
     {
+        if (flashStart >= 0f) UpdateHitFlash();
         UpdateStatusVFX();
         UpdateBaseTint();
     }
@@ -148,29 +149,7 @@ public class CharacterVisualFeedback : MonoBehaviour
         StatusType.Freeze, StatusType.Stun, StatusType.Poison, StatusType.Bleed, StatusType.BloodPop,
     };
 
-    /// <summary>
-    /// 스프라이트의 '기본색'을 매 프레임 한 번에 결정한다. 슈퍼아머와 상태이상 틴트가 각자
-    /// _sr.color 를 건드리면 서로 덮어써서 깜빡이므로, 레이어를 순서대로 겹쳐 한 번만 쓴다.
-    ///
-    /// 겹치는 순서: 원래색 → 슈퍼아머 → 상태이상 틴트.
-    /// 슈퍼아머는 빙결을 애초에 막으므로(StatusRules.BlockedBySuperArmor) 둘이 동시에 켜지는 건
-    /// '이미 빙결된 유닛이 슈퍼아머를 얻는' 경로뿐이다. 그때는 나중에 얹는 빙결이 이긴다 —
-    /// 행동 불가라는 정보가 더 급하기 때문이다.
-    ///
-    /// 피격 플래시 중(_flashCoroutine != null)에는 SetBaseColor 가 _sr.color 를 안 건드리고
-    /// 값만 갱신해두므로, 플래시가 끝나면 여기서 정한 색으로 복귀한다.
-    /// 상태이상이 풀리면 result 가 다시 _originalBaseColor 가 되어 원래 색으로 돌아온다.
-    /// </summary>
-    /// <summary>
-    /// 스프라이트의 '기본색'을 매 프레임 한 번에 결정한다. 여러 곳이 각자 _sr.color 를 건드리면
-    /// 서로 덮어써서 깜빡이므로, 색을 쓰는 창구를 여기 하나로 둔다.
-    ///
-    /// [26/07/25] 슈퍼아머는 여기서 빠졌다. 스프라이트를 파랗게 물들이는 대신 아웃라인 셰이더를
-    /// 겹쳐 그리는 방식(UpdateSuperArmorOverlay)으로 옮겼다. 지금 남은 건 상태이상 틴트뿐이다.
-    ///
-    /// 피격 플래시 중에는 SetBaseColor 가 _sr.color 를 안 건드리고 값만 갱신해두므로,
-    /// 플래시가 끝나면 여기서 정한 색으로 복귀한다.
-    /// </summary>
+    // 상태 색은 몸의 원색에 곱한다. 슈퍼아머 외곽선과 피격 섬광은 별도 재질 속성을 사용한다.
     private void UpdateBaseTint()
     {
         if (_sr == null) return;
@@ -252,8 +231,7 @@ public class CharacterVisualFeedback : MonoBehaviour
 
     /// <summary>
     /// 슈퍼아머 상태에 맞춰 오버레이를 만들고/지우고/따라붙인다.
-    /// LateUpdate 에서 부르는 이유는 본체 sortingOrder 를 YSortableObject 가 LateUpdate 에서
-    /// 갱신하기 때문이다 — 빙결 VFX 도 같은 이유로 같은 자리에서 동기화한다.
+    /// 월드 정렬이 끝난 뒤 몸의 현재 순서에 맞춰 빙결과 슈퍼아머 표시를 동기화한다.
     /// </summary>
     private void UpdateSuperArmorOverlay()
     {
@@ -362,19 +340,14 @@ public class CharacterVisualFeedback : MonoBehaviour
         {
             Destroy(_freezingVFXInstance);
             _freezingVFXInstance = null;
+            freezingRenderers = null;
         }
     }
 
     /// <summary>
     /// 빙결 이펙트를 생성해 유닛에 붙인다.
     ///
-    /// [왜 정렬을 코드에서 강제하는가]
-    /// 적 스프라이트는 YSortableObject 가 매 프레임 sortingOrder = -(Y * 100) 로 덮어쓴다.
-    /// 즉 Y=3 인 적의 order 는 약 -300 인데, 프리팹의 파티클은 고정 order 4 + 존재하지 않는
-    /// 소팅 레이어를 들고 있어서, 레이어가 다르면 엉뚱한 깊이에 그려지고 레이어가 같아도
-    /// 숫자만으로는 적과의 앞뒤가 매 프레임 뒤집힌다. 그래서 스폰 시점에 대상 스프라이트와
-    /// '같은 레이어'로 맞추고 order 만 +1 해서 항상 본체 바로 앞에 오도록 고정한다.
-    /// (본체가 움직여 order 가 바뀌어도 아래 LateUpdate 에서 계속 따라간다.)
+    /// 캐릭터 묶음 안의 순서 또는 소환수의 월드 순서에 맞춰 몸 위에 그린다.
     /// </summary>
     private void SpawnFreezingVFX()
     {
@@ -391,6 +364,7 @@ public class CharacterVisualFeedback : MonoBehaviour
         }
         else _freezingVFXInstance = Instantiate(prefab, anchor.position + freezingVFXOffset, prefab.transform.rotation, anchor);
 
+        freezingRenderers = _freezingVFXInstance.GetComponentsInChildren<Renderer>(true);
         SyncFreezingVFXSorting();
 
         // 프리팹이 Play On Awake 가 꺼진 채 저장돼 있어도 확실히 재생시킨다.
@@ -407,18 +381,20 @@ public class CharacterVisualFeedback : MonoBehaviour
     /// </summary>
     private void SyncFreezingVFXSorting()
     {
-        if (_freezingVFXInstance == null || _sr == null) return;
+        if (freezingRenderers == null || _sr == null) return;
 
-        foreach (var r in _freezingVFXInstance.GetComponentsInChildren<Renderer>(true))
+        int layer = _sr.sortingLayerID;
+        int order = WorldDepthOrder.AttachmentOrder(layer, _sr.sortingOrder, 1);
+        foreach (var renderer in freezingRenderers)
         {
-            r.sortingLayerID = _sr.sortingLayerID;
-            r.sortingOrder = _sr.sortingOrder + 1; // 본체 바로 앞
+            if (renderer == null) continue;
+            if (renderer.sortingLayerID != layer) renderer.sortingLayerID = layer;
+            if (renderer.sortingOrder != order) renderer.sortingOrder = order;
         }
     }
 
     private void LateUpdate()
     {
-        // 본체의 sortingOrder 는 YSortableObject 가 LateUpdate 에서 갱신하므로 여기서 뒤따라 맞춘다.
         if (_freezingVFXInstance != null) SyncFreezingVFXSorting();
 
         UpdateSuperArmorOverlay();
@@ -457,42 +433,49 @@ public class CharacterVisualFeedback : MonoBehaviour
 
     private void PlayHitFlash(float damage)
     {
-        if (_status != null && _status.TotalShield > 0.01f) StartFlash(Color.cyan); // 보호막 피격
-        else 
+        if (damage <= 0f) StartFlash(Color.cyan); // 보호막 피격
+        else
         {
-            if (_hitFlashCoroutine != null)
+            float now = Time.unscaledTime;
+            if (now - previousHit > .1f || now - flashWindowStart >= .19f) flashWindowStart = now;
+            previousHit = now;
+            if (now - flashWindowStart < .10f && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
             {
-                StopCoroutine(_hitFlashCoroutine);
-                SetHitFlash(0f);
+                bool strong = _health != null && damage >= _health.MaxHP * .18f;
+                flashStart = now;
+                flashDuration = Mathf.Max(.01f, hitFlashDuration * (strong ? 1.18f : 1f));
+                flashPeak = strong ? 1f : hitFlashStrength;
+                SetHitFlash(flashPeak);
+#if NECRO_RENDER_BENCH
+                if (_sr != null && appliedFlash > 0) LastHitFlashFrame = Time.frameCount;
+#endif
             }
-            if (PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
-                _hitFlashCoroutine = StartCoroutine(FlashRoutine()); // 일반 피격
 
-            // [수정] 레이어 체크 대신 root 태그를 사용하여 플레이어 판정 (안정성 강화)
+            // 레이어 체크 대신 root 태그를 사용하여 플레이어 판정 (안정성 강화)
             bool isPlayer = gameObject.CompareTag("Player") || transform.root.CompareTag("Player");
-            
+
             if(isPlayer)
             {
-                // [수정] 인스턴스 널 체크 추가하여 NRE 방지
-                if (HitStopManager.Instance != null && playerHitStopDuration > 0f) HitStopManager.Instance.DoHitStop(playerHitStopDuration);
+                // 인스턴스 널 체크 추가하여 NRE 방지
                 if (GameManager.Instance != null && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
                     GameManager.Instance.ChangeVignetteColor(playerHurtVignetteDuration, Color.red);
             }
         }
     }
 
-    private IEnumerator FlashRoutine()
+    private void UpdateHitFlash()
     {
-        if (_sr == null) yield break; // [추가] 널 체크
-
-        SetHitFlash(hitFlashStrength);
-        float elapsed = 0f;
-        while (elapsed < hitFlashDuration && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
-        { elapsed += Time.deltaTime; yield return null; }
-        SetHitFlash(0f);
-        _hitFlashCoroutine = null;
-
-        StartFlash(Color.grey); 
+        float now = Time.unscaledTime;
+        float elapsed = now - flashStart;
+        if (elapsed >= flashDuration || now - flashWindowStart >= .12f ||
+            !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash))
+        {
+            flashStart = -1f;
+            SetHitFlash(0f);
+            return;
+        }
+        float hold = Mathf.Min(.033f, hitFlashDuration * .5f);
+        SetHitFlash(flashPeak * (1f - Mathf.InverseLerp(hold, flashDuration, elapsed)));
     }
 
     private void PlayHealFlash() => StartFlash(Color.green);
@@ -500,7 +483,7 @@ public class CharacterVisualFeedback : MonoBehaviour
     private void StartFlash(Color color)
     {
         if (_sr == null || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Flash)) return;
-        if (_flashCoroutine != null) 
+        if (_flashCoroutine != null)
         {
             StopCoroutine(_flashCoroutine);
             _sr.color = _originalColor; // 강제 종료 시 색상 원상복구 보장
@@ -530,23 +513,15 @@ public class CharacterVisualFeedback : MonoBehaviour
     public void ResetVisuals()
     {
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
+        _flashCoroutine = null;
+        flashStart = -1f;
+        SetHitFlash(0f);
         if (_sr != null) _sr.color = _originalColor;
     }
 
     private Coroutine _telegraphCoroutine;
 
-    /// <summary>
-    /// 공격 예고 플래시 (하데스식). 돌진/공격 윈드업 중 호출하면 스프라이트가 흰색으로 번쩍입니다.
-    /// 피격 플래시(_HitFlash)와 같은 셰이더 프로퍼티를 재사용하므로 별도 셰이더가 필요 없습니다.
-    /// </summary>
-    /// <param name="pulses">번쩍임 횟수 (일반 1, 엘리트 2 권장)</param>
-    /// <param name="onTime">1회 점등 시간</param>
-    /// <param name="offTime">펄스 사이 소등 시간</param>
-    /// <param name="intensity">플래시 강도 (0~1)</param>
-    /// <summary>
-    /// 공격 예고 플래시 (하데스식). 돌진/공격 윈드업 중 호출하면 스프라이트가 지정 색(기본 빨강)으로 번쩍입니다.
-    /// </summary>
-    /// <param name="pulses">번쩍임 횟수 (일반 1, 엘리트 2 권장)</param>
+    /// <summary>공격 준비 중에는 기본 빨강으로 점멸하고 종료 후 상태이상 색을 복원한다.</summary>
     public void PlayTelegraphFlash(int pulses = 1, float onTime = 0.09f, float offTime = 0.07f, float intensity = 1f)
     {
         PlayTelegraphFlash(new Color(1f, 0.2f, 0.2f), pulses, onTime, offTime);

@@ -76,7 +76,8 @@ public static class HealingFeedbackValidation
         int mote = (Get<int>(overlay, "cursor") - 1) % Get<Image[]>(overlay, "motes").Length;
         var target = Get<Func<Vector2?>[]>(overlay, "destinations")[mote]();
         var track = (RectTransform)fill.transform.parent;
-        var expected = RectTransformUtility.WorldToScreenPoint(null, track.TransformPoint(new Vector3(Mathf.Lerp(track.rect.xMin, track.rect.xMax, .45f), track.rect.center.y)));
+        var expected = PixelViewport.CanvasToGamePoint(fill.canvas,
+            track.TransformPoint(new Vector3(Mathf.Lerp(track.rect.xMin, track.rect.xMax, .45f), track.rect.center.y)));
         Require(target.HasValue && Vector2.Distance(target.Value, expected) < 1f, "실제 빈 구간 중앙에 도착");
         var wait = Wait(recipe.duration * .5f); while (wait.MoveNext()) yield return null;
         Expect(.4f, "비행 중 먼저 차지 않음");
@@ -115,6 +116,17 @@ public static class HealingFeedbackValidation
         for (int i = 0; i < 17; i++) overlay.Pulse(FeedbackCue.StackUp, Vector3.zero);
         Expect(.8f, "풀 슬롯 재사용 때 체력 대기 유실 없음");
 
+        health.SetHP(80);
+        var status = stat.GetComponent<CharacterStatus>();
+        status.AddShield(60, 5);
+        yield return null;
+        Expect(80f/140f, "보호막 포함 140 눈금에서 체력 액체 폭");
+        var shield = Get<Image>(hud, "shieldSprite");
+        Require(shield.enabled && Mathf.Approximately(shield.fillAmount,1), "보호막은 뒤에서 끝까지 채움");
+        status.ConsumeShield(60);
+        yield return null;
+        Expect(.8f, "보호막 소진 후 원래 눈금 복귀");
+        Require(!shield.enabled, "보호막이 없을 때 잔여 픽셀 없음");
         health.SetHP(40); hud.Initialize(health); hud.Initialize(health); health.Heal(10);
         Expect(.4f, "재초기화 이벤트 중복 없음");
         Time.timeScale = 0;

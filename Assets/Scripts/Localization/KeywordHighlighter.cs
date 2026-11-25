@@ -41,7 +41,8 @@ namespace AstroNuts.Localization
                 if (!terms.TryGetValue(match.Value, out var entry)) return match.Value;
                 string color = ColorUtility.ToHtmlStringRGB(entry.badgeColor);
                 // 공용 Sprite Asset에 없는 배지 대신 텍스트 링크만 사용한다.
-                return $"<link=\"{entry.id}\"><u><color=#{color}>{match.Value}</color></u></link>";
+                string word = string.IsNullOrEmpty(entry.textMotion) ? match.Value : $"<fx={entry.textMotion}>{match.Value}</fx>";
+                return $"<link=\"{entry.id}\"><u><color=#{color}>{word}</color></u></link>";
             }, RegexOptions.Singleline);
         }
     }

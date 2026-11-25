@@ -172,7 +172,6 @@ public class BoneMasterAIPatternSO : BossAIPatternSO
     private float _chaseStartTime = -100f;
 
     private BoneMasterController _controller;
-    private float _lastDiagLogTime = -100f;
     // 이 시각 전에는 어떤 특수 패턴도 안 뽑는다(기본 공격/추격은 계속한다). EndPattern 이 갱신.
     private float _specialLockUntil = -100f;
     [Header("스폰 연출")]
@@ -195,7 +194,7 @@ public override void Init(BaseEntity entity)
         // 파훼 가능 신호색을 컨트롤러에 알려준다. 컨트롤러가 카운터 게이지 상태에 물려 아웃라인을
         // 켜고 끄므로, 패턴마다 창을 여닫는 12개 지점을 일일이 손대지 않아도 신호가 일관된다.
 
-        // [추가] 스폰 직후 startupDelay(기본 2초) 동안은 아무 패턴도 뽑지 않고 가만히 대기한다.
+        // 스폰 직후 startupDelay(기본 2초) 동안은 아무 패턴도 뽑지 않고 가만히 대기한다.
         // 예전엔 스폰과 동시에 바로 돌진이 뽑힐 수 있어서, 플레이어가 상황을 인지하기도 전에
         // 돌진 -> 경직까지 순식간에 지나가버리는 문제가 있었다.
         _activationTime = Time.time + startupDelay;
@@ -230,70 +229,29 @@ public override void Init(BaseEntity entity)
 
     protected override void UpdateStateTransitions(BaseEntity entity)
     {
-        if (entity.Target == null)
+        if (entity.Target == null || (_controller != null && _controller.IsGroggy))
         {
             entity.CurrentState = AIState.Idle;
             return;
         }
 
-        // [버그 수정 — 경직 끝나기도 전에 다음 패턴이 시작되는 문제] AIPatternSO.Execute()는
-        // CurrentState==Skill 일 때만 AI 판단을 멈추고, IsGroggy(경직) 여부는 보지 않는다. 패턴이
-        // 끝나며 CurrentState가 Follow로 바뀌자마자 다음 프레임에 여기서 바로 새 패턴을 뽑을 수 있어서,
-        // 보스가 아직 경직 중인데도(연출/스턴이 안 끝났는데도) 새 패턴이 시작돼버리는 문제가 있었다.
-        if (_controller != null && _controller.IsGroggy)
+        float now = Time.time;
+        if (now < _activationTime)
         {
             entity.CurrentState = AIState.Idle;
+            _chaseStartTime = now;
             return;
         }
 
-
-                // [추가] 스폰 직후 startupDelay 동안은 어떤 패턴도 뽑지 않고 가만히 대기한다.
-        if (Time.time < _activationTime)
-        {
-            entity.CurrentState = AIState.Idle;
-            _chaseStartTime = Time.time;
-            return;
-        }
-
-float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
+        float distance = Vector2.Distance(entity.transform.position, entity.Target.position);
         float rangeBonus = _controller != null ? _controller.AttackRangeBonus : 0f;
-        float effectiveEngageRange = engageRange * (1f + rangeBonus);
+        bool recoveryLocked = now < _specialLockUntil;
+        bool inRange = distance <= engageRange * (1f + rangeBonus);
+        bool chaseTimeRemaining = now - _chaseStartTime < Mathf.Max(0f, chaseTimeLimit);
 
-        if (Time.time - _lastDiagLogTime > 2f)
-        {
-            _lastDiagLogTime = Time.time;
-            float interval = entity.Stats != null ? entity.Stats.AttackInterval : -1f;
-            float lockLeft = Mathf.Max(0f, _specialLockUntil - Time.time);
-            Debug.Log($"[BoneMaster-Diag] dist={dist:F1} engageRange={effectiveEngageRange:F1} AtkTimer={entity.AtkTimer:F2}/{interval:F2} 특수잠금={lockLeft:F2}s CurrentState={entity.CurrentState} IsAttacking={entity.IsAttacking}");
-        }
-
-        // 카운터 파훼 뒤의 딜타임 + 패턴 사이 최소 간격(attackGap)을 여기서 지킨다.
-        if (Time.time < _specialLockUntil)
-        {
-            entity.CurrentState = AIState.Follow;
-            _controller?.SetStateText("추격 중...");
-            // 추격 시간은 '때릴 수 있게 된 순간'부터 센다. 여기서 리셋하지 않으면 딜타임이
-            // 그대로 추격 시간으로 계산돼, 잠금이 풀리는 즉시 강제 패턴이 튀어나온다.
-            _chaseStartTime = Time.time;
-            return;
-        }
-
-        // [버그 수정 — 패턴마다 1초씩 추격이 강제로 붙던 문제]
-        // 예전엔 여기서 entity.AtkTimer >= AttackInterval 을 봤는데, AtkTimer 는 AIPatternSO.Execute()
-        // 안에서만 증가하고 Execute 는 IsAttacking 이면 통째로 안 돈다(BaseEntity.CanExecuteAI).
-        // 즉 패턴이 도는 1.4초 동안 타이머가 얼어 있다가 패턴이 끝나서야 0 부터 다시 세기 시작했고,
-        // 그 결과 패턴마다 정확히 공속 1회분(1초)의 추격이 강제로 붙었다. 그 1초면 이동속도 5 인
-        // 보스가 플레이어에게 완전히 달라붙어서, 다음 판단은 항상 근거리 -> 휩쓸기만 나왔다.
-        // 이제 간격은 attackGap 하나로만 저작한다.
-        bool inRange = dist <= effectiveEngageRange;
-        if (!inRange && Time.time - _chaseStartTime < Mathf.Max(0f, chaseTimeLimit))
-        {
-            entity.CurrentState = AIState.Follow;
-            _controller?.SetStateText("추격 중...");
-            return;
-        }
-
-        entity.CurrentState = AIState.Attack;
+        entity.CurrentState = EnemyAIDecisions.BoneMasterPhaseOne(recoveryLocked, inRange, chaseTimeRemaining);
+        if (recoveryLocked) _chaseStartTime = now;
+        if (entity.CurrentState == AIState.Follow) _controller?.SetStateText("추격 중...");
     }
 
     /// <summary>
@@ -488,7 +446,7 @@ float dist = Vector2.Distance(entity.transform.position, entity.Target.position)
                                                   stepEnd = origin + dir * SlideDistance(origin, dir, sweepStepDistance);
                                                   BoneMasterTelegraphUtil.UpdateCone(
                                                       telegraph, stepEnd, dir,
-                                                      windup > 0.0001f ? tele.Elapsed / windup : 1f);
+                                                      windup > 0.0001f ? tele.Elapsed / windup : 1f, windup);
                                                   BossAttackIndicator.Aim(entity, dir);
                                               });
         if (telegraph != null) Object.Destroy(telegraph);

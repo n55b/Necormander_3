@@ -8,7 +8,7 @@ using UnityEngine;
 /// PlayerSkillController(autoAttackInterval / autoAttackRange / autoAttackDamageMultiplier)가 정한다.
 /// 클래스/필드 이름(finisher)은 에셋 직렬화 호환을 위해 그대로 둔다.
 ///
-/// [26/07/23] 애니메이션(비주얼/시퀀스/타이밍/이펙트)은 MainMinionDataSO.basicAnim(MinionAnimSet)으로
+/// 애니메이션(비주얼/시퀀스/타이밍/이펙트)은 MainMinionDataSO.basicAnim(MinionAnimSet)으로
 /// 이사했다. 여기 남은 건 데미지·판정·넉백 같은 로직뿐이다. 기획자는 애니를 미니언 한 곳에서 설정한다.
 /// ▶ 애니메이션 연결 방법은 repo 루트의 Docs/Guides/MINION_ANIMATION_GUIDE.md 참조.
 ///

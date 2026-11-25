@@ -31,6 +31,11 @@ public class EquipmentInventoryManager : MonoBehaviour
     /// </summary>
     public void Initialize() => Instance = this;
 
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
     // ── 장비 ─────────────────────────────────────────────────────────
     private static CharacterStat PlayerStat()
         => GameManager.Instance != null && GameManager.Instance.PLAYERCONTROLLER != null
@@ -348,15 +353,18 @@ public class EquipmentInventoryManager : MonoBehaviour
             : null;
     }
 
-    public void LoadFromData(SaveData data)
+    internal void LoadFromData(SaveData data, GrowthRegistrySO registry)
     {
-        if (data == null) return;
-        var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null
-            ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY() : null;
-        if (registry == null) return;
+        if (data == null || registry == null) return;
         var saved = data.equipment;
-        var so = saved != null ? registry.equipments.Find(e => e != null && e.name == saved.equipmentSOName) : null;
-        so = so != null ? so : registry.startingEquipment;
+        var so = registry.ResolveSavedEquipment(saved?.equipmentSOName);
+        if (so == null)
+        {
+            if (saved != null && !string.IsNullOrEmpty(saved.equipmentSOName))
+                Debug.LogWarning($"[EquipmentInventoryManager] Unknown saved equipment '{saved.equipmentSOName}'. Using starting equipment.");
+            so = registry.startingEquipment;
+            saved = null;
+        }
         EquipEquipment(so != null ? new EquipmentInstance {
             baseData = so, enhanceLevel = so.upgradeOnly ? so.upgradeStage : Mathf.Clamp(saved != null ? saved.enhanceLevel : 0, 0, so.maxEnhanceLevel)
         } : null);
@@ -365,6 +373,5 @@ public class EquipmentInventoryManager : MonoBehaviour
             _serendipityElapsed = Mathf.Clamp(saved.serendipityElapsed, 0f, so.guaranteedProcSeconds);
             _moveBuffRemaining = Mathf.Clamp(saved.moveBuffRemaining, 0f, so.moveBuffSeconds);
         }
-        // 옛 세이브의 Q/E/rolledSkillNames는 읽지 않는다. 장비와 강화 수치는 유지한다.
     }
 }

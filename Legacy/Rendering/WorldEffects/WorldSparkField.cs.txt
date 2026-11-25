@@ -1,0 +1,149 @@
+using System.Runtime.InteropServices;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
+
+// CPU queries the first solid surface once at birth. The GPU animates both flight segments.
+public sealed class WorldSparkField : MonoBehaviour
+{
+    public enum Kind { EnemyHit, PlayerHit, Projectile, Reflect, Wall, Sprint }
+    private const int Capacity = 768, FrameBudget = 64;
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Vertex
+    {
+        public Vector3 start;
+        public Vector4 cornerAndLife, velocity, contactAndColor;
+    }
+    private static WorldSparkField instance;
+    private Mesh mesh;
+    private Material material;
+    private MeshRenderer batch;
+    private readonly Vertex[] vertices = new Vertex[Capacity*4];
+    private readonly RaycastHit2D[] firstHit = new RaycastHit2D[1];
+    private ContactFilter2D solids;
+    private int cursor, firstDirty, dirty, frame = -1, used;
+    private float lastExpiry;
+    private static readonly Vector2[] Corners = { new(-1,-1),new(-1,1),new(1,1),new(1,-1) };
+
+    private void Awake()
+    {
+        instance = this;
+        solids = new ContactFilter2D { useTriggers = false };
+        solids.SetLayerMask(Layers.WallMask | Layers.ObjectMask | Layers.UnsteppableMask);
+        var go = new GameObject("GPU combat sparks",typeof(MeshFilter),typeof(MeshRenderer));
+        go.transform.SetParent(transform,false);
+        batch = go.GetComponent<MeshRenderer>();
+        batch.sortingLayerName = "FlyingObject";
+        batch.sortingOrder = 20;
+        batch.shadowCastingMode = ShadowCastingMode.Off;
+        batch.receiveShadows = false;
+        var shader = Resources.Load<Shader>("WorldAtmosphere/WorldSparks");
+        material = new Material(shader);
+        material.SetTexture("_Palette",Resources.Load<Texture2D>("WorldAtmosphere/necrohanderPalette"));
+        batch.sharedMaterial = material;
+        mesh = new Mesh { name = "World spark ring" }; mesh.MarkDynamic();
+        mesh.SetVertexBufferParams(vertices.Length, new VertexAttributeDescriptor(VertexAttribute.Position),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0,dimension:4),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord1,dimension:4),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord2,dimension:4));
+        mesh.SetVertexBufferData(vertices,0,0,vertices.Length);
+        var indices = new int[Capacity*6];
+        for (int i=0;i<Capacity;i++) {
+            int j=i*6,v=i*4;
+            indices[j]=v; indices[j+1]=v+1; indices[j+2]=v+2;
+            indices[j+3]=v; indices[j+4]=v+2; indices[j+5]=v+3;
+        }
+        mesh.SetTriangles(indices,0,false);
+        mesh.bounds = new Bounds(Vector3.zero, Vector3.one*100000);
+        go.GetComponent<MeshFilter>().sharedMesh = mesh;
+        batch.enabled = false;
+        DamageEventBus.OnAttackHitResolved += Hit;
+        SceneManager.activeSceneChanged += SceneChanged;
+    }
+
+    private void SceneChanged(Scene previous, Scene next)
+    {
+        System.Array.Clear(vertices,0,vertices.Length);
+        cursor=firstDirty=0; dirty=Capacity; lastExpiry=0; batch.enabled=false;
+    }
+
+    private static void Hit(CharacterHealth target, CharacterStat attacker, DamageInfo info, bool critical)
+    {
+        if (target == null || info.category == DamageCategory.Debuff || info.isRedirected) return;
+        Vector2 feet = target.transform.position;
+        var sr = WorldDepthOrder.FindParticipant(target.transform)?.Renderer;
+        Vector2 point = sr != null ? (Vector2)sr.bounds.center : feet;
+        Vector2 from = info.hitFrom ?? (attacker != null ? (Vector2)attacker.transform.position : point-Vector2.up);
+        Emit(DamageRules.IsEnemyTier(info.category) ? Kind.PlayerHit : Kind.EnemyHit, point, point-from,
+            critical || info.feedbackComboFinish ? 14 : 7);
+    }
+
+    public static void Emit(Kind kind, Vector2 position, Vector2 heading, int count)
+    {
+        if (instance == null || !Application.isPlaying || Time.timeScale <= 0) return;
+        var catalog = PolishFeedback.Catalog;
+        if (catalog != null && (!catalog.enabled || catalog.intensity <= 0)) return;
+        var camera = PixelArtUpscaleRig.RenderCamera;
+        if (camera == null) return;
+        var viewport = camera.WorldToViewportPoint(position);
+        if (viewport.x < -.1f || viewport.x > 1.1f || viewport.y < -.1f || viewport.y > 1.1f) return;
+        instance.Burst(kind, position, heading, count);
+    }
+
+    private void Burst(Kind kind, Vector2 start, Vector2 heading, int count)
+    {
+        if (frame != Time.frameCount) { frame=Time.frameCount; used=0; }
+        bool trail = kind == Kind.Projectile || kind == Kind.Reflect || kind == Kind.Sprint;
+        float direction = Mathf.Atan2(heading.y,heading.x);
+        for (int i=0;i<count && used<FrameBudget;i++,used++)
+        {
+            float angle = direction + PolishFeedback.VisualRange(trail ? -.68f : -1.8f,trail ? .68f : 1.8f);
+            var axis = new Vector2(Mathf.Cos(angle),Mathf.Sin(angle));
+            float speed = PolishFeedback.VisualRange(trail ? .45f : 1.5f,trail ? 1.6f : 5f);
+            float life = PolishFeedback.VisualRange(.19f,trail ? .34f : .48f);
+            Vector2 inward = axis*speed, outward = Vector2.zero;
+            float contact = life;
+            if (Physics2D.Raycast(start,axis,solids,firstHit,speed*life)>0) {
+                contact=firstHit[0].distance/speed;
+                outward=Vector2.Reflect(inward,firstHit[0].normal)*.47f;
+            }
+            int column, row;
+            switch (kind) {
+                case Kind.PlayerHit: row=4; column=i%3; break;
+                case Kind.Projectile: row=7; column=8+i%3; break;
+                case Kind.Reflect: case Kind.Sprint: row=5; column=8+i%3; break;
+                default: row=2; column=i%3; break;
+            }
+            var data=new Vertex { start=start, velocity=new(inward.x,inward.y,outward.x,outward.y),
+                contactAndColor=new(contact,column,row,!trail && i%5==0 ? 2 : 1) };
+            if (dirty==0) firstDirty=cursor;
+            for (int j=0;j<4;j++) {
+                data.cornerAndLife = new(Corners[j].x,Corners[j].y,Time.time,life);
+                vertices[cursor*4+j]=data;
+            }
+            cursor=(cursor+1)%Capacity; dirty=Mathf.Min(Capacity,dirty+1);
+            lastExpiry=Mathf.Max(lastExpiry, Time.time+life);
+        }
+    }
+
+    private void LateUpdate()
+    {
+        if (dirty>0) {
+            int tail=Mathf.Min(dirty,Capacity-firstDirty);
+            Upload(firstDirty,tail);
+            if (dirty>tail) Upload(0,dirty-tail);
+            dirty=0;
+        }
+        batch.enabled=Time.time < lastExpiry;
+        if (batch.enabled) material.SetFloat("_SparkTime",Time.time);
+    }
+    private void Upload(int slot,int count) => mesh.SetVertexBufferData(vertices,slot*4,slot*4,count*4,0,
+        MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices);
+    private void OnDestroy()
+    {
+        DamageEventBus.OnAttackHitResolved -= Hit;
+        SceneManager.activeSceneChanged -= SceneChanged;
+        if (instance==this) instance=null;
+        Destroy(mesh); Destroy(material);
+    }
+}

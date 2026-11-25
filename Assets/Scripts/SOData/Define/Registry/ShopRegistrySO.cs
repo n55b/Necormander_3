@@ -25,7 +25,7 @@ public class ShopRegistrySO : ScriptableObject
              "구매하면 바로 주머니에 들어간다. 중첩 한도면 골드를 내기 전에 구매가 막히고, 주머니가 없을 때만 바닥에 떨어진다.")]
     public List<ItemSO> itemPool = new List<ItemSO>();
 
-    // [26/08/03] 강화는 전용 상점(Room_ShopEnhance)의 EnhanceShopNPC 에게 F 로만 한다.
+    // 강화는 전용 상점(Room_ShopEnhance)의 EnhanceShopNPC 에게 F 로만 한다.
     // 일반 상점에 소모성 강화 카드를 같이 진열하던 건 걷어냈다(역할 중복 + 그쪽이 고정가라 더 쌌음).
     // 그래서 남은 두 값은 전부 강화 상점 전용이다.
     [Header("장비 강화 (강화 상점 전용)")]
@@ -43,7 +43,7 @@ public class ShopRegistrySO : ScriptableObject
         equipmentPool.Clear();
         itemPool.Clear();
 
-        // [26/08/15] 상점에 서던 건 서브 소환수뿐이었고, 서브가 삭제되면서 이 스캔이 통째로 없어졌다.
+        // 상점에 서던 건 서브 소환수뿐이었고, 서브가 삭제되면서 이 스캔이 통째로 없어졌다.
         // minionPool 필드 자체는 남긴다 — 나중에 메인 소환수를 상점에 올릴 여지가 있고,
         // 지우면 이 SO 를 참조하는 에셋의 직렬화가 흔들린다.
 

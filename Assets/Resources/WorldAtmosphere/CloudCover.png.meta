@@ -1,0 +1,24 @@
+fileFormatVersion: 2
+guid: 77d19acc072d4f458f38f4986181648d
+TextureImporter:
+  serializedVersion: 13
+  mipmaps:
+    enableMipMap: 0
+    sRGBTexture: 0
+  isReadable: 0
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    wrapU: 0
+    wrapV: 0
+  nPOTScale: 0
+  textureType: 0
+  textureShape: 1
+  alphaIsTransparency: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 256
+    textureFormat: -1
+    textureCompression: 0
+    overridden: 0

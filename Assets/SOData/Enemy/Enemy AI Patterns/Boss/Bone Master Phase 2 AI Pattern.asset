@@ -30,7 +30,6 @@ MonoBehaviour:
   midRange: 6
   engageRange: 8.5
   attackGap: 1
-  chaseTimeLimit: 2
   sweepRadius: 3.64
   sweepHalfAngle: 90
   sweepTurnSpeed: 0

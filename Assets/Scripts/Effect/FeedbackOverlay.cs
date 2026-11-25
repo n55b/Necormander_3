@@ -8,14 +8,7 @@ public sealed class FeedbackOverlay : MonoBehaviour
     public static FeedbackOverlay Instance { get; private set; }
     [SerializeField] private RectTransform canvasRect;
 
-    // 캔버스가 Screen Space - Camera 일 때는 UI 카메라를 넘겨야 좌표가 맞는다 (Overlay 면 null).
-    static Camera UICam(Transform t)
-    {
-        var c = t != null ? t.GetComponentInParent<Canvas>() : null;
-        if (c == null) return null;
-        c = c.rootCanvas;
-        return c.renderMode == RenderMode.ScreenSpaceOverlay ? null : c.worldCamera;
-    }
+    private Canvas canvas;
 
     [SerializeField] private Image[] motes;
     [SerializeField] private Image[] edges;
@@ -45,6 +38,7 @@ public sealed class FeedbackOverlay : MonoBehaviour
     private void Awake()
     {
         Instance=this;
+        canvas = canvasRect.GetComponentInParent<Canvas>();
         ages=new float[motes.Length]; starts=new Vector2[motes.Length]; ends=new Vector2[motes.Length]; recipes=new FeedbackRecipe[motes.Length];
         worldStarts=new Vector3[motes.Length]; useWorldStart=new bool[motes.Length];
         destinations=new System.Func<Vector2?>[motes.Length]; completions=new System.Action<bool>[motes.Length]; arrived=new bool[motes.Length];
@@ -57,7 +51,7 @@ public sealed class FeedbackOverlay : MonoBehaviour
         hurtAge=0;
         hurtEdge=Mathf.Abs(direction.x)>Mathf.Abs(direction.y)?(direction.x>0?1:3):(direction.y>0?0:2);
     }
-    // 동적 목적지는 화면 좌표를 반환한다. null이면 소유 HUD가 더 이상 이 연출을 기다리지 않는다.
+    // 동적 목적지는 게임 프레임의 픽셀 좌표를 반환한다. null이면 소유 HUD가 이 연출을 더 기다리지 않는다.
     // 완료 콜백의 false는 풀 교체/비활성화: 기다리는 체력 표시를 즉시 실제 값에 합류시킨다.
     public bool Pulse(FeedbackCue cue, Vector3 world, Sprite sprite=null, RectTransform destination=null, Vector3? sourceWorldScale=null,
         System.Func<Vector2?> screenDestination=null, System.Action<bool> onFinished=null)
@@ -69,14 +63,14 @@ public sealed class FeedbackOverlay : MonoBehaviour
         int i=cursor++%motes.Length;
         Finish(i,false);
         var anchor=destination!=null?destination:cue==FeedbackCue.Pickup||cue==FeedbackCue.StackUp||cue==FeedbackCue.StackMax?bagAnchor:
-            cue==FeedbackCue.Heal?healthAnchor:cue==FeedbackCue.Purchase?goldAnchor:skillAnchor;
-        var cam=Camera.main;
-        Vector2 screen=cam!=null?(Vector2)cam.WorldToScreenPoint(world):new Vector2(Screen.width*.5f,Screen.height*.5f);
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect,screen,UICam(canvasRect),out starts[i]);
-        var endScreen=dynamicEnd??RectTransformUtility.WorldToScreenPoint(UICam(anchor),anchor.position);
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect,endScreen,UICam(canvasRect),out ends[i]);
-        if(cue!=FeedbackCue.Pickup&&cue!=FeedbackCue.Heal) starts[i]=ends[i];
-        useWorldStart[i]=cue==FeedbackCue.Pickup||cue==FeedbackCue.Heal;
+            cue==FeedbackCue.Heal?healthAnchor:(cue==FeedbackCue.Purchase || cue==FeedbackCue.GoldPickup)?goldAnchor:skillAnchor;
+        if (!dynamicEnd.HasValue && anchor == null) return false;
+        var end = dynamicEnd ?? PixelViewport.CanvasToGamePoint(anchor.GetComponentInParent<Canvas>(), anchor.position);
+        if (!PixelViewport.TryGamePointToCanvas(end, canvas, canvasRect, out ends[i])) return false;
+        bool fromWorld = cue == FeedbackCue.Pickup || cue == FeedbackCue.Heal || cue == FeedbackCue.GoldPickup;
+        if (!fromWorld || !PixelViewport.TryWorldToCanvasPoint(world, canvas, canvasRect, out starts[i]))
+            starts[i] = ends[i];
+        useWorldStart[i] = fromWorld;
         worldStarts[i]=world;
         ages[i]=0; recipes[i]=recipe;
         destinations[i]=screenDestination; completions[i]=onFinished; arrived[i]=false;
@@ -84,19 +78,19 @@ public sealed class FeedbackOverlay : MonoBehaviour
         image.sprite=sprite;
         image.preserveAspect=true;
         Vector2 size=sprite!=null?Vector2.one*Mathf.Max(1f,iconSize):new Vector2(10,10);
-        if(cue==FeedbackCue.Pickup && sprite!=null && cam!=null)
+        if(cue==FeedbackCue.Pickup && sprite!=null)
         {
             // 텍스처 픽셀 수는 UI 크기가 아니다. 월드에서 보이던 크기를 화면 → 캔버스로 옮긴다.
             Vector3 scale=sourceWorldScale??Vector3.one;
             Vector2 spriteSize=sprite.rect.size/Mathf.Max(.001f,sprite.pixelsPerUnit);
             Vector3 half=new Vector3(spriteSize.x*Mathf.Abs(scale.x),spriteSize.y*Mathf.Abs(scale.y),0f)*.5f;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect,cam.WorldToScreenPoint(world-half),UICam(canvasRect),out var lower);
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect,cam.WorldToScreenPoint(world+half),UICam(canvasRect),out var upper);
-            size=new Vector2(Mathf.Abs(upper.x-lower.x),Mathf.Abs(upper.y-lower.y));
+            if (PixelViewport.TryWorldToCanvasPoint(world - half, canvas, canvasRect, out var lower) &&
+                PixelViewport.TryWorldToCanvasPoint(world + half, canvas, canvasRect, out var upper))
+                size = new Vector2(Mathf.Abs(upper.x-lower.x), Mathf.Abs(upper.y-lower.y));
         }
         image.rectTransform.localScale=Vector3.one;
         image.rectTransform.sizeDelta=size;
-        image.rectTransform.anchoredPosition=starts[i];
+        image.rectTransform.position = canvasRect.TransformPoint(starts[i]);
         var color=recipe.color; color.a*=recipe.intensity*PolishFeedback.Catalog.intensity;
         image.color=color;
         image.enabled=true;
@@ -105,18 +99,17 @@ public sealed class FeedbackOverlay : MonoBehaviour
     // 월드 출발점은 고정하되 카메라 이동에 따라 화면 좌표를 다시 계산한다.
     private void LateUpdate()
     {
-        var cam = Camera.main;
-        if (cam == null || recipes == null) return;
-        var uiCam = UICam(canvasRect);
+        if (recipes == null) return;
         for (int i = 0; i < recipes.Length; i++)
         {
             var recipe = recipes[i];
             if (recipe == null || !useWorldStart[i] || arrived[i]) continue;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, cam.WorldToScreenPoint(worldStarts[i]), uiCam, out starts[i]);
+            if (!PixelViewport.TryWorldToCanvasPoint(worldStarts[i], canvas, canvasRect, out var start)) continue;
+            starts[i] = start;
             float t = Mathf.Clamp01(ages[i] / Mathf.Max(.02f, recipe.duration));
             var p = Vector2.Lerp(starts[i], ends[i], recipe.motion.Evaluate(t));
             if (starts[i] != ends[i]) p.y += Mathf.Sin(t * Mathf.PI) * recipe.radius * 100;
-            motes[i].rectTransform.anchoredPosition = p;
+            motes[i].rectTransform.position = canvasRect.TransformPoint(p);
         }
     }
     private void Update()
@@ -133,7 +126,8 @@ public sealed class FeedbackOverlay : MonoBehaviour
             {
                 var target=destinations[i]();
                 if(!target.HasValue) { Finish(i,false); continue; }
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect,target.Value,UICam(canvasRect),out ends[i]);
+                if (!PixelViewport.TryGamePointToCanvas(target.Value, canvas, canvasRect, out ends[i]))
+                { Finish(i, false); continue; }
             }
             bool heal=recipe.cue==FeedbackCue.Heal&&destinations[i]!=null;
             if(t>=1&&!arrived[i])
@@ -148,7 +142,7 @@ public sealed class FeedbackOverlay : MonoBehaviour
             var p=Vector2.Lerp(starts[i],ends[i],recipe.motion.Evaluate(t));
             if(arrived[i]) p=ends[i];
             if(starts[i]!=ends[i]) p.y+=Mathf.Sin(t*Mathf.PI)*recipe.radius*100;
-            motes[i].rectTransform.anchoredPosition=p;
+            motes[i].rectTransform.position = canvasRect.TransformPoint(p);
             motes[i].rectTransform.localScale=Vector3.one*(heal?Mathf.Lerp(1f,.1f,absorption):1f);
             var color=recipe.color; color.a*=recipe.intensity*catalog.intensity*(heal?1-absorption:1-t);
             motes[i].color=color;

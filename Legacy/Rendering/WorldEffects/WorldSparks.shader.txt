@@ -1,0 +1,38 @@
+Shader "Necromancer/World Sparks"
+{
+    Properties { _Palette("Palette",2D)="white"{} }
+    SubShader {
+        Tags { "Queue"="Transparent" "RenderType"="Transparent" "RenderPipeline"="UniversalPipeline" "DisableBatching"="True" }
+        Pass {
+            Tags { "LightMode"="Universal2D" }
+            Cull Off ZWrite Off Blend One One, Zero One
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            TEXTURE2D(_Palette); float _SparkTime;
+            struct A { float3 start:POSITION; float4 corner:TEXCOORD0; float4 velocity:TEXCOORD1; float4 contact:TEXCOORD2; };
+            struct V { float4 pos:SV_POSITION; float2 local:TEXCOORD0; float4 swatch:TEXCOORD1; };
+            V Vert(A a) {
+                V o; float t=_SparkTime-a.corner.z, life=a.corner.w;
+                float2 p=a.start.xy+a.velocity.xy*min(t,a.contact.x)+a.velocity.zw*max(0,t-a.contact.x);
+                float radius=a.contact.w+1;
+                o.pos=TransformWorldToHClip(float3(p,0));
+                float2 halfSize=_ScaledScreenParams.xy*.5;
+                o.pos.xy=(floor(o.pos.xy/o.pos.w*halfSize)+.5+a.corner.xy*(radius+.5))/halfSize*o.pos.w;
+                o.local=a.corner.xy*(radius+.5);
+                o.swatch=float4((a.contact.y+.5)/16,1-(a.contact.z+.5)/9,saturate(1-t/max(life,.001)),a.contact.w);
+                if(t<0 || t>=life || life<=0) o.pos=float4(2,2,0,1);
+                return o;
+            }
+            half4 Frag(V i):SV_Target {
+                float d=dot(i.local,i.local);
+                float core=step(d,(i.swatch.w-.5)*(i.swatch.w-.5));
+                float halo=saturate(1-d/((i.swatch.w+1)*(i.swatch.w+1)))*.24;
+                half3 color=SAMPLE_TEXTURE2D(_Palette,sampler_PointClamp,i.swatch.xy).rgb;
+                return half4(color*(core*1.55+halo)*saturate(i.swatch.z*3),0);
+            }
+            ENDHLSL
+        }
+    }
+}

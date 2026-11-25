@@ -22,6 +22,22 @@ public class NPCBase : MonoBehaviour, IInteractable
     [Header("NPC 표시 이름")]
     [SerializeField] public new string name = "";
 
+    [SerializeField] private string workshopId;
+    [SerializeField] private Transform workshopActor;
+    internal string WorkshopId => workshopId;
+    internal Transform WorkshopActor => workshopActor;
+    internal string WorkshopGreeting { get; set; }
+
+    internal bool InteractWithGreeting(GameObject interactor)
+    {
+        if (string.IsNullOrWhiteSpace(WorkshopGreeting) || DialogueUI.Instance == null)
+            return Interact(interactor);
+        if (DialogueUI.Instance.IsPlaying) return false;
+        DialogueUI.Instance.PlayGreeting(workshopActor.name, string.IsNullOrEmpty(name) ? workshopActor.name : name,
+            WorkshopGreeting, () => { if (this != null && interactor != null) Interact(interactor); });
+        return true;
+    }
+
     // ─── IInteractable ────────────────────────────────────────────────
     public virtual string InteractionPrompt => "F : 상호작용";
 

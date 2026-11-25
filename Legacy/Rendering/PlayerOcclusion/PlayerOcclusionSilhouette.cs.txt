@@ -1,0 +1,175 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+/// <summary>Shows hidden player pixels when scenery covers the body, using the same order as the render pass.</summary>
+[RequireComponent(typeof(SpriteRenderer))]
+[DefaultExecutionOrder(9000)]
+public sealed class PlayerOcclusionSilhouette : MonoBehaviour
+{
+    [SerializeField] private SpriteRenderer silhouetteRenderer;
+    [SerializeField] private Color silhouetteColor = new Color(.65f, .67f, .68f, .55f);
+    [SerializeField] private LayerMask occluderLayers;
+    [SerializeField] private bool autoDefaultToWallLayers = true;
+    [Min(.01f), SerializeField] private float transitionDuration = .12f;
+    [Range(.01f, 1f), SerializeField] private float maskAlphaCutoff = .1f;
+    [Range(0f, 1f), SerializeField, Tooltip("플레이어 몸의 바닥부터 이 높이까지 가려지면 실루엣을 표시합니다.")]
+    private float bodyCoverageHeight = .6f;
+
+    private readonly List<SpriteMask> masks = new List<SpriteMask>();
+    private static readonly List<YSortableObject> Candidates = new List<YSortableObject>();
+    private static int candidateFrame = -1;
+    private static int candidateLayers;
+    private static uint candidateVersion;
+    private SpriteRenderer mainRenderer;
+    private SpriteRenderer bodyRenderer;
+    private SortingGroup actorGroup;
+    private Transform actorRoot;
+    private float visibility;
+
+    private void Awake()
+    {
+        mainRenderer = GetComponent<SpriteRenderer>();
+        actorGroup = WorldDepthOrder.FindEffectiveGroup(mainRenderer);
+        actorRoot = actorGroup != null ? actorGroup.transform : transform;
+        var body = actorRoot.GetComponentInChildren<YSortableObject>();
+        bodyRenderer = body != null && body.Renderer != null ? body.Renderer : mainRenderer;
+
+        if (autoDefaultToWallLayers && occluderLayers.value == 0)
+            occluderLayers = Layers.WallMask | Layers.ObjectMask;
+
+        if (silhouetteRenderer == null) return;
+        silhouetteRenderer.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+        silhouetteRenderer.enabled = false;
+    }
+
+    private void LateUpdate()
+    {
+        if (silhouetteRenderer == null || mainRenderer == null) return;
+        if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Silhouette))
+        {
+            OnDisable();
+            return;
+        }
+
+        if (silhouetteRenderer.sprite != mainRenderer.sprite) silhouetteRenderer.sprite = mainRenderer.sprite;
+        silhouetteRenderer.flipX = mainRenderer.flipX;
+        silhouetteRenderer.flipY = mainRenderer.flipY;
+
+        bool blocked = UpdateMasks();
+        visibility = Mathf.MoveTowards(visibility, blocked ? 1f : 0f, Time.deltaTime / transitionDuration);
+        var tint = silhouetteColor;
+        tint.a *= visibility * mainRenderer.color.a;
+        silhouetteRenderer.color = tint;
+        silhouetteRenderer.enabled = blocked && visibility > 0f;
+    }
+
+    private bool UpdateMasks()
+    {
+        if (!mainRenderer.enabled || mainRenderer.forceRenderingOff || mainRenderer.color.a <= .001f || silhouetteRenderer == null)
+        {
+            HideMasks(0);
+            return false;
+        }
+
+        Bounds part = mainRenderer.bounds;
+        Bounds body = bodyRenderer.bounds;
+        float bodyLine = Mathf.Lerp(body.min.y, body.max.y, bodyCoverageHeight);
+        WorldDepthOrder.ReadOrder(mainRenderer, actorGroup, out int bodyLayerId, out int bodyOrder);
+        int bodyLayer = SortingLayer.GetLayerValueFromID(bodyLayerId);
+
+        int used = 0;
+        foreach (var candidate in GetCandidates(occluderLayers.value))
+        {
+            if (candidate == null) continue;
+            var scenery = candidate.Renderer;
+            if (scenery == null || !scenery.enabled || scenery.sprite == null || scenery.color.a < maskAlphaCutoff)
+                continue;
+            if (!candidate.OccludesPlayer && ((1 << scenery.gameObject.layer) & occluderLayers.value) == 0)
+                continue;
+            if (scenery.transform.IsChildOf(actorRoot)) continue;
+
+            Bounds bounds = scenery.bounds;
+            if (bounds.min.y > bodyLine || bounds.max.y < bodyLine || !bounds.Intersects(body) || !bounds.Intersects(part))
+                continue;
+
+            WorldDepthOrder.ReadOrder(scenery, candidate.Group ?? WorldDepthOrder.FindEffectiveGroup(scenery),
+                out int layerId, out int order);
+            int layer = SortingLayer.GetLayerValueFromID(layerId);
+            if (layer < bodyLayer || (layer == bodyLayer && order <= bodyOrder)) continue;
+
+            var mask = GetMask(used++);
+            mask.sprite = scenery.sprite;
+            mask.alphaCutoff = maskAlphaCutoff;
+            mask.frontSortingLayerID = mask.backSortingLayerID = silhouetteRenderer.sortingLayerID;
+            mask.frontSortingOrder = silhouetteRenderer.sortingOrder + 1;
+            mask.backSortingOrder = silhouetteRenderer.sortingOrder - 1;
+            var source = scenery.transform;
+            mask.transform.SetPositionAndRotation(source.position, source.rotation);
+            Vector3 scale = source.lossyScale;
+            Vector3 parentScale = mask.transform.parent.lossyScale;
+            mask.transform.localScale = new Vector3(
+                scale.x / parentScale.x * (scenery.flipX ? -1f : 1f),
+                scale.y / parentScale.y * (scenery.flipY ? -1f : 1f), 1f);
+            mask.enabled = true;
+        }
+
+        HideMasks(used);
+        return used > 0;
+    }
+
+    private static List<YSortableObject> GetCandidates(int layers)
+    {
+        uint version = WorldDepthOrder.MembershipVersion;
+        if (candidateFrame == Time.frameCount && candidateLayers == layers && candidateVersion == version)
+            return Candidates;
+
+        Candidates.Clear();
+        var entries = WorldDepthOrder.Entries;
+        for (int i = 0; i < entries.Count; i++)
+        {
+            var candidate = entries[i];
+            if (candidate == null || candidate.Renderer == null) continue;
+            if (candidate.OccludesPlayer || ((1 << candidate.gameObject.layer) & layers) != 0)
+                Candidates.Add(candidate);
+        }
+
+        candidateFrame = Time.frameCount;
+        candidateLayers = layers;
+        candidateVersion = version;
+        return Candidates;
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetCandidates()
+    {
+        Candidates.Clear();
+        candidateFrame = -1;
+    }
+
+    private SpriteMask GetMask(int index)
+    {
+        if (index == masks.Count)
+        {
+            var go = new GameObject("Occluder Pixel Mask") { layer = gameObject.layer };
+            go.transform.SetParent(silhouetteRenderer.transform, false);
+            var mask = go.AddComponent<SpriteMask>();
+            mask.isCustomRangeActive = true;
+            masks.Add(mask);
+        }
+        return masks[index];
+    }
+
+    private void HideMasks(int from)
+    {
+        for (int i = from; i < masks.Count; i++)
+            if (masks[i] != null) masks[i].enabled = false;
+    }
+
+    private void OnDisable()
+    {
+        visibility = 0f;
+        HideMasks(0);
+        if (silhouetteRenderer != null) silhouetteRenderer.enabled = false;
+    }
+}

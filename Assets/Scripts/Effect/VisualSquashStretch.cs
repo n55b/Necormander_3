@@ -35,6 +35,20 @@ public class VisualSquashStretch : MonoBehaviour
     private Vector3 _baseScale;
     private bool _initialized;
     private Pulse _active;
+    private bool wasMoving;
+    private float motionAmplitude = 1f;
+    private float activeAmplitude = 1f;
+
+    public void SetActorAmplitude(float amount) => motionAmplitude = Mathf.Clamp01(amount);
+
+    public void Locomotion(bool moving)
+    {
+        if (moving == wasMoving) return;
+        wasMoving = moving;
+        if (_active != null) return;
+        Play(moving ? "Stretch" : "Land");
+        activeAmplitude *= .55f;
+    }
     private Vector2 _scale = Vector2.one;
     private Vector2 _startScale;
     private float _elapsed;
@@ -127,6 +141,8 @@ public class VisualSquashStretch : MonoBehaviour
         foreach (var pulse in pulses)
         {
             if (pulse == null || pulse.name != pulseName) continue;
+            if (_active != null && _active.name == "Hit" && pulseName != "Hit" && _elapsed < _active.duration * .45f) return;
+            activeAmplitude = motionAmplitude;
             _startScale = _scale;
             _active = pulse;
             _elapsed = 0f;
@@ -191,17 +207,48 @@ public class VisualSquashStretch : MonoBehaviour
 
     private void Advance(float deltaTime)
     {
-        if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Squash)) { ResetVisual(); return; }
         if (_active == null || (visual == null && deformRenderer == null)) return;
+        if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Squash)) { ResetVisual(); return; }
         _elapsed += Mathf.Max(0f, deltaTime);
         float t = Mathf.Clamp01(_elapsed / Mathf.Max(.01f, _active.duration));
         if (t >= 1f) { ResetPulse(); return; }
         float weight = _active.curve != null ? _active.curve.Evaluate(t) : Mathf.Sin(t * Mathf.PI);
         // 연속 호출 시 현재 변형에서 이어지고, 종료 때는 정확한 원래 스케일로 돌아온다.
-        _scale = Vector2.one + (_active.scale - Vector2.one) * weight
+        _scale = Vector2.one + (_active.scale - Vector2.one) * (weight * activeAmplitude)
             + (_startScale - Vector2.one) * (1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / Mathf.Max(.01f, pulseBlendRatio))));
         _scale.x = Mathf.Clamp(_scale.x, .5f, 1.5f);
         _scale.y = Mathf.Clamp(_scale.y, .5f, 1.5f);
+        ApplyScale();
+    }
+
+    internal void StretchForDescent(float progress)
+    {
+        if (!Initialize()) return;
+        float open = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0f, .28f, progress));
+        float dive = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(.30f, .83f, progress));
+        float height = Mathf.Lerp(1.22f, .70f, open) + .65f * dive;
+        height = Mathf.Lerp(1f, height, motionAmplitude);
+        _scale = new Vector2(1f / height, height);
+        ApplyScale();
+    }
+
+    internal void LandFromDescent()
+    {
+        if (!Initialize()) return;
+        float height = Mathf.Lerp(1f, .68f, motionAmplitude);
+        _scale = new Vector2(1f / height, height);
+        ApplyScale();
+        PlayLand();
+        if (_active == null) ResetPulse();
+    }
+
+    internal void ReleaseDescentStretch()
+    {
+        if (_active == null) ResetPulse();
+    }
+
+    private void ApplyScale()
+    {
         if (deformRenderer != null)
         {
             deformRenderer.GetPropertyBlock(_properties);
@@ -243,6 +290,7 @@ public class VisualSquashStretch : MonoBehaviour
     }
     private void OnDisable()
     {
+        wasMoving = false;
         if (healthSource != null)
         {
             healthSource.OnDamageTaken -= OnDamageTaken;

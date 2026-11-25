@@ -48,7 +48,7 @@ public static class SkillCombatUtil
     /// <summary>fromWorld 기준 마우스 조준 방향(월드, 정규화). 0이면 오른쪽.</summary>
     public static Vector2 GetAimDir(Vector2 fromWorld)
     {
-        Vector2 mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        if (!PixelViewport.TryPointerToWorld(Input.mousePosition, out var mouse)) return Vector2.right;
         Vector2 dir = (mouse - fromWorld).normalized;
         return dir == Vector2.zero ? Vector2.right : dir;
     }
@@ -189,7 +189,7 @@ public static class SkillCombatUtil
     /// 슈퍼아머면 아머만 깎고 종료, 아니면 벽에 클램프하며 이동.
     /// 기존 5개 스킬(Tetsuzanko/FlickerJab/GuardBreak/NeedleSobat/Leap)에 복붙돼 있던 로직을 통합한 것.
     ///
-    /// [26/07/17] applyVulnerability 인자는 삭제됐다 — 취약 시스템 자체가 없어졌다.
+    /// applyVulnerability 인자는 삭제됐다 — 취약 시스템 자체가 없어졌다.
     /// 슈퍼아머는 여전히 밀기를 막는다(= 강인함).
     /// </summary>
     /// <summary>플레이어 진영이 적을 밀치거나 끌어당길 때 발생. 발동형 버프(투지) 등이 구독한다.</summary>

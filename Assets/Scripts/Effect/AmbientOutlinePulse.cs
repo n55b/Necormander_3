@@ -12,6 +12,7 @@ public sealed class AmbientOutlinePulse : MonoBehaviour
     [SerializeField, Min(0f), InspectorName("켜짐·꺼짐 시간(초)")] private float fadeTime = .22f;
     private bool open = true;
     private float alpha, phase;
+    public float FadeDuration => Mathf.Max(0f, fadeTime);
     public ExistingFeedbackCue CatalogCue => catalogCue;
     public void SetOpen(bool value) => open = value;
     private void OnEnable() { alpha = 0; phase = PolishFeedback.VisualRange(0, Mathf.PI * 2); }

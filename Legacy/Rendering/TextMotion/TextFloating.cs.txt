@@ -1,0 +1,212 @@
+using DG.Tweening;
+using TMPro;
+using UnityEngine;
+using System.Collections.Generic;
+
+[DefaultExecutionOrder(1100)]
+public class TextFloating : MonoBehaviour
+{
+    private TextMeshProUGUI textMesh;
+
+    private Canvas parentCanvas;
+    private RectTransform rectTransform;
+    private RectTransform parentRect;
+
+    // Text Location
+    private Vector3 spawnWorldPosition;
+    private Vector3 offSet;
+    private Vector3 punchOffset;
+    private Vector3 sizePunch;
+    private Vector3 screenPunch;
+    private float displayFontPixels;
+    private PixelText pixelText;
+
+    [Header("텍스트 설정")]
+    [SerializeField] private float moveSpeed;
+    [SerializeField] private float fadeTime;
+    [SerializeField] private float displaytime;
+    [SerializeField, Min(0f)] private float normalSizePop = .6f;
+    [SerializeField, Min(0f)] private float criticalSizePop = .6f;
+
+    [Header("치명타")]
+    [Tooltip("치명타 데미지 숫자 색(데미지 타입 색을 덮어씀).")]
+    [SerializeField] private Color critColor = new Color(1f, 0.9f, 0.15f);
+    [SerializeField, Min(8)] private int normalPixels = 10;
+    [SerializeField, Min(8)] private int criticalPixels = 15;
+
+    [Header("일반")]
+    [Tooltip("일반 데미지 펀치 강도 배율. 1 = 예전 세기, 낮을수록 약해진다.")]
+    [SerializeField, Range(0f, 1f)] private float normalPunchStrength = 0.4f;
+
+    [Header("숫자 등장 동작")]
+    [Min(0f), SerializeField] private float horizontalJitter = .5f;
+    [Min(.001f), SerializeField] private float normalPositionPunchTime = .5f;
+    [Min(.001f), SerializeField] private float normalScalePunchTime = .25f;
+    [Min(.001f), SerializeField] private float criticalPunchTime = .3f;
+    [Min(.001f), SerializeField] private float criticalShakeTime = .3f;
+    [Min(0f), SerializeField] private float criticalShakePixels = 3f;
+    [Min(1), SerializeField] private int positionPunchVibrato = 10;
+    [Min(1), SerializeField] private int scalePunchVibrato = 8;
+    [Min(1), SerializeField] private int criticalPunchVibrato = 10;
+    [Min(1), SerializeField] private int criticalShakeVibrato = 20;
+    [Range(0f, 1f), SerializeField] private float normalScaleElasticity = .6f;
+
+    private float timer;
+    private TMPTextEffectPlayer effectPlayer;
+    private static readonly List<TextEffectRange> tempEffectRanges = new List<TextEffectRange>();
+
+    /// <summary>풀 안에 있는지. ReturnToPool 이 같은 객체를 두 번 넣지 않게 막는다.</summary>
+    internal bool InPool { get; set; }
+
+    /// <summary>알림 텍스트 줄 쌓기용 대상 키. 데미지 텍스트·풀에 있는 텍스트는 null.</summary>
+    internal Transform NoticeKey { get; set; }
+
+    /// <summary>현재 세로 오프셋(월드 단위). 줄 쌓기에서 위아래 간격을 잴 때 쓴다.</summary>
+    public float OffsetY => offSet.y;
+
+    private void Awake()
+    {
+        textMesh = GetComponent<TextMeshProUGUI>();
+        pixelText = PixelText.Configure(textMesh, normalPixels);
+        rectTransform = GetComponent<RectTransform>();
+        CacheParent();
+        effectPlayer = GetComponent<TMPTextEffectPlayer>();
+        if (effectPlayer == null) effectPlayer = gameObject.AddComponent<TMPTextEffectPlayer>();
+    }
+
+    private void OnTransformParentChanged() => CacheParent();
+
+    private void CacheParent()
+    {
+        parentRect = transform.parent as RectTransform;
+        parentCanvas = GetComponentInParent<Canvas>();
+    }
+
+    public void SetUp(string _text, Color _color, Transform _target, bool isCritical = false, float scaleMultiplier = 1f)
+    {
+        DOTween.Kill(this);
+
+        timer = displaytime;
+
+        if (textMesh == null)
+            textMesh = GetComponent<TextMeshProUGUI>();
+
+        string parsedText = TextEffectParser.Parse(_text, tempEffectRanges);
+        textMesh.text = parsedText;
+        textMesh.color = _color;
+        NoticeKey = null;
+        spawnWorldPosition = _target != null ? _target.position : transform.position;
+
+        offSet = new Vector3(Random.Range(-horizontalJitter, horizontalJitter), 0);
+        punchOffset = sizePunch = screenPunch = Vector3.zero;
+
+        // Set initial position immediately to avoid flashes at incorrect world coordinates.
+        UpdatePosition();
+        gameObject.SetActive(true);
+
+        // Reset Transform
+        rectTransform.localScale = Vector3.one;
+        rectTransform.localRotation = Quaternion.identity;
+        displayFontPixels = scaleMultiplier * (isCritical ? criticalPixels : normalPixels);
+        ApplyFontSize();
+
+        if (isCritical)
+        {
+            PunchFontSize(criticalSizePop, criticalPunchTime, criticalPunchVibrato, 1f);
+            DOTween.Punch(() => screenPunch, offset => screenPunch = offset, Vector3.right * criticalShakePixels,
+                criticalShakeTime, criticalShakeVibrato, .6f).SetTarget(this);
+
+            textMesh.color = critColor;
+        }
+        else
+        {
+            var punch = new Vector3(normalPunchStrength, normalPunchStrength);
+            DOTween.Punch(() => punchOffset, offset => punchOffset = offset, punch,
+                normalPositionPunchTime, positionPunchVibrato, 1).SetTarget(this);
+            PunchFontSize(normalSizePop, normalScalePunchTime, scalePunchVibrato, normalScaleElasticity);
+        }
+        effectPlayer.ApplyEffects(tempEffectRanges);
+    }
+
+    private void PunchFontSize(float amount, float duration, int vibrato, float elasticity)
+    {
+        DOTween.Punch(() => sizePunch, offset => sizePunch = offset, Vector3.right * amount,
+            duration, vibrato, elasticity).SetTarget(this);
+    }
+
+    private void ApplyFontSize()
+    {
+        pixelText.SetLogicalSize(Mathf.Max(8, Mathf.RoundToInt(displayFontPixels * (1f + sizePunch.x))));
+    }
+
+    /// <summary>
+    /// SetUp 직후 호출. 랜덤 x 흔들림 대신 지정한 오프셋에서 시작한다(알림 텍스트를 줄 맞춰 쌓을 때).
+    /// </summary>
+    public void OverrideOffset(Vector3 offset)
+    {
+        offSet = offset;
+        UpdatePosition();
+    }
+
+    /// <summary>세로 오프셋을 y 까지 끌어올린다(새 알림 텍스트가 아래에 뜰 때 기존 텍스트를 밀어 올림).</summary>
+    public void RaiseOffsetY(float y)
+    {
+        if (y <= offSet.y) return;
+        offSet.y = y;
+        UpdatePosition();
+    }
+
+    /// <summary>남은 표시 시간을 줄여 곧바로 사라지게 한다(한 대상에 줄이 너무 많이 쌓였을 때).</summary>
+    public void ExpireSoon()
+    {
+        timer = Mathf.Min(timer, fadeTime * 0.5f);
+    }
+
+
+
+    private void Update()
+    {
+        // 생성 시점의 월드 위치를 기준으로 떠오른다. 대상의 수명과 독립적으로 표시 시간을 유지한다.
+        timer -= Time.deltaTime;
+
+        // Fade Out
+        Color color = textMesh.color;
+        color.a = Mathf.Clamp01(timer / Mathf.Max(.001f, fadeTime));
+        textMesh.color = color;
+
+        offSet.y += moveSpeed * Time.deltaTime;
+
+        if (timer <= 0)
+            gameObject.SetActive(false);
+    }
+
+    private void OnEnable() => Canvas.preWillRenderCanvases += RefreshDisplay;
+
+    private void RefreshDisplay()
+    {
+        ApplyFontSize();
+        UpdatePosition();
+    }
+
+    private void UpdatePosition()
+    {
+        if (rectTransform == null) return;
+        bool projected = PixelViewport.TryWorldToGamePoint(spawnWorldPosition + offSet + punchOffset, out var point);
+        var pixel = new Vector2(Mathf.Round(point.x + screenPunch.x), Mathf.Round(point.y + screenPunch.y));
+        if (projected && PixelViewport.TryGamePointToCanvas(pixel, parentCanvas, parentRect, out Vector2 local))
+        {
+            rectTransform.localPosition = local;
+            textMesh.enabled = true;
+        }
+        else textMesh.enabled = false;
+    }
+
+    private void OnDisable()
+    {
+        Canvas.preWillRenderCanvases -= RefreshDisplay;
+        DOTween.Kill(this);
+        // 씬 언로드 중에는 매니저가 먼저 사라질 수 있다.
+        var manager = FloatingTextManager.Instance;
+        if (manager != null) manager.ReturnToPool(this);
+    }
+}

@@ -46,8 +46,6 @@ public class CharacterStatEditor : Editor
 
             EditorGUI.EndDisabledGroup();
             
-            // --- [상태이상/쉴드 모니터링] ---
-            // Phase 5 에서 상태이상 5종이 들어오면 여기에 줄을 추가하면 된다.
             EditorGUILayout.Space(10);
             EditorGUILayout.LabelField("상태이상과 보호막", EditorStyles.boldLabel);
 

@@ -27,6 +27,7 @@ public class PlayerStateUI : MonoBehaviour
     {
         [Tooltip("슬롯 루트 오브젝트")]
         public GameObject SlotRoot;
+        [System.NonSerialized] public int shownCooldownTenths = -1;
         [Tooltip("스킬 아이콘 Image")]
         public Image SkillIcon;
         [Tooltip("쿨타임 Fill Image (null이면 SkillIcon에 Filled 타입 적용)")]
@@ -41,8 +42,9 @@ public class PlayerStateUI : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     // Inspector 필드
     // ─────────────────────────────────────────────────────────────────────
-    [Header("패널 부모")]
-    [SerializeField] private GameObject panelParent;
+    [Header("독립적으로 반응하는 HUD 그룹")]
+    [SerializeField] private RectTransform[] motionGroups;
+    [SerializeField] private RectTransform[] idleGroups;
 
     [Header("체력 설정")]
     [SerializeField] private Image hpSprite;
@@ -92,6 +94,7 @@ public class PlayerStateUI : MonoBehaviour
     private PlayerSkillController _skillCtrl;
     private List<Image>           _hpFillImages  = new List<Image>();
     private SkillSlotUI[]         _skillSlots;
+    private int shownSwapTenths = int.MinValue;
     private int _lastGold = int.MinValue; // dirty 비교용
     private sealed class HealingDisplay
     {
@@ -111,15 +114,35 @@ public class PlayerStateUI : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     // 초기화
     // ─────────────────────────────────────────────────────────────────────
-    public void Initialize(CharacterHealth playerHealth)
+    private InventoryManager boundInventory;
+
+    private void Unsubscribe()
     {
-        if (_playerHealth != null)
+        if (!ReferenceEquals(_playerHealth, null))
         {
             _playerHealth.UpdateHPBar -= RefreshHP;
             _playerHealth.OnHealthRestored -= AnimateHealing;
         }
+        if (!ReferenceEquals(boundInventory, null)) boundInventory.OnMinionUpdated -= RefreshSkillIcons;
+        boundInventory = null;
+    }
+
+    public void Initialize(CharacterHealth playerHealth)
+    {
+        Unsubscribe();
         _healing.Clear();
         _playerHealth = playerHealth;
+        shownSwapTenths = int.MinValue;
+        if (playerHealth != null)
+        {
+            var motion = GetComponent<CombatHudMotion>() ?? gameObject.AddComponent<CombatHudMotion>();
+            if (motionGroups != null)
+                for (int i = 0; i < motionGroups.Length; i++) HudMotionElement.Attach(motionGroups[i], i * .71f);
+            if (idleGroups != null)
+                for (int i = 0; i < idleGroups.Length; i++)
+                    HudMotionElement.Attach(idleGroups[i], i * 1.56f, HudMotionElement.Motion.Idle);
+            motion.Bind(playerHealth.GetComponentInParent<PlayerController>());
+        }
         _skillSlots   = new SkillSlotUI[] { minionSkillSlot, secondSummonSlot };
 
         // 보호막은 CharacterHealth 가 아니라 같은 오브젝트의 CharacterStatus 가 들고 있다.
@@ -141,8 +164,8 @@ public class PlayerStateUI : MonoBehaviour
             _skillCtrl = GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerSkillController>();
 
         // 인벤토리 변경될 때마다 스킬 아이콘 자동 갱신
-        if (InventoryManager.Instance != null)
-            InventoryManager.Instance.OnMinionUpdated += RefreshSkillIcons;
+        boundInventory = InventoryManager.Instance;
+        if (boundInventory != null) boundInventory.OnMinionUpdated += RefreshSkillIcons;
 
 
         // Fill 초기 비활성화
@@ -169,14 +192,7 @@ public class PlayerStateUI : MonoBehaviour
     public void CloseStateUI() { }
     #endregion
 
-    private void OnDestroy()
-    {
-        if (_playerHealth != null) _playerHealth.UpdateHPBar -= RefreshHP;
-        if (_playerHealth != null) _playerHealth.OnHealthRestored -= AnimateHealing;
-        if (InventoryManager.Instance != null)
-            InventoryManager.Instance.OnMinionUpdated -= RefreshSkillIcons;
-
-    }
+    private void OnDestroy() => Unsubscribe();
 
     private void Update()
     {
@@ -258,9 +274,7 @@ public class PlayerStateUI : MonoBehaviour
                 rect.localPosition.y + rect.rect.center.y, 0));
         }
         else world = rect.TransformPoint(new Vector3(Mathf.Lerp(rect.rect.xMin, rect.rect.xMax, ratio), rect.rect.center.y, 0));
-        var canvas = hpSprite.canvas;
-        var camera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
-        return RectTransformUtility.WorldToScreenPoint(camera, world);
+        return PixelViewport.CanvasToGamePoint(hpSprite.canvas, world);
     }
 
     private void OnDisable()
@@ -324,7 +338,11 @@ public class PlayerStateUI : MonoBehaviour
         if (Mathf.Abs(img.fillAmount - value) > 0.0005f) img.fillAmount = value;
         // 단색 바, 또는 9분할(Sliced) 스킨 바는 fillAmount 가 먹지 않으므로 실제 너비(anchorMax)를 바꾼다.
         // (9분할이라 바가 줄어도 양 끝 모양·하이라이트가 찌그러지지 않는다)
-        if (img.sprite == null || img.type != Image.Type.Filled) img.rectTransform.anchorMax = new Vector2(value, 1f);
+        if (img.sprite == null || img.type != Image.Type.Filled)
+        {
+            var anchor = new Vector2(value, 1f);
+            if (img.rectTransform.anchorMax != anchor) img.rectTransform.anchorMax = anchor;
+        }
     }
     #endregion
 
@@ -337,8 +355,15 @@ public class PlayerStateUI : MonoBehaviour
         if (InventoryManager.Instance == null || goldText == null) return;
         int gold = InventoryManager.Instance.GOLD;
         if (gold == _lastGold) return;
+        bool gained = _lastGold != int.MinValue && gold > _lastGold;
         _lastGold = gold;
         goldText.SetText("{0}", gold);
+        if (gained)
+        {
+            if (!goldText.TryGetComponent<TMPTextEffectPlayer>(out var effect))
+                effect = goldText.gameObject.AddComponent<TMPTextEffectPlayer>();
+            effect.PlayPreset("Reward");
+        }
     }
     #endregion
 
@@ -382,6 +407,9 @@ public class PlayerStateUI : MonoBehaviour
             swapCooldownFill.color = canSwap && remaining <= 0f ? swapReadyColor : swapUnavailableColor;
         }
         if (swapCooldownText == null) return;
+        int tenths = !canSwap ? -2 : remaining > 0 ? Mathf.RoundToInt(remaining*10) : -1;
+        if (tenths == shownSwapTenths) return;
+        shownSwapTenths = tenths;
         if (!canSwap) swapCooldownText.SetText("스왑 불가");
         else if (remaining > 0f) swapCooldownText.SetText("스왑 {0:1}", remaining);
         else swapCooldownText.SetText("스왑 가능 [Space]");
@@ -436,6 +464,7 @@ public class PlayerStateUI : MonoBehaviour
         if (!has)
         {
             if (slot.CooldownFill != null) { slot.CooldownFill.fillAmount = 0f; slot.CooldownFill.gameObject.SetActive(false); }
+            slot.shownCooldownTenths = -1;
             if (slot.CooldownText != null) slot.CooldownText.text = "";
         }
     }
@@ -466,6 +495,9 @@ public class PlayerStateUI : MonoBehaviour
 
         if (slot.CooldownText != null)
         {
+            int tenths = onCd ? Mathf.RoundToInt(remaining * 10) : -1;
+            if (tenths == slot.shownCooldownTenths) return;
+            slot.shownCooldownTenths = tenths;
             if (onCd)
                 slot.CooldownText.SetText("{0:1}", remaining);
             else if (slot.CooldownText.text.Length > 0)

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Cinemachine;
 using UnityEngine.Rendering;
@@ -9,7 +8,7 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// 게임의 전체 생명주기와 매니저들의 초기화 순서를 관리하는 중앙 컨트롤러입니다.
 /// </summary>
-public class GameManager : MonoBehaviour
+public partial class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
@@ -58,20 +57,18 @@ public class GameManager : MonoBehaviour
     public MapGenerationDataSO CurrentStageMapData => currentStageMapData;
     [SerializeField] private RoomPrefabDataSO currentStageRoomData;
 
-    private bool _isTimeStopped = false;
-    public bool IsTimeStopped => _isTimeStopped;
+    public bool IsTimeStopped => HitStopManager.IsPaused;
 
     public void SetTimeStop(bool stop)
     {
-        _isTimeStopped = stop;
-        Time.timeScale = stop ? 0f : 1f;
-
-        if (!stop) playerController?.CanChangeAnimState();
+        HitStopManager.SetPaused(stop);
         Debug.Log($"<color=yellow>[TimeSystem]</color> Time Scale set to: {Time.timeScale}");
     }
 
 
 
+    private MapGenerationDataSO workshopMapData;
+    internal WorkshopFloor projectFloor;
     private Vignette _hurtVignette;
     private Color _vignetteRestColor;
     private float _vignetteRestoreAt;
@@ -109,11 +106,18 @@ public class GameManager : MonoBehaviour
 
     private void OnDisable() => RestoreVignette();
 
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+        if (workshopMapData != null) Destroy(workshopMapData);
+    }
+
     // 게임오버 처리 메서드
     public void Gameover()
     {
+        if (WorkshopTrial.Active && WorkshopTrial.Open()) return;
         StopAllCoroutines(); // 모든 코루틴 정지
-        SetTimeStop(true); // 게임 시간 정지
+        HitStopManager.SetPaused(true, HitStopManager.PauseOwner.GameOver);
 
         // 게임 오버 시 세이브 데이터를 삭제하여 이전 층에서 이어서 하기 방지
         // 주의: 우클릭 해금/선택은 여기서 지워지지 않는다. 영구 성장요소라 PlayerPrefs 쪽에
@@ -134,8 +138,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] public int currentFloor = 1;
     [Tooltip("0이면 꺼짐. 1 이상이면 던전 첫 진입 시 세이브의 층수를 무시하고 그 층에서 시작한다. " +
              "다음 층 포탈로 이동할 때는 이 값을 다시 적용하지 않고 현재 층 + 1로 진행한다. " +
-             "보스 층인지 아닌지는 MapGenerationData 의 Floor Bosses 표가 정하므로, " +
-             "표에 있는 층(현재 4)을 넣으면 스폰방+보스방 2칸짜리 맵으로 시작한다.")]
+             "MapGenerationData의 Floor Bosses에 등록된 층에서는 보스 방이 포함된 던전을 생성한다.")]
     [SerializeField] public int debugStartFloor = 0;
 
     [Header("엘리트 아레나 (EliteTestScene 용 — 배포 빌드에선 반드시 꺼둘 것)")]
@@ -144,7 +147,6 @@ public class GameManager : MonoBehaviour
     [Tooltip("아레나에서 싸울 엘리트. 비워두면 엘리트 풀에서 무작위로 하나 뽑는다. " +
              "엘리트에 전용 방 프리팹이 지정돼 있으면 그 방이 배치된다.")]
     [SerializeField] public EnemyMinionDataSO debugForcedElite;
-    [System.NonSerialized] private SaveData _loadedSaveData = null;
     private static int _pendingNextFloor;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -168,7 +170,23 @@ public class GameManager : MonoBehaviour
             Debug.Log("<b>[GameManager]</b> No save data found. Starting from Floor 1.");
         }
 
-        currentFloor = ResolveStartingFloor(currentFloor);
+        if (WorkshopTrial.Active)
+        {
+            currentFloor = WorkshopTrial.FloorTest?.FloorNumber ?? 1;
+            debugForcedElite = WorkshopTrial.PlannedElite;
+            debugEliteArena = WorkshopTrial.FloorTest?.scenario == WorkshopFloor.Scenario.Elite;
+            if (WorkshopTrial.FloorTest != null && currentStageMapData != null)
+                currentStageMapData = workshopMapData = WorkshopTrial.FloorTest.CreateSettings(currentStageMapData, WorkshopTrial.Library);
+        }
+        else
+        {
+            currentFloor = ResolveStartingFloor(currentFloor);
+            if(currentStageMapData!=null && gameObject.scene.name=="BattleScene")
+            {
+                projectFloor=ProjectFloorData.ForGame(currentFloor,debugEliteArena);
+                if(projectFloor!=null) currentStageMapData=workshopMapData=projectFloor.CreateSettings(currentStageMapData,Resources.Load<WorkshopCatalog>("WorkshopCatalog"));
+            }
+        }
 
         InitializeGame();
     }
@@ -217,30 +235,7 @@ public class GameManager : MonoBehaviour
 
         if (dataManager != null) dataManager.Initialize();
 
-        if (inventoryManager != null)
-        {
-            inventoryManager.Initialize(_loadedSaveData != null);
-
-            if (playerSkillInventoryManager != null)
-                playerSkillInventoryManager.Initialize();
-
-            if (_loadedSaveData != null)
-            {
-                inventoryManager.LoadFromData(_loadedSaveData);
-
-                if (playerSkillInventoryManager != null)
-                    playerSkillInventoryManager.LoadFromData(_loadedSaveData);
-
-            }
-        }
-
-        // [아이템 주머니] 장비와 별개 시스템이라 inventoryManager 블록 밖에 둔다.
-        // dataManager.Initialize() 뒤여야 한다 — 로드할 때 레지스트리로 이름→SO 를 해석한다.
-        if (itemPouch != null)
-        {
-            itemPouch.Initialize(_loadedSaveData != null);
-            if (_loadedSaveData != null) itemPouch.LoadFromData(_loadedSaveData);
-        }
+        InitializeRunGrowth();
 
         // [증강] static 상태라 씬을 다시 로드해도 안 죽는다. 새 씬을 시작할 때마다 반드시 비운다 —
         // 안 그러면 지난 층의 페널티가 그대로 남고, DamageEventBus 구독까지 중복으로 쌓인다.
@@ -259,6 +254,8 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator Start()
     {
+        // Let Unity finish activating the incoming scene before the first room prefab is submitted.
+        if (UnityNote.SceneLoader.FloorIsCovered) yield return null;
         if (mapGenerator == null)
             mapGenerator = Object.FindFirstObjectByType<MapGenerator>();
 
@@ -289,21 +286,10 @@ public class GameManager : MonoBehaviour
         }
         _loadingProgress = 0.85f;
 
-        if (playerStateUI != null && playerController != null)
+        RestoreRunHealth();
+        if (playerStateUI != null)
         {
-            var health = playerController.GetComponentInChildren<CharacterHealth>();
-
-            // 플레이어 체력 복구
-            if (_loadedSaveData != null && health != null)
-            {
-                health.SetHP(_loadedSaveData.playerHP);
-                Debug.Log($"<color=green>[GameManager]</color> Player HP Restored to: {_loadedSaveData.playerHP}");
-            }
-
-            playerStateUI.Initialize(health);
-
-            // PlayerSkillController.Awake()가 같은 프레임에 실행됐으므로
-            // equippedMinions가 이미 채워진 상태 → 아이콘 즉시 갱신
+            playerStateUI.Initialize(_runPlayerHealth);
             playerStateUI.RefreshSkillIcons();
 
             // 전투 사운드 콘트롤러 연결
@@ -324,12 +310,15 @@ public class GameManager : MonoBehaviour
         if (mapGenerator != null)
         {
             // 맵/문/NavMesh 배치가 끝난 뒤 방별 후보를 계산한다. 랜덤 추첨과 소환은 여전히 방 진입 시 수행한다.
+#if ENABLE_MONO && !UNITY_EDITOR
+            yield return CombatCodeWarmup.Prepare();
+#endif
             foreach (var room in mapGenerator.AllRooms)
             {
                 if (room == null) continue;
                 var normal = room.GetComponent<NormalRoomEvent>();
                 if (normal == null) continue;
-                normal.PrepareSpawnCells(room, currentStageMapData);
+                yield return normal.PrepareFloorSpawnCells(room, currentStageMapData);
                 yield return null;
             }
             if (dataManager != null)
@@ -337,14 +326,10 @@ public class GameManager : MonoBehaviour
         }
         _loadingProgress = 0.95f;
         // 첫 피격 프레임에 오디오 데이터를 불러오지 않도록 로딩 화면에서 준비한다.
-        if (playerAttackSoundData != null && playerAttackSoundData.playerHurtClips != null)
+        if (playerAttackSoundData != null)
         {
-            foreach (var clip in playerAttackSoundData.playerHurtClips)
-            {
-                if (clip == null) continue;
-                if (clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
-                while (clip.loadState == AudioDataLoadState.Loading) yield return null;
-            }
+            yield return PrepareClips(playerAttackSoundData.playerHurtClips);
+            yield return PrepareClips(playerAttackSoundData.hitClips);
         }
         // 첫 적중 때 무거운 연출 프리팹이 한꺼번에 생성되지 않도록 로딩 중 분산한다.
         yield return StartCoroutine(PolishFeedback.Prewarm());
@@ -355,6 +340,17 @@ public class GameManager : MonoBehaviour
         IsPlayerReady = true;
         if (!UnityNote.SceneLoader.IsLoading) playerController.SetInputBlocked(false);
         Debug.Log("<color=green>[GameManager]</color> All Systems Ready!");
+    }
+
+    private static IEnumerator PrepareClips(AudioClip[] clips)
+    {
+        if (clips == null) yield break;
+        foreach (var clip in clips)
+        {
+            if (clip == null) continue;
+            if (clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
+            while (clip.loadState == AudioDataLoadState.Loading) yield return null;
+        }
     }
 
     private void SpawnPlayer()
@@ -370,6 +366,7 @@ public class GameManager : MonoBehaviour
 
         if (playerController != null)
         {
+            PixelActorMotion.Attach(playerObj, PixelActorMotion.Actor.Player);
             playerController.SetInputBlocked(true);
 
             // [장비] 로드 시엔 플레이어가 아직 없어서 장비 스탯 패시브가 스킵됐다. 이제 스폰됐으니 재적용.
@@ -413,99 +410,35 @@ public class GameManager : MonoBehaviour
         Debug.Log("<color=cyan>[GameManager]</color> Player Spawned, Placed, and Camera Assigned.");
     }
 
-    public void GoToNextFloor()
+    public bool GoToNextFloor()
     {
-        if (UnityNote.SceneLoader.IsLoading) return;
+        if (WorkshopTrial.Active) return WorkshopTrial.Open();
+        if (UnityNote.SceneLoader.IsLoading) return false;
         // 튜토리얼엔 '다음 층'이 없다 — 마을로 나가면서 끝난다. 여기 한 곳에서 갈라놓으면
         // 튜토리얼 방에 어떤 포탈이 서든(마지막 방 포탈이든 보상 방 포탈이든) 전부 마을로 나간다.
         if (TutorialFlow.IsRunning)
         {
+            // 마을은 튜토리얼에서 획득한 장비나 골드를 이어받지 않는다.
+            if (!SaveSystem.DeleteSave()) return false;
             TutorialFlow.Complete();
 
-            // 튜토리얼에서 주운 장비/골드는 인계하지 않는다(0903 확정). 저장을 안 하는 것만으로는
-            // 부족하다 — 예전 세이브가 남아 있으면 마을의 새 GameManager 가 그걸 읽어버린다.
-            SaveSystem.DeleteSave();
-
             Debug.Log("<color=green>[GameManager]</color> 튜토리얼 완료 — 마을로 나갑니다.");
-            LoadSceneWithFade("VillageScene", FadeSignal.씬전환);
-            return;
+            return LoadSceneWithFade("VillageScene", FadeSignal.씬전환);
         }
 
-        SaveData data = new SaveData();
+        int nextFloor = currentFloor + 1;
+        if (!TrySaveRunAtFloor(nextFloor)) return false;
 
-        // 다음 층수 저장
-        data.currentFloor = currentFloor + 1;
-
-        // 플레이어 체력 횝득
-        if (playerController != null)
-        {
-            var health = playerController.GetComponentInChildren<CharacterHealth>();
-            if (health != null)
-            {
-                data.playerHP = health.CurHP;
-            }
-        }
-        else
-        {
-            data.playerHP = 10f; // 기본값
-        }
-
-        // 인벤토리, 골드, 보물, 보석 저장
-        if (inventoryManager != null)
-        {
-            inventoryManager.SaveToData(data);
-
-            if (playerSkillInventoryManager != null)
-                playerSkillInventoryManager.SaveToData(data);
-        }
-
-        if (itemPouch != null) itemPouch.SaveToData(data);
-
-        SaveSystem.Save(data);
-
-        Debug.Log($"<color=green>[GameManager]</color> Floor Cleared! Transitioning to Floor {data.currentFloor}...");
-
-        // 씬 재로드
-        LoadSceneWithFade(SceneManager.GetActiveScene().name, FadeSignal.층이동, data.currentFloor);
+        Debug.Log($"[GameManager] Floor cleared. Transitioning to floor {nextFloor}.");
+        return LoadSceneWithFade(SceneManager.GetActiveScene().name, FadeSignal.층이동, nextFloor);
     }
 
     /// <summary>층수 전달은 GameManager, 로딩 화면/씬 교체는 공통 SceneLoader가 맡는다.</summary>
-    private void LoadSceneWithFade(string sceneName, FadeSignal signal, int nextFloor = 0)
+    private bool LoadSceneWithFade(string sceneName, FadeSignal signal, int nextFloor = 0)
     {
         _pendingNextFloor = nextFloor;
-        if (!UnityNote.SceneLoader.Load(sceneName, signal)) _pendingNextFloor = 0;
-    }
-
-    /// <summary>
-    /// 현재 상태(장착 미니언/스킬, 골드, 보물, 보석, 체력)를 '층 이동 없이' 즉시 디스크에 저장한다.
-    /// 마을→던전(BattleScene) 진입처럼 씬만 바뀌는 시점에 호출하면, 마을에서 세팅한 장착이 그대로 유지된다.
-    /// (층수는 현재 값 그대로 저장 — 진입 시 특정 층으로 강제하고 싶으면 호출 전에 currentFloor를 조정.)
-    /// </summary>
-    public void SaveCurrentState()
-    {
-        SaveData data = new SaveData();
-        data.currentFloor = currentFloor;
-
-        if (playerController != null)
-        {
-            var health = playerController.GetComponentInChildren<CharacterHealth>();
-            if (health != null) data.playerHP = health.CurHP;
-        }
-        else
-        {
-            data.playerHP = 10f;
-        }
-
-        if (inventoryManager != null)
-        {
-            inventoryManager.SaveToData(data);
-            if (playerSkillInventoryManager != null)
-                playerSkillInventoryManager.SaveToData(data);
-        }
-
-        if (itemPouch != null) itemPouch.SaveToData(data);
-
-        SaveSystem.Save(data);
-        Debug.Log("<color=green>[GameManager]</color> 현재 상태 저장 완료 (씬 이동 전).");
+        if (UnityNote.SceneLoader.Load(sceneName, signal)) return true;
+        _pendingNextFloor = 0;
+        return false;
     }
 }

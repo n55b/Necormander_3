@@ -1,0 +1,159 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+// All positions are pixels in the 640 x 360 world-camera target.
+public sealed class PortalItemStream : MaskableGraphic
+{
+    private const int Limit = 8;
+    private readonly List<Image> icons = new(Limit);
+    private Vector2 origin, mouth;
+    private float progress, doorDuration, elapsed;
+    private bool shortTrip;
+    private Color bright, dim;
+
+    public static PortalItemStream Create(RectTransform parent, Vector2 from, Vector2 to, bool door)
+    {
+        var sprites = new List<Sprite>(Limit);
+        var pouch = ItemPouch.Instance;
+        void Include(Sprite icon)
+        {
+            if (icon != null && sprites.Count < Limit && !sprites.Contains(icon)) sprites.Add(icon);
+        }
+        if (pouch != null)
+            for (int i = pouch.SlotCount - 1; i >= 0 && sprites.Count < Limit; --i)
+                Include(GroundItem.ItemIcon(pouch.Get(i)));
+        Include(EquipmentInventoryManager.Instance?.EquippedEquipment?.baseData?.icon);
+        if (InventoryManager.Instance != null && sprites.Count < Limit)
+            foreach (var treasure in InventoryManager.Instance.TreasureStacks)
+            {
+                if (treasure.Value > 0 && treasure.Key != null) Include(treasure.Key.icon);
+                if (sprites.Count == Limit) break;
+            }
+        if (sprites.Count == 0) return null;
+        var root = new GameObject("Portal item stream", typeof(RectTransform), typeof(CanvasRenderer));
+        root.transform.SetParent(parent, false);
+        var stream = root.AddComponent<PortalItemStream>();
+        stream.raycastTarget = false;
+        stream.rectTransform.anchorMin = stream.rectTransform.pivot = Vector2.zero;
+        stream.rectTransform.anchorMax = Vector2.one;
+        stream.rectTransform.offsetMin = stream.rectTransform.offsetMax = Vector2.zero;
+        stream.origin = from;
+        stream.mouth = to;
+        stream.shortTrip = door;
+        stream.bright = FloorPortalGraphic.TravelColor(11, 7);
+        stream.dim = FloorPortalGraphic.TravelColor(9, 7);
+        foreach (var sprite in sprites)
+        {
+            var node = new GameObject(sprite.name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            node.transform.SetParent(root.transform, false);
+            var image = node.GetComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            image.rectTransform.anchorMin = image.rectTransform.anchorMax = Vector2.zero;
+            stream.icons.Add(image);
+        }
+        stream.SetProgress(0);
+        return stream;
+    }
+
+    public static void AtDoor(PlayerController player, Transform door, float duration)
+    {
+        if (duration <= 0 || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Fade)) return;
+        var camera = PixelArtUpscaleRig.RenderCamera;
+        if (camera == null || !PixelViewport.TryWorldToGamePoint(player.BodyCollider != null ?
+            player.BodyCollider.bounds.center : player.transform.position, out var from) ||
+            !PixelViewport.TryWorldToGamePoint(door.position, out var to)) return;
+        var canvas = FloorPortalGraphic.CreateTravelCanvas(camera);
+        canvas.transform.SetParent(door, true);
+        var stream = Create((RectTransform)canvas.transform, from, to, true);
+        if (stream == null) { Destroy(canvas.gameObject); return; }
+        stream.doorDuration = duration;
+    }
+
+    private void Update()
+    {
+        if (!shortTrip || doorDuration <= 0) return;
+        elapsed += Time.unscaledDeltaTime;
+        SetProgress(elapsed / doorDuration);
+        if (progress >= 1) Destroy(transform.parent.gameObject);
+    }
+
+    private float Phase(int index)
+    {
+        float slot = icons.Count > 1 ? (float)index / (icons.Count - 1) : 0;
+        if (shortTrip) return Mathf.InverseLerp(.01f + slot * .24f, .65f + slot * .24f, progress);
+        return Mathf.InverseLerp(.20f + slot * .10f, .865f + slot * .10f, progress);
+    }
+
+    private Vector2 Path(float t, int index)
+    {
+        if (!shortTrip)
+        {
+            float slot = icons.Count > 1 ? (float)index / (icons.Count - 1) : 0;
+            float clock = .20f + t * .665f;
+            float gather = FloorTravel.Ease(.20f, .36f, clock);
+            float intake = Mathf.Pow(Mathf.InverseLerp(.72f, .865f, clock), 1.7f);
+            float orbit = (clock - .36f) * 4.8f - slot * .82f;
+            float angle = 2.2f + orbit + 6.6f * intake;
+            float radius = (64 + 4 * Mathf.Sin(orbit)) * (1 - intake);
+            Vector2 offset = new Vector2(Mathf.Cos(angle), .53f * Mathf.Sin(angle)) * radius;
+            offset.y += offset.x * .17f;
+            return Vector2.Lerp(FloorTravel.Hover(origin, 0, .20f + slot * .10f), mouth + offset, gather)
+                + Vector2.up * (19 * Mathf.Sin(gather * Mathf.PI));
+        }
+        float turn = (index % 3 - 1) * .24f + .86f;
+        float pull = t * t * (3f - 2f * t);
+        turn += pull * 3.1f;
+        float arc = (20f + index % 4 * 2f) * Mathf.Sin(t * Mathf.PI) * (1.6f - .75f * t);
+        return Vector2.Lerp(origin, mouth, pull) + new Vector2(Mathf.Cos(turn), Mathf.Sin(turn) * .68f) * arc;
+    }
+
+    public void SetProgress(float value)
+    {
+        progress = Mathf.Clamp01(value);
+        for (int i = 0; i < icons.Count; ++i)
+        {
+            float t = Phase(i);
+            var image = icons[i];
+            image.enabled = t > 0 && t < 1;
+            if (!image.enabled) continue;
+            image.rectTransform.anchoredPosition = Vector2Int.RoundToInt(Path(t, i));
+            float growth = Mathf.SmoothStep(0, 1, t / .18f);
+            float shrink = Mathf.SmoothStep(1, 0, Mathf.InverseLerp(shortTrip ? .59f : .84f, 1, t));
+            int side = Mathf.Max(1, Mathf.RoundToInt((shortTrip ? 12 : 15) * growth * shrink));
+            image.rectTransform.sizeDelta = Vector2.one * side;
+        }
+        SetVerticesDirty();
+    }
+
+    protected override void OnPopulateMesh(VertexHelper mesh)
+    {
+        mesh.Clear();
+        for (int i = 0; i < icons.Count; ++i)
+        {
+            float t = Phase(i);
+            if (t <= 0 || t >= 1) continue;
+            for (int j = 1; j <= 4; ++j)
+            {
+                float past = t - j * .036f;
+                if (past <= 0) break;
+                Color c = Color.Lerp(bright, dim, j * .2f);
+                c.a = (1f - j * .17f) * Mathf.Clamp01((1f - t) * 8f);
+                FloorPortalGraphic.Quad(mesh, Path(past, i), Vector2.one, c);
+            }
+        }
+        if (!shortTrip || progress <= 0 || progress >= 1) return;
+        float opening = Mathf.Sin(progress * Mathf.PI);
+        for (int i = 0; i < 36; ++i)
+        {
+            float angle = i * (2f * Mathf.PI / 36f) + progress * 2f;
+            Vector2 rim = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle) * .44f) * (opening * 9f);
+            rim.y += rim.x * .22f;
+            Color color = bright;
+            color.a = opening;
+            FloorPortalGraphic.Quad(mesh, mouth + rim, Vector2.one, color);
+        }
+    }
+}

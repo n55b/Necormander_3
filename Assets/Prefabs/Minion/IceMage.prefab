@@ -645,9 +645,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDynamic: 1
-  precision: 100
-  baseOffset: 0
   pivotOverride: {fileID: 8796260599249507277}
   sortingGroup: {fileID: 0}
 --- !u!114 &8555652910096599054

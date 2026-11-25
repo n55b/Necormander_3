@@ -23,7 +23,7 @@ public class TelegraphHitbox : MonoBehaviour
         
         _originalSize = size;
         
-        // [수정] 루트 오브젝트의 스케일을 타격 범위(size)로 강제하여, 하위의 경계선(Border)과 차오르는 영역(Fill)이 모두 일치하도록 만듭니다.
+        // 루트 오브젝트의 스케일을 타격 범위(size)로 강제하여, 하위의 경계선(Border)과 차오르는 영역(Fill)이 모두 일치하도록 만듭니다.
         transform.localScale = new Vector3(size.x, size.y, 1f);
 
         // 시작할 때 시각적 크기를 0으로 초기화

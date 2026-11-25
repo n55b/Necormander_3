@@ -10,26 +10,56 @@ public class CharacterHealth : MonoBehaviour, IDamageable
 {
     private CharacterStat _stat;
     private CharacterStatus _status;
+    private SpriteRenderer hiddenFinisherPose;
+    private SpriteRenderer hitBody;
+
+    internal SpriteRenderer HitBody
+    {
+        get
+        {
+            if (hitBody != null) return hitBody;
+            var depth = WorldDepthOrder.FindParticipant(transform);
+            if (depth != null) hitBody = depth.Renderer != null ? depth.Renderer : depth.GetComponent<SpriteRenderer>();
+            if (hitBody == null && GetComponentInParent<BaseEntity>() is { } actor)
+                hitBody = actor.SpriteRenderer != null ? actor.SpriteRenderer : actor.GetComponentInChildren<SpriteRenderer>(true);
+            if (hitBody == null && GetComponentInParent<PlayerController>() is { } player)
+                hitBody = player.transform.Find("Body")?.GetComponent<SpriteRenderer>();
+            return hitBody;
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (hiddenFinisherPose != null) hiddenFinisherPose.forceRenderingOff = false;
+        hiddenFinisherPose = null;
+    }
 
     [SerializeField] private float curHP;
     [SerializeField] private bool isDead = false;
     [SerializeField] private bool invincible = false;
 
     public event Action<float> OnDamageTaken;
-    public event Action<DamageInfo> OnDamageReceived; // [추가] 전체 데미지 정보 전달용
+    public event Action<DamageInfo> OnDamageReceived; // 전체 데미지 정보 전달용
     public event Action OnHeal;
     /// <summary>최대 체력 제한까지 적용한 실제 회복량. 체력 변경 후 HUD 갱신 전에 알린다.</summary>
     public event Action<float> OnHealthRestored;
     public event Action UpdateHPBar;
     public event Action OnDeath;
-    public event Func<CharacterHealth, bool> OnBeforeDeath; // [추가] 부활/페이즈 전환 시 사망 취소용
+    public event Func<CharacterHealth, bool> OnBeforeDeath; // 부활/페이즈 전환 시 사망 취소용
 
     public float CurHP => curHP;
-    public float MaxHP => (_stat != null) ? _stat.MAXHP : 0f; // [추가] 최대 체력 정보 노출
+    public float MaxHP => (_stat != null) ? _stat.MAXHP : 0f; // 최대 체력 정보 노출
     /// <summary>이 유닛의 스탯. 데미지 훅에서 "이 대상이 적인가"를 물어보려고 노출한다(ItemPouch 등).
     /// GetComponent 를 매 피해마다 돌리는 걸 피하려는 목적이니, 쓰기는 Init 을 통해서만 한다.</summary>
     public CharacterStat Stat => _stat;
     public bool IsDead => isDead;
+    internal RoomFinalBlow Encounter { get; set; }
+
+    private void OnDestroy()
+    {
+        Encounter?.Leave();
+        Encounter = null;
+    }
     public bool Invincible { get { return invincible; } set { invincible = value; } }
 
     public event Action<int, DamageType, string, bool> TakeDamageEvent;
@@ -63,10 +93,7 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // 등급부터 보면 플레이어 피해가 적 갈래로 새어 들어간다.
         if (attacker.layer == Layers.Player || attacker.layer == Layers.PlayerDash) return DamageCategory.Skill;
 
-        // [26/08/18] 태그 "Boss" / 이름에 "Boss" 포함 판정을 걷어내고 데이터의 등급(EnemyTier)만 본다.
-        // 옛 방식은 두 군데가 동시에 틀렸다:
-        //  · 'Summoner Boss Minions'(사실상 일반 몹)가 이름 때문에 보스가 돼서 카운터로 못 막았다.
-        //  · 엘리트 4종이 전부 Boss 태그라 EnemyElite 는 아예 도달 불가였다(태그 검사가 먼저였다).
+        // 적의 피해 갈래는 CharacterStatus의 등급(EnemyTier)에서 결정한다.
         var status = ResolveStatus(attacker);
         if (status != null)
         {
@@ -118,11 +145,11 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         if (info.category == DamageCategory.None)
             info.category = ResolveCategoryFromAttacker(info.attacker);
 
-        OnDamageReceived?.Invoke(info); // [추가] AI 측에서 피격 상세 정보를 파악하기 위함
+        OnDamageReceived?.Invoke(info); // AI 측에서 피격 상세 정보를 파악하기 위함
 
         if (isDead || invincible) return false;
 
-        // [추가] 회피 / 명중 판정 (평타인 경우에만 적용)
+        // 회피 / 명중 판정 (평타인 경우에만 적용)
         // 기본값(적중률 1, 회피 0)이면 명중률 1.0 이라 Random.value(<1.0)가 절대 못 넘는다 = 무조건 명중.
         // 예전엔 '빗나갈 확률 <= Random.value' 라 회피 0% 여도 0.0 이 뜨면 빗나갔다. 뒤집으면서 같이 해결됨.
         if ((info.category == DamageCategory.BasicAttack || DamageRules.IsEnemyTier(info.category)) && info.attacker != null)
@@ -150,13 +177,13 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // 슈퍼아머는 '부서지기 전까지' 막아주는 것이니, 부순 타격 자체는 아직 막혀야 한다.
         bool hasSuperArmor = (_status != null && _status.HasSuperArmor);
 
-        // [추가] 슈퍼아머 게이지 차감 처리
+        // 슈퍼아머 게이지 차감 처리
         if (hasSuperArmor && info.superArmorDamage > 0f)
         {
             _status.DamageSuperArmor(info.superArmorDamage);
         }
 
-        // [추가] 경직(Hitstun) 및 넉백(Knockback) 처리
+        // 경직(Hitstun) 및 넉백(Knockback) 처리
         if ((info.causesHitstun || info.knockbackForce > 0f) && !hasSuperArmor)
         {
             var rootEntity = GetComponentInParent<BaseEntity>();
@@ -175,12 +202,23 @@ public class CharacterHealth : MonoBehaviour, IDamageable
                 if (info.knockbackForce > 0f && info.attacker != null)
                 {
                     Vector2 dir = (transform.position - info.attacker.transform.position).normalized;
-                    rootEntity.ApplyKnockback(dir * info.knockbackForce);
+                    float force = info.knockbackForce;
+                    if (info.playerBasicAttack != null && info.attacker.TryGetComponent<MeleeCombatController>(out var melee))
+                    {
+                        var settings = CameraSettingsSO.Instance;
+                        var shape = rootEntity.GetComponent<Collider2D>();
+                        Vector2 origin = info.attacker.transform.position;
+                        float gap = Vector2.Distance(origin, shape != null ? shape.ClosestPoint(origin) : (Vector2)transform.position);
+                        float radius = settings != null ? settings.singleEnemyContactRadius : .42f;
+                        if (radius > 0f) force *= 1f + (settings != null ? settings.contactKnockbackBonus : .15f) * Mathf.Clamp01(1f - gap / radius);
+                        if (dir.sqrMagnitude < .0001f) dir = melee.CurrentAttackDir;
+                    }
+                    rootEntity.ApplyKnockback(dir * force);
                 }
             }
         }
 
-        // [추가] 공격자(info.attacker)가 사자탈(DualSplitAIPatternSO)을 쓰는 몹이고 타격이 정상 명중한 경우 슬로우 디버프 인젝션
+        // 공격자(info.attacker)가 사자탈(DualSplitAIPatternSO)을 쓰는 몹이고 타격이 정상 명중한 경우 슬로우 디버프 인젝션
         if (info.attacker != null && _status != null)
         {
             var attackerEntity = info.attacker.GetComponent<BaseEntity>();
@@ -215,12 +253,19 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         // [최종 데미지 및 체력 차감]
         if (remainingDamage > 0)
         {
-            float finalDamage = ApplyDefense(remainingDamage, info);
+            float finalDamage = DamageRules.ApplyDefense(remainingDamage, info, _stat != null ? _stat.DEF : 0f);
 
+            if (finalDamage > 0f && !hasSuperArmor && DamageRules.IsEnemyTier(info.category) &&
+                info.category != DamageCategory.EnemyDebuff && GetComponentInParent<PlayerController>() is { } player)
+            {
+                Vector2? from = info.hitFrom ?? (info.attacker != null ? (Vector2?)info.attacker.transform.position : null);
+                if (from.HasValue && player.ReactToHit((Vector2)player.transform.position - from.Value))
+                    _status?.ApplyStatus(StatusType.Hitstun, .245f);
+            }
             curHP -= finalDamage;
             OnDamageTaken?.Invoke(finalDamage);
 
-            string popupStr = "Normal";
+            string popupStr = info.feedbackComboFinish ? "Combo" : "Normal";
             if (!string.IsNullOrEmpty(info.popupText))
                 popupStr = info.popupText;
 
@@ -282,64 +327,21 @@ public class CharacterHealth : MonoBehaviour, IDamageable
             }
             // 사망 직전 이벤트
             GetComponentInParent<MonsterDeathHandler>()?.BeginDeathPositionTrace();
+            hiddenFinisherPose = FinisherFlight.Play(this, info, isCritical || info.feedbackComboFinish || remainingDamage >= MaxHP * .4f);
             DamageEventBus.TriggerEntityDied(this, info);
-            Die();
+            Die(info);
         }
 
         UpdateHPBar?.Invoke(); // HPBar 업데이트
         return true;
     }
 
-    private float ApplyDefense(float amount, DamageInfo info)
+    private float CalculateIncomingDamage(ref DamageInfo info, out bool isCritical, out CharacterStat attacker)
     {
-        if (amount <= 0f) return 0f;
-        return DamageRules.IgnoresDefense(info) ? amount
-            : Mathf.Max(amount * (1f - (_stat != null ? _stat.DEF : 0f) / 100f), 1f);
-    }
-
-    private float CalculateIncomingDamage(ref DamageInfo info, out bool isCritical, out CharacterStat atkStat)
-    {
-        // 데미지 파이프라인: 계산 전 증폭/변형 이벤트
         DamageEventBus.TriggerBeforeDamageCalculated(this, ref info);
-
-        float remainingDamage = info.amount;
-        // 취약: 물리 피해 +X%. 출혈 틱도 '물리 피해'로 취급해 함께 키운다(출혈 = 물리 기반 틱 피해).
-        if ((info.type == DamageType.Physical || info.type == DamageType.Bleed)
-            && _status != null && _status.HasStatus(StatusType.Vulnerable))
-            remainingDamage *= 1f + StatusRules.VULNERABLE_DAMAGE_BONUS;
-
-        // 공격 스탯 주인(플레이어/적/미니언→플레이어). 증폭·크리가 전부 이 하나에서 나온다.
-        // 예전엔 크리만 여기서 info.attacker 를 직접 뒤졌는데, 미니언 시전자엔 스탯이 없어
-        // 크리가 안 떴다. ResolveAttackerStat 이 플레이어 스탯을 빌려와 그 구멍을 메운다.
-        atkStat = ResolveAttackerStat(info);
-
-        // [속성 증폭] (1 + 물리/마법 증폭)을 방어력 전에 곱한다. 최종식의 대괄호 안쪽이다.
-        // 물리/마법 직접 피해만 붙는다 — 고정/디버프/함정은 속성이 물리·마법이 아니라 자동 제외.
-        if (atkStat != null)
-        {
-            float amp = info.type == DamageType.Physical ? atkStat.PHYS_AMP
-                      : info.type == DamageType.Magic    ? atkStat.MAGIC_AMP
-                      : 0f;
-            if (amp != 0f) remainingDamage *= (1f + amp);
-        }
-
-        // [디버프 증폭] 아군발 상태이상 피해(중독/출혈/비폭/빙결해제)는 속성이 물리·마법이 아니라 위 증폭을 못 탄다.
-        // debuffMultiplier(기본 1)를 여기서 따로 곱한다 — 장비 상태이상형 패시브(EquipmentStatusPassive.strengthBonus)가
-        // 채우는 소스 자리(경로 예약). 1 이면 무변화라 지금은 사실상 no-op.
-        if (info.category == DamageCategory.Debuff && info.debuffMultiplier != 1f)
-            remainingDamage *= info.debuffMultiplier;
-
-        // [치명타] 방어력보다 먼저 굴린다 — 기획: "치명타 판정 끝난 최종 데미지에서 방어력 감소율을 뺀다".
-        // 상태이상 고정 피해(출혈/중독/빙결/비폭)엔 안 붙는다. '고정'이니까.
-        isCritical = false;
-        if (atkStat != null && DamageRules.CanCrit(info)
-            && atkStat.CRIT_CHANCE > 0f
-            && UnityEngine.Random.value * 100f < atkStat.CRIT_CHANCE)
-        {
-            isCritical = true;
-            remainingDamage *= atkStat.CRIT_DAMAGE / 100f;
-        }
-        return remainingDamage;
+        attacker = ResolveAttackerStat(info);
+        return DamageRules.CalculateBeforeDefense(info, attacker,
+            _status != null && _status.HasStatus(StatusType.Vulnerable), out isCritical);
     }
 
     public void Heal(float amount)
@@ -361,20 +363,27 @@ public class CharacterHealth : MonoBehaviour, IDamageable
         }
 
         Debug.Log($"{gameObject.name} healed for {healAmount}. HP: {oldHP} -> {curHP}");
-        TakeHealEvent?.Invoke(healAmount); // [추가] 힐 텍스트 띄우기
+        TakeHealEvent?.Invoke(healAmount); // 힐 텍스트 띄우기
         OnHeal?.Invoke();
-        UpdateHPBar?.Invoke(); // [추가] HPBar 업데이트
+        UpdateHPBar?.Invoke(); // HPBar 업데이트
     }
 
-    private void Die()
+    private void Die(DamageInfo hit)
     {
         if (isDead) return; // 중복 실행 방지
         isDead = true;
 
         // [비폭] 사망 시 최우선 발동
         OnDeath?.Invoke();
-
+        // Split enemies register their children during OnDeath.
         BaseEntity rootEntity = GetComponentInParent<BaseEntity>();
+        if (Encounter != null)
+        {
+            Vector2 point = HitBody != null ? (Vector2)HitBody.bounds.center : (Vector2)transform.position;
+            Vector2 from = hit.hitFrom ?? (hit.attacker != null ? (Vector2)hit.attacker.transform.position : point - Vector2.up);
+            Encounter.Killed(point, point - from, rootEntity != null && rootEntity.MinionData != null && rootEntity.MinionData.tier == EnemyTier.Boss);
+            Encounter = null;
+        }
         bool isPlayer = gameObject.layer == Layers.Player; // (추가) 여기 뭔가 긴데 Player 인식 못 하길래 현재 오브젝트 Layer로 바꿈
 
         if (!isPlayer)

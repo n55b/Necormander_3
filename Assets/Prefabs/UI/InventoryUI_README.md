@@ -21,7 +21,7 @@
 
 `PouchUI.prefab / PouchWindow`
 
-- 기준 Canvas는 960×540, 너비 기준 스케일. 접힌 C는 x=-460~-240, V는 x=-224~460. 간격 16, 위아래 높이 480으로 맞춥니다.
+- 저작 Canvas 기준은 960×540이며 게임은 640×360에서 렌더한다. 접힌 C는 x=-460~-240, V는 x=-224~460. 간격 16, 위아래 높이 480으로 맞춥니다.
 - `InventoryPanel`: 흰 장식 테두리. 정렬 탭은 왼쪽·위 16 안쪽에 둡니다.
 - `InventoryPanel/ItemArea`: 붉은 목록 바탕. 좌우·아래 여백 16, 위 48. 흰 테두리를 가리지 않습니다.
 - `InventoryPanel/ItemScroll`: 목록 바탕보다 4 더 안쪽. Viewport/RectMask2D가 아이템 표시 범위를 제한합니다.
@@ -38,17 +38,10 @@
 - 주머니 목록 바탕: UI_Panel_Red_Half. 탭과 별개 역할이므로 따로 교체할 수 있습니다.
 - 테두리는 Sliced/9분할, 그림 픽셀 굵기는 스킨의 `테두리 굵기 배율`로 조절합니다.
 - 크기·위치는 위 프리팹의 RectTransform/피벗/앵커/레이아웃 그룹에서 편집합니다.
-- `0928`, `1006`의 옛 Apply/Preview/Validate 도구는 초기 이행 당시 구조용입니다. 현재 프리팹 재생성용으로 실행하지 마세요.
+- 현재 프리팹의 배선과 640×360 미리보기는 Unity의 `Tools > UI > Checks`에서 확인합니다.
 
 ## 미니언 선택
 
-`Hand Slot Selection/HandSlotSelectionUI.prefab`은 별도 화면입니다. 미니언이 없으면 클릭으로 장착하고, 보유 중이면 교체/스킵을 각각 1초 누릅니다. 이 화면의 동작은 이번 C/V 변경 대상이 아닙니다.
+마을 NPC의 세 후보와 던전 보상은 `Reward Selection/RewardSelectionUI.prefab`에 있습니다. `RewardCard 1.prefab`에서 초상화, 이름, 설명의 여백을 편집하고 `RewardCardSurface`에서 카드 색을 조절합니다. 설명이 길면 카드 안에서 휠로 스크롤합니다. 시작 소환수 이름과 스킬 문구는 한글·영문 Reward Text Table에 있습니다.
 
-## 2026-10-30 확인
-
-- EditMode 미리보기에서 C/V, C 상세, 많은 아이템의 스크롤 확인.
-- 18개 스탯의 이름·수치 중심을 실제 GraphicRaycaster로 검사해 각각 같은 행의 툴팁 대상으로 판정되는지 확인.
-- 붉은 목록/스크롤의 경계가 흰 테두리 안쪽에 있는지 확인.
-- 세렌디피티는 SC 애니메이션(보라색 외형), 마리오네트는 AS 애니메이션(갈색 발톱 외형)이 정상 연결되어 있었음. Temp_Icon의 SC/AS 그림 배정이 반대여서, 두 기본 분기와 최종 장비의 icon 참조만 실제 외형에 맞춤.
-- 미니언 생성음은 FeedbackCatalog > MinionAppear(27) > audio.volume 0.085→0.02.
-- Play Mode는 실행하지 않았습니다. 실제 조작·청감 확인은 사용자 플레이에서 진행합니다.
+바닥에서 소환수를 줍거나 교체할 때는 `Hand Slot Selection/HandSlotSelectionUI.prefab`을 사용합니다. 빈 슬롯에는 후보 카드를 클릭해 장착합니다. 두 칸이 차면 현재 카드를 클릭해 교체할 슬롯을 바꾸고, 가운데 비교 영역에 포인터를 올려 두 상세 설명을 읽을 수 있습니다. 교체와 건너뛰기는 각각 1초 홀드입니다.

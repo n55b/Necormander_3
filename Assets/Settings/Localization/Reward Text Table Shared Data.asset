@@ -939,6 +939,30 @@ MonoBehaviour:
     m_Key: MinionReaction_Type5_StunExt_Desc
     m_Metadata:
       m_Items: []
+  - m_Id: 5812374291701020
+    m_Key: "Choice_DashDoll_Name"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701021
+    m_Key: "Choice_DashDoll_Skill"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701022
+    m_Key: "Choice_IceMage_Name"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701023
+    m_Key: "Choice_IceMage_Skill"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701024
+    m_Key: "Choice_Fighter_Name"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701025
+    m_Key: "Choice_Fighter_Skill"
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -16,6 +16,8 @@ public class RoomRewardBox : MonoBehaviour, IInteractable
 
     private Animator _animator;
 
+    private void OnEnable() => SpriteVisibility.Reveal(gameObject, .2f);
+
     public string InteractionPrompt => "Open Reward Box";
 
     private void Awake()
@@ -76,7 +78,7 @@ public class RoomRewardBox : MonoBehaviour, IInteractable
         Debug.Log($"<color=magenta>[RoomRewardBox]</color> Opened, requested clear reward for: {_roomType} ({_normalRewardType})");
 
         // 획득 시 자신을 파괴
-        Destroy(gameObject);
+        SpriteVisibility.RetireInteractable(gameObject, .16f);
     }
 
     private static float GetClipLength(Animator animator, string clipName)

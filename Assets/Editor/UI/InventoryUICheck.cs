@@ -79,12 +79,90 @@ public static class InventoryUICheck
         EditorApplication.ExitPlaymode();
     }
 
+    private static System.Collections.IEnumerator CheckDropLanding(MainMinionDataSO minion)
+    {
+        var recipe = PolishFeedback.Catalog.Find(FeedbackCue.DropLand);
+        float interval = recipe.interval;
+        var first = GroundItem.Drop(minion, Vector3.left);
+        var second = GroundItem.Drop(minion, Vector3.right);
+        var a = first.GetComponentInChildren<SpriteRenderer>();
+        var b = second.GetComponentInChildren<SpriteRenderer>();
+        try
+        {
+            recipe.interval = .5f;
+            bool sawArc = false, sawFallback = false;
+            float deadline = Time.realtimeSinceStartup + 2f;
+            do
+            {
+                yield return null;
+                sawArc |= !a.enabled || !b.enabled;
+                sawFallback |= (a.enabled && a.color.a < .99f) || (b.enabled && b.color.a < .99f);
+                if (sawArc && sawFallback && a.enabled && b.enabled && a.color.a > .99f && b.color.a > .99f) break;
+            } while (Time.realtimeSinceStartup < deadline);
+            Check(sawArc && sawFallback && a.enabled && b.enabled && a.color.a > .99f && b.color.a > .99f
+                && first.IsAvailable && second.IsAvailable, "동시 드롭의 착지 그림 인계와 효과 예산 초과 페이드");
+            Debug.Log("[InventoryUICheck] DROP PASS — simultaneous animated landing and fallback, both pickups available.");
+        }
+        finally
+        {
+            recipe.interval = interval;
+            first.Consume();
+            second.Consume();
+        }
+    }
+
+    internal static System.Collections.IEnumerator CheckLivePouch(UnityEngine.InputSystem.Mouse mouse, Camera camera)
+    {
+        var bag = ItemPouch.Instance;
+        var ui = PouchUI.Instance;
+        var stone = AssetDatabase.LoadAssetAtPath<ItemSO>("Assets/SOData/Items/CrackedWhetstone.asset");
+        var charm = AssetDatabase.LoadAssetAtPath<ItemSO>("Assets/SOData/Items/HealingCharm.asset");
+        var snapshot = Enumerable.Range(0,bag.SlotCount).Select(bag.Get).ToArray();
+        try
+        {
+            bag.TryAdd(charm); bag.TryAdd(stone); bag.TryAdd(stone);
+            ui.SetOpen(true);
+            float until = Time.unscaledTime+.35f;
+            while(Time.unscaledTime < until) yield return null;
+            var buttons = (Button[])Read(ui,"sortButtons");
+            foreach (int sort in new[]{1,2,0})
+            {
+                var click = LightingPanelCheck.Click(mouse,(RectTransform)buttons[sort].transform,.5f);
+                while(click.MoveNext()) yield return click.Current;
+                Check((int)Read(ui,"_sort") == sort,"physical pointer sorts pouch by " + sort);
+            }
+            var cell = ui.GetComponentsInChildren<PouchSlotUI>().First(c=>c.Item==stone);
+            var pick = LightingPanelCheck.Click(mouse,(RectTransform)cell.transform,.5f);
+            while(pick.MoveNext()) yield return pick.Current;
+            Check((ItemSO)Read(ui,"_selected")==stone && cell.GetComponentInChildren<ControlFocusRing>() != null,"physical click selects the stone and draws its rim");
+            var labels = ((ScrollRect)Read(ui,"detailScroll")).content.GetComponentsInChildren<TMP_Text>();
+            float preceding = float.PositiveInfinity;
+            foreach (var label in labels.Where(l=>l.text.Length>0))
+            {
+                label.ForceMeshUpdate();
+                var top = label.transform.TransformPoint(label.textBounds.max).y;
+                var bottom = label.transform.TransformPoint(label.textBounds.min).y;
+                Check(top <= preceding+.001f && bottom<top,"pouch text has its own row: "+label.name);
+                preceding=bottom;
+            }
+            PresentationRegressionCheck.SaveFrame(camera.targetTexture,"PouchSelection");
+        }
+        finally
+        {
+            ui.SetOpen(false);
+            for(int i=bag.SlotCount-1;i>=0;i--)
+                if(i<snapshot.Length && snapshot[i]==null && bag.Get(i)!=null) bag.RemoveAt(i);
+        }
+    }
+
     private static System.Collections.IEnumerator RuntimeCheck()
     {
         // MCP 실행 중 에디터가 비활성이어도 실제 Game Update가 진행되게 한다.
         Application.runInBackground = true;
         if (!Application.isBatchMode)
             EditorWindow.GetWindow(Type.GetType("UnityEditor.GameView,UnityEditor")).Focus();
+        // Let the empty scene finish its opening fade before introducing an inactive fixture manager.
+        while (UnityNote.SceneLoader.IsLoading) yield return null;
         var fixture = new GameObject("Isolated runtime check"); fixture.SetActive(false);
         var gm = fixture.AddComponent<GameManager>(); GameManager.Instance = gm;
         var player = fixture.AddComponent<PlayerController>(); Field(gm, "playerController", player);
@@ -94,17 +172,24 @@ public static class InventoryUICheck
         inventory.Slots.Add(new InventoryManager.CoreSlot()); inventory.Slots.Add(new InventoryManager.CoreSlot());
         var pouch = fixture.AddComponent<ItemPouch>(); ItemPouch.Instance = pouch;
         var popup = fixture.AddComponent<UIPopUpManager>(); Singleton<UIPopUpManager>(popup);
-        var minions = AssetDatabase.FindAssets("t:MainMinionDataSO").Select(g => AssetDatabase.LoadAssetAtPath<MainMinionDataSO>(AssetDatabase.GUIDToAssetPath(g))).Take(2).ToArray();
+        var minions = new[] { "Fighter Minion", "IceMage Minion", "DashDoll Minion" }
+            .Select(name => AssetDatabase.LoadAssetAtPath<MainMinionDataSO>($"Assets/SOData/Minion/Main/{name}.asset")).ToArray();
+        Check(minions.All(minion => minion != null), "교체 시나리오의 소환수 에셋");
         var canvas = new GameObject("Canvas", typeof(Canvas)).GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         var picker = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(PickerPath), canvas.transform).GetComponent<MainMinionSelectionUI>();
+        var landing = CheckDropLanding(minions[0]);
+        while (landing.MoveNext()) yield return landing.Current;
         var drop = GroundItem.Drop(minions[0], Vector3.zero);
         Check(drop.Interact(fixture), "F로 미니언 선택창");
         picker.Select(MainMinionSelectionAction.ActionKind.Candidate);
         Check(inventory.MainSummon == minions[0] && !drop.IsAvailable, "빈 슬롯 카드 클릭으로 장착/원본 소비");
         yield return null;
-        drop = GroundItem.Drop(minions[1], Vector3.zero); drop.Interact(fixture);
+        Check(inventory.EquipMinion(1, minions[2]), "두 슬롯을 채워 교체 UI 진입");
+        drop = GroundItem.Drop(minions[1], Vector3.zero);
+        Check(drop.Interact(fixture), "F로 교체 비교창");
         var pointer = new UnityEngine.EventSystems.PointerEventData(null) { button = UnityEngine.EventSystems.PointerEventData.InputButton.Left };
         var replace = ((GameObject)Read(picker, "replaceButton")).GetComponent<MainMinionSelectionAction>();
+        Check(replace.isActiveAndEnabled, "교체 버튼이 표시됨");
         // 배치 모드 첫 셰이더 컴파일 프레임은 1초를 넘을 수 있으므로 클릭 취소는 같은 프레임에 검증한다.
         replace.OnPointerDown(pointer);
         replace.OnPointerUp(pointer);
@@ -121,7 +206,22 @@ public static class InventoryUICheck
         var offer = new ShopOffer(new RewardCandidate { category = RewardCategory.Item, rawData = item, goldAmount = 100 });
         ((System.Collections.Generic.List<ShopOffer>)Read(shop, "_stock")).Add(offer);
         inventory.AddGold(500);
-        Check(shop.TryPurchase(offer) && !shop.TryPurchase(offer) && inventory.GOLD == 400 && pouch.Get(0) == item, "상점 정확히 1회 결제/습득");
+        Check(ShopPopupUI.Open(shop), "실제 상점 창 열기");
+        yield return null;
+        Canvas.ForceUpdateCanvases();
+        var buy = ShopPopupUI.Ensure().GetComponentsInChildren<Button>().Single(b => b.name == "BuyButton");
+        Check(buy.targetGraphic is VectorUiImage plate && plate.UsesVector, "구매 버튼 벡터 연결");
+        if (UiResolutionCheck.Enabled)
+        {
+            if (EventSystem.current == null) new GameObject("Shop test input", typeof(EventSystem));
+            for (float end = Time.unscaledTime + .3f; Time.unscaledTime < end;) yield return null;
+            var window = ShopPopupUI.Ensure().GetComponentsInChildren<RectTransform>().Single(r=>r.name=="Window");
+            var sizes = UiResolutionCheck.Verify("Shop",window,buy);
+            while (sizes.MoveNext()) yield return sizes.Current;
+        }
+        buy.onClick.Invoke();
+        Check(!buy.interactable && !shop.TryPurchase(offer) && inventory.GOLD == 400 && pouch.Get(0) == item, "상점 정확히 1회 결제/습득");
+        ShopPopupUI.Ensure().Close();
         yield return null;
         for (int i = 0; i < pouch.SlotCount; i++) pouch.RemoveAt(i);
         for (int i = 0; i < 10; i++) Check(pouch.TryAdd(AssetDatabase.LoadAssetAtPath<ItemSO>("Assets/SOData/Items/GaleDashRecovery.asset")), "충전 아이템 10개");

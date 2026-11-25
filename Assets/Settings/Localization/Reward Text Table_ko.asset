@@ -1129,6 +1129,30 @@ MonoBehaviour:
       \uC5F0\uC7A5\uD569\uB2C8\uB2E4."
     m_Metadata:
       m_Items: []
+  - m_Id: 5812374291701020
+    m_Localized: "돌진 인형"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701021
+    m_Localized: "<fx=Enchantment><color=#AFDFC9>돌진 강타</color></fx>\n전방의 적에게 큰 피해를 주고 밀쳐냅니다."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701022
+    m_Localized: "얼음 마법사"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701023
+    m_Localized: "<fx=Enchantment><color=#AFDFC9>빙결 부채꼴</color></fx>\n전방 부채꼴 범위의 적에게 마법 피해를 주고 빙결시킵니다."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701024
+    m_Localized: "전사"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701025
+    m_Localized: "<fx=Enchantment><color=#AFDFC9>회전 난타</color></fx>\n가장 가까운 적에게 돌진해 주변 적을 5회 공격합니다."
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

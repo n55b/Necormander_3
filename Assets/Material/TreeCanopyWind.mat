@@ -1,0 +1,14 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_Name: TreeCanopyWind
+  m_Shader: {fileID: 4800000, guid: caa71b1523d746f38868dc019149a02f, type: 3}
+  m_CustomRenderQueue: -1
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats: []
+    m_Colors: []

@@ -1011,6 +1011,30 @@ MonoBehaviour:
       \uC5F0\uC7A5\uD569\uB2C8\uB2E4."
     m_Metadata:
       m_Items: []
+  - m_Id: 5812374291701020
+    m_Localized: "Dash Doll"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701021
+    m_Localized: "<fx=Enchantment><color=#AFDFC9>Rushing Strike</color></fx>\nHits enemies ahead for heavy damage and knocks them back."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701022
+    m_Localized: "Ice Mage"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701023
+    m_Localized: "<fx=Enchantment><color=#AFDFC9>Frost Fan</color></fx>\nDeals magic damage and freezes enemies in a cone ahead."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701024
+    m_Localized: "Warrior"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5812374291701025
+    m_Localized: "<fx=Enchantment><color=#AFDFC9>Spinning Flurry</color></fx>\nDashes to the nearest enemy and strikes nearby foes five times."
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

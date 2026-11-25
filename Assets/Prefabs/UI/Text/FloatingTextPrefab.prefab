@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8766327299553312744}
   - component: {fileID: 2134357432958283817}
   - component: {fileID: 6675281791251147119}
+  - component: {fileID: 8000000000000000000}
   m_Layer: 5
   m_Name: FloatingTextPrefab
   m_TagString: Untagged
@@ -60,7 +61,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -68,8 +69,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 20
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
-  m_sharedMaterial: {fileID: 1761981276836729092, guid: 1c054ff7a0d616f4ca6b4e5b272939bf, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 5301ed5cbfc017b49a9a45b33315d456, type: 2}
+  m_sharedMaterial: {fileID: 313695779448459715, guid: 5301ed5cbfc017b49a9a45b33315d456, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -93,8 +94,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 11
-  m_fontSizeBase: 11
+  m_fontSize: 14
+  m_fontSizeBase: 14
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -152,23 +153,35 @@ MonoBehaviour:
   moveSpeed: 0.5
   fadeTime: 1.5
   displaytime: 1.5
-  punchDuration: 1.5
-  CiriPunchDuration: 2
+  normalSizePop: 0.6
+  criticalSizePop: 0.6
   critColor: {r: 1, g: 0.9, b: 0.15, a: 1}
-  critOutlineColor: {r: 0.4, g: 0.2, b: 0, a: 1}
-  critOutlineWidth: 0.3
-  critOutlinePulseWidth: 0.45
-  critOutlinePulseTime: 0.12
-  critScale: 1.9
+  normalPixels: 10
+  criticalPixels: 15
   normalPunchStrength: 0.4
   horizontalJitter: 0.5
   normalPositionPunchTime: 0.5
   normalScalePunchTime: 0.25
   criticalPunchTime: 0.3
   criticalShakeTime: 0.3
-  criticalShakeAngle: 30
+  criticalShakePixels: 3
   positionPunchVibrato: 10
   scalePunchVibrato: 8
   criticalPunchVibrato: 10
   criticalShakeVibrato: 20
   normalScaleElasticity: 0.6
+--- !u!114 &8000000000000000000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717604425048194122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c46e5c0ee6a947cc87a1db8c295320c8, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  logicalSize: 10
+  emphasis: 0
+  fit: 0

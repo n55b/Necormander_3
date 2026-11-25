@@ -43,6 +43,9 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
 
     private bool _isDead = false;
     private bool _isTriggered = false;
+    private RuntimeAnimatorController timingController;
+    private float explodeHitTime = FallbackExplodeHitTime;
+    private float explodeLength = FallbackExplodeLength;
 
     public bool IsDead => _isDead;
 
@@ -66,6 +69,7 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
 
         // 평소(점화 전)에는 Idle 상태로 대기
         PlayState(StateIdle);
+        PrepareClipTiming();
 
         if (targetLayer == 0)
         {
@@ -169,6 +173,21 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
 
     private float GetExplodeHitTime()
     {
+        PrepareClipTiming();
+        return explodeHitTime;
+    }
+
+    private void PrepareClipTiming()
+    {
+        var controller = animator != null ? animator.runtimeAnimatorController : null;
+        if (controller == timingController) return;
+        timingController = controller;
+        explodeHitTime = ReadExplodeHitTime();
+        explodeLength = ReadExplodeLength();
+    }
+
+    private float ReadExplodeHitTime()
+    {
         if (animator != null && animator.runtimeAnimatorController != null)
         {
             foreach (var clip in animator.runtimeAnimatorController.animationClips)
@@ -191,6 +210,12 @@ public class TrapBombBarrel : MonoBehaviour, IDamageable
     }
 
     private float GetExplodeLength()
+    {
+        PrepareClipTiming();
+        return explodeLength;
+    }
+
+    private float ReadExplodeLength()
     {
         if (animator != null && animator.runtimeAnimatorController != null)
         {

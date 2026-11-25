@@ -209,7 +209,7 @@ public class ItemStatEffect : ItemEffect
 /// <summary>
 /// 방을 클리어할 때 플레이어를 회복시킨다.
 ///
-/// [26/09/09] 예전엔 RoomInstance.MarkCleared 가 아이템과 무관하게 무조건 10 회복시켰다.
+/// 예전엔 RoomInstance.MarkCleared 가 아이템과 무관하게 무조건 10 회복시켰다.
 /// 그 로직을 이 효과로 옮겼다 — 이 효과를 가진 아이템이 주머니에 있어야만 회복한다.
 /// 실제 발동은 ItemPouch 가 RoomInstance.OnAnyRoomCleared 를 구독해서 처리한다.
 ///

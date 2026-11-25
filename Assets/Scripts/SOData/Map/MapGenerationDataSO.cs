@@ -14,6 +14,13 @@ public class MapGenerationDataSO : ScriptableObject
     public bool useIsaacStylePlacement = true;
     [Tooltip("아이작 스타일 배치 시 방 간의 배치 간격 (물리 충돌 방지용)")]
     public float gridSpacing = 160f;
+    [SerializeField, Min(1f), Tooltip("던전 타일을 병합하는 동안 한 프레임에 사용할 작업 시간입니다. 이 시간을 넘으면 다음 방은 다음 프레임에서 처리합니다.")]
+    private float roomMergeBudgetMs = 4f;
+    public float RoomMergeBudgetSeconds => Mathf.Max(1f, roomMergeBudgetMs) / 1000f;
+    [SerializeField, Tooltip("격자식 던전을 동일한 방 구성으로 재현합니다.")]
+    private bool useFixedLayoutSeed;
+    [SerializeField] private int fixedLayoutSeed = 907;
+    public int? FixedLayoutSeed => useFixedLayoutSeed ? fixedLayoutSeed : null;
     
     [Header("방 구성")]
     public int minNormalRooms = 5;

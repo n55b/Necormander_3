@@ -1,0 +1,104 @@
+Shader "Necromancer/Floor Accretion Disk"
+{
+    Properties
+    {
+        _TravelTime ("Floor time", Range(0,1)) = 0
+        _Night ("Night", Color) = (0.10,0.06,0.16,1)
+        _Dust ("Distant dust", Color) = (0.22,0.3,0.60,1)
+        _Rose ("Outer gas", Color) = (0.90,0.53,0.61,1)
+        _Hot ("Hot rim", Color) = (1,0.91,0.72,1)
+        _Ice ("Starlight", Color) = (0.84,0.92,0.98,1)
+    }
+    SubShader
+    {
+        Tags { "Queue"="Transparent" "RenderType"="Transparent" "IgnoreProjector"="True" }
+        Cull Off ZWrite Off ZTest [unity_GUIZTestMode]
+        Blend One OneMinusSrcAlpha
+        Pass
+        {
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #include "UnityCG.cginc"
+            struct Varyings { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
+            float _TravelTime;
+            half4 _Night, _Dust, _Rose, _Hot, _Ice;
+            Varyings vert(float4 vertex:POSITION, float2 uv:TEXCOORD0)
+            {
+                Varyings o;
+                o.pos = UnityObjectToClipPos(vertex);
+                o.uv = uv;
+                return o;
+            }
+
+            float hash(float2 p)
+            {
+                float3 h = frac(float3(p.xyx) * float3(.1031,.1030,.0973));
+                h += dot(h, h.yzx + 33.33);
+                return frac((h.x + h.y) * h.z);
+            }
+            float noise(float2 p)
+            {
+                float2 cell = floor(p);
+                float2 f = frac(p);
+                f = f * f * (3 - 2 * f);
+                return lerp(lerp(hash(cell),hash(cell + float2(1,0)),f.x),
+                            lerp(hash(cell + float2(0,1)),hash(cell + 1),f.x),f.y);
+            }
+            float stars(float2 pixel, float spacing, float time)
+            {
+                float2 cell = floor(pixel / spacing);
+                float seed = hash(cell);
+                float2 center = floor(2 + (spacing - 4) * float2(seed, hash(cell + 17.4)));
+                float2 d = abs(floor(frac(pixel / spacing) * spacing) - center);
+                float twinkle = .7 + .3 * sin(time * 6 + seed * 25);
+                return (1 - saturate(max(d.x, d.y))) * seed * seed * twinkle;
+            }
+            half4 frag(Varyings i):SV_Target
+            {
+                float t = _TravelTime;
+                float2 px = floor(i.uv * float2(640,360)) + .5;
+                float2 p = px - float2(320,180);
+                float dark = smoothstep(0,.57,t);
+                float light = smoothstep(.025,.29,t) * (1 - smoothstep(.865,.981,t));
+                float bloom = smoothstep(.395,.465,t) * (1 - smoothstep(.465,.60,t));
+                float opened = smoothstep(.05,.32,t) + .50 * smoothstep(.395,.49,t);
+                float radius = (4 + 14 * opened + 8 * bloom) * (1 - .84 * smoothstep(.86,.975,t));
+                float2 disk = float2(p.x * .98 + p.y * .20, p.y * .98 - p.x * .20);
+                float r = length(p);
+                float2 plane = float2(disk.x, disk.y * 3.75);
+                float orbit = length(plane);
+                float angle = atan2(plane.y, plane.x);
+                float spin = 9 * t + 4 * smoothstep(.72,.91,t);
+                float mist = noise(plane * .023 + float2(-t,t*.37));
+                float phase = angle * 2 + orbit * .056 - spin + (mist - .5) * 1.45;
+                float arm = .5 + .5 * cos(phase + .55 * sin(phase * 2 - spin * .24));
+                float veil = exp2(-orbit * .012) * smoothstep(8,48,orbit) * arm * arm * (.48 + .72 * mist);
+                float stellar = stars(px,16,t) * .60 + stars(px + 7,29,t) * .40;
+                half3 sky = _Night.rgb + light * (_Dust.rgb * veil * .65 + _Ice.rgb * stellar * (.25 + .55 * exp2(-r*.009)));
+
+                // Front gas crosses the silhouette. The far side curls into a separate lensed arc.
+                float hole = 1 - smoothstep(radius-.8,radius+.8,r);
+                sky = lerp(sky, _Night.rgb * .12, hole * light);
+                float front = 1 - hole * smoothstep(-1,2,disk.y);
+                float rimDistance = abs(orbit - radius * 1.62);
+                float gas = exp2(-rimDistance / max(1,radius*.38)) * front;
+                float streaks = noise(float2(plane.x*.045 - t*2, plane.y*.12));
+                float bands = .5 + .5 * sin(orbit * .78 + 2.5 * sin(phase) + 2 * streaks - spin);
+                float rim = exp2(-rimDistance / 1.7) * front;
+                float curved = length(float2(disk.x, disk.y * 1.08));
+                float arcDistance = abs(curved - radius * 1.05);
+                float arc = exp2(-arcDistance / 1.35) * smoothstep(-.25,.3,disk.y / radius);
+                float halo = exp2(-arcDistance / max(2,radius*.22)) * (1 - hole);
+                half3 gasColor = lerp(_Rose.rgb, _Hot.rgb, arm * .75);
+                sky += light * (gasColor * gas * (.24 + .52 * bands) + _Dust.rgb * halo * .42);
+                sky = lerp(sky, _Hot.rgb, light * saturate((.69 + .23*streaks) * rim + arc * (.65 + .32 * arm)));
+                float wave = abs(orbit - (32 + 118 * smoothstep(.40,.60,t)));
+                sky += _Ice.rgb * (.38 * bloom * exp2(-wave / 2.6));
+                float coverage = max(dark, light * saturate(hole + rim + gas + arc));
+                return half4(sky * coverage, coverage);
+            }
+            ENDCG
+        }
+    }
+}

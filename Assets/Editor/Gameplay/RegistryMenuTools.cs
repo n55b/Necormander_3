@@ -44,7 +44,7 @@ public class RegistryMenuTools
 
                     // 분류 기준은 타입이다. 예전엔 경로 문자열("/SOData/Minion/")로 갈랐는데,
                     // 그러면 에셋을 폴더 밖으로 옮기는 순간 적이 아군 풀에 섞인다.
-                    // [26/08/15] 서브 소환수 삭제로 아군은 메인만 남았다.
+                    // 서브 소환수 삭제로 아군은 메인만 남았다.
                     if (minionAsset is MainMinionDataSO)
                     {
                         if (!minionReg.allyMinionData.Contains(minionAsset))
@@ -56,7 +56,7 @@ public class RegistryMenuTools
 
                     if (minionAsset is not EnemyMinionDataSO enemyAsset) continue;
 
-                    // [26/08/18] 예전엔 이름/파일명에 "Boss" 가 들어가는지로 분류했다. 그래서
+                    // 예전엔 이름/파일명에 "Boss" 가 들어가는지로 분류했다. 그래서
                     // 'Summoner Boss Minions' 같은 일반 몹이 보스 목록에 들어갔다.
                     // 이제 데이터의 등급(EnemyMinionDataSO.tier) 하나만 본다 — 오분류가 구조적으로 불가능하다.
                     if (enemyAsset.tier == EnemyTier.Boss)

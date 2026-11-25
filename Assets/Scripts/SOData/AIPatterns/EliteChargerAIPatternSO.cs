@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.AI;
-using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -113,7 +112,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
     [Header("패턴 이름 표시 (보스 머리 위 한글 라벨)")]
     public bool showPatternLabel = true;
-    public TMP_FontAsset patternLabelFont;
     public Vector3 patternLabelOffset = new Vector3(0f, 1.3f, 0f);
     public string label_Stab = "미니 돌진 찍기";
     public string label_NormalCharge = "돌진";
@@ -126,7 +124,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     // ==============================================================
     // 애니메이션 스테이트 이름
     // ==============================================================
-    // [26/08/16] 해태(Enemy_10_HaeTae) 아트가 들어오면서 공격마다 전용 모션이 생겼다.
+    // 해태(Enemy_10_HaeTae) 아트가 들어오면서 공격마다 전용 모션이 생겼다.
     // 예전엔 공격 종류와 무관하게 Animator.Play("Attack") 하나만 불렀는데,
     // 공용 CharacterBase_Animator 의 실사용 슬롯이 Idle/Follow/Attack/Die/Stun 5개뿐이라
     // 공격 5종을 담을 수 없었기 때문이다(AnimatorOverrideController 는 스테이트 추가가 안 된다).
@@ -339,7 +337,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
     public override void Execute(BaseEntity entity)
     {
-
         if (entity.Target == null)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -363,70 +360,71 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             _label = CreatePatternLabel(entity);
         }
 
-        // 참고: 엔진(BaseEntity.Update -> CanExecuteAI)이 IsAttacking == true인 동안에는 이 함수 자체를
-        // 호출하지 않으므로, 아래 인터럽트 분기는 사실상 "공격과 공격 사이의 짧은 순간"에만 유효합니다.
-        // 그래도 8초 판정 자체는 Time.time 절대시각 비교라 정확합니다.
         if (!_isBusy)
         {
             entity.LookAtTarget(entity.Target);
-
-            if (_scheduler.ShouldTriggerSpecial(Time.time, specialPatternInterval))
-            {
-                // 기본 공격 도중이라도(가능한 타이밍이라면) 강제로 중단하고 즉시 패턴을 발동합니다.
-                if (entity.IsAttacking)
-                {
-                    if (_basicAttackCoroutine != null)
-                    {
-                        entity.StopCoroutine(_basicAttackCoroutine);
-                        _basicAttackCoroutine = null;
-                    }
-                    ClearPatternObjects();
-                    entity.IsAttacking = false;
-                    ClearLabel();
-                }
-                StopPursuitBurst(entity);
-
-                int pattern = _scheduler.NextSpecial();
-                _specialPatternCoroutine = entity.StartCoroutine(RunSpecialPattern(entity, pattern));
-                return;
-            }
-
-            if (!entity.IsAttacking)
+            float now = Time.time;
+            bool specialDue = _scheduler.ShouldTriggerSpecial(now, specialPatternInterval);
+            bool basicAttackReady = false;
+            if (!specialDue && !entity.IsAttacking)
             {
                 entity.AtkTimer += Time.deltaTime;
+                basicAttackReady = entity.AtkTimer >= entity.Stats.AttackInterval
+                    && Vector2.Distance(entity.transform.position, entity.Target.position) <= entity.Stats.ATKRANGE;
+            }
 
-                float dist = Vector2.Distance(entity.transform.position, entity.Target.position);
-                var agent = entity.NavAgent;
-
-                if (dist <= entity.Stats.ATKRANGE && entity.AtkTimer >= entity.Stats.AttackInterval)
-                {
+            switch (EnemyAIDecisions.Elite(specialDue, entity.IsAttacking, basicAttackReady))
+            {
+                case EliteAction.Special:
+                    StartSpecialAttack(entity);
+                    return;
+                case EliteAction.BasicAttack:
                     entity.CurrentState = AIState.Attack;
                     StopPursuitBurst(entity);
                     StopNavAgent(entity);
                     entity.AtkTimer = 0f;
                     _basicAttackCoroutine = entity.StartCoroutine(BasicAttackRoutine(entity));
-                }
-                else
-                {
-                    entity.CurrentState = AIState.Follow;
-                    if (agent != null && agent.isActiveAndEnabled)
-                    {
-                        agent.isStopped = false;
-                        if (!_isBursting) agent.speed = entity.Stats.MOVESPEED;
-                        agent.SetDestination(entity.Target.position);
-                    }
-
-                    // ② 추격 버스트 (v1.2): 사거리 밖에서 추격하는 동안 간헐적으로 짧게 가속 후 감속합니다.
-                    // "8초에 한 번만 돌진하는 보스"가 아니라 "항상 돌진할 수 있는 보스"로 체감시키기 위한 연출입니다.
-                    if (!_isBursting && Time.time >= _nextBurstTime)
-                    {
-                        _pursuitBurstCoroutine = entity.StartCoroutine(PursuitBurstRoutine(entity));
-                    }
-                }
+                    break;
+                case EliteAction.Chase:
+                    Chase(entity, now);
+                    break;
             }
         }
 
         entity.UpdateAnimation(entity.CurrentState);
+    }
+
+    private void StartSpecialAttack(BaseEntity entity)
+    {
+        if (entity.IsAttacking)
+        {
+            if (_basicAttackCoroutine != null)
+            {
+                entity.StopCoroutine(_basicAttackCoroutine);
+                _basicAttackCoroutine = null;
+            }
+            ClearPatternObjects();
+            entity.IsAttacking = false;
+            ClearLabel();
+        }
+
+        StopPursuitBurst(entity);
+        _specialPatternCoroutine = entity.StartCoroutine(RunSpecialPattern(entity, _scheduler.NextSpecial()));
+    }
+
+    private void Chase(BaseEntity entity, float now)
+    {
+        entity.CurrentState = AIState.Follow;
+        var agent = entity.NavAgent;
+        if (agent != null)
+        {
+            agent.isStopped = false;
+            if (!_isBursting) agent.speed = entity.Stats.MOVESPEED;
+            agent.SetDestination(entity.Target.position);
+        }
+
+        if (!_isBursting && now >= _nextBurstTime)
+            _pursuitBurstCoroutine = entity.StartCoroutine(PursuitBurstRoutine(entity));
     }
 
     /// <summary>
@@ -515,9 +513,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         float invY = lossy.y != 0f ? 1f / lossy.y : 1f;
         labelObj.transform.localScale = new Vector3(invX, invY, 1f);
 
-        EliteBossPatternLabel label = labelObj.AddComponent<EliteBossPatternLabel>();
-        label.SetFont(patternLabelFont);
-        return label;
+        return labelObj.AddComponent<EliteBossPatternLabel>();
     }
 
     private void ShowLabel(string text)
@@ -598,7 +594,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         entity.HasFiredHitEvent = false;
         entity.HasFiredAttackEndEvent = false;
 
-        // [26/08/16] 예전엔 여기서 곧바로 Play("Attack") 을 불렀다. 이제 공격마다 전용 모션이 있으므로
+        // 예전엔 여기서 곧바로 Play("Attack") 을 불렀다. 이제 공격마다 전용 모션이 있으므로
         // '어떤 공격인지 정해진 뒤'에 재생해야 한다 — 그래서 스테이트 재생을 아래 분기로 내렸다.
         int atkIndex = _scheduler.NextBasic(); // 0: 미니 돌진 찍기, 1: 일반 돌진, 2: 휩쓸기
 
@@ -674,12 +670,12 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         if (entity.Animator != null) entity.Animator.speed = 1f;
         entity.ResetAnimationState();
 
-        // [26/08/16] ResetAnimationState 는 _lastState 만 비운다 — 실제 Play 는 UpdateAnimation 이 하는데
+        // ResetAnimationState 는 _lastState 만 비운다 — 실제 Play 는 UpdateAnimation 이 하는데
         // 그건 IsAttacking 동안 early-return 이고, 애초에 CanExecuteAI 가 막아서 호출조차 안 된다.
         // 즉 아래 후딜레이(1초) 내내 마지막 공격 클립이 그대로 남는다. 돌진 클립(Dash_Attack)은 '루프'라
         // 그동안 멈춰 선 채로 제자리 질주하는 그림이 된다. 그래서 여기서 직접 Idle 로 되돌린다.
         //
-        // [26/08/18] 단, 루프 클립일 때만 그렇게 한다. 배속 기준이 타격 프레임으로 바뀌면서 단발
+        // 단, 루프 클립일 때만 그렇게 한다. 배속 기준이 타격 프레임으로 바뀌면서 단발
         // 클립은 판정 순간에 아직 뒷부분(마무리 동작)이 남아 있는데, 여기서 Idle 을 강제하면 때린
         // 즉시 자세가 툭 끊긴다. 그냥 두면 후딜레이 동안 마무리가 재생되고, 후딜레이가 끝나면
         // UpdateAnimation 이 (ResetAnimationState 덕에) 알아서 Idle/Follow 로 되돌린다.
@@ -697,7 +693,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
     // ==============================================================
     // ① 도약 찍기 (v2.0)
-    // [26/08/18] "제자리에서 웅크렸다가 짧게 돌진" 에서 "즉시 도약해서 오래 떠 있다가 착지" 로 바꿨다.
+    // "제자리에서 웅크렸다가 짧게 돌진" 에서 "즉시 도약해서 오래 떠 있다가 착지" 로 바꿨다.
     // 예비동작 시간(stabWindup)이 통째로 체공 시간이 되고, 회피 정보는 착지 지점에 그리는 원이 준다.
     // ==============================================================
     /// <summary>
@@ -734,7 +730,13 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 t += Time.deltaTime;
                 float f = Mathf.Clamp01(t / airTime);
                 entity.transform.position = Vector2.Lerp(start, land, SkillCombatUtil.EvaluateMotionProgress(miniChargeMovementCurve, f));
-                if (fillMark != null) fillMark.transform.localScale = Vector3.one * (radius * f);
+                var cue = PixelVectorShape.ThreatCue(f, airTime);
+                if (ringMark != null) PixelVectorShape.SetThreatCue(ringMark.GetComponent<SpriteRenderer>(), cue);
+                if (fillMark != null)
+                {
+                    fillMark.transform.localScale = Vector3.one * (radius * f);
+                    PixelVectorShape.SetThreatCue(fillMark.GetComponent<SpriteRenderer>(), cue);
+                }
                 yield return null;
             }
             entity.transform.position = land;
@@ -805,7 +807,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         // (예비동작 정보는 바닥 전조 게이지와 방향 인디케이터가 준다).
         PlayState(entity, animState_ChargeReady);
 
-        // [26/08/18] 웅크렸다 튀어나가는 스케일 연출(ScaleCoroutine)은 제거했다. 해태 아트에 예비동작이
+        // 웅크렸다 튀어나가는 스케일 연출(ScaleCoroutine)은 제거했다. 해태 아트에 예비동작이
         // 들어오면서 이중 적용이 됐고, 루트 스케일을 만지는 방식이라 콜라이더·그림자·HP바까지 같이 줄었다.
         float estimatedLength = entity.Stats.MOVESPEED * normalChargeSpeedMultiplier * normalChargeMaxDuration;
         var ncVfb = entity.GetComponentInChildren<CharacterVisualFeedback>();
@@ -833,7 +835,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 LayerMask.GetMask("Wall", "Object"), out var ncBlock))
                 ncLength = ncBlock.distance;
 
-            UpdateChargeTelegraph(_chargeTelegraph, entity.transform.position, dir, ncLength, normalChargeHitRadius * 2f, windup > 0f ? wt / windup : 1f);
+            UpdateChargeTelegraph(_chargeTelegraph, entity.transform.position, dir, ncLength, normalChargeHitRadius * 2f, windup > 0f ? wt / windup : 1f, windup);
             // [예고 플래시] 돌진 개시 직전 하데스식 번쩍 (엘리트 = 2펄스)
             if (!ncFlashFired && windup - wt <= telegraphFlashLeadTime)
             {
@@ -1060,7 +1062,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 entity.LookAtTarget(entity.Target);
             }
 
-            // [수정] 레인은 플레이어에서 끊지 않고 통과시킨다. 어디까지 위험한지 다 보여야
+            // 레인은 플레이어에서 끊지 않고 통과시킨다. 어디까지 위험한지 다 보여야
             // 어느 쪽으로 피할지 판단이 된다. 대신 돌진 루프와 동일한 마스크·반지름으로
             // CircleCast 해서 실제로 막히는 지점까지만 그린다.
             float length = chargeTelegraphLength;
@@ -1083,7 +1085,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             {
                 _chargeTelegraph = CreateFallbackRect(chargeTelegraphColor);
             }
-            UpdateChargeTelegraph(_chargeTelegraph, entity.transform.position, chargeDir, length, chargeHitRadius * 2f, scaledChargeWindup > 0f ? t / scaledChargeWindup : 1f);
+            UpdateChargeTelegraph(_chargeTelegraph, entity.transform.position, chargeDir, length, chargeHitRadius * 2f, scaledChargeWindup > 0f ? t / scaledChargeWindup : 1f, scaledChargeWindup);
             dirIndicator?.SetAimOverride(chargeDir); // 충전 중 실시간 재조준을 인디케이터에도 반영 (돌진 개시 후 자동 만료 → 이동 방향 복귀)
             BossAttackIndicator.Aim(entity, chargeDir); // 예고 게이지도 같이 돌려준다 — 안 그러면 3초 내내 처음 방향만 가리킨다.
 
@@ -1211,41 +1213,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     /// <summary>
     /// 돌진 경로를 나타내는 빨간 직사각형 전조를 생성/갱신합니다. (보스 위치 기준 전방으로 length만큼)
     /// </summary>
-    private void UpdateChargeTelegraph(GameObject telegraph, Vector2 originPos, Vector2 dir, float length, float width, float progress01 = 1f)
-    {
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        Vector2 mid = originPos + dir * (length * 0.5f);
-        telegraph.transform.position = mid;
-        telegraph.transform.rotation = Quaternion.Euler(0f, 0f, angle);
-                // 배경 레인: 항상 전체 길이/폭. "어디로 올지"를 알린다.
-        telegraph.transform.localScale = new Vector3(length, width, 1f);
-
-        // [수정] 채움 게이지: "언제 올지"를 알린다.
-        // 길이축으로 채우면 채울 거리가 대상과의 거리에 따라 매번 달라져 체감 속도가 들쭉날쭉해진다.
-        // 폭은 항상 상수이므로 두께 방향으로 채워야 진행 속도가 일정해지고 학습이 가능해진다.
-        // 자식은 부모 스케일을 물려받으므로 localScale.y = 진행도(0~1)면 실제 두께가 width * 진행도가 된다.
-        // 중심 정렬이라 레인이 회전해도 좌우 대칭으로 벌어져 방향 혼동이 없다.
-        Transform fill = telegraph.transform.childCount > 0 ? telegraph.transform.GetChild(0) : null;
-        if (fill == null)
-        {
-            GameObject fillObj = CreateFallbackRect(chargeTelegraphFillColor);
-            fillObj.name = "Elite_Telegraph_Rect_Fill";
-            fill = fillObj.transform;
-            fill.SetParent(telegraph.transform, false);
-
-            var fillSr = fillObj.GetComponent<SpriteRenderer>();
-            var baseSr = telegraph.GetComponent<SpriteRenderer>();
-            if (fillSr != null && baseSr != null)
-            {
-                fillSr.sortingLayerID = baseSr.sortingLayerID;
-                fillSr.sortingOrder = baseSr.sortingOrder + 1; // 배경 레인 바로 위
-            }
-        }
-
-        fill.localPosition = Vector3.zero;
-        fill.localRotation = Quaternion.identity;
-        fill.localScale = new Vector3(1f, Mathf.Clamp01(progress01), 1f);
-    }
+    private void UpdateChargeTelegraph(GameObject telegraph, Vector2 origin, Vector2 direction, float length, float width, float progress, float windup)
+        => BossTelegraph.UpdateRectWithFill(telegraph, origin, direction, length, width, progress, chargeTelegraphFillColor, windup);
 
     private GameObject _chargeTelegraph;
     private readonly List<GameObject> _patternObjects = new List<GameObject>();
@@ -1344,7 +1313,12 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
                 warmup.transform.position = entity.transform.position;
                 warmup.transform.localScale = Vector3.one * scale;
                 var wsr = warmup.GetComponent<SpriteRenderer>();
-                if (wsr != null) wsr.color = new Color(1f, 0.4f, 0f, Mathf.Lerp(0.15f, 0.4f, wt / scaledPreCastDelay));
+                if (wsr != null)
+                {
+                    float progress = Mathf.Clamp01(wt / scaledPreCastDelay);
+                    wsr.color = new Color(1f, .4f, 0f, Mathf.Lerp(.15f, .4f, progress));
+                    PixelVectorShape.SetThreatCue(wsr, PixelVectorShape.ThreatCue(progress, scaledPreCastDelay));
+                }
             }
             yield return null;
         }
@@ -1377,7 +1351,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
             if (wave < slamWaveCount - 1)
             {
-                // [26/08/17] 파동 1회 = 내려찍기 1회. 예전엔 예비동작 때 한 번만 재생하고 나머지 파동이
+                // 파동 1회 = 내려찍기 1회. 예전엔 예비동작 때 한 번만 재생하고 나머지 파동이
                 // 도는 내내(파동당 slamWaveExpandTime) 마지막 프레임에서 굳어 있었다 — 두 번째 파동은
                 // 아무 동작 없이 링만 튀어나왔다. 파동 사이 간격에 맞춰 클립을 다시 늘려 재생하면
                 // '다시 일어섰다 내려찍는' 순간과 다음 파동 발사가 맞물린다.
@@ -1406,6 +1380,7 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
         PolishFeedback.PlaySound(FeedbackCue.ChargeShockwave, center);
         GameObject ring = CreateFallbackRing(new Color(1f, 0.35f, 0f, 0.5f));
         ring.transform.position = center;
+        var wave = ring.GetComponent<SpriteRenderer>();
 
         LayerMask targetLayer = LayerMask.GetMask("Player", "Player_Dash");
 
@@ -1421,7 +1396,12 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
             },
             onExpand: (cur) =>
             {
-                if (ring != null) ring.transform.localScale = new Vector3(cur * 2f, cur * 2f, 1f);
+                if (ring == null) return;
+                float outer = cur + slamRingThickness;
+                float inner = Mathf.Max(0, cur - slamRingThickness);
+                ring.transform.localScale = new Vector3(2 * outer, 2 * outer, 1);
+                PixelVectorShape.SetGeometry(wave, PixelVectorShape.Kind.Ring, PixelVectorShape.Stroke.Highlight,
+                    inner / Mathf.Max(.0001f, outer));
             });
 
         DestroyPatternObject(ring);
@@ -1431,41 +1411,11 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     // 유틸리티: 장판/히트박스 생성 (프리팹이 없을 때 대체용)
     // ==============================================================
     private GameObject CreateFallbackCircle(Vector2 pos, float baseScale, Color color)
-    {
-        GameObject obj = new GameObject("Elite_Telegraph_Circle");
-        obj.transform.position = pos;
-        var sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = GetOrCreateCircleSprite();
-        sr.color = color;
-        sr.sortingOrder = 10;
-        obj.transform.localScale = Vector3.one * baseScale;
-        return TrackPatternObject(obj);
-    }
+        => TrackPatternObject(BossTelegraph.SpawnCircle(pos, baseScale, color, 10, "Elite_Telegraph_Circle"));
 
     private GameObject CreateFallbackRect(Color color)
-    {
-        GameObject obj = new GameObject("Elite_Telegraph_Rect");
-        var sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = GetOrCreateSquareSprite();
-        sr.color = color;
-        sr.sortingOrder = 10;
-        return TrackPatternObject(obj);
-    }
+        => TrackPatternObject(BossTelegraph.SpawnRect(color, 10, "Elite_Telegraph_Rect"));
 
     private GameObject CreateFallbackRing(Color color)
-    {
-        GameObject obj = new GameObject("Elite_Telegraph_Ring");
-        var sr = obj.AddComponent<SpriteRenderer>();
-        sr.sprite = GetOrCreateRingSprite();
-        sr.color = color;
-        sr.sortingOrder = 10;
-        return TrackPatternObject(obj);
-    }
-
-    // 절차적 텔레그래프 스프라이트는 BossTelegraph 로 일원화(SO/기둥/BossTelegraph 3벌 중복 제거). 링 두께 정규값 0.85.
-    private static Sprite GetOrCreateCircleSprite() => BossTelegraph.GetCircleSprite();
-
-    private static Sprite GetOrCreateSquareSprite() => BossTelegraph.GetSquareSprite();
-
-    private static Sprite GetOrCreateRingSprite() => BossTelegraph.GetRingSprite();
+        => TrackPatternObject(BossTelegraph.SpawnRing(Vector2.zero, 1f, color, 10, "Elite_Telegraph_Ring", boundaryOnly: true));
 }

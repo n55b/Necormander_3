@@ -122,7 +122,9 @@ public static class FeedbackSetup
             case FeedbackCue.BossLand: r.shape=FeedbackShape.Ring; r.count=1; r.radius=2; r.duration=.32f; break;
             case FeedbackCue.CounterSuccess: r.shape=FeedbackShape.Cross; r.count=4; r.color=new Color(.5f,1,1); break;
             case FeedbackCue.BossVanish: r.shape=FeedbackShape.Inward; r.count=12; r.duration=.3f; break;
-            case FeedbackCue.BossDeath: r.shape=FeedbackShape.Rays; r.count=14; r.radius=2; r.duration=.7f; break;
+            case FeedbackCue.BossDeath: r.shape=FeedbackShape.Rays; r.count=14; r.radius=3.2f; r.width=.075f; r.duration=.83f;
+                r.audio.clips=new[]{AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Resources/Sound/SFX/Gameplay/BossLand.wav")};
+                r.audio.priority=32; r.audio.pitchMin=.72f; r.audio.pitchMax=.78f; break;
             case FeedbackCue.ChestOpen: r.shape=FeedbackShape.Rays; r.count=9; r.drift=Vector2.up*.5f; r.delay=.2f; r.radius=.9f; break;
             case FeedbackCue.DropLand: r.shape=FeedbackShape.Ring; r.count=1; r.radius=.3f; r.duration=.25f; break;
             case FeedbackCue.RarityGlow: r.shape=FeedbackShape.Arc; r.count=1; r.radius=.4f; r.duration=.8f; r.intensity=.5f; break;
@@ -141,6 +143,16 @@ public static class FeedbackSetup
             case FeedbackCue.Foliage: r.shape=FeedbackShape.Rays; r.count=3; r.radius=.35f; r.color=new Color(.55f,.85f,.35f); break;
             case FeedbackCue.AmbientDust: r.shape=FeedbackShape.Dots; r.count=3; r.drift=Vector2.up*.8f; r.duration=1.8f; r.intensity=.35f; break;
             case FeedbackCue.PropBreak: r.shape=FeedbackShape.Rays; r.count=10; r.radius=1.2f; r.color=new Color(.85f,.55f,.3f); break;
+            case FeedbackCue.ProjectileGraze:
+                r.title="투사체 회피 잔광"; r.description="스친 방향에 청록색 호를 남깁니다."; r.shape=FeedbackShape.Arc;
+                r.radius=.62f; r.width=.035f; r.duration=.17f; r.count=1; r.color=new Color(.66f,.91f,.89f);
+                r.audio.clips=new[]{AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Resources/Sound/SFX/Minion/Swish_Light_A.wav")};
+                r.audio.volume=.45f; r.audio.priority=60; r.audio.pitchMin=1.08f; r.audio.pitchMax=1.14f; break;
+            case FeedbackCue.LastEnemyImpact:
+                r.title="방의 마지막 일격"; r.description="마지막 적의 위치에서 금빛 파동이 번집니다."; r.shape=FeedbackShape.Ring;
+                r.radius=1.9f; r.width=.072f; r.duration=.52f; r.count=12; r.color=new Color(1,.84f,.62f);
+                r.audio.clips=new[]{AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Resources/Sound/SFX/Gameplay/ProjectileImpact.wav")};
+                r.audio.volume=.57f; r.audio.priority=48; r.audio.pitchMin=.74f; r.audio.pitchMax=.81f; break;
             case FeedbackCue.CameraKick: case FeedbackCue.HitStop: case FeedbackCue.SlowMotion: r.prefab=null; break;
             case FeedbackCue.Distortion: r.prefab=null; r.minimumTier=3; r.radius=1.5f; r.duration=.2f; break;
             case FeedbackCue.SkillReady: r.shape=FeedbackShape.Cross; r.count=2; r.radius=.3f; r.color=new Color(.5f,1,1); break;
@@ -211,8 +223,9 @@ public static class FeedbackSetup
     public static void Validate()
     {
         var c=AssetDatabase.LoadAssetAtPath<FeedbackCatalog>(CatalogPath);
-        Require(c!=null&&c.effects.Length==66,"66개 효과 설정");
-        Require(c.effects.Select(r=>r.cue).Distinct().Count()==66,"중복 없는 번호");
+        var expected = Enum.GetValues(typeof(FeedbackCue)).Cast<FeedbackCue>();
+        Require(c != null && c.effects.Select(r => r.cue).OrderBy(cue => cue).SequenceEqual(expected), "모든 연출 번호의 단일 등록");
+        Require(c.impactProfiles.Select(p => p.kind).OrderBy(kind => kind).SequenceEqual(Enum.GetValues(typeof(ImpactKind)).Cast<ImpactKind>()), "카메라 프리셋별 단일 등록");
         foreach(var r in c.effects) Require(!string.IsNullOrEmpty(r.title)&&r.duration>0,"효과 이름/수명 "+r.cue);
         var player=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player Melee.prefab").GetComponent<PlayerFeedback>();
         Require(player!=null,"플레이어 관찰자");
@@ -224,7 +237,7 @@ public static class FeedbackSetup
         var burst=AssetDatabase.LoadAssetAtPath<GameObject>(Folder+"/Feedback Burst.prefab");
         Require(burst.GetComponentsInChildren<LineRenderer>(true).Length==16,"선 프리팹 16개");
         Require(burst.GetComponentsInChildren<Transform>(true).All(t=>t.localScale==Vector3.one),"원본 그림 1배");
-        Debug.Log("[FeedbackSetup] PASS: 66개 설정, 성장 4단계, 실제 프리팹 배선, 입력 비차단, 원본 배율 검증");
+        Debug.Log("[FeedbackSetup] PASS: 전체 효과 설정, 성장 4단계, 실제 프리팹 배선, 입력 비차단, 원본 배율 검증");
     }
     private static void Require(bool value,string label) { if(!value) throw new Exception("[FeedbackSetup] 실패: "+label); }
 }

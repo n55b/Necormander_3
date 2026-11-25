@@ -338,7 +338,7 @@ public static class HaeTaeAnimSetup
             {
                 float iv = new SerializedObject(ind).FindProperty("indicatorScale").floatValue;
                 Check(Mathf.Approximately(iv, IndicatorScale),
-                      $"방향 인디케이터 indicatorScale == {IndicatorScale} (교체 전 월드 크기 보존) (실제: {iv})");
+                      $"방향 인디케이터 표시 배율 == {IndicatorScale} (실제: {iv})");
             }
 
             var vf = elite.transform.Find("vec_float");
@@ -470,11 +470,7 @@ public static class HaeTaeAnimSetup
     /// <summary>플로팅 데미지 텍스트 앵커의 월드 높이. 교체 전 값(로컬 1.25 × 루트 2)을 그대로 보존한다.</summary>
     private const float FloatTextWorldY = 2.5f;
 
-    /// <summary>
-    /// 방향 인디케이터 크기. 자식 localScale 은 EntityDirectionIndicator.ApplyScale() 이 매번
-    /// indicatorScale 로 덮어쓰므로 트랜스폼이 아니라 이 필드를 고쳐야 한다.
-    /// 교체 전 월드 크기(루트 2 × indicatorScale 1 = 2)를 보존한다.
-    /// </summary>
+    /// <summary>해태의 발밑 표시는 공용 적 표시보다 두 배 크게 그린다.</summary>
     private const float IndicatorScale = 2.0f;
 
     /// <summary>보스 머리 위 패턴 이름 라벨의 월드 높이. 교체 전 값(로컬 1.3 × 루트 2)을 보존한다.</summary>

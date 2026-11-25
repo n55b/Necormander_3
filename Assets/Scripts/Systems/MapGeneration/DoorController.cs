@@ -7,6 +7,7 @@ public class DoorController : MonoBehaviour
 {
     private BoxCollider2D _teleportTrigger;
     private DoorController _destinationDoor;
+    private Vector3? _arrivalPoint;
     private Vector2Int _roomEntranceDirection; // 순간이동 후 플레이어가 안착할 방 내부 방향
     private static bool _isTeleporting = false;
     private bool _isEnabled = false;
@@ -58,9 +59,10 @@ public class DoorController : MonoBehaviour
         }
     }
 
-    public void SetupTeleport(DoorController destination, Vector2Int entranceDir)
+    public void SetupTeleport(DoorController destination, Vector2Int entranceDir, Vector3? arrivalPoint = null)
     {
         _destinationDoor = destination;
+        _arrivalPoint = arrivalPoint;
         _roomEntranceDirection = entranceDir;
         EnsureTriggerCollider();
     }
@@ -94,7 +96,8 @@ public class DoorController : MonoBehaviour
         }
 
         bool arrived = false;
-        fader.FadeOutIn(FadeSignal.방이동, () => arrived = DoTeleport(player), () => FinishTeleport(player, arrived));
+        void ReleasePlayer() => FinishTeleport(player, arrived);
+        fader.FadeOutIn(FadeSignal.방이동, () => arrived = DoTeleport(player), ReleasePlayer, onInterrupted: ReleasePlayer);
     }
 
     /// <summary>암전된 동안 실행: 플레이어 순간이동 + 카메라 워프 + 미니맵 초점 이동.</summary>
@@ -104,10 +107,8 @@ public class DoorController : MonoBehaviour
 
         Vector3 prevPos = player.transform.position;
 
-        // 목적지 앵커 위치에서 방 안쪽 방향(_roomEntranceDirection)으로 2.5유닛 정도 띈 좌표를 목적지로 설정
-        Vector3 destAnchorPos = _destinationDoor.transform.position;
-        Vector3 spawnOffset = new Vector3(_roomEntranceDirection.x, _roomEntranceDirection.y, 0) * 2.5f;
-        Vector3 targetWorldPos = destAnchorPos + spawnOffset;
+        Vector3 targetWorldPos = _arrivalPoint ?? (_destinationDoor.transform.position +
+            (Vector3)(Vector2)_roomEntranceDirection * RoomAnchor.ArrivalDistance);
 
         player.transform.position = targetWorldPos;
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
 
 /// <summary>
@@ -38,11 +39,50 @@ public class BaseHitBox : MonoBehaviour
     public bool isContinuousDamage = false;
     public float damageTickRate = 0.5f;
 
+    private enum PreviewShape { Sprite, Rectangle, Ellipse }
     [Header("외형: 선택 사항")]
+    [SerializeField] private PreviewShape previewShape;
+
     [Tooltip("장판이 찰 때 크기가 점점 커질 내부 이미지(Transform)")]
     public Transform fillingTransform;
     [Tooltip("가득 찼을 때의 최대 로컬 스케일")]
     public Vector3 maxFillScale = Vector3.one;
+
+    private SpriteRenderer[] previewRenderers;
+    private bool threatWindup;
+
+    private void Awake()
+    {
+        if (previewShape == PreviewShape.Sprite) return;
+
+        var shape = previewShape == PreviewShape.Ellipse ? PixelVectorShape.Kind.Ellipse : PixelVectorShape.Kind.Rectangle;
+        int effectsLayer = WorldDepthOrder.GroundEffectsLayerId;
+        if (GetComponentInParent<SortingGroup>() != null)
+        {
+            if (!TryGetComponent<SortingGroup>(out var groundGroup)) groundGroup = gameObject.AddComponent<SortingGroup>();
+            groundGroup.sortAtRoot = true;
+            groundGroup.sortingLayerID = effectsLayer;
+        }
+        previewRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (var renderer in previewRenderers)
+        {
+            renderer.sortingLayerID = effectsLayer;
+            bool isFill = fillingTransform != null && renderer.transform.IsChildOf(fillingTransform);
+            var stroke = isFill ? PixelVectorShape.Stroke.None : PixelVectorShape.Stroke.Highlight;
+            if (renderer.maskInteraction == SpriteMaskInteraction.VisibleOutsideMask)
+                stroke = PixelVectorShape.Stroke.Boundary;
+            PixelVectorShape.Apply(renderer, shape, stroke);
+            if (PixelVectorShape.IsApplied(renderer)) renderer.maskInteraction = SpriteMaskInteraction.None;
+        }
+
+        foreach (var mask in GetComponentsInChildren<SpriteMask>(true)) mask.enabled = false;
+        // The execution lane used two extra world-width lines on top of the vector boundary.
+        if (TryGetComponent<AmbientOutlinePulse>(out var pulse) && pulse.CatalogCue == ExistingFeedbackCue.ExecutionLane)
+        {
+            pulse.enabled = false;
+            foreach (var line in GetComponentsInChildren<LineRenderer>(true)) line.enabled = false;
+        }
+    }
 
     [Header("타격 효과")]
     [Tooltip("적중 시 생성할 타격 이펙트 프리팹 (HitEffect)")]
@@ -53,7 +93,7 @@ public class BaseHitBox : MonoBehaviour
     public Color frozenHitEffectColor = Color.blue;
 
 
-    [HideInInspector] public float hitEffectAngle = 0f; // [추가] 히트 이펙트 전용 실제(월드) 방향 각도. 부모(공격자) 미러링 보정과는 무관하게 실제 타격 방향을 그대로 담습니다.
+    [HideInInspector] public float hitEffectAngle = 0f; // 히트 이펙트 전용 실제(월드) 방향 각도. 부모(공격자) 미러링 보정과는 무관하게 실제 타격 방향을 그대로 담습니다.
 
     public enum FillStyle { [UnityEngine.InspectorName("균일")] Uniform, [UnityEngine.InspectorName("가로")] Horizontal }
     [Tooltip("장판 차오르는 방식 (Uniform: 점방사형, Horizontal: 로딩바형)")]
@@ -101,7 +141,7 @@ public class BaseHitBox : MonoBehaviour
         {
             yield return new WaitForSeconds(interval);
             if (receiver == null || !receiver.isActiveAndEnabled || target.IsDead) yield break;
-            bool frozen = IsTargetFrozen(receiver);
+            bool frozen = IsTargetFrozen(receiver, target);
             info.feedbackHitIndex = i + 1;
             Vector3 impactPosition = ImpactPosition(receiver, effectPrefab);
             Transform impactTarget = receiver.transform;
@@ -125,8 +165,13 @@ public class BaseHitBox : MonoBehaviour
     // PulseDamageOverlapping() 호출 때마다 겹친 대상을 1회씩 때린다 — OnTriggerStay 재호출(대상이 안 움직여
     // 리지드바디가 잠들면 안 옴)에 의존하지 않아, 넉백 없는 스킬도 다단히트가 온전히 들어간다.
     private bool _manualHitOnly;
+    private AttackGraze graze;
     private readonly List<Collider2D> _overlapScratch = new List<Collider2D>();
     private readonly HashSet<IDamageable> _pulseTargets = new HashSet<IDamageable>();
+    private readonly List<(Collider2D collider, IDamageable target)> pulseContacts = new();
+    private readonly List<Vector2> pulseImpacts = new();
+    private int triggerFeedbackFrame = -1;
+    private float triggerSpacing;
 
     /// <summary>이벤트 펄스 전용 타격 모드 on/off. 이벤트당 다단히트(useEvent) 경로에서 켠다.</summary>
     public void SetManualHitOnly(bool value) => _manualHitOnly = value;
@@ -176,6 +221,9 @@ public class BaseHitBox : MonoBehaviour
         _overlapScratch.Clear();
         col.Overlap(filter, _overlapScratch);
         _pulseTargets.Clear();
+        pulseContacts.Clear();
+        pulseImpacts.Clear();
+        _damageInfo.impactPulse++;
 
         foreach (var hit in _overlapScratch)
         {
@@ -184,13 +232,33 @@ public class BaseHitBox : MonoBehaviour
                 ?? hit.GetComponentInParent<IDamageable>()
                 ?? hit.GetComponentInChildren<IDamageable>();
             if (damageable == null || damageable.IsDead || !_pulseTargets.Add(damageable)) continue;
-            bool wasFrozen = IsTargetFrozen(hit); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
+            pulseContacts.Add((hit, damageable));
+        }
+        _damageInfo.pulseTargetCount = pulseContacts.Count;
+        float spacing = PixelViewport.WorldUnitsPerPixel * 24f;
+        foreach (var (hit, damageable) in pulseContacts)
+        {
+            if (hit == null || damageable.IsDead) continue;
+            bool wasFrozen = IsTargetFrozen(hit, damageable); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
             Vector3 impactPosition = ImpactPosition(hit, hitEffectPrefab);
             Transform impactTarget = hit.transform;
-            if (DealContactDamage(damageable))
+            if (DealContactDamage(damageable) && (pulseContacts.Count <= 12 || ReservePulseImpact(impactPosition, spacing)))
                 SpawnHitEffect(impactPosition, wasFrozen, impactTarget);
             if (damageable is CharacterHealth ch) _onHitEnemy?.Invoke(ch);
         }
+        _damageInfo.pulseTargetCount = 0;
+        pulseContacts.Clear();
+        _pulseTargets.Clear();
+        _overlapScratch.Clear();
+    }
+
+    private bool ReservePulseImpact(Vector2 position, float spacing)
+    {
+        // Nearby bodies already flash and emit individual sparks. Share only the large overlay.
+        foreach (var previous in pulseImpacts)
+            if ((previous - position).sqrMagnitude < spacing * spacing) return false;
+        pulseImpacts.Add(position);
+        return true;
     }
 
     public void Init(DamageInfo damageInfo, LayerMask targetLayer, float overrideDuration = -1f, float startDelay = 0f, bool isAlly = false, System.Action<CharacterHealth> onHitEnemy = null)
@@ -206,6 +274,10 @@ public class BaseHitBox : MonoBehaviour
 
         // [아군/적 히트박스 색·투명도] 외곽선+채움 스프라이트를 팔레트 색으로 물들인다(알파=투명도).
         ApplyTeamColor(isAlly);
+        threatWindup = !isAlly && startDelay > 0 && previewRenderers != null;
+        if (previewRenderers != null && !threatWindup)
+            foreach (var renderer in previewRenderers) PixelVectorShape.SetThreatCue(renderer, Vector4.zero);
+        SetThreatProgress(0, startDelay);
 
         // 선딜레이가 끝날 때까지 콜라이더 비활성화
         var col = GetComponent<Collider2D>();
@@ -279,6 +351,13 @@ public class BaseHitBox : MonoBehaviour
 
     private void OnDestroy() => AllyRangeDisplay.Unregister(this);
 
+    private void SetThreatProgress(float progress, float delay)
+    {
+        if (!threatWindup) return;
+        var cue = PixelVectorShape.ThreatCue(progress, delay);
+        foreach (var renderer in previewRenderers) PixelVectorShape.SetThreatCue(renderer, cue);
+    }
+
     private System.Collections.IEnumerator DelayRoutine(float delay, Collider2D col)
     {
         float timer = 0f;
@@ -286,6 +365,7 @@ public class BaseHitBox : MonoBehaviour
         {
             timer += Time.deltaTime;
             float progress = Mathf.Clamp01(timer / delay);
+            SetThreatProgress(progress, delay);
             
             if (fillingTransform != null)
             {
@@ -315,6 +395,7 @@ public class BaseHitBox : MonoBehaviour
     {
         if (_isInitialized) return; // 이미 활성화되었다면 무시
 
+        SetThreatProgress(1, 0);
         StopAllCoroutines(); // 진행 중이던 DelayRoutine 취소
 
         if (fillingTransform != null) fillingTransform.localScale = maxFillScale;
@@ -324,7 +405,7 @@ public class BaseHitBox : MonoBehaviour
         
         ActivateHitBox();
 
-        // [수정] 애니메이션 타격 프레임에 강제 발동된 시점으로부터 duration만큼 유지 후 삭제
+        // 애니메이션 타격 프레임에 강제 발동된 시점으로부터 duration만큼 유지 후 삭제
         if (destroyOnFinish && duration > 0)
         {
             Destroy(gameObject, duration);
@@ -337,6 +418,7 @@ public class BaseHitBox : MonoBehaviour
             && _damageInfo.attacker.TryGetComponent<BaseEntity>(out var caster)
             && caster.Brain is EnemyMagicianAIPatternSO)
             PolishFeedback.PlaySound(FeedbackCue.MagicCast, transform.position);
+        if (!_isInitialized) graze.Arm(GetComponent<Collider2D>(), _targetLayer, _damageInfo.amount);
         _isInitialized = true;
         _elapsed = 0f;
         _tickCount.Clear(); // 대상별 타격 횟수 초기화 (첫 접촉 시 즉시 1타)
@@ -346,6 +428,7 @@ public class BaseHitBox : MonoBehaviour
     {
         if (!_isInitialized) return;
 
+        if (!_manualHitOnly) graze.Sample();
         if (isContinuousDamage)
         {
             _elapsed += Time.deltaTime;
@@ -355,6 +438,7 @@ public class BaseHitBox : MonoBehaviour
     private void OnTriggerStay2D(Collider2D col)
     {
         if (!_isInitialized) return;
+        if (col.gameObject.layer == Layers.Player) graze.Cancel();
         if (_manualHitOnly) return; // 이벤트 펄스 전용 모드 — 자동타격 안 함(PulseDamageOverlapping 로만 때린다)
 
         // 타겟 레이어 검사
@@ -379,10 +463,12 @@ public class BaseHitBox : MonoBehaviour
                 _tickCount.TryGetValue(damageable, out int n);   // 없으면 0 -> _elapsed >= 0 -> 즉시 1타
                 if (_elapsed >= n * damageTickRate)
                 {
-                    bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
+                    bool wasFrozen = IsTargetFrozen(col, damageable); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
                     Vector3 impactPosition = ImpactPosition(col, hitEffectPrefab);
                     Transform impactTarget = col.transform;
-                    if (DealContactDamage(damageable))
+                    _damageInfo.impactPulse = n;
+                    PrepareTriggerFeedback();
+                    if (DealContactDamage(damageable) && ShowTriggerImpact(impactPosition))
                         SpawnHitEffect(impactPosition, wasFrozen, impactTarget);
                     _tickCount[damageable] = n + 1;
 
@@ -398,10 +484,11 @@ public class BaseHitBox : MonoBehaviour
                 if (!_hitTargets.Contains(damageable))
                 {
                     _hitTargets.Add(damageable);
-                    bool wasFrozen = IsTargetFrozen(col); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
+                    bool wasFrozen = IsTargetFrozen(col, damageable); // 빙결은 피격 즉시 풀리므로 때리기 전에 읽는다
                     Vector3 impactPosition = ImpactPosition(col, hitEffectPrefab);
                     Transform impactTarget = col.transform;
-                    if (DealContactDamage(damageable))
+                    PrepareTriggerFeedback();
+                    if (DealContactDamage(damageable) && ShowTriggerImpact(impactPosition))
                         SpawnHitEffect(impactPosition, wasFrozen, impactTarget);
                     
                     if (damageable is CharacterHealth ch)
@@ -412,6 +499,24 @@ public class BaseHitBox : MonoBehaviour
             }
         }
     }
+
+    private void PrepareTriggerFeedback()
+    {
+        if (triggerFeedbackFrame == Time.frameCount) return;
+        triggerFeedbackFrame = Time.frameCount;
+        _damageInfo.pulseTargetCount = 0;
+        pulseImpacts.Clear();
+        if ((_targetLayer.value & Layers.EnemyMask) == 0 || CharacterStatus.ActiveEnemies.Count <= 12) return;
+        var filter = new ContactFilter2D { useTriggers = true };
+        filter.SetLayerMask(_targetLayer);
+        GetComponent<Collider2D>().Overlap(filter, _overlapScratch);
+        _damageInfo.pulseTargetCount = _overlapScratch.Count;
+        triggerSpacing = PixelViewport.WorldUnitsPerPixel * 24f;
+        _overlapScratch.Clear();
+    }
+
+    private bool ShowTriggerImpact(Vector2 position)
+        => _damageInfo.pulseTargetCount <= 12 || ReservePulseImpact(position, triggerSpacing);
 
 
 
@@ -496,8 +601,10 @@ public class BaseHitBox : MonoBehaviour
     /// 피해가 들어가면 CharacterStatus.OnDirectDamageTaken 이 빙결을 즉시 해제하므로,
     /// 때린 뒤에 물으면 항상 false 가 되어 푸른 이펙트가 절대 안 나온다.
     /// </summary>
-    private static bool IsTargetFrozen(Component target)
+    private static bool IsTargetFrozen(Component target, IDamageable receiver)
     {
+        if (receiver is CharacterHealth health && health.Stat != null && health.Stat.Status != null)
+            return health.Stat.Status.HasStatus(StatusType.Freeze);
         if (target == null) return false;
         var status = target.GetComponent<CharacterStatus>()
             ?? target.GetComponentInParent<CharacterStatus>()

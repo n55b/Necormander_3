@@ -1,22 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// [26/08/01] Augment = 증강 선택 방. 전투는 일반 방과 똑같이 굴리되 시작 전에 페널티 카드를 고르고,
-// 클리어 보상이 그 카드에 딸린 보상으로 바뀐다.
-// 이름을 Event 로 두지 않는다 — '이벤트 방'은 앞으로 여러 종류가 생길 자리라서, 이 방은
-// 자기가 하는 일(증강 선택)로 부른다. 다른 이벤트 방이 필요해지면 그때 각자 이름으로 추가하면 된다.
-// 새 항목은 반드시 맨 끝에 붙인다 — RoomPrefabDataSO 에셋과 룸 프리팹이 이 숫자를 그대로 직렬화하고 있다.
-// [26/08/03] EnhanceShop = 장비 강화 전용 상점. 진열품 없이 NPC 에게 F 만 누르면 되는 방이라
-// 일반 Shop 과 지형만 같고 하는 일이 다르다. Shop 을 재사용하지 않고 타입을 나눈 이유는
-// '층당 몇 개' 를 따로 잡아야 해서다(안 그러면 같은 상점 두 개가 뜰 수 있다).
+// RoomPrefabDataSO와 방 프리팹은 enum의 정수값을 저장한다. 새 값은 끝에 추가한다.
+// 증강 방의 보상은 전투 전에 고른 카드가 정한다. 강화 상점은 일반 상점과 층당 수를 따로 관리한다.
 public enum RoomType { [UnityEngine.InspectorName("생성")] Spawn, [UnityEngine.InspectorName("일반")] Normal, [UnityEngine.InspectorName("엘리트")] Elite, [UnityEngine.InspectorName("보상")] Reward, [UnityEngine.InspectorName("상점")] Shop, [UnityEngine.InspectorName("보스")] Boss, [UnityEngine.InspectorName("증강")] Augment, [UnityEngine.InspectorName("강화 상점")] EnhanceShop }
-// [26/07/17] Ability 는 투척 능력 전용이라 투척 철거와 함께 사라졌다.
-// [26/07/30] Item = 주머니 아이템. 장비(Equipment)와 별개 시스템이다. 새 항목은 반드시 맨 끝에 붙인다.
-// [26/08/03] EquipmentEnhance 제거 — 강화는 전용 상점(EnhanceShopNPC)에서 NPC 에게 F 로만 한다.
-//            일반 상점에 소모성 강화 카드를 같이 진열하니 역할이 겹치고, 심지어 그쪽이 고정가라 더 쌌다.
-//            (이 enum 은 런타임 전용이라 — RewardCandidate 가 [Serializable] 이 아니다 — 값을 빼도 에셋이 안 깨진다.)
-// [26/10/02] MinionEnhance = 보상방의 메인 소환수 강화(최대 MinionEnhance.MAX_LEVEL 회). rawData 는 MainMinionDataSO.
-// [26/10/03] MinionEvolve = 보상방의 메인 소환수 진화(갈래 선택). rawData 는 '진화할 대상' MainMinionDataSO.
+// Item은 주머니 아이템이다. MinionEnhance와 MinionEvolve는 rawData에 대상 MainMinionDataSO를 담는다.
 public enum RewardCategory { [UnityEngine.InspectorName("소환수")] Minion, [UnityEngine.InspectorName("변이")] Metamorphosis, [UnityEngine.InspectorName("보물")] Treasure, [UnityEngine.InspectorName("골드")] Gold, [UnityEngine.InspectorName("장비")] Equipment = 5, [UnityEngine.InspectorName("아이템")] Item, [UnityEngine.InspectorName("소환수 강화")] MinionEnhance, [UnityEngine.InspectorName("소환수 진화")] MinionEvolve }
 
 /// <summary>
@@ -24,6 +12,7 @@ public enum RewardCategory { [UnityEngine.InspectorName("소환수")] Minion, [U
 /// </summary>
 public struct RewardCandidate
 {
+    public bool equipped;
     public GrowthItemData displayData; 
     public object rawData;             
     public int techIndex;              // 계보일 경우 진화 단계
@@ -104,17 +93,21 @@ public static class RewardProcessor
     public static ItemSO PickRandomItem(DataManager data, ItemTier maximumTier = ItemTier.Tier4,
         Dictionary<ItemSO, int> reserved = null)
     {
-        var registry = data != null ? data.GET_GROWTH_REGISTRY() : null;
-        if (registry == null || registry.items == null) return null;
-
         var pool = new List<ItemSO>();
-        foreach (var it in registry.items)
+        CollectDropCandidates(data, maximumTier, reserved, pool);
+        return pool.Count == 0 ? null : pool[Random.Range(0, pool.Count)];
+    }
+
+    private static void CollectDropCandidates(DataManager data, ItemTier maximumTier, Dictionary<ItemSO, int> reserved, List<ItemSO> pool)
+    {
+        var items = data != null ? data.GET_GROWTH_REGISTRY()?.items : null;
+        if (items == null) return;
+        foreach (var it in items)
         {
-            if (!CanOfferItem(it) || it.tier > maximumTier) continue;
+            if (it == null || !it.availableAsReward || it.tier > maximumTier) continue;
             int pending = reserved != null && reserved.TryGetValue(it, out int amount) ? amount : 0;
             if ((ItemPouch.Instance != null ? ItemPouch.Instance.CountOf(it) : 0) + pending < it.MaxStack) pool.Add(it);
         }
-        return pool.Count == 0 ? null : pool[Random.Range(0, pool.Count)];
     }
 
     public static bool HasRewardItem(DataManager data, ItemTier maximumTier)
@@ -128,15 +121,23 @@ public static class RewardProcessor
     /// <summary>보상 한 묶음에서 최대 중첩을 초과해 뽑지 않고, 기존 바닥 아이템 경로로 지급한다.</summary>
     public static int DropItems(DataManager data, Vector3 position, int count, ItemTier maximumTier = ItemTier.Tier4)
     {
-        var reserved = new Dictionary<ItemSO, int>();
+        if (count <= 0) return 0;
+        var pool = new List<ItemSO>();
+        CollectDropCandidates(data, maximumTier, null, pool);
+        var reserved = count > 1 ? new Dictionary<ItemSO, int>() : null;
         int dropped = 0;
-        for (int i = 0; i < count; i++)
+        while (dropped < count && pool.Count > 0)
         {
-            var item = PickRandomItem(data, maximumTier, reserved);
-            if (item == null) break;
+            var item = pool[Random.Range(0, pool.Count)];
             if (GroundItem.Drop(item, position) == null) break;
-            reserved.TryGetValue(item, out int pending); reserved[item] = pending + 1;
             dropped++;
+            if (dropped == count) break;
+            reserved.TryGetValue(item, out int pending);
+            reserved[item] = ++pending;
+            int owned = ItemPouch.Instance != null ? ItemPouch.Instance.CountOf(item) : 0;
+            if (owned + pending >= item.MaxStack)
+                for (int i = pool.Count - 1; i >= 0; i--)
+                    if (pool[i] == item) pool.RemoveAt(i);
         }
         return dropped;
     }
@@ -236,7 +237,7 @@ public static class RewardProcessor
         switch (category)
         {
             case RewardCategory.Minion:
-                allPossible.AddRange(GetValidCores(inven, registry.minionDatas, true)); // [수정] 중복 제외
+                allPossible.AddRange(GetValidCores(inven, registry.minionDatas, true)); // 중복 제외
                 break;
             case RewardCategory.Metamorphosis:
                 // 변이/승급 시스템 삭제로 아무것도 생성 안함
@@ -281,7 +282,7 @@ public static class RewardProcessor
 
         List<RewardCandidate> combinedPool = new List<RewardCandidate>();
 
-        // [26/08/15] 서브 소환수 삭제로 상점 소환수 진열이 사라졌다.
+        // 서브 소환수 삭제로 상점 소환수 진열이 사라졌다.
         // minionPool 은 '서브만 통과'라는 필터로 돌아가고 있었고, 서브가 전부라서 지금은 빈 풀이다.
         // 메인 소환수는 보상 방 전용이라 여기에 올리지 않는다(그 설계를 바꾸려면 별도 판단이 필요).
         // ⚠ 그 결과 상점 풀이 장비 + 아이템만 남아 진열이 고정에 가까워졌다 — 아이템 에셋을 늘려야 한다.

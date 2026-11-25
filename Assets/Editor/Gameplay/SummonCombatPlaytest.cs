@@ -15,9 +15,12 @@ public static class SummonCombatPlaytest
     private const string Key = "SummonCombatPlaytest.Pending";
     private const BindingFlags Any = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
     private const string ResultPath = "Logs/SummonPlaytest.txt";
-    private static IEnumerator _run;
+    private static readonly Stack<IEnumerator> routines = new();
     private static double _waitUntil;
     private static int _pass, _fail;
+    private static InputSettings previousInput, testInput;
+    private static Keyboard testKeyboard;
+    private static Mouse testMouse;
     private static readonly List<string> _errors = new List<string>();
 
     static SummonCombatPlaytest()
@@ -36,6 +39,14 @@ public static class SummonCombatPlaytest
         else EditorApplication.isPlaying = true;
     }
 
+    public static void RunIsolated()
+    {
+        if (!Application.isBatchMode || PlayerSettings.companyName != "NecromanderVerification")
+            throw new InvalidOperationException("Use an isolated verification project.");
+        UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/VillageScene.unity");
+        Run();
+    }
+
     private static void Begin()
     {
         SessionState.EraseBool(Key);
@@ -43,7 +54,10 @@ public static class SummonCombatPlaytest
         System.IO.File.WriteAllText(ResultPath, "");
         _errors.Clear();
         Application.logMessageReceived += OnLog;
-        _run = Script();
+        routines.Clear();
+        routines.Push(Script());
+        _direct = false;
+        _waitUntil = 0;
         EditorApplication.update -= Tick;
         EditorApplication.update += Tick;
     }
@@ -59,8 +73,23 @@ public static class SummonCombatPlaytest
         if (EditorApplication.timeSinceStartup < _waitUntil) return;
         try
         {
-            if (!_run.MoveNext()) { Finish(null); return; }
-            _waitUntil = EditorApplication.timeSinceStartup + (_run.Current is float s ? s : 0f);
+            while (routines.Count > 0)
+            {
+                var routine = routines.Peek();
+                if (!routine.MoveNext())
+                {
+                    (routines.Pop() as IDisposable)?.Dispose();
+                    continue;
+                }
+                if (routine.Current is IEnumerator nested)
+                {
+                    routines.Push(nested);
+                    continue;
+                }
+                _waitUntil = EditorApplication.timeSinceStartup + (routine.Current is float seconds ? seconds : 0);
+                return;
+            }
+            Finish(null);
         }
         catch (Exception e) { Out($"중단: {e}"); Finish("예외로 중단"); }
     }
@@ -69,7 +98,15 @@ public static class SummonCombatPlaytest
     {
         EditorApplication.update -= Tick;
         Application.logMessageReceived -= OnLog;
+        foreach (var enemy in suspendedEnemies) if (enemy != null) enemy.SetActive(true);
+        suspendedEnemies.Clear();
+        if (testKeyboard != null) InputSystem.RemoveDevice(testKeyboard);
+        if (testMouse != null) InputSystem.RemoveDevice(testMouse);
+        if (previousInput != null) InputSystem.settings = previousInput;
+        if (testInput != null) UnityEngine.Object.Destroy(testInput);
+        testKeyboard = null; testMouse = null; previousInput = testInput = null;
         Out($"종료 PASS={_pass} FAIL={_fail} 콘솔오류={_errors.Count} {reason}\n" + string.Join("\n", _errors.Distinct().Take(12)));
+        if (Application.isBatchMode) EditorApplication.Exit(reason == null && !_direct && _fail == 0 && _errors.Count == 0 ? 0 : 1);
     }
 
     private static void Check(bool ok, string label)
@@ -107,6 +144,7 @@ public static class SummonCombatPlaytest
     }
 
     // 에디터가 포커스를 잃으면 가상 입력이 PlayerInput 에 닿지 않는다. 그때는 입력 처리 함수를 직접 부른다(입력 경로는 미확인으로 남는다).
+    private static readonly List<GameObject> suspendedEnemies = new();
     private static bool _direct;
     private static PlayerController P => GameManager.Instance.PLAYERCONTROLLER;
     private static IEnumerator TapSpace()
@@ -148,8 +186,23 @@ public static class SummonCombatPlaytest
         var melee = player.GetComponent<MeleeCombatController>();
         var dodge = player.GetComponent<MeleeDodgeController>();
         var input = player.GetComponent<PlayerInput>();
+        if (Application.isBatchMode)
+        {
+            previousInput = InputSystem.settings;
+            testInput = UnityEngine.Object.Instantiate(previousInput);
+            testInput.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            testInput.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            testInput.updateMode = InputSettings.UpdateMode.ProcessEventsManually;
+            InputSystem.settings = testInput;
+            testKeyboard = InputSystem.AddDevice<Keyboard>(); testMouse = InputSystem.AddDevice<Mouse>();
+            if (input.user.valid)
+            {
+                UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(testKeyboard,input.user);
+                UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(testMouse,input.user);
+            }
+        }
         player.SetInputBlocked(false);
-        Time.timeScale = 1f;
+        HitStopManager.ResetForScene();
         ClearSlots(inv);
 
         // ── 정적 구성 ──
@@ -174,10 +227,23 @@ public static class SummonCombatPlaytest
         if (_direct) Out("UNVERIFIED 실제 키 입력 경로: 가상 입력 미도달 → 처리 함수를 직접 호출해 진행");
 
         // 적 준비
+        foreach (var existing in CharacterStatus.ActiveEnemies.ToArray())
+        {
+            var entity = existing.GetComponentInParent<BaseEntity>();
+            if (entity == null) continue;
+            suspendedEnemies.Add(entity.gameObject);
+            entity.gameObject.SetActive(false);
+        }
         var scarecrowPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy/Enemy Scarecrow.prefab");
         var enemy = UnityEngine.Object.Instantiate(scarecrowPrefab, player.transform.position + Vector3.right * 2.5f, Quaternion.identity);
         yield return 1f;
         var enemyHealth = enemy.GetComponentInChildren<CharacterHealth>();
+        float damageReceived = 0;
+        enemyHealth.OnDamageTaken += value => damageReceived += value;
+        var aim = PixelViewport.WorldCamera.WorldToScreenPoint(enemy.transform.position);
+        var viewport = PixelViewport.CalculateDisplayRect(Screen.width, Screen.height);
+        InputSystem.QueueStateEvent(Mouse.current, new MouseState { position = PixelViewport.GameToScreenPoint(aim, viewport) });
+        InputSystem.Update();
         Check(CharacterStatus.ActiveEnemies.Count > 0 && enemyHealth != null, $"허수아비 적 준비 (적 {CharacterStatus.ActiveEnemies.Count})");
 
         // ── 장착 0개 ──
@@ -198,6 +264,8 @@ public static class SummonCombatPlaytest
         yield return 0.2f;
         Check(skills.GetSummonCooldownRemaining(0) > 0f && Casters(fighter.minionName) > 0, "1개: 우클릭 스킬 발동");
 
+        enemy.SetActive(false);
+        yield return 2f;
         // ── 장착 2개, 중복 차단 ──
         foreach (string f in new[] { "Fighter", "Knight", "Champion", "Warrior", "Warlord" })
         {
@@ -218,15 +286,24 @@ public static class SummonCombatPlaytest
                   $"피격 판정·타겟 대상 없음: {agent.Data.minionName}");
         Check(CharacterStatus.ActiveEnemies.All(e => e.GetComponentInParent<SummonFieldAgent>() == null), "소환수가 전투 대상 목록에 없음");
 
+        enemy.SetActive(true);
+        yield return null;
         // ── 스왑과 쿨타임 ──
         ClearSwap(skills);
         int prev = inv.ActiveSummonSlot;
         float cdBeforeSwap = skills.GetSummonCooldownRemaining(prev);
-        int fighterCasters = Casters(fighter.minionName);
+        var beforeSwap = UnityEngine.Object.FindObjectsByType<MinionSkillCaster>(FindObjectsSortMode.None);
         yield return TapSpace();
         Check(inv.ActiveSummonSlot == 1 - prev && inv.MainSummon == ice && skills.MainSummon == ice, "2개: Space 스왑 → 활성 변경");
-        yield return 0.25f;
-        Check(Casters(fighter.minionName) > fighterCasters && skills.GetSummonCooldownRemaining(prev) <= cdBeforeSwap, "스왑 시 스왑 전 소환수 대쉬 공격 발동, 쿨타임은 늘지 않음");
+        bool sawSwapCaster = false;
+        float swapDeadline = Time.realtimeSinceStartup + 1f;
+        while (!sawSwapCaster && Time.realtimeSinceStartup < swapDeadline)
+        {
+            sawSwapCaster = UnityEngine.Object.FindObjectsByType<MinionSkillCaster>(FindObjectsSortMode.None)
+                .Any(c => c.Data == fighter && !beforeSwap.Contains(c));
+            yield return null;
+        }
+        Check(sawSwapCaster && skills.GetSummonCooldownRemaining(prev) <= cdBeforeSwap, "스왑 시 스왑 전 소환수 대쉬 공격 발동, 쿨타임은 늘지 않음");
         Check(skills.GetSummonCooldownRemaining(1) <= 0f && Mathf.Approximately(skills.SwapCooldownDuration, PrefabSwapCooldown()) && skills.SwapCooldownRemaining > 0f, "새 소환수 쿨타임 유지, 스왑 쿨타임 = 플레이어 프리팹 값");
         int after = inv.ActiveSummonSlot;
         yield return TapSpace();
@@ -261,7 +338,7 @@ public static class SummonCombatPlaytest
         // 쿨타임을 비워 바로 시전
         ((float[])typeof(PlayerSkillController).GetField("_summonCooldownEnd", Any).GetValue(skills))[1] = 0f;
         enemyHealth.Heal(enemyHealth.MaxHP);
-        float hpBefore = enemyHealth.CurHP;
+        float damageBefore = damageReceived;
         yield return TapRight();
         yield return 0.15f;
         Check(running0(ice), "스킬 시전 시작");
@@ -281,32 +358,53 @@ public static class SummonCombatPlaytest
         yield return 0.02f;
         Check(attacking && !player.GetComponentInChildren<BaseHitBox>(), "스왑이 플레이어 평타 판정을 캔슬");
         yield return 2f;
-        Check(enemyHealth.CurHP < hpBefore, "시전한 스킬이 스왑 후에도 피해를 줌(자동 공격 포함 값)");
+        Check(damageReceived > damageBefore, "시전한 스킬이 스왑 후에도 피해를 줌(자동 공격 포함 값)");
 
         // ── 자동 공격 ──
         int onSlot = inv.ActiveSummonSlot;
         var a0 = skills.GetFieldAgent(onSlot); var a1 = skills.GetFieldAgent(1 - onSlot); // a0 = 활성, a1 = 비활성
         ((float[])typeof(PlayerSkillController).GetField("_summonCooldownEnd", Any).GetValue(skills))[onSlot] = Time.time + 30f;
         int c0 = a0.AutoAttackCount, c1 = a1.AutoAttackCount;
-        float hp = enemyHealth.CurHP;
+        float damageBeforeAuto = damageReceived;
         yield return 4.5f;
         Check(a0.AutoAttackCount - c0 >= 1 && a1.AutoAttackCount - c1 == 0, $"활성 소환수만 자동 공격 ({a0.AutoAttackCount - c0}, {a1.AutoAttackCount - c1}회 / 4.5초)");
         Check(a0.AutoAttackCount - c0 <= Mathf.FloorToInt(4.5f / skills.AutoAttackInterval) + 1, $"자동 공격 주기 {skills.AutoAttackInterval}초 범위");
-        Check(enemyHealth.CurHP < hp || enemyHealth.IsDead, "자동 공격 피해 적용");
+        Check(damageReceived > damageBeforeAuto || enemyHealth.IsDead, "자동 공격 피해 적용");
         if (!enemyHealth.IsDead && !a0.IsLinking)
             Check(Vector2.Distance(a0.transform.position, enemy.transform.position) >= skills.MinEnemyGap - 0.2f, "소환수가 적과 겹치지 않음");
         // 전투가 아니면 플레이어 곁으로 따라온다.
         enemy.SetActive(false);
         yield return 0.5f;
         Check(!a0.IsEngaged, "적이 없으면 교전 해제");
-        player.transform.position += Vector3.right * 6f;
-        yield return 2.5f;
+        float idleDeadline = Time.realtimeSinceStartup + 4f;
+        while (a0.IsLinking && Time.realtimeSinceStartup < idleDeadline) yield return null;
+        var followOrigin = player.transform.position;
+        float offset = skills.CatchUpDistance + 1.5f;
+        Vector3 away = player.transform.position.x >= a0.transform.position.x ? Vector3.right : Vector3.left;
+        player.transform.position += away * offset;
+        float sprintDeadline = Time.realtimeSinceStartup + .5f;
+        while (!a0.IsCatchingUp && Time.realtimeSinceStartup < sprintDeadline) yield return null;
+        Check(a0.IsCatchingUp, "거리가 벌어지면 활성 소환수가 질주");
+        yield return 2.4f;
+        Check(!a0.IsCatchingUp, "플레이어 근처에서 질주 해제");
         float followGap = Vector2.Distance(a0.transform.position, player.transform.position);
         Check(followGap <= skills.FollowDistance + 1f, $"전투가 아니면 플레이어를 따라옴 (거리 {followGap:F2})");
         Vector2 restPos = a0.transform.position;
         yield return 1.5f;
         Check(Vector2.Distance(restPos, a0.transform.position) < 0.05f, "플레이어가 멈추면 소환수도 멈춤");
-        player.transform.position += Vector3.left * 6f;
+        // A room-length owner warp relocates AI immediately. Only the fading departure stays behind.
+        var oldPetPosition = a0.transform.position;
+        player.transform.position += Vector3.right * (skills.FollowTeleportDistance + 4f);
+        yield return null;
+        yield return null;
+        var ghost = UnityEngine.Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None)
+            .FirstOrDefault(r => r.name == "Summon departure" && r.enabled &&
+                Vector2.Distance(oldPetPosition, r.transform.position) < 1.5f);
+        Check(ghost != null && Vector2.Distance(a0.transform.position, player.transform.position) < 2f,
+            "방 거리 순간이동 시 본체는 도착하고 이전 자리에는 잔상만 남음");
+        yield return .25f;
+        Check(ghost != null && !ghost.enabled, "소환수 귀환 잔상 자동 정리");
+        player.transform.position = followOrigin;
         enemy.SetActive(true);
         yield return 0.3f;
 
@@ -317,7 +415,9 @@ public static class SummonCombatPlaytest
         ((float[])typeof(PlayerSkillController).GetField("_summonCooldownEnd", Any).GetValue(skills))[inv.ActiveSummonSlot] = 0f;
         yield return TapRight();
         Check(active.IsLinking, "우클릭 시 활성 소환수 연계 시작");
-        yield return 3f;
+        enemy.SetActive(false);
+        float returnDeadline = Time.realtimeSinceStartup + 6f;
+        while (active.IsLinking && Time.realtimeSinceStartup < returnDeadline) yield return null;
         Check(!active.IsLinking && active.IsVisualVisible, "연계 종료 후 일반 AI 복귀");
 
         // ── 대쉬 동일 ──
@@ -334,7 +434,6 @@ public static class SummonCombatPlaytest
             int boxesBefore = UnityEngine.Object.FindObjectsByType<BaseHitBox>(FindObjectsSortMode.None).Length;
             typeof(MeleeDodgeController).GetField("_currentCharges", Any).SetValue(dodge, dodge.MaxCharges);
             yield return 0.3f;
-            player.transform.position = player.transform.position;
             bool dashed = dodge.TryDash(Vector2.right, player.transform.localScale.x);
             float travel = (float)typeof(MeleeDodgeController).GetField("_dashTravelDuration", Any).GetValue(dodge);
             bool invincible = player.Stat.Health.Invincible;
@@ -489,7 +588,7 @@ public static class SummonCombatPlaytest
             picker.Select(MainMinionSelectionAction.ActionKind.Replace);
             Check(inv.GetSummonAt(replaced) == doll && inv.GetSummonAt(1 - replaced) == keep, "고른 슬롯만 교체");
             yield return 0.1f;
-            Check(picker.ShowPending(Form("Knight")) || true, "같은 계열 후보 UI");
+            Check(picker.ShowPending(Form("Knight")), "같은 계열 후보 UI");
             bool hasFighter = inv.HasSameFamilyEquipped(fighter);
             if (hasFighter)
             {
@@ -504,6 +603,7 @@ public static class SummonCombatPlaytest
         ClearSlots(inv);
         inv.EquipMinion(0, fighter); inv.EquipMinion(1, ice);
         yield return 1.2f;
+        ClearSwap(skills);
         var dialogue = DialogueUI.Instance;
         if (_direct) Out("UNVERIFIED 대화 중 Space: 실제 입력 필요");
         else if (dialogue == null) Out("UNVERIFIED 대화: 이 씬에 DialogueUI 없음");
@@ -554,7 +654,9 @@ private static void ClearSwap(PlayerSkillController skills) =>
             foreach (var line in lines.Skip(1))
             {
                 var id = line.Split(',')[0].Trim();
-                if (!string.IsNullOrEmpty(id) && !id.StartsWith("#")) return id;
+                if (id.Length > 0 && id != "id" && !id.StartsWith("#") && DialogueUI.Instance != null
+                    && new SerializedObject(DialogueUI.Instance).FindProperty("table").objectReferenceValue is DialogueTableSO table
+                    && table.Get(id)?.Count > 0) return id;
             }
         }
         return null;

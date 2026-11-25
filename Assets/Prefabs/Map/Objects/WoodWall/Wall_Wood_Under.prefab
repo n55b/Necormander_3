@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8710407449564795451}
   - component: {fileID: 430592485063588069}
   - component: {fileID: 1669253799600193471}
+  - component: {fileID: 6873340098875642191}
   m_Layer: 3
   m_Name: Wall_Wood_Under
   m_TagString: Untagged
@@ -146,10 +147,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDynamic: 0
-  precision: 100
-  baseOffset: 0
   pivotOverride: {fileID: 0}
+  occludesPlayer: 1
   sortingGroup: {fileID: 0}
 --- !u!61 &1669253799600193471
 BoxCollider2D:
@@ -197,3 +196,22 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.96875, y: 1.4110174}
   m_EdgeRadius: 0
+--- !u!114 &6873340098875642191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 6218379266994702215}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7db70e0ea77f5ac47a8f4565a9406397, type: 3}
+  m_Name:
+  m_ShadowCastingSource: 1
+  m_CastingOption: 1
+  m_CastsShadows: 1
+  m_SelfShadows: 0
+  m_UseRendererSilhouette: 0
+  m_ShapePathHash: 1
+  m_ApplyToSortingLayers: 0b7aa4688184013c81521176000000005173e562
+  m_ShapePath:
+  - {x: -0.43000, y: 0.17154, z: 0}
+  - {x: 0.46125, y: 0.17154, z: 0}
+  - {x: 0.43219, y: 1.11692, z: 0}
+  - {x: -0.40094, y: 1.11692, z: 0}

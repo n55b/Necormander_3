@@ -7,7 +7,6 @@ public class TargetCursorSO : MouseCursorSO
     
     private SpriteRenderer _currentSpr;
     private Material _originalMaterial;
-    private Color _originalColor;
 
     public override void OnEffect(GameObject obj)
     {
@@ -20,21 +19,8 @@ public class TargetCursorSO : MouseCursorSO
             _currentSpr = obj.GetComponentInChildren<SpriteRenderer>();
             if (_currentSpr != null)
             {
-                // 1. 원래 상태 저장 (머티리얼과 색상 모두)
-                _originalMaterial = _currentSpr.material;
-                
-                // [수정] 현재 색상이 아닌, CharacterStat이 들고 있는 진짜 원본 색상을 가져옴
-                if (obj.TryGetComponent<CharacterStat>(out var stat) && stat.Visual != null)
-                {
-                    _originalColor = stat.Visual.OriginalColor;
-                }
-                else
-                {
-                    _originalColor = _currentSpr.color;
-                }
-
-                // 2. 하이라이트 적용
-                _currentSpr.material = _material;
+                _originalMaterial = _currentSpr.sharedMaterial;
+                _currentSpr.sharedMaterial = _material;
             }
         }
         
@@ -43,13 +29,9 @@ public class TargetCursorSO : MouseCursorSO
 
     public override void OutEffect()
     {
-        if (_currentSpr != null)
-        {
-            // 3. 원래 상태로 복구
-            _currentSpr.material = _originalMaterial;
-            
-            _currentSpr = null;
-            _originalMaterial = null;
-        }
+        if (_currentSpr != null && _currentSpr.sharedMaterial == _material)
+            _currentSpr.sharedMaterial = _originalMaterial;
+        _currentSpr = null;
+        _originalMaterial = null;
     }
 }

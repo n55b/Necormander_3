@@ -36,6 +36,26 @@ public class GrowthRegistrySO : ScriptableObject
              "'우클릭이 없는 플레이어'는 만들지 않는다.")]
     public RightClickDataSO defaultRightClick;
 
+    public MinionDataSO ResolveSavedMinion(string key)
+    {
+        if (string.IsNullOrEmpty(key)) return null;
+        return minionDatas?.Find(m => m != null && m.name == key)
+            ?? minionDatas?.Find(m => m is MainMinionDataSO main && main != null && main.MatchesSaveKey(key));
+    }
+
+    public TreasureSO ResolveSavedTreasure(string key)
+    {
+        if (string.IsNullOrEmpty(key)) return null;
+        return treasures?.Find(t => t != null && t.name == key)
+            ?? treasures?.Find(t => t != null && t.itemName == key);
+    }
+
+    public EquipmentSO ResolveSavedEquipment(string key)
+        => string.IsNullOrEmpty(key) ? null : equipments?.Find(e => e != null && e.name == key);
+
+    public ItemSO ResolveSavedItem(string key)
+        => string.IsNullOrEmpty(key) ? null : items?.Find(i => i != null && i.name == key);
+
     /// <summary>
     /// 기본 우클릭. 인스펙터 지정 → Lv1 탐색 → 첫 유효 항목 순으로 떨어진다.
     /// 배선을 깜빡해도 플레이어가 우클릭 없이 게임을 시작하는 일은 없게 한다.
@@ -62,7 +82,7 @@ public class GrowthRegistrySO : ScriptableObject
 
         // 1. 소환수 데이터 검색. t: 필터는 상속을 따르므로 파생 타입만 콕 집으면
         // 적/엘리트/보스(EnemyMinionDataSO)는 애초에 걸리지 않는다 — 경로에 의존하지 않는다.
-        // [26/08/15] 서브 소환수 삭제로 메인만 남았다.
+        // 서브 소환수 삭제로 메인만 남았다.
         foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:MainMinionDataSO"))
         {
             string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);

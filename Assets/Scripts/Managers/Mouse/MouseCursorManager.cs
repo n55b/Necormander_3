@@ -25,6 +25,11 @@ public class MouseCursorManager : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        if (currentCursorSO != null) currentCursorSO.OutEffect();
+    }
+
     private void ChangeCursorSO(MouseCursorSO _type, GameObject _obj)
     {
         if (currentCursorSO != null) currentCursorSO.OutEffect();

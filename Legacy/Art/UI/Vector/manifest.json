@@ -1,0 +1,499 @@
+[
+  {
+    "svg": "HUD/Coin_0.svg",
+    "source": "Assets/Resources/Sprites/UI/Coin.png",
+    "sprite": "Coin_0",
+    "guid": "6951615c4656f6e438e0fb383c095b4b",
+    "fileId": -3338749442709606003
+  },
+  {
+    "svg": "HUD/Coin_1.svg",
+    "source": "Assets/Resources/Sprites/UI/Coin.png",
+    "sprite": "Coin_1",
+    "guid": "6951615c4656f6e438e0fb383c095b4b",
+    "fileId": 5848064539680731454
+  },
+  {
+    "svg": "HUD/Coin_2.svg",
+    "source": "Assets/Resources/Sprites/UI/Coin.png",
+    "sprite": "Coin_2",
+    "guid": "6951615c4656f6e438e0fb383c095b4b",
+    "fileId": -2652133911391862278
+  },
+  {
+    "svg": "HUD/Coin_3.svg",
+    "source": "Assets/Resources/Sprites/UI/Coin.png",
+    "sprite": "Coin_3",
+    "guid": "6951615c4656f6e438e0fb383c095b4b",
+    "fileId": 5522397121026081838
+  },
+  {
+    "svg": "HUD/Coin_4.svg",
+    "source": "Assets/Resources/Sprites/UI/Coin.png",
+    "sprite": "Coin_4",
+    "guid": "6951615c4656f6e438e0fb383c095b4b",
+    "fileId": 4786861022352539597
+  },
+  {
+    "svg": "HUD/Coin_5.svg",
+    "source": "Assets/Resources/Sprites/UI/Coin.png",
+    "sprite": "Coin_5",
+    "guid": "6951615c4656f6e438e0fb383c095b4b",
+    "fileId": -490997491
+  },
+  {
+    "svg": "HUD/Dash_0.svg",
+    "source": "Assets/Resources/Sprites/UI/Dash.png",
+    "sprite": "Dash_0",
+    "guid": "2194b2a070b59114a8e19b4375cc961c",
+    "fileId": -7848039375673857549
+  },
+  {
+    "svg": "HUD/UI_Character_C.svg",
+    "source": "Assets/Resources/Sprites/UI/UI_Icon.png",
+    "sprite": "UI_Character_C",
+    "guid": "f1b66b87d365b4644b164a0fc8dbfab5",
+    "fileId": -1215827817
+  },
+  {
+    "svg": "HUD/UI_Icon_map.svg",
+    "source": "Assets/Resources/Sprites/UI/UI_Icons.png",
+    "sprite": "UI_Icon_map",
+    "guid": "15e769a74f9924b449d4c7d381c5ec28",
+    "fileId": 7747792014549348977
+  },
+  {
+    "svg": "HUD/UI_Icon_Tree.svg",
+    "source": "Assets/Resources/Sprites/UI/UI_Icons.png",
+    "sprite": "UI_Icon_Tree",
+    "guid": "15e769a74f9924b449d4c7d381c5ec28",
+    "fileId": -1774639751889627983
+  },
+  {
+    "svg": "HUD/UI_Items_V.svg",
+    "source": "Assets/Resources/Sprites/UI/UI_Icon.png",
+    "sprite": "UI_Items_V",
+    "guid": "f1b66b87d365b4644b164a0fc8dbfab5",
+    "fileId": -1391099350
+  },
+  {
+    "svg": "HUD/UI_Map_Tab.svg",
+    "source": "Assets/Resources/Sprites/UI/UI_Icon.png",
+    "sprite": "UI_Map_Tab",
+    "guid": "f1b66b87d365b4644b164a0fc8dbfab5",
+    "fileId": -192713321
+  },
+  {
+    "svg": "Icons/Aging_Icon.svg",
+    "source": "Assets/Resources/Sprites/UI/icon_16px.png",
+    "sprite": "Aging_Icon",
+    "guid": "aedce11dcb7506b42b92cec5806be709",
+    "fileId": 1644328816
+  },
+  {
+    "svg": "Icons/BloodPop_Icon.svg",
+    "source": "Assets/Resources/Sprites/UI/icon_16px.png",
+    "sprite": "BloodPop_Icon",
+    "guid": "aedce11dcb7506b42b92cec5806be709",
+    "fileId": 944605690
+  },
+  {
+    "svg": "Icons/Champion.svg",
+    "source": "Assets/Resources/Sprites/UI/Temp_Icon.png",
+    "sprite": "Champion",
+    "guid": "c438df8d1ae5cc048b380933ca61dfca",
+    "fileId": -1289681012
+  },
+  {
+    "svg": "Icons/Chill_icon.svg",
+    "source": "Assets/Resources/Sprites/UI/icon_16px.png",
+    "sprite": "Chill_icon",
+    "guid": "aedce11dcb7506b42b92cec5806be709",
+    "fileId": 851069327
+  },
+  {
+    "svg": "Icons/ClothArmor.svg",
+    "source": "Assets/Resources/Sprites/Object/Item.png",
+    "sprite": "ClothArmor",
+    "guid": "a4c09efa366b19e459a60c6fd884dde8",
+    "fileId": 600542586
+  },
+  {
+    "svg": "Icons/Corroded_Icon.svg",
+    "source": "Assets/Resources/Sprites/UI/icon_16px.png",
+    "sprite": "Corroded_Icon",
+    "guid": "aedce11dcb7506b42b92cec5806be709",
+    "fileId": 1190683440
+  },
+  {
+    "svg": "Icons/CrackedWhetstone.svg",
+    "source": "Assets/Resources/Sprites/Object/Item.png",
+    "sprite": "CrackedWhetstone",
+    "guid": "a4c09efa366b19e459a60c6fd884dde8",
+    "fileId": -1548563659
+  },
+  {
+    "svg": "Icons/Dash.svg",
+    "source": "Assets/Resources/Sprites/Temp_Icon.aseprite",
+    "sprite": "Dash",
+    "guid": "36208386774834c4ba2d366cd31db059",
+    "fileId": -5783352143196586617
+  },
+  {
+    "svg": "Icons/Execute_Icon.svg",
+    "source": "Assets/Resources/Sprites/UI/icon_16px.png",
+    "sprite": "Execute_Icon",
+    "guid": "aedce11dcb7506b42b92cec5806be709",
+    "fileId": 593807851
+  },
+  {
+    "svg": "Icons/Fighter.svg",
+    "source": "Assets/Resources/Sprites/UI/Temp_Icon.png",
+    "sprite": "Fighter",
+    "guid": "c438df8d1ae5cc048b380933ca61dfca",
+    "fileId": 758877764
+  },
+  {
+    "svg": "Icons/Frame_1.svg",
+    "source": "Assets/Resources/Sprites/Minion/MeleeMinion_Fighter.aseprite",
+    "sprite": "Frame_1",
+    "guid": "8b3610c3ee7ba4b4ea4e9f4d592c58ac",
+    "fileId": -6577148393127653879
+  },
+  {
+    "svg": "Icons/GaleDashLeap.svg",
+    "source": "Assets/Resources/Sprites/Object/Item.png",
+    "sprite": "GaleDashLeap",
+    "guid": "a4c09efa366b19e459a60c6fd884dde8",
+    "fileId": -1804933313
+  },
+  {
+    "svg": "Icons/GaleDashRecovery.svg",
+    "source": "Assets/Resources/Sprites/Object/Item.png",
+    "sprite": "GaleDashRecovery",
+    "guid": "a4c09efa366b19e459a60c6fd884dde8",
+    "fileId": 964816456
+  },
+  {
+    "svg": "Icons/Gauntlet.svg",
+    "source": "Assets/Resources/Sprites/UI/Equipment Icons/Gauntlet.asset",
+    "sprite": "Gauntlet",
+    "guid": "f2b3ca10fd5760f439d277ea3c5b12d7",
+    "fileId": 21300000
+  },
+  {
+    "svg": "Icons/HealingCharm.svg",
+    "source": "Assets/Resources/Sprites/Object/Item.png",
+    "sprite": "HealingCharm",
+    "guid": "a4c09efa366b19e459a60c6fd884dde8",
+    "fileId": -2128349049
+  },
+  {
+    "svg": "Icons/HermesContract.svg",
+    "source": "Assets/Resources/Sprites/Object/Item.png",
+    "sprite": "HermesContract",
+    "guid": "a4c09efa366b19e459a60c6fd884dde8",
+    "fileId": -29391832
+  },
+  {
+    "svg": "Icons/Ice_Mage.svg",
+    "source": "Assets/Resources/Sprites/Temp_Icon.aseprite",
+    "sprite": "Ice_Mage",
+    "guid": "36208386774834c4ba2d366cd31db059",
+    "fileId": -4830399090049477561
+  },
+  {
+    "svg": "Icons/Icon_F_0.svg",
+    "source": "Assets/Resources/Sprites/Icon_F.png",
+    "sprite": "Icon_F_0",
+    "guid": "7194880d81e466f41abc798d78d8bc9b",
+    "fileId": 325024056847960087
+  },
+  {
+    "svg": "Icons/Icon_map_Player.svg",
+    "source": "Assets/Resources/Sprites/Icon_map_32px.png",
+    "sprite": "Icon_map_Player",
+    "guid": "f2c426ad7e5dc0b4e834980ffcf597ef",
+    "fileId": 9041486493262411815
+  },
+  {
+    "svg": "Icons/Icon_map_Reward.svg",
+    "source": "Assets/Resources/Sprites/Icon_map_32px.png",
+    "sprite": "Icon_map_Reward",
+    "guid": "f2c426ad7e5dc0b4e834980ffcf597ef",
+    "fileId": 8648160061231737875
+  },
+  {
+    "svg": "Icons/Icon_map_Shop.svg",
+    "source": "Assets/Resources/Sprites/Icon_map_32px.png",
+    "sprite": "Icon_map_Shop",
+    "guid": "f2c426ad7e5dc0b4e834980ffcf597ef",
+    "fileId": -8864998592488468238
+  },
+  {
+    "svg": "Icons/Icon_map_Stair.svg",
+    "source": "Assets/Resources/Sprites/Icon_map_32px.png",
+    "sprite": "Icon_map_Stair",
+    "guid": "f2c426ad7e5dc0b4e834980ffcf597ef",
+    "fileId": -6927638658825039419
+  },
+  {
+    "svg": "Icons/Knight.svg",
+    "source": "Assets/Resources/Sprites/UI/Temp_Icon.png",
+    "sprite": "Knight",
+    "guid": "c438df8d1ae5cc048b380933ca61dfca",
+    "fileId": 1601920764
+  },
+  {
+    "svg": "Icons/LightBoots.svg",
+    "source": "Assets/Resources/Sprites/Object/Item.png",
+    "sprite": "LightBoots",
+    "guid": "a4c09efa366b19e459a60c6fd884dde8",
+    "fileId": -468688117
+  },
+  {
+    "svg": "Icons/MeleeMinion_Knight-Frame_1.svg",
+    "source": "Assets/Resources/Sprites/Minion/MeleeMinion_Knight.aseprite",
+    "sprite": "Frame_1",
+    "guid": "e16bed08a742c8d4b805629d8330b53b",
+    "fileId": 604161384721462048
+  },
+  {
+    "svg": "Icons/MeleeMinion_Knight_2-Frame_1.svg",
+    "source": "Assets/Resources/Sprites/Minion/MeleeMinion_Knight_2.aseprite",
+    "sprite": "Frame_1",
+    "guid": "10ccd7de76d4ff34e92268e3bb8067eb",
+    "fileId": 2079561971023683871
+  },
+  {
+    "svg": "Icons/MeleeMinion_Warrior-Frame_1.svg",
+    "source": "Assets/Resources/Sprites/Minion/MeleeMinion_Warrior.aseprite",
+    "sprite": "Frame_1",
+    "guid": "22786651fd010e044b4b0302d981032c",
+    "fileId": -9223132874578986776
+  },
+  {
+    "svg": "Icons/MeleeMinion_Warrior_2-Frame_1.svg",
+    "source": "Assets/Resources/Sprites/Minion/MeleeMinion_Warrior_2.aseprite",
+    "sprite": "Frame_1",
+    "guid": "5f43193adfd780a47b3e9b4dac1618cd",
+    "fileId": -3681066713540535479
+  },
+  {
+    "svg": "Icons/Minion_DashDoll.svg",
+    "source": "Assets/Resources/Sprites/Physics_Skill.aseprite",
+    "sprite": "Minion_DashDoll",
+    "guid": "ee4c174c2b4714a4aa7d5f54a33899f3",
+    "fileId": 5774687227516279969
+  },
+  {
+    "svg": "Icons/Minion_MeleeDoll.svg",
+    "source": "Assets/Resources/Sprites/Physics_Skill.aseprite",
+    "sprite": "Minion_MeleeDoll",
+    "guid": "ee4c174c2b4714a4aa7d5f54a33899f3",
+    "fileId": -1293705836269130871
+  },
+  {
+    "svg": "Icons/Poison_Icon.svg",
+    "source": "Assets/Resources/Sprites/UI/icon_16px.png",
+    "sprite": "Poison_Icon",
+    "guid": "aedce11dcb7506b42b92cec5806be709",
+    "fileId": 6904289081528659875
+  },
+  {
+    "svg": "Icons/PortableShield.svg",
+    "source": "Assets/Resources/Sprites/Object/Item.png",
+    "sprite": "PortableShield",
+    "guid": "a4c09efa366b19e459a60c6fd884dde8",
+    "fileId": -1881273624
+  },
+  {
+    "svg": "Icons/temp_EnemyIcon.svg",
+    "source": "Assets/Resources/Sprites/temp_EnemyIcon.png",
+    "sprite": "temp_EnemyIcon",
+    "guid": "22f60cfe898e7f242a9f8e62a726d94a",
+    "fileId": 21300000
+  },
+  {
+    "svg": "Icons/Temp_Icon-Gauntlet.svg",
+    "source": "Assets/Resources/Sprites/UI/Temp_Icon.png",
+    "sprite": "Gauntlet",
+    "guid": "c438df8d1ae5cc048b380933ca61dfca",
+    "fileId": -124903066
+  },
+  {
+    "svg": "Icons/Temp_Icon-Viper.svg",
+    "source": "Assets/Resources/Sprites/UI/Temp_Icon.png",
+    "sprite": "Viper",
+    "guid": "c438df8d1ae5cc048b380933ca61dfca",
+    "fileId": 744203835
+  },
+  {
+    "svg": "Icons/Temp_Icon-ViperAS.svg",
+    "source": "Assets/Resources/Sprites/UI/Temp_Icon.png",
+    "sprite": "ViperAS",
+    "guid": "c438df8d1ae5cc048b380933ca61dfca",
+    "fileId": -1912369340
+  },
+  {
+    "svg": "Icons/Temp_Icon-ViperSC.svg",
+    "source": "Assets/Resources/Sprites/UI/Temp_Icon.png",
+    "sprite": "ViperSC",
+    "guid": "c438df8d1ae5cc048b380933ca61dfca",
+    "fileId": 2059219716
+  },
+  {
+    "svg": "Icons/Tilemap_16px_138.svg",
+    "source": "Assets/Resources/Sprites/Tile/Tilemap_16px.png",
+    "sprite": "Tilemap_16px_138",
+    "guid": "b668ce9b0c80d2f4fa294476b08786a3",
+    "fileId": -1293879671225083702
+  },
+  {
+    "svg": "Icons/Viper.svg",
+    "source": "Assets/Resources/Sprites/UI/Equipment Icons/Viper.asset",
+    "sprite": "Viper",
+    "guid": "7ab3d5fefa10871499bb67cb266de163",
+    "fileId": 21300000
+  },
+  {
+    "svg": "Icons/ViperAS.svg",
+    "source": "Assets/Resources/Sprites/UI/Equipment Icons/ViperAS.asset",
+    "sprite": "ViperAS",
+    "guid": "6bb7bd1139f9afe44958764c31539208",
+    "fileId": 21300000
+  },
+  {
+    "svg": "Icons/ViperSC.svg",
+    "source": "Assets/Resources/Sprites/UI/Equipment Icons/ViperSC.asset",
+    "sprite": "ViperSC",
+    "guid": "5ed268f94c414554b8378cd4e4a9a227",
+    "fileId": 21300000
+  },
+  {
+    "svg": "Icons/Warlord.svg",
+    "source": "Assets/Resources/Sprites/UI/Temp_Icon.png",
+    "sprite": "Warlord",
+    "guid": "c438df8d1ae5cc048b380933ca61dfca",
+    "fileId": 857691071
+  },
+  {
+    "svg": "Icons/Warrior.svg",
+    "source": "Assets/Resources/Sprites/UI/Temp_Icon.png",
+    "sprite": "Warrior",
+    "guid": "c438df8d1ae5cc048b380933ca61dfca",
+    "fileId": -508208825
+  },
+  {
+    "svg": "Icons/Whetstone.svg",
+    "source": "Assets/Resources/Sprites/Object/Item.png",
+    "sprite": "Whetstone",
+    "guid": "a4c09efa366b19e459a60c6fd884dde8",
+    "fileId": 435680594
+  },
+  {
+    "svg": "Icons/WindFeather.svg",
+    "source": "Assets/Resources/Sprites/Object/Item.png",
+    "sprite": "WindFeather",
+    "guid": "a4c09efa366b19e459a60c6fd884dde8",
+    "fileId": 1603679571
+  },
+  {
+    "svg": "Input/Keyboard_B.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_B",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": 665967441
+  },
+  {
+    "svg": "Input/Keyboard_C.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_C",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": 313979490
+  },
+  {
+    "svg": "Input/Keyboard_E.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_E",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": -2599143105346636691
+  },
+  {
+    "svg": "Input/Keyboard_F.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_F",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": 4165041436626036476
+  },
+  {
+    "svg": "Input/Keyboard_LShift.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_LShift",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": -4191322583509088375
+  },
+  {
+    "svg": "Input/Keyboard_Null.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_Null",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": -2521409195606705084
+  },
+  {
+    "svg": "Input/Keyboard_Q.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_Q",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": 3422399714171777717
+  },
+  {
+    "svg": "Input/Keyboard_R.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_R",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": -7537239731214296419
+  },
+  {
+    "svg": "Input/Keyboard_Tab.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_Tab",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": 1812235666
+  },
+  {
+    "svg": "Input/Keyboard_V.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_V",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": -31761985
+  },
+  {
+    "svg": "Input/Keyboard_WASD.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Keyboard_WASD",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": 6718306707676705251
+  },
+  {
+    "svg": "Input/Mouse_Left.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Mouse_Left",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": 6875079111340007291
+  },
+  {
+    "svg": "Input/Mouse_Right.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Mouse_Right",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": 8746059415684039367
+  },
+  {
+    "svg": "Input/Tutorial_8.svg",
+    "source": "Assets/Resources/Sprites/UI/Tutorial/Tutorial.png",
+    "sprite": "Tutorial_8",
+    "guid": "8f35239431092c84cbc210740bfecb24",
+    "fileId": -3790966502919606100
+  }
+]

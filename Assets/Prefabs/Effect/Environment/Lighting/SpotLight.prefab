@@ -4843,6 +4843,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7953078042309958236}
   - component: {fileID: 4811928166353188002}
+  - component: {fileID: 603679744084817162}
   m_Layer: 0
   m_Name: SpotLight
   m_TagString: Untagged
@@ -4918,3 +4919,15 @@ MonoBehaviour:
   - {x: 0.5, y: -0.5, z: 0}
   - {x: 0.5, y: 0.5, z: 0}
   - {x: -0.5, y: 0.5, z: 0}
+--- !u!114 &603679744084817162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3042643092265921130}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34eb5092df44469e872b7aefb019c695, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:

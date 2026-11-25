@@ -25,8 +25,7 @@ public class PouchUI : MonoBehaviour
     [SerializeField] private TMP_Text nextEffectText;
     [SerializeField] private TMP_Text descriptionText;
     [SerializeField] private Button[] sortButtons;
-    [SerializeField] private Color activeSortColor = new Color(0.23f, 0.49f, 0.48f);
-    [SerializeField] private Color inactiveSortColor = new Color(0.09f, 0.21f, 0.23f);
+    private ControlFocusRing[] sortIndicators;
 
     private readonly List<PouchSlotUI> _cells = new List<PouchSlotUI>();
     private readonly List<ItemSO> _items = new List<ItemSO>();
@@ -39,6 +38,15 @@ public class PouchUI : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        foreach (var label in new[] {perCopyText, stackText, totalEffectText, nextEffectText, descriptionText})
+        {
+            if (label == null) continue;
+            PixelText.Configure(label, 12);
+            label.textWrappingMode = TextWrappingModes.Normal;
+            if (!label.TryGetComponent<WrappedLabelHeight>(out var height))
+                height = label.gameObject.AddComponent<WrappedLabelHeight>();
+            height.layoutPriority = 2;
+        }
         IsOpen = false;
         if (panelRoot != null) panelRoot.SetActive(false);
     }
@@ -120,8 +128,16 @@ public class PouchUI : MonoBehaviour
         for (int i = _items.Count; i < _cells.Count; i++) _cells[i].gameObject.SetActive(false);
         if (totalsText != null) totalsText.text = $"보유 {total}개   종류 {_items.Count}종";
         if (emptyText != null) emptyText.gameObject.SetActive(_items.Count == 0);
-        if (sortButtons != null) for (int i = 0; i < sortButtons.Length; i++)
-            if (sortButtons[i] != null) sortButtons[i].GetComponent<Image>().color = i == _sort ? activeSortColor : inactiveSortColor;
+        if (sortButtons != null)
+        {
+            sortIndicators ??= new ControlFocusRing[sortButtons.Length];
+            for (int i = 0; i < sortButtons.Length; i++)
+            {
+                if (sortButtons[i] == null) continue;
+                if (!sortIndicators[i]) sortIndicators[i] = ControlFocusRing.Create((RectTransform)sortButtons[i].transform, "Selected sort");
+                sortIndicators[i].enabled = i == _sort;
+            }
+        }
         Select(_selected);
     }
     public void Select(ItemSO item)
@@ -138,6 +154,13 @@ public class PouchUI : MonoBehaviour
         if (nextEffectText != null) nextEffectText.text = item == null ? "" : count >= item.MaxStack ? "최대 중첩 도달"
             : "1개 더 획득 시\n" + item.EffectSummary(count + 1);
         if (descriptionText != null) descriptionText.text = item != null ? item.description : "방 클리어 보상이나 상점에서 아이템을 획득하세요.";
-        if (detailScroll != null) detailScroll.verticalNormalizedPosition = 1f;
+        if (descriptionText != null)
+            descriptionText.gameObject.SetActive(item == null || (!string.IsNullOrWhiteSpace(item.description) &&
+                item.description.Trim() != item.EffectSummary(1).Trim()));
+        if (detailScroll != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(detailScroll.content);
+            detailScroll.verticalNormalizedPosition = 1f;
+        }
     }
 }

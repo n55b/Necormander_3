@@ -1,0 +1,49 @@
+using UnityEngine;
+using UnityEngine.Rendering;
+
+[DisallowMultipleComponent]
+public sealed class WorldAtmosphere : MonoBehaviour
+{
+    private Material material;
+    private static readonly int Wind = Shader.PropertyToID("_CanopyWindPixels");
+
+    internal static void Bind(Camera camera)
+    {
+        if (!Application.isPlaying || camera == null || !camera.orthographic ||
+            (camera.cullingMask & (1 << Layers.Default)) == 0 ||
+            PixelArtUpscaleRig.SceneGround == null || camera.GetComponent<WorldAtmosphere>() != null) return;
+        camera.gameObject.AddComponent<WorldAtmosphere>();
+    }
+
+    private void Awake()
+    {
+        var shader = Resources.Load<Shader>("WorldAtmosphere/WorldAtmosphere");
+        if (shader == null) return;
+        var surface = new GameObject("World mist and bloom", typeof(MeshFilter), typeof(MeshRenderer));
+        surface.transform.SetParent(transform, false);
+        surface.transform.localPosition = Vector3.forward * 3;
+        surface.GetComponent<MeshFilter>().sharedMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+        var renderer = surface.GetComponent<MeshRenderer>();
+        renderer.localBounds = new Bounds(Vector3.zero, Vector3.one * 200);
+        renderer.sortingLayerName = "World Atmosphere";
+        renderer.shadowCastingMode = ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+        material = new Material(shader);
+        material.SetTexture("_Palette", Resources.Load<Texture2D>("WorldAtmosphere/necrohanderPalette"));
+        renderer.sharedMaterial = material;
+    }
+
+    private void LateUpdate()
+    {
+        var settings = CameraSettingsSO.Instance;
+        if (material == null || settings == null) return;
+        material.SetFloat("_Mist", settings.mistStrength);
+        material.SetFloat("_Bloom", settings.bloomStrength);
+        Shader.SetGlobalFloat(Wind, PolishFeedback.ExistingEnabled(ExistingFeedbackCue.TreeMotion) ? settings.canopyWindPixels : 0);
+    }
+
+    private void OnDestroy()
+    {
+        if (material != null) Destroy(material);
+    }
+}

@@ -34,7 +34,6 @@ MonoBehaviour:
   arrowsPerDirection: 3
   spreadAngle: 15
   stunDuration: 3
-  throwableBoxPrefab: {fileID: 1296700334336564911, guid: 0461f8f833eab2a46a9a1017270f5785, type: 3}
   archerCurrentState: 0
   stateTimer: 0
   attackTimer: 0

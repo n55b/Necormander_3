@@ -29,7 +29,7 @@ ScriptedImporter:
     streamingMipmapsPriority: 0
     vTOnly: 0
     ignoreMipmapLimit: 0
-    nPOTScale: 1
+    nPOTScale: 0
     sRGBTexture: 1
     spriteMode: 2
     spriteExtrude: 1
@@ -59,7 +59,7 @@ ScriptedImporter:
     wrapW: 1
     normalMap: 0
     textureFormat: 0
-    maxTextureSize: 0
+    maxTextureSize: 64
     lightmap: 0
     compressionQuality: 0
     linearTexture: 0

@@ -20,7 +20,8 @@ public static class ExistingFeedbackValidation
     {
         if (!Application.isBatchMode) throw new InvalidOperationException("별도 batchmode에서 실행하세요.");
         catalog = AssetDatabase.LoadAssetAtPath<FeedbackCatalog>(FeedbackSetup.CatalogPath);
-        Require(catalog.existingEffects.Length == 12, "기존 연출 12종");
+        var expected = Enum.GetValues(typeof(ExistingFeedbackCue)).Cast<ExistingFeedbackCue>().Where(c => c != ExistingFeedbackCue.None);
+        Require(catalog.existingEffects.Select(e => e.cue).OrderBy(c => c).SequenceEqual(expected), "모든 기존 연출의 단일 등록");
         foreach (var entry in catalog.existingEffects) Require(entry.sources.Length > 0 && entry.sources.All(s => s != null), entry.title + " 연결");
         var originals = catalog.existingEffects.SelectMany(e => e.sources).Distinct().Where(o => !(o is SceneAsset))
             .ToDictionary(o => o, EditorJsonUtility.ToJson);

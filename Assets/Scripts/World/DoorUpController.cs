@@ -10,6 +10,18 @@ public class DoorUpController : MonoBehaviour
              "회전하지 않고 항상 똑바로 서 있을 자식 오브젝트 이름. 위치는 벽 방향을 따라가고 회전만 고정된다.")]
     [SerializeField] private string[] keepUprightChildNames = { "DoorDownObject" };
 
+    private Collider2D[] barriers;
+    internal static readonly System.Collections.Generic.HashSet<DoorUpController> Closed = new();
+    internal Collider2D[] Barriers => barriers ??= closeDoor != null ? closeDoor.GetComponentsInChildren<Collider2D>(true) : System.Array.Empty<Collider2D>();
+    private void OnEnable() => PublishBarrier(closeDoor != null && closeDoor.activeSelf);
+    private void OnDisable() => PublishBarrier(false);
+    private void PublishBarrier(bool blocked)
+    {
+        if (!(blocked ? Closed.Add(this) : Closed.Remove(this))) return;
+        var atmosphere=WorldAtmosphere.Current;
+        if(atmosphere!=null && atmosphere.Floor!=null) atmosphere.Floor.DoorChanged(this,blocked);
+    }
+
     private void Awake()
     {
         KeepChildrenUpright();
@@ -39,6 +51,7 @@ public class DoorUpController : MonoBehaviour
             PolishFeedback.Play(FeedbackCue.DoorOpen,transform.position,Vector2.up);
         closeDoor.SetActive(false);
         openDoor.SetActive(true);
+        PublishBarrier(false);
         KeepChildrenUpright();
         if (portalVisual != null) portalVisual.SetOpen(true);
     }
@@ -47,6 +60,7 @@ public class DoorUpController : MonoBehaviour
     {
         closeDoor.SetActive(true);
         openDoor.SetActive(false);
+        PublishBarrier(true);
         if (portalVisual != null) portalVisual.SetOpen(false);
     }
 }

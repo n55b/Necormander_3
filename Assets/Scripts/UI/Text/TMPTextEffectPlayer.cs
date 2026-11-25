@@ -1,253 +1,261 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-/// <summary>
-/// TextEffectParser가 뽑아낸 TextEffectRange들을 받아서, TMP 텍스트의 글자(vertex) 단위로
-/// 실제 애니메이션을 재생한다.
-///
-/// - Punch, Shake  : 1회성. 텍스트가 세팅되는 순간부터 짧게 재생되고 끝나면 자동으로 꺼진다.
-/// - Wave, Rainbow, Jitter : 반복성. ApplyEffects가 다시 호출되거나 ClearEffects가 호출될 때까지 계속 재생된다.
-///
-/// 매 프레임 ForceMeshUpdate()로 "이펙트 적용 전" 원본 정점 위치를 복원한 뒤 그 위에 오프셋을 더하는 방식이라
-/// 누적 오차 없이 안전하게 반복 재생할 수 있다. (TMP 공식 예제인 WarpTextExample과 동일한 접근)
-/// </summary>
 [DisallowMultipleComponent]
 public class TMPTextEffectPlayer : MonoBehaviour
 {
-    [Header("파동")]
-    [SerializeField] private float waveAmplitude = 6f;
-    [SerializeField] private float waveFrequency = 2f;
+    [SerializeField] private bool parseOwnTextOnEnable;
+    private TMP_Text label;
+    private TMP_MeshInfo[] baseline;
+    private Vector2[] offsets=Array.Empty<Vector2>();
+    private readonly List<TextEffectRange> parsed = new();
+    private readonly List<Span> spans = new();
+    private string authoredMarkup;
+    private bool revealComplete;
+    private bool ownsPose;
+    private bool[] hiddenGlyphs = Array.Empty<bool>();
+    private VectorUiInlineIcons inlineIcons;
 
-    [Header("잘게 떨림")]
-    [SerializeField] private float jitterAmplitude = 3f;
-    [SerializeField] private float jitterSpeed = 20f;
-
-    [Header("글자별 흔들림: 한 번")]
-    [SerializeField] private float shakeAmplitude = 4f;
-    [SerializeField] private float shakeDuration = 0.4f;
-
-    [Header("글자별 튀는 효과: 한 번")]
-    [SerializeField] private float punchScale = 0.5f;
-    [SerializeField] private float punchDuration = 0.35f;
-
-    [Header("무지개 색")]
-    [SerializeField] private float rainbowSaturation = 0.85f;
-    [SerializeField] private float rainbowSpeed = 1f;
-
-    [Header("자동 동작")]
-    [Tooltip("켜질 때 인스펙터 Text 칸에 직접 쳐둔 태그(<wave>글자</wave> 등)를 알아서 해석한다. " +
-             "코드가 SetText()로 밀어넣는 텍스트(데미지 숫자 등)는 꺼두면 된다.")]
-    [SerializeField] private bool parseOwnTextOnEnable = false;
-
-    private TMP_Text tmp;
-    private readonly List<TextEffectRange> activeRanges = new List<TextEffectRange>();
-    private readonly List<TextEffectRange> parseBuffer = new List<TextEffectRange>();
-    private float startTime;
-    private bool hasContinuousEffect;
-    private float oneShotEndTime;
+    internal bool GlyphHidden(int index) =>
+        spans.Count != 0 && index < hiddenGlyphs.Length && hiddenGlyphs[index];
+    private string sourceText;
+    internal bool padCombatInk;
+    private struct Span { internal TextEffectRange range; internal TextMotionLibrary.Preset preset; internal float start; internal bool cue; }
+    public int MeshGenerations { get; private set; }
 
     private void Awake()
     {
-        tmp = GetComponent<TMP_Text>();
+        label = GetComponent<TMP_Text>();
+        inlineIcons = GetComponent<VectorUiInlineIcons>();
     }
-
     private void OnEnable()
     {
-        if (parseOwnTextOnEnable && tmp != null) SetText(tmp.text);
+        if (label == null) label = GetComponent<TMP_Text>();
+        label.OnPreRenderText += Capture;
+        if (authoredMarkup != null && label.text == sourceText) SetText(authoredMarkup);
+        else if (parseOwnTextOnEnable && TextEffectParser.HasMarkup(label.text)) SetText(label.text);
+    }
+    private void OnDisable()
+    {
+        label.OnPreRenderText -= Capture;
+        ResetPose();
+    }
+    private void Capture(TMP_TextInfo info)
+    {
+        baseline = null;
+        if (padCombatInk && PixelText.TryGrid(label, out var grid)) PadInk(info, grid);
+        if (spans.Count == 0 || label.text != sourceText) return;
+        baseline = info.CopyMeshInfoVertexData();
+        MeshGenerations++;
+        // TMP uploads this pose itself after invoking OnPreRenderText.
+        Pose(info);
     }
 
-    /// <summary>
-    /// 태그가 섞인 원본 문자열을 넣는 유일한 관문.
-    /// 태그를 떼어내 실제 표시 문자열만 TMP에 넣고, 떼어낸 이펙트 구간을 재생한다.
-    ///
-    /// tmp.text에 직접 대입하면 안 된다 — TMP는 모르는 태그를 화면에 그대로 찍어버리고,
-    /// activeRanges가 옛 텍스트 기준으로 남아 엉뚱한 글자에 효과가 걸린다.
-    /// </summary>
+    // The bitmap atlas has a texel of clear padding. Expose one logical pixel on
+    // the right and bottom so the shadow can extend past a glyph's tight quad.
+    private static void PadInk(TMP_TextInfo info, PixelText.GlyphGrid grid)
+    {
+        var right = grid.LocalOffset(Vector2.right);
+        var down = grid.LocalOffset(Vector2.down);
+        for (int i = 0; i < info.characterCount; i++)
+        {
+            var ch = info.characterInfo[i];
+            if (!ch.isVisible || ch.elementType != TMP_TextElementType.Character) continue;
+            var mesh = info.meshInfo[ch.materialReferenceIndex];
+            int v = ch.vertexIndex;
+            var points = mesh.vertices;
+            var uv = mesh.uvs0;
+            float width = points[v + 3].x - points[v].x;
+            float height = points[v + 1].y - points[v].y;
+            if (width <= 0 || height <= 0) continue;
+            float du = (uv[v + 3].x - uv[v].x) * right.x / width;
+            float dv = (uv[v + 1].y - uv[v].y) * down.y / height;
+            points[v] += down;
+            points[v + 2] += right;
+            points[v + 3] += right + down;
+            uv[v].y += dv;
+            uv[v + 2].x += du;
+            uv[v + 3].x += du;
+            uv[v + 3].y += dv;
+        }
+    }
+
     public void SetText(string raw)
     {
-        if (tmp == null) tmp = GetComponent<TMP_Text>();
-        if (tmp == null) return;
-
-        parseBuffer.Clear();
-        tmp.text = TextEffectParser.Parse(raw, parseBuffer);
-        ApplyEffects(parseBuffer);
+        if (label == null) label = GetComponent<TMP_Text>();
+        label.text = TextEffectParser.Parse(raw, parsed);
+        ApplyEffects(parsed);
+        authoredMarkup = parsed.Count > 0 ? raw : null;
     }
 
-    /// <summary>
-    /// 새 텍스트가 세팅될 때 호출. 이전 이펙트는 모두 대체된다.
-    /// ranges가 비어있으면 이펙트 재생을 끄고 원본 메시로 되돌린다.
-    /// </summary>
+    // Localization can publish the same source again during a layout refresh.
+    internal void AcceptMarkup(string raw)
+    {
+        if (raw == authoredMarkup && spans.Count > 0) label.text = sourceText;
+        else SetText(raw);
+    }
+
+    public void FinishReveal()
+    {
+        revealComplete = true;
+        if (spans.Count > 0) RequestFreshMesh();
+    }
+
+    public void PlayPreset(string id)
+    {
+        if (label == null) label = GetComponent<TMP_Text>();
+        if (!enabled) enabled = true;
+        if (label.text != sourceText) ClearEffects();
+        spans.RemoveAll(IsCue);
+        AddSpan(new TextEffectRange { preset = id, length = label.text.Length, param = 1 }, true);
+        BeginPose();
+    }
+
+    private static bool IsCue(Span span) => span.cue;
+
     public void ApplyEffects(List<TextEffectRange> ranges)
     {
-        activeRanges.Clear();
-        activeRanges.AddRange(ranges);
-        // unscaled 를 쓴다: 대화창은 Time.timeScale=0 인 채로 떠 있어서
-        // Time.time 을 쓰면 wave/rainbow 가 통째로 멈춘다. 히트스톱 중에도 마찬가지.
-        startTime = Time.unscaledTime;
-
-        hasContinuousEffect = false;
-        float maxOneShot = 0f;
-        foreach (var r in activeRanges)
-        {
-            if (r.type == TextEffectType.Wave || r.type == TextEffectType.Rainbow || r.type == TextEffectType.Jitter)
-            {
-                hasContinuousEffect = true;
-            }
-            else
-            {
-                float dur = r.type == TextEffectType.Punch
-                    ? punchDuration / Mathf.Max(r.param, 0.01f)
-                    : shakeDuration / Mathf.Max(r.param, 0.01f);
-                if (dur > maxOneShot) maxOneShot = dur;
-            }
-        }
-        oneShotEndTime = startTime + maxOneShot;
-
-        bool shouldRun = activeRanges.Count > 0;
-        enabled = shouldRun;
-
-        if (!shouldRun)
-        {
-            RestoreOriginalMesh();
-        }
+        if (label == null) label = GetComponent<TMP_Text>();
+        if (!enabled) enabled = true;
+        authoredMarkup = null;
+        revealComplete = false;
+        spans.Clear();
+        foreach (var range in ranges) AddSpan(range, false);
+        BeginPose();
     }
 
-    /// <summary>모든 이펙트를 즉시 끄고 원본 모양으로 되돌린다.</summary>
+    private void AddSpan(TextEffectRange range, bool cue)
+    {
+        var preset = TextMotionLibrary.Instance?.Find(range.preset ?? range.type.ToString());
+        if (preset != null)
+            spans.Add(new Span { range = range, preset = preset, cue = cue,
+                start = preset.useGameplayTime ? Time.time : Time.unscaledTime });
+    }
+
+    private void BeginPose()
+    {
+        sourceText = label.text;
+        baseline = null;
+        if (spans.Count > 0 || ownsPose) RequestFreshMesh();
+        ownsPose = false;
+    }
+
+    private void RequestFreshMesh()
+    {
+        // SetVerticesDirty alone may reuse TMP's previous (already animated) buffers.
+        label.havePropertiesChanged = true;
+        label.SetVerticesDirty();
+    }
+
     public void ClearEffects()
     {
-        activeRanges.Clear();
-        enabled = false;
-        RestoreOriginalMesh();
+        authoredMarkup = null;
+        ResetPose();
     }
 
-    private void RestoreOriginalMesh()
+    private void ResetPose()
     {
-        if (tmp == null) return;
-        tmp.ForceMeshUpdate();
+        spans.Clear();
+        baseline = null;
+        if (ownsPose && label != null) RequestFreshMesh();
+        ownsPose = false;
     }
-
     private void LateUpdate()
     {
-        if (tmp == null || activeRanges.Count == 0)
+        if (spans.Count == 0) return;
+        if (label.text != sourceText) { ClearEffects(); return; }
+        if (baseline == null || label.havePropertiesChanged) return;
+        if (!Pose(label.textInfo)) { ResetPose(); return; }
+        label.UpdateVertexData(TMP_VertexDataUpdateFlags.Vertices | TMP_VertexDataUpdateFlags.Colors32);
+    }
+    private bool Pose(TMP_TextInfo info)
+    {
+        bool any = false;
+        if (baseline == null || baseline.Length < info.materialCount) return false;
+        for (int m = 0; m < info.materialCount; m++)
         {
-            enabled = false;
-            return;
+            int count = info.meshInfo[m].vertexCount;
+            Array.Copy(baseline[m].vertices, info.meshInfo[m].vertices, count);
+            Array.Copy(baseline[m].colors32, info.meshInfo[m].colors32, count);
         }
-
-        tmp.ForceMeshUpdate();
-        TMP_TextInfo textInfo = tmp.textInfo;
-        if (textInfo.characterCount == 0)
+        bool native = PixelText.TryGrid(label, out var grid);
+        if(offsets.Length<info.characterCount) Array.Resize(ref offsets,Mathf.NextPowerOfTwo(info.characterCount));
+        Array.Clear(offsets,0,info.characterCount);
+        if (hiddenGlyphs.Length < info.characterCount) Array.Resize(ref hiddenGlyphs, offsets.Length);
+        Array.Clear(hiddenGlyphs, 0, info.characterCount);
+        bool motion=UISkinSettings.MotionOn;
+        foreach (var span in spans)
         {
-            enabled = false;
-            return;
-        }
-
-        float t = Time.unscaledTime - startTime;
-
-        foreach (var range in activeRanges)
-        {
-            int endIndex = range.startIndex + range.length;
-
-            // 주의: 순번 i로 자르면 안 된다. characterInfo의 순번은 TMP가 자기 태그(<color>, <sprite> 등)를
-            // 걷어낸 뒤의 '보이는 글자' 순서라, 파서가 준 문자열 인덱스와 어긋난다.
-            // charInfo.index가 곧 tmp.text 기준 인덱스이고 그게 파서와 같은 기준이라, 그걸로 걸러야 한다.
-            // (지금까지 안 터진 건 데미지 숫자가 평문이라 우연히 i == index였기 때문이다.)
-            for (int i = 0; i < textInfo.characterCount; i++)
+            var p = span.preset;
+            float age = (p.useGameplayTime ? Time.time : Time.unscaledTime) - span.start;
+            float speed = Mathf.Max(.01f, span.range.param);
+            bool typing = p.shape == TextMotionLibrary.Shape.Typewriter;
+            if (typing && (revealComplete || !motion)) continue;
+            if (!typing && !p.loop && age * speed >= p.duration) continue;
+            if (!typing) any = true;
+            int visible = typing ? Mathf.FloorToInt(age * Mathf.Max(1, p.charactersPerSecond) * speed) : 0;
+            int ordinal = 0;
+            int word = 0;
+            bool space = true;
+            for (int i = 0; i < info.characterCount && i < label.maxVisibleCharacters; i++)
             {
-                TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
-                if (charInfo.index < range.startIndex || charInfo.index >= endIndex) continue;
-                if (!charInfo.isVisible) continue;
-                // 타자기(maxVisibleCharacters)로 아직 안 드러난 글자는 건너뛴다.
-                // 감춰진 글자도 isVisible 이 true 라, 접힌 정점에 오프셋을 더하면
-                // 화면 구석에 유령 글자가 뜬다.
-                if (i >= tmp.maxVisibleCharacters) continue;
-
-                int matIndex = charInfo.materialReferenceIndex;
-                int vIndex = charInfo.vertexIndex;
-                Vector3[] verts = textInfo.meshInfo[matIndex].vertices;
-                Vector3 charMid = (verts[vIndex] + verts[vIndex + 2]) * 0.5f;
-
-                Vector3 offset = Vector3.zero;
-                float scaleMul = 1f;
-                Color32? colorOverride = null;
-
-                switch (range.type)
+                var ch = info.characterInfo[i];
+                if (ch.index < span.range.startIndex || ch.index >= span.range.startIndex + span.range.length) continue;
+                if (typing)
                 {
-                    case TextEffectType.Wave:
-                        offset = new Vector3(
-                            0f,
-                            Mathf.Sin(t * waveFrequency * range.param + i * 0.5f) * waveAmplitude,
-                            0f);
-                        break;
-
-                    case TextEffectType.Jitter:
-                        offset = new Vector3(
-                            (Mathf.PerlinNoise(i * 10.7f, t * jitterSpeed * range.param) - 0.5f) * 2f * jitterAmplitude,
-                            (Mathf.PerlinNoise(i * 3.3f + 50f, t * jitterSpeed * range.param) - 0.5f) * 2f * jitterAmplitude,
-                            0f);
-                        break;
-
-                    case TextEffectType.Rainbow:
-                        float hue = Mathf.Repeat(t * rainbowSpeed * range.param + i * 0.08f, 1f);
-                        colorOverride = Color.HSVToRGB(hue, rainbowSaturation, 1f);
-                        break;
-
-                    case TextEffectType.Shake:
+                    if (ordinal++ >= visible && ch.isVisible)
                     {
-                        float dur = shakeDuration / Mathf.Max(range.param, 0.01f);
-                        float k = Mathf.Clamp01(1f - t / dur);
-                        if (k > 0f)
-                        {
-                            offset = new Vector3(
-                                (Mathf.PerlinNoise(i * 12.1f, t * 40f) - 0.5f) * 2f * shakeAmplitude * k,
-                                (Mathf.PerlinNoise(i * 5.5f + 90f, t * 40f) - 0.5f) * 2f * shakeAmplitude * k,
-                                0f);
-                        }
-                        break;
+                        any = true;
+                        hiddenGlyphs[i] = true;
+                        var colors = info.meshInfo[ch.materialReferenceIndex].colors32;
+                        for (int j = ch.vertexIndex; j < ch.vertexIndex + 4; j++) colors[j].a = 0;
                     }
-
-                    case TextEffectType.Punch:
-                    {
-                        float dur = punchDuration / Mathf.Max(range.param, 0.01f);
-                        float k = Mathf.Clamp01(t / dur);
-                        // 0 -> 1 -> 0 으로 튀었다가 원래 크기로 돌아오는 커브
-                        float curve = Mathf.Sin(k * Mathf.PI) * (1f - k);
-                        scaleMul = 1f + curve * punchScale * range.param;
-                        break;
-                    }
+                    continue;
                 }
-
-                for (int j = 0; j < 4; j++)
+                if (char.IsWhiteSpace(ch.character)) { space = true; continue; }
+                if (space) { word++; space = false; }
+                if (!ch.isVisible) continue;
+                int unit = p.unit == TextMotionLibrary.Unit.Glyph ? i : p.unit == TextMotionLibrary.Unit.Word ? word - 1 : 0;
+                Vector2 move = p.Sample(age, unit, speed, out float tint);
+                if (!motion) { move=Vector2.zero; tint=.28f; }
+                offsets[i]+=move;
+                if(tint<=0) continue;
+                var accent=motion ? p.Accent(age,unit,speed) : p.accent;
+                var mesh = info.meshInfo[ch.materialReferenceIndex];
+                int v = ch.vertexIndex;
+                for (int j = v; j < v + 4; j++)
                 {
-                    Vector3 v = verts[vIndex + j];
-                    if (!Mathf.Approximately(scaleMul, 1f))
-                        v = charMid + (v - charMid) * scaleMul;
-                    v += offset;
-                    verts[vIndex + j] = v;
-                }
-
-                if (colorOverride.HasValue)
-                {
-                    Color32[] colors = textInfo.meshInfo[matIndex].colors32;
-                    Color32 c = colorOverride.Value;
-                    for (int j = 0; j < 4; j++)
-                        colors[vIndex + j] = c;
+                    Color32 old = mesh.colors32[j];
+                    Color32 color = Color.Lerp(old, accent, tint);
+                    color.a = old.a;
+                    mesh.colors32[j] = color;
                 }
             }
         }
-
-        for (int m = 0; m < textInfo.meshInfo.Length; m++)
+        for(int i=0;i<info.characterCount && i<label.maxVisibleCharacters;i++)
         {
-            textInfo.meshInfo[m].mesh.vertices = textInfo.meshInfo[m].vertices;
-            textInfo.meshInfo[m].mesh.colors32 = textInfo.meshInfo[m].colors32;
-            tmp.UpdateGeometry(textInfo.meshInfo[m].mesh, m);
+            var ch=info.characterInfo[i];
+            if(!ch.isVisible || offsets[i]==Vector2.zero) continue;
+            var mesh=info.meshInfo[ch.materialReferenceIndex];
+            Vector3 delta = native ? grid.LocalOffset(offsets[i]) : (Vector3)offsets[i];
+            for(int j=0;j<4;j++) mesh.vertices[ch.vertexIndex+j]+=delta;
         }
-
-        // 반복 이펙트가 하나도 없고, 1회성 이펙트가 다 끝났으면 재생을 멈춘다.
-        if (!hasContinuousEffect && Time.unscaledTime > oneShotEndTime)
+        if (inlineIcons != null)
         {
-            enabled = false;
+            // Vector sprites have their own graphic. Keep TMP's textured quad hidden on every upload.
+            for (int i = 0; i < info.characterCount; i++)
+            {
+                var ch = info.characterInfo[i];
+                if (!ch.isVisible || ch.elementType != TMP_TextElementType.Sprite ||
+                    ch.textElement?.glyph is not TMP_SpriteGlyph glyph || !VectorUiCatalog.TryGet(glyph.sprite, out _)) continue;
+                var colors = info.meshInfo[ch.materialReferenceIndex].colors32;
+                for (int j = ch.vertexIndex; j < ch.vertexIndex + 4; j++) colors[j].a = 0;
+            }
+            inlineIcons.RefreshReveal(this);
         }
+        ownsPose = true;
+        return any;
     }
 }

@@ -2398,11 +2398,11 @@ MonoBehaviour:
     shape: 0
     color: {r: 1, g: 0.65, b: 0.28, a: 1}
     intensity: 1
-    duration: 0.7
+    duration: 0.83
     delay: 0
     count: 14
-    radius: 2
-    width: 0.03125
+    radius: 3.2
+    width: 0.075
     drift: {x: 0, y: 0}
     minimumTier: 0
     scaleWithTier: 0
@@ -2435,14 +2435,15 @@ MonoBehaviour:
     volume: 0.3
     pitchVariation: 0.05
     audio:
-      clips: []
+      clips:
+      - {fileID: 8300000, guid: 8e37f0a9d3944134fa63545b9905b2ea, type: 3}
       volume: 0.8
-      pitchMin: 1
-      pitchMax: 1
+      pitchMin: 0.72
+      pitchMax: 0.78
       enabled: 1
       volumeVariation: 0
       minPlaybackInterval: 0.05
-      priority: 128
+      priority: 32
       audibleRange: 0
   - cue: 57
     title: "\uC0C1\uC790 \uD2C8\uC0C8 \uBE5B"
@@ -5039,6 +5040,116 @@ MonoBehaviour:
       minPlaybackInterval: 0.1
       priority: 64
       audibleRange: 0
+  - cue: 103
+    title: "투사체 회피 잔광"
+    description: "스친 방향에 청록색 호를 남깁니다."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 6
+    color: {r: 0.66, g: 0.91, b: 0.89, a: 1}
+    intensity: 1
+    duration: .17
+    delay: 0
+    count: 1
+    radius: .62
+    width: .035
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: f2ac33bbc99a45546b70e8bb16096c0d, type: 3}
+      volume: .45
+      pitchMin: 1.08
+      pitchMax: 1.14
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 60
+      audibleRange: 0
+  - cue: 104
+    title: "방의 마지막 일격"
+    description: "마지막 적의 위치에서 금빛 파동이 번집니다."
+    enabled: 1
+    prefab: {fileID: 2244038830223515654, guid: 07d779c8d73d88c4aacc6aec24ce1ae9, type: 3}
+    shape: 1
+    color: {r: 1, g: 0.84, b: 0.62, a: 1}
+    intensity: 1
+    duration: .52
+    delay: 0
+    count: 12
+    radius: 1.9
+    width: .072
+    drift: {x: 0, y: 0}
+    minimumTier: 0
+    scaleWithTier: 0
+    interval: 0.06
+    motion:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    sound: {fileID: 0}
+    volume: 0.3
+    pitchVariation: 0.05
+    audio:
+      clips:
+      - {fileID: 8300000, guid: 667772c88a4787b429abc217bcb8c6a4, type: 3}
+      volume: .57
+      pitchMin: .74
+      pitchMax: .81
+      enabled: 1
+      volumeVariation: 0
+      minPlaybackInterval: 0.05
+      priority: 48
+      audibleRange: 0
   existingEffects:
   - cue: 1
     enabled: 1
@@ -5177,7 +5288,7 @@ MonoBehaviour:
     sources:
     - {fileID: 2100000, guid: 03e606b6af5478742b76772a96f09912, type: 2}
     - {fileID: 2100000, guid: dca4dbc87c821944ab0210b1d077bcdc, type: 2}
-    - {fileID: 2100000, guid: c9893092a6632f34ab8a27102cf1d769, type: 2}
+    - {fileID: 4800000, guid: 65a85fb187a148fc932f5a93c048382c, type: 3}
     - {fileID: 2100000, guid: afa3341b4c55e814cbd44cc85ae8c92f, type: 2}
     - {fileID: 2100000, guid: 92d6fa55792fd5045ae3f645658983a4, type: 2}
   - cue: 9
@@ -5314,7 +5425,62 @@ MonoBehaviour:
   dirtColor: {r: 0.75, g: 0.65, b: 0.46, a: 0.8}
   stoneColor: {r: 0.8, g: 0.85, b: 0.9, a: 0.8}
   waterColor: {r: 0.45, g: 0.8, b: 1, a: 0.7}
-  cameraForce: 0.25
-  hitStopSeconds: 0.025
-  slowMotionScale: 0.35
-  slowMotionSeconds: 0.18
+  impactProfiles:
+  - kind: 0
+    priority: 1
+    pixels: 1
+    shakeMs: 65
+    stopMs: 0
+    decay: 2
+    angle: 0
+  - kind: 1
+    priority: 2
+    pixels: 1
+    shakeMs: 75
+    stopMs: 0
+    decay: 2
+    angle: 0
+  - kind: 2
+    priority: 3
+    pixels: 2
+    shakeMs: 100
+    stopMs: 18
+    decay: 2
+    angle: 0
+  - kind: 3
+    priority: 4
+    pixels: 3
+    shakeMs: 120
+    stopMs: 25
+    decay: 2
+    angle: 0
+  - kind: 4
+    priority: 5
+    pixels: 3
+    shakeMs: 130
+    stopMs: 0
+    decay: 2
+    angle: 0
+  - kind: 5
+    priority: 7
+    pixels: 8
+    shakeMs: 340
+    stopMs: 115
+    decay: 2
+    angle: 0
+  - kind: 6
+    priority: 4
+    pixels: 3
+    shakeMs: 180
+    stopMs: 0
+    decay: 2
+    angle: 0
+  - kind: 7
+    priority: 6
+    pixels: 5
+    shakeMs: 235
+    stopMs: 78
+    decay: 2
+    angle: 0
+  slowMotionScale: 0.09
+  slowMotionSeconds: 1.08

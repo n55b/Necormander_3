@@ -1,0 +1,36 @@
+#pragma kernel Advance
+struct Particle { float2 position; float2 velocity; float birth; float expires; float solid; float updated; };
+RWStructuredBuffer<Particle> _Particles;
+Texture2D<float> _FloorMask;
+float4x4 _FloorUV;
+float _Now;
+int _Capacity, _HasFloorMask;
+bool Open(float2 p) {
+    float2 uv = mul(_FloorUV,float4(p,0,1)).xy;
+    if (any(uv<0) || any(uv>=1)) return false;
+    uint w,h;
+    _FloorMask.GetDimensions(w,h);
+    return _FloorMask.Load(int3(uv*float2(w,h),0)) > .5;
+}
+[numthreads(64,1,1)]
+void Advance(uint id : SV_DispatchThreadID) {
+    if(id>=(uint)_Capacity) return;
+    Particle p=_Particles[id];
+    if(p.expires<=_Now) return;
+    float dt=max(0,_Now-max(p.birth,p.updated));
+    // Bound integration by the remaining lifetime. Substeps avoid passing a one-cell wall during a long frame.
+    int steps=clamp((int)ceil(length(p.velocity)*dt/.18),1,24);
+    for(int n=0;n<steps;n++) {
+        float2 d=p.velocity*dt/steps;
+        float2 next=p.position+d;
+        if(p.solid>.5 && _HasFloorMask!=0 && !Open(next)) {
+            bool horizontal=Open(p.position+float2(d.x,0));
+            bool vertical=Open(p.position+float2(0,d.y));
+            if(!horizontal || vertical==horizontal) p.velocity.x*=-.46;
+            if(!vertical || vertical==horizontal) p.velocity.y*=-.46;
+            if(horizontal!=vertical) p.position+=float2(horizontal?d.x:0,vertical?d.y:0);
+        } else p.position=next;
+    }
+    p.updated=_Now;
+    _Particles[id]=p;
+}

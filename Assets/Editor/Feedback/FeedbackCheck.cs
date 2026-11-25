@@ -83,8 +83,8 @@ public static class FeedbackCheck
                 }
             }
             Check(enemies>0 && minions>0,"몬스터·소환수 프리팹 검증");
-            foreach (var sr in player.GetComponentsInChildren<SpriteRenderer>())
-                if(sr.name=="Silhouette") Check(sr.sharedMaterial.shader.name=="Necromancer/Pixel Feedback Sprite", "가림 실루엣 디더링 재질");
+            Check(player.GetComponentsInChildren<PlayerOcclusionMist>(true).Length == 1 &&
+                Resources.Load<Shader>("WorldAtmosphere/WorldPixelSprite") != null, "플레이어 가림 안개 연결");
             var curtain=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/ScreenFadeCanvas.prefab");
             Check(curtain.GetComponentInChildren<Image>().material.shader.name=="Necromancer/Pixel Dither UI", "기존 커튼에 디더링 재질 연결");
             foreach (string shader in new[]{"PixelFeedbackSprite", "PixelDitherUI", "ImpactAdditive"})

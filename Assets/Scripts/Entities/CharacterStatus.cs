@@ -13,7 +13,7 @@ public class CharacterStatus : MonoBehaviour
     private float _cachedMoveSpeedMultiplier = 1f;
     private float _cachedTotalShield = 0f;
 
-    public bool LastAttackMissed = false; // [추가] 궁수 발이부중 기믹용 (이전 기본 공격이 빗나갔는지 여부)
+    public bool LastAttackMissed = false; // 궁수 발이부중 기믹용 (이전 기본 공격이 빗나갔는지 여부)
     public float MoveSpeedMultiplier => _cachedMoveSpeedMultiplier;
     public float TotalShield => _cachedTotalShield;
     /// <summary>유닛 등급. EnemyMinionDataSO.tier 에서 주입되고, 데이터가 없는 유닛은 Normal 로 남는다.
@@ -73,6 +73,9 @@ public class CharacterStatus : MonoBehaviour
     [Tooltip("비폭이 터질 때 쓸 원형 히트박스. 비우면 폭발이 피해를 못 준다. " +
              "(Center Skill Hitbox Circle Prefab — 콜라이더 반지름 0.5 전제)")]
     [SerializeField] private BaseHitBox bloodPopExplosionPrefab;
+#if NECRO_RENDER_BENCH
+    internal BaseHitBox BenchmarkExplosion => bloodPopExplosionPrefab;
+#endif
 
     [SerializeField] private Base_DebuffUITerminal debuffTerminal;
 
@@ -82,27 +85,25 @@ public class CharacterStatus : MonoBehaviour
 
     public void Init(CharacterStat stat)
     {
+        Unregister();
         _stat = stat;
-        if (IsEnemyTarget)
-        {
-            if (!ActiveEnemies.Contains(this)) ActiveEnemies.Add(this);
-        }
-        else
-        {
-            if (!ActiveAllies.Contains(this)) ActiveAllies.Add(this);
-        }
+        if (isActiveAndEnabled) Register();
     }
 
-    private void OnDestroy()
+    private void OnEnable() => Register();
+    private void OnDisable() => Unregister();
+
+    private void Register()
     {
-        if (ActiveEnemies.Contains(this))
-        {
-            ActiveEnemies.Remove(this);
-        }
-        if (ActiveAllies.Contains(this))
-        {
-            ActiveAllies.Remove(this);
-        }
+        if (_stat == null) return;
+        var active = IsEnemyTarget ? ActiveEnemies : ActiveAllies;
+        if (!active.Contains(this)) active.Add(this);
+    }
+
+    private void Unregister()
+    {
+        ActiveEnemies.Remove(this);
+        ActiveAllies.Remove(this);
     }
 
     private bool IsEnemyTarget => _stat != null && _stat.IsEnemy;
@@ -245,7 +246,7 @@ public class CharacterStatus : MonoBehaviour
 
     public void ApplyKnockback(Vector2 dir, float force, float duration = 0.15f, bool isIronMountain = false)
     {
-        if (HasSuperArmor) return; // [추가] 슈퍼아머 상태일 때는 넉백 불가
+        if (HasSuperArmor) return; // 슈퍼아머 상태일 때는 넉백 불가
         Rigidbody2D rb = GetComponentInParent<Rigidbody2D>();
         if (rb != null) StartCoroutine(KnockbackRoutine(rb, dir, force, duration, isIronMountain));
     }

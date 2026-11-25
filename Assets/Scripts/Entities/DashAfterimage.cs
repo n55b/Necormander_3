@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// 돌진(고속 이동) 중 스프라이트 잔상(고스트)을 남기는 컴포넌트입니다.
-/// [수정] 평타 넉백 등 돌진이 아닌 고속 이동에도 잔상이 남는 문제가 있어, AI 패턴이 BeginDash/EndDash로
+/// 평타 넉백 등 돌진이 아닌 고속 이동에도 잔상이 남는 문제가 있어, AI 패턴이 BeginDash/EndDash로
 /// 명시적으로 연 "돌진 윈도우" 동안 + speedThreshold 이상 실제 이동 중일 때만 방출하도록 변경했습니다.
 /// (TrailRenderer 대신 스프라이트 고스팅을 쓰는 이유: 캐릭터 실루엣이 남아야 "빠름"으로 읽히고,
 ///  개별 SpriteRenderer라 Y-sort 정렬과도 충돌하지 않습니다.)
@@ -32,6 +32,7 @@ public class DashAfterimage : MonoBehaviour
 
     [Tooltip("잔상으로 복사할 그림. 비우면 현재 오브젝트 또는 자식의 첫 스프라이트를 사용한다.")]
     [SerializeField] private SpriteRenderer _source;
+    private YSortableObject depthSource;
     private Rigidbody2D _rb;
     private Vector3 _lastPos;
     private float _timer;
@@ -49,6 +50,7 @@ public class DashAfterimage : MonoBehaviour
     {
         if (_source == null) _source = GetComponent<SpriteRenderer>();
         if (_source == null) _source = GetComponentInChildren<SpriteRenderer>();
+        if (_source != null) depthSource = _source.GetComponent<YSortableObject>();
         _rb = GetComponent<Rigidbody2D>();
         _lastPos = transform.position;
     }
@@ -89,11 +91,11 @@ public class DashAfterimage : MonoBehaviour
         float rbSpeed = _rb != null ? _rb.linearVelocity.magnitude : 0f;
         if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Afterimage)) return;
 
-        // [수정] 속도만으로 자동 발동하던 기존 방식은 평타 넉백 등 돌진이 아닌 고속 이동에도
+        // 속도만으로 자동 발동하던 기존 방식은 평타 넉백 등 돌진이 아닌 고속 이동에도
         // 잔상이 남는 문제가 있어, "돌진 윈도우(BeginDash~EndDash)가 열려 있는 동안" +
         // "실제로 빠르게 움직이는 중"일 때만 방출하도록 변경했습니다.
         bool inDashWindow = Time.time < _dashWindowUntil;
-        bool emitting = ForceEmit || (inDashWindow && Mathf.Max(posSpeed, rbSpeed) >= speedThreshold);
+        bool emitting = (ForceEmit || inDashWindow) && posSpeed > .01f && Mathf.Max(posSpeed, rbSpeed) >= speedThreshold;
 
         if (!emitting)
         {
@@ -123,8 +125,8 @@ public class DashAfterimage : MonoBehaviour
         t.SetPositionAndRotation(_source.transform.position, _source.transform.rotation);
         t.localScale = _source.transform.lossyScale;
 
-        ghost.sortingLayerID = _source.sortingLayerID;
-        ghost.sortingOrder = _source.sortingOrder - 1; // 본체 바로 뒤
+        ghost.GetComponent<YSortableObject>().SetGroundPoint(
+            depthSource != null ? depthSource.GroundPosition : transform.position, -1);
 
         StartCoroutine(FadeAndRecycle(ghost));
     }
@@ -133,6 +135,7 @@ public class DashAfterimage : MonoBehaviour
     {
         GameObject go = new GameObject(name + "_Ghost");
         SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+        go.AddComponent<YSortableObject>().CastsGroundShadow = false;
         if (fadeMaterial != null) sr.sharedMaterial = fadeMaterial;
         _spawned.Add(sr);
         return sr;

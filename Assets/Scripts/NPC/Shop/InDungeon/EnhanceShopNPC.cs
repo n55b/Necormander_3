@@ -23,11 +23,14 @@ public class EnhanceShopNPC : NPCBase
 
     private GameObject _bubble;
     private Tooltip _tooltip;
+    private EquipmentInventoryManager observedInventory;
 
     private bool UnlimitedEnhancements => GameManager.Instance != null && GameManager.Instance.testMode_UnlimitedShopEnhancements;
     private bool UpgradeLimitReached => _used && !UnlimitedEnhancements;
 
-    public override string InteractionPrompt => UpgradeLimitReached ? "이 상점에서 강화 완료" : $"F : 장비 강화 ({CurrentCost()}G)";
+    public override string InteractionPrompt => EquippedOrNull()?.baseData == null ? "장비 없음" :
+        !EquipmentInventoryManager.Instance.CanEnhanceEquipped() ? "최종 장비" :
+        UpgradeLimitReached ? "강화 완료" : $"F : 장비 강화 ({CurrentCost()}G)";
 
     // ─── 강화 ─────────────────────────────────────────────────────────
     public override bool Interact(GameObject interactor)
@@ -81,23 +84,29 @@ public class EnhanceShopNPC : NPCBase
                 }
                 else
                 {
-                    FloatingTextManager.ShowNotice($"골드 부족 · 필요 {cost}G / 보유 {inv.GOLD}G", Color.yellow, transform);
+                    FloatingTextManager.ShowNotice($"골드 부족 · 필요 {cost}G / 보유 {inv.GOLD}G", Color.yellow, transform, preset: "Warning");
                     UISoundSettings.PlayCue(UISoundSettings.Cue.PurchaseFail);
                 }
             }
             CloseSelection();
             RefreshBubble();
-        }, CloseSelection);
+        }, CloseSelection, "Choice_Upgrade");
         return true;
     }
 
     private void CloseSelection()
     {
-        if (_isOpen && _ui != null) _ui.Hide();
+        if (!_isOpen) return;
         _isOpen = false;
+        if (isActiveAndEnabled) GetComponentInParent<RoomInstance>()?.FinishShopVisit();
+        if (_ui != null) _ui.Hide();
     }
 
-    private void OnDisable() => CloseSelection();
+    private void OnDisable()
+    {
+        HideBubble();
+        CloseSelection();
+    }
     private void OnDestroy()
     {
         CloseSelection();
@@ -147,13 +156,25 @@ public class EnhanceShopNPC : NPCBase
         {
             _bubble = Instantiate(bubblePrefab, bubbleCanvas.transform);
             _tooltip = _bubble.GetComponent<Tooltip>();
+            var rect = (RectTransform)_bubble.transform;
+            rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.one * .5f;
+            rect.anchoredPosition = Vector2.zero;
+            PixelText.Configure(_tooltip.name, 12);
+            _bubble.AddComponent<GroundRewardLabel>().Bind(_tooltip, GetComponent<SpriteRenderer>());
+        }
+        if (observedInventory == null && EquipmentInventoryManager.Instance != null)
+        {
+            observedInventory = EquipmentInventoryManager.Instance;
+            observedInventory.OnEquipmentUpdated += RefreshBubble;
         }
         RefreshBubble();
     }
 
     private void HideBubble()
     {
-        if (_bubble != null) Destroy(_bubble);
+        if (observedInventory != null) observedInventory.OnEquipmentUpdated -= RefreshBubble;
+        observedInventory = null;
+        if (_bubble != null) { _bubble.SetActive(false); Destroy(_bubble); }
         _bubble = null;
         _tooltip = null;
         if (bubbleCanvas != null) bubbleCanvas.SetActive(false);
@@ -167,17 +188,10 @@ public class EnhanceShopNPC : NPCBase
         var psi = EquipmentInventoryManager.Instance;
         var eq = EquippedOrNull();
 
-        if (eq == null || eq.baseData == null)
-        {
-            if (_tooltip.name != null) _tooltip.name.text = "장비 강화";
-            if (_tooltip.price != null) _tooltip.price.text = "장비 없음";
-            return;
-        }
-
-        if (_tooltip.name != null)
-            _tooltip.name.text = eq.baseData.equipmentName;
-
-        if (_tooltip.price != null)
-            _tooltip.price.text = UpgradeLimitReached ? "강화 완료" : (psi != null && psi.CanEnhanceEquipped()) ? $"{CurrentCost()}G" : "최종 장비";
+        bool equipped = eq != null && eq.baseData != null;
+        string title = equipped ? eq.baseData.equipmentName : "장비 강화";
+        string status = !equipped ? "장비 없음" : !psi.CanEnhanceEquipped() ? "최종 장비" :
+            UpgradeLimitReached ? "강화 완료" : $"{CurrentCost()}G";
+        _tooltip.name.text = $"{title}\n{status}";
     }
 }

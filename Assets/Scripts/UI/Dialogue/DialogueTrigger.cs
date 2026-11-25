@@ -71,7 +71,15 @@ public class DialogueTrigger : MonoBehaviour
             return;
         }
 
-        DialogueUI.Instance.Play(dialogueId, () => onDialogueComplete?.Invoke());
+        bool began = false;
+        DialogueUI.Instance.Play(dialogueId, () =>
+        {
+            if (this == null) return;
+            if (began && (GetComponentInParent<ShopNPC>() != null || GetComponentInParent<EnhanceShopNPC>() != null))
+                GetComponentInParent<RoomInstance>()?.FinishShopVisit();
+            onDialogueComplete?.Invoke();
+        });
+        began = DialogueUI.Instance.IsPlaying;
     }
 
     /// <summary>playOnce 를 다시 열어준다. 런 재시작 같은 데서 쓸 것.</summary>

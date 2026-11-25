@@ -19,6 +19,7 @@ private MeleeDodgeController  _dodge;
     private CharacterHealth       _health;
     private bool                  _initialized;
     private int                   _playerLayer = -1;
+    private (long id, int pulse, int hit, int frame) lastAreaSound;
 
     // ─────────────────────────────────────────────────────────────────
 private void Awake()
@@ -90,6 +91,12 @@ private void OnMeleeAttack(int comboStep)
         var stat = target.GetComponent<CharacterStat>();
         if (stat != null && !stat.IsEnemy) return;
 
+        if (info.pulseTargetCount > 1)
+        {
+            var key = (info.impactId, info.impactPulse, info.feedbackHitIndex, Time.frameCount);
+            if (key == lastAreaSound) return;
+            lastAreaSound = key;
+        }
         SoundManager.Instance.PlaySFX(soundData.GetHitClip(), soundData.hitVolume);
     }
 

@@ -9,6 +9,7 @@ public class ShopPopupSlot : MonoBehaviour
     [SerializeField] private Image icon;
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI descText;
+    [SerializeField] private ScrollRect descriptionScroll;
     [SerializeField] private TextMeshProUGUI priceText;
     [SerializeField] private Button buyButton;
     [SerializeField] private TextMeshProUGUI buyLabel;
@@ -32,6 +33,7 @@ public class ShopPopupSlot : MonoBehaviour
         }
         if (nameText != null) nameText.text = offer.GetTitle();
         if (descText != null) descText.text = offer.GetDescription();
+        if (descriptionScroll != null) descriptionScroll.verticalNormalizedPosition = 1f;
         if (priceText != null) priceText.text = $"{offer.Price:N0} G";
 
         if (buyButton != null)

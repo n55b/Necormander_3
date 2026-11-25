@@ -91,7 +91,7 @@ public class ArcMovement : MonoBehaviour
         _isTracking = true;
         _currentDuration = 0f;
 
-        // [추가] 타겟이 도중에 파괴될 경우를 대비한 시간 기반 폴백 값 설정
+        // 타겟이 도중에 파괴될 경우를 대비한 시간 기반 폴백 값 설정
         _totalDuration = 2.0f; 
     }
 

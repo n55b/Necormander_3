@@ -171,6 +171,7 @@ MonoBehaviour:
   destroyOnFinish: 1
   isContinuousDamage: 0
   damageTickRate: 0.5
+  previewShape: 1
   fillingTransform: {fileID: 805364764901878163}
   maxFillScale: {x: 1, y: 1, z: 1}
   hitEffectPrefab: {fileID: 1982468720443373819, guid: 8d06d861d308b6343908d022f4a95489, type: 3}

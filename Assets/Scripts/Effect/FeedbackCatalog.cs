@@ -35,7 +35,9 @@ public enum FeedbackCue
     [InspectorName("99 가드 올리기")] GuardRaise,
     [InspectorName("100 엘리트 휩쓸기")] EliteSweep,
     [InspectorName("101 엘리트 도약 내려찍기")] EliteJumpLand,
-    [InspectorName("102 문에서 나올 때")] DoorEmerge
+    [InspectorName("102 문에서 나올 때")] DoorEmerge,
+    [InspectorName("103 투사체 회피 잔광")] ProjectileGraze,
+    [InspectorName("104 방의 마지막 일격")] LastEnemyImpact
 }
 
 public enum FeedbackShape { [InspectorName("방향 파편")] Rays, [InspectorName("원형 파동")] Ring, [InspectorName("작은 점")] Dots, [InspectorName("십자빛")] Cross, [InspectorName("영혼 연결선")] Link, [InspectorName("모이는 입자")] Inward, [InspectorName("반원 잔광")] Arc, [InspectorName("절단선")] Slash }
@@ -86,7 +88,7 @@ public enum ExistingFeedbackCue
     [InspectorName("걷기 연기")] WalkSmoke,
     [InspectorName("대시 연기")] DashSmoke,
     [InspectorName("대시 · 돌진 잔상")] Afterimage,
-    [InspectorName("가림 실루엣")] Silhouette,
+    [InspectorName("지형 가림 안개")] OcclusionMist,
     [InspectorName("도트 디더링")] Dither,
     [InspectorName("화면 · UI 페이드")] Fade,
     [InspectorName("UI 흔들림")] UIShake,
@@ -173,10 +175,26 @@ public class FeedbackCatalog : ScriptableObject
     public Color dirtColor = new Color(.75f,.65f,.46f,.8f);
     public Color stoneColor = new Color(.8f,.85f,.9f,.8f);
     public Color waterColor = new Color(.45f,.8f,1f,.7f);
-    [Min(0)] public float cameraForce = .25f;
-    [Range(0,.1f)] public float hitStopSeconds = .025f;
-    [Range(.05f,1)] public float slowMotionScale = .35f;
-    [Range(.02f,.5f)] public float slowMotionSeconds = .18f;
+    [InspectorName("카메라·시간 프리셋")] public ImpactProfile[] impactProfiles =
+    {
+        new ImpactProfile(ImpactKind.Normal, 1, 1, 65, 0),
+        new ImpactProfile(ImpactKind.Summon, 2, 1, 75, 0),
+        new ImpactProfile(ImpactKind.Critical, 3, 2, 100, 18),
+        new ImpactProfile(ImpactKind.Finisher, 4, 3, 120, 25),
+        new ImpactProfile(ImpactKind.PlayerHurt, 5, 3, 130, 0),
+        new ImpactProfile(ImpactKind.BossDeath, 7, 8, 340, 115),
+        new ImpactProfile(ImpactKind.BossLanding, 4, 3, 180, 0),
+        new ImpactProfile(ImpactKind.RoomFinish, 6, 5, 235, 78),
+    };
+
+    public ImpactProfile Impact(ImpactKind kind)
+    {
+        foreach (var profile in impactProfiles)
+            if (profile != null && profile.kind == kind) return profile;
+        return null;
+    }
+    [Range(.05f,1)] public float slowMotionScale = .09f;
+    [Range(.02f,1.2f)] public float slowMotionSeconds = 1.08f;
     private Dictionary<FeedbackCue, FeedbackRecipe> _effectLookup;
     private Dictionary<ExistingFeedbackCue, ExistingFeedbackEntry> _existingLookup;
     private FeedbackRecipe[] _cachedEffects;

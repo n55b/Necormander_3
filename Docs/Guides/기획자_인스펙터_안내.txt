@@ -59,7 +59,7 @@ Assets/Prefabs/Effect/Combat/Hit/Slash Impact.prefab → ImpactFeedback
 - 수명 비율 0.65는 전체 수명의 65% 지점에 해당 요소가 사라진다는 뜻이다.
 
 피격 반응과 데미지 숫자
-- CharacterVisualFeedback: 피격 섬광, 색 변화 시간, 플레이어 피격 히트스톱, 화면 가장자리 색 변화 시간.
+- CharacterVisualFeedback: 피격 섬광, 색 변화 시간, 화면 가장자리 색 변화 시간.
 - TextFloating: 숫자 흩어짐, 일반/치명타 확대·위치·회전 시간, 반동 횟수와 강도.
 - 옛 punchDuration/CiriPunchDuration은 이름과 달리 ‘시간’이 아니라 ‘튀는 크기’였다. 인스펙터에 실제 역할로 표시했다.
 - 이번에 꺼낸 모든 값의 초기값은 기존 코드의 숫자와 같다. 초기 게임 템포는 바뀌지 않는다.

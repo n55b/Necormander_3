@@ -23,8 +23,8 @@ public sealed class ExistingFeedbackCatalogEditor
     public void Draw(SerializedObject serialized, string search)
     {
         EditorGUILayout.Space();
-        EditorGUILayout.LabelField("기존 연출 — 원본 값 그대로 조절", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("대상을 고르면 기존 프리팹·재질의 실제 값을 여기서 편집합니다. 다른 개체의 설정은 덮어쓰지 않습니다. 에셋 수정은 저장되며, 이미 생성된 개체에는 다시 생성할 때 반영됩니다. 사용 체크는 실행 중인 연출에도 적용됩니다.", MessageType.None);
+        EditorGUILayout.LabelField("기존 연출 — 원본 값 그대로 조절", KoreanEditorText.Style(EditorStyles.boldLabel));
+        KoreanEditorText.Help("대상을 고르면 기존 프리팹·재질의 실제 값을 여기서 편집합니다. 다른 개체의 설정은 덮어쓰지 않습니다. 에셋 수정은 저장되며, 이미 생성된 개체에는 다시 생성할 때 반영됩니다. 사용 체크는 실행 중인 연출에도 적용됩니다.", MessageType.None);
         if (GUILayout.Button("기존 연출 연결 목록 새로고침 (수치 유지)"))
         {
             serialized.ApplyModifiedProperties();
@@ -44,13 +44,13 @@ public sealed class ExistingFeedbackCatalogEditor
                 if (GUILayout.Button(entry.isExpanded ? "접기" : "조절", GUILayout.Width(44))) entry.isExpanded = !entry.isExpanded;
             }
             if (!entry.isExpanded) continue;
-            EditorGUILayout.HelpBox(entry.FindPropertyRelative("description").stringValue, MessageType.None);
+            KoreanEditorText.Help(entry.FindPropertyRelative("description").stringValue, MessageType.None);
             var sources = entry.FindPropertyRelative("sources");
             var candidates = new List<Object>();
             for (int j = 0; j < sources.arraySize; j++)
             {
                 var source = sources.GetArrayElementAtIndex(j).objectReferenceValue;
-                if (source != null) candidates.Add(source);
+                if (source != null && (cue != ExistingFeedbackCue.HitStop && cue != ExistingFeedbackCue.CameraShake || source is SceneAsset || Matches(source, cue))) candidates.Add(source);
             }
             if (candidates.Count == 0) { EditorGUILayout.LabelField("연결된 원본 없음 — 새로고침으로 다시 찾습니다."); continue; }
             Object selected = Select((int)cue, candidates);
@@ -62,7 +62,7 @@ public sealed class ExistingFeedbackCatalogEditor
                 {
                     using (new EditorGUI.DisabledScope(Application.isPlaying))
                         if (GUILayout.Button("이 씬 설정 불러오기 (현재 씬 유지)")) EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
-                    EditorGUILayout.HelpBox("씬에 직접 배치된 카메라/히트스톱 설정입니다. 씬을 추가로 열면 아래에서 수정할 수 있습니다.", MessageType.None);
+                    KoreanEditorText.Help("씬에 직접 배치된 카메라/히트스톱 설정입니다. 씬을 추가로 열면 아래에서 수정할 수 있습니다.", MessageType.None);
                     continue;
                 }
                 var components = scene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren<Component>(true))
@@ -100,8 +100,7 @@ public sealed class ExistingFeedbackCatalogEditor
     {
         string[] fields = null;
         if (source is CharacterVisualFeedback)
-            fields = cue == ExistingFeedbackCue.HitStop ? new[] { "playerHitStopDuration" }
-                : new[] { "hitFlashStrength", "hitFlashDuration", "tintFlashDuration", "playerHurtVignetteDuration" };
+            fields = new[] { "hitFlashStrength", "hitFlashDuration", "tintFlashDuration", "playerHurtVignetteDuration" };
         else if (source is SkillSO)
             fields = cue == ExistingFeedbackCue.HitStop ? new[] { "hitStopDuration" } : new[] { "shakeForce" };
         else if (source is AutoDestroyEffect) fields = new[] { "playbackSpeed" };
@@ -131,16 +130,15 @@ public sealed class ExistingFeedbackCatalogEditor
             case ExistingFeedbackCue.Squash: return obj is VisualSquashStretch;
             case ExistingFeedbackCue.Flash: return obj is CharacterVisualFeedback;
             case ExistingFeedbackCue.Afterimage: return obj is DashAfterimage;
-            case ExistingFeedbackCue.Silhouette: return obj is PlayerOcclusionSilhouette;
+            case ExistingFeedbackCue.OcclusionMist: return obj is PlayerOcclusionMist;
             case ExistingFeedbackCue.Fade: return obj is Fader;
             case ExistingFeedbackCue.UIShake: return obj is UIShaker;
-            case ExistingFeedbackCue.CameraShake: return obj is CameraManager || obj is CameraShaker || obj is SkillSO
-                || obj is Unity.Cinemachine.CinemachineImpulseSource || obj is Unity.Cinemachine.CinemachineImpulseListener;
-            case ExistingFeedbackCue.HitStop: return obj is HitStopManager || obj is CharacterVisualFeedback || obj is SkillSO;
+            case ExistingFeedbackCue.CameraShake: return obj is SkillSO;
+            case ExistingFeedbackCue.HitStop: return obj is HitStopManager || obj is SkillSO;
             case ExistingFeedbackCue.DoorOutline:
             case ExistingFeedbackCue.FloorPortal:
             case ExistingFeedbackCue.ExecutionLane: return obj is AmbientOutlinePulse pulse && pulse.CatalogCue == cue;
-            case ExistingFeedbackCue.TreeMotion: return obj is AmbientAnimationPhase;
+            case ExistingFeedbackCue.TreeMotion: return obj is TreeCanopyWind;
             default: return false;
         }
     }
@@ -199,7 +197,7 @@ public sealed class ExistingFeedbackCatalogEditor
             sources[ExistingFeedbackCue.HitStop].Add(skill);
         }
         // 씬 개체를 에셋에 참조할 수 없으므로 SceneAsset을 등록하고 편집 시 실제 개체를 찾는다.
-        var sceneTypes = new[] { typeof(CameraManager), typeof(CameraShaker), typeof(HitStopManager), typeof(Fader), typeof(UIShaker) };
+        var sceneTypes = new[] { typeof(CameraManager), typeof(HitStopManager), typeof(Fader), typeof(UIShaker) };
         foreach (var type in sceneTypes)
         {
             string scriptGuid = AssetDatabase.FindAssets(type.Name + " t:MonoScript").FirstOrDefault(g => AssetDatabase.LoadAssetAtPath<MonoScript>(AssetDatabase.GUIDToAssetPath(g)).GetClass() == type);

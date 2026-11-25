@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6201529517065701347}
   - component: {fileID: 6584502717348292046}
   - component: {fileID: 7428977081107129712}
+  - component: {fileID: 7015620095300018316}
   m_Layer: 0
   m_Name: Bush
   m_TagString: Untagged
@@ -75,9 +76,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 1755609611
+  m_SortingLayerID: 0
   m_SortingLayer: -1
-  m_SortingOrder: 1
+  m_SortingOrder: 0
   m_Sprite: {fileID: 3959975145488730994, guid: a407db584a7e9b644bd198b570b8d435, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -127,3 +128,17 @@ MonoBehaviour:
   visibleDistance: 12
   touchDistance: 1
   offset: {x: 0, y: 0, z: 0}
+--- !u!114 &7015620095300018316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8914388676162735184}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  pivotOverride: {fileID: 0}
+  sortingGroup: {fileID: 0}

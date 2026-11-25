@@ -82,6 +82,7 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
         _onComplete = onComplete;
         _open = true;
         gameObject.SetActive(true);
+        PixelViewport.FitLogicalFrame((RectTransform)transform);
         // Modal 로 panel 을 등록한다(예전엔 싱글톤 루트를 등록해서 닫힐 때 루트째 꺼졌다). 주머니·장착 정보는 매니저가 닫는다.
         if (UIPopUpManager.Instance != null) UIPopUpManager.Instance.Open(panel, UIPopUpManager.Layer.Modal, OnPanelClosed);
         else panel.SetActive(true);
@@ -114,10 +115,11 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
         bool blocked = CandidateBlocked;
         currentCard.gameObject.SetActive(current != null);
         if (current != null) currentCard.SetData(current.minionIcon, current.minionName,
-            $"슬롯 {_targetSlot + 1} 교체 대상 (클릭하여 슬롯 변경)");
+            $"슬롯 {_targetSlot + 1} · 클릭하여 교체 대상 변경", current.rewardItemData?.localizedItemName);
         candidateCard.SetData(candidate != null ? candidate.minionIcon : null,
             candidate != null ? candidate.minionName : "",
-            blocked ? "같은 소환수를 이미 장착 중" : current != null ? "교체 후보" : "클릭하여 습득");
+            blocked ? "같은 소환수를 이미 장착 중" : current != null ? "교체 후보" : "클릭하여 습득",
+            candidate != null ? candidate.rewardItemData?.localizedItemName : null);
         var anchor = current != null ? candidateAnchor : singleCardAnchor;
         if (anchor != null) candidateCard.transform.position = anchor.position;
         comparisonTarget.SetActive(current != null);
@@ -152,8 +154,8 @@ public class MainMinionSelectionUI : Singleton<MainMinionSelectionUI>
         bool right = show && candidate != null && (kind == MainMinionSelectionAction.ActionKind.Candidate || kind == MainMinionSelectionAction.ActionKind.Compare);
         currentDetails.gameObject.SetActive(left);
         candidateDetails.gameObject.SetActive(right);
-        if (left) currentDetails.SetData(current.minionIcon, current.minionName, Describe(current));
-        if (right) candidateDetails.SetData(candidate.minionIcon, candidate.minionName, Describe(candidate));
+        if (left) currentDetails.SetData(current.minionIcon, current.minionName, Describe(current), current.rewardItemData?.localizedItemName);
+        if (right) candidateDetails.SetData(candidate.minionIcon, candidate.minionName, Describe(candidate), candidate.rewardItemData?.localizedItemName);
     }
 
     /// <summary>현재 카드 클릭: 슬롯 2칸이 찼을 때 교체할 슬롯을 바꾼다.</summary>

@@ -26,7 +26,7 @@ public class InventoryManager : MonoBehaviour
         {
             if (EquippedMinion != null)
             {
-                // [수정] rewardItemData가 비어있어도(미할당) 미니언 자체 정보(minionName/minionIcon)로 대체하여
+                // rewardItemData가 비어있어도(미할당) 미니언 자체 정보(minionName/minionIcon)로 대체하여
                 // 이미 장착된 미니언이 '비어있음'으로 잘못 표시되는 버그를 방지합니다.
                 var baseData = EquippedMinion.rewardItemData;
                 string finalName = (baseData != null && !string.IsNullOrEmpty(baseData.itemName)) ? baseData.itemName : EquippedMinion.minionName;
@@ -203,7 +203,7 @@ public class InventoryManager : MonoBehaviour
     [Tooltip("진화에 필요한 강화 단계(모든 소환수 공통). 소환수별로 다르게 하려면\n" +
              "MainMinionDataSO.evolveRequiredLevelOverride 를 쓴다. 0 이면 강화 없이 바로 진화할 수 있다.\n" +
              "소환수의 최대 강화 단계보다 크게 넣어도 최대 단계로 잘린다(진화가 막히지 않게).")]
-    [SerializeField, Min(0)] private int defaultEvolveRequiredLevel = 0; // [26/10/22] 강화 없이 첫 보상방에서 바로 진화
+    [SerializeField, Min(0)] private int defaultEvolveRequiredLevel = 0; // 강화 없이 첫 보상방에서 바로 진화
 
     [Tooltip("진화하면 강화 단계를 0 으로 되돌린다(진화형은 자기 강화표로 다시 쌓는다).\n" +
              "끄면 단계를 이어받는다(진화형의 최대 단계를 넘으면 잘린다).")]
@@ -256,6 +256,12 @@ public class InventoryManager : MonoBehaviour
 
     public System.Action OnMinionUpdated;
 
+    private void OnDestroy()
+    {
+        OnMinionUpdated = null;
+        if (Instance == this) Instance = null;
+    }
+
     [Header("보물 인벤토리 (중첩)")]
     public Dictionary<TreasureSO, int> TreasureStacks = new Dictionary<TreasureSO, int>();
 
@@ -293,10 +299,10 @@ public class InventoryManager : MonoBehaviour
             EquipMinion(debugStartingMinions[i], qty);
         }
 
-        // [수정] 유저 요청에 의해 미니언이 없을 때 기본 전사 1마리를 추가하는 로직을 제거(주석 처리)합니다.
+        // 유저 요청에 의해 미니언이 없을 때 기본 전사 1마리를 추가하는 로직을 제거(주석 처리)합니다.
         // if (!Slots.Exists(s => s.EquippedMinion != null)) AddMinionOrIncreaseQuantity(CommandData.SkeletonWarrior);
 
-        // [추가] 디버그용 시작 미니언 적재가 끝나면 갱신 이벤트를 격발하여 동기화시킵니다.
+        // 디버그용 시작 미니언 적재가 끝나면 갱신 이벤트를 격발하여 동기화시킵니다.
         OnMinionUpdated?.Invoke();
     }
 
@@ -311,8 +317,6 @@ public class InventoryManager : MonoBehaviour
     public void AddGold(int amount)
     {
         gold += amount;
-        if (amount > 0 && PolishFeedback.Player != null)
-            PolishFeedback.PlaySound(FeedbackCue.GoldPickup, PolishFeedback.Player.transform.position);
     }
 
     /// <summary>골드를 '획득'한다. 더한 뒤 증강 방 보상처럼 플레이어 앞에 "+NG" 텍스트를 띄운다.</summary>
@@ -326,7 +330,17 @@ public class InventoryManager : MonoBehaviour
     /// <summary>증강 보상 텍스트와 같은 공용 경로(FloatingTextManager.ShowOnPlayer)로 띄운다.
     /// 증강 방 골드 보상이 기본 골드와 합산한 금액을 한 번만 띄울 때도 쓴다(ActiveAugment).</summary>
     public void ShowGoldGainText(int amount)
-        => FloatingTextManager.ShowOnPlayer(string.Format(goldGainTextFormat, amount), goldGainTextColor);
+    {
+        var player = PolishFeedback.Player;
+        if (player != null && amount > 0)
+        {
+            var origin = PolishFeedback.RewardOrigin(player.transform.position);
+            WorldSparkField.Emit(WorldSparkField.Kind.Coin, origin, Vector2.up, 8);
+            FeedbackOverlay.Instance?.Pulse(FeedbackCue.GoldPickup, origin);
+            PolishFeedback.PlaySound(FeedbackCue.GoldPickup, player.transform.position);
+        }
+        FloatingTextManager.ShowOnPlayer(string.Format(goldGainTextFormat, amount), goldGainTextColor);
+    }
 
 #if UNITY_EDITOR
     /// <summary>인스펙터에서 형식 문자열을 잘못 넣으면(예: {1}) 런타임 FormatException 대신 여기서 경고하고 되돌린다.</summary>
@@ -454,6 +468,7 @@ public class InventoryManager : MonoBehaviour
         data.activeSummonSlot = activeSummonSlot;
 
         // Slots 저장
+        data.slots ??= new List<CoreSlotSaveData>();
         data.slots.Clear();
         foreach (var slot in Slots)
         {
@@ -466,6 +481,7 @@ public class InventoryManager : MonoBehaviour
         }
 
         // Treasures 저장
+        data.treasures ??= new List<TreasureSaveData>();
         data.treasures.Clear();
         foreach (var kvp in TreasureStacks)
         {
@@ -478,46 +494,33 @@ public class InventoryManager : MonoBehaviour
 
     }
 
-    public void LoadFromData(SaveData data)
+    internal void LoadFromData(SaveData data, GrowthRegistrySO registry)
     {
-        gold = data.gold;
-        augmentMaxHpBonus = data.augmentMaxHpBonus; // 증강 도입 전 세이브는 0 → 보정 없음
-
-        var registry = GameManager.Instance.dataManager.GET_GROWTH_REGISTRY();
         if (registry == null)
         {
-            Debug.LogError("[InventoryManager] GrowthRegistrySO is missing during LoadFromData!");
+            Debug.LogError("[InventoryManager] GrowthRegistrySO is missing during LoadFromData.");
             return;
         }
 
-        // Slots 로드
-        Slots.Clear();
-        for (int i = 0; i < data.slots.Count; i++)
-        {
-            var slotData = data.slots[i];
-            var coreSlot = new CoreSlot();
-            coreSlot.IsShattered = slotData.isShattered;
+        gold = data.gold;
+        augmentMaxHpBonus = data.augmentMaxHpBonus;
 
-            if (!string.IsNullOrEmpty(slotData.equippedMinionName))
+        Slots.Clear();
+        int savedSlotCount = data.slots?.Count ?? 0;
+        for (int i = 0; i < SLOT_COUNT; i++)
+        {
+            var slotData = i < savedSlotCount ? data.slots[i] : null;
+            var coreSlot = new CoreSlot();
+            if (slotData != null)
             {
-                // 에셋 이름으로 정확히 복원한다 (직업으로 찾으면 A/B/C 배리언트가 붕괴됨).
-                coreSlot.EquippedMinion = registry.minionDatas.Find(m => m != null && m.name == slotData.equippedMinionName)
-                        // [26/10/22] 에셋 이름을 바꾼 소환수는 예전 이름으로 저장된 세이브도 찾아 준다.
-                        ?? registry.minionDatas.Find(m => m is MainMinionDataSO mm && mm.MatchesSaveKey(slotData.equippedMinionName));
-                if (coreSlot.EquippedMinion == null)
+                coreSlot.IsShattered = slotData.isShattered;
+                coreSlot.EquippedMinion = registry.ResolveSavedMinion(slotData.equippedMinionName);
+                coreSlot.Quantity = slotData.quantity;
+                if (coreSlot.EquippedMinion == null && !string.IsNullOrEmpty(slotData.equippedMinionName))
                     Debug.LogWarning($"<color=orange>[InventoryManager]</color> 세이브의 미니언 '{slotData.equippedMinionName}' 을 GrowthRegistry 에서 찾지 못했습니다. 슬롯을 비웁니다.");
             }
-
-
-            coreSlot.Quantity = slotData.quantity;
             Slots.Add(coreSlot);
         }
-        // 소환수 2칸 보장.
-        while (Slots.Count < SLOT_COUNT)
-        {
-            Slots.Add(new CoreSlot());
-        }
-        if (Slots.Count > SLOT_COUNT) Slots.RemoveRange(SLOT_COUNT, Slots.Count - SLOT_COUNT);
 
         // 세이브는 슬롯 순서대로 이름만 복원할 뿐 검증하지 않는다. 장착 경로를 우회하므로 여기서 거른다.
         for (int i = 0; i < Slots.Count; i++)
@@ -539,14 +542,14 @@ public class InventoryManager : MonoBehaviour
         summonEnhanceLevels[SLOT_MAIN] = first != null ? Mathf.Clamp(data.mainSummonEnhanceLevel, 0, first.MaxEnhanceLevel) : 0;
         summonEnhanceLevels[SLOT_SECOND] = second != null ? Mathf.Clamp(data.secondSummonEnhanceLevel, 0, second.MaxEnhanceLevel) : 0;
 
-        // Treasures 로드
         TreasureStacks.Clear();
-        foreach (var treasureData in data.treasures)
+        if (data.treasures != null)
         {
-            var treasure = registry.treasures.Find(t => t.name == treasureData.treasureSOAddress || t.itemName == treasureData.treasureSOAddress);
-            if (treasure != null)
+            foreach (var treasureData in data.treasures)
             {
-                TreasureStacks[treasure] = treasureData.stackCount;
+                if (treasureData == null) continue;
+                var treasure = registry.ResolveSavedTreasure(treasureData.treasureSOAddress);
+                if (treasure != null) TreasureStacks[treasure] = treasureData.stackCount;
             }
         }
 

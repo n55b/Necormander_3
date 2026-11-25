@@ -146,7 +146,10 @@ public class TitleCrystalBall : MonoBehaviour, IMaterialModifier
                 target = Vector2.ClampMagnitude((mousePx - restPx) / (settings.lookRadius * art.y), 1f);
 
             float t = Time.unscaledTime * settings.idleBobSpeed;
-            target += new Vector2(Mathf.Sin(t * 0.7f), 0.0f) * settings.idleBob;
+            target *= .36f;
+            if (UISkinSettings.MotionOn)
+                target += new Vector2(.42f * Mathf.Sin(t * .73f), Mathf.Sin(t)) * settings.idleBob;
+            else target = Vector2.zero;
             target = Vector2.ClampMagnitude(target, 1f);
 
             _look = Vector2.SmoothDamp(_look, target, ref _lookVelocity, settings.smoothTime, Mathf.Infinity, Time.unscaledDeltaTime);
@@ -193,10 +196,10 @@ public class TitleCrystalBall : MonoBehaviour, IMaterialModifier
         _mat.SetColor(BgColorId, s.backgroundColor);
         _mat.SetVector(OutsideId, new Vector4(s.outsideBrightness, s.outsideFade * h, s.outsideFadeCurve, 0));
 
-        // 각 층을 서로 다른 양만큼 이동. 픽셀 격자에 맞춰 반올림 → 도트가 흔들리지 않음
+        // 각 층이 시선에 따라 서로 다른 거리만큼 움직인다.
         Vector2 restPx = new Vector2(s.orbCenter.x * art.x, s.orbCenter.y * art.y);
-        Vector2 orbPx = Snap(restPx + _look * (s.orbMove * h));
-        Vector2 pan = Snap(_look * (s.imagePan * h));
+        Vector2 orbPx = restPx + _look * (s.orbMove * h);
+        Vector2 pan = _look * (s.imagePan * h);
         float orbR = s.orbRadius * h;
 
         _mat.SetVector(OrbId, new Vector4(orbPx.x, orbPx.y, orbR, 0));
@@ -209,11 +212,10 @@ public class TitleCrystalBall : MonoBehaviour, IMaterialModifier
 
     private Vector4 LayerVector(TitleCrystalBallSettingsSO.GlassLayer l, Vector2 orbPx, float orbR, float h)
     {
-        Vector2 c = Snap(orbPx + l.offset * orbR + _look * (l.parallax * h));
+        Vector2 c = orbPx + l.offset * orbR + _look * (l.parallax * h);
         return new Vector4(c.x, c.y, l.radius * orbR, l.enabled ? l.alpha : 0f);
     }
 
-    private static Vector2 Snap(Vector2 v) => new Vector2(Mathf.Round(v.x), Mathf.Round(v.y));
 
     /// <summary>마우스 위치를 그림 픽셀 좌표로.</summary>
     private bool TryGetMouseArtPx(Vector2 art, out Vector2 artPx)
@@ -222,9 +224,10 @@ public class TitleCrystalBall : MonoBehaviour, IMaterialModifier
         if (Mouse.current == null) return false;
 
         var canvas = _image.canvas;
-        Camera cam = (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay) ? canvas.worldCamera : null;
+        Camera cam = PixelViewport.CanvasCamera(canvas);
         RectTransform rt = _image.rectTransform;
-        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(rt, Mouse.current.position.ReadValue(), cam, out Vector2 local))
+        var pointer = PixelViewport.PointerForCanvas(canvas, Mouse.current.position.ReadValue());
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(rt, pointer, cam, out Vector2 local))
             return false;
 
         Rect rect = rt.rect;

@@ -14,7 +14,6 @@ public static class InventoryUISetup
     private const string Picker = "Assets/Prefabs/UI/Hand Slot Selection/HandSlotSelectionUI.prefab";
     private const string Card = "Assets/Prefabs/UI/Reward Selection/RewardCard 1.prefab";
     private const string Ground = "Assets/Resources/GroundItem.prefab";
-    private static TMP_FontAsset _font;
     private static Sprite _panelSprite;
     private static Color _panelColor;
 
@@ -23,7 +22,6 @@ public static class InventoryUISetup
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
         var original = AssetDatabase.LoadAssetAtPath<GameObject>(Explain);
-        _font = original.GetComponentInChildren<TextMeshProUGUI>(true).font;
         var style = original.GetComponentsInChildren<Image>(true).First(i => i.sprite != null);
         _panelSprite = style.sprite;
         _panelColor = new Color(0.10f, 0.12f, 0.15f, 0.96f);
@@ -84,25 +82,33 @@ public static class InventoryUISetup
         ClearChildren(root.transform);
         RemoveLayout(root);
         FullScreen((RectTransform)root.transform);
-        var panel = Rect(root.transform, "MinionSelection", Vector2.zero, new Vector2(900, 500));
-        var current = MinionCard(panel, "Current", new Vector2(-160, 20));
-        var candidate = MinionCard(panel, "Candidate", new Vector2(160, 20));
-        var leftDetails = Slot(panel, "CurrentDetails", new Vector2(-245, 20), new Vector2(440, 370));
-        var rightDetails = Slot(panel, "CandidateDetails", new Vector2(245, 20), new Vector2(440, 370));
+        var panel = Rect(root.transform, "MinionSelection", Vector2.zero, new Vector2(640, 360));
+        panel.gameObject.AddComponent<Image>().color = new Color(.064f,.051f,.103f,.80f);
+        var current = MinionCard(panel, "Current", new Vector2(-120, 12));
+        var candidate = MinionCard(panel, "Candidate", new Vector2(120, 12));
+        var leftDetails = Slot(panel, "CurrentDetails", new Vector2(-152, 12), new Vector2(250, 238));
+        var rightDetails = Slot(panel, "CandidateDetails", new Vector2(152, 12), new Vector2(250, 238));
         foreach (var detail in new[] { leftDetails, rightDetails })
         {
-            var image = detail.gameObject.AddComponent<Image>(); image.sprite = _panelSprite; image.type = Image.Type.Sliced; image.color = _panelColor;
+            var image = detail.gameObject.AddComponent<Image>(); image.color = new Color(.16f,.14f,.20f,1);
+            var title = detail.transform.Find("Title").GetComponent<TextMeshProUGUI>();
+            var description = detail.transform.Find("Description").GetComponent<TextMeshProUGUI>();
+            Place((RectTransform)detail.transform.Find("Icon"),new Vector2(-100,96),new Vector2(24,24));
+            Place(title.rectTransform,new Vector2(15,96),new Vector2(188,28));
+            Place(description.rectTransform,new Vector2(0,-13),new Vector2(226,189));
+            PixelText.Configure(title,15); PixelText.Configure(description,12);
+            description.lineSpacing = 6;
             foreach (var graphic in detail.GetComponentsInChildren<Graphic>()) graphic.raycastTarget = false;
         }
-        var compare = Background(panel, "CompareHover", new Vector2(0, 15), new Vector2(65, 70));
-        Text(compare, "Label", "비교", Vector2.zero, new Vector2(62, 35), 16);
+        var compare = Background(panel, "CompareHover", new Vector2(0, 12), new Vector2(44, 28));
+        Text(compare, "Label", "비교", Vector2.zero, new Vector2(42, 26), 12);
         Hook(current.gameObject, ui, MainMinionSelectionAction.ActionKind.Current);
         Hook(candidate.gameObject, ui, MainMinionSelectionAction.ActionKind.Candidate);
         Hook(compare.gameObject, ui, MainMinionSelectionAction.ActionKind.Compare);
-        var replace = HoldButton(panel, ui, "Replace", "길게 눌러 교체", new Vector2(-150, -221), MainMinionSelectionAction.ActionKind.Replace);
-        HoldButton(panel, ui, "Skip", "길게 눌러 넘기기", new Vector2(150, -221), MainMinionSelectionAction.ActionKind.Skip);
-        var singleAnchor = Rect(panel, "SingleCardAnchor", new Vector2(0, 20), Vector2.zero);
-        var candidateAnchor = Rect(panel, "CandidateAnchor", new Vector2(160, 20), Vector2.zero);
+        var replace = HoldButton(panel, ui, "Replace", "1초 눌러 교체", new Vector2(-84, -126), MainMinionSelectionAction.ActionKind.Replace);
+        HoldButton(panel, ui, "Skip", "1초 눌러 넘기기", new Vector2(84, -126), MainMinionSelectionAction.ActionKind.Skip);
+        var singleAnchor = Rect(panel, "SingleCardAnchor", new Vector2(0, 12), Vector2.zero);
+        var candidateAnchor = Rect(panel, "CandidateAnchor", new Vector2(120, 12), Vector2.zero);
         Set(ui, "panel", panel.gameObject);
         Set(ui, "currentCard", current); Set(ui, "candidateCard", candidate);
         Set(ui, "currentDetails", leftDetails); Set(ui, "candidateDetails", rightDetails);
@@ -118,20 +124,23 @@ public static class InventoryUISetup
         var go = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Card), parent);
         PrefabUtility.UnpackPrefabInstance(go, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
         go.name = name;
-        Place((RectTransform)go.transform, pos, new Vector2(250, 365));
+        Place((RectTransform)go.transform, pos, new Vector2(178, 176));
         var reward = go.GetComponent<RewardCard>();
         var data = new SerializedObject(reward);
         var icon = (Image)data.FindProperty("iconImage").objectReferenceValue;
         var title = (TextMeshProUGUI)data.FindProperty("nameText").objectReferenceValue;
         var desc = (TextMeshProUGUI)data.FindProperty("descText").objectReferenceValue;
+        var scroll = data.FindProperty("descriptionScroll").objectReferenceValue as ScrollRect;
+        desc.rectTransform.SetParent(go.transform, false);
+        if (scroll != null) Object.DestroyImmediate(scroll.gameObject);
         Object.DestroyImmediate(reward);
         if (go.TryGetComponent<Button>(out var button)) Object.DestroyImmediate(button);
         RemoveLayout(go);
-        Place(icon.rectTransform, new Vector2(0, 100), new Vector2(72, 72));
-        Place(title.rectTransform, new Vector2(0, 34), new Vector2(210, 42));
-        Place(desc.rectTransform, new Vector2(0, -85), new Vector2(205, 140));
-        title.fontSize = 17; desc.fontSize = 15;
-        title.alignment = TextAlignmentOptions.Center; desc.alignment = TextAlignmentOptions.Top;
+        Place(icon.rectTransform, new Vector2(0, 53), new Vector2(48, 48));
+        Place(title.rectTransform, new Vector2(0, 6), new Vector2(154, 26));
+        Place(desc.rectTransform, new Vector2(0, -43), new Vector2(154, 69));
+        PixelText.Configure(title, 15); PixelText.Configure(desc, 12);
+        title.alignment = TextAlignmentOptions.MidlineLeft; desc.alignment = TextAlignmentOptions.TopLeft;
         foreach (var graphic in go.GetComponentsInChildren<Graphic>()) graphic.raycastTarget = false;
         go.GetComponent<Image>().raycastTarget = true;
         var slot = go.AddComponent<SkillExplainSlotUI>();
@@ -141,13 +150,13 @@ public static class InventoryUISetup
 
     private static GameObject HoldButton(Transform parent, MainMinionSelectionUI owner, string name, string label, Vector2 pos, MainMinionSelectionAction.ActionKind action)
     {
-        var rect = Background(parent, name, pos, new Vector2(265, 34));
-        var fill = Background(rect, "HoldProgress", Vector2.zero, new Vector2(265, 34)).GetComponent<Image>();
+        var rect = Background(parent, name, pos, new Vector2(154, 28));
+        var fill = Background(rect, "HoldProgress", Vector2.zero, new Vector2(154, 28)).GetComponent<Image>();
         fill.sprite = null; // 기본 UISprite의 둥근 모양 대신 바 전체를 채운다.
         fill.type = Image.Type.Simple; FullScreen(fill.rectTransform);
         fill.rectTransform.anchorMax = new Vector2(0, 1); fill.enabled = false;
         fill.color = new Color(0.2f, 0.6f, 0.85f, 0.75f); fill.raycastTarget = false;
-        Text(rect, "Label", label, Vector2.zero, new Vector2(255, 30), 15);
+        Text(rect, "Label", label, Vector2.zero, new Vector2(150, 26), 12);
         var hook = Hook(rect.gameObject, owner, action); Set(hook, "holdFill", fill);
         return rect.gameObject;
     }
@@ -179,7 +188,8 @@ public static class InventoryUISetup
     private static TextMeshProUGUI Text(Transform parent, string name, string value, Vector2 pos, Vector2 size, float fontSize)
     {
         var text = Rect(parent, name, pos, size).gameObject.AddComponent<TextMeshProUGUI>();
-        text.font = _font; text.fontSize = fontSize; text.text = value; text.color = Color.white;
+        text.fontSize = fontSize; text.text = value; text.color = Color.white;
+        PixelText.Configure(text, 0);
         text.alignment = TextAlignmentOptions.Center; text.raycastTarget = false;
         text.textWrappingMode = TextWrappingModes.Normal;
         return text;
@@ -211,9 +221,6 @@ public static class InventoryUISetup
         Edit(Picker, root =>
         {
             var panel = root.transform.Find("MinionSelection");
-            foreach (string name in new[] { "CurrentDetails", "CandidateDetails" }) Frame(panel.Find(name) as RectTransform);
-            foreach (string name in new[] { "Replace", "Skip", "CompareHover" })
-                Skin(panel.Find(name).GetComponent<Image>(), "Assets/Resources/Sprites/UI/UI.png", "UI_SkillFrame");
             foreach (string name in new[] { "Replace", "Skip" })
             {
                 var button = panel.Find(name) as RectTransform;
@@ -262,7 +269,8 @@ public static class InventoryUISetup
     [MenuItem("Tools/UI/0928/Validate inventory UI")]
     public static void Validate()
     {
-        foreach (string path in new[] { Explain, Pouch, Picker, Ground, "Assets/Resources/GroundMinion.prefab" })
+        const string groundMinion = "Assets/Resources/GroundMinion.prefab";
+        foreach (string path in new[] { Explain, Pouch, Picker, Ground, groundMinion })
         {
             var root = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (root == null) throw new Exception("누락: " + path);
@@ -272,9 +280,13 @@ public static class InventoryUISetup
                 if (!(behaviour is PouchUI || behaviour is MainMinionSelectionUI || behaviour is SkillExplainSlotUI || behaviour is GroundItem)) continue;
                 var so = new SerializedObject(behaviour); var p = so.GetIterator();
                 while (p.NextVisible(true))
-                    if (p.propertyType == SerializedPropertyType.ObjectReference && p.name != "m_Script" && p.objectReferenceValue == null
-                        && !(behaviour is GroundItem && p.name == "iconRenderer")) // 루트 SpriteRenderer를 쓰는 프리팹에서는 선택 참조다.
+                {
+                    if (behaviour is GroundItem && (p.name == "iconRenderer" ||
+                        (path == groundMinion && (p.name == "itemDropSprite" || p.name == "fallbackItemIcon"))))
+                        continue;
+                    if (p.propertyType == SerializedPropertyType.ObjectReference && p.name != "m_Script" && p.objectReferenceValue == null)
                         throw new Exception($"누락된 참조: {path}/{behaviour.name}/{p.propertyPath}");
+                }
             }
         }
         Debug.Log("[InventoryUI] VALIDATE PASS — 프리팹 실제 자식/참조 확인.");

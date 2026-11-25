@@ -36,7 +36,7 @@ namespace AstroNuts.Monsters
         [Header("디버그 · 사망 좌표 (에디터 / 개발 빌드)")]
         [InspectorName("사망 전후 좌표 로그"), SerializeField]
         [Tooltip("사망 전후 좌표와 분열체 생성 후 첫 6프레임의 몸통·물리·그림 상태를 기록합니다. 이동 판정·속도에는 영향을 주지 않습니다.")]
-        private bool logDeathPositions = true;
+        private bool logDeathPositions;
         [InspectorName("사망 후 이동 경고 거리"), SerializeField, Min(.01f)]
         [Tooltip("사망 직전 위치에서 이 거리(유닛) 이상 이동하면 해당 개체당 경고를 한 번 남깁니다.")]
         private float deathPositionWarningDistance = 1f;
@@ -48,6 +48,12 @@ namespace AstroNuts.Monsters
         private Canvas _hpCanvas;
         private bool _isDead;
         private bool _hasFinished;
+        private bool _awaitingDeathPose;
+        private int _deathStateHash;
+        private float _deathStarted;
+        private SpriteRenderer fallbackPicture;
+        private bool fadeFallback;
+        private float fallbackAlpha;
 
         private bool _traceActive, _traceWarned;
         private Vector3 _deathPosition, _previousTracePosition, _positionAfterCleanup, _furthestDeathPosition;
@@ -78,6 +84,7 @@ namespace AstroNuts.Monsters
             BeginDeathPositionTrace(); // CharacterHealth를 거치지 않는 직접 호출도 기록한다.
             SampleDeathPosition("사망 이벤트 이후");
             _isDead = true;
+            GetComponent<PixelActorMotion>()?.CancelDescent();
 
             foreach (var col in collidersToDisable)
                 if (col != null) col.enabled = false;
@@ -112,31 +119,32 @@ namespace AstroNuts.Monsters
             if (_hpCanvas != null)
                 _hpCanvas.gameObject.SetActive(false);
 
-            float delay = fallbackDelay;
-
-            if (_animator != null)
+            _deathStarted = Time.time;
+            _deathStateHash = Animator.StringToHash(ResolveDeathState());
+            if (_animator != null && _animator.isActiveAndEnabled && _animator.runtimeAnimatorController != null
+                && _animator.HasState(0, _deathStateHash))
             {
-                // [26/08/16] 배속으로 공격 모션을 재생하던 중에 죽으면 그 배속이 사망 클립까지 따라온다.
+                // 배속으로 공격 모션을 재생하던 중에 죽으면 그 배속이 사망 클립까지 따라온다.
                 // (엘리트 차저처럼 클립 길이를 예비동작에 맞추려고 Animator.speed 를 건드리는 패턴이 있다.)
                 // 느려진 채로 재생되면 fallbackDelay 안에 페이드아웃이 못 끝나고 뚝 끊긴다.
                 _animator.speed = 1f;
-                _animator.Play(ResolveDeathState(), 0, 0f);
-
-                // [26/08/18] 사망 클립이 fallbackDelay 보다 길면 연출이 중간에 잘린다
-                // (해태 Dead 는 1.2초인데 기본값은 1.0초다). 클립 길이를 읽어 더 긴 쪽을 쓴다.
-                // Play 직후엔 스테이트가 아직 반영 전이라 Update(0) 으로 한 번 밀어야 길이가 잡힌다.
-                if (_animator.isActiveAndEnabled)
+                _animator.Play(_deathStateHash, 0, 0f);
+                _awaitingDeathPose = true;
+            }
+            else
+            {
+                fallbackPicture = _baseEntity != null ? _baseEntity.SpriteRenderer : GetComponentInChildren<SpriteRenderer>();
+                if (fallbackPicture != null)
                 {
-                    _animator.Update(0f);
-                    float clipLength = _animator.GetCurrentAnimatorStateInfo(0).length;
-                    if (clipLength > delay) delay = clipLength + 0.05f; // 마지막 프레임이 한 번은 그려지게
+                    fallbackAlpha = fallbackPicture.color.a;
+                    fadeFallback = true;
                 }
             }
 
             _positionAfterCleanup = transform.position;
             SampleDeathPosition("사망 처리 직후");
             // 죽음 클립에 Animation Event를 안 걸어뒀을 경우를 대비한 fallback
-            Invoke(nameof(OnDeathAnimationFinished), delay);
+            Invoke(nameof(OnDeathAnimationFinished), fallbackDelay);
         }
 
         // 코루틴을 쓰지 않아 Die()의 StopAllCoroutines 이후에도 시체 이동을 관찰한다.
@@ -156,6 +164,26 @@ namespace AstroNuts.Monsters
 
         private void LateUpdate()
         {
+            if (fadeFallback)
+            {
+                var color = fallbackPicture.color;
+                float remaining = fallbackDelay - (Time.time - _deathStarted);
+                color.a = fallbackAlpha * Mathf.SmoothStep(0f, 1f, remaining / Mathf.Clamp(fallbackDelay, .01f, .22f));
+                fallbackPicture.color = color;
+            }
+            if (_awaitingDeathPose)
+            {
+                var state = _animator.GetCurrentAnimatorStateInfo(0);
+                if (state.shortNameHash == _deathStateHash || state.fullPathHash == _deathStateHash)
+                {
+                    _awaitingDeathPose = false;
+                    if (state.length > fallbackDelay)
+                    {
+                        CancelInvoke(nameof(OnDeathAnimationFinished));
+                        Invoke(nameof(OnDeathAnimationFinished), Mathf.Max(0f, _deathStarted + state.length + .05f - Time.time));
+                    }
+                }
+            }
             SampleDeathPosition("사망 후 프레임");
             if (_spawnTrace == null) return;
             SampleSpawnPosition("LateUpdate");
@@ -267,11 +295,21 @@ namespace AstroNuts.Monsters
         {
             if (_hasFinished) return;
             _hasFinished = true;
+            _awaitingDeathPose = false;
             CancelInvoke(nameof(OnDeathAnimationFinished));
             FinishDeathPositionTrace("사망 모션 종료");
 
             if (useObjectPooling)
+            {
                 gameObject.SetActive(false);
+                if (fadeFallback && fallbackPicture != null)
+                {
+                    var color = fallbackPicture.color;
+                    color.a = fallbackAlpha;
+                    fallbackPicture.color = color;
+                }
+                fadeFallback = false;
+            }
             else
                 Destroy(gameObject);
         }

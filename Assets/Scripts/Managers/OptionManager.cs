@@ -23,6 +23,8 @@ public class OptionManager : MonoBehaviour
     private void Start()
     {
         // 옵션 직행 플래그에 따른 패널 초기화
+        if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
+        if (settingsMenuPanel != null) settingsMenuPanel.SetActive(false);
         if (OpenDirectlyToSettings)
         {
             SwitchToSettingsPanel();
@@ -96,14 +98,16 @@ public class OptionManager : MonoBehaviour
 
     public void SwitchToSettingsPanel()
     {
-        if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
-        if (settingsMenuPanel != null) settingsMenuPanel.SetActive(true);
+        if (closing) return;
+        UIOpenMotion.SetVisible(pauseMenuPanel, false);
+        UIOpenMotion.SetVisible(settingsMenuPanel, true);
     }
 
     public void SwitchToPausePanel()
     {
-        if (pauseMenuPanel != null) pauseMenuPanel.SetActive(true);
-        if (settingsMenuPanel != null) settingsMenuPanel.SetActive(false);
+        if (closing) return;
+        UIOpenMotion.SetVisible(pauseMenuPanel, true);
+        UIOpenMotion.SetVisible(settingsMenuPanel, false);
     }
 
     public void OnBgmSliderChanged(float value)
@@ -132,21 +136,27 @@ public class OptionManager : MonoBehaviour
         }
     }
 
-public void CloseOption()
-    {
-        Debug.Log("<color=yellow>[OptionManager]</color> CloseOption() 호출됨");
+    private bool closing;
 
-        if (SceneOptionManager.Instance != null)
-        {
-            Debug.Log("<color=yellow>[OptionManager]</color> SceneOptionManager를 통해 씬 닫기 시도");
-            SceneOptionManager.Instance.CloseOptionScene();
-        }
-        else
-        {
-            Debug.Log("<color=yellow>[OptionManager]</color> SceneOptionManager가 없으므로 직접 UnloadSceneAsync 호출");
-            if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(false); // 안전장치: timeScale 복구 누락 방지
-            UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync("OptionScene");
-        }
+    public void CloseOption()
+    {
+        if (closing) return;
+        closing = true;
+        StartCoroutine(FadeAndUnload());
+    }
+
+    private IEnumerator FadeAndUnload()
+    {
+        UIOpenMotion.SetVisible(pauseMenuPanel, false);
+        UIOpenMotion.SetVisible(settingsMenuPanel, false);
+        while ((pauseMenuPanel != null && pauseMenuPanel.activeInHierarchy)
+            || (settingsMenuPanel != null && settingsMenuPanel.activeInHierarchy))
+            yield return null;
+
+        var manager = SceneOptionManager.Instance;
+        if (manager != null) manager.FinishClose();
+        else HitStopManager.SetPaused(false, HitStopManager.PauseOwner.Options);
+        UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(gameObject.scene);
     }
 
     // 설정 창의 'X' 또는 'Back' 버튼용 함수
@@ -167,7 +177,7 @@ public void CloseOption()
 
 public void LoadMainMenu()
     {
-        Time.timeScale = 1f; // 정지 상태(ESC 메뉴)에서 나갈 경우를 대비해 반드시 복구
+        HitStopManager.ResetForScene(); // 정지 상태(ESC 메뉴)에서 나갈 경우를 대비해 반드시 복구
         UnityNote.SceneLoader.Load("StartScene");
     }
 }

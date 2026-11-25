@@ -2,6 +2,7 @@ Shader "Necromancer/Pixel Feedback Sprite"
 {
     Properties
     {
+        [HideInInspector] _OcclusionFogProgress("Mist",Float) = 0
         [PerRendererData] _MainTex ("Sprite", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
         [Toggle] _Dither ("도트 디더링 사용", Float) = 1
@@ -10,6 +11,7 @@ Shader "Necromancer/Pixel Feedback Sprite"
         [Toggle] _SolidTint ("단색 실루엣", Float) = 0
         _Emission ("발광 배율", Range(1,8)) = 1
         [HideInInspector] _RendererColor ("RendererColor", Color) = (1,1,1,1)
+        [HideInInspector] _PixelMotionOffset ("Actor Render Offset", Vector) = (0,0,0,0)
     }
     SubShader
     {
@@ -28,14 +30,16 @@ Shader "Necromancer/Pixel Feedback Sprite"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
             #include "PixelDither.hlsl"
+            #include "../PixelArt/OcclusionMist.hlsl"
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
             CBUFFER_START(UnityPerMaterial)
             half4 _Color;
             float _Dither, _PixelsPerUnit, _DitherPixelSize, _SolidTint, _Emission;
+            float4 _PixelMotionOffset;
             CBUFFER_END
             float _FeedbackDitherDisabled;
             struct Attributes { float3 positionOS:POSITION; float2 uv:TEXCOORD0; half4 color:COLOR; UNITY_VERTEX_INPUT_INSTANCE_ID };
-            struct Varyings { float4 positionCS:SV_POSITION; float2 uv:TEXCOORD0; float2 pixel:TEXCOORD1; half4 color:COLOR; };
+            struct Varyings { float4 positionCS:SV_POSITION; float2 uv:TEXCOORD0; float2 pixel:TEXCOORD1; float2 world:TEXCOORD2; half4 color:COLOR; };
             Varyings Vert(Attributes v)
             {
                 Varyings o;
@@ -43,7 +47,9 @@ Shader "Necromancer/Pixel Feedback Sprite"
                 SetUpSpriteInstanceProperties();
                 o.pixel = v.positionOS.xy * _PixelsPerUnit / max(1, _DitherPixelSize);
                 v.positionOS = UnityFlipSprite(v.positionOS, unity_SpriteProps.xy);
-                o.positionCS = TransformObjectToHClip(v.positionOS);
+                float3 position = TransformObjectToWorld(v.positionOS) + _PixelMotionOffset.xyz;
+                o.world = position.xy;
+                o.positionCS = TransformWorldToHClip(position);
                 o.uv = v.uv;
                 o.color = v.color * _Color * unity_SpriteColor;
                 return o;
@@ -57,7 +63,7 @@ Shader "Necromancer/Pixel Feedback Sprite"
                     clip(c.a - PixelDitherThreshold(i.pixel));
                     c.a = 1;
                 }
-                return c;
+                return ApplyOcclusionMist(c, i.world);
             }
             ENDHLSL
         }

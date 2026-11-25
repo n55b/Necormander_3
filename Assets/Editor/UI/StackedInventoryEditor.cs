@@ -18,7 +18,6 @@ public static class StackedInventoryEditor
     private static readonly Color Teal = new Color32(24, 53, 58, 255);
     private static readonly Color Border = new Color32(60, 126, 125, 255);
     private static readonly Color Cream = new Color32(239, 233, 213, 255);
-    private static TMP_FontAsset _font;
 
     public static void Validate()
     {
@@ -68,8 +67,6 @@ public static class StackedInventoryEditor
 
     public static void BuildPouch(GameObject root)
     {
-        _font = root.GetComponentInChildren<TMP_Text>(true)?.font;
-        if (_font == null) _font = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/SkillExplainUI.prefab").GetComponentInChildren<TMP_Text>(true).font;
         var ui = root.GetComponent<PouchUI>();
         // V창 내부만 교체한다. 상위 Canvas, C창, 씬 배치는 손대지 않는다.
         for (int i = root.transform.childCount - 1; i >= 0; i--) Object.DestroyImmediate(root.transform.GetChild(i).gameObject);
@@ -191,7 +188,8 @@ public static class StackedInventoryEditor
     private static TMP_Text Label(Transform parent, string name, string value, Vector2 pos, Vector2 size, int fontSize)
     {
         var label = Rect(parent, name, pos, size).gameObject.AddComponent<TextMeshProUGUI>();
-        label.font = _font; label.fontSize = fontSize; label.color = Cream; label.text = value; label.alignment = TextAlignmentOptions.MidlineLeft;
+        label.fontSize = fontSize; label.color = Cream; label.text = value; label.alignment = TextAlignmentOptions.MidlineLeft;
+        PixelText.Configure(label, 0);
         label.textWrappingMode = TextWrappingModes.Normal; label.raycastTarget = false; return label;
     }
     private static void Stretch(RectTransform rect)

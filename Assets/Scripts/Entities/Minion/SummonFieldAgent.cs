@@ -30,10 +30,14 @@ public class SummonFieldAgent : MonoBehaviour
     private int _slot;
     private Vector2 _sideOffset;
     private bool _following;
+    public bool IsCatchingUp { get; private set; }
+    private Vector2 lastOwnerPosition;
+    private float trailTravel;
     private bool _backingOff;
     private Vector2 _velocity;
     private GameObject _visual;
     private SpriteRenderer _renderer;
+    private SpriteRenderer departure;
     private Animator _anim;
     private string _poseState;
     private bool _poseFrozen;
@@ -65,6 +69,8 @@ public class SummonFieldAgent : MonoBehaviour
     public MainMinionDataSO Data => _data;
     public bool IsLinking => _linkCount > 0;
     public bool IsEngaged => _target != null;
+    internal SpriteRenderer FieldPicture => _renderer;
+    internal Transform TravelVisual => _visual != null ? _visual.transform : null;
     public bool IsVisualVisible => _visual != null && _visual.activeSelf;
     public int AutoAttackCount { get; private set; }
     /// <summary>지금 장착(활성) 슬롯의 소환수인가. 필드에는 이 소환수만 나타난다.</summary>
@@ -72,13 +78,14 @@ public class SummonFieldAgent : MonoBehaviour
     /// <summary>비활성 슬롯이라 필드에서 숨어 있는 상태.</summary>
     public bool IsBenched => _benched;
 
-    public static SummonFieldAgent Spawn(PlayerSkillController owner, MainMinionDataSO data, int slot)
+    public static SummonFieldAgent Spawn(PlayerSkillController owner, MainMinionDataSO data, int slot, bool announce = true)
     {
         Vector2 side = slot == 0 ? Vector2.left : Vector2.right;
         var go = new GameObject($"SummonField_{(data != null ? data.minionName : "?")}");
         go.transform.position = owner.transform.position + (Vector3)(side * 0.6f);
         var agent = go.AddComponent<SummonFieldAgent>();
         agent._owner = owner;
+        agent.lastOwnerPosition = owner.transform.position;
         agent._data = data;
         agent._sideOffset = side * 0.6f;
         // 두 마리가 같은 프레임에 때리지 않게 처음 한 번만 어긋나게 둔다.
@@ -86,7 +93,8 @@ public class SummonFieldAgent : MonoBehaviour
         agent._slot = slot;
         agent._path = new NavMeshPath();
         agent.BuildVisual();
-        if (!agent.IsActiveSlot) agent.Bench(); // 비활성 슬롯은 처음부터 숨겨 둔다
+        if (!agent.IsActiveSlot) agent.Bench(false); // 비활성 슬롯은 처음부터 숨겨 둔다
+        if (agent.IsActiveSlot && announce) agent.ShowArrival(false);
         return agent;
     }
 
@@ -96,7 +104,10 @@ public class SummonFieldAgent : MonoBehaviour
         if (prefab == null && _data.skillAnim != null) prefab = _data.skillAnim.visual;
         if (prefab == null) return;
 
-        _visual = Instantiate(prefab, transform);
+        var visualAnchor = new GameObject("Summon Render Anchor").transform;
+        visualAnchor.SetParent(transform, false);
+        PixelActorMotion.Attach(gameObject, PixelActorMotion.Actor.Summon, visualAnchor);
+        _visual = Instantiate(prefab, visualAnchor);
         _visual.transform.localPosition = Vector3.zero;
         // 프리팹에 물리가 붙어 있어도 필드 소환수에는 남기지 않는다(피격 판정 없음 보장).
         foreach (var col in _visual.GetComponentsInChildren<Collider2D>(true)) Destroy(col);
@@ -141,12 +152,19 @@ public class SummonFieldAgent : MonoBehaviour
         if (!IsActiveSlot) { if (!_benched) Bench(); return; }
         if (_benched) Unbench();
 
-        // 문 이동처럼 플레이어와 너무 멀어지면 곁으로 옮긴다.
         Vector2 player = _owner.transform.position;
-        if (Vector2.Distance(transform.position, player) > _owner.FollowTeleportDistance)
-            SettleAt(player + _sideOffset);
-
-        UpdateTarget(player);
+        float distance = Vector2.Distance(transform.position, player);
+        bool warped = Vector2.Distance(player, lastOwnerPosition) > _owner.FollowTeleportDistance;
+        lastOwnerPosition = player;
+        if (warped && distance > _owner.FollowTeleportDistance)
+        {
+            RecallTo(player + _sideOffset);
+            distance = 0;
+        }
+        if (distance > _owner.CatchUpDistance) IsCatchingUp = true;
+        else if (distance <= _owner.FollowDistance) IsCatchingUp = false;
+        if (IsCatchingUp) ClearTarget();
+        else UpdateTarget(player);
         if (_target != null) Engage();
         else Accompany(player);
     }
@@ -180,6 +198,50 @@ public class SummonFieldAgent : MonoBehaviour
         }
     }
 
+    private void LeaveAfterimage()
+    {
+        if (_renderer == null || _renderer.sprite == null || _renderer.color.a <= .01f) return;
+        if (departure == null)
+        {
+            departure = new GameObject("Summon departure").AddComponent<SpriteRenderer>();
+            departure.gameObject.layer = _renderer.gameObject.layer;
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(departure.gameObject, gameObject.scene);
+        }
+        departure.transform.SetPositionAndRotation(_renderer.transform.position, _renderer.transform.rotation);
+        departure.transform.localScale = _renderer.transform.lossyScale;
+        departure.sharedMaterial = _renderer.sharedMaterial;
+        departure.sprite = _renderer.sprite;
+        departure.flipX = _renderer.flipX;
+        departure.flipY = _renderer.flipY;
+        WorldDepthOrder.ReadOrder(_renderer, WorldDepthOrder.FindEffectiveGroup(_renderer), out int layer, out int order);
+        departure.sortingLayerID = layer;
+        departure.sortingOrder = order;
+        departure.color = _renderer.color;
+        departure.enabled = true;
+        SpriteVisibility.For(departure).FadeOut(.12f, () => departure.enabled = false);
+    }
+
+    private void OnDestroy()
+    {
+        if (departure != null) Destroy(departure.gameObject);
+    }
+
+    private void RecallTo(Vector2 position)
+    {
+        LeaveAfterimage();
+        SettleAt(position);
+        RevealPicture();
+    }
+
+    private void RevealPicture()
+    {
+        if (_visual == null || _renderer == null) return;
+        var squash = _visual.GetComponent<VisualSquashStretch>();
+        if (squash != null && squash.VanishDuration > 0f && PolishFeedback.ExistingEnabled(ExistingFeedbackCue.Squash))
+            squash.Materialize();
+        else SpriteVisibility.For(_renderer).Reveal(.14f);
+    }
+
     private void SettleAt(Vector2 position)
     {
         if (NavMesh.SamplePosition(position, out NavMeshHit hit, 2f, NavMesh.AllAreas)) position = hit.position;
@@ -191,9 +253,11 @@ public class SummonFieldAgent : MonoBehaviour
 
     // ─── 상태: 대기(비활성 슬롯) ─────────────────────────────────
     /// <summary>필드에서 숨기고 AI 를 멈춘다. 진행 중인 행동은 건드리지 않는다(행동 중에는 호출되지 않는다).</summary>
-    private void Bench()
+    private void Bench(bool visibleDeparture = true)
     {
+        if (visibleDeparture && IsVisualVisible) LeaveAfterimage();
         _benched = true;
+        IsCatchingUp = false; trailTravel = 0;
         if (_visual != null) _visual.SetActive(false);
         _velocity = Vector2.zero;
         _hasPath = false;
@@ -214,7 +278,23 @@ public class SummonFieldAgent : MonoBehaviour
             _visual.transform.localPosition = Vector3.zero;
             ReturnToPose();
         }
+        ShowArrival(true);
         _retargetTimer = 0f;
+    }
+
+    private void ShowArrival(bool swap)
+    {
+        RevealPicture();
+        if (_visual == null || !PolishFeedback.Enabled(FeedbackCue.MinionAppear)) return;
+        var hands = _owner.GetComponentInChildren<PlayerHandAimController>();
+        Vector2 hand = hands != null ? (Vector2)hands.SummonOrigin(_slot == 0) : (Vector2)_owner.transform.position + Vector2.up * .4f;
+        Vector2 feet = transform.position;
+        PolishFeedback.Play(FeedbackCue.MinionAppear, feet, Vector2.up, tint: _data.feedbackColor);
+        WorldAtmosphere.Current?.Accent(feet);
+        int knots = swap ? 3 : 5;
+        for (int i = 0; i < knots; i++)
+            WorldSparkField.Emit(WorldSparkField.Kind.Summon, Vector2.Lerp(hand, feet, (i + .5f) / knots), feet - hand, 1);
+        WorldSparkField.Emit(WorldSparkField.Kind.Summon, feet, Vector2.up, swap ? 4 : 8);
     }
 
     /// <summary>
@@ -241,7 +321,15 @@ public class SummonFieldAgent : MonoBehaviour
 
         // 플레이어 옆 고정 자리가 아니라, 지금 있는 쪽에서 곧장 다가가 불필요한 궤도 이동을 없앤다.
         if (distance < 0.001f) fromPlayer = _sideOffset;
-        MoveTo(player + fromPlayer.normalized * _owner.FollowStopDistance, _owner.FollowSpeed);
+        MoveTo(player + fromPlayer.normalized * _owner.FollowStopDistance,
+            IsCatchingUp ? _owner.CatchUpSpeed : _owner.FollowSpeed);
+        if (!IsCatchingUp) { trailTravel = 0; return; }
+        trailTravel += Vector2.Distance(me, transform.position);
+        if (trailTravel >= .45f)
+        {
+            trailTravel %= .45f;
+            WorldSparkField.Emit(WorldSparkField.Kind.Sprint, transform.position, -_velocity.normalized, 2);
+        }
     }
 
     // ─── 상태: 교전 ─────────────────────────────────────────────
@@ -304,7 +392,7 @@ public class SummonFieldAgent : MonoBehaviour
         if (!CanFight()) { ClearTarget(); return; }
 
         // 지금 타겟은 사거리를 조금 벗어나도 유지하고, 플레이어와 너무 벌어지면 놓는다.
-        if (_target != null && (_targetTransform == null || _target.IsDead || _target.Invincible
+        if (_target != null && (_targetTransform == null || !_target.isActiveAndEnabled || _target.IsDead || _target.Invincible
             || Vector2.Distance(_targetTransform.position, transform.position) > _owner.AutoAttackRange + TARGET_KEEP_MARGIN
             || Vector2.Distance(_targetTransform.position, player) > _owner.CombatLeashDistance))
             ClearTarget();
@@ -416,7 +504,7 @@ public class SummonFieldAgent : MonoBehaviour
         bool moved = ((Vector2)transform.position - before).sqrMagnitude > 0.000001f;
         _stuckTimer = moved || distanceToGoal <= ARRIVE_RADIUS ? 0f : _stuckTimer + Time.deltaTime;
         if (_stuckTimer < STUCK_SECONDS) return;
-        SettleAt((Vector2)_owner.transform.position + _sideOffset);
+        RecallTo((Vector2)_owner.transform.position + _sideOffset);
     }
 
     private void Face(float dirX)
@@ -512,6 +600,8 @@ public class SummonFieldAgent : MonoBehaviour
         _castCount++;
         if (_visual != null) _visual.SetActive(false);
         MinionSkillCaster caster = perform != null ? perform() : null;
+        if (caster != null && ((Vector2)(caster.transform.position - transform.position)).sqrMagnitude > .25f)
+            LeaveAfterimage();
         // 스킬로 돌진하면 시전 오브젝트가 움직인다. 끝난 자리에서 이어가도록 위치를 따라간다.
         while (caster != null)
         {

@@ -131,7 +131,7 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
                 break;
         }
 
-        root.SetActive(true);
+        UIOpenMotion.SetVisible(root, true);
         int before = layer == Layer.Overlay
             ? _stack.FindIndex(e => e.layer == Layer.Overlay && e.overlayPriority > overlayPriority) : -1;
         if (before >= 0) _stack.Insert(before, entry);
@@ -163,7 +163,7 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
 
         var e = _stack[i];
         _stack.RemoveAt(i);
-        if (e.root != null) e.root.SetActive(false);
+        UIOpenMotion.SetVisible(e.root, false);
         e.onClosed?.Invoke();
     }
 
@@ -206,7 +206,7 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
     {
         if (IsOptionOpen) return true;
         if (!Open(_optionToken, Layer.System, null, escClosable: false)) return false; // ESC 닫기는 SceneOptionManager 가 처리
-        if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
+        HitStopManager.SetPaused(true, HitStopManager.PauseOwner.Options);
         return true;
     }
 
@@ -215,7 +215,7 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
     {
         if (!IsOptionOpen) return;
         Close(_optionToken);
-        if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(false);
+        HitStopManager.SetPaused(false, HitStopManager.PauseOwner.Options);
 
         var pending = new List<Entry>(_pending);
         _pending.Clear();
@@ -300,8 +300,8 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        // 람다로 구독하면 해제가 안 된다(매번 새 대리자). 메서드로 구독/해제한다.
-        if (_subscribedPlayer != null)
+        // These managed events can outlive the player's native component during scene unload.
+        if (!ReferenceEquals(_subscribedPlayer, null))
         {
             _subscribedPlayer.OnEnterIdle -= HandleEnterIdle;
             _subscribedPlayer.OnEnterBattle -= HandleEnterBattle;

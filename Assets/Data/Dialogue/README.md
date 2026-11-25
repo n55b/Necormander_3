@@ -1,55 +1,12 @@
-# 대화(다이얼로그) 시스템 사용법
+# 게임 대화 제작
 
-대사는 이 폴더의 **CSV** 로 관리한다. 화면은 하단 1/3 이 대사창, 상단 2/3 가 초상화 3칸(왼쪽 / 가운데 / 오른쪽).
+Unity 플레이 모드에서 **레벨 제작실 → 내 작업 → 대사 편집**을 연다. 대화 ID와 언어를 선택하고, 화자·표시 이름·등장인물·본문을 입력한다. 새 줄을 추가하거나 순서를 바꾼 뒤 **프로젝트에 저장** 또는 **Ctrl+S**를 누른다.
 
----
+같은 ID를 사용하는 트리거나 NPC가 다음 대화를 시작할 때 변경분을 읽는다. 한국어 대화만 있는 경우 영어에서도 한국어 본문을 표시한다. 제작실의 English 탭에서 번역을 저장하면 영어 본문을 사용한다. 등장인물 입력을 비워두면 직전 줄의 배치를 유지하고, 화자를 비우면 나레이션으로 표시한다.
 
-## 1. 빠른 시작
+언어·줄별 파일은 [DATA 안내](../../../DATA/README.md)에서 확인할 수 있다.
 
-1. `dialogue_sample.csv` 를 연다 (구글 시트에 붙여넣거나 텍스트 에디터로)
-2. 대사를 쓴다
-3. Unity 로 돌아와서 아무 씬이나 플레이 → **F9**
-
-끝. NPC 도 트리거도 필요 없다.
-
----
-
-## 2. CSV 칸
-
-```csv
-id,cast,speaker,name,text_ko
-bm_intro,player|bonemaster,bonemaster,,"드디어 왔군, 애송이."
-bm_intro,,player,,…준비됐어.
-bm_intro,,bonemaster/angry,,<shake>네놈의 뼈도 내 것이 된다.</shake>
-bm_intro,,,,뼈들이 일제히 일어섰다.
-```
-
-| 칸 | 뜻 | 비우면 |
-|---|---|---|
-| `id` | 대화 묶음 이름. 같은 값이 **연속으로** 오면 한 대화 | 그 줄은 통째로 무시된다 |
-| `cast` | 무대에 세울 캐릭터 키, `\|` 로 구분 (최대 3). 한 칸 문법은 `키/표정@자리` | **이전 줄의 무대를 그대로 유지** |
-| `speaker` | 말하는 캐릭터 키 | **나레이션** — 이름칸이 사라지고 전원 어두워진다 |
-| `name` | 이름칸에 띄울 글자 (덮어쓰기) | `DialogueCast.asset` 의 이름을 쓴다 → **보통 비워둔다** |
-| `text_ko` | 대사 본문 | 검증에서 경고 |
-
-칸 **순서는 상관없다**. 헤더 이름으로 찾는다.
-
-### cast 를 매 줄 안 적어도 되는 이유
-
-무대가 안 바뀌면 비워두면 된다. 위 예시에서 2·3·4번째 줄은 `cast` 가 비어 있지만
-`player|bonemaster` 두 명이 계속 서 있다. 무대를 바꾸고 싶은 줄에서만 다시 적으면 된다.
-
-### 화자는 반드시 무대에 있어야 한다
-
-```csv
-bm_intro,player|bonemaster,merchant,,"..."      ← 잘못됨
-```
-`merchant` 가 `cast` 에 없다. 이러면 **아무도 강조되지 않는다.** 게임에선 조용히 넘어가서
-알아채기 어려우니, `Tools/Dialogue/2. 대사 테이블 검증` 이 이걸 잡아준다. 제일 흔한 실수다.
-
----
-
-## 3. 표정과 자리
+## 표정과 자리
 
 캐릭터 한 칸의 문법은 **`키/표정@자리`**. 표정과 자리는 둘 다 생략할 수 있다.
 
@@ -65,7 +22,7 @@ bonemaster/angry@오른쪽    둘 다
 `cast` 와 `speaker` 양쪽에서 쓸 수 있다. 같은 캐릭터면 `speaker` 쪽이 이긴다 —
 무대는 평소 얼굴로 적어두고 그 줄에서만 표정을 바꾸는 게 편하다.
 
-```csv
+```text
 bm_intro,player|bonemaster,bonemaster/angry,,<shake>네놈의 뼈도 내 것이 된다.</shake>
 ```
 
@@ -82,7 +39,7 @@ bm_intro,player|bonemaster,bonemaster/angry,,<shake>네놈의 뼈도 내 것이 
 | `가운데` `중앙` `center` `c` | 가운데 |
 | `오른쪽` `오른` `right` `r` | 오른쪽 |
 
-```csv
+```text
 duel,player@왼쪽|bonemaster@오른쪽,bonemaster,,"자리를 찍으면 순서와 상관없이 거기 선다."
 duel,player@가운데|bonemaster|merchant,merchant,,"찍은 놈이 먼저 칸을 잡고, 나머지가 빈 칸을 줍는다."
 ```
@@ -95,42 +52,7 @@ duel,player@가운데|bonemaster|merchant,merchant,,"찍은 놈이 먼저 칸을
 
 ---
 
-## 4. 작성 규칙
-
-### 쉼표
-
-대사에 쉼표가 들어가면 **큰따옴표로 감싼다.**
-
-```csv
-bm_intro,,player,,"안녕, 반가워."     ← 이렇게
-bm_intro,,player,,안녕, 반가워.        ← 이러면 칸이 밀린다
-```
-
-구글 시트나 엑셀에서 셀에 그냥 치면 **저장할 때 알아서 감싸준다.** 신경 안 써도 된다.
-직접 텍스트 에디터로 쓸 때만 챙기면 된다.
-
-따옴표 자체를 대사에 쓰려면 두 번 친다: `"그가 ""안녕"" 이라고 했다"`
-
-### 주석
-
-`#` 으로 시작하는 줄은 무시된다. 챕터 구분이나 메모에 쓰면 된다.
-
-```csv
-# ─── 4층 보스 ───
-bm_intro,player|bonemaster,bonemaster,,"드디어 왔군."
-```
-
-### 인코딩 (중요)
-
-**반드시 UTF-8 로 저장.**
-
-- **구글 시트** — 기본이 UTF-8 이라 그냥 다운로드하면 된다. 권장.
-- **엑셀** — 저장할 때 `CSV UTF-8 (쉼표로 분리)` 를 골라야 한다.
-  그냥 `CSV` 로 저장하면 CP949 라서 **한글이 전부 깨진다.** 이게 제일 흔한 사고다.
-
----
-
-## 5. 대사 안에 쓸 수 있는 태그
+## 대사 안에 쓸 수 있는 태그
 
 TMP 순정 태그는 그대로 통과한다: `<color=#ff5544>`, `<b>`, `<i>`, `<size=24>` …
 
@@ -153,39 +75,29 @@ TMP 순정 태그는 그대로 통과한다: `<color=#ff5544>`, `<b>`, `<i>`, `<
 
 ---
 
-## 6. 캐릭터 추가하기
+## 캐릭터 추가하기
 
 `Assets/SOData/Dialogue/DialogueCast.asset`
 
 | 필드 | 설명 |
 |---|---|
-| `key` | CSV 에 적을 이름. 영문 소문자 권장 (예: `skeleton`) |
+| `key` | 등장 인물·화자 필드에 적을 키. 영문 소문자 권장 (예: `skeleton`) |
 | `displayName` | 이름칸에 뜰 글자 (예: `해골 병사`) |
 | `nameColor` | 이름칸 글자색 |
 | `portraits` | 표정 목록. `expression` + `sprite`. **첫 항목이 기본 표정** |
 
 `portraits` 는 **비워둬도 된다.** 초상화가 없으면 이름표 실루엣으로 뜬다.
-아트가 나오면 스프라이트만 꽂으면 되고 CSV 는 안 건드려도 된다.
+아트가 나오면 스프라이트만 꽂으면 되고 대사 줄에는 같은 키를 유지한다.
 
 지금 들어 있는 키: `player` `bonemaster` `merchant` `enhancer` `ally`
 
 > 화자 이름을 몬스터 SO 의 `minionName` 이나 `NPCBase.name` 에서 끌어오지 않는다.
 > 그쪽은 절반이 `Enemy Skeleton Charger` 같은 내부 ID 라서 그대로 화면에 뜬다.
-> **이름의 출처는 이 에셋(또는 CSV 의 `name` 칸)뿐이다.**
+> **이름의 출처는 이 에셋(또는 줄의 표시 이름)뿐이다.**
 
 ---
 
-## 7. 새 CSV 파일 추가하기
-
-대사가 늘어나면 파일을 쪼개도 된다. `id` 만 안 겹치면 몇 장이든 상관없다.
-
-1. CSV 를 `Assets/Data/Dialogue/` 에 넣는다
-2. `Assets/SOData/Dialogue/DialogueTable.asset` 의 **`대사 CSV`** 리스트에 드래그
-3. `Tools/Dialogue/2. 대사 테이블 검증` 으로 확인
-
----
-
-## 8. 게임에 붙이기
+## 게임에 붙이기
 
 ### 코드에서
 
@@ -245,39 +157,7 @@ public class DialogueNPC : NPCBase
 
 ---
 
-## 9. 테스트 / 확인
-
-### 플레이 중 — F9
-
-`DialogueUI` 인스펙터의 `디버그` 항목:
-- `debugKey` — 기본 `F9`. `None` 으로 두면 꺼진다
-- `debugDialogueId` — 기본 `layout_test`
-
-`layout_test` 는 스페이스를 눌러 넘기면 **1명 → 2명 → 3명 배치**가 차례로 나온다.
-
-### 플레이 안 켜고 — `Tools/Dialogue/4. 레이아웃 미리보기 토글`
-
-씬을 연 채로 메뉴를 누르면 대사창이 켜지고 3칸이 견본으로 채워진다.
-**Game 뷰에서 바로 보이고, 인스펙터 값을 만지면 실시간 반영된다.** 한 번 더 누르면 꺼진다.
-
-패널 비율·글자 크기·확대 배율·어둡게 하는 색은 숫자로는 감이 안 오니 이걸로 맞출 것.
-가운데 칸이 화자로 세팅돼 있어서 강조 대비가 바로 보인다.
-
-### 검증 — `Tools/Dialogue/2. 대사 테이블 검증`
-
-```
-대화 3 개
-[bm_intro]  4 줄   | 드디어 왔군, 애송이.
-주의  bm_intro 3번째 줄: 'bonemaster' 의 표정 'angry' 초상화가 없다 — 플레이스홀더로 뜬다.
-문제 없음
-```
-
-잡아주는 것: 무대에 없는 화자, 명부에 없는 키, 빈 대사, 6명 이상, 첫 줄에 cast 가 없음.
-리포트는 `Temp/Dialogue_Validate.txt` 에도 남는다.
-
----
-
-## 10. 진행 키
+## 진행 키
 
 **스페이스 / 엔터 / 좌클릭**
 
@@ -288,7 +168,7 @@ public class DialogueNPC : NPCBase
 
 ---
 
-## 11. 조정할 수 있는 값
+## 조정할 수 있는 값
 
 전부 `DialogueUI` 인스펙터에 있다.
 
@@ -312,7 +192,7 @@ public class DialogueNPC : NPCBase
 
 ---
 
-## 12. 슬롯 배치 규칙
+## 슬롯 배치 규칙
 
 칸은 **왼쪽 / 가운데 / 오른쪽** 셋뿐이고, `cast` 에 적은 순서대로
 **왼쪽 → 오른쪽 → 가운데** 로 채워진다. 둘이면 양 끝에 서고, 셋째가 그 사이에 낀다.
@@ -331,59 +211,3 @@ public class DialogueNPC : NPCBase
 `Tools/Dialogue/1. 대화 UI 프리팹 만들기` 를 다시 돌린다.
 
 ---
-
-## 13. 다국어
-
-**언어별로 파일을 나누지 말고 칸을 늘린다.**
-
-```csv
-id,cast,speaker,name,text_ko,text_en
-bm_intro,player|bonemaster,bonemaster,,"드디어 왔군, 애송이.",So you came.
-```
-
-칸 이름에 로케일 코드를 붙이면(`text_ko` / `text_en`) 현재 언어에 맞는 칸을 알아서 고른다.
-없으면 `text_ko` 로 떨어지고, 접미 없는 `text` 칸만 있어도 그냥 돈다.
-
-파일을 나누면 안 되는 이유 — 번역가가 줄 하나 지우는 순간 그 아래 대사가 전부 밀려서
-화자와 대사가 뒤섞인다. 한 줄에 원문과 번역이 나란히 있으면 빈칸이 그냥 보인다.
-
-`name` 칸도 같은 규칙이 먹는다 (`name_ko` / `name_en`).
-
----
-
-## 14. 함정 모음
-
-- **엑셀 CP949** — `CSV UTF-8` 로 저장. 안 그러면 한글이 다 깨진다
-- **화자가 cast 에 없음** — 아무도 강조 안 됨. 검증으로 잡을 것
-- **대화 중엔 시간이 멈춘다** (`Time.timeScale = 0`) — 대화 연출에 새 코드를 붙일 땐
-  `Time.deltaTime` 대신 `Time.unscaledDeltaTime`, `WaitForSeconds` 대신 `WaitForSecondsRealtime`
-- **대화를 겹치지 말 것** — 이미 대화 중이면 새 `Play()` 는 무시되고 경고가 뜬다.
-  상점창·보상창과 동시에 뜨지 않게 호출부에서 막아야 한다
-- **Bold 폰트 주의** — `Galmuri11-Bold SDF` 는 아틀라스 1024 에 multi-atlas 가 꺼져 있다.
-  대사창에 Bold 를 상시 쓰면 고유 한글이 늘었을 때 글자가 **조용히 사라진다.**
-  쓸 거면 아틀라스를 4096 으로 올리거나 multi-atlas 를 켤 것. Regular(4096)는 여유 있다
-- **씬에 `DialogueUI` 가 있어야 한다** — 없으면 `DialogueUI.Instance` 가 null 이다.
-  지금 배치된 씬: `BattleScene` `VillageScene` `BossTestScene` `EliteTestScene`.
-  다른 씬에도 필요하면 그 씬을 열고 `Tools/Dialogue/3. 씬에 배치`
-
----
-
-## 15. 파일 위치
-
-| 무엇 | 어디 |
-|---|---|
-| 대사 CSV | `Assets/Data/Dialogue/` |
-| 테이블 에셋 (CSV 등록) | `Assets/SOData/Dialogue/DialogueTable.asset` |
-| 캐릭터 명부 | `Assets/SOData/Dialogue/DialogueCast.asset` |
-| UI 프리팹 | `Assets/Prefabs/UI/Dialogue/DialogueUI.prefab` |
-| 스크립트 | `Assets/Scripts/UI/Dialogue/` |
-| 에디터 툴 | `Assets/Editor/Localization/DialogueSetupTools.cs` |
-
-### `Tools/Dialogue/` 메뉴
-
-| 메뉴 | 언제 |
-|---|---|
-| `1. 대화 UI 프리팹 만들기` | 프리팹을 처음부터 다시 만들 때 (**기존 프리팹을 덮어쓴다**) |
-| `2. 대사 테이블 검증` | CSV 를 고칠 때마다 |
-| `3. 씬에 배치` | 새 씬에 대화 UI 를 넣을 때 |
-| `4. 레이아웃 미리보기 토글` | 화면 비율·색·크기를 눈으로 맞출 때 |

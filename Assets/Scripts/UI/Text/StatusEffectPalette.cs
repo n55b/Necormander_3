@@ -22,7 +22,7 @@ public enum StatusVisual
 /// <summary>
 /// 상태이상 표시 색을 한곳에 모은 팔레트. 텍스트 팝업 색과 스프라이트 틴트 색을 같이 들고 있다.
 ///
-/// [26/07/25] 구 DamageTextColorConfigSO 를 개명·흡수했다. 파일 GUID 를 보존한 채 이름만
+/// 구 DamageTextColorConfigSO 를 개명·흡수했다. 파일 GUID 를 보존한 채 이름만
 /// 바꿨으므로 기존 DamageTextColorConfig.asset 의 값과 프리팹의 참조가 끊기지 않는다.
 /// 데미지 숫자 색도 계속 여기 있다 — '전투 텍스트 색은 이 에셋 하나'라는 규칙을 지키려는 것이다.
 /// 이름이 내용보다 좁은 건 인정하고 섹션(Header)으로 나눠둔다.

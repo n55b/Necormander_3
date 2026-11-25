@@ -38,6 +38,9 @@ public class ItemPouch : MonoBehaviour
     // ── 초기화 ────────────────────────────────────────────────────────
     /// <summary>GameManager 의 초기화 시퀀스에서 직접 호출된다.</summary>
     public void Initialize(bool isLoadedGame)
+        => Initialize(isLoadedGame, CurrentRegistry());
+
+    internal void Initialize(bool isLoadedGame, GrowthRegistrySO registry)
     {
         Instance = this;
 
@@ -49,14 +52,16 @@ public class ItemPouch : MonoBehaviour
                     Debug.LogWarning($"<color=orange>[ItemPouch]</color> 디버그 아이템 '{so.DisplayName}' — 최대 중첩에 도달했다.");
         }
 
-        if (!isLoadedGame) EnsureStartingItem();
+        if (!isLoadedGame) EnsureStartingItem(registry);
         Refresh();
     }
 
-    private void EnsureStartingItem()
-    {
-        var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null
+    private static GrowthRegistrySO CurrentRegistry()
+        => GameManager.Instance != null && GameManager.Instance.dataManager != null
             ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY() : null;
+
+    private void EnsureStartingItem(GrowthRegistrySO registry)
+    {
         var item = registry != null ? registry.startingItem : null;
         if (item != null && !Contains(item)) TryAdd(item);
     }
@@ -236,7 +241,7 @@ public class ItemPouch : MonoBehaviour
     /// <summary>
     /// 방이 클리어될 때 ItemRoomClearHealEffect 를 가진 아이템만큼 회복시킨다.
     ///
-    /// [26/09/09] 예전엔 RoomInstance.MarkCleared 가 아이템과 무관하게 무조건 10 회복했다.
+    /// 예전엔 RoomInstance.MarkCleared 가 아이템과 무관하게 무조건 10 회복했다.
     /// 이제 그 리소스는 전부 아이템을 거친다 — 주머니가 비어 있으면 한 톨도 차지 않는다.
     ///
     /// 회복량을 칸별로 다 더한 뒤 Heal 을 한 번만 부른다 — 체력바/플로팅 텍스트가
@@ -281,18 +286,18 @@ public class ItemPouch : MonoBehaviour
     public void SaveToData(SaveData data)
     {
         data.pouchSlotCount = slotCount;
-        data.pouchItemNames = new List<string>();
+        data.pouchItemNames ??= new List<string>();
+        data.pouchItemNames.Clear();
         for (int i = 0; i < slotCount; i++)
             data.pouchItemNames.Add(_slots[i] != null ? _slots[i].name : "");
     }
 
     public void LoadFromData(SaveData data)
+        => LoadFromData(data, CurrentRegistry());
+
+    internal void LoadFromData(SaveData data, GrowthRegistrySO registry)
     {
         if (data == null) return;
-
-        var registry = GameManager.Instance != null && GameManager.Instance.dataManager != null
-            ? GameManager.Instance.dataManager.GET_GROWTH_REGISTRY()
-            : null;
 
         _slots.Clear();
 
@@ -302,14 +307,14 @@ public class ItemPouch : MonoBehaviour
             {
                 string n = data.pouchItemNames[i];
                 if (string.IsNullOrEmpty(n)) continue;
-                var item = registry.items.Find(it => it != null && it.name == n);
+                var item = registry.ResolveSavedItem(n);
                 if (item == null) { Debug.LogWarning($"[ItemPouch] 저장된 아이템을 찾지 못함: {n}"); continue; }
                 // 구 세이브의 중복 사본도 보존한다. 새 습득에만 현재 최대 중첩을 적용한다.
                 _slots.Add(item);
             }
         }
 
-        EnsureStartingItem();
+        EnsureStartingItem(registry);
         Revision++;
         Refresh();
     }

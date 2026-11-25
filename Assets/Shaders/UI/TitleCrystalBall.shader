@@ -101,7 +101,12 @@ Shader "UI/TitleCrystalBall"
                 float2 art = ((i.uv - 0.5) * _Cover.xy + 0.5) * _ArtPx.xy;
                 float2 P = floor(art) + 0.5;   // 아트 픽셀 중심
 
-                float3 col = SampleArt(P + _Pan.xy) * _ImageTint.rgb;
+                float2 glass = (P-_Orb.xy) / max(1,_Orb.z);
+                float r2 = dot(glass,glass);
+                float dome = sqrt(saturate(1-r2));
+                // The moving shell refracts only the background artwork, in source-pixel increments.
+                float2 bend = round(glass * dome * 4);
+                float3 col = SampleArt(P + _Pan.xy + bend) * _ImageTint.rgb;
 
                 // 어둠 원: 원 '바깥'을 반투명하게 덮는다 (원 안은 그대로)
                 col = lerp(col, _Layer1Color.rgb, (1 - InCircle(P, _Layer1)) * _Layer1.w);
@@ -115,6 +120,22 @@ Shader "UI/TitleCrystalBall"
                     col = lerp(col * _Outside.x, _BgColor.rgb, t);
                 }
 
+                if (r2 < 1)
+                {
+                    float3 normal = float3(glass,dome);
+                    float glancing = pow(1-dome,2);
+                    float3 lamp = normalize(float3(-.46+.025*sin(_Time.y*.34),.72,.52));
+                    float facing = saturate(dot(normal,lamp));
+                    float reflection = pow(facing,48);
+                    col *= 1-.22*glancing;
+                    col += float3(.30,.65,.64) * (.30*pow(facing,7)+glancing*.62*saturate(glass.y-glass.x));
+                    col += float3(1,.86,.59) * (.38*reflection+.32*pow(facing,240));
+                }
+                else
+                {
+                    float arc = saturate(.5+.5*dot(normalize(glass),float2(-.72,.69)));
+                    col += float3(.19,.49,.53) * arc*arc * .23*exp2(-distOut/max(1,_Orb.z*.035));
+                }
                 return fixed4(col, i.color.a);
             }
             ENDCG

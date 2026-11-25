@@ -2304,6 +2304,7 @@ MonoBehaviour:
   lifetime: 0.36
   spriteAnimator: {fileID: 7424439043556087804}
   slash: {fileID: 7411870615247513372}
+  pixelArtAnchor: {fileID: 543208449162832489}
   streaks:
   - {fileID: 4166742034932025235}
   - {fileID: 1926295995059118340}
@@ -2591,7 +2592,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6576119329261290689}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0.07845911, w: 0.99691737}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.033125, y: -0.804375, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2826,7 +2827,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8381607685754968239}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: -0.07845911, w: 0.99691737}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.113125, y: -0.914375, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0

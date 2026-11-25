@@ -11,7 +11,6 @@ public class RewardRoomEvent : MonoBehaviour, IRoomEvent
     [SerializeField] private EliteRewardBox rewardBox;
 
     private bool _isEventActive = false;
-    private RoomInstance _cachedRoom;
 
     private void Awake()
     {
@@ -19,24 +18,10 @@ public class RewardRoomEvent : MonoBehaviour, IRoomEvent
         if (rewardBox != null) rewardBox.gameObject.SetActive(false);
     }
 
-    private void Update()
-    {
-        if (!_isEventActive) return;
-
-        // [핵심] 상자가 상호작용으로 인해 파괴되었는지 체크
-        if (rewardBox == null)
-        {
-            _isEventActive = false;
-            Debug.Log("<color=magenta>[RewardRoom]</color> Box Opened! Room Unlocked.");
-            _cachedRoom.MarkCleared(); // 문 열림 및 클리어 처리
-        }
-    }
-
     public void OnPlayerEnter(RoomInstance room)
     {
         if (room.isCleared || _isEventActive) return;
 
-        _cachedRoom = room;
         
         _isEventActive = true;
 
@@ -46,6 +31,7 @@ public class RewardRoomEvent : MonoBehaviour, IRoomEvent
         // 2. 상자 등장
         if (rewardBox != null)
         {
+            rewardBox.OwnerRoom = room;
             rewardBox.gameObject.SetActive(true);
             Debug.Log("<color=magenta>[RewardRoom]</color> Reward Box Appeared! Defeat the greed?");
         }

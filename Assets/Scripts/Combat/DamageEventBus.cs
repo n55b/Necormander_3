@@ -7,6 +7,9 @@ using System;
 /// </summary>
 public static class DamageEventBus
 {
+#if LEVEL_WORKSHOP_QA
+    internal static int HitSubscriberCount => OnAttackHitResolved?.GetInvocationList().Length ?? 0;
+#endif
     /// <summary>
     /// 공격이 명중하여 데미지 계산이 시작되기 직전 (여기서 데미지 증폭/감소 연산 수행)
     /// 인자: 피해자(CharacterHealth), 공격 정보(ref DamageInfo)
@@ -31,12 +34,9 @@ public static class DamageEventBus
     public static event Action<CharacterHealth, CharacterStat> OnEvasionOccurred;
 
     /// <summary>
-    /// 엔티티가 사망했을 때 (처형, 시체 폭발 등에 사용)
-    /// 인자: 사망자(CharacterHealth), 공격 정보(DamageInfo)
+    /// 엔티티가 사망했을 때 사망자와 마지막 피해 정보를 알린다.
     /// </summary>
     public static event Action<CharacterHealth, DamageInfo> OnEntityDied;
-
-    // [26/07/17] 처형(Execution) 관련 이벤트 2종은 삭제됐다 — 처형 시스템 자체가 없어졌다.
 
     /// <summary>
     /// 체력 회복 전 힐량 증폭 계산을 위한 이벤트

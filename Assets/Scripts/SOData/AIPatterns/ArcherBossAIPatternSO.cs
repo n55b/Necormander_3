@@ -23,7 +23,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
 
     [Header("페이즈 설정")]
     public float phase2HpThreshold = 350f;
-    public EnemyMinionDataSO phase2Data; // [추가] 2페이즈 전용 스탯 데이터 (이 값이 있으면 체력 0 도달 시 부활하며 전환)
+    public EnemyMinionDataSO phase2Data; // 2페이즈 전용 스탯 데이터 (이 값이 있으면 체력 0 도달 시 부활하며 전환)
     [SerializeField] private bool isPhase2 = false;
 
     [Header("평타 반복")]
@@ -207,7 +207,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         }
 
         // 패턴 전환 조건 검사
-        // [26/07/17] 투척 히트 카운트 조건 삭제 — 플레이어가 상자를 던질 수 없게 됐다.
+        // 투척 히트 카운트 조건 삭제 — 플레이어가 상자를 던질 수 없게 됐다.
         if (loopDuration >= attackSpeedRampTime)
         {
             if (Random.value < 0.5f) EnterP1Pattern1(entity);
@@ -315,7 +315,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         // 거리 유지 (카이팅)
         KitePlayer(entity);
 
-        // [26/07/17] 투척 히트 카운트 조건 삭제 — 플레이어가 상자를 던질 수 없게 됐다.
+        // 투척 히트 카운트 조건 삭제 — 플레이어가 상자를 던질 수 없게 됐다.
         if (loopDuration >= attackSpeedRampTime)
         {
             StopNavAgent(entity);

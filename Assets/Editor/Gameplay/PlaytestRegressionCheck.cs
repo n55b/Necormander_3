@@ -27,6 +27,11 @@ public static class PlaytestRegressionCheck
         EditorApplication.update += Tick;
         EditorApplication.EnterPlaymode();
     }
+    public static void RunThreats()
+    {
+        SessionState.SetBool(Key + ".Threats", true);
+        Run();
+    }
     public static void RunGuard()
     {
         SessionState.SetBool(Key + ".GuardOnly", true);
@@ -39,7 +44,7 @@ public static class PlaytestRegressionCheck
         if (!EditorApplication.isPlaying) return;
         try
         {
-            if (checks == null) { deadline = EditorApplication.timeSinceStartup + 120; checks = SessionState.GetBool(Key + ".GuardOnly", false) ? CheckGuard() : Check(); }
+            if (checks == null) { deadline = EditorApplication.timeSinceStartup + 120; checks = SessionState.GetBool(Key + ".Threats", false) ? CheckThreats() : SessionState.GetBool(Key + ".GuardOnly", false) ? CheckGuard() : Check(); }
             if (EditorApplication.timeSinceStartup > deadline) throw new TimeoutException("검사 120초 초과");
             if (!checks.MoveNext()) Finish(0);
         }
@@ -52,6 +57,7 @@ public static class PlaytestRegressionCheck
         MapGenerator.Instance = null;
         SessionState.EraseBool(Key);
         SessionState.EraseBool(Key + ".GuardOnly");
+        SessionState.EraseBool(Key + ".Threats");
         EditorApplication.update -= Tick;
         EditorApplication.Exit(code);
     }
@@ -60,6 +66,72 @@ public static class PlaytestRegressionCheck
         float end = Time.unscaledTime + seconds;
         while (Time.unscaledTime < end) yield return null;
     }
+    private static IEnumerator CheckThreats()
+    {
+        var camera = new GameObject("Threat preview camera").AddComponent<Camera>();
+        camera.enabled = false;
+        camera.orthographic = true;
+        camera.orthographicSize = 180;
+        camera.transform.position = new Vector3(0, 0, -10);
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = Color.black;
+        var ink = new Color(.72f, .11f, .13f, 1);
+        var lane = PixelVectorShape.Create("Lane", PixelVectorShape.Kind.Rectangle, ink, 0, PixelVectorShape.Stroke.Boundary);
+        lane.transform.localScale = new Vector3(80, 40, 1);
+        var ellipse = PixelVectorShape.Create("Ellipse", PixelVectorShape.Kind.Ellipse, ink, 0, PixelVectorShape.Stroke.Boundary);
+        ellipse.transform.position = Vector3.left * 100;
+        ellipse.transform.localScale = new Vector3(80, 40, 1);
+        var cone = BoneMasterTelegraphUtil.SpawnCone(null, Vector2.right * 100, Vector2.right, 40, 35, ink);
+        foreach (int scale in new[] { 1, 2, 3 })
+        {
+            var target = RenderTexture.GetTemporary(640 * scale, 360 * scale, 24);
+            camera.targetTexture = target;
+            float previous = 0, peak = 0;
+            foreach (float progress in new[] { 0f, .55f, .93f, 1f })
+            {
+                var cue = PixelVectorShape.ThreatCue(progress, 1);
+                PixelVectorShape.SetThreatCue(lane, cue);
+                PixelVectorShape.SetThreatCue(ellipse, cue);
+                BoneMasterTelegraphUtil.UpdateCone(cone, Vector2.right * 100, Vector2.right, progress);
+                camera.Render();
+                var frame = Read(target);
+                float edge = frame.GetPixel(320 * scale, 200 * scale - 1).g;
+                int horizontal = 0, vertical = 0, oval = 0;
+                for (int offset = 0; offset < 6 * scale; offset++)
+                {
+                    if (frame.GetPixel(360 * scale - 1 - offset, 180 * scale).r > .4f) horizontal++;
+                    if (frame.GetPixel(320 * scale, 200 * scale - 1 - offset).r > .4f) vertical++;
+                    if (frame.GetPixel(220 * scale, 200 * scale - 1 - offset).r > .4f) oval++;
+                }
+                Require(horizontal == scale && vertical == scale && oval == scale,
+                    $"Threat width at {target.width}x{target.height}, long/short/ellipse = {horizontal}/{vertical}/{oval}");
+                Require(frame.GetPixel(320 * scale, 200 * scale).r < .02f && frame.GetPixel(420 * scale, 223 * scale).r < .02f,
+                    "Warning stays inside the indicated range");
+                if (progress == .55f) Require(edge > previous, "Rim brightens as the countdown fills");
+                if (progress == .93f) { Require(edge > previous + .04f, "One short pulse immediately before impact"); peak = edge; }
+                if (progress == 1f) Require(edge < peak, "Pulse ends when the attack goes live");
+                previous = edge;
+                if (scale == 2 && progress == .93f) PresentationRegressionCheck.SaveFrame(frame,"ThreatPreview");
+                Object.Destroy(frame);
+            }
+            camera.targetTexture = null;
+            RenderTexture.ReleaseTemporary(target);
+        }
+        var prefab = AssetDatabase.LoadAssetAtPath<BaseHitBox>("Assets/Prefabs/Effect/Combat/Skills/Boss Execution Lane.prefab");
+        var box = Object.Instantiate(prefab);
+        box.Init(default, 0, .5f, 1f);
+        var props = new MaterialPropertyBlock();
+        box.GetComponentInChildren<SpriteRenderer>().GetPropertyBlock(props);
+        Require(props.GetVector("_ThreatCue").x == 1 && box.GetComponentsInChildren<LineRenderer>().All(line => !line.enabled),
+            "Execution lane uses the common countdown and one boundary");
+        box.ForceActivate();
+        box.GetComponentInChildren<SpriteRenderer>().GetPropertyBlock(props);
+        Require(props.GetVector("_ThreatCue").y == 1 && props.GetVector("_ThreatCue").z == 0,
+            "Animation event activation settles the warning immediately");
+        Object.Destroy(box.gameObject);
+        yield return null;
+    }
+
     private static IEnumerator CheckGuard()
     {
         var managerHost = new GameObject("Inactive guard data"); managerHost.SetActive(false);
@@ -94,10 +166,33 @@ public static class PlaytestRegressionCheck
     }
     private static IEnumerator Check()
     {
+        while (UnityNote.SceneLoader.IsLoading) yield return null;
         CheckAssets();
+        CheckCursorMaterials();
         CheckDash();
         CheckAuthoredWaterBanks();
         CheckWaves();
+
+        var corpse = new GameObject("Missing death clip", typeof(SpriteRenderer));
+        var renderer = corpse.GetComponent<SpriteRenderer>();
+        var death = corpse.AddComponent<AstroNuts.Monsters.MonsterDeathHandler>();
+        Set(death, "collidersToDisable", System.Array.Empty<Collider2D>());
+        Set(death, "behavioursToDisable", System.Array.Empty<MonoBehaviour>());
+        Set(death, "fallbackDelay", .3f);
+        // The asset inventory above can take longer than the entire death animation on the first frame.
+        float previousStep = Time.captureDeltaTime;
+        Time.captureDeltaTime = 1f / 60f;
+        yield return null;
+        death.Die();
+        bool faded = false;
+        float deadline = Time.realtimeSinceStartup + 2f;
+        while (corpse != null && Time.realtimeSinceStartup < deadline)
+        {
+            faded |= renderer.color.a > 0f && renderer.color.a < 1f;
+            yield return null;
+        }
+        Time.captureDeltaTime = previousStep;
+        Require(faded && corpse == null, $"Missing death animation fades before retirement (intermediate={faded}, retired={corpse == null})");
 
         // 게임/저장 초기화 없이 실제 Vignette 변경 API를 검사한다.
         var gmHost = new GameObject("Inactive GM"); gmHost.SetActive(false);
@@ -121,92 +216,263 @@ public static class PlaytestRegressionCheck
         camera.transform.position = new Vector3(0, 0, -10);
         camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = Color.black;
         camera.GetUniversalAdditionalCameraData().renderPostProcessing = false;
-        var rt = new RenderTexture(256, 256, 24); rt.Create(); camera.targetTexture = rt;
         var normalMaterial = new Material(AssetDatabase.LoadAssetAtPath<Material>("Assets/Material/Feedback/Dither Afterimage.mat"));
         normalMaterial.SetFloat("_Dither", 0);
         var playerSprite = SpriteRect("Visible body", new Vector2(2, 2), Color.blue, normalMaterial);
-        var silhouette = SpriteRect("Silhouette", new Vector2(2, 2), Color.white,
-            AssetDatabase.LoadAssetAtPath<Material>("Assets/Material/Feedback/Player Dither Silhouette.mat"));
-        silhouette.transform.SetParent(playerSprite.transform, false); silhouette.sortingOrder = 9000;
+        var playerGroup = playerSprite.gameObject.AddComponent<SortingGroup>();
+        var playerDepth = playerSprite.gameObject.AddComponent<YSortableObject>();
+        Set(playerDepth, "sortingGroup", playerGroup);
         var blocker = SpriteRect("Torch pixels", new Vector2(1, 2), new Color(.3f, 0, 0), normalMaterial, true);
         blocker.transform.position = new Vector3(.5f, -.1f, 0); blocker.gameObject.layer = Layers.Wall;
         blocker.gameObject.AddComponent<YSortableObject>();
         playerSprite.gameObject.SetActive(false);
-        var occlusion = playerSprite.gameObject.AddComponent<PlayerOcclusionSilhouette>();
-        Set(occlusion, "silhouetteRenderer", silhouette);
+        var occlusion = playerSprite.gameObject.AddComponent<PlayerOcclusionMist>();
         playerSprite.gameObject.SetActive(true);
         wait = Wait(.35f); while (wait.MoveNext()) yield return null;
-        var pixels = Read(rt);
+        Require(camera == PixelArtUpscaleRig.RenderCamera && camera.targetTexture != null,
+            "가림 검사 카메라가 게임 프레임에 연결됨");
+        var pixels = Read(camera.targetTexture);
         var uncovered = Average(pixels, camera, new Vector2(-.5f, 0));
         var covered = Average(pixels, camera, new Vector2(.5f, 0));
         var hole = Average(pixels, camera, new Vector2(.5f, .43f));
         System.IO.File.WriteAllBytes("Logs/Playtest-occlusion.png", pixels.EncodeToPNG());
         Debug.Log($"[PlaytestRegression] render uncovered={uncovered}, covered={covered}, hole={hole}");
         Require(uncovered.b > .9f && uncovered.r < .05f && uncovered.g < .05f, "가리지 않은 몸은 원래 색 그대로");
-        Require(covered.g > .2f && Mathf.Abs(covered.g - covered.b) < .08f, "가려진 픽셀에 회색 실루엣 표시");
-        Require(hole.b > .9f && hole.r < .05f, "가림막의 투명 여백에는 실루엣 없음");
-        // 몸과 손이 목록을 공유하더라도 활성 상태와 레이어 변경을 반영해야 한다.
-        var handSprite = SpriteRect("Test hand", new Vector2(1, 1), Color.blue, normalMaterial);
-        handSprite.transform.SetParent(playerSprite.transform, false);
-        var handSilhouette = SpriteRect("Hand silhouette", new Vector2(1, 1), Color.white,
-            AssetDatabase.LoadAssetAtPath<Material>("Assets/Material/Feedback/Player Dither Silhouette.mat"));
-        handSilhouette.transform.SetParent(handSprite.transform, false); handSilhouette.sortingOrder = 9000;
-        handSprite.gameObject.SetActive(false);
-        var handOcclusion = handSprite.gameObject.AddComponent<PlayerOcclusionSilhouette>();
-        Set(handOcclusion, "silhouetteRenderer", handSilhouette);
-        handSprite.gameObject.SetActive(true);
-        Require((bool)Call(occlusion, "UpdateMasks") && (bool)Call(handOcclusion, "UpdateMasks"), "몸통과 손이 같은 가림막을 검사");
+        Require(covered.b > .28f && covered.g < .18f, "밝은 테두리 없이 실제 플레이어의 파란색이 비침");
+        Require(hole.b > .9f && hole.r < .05f, "가림막 투명 여백에서 원래 플레이어 색 보존");
+        Require(occlusion.ActiveSurfaces == 1, "가리는 지형에 안개 한 개 적용");
+        var mistBlock = new MaterialPropertyBlock();
+        blocker.GetPropertyBlock(mistBlock);
+        float initialCenter = mistBlock.GetVector("_OcclusionFogShape").x;
+        var initialPosition = playerSprite.transform.position;
+        playerSprite.transform.position += Vector3.right * .4f;
+        Call(occlusion, "UpdateMist", .05f);
+        blocker.GetPropertyBlock(mistBlock);
+        float following = mistBlock.GetVector("_OcclusionFogShape").x;
+        float wake = mistBlock.GetVector("_OcclusionFogWake").x;
+        Require(initialCenter < wake && wake < following && following < initialCenter + .2f,
+            "수관의 열린 자리와 잔류 안개가 서로 다른 속도로 플레이어를 뒤따름");
+        float full = mistBlock.GetFloat("_OcclusionFogProgress");
+        playerSprite.transform.position += Vector3.right * 5;
+        Call(occlusion, "UpdateMist", .12f);
+        blocker.GetPropertyBlock(mistBlock);
+        float closing = mistBlock.GetFloat("_OcclusionFogProgress");
+        Require(closing > 0 && closing < full && following == mistBlock.GetVector("_OcclusionFogShape").x
+            && wake == mistBlock.GetVector("_OcclusionFogWake").x, "나무를 벗어나면 마지막 자리에 머물러 닫힘");
+        playerSprite.transform.position = initialPosition;
         blocker.gameObject.SetActive(false);
-        Require(!(bool)Call(handOcclusion, "UpdateMasks"), "같은 프레임에 가림막 비활성화 반영");
+        wait = Wait(.25f); while (wait.MoveNext()) yield return null;
+        Require(occlusion.ActiveSurfaces == 0, "비활성 지형 안개 해제");
         blocker.gameObject.SetActive(true);
-        Require((bool)Call(handOcclusion, "UpdateMasks"), "같은 프레임에 가림막 재등록 반영");
+        wait = Wait(.25f); while (wait.MoveNext()) yield return null;
+        Require(occlusion.ActiveSurfaces == 1, "재등록 지형 안개 복원");
         blocker.gameObject.layer = 0;
-        Require(!(bool)Call(handOcclusion, "UpdateMasks"), "가림막 레이어 변경 시 기존 후보 제외");
+        wait = Wait(.65f); while (wait.MoveNext()) yield return null;
+        Require(occlusion.ActiveSurfaces == 0, "가림 후보에서 빠진 지형 복원");
         blocker.gameObject.layer = Layers.Wall;
-        yield return null;
-        Require((bool)Call(handOcclusion, "UpdateMasks"), "다음 프레임에 가림막 레이어 복원 반영");
         blocker.transform.position = Vector3.right * 5;
         wait = Wait(.2f); while (wait.MoveNext()) yield return null;
-        Require(!silhouette.enabled, "가림막에서 벗어나면 실루엣 정리");
+        Require(occlusion.ActiveSurfaces == 0, "가림막에서 벗어나면 안개 정리");
+
+        blocker.transform.localScale = new Vector3(1f, .22f, 1f);
+        blocker.transform.position = new Vector3(.5f, -.72f, 0);
+        var impact = new GameObject("Detached impact depth fixture").AddComponent<PooledHitEffect>();
+        impact.FollowTarget(playerSprite.transform);
+        wait = Wait(.12f); while (wait.MoveNext()) yield return null;
+        pixels = Read(camera.targetTexture);
+        var feet = Average(pixels, camera, new Vector2(.5f, -.72f));
+        var torso = Average(pixels, camera, new Vector2(.5f, .4f));
+        Require(feet.r > .15f && feet.b < .1f && torso.b > .9f && occlusion.ActiveSurfaces == 0,
+            "뒤에 서면 낮은 사물이 발 쪽만 가리고 몸통은 그대로 보임");
+        var impactGroup = impact.GetComponent<SortingGroup>();
+        Require(impactGroup != null && impactGroup.sortingOrder > playerGroup.sortingOrder &&
+            impactGroup.sortingOrder < blocker.sortingOrder, "분리된 타격 연출도 피해자 바로 위와 전경 사물 사이에 정렬됨");
+        System.IO.File.WriteAllBytes("Logs/World-depth-behind.png", pixels.EncodeToPNG());
+        Object.Destroy(pixels);
+
+        // Move the contact before moving the art to verify the same rule for animated offsets.
+        playerDepth.SetGroundPoint(new Vector3(0, -.8f, 0));
+        wait = Wait(.12f); while (wait.MoveNext()) yield return null;
+        pixels = Read(camera.targetTexture);
+        feet = Average(pixels, camera, new Vector2(.5f, -.72f));
+        Require(feet.b > .9f && feet.r < .1f, "발 기준점이 앞으로 지나가면 같은 그림도 사물 앞에 표시됨");
+        Require(impactGroup.sortingOrder > playerGroup.sortingOrder,
+            "피해자가 사물 앞으로 이동할 때 타격 연출의 깊이도 갱신됨");
+        System.IO.File.WriteAllBytes("Logs/World-depth-in-front.png", pixels.EncodeToPNG());
+        Object.Destroy(pixels);
+        impact.gameObject.SetActive(false);
         playerSprite.gameObject.SetActive(false); blocker.gameObject.SetActive(false);
 
-        // 실제 PNG를 실제 렌더러/카메라로 표시, 등록 해제와 화면 안 진입도 검사.
+        // 실제 렌더 타깃에서 방향 표시, 등록 해제와 화면 내 진입을 검사한다.
         var indicator = new GameObject("Offscreen enemy", typeof(SpriteRenderer)).AddComponent<EntityDirectionIndicator>();
         indicator.transform.position = Vector3.right * 8;
         var arrowManager = new GameObject("Arrow manager").AddComponent<OffscreenEnemyArrowManager>();
         arrowManager.Initialize(); arrowManager.Initialize();
         wait = Wait(.15f); while (wait.MoveNext()) yield return null;
         var arrows = Get<List<SpriteRenderer>>(arrowManager, "_arrows");
-        Require(arrows.Count == 1 && arrows[0].enabled && arrows[0].sprite == ArrowIndicatorSprites.ArrowSide, "화면 밖 적 화살표 표시 + 중복 초기화 방지");
-        pixels = Read(rt);
+        Require(arrows.Count == 1 && arrows[0].enabled && PixelVectorShape.IsApplied(arrows[0]), "화면 밖 적 벡터 화살표 표시 + 중복 초기화 방지");
+        pixels = Read(camera.targetTexture);
         System.IO.File.WriteAllBytes("Logs/Playtest-arrow.png", pixels.EncodeToPNG());
-        Require(pixels.GetPixels().Count(c => c.r > .2f || c.g > .2f || c.b > .2f) > 20, "실제 URP 출력에 화살표 픽셀 존재");
+        Require(pixels.GetPixels().Count(IsArrowFill) > 20, "실제 URP 출력에 화살표 색상 픽셀 존재");
+        Object.Destroy(pixels);
+        indicator.transform.position = Vector3.up * 8;
+        wait = Wait(.1f); while (wait.MoveNext()) yield return null;
+        pixels = Read(camera.targetTexture);
+        var arrowCenter = (Vector2)camera.WorldToScreenPoint(arrows[0].transform.position);
+        Require(ArrowRowWidth(pixels, arrowCenter, -5) > ArrowRowWidth(pixels, arrowCenter, 5), "화면 상단 화살표가 렌더 타깃에서 위를 가리킴");
+        Object.Destroy(pixels);
         indicator.transform.position = Vector3.zero;
         wait = Wait(.1f); while (wait.MoveNext()) yield return null;
         Require(!arrows[0].enabled, "적이 화면 안에 들어오면 화살표 숨김");
         indicator.transform.position = Vector3.right * 8; indicator.gameObject.SetActive(false);
         wait = Wait(.1f); while (wait.MoveNext()) yield return null;
         Require(!arrows[0].enabled, "비활성/은신 대상 등록 해제");
+        var shapes = CheckVectorShapes(camera);
+        while (shapes.MoveNext()) yield return null;
         CheckPips(camera);
         Debug.Log($"[PlaytestRegression] PASS: {passed} checks; box landing/physics, wall, interrupted dash, waves, pause vignette, partial URP mask, arrows, late camera HUD, stage3 assets.");
     }
+
+    private static bool IsArrowFill(Color pixel) => pixel.r > .4f && pixel.r > pixel.g + .14f;
+
+    private static int ArrowRowWidth(Texture2D frame, Vector2 center, int offsetY)
+    {
+        int count = 0;
+        for (int x = -10; x <= 10; x++)
+            if (IsArrowFill(frame.GetPixel((int)center.x + x, (int)center.y + offsetY))) count++;
+        return count;
+    }
+
+    private static IEnumerator CheckVectorShapes(Camera camera)
+    {
+        const int markerCount = 16;
+        const int markerSize = 30;
+        var markers = new SpriteRenderer[markerCount];
+        var directions = new Vector2[markerCount];
+        for (int i = 0; i < markerCount; i++)
+        {
+            float radians = i * Mathf.PI * 2f / markerCount;
+            var direction = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians));
+            directions[i] = direction;
+            var marker = PixelVectorShape.Create("Locator test", PixelVectorShape.Kind.Locator, Color.white, 0,
+                PixelVectorShape.Stroke.Indicator);
+            marker.transform.position = WorldAtPixel(camera, new Vector2(48 + i % 8 * 76, 286 + i / 8 * 46));
+            PixelVectorShape.SetScreenShape(marker, Vector2.one * markerSize, direction);
+            markers[i] = marker;
+        }
+
+        float unitsPerPixel = PixelViewport.WorldUnitsPerPixel;
+        var ring = BossTelegraph.SpawnRing(WorldAtPixel(camera, new Vector2(118, 145)), 60 * unitsPerPixel, Color.red);
+        var cone = BoneMasterTelegraphUtil.SpawnCone(null, WorldAtPixel(camera, new Vector2(204, 145)), Vector2.right,
+            40 * unitsPerPixel, 55f, Color.green);
+        BoneMasterTelegraphUtil.UpdateCone(cone, cone.transform.position, Vector2.right, .5f);
+        var lanePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Effect/Combat/Skills/Telegraph Line Hitbox Prefab.prefab");
+        var lane = BoneMasterTelegraphUtil.SpawnLane(null, WorldAtPixel(camera, new Vector2(290, 145)), Vector2.right,
+            72 * unitsPerPixel, 20 * unitsPerPixel, Color.magenta, lanePrefab.GetComponent<BaseHitBox>(), 0f, 5f);
+        var ellipsePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Effect/Combat/Skills/Center Skill Hitbox Circle Prefab.prefab");
+        var ellipse = BoneMasterTelegraphUtil.SpawnEllipse(null, WorldAtPixel(camera, new Vector2(447, 145)),
+            34 * unitsPerPixel, 18 * unitsPerPixel, Color.cyan, ellipsePrefab.GetComponent<BaseHitBox>(), 0f, 5f);
+        var gaugeHost = new GameObject("World-space gauge test", typeof(Canvas));
+        gaugeHost.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
+        gaugeHost.transform.position = WorldAtPixel(camera, new Vector2(540, 145));
+        var anchor = new GameObject("Gauge anchor", typeof(RectTransform)).GetComponent<RectTransform>();
+        anchor.SetParent(gaugeHost.transform, false);
+        anchor.sizeDelta = new Vector2(68, 26) * unitsPerPixel;
+        gaugeHost.SetActive(false);
+        var gauge = gaugeHost.AddComponent<CenterMeetFill>();
+        Set(gauge, "gaugeAnchor", anchor);
+        gaugeHost.SetActive(true);
+        gauge.SetColor(Color.yellow);
+        gauge.StartFill(.05f);
+
+        var stroke = PixelVectorShape.Create("Stroke width test", PixelVectorShape.Kind.Rectangle, Color.white, 0,
+            PixelVectorShape.Stroke.Boundary);
+        stroke.transform.position = WorldAtPixel(camera, new Vector2(320, 66));
+        stroke.transform.localScale = new Vector3(36 * unitsPerPixel, 16 * unitsPerPixel, 1f);
+
+        var arrowPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Effect/Combat/Skills/Projectiles/Archer Projectile.prefab");
+        var arrow = Object.Instantiate(arrowPrefab, WorldAtPixel(camera, new Vector2(220, 67)), Quaternion.Euler(0f, 0f, 32f));
+        var bowCollider = arrow.GetComponent<BoxCollider2D>();
+        var authoredCollider = arrowPrefab.GetComponent<BoxCollider2D>();
+        Require(PixelVectorShape.IsApplied(arrow.GetComponent<SpriteRenderer>()) && bowCollider.size == authoredCollider.size &&
+            bowCollider.offset == authoredCollider.offset, "궁수 화살의 회전 표시와 충돌 크기 분리");
+
+        var wait = Wait(.15f); while (wait.MoveNext()) yield return null;
+        var frame = Read(camera.targetTexture);
+        int validDirections = 0;
+        for (int i = 0; i < markerCount; i++)
+        {
+            var center = (Vector2)camera.WorldToScreenPoint(markers[i].transform.position);
+            Vector2 tip = center + directions[i] * 8f;
+            Vector2 back = center - directions[i] * 8f;
+            if (frame.GetPixel((int)tip.x, (int)tip.y).r > .8f && frame.GetPixel((int)back.x, (int)back.y).r < .1f)
+                validDirections++;
+        }
+
+        Require(validDirections == markerCount, "16개 각도에서 발밑 포인터가 연속 방향으로 표시됨");
+        Require(frame.GetPixel(146, 145).r > .8f && frame.GetPixel(118, 145).r < .1f && frame.GetPixel(149, 145).r < .1f,
+            "고리 안쪽과 위험 범위 밖이 투명함");
+        Require(frame.GetPixel(217, 145).g > .15f && frame.GetPixel(232, 145).g < .1f && frame.GetPixel(194, 145).g < .1f,
+            "부채꼴 진행 채움과 뒤쪽의 비판정 영역 분리");
+        Require(frame.GetPixel(342, 145).r > .15f && frame.GetPixel(290, 155).r < .1f && frame.GetPixel(362, 145).r < .1f,
+            "레인 너비와 끝점이 월드 판정 범위와 일치");
+        Require(frame.GetPixel(462, 145).g > .15f && frame.GetPixel(447, 164).g < .1f && frame.GetPixel(482, 145).g < .1f,
+            "타원 장축과 단축이 서로 독립된 월드 반경을 따름");
+        Require(!gauge.IsFilling && frame.GetPixel(540, 145).r > .8f && frame.GetPixel(540, 145).g > .8f && frame.GetPixel(540, 145).b < .1f,
+            "머리 위 벡터 게이지가 카운터 색으로 채워짐");
+        Require(frame.GetPixel(208, 59).r > .45f, "회전한 궁수 화살의 벡터 화살촉이 실제 프레임에 표시됨");
+        System.IO.File.WriteAllBytes("Logs/Playtest-vector-effects.png", frame.EncodeToPNG());
+        var cameraSettings = new SerializedObject(CameraSettingsSO.Instance);
+        var strokeWidth = cameraSettings.FindProperty(nameof(CameraSettingsSO.vectorTelegraphStrokePixels));
+        int originalWidth = strokeWidth.intValue;
+        Object.Destroy(frame);
+
+        try
+        {
+            foreach (int width in new[] { 1, 2 })
+            {
+                strokeWidth.intValue = width;
+                cameraSettings.ApplyModifiedPropertiesWithoutUndo();
+                float deadline = Time.unscaledTime + 1f;
+                while (stroke.sharedMaterial.GetVector("_StrokeWidths").y != width && Time.unscaledTime < deadline)
+                    yield return null;
+                wait = Wait(.1f); while (wait.MoveNext()) yield return null;
+                frame = Read(camera.targetTexture);
+                float boundary = frame.GetPixel(320, 74 - width).r;
+                float interior = frame.GetPixel(320, 73 - width).r;
+                float exterior = frame.GetPixel(320, 74).r;
+                float materialWidth = stroke.sharedMaterial.GetVector("_StrokeWidths").y;
+                Require(boundary > .8f && interior < .1f && exterior < .1f,
+                    $"전조 셰이더가 {width} 논리 픽셀 외곽선을 판정 안쪽에 그림 (재질 {materialWidth}, 경계 {boundary}, 안쪽 {interior}, 바깥 {exterior})");
+                Object.Destroy(frame);
+            }
+        }
+        finally
+        {
+            strokeWidth.intValue = originalWidth;
+            cameraSettings.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        foreach (var marker in markers) marker.gameObject.SetActive(false);
+        foreach (var effect in new[] { ring, cone, lane, ellipse, gaugeHost, stroke.gameObject, arrow }) effect.SetActive(false);
+    }
+
+    private static Vector3 WorldAtPixel(Camera camera, Vector2 point)
+        => camera.ViewportToWorldPoint(new Vector3(point.x / PixelViewport.Width, point.y / PixelViewport.Height, -camera.transform.position.z));
     private static void CheckAssets()
     {
         var material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Material/Feedback/Dither Afterimage.mat");
         Require(material.GetFloat("_Dither") == 0, "플레이어/돌진 공용 잔상 디더링 해제");
         var source = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player Melee.prefab");
-        foreach (var effect in source.GetComponentsInChildren<PlayerOcclusionSilhouette>(true))
-        {
-            Color color = Get<Color>(effect, "silhouetteColor");
-            Require(Mathf.Abs(color.r - color.g) < .05f, "플레이어 프리팹 회색 실루엣 저장");
-        }
+        Require(source.GetComponentsInChildren<PlayerOcclusionMist>(true).Length == 1 &&
+            Resources.Load<Shader>("WorldAtmosphere/WorldPixelSprite") != null, "플레이어 몸통에 안개 처리 연결");
         foreach (var pair in new[] { new[] { "Serendipity", "ViperSC" }, new[] { "Marionette", "ViperAS" } })
         {
             var target = AssetDatabase.LoadAssetAtPath<EquipmentSO>($"Assets/SOData/Equipment/Weapons/{pair[0]}.asset");
             var previous = AssetDatabase.LoadAssetAtPath<EquipmentSO>($"Assets/SOData/Equipment/Weapons/{pair[1]}.asset");
             Require(target.handAnimationOverride != null && target.handAnimationOverride == previous.handAnimationOverride, pair[0] + " 직전 무기 클립 유지");
         }
-        Require(ArrowIndicatorSprites.ArrowSide != null && ArrowIndicatorSprites.AllyLocator != null, "PNG 슬라이스 로딩");
+        Require(CameraSettingsSO.Instance.vectorShapeShader != null, "빌드용 벡터 셰이더 연결");
         foreach (var name in new[] { "Torchlight", "Candle_Long" })
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Prefabs/Map/Objects/{name}.prefab");
@@ -348,6 +614,7 @@ public static class PlaytestRegressionCheck
         var player = host.AddComponent<PlayerController>(); player.enabled = false; host.SetActive(true);
         foreach (var behaviour in host.GetComponents<MonoBehaviour>()) behaviour.enabled = false;
         var canvas = new GameObject("HUD", typeof(RectTransform), typeof(Canvas)).GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        PixelArtUpscaleRig.BindCanvas(canvas);
         var ui = new GameObject("Dash UI", typeof(RectTransform)).AddComponent<DashCooldownUI>(); ui.transform.SetParent(canvas.transform, false);
         var pips = new GameObject("Pips", typeof(RectTransform)).GetComponent<RectTransform>(); pips.SetParent(ui.transform, false);
         Set(ui, "worldPips", pips); ui.Initialize(player);
@@ -355,7 +622,7 @@ public static class PlaytestRegressionCheck
         // Update 이후 카메라가 바뀐 것과 같은 순서. Canvas 콜백에서 새 위치를 사용해야 한다.
         camera.transform.position = new Vector3(.17f, -.28f, -10); Canvas.ForceUpdateCanvases();
         Vector3 expected = camera.WorldToScreenPoint(host.transform.position + Get<Vector3>(ui, "worldOffset"));
-        Vector2 actual = RectTransformUtility.WorldToScreenPoint(null, pips.position);
+        Vector2 actual = PixelViewport.CanvasToGamePoint(canvas, pips.position);
         Require(Vector2.Distance(actual, expected) < .1f, "Canvas 렌더 직전 카메라 좌표로 대시 UI 동기화");
         ui.enabled = false; Require(!pips.gameObject.activeSelf, "UI 비활성화 시 발밑 표시 정리");
     }
@@ -385,6 +652,24 @@ public static class PlaytestRegressionCheck
     {
         var go = new GameObject(name, typeof(Tilemap)); go.transform.SetParent(grid.transform, false); return go.GetComponent<Tilemap>();
     }
+    private static void CheckCursorMaterials()
+    {
+        var cursor = Object.Instantiate(AssetDatabase.LoadAssetAtPath<TargetCursorSO>("Assets/SOData/MouseCursor/TargetCursorSO.asset"));
+        var a = new GameObject("Target A", typeof(SpriteRenderer)).GetComponent<SpriteRenderer>();
+        var b = new GameObject("Target B", typeof(SpriteRenderer)).GetComponent<SpriteRenderer>();
+        var shared = a.sharedMaterial;
+        try
+        {
+            cursor.OnEffect(a.gameObject);
+            bool highlighted = a.sharedMaterial != shared;
+            cursor.OnEffect(b.gameObject);
+            cursor.OutEffect();
+            Require(highlighted && a.sharedMaterial == shared && b.sharedMaterial == shared,
+                "두 타깃 사이 커서를 옮긴 뒤 원래 공유 머티리얼 복원");
+        }
+        finally { Object.Destroy(a.gameObject); Object.Destroy(b.gameObject); Object.Destroy(cursor); }
+    }
+
     private static FieldInfo Field(object target, string name) => target.GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
     private static void Set(object target, string name, object value) => Field(target, name).SetValue(target, value);
     private static T Get<T>(object target, string name) => (T)Field(target, name).GetValue(target);

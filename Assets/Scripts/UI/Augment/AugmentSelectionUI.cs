@@ -28,12 +28,18 @@ public class AugmentSelectionUI : MonoBehaviour
 
     private Action<AugmentOffer> _onPicked;
 
-    public bool IsOpen => panelRoot != null && panelRoot.activeSelf;
+    public bool IsOpen => UIOpenMotion.IsShown(panelRoot);
 
     private void Awake()
     {
         Instance = this;
         if (panelRoot != null) panelRoot.SetActive(false);
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+        _onPicked = null;
     }
 
     /// <summary>
@@ -79,7 +85,7 @@ public class AugmentSelectionUI : MonoBehaviour
 
     public void Hide()
     {
-        if (panelRoot != null && !panelRoot.activeSelf) return;
+        if (!IsOpen) return;
         if (UIPopUpManager.Instance != null && UIPopUpManager.Instance.IsOpen(panelRoot)) UIPopUpManager.Instance.Close(panelRoot); // 내 창만 닫는다
         else if (panelRoot != null) panelRoot.SetActive(false);
         UIEventBus.NotifyClose("Augment");

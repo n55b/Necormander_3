@@ -80,8 +80,8 @@ SpriteRenderer:
   m_SortingLayerID: 1659204433
   m_SortingLayer: 2
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7422717023923698747, guid: bd8b117974b26ae47ac9fd3b05f24bf8, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Sprite: {fileID: 0}
+  m_Color: {r: 0.8666667, g: 0.4392157, b: 0.4392157, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -106,6 +106,7 @@ MonoBehaviour:
   speed: 15
   lifeTime: 3
   rotateToDirection: 1
+  vectorArrowSize: {x: 0.75, y: 0.21875}
   launchSound: 89
 --- !u!61 &-8887338375934734293
 BoxCollider2D:

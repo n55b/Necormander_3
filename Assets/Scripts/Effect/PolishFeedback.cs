@@ -7,19 +7,20 @@ public static class PolishFeedback
 {
     private static FeedbackCatalog catalog;
     private static bool loaded;
+    private static int accentFrame = -1;
     private static int frame, bursts, sounds, guardBursts;
     // 연출을 꺼도 전투/보상 추첨의 Unity Random 상태가 바뀌지 않는다.
     private static readonly System.Random visualRandom = new System.Random();
     internal static float VisualRange(float min, float max) => min+(max-min)*(float)visualRandom.NextDouble();
-    private static readonly float[] next = new float[(int)FeedbackCue.DoorEmerge + 1];
-    private static readonly float[] nextSound = new float[(int)FeedbackCue.DoorEmerge + 1];
+    private static readonly float[] next = new float[(int)FeedbackCue.LastEnemyImpact + 1];
+    private static readonly float[] nextSound = new float[(int)FeedbackCue.LastEnemyImpact + 1];
     public static event System.Action<FeedbackCue, AudioClip> SoundPlayed;
     public static FeedbackCatalog Catalog
     {
         get { if(!loaded) { catalog=Resources.Load<FeedbackCatalog>("FeedbackCatalog"); loaded=true; } return catalog; }
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void Reset() { catalog=null; loaded=false; frame=-1; System.Array.Clear(next,0,next.Length); System.Array.Clear(nextSound,0,nextSound.Length); Shader.SetGlobalFloat("_FeedbackDitherDisabled", 0f); }
+    private static void Reset() { catalog=null; loaded=false; frame=accentFrame=-1; System.Array.Clear(next,0,next.Length); System.Array.Clear(nextSound,0,nextSound.Length); Shader.SetGlobalFloat("_FeedbackDitherDisabled", 0f); }
     public static bool ExistingEnabled(ExistingFeedbackCue cue) => Catalog == null || Catalog.ExistingEnabled(cue);
     public static void RefreshShaderSettings() => Shader.SetGlobalFloat("_FeedbackDitherDisabled", ExistingEnabled(ExistingFeedbackCue.Dither) ? 0f : 1f);
     public static bool Enabled(FeedbackCue cue)
@@ -30,6 +31,8 @@ public static class PolishFeedback
     public static FeedbackBurst Play(FeedbackCue cue, Vector3 position, Vector2 direction=default, int tier=0,
         Transform target=null, Sprite sprite=null, Color? tint=null, bool playSound=true)
     {
+        // Scene previews and Edit Mode combat checks do not run the effects pool lifecycle.
+        if (!Application.isPlaying) return null;
         var c=Catalog;
         if(c==null || !c.enabled) return null;
         var r=c.Find(cue);
@@ -38,14 +41,18 @@ public static class PolishFeedback
         if(tier<r.minimumTier) return null;
         if(frame!=Time.frameCount) { frame=Time.frameCount; bursts=0; sounds=0; guardBursts=0; }
         int id=(int)cue;
-        if(Time.time<next[id]) return null;
+        // Reserve one marker for a decisive dodge or killing blow when the regular pool is saturated.
+        bool accent = cue == FeedbackCue.BossDeath || cue == FeedbackCue.LastEnemyImpact ||
+            (cue == FeedbackCue.ProjectileGraze && accentFrame != Time.frameCount);
+        if(!accent && Time.time<next[id]) return null;
         // 성공을 알려주는 두 표시는 전투 이펙트가 몰린 프레임에도 누락하지 않는다.
         bool guardCue=cue==FeedbackCue.PerfectGuardFlash || cue==FeedbackCue.PerfectGuardRing;
         if(guardCue && guardBursts>=2) return null;
-        if(!guardCue && (bursts>=c.burstsPerFrame || FeedbackBurst.ActiveCount>=c.simultaneousBursts)) return null;
+        if(!accent && !guardCue && (bursts>=c.burstsPerFrame || FeedbackBurst.ActiveCount>=c.simultaneousBursts)) return null;
         next[id]=Time.time+r.interval;
         if(cue==FeedbackCue.Distortion) FeedbackDistortionFeature.Add(position);
         if(r.prefab==null) return null;
+        if(accent) accentFrame = Time.frameCount;
         bursts++;
         if(guardCue) guardBursts++;
         float angle=direction.sqrMagnitude>.001f?Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg:0;
@@ -131,11 +138,42 @@ public static class PolishFeedback
             }
         if (c.prewarmHitPrefabs != null) foreach (var prefab in c.prewarmHitPrefabs)
         {
+            if (prefab != null && c.prewarmHitCount > 0) PrepareHitMaterials(prefab);
             for (int i = 0; prefab != null && i < c.prewarmHitCount; i++)
             {
                 PooledHitEffect.PrewarmOne(prefab, c.prewarmHitCount);
                 if (++perFrame >= 2) { perFrame = 0; yield return null; }
             }
+        }
+    }
+
+    // Disabled pool entries never submit a draw. Upload the actual hit atlases and
+    // material passes to a private target while the dungeon is being prepared.
+    private static void PrepareHitMaterials(PooledHitEffect prefab)
+    {
+        var target = RenderTexture.GetTemporary(4, 4, 0, RenderTextureFormat.ARGB32);
+        var previous = RenderTexture.active;
+        using var draw = new UnityEngine.Rendering.CommandBuffer { name = "Prepare pooled hit materials" };
+        try
+        {
+            var quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            var properties = new MaterialPropertyBlock();
+            draw.SetRenderTarget(target);
+            foreach (var renderer in prefab.GetComponentsInChildren<Renderer>(true))
+            {
+                var material = renderer.sharedMaterial;
+                if (material == null || !material.shader.isSupported || material.passCount == 0) continue;
+                properties.Clear();
+                if (renderer is SpriteRenderer sr && sr.sprite != null && material.HasProperty("_MainTex"))
+                    properties.SetTexture("_MainTex", sr.sprite.texture);
+                draw.DrawMesh(quad, Matrix4x4.identity, material, 0, 0, properties);
+            }
+            Graphics.ExecuteCommandBuffer(draw);
+        }
+        finally
+        {
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(target);
         }
     }
     public static int WeaponTier => Mathf.Clamp(EquipmentInventoryManager.Instance?.Weapon?.upgradeStage??0,0,3);
@@ -178,8 +216,10 @@ public static class PolishFeedback
     {
         if(health==null || !DamageRules.IsPlayerSourced(info.category) || info.category==DamageCategory.Parry) return;
         if (info.minionSource != null) info.minionSource.PlayHitSound(info.category);
-        Vector3 pos=health.transform.position;
-        Vector2 dir=info.attacker!=null ? pos-info.attacker.transform.position:Vector2.right;
+        var body = health.HitBody;
+        Vector3 pos = body != null ? body.bounds.center : health.transform.position;
+        Vector2 origin = info.hitFrom ?? (info.attacker != null ? (Vector2)info.attacker.transform.position : (Vector2)pos - Vector2.right);
+        Vector2 dir = (Vector2)health.transform.position - origin;
         bool minion=info.playerBasicAttack==null;
         int tier=minion?MinionTier():WeaponTier;
         Play(FeedbackCue.DirectionHit,pos,dir,tier)?.FollowOrigin(health.transform);
@@ -198,11 +238,18 @@ public static class PolishFeedback
         Play(FeedbackCue.ImpactSound,pos,dir,tier,playSound:info.minionSource==null);
         if(critical||info.feedbackComboFinish)
         {
-            if(Enabled(FeedbackCue.CameraKick)) CameraManager.Instance?.DirectionalKick(dir,Catalog.cameraForce*Catalog.Find(FeedbackCue.CameraKick).intensity);
-            if(tier>=2&&Enabled(FeedbackCue.HitStop)&&Time.timeScale>.9f) HitStopManager.Instance?.DoHitStop(Catalog.hitStopSeconds*Catalog.Find(FeedbackCue.HitStop).intensity);
             Play(FeedbackCue.Distortion,pos,dir,tier);
         }
     }
+    private static RoomInstance lastDefeatedRoom;
+    private static Vector3 lastDefeatedAt;
+    private static float lastDefeatedTime;
+    internal static Vector3 RewardOrigin(Vector3 fallback)
+    {
+        var room = MapGenerator.Instance != null ? MapGenerator.Instance.CurrentRoom : null;
+        return room != null && room == lastDefeatedRoom && Time.time - lastDefeatedTime < 2f ? lastDefeatedAt : fallback;
+    }
+
     public static void Killed(CharacterHealth health, DamageInfo info)
     {
         if(health==null) return;
@@ -210,13 +257,20 @@ public static class PolishFeedback
         if(entity==null) return;
         var pos=entity.transform.position;
         if (entity.team == Team.Enemy)
+        {
+            lastDefeatedRoom = MapGenerator.Instance != null ? MapGenerator.Instance.CurrentRoom : null;
+            lastDefeatedTime = Time.time;
+            lastDefeatedAt = pos;
             PlaySound(entity.Brain is DualSplitAIPatternSO ? FeedbackCue.SplitDeath : FeedbackCue.EnemyDeath, pos);
+        }
         Play(FeedbackCue.KillHit,pos,Vector2.up,MinionTier());
         if(Player!=null) Play(FeedbackCue.SoulReturn,pos,Vector2.up,MinionTier(),Player.transform);
         if(entity.MinionData!=null&&entity.MinionData.tier==EnemyTier.Boss)
         {
-            Play(FeedbackCue.BossDeath,pos,Vector2.up,3);
-            if(Enabled(FeedbackCue.SlowMotion)) HitStopManager.Instance?.DoSlowMotion(Catalog.slowMotionSeconds,Catalog.slowMotionScale);
+            Vector2 point = health.HitBody != null ? (Vector2)health.HitBody.bounds.center : (Vector2)pos;
+            Vector2 from = info.hitFrom ?? (info.attacker != null ? (Vector2)info.attacker.transform.position : point - Vector2.up);
+            var direction = point - from;
+            Play(FeedbackCue.BossDeath, point, direction.sqrMagnitude > .0001f ? direction.normalized : Vector2.up, 3);
         }
     }
 }

@@ -12,9 +12,9 @@ public sealed class FeedbackSurface : MonoBehaviour
     private float next;
     private bool wasNear;
     private GroundItem pickup;
-    private SpriteRenderer dropRenderer;
     private SpriteRenderer visualRenderer;
-    private bool restoreDrop;
+    private float dropRevealStart;
+    private bool revealingDrop;
     private void Start()
     {
         pickup=GetComponent<GroundItem>();
@@ -23,20 +23,45 @@ public sealed class FeedbackSurface : MonoBehaviour
         {
             var sr=visualRenderer=GetComponentInChildren<SpriteRenderer>();
             var burst=PolishFeedback.Play(FeedbackCue.DropLand,transform.position+offset,Vector2.zero,sprite:sr!=null?sr.sprite:null);
-            if(burst!=null&&sr!=null&&sr.enabled) { dropRenderer=sr; restoreDrop=true; sr.enabled=false; StartCoroutine(RestoreDrop()); }
+            if (sr == null || !sr.enabled) return;
+            if (burst == null || !burst.AnimateDrop(this, sr))
+            {
+                dropRevealStart = Time.unscaledTime;
+                revealingDrop = true;
+                SetDropAlpha(0f);
+            }
         }
     }
-    private System.Collections.IEnumerator RestoreDrop()
+    internal void DropLanded()
     {
-        var recipe=PolishFeedback.Catalog.Find(FeedbackCue.DropLand);
-        float remaining=recipe.delay+recipe.duration;
-        while(remaining>0&&PolishFeedback.Enabled(FeedbackCue.DropLand)) { remaining-=Time.deltaTime; yield return null; }
-        RestoreIcon();
+        if (pickup != null && pickup.IsAvailable)
+        {
+            WorldAtmosphere.Current?.Accent(transform.position);
+            WorldSparkField.Emit(WorldSparkField.Kind.Treasure, transform.position, Vector2.up, 5);
+            PolishFeedback.Play(FeedbackCue.RarityGlow, transform.position + offset, Vector2.up,
+                tint: pickup.Item != null ? pickup.Item.TierColor : Color.cyan);
+        }
     }
-    private void RestoreIcon() { if(restoreDrop&&dropRenderer!=null) dropRenderer.enabled=true; restoreDrop=false; }
-    private void OnDisable() { StopAllCoroutines(); RestoreIcon(); }
+    private void OnDisable()
+    {
+        if (revealingDrop) SetDropAlpha(1f);
+        revealingDrop = false;
+    }
+
+    private void SetDropAlpha(float alpha)
+    {
+        var color = visualRenderer.color;
+        color.a = alpha;
+        visualRenderer.color = color;
+    }
     private void Update()
     {
+        if (revealingDrop)
+        {
+            float progress = (Time.unscaledTime - dropRevealStart) / .14f;
+            SetDropAlpha(Mathf.SmoothStep(0f, 1f, progress));
+            revealingDrop = progress < 1f;
+        }
         var player=PolishFeedback.Player; var settings=PolishFeedback.Catalog;
         if(player==null||settings==null||!settings.enabled||Time.deltaTime<=0) return;
         var delta=player.transform.position-transform.position;
@@ -53,8 +78,6 @@ public sealed class FeedbackSurface : MonoBehaviour
         else if(kind==Kind.Ambient) PolishFeedback.Play(FeedbackCue.AmbientDust,transform.position+offset,Vector2.up);
         else if(pickup!=null&&pickup.IsAvailable)
         {
-            PolishFeedback.Play(FeedbackCue.RarityGlow,transform.position+offset,Vector2.up,
-                tint:pickup.Item!=null?pickup.Item.TierColor:new Color(.45f,.95f,1f))?.FollowOrigin(transform);
             if (pickup.Item != null)
             {
                 Vector3 center = visualRenderer != null ? visualRenderer.bounds.center : transform.position;

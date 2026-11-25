@@ -2,14 +2,9 @@ using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
-/// 유닛의 모든 주요 스탯 컴포넌트들을 한곳에 모아주는 허브 클래스입니다.
-/// 외부에서는 이 클래스를 통해 Health, Status, Visual 컴포넌트에 직접 접근합니다.
-///
-/// [26/07/17 스탯 재설계]
-///  - 공용 스탯(플레이어+적) / 플레이어 전용 / 적 전용으로 나눴다.
-///  - 소환수는 필드에 존재하지 않으므로 CharacterStat 을 갖지 않는다. 소환수 피해는
-///    플레이어의 ATK/MAGIC 을 그대로 가져다 배율을 곱한다(Phase 4).
-///  - 런타임 보정은 전부 Mods(StatModifierRegistry) 로 간다. 구 StatEventBus 는 삭제.
+/// 플레이어와 적의 능력치 및 Health, Status, Visual 컴포넌트에 접근하는 지점이다.
+/// 소환수 피해는 플레이어의 ATK 또는 MAGIC과 스킬 배율로 계산한다.
+/// 실행 중 능력치 보정은 Mods에 등록한다.
 /// </summary>
 [RequireComponent(typeof(CharacterStatus), typeof(CharacterHealth), typeof(CharacterVisualFeedback))]
 public class CharacterStat : MonoBehaviour
@@ -58,15 +53,11 @@ public class CharacterStat : MonoBehaviour
     /// <summary>런타임 스탯 보정치(유물/아이템/서브 소환수). 여기에 걸면 아래 게터들이 알아서 반영한다.</summary>
     public StatModifierRegistry Mods { get; } = new StatModifierRegistry();
 
-    private bool _isAlly = false;  // [추가] 아군 여부 캐싱
-    private bool _isPlayer = false; // [추가] 플레이어 여부 캐싱
+    private bool _isAlly = false;  // 아군 여부 캐싱
+    private bool _isPlayer = false; // 플레이어 여부 캐싱
 
-    public bool IsEnemy => !_isAlly && !_isPlayer; // [추가] 적군 여부 식별
+    public bool IsEnemy => !_isAlly && !_isPlayer; // 적군 여부 식별
     public bool IsPlayer => _isPlayer;
-
-    // [26/08/15] 서브 소환수 삭제로 SubSummonPassiveController 캐시를 걷어냈다.
-    // 서브가 주던 상시 패시브(최대체력/공속/쿨감/평타추가피해)는 아이템으로 다시 만들 예정이며,
-    // 아이템 쪽은 이미 StatModifierRegistry / ItemPouch 라는 별도 경로를 쓴다.
 
     [Header("셋팅 이후 Action들")]
     [SerializeField] private UnityEvent setDoneActions;
@@ -107,7 +98,7 @@ public class CharacterStat : MonoBehaviour
             // 보물 보너스와 같은 방식이라, 층을 넘어 플레이어가 새로 스폰돼도 재적용이 필요 없다.
             float augment = (_isPlayer && InventoryManager.Instance != null)
                 ? InventoryManager.Instance.AugmentMaxHpBonus : 0f;
-            // [26/08/15] 서브 소환수 항 제거. 같은 보너스는 아이템이 Mods(StatType.Health) 로 넣는다.
+            // 서브 소환수 항 제거. 같은 보너스는 아이템이 Mods(StatType.Health) 로 넣는다.
             float flat = Mods.Flat(StatType.Health) + augment;
             float bonus = GetTreasureBonus(TreasureEffectType.GlobalMinionStats)
                         + Mods.Percent(StatType.Health);
@@ -118,15 +109,13 @@ public class CharacterStat : MonoBehaviour
     public float CURHP => (Health != null) ? Health.CurHP : MAXHP;
 
     /// <summary>
-    /// 공격 속도(회/초). 높을수록 빠르다.
-    /// [26/07/17] 예전엔 '공격 간격(초)'이라 낮을수록 빨랐다 — 스탯으로 올릴 때 방향이 반대여서
-    /// 뒤집었다. 타이머용 '초'가 필요하면 AttackInterval 을 쓸 것.
+    /// 초당 공격 횟수. 타이머에는 AttackInterval을 사용한다.
     /// </summary>
     public float ATKSPD
     {
         get
         {
-            // [26/08/15] 서브 소환수 항 제거. 아이템은 Mods(StatType.AttackSpeed) 로 들어온다.
+            // 서브 소환수 항 제거. 아이템은 Mods(StatType.AttackSpeed) 로 들어온다.
             float bonus = Mods.Percent(StatType.AttackSpeed);
             float result = (baseAtkSpd + Mods.Flat(StatType.AttackSpeed)) * (1f + bonus);
             return Mathf.Max(0.05f, result);
@@ -191,7 +180,7 @@ public class CharacterStat : MonoBehaviour
     /// ⚠ 이 식은 <b>퍼센트 단위</b>다(20 = 20%). 나중에 아이템으로 쿨감을 붙일 때 비율(0.2)을
     /// 그대로 넣으면 조용히 1/100 값이 된다.
     /// </summary>
-    // [26/08/15] 서브 소환수 항 제거. 아이템은 Mods(StatType.SkillCooldownReduction) 로 들어온다.
+    // 서브 소환수 항 제거. 아이템은 Mods(StatType.SkillCooldownReduction) 로 들어온다.
     public float SKILL_CDR => (baseSkillCdr + Mods.Flat(StatType.SkillCooldownReduction)) / 100f;
 
     /// <summary>대쉬 쿨감 비율(0~1 이상).</summary>
@@ -238,25 +227,15 @@ public class CharacterStat : MonoBehaviour
     {
         if (!_isInitialized) return;
 
-        // [26/09/09] 예전엔 여기서 Health.ResetHP() 를 불렀다 — 최대 체력이 변했든 아니든
-        // 무조건 풀피였다. 이 함수는 InventoryManager.OnMinionUpdated 에 걸려 있어서,
-        // 소환수를 장착/교체/추가할 때마다 플레이어가 통째로 회복됐다. 방 클리어 보상으로
-        // 소환수를 받으면 그대로 풀피가 되니 '방을 깨면 회복된다'로 보였다.
-        //
-        // 이제 현재 체력은 건드리지 않는다. 새 최대치에 맞춰 clamp 하고 체력바만 갱신한다
-        // (최대 체력이 줄었을 때 현재 체력이 최대치를 넘어 있는 걸 막는 게 목적).
-        //
-        // CurHP>0 가드: Init 이 아직 안 돌았으면 CurHP 가 0 이고, SetHP(0) 은 isDead 를
-        // 켜버린다 — ItemPouch.Refresh 와 같은 이유, 같은 가드.
+        // 소환수 교체 후 살아 있는 캐릭터의 현재 체력을 새 최대치에 맞춰 제한한다.
+        // 초기화 전의 CurHP 0을 SetHP에 넘기면 사망으로 처리된다.
         if (Health != null && Health.CurHP > 0f)
         {
             Health.SetHP(Health.CurHP);
         }
     }
 
-    // [26/07/17] _isPlayer 게이트를 걷어냈다. 예전엔 플레이어를 보물 보너스에서 명시적으로
-    // 제외했는데, 이제 소환수가 플레이어의 ATK 를 공유하므로 버프 경로가 하나여야 한다.
-    // "아군 공격력 증가"를 베이스 ATK 하나에만 걸면 주먹과 소환수 피해에 동시에 먹는다.
+    // 플레이어와 소환수가 공유하는 기본 공격력에 아군 보물 효과를 적용한다.
     private float GetTreasureBonus(TreasureEffectType type)
     {
         if (InventoryManager.Instance == null || !_isAlly) return 0f;
@@ -302,7 +281,7 @@ public class CharacterStat : MonoBehaviour
 
         UpdateTeamStatus(); // Init 전에 IsEnemy 설정
 
-        if (Status != null) Status.Init(this); // [추가] Status에 IsEnemy 참조 전달
+        if (Status != null) Status.Init(this); // Status에 IsEnemy 참조 전달
         if (Visual != null) Visual.Init(Health, Status);
         if (Health != null) Health.Init(this, Status);
 

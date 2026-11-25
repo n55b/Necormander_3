@@ -9,7 +9,7 @@ using UnityEngine.Tilemaps;
 /// <summary>
 /// 일반 전투 방의 이벤트를 담당합니다.
 ///
-/// [26/08/01] 증강 선택 방(RoomType.Augment)도 이 컴포넌트가 굴린다 — 전투 자체는 일반 방과
+/// 증강 선택 방(RoomType.Augment)도 이 컴포넌트가 굴린다 — 전투 자체는 일반 방과
 /// 완전히 같고, 시작 전에 카드를 한 장 고르는 단계와 클리어 시 페널티 해제만 다르다.
 /// 방 프리팹도 일반 방 것을 그대로 쓴다(RoomPrefabDataSO.GetEntry 의 폴백).
 /// </summary>
@@ -35,8 +35,6 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     [SerializeField, InspectorName("모든 웨이브를 한 번에 소환")]
     [Tooltip("이 방만 층 설정의 모든 웨이브를 첫 등장에 합칩니다. 웨이브별 군집 추첨·적 수 배율·증강 추가 몬스터를 그대로 합산합니다. 튜토리얼 직접 배치에는 영향이 없습니다.")]
     private bool combineAllWaves;
-    [Tooltip("몹 스폰 예고용으로 활용할 차오르는 원형 장판 프리팹을 지정하세요.")]
-    [SerializeField] private GameObject spawnVfxPrefab;
     [Tooltip("방 벽으로부터의 스폰 최소 거리 마진(Margin)입니다. 클수록 방 중앙 쪽에 가깝게 몹들이 스폰됩니다. 기본값 3.0f")]
     [SerializeField] private float spawnMargin = 3.0f;
 
@@ -68,6 +66,14 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     private RoomInstance _cachedRoom;
     private int _currentWave = 1;
     private bool _usingTutorialPlacedEnemies;
+#if NECRO_RENDER_BENCH
+    internal int SpawnedEnemyCount => _activeEnemies.Count;
+    internal int SpawnBudget => Mathf.Max(1, spawnGroupPerFrame);
+#endif
+#if LEVEL_WORKSHOP_QA
+    internal GameObject[] ActiveEnemiesForCheck => _activeEnemies.ToArray();
+    internal int CurrentWaveForCheck => _currentWave;
+#endif
 
     /// <summary>현재 층의 조절표. 없으면 null — 그 층은 전역 기본값으로 돈다.</summary>
     private MapGenerationDataSO.FloorTuningEntry Tuning =>
@@ -75,7 +81,11 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             ? mapGenerationData.GetTuningForFloor(GameManager.Instance.currentFloor)
             : null;
 
-    private int WavesThisFloor => (mapGenerationData != null && GameManager.Instance != null)
+    [SerializeField, HideInInspector] private EnemyClusterSO[] authoredWaves = System.Array.Empty<EnemyClusterSO>();
+    public IReadOnlyList<EnemyClusterSO> AuthoredWaves => authoredWaves;
+    internal void ConfigureWaves(EnemyClusterSO[] waves) => authoredWaves = waves;
+    private bool HasAuthoredWaves => authoredWaves.Length>0;
+    private int WavesThisFloor => HasAuthoredWaves ? authoredWaves.Length : (mapGenerationData != null && GameManager.Instance != null)
         ? mapGenerationData.GetWavesForFloor(GameManager.Instance.currentFloor)
         : (mapGenerationData != null ? mapGenerationData.wavesCount : 1);
     private List<Vector3> _spawnedEnemyPositions = new List<Vector3>();
@@ -83,16 +93,16 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     // 예전엔 roomSize 사각형에서 무작위로 던지고 10번 안에 못 맞추면 방 중앙으로 폴백했는데,
     // roomSize 는 장식용 바깥 벽 띠까지 포함한 Wall 타일맵 bounds(예: 98x91)라 기각률이 높았고
     // 그 폴백 때문에 여러 마리가 정확히 같은 좌표(방 중앙)에 겹쳐 나왔다.
-    private readonly List<Vector3> _floorSpawnCells = new List<Vector3>();
+    private List<Vector3> _floorSpawnCells = new List<Vector3>();
     private RoomInstance _floorCellsRoom;
-    // GetTilesBlockNonAlloc 용 공유 버퍼. 방마다 8,900칸짜리 배열을 새로 잡으면 진입할 때마다
-    // 70KB 가 GC 로 흘러간다. 한 번에 한 방만 스캔하므로 static 하나로 돌려쓴다(필요하면 커진다).
-    private static TileBase[] _tileBlockBuffer;
+    private int spawnCellRevision;
 
     // 웨이브마다 new 로 잡던 임시 리스트들. Clear() 는 용량을 남기므로 재사용하면 두 번째 웨이브부터
     // 할당이 0 이 된다. 스폰 루틴은 한 번에 하나만 도는 게 보장되므로(_isSpawnPending) 공유해도 안전하다.
     private readonly List<Vector3> _pendingSpawnPoints = new List<Vector3>();
-    private readonly List<EnemyCount> _pendingEnemyCounts = new List<EnemyCount>();
+    private int arrivalsPending;
+    private int lastSpawnFrame = -1;
+    private int spawnedThisFrame;
     private readonly List<EnemyCount> _toSpawn = new List<EnemyCount>();
     private readonly List<EnemyCount> _waveEnemies = new List<EnemyCount>();
     private readonly List<GameObject> _superArmorPool = new List<GameObject>();
@@ -101,15 +111,33 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     private bool _augmentChosen = false; // 증강 방에서 카드를 이미 골랐는지(방 하나당 한 번)
 
     /// <summary>튜토리얼에서 직접 배치한 개체는 별도의 랜덤 프리팹 준비가 필요 없다.</summary>
-    public GameObject SpawnTelegraphPrefab => spawnVfxPrefab;
-    public bool UsesRandomEnemies => !(TutorialFlow.IsRunning && tutorialEnemiesRoot != null);
+    [SerializeField, HideInInspector] private bool workshopEncounter;
+    public bool UsesRandomEnemies => !((TutorialFlow.IsRunning || workshopEncounter) && tutorialEnemiesRoot != null);
+    internal void SetWorkshopEnemies(Transform root)
+    {
+        workshopEncounter = true;
+        if (tutorialEnemiesRoot != null && tutorialEnemiesRoot != root)
+        {
+            tutorialEnemiesRoot.SetParent(root,true);
+            tutorialEnemiesRoot.gameObject.SetActive(true);
+        }
+        tutorialEnemiesRoot = root;
+        root.gameObject.SetActive(false);
+    }
 
     /// <summary>생성 완료된 방의 바닥 후보를 로딩 중 계산한다. 실제 위치 추첨은 전투 시작 때 한다.</summary>
     public void PrepareSpawnCells(RoomInstance room, MapGenerationDataSO generation)
     {
-        if (!UsesRandomEnemies || room == null) return;
+        if ((!UsesRandomEnemies && !HasAuthoredWaves) || room == null) return;
         if (mapGenerationData == null) mapGenerationData = generation;
         BuildFloorSpawnCells(room);
+    }
+
+    internal IEnumerator PrepareFloorSpawnCells(RoomInstance room, MapGenerationDataSO generation)
+    {
+        if ((!UsesRandomEnemies && !HasAuthoredWaves) || room == null) yield break;
+        if (mapGenerationData == null) mapGenerationData = generation;
+        yield return CollectFloorSpawnCells(room, true);
     }
 
     private void Start()
@@ -123,29 +151,21 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             tutorialEnemiesRoot.gameObject.SetActive(false);
     }
 
+    private readonly RoomFinalBlow finalBlow = new();
+
     private void Update()
     {
         // 지연 소환 중에 적 수가 0명인 것을 감지해 즉시 다음 웨이브로 넘어가는 조기 오작동 차단
         if (!_isBattleActive || _isSpawnPending) return;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        int beforeCount = _activeEnemies.Count;
-#endif
         _activeEnemies.RemoveAll(item => item == null);
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        // ConvertAll + string.Join 은 호출마다 리스트와 문자열을 새로 만든다.
-        // 적이 죽을 때마다 도는 진단용이라 개발 빌드에서만 남긴다.
-        if (beforeCount != _activeEnemies.Count)
-        {
-            Debug.Log($"<color=cyan>[NormalRoomEvent]</color> Enemy removed. Count: {beforeCount} -> {_activeEnemies.Count}. " +
-                      $"Remaining: {string.Join(", ", _activeEnemies.ConvertAll(e => e != null ? e.name : "null"))}");
-        }
-#endif
+        if (_activeEnemies.Count != 0 && !finalBlow.Pending) return;
+        bool moreWaves = (!_usingTutorialPlacedEnemies || HasAuthoredWaves) && mapGenerationData != null && _currentWave < WavesThisFloor;
+        finalBlow.Resolve(!moreWaves);
 
         if (_activeEnemies.Count == 0)
         {
-            if (!_usingTutorialPlacedEnemies && mapGenerationData != null && _currentWave < WavesThisFloor)
+            if (moreWaves)
             {
                 _currentWave++;
                 SpawnWaves(_cachedRoom);
@@ -181,9 +201,11 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         if (MainMinionSelectionUI.Instance != null && MainMinionSelectionUI.Instance.IsOpen) MainMinionSelectionUI.Instance.Hide();
         // 전투 시작 시 들고 있던 투척물을 떨군다.
 
-        _usingTutorialPlacedEnemies = TutorialFlow.IsRunning && tutorialEnemiesRoot != null;
+        _usingTutorialPlacedEnemies = !UsesRandomEnemies;
         if (_usingTutorialPlacedEnemies)
         {
+            // Placed enemies form the opening group, before the authored cluster sequence.
+            if (HasAuthoredWaves) _currentWave = 0;
             _isSpawnPending = true;
             StartCoroutine(ActivateTutorialEnemies());
         }
@@ -203,36 +225,32 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     private IEnumerator ActivateTutorialEnemies()
     {
         BaseEntity[] enemies = tutorialEnemiesRoot.GetComponentsInChildren<BaseEntity>(true);
+        if (workshopEncounter)
+            enemies = System.Array.FindAll(enemies, enemy =>
+            {
+                for (var node=enemy.transform; node!=tutorialEnemiesRoot; node=node.parent)
+                    if (!node.gameObject.activeSelf) return false;
+                return true;
+            });
         if (enemies.Length > 0)
         {
             yield return new WaitForSeconds(Mathf.Max(0f, spawnStartDelay)); // 카메라가 방에 안착한 뒤 예고를 보여준다
 
             float telegraphDuration = Mathf.Max(0.01f, spawnTelegraphDuration);
-            var telegraphs = new List<GameObject>();
             foreach (var enemy in enemies)
-            {
-                if (enemy == null || spawnVfxPrefab == null) continue;
-                GameObject vfx = TakeSpawnTelegraph(spawnVfxPrefab, enemy.transform.position);
-                BaseHitBox hitbox = vfx.GetComponent<BaseHitBox>();
-                if (hitbox != null)
-                {
-                    var dummy = new DamageInfo(0f, DamageType.Physical, gameObject, 0f);
-                    hitbox.Init(dummy, 0, 0.05f, telegraphDuration, false);
-                    vfx.transform.localScale = new Vector3(spawnTelegraphScale, spawnTelegraphScale, 1f);
-                }
-                telegraphs.Add(vfx);
-            }
-
+                if (enemy != null) StartCoroutine(ShowArrival(enemy.transform.position, telegraphDuration));
             yield return new WaitForSeconds(telegraphDuration);
-            foreach (var vfx in telegraphs)
-                if (vfx != null) Destroy(vfx);
         }
 
         tutorialEnemiesRoot.gameObject.SetActive(true);
         _activeEnemies.Clear();
 
         foreach (var enemy in enemies)
-            if (enemy != null) RegisterActiveEnemy(enemy.gameObject);
+            if (enemy != null)
+            {
+                RegisterActiveEnemy(enemy.gameObject);
+                enemy.PlayArrival(enemy.MinionData != null ? enemy.MinionData.tier : EnemyTier.Normal);
+            }
 
         _isSpawnPending = false;
         Debug.Log($"<color=cyan>[NormalRoomEvent]</color> 튜토리얼 배치 몬스터 {_activeEnemies.Count}마리를 등록했습니다.");
@@ -286,6 +304,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         _floorSpawnCells.Clear();
         _floorSpawnCells.TrimExcess();
         _floorCellsRoom = null;
+        spawnCellRevision++;
 
         // 인스펙터에 할당된 상자를 방 정중앙에 생성
         SpawnRoomRewardBox(room);
@@ -342,7 +361,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         _spawnedEnemyPositions.Clear();
 
         var clusters = GameManager.Instance.dataManager.ENEMY_CLUSTERS;
-        if (clusters == null || clusters.Count == 0)
+        if (!HasAuthoredWaves && (clusters == null || clusters.Count == 0))
         {
             Debug.LogWarning("[NormalRoom] No enemy clusters found in DataManager.");
             _isSpawnPending = false;
@@ -359,10 +378,10 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         }
 
         _toSpawn.Clear();
-        int lastWave = combineAllWaves ? Mathf.Max(_currentWave, WavesThisFloor) : _currentWave;
+        int lastWave = !HasAuthoredWaves && combineAllWaves ? Mathf.Max(_currentWave, WavesThisFloor) : _currentWave;
         int waveCount = lastWave - _currentWave + 1;
         for (int wave = _currentWave; wave <= lastWave; wave++)
-            AppendWaveEnemies(clusters[Random.Range(0, clusters.Count)], wave, tuning != null ? tuning.enemyCountScale : 1f);
+            AppendWaveEnemies(HasAuthoredWaves ? authoredWaves[wave-1] : clusters[Random.Range(0, clusters.Count)], wave, tuning != null ? tuning.enemyCountScale : 1f);
         _currentWave = lastWave;
         _isSpawnPending = true;
         StartCoroutine(SpawnClusterRoutine(room, waveCount));
@@ -396,12 +415,17 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
 
     private IEnumerator SpawnClusterRoutine(RoomInstance room, int waveCount)
     {
+        var numbers = FloatingTextManager.Instance;
+        if (numbers != null) numbers.ReserveForEncounter(_activeEnemies.Count + _toSpawn.Count);
         _pendingSpawnPoints.Clear();
-        _pendingEnemyCounts.Clear();
+        arrivalsPending = 0;
+        float spawnDelay = Mathf.Max(.01f, spawnTelegraphDuration);
+        int perFrame = Mathf.Max(1, spawnGroupPerFrame);
 
         int skipped = 0;
         for (int i = 0; i < _toSpawn.Count; i++)
         {
+            if (i > 0 && i % perFrame == 0) yield return null;
             // 자리를 못 찾으면 건너뛴다. 예전처럼 방 중앙으로 몰아넣지 않는다.
             if (!TryFindSpawnPoint(room, _pendingSpawnPoints, out Vector3 point))
             {
@@ -409,7 +433,8 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
                 continue;
             }
             _pendingSpawnPoints.Add(point);
-            _pendingEnemyCounts.Add(_toSpawn[i]);
+            arrivalsPending++;
+            StartCoroutine(DelayedSpawnEnemyWithVFX(_toSpawn[i], point, spawnDelay));
         }
 
         if (skipped > 0)
@@ -424,19 +449,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
             yield break;
         }
 
-        float spawnDelay = Mathf.Max(0.01f, spawnTelegraphDuration); // 장판이 가득 차오르는 선딜 시간
-
-        // 1. 모든 몹들의 스폰 위치에 예고 장판(VFX) 동시 소환
-        for (int i = 0; i < _pendingSpawnPoints.Count; i++)
-        {
-            if (i > 0 && i % Mathf.Max(1, spawnGroupPerFrame) == 0) yield return null;
-            StartCoroutine(DelayedSpawnEnemyWithVFX(_pendingEnemyCounts[i], _pendingSpawnPoints[i], spawnDelay));
-        }
-
-        // 2. 장판 차오르는 시간만큼 대기 (충돌 및 생성 지연 안정성을 위해 0.1초 버퍼 추가)
-        yield return new WaitForSeconds(spawnDelay + 0.1f);
-
-        // 3. 무작위 적군 2명에게 슈퍼아머 부여
+        while (arrivalsPending > 0) yield return null;
         ApplySuperArmorToRandomEnemies(Mathf.Max(0, superArmorEnemyCount) * waveCount);
 
         // 4. 스폰 완료되었으므로 감지 락 해제
@@ -456,43 +469,61 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
     /// </summary>
     private void BuildFloorSpawnCells(RoomInstance room)
     {
-        if (room == null) return;
         if (_floorCellsRoom == room && _floorSpawnCells.Count > 0) return;
+        var build = CollectFloorSpawnCells(room, false);
+        while (build.MoveNext()) { }
+    }
 
-        _floorCellsRoom = room;
-        _floorSpawnCells.Clear();
+    private IEnumerator CollectFloorSpawnCells(RoomInstance room, bool staged)
+    {
+        if (room == null) yield break;
+        if (_floorCellsRoom == room && _floorSpawnCells.Count > 0) yield break;
+
+        int revision = ++spawnCellRevision;
 
         var tm = room.groundTilemap;
-        if (tm == null) return; // 타일맵을 못 찾은 방은 사각형 폴백으로 흘려보낸다
+        if (tm == null) yield break; // 타일맵을 못 찾은 방은 사각형 폴백으로 흘려보낸다
 
         BoundsInt bounds = tm.cellBounds;
-        if (bounds.size.x <= 0 || bounds.size.y <= 0) return;
-        if (bounds.size.z != 1) return; // 3D 타일맵은 아래 인덱싱 전제가 깨진다 — 폴백으로 넘긴다
+        if (bounds.size.x <= 0 || bounds.size.y <= 0) yield break;
+        if (bounds.size.z != 1) yield break; // 3D 타일맵은 아래 인덱싱 전제가 깨진다 — 폴백으로 넘긴다
 
         int cellCount = bounds.size.x * bounds.size.y;
-        if (_tileBlockBuffer == null || _tileBlockBuffer.Length < cellCount)
-            _tileBlockBuffer = new TileBase[cellCount];
-        tm.GetTilesBlockNonAlloc(bounds, _tileBlockBuffer);
-
-        int stride = Mathf.Max(1, spawnCellStride);
-        int width = bounds.size.x;
-
-        for (int y = 0; y < bounds.size.y; y += stride)
+        var candidates = new List<Vector3>();
+        var tileBlock = System.Buffers.ArrayPool<TileBase>.Shared.Rent(cellCount);
+        try
         {
-            int rowStart = y * width;
-            for (int x = 0; x < width; x += stride)
+            tm.GetTilesBlockNonAlloc(bounds, tileBlock);
+            int stride = Mathf.Max(1, spawnCellStride);
+            int width = bounds.size.x;
+
+            double deadline = Time.realtimeSinceStartupAsDouble + .002;
+            for (int y = 0; y < bounds.size.y; y += stride)
             {
-                if (_tileBlockBuffer[rowStart + x] == null) continue;
+                if (staged && Time.realtimeSinceStartupAsDouble >= deadline)
+                {
+                    yield return null;
+                    if (revision != spawnCellRevision) yield break;
+                    deadline = Time.realtimeSinceStartupAsDouble + .002;
+                }
+                int rowStart = y * width;
+                for (int x = 0; x < width; x += stride)
+                {
+                    if (tileBlock[rowStart + x] == null) continue;
 
-                Vector3 world = tm.GetCellCenterWorld(new Vector3Int(bounds.xMin + x, bounds.yMin + y, bounds.zMin));
-                if (!room.IsFloorAt(world)) continue;     // 벽/물 겹친 칸 제외
-                if (IsDoorKeepOut(room, world)) continue;  // 앵커 몇 개 도는 산술, 아래보다 싸다
-                if (!HasWallClearance(room, world)) continue;
+                    Vector3 world = tm.GetCellCenterWorld(new Vector3Int(bounds.xMin + x, bounds.yMin + y, bounds.zMin));
+                    if (!room.IsFloorAt(world)) continue;     // 벽/물 겹친 칸 제외
+                    if (IsDoorKeepOut(room, world)) continue;  // 앵커 몇 개 도는 산술, 아래보다 싸다
+                    if (!HasWallClearance(room, world)) continue;
 
-                _floorSpawnCells.Add(world);
+                    candidates.Add(world);
+                }
             }
-        }
 
+        }
+        finally { System.Buffers.ArrayPool<TileBase>.Shared.Return(tileBlock, clearArray: true); }
+        _floorCellsRoom = room;
+        _floorSpawnCells = candidates;
         if (_floorSpawnCells.Count == 0)
             Debug.LogWarning($"<color=orange>[NormalRoom]</color> '{room.name}' 에서 유효한 스폰 칸을 못 찾았다. 사각형 무작위 방식으로 폴백한다.");
     }
@@ -609,57 +640,77 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         return true;
     }
 
-    private GameObject TakeSpawnTelegraph(GameObject prefab, Vector3 position)
+    private readonly List<GameObject> arrivalRings = new();
+
+    private void OnDisable()
     {
-        var data = GameManager.Instance != null ? GameManager.Instance.dataManager : null;
-        var prepared = data != null ? data.TakePreparedObject(prefab, position) : null;
-        return prepared != null ? prepared : Instantiate(prefab, position, Quaternion.identity);
+        foreach (var ring in arrivalRings)
+            if (ring != null) ring.SetActive(false);
+    }
+
+    private IEnumerator ShowArrival(Vector3 position, float duration)
+    {
+        GameObject ring = null;
+        foreach (var existing in arrivalRings)
+        {
+            if (existing != null && !existing.activeSelf) { ring = existing; break; }
+        }
+        if (ring == null)
+        {
+            ring = BossTelegraph.SpawnRing(position, 1f, new Color32(226, 112, 133, 255), name: "Enemy arrival");
+            ring.transform.SetParent(transform, true);
+            arrivalRings.Add(ring);
+        }
+        ring.transform.position = position;
+        ring.SetActive(true);
+        var outline = ring.GetComponent<SpriteRenderer>();
+        Color ringColor = outline.color;
+        float diameter = Mathf.Max(.35f, spawnTelegraphScale * .5f);
+        for (int i = 0; i < 6; i++)
+        {
+            float angle = i * Mathf.PI / 3;
+            var axis = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            WorldSparkField.Emit(WorldSparkField.Kind.Arrival, (Vector2)position + axis * diameter * .5f, -axis, 1);
+        }
+        float age = 0f;
+        while (age < duration)
+        {
+            float progress = age / duration;
+            ringColor.a = Mathf.SmoothStep(.3f, 1f, progress / .12f)
+                * Mathf.SmoothStep(0f, 1f, (1f - progress) / .18f);
+            outline.color = ringColor;
+            float size = Mathf.Lerp(diameter, diameter * .4f, Mathf.SmoothStep(0, 1, progress));
+            ring.transform.localScale = new Vector3(size, size * .64f, 1f);
+            yield return null;
+            age += Time.deltaTime;
+        }
+        ring.SetActive(false);
     }
 
     private IEnumerator DelayedSpawnEnemyWithVFX(EnemyCount enemyCount, Vector3 spawnPos, float duration)
     {
-        GameObject vfxObj = null;
-        GameObject vfxPrefabToUse = spawnVfxPrefab;
-
-#if UNITY_EDITOR
-        if (vfxPrefabToUse == null)
+        try
         {
-            // 인스펙터 할당 누락 시 내장 원형 예고 장판 프리팹을 자동으로 긁어와 Fallback 매핑
-            vfxPrefabToUse = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Effect/Combat/Skills/TelegraphHitbox Prefab.prefab");
-        }
-#endif
-
-        if (vfxPrefabToUse != null)
-        {
-            vfxObj = TakeSpawnTelegraph(vfxPrefabToUse, spawnPos);
-            BaseHitBox hitbox = vfxObj.GetComponent<BaseHitBox>();
-            if (hitbox != null)
+            yield return ShowArrival(spawnPos, duration);
+            // Telegraphs that expire together share the same limit as placement and preview.
+            while (lastSpawnFrame == Time.frameCount && spawnedThisFrame >= Mathf.Max(1, spawnGroupPerFrame))
+                yield return null;
+            if (_cachedRoom == null || _cachedRoom.isCleared) yield break;
+            if (lastSpawnFrame != Time.frameCount)
             {
-                // 데미지 0짜리 가짜 판정 전달, 0.05초 유지, duration(1초) 선딜레이 대기
-                DamageInfo dummyInfo = new DamageInfo(0f, DamageType.Physical, this.gameObject, 0f);
-                hitbox.Init(dummyInfo, 0, 0.05f, duration, false);
-
-                // 프리팹 스케일 조절 (기본 원 크기가 1.0이므로 2.5f정도로 키움)
-                vfxObj.transform.localScale = new Vector3(spawnTelegraphScale, spawnTelegraphScale, 1f);
+                lastSpawnFrame = Time.frameCount;
+                spawnedThisFrame = 0;
             }
-        }
-
-        yield return new WaitForSeconds(duration);
-
-        if (vfxObj != null) Destroy(vfxObj);
-
-        // spawnPos 는 TryFindSpawnPoint 가 이미 NavMesh 위로 스냅해 검증한 좌표다.
-        // 여기서 한 번 더 SamplePosition 을 태우면 서로 다른 두 좌표가 같은 경계점으로
-        // 당겨져 최종 위치가 겹칠 수 있어서, 예고 장판이 뜬 자리에 그대로 소환한다.
-        if (_cachedRoom != null && !_cachedRoom.isCleared)
-        {
-            GameObject enemy = GameManager.Instance.dataManager.CreateUnit(enemyCount.enemyData, spawnPos);
+            spawnedThisFrame++;
+            var enemy = GameManager.Instance.dataManager.CreateUnit(enemyCount.enemyData, spawnPos);
             if (enemy != null)
             {
                 _activeEnemies.Add(enemy);
+                finalBlow.Track(enemy);
                 _spawnedEnemyPositions.Add(spawnPos);
             }
         }
+        finally { arrivalsPending--; }
     }
 
     private void ApplySuperArmorToRandomEnemies(int count)
@@ -693,7 +744,7 @@ public class NormalRoomEvent : MonoBehaviour, IRoomEvent
         if (enemy != null && !_activeEnemies.Contains(enemy))
         {
             _activeEnemies.Add(enemy);
-            Debug.Log($"<color=cyan>[NormalRoomEvent]</color> Added split enemy: {enemy.name}. Current Active Count: {_activeEnemies.Count}");
+            finalBlow.Track(enemy);
         }
     }
 

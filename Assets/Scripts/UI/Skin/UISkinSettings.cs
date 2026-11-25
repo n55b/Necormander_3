@@ -166,6 +166,9 @@ public class UISkinSettings : ScriptableObject
     }
 
     /// <summary>연출을 해도 되는가 (설정 파일이 없으면 기본값으로 켬).</summary>
+    [Range(2f, 6f)] public float idlePeriodSeconds = 3.4f;
+    [Range(0f, 1f)] public float idleStrength = .85f;
+
     public static bool MotionOn => Active == null || Active.motionEnabled;
 
     public static float EvaluatePunch(float t)

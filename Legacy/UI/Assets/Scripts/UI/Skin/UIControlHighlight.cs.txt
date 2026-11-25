@@ -1,0 +1,56 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+// Passive panels share one low-frequency idle tint.
+[DisallowMultipleComponent]
+public sealed class UIControlHighlight : BaseMeshEffect
+{
+    private int brightness;
+    private float idlePhase;
+    private static readonly System.Collections.Generic.List<UIControlHighlight> panels = new();
+    private static float nextTick;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetPanels()
+    {
+        panels.Clear();
+        nextTick = 0f;
+    }
+
+    internal void RegisterPanel()
+    {
+        if (panels.Contains(this)) return;
+        idlePhase = transform.GetSiblingIndex() * 1.618f;
+        panels.Add(this);
+    }
+
+    internal static void TickPanels()
+    {
+        if (Time.unscaledTime < nextTick) return;
+        nextTick = Time.unscaledTime + .1f;
+        foreach (var panel in panels) panel.SetBrightness(UISkinSettings.IdleStep(panel.idlePhase));
+    }
+
+    protected override void OnDisable()
+    {
+        panels.Remove(this);
+        brightness = 0;
+        base.OnDisable();
+    }
+    private void SetBrightness(int newBrightness)
+    {
+        if (brightness == newBrightness) return;
+        brightness=newBrightness; graphic.SetVerticesDirty();
+    }
+    public override void ModifyMesh(VertexHelper mesh)
+    {
+        if (!IsActive() || brightness==0) return;
+        var v=new UIVertex();
+        for(int i=0;i<mesh.currentVertCount;i++) {
+            mesh.PopulateUIVertex(ref v,i);
+            var c=v.color;
+            v.color=Color32.Lerp(c,new Color32(255,246,232,c.a),brightness/32f);
+            mesh.SetUIVertex(v,i);
+        }
+    }
+}

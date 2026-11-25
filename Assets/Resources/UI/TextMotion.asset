@@ -1,0 +1,192 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 204d41f90d794b95b249de15b91d49cc, type: 3}
+  m_Name: TextMotion
+  m_EditorClassIdentifier: 
+  presets:
+  - id: FinishingBlow
+    shape: 6
+    unit: 2
+    duration: 0.43
+    pixels: 5
+    cycles: 1.3
+    stagger: 0.13
+    loop: 0
+    useGameplayTime: 1
+    accent: {r: 1, g: 0.81, b: 0.64, a: 1}
+    swatches:
+    - {x: 8, y: 2}
+    - {x: 8, y: 4}
+    - {x: 7, y: 5}
+  - id: GuardChime
+    shape: 2
+    unit: 2
+    duration: 0.28
+    pixels: 2
+    cycles: 1
+    stagger: 0.2
+    loop: 0
+    useGameplayTime: 1
+    accent: {r: 0.63, g: 0.88, b: 1, a: 1}
+  - id: Sidestep
+    shape: 5
+    unit: 0
+    duration: 0.2
+    pixels: 1
+    cycles: 1
+    stagger: 0
+    loop: 0
+    useGameplayTime: 1
+    accent: {r: 0.72, g: 0.77, b: 0.85, a: 1}
+  - id: Punch
+    shape: 0
+    unit: 0
+    duration: 0.24
+    pixels: 2
+    cycles: 1
+    stagger: 0.10
+    loop: 0
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Shake
+    shape: 1
+    unit: 2
+    duration: 0.28
+    pixels: 2
+    cycles: 2
+    stagger: 0.10
+    loop: 0
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Wave
+    shape: 2
+    unit: 2
+    duration: 1.4
+    pixels: 1
+    cycles: 1
+    stagger: 0.10
+    loop: 1
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Rainbow
+    swatches:
+    - {x: 4, y: 1}
+    - {x: 7, y: 2}
+    - {x: 8, y: 4}
+    - {x: 8, y: 5}
+    - {x: 8, y: 7}
+    shape: 3
+    unit: 2
+    duration: 1.7
+    pixels: 0
+    cycles: 1
+    stagger: 0.10
+    loop: 1
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Jitter
+    shape: 4
+    unit: 2
+    duration: 0.7
+    pixels: 1
+    cycles: 1
+    stagger: 0.10
+    loop: 1
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Focus
+    shape: 0
+    unit: 0
+    duration: 0.2
+    pixels: 1
+    cycles: 0.6
+    stagger: 0.10
+    loop: 0
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Hit
+    shape: 0
+    unit: 0
+    duration: 0.16
+    pixels: 1
+    cycles: 0.75
+    stagger: 0.10
+    loop: 0
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Critical
+    shape: 6
+    unit: 0
+    duration: 0.32
+    pixels: 3
+    cycles: 1
+    stagger: 0.10
+    loop: 0
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Heal
+    shape: 5
+    unit: 0
+    duration: 0.4
+    pixels: 2
+    cycles: 1
+    stagger: 0.10
+    loop: 0
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Reward
+    shape: 5
+    unit: 1
+    duration: 0.45
+    pixels: 3
+    cycles: 1
+    stagger: 0.10
+    loop: 0
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Combo
+    shape: 0
+    unit: 0
+    duration: 0.22
+    pixels: 2
+    cycles: 1
+    stagger: 0.10
+    loop: 0
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Warning
+    shape: 6
+    unit: 1
+    duration: 0.38
+    pixels: 1
+    cycles: 1
+    stagger: 0.10
+    loop: 0
+    useGameplayTime: 0
+    accent: {r: 1, g: 0.85, b: 0.66, a: 1}
+  - id: Type
+    shape: 7
+    unit: 2
+    charactersPerSecond: 48
+    duration: 1
+    loop: 0
+    useGameplayTime: 0
+  - id: Enchantment
+    shape: 3
+    unit: 1
+    duration: 2.6
+    cycles: 1
+    stagger: 0.12
+    loop: 1
+    useGameplayTime: 0
+    accent: {r: 0.86, g: 0.81, b: 0.66, a: 1}
+  punctuationRest: 0.08

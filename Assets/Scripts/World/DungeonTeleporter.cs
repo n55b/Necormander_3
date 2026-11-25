@@ -10,9 +10,7 @@ public class DungeonTeleporter : MonoBehaviour, IInteractable
 public bool Interact(GameObject interactor)
     {
         if (UnityNote.SceneLoader.IsLoading) return false;
-        // 마을에서 장착한 스킬/미니언/골드/보물/보석/체력이 던전(BattleScene)까지 유지되도록,
-        // 씬 이동 직전에 현재 상태를 저장한다. (마을 디버그 로드아웃 메뉴로 세팅한 것도 이걸로 넘어감)
-        if (GameManager.Instance != null) GameManager.Instance.SaveCurrentState();
+        if (GameManager.Instance != null && !GameManager.Instance.SaveCurrentState()) return false;
 
         return UnityNote.SceneLoader.Load(DungeonSceneName);
     }

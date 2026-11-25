@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>기존 타격 스프라이트/파티클 프리팹을 재생 후 재사용한다.</summary>
 [DefaultExecutionOrder(10000)]
 public sealed class PooledHitEffect : MonoBehaviour
 {
-    private static readonly Dictionary<PooledHitEffect, Queue<PooledHitEffect>> Pool = new Dictionary<PooledHitEffect, Queue<PooledHitEffect>>();
     private PooledHitEffect _source;
     private SpriteRenderer[] _sprites;
     private Color[] _spriteColors;
@@ -17,22 +16,32 @@ public sealed class PooledHitEffect : MonoBehaviour
     private float _age;
     private Transform _followTarget;
     private Vector3 _followOffset;
+    private SortingGroup depthGroup;
+    private YSortableObject depthTarget;
     public void FollowTarget(Transform target)
     {
         _followTarget = target;
         if (target != null) _followOffset = transform.position - target.position;
+        depthTarget = WorldDepthOrder.FindParticipant(target);
+        depthGroup = WorldDepthOrder.BindEffect(gameObject, depthGroup, depthTarget);
     }
-    private void OnEnable() => _followTarget = null;
+    private void OnEnable()
+    {
+        _followTarget = null;
+        depthTarget = null;
+        if (depthGroup != null) depthGroup.enabled = false;
+    }
     private void LateUpdate()
     {
         if (_followTarget != null && _followTarget.gameObject.activeInHierarchy)
             transform.position = _followTarget.position + _followOffset;
         else _followTarget = null;
+        WorldDepthOrder.SyncEffect(depthGroup, depthTarget);
     }
     public bool IsManaged => _source != null;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetPool() => Pool.Clear();
+    private static void ResetPool() => SceneEffectPool<PooledHitEffect>.Reset();
 
     private void Awake()
     {
@@ -50,8 +59,7 @@ public sealed class PooledHitEffect : MonoBehaviour
 
     public static PooledHitEffect Spawn(PooledHitEffect prefab, Vector3 position, Quaternion rotation, bool tinted, Color tint)
     {
-        PooledHitEffect instance=null;
-        if (Pool.TryGetValue(prefab,out var queue)) while (queue.Count>0 && instance==null) instance=queue.Dequeue();
+        var instance=SceneEffectPool<PooledHitEffect>.Take(prefab);
         if (instance==null)
         {
             instance=Instantiate(prefab,position,rotation);
@@ -75,11 +83,17 @@ public sealed class PooledHitEffect : MonoBehaviour
     public static void PrewarmOne(PooledHitEffect prefab,int desired)
     {
         if (prefab==null || desired<=0) return;
-        if (!Pool.TryGetValue(prefab,out var queue)) Pool[prefab]=queue=new Queue<PooledHitEffect>();
+        var queue=SceneEffectPool<PooledHitEffect>.For(prefab);
         int valid=0; foreach(var item in queue) if(item!=null) valid++;
         if(valid>=desired) return;
         var instance=Instantiate(prefab); instance._source=prefab;
-        instance.gameObject.SetActive(false); queue.Enqueue(instance);
+        instance.gameObject.SetActive(false);
+        if (!instance.TryGetComponent<SortingGroup>(out _))
+        {
+            instance.depthGroup = instance.gameObject.AddComponent<SortingGroup>();
+            instance.depthGroup.enabled = false;
+        }
+        queue.Enqueue(instance);
     }
 
     private void RestoreColors()
@@ -103,7 +117,7 @@ public sealed class PooledHitEffect : MonoBehaviour
         if (_source==null) { Destroy(gameObject); return; }
         if (!gameObject.activeSelf) return;
         gameObject.SetActive(false);
-        if(!Pool.TryGetValue(_source,out var queue)) Pool[_source]=queue=new Queue<PooledHitEffect>();
+        var queue=SceneEffectPool<PooledHitEffect>.For(_source);
         if(queue.Count<32) queue.Enqueue(this); else Destroy(gameObject);
     }
 }

@@ -31,6 +31,10 @@ public class PlayerSkillController : MonoBehaviour
     private float followSpeedRatio = 0.9f;
     [SerializeField, Min(0.1f), Tooltip("전투가 아닐 때 플레이어와 이 거리보다 멀어지면 쫓아가기 시작한다(유닛). 그 안에서는 멈춰 있는다.")]
     private float followDistance = 2f;
+    [SerializeField, Min(1)] private float catchUpDistance = 4.5f;
+    [SerializeField, Range(1.1f,4)] private float catchUpMultiplier = 2.15f;
+    public float CatchUpDistance => Mathf.Max(followDistance + .5f, catchUpDistance);
+    public float CatchUpSpeed => FollowSpeed * catchUpMultiplier;
     [SerializeField, Min(0f), Tooltip("쫓아가다 플레이어와 이 거리까지 가까워지면 멈춘다(유닛). 동행 거리보다 작아야 한다.")]
     private float followStopDistance = 1.4f;
     [SerializeField, Min(0.1f), Tooltip("이동 가속도(유닛/초²). 클수록 출발·정지·방향 전환이 빠르다.")]
@@ -131,6 +135,8 @@ public class PlayerSkillController : MonoBehaviour
             if (_fieldAgents[i] != null) Destroy(_fieldAgents[i].gameObject);
     }
 
+    private bool hasBoundInventory;
+
     public void SyncWithInventory()
     {
         var inventory = InventoryManager.Instance;
@@ -154,7 +160,8 @@ public class PlayerSkillController : MonoBehaviour
         if (!Application.isPlaying) return;
         for (int i = 0; i < InventoryManager.SLOT_COUNT; i++)
             if (_slotData[i] != null && _fieldAgents[i] == null)
-                _fieldAgents[i] = SummonFieldAgent.Spawn(this, _slotData[i], i);
+                _fieldAgents[i] = SummonFieldAgent.Spawn(this, _slotData[i], i, hasBoundInventory && !UnityNote.SceneLoader.IsLoading);
+        hasBoundInventory = true;
     }
 
     /// <summary>Space: 스왑 전 소환수의 대쉬 공격을 발동하고 활성 소환수를 바꾼다. 소환수 2개를 장착했고 스왑 쿨타임이 끝났을 때만 동작한다.</summary>

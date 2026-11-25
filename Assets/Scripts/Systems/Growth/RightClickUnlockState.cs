@@ -1,24 +1,13 @@
 using UnityEngine;
 
 /// <summary>
-/// 우클릭의 <b>영구</b> 상태 — 무엇이 해금됐는가 + 무엇을 골라뒀는가.
-///
-/// 왜 SaveData(save_data.json)가 아니라 PlayerPrefs 인가:
-/// 런 세이브는 플레이어가 죽으면 통째로 삭제되고(GameManager.Gameover → SaveSystem.DeleteSave),
-/// 타이틀에서 '새 게임'을 눌러도 삭제된다(MainMenuManager). 영구 성장요소를 거기 넣으면
-/// <b>첫 사망에 해금이 전부 날아간다.</b> 그래서 런 수명과 완전히 분리된 저장소를 쓴다.
-///
-/// [26/08/15] 해금 조건이 아직 안 정해졌다(재화인지 업적인지 진행도인지).
-/// 그래서 지금은 <see cref="UnlockAllForNow"/> 로 전부 열어두고, 조건이 정해지면:
-///   1. UnlockAllForNow 를 false 로 내리고
-///   2. 조건이 달성되는 지점에서 Unlock(해당에셋) 을 부르면 된다.
-/// 저장/조회 배관은 이미 다 돌아가고 있으므로 그 두 줄이면 끝난다.
+/// 우클릭 기술의 해금과 선택을 PlayerPrefs에 저장한다.
+/// 사망하거나 새 게임을 시작해 런 세이브를 지울 때도 이 설정은 유지된다.
 /// </summary>
 public static class RightClickUnlockState
 {
     /// <summary>
-    /// 해금 조건 미정 상태의 임시 스위치. true 인 동안 <see cref="IsUnlocked"/> 는 항상 참이다.
-    /// 저장된 해금 기록 자체는 그대로 살아 있으므로, 이걸 false 로 내리면 즉시 진짜 해금제가 된다.
+    /// 켜져 있으면 모든 우클릭 기술을 사용할 수 있다. 저장된 해금 기록은 보존한다.
     /// </summary>
     public const bool UnlockAllForNow = true;
 
@@ -37,6 +26,7 @@ public static class RightClickUnlockState
     /// <summary>이 우클릭을 영구 해금한다. 이미 해금돼 있으면 아무 일도 안 한다.</summary>
     public static void Unlock(RightClickDataSO rc)
     {
+        if (WorkshopTrial.Active) return;
         if (rc == null) return;
         if (PlayerPrefs.GetInt(UnlockKeyPrefix + rc.name, 0) != 0) return;
 
@@ -48,6 +38,7 @@ public static class RightClickUnlockState
     /// <summary>해금을 취소한다. 지금은 디버그/테스트용.</summary>
     public static void Lock(RightClickDataSO rc)
     {
+        if (WorkshopTrial.Active) return;
         if (rc == null) return;
         PlayerPrefs.DeleteKey(UnlockKeyPrefix + rc.name);
         PlayerPrefs.Save();
@@ -58,11 +49,12 @@ public static class RightClickUnlockState
     // 런 세이브에 넣으면 사망 시 같이 지워지므로 이것도 영구 저장소에 둔다.
 
     /// <summary>마지막으로 고른 우클릭 에셋 이름. 없으면 빈 문자열.</summary>
-    public static string SelectedName => PlayerPrefs.GetString(SelectedKey, "");
+    public static string SelectedName => WorkshopTrial.Active ? WorkshopTrial.SelectedSkill ?? "" : PlayerPrefs.GetString(SelectedKey, "");
 
     public static void SetSelected(RightClickDataSO rc)
     {
         if (rc == null) return;
+        if (WorkshopTrial.Active) { WorkshopTrial.SelectedSkill = rc.name; return; }
         PlayerPrefs.SetString(SelectedKey, rc.name);
         PlayerPrefs.Save();
     }

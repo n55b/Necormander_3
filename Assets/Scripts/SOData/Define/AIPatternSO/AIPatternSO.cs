@@ -1,12 +1,10 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-// [26/07/17] Caught/Thrown 삭제 — 유닛을 집어 들고 던지는 투척 전용 상태였다.
 public enum AIState { [UnityEngine.InspectorName("대기")] Idle, [UnityEngine.InspectorName("추적")] Follow, [UnityEngine.InspectorName("공격")] Attack, [UnityEngine.InspectorName("스킬")] Skill }
 
 /// <summary>
-/// 유닛의 모든 행동(대기, 추격, 공격)을 관리하는 통합 AI 기반 클래스입니다.
-/// 모든 행동 판단과 실행의 '단일 진실 공급원(Single Source of Truth)' 역할을 합니다.
+/// AI의 타깃 갱신, 상태 판단, Unity 동작을 순서대로 호출합니다.
 /// </summary>
 public abstract class AIPatternSO : ScriptableObject
 {
@@ -21,7 +19,7 @@ public abstract class AIPatternSO : ScriptableObject
         
         entity.CurrentState = AIState.Idle;
         entity.Target = null;
-        entity.AtkTimer = 1000f; // [수정] 조우 시 즉시 첫 공격이 발동되도록 가득 채움
+        entity.AtkTimer = 1000f; // 조우 시 즉시 첫 공격이 발동되도록 가득 채움
 
         // 이동 중이었다면 즉시 정지
         StopNavAgent(entity);
@@ -30,14 +28,11 @@ public abstract class AIPatternSO : ScriptableObject
     // 매 프레임 실행: AI의 핵심 루프
     public virtual void Execute(BaseEntity entity)
     {
-        // [추가] 상태와 무관하게 타이머는 무조건 매 프레임 돕니다.
+        // 상태와 무관하게 타이머는 무조건 매 프레임 돕니다.
         entity.AtkTimer += Time.deltaTime;
 
         // 현재 상태 Entity에게 전달하여 애니메이션 재생
         entity.UpdateAnimation(entity.CurrentState);
-
-        // ponytail: 여기 있던 'testMode_DisableAutoBattle 시 아군은 플레이어만 따라다님' 분기는
-        // 아군 엔티티(AllyController)가 더 이상 스폰되지 않으면서 도달 불가가 되어 제거했다.
 
         if(entity.Target != null)
         {
@@ -63,8 +58,6 @@ public abstract class AIPatternSO : ScriptableObject
             case AIState.Attack: OnAttack(entity); break;
         }
 
-        // 공통 물리 로직 (밀어내기)
-        //ApplySoftPush(entity);
     }
 
 /// <summary>
@@ -79,8 +72,6 @@ public abstract class AIPatternSO : ScriptableObject
     public void SetState(BaseEntity entity, AIState newState)
     {
         if (entity.CurrentState == newState) return;
-
-        // [26/07/17] Caught 이탈 시 OutCaught 를 부르던 분기 삭제 — Caught 상태 자체가 없어졌다.
 
         entity.CurrentState = newState;
 
@@ -113,7 +104,7 @@ public abstract class AIPatternSO : ScriptableObject
     {
         if (IsTargetInvalid(entity, currentTarget)) return;
 
-        // [수정] 이제 AI 패턴이 직접 데미지를 주지 않고, Entity에게 공격 실행을 맡깁니다.
+        // 이제 AI 패턴이 직접 데미지를 주지 않고, Entity에게 공격 실행을 맡깁니다.
         // 이를 통해 보석 효과(무기 속성 부여 등)가 정상적으로 적용됩니다.
         entity.ExecuteAttack(currentTarget);
     }
@@ -140,7 +131,7 @@ public abstract class AIPatternSO : ScriptableObject
 
 
         // 3. 체력 및 무적 상태 체크
-        // [수정] 타겟팅 판단 시에도 엉뚱한(들려있는) 자식의 Stat을 보지 않도록 주의
+        // 타겟팅 판단 시에도 엉뚱한(들려있는) 자식의 Stat을 보지 않도록 주의
         CharacterStat stat;
         if (t == entity.Target && entity.TargetStat != null)
             stat = entity.TargetStat;

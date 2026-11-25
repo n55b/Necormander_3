@@ -80,6 +80,8 @@ public class RewardManager : MonoBehaviour
         }
     }
 
+    private RoomInstance pendingRewardRoom;
+
     private void ProcessNextReward()
     {
         if (_rewardQueue.Count > 0)
@@ -91,8 +93,10 @@ public class RewardManager : MonoBehaviour
         {
             Debug.Log("<color=green>[Reward]</color> All reward sequences completed.");
             
-            // [추가] 모든 보상이 완료되면 시간 재개
-            if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(false);
+            if (pendingRewardRoom != null && !pendingRewardRoom.isCleared) pendingRewardRoom.MarkCleared();
+            pendingRewardRoom = null;
+            // 모든 보상이 완료되면 시간 재개
+            HitStopManager.SetPaused(false, HitStopManager.PauseOwner.Reward);
 
             if (selectionUI != null) selectionUI.Hide();
             if (handSlotUI != null) handSlotUI.Hide();
@@ -100,10 +104,11 @@ public class RewardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// [수정] 외부에서 직접 보상 후보 리스트를 전달하여 선택 UI를 띄울 수 있게 합니다.
+    /// 외부에서 직접 보상 후보 리스트를 전달하여 선택 UI를 띄울 수 있게 합니다.
     /// </summary>
-    public void ShowRewardSelection(List<RewardCandidate> candidates)
+    public void ShowRewardSelection(List<RewardCandidate> candidates, RoomInstance room = null)
     {
+        if (room != null && room.roomType == RoomType.Reward) pendingRewardRoom = room;
         PouchUI.Instance?.SetOpen(false);
         SkillExplainUI.Instance?.SetOpen(false);
         if (candidates != null && candidates.Count == 1 && candidates[0].category == RewardCategory.Minion && candidates[0].rawData is MinionDataSO minion)
@@ -113,8 +118,8 @@ public class RewardManager : MonoBehaviour
         }
         if (selectionUI != null)
         {
-            // [추가] 보상 창이 뜨면 시간 정지
-            if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
+            // 보상 창이 뜨면 시간 정지
+            HitStopManager.SetPaused(true, HitStopManager.PauseOwner.Reward);
             
             selectionUI.Show(candidates);
         }
@@ -147,8 +152,8 @@ public class RewardManager : MonoBehaviour
                 {
                     if (handSlotUI != null)
                     {
-                        // [추가] 장착 UI가 뜨면 시간 정지 (상점 구매 등 직접 호출 케이스 대응)
-                        if (GameManager.Instance != null) GameManager.Instance.SetTimeStop(true);
+                        // 장착 UI가 뜨면 시간 정지 (상점 구매 등 직접 호출 케이스 대응)
+                        HitStopManager.SetPaused(true, HitStopManager.PauseOwner.Reward);
 
                         if (selectionUI != null) selectionUI.Hide();
                         OpenMinionPicker(minion);
@@ -163,14 +168,14 @@ public class RewardManager : MonoBehaviour
 
 
             case RewardCategory.MinionEnhance:
-                // [26/10/02] 보상방 = 메인 소환수 강화. 카드 1장을 고르면 한 단계 오른다.
+                // 보상방 = 메인 소환수 강화. 카드 1장을 고르면 한 단계 오른다.
                 if (inven.EnhanceMainSummon())
                     FloatingTextManager.ShowOnPlayer($"소환수 강화 +{inven.MainSummonEnhanceLevel}", Color.white);
                 ProcessNextReward();
                 break;
 
             case RewardCategory.MinionEvolve:
-                // [26/10/03] 보상방 = 메인 소환수 진화. 고른 갈래의 에셋으로 메인 슬롯이 바뀐다.
+                // 보상방 = 메인 소환수 진화. 고른 갈래의 에셋으로 메인 슬롯이 바뀐다.
                 var evolveTarget = candidate.rawData as MainMinionDataSO;
                 if (evolveTarget != null && inven.EvolveMainSummon(evolveTarget))
                     FloatingTextManager.ShowOnPlayer($"{(string.IsNullOrEmpty(evolveTarget.minionName) ? evolveTarget.name : evolveTarget.minionName)}(으)로 진화!", Color.white);

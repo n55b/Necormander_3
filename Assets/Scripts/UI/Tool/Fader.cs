@@ -15,7 +15,6 @@ using UnityEngine.UI;
 ///
 /// 연출의 양(시간/유지/색/커브)은 반응 목록의 각 줄에 있다. 같은 화면 페이드라도
 /// 문 이동은 0.2초 검정, 층 이동은 2초 흰색처럼 신호마다 다르게 줄 수 있다.
-/// UIShaker/CameraShaker와 똑같은 모양이다.
 /// </summary>
 [DisallowMultipleComponent]
 public class Fader : MonoBehaviour
@@ -85,6 +84,7 @@ public class Fader : MonoBehaviour
     private CanvasGroup _group;
     private SpriteRenderer[] _sprites;
     private Coroutine _running;
+    private System.Action _onInterrupted;
 
     // 보이는 정도. 1 = 보임, 0 = 안 보임. 모드에 상관없이 이 뜻으로 통일한다.
     private float _visible = 1f;
@@ -113,7 +113,7 @@ public class Fader : MonoBehaviour
 
             var f = ctrl.GetComponent<Fader>();
             if (f == null) f = ctrl.gameObject.AddComponent<Fader>(); // 커튼 위에 붙으면 알아서 FullScreen으로 잡힌다
-            return f;
+            return f.isActiveAndEnabled ? f : null;
         }
     }
 
@@ -176,8 +176,7 @@ public class Fader : MonoBehaviour
         // 도중에 꺼지면 코루틴이 죽으면서 반투명인 채로 굳는다. 목표 상태로 확정해두고 끝낸다.
         if (_running != null)
         {
-            StopCoroutine(_running);
-            _running = null;
+            Interrupt();
             if (_mode == Mode.FullScreen) SetVisibleInstant(true, Row(FadeSignal.없음)); // 암전인 채 방치 금지
         }
     }
@@ -204,6 +203,8 @@ public class Fader : MonoBehaviour
 
     /// <summary>이 종류의 설정 줄을 찾는다. 없으면 맨 윗줄로 폴백하되 반드시 경고한다 —
     /// 조용히 딴 줄 수치로 도는 게 제일 찾기 힘든 사고다(0.1초 암전 사이에 보스가 튀어나오는 식).</summary>
+    public float FadeDuration(FadeSignal signal) => Row(signal).duration;
+
     private Reaction Row(FadeSignal signal)
     {
         foreach (var r in reactions)
@@ -236,21 +237,32 @@ public class Fader : MonoBehaviour
     /// <param name="waitUntil">암전 상태로 이게 true 가 될 때까지 더 기다린다. 씬 로드처럼
     /// 암전 콜백이 '시작만' 시키고 실제로는 몇 프레임 더 지어지는 일에 쓴다 —
     /// 준비되지 않은 화면을 드러내지 않도록 시간 제한 없이 기다린다.</param>
-    public void FadeOutIn(FadeSignal signal, System.Action onBlackoutCallback, System.Action onCompleteCallback = null, System.Func<bool> waitUntil = null)
+    public void FadeOutIn(FadeSignal signal, System.Action onBlackoutCallback, System.Action onCompleteCallback = null, System.Func<bool> waitUntil = null, System.Action onInterrupted = null)
     {
         // "지금 이 페이드가 벌어진다"고 방송한다. 커튼은 자기가 안 듣지만(직접 불렸으니),
         // 이 순간에 같이 반응하고 싶은 UI·스프라이트 Fader들이 목록에 그 줄만 적어두면 알아서 따라온다.
         // → 부르는 쪽(문/포탈)은 누가 듣는지 몰라도 되고, 기획자는 코드 없이 연출을 얹을 수 있다.
         Signal.Fire(signal);
 
-        Play(FadeOutInRoutine(Row(signal), onBlackoutCallback, onCompleteCallback, waitUntil));
+        Play(FadeOutInRoutine(Row(signal), onBlackoutCallback, onCompleteCallback, waitUntil), onInterrupted);
     }
 
-    private void Play(IEnumerator routine)
+    private void Interrupt()
     {
-        if (!isActiveAndEnabled) return;
+        if (_running == null) return;
+        StopCoroutine(_running);
+        _running = null;
+        var cleanup = _onInterrupted;
+        _onInterrupted = null;
+        cleanup?.Invoke();
+    }
+
+    private void Play(IEnumerator routine, System.Action onInterrupted = null)
+    {
+        if (!isActiveAndEnabled) { onInterrupted?.Invoke(); return; }
         EnsureResolved();
-        if (_running != null) StopCoroutine(_running); // 나중 호출이 이긴다. 현재 알파에서 이어감.
+        Interrupt();
+        _onInterrupted = onInterrupted;
         _running = StartCoroutine(routine);
     }
 
@@ -277,6 +289,7 @@ public class Fader : MonoBehaviour
 
         yield return FadeTo(1f, r);
         _running = null;
+        _onInterrupted = null;
         onCompleteCallback?.Invoke();
     }
 

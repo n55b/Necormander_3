@@ -52,7 +52,7 @@ protected override void OnWindupStart(BaseEntity entity, float windupTime)
 
         if (showAimLine && aimLinePrefab != null && entity.Target != null)
         {
-            // [수정] 월드가 아닌 시전자(entity) 자식으로 매달아 몬스터가 이동/넉백되어도 오프셋 지점에 록온 가이드 라인이 따라붙도록 처리
+            // 월드가 아닌 시전자(entity) 자식으로 매달아 몬스터가 이동/넉백되어도 오프셋 지점에 록온 가이드 라인이 따라붙도록 처리
             GameObject aimLine = Instantiate(aimLinePrefab, entity.transform.position, Quaternion.identity, entity.transform);
             aimLine.transform.localPosition = Vector3.up * launchOffset;
 
@@ -113,7 +113,7 @@ protected override void OnWindupUpdate(BaseEntity entity)
                 ? Mathf.Clamp01((Time.time - _windupStartTime) / _windupDuration)
                 : 1f;
 
-            BossTelegraph.UpdateRectWithFill(_shotTelegraph, spawnPos, _aimDir, laneLength, shotTelegraphWidth, progress, shotTelegraphFillColor);
+            BossTelegraph.UpdateRectWithFill(_shotTelegraph, spawnPos, _aimDir, laneLength, shotTelegraphWidth, progress, shotTelegraphFillColor, _windupDuration);
         }
         else
         {

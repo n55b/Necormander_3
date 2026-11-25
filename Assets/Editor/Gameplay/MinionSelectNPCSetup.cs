@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 /// <summary>
 /// VillageScene 에 '소환수 선택' NPC 를 배치하고, 근접 소환수 진화 계열을 검증한다.
 ///
-/// [26/10/22] 외형 테스트(SpriteTests)로 만들던 전사/기사/기사2/무사 외형을 실제 MeleeDoll 계열에 입혔다.
+/// 외형 테스트(SpriteTests)로 만들던 전사/기사/기사2/무사 외형을 실제 MeleeDoll 계열에 입혔다.
 ///   전사(Fighter) ─┬─ 1차 트리: 기사(Knight)  → 용사(Champion)   · Breaker 능력
 ///                  └─ 2차 트리: 무사(Warrior) → 장수(Warlord)    · Whirlwind 능력
 /// 옛 테스트 SO 는 SOData/Minion/Main/Deprecated/SpriteTests 에 남아 있으며 레지스트리에는 없다.

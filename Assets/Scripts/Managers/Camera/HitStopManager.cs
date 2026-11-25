@@ -1,104 +1,116 @@
-using System.Collections;
 using UnityEngine;
 
-/// <summary>
-/// 히트스탑(짧은 전역 프레임 정지) 관리.
-///
-/// 의도적으로 강타(Smash) / 처형(Execute)급 타격에만 사용합니다.
-/// 일반 평타나 약한 연계 스킬에 걸면 "끊기는 느낌"이 들기 때문에,
-/// 호출 지점을 늘릴 때는 반드시 강한 타격인지 먼저 확인하세요.
-///
-/// 호출 경로:
-///   1. 강타(Smash) 연계 스킬 → MinionActionSkillSO.ExecuteSkill() (actionType == ApplySmash) → DoHitStop()
-///   2. 처형(Execute) 발생 → CharacterHealth.GetDamage() 처형 체크 구간 → DoHitStop()
-/// </summary>
+// The scene clock composes a bounded impact stop followed by any pending slow motion.
 public class HitStopManager : MonoBehaviour
 {
+    [System.Flags]
+    public enum PauseOwner { Gameplay = 1, Options = 2, Reward = 4, GameOver = 8 }
+    private static PauseOwner pauseOwners;
+    public static bool IsPaused => pauseOwners != 0;
     public static HitStopManager Instance;
-
-    [Header("히트스탑 기본값")]
-    [Tooltip("duration 인자를 안 넘겼을 때 기본 정지 시간(초). 0.05~0.1 권장.")]
-    [SerializeField] private float defaultDuration = 0.08f;
-
-    [Tooltip("정지 동안의 timeScale. 0에 가까울수록 강하게 멈춤. 완전히 0으로 두면 일부 코루틴 타이밍이 깨질 수 있어 0.02 권장.")]
-    [SerializeField] private float freezeScale = 0.02f;
-
-    [Tooltip("히트스탑이 허용되는 최대 시간(초). 실수로 큰 값이 들어와도 이 이상은 못 넘게 막음.")]
-    [SerializeField] private float maxDuration = 0.15f;
-
-    private Coroutine _activeHitStop;
-    private float _originalTimeScale = 1f;
-    private float _appliedScale;
-    private bool _slowMotion;
+    [SerializeField] private float defaultDuration = .08f;
+    [Range(.001f, 1f), SerializeField] private float freezeScale = .02f;
+    [Min(.001f), SerializeField] private float maxDuration = .15f;
+    private float stopUntil, stopLimit, recoveryUntil, slowSeconds, slowScale, slowRelease, lastTick;
+    private float baseScale = 1, applied = 1;
+    private bool active;
 
     public void Initialize()
     {
+        if (Instance != null && Instance != this) Instance.ReleaseClock();
         Instance = this;
     }
+    private void OnEnable() => Initialize();
 
-    /// <summary>
-    /// 히트스탑 발동. duration을 생략하면 defaultDuration 사용.
-    /// 겹쳐서 호출되면 기존 정지를 새 정지로 갈아탑니다(누적되어 길어지지 않음).
-    /// </summary>
-    public void DoHitStop(float duration = -1f)
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    public static void ResetForScene()
     {
-        if(Time.timeScale<=0f || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.HitStop)) return;
-        float d = duration > 0f ? duration : defaultDuration;
-        d = Mathf.Min(d, maxDuration);
-        if (d <= 0f) return;
+        if (Instance != null) Instance.Clear();
+        pauseOwners = 0;
+        Time.timeScale = 1;
+    }
 
+    public static void SetPaused(bool paused, PauseOwner owner = PauseOwner.Gameplay)
+    {
+        var next = paused ? pauseOwners | owner : pauseOwners & ~owner;
+        if (next == pauseOwners) return;
+        pauseOwners = next;
+        if (Instance != null) Instance.Clear();
+        Time.timeScale = IsPaused ? 0f : 1f;
+    }
 
-        if (_activeHitStop != null)
-        {
-            StopCoroutine(_activeHitStop);
-        }
-        else
-        {
-            _originalTimeScale = Time.timeScale;
-        }
+    private void Begin(float now)
+    {
+        if (active) return;
+        active = true;
+        baseScale = Time.timeScale;
+        lastTick = now;
+    }
 
-        _slowMotion = false;
-        _activeHitStop = StartCoroutine(HitStopRoutine(d, freezeScale));
+    public void DoHitStop(float duration = -1)
+    {
+        if (Time.timeScale <= 0 || !PolishFeedback.ExistingEnabled(ExistingFeedbackCue.HitStop)) return;
+        float now = Time.unscaledTime;
+        float seconds = duration < 0 ? defaultDuration : duration;
+        if (seconds <= 0 || maxDuration <= 0) return;
+        // A saturated burst must give simulation at least one physics step to recover.
+        if (now >= stopLimit && now < recoveryUntil) return;
+        if (now >= stopUntil) stopLimit = now + maxDuration;
+        Begin(now);
+        stopUntil = Mathf.Min(stopLimit, Mathf.Max(stopUntil, now + seconds));
+        if (stopUntil >= stopLimit) recoveryUntil = stopLimit + Time.fixedDeltaTime;
+        Apply(Mathf.Min(baseScale, Mathf.Max(.001f, freezeScale)));
     }
 
     public void DoSlowMotion(float duration, float scale)
     {
-        if(Time.timeScale<=0f || (PolishFeedback.Catalog != null && !PolishFeedback.Catalog.enabled)) return;
-        if(_activeHitStop!=null) StopCoroutine(_activeHitStop);
-        else _originalTimeScale=Time.timeScale;
-        _slowMotion=true;
-        _activeHitStop=StartCoroutine(HitStopRoutine(Mathf.Clamp(duration,.01f,.5f),Mathf.Clamp(scale,.05f,1f)));
-    }
-    private void Update()
-    {
-        if (_activeHitStop == null) return;
-        bool allowed = _slowMotion ? PolishFeedback.Catalog == null || PolishFeedback.Catalog.enabled
-            : PolishFeedback.ExistingEnabled(ExistingFeedbackCue.HitStop);
-        if (!allowed) RestoreTime();
+        if (Time.timeScale <= 0 || duration <= 0 || !PolishFeedback.Enabled(FeedbackCue.SlowMotion)) return;
+        Begin(Time.unscaledTime);
+        slowScale = slowSeconds > 0 ? Mathf.Min(slowScale, scale) : scale;
+        slowScale = Mathf.Clamp(slowScale, .05f, 1);
+        slowSeconds = Mathf.Max(slowSeconds, Mathf.Min(1.2f, duration));
+        slowRelease = .45f * slowSeconds;
+        if (Time.unscaledTime >= stopUntil) Apply(Mathf.Min(baseScale, slowScale));
     }
 
-    private IEnumerator HitStopRoutine(float duration, float scale)
+    private void Update()
     {
-        _appliedScale=scale;
-        Time.timeScale = scale;
-        yield return new WaitForSecondsRealtime(duration); // realtime이라 timeScale 영향을 안 받음
-        if(Mathf.Approximately(Time.timeScale,_appliedScale)) Time.timeScale = _originalTimeScale;
-        _activeHitStop = null;
+        if (!active) return;
+        if (!Mathf.Approximately(applied, Time.timeScale)) { Clear(); return; }
+        float now = Time.unscaledTime;
+        if (!PolishFeedback.ExistingEnabled(ExistingFeedbackCue.HitStop)) stopUntil = 0;
+        if (!PolishFeedback.Enabled(FeedbackCue.SlowMotion)) slowSeconds = 0;
+        if (now >= stopUntil)
+        {
+            slowSeconds -= now - Mathf.Max(lastTick, stopUntil);
+            if (slowSeconds > 0)
+            {
+                float t = Mathf.Clamp01(1f - slowSeconds / slowRelease);
+                Apply(Mathf.SmoothStep(Mathf.Min(baseScale, slowScale), baseScale, t));
+            }
+            else { Apply(baseScale); Clear(); }
+        }
+        lastTick = now;
+    }
+
+    private void Apply(float scale) { applied = scale; Time.timeScale = scale; }
+
+    private void Clear()
+    {
+        active = false;
+        stopUntil = slowSeconds = 0;
+    }
+
+    private void ReleaseClock()
+    {
+        if (active && Mathf.Approximately(Time.timeScale, applied)) Apply(baseScale);
+        Clear();
     }
 
     private void OnDisable()
     {
-        RestoreTime();
-        if (Instance == this) Instance = null;
-    }
-    private void RestoreTime()
-    {
-        // 씬 전환 등으로 매니저가 꺼질 때 timeScale이 멈춰있는 상태로 남지 않도록 안전 복구
-        if (_activeHitStop != null)
-        {
-            if(Mathf.Approximately(Time.timeScale,_appliedScale)) Time.timeScale = _originalTimeScale;
-            StopCoroutine(_activeHitStop);
-            _activeHitStop = null;
-        }
+        if (Instance != this) return;
+        ReleaseClock();
+        Instance = null;
     }
 }

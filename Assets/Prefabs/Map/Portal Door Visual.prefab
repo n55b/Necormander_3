@@ -97,6 +97,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4622762934964737621}
   - component: {fileID: 8724404948046444620}
+  - component: {fileID: 7015620095300018315}
   m_Layer: 0
   m_Name: "\uD3EC\uD0C8 \uAE30\uB465 A"
   m_TagString: Untagged
@@ -186,6 +187,7 @@ GameObject:
   - component: {fileID: 4484873447186786005}
   - component: {fileID: 1555975208912269878}
   - component: {fileID: 1991065195677029051}
+  - component: {fileID: 7015620095300018314}
   m_Layer: 0
   m_Name: Portal Door Visual
   m_TagString: Untagged
@@ -339,3 +341,30 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!210 &7015620095300018314
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3898211747580302477}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
+--- !u!114 &7015620095300018315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3686801187096755803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76aa4e3f8fe8da04797714527b77aab7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  pivotOverride: {fileID: 0}
+  sortingGroup: {fileID: 7015620095300018314}
+  occludesPlayer: 1

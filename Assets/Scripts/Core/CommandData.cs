@@ -22,7 +22,7 @@ public enum CommandData
 /// 5종은 전부 '독립적으로 동시 존재'한다. 구 구조는 슬롯이 하나라 다른 걸 걸면 기존 게
 /// 터지고 새 건 증발했는데, 그 규칙이 통째로 사라졌다.
 ///
-/// [26/07/21] 소환수 공격도 상태이상을 걸 수 있다(대쉬/피니셔/R 의 onHitStatus 필드).
+/// 소환수 공격도 상태이상을 걸 수 있다(대쉬/피니셔/R 의 onHitStatus 필드).
 /// DamageInfo.applyStatus 에 실려 CharacterHealth 명중 시 한 곳에서 부여된다. 유물/아이템도 같은 길.
 /// </summary>
 public enum StatusType

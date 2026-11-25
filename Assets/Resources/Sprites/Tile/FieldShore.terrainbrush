@@ -1,0 +1,34 @@
+{
+  "title": "물가",
+  "sheetGuid": "04030aa565f7030428cf18dc523d4981",
+  "prefix": "Field_Tilemap_16px_",
+  "samples": [
+    95,
+    80,
+    96,
+    110,
+    94,
+    79,
+    81,
+    109,
+    111,
+    98,
+    97,
+    83,
+    82
+  ],
+  "surface": 3,
+  "connects": [
+    "Field_Tilemap_16px_122",
+    "Water_0_0",
+    "Water_1_0",
+    "Water_2_0",
+    "Water_Under_Left_0",
+    "Water_Under_Center_0",
+    "Water_Under_Right_0",
+    "Water_Between_Left_0",
+    "Water_Between_Right_0"
+  ],
+  "fillSprite": "Field_Tilemap_16px_122",
+  "shallowSprite": "Water_0_0"
+}
