@@ -969,6 +969,7 @@ public static class EquipmentAssets
                 p.label = PassiveInfo(r.firstPassive).name;
                 if (p is EquipmentConditionBuffPassive cb && cb.effects.Count == 0) cb.effects.Add(new StatEffect());
                 e.passives.Add(p);
+                ProjectParameters.IssueKeys(e, e.passives);
             }
         }
 

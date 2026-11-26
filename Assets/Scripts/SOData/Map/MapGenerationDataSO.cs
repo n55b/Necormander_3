@@ -172,6 +172,7 @@ public class MapGenerationDataSO : ScriptableObject
     [System.Serializable]
     public class FloorBossEntry
     {
+        [HideInInspector, WorkshopKey] public string id;
         [Tooltip("GameManager.currentFloor 와 비교할 층수 (1부터)")]
         public int floor = 4;
         public EnemyMinionDataSO boss;
@@ -187,4 +188,6 @@ public class MapGenerationDataSO : ScriptableObject
         }
         return null;
     }
+
+    private void OnValidate() => ProjectParameters.IssueKeys(this, floorBosses);
 }

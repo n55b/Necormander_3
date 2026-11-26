@@ -50,4 +50,6 @@ public class EquipmentSO : ScriptableObject
     // 강화당 패시브 수치는 각 패시브가 자기 파라미터별로 관리한다
     // (StatEffect.valuePerLevel / EquipmentStatusPassive.*PerLevel / EquipmentBuffPassive.reapplyDelayPerLevel).
     // 예전의 전역 passiveGrowthPerLevel 은 '특정 파라미터만 강화'를 못 해서 제거했다.
+
+    private void OnValidate() => ProjectParameters.IssueKeys(this, passives);
 }

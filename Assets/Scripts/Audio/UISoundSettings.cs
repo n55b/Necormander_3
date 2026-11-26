@@ -32,6 +32,7 @@ public class UISoundSettings : ScriptableObject
     [Serializable]
     public class WindowSound
     {
+        [HideInInspector, WorkshopKey] public string id;
         [KoLabel("창 이름 (코드 이름)"), Tooltip("코드가 UIEventBus.NotifyOpen/Close 로 보내는 이름과 정확히 같아야 합니다. 사운드 테스트 툴의 재생 기록에서 실제 이름을 확인할 수 있습니다.")]
         public string uiName = "";
         [KoLabel("설명"), Tooltip("사람이 알아보기 위한 이름입니다. 게임 동작에는 영향이 없습니다.")]
@@ -145,6 +146,6 @@ public class UISoundSettings : ScriptableObject
     /// <summary>창 목록을 코드로 바꾼 뒤 이름 찾기 캐시를 비운다.</summary>
     public void InvalidateCache() => _byName = null;
 
-    private void OnValidate() => _byName = null;
+    private void OnValidate() { _byName = null; ProjectParameters.IssueKeys(this, windows); }
     private void OnEnable() => _byName = null;
 }

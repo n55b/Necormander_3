@@ -9,7 +9,7 @@ using UnityEngine;
 public abstract class MinionDataSO : ScriptableObject
 {
     [Header("기본 정보")]
-    public CommandData minionType;
+    [WorkshopReadOnly] public CommandData minionType;
     public string minionName;
     public Sprite minionIcon;   // 대가리만 달린 이미지
 

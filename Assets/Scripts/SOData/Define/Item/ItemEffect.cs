@@ -33,6 +33,7 @@ public sealed class ItemEffectInfoAttribute : System.Attribute
 [System.Serializable]
 public abstract class ItemEffect
 {
+    [HideInInspector, WorkshopKey] public string id;
     [Tooltip("기획 메모(게임에 표시되지 않음). 자동 문구가 없는 효과 종류에서만 표시 문구 대신 쓰인다.")]
     public string label;
 

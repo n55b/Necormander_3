@@ -222,6 +222,7 @@ public sealed class ExistingFeedbackCatalogEditor
             entry.sources = sources[cue].Where(s => s != null).Distinct().OrderBy(Label).ToArray();
             return entry;
         }).ToArray();
+        ProjectParameters.IssueKeys(catalog, catalog.existingEffects);
         EditorUtility.SetDirty(catalog);
         AssetDatabase.SaveAssetIfDirty(catalog);
         Debug.Log($"[ExistingFeedbackCatalog] {catalog.existingEffects.Length} groups, {catalog.existingEffects.Sum(e => e.sources.Length)} source links. Original values retained.");

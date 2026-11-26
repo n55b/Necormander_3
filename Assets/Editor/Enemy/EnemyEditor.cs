@@ -1121,6 +1121,7 @@ public static class EnemyAssets
         if (existing != null) existing.boss = e;
         else map.floorBosses.Add(new MapGenerationDataSO.FloorBossEntry { floor = floor, boss = e });
         map.floorBosses.Sort((a, b) => (a?.floor ?? 0).CompareTo(b?.floor ?? 0));
+        ProjectParameters.IssueKeys(map, map.floorBosses);
         EditorUtility.SetDirty(map);
         AssetDatabase.SaveAssetIfDirty(map);
         InvalidateUsage();
@@ -1132,6 +1133,7 @@ public static class EnemyAssets
         if (c == null || e == null) return;
         Undo.RecordObject(c, "군집에 적 추가");
         c.enemies.Add(new EnemyCount { enemyData = e, count = count });
+        ProjectParameters.IssueKeys(c, c.enemies);
         EditorUtility.SetDirty(c);
         AssetDatabase.SaveAssetIfDirty(c);
         InvalidateUsage();

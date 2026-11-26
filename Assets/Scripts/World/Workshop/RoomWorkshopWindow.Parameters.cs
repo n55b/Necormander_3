@@ -70,6 +70,13 @@ public sealed partial class RoomWorkshopWindow
         if(dataField!=null)
         {
             WorkshopUI.Label(content,dataEntry.Title+"   /   "+dataField.path,12,45,615,24,12);
+            if(dataField.readOnly)
+            {
+                WorkshopUI.Label(content,"읽기 전용 · 세이브 이름·애니메이터·실행 상태와 묶인 값이라 원본 에셋에서만 바꿉니다.",12,86,615,24);
+                WorkshopUI.Label(content,ValueLabel(dataField),12,120,610,46,12);
+                Btn("닫기",12,196,75,23,()=>{dataField=null;Draw(page);});
+                return;
+            }
             if(dataField.IsReference)
             {
                 var candidates=dataCatalog.Where(e=>dataField.type.IsInstanceOfType(e.source)).OrderBy(e=>e.Title,StringComparer.Ordinal).ToArray();
@@ -117,7 +124,7 @@ public sealed partial class RoomWorkshopWindow
         else
         {
             foreach(var f in dataFields.Where(f=>Matches(f.path+" "+f.label)))
-                rows.Add((f.path+"   "+ValueLabel(f),()=>{dataField=f;parameterDraft=ParameterValue(f);referencePage=0;Draw(page);}));
+                rows.Add((f.path+"   "+ValueLabel(f)+(f.readOnly?"   (읽기 전용)":""),()=>{dataField=f;parameterDraft=ParameterValue(f);referencePage=0;Draw(page);}));
             Btn("프로젝트에 저장",480,299,145,23,SaveParameters,true);
             Btn("프리셋",208,299,74,23,()=>{showPresets=true;presetPage=0;Draw(page);});
             Btn("에셋 목록",380,299,92,23,()=>{

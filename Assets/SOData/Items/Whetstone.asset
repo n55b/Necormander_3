@@ -29,6 +29,7 @@ MonoBehaviour:
     - rid: 2773715416203132929
       type: {class: ItemStatEffect, ns: , asm: Assembly-CSharp}
       data:
+        id: aa73eed46eea
         label: 
         displayText: 
         statType: 13
@@ -37,5 +38,6 @@ MonoBehaviour:
     - rid: 2773715416203132930
       type: {class: ItemCritOverflowEffect, ns: , asm: Assembly-CSharp}
       data:
+        id: 04de37f46bd0
         label: 
         displayText: 

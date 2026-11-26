@@ -58,6 +58,7 @@ public static class DesignerInspectorCheck
                 }
             }
             Require(before == EditorJsonUtility.ToJson(target), "표시 중 값 변경: " + target.name);
+            if (target is ScriptableObject data) ProjectParameters.RequireKeys(data, AssetDatabase.GetAssetPath(data));
         }
         foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs", "Assets/Resources" }))
         {

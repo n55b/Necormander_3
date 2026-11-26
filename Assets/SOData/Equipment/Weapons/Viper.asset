@@ -48,6 +48,7 @@ MonoBehaviour:
     - rid: 2773715241801089033
       type: {class: EquipmentStatPassive, ns: , asm: Assembly-CSharp}
       data:
+        id: 055d9da50631
         label: Attack
         effect:
           statType: 0

@@ -11,6 +11,7 @@ using UnityEngine;
 [System.Serializable]
 public class MinionStandbyInfusion
 {
+    [HideInInspector, WorkshopKey] public string id;
     public enum SwingFilter
     {
         [InspectorName("모든 타")] AllSwings = 0,

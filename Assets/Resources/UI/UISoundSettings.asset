@@ -36,7 +36,8 @@ MonoBehaviour:
     priority: 128
     audibleRange: 0
   windows:
-  - uiName: Reward
+  - id: a7e90956df87
+    uiName: Reward
     label: "\uBCF4\uC0C1 \uC120\uD0DD"
     open:
       clips: []
@@ -58,7 +59,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: HandSlot
+  - id: 0414466d5df6
+    uiName: HandSlot
     label: "\uC18C\uD658\uC218 \uC2B5\uB4DD \xB7 \uAD50\uCCB4"
     open:
       clips: []
@@ -80,7 +82,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: Augment
+  - id: 60d66de0790d
+    uiName: Augment
     label: "\uC99D\uAC15 \uC120\uD0DD"
     open:
       clips: []
@@ -102,7 +105,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: Map
+  - id: 51fea22a31cb
+    uiName: Map
     label: "\uC804\uCCB4 \uC9C0\uB3C4 (M)"
     open:
       clips: []
@@ -124,7 +128,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: Shop
+  - id: c2cb0551bec0
+    uiName: Shop
     label: "\uC0C1\uC810"
     open:
       clips: []
@@ -146,7 +151,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: Dialogue
+  - id: c6a70f010a81
+    uiName: Dialogue
     label: "\uB300\uD654"
     open:
       clips: []
@@ -168,7 +174,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: Pouch
+  - id: 87469601e609
+    uiName: Pouch
     label: "\uC544\uC774\uD15C \uC8FC\uBA38\uB2C8 (V)"
     open:
       clips: []
@@ -190,7 +197,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: PlayerInfo
+  - id: 70412644afbf
+    uiName: PlayerInfo
     label: "\uC7A5\uCC29 \uC815\uBCF4 (C)"
     open:
       clips: []
@@ -212,7 +220,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: PlayerInfoDetails
+  - id: 72112ce90c68
+    uiName: PlayerInfoDetails
     label: "\uC7A5\uCC29 \uC815\uBCF4 \xB7 \uC0C1\uC138 \uD3BC\uCE58\uAE30"
     open:
       clips: []
@@ -234,7 +243,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: Option
+  - id: 8add27c3b506
+    uiName: Option
     label: "\uC635\uC158 (ESC)"
     open:
       clips: []
@@ -256,7 +266,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: GameOver
+  - id: ab7ced72ede5
+    uiName: GameOver
     label: "\uAC8C\uC784 \uC624\uBC84 (\uC5F4\uB9BC\uB9CC)"
     open:
       clips: []
@@ -278,7 +289,8 @@ MonoBehaviour:
       minPlaybackInterval: 0.05
       priority: 128
       audibleRange: 0
-  - uiName: GameClear
+  - id: eafb13c46b0e
+    uiName: GameClear
     label: "\uAC8C\uC784 \uD074\uB9AC\uC5B4 (\uC5F4\uB9BC\uB9CC)"
     open:
       clips: []

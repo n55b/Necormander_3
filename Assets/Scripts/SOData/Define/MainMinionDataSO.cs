@@ -82,7 +82,7 @@ public class MainMinionDataSO : MinionDataSO
     [Header("세이브 호환")]
     [Tooltip("세이브는 소환수를 에셋 이름으로 저장한다. 에셋 이름을 바꿨다면 예전 이름을 여기 남겨 두면\n" +
              "옛 세이브도 이 소환수로 불러온다. (예: 'MeleeDoll Minion' → 'Fighter Minion')")]
-    public string[] formerAssetNames = new string[0];
+    [WorkshopReadOnly] public string[] formerAssetNames = new string[0];
 
     /// <summary>현재 에셋 이름이거나 예전 에셋 이름 중 하나인가.</summary>
     public bool MatchesSaveKey(string key)
@@ -111,4 +111,6 @@ public class MainMinionDataSO : MinionDataSO
     public override string ResolveDescription()
         => base.ResolveDescription()
            ?? ((minionSkill != null && !string.IsNullOrEmpty(minionSkill.description)) ? minionSkill.description : null);
+
+    private void OnValidate() => ProjectParameters.IssueKeys(this, standbyInfusions);
 }

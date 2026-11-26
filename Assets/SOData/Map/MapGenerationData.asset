@@ -72,5 +72,6 @@ MonoBehaviour:
     eliteCount: -1
     augmentRoomCount: -1
   floorBosses:
-  - floor: 3
+  - id: 2a8140abff3e
+    floor: 3
     boss: {fileID: 11400000, guid: 67023cf1463b1d54aa99893ef5ba12ab, type: 2}

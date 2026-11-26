@@ -45,6 +45,7 @@ public enum FeedbackShape { [InspectorName("방향 파편")] Rays, [InspectorNam
 [Serializable]
 public class FeedbackRecipe
 {
+    [HideInInspector, WorkshopKey] public string id;
     public FeedbackCue cue;
     public string title;
     [TextArea] public string description;
@@ -103,6 +104,7 @@ public enum ExistingFeedbackCue
 [Serializable]
 public class ExistingFeedbackEntry
 {
+    [HideInInspector, WorkshopKey] public string id;
     public ExistingFeedbackCue cue;
     public bool enabled = true;
     public string title;
@@ -202,7 +204,7 @@ public class FeedbackCatalog : ScriptableObject
 
     private void OnEnable() => ClearLookups();
 #if UNITY_EDITOR
-    private void OnValidate() => ClearLookups();
+    private void OnValidate() { ClearLookups(); ProjectParameters.IssueKeys(this, effects); ProjectParameters.IssueKeys(this, existingEffects); }
 #endif
     private void ClearLookups() { _effectLookup = null; _existingLookup = null; _cachedEffects = null; _cachedExisting = null; }
 

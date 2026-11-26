@@ -47,6 +47,7 @@ public class StatEffect
 [System.Serializable]
 public abstract class EquipmentPassive
 {
+    [HideInInspector, WorkshopKey] public string id;
     [Tooltip("인스펙터 식별용 라벨(표기 전용).")]
     public string label;
 

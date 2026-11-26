@@ -75,7 +75,8 @@ MonoBehaviour:
     knockbackForce: 6
     superArmorDamage: 30
   standbyInfusions:
-  - status: 0
+  - id: eae7b8c3a1a9
+    status: 0
     chance: 0.5
     swings: 0
     duration: 0

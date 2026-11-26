@@ -48,6 +48,7 @@ MonoBehaviour:
     - rid: 2773715241801089024
       type: {class: EquipmentStatPassive, ns: , asm: Assembly-CSharp}
       data:
+        id: 7d0e0c752bbb
         label: Attack
         effect:
           statType: 0
@@ -57,6 +58,7 @@ MonoBehaviour:
     - rid: 2773715241801089025
       type: {class: EquipmentStatPassive, ns: , asm: Assembly-CSharp}
       data:
+        id: 0edf3b916200
         label: AttackSpeed
         effect:
           statType: 2

@@ -116,6 +116,7 @@ public static class UISoundSetupTool
         s = ScriptableObject.CreateInstance<UISoundSettings>();
         foreach (var (name, label) in KnownWindows)
             s.windows.Add(new UISoundSettings.WindowSound { uiName = name, label = label });
+        ProjectParameters.IssueKeys(s, s.windows);
         AssetDatabase.CreateAsset(s, SettingsPath);
         AssetDatabase.SaveAssets();
         Debug.Log($"[UI 소리] 설정 파일을 만들었습니다: {SettingsPath}");
@@ -128,6 +129,7 @@ public static class UISoundSetupTool
         if (s == null || string.IsNullOrEmpty(uiName) || s.FindWindow(uiName) != null) return;
         Undo.RecordObject(s, "UI 소리 창 추가");
         s.windows.Add(new UISoundSettings.WindowSound { uiName = uiName, label = label });
+        ProjectParameters.IssueKeys(s, s.windows);
         EditorUtility.SetDirty(s);
         s.InvalidateCache();
     }

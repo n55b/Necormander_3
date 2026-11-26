@@ -24,7 +24,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     [Header("페이즈 설정")]
     public float phase2HpThreshold = 350f;
     public EnemyMinionDataSO phase2Data; // 2페이즈 전용 스탯 데이터 (이 값이 있으면 체력 0 도달 시 부활하며 전환)
-    [SerializeField] private bool isPhase2 = false;
+    [SerializeField, WorkshopReadOnly] private bool isPhase2 = false;
 
     [Header("평타 반복")]
     public float baseAttackInterval = 1.0f;
@@ -53,10 +53,10 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     public float stunDuration = 3.0f;
 
     [Header("실행 중 상태")]
-    [SerializeField] private ArcherState archerCurrentState = ArcherState.P1_Loop;
-    [SerializeField] private float stateTimer = 0f;
-    [SerializeField] private float attackTimer = 0f;
-    [SerializeField] private float loopDuration = 0f;
+    [SerializeField, WorkshopReadOnly] private ArcherState archerCurrentState = ArcherState.P1_Loop;
+    [SerializeField, WorkshopReadOnly] private float stateTimer = 0f;
+    [SerializeField, WorkshopReadOnly] private float attackTimer = 0f;
+    [SerializeField, WorkshopReadOnly] private float loopDuration = 0f;
     
     // Pattern 2 internal states
     private int p2SubState = 0; 

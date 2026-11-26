@@ -27,6 +27,7 @@ MonoBehaviour:
     - rid: 2000000000000000001
       type: {class: ItemRoomClearHealEffect, ns: , asm: Assembly-CSharp}
       data:
+        id: a6473175d85f
         label: "\uBC29 \uD074\uB9AC\uC5B4 \uC2DC \uCCB4\uB825 +10"
         value: 10
         isPercent: 0

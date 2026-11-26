@@ -78,6 +78,8 @@ public class ItemSO : ScriptableObject
     /// <summary>표기용 이름. itemName 이 비면 에셋 이름으로 폴백.</summary>
     public string DisplayName => string.IsNullOrEmpty(itemName) ? name : itemName;
 
+    private void OnValidate() => ProjectParameters.IssueKeys(this, effects);
+
     public int Price => ItemTierRules.Price(tier);
     public Color TierColor => ItemTierRules.TierColor(tier);
 

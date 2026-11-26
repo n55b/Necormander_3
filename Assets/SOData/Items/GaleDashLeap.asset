@@ -27,6 +27,7 @@ MonoBehaviour:
     - rid: 2773715416203132933
       type: {class: ItemStatEffect, ns: , asm: Assembly-CSharp}
       data:
+        id: c62a1c8f5c17
         label: 
         statType: 23
         value: 0.03

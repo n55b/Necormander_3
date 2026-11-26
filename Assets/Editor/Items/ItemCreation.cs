@@ -85,6 +85,7 @@ public static class ItemCreation
             item = ScriptableObject.CreateInstance<ItemSO>();
             AssetDatabase.CreateAsset(item, path);
             if (r.firstEffect != null) item.effects.Add((ItemEffect)Activator.CreateInstance(r.firstEffect));
+            ProjectParameters.IssueKeys(item, item.effects);
         }
 
         item.itemName = r.displayName ?? "";

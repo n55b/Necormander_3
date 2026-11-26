@@ -28,6 +28,7 @@ public static class FeedbackSetup
             var matches=Regex.Matches(File.ReadAllText("Docs/Feedback/이펙트_후보_2026-10-26.txt"),@"(?m)^(\d{2})\s+★?\s*([^:：\r\n]+)[:：](.*)$")
                 .Cast<Match>().ToDictionary(m=>int.Parse(m.Groups[1].Value));
             catalog.effects=Enum.GetValues(typeof(FeedbackCue)).Cast<FeedbackCue>().Select(c=>Default(c,burst,matches.TryGetValue((int)c,out var m)?m:null)).ToArray();
+            ProjectParameters.IssueKeys(catalog, catalog.effects);
             catalog.overlayPrefab=overlay;
             AssetDatabase.CreateAsset(catalog,CatalogPath);
         }

@@ -153,11 +153,12 @@ public sealed class ProjectParameterBindings : MonoBehaviour
         var published=Published();
         void Check(Entry entry,Newtonsoft.Json.Linq.JObject values)
         {
+            ProjectParameters.RequireKeys(entry.source,entry.Document);
             var fields=ProjectParameters.Fields(entry.source).ToDictionary(f=>f.path);
             foreach(var pair in values)
             {
                 if(!fields.TryGetValue(pair.Key,out var field)) throw new InvalidDataException(entry.Document+"/"+pair.Key);
-                if(!field.IsReference)field.Parse((string)pair.Value);
+                if(field.readOnly || !field.IsReference)field.Parse((string)pair.Value);
             }
         }
         foreach(var entry in published)Check(entry,ProjectParameters.Values(ProjectParameters.Snapshot(entry.Document)));
