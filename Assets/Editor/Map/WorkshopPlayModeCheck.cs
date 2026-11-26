@@ -144,8 +144,9 @@ public static class WorkshopPlayModeCheck
         Require(foundBanks, "BattleScene wall, cliff and shore retain their layout, edge sprites, collision and underlying floor");
         Debug.Log("[Workshop map] PASS edge sprites and collision on all " + paintedBanks.Count + " painted obstacle cells in BattleScene");
         var player = GameManager.Instance.PLAYERCONTROLLER;
-        var live = new SerializedObject(SunyuniePanel.PlayerControlsTarget(player, false).GetComponent<PlayerController>());
-        var defaults = new SerializedObject(SunyuniePanel.PlayerControlsTarget(player, true).GetComponent<PlayerController>());
+        // Sunyunie 화면·이동 탭의 시험값은 이 인스턴스만 바꾸고 프리팹 기본값은 그대로 둔다.
+        var live = new SerializedObject(player);
+        var defaults = new SerializedObject(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player Melee.prefab").GetComponent<PlayerController>());
         float authored = defaults.FindProperty("clearedRoomSprint").floatValue;
         live.FindProperty("clearedRoomSprint").floatValue = authored + .25f;
         live.ApplyModifiedProperties();

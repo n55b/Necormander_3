@@ -1,4 +1,9 @@
 using static KoreanEditorText;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -194,37 +199,64 @@ public sealed class SunyuniePanel : EditorWindow
         var player = EditorApplication.isPlaying && GameManager.Instance != null ? GameManager.Instance.PLAYERCONTROLLER : null;
         if (player != null)
             editPlayerDefaults = GUILayout.Toolbar(editPlayerDefaults ? 1 : 0, PlayerTargets, Style(GUI.skin.button)) == 1;
-        else
-            Label("플레이어 프리팹 기본값", EditorStyles.miniLabel);
-        var target = PlayerControlsTarget(player, editPlayerDefaults);
-        if (target == null) return;
-        DrawPlayerControls(target.GetComponent<PlayerController>(), ref playerSettings, true);
-        DrawPlayerControls(target.GetComponent<MeleeCombatController>(), ref meleeSettings, false);
+        if (player != null && !editPlayerDefaults)
+        {
+            DrawPlayerControls(player, ref playerSettings);
+            DrawPlayerControls(player.GetComponent<MeleeCombatController>(), ref meleeSettings);
+        }
+        else DrawPlayerDefaults();
     }
 
     private SerializedObject playerSettings, meleeSettings;
     private bool editPlayerDefaults;
-    private static readonly string[] PlayerTargets = { "현재 플레이어 · 시험값", "프리팹 기본값" };
-    internal static GameObject PlayerControlsTarget(PlayerController player, bool defaults) =>
-        player != null && !defaults ? player.gameObject : AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player Melee.prefab");
+    private static readonly string[] PlayerTargets = { "현재 플레이어 · 시험값", "기본값 · DATA" };
+    // DATA BALANCE/PLAYER의 파일과 키. 플레이어가 생성될 때 ProjectPlayerTuning이 프리팹 값을 이 값으로 덮어쓴다.
+    private static readonly (string file, string field, string caption)[] PlayerFields =
+    {
+        ("movement.json", "clearedRoomSprint", "완료한 방 질주 배율"),
+        ("movement.json", "hurtPushDistance", "피격 밀림 거리"),
+        ("melee.json", "aimAssistDegrees", "조준 보정 최대 각도"),
+        ("melee.json", "reachAssistDistance", "공격 거리 보정 한도"),
+        ("melee.json", "attackWalkSpeedMultiplier", "공격 중 걷기 배율")
+    };
 
-    private void DrawPlayerControls(Component component, ref SerializedObject data, bool movement)
+    private void DrawPlayerControls(Component component, ref SerializedObject data)
     {
         if (component == null) return;
         if (data == null || data.targetObject != component) data = new SerializedObject(component);
         data.Update();
-        if (movement)
+        foreach (var (_, field, caption) in PlayerFields)
         {
-            EditorGUILayout.PropertyField(data.FindProperty("clearedRoomSprint"), new GUIContent("완료한 방 질주 배율"));
-            EditorGUILayout.PropertyField(data.FindProperty("hurtPushDistance"), new GUIContent("피격 밀림 거리"));
-        }
-        else
-        {
-            EditorGUILayout.PropertyField(data.FindProperty("aimAssistDegrees"), new GUIContent("조준 보정 최대 각도"));
-            EditorGUILayout.PropertyField(data.FindProperty("reachAssistDistance"), new GUIContent("공격 거리 보정 한도"));
-            EditorGUILayout.PropertyField(data.FindProperty("attackWalkSpeedMultiplier"), new GUIContent("공격 중 걷기 배율"));
+            var property = data.FindProperty(field);
+            if (property != null) EditorGUILayout.PropertyField(property, new GUIContent(caption));
         }
         if (data.ApplyModifiedProperties()) EditorUtility.SetDirty(component);
+    }
+
+    private void DrawPlayerDefaults()
+    {
+        Help("플레이어가 생성될 때 DATA BALANCE/PLAYER 값이 프리팹 기본값을 덮어씁니다. 제작실 > 내 작업 > 플레이어 수치에서 편집하세요.", MessageType.Info);
+        using (new EditorGUI.DisabledScope(!WorkshopBuild.CanOpenInPlayMode()))
+        {
+            if (Button("제작실에서 플레이어 수치 편집")) WorkshopBuild.OpenInPlayMode();
+        }
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player Melee.prefab");
+        if (prefab == null) return;
+        var authored = new[] { new SerializedObject(prefab.GetComponent<PlayerController>()), new SerializedObject(prefab.GetComponent<MeleeCombatController>()) };
+        var files = new Dictionary<string, JObject>();
+        foreach (var (file, field, caption) in PlayerFields)
+        {
+            if (!files.TryGetValue(file, out var json)) files[file] = json = ReadPlayerData(file);
+            var property = authored[0].FindProperty(field) ?? authored[1].FindProperty(field);
+            string data = json?[field] is JValue { Type: JTokenType.Float or JTokenType.Integer } value ? ((float)value).ToString("0.###") : "없음";
+            Label(caption, $"DATA {data} · 프리팹 {property?.floatValue.ToString("0.###")}");
+        }
+    }
+
+    private static JObject ReadPlayerData(string file)
+    {
+        try { return JObject.Parse(File.ReadAllText(Path.Combine(ProjectContentStore.Root, "BALANCE", "PLAYER", file))); }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or JsonException) { return null; }
     }
 
     private void DrawSharedAsset(string path)
