@@ -38,15 +38,11 @@ public sealed partial class RoomWorkshopWindow
         return field;
     }
 
-    private void OpenParameters()
+    // filter가 있으면 그 영역의 에셋 목록부터 보인다(허브 타일). 없으면 이전 항목을 그대로 연다. 카탈로그는 들어갈 때마다 다시 만들어 새 변형을 잡는다.
+    private void OpenParameters(string filter=null)
     {
-#if UNITY_EDITOR
-        dataCatalog=ProjectParameterBindings.All();
-#else
-        dataCatalog=ProjectParameterBindings.CreatorCatalog ?? Array.Empty<ProjectParameterBindings.Entry>();
-#endif
-        ProjectParameterBindings.Bind(dataCatalog);
-        dataCatalog=dataCatalog.Concat(ProjectContentVariants.Entries).ToArray();
+        if(filter!=null){ dataEntry=null; paramDraft=null; dataField=null; creatingContent=false; dataSearch=filter; dataPage=0; }
+        dataCatalog=null; EnsureCatalog();
         Navigate(Page.Parameters);
     }
     private void DrawParameters()

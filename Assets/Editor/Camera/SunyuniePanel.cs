@@ -235,7 +235,7 @@ public sealed class SunyuniePanel : EditorWindow
 
     private void DrawPlayerDefaults()
     {
-        Help("플레이어가 생성될 때 DATA BALANCE/PLAYER 값이 프리팹 기본값을 덮어씁니다. 제작실 > 내 작업 > 플레이어 수치에서 편집하세요.", MessageType.Info);
+        Help("플레이어가 생성될 때 DATA BALANCE/PLAYER 값이 프리팹 기본값을 덮어씁니다. 제작실 > 게임 콘텐츠 > 플레이어에서 편집하세요.", MessageType.Info);
         using (new EditorGUI.DisabledScope(!WorkshopBuild.CanOpenInPlayMode()))
         {
             if (Button("제작실에서 플레이어 수치 편집")) WorkshopBuild.OpenInPlayMode();

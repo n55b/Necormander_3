@@ -14,7 +14,7 @@ public sealed partial class RoomWorkshopWindow
     private Action pendingConfirm;           // null이 아니면 모달이 떠 있다. Draw 끝에서 다시 그리므로 다른 Draw가 지워도 남는다
     internal static bool QuitApproved;       // 모달에서 진행을 골랐거나, 검사 플레이어가 끝낼 때(Finish가 켠다)
 
-    private static string DraftTitle(DraftStore.Draft d)=>d.entry.source is StatusBalanceSO ? "상태이상" : d.entry.Title;
+    private static string DraftTitle(DraftStore.Draft d)=>ContentTitle(d.entry);
     private IEnumerable<string> UnsavedTitles()=>DraftStore.Unsaved.Select(DraftTitle)
         .Concat(pages.Where(p=>p.Title!=null && p.Dirty()).Select(p=>p.Title));
 
@@ -51,12 +51,7 @@ public sealed partial class RoomWorkshopWindow
         if(more>0) WorkshopUI.Label(box,"외 "+more+"개",8,26+shown*22,216,16,8);
         WorkshopUI.Button(box,"모두 저장 Ctrl+Shift+S",8,height-26,216,20,()=>Safe(()=>{unsavedOpen=false;SaveAllDocuments();}),true,"미저장/모두 저장");
     }
-    private void OpenDraft(DraftStore.Draft d)
-    {
-        OpenParameters();
-        var entry=Array.Find(dataCatalog,e=>e.Document==d.entry.Document);
-        if(entry!=null) SelectContent(entry);
-    }
+    private void OpenDraft(DraftStore.Draft d)=>OpenContent(d.entry.Document);
 
     private void ConfirmUnsaved(Action proceed)
     {

@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public sealed partial class RoomWorkshopWindow : MonoBehaviour
 {
     public WorkshopCatalog catalog;
-    private enum Page { Desk, Legacy, Map, Shared, Game, Project, Balance, Git, Parameters, Dialogue, Translations, Art, Compare, Passage }
+    private enum Page { Desk, Legacy, Map, Shared, Game, Project, Balance, Git, Parameters, Dialogue, Translations, Art, Compare, Passage, Content }
     private enum Tool { Select, Paint, Erase, Sample, Door, Enemy, Prop, Start, Stamp, Auto }
     private Page page;
     private Tool tool;
@@ -120,8 +120,10 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
 #if LEVEL_WORKSHOP && !UNITY_EDITOR
         if(page==Page.Desk) Btn("프로젝트 연결",344,5,95,20,OpenConnection);
 #endif
-        if (ProjectContentStore.Authoring && page!=Page.Map && page!=Page.Game && page!=Page.Desk)
-            Btn("플레이어 수치",447,5,72,20,()=>Navigate(Page.Balance),page==Page.Balance);
+        // 작업대는 아래 줄에 같은 이름의 버튼이 있어 숨긴다. 비연결이어도 보인다(허브가 읽기 전용 안내를 띄운다).
+        if (page!=Page.Map && page!=Page.Desk)
+            Btn("게임 콘텐츠",447,5,72,20,()=>Navigate(Page.Content),
+                page is Page.Content or Page.Parameters or Page.Balance or Page.Dialogue or Page.Translations or Page.Art);
         DrawUnsavedButton();
         pages[(int)page].Draw();
         if(page!=Page.Desk) Refocus(kept);          // 작업대는 DrawLibrary가 기존 규칙(검색→'검색' 치환, 기본 포커스)으로 고른다
@@ -613,6 +615,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
                 bool redo=keys.yKey.wasPressedThisFrame || shift && keys.zKey.wasPressedThisFrame;
                 if(draft!=null && ctrl && (keys.zKey.wasPressedThisFrame || keys.yKey.wasPressedThisFrame))
                 { if(redo ? DraftStore.Redo(draft) : DraftStore.Undo(draft)) Draw(page); return; }
+                if(ctrl && keys.fKey.wasPressedThisFrame){OpenFind();return;}
             }
         }
         entry.Keys?.Invoke();

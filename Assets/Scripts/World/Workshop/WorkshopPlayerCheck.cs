@@ -184,6 +184,10 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         yield return Wait(() => !WorkshopTrial.Active && GameObject.Find("Workshop camera")!=null && !UnityNote.SceneLoader.IsLoading);
         Require(WorkshopTrial.Draft.id == draft.id && WorkshopTrial.Redo.Count > 0, "restored document and undo history");
         yield return Click("게임 설정");
+        yield return Click("게임 콘텐츠");
+        Require(!FindObjectsByType<Button>(FindObjectsSortMode.None).First(b=>b.name=="상태이상").interactable &&
+            FindObjectsByType<TMPro.TMP_Text>(FindObjectsSortMode.None).Any(t=>t.text.StartsWith("프로젝트 연결 필요",StringComparison.Ordinal)),"unconnected hub is read-only");
+        yield return Click("게임 설정");
         yield return Click("튜토리얼");
         yield return Click("방 순서 편집");
         yield return Click("기본 순서");

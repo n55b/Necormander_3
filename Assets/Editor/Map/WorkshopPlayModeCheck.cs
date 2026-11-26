@@ -92,6 +92,9 @@ public static class WorkshopPlayModeCheck
         Button("검색").onClick.Invoke();
         Require(Object.FindObjectsByType<TMP_Text>(FindObjectsSortMode.None).Any(t=>t.text=="검색한 이름의 방이 없습니다."), "empty search explains how to recover");
         Button("검색 해제").onClick.Invoke();
+        Button("게임 콘텐츠").onClick.Invoke();
+        yield return Frames();
+        PresentationRegressionCheck.SaveFrame(PixelArtUpscaleRig.RenderCamera.targetTexture,"WorkshopUx/content-hub");
         Button("UI·보상 번역").onClick.Invoke();
         Button("UI Text Table · ko").onClick.Invoke();
         Button("새 번역").onClick.Invoke();

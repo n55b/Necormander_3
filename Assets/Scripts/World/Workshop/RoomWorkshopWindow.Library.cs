@@ -87,11 +87,11 @@ public sealed partial class RoomWorkshopWindow
         WorkshopUI.Label(content,project ? "게임 콘텐츠 편집" : "함께 작업하기",20,249,376,22,12);
         if (project)
         {
-            Btn("플레이어 수치",20,279,111,30,()=>Navigate(Page.Balance));
-            Btn("콘텐츠 수치",137,279,111,30,OpenParameters);
-            Btn("대사 편집",254,279,111,30,()=>Navigate(Page.Dialogue));
-            Btn("UI·보상 번역",371,279,127,30,()=>Navigate(Page.Translations));
-            Btn("아트 원본",504,279,116,30,()=>Navigate(Page.Art));
+            // 수치·대사·번역·아트는 허브 타일로 옮겼다(옛 버튼 이름은 타일 id로 남는다). 여기에는 입구와 최근 3개만 둔다.
+            Btn("게임 콘텐츠 ▶",20,279,150,30,()=>Navigate(Page.Content),true,"게임 콘텐츠");
+            WorkshopUI.Label(content,"최근",180,279,30,30);
+            int k=0;
+            foreach(var e in RecentContent()) ContentChip("최근",e,214+k++*136,279,130,30);
         }
         else
         {

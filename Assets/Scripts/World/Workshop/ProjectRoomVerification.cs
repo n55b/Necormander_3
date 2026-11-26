@@ -227,7 +227,7 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
         {
             CheckRecovery();
             CheckCellMerge(catalog,fixture);
-            Click("내 작업"); Click("플레이어 수치");
+            Click("내 작업"); Click("게임 콘텐츠"); Click("플레이어 수치");
             GameObject.Find("클리어 방 질주 배율/+").GetComponent<Button>().onClick.Invoke();
             Click("프로젝트에 저장");
             fixture.sprint=new ProjectPlayerTuning().Value(ProjectPlayerTuning.Sprint,-1);
@@ -236,7 +236,7 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             Click("설정 저장");
             fixture.waves=ProjectFloorData.ForGame(1,false)?.waves ?? -1;
             if(fixture.sprint<1 || fixture.waves<1) throw new InvalidOperationException("Tuning values were not published.");
-            Click("내 작업");Click("콘텐츠 수치");
+            Click("내 작업");Click("게임 콘텐츠");Click("콘텐츠 수치");
             var search=GameObject.Find("데이터 검색").GetComponent<TMPro.TMP_InputField>();
             search.onEndEdit.Invoke("ClothArmor");
             Click("BALANCE/ITEMS   ClothArmor");
@@ -253,19 +253,19 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.name.StartsWith("maxStack   ")).onClick.Invoke();
             GameObject.Find("설정값").GetComponent<TMPro.TMP_InputField>().text="23";
             Click("내 작업");Click("모두 저장");
-            Click("콘텐츠 수치");Click("에셋 목록");
+            Click("게임 콘텐츠");Click("콘텐츠 수치");Click("에셋 목록");
             GameObject.Find("데이터 검색").GetComponent<TMPro.TMP_InputField>().onEndEdit.Invoke("Growth Reward Registry");
             Click("BALANCE/REGISTRY   Growth Reward Registry");
             GameObject.Find("데이터 검색").GetComponent<TMPro.TMP_InputField>().onEndEdit.Invoke("startingItem");
             FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.name.StartsWith("startingItem   ")).onClick.Invoke();
             for(int n=0;Button("QA 가죽옷")==null && n<12;n++)Click("다음");
             Click("QA 가죽옷");Click("프로젝트에 저장");
-            Click("내 작업");Click("대사 편집");
+            Click("내 작업");Click("게임 콘텐츠");Click("대사 편집");
             GameObject.Find("새 대화 ID").GetComponent<TMPro.TMP_InputField>().text="qa_shop";
             Click("새 대화");Click("줄 추가");
             GameObject.Find("대사 본문").GetComponent<TMPro.TMP_InputField>().text="상인이 돌아왔다.";
             Click("프로젝트에 저장");
-            Click("내 작업");Click("UI·보상 번역");Click("UI Text Table · en");
+            Click("내 작업");Click("게임 콘텐츠");Click("UI·보상 번역");Click("UI Text Table · en");
             GameObject.Find("번역 검색").GetComponent<TMPro.TMP_InputField>().onEndEdit.Invoke("Btn_StartGame");
             FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.name.StartsWith("Btn_StartGame   ")).onClick.Invoke();
             GameObject.Find("번역 본문").GetComponent<TMPro.TMP_InputField>().text="QA Start";Click("프로젝트에 저장");
@@ -336,7 +336,7 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
         if(offset<0||count!=144)throw new InvalidDataException("Unexpected palette encoding.");
         try
         {
-            Click("내 작업");Click("아트 원본");Click("기준 팔레트");
+            Click("내 작업");Click("게임 콘텐츠");Click("아트 원본");Click("기준 팔레트");
             while(GameObject.Find("현재 원본 preview")==null)yield return null;
             GameObject.Find("색상 코드").GetComponent<TMPro.TMP_InputField>().text="123456";
             Click("색 비교");
