@@ -96,7 +96,7 @@ public sealed partial class RoomWorkshopWindow
                 v=>Write(Format(f,Math.Round(v,4))),f.type==typeof(int)));
         }
         else if(f.type==typeof(bool))
-            refreshers.Add(WorkshopUI.Toggle(row.transform,"값",120,1,90,()=>d.Value(f)==bool.TrueString,on=>Write(on.ToString())));
+            refreshers.Add(WorkshopUI.Toggle(row.transform,"값",120,1,90,()=>On(d.Value(f)),on=>Write(on.ToString())));
         else if(f.type.IsEnum)
         {
             var names=Enum.GetNames(f.type);
@@ -113,7 +113,8 @@ public sealed partial class RoomWorkshopWindow
         else
         {
             string original=ProjectParameters.Original(d.entry.source,f);
-            string shown=number ? (Number(original)*f.scale).ToString("0.##",CultureInfo.InvariantCulture) : original;
+            string shown=number ? (Number(original)*f.scale).ToString("0.##",CultureInfo.InvariantCulture) :
+                f.type==typeof(bool) ? (On(original) ? "켜짐" : "꺼짐") : f.type.IsEnum ? DesignerInspectorLabels.EnumLabel(f.type,original) : original;
             reset=WorkshopUI.Button(row.transform,"원본 "+shown+(f.unit ?? ""),238,2,58,18,()=>Write(null),false,"원본");
             PixelText.Configure(reset.GetComponentInChildren<TMP_Text>(),8);
         }
@@ -132,6 +133,8 @@ public sealed partial class RoomWorkshopWindow
         return string.IsNullOrEmpty(f.help) ? head : head+"\n"+f.help;
     }
     private static string Shown(ProjectParameters.Field f,float v)=>(v*f.scale).ToString("0.##",CultureInfo.InvariantCulture);
+    // DATA에 소문자 true로 적힌 값도 켜짐이다(모든 수치 화면 DisplayValue와 같은 판정).
+    private static bool On(string text)=>bool.TryParse(text,out bool on) && on;
     private static double Number(string text)=>double.TryParse(text,NumberStyles.Float,CultureInfo.InvariantCulture,out double v) ? v : 0;
     private static string Format(ProjectParameters.Field f,double v)=>f.type==typeof(int) ? ((int)Math.Round(v)).ToString(CultureInfo.InvariantCulture) :
         ((float)v).ToString(CultureInfo.InvariantCulture);
