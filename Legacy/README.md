@@ -39,10 +39,12 @@
 | `Runtime/Player` | Unity 참조가 없는 이동 코드 백업 | `PlayerController`, `PixelActorMotion` |
 | `Runtime/Actors` | 참조가 없고 스크립트가 제거된 이전 상태 에셋 | `Assets/Scripts/Entities`와 적 AI 패턴 |
 | `Runtime/Map` | 배치 중 방을 생성하던 이전 격자형 던전 구현 | `DungeonLayoutPlanner`, `DungeonLayout`, `MapGenerator` |
+| `Runtime/RightClick` | 우클릭 데이터 시스템(패링·카운터·가드 `RightClickDataSO`·`RightClickConfig`·`RightClickIconFactory`, PlayerPrefs 해금·선택 `RightClickUnlockState`, `SOData/RightClick` 에셋 6개). 2026-11-26 퇴역 | 우클릭은 소환수 스킬(`MinionSkill` → `PlayerSkillController.ExecuteMinionSkill`) |
 | `UI` | 버튼 밑줄 호버·컨트롤 강조(스크립트, 설정 SO, 에디터) | `UIChrome`, `RoundedPlate`, `VectorUiImage` |
 | `Art/UI/Vector` | 이전 UI 벡터 원본 SVG와 매니페스트 | `ARTIST/UI/Vector` |
 | `ArtDensity/Tiles` | 픽셀 밀도 개편 전 타일 원본과 출력 | `ARTIST`의 현재 타일 원본 |
 | `Assets` | 반딧불 환경 이펙트 프리팹·머티리얼 | 현재 월드 분위기 입자(`WorldAtmosphere`) |
+| `Assets/Animations/Player` | 패링 애니메이션 `Player_AnimClip_Parry`·`Parry_Success`. `Player_Animator.controller`의 고립 상태 2개와 함께 2026-11-26 퇴역 | `Player_Animator.controller` |
 | `Data/Dialogue` | CSV 대사 원본과 작업 안내 | `DATA/DIALOGUE`와 제작실 대사 편집 |
 | `Tools` | 일회성 기록 추출 스크립트 | 보관 기록 |
 | `History` | 과거 프롬프트·선호 기록, 플레이 테스트 변경 기록, 날짜별 작업 보고 | `AGENTS.md`와 기능별 사용 안내 |

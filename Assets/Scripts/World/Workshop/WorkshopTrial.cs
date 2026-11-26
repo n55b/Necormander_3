@@ -15,7 +15,6 @@ public static class WorkshopTrial
     internal static Vector3? Cursor;
     internal static bool Active { get; private set; }
     internal static string SaveFolder { get; private set; }
-    internal static string SelectedSkill;
     private static UnityEngine.Random.State previousRandom;
     private static LightingPreview previousLook;
     internal static WorkshopVillage Village { get; private set; }
@@ -74,7 +73,7 @@ public static class WorkshopTrial
         FloorTest=floor; ReturnToFloor=floor!=null;
         previousTutorial=TutorialFlow.IsRunning;
         TutorialFlow.IsRunning=floor?.scenario==WorkshopFloor.Scenario.Tutorial;
-        Cursor=cursor; SelectedSkill=null;
+        Cursor=cursor;
         previousLook=LightingPreview.Active; previousRandom=UnityEngine.Random.state;
         SaveFolder=Path.Combine(Application.temporaryCachePath,"WorkshopTrial",Guid.NewGuid().ToString("N"));
         Active=true;
@@ -100,7 +99,7 @@ public static class WorkshopTrial
         SceneManager.sceneLoaded-=Loaded;
         UnityEngine.Random.state=previousRandom; LightingPreview.Active=previousLook;
         TutorialFlow.IsRunning=previousTutorial;
-        Village=null; floorEdits=null; PlannedFloor=null; PlannedElite=null; Active=false; FloorTest=null; SelectedSkill=null;
+        Village=null; floorEdits=null; PlannedFloor=null; PlannedElite=null; Active=false; FloorTest=null;
     }
 
     internal static DungeonLayout Layout()

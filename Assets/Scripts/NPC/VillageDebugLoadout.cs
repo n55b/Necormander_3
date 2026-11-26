@@ -5,8 +5,8 @@ using UnityEngine.Events;
 using TMPro;
 
 /// <summary>
-/// 마을 NPC 창(F로 뜨는 ShopUI 패널)에 미니언/장비/우클릭/주머니 아이템을 나열한다.
-///   - 장비/우클릭 → 기존 장착 흐름
+/// 마을 NPC 창(F로 뜨는 ShopUI 패널)에 미니언/장비/주머니 아이템을 나열한다.
+///   - 장비         → 기존 장착 흐름
 ///   - 미니언       → 핸드 슬롯 선택 UI(MainMinionSelectionUI). 마을 HUD에 없으면 빈 슬롯에 자동 장착.
 ///   - 아이템       → NPC 앞에 GroundItem으로 드랍. F로 직접 주워야 주머니에 들어간다.
 /// 게임 시작 전에 원하는 조합을 미리 세팅해보는 디버그 용도.
@@ -22,9 +22,6 @@ public class VillageDebugLoadout : MonoBehaviour
     [SerializeField] private Button itemButtonTemplate;
     [SerializeField] private bool includeMinions = true;
     [SerializeField] private bool includeEquipments = true;
-    [Tooltip("[26/08/15] 우클릭(패링/카운터/가드) 교체. 서브 소환수 삭제로 우클릭이 플레이어 영구 능력이 " +
-             "되면서, 이 NPC 가 그 교체 창구를 겸한다. 디버그 항목이 아니라 정식 기능이다.")]
-    [SerializeField] private bool includeRightClicks = true;
 
     [Header("주머니 아이템 지급")]
     [SerializeField] private bool includeItems = true;

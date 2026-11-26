@@ -24,15 +24,6 @@ public class GrowthRegistrySO : ScriptableObject
     [Tooltip("기본 소지 아이템. 새 게임과 이전 세이브 로드 시 없을 때만 1개 지급한다.")]
     public ItemSO startingItem;
 
-    [Header("우클릭 (가드 Lv1~4)")]
-    [Tooltip("마을 NPC 교체 목록에 뜨는 우클릭들. 영구 선택이 이름으로 저장되므로 이름→SO 해석에도 쓰인다.")]
-    public List<RightClickDataSO> rightClicks = new List<RightClickDataSO>();
-
-    [Tooltip("아무것도 안 골랐을 때 플레이어가 기본으로 드는 우클릭(기본 Lv1 가드).\n" +
-             "비워두면 rightClicks 에서 Lv1을 찾아 쓰고, 그것도 없으면 첫 유효 항목을 쓴다 — " +
-             "'우클릭이 없는 플레이어'는 만들지 않는다.")]
-    public RightClickDataSO defaultRightClick;
-
     public MinionDataSO ResolveSavedMinion(string key)
     {
         if (string.IsNullOrEmpty(key)) return null;
@@ -52,18 +43,4 @@ public class GrowthRegistrySO : ScriptableObject
 
     public ItemSO ResolveSavedItem(string key)
         => string.IsNullOrEmpty(key) ? null : items?.Find(i => i != null && i.name == key);
-
-    /// <summary>
-    /// 기본 우클릭. 인스펙터 지정 → Lv1 탐색 → 첫 유효 항목 순으로 떨어진다.
-    /// 배선을 깜빡해도 플레이어가 우클릭 없이 게임을 시작하는 일은 없게 한다.
-    /// </summary>
-    public RightClickDataSO ResolveDefaultRightClick()
-    {
-        if (defaultRightClick != null && defaultRightClick.IsValid) return defaultRightClick;
-
-        var parry = rightClicks.Find(r => r != null && r.IsValid && r.config.level == 1);
-        if (parry != null) return parry;
-
-        return rightClicks.Find(r => r != null && r.IsValid);
-    }
 }

@@ -50,7 +50,7 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         Require(Screen.width==requested.x && Screen.height==requested.y,$"window {Screen.width} x {Screen.height}");
         string liveSave=Path.Combine(Application.persistentDataPath,"save_data.json");
         string SaveContents()=>File.Exists(liveSave) ? File.ReadAllText(liveSave) : null;
-        string initialSave=SaveContents(), initialSkill=RightClickUnlockState.SelectedName;
+        string initialSave=SaveContents();
         bool initialTutorial=TutorialFlow.Completed;
         Step("title");
         yield return Wait(()=>!UnityNote.SceneLoader.IsLoading);
@@ -239,8 +239,8 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         yield return CheckSharing(profiles,draft.id);
         yield return Click("메뉴");
         yield return Wait(() => SceneManager.GetActiveScene().name == "StartScene" && !UnityNote.SceneLoader.IsLoading);
-        Require(SaveContents()==initialSave && RightClickUnlockState.SelectedName==initialSkill &&
-            TutorialFlow.Completed==initialTutorial,"live run save, selected skill and tutorial flag unchanged");
+        Require(SaveContents()==initialSave && TutorialFlow.Completed==initialTutorial,
+            "live run save and tutorial flag unchanged");
         Finish(true);
     }
     private IEnumerator CheckMapToggle()

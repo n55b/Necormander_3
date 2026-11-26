@@ -15,7 +15,7 @@ internal static class ProjectContentVariants
     private static readonly List<(ScriptableObject registry,IList list,ScriptableObject asset)> memberships=new();
     internal static IEnumerable<Entry> Entries=>live.Values;
     internal static bool Protects(ScriptableObject registry)=>memberships.Any(m=>m.registry==registry);
-    internal static bool CanCreate(Entry source)=>source.group!=Folder && (source.source is ItemSO or EquipmentSO or MainMinionDataSO or TreasureSO or RightClickDataSO ||
+    internal static bool CanCreate(Entry source)=>source.group!=Folder && (source.source is ItemSO or EquipmentSO or MainMinionDataSO or TreasureSO ||
         source.group.StartsWith("BALANCE/",StringComparison.Ordinal) && !source.group.EndsWith("/REGISTRY",StringComparison.Ordinal));
     internal static IEnumerable<Definition> Definitions()
     {
@@ -63,7 +63,6 @@ internal static class ProjectContentVariants
                     case EquipmentSO equipment:equipment.equipmentName=definition.title;break;
                     case MainMinionDataSO minion:minion.minionName=definition.title;break;
                     case TreasureSO treasure:treasure.itemName=definition.title;treasure.localizedItemName=null;break;
-                    case RightClickDataSO right:right.displayName=definition.title;break;
                 }
                 instance=new Entry{id=definition.id,source=copy,group=Folder,title=definition.title};
                 live.Add(definition.id,instance);
@@ -76,7 +75,7 @@ internal static class ProjectContentVariants
                     list.Add(instance.source);memberships.Add((source.source,list,instance.source));
                 }
                 if(source.source is GrowthRegistrySO growth)
-                {Add(growth.items);Add(growth.equipments);Add(growth.minionDatas);Add(growth.treasures);Add(growth.rightClicks);}
+                {Add(growth.items);Add(growth.equipments);Add(growth.minionDatas);Add(growth.treasures);}
                 if(source.source is ShopRegistrySO shop)Add(shop.itemPool);
             }
         }

@@ -153,7 +153,7 @@ public static class MinionSelectNPCSetup
             for (int i = 0; i < InventoryManager.SLOT_COUNT; i++) inventory.Slots.Add(new InventoryManager.CoreSlot());
             var settings = new SerializedObject(ui);
             Require(settings.FindProperty("includeMinions").boolValue, "마을 NPC 미니언 목록 활성화");
-            foreach (string field in new[] { "includeItems", "includeEquipments", "includeRightClicks" })
+            foreach (string field in new[] { "includeItems", "includeEquipments" })
                 settings.FindProperty(field).boolValue = false;
             settings.ApplyModifiedPropertiesWithoutUndo();
             const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;

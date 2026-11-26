@@ -39,7 +39,7 @@ public static class VillageLoadoutCheck
             var origin = settings.FindProperty("itemDropOrigin").objectReferenceValue as Transform;
             Check(origin != null && origin.GetComponent<NPCBase>() != null, "드랍 기준 NPC 배선");
             Vector3 dropPosition = origin.position + (Vector3)settings.FindProperty("itemDropOffset").vector2Value;
-            foreach (string field in new[] { "includeMinions", "includeEquipments", "includeRightClicks" })
+            foreach (string field in new[] { "includeMinions", "includeEquipments" })
                 settings.FindProperty(field).boolValue = false;
             settings.ApplyModifiedPropertiesWithoutUndo();
             const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
