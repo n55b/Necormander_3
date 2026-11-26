@@ -601,9 +601,6 @@ public System.Action OnMapGenerated;
             );
         }
 
-        // 일반 전투 방들의 보상 수량을 지정된 개수대로 무작위 분배 및 안배
-        DistributeNormalRoomRewards();
-
         PlacePlayerAtSpawn();
 
         if (_tempObstacle != null) SafeDestroy(_tempObstacle);
@@ -2138,15 +2135,11 @@ public System.Action OnMapGenerated;
         }
 
         GenerationProgress = 0.8f;
-        using (MeasureGeneration("5단계 NavMesh/보상/미니맵 마무리", summary: true))
+        using (MeasureGeneration("5단계 NavMesh/미니맵 마무리", summary: true))
         {
             yield return BakeNavMesh();
             GenerationProgress = 0.9f;
             yield return null;
-
-            // 일반 전투 방들의 보상 수량을 지정된 개수대로 무작위 분배 및 안배
-            using (MeasureGeneration("5.DistributeNormalRoomRewards"))
-                DistributeNormalRoomRewards(random);
 
             RoomInstance spawnRoom = _allRooms.Find(r => r.roomType == RoomType.Spawn);
 
@@ -2309,77 +2302,5 @@ public System.Action OnMapGenerated;
     {
         anchor.OpenPassage(globalGroundTilemap, globalWallTilemap, globalShadowTilemap, globalUnsteppableTilemap,
             generationData.floorTile);
-    }
-
-    /// <summary>
-    /// 일반 전투 방(Normal Room)의 보상 유형을 SO 설정에 기재된 정확한 개수대로 분배 안배하고 아이콘을 갱신합니다.
-    /// </summary>
-    private void DistributeNormalRoomRewards(System.Random random = null)
-    {
-        if (generationData == null) return;
-
-        // 1. 전체 방에서 일반방들만 필터링
-        List<RoomInstance> normalRooms = _allRooms.FindAll(r => r.roomType == RoomType.Normal);
-        if (normalRooms.Count == 0) return;
-
-        // 2. 무작위 분배를 위해 셔플
-        for (int i = 0; i < normalRooms.Count; i++)
-        {
-            RoomInstance temp = normalRooms[i];
-            int randomIndex = random?.Next(i, normalRooms.Count) ?? Random.Range(i, normalRooms.Count);
-            normalRooms[i] = normalRooms[randomIndex];
-            normalRooms[randomIndex] = temp;
-        }
-
-        // 타입별 목표 수량. 카운트를 0으로 두면 그 풀은 일반 방에서 아예 안 나온다
-        // (예: 플레이어 스킬을 로비 고정으로 돌리고 싶으면 playerSkillRewardRoomCount = 0).
-        var quota = new List<(RoomInstance.NormalRewardType type, int count)>
-        {
-            (RoomInstance.NormalRewardType.PlayerSkill, generationData.playerSkillRewardRoomCount),
-            (RoomInstance.NormalRewardType.MainSummon,  generationData.mainSummonRewardRoomCount),
-            (RoomInstance.NormalRewardType.Item,        generationData.itemRewardRoomCount),
-        };
-
-        // 전부 0이면 설정 실수로 보고 균등 분배로 폴백한다 (보상이 하나도 없는 맵 방지).
-        if (quota.TrueForAll(q => q.count <= 0))
-        {
-            int each = Mathf.Max(1, normalRooms.Count / quota.Count);
-            for (int q = 0; q < quota.Count; q++) quota[q] = (quota[q].type, each);
-            Debug.LogWarning("<color=orange>[MapGenerator]</color> 일반 방 보상 카운트가 전부 0입니다. 균등 분배로 폴백합니다.");
-        }
-
-        // Count explicit room rewards toward the floor budget before assigning the remaining rooms.
-        foreach (var room in normalRooms)
-        {
-            if (!room.HasAuthoredReward) continue;
-            int index = quota.FindIndex(entry => entry.type == room.normalRewardType);
-            if (index >= 0) quota[index] = (quota[index].type, Mathf.Max(0, quota[index].count - 1));
-        }
-        normalRooms.RemoveAll(room => room.HasAuthoredReward);
-
-        int cursor = 0;
-        var assigned = new Dictionary<RoomInstance.NormalRewardType, int>();
-        foreach (var (type, count) in quota)
-        {
-            int n = 0;
-            for (int i = 0; i < count && cursor < normalRooms.Count; i++, cursor++, n++)
-                normalRooms[cursor].SetRewardTypeAndSyncIcon(type);
-            assigned[type] = n;
-        }
-
-        // 남는 방 처리. 끄면 보상 없이 둔다(= 정확히 카운트만큼만 나온다).
-        int leftover = normalRooms.Count - cursor;
-        if (generationData.fillRemainingRoomsRandomly)
-        {
-            for (; cursor < normalRooms.Count; cursor++)
-            {
-                var type = quota[random?.Next(quota.Count) ?? Random.Range(0, quota.Count)].type;
-                normalRooms[cursor].SetRewardTypeAndSyncIcon(type);
-            }
-        }
-
-        Debug.Log($"<color=green>[MapGenerator]</color> Distributed Normal Room Rewards: " +
-                  string.Join(", ", assigned.Select(kv => $"{kv.Key}={kv.Value}")) +
-                  $". Leftover={leftover} ({(generationData.fillRemainingRoomsRandomly ? "무작위 배정" : "보상 없음")}), Total Normal Rooms={normalRooms.Count}");
     }
 }

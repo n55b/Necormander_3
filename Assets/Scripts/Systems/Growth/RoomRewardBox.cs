@@ -9,7 +9,6 @@ public class RoomRewardBox : MonoBehaviour, IInteractable
     private const string OpenAnimName = "Chest_Open";
 
     private RoomType _roomType = RoomType.Normal;
-    private RoomInstance.NormalRewardType _normalRewardType = RoomInstance.NormalRewardType.PlayerSkill;
     private bool _isInitialized = false;
     // 여는 애니메이션 재생 중 중복 상호작용/파괴 방지
     private bool _isOpening = false;
@@ -28,17 +27,8 @@ public class RoomRewardBox : MonoBehaviour, IInteractable
     public void Initialize(RoomType roomType)
     {
         _roomType = roomType;
-        _normalRewardType = RoomInstance.NormalRewardType.PlayerSkill;
         _isInitialized = true;
-        Debug.Log($"<color=magenta>[RoomRewardBox]</color> Initialized for RoomType: {roomType} (Fallback: PlayerSkill)");
-    }
-
-    public void Initialize(RoomType roomType, RoomInstance.NormalRewardType normalRewardType)
-    {
-        _roomType = roomType;
-        _normalRewardType = normalRewardType;
-        _isInitialized = true;
-        Debug.Log($"<color=magenta>[RoomRewardBox]</color> Initialized for RoomType: {roomType}, NormalRewardType: {normalRewardType}");
+        Debug.Log($"<color=magenta>[RoomRewardBox]</color> Initialized for RoomType: {roomType}");
     }
 
     public bool Interact(GameObject interactor)
@@ -73,9 +63,8 @@ public class RoomRewardBox : MonoBehaviour, IInteractable
 
         if (wait > 0f) yield return new WaitForSeconds(wait);
 
-        // 기존 보상 매니저의 방 클리어 보상 요청을 트리거 (세부 보상 속성 전달)
-        RewardManager.Instance.RequestClearReward(_roomType, _normalRewardType);
-        Debug.Log($"<color=magenta>[RoomRewardBox]</color> Opened, requested clear reward for: {_roomType} ({_normalRewardType})");
+        RewardManager.Instance.RequestClearReward(_roomType);
+        Debug.Log($"<color=magenta>[RoomRewardBox]</color> Opened, requested clear reward for: {_roomType}");
 
         // 획득 시 자신을 파괴
         SpriteVisibility.RetireInteractable(gameObject, .16f);

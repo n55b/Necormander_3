@@ -148,7 +148,7 @@ public static class DungeonLayoutCheck
                     }
                     else
                     {
-                        Require(firstNormal == signature, "same seed reproduces room assets, coordinates, rewards, doors and elite");
+                        Require(firstNormal == signature, "same seed reproduces room assets, coordinates, doors and elite");
                         var rebuild = VerifyRebuild(map, scenario.seed);
                         while (rebuild.MoveNext()) yield return rebuild.Current;
                         oldRoom = map.AllRooms[0];
@@ -261,8 +261,8 @@ public static class DungeonLayoutCheck
 
     private static string LayoutSignature(MapGenerator map)
     {
-        var rooms = map.CurrentGridLayout.Rooms.Select((room, i) =>
-            $"{room.Cell}:{room.Type}:{room.Prefab.name}:{map.AllRooms[i].normalRewardType}");
+        var rooms = map.CurrentGridLayout.Rooms.Select(room =>
+            $"{room.Cell}:{room.Type}:{room.Prefab.name}");
         var doors = map.CurrentGridLayout.Doors.Select(door => $"{door.From}-{door.To}");
         return string.Join("|", rooms.Concat(doors)) + "|" + map.FloorElite?.name;
     }

@@ -74,7 +74,6 @@ public static class WorkshopGeometry
             go.transform.position = room.transform.TransformPoint(p.local);
         }
         var combat = room.GetComponent<NormalRoomEvent>();
-        if(doc.reward>0) room.SetAuthoredReward((RoomInstance.NormalRewardType)(doc.reward-1));
         if(doc.waves.Count>0 && combat!=null)
             combat.ConfigureWaves(doc.waves.Select(id=>library.FindCluster(id).asset).ToArray());
         if (enemies != null && combat != null) combat.SetWorkshopEnemies(enemies);

@@ -51,7 +51,6 @@ public static class ProjectRooms
         var meta = new JObject();
         foreach (string key in new[]{"version","id","title","template","baseRevision","seed"}) meta[key]=json[key];
         Put(Header,meta);
-        if (room.reward != 0) Put("ENCOUNTER/reward.json",new JObject{["reward"]=room.reward});
         for(int i=0;i<room.waves.Count;i++)
             Put("ENCOUNTER/WAVES/"+(i+1).ToString("D2")+".json",new JObject{["cluster"]=room.waves[i]});
         foreach (JObject exit in json["exits"])
@@ -82,13 +81,14 @@ public static class ProjectRooms
         if (!files.TryGetValue(Header,out string header)) throw new InvalidDataException("방 설명 파일을 찾을 수 없습니다. "+id);
         var doc=JsonUtility.FromJson<WorkshopRoom>(header);
         if (doc == null || doc.id != id) throw new InvalidDataException("방 경로와 ID가 다릅니다. "+id);
-        doc.styles=new(); doc.cells=new(); doc.pieces=new(); doc.exits=new(); doc.waves=new(); doc.reward=0;
+        doc.styles=new(); doc.cells=new(); doc.pieces=new(); doc.exits=new(); doc.waves=new();
         foreach (var pair in files.OrderBy(p=>p.Key,StringComparer.Ordinal))
         {
             string path=pair.Key;
             if(path==Header) continue;
-            if(path=="ENCOUNTER/reward.json") doc.reward=(int)JObject.Parse(pair.Value)["reward"];
-            else if(path=="ENCOUNTER/waves.json") doc.waves=JArray.Parse(pair.Value).Values<string>().ToList();
+            // 옛 방 클리어 보상 선택. 지급에 영향이 없어 지웠고, 남은 파일은 다음 저장 때 사라진다.
+            if(path=="ENCOUNTER/reward.json") continue;
+            if(path=="ENCOUNTER/waves.json") doc.waves=JArray.Parse(pair.Value).Values<string>().ToList();
             else if(path.StartsWith("ENCOUNTER/WAVES/",StringComparison.Ordinal))
             {
                 if(files.ContainsKey("ENCOUNTER/waves.json") || path!="ENCOUNTER/WAVES/"+(doc.waves.Count+1).ToString("D2")+".json")

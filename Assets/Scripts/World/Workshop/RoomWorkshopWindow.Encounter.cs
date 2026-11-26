@@ -45,18 +45,6 @@ public sealed partial class RoomWorkshopWindow
                 before=Doc.Serialize(); Doc.waves.RemoveAt(waveIndex); FinishEncounterEdit();
             });
         }
-        if(catalog.FindRoom(Doc.template).type==RoomType.Normal)
-        {
-            WorkshopUI.Label(content,"방 클리어 보상",19,251,138,22,12);
-            string[] names={"층 설정","플레이어 스킬","메인 소환","아이템"};
-            for(int i=0;i<names.Length;i++)
-            {
-                int value=i;
-                Btn(names[i],18+i*112,279,108,23,()=>{
-                    before=Doc.Serialize(); Doc.reward=value; FinishEncounterEdit();
-                },Doc.reward==i);
-            }
-        }
     }
     private void CycleCluster(int direction)
     {

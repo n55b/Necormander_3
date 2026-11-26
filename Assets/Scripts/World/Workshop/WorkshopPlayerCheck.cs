@@ -125,7 +125,6 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         string second=WorkshopTrial.Draft.waves[1];
         yield return Click("앞으로");
         Require(WorkshopTrial.Draft.waves[0]==second && WorkshopTrial.Draft.waves.Count==2,"reordered authored clusters");
-        yield return Click("아이템");
         yield return Capture("encounter");
         yield return Click("닫기");
         yield return Click("저장");
@@ -163,7 +162,6 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         var combat=room.GetComponent<NormalRoomEvent>();
         Require(combat.AuthoredWaves.Count==2 && combat.AuthoredWaves[0]==WorkshopTrial.Library.FindCluster(second).asset,
             "saved wave order in BattleScene");
-        Require(room.HasAuthoredReward && room.normalRewardType==RoomInstance.NormalRewardType.Item,"item reward retained after floor distribution");
         var seen=new HashSet<int>();
         while(!room.isCleared)
         {

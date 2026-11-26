@@ -148,8 +148,6 @@ internal sealed class WorkshopPackageReview
         AddExample(part,"오브젝트",a.pieces,b.pieces,p=>p.id,p=>(p.removed ? "삭제" : "배치")+" · "+p.local);
         part.Difference("웨이브",string.Join(" → ",a.waves.Select(id=>catalog.FindCluster(id).asset.name)),
             string.Join(" → ",b.waves.Select(id=>catalog.FindCluster(id).asset.name)));
-        string[] rewards={"층 설정","플레이어 스킬","메인 소환","아이템"};
-        part.Difference("보상",rewards[a.reward],rewards[b.reward]);
     }
 
     private static int Changed<T,TKey>(IEnumerable<T> a,IEnumerable<T> b,Func<T,TKey> key)
@@ -175,7 +173,6 @@ internal sealed class WorkshopPackageReview
             changes.Add((direction==Vector2Int.up ? "북" : direction==Vector2Int.down ? "남" : direction==Vector2Int.left ? "서" : "동")+"문");
         }
         if (!local.waves.SequenceEqual(team.waves)) changes.Add("웨이브");
-        if (local.reward!=team.reward) changes.Add("보상");
         return string.Join(" / ",changes);
     }
 

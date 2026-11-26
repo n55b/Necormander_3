@@ -49,6 +49,7 @@ public sealed partial class WorkshopPlayerCheck
         var sent=WorkshopPackage.Read(original,catalog);
         Require(sent.floor.slots.Count>=2 && sent.village.actors.Count>0 && sent.rooms.Any(r=>r.id==roomId),
             "package includes saved rooms, linked route and village");
+        var sentWaves=sent.rooms.Single(r=>r.id==roomId).waves;
         var missing=WorkshopPackage.Read(original,catalog);
         missing.rooms.RemoveAll(r=>r.id==missing.floor.slots[0].document);
         bool rejected=false;
@@ -68,7 +69,7 @@ public sealed partial class WorkshopPlayerCheck
         yield return Click("비교 "+Path.GetFileName(received));
         yield return Click("새 작업 공간으로 열기");
         string receivedId=WorkshopWorkspace.ActiveId;
-        Require(receivedId!="" && WorkshopFiles.Read(WorkshopFiles.FileFor(roomId),catalog).reward==3 &&
+        Require(receivedId!="" && sentWaves.Count==2 && WorkshopFiles.Read(WorkshopFiles.FileFor(roomId),catalog).waves.SequenceEqual(sentWaves) &&
             WorkshopVillage.Load().actors.Any(a=>!string.IsNullOrWhiteSpace(a.greeting)),"blank receiver opened self-contained workspace");
         WorkshopWorkspace.UseTestHome(secondHome);
         Require(WorkshopWorkspace.ActiveId==receivedId,"workspace selection survives reopening storage");
@@ -84,7 +85,7 @@ public sealed partial class WorkshopPlayerCheck
         yield return Wait(()=>!WorkshopTrial.Active && GameObject.Find("무대 플레이")!=null);
         yield return Click("내 작업");
         yield return Click("편집 "+roomId);
-        yield return Click("전투 설정"); yield return Click("메인 소환"); yield return Click("닫기"); yield return Click("저장");
+        yield return Click("전투 설정"); yield return Click("다음 군집"); yield return Click("닫기"); yield return Click("저장");
         yield return Click("공유"); yield return Click("제작 묶음");
         GameObject.Find("묶음 이름 입력").GetComponent<TMP_InputField>().text="전투 수정";
         yield return Click("묶음 내보내기");
@@ -93,7 +94,7 @@ public sealed partial class WorkshopPlayerCheck
         string inbox=Path.Combine(WorkshopWorkspace.Shared,Path.GetFileName(returned));
         File.Copy(returned,inbox);
         var local=WorkshopFiles.Read(WorkshopFiles.FileFor(roomId),catalog);
-        local.reward=1;
+        local.waves.RemoveAt(1);
         WorkshopFiles.WriteAtomic(WorkshopFiles.FileFor(roomId),local.Serialize());
         string originalRoom=File.ReadAllText(WorkshopFiles.FileFor(roomId));
         var restoredBytes=File.ReadAllText(WorkshopFiles.FileFor(roomId));
@@ -103,7 +104,7 @@ public sealed partial class WorkshopPlayerCheck
             File.ReadAllText(WorkshopFiles.FileFor(roomId))=="{","damaged local room preserved while team revision is available");
         WorkshopFiles.WriteAtomic(WorkshopFiles.FileFor(roomId),restoredBytes);
         var changed=new WorkshopPackageReview(WorkshopPackage.Read(inbox,catalog),catalog);
-        Require(changed.parts.Single(p=>p.key==roomId).summary.Contains("양쪽에서 수정"),"common parent detects independent edits to the same reward");
+        Require(changed.parts.Single(p=>p.key==roomId).summary.Contains("양쪽에서 수정"),"common parent detects independent edits to the same waves");
         yield return Click("제작 묶음");
         yield return Click("비교 "+Path.GetFileName(inbox));
         yield return Click("차이만 보기");
@@ -113,14 +114,15 @@ public sealed partial class WorkshopPlayerCheck
         yield return Capture("sharing-conflict");
         yield return Click("새 작업 공간으로 열기");
         string merged=WorkshopWorkspace.ActiveId;
-        Require(merged!="" && WorkshopFiles.Read(WorkshopFiles.FileFor(roomId),catalog).reward==1,"review imports selected local revision");
+        Require(merged!="" && WorkshopFiles.Read(WorkshopFiles.FileFor(roomId),catalog).waves.SequenceEqual(sentWaves.Take(1)),"review imports selected local revision");
         yield return Click("작업 공간 기본");
         Require(WorkshopWorkspace.ActiveId=="" && File.ReadAllText(WorkshopFiles.FileFor(roomId))==originalRoom,
             "switching back restores the byte-identical original room");
         yield return Click("제작 묶음");
         yield return Click("비교 "+Path.GetFileName(inbox));
         yield return Click("새 작업 공간으로 열기");
-        Require(WorkshopWorkspace.ActiveId!=merged && WorkshopFiles.Read(WorkshopFiles.FileFor(roomId),catalog).reward==2,
+        var teamWaves=WorkshopFiles.Read(WorkshopFiles.FileFor(roomId),catalog).waves;
+        Require(WorkshopWorkspace.ActiveId!=merged && teamWaves.Count==2 && !teamWaves.SequenceEqual(sentWaves),
             "team revision can be opened independently");
         yield return Click("작업 공간 기본");
     }

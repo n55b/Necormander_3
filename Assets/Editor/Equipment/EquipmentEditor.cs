@@ -11,8 +11,8 @@ using UnityEngine;
 /// 기획자용 장비 편집기 (Tools > 기획 > 장비 편집기).
 ///
 ///  · 하나씩 편집 — 왼쪽 목록에서 장비를 고르고 오른쪽에서 표시/패시브/강화/기본 공격을 한글 화면으로 고친다.
-///  · 표로 보기   — 모든 장비의 이름·등급·가격·강화·등록 상태·패시브 요약을 한 화면에서 본다.
-///  · 새 장비 / 복제 / 삭제 / 에셋 이름 바꾸기 — 게임 목록(GrowthRegistry)·상점 후보(ShopRegistry) 등록까지 함께 처리.
+///  · 표로 보기   — 모든 장비의 이름·등급·강화·등록 상태·패시브 요약을 한 화면에서 본다.
+///  · 새 장비 / 복제 / 삭제 / 에셋 이름 바꾸기 — 게임 목록(GrowthRegistry) 등록까지 함께 처리.
 ///  · 확인 필요만 — 이름·아이콘 누락, 패시브 없음, 목록 미등록 등 문제가 있는 장비만 본다.
 ///
 /// 모든 수정은 Undo(Ctrl+Z) 가 된다. 세이브는 장비를 '에셋 파일 이름'으로 찾으므로(EquipmentInventoryManager.LoadFromData)
@@ -129,9 +129,8 @@ public class EquipmentEditorPanel
     private List<EquipmentSO> Filtered()
     {
         var g = EquipmentAssets.Growth;
-        var s = EquipmentAssets.Shop;
         return all.Where(e => e != null
-                              && (!onlyWarnings || EquipmentAssets.Warnings(e, g, s).Count > 0)
+                              && (!onlyWarnings || EquipmentAssets.Warnings(e, g).Count > 0)
                               && Matches(e)).ToList();
     }
 
@@ -157,8 +156,7 @@ public class EquipmentEditorPanel
         DrawToolbar();
         var list = Filtered();
         var g = EquipmentAssets.Growth;
-        var s = EquipmentAssets.Shop;
-        int warn = all.Count(e => EquipmentAssets.Warnings(e, g, s).Count > 0);
+        int warn = all.Count(e => EquipmentAssets.Warnings(e, g).Count > 0);
         EditorGUILayout.LabelField(
             $"장비 {all.Count}개 · 표시 중 {list.Count}개 · 확인 필요 {warn}개 · 모든 수정은 Ctrl+Z 로 되돌릴 수 있습니다"
             + (Application.isPlaying ? " · 플레이 중 수정도 에셋에 그대로 남습니다" : ""), EditorStyles.miniLabel);
@@ -185,7 +183,7 @@ public class EquipmentEditorPanel
             GUILayout.FlexibleSpace();
             if (GUILayout.Button(new GUIContent("새 장비", "이름·등급·첫 패시브·목록 등록을 정해 새 장비를 만든다. 기존 장비 복사로 시작할 수도 있다."), EditorStyles.toolbarButton))
                 Defer(() => NewEquipmentPopup.Open(null, OnCreated));
-            if (GUILayout.Button(new GUIContent("목록 정리", "프로젝트의 모든 장비를 게임 목록/상점 후보와 맞춘다(무엇이 바뀌는지 먼저 보여준다)."), EditorStyles.toolbarButton))
+            if (GUILayout.Button(new GUIContent("목록 정리", "프로젝트의 모든 장비를 게임 목록과 맞춘다(무엇이 바뀌는지 먼저 보여준다)."), EditorStyles.toolbarButton))
                 Defer(SyncRegistries);
             if (GUILayout.Button(new GUIContent("↻", "목록 새로고침"), EditorStyles.toolbarButton, GUILayout.Width(24))) Defer(Reload);
         }
@@ -236,7 +234,7 @@ public class EquipmentEditorPanel
         EditorGUI.DrawRect(new Rect(r.x + 2, r.y + 4, 4, r.height - 8), EquipmentAssets.RarityColor(e));
         DrawSprite(new Rect(r.x + 10, r.y + 3, 20, 20), e.icon);
         GUI.Label(new Rect(r.x + 34, r.y + 4, r.width - 58, 18), new GUIContent(EquipmentAssets.DisplayName(e), e.name));
-        if (EquipmentAssets.Warnings(e, EquipmentAssets.Growth, EquipmentAssets.Shop).Count > 0)
+        if (EquipmentAssets.Warnings(e, EquipmentAssets.Growth).Count > 0)
         {
             var icon = EditorGUIUtility.IconContent("console.warnicon.sml");
             icon.tooltip = "확인 필요";
@@ -276,7 +274,7 @@ public class EquipmentEditorPanel
                 { var t = e; string to = renameText.Trim(); Defer(() => Rename(t, to)); }
         }
 
-        foreach (var w in EquipmentAssets.Warnings(e, EquipmentAssets.Growth, EquipmentAssets.Shop))
+        foreach (var w in EquipmentAssets.Warnings(e, EquipmentAssets.Growth))
             EditorGUILayout.HelpBox(w, MessageType.Warning);
     }
 
@@ -289,7 +287,7 @@ public class EquipmentEditorPanel
         Header("표시");
         Prop(so, "equipmentName", "게임 표시 이름", "장비 이름. 비우면 에셋 파일 이름이 보인다.");
         var desc = so.FindProperty("description");
-        EditorGUILayout.LabelField(new GUIContent("설명", "툴팁·상점·보상 카드에 표시"));
+        EditorGUILayout.LabelField(new GUIContent("설명", "툴팁·강화 상점 카드에 표시"));
         EditorGUI.BeginChangeCheck();
         string dv = EditorGUILayout.TextArea(desc.stringValue ?? "", WrapArea, GUILayout.MinHeight(48));
         if (EditorGUI.EndChangeCheck()) desc.stringValue = dv;
@@ -301,7 +299,6 @@ public class EquipmentEditorPanel
             DrawSprite(r, icon.objectReferenceValue as Sprite);
         }
         Prop(so, "rarity", "등급", "장비 등급(표시 색).");
-        Prop(so, "shopCost", "상점 가격(골드)", "상점 판매가.");
 
         // 등록
         Header("게임 등록");
@@ -314,7 +311,7 @@ public class EquipmentEditorPanel
         // 강화
         Header("강화");
         Prop(so, "maxEnhanceLevel", "최대 강화 레벨", "강화 상한 레벨(+N).");
-        Prop(so, "upgradeOnly", "강화 전용 장비", "켜면 무작위 보상·상점 진열에 나오지 않는다. 다른 장비의 '강화 시 선택지'로만 얻는다.");
+        Prop(so, "upgradeOnly", "강화 전용 장비", "켜면 다른 장비의 '강화 시 선택지'로만 얻는다.");
         Prop(so, "upgradeStage", "강화 단계", "강화 전용 장비가 몇 단계 장비인지(불러올 때 강화 레벨로 쓰인다).");
         EditorGUILayout.PropertyField(so.FindProperty("upgradeOptions"),
             new GUIContent("강화 시 선택지 (다음 장비)", "비어 있지 않으면 +N 수치 강화 대신 이 장비들 중 하나를 고른다. 비어 있으면 최종 단계."), true);
@@ -390,20 +387,12 @@ public class EquipmentEditorPanel
     private void DrawRegistry(EquipmentSO e)
     {
         var g = EquipmentAssets.Growth;
-        var s = EquipmentAssets.Shop;
         using (new EditorGUI.DisabledScope(g == null))
         {
             bool inG = g != null && g.equipments.Contains(e);
             bool nG = EditorGUILayout.ToggleLeft(new GUIContent("게임 장비 목록에 등록" + (g != null ? $" ({g.name})" : ""),
                 "세이브 불러오기와 보상에 쓰는 전체 목록. 빠지면 세이브에서 이 장비를 찾지 못한다."), inG);
             if (nG != inG) EquipmentAssets.SetIn(g, g.equipments, e, nG);
-        }
-        using (new EditorGUI.DisabledScope(s == null))
-        {
-            bool inS = s != null && s.equipmentPool.Contains(e);
-            bool nS = EditorGUILayout.ToggleLeft(new GUIContent("상점 진열 후보에 등록" + (s != null ? $" ({s.name})" : ""),
-                "상점에 나올 수 있는 장비 목록. 강화 전용 장비는 넣지 않는다."), inS);
-            if (nS != inS) EquipmentAssets.SetIn(s, s.equipmentPool, e, nS);
         }
         if (g != null)
         {
@@ -606,10 +595,9 @@ public class EquipmentEditorPanel
         ("", 52, ""),
         ("이름 / 에셋", 150, "게임 표시 이름 / 에셋 파일 이름(세이브 키)"),
         ("등급", 90, ""),
-        ("가격", 60, "상점 판매가(골드)"),
         ("최대 강화", 60, ""),
-        ("강화 전용", 56, "켜면 보상·상점에 안 나옴"),
-        ("목록 · 상점", 70, "게임 장비 목록 / 상점 진열 후보 등록"),
+        ("강화 전용", 56, "켜면 강화 선택지로만 얻음"),
+        ("목록", 40, "게임 장비 목록 등록"),
         ("패시브 (0강 기준)", 320, ""),
         ("확인", 220, "확인이 필요한 항목"),
     };
@@ -617,7 +605,6 @@ public class EquipmentEditorPanel
     private void DrawTable(List<EquipmentSO> list)
     {
         var g = EquipmentAssets.Growth;
-        var s = EquipmentAssets.Shop;
         tableScroll = EditorGUILayout.BeginScrollView(tableScroll);
         using (new EditorGUILayout.HorizontalScope())
         {
@@ -645,16 +632,15 @@ public class EquipmentEditorPanel
                     EditorGUILayout.LabelField(new GUIContent(e.name, "에셋 파일 이름(세이브 키)"), EditorStyles.miniLabel, GUILayout.Width(Columns[1].width));
                 }
                 EditorGUILayout.PropertyField(so.FindProperty("rarity"), GUIContent.none, GUILayout.Width(Columns[2].width));
-                EditorGUILayout.PropertyField(so.FindProperty("shopCost"), GUIContent.none, GUILayout.Width(Columns[3].width));
-                EditorGUILayout.PropertyField(so.FindProperty("maxEnhanceLevel"), GUIContent.none, GUILayout.Width(Columns[4].width));
-                using (new EditorGUILayout.HorizontalScope(GUILayout.Width(Columns[5].width)))
+                EditorGUILayout.PropertyField(so.FindProperty("maxEnhanceLevel"), GUIContent.none, GUILayout.Width(Columns[3].width));
+                using (new EditorGUILayout.HorizontalScope(GUILayout.Width(Columns[4].width)))
                 {
                     GUILayout.Space(16);
                     EditorGUILayout.PropertyField(so.FindProperty("upgradeOnly"), GUIContent.none, GUILayout.Width(20));
                 }
                 so.ApplyModifiedProperties();
 
-                using (new EditorGUILayout.HorizontalScope(GUILayout.Width(Columns[6].width)))
+                using (new EditorGUILayout.HorizontalScope(GUILayout.Width(Columns[5].width)))
                 {
                     using (new EditorGUI.DisabledScope(g == null))
                     {
@@ -662,25 +648,19 @@ public class EquipmentEditorPanel
                         bool na = GUILayout.Toggle(a, new GUIContent("", "게임 장비 목록"), GUILayout.Width(18));
                         if (na != a) EquipmentAssets.SetIn(g, g.equipments, e, na);
                     }
-                    using (new EditorGUI.DisabledScope(s == null))
-                    {
-                        bool b = s != null && s.equipmentPool.Contains(e);
-                        bool nb = GUILayout.Toggle(b, new GUIContent("", "상점 진열 후보"), GUILayout.Width(18));
-                        if (nb != b) EquipmentAssets.SetIn(s, s.equipmentPool, e, nb);
-                    }
                 }
 
+                using (new EditorGUILayout.VerticalScope(GUILayout.Width(Columns[6].width)))
+                {
+                    if (e.passives == null || e.passives.Count == 0) EditorGUILayout.LabelField("(없음)", EditorStyles.miniLabel, GUILayout.Width(Columns[6].width));
+                    else foreach (var p in e.passives)
+                            EditorGUILayout.LabelField("· " + EquipmentAssets.PassiveSummary(p, 0), WrapMini, GUILayout.Width(Columns[6].width));
+                }
                 using (new EditorGUILayout.VerticalScope(GUILayout.Width(Columns[7].width)))
                 {
-                    if (e.passives == null || e.passives.Count == 0) EditorGUILayout.LabelField("(없음)", EditorStyles.miniLabel, GUILayout.Width(Columns[7].width));
-                    else foreach (var p in e.passives)
-                            EditorGUILayout.LabelField("· " + EquipmentAssets.PassiveSummary(p, 0), WrapMini, GUILayout.Width(Columns[7].width));
-                }
-                using (new EditorGUILayout.VerticalScope(GUILayout.Width(Columns[8].width)))
-                {
-                    var ws = EquipmentAssets.Warnings(e, g, s);
-                    if (ws.Count == 0) EditorGUILayout.LabelField("✓", EditorStyles.miniLabel, GUILayout.Width(Columns[8].width));
-                    foreach (var w in ws) EditorGUILayout.LabelField(new GUIContent("⚠ " + w, w), WrapMini, GUILayout.Width(Columns[8].width));
+                    var ws = EquipmentAssets.Warnings(e, g);
+                    if (ws.Count == 0) EditorGUILayout.LabelField("✓", EditorStyles.miniLabel, GUILayout.Width(Columns[7].width));
+                    foreach (var w in ws) EditorGUILayout.LabelField(new GUIContent("⚠ " + w, w), WrapMini, GUILayout.Width(Columns[7].width));
                 }
             }
         }
@@ -714,23 +694,18 @@ public class EquipmentEditorPanel
     private void SyncRegistries()
     {
         var g = EquipmentAssets.Growth;
-        var s = EquipmentAssets.Shop;
         var valid = EquipmentAssets.All().Where(e => !AssetDatabase.GetAssetPath(e).Contains("/Deprecated/")).ToList();
         var addG = g != null ? valid.Where(e => !g.equipments.Contains(e)).ToList() : new List<EquipmentSO>();
-        var addS = s != null ? valid.Where(e => !e.upgradeOnly && !s.equipmentPool.Contains(e)).ToList() : new List<EquipmentSO>();
-        var removeS = s != null ? s.equipmentPool.Where(e => e == null || e.upgradeOnly).ToList() : new List<EquipmentSO>();
         int nullG = g != null ? g.equipments.Count(x => x == null) : 0;
 
-        if (addG.Count + addS.Count + removeS.Count + nullG == 0)
+        if (addG.Count + nullG == 0)
         {
-            EditorUtility.DisplayDialog("목록 정리", "바꿀 것이 없습니다. 모든 장비가 목록·상점 후보와 맞습니다.", "확인");
+            EditorUtility.DisplayDialog("목록 정리", "바꿀 것이 없습니다. 모든 장비가 게임 목록과 맞습니다.", "확인");
             return;
         }
         var msg = new StringBuilder();
         if (addG.Count > 0) msg.AppendLine($"· 게임 장비 목록에 추가 {addG.Count}개: {string.Join(", ", addG.Select(x => x.name))}");
         if (nullG > 0) msg.AppendLine($"· 게임 장비 목록의 빈 칸 {nullG}개 제거");
-        if (addS.Count > 0) msg.AppendLine($"· 상점 진열 후보에 추가 {addS.Count}개: {string.Join(", ", addS.Select(x => x.name))}");
-        if (removeS.Count > 0) msg.AppendLine($"· 상점 후보에서 빼기 {removeS.Count}개 (빈 칸 · 강화 전용)");
         if (!EditorUtility.DisplayDialog("목록 정리", msg.ToString(), "적용", "취소")) return;
 
         if (g != null)
@@ -739,13 +714,6 @@ public class EquipmentEditorPanel
             g.equipments.RemoveAll(x => x == null);
             g.equipments.AddRange(addG);
             EditorUtility.SetDirty(g);
-        }
-        if (s != null)
-        {
-            Undo.RecordObject(s, "장비 목록 정리");
-            s.equipmentPool.RemoveAll(x => x == null || x.upgradeOnly);
-            s.equipmentPool.AddRange(addS);
-            EditorUtility.SetDirty(s);
         }
         AssetDatabase.SaveAssets();
     }
@@ -808,10 +776,8 @@ public static class EquipmentAssets
 
     // ── 레지스트리 ────────────────────────────────────────────────────
     private static GrowthRegistrySO growth;
-    private static ShopRegistrySO shop;
 
     public static GrowthRegistrySO Growth => growth != null ? growth : (growth = LoadFirst<GrowthRegistrySO>());
-    public static ShopRegistrySO Shop => shop != null ? shop : (shop = LoadFirst<ShopRegistrySO>());
 
     private static T LoadFirst<T>() where T : UnityEngine.Object
     {
@@ -922,7 +888,7 @@ public static class EquipmentAssets
     }
 
     // ── 검사 ──────────────────────────────────────────────────────────
-    public static List<string> Warnings(EquipmentSO e, GrowthRegistrySO g, ShopRegistrySO s)
+    public static List<string> Warnings(EquipmentSO e, GrowthRegistrySO g)
     {
         var w = new List<string>();
         if (e == null) return w;
@@ -942,7 +908,6 @@ public static class EquipmentAssets
         }
         bool deprecated = AssetDatabase.GetAssetPath(e).Contains("/Deprecated/");
         if (g != null && !deprecated && !g.equipments.Contains(e)) w.Add("게임 장비 목록에 없습니다(세이브에서 찾지 못함).");
-        if (s != null && e.upgradeOnly && s.equipmentPool.Contains(e)) w.Add("강화 전용 장비인데 상점 진열 후보에 들어 있습니다.");
         if (e.upgradeOptions != null)
         {
             if (e.upgradeOptions.Any(x => x == null)) w.Add("강화 선택지에 빈 칸이 있습니다.");
@@ -985,11 +950,9 @@ public static class EquipmentAssets
         public EquipmentSO copyFrom;
         public string displayName = "새 장비";
         public ItemRarity rarity;
-        public int shopCost = 150;
         public int maxEnhanceLevel = 5;
         public Type firstPassive;
         public bool addToGrowth = true;
-        public bool addToShop = true;
     }
 
     public static EquipmentSO Create(Request r, out string error)
@@ -1022,12 +985,10 @@ public static class EquipmentAssets
 
         e.equipmentName = r.displayName ?? "";
         e.rarity = r.rarity;
-        e.shopCost = Mathf.Max(0, r.shopCost);
         e.maxEnhanceLevel = Mathf.Max(0, r.maxEnhanceLevel);
         EditorUtility.SetDirty(e);
 
         if (r.addToGrowth && Growth != null) SetIn(Growth, Growth.equipments, e, true);
-        if (r.addToShop && Shop != null && !e.upgradeOnly) SetIn(Shop, Shop.equipmentPool, e, true);
         AssetDatabase.SaveAssets();
         return e;
     }
@@ -1037,7 +998,6 @@ public static class EquipmentAssets
     {
         if (e == null) return false;
         var g = Growth;
-        var s = Shop;
         if (g != null && g.startingEquipment == e)
         {
             EditorUtility.DisplayDialog("장비 삭제", $"'{DisplayName(e)}' 은(는) 새 게임 시작 장비라 지울 수 없습니다.\n먼저 다른 장비를 '시작 장비로 지정'하세요.", "확인");
@@ -1047,14 +1007,12 @@ public static class EquipmentAssets
         string path = AssetDatabase.GetAssetPath(e);
         var skip = new HashSet<string> { path };
         if (g != null) skip.Add(AssetDatabase.GetAssetPath(g));
-        if (s != null) skip.Add(AssetDatabase.GetAssetPath(s));
         if (!FindReferences(e, skip, out var assetRefs, out var codeRefs)) return false;
 
         var msg = new StringBuilder();
         msg.AppendLine($"'{DisplayName(e)}' ({e.name}) 을(를) 삭제합니다.");
         msg.AppendLine("에셋은 OS 휴지통으로 이동합니다(휴지통에서 복구 가능).\n");
         if (g != null && g.equipments.Contains(e)) msg.AppendLine($"· {g.name} 장비 목록에서 자동으로 뺍니다.");
-        if (s != null && s.equipmentPool.Contains(e)) msg.AppendLine($"· {s.name} 상점 후보에서 자동으로 뺍니다.");
         if (assetRefs.Count > 0)
         {
             msg.AppendLine("\n다른 에셋·씬·프리팹이 참조 중입니다(삭제 후 빈 칸이 됩니다):");
@@ -1070,7 +1028,6 @@ public static class EquipmentAssets
         if (!EditorUtility.DisplayDialog("장비 삭제", msg.ToString(), "삭제", "취소")) return false;
 
         if (g != null && g.equipments.Contains(e)) { Undo.RecordObject(g, "장비 삭제"); g.equipments.RemoveAll(x => x == e); EditorUtility.SetDirty(g); }
-        if (s != null && s.equipmentPool.Contains(e)) { Undo.RecordObject(s, "장비 삭제"); s.equipmentPool.RemoveAll(x => x == e); EditorUtility.SetDirty(s); }
         foreach (var other in All().Where(x => x != e && x.upgradeOptions != null && x.upgradeOptions.Contains(e)))
         {
             Undo.RecordObject(other, "장비 삭제");
@@ -1157,9 +1114,7 @@ public class NewEquipmentPopup : EditorWindow
         req.assetName = EquipmentAssets.UniqueName(src.name + "Copy");
         req.displayName = EquipmentAssets.DisplayName(src) + " (사본)";
         req.rarity = src.rarity;
-        req.shopCost = src.shopCost;
         req.maxEnhanceLevel = src.maxEnhanceLevel;
-        req.addToShop = !src.upgradeOnly;
     }
 
     private void OnGUI()
@@ -1192,7 +1147,6 @@ public class NewEquipmentPopup : EditorWindow
 
         EquipmentEditorPanel.Header("기본 값");
         req.rarity = (ItemRarity)EditorGUILayout.EnumPopup(new GUIContent("등급"), req.rarity);
-        req.shopCost = Mathf.Max(0, EditorGUILayout.IntField(new GUIContent("상점 가격(골드)"), req.shopCost));
         req.maxEnhanceLevel = Mathf.Max(0, EditorGUILayout.IntField(new GUIContent("최대 강화 레벨"), req.maxEnhanceLevel));
         if (mode == 0)
         {
@@ -1219,12 +1173,9 @@ public class NewEquipmentPopup : EditorWindow
             }
         }
         var g = EquipmentAssets.Growth;
-        var s = EquipmentAssets.Shop;
         using (new EditorGUI.DisabledScope(g == null))
             req.addToGrowth = EditorGUILayout.ToggleLeft(new GUIContent("게임 장비 목록에 등록" + (g != null ? $" ({g.name})" : " (목록 에셋 없음)"),
                 "세이브 불러오기·보상에 쓰는 전체 목록. 빠지면 세이브에서 찾지 못한다."), req.addToGrowth && g != null);
-        using (new EditorGUI.DisabledScope(s == null))
-            req.addToShop = EditorGUILayout.ToggleLeft(new GUIContent("상점 진열 후보에 등록" + (s != null ? $" ({s.name})" : " (상점 에셋 없음)")), req.addToShop && s != null);
 
         if (!string.IsNullOrEmpty(error)) EditorGUILayout.HelpBox(error, MessageType.Error);
 

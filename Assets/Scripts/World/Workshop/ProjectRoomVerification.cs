@@ -11,7 +11,8 @@ using UnityEngine.UI;
 
 public sealed partial class ProjectRoomVerification : MonoBehaviour
 {
-    [Serializable] private class Fixture { public string template; public Vector2Int cell,grid; public float sprint; public int waves; }
+    // clusters: 카탈로그 군집 id 두 개. 팀 검사 스크립트가 같은 방의 웨이브 파일을 고칠 때도 읽는다.
+    [Serializable] private class Fixture { public string template; public Vector2Int cell,grid; public float sprint; public int waves; public string[] clusters; }
     private string phase, report;
     private float deadline;
     private bool finished;
@@ -96,12 +97,15 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
                     closest=distance; cell=candidate;
                 }
                 if(float.IsInfinity(closest)) throw new InvalidOperationException("No playable ground cell.");
+                if(catalog.clusters.Length<2) throw new InvalidOperationException("Team check needs two enemy clusters.");
                 fixture.template=template.id; fixture.cell=(Vector2Int)cell;fixture.grid=planned.Cell;
+                fixture.clusters=catalog.clusters.Take(2).Select(c=>c.id).ToArray();
                 File.WriteAllText(report,JsonUtility.ToJson(fixture,true));
             }
             else if(phase=="worldverify")
             {
-                if(!room.HasAuthoredReward || room.normalRewardType!=RoomInstance.NormalRewardType.PlayerSkill)
+                // 게시한 복사본만 두 번째 군집 한 웨이브를 가진다. 원본 방 문서는 웨이브가 두 개다.
+                if(!HasWaves(room,catalog,fixture.clusters[1]))
                     throw new InvalidOperationException("Published variant did not spawn in the ordinary dungeon.");
                 if(!UnityNote.SceneLoader.Load("VillageScene"))throw new InvalidOperationException("VillageScene");
                 yield return null;
@@ -112,9 +116,8 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             }
             else
             {
-                if(map.GroundTileAt(ground.GetCellCenterWorld((Vector3Int)fixture.cell))!=null ||
-                    !room.HasAuthoredReward || room.normalRewardType!=RoomInstance.NormalRewardType.Item)
-                    throw new InvalidOperationException("Merged ground and authored reward did not reach the generated dungeon.");
+                if(map.GroundTileAt(ground.GetCellCenterWorld((Vector3Int)fixture.cell))!=null || !HasWaves(room,catalog,fixture.clusters[0]))
+                    throw new InvalidOperationException("Merged ground and authored wave did not reach the generated dungeon.");
                 if(Mathf.Abs(GameManager.Instance.PLAYERCONTROLLER.WorkshopTuningDefaults()[0]-fixture.sprint)>.0001f ||
                     GameManager.Instance.CurrentStageMapData.GetWavesForFloor(1)!=fixture.waves)
                     throw new InvalidOperationException("Player movement or floor wave count did not reach the live game.");
@@ -129,7 +132,7 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
                 var liveTranslation=UnityEngine.Localization.Settings.LocalizationSettings.StringDatabase.GetTable("UI Text Table",lang);
                 if(liveTranslation.GetEntry("Btn_StartGame").Value!="QA Start" || liveTranslation.GetEntry("qa_workshop_title")?.Value!="Editor")
                     throw new InvalidOperationException("Published translation did not reach the active StringTable.");
-                Debug.Log("[ProjectRoomCheck] global ground empty at "+fixture.cell+", authored Item reward in "+template.title);
+                Debug.Log("[ProjectRoomCheck] global ground empty at "+fixture.cell+", authored wave "+fixture.clusters[0]+" in "+template.title);
                 Finish(true); yield break;
             }
         }
@@ -156,7 +159,7 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
                 Button FindTemplate()=>FindObjectsByType<Button>(FindObjectsSortMode.None).FirstOrDefault(b=>b.name.EndsWith("복제 "+fixture.template));
                 for(int n=0;FindTemplate()==null && n<20;n++)Click("다음");
                 (FindTemplate()??throw new InvalidOperationException("Missing source template")).onClick.Invoke();
-                Click("전투 설정");Click("플레이어 스킬");Click("닫기");Click("던전 등록");
+                Click("전투 설정");Click("웨이브 추가");Click("다음 군집");Click("닫기");Click("던전 등록");
                 if(!ProjectRooms.IsRegistered(WorkshopTrial.Draft))throw new InvalidOperationException("Pool link was not saved.");
                 slots++;
             }while(hash%slots==0 && slots<16);
@@ -171,7 +174,7 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
         {
             Click("공유"); Click("Git 충돌 확인"); Click("현재 쪽 사용"); Click("해결 저장 · 스테이징");
             var resolved=ProjectRooms.Decode(fixture.template,ProjectRooms.Snapshot(fixture.template),catalog);
-            if(resolved.reward!=2 || !resolved.cells.Any(c=>c.at==fixture.cell))
+            if(resolved.waves.Count!=2 || resolved.waves[1]!=fixture.clusters[1] || !resolved.cells.Any(c=>c.at==fixture.cell))
                 throw new InvalidOperationException("Conflict choice changed unrelated terrain.");
             Finish(true); yield break;
         }
@@ -207,11 +210,14 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
         }
         else
         {
-            if(phase=="reward"||phase=="creator"){Click("전투 설정"); Click(phase=="creator" ? "플레이어 스킬" : "아이템"); Click("닫기");}
+            // waves: 같은 방의 두 번째 담당자가 전투 웨이브만 추가한다. creator: 첫 웨이브의 군집을 바꾼다.
+            if(phase=="waves"||phase=="creator"){Click("전투 설정"); Click(phase=="creator" ? "다음 군집" : "웨이브 추가"); Click("닫기");}
             Click("저장");
         }
         var doc=ProjectRooms.Decode(fixture.template,ProjectRooms.Snapshot(fixture.template),catalog);
-        if(phase=="terrain" && !doc.cells.Any(c=>c.at==fixture.cell) || phase=="reward" && doc.reward!=3 ||phase=="creator" && doc.reward!=1)
+        if(phase=="terrain" && !doc.cells.Any(c=>c.at==fixture.cell) ||
+            phase=="waves" && !doc.waves.SequenceEqual(new[]{fixture.clusters[0]}) ||
+            phase=="creator" && !doc.waves.SequenceEqual(new[]{fixture.clusters[1],fixture.clusters[1]}))
             throw new InvalidOperationException("Project save did not match the edit.");
         if(phase=="seed")
         {
@@ -266,6 +272,11 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             File.WriteAllText(report,JsonUtility.ToJson(fixture,true));
         }
         Finish(true);
+    }
+    private static bool HasWaves(RoomInstance room,WorkshopCatalog catalog,string cluster)
+    {
+        var waves=room.GetComponent<NormalRoomEvent>()?.AuthoredWaves;
+        return waves!=null && waves.Count==1 && waves[0]==catalog.FindCluster(cluster)?.asset;
     }
     private static void CheckCellMerge(WorkshopCatalog catalog,Fixture fixture)
     {

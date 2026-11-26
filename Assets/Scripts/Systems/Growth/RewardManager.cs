@@ -14,11 +14,11 @@ public class RewardManager : MonoBehaviour
     [SerializeField] private RewardSelectionUI selectionUI;
     [SerializeField] private MainMinionSelectionUI handSlotUI;
 
-    private Queue<List<RewardCandidate>> _rewardQueue = new Queue<List<RewardCandidate>>();
-
-    [Header("엘리트 방 보상")]
+    [Header("엘리트·보스 방 보상")]
     [Tooltip("엘리트 방을 깼을 때 바닥에 떨어뜨릴 주머니 아이템 개수. 0 이면 아이템을 안 준다.")]
     [SerializeField] private int eliteItemDropCount = 1;
+    [Tooltip("보스 방을 깼을 때 바닥에 떨어뜨릴 주머니 아이템 개수. 0 이면 아이템을 안 준다.")]
+    [SerializeField] private int bossItemDropCount = 1;
 
     public void Initialize()
     {
@@ -26,10 +26,8 @@ public class RewardManager : MonoBehaviour
         Debug.Log("<color=cyan>[RewardManager]</color> Initialized.");
     }
 
-    public void RequestClearReward(RoomType type, RoomInstance.NormalRewardType normalRewardType = RoomInstance.NormalRewardType.PlayerSkill)
+    public void RequestClearReward(RoomType type)
     {
-        _rewardQueue.Clear();
-
         // 증강 방은 '일반 전투 방 + 증강'이다. 그래서 기본 보상(골드)을 일반 방과 똑같이 받고,
         // 그 위에 전투 시작 전에 고른 카드의 보상이 얹힌다 — 둘 중 하나가 아니라 둘 다다.
         // [버그 26/08/03] 예전엔 여기가 else if 라서 증강 방이 기본 골드를 통째로 못 받았다.
@@ -55,28 +53,18 @@ public class RewardManager : MonoBehaviour
                 RewardProcessor.DropItems(GameManager.Instance.dataManager, PlayerPosition(), 1);
             }
         }
-        else if (type == RoomType.Elite)
+        else if (type == RoomType.Elite || type == RoomType.Boss)
         {
-            // [엘리트 보상 26/07/30] 아이템을 바닥에 떨어뜨린다. 카드 UI 는 띄우지 않는다 —
-            // 예전엔 Metamorphosis 후보만 굴렸는데 그 시스템이 없어져서 빈 카드 3장이 뜨는 죽은 경로였다.
+            // 엘리트·보스는 아이템을 바닥에 떨어뜨린다. 카드 UI 는 띄우지 않는다.
             // 일반 방과 같은 DropItems — 한 묶음 안에서 최대 중첩을 넘겨 뽑지 않는다.
-            int dropped = RewardProcessor.DropItems(GameManager.Instance.dataManager, PlayerPosition(), eliteItemDropCount);
-            Debug.Log($"<color=yellow>[Reward]</color> Elite Room Cleared! 아이템 {dropped}개를 바닥에 떨어뜨렸다.");
+            int count = type == RoomType.Elite ? eliteItemDropCount : bossItemDropCount;
+            int dropped = RewardProcessor.DropItems(GameManager.Instance.dataManager, PlayerPosition(), count);
+            Debug.Log($"<color=yellow>[Reward]</color> {type} Room Cleared! 아이템 {dropped}개를 바닥에 떨어뜨렸다.");
         }
         else
         {
-            Debug.Log($"<color=yellow>[Reward]</color> {type} Room Cleared! Generating Mixed rewards...");
-
-            var mixedCandidates = RewardProcessor.GenerateMixedCandidates(
-                GameManager.Instance.inventoryManager, 
-                GameManager.Instance.dataManager, 
-                new List<RewardCategory> { 
-                    RewardCategory.Metamorphosis 
-                }
-            );
-
-            _rewardQueue.Enqueue(mixedCandidates);
-            ProcessNextReward();
+            // 보상방·상점 등은 자기 이벤트가 보상을 처리한다. 클리어 보상 요청이 오면 지급하지 않는다.
+            Debug.LogWarning($"[Reward] {type} 방에는 클리어 보상이 없다.");
         }
     }
 
@@ -84,23 +72,15 @@ public class RewardManager : MonoBehaviour
 
     private void ProcessNextReward()
     {
-        if (_rewardQueue.Count > 0)
-        {
-            List<RewardCandidate> nextSet = _rewardQueue.Dequeue();
-            ShowRewardSelection(nextSet);
-        }
-        else
-        {
-            Debug.Log("<color=green>[Reward]</color> All reward sequences completed.");
-            
-            if (pendingRewardRoom != null && !pendingRewardRoom.isCleared) pendingRewardRoom.MarkCleared();
-            pendingRewardRoom = null;
-            // 모든 보상이 완료되면 시간 재개
-            HitStopManager.SetPaused(false, HitStopManager.PauseOwner.Reward);
+        Debug.Log("<color=green>[Reward]</color> All reward sequences completed.");
 
-            if (selectionUI != null) selectionUI.Hide();
-            if (handSlotUI != null) handSlotUI.Hide();
-        }
+        if (pendingRewardRoom != null && !pendingRewardRoom.isCleared) pendingRewardRoom.MarkCleared();
+        pendingRewardRoom = null;
+        // 모든 보상이 완료되면 시간 재개
+        HitStopManager.SetPaused(false, HitStopManager.PauseOwner.Reward);
+
+        if (selectionUI != null) selectionUI.Hide();
+        if (handSlotUI != null) handSlotUI.Hide();
     }
 
     /// <summary>

@@ -80,13 +80,12 @@ public static class WorkshopRoomImport
             if(map.HasTile(candidate)) {cell=candidate;break;}
         var old=JsonUtility.FromJson<WorkshopRoom>($"{{\"version\":1,\"id\":\"{doc.id}\",\"title\":\"old\",\"template\":\"{doc.template}\",\"baseRevision\":\"{doc.baseRevision}\",\"cells\":[],\"exits\":[],\"pieces\":[]}}");
         old.Validate(catalog);
-        if(old.version!=2 || old.waves.Count!=0 || old.reward!=0) throw new InvalidDataException("v1 migration");
+        if(old.version!=2 || old.waves.Count!=0) throw new InvalidDataException("v1 migration");
         doc.Paint(0,(Vector2Int)cell,"");
         var styledCell=cell+Vector3Int.right;
         var flip=Matrix4x4.Scale(new Vector3(-1,1,1));
         var tint=new Color32(96,144,184,255);
         doc.Paint(0,(Vector2Int)styledCell,catalog.tiles.First(t=>t.tile is UnityEngine.Tilemaps.Tile).id,doc.StyleFor(flip,tint));
-        doc.reward=(int)RoomInstance.NormalRewardType.Item+1;
         doc.waves.Add(catalog.clusters.First().id);
         doc.Validate(catalog);
         var anchor=source.room.GetComponentsInChildren<RoomAnchor>().First();
@@ -103,10 +102,8 @@ public static class WorkshopRoomImport
             var moved=variant.GetComponentsInChildren<RoomAnchor>().First(a=>a.direction==anchor.direction);
             var group=variant.transform.Find("Workshop encounter");
             var stamped=WorkshopCatalog.Map(variant.transform,0);
-            var instance=variant.GetComponent<RoomInstance>();
             var combat=variant.GetComponent<NormalRoomEvent>();
-            if(!instance.HasAuthoredReward || instance.normalRewardType!=RoomInstance.NormalRewardType.Item ||
-                combat.AuthoredWaves.Count!=1 || combat.AuthoredWaves[0]!=catalog.clusters[0].asset ||
+            if(combat.AuthoredWaves.Count!=1 || combat.AuthoredWaves[0]!=catalog.clusters[0].asset ||
                 stamped.GetTransformMatrix(styledCell)!=flip || !((Color32)stamped.GetColor(styledCell)).Equals(tint))
                 throw new InvalidDataException("Saved variant lost an encounter or stamp setting.");
             if(PrefabUtility.GetPrefabAssetType(variant)!=PrefabAssetType.Variant ||

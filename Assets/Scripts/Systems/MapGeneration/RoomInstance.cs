@@ -6,19 +6,6 @@ using UnityEngine.Tilemaps;
 public class RoomInstance : MonoBehaviour
 {
     public RoomType roomType;
-    /// <summary>
-    /// 일반 방의 보상 유형. 방 프리팹이 enum 값을 정수로 저장하므로 기존 순서와 Item 값 2를 유지한다.
-    /// </summary>
-    public enum NormalRewardType { [UnityEngine.InspectorName("플레이어 스킬")] PlayerSkill, [UnityEngine.InspectorName("메인 소환")] MainSummon, [UnityEngine.InspectorName("아이템")] Item }
-    [Header("일반 방 보상 세부 설정")]
-    public NormalRewardType normalRewardType;
-    [SerializeField, HideInInspector] private bool hasAuthoredReward;
-    public bool HasAuthoredReward => hasAuthoredReward;
-    internal void SetAuthoredReward(NormalRewardType type)
-    {
-        normalRewardType=type;
-        hasAuthoredReward=true;
-    }
     public Vector2Int roomSize;
     public Vector2 centerOffset;
 
@@ -230,14 +217,7 @@ public class RoomInstance : MonoBehaviour
         _triggerCollider.size = new Vector2(Mathf.Max(1, roomSize.x - 4f), Mathf.Max(1, roomSize.y - 4f));
         _triggerCollider.offset = centerOffset;
 
-        // 일반 방(Normal)일 때 보상 종류를 전체 Enum 개수에 맞추어 무작위로 초기 결정 (맵 빌더에서 오버라이트 가능)
-        if (roomType == RoomType.Normal && !hasAuthoredReward)
-        {
-            normalRewardType = (NormalRewardType)Random.Range(0, System.Enum.GetValues(typeof(NormalRewardType)).Length);
-        }
-
-        // 미니맵 아이콘들 상태 갱신
-        SetRewardTypeAndSyncIcon(normalRewardType);
+        SyncMinimapIcon();
 
         // 방 한가운데 감지용 콜라이더(CombatCenterTrigger) 프리팹 바인딩 및 누락 시 Fallback 안전 자동 셋업
         // Augment(증강 선택) 방도 전투 방이다 — 한가운데 도달하면 카드가 뜨고 그 뒤에 전투가 시작된다.
@@ -271,13 +251,9 @@ public class RoomInstance : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 외부 맵 생성기 등에서 방 보상 속성을 지정하고 미니맵 아이콘의 상태를 동적으로 동기화 갱신합니다.
-    /// </summary>
-    public void SetRewardTypeAndSyncIcon(NormalRewardType rewardType)
+    /// <summary>방 종류에 맞는 MiniMapIcons 자식 하나만 켠다. 일반 방은 아이콘을 켜지 않는다.</summary>
+    private void SyncMinimapIcon()
     {
-        normalRewardType = rewardType;
-
         // 인스펙터에 직접 연결된 부모 트랜스폼을 우선 사용하고, 없을 때만 동적 탐색(Find)으로 보완
         Transform iconsParent = miniMapIconsParent != null ? miniMapIconsParent : transform.Find("MiniMapIcons");
         if (iconsParent != null)
@@ -290,16 +266,7 @@ public class RoomInstance : MonoBehaviour
 
             Transform targetIcon = null;
 
-            if (roomType == RoomType.Normal)
-            {
-                if (normalRewardType == NormalRewardType.PlayerSkill)
-                    targetIcon = iconsParent.Find("PlayerSkillMinimapIcon") ?? iconsParent.Find("playerskill");
-                else
-                    // ponytail: 메인/서브 소환수가 미니맵 아이콘을 공유한다. 전용 아이콘이 생기면
-                    // 룸 프리팹에 오브젝트를 추가하고 여기서 갈라주면 된다.
-                    targetIcon = iconsParent.Find("MinionSkillMinimapIcon") ?? iconsParent.Find("minionskill");
-            }
-            else if (roomType == RoomType.Boss)
+            if (roomType == RoomType.Boss)
             {
                 targetIcon = iconsParent.Find("boss") ?? iconsParent.Find("BossMinimapIcon");
             }

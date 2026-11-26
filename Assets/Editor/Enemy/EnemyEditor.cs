@@ -390,7 +390,6 @@ public class EnemyEditorPanel
             {
                 Prop(so, "minionType", "명령 종류 (CommandData)", "데이터를 종류로 찾을 때 쓰는 키.");
                 Prop(so, "baseEffectValue", "투척 효과 수치", "옛 투척 시스템 값. 현재 적에게는 거의 쓰이지 않는다.");
-                Prop(so, "shopCost", "상점 가격", "적에게는 쓰이지 않는 공용 칸.");
                 Prop(so, "rewardItemData", "보상 표시 데이터", "적에게는 쓰이지 않는 공용 칸.");
             }
         so.ApplyModifiedProperties();

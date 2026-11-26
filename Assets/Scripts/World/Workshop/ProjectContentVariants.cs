@@ -77,7 +77,7 @@ internal static class ProjectContentVariants
                 }
                 if(source.source is GrowthRegistrySO growth)
                 {Add(growth.items);Add(growth.equipments);Add(growth.minionDatas);Add(growth.treasures);Add(growth.rightClicks);}
-                if(source.source is ShopRegistrySO shop){Add(shop.itemPool);Add(shop.equipmentPool);Add(shop.minionPool);}
+                if(source.source is ShopRegistrySO shop)Add(shop.itemPool);
             }
         }
     }

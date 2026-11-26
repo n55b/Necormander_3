@@ -28,54 +28,6 @@ public struct RewardCandidate
 /// </summary>
 public static class RewardProcessor
 {
-    // --- 1-A'. 장비 방용: 장비 배출 (각 후보는 뜨는 순간 스킬을 굴려 굳힌다) ---
-    /// <summary>서로 다른 장비 최대 3개를 뽑는다. 각 후보는 그 자리에서 skillPool 을 굴려 EquipmentInstance 로 확정된다("장비 뜰 때 고정").</summary>
-    public static List<RewardCandidate> GenerateEquipmentRewards(InventoryManager inven, DataManager data)
-    {
-        List<RewardCandidate> results = new List<RewardCandidate>();
-        var registry = data.GET_GROWTH_REGISTRY();
-
-        List<EquipmentSO> pool = new List<EquipmentSO>();
-        if (registry != null && registry.equipments != null)
-            foreach (var e in registry.equipments) if (e != null && !e.upgradeOnly) pool.Add(e);
-
-        for (int i = 0; i < 3; i++)
-        {
-            if (pool.Count > 0)
-            {
-                int idx = Random.Range(0, pool.Count);
-                var so = pool[idx];
-                pool.RemoveAt(idx); // 같은 장비 중복 노출 방지
-                var inst = EquipmentInstance.Roll(so); // 뜨는 순간 스킬 고정
-                results.Add(new RewardCandidate
-                {
-                    displayData = BuildEquipmentDisplayData(so, inst),
-                    rawData = inst,
-                    category = RewardCategory.Equipment
-                });
-            }
-            else
-            {
-                results.Add(new RewardCandidate {
-                    category = RewardCategory.Equipment,
-                    displayData = new GrowthItemData { itemName = "None", description = "No more equipment available." },
-                    rawData = null
-                });
-            }
-        }
-        return results;
-    }
-
-    private static GrowthItemData BuildEquipmentDisplayData(EquipmentSO so, EquipmentInstance inst)
-    {
-        return new GrowthItemData
-        {
-            itemName = string.IsNullOrEmpty(so.equipmentName) ? so.name : so.equipmentName,
-            description = so.description,
-            icon = so.icon
-        };
-    }
-
     /// <summary>주머니 아이템의 상점 카드 표시 데이터. 등급 표기가 설명 앞에 붙는다.</summary>
     public static GrowthItemData BuildItemDisplayData(ItemSO so)
         => new GrowthItemData
@@ -282,29 +234,7 @@ public static class RewardProcessor
 
         List<RewardCandidate> combinedPool = new List<RewardCandidate>();
 
-        // 서브 소환수 삭제로 상점 소환수 진열이 사라졌다.
-        // minionPool 은 '서브만 통과'라는 필터로 돌아가고 있었고, 서브가 전부라서 지금은 빈 풀이다.
-        // 메인 소환수는 보상 방 전용이라 여기에 올리지 않는다(그 설계를 바꾸려면 별도 판단이 필요).
-        // ⚠ 그 결과 상점 풀이 장비 + 아이템만 남아 진열이 고정에 가까워졌다 — 아이템 에셋을 늘려야 한다.
-
-        // [장비] 상점에서 장비 구매 = 현재 장비 교체(구매 시 스킬 2개 새로 리롤). 뜰 때 인스턴스로 굳힌다.
-        if (shopRegistry.equipmentPool != null)
-        {
-            foreach (var so in shopRegistry.equipmentPool)
-            {
-                if (so == null || so.upgradeOnly) continue;
-                var inst = EquipmentInstance.Roll(so);
-                combinedPool.Add(new RewardCandidate
-                {
-                    displayData = BuildEquipmentDisplayData(so, inst),
-                    rawData = inst,
-                    category = RewardCategory.Equipment,
-                    goldAmount = so.shopCost
-                });
-            }
-        }
-
-        // [강화] 여기엔 없다. 강화는 전용 상점(Room_ShopEnhance) NPC 에게 F 로만 한다.
+        // 상점은 아이템만 판다. 장비는 강화 상점(Room_ShopEnhance) NPC 에게 F 로 강화해서만 얻는다.
 
         // [아이템] 주머니 아이템. 가격은 티어에서 자동으로 나온다(ItemTierRules).
         // 사면 바로 주머니에 들어간다. 중첩 한도면 골드를 내기 전에 구매 자체가 막히고(ShopNPC.TryPurchase 의 CanOfferItem),
@@ -380,46 +310,6 @@ public static class RewardProcessor
             icon = finalIcon,
             rarity = baseData != null ? baseData.rarity : default
         };
-    }
-
-    // --- 3. 엘리트 방용: 여러 카테고리를 섞어서 후보 생성 ---
-    public static List<RewardCandidate> GenerateMixedCandidates(InventoryManager inven, DataManager data, List<RewardCategory> categories, int count = 3)
-    {
-        List<RewardCandidate> allPossible = new List<RewardCandidate>();
-        var registry = data.GET_GROWTH_REGISTRY();
-
-        foreach (var category in categories)
-        {
-            switch (category)
-            {
-                case RewardCategory.Minion:
-                    allPossible.AddRange(GetValidCores(inven, registry.minionDatas));
-                    break;
-                case RewardCategory.Metamorphosis:
-                    // 변이/승급 삭제
-                    break;
-            }
-        }
-
-        List<RewardCandidate> results = new List<RewardCandidate>();
-        for (int i = 0; i < count; i++)
-        {
-            if (allPossible.Count > 0)
-            {
-                int idx = Random.Range(0, allPossible.Count);
-                results.Add(allPossible[idx]);
-                allPossible.RemoveAt(idx);
-            }
-            else
-            {
-                results.Add(new RewardCandidate { 
-                    category = RewardCategory.Gold, // 폴백으로 골드 
-                    displayData = new GrowthItemData { itemName = "None", description = "No more rewards available." },
-                    rawData = null 
-                });
-            }
-        }
-        return results;
     }
 
     private static List<RewardCandidate> GetValidTreasures(List<TreasureSO> treasures)

@@ -18,7 +18,6 @@ public abstract class MinionDataSO : ScriptableObject
     // 적만 자기 공격력이 필요해서 적 전용 데이터로 이사시켰다.
 
     [Header("UI와 보상 설정")]
-    public int shopCost = 150;
     public GrowthItemData rewardItemData;
 
     // ── 카드/툴팁 표시 ────────────────────────────────────────────────

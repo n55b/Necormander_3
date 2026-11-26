@@ -259,7 +259,6 @@ StatusBalanceSO.vulnerableDamageBonus|취약 추가 물리 피해 비율|취약 
 *.criticalPunchTime|치명타 숫자 확대 시간 (초)|치명타 숫자가 커졌다 되돌아오는 시간입니다.
 *.criticalShakeTime|치명타 숫자 회전 시간 (초)|치명타 숫자가 회전하며 흔들리는 시간입니다.
 *.criticalShakeAngle|치명타 숫자 회전 강도 (도)|숫자 회전 흔들림의 각도입니다. 크게 하면 더 과장됩니다.
-ShopRegistrySO.equipmentPool|상점 장비 후보|상점이 장비 상품을 만들 때 사용하는 목록입니다. 현재 장비 강화는 강화 NPC가 처리합니다.
 ShopRegistrySO.itemPool|상점 아이템 후보|진열할 아이템 후보입니다. 구매하면 바로 주머니에 들어갑니다. 중첩 한도가 찬 아이템은 골드를 쓰기 전에 구매를 막고, 주머니가 없을 때만 바닥에 드롭합니다.
 ShopRegistrySO.enhanceCostPerLevel|강화 단계당 추가 비용 (골드)|기본 강화 비용 + 현재 단계 × 이 값. 상점당 강화 제한은 강화 NPC/디버그 옵션에서 결정합니다.
 PlayerController.summonNum|사용 안 함: 옛 소환 수|현재 실행 코드에서 읽지 않는 옛 필드입니다. 변경해도 효과가 없습니다. 직렬화 호환을 위해 남겨둔 값입니다.

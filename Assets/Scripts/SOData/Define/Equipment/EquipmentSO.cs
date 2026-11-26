@@ -11,8 +11,6 @@ public class EquipmentSO : ScriptableObject
     public Sprite icon;
     [Tooltip("장비 등급.")]
     public ItemRarity rarity = ItemRarity.Common;
-    [Tooltip("상점 판매가(골드).")]
-    public int shopCost = 150;
 
     [Header("손 애니메이션")]
     [Tooltip("선택 사항. Body Animator와 같은 기본 컨트롤러를 사용하는 손 애니메이션 오버라이드. 비어 있으면 기본 외형을 사용한다.")]

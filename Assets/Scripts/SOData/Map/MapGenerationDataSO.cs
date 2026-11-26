@@ -33,19 +33,6 @@ public class MapGenerationDataSO : ScriptableObject
     [Tooltip("증강 선택 방의 수. 전투 시작 전 페널티 카드를 고르고, 클리어 보상이 그 카드로 정해지는 방. " +
              "층당 1개가 기본. 0 이면 그 층엔 안 나온다.")]
     public int augmentRoomCount = 1;
-    // 일반 방 보상 배분. 이 숫자들이 '어떤 풀을 어디서 파밍하는가'의 유일한 스위치다.
-    // 특정 풀을 Reward 방으로 옮기거나 로비 고정으로 돌리고 싶으면 여기 카운트를 0으로 내리면 된다.
-    [Tooltip("일반 전투 방 중 플레이어 스킬 보상을 배정할 정확한 방의 수량")]
-    public int playerSkillRewardRoomCount = 3;
-    [Tooltip("일반 전투 방 중 메인 소환수 보상을 배정할 정확한 방의 수량")]
-    public int mainSummonRewardRoomCount = 3;
-    [Tooltip("일반 전투 방 중 아이템 보상을 배정할 정확한 방의 수량.\n" +
-             "[26/08/15] 서브 소환수 보상 방을 아이템 보상 방으로 전환했다. 필드 이름만 바뀌었고 " +
-             "직렬화 값은 FormerlySerializedAs 로 그대로 이어받는다.")]
-    [UnityEngine.Serialization.FormerlySerializedAs("subSummonRewardRoomCount")]
-    public int itemRewardRoomCount = 4;
-    [Tooltip("위 카운트를 다 채우고 남는 일반 방에도 무작위 보상을 배정할지. 끄면 남는 방은 보상 없음.")]
-    public bool fillRemainingRoomsRandomly = true;
 
     [Header("전투 생성 설정")]
     [Tooltip("일반방 전투 웨이브 수 (기본 2)")]

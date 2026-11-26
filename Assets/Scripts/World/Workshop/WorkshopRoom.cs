@@ -19,8 +19,6 @@ public sealed class WorkshopRoom
     [Serializable] public sealed class TileStyle { public Matrix4x4 matrix; public Color color; }
     public List<TileStyle> styles = new();
     public List<string> waves = new();
-    // Zero inherits the floor distribution. Other values encode NormalRewardType + 1.
-    public int reward;
     public const int MaxWaves = 8;
     public int version = 2, seed = 907;
     public string id, title, template, baseRevision;
@@ -41,7 +39,6 @@ public sealed class WorkshopRoom
         {
             styles = new List<TileStyle>();
             waves = new List<string>();
-            reward = 0;
             version = 2;
         }
         if (version != 2 || !Guid.TryParseExact(id,"N",out _) || string.IsNullOrWhiteSpace(title))
@@ -53,9 +50,8 @@ public sealed class WorkshopRoom
             throw new InvalidDataException("방의 편집 범위를 초과했습니다.");
         if (styles == null || styles.Count > 131072 || styles.Any(style => style==null || !ValidStyle(style.matrix,style.color)) ||
             waves == null || waves.Count > MaxWaves || waves.Any(id=>library.FindCluster(id)==null) ||
-            (waves.Count>0 && asset.room.GetComponent<NormalRoomEvent>()==null) ||
-            reward<0 || reward>3 || (reward>0 && asset.type!=RoomType.Normal))
-            throw new InvalidDataException("방의 타일 모양, 전투 또는 보상 설정을 확인하세요.");
+            (waves.Count>0 && asset.room.GetComponent<NormalRoomEvent>()==null))
+            throw new InvalidDataException("방의 타일 모양 또는 전투 설정을 확인하세요.");
         var keys = new HashSet<(int,Vector2Int)>();
         foreach (var c in cells)
             if (c == null || c.layer < 0 || c.layer >= WorkshopCatalog.Layers.Length ||

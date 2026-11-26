@@ -9,7 +9,7 @@ if(Test-Path -LiteralPath $marker){Remove-Item -LiteralPath $marker}
 $run=[IO.Directory]::CreateDirectory((Join-Path $env:TEMP ("Necromander-Team-"+[Guid]::NewGuid().ToString('N')))).FullName
 $remote=Join-Path $run Remote.git
 $a=Join-Path $run Terrain
-$b=Join-Path $run Rewards
+$b=Join-Path $run Encounter
 $linked=Join-Path $Sandbox DATA
 $original=Join-Path $run OriginalDATA
 $fixture=Join-Path $Results fixture.json
@@ -52,7 +52,8 @@ try {
     $crashLog=Join-Path $Results 'interrupted.log'
     $writer=Start-Process $UnityEditor -ArgumentList @('-batchmode','-projectPath',('"'+$Sandbox+'"'),'-projectContentCrashCheck',
         '-executeMethod','ProjectRoomVerification.InterruptSave','-logFile',('"'+$crashLog+'"'),'-quit') -PassThru -WindowStyle Hidden
-    if(!$writer.WaitForExit(180000)){$writer.Kill();throw 'Test writer did not terminate.'}
+    # The first Unity process in a fresh sandbox imports the whole project before it reaches the writer.
+    if(!$writer.WaitForExit(900000)){$writer.Kill();throw 'Test writer did not terminate.'}
     if(!(Test-Path -LiteralPath $marker) -or !(Test-Path "$a/DATA/QA/SAVE-RECOVERY/a.json") -or (Test-Path "$a/DATA/QA/SAVE-RECOVERY/b.json")){
         throw "First file must reach disk before the test writer terminates. $crashLog"
     }
@@ -68,11 +69,11 @@ try {
     Invoke-Git $a @('commit','-m','Edit ground using Ctrl+S')
     Invoke-Git $a @('push')
     Use-Checkout $b
-    Run-Unity reward
+    Run-Unity waves
     Invoke-Git $b @('add','DATA')
-    $reward=@(& git -C $b diff --cached --name-only)
-    if($reward.Count -ne 1 -or $reward[0] -notlike 'DATA/WORLD/ROOMS/*/ENCOUNTER/reward.json'){throw "Unexpected reward diff: $reward"}
-    Invoke-Git $b @('commit','-m','Edit clear reward using Save')
+    $waves=@(& git -C $b diff --cached --name-only)
+    if($waves.Count -ne 1 -or $waves[0] -notlike 'DATA/WORLD/ROOMS/*/ENCOUNTER/WAVES/01.json'){throw "Unexpected encounter diff: $waves"}
+    Invoke-Git $b @('commit','-m','Add encounter wave using Save')
     Invoke-Git $b @('pull','--no-rebase','--no-edit','origin','main')
     Invoke-Git $b @('push')
     Invoke-Git $a @('pull','--ff-only')
@@ -83,19 +84,26 @@ try {
     if(!$p.WaitForExit(150000)){$p.Kill();throw 'Player timeout'}
     if($p.ExitCode -or !(Select-String -SimpleMatch '[ProjectRoomCheck] verify PASS' -LiteralPath $log -Quiet)){throw "Player failed. $log"}
     $merged=& git -C $b rev-parse HEAD
-    $rewardFile=$reward[0]
+    $waveFile=$waves[0]
+    # Both people add a second wave to the same room with different catalog clusters.
+    $clusters=@((Get-Content -Raw -LiteralPath $fixture | ConvertFrom-Json).clusters)
+    if($clusters.Count -ne 2 -or $clusters[0] -eq $clusters[1]){throw "Fixture needs two catalog clusters: $clusters"}
+    $secondWave=$waveFile -replace '01\.json$','02.json'
+    function Read-Cluster([string]$at,[string]$file){(Get-Content -Raw -LiteralPath (Join-Path $at $file) | ConvertFrom-Json).cluster}
     Invoke-Git $a @('checkout','-b','qa-conflict-source')
-    "{`n  `"reward`": 1`n}" | Set-Content -LiteralPath (Join-Path $a $rewardFile) -Encoding utf8NoBOM
-    Invoke-Git $a @('commit','-am','First reward choice')
+    "{`n  `"cluster`": `"$($clusters[0])`"`n}" | Set-Content -LiteralPath (Join-Path $a $secondWave) -Encoding utf8NoBOM
+    Invoke-Git $a @('add',$secondWave)
+    Invoke-Git $a @('commit','-m','First second-wave choice')
     Invoke-Git $a @('push','origin','qa-conflict-source')
     Invoke-Git $b @('checkout','-b','qa-conflict-local')
-    "{`n  `"reward`": 2`n}" | Set-Content -LiteralPath (Join-Path $b $rewardFile) -Encoding utf8NoBOM
-    Invoke-Git $b @('commit','-am','Second reward choice')
+    "{`n  `"cluster`": `"$($clusters[1])`"`n}" | Set-Content -LiteralPath (Join-Path $b $secondWave) -Encoding utf8NoBOM
+    Invoke-Git $b @('add',$secondWave)
+    Invoke-Git $b @('commit','-m','Second second-wave choice')
     Invoke-Git $b @('fetch','origin')
     & git -C $b -c user.name=QA -c user.email=qa@localhost merge --no-commit origin/qa-conflict-source | Out-Null
     if($LASTEXITCODE -ne 1){throw 'Expected an overlapping Git conflict'}
     Run-Unity resolve
-    if((& git -C $b ls-files -u) -or (Get-Content -Raw (Join-Path $b $rewardFile) | ConvertFrom-Json).reward -ne 2){throw 'Conflict not resolved by workshop'}
+    if((& git -C $b ls-files -u) -or (Read-Cluster $b $secondWave) -ne $clusters[1]){throw 'Conflict not resolved by workshop'}
     Run-Unity world
     Run-Unity worldverify
     Run-Unity build-creator 'ProjectContentBuild.BuildCreatorCheck'
@@ -105,8 +113,8 @@ try {
     $p=Start-Process "$Sandbox/Builds/ProjectContentCreator/Game.exe" -ArgumentList @('-force-d3d11','-screen-fullscreen','0','-screen-width','1280','-screen-height','720','-projectRoomCheck','creator',('"'+$fixture+'"'),('"-checkout='+$b+'"'),'-logFile',('"'+$log+'"')) -PassThru -WindowStyle Hidden
     if(!$p.WaitForExit(150000)){$p.Kill();throw 'Creator connection timeout'}
     if($p.ExitCode -or !(Select-String -SimpleMatch '[ProjectRoomCheck] creator PASS' -LiteralPath $log -Quiet) -or
-        (Get-Content -Raw -LiteralPath (Join-Path $b $rewardFile) | ConvertFrom-Json).reward -ne 1){throw "Creator did not save to the connected checkout. $log"}
-    @("Terrain $($terrain[0])","Reward $rewardFile","Merged $merged","Remote $remote","PASS Unity Editor and Windows player",
+        (Read-Cluster $b $waveFile) -ne $clusters[1]){throw "Creator did not save to the connected checkout. $log"}
+    @("Terrain $($terrain[0])","Waves $waveFile","Merged $merged","Remote $remote","PASS Unity Editor and Windows player",
       "PASS same-field conflict reviewed and staged","PASS interrupted Unity writer and same-chunk merge","PASS new room and village in ordinary scenes",
       "PASS authoring Windows player connected and saved") | Set-Content -LiteralPath (Join-Path $Results 'passed.txt')
 } finally {
