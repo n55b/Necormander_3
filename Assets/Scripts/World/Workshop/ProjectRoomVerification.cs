@@ -185,6 +185,9 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
         yield return null;
         if(phase=="terrain")
         {
+            // 원위치(1배)는 방 경계 중심의 30×17칸만 보인다. 큰 방에서는 지울 칸이 화면 밖이라 방 전체를 띄운다.
+            Click("전체 보기");
+            yield return null;
             Click("지우개");
             yield return null;
             Canvas.ForceUpdateCanvases();
