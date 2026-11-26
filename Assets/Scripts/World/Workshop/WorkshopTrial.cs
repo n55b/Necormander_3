@@ -76,6 +76,7 @@ public static class WorkshopTrial
         Cursor=cursor;
         previousLook=LightingPreview.Active; previousRandom=UnityEngine.Random.state;
         SaveFolder=Path.Combine(Application.temporaryCachePath,"WorkshopTrial",Guid.NewGuid().ToString("N"));
+        if (ProjectContentStore.Authoring) DraftStore.Preview(true);   // 미저장 초안으로 시험한다. End가 저장값으로 되돌린다
         Active=true;
         SceneManager.sceneLoaded+=Loaded;
         UnityEngine.Random.InitState(Seed);
@@ -100,6 +101,7 @@ public static class WorkshopTrial
         UnityEngine.Random.state=previousRandom; LightingPreview.Active=previousLook;
         TutorialFlow.IsRunning=previousTutorial;
         Village=null; floorEdits=null; PlannedFloor=null; PlannedElite=null; Active=false; FloorTest=null;
+        DraftStore.Preview(false);
     }
 
     internal static DungeonLayout Layout()

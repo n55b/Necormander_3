@@ -430,6 +430,7 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         File.Delete(Path.Combine(output,ok?"failed.txt":"passed.txt"));
         File.WriteAllLines(Path.Combine(output,ok?"passed.txt":"failed.txt"),passed.Concat(new[]{step}));
         Debug.Log("[WorkshopCheck] "+(ok?"PASS ":"FAIL ")+step);
+        RoomWorkshopWindow.QuitApproved=true;   // 미저장 확인이 종료를 막아 종료 코드를 잃지 않게 한다
         Application.Quit(ok?0:1);
     }
     private static IEnumerator Wait(Func<bool> ready)

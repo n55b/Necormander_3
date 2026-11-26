@@ -10,6 +10,7 @@ public sealed partial class RoomWorkshopWindow
         public Func<bool> Dirty; // Title이 있는 페이지만 모두 저장에 센다
         public string Title;     // 미저장 목록에 보이는 이름
         public Action Reset;     // 프로젝트 연결 때 상태 비우기
+        public Func<DraftStore.Draft> Draft; // Ctrl+Z/Y의 대상 문서
         public Action Keys;      // 페이지 전용 키·포인터. Map은 기존 지도 입력 전체
     }
     private PageEntry[] pages;
@@ -29,8 +30,8 @@ public sealed partial class RoomWorkshopWindow
         pages[(int)Page.Git]         =new PageEntry{Draw=DrawGit};
         // 층 설정(floorSettings·openFloors)은 작업 공간별로 맡겨 두므로 Reset이 없다. 연결 때만 Connection.cs가 비운다.
         pages[(int)Page.Game]        =new PageEntry{Draw=DrawFloor,Save=SaveFloorShortcut};
-        pages[(int)Page.Balance]     =new PageEntry{Draw=DrawBalance,Save=SaveBalance,Title="플레이어 수치",Dirty=()=>balance!=null,Reset=()=>balance=null};
-        pages[(int)Page.Parameters]  =new PageEntry{Draw=DrawParameters,Save=SaveParameters,Reset=ResetParameters};
+        pages[(int)Page.Balance]     =new PageEntry{Draw=DrawBalance,Save=SaveBalance,Title="플레이어 수치",Dirty=()=>balance?.Dirty==true,Reset=()=>balance=null};
+        pages[(int)Page.Parameters]  =new PageEntry{Draw=DrawParameters,Save=SaveParameters,Reset=ResetParameters,Draft=()=>paramDraft};
         pages[(int)Page.Dialogue]    =new PageEntry{Draw=DrawDialogue,Save=SaveDialogue,Title="대사 편집",Dirty=()=>conversation!=null&&dialogueDirty,
             Reset=()=>{conversation=null;dialogueDirty=false;catalog.dialogueTable.Invalidate();}};
         pages[(int)Page.Translations]=new PageEntry{Draw=DrawTranslations,Save=SaveTranslation,Title="UI·보상 번역",
@@ -40,6 +41,6 @@ public sealed partial class RoomWorkshopWindow
             Reset=()=>{artEntries=null;art=null;nextArt=null;DisposeArt();}};
     }
     private void SaveFloorShortcut(){ if(routeDraft!=null) return; floorSettings.Save(); Say("층 설정을 저장했습니다."); }
-    private void ResetParameters(){ dataEntry=null; dataField=null; dataCatalog=null; }
+    private void ResetParameters(){ dataEntry=null; dataField=null; dataCatalog=null; paramDraft=null; }
     private void ResetPages(){ foreach(var entry in pages) entry.Reset?.Invoke(); }
 }

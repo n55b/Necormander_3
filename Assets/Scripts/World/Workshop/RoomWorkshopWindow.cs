@@ -59,20 +59,39 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         canvas=WorkshopUI.Canvas("Workshop canvas",25000);
         canvas.transform.SetParent(transform,false);
         // Root canvases get their logical transform from the frame camera.
+        // 시험에서 돌아온 순서: 층 복귀 → 콘텐츠 화면 → 방 편집 → 작업대.
         if (WorkshopTrial.ReturnToFloor)
         {
-            WorkshopTrial.ReturnToFloor=false; Draw(Page.Game);
+            WorkshopTrial.ReturnToFloor=false; WorkshopSession.FromContent=false; Draw(Page.Game);
         }
-        else if (Doc!=null)
+        else if (WorkshopSession.FromContent)
         {
-            selection.UnionWith(rememberedSelection); start=rememberedStart; floorCell=rememberedCell; roomFloor=rememberedFloor;
-            (tool,layer,enemyIndex,propIndex,dir)=rememberedTools;
-            OpenMap(false,rememberedTile);
+            WorkshopSession.FromContent=false; if(Doc!=null) RestoreMap(); RestoreContent();
         }
+        else if (Doc!=null) { RestoreMap(); OpenMap(false,rememberedTile); }
         else Draw(Page.Desk);
+        if (WorkshopSession.Lost!=null) { Say("시험 전에 저장하지 않은 "+WorkshopSession.Lost+" 변경은 사라졌습니다."); WorkshopSession.Lost=null; }
+#if LEVEL_WORKSHOP && !UNITY_EDITOR
+        Application.wantsToQuit+=WantsToQuit;
+#endif
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.playModeStateChanged+=WarnUnsavedOnExit;
+#endif
     }
     private void OnDestroy()
     {
+        // 시험이 시작돼 씬이 바뀌는 중이면(Begin이 Active를 켠 뒤 로드한다) 창과 함께 사라지는 Title 페이지를 기록한다.
+        if(WorkshopTrial.Active && pages!=null)
+        {
+            var lost=pages.Where(p=>p.Title!=null && p.Dirty()).Select(p=>p.Title).ToArray();
+            WorkshopSession.Lost=lost.Length>0 ? string.Join("·",lost) : null;
+        }
+#if LEVEL_WORKSHOP && !UNITY_EDITOR
+        Application.wantsToQuit-=WantsToQuit;
+#endif
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.playModeStateChanged-=WarnUnsavedOnExit;
+#endif
         DisposeArt();
         comparison?.Dispose();
         preview?.Dispose();
@@ -101,8 +120,11 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         if(page==Page.Desk) Btn("프로젝트 연결",344,5,95,20,OpenConnection);
 #endif
         if (ProjectContentStore.Authoring && page!=Page.Map && page!=Page.Game && page!=Page.Desk)
-            Btn("플레이어 수치",447,5,106,20,()=>Navigate(Page.Balance),page==Page.Balance);
+            Btn("플레이어 수치",447,5,72,20,()=>Navigate(Page.Balance),page==Page.Balance);
+        DrawUnsavedButton();
         pages[(int)page].Draw();
+        if(unsavedOpen) DrawUnsavedList();          // 그리는 순서: 헤더 → 페이지 → 목록 팝업 → 모달 → 상태 줄
+        if(pendingConfirm!=null) DrawConfirm();     // Draw가 몇 번 다시 돌아도 모달이 남는다
         string hint = page == Page.Passage ? "이동 범위는 착지점에서 상하좌우로 이어진 바닥 타일 기준입니다." :
             !string.IsNullOrEmpty(notice) ? notice : page == Page.Map ? MapHint() :
             page == Page.Desk ? (ProjectContentStore.Authoring ? "저장 위치  ·  프로젝트 DATA" : "저장 위치  ·  로컬 작업 공간") : "";
@@ -115,7 +137,8 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
     private void Safe(Action action)
     {
         try { action(); }
-        catch(ProjectContentStore.Conflict clash) when(page==Page.Map)
+        // 방 문서의 충돌만 방 충돌 화면으로 보낸다. 나머지는 아래에서 "서로 다르게 바뀐 항목: <문서>/<키>"로 알린다.
+        catch(ProjectContentStore.Conflict clash) when(page==Page.Map && clash.field.StartsWith(ProjectRooms.DirectoryName+"/",StringComparison.Ordinal))
         { pendingConflict=clash; Draw(page); Say("두 사람의 변경을 확인해 주세요."); }
         catch(Exception ex) { Say(ex.Message); Debug.LogWarning("[Workshop] "+ex.Message); }
     }
@@ -134,11 +157,11 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
     {
         CloseMap(); review=null; listPage=0; drawer=false; encounterOpen=false; notice=""; Draw(next);
     }
-    private void Leave()
+    private void Leave()=>ConfirmUnsaved(()=>
     {
         CloseMap(); WorkshopTrial.Draft=null; WorkshopTrial.Undo.Clear(); WorkshopTrial.Redo.Clear();
         UnityNote.SceneLoader.Load("StartScene");
-    }
+    });
     private void DrawLibrary(string deskControl)
     {
         bool legacy=page==Page.Legacy, shared=page==Page.Shared;
@@ -486,7 +509,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
     }
     private void Play()
     {
-        EndStroke(); rememberedSelection=selection.ToArray(); rememberedStart=start; rememberedTools=(tool,layer,enemyIndex,propIndex,dir); rememberedTile=palette.Length>0 ? palette[materialIndex].id : null; rememberedCell=floorCell; rememberedFloor=roomFloor;
+        EndStroke(); RememberMap();
         WorkshopTrial.View=preview.Center; WorkshopTrial.Zoom=preview.Zoom;
         WorkshopTrial.Play(start);
     }
@@ -543,6 +566,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
     private void SaveAllDocuments()
     {
         if(!ProjectContentStore.Authoring)return;
+        CommitPendingInputs();
         if(page==Page.Map && Doc!=null) FinishMapEdits();
         if(Doc!=null && dirty)
         {
@@ -557,21 +581,44 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
             if(routeDraft!=null) floorSettings.ApplyTutorialOrder(routeDraft,catalog);
             floorSettings.Save(); routeDraft=null;
         }
-        if(dataEntry!=null)SaveParameters();
+        // 입력만 하고 '적용'을 안 누른 값(ProjectContent seed가 이 경로를 쓴다). 방·층을 저장한 뒤에 두어 잘못된 숫자 하나가 앞 단계를 막지 않게 한다.
+        if(dataField!=null) AcceptParameter();
+        var skipped=DraftStore.SaveAll();
         foreach(var entry in pages) if(entry.Title!=null && entry.Dirty()) entry.Save();
-        Draw(page);Say("열린 제작 문서를 모두 저장했습니다.");
+        Draw(page);
+        Say(skipped.Count==0 ? "열린 제작 문서를 모두 저장했습니다." : "이 판에 없는 항목 때문에 저장하지 못한 문서: "+string.Join(", ",skipped));
     }
     private void Update()
     {
         var keys=Keyboard.current;
-        if(keys!=null && keys.ctrlKey.isPressed && keys.sKey.wasPressedThisFrame)
+        if(pendingConfirm!=null){ if(keys!=null && keys.escapeKey.wasPressedThisFrame){ pendingConfirm=null; Draw(page); } return; }   // 미저장 확인 모달
+        var entry=pages[(int)page];
+        // 키보드가 없어도(검사가 가상 키보드를 뺀 뒤) 지도 포인터 입력은 돌아야 한다.
+        if(keys==null){ entry.Keys?.Invoke(); return; }
+        bool ctrl=keys.ctrlKey.isPressed, shift=keys.shiftKey.isPressed;
+        if(ctrl && shift && keys.sKey.wasPressedThisFrame && ProjectContentStore.Authoring){Safe(SaveAllDocuments);return;}
+        if(page!=Page.Map)
         {
-            if(keys.shiftKey.isPressed && ProjectContentStore.Authoring){Safe(SaveAllDocuments);return;}
-            var save=pages[(int)page].Save;
-            if(page!=Page.Map && save!=null){Safe(save);return;}
+            if(ctrl && !shift && keys.sKey.wasPressedThisFrame && entry.Save!=null){CommitPendingInputs();Safe(entry.Save);return;}
+            if(keys.escapeKey.wasPressedThisFrame && unsavedOpen){ unsavedOpen=false; Draw(page); return; }
+            if(!InputFocused())
+            {
+                var draft=entry.Draft?.Invoke();
+                bool redo=keys.yKey.wasPressedThisFrame || shift && keys.zKey.wasPressedThisFrame;
+                if(draft!=null && ctrl && (keys.zKey.wasPressedThisFrame || keys.yKey.wasPressedThisFrame))
+                { if(redo ? DraftStore.Redo(draft) : DraftStore.Undo(draft)) Draw(page); return; }
+            }
         }
-        pages[(int)page].Keys?.Invoke();
+        entry.Keys?.Invoke();
     }
+    // 선택 객체는 Draw가 방금 파괴한 버튼일 수 있다. is 패턴과 ?.는 Unity의 가짜 null을 거르지 못하므로 != null로 확인한다.
+    private static TMP_InputField FocusedInput()
+    {
+        var go=UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
+        return go!=null && go.TryGetComponent<TMP_InputField>(out var field) && field.isFocused ? field : null;
+    }
+    private static bool InputFocused()=>FocusedInput()!=null;
+    private static void CommitPendingInputs()=>FocusedInput()?.DeactivateInputField();   // onEndEdit로 인라인 입력을 확정한다
     // 지도 화면의 키·포인터 입력. 지도 페이지의 Keys 칸이다.
     private void UpdateMap()
     {

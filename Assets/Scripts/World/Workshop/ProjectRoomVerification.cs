@@ -39,6 +39,7 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
     {
         if(finished) return;
         finished=true;
+        RoomWorkshopWindow.QuitApproved=true;   // 미저장 확인이 종료를 막아 종료 코드를 잃지 않게 한다
         Debug.Log("[ProjectRoomCheck] "+phase+(ok ? " PASS" : " FAIL"));
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.Exit(ok ? 0 : 1);

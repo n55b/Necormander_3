@@ -206,7 +206,14 @@ public static class ProjectParameters
             pair.Key.write(pair.Value);
         }
         if(baseline.Count==0) originals.Remove(source); else originals[source]=baseline;
+        if(Reflect.TryGetValue(source.GetType(),out var reflect)) reflect.refresh?.Invoke(source);
     }
+    // SO 타입별 반영 방법: 즉시 갱신이 필요하면 refresh(Apply 끝에서 부른다), 상태 줄의 반영 시점 문구는 when.
+    internal static readonly Dictionary<Type,(string when,Action<ScriptableObject> refresh)> Reflect=new()
+    {
+        [typeof(StatusBalanceSO)]=("다음 부여부터",null),   // StatusRules가 부여마다 읽는다
+    };
+    internal static string When(ScriptableObject source)=>source!=null && Reflect.TryGetValue(source.GetType(),out var r) ? r.when : null;
     internal static void Restore()
     {
         foreach(var pair in originals.Keys.ToArray()) if(pair!=null) Apply(pair,new JObject());

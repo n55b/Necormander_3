@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -11,8 +10,7 @@ public sealed partial class RoomWorkshopWindow
     private ProjectParameterBindings.Entry dataEntry;
     private List<ProjectParameters.Field> dataFields;
     private ProjectParameters.Field dataField;
-    private Dictionary<string,string> parameterBasis;
-    private JObject parameters;
+    private DraftStore.Draft paramDraft;
     private string dataSearch="";
     private int dataPage;
     private TMP_InputField dataInput;
@@ -90,7 +88,7 @@ public sealed partial class RoomWorkshopWindow
                 }
                 Btn("이전",12,250,66,23,()=>{referencePage--;Draw(page);});
                 Btn("다음",90,250,66,23,()=>{referencePage++;Draw(page);});
-                Btn("기본 연결",270,250,100,23,()=>{parameters.Remove(dataField.path);dataField=null;Draw(page);});
+                Btn("원본 연결",270,250,100,23,()=>{DraftStore.Set(paramDraft,dataField,null);dataField=null;Draw(page);});
                 Btn("취소",520,250,100,23,()=>{dataField=null;Draw(page);});
                 return;
             }
@@ -101,18 +99,23 @@ public sealed partial class RoomWorkshopWindow
             dataInput=Input("설정값",parameterDraft ?? ParameterValue(dataField),12,120,610,46,dataField.type==typeof(string));
             dataInput.onValueChanged.AddListener(v=>parameterDraft=v);
             Btn("적용",12,196,85,23,()=>{AcceptParameter();Draw(page);});
-            Btn("기본값 복원",107,196,117,23,()=>{parameters.Remove(dataField.path);dataField=null;Draw(page);});
+            Btn("원본값으로",107,196,117,23,()=>{DraftStore.Set(paramDraft,dataField,null);dataField=null;Draw(page);});
             Btn("취소",236,196,75,23,()=>{dataField=null;Draw(page);});
             Btn("프로젝트에 저장",455,196,165,23,SaveParameters,true);
             return;
         }
         var search=Input("데이터 검색",dataSearch,12,40,261,23);
         search.onEndEdit.AddListener(value=>{if(value==dataSearch)return;dataSearch=value;dataPage=0;Draw(page);});
-        WorkshopUI.Label(content,dataEntry==null ? "에셋·영역 검색" : dataEntry.Title+"  /  속성 검색",282,40,220,23);
-        if(dataEntry!=null && ProjectContentVariants.CanCreate(dataEntry))
+        string blocked=dataEntry==null ? null : paramDraft.Blocked;
+        if(blocked!=null)
+        {   // 이 판에 없는 키가 든 문서: 저장을 막고 정리 버튼을 같은 자리에 둔다.
+            WorkshopUI.Label(content,blocked,282,40,220,23,8);
+            Btn("판 차이 정리",505,40,118,23,()=>{DraftStore.DropUnknown(paramDraft);Draw(page);},false,"이 판에 없는 항목 지우기");
+        }
+        else WorkshopUI.Label(content,dataEntry==null ? "에셋·영역 검색" : dataEntry.Title+"  /  속성 검색",282,40,220,23);
+        if(blocked==null && dataEntry!=null && ProjectContentVariants.CanCreate(dataEntry))
             Btn("복제해 만들기",505,40,118,23,()=>{
-                if(!JToken.DeepEquals(parameters,ProjectParameters.Values(parameterBasis)))
-                    throw new InvalidOperationException("변경값을 저장한 뒤 복제하세요.");
+                if(paramDraft.Dirty) throw new InvalidOperationException("변경값을 저장한 뒤 복제하세요.");
                 creatingContent=true;Draw(page);
             });
         var rows=new List<(string title,string id,Action action)>();
@@ -132,14 +135,11 @@ public sealed partial class RoomWorkshopWindow
                 rows.Add((f.label+"   "+DisplayValue(f)+lockNote,f.path+"   "+ValueLabel(f)+lockNote,
                     ()=>{dataField=f;parameterDraft=ParameterValue(f);referencePage=0;Draw(page);}));
             }
-            Btn("프로젝트에 저장",480,299,145,23,SaveParameters,true);
+            Btn("프로젝트에 저장",480,299,145,23,SaveParameters,true).interactable=blocked==null;
             Btn("프리셋",208,299,74,23,()=>{showPresets=true;presetPage=0;Draw(page);});
-            Btn("에셋 목록",380,299,92,23,()=>{
-                if(!JToken.DeepEquals(parameters,ProjectParameters.Values(parameterBasis)))
-                {Say("변경값을 저장하거나 되돌린 뒤 목록으로 이동하세요.");return;}
-                dataEntry=null;dataPage=0;dataSearch="";Draw(page);
-            });
-            Btn("변경 취소",288,299,85,23,()=>{parameters=ProjectParameters.Values(parameterBasis);Draw(page);});
+            // 초안은 DraftStore에 남으므로 저장하지 않고 목록으로 가도 된다. 헤더 '미저장 n'이 알린다.
+            Btn("에셋 목록",380,299,92,23,()=>{dataEntry=null;paramDraft=null;dataPage=0;dataSearch="";Draw(page);});
+            Btn("변경 취소",288,299,85,23,()=>{DraftStore.Revert(paramDraft);Draw(page);});
         }
         const int size=8;
         int pages=Math.Max(1,(rows.Count+size-1)/size);dataPage=Mathf.Clamp(dataPage,0,pages-1);
@@ -149,8 +149,7 @@ public sealed partial class RoomWorkshopWindow
         WorkshopUI.Label(content,(dataPage+1)+" / "+pages,77,299,73,23);
         Btn("다음",148,299,54,23,()=>{dataPage++;Draw(page);});
     }
-    private string ParameterValue(ProjectParameters.Field field)=>
-        parameters.TryGetValue(field.path,out var value)?(string)value:ProjectParameters.Original(dataEntry.source,field);
+    private string ParameterValue(ProjectParameters.Field field)=>paramDraft.Value(field);
     private string ValueLabel(ProjectParameters.Field field)
     {
         string value=ParameterValue(field);
@@ -161,22 +160,21 @@ public sealed partial class RoomWorkshopWindow
         field.type==typeof(bool) ? (bool.TryParse(ParameterValue(field),out bool on) && on ? "켜짐" : "꺼짐") : ValueLabel(field);
     private void SelectContent(ProjectParameterBindings.Entry item)
     {
-        dataEntry=item;dataFields=ProjectParameters.Fields(item.source,true);
-        parameterBasis=ProjectParameters.Snapshot(item.Document);parameters=ProjectParameters.Values(parameterBasis);
+        dataEntry=item;paramDraft=DraftStore.Open(item);dataFields=paramDraft.fields;
+        PlayerPrefs.SetString("Workshop.Opened."+item.Document,DateTime.UtcNow.Ticks.ToString("D19"));
         dataField=null;dataPage=0;dataSearch="";Draw(page);
+        if(paramDraft.Blocked!=null) Say(paramDraft.Blocked+" · 최신 제작판이면 [판 차이 정리]로 지운 뒤 저장하세요.");
     }
     private void AcceptParameter()
     {
-        string value=parameterDraft ?? ParameterValue(dataField);
-        if(ProjectParameters.Original(dataEntry.source,dataField)==value) parameters.Remove(dataField.path);
-        else {dataField.Parse(value);parameters[dataField.path]=value;}
+        DraftStore.Set(paramDraft,dataField,parameterDraft ?? paramDraft.Value(dataField));
         dataField=null;
     }
     private void SaveParameters()
     {
         if(dataEntry==null) return;
         if(dataField!=null) AcceptParameter();
-        parameterBasis=ProjectParameters.Save(dataEntry.Document,dataEntry.source,parameterBasis,parameters);
-        parameters=ProjectParameters.Values(parameterBasis); Draw(page); Say("DATA 저장됨 · "+dataEntry.source.name);
+        string when=DraftStore.Save(paramDraft);
+        Draw(page); Say("DATA 저장됨 · "+dataEntry.Title+(when!=null ? " · "+when+" 적용" : ""));
     }
 }

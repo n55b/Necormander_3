@@ -63,6 +63,8 @@ public sealed class ProjectParameterBindings : MonoBehaviour
                 ProjectParameters.Apply(e.source,ProjectParameters.Values(ProjectParameters.Snapshot(e.Document)))))loaded.Add(e.source);
         }
     }
+    // 미리 적용한 SO를 적용됨으로 표시한다. 그러지 않으면 제작판 시험 씬의 Awake→Bind→Load가 디스크 값으로 다시 덮는다.
+    internal static void MarkLoaded(ScriptableObject source){ if(source!=null) loaded.Add(source); }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void Reset()
     {

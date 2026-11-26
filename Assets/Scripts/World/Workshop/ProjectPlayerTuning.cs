@@ -14,13 +14,16 @@ internal sealed class ProjectPlayerTuning
     internal static readonly float[] Min={1,0,0,0,0}, Max={2,16,12,.25f,1}, Steps={.05f,.05f,.5f,.01f,.05f};
     private Dictionary<string,string> basis;
     private readonly JObject overrides = new();
+    private JObject saved;
     private static string Section(int i)=> i<2 ? "movement.json" : "melee.json";
+    internal bool Dirty=>!JToken.DeepEquals(overrides,saved);
 
     internal ProjectPlayerTuning()
     {
         basis=ProjectContentStore.WithDocument(Document,(folder,_)=>ProjectContentStore.Read(folder));
         foreach(var pair in basis) foreach(var field in JObject.Parse(pair.Value).Properties()) overrides[field.Name]=field.Value;
         Validate(basis);
+        saved=(JObject)overrides.DeepClone();
     }
     internal float Value(string key,float fallback)=>overrides.TryGetValue(key,out var v) ? (float)v : fallback;
     internal void Set(int i,float value)=>overrides[Fields[i]]=Mathf.Clamp(value,Min[i],Max[i]);
@@ -38,6 +41,7 @@ internal sealed class ProjectPlayerTuning
         basis=ProjectContentStore.Save(Document,basis,mine,Validate);
         overrides.RemoveAll();
         foreach(var pair in basis) foreach(var field in JObject.Parse(pair.Value).Properties()) overrides[field.Name]=field.Value;
+        saved=(JObject)overrides.DeepClone();
     }
     private static void Validate(Dictionary<string,string> files)
     {

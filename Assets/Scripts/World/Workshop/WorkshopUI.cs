@@ -53,6 +53,16 @@ internal static class WorkshopUI
         button.onClick.AddListener(()=>action());
         return button;
     }
+    // 전체 화면 차단막. click이 있으면 투명 버튼이 되어 누르면 닫는다(목록 팝업). 모달은 click 없이 뒤의 탭·메뉴 클릭만 막는다.
+    internal static Image Blocker(Transform parent,Color color,Action click=null)
+    {
+        var image=Box(parent,"Blocker",0,0,PixelViewport.Width,PixelViewport.Height,color);
+        if(click==null) return image;
+        var button=image.gameObject.AddComponent<Button>();
+        button.transition=Selectable.Transition.None; button.navigation=new Navigation{mode=Navigation.Mode.None};
+        button.onClick.AddListener(()=>click());
+        return image;
+    }
     internal static void TextPreview(TMP_InputField field, RectTransform parent, int y, int height)
     {
         var panel = Frame(parent,"문구 미리보기",12,y,608,height);

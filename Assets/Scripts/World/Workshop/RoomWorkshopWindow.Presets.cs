@@ -20,7 +20,7 @@ public sealed partial class RoomWorkshopWindow
             var basis=ProjectContentStore.WithDocument(PresetFolder,(path,_)=>ProjectContentStore.Read(path));
             var next=new Dictionary<string,string>(basis);
             string file=Guid.NewGuid().ToString("N")+".json";
-            next[file]=ProjectContentStore.Json(new JObject{["title"]=name,["values"]=parameters.DeepClone()});
+            next[file]=ProjectContentStore.Json(new JObject{["title"]=name,["values"]=paramDraft.values.DeepClone()});
             ProjectContentStore.Save(PresetFolder,basis,next,_=>{});
             Draw(page);Say("프리셋을 저장했습니다.");
         });
@@ -38,7 +38,7 @@ public sealed partial class RoomWorkshopWindow
                     if(!fields.TryGetValue(value.Key,out var field))throw new InvalidDataException("현재 원본에 없는 항목입니다. "+value.Key);
                     field.Parse((string)value.Value);
                 }
-                parameters=(JObject)values.DeepClone();
+                DraftStore.Replace(paramDraft,(JObject)values.DeepClone());
                 showPresets=false;dataField=null;Draw(page);Say("프리셋을 불러왔습니다. 프로젝트에 저장하면 적용됩니다.");
             });
         }
