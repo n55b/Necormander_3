@@ -9,10 +9,8 @@ public class MapGenerationDataSO : ScriptableObject
     public int totalRoomCount = 15;
     public float gridUnit = 1.0f;
     
-    [Header("아이작식 맵 배치")]
-    [Tooltip("기존 물리 분산 방식 대신 아이작 스타일 그리드 배치 및 텔레포트 이동 사용 여부")]
-    public bool useIsaacStylePlacement = true;
-    [Tooltip("아이작 스타일 배치 시 방 간의 배치 간격 (물리 충돌 방지용)")]
+    [Header("격자 배치")]
+    [Tooltip("격자 칸 사이의 월드 간격. 방끼리 겹치지 않을 만큼 넓게 둔다")]
     public float gridSpacing = 160f;
     [SerializeField, Min(1f), Tooltip("던전 타일을 병합하는 동안 한 프레임에 사용할 작업 시간입니다. 이 시간을 넘으면 다음 방은 다음 프레임에서 처리합니다.")]
     private float roomMergeBudgetMs = 4f;
@@ -50,13 +48,6 @@ public class MapGenerationDataSO : ScriptableObject
     [Tooltip("문에서 '방 바깥'(통로 쪽)으로 나가는 깊이(유닛). 문틈과 통로에 끼는 걸 막는 쪽.")]
     public float doorKeepOutOutward = 4f;
 
-    [Header("방 펼치기 설정")]
-    public float spreadingForce = 5f;
-    public float maxVelocityThreshold = 0.1f;
-    public int maxPhysicsIteration = 500;
-    public float minSpawnRadius = 5f;
-    public float maxSpawnRadius = 12f;
-
     [Header("복도 설정")]
     public TileBase floorTile;
     public TileBase wallTile;
@@ -67,11 +58,6 @@ public class MapGenerationDataSO : ScriptableObject
     public GameObject doorDown;
     public GameObject doorLeft;
     public GameObject doorRight;
-
-    [Tooltip("방의 벽을 뚫고 나올 때 강제로 나가는 직선 거리")]
-    public int corridorStraightLength = 3;
-    [Tooltip("통로가 다른 방의 벽을 피해가는 최소 거리 (통로 벽 두께 감안)")]
-    public int corridorAvoidMargin = 2;
 
     [Header("튜토리얼")]
     [Tooltip("튜토리얼 방을 '지나갈 순서대로'. 최초 1회 새 게임에서 이 방들만 배치한다.\n\n" +

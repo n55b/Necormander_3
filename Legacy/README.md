@@ -39,6 +39,7 @@
 | `Runtime/Player` | Unity 참조가 없는 이동 코드 백업 | `PlayerController`, `PixelActorMotion` |
 | `Runtime/Actors` | 참조가 없고 스크립트가 제거된 이전 상태 에셋 | `Assets/Scripts/Entities`와 적 AI 패턴 |
 | `Runtime/Map` | 배치 중 방을 생성하던 이전 격자형 던전 구현 | `DungeonLayoutPlanner`, `DungeonLayout`, `MapGenerator` |
+| `Runtime/Map/*.PhysicsSpread.cs.txt` | 맵 물리 확산 배치와 그린 복도 연결 경로(`useIsaacStylePlacement=false`). `MapGenerator`의 비격자 본문·복도 연결·통로 길이 기록, `RoomInstance`의 Rigidbody2D·`CleanupPhysics`, `MapGenerationDataSO`의 전환 스위치와 펼치기·복도 조절값. 2026-11-26 퇴역 | 격자 배치(`DungeonLayoutPlanner` → `MapGenerator.IsaacStyleGenerationSequence`). 꺾인 복도 칠하기 `CorridorPainter`는 passages 검사용으로 남김 |
 | `Runtime/RightClick` | 우클릭 데이터 시스템(패링·카운터·가드 `RightClickDataSO`·`RightClickConfig`·`RightClickIconFactory`, PlayerPrefs 해금·선택 `RightClickUnlockState`, `SOData/RightClick` 에셋 6개). 2026-11-26 퇴역 | 우클릭은 소환수 스킬(`MinionSkill` → `PlayerSkillController.ExecuteMinionSkill`) |
 | `UI` | 버튼 밑줄 호버·컨트롤 강조(스크립트, 설정 SO, 에디터) | `UIChrome`, `RoundedPlate`, `VectorUiImage` |
 | `Art/UI/Vector` | 이전 UI 벡터 원본 SVG와 매니페스트 | `ARTIST/UI/Vector` |

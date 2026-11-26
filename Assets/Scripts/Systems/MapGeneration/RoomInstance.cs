@@ -19,14 +19,8 @@ public class RoomInstance : MonoBehaviour
     public Tilemap unsteppableTilemap;
 
     [HideInInspector] public int debugDepth = -1; // 맵 생성 시 계산된 깊이 저장용
-    [HideInInspector] public int phaseIndex = -1; // 방이 생성된 맵 생성 페이즈 인덱스
     [HideInInspector] public Vector2Int gridPosition = Vector2Int.zero; // 아이작 스타일 가상 그리드 좌표
     [HideInInspector] public bool isRevealedOnMinimap = false; // 미니맵에 밝혀져 전사된 상태인지 여부
-
-    public float GetDiameter()
-    {
-        return Mathf.Max(roomSize.x, roomSize.y);
-    }
 
     /// <summary>
     /// 이 월드 좌표가 방의 실제 바닥 칸 위인지.
@@ -101,8 +95,6 @@ public class RoomInstance : MonoBehaviour
     public static System.Action<RoomInstance> OnPlayerEnteredRoom;
 
     private IRoomEvent _roomEvent;
-    private Rigidbody2D _rb;
-    private BoxCollider2D _physicsCollider;
     private BoxCollider2D _triggerCollider;
 
     // ❌ 기존 사각형 스프라이트 안개용 필드들 완전 삭제
@@ -196,21 +188,6 @@ public class RoomInstance : MonoBehaviour
             // BossAIPatternSO 의 방 Bounds)은 지금 2배로 크다. 거슬리면 그때 월드 크기 프로퍼티를 따로 판다.
             roomSize = new Vector2Int(Mathf.CeilToInt(mainTM.localBounds.size.x), Mathf.CeilToInt(mainTM.localBounds.size.y));
         }
-
-        _rb = gameObject.AddComponent<Rigidbody2D>();
-        _rb.gravityScale = 0;
-        _rb.interpolation = RigidbodyInterpolation2D.None;
-        _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-        _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-
-        PhysicsMaterial2D mat = new PhysicsMaterial2D("Slippery") { friction = 0f, bounciness = 0f };
-        _rb.sharedMaterial = mat;
-
-        _physicsCollider = gameObject.AddComponent<BoxCollider2D>();
-        float colliderPadding = 4.0f;
-        _physicsCollider.size = new Vector2(roomSize.x + colliderPadding, roomSize.y + colliderPadding);
-        _physicsCollider.offset = centerOffset;
-        _physicsCollider.sharedMaterial = mat;
 
         _triggerCollider = gameObject.AddComponent<BoxCollider2D>();
         _triggerCollider.isTrigger = true;
@@ -487,12 +464,6 @@ public class RoomInstance : MonoBehaviour
     /// GetAnimationFrameCount 로 판별하므로 AnimatedTile / RuleTile / 커스텀 TileBase 를 가리지 않는다.
     /// 추려낸 뒤 기본값은 '정지' — MapGenerator 가 현재 방 + 인접 방만 다시 켜준다.
     /// </summary>
-    public void FinalizeAnimatedCells()
-    {
-        var work = FinalizeAnimatedCells(false);
-        while (work.MoveNext()) { }
-    }
-
     internal IEnumerator FinalizeAnimatedCells(bool staged)
     {
         _animatedCells.Clear();
@@ -637,17 +608,6 @@ private HashSet<Vector2Int> _myTiles = null;
         pos.x += offset.x;
         pos.y += offset.y;
         transform.position = pos;
-    }
-
-    public void CleanupPhysics()
-    {
-        if (_rb != null)
-        {
-            _rb.simulated = false;
-            _rb.bodyType = RigidbodyType2D.Static;
-        }
-        if (_physicsCollider != null) MapGenerator.SafeDestroy(_physicsCollider);
-        if (_rb != null) MapGenerator.SafeDestroy(_rb);
     }
 
     private Transform FindTransformRecursive(Transform current, string targetName)

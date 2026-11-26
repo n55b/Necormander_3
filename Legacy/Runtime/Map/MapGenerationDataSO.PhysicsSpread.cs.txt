@@ -1,0 +1,27 @@
+// 보관: 물리 확산 배치 전환 스위치와 펼치기·그린 복도 조절값
+// 원래 위치: Assets/Scripts/SOData/Map/MapGenerationDataSO.cs
+// 기준 커밋: c0f9e0bb7c941e321555db6a3d312f652b31aa8c (이 코드를 지우기 직전)
+// 2026-11-26 퇴역(L5 맵 물리 확산 경로 보관).
+// MapGenerationData.asset에 남은 키는 Unity가 무시한다.
+
+// ---- 원래 MapGenerationDataSO.cs:12-16 배치 방식 스위치 ----
+    [Header("아이작식 맵 배치")]
+    [Tooltip("기존 물리 분산 방식 대신 아이작 스타일 그리드 배치 및 텔레포트 이동 사용 여부")]
+    public bool useIsaacStylePlacement = true;
+    [Tooltip("아이작 스타일 배치 시 방 간의 배치 간격 (물리 충돌 방지용)")]
+    public float gridSpacing = 160f;
+
+// ---- 원래 MapGenerationDataSO.cs:53-58 방 펼치기 설정(이미 읽는 곳 없음) ----
+    [Header("방 펼치기 설정")]
+    public float spreadingForce = 5f;
+    public float maxVelocityThreshold = 0.1f;
+    public int maxPhysicsIteration = 500;
+    public float minSpawnRadius = 5f;
+    public float maxSpawnRadius = 12f;
+
+// ---- 원래 MapGenerationDataSO.cs:71-74 그린 복도 직선 길이·회피 여백 ----
+    [Tooltip("방의 벽을 뚫고 나올 때 강제로 나가는 직선 거리")]
+    public int corridorStraightLength = 3;
+    [Tooltip("통로가 다른 방의 벽을 피해가는 최소 거리 (통로 벽 두께 감안)")]
+    public int corridorAvoidMargin = 2;
+
