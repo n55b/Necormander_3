@@ -17,6 +17,12 @@ public static class CriticalItemsCheck
     public static void Run()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("플레이를 끈 뒤 실행하세요.");
+        // 게임과 같은 DATA 값(제작실 저장분)을 적용한 채로 검사하고, 끝나면 에셋 값을 되돌린다.
+        ProjectParameterBindings.WithPublished(Verify);
+    }
+
+    private static void Verify()
+    {
         var growth = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>("Assets/SOData/Registry/Growth Reward Registry.asset");
         var shop = AssetDatabase.LoadAssetAtPath<ShopRegistrySO>("Assets/SOData/Registry/Shop Registry.asset");
         var charm = growth.startingItem;

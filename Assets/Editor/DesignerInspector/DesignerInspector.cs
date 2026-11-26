@@ -1,7 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -41,6 +45,66 @@ public sealed class DesignerInspectorView
     private const float Gap = 2f;
     public static bool IsProjectType(Type type) => type != null && type.Assembly == typeof(PlayerController).Assembly;
 
+    // 이 화면이 그리는 SO의 DATA 덮어쓰기 키. 파일 수정 시각이 같으면 다시 읽지 않는다.
+    private string overridePath; private DateTime overrideStamp; private HashSet<string> overrides = new HashSet<string>();
+    private bool owned;
+    // 레벨 제작실이 편집을 맡은 타입. 도메인이 제작실로 옮겨 갈 때마다 한 줄씩 더한다(상태이상은 P1 S8).
+    internal static readonly Type[] OwnedByWorkshop = Array.Empty<Type>();
+
+    private static string DataFile(UnityEngine.Object target, string root)
+    {
+        string path = AssetDatabase.GetAssetPath(target), group = ProjectParameterBindings.Group(path);
+        return group == null ? null : Path.Combine(root ?? ProjectContentStore.Root, group, AssetDatabase.AssetPathToGUID(path), "parameters.json");
+    }
+    // root: 검사는 임시 폴더를 넘겨 실제 DATA와 그 잠금·저널을 건드리지 않는다.
+    internal static HashSet<string> DataOverrides(UnityEngine.Object target, string root = null)
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        string file = DataFile(target, root);
+        try { if (file != null && File.Exists(file)) foreach (var p in JObject.Parse(File.ReadAllText(file)).Properties()) keys.Add(p.Name); }
+        catch (Exception e) when (e is IOException || e is Newtonsoft.Json.JsonException) { }   // 읽을 수 없는 문서는 게임도 기본값을 쓴다.
+        return keys;
+    }
+    private HashSet<string> CachedOverrides(UnityEngine.Object target)
+    {
+        string file = DataFile(target, null);
+        var stamp = file != null && File.Exists(file) ? File.GetLastWriteTimeUtc(file) : DateTime.MinValue;
+        if (file == overridePath && stamp == overrideStamp) return overrides;
+        overridePath = file; overrideStamp = stamp;
+        return DataOverrides(target);
+    }
+    // SerializedProperty 경로 → ProjectParameters 키. "a.Array.data[2].b" → "a/@<id>/b" 또는 "a/2/b"
+    internal static string DataKey(SerializedProperty p)
+    {
+        var parts = new List<string>(); object node = p.serializedObject.targetObject;
+        foreach (string segment in p.propertyPath.Replace(".Array.data[", "[").Split('.'))
+        {
+            int bracket = segment.IndexOf('[');
+            string name = bracket < 0 ? segment : segment.Substring(0, bracket);
+            parts.Add(name);
+            FieldInfo field = null;
+            for (var t = node?.GetType(); t != null && field == null; t = t.BaseType)
+                field = t.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            node = field?.GetValue(node);
+            if (bracket < 0) continue;
+            int index = int.Parse(segment.Substring(bracket + 1).TrimEnd(']'), CultureInfo.InvariantCulture);
+            var list = node as IList; node = list != null && index < list.Count ? list[index] : null;
+            string Id(object e) => e?.GetType().GetField("id")?.GetValue(e) as string;
+            string id = Id(node);
+            // ProjectParameters.Add와 같은 규칙: 같은 id가 앞에 이미 있으면 인덱스 키. 목록의 +는 id까지 복제한다.
+            bool first = !string.IsNullOrEmpty(id) && Enumerable.Range(0, index).All(i => Id(list[i]) != id);
+            parts.Add(first ? "@" + Uri.EscapeDataString(id) : index.ToString(CultureInfo.InvariantCulture));
+        }
+        return string.Join("/", parts);
+    }
+    // 자식이 덮인 묶음도 통째로 회색이다. PropertyField(includeChildren)는 자식을 따로 막을 수 없다.
+    private bool Overridden(SerializedProperty p)
+    {
+        if (overrides.Count == 0) return false;
+        string key = DataKey(p);
+        return overrides.Contains(key) || overrides.Any(k => k.StartsWith(key + "/", StringComparison.Ordinal));
+    }
+
     public void Draw(SerializedObject serialized)
     {
         using var propertyFonts = new KoreanEditorText.PropertyFontScope(EditorStyles.label, EditorStyles.boldLabel);
@@ -67,6 +131,11 @@ public sealed class DesignerInspectorView
         KoreanEditorText.Help(Application.isPlaying
             ? "씬 오브젝트의 실행 중 수정은 종료 시 되돌아갑니다. SO 에셋 수정은 남을 수 있으니 원래 값을 기록하세요."
             : "이름 위에 마우스를 올리면 단위와 설명이 나옵니다. 곡선은 클릭해서 편집합니다.", MessageType.None);
+        var target = serialized.targetObject;
+        owned = Array.Exists(OwnedByWorkshop, t => t.IsInstanceOfType(target));
+        overrides = target is ScriptableObject ? CachedOverrides(target) : new HashSet<string>();
+        if (owned) KoreanEditorText.Help("레벨 제작실 > 게임 콘텐츠에서 편집합니다. 여기서는 읽기만 합니다.", MessageType.Info);
+        else if (overrides.Count > 0) KoreanEditorText.Help("DATA가 덮어씀: " + overrides.Count + "개 항목은 제작실 값이 게임에 적용됩니다. 회색 항목은 여기서 바꿔도 반영되지 않습니다.", MessageType.Warning);
         var iterator = serialized.GetIterator();
         bool enter = true;
         while (iterator.NextVisible(enter))
@@ -195,7 +264,7 @@ public sealed class DesignerInspectorView
     private void DrawValue(Rect rect, SerializedProperty p)
     {
         var label = Content(p);
-        using (new EditorGUI.DisabledScope(DesignerInspectorLabels.ReadOnly(Field(p))))
+        using (new EditorGUI.DisabledScope(owned || DesignerInspectorLabels.ReadOnly(Field(p)) || Overridden(p)))
         {
             if (p.isArray && p.propertyType != SerializedPropertyType.String)
             {

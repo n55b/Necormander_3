@@ -101,13 +101,15 @@ public sealed class ProjectParameterBindings : MonoBehaviour
         var so=AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
         return so!=null && so.GetType().Assembly==typeof(WorkshopRoom).Assembly ? new Entry{id=id,group=group,source=so} : null;
     }
-    public static Entry[] Published()
+    // strict: 빌드 검증. 아니면 틀린 문서 하나만 경고하고 건너뛴다(다른 판에서 만든 문서).
+    public static Entry[] Published(bool strict=false)
     {
         if(!Directory.Exists(ProjectContentStore.Root)) return Array.Empty<Entry>();
         var entries=new List<Entry>();
-        var definitions=ProjectContentVariants.Definitions().ToArray();
-        void Dependencies(Entry domain,Newtonsoft.Json.Linq.JObject values)
+        var definitions=ProjectContentVariants.Definitions(strict).ToArray();
+        List<Entry> Dependencies(Entry domain,Newtonsoft.Json.Linq.JObject values)
         {
+            var found=new List<Entry>{domain};
             foreach(var field in ProjectParameters.Fields(domain.source).Where(f=>f.IsReference))
             {
                 string id=(string)values[field.path];
@@ -116,41 +118,59 @@ public sealed class ProjectParameterBindings : MonoBehaviour
                 var target=EntryFor(definition?.template ?? id);
                 if(target==null || !field.type.IsInstanceOfType(target.source))
                     throw new InvalidDataException(domain.Document+"/"+field.path+" · 연결할 콘텐츠를 찾을 수 없습니다. "+id);
-                entries.Add(target);
+                found.Add(target);
             }
+            return found;
+        }
+        // 문서 하나를 검증한 뒤에만 entries에 넣는다.
+        void Document(string what,Func<List<Entry>> read)
+        {
+            try{ entries.AddRange(read()); }
+            catch(Exception error) when(!strict && ProjectContentStore.IsDataError(error))
+            { Debug.LogWarning("[DATA] "+what+" · "+error.Message+" · 이 문서만 건너뜁니다."); }
         }
         if(definitions.Length>0)
         {
             entries.AddRange(All().Where(e=>e.source is GrowthRegistrySO or ShopRegistrySO));
             foreach(var definition in definitions)
-            {
-                var template=EntryFor(definition.template);
-                if(template==null || !ProjectContentVariants.CanCreate(template))
-                    throw new InvalidDataException("콘텐츠의 기반 원본을 확인하세요. "+definition.id);
-                entries.Add(template);
-                Dependencies(template,ProjectParameters.Values(definition.files));
-            }
+                Document(ProjectContentVariants.Folder+"/"+definition.id,()=>{
+                    var template=EntryFor(definition.template);
+                    if(template==null || !ProjectContentVariants.CanCreate(template))
+                        throw new InvalidDataException("콘텐츠의 기반 원본을 확인하세요. "+definition.id);
+                    return Dependencies(template,ProjectParameters.Values(definition.files));
+                });
         }
         foreach(string file in Directory.EnumerateFiles(ProjectContentStore.Root,"parameters.json",SearchOption.AllDirectories))
         {
             if(definitions.Any(d=>Path.GetFullPath(Path.Combine(ProjectContentStore.Root,ProjectContentVariants.Folder,d.id,"parameters.json"))==Path.GetFullPath(file)))
                 continue;
-            var entry=EntryFor(Path.GetFileName(Path.GetDirectoryName(file)));
-            if(entry==null || Path.GetFullPath(Path.Combine(ProjectContentStore.Root,entry.Document,"parameters.json"))!=Path.GetFullPath(file))
-                throw new InvalidDataException("설정 대상 에셋을 찾을 수 없습니다. "+file);
-            entries.Add(entry);
-            Dependencies(entry,ProjectParameters.Values(ProjectParameters.Snapshot(entry.Document)));
+            Document(file,()=>{
+                var entry=EntryFor(Path.GetFileName(Path.GetDirectoryName(file)));
+                if(entry==null || Path.GetFullPath(Path.Combine(ProjectContentStore.Root,entry.Document,"parameters.json"))!=Path.GetFullPath(file))
+                    throw new InvalidDataException("설정 대상 에셋을 찾을 수 없습니다. "+file);
+                return Dependencies(entry,ProjectParameters.Values(ProjectParameters.Snapshot(entry.Document)));
+            });
         }
         return entries.GroupBy(e=>e.id).Select(g=>g.First()).ToArray();
     }
     public static Entry[] All()=>AssetDatabase.FindAssets("t:ScriptableObject",new[]{"Assets/SOData","Assets/Resources"})
         .Select(EntryFor).Where(e=>e!=null).OrderBy(e=>e.group,StringComparer.Ordinal).ThenBy(e=>e.source.name,StringComparer.Ordinal).ToArray();
-    public static bool HasLiveValues(string path)=>Application.isPlaying && path.EndsWith(".asset",StringComparison.Ordinal) &&
+    // 편집 모드 검사가 DATA 값을 적용한 동안. Editor 어셈블리의 저장 필터가 읽는다.
+    public static bool EditCheck { get; private set; }
+    // 편집 모드 검사를 게임과 같은 DATA 값으로 돌린다. 끝나면 에셋을 원래 값으로 되돌린다.
+    public static void WithPublished(Action check)
+    {
+        if(Application.isPlaying){ check(); return; }
+        EditCheck=true;
+        try{ Bind(Published(strict:true)); check(); }
+        finally{ ProjectParameters.Restore(); ProjectContentVariants.Release(); loaded.Clear(); byId.Clear(); bySource.Clear(); EditCheck=false; }
+    }
+    public static bool HasLiveValues(string path)=>(Application.isPlaying || EditCheck) && path.EndsWith(".asset",StringComparison.Ordinal) &&
         (ProjectParameters.Applied(AssetDatabase.LoadAssetAtPath<ScriptableObject>(path)) ||
         ProjectContentVariants.Protects(AssetDatabase.LoadAssetAtPath<ScriptableObject>(path)));
     public static void ValidatePublished()
     {
-        var published=Published();
+        var published=Published(strict:true);
         void Check(Entry entry,Newtonsoft.Json.Linq.JObject values)
         {
             ProjectParameters.RequireKeys(entry.source,entry.Document);
@@ -162,7 +182,7 @@ public sealed class ProjectParameterBindings : MonoBehaviour
             }
         }
         foreach(var entry in published)Check(entry,ProjectParameters.Values(ProjectParameters.Snapshot(entry.Document)));
-        foreach(var def in ProjectContentVariants.Definitions())
+        foreach(var def in ProjectContentVariants.Definitions(strict:true))
             Check(published.First(e=>e.id==def.template),ProjectParameters.Values(def.files));
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

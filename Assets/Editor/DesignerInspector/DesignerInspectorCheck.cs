@@ -75,6 +75,7 @@ public static class DesignerInspectorCheck
         CheckEditorsAndUndo();
         CheckDefaults();
         CheckStatusBalance();
+        CheckDataOverride();
         Directory.CreateDirectory("Logs");
         string summary = $"[DesignerInspector] PASS: {objects} objects / {types.Count} types / {fields.Count} unique visible fields; labels read-only, Undo, nested fields, multi-edit, defaults.";
         File.WriteAllText("Logs/Designer-inspector-coverage.txt", summary + "\n\n" + report);
@@ -117,6 +118,39 @@ public static class DesignerInspectorCheck
             Object.DestroyImmediate(go);
         }
         Require(before == JsonUtility.ToJson(balance), "검사 후 상태이상 에셋 변경됨");
+    }
+
+    // DATA 덮어쓰기 배너가 읽는 키와 인스펙터 경로 → DATA 키 변환. 임시 폴더만 쓰고 실제 DATA와 에셋은 건드리지 않는다.
+    private static void CheckDataOverride()
+    {
+        const string path = "Assets/SOData/Items/ClothArmor.asset";
+        var asset = AssetDatabase.LoadAssetAtPath<ItemSO>(path);
+        Require(asset != null && asset.effects.Count > 0 && !string.IsNullOrEmpty(asset.effects[0].id), "DATA 덮어쓰기 검사용 아이템 누락: " + path);
+        string root = Path.Combine(Path.GetTempPath(), "DesignerDataOverride-" + Guid.NewGuid().ToString("N"));
+        ItemSO copy = null;
+        try
+        {
+            string file = Path.Combine(root, ProjectParameterBindings.Group(path), AssetDatabase.AssetPathToGUID(path), "parameters.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(file));
+            File.WriteAllText(file, "{\"maxStack\":\"17\"}");
+            Require(DesignerInspectorView.DataOverrides(asset, root).Contains("maxStack"), "DATA 덮어쓰기 키 읽기 실패");
+            Require(DesignerInspectorView.DataOverrides(asset, Path.Combine(root, "none")).Count == 0, "DATA 문서 없는 에셋에 덮어쓰기 표시");
+
+            copy = Object.Instantiate(asset);
+            string id = copy.effects[0].id;
+            copy.effects.Add(copy.effects[0]);   // 목록 +처럼 같은 id가 두 번 나온다.
+            using var serialized = new SerializedObject(copy);
+            string first = DesignerInspectorView.DataKey(serialized.FindProperty("effects.Array.data[0]"));
+            string second = DesignerInspectorView.DataKey(serialized.FindProperty("effects.Array.data[" + (copy.effects.Count - 1) + "]"));
+            Require(first == "effects/@" + Uri.EscapeDataString(id), "목록 원소 키(@id) 변환 실패: " + first);
+            Require(second == "effects/" + (copy.effects.Count - 1), "중복 id 원소의 순서 키 변환 실패: " + second);
+            Require(DesignerInspectorView.DataKey(serialized.FindProperty("maxStack")) == "maxStack", "필드 키 변환 실패");
+        }
+        finally
+        {
+            if (copy != null) Object.DestroyImmediate(copy);
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
     }
 
     private static void CheckEditorsAndUndo()

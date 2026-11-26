@@ -67,7 +67,8 @@ public sealed class ProjectContentBuild : BuildPlayerProcessor, IProcessSceneWit
 
 internal sealed class ProjectContentAssetSaveFilter : AssetModificationProcessor
 {
-    private static string[] OnWillSaveAssets(string[] paths)=>UnityEngine.Application.isPlaying ?
+    // 플레이 중이나 WithPublished 검사 중에는 DATA 값이 적용된 에셋을 저장하지 않는다.
+    private static string[] OnWillSaveAssets(string[] paths)=>UnityEngine.Application.isPlaying || ProjectParameterBindings.EditCheck ?
         paths.Where(path=>!ProjectParameterBindings.HasLiveValues(path) &&
             !ProjectTranslations.HasLiveValues(AssetDatabase.LoadAssetAtPath<UnityEngine.Localization.Tables.StringTable>(path)) &&
             !ProjectTranslations.HasLiveKeys(AssetDatabase.LoadAssetAtPath<UnityEngine.Localization.Tables.SharedTableData>(path))).ToArray() : paths;

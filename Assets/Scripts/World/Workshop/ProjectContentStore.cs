@@ -30,10 +30,13 @@ public static class ProjectContentStore
     private static void RecoverOnStartup()=>TryReadPublished("저장 복구",RecoverPending);
     internal static string Json(JToken value) => value.ToString(Formatting.Indented).Replace("\r\n", "\n") + "\n";
     private static readonly HashSet<string> reported=new();
+    // 문서 내용이나 디스크 문제로 난 예외. 그 문서만 건너뛰고 게임 기본값을 쓴다.
+    internal static bool IsDataError(Exception error)=>error is IOException or InvalidDataException or JsonException or
+        ArgumentException or FormatException or OverflowException or KeyNotFoundException;
     internal static bool TryReadPublished(string document,Action read)
     {
         try{read();reported.Remove(document);return true;}
-        catch(Exception error) when(error is IOException or InvalidDataException or JsonException or ArgumentException or FormatException or OverflowException or KeyNotFoundException)
+        catch(Exception error) when(IsDataError(error))
         {
             if(reported.Add(document)) Debug.LogWarning("[DATA] "+document+" · "+error.Message+" · 게임 기본값을 사용합니다.");
             return false;

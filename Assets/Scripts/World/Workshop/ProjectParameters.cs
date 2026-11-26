@@ -178,6 +178,7 @@ public static class ProjectParameters
     internal static bool Applied(ScriptableObject source)=>source!=null && originals.ContainsKey(source);
     internal static string Original(ScriptableObject source,Field field)=>originals.TryGetValue(source,out var values) &&
         values.TryGetValue(field.path,out var original) ? field.Format(original) : field.Text();
+    private static readonly HashSet<string> skipped=new(StringComparer.Ordinal);
     internal static void Apply(ScriptableObject source,JObject values)
     {
         if(values.Count==0 && !Applied(source)) return;
@@ -185,9 +186,16 @@ public static class ProjectParameters
         var pending=new Dictionary<Field,object>();
         foreach(var pair in values)
         {
-            if(!fields.TryGetValue(pair.Key,out var field) || pair.Value.Type!=JTokenType.String)
-                throw new InvalidDataException(source.name+" 에 없는 필드: "+pair.Key);
-            pending[field]=field.Parse((string)pair.Value);
+            try
+            {
+                if(!fields.TryGetValue(pair.Key,out var field) || pair.Value.Type!=JTokenType.String)
+                    throw new InvalidDataException(source.name+" 에 없는 필드: "+pair.Key);
+                pending[field]=field.Parse((string)pair.Value);
+            }
+            catch(Exception error) when(ProjectContentStore.IsDataError(error))
+            {   // 다른 판에서 만든 문서: 이 항목만 건너뛰고 나머지는 적용한다. 빌드 검증(ValidatePublished)과 Save 검증은 그대로 막는다.
+                if(skipped.Add(source.name+"/"+pair.Key)) Debug.LogWarning("[DATA] "+error.Message+" · 이 항목만 건너뜁니다.");
+            }
         }
         if(originals.TryGetValue(source,out var prior))
             foreach(var p in prior) if(fields.TryGetValue(p.Key,out var f)) f.write(p.Value);
@@ -216,7 +224,11 @@ public static class ProjectParameters
         var saved=ProjectContentStore.Save(document,basis,next,merged=>{
             RequireKeys(target,document);
             var fields=Fields(target).ToDictionary(f=>f.path);
-            foreach(var p in Values(merged)) fields[p.Key].Parse((string)p.Value);
+            foreach(var p in Values(merged))
+            {
+                if(!fields.TryGetValue(p.Key,out var f)) throw new InvalidDataException("이 판에 없는 항목 "+p.Key+" · 제작판을 갱신하세요");
+                f.Parse((string)p.Value);
+            }
         });
         Apply(target,Values(saved)); return saved;
     }
