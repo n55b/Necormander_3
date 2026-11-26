@@ -158,7 +158,7 @@ public sealed partial class RoomWorkshopWindow
         return dataCatalog.FirstOrDefault(e=>e.id==value)?.Title ?? (string.IsNullOrEmpty(value)?"비어 있음":"기존 연결");
     }
     private string DisplayValue(ProjectParameters.Field field)=>field.type.IsEnum ? DesignerInspectorLabels.EnumLabel(field.type,ParameterValue(field)) :
-        field.type==typeof(bool) ? (ParameterValue(field)=="True" ? "켜짐" : "꺼짐") : ValueLabel(field);
+        field.type==typeof(bool) ? (bool.TryParse(ParameterValue(field),out bool on) && on ? "켜짐" : "꺼짐") : ValueLabel(field);
     private void SelectContent(ProjectParameterBindings.Entry item)
     {
         dataEntry=item;dataFields=ProjectParameters.Fields(item.source,true);
