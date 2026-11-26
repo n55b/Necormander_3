@@ -1,16 +1,18 @@
 [CmdletBinding()]
 param(
     [ValidateSet('Baseline', 'Assets', 'Presentation', 'World', 'Dungeon', 'Combat', 'Save', 'Windows', 'Performance', 'Typography', 'UIResolution', 'ArtDirection', 'RenderBudget', 'CombatPolish', 'LevelWorkshop', 'WorkshopPlayMode','ProjectContent')]
-    [string] $Suite = 'Baseline',
+    [string[]] $Suite = @('Baseline'),
     [string] $UnityEditor,
     [string] $CompareTo,
     [switch] $IncludeWindowsBuild
 )
 
 $ErrorActionPreference = 'Stop'
+function Want([string[]] $names) { @($Suite | Where-Object { $_ -in $names }).Count -gt 0 }
 if ($CompareTo) {
-    if ($Suite -notin @('Baseline', 'Assets')) { throw '-CompareTo requires the Baseline or Assets suite.' }
-    $CompareTo = (Resolve-Path -LiteralPath $CompareTo).Path
+    if (-not (Want @('Baseline', 'Assets'))) { throw '-CompareTo requires the Baseline or Assets suite.' }
+    # Read now: the shared workspace clears its logs before this run starts.
+    $previousInventory = Get-Content -LiteralPath (Resolve-Path -LiteralPath $CompareTo).Path -Raw
 }
 $source = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $legacyExtensions = '.cs', '.dll', '.exe', '.asmdef', '.asmref', '.shader', '.shadergraph', '.compute',
@@ -33,13 +35,17 @@ if (-not $UnityEditor) {
 }
 $UnityEditor = (Resolve-Path -LiteralPath $UnityEditor).Path
 
-$runId = [guid]::NewGuid().ToString('N').Substring(0, 12)
+# One reusable isolated copy. Mirroring keeps its Library (import cache), so only the first run imports everything.
+# The id must stay 12 hex digits: helper scripts check the folder name and derive the product name from it.
+$runId = '5a4dbc0ffee0'
 $sandbox = Join-Path ([IO.Path]::GetTempPath()) "NecromanderVerification-$runId"
-New-Item -ItemType Directory -Path $sandbox | Out-Null
+New-Item -ItemType Directory -Path $sandbox -Force | Out-Null
+$lock = try { [IO.File]::Open("$sandbox.lock", 'OpenOrCreate', 'ReadWrite', 'None') }
+    catch { throw "Another verification run is using $sandbox." }
 Write-Host "Verification workspace: $sandbox"
 
 foreach ($name in @('Assets', 'Packages', 'ProjectSettings', 'ARTIST', 'DATA')) {
-    & robocopy.exe (Join-Path $source $name) (Join-Path $sandbox $name) /E /XJ /R:1 /W:1 /NFL /NDL /NJH /NJS /NP
+    & robocopy.exe (Join-Path $source $name) (Join-Path $sandbox $name) /MIR /XJ /R:1 /W:1 /NFL /NDL /NJH /NJS /NP
     if ($LASTEXITCODE -ge 8) { throw "Failed to copy $name (robocopy $LASTEXITCODE)." }
 }
 
@@ -60,7 +66,14 @@ foreach ($item in @{ companyName = 'NecromanderVerification'; productName = "Ver
 }
 [IO.File]::WriteAllText($settingsPath, $settings)
 
+# Reset per-run state so a reused workspace behaves like a fresh one.
+$product = "Verification-$runId"
+foreach ($stale in @((Join-Path ([Environment]::GetFolderPath('UserProfile')) "AppData/LocalLow/NecromanderVerification/$product"),
+    "HKCU:/Software/NecromanderVerification/$product", "HKCU:/Software/Unity/UnityEditor/NecromanderVerification/$product")) {
+    if (Test-Path -LiteralPath $stale) { Remove-Item -LiteralPath $stale -Recurse -Force }
+}
 $logs = Join-Path $sandbox 'Logs/Verification'
+if (Test-Path -LiteralPath $logs) { Remove-Item -LiteralPath $logs -Recurse -Force }
 New-Item -ItemType Directory -Path $logs -Force | Out-Null
 $results = [Collections.Generic.List[string]]::new()
 
@@ -87,10 +100,10 @@ function Invoke-EditorCheck {
     Write-Host $result
 }
 
-if ($Suite -in @('Baseline', 'Assets')) {
+if ((Want @('Baseline', 'Assets'))) {
     Invoke-EditorCheck 'ProjectVerification.CaptureAssets'
     if ($CompareTo -and $results[0].StartsWith('PASS ')) {
-        $previous = Get-Content -LiteralPath $CompareTo -Raw | ConvertFrom-Json
+        $previous = $previousInventory | ConvertFrom-Json
         $current = Get-Content -LiteralPath (Join-Path $logs 'asset-inventory.json') -Raw | ConvertFrom-Json
         $report = [Collections.Generic.List[string]]::new()
         foreach ($field in @('editorVersion', 'windowsBuildProfile', 'windowsDefines', 'enabledScenes', 'files', 'objectReferences', 'missingGuids', 'eventMethods', 'managedTypes', 'runtimeLookups')) {
@@ -126,24 +139,24 @@ if ($Suite -in @('Baseline', 'Assets')) {
         Write-Host $result
     }
 }
-if ($Suite -in @('Baseline', 'World')) { Invoke-EditorCheck 'ProjectVerification.CheckWorldAssets' }
-if ($Suite -in @('Baseline', 'World', 'Dungeon')) { Invoke-EditorCheck 'DungeonLayoutCheck.Run' -PlayMode }
-if ($Suite -eq 'UIResolution') {
+if ((Want @('Baseline', 'World'))) { Invoke-EditorCheck 'ProjectVerification.CheckWorldAssets' }
+if ((Want @('Baseline', 'World', 'Dungeon'))) { Invoke-EditorCheck 'DungeonLayoutCheck.Run' -PlayMode }
+if ((Want @('UIResolution'))) {
     Invoke-EditorCheck 'UiResolutionCheck.Run' -PlayMode
     Invoke-EditorCheck 'UiResolutionCheck.RunWorkshop' -PlayMode
     Invoke-EditorCheck 'UiResolutionCheck.RunInventory' -PlayMode
 }
-if ($Suite -eq 'ArtDirection') {
+if ((Want @('ArtDirection'))) {
     Invoke-EditorCheck 'ArtistWorkflowCheck.Run' -PlayMode
     Invoke-EditorCheck 'PixelDensityAudit.Run'
     Invoke-EditorCheck 'ArtDirectionPlayModeCheck.Run' -PlayMode
 }
-if ($Suite -eq 'Performance') { Invoke-EditorCheck 'MiniMapCheck.MeasureTerrain' }
-if ($Suite -in @('Baseline', 'Presentation', 'Typography')) { Invoke-EditorCheck 'PixelTypographyCheck.Run' }
-if ($Suite -in @('Baseline', 'Presentation', 'World', 'Performance', 'Typography')) { Invoke-EditorCheck 'PresentationRegressionCheck.Run' -PlayMode }
-if ($Suite -in @('Baseline', 'Typography')) { Invoke-EditorCheck 'InventoryUICheck.RunRuntimeBatch' -PlayMode }
-if ($Suite -in @('Baseline', 'Presentation')) { Invoke-EditorCheck 'HealingFeedbackValidation.Run' -PlayMode }
-if ($Suite -in @('Baseline', 'Combat')) {
+if ((Want @('Performance'))) { Invoke-EditorCheck 'MiniMapCheck.MeasureTerrain' }
+if ((Want @('Baseline', 'Presentation', 'Typography'))) { Invoke-EditorCheck 'PixelTypographyCheck.Run' }
+if ((Want @('Baseline', 'Presentation', 'World', 'Performance', 'Typography'))) { Invoke-EditorCheck 'PresentationRegressionCheck.Run' -PlayMode }
+if ((Want @('Baseline', 'Typography'))) { Invoke-EditorCheck 'InventoryUICheck.RunRuntimeBatch' -PlayMode }
+if ((Want @('Baseline', 'Presentation'))) { Invoke-EditorCheck 'HealingFeedbackValidation.Run' -PlayMode }
+if ((Want @('Baseline', 'Combat'))) {
     Invoke-EditorCheck 'CombatMovementCheck.RunPlayerControlChecks'
     Invoke-EditorCheck 'EnemyAIDecisionCheck.Run'
     Invoke-EditorCheck 'BoneMasterCombatCheck.Run'
@@ -151,23 +164,23 @@ if ($Suite -in @('Baseline', 'Combat')) {
     Invoke-EditorCheck 'PlaytestRegressionCheck.Run' -PlayMode
     Invoke-EditorCheck 'PlaytestRegressionCheck.RunThreats' -PlayMode
 }
-if ($Suite -in @('Baseline', 'Save')) {
+if ((Want @('Baseline', 'Save'))) {
     Invoke-EditorCheck 'SaveCompatibilityCheck.VerifyFileStorage'
     Invoke-EditorCheck 'SaveCompatibilityCheck.WriteAndReload' -PlayMode
     Invoke-EditorCheck 'SaveCompatibilityCheck.ReadAfterRestart' -PlayMode
 }
-if ($Suite -eq 'CombatPolish') {
+if ((Want @('CombatPolish'))) {
     Invoke-EditorCheck 'SceneLoadingTools.RunTransitions' -PlayMode
     Invoke-EditorCheck 'ArtDirectionPlayModeCheck.Run' -PlayMode
     Invoke-EditorCheck 'PixelTypographyCheck.Run'
     Invoke-EditorCheck 'CombatMovementCheck.RunPlayerControlChecks'
 }
-if ($Suite -in @('RenderBudget','CombatPolish')) {
+if ((Want @('RenderBudget','CombatPolish'))) {
     & (Join-Path $source 'Tools/Verification/Build-GpuTimer.ps1') -UnityEditor $UnityEditor -VerificationProject $sandbox
     Invoke-EditorCheck 'PixelBenchmarkBuild.Run'
     if ($results[$results.Count-1] -like 'PASS*') {
         $exe = Join-Path $sandbox 'Builds/PixelBench/PixelBench.exe'
-        if ($Suite -eq 'CombatPolish') {
+        if ((Want @('CombatPolish'))) {
             $matrix = Join-Path $source 'Tools/Verification/Invoke-CrowdMatrix.ps1'
             & $matrix -Player $exe -Results $logs -Transitions
             & $matrix -Player $exe -Results $logs -Floors -RoomBurst -Runs 1 -Seconds 2
@@ -180,15 +193,15 @@ if ($Suite -in @('RenderBudget','CombatPolish')) {
         }
     }
 }
-if ($Suite -in @('WorkshopPlayMode', 'LevelWorkshop')) {
+if ((Want @('WorkshopPlayMode', 'LevelWorkshop'))) {
     Invoke-EditorCheck 'WorkshopPlayModeCheck.Run' -PlayMode
     Invoke-EditorCheck 'ProjectContentBuild.StartRoomCheck' -PlayMode -ExtraArgs @('-projectRoomCheck', 'passages', 'unused')
 }
-if ($Suite -eq 'ProjectContent') {
+if ((Want @('ProjectContent'))) {
     & (Join-Path $source 'Tools/Verification/Invoke-ProjectRoomTeam.ps1') -Sandbox $sandbox -UnityEditor $UnityEditor -Results $logs
     $results.Add("PASS project content Ctrl+S, save button, two Git checkouts and Windows dungeon | $logs")
 }
-if ($Suite -eq 'LevelWorkshop') {
+if ((Want @('LevelWorkshop'))) {
     Invoke-EditorCheck 'WorkshopRoomImport.VerifySources'
     Invoke-EditorCheck 'WorkshopBuild.BuildVerificationPlayer'
     if ($results[$results.Count-1] -like 'PASS*') {
@@ -197,7 +210,14 @@ if ($Suite -eq 'LevelWorkshop') {
         $results.Add("PASS workshop trial latency and resource lifetime, largest room stamp and undo, four window sizes and recipient import across process restarts | $logs")
     }
 }
-if ($Suite -eq 'Windows' -or $IncludeWindowsBuild) { Invoke-EditorCheck 'ProjectVerification.BuildWindows' -Build }
+if ((Want @('Windows')) -or $IncludeWindowsBuild) { Invoke-EditorCheck 'ProjectVerification.BuildWindows' -Build }
 $results | Set-Content -LiteralPath (Join-Path $logs 'verification-summary.txt') -Encoding utf8
-Write-Host "Results: $logs"
+# Keep each run's logs; the shared Logs/Verification folder is cleared by the next run.
+$archive = Join-Path $sandbox ('Logs/Runs/' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + ($Suite -join '+'))
+New-Item -ItemType Directory -Path (Split-Path $archive) -Force | Out-Null
+Copy-Item -LiteralPath $logs -Destination $archive -Recurse
+Get-ChildItem -LiteralPath (Split-Path $archive) -Directory | Sort-Object Name -Descending | Select-Object -Skip 20 |
+    Remove-Item -Recurse -Force
+$lock.Dispose()
+Write-Host "Results: $archive"
 if ($results -like 'FAIL *') { exit 1 }
