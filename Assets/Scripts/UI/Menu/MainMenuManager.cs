@@ -90,12 +90,10 @@ private void Start()
         Debug.Log("<color=cyan>[MainMenuManager]</color> New Game 시작! 기존 세이브 파일을 삭제합니다.");
         
         // 기존 세이브 데이터 안전 삭제.
-        // 우클릭 해금은 영구 성장요소라 여기서 안 지운다 — '새 게임'은 런을 새로 시작하는 것이지
-        // 그동안 쌓은 영구 해금을 되돌리는 게 아니다.
         if (!SaveSystem.DeleteSave()) return;
 
         // 튜토리얼을 아직 안 봤으면 마을보다 먼저 거친다. 완료 기록은 세이브가 아니라 PlayerPrefs 라
-        // (우클릭 해금과 같은 취급) '새 게임'으로 세이브를 지워도 두 번 보지는 않는다.
+        // '새 게임'으로 세이브를 지워도 두 번 보지는 않는다.
         if (debugForceTutorial || !TutorialFlow.Completed)
         {
             TutorialFlow.Begin();

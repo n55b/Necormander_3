@@ -3,8 +3,8 @@ using UnityEngine;
 /// <summary>
 /// 튜토리얼을 한 번이라도 끝냈는가, 그리고 지금 로드된 씬이 튜토리얼인가.
 ///
-/// 완료 여부는 런 세이브(SaveSystem)가 아니라 <b>PlayerPrefs</b> 에 남는다 — 우클릭 해금과 같은
-/// 취급이다. '새 게임'이 세이브를 지워도 튜토리얼을 두 번 보지는 않는다.
+/// 완료 여부는 런 세이브(SaveSystem)가 아니라 <b>PlayerPrefs</b> 에 남는다.
+/// '새 게임'이 세이브를 지워도 튜토리얼을 두 번 보지는 않는다.
 /// </summary>
 public static class TutorialFlow
 {
