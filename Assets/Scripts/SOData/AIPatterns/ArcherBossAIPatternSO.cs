@@ -41,7 +41,7 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
     public float bombardmentLeadTime = .5f;
     [Min(.01f), Tooltip("각 포격의 반경(월드 유닛). 지름은 이 값의 두 배입니다.")]
     public float bombardmentRadius = 1.5f;
-    [Min(.01f), Tooltip("BaseHitBox 방식 포격의 폭발 판정 유지 시간(초). TelegraphHitbox는 자신의 판정 설정을 사용합니다.")]
+    [Min(.01f), Tooltip("포격 폭발 판정 유지 시간(초). 포격 프리팹의 BaseHitBox에 전달합니다.")]
     public float bombardmentHitDuration = .1f;
 
     [Header("패턴 2: 부채꼴 발사")]
@@ -494,25 +494,12 @@ public class ArcherBossAIPatternSO : BossAIPatternSO
         {
             Vector2 randomPos = center + new Vector2(Random.Range(-halfWidth, halfWidth), Random.Range(-halfHeight, halfHeight));
             
-            // 경고 이펙트 및 실제 폭발 데미지를 MagicianCircle 프리팹에 위임
+            // 경고 이펙트와 실제 폭발 피해는 포격 프리팹의 BaseHitBox가 맡는다.
             if (bombardmentIndicatorPrefab != null)
             {
                 GameObject indicator = Instantiate(bombardmentIndicatorPrefab, randomPos, Quaternion.identity);
-                var circleAttack = indicator.GetComponent<EnemyMagicianCircleAttack>();
-                var telegraph = indicator.GetComponent<TelegraphHitbox>();
                 var baseHitBox = indicator.GetComponent<BaseHitBox>();
-                
-                if (circleAttack != null)
-                {
-                    // 마법사 장판 스크립트를 재활용: 폭발 데미지, 타겟 레이어, 폭발 대기시간(0.5초), 반경(1.5f) 지정
-                    circleAttack.Init(entity.Stats.ATK, entity.opponentLayer, entity.gameObject, bombardmentRadius, bombardmentLeadTime);
-                }
-                else if (telegraph != null)
-                {
-                    DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f, "Archer Bombardment", bypassGuard: true);
-                    telegraph.Init(bombardmentLeadTime, info, entity.opponentLayer, Vector2.one * (bombardmentRadius * 2f));
-                }
-                else if (baseHitBox != null)
+                if (baseHitBox != null)
                 {
                     DamageInfo info = new DamageInfo(entity.Stats.ATK, DamageType.Physical, entity.gameObject, 1f, "Archer Bombardment", bypassGuard: true);
                     indicator.transform.localScale = new Vector3(bombardmentRadius * 2f, bombardmentRadius * 2f, 1f);

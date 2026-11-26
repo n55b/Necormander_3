@@ -4,8 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 게임 내 상점에서 등장할 수 있는 모든 아이템 풀을 관리하는 레지스트리입니다.
 /// 상점은 주머니 아이템만 판다. 장비는 강화 상점에서 강화로만 얻는다.
-/// (젬 효과가 전부 제거되면서 gemPool 도 함께 내렸습니다 — Legacy/History/Docs/GEM_LEGACY.md 참조.
-///  젬 에셋 자체는 SOData/Rewards/Gems 에 그대로 남아 있고, 소켓 배관도 살아 있습니다.)
+/// (젬 시스템 은퇴와 함께 gemPool 을 내렸다 — Legacy/History/Docs/GEM_LEGACY.md 참조.)
 /// </summary>
 [CreateAssetMenu(fileName = "ShopRegistry", menuName = "Necromancer/Registry/ShopRegistry")]
 public class ShopRegistrySO : ScriptableObject

@@ -29,17 +29,15 @@ public class Projectile : MonoBehaviour
     protected LayerMask _targetLayer;
     protected GameObject _shooter;
     protected Vector2 _direction;
-    public bool GuardConsumed { get; set; }
     public GameObject Shooter => _shooter;
+    /// <summary>이 투사체가 대상에 주는 피해. 이름은 옛 가드 판정에서 왔고, 지금은 모든 투사체 피해가 이 값을 쓴다.</summary>
     public virtual DamageInfo GuardInfo => new DamageInfo(_damage, DamageType.Physical, _shooter,
-        category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: HitFromPoint);
+        isRanged: true, hitFrom: HitFromPoint);
 
-    protected bool _isDeflected; // 패리로 반사된 투사체인가. 반사 데미지는 갈래=Parry 로 태그한다.
     protected System.Collections.Generic.HashSet<Collider2D> _ignoredColliders = new System.Collections.Generic.HashSet<Collider2D>();
 
     /// <summary>
     /// 피격 방향 호환 정보. 충돌점 대신 비행 방향을 되짚어 발사자와 비행 방향이 다른 유도탄도 표현한다.
-    /// 가드는 이 가상 위치를 쓰지 않고 Update의 실제 이동 경로와 원호의 교차를 검사한다.
     /// </summary>
     protected Vector2 HitFromPoint => (Vector2)transform.position - _direction * 2f;
 
@@ -58,7 +56,6 @@ public class Projectile : MonoBehaviour
             flightShadow = picture.GetComponent<AirborneShadow>() ?? picture.gameObject.AddComponent<AirborneShadow>();
             UpdateFlightShadow();
         }
-        GuardConsumed = false;
         _targetLayer = targetLayer;
         
         if (GameManager.Instance != null && GameManager.Instance.testMode_DisableAutoBattle)
@@ -130,28 +127,24 @@ public class Projectile : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (GuardConsumed) return;
         graze.Sample();
         Move();
         UpdateFlightShadow();
-        if (!GuardConsumed && Time.time >= nextFeedbackTrail && PolishFeedback.Catalog != null)
+        if (Time.time >= nextFeedbackTrail && PolishFeedback.Catalog != null)
         {
             nextFeedbackTrail = Time.time + PolishFeedback.Catalog.trailInterval;
-            WorldSparkField.Emit(_isDeflected ? WorldSparkField.Kind.Reflect : WorldSparkField.Kind.Projectile,
-                transform.position, -_direction, 1);
-
+            WorldSparkField.Emit(WorldSparkField.Kind.Projectile, transform.position, -_direction, 1);
         }
     }
 
     protected virtual void Move()
     {
-        // 패링 회전 여부(rotateToDirection)와 무관하게 항상 조준한 월드 방향(_direction)으로 비행하도록 월드 좌표 이동 적용
+        // 회전 여부(rotateToDirection)와 무관하게 항상 조준한 월드 방향(_direction)으로 비행하도록 월드 좌표 이동 적용
         transform.Translate(_direction * speed * Time.deltaTime, Space.World);
     }
 
     protected virtual void OnTriggerEnter2D(Collider2D other)
     {
-        if (GuardConsumed) return;
         if (_ignoredColliders.Contains(other)) return;
         if (other.gameObject.layer == Layers.Player || other.gameObject.layer == Layers.PlayerDash) graze.Contact(other);
         // 1. 벽이나 장애물에 부딪히면 파괴
@@ -170,9 +163,8 @@ public class Projectile : MonoBehaviour
 
             if (damageable != null && !damageable.IsDead)
             {
-                // 가드는 이동 경로의 원호 교차에서 이미 처리했다. 내부에서 맞은 탄은 다시 막지 않는다.
                 // isRanged: 투사체는 attacker 로 '쏜 본체'를 넘기기 때문에, 이 표식이 없으면 맞은 쪽에서
-                // 화살인지 주먹인지 구분할 방법이 없다(우클릭 카운터/가드가 근접만 받아친다).
+                // 화살인지 주먹인지 구분할 방법이 없다.
                 // hitFrom: 맞은 쪽이 '어디서 날아왔는지'를 알아야 방향 판정을 할 수 있다.
                 // attacker 는 쏜 본체라, 유도탄이면 실제 비행 방향과 전혀 다른 곳을 가리킨다.
                 DamageInfo info = GuardInfo;
@@ -219,7 +211,6 @@ public class Projectile : MonoBehaviour
 
     protected virtual void OnHitTarget(CharacterStat targetStat)
     {
-        if (GuardConsumed) return;
         if (targetStat.gameObject.layer == Layers.Player && PolishFeedback.Player?.Stat == targetStat)
             graze.Contact(PolishFeedback.Player.BodyCollider);
         DamageInfo info = GuardInfo;
@@ -230,7 +221,7 @@ public class Projectile : MonoBehaviour
 
     private void Expire()
     {
-        if (!GuardConsumed) PolishFeedback.Play(FeedbackCue.ProjectileExpire, transform.position, _direction);
+        PolishFeedback.Play(FeedbackCue.ProjectileExpire, transform.position, _direction);
         Destroy(gameObject);
     }
 
@@ -247,90 +238,4 @@ public class Projectile : MonoBehaviour
     protected void FeedbackPierced(Vector3 point) => PolishFeedback.Play(FeedbackCue.PierceHit,point,_direction);
     public Vector2 Direction => _direction;
     public LayerMask TargetLayer => _targetLayer;
-
-    public virtual void InitDeflected(Vector2 newDirection, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
-    {
-        flightShadow = GetComponent<AirborneShadow>();
-        UpdateFlightShadow();
-        _targetLayer = targetLayer;
-        _damage = damage;
-        _shooter = shooter;
-        GuardConsumed = false;
-        graze.Cancel();
-        _isDeflected = true; // 반사된 순간부터 이 투사체의 피해는 패링 갈래다.
-        speed = customSpeed;
-        lifeTime = customLifeTime;
-
-        _direction = newDirection.normalized;
-
-        if (rotateToDirection)
-        {
-            float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
-        }
-        else
-        {
-            transform.localScale = new Vector3(Mathf.Sign(_direction.x) * Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
-        }
-
-        // 이전 무시 콜라이더 클리어
-        _ignoredColliders.Clear();
-
-        // 튕겨나가는 순간에 겹쳐 있는 것 체크 (적군)
-        Collider2D myCol = GetComponent<Collider2D>();
-        if (myCol != null)
-        {
-            ContactFilter2D filter = new ContactFilter2D();
-            filter.useTriggers = true;
-
-            Collider2D[] results = new Collider2D[20];
-            int count = myCol.Overlap(filter, results);
-            for (int i = 0; i < count; i++)
-            {
-                Collider2D otherCol = results[i];
-                if (otherCol == null || otherCol.gameObject == shooter) continue;
-
-                // 겹쳐 있는 것 중 적(새로운 타겟 레이어)이 있다면 즉시 대미지를 입히고 파괴 처리
-                if ((_targetLayer.value & (1 << otherCol.gameObject.layer)) != 0)
-                {
-                    CharacterStat targetStat = GetTargetStat(otherCol);
-                    if (targetStat != null)
-                    {
-                        OnHitTarget(targetStat);
-                        return;
-                    }
-                }
-
-                // 겹쳐 있는 것이 벽/장애물이면 임시 무시
-                if (((Layers.WallMask) & (1 << otherCol.gameObject.layer)) != 0)
-                {
-                    _ignoredColliders.Add(otherCol);
-                }
-            }
-        }
-
-        // 일정 시간 후 자동 파괴
-        CancelInvoke(nameof(Expire));
-        Invoke(nameof(Expire), Mathf.Max(.01f, lifeTime));
-        PolishFeedback.Play(FeedbackCue.ProjectileLaunch, transform.position, -_direction,playSound:false);
-        PolishFeedback.PlaySound(FeedbackCue.ProjectileReflect, transform.position);
-    }
-
-    public virtual Projectile Deflect(GameObject newShooter, LayerMask newTargetLayer, Vector2 newDirection)
-    {
-        GameObject go = Instantiate(gameObject, transform.position, Quaternion.identity);
-        Projectile newProj = go.GetComponent<Projectile>();
-        if (newProj != null)
-        {
-            go.transform.localScale = transform.localScale;
-            // 복제본에 InitDeflected 호출 (새로운 방향으로 날아감, 데미지 1.5배)
-            newProj.InitDeflected(newDirection, _damage * 1.5f, newTargetLayer, newShooter, speed, lifeTime);
-        }
-
-        // 원본 투사체 파괴
-        Destroy(gameObject);
-
-        return newProj;
-    }
 }

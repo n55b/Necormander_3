@@ -34,7 +34,7 @@ public static class DamageRules
     /// 크리·증폭 스탯을 플레이어에서 빌려도 되는지를 이걸로 가른다.</summary>
     public static bool IsPlayerSourced(DamageCategory c)
         => c == DamageCategory.BasicAttack || c == DamageCategory.Skill
-        || c == DamageCategory.DashAttack || c == DamageCategory.Parry;
+        || c == DamageCategory.DashAttack;
 
     internal static float CalculateBeforeDefense(DamageInfo info, CharacterStat attacker, bool vulnerable, out bool isCritical)
     {

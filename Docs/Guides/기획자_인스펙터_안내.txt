@@ -12,7 +12,7 @@
 필드의 저장 이름과 에셋 GUID, 프리팹 연결은 바꾸지 않았다.
 기존 범위 슬라이더, 색상 선택기, 곡선 편집기, UnityEvent 연결을 사용한다.
 목록 왼쪽 손잡이로 순서를 바꾸고 + / -로 항목을 추가/삭제한다. Ctrl+Z로 되돌릴 수 있다.
-‘사용 안 함’으로 표시된 회색 항목은 현재 실행 코드가 읽지 않는 옛 필드다.
+‘사용 안 함’으로 표시된 회색 항목은 현재 실행 코드가 읽지 않는 옛 필드다. 지금은 궁수 엘리트를 되살릴 때 쓸 ArcherBossAIPatternSO의 두 값(phase2HpThreshold, arrowsPerDirection)만 남아 있다.
 
 씬 오브젝트에서 플레이 중 조절한 값은 종료 시 되돌아간다. SO 에셋 수정은 남을 수 있으므로 원래 값을 기록한다.
 마음에 드는 값을 적어 두었다가 종료 후 원본 프리팹이나 SO에 적용한다.
@@ -61,7 +61,6 @@ Assets/Prefabs/Effect/Combat/Hit/Slash Impact.prefab → ImpactFeedback
 피격 반응과 데미지 숫자
 - CharacterVisualFeedback: 피격 섬광, 색 변화 시간, 화면 가장자리 색 변화 시간.
 - TextFloating: 숫자 흩어짐, 일반/치명타 확대·위치·회전 시간, 반동 횟수와 강도.
-- 옛 punchDuration/CiriPunchDuration은 이름과 달리 ‘시간’이 아니라 ‘튀는 크기’였다. 인스펙터에 실제 역할로 표시했다.
 - 이번에 꺼낸 모든 값의 초기값은 기존 코드의 숫자와 같다. 초기 게임 템포는 바뀌지 않는다.
 
 EnemyMagicianAIPatternSO에는 예고 후 장판 판정이 유지되는 시간을 추가했다.

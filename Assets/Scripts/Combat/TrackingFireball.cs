@@ -15,7 +15,7 @@ public class TrackingFireball : Projectile
     protected override bool IsGuiding => _targetTransform != null;
     protected Transform _targetTransform;
     public override DamageInfo GuardInfo => new DamageInfo(_damage, DamageType.Magic, _shooter,
-        category: _isDeflected ? DamageCategory.Parry : DamageCategory.None, isRanged: true, hitFrom: HitFromPoint);
+        isRanged: true, hitFrom: HitFromPoint);
 
     public void Init(Transform target, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
     {
@@ -39,7 +39,7 @@ public class TrackingFireball : Projectile
 
     private void Steer(float deltaTime)
     {
-        if (_targetTransform == null) return; // 직선 발사/패리도 이 경로
+        if (_targetTransform == null) return; // 직선 발사도 이 경로
         Vector2 toTarget = (Vector2)_targetTransform.position - (Vector2)transform.position;
         if (toTarget.sqrMagnitude < 0.0001f ||
             Vector2.Angle(_direction, toTarget) > Mathf.Clamp(trackingHalfAngle, 0f, 90f))
@@ -54,11 +54,5 @@ public class TrackingFireball : Projectile
             Mathf.Max(0f, turnSpeedDegrees) * Mathf.Max(0f, deltaTime));
         _direction = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
         if (rotateToDirection) transform.rotation = Quaternion.Euler(0f, 0f, angle);
-    }
-
-    public override void InitDeflected(Vector2 newDirection, float damage, LayerMask targetLayer, GameObject shooter, float customSpeed, float customLifeTime)
-    {
-        _targetTransform = null; // 패리 시 유도 대상 해제 (직선 비행)
-        base.InitDeflected(newDirection, damage, targetLayer, shooter, customSpeed, customLifeTime);
     }
 }

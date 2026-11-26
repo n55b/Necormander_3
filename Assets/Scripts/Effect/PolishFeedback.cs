@@ -214,7 +214,7 @@ public static class PolishFeedback
     }
     public static void ResolvedHit(CharacterHealth health, CharacterStat attacker, DamageInfo info, bool critical)
     {
-        if(health==null || !DamageRules.IsPlayerSourced(info.category) || info.category==DamageCategory.Parry) return;
+        if(health==null || !DamageRules.IsPlayerSourced(info.category)) return;
         if (info.minionSource != null) info.minionSource.PlayHitSound(info.category);
         var body = health.HitBody;
         Vector3 pos = body != null ? body.bounds.center : health.transform.position;

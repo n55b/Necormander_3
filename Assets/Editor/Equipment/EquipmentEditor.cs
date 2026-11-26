@@ -28,7 +28,6 @@ public class EquipmentEditorPanel
     [SerializeField] private bool onlyWarnings;
     [SerializeField] private EquipmentSO selected;
     [SerializeField] private int previewLevel;
-    [SerializeField] private bool showWeakness;
     [SerializeField] private bool showHand;
 
     private List<EquipmentSO> all = new List<EquipmentSO>();
@@ -356,16 +355,6 @@ public class EquipmentEditorPanel
         if (showHand)
             using (new EditorGUI.IndentLevelScope())
                 Prop(so, "handAnimationOverride", "손 애니메이션 오버라이드", "선택 사항. 비어 있으면 기본 외형을 쓴다.");
-
-        // 약점 공략(비활성)
-        showWeakness = EditorGUILayout.Foldout(showWeakness, "약점 공략 (현재 비활성 · 데이터 보존용)", true);
-        if (showWeakness)
-            using (new EditorGUI.IndentLevelScope())
-            {
-                EditorGUILayout.HelpBox("현재 게임에서 효과가 없습니다. 취약은 용사 계열 소환수 스킬만 부여합니다.", MessageType.None);
-                Prop(so, "exploitsWeakness", "약점 공략", "");
-                Prop(so, "weaknessDuration", "취약 지속(초)", "");
-            }
 
         so.ApplyModifiedProperties();
 

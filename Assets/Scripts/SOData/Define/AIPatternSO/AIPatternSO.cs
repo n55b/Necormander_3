@@ -8,10 +8,6 @@ public enum AIState { [UnityEngine.InspectorName("대기")] Idle, [UnityEngine.I
 /// </summary>
 public abstract class AIPatternSO : ScriptableObject
 {
-    [Header("기본 설정")]
-    public float pushRadius = 0.8f;
-    public float pushStrength = 2.0f;
-
     // 외부(애니메이션 및 매니저 등)에서 참조할 프로퍼티
     // 초기화: 모든 상태와 변수를 깨끗하게 비웁니다.
     public virtual void Init(BaseEntity entity)

@@ -114,7 +114,7 @@ public partial class MeleeCombatController : MonoBehaviour
     public readonly System.Collections.Generic.List<StatusType> LastInfusionStatuses = new System.Collections.Generic.List<StatusType>();
 
     private bool _isHoldingAttack = false;
-    private BaseHitBox _activeHitbox; // TelegraphHitbox -> BaseHitBox로 변경
+    private BaseHitBox _activeHitbox;
     private bool _preparingAttack;
     private bool _attackAnimationPlaying;
     private bool _ownsAnimationLock;

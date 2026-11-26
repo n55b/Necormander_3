@@ -38,11 +38,6 @@ public class EquipmentSO : ScriptableObject
     [Min(0f)] public float basicDamagePerHit = 1f;
     [Min(0f)] public float minionDashDamageMultiplier = 1f;
 
-    [Header("약점 공략 (플레이어 3타 적중) — [26/11] 비활성: 취약은 용사 계열 소환수 전용")]
-    [Tooltip("현재 효과 없음. 취약은 용사 계열(기사/용사) 소환수 스킬만 부여한다. 데이터 보존용으로 남겨 둔다.")]
-    public bool exploitsWeakness;
-    [Min(0f)] public float weaknessDuration = 10f;
-
     [Header("세렌디피티")]
     public bool serendipity;
     [Range(0f, 1f)] public float resetChance = 0.13f;

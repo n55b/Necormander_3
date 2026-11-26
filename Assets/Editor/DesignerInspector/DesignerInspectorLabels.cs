@@ -50,10 +50,8 @@ public static class DesignerInspectorLabels
     private static string Key(FieldInfo f) => f.DeclaringType.Name + "." + f.Name;
     private static readonly HashSet<string> Unused = new HashSet<string>
     {
-        "PlayerController.summonNum", "PlayerController.summonRange", "AIPatternSO.pushRadius", "AIPatternSO.pushStrength",
-        "ArcherBossAIPatternSO.phase2HpThreshold", "ArcherBossAIPatternSO.arrowsPerDirection", "BossHPBarUI.delayCatchUpSpeed",
-        "EliteChargerAIPatternSO.chargeTelegraphOvershoot", "EnemyMagicianCircleAttack.outerBoundary", "PlayerStateUI.panelParent",
-        "BoneMasterAIPatternSO.telegraphWarnColor", "BoneMasterPhase2AIPatternSO.telegraphWarnColor"
+        // 궁수 엘리트를 되살릴 때 쓸 수 있어 남긴 필드다.
+        "ArcherBossAIPatternSO.phase2HpThreshold", "ArcherBossAIPatternSO.arrowsPerDirection"
     };
     public static bool ReadOnly(FieldInfo f) => f != null && Unused.Contains(Key(f));
 
@@ -261,8 +259,6 @@ StatusBalanceSO.vulnerableDamageBonus|취약 추가 물리 피해 비율|취약 
 *.criticalShakeAngle|치명타 숫자 회전 강도 (도)|숫자 회전 흔들림의 각도입니다. 크게 하면 더 과장됩니다.
 ShopRegistrySO.itemPool|상점 아이템 후보|진열할 아이템 후보입니다. 구매하면 바로 주머니에 들어갑니다. 중첩 한도가 찬 아이템은 골드를 쓰기 전에 구매를 막고, 주머니가 없을 때만 바닥에 드롭합니다.
 ShopRegistrySO.enhanceCostPerLevel|강화 단계당 추가 비용 (골드)|기본 강화 비용 + 현재 단계 × 이 값. 상점당 강화 제한은 강화 NPC/디버그 옵션에서 결정합니다.
-PlayerController.summonNum|사용 안 함: 옛 소환 수|현재 실행 코드에서 읽지 않는 옛 필드입니다. 변경해도 효과가 없습니다. 직렬화 호환을 위해 남겨둔 값입니다.
-PlayerController.summonRange|사용 안 함: 옛 소환 범위|현재 실행 코드에서 읽지 않는 옛 필드입니다. 변경해도 효과가 없습니다.
 PlayerController.movementAccelerationTime|출발 가속 시간 (초)|이동 입력 후 목표 속도에 도달하는 부드러움. 작으면 즉각 출발, 크면 천천히 출발합니다.
 PlayerController.movementSmoothTime|정지 감속 시간 (초)|입력을 놓았을 때 멈추는 부드러움. 작으면 단단하게 멈추고, 크면 미끄러지는 느낌입니다.
 PlayerController.movementTurnTime|방향 전환 시간 (초)|반대 방향 입력에 반응하는 시간. 작으면 빠르게 꺾입니다.
@@ -294,8 +290,6 @@ ImpactFeedback.arcLifetimeRatio|원형 파동 수명 비율 (0~1)|전체 이펙�
 ImpactFeedback.streakScaleRange|선 파편 크기 (시작 / 끝)|원래 선 크기에 곱하는 배율. X=처음, Y=마지막.
 ImpactFeedback.arcScaleRange|원형 파동 크기 (시작 / 끝)|X=처음 크기, Y=마지막 크기. 원래 선 크기에 곱합니다.
 ImpactFeedback.flashScaleRange|순간 섬광 크기 (시작 / 끝)|X=처음, Y=끝. 섬광 지속 시간 동안 커집니다.
-TextFloating.punchDuration|일반 숫자 튀는 크기|옛 필드 이름은 duration이지만 실제로는 크기 펀치의 세기입니다. 시간은 일반 숫자 확대 시간에서 조절합니다.
-TextFloating.CiriPunchDuration|치명타 숫자 튀는 크기|옛 필드 이름은 Duration이지만 실제로는 크기 펀치의 세기입니다. 시간은 치명타 숫자 확대 시간에서 조절합니다.
 TextFloating.displaytime|숫자 표시 시간 (초)|숫자가 떠 있는 전체 시간입니다.
 TextFloating.horizontalJitter|숫자 가로 흩어짐 (유닛)|생성 위치의 좌우 무작위 범위. 0이면 가운데에 겹칩니다.
 EquipmentSO.basicRepeatHitInterval|추가 타격 사이 간격 (초)|마리오네트 등 같은 공격의 반복 타격 사이 간격입니다. 늘리면 연속 타격이 더 또렷하게 분리됩니다.

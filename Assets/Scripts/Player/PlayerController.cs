@@ -20,8 +20,6 @@ public partial class PlayerController : MonoBehaviour
     [Header("플레이어 스탯")]
     [SerializeField] CharacterStat stat;
     public CharacterStat Stat => stat;
-    [SerializeField] private int summonNum;
-    [SerializeField] private float summonRange;
 
     [Header("무적 (i-Frame) 설정")]
     [SerializeField] private float invincibilityDuration = 1.0f;

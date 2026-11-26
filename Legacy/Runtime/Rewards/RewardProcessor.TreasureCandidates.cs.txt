@@ -1,0 +1,56 @@
+// 원래 위치: Assets/Scripts/Systems/Growth/RewardProcessor.cs (static class RewardProcessor 안)
+// 보관 커밋 기준: e291f33c (2026-11-26). 호출자가 없어 퇴역했다.
+// GetValidTreasures는 보물(TreasureSO) 보상 후보를 만드는 유일한 코드였다. TreasureSO와 세이브의 보물 복원 경로는 남아 있다.
+// 되살릴 때: GetValidCores(같은 파일)와 GrowthRegistrySO.treasures를 사용한다. RewardCategory.Metamorphosis 분기는 이미 비어 있었다.
+
+    // --- 2. 엘리트/보상 방용: 카테고리별 후보 생성 (무조건 3개 슬롯 반환) ---
+    public static List<RewardCandidate> GenerateCandidatesByCategory(InventoryManager inven, DataManager data, RewardCategory category, int count = 3)
+    {
+        List<RewardCandidate> allPossible = new List<RewardCandidate>();
+        var registry = data.GET_GROWTH_REGISTRY();
+
+        switch (category)
+        {
+            case RewardCategory.Minion:
+                allPossible.AddRange(GetValidCores(inven, registry.minionDatas, true)); // 중복 제외
+                break;
+            case RewardCategory.Metamorphosis:
+                // 변이/승급 시스템 삭제로 아무것도 생성 안함
+                break;
+            case RewardCategory.Treasure:
+                // [참고] 보물은 다른 방식으로 획득할 예정이므로 여기서 제안하지 않을 수 있음
+                allPossible.AddRange(GetValidTreasures(registry.treasures));
+                break;
+        }
+
+        List<RewardCandidate> results = new List<RewardCandidate>();
+        
+        // 실제 데이터가 있는 만큼 랜덤으로 추출
+        for (int i = 0; i < count; i++)
+        {
+            if (allPossible.Count > 0)
+            {
+                int idx = Random.Range(0, allPossible.Count);
+                results.Add(allPossible[idx]);
+                allPossible.RemoveAt(idx);
+            }
+            else
+            {
+                // [예외 처리] 데이터가 부족할 경우 "비어있는 슬롯" 후보 추가
+                results.Add(new RewardCandidate { 
+                    category = category, 
+                    displayData = new GrowthItemData { itemName = "None", description = "No more rewards available." },
+                    rawData = null 
+                });
+            }
+        }
+        return results;
+    }
+
+    private static List<RewardCandidate> GetValidTreasures(List<TreasureSO> treasures)
+    {
+        List<RewardCandidate> candidates = new List<RewardCandidate>();
+        foreach (var t in treasures)
+            candidates.Add(new RewardCandidate { displayData = new GrowthItemData { itemName = t.itemName, description = t.description, icon = t.icon, rarity = t.rarity, localizedItemName = t.localizedItemName, localizedDescription = t.localizedDescription }, rawData = t, category = RewardCategory.Treasure });
+        return candidates;
+    }

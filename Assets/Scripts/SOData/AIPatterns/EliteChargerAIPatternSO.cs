@@ -163,8 +163,6 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
     public float chargeHitRadius = 1.5f;
     [Tooltip("돌진 전조(바닥 경고 직사각형)의 기본 길이(대상이 없을 때). 평소에는 플레이어 발밑까지 이어지도록 자동 계산됩니다.")]
     public float chargeTelegraphLength = 30f;
-    [Tooltip("전조 길이를 플레이어 위치보다 얼마나 더 길게 그릴지(발밑을 확실히 덮도록)")]
-    public float chargeTelegraphOvershoot = 2.5f;
     public Color chargeTelegraphColor = new Color(1f, 0f, 0f, 0.35f);
     [Tooltip("돌진 예고 레인 안에서 두께 방향으로 차오르는 게이지 색. 배경 레인보다 진하게 두어야 채워지는 게 읽힌다.")]
     public Color chargeTelegraphFillColor = new Color(1f, 0.25f, 0.1f, 0.75f);
@@ -794,8 +792,8 @@ public class EliteChargerAIPatternSO : BossAIPatternSO
 
     /// <summary>
     /// ② 일반 돌진 (v1.35 신규): 일반 차저가 가진 직선형 고속 돌진입니다. 미니 돌진 찍기보다
-    /// 빠르고 멀리 가지만, 패턴 1의 강한 돌진보다는 약하고 데미지도 낮습니다. 기둥에 닿으면
-    /// (강한 돌진처럼 완전히 무너뜨리는 게 아니라) 기둥의 내구도만 1 깎고 그 자리에서 멈춥니다.
+    /// 빠르고 멀리 가지만, 패턴 1의 강한 돌진보다는 약하고 데미지도 낮습니다. 벽·장애물에 막히면
+    /// 그 자리에서 멈춥니다.
     /// </summary>
     private IEnumerator NormalChargeRoutine(BaseEntity entity, Vector2 dir, float windup)
     {

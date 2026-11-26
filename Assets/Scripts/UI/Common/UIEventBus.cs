@@ -7,7 +7,7 @@ using System;
 /// </summary>
 public static class UIEventBus
 {
-    /// <summary>UI가 열릴 때 발생. string = UI 식별 이름 (예: "GemTree", "Reward")</summary>
+    /// <summary>UI가 열릴 때 발생. string = UI 식별 이름 (예: "Reward", "Map")</summary>
     public static event Action<string> OnUIOpen;
 
     /// <summary>UI가 닫힐 때 발생.</summary>

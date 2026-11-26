@@ -78,9 +78,7 @@ public class BoneMasterPhase2AIPatternSO : BossAIPatternSO
              "그로기 시간 위에 얹히므로 실제 딜타임 = 그로기 + 이 값 이다.")]
     public float postPatternRecovery = 1f;
 
-    [Header("텔레그래프(피해범위 인디케이터) 색상")]
-    public Color telegraphWarnColor = new Color(1f, 0.1f, 0.1f, 0.9f);
-
+    [Header("텔레그래프(피해범위 인디케이터)")]
     [Tooltip("직선(레인) 전조 프리팹. Assets/Prefabs/Effect/Combat/Skills/Telegraph Line Hitbox Prefab. " +
              "시각 전용으로만 쓰며 피해는 BossCombat 이 준다(콜라이더가 없는 프리팹).")]
     public BaseHitBox laneTelegraphPrefab;

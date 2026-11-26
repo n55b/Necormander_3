@@ -160,7 +160,7 @@ public sealed class WorldSparkField : MonoBehaviour
         var sr = target.HitBody;
         Vector2 point = sr != null ? (Vector2)sr.bounds.center : feet;
         Vector2 from = info.hitFrom ?? (attacker != null ? (Vector2)attacker.transform.position : point-Vector2.up);
-        bool strong = critical || info.feedbackComboFinish || info.category == DamageCategory.Parry;
+        bool strong = critical || info.feedbackComboFinish;
         Vector2 direction = feet - from;
         if (direction.sqrMagnitude < .0001f) direction = Vector2.up;
         if (DamageRules.IsPlayerSourced(info.category) && info.amount > 0)

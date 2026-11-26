@@ -226,9 +226,6 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
     [Obsolete("Open(root, UIPopUpManager.Layer.Window) 를 쓰세요.")]
     public void PopUpUI(GameObject popUpObj) => Open(popUpObj, Layer.Window);
 
-    [Obsolete("Open(root, UIPopUpManager.Layer.Modal) 를 쓰세요.")]
-    public void ForcePopUpUI(GameObject popUpObj) => Open(popUpObj, Layer.Modal);
-
     [Obsolete("Close(root) 를 쓰세요. 이건 맨 위의 System 이 아닌 창을 닫습니다.")]
     public void ClosePopUpUI()
     {
@@ -239,9 +236,6 @@ public class UIPopUpManager : Singleton<UIPopUpManager>
             return;
         }
     }
-
-    [Obsolete("OpenOption() 을 쓰세요.")]
-    public bool PushOptionKey() => OpenOption();
 
     // ─── 내부 ────────────────────────────────────────────────────────
     private int IndexOf(GameObject root)

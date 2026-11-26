@@ -174,7 +174,6 @@ public abstract class BaseEntity : MonoBehaviour
         return false;
     }
 
-    protected TelegraphHitbox _activeTelegraph;
     private bool _isAttacking;
     public bool IsAttacking
     {
@@ -481,7 +480,7 @@ public abstract class BaseEntity : MonoBehaviour
         _lastState = (AIState)(-1);
     }
 
-    protected BaseHitBox _activeHitbox; // _activeTelegraph 대신 BaseHitBox를 추적합니다.
+    protected BaseHitBox _activeHitbox;
     public BaseHitBox ActiveHitbox => _activeHitbox;
 
     public virtual void SetActiveHitbox(BaseHitBox hitbox)

@@ -61,7 +61,6 @@ public partial class PlayerController
     public enum SpeedModifierSource
     {
         [UnityEngine.InspectorName("근접 공격")] MeleeAttack,
-        [UnityEngine.InspectorName("패링")] Parry,
         [UnityEngine.InspectorName("스킬")] Skill,
         [UnityEngine.InspectorName("디버프")] Debuff
     }

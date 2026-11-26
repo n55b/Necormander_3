@@ -14,7 +14,6 @@ public class BossHPBarUI : MonoBehaviour
     [SerializeField] private Image fillImage;             // Filled / Horizontal
     [SerializeField] private TextMeshProUGUI nameText;
     [SerializeField] private TextMeshProUGUI hpText;
-    [SerializeField] private float delayCatchUpSpeed = 0.6f;
 
     private CharacterHealth _health;
 
