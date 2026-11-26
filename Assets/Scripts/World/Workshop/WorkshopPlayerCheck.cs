@@ -16,6 +16,7 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
     private Mouse mouse;
     private float deadline;
     private bool finished;
+    private int navMeshLogs;
     private readonly List<string> passed = new();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -155,6 +156,12 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         Require(encounter!=null,"placed enemy group exists in trial");
         Step("fixed enemy activation");
         yield return Wait(()=>encounter.gameObject.activeInHierarchy);
+        yield return Click("상태이상 부여");
+        yield return Click("대상/모든 적");
+        Require(PlayerController.IsCombatPointerBlocked,"toolbar panel blocks combat clicks");
+        yield return Click("부여/중독");
+        Require(CharacterStatus.ActiveEnemies.Any(s=>s!=null && s.HasStatus(StatusType.Poison)),"LEVEL_WORKSHOP toolbar applies status");
+        yield return Click("상태이상 부여");
         var enemy=encounter.GetComponentInChildren<CharacterHealth>();
         Require(enemy!=null && enemy.MaxHP>0,"placed enemy initialized");
         enemy.TakeDamage(new DamageInfo(enemy.MaxHP*20+999,DamageType.Physical,GameManager.Instance.PLAYERCONTROLLER.gameObject));
@@ -183,6 +190,7 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         Step("return");
         yield return Wait(() => !WorkshopTrial.Active && GameObject.Find("Workshop camera")!=null && !UnityNote.SceneLoader.IsLoading);
         Require(WorkshopTrial.Draft.id == draft.id && WorkshopTrial.Redo.Count > 0, "restored document and undo history");
+        yield return CheckArena(draft.id);
         yield return Click("게임 설정");
         yield return Click("게임 콘텐츠");
         Require(!FindObjectsByType<Button>(FindObjectsSortMode.None).First(b=>b.name=="상태이상").interactable &&
@@ -246,6 +254,24 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         Require(SaveContents()==initialSave && TutorialFlow.Completed==initialTutorial,
             "live run save and tutorial flag unchanged");
         Finish(true);
+    }
+    // 시험장: 첫 Spawn 원본 + 허수아비(소품). 허수아비가 NavMesh 굽기 전에 켜져도 경고가 없어야 한다.
+    private IEnumerator CheckArena(string document)
+    {
+        Step("arena");
+        int logs=navMeshLogs;
+        Require(WorkshopTrial.PlayArena(),"arena trial starts");
+        yield return Wait(() => SceneManager.GetActiveScene().name=="BattleScene" && GameManager.Instance!=null && GameManager.Instance.IsPlayerReady && !UnityNote.SceneLoader.IsLoading);
+        for(int i=0;i<30;i++) yield return null;
+        Require(WorkshopTrial.Draft.id==document && CharacterStatus.ActiveEnemies.Any(s=>s!=null &&
+            s.GetComponentsInParent<Transform>().Any(t=>t.name.StartsWith(WorkshopCatalog.DummyName,StringComparison.Ordinal))),"arena dummy stands beside player");
+        Require(WorkshopReturn.ApplyStatus(StatusType.Poison,0)==(1,1),"nearest target poisoned in arena");
+        Require(navMeshLogs==logs,"arena raises no NavMesh warnings");
+        var input=GameManager.Instance.PLAYERCONTROLLER.GetComponent<PlayerInput>();
+        if(input!=null && input.user.valid) UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(mouse,input.user);
+        yield return Click("편집으로  F6");
+        yield return Wait(() => !WorkshopTrial.Active && GameObject.Find("Workshop camera")!=null && !UnityNote.SceneLoader.IsLoading);
+        Require(WorkshopTrial.Draft.id==document,"arena left edited room untouched");
     }
     private IEnumerator CheckMapToggle()
     {
@@ -407,6 +433,7 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
     private void OnDestroy() => Application.logMessageReceived-=CheckException;
     private void CheckException(string message,string trace,LogType type)
     {
+        if (type is LogType.Warning or LogType.Error && message.Contains("NavMesh")) navMeshLogs++;
         bool missingGreetingGlyph = type==LogType.Warning && message.Contains("character with Unicode") &&
             (message.Contains("[BodyText]") || message.Contains("[Pixel Small (workshop)]"));
         if ((type!=LogType.Exception && !missingGreetingGlyph) || finished) return;

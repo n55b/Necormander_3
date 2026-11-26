@@ -128,8 +128,13 @@ public static class WorkshopBuild
         library.pieces=AssetDatabase.FindAssets("t:Prefab",new[]{"Assets/Prefabs/Enemy","Assets/Prefabs/Map/Objects","Assets/Prefabs/Traps"})
             .OrderBy(AssetDatabase.GUIDToAssetPath,StringComparer.Ordinal).Select(id=>{
                 string path=AssetDatabase.GUIDToAssetPath(id);
-                return new WorkshopCatalog.Piece { id=id,prefab=AssetDatabase.LoadAssetAtPath<GameObject>(path),enemy=path.StartsWith("Assets/Prefabs/Enemy/") };
-            }).Where(p=>!p.enemy || (p.prefab.name.StartsWith("Monster ") && p.prefab.GetComponentInChildren<BaseEntity>(true)!=null)).ToArray();
+                var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                // 허수아비는 전투 없는 시험장에 바로 서 있어야 하므로 소품으로 둔다(적 배치물은 전투 방의 비활성 묶음에만 들어간다).
+                bool dummy=prefab.name==WorkshopCatalog.DummyName;
+                return new WorkshopCatalog.Piece { id=id,prefab=prefab,enemy=path.StartsWith("Assets/Prefabs/Enemy/") && !dummy };
+            }).Where(p=>!p.enemy || (p.prefab.name.StartsWith("Monster ") && p.prefab.GetComponentInChildren<BaseEntity>(true)!=null))
+            .OrderBy(p=>p.prefab.name==WorkshopCatalog.DummyName)   // 소품 팔레트 맨 뒤: 기본 소품(props[0])과 검사 기대가 바뀌지 않게
+            .ToArray();
         EditorUtility.SetDirty(library); AssetDatabase.SaveAssets();
         if (!File.Exists(WorkshopTrial.ScenePath))
         {

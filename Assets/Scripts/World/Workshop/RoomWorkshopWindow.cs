@@ -616,6 +616,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
                 if(draft!=null && ctrl && (keys.zKey.wasPressedThisFrame || keys.yKey.wasPressedThisFrame))
                 { if(redo ? DraftStore.Redo(draft) : DraftStore.Undo(draft)) Draw(page); return; }
                 if(ctrl && keys.fKey.wasPressedThisFrame){OpenFind();return;}
+                if(keys.f6Key.wasPressedThisFrame && entry.Trial!=null){Safe(entry.Trial);return;}
             }
         }
         entry.Keys?.Invoke();

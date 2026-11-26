@@ -90,6 +90,9 @@ public sealed class WorkshopCatalog : ScriptableObject
         return tile!=null && idsByTile.TryGetValue(tile,out var id) ? id : null;
     }
     public Piece FindPiece(string id) => Array.Find(pieces, p => p.id == id);
+    // 시험장 허수아비. 전투 없는 방에 바로 서 있어야 하므로 소품(enemy=false)으로 굽는다.
+    public const string DummyName = "Enemy Scarecrow";
+    public Piece Dummy => Array.Find(pieces, p => p.prefab != null && p.prefab.name == DummyName);
 
     public static readonly string[] Layers = { "Ground", "Wall", "Shadow", "Unsteppable" };
     public static Tilemap Map(Transform room, int layer) =>

@@ -10,6 +10,9 @@ public static class WorkshopTrial
 {
     internal static WorkshopCatalog Library;
     internal static WorkshopRoom Draft;
+    // 시험에 쓰는 방 문서. 방 편집의 Draft와 분리해 시험장이 편집 중인 방을 덮지 않는다.
+    internal static WorkshopRoom Stage { get; private set; }
+    internal const string ArenaId = "a7e2a7e2a7e2a7e2a7e2a7e2a7e2a7e2";
     internal static Vector2 View;
     internal static int Zoom = 1;
     internal static Vector3? Cursor;
@@ -20,12 +23,12 @@ public static class WorkshopTrial
     internal static WorkshopVillage Village { get; private set; }
     internal static WorkshopFloor FloorTest { get; private set; }
     internal static bool RoomTest => Active && FloorTest == null;
-    internal static int Seed => FloorTest?.seed ?? Draft.seed;
+    internal static int Seed => FloorTest?.seed ?? Stage.seed;
     private static Dictionary<Vector2Int,WorkshopRoom> floorEdits;
     internal static WorkshopRoom RoomAt(Vector2Int cell)
     {
         if (!Active) return null;
-        if (RoomTest) return cell==Vector2Int.zero ? Draft : null;
+        if (RoomTest) return cell==Vector2Int.zero ? Stage : null;
         return floorEdits!=null && floorEdits.TryGetValue(cell,out var doc) ? doc : null;
     }
     internal static bool ReturnToFloor;
@@ -52,18 +55,40 @@ public static class WorkshopTrial
     private static void Reset()
     {
         SceneManager.sceneLoaded -= Loaded;
-        Village=null; floorEdits=null; PlannedFloor=null; PlannedElite=null; Active=false; FloorTest=null; ReturnToFloor=false; Library=null; Draft=null; Zoom=1; Cursor=null;
+        Village=null; floorEdits=null; PlannedFloor=null; PlannedElite=null; Active=false; FloorTest=null; ReturnToFloor=false; Library=null; Draft=null; Stage=null; Zoom=1; Cursor=null;
         Undo.Clear(); Redo.Clear();
     }
     internal static bool Play(Vector3? cursor)
     {
+        Stage=Draft;
         return Begin(cursor,null);
+    }
+    // 전투 없는 빈 방(첫 inPool Spawn 원본) 가운데에 플레이어, 오른쪽 1.5~3 유닛 걸을 수 있는 칸에 허수아비. 문서는 저장하지 않는다.
+    internal static bool PlayArena()
+    {
+        var template=Library.rooms.First(r=>r.type==RoomType.Spawn && r.inPool);
+        var dummy=Library.Dummy ?? throw new InvalidDataException("허수아비가 카탈로그에 없습니다. Rebuild catalog를 실행하세요.");
+        var root=template.room.transform;
+        var ground=WorkshopCatalog.Map(root,0);
+        var wall=WorkshopCatalog.Map(root,1); var blocked=WorkshopCatalog.Map(root,3);
+        bool Walkable(Vector3Int c)=>ground.HasTile(c) && wall?.HasTile(c)!=true && blocked?.HasTile(c)!=true;   // WorkshopPreview.Walkable과 같은 규칙
+        Vector3 Local(Vector3Int c)=>root.InverseTransformPoint(ground.GetCellCenterWorld(c));
+        var cells=new List<Vector3>();
+        foreach (var c in ground.cellBounds.allPositionsWithin) if (Walkable(c)) cells.Add(Local(c));
+        var middle=root.InverseTransformPoint(ground.transform.TransformPoint(ground.localBounds.center));
+        var start=cells.OrderBy(p=>Vector2.Distance(p,middle)).First();                 // 가운데에서 가장 가까운 바닥
+        var spot=cells.Where(p=>p.x>start.x && Vector2.Distance(p,start) is >= 1.5f and <= 3f)
+            .OrderBy(p=>Vector2.Distance(p,start)).Select(p=>(Vector3?)p).FirstOrDefault() ?? start+Vector3.right*1.5f;
+        var arena=new WorkshopRoom{id=ArenaId,title="시험장",template=template.id,baseRevision=template.revision};
+        arena.pieces.Add(new WorkshopRoom.Piece{id="dummy",catalog=dummy.id,local=spot});
+        Stage=arena;
+        return Begin(start,null);
     }
     internal static bool PlayFloor(WorkshopFloor settings) => Begin(null,settings);
     private static bool Begin(Vector3? cursor, WorkshopFloor floor)
     {
         if (Active || UnityNote.SceneLoader.IsLoading) return false;
-        if (floor == null) Draft.Validate(Library);
+        if (floor == null) Stage.Validate(Library);
         if (floor!=null)
         {
             PlannedFloor=floor.Preview(Library,out var elite); PlannedElite=elite;
@@ -106,10 +131,10 @@ public static class WorkshopTrial
 
     internal static DungeonLayout Layout()
     {
-        var source=Library.FindRoom(Draft.template);
+        var source=Library.FindRoom(Stage.template);
         var neighbors=Library.rooms.First(r=>r.type==RoomType.Spawn && r.inPool);
         var directions=source.room.GetComponentsInChildren<RoomAnchor>(true).Select(a=>a.direction)
-            .Concat(Draft.exits.Select(e=>e.direction)).Distinct().Where(RoomConnectivity.IsCardinal).ToList();
+            .Concat(Stage.exits.Select(e=>e.direction)).Distinct().Where(RoomConnectivity.IsCardinal).ToList();
         var rooms=new List<DungeonLayout.Room> { new(Vector2Int.zero,source.type,source.room.gameObject,directions) };
         var links=new List<DungeonLayout.Door>();
         foreach (var direction in directions)

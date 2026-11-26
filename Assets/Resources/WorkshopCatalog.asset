@@ -741,6 +741,9 @@ MonoBehaviour:
   - id: 6c484667cd4e0f645ac1c2f7414ece3b
     prefab: {fileID: 1499860915364037387, guid: 6c484667cd4e0f645ac1c2f7414ece3b, type: 3}
     enemy: 0
+  - id: 575d9c9a1bfa5ce4aaa148cd198b1748
+    prefab: {fileID: 4998578495538801392, guid: 575d9c9a1bfa5ce4aaa148cd198b1748, type: 3}
+    enemy: 0
   generation: {fileID: 11400000, guid: 1aced7d90958fe444941591d79d29124, type: 2}
   playerPrefab: {fileID: 8389716956321753658, guid: a30e235aa3ef85c48bd0bce9f76be120, type: 3}
   dialogueTable: {fileID: 11400000, guid: 654cad4e2ee69044eb9b012b0cec483f, type: 2}

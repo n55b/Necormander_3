@@ -38,7 +38,7 @@ internal sealed class WorkshopVillageEditor : MonoBehaviour
             npc.WorkshopGreeting = saved.greeting;
         }
         LightingPreview.Active = doc.useLighting ? doc.lighting : null;
-        WorkshopUI.Button(canvas.transform,"마을 편집",8,4,84,19,Toggle);
+        WorkshopReturn.Block((RectTransform)WorkshopUI.Button(canvas.transform,"마을 편집",8,4,84,19,Toggle).transform);   // 패널은 열면 입력을 막으므로 토글만 등록한다
     }
 
     private static void Position(NPCBase npc, Vector2 position)
@@ -151,7 +151,7 @@ internal sealed class WorkshopVillageEditor : MonoBehaviour
         }
         var mouse=Mouse.current;
         if (!placing || panel==null || mouse==null || !mouse.leftButton.wasPressedThisFrame ||
-            LightingDebugPanel.CapturesPointer || WorkshopReturn.OverButton) return;
+            LightingDebugPanel.CapturesPointer || WorkshopReturn.CapturesPointer) return;
         var point=mouse.position.ReadValue();
         if (RectTransformUtility.RectangleContainsScreenPoint(panel,PixelViewport.PointerForCanvas(canvas,point),PixelViewport.CanvasCamera(canvas)) ||
             !PixelViewport.TryPointerToWorld(point,out var world)) return;

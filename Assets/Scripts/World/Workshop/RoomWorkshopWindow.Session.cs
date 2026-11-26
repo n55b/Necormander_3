@@ -26,7 +26,15 @@ public sealed partial class RoomWorkshopWindow
         WorkshopSession.ListPage=0; WorkshopSession.Scroll=0; QuitApproved=false;
     }
 
-    // 콘텐츠 화면에서 시험을 시작한 직후 부른다(S7 StartContentTrial). PlayArena는 씬 로드를 요청만 하므로 같은 프레임에 기록해도 된다.
+    // 등록표 Trial 칸(F6). 허수아비 없음·Validate 실패로 예외가 나거나 false면 기록하지 않으므로 FromContent가 남는 경로가 없다.
+    private void StartContentTrial()
+    {
+        CommitPendingInputs();
+        if(page==Page.Parameters && dataField!=null) AcceptParameter();
+        string item=dataEntry?.id;
+        if(WorkshopTrial.PlayArena()) RememberContent(item); else Say("시험을 시작할 수 없습니다.");
+    }
+    // PlayArena는 씬 로드를 요청만 하므로 같은 프레임의 창·선택·스크롤을 그 뒤에 기록해도 된다.
     private void RememberContent(string item)
     {
         var selected=UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
