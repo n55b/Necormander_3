@@ -72,7 +72,7 @@ public sealed class FeedbackCatalogEditor : Editor
             KoreanEditorText.Help(entry.FindPropertyRelative("description").stringValue,MessageType.None);
             foreach(var field in typeof(FeedbackRecipe).GetFields())
             {
-                if(field.Name=="cue"||field.Name=="enabled"||field.Name=="description"||field.Name=="title") continue;
+                if(field.Name=="cue"||field.Name=="enabled"||field.Name=="description"||field.Name=="title"||field.IsDefined(typeof(HideInInspector),false)) continue;
                 Draw(entry.FindPropertyRelative(field.Name),typeof(FeedbackRecipe));
             }
             EditorGUI.indentLevel--;
