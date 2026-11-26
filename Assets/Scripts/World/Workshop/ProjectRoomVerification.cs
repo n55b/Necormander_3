@@ -12,7 +12,8 @@ using UnityEngine.UI;
 public sealed partial class ProjectRoomVerification : MonoBehaviour
 {
     // clusters: 카탈로그 군집 id 두 개. 팀 검사 스크립트가 같은 방의 웨이브 파일을 고칠 때도 읽는다.
-    [Serializable] private class Fixture { public string template; public Vector2Int cell,grid; public float sprint; public int waves; public string[] clusters; }
+    // poison: seed가 상태이상 화면에서 저장한 중독 1회 피해. verify(편집기 재시작·Windows 플레이어)와 creator가 확인한다.
+    [Serializable] private class Fixture { public string template; public Vector2Int cell,grid; public float sprint; public int waves; public string[] clusters; public float poison; }
     private string phase, report;
     private float deadline;
     private bool finished;
@@ -133,6 +134,8 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
                 var liveTranslation=UnityEngine.Localization.Settings.LocalizationSettings.StringDatabase.GetTable("UI Text Table",lang);
                 if(liveTranslation.GetEntry("Btn_StartGame").Value!="QA Start" || liveTranslation.GetEntry("qa_workshop_title")?.Value!="Editor")
                     throw new InvalidOperationException("Published translation did not reach the active StringTable.");
+                if(Mathf.Abs(StatusRules.POISON_TICK_DAMAGE-fixture.poison)>.0001f)
+                    throw new InvalidOperationException("Saved status value did not reach the live game.");
                 Debug.Log("[ProjectRoomCheck] global ground empty at "+fixture.cell+", authored wave "+fixture.clusters[0]+" in "+template.title);
                 Finish(true); yield break;
             }
@@ -148,6 +151,23 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             Click(Button("연결")!=null ? "연결" : "현재 문서 저장 후 연결");
             if(!ProjectContentStore.Authoring || Path.GetFullPath(ProjectContentStore.Root)!=Path.GetFullPath(Path.Combine(checkout,"DATA")))
                 throw new IOException("Creator did not connect to the selected checkout.");
+            // 체크아웃 b의 상태이상 저장값이 제작판에 보이고, 시험 씬의 바인딩이 미저장 초안의 미리 적용을 덮지 않는다.
+            deadline=Time.realtimeSinceStartup+100;
+            string Shown(float v)=>v.ToString("0.##",System.Globalization.CultureInfo.InvariantCulture);
+            Click("게임 콘텐츠"); Click("상태이상"); Click("상태이상/poison");
+            string shown=GameObject.Find("poisonTickDamage/값").GetComponentInChildren<TMPro.TMP_Text>().text;
+            if(shown!=Shown(fixture.poison)) throw new InvalidOperationException("Creator shows status "+shown+", expected "+fixture.poison);
+            GameObject.Find("poisonTickDamage/+").GetComponent<Button>().onClick.Invoke();
+            Click("시험 F6"); yield return null;
+            while(UnityNote.SceneLoader.IsLoading || GameManager.Instance==null || !GameManager.Instance.IsPlayerReady) yield return null;
+            if(Mathf.Abs(StatusRules.POISON_TICK_DAMAGE-(fixture.poison+1))>.0001f)
+                throw new InvalidOperationException("Scene binding replaced the previewed status draft.");
+            if(!WorkshopTrial.Open()) throw new InvalidOperationException("Return to workshop");
+            yield return null;
+            while(UnityNote.SceneLoader.IsLoading || Button("변경 취소")==null) yield return null;
+            if(Mathf.Abs(StatusRules.POISON_TICK_DAMAGE-fixture.poison)>.0001f)
+                throw new InvalidOperationException("Returning did not end the status preview.");
+            Click("변경 취소"); Click("내 작업");
         }
         while(UnityNote.SceneLoader.IsLoading || Button("게임 방 편집")==null) yield return null;
         if(phase=="world")
@@ -272,6 +292,12 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             Click("새 번역");
             GameObject.Find("새 번역 키").GetComponent<TMPro.TMP_InputField>().text="qa_workshop_title";
             GameObject.Find("새 번역 본문").GetComponent<TMPro.TMP_InputField>().text="Editor";Click("프로젝트에 저장");
+            Click("내 작업");Click("게임 콘텐츠");Click("상태이상");Click("상태이상/poison");
+            float authored=StatusRules.POISON_TICK_DAMAGE;
+            GameObject.Find("poisonTickDamage/+").GetComponent<Button>().onClick.Invoke();
+            Click("프로젝트에 저장");
+            fixture.poison=StatusRules.POISON_TICK_DAMAGE;
+            if(Mathf.Abs(fixture.poison-(authored+1))>.0001f) throw new InvalidOperationException("Status screen did not publish the poison value.");
             yield return CheckPalette();
             File.WriteAllText(report,JsonUtility.ToJson(fixture,true));
         }

@@ -176,6 +176,10 @@ public static class WorkshopPlayModeCheck
         string file = Path.Combine(Path.GetDirectoryName(WorkshopFiles.Folder), "floor.json");
         if (JsonUtility.FromJson<SavedSeed>(File.ReadAllText(file)).seed != seed + 1)
             throw new InvalidOperationException("Workshop settings not saved.");
+        deadline = EditorApplication.timeSinceStartup + 150;   // 상태이상 화면: 시험 왕복 두 번과 아홉 행 검사
+        yield return WorkshopStatusCheck.Run(row => PresentationRegressionCheck.SaveFrame(PixelArtUpscaleRig.RenderCamera.targetTexture, "WorkshopUx/status-" + row));
+        if (UiResolutionCheck.Enabled)
+            yield return UiResolutionCheck.Verify("Workshop content",(RectTransform)GameObject.Find("Status detail").transform,Button("프로젝트에 저장"));
         Button("메뉴").onClick.Invoke();
         while (!Ready("StartScene")) yield return null;
         Button("레벨 제작실").onClick.Invoke();

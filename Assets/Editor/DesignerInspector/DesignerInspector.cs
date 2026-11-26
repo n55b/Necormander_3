@@ -48,8 +48,8 @@ public sealed class DesignerInspectorView
     // 이 화면이 그리는 SO의 DATA 덮어쓰기 키. 파일 수정 시각이 같으면 다시 읽지 않는다.
     private string overridePath; private DateTime overrideStamp; private HashSet<string> overrides = new HashSet<string>();
     private bool owned;
-    // 레벨 제작실이 편집을 맡은 타입. 도메인이 제작실로 옮겨 갈 때마다 한 줄씩 더한다(상태이상은 P1 S8).
-    internal static readonly Type[] OwnedByWorkshop = Array.Empty<Type>();
+    // 레벨 제작실이 편집을 맡은 타입. 도메인이 제작실로 옮겨 갈 때마다 한 줄씩 더한다. Sunyunie 상태이상 탭도 이 인스펙터라 함께 읽기 전용이 된다.
+    internal static readonly Type[] OwnedByWorkshop = { typeof(StatusBalanceSO) };
 
     private static string DataFile(UnityEngine.Object target, string root)
     {

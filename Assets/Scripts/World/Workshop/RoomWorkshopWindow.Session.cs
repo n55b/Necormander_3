@@ -10,7 +10,7 @@ public sealed partial class RoomWorkshopWindow
     {
         internal static bool FromContent;      // 콘텐츠 화면에서 시험을 시작했다. 시험이 실제로 시작된 뒤에만 켜고 Start()가 바로 소비한다
         internal static Page Page=Page.Desk;   // 그때 보던 화면
-        internal static string Item;           // 선택 항목 키: 모든 수치는 entry.id
+        internal static string Item;           // 선택 항목 키: 상태이상 행 key, 모든 수치는 entry.id
         internal static int ListPage;          // 모든 수치 dataPage
         internal static float Scroll;          // 상세 content y(논리 px, 정수)
         internal static string Focus;          // FocusKey(부모 이름 + 이름)
@@ -31,7 +31,7 @@ public sealed partial class RoomWorkshopWindow
     {
         CommitPendingInputs();
         if(page==Page.Parameters && dataField!=null) AcceptParameter();
-        string item=dataEntry?.id;
+        string item=page==Page.Status ? statusRow : dataEntry?.id;
         if(WorkshopTrial.PlayArena()) RememberContent(item); else Say("시험을 시작할 수 없습니다.");
     }
     // PlayArena는 씬 로드를 요청만 하므로 같은 프레임의 창·선택·스크롤을 그 뒤에 기록해도 된다.
@@ -48,6 +48,7 @@ public sealed partial class RoomWorkshopWindow
         restoringScroll=true;                  // Detail()이 WorkshopSession.Scroll을 한 번 적용한다
         switch(WorkshopSession.Page)
         {
+            case Page.Status: OpenStatus(WorkshopSession.Item); break;
             case Page.Parameters:
                 OpenParameters();
                 var entry=Array.Find(dataCatalog,e=>e.id==WorkshopSession.Item);

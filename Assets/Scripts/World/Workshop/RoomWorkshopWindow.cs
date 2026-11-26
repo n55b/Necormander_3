@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public sealed partial class RoomWorkshopWindow : MonoBehaviour
 {
     public WorkshopCatalog catalog;
-    private enum Page { Desk, Legacy, Map, Shared, Game, Project, Balance, Git, Parameters, Dialogue, Translations, Art, Compare, Passage, Content }
+    private enum Page { Desk, Legacy, Map, Shared, Game, Project, Balance, Git, Parameters, Dialogue, Translations, Art, Compare, Passage, Content, Status }
     private enum Tool { Select, Paint, Erase, Sample, Door, Enemy, Prop, Start, Stamp, Auto }
     private Page page;
     private Tool tool;
@@ -123,7 +123,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         // 작업대는 아래 줄에 같은 이름의 버튼이 있어 숨긴다. 비연결이어도 보인다(허브가 읽기 전용 안내를 띄운다).
         if (page!=Page.Map && page!=Page.Desk)
             Btn("게임 콘텐츠",447,5,72,20,()=>Navigate(Page.Content),
-                page is Page.Content or Page.Parameters or Page.Balance or Page.Dialogue or Page.Translations or Page.Art);
+                page is Page.Content or Page.Status or Page.Parameters or Page.Balance or Page.Dialogue or Page.Translations or Page.Art);
         DrawUnsavedButton();
         pages[(int)page].Draw();
         if(page!=Page.Desk) Refocus(kept);          // 작업대는 DrawLibrary가 기존 규칙(검색→'검색' 치환, 기본 포커스)으로 고른다
@@ -131,6 +131,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         if(pendingConfirm!=null) DrawConfirm();     // Draw가 몇 번 다시 돌아도 모달이 남는다
         string hint = page == Page.Passage ? "이동 범위는 착지점에서 상하좌우로 이어진 바닥 타일 기준입니다." :
             !string.IsNullOrEmpty(notice) ? notice : page == Page.Map ? MapHint() :
+            page == Page.Status ? "Ctrl+S 저장 · Ctrl+Z 되돌리기 · F6 시험" :
             page == Page.Desk ? (ProjectContentStore.Authoring ? "저장 위치  ·  프로젝트 DATA" : "저장 위치  ·  로컬 작업 공간") : "";
         feedback=WorkshopUI.Label(content,hint,9,page==Page.Map ? 328 : 335,page==Page.Map ? 382 : 623,page==Page.Map ? 15 : 19);
         if (page==Page.Map)

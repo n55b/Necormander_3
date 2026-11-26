@@ -41,6 +41,8 @@ public sealed partial class RoomWorkshopWindow
         pages[(int)Page.Art]         =new PageEntry{Draw=DrawArt,Save=SaveArt,Title="아트 원본",Dirty=()=>art!=null&&nextArt!=null,
             Reset=()=>{artEntries=null;art=null;nextArt=null;DisposeArt();}};
         pages[(int)Page.Content]     =new PageEntry{Draw=DrawContent,Reset=()=>contentQuery=""};
+        pages[(int)Page.Status]      =new PageEntry{Draw=DrawStatus,Save=SaveStatus,Draft=()=>statusDraft,Trial=StartContentTrial,Keys=StatusKeys,
+            Reset=()=>{statusDraft=null;statusFocus=null;}};
     }
     private void SaveFloorShortcut(){ if(routeDraft!=null) return; floorSettings.Save(); Say("층 설정을 저장했습니다."); }
     private void ResetParameters(){ dataEntry=null; dataField=null; dataCatalog=null; paramDraft=null; }
