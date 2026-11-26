@@ -317,7 +317,11 @@ internal sealed partial class WorkshopPreview : System.IDisposable
                 hits.Add((piece.Key,(int.MinValue, 0, -piece.Value.position.y, 0)));
         }
         if (hits.Count==0) return null;
-        hits.Sort((a,b) => a.rank!=b.rank ? b.rank.CompareTo(a.rank) : string.CompareOrdinal(b.key,a.key));
+        // 같은 깊이로 겹친 소품(같은 줄에 나란히 놓은 넓은 그림)은 누른 점에 가까운 쪽을 고른다.
+        // 키(무작위 GUID)만으로 고르면 이웃을 집어 Shift 추가 선택이 이미 고른 것을 해제할 수 있다.
+        float Distance(string key) => Vector2.Distance(pieces[key].position, world);
+        hits.Sort((a,b) => a.rank!=b.rank ? b.rank.CompareTo(a.rank) :
+            Distance(a.key)!=Distance(b.key) ? Distance(a.key).CompareTo(Distance(b.key)) : string.CompareOrdinal(b.key,a.key));
         int current=after!=null ? hits.FindIndex(item=>item.key==after) : -1;
         return hits[(current+1)%hits.Count].key;
     }

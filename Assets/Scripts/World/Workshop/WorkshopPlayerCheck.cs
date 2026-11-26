@@ -413,7 +413,8 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         yield return Drag(point,point+Vector2.up*12);
         var pieces=WorkshopTrial.Draft.pieces;
         Require(pieces.Count==2 && (pieces[0].local-before[0]).sqrMagnitude>.01f &&
-            Vector3.Distance(pieces[0].local-before[0],pieces[1].local-before[1])<.002f,"group drag preserves relative offsets");
+            Vector3.Distance(pieces[0].local-before[0],pieces[1].local-before[1])<.002f,
+            "group drag preserves relative offsets ("+pieces.Count+" pieces, "+string.Join(" ",pieces.Select((p,i)=>i<before.Length ? (p.local-before[i]).ToString("F3") : "new"))+")");
         yield return Click("선택 삭제");
         Require(pieces.All(p=>p.removed),"group removal");
         yield return Click("실행 취소");
