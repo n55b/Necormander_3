@@ -94,11 +94,34 @@ public sealed partial class RoomWorkshopWindow
             }
             WorkshopUI.Label(content,(string.IsNullOrEmpty(dataField.group) ? "" : dataField.group+" · ")+dataField.label+
                 (dataField.unit==null ? "" : " ("+dataField.unit+")"),12,86,615,24);
-            WorkshopUI.Label(content,dataField.type.IsEnum ? string.Join(" / ",Enum.GetNames(dataField.type)) :
-                dataField.type==typeof(bool) ? "True / False" : (dataField.help ?? "").Split('\n')[0],12,170,615,22);
-            dataInput=Input("설정값",parameterDraft ?? ParameterValue(dataField),12,120,610,46,dataField.type==typeof(string));
-            dataInput.onValueChanged.AddListener(v=>parameterDraft=v);
-            Btn("적용",12,196,85,23,()=>{AcceptParameter();Draw(page);});
+            var field=dataField;   // 위젯 콜백은 dataField를 비운 뒤에도 이 필드를 읽는다
+            string helpLine=(field.help ?? "").Split('\n')[0];
+            // bool·enum은 입력칸·[적용] 없이 고르는 즉시 초안에 넣고 목록으로 돌아간다. 값 문자열은 Original과 같은 형식이라 원본을 고르면 키가 지워진다.
+            void Pick(string text)=>Safe(()=>{DraftStore.Set(paramDraft,field,text);dataField=null;Draw(page);});
+            if(field.type==typeof(bool))
+            {
+                WorkshopUI.Toggle(content,"설정값",12,120,120,()=>bool.TryParse(ParameterValue(field),out bool on) && on,on=>Pick(on.ToString()));
+                WorkshopUI.Label(content,helpLine,12,170,615,22);
+            }
+            else if(field.type.IsEnum)
+            {
+                var names=Enum.GetNames(field.type);
+                var labels=names.Select(n=>DesignerInspectorLabels.EnumLabel(field.type,n)).ToArray();
+                if(names.Length<=8) WorkshopUI.Choice(content,"설정값",12,120,610,24,labels,()=>Array.IndexOf(names,ParameterValue(field)),i=>Pick(names[i]));
+                else WorkshopUI.Picker(content,content,"설정값",12,120,300,labels,()=>Array.IndexOf(names,ParameterValue(field)),i=>Pick(names[i]));
+                WorkshopUI.Label(content,helpLine,12,170,615,22);
+            }
+            else
+            {
+                dataInput=Input("설정값",parameterDraft ?? ParameterValue(field),12,120,610,46,field.type==typeof(string));
+                dataInput.onValueChanged.AddListener(v=>parameterDraft=v);
+                bool ranged=(field.type==typeof(int) || field.type==typeof(float)) && !float.IsInfinity(field.min) && !float.IsInfinity(field.max);
+                if(ranged)   // 움직이면 입력칸과 parameterDraft를 함께 바꾼다. 반영은 [적용]·저장과 같다.
+                    WorkshopUI.Slider(content,"설정값 슬라이더",12,174,300,field.min,field.max,()=>(float)Number(parameterDraft ?? ParameterValue(field)),
+                        v=>{ string text=Format(field,Math.Round(v,4)); dataInput.SetTextWithoutNotify(text); parameterDraft=text; },field.type==typeof(int));
+                WorkshopUI.Label(content,helpLine,ranged ? 320 : 12,170,ranged ? 300 : 615,22);
+                Btn("적용",12,196,85,23,()=>{AcceptParameter();Draw(page);});
+            }
             Btn("원본값으로",107,196,117,23,()=>{DraftStore.Set(paramDraft,dataField,null);dataField=null;Draw(page);});
             Btn("취소",236,196,75,23,()=>{dataField=null;Draw(page);});
             Btn("프로젝트에 저장",455,196,165,23,SaveParameters,true);

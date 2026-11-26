@@ -100,10 +100,11 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
     }
     private void Draw(Page next)
     {
-        var previousControl=UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
-        deskControl=next==Page.Desk && page==Page.Desk && content!=null && previousControl!=null &&
-            previousControl.transform.IsChildOf(content) ? previousControl.name : null;
-        applyPiece=null;
+        var previousControl=UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;   // 이미 파괴된 버튼일 수 있다: != null로만 확인한다
+        bool inside=content!=null && previousControl!=null && previousControl.transform.IsChildOf(content);
+        deskControl=next==Page.Desk && page==Page.Desk && inside ? previousControl.name : null;
+        string kept=next==page && inside ? FocusKey(previousControl.transform) : null;   // 같은 화면을 다시 그리면 선택을 되살린다
+        applyPiece=null; refreshers.Clear();
         page=next;
         if (content!=null) { content.gameObject.SetActive(false); Destroy(content.gameObject); }
         content=WorkshopUI.Box(canvas.transform,"Workspace",0,0,640,360,WorkshopUI.Ink).rectTransform;
@@ -123,6 +124,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
             Btn("플레이어 수치",447,5,72,20,()=>Navigate(Page.Balance),page==Page.Balance);
         DrawUnsavedButton();
         pages[(int)page].Draw();
+        if(page!=Page.Desk) Refocus(kept);          // 작업대는 DrawLibrary가 기존 규칙(검색→'검색' 치환, 기본 포커스)으로 고른다
         if(unsavedOpen) DrawUnsavedList();          // 그리는 순서: 헤더 → 페이지 → 목록 팝업 → 모달 → 상태 줄
         if(pendingConfirm!=null) DrawConfirm();     // Draw가 몇 번 다시 돌아도 모달이 남는다
         string hint = page == Page.Passage ? "이동 범위는 착지점에서 상하좌우로 이어진 바닥 타일 기준입니다." :
@@ -600,7 +602,11 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         if(page!=Page.Map)
         {
             if(ctrl && !shift && keys.sKey.wasPressedThisFrame && entry.Save!=null){CommitPendingInputs();Safe(entry.Save);return;}
-            if(keys.escapeKey.wasPressedThisFrame && unsavedOpen){ unsavedOpen=false; Draw(page); return; }
+            if(keys.escapeKey.wasPressedThisFrame)                 // 맨 위 팝업부터 닫는다
+            {
+                if(WorkshopUI.CloseOverlay()) return;
+                if(unsavedOpen){ unsavedOpen=false; Draw(page); return; }
+            }
             if(!InputFocused())
             {
                 var draft=entry.Draft?.Invoke();
