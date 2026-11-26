@@ -281,7 +281,7 @@ public partial class MeleeCombatController
 
     /// <summary>
     /// 플레이어 평타만 취소한다. 소환수의 행동은 건드리지 않아,
-    /// 3타 도중 대쉬/패링/Q·E 를 써도 미니언은 남아서 마무리를 끝낸다.
+    /// 3타 도중 대쉬/Q·E 를 써도 미니언은 남아서 마무리를 끝낸다.
     /// </summary>
     public void CancelPlayerAttack()
     {

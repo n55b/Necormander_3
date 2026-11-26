@@ -9,7 +9,7 @@ using UnityEngine;
 ///   · Window  : 전체맵(M). Modal/System 위에는 못 뜬다. 열리면 Window/Overlay 를 닫는다. 전투 중 불가.
 ///   · Overlay : 주머니(V), 플레이어 정보(C). 시간·전투가 계속 돌며 동시에 열 수 있다.
 ///               Window/System 위에는 못 뜨고, Modal(보상 등) 위에는 얹힌다. 전투 중 가능.
-///               게임플레이 입력은 막지 않는다(평타/패리/상호작용은 각 창이 IsOpen 으로 직접 막는다).
+///               게임플레이 입력은 막지 않는다(평타/상호작용은 각 창이 IsOpen 으로 직접 막는다).
 ///   · Modal   : 보상, 증강, 미니언 습득/교체. 항상 뜨고 아래 Window/Overlay 를 닫는다. 전투 중 가능.
 ///   · System  : 옵션(ESC), 대화. 맨 위에 쌓이고 아무것도 닫지 않는다. 전투 중 가능.
 ///
@@ -28,7 +28,7 @@ using UnityEngine;
 ///   · 이벤트로 뜨는 창(Modal/System)은 버리면 보상이 사라지므로 보류했다가 옵션이 닫히면 띄운다.
 ///
 /// <b>그 외 창은 시간 정지 없음</b> — 대신 Overlay 가 아닌 창이 하나라도 떠 있으면
-/// <see cref="BlocksGameplayInput"/> 이 true 가 되어 플레이어의 이동/공격/대쉬/스킬/패리/상호작용이 막힌다.
+/// <see cref="BlocksGameplayInput"/> 이 true 가 되어 플레이어의 이동/공격/대쉬/스킬/상호작용이 막힌다.
 /// (V/Tab/ESC/M 같은 창 여닫기 키는 막지 않는다.)
 /// </summary>
 public class UIPopUpManager : Singleton<UIPopUpManager>

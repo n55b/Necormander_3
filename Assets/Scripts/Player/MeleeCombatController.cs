@@ -128,7 +128,7 @@ public partial class MeleeCombatController : MonoBehaviour
     public bool IsAimingAttack => _ownsAnimationLock;
 
     /// <summary>
-    /// 취소해야 할 '진행 중 공격'이 있는가 — 평캔/대쉬/패링의 캔슬 게이트 전용.
+    /// 취소해야 할 '진행 중 공격'이 있는가 — 평캔/대쉬의 캔슬 게이트 전용.
     /// 플레이어 모션/히트박스/최소 간격에 소환수와는 무관하다.
     /// 소환수 일격이 플레이어 평타보다 오래 남아도 Space 재사용 시 회수할 수 있어야 한다.
     /// 콤보 진행에는 IsAttacking만 사용한다 — 이 속성은 캔슬 게이트 전용이다.

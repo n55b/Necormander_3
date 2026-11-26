@@ -26,7 +26,6 @@ Assets/Prefabs/Player Melee.prefab
 - PlayerController: 출발 가속 시간, 정지 감속 시간, 방향 전환 시간, 전진 곡선.
 - MeleeDodgeController: 대시 속도, 지속 시간, 충전 시간과 횟수.
 - MeleeCombatController: 평타 전진 배율, 콤보 유지 시간, 공격 예고.
-- PlayerParryController: 최대 게이지, 퍼펙트 판정 시간, 일반 회복량, 파괴 완충 시간.
 일반 시간은 초, 배율 1은 원래 값이다. 이동 속도와 지속 시간을 같이 바꾸면 거리도 바뀐다.
 
 몬스터/보스 공격

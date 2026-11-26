@@ -91,7 +91,7 @@ public class BossCounterGauge : MonoBehaviour
     {
         if (!IsOpen) return;
 
-        // 플레이어 계열 피해(평타/스킬/대쉬/패링)만 게이지에 반영한다.
+        // 플레이어 계열 피해(평타/스킬/대쉬)만 게이지에 반영한다.
         // 상태이상 도트, 가시 자해 등은 걸리지 않는다.
         if (!DamageRules.IsPlayerSourced(info.category)) return;
         if (info.amount <= 0f) return;

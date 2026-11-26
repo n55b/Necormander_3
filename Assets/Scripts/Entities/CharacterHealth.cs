@@ -81,10 +81,8 @@ public class CharacterHealth : MonoBehaviour, IDamageable
     /// <summary>
     /// 갈래가 안 붙은(None) 피해를 공격자를 보고 자동 분류한다.
     ///  · 적 공격 → 등급(EnemyMinionDataSO.tier)   · 플레이어 공격 → 스킬
-    /// 평타/대쉬/패링/디버프/함정은 소스에서 명시 태그되므로 여기로 안 온다.
+    /// 평타/대쉬/디버프/함정은 소스에서 명시 태그되므로 여기로 안 온다.
     /// </summary>
-    /// (public 인 이유: 우클릭 카운터/가드가 아직 GetDamage 에 들어오지 않은 히트박스의 갈래를
-    ///  미리 알아야 한다. 판정 규칙이 두 벌로 갈리지 않게 반드시 이 함수를 쓴다.)
     public static DamageCategory ResolveCategoryFromAttacker(GameObject attacker)
     {
         if (attacker == null) return DamageCategory.None;
