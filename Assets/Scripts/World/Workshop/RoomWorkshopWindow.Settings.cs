@@ -160,7 +160,7 @@ public sealed partial class RoomWorkshopWindow
             int index=i; int x=17+(i%2)*308, y=105+(i/2)*40;
             Btn(titles[i],x,y,297,33,()=>{
 #if UNITY_EDITOR
-                if(index<3) {
+                if(paths[index].StartsWith("Assets/",StringComparison.Ordinal)) {
                     var asset=UnityEditor.AssetDatabase.LoadMainAssetAtPath(paths[index]);
                     UnityEditor.Selection.activeObject=asset; UnityEditor.EditorGUIUtility.PingObject(asset);
                 }

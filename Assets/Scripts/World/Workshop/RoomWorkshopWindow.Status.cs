@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-// 상태이상 화면(첫 도메인). 옛 StatusEffectEditorWindow의 목록·설명·타임라인·결과 카드·한눈에 보기를 목록-상세 골격으로 옮겼다.
+// 상태이상 화면(첫 도메인). 퇴역한 Unity 상태이상 편집기(Legacy/Editor/Combat)의 목록·설명·타임라인·결과 카드·한눈에 보기를 목록-상세 골격으로 옮겼다.
 // 초안은 DraftStore(BALANCE/STATUS/<guid>)에 있다. 저장하면 살아 있는 StatusBalanceSO에 바로 적용되고 StatusRules가 다음 부여부터 읽는다.
 public sealed partial class RoomWorkshopWindow
 {

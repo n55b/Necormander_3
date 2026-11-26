@@ -29,7 +29,7 @@
 - 일반 작업과 AI 검색은 `Assets/Scripts`, 관련 `Assets/Editor`, `ProjectSettings`, `Docs/Guides`부터 확인한다. 보관 이력을 요청한 경우에만 루트 `Legacy`를 읽는다. 목차 `Legacy/README.md`만 항상 읽을 수 있고, 하위 폴더는 `.claude/settings.json`(폴더별 `Read(/Legacy/<폴더>/**)`)과 `.rgignore`가 읽기·검색에서 막는다. `Legacy`에 최상위 폴더를 새로 만들면 거부 규칙을 함께 추가한다. `git grep`·스크립트로 참조를 스캔할 때는 `':!Legacy' ':!Assets/Unity.VisualScripting.Generated'`를 제외한다. 이름이 Legacy인 `Assets/Prefabs/Map/Objects/Legacy`, `Assets/Resources/Sprites/Tile/Legacy`, `ARTIST/LEGACY`는 활성 폴더다. 보관 코드와 도구는 Unity 및 도구 실행 경로 밖의 `.txt`로 이동하고 메타데이터도 함께 텍스트로 보관한다. `ARTIST/LEGACY`와 연결된 Unity 아트에는 기존 씬이 사용하는 그림이 들어 있다.
 - 프롬프트 원문과 작업 일지는 `Legacy/History`에 보관한다. 활성 주석은 좌표 단위, 직렬화 값, 호출 시점과 같이 현재 코드 수정에 필요한 이유를 설명한다. UI 배치의 현재 계약은 프리팹과 [인벤토리 UI 안내](Assets/Prefabs/UI/InventoryUI_README.md)에서 확인한다.
 
-- 인게임 방 제작은 `Assets/Scripts/World/Workshop`, 원본 카탈로그 생성과 프리팹 변형 가져오기는 `Assets/Editor/Map/WorkshopBuild.cs`·`WorkshopRoomImport.cs`를 사용한다. Unity에서는 Sunyunie Panel의 제작실 버튼이나 `Tools > Level Workshop > Open in Play Mode`로, 제작용 Windows 빌드에서는 메인 메뉴로 들어간다. 원본 방과 팀 도구는 제작실의 Legacy 탭에 있다. 팀 전달 파일(.levelpack)의 참조 검증은 `WorkshopPackage`, 개정 비교는 `WorkshopPackageReview`, 작업 공간 저장과 전환은 `WorkshopWorkspace`에서 확인한다.
+- 인게임 방 제작은 `Assets/Scripts/World/Workshop`, 원본 카탈로그 생성과 프리팹 변형 가져오기는 `Assets/Editor/Map/WorkshopBuild.cs`·`WorkshopRoomImport.cs`를 사용한다. Unity에서는 Sunyunie Panel의 제작실 버튼이나 `Tools > Level Workshop > Open in Play Mode`로, 제작용 Windows 빌드에서는 메인 메뉴로 들어간다. 원본 방과 팀 도구는 제작실의 Legacy 탭에 있다. 팀 전달 파일(.levelpack)의 참조 검증은 `WorkshopPackage`, 개정 비교는 `WorkshopPackageReview`, 작업 공간 저장과 전환은 `WorkshopWorkspace`에서 확인한다. 콘텐츠 화면 초안은 `DraftStore`, 화면 등록은 `RoomWorkshopWindow.Pages.cs`에 있다. 상태이상 수치는 제작실 게임 콘텐츠 > 상태이상(`RoomWorkshopWindow.Status.cs`)에서 편집하고 Unity 인스펙터는 읽기 전용이다.
 
 ## 검증
 
