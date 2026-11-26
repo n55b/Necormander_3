@@ -20,6 +20,13 @@ $activeLegacyFiles = @(Get-ChildItem -LiteralPath (Join-Path $source 'Legacy') -
 if ($activeLegacyFiles.Count) {
     throw "Archive executable files with a .txt suffix: $($activeLegacyFiles.FullName -join ', ')"
 }
+# Every Legacy subfolder must be read-denied for agents; Legacy/README.md stays readable as the index.
+$denied = (Get-Content -LiteralPath (Join-Path $source '.claude/settings.json') -Raw | ConvertFrom-Json).permissions.deny
+$unblocked = @(Get-ChildItem -LiteralPath (Join-Path $source 'Legacy') -Directory |
+    Where-Object { "Read(/Legacy/$($_.Name)/**)" -notin $denied })
+if ($unblocked.Count) {
+    throw "Add Read(/Legacy/<folder>/**) to .claude/settings.json for: $($unblocked.Name -join ', ')"
+}
 $version = (Select-String -LiteralPath (Join-Path $source 'ProjectSettings/ProjectVersion.txt') -Pattern '^m_EditorVersion: (\S+)').Matches[0].Groups[1].Value
 if (-not $UnityEditor) {
     $UnityEditor = Join-Path $env:ProgramFiles "Unity/Hub/Editor/$version/Editor/Unity.exe"

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(/Legacy/Art/**)",
+      "Read(/Legacy/ArtDensity/**)",
+      "Read(/Legacy/Assets/**)",
+      "Read(/Legacy/Data/**)",
+      "Read(/Legacy/Editor/**)",
+      "Read(/Legacy/History/**)",
+      "Read(/Legacy/Rendering/**)",
+      "Read(/Legacy/Runtime/**)",
+      "Read(/Legacy/Shaders/**)",
+      "Read(/Legacy/Tools/**)",
+      "Read(/Legacy/UI/**)"
+    ]
+  }
+}

@@ -10,7 +10,7 @@
 - 픽셀아트·렌더링 개편에서는 기존 런타임 코드, 셰이더, 에디터 도구를 전면 재작성하거나 퇴역시킬 수 있다. 교체 단위마다 게임 동작, 콘텐츠 참조, ARTIST 편집 경로를 검증하고 퇴역본은 루트 Legacy에 보관한다. 선택 기준과 단계별 완료 조건은 [픽셀아트 제작과 렌더링 계획](Docs/Maintenance/픽셀아트_제작과_렌더링_계획.md)을 따른다.
 - 런타임 코드는 `Assets/Scripts`, 제작·검사 도구는 `Assets/Editor`에 있다. 밸런스와 콘텐츠 설정은 `Assets/SOData`, 씬에 연결되는 실물은 `Assets/Prefabs`와 `Assets/Animations`에서 확인한다.
 - 에셋이나 스크립트를 이동할 때 `.meta`를 함께 이동한다. 이름을 바꿀 때는 `Resources.Load` 경로와 세이브에 기록되는 소환수·장비·아이템 이름을 확인한다.
-- 현재 전투는 두 소환수 슬롯을 사용한다. 우클릭은 활성 소환수 스킬, `Space`는 교대이며, 대기 소환수는 평타 상태이상과 대시 공격에 관여한다. `Docs/Archive`는 이전 구현 기록이다.
+- 현재 전투는 두 소환수 슬롯을 사용한다. 우클릭은 활성 소환수 스킬, `Space`는 교대이며, 대기 소환수는 평타 상태이상과 대시 공격에 관여한다. 이전 구현 기록은 루트 `Legacy/History/Docs`에 있다.
 - 제작 도구는 [툴 사용 가이드](Docs/Guides/툴%20사용%20가이드.md), 에셋 위치는 [폴더 찾기](Docs/Guides/폴더_찾기.txt)를 참고한다.
 - 스프라이트 원본은 [ARTIST](ARTIST/README.md)에서 편집한다. `manifest.json`에 등록된 출력은 Unity가 동기화한다. 원본과 갱신된 출력은 함께 검토한다.
 - 메뉴·HUD 아이콘과 TMP 인라인 키캡은 `ARTIST/manifest.json`에 연결된 Aseprite 스프라이트를 표시한다. 캐릭터 정보·주머니·지도 버튼의 원본은 `ARTIST/UI/UI_Icon.aseprite`다. 창·버튼 바탕·게이지의 벡터 원본은 `ARTIST/UI/Vector`에 있다. `VectorUiImage`는 벡터 매니페스트에 등록한 스프라이트만 메시로 대체한다.
@@ -26,7 +26,7 @@
 - 플레이어 입력 콜백은 `PlayerController.Input.cs`, 물리 업데이트와 대시는 `PlayerController.Movement.cs`, 보간은 `PlayerLocomotion`, 상호작용은 `PlayerController.Interaction.cs`에서 찾는다. 평타 콤보·시작 조건·히트박스는 `MeleeCombatController.PlayerAttack.cs`에 있다. `PlayerInput`과 애니메이션 이벤트가 호출하는 메서드명은 프리팹과 클립에 직렬화돼 있다.
 - 일반 적·돌진 엘리트·본마스터의 상태와 행동 선택은 `Assets/Scripts/Combat/EnemyAIDecisions.cs`에서 찾는다. 타깃과 시각을 읽고 NavMesh·애니메이션·코루틴을 제어하는 코드는 각 `AIPatternSO`에 있다. 공격 거리와 회복 시간의 조절값은 기존 패턴 에셋을 사용한다.
 - 런의 진행 상태 수집과 복원 순서는 `GameManager.RunProgress.cs`, 디스크 읽기·교체·백업은 `SaveSystem`, JSON 필드 계약은 `SaveData`에 있다. 저장된 에셋 이름과 소환수의 이전 이름은 `GrowthRegistrySO`에서 해석한다. 튜토리얼 완료와 우클릭 해금·선택은 PlayerPrefs에 기록한다.
-- 일반 작업과 AI 검색은 `Assets/Scripts`, 관련 `Assets/Editor`, `ProjectSettings`, `Docs/Guides`부터 확인한다. 보관 이력을 요청한 경우에만 루트 `Legacy`와 `Docs/Archive`를 읽는다. 보관 코드와 도구는 Unity 및 도구 실행 경로 밖의 `.txt`로 이동하고 메타데이터도 함께 텍스트로 보관한다. `ARTIST/LEGACY`와 연결된 Unity 아트에는 기존 씬이 사용하는 그림이 들어 있다.
+- 일반 작업과 AI 검색은 `Assets/Scripts`, 관련 `Assets/Editor`, `ProjectSettings`, `Docs/Guides`부터 확인한다. 보관 이력을 요청한 경우에만 루트 `Legacy`를 읽는다. 목차 `Legacy/README.md`만 항상 읽을 수 있고, 하위 폴더는 `.claude/settings.json`(폴더별 `Read(/Legacy/<폴더>/**)`)과 `.rgignore`가 읽기·검색에서 막는다. `Legacy`에 최상위 폴더를 새로 만들면 거부 규칙을 함께 추가한다. `git grep`·스크립트로 참조를 스캔할 때는 `':!Legacy' ':!Assets/Unity.VisualScripting.Generated'`를 제외한다. 이름이 Legacy인 `Assets/Prefabs/Map/Objects/Legacy`, `Assets/Resources/Sprites/Tile/Legacy`, `ARTIST/LEGACY`는 활성 폴더다. 보관 코드와 도구는 Unity 및 도구 실행 경로 밖의 `.txt`로 이동하고 메타데이터도 함께 텍스트로 보관한다. `ARTIST/LEGACY`와 연결된 Unity 아트에는 기존 씬이 사용하는 그림이 들어 있다.
 - 프롬프트 원문과 작업 일지는 `Legacy/History`에 보관한다. 활성 주석은 좌표 단위, 직렬화 값, 호출 시점과 같이 현재 코드 수정에 필요한 이유를 설명한다. UI 배치의 현재 계약은 프리팹과 [인벤토리 UI 안내](Assets/Prefabs/UI/InventoryUI_README.md)에서 확인한다.
 
 - 인게임 방 제작은 `Assets/Scripts/World/Workshop`, 원본 카탈로그 생성과 프리팹 변형 가져오기는 `Assets/Editor/Map/WorkshopBuild.cs`·`WorkshopRoomImport.cs`를 사용한다. Unity에서는 Sunyunie Panel의 제작실 버튼이나 `Tools > Level Workshop > Open in Play Mode`로, 제작용 Windows 빌드에서는 메인 메뉴로 들어간다. 원본 방과 팀 도구는 제작실의 Legacy 탭에 있다. 팀 전달 파일(.levelpack)의 참조 검증은 `WorkshopPackage`, 개정 비교는 `WorkshopPackageReview`, 작업 공간 저장과 전환은 `WorkshopWorkspace`에서 확인한다.

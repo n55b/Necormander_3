@@ -52,12 +52,10 @@ Resources
   Docs/Audio — 사운드 기록·편집 수치·출처
   Docs/Audio/Originals — 원본 음원·라이선스 증거
   Docs/UI — UI 문서
-  Docs/Archive — 지난 조사와 옛 설계 기록
   Docs/Maintenance — 프로젝트 재구성 계획, 기능별 작업·검증표
   Tools/Invoke-UnityVerification.ps1 — 별도 복사본에서 Unity 기준선 검사
-  Docs/Screenshots — 게임 자산이 아닌 참고 스크린샷
   Tools/Localization — 번역 보조 도구와 Data 입력 파일
-  Legacy — 실행이 끝난 도구, 과거 프롬프트와 점검·플레이 테스트 기록
+  Legacy — 실행이 끝난 도구와 코드, 과거 설계·조사 문서(History/Docs), 프롬프트와 점검·플레이 테스트 기록. 목차는 Legacy/README.md
   Logs — 맵 진단 등 로컬 생성 로그(Git 제외)
 
 주의: Docs/Feedback/이펙트_후보_2026-10-26.txt는 FeedbackSetup이 직접 읽는다.
