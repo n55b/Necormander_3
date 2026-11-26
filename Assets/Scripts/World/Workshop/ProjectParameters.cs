@@ -23,7 +23,9 @@ public static class ProjectParameters
 
     internal sealed class Field
     {
-        internal string path,label;
+        // labels:true일 때만 한글 label과 help·unit·group·scale을 채운다. 아니면 label은 InspectorName 또는 path다.
+        internal string path,label,help,unit,group;
+        internal float scale=1f;
         internal Type type;
         internal Func<object> read;
         internal Action<object> write;
@@ -35,7 +37,7 @@ public static class ProjectParameters
         internal string Text()=>Format(read());
         internal object Parse(string value)
         {
-            if(readOnly) throw new InvalidDataException(path+" 은(는) 읽기 전용입니다.");
+            if(readOnly) throw new InvalidDataException(label+" 은(는) 읽기 전용입니다.");
             if(IsReference)return ProjectParameterBindings.Resolve(value,type);
             if(type==typeof(string)) return value;
             if(type.IsEnum)
@@ -51,14 +53,15 @@ public static class ProjectParameters
         }
     }
 
-    internal static List<Field> Fields(ScriptableObject target)=>Fields(target,out _);
+    // labels: 표시 사전(DesignerInspectorLabels)으로 한글 라벨을 계산한다. 제작실 화면만 켠다. 적용·바인딩·빌드 검증은 끈다.
+    internal static List<Field> Fields(ScriptableObject target,bool labels=false)=>Fields(target,out _,labels);
     private static readonly HashSet<string> warnedKeys=new(StringComparer.Ordinal);
     // keyProblems: [WorkshopKey] 원소의 키가 비었거나 중복된 목록 원소 경로. 그 원소는 인덱스 경로로 떨어진다.
-    internal static List<Field> Fields(ScriptableObject target,out List<string> keyProblems)
+    internal static List<Field> Fields(ScriptableObject target,out List<string> keyProblems,bool labels=false)
     {
         var fields=new List<Field>();
         keyProblems=new List<string>();
-        Traverse(target.GetType(),()=>target,_=>{}, "",0,fields,false,keyProblems);
+        Traverse(target.GetType(),()=>target,_=>{}, "",0,fields,false,keyProblems,labels,null);
         foreach(var problem in keyProblems)
             if(warnedKeys.Add(target.name+"/"+problem)) Debug.LogWarning("[DATA] "+target.name+"/"+problem+" · 목록 키가 비었거나 중복돼 순서 번호로 찾습니다.");
         return fields;
@@ -93,34 +96,53 @@ public static class ProjectParameters
         return f!=null && f.FieldType==typeof(string) && f.IsDefined(typeof(WorkshopKeyAttribute)) ? f : null;
     }
 
-    private static void Traverse(Type type,Func<object> read,Action<object> write,string prefix,int depth,List<Field> fields,bool locked,List<string> keyProblems)
+    // 표시 정보(labels:true). label은 상위 필드 라벨을 " · "로 이은 전체 이름, group은 최상위 필드 위의 Header다.
+    private sealed class Meta { internal string label,help,unit,group; internal float scale=1f; }
+
+    private static void Traverse(Type type,Func<object> read,Action<object> write,string prefix,int depth,List<Field> fields,bool locked,List<string> keyProblems,bool labels,Meta parent)
     {
         for(var t=type;t!=null && t!=typeof(ScriptableObject) && t!=typeof(UnityEngine.Object) && t!=typeof(object);t=t.BaseType)
-        foreach(var f in t.GetFields(BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.DeclaredOnly))
         {
-            if(f.IsInitOnly || f.IsNotSerialized || f.IsDefined(typeof(HideInInspector)) ||
-                (!f.IsPublic && !f.IsDefined(typeof(SerializeField)) && !f.IsDefined(typeof(SerializeReference)))) continue;
-            if(Array.IndexOf(KeyNames,f.Name)>=0 || f.Name.EndsWith("Id",StringComparison.Ordinal)) continue;
-            bool readOnly=locked || f.IsDefined(typeof(WorkshopReadOnlyAttribute)) || ReadOnlyPrefixes.Any(p=>f.Name.StartsWith(p,StringComparison.Ordinal));
-            Func<object> get=()=>f.GetValue(read());
-            void Set(object v) { var parent=read(); f.SetValue(parent,v); if(type.IsValueType) write(parent); }
-            Add(f.FieldType,get,Set,prefix+f.Name,depth,fields,f,readOnly,keyProblems);
+            string header=null;
+            foreach(var f in t.GetFields(BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.DeclaredOnly))
+            {
+                if(labels && f.GetCustomAttributes<HeaderAttribute>().LastOrDefault() is {} h) header=h.header;
+                if(f.IsInitOnly || f.IsNotSerialized || f.IsDefined(typeof(HideInInspector)) ||
+                    (!f.IsPublic && !f.IsDefined(typeof(SerializeField)) && !f.IsDefined(typeof(SerializeReference)))) continue;
+                if(Array.IndexOf(KeyNames,f.Name)>=0 || f.Name.EndsWith("Id",StringComparison.Ordinal)) continue;
+                bool readOnly=locked || f.IsDefined(typeof(WorkshopReadOnlyAttribute)) || ReadOnlyPrefixes.Any(p=>f.Name.StartsWith(p,StringComparison.Ordinal));
+                Func<object> get=()=>f.GetValue(read());
+                void Set(object v) { var owner=read(); f.SetValue(owner,v); if(type.IsValueType) write(owner); }
+                Meta meta=null;
+                if(labels)
+                {
+                    var d=DesignerInspectorLabels.Describe(f);
+                    meta=new Meta{label=parent==null ? d.label : parent.label+" · "+d.label,help=d.help,unit=d.unit,scale=d.scale,
+                        group=parent==null ? header : parent.group};
+                }
+                Add(f.FieldType,get,Set,prefix+f.Name,depth,fields,f,readOnly,keyProblems,meta);
+            }
         }
     }
 
-    private static void Add(Type t,Func<object> read,Action<object> write,string path,int depth,List<Field> fields,FieldInfo info,bool readOnly,List<string> keyProblems)
+    private static Field Make(Type t,string path,string label,Func<object> read,Action<object> write,bool readOnly,Meta meta)=>
+        new Field{type=t,path=path,label=meta?.label ?? label,help=meta?.help,unit=meta?.unit,group=meta?.group,scale=meta?.scale ?? 1f,
+            read=read,write=write,readOnly=readOnly};
+
+    private static void Add(Type t,Func<object> read,Action<object> write,string path,int depth,List<Field> fields,FieldInfo info,bool readOnly,List<string> keyProblems,Meta meta)
     {
         if(typeof(UnityEngine.Object).IsAssignableFrom(t))
         {
             if(typeof(ScriptableObject).IsAssignableFrom(t) && t.Assembly==typeof(WorkshopRoom).Assembly)
-                fields.Add(new Field{type=t,path=path,label=info.Name,read=read,write=write,readOnly=readOnly});
+                fields.Add(Make(t,path,info.Name,read,write,readOnly,meta));
             return;
         }
         if(t.IsEnum || t==typeof(bool) || t==typeof(string) || t==typeof(int) || t==typeof(byte) || t==typeof(float) || t==typeof(double))
         {
             var range=info.GetCustomAttribute<RangeAttribute>();
-            fields.Add(new Field{path=path,label=info.GetCustomAttribute<InspectorNameAttribute>()?.displayName ?? path,type=t,read=read,write=write,
-                min=range?.min ?? info.GetCustomAttribute<MinAttribute>()?.min ?? float.NegativeInfinity,max=range?.max ?? float.PositiveInfinity,readOnly=readOnly});
+            var field=Make(t,path,info.GetCustomAttribute<InspectorNameAttribute>()?.displayName ?? path,read,write,readOnly,meta);
+            field.min=range?.min ?? info.GetCustomAttribute<MinAttribute>()?.min ?? float.NegativeInfinity; field.max=range?.max ?? float.PositiveInfinity;
+            fields.Add(field);
             return;
         }
         if(depth>=6 || read()==null) return;
@@ -138,8 +160,10 @@ public static class ProjectParameters
                 bool keyed=!string.IsNullOrEmpty(id) && ids.Add(id);
                 if(!keyed && KeyField(value?.GetType())!=null) keyProblems.Add(path+"/"+i.ToString(CultureInfo.InvariantCulture));
                 string key=keyed ? "@"+Uri.EscapeDataString(id) : i.ToString(CultureInfo.InvariantCulture);
+                var itemMeta=meta==null ? null : new Meta{label=meta.label+" "+(i+1).ToString(CultureInfo.InvariantCulture),
+                    help=meta.help,unit=meta.unit,group=meta.group,scale=meta.scale};
                 Add(typeof(UnityEngine.Object).IsAssignableFrom(element)?element:itemType,
-                    ()=>((IList)read())[index],v=>((IList)read())[index]=v,path+"/"+key,depth+1,fields,info,readOnly,keyProblems);
+                    ()=>((IList)read())[index],v=>((IList)read())[index]=v,path+"/"+key,depth+1,fields,info,readOnly,keyProblems,itemMeta);
             }
             return;
         }
@@ -147,7 +171,7 @@ public static class ProjectParameters
         if(concrete.IsSerializable && (concrete.Assembly==typeof(ProjectParameters).Assembly ||
             concrete==typeof(Color) || concrete==typeof(Color32) || concrete==typeof(Vector2) || concrete==typeof(Vector3) ||
             concrete==typeof(Vector2Int) || concrete==typeof(Vector3Int)))
-            Traverse(concrete,read,write,path+"/",depth+1,fields,readOnly,keyProblems);
+            Traverse(concrete,read,write,path+"/",depth+1,fields,readOnly,keyProblems,meta!=null,meta);
     }
 
     private static readonly Dictionary<ScriptableObject,Dictionary<string,object>> originals=new();

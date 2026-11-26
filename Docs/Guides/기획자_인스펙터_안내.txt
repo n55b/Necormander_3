@@ -72,8 +72,9 @@ ArcherBossAIPatternSO에는 포격 예고 시간, 반경, BaseHitBox 판정 유�
 Unity/패키지 기본 컴포넌트, 셰이더/재질, Aseprite/Animator 호출 키까지 번역하거나 이름을 바꾸지는 않는다.
 사용자 정의 선택지에는 InspectorName만 붙였다. enum 숫자와 코드 이름은 같다.
 
-공통 표시 코드: Assets/Editor/DesignerInspector
-정확한 의미가 필요한 항목은 DesignerInspectorLabels의 SpecificData에서 설명한다.
+공통 표시 코드: Assets/Editor/DesignerInspector, 라벨 사전은 Assets/Scripts/Core/DesignerInspectorLabels.cs
+정확한 의미가 필요한 항목은 DesignerInspectorLabels의 SpecificData에서 설명한다. 4번째 칸은 제작실 단위, 5번째 칸은 화면 배율(0.2 ↔ 20%)이다.
+라벨 사전은 런타임 어셈블리에 있어 제작실 콘텐츠 수치 화면도 같은 한글 라벨과 설명을 보여 준다.
 새 필드를 추가하면 Tools → 기획 → 한글 인스펙터 검증으로 실제 에셋의 번역 누락과 직렬화/Undo를 확인한다.
 이 도구는 게임 에셋을 저장하지 않는다. 결과는 Logs/Designer-inspector-coverage.txt에 남는다.
 

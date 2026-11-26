@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-/// <summary>에디터 표시 사전. 저장 키/애니메이션 태그/Resources 경로는 번역하지 않는다.</summary>
+/// <summary>표시 사전(인스펙터·제작실 공용). 저장 키/애니메이션 태그/Resources 경로는 번역하지 않는다.</summary>
 public static class DesignerInspectorLabels
 {
     private static readonly Regex Tokens = new Regex(@"[A-Z]+(?=[A-Z][a-z]|\d|$)|[A-Z]?[a-z]+|\d+|[가-힣]+", RegexOptions.Compiled);
@@ -101,6 +101,26 @@ public static class DesignerInspectorLabels
         if (code) label += " · " + field.Name;
         return new GUIContent(label, help);
     }
+
+    // 제작실용 한 묶음: 라벨(단위 꼬리 없음), 설명(Tooltip·기본 설명·범위·코드 이름), 단위, 화면 배율(0.04 ↔ 4%).
+    // SpecificData 4번째 칸은 단위, 5번째 칸은 배율이다. Content는 3칸까지만 읽으므로 에디터 표시는 그대로다.
+    public static (string label, string help, string unit, float scale) Describe(FieldInfo field)
+    {
+        var c = Content(field, field.Name, null);
+        string label = c.text, unit = null; float scale = 1f;
+        if (label.EndsWith(" (초)", StringComparison.Ordinal)) { unit = "초"; label = label.Substring(0, label.Length - 4); }
+        else if (label.EndsWith(" (도)", StringComparison.Ordinal)) { unit = "도"; label = label.Substring(0, label.Length - 4); }
+        if (Specific.TryGetValue(Key(field), out var exact) || Specific.TryGetValue("*." + field.Name, out exact))
+        {
+            if (exact.Length > 3 && exact[3].Length > 0) unit = exact[3];
+            if (exact.Length > 4 && exact[4].Length > 0) scale = float.Parse(exact[4], System.Globalization.CultureInfo.InvariantCulture);
+        }
+        var named = field.GetCustomAttribute<InspectorNameAttribute>();
+        if (named != null && label == Translate(field.Name)) label = named.displayName; // 사전에 없을 때만 InspectorName
+        return (label, c.tooltip, unit, scale);
+    }
+    public static string EnumLabel(Type type, string name) =>
+        type.GetField(name)?.GetCustomAttribute<InspectorNameAttribute>()?.displayName ?? name; // StatusType.Stun → "기절"
 
     private const string SpecificData = @"
 FeedbackCatalog.dashTrailRampDuration|대시 잔상 간격 변화 시간|출발부터 이 시간이 지나면 끝 간격에 도달합니다.
@@ -226,15 +246,18 @@ StatusBalanceSO.stunMaxDuration|기절 최대 시간|일반 공격으로 부여�
 StatusBalanceSO.freezeDuration|빙결 기본 지속시간|공격에서 시간을 지정하지 않은 빙결의 기본 지속시간(초)입니다.
 StatusBalanceSO.stunImmunityDuration|기절 종료 후 내성|기절이 자연 종료된 뒤 다시 기절하지 않는 시간(초)입니다. 0이면 내성이 없습니다.
 StatusBalanceSO.freezeImmunityDuration|빙결 파괴 후 내성|피해로 빙결이 깨진 뒤 다시 얼지 않는 시간(초)입니다. 자연 종료에는 적용하지 않습니다.
-StatusBalanceSO.freezeBreakDamage|빙결 파괴 추가 피해|일반 빙결을 타격으로 해제할 때 추가되는 고정 피해입니다. 무기 전용 빙결 효과와는 별개입니다.
-StatusBalanceSO.poisonTickDamage|중독 1회 피해|중독이 한 번 발동할 때의 고정 피해입니다. 초당 피해는 이 값 / 중독 피해 간격입니다.
+StatusBalanceSO.freezeBreakDamage|빙결 파괴 추가 피해|일반 빙결을 타격으로 해제할 때 추가되는 고정 피해입니다. 무기 전용 빙결 효과와는 별개입니다.|피해
+StatusBalanceSO.bleedAtkRatio|출혈 1회 피해 비율|출혈 틱 1회 피해 = 출혈을 건 공격자의 공격력(물리 증폭 포함) x 이 비율입니다. 0.1은 공격력의 10%입니다. 걸리는 순간의 공격력을 기억합니다.|%|100
+StatusBalanceSO.bleedTickInterval|출혈 피해 간격|출혈 피해 사이의 간격(초)입니다. 초당 피해 = 1회 피해 / 이 값입니다.|초
+StatusBalanceSO.bleedFallbackTickDamage|공격력 모를 때 1회 피해|공격력을 알 수 없는 출처(디버그 키 등)가 출혈을 걸었을 때 쓰는 틱 피해입니다.|피해
+StatusBalanceSO.poisonTickDamage|중독 1회 피해|중독이 한 번 발동할 때의 고정 피해입니다. 초당 피해는 이 값 / 중독 피해 간격입니다.|피해
 StatusBalanceSO.poisonTickInterval|중독 피해 간격|중독 피해 사이의 간격(초)입니다. 작을수록 자주 피해를 주므로 초당 피해도 늘어납니다.
-StatusBalanceSO.bloodPopThreshold|비폭 발동 스택|이 스택에 도달하면 폭발하고 스택을 소모합니다.
-StatusBalanceSO.bloodPopDamage|비폭 폭발 피해|비폭이 자신과 주변 대상에게 주는 고정 피해입니다.
-StatusBalanceSO.bloodPopRadius|비폭 폭발 반지름|비폭의 폭발 반지름(Unity 유닛)입니다. 표시 크기와 타격 범위를 함께 바꿉니다.
-StatusBalanceSO.bloodPopFuse|비폭 폭발 예고|비폭 폭발 전에 표시하는 예고 시간(초)입니다. 0이면 즉시 타격합니다.
+StatusBalanceSO.bloodPopThreshold|비폭 발동 스택|이 스택에 도달하면 폭발하고 스택을 소모합니다.|스택
+StatusBalanceSO.bloodPopDamage|비폭 폭발 피해|비폭이 자신과 주변 대상에게 주는 고정 피해입니다.|피해
+StatusBalanceSO.bloodPopRadius|비폭 폭발 반지름|비폭의 폭발 반지름(Unity 유닛)입니다. 표시 크기와 타격 범위를 함께 바꿉니다.|유닛
+StatusBalanceSO.bloodPopFuse|비폭 폭발 예고|비폭 폭발 전에 표시하는 예고 시간(초)입니다. 0이면 즉시 타격합니다.|초
 StatusBalanceSO.bloodPopHitDuration|비폭 판정 유지 시간|비폭 폭발의 타격 판정이 남는 시간(초)입니다.
-StatusBalanceSO.vulnerableDamageBonus|취약 추가 물리 피해 비율|취약 상태에서 받는 물리 피해의 추가 비율입니다. 0.2는 +20%입니다. 다른 피해 유형에는 적용하지 않습니다.
+StatusBalanceSO.vulnerableDamageBonus|취약 추가 물리 피해 비율|취약 상태에서 받는 물리 피해의 추가 비율입니다. 0.2는 +20%입니다. 다른 피해 유형에는 적용하지 않습니다.|%|100
 *.closeRange|근거리 구간 (유닛)|이 거리 이내를 근거리로 봅니다. 보스의 근거리 후보는 휩쓸기/찌르기입니다.
 *.midRange|중거리 구간 끝 (유닛)|근거리 밖부터 이 거리까지는 중거리(찌르기/도약), 더 멀면 원거리(도약)입니다.
 *.engageRange|공격 개시 거리 (유닛)|이 거리 안에 들어오면 공격 후보를 고릅니다. 밖에 있으면 추격하되 추격 제한 시간을 따릅니다.

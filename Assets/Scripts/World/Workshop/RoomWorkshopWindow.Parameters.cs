@@ -94,8 +94,10 @@ public sealed partial class RoomWorkshopWindow
                 Btn("취소",520,250,100,23,()=>{dataField=null;Draw(page);});
                 return;
             }
+            WorkshopUI.Label(content,(string.IsNullOrEmpty(dataField.group) ? "" : dataField.group+" · ")+dataField.label+
+                (dataField.unit==null ? "" : " ("+dataField.unit+")"),12,86,615,24);
             WorkshopUI.Label(content,dataField.type.IsEnum ? string.Join(" / ",Enum.GetNames(dataField.type)) :
-                dataField.type==typeof(bool) ? "True / False" : dataField.label,12,86,615,24);
+                dataField.type==typeof(bool) ? "True / False" : (dataField.help ?? "").Split('\n')[0],12,170,615,22);
             dataInput=Input("설정값",parameterDraft ?? ParameterValue(dataField),12,120,610,46,dataField.type==typeof(string));
             dataInput.onValueChanged.AddListener(v=>parameterDraft=v);
             Btn("적용",12,196,85,23,()=>{AcceptParameter();Draw(page);});
@@ -113,18 +115,23 @@ public sealed partial class RoomWorkshopWindow
                     throw new InvalidOperationException("변경값을 저장한 뒤 복제하세요.");
                 creatingContent=true;Draw(page);
             });
-        var rows=new List<(string title,Action action)>();
+        var rows=new List<(string title,string id,Action action)>();
         if(dataEntry==null)
         {
             foreach(var item in dataCatalog.Where(e=>Matches(e.group+" "+e.Title)))
             {
-                rows.Add((item.group+"   "+item.Title,()=>SelectContent(item)));
+                rows.Add((item.group+"   "+item.Title,null,()=>SelectContent(item)));
             }
         }
         else
         {
             foreach(var f in dataFields.Where(f=>Matches(f.path+" "+f.label)))
-                rows.Add((f.path+"   "+ValueLabel(f)+(f.readOnly?"   (읽기 전용)":""),()=>{dataField=f;parameterDraft=ParameterValue(f);referencePage=0;Draw(page);}));
+            {
+                string lockNote=f.readOnly?"   (읽기 전용)":"";
+                // 캡션은 한글 라벨, GameObject 이름은 검사가 누르는 예전 "<경로>   <값>" 그대로다.
+                rows.Add((f.label+"   "+DisplayValue(f)+lockNote,f.path+"   "+ValueLabel(f)+lockNote,
+                    ()=>{dataField=f;parameterDraft=ParameterValue(f);referencePage=0;Draw(page);}));
+            }
             Btn("프로젝트에 저장",480,299,145,23,SaveParameters,true);
             Btn("프리셋",208,299,74,23,()=>{showPresets=true;presetPage=0;Draw(page);});
             Btn("에셋 목록",380,299,92,23,()=>{
@@ -137,7 +144,7 @@ public sealed partial class RoomWorkshopWindow
         const int size=8;
         int pages=Math.Max(1,(rows.Count+size-1)/size);dataPage=Mathf.Clamp(dataPage,0,pages-1);
         for(int i=dataPage*size;i<Math.Min(rows.Count,(dataPage+1)*size);i++)
-            Btn(rows[i].title,12,70+i%size*27,612,24,rows[i].action);
+            Btn(rows[i].title,12,70+i%size*27,612,24,rows[i].action,false,rows[i].id);
         Btn("이전",12,299,54,23,()=>{dataPage--;Draw(page);});
         WorkshopUI.Label(content,(dataPage+1)+" / "+pages,77,299,73,23);
         Btn("다음",148,299,54,23,()=>{dataPage++;Draw(page);});
@@ -150,9 +157,11 @@ public sealed partial class RoomWorkshopWindow
         if(!field.IsReference)return value;
         return dataCatalog.FirstOrDefault(e=>e.id==value)?.Title ?? (string.IsNullOrEmpty(value)?"비어 있음":"기존 연결");
     }
+    private string DisplayValue(ProjectParameters.Field field)=>field.type.IsEnum ? DesignerInspectorLabels.EnumLabel(field.type,ParameterValue(field)) :
+        field.type==typeof(bool) ? (ParameterValue(field)=="True" ? "켜짐" : "꺼짐") : ValueLabel(field);
     private void SelectContent(ProjectParameterBindings.Entry item)
     {
-        dataEntry=item;dataFields=ProjectParameters.Fields(item.source);
+        dataEntry=item;dataFields=ProjectParameters.Fields(item.source,true);
         parameterBasis=ProjectParameters.Snapshot(item.Document);parameters=ProjectParameters.Values(parameterBasis);
         dataField=null;dataPage=0;dataSearch="";Draw(page);
     }
