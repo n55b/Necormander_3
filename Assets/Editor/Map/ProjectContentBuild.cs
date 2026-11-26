@@ -57,6 +57,14 @@ public sealed class ProjectContentBuild : BuildPlayerProcessor, IProcessSceneWit
         ProjectDialogue.ValidatePublished();
         ProjectTranslations.ValidatePublished();
         ProjectWorldValidation.ValidatePublished(catalog);
+        // 같은 출력 폴더에 다시 빌드하면 Unity가 지난 빌드의 StreamingAssets 파일을 지우지 않는다.
+        // 대사 줄처럼 파일 이름이 바뀌는 문서는 남은 파일 때문에 줄 수 검사에서 거부되므로 DATA를 비우고 다시 넣는다.
+        string output=context.BuildPlayerOptions.locationPathName;
+        if(!string.IsNullOrEmpty(output))
+        {
+            string stale=Path.Combine(Path.GetDirectoryName(Path.GetFullPath(output)),Path.GetFileNameWithoutExtension(output)+"_Data","StreamingAssets","DATA");
+            if(Directory.Exists(stale)) Directory.Delete(stale,true);
+        }
         foreach(string file in Directory.EnumerateFiles(root,"*.json",SearchOption.AllDirectories))
         {
             Newtonsoft.Json.Linq.JToken.Parse(File.ReadAllText(file));
