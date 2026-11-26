@@ -5,17 +5,20 @@ using System.Collections.Generic;
 using System.Text;
 
 /// <summary>
-/// 소환수 레지스트리 정리 도구.
+/// 레지스트리 정리 도구. Unity에서 새 원본 에셋을 만든 뒤 목록에 붙일 때 쓴다.
 ///  · MinionRegistrySO: 아군(메인 소환수) / 일반 적 / 보스 목록을 데이터 타입과 등급(tier)으로 다시 분류한다.
 ///    엘리트 목록은 손으로 고른 목록이라(910edc3a 'Elite 차저만 설정') 다시 만들지 않는다 —
 ///    목록에 없는 스폰 가능 엘리트는 경고만 띄우고, 넣을지는 기획자가 정한다.
-///  · GrowthRegistrySO.minionDatas: 아직 없는 메인 소환수만 맨 뒤에 붙인다(기존 순서 유지).
-///    마을 소환수 카드 순서와 보상 대체 경로가 이 순서를 쓰므로 GrowthRegistrySO.RefreshRegistry(전체 재구성)는 부르지 않는다.
-///  · 아이템은 등록하지 않는다. 아이템 편집기(Tools/기획/아이템 편집기)의 '목록 등록'에서 한다 — 여기서는 빠진 개수만 알려준다.
+///  · GrowthRegistrySO.minionDatas·items·equipments: 아직 없는 에셋만 맨 뒤에 붙인다(기존 순서 유지, 지우지 않음).
+///    마을 소환수 카드 순서와 보상 대체 경로가 소환수 순서를 쓰므로 목록을 비우고 다시 만들지 않는다.
+///    아이템·장비는 Assets/SOData 안의 에셋만 본다.
+///  · 상점 목록(ShopRegistrySO.itemPool)은 건드리지 않는다. ShopRegistrySO 인스펙터의 Refresh Registry 메뉴가 맡는다.
 /// </summary>
 public class RegistryMenuTools
 {
-    [MenuItem("Tools/기획/레지스트리 새로고침 (새 소환수 등록)", priority = 22)]
+    private const string ContentFolder = "Assets/SOData";
+
+    [MenuItem("Tools/기획/레지스트리 새로고침 (새 소환수·아이템·장비 등록)", priority = 22)]
     public static void RefreshAllRegistries()
     {
         var report = new StringBuilder();
@@ -105,48 +108,24 @@ public class RegistryMenuTools
             report.AppendLine("MinionRegistrySO 에셋을 찾지 못했습니다.");
         }
 
-        // 2. GrowthRegistrySO: 새 메인 소환수만 맨 뒤에 붙인다. RefreshRegistry 는 Clear 후 재구성이라
-        //    손으로 맞춘 순서(마을 카드 순서, InventoryManager 의 minionType 대체 검색)가 바뀌므로 쓰지 않는다.
+        // 2. GrowthRegistrySO: 빠진 메인 소환수·아이템·장비만 맨 뒤에 붙인다. 목록을 비우고 다시 만들면
+        //    손으로 맞춘 순서(마을 카드 순서, InventoryManager 의 minionType 대체 검색)가 바뀌므로 그렇게 하지 않는다.
         string[] growthGuids = AssetDatabase.FindAssets("t:GrowthRegistrySO");
         GrowthRegistrySO growth = growthGuids.Length > 0
             ? AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>(AssetDatabase.GUIDToAssetPath(growthGuids[0])) : null;
         if (growth != null)
         {
             Undo.RecordObject(growth, "레지스트리 새로고침");
-            var added = new List<string>();
-            foreach (var guid in AssetDatabase.FindAssets("t:MainMinionDataSO"))
-            {
-                string mainPath = AssetDatabase.GUIDToAssetPath(guid);
-                if (mainPath.Contains("/Deprecated/")) continue;
-                var main = AssetDatabase.LoadAssetAtPath<MainMinionDataSO>(mainPath);
-                if (main == null || growth.minionDatas.Contains(main)) continue;
-                growth.minionDatas.Add(main);
-                added.Add(main.name);
-            }
-            if (added.Count > 0)
+            report.AppendLine($"\n[{growth.name}]");
+            int added = AppendMissing(growth.minionDatas, "t:MainMinionDataSO", "Assets", "소환수", report)
+                      + AppendMissing(growth.items, "t:ItemSO", ContentFolder, "아이템", report)
+                      + AppendMissing(growth.equipments, "t:EquipmentSO", ContentFolder, "장비", report);
+            if (added > 0)
             {
                 EditorUtility.SetDirty(growth);
                 AssetDatabase.SaveAssetIfDirty(growth);
-                Debug.Log($"<color=green>[GrowthRegistry]</color> 새 소환수 {added.Count}개를 맨 뒤에 등록: {string.Join(", ", added)}");
             }
-
-            // 아이템은 세기만 한다(등록은 아이템 편집기 담당).
-            int unregisteredItems = 0;
-            foreach (var guid in AssetDatabase.FindAssets("t:ItemSO"))
-            {
-                string itemPath = AssetDatabase.GUIDToAssetPath(guid);
-                if (itemPath.Contains("/Deprecated/")) continue;
-                var item = AssetDatabase.LoadAssetAtPath<ItemSO>(itemPath);
-                if (item != null && !growth.items.Contains(item)) unregisteredItems++;
-            }
-
-            report.AppendLine($"\n[{growth.name}]");
-            report.AppendLine(added.Count > 0
-                ? $"· 새 소환수 {added.Count}개를 맨 뒤에 등록: {string.Join(", ", added)}"
-                : "· 새로 등록할 소환수 없음");
-            report.AppendLine(unregisteredItems > 0
-                ? $"· 아이템 목록에 없는 아이템 {unregisteredItems}개. 아이템은 '아이템 편집기 → 목록 등록'에서 등록합니다."
-                : "· 아이템 목록에 빠진 아이템 없음 (아이템 등록은 '아이템 편집기 → 목록 등록')");
+            report.AppendLine("· 상점 아이템 목록은 바꾸지 않습니다(ShopRegistrySO 의 Refresh Registry).");
         }
         else
         {
@@ -154,6 +133,28 @@ public class RegistryMenuTools
         }
 
         EditorUtility.DisplayDialog("레지스트리 새로고침 완료", report.ToString(), "확인");
+    }
+
+    /// <summary>folder 안의 filter 에셋 중 list 에 없는 것을 찾은 순서대로 맨 뒤에 붙이고 붙인 개수를 돌려준다.</summary>
+    private static int AppendMissing<T>(List<T> list, string filter, string folder, string label, StringBuilder report) where T : Object
+    {
+        var added = new List<string>();
+        foreach (var guid in AssetDatabase.FindAssets(filter, new[] { folder }))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            if (path.Contains("/Deprecated/")) continue;
+            var asset = AssetDatabase.LoadAssetAtPath<T>(path);
+            if (asset == null || list.Contains(asset)) continue;
+            list.Add(asset);
+            added.Add(asset.name);
+        }
+        if (added.Count > 0)
+        {
+            Debug.Log($"<color=green>[GrowthRegistry]</color> 새 {label} {added.Count}개를 맨 뒤에 등록: {string.Join(", ", added)}");
+            report.AppendLine($"· 새 {label} {added.Count}개를 맨 뒤에 등록: {string.Join(", ", added)}");
+        }
+        else report.AppendLine($"· 새로 등록할 {label} 없음");
+        return added.Count;
     }
 }
 #endif

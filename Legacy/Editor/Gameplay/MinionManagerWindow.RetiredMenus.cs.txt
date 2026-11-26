@@ -1,0 +1,50 @@
+// 보관: Assets/Editor/Gameplay/MinionManagerWindow.cs 에서 떼어 냄
+// 원래 커밋: 181df804db6bc27d0e8a40df8210d5bf9fc19f6e (2026-11-26 퇴역)
+// 사유:
+//  · 'Tools/기획/상태이상 공통 수치 열기' — StatusBalance 에셋을 선택만 하던 메뉴. 같은 값은 'Tools/기획/상태이상 편집기'에서 고친다.
+//  · 'Tools/기획/대기 효과 빈 소환수 채우기' — 2026-11-26 결정으로 대기 효과가 빈 소환수(전사)는 비워 둔다.
+//    현재 데이터에서 바뀌는 값도 없었다. '+ 효과 추가' 의 기본값 계산(SkillStatus/SkillStatusSource)은 창에 남아 있다.
+
+    // ── 메뉴: 상태이상 공통 수치 열기 (Open 메뉴 바로 아래에 있었다) ──
+    [MenuItem("Tools/기획/상태이상 공통 수치 열기", priority = 20)]
+    public static void OpenStatusBalance()
+    {
+        var bal = Resources.Load<StatusBalanceSO>(StatusRules.BalanceResourcePath);
+        if (bal == null) { Debug.LogWarning("[기획] Resources/" + StatusRules.BalanceResourcePath + " 에셋이 없습니다."); return; }
+        Selection.activeObject = bal;
+        EditorGUIUtility.PingObject(bal);
+    }
+
+    // ── OnGUI 툴바의 같은 기능 버튼 ──
+            if (GUILayout.Button("상태이상 공통 수치", EditorStyles.toolbarButton, GUILayout.Width(120f)))
+                OpenStatusBalance();
+
+    // ── 대기 효과 탭(DrawStandby)의 일괄 버튼 줄 ──
+            if (GUILayout.Button(new GUIContent("빈 소환수 채우기", "대기 효과가 하나도 없는 소환수에, 스킬 → 자동 공격 → 대쉬 순서로 찾은 상태이상을 50% 확률로 넣습니다."), GUILayout.Width(110f)))
+                FillStandbyInfusionDefaults();
+
+    // ── 메뉴: 대기 효과 빈 소환수 채우기 ──
+    [MenuItem("Tools/기획/대기 효과 빈 소환수 채우기 (스킬 상태이상, 50%)", priority = 21)]
+    public static void FillStandbyInfusionDefaults()
+    {
+        int changed = 0;
+        foreach (var m in AllMainMinions())
+        {
+            if (m.standbyInfusions != null && m.standbyInfusions.Length > 0) continue;
+            var status = SkillStatus(m);
+            if (status == StatusType.None) continue;
+            var so = new SerializedObject(m);
+            so.Update();
+            var list = so.FindProperty("standbyInfusions");
+            list.arraySize = 1;
+            var e = list.GetArrayElementAtIndex(0);
+            e.FindPropertyRelative("status").intValue = (int)status;
+            e.FindPropertyRelative("chance").floatValue = 0.5f;
+            e.FindPropertyRelative("swings").intValue = 0;
+            e.FindPropertyRelative("duration").floatValue = 0f;
+            so.ApplyModifiedProperties();
+            changed++;
+        }
+        AssetDatabase.SaveAssets();
+        Debug.Log($"[기획] 대기 효과 빈 소환수 채우기 완료: {changed}개");
+    }

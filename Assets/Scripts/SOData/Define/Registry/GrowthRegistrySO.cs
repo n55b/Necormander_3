@@ -13,9 +13,6 @@ public class GrowthRegistrySO : ScriptableObject
     [Header("중첩 보물")]
     public List<TreasureSO> treasures = new List<TreasureSO>();
 
-    [Header("특수 능력 (추후 확장용)")]
-    public List<GrowthItemSO> specialAbilities = new List<GrowthItemSO>();
-
     [Header("장비 패시브")]
     public List<EquipmentSO> equipments = new List<EquipmentSO>();
     [Tooltip("새 게임 및 삭제된 구 장비 세이브의 기본 무기.")]
@@ -69,77 +66,4 @@ public class GrowthRegistrySO : ScriptableObject
 
         return rightClicks.Find(r => r != null && r.IsValid);
     }
-
-
-#if UNITY_EDITOR
-    /// <summary>
-    /// 프로젝트 내의 모든 관련 SO를 검색하여 리스트를 자동으로 갱신합니다.
-    /// </summary>
-    public void RefreshRegistry()
-    {
-        minionDatas.Clear();
-        treasures.Clear();
-
-        // 1. 소환수 데이터 검색. t: 필터는 상속을 따르므로 파생 타입만 콕 집으면
-        // 적/엘리트/보스(EnemyMinionDataSO)는 애초에 걸리지 않는다 — 경로에 의존하지 않는다.
-        // 서브 소환수 삭제로 메인만 남았다.
-        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:MainMinionDataSO"))
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            if (path.Contains("/Deprecated/")) continue;
-
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<MinionDataSO>(path);
-            if (asset != null) minionDatas.Add(asset);
-        }
-
-        // 2. 보물(Treasure) 검색
-        string[] treasureGuids = UnityEditor.AssetDatabase.FindAssets("t:TreasureSO");
-        foreach (var guid in treasureGuids)
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<TreasureSO>(path);
-            if (asset != null) treasures.Add(asset);
-        }
-
-
-        // 6. 장비(EquipmentSO) 검색
-        equipments.Clear();
-        string[] equipmentGuids = UnityEditor.AssetDatabase.FindAssets("t:EquipmentSO");
-        foreach (var guid in equipmentGuids)
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            if (path.Contains("/Deprecated/")) continue;
-            var asset3 = UnityEditor.AssetDatabase.LoadAssetAtPath<EquipmentSO>(path);
-            if (asset3 != null) equipments.Add(asset3);
-        }
-
-        // 7. 아이템(ItemSO) 검색 — 주머니. 장비와 별개.
-        items.Clear();
-        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:ItemSO"))
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            if (path.Contains("/Deprecated/")) continue;
-            var asset4 = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemSO>(path);
-            if (asset4 != null) items.Add(asset4);
-        }
-
-        // 8. 우클릭(RightClickDataSO) 검색 — 패링/카운터/가드.
-        rightClicks.Clear();
-        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:RightClickDataSO"))
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            if (path.Contains("/Deprecated/")) continue;
-            var asset5 = UnityEditor.AssetDatabase.LoadAssetAtPath<RightClickDataSO>(path);
-            if (asset5 != null && asset5.IsValid) rightClicks.Add(asset5);
-        }
-        // 기본값이 안 잡혀 있으면 패링을 자동으로 물려준다(배선 깜빡 방지).
-        if (defaultRightClick == null)
-            defaultRightClick = rightClicks.Find(r => r != null && r.config.level == 1);
-
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.AssetDatabase.SaveAssets();
-
-        Debug.Log($"<color=cyan>[GrowthRegistry]</color> 자동 갱신 완료: 소환수({minionDatas.Count}), 보물({treasures.Count}), 능력({specialAbilities.Count}), 장비({equipments.Count}), 아이템({items.Count}), 우클릭({rightClicks.Count})");
-    }
-#endif
 }

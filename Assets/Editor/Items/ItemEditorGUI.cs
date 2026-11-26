@@ -357,7 +357,7 @@ public static class ItemEditorGUI
         {
             list.Add("효과가 없습니다. 주머니에 넣어도 아무 일도 일어나지 않습니다.");
             if (item.availableAsReward)
-                list.Add("효과가 없는데 '상점 · 방 보상에 등장'이 켜져 있습니다. 목록에 들어가는 순간('목록 등록', GrowthRegistry 의 '전체 데이터 자동 스캔 및 갱신') " +
+                list.Add("효과가 없는데 '상점 · 방 보상에 등장'이 켜져 있습니다. 목록에 들어가는 순간('목록 등록', 'Tools/기획/레지스트리 새로고침') " +
                          "빈 아이템이 보상·상점에 나옵니다. 효과를 넣기 전까지는 끄세요.");
             return list;
         }

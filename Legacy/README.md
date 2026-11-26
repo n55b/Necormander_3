@@ -33,6 +33,7 @@
 | --- | --- | --- |
 | `Editor/UI` | 초기 TMP 일괄 변환과 1006 레이아웃 초기화 | 런타임 `PixelUiTypography`, Sunyunie Panel, `HudLayoutChecks` |
 | `Editor/Map` | 초기 미니맵·지형 설정 도구 | 커밋된 프리팹과 프로젝트 설정, `RoomTilemapCheck`, `MapColliderCheck`, `MiniMapCheck` |
+| `Editor/Gameplay` | 성장 레지스트리 전체 재스캔(`GrowthRegistryEditor`, `GrowthRegistrySO.RefreshRegistry`와 `specialAbilities`), 소환수 관리의 상태이상 공통 수치 열기·대기 효과 빈 소환수 채우기 메뉴. 2026-11-26 퇴역 | `Tools/기획/레지스트리 새로고침`(`RegistryMenuTools`), `Tools/기획/상태이상 편집기` |
 | `Rendering` | 이전 확대 셰이더와 렌더링 개편 전 구현(카메라 충격, 전투 연출, 층 포털 메시, 지면 그림자, 플레이어 가림, 글자 모션, 나무 바람, 글꼴, 벡터 이펙트, 월드 깊이·효과) | `PixelArtIntegerUpscale.shader`와 `Assets/Scripts/Rendering`·`Effect` |
 | `Shaders` | 층 강착 원반 셰이더 | 현재 층 전환 연출 |
 | `Runtime/Player` | Unity 참조가 없는 이동 코드 백업 | `PlayerController`, `PixelActorMotion` |

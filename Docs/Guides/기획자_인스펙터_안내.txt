@@ -70,7 +70,7 @@ ArcherBossAIPatternSO에는 포격 예고 시간, 반경, BaseHitBox 판정 유�
 
 3. 범위와 유지보수
 
-게임 C# 컴포넌트/SO와 중첩 데이터에 공통 적용한다. 기존 CharacterStat/GrowthRegistry 전용 인스펙터도 같은 표시를 쓴다.
+게임 C# 컴포넌트/SO와 중첩 데이터에 공통 적용한다. 기존 CharacterStat 전용 인스펙터도 같은 표시를 쓴다.
 Unity/패키지 기본 컴포넌트, 셰이더/재질, Aseprite/Animator 호출 키까지 번역하거나 이름을 바꾸지는 않는다.
 사용자 정의 선택지에는 InspectorName만 붙였다. enum 숫자와 코드 이름은 같다.
 

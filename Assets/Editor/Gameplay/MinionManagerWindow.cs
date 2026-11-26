@@ -27,15 +27,6 @@ public class MinionManagerWindow : EditorWindow
         w.Show();
     }
 
-    [MenuItem("Tools/기획/상태이상 공통 수치 열기", priority = 20)]
-    public static void OpenStatusBalance()
-    {
-        var bal = Resources.Load<StatusBalanceSO>(StatusRules.BalanceResourcePath);
-        if (bal == null) { Debug.LogWarning("[기획] Resources/" + StatusRules.BalanceResourcePath + " 에셋이 없습니다."); return; }
-        Selection.activeObject = bal;
-        EditorGUIUtility.PingObject(bal);
-    }
-
     private enum Tab { Table, Detail, DashAttack, Standby }
     private static readonly string[] TabLabels = { "수치 비교표", "상세 편집 · 미리보기", "대쉬 공격", "대기 효과(평타)" };
 
@@ -142,8 +133,6 @@ public class MinionManagerWindow : EditorWindow
         {
             _tab = (Tab)GUILayout.Toolbar((int)_tab, TabLabels, EditorStyles.toolbarButton, GUILayout.Width(540f));
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("상태이상 공통 수치", EditorStyles.toolbarButton, GUILayout.Width(120f)))
-                OpenStatusBalance();
             if (GUILayout.Button("새로고침", EditorStyles.toolbarButton, GUILayout.Width(70f))) Rebuild();
         }
 
@@ -317,7 +306,7 @@ public class MinionManagerWindow : EditorWindow
 
         EditorGUILayout.HelpBox(
             "스킬 쿨타임·배율·타수·상태이상은 '스킬 에셋'에, 자동 공격·대쉬·강화는 '소환수 에셋'에 저장됩니다.\n" +
-            "상태이상 지속시간·출혈 비율 같은 공통 수치는 위 '상태이상 공통 수치' 버튼으로 엽니다.", MessageType.None);
+            "상태이상 지속시간·출혈 비율 같은 공통 수치는 'Tools/기획/상태이상 편집기'에서 고칩니다.", MessageType.None);
     }
 
     private static void Field(Rect r, SerializedObject so, string path, bool shared = false)
@@ -638,7 +627,7 @@ public class MinionManagerWindow : EditorWindow
         EditorGUILayout.HelpBox("소환수 2마리를 장착하면, 필드에 나오지 않은(현현되지 않은) 대기 소환수의 효과가 플레이어 평타에 붙습니다.\n" +
                                 "소환수마다 효과를 여러 개 넣을 수 있고, 효과마다 확률을 따로 추첨합니다(동시에 여러 개가 붙을 수 있음).\n" +
                                 "붙으면 그 휘두르기에 맞은 적 모두에게 걸립니다. Space 로 스왑하면 효과도 바뀝니다.\n" +
-                                "빙결 시간·출혈 피해·취약 배율 같은 상태이상 자체 수치는 위 '상태이상 공통 수치' 버튼에서 고칩니다.", MessageType.Info);
+                                "빙결 시간·출혈 피해·취약 배율 같은 상태이상 자체 수치는 'Tools/기획/상태이상 편집기'에서 고칩니다.", MessageType.Info);
 
         // 2) 플레이 중 상태
         MainMinionDataSO source = null;
@@ -673,8 +662,6 @@ public class MinionManagerWindow : EditorWindow
             if (GUILayout.Button("일괄 적용", GUILayout.Width(70f))
                 && EditorUtility.DisplayDialog("확률 일괄 적용", $"모든 소환수의 모든 대기 효과 확률을 {_bulkChance:P0}(으)로 바꾸고 저장합니다.", "적용", "취소"))
                 SetAllStandbyChance(_bulkChance);
-            if (GUILayout.Button(new GUIContent("빈 소환수 채우기", "대기 효과가 하나도 없는 소환수에, 스킬 → 자동 공격 → 대쉬 순서로 찾은 상태이상을 50% 확률로 넣습니다."), GUILayout.Width(110f)))
-                FillStandbyInfusionDefaults();
         }
         float total = StandbyCols.Sum(c => c.width) + StandbyCols.Length * 4f + 320f;
         Rect head = GUILayoutUtility.GetRect(total, 20f, GUILayout.Width(total));
@@ -704,7 +691,7 @@ public class MinionManagerWindow : EditorWindow
             string statusSrc = SkillStatusSource(m);
             GUI.Label(new Rect(line.x + 248f, line.y + 2f, 160f, 18f),
                 new GUIContent("대표 상태: " + MinionStandbyInfusion.StatusLabel(SkillStatus(m)) + (statusSrc != null ? $" ({statusSrc})" : ""),
-                    "스킬 → 자동 공격 → 대쉬 순서로 찾은 첫 상태이상과 그 출처. '+ 효과 추가'·'빈 소환수 채우기'의 기본값으로 씁니다."), EditorStyles.miniLabel);
+                    "스킬 → 자동 공격 → 대쉬 순서로 찾은 첫 상태이상과 그 출처. '+ 효과 추가'의 기본값으로 씁니다."), EditorStyles.miniLabel);
             if (GUI.Button(new Rect(line.x + 412f, line.y + 2f, 80f, 18f), "+ 효과 추가", EditorStyles.miniButton) && list != null)
             {
                 int i = list.arraySize;
@@ -770,31 +757,6 @@ public class MinionManagerWindow : EditorWindow
         => AssetDatabase.FindAssets("t:MainMinionDataSO")
             .Select(g => AssetDatabase.LoadAssetAtPath<MainMinionDataSO>(AssetDatabase.GUIDToAssetPath(g)))
             .Where(m => m != null);
-
-    [MenuItem("Tools/기획/대기 효과 빈 소환수 채우기 (스킬 상태이상, 50%)", priority = 21)]
-    public static void FillStandbyInfusionDefaults()
-    {
-        int changed = 0;
-        foreach (var m in AllMainMinions())
-        {
-            if (m.standbyInfusions != null && m.standbyInfusions.Length > 0) continue;
-            var status = SkillStatus(m);
-            if (status == StatusType.None) continue;
-            var so = new SerializedObject(m);
-            so.Update();
-            var list = so.FindProperty("standbyInfusions");
-            list.arraySize = 1;
-            var e = list.GetArrayElementAtIndex(0);
-            e.FindPropertyRelative("status").intValue = (int)status;
-            e.FindPropertyRelative("chance").floatValue = 0.5f;
-            e.FindPropertyRelative("swings").intValue = 0;
-            e.FindPropertyRelative("duration").floatValue = 0f;
-            so.ApplyModifiedProperties();
-            changed++;
-        }
-        AssetDatabase.SaveAssets();
-        Debug.Log($"[기획] 대기 효과 빈 소환수 채우기 완료: {changed}개");
-    }
 
     /// <summary>모든 소환수의 모든 대기 효과 확률을 한 값으로 맞춘다.</summary>
     private static void SetAllStandbyChance(float chance)

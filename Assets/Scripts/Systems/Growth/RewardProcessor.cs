@@ -274,7 +274,7 @@ public static class RewardProcessor
     /// <summary>
     /// 소환수 보상 후보. roleType 을 주면 그 타입만 걸러낸다.
     /// GrowthRegistry 의 리스트를 역할별로 쪼개지 않고 필터만 건다 —
-    /// RefreshRegistry 가 타입으로 자동 스캔하는데, 리스트를 쪼개면 그 자동화가 깨진다.
+    /// 레지스트리 새로고침(RegistryMenuTools)이 새 메인 소환수를 이 한 목록 맨 뒤에 붙이므로 리스트를 쪼개지 않는다.
     /// </summary>
     /// <param name="roleType">typeof(MainMinionDataSO). null 이면 전부. (서브 삭제 후 사실상 메인뿐)</param>
     private static List<RewardCandidate> GetValidCores(InventoryManager inven, List<MinionDataSO> minions, bool filterOwned = true, System.Type roleType = null)
