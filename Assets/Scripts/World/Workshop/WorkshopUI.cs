@@ -44,9 +44,10 @@ internal static class WorkshopUI
         PixelText.Configure(label,size); label.text=caption;
         return label;
     }
-    public static Button Button(Transform parent,string caption,int x,int y,int w,int h,Action action,bool selected=false)
+    // id는 GameObject 이름이 된다. 검사가 이름으로 누르므로 캡션이 바뀌어도 이름은 고정한다. 생략하면 캡션이 이름이다.
+    public static Button Button(Transform parent,string caption,int x,int y,int w,int h,Action action,bool selected=false,string id=null)
     {
-        var button=UIChrome.Button(Rect(parent,caption,x,y,w,h),selected);
+        var button=UIChrome.Button(Rect(parent,id ?? caption,x,y,w,h),selected);
         var label=Label(button.transform,caption,2,0,w-4,h); label.alignment=TextAlignmentOptions.Center;
         if (selected) label.color=Ink;
         button.onClick.AddListener(()=>action());

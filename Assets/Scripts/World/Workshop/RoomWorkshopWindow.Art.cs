@@ -107,7 +107,7 @@ public sealed partial class RoomWorkshopWindow
     }
     private void SaveArt()
     {
-        if(art==null||!artReady) {Say("교체본을 비교한 뒤 저장하세요.");return;}
+        if(art==null||!artReady) throw new InvalidOperationException("교체본을 비교한 뒤 저장하세요.");
         WorkshopArtSource.Save(art,artBasis,nextArt);
         OpenArt(art);Say("ARTIST 저장됨 · Unity의 아트 동기화 후 적용됩니다.");
     }

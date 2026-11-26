@@ -48,6 +48,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
     private static Vector2Int? rememberedCell;
     private static WorkshopFloor rememberedFloor;
 
+    private void Awake()=>RegisterPages();
     private void Start()
     {
         WorkshopTrial.Library=catalog;
@@ -81,7 +82,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
     private void Draw(Page next)
     {
         var previousControl=UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
-        string deskControl=next==Page.Desk && page==Page.Desk && content!=null && previousControl!=null &&
+        deskControl=next==Page.Desk && page==Page.Desk && content!=null && previousControl!=null &&
             previousControl.transform.IsChildOf(content) ? previousControl.name : null;
         applyPiece=null;
         page=next;
@@ -101,12 +102,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
 #endif
         if (ProjectContentStore.Authoring && page!=Page.Map && page!=Page.Game && page!=Page.Desk)
             Btn("플레이어 수치",447,5,106,20,()=>Navigate(Page.Balance),page==Page.Balance);
-        if (page==Page.Map && pendingConflict!=null) DrawSaveConflict(); else if (page==Page.Map) DrawMap();
-        else if(page==Page.Game) DrawFloor(); else if(page==Page.Balance) DrawBalance(); else if(page==Page.Git) DrawGit();
-        else if(page==Page.Parameters) DrawParameters();
-        else if(page==Page.Dialogue) DrawDialogue();
-        else if(page==Page.Translations) DrawTranslations();
-        else if(page==Page.Art) DrawArt(); else if(page==Page.Passage) DrawPassage(); else if(page==Page.Compare) DrawComparison(); else DrawLibrary(deskControl);
+        pages[(int)page].Draw();
         string hint = page == Page.Passage ? "이동 범위는 착지점에서 상하좌우로 이어진 바닥 타일 기준입니다." :
             !string.IsNullOrEmpty(notice) ? notice : page == Page.Map ? MapHint() :
             page == Page.Desk ? (ProjectContentStore.Authoring ? "저장 위치  ·  프로젝트 DATA" : "저장 위치  ·  로컬 작업 공간") : "";
@@ -114,8 +110,8 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         if (page==Page.Map)
             WorkshopUI.Label(content,"휠 확대 · 가운데 버튼으로 이동 · Ctrl+S 저장 · F6 시험",9,344,385,15);
     }
-    private Button Btn(string title,int x,int y,int w,int h,Action action,bool selectedTab=false) =>
-        WorkshopUI.Button(content,title,x,y,w,h,()=>Safe(action),selectedTab);
+    private Button Btn(string title,int x,int y,int w,int h,Action action,bool selectedTab=false,string id=null) =>
+        WorkshopUI.Button(content,title,x,y,w,h,()=>Safe(action),selectedTab,id);
     private void Safe(Action action)
     {
         try { action(); }
@@ -556,34 +552,29 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
                 OpenMap(false);pendingConflict=conflict;Draw(page);Say("방 변경을 합친 뒤 모두 저장을 다시 눌러 주세요.");return;
             }
         }
-        if(balance!=null) balance.Save();
         if(floorSettings!=null)
         {
             if(routeDraft!=null) floorSettings.ApplyTutorialOrder(routeDraft,catalog);
             floorSettings.Save(); routeDraft=null;
         }
         if(dataEntry!=null)SaveParameters();
-        if(conversation!=null && dialogueDirty)SaveDialogue();
-        if(creatingTranslation || translation!=null && translationDraft!=translation.Value)SaveTranslation();
-        if(art!=null && nextArt!=null)
-        {
-            if(!artReady)throw new IOException("아트 미리보기가 끝나면 저장하세요.");
-            SaveArt();
-        }
+        foreach(var entry in pages) if(entry.Title!=null && entry.Dirty()) entry.Save();
         Draw(page);Say("열린 제작 문서를 모두 저장했습니다.");
     }
     private void Update()
     {
         var keys=Keyboard.current;
-        if(keys!=null && keys.ctrlKey.isPressed && keys.shiftKey.isPressed && keys.sKey.wasPressedThisFrame && ProjectContentStore.Authoring)
-        {Safe(SaveAllDocuments);return;}
-        if(page==Page.Parameters && keys!=null && keys.ctrlKey.isPressed && keys.sKey.wasPressedThisFrame) Safe(SaveParameters);
-        if(page==Page.Dialogue && keys!=null && keys.ctrlKey.isPressed && keys.sKey.wasPressedThisFrame) Safe(SaveDialogue);
-        if(page==Page.Translations && keys!=null && keys.ctrlKey.isPressed && keys.sKey.wasPressedThisFrame) Safe(SaveTranslation);
-        if(page==Page.Art && keys!=null && keys.ctrlKey.isPressed && keys.sKey.wasPressedThisFrame) Safe(SaveArt);
-        if(page==Page.Balance && keys!=null && keys.ctrlKey.isPressed && keys.sKey.wasPressedThisFrame) Safe(SaveBalance);
-        if(page==Page.Game && routeDraft==null && keys!=null && keys.ctrlKey.isPressed && keys.sKey.wasPressedThisFrame)
-            Safe(()=>{floorSettings.Save();Say("층 설정을 저장했습니다.");});
+        if(keys!=null && keys.ctrlKey.isPressed && keys.sKey.wasPressedThisFrame)
+        {
+            if(keys.shiftKey.isPressed && ProjectContentStore.Authoring){Safe(SaveAllDocuments);return;}
+            var save=pages[(int)page].Save;
+            if(page!=Page.Map && save!=null){Safe(save);return;}
+        }
+        pages[(int)page].Keys?.Invoke();
+    }
+    // 지도 화면의 키·포인터 입력. 지도 페이지의 Keys 칸이다.
+    private void UpdateMap()
+    {
         if(preview==null || page!=Page.Map || pendingConflict!=null || UnityNote.SceneLoader.IsLoading) return;
         var kb=Keyboard.current;
         if(kb!=null && kb.ctrlKey.isPressed && kb.sKey.wasPressedThisFrame) {Safe(Save);return;}

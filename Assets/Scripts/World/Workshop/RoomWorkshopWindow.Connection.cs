@@ -22,9 +22,7 @@ public sealed partial class RoomWorkshopWindow
             ProjectDataConnection.Connect(path.text);
             WorkshopWorkspace.Switch("");
             WorkshopTrial.Draft=null;WorkshopTrial.Undo.Clear();WorkshopTrial.Redo.Clear();
-            floorSettings=null;balance=null;dataEntry=null;dataField=null;dataCatalog=null;
-            conversation=null;translation=null;translationTable=null;artEntries=null;art=null;
-            nextArt=null;DisposeArt();catalog.dialogueTable.Invalidate();openFloors.Clear();
+            floorSettings=null;openFloors.Clear();ResetPages();
             Navigate(Page.Desk);Say("프로젝트 DATA에 연결했습니다.");
         }));
         WorkshopUI.Button(panel,"닫기",200,144,92,26,()=>Draw(page));
