@@ -44,10 +44,12 @@ public static class ArtDirectionPlayModeCheck
         try
         {
             ui.Play("bm_intro",()=>completed++);
-            yield return null;
+            // Read before any frame passes: the reveal advances with real time, and a slow batch-mode frame
+            // (the screenshots above) can legitimately finish an 11-glyph line within one frame.
             string line=body.text;
             Check(ui.IsPlaying && line.Length>0 && body.maxVisibleCharacters<body.textInfo.characterCount,
                 "authored localized line starts with partial glyph visibility");
+            yield return null;
             click(true,point);
             yield return null;
             click(false,point);

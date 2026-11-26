@@ -96,7 +96,9 @@ public static class WorkshopBuild
             using var hash=SHA256.Create();
             foreach (var dependency in AssetDatabase.GetDependencies(path).Where(p=>p.EndsWith(".prefab",StringComparison.OrdinalIgnoreCase)).OrderBy(p=>p,StringComparer.Ordinal))
             {
-                var bytes=File.ReadAllBytes(dependency); hash.TransformBlock(bytes,0,bytes.Length,null,0);
+                // Git checks prefabs out as LF or CRLF depending on the machine. Hash the LF form so every checkout agrees.
+                var bytes=System.Text.Encoding.UTF8.GetBytes(File.ReadAllText(dependency).Replace("\r\n","\n"));
+                hash.TransformBlock(bytes,0,bytes.Length,null,0);
             }
             hash.TransformFinalBlock(Array.Empty<byte>(),0,0);
             templates.Add(new WorkshopCatalog.Template { id=id,title=prefab.name,room=room,

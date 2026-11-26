@@ -543,6 +543,9 @@ public class DialogueUI : Singleton<DialogueUI>
         bodyText.ForceMeshUpdate();
         int total = bodyText.textInfo.characterCount;
         bodyText.maxVisibleCharacters = 0;
+        // StartCoroutine이 동기로 첫 반복을 돌 때 unscaledDeltaTime은 줄을 열기 전 프레임의 길이다.
+        // 그 시간을 세면 직전 프레임이 끊긴 만큼 글자가 한꺼번에 드러나므로 다음 프레임부터 센다.
+        yield return null;
 
         float shown = 0f;
         int lastSfxAt = 0;

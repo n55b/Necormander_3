@@ -366,9 +366,11 @@ public static class PresentationRegressionCheck
                         var ch = info.characterInfo[i];
                         if (!ch.isVisible || ch.elementType != TMP_TextElementType.Sprite) continue;
                         var glyph = (TMP_SpriteGlyph)ch.textElement.glyph;
+                        // TMP never fills characterInfo.material for sprites; the sprite's draw material is its mesh's.
+                        var mesh = info.meshInfo[ch.materialReferenceIndex];
                         Require(!VectorUiCatalog.TryGet(glyph.sprite, out _) &&
-                            ch.material.mainTexture == glyph.sprite.texture &&
-                            info.meshInfo[ch.materialReferenceIndex].colors32[ch.vertexIndex].a > 0,
+                            mesh.material.mainTexture == glyph.sprite.texture &&
+                            mesh.colors32[ch.vertexIndex].a > 0,
                             "tutorial draws the visible glyph directly from its authored pixel sheet");
                         visibleKeys.Add(glyph.sprite.name);
                     }
