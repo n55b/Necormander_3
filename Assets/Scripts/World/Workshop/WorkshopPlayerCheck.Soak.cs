@@ -117,6 +117,8 @@ public sealed partial class WorkshopPlayerCheck
         yield return Click(FindRow().name);
         Require(WorkshopTrial.Draft.template == id, "opened largest ground map");
         string original = WorkshopTrial.Draft.Serialize();
+        // A room opens at 1x, which shows only 30x17 cells; the 32x32 stamp needs the whole room in view.
+        yield return Click("전체 보기");
         var camera = GameObject.Find("Workshop camera").GetComponent<Camera>();
         var ground = WorkshopCatalog.Map(camera.transform.parent, 0);
         var center = ground.WorldToCell(camera.ViewportToWorldPoint(new Vector3(.5f,.5f,30)));
