@@ -127,6 +127,7 @@ public static class WorkshopBuild
             .OrderBy(p=>p.prefab.name==WorkshopCatalog.DummyName)   // 소품 팔레트 맨 뒤: 기본 소품(props[0])과 검사 기대가 바뀌지 않게
             .ToArray();
         library.assets=WorkshopCatalog.BakeAssets();
+        library.pouchPreview=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/PouchUI.prefab");
         // 자동 재기준이 이 굽기를 부르므로 사용자가 저장하지 않은 다른 에셋까지 저장하지 않는다.
         EditorUtility.SetDirty(library); AssetDatabase.SaveAssetIfDirty(library);
         if (!File.Exists(WorkshopTrial.ScenePath))

@@ -291,11 +291,11 @@ internal static class WorkshopUI
     }
     private static GameObject overlay;
     // 차단막(바깥 클릭 = 닫기)이 깔린 전체 화면 오버레이. 하나만 둔다. Esc는 창 Update가 CloseOverlay()로 닫는다.
-    internal static RectTransform Overlay(RectTransform parent,string name)
+    internal static RectTransform Overlay(RectTransform parent,string name,float shade=.5f)
     {
         CloseOverlay();
         overlay=Rect(parent,name,0,0,PixelViewport.Width,PixelViewport.Height).gameObject;
-        Blocker(overlay.transform,new Color(0,0,0,.5f),()=>CloseOverlay());
+        Blocker(overlay.transform,new Color(0,0,0,shade),()=>CloseOverlay());
         return (RectTransform)overlay.transform;
     }
     internal static bool CloseOverlay()

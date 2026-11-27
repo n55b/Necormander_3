@@ -144,7 +144,16 @@ public class PouchUI : MonoBehaviour
     {
         _selected = item;
         foreach (var cell in _cells) cell.SetSelected(item != null && cell.Item == item);
-        int count = item != null && _pouch != null ? _pouch.CountOf(item) : 0;
+        Show(item, item != null && _pouch != null ? _pouch.CountOf(item) : 0);
+    }
+    // 제작실 크게 보기: 주머니 없이 상세 패널만 보유 count개로 채운다(UIPopUpManager·IsOpen을 거치지 않는다).
+    internal void ShowPreview(ItemSO item, int count)
+    {
+        if (panelRoot != null) panelRoot.SetActive(true);
+        Show(item, count);
+    }
+    private void Show(ItemSO item, int count)
+    {
         if (detailIcon != null) { detailIcon.sprite = GroundItem.ItemIcon(item); detailIcon.enabled = item != null; }
         if (detailTitle != null) detailTitle.text = item != null ? item.DisplayName : "아이템을 선택하세요";
         if (detailTier != null) detailTier.text = item != null ? $"{ItemTierRules.Label(item.tier)} · 보유 {count}개" : "";

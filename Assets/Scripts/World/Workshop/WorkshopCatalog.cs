@@ -62,6 +62,8 @@ public sealed class WorkshopCatalog : ScriptableObject
     // 플레이어 빌드에는 GUID가 없으므로 DATA의 그림 값은 이 표로만 풀린다.
     [Serializable] public sealed class AssetRef { public string key; public UnityEngine.Object asset; }
     public AssetRef[] assets = Array.Empty<AssetRef>();
+    // 아이템 화면 크게 보기의 주머니 실물(Assets/Prefabs/UI/PouchUI.prefab, Resources 밖이라 여기서 참조한다).
+    public GameObject pouchPreview;
 
     private static WorkshopCatalog loaded;
     private static AssetRef[] indexedAssets;

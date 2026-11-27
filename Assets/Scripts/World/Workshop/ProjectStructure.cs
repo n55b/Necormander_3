@@ -295,6 +295,14 @@ internal static class ProjectStructure
         string path="MEMBERS/"+rid+"/"+field+".json";
         if(included==original) files.Remove(path); else files[path]=ProjectContentStore.Json(new JObject{["included"]=included});
     }
+    // 초안 files 기준의 가입 여부(살아 있지 않은 초안의 표 보기): MEMBERS 파일이 있으면 그 값, 없으면 원래 가입.
+    internal static bool IsMember(IReadOnlyDictionary<string,string> files,ScriptableObject target,ScriptableObject registry,string field)
+    {
+        if(files.TryGetValue("MEMBERS/"+ProjectParameterBindings.Reference(registry)+"/"+field+".json",out var json))
+            return JObject.Parse(json)["included"]?.Value<bool>()==true;
+        var list=Array.Find(ProjectContentVariants.Lists(registry),l=>l.field==field).list;
+        return list!=null && Original(list).Contains(target) || implicitJoins.Contains((target,registry,field));
+    }
     // 키가 있는 최상위 목록마다 지금 원소와 LISTS 이전 원래 원소의 id(빈 아이템의 삭제 표시용, R27).
     internal static IEnumerable<(string field,string id)> Elements(ScriptableObject owner)
     {

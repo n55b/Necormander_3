@@ -505,6 +505,7 @@ MonoBehaviour:
     asset: {fileID: 1478503353297562604, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_8
     asset: {fileID: 4876576738624389340, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  pouchPreview: {fileID: 1010000, guid: 5a2f8c3b7d1e94a4b6c8e2f5a9d37b18, type: 3}
   villageActors:
   - village-guide
   - village-summoner

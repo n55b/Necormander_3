@@ -1,7 +1,9 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections;
+using System.IO;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -12,6 +14,7 @@ using Object = UnityEngine.Object;
 
 // 제작실 아이템 화면 검사. WorkshopPlayModeCheck(Editor 어셈블리)가 상태이상 검사 다음에 부른다.
 // DraftStore·ProjectParameters·WorkshopUI 같은 internal 멤버를 쓰므로 런타임 어셈블리에 둔다(WorkshopStatusCheck와 같다).
+// 1~8은 목록·상세, 9~14는 생성·이름·삭제·영구 삭제·복원·표 보기·크게 보기다. 검사가 만든 새 아이템은 지우고 원본 삭제는 복원한다.
 // 모든 변경을 되돌리고 아이템 상세를 연 채로 끝난다(이어지는 UI 해상도 검사가 "Item detail"을 본다).
 public static class WorkshopItemCheck
 {
@@ -74,8 +77,6 @@ public static class WorkshopItemCheck
         var added=Draft(cloth).files.Where(p=>p.Key.StartsWith("LISTS/effects/",StringComparison.Ordinal) && p.Value.Contains("\"type\"")).ToArray();
         Require(added.Length==1 && Draft(cloth).files.Keys.Count(k=>k.StartsWith("LISTS/",StringComparison.Ordinal))==1,"adding an effect writes one LISTS draft file");
         string id=added[0].Key.Substring("LISTS/effects/".Length).Replace(".json","");
-        string[] Cards()=>Detail().Cast<Transform>().Where(t=>t.name.StartsWith("효과/",StringComparison.Ordinal) && t.GetComponent<Image>()!=null && !t.GetComponent<Button>())
-            .OrderBy(t=>-((RectTransform)t).anchoredPosition.y).Select(t=>t.name.Substring(3)).ToArray();
         Require(cloth.effects.Count==before+1 && Cards().Last()==id,"new effect card is last");
         Click("효과/"+id+"/위"); yield return Frames();
         Require(Cards()[Cards().Length-2]==id && cloth.effects[before-1].id==id,"moving up swaps the card order");
@@ -126,7 +127,112 @@ public static class WorkshopItemCheck
         Require(GameObject.Find("Item detail")!=null && Draft(charm).live,"returning reopens the item screen");
         Require(!DraftStore.Unsaved.Any(),"item check leaves nothing unsaved");
         Debug.Log("[Workshop items] PASS starting-item delete block and reference jump");
+        // 9. 새 아이템 → 빈 아이템 → 만들기: 등장 꺼짐 초안(효과 없음 ⚠1), 세이브 해석 목록에만 가입
+        var shop=ProjectParameterBindings.Registries().OfType<ShopRegistrySO>().First();
+        Click("새 아이템"); yield return Frames();
+        GameObject.Find("새 아이템 이름").GetComponent<TMP_InputField>().text="QA 빈 주머니";
+        Click("시작/빈 아이템"); yield return Frames();
+        Require(GameObject.Find("만들 때 등장").GetComponentInChildren<TMP_Text>().text=="꺼짐","new items start hidden from rewards and shops");
+        WorkshopStatusCheck.VerifyText("item create");
+        Click("만들기"); yield return Frames();
+        var blank=ProjectContentVariants.Entries.Single(e=>e.title=="QA 빈 주머니");
+        var made=(ItemSO)blank.source;
+        var madeRow=Rows().SingleOrDefault(r=>r.name=="아이템/"+blank.id);
+        Require(madeRow!=null && madeRow.GetComponentsInChildren<TMP_Text>().Any(t=>t.text=="⚠1"),"new blank row shows one warning (no effects)");
+        Require(made.effects.Count==0 && Cards().Length==0 && !made.availableAsReward,"blank item has no effect cards and appearance off");
+        Require(!shop.itemPool.Contains(made) && growth.items.Contains(made),"blank item joins only the save-resolving list");
+        capture?.Invoke("9");
+        // 10. 이름 변경 → 저장: definition.json title, 표시 이름, 최근 칩
+        Child<TMP_InputField>("title","이름").text="QA 빈 주머니 2"; yield return Frames();
+        Click("프로젝트에 저장"); yield return Frames();
+        string folder=Path.Combine(ProjectContentStore.Root,blank.Document);
+        Require((string)JObject.Parse(File.ReadAllText(Path.Combine(folder,"definition.json")))["title"]=="QA 빈 주머니 2" && made.DisplayName=="QA 빈 주머니 2","renaming saves the title");
+        Require(PlayerPrefs.GetString("Workshop.Recent","").Contains("\t"+blank.Document+"\tQA 빈 주머니 2"),"recent chip uses the saved name");
+        capture?.Invoke("10");
+        Debug.Log("[Workshop items] PASS blank item creation and rename");
+        // 11. 삭제 → 저장: 목록에서 빠지고 세이브 키는 풀린다. 파일까지 지우기는 Git에 올린 적 없을 때만(격리 복사본은 Git이 없어 막힘)
+        Click("아이템 삭제"); yield return Frames();
+        Click("프로젝트에 저장"); yield return Frames();
+        Require(!Rows().Any(r=>r.name=="아이템/"+blank.id),"a deleted item leaves the list");
+        Require(!growth.items.Contains(made) && growth.ResolveSavedItem("content_"+blank.id)==made,"a deleted new item keeps its save key");
+        Click("아이템 필터/삭제됨"); yield return Frames();
+        Require(Rows().Any(r=>r.name=="아이템/"+blank.id),"the deleted filter lists it");
+        string blocker=ProjectContentVariants.PurgeBlocker(blank.id);
+        if(blocker==null)
+        {   // 편집 중인 Git 체크아웃: 두 번 눌러 지운다
+            Click("아이템 영구 삭제"); yield return Frames();
+            Click("아이템 영구 삭제"); yield return Frames();
+        }
+        else
+        {   // 막힘과 이유를 보고 검사가 폴더를 지운다. 화면이 하는 정리(R21)를 같은 순서로 한다
+            var purge=WorkshopStatusCheck.Find("아이템 영구 삭제");
+            Require(purge!=null && purge.gameObject.activeInHierarchy && !purge.interactable && Texts().Any(t=>t.text==blocker),"purge is blocked with its reason: "+blocker);
+            capture?.Invoke("11");
+            Directory.Delete(folder,true);
+            ProjectParameterBindings.ReloadCheckout(); DraftStore.Forget(blank.Document);
+            Click("게임 콘텐츠"); yield return Frames();
+            Click("아이템"); yield return Frames();
+        }
+        Require(!Directory.Exists(folder) && !ProjectContentVariants.Entries.Any(e=>e.id==blank.id),"the purged folder is gone");
+        Click("아이템 필터/전체"); yield return Frames();
+        Debug.Log("[Workshop items] PASS delete, deleted filter and purge ("+(blocker ?? "purged")+")");
+        // 12. 원본 삭제 → 저장 → 목록에서 빠지고 세이브 이름은 풀린다 → 복원 → 저장 → 원래 순서
+        var shield=Load("PortableShield");
+        var itemsBefore=growth.items.ToArray(); var poolBefore=shop.itemPool.ToArray();
+        yield return Select(Id(shield));
+        string shieldFolder=Path.Combine(ProjectContentStore.Root,Draft(shield).entry.Document);
+        bool existed=Directory.Exists(shieldFolder);
+        Click("아이템 삭제"); yield return Frames();
+        Click("프로젝트에 저장"); yield return Frames();
+        Require(!growth.items.Contains(shield) && !shop.itemPool.Contains(shield) && growth.ResolveSavedItem("PortableShield")==shield,"a deleted original leaves the lists and keeps its save");
+        capture?.Invoke("12");
+        Click("아이템 복원"); yield return Frames();
+        Click("프로젝트에 저장"); yield return Frames();
+        Require(growth.items.SequenceEqual(itemsBefore) && shop.itemPool.SequenceEqual(poolBefore),"restoring returns it to the original order");
+        if(!existed && Directory.Exists(shieldFolder) && !Directory.EnumerateFiles(shieldFolder,"*",SearchOption.AllDirectories).Any()) Directory.Delete(shieldFolder,true);
+        Debug.Log("[Workshop items] PASS original delete and restore");
+        // 13. 표 보기: 9행, 등급 정렬(같으면 이름 순, 다시 누르면 내림차순), 칸 편집은 그 항목의 초안
+        Click("표 보기"); yield return Frames();   // 고른 항목의 쪽으로 열린다. 정렬은 첫 쪽으로 돌아간다
+        Click("정렬/등급"); yield return Frames();
+        Require(TableRows().Length==9,"table shows nine rows ("+TableRows().Length+")");
+        var ascending=TableRows().Select(b=>Load(AssetDatabase.GUIDToAssetPath(b.name.Substring(2)),true)).ToArray();
+        Require(ascending.Zip(ascending.Skip(1),(a,b)=>a.tier<b.tier || a.tier==b.tier && string.CompareOrdinal(a.DisplayName,b.DisplayName)<=0).All(x=>x),"tier sort is ascending, then by name");
+        Click("정렬/등급"); yield return Frames();
+        var descending=TableRows().Select(b=>Load(AssetDatabase.GUIDToAssetPath(b.name.Substring(2)),true)).ToArray();
+        Require(descending.Zip(descending.Skip(1),(a,b)=>a.tier>=b.tier).All(x=>x),"the same header again sorts descending");
+        WorkshopStatusCheck.VerifyText("item table");
+        string first=TableRows()[0].name.Substring(2);
+        var firstItem=Load(AssetDatabase.GUIDToAssetPath(first),true);
+        Child<Button>("표/"+first+"/maxStack","+").onClick.Invoke(); yield return Frames();
+        Require(TableRows()[0].transform.Find("●").gameObject.activeSelf && Draft(firstItem).Dirty,"a table edit marks that row unsaved");
+        capture?.Invoke("13");
+        Click("상세 보기"); yield return Frames();
+        DraftStore.Revert(Draft(firstItem));
+        Require(!DraftStore.Unsaved.Any(),"table check leaves nothing unsaved");
+        Debug.Log("[Workshop items] PASS table rows, sort and row edit");
+        // 14. 크게 보기: 주머니 실물·상점 카드 실물에 표시 이름, Esc로 닫힘
+        var opened=(ItemSO)DraftStore.All.Single(d=>d.live).entry.source;
+        Click("미리보기 크게"); yield return Frames();
+        for(float until=Time.realtimeSinceStartup+1f;Time.realtimeSinceStartup<until;) yield return null;   // 주머니 실물의 열림 연출(UIOpenMotion)이 끝난 화면을 남긴다
+        var big=GameObject.Find("아이템 미리보기");
+        var pouch=big!=null ? big.GetComponentInChildren<PouchUI>(true) : null;
+        Require(pouch!=null && pouch.GetComponentsInChildren<TMP_Text>(true).Any(t=>t.text==opened.DisplayName),"large preview shows the pouch detail");
+        capture?.Invoke("14");
+        Click("크게 보기/상점"); yield return Frames();
+        capture?.Invoke("14-shop");
+        var card=big.GetComponentInChildren<ShopPopupSlot>(true);
+        Require(card!=null && big.GetComponentInChildren<PouchUI>(true)==null && card.GetComponentsInChildren<TMP_Text>(true).Any(t=>t.text==opened.DisplayName),"large preview shows the shop card");
+        yield return Press(Key.Escape);
+        Require(GameObject.Find("아이템 미리보기")==null && GameObject.Find("Item detail")!=null,"Esc closes the large preview");
+        Require(!DraftStore.Unsaved.Any(),"item check leaves nothing unsaved");
+        Debug.Log("[Workshop items] PASS blank item, rename, delete, purge, restore, table and large preview");
     }
+    private static string[] Cards()=>Detail().Cast<Transform>().Where(t=>t.name.StartsWith("효과/",StringComparison.Ordinal) && t.GetComponent<Image>()!=null && !t.GetComponent<Button>())
+        .OrderBy(t=>-((RectTransform)t).anchoredPosition.y).Select(t=>t.name.Substring(3)).ToArray();
+    // 표 보기의 이름 칸 버튼("표/<GUID>"), 위에서 아래 순.
+    private static Button[] TableRows()=>Object.FindObjectsByType<Button>(FindObjectsSortMode.None)
+        .Where(b=>b.gameObject.activeInHierarchy && b.name.StartsWith("표/",StringComparison.Ordinal) && b.name.Count(c=>c=='/')==1)
+        .OrderBy(b=>-((RectTransform)b.transform).anchoredPosition.y).ToArray();
 
     private static ItemSO Load(string name,bool path=false)
     {
