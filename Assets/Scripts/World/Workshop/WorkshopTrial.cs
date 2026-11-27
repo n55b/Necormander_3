@@ -36,6 +36,8 @@ public static class WorkshopTrial
     internal static EnemyMinionDataSO PlannedElite { get; private set; }
     private static bool previousTutorial;
     internal static readonly Stack<string> Undo = new(), Redo = new();
+    // 아이템 화면의 시험 지급(문서 id, 개수). 콘텐츠 시험이 채우고 WorkshopReturn이 플레이어 준비 뒤 주머니에 넣는다. 방·층 시험은 비운다.
+    internal static readonly List<(string id,int count)> Loadout = new();
     public const string SceneName = "LevelWorkshop";
     public const string ScenePath = "Assets/Scenes/LevelWorkshop.unity";
 
@@ -56,11 +58,11 @@ public static class WorkshopTrial
     {
         SceneManager.sceneLoaded -= Loaded;
         Village=null; floorEdits=null; PlannedFloor=null; PlannedElite=null; Active=false; FloorTest=null; ReturnToFloor=false; Library=null; Draft=null; Stage=null; Zoom=1; Cursor=null;
-        Undo.Clear(); Redo.Clear();
+        Undo.Clear(); Redo.Clear(); Loadout.Clear();
     }
     internal static bool Play(Vector3? cursor)
     {
-        Stage=Draft;
+        Stage=Draft; Loadout.Clear();
         return Begin(cursor,null);
     }
     // 전투 없는 빈 방(첫 inPool Spawn 원본) 가운데에 플레이어, 오른쪽 1.5~3 유닛 걸을 수 있는 칸에 허수아비. 문서는 저장하지 않는다.
@@ -84,7 +86,7 @@ public static class WorkshopTrial
         Stage=arena;
         return Begin(start,null);
     }
-    internal static bool PlayFloor(WorkshopFloor settings) => Begin(null,settings);
+    internal static bool PlayFloor(WorkshopFloor settings){ Loadout.Clear(); return Begin(null,settings); }
     private static bool Begin(Vector3? cursor, WorkshopFloor floor)
     {
         if (Active || UnityNote.SceneLoader.IsLoading) return false;

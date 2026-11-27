@@ -32,7 +32,10 @@ public sealed partial class RoomWorkshopWindow
         CommitPendingInputs();
         if(page==Page.Parameters && dataField!=null) AcceptParameter();
         string item=page==Page.Status ? statusRow : page==Page.Items ? itemDraft?.entry.Document : dataEntry?.id;
-        if(WorkshopTrial.PlayArena()) RememberContent(item); else Say("시험을 시작할 수 없습니다.");
+        // 아이템 화면은 고른 항목을 미리보기 주머니 탭의 보유 개수만큼 지급한다. 상태이상·모든 수치는 지급하지 않는다.
+        WorkshopTrial.Loadout.Clear();
+        if(page==Page.Items && itemDraft?.entry.source is ItemSO given) WorkshopTrial.Loadout.Add((itemDraft.entry.id,Mathf.Clamp(itemCount,1,given.MaxStack)));
+        if(WorkshopTrial.PlayArena()) RememberContent(item); else { WorkshopTrial.Loadout.Clear(); Say("시험을 시작할 수 없습니다."); }
     }
     // PlayArena는 씬 로드를 요청만 하므로 같은 프레임의 창·선택·스크롤을 그 뒤에 기록해도 된다.
     private void RememberContent(string item)

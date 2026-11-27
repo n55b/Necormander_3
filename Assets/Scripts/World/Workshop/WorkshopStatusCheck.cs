@@ -148,13 +148,13 @@ public static class WorkshopStatusCheck
         Require(Find("미저장")?.gameObject.activeSelf==true,"draft survives the trial");
         Require(!WorkshopTrial.Active && !DraftStore.Previewing && StatusRules.POISON_TICK_DAMAGE==published,"returning ends the preview");
     }
-    private static IEnumerator Battle()
+    internal static IEnumerator Battle()
     {
         yield return Until(()=>SceneManager.GetActiveScene().name=="BattleScene" && !UnityNote.SceneLoader.IsLoading &&
             GameManager.Instance!=null && GameManager.Instance.IsPlayerReady);
         yield return Frames(30);   // 허수아비·도구막대가 켜질 때까지
     }
-    private static IEnumerator Workshop()
+    internal static IEnumerator Workshop()
     {
         yield return Until(()=>SceneManager.GetActiveScene().name==WorkshopTrial.SceneName && !UnityNote.SceneLoader.IsLoading &&
             Object.FindFirstObjectByType<RoomWorkshopWindow>()!=null);

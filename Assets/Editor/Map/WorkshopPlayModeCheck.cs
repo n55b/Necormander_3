@@ -209,7 +209,7 @@ public static class WorkshopPlayModeCheck
         yield return WorkshopStatusCheck.Run(row => PresentationRegressionCheck.SaveFrame(PixelArtUpscaleRig.RenderCamera.targetTexture, "WorkshopUx/status-" + row));
         if (UiResolutionCheck.Enabled)
             yield return UiResolutionCheck.Verify("Workshop content",(RectTransform)GameObject.Find("Status detail").transform,Button("프로젝트에 저장"));
-        deadline = EditorApplication.timeSinceStartup + 180;   // 아이템 화면: 목록·상세·효과 카드·미리보기·경고
+        deadline = EditorApplication.timeSinceStartup + 240;   // 아이템 화면: 목록·상세·효과 카드·미리보기·경고와 시험 지급 왕복
         yield return WorkshopItemCheck.Run(step => PresentationRegressionCheck.SaveFrame(PixelArtUpscaleRig.RenderCamera.targetTexture, "WorkshopUx/items-" + step));
         if (UiResolutionCheck.Enabled)   // Run은 아이템 상세를 연 채로 끝난다
             yield return UiResolutionCheck.Verify("Workshop items",(RectTransform)GameObject.Find("Item detail").transform,Button("프로젝트에 저장"));

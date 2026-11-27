@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 // 제작실 아이템 화면 검사. WorkshopPlayModeCheck(Editor 어셈블리)가 상태이상 검사 다음에 부른다.
 // DraftStore·ProjectParameters·WorkshopUI 같은 internal 멤버를 쓰므로 런타임 어셈블리에 둔다(WorkshopStatusCheck와 같다).
-// 1~8은 목록·상세, 9~14는 생성·이름·삭제·영구 삭제·복원·표 보기·크게 보기다. 검사가 만든 새 아이템은 지우고 원본 삭제는 복원한다.
+// 1~8은 목록·상세, 9~14는 생성·이름·삭제·영구 삭제·복원·표 보기·크게 보기, 15는 시험 지급과 복귀다. 검사가 만든 새 아이템은 지우고 원본 삭제는 복원한다.
 // 모든 변경을 되돌리고 아이템 상세를 연 채로 끝난다(이어지는 UI 해상도 검사가 "Item detail"을 본다).
 public static class WorkshopItemCheck
 {
@@ -226,6 +226,33 @@ public static class WorkshopItemCheck
         Require(GameObject.Find("아이템 미리보기")==null && GameObject.Find("Item detail")!=null,"Esc closes the large preview");
         Require(!DraftStore.Unsaved.Any(),"item check leaves nothing unsaved");
         Debug.Log("[Workshop items] PASS blank item, rename, delete, purge, restore, table and large preview");
+        // 15. 시험 지급: 주머니 탭의 보유 개수만큼 넣고, 도구막대 패널로 하나 더 넣고, 돌아오면 같은 항목·같은 스크롤
+        yield return Select(clothId);
+        Click("미리보기/주머니"); yield return Frames();
+        for(int n=0;n<20 && Count()!="1";n++) GameObject.Find("보유 개수/−").GetComponent<Button>().onClick.Invoke();
+        GameObject.Find("보유 개수/+").GetComponent<Button>().onClick.Invoke(); yield return Frames();
+        Require(Count()=="2","pouch preview count is two ("+Count()+")");
+        GameObject.Find("Item detail").GetComponent<ScrollRect>().verticalNormalizedPosition=.5f; yield return Frames();
+        float scrolled=((RectTransform)Detail()).anchoredPosition.y;
+        Require(scrolled>0,"item detail scrolls before the trial");
+        Click("시험 F6");
+        yield return WorkshopStatusCheck.Battle();
+        var pouchNow=ItemPouch.Instance;
+        Require(pouchNow!=null && pouchNow.CountOf(cloth)>=2,"trial gives the previewed count ("+(pouchNow!=null ? pouchNow.CountOf(cloth) : -1)+")");
+        Require(Texts().Any(t=>t.text=="지급: "+cloth.DisplayName+" ×2"),"toolbar reports what the trial gave");
+        int had=pouchNow.CountOf(cloth);
+        Click("아이템 지급"); yield return Frames();
+        Click("방식/넣기"); yield return Frames();
+        for(int n=0;n<5 && WorkshopStatusCheck.Find("지급/"+clothId)?.gameObject.activeInHierarchy!=true;n++){ Click("지급 다음 쪽"); yield return Frames(); }
+        Click("지급/"+clothId); yield return Frames();
+        Require(pouchNow.CountOf(cloth)==had+1,"toolbar panel adds one more");
+        capture?.Invoke("15");
+        Click("편집으로  F6");
+        yield return WorkshopStatusCheck.Workshop();
+        Require(GameObject.Find("Item detail")!=null && Draft(cloth).live,"returning reopens the same item");
+        Require(Mathf.Abs(((RectTransform)Detail()).anchoredPosition.y-scrolled)<1,"returning restores the detail scroll");
+        Require(!DraftStore.Unsaved.Any(),"item check leaves nothing unsaved");
+        Debug.Log("[Workshop items] PASS trial loadout, toolbar give and return");
     }
     private static string[] Cards()=>Detail().Cast<Transform>().Where(t=>t.name.StartsWith("효과/",StringComparison.Ordinal) && t.GetComponent<Image>()!=null && !t.GetComponent<Button>())
         .OrderBy(t=>-((RectTransform)t).anchoredPosition.y).Select(t=>t.name.Substring(3)).ToArray();

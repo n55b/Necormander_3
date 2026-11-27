@@ -13,7 +13,8 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
 {
     // clusters: 카탈로그 군집 id 두 개. 팀 검사 스크립트가 같은 방의 웨이브 파일을 고칠 때도 읽는다.
     // poison: seed가 상태이상 화면에서 저장한 중독 1회 피해. verify(편집기 재시작·Windows 플레이어)와 creator가 확인한다.
-    [Serializable] private class Fixture { public string template; public Vector2Int cell,grid; public float sprint; public int waves; public string[] clusters; public float poison; }
+    // feather·shield: 아이템 화면에서 고친 WindFeather와 삭제한 PortableShield의 문서 id(GUID), blank: 새로 만든 빈 아이템 변형 id, featherEffects: 저장 뒤 효과 수.
+    [Serializable] private class Fixture { public string template; public Vector2Int cell,grid; public float sprint; public int waves; public string[] clusters; public float poison; public string feather,shield,blank; public int featherEffects; }
     private string phase, report;
     private float deadline;
     private bool finished;
@@ -50,6 +51,20 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
     }
     private static Button Button(string name) => FindObjectsByType<Button>(FindObjectsSortMode.None).FirstOrDefault(b=>b.name==name);
     private static void Click(string name) => (Button(name) ?? throw new InvalidOperationException(name)).onClick.Invoke();
+    // 이름에 '/'가 든 행(effects/@id/value)의 자식은 GameObject.Find로 찾지 못하고 "값"·"+"는 행마다 겹친다.
+    private static T Child<T>(string parent,string child) where T:Component
+    {
+        var found=FindObjectsByType<RectTransform>(FindObjectsSortMode.None).Where(t=>t.name==parent).SelectMany(t=>t.Cast<Transform>())
+            .Where(c=>c.name==child && c.gameObject.activeInHierarchy).Select(c=>c.GetComponent<T>()).Where(c=>c!=null).ToArray();
+        if(found.Length!=1) throw new InvalidOperationException(found.Length+" "+child+" under "+parent);
+        return found[0];
+    }
+    // 아이템 화면에서 그 행이 보일 때까지 쪽을 넘긴 뒤 고른다.
+    private static IEnumerator SelectItem(string id)
+    {
+        for(int n=0;Button("아이템/"+id)==null && n<10;n++){ Click("아이템 다음 쪽"); yield return null; }
+        Click("아이템/"+id); yield return null;
+    }
     private IEnumerator Start()
     {
         Application.runInBackground=true;
@@ -136,6 +151,18 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
                     throw new InvalidOperationException("Published translation did not reach the active StringTable.");
                 if(Mathf.Abs(StatusRules.POISON_TICK_DAMAGE-fixture.poison)>.0001f)
                     throw new InvalidOperationException("Saved status value did not reach the live game.");
+                // 아이템 화면의 원본 수정·삭제와 새 아이템이 일반 게임의 보상·상점·세이브 해석에 들어간다.
+                var growth=GameManager.Instance.dataManager.GET_GROWTH_REGISTRY(); var shop=GameManager.Instance.dataManager.SHOP_REGISTRY;
+                var feather=growth.ResolveSavedItem("WindFeather");
+                if(feather==null || feather.name!="WindFeather" || feather.DisplayName!="QA 깃털" || feather.effects.Count!=fixture.featherEffects ||
+                    feather.effects.Last() is not ItemStatEffect || !growth.items.Contains(feather) || shop.itemPool.Contains(feather))
+                    throw new InvalidOperationException("Edited original item did not reach the game ("+feather?.DisplayName+", "+feather?.effects.Count+" effects).");
+                var shield=growth.ResolveSavedItem("PortableShield");
+                if(shield==null || shield.name!="PortableShield" || growth.items.Contains(shield) || shop.itemPool.Contains(shield))
+                    throw new InvalidOperationException("Deleted original item is still offered or lost its save name.");
+                var blank=growth.ResolveSavedItem("content_"+fixture.blank);
+                if(blank==null || !growth.items.Contains(blank) || !shop.itemPool.Contains(blank) || blank.effects.Count!=0 || !blank.availableAsReward || blank.DisplayName!="QA 빈 주머니")
+                    throw new InvalidOperationException("New blank item did not reach rewards, shop and save lookup.");
                 Debug.Log("[ProjectRoomCheck] global ground empty at "+fixture.cell+", authored wave "+fixture.clusters[0]+" in "+template.title);
                 Finish(true); yield break;
             }
@@ -167,6 +194,27 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             while(UnityNote.SceneLoader.IsLoading || Button("변경 취소")==null) yield return null;
             if(Mathf.Abs(StatusRules.POISON_TICK_DAMAGE-fixture.poison)>.0001f)
                 throw new InvalidOperationException("Returning did not end the status preview.");
+            Click("변경 취소"); Click("처음 화면");
+            // 체크아웃 b에 병합된 아이템 문서: 빈 새 아이템과 삭제한 원본이 보이고, 시험이 주머니 탭의 개수만큼 지급한다.
+            deadline=Time.realtimeSinceStartup+100;
+            Click("게임 콘텐츠"); Click("아이템"); yield return null;
+            yield return SelectItem(fixture.blank);
+            var blank=ProjectContentVariants.Entries.FirstOrDefault(e=>e.id==fixture.blank)?.source as ItemSO;
+            if(blank==null || blank.DisplayName!="QA 빈 주머니") throw new InvalidOperationException("Creator does not list the new blank item.");
+            Click("아이템 필터/삭제됨"); yield return null;
+            if(Button("아이템/"+fixture.shield)==null) throw new InvalidOperationException("Creator does not list the deleted original.");
+            Click("아이템 필터/전체"); yield return null;
+            yield return SelectItem(fixture.blank);
+            GameObject.Find("maxStack/+").GetComponent<Button>().onClick.Invoke(); yield return null;   // 빈 아이템의 최대 보유는 1이다. 미저장 초안으로 2를 허용한다
+            Click("미리보기/주머니"); yield return null;
+            GameObject.Find("보유 개수/+").GetComponent<Button>().onClick.Invoke(); yield return null;
+            Click("시험 F6"); yield return null;
+            while(UnityNote.SceneLoader.IsLoading || GameManager.Instance==null || !GameManager.Instance.IsPlayerReady ||
+                ItemPouch.Instance==null || ItemPouch.Instance.CountOf(blank)<2) yield return null;   // 못 받으면 deadline이 끝낸다
+            if(!WorkshopTrial.Open()) throw new InvalidOperationException("Return to workshop");
+            yield return null;
+            while(UnityNote.SceneLoader.IsLoading || Button("변경 취소")==null) yield return null;
+            if(!DraftStore.All.Any(d=>d.live && d.entry.id==fixture.blank)) throw new InvalidOperationException("Returning did not reselect the item.");
             Click("변경 취소"); Click("처음 화면");
         }
         // 제작실은 첫 화면(작업 종류 카드)으로 열린다. 레벨 카드가 방 목록을 연다.
@@ -300,6 +348,36 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             Click("프로젝트에 저장");
             fixture.poison=StatusRules.POISON_TICK_DAMAGE;
             if(Mathf.Abs(fixture.poison-(authored+1))>.0001f) throw new InvalidOperationException("Status screen did not publish the poison value.");
+            // 아이템 화면: 원본 이름·효과 하나 추가·상점 진열 끔, 원본 삭제, 등장 켠 빈 새 아이템. verify·creator가 확인한다.
+            deadline=Time.realtimeSinceStartup+100;
+            Click("처음 화면"); Click("게임 콘텐츠"); Click("아이템"); yield return null;
+            var shopPool=ProjectParameterBindings.Registries().OfType<ShopRegistrySO>().First();
+            var feather=Resources.FindObjectsOfTypeAll<ItemSO>().First(i=>i.name=="WindFeather");
+            var shield=Resources.FindObjectsOfTypeAll<ItemSO>().First(i=>i.name=="PortableShield");
+            fixture.feather=ProjectParameterBindings.Reference(feather); fixture.shield=ProjectParameterBindings.Reference(shield);
+            yield return SelectItem(fixture.feather);
+            Child<TMPro.TMP_InputField>("itemName","값").text="QA 깃털"; yield return null;   // onValueChanged가 초안에 쓴다
+            Click("효과 추가"); yield return null;
+            Click("효과 종류/능력치 보정"); yield return null;
+            var featherDraft=DraftStore.All.Single(d=>d.entry.source==feather);
+            string effect=featherDraft.files.Where(p=>p.Key.StartsWith("LISTS/effects/",StringComparison.Ordinal) && p.Value.Contains("\"type\""))
+                .Select(p=>Path.GetFileNameWithoutExtension(p.Key)).Single();
+            Child<Button>("effects/@"+effect+"/value","+").onClick.Invoke(); yield return null;
+            if(shopPool.itemPool.Contains(feather)){ Child<Button>("상점 진열","값").onClick.Invoke(); yield return null; }
+            Click("프로젝트에 저장"); yield return null;
+            if(feather.DisplayName!="QA 깃털" || featherDraft.Dirty || shopPool.itemPool.Contains(feather)) throw new InvalidOperationException("Item screen did not publish the original item.");
+            fixture.featherEffects=feather.effects.Count;
+            yield return SelectItem(fixture.shield);
+            Click("아이템 삭제"); yield return null;
+            Click("프로젝트에 저장"); yield return null;
+            Click("아이템 필터/전체"); yield return null;
+            yield return SelectItem(fixture.feather);
+            Click("새 아이템"); yield return null;
+            GameObject.Find("새 아이템 이름").GetComponent<TMPro.TMP_InputField>().text="QA 빈 주머니";
+            Click("시작/빈 아이템"); yield return null;
+            Click("만들 때 등장"); yield return null;
+            Click("만들기"); yield return null;
+            fixture.blank=ProjectContentVariants.Entries.Single(e=>e.title=="QA 빈 주머니").id;
             yield return CheckPalette();
             File.WriteAllText(report,JsonUtility.ToJson(fixture,true));
         }
