@@ -141,17 +141,23 @@ public static class ProjectDataBakeCheck
             foreach (string document in documents)
                 Require(plan.Any(i => i.document == document && i.error == null), "preview lists " + document);
             Require(plan.First(i => i.document == itemDoc).changes.Any(c => c.EndsWith(": " + raw + " → " + (raw + 5))), "preview shows the asset value and the DATA value");
-            Require(plan.First(i => i.document == documents[1]).changes.Any(c => c.Contains(folder + "/" + title + ".asset")) &&
-                plan.First(i => i.document == documents[2]).changes.Any(c => c.Contains(folder + "/" + title + " 2.asset")), "readable asset names, numbered on a clash");
+            // 번호는 변형 폴더 순서(무작위 id)로 붙는다. 어느 쪽이 번호를 받든 미리보기 경로에 그대로 구워져야 한다.
+            string PreviewPath(string document) => plan.First(i => i.document == document).changes
+                .First(c => c.StartsWith("새 에셋 ", StringComparison.Ordinal)).Substring(5).Split(" · ")[0];
+            string pathA = PreviewPath(documents[1]), pathB = PreviewPath(documents[2]);
+            Require(new HashSet<string> { pathA, pathB }.SetEquals(new[] { folder + "/" + title + ".asset", folder + "/" + title + " 2.asset" }),
+                "readable asset names, numbered on a clash");
             Require(plan.First(i => i.document == registryDoc).changes.Any(c => c.Contains("새 콘텐츠 " + title)), "preview names the referenced new content");
             Require(Throws(() => ProjectDataBake.Execute(new[] { registryDoc }, requireCleanGit: false), "함께 고르세요"),
                 "a document that references an unbaked variant is refused");
+            Require(Throws(() => ProjectDataBake.Execute(new[] { itemDoc }, requireCleanGit: false), "함께 고르세요") && item.maxStack == raw,
+                "baking an original alone is refused while its new content without that value would inherit it");
             Require(File.Exists(Path.Combine(ProjectContentStore.Root, registryDoc, "parameters.json")) && growth.startingItem != null &&
                 Path.GetFileName(AssetDatabase.GetAssetPath(growth.startingItem)) != title + ".asset", "refused bake changes nothing");
 
             Debug.Log("[ProjectDataBakeCheck] " + ProjectDataBake.Execute(documents, requireCleanGit: false));
-            var a = AssetDatabase.LoadAssetAtPath<ItemSO>(folder + "/" + title + ".asset");
-            var b = AssetDatabase.LoadAssetAtPath<ItemSO>(folder + "/" + title + " 2.asset");
+            var a = AssetDatabase.LoadAssetAtPath<ItemSO>(pathA);
+            var b = AssetDatabase.LoadAssetAtPath<ItemSO>(pathB);
             Require(item.maxStack == raw + 5 && File.ReadAllText(AssetDatabase.GetAssetPath(item)).Contains("maxStack: " + (raw + 5)), "original value written to its .asset");
             Require(a != null && a.maxStack == 7 && a.itemName == title && a.formerAssetNames.SequenceEqual(new[] { "content_" + first }), "variant baked with its values, title and save alias");
             Require(b != null && b.maxStack == raw && b.formerAssetNames.SequenceEqual(new[] { "content_" + second }), "variant without values copies the unbaked original");

@@ -23,6 +23,7 @@ public static class ProjectDataBake
         internal Entry entry;   // 원본 수치는 그 에셋, 새 콘텐츠는 복제할 원본
         internal ProjectContentVariants.Definition definition;
         internal JObject values;
+        internal string path;   // 새 콘텐츠의 새 에셋 경로. 미리보기와 굽기가 같은 값을 쓴다(모든 변형 순서로 이름을 예약).
     }
 
     public static string Blocker(bool requireCleanGit=true)
@@ -75,7 +76,7 @@ public static class ProjectDataBake
                 var template=ProjectParameterBindings.EntryFor(definition.template);
                 if(template==null || !ProjectContentVariants.CanCreate(template)) throw new InvalidDataException("콘텐츠의 기반 원본을 확인하세요.");
                 item.entry=template; item.values=ProjectParameters.Values(definition.files);
-                string path=NewPath(template,definition.title,taken);
+                string path=item.path=NewPath(template,definition.title,taken);
                 item.changes.Add("새 에셋 "+path+" · 복제 원본 "+template.source.name);
                 item.changes.Add("세이브 키 "+Path.GetFileNameWithoutExtension(path)+" · 옛 키 content_"+definition.id+" 별칭");
                 foreach(var m in Memberships(all,template.source)) item.changes.Add("목록 가입 "+m.registry.name+"/"+m.field);
@@ -123,9 +124,23 @@ public static class ProjectDataBake
             foreach(var (field,list) in ProjectContentVariants.Lists(entry.source))
                 if(list!=null && list.Contains(template)) yield return (entry.source,field,list);
     }
-    // 세이브 키 충돌을 피하려고 SOData·Resources 전체의 에셋 이름과 겹치지 않게 한다.
-    private static HashSet<string> Names()=>new(AssetDatabase.FindAssets("t:ScriptableObject",new[]{"Assets/SOData","Assets/Resources"})
-        .Select(g=>Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(g))),StringComparer.OrdinalIgnoreCase);
+    // 세이브 키 충돌을 피하려고 SOData·Resources 전체의 에셋 이름, 다른 에셋의 옛 키(formerAssetNames), 보물의 이름 키와 겹치지 않게 한다.
+    // ResolveSaved*는 현재 이름을 먼저 보므로 겹치면 옛 세이브가 새 에셋으로 넘어간다.
+    private static HashSet<string> Names()
+    {
+        var taken=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach(string guid in AssetDatabase.FindAssets("t:ScriptableObject",new[]{"Assets/SOData","Assets/Resources"}))
+        {
+            string path=AssetDatabase.GUIDToAssetPath(guid);
+            taken.Add(Path.GetFileNameWithoutExtension(path));
+            var type=AssetDatabase.GetMainAssetTypeAtPath(path);
+            if(type==null || type.GetField("formerAssetNames")==null) continue;
+            var asset=AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
+            if(type.GetField("formerAssetNames").GetValue(asset) is string[] former) taken.UnionWith(former.Where(n=>!string.IsNullOrEmpty(n)));
+            if(asset is TreasureSO treasure && !string.IsNullOrEmpty(treasure.itemName)) taken.Add(treasure.itemName);
+        }
+        return taken;
+    }
     private static string NewPath(Entry template,string title,HashSet<string> taken)
     {
         string folder=Path.GetDirectoryName(AssetDatabase.GetAssetPath(template.source)).Replace('\\','/');
@@ -133,7 +148,7 @@ public static class ProjectDataBake
         string stem=new string(title.Select(c=>Array.IndexOf(invalid,c)>=0 ? '_' : c).ToArray()).Trim().TrimEnd('.');
         if(stem.Length==0) stem="content";
         string name=stem;
-        for(int n=2;taken.Contains(name);n++) name=stem+" "+n.ToString(CultureInfo.InvariantCulture);
+        for(int n=2;taken.Contains(name) || File.Exists(folder+"/"+name+".asset");n++) name=stem+" "+n.ToString(CultureInfo.InvariantCulture);
         taken.Add(name);
         return folder+"/"+name+".asset";
     }
@@ -187,12 +202,22 @@ public static class ProjectDataBake
         var broken=items.Where(i=>i.error!=null).ToArray();
         if(broken.Length>0) throw new InvalidDataException("오류가 있는 문서는 구울 수 없습니다.\n"+string.Join("\n",broken.Select(i=>i.document+" · "+i.error)));
         ProjectParameterBindings.ValidatePublished();
-        var variantIds=ProjectContentVariants.Definitions(strict:true).Select(d=>d.id).ToHashSet(StringComparer.Ordinal);
+        var definitions=ProjectContentVariants.Definitions(strict:true).ToArray();
+        var variantIds=definitions.Select(d=>d.id).ToHashSet(StringComparer.Ordinal);
         var baking=items.Where(i=>i.variant).Select(i=>i.definition.id).ToHashSet(StringComparer.Ordinal);
         foreach(var item in items)
             foreach(var pair in item.values)
                 if(pair.Value.Type==JTokenType.String && variantIds.Contains((string)pair.Value) && !baking.Contains((string)pair.Value))
                     throw new InvalidDataException(item.title+"/"+pair.Key+" 이(가) 굽지 않는 새 콘텐츠를 참조합니다. 그 콘텐츠도 함께 고르세요. "+(string)pair.Value);
+        // 실행 중 새 콘텐츠는 DATA 값이 적용되기 전의 원본 .asset을 복제한다. 원본 수치만 구우면 남은 새 콘텐츠가
+        // 자기 parameters에 없는 항목에서 구운 값을 물려받아 바뀌므로 함께 고르게 한다.
+        foreach(var item in items.Where(i=>!i.variant))
+            foreach(var d in definitions.Where(d=>d.template==item.entry.id && !baking.Contains(d.id)))
+            {
+                var own=ProjectParameters.Values(d.files);
+                if(item.values.Properties().Any(p=>own[p.Name]==null))
+                    throw new InvalidDataException(item.title+" 을(를) 원본으로 하는 새 콘텐츠 "+d.title+" 의 값이 바뀝니다. 그 콘텐츠도 함께 고르세요. "+d.id);
+            }
 
         var all=ProjectParameterBindings.All();
         var registries=all.Select(e=>e.source).Where(s=>s is GrowthRegistrySO or ShopRegistrySO).ToArray();
@@ -210,11 +235,10 @@ public static class ProjectDataBake
         Undo.SetCurrentGroupName("DATA 굽기");
         var created=new Dictionary<string,ScriptableObject>(StringComparer.Ordinal);   // 변형 id → 새 에셋
         var baked=new Dictionary<string,string>(StringComparer.Ordinal);              // 새 GUID → 변형 id
-        var taken=Names();
         foreach(var item in items.Where(i=>i.variant))
         {
             // 실행 중 복제본처럼 DATA 값이 적용되지 않은 원본 파일을 복사한다(원본 수치는 아래에서 따로 굽는다).
-            string path=NewPath(item.entry,item.definition.title,taken);
+            string path=item.path;
             if(!AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(item.entry.source),path)) throw new IOException("에셋을 복사하지 못했습니다. "+path);
             var asset=AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
             ProjectContentVariants.Name(asset,item.definition.title);
