@@ -193,6 +193,7 @@ if ((Want @('RenderBudget','CombatPolish'))) {
         }
     }
 }
+if ((Want @('LevelWorkshop', 'ProjectContent'))) { Invoke-EditorCheck 'ProjectRoomRebaseCheck.Run' -PlayMode }
 if ((Want @('WorkshopPlayMode', 'LevelWorkshop'))) {
     Invoke-EditorCheck 'WorkshopPlayModeCheck.Run' -PlayMode
     Invoke-EditorCheck 'ProjectContentBuild.StartRoomCheck' -PlayMode -ExtraArgs @('-projectRoomCheck', 'passages', 'unused')

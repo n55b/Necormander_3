@@ -22,7 +22,7 @@ Unity에서 **Tools > Sunyunie Panel > 제작실로 플레이 시작** 또는 **
 
 | 원본 | 안정 참조와 게임 진입점 | 제작실에서 하는 일 |
 |---|---|---|
-| 방 프리팹, 카탈로그, 타일, 출구, 적 클러스터 | 프리팹·타일 GUID와 기반 개정, `DungeonLayoutPlanner` → `MapGenerator` → `RoomInstance` | 지도에서 고치고 **비교**로 저장 기준과 현재 방을 같은 시야에서 본다. 배치물을 선택하면 위치 수치를 열 수 있다. |
+| 방 프리팹, 카탈로그, 타일, 출구, 적 클러스터 | 프리팹·타일 GUID와 기반 개정, `DungeonLayoutPlanner` → `MapGenerator` → `RoomInstance` | 지도에서 고치고 **비교**로 저장 기준과 현재 방을 같은 시야에서 본다. 배치물을 선택하면 위치 수치를 열 수 있다. Unity에서 방 프리팹이나 중첩 프리팹을 저장하면 `ProjectRoomRebase`가 영향받는 `WORLD/ROOMS/<id>/room.json`의 `baseRevision`을 자동으로 옮긴다. 플레이 시작과 빌드 직전에도 확인한다. 새 원본에서 검증되지 않는 문서는 그대로 두고 경고한다. |
 | 기존 밸런스·보상·게임 연출 | `Assets/SOData` 에셋 79개와 지정된 Resources 프로필, `ProjectParameterBindings` → 기존 시스템의 같은 ScriptableObject | **게임 콘텐츠 → 모든 수치**에서 영역·에셋·속성을 검색한다. 플레이 중 적용된 임시 값은 모드를 끝낼 때 원래 에셋에 복원한다. |
 | 아이템·장비·메인 소환수·보물 | `CATALOG/VARIANTS/<ID>/definition.json`의 원본 GUID, 개별 `parameters.json` | 기존 항목에서 **복제해 만들기**로 새 콘텐츠를 만든다. 원본이 속한 성장·상점 목록에 추가되고 새 세이브 키를 받는다. 기존 세이브의 이름 해석은 `GrowthRegistrySO`가 유지한다. 적·스킬 등 다른 밸런스 콘텐츠의 복제본은 사용하는 데이터의 참조 필드에서 연결한다. |
 | 한국어·영어 UI와 보상 이름, 대사 | Unity 테이블 GUID·숫자 키, 대화 ID·언어·줄 ID | 기존 키를 유지하며 번역을 수정하고 새 키와 본문을 함께 만들 수 있다. 새 대화, 등장인물, 화자와 줄 순서는 대사 편집에서 만든다. |

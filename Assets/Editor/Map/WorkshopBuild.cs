@@ -92,17 +92,8 @@ public static class WorkshopBuild
             var room=prefab.GetComponent<RoomInstance>();
             if (room==null) continue;
             var entry=pool.roomEntries.FirstOrDefault(e=>e.prefabs.Contains(prefab));
-            // Hierarchy paths in a draft refer to this exact authored base and its nested prefabs.
-            using var hash=SHA256.Create();
-            foreach (var dependency in AssetDatabase.GetDependencies(path).Where(p=>p.EndsWith(".prefab",StringComparison.OrdinalIgnoreCase)).OrderBy(p=>p,StringComparer.Ordinal))
-            {
-                // Git checks prefabs out as LF or CRLF depending on the machine. Hash the LF form so every checkout agrees.
-                var bytes=System.Text.Encoding.UTF8.GetBytes(File.ReadAllText(dependency).Replace("\r\n","\n"));
-                hash.TransformBlock(bytes,0,bytes.Length,null,0);
-            }
-            hash.TransformFinalBlock(Array.Empty<byte>(),0,0);
             templates.Add(new WorkshopCatalog.Template { id=id,title=prefab.name,room=room,
-                revision=BitConverter.ToString(hash.Hash).Replace("-",""),inPool=entry!=null,
+                revision=Revision(path),inPool=entry!=null,
                 type=entry?.roomType ?? room.roomType, tutorialOrder=library.generation.tutorialRooms.IndexOf(prefab)+1 });
             foreach (var map in prefab.GetComponentsInChildren<Tilemap>(true))
             {
@@ -135,7 +126,8 @@ public static class WorkshopBuild
             }).Where(p=>!p.enemy || (p.prefab.name.StartsWith("Monster ") && p.prefab.GetComponentInChildren<BaseEntity>(true)!=null))
             .OrderBy(p=>p.prefab.name==WorkshopCatalog.DummyName)   // 소품 팔레트 맨 뒤: 기본 소품(props[0])과 검사 기대가 바뀌지 않게
             .ToArray();
-        EditorUtility.SetDirty(library); AssetDatabase.SaveAssets();
+        // 자동 재기준이 이 굽기를 부르므로 사용자가 저장하지 않은 다른 에셋까지 저장하지 않는다.
+        EditorUtility.SetDirty(library); AssetDatabase.SaveAssetIfDirty(library);
         if (!File.Exists(WorkshopTrial.ScenePath))
         {
             if (Application.isBatchMode && string.IsNullOrEmpty(SceneManager.GetActiveScene().path))
@@ -150,6 +142,19 @@ public static class WorkshopBuild
             if(previous.IsValid()) SceneManager.SetActiveScene(previous);
         }
         Debug.Log($"[Workshop] {templates.Count} templates, {library.tiles.Length} tiles, {library.pieces.Length} pieces");
+    }
+    // Hierarchy paths in a draft refer to this exact authored base and its nested prefabs.
+    internal static string Revision(string roomPath)
+    {
+        using var hash=SHA256.Create();
+        foreach (var dependency in AssetDatabase.GetDependencies(roomPath).Where(p=>p.EndsWith(".prefab",StringComparison.OrdinalIgnoreCase)).OrderBy(p=>p,StringComparer.Ordinal))
+        {
+            // Git checks prefabs out as LF or CRLF depending on the machine. Hash the LF form so every checkout agrees.
+            var bytes=System.Text.Encoding.UTF8.GetBytes(File.ReadAllText(dependency).Replace("\r\n","\n"));
+            hash.TransformBlock(bytes,0,bytes.Length,null,0);
+        }
+        hash.TransformFinalBlock(Array.Empty<byte>(),0,0);
+        return BitConverter.ToString(hash.Hash).Replace("-","");
     }
     [MenuItem("Tools/제작실/Windows 제작판 빌드")]
     public static void BuildWindows() => Build(false);

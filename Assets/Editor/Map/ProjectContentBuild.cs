@@ -49,6 +49,7 @@ public sealed class ProjectContentBuild : BuildPlayerProcessor, IProcessSceneWit
         string root=ProjectContentStore.Root;
         ProjectContentStore.RecoverPending();
         if(!Directory.Exists(root)) return;
+        ProjectRoomRebase.BeforeBuild();   // 어긋난 방 문서를 먼저 옮긴다. 옮기지 못한 문서는 아래 검증이 빌드를 멈춘다.
         var catalog=AssetDatabase.LoadAssetAtPath<WorkshopCatalog>(ProjectRooms.CatalogPath);
         foreach(string dir in Directory.Exists(Path.Combine(root,ProjectRooms.DirectoryName)) ?
             Directory.GetDirectories(Path.Combine(root,ProjectRooms.DirectoryName)) : System.Array.Empty<string>())
