@@ -280,6 +280,23 @@ StatusBalanceSO.vulnerableDamageBonus|취약 추가 물리 피해 비율|취약 
 *.criticalPunchTime|치명타 숫자 확대 시간 (초)|치명타 숫자가 커졌다 되돌아오는 시간입니다.
 *.criticalShakeTime|치명타 숫자 회전 시간 (초)|치명타 숫자가 회전하며 흔들리는 시간입니다.
 *.criticalShakeAngle|치명타 숫자 회전 강도 (도)|숫자 회전 흔들림의 각도입니다. 크게 하면 더 과장됩니다.
+ItemSO.itemName|이름|화면에 보이는 이름입니다. 세이브는 에셋 이름(또는 새 콘텐츠 키)으로 저장하므로 바꿔도 세이브가 깨지지 않습니다.
+ItemSO.description|설명|툴팁·보상 카드·주머니에 보이는 설명입니다.
+ItemSO.shopDescription|상점 설명|상점 카드에만 보입니다. 비우면 설명을 씁니다.
+ItemSO.icon|아이콘|비우면 바닥 픽업의 기본 아이콘을 씁니다.
+ItemSO.tier|등급|가격과 색이 등급에서 정해집니다.
+ItemSO.maxStack|최대 보유|같은 아이템을 가질 수 있는 최대 개수입니다.|개
+ItemSO.availableAsReward|보상·상점 등장|켜면 방 보상에 나오고, 상점 진열 후보면 상점에도 나옵니다.
+ItemEffect.label|메모|게임에 보이지 않습니다. 자동 문구가 없는 효과에서만 표시 문구 대신 쓰입니다.
+ItemEffect.displayText|표시 문구|주머니에 보일 문구입니다. 비우면 자동 문구를 씁니다.
+ItemStatEffect.statType|능력치|
+ItemStatEffect.value|수치|
+ItemStatEffect.isPercent|비율 보정|켜면 비율(합연산), 끄면 고정치입니다.
+ItemRoomClearHealEffect.value|회복량|
+ItemRoomClearHealEffect.isPercent|최대 체력 비율|켜면 최대 체력의 비율로 회복합니다.
+ItemRoomEntryShieldEffect.amount|보호막(1개당)|
+ItemDashChargeEffect.copiesPerCharge|몇 개마다 +1|대시 횟수가 1 늘어나는 개수입니다.|개
+GrowthRegistrySO.startingItem|시작 아이템|새 게임과 옛 세이브에 없을 때 1개 지급합니다.
 ShopRegistrySO.itemPool|상점 아이템 후보|진열할 아이템 후보입니다. 구매하면 바로 주머니에 들어갑니다. 중첩 한도가 찬 아이템은 골드를 쓰기 전에 구매를 막고, 주머니가 없을 때만 바닥에 드롭합니다.
 ShopRegistrySO.enhanceCostPerLevel|강화 단계당 추가 비용 (골드)|기본 강화 비용 + 현재 단계 × 이 값. 상점당 강화 제한은 강화 NPC/디버그 옵션에서 결정합니다.
 PlayerController.movementAccelerationTime|출발 가속 시간 (초)|이동 입력 후 목표 속도에 도달하는 부드러움. 작으면 즉각 출발, 크면 천천히 출발합니다.

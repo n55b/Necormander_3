@@ -28,6 +28,483 @@ MonoBehaviour:
     source: {fileID: 12800000, guid: a56230a89faee5f47ae4eced182e6b09, type: 3}
   - bitmap: {fileID: 11400000, guid: d444c6b1524a1254d830953411e86ba2, type: 2}
     source: {fileID: 12800000, guid: 2926c8b7970c4f8b87757172d591e058, type: 3}
+  assets:
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_0
+    asset: {fileID: -2510812979571763622, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_1
+    asset: {fileID: 2079561971023683871, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_10
+    asset: {fileID: 1274161403211553345, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_11
+    asset: {fileID: 8143777303264439187, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_12
+    asset: {fileID: -2769796704867079038, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_13
+    asset: {fileID: -3234900114577590357, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_14
+    asset: {fileID: 5291434173434309099, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_15
+    asset: {fileID: -3516054425182821343, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_16
+    asset: {fileID: 2992256560172506003, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_17
+    asset: {fileID: -2347109453968704319, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_18
+    asset: {fileID: 7096843611648299467, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_19
+    asset: {fileID: 1584781716183063092, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_2
+    asset: {fileID: -6343132400107304134, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_20
+    asset: {fileID: -8504955736424188293, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_21
+    asset: {fileID: -1313053055933639327, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_22
+    asset: {fileID: 2985176038322340426, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_23
+    asset: {fileID: 8989880828250549216, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_24
+    asset: {fileID: -7132629254509652878, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_25
+    asset: {fileID: -6822761025299933977, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_26
+    asset: {fileID: -5826995479270446021, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_27
+    asset: {fileID: -2457537147208279755, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_28
+    asset: {fileID: 3940924702763208217, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_29
+    asset: {fileID: 5161072600106691526, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_3
+    asset: {fileID: 6743278875660972322, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_30
+    asset: {fileID: 8391365762856661106, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_31
+    asset: {fileID: 8961378190899550657, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_32
+    asset: {fileID: -3775607272397920442, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_33
+    asset: {fileID: 20339129879848624, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_4
+    asset: {fileID: -365623929940840534, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_5
+    asset: {fileID: 7348793470189441039, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_6
+    asset: {fileID: -7828124129678519310, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_7
+    asset: {fileID: 4457484468134943851, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_8
+    asset: {fileID: 3118345070633209865, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 10ccd7de76d4ff34e92268e3bb8067eb:Frame_9
+    asset: {fileID: 3328717024653976405, guid: 10ccd7de76d4ff34e92268e3bb8067eb, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_0
+    asset: {fileID: 8289054913681559343, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_1
+    asset: {fileID: -9223132874578986776, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_10
+    asset: {fileID: -5596419594034164353, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_11
+    asset: {fileID: 8644276776940122399, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_12
+    asset: {fileID: 5360986294101304852, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_13
+    asset: {fileID: 7943622606861591003, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_14
+    asset: {fileID: 1226590469078439544, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_15
+    asset: {fileID: 947645101922285605, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_16
+    asset: {fileID: -6597036784145730610, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_17
+    asset: {fileID: -2591255848488341121, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_18
+    asset: {fileID: 1971705899518917442, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_19
+    asset: {fileID: 1626197747140047359, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_2
+    asset: {fileID: -112857268340938288, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_20
+    asset: {fileID: -4206014267026682458, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_21
+    asset: {fileID: 7821636588037179302, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_22
+    asset: {fileID: -3209233412328112282, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_23
+    asset: {fileID: -6001485338594031905, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_24
+    asset: {fileID: -2334767851129424806, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_25
+    asset: {fileID: 7021741510057757374, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_26
+    asset: {fileID: -672696680288321558, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_27
+    asset: {fileID: -8925182026489861905, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_28
+    asset: {fileID: -251243914348883282, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_29
+    asset: {fileID: -4060030625068182274, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_3
+    asset: {fileID: -2486825565021316007, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_4
+    asset: {fileID: -5671561676507591686, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_5
+    asset: {fileID: 3758892690543922909, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_6
+    asset: {fileID: -3672724555872610592, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_7
+    asset: {fileID: 3426817458646160024, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_8
+    asset: {fileID: 3577248899323491789, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 22786651fd010e044b4b0302d981032c:Frame_9
+    asset: {fileID: -7572260593212853344, guid: 22786651fd010e044b4b0302d981032c, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_1
+    asset: {fileID: 6783126540053581183, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_10
+    asset: {fileID: -1291540556689114905, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_11
+    asset: {fileID: -1476726771070208221, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_12
+    asset: {fileID: -2562778803424873249, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_13
+    asset: {fileID: 18847949946028505, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_14
+    asset: {fileID: -2065027350463290113, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_15
+    asset: {fileID: -870012168039119048, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_16
+    asset: {fileID: 2793378250440891304, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_17
+    asset: {fileID: 950529116248338020, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_18
+    asset: {fileID: -2106256218293945655, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_19
+    asset: {fileID: -163684396828059221, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_2
+    asset: {fileID: -702549711790698826, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_20
+    asset: {fileID: -8000119392160039778, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_21
+    asset: {fileID: -7195758908785519619, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_22
+    asset: {fileID: 1054033329142543268, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_23
+    asset: {fileID: -7671463609723092102, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_24
+    asset: {fileID: 2854443549045285856, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_25
+    asset: {fileID: 6307973746346253329, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_26
+    asset: {fileID: 8675804010502068435, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_27
+    asset: {fileID: 5410903598445197683, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_28
+    asset: {fileID: -4477336696517611019, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_29
+    asset: {fileID: -4038617776410174831, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_30
+    asset: {fileID: 3762392001428371563, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_31
+    asset: {fileID: 6673785733922643772, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_32
+    asset: {fileID: -2416956883488864327, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_33
+    asset: {fileID: 3674827561798857141, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_34
+    asset: {fileID: -2558023710118774660, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_35
+    asset: {fileID: -7502008489560581560, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_4
+    asset: {fileID: -5828245705033235542, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_5
+    asset: {fileID: -8831582436648364404, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_6
+    asset: {fileID: -5842501461691977116, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_7
+    asset: {fileID: 7971684154266824114, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_8
+    asset: {fileID: -1455610054576367391, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_9
+    asset: {fileID: 8616226425275666343, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_Black_Big
+    asset: {fileID: -1251608609, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_Black_Half
+    asset: {fileID: -440099646, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_Red_Big
+    asset: {fileID: 6818828044012447086, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_Red_Half
+    asset: {fileID: 1180526814, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_Red_Tab
+    asset: {fileID: -2407112865638336818, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_White_Big
+    asset: {fileID: 1637538573, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 2edd814a0b1724e4eac0829ab6698e64:UI_Panel_White_Half
+    asset: {fileID: -1445439513, guid: 2edd814a0b1724e4eac0829ab6698e64, type: 3}
+  - key: 36208386774834c4ba2d366cd31db059:Dash
+    asset: {fileID: -5783352143196586617, guid: 36208386774834c4ba2d366cd31db059, type: 3}
+  - key: 36208386774834c4ba2d366cd31db059:Ice_Mage
+    asset: {fileID: -4830399090049477561, guid: 36208386774834c4ba2d366cd31db059, type: 3}
+  - key: 36208386774834c4ba2d366cd31db059:Melee
+    asset: {fileID: -4924517486463342570, guid: 36208386774834c4ba2d366cd31db059, type: 3}
+  - key: 37112de69027c244f9cee4dc00a50850:Title_Image
+    asset: {fileID: -446136086728315839, guid: 37112de69027c244f9cee4dc00a50850, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_0
+    asset: {fileID: -366134876754602193, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_1
+    asset: {fileID: -3681066713540535479, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_10
+    asset: {fileID: -8439864874281362940, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_11
+    asset: {fileID: 4397711795411601195, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_12
+    asset: {fileID: 3745766265006025796, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_13
+    asset: {fileID: 3335590596339992290, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_14
+    asset: {fileID: -4146424349782222211, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_15
+    asset: {fileID: -8939820290860289932, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_16
+    asset: {fileID: -3875130598945923842, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_17
+    asset: {fileID: 7236959255056438806, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_18
+    asset: {fileID: 8203429107239318878, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_19
+    asset: {fileID: 983703186515872659, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_2
+    asset: {fileID: -3307673466098669167, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_20
+    asset: {fileID: 8530734121558325658, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_21
+    asset: {fileID: 717339326803523080, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_22
+    asset: {fileID: 2885283217929862332, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_23
+    asset: {fileID: 2861256900545190441, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_24
+    asset: {fileID: 2762225865515460381, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_25
+    asset: {fileID: -7136041065671493017, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_26
+    asset: {fileID: 4667204018777655143, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_27
+    asset: {fileID: 5937810340506591754, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_28
+    asset: {fileID: -4612500112696808448, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_29
+    asset: {fileID: 5263197908149224357, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_3
+    asset: {fileID: -3202853855545976169, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_4
+    asset: {fileID: 3847813898763692659, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_5
+    asset: {fileID: 519209789559083229, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_6
+    asset: {fileID: -7174640475288160699, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_7
+    asset: {fileID: -4365206388570335589, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_8
+    asset: {fileID: -9032434157616834894, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 5f43193adfd780a47b3e9b4dac1618cd:Frame_9
+    asset: {fileID: -6652524347856031652, guid: 5f43193adfd780a47b3e9b4dac1618cd, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_0
+    asset: {fileID: -4682373462621812928, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_1
+    asset: {fileID: -6577148393127653879, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_10
+    asset: {fileID: -4059684319427578469, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_11
+    asset: {fileID: -5498834670639587985, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_12
+    asset: {fileID: 4424946992693248732, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_13
+    asset: {fileID: 7650573397386020808, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_14
+    asset: {fileID: 5847100231626793732, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_15
+    asset: {fileID: -6359253881952739274, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_16
+    asset: {fileID: 6650191584252388882, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_17
+    asset: {fileID: 4786120725868378377, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_18
+    asset: {fileID: -2740659869976896397, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_19
+    asset: {fileID: 5375634763712225679, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_2
+    asset: {fileID: -9144797277519048301, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_20
+    asset: {fileID: -6403667964101617861, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_21
+    asset: {fileID: -6156687115111609230, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_22
+    asset: {fileID: 5226093500834859144, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_23
+    asset: {fileID: -544097800525022112, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_24
+    asset: {fileID: 6993944515548872674, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_25
+    asset: {fileID: 8562005241374123599, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_26
+    asset: {fileID: -640868853757786507, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_3
+    asset: {fileID: 1384898297251251599, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_4
+    asset: {fileID: -7357108012927376531, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_5
+    asset: {fileID: 6828739700072166367, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_6
+    asset: {fileID: -2757939043723912732, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_7
+    asset: {fileID: 4921683664084698142, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_8
+    asset: {fileID: -9092457350251834183, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: 8b3610c3ee7ba4b4ea4e9f4d592c58ac:Frame_9
+    asset: {fileID: -5936572468024715307, guid: 8b3610c3ee7ba4b4ea4e9f4d592c58ac, type: 3}
+  - key: a4c09efa366b19e459a60c6fd884dde8:ClothArmor
+    asset: {fileID: 600542586, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
+  - key: a4c09efa366b19e459a60c6fd884dde8:CrackedWhetstone
+    asset: {fileID: -1548563659, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
+  - key: a4c09efa366b19e459a60c6fd884dde8:GaleDashLeap
+    asset: {fileID: -1804933313, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
+  - key: a4c09efa366b19e459a60c6fd884dde8:GaleDashRecovery
+    asset: {fileID: 964816456, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
+  - key: a4c09efa366b19e459a60c6fd884dde8:HealingCharm
+    asset: {fileID: -2128349049, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
+  - key: a4c09efa366b19e459a60c6fd884dde8:HermesContract
+    asset: {fileID: -29391832, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
+  - key: a4c09efa366b19e459a60c6fd884dde8:LightBoots
+    asset: {fileID: -468688117, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
+  - key: a4c09efa366b19e459a60c6fd884dde8:PortableShield
+    asset: {fileID: -1881273624, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
+  - key: a4c09efa366b19e459a60c6fd884dde8:Whetstone
+    asset: {fileID: 435680594, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
+  - key: a4c09efa366b19e459a60c6fd884dde8:WindFeather
+    asset: {fileID: 1603679571, guid: a4c09efa366b19e459a60c6fd884dde8, type: 3}
+  - key: aedce11dcb7506b42b92cec5806be709:Aging_Icon
+    asset: {fileID: 1644328816, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  - key: aedce11dcb7506b42b92cec5806be709:BloodPop_Icon
+    asset: {fileID: 944605690, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  - key: aedce11dcb7506b42b92cec5806be709:Chill_icon
+    asset: {fileID: 851069327, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  - key: aedce11dcb7506b42b92cec5806be709:Corroded_Icon
+    asset: {fileID: 1190683440, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  - key: aedce11dcb7506b42b92cec5806be709:Execute_Icon
+    asset: {fileID: 593807851, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  - key: aedce11dcb7506b42b92cec5806be709:Poison_Icon
+    asset: {fileID: 6904289081528659875, guid: aedce11dcb7506b42b92cec5806be709, type: 3}
+  - key: c438df8d1ae5cc048b380933ca61dfca:Champion
+    asset: {fileID: -1289681012, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
+  - key: c438df8d1ae5cc048b380933ca61dfca:Fighter
+    asset: {fileID: 758877764, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
+  - key: c438df8d1ae5cc048b380933ca61dfca:Gauntlet
+    asset: {fileID: -124903066, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
+  - key: c438df8d1ae5cc048b380933ca61dfca:Knight
+    asset: {fileID: 1601920764, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
+  - key: c438df8d1ae5cc048b380933ca61dfca:Viper
+    asset: {fileID: 744203835, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
+  - key: c438df8d1ae5cc048b380933ca61dfca:ViperAS
+    asset: {fileID: -1912369340, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
+  - key: c438df8d1ae5cc048b380933ca61dfca:ViperSC
+    asset: {fileID: 2059219716, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
+  - key: c438df8d1ae5cc048b380933ca61dfca:Warlord
+    asset: {fileID: 857691071, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
+  - key: c438df8d1ae5cc048b380933ca61dfca:Warrior
+    asset: {fileID: -508208825, guid: c438df8d1ae5cc048b380933ca61dfca, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_0
+    asset: {fileID: -7801949342804431784, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_1
+    asset: {fileID: 604161384721462048, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_10
+    asset: {fileID: 1408448541862950545, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_11
+    asset: {fileID: -2211785324690308617, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_12
+    asset: {fileID: 6260729873249810758, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_13
+    asset: {fileID: 2535840830151316268, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_14
+    asset: {fileID: 6877763909553918347, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_15
+    asset: {fileID: -7870647711740031060, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_16
+    asset: {fileID: -1637473367138333101, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_17
+    asset: {fileID: 4980708817194826924, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_18
+    asset: {fileID: 4636037799571608834, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_19
+    asset: {fileID: 3022449335115083213, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_2
+    asset: {fileID: -396974337457660852, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_20
+    asset: {fileID: -8229150831646183667, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_21
+    asset: {fileID: 4884583791107623008, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_22
+    asset: {fileID: 1560225703278595396, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_23
+    asset: {fileID: 270955250082166366, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_24
+    asset: {fileID: -2575751842292143773, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_25
+    asset: {fileID: 7981772275129075806, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_26
+    asset: {fileID: 7676032799584878620, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_27
+    asset: {fileID: 4256914186493876598, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_28
+    asset: {fileID: -5686945697516675608, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_29
+    asset: {fileID: -7344183788614831966, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_3
+    asset: {fileID: -9080522598128077770, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_4
+    asset: {fileID: 858990728636713935, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_5
+    asset: {fileID: 105961616559884377, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_6
+    asset: {fileID: 3473563748306101820, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_7
+    asset: {fileID: -5772489912806081570, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_8
+    asset: {fileID: 1262476134242234559, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: e16bed08a742c8d4b805629d8330b53b:Frame_9
+    asset: {fileID: 3193395469030682961, guid: e16bed08a742c8d4b805629d8330b53b, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Minion_DashDoll
+    asset: {fileID: 5774687227516279969, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Minion_MeleeDoll
+    asset: {fileID: -1293705836269130871, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_1
+    asset: {fileID: 319494196138589398, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_10
+    asset: {fileID: 7717720656002662522, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_11
+    asset: {fileID: 5239067725302753853, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_12
+    asset: {fileID: -3645724685341601612, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_13
+    asset: {fileID: 3200735900723754865, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_14
+    asset: {fileID: 6992996214258372075, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_19
+    asset: {fileID: -5545641688427234024, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_2
+    asset: {fileID: -6722752000251501239, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_20
+    asset: {fileID: -6245926524738137337, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_3
+    asset: {fileID: 5560125120997645518, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_4
+    asset: {fileID: -4066244747484566522, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_5
+    asset: {fileID: 7577375880930417868, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_6
+    asset: {fileID: -9013706090002519606, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_7
+    asset: {fileID: 1478503353297562604, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
+  - key: ee4c174c2b4714a4aa7d5f54a33899f3:Physics_Skill_8
+    asset: {fileID: 4876576738624389340, guid: ee4c174c2b4714a4aa7d5f54a33899f3, type: 3}
   villageActors:
   - village-guide
   - village-summoner

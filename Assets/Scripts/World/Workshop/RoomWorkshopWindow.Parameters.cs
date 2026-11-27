@@ -71,16 +71,20 @@ public sealed partial class RoomWorkshopWindow
                 Btn("닫기",12,196,75,23,()=>{dataField=null;Draw(page);});
                 return;
             }
-            if(dataField.IsReference)
-            {
-                var candidates=dataCatalog.Where(e=>dataField.type.IsInstanceOfType(e.source)).OrderBy(e=>e.Title,StringComparer.Ordinal).ToArray();
+            if(dataField.IsReference || dataField.IsAsset)
+            {   // 그림은 구운 카탈로그 표(WorkshopCatalog.assets)에서 고른다. 순서 = 키(텍스처 GUID·조각 이름) 순.
+                // 조각 이름은 시트마다 겹치므로(Frame_0 등) 그림 버튼의 고정 이름은 "그림/<키>"다.
+                var candidates=dataField.IsAsset ?
+                    (WorkshopCatalog.Shared?.assets ?? Array.Empty<WorkshopCatalog.AssetRef>()).Where(a=>a.asset!=null && dataField.type.IsInstanceOfType(a.asset))
+                        .Select(a=>(id:a.key,title:a.asset.name)).ToArray() :
+                    dataCatalog.Where(e=>dataField.type.IsInstanceOfType(e.source)).OrderBy(e=>e.Title,StringComparer.Ordinal).Select(e=>(id:e.id,title:e.Title)).ToArray();
                 int referencePages=Math.Max(1,(candidates.Length+5)/6);
                 referencePage=Mathf.Clamp(referencePage,0,referencePages-1);
                 for(int n=referencePage*6;n<Math.Min(candidates.Length,(referencePage+1)*6);n++)
                 {
                     var option=candidates[n];
-                    Btn(option.Title,12,79+n%6*27,608,24,()=>{parameterDraft=option.id;AcceptParameter();Draw(page);},
-                        option.id==parameterDraft);
+                    Btn(option.title,12,79+n%6*27,608,24,()=>{parameterDraft=option.id;AcceptParameter();Draw(page);},
+                        option.id==parameterDraft,dataField.IsAsset ? "그림/"+option.id : null);
                 }
                 Btn("이전",12,250,66,23,()=>{referencePage--;Draw(page);});
                 Btn("다음",90,250,66,23,()=>{referencePage++;Draw(page);});
@@ -172,6 +176,8 @@ public sealed partial class RoomWorkshopWindow
     private string ValueLabel(ProjectParameters.Field field)
     {
         string value=ParameterValue(field);
+        if(field.IsAsset) return string.IsNullOrEmpty(value) ? "비어 있음" :
+            Array.Find(WorkshopCatalog.Shared?.assets ?? Array.Empty<WorkshopCatalog.AssetRef>(),a=>a.key==value)?.asset?.name ?? "기존 연결";
         if(!field.IsReference)return value;
         return dataCatalog.FirstOrDefault(e=>e.id==value)?.Title ?? (string.IsNullOrEmpty(value)?"비어 있음":"기존 연결");
     }

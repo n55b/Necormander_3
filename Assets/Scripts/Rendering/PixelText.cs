@@ -173,6 +173,21 @@ public sealed class PixelText : MonoBehaviour
         return asset;
     }
 
+    // 정적 비트맵 아틀라스 다섯 개 중 하나라도 없는 글자. 공백·제어 문자는 뺀다. 게임 UI는 크기마다 다른 아틀라스를 쓰므로 모두 본다.
+    internal static string MissingGlyphs(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        var missing = new SortedSet<char>();
+        foreach (int size in new[] { 8, 10, 12, 15 })
+        foreach (bool bold in new[] { false, true })
+        {
+            var face = ChooseFace(size, bold);
+            if (face == null || face.HasCharacters(text, out List<char> absent) || absent == null) continue;
+            foreach (char c in absent) if (!char.IsWhiteSpace(c) && !char.IsControl(c)) missing.Add(c);
+        }
+        return string.Concat(missing);
+    }
+
     internal static bool TryGrid(TMP_Text label, out GlyphGrid grid)
     {
         grid = default;

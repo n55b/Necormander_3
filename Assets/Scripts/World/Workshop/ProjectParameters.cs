@@ -16,8 +16,12 @@ using UnityEngine;
 // Project-owned ScriptableObject references use stable IDs. Engine resources retain their serialized wiring.
 public static class ProjectParameters
 {
-    // 세이브·목록 키라 화면에서 뺀다. 표시 이름 허용은 계획 4.1-4(P2)에서 한다.
+    // 세이브·목록 키라 화면에서 뺀다. 아래 표시 이름 표에 있는 원본의 최상위 이름 필드만 연다.
     private static readonly string[] KeyNames={"id","key","itemName","minionName","equipmentName"};
+    // 세이브 키가 아닌 표시 이름. 판정은 SO의 실제 타입(minionName은 MinionDataSO 선언이라 선언 타입으로 보면 메인 소환수까지 열린다).
+    // 변형의 이름은 definition.json title 하나라 변형에서는 열지 않는다.
+    private static readonly (Type owner,string field)[] DisplayNames={(typeof(ItemSO),"itemName"),(typeof(EquipmentSO),"equipmentName"),(typeof(EnemyMinionDataSO),"minionName")};
+    internal static string DisplayNameField(ScriptableObject target)=>target==null ? null : Array.Find(DisplayNames,n=>n.owner.IsInstanceOfType(target)).field;
     // 애니메이터 상태 이름과 패턴 문구 원본은 보이기만 한다.
     private static readonly string[] ReadOnlyPrefixes={"animState_","label_"};
 
@@ -32,13 +36,17 @@ public static class ProjectParameters
         internal float min=float.NegativeInfinity,max=float.PositiveInfinity;
         internal bool readOnly;
         internal bool IsReference=>typeof(ScriptableObject).IsAssignableFrom(type);
+        // 그림 참조(Sprite). 값은 WorkshopCatalog.assets의 키 "<텍스처 GUID>:<조각 이름>"이다.
+        internal bool IsAsset=>!IsReference && typeof(UnityEngine.Object).IsAssignableFrom(type);
         internal string Format(object value)=>IsReference ? ProjectParameterBindings.Reference((ScriptableObject)value) :
+            IsAsset ? WorkshopCatalog.AssetKey((UnityEngine.Object)value) ?? "(기존 연결)" :
             Convert.ToString(value,CultureInfo.InvariantCulture);
         internal string Text()=>Format(read());
         internal object Parse(string value)
         {
             if(readOnly) throw new InvalidDataException(label+" 은(는) 읽기 전용입니다.");
             if(IsReference)return ProjectParameterBindings.Resolve(value,type);
+            if(IsAsset) return value.Length==0 ? null : WorkshopCatalog.FindAsset(value,type);
             if(type==typeof(string)) return value;
             if(type.IsEnum)
             {
@@ -61,7 +69,7 @@ public static class ProjectParameters
     {
         var fields=new List<Field>();
         keyProblems=new List<string>();
-        Traverse(target.GetType(),()=>target,_=>{}, "",0,fields,false,keyProblems,labels,null);
+        Traverse(target.GetType(),()=>target,_=>{}, "",0,fields,false,keyProblems,labels,null,target);
         foreach(var problem in keyProblems)
             if(warnedKeys.Add(target.name+"/"+problem)) Debug.LogWarning("[DATA] "+target.name+"/"+problem+" · 목록 키가 비었거나 중복돼 순서 번호로 찾습니다.");
         return fields;
@@ -99,8 +107,9 @@ public static class ProjectParameters
     // 표시 정보(labels:true). label은 상위 필드 라벨을 " · "로 이은 전체 이름, group은 최상위 필드 위의 Header다.
     private sealed class Meta { internal string label,help,unit,group; internal float scale=1f; }
 
-    private static void Traverse(Type type,Func<object> read,Action<object> write,string prefix,int depth,List<Field> fields,bool locked,List<string> keyProblems,bool labels,Meta parent)
+    private static void Traverse(Type type,Func<object> read,Action<object> write,string prefix,int depth,List<Field> fields,bool locked,List<string> keyProblems,bool labels,Meta parent,ScriptableObject root=null)
     {
+        string displayName=depth==0 && !ProjectContentVariants.IsVariant(root) ? DisplayNameField(root) : null;
         for(var t=type;t!=null && t!=typeof(ScriptableObject) && t!=typeof(UnityEngine.Object) && t!=typeof(object);t=t.BaseType)
         {
             string header=null;
@@ -109,7 +118,7 @@ public static class ProjectParameters
                 if(labels && f.GetCustomAttributes<HeaderAttribute>().LastOrDefault() is {} h) header=h.header;
                 if(f.IsInitOnly || f.IsNotSerialized || f.IsDefined(typeof(HideInInspector)) ||
                     (!f.IsPublic && !f.IsDefined(typeof(SerializeField)) && !f.IsDefined(typeof(SerializeReference)))) continue;
-                if(Array.IndexOf(KeyNames,f.Name)>=0 || f.Name.EndsWith("Id",StringComparison.Ordinal)) continue;
+                if(Array.IndexOf(KeyNames,f.Name)>=0 && f.Name!=displayName || f.Name.EndsWith("Id",StringComparison.Ordinal)) continue;
                 bool readOnly=locked || f.IsDefined(typeof(WorkshopReadOnlyAttribute)) || ReadOnlyPrefixes.Any(p=>f.Name.StartsWith(p,StringComparison.Ordinal));
                 Func<object> get=()=>f.GetValue(read());
                 void Set(object v) { var owner=read(); f.SetValue(owner,v); if(type.IsValueType) write(owner); }
@@ -133,7 +142,7 @@ public static class ProjectParameters
     {
         if(typeof(UnityEngine.Object).IsAssignableFrom(t))
         {
-            if(typeof(ScriptableObject).IsAssignableFrom(t) && t.Assembly==typeof(WorkshopRoom).Assembly)
+            if(typeof(ScriptableObject).IsAssignableFrom(t) && t.Assembly==typeof(WorkshopRoom).Assembly || t==typeof(Sprite))
                 fields.Add(Make(t,path,info.Name,read,write,readOnly,meta));
             return;
         }

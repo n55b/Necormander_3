@@ -58,6 +58,59 @@ public sealed class WorkshopCatalog : ScriptableObject
         liveFonts.Clear();
     }
 
+    // DATA의 그림 참조 후보. 키는 "<텍스처 GUID>:<조각 이름>"(주 에셋은 "<GUID>"). WorkshopBuild.Bake가 굽는다.
+    // 플레이어 빌드에는 GUID가 없으므로 DATA의 그림 값은 이 표로만 풀린다.
+    [Serializable] public sealed class AssetRef { public string key; public UnityEngine.Object asset; }
+    public AssetRef[] assets = Array.Empty<AssetRef>();
+
+    private static WorkshopCatalog loaded;
+    private static AssetRef[] indexedAssets;
+    private static Dictionary<string,UnityEngine.Object> assetsByKey;
+    private static Dictionary<UnityEngine.Object,string> keysByAsset;
+    internal static WorkshopCatalog Shared => loaded != null ? loaded : loaded = Resources.Load<WorkshopCatalog>("WorkshopCatalog");
+    // 편집 모드 재굽기가 assets 배열을 바꾸면 색인을 다시 만든다.
+    private static void IndexAssets()
+    {
+        var table = Shared != null ? Shared.assets ?? Array.Empty<AssetRef>() : Array.Empty<AssetRef>();
+        if (indexedAssets == table && assetsByKey != null) return;
+        assetsByKey = new Dictionary<string,UnityEngine.Object>(StringComparer.Ordinal);
+        keysByAsset = new Dictionary<UnityEngine.Object,string>();
+        foreach (var entry in table)
+        {
+            if (entry?.asset == null || string.IsNullOrEmpty(entry.key)) continue;
+            assetsByKey.TryAdd(entry.key, entry.asset);
+            keysByAsset.TryAdd(entry.asset, entry.key);
+        }
+        indexedAssets = table;
+    }
+    // null → "", 표에 없으면 null.
+    internal static string AssetKey(UnityEngine.Object asset)
+    {
+        if (asset == null) return "";
+        IndexAssets();
+        return keysByAsset.TryGetValue(asset, out var key) ? key : null;
+    }
+    internal static UnityEngine.Object FindAsset(string key, Type type)
+    {
+        IndexAssets();
+        if (key != null && assetsByKey.TryGetValue(key, out var asset) && type.IsInstanceOfType(asset)) return asset;
+        throw new System.IO.InvalidDataException("그림을 찾을 수 없습니다. 원본 카탈로그를 다시 구우세요: " + key);
+    }
+#if UNITY_EDITOR
+    // WorkshopBuild.Bake가 부른다(ProjectParameters.Fields는 런타임 어셈블리 internal이다).
+    // SOData·Resources의 Sprite 필드가 지금 가리키는 시트의 모든 조각. 키 = 텍스처 GUID + ":" + 조각 이름.
+    public static AssetRef[] BakeAssets()
+    {
+        var sheets = ProjectParameterBindings.All()
+            .SelectMany(e => ProjectParameters.Fields(e.source).Where(f => f.type == typeof(Sprite)).Select(f => f.read() as Sprite))
+            .Where(s => s != null && s.texture != null).Select(s => UnityEditor.AssetDatabase.GetAssetPath(s.texture))
+            .Where(p => !string.IsNullOrEmpty(p)).Distinct().OrderBy(p => p, StringComparer.Ordinal);
+        return sheets.SelectMany(path => UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>()
+                .Select(s => new AssetRef { key = UnityEditor.AssetDatabase.AssetPathToGUID(path) + ":" + s.name, asset = s }))
+            .GroupBy(a => a.key).Select(g => g.First()).OrderBy(a => a.key, StringComparer.Ordinal).ToArray();
+    }
+#endif
+
     public string[] villageActors = Array.Empty<string>();
     public Template[] rooms;
     public TileEntry[] tiles;

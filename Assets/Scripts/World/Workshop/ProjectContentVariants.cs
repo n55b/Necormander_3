@@ -15,6 +15,7 @@ internal static class ProjectContentVariants
     private static readonly List<(ScriptableObject registry,IList list,ScriptableObject asset)> memberships=new();
     internal static IEnumerable<Entry> Entries=>live.Values;
     internal static bool Protects(ScriptableObject registry)=>memberships.Any(m=>m.registry==registry);
+    internal static bool IsVariant(ScriptableObject so)=>so!=null && live.Values.Any(e=>e.source==so);
     // 상태이상 공통 설정은 StatusRules가 하나만 읽는 싱글턴이라 복제하지 않는다.
     internal static bool CanCreate(Entry source)=>source.group!=Folder && (source.source is ItemSO or EquipmentSO or MainMinionDataSO or TreasureSO ||
         source.group.StartsWith("BALANCE/",StringComparison.Ordinal) && !source.group.EndsWith("/REGISTRY",StringComparison.Ordinal)) &&
@@ -57,6 +58,7 @@ internal static class ProjectContentVariants
         string id=Guid.NewGuid().ToString("N");
         var files=new Dictionary<string,string>{["definition.json"]=ProjectContentStore.Json(new JObject{["template"]=source.id,["title"]=title})};
         var values=ProjectParameters.Values(ProjectParameters.Snapshot(source.Document));
+        if(ProjectParameters.DisplayNameField(source.source) is string name) values.Remove(name);   // 변형의 이름은 title
         if(values.Count>0)files["parameters.json"]=ProjectContentStore.Json(values);
         ProjectContentStore.Save(Folder+"/"+id,new(),files,_=>{});
         return id;
@@ -104,7 +106,7 @@ internal static class ProjectContentVariants
         }
     }
     internal static string Title(ScriptableObject source)=>source switch
-        {ItemSO i=>i.itemName, EquipmentSO e=>e.equipmentName, MainMinionDataSO m=>m.minionName, TreasureSO t=>t.itemName, _=>null};
+        {ItemSO i=>i.itemName, EquipmentSO e=>e.equipmentName, MinionDataSO m=>m.minionName, TreasureSO t=>t.itemName, _=>null};
     // 변형이 원본을 따라 가입하는 레지스트리 목록. DATA 굽기도 같은 목록에 새 에셋을 넣는다.
     internal static (string field,IList list)[] Lists(ScriptableObject registry)=>registry switch
     {

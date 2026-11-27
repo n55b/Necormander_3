@@ -102,7 +102,7 @@ public static class ProjectDataBake
                 shown=data.Length==0 ? "(없음)" : Array.Find(definitions,d=>d.id==data) is {} d ? "새 콘텐츠 "+d.title :
                     Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(data)) is {Length:>0} name ? name : data;
             object now=field.read();
-            string current=field.IsReference ? (now as UnityEngine.Object)?.name ?? "(없음)" : Convert.ToString(now,CultureInfo.InvariantCulture);
+            string current=field.IsReference || field.IsAsset ? (now as UnityEngine.Object)?.name ?? "(없음)" : Convert.ToString(now,CultureInfo.InvariantCulture);
             item.changes.Add(field.label+" ("+pair.Key+"): "+current+" → "+shown);
         }
     }
@@ -165,7 +165,9 @@ public static class ProjectDataBake
     private static Dictionary<string,string> Snapshot(ScriptableObject source,Func<UnityEngine.Object,string> key)
     {
         // formerAssetNames는 굽기가 새로 정한다(실행 중 복제본은 원본의 옛 이름을 그대로 들고 있다).
-        var values=ProjectParameters.Fields(source).Where(f=>!f.path.StartsWith("formerAssetNames/",StringComparison.Ordinal))
+        // 표시 이름 필드는 변형(실행 중 복제본)에는 없고 구운 새 에셋에는 있다. 아래 (표시 이름)이 비교한다.
+        string displayName=ProjectParameters.DisplayNameField(source);
+        var values=ProjectParameters.Fields(source).Where(f=>!f.path.StartsWith("formerAssetNames/",StringComparison.Ordinal) && f.path!=displayName)
             .ToDictionary(f=>f.path,f=>f.IsReference ? key((UnityEngine.Object)f.read()) : Convert.ToString(f.read(),CultureInfo.InvariantCulture),StringComparer.Ordinal);
         values["(표시 이름)"]=ProjectContentVariants.Title(source) ?? "";
         return values;
@@ -216,7 +218,8 @@ public static class ProjectDataBake
             foreach(var d in definitions.Where(d=>d.template==item.entry.id && !baking.Contains(d.id)))
             {
                 var own=ProjectParameters.Values(d.files);
-                if(item.values.Properties().Any(p=>own[p.Name]==null))
+                // 원본의 표시 이름은 변형이 title로 덮으므로 물려받지 않는다.
+                if(item.values.Properties().Any(p=>own[p.Name]==null && p.Name!=ProjectParameters.DisplayNameField(item.entry.source)))
                     throw new InvalidDataException(item.title+" 을(를) 원본으로 하는 새 콘텐츠 "+d.title+" 의 값이 바뀝니다. 그 콘텐츠도 함께 고르세요. "+d.id);
             }
 

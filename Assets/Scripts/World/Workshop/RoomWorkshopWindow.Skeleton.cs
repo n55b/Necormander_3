@@ -82,7 +82,7 @@ public sealed partial class RoomWorkshopWindow
     {
         if(!d.byPath.TryGetValue(path,out var f))
         { WorkshopUI.Label(parent,"필드 없음: "+path,2,y,DetailW-6,22,8); return y+24; }
-        bool number=!f.IsReference && f.type!=typeof(bool) && f.type!=typeof(string) && !f.type.IsEnum;
+        bool number=!f.IsReference && !f.IsAsset && f.type!=typeof(bool) && f.type!=typeof(string) && !f.type.IsEnum;
         bool slider=number && !float.IsInfinity(f.min) && !float.IsInfinity(f.max);
         var row=WorkshopUI.Box(parent,path,0,y,DetailW-6,slider ? 40 : 24,Color.clear);
         void Write(string text)=>Safe(()=>{ DraftStore.Set(d,f,text); Refresh(); });

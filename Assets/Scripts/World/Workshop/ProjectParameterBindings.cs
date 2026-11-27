@@ -185,7 +185,13 @@ public sealed class ProjectParameterBindings : MonoBehaviour
         }
         foreach(var entry in published)Check(entry,ProjectParameters.Values(ProjectParameters.Snapshot(entry.Document)));
         foreach(var def in ProjectContentVariants.Definitions(strict:true))
-            Check(published.First(e=>e.id==def.template),ProjectParameters.Values(def.files));
+        {
+            var template=published.First(e=>e.id==def.template);
+            var values=ProjectParameters.Values(def.files);
+            if(ProjectParameters.DisplayNameField(template.source) is string name && values.ContainsKey(name))
+                throw new InvalidDataException(ProjectContentVariants.Folder+"/"+def.id+" · 새 콘텐츠의 이름은 definition.json title로만 바꿉니다");
+            Check(template,values);
+        }
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void ApplyInEditor()
