@@ -37,7 +37,8 @@ internal static class ProjectStructure
     {
         var source=entry.source;
         var lists=new Dictionary<string,Dictionary<string,Line>>(StringComparer.Ordinal);
-        var spec=new Spec{removed=files.ContainsKey(RemovedFile)};
+        // 실행 중에는 Validate를 거치지 않는다. 세이브 해석(retired)은 아이템만 있으므로 다른 타입의 삭제 표시는 무시한다(장비 세이브가 풀리지 않게).
+        var spec=new Spec{removed=files.ContainsKey(RemovedFile) && source is ItemSO};
         foreach(var pair in files)
         {
             if(!IsStructure(pair.Key) || pair.Key==RemovedFile) continue;
