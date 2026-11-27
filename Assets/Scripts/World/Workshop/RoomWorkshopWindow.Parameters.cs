@@ -18,9 +18,11 @@ public sealed partial class RoomWorkshopWindow
     private bool creatingContent;
     private int referencePage;
 
-    private TMP_InputField Input(string name,string initial,int x,int y,int width,int height,bool multiline=false)
+    private TMP_InputField Input(string name,string initial,int x,int y,int width,int height,bool multiline=false)=>
+        Input(content,name,initial,x,y,width,height,multiline);
+    private TMP_InputField Input(Transform parent,string name,string initial,int x,int y,int width,int height,bool multiline=false)
     {
-        var box=WorkshopUI.Frame(content,name,x,y,width,height);
+        var box=WorkshopUI.Frame(parent,name,x,y,width,height);
         var field=box.gameObject.AddComponent<TMP_InputField>();
         field.textViewport=box.rectTransform;
         var label=WorkshopUI.Label(box.transform,"",4,0,width-8,height,12);

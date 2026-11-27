@@ -2,11 +2,10 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// 아이템(ItemSO) 전용 인스펙터. 공통 기획자 인스펙터(DesignerAssetInspector, isFallback)보다 우선한다.
-/// 효과 종류를 메뉴에서 골라 추가하고, 수치를 % 로 입력하고, 게임 표시 문구를 바로 미리 본다.
-/// 여러 아이템을 한 번에 고치려면 Tools > 기획 > 아이템 편집기.
+/// 옛 아이템 인스펙터. 아이템 편집은 제작실 > 게임 콘텐츠 > 아이템으로 옮겼다. [CustomEditor]를 떼어
+/// 공통 기획자 인스펙터(DesignerAssetInspector)가 읽기 전용 + 안내로 그린다(DesignerInspector.OwnedByWorkshop).
+/// 대조표 승인 뒤 Legacy로 보낸다.
 /// </summary>
-[CustomEditor(typeof(ItemSO))]
 public class ItemSOEditor : Editor
 {
     // 마지막으로 그린 아이템. Project 창에서 다른 아이템을 고르면 입력 중이던 글 칸을 닫는다

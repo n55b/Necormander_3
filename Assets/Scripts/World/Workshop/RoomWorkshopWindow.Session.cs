@@ -10,8 +10,8 @@ public sealed partial class RoomWorkshopWindow
     {
         internal static bool FromContent;      // 콘텐츠 화면에서 시험을 시작했다. 시험이 실제로 시작된 뒤에만 켜고 Start()가 바로 소비한다
         internal static Page Page=Page.Desk;   // 그때 보던 화면
-        internal static string Item;           // 선택 항목 키: 상태이상 행 key, 모든 수치는 entry.id
-        internal static int ListPage;          // 모든 수치 dataPage
+        internal static string Item;           // 선택 항목 키: 상태이상 행 key, 아이템은 문서 경로, 모든 수치는 entry.id
+        internal static int ListPage;          // 모든 수치 dataPage, 아이템 itemPage
         internal static float Scroll;          // 상세 content y(논리 px, 정수)
         internal static string Focus;          // FocusKey(부모 이름 + 이름)
         internal static string Lost;           // 시험으로 창과 함께 사라진 Title 페이지 이름들. 돌아와서 알린다
@@ -31,7 +31,7 @@ public sealed partial class RoomWorkshopWindow
     {
         CommitPendingInputs();
         if(page==Page.Parameters && dataField!=null) AcceptParameter();
-        string item=page==Page.Status ? statusRow : dataEntry?.id;
+        string item=page==Page.Status ? statusRow : page==Page.Items ? itemDraft?.entry.Document : dataEntry?.id;
         if(WorkshopTrial.PlayArena()) RememberContent(item); else Say("시험을 시작할 수 없습니다.");
     }
     // PlayArena는 씬 로드를 요청만 하므로 같은 프레임의 창·선택·스크롤을 그 뒤에 기록해도 된다.
@@ -39,7 +39,7 @@ public sealed partial class RoomWorkshopWindow
     {
         var selected=UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
         WorkshopSession.FromContent=true; WorkshopSession.Page=page; WorkshopSession.Item=item;
-        WorkshopSession.ListPage=dataPage; WorkshopSession.Scroll=detailScrollY;
+        WorkshopSession.ListPage=page==Page.Items ? itemPage : dataPage; WorkshopSession.Scroll=detailScrollY;
         WorkshopSession.Focus=selected!=null && selected.transform.IsChildOf(content) ? FocusKey(selected.transform) : null;
         if(Doc!=null) RememberMap();          // 방을 열어 둔 채 콘텐츠를 시험해도 지도 상태가 남는다
     }
@@ -49,6 +49,7 @@ public sealed partial class RoomWorkshopWindow
         switch(WorkshopSession.Page)
         {
             case Page.Status: OpenStatus(WorkshopSession.Item); break;
+            case Page.Items: OpenItems(WorkshopSession.Item,WorkshopSession.ListPage); break;
             case Page.Parameters:
                 OpenParameters();
                 var entry=Array.Find(dataCatalog,e=>e.id==WorkshopSession.Item);

@@ -168,8 +168,13 @@ public static class UiResolutionCheck
                 Check(Vector2.Distance(reference.Value.min,bounds.min)<2 && Vector2.Distance(reference.Value.max,bounds.max)<2,
                     $"logical layout moved from {reference.Value}");
             reference ??= bounds;
+            // 입력칸 글자는 아틀라스 밖 글자도 보이게 제작실 입력 글꼴(동적)로 그린다(WorkshopCatalog.FontForInput). 그 밖의 글자만 비트맵이어야 한다.
             foreach (var label in panel.GetComponentsInChildren<TextMeshProUGUI>())
-                if (label.enabled && !string.IsNullOrWhiteSpace(label.text)) PresentationRegressionCheck.VerifyPixelLabel(label);
+            {
+                var input = label.GetComponentInParent<TMP_InputField>();
+                if (label.enabled && !string.IsNullOrWhiteSpace(label.text) && (input == null || input.textComponent != label))
+                    PresentationRegressionCheck.VerifyPixelLabel(label);
+            }
             if (control != null)
             {
                 var button = (RectTransform)control.transform;

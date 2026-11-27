@@ -49,7 +49,7 @@ public sealed class DesignerInspectorView
     private string overridePath; private DateTime overrideStamp; private HashSet<string> overrides = new HashSet<string>();
     private bool owned;
     // 제작실이 편집을 맡은 타입. 도메인이 제작실로 옮겨 갈 때마다 한 줄씩 더한다. Sunyunie 상태이상 탭도 이 인스펙터라 함께 읽기 전용이 된다.
-    internal static readonly Type[] OwnedByWorkshop = { typeof(StatusBalanceSO) };
+    internal static readonly Type[] OwnedByWorkshop = { typeof(StatusBalanceSO), typeof(ItemSO) };
 
     private static string DataFile(UnityEngine.Object target, string root)
     {

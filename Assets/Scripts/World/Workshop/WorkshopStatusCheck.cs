@@ -161,7 +161,7 @@ public static class WorkshopStatusCheck
         yield return Frames();
     }
     // 제작실 캔버스의 글자: 고정 아틀라스에 없는 글자와 말줄임으로 잘린 칸을 찾는다.
-    private static void VerifyText(string row)
+    internal static void VerifyText(string row)
     {
         var canvas=GameObject.Find("Workshop canvas");
         foreach(var text in canvas.GetComponentsInChildren<TMP_Text>())
@@ -176,16 +176,16 @@ public static class WorkshopStatusCheck
             Require(!(text.overflowMode==TextOverflowModes.Ellipsis && text.isTextOverflowing),row+": '"+text.text+"' does not fit its box");
         }
     }
-    private static Button Find(string name)=>Object.FindObjectsByType<Button>(FindObjectsInactive.Include,FindObjectsSortMode.None)
+    internal static Button Find(string name)=>Object.FindObjectsByType<Button>(FindObjectsInactive.Include,FindObjectsSortMode.None)
         .Where(b=>b.name==name).OrderByDescending(b=>b.gameObject.activeInHierarchy).FirstOrDefault();
     // 같은 이름의 활성 버튼이 둘이면 실패한다(WorkshopPlayModeCheck.Button과 같은 규칙).
-    private static void Click(string name)
+    internal static void Click(string name)
     {
         var found=Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Where(b=>b.gameObject.activeInHierarchy && b.name==name).ToArray();
         Require(found.Length==1,found.Length+" active buttons named '"+name+"'");
         found[0].onClick.Invoke();
     }
-    private static IEnumerator Frames(int count=2)
+    internal static IEnumerator Frames(int count=2)
     {
         int end=Time.frameCount+count;
         while(Time.frameCount<end) yield return null;

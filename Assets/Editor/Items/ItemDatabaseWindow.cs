@@ -139,6 +139,9 @@ public class ItemDatabaseWindow : EditorWindow
     // ── 그리기 ────────────────────────────────────────────────────────
     private void OnGUI()
     {
+        // 아이템 편집은 제작실로 옮겼다. 이 창은 대조표 승인 뒤 Legacy로 보내기 전까지 읽기 전용으로만 남는다.
+        EditorGUILayout.HelpBox("제작실 > 게임 콘텐츠 > 아이템에서 편집합니다. 이 창은 읽기 전용입니다.", MessageType.Info);
+        GUI.enabled = false;
         if (items.Any(i => i == null)) Reload();
 
         // [입력 중이던 글이 다른 아이템에 붙는 문제]

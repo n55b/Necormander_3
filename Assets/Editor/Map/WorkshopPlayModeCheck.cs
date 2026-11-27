@@ -209,12 +209,17 @@ public static class WorkshopPlayModeCheck
         yield return WorkshopStatusCheck.Run(row => PresentationRegressionCheck.SaveFrame(PixelArtUpscaleRig.RenderCamera.targetTexture, "WorkshopUx/status-" + row));
         if (UiResolutionCheck.Enabled)
             yield return UiResolutionCheck.Verify("Workshop content",(RectTransform)GameObject.Find("Status detail").transform,Button("프로젝트에 저장"));
+        deadline = EditorApplication.timeSinceStartup + 180;   // 아이템 화면: 목록·상세·효과 카드·미리보기·경고
+        yield return WorkshopItemCheck.Run(step => PresentationRegressionCheck.SaveFrame(PixelArtUpscaleRig.RenderCamera.targetTexture, "WorkshopUx/items-" + step));
+        if (UiResolutionCheck.Enabled)   // Run은 아이템 상세를 연 채로 끝난다
+            yield return UiResolutionCheck.Verify("Workshop items",(RectTransform)GameObject.Find("Item detail").transform,Button("프로젝트에 저장"));
         Button("메뉴").onClick.Invoke();
         while (!Ready("StartScene")) yield return null;
         Button("레벨 제작실").onClick.Invoke();
         while (!Ready(WorkshopTrial.SceneName) || Object.FindFirstObjectByType<RoomWorkshopWindow>() == null) yield return null;
         yield return Frames();
-        Require(Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Any(b => b.name == "최근 작업/" + roomId), "home lists the room edited in this session");
+        // 콘텐츠 화면 검사가 최근 작업 네 칸을 채울 수 있으므로 레벨 카드의 영역별 최근도 본다.
+        Require(Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Any(b => b.name == "최근 작업/" + roomId || b.name == "레벨/최근/" + roomId), "home lists the room edited in this session");
         Button("레벨");
     }
 

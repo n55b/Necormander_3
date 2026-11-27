@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public sealed partial class RoomWorkshopWindow : MonoBehaviour
 {
     public WorkshopCatalog catalog;
-    private enum Page { Desk, Legacy, Map, Shared, Game, Project, Balance, Git, Parameters, Dialogue, Translations, Art, Compare, Passage, Content, Status, Home }
+    private enum Page { Desk, Legacy, Map, Shared, Game, Project, Balance, Git, Parameters, Dialogue, Translations, Art, Compare, Passage, Content, Status, Home, Items }
     private enum Tool { Select, Paint, Erase, Sample, Door, Enemy, Prop, Start, Stamp, Auto }
     private Page page;
     private Tool tool;
@@ -119,7 +119,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         if(pendingConfirm!=null) DrawConfirm();     // Draw가 몇 번 다시 돌아도 모달이 남는다
         string hint = page == Page.Passage ? "이동 범위는 착지점에서 상하좌우로 이어진 바닥 타일 기준입니다." :
             !string.IsNullOrEmpty(notice) ? notice : page == Page.Map ? MapHint() :
-            page == Page.Status ? "Ctrl+S 저장 · Ctrl+Z 되돌리기 · F6 시험" :
+            page is Page.Status or Page.Items ? "Ctrl+S 저장 · Ctrl+Z 되돌리기 · F6 시험" :
             page is Page.Desk or Page.Home ? (ProjectContentStore.Authoring ? "저장 위치  ·  프로젝트 DATA" : "저장 위치  ·  로컬 작업 공간") : "";
         feedback=WorkshopUI.Label(content,hint,9,page==Page.Map ? 328 : 335,page==Page.Map ? 382 : 623,page==Page.Map ? 15 : 19);
         if (page==Page.Map)

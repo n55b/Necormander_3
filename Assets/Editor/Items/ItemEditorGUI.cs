@@ -21,9 +21,7 @@ public static class ItemEditorGUI
     private static List<Type> effectTypes;
 
     /// <summary>추가 가능한 효과 종류 전체. 새 ItemEffect 하위 클래스를 만들면 자동으로 포함된다.</summary>
-    public static IReadOnlyList<Type> EffectTypes => effectTypes ??= TypeCache.GetTypesDerivedFrom<ItemEffect>()
-        .Where(t => !t.IsAbstract && !t.IsGenericTypeDefinition)
-        .OrderBy(TypeName, StringComparer.Ordinal).ToList();
+    public static IReadOnlyList<Type> EffectTypes => effectTypes ??= ItemAuthoring.EffectTypes.Select(t => t.type).ToList();
 
     private static ItemEffectInfoAttribute Info(Type t)
         => t == null ? null : (ItemEffectInfoAttribute)Attribute.GetCustomAttribute(t, typeof(ItemEffectInfoAttribute));
@@ -314,85 +312,9 @@ public static class ItemEditorGUI
     }
 
     // ── 검사 ──────────────────────────────────────────────────────────
-    private static readonly Regex Numbers = new Regex(@"\d+(?:\.\d+)?", RegexOptions.Compiled);
-    private static readonly Regex Token = new Regex(@"\{[^{}\s]+\}", RegexOptions.Compiled);
-
-    private static string Norm(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
-
-    /// <summary>설명 문구와 실제 효과 수치 비교에 쓰는 '1개당 대표 수치'.</summary>
-    private static IEnumerable<double> KeyNumbers(ItemEffect e)
-    {
-        switch (e)
-        {
-            case ItemStatEffect s: yield return Math.Abs(s.DisplayAmount(1)); break;
-            case ItemRoomEntryShieldEffect sh: yield return sh.amount; break;
-            case ItemDashChargeEffect d: yield return d.copiesPerCharge; break;
-            case ItemRoomClearHealEffect h: yield return h.value * (h.isPercent ? 100.0 : 1.0); break;
-        }
-    }
-
-    // ItemStatEffect 의 보정 방식(비율/고정) 중 게임이 실제로 읽는 쪽. CharacterStat 게터를 손으로 옮긴 표라
-    // 게터가 바뀌면 같이 고칠 것 (Assets/Scripts/Entities/CharacterStat.cs, 줄 번호는 작성 시점 기준).
-    //  · 고정치만 읽음: PHYS_AMP :97 · MAGIC_AMP :100 · CRIT_CHANCE :154 · CRIT_OVERFLOW_DAMAGE :158 · CRIT_DAMAGE :160 ·
-    //    EVASION :163 · ACCURACY :166 · SKILL_CDR :195 · DASH_CDR :198 · BASIC_ATK_MULT :201 · DashCharges(MeleeDodgeController.cs:389)
-    //  · 비율만 읽음: DASH_DISTANCE_MULTIPLIER :207 · ApplyDashCooldown :208-209(DashRechargeSpeed)
-    //  · 둘 다 읽음(표에 없음): ATK :82-90 · MAGIC :93 · MAXHP :102-116 · ATKSPD :125-134 · DEF :144-151 · LUCK :155 · MOVESPEED :168-178
-    private static readonly HashSet<StatType> FlatOnlyStats = new HashSet<StatType>
-    {
-        StatType.PhysDamageAmp, StatType.MagicDamageAmp, StatType.CritChance, StatType.CritOverflowConversion,
-        StatType.CritDamage, StatType.Evasion, StatType.Accuracy, StatType.SkillCooldownReduction,
-        StatType.DashCooldownReduction, StatType.BasicAttackMultiplier, StatType.DashCharges,
-    };
-    private static readonly HashSet<StatType> PercentOnlyStats = new HashSet<StatType> { StatType.DashDistance, StatType.DashRechargeSpeed };
-
-    /// <summary>기획자가 확인해야 할 문제 목록. 비어 있으면 문제 없음.</summary>
+    /// <summary>기획자가 확인해야 할 문제 목록(전문). 규칙은 제작실과 같은 ItemAuthoring 에 있다.</summary>
     public static List<string> Warnings(ItemSO item)
-    {
-        var list = new List<string>();
-        if (item == null) return list;
-        var growth = Growth;
-        if (growth != null && growth.items != null && !growth.items.Contains(item))
-            list.Add($"아이템 목록({growth.name})에 등록되지 않아 게임 보상으로 나오지 않고 세이브에서도 불러오지 못합니다. 아래 '목록 등록'에서 켜세요.");
-        if (item.effects == null || item.effects.Count == 0)
-        {
-            list.Add("효과가 없습니다. 주머니에 넣어도 아무 일도 일어나지 않습니다.");
-            if (item.availableAsReward)
-                list.Add("효과가 없는데 '상점 · 방 보상에 등장'이 켜져 있습니다. 목록에 들어가는 순간('목록 등록', 'Tools/기획/레지스트리 새로고침') " +
-                         "빈 아이템이 보상·상점에 나옵니다. 효과를 넣기 전까지는 끄세요.");
-            return list;
-        }
-        if (item.effects.Any(e => e == null)) list.Add("종류가 정해지지 않은 빈 효과 칸이 있습니다.");
-
-        var descNums = new HashSet<string>(Numbers.Matches(item.description ?? "").Cast<Match>()
-            .Select(m => Norm(double.Parse(m.Value, CultureInfo.InvariantCulture))));
-        // 상점 카드는 shopDescription 이 있으면 그것을 쓴다(ItemSO.ShopBody) — 따로 검사한다.
-        var shopNums = string.IsNullOrEmpty(item.shopDescription) ? null
-            : new HashSet<string>(Numbers.Matches(item.shopDescription).Cast<Match>()
-                .Select(m => Norm(double.Parse(m.Value, CultureInfo.InvariantCulture))));
-        foreach (var e in item.effects.Where(e => e != null))
-        {
-            foreach (var n in KeyNumbers(e))
-            {
-                if (!descNums.Contains(Norm(n)))
-                    list.Add($"설명에 효과 수치 '{Norm(n)}' 이(가) 없습니다. 설명이 실제 효과와 맞는지 확인하세요.\n실제 효과: {e.AutoDescribe(1)}");
-                if (shopNums != null && !shopNums.Contains(Norm(n)))
-                    list.Add($"상점 카드 설명에 효과 수치 '{Norm(n)}' 이(가) 없습니다. 상점 카드 설명이 실제 효과와 맞는지 확인하세요.\n실제 효과: {e.AutoDescribe(1)}");
-            }
-
-            if (e is ItemStatEffect s)
-            {
-                if (s.isPercent && FlatOnlyStats.Contains(s.statType))
-                    list.Add($"'{s.StatTitle}' 능력치는 게임이 고정치만 읽어서 비율(%) 보정은 적용되지 않습니다. '비율(%) 보정'을 끄세요.");
-                else if (!s.isPercent && PercentOnlyStats.Contains(s.statType))
-                    list.Add($"'{s.StatTitle}' 능력치는 게임이 비율만 읽어서 고정치 보정은 적용되지 않습니다. '비율(%) 보정'을 켜세요.");
-            }
-
-            if (!string.IsNullOrWhiteSpace(e.displayText))
-                foreach (Match m in Token.Matches(e.Describe(1)))
-                    list.Add($"표시 문구에 알 수 없는 치환어 {m.Value} 가 있습니다. 쓸 수 있는 치환어: {e.TokenHelp}");
-        }
-        return list;
-    }
+        => ItemAuthoring.Warnings(item, Growth, Shop).Select(w => w.text).ToList();
 
     // ── 목록 등록 상태 ────────────────────────────────────────────────
     private static GrowthRegistrySO growthCache;

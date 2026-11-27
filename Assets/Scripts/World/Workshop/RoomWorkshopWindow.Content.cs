@@ -13,7 +13,7 @@ public sealed partial class RoomWorkshopWindow
     private static readonly (string caption,string id,string group,Page open)[] contentTiles=
     {
         ("플레이어","플레이어 수치",null,Page.Balance),("소환수","소환수","BALANCE/MINION",Page.Parameters),
-        ("몬스터","몬스터","BALANCE/ENEMY",Page.Parameters),("아이템","아이템","BALANCE/ITEMS",Page.Parameters),
+        ("몬스터","몬스터","BALANCE/ENEMY",Page.Parameters),("아이템","아이템","BALANCE/ITEMS",Page.Items),
         ("장비","장비","BALANCE/EQUIPMENT",Page.Parameters),("상태이상","상태이상","BALANCE/STATUS",Page.Status),
         ("화면·연출","화면·연출","PRESENTATION/",Page.Parameters),("사운드","사운드","AUDIO/",Page.Parameters),
         ("대사","대사 편집",null,Page.Dialogue),("번역","UI·보상 번역",null,Page.Translations),("아트","아트 원본",null,Page.Art),
@@ -35,19 +35,21 @@ public sealed partial class RoomWorkshopWindow
     }
     // 칩·미저장 목록 제목. 싱글턴 화면의 에셋 파일 이름("StatusBalance")이 한글 화면에 뜨지 않게 타일 이름을 쓴다.
     private static string ContentTitle(Entry e)=>e.source is StatusBalanceSO ? "상태이상" : e.Title;
-    private static string TileOf(Entry e)=>contentTiles.FirstOrDefault(t=>t.group!=null && e.group.StartsWith(t.group,StringComparison.Ordinal)).id ?? "콘텐츠 수치";
+    private static string TileOf(Entry e)=>e.source is ItemSO ? "아이템" : contentTiles.FirstOrDefault(t=>t.group!=null && e.group.StartsWith(t.group,StringComparison.Ordinal)).id ?? "콘텐츠 수치";
     private void OpenTile((string caption,string id,string group,Page open) tile)
     {
         if(tile.open==Page.Status){ OpenStatus(null); return; }
+        if(tile.open==Page.Items){ OpenItems(null); return; }
         if(tile.open!=Page.Parameters){ Navigate(tile.open); return; }
         // 모든 수치는 이전 항목을 그대로 열지만, 영역 타일이 남긴 영역 필터는 지운다(그대로면 '모든 수치'가 한 영역만 보인다).
         if(tile.group==null && contentTiles.Any(t=>t.group!=null && t.group==dataSearch)){ dataSearch=""; dataPage=0; }
         OpenParameters(tile.group);
     }
-    // 소유 화면으로 연다: 상태이상 원본은 상태이상 화면, 그 밖은 모든 수치.
+    // 소유 화면으로 연다: 상태이상 원본은 상태이상 화면, 아이템(변형 포함)은 아이템 화면, 그 밖은 모든 수치.
     private void OpenContent(string document)
     {
         if(EnsureCatalog().Any(e=>e.Document==document && e.source is StatusBalanceSO)){ OpenStatus(null); return; }
+        if(dataCatalog.Any(e=>e.Document==document && e.source is ItemSO)){ OpenItems(document); return; }
         OpenParameters();
         var entry=Array.Find(dataCatalog,e=>e.Document==document);
         if(entry!=null) SelectContent(entry);

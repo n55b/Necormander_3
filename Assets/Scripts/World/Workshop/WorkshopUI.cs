@@ -38,6 +38,13 @@ internal static class WorkshopUI
         if (w < PixelViewport.Width || h < PixelViewport.Height) RoundedPlate.ApplyFlat(pic);
         return pic;
     }
+    // 그림 한 장(비율 유지, 클릭 통과). Box와 달리 둥근 면 효과를 붙이지 않는다.
+    internal static Image Picture(Transform parent,string name,float x,float y,float w,float h,Sprite sprite)
+    {
+        var pic=Rect(parent,name,x,y,w,h).gameObject.AddComponent<Image>();
+        pic.sprite=sprite; pic.preserveAspect=true; pic.raycastTarget=false; pic.enabled=sprite!=null;
+        return pic;
+    }
     public static Image Frame(Transform parent,string name,float x,float y,float w,float h)
         => UIChrome.Panel(Rect(parent,name,x,y,w,h));
 
@@ -222,11 +229,8 @@ internal static class WorkshopUI
         void Refresh(){ int i=read(); label.text=(i>=0 && i<labels.Length ? labels[i] : "")+" ▼"; }
         void Open()
         {
-            CloseOverlay();
-            overlay=Rect(overlayParent,id+" 선택",0,0,PixelViewport.Width,PixelViewport.Height).gameObject;
-            Blocker(overlay.transform,new Color(0,0,0,.5f),()=>CloseOverlay());
             const int Columns=3, PerPage=24, BoxX=160, BoxY=51, BoxW=320, BoxH=258;
-            var box=Frame(overlay.transform,"Picker",BoxX,BoxY,BoxW,BoxH).rectTransform;
+            var box=Frame(Overlay(overlayParent,id+" 선택"),"Picker",BoxX,BoxY,BoxW,BoxH).rectTransform;
             var search=Input(box,"선택지 검색",8,8,BoxW-16,20);
             var grid=Rect(box,"Grid",8,32,BoxW-16,PerPage/Columns*22);
             var reason=Label(box,"",8,212,BoxW-16,14,8);
@@ -261,7 +265,39 @@ internal static class WorkshopUI
         Refresh();
         return Refresh;
     }
+    // 그림 고르기 격자(4열×3행, 칸 36px). 버튼 이름은 id+"/"+조각 이름. 고르면 닫힌다.
+    internal static void IconPicker(RectTransform overlayParent,string id,Sprite[] options,Func<int> read,Action<int> write)
+    {
+        const int Columns=4, PerPage=12, Cell=38, BoxW=Columns*Cell+14, BoxH=3*Cell+40, BoxX=(640-BoxW)/2, BoxY=(360-BoxH)/2;
+        var box=Frame(Overlay(overlayParent,id+" 선택"),"Icon picker",BoxX,BoxY,BoxW,BoxH).rectTransform;
+        var grid=Rect(box,"Grid",8,8,Columns*Cell,3*Cell);
+        var pageLabel=Label(box,"",8,BoxH-26,40,20,8);
+        int pageIndex=Mathf.Max(0,read())/PerPage;
+        void Fill()
+        {
+            foreach(Transform child in grid){ child.gameObject.SetActive(false); UnityEngine.Object.Destroy(child.gameObject); }
+            int pages=Math.Max(1,(options.Length+PerPage-1)/PerPage); pageIndex=Mathf.Clamp(pageIndex,0,pages-1);
+            for(int n=pageIndex*PerPage;n<Math.Min(options.Length,(pageIndex+1)*PerPage);n++)
+            {
+                int i=n, cell=n%PerPage;
+                var option=Button(grid,"",cell%Columns*Cell,cell/Columns*Cell,36,36,()=>{ CloseOverlay(); write(i); },i==read(),id+"/"+options[i].name);
+                Picture(option.transform,"Icon",2,2,32,32,options[i]);
+            }
+            pageLabel.text=(pageIndex+1)+" / "+pages;
+        }
+        Button(box,"이전",BoxW-104,BoxH-26,46,20,()=>{ pageIndex--; Fill(); },false,id+" 이전");
+        Button(box,"다음",BoxW-54,BoxH-26,46,20,()=>{ pageIndex++; Fill(); },false,id+" 다음");
+        Fill();
+    }
     private static GameObject overlay;
+    // 차단막(바깥 클릭 = 닫기)이 깔린 전체 화면 오버레이. 하나만 둔다. Esc는 창 Update가 CloseOverlay()로 닫는다.
+    internal static RectTransform Overlay(RectTransform parent,string name)
+    {
+        CloseOverlay();
+        overlay=Rect(parent,name,0,0,PixelViewport.Width,PixelViewport.Height).gameObject;
+        Blocker(overlay.transform,new Color(0,0,0,.5f),()=>CloseOverlay());
+        return (RectTransform)overlay.transform;
+    }
     internal static bool CloseOverlay()
     {
         if(overlay==null) return false;
