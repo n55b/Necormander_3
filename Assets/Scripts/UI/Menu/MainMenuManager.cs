@@ -42,7 +42,9 @@ private void Start()
         sceneLoader = UnityNote.SceneLoader.Instance;
 
         InitializeButtons();
+#if UNITY_EDITOR || LEVEL_WORKSHOP
         WorkshopUI.TitleButton();
+#endif
     }
 
     private void InitializeButtons()

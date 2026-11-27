@@ -19,7 +19,6 @@ public static class UiResolutionCheck
     public static bool Enabled => SessionState.GetBool(Request,false);
     public static void Run() { SessionState.SetBool(Request,true); PresentationRegressionCheck.Run(); }
     public static void RunInventory() { SessionState.SetBool(Request,true); InventoryUICheck.RunRuntimeBatch(); }
-    public static void RunWorkshop() { SessionState.SetBool(Request,true); WorkshopPlayModeCheck.Run(); }
 
     private static Rect Bounds(RectTransform rect, Camera camera)
     {

@@ -43,7 +43,10 @@ public partial class PlayerController
     private bool HasLivingInputTarget => !_inputBlocked && stat != null && stat.Health != null && !stat.Health.IsDead;
     internal bool CanStartGameplayAction => HasLivingInputTarget && !IsGameplayPaused && !IsCCed;
     internal static bool IsCombatPointerBlocked =>
-        WorkshopReturn.OverButton || LightingDebugPanel.CapturesPointer || PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsPointerOverPanel());
+#if UNITY_EDITOR || LEVEL_WORKSHOP
+        WorkshopReturn.OverButton ||
+#endif
+        LightingDebugPanel.CapturesPointer || PouchUI.IsOpen || (SkillExplainUI.Instance != null && SkillExplainUI.Instance.IsPointerOverPanel());
 
     private Vector2 ReadCurrentMoveInput()
     {

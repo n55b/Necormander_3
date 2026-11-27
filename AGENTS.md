@@ -29,16 +29,15 @@
 - 일반 작업과 AI 검색은 `Assets/Scripts`, 관련 `Assets/Editor`, `ProjectSettings`, `Docs/Guides`부터 확인한다. 보관 이력을 요청한 경우에만 루트 `Legacy`와 `Docs/Archive`를 읽는다. 보관 코드와 도구는 Unity 및 도구 실행 경로 밖의 `.txt`로 이동하고 메타데이터도 함께 텍스트로 보관한다. `ARTIST/LEGACY`와 연결된 Unity 아트에는 기존 씬이 사용하는 그림이 들어 있다.
 - 프롬프트 원문과 작업 일지는 `Legacy/History`에 보관한다. 활성 주석은 좌표 단위, 직렬화 값, 호출 시점과 같이 현재 코드 수정에 필요한 이유를 설명한다. UI 배치의 현재 계약은 프리팹과 [인벤토리 UI 안내](Assets/Prefabs/UI/InventoryUI_README.md)에서 확인한다.
 
-- 인게임 방 제작은 `Assets/Scripts/World/Workshop`, 원본 카탈로그 생성과 프리팹 변형 가져오기는 `Assets/Editor/Map/WorkshopBuild.cs`·`WorkshopRoomImport.cs`를 사용한다. Unity에서는 Sunyunie Panel의 제작실 버튼이나 `Tools > Level Workshop > Open in Play Mode`로, 제작용 Windows 빌드에서는 메인 메뉴로 들어간다. 원본 방과 팀 도구는 제작실의 Legacy 탭에 있다. 팀 전달 파일(.levelpack)의 참조 검증은 `WorkshopPackage`, 개정 비교는 `WorkshopPackageReview`, 작업 공간 저장과 전환은 `WorkshopWorkspace`에서 확인한다.
+- 인게임 방 제작은 `Assets/Scripts/World/Workshop`(`Runtime`은 일반 게임도 쓰는 DATA·시험 연결, `Window`는 제작실 화면과 `RoomEditing`·`Content` 도구, `Preview`는 지도 그리기), 원본 카탈로그 생성은 `Assets/Editor/Map/WorkshopBuild.cs`를 사용한다. Unity에서는 Sunyunie Panel의 제작실 버튼이나 `Tools > Level Workshop > Open in Play Mode`로 들어간다. 방은 Unity 에디터에서만 편집하고 프리팹(`WorkshopPrefabs`)으로 저장한다. 제작용 Windows 빌드(`LEVEL_WORKSHOP`)는 방을 제외한 DATA 콘텐츠만 편집한다. 제작실 화면 코드는 `#if UNITY_EDITOR || LEVEL_WORKSHOP` 안에 두어 일반 배포판에 컴파일되지 않게 한다. 기능을 바꾸면 `Tools > Level Workshop > 자동 점검 (Self Check)`의 항목(`RoomWorkshopWindow.SelfCheck.cs`)도 함께 갱신한다.
 
 ## 검증
 
 - 사용자가 빌드 생성을 명시적으로 요청한 경우에만 실행용 Windows 빌드를 갱신한다. 일반 작업은 Unity 플레이 모드에서 검증한다.
 
-- 인게임 제작 데이터의 원본은 루트 `DATA`다. 영역·편집 화면·반영 시점은 [DATA 안내](DATA/README.md)에 있다. `ProjectContentStore`는 문서별 병합·복구, `ProjectRooms`는 방과 일반 던전 연결, `ProjectContentBuild`는 빌드 검증·포함을 담당한다. 그림 원본은 기존 `ARTIST` 경로를 사용한다.
-- `-Suite ProjectContent`는 강제 종료 복구, 두 Git 체크아웃의 지형·보상 독립 커밋과 푸시·병합, 실제 에디터 및 Windows 게임 반영, 동일 필드 충돌 해결을 검사한다. 팀 원격 저장소 대신 임시 bare 저장소를 사용한다.
+- 인게임 제작 데이터의 원본은 루트 `DATA`다. 영역·편집 화면·반영 시점은 [DATA 안내](DATA/README.md)에 있다. `ProjectContentStore`는 문서별 병합·복구, `ProjectContentBuild`는 빌드 검증·포함을 담당한다. 방은 DATA에 두지 않는다. 그림 원본은 기존 `ARTIST` 경로를 사용한다.
 
-- `-Suite WorkshopPlayMode`는 Unity에서 제작실 바로 실행, 시험 전투·복귀, 플레이어·조명·무대 값 변경, 작업 씬 복원을 확인한다. `-Suite LevelWorkshop`은 이 검사와 제작용 Windows 플레이어의 방 편집·전투·클리어·복귀·저장과 층 시험을 실행한다.
+- 제작실은 Unity 메뉴 `Tools > Level Workshop > 자동 점검 (Self Check)`으로 검사한다. 사용자 초안·도장은 임시 폴더로 분리되어 바뀌지 않는다.
 
 - [작업·검증표](Docs/Maintenance/작업_검증.md)에서 요청의 증상, 소유 파일, 재현 씬과 확인 명령을 연결한다. 여러 요청이 섞여 있으면 확인할 조건과 결과를 각각 남긴다.
 - `pwsh -NoProfile -File Tools/Invoke-UnityVerification.ps1 -Suite Baseline`은 격리 프로젝트에서 에셋·화면·월드·전투 기준선을 확인한다. 구조 이동 전후에는 `-CompareTo`에 이전 `asset-inventory.json`을 전달한다.

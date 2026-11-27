@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Baseline', 'Assets', 'Presentation', 'World', 'Dungeon', 'Combat', 'Save', 'Windows', 'Performance', 'Typography', 'UIResolution', 'ArtDirection', 'RenderBudget', 'CombatPolish', 'LevelWorkshop', 'WorkshopPlayMode','ProjectContent')]
+    [ValidateSet('Baseline', 'Assets', 'Presentation', 'World', 'Dungeon', 'Combat', 'Save', 'Windows', 'Performance', 'Typography', 'UIResolution', 'ArtDirection', 'RenderBudget', 'CombatPolish')]
     [string] $Suite = 'Baseline',
     [string] $UnityEditor,
     [string] $CompareTo,
@@ -123,7 +123,6 @@ if ($Suite -in @('Baseline', 'World')) { Invoke-EditorCheck 'ProjectVerification
 if ($Suite -in @('Baseline', 'World', 'Dungeon')) { Invoke-EditorCheck 'DungeonLayoutCheck.Run' -PlayMode }
 if ($Suite -eq 'UIResolution') {
     Invoke-EditorCheck 'UiResolutionCheck.Run' -PlayMode
-    Invoke-EditorCheck 'UiResolutionCheck.RunWorkshop' -PlayMode
     Invoke-EditorCheck 'UiResolutionCheck.RunInventory' -PlayMode
 }
 if ($Suite -eq 'ArtDirection') {
@@ -171,23 +170,6 @@ if ($Suite -in @('RenderBudget','CombatPolish')) {
             & (Join-Path $source 'Tools/Verification/Invoke-PixelRenderPlayer.ps1') -Player $exe -Results $logs
             $results.Add("PASS Windows frame sampling and four native windows | $logs")
         }
-    }
-}
-if ($Suite -in @('WorkshopPlayMode', 'LevelWorkshop')) {
-    Invoke-EditorCheck 'WorkshopPlayModeCheck.Run' -PlayMode
-    Invoke-EditorCheck 'ProjectContentBuild.StartRoomCheck' -PlayMode -ExtraArgs @('-projectRoomCheck', 'passages', 'unused')
-}
-if ($Suite -eq 'ProjectContent') {
-    & (Join-Path $source 'Tools/Verification/Invoke-ProjectRoomTeam.ps1') -Sandbox $sandbox -UnityEditor $UnityEditor -Results $logs
-    $results.Add("PASS project content Ctrl+S, save button, two Git checkouts and Windows dungeon | $logs")
-}
-if ($Suite -eq 'LevelWorkshop') {
-    Invoke-EditorCheck 'WorkshopRoomImport.VerifySources'
-    Invoke-EditorCheck 'WorkshopBuild.BuildVerificationPlayer'
-    if ($results[$results.Count-1] -like 'PASS*') {
-        $exe = Join-Path $sandbox 'Builds/LevelWorkshop/QA/NecromanderWorkshop.exe'
-        & (Join-Path $source 'Tools/Verification/Invoke-WorkshopPlayer.ps1') -Player $exe -Results $logs
-        $results.Add("PASS workshop trial latency and resource lifetime, largest room stamp and undo, four window sizes and recipient import across process restarts | $logs")
     }
 }
 if ($Suite -eq 'Windows' -or $IncludeWindowsBuild) { Invoke-EditorCheck 'ProjectVerification.BuildWindows' -Build }

@@ -57,7 +57,6 @@ public sealed class DungeonLayoutPlanner
         {
             directions = prefab.GetComponentsInChildren<RoomAnchor>().Select(anchor => anchor.direction)
                 .Where(RoomConnectivity.IsCardinal).Distinct().ToArray();
-            directions = ProjectRooms.AvailableDoors(prefab,directions);
             directionsByPrefab.Add(prefab, directions);
         }
         return directions;

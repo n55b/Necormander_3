@@ -483,9 +483,6 @@ public System.Action OnMapGenerated;
         int? requestedSeed = _nextLayoutSeed;
         _nextLayoutSeed = null;
         LastLayoutSeed = null;
-#if UNITY_EDITOR
-        ProjectRooms.Reset(); // Include a collaborator's pull on the next generation.
-#endif
         if (generationData != null && generationData.useIsaacStylePlacement)
         {
             int seed = WorkshopTrial.Active ? WorkshopTrial.Seed : requestedSeed ?? generationData.FixedLayoutSeed ?? Random.Range(0, int.MaxValue);
@@ -869,7 +866,6 @@ public System.Action OnMapGenerated;
         Vector2 spawnPos = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * spawnRadius;
         GameObject roomObj = Instantiate(prefab, (Vector3)spawnPos, Quaternion.identity, transform);
         RoomInstance room = roomObj.GetComponent<RoomInstance>() ?? roomObj.AddComponent<RoomInstance>();
-        if (!WorkshopTrial.Active) ProjectRooms.Apply(prefab, room, LastLayoutSeed ?? 0, new Vector2Int(_allRooms.Count, 0));
         room.Initialize(type);
         if (type == RoomType.Spawn) { Rigidbody2D rb = room.GetComponent<Rigidbody2D>(); if (rb != null) rb.bodyType = RigidbodyType2D.Static; _reachedRooms.Add(room); if (!_masterAdjacency.ContainsKey(room)) _masterAdjacency[room] = new List<RoomInstance>(); }
         return room;
@@ -2211,7 +2207,6 @@ public System.Action OnMapGenerated;
         var room = obj.GetComponent<RoomInstance>() ?? obj.AddComponent<RoomInstance>();
         if (WorkshopTrial.RoomAt(planned.Cell) is WorkshopRoom edited)
             WorkshopGeometry.ApplyToGame(edited,room,WorkshopTrial.Library);
-        else ProjectRooms.Apply(planned.Prefab,room,LastLayoutSeed ?? 0,planned.Cell);
         room.Initialize(planned.Type);
         room.gridPosition = planned.Cell;
         room.CleanupPhysics();

@@ -12,3 +12,4 @@
 | `Runtime/Map` | 배치 중 방을 생성하던 이전 격자형 던전 구현 | `DungeonLayoutPlanner`, `DungeonLayout`, `MapGenerator` |
 | `Tools` | 일회성 기록 추출 스크립트 | 보관 기록 |
 | `History` | 과거 프롬프트·선호 기록, 플레이 테스트 변경 기록, 날짜별 작업 보고 | `AGENTS.md`와 기능별 사용 안내 |
+| `Workshop` | 방 DATA 덮어쓰기(`ProjectRooms`), 공유 묶음·작업 공간(`WorkshopPackage`), Git 충돌 화면, 제작실 QA 검사(`WorkshopPlayerCheck`, `WorkshopPlayModeCheck`, `ProjectRoomVerification`), 프리팹 가져오기(`WorkshopRoomImport`), 관련 검증 스크립트와 두 PC 검수표 | 방은 Unity 에디터 제작실에서 프리팹으로 저장(`WorkshopPrefabs`), 검사는 `Tools > Level Workshop > 자동 점검` |

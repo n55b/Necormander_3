@@ -16,7 +16,7 @@ public static class WorkshopBuild
 {
     private const string PreviousStartScene = "Workshop.PreviousPlayModeStartScene";
     private const string PlayMenu = "Tools/Level Workshop/Open in Play Mode";
-    private const string CatalogPath=ProjectRooms.CatalogPath;
+    private const string CatalogPath=WorkshopCatalog.AssetPath;
     private const string Rooms="Assets/Prefabs/Map/Room Map Prefabs";
 
     [InitializeOnLoadMethod]
@@ -145,26 +145,20 @@ public static class WorkshopBuild
         Debug.Log($"[Workshop] {templates.Count} templates, {library.tiles.Length} tiles, {library.pieces.Length} pieces");
     }
     [MenuItem("Tools/Level Workshop/Build Windows creator")]
-    public static void BuildWindows() => Build(false);
-    public static void BuildVerificationPlayer() => Build(true);
-    public static void BuildMemoryCheckPlayer() => Build(true, true);
-
-    private static void Build(bool verification, bool memoryCheck = false)
+    public static void BuildWindows()
     {
         Bake();
         var options=new BuildPlayerOptions {
             scenes=EditorBuildSettings.scenes.Where(s=>s.enabled).Select(s=>s.path).Append(WorkshopTrial.ScenePath).Distinct().ToArray(),
-            locationPathName="Builds/LevelWorkshop/"+(memoryCheck?"MemoryQA":verification?"QA":"Windows")+"/NecromanderWorkshop.exe",target=BuildTarget.StandaloneWindows64,
-            options=memoryCheck ? BuildOptions.Development : BuildOptions.None,
+            locationPathName="Builds/LevelWorkshop/Windows/NecromanderWorkshop.exe",target=BuildTarget.StandaloneWindows64,
             // URP's per-camera sampler cache keeps a key for every preview camera ever rendered.
-            extraScriptingDefines=verification ? new[]{"LEVEL_WORKSHOP","LEVEL_WORKSHOP_QA","UNIVERSAL_PROFILING_NO_ALLOC"}
-                : new[]{"LEVEL_WORKSHOP","UNIVERSAL_PROFILING_NO_ALLOC"}
+            extraScriptingDefines=new[]{"LEVEL_WORKSHOP","UNIVERSAL_PROFILING_NO_ALLOC"}
         };
         string product=PlayerSettings.productName, company=PlayerSettings.companyName;
         try
         {
             PlayerSettings.companyName="Necromander";
-            PlayerSettings.productName=verification ? "Level Workshop QA" : "Level Workshop";
+            PlayerSettings.productName="Level Workshop";
             if(BuildPipeline.BuildPlayer(options).summary.result!=BuildResult.Succeeded)
                 throw new InvalidOperationException("Workshop player build failed.");
         }

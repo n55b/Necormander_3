@@ -25,15 +25,8 @@ public static class ProjectContentBaseline
             Directory.CreateDirectory(Path.GetDirectoryName(target));
             File.WriteAllText(target,value.ToString(Formatting.Indented).Replace("\r\n","\n")+"\n",new UTF8Encoding(false));
         }
-        var catalog=AssetDatabase.LoadAssetAtPath<WorkshopCatalog>(ProjectRooms.CatalogPath);
-        int rooms=0,translations=0;
-        foreach(var template in catalog.rooms.Where(t=>t.inPool||t.tutorialOrder>0))
-        {
-            var doc=WorkshopRoom.Create(template);
-            var data=new JObject{["version"]=doc.version,["id"]=template.id,["title"]=template.title,["template"]=template.id,
-                ["baseRevision"]=template.revision,["seed"]=doc.seed};
-            Write(ProjectRooms.DirectoryName+"/"+template.id+"/room.json",data);rooms++;
-        }
+        var catalog=AssetDatabase.LoadAssetAtPath<WorkshopCatalog>(WorkshopCatalog.AssetPath);
+        int translations=0;
         foreach(string guid in AssetDatabase.FindAssets("t:StringTable",new[]{"Assets/Settings/Localization"}))
         {
             var table=AssetDatabase.LoadAssetAtPath<StringTable>(AssetDatabase.GUIDToAssetPath(guid));
@@ -41,7 +34,7 @@ public static class ProjectContentBaseline
             string folder="LOCALIZATION/STRINGS/"+table.SharedData.TableCollectionNameGuid.ToString("N")+"/"+table.LocaleIdentifier.Code;
             foreach(var row in table.Values){Write(folder+"/"+row.KeyId+".json",new JObject{["text"]=row.Value??""});translations++;}
         }
-        if(rooms==0 || translations==0)throw new InvalidOperationException("No game content found.");
+        if(translations==0)throw new InvalidOperationException("No game content found.");
         var movement=new SerializedObject(catalog.playerPrefab.GetComponent<PlayerController>());
         var melee=new SerializedObject(catalog.playerPrefab.GetComponent<MeleeCombatController>());
         JObject Values(SerializedObject source,params string[] keys)
@@ -52,6 +45,6 @@ public static class ProjectContentBaseline
         }
         Write("BALANCE/PLAYER/movement.json",Values(movement,"clearedRoomSprint","hurtPushDistance"));
         Write("BALANCE/PLAYER/melee.json",Values(melee,"aimAssistDegrees","reachAssistDistance","attackWalkSpeedMultiplier"));
-        Debug.Log($"[ProjectContentBaseline] {rooms} rooms, {translations} translations, 5 player settings");
+        Debug.Log($"[ProjectContentBaseline] {translations} translations, 5 player settings");
     }
 }
