@@ -221,6 +221,10 @@ public static class ProjectParameters
     internal static readonly Dictionary<Type,(string when,Action<ScriptableObject> refresh)> Reflect=new()
     {
         [typeof(StatusBalanceSO)]=("다음 부여부터",null),   // StatusRules가 부여마다 읽는다
+        // 파괴된 주머니는 Unity 가짜 null이라 ?.로 거르지 못한다. ProjectStructure.Apply 뒤에도 이 값 적용이 오므로 효과 목록 변경도 여기서 반영된다.
+        [typeof(ItemSO)]=("주머니 효과는 바로, 상점 진열은 다음 상점 생성부터",_=>{ if(ItemPouch.Instance!=null) ItemPouch.Instance.Refresh(); }),
+        [typeof(GrowthRegistrySO)]=("다음 보상·새 게임부터",null),
+        [typeof(ShopRegistrySO)]=("다음 상점 생성부터",null),
     };
     internal static string When(ScriptableObject source)=>source!=null && Reflect.TryGetValue(source.GetType(),out var r) ? r.when : null;
     internal static void Restore()

@@ -43,9 +43,14 @@ public class GrowthRegistrySO : ScriptableObject
         => string.IsNullOrEmpty(key) ? null : equipments?.Find(e => e != null && e.name == key)
             ?? equipments?.Find(e => e != null && Former(e.formerAssetNames, key));
 
+    // 삭제 표시된 콘텐츠: 목록과 보상에서는 빠지고 세이브 해석만 남는다. DATA가 실행 중에만 채운다(ProjectStructure.Rebuild).
+    [System.NonSerialized] internal readonly List<ScriptableObject> retired = new List<ScriptableObject>();
+
     public ItemSO ResolveSavedItem(string key)
         => string.IsNullOrEmpty(key) ? null : items?.Find(i => i != null && i.name == key)
-            ?? items?.Find(i => i != null && Former(i.formerAssetNames, key));
+            ?? items?.Find(i => i != null && Former(i.formerAssetNames, key))
+            ?? retired.Find(r => r is ItemSO i && i != null && i.name == key) as ItemSO
+            ?? retired.Find(r => r is ItemSO i && i != null && Former(i.formerAssetNames, key)) as ItemSO;
 
     // 현재 이름이 먼저다. 옛 이름(예: DATA 굽기 전 키 content_<id>)은 일치하는 현재 이름이 없을 때만 본다.
     private static bool Former(string[] names, string key) => names != null && System.Array.IndexOf(names, key) >= 0;

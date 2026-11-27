@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -148,6 +149,70 @@ public static class SaveCompatibilityCheck
             SaveSystem.DeleteSave();
         }
         Debug.Log("[SaveCompatibilityCheck] Baked variant keys PASS");
+    }
+
+    // DATA 구조 문서: 삭제 표시(원본·새 콘텐츠)는 목록에서 빠지고 세이브 해석만 남는다. 가입 끔·autoJoin:false·이름 변경과 복원 순서를 본다.
+    public static void VerifyItemLifecycle()
+    {
+        RequireIsolatedProject();
+        Require(SaveSystem.DeleteSave(), "reset isolated files");
+        var growth = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>("Assets/SOData/Registry/Growth Reward Registry.asset");
+        var shop = AssetDatabase.LoadAssetAtPath<ShopRegistrySO>("Assets/SOData/Registry/Shop Registry.asset");
+        var items = growth.items.ToList();
+        var pool = shop.itemPool.ToList();
+        try
+        {
+            using var fixture = new ProjectDataBakeFixture();
+            var picks = growth.items.Where(i => i != null && i != growth.startingItem && shop.itemPool.Contains(i)).Distinct().Take(3).ToArray();
+            Require(picks.Length == 3, "three shop items to edit");
+            ItemSO a = picks[0], b = picks[1], c = picks[2];
+            string originalB = b.DisplayName;
+            JObject Removed() => new JObject { ["removed"] = true };
+            string docA = fixture.Write(ProjectDataBakeFixture.Document(a), "removed.json", Removed());
+            string v = fixture.Variant(b, "QA 삭제한 새 아이템");
+            fixture.Write(ProjectDataBakeFixture.Variants + "/" + v, "removed.json", Removed());
+            string va = fixture.Variant(a, "QA 삭제한 원본의 새 아이템");
+            fixture.Parameters(b, new JObject { ["itemName"] = "QA 새 이름" });
+            fixture.Write(ProjectDataBakeFixture.Document(c), "MEMBERS/" + ProjectDataBakeFixture.Guid(shop) + "/itemPool.json", new JObject { ["included"] = false });
+            string w = fixture.Variant(c, "QA 등장 꺼진 새 아이템", autoJoin: false);
+            bool Has(System.Collections.Generic.IEnumerable<ItemSO> list, string id) => list.Any(i => i != null && i.name == "content_" + id);
+
+            ProjectParameterBindings.ValidatePublished();
+            Require(growth.items.SequenceEqual(items) && shop.itemPool.SequenceEqual(pool), "build validation applies structure only while checking");
+            ProjectParameterBindings.WithPublished(() =>
+            {
+                Require(!growth.items.Contains(a) && !shop.itemPool.Contains(a) && growth.ResolveSavedItem(a.name) == a, "removed original leaves the lists and still resolves");
+                Require(!Has(growth.items, v) && !Has(shop.itemPool, v) && growth.ResolveSavedItem("content_" + v)?.name == "content_" + v, "removed new content still resolves");
+                Require(Has(growth.items, va) && Has(shop.itemPool, va) && growth.ResolveSavedItem("content_" + va) != null,
+                    "new content of a removed original keeps the original's lists");
+                Require(b.DisplayName == "QA 새 이름" && growth.ResolveSavedItem(b.name) == b, "a renamed original keeps its save key");
+                Require(!shop.itemPool.Contains(c) && growth.items.Contains(c), "membership off leaves the shop only");
+                Require(Has(growth.items, w) && !Has(shop.itemPool, w), "autoJoin:false joins only the save lists");
+                // 씬마다 다시 오는 Bind: 가입 판정은 원래 목록으로 하므로 결과가 같다.
+                var once = (growth.items.ToList(), shop.itemPool.ToList());
+                typeof(ProjectParameterBindings).GetMethod("Bind", BindingFlags.Static | BindingFlags.NonPublic)
+                    .Invoke(null, new object[] { ProjectParameterBindings.Published(strict: true) });
+                Require(growth.items.SequenceEqual(once.Item1) && shop.itemPool.SequenceEqual(once.Item2), "a second bind gives the same lists");
+                var save = new SaveData { currentFloor = 1, playerHP = 10, pouchSlotCount = 3, pouchItemNames = { a.name, "content_" + v, b.name } };
+                Require(SaveSystem.Save(save), "write a save holding removed items");
+                Require(SaveSystem.Load()?.pouchItemNames.All(n => growth.ResolveSavedItem(n) != null) == true, "every saved item resolves after reload");
+            });
+            File.Delete(Path.Combine(ProjectContentStore.Root, docA, "removed.json"));
+            ProjectParameterBindings.WithPublished(() =>
+                Require(growth.items.IndexOf(a) == items.IndexOf(a) && shop.itemPool.IndexOf(a) == pool.IndexOf(a), "restored original returns to its original place"));
+            Require(growth.items.SequenceEqual(items) && shop.itemPool.SequenceEqual(pool) && growth.ResolveSavedItem(a.name) == a && b.DisplayName == originalB,
+                "registry lists and values restored after the check");
+            fixture.Write(ProjectDataBakeFixture.Document(growth.startingItem), "removed.json", Removed());
+            bool refused = false;
+            try { ProjectParameterBindings.ValidatePublished(); }
+            catch (InvalidDataException e) { refused = e.Message.Contains("시작 아이템"); }
+            Require(refused, "removing the starting item is refused");
+        }
+        finally
+        {
+            SaveSystem.DeleteSave();
+        }
+        Debug.Log("[SaveCompatibilityCheck] Item lifecycle PASS");
     }
 
     public static void WriteAndReload()

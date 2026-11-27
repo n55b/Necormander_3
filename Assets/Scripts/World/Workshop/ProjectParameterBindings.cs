@@ -42,6 +42,8 @@ public sealed class ProjectParameterBindings : MonoBehaviour
         Index(ProjectContentVariants.Entries);
         foreach(var e in entries)Load(e);
         foreach(var e in ProjectContentVariants.Entries)Load(e);
+        // 항목이 레지스트리보다 먼저 바인딩될 수 있어 가입·삭제는 모든 문서를 적용한 뒤 한 번에 반영한다.
+        ProjectStructure.Rebuild(byId.Values.Select(e=>e.source).Where(s=>s is GrowthRegistrySO or ShopRegistrySO).Distinct().ToArray());
     }
 
     private void Awake()
@@ -55,24 +57,24 @@ public sealed class ProjectParameterBindings : MonoBehaviour
     }
     private static void Load(Entry e)
     {
-        if(e.source==null || loaded.Contains(e.source)) return;
-        var path=Path.Combine(ProjectContentStore.Root,e.Document,"parameters.json");
-        if(File.Exists(path))
-        {
-            if(ProjectContentStore.TryReadPublished(e.Document,()=>
-                ProjectParameters.Apply(e.source,ProjectParameters.Values(ProjectParameters.Snapshot(e.Document)))))loaded.Add(e.source);
-        }
+        // parameters.json이 없어도 구조 파일(LISTS·MEMBERS·removed.json)만 있는 문서가 있다.
+        if(e.source==null || loaded.Contains(e.source) || !Directory.Exists(Path.Combine(ProjectContentStore.Root,e.Document))) return;
+        if(ProjectContentStore.TryReadPublished(e.Document,()=>{
+            var files=ProjectParameters.Snapshot(e.Document);
+            try{ ProjectStructure.Apply(e,files); ProjectParameters.Apply(e.source,ProjectParameters.Values(files)); }
+            catch{ ProjectStructure.Apply(e,ProjectStructure.None); throw; }   // 틀린 문서는 구조도 남기지 않는다
+        }))loaded.Add(e.source);
     }
     // 미리 적용한 SO를 적용됨으로 표시한다. 그러지 않으면 제작판 시험 씬의 Awake→Bind→Load가 디스크 값으로 다시 덮는다.
     internal static void MarkLoaded(ScriptableObject source){ if(source!=null) loaded.Add(source); }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void Reset()
     {
-        ProjectParameters.Restore();ProjectContentVariants.Release();loaded.Clear();byId.Clear();bySource.Clear();CreatorCatalog=null;
+        ProjectParameters.Restore();ProjectStructure.Restore();ProjectContentVariants.Release();loaded.Clear();byId.Clear();bySource.Clear();CreatorCatalog=null;
     }
     internal static void ReloadCheckout()
     {
-        ProjectParameters.Restore();ProjectContentVariants.Release();
+        ProjectParameters.Restore();ProjectStructure.Restore();ProjectContentVariants.Release();
         loaded.Clear();byId.Clear();bySource.Clear();
         if(CreatorCatalog!=null)Bind(CreatorCatalog);
     }
@@ -133,7 +135,6 @@ public sealed class ProjectParameterBindings : MonoBehaviour
         }
         if(definitions.Length>0)
         {
-            entries.AddRange(All().Where(e=>e.source is GrowthRegistrySO or ShopRegistrySO));
             foreach(var definition in definitions)
                 Document(ProjectContentVariants.Folder+"/"+definition.id,()=>{
                     var template=EntryFor(definition.template);
@@ -142,17 +143,36 @@ public sealed class ProjectParameterBindings : MonoBehaviour
                     return Dependencies(template,ProjectParameters.Values(definition.files));
                 });
         }
-        foreach(string file in Directory.EnumerateFiles(ProjectContentStore.Root,"parameters.json",SearchOption.AllDirectories))
+        // 문서 = parameters.json·removed.json의 부모, 또는 /LISTS/·/MEMBERS/ 앞. 변형은 위에서 읽었다.
+        // WORLD/ 아래(방 removed.json 등)는 다른 저장소가 읽는다. 맵 생성 SO의 그룹 WORLD/GENERATION만 이 바인딩 문서다.
+        var documents=new SortedSet<string>(StringComparer.Ordinal);
+        foreach(string file in Directory.EnumerateFiles(ProjectContentStore.Root,"*.json",SearchOption.AllDirectories))
         {
-            if(definitions.Any(d=>Path.GetFullPath(Path.Combine(ProjectContentStore.Root,ProjectContentVariants.Folder,d.id,"parameters.json"))==Path.GetFullPath(file)))
-                continue;
-            Document(file,()=>{
-                var entry=EntryFor(Path.GetFileName(Path.GetDirectoryName(file)));
-                if(entry==null || Path.GetFullPath(Path.Combine(ProjectContentStore.Root,entry.Document,"parameters.json"))!=Path.GetFullPath(file))
-                    throw new InvalidDataException("설정 대상 에셋을 찾을 수 없습니다. "+file);
-                return Dependencies(entry,ProjectParameters.Values(ProjectParameters.Snapshot(entry.Document)));
-            });
+            string path=Path.GetRelativePath(ProjectContentStore.Root,file).Replace('\\','/');
+            if(path.StartsWith(ProjectContentVariants.Folder+"/",StringComparison.Ordinal) ||
+                path.StartsWith("WORLD/",StringComparison.Ordinal) && !path.StartsWith("WORLD/GENERATION/",StringComparison.Ordinal)) continue;
+            int cut=path.IndexOf("/LISTS/",StringComparison.Ordinal);
+            if(cut<0) cut=path.IndexOf("/MEMBERS/",StringComparison.Ordinal);
+            if(cut<0 && Path.GetFileName(path) is "parameters.json" or ProjectStructure.RemovedFile) cut=path.LastIndexOf('/');
+            if(cut>0) documents.Add(path.Substring(0,cut));
         }
+        bool structured=false;
+        foreach(string document in documents)
+            Document(document,()=>{
+                var entry=EntryFor(document.Substring(document.LastIndexOf('/')+1));
+                if(entry==null || entry.Document!=document) throw new InvalidDataException("설정 대상 에셋을 찾을 수 없습니다. "+document);
+                var files=ProjectParameters.Snapshot(document);
+                var found=Dependencies(entry,ProjectParameters.Values(files));
+                foreach(string path in files.Keys.Where(k=>k.StartsWith("MEMBERS/",StringComparison.Ordinal)))
+                {
+                    var parts=path.Split('/');
+                    found.Add((parts.Length==3 ? EntryFor(parts[1]) : null) ?? throw new InvalidDataException(document+"/"+path+" · 가입할 레지스트리를 찾을 수 없습니다."));
+                }
+                structured|=files.Keys.Any(ProjectStructure.IsStructure);
+                return found;
+            });
+        // 변형 가입과 구조 문서(삭제·가입)는 레지스트리 목록을 다시 계산한다.
+        if(definitions.Length>0 || structured) entries.AddRange(All().Where(e=>e.source is GrowthRegistrySO or ShopRegistrySO));
         return entries.GroupBy(e=>e.id).Select(g=>g.First()).ToArray();
     }
     public static Entry[] All()=>AssetDatabase.FindAssets("t:ScriptableObject",new[]{"Assets/SOData","Assets/Resources"})
@@ -165,32 +185,49 @@ public sealed class ProjectParameterBindings : MonoBehaviour
         if(Application.isPlaying){ check(); return; }
         EditCheck=true;
         try{ Bind(Published(strict:true)); check(); }
-        finally{ ProjectParameters.Restore(); ProjectContentVariants.Release(); loaded.Clear(); byId.Clear(); bySource.Clear(); EditCheck=false; }
+        finally{ ProjectParameters.Restore(); ProjectStructure.Restore(); ProjectContentVariants.Release(); loaded.Clear(); byId.Clear(); bySource.Clear(); EditCheck=false; }
     }
-    public static bool HasLiveValues(string path)=>(Application.isPlaying || EditCheck) && path.EndsWith(".asset",StringComparison.Ordinal) &&
-        (ProjectParameters.Applied(AssetDatabase.LoadAssetAtPath<ScriptableObject>(path)) ||
-        ProjectContentVariants.Protects(AssetDatabase.LoadAssetAtPath<ScriptableObject>(path)));
+    public static bool HasLiveValues(string path)
+    {
+        if(!(Application.isPlaying || EditCheck) || !path.EndsWith(".asset",StringComparison.Ordinal)) return false;
+        var so=AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
+        return ProjectParameters.Applied(so) || ProjectStructure.Touched(so);
+    }
     public static void ValidatePublished()
     {
         var published=Published(strict:true);
-        void Check(Entry entry,Newtonsoft.Json.Linq.JObject values)
+        ScriptableObject Registry(string id)=>Array.Find(published,e=>e.id==id)?.source;
+        // 편집 모드에는 DATA가 적용돼 있지 않다. 시작 아이템은 Growth 문서 값, 없으면 에셋 값이다.
+        var starting=new HashSet<string>(published.Where(e=>e.source is GrowthRegistrySO).Select(e=>
+            (string)ProjectParameters.Values(ProjectParameters.Snapshot(e.Document))["startingItem"] ??
+            (((GrowthRegistrySO)e.source).startingItem is ItemSO item ? AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(item)) : null)),StringComparer.Ordinal);
+        void Check(Entry entry,Newtonsoft.Json.Linq.JObject values,Dictionary<string,string> files)
         {
-            ProjectParameters.RequireKeys(entry.source,entry.Document);
-            var fields=ProjectParameters.Fields(entry.source).ToDictionary(f=>f.path);
-            foreach(var pair in values)
+            ProjectStructure.Validate(entry,files,Registry,starting);
+            // 새 원소의 값 경로는 구조를 적용해야 생긴다. 그동안 저장 필터가 이 에셋 저장을 막는다.
+            bool held=EditCheck; EditCheck=true;
+            try
             {
-                if(!fields.TryGetValue(pair.Key,out var field)) throw new InvalidDataException(entry.Document+"/"+pair.Key);
-                if(field.readOnly || !field.IsReference)field.Parse((string)pair.Value);
+                ProjectStructure.Apply(entry,files);
+                ProjectParameters.RequireKeys(entry.source,entry.Document);
+                var fields=ProjectParameters.Fields(entry.source).ToDictionary(f=>f.path);
+                foreach(var pair in values)
+                {
+                    if(!fields.TryGetValue(pair.Key,out var field)) throw new InvalidDataException(entry.Document+"/"+pair.Key);
+                    if(field.readOnly || !field.IsReference)field.Parse((string)pair.Value);
+                }
             }
+            finally{ ProjectStructure.Apply(entry,ProjectStructure.None); EditCheck=held; }
         }
-        foreach(var entry in published)Check(entry,ProjectParameters.Values(ProjectParameters.Snapshot(entry.Document)));
+        foreach(var entry in published){ var files=ProjectParameters.Snapshot(entry.Document); Check(entry,ProjectParameters.Values(files),files); }
         foreach(var def in ProjectContentVariants.Definitions(strict:true))
         {
             var template=published.First(e=>e.id==def.template);
             var values=ProjectParameters.Values(def.files);
             if(ProjectParameters.DisplayNameField(template.source) is string name && values.ContainsKey(name))
                 throw new InvalidDataException(ProjectContentVariants.Folder+"/"+def.id+" · 새 콘텐츠의 이름은 definition.json title로만 바꿉니다");
-            Check(template,values);
+            // 변형의 구조 파일은 원본 에셋에 잠시 적용해 검사한다. 삭제 표시·시작 아이템 판정은 변형 id로 한다.
+            Check(new Entry{id=def.id,group=ProjectContentVariants.Folder,source=template.source,title=def.title},values,def.files);
         }
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -202,7 +239,7 @@ public sealed class ProjectParameterBindings : MonoBehaviour
     [InitializeOnLoadMethod]
     private static void RestoreEditAssets()
     {
-        void Restore(){ProjectParameters.Restore();ProjectContentVariants.Release();byId.Clear();bySource.Clear();loaded.Clear();}
+        void Restore(){ProjectParameters.Restore();ProjectStructure.Restore();ProjectContentVariants.Release();byId.Clear();bySource.Clear();loaded.Clear();}
         EditorApplication.playModeStateChanged+=state=>{if(state==PlayModeStateChange.ExitingPlayMode) Restore();};
         AssemblyReloadEvents.beforeAssemblyReload+=Restore;
     }

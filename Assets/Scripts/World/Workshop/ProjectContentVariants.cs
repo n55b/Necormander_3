@@ -10,11 +10,10 @@ using Entry=ProjectParameterBindings.Entry;
 internal static class ProjectContentVariants
 {
     internal const string Folder="CATALOG/VARIANTS";
-    internal sealed class Definition {internal string id,title,template; internal Dictionary<string,string> files;}
+    // autoJoin: 정의에 없으면 true(옛 정의: 원본이 든 모든 목록에 가입). false면 세이브 해석 목록(Growth)에만 가입하고 상점 진열은 MEMBERS로 정한다.
+    internal sealed class Definition {internal string id,title,template; internal bool autoJoin=true; internal Dictionary<string,string> files;}
     private static readonly Dictionary<string,Entry> live=new();
-    private static readonly List<(ScriptableObject registry,IList list,ScriptableObject asset)> memberships=new();
     internal static IEnumerable<Entry> Entries=>live.Values;
-    internal static bool Protects(ScriptableObject registry)=>memberships.Any(m=>m.registry==registry);
     internal static bool IsVariant(ScriptableObject so)=>so!=null && live.Values.Any(e=>e.source==so);
     // 상태이상 공통 설정은 StatusRules가 하나만 읽는 싱글턴이라 복제하지 않는다.
     internal static bool CanCreate(Entry source)=>source.group!=Folder && (source.source is ItemSO or EquipmentSO or MainMinionDataSO or TreasureSO ||
@@ -46,7 +45,9 @@ internal static class ProjectContentVariants
             string title=(string)data["title"],template=(string)data["template"];
             if(string.IsNullOrWhiteSpace(title)||title.Length>64||!Guid.TryParseExact(template,"N",out _))
                 throw new InvalidDataException("콘텐츠 이름이나 원본을 확인하세요. "+dir);
-            definition=new Definition{id=id,title=title,template=template,files=files};
+            var join=data["autoJoin"];
+            if(join!=null && join.Type!=JTokenType.Boolean)throw new InvalidDataException("autoJoin은 true나 false입니다. "+dir);
+            definition=new Definition{id=id,title=title,template=template,autoJoin=join==null || (bool)join,files=files};
             return true;
         }
         catch(Exception e) when(ProjectContentStore.IsDataError(e)){ error=e; return false; }
@@ -79,19 +80,17 @@ internal static class ProjectContentVariants
                 var copy=UnityEngine.Object.Instantiate(template.source);
                 copy.name="content_"+definition.id;
                 copy.hideFlags=HideFlags.DontSave;
+                // 원본의 옛 세이브 키를 들고 있으면 원본을 삭제 표시했을 때 그 세이브가 복사본으로 풀린다. 굽기가 새 에셋의 별칭을 따로 쓴다.
+                copy.GetType().GetField("formerAssetNames")?.SetValue(copy,new string[0]);
                 Name(copy,definition.title);
                 instance=new Entry{id=definition.id,source=copy,group=Folder,title=definition.title};
                 live.Add(definition.id,instance);
             }
+            // 원래 목록으로 판정한다. Bind는 씬마다 다시 오고, 그때 목록은 Rebuild 결과라 삭제·가입 끔인 원본이 빠져 있다.
             foreach(var source in sources)
-            {
-                void Add(IList list)
-                {
-                    if(list==null||!list.Contains(template.source)||list.Contains(instance.source))return;
-                    list.Add(instance.source);memberships.Add((source.source,list,instance.source));
-                }
-                foreach(var (_,list) in Lists(source.source))Add(list);
-            }
+                foreach(var (field,list) in Lists(source.source))
+                    if(ProjectStructure.Original(list)?.Contains(template.source)==true && (definition.autoJoin || source.source is GrowthRegistrySO))
+                        ProjectStructure.Join(instance.source,source.source,field);
         }
     }
     // 변형의 표시 이름. 세이브 키(에셋 이름)는 따로 정한다. DATA 굽기도 같은 규칙으로 새 에셋 이름을 쓴다.
@@ -114,10 +113,9 @@ internal static class ProjectContentVariants
         ShopRegistrySO s=>new (string,IList)[]{("itemPool",s.itemPool)},
         _=>Array.Empty<(string,IList)>()
     };
+    // 레지스트리 목록은 ProjectStructure.Restore가 먼저 원래 내용으로 돌린다.
     internal static void Release()
     {
-        foreach(var member in memberships)member.list.Remove(member.asset);
-        memberships.Clear();
         foreach(var entry in live.Values)
             if(entry.source!=null)UnityEngine.Object.DestroyImmediate(entry.source);
         live.Clear();

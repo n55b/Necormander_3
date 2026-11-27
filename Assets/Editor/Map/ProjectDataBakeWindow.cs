@@ -91,25 +91,26 @@ internal sealed class ProjectDataBakeFixture : IDisposable
     {
         foreach (var asset in assets) files[AssetDatabase.GetAssetPath(asset)] = File.ReadAllBytes(AssetDatabase.GetAssetPath(asset));
     }
-    internal string Variant(ScriptableObject template, string title, JObject parameters = null)
+    internal string Variant(ScriptableObject template, string title, JObject parameters = null, bool? autoJoin = null)
     {
         string id = System.Guid.NewGuid().ToString("N");
-        Write(Variants + "/" + id, "definition.json", new JObject { ["template"] = Guid(template), ["title"] = title });
+        var definition = new JObject { ["template"] = Guid(template), ["title"] = title };
+        if (autoJoin != null) definition["autoJoin"] = autoJoin.Value;
+        Write(Variants + "/" + id, "definition.json", definition);
         if (parameters != null) Write(Variants + "/" + id, "parameters.json", parameters);
         return id;
     }
-    internal string Parameters(ScriptableObject target, JObject values)
-    {
-        string document = ProjectParameterBindings.Group(AssetDatabase.GetAssetPath(target)) + "/" + Guid(target);
-        Write(document, "parameters.json", values);
-        return document;
-    }
-    private void Write(string document, string name, JObject json)
+    internal static string Document(ScriptableObject target) => ProjectParameterBindings.Group(AssetDatabase.GetAssetPath(target)) + "/" + Guid(target);
+    internal string Parameters(ScriptableObject target, JObject values) => Write(Document(target), "parameters.json", values);
+    // name은 문서 안 상대 경로다(예: MEMBERS/<GUID>/itemPool.json). 문서 경로를 돌려준다.
+    internal string Write(string document, string name, JObject json)
     {
         string folder = Path.Combine(ProjectContentStore.Root, document);
-        Directory.CreateDirectory(folder);
+        string path = Path.Combine(folder, name);
+        Directory.CreateDirectory(Path.GetDirectoryName(path));
         if (!folders.Contains(folder)) folders.Add(folder);
-        File.WriteAllText(Path.Combine(folder, name), json.ToString().Replace("\r\n", "\n") + "\n");
+        File.WriteAllText(path, json.ToString().Replace("\r\n", "\n") + "\n");
+        return document;
     }
     public void Dispose()
     {

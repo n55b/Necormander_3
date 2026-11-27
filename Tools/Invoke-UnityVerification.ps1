@@ -167,6 +167,7 @@ if ((Want @('Baseline', 'Combat'))) {
 if ((Want @('Baseline', 'Save'))) {
     Invoke-EditorCheck 'SaveCompatibilityCheck.VerifyFileStorage'
     Invoke-EditorCheck 'SaveCompatibilityCheck.VerifyBakedVariantKeys'
+    Invoke-EditorCheck 'SaveCompatibilityCheck.VerifyItemLifecycle'
     Invoke-EditorCheck 'SaveCompatibilityCheck.WriteAndReload' -PlayMode
     Invoke-EditorCheck 'SaveCompatibilityCheck.ReadAfterRestart' -PlayMode
 }
