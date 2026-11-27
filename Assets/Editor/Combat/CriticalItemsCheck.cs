@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>현재 아이템 카탈로그·기본 지급·치명타·저장 검증. 에셋/씬/세이브를 저장하지 않는다.
-/// 개수·수치를 박아 두지 않고 지금 에셋에서 계산한다 — 아이템 편집기로 추가/밸런스 조정을 해도 깨지지 않게.</summary>
+/// 개수·수치를 박아 두지 않고 지금 에셋에서 계산한다 — 제작실 아이템 화면에서 추가/밸런스 조정을 해도 깨지지 않게.</summary>
 public static class CriticalItemsCheck
 {
     private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;

@@ -33,7 +33,8 @@
 | --- | --- | --- |
 | `Editor/UI` | 초기 TMP 일괄 변환과 1006 레이아웃 초기화 | 런타임 `PixelUiTypography`, Sunyunie Panel, `HudLayoutChecks` |
 | `Editor/Map` | 초기 미니맵·지형 설정 도구 | 커밋된 프리팹과 프로젝트 설정, `RoomTilemapCheck`, `MapColliderCheck`, `MiniMapCheck` |
-| `Editor/Gameplay` | 성장 레지스트리 전체 재스캔(`GrowthRegistryEditor`, `GrowthRegistrySO.RefreshRegistry`와 `specialAbilities`), 소환수 관리의 상태이상 공통 수치 열기·대기 효과 빈 소환수 채우기 메뉴. 2026-11-26 퇴역 | `Tools/기획/레지스트리 새로고침`(`RegistryMenuTools`), 레벨 제작실 > 게임 콘텐츠 > 상태이상 |
+| `Editor/Gameplay` | 성장 레지스트리 전체 재스캔(`GrowthRegistryEditor`, `GrowthRegistrySO.RefreshRegistry`와 `specialAbilities`), 소환수 관리의 상태이상 공통 수치 열기·대기 효과 빈 소환수 채우기 메뉴. 2026-11-26 퇴역. 상점 목록 전체 재스캔(`ShopRegistrySO.RefreshRegistry`, `ShopRegistrySO.RefreshRegistry.txt`). 2026-11-28 퇴역 | `Tools/기획/레지스트리 새로고침`(`RegistryMenuTools`), 레벨 제작실 > 게임 콘텐츠 > 상태이상, 상점 진열은 제작실 > 게임 콘텐츠 > 아이템 |
+| `Editor/Items` | 아이템 편집기(`ItemDatabaseWindow`, Tools/기획/아이템 편집기)와 그 공용 그리기(`ItemEditorGUI`)·생성(`ItemCreation`)·인스펙터(`ItemSOEditor`). 2026-11-28 퇴역. 기능 대조는 [이관 계획 부록 B](../Docs/Maintenance/제작도구_인게임_이관과_레거시_정리_계획.md#부록-b-아이템-편집기-대조표) | 제작실 > 게임 콘텐츠 > 아이템 |
 | `Editor/Combat` | 상태이상 편집기(`StatusEffectEditorWindow`, Tools/기획/상태이상 편집기). 2026-11-27 퇴역. 기능 대조는 [이관 계획 부록 A](../Docs/Maintenance/제작도구_인게임_이관과_레거시_정리_계획.md#부록-a-상태이상-편집기-대조표) | 레벨 제작실 > 게임 콘텐츠 > 상태이상 |
 | `Rendering` | 이전 확대 셰이더와 렌더링 개편 전 구현(카메라 충격, 전투 연출, 층 포털 메시, 지면 그림자, 플레이어 가림, 글자 모션, 나무 바람, 글꼴, 벡터 이펙트, 월드 깊이·효과) | `PixelArtIntegerUpscale.shader`와 `Assets/Scripts/Rendering`·`Effect` |
 | `Shaders` | 층 강착 원반 셰이더 | 현재 층 전환 연출 |

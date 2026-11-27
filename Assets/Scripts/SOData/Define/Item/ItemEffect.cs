@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 에디터(아이템 인스펙터 / 아이템 편집기)에서 효과 종류를 고를 때 보여줄 한글 이름과 설명.
+/// 제작실 아이템 화면의 효과 추가 목록에서 효과 종류를 고를 때 보여줄 한글 이름과 설명.
 /// 새 효과 클래스를 만들면 이 속성만 달아 주면 "+ 효과 추가" 메뉴에 자동으로 나온다.
 /// </summary>
 [System.AttributeUsage(System.AttributeTargets.Class, Inherited = false)]
@@ -39,7 +39,7 @@ public abstract class ItemEffect
 
     [Tooltip("주머니 UI(개당 효과 / 현재 총 효과 / 1개 더 획득 시)에 나올 문구. 비우면 자동 문구를 쓴다.\n" +
              "치환어: {값} = 보유 개수가 반영된 수치, {개수} = 보유 개수, {자동} = 자동 문구.\n" +
-             "효과 종류별 추가 치환어는 아이템 인스펙터의 효과 칸 아래에 표시된다.")]
+             "효과 종류별 추가 치환어는 제작실 효과 카드의 치환어 칩에 표시된다.")]
     [TextArea(1, 3)] public string displayText;
 
     /// <summary>보유 개수(count)를 반영한 표시 문구. 표시 문구가 비어 있으면 자동 문구.</summary>

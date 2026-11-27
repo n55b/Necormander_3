@@ -1,0 +1,26 @@
+// 원래 위치: Assets/Scripts/SOData/Define/Registry/ShopRegistrySO.cs 의 #if UNITY_EDITOR 블록 (커밋 a1ee3268)
+// 2026-11-28 퇴역(이관 계획 9장 D13). 전체 재스캔이 상점 목록을 availableAsReward 아이템 전부로 덮어써
+// 제작실의 상점 진열(MEMBERS)·삭제 표시와 어긋났다. 상점 진열은 제작실 > 게임 콘텐츠 > 아이템의 '상점 진열'에서 고친다.
+
+#if UNITY_EDITOR
+    [ContextMenu("Refresh Registry (Load All Active Items)")]
+    public void RefreshRegistry()
+    {
+        itemPool.Clear();
+
+        // 아이템: 전부 스캔(Deprecated 제외).
+        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:ItemSO"))
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            if (path.Contains("/Deprecated/")) continue;
+
+            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemSO>(path);
+            if (asset != null && asset.availableAsReward) itemPool.Add(asset);
+        }
+
+        UnityEditor.EditorUtility.SetDirty(this);
+        UnityEditor.AssetDatabase.SaveAssets();
+
+        Debug.Log($"<color=yellow>[ShopRegistry]</color> 자동 갱신 완료: 아이템({itemPool.Count})");
+    }
+#endif

@@ -12,7 +12,7 @@ using System.Text;
 ///  · GrowthRegistrySO.minionDatas·items·equipments: 아직 없는 에셋만 맨 뒤에 붙인다(기존 순서 유지, 지우지 않음).
 ///    마을 소환수 카드 순서와 보상 대체 경로가 소환수 순서를 쓰므로 목록을 비우고 다시 만들지 않는다.
 ///    아이템·장비는 Assets/SOData 안의 에셋만 본다.
-///  · 상점 목록(ShopRegistrySO.itemPool)은 건드리지 않는다. ShopRegistrySO 인스펙터의 Refresh Registry 메뉴가 맡는다.
+///  · 상점 목록(ShopRegistrySO.itemPool)은 건드리지 않는다. 상점 진열은 제작실 > 게임 콘텐츠 > 아이템의 '상점 진열'이 맡는다.
 /// </summary>
 public class RegistryMenuTools
 {
@@ -125,7 +125,7 @@ public class RegistryMenuTools
                 EditorUtility.SetDirty(growth);
                 AssetDatabase.SaveAssetIfDirty(growth);
             }
-            report.AppendLine("· 상점 아이템 목록은 바꾸지 않습니다(ShopRegistrySO 의 Refresh Registry).");
+            report.AppendLine("· 상점 아이템 목록은 바꾸지 않습니다(제작실 > 게임 콘텐츠 > 아이템의 상점 진열).");
         }
         else
         {

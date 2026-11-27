@@ -96,7 +96,7 @@ public class ItemSO : ScriptableObject
     /// <summary>
     /// 주머니 UI 의 효과 문구(개당 / 현재 총 / 1개 더 획득 시). 효과 한 줄씩.
     /// 문구는 각 효과의 '표시 문구'(displayText)에서 오고, 비어 있으면 효과 종류별 자동 문구를 쓴다.
-    /// 기획자는 아이템 인스펙터 또는 Tools > 기획 > 아이템 편집기 에서 고친다.
+    /// 기획자는 제작실 > 게임 콘텐츠 > 아이템에서 고친다.
     /// </summary>
     public string EffectSummary(int count)
     {

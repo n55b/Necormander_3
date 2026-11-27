@@ -10,7 +10,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Entry = ProjectParameterBindings.Entry;
 
-// 아이템 화면. 옛 Unity 아이템 편집기(Tools > 기획 > 아이템 편집기)의 목록·상세·효과 칸·미리보기·확인 필요를 목록-상세 골격으로 옮겼다.
+// 아이템 화면. 옛 Unity 아이템 편집기(2026-11-28 Legacy/Editor/Items, 대조는 이관 계획 부록 B)의 목록·상세·효과 칸·미리보기·확인 필요를 목록-상세 골격으로 옮겼다.
 // 고른 항목의 초안은 살아 있는 ItemSO에 바로 적용된다(DraftStore.Live). 그래서 미리보기·경고·효과 카드가 모두 초안 기준이다.
 // 효과 추가·순서·삭제는 LISTS, 상점 진열은 MEMBERS, 삭제는 removed.json이다(ProjectStructure). 규칙은 ItemAuthoring에 있다.
 public sealed partial class RoomWorkshopWindow

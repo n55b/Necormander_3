@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 
 // 아이템 편집 규칙: 확인할 것(경고), 능력치·보정 방식 조합, 수치 표시 배율, 효과 종류 목록.
-// 제작실 아이템 화면이 쓰고, 옛 Unity 아이템 창(ItemEditorGUI)도 이것을 부른다. 런타임이라 플레이어 빌드의 제작판에서도 돈다.
+// 제작실 아이템 화면이 쓴다. 런타임이라 플레이어 빌드의 제작판에서도 돈다.
 public static class ItemAuthoring
 {
     // field: 화면이 그 줄로 가는 DATA 경로(효과는 "effects/@<id>/…", 상점 진열은 "상점 진열", 빈 문자열은 줄 없음).

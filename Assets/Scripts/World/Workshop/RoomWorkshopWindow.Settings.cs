@@ -152,9 +152,9 @@ public sealed partial class RoomWorkshopWindow
     private void DrawLegacyTools()
     {
         WorkshopUI.Label(content,"팀 공용 원본",17,76,602,22,12);
-        string[] titles={"방 배치 씬","방 후보 목록","층 생성 설정","몬스터 편집기","아이템 편집기","장비 편집기","소환수 관리","사운드 테스트 툴"};
+        string[] titles={"방 배치 씬","방 후보 목록","층 생성 설정","몬스터 편집기","장비 편집기","소환수 관리","사운드 테스트 툴"};
         string[] paths={"Assets/Scenes/MapDesign.unity","Assets/SOData/Map/RoomPrefabData.asset","Assets/SOData/Map/MapGenerationData.asset",
-            "Tools/기획/몬스터 편집기","Tools/기획/아이템 편집기","Tools/기획/장비 편집기","Tools/기획/소환수 관리","Tools/기획/사운드 테스트 툴"};
+            "Tools/기획/몬스터 편집기","Tools/기획/장비 편집기","Tools/기획/소환수 관리","Tools/기획/사운드 테스트 툴"};
         for(int i=0;i<titles.Length;i++)
         {
             int index=i; int x=17+(i%2)*308, y=105+(i/2)*40;

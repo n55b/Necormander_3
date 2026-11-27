@@ -291,7 +291,7 @@ public static class InventoryUICheck
             void Clear() { for (int i = 0; i < pouch.SlotCount; i++) pouch.RemoveAt(i); }
             void Add(string id, int count) { for (int i = 0; i < count; i++) Check(pouch.TryAdd(Item(id)), "중첩 습득: " + id); }
             void Equal(float actual, float expected, string label) => Check(Mathf.Abs(actual - expected) < .001f, label + ": " + actual + " != " + expected);
-            // 기대값은 지금 아이템 에셋 수치에서 계산한다(아이템 편집기로 밸런스를 바꿔도 같은 동작을 검사).
+            // 기대값은 지금 아이템 에셋 수치에서 계산한다(제작실 아이템 화면에서 밸런스를 바꿔도 같은 동작을 검사).
             float PerCopy(string id, StatType type, bool percent) => Item(id).effects.OfType<ItemStatEffect>()
                 .Where(e => e.statType == type && e.isPercent == percent).Sum(e => e.value);
             int Fill(string id) { int max = Item(id).MaxStack; Add(id, max); return max; }

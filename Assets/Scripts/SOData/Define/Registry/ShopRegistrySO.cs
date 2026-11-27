@@ -23,27 +23,4 @@ public class ShopRegistrySO : ScriptableObject
     [Tooltip("현재 강화레벨 1당 이만큼 비싸진다. 예: 250 + 25/레벨 → 250 / 275 / 300 / 325 / 350.\n" +
              "강화 상점은 재고가 없어서 골드가 유일한 제동장치라 여기서 곡선을 잡는다.")]
     public int enhanceCostPerLevel = 25;
-
-#if UNITY_EDITOR
-    [ContextMenu("Refresh Registry (Load All Active Items)")]
-    public void RefreshRegistry()
-    {
-        itemPool.Clear();
-
-        // 아이템: 전부 스캔(Deprecated 제외).
-        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:ItemSO"))
-        {
-            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            if (path.Contains("/Deprecated/")) continue;
-
-            var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<ItemSO>(path);
-            if (asset != null && asset.availableAsReward) itemPool.Add(asset);
-        }
-
-        UnityEditor.EditorUtility.SetDirty(this);
-        UnityEditor.AssetDatabase.SaveAssets();
-
-        Debug.Log($"<color=yellow>[ShopRegistry]</color> 자동 갱신 완료: 아이템({itemPool.Count})");
-    }
-#endif
 }

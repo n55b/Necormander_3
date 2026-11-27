@@ -9,7 +9,7 @@ using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 /// <summary>아이템 주머니 프리팹 저작. 런타임 UI 생성기가 아니다.
-/// 아이템 데이터(수치·설명·목록 등록)는 아이템 편집기(Tools/기획/아이템 편집기)가 맡는다.</summary>
+/// 아이템 데이터(수치·설명·목록 등록)는 제작실 > 게임 콘텐츠 > 아이템이 맡는다.</summary>
 public static class StackedInventoryEditor
 {
     public const string PouchPath = "Assets/Prefabs/UI/PouchUI.prefab";
