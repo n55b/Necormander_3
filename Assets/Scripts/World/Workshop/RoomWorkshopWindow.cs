@@ -241,6 +241,13 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
             try
             {
                 var doc=ProjectRooms.Description(id);
+                // 삭제 표시한 방은 방 목록의 [삭제됨] 보기에서만 보이고, 누르면 복원한다.
+                if(ProjectRooms.IsRemoved(id))
+                {
+                    if(showRemovedRooms && page==Page.Desk)
+                        rows.Add((doc.title,"삭제됨",id,catalog.FindRoom(doc.template),()=>{ProjectRooms.Restore(id);Draw(page);Say("방을 복원했습니다.");}));
+                    continue;
+                }
                 rows.Add((doc.title,"프로젝트 편집",id,catalog.FindRoom(doc.template),()=>Begin(doc,false)));
             }
             catch(Exception error) { rows.Add((id,"데이터 확인",id,null,()=>Say(error.Message))); }
@@ -364,9 +371,11 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         Btn("저장",381,5,44,20,Save);
         Btn("비교",345,5,33,20,OpenComparison);
         if(ProjectContentStore.Authoring && !floorCell.HasValue && Doc.id!=Doc.template && catalog.FindRoom(Doc.template).inPool)
-            Btn(ProjectRooms.IsRegistered(Doc) ? "등록됨" : "던전 등록",325,31,82,20,()=>{
-                Save(); ProjectRooms.Register(Doc); Draw(page); Say("일반 던전의 방 후보에 등록했습니다.");
-            }).interactable=!ProjectRooms.IsRegistered(Doc) && !floorCell.HasValue;
+            Btn(ProjectRooms.IsRegistered(Doc) ? "등록 해제" : "던전 등록",325,31,82,20,()=>{
+                if(ProjectRooms.IsRegistered(Doc))
+                { ProjectRooms.Unregister(Doc); Draw(page); Say("일반 던전 후보에서 뺐습니다. 다음 방 생성부터 적용"); }
+                else { Save(); ProjectRooms.Register(Doc); Draw(page); Say("일반 던전의 방 후보에 등록했습니다."); }
+            });
         Btn("공유본",430,5,58,20,Export);
         Btn("플레이",493,5,83,20,Play,true);
         WorkshopUI.Frame(content,"Toolbox",491,36,143,291);

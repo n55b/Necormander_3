@@ -52,7 +52,7 @@ internal sealed class WorkshopPackage
                 package.rooms.Add(room);
             }
         if(ProjectContentStore.Authoring)
-            foreach(string id in projectIds)
+            foreach(string id in projectIds.Where(id=>!ProjectRooms.IsRemoved(id)))   // 삭제한 방은 동료에게 보내지 않는다
                 package.rooms.Add(ProjectRooms.Decode(id,ProjectRooms.Snapshot(id),catalog));
         package.templates=package.TemplateIds(catalog).Select(id=>new Revision {
             key=id,hash=catalog.FindRoom(id)?.revision

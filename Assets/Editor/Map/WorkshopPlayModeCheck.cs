@@ -178,6 +178,23 @@ public static class WorkshopPlayModeCheck
         WorkshopBuild.OpenInPlayMode();
         while (!Ready(WorkshopTrial.SceneName)) yield return null;
         Button("저장"); // The room editor, including its draft, survived the trial.
+        // 방 등록 해제·삭제·복원: 머리글 토글 → 방 목록의 [삭제] → [삭제됨] 보기 → 그 행을 눌러 복원.
+        bool Registered() => ProjectRooms.Referrers(roomId).Contains("던전 후보");
+        Button("던전 등록").onClick.Invoke();
+        Require(Registered(), "dungeon registration writes the pool link");
+        Button("등록 해제").onClick.Invoke();
+        Require(!Registered() && Button("던전 등록"), "unregister removes the pool link and restores the toggle");
+        Button("내 작업").onClick.Invoke();
+        yield return Frames();
+        Button("방 삭제/" + roomId).onClick.Invoke();
+        yield return Frames();
+        Require(ProjectRooms.IsRemoved(roomId) && GameObject.Find("프로젝트 편집 " + roomId) == null, "delete marks the room and hides it from the list");
+        Button("삭제된 방").onClick.Invoke();
+        yield return Frames();
+        Button("삭제됨 " + roomId).onClick.Invoke();
+        yield return Frames();
+        Require(!ProjectRooms.IsRemoved(roomId) && Button("프로젝트 편집 " + roomId), "clicking a deleted room restores it");
+        Button("삭제된 방").onClick.Invoke();
         Button("게임 설정").onClick.Invoke();
         Button("던전").onClick.Invoke();
         int Seed() => int.Parse(GameObject.Find("배치 시드/값").GetComponent<TMP_Text>().text);

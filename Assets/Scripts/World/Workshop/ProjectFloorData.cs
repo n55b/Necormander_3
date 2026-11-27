@@ -42,7 +42,8 @@ internal static class ProjectFloorData
             var catalog=UnityEngine.Resources.Load<WorkshopCatalog>("WorkshopCatalog");
             if(copy.tutorialOrder.Any(id=>catalog.FindRoom(id)==null)) throw new InvalidDataException("튜토리얼 방을 찾을 수 없습니다.");
             foreach(var slot in copy.slots)
-                if(ProjectRooms.Decode(slot.document,ProjectRooms.Snapshot(slot.document),catalog).template!=slot.template)
+                if(ProjectRooms.IsRemoved(slot.document)) throw new InvalidDataException("삭제한 방이 층에 연결돼 있습니다.");
+                else if(ProjectRooms.Decode(slot.document,ProjectRooms.Snapshot(slot.document),catalog).template!=slot.template)
                     throw new InvalidDataException("층에 연결된 방 원본을 확인하세요.");
         });
         Read(floor,saved);

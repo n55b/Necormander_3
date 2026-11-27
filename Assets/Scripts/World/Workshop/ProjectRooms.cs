@@ -85,7 +85,7 @@ public static class ProjectRooms
         foreach (var pair in files.OrderBy(p=>p.Key,StringComparer.Ordinal))
         {
             string path=pair.Key;
-            if(path==Header) continue;
+            if(path==Header || path==ProjectStructure.RemovedFile) continue;   // 삭제 표시는 방 내용이 아니다(LoadRoom이 건너뛴다)
             // 옛 방 클리어 보상 선택. 지급에 영향이 없어 지웠고, 남은 파일은 다음 저장 때 사라진다.
             if(path=="ENCOUNTER/reward.json") continue;
             if(path=="ENCOUNTER/waves.json") doc.waves=JArray.Parse(pair.Value).Values<string>().ToList();
@@ -160,6 +160,7 @@ public static class ProjectRooms
     private static void LoadRoom(string id,Dictionary<GameObject,Choices> next)
     {
         var files=Snapshot(id);
+        if(files.ContainsKey(ProjectStructure.RemovedFile)) return;
         if(files.Count==1 && files.TryGetValue(Header,out var header) && (string)JObject.Parse(header)["template"]==id)
             return;
         if(runtimeCatalog==null) runtimeCatalog=Resources.Load<WorkshopCatalog>("WorkshopCatalog");
@@ -208,9 +209,51 @@ public static class ProjectRooms
         File.Exists(Path.Combine(ProjectContentStore.Root,"WORLD","POOLS",doc.template,doc.id+".json"));
     public static void Register(WorkshopRoom doc)
     {
+        if(IsRemoved(doc.id)) throw new InvalidOperationException("삭제한 방은 던전 후보에 넣을 수 없습니다. 먼저 복원하세요.");
         var basis = ProjectContentStore.WithDocument("WORLD/POOLS/"+doc.template,(folder,_)=>ProjectContentStore.Read(folder));
         var updated=new Dictionary<string,string>(basis) { [doc.id+".json"]=ProjectContentStore.Json(new JObject{["room"]=doc.id}) };
         ProjectContentStore.Save("WORLD/POOLS/"+doc.template,basis,updated,_=>{});
+        Reset();
+    }
+    public static void Unregister(WorkshopRoom doc)
+    {
+        var basis = ProjectContentStore.WithDocument("WORLD/POOLS/"+doc.template,(folder,_)=>ProjectContentStore.Read(folder));
+        var updated=new Dictionary<string,string>(basis);
+        updated.Remove(doc.id+".json");
+        ProjectContentStore.Save("WORLD/POOLS/"+doc.template,basis,updated,_=>{});
+        Reset();
+    }
+
+    // 삭제 = removed.json 표시(새 방만). 문서는 남으므로 복원할 수 있고, 게임·공유본·굽기는 이 방을 건너뛴다.
+    public static bool IsRemoved(string id)=>File.Exists(Path.Combine(ProjectContentStore.Root,DirectoryName,id,ProjectStructure.RemovedFile));
+    // 이 방을 가리키는 DATA: 던전 후보(WORLD/POOLS)와 층의 방 연결(WORLD/FLOORS/<유형>/<층>/SLOTS).
+    public static IEnumerable<string> Referrers(string id)
+    {
+        string world=Path.Combine(ProjectContentStore.Root,"WORLD");
+        string pools=Path.Combine(world,"POOLS"), floors=Path.Combine(world,"FLOORS");
+        if(Directory.Exists(pools) && Directory.EnumerateFiles(pools,id+".json",SearchOption.AllDirectories).Any())
+            yield return "던전 후보";
+        if(!Directory.Exists(floors)) yield break;
+        foreach(string file in Directory.EnumerateFiles(floors,"*.json",SearchOption.AllDirectories).OrderBy(f=>f,StringComparer.Ordinal))
+            if(Path.GetFileName(Path.GetDirectoryName(file))=="SLOTS" && (string)JObject.Parse(File.ReadAllText(file))["document"]==id)
+                yield return "층 "+Path.GetRelativePath(world,Path.GetDirectoryName(Path.GetDirectoryName(file))).Replace('\\','/')+"/SLOTS/"+Path.GetFileName(file);
+    }
+    public static void Remove(WorkshopRoom doc)
+    {
+        if(doc.id==doc.template) throw new InvalidOperationException("게임 원본 방은 삭제할 수 없습니다.");
+        var users=Referrers(doc.id).ToArray();
+        if(users.Length>0) throw new InvalidOperationException("이 방을 쓰는 곳이 있습니다: "+string.Join(", ",users));
+        var basis=Snapshot(doc.id);
+        var next=new Dictionary<string,string>(basis) { [ProjectStructure.RemovedFile]=ProjectContentStore.Json(new JObject{["removed"]=true}) };
+        ProjectContentStore.Save(Document(doc.id),basis,next,_=>{});
+        Reset();
+    }
+    public static void Restore(string id)
+    {
+        var basis=Snapshot(id);
+        var next=new Dictionary<string,string>(basis);
+        next.Remove(ProjectStructure.RemovedFile);
+        ProjectContentStore.Save(Document(id),basis,next,_=>{});
         Reset();
     }
 }

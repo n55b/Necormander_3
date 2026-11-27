@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -12,6 +13,7 @@ public sealed partial class RoomWorkshopWindow
     private bool drawer;
     private string paletteQuery="";
     private string roomQuery="";
+    private bool showRemovedRooms;
 
     private void DrawDesk(List<(string label,string meta,string key,WorkshopCatalog.Template template,Action run)> rooms,string previousControl)
     {
@@ -48,6 +50,9 @@ public sealed partial class RoomWorkshopWindow
             rooms=rooms.FindAll(r=>r.label?.IndexOf(roomQuery,StringComparison.OrdinalIgnoreCase)>=0);
             Btn("검색 해제",410,205,85,22,()=>{roomQuery="";listPage=0;Draw(page);});
         }
+        int removed=project ? ProjectRooms.Ids().Count(ProjectRooms.IsRemoved) : 0;
+        if (removed>0 || showRemovedRooms)
+            Btn(showRemovedRooms ? "삭제됨 숨김" : "삭제됨 "+removed,500,205,62,22,()=>{showRemovedRooms=!showRemovedRooms;listPage=0;Draw(page);},showRemovedRooms,"삭제된 방");
         const int perPage = 3;
         int pages = Mathf.Max(1, (rooms.Count + perPage - 1) / perPage);
         listPage = Mathf.Clamp(listPage, 0, pages - 1);
@@ -61,14 +66,25 @@ public sealed partial class RoomWorkshopWindow
         {
             var row=rooms[i];
             int y=76+(i%perPage)*42;
-            var open=Btn(row.label,251,y,312,39,row.run);
+            // DATA의 새 방(원본 덮어쓰기가 아닌 방)만 삭제할 수 있다. 삭제는 표시만 남겨 [삭제됨]에서 복원한다.
+            bool removable=row.meta=="프로젝트 편집" && row.key!=row.template?.id;
+            var open=Btn(row.label,251,y,removable ? 262 : 312,39,row.run);
+            if (removable)
+            {
+                string id=row.key;
+                Btn("삭제",516,y+8,48,23,()=>{
+                    try { ProjectRooms.Remove(ProjectRooms.Description(id)); }
+                    catch (InvalidOperationException) { Say("삭제할 수 없습니다 · 던전 후보: 방을 열어 [등록 해제] · 층 연결: 레벨 > 게임 설정"); return; }
+                    Draw(page); Say("방을 삭제했습니다 · [삭제됨]에서 복원할 수 있습니다");
+                },false,"방 삭제/"+id);
+            }
             open.name=row.meta+" "+row.key;
             var title=open.GetComponentInChildren<TMP_Text>();
             title.rectTransform.anchoredPosition=new Vector2(41,-1);
-            title.rectTransform.sizeDelta=new Vector2(266,20);
+            title.rectTransform.sizeDelta=new Vector2(removable ? 216 : 266,20);
             title.alignment=TextAlignmentOptions.MidlineLeft;
             PixelText.Configure(title,12);
-            WorkshopUI.Label(open.transform,row.meta,41,20,266,17).color=WorkshopUI.Mint;
+            WorkshopUI.Label(open.transform,row.meta,41,20,removable ? 216 : 266,17).color=WorkshopUI.Mint;
             RoomThumbnail(row.template,255,y+4,31);
             string pin="Workshop.Pinned."+row.key;
             bool pinned=PlayerPrefs.GetInt(pin)!=0;

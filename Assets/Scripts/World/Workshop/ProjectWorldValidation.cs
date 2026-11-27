@@ -23,6 +23,7 @@ public static class ProjectWorldValidation
             string template=Directory.GetParent(file).Name;
             string id=Path.GetFileNameWithoutExtension(file);
             string selected=(string)JObject.Parse(File.ReadAllText(file))["room"];
+            if(ProjectRooms.IsRemoved(id))throw new InvalidDataException("삭제한 방이 던전 후보에 남아 있습니다. "+file);
             var room=ProjectRooms.Decode(id,ProjectRooms.Snapshot(id),catalog);
             if(id!=selected || template!=room.template || catalog.FindRoom(template)==null ||
                 Path.GetFullPath(file)!=Path.GetFullPath(Path.Combine(pool,template,id+".json")))
@@ -46,7 +47,8 @@ public static class ProjectWorldValidation
             if(floor.tutorialOrder.Any(id=>catalog.FindRoom(id)==null))
                 throw new InvalidDataException("튜토리얼 방 참조를 확인하세요. "+location);
             foreach(var slot in floor.slots)
-                if(ProjectRooms.Decode(slot.document,ProjectRooms.Snapshot(slot.document),catalog).template!=slot.template)
+                if(ProjectRooms.IsRemoved(slot.document))throw new InvalidDataException("삭제한 방이 층에 연결돼 있습니다. "+location);
+                else if(ProjectRooms.Decode(slot.document,ProjectRooms.Snapshot(slot.document),catalog).template!=slot.template)
                     throw new InvalidDataException("층에 연결된 방 원본이 다릅니다. "+location);
         }
         if(Directory.Exists(Path.Combine(root,ProjectVillageData.Document)))
