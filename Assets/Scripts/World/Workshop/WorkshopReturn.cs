@@ -11,7 +11,7 @@ public sealed class WorkshopReturn : MonoBehaviour
     private static readonly List<RectTransform> blockers=new();
     private static bool dragging;
     private RectTransform statusPanel; private TMP_Text statusResult; private int target;   // 0 가까운 적, 1 모든 적, 2 플레이어
-    private RectTransform itemPanel; private TMP_Text giveResult, itemResult; private int itemMode, itemPage;   // 방식 0 넣기, 1 빼기
+    private RectTransform itemPanel; private TMP_Text giveResult; private int itemMode, itemPage;   // 방식 0 넣기, 1 빼기
     private const int ItemsPerPage=15;
 
     internal static void Block(RectTransform rect){ if(rect!=null && !blockers.Contains(rect)) blockers.Add(rect); }
@@ -91,7 +91,7 @@ public sealed class WorkshopReturn : MonoBehaviour
             caption.rectTransform.anchoredPosition=new Vector2(20,0); caption.rectTransform.sizeDelta=new Vector2(38,18);
             WorkshopUI.Picture(button.transform,"Icon",2,1,16,16,item.icon);
         }
-        itemResult=WorkshopUI.Label(itemPanel,result,4,127,188,10,8);
+        WorkshopUI.Label(itemPanel,result,4,127,188,10,8);
         WorkshopUI.Label(itemPanel,Stats(),4,138,188,10,8);
     }
     // 넣기는 최대 보유까지, 빼기는 그 아이템의 첫 칸을 뺀다.
