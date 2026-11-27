@@ -16,15 +16,18 @@ public sealed partial class WorkshopPlayerCheck
         var incoming=WorkshopPackage.Read(path,WorkshopTrial.Library);
         if (!reopen)
         {
-            Require(WorkshopWorkspace.ActiveId=="" && !Directory.EnumerateFiles(WorkshopFiles.Folder).Any(),"fresh recipient storage");
+            // 첫 화면은 디스크를 건드리지 않으므로 방 폴더가 아직 없을 수 있다(방 목록이 처음 그릴 때 만든다).
+            Require(WorkshopWorkspace.ActiveId=="" && (!Directory.Exists(WorkshopFiles.Folder) || !Directory.EnumerateFiles(WorkshopFiles.Folder).Any()),"fresh recipient storage");
             Directory.CreateDirectory(WorkshopWorkspace.Shared);
             File.Copy(path,Path.Combine(WorkshopWorkspace.Shared,"handoff.levelpack"));
             yield return Click("공유"); yield return Click("제작 묶음"); yield return Click("비교 handoff.levelpack");
             yield return Click("새 작업 공간으로 열기");
+            yield return Click("처음 화면");
         }
         Require(WorkshopWorkspace.ActiveId!="" && incoming.rooms.All(r=>
             WorkshopFiles.Read(WorkshopFiles.FileFor(r.id),WorkshopTrial.Library).Serialize()==r.Serialize()),
             "fresh process resolves exact room revisions");
+        yield return Click("레벨");
         yield return Click("게임 설정"); yield return Click("마을"); yield return Click("무대 플레이");
         yield return Wait(()=>UnityEngine.SceneManagement.SceneManager.GetActiveScene().name=="VillageScene" &&
             GameManager.Instance!=null && GameManager.Instance.IsPlayerReady && !UnityNote.SceneLoader.IsLoading);
@@ -40,6 +43,7 @@ public sealed partial class WorkshopPlayerCheck
     {
         var catalog=WorkshopTrial.Library;
         string firstHome=Path.Combine(profiles,"A"),secondHome=Path.Combine(profiles,"B");
+        yield return Click("처음 화면");
         yield return Click("공유");
         yield return Click("제작 묶음");
         GameObject.Find("묶음 이름 입력").GetComponent<TMP_InputField>().text="마을과 튜토리얼";
@@ -73,6 +77,8 @@ public sealed partial class WorkshopPlayerCheck
             WorkshopVillage.Load().actors.Any(a=>!string.IsNullOrWhiteSpace(a.greeting)),"blank receiver opened self-contained workspace");
         WorkshopWorkspace.UseTestHome(secondHome);
         Require(WorkshopWorkspace.ActiveId==receivedId,"workspace selection survives reopening storage");
+        yield return Click("처음 화면");
+        yield return Click("레벨");
         yield return Click("게임 설정");
         yield return Click("튜토리얼");
         yield return Click("무대 플레이");
@@ -86,7 +92,7 @@ public sealed partial class WorkshopPlayerCheck
         yield return Click("내 작업");
         yield return Click("편집 "+roomId);
         yield return Click("전투 설정"); yield return Click("다음 군집"); yield return Click("닫기"); yield return Click("저장");
-        yield return Click("공유"); yield return Click("제작 묶음");
+        yield return Click("처음 화면"); yield return Click("공유"); yield return Click("제작 묶음");
         GameObject.Find("묶음 이름 입력").GetComponent<TMP_InputField>().text="전투 수정";
         yield return Click("묶음 내보내기");
         string returned=Directory.GetFiles(WorkshopWorkspace.Shared,"*.levelpack").Single(path=>path!=received);

@@ -24,6 +24,7 @@ public static class WorkshopPlayModeCheck
     private static double deadline;
     private static Sprite expectedTerrain;
     private static WorkshopTerrainTile playedBrush;
+    private static string roomId;   // VerifyMapTools가 DATA에 저장한 방. 메뉴로 나갔다 들어온 첫 화면의 최근 작업에 보여야 한다
     private static readonly Dictionary<Vector3Int, (TileBase tile, Sprite sprite, TileBase floor)> paintedBanks = new();
     private static Vector3Int bankOrigin;
 
@@ -82,8 +83,17 @@ public static class WorkshopPlayModeCheck
         if (AssetDatabase.GetAssetPath(EditorSceneManager.playModeStartScene) != StartPath || WorkshopBuild.CanOpenInPlayMode())
             throw new InvalidOperationException("Temporary start scene or duplicate workshop entry.");
         yield return Frames();
+        // 첫 화면: 작업 종류 카드 다섯 장과 찾기. 카드를 누르면 그 영역의 첫 탭이 열리고 헤더에는 그 영역의 탭만 보인다.
+        foreach (var card in new[] { "레벨", "게임 콘텐츠", "글", "아트", "공유" }) Button(card);
+        Require(GameObject.Find("콘텐츠 찾기") != null && GameObject.Find("내 작업") == null, "home shows area cards and find without area tabs");
+        PresentationRegressionCheck.SaveFrame(PixelArtUpscaleRig.RenderCamera.targetTexture,"WorkshopUx/home");
+        if (UiResolutionCheck.Enabled)
+            yield return UiResolutionCheck.Verify("Workshop home",(RectTransform)Button("레벨").transform,Button("레벨"));
+        Button("레벨").onClick.Invoke();
+        yield return Frames();
+        Require(Button("처음 화면") && Button("영역") && Button("내 작업") && GameObject.Find("대사 편집") == null, "level area header shows only its tabs");
         var desk = GameObject.Find("Room actions").GetComponent<RectTransform>();
-        Require(GameObject.Find("Saved rooms") && GameObject.Find("Content tools"), "room creation, library and game content have separate panels");
+        Require(GameObject.Find("Saved rooms") && GameObject.Find("Level tools"), "room creation, library and level tools have separate panels");
         PresentationRegressionCheck.SaveFrame(PixelArtUpscaleRig.RenderCamera.targetTexture,"WorkshopUx/desk");
         if (UiResolutionCheck.Enabled)
             yield return UiResolutionCheck.Verify("Workshop desk",desk,Button("새 방 만들기"));
@@ -92,7 +102,8 @@ public static class WorkshopPlayModeCheck
         Button("검색").onClick.Invoke();
         Require(Object.FindObjectsByType<TMP_Text>(FindObjectsSortMode.None).Any(t=>t.text=="검색한 이름의 방이 없습니다."), "empty search explains how to recover");
         Button("검색 해제").onClick.Invoke();
-        Button("게임 콘텐츠").onClick.Invoke();
+        Button("영역").onClick.Invoke();
+        Button("영역/게임 콘텐츠").onClick.Invoke();
         yield return Frames();
         PresentationRegressionCheck.SaveFrame(PixelArtUpscaleRig.RenderCamera.targetTexture,"WorkshopUx/content-hub");
         Button("UI·보상 번역").onClick.Invoke();
@@ -124,7 +135,8 @@ public static class WorkshopPlayModeCheck
             while (sizes.MoveNext()) yield return sizes.Current;
         }
         PresentationRegressionCheck.SaveFrame(PixelArtUpscaleRig.RenderCamera.targetTexture, "WorkshopUx/text-preview");
-        Button("내 작업").onClick.Invoke();
+        Button("처음 화면").onClick.Invoke();
+        Button("레벨").onClick.Invoke();
         Button("새 방 만들기").onClick.Invoke();
         yield return VerifyMapTools();
         Button("저장").onClick.Invoke();
@@ -183,8 +195,10 @@ public static class WorkshopPlayModeCheck
         Button("메뉴").onClick.Invoke();
         while (!Ready("StartScene")) yield return null;
         Button("레벨 제작실").onClick.Invoke();
-        while (!Ready(WorkshopTrial.SceneName)) yield return null;
-        Button("새 방 만들기");
+        while (!Ready(WorkshopTrial.SceneName) || Object.FindFirstObjectByType<RoomWorkshopWindow>() == null) yield return null;
+        yield return Frames();
+        Require(Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Any(b => b.name == "최근 작업/" + roomId), "home lists the room edited in this session");
+        Button("레벨");
     }
 
     private static IEnumerator Frames(int count = 2)
@@ -345,6 +359,7 @@ public static class WorkshopPlayModeCheck
             string id = Directory.GetDirectories(roomsFolder).Except(earlier)
                 .Where(path=>File.Exists(Path.Combine(path,"room.json")) && File.ReadAllText(Path.Combine(path,"room.json")).Contains(title))
                 .OrderByDescending(Directory.GetLastWriteTimeUtc).Select(Path.GetFileName).First();
+            roomId=id;
             var nameInput=GameObject.Find("방 이름").GetComponent<TMP_InputField>();
             nameInput.ActivateInputField(); yield return Frames();
             Require(nameInput.isFocused,"room name has keyboard focus");

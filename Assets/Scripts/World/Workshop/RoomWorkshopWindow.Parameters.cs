@@ -181,6 +181,7 @@ public sealed partial class RoomWorkshopWindow
     {
         dataEntry=item;paramDraft=DraftStore.Open(item);dataFields=paramDraft.fields;
         PlayerPrefs.SetString("Workshop.Opened."+item.Document,DateTime.UtcNow.Ticks.ToString("D19"));
+        RememberRecent(Area.Content,item.Document,ContentTitle(item));
         dataField=null;dataPage=0;dataSearch="";Draw(page);
         if(paramDraft.Blocked!=null) Say(paramDraft.Blocked+" · 최신 제작판이면 [판 차이 정리]로 지운 뒤 저장하세요.");
     }

@@ -19,7 +19,7 @@ public sealed partial class RoomWorkshopWindow
             WorkshopWorkspace.Switch("");
             WorkshopTrial.Draft=null;WorkshopTrial.Undo.Clear();WorkshopTrial.Redo.Clear();
             floorSettings=null;openFloors.Clear();ResetPages();DraftStore.Clear();
-            Navigate(Page.Desk);Say("프로젝트 DATA에 연결했습니다.");
+            Navigate(Page.Home);Say("프로젝트 DATA에 연결했습니다.");
         }
         WorkshopUI.Button(panel,ProjectContentStore.Authoring ? "현재 문서 저장 후 연결" : "연결",15,144,173,26,()=>Safe(()=>{
             if(ProjectContentStore.Authoring)

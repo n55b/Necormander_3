@@ -26,6 +26,7 @@ public sealed partial class RoomWorkshopWindow
         DisposeArt();art=item;currentArt=source;nextArt=null;
         artBasis=WorkshopArtSource.Digest(source);artReady=false;
         Draw(page);PreviewArt(source,false);
+        RememberRecent(Area.Art,item.source,System.IO.Path.GetFileNameWithoutExtension(item.source));
     }
     private async void PreviewArt(byte[] source,bool candidate)
     {

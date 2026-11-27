@@ -19,6 +19,7 @@ public sealed partial class WorkshopPlayerCheck
         const int warmRounds = 20;
         bool snapshots = Environment.GetCommandLineArgs().Contains("-workshopHeapSnapshots");
         yield return Click("레벨 제작실");
+        yield return Click("레벨");
         yield return Click("새 방 만들기");
         yield return Wait(() => WorkshopTrial.Draft != null && GameObject.Find("Map") != null);
         string document = WorkshopTrial.Draft.Serialize();

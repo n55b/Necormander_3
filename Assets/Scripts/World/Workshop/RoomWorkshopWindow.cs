@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public sealed partial class RoomWorkshopWindow : MonoBehaviour
 {
     public WorkshopCatalog catalog;
-    private enum Page { Desk, Legacy, Map, Shared, Game, Project, Balance, Git, Parameters, Dialogue, Translations, Art, Compare, Passage, Content, Status }
+    private enum Page { Desk, Legacy, Map, Shared, Game, Project, Balance, Git, Parameters, Dialogue, Translations, Art, Compare, Passage, Content, Status, Home }
     private enum Tool { Select, Paint, Erase, Sample, Door, Enemy, Prop, Start, Stamp, Auto }
     private Page page;
     private Tool tool;
@@ -59,7 +59,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         canvas=WorkshopUI.Canvas("Workshop canvas",25000);
         canvas.transform.SetParent(transform,false);
         // Root canvases get their logical transform from the frame camera.
-        // 시험에서 돌아온 순서: 층 복귀 → 콘텐츠 화면 → 방 편집 → 작업대.
+        // 시험에서 돌아온 순서: 층 복귀 → 콘텐츠 화면 → 방 편집 → 첫 화면(작업 종류 카드).
         if (WorkshopTrial.ReturnToFloor)
         {
             WorkshopTrial.ReturnToFloor=false; WorkshopSession.FromContent=false; Draw(Page.Game);
@@ -69,7 +69,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
             WorkshopSession.FromContent=false; if(Doc!=null) RestoreMap(); RestoreContent();
         }
         else if (Doc!=null) { RestoreMap(); OpenMap(false,rememberedTile); }
-        else Draw(Page.Desk);
+        else Draw(Page.Home);
         if (WorkshopSession.Lost!=null) { Say("시험 전에 저장하지 않은 "+WorkshopSession.Lost+" 변경은 사라졌습니다."); WorkshopSession.Lost=null; }
 #if LEVEL_WORKSHOP && !UNITY_EDITOR
         Application.wantsToQuit+=WantsToQuit;
@@ -109,30 +109,18 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         if (content!=null) { content.gameObject.SetActive(false); Destroy(content.gameObject); }
         content=WorkshopUI.Box(canvas.transform,"Workspace",0,0,640,360,WorkshopUI.Ink).rectTransform;
         WorkshopUI.Frame(content,"Header",0,0,640,30);
-        if (page==Page.Map) WorkshopUI.Label(content,"방 편집",12,4,83,22,15);
-        else Btn(ProjectContentStore.Authoring ? "DATA 제작실" : "로컬 제작실",7,5,86,20,()=>
-            Say(ProjectContentStore.Authoring ? ProjectContentStore.Root : WorkshopWorkspace.Current));
-        Btn("내 작업",99,5,61,20,()=>Navigate(Page.Desk),page==Page.Desk);
-        Btn("공유",164,5,45,20,()=>Navigate(Page.Shared),page==Page.Shared);
-        Btn("Legacy",213,5,58,20,()=>Navigate(Page.Legacy),page==Page.Legacy);
-        Btn("게임 설정",275,5,66,20,()=>Navigate(Page.Game),page==Page.Game);
+        DrawHeader();
         Btn("메뉴",586,5,46,20,Leave);
-#if LEVEL_WORKSHOP && !UNITY_EDITOR
-        if(page==Page.Desk) Btn("프로젝트 연결",344,5,95,20,OpenConnection);
-#endif
-        // 작업대는 아래 줄에 같은 이름의 버튼이 있어 숨긴다. 비연결이어도 보인다(허브가 읽기 전용 안내를 띄운다).
-        if (page!=Page.Map && page!=Page.Desk)
-            Btn("게임 콘텐츠",447,5,72,20,()=>Navigate(Page.Content),
-                page is Page.Content or Page.Status or Page.Parameters or Page.Balance or Page.Dialogue or Page.Translations or Page.Art);
         DrawUnsavedButton();
         pages[(int)page].Draw();
         if(page!=Page.Desk) Refocus(kept);          // 작업대는 DrawLibrary가 기존 규칙(검색→'검색' 치환, 기본 포커스)으로 고른다
-        if(unsavedOpen) DrawUnsavedList();          // 그리는 순서: 헤더 → 페이지 → 목록 팝업 → 모달 → 상태 줄
+        if(areaMenuOpen) DrawAreaMenu();            // 그리는 순서: 헤더 → 페이지 → 영역·미저장 목록 → 모달 → 상태 줄
+        if(unsavedOpen) DrawUnsavedList();
         if(pendingConfirm!=null) DrawConfirm();     // Draw가 몇 번 다시 돌아도 모달이 남는다
         string hint = page == Page.Passage ? "이동 범위는 착지점에서 상하좌우로 이어진 바닥 타일 기준입니다." :
             !string.IsNullOrEmpty(notice) ? notice : page == Page.Map ? MapHint() :
             page == Page.Status ? "Ctrl+S 저장 · Ctrl+Z 되돌리기 · F6 시험" :
-            page == Page.Desk ? (ProjectContentStore.Authoring ? "저장 위치  ·  프로젝트 DATA" : "저장 위치  ·  로컬 작업 공간") : "";
+            page is Page.Desk or Page.Home ? (ProjectContentStore.Authoring ? "저장 위치  ·  프로젝트 DATA" : "저장 위치  ·  로컬 작업 공간") : "";
         feedback=WorkshopUI.Label(content,hint,9,page==Page.Map ? 328 : 335,page==Page.Map ? 382 : 623,page==Page.Map ? 15 : 19);
         if (page==Page.Map)
             WorkshopUI.Label(content,"휠 확대 · 가운데 버튼으로 이동 · Ctrl+S 저장 · F6 시험",9,344,385,15);
@@ -160,7 +148,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
     }
     private void Navigate(Page next)
     {
-        CloseMap(); review=null; listPage=0; drawer=false; encounterOpen=false; notice=""; Draw(next);
+        CloseMap(); review=null; listPage=0; drawer=false; encounterOpen=false; areaMenuOpen=false; notice=""; Draw(next);
     }
     private void Leave()=>ConfirmUnsaved(()=>
     {
@@ -202,38 +190,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
                 rows.Add((r.title,use+"  /  복제",r.id,r,()=>New(r)));
             }
         }
-        else
-        {
-            string folder=shared ? ShareFolder : WorkshopFiles.Folder;
-            Directory.CreateDirectory(folder);
-            var ids=!shared && ProjectContentStore.Authoring ? ProjectRooms.Ids() : Array.Empty<string>();
-            foreach(string id in ids)
-            {
-                try
-                {
-                    var doc=ProjectRooms.Description(id);
-                    rows.Add((doc.title,"프로젝트 편집",id,catalog.FindRoom(doc.template),()=>Begin(doc,false)));
-                }
-                catch(Exception error) { rows.Add((id,"데이터 확인",id,null,()=>Say(error.Message))); }
-            }
-            var paths=Directory.GetFiles(folder,shared ? "*.json" : "*.json*")
-                .Where(p=>!ids.Contains(Path.GetFileNameWithoutExtension(p)))
-                .Where(p=>p.EndsWith(".json") || p.EndsWith(".json.draft") || p.EndsWith(".json.bak"))
-                .OrderByDescending(File.GetLastWriteTimeUtc);
-            foreach(var path in paths)
-            {
-                try
-                {
-                    var doc=WorkshopFiles.Read(path,catalog);
-                    bool recovery=path.EndsWith(".draft"), backup=path.EndsWith(".bak");
-                    rows.Add((doc.title,shared ? "가져오기" : recovery ? "자동 복구" : backup ? "이전 버전" : "편집",doc.id,catalog.FindRoom(doc.template),()=>{
-                        if (shared || backup || recovery && ids.Contains(doc.id)) { doc.id=Guid.NewGuid().ToString("N"); doc.title+=" · 복사"; }
-                        Begin(doc,shared || recovery || backup);
-                    }));
-                }
-                catch(Exception) { rows.Add((Path.GetFileName(path),"파일 확인",path,null,()=>WorkshopFiles.Read(path,catalog))); }
-            }
-        }
+        else rows=RoomRows(shared);
         bool personal=page==Page.Desk||page==Page.Project;
         if(personal)rows=rows.OrderByDescending(r=>PlayerPrefs.GetInt("Workshop.Pinned."+r.key))
             .ThenByDescending(r=>PlayerPrefs.GetString("Workshop.Opened."+r.key,""),StringComparer.Ordinal).ToList();
@@ -272,6 +229,41 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         }
         if(Doc!=null) Btn("작업으로",345,5,72,20,()=>OpenMap(false));
     }
+    // 방 목록(내 방)·공유 폴더의 행. 첫 화면의 최근 작업과 찾기도 같은 행을 연다.
+    private List<(string label,string meta,string key,WorkshopCatalog.Template template,Action run)> RoomRows(bool shared)
+    {
+        var rows=new List<(string label,string meta,string key,WorkshopCatalog.Template template,Action run)>();
+        string folder=shared ? ShareFolder : WorkshopFiles.Folder;
+        Directory.CreateDirectory(folder);
+        var ids=!shared && ProjectContentStore.Authoring ? ProjectRooms.Ids() : Array.Empty<string>();
+        foreach(string id in ids)
+        {
+            try
+            {
+                var doc=ProjectRooms.Description(id);
+                rows.Add((doc.title,"프로젝트 편집",id,catalog.FindRoom(doc.template),()=>Begin(doc,false)));
+            }
+            catch(Exception error) { rows.Add((id,"데이터 확인",id,null,()=>Say(error.Message))); }
+        }
+        var paths=Directory.GetFiles(folder,shared ? "*.json" : "*.json*")
+            .Where(p=>!ids.Contains(Path.GetFileNameWithoutExtension(p)))
+            .Where(p=>p.EndsWith(".json") || p.EndsWith(".json.draft") || p.EndsWith(".json.bak"))
+            .OrderByDescending(File.GetLastWriteTimeUtc);
+        foreach(var path in paths)
+        {
+            try
+            {
+                var doc=WorkshopFiles.Read(path,catalog);
+                bool recovery=path.EndsWith(".draft"), backup=path.EndsWith(".bak");
+                rows.Add((doc.title,shared ? "가져오기" : recovery ? "자동 복구" : backup ? "이전 버전" : "편집",doc.id,catalog.FindRoom(doc.template),()=>{
+                    if (shared || backup || recovery && ids.Contains(doc.id)) { doc.id=Guid.NewGuid().ToString("N"); doc.title+=" · 복사"; }
+                    Begin(doc,shared || recovery || backup);
+                }));
+            }
+            catch(Exception) { rows.Add((Path.GetFileName(path),"파일 확인",path,null,()=>WorkshopFiles.Read(path,catalog))); }
+        }
+        return rows;
+    }
     private void New(WorkshopCatalog.Template r) => Begin(WorkshopRoom.Create(r),true);
     private void Begin(WorkshopRoom room,bool changed)
     {
@@ -281,6 +273,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         room.Validate(catalog);
         projectBasis=basis;pendingConflict=null;roomChoices.Clear();
         PlayerPrefs.SetString("Workshop.Opened."+room.id,DateTime.UtcNow.Ticks.ToString("D19"));
+        RememberRecent(Area.Level,room.id,room.title);
         floorCell=null; roomFloor=null;
         WorkshopTrial.Draft=room; selection.Clear(); stamp.Clear(); sampling=false; encounterOpen=false; start=null; tool=Tool.Select;
         WorkshopTrial.Undo.Clear(); WorkshopTrial.Redo.Clear();
@@ -597,6 +590,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
     {
         var keys=Keyboard.current;
         if(pendingConfirm!=null){ if(keys!=null && keys.escapeKey.wasPressedThisFrame){ pendingConfirm=null; Draw(page); } return; }   // 미저장 확인 모달
+        if(areaMenuOpen){ if(keys!=null && keys.escapeKey.wasPressedThisFrame){ areaMenuOpen=false; Draw(page); } return; }        // 영역 전환 목록: 지도 입력도 멈춘다
         var entry=pages[(int)page];
         // 키보드가 없어도(검사가 가상 키보드를 뺀 뒤) 지도 포인터 입력은 돌아야 한다.
         if(keys==null){ entry.Keys?.Invoke(); return; }

@@ -167,9 +167,11 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             while(UnityNote.SceneLoader.IsLoading || Button("변경 취소")==null) yield return null;
             if(Mathf.Abs(StatusRules.POISON_TICK_DAMAGE-fixture.poison)>.0001f)
                 throw new InvalidOperationException("Returning did not end the status preview.");
-            Click("변경 취소"); Click("내 작업");
+            Click("변경 취소"); Click("처음 화면");
         }
-        while(UnityNote.SceneLoader.IsLoading || Button("게임 방 편집")==null) yield return null;
+        // 제작실은 첫 화면(작업 종류 카드)으로 열린다. 레벨 카드가 방 목록을 연다.
+        while(UnityNote.SceneLoader.IsLoading || Button("레벨")==null) yield return null;
+        Click("레벨");
         if(phase=="world")
         {
             uint hash=unchecked((uint)(907 ^ fixture.grid.x*73856093 ^ fixture.grid.y*19349663));
@@ -193,7 +195,7 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
         }
         if(phase=="resolve")
         {
-            Click("공유"); Click("Git 충돌 확인"); Click("현재 쪽 사용"); Click("해결 저장 · 스테이징");
+            Click("처음 화면"); Click("공유"); Click("Git 충돌 확인"); Click("현재 쪽 사용"); Click("해결 저장 · 스테이징");
             var resolved=ProjectRooms.Decode(fixture.template,ProjectRooms.Snapshot(fixture.template),catalog);
             if(resolved.waves.Count!=2 || resolved.waves[1]!=fixture.clusters[1] || !resolved.cells.Any(c=>c.at==fixture.cell))
                 throw new InvalidOperationException("Conflict choice changed unrelated terrain.");
@@ -247,16 +249,16 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
         {
             CheckRecovery();
             CheckCellMerge(catalog,fixture);
-            Click("내 작업"); Click("게임 콘텐츠"); Click("플레이어 수치");
+            Click("처음 화면"); Click("게임 콘텐츠"); Click("플레이어 수치");
             GameObject.Find("클리어 방 질주 배율/+").GetComponent<Button>().onClick.Invoke();
             Click("프로젝트에 저장");
             fixture.sprint=new ProjectPlayerTuning().Value(ProjectPlayerTuning.Sprint,-1);
-            Click("게임 설정"); Click("던전");
+            Click("처음 화면"); Click("레벨"); Click("게임 설정"); Click("던전");
             GameObject.Find("일반 전투 웨이브/+").GetComponent<Button>().onClick.Invoke();
             Click("설정 저장");
             fixture.waves=ProjectFloorData.ForGame(1,false)?.waves ?? -1;
             if(fixture.sprint<1 || fixture.waves<1) throw new InvalidOperationException("Tuning values were not published.");
-            Click("내 작업");Click("게임 콘텐츠");Click("콘텐츠 수치");
+            Click("처음 화면");Click("게임 콘텐츠");Click("콘텐츠 수치");
             var search=GameObject.Find("데이터 검색").GetComponent<TMPro.TMP_InputField>();
             search.onEndEdit.Invoke("ClothArmor");
             Click("BALANCE/ITEMS   ClothArmor");
@@ -272,27 +274,27 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             GameObject.Find("데이터 검색").GetComponent<TMPro.TMP_InputField>().onEndEdit.Invoke("maxStack");
             FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.name.StartsWith("maxStack   ")).onClick.Invoke();
             GameObject.Find("설정값").GetComponent<TMPro.TMP_InputField>().text="23";
-            Click("내 작업");Click("모두 저장");
-            Click("게임 콘텐츠");Click("콘텐츠 수치");Click("에셋 목록");
+            Click("처음 화면");Click("레벨");Click("모두 저장");
+            Click("처음 화면");Click("게임 콘텐츠");Click("콘텐츠 수치");Click("에셋 목록");
             GameObject.Find("데이터 검색").GetComponent<TMPro.TMP_InputField>().onEndEdit.Invoke("Growth Reward Registry");
             Click("BALANCE/REGISTRY   Growth Reward Registry");
             GameObject.Find("데이터 검색").GetComponent<TMPro.TMP_InputField>().onEndEdit.Invoke("startingItem");
             FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.name.StartsWith("startingItem   ")).onClick.Invoke();
             for(int n=0;Button("QA 가죽옷")==null && n<12;n++)Click("다음");
             Click("QA 가죽옷");Click("프로젝트에 저장");
-            Click("내 작업");Click("게임 콘텐츠");Click("대사 편집");
+            Click("처음 화면");Click("게임 콘텐츠");Click("대사 편집");
             GameObject.Find("새 대화 ID").GetComponent<TMPro.TMP_InputField>().text="qa_shop";
             Click("새 대화");Click("줄 추가");
             GameObject.Find("대사 본문").GetComponent<TMPro.TMP_InputField>().text="상인이 돌아왔다.";
             Click("프로젝트에 저장");
-            Click("내 작업");Click("게임 콘텐츠");Click("UI·보상 번역");Click("UI Text Table · en");
+            Click("처음 화면");Click("게임 콘텐츠");Click("UI·보상 번역");Click("UI Text Table · en");
             GameObject.Find("번역 검색").GetComponent<TMPro.TMP_InputField>().onEndEdit.Invoke("Btn_StartGame");
             FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.name.StartsWith("Btn_StartGame   ")).onClick.Invoke();
             GameObject.Find("번역 본문").GetComponent<TMPro.TMP_InputField>().text="QA Start";Click("프로젝트에 저장");
             Click("새 번역");
             GameObject.Find("새 번역 키").GetComponent<TMPro.TMP_InputField>().text="qa_workshop_title";
             GameObject.Find("새 번역 본문").GetComponent<TMPro.TMP_InputField>().text="Editor";Click("프로젝트에 저장");
-            Click("내 작업");Click("게임 콘텐츠");Click("상태이상");Click("상태이상/poison");
+            Click("처음 화면");Click("게임 콘텐츠");Click("상태이상");Click("상태이상/poison");
             float authored=StatusRules.POISON_TICK_DAMAGE;
             GameObject.Find("poisonTickDamage/+").GetComponent<Button>().onClick.Invoke();
             Click("프로젝트에 저장");
@@ -362,7 +364,7 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
         if(offset<0||count!=144)throw new InvalidDataException("Unexpected palette encoding.");
         try
         {
-            Click("내 작업");Click("게임 콘텐츠");Click("아트 원본");Click("기준 팔레트");
+            Click("처음 화면");Click("게임 콘텐츠");Click("아트 원본");Click("기준 팔레트");
             while(GameObject.Find("현재 원본 preview")==null)yield return null;
             GameObject.Find("색상 코드").GetComponent<TMPro.TMP_InputField>().text="123456";
             Click("색 비교");

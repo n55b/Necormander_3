@@ -41,6 +41,7 @@ public sealed partial class RoomWorkshopWindow
         var entry=EnsureCatalog().FirstOrDefault(e=>e.source is StatusBalanceSO) ?? throw new InvalidOperationException("상태이상 원본 에셋을 찾을 수 없습니다.");
         statusDraft=DraftStore.Open(entry); statusRow=row ?? statusRow;
         PlayerPrefs.SetString("Workshop.Opened."+entry.Document,DateTime.UtcNow.Ticks.ToString("D19"));
+        RememberRecent(Area.Content,entry.Document,ContentTitle(entry));
         Navigate(Page.Status);   // Navigate가 상태 줄을 비우므로 안내는 그 뒤에 띄운다
         if(statusDraft.Blocked is string reason) Say(reason+" · 최신 제작판이면 [판 차이 정리]로 지운 뒤 저장하세요.");
     }

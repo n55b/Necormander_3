@@ -84,6 +84,7 @@ public sealed partial class RoomWorkshopWindow
         var korean=new ProjectDialogue(id,"ko",catalog.dialogueTable.Get(id));
         conversation=conversationLanguage=="ko"?korean:new ProjectDialogue(id,conversationLanguage,korean.order.Select(k=>korean.lines[k]));
         lineIndex=0;dialogueDirty=false;Draw(page);
+        RememberRecent(Area.Text,id,"대사 "+id);
     }
     private void MoveLine(int step)
     {

@@ -5,7 +5,8 @@ using TMPro;
 using UnityEngine;
 using Entry = ProjectParameterBindings.Entry;
 
-// 게임 콘텐츠 허브: 도메인 타일, 찾기, 최근·고정 칩. 타일 id는 검사가 누르는 고정 이름이다(옛 작업대 버튼 이름 포함).
+// 게임 콘텐츠 허브: 도메인 타일, 최근·고정 칩(찾기는 첫 화면, Home.cs). 타일 id는 검사가 누르는 고정 이름이다(옛 작업대 버튼 이름 포함).
+// 대사·번역·아트 타일은 글·아트 영역의 화면을 연다(헤더가 그 영역으로 바뀐다).
 public sealed partial class RoomWorkshopWindow
 {
     // group은 걸러 낼 DATA 영역 접두. 소유 화면이 생기기 전까지 그 영역만 걸러 낸 모든 수치를 연다.
@@ -19,8 +20,6 @@ public sealed partial class RoomWorkshopWindow
         ("플레이테스트","플레이테스트",null,Page.Content),("모든 수치","콘텐츠 수치",null,Page.Parameters),
     };
     private const string PlaytestTile="플레이테스트";
-    private string contentQuery="";
-    private TMP_InputField contentFind;
 
     // 캐시가 있으면 그대로, 없으면 만들고 바인딩한다. OpenParameters는 dataCatalog=null 뒤 불러 새 변형을 잡는다.
     private Entry[] EnsureCatalog()
@@ -53,11 +52,6 @@ public sealed partial class RoomWorkshopWindow
         var entry=Array.Find(dataCatalog,e=>e.Document==document);
         if(entry!=null) SelectContent(entry);
     }
-    private void OpenFind()
-    {
-        Navigate(Page.Content);
-        if(contentFind!=null){ contentFind.Select(); contentFind.ActivateInputField(); }
-    }
     private IEnumerable<Entry> Documents()=>EnsureCatalog().GroupBy(e=>e.Document).Select(g=>g.First());
     private IEnumerable<Entry> RecentContent()=>Documents()
         .Select(e=>(e,at:PlayerPrefs.GetString("Workshop.Opened."+e.Document,""))).Where(x=>x.at.Length>0)
@@ -70,15 +64,7 @@ public sealed partial class RoomWorkshopWindow
     {
         bool authoring=ProjectContentStore.Authoring;
         WorkshopUI.Label(content,"게임 콘텐츠",12,36,200,22,15);
-        contentFind=null;
-        if(authoring)
-        {
-            WorkshopUI.Label(content,"찾기",360,36,30,20);
-            contentFind=Input("콘텐츠 찾기",contentQuery,392,36,180,20);
-            contentFind.onEndEdit.AddListener(value=>{ value=value.Trim(); if(value==contentQuery) return; contentQuery=value; Draw(page); });
-            WorkshopUI.Label(content,"Ctrl+F",578,36,50,20,8);
-        }
-        if(authoring && contentQuery.Length>0){ DrawFindResults(); return; }
+        if(authoring) WorkshopUI.Label(content,"찾기는 처음 화면 · Ctrl+F",432,36,196,20,8).alignment=TextAlignmentOptions.MidlineRight;
         for(int i=0;i<contentTiles.Length;i++)
         {
             var tile=contentTiles[i];
@@ -112,26 +98,4 @@ public sealed partial class RoomWorkshopWindow
     }
     // 그 타일이 소유한 미저장 문서 수: DraftStore 초안 + 같은 이름의 Title 페이지(플레이어·대사·번역·아트).
     private int UnsavedIn(string tile)=>DraftStore.Unsaved.Count(d=>TileOf(d.entry)==tile)+pages.Count(p=>p.Title==tile && p.Dirty());
-    private void DrawFindResults()
-    {
-        string q=contentQuery;
-        bool Has(string text)=>text!=null && text.IndexOf(q,StringComparison.OrdinalIgnoreCase)>=0;
-        var hits=new List<(string key,string caption,Action open)>();
-        foreach(var tile in contentTiles.Where(t=>t.id!=PlaytestTile && (Has(t.caption) || Has(t.id))))
-            hits.Add((tile.id,tile.caption+"   화면",()=>OpenTile(tile)));
-        foreach(var e in Documents().Where(e=>Has(e.Title) || Has(e.source.name) || Has(e.group) || Has(ContentTitle(e))))
-            hits.Add((e.Document,ContentTitle(e)+"   "+e.group,()=>OpenContent(e.Document)));
-        // 소유 화면의 필드(상태이상): 그 필드가 든 행을 열고 그 줄로 스크롤한다. 모든 SO의 필드 찾기는 P2에서 색인과 함께 한다.
-        var balance=Documents().FirstOrDefault(e=>e.source is StatusBalanceSO);
-        if(balance!=null)
-            foreach(var f in ProjectParameters.Fields(balance.source,labels:true).Where(f=>Has(f.label) || Has(f.path)))
-                hits.Add(("상태이상/"+f.path,f.label+"   상태이상",()=>FocusStatusField(f.path)));
-        if(hits.Count==0) WorkshopUI.Label(content,"일치하는 항목이 없습니다.",12,66,612,22,12);
-        for(int i=0;i<Math.Min(10,hits.Count);i++)
-        {
-            var hit=hits[i];
-            Btn(hit.caption,12,62+i*23,612,21,hit.open,false,"찾기/"+hit.key).GetComponentInChildren<TMP_Text>().alignment=TextAlignmentOptions.MidlineLeft;
-        }
-        if(hits.Count>10) WorkshopUI.Label(content,"외 "+(hits.Count-10)+"개 · 검색어를 더 입력하세요.",12,295,400,18,8);
-    }
 }

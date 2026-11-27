@@ -17,7 +17,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-// 제작실 상태이상 화면 검사. WorkshopPlayModeCheck(Editor 어셈블리)가 게임 설정 화면에서 부른다.
+// 제작실 상태이상 화면 검사. WorkshopPlayModeCheck(Editor 어셈블리)가 게임 설정 화면에서 부른다(처음 화면을 거쳐 게임 콘텐츠로 간다).
 // DraftStore·WorkshopTrial·ProjectParameters·RoomWorkshopWindow.StatusRows 같은 internal 멤버를 쓰므로 런타임 어셈블리에 둔다.
 // 저장한 상태이상 문서와 초안을 지우고 상태이상 화면을 다시 연 채로 끝난다(이어지는 '메뉴'에서 미저장 확인이 뜨지 않는다).
 public static class WorkshopStatusCheck
@@ -29,7 +29,9 @@ public static class WorkshopStatusCheck
     {
         var balance=Resources.Load<StatusBalanceSO>(StatusRules.BalanceResourcePath);
         Require(balance!=null,"status balance asset");
-        // 1. 허브
+        // 1. 첫 화면 카드(글리프·넘침) → 허브. 최근 항목은 사용자 데이터 이름이라 넘침 검사에서 뺀다.
+        Click("처음 화면"); yield return Frames();
+        VerifyText("home");
         Click("게임 콘텐츠"); yield return Frames();
         foreach(var tile in Tiles) Require(Find(tile)!=null,"hub tile "+tile);
         Require(Find("상태이상").interactable,"status tile opens in an authoring workspace");
@@ -170,6 +172,7 @@ public static class WorkshopStatusCheck
                 Require(text.font.HasCharacters(plain,out List<char> missing) || missing.Count==0,
                     row+": '"+text.text+"' has glyphs missing from "+text.font.name+": "+new string(missing?.ToArray() ?? Array.Empty<char>()));
             }
+            if(text.GetComponentInParent<Button>()?.name.Contains("최근")==true) continue;
             Require(!(text.overflowMode==TextOverflowModes.Ellipsis && text.isTextOverflowing),row+": '"+text.text+"' does not fit its box");
         }
     }

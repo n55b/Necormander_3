@@ -70,6 +70,9 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         }
         yield return Capture("title");
         yield return Click("레벨 제작실");
+        yield return Wait(()=>!UnityNote.SceneLoader.IsLoading && GameObject.Find("콘텐츠 찾기")!=null);
+        yield return Capture("home");
+        yield return Click("레벨");
         yield return Click("Legacy");
         yield return Capture("legacy");
         Require(WorkshopTrial.Library.rooms.Length == 32, "32 base rooms");
@@ -133,6 +136,7 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         Require(File.Exists(file) && WorkshopFiles.Read(file,WorkshopTrial.Library).pieces.Count == 1, "saved document round trip");
         yield return Click("공유본");
         Require(Directory.GetFiles(Path.Combine(Path.GetDirectoryName(WorkshopFiles.Folder),"Shared"), draft.id+"-*.json").Length > 0, "shared copy");
+        yield return Click("처음 화면");
         yield return Click("공유");
         yield return Click("가져오기 "+draft.id);
         Require(WorkshopTrial.Draft.id!=draft.id && WorkshopTrial.Draft.pieces.Count==1,"imported team file as independent draft");
@@ -191,10 +195,14 @@ public sealed partial class WorkshopPlayerCheck : MonoBehaviour
         yield return Wait(() => !WorkshopTrial.Active && GameObject.Find("Workshop camera")!=null && !UnityNote.SceneLoader.IsLoading);
         Require(WorkshopTrial.Draft.id == draft.id && WorkshopTrial.Redo.Count > 0, "restored document and undo history");
         yield return CheckArena(draft.id);
-        yield return Click("게임 설정");
+        yield return Click("처음 화면");
+        Require(!FindObjectsByType<Button>(FindObjectsSortMode.None).First(b=>b.name=="글").interactable &&
+            !FindObjectsByType<Button>(FindObjectsSortMode.None).First(b=>b.name=="아트").interactable,"unconnected home disables text and art cards");
         yield return Click("게임 콘텐츠");
         Require(!FindObjectsByType<Button>(FindObjectsSortMode.None).First(b=>b.name=="상태이상").interactable &&
             FindObjectsByType<TMPro.TMP_Text>(FindObjectsSortMode.None).Any(t=>t.text.StartsWith("프로젝트 연결 필요",StringComparison.Ordinal)),"unconnected hub is read-only");
+        yield return Click("처음 화면");
+        yield return Click("레벨");
         yield return Click("게임 설정");
         yield return Click("튜토리얼");
         yield return Click("방 순서 편집");

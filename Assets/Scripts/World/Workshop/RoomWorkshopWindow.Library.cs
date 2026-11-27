@@ -83,22 +83,12 @@ public sealed partial class RoomWorkshopWindow
             Btn("다음",565,205,55,22,()=>{listPage++;Draw(page);}).interactable=listPage+1<pages;
         }
         else if (rooms.Count>0) WorkshopUI.Label(content,"방 "+rooms.Count+"개",251,205,100,22);
-        WorkshopUI.Frame(content,"Content tools",8,243,624,84);
-        WorkshopUI.Label(content,project ? "게임 콘텐츠 편집" : "함께 작업하기",20,249,376,22,12);
-        if (project)
-        {
-            // 수치·대사·번역·아트는 허브 타일로 옮겼다(옛 버튼 이름은 타일 id로 남는다). 여기에는 입구와 최근 3개만 둔다.
-            Btn("게임 콘텐츠 ▶",20,279,150,30,()=>Navigate(Page.Content),true,"게임 콘텐츠");
-            WorkshopUI.Label(content,"최근",180,279,30,30);
-            int k=0;
-            foreach(var e in RecentContent()) ContentChip("최근",e,214+k++*136,279,130,30);
-        }
-        else
-        {
-            Btn("동료의 방 가져오기",20,279,190,30,()=>Navigate(Page.Shared));
-            Btn("시험 층 설정",218,279,190,30,()=>Navigate(Page.Game));
-            Btn("기존 도구 보기",416,279,204,30,()=>{legacyTools=true;Navigate(Page.Legacy);});
-        }
+        // 레벨 영역의 방 목록. 게임 콘텐츠·글·아트 입구는 첫 화면 카드로 옮겼다.
+        WorkshopUI.Frame(content,"Level tools",8,243,624,84);
+        WorkshopUI.Label(content,project ? "층 설정 · 공유 · 기존 도구" : "함께 작업하기",20,249,376,22,12);
+        Btn("동료의 방 가져오기",20,279,190,30,()=>Navigate(Page.Shared));
+        Btn(project ? "층·튜토리얼·마을" : "시험 층 설정",218,279,190,30,()=>Navigate(Page.Game));
+        Btn("기존 도구 보기",416,279,204,30,()=>{legacyTools=true;Navigate(Page.Legacy);});
         if (previousControl=="방 이름 검색" || previousControl=="검색 해제") previousControl="검색";
         if (previousControl!=null)
         {

@@ -68,7 +68,8 @@ public sealed partial class ProjectRoomVerification
     {
         if(!WorkshopTrial.Open()) throw new InvalidOperationException("Workshop entry failed.");
         yield return null;
-        while(UnityNote.SceneLoader.IsLoading || Button("새 방 만들기")==null) yield return null;
+        while(UnityNote.SceneLoader.IsLoading || Button("레벨")==null) yield return null;
+        Click("레벨");
         string entry="프로젝트 편집 "+doc.id;
         for(int i=0;i<24 && Button(entry)==null;i++) Click("다음");
         Click(entry); Click("출구");
