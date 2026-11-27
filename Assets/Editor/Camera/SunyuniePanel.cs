@@ -53,7 +53,7 @@ public sealed class SunyuniePanel : EditorWindow
         using var propertyFonts = new PropertyFontScope(EditorStyles.label, EditorStyles.boldLabel);
         using (new EditorGUI.DisabledScope(!WorkshopBuild.CanOpenInPlayMode()))
         {
-            if (Button(EditorApplication.isPlaying ? "현재 플레이에서 레벨 제작실로 이동" : "레벨 제작실로 플레이 시작"))
+            if (Button(EditorApplication.isPlaying ? "현재 플레이에서 제작실로 이동" : "제작실로 플레이 시작"))
                 WorkshopBuild.OpenInPlayMode();
         }
         int selected = GUILayout.SelectionGrid(page, Pages, 3, Style(GUI.skin.button));

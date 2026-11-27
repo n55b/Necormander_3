@@ -67,7 +67,7 @@ public static class WorkshopTrial
     internal static bool PlayArena()
     {
         var template=Library.rooms.First(r=>r.type==RoomType.Spawn && r.inPool);
-        var dummy=Library.Dummy ?? throw new InvalidDataException("허수아비가 카탈로그에 없습니다. Rebuild catalog를 실행하세요.");
+        var dummy=Library.Dummy ?? throw new InvalidDataException("허수아비가 카탈로그에 없습니다. Tools > 제작실 > 원본 카탈로그 다시 굽기를 실행하세요.");
         var root=template.room.transform;
         var ground=WorkshopCatalog.Map(root,0);
         var wall=WorkshopCatalog.Map(root,1); var blocked=WorkshopCatalog.Map(root,3);

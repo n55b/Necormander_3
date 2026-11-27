@@ -9,7 +9,7 @@ public static class WorkshopRoomImport
 {
     private const string CatalogPath=ProjectRooms.CatalogPath;
 
-    [MenuItem("Tools/Level Workshop/Legacy/Import room as new prefab variant")]
+    [MenuItem("Tools/제작실/Legacy/방을 새 프리팹 변형으로 가져오기")]
     private static void ImportRoom()
     {
         var nativeRooms=Path.GetFullPath(Path.Combine(Application.persistentDataPath,"..","..","Necromander","Level Workshop","LevelWorkshop","Rooms"));
@@ -48,7 +48,7 @@ public static class WorkshopRoomImport
         }
         finally { EditorSceneManager.ClosePreviewScene(scene); }
     }
-    [MenuItem("Tools/Level Workshop/Verify original room documents")]
+    [MenuItem("Tools/제작실/원본 방 문서 검증")]
     public static void VerifySources()
     {
         var catalog=AssetDatabase.LoadAssetAtPath<WorkshopCatalog>(CatalogPath);

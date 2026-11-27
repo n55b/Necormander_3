@@ -48,7 +48,7 @@ public sealed class DesignerInspectorView
     // 이 화면이 그리는 SO의 DATA 덮어쓰기 키. 파일 수정 시각이 같으면 다시 읽지 않는다.
     private string overridePath; private DateTime overrideStamp; private HashSet<string> overrides = new HashSet<string>();
     private bool owned;
-    // 레벨 제작실이 편집을 맡은 타입. 도메인이 제작실로 옮겨 갈 때마다 한 줄씩 더한다. Sunyunie 상태이상 탭도 이 인스펙터라 함께 읽기 전용이 된다.
+    // 제작실이 편집을 맡은 타입. 도메인이 제작실로 옮겨 갈 때마다 한 줄씩 더한다. Sunyunie 상태이상 탭도 이 인스펙터라 함께 읽기 전용이 된다.
     internal static readonly Type[] OwnedByWorkshop = { typeof(StatusBalanceSO) };
 
     private static string DataFile(UnityEngine.Object target, string root)
@@ -134,7 +134,7 @@ public sealed class DesignerInspectorView
         var target = serialized.targetObject;
         owned = Array.Exists(OwnedByWorkshop, t => t.IsInstanceOfType(target));
         overrides = target is ScriptableObject ? CachedOverrides(target) : new HashSet<string>();
-        if (owned) KoreanEditorText.Help("레벨 제작실 > 게임 콘텐츠에서 편집합니다. 여기서는 읽기만 합니다.", MessageType.Info);
+        if (owned) KoreanEditorText.Help("제작실 > 게임 콘텐츠에서 편집합니다. 여기서는 읽기만 합니다.", MessageType.Info);
         else if (overrides.Count > 0) KoreanEditorText.Help("DATA가 덮어씀: " + overrides.Count + "개 항목은 제작실 값이 게임에 적용됩니다. 회색 항목은 여기서 바꿔도 반영되지 않습니다.", MessageType.Warning);
         var iterator = serialized.GetIterator();
         bool enter = true;

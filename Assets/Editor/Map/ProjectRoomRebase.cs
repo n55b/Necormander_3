@@ -10,7 +10,7 @@ using UnityEngine;
 // current revision and validate its tiles, objects and exits against the new prefab before keeping the change.
 public static class ProjectRoomRebase
 {
-    [MenuItem("Tools/Level Workshop/Rebase project rooms")]
+    [MenuItem("Tools/제작실/프로젝트 방 재기준")]
     public static void Run()
     {
         WorkshopBuild.Bake();

@@ -307,6 +307,6 @@ internal static class WorkshopUI
     {
         if (!WorkshopTrial.Available) return;
         var canvas=Canvas("Workshop entry",100);
-        Button(canvas.transform,"레벨 제작실",548,8,84,20,()=>WorkshopTrial.Open());
+        Button(canvas.transform,"제작실",548,8,84,20,()=>WorkshopTrial.Open(),id:"레벨 제작실");   // id는 검사 클릭 계약
     }
 }

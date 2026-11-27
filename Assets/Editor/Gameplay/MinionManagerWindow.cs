@@ -306,7 +306,7 @@ public class MinionManagerWindow : EditorWindow
 
         EditorGUILayout.HelpBox(
             "스킬 쿨타임·배율·타수·상태이상은 '스킬 에셋'에, 자동 공격·대쉬·강화는 '소환수 에셋'에 저장됩니다.\n" +
-            "상태이상 지속시간·출혈 비율 같은 공통 수치는 레벨 제작실 > 게임 콘텐츠 > 상태이상에서 고칩니다.", MessageType.None);
+            "상태이상 지속시간·출혈 비율 같은 공통 수치는 제작실 > 게임 콘텐츠 > 상태이상에서 고칩니다.", MessageType.None);
     }
 
     private static void Field(Rect r, SerializedObject so, string path, bool shared = false)
@@ -627,7 +627,7 @@ public class MinionManagerWindow : EditorWindow
         EditorGUILayout.HelpBox("소환수 2마리를 장착하면, 필드에 나오지 않은(현현되지 않은) 대기 소환수의 효과가 플레이어 평타에 붙습니다.\n" +
                                 "소환수마다 효과를 여러 개 넣을 수 있고, 효과마다 확률을 따로 추첨합니다(동시에 여러 개가 붙을 수 있음).\n" +
                                 "붙으면 그 휘두르기에 맞은 적 모두에게 걸립니다. Space 로 스왑하면 효과도 바뀝니다.\n" +
-                                "빙결 시간·출혈 피해·취약 배율 같은 상태이상 자체 수치는 레벨 제작실 > 게임 콘텐츠 > 상태이상에서 고칩니다.", MessageType.Info);
+                                "빙결 시간·출혈 피해·취약 배율 같은 상태이상 자체 수치는 제작실 > 게임 콘텐츠 > 상태이상에서 고칩니다.", MessageType.Info);
 
         // 2) 플레이 중 상태
         MainMinionDataSO source = null;

@@ -92,7 +92,7 @@ https://docs.unity3d.com/6000.0/Documentation/ScriptReference/InspectorNameAttri
 
 추가 점검 (2026-10-26)
 기존 26개에 53개를 더해 신규 조절 항목은 총 79개다.
-상태이상 공통값(Assets/Resources/Settings/StatusBalance.asset)은 레벨 제작실 > 게임 콘텐츠 > 상태이상에서 조절한다. 인스펙터와 Sunyunie 상태이상 탭은 읽기 전용이다.
+상태이상 공통값(Assets/Resources/Settings/StatusBalance.asset)은 제작실 > 게임 콘텐츠 > 상태이상에서 조절한다. 인스펙터와 Sunyunie 상태이상 탭은 읽기 전용이다.
 일반 AI 후퇴·등장 예고·판정 유지 시간·퍼펙트 가드 소모량·걷기 배속·UI 강조·배경음 전환도 기존 담당 스크립트에 추가했다.
 항목별 한글 설명은 DesignerInspectorLabels에 있다. 당시 조사 목록은 Legacy/History/Docs/기획_조절값_추가점검_2026-10-26.txt에 보관했다.
 추가 후 검증: 실제 표시 필드 1,259종 / 전체 직렬화 후보 1,394개. 두 수치는 신규 항목 수와 다르다.

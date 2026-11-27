@@ -15,7 +15,7 @@ using UnityEngine.Tilemaps;
 public static class WorkshopBuild
 {
     private const string PreviousStartScene = "Workshop.PreviousPlayModeStartScene";
-    private const string PlayMenu = "Tools/Level Workshop/Open in Play Mode";
+    private const string PlayMenu = "Tools/제작실/플레이 모드에서 열기";
     private const string CatalogPath=ProjectRooms.CatalogPath;
     private const string Rooms="Assets/Prefabs/Map/Room Map Prefabs";
 
@@ -50,14 +50,14 @@ public static class WorkshopBuild
             return;
         }
         var workshop = AssetDatabase.LoadAssetAtPath<SceneAsset>(WorkshopTrial.ScenePath);
-        if (workshop == null) { Debug.LogError("레벨 제작실 씬을 찾을 수 없습니다. " + WorkshopTrial.ScenePath); return; }
+        if (workshop == null) { Debug.LogError("제작실 씬을 찾을 수 없습니다. " + WorkshopTrial.ScenePath); return; }
         var previous = EditorSceneManager.playModeStartScene;
         SessionState.SetString(PreviousStartScene, previous == null ? string.Empty :
             AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(previous)));
         EditorSceneManager.playModeStartScene = workshop;
         EditorApplication.EnterPlaymode();
     }
-    [MenuItem("Tools/Level Workshop/Rebuild catalog")]
+    [MenuItem("Tools/제작실/원본 카탈로그 다시 굽기")]
     public static void Bake()
     {
         var library=AssetDatabase.LoadAssetAtPath<WorkshopCatalog>(CatalogPath);
@@ -151,7 +151,7 @@ public static class WorkshopBuild
         }
         Debug.Log($"[Workshop] {templates.Count} templates, {library.tiles.Length} tiles, {library.pieces.Length} pieces");
     }
-    [MenuItem("Tools/Level Workshop/Build Windows creator")]
+    [MenuItem("Tools/제작실/Windows 제작판 빌드")]
     public static void BuildWindows() => Build(false);
     public static void BuildVerificationPlayer() => Build(true);
     public static void BuildMemoryCheckPlayer() => Build(true, true);

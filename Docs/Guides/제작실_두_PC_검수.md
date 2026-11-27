@@ -1,6 +1,6 @@
 # 두 사람이 이어서 방 만들기
 
-두 PC에 같은 ZIP을 풀고 각자 `Windows/NecromanderWorkshop.exe`를 실행한다. 첫 화면에서 **레벨 제작실**을 연다. 기존 작업이 있는 사람은 새 방에 이번 검수용 이름을 붙인다.
+두 PC에 같은 ZIP을 풀고 각자 `Windows/NecromanderWorkshop.exe`를 실행한다. 첫 화면에서 **제작실**을 연다. 기존 작업이 있는 사람은 새 방에 이번 검수용 이름을 붙인다.
 
 ### 첫 번째 제작자
 
