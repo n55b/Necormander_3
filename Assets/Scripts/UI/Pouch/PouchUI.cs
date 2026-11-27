@@ -146,10 +146,15 @@ public class PouchUI : MonoBehaviour
         foreach (var cell in _cells) cell.SetSelected(item != null && cell.Item == item);
         Show(item, item != null && _pouch != null ? _pouch.CountOf(item) : 0);
     }
-    // 제작실 크게 보기: 주머니 없이 상세 패널만 보유 count개로 채운다(UIPopUpManager·IsOpen을 거치지 않는다).
+    // 제작실 크게 보기: 주머니 없이 그 아이템 한 칸과 상세를 보유 count개로 채운다(UIPopUpManager·IsOpen을 거치지 않는다).
+    // 칸의 주인은 null이다(누르면 주머니 기준 보유 0개로 다시 그리지 않게).
     internal void ShowPreview(ItemSO item, int count)
     {
         if (panelRoot != null) panelRoot.SetActive(true);
+        if (_cells.Count == 0) _cells.Add(Instantiate(slotPrefab, content));
+        _cells[0].Bind(null, item, count); _cells[0].SetSelected(true);
+        if (totalsText != null) totalsText.text = $"보유 {count}개   종류 1종";
+        if (emptyText != null) emptyText.gameObject.SetActive(false);
         Show(item, count);
     }
     private void Show(ItemSO item, int count)
