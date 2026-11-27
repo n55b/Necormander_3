@@ -108,7 +108,8 @@ internal static class DraftStore
     internal static void Edit(Draft d,Action<Dictionary<string,string>,JObject> change)
     {
         Push(d);
-        change(d.files,d.values);
+        try{ change(d.files,d.values); }
+        catch{ Restore(d,d.undo.Pop()); throw; }   // 도우미가 중간에 실패하면 초안을 편집 전으로(빈 실행 취소 칸도 남기지 않는다)
         if(d.live) Apply(d);
     }
     // 변형 이름(definition.json title). 입력칸의 연속 편집은 실행 취소 한 번으로 묶는다.
@@ -205,12 +206,16 @@ internal static class DraftStore
     {
         if(from.Count==0) return false;
         to.Push(Snapshot(d));
-        var state=JObject.Parse(from.Pop());
+        Restore(d,from.Pop());
+        if(d.live) Apply(d);
+        return true;
+    }
+    private static void Restore(Draft d,string snapshot)
+    {
+        var state=JObject.Parse(snapshot);
         d.values=(JObject)state["v"];
         d.files=((JObject)state["f"]).Properties().ToDictionary(p=>p.Name,p=>(string)p.Value,StringComparer.Ordinal);
         d.lastPath=null;
-        if(d.live) Apply(d);
-        return true;
     }
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void Reset(){ drafts.Clear(); previewed.Clear(); }

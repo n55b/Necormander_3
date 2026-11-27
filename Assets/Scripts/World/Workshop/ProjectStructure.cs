@@ -236,11 +236,15 @@ internal static class ProjectStructure
         }
     }
     // 새 원소는 파일을 지우고, 원래 원소는 삭제 표시를 쓴다. 두 경우 모두 그 원소의 값 키를 지운다.
+    // 세션 중 만든 복제본은 원본의 새 원소를 원래 원소로 들고 있다(R26). 원래 목록에 있으면 새 원소 파일이라도 삭제 표시를 써야
+    // 이 세션에서 빠지고, 다음 실행(파일 없음 + 없는 id의 삭제 표시는 무시)에서도 같다.
     internal static void RemoveElement(Dictionary<string,string> files,JObject values,ScriptableObject target,string list,string id)
     {
         ListField(target.GetType(),list,out _,target.name);
         string path=ListPath(list,id);
-        if(files.TryGetValue(path,out var json) && Read(json,path).type!=null) files.Remove(path);
+        var original=listOriginals.TryGetValue((target,list),out var held) ? held.list : Current(target,list);
+        bool kept=original!=null && original.Cast<object>().Any(o=>Key(o)==id);
+        if(!kept && files.TryGetValue(path,out var json) && Read(json,path).type!=null) files.Remove(path);
         else files[path]=ProjectContentStore.Json(new JObject{["removed"]=true});
         string key=list+"/@"+Uri.EscapeDataString(id);
         foreach(string k in values.Properties().Select(p=>p.Name).Where(k=>k==key || k.StartsWith(key+"/",StringComparison.Ordinal)).ToArray()) values.Remove(k);
